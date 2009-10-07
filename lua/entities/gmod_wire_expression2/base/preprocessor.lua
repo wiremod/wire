@@ -258,6 +258,8 @@ function PreProcessor:ParsePorts(ports, startoffset)
 				self:Error("Variable type [" .. E2Lib.limitString(vtype, 10) .. "] must be lowercase", column+i+1)
 			end
 
+			if vtype == "number" then vtype = "normal" end
+
 			if not wire_expression_types[vtype:upper()] then
 				self:Error("Unknown variable type [" .. E2Lib.limitString(vtype, 10) .. "] specified for variable(s) (" .. E2Lib.limitString(namestring, 10) .. ")", column+i+1)
 			end

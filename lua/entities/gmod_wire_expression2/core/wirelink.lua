@@ -157,8 +157,7 @@ registerCallback("postinit", function()
 
 	local getf, setf
 	-- generate getters and setters for all types
-	-- <input serializer>, <output serializer>, <type checker>
-	for typename,id,zero,input_serializer,output_serializer,type_checker in pairs_map(wire_expression_types, unpack) do
+	for typename,id,zero,input_serializer,output_serializer in pairs_map(wire_expression_types, unpack) do
 		print(typename,id,zero,input_serializer,output_serializer,type_checker)
 		local fname = typename == "NORMAL" and "NUMBER" or typename
 
@@ -170,19 +169,35 @@ registerCallback("postinit", function()
 
 		if input_serializer then
 			--TODO {}
-			function getf(self, args)
-				local this, portname = args[2], args[3]
-				this, portname = this[1](self, this), portname[1](self, portname)
+			if type(zero) == "table" and not next(zero) then
+				function getf(self, args)
+					local this, portname = args[2], args[3]
+					this, portname = this[1](self, this), portname[1](self, portname)
 
-				if not validEntity(this) then return zero end
-				if not this.extended then return zero end
+					if not validEntity(this) then return {} end
+					if not this.extended then return {} end
 
-				if not this.Outputs[portname] then return zero end
-				if this.Outputs[portname].Type ~= typename then return zero end
+					if not this.Outputs[portname] then return {} end
+					if this.Outputs[portname].Type ~= typename then return {} end
 
-				return input_serializer(self, this.Outputs[portname].Value)
+					return input_serializer(self, this.Outputs[portname].Value)
+				end
+			else
+				function getf(self, args)
+					local this, portname = args[2], args[3]
+					this, portname = this[1](self, this), portname[1](self, portname)
+
+					if not validEntity(this) then return zero end
+					if not this.extended then return zero end
+
+					if not this.Outputs[portname] then return zero end
+					if this.Outputs[portname].Type ~= typename then return zero end
+
+					return input_serializer(self, this.Outputs[portname].Value)
+				end
 			end
 		else
+			-- a check for {} is not needed here, since array and table both have input serializers and are thus handled in the above branch.
 			function getf(self, args)
 				local this, portname = args[2], args[3]
 				this, portname = this[1](self, this), portname[1](self, portname)
