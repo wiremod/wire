@@ -1,0 +1,9 @@
+"AddonInfo"
+{
+	"name"        "Wiremod"
+	"version"     "SVN"
+	"author_name" "Wire Team"
+	"author_url"  "http://www.wiremod.com/"
+	"info"        "A set of SEnts and STools that communicate through wires."
+	"override"    "0"
+}

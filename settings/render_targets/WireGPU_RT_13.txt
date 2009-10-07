@@ -1,0 +1,6 @@
+"WireGPU_RT_13"
+{
+	"Name"		"WireGPU_RT_13"
+	"Width"		"512"
+	"Height"	"512"
+}

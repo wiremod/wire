@@ -1,0 +1,12 @@
+N@Splitter
+I@Link
+O@A B C D E F G H
+# Split a wire coming from a merger
+A = recv(Link, 1)
+B = recv(Link, 2)
+C = recv(Link, 3)
+D = recv(Link, 4)
+E = recv(Link, 5)
+F = recv(Link, 6)
+G = recv(Link, 7)
+H = recv(Link, 8)

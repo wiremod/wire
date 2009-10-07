@@ -1,0 +1,6 @@
+N@GPS
+O@X Y Z
+interval(1000/60)
+X = extposx()
+Y = extposy()
+Z = extposz()

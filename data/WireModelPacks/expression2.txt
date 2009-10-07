@@ -1,0 +1,62 @@
+"ModelPack"
+{
+	"Expression"
+	{
+		"categories" "expr2"
+		"model" "models/expression 2/cpu_expression.mdl"
+		"files"
+		{
+			"0" "models/expression 2/cpu_expression.dx80.vtx"
+			"1" "models/expression 2/cpu_expression.dx90.vtx"
+			"2" "models/expression 2/cpu_expression.phy"
+			"3" "models/expression 2/cpu_expression.sw.vtx"
+			"4" "models/expression 2/cpu_expression.vvd"
+			"5" "materials/models/expression 2/pins.vmt"
+			"6" "materials/models/expression 2/pins.vtf"
+			"7" "materials/models/expression 2/exprssn.vmt"
+			"8" "materials/models/expression 2/exprssn.vtf"
+			"9" "materials/models/expression 2/encasing.vmt"
+			"10" "materials/models/expression 2/encasing.vtf"
+		}
+	}
+
+	"Controller"
+	{
+		"categories" "expr2"
+		"model" "models/expression 2/cpu_controller.mdl"
+		"files"
+		{
+			"0" "models/expression 2/cpu_controller.dx80.vtx"
+			"1" "models/expression 2/cpu_controller.dx90.vtx"
+			"2" "models/expression 2/cpu_controller.phy"
+			"3" "models/expression 2/cpu_controller.sw.vtx"
+			"4" "models/expression 2/cpu_controller.vvd"
+			"5" "materials/models/expression 2/pins.vmt"
+			"6" "materials/models/expression 2/pins.vtf"
+			"7" "materials/models/expression 2/cntrllr.vmt"
+			"8" "materials/models/expression 2/cntrllr.vtf"
+			"9" "materials/models/expression 2/encasing.vmt"
+			"10" "materials/models/expression 2/encasing.vtf"
+		}
+	}
+	
+	"Microchip"
+	{
+		"categories" "expr2"
+		"model" "models/expression 2/cpu_microchip.mdl"
+		"files"
+		{
+			"0" "models/expression 2/cpu_microchip.dx80.vtx"
+			"1" "models/expression 2/cpu_microchip.dx90.vtx"
+			"2" "models/expression 2/cpu_microchip.phy"
+			"3" "models/expression 2/cpu_microchip.sw.vtx"
+			"4" "models/expression 2/cpu_microchip.vvd"
+			"5" "materials/models/expression 2/pins.vmt"
+			"6" "materials/models/expression 2/pins.vtf"
+			"7" "materials/models/expression 2/mcrochp.vmt"
+			"8" "materials/models/expression 2/mcrochp.vtf"
+			"9" "materials/models/expression 2/encasing.vmt"
+			"10" "materials/models/expression 2/encasing.vtf"
+		}
+	}
+}

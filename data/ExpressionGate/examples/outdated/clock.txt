@@ -1,0 +1,10 @@
+N@clock
+I@Tick Step Reset
+O@Hours Minutes Seconds
+# Wire a Pulser with TickTime 1 to Tick
+~Tick & Tick -> Clock += 1;
+~Step & Step -> Clock += Step;
+~Reset & Reset -> Clock = 0;
+Seconds = Clock % 60
+Minutes = floor(Clock / 60) % 60
+Hours = floor(Clock / 3600) % 24

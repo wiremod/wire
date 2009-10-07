@@ -1,0 +1,29 @@
+N@Duplexer
+I@A B C D E F G H Link
+O@A B C D E F G H Link
+# Merge multiple values into one wire
+!~Link ->
+    TmpLink = send(A, B, C, D, E, F, G, H);
+
+# Split a wire coming from a merger
+~Link ->
+    TmpA = recv(Link, 1)
+    TmpB = recv(Link, 2)
+    TmpC = recv(Link, 3)
+    TmpD = recv(Link, 4)
+    TmpE = recv(Link, 5)
+    TmpF = recv(Link, 6)
+    TmpG = recv(Link, 7)
+    TmpH = recv(Link, 8);
+
+# Refresh the output variables
+A = TmpA
+B = TmpB
+C = TmpC
+D = TmpD
+E = TmpE
+F = TmpF
+G = TmpG
+H = TmpH
+
+Link = TmpLink

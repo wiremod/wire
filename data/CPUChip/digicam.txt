@@ -1,0 +1,37 @@
+//Digital camera using ports
+//Outputs:
+//PORT0 - Ranger X
+//PORT1 - Ranger Y
+//PORT5 - Digital screen X
+//PORT6 - Digital screen Y
+//PORT7 - Digital screen G (gray)
+//Inputs:
+//PORT0 - Ranger data
+define MAXRANGE,1024; 	//Ranger range
+mov eax,0;		//EAX = 0
+mov ebx,0;		//EBX = 0
+loopx:			//Loop X value
+  mov ebx,0;		//EBX = 0
+  loopy:		//Loop Y value
+    mov port5,eax;	//Port5 = EAX (X)
+    mov ecx,port0; 	//ECX = PORT0
+    div ecx,MAXRANGE; 	//ECX = ECX / MAXRANGE
+    mul ecx,255;	//ECX = ECX * 255
+    neg ecx;		//ECX = -ECX
+    add ecx,255;	//ECX = ECX + 255
+    mov port7,ecx;	//PORT7 = ECX (ECX = 255-(PORT0 / MAXRANGE)*255)
+    mov port6,ebx;      //PORT6 = EBX (Y)
+    mov ecx,eax;        //ECX = EAX
+    div ecx,16;         //ECX = ECX / 16 - 1
+    sub ecx,1;
+    mov edx,ebx;        //ECX = EBX
+    div edx,16;         //EDX = EDX / 16 - 1
+    sub edx,1;
+    mov port0,ecx; 	//Ranger X = ECX
+    mov port1,edx;	//Ranger Y = EDX
+    inc ebx;		//Increase Y
+    cmp ebx,32;		//Compare to 32
+    jl loopy;		//If less then loop
+  inc eax;		//Increase X
+  cmp eax,32;		//Compare to 32
+  jl loopx;		//If less then loop

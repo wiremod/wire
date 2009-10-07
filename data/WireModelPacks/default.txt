@@ -1,0 +1,181 @@
+"0"
+{
+	"Gate Chip"
+	{
+		"categories"    "gate,chip"
+		"model"			"models/jaanus/wiretool/wiretool_gate.mdl"
+
+		"files"
+		{
+			"0" "models/jaanus/wiretool/wiretool_gate.dx80.vtx"
+			"1" "models/jaanus/wiretool/wiretool_gate.dx90.vtx"
+			"2" "models/jaanus/wiretool/wiretool_gate.phy"
+			"3" "models/jaanus/wiretool/wiretool_gate.sw.vtx"
+			"4" "models/jaanus/wiretool/wiretool_gate.vvd"
+			"5" "models/jaanus/wiretool/wiretool_gate.xbox.vtx"
+		}
+	}
+
+	"Value Chip"
+	{
+		"categories"    "value"
+		"model"			"models/kobilica/value.mdl"
+
+		"files"
+		{
+			"0" "models/kobilica/value.dx80.vtx"
+			"1" "models/kobilica/value.dx90.vtx"
+			"2" "models/kobilica/value.phy"
+			"3" "models/kobilica/value.sw.vtx"
+			"4" "models/kobilica/value.vvd"
+			"5" "models/kobilica/value.xbox.vtx"
+			"6" "materials/models/wire/chipnum.vmt"
+			"7" "materials/models/wire/chipnum.vtf"
+		}
+	}
+
+	"Speaker"
+	{
+		"categories"    "speaker"
+		"model"			"models/cheeze/wires/speaker.mdl"
+
+		"files"
+		{
+			"0" "models/cheeze/wires/speaker.dx80.vtx"
+			"1" "models/cheeze/wires/speaker.dx90.vtx"
+			"2" "models/cheeze/wires/speaker.phy"
+			"3" "models/cheeze/wires/speaker.sw.vtx"
+			"4" "models/cheeze/wires/speaker.vvd"
+			"5" "materials/models/cheeze/wires/leather2.vmt"
+			"6" "materials/models/cheeze/wires/leather2.vtf"
+			"7" "materials/models/cheeze/wires/metal_texture.vmt"
+			"8" "materials/models/cheeze/wires/metal_texture.vtf"
+			"9" "materials/models/cheeze/wires/speaker_base.vmt"
+			"10" "materials/models/cheeze/wires/speaker_base.vtf"
+			"11" "materials/models/cheeze/wires/speaker_blck.vmt"
+			"12" "materials/models/cheeze/wires/speaker_blck.vtf"
+			"13" "materials/models/cheeze/wires/speaker_red.vmt"
+			"14" "materials/models/cheeze/wires/speaker_base.vtf"
+		}
+	}
+
+	"Metal Can"
+	{
+		"categories"    "speaker"
+		"model"			"models/props_junk/garbage_metalcan002a.mdl"
+	}
+
+	"Do Not Press"
+	{
+		"categories"    "button"
+		"model"			"models/dav0r/buttons/button.mdl"
+	}
+
+	"Switch"
+	{
+		"categories"    "button"
+		"model"			"models/dav0r/buttons/switch.mdl"
+	}
+
+	"Clock"
+	{
+		"categories"    "button"
+		"model"         "models/props_c17/clock01.mdl"
+	}
+
+	"Breen Clock"
+	{
+		"categories"    "detonator"
+		"model"         "models/props_combine/breenclock.mdl"
+	}
+
+	"Blue Binder"
+	{
+		"categories"    "radio"
+		"model"         "models/props_lab/binderblue.mdl"
+	}
+
+	"Green Binder"
+	{
+		"categories"    "radio2"
+		"model"         "models/props_lab/bindergreen.mdl"
+	}
+
+	"Siren"
+	{
+		"categories"    "pixel,indicator,podctrlr"
+		"model"         "models/jaanus/wiretool/wiretool_siren.mdl"
+	}
+
+	"Medium 7-seg bar"
+	{
+		"categories"    "pixel,indicator"
+		"model"         "models/segment2.mdl"
+	}
+
+	"Small 7-seg bar"
+	{
+		"categories"    "pixel,indicator"
+		"model"         "models/segment.mdl"
+	}
+
+	"LED small"
+	{
+		"categories"    "pixel,indicator"
+		"model"         "models/led.mdl"
+	}
+
+	"LED large"
+	{
+		"categories"    "pixel,indicator"
+		"model"         "models/led2.mdl"
+	}
+
+	"Pop can"
+	{
+		"categories"    "pixel,indicator"
+		"model"         "models/props_junk/PopCan01a.mdl"
+	}
+
+	"Barrel"
+	{
+		"categories"    "indicator"
+		"model"         "models/props_borealis/bluebarrel001.mdl"
+	}
+
+	"Grave stone"
+	{
+		"categories"    "indicator"
+		"model"         "models/props_c17/gravestone004a.mdl"
+	}
+	
+	"Traffic Cone"
+	{
+		"categories"    "indicator"
+		"model"         "models/props_junk/TrafficCone001a.mdl"
+	}
+	
+	"Big Clock"
+	{
+		"categories"    "indicator"
+		"model"         "models/props_trainstation/trainstation_clock001.mdl"
+	}
+	
+	"Ranger"
+	{
+		"categories"    "ranger,podctrlr"
+		"model"         "models/jaanus/wiretool/wiretool_range.mdl"
+	}
+	
+	"Weight"
+	{
+		"categories"    "weight"
+		"model"         "models/props_interiors/pot01a.mdl"
+	}
+	
+	"Huladoll"
+	{
+		"categories"    "weight"
+		"model"         "models/props_lab/huladoll.mdl"
+	}
+}

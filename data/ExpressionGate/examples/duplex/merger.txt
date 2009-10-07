@@ -1,0 +1,5 @@
+N@Merger
+I@A B C D E F G H
+O@Link
+# Merge multiple values into one wire
+Link = send(A, B, C, D, E, F, G, H)

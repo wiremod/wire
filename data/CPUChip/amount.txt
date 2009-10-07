@@ -1,0 +1,44 @@
+//Usage (in & out):
+//Port0 - Air amount (output in percent)
+//Port1 - Coolant amount (output in percent)
+//Port2 - Energy amount (output in percent)
+//Port3 - Pressure (output in KPA)
+//Port4 - Temperature (output in Celsiums)
+//Change these values
+define MAXAIR,12000;
+define MAXCOOLANT,12000;
+define MAXENERGY,12000;
+mainloop:
+  //Air% = (Air / MaxAmount) * 100
+  mov eax,port0;
+    div eax,MAXAIR;   //MAXIMUM AMOUNT OF AIR
+  mul eax,100;
+  int eax; inc eax;
+  mov port0,eax;
+
+  //Coolant% = (Coolant / MaxAmount) * 100
+  mov eax,port1;
+    div eax,MAXCOOLANT; //MAXIMUM AMOUNT OF COOLANT
+  mul eax,100;
+  int eax; inc eax;
+  mov port1,eax;
+
+  //Energy% = (Energy / MaxAmount) * 100
+  mov eax,port2;
+    div eax,MAXENERGY; //MAXIMUM AMOUNT OF ENERGY
+  mul eax,100;
+  int eax; inc eax;
+  mov port2,eax;
+
+  //Pressure(KPA) = (Pressure * 101325) / 1000
+  mov eax,port3;
+  mul eax,101325;
+  div eax,1000;
+  mov port3,eax;
+
+  //Temperature C* = K - 273
+  mov eax,port4;
+  sub eax,273;
+  mov port4,eax;
+
+  jmp mainloop;

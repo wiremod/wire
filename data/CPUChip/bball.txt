@@ -1,0 +1,78 @@
+//Bouncing ball for digital screen (Hi-speed)
+DATA;
+  alloc bx;
+  alloc by;
+  alloc vx;
+  alloc vy;
+CODE;
+  mov #bx,15;
+  mov #by,15;
+  //Experiment with velocity:
+  mov #vx,1;
+  mov #vy,1;
+  call bScreenErase;
+  //Main loop
+  mainloop:
+    //Erase old ball
+    mov ecx,0;
+    call bPaintBall;
+
+    //Move ball using velocity
+    add #bx,#vx;
+    add #by,#vy;
+    //Bounce against X walls
+    cmp #bx,0;
+    cle bReverseX;
+    cmp #bx,31;
+    cge bReverseX;
+    //Bounce against Y walls
+    cmp #by,0;
+    cle bReverseY;
+    cmp #by,31;
+    cge bReverseY;
+
+    //Paint new ball
+    mov ecx,255;
+    call bPaintBall;
+    jmp mainloop;
+//----------------------------------------------------
+// Calculates ball VRAM address
+// Result in EAX
+//----------------------------------------------------
+bCalcAddress:
+  mov eax,#by;
+  mul eax,32;
+  add eax,#bx;
+  add eax,65536; //VRAM Offset
+  ret
+//----------------------------------------------------
+// Erases the screen
+//----------------------------------------------------
+bScreenErase:
+    mov edi,65536;
+    scrEraseLoop:
+      mov #edi,0;
+      inc edi;
+      cmp edi,66559;
+      jle scrEraseLoop;
+  ret
+//----------------------------------------------------
+// Reverse ball X (Short, but easy)
+//----------------------------------------------------
+bReverseX:
+  neg #vx;
+  ret
+//----------------------------------------------------
+// Reverse ball Y (Short, but easy)
+//----------------------------------------------------
+bReverseY:
+  neg #vy;
+  ret
+//----------------------------------------------------
+// Paint ball
+// Paints ball in color stored in ECX
+//----------------------------------------------------
+bPaintBall:
+  call bCalcAddress;
+  mov #eax,ecx;
+  ret

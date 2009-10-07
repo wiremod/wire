@@ -1,0 +1,149 @@
+/******************************************************************************\
+  Colour support
+\******************************************************************************/
+
+local Clamp = math.Clamp
+
+local function ColorClamp(col1, col2, col3, col4)
+	return Clamp(col1, 0, 255), Clamp(col2, 0, 255), Clamp(col3, 0, 255), Clamp(col4, 0, 255)
+end
+
+/******************************************************************************/
+
+registerFunction("getColor", "e:", "v", function(self, args)
+	local op1 = args[2]
+	local rv1 = op1[1](self, op1)
+	if !validEntity(rv1) then return {0,0,0} end
+
+	local r,g,b = rv1:GetColor()
+	return { r, g, b }
+end)
+
+registerFunction("getColor4", "e:", "xv4", function(self, args)
+	local op1 = args[2]
+	local rv1 = op1[1](self, op1)
+	if !validEntity(rv1) then return {0,0,0,0} end
+
+	return { rv1:GetColor() }
+end)
+
+registerFunction("getAlpha", "e:", "n", function(self, args)
+	local op1 = args[2]
+	local rv1 = op1[1](self, op1)
+	if !validEntity(rv1) then return 0 end
+
+	local _,_,_,alpha = rv1:GetColor()
+	return alpha
+end)
+
+registerFunction("setColor", "e:nnn", "", function(self, args)
+	local op1, op2, op3, op4 = args[2], args[3], args[4], args[5]
+	local rv1, rv2, rv3, rv4 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3), op4[1](self, op4)
+	if !validEntity(rv1) then return end
+	if !isOwner(self, rv1) then return end
+
+	local _,_,_,alpha = rv1:GetColor()
+	rv1:SetColor(ColorClamp(rv2, rv3, rv4, alpha))
+end)
+
+registerFunction("setColor", "e:nnnn", "", function(self, args)
+	local op1, op2, op3, op4, op5 = args[2], args[3], args[4], args[5], args[6]
+	local rv1, rv2, rv3, rv4, rv5 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3), op4[1](self, op4), op5[1](self, op5)
+	if !validEntity(rv1) then return end
+	if !isOwner(self, rv1) then return end
+
+	if rv1:IsPlayer() or rv1:IsWeapon() then rv5 = 255 end
+
+	rv1:SetColor(ColorClamp(rv2, rv3, rv4, rv5))
+end)
+
+registerFunction("setColor", "e:v", "", function(self, args)
+	local op1, op2 = args[2], args[3]
+	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+	if !validEntity(rv1) then return end
+	if !isOwner(self, rv1) then return end
+
+	local _,_,_,alpha = rv1:GetColor()
+	rv1:SetColor(ColorClamp(rv2[1], rv2[2], rv2[3], alpha))
+end)
+
+registerFunction("setColor", "e:vn", "", function(self, args)
+	local op1, op2, op3 = args[2], args[3], args[4]
+	local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
+	if !validEntity(rv1) then return end
+	if !isOwner(self, rv1) then return end
+
+	if rv1:IsPlayer() or rv1:IsWeapon() then rv3 = 255 end
+
+	rv1:SetColor(ColorClamp(rv2[1], rv2[2], rv2[3], rv3))
+end)
+
+registerFunction("setColor", "e:xv4", "", function(self, args)
+	local op1, op2 = args[2], args[3]
+	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+	if !validEntity(rv1) then return end
+	if !isOwner(self, rv1) then return end
+
+	local alpha
+	if rv1:IsPlayer() or rv1:IsWeapon() then
+		alpha = 255
+	else
+		alpha = rv2[4]
+	end
+
+	rv1:SetColor(ColorClamp(rv2[1], rv2[2], rv2[3], alpha))
+end)
+
+registerFunction("setAlpha", "e:n", "", function(self, args)
+	local op1, op2 = args[2], args[3]
+	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+	if !validEntity(rv1) then return end
+	if !isOwner(self, rv1) then return end
+
+	if rv1:IsPlayer() or rv1:IsWeapon() then return end
+
+	local r,g,b = rv1:GetColor()
+	rv1:SetColor(r, g, b, Clamp(rv2, 0, 255))
+end)
+
+--- Converts <hsv> from the [http://en.wikipedia.org/wiki/HSV_color_space HSV color space] to the [http://en.wikipedia.org/wiki/RGB_color_space RGB color space]
+e2function vector hsv2rgb(vector hsv)
+	local col = HSVToColor(hsv[1], hsv[2], hsv[3])
+	return { col.r, col.g, col.b }
+end
+
+--- Converts <rgb> from the [http://en.wikipedia.org/wiki/RGB_color_space RGB color space] to the [http://en.wikipedia.org/wiki/HSV_color_space HSV color space]
+e2function vector rgb2hsv(vector rgb)
+	return { ColorToHSV(Color(rgb[1], rgb[2], rgb[3])) }
+end
+
+local floor = math.floor
+local Clamp = math.Clamp
+local converters = {}
+converters[0] = function(r, g, b)
+	local r = Clamp(floor(r/28),0,9)
+	local g = Clamp(floor(g/28),0,9)
+	local b = Clamp(floor(b/28),0,9)
+
+	return floor(r)*100000+floor(g)*10000+floor(b)*1000
+end
+converters[2] = function(r, g, b)
+	return floor(r)*65536+floor(g)*256+floor(b)
+end
+converters[3] = function(r, g, b)
+	return floor(r)*1000000+floor(g)*1000+floor(b)
+end
+
+--- Converts an RGB vector <rgb> to a number in digital screen format. <mode> Specifies a mode, either 0, 2 or 3, corresponding to Digital Screen color modes.
+e2function number rgb2digi(vector rgb, mode)
+	conv = converters[mode]
+	if not conv then return 0 end
+	return conv(rgb[1], rgb[2], rgb[3])
+end
+
+--- Converts the RGB color (<r>,<g>,<b>) to a number in digital screen format. <mode> Specifies a mode, either 0, 2 or 3, corresponding to Digital Screen color modes.
+e2function number rgb2digi(r, g, b, mode)
+	conv = converters[mode]
+	if not conv then return 0 end
+	return conv(r, g, b)
+end

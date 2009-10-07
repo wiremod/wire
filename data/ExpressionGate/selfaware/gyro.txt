@@ -1,0 +1,6 @@
+N@Gyroscope
+O@Roll Yaw Pitch
+interval(1000/60)
+Roll = extangr()
+Yaw = extangy()
+Pitch = extangp()

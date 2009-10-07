@@ -1,0 +1,69 @@
+//Working multifloor elevator
+//Ports:
+//IN:
+//PORT0 - Button pressed, reversed
+//PORT1 - Elevator speed
+//OUT:
+//PORT0 - Motor
+//PORT5 - Current floor number
+//PORT6 - Moving LED, and elevator door status
+//PORT7 - Floor door open status
+
+//////// Data segment
+DATA;                //Allocate data segment (Everything after it
+                     // and before CODE; is allocated in data segment)
+  alloc floor;       //Create variable named "floor" and set it to 0
+  alloc z;           //Create variable named "z" and set it to 0
+  alloc destz;       //Create variable named "destz" and set it to 0
+//////// Code segment & initialization routine
+CODE;                //Initialize code segment (Everything below is code)
+  mov #z,0;          //Store 0 into variable named Z (# means we write to memory)
+  mov port0,#z;      //Store variable Z into port0 (# means we read from memory)
+  mov port5,1;       //Store 1 into port 5 (we are on floor 1)
+  mov port7,1;       //Store 1 into port 7 (doors are open)
+  mov #floor,1;      //Store 1 into floor counter
+//////// Read for button presses
+  btnloop:           //Create label named "btnloop"
+    mov eax,port0;   //Store port0 into EAX general-purpose register
+    cmp eax,0;       //Compare EAX with 0
+    je btnloop;      //If EAX is greater than 0 then jump to label "btnloop"
+//////// Choose movement direction
+  mov port6,1;       //EAX > 0 means some buttons was pressed. Store 1 into moving led port
+  mov port7,0;       //Store 0 into port 7 (close doors)
+  mul eax,256;       //Multiply pressed button number by 256
+  sub eax,256;       //Subtract 256 from pressed button number
+  mov #destz,eax;    //Target elevator height - (ButtonNumber - 1) * 256
+  cmp #destz,#z;     //Compare value in "destz" with value in "z"
+  je dontmove;       //If its equal, then dont move. Jump over movement
+  jl movedown;       //If its not equal, and less then jump to move down code
+//////// Move up
+  moveup:            //If its greater than jump to move up code
+    add #z,port1;    //Add elevator speed to Z value
+    mov port0,#z;    //Set elevator height to the new Z value
+    call calcfloor;  //Calculate & show floor number
+    cmp #destz,#z;   //Compare, are we done moving yet
+    jg moveup;       //We are moving up, and destanation > current Z. Continue moving
+    jmp dontmove;    //We are on the floor. Jump over move down code
+//////// Move down
+  movedown:          //Move down code
+    sub #z,port1;    //Subtract speed from Z value
+    mov port0,#z;    //Set the new elevator height
+    call calcfloor;  //Calculate & show floor number
+    cmp #destz,#z;   //Compare destanation Z with our Z
+    jl movedown;     //If its under us then continue moving
+//////// Finished moving
+  dontmove:          //We finished moving/already at floor
+  mov #z,#destz;     //Store destz into z to prevent mistakes with floor height
+  mov port7,1;       //Open doors on floor (previously calculated with calcfloor
+  mov port6,0;       //Turn off moving LED and open elevator doors
+  jmp btnloop;       //Jump and wait for keypress again
+
+//////// public CalcFloor()
+calcfloor:           //FloorNumber = CalcFloor()
+  mov eax,#z;        //Store current height into EAX
+  add eax,256;       //Floor number = math.Round((z+256) / 256)
+  div eax,256;       //Divide...
+  rnd eax;           //Round up value in EAX, and store it back into EAX
+  mov #floor,eax;    //Store floor number
+  mov port5,eax;     //Display the floor number
+  ret                //Return from function

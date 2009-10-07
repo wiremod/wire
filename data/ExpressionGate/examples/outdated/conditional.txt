@@ -1,0 +1,12 @@
+N@Example Conditional
+I@Speed Turbo
+O@Speed Limited
+Limited = 0
+Speed < 0 ->
+    Speed = 0, Limited = 1;
+Speed > 200 ->
+    !Turbo ->
+        Speed = 200, Limited = 1;
+    Turbo & Speed > 400 ->
+        Speed = 400, Limited = 2;
+    ;
