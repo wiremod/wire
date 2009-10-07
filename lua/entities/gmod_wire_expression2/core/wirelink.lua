@@ -2,20 +2,23 @@
   Wire link support
 \******************************************************************************/
 
-local triggercache = {}
+registerCallback("construct", function(self)
+	self.triggercache = {}
+end)
+
 registerCallback("postexecute", function(self)
-	for _,ent,portname,value in pairs_map(triggercache, unpack) do
+	for _,ent,portname,value in pairs_map(self.triggercache, unpack) do
 		WireLib.TriggerInput(ent, portname, value)
 	end
 
-	triggercache = {}
+	self.triggercache = {}
 end)
 
-local function TriggerInput(ent, portname, value, typename)
+local function TriggerInput(self,ent, portname, value, typename)
 	if not ent.Inputs[portname] then return value end
 	if ent.Inputs[portname].Type ~= typename then return value end
 
-	triggercache[ent:EntIndex().."__"..portname] = { ent, portname, value }
+	self.triggercache[ent:EntIndex().."__"..portname] = { ent, portname, value }
 
 	return value
 end
@@ -99,41 +102,6 @@ e2function wirelink operator=(wirelink lhs, wirelink rhs)
 	return rhs
 end
 
-registerCallback("postinit", function()
-	-- retrieve information about all registered types
-	local types = table.Copy(wire_expression_types)
-
-	-- change the name for numbers from "NORMAL" to "NUMBER"
-	types["NUMBER"] = types["NORMAL"]
-	types["NORMAL"] = nil
-
-	-- generate op[] for all types
-	for name,id in pairs_map(types, unpack) do
-
-		-- XWL:number() etc
-		local getter = name:lower()
-
-		-- XWL:setNumber() etc
-		local setter = "set"..name:sub(1,1):upper()..name:sub(2):lower()
-
-		local getf = wire_expression2_funcs[getter.."(xwl:s)"]
-		local setf = wire_expression2_funcs[setter.."(xwl:s"..id..")"]
-
-		if getf then
-			local f = getf.oldfunc or getf[3] -- use oldfunc if present, else func
-			if getf then
-				registerOperator("idx", id.."=xwls", id, f, getf[4], getf[5])
-			end
-		end
-		if setf then
-			local f = setf.oldfunc or setf[3] -- use oldfunc if present, else func
-			if setf then
-				registerOperator("idx", id.."=xwls"..id, id, f, setf[4], setf[5])
-			end
-		end
-	end
-end)
-
 /******************************************************************************/
 
 e2function number operator_is(wirelink value)
@@ -183,103 +151,82 @@ end
 // THESE NEED TO USE THE INPUT/OUTPUT SERIALIZERS! (not numbers)
 // THE VALUES SHOULD BE SAVED AND PUSHED ON POST EXECUTION
 
-__e2setcost(5) -- temporary
+-- n v a e s
+-- x - - ~ x
+registerCallback("postinit", function()
 
-e2function number wirelink:setNumber(string portname, value)
-	if not validEntity(this) then return value end
-	if not this.extended then return value end
+	local getf, setf
+	-- generate getters and setters for all types
+	-- <input serializer>, <output serializer>, <type checker>
+	for typename,id,zero,input_serializer,output_serializer,type_checker in pairs_map(wire_expression_types, unpack) do
+		print(typename,id,zero,input_serializer,output_serializer,type_checker)
+		local fname = typename == "NORMAL" and "NUMBER" or typename
 
-	TriggerInput(this, portname, value, "NORMAL")
-	return value
-end
+		-- for T:number() etc
+		local getter = fname:lower()
 
-e2function number wirelink:number(string portname)
-	if not validEntity(this) then return 0 end
-	if not this.extended then return 0 end
+		-- for T:setNumber() etc
+		local setter = "set"..fname:sub(1,1):upper()..fname:sub(2):lower()
 
-	if not this.Outputs[portname] then return 0 end
-	if this.Outputs[portname].Type ~= "NORMAL" then return 0 end
+		if input_serializer then
+			--TODO {}
+			function getf(self, args)
+				local this, portname = args[2], args[3]
+				this, portname = this[1](self, this), portname[1](self, portname)
 
-	return this.Outputs[portname].Value
-end
+				if not validEntity(this) then return zero end
+				if not this.extended then return zero end
 
+				if not this.Outputs[portname] then return zero end
+				if this.Outputs[portname].Type ~= typename then return zero end
 
-e2function vector wirelink:setVector(string portname, vector value)
-	if not validEntity(this) then return value end
-	if not this.extended then return value end
+				return input_serializer(self, this.Outputs[portname].Value)
+			end
+		else
+			function getf(self, args)
+				local this, portname = args[2], args[3]
+				this, portname = this[1](self, this), portname[1](self, portname)
 
-	value = Vector(value[1], value[2], value[3])
-	TriggerInput(this, portname, value, "VECTOR")
-	return value
-end
+				if not validEntity(this) then return zero end
+				if not this.extended then return zero end
 
-e2function vector wirelink:vector(string portname)
-	if not validEntity(this) then return { 0, 0, 0 } end
-	if not this.extended then return { 0, 0, 0 } end
+				if not this.Outputs[portname] then return zero end
+				if this.Outputs[portname].Type ~= typename then return zero end
 
-	if not this.Outputs[portname] then return { 0, 0, 0 } end
-	if this.Outputs[portname].Type ~= "VECTOR" then return { 0, 0, 0 } end
+				return this.Outputs[portname].Value
+			end
+		end
 
-	return this.Outputs[portname].Value
-end
+		if output_serializer then
+			function setf(self, args)
+				local this, portname, value = args[2], args[3], args[4]
+				this, portname, value = this[1](self, this), portname[1](self, portname), value[1](self, value)
 
+				if not validEntity(this) then return value end
+				if not this.extended then return value end
 
-e2function angle wirelink:setAngle(string portname, angle value)
-	if not validEntity(this) then return value end
-	if not this.extended then return value end
+				TriggerInput(self, this, portname, output_serializer(self, value), typename)
+				return value
+			end
+		else
+			function setf(self, args)
+				local this, portname, value = args[2], args[3], args[4]
+				this, portname, value = this[1](self, this), portname[1](self, portname), value[1](self, value)
 
-	local avalue = Angle(value[1], value[2], value[3])
-	TriggerInput(this, portname, avalue, "ANGLE")
-	return value
-end
+				if not validEntity(this) then return value end
+				if not this.extended then return value end
 
-e2function angle wirelink:angle(string portname)
-	if not validEntity(this) then return { 0, 0, 0 } end
-	if not this.extended then return { 0, 0, 0 } end
+				TriggerInput(self, this, portname, value, typename)
+				return value
+			end
+		end
 
-	if not this.Outputs[portname] then return { 0, 0, 0 } end
-	if this.Outputs[portname].Type ~= "ANGLE" then return { 0, 0, 0 } end
-
-	return this.Outputs[portname].Value
-end
-
-
-e2function entity wirelink:setEntity(string portname, entity value)
-	if not validEntity(this) then return value end
-	if not this.extended then return value end
-
-	TriggerInput(this, portname, value, "ENTITY")
-	return value
-end
-
-e2function entity wirelink:entity(string portname)
-	if not validEntity(this) then return nil end
-	if not this.extended then return nil end
-
-	if not this.Outputs[portname] then return nil end
-	if this.Outputs[portname].Type ~= "ENTITY" then return nil end
-
-	return this.Outputs[portname].Value
-end
-
-
-e2function string wirelink:setString(string portname, string value)
-	if not validEntity(this) then return value end
-	if not this.extended then return value end
-
-	TriggerInput(this, portname, value, "STRING")
-	return value
-end
-
-e2function string wirelink:string(string portname)
-	if not validEntity(this) then return "" end
-	if not this.extended then return "" end
-
-	if not this.Outputs[portname] then return "" end
-	if this.Outputs[portname].Type ~= "STRING" then return "" end
-
-	return this.Outputs[portname].Value
-end
+		registerFunction(getter, "xwl:s", id, getf, 5)
+		registerOperator("idx", id.."=xwls", id, getf, 5)
+		registerFunction(setter, "xwl:s"..id, id, setf, 5)
+		registerOperator("idx", id.."=xwls"..id, id, setf, 5)
+	end
+end)
 
 __e2setcost(15) -- temporary
 
@@ -287,9 +234,9 @@ e2function void wirelink:setXyz(vector value)
 	if not validEntity(this) then return end
 	if not this.extended then return end
 
-	TriggerInput(this, "X", value[1], "NORMAL")
-	TriggerInput(this, "Y", value[2], "NORMAL")
-	TriggerInput(this, "Z", value[3], "NORMAL")
+	TriggerInput(self, this, "X", value[1], "NORMAL")
+	TriggerInput(self, this, "Y", value[2], "NORMAL")
+	TriggerInput(self, this, "Z", value[3], "NORMAL")
 end
 
 e2function vector wirelink:xyz()
