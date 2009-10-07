@@ -10,7 +10,7 @@ function ENT:Initialize()
 	self.Entity:SetMoveType( MOVETYPE_VPHYSICS )
 	self.Entity:SetSolid( SOLID_VPHYSICS )
 
-	self.Outputs = Wire_CreateOutputs(self.Entity, { "Pitch", "Yaw", "Roll" })
+	self.Outputs = WireLib.CreateSpecialOutputs(self.Entity, { "Pitch", "Yaw", "Roll", "Angle" }, {"NORMAL", "NORMAL", "NORMAL", "ANGLE"})
 end
 
 function ENT:Setup( out180 )
@@ -24,6 +24,7 @@ function ENT:Setup( out180 )
 	Wire_TriggerOutput(self.Entity, "Pitch", 0)
 	Wire_TriggerOutput(self.Entity, "Yaw", 0)
 	Wire_TriggerOutput(self.Entity, "Roll", 0)
+	WireLib.TriggerOutput(self.Entity, "Angle", Angle( 0, 0, 0 ))
 end
 
 function ENT:Think()
@@ -37,6 +38,7 @@ function ENT:Think()
 	Wire_TriggerOutput(self.Entity, "Pitch", ang.p)
 	Wire_TriggerOutput(self.Entity, "Yaw", ang.y)
 	Wire_TriggerOutput(self.Entity, "Roll", ang.r)
+	Wire_TriggerOutput(self.Entity, "Angle", Angle( ang.p, ang.y, ang.r ))
 	--now handled client side (TAD2020)
 	--self:ShowOutput(ang.p, ang.y, ang.r)
 
