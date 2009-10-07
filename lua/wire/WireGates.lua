@@ -3407,9 +3407,9 @@ GateActions["entity_aimentity"] = {
 	end
 }
 
-GateActions["entity_eye"] = {
+GateActions["entity_aimenormal"] = {
 	group = "Entity",
-	name = "Veiw Direction",
+	name = "AimNormal",
 	inputs = { "Ent" },
 	inputtypes = { "ENTITY" },
 	outputtypes = { "VECTOR" },
@@ -3421,22 +3421,6 @@ GateActions["entity_eye"] = {
 		else
 			return Ent:GetForward()
 		end
-	end,
-	label = function(Out)
-		return "eye(".. tostring(Out)")"
-	end
-}
-
-GateActions["entity_aimenormal"] = {
-	group = "Entity",
-	name = "AimNormal",
-	inputs = { "Ent" },
-	inputtypes = { "ENTITY" },
-	outputtypes = { "VECTOR" },
-	timed = true,
-	output = function(gate, Ent)
-		if !Ent:IsValid() or !Ent:IsPlayer() then return Vector(0,0,0) end
-		return Ent:GetEyeTraceNoCursor().HitNormal
 	end,
 	label = function(Out, A)
 		return string.format ("Aim Normal (%s) = (%d,%d,%d)", A, Out.x, Out.y, Out.z)
