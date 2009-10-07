@@ -24,9 +24,9 @@ registerType("array", "r", {},
 
 __e2setcost(5) -- temporary
 
-registerFunction("array", "", "r", function(self, args)
+e2function array array()
 	return {}
-end)
+end
 
 --- Constructs an array with the given values as elements. If you specify types that are not supported by the array data type, the behaviour is undefined.
 e2function array array(...)
@@ -60,11 +60,9 @@ end
 
 /******************************************************************************/
 
-registerOperator("is", "r", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	return (type(rv1) == "table") and 1 or 0
-end)
+e2function number operator_is(array arr)
+	return type(arr) == "table" and 1 or 0
+end
 
 registerCallback("postinit", function()
 	-- retrieve information about all registered types
@@ -107,36 +105,30 @@ end)
 
 /******************************************************************************/
 
-registerFunction("count", "r:", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	return #rv1
-end)
+e2function number array:count()
+	return #this
+end
 
 /******************************************************************************/
 
-registerFunction("clear", "r:", "", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
+e2function void array:clear()
 
-	self.prf = self.prf + #rv1 / 3
+	self.prf = self.prf + #this / 3
 
-	table.Empty(rv1)
-end)
+	table.Empty(this)
+end
 
-registerFunction("clone", "r:", "r", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
+e2function array array:clone()
 	local ret = {}
 
-	self.prf = self.prf + #rv1 / 3
+	self.prf = self.prf + #this / 3
 
-	for k,v in pairs(rv1) do
+	for k,v in pairs(this) do
 		ret[k] = v
 	end
 
 	return ret
-end)
+end
 
 /******************************************************************************/
 
@@ -889,49 +881,43 @@ end)
 
 /******************************************************************************/
 
-registerFunction("sum", "r:", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
+e2function number array:sum()
 	local out = 0
 
-	self.prf = self.prf + #rv1 / 2
+	self.prf = self.prf + #this / 2
 
-	for _,value in ipairs(rv1) do
+	for _,value in ipairs(this) do
 		out = out + (tonumber(value) or 0)
 	end
 	return out
-end)
+end
 
-registerFunction("average", "r:", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
+e2function number array:average()
 	local totalValue = 0
 	local totalIndex = 0
 	local averageValue = 0
 
-	self.prf = self.prf + #rv1 / 2
+	self.prf = self.prf + #this / 2
 
-	for k,v in ipairs(rv1) do
+	for k,v in ipairs(this) do
 		if type( v ) == "number" then
-			totalValue = totalValue + rv1[k]
+			totalValue = totalValue + this[k]
 			totalIndex = totalIndex + 1
 		end
 	end
 	averageValue = totalValue / totalIndex
 	return averageValue
-end)
+end
 
-registerFunction("min", "r:", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
+e2function number array:min()
 	local min = nil
 
-	self.prf = self.prf + #rv1 / 2
+	self.prf = self.prf + #this / 2
 
-	for k,v in ipairs(rv1) do
+	for k,v in ipairs(this) do
 		if type( v ) == "number" then
 			if min == nil || v < min then
-				min = rv1[k]
+				min = this[k]
 			end
 		end
 	end
@@ -939,20 +925,18 @@ registerFunction("min", "r:", "n", function(self, args)
 	local ret = min
 	min = nil
 	return ret
-end)
+end
 
-registerFunction("minIndex", "r:", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
+e2function number array:minIndex()
 	local minIndex = 0
 	local min = nil
 
-	self.prf = self.prf + #rv1 / 2
+	self.prf = self.prf + #this / 2
 
-	for k,v in ipairs(rv1) do
+	for k,v in ipairs(this) do
 		if type( v ) == "number" then
 			if min == nil || v < min then
-				min = rv1[k]
+				min = this[k]
 				minIndex = k
 			end
 		end
@@ -961,70 +945,62 @@ registerFunction("minIndex", "r:", "n", function(self, args)
 	local ret = minIndex
 	min = nil
 	return ret
-end)
+end
 
-registerFunction("max", "r:", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
+e2function number array:max()
 	local ret = 0
 
-	self.prf = self.prf + #rv1 / 2
+	self.prf = self.prf + #this / 2
 
-	for k,v in ipairs(rv1) do
+	for k,v in ipairs(this) do
 		if type( v ) == "number" then
 			if v > ret then
-				ret = rv1[k]
+				ret = this[k]
 			end
 		end
 	end
 	return ret
-end)
+end
 
-registerFunction("maxIndex", "r:", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
+e2function number array:maxIndex()
 	local retIndex = 0
 	local ret = 0
 
-	self.prf = self.prf + #rv1 / 2
+	self.prf = self.prf + #this / 2
 
-	for k,v in ipairs(rv1) do
+	for k,v in ipairs(this) do
 		if type( v ) == "number" then
 			if v > ret then
-				ret = rv1[k]
+				ret = this[k]
 				retIndex = k
 			end
 		end
 	end
 	return retIndex
-end)
+end
 
 /******************************************************************************/
 
-registerFunction("concat", "r:", "s", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
+e2function string array:concat()
 	local out = ""
 
-	self.prf = self.prf + #rv1
+	self.prf = self.prf + #this
 
-	for _,value in ipairs(rv1) do
+	for _,value in ipairs(this) do
 		out = out .. tostring(value)
 	end
 	return out
-end)
+end
 
-registerFunction("concat", "r:s", "s", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), tostring(op2[1](self, op2))
+e2function string array:concat(string delimiter)
 	local out = ""
 
-	self.prf = self.prf + #rv1
+	self.prf = self.prf + #this
 
-	for _,value in ipairs(rv1) do
-		out = out .. tostring(value) .. rv2
+	for _,value in ipairs(this) do
+		out = out .. tostring(value) .. delimiter
 	end
-	return string.Left(out, string.len(out) - string.len(rv2))
-end)
+	return string.Left(out, string.len(out) - string.len(delimiter))
+end
 
 __e2setcost(nil) -- temporary
