@@ -632,7 +632,7 @@ function EDITOR:_OnTextChanged()
 		if text == "}" and GetConVarNumber('wire_expression2_autoindent') ~= 0 then
 			self:SetSelection(text)
 			local row = self.Rows[self.Caret[1]]
-			if string.match("{" .. row .. "}", "^%b{}.*$") then
+			if string.match("{" .. row, "^%b{}.*$") then
 				local newrow = unindent(row)
 				self.Rows[self.Caret[1]] = newrow
 				self.Caret[2] = self.Caret[2] + newrow:len()-row:len()
