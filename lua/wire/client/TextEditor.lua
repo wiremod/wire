@@ -1536,6 +1536,7 @@ do -- E2 Syntax highlighting
 		["elseif"]   = { [true] = true, [false] = true },
 		["while"]    = { [true] = true, [false] = true },
 		["for"]      = { [true] = true, [false] = true },
+		["foreach"]  = { [true] = true, [false] = true },
 
 		-- keywords that cannot be followed by a "(":
 		["else"]     = { [true] = true },
@@ -1575,12 +1576,13 @@ do -- E2 Syntax highlighting
 		self:ResetTokenizer(row)
 		self:NextCharacter()
 
-		local directive = nil
+		-- 0=name 1=port 2=trigger 3=foreach
+		local highlightmode = nil
 		if self:NextPattern("^@[^ ]*") then
-			directive = directives[self.tokendata]
+			highlightmode = directives[self.tokendata]
 
 			-- check for unknown directives
-			if not directive then
+			if not highlightmode then
 				return {
 					{ "@", colors.directive },
 					{ self.line:sub(2), colors.notfound }
@@ -1588,7 +1590,7 @@ do -- E2 Syntax highlighting
 			end
 
 			-- check for plain text directives
-			if directive == 0 then return {{ self.line, colors.directive }} end
+			if highlightmode == 0 then return {{ self.line, colors.directive }} end
 
 			-- parse the rest like regular code
 			cols = {{ self.tokendata, colors.directive }}
@@ -1607,11 +1609,14 @@ do -- E2 Syntax highlighting
 
 			elseif self:NextPattern("^[a-z][a-zA-Z0-9_]*") then
 				local sstr = string.Trim(self.tokendata)
-				if directive then
-					if directive == 1 and istype(sstr) then
+				if highlightmode then
+					if highlightmode == 1 and istype(sstr) then
 						tokenname = "typename"
-					elseif directive == 2 and (sstr == "all" or sstr == "none") then
+					elseif highlightmode == 2 and (sstr == "all" or sstr == "none") then
 						tokenname = "directive"
+					elseif highlightmode == 3 and istype(sstr) then
+						tokenname = "typename"
+						highlightmode = nil
 					else
 						tokenname = "notfound"
 					end
@@ -1627,6 +1632,7 @@ do -- E2 Syntax highlighting
 						tokenname = istype(sstr) and "typename" or "notfound"
 					elseif keywords[sstr][keyword] then
 						tokenname = "keyword"
+						if sstr == "foreach" then highlightmode = 3 end
 					elseif wire_expression2_funclist[sstr] then
 						tokenname = "function"
 					else
