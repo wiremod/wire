@@ -91,11 +91,17 @@ registerFunction("clk", "s", "n", function(self, args)
 	   then return 1 else return 0 end
 end)
 
+/******************************************************************************/
+
 registerFunction("curtime", "", "n", function(self, args)
 	return CurTime()
 end)
 
 registerFunction("realtime", "", "n", function(self, args)
+	return RealTime()
+end)
+
+registerFunction("systime", "", "n", function(self, args)
 	return SysTime()
 end)
 
