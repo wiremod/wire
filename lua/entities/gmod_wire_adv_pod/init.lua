@@ -357,6 +357,7 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 end
 
 function ENT:Use( User, caller )
+	if User ~= self:GetPlayer() then return end
 	User:PrintMessage(HUD_PRINTTALK, "Hold down your use key for 2 seconds to get and link a Remote Controller.")
 	timer.Create("adv_pod_use_"..self:EntIndex(), 2, 1, function(self, User)
 		if not User then return end

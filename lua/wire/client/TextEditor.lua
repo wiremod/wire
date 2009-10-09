@@ -1643,9 +1643,9 @@ do -- E2 Syntax highlighting
 			elseif self:NextPattern("^[A-Z][a-zA-Z0-9_]*") then
 				tokenname = "variable"
 
-			elseif self.character == "\"" then
+			elseif self.character == '"' then
 				self:NextCharacter()
-				while self.character and self.character != "\"" do
+				while self.character and self.character != '"' do
 					if self.character == "\\" then self:NextCharacter() end
 					self:NextCharacter()
 				end
