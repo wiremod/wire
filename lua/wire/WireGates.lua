@@ -382,35 +382,24 @@ GateActions["Average"] = {
 	inputs = { "A", "B", "C", "D", "E", "F", "G", "H" },
 	compact_inputs = 2,
 	output = function(gate, ...)
-		vals = 0
-		value = 0
-		-- function doavg (argument)
-		--	vals += 1
-		--	value += argument
-		-- end
-		--table.foreach(arg, doavg)
+		local vals = 0
+		local value = 0
 		for k,v in ipairs(arg) do
 			vals = vals + 1
 			value = value + v
 		end
 		return value / vals
-		--Msg("Rape!")
-		--Msg("It was "..value.."!")
-		--return 34
 	end,
 	label = function(Out, ...)
-		vals = 0
-		value = 0
-		message = "("
+		local vals = 0
+		local message = "("
 		for k,v in ipairs(arg) do
 			vals = vals + 1
-			--value = value + v
 			message = message .. v .. " + "
 		end
 		message = string.sub(message,1,-4)
 		message = message .. ") / " .. vals .. " = " .. Out
 		return message
-		--return "I ARE FAIL"
 	end
 }
 
