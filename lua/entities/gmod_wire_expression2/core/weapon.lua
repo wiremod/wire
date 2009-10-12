@@ -4,47 +4,59 @@
 
 __e2setcost(2) -- temporary
 
-registerFunction("weapon", "e:", "e", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	if(!validEntity(rv1)) then return nil end
-	if(rv1:IsPlayer() or rv1:IsNPC()) then return rv1:GetActiveWeapon() else return nil end
-end)
+e2function entity entity:weapon()
+	if not validEntity(this) then return nil end
+	if not this:IsPlayer() and not this:IsNPC() then return nil end
+
+	return this:GetActiveWeapon()
+end
 
 
-registerFunction("primaryAmmoType", "e:", "s", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	if(!validEntity(rv1)) then return "" end
-	if(rv1:IsWeapon()) then return rv1:GetPrimaryAmmoType() else return "" end
-end)
+e2function string entity:primaryAmmoType()
+	if not validEntity(this) then return "" end
+	if not this:IsWeapon() then return "" end
 
-registerFunction("secondaryAmmoType", "e:", "s", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	if(!validEntity(rv1)) then return "" end
-	if(rv1:IsWeapon()) then return rv1:GetSecondaryAmmoType() else return "" end
-end)
+	return this:GetPrimaryAmmoType()
+end
 
-registerFunction("ammoCount", "e:s", "n", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	if(!validEntity(rv1)) then return 0 end
-	if(rv1:IsPlayer()) then return rv1:GetAmmoCount(rv2) else return 0 end
-end)
+e2function string entity:secondaryAmmoType()
+	if not validEntity(this) then return "" end
+	if not this:IsWeapon() then return "" end
 
-registerFunction("clip1", "e:", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	if(!validEntity(rv1)) then return 0 end
-	if(rv1:IsWeapon()) then return rv1:Clip1() else return 0 end
-end)
+	return this:GetSecondaryAmmoType()
+end
 
-registerFunction("clip2", "e:", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	if(!validEntity(rv1)) then return 0 end
-	if(rv1:IsWeapon()) then return rv1:Clip2() else return 0 end
-end)
+e2function number entity:ammoCount(string ammo_type)
+	if not validEntity(this) then return 0 end
+	if not this:IsPlayer() then return 0 end
+
+	return this:GetAmmoCount(ammo_type)
+end
+
+e2function number entity:clip1()
+	if not validEntity(this) then return 0 end
+	if not this:IsWeapon() then return 0 end
+
+	return this:Clip1()
+end
+
+e2function number entity:clip2()
+	if not validEntity(this) then return 0 end
+	if not this:IsWeapon() then return 0 end
+
+	return this:Clip2()
+end
+
+e2function string entity:tool()
+	if not validEntity(this) then return "" end
+	if not this:IsPlayer() then return "" end
+
+	local weapon = this:GetActiveWeapon()
+	if not validEntity(weapon) then return "" end
+	if weapon:GetClass() ~= "gmod_tool" then return "" end
+
+	return weapon.Mode
+end
 
 __e2setcost(nil) -- temporary
+
