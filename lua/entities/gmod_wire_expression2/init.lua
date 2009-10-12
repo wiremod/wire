@@ -173,7 +173,6 @@ function ENT:Setup(buffer, restore)
 	self.original = buffer
 	if self.script then
 		self:PCallHook('destruct')
-		if self.error then return end
 	end
 
 	local status, directives, buffer = PreProcessor.Execute(buffer)
