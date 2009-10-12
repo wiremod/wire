@@ -170,13 +170,13 @@ local function copytype(var)
 end
 
 function ENT:Setup(buffer, restore)
-	self.original = buffer
 	if self.script then
 		self:PCallHook('destruct')
 	end
 
 	local status, directives, buffer = PreProcessor.Execute(buffer)
 	if not status then self:Error(directives) return end
+	self.original = buffer
 	self.buffer = buffer
 	self.error = false
 

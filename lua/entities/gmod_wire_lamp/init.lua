@@ -32,7 +32,7 @@ function ENT:Initialize()
 	self.lightg = 255
 	self.lightb = 255
 
-	self.Inputs = WireLib.CreateSpecialInputs(self.Entity, {"Red", "Green", "Blue", "RGB", "On"}, {"NORMAL", "NORMAL", "NORMAL", "VECTOR", "NORMAL"})
+	self.Inputs = WireLib.CreateSpecialInputs(self.Entity, {"Red", "Green", "Blue", "RGB", "On", "Texture"}, {"NORMAL", "NORMAL", "NORMAL", "VECTOR", "NORMAL", "STRING"})
 	self:TurnOn()
 end
 
@@ -109,6 +109,8 @@ function ENT:TriggerInput(iname, value)
 		elseif self.flashlight then
 			self:TurnOff()
 		end
+	elseif (iname == "Texture") then
+		self:SetFlashlightTexture(value)
 	end
 
 
