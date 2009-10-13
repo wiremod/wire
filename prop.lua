@@ -1,5 +1,5 @@
 /******************************************************************************\
-Prop Core all credits to ZeikJT (modified for better handling with props by MrFaul)
+Prop Core by ZeikJT and MrFaul
 \******************************************************************************/
 
 E2Lib.RegisterExtension("propcore", false)
@@ -102,7 +102,7 @@ end
 e2function void entity:propDelete()
 	if not validEntity(this) then return end
 	if(!isOwner(self, this)) then return end
-	if(!this:IsWorld() & !this:IsPlayer()) then this:Remove() end
+	if(!this:IsWorld() and !this:IsPlayer()) then this:Remove() end
 end
 
 e2function number propDelete(array this)
@@ -110,7 +110,7 @@ e2function number propDelete(array this)
 	for _,ent in pairs(this) do
 		if validEntity(ent) then
 		if(!isOwner(self, ent)) then return end
-		if(!ent:IsWorld() & !ent:IsPlayer()) then
+		if(!ent:IsWorld() and !ent:IsPlayer()) then
 			count=count+1
 			ent:Remove()
 		end
@@ -119,16 +119,15 @@ e2function number propDelete(array this)
 	return count
 end
 
-e2function number propDelete(table this) = e2function number propDelete(array this)
+e2function number array:propDelete() = e2function number table:propDelete()
 
 e2function void entity:propFreeze(number freeze)
 	if not validEntity(this) then return end
 	if(!isOwner(self, this)) then return end
-	if(!this:IsWorld()) then 
+	if(!this:IsWorld()) then
 		local phys = this:GetPhysicsObject()
 		if (phys:IsValid()) then
-			if(freeze>=1)then phys:EnableMotion( false ) end
-			if(freeze<=0)then phys:EnableMotion( true ) end
+			phys:EnableMotion(freeze==0)
 		end	
 	else end
 end
@@ -137,8 +136,7 @@ e2function void entity:propNotSolid(number notsolid)
 	if not validEntity(this) then return end
 	if(!isOwner(self, this)) then return end
 	if(!this:IsWorld()) then
-		if(notsolid<=0)then this:SetNotSolid( false ) end
-		if(notsolid>=1)then this:SetNotSolid( true ) end
+		this:SetNotSolid(notsolid ~= 0)
 	else end
 end
 
@@ -164,7 +162,7 @@ e2function void entity:setPos(vector pos)
 	if(!phys:IsMoveable())then
 	phys:EnableMotion(true)
 	phys:EnableMotion(false)
-	end	
+	end
 end
 
 e2function void entity:reposition(vector pos) = e2function void entity:setPos(vector pos)
@@ -179,7 +177,7 @@ e2function void entity:setAng(angle rot)
 	if(!phys:IsMoveable())then
 	phys:EnableMotion(true)
 	phys:EnableMotion(false)
-	end	
+	end
 end
 
 e2function void entity:rerotate(angle rot) = e2function void entity:setAng(angle rot)
