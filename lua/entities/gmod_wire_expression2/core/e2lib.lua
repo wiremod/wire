@@ -347,7 +347,6 @@ do
 
 	function E2Lib.RegisterExtension(name, default)
 		local cookiestatus = extensions.GetStatus(name, default)
-		extensions.SetStatus(name, cookiestatus)
 		if not cookiestatus then error("Skipping E2 extension "..name, 0) end
 	end
 
