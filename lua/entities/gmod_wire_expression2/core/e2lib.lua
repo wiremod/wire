@@ -327,6 +327,43 @@ do
 	end
 end
 
+--[[************************* disabling extensions ***************************]]
+do
+	local extensions = {}
+
+	if not sql.TableExists("wire_expression2_extensions") then
+		sql.Query("CREATE TABLE wire_expression2_extensions (name varchar(255), enabled tinyint)")
+		sql.Query("CREATE UNIQUE INDEX name ON wire_expression2_extensions(name)")
+	end
+
+	function extensions.GetStatus(name, default)
+		local value = sql.QueryValue(string.format("SELECT enabled FROM wire_expression2_extensions WHERE (name = %s)", sql.SQLStr(name)))
+		return value and value ~= "0" or default
+	end
+
+	function extensions.SetStatus(name, status)
+		sql.Query(string.format("REPLACE INTO wire_expression2_extensions (name, enabled) VALUES (%s, %d)", sql.SQLStr(name), status and 1 or 0))
+	end
+
+	function E2Lib.RegisterExtension(name, default)
+		local cookiestatus = extensions.GetStatus(name, default)
+		extensions.SetStatus(name, cookiestatus)
+		if not cookiestatus then error("Skipping E2 extension "..name, 0) end
+	end
+
+	concommand.Add("wire_expression2_extension_enable", function(ply, cmd, args)
+		if ValidEntity(ply) and not ply:IsSuperAdmin() then return end
+
+		extensions.SetStatus(args[1], true)
+	end)
+
+	concommand.Add("wire_expression2_extension_disable", function(ply, cmd, args)
+		if ValidEntity(ply) and not ply:IsSuperAdmin() then return end
+
+		extensions.SetStatus(args[1], false)
+	end)
+end
+
 --[[***************************** compatibility ******************************]]
 
 -- Some functions need to be global for backwards-compatibility.
