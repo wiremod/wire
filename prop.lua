@@ -105,7 +105,7 @@ e2function void entity:propDelete()
 	if(!this:IsWorld() and !this:IsPlayer()) then this:Remove() end
 end
 
-e2function number propDelete(array this)
+e2function number array:propDelete()
 	local count = 0
 	for _,ent in pairs(this) do
 		if validEntity(ent) then
