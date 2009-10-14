@@ -99,6 +99,8 @@ e2function entity propSpawn(entity template, vector pos, angle rot, number froze
 	return createpropsfromE2(self,template:GetModel(),Vector(pos[1],pos[2],pos[3]),Angle(rot[1],rot[2],rot[3]),frozen)
 end
 
+--------------------------------------------------------------------------------------------------------
+
 e2function void entity:propDelete()
 	if not validEntity(this) then return end
 	if(!isOwner(self, this)) then return end
@@ -121,6 +123,8 @@ end
 
 e2function number array:propDelete() = e2function number table:propDelete()
 
+--------------------------------------------------------------------------------------------------------
+
 e2function void entity:propFreeze(number freeze)
 	if not validEntity(this) then return end
 	if(!isOwner(self, this)) then return end
@@ -140,17 +144,18 @@ e2function void entity:propNotSolid(number notsolid)
 	else end
 end
 
-e2function void entity:propGravity(number grav)
+e2function void entity:propGravity(number gravity)
 	if not validEntity(this) then return end
 	if(!isOwner(self, this)) then return end
 	if(!this:IsWorld()) then
 		local phys = this:GetPhysicsObject()
 		if (phys:IsValid()) then
-			if(grav>=1)then phys:EnableGravity( true ) end
-			if(grav<=0)then phys:EnableGravity( false ) end
+			phys:EnableGravity( gravity ~= 0 )
 		end
 	else end
 end
+
+--------------------------------------------------------------------------------------------------------
 
 e2function void entity:setPos(vector pos)
 	if not validEntity(this) then return end
@@ -182,12 +187,7 @@ end
 
 e2function void entity:rerotate(angle rot) = e2function void entity:setAng(angle rot)
 
-e2function entity entity:parent()
-	if not validEntity(this) then return nil end
-	local parent = this:GetParent()
-	if not validEntity(parent) then return nil end
-	return parent
-end
+--------------------------------------------------------------------------------------------------------
 
 e2function void entity:parentTo(entity target)
 	if not validEntity(this) then return nil end
