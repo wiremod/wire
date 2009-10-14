@@ -328,6 +328,7 @@ do
 end
 
 --[[************************* disabling extensions ***************************]]
+
 do
 	local extensions = {}
 
@@ -346,8 +347,8 @@ do
 	end
 
 	function E2Lib.RegisterExtension(name, default)
-		local cookiestatus = extensions.GetStatus(name, default)
-		if not cookiestatus then error("Skipping E2 extension "..name, 0) end
+		local status = extensions.GetStatus(name, default)
+		if not status then error("Skipping E2 extension '"..name.."'.", 0) end
 	end
 
 	concommand.Add("wire_expression2_extension_enable", function(ply, cmd, args)

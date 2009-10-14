@@ -1,3 +1,5 @@
+E2Lib.RegisterExtension("find", true)
+
 local function table_IsEmpty(t) return not next(t) end
 
 local filterList = E2Lib.filterList

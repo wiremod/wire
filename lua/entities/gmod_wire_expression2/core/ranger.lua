@@ -1,6 +1,8 @@
 /******************************************************************************\
-  Built-in Ranger support v1.71
+  Expression 2 built-in ranger/tracing extension
 \******************************************************************************/
+
+E2Lib.RegisterExtension("ranger", true)
 
 -------------------
 -- Main function --

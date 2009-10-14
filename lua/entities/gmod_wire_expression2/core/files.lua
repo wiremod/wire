@@ -2,6 +2,8 @@
 --                    File extension by {iG} I_am_McLovin                     --
 --------------------------------------------------------------------------------
 
+E2Lib.RegisterExtension("file", true)
+
 if not datastream then require( "datastream" ) end
 
 local uploaded_files = {}

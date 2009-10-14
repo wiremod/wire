@@ -2,6 +2,8 @@
   NPC control and such
 \******************************************************************************/
 
+E2Lib.RegisterExtension("npc", true)
+
 __e2setcost(5) -- temporary
 
 function validNPC(entity)

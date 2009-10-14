@@ -2,6 +2,8 @@
   Console support
 \******************************************************************************/
 
+E2Lib.RegisterExtension("console", true)
+
 local function validConCmd(self)
 	if not self.player:IsValid() then return false end
 	return self.player:GetInfoNum("wire_expression2_concmd") ~= 0

@@ -1,3 +1,5 @@
+E2Lib.RegisterExtension("holo", true)
+
 if not datastream then require( "datastream" ) end
 
 CreateConVar("wire_holograms_max","50")
