@@ -201,5 +201,5 @@ e2function void entity:deparent()
 	if not validEntity(this) then return nil end
 	if(!validPhysics(this)) then return end
 	if(!isOwner(self, this)) then return end
-	entity:SetParent( nil )
+	this:SetParent( nil )
 end
