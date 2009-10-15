@@ -138,7 +138,7 @@ function ENT:CallHook(hookname, ...)
 end
 
 function ENT:OnRemove( )
-	if not self.error then
+	if not self.error then -- TODO: remove?
 		self:PCallHook('destruct')
 	end
 end
@@ -283,7 +283,11 @@ function ENT:Setup(buffer, restore)
 end
 
 function ENT:Reset()
-	self:Setup(self.original)
+	self.error = true -- ensures destruct hooks are called at the end of Execute
+	timer.Simple(0, function()
+		self.script = nil -- make sure Setup doesnt call destruct hooks
+		self:Setup(self.original)
+	end)
 end
 
 function ENT:TriggerInput(key, value)

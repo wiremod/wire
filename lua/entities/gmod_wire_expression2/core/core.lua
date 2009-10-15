@@ -211,20 +211,39 @@ end)
 __e2setcost(1) -- approximation
 
 e2function number first()
-	if self.entity.first
-	   then return 1 else return 0 end
+	return self.entity.first and 1 or 0
 end
 
 e2function number duped()
-	if self.entity.duped
-	   then return 1 else return 0 end
+	return self.entity.duped and 1 or 0
 end
 
 e2function number inputClk()
-	if self.triggerinput
-	   then return 1 else return 0 end
+	return self.triggerinput and 1 or 0
 end
 
+-- This MUST be the first destruct hook!
+registerCallback("destruct", function(self)
+	local entity = self.entity
+	if entity.error and not self.data.reset then return end
+	if not entity.script then return end
+	if not self.data.runOnLast then return end
+
+	self.data.runOnLast = false
+	self.data.last = true
+	entity:Execute()
+	self.data.last = false
+end)
+
+--- Returns 1 if it is being called on the last execution of the expression gate before it is removed or reset. This execution must be requested with the runOnLast(1) command.
+e2function number last()
+	return self.data.last and 1 or 0
+end
+
+--- If <activate> != 0, the chip will run once when it is removed, setting the last() flag when it does.
+e2function void runOnLast(activate)
+	self.data.runOnLast = activate ~= 0
+end
 
 /******************************************************************************/
 
@@ -239,16 +258,21 @@ end
 __e2setcost(100) -- approximation
 
 e2function void reset()
-	if !self.entity.first then
-		self.data.reset = true
-	end
+	if self.data.last or self.entity.first then error("exit", 0) end
+
+	self.data.reset = true
 	error("exit", 0)
 end
 
-registerCallback("postexecute", function(self)
-	if self.data.reset then
-		self.entity:Reset()
-	end
+registerCallback("postinit", function()
+	registerCallback("postexecute", function(self)
+		if self.data.reset then
+			self.entity:Reset()
+
+			-- do not execute any other postexecute hooks
+			error("cancelhook", 0)
+		end
+	end)
 end)
 
 /******************************************************************************/

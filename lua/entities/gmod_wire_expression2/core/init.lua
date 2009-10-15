@@ -117,6 +117,7 @@ function wire_expression2_CallHook(hookname, ...)
 		ok, ret = pcall(callback, ...)
 		e2_remove_hook_fix()
 		if not ok then
+			if ret == "cancelhook" then break end
 			table.insert(errors, "\n"..e2_processerror(ret))
 			ret_array = nil
 		else
