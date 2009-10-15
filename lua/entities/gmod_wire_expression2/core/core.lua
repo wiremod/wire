@@ -225,10 +225,11 @@ end
 -- This MUST be the first destruct hook!
 registerCallback("destruct", function(self)
 	local entity = self.entity
-	if entity.error and not self.data.reset then return end
+	if entity.error then return end
 	if not entity.script then return end
 	if not self.data.runOnLast then return end
 
+	self.resetting = false
 	self.data.runOnLast = false
 	self.data.last = true
 	entity:Execute()
@@ -242,6 +243,7 @@ end
 
 --- If <activate> != 0, the chip will run once when it is removed, setting the last() flag when it does.
 e2function void runOnLast(activate)
+	if self.data.last then return end
 	self.data.runOnLast = activate ~= 0
 end
 
@@ -264,12 +266,15 @@ e2function void reset()
 	error("exit", 0)
 end
 
+-- wrapping this in a postinit hook to make sure this is the last postexecute hook in the list
 registerCallback("postinit", function()
+	-- handle reset()
 	registerCallback("postexecute", function(self)
 		if self.data.reset then
 			self.entity:Reset()
+			self.data.reset = false
 
-			-- do not execute any other postexecute hooks
+			-- do not execute any other postexecute hooks after this one.
 			error("cancelhook", 0)
 		end
 	end)

@@ -67,6 +67,7 @@ end
 
 function ENT:Execute()
 	if self.error then return end
+	if self.context.resetting then return end
 
 	e2_install_hook_fix()
 	self:PCallHook('preexecute')
@@ -212,15 +213,16 @@ function ENT:Setup(buffer, restore)
 
 	self.script = script
 
-	self.context = {}
-	self.context.vars = {}
-	self.context.vclk = {}
-	self.context.data = {}
-	self.context.entity = self
-	self.context.player = self.player
-	self.context.prf = 0
-	self.context.prfcount = 0
-	self.context.prfbench = 0
+	self.context = {
+		vars = {},
+		vclk = {},
+		data = {},
+		entity = self,
+		player = self.player,
+		prf = 0,
+		prfcount = 0,
+		prfbench = 0,
+	}
 
 	self._original = string.Replace(string.Replace(self.original,"\"","£"),"\n","€")
 	self._buffer = self.original -- TODO: is that really intended?
@@ -283,11 +285,11 @@ function ENT:Setup(buffer, restore)
 end
 
 function ENT:Reset()
-	self.error = true -- ensures destruct hooks are called at the end of Execute
-	timer.Simple(0, function()
-		self.script = nil -- make sure Setup doesnt call destruct hooks
-		self:Setup(self.original)
-	end)
+	-- prevent E2 from executing anything
+	self.context.resetting = true
+
+	-- reset the chip in the next tick
+	timer.Simple(0, self.Setup, self, self.original)
 end
 
 function ENT:TriggerInput(key, value)
