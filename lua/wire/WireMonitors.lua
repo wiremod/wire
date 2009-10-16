@@ -33,13 +33,13 @@ WireGPU_AddMonitor("Plasma TV (4:3)",   "models/blacknecro/tv_plasma_4_3.mdl",  
 WireGPU_AddMonitor("Plasma TV (16:10)", "models/props/cs_office/tv_plasma.mdl",         6.1,    18.93,  11.0,   0.065,  -28.5,    28.5,    36,       2)
 WireGPU_AddMonitor("Billboard",         "models/props/cs_assault/billboard.mdl",        1,      0,      52,     0.23,   -110.512, 110.512, 57.647,   -57.647)
 
-WireGPU_AddMonitor("LED Board (1:1)",   "models/blacknecro/ledboard60.mdl",             6.1,    18.5,   11.0,   0.065,  -60,     60,       -60,      60)
-WireGPU_AddMonitor("Cube 1x1x1",        "models/hunter/blocks/cube1x1x1.mdl",           24,     0,      0,      0.09,   -48,     48,       -48,      48)
-WireGPU_AddMonitor("Panel 1x1",         "models/hunter/plates/plate1x1.mdl",            0,      1.7,    0,      0.09,   -48,     48,       -48,      48,     true)
-WireGPU_AddMonitor("Panel 2x2",         "models/hunter/plates/plate2x2.mdl",            0,      1.7,    0,      0.182,  -48,     48,       -48,      48,     true)
-WireGPU_AddMonitor("Panel 0.5x0.5",     "models/hunter/plates/plate05x05.mdl",          0,      1.7,    0,      0.045,  -48,     48,       -48,      48,     true)
+WireGPU_AddMonitor("LED Board (1:1)",   "models/blacknecro/ledboard60.mdl",             6.1,    18.5,   11.0,   0.065,  -60,      60,      -60,      60)
+WireGPU_AddMonitor("Cube 1x1x1",        "models/hunter/blocks/cube1x1x1.mdl",           24,     0,      0,      0.09,   -48,      48,      -48,      48)
+WireGPU_AddMonitor("Panel 1x1",         "models/hunter/plates/plate1x1.mdl",            0,      1.7,    0,      0.09,   -48,      48,      -48,      48,     true)
+WireGPU_AddMonitor("Panel 2x2",         "models/hunter/plates/plate2x2.mdl",            0,      1.7,    0,      0.182,  -48,      48,      -48,      48,     true)
+WireGPU_AddMonitor("Panel 0.5x0.5",     "models/hunter/plates/plate05x05.mdl",          0,      1.7,    0,      0.045,  -48,      48,      -48,      48,     true)
 
-WireGPU_AddMonitor("Tray",      "models\props\cs_militia\reload_bullet_tray.mdl",       0,      0.8,    1.6,    0.009,  0,       100,      0,        60,     true)
+WireGPU_AddMonitor("Tray",      "models\props\cs_militia\reload_bullet_tray.mdl",       0,      0.8,    1.6,    0.009,  0,        100,     0,        60,     true)
 -- Offset front, offset up, offset right, resolution/scale                              OF      OU      OR      SCALE   LOWX     HIGHX     LOWY      HIGHY   ROTATE90
 
 local function fallback(self, model)
@@ -51,8 +51,6 @@ local function fallback(self, model)
 		end
 	end
 	if not ent then return nil end
-	local monitor = {}
-	self[model] = monitor
 
 	local gap = Vector(0.25,0.25,0.05)
 	local obbmin = ent:OBBMins()+gap
@@ -67,28 +65,27 @@ local function fallback(self, model)
 	local x1, y1 = obbmin.y, obbmin.x
 	local x2, y2 = obbmax.y, obbmax.x
 
-	monitor.Name = model
-	monitor.OF = offset.x
-	monitor.OR = -offset.y
-	monitor.OU = offset.z
-	monitor.RS = (y2-y1)/512
-	monitor.RatioX = math.abs((y2-y1)/(x2-x1))
+	local monitor = {
+		Name = "Auto: "..model:match("([^/]*)$"),
+		OF = offset.x,
+		OR = -offset.y,
+		OU = offset.z,
+		RS = (y2-y1)/512,
+		RatioX = math.abs((y2-y1)/(x2-x1)),
 
-	monitor.OR = monitor.OR-y1*(1/monitor.RatioX-1) -- silly...
+		x1 = x1,
+		x2 = x2,
+		y1 = y1,
+		y2 = y2,
 
-	monitor.x1 = x1
-	monitor.x2 = x2
-	monitor.y1 = y1
-	monitor.y2 = y2
+		z = offset.x,
 
-	monitor.z = offset.x
+		rot90 = true,
+	}
+	monitor.OR = monitor.OR-y1*(1/monitor.RatioX-1) -- silly...,
 
-	monitor.rot90 = true
-
-	print("----")
-	PrintTable(monitor)
+	self[model] = monitor
 	return monitor
 end
 
 setmetatable(WireGPU_Monitors, { __index = fallback })
-

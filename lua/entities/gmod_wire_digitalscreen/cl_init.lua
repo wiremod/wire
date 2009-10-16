@@ -254,14 +254,15 @@ function ENT:Draw()
 
 	if EmuFox then return end
 
+	local model = self.Entity:GetModel()
 	local OF, OU, OR, Res, RatioX, Rot90
-	if (WireGPU_Monitors[self.Entity:GetModel()]) && (WireGPU_Monitors[self.Entity:GetModel()].OF) then
-		OF = WireGPU_Monitors[self.Entity:GetModel()].OF
-		OU = WireGPU_Monitors[self.Entity:GetModel()].OU
-		OR = WireGPU_Monitors[self.Entity:GetModel()].OR
-		Res = WireGPU_Monitors[self.Entity:GetModel()].RS
-		RatioX = WireGPU_Monitors[self.Entity:GetModel()].RatioX
-		Rot90 = WireGPU_Monitors[self.Entity:GetModel()].rot90
+	if (WireGPU_Monitors[model]) && (WireGPU_Monitors[model].OF) then
+		OF = WireGPU_Monitors[model].OF
+		OU = WireGPU_Monitors[model].OU
+		OR = WireGPU_Monitors[model].OR
+		Res = WireGPU_Monitors[model].RS
+		RatioX = WireGPU_Monitors[model].RatioX
+		Rot90 = WireGPU_Monitors[model].rot90
 	else
 		OF = 0
 		OU = 0

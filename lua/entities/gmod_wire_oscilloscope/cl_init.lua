@@ -1,9 +1,8 @@
-
 include('shared.lua')
 
-ENT.Spawnable			= false
-ENT.AdminSpawnable		= false
-ENT.RenderGroup 		= RENDERGROUP_BOTH
+ENT.Spawnable      = false
+ENT.AdminSpawnable = false
+ENT.RenderGroup    = RENDERGROUP_BOTH
 
 function ENT:Initialize()
 	self.RTTexture = WireGPU_NeedRenderTarget(self:EntIndex())
@@ -28,9 +27,9 @@ function ENT:Draw()
 		local oldw = ScrW()
 		local oldh = ScrH()
 
-	 	render.SetRenderTarget(NewRT)
-	 	render.SetViewPort(0,0,512,512)
-	 	cam.Start2D()
+		render.SetRenderTarget(NewRT)
+		render.SetViewPort(0,0,512,512)
+		cam.Start2D()
 			surface.SetDrawColor(10,20,5,255)
 			surface.DrawRect(0,0,512,512)
 
@@ -69,17 +68,20 @@ function ENT:Draw()
 			surface.DrawLine(0, 256, 512, 256)
 			surface.DrawLine(256, 0, 256, 512)
 		cam.End2D()
-	 	render.SetViewPort(0,0,oldw,oldh)
-	 	render.SetRenderTarget(OldRT)
+		render.SetViewPort(0,0,oldw,oldh)
+		render.SetRenderTarget(OldRT)
 	end
 
 
-	if (WireGPU_Monitors[self.Entity:GetModel()]) && (WireGPU_Monitors[self.Entity:GetModel()].OF) then
-		OF = WireGPU_Monitors[self.Entity:GetModel()].OF
-		OU = WireGPU_Monitors[self.Entity:GetModel()].OU
-		OR = WireGPU_Monitors[self.Entity:GetModel()].OR
-		Res = WireGPU_Monitors[self.Entity:GetModel()].RS
-		RatioX = WireGPU_Monitors[self.Entity:GetModel()].RatioX
+	local model = self.Entity:GetModel()
+	local OF, OU, OR, Res, RatioX, Rot90
+	if (WireGPU_Monitors[model]) && (WireGPU_Monitors[model].OF) then
+		OF = WireGPU_Monitors[model].OF
+		OU = WireGPU_Monitors[model].OU
+		OR = WireGPU_Monitors[model].OR
+		Res = WireGPU_Monitors[model].RS
+		RatioX = WireGPU_Monitors[model].RatioX
+		Rot90 = WireGPU_Monitors[model].rot90
 	else
 		OF = 0
 		OU = 0
@@ -90,9 +92,13 @@ function ENT:Draw()
 
 	local ang = self.Entity:GetAngles()
 	local rot = Vector(-90,90,0)
-	ang:RotateAroundAxis(ang:Right(), 	rot.x)
-	ang:RotateAroundAxis(ang:Up(), 		rot.y)
-	ang:RotateAroundAxis(ang:Forward(), 	rot.z)
+	if Rot90 then
+		rot = Angle(0,90,0)
+	end
+
+	ang:RotateAroundAxis(ang:Right(),   rot.x)
+	ang:RotateAroundAxis(ang:Up(),      rot.y)
+	ang:RotateAroundAxis(ang:Forward(), rot.z)
 
 	local pos = self.Entity:GetPos() + (self.Entity:GetForward() * OF) + (self.Entity:GetUp() * OU) + (self.Entity:GetRight() * OR)
 
