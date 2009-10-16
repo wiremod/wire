@@ -120,6 +120,18 @@ do -- class deque
 		return #self-self.offset
 	end
 
+	-- Prepends the given element.
+	function deque:unshift(value)
+		if offset < 1 then
+			-- TODO: improve
+			table.insert(self, 1, value)
+			return
+		end
+		self.offset = self.offset - 1
+		self[self.offset+1] = value
+	end
+
+	-- Removes the first element and returns it
 	function deque:shift()
 		--do return table.remove(self, 1) end
 		local offset = self.offset + 1
@@ -138,16 +150,19 @@ do -- class deque
 		return ret
 	end
 
+	-- Appends the given element.
 	function deque:push(value)
 		self[#self+1] = value
 	end
 
+	-- Removes the last element and returns it.
 	function deque:pop()
 		local ret = self[#self]
 		self[#self] = nil
 		return ret
 	end
 
+	-- Returns the last element.
 	function deque:top()
 		return self[#self]
 	end
