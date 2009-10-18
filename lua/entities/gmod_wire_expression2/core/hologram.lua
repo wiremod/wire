@@ -296,10 +296,11 @@ local function MakePropNoEffect(...)
 end
 ]]
 
-local function createcustompropfromE2(self, index, pos, scale, ang, color, model)
+local function CreateHolo(self, index, pos, scale, ang, color, model)
 	if not pos   then pos   = self.entity:GetPos() end
 	if not scale then scale = Vector(1,1,1) end
 	if not ang   then ang   = self.entity:GetAngles() end
+	if not model or not ModelList[model] then model = "cube" end
 
 	local Holo = CheckIndex(self, index)
 	if not Holo then
@@ -307,7 +308,7 @@ local function createcustompropfromE2(self, index, pos, scale, ang, color, model
 		SetIndex(self, index, Holo)
 	end
 
-	model = "models/Holograms/"..(model or "cube")..".mdl"
+	model = "models/Holograms/"..model..".mdl"
 
 	local prop
 
@@ -397,7 +398,7 @@ e2function entity holoCreate(index, vector position, vector scale, angle ang, ve
 
 	position = Vector(position[1], position[2], position[3])
 	ang = Angle(ang[1], ang[2], ang[3])
-	local ret = createcustompropfromE2(self, index, position, scale, ang, color, model)
+	local ret = CreateHolo(self, index, position, scale, ang, color, model)
 	if validEntity(ret) then return ret end
 end
 
@@ -408,7 +409,7 @@ e2function entity holoCreate(index, vector position, vector scale, angle ang, ve
 
 	position = Vector(position[1], position[2], position[3])
 	ang = Angle(ang[1], ang[2], ang[3])
-	local ret = createcustompropfromE2(self, index, position, scale, ang, color)
+	local ret = CreateHolo(self, index, position, scale, ang, color)
 	if validEntity(ret) then return ret end
 end
 
@@ -419,7 +420,7 @@ e2function entity holoCreate(index, vector position, vector scale, angle ang)
 
 	position = Vector(position[1], position[2], position[3])
 	ang = Angle(ang[1], ang[2], ang[3])
-	local ret = createcustompropfromE2(self, index, position, scale, ang)
+	local ret = CreateHolo(self, index, position, scale, ang)
 	if validEntity(ret) then return ret end
 end
 
@@ -429,7 +430,7 @@ e2function entity holoCreate(index, vector position, vector scale)
 	if not Holo and PlayerAmount[self.player] >= GetConVar("wire_holograms_max"):GetInt() then return end
 
 	position = Vector(position[1],position[2],position[3])
-	local ret = createcustompropfromE2(self, index, position, scale)
+	local ret = CreateHolo(self, index, position, scale)
 	if validEntity(ret) then return ret end
 end
 
@@ -439,7 +440,7 @@ e2function entity holoCreate(index, vector position)
 	if not Holo and PlayerAmount[self.player] >= GetConVar("wire_holograms_max"):GetInt() then return end
 
 	position = Vector(position[1],position[2],position[3])
-	local ret = createcustompropfromE2(self, index, position)
+	local ret = CreateHolo(self, index, position)
 	if validEntity(ret) then return ret end
 end
 
@@ -448,7 +449,7 @@ e2function entity holoCreate(index)
 	local Holo = CheckIndex(self, index)
 	if not Holo and PlayerAmount[self.player] >= GetConVar("wire_holograms_max"):GetInt() then return end
 
-	local ret = createcustompropfromE2(self, index)
+	local ret = CreateHolo(self, index)
 	if validEntity(ret) then return ret end
 end
 
