@@ -1,3 +1,5 @@
+E2Lib.RegisterExtension("propcore", false)
+
 if(CLIENT)then
 	language.Add("Undone_e2_spawned_prop", "E2 Spawned Prop")
 else
@@ -138,10 +140,9 @@ e2function void entity:propFreeze(number freeze)
     if(!this:IsWorld()) then 
 		local phys = this:GetPhysicsObject()
 		if (phys:IsValid()) then
-			if(freeze>=1)then phys:EnableMotion( false ) end
-			if(freeze<=0)then phys:EnableMotion( true ) end
+			phys:EnableMotion(freeze==0)
 		end	
-	else end
+	end
 end
 
 e2function void entity:propNotSolid(number notsolid)
@@ -149,22 +150,20 @@ e2function void entity:propNotSolid(number notsolid)
 	if not validEntity(this) then return end
 	if(!isOwner(self, this)) then return end
     if(!this:IsWorld()) then
-		if(notsolid<=0)then this:SetNotSolid( false ) end
-		if(notsolid>=1)then this:SetNotSolid( true ) end
-	else end
+		this:SetNotSolid(notsolid ~= 0)
+	end
 end
 
-e2function void entity:propGravity(number grav)
+e2function void entity:propGravity(number gravity)
 	if not ValidAction(self.player) then return end
 	if not validEntity(this) then return end
 	if(!isOwner(self, this)) then return end
     if(!this:IsWorld()) then
 		local phys = this:GetPhysicsObject()
 		if (phys:IsValid()) then
-			if(grav>=1)then phys:EnableGravity( true ) end
-			if(grav<=0)then phys:EnableGravity( false ) end
+			phys:EnableGravity(gravity~=0)
 		end
-	else end
+	end
 end
 
 e2function void entity:setPos(vector pos)
@@ -199,14 +198,6 @@ end
 
 e2function void entity:rerotate(angle rot) = e2function void entity:setAng(angle rot)
 
-e2function entity entity:parent()
-	if not ValidAction(self.player) then return end
-	if not validEntity(this) then return nil end
-    local parent = this:GetParent()
-    if not validEntity(parent) then return nil end
-     return parent
-end
-
 e2function void entity:parentTo(entity target)
 	if not ValidAction(self.player) then return end
 	if not validEntity(this) then return nil end
@@ -221,5 +212,5 @@ e2function void entity:deparent()
 	if not validEntity(this) then return nil end
 	if(!validPhysics(this)) then return end
 	if(!isOwner(self, this)) then return end
-     entity:SetParent( nil )
+     this:SetParent( nil )
 end
