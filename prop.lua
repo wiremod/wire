@@ -1,8 +1,6 @@
 E2Lib.RegisterExtension("propcore", false)
 
-if(CLIENT)then
-	language.Add("Undone_e2_spawned_prop", "E2 Spawned Prop")
-else
+if(SERVER)
 	CreateConVar( "sbox_E2_maxProps", "-1", FCVAR_ARCHIVE )
 	CreateConVar( "sbox_E2_maxPropsPerSecond", "4", FCVAR_ARCHIVE )
 	CreateConVar( "sbox_E2_PropCore", "0", FCVAR_ARCHIVE )
