@@ -10,6 +10,9 @@ registerType("angle", "a", { 0, 0, 0 },
 	function(retval)
 		if type(retval) ~= "table" then error("Return value is not a table, but a "..type(retval).."!",0) end
 		if #retval ~= 3 then error("Return value does not have exactly 3 entries!",0) end
+	end,
+	function(v)
+		return type(v) ~= "table" or #v ~= 3
 	end
 )
 

@@ -16,6 +16,9 @@ registerType("string", "s", "",
 	nil,
 	function(retval)
 		if type(retval) ~= "string" then error("Return value is not a string, but a "..type(retval).."!",0) end
+	end,
+	function(v)
+		return type(v) ~= "string"
 	end
 )
 

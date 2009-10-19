@@ -16,6 +16,9 @@ registerType("array", "r", {},
 	nil,
 	function(retval)
 		if type(retval) ~= "table" then error("Return value is not a table, but a "..type(retval).."!",0) end
+	end,
+	function(v)
+		return type(v) ~= "table"
 	end
 )
 

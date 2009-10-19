@@ -5,44 +5,6 @@
 
 AddCSLuaFile("compiler.lua")
 
---[[
-local Extensions = {
-	types = {},
-	callbacks = {},
-}
-
-function Extensions:registerType(name, id, default, inputcallback, outputcallback)
-	if name != string.lower(name) then
-		error("TODO")
-	end
-
-	self.types[string.upper(name)] = {id, default, inputcallback, outputcallback}
-
-	if SERVER then
-		if WireLib.DT[string.upper(name)] == nil then
-			WireLib.DT[string.upper(name)] = {}
-			WireLib.DT[string.upper(name)].Zero = default
-		end
-	end
-end
-
-function Extensions:registerCallback(event, callback)
-	self.callbacks[event][#self.callbacks[event] + 1] = callback
-end
-
-function Extensions:registerCallback(event, callback)
-	self.callbacks[event][#self.callbacks[event] + 1] = callback
-end
-
-function Extensions:registerOperator(name, pars, rets, func)
-	wire_expression2_funcs["op:" .. name .. "(" .. pars .. ")"] = { "op:" .. name .. "(" .. pars .. ")", rets, func }
-end
-
-function Extensions:registerFunction(name, pars, rets, func)
-	wire_expression2_funcs[name .. "(" .. pars .. ")"] = { name .. "(" .. pars .. ")", rets, func }
-end
---]]
-
 Compiler = {}
 Compiler.__index = Compiler
 

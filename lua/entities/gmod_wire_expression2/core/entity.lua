@@ -9,6 +9,9 @@ registerType("entity", "e", nil,
 		if validEntity(retval) then return end
 		if retval == nil then return end
 		if not retval.EntIndex then error("Return value is neither nil nor an Entity, but a "..type(retval).."!",0) end
+	end,
+	function(v)
+		return not validEntity(v)
 	end
 )
 

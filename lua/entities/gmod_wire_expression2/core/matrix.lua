@@ -28,6 +28,9 @@ registerType("matrix2", "xm2", { 0, 0,
 	function(retval)
 		if type(retval) ~= "table" then error("Return value is not a table, but a "..type(retval).."!",0) end
 		if #retval ~= 4 then error("Return value does not have exactly 4 entries!",0) end
+	end,
+	function(v)
+		return type(v) ~= "table" or #v ~= 4
 	end
 )
 
@@ -440,6 +443,9 @@ registerType("matrix", "m", { 0, 0, 0,
 	function(retval)
 		if type(retval) ~= "table" then error("Return value is not a table, but a "..type(retval).."!",0) end
 		if #retval ~= 9 then error("Return value does not have exactly 9 entries!",0) end
+	end,
+	function(v)
+		return type(v) ~= "table" or #v ~= 9
 	end
 )
 
@@ -1049,6 +1055,9 @@ registerType("matrix4", "xm4", { 0, 0, 0, 0,
 	function(retval)
 		if type(retval) ~= "table" then error("Return value is not a table, but a "..type(retval).."!",0) end
 		if #retval ~= 16 then error("Return value does not have exactly 16 entries!",0) end
+	end,
+	function(v)
+		return type(v) ~= "table" or #v ~= 16
 	end
 )
 

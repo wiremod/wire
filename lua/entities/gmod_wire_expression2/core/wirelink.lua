@@ -88,7 +88,11 @@ registerType("wirelink", "xwl", nil,
 	nil,
 	function(retval)
 		if validEntity(retval) then return end
-		if retval ~= nil and retval.EntIndex then error("Return value is neither nil nor an Entity, but a "..type(retval).."!",0) end
+		if retval == nil then return end
+		if not retval.EntIndex then error("Return value is neither nil nor an Entity (and thus not a wirelink), but a "..type(retval).."!",0) end
+	end,
+	function(v)
+		return not validEntity(v)
 	end
 )
 
@@ -148,11 +152,7 @@ e2function number wirelink:hasOutput(string portname)
 end
 
 /******************************************************************************/
-// THESE NEED TO USE THE INPUT/OUTPUT SERIALIZERS! (not numbers)
-// THE VALUES SHOULD BE SAVED AND PUSHED ON POST EXECUTION
 
--- n v a e s
--- x - - ~ x
 registerCallback("postinit", function()
 
 	local getf, setf
@@ -167,8 +167,8 @@ registerCallback("postinit", function()
 		local setter = "set"..fname:sub(1,1):upper()..fname:sub(2):lower()
 
 		if input_serializer then
-			--TODO {}
 			if type(zero) == "table" and not next(zero) then
+				-- table/array
 				function getf(self, args)
 					local this, portname = args[2], args[3]
 					this, portname = this[1](self, this), portname[1](self, portname)
@@ -182,6 +182,7 @@ registerCallback("postinit", function()
 					return input_serializer(self, this.Outputs[portname].Value)
 				end
 			else
+				-- all other types with input serializers
 				function getf(self, args)
 					local this, portname = args[2], args[3]
 					this, portname = this[1](self, this), portname[1](self, portname)
@@ -196,6 +197,7 @@ registerCallback("postinit", function()
 				end
 			end
 		else
+			-- all types without an input serializer
 			-- a check for {} is not needed here, since array and table both have input serializers and are thus handled in the above branch.
 			function getf(self, args)
 				local this, portname = args[2], args[3]

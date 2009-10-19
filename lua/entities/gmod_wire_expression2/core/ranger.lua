@@ -98,6 +98,9 @@ registerType("ranger", "xrd", nil,
 	function(retval)
 		if retval == nil then return end
 		if type(retval) ~= "table" then error("Return value is neither nil nor a table, but a "..type(retval).."!",0) end
+	end,
+	function(v)
+		return type(v) ~= "table" or not v.HitPos
 	end
 )
 

@@ -12,6 +12,9 @@ registerType("vector2", "xv2", { 0, 0 },
 	function(retval)
 		if type(retval) ~= "table" then error("Return value is not a table, but a "..type(retval).."!",0) end
 		if #retval ~= 2 then error("Return value does not have exactly 2 entries!",0) end
+	end,
+	function(v)
+		return type(v) ~= "table" or #v ~= 2
 	end
 )
 
@@ -469,6 +472,9 @@ registerType("vector4", "xv4", { 0, 0, 0, 0 },
 	function(retval)
 		if type(retval) ~= "table" then error("Return value is not a table, but a "..type(retval).."!",0) end
 		if #retval ~= 4 then error("Return value does not have exactly 4 entries!",0) end
+	end,
+	function(v)
+		return type(v) ~= "table" or #v ~= 4
 	end
 )
 

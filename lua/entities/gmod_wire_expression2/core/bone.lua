@@ -21,16 +21,6 @@ hook.Add("EntityRemoved", "wire_expression2_bone", function(ent)
 	entity2bone[ent] = nil
 end)
 
-registerType("bone", "b", nil,
-	nil,
-	nil,
-	function(retval)
-		if retval == nil then return end
-		if type(retval) ~= "PhysObj" then error("Return value is neither nil nor a PhysObj, but a "..type(retval).."!",0) end
-		if not bone2entity[retval] then error("Return value is not a registered bone!",0) end
-	end
-)
-
 -- faster access to some math library functions
 local abs = math.abs
 local atan2 = math.atan2
@@ -99,6 +89,21 @@ local function isInvalidBone(b)
 	return false
 end
 E2Lib.isInvalidBone = isInvalidBone
+
+--[[************************************************************************]]--
+
+registerType("bone", "b", nil,
+	nil,
+	nil,
+	function(retval)
+		if retval == nil then return end
+		if type(retval) ~= "PhysObj" then error("Return value is neither nil nor a PhysObj, but a "..type(retval).."!",0) end
+		if not bone2entity[retval] then error("Return value is not a registered bone!",0) end
+	end,
+	isInvalidBone
+)
+
+--[[************************************************************************]]--
 
 --- if (B)
 e2function number operator_is(bone b)

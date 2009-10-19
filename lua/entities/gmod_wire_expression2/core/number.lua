@@ -36,12 +36,15 @@ registerType("normal", "n", 0,
 	nil,
 	function(retval)
 		if type(retval) ~= "number" then error("Return value is not a table, but a "..type(retval).."!",0) end
+	end,
+	function(v)
+		return type(v) ~= "number"
 	end
 )
 
-E2Lib.registerConstant("PI", math.pi)
-E2Lib.registerConstant("E", math.exp(1))
-E2Lib.registerConstant("PHI", (1+math.sqrt(5))/2)
+E2Lib.registerConstant("PI", pi)
+E2Lib.registerConstant("E", exp(1))
+E2Lib.registerConstant("PHI", (1+sqrt(5))/2)
 
 --[[************************************************************************]]--
 
