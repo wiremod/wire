@@ -206,7 +206,7 @@ E2Helper.Descriptions["rerotate"] = "Set the rotation of the entity. !Dont use! 
 e2function void entity:rerotate(angle rot) = e2function void entity:setAng(angle rot)
 
 --------------------------------------------------------------------------------
-E2Helper.Descriptions["partenTo"] = "Parents the entity to the target entity"
+E2Helper.Descriptions["parentTo"] = "Parents the entity to the target entity"
 e2function void entity:parentTo(entity target)
 	if not ValidAction(self.player) then return end
 	if not validEntity(this) then return nil end
@@ -215,7 +215,7 @@ e2function void entity:parentTo(entity target)
 	this:SetParent(target)
 end
 
-E2Helper.Descriptions["departen"] = "removes the parent link"
+E2Helper.Descriptions["deparent"] = "removes the parent link"
 e2function void entity:deparent()
 	if not ValidAction(self.player) then return end
 	if not validEntity(this) then return nil end
