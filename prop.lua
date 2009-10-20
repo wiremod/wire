@@ -1,10 +1,8 @@
 E2Lib.RegisterExtension("propcore", false)
 
-if(SERVER)
-	CreateConVar( "sbox_E2_maxProps", "-1", FCVAR_ARCHIVE )
-	CreateConVar( "sbox_E2_maxPropsPerSecond", "4", FCVAR_ARCHIVE )
-	CreateConVar( "sbox_E2_PropCore", "0", FCVAR_ARCHIVE )
-end
+CreateConVar( "sbox_E2_maxProps", "-1", FCVAR_ARCHIVE )
+CreateConVar( "sbox_E2_maxPropsPerSecond", "4", FCVAR_ARCHIVE )
+CreateConVar( "sbox_E2_PropCore", "0", FCVAR_ARCHIVE )
 
 local E2totalspawnedprops = 0
 local E2tempSpawnedProps = 0
