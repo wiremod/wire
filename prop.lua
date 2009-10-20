@@ -67,7 +67,7 @@ local function createpropsfromE2(self,model,pos,angles,freeze)
 end
 
 --------------------------------------------------------------------------------
-
+E2Helper.Descriptions["propSpawn"] = "Use the model string or a template entity to spawn a prop you can set the position and/or the rotation last number indicates frozen/unfrozen."
 e2function entity propSpawn(string model, number frozen)
 	if not ValidAction(self.player) then return nil end
 	return createpropsfromE2(self,model,self.entity:GetPos()+self.entity:GetUp()*25,self.entity:GetAngles(),frozen)
@@ -113,13 +113,12 @@ e2function entity propSpawn(entity template, vector pos, angle rot, number froze
 end
 
 --------------------------------------------------------------------------------
-
+E2Helper.Descriptions["propDelete"] = "Remove the given entity or all entites in table/array returns how may are deleted"
 e2function void entity:propDelete()
 	if not ValidAction(self.player) then return end
 	if not validEntity(this) then return end
 	if(!isOwner(self, this)) then return end
-	if this:IsPlayer() then return end
-	
+	if this:IsPlayer() then return end	
 	this:Remove()
 end
 
@@ -138,7 +137,7 @@ end
 e2function number array:propDelete() = e2function number table:propDelete()
 
 --------------------------------------------------------------------------------
-
+E2Helper.Descriptions["propFreeze"] = "Freeze the entity 1/0"
 e2function void entity:propFreeze(number freeze)
 	if not ValidAction(self.player) then return end
 	if (!validPhysics(this)) then return end
@@ -149,6 +148,7 @@ e2function void entity:propFreeze(number freeze)
 	end
 end
 
+E2Helper.Descriptions["propNotSolid"] = "Turns the prop into a Ghost like adv.dupe. 1/0"
 e2function void entity:propNotSolid(number notsolid)
 	if not ValidAction(self.player) then return end
 	if not validEntity(this) then return end
@@ -158,6 +158,7 @@ e2function void entity:propNotSolid(number notsolid)
 	end
 end
 
+E2Helper.Descriptions["propGravity"] = "Turn gravity On/Off. 1/0"
 e2function void entity:propGravity(number gravity)
 	if not ValidAction(self.player) then return end
 	if (!validPhysics(this)) then return end
@@ -170,6 +171,7 @@ end
 
 --------------------------------------------------------------------------------
 
+E2Helper.Descriptions["setPos"] = "Set the position of the entity."
 e2function void entity:setPos(vector pos)
 	if not ValidAction(self.player) then return end
 	if (!validPhysics(this)) then return end
@@ -183,8 +185,10 @@ e2function void entity:setPos(vector pos)
 	end
 end
 
+E2Helper.Descriptions["reposition"] = "Set the position of the entity. !Dont use! downward patch"
 e2function void entity:reposition(vector pos) = e2function void entity:setPos(vector pos)
 
+E2Helper.Descriptions["setAng"] = "Set the rotation of the entity."
 e2function void entity:setAng(angle rot)
 	if not ValidAction(self.player) then return end
 	if (!validPhysics(this)) then return end
@@ -198,10 +202,11 @@ e2function void entity:setAng(angle rot)
 	end
 end
 
+E2Helper.Descriptions["rerotate"] = "Set the rotation of the entity. !Dont use! downward patch"
 e2function void entity:rerotate(angle rot) = e2function void entity:setAng(angle rot)
 
 --------------------------------------------------------------------------------
-
+E2Helper.Descriptions["partenTo"] = "Parents the entity to the target entity"
 e2function void entity:parentTo(entity target)
 	if not ValidAction(self.player) then return end
 	if not validEntity(this) then return nil end
@@ -210,9 +215,11 @@ e2function void entity:parentTo(entity target)
 	this:SetParent(target)
 end
 
+E2Helper.Descriptions["departen"] = "removes the parent link"
 e2function void entity:deparent()
 	if not ValidAction(self.player) then return end
 	if not validEntity(this) then return nil end
 	if(!isOwner(self, this)) then return end
 	this:SetParent( nil )
 end
+
