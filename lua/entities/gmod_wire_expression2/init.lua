@@ -139,7 +139,7 @@ function ENT:CallHook(hookname, ...)
 end
 
 function ENT:OnRemove( )
-	if not self.error then -- TODO: remove?
+	if not self.error then -- make sure destruct hooks aren't called twice (once on error, once on remove)
 		self:PCallHook('destruct')
 	end
 end

@@ -323,7 +323,7 @@ e2function string string:matchFirst(string pattern)
 	local OK, Ret = pcall(string.match, this, pattern)
 	if not OK then
 		self.player:ChatPrint(Ret)
-		return {}
+		return ""
 	else
 		return Ret or ""
 	end
@@ -334,7 +334,7 @@ e2function string string:matchFirst(string pattern, position)
 	local OK, Ret = pcall(string.match, this, pattern, position)
 	if not OK then
 		self.player:ChatPrint(Ret)
-		return {}
+		return ""
 	else
 		return Ret or ""
 	end
