@@ -161,11 +161,7 @@ function E2Lib.registerConstant(name, value, literal)
 	if name:sub(1,1) ~= "_" then name = "_"..name end
 	if not value and not literal then value = _G[name] end
 
-	if literal or type(value) == "number" then
-		wire_expression2_constants[name] = tostring(value)
-	else
-		wire_expression2_constants[name] = string.format("%q", value)
-	end
+	wire_expression2_constants[name] = value
 end
 
 /******************************************************************************/
