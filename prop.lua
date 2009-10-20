@@ -4,7 +4,7 @@ Prop Core by ZeikJT and MrFaul
 
 E2Lib.RegisterExtension("propcore", false)
 
-hook.Add("PlayerInitialSpawn", "wire_expression2_propcore", function(ply)
+hook.Add"PlayerInitialSpawn", "wire_expression2_propcore", function(ply)
 	ply:SendLua('language.Add("Undone_e2_spawned_prop", "E2 Spawned Prop")')
 end)
 
@@ -35,8 +35,7 @@ local function ValidSpawn()
 end
 
 local function ValidAction(ply)
-	return true
-	--return sbox_E2_PropCore:GetInt()==2 or (sbox_E2_PropCore:GetInt()==1 and ply:IsAdmin())
+	return sbox_E2_PropCore:GetInt()==2 or (sbox_E2_PropCore:GetInt()==1 and ply:IsAdmin())
 end
 
 local function createpropsfromE2(self,model,pos,angles,freeze)
