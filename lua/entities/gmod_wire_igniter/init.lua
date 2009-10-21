@@ -61,7 +61,7 @@ function ENT:TriggerInput(iname, value)
 end
 
 function ENT:ShowOutput()
-	self:SetOverlayText( "Ingiter" )
+	self:SetOverlayText( "Igniter" )
 end
 
 function ENT:OnRestore()

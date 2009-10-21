@@ -1021,8 +1021,10 @@ concommand.Add( "Wire_UseOldGateOutputLables", WireUseOldGateOutputLables )]]
 
 local tags = string.Explode(",", GetConVarString("sv_tags") or "")
 -- remove old tags
-for i,tag in ipairs(tags) do
+for i = #tags,1,-1 do
+	local tag = tags[i]
 	if tag:find("wiresvn") then table.remove(tags,i) end
+	if tag == "e2_restricted" then table.remove(tags,i) end
 end
 
 -- insert new ones
