@@ -775,7 +775,7 @@ function Parser:ExprError()
 	if self:HasTokens() then
 		if self:AcceptRoamingToken("add") then
 			self:Error("Addition operator (+) must be preceded by equation or value")
-		elseif self:AcceptRoamingToken("sub") then -- can't occur
+		elseif self:AcceptRoamingToken("sub") then -- can't occur (unary minus)
 			self:Error("Subtraction operator (-) must be preceded by equation or value")
 		elseif self:AcceptRoamingToken("mul") then
 			self:Error("Multiplication operator (*) must be preceded by equation or value")
@@ -823,7 +823,7 @@ function Parser:ExprError()
 		elseif self:AcceptRoamingToken("rpa") then
 			self:Error("Right parenthesis ()) without matching left parenthesis")
 		elseif self:AcceptRoamingToken("lcb") then
-			self:Error("Left curly bracket ({) must be part of an if-statement block")
+			self:Error("Left curly bracket ({) must be part of an if/while/for-statement block")
 		elseif self:AcceptRoamingToken("rcb") then
 			self:Error("Right curly bracket (}) without matching left curly bracket")
 		elseif self:AcceptRoamingToken("lsb") then

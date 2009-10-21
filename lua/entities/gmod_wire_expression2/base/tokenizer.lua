@@ -166,17 +166,18 @@ function Tokenizer:NextSymbol()
 		self:NextPattern("^[A-Z0-9_]*")
 
 		local value = wire_expression2_constants[self.tokendata]
+		local tp = type(value)
 
-		if type(value) == "number" then
+		if tp == "number" then
 			tokenname = "num"
 			self.tokendata = value
-		elseif type(value) == "string" then
+		elseif tp == "string" then
 			tokenname = "str"
 			self.tokendata = value
-		elseif type(value) == "nil" then
-			self:Error("Unknown constant found (_"..self.tokendata..")")
+		elseif tp == "nil" then
+			self:Error("Unknown constant found ("..self.tokendata..")")
 		else
-			self:Error("Constant (_"..self.tokendata..") has invalid data type ("..type(value)..")")
+			self:Error("Constant ("..self.tokendata..") has invalid data type ("..tp..")")
 		end
 
 	elseif self.character == "\"" then
