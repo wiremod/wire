@@ -24,6 +24,28 @@ SWEP.Secondary.Ammo = "none"
 SWEP.viewModel = "models/weapons/v_pistol.mdl"
 SWEP.worldModel = "models/weapons/w_pistol.mdl"
 
+if CLIENT then return end
+
+function SWEP:PrimaryAttack()
+	if !self.Owner.Active then
+		local tracedata = {
+			start = self.Owner:GetShootPos(),
+			endpos = self.Owner:GetShootPos()+(self.Owner:GetAimVector()*250),
+			filter = self.Owner
+		}
+		local trace = util.TraceLine(tracedata)
+		if not gamemode.Call("CanTool", self.Owner, trace, "wire_adv_pod") then return end
+		if trace.HitNonWorld and trace.Entity:GetClass() == "gmod_wire_adv_pod" then
+			if trace.Entity:Link(self.Owner,true) then
+				self.Owner:PrintMessage(HUD_PRINTTALK,"You are now linked!")
+				self.Owner.Linked = true
+			else
+				self.Owner:PrintMessage(HUD_PRINTTALK,"Link failed!")
+			end
+		end
+	end
+end
+
 function SWEP:Reload()
 	if !self.Owner.Active then
 		self.Owner:PrintMessage(HUD_PRINTTALK,"Link reset!")
@@ -43,7 +65,6 @@ function SWEP:OnDrop()
 end
 
 function SWEP:Think()
-	if CLIENT then return end
 	if !self.Owner.Linked then return end
 	if self.Owner:KeyPressed(IN_USE) then
 		if self.Owner.Active then
@@ -77,4 +98,3 @@ function SWEP:Deploy()
 	return true
 end
 
--- the fact I needed to come and do this after all this time since I havn't touched lua or gmod in years is sad and disgusting. fuck you all.
