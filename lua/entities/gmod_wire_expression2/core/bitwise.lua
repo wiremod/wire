@@ -10,10 +10,12 @@ e2function number bXor(a, b)
 	return (a | b) & (-1-(a & b))
 end
 e2function number bShr(a, b)
-	return (a >> b)
+	RunString(string.format("garry_sucks = %d >> %d", a, b))
+	return garry_sucks
 end
 e2function number bShl(a, b)
-	return (a << b)
+	RunString(string.format("garry_sucks = %d << %d", a, b))
+	return garry_sucks
 end
 e2function number bNot(n)
 	return (-1)-n

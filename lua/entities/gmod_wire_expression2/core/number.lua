@@ -35,7 +35,7 @@ registerType("normal", "n", 0,
 	nil,
 	nil,
 	function(retval)
-		if type(retval) ~= "number" then error("Return value is not a table, but a "..type(retval).."!",0) end
+		if type(retval) ~= "number" then error("Return value is not a number, but a "..type(retval).."!",0) end
 	end,
 	function(v)
 		return type(v) ~= "number"
