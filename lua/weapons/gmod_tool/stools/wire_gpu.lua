@@ -16,16 +16,16 @@ if (SERVER) then
 	CreateConVar('sbox_maxwire_gpus', 20)
 end
 
-TOOL.ClientConVar["model"] 		= "models/props_lab/monitor01b.mdl"
-TOOL.ClientConVar["filename"] 		= ""
-TOOL.ClientConVar["packet_bandwidth"] 	= 60
-TOOL.ClientConVar["packet_rate_sp"] 	= 0.05
-TOOL.ClientConVar["packet_rate_mp"] 	= 0.4
-TOOL.ClientConVar["compile_rate"] 	= 0.05
-TOOL.ClientConVar["compile_bandwidth"] 	= 200
-TOOL.ClientConVar["rom"] 		= 1
-TOOL.ClientConVar["rom_present"]	= 1
-TOOL.ClientConVar["dump_data"] 		= 0
+TOOL.ClientConVar["model"]             = "models/props_lab/monitor01b.mdl"
+TOOL.ClientConVar["filename"]          = ""
+TOOL.ClientConVar["packet_bandwidth"]  = 60
+TOOL.ClientConVar["packet_rate_sp"]    = 0.05
+TOOL.ClientConVar["packet_rate_mp"]    = 0.4
+TOOL.ClientConVar["compile_rate"]      = 0.05
+TOOL.ClientConVar["compile_bandwidth"] = 200
+TOOL.ClientConVar["rom"]               = 1
+TOOL.ClientConVar["rom_present"]       = 1
+TOOL.ClientConVar["dump_data"]         = 0
 
 cleanup.Register("wire_gpus")
 
@@ -58,10 +58,10 @@ end
 //=============================================================================
 
 local function CompileProgram_Timer(tool,firstpass)
-	if (firstpass && tool.FirstPassDone) 	then return end
-	if (!firstpass && tool.SecondPassDone) 	then return end
-	if (!tool:GetOwner()) 			then return end
-	if (!tool.LineNumber) 			then return end
+	if (firstpass && tool.FirstPassDone) then return end
+	if (!firstpass && tool.SecondPassDone) then return end
+	if (!tool:GetOwner()) then return end
+	if (!tool.LineNumber) then return end
 
 	local SendLinesMax = tool.LineNumber + tool:GetOwner():GetInfo("wire_gpu_compile_bandwidth")
 	if (SendLinesMax > table.Count(GPU_SourceCode)) then SendLinesMax = table.Count(GPU_SourceCode) end
@@ -140,9 +140,7 @@ function TOOL:StartCompile(pl)
 	pl:ConCommand('wire_gpu_vgui_status "Initializing"')
 	pl:ConCommand('wire_gpu_vgui_progress "0"')
 
-	if (self:GetClientInfo("rom") == "1") then ent.UseROM = true
-	else					   ent.UseROM = false
-	end
+	ent.UseROM = self:GetClientInfo("rom") == "1"
 
 	if (self:GetClientInfo("dump_data") == "1") then
 		ent.MakeDump = true
@@ -188,11 +186,13 @@ end
 
 
 function TOOL:Compile_End()
- 	local pl = self:GetOwner()
+	local pl = self:GetOwner()
 	local ent = self.GPU_Entity
 
-	if (ent.FatalError) then pl:PrintMessage(HUD_PRINTCONSOLE,"-> ZyeliosASM: Compile aborted: fatal error has occured\n")
-	else			 pl:PrintMessage(HUD_PRINTCONSOLE,"-> ZyeliosASM: Compile succeded! "..(table.Count(GPU_SourceCode)-1).." lines, "..ent.WIP.." bytes, "..table.Count(ent.Labels).." definitions.\n")
+	if (ent.FatalError) then
+		pl:PrintMessage(HUD_PRINTCONSOLE,"-> ZyeliosASM: Compile aborted: fatal error has occured\n")
+	else
+		pl:PrintMessage(HUD_PRINTCONSOLE,"-> ZyeliosASM: Compile succeded! "..(table.Count(GPU_SourceCode)-1).." lines, "..ent.WIP.." bytes, "..table.Count(ent.Labels).." definitions.\n")
 	end
 
 	pl:ConCommand('wire_gpu_vgui_close')
@@ -242,17 +242,17 @@ function TOOL:Compile_End()
 		pl:PrintMessage(HUD_PRINTCONSOLE,"ZyeliosASM: Dumped!\n")
 	end
 
-//	if (self:GetClientInfo("dump_data") == "1") then
-//		pl:PrintMessage(HUD_PRINTCONSOLE,"ZyeliosASM: Dumping data\n")
-//		local codedump = ""
-//		for i = 0,ent.WIP do
-//			if (ent.Memory[i]) then
-//				codedump = codedump.."db "..ent.Memory[i].."\n"
-//			end
-//		end
-//		file.Write("cdump.txt",codedump)
-//		pl:PrintMessage(HUD_PRINTCONSOLE,"ZyeliosASM: Dumped!\n")
-//	end
+	--if (self:GetClientInfo("dump_data") == "1") then
+	--	pl:PrintMessage(HUD_PRINTCONSOLE,"ZyeliosASM: Dumping data\n")
+	--	local codedump = ""
+	--	for i = 0,ent.WIP do
+	--		if (ent.Memory[i]) then
+	--			codedump = codedump.."db "..ent.Memory[i].."\n"
+	--		end
+	--	end
+	--	file.Write("cdump.txt",codedump)
+	--	pl:PrintMessage(HUD_PRINTCONSOLE,"ZyeliosASM: Dumped!\n")
+	--end
 
 	ent:Reset()
 	ent.Compiling = false
@@ -477,8 +477,10 @@ function GPU_UploadProgram(pl)
 	local CharRate = (SourcePrevCharRate*1.95 + TotalChars*0.05) / 2
 	SourcePrevCharRate = CharRate
 
-	if SinglePlayer() then CharRate = CharRate / pl:GetInfo("wire_gpu_packet_rate_sp")
-	else		       CharRate = CharRate / pl:GetInfo("wire_gpu_packet_rate_mp")
+	if SinglePlayer() then
+		CharRate = CharRate / pl:GetInfo("wire_gpu_packet_rate_sp")
+	else
+		CharRate = CharRate / pl:GetInfo("wire_gpu_packet_rate_mp")
 	end
 
 	local TimeLeft = math.floor((SourceTotalChars - SourceLoadedChars) / CharRate)
@@ -524,8 +526,10 @@ function GPU_LoadProgram(pl, command, args)
 	pl:ConCommand('wire_gpu_vgui_progress "0"')
 
 	//Send 50 lines
-	if (SinglePlayer()) then timer.Create("GPUSendTimer",pl:GetInfo("wire_gpu_packet_rate_sp"),0,GPU_UploadProgram,pl,false)
-	else			 timer.Create("GPUSendTimer",pl:GetInfo("wire_gpu_packet_rate_mp"),0,GPU_UploadProgram,pl,false)
+	if (SinglePlayer()) then
+		timer.Create("GPUSendTimer",pl:GetInfo("wire_gpu_packet_rate_sp"),0,GPU_UploadProgram,pl,false)
+	else
+		timer.Create("GPUSendTimer",pl:GetInfo("wire_gpu_packet_rate_mp"),0,GPU_UploadProgram,pl,false)
 	end
 end
 
@@ -584,14 +588,14 @@ function TOOL.BuildCPanel(panel)
 		MenuButton = "0",
 
 		Options = {
-			["#Small tv"]		= { wire_gpu_model = "models/props_lab/monitor01b.mdl" },
-			["#Plasma tv (16:10)"]	= { wire_gpu_model = "models/props/cs_office/TV_plasma.mdl" },
-			["#Plasma tv (4:3)"]	= { wire_gpu_model = "models/blacknecro/tv_plasma_4_3.mdl" },
-			["#LCD Monitor (4:3)"]	= { wire_gpu_model = "models/props/cs_office/computer_monitor.mdl" },
-			["#Monitor Big"]	= { wire_gpu_model = "models/kobilica/wiremonitorbig.mdl" },
-			["#Monitor Small"]	= { wire_gpu_model = "models/kobilica/wiremonitorsmall.mdl" },
-			["#Billboard"]		= { wire_gpu_model = "models/props/cs_assault/Billboard.mdl" },
-			["#LCD Screen"]		= { wire_gpu_model = "models/blacknecro/ledboard60.mdl" },
+			["#Small tv"]          = { wire_gpu_model = "models/props_lab/monitor01b.mdl" },
+			["#Plasma tv (16:10)"] = { wire_gpu_model = "models/props/cs_office/TV_plasma.mdl" },
+			["#Plasma tv (4:3)"]   = { wire_gpu_model = "models/blacknecro/tv_plasma_4_3.mdl" },
+			["#LCD Monitor (4:3)"] = { wire_gpu_model = "models/props/cs_office/computer_monitor.mdl" },
+			["#Monitor Big"]       = { wire_gpu_model = "models/kobilica/wiremonitorbig.mdl" },
+			["#Monitor Small"]     = { wire_gpu_model = "models/kobilica/wiremonitorsmall.mdl" },
+			["#Billboard"]         = { wire_gpu_model = "models/props/cs_assault/Billboard.mdl" },
+			["#LCD Screen"]        = { wire_gpu_model = "models/blacknecro/ledboard60.mdl" },
 		}
 	})
 
