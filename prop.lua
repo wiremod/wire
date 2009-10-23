@@ -172,7 +172,7 @@ end
 
 --------------------------------------------------------------------------------
 
-E2Helper.Descriptions["setPos"] = "Set the position of the entity."
+E2Helper.Descriptions["setPos"] = "Sets the position of an entity."
 e2function void entity:setPos(vector pos)
 	if not ValidAction(self.player) then return end
 	if (!validPhysics(this)) then return end
@@ -186,10 +186,10 @@ e2function void entity:setPos(vector pos)
 	end
 end
 
-E2Helper.Descriptions["reposition"] = "Set the position of the entity. !Dont use! downward patch"
+E2Helper.Descriptions["reposition"] = "Deprecated. Kept for backwards-compatibility."
 e2function void entity:reposition(vector pos) = e2function void entity:setPos(vector pos)
 
-E2Helper.Descriptions["setAng"] = "Set the rotation of the entity."
+E2Helper.Descriptions["setAng"] = "Set the rotation of an entity."
 e2function void entity:setAng(angle rot)
 	if not ValidAction(self.player) then return end
 	if (!validPhysics(this)) then return end
@@ -203,11 +203,11 @@ e2function void entity:setAng(angle rot)
 	end
 end
 
-E2Helper.Descriptions["rerotate"] = "Set the rotation of the entity. !Dont use! downward patch"
+E2Helper.Descriptions["rerotate"] = "Deprecated. Kept for backwards-compatibility."
 e2function void entity:rerotate(angle rot) = e2function void entity:setAng(angle rot)
 
 --------------------------------------------------------------------------------
-E2Helper.Descriptions["parentTo"] = "Parents the entity to the target entity"
+E2Helper.Descriptions["parentTo"] = "Parents one entity to another."
 e2function void entity:parentTo(entity target)
 	if not ValidAction(self.player) then return end
 	if not validEntity(this) then return nil end
@@ -216,11 +216,10 @@ e2function void entity:parentTo(entity target)
 	this:SetParent(target)
 end
 
-E2Helper.Descriptions["deparent"] = "removes the parent link"
+E2Helper.Descriptions["deparent"] = "Unparents an entity, so it moves freely again."
 e2function void entity:deparent()
 	if not ValidAction(self.player) then return end
 	if not validEntity(this) then return nil end
 	if(!isOwner(self, this)) then return end
 	this:SetParent( nil )
 end
-
