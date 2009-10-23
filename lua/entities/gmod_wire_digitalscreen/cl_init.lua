@@ -41,7 +41,7 @@ function ENT:Initialize()
 end
 
 function ENT:OnRemove()
-	self.GPU:ReturnRenderTarget()
+	self.GPU:Finalize()
 end
 
 usermessage.Hook("hispeed_datamessage", function(um)

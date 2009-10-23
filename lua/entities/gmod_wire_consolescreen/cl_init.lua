@@ -97,7 +97,7 @@ function ENT:Initialize()
 end
 
 function ENT:OnRemove()
-	self.GPU:ReturnRenderTarget()
+	self.GPU:Finalize()
 end
 
 local function calcoffset(offset, Address)

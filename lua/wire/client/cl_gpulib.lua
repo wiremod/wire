@@ -3,12 +3,13 @@ local RT_CACHE_SIZE = 16
 //
 // Create rendertarget cache
 //
-if (!RenderTargetCache) then
+if not RenderTargetCache then
 	RenderTargetCache = {}
-	for i=1,RT_CACHE_SIZE do
-		RenderTargetCache[i] = {}
-		RenderTargetCache[i].Target = GetRenderTarget("WireGPU_RT_"..i, 512, 512)
-		RenderTargetCache[i].Used = nil
+	for i = 1,RT_CACHE_SIZE do
+		RenderTargetCache[i] = {
+			Target = GetRenderTarget("WireGPU_RT_"..i, 512, 512),
+			Used = false
+		}
 	end
 end
 
@@ -20,30 +21,31 @@ surface.CreateFont("lucida console", 20, 800, true, false, "WireGPU_ConsoleFont"
 //
 // Create screen textures and materials
 //
-WireGPU_matScreen 	= Material("ignore_this_error")
-WireGPU_texScreen	= surface.GetTextureID("ignore_this_error")
+WireGPU_matScreen = Material("ignore_this_error")
+WireGPU_texScreen = surface.GetTextureID("ignore_this_error")
 
-WireGPUmeta = {}
-WireGPUmeta.__index = WireGPUmeta
+local GPU = {}
+GPU.__index = GPU
 
 function WireGPU(ent)
 	local self = {
 		entindex = ent:EntIndex(),
 		Entity = ent
 	}
-	setmetatable(self, WireGPUmeta)
-	self:NeedRenderTarget()
+	setmetatable(self, GPU)
+	self:Initialize()
 	return self
 end
 
-//
-// Rendertarget cache management
-//
-function WireGPUmeta:NeedRenderTarget()
-	for i=1,#RenderTargetCache do
+function GPU:Initialize()
+	//
+	// Rendertarget cache management
+	//
+	for i = 1,#RenderTargetCache do
 		if not RenderTargetCache[i].Used then
-			RenderTargetCache[i].Used = self.entindex
+			RenderTargetCache[i].Used = true
 			self.RTindex = i
+			self.RT = RenderTargetCache[i].Target
 			return RenderTargetCache[i].Target
 		end
 	end
@@ -53,22 +55,40 @@ function WireGPUmeta:NeedRenderTarget()
 	return RenderTargetCache[1].Target
 end
 
-function WireGPUmeta:GetMyRenderTarget()
-	if self.RTindex then return RenderTargetCache[self.RTindex].Target end
-
-	return self:NeedRenderTarget()
+function GPU:Finalize()
+	RenderTargetCache[self.RTindex].Used = false
 end
 
-function WireGPUmeta:ReturnRenderTarget()
-	RenderTargetCache[self.RTindex].Used = nil
-end
-
-//
-// Misc helper functions
-//
-function WireGPUmeta.DrawScreen(x,y,w,h,rotation,scale)
+local texcoords = {
+	[0] = {
+		{ u = 0, v = 0 },
+		{ u = 1, v = 0 },
+		{ u = 1, v = 1 },
+		{ u = 0, v = 1 },
+	},
+	{
+		{ u = 0, v = 1 },
+		{ u = 0, v = 0 },
+		{ u = 1, v = 0 },
+		{ u = 1, v = 1 },
+	},
+	{
+		{ u = 1, v = 1 },
+		{ u = 0, v = 1 },
+		{ u = 0, v = 0 },
+		{ u = 1, v = 0 },
+	},
+	{
+		{ u = 1, v = 0 },
+		{ u = 1, v = 1 },
+		{ u = 0, v = 1 },
+		{ u = 0, v = 0 },
+	},
+}
+-- helper function for GPU:Render
+function GPU.DrawScreen(x, y, w, h, rotation, scale)
 	//Generate vertex data
-	local vertex = {
+	local vertices = {
 		{ x = x  , y = y   },
 		{ x = x+w, y = y   },
 		{ x = x+w, y = y+h },
@@ -76,58 +96,29 @@ function WireGPUmeta.DrawScreen(x,y,w,h,rotation,scale)
 	}
 
 	//Rotation
-	if (rotation == 0) then
-		vertex[4]["u"] = 0-scale
-		vertex[4]["v"] = 1+scale
-		vertex[3]["u"] = 1+scale
-		vertex[3]["v"] = 1+scale
-		vertex[2]["u"] = 1+scale
-		vertex[2]["v"] = 0-scale
-		vertex[1]["u"] = 0-scale
-		vertex[1]["v"] = 0-scale
+	local rotated_texcoords = texcoords[rotation]
+	for index,vertex in ipairs(vertices) do
+		local tex = rotated_texcoords[index]
+		if tex.u == 0 then
+			vertex.u = tex.u-scale
+		else
+			vertex.u = tex.u+scale
+		end
+		if tex.v == 0 then
+			vertex.v = tex.v-scale
+		else
+			vertex.v = tex.v+scale
+		end
 	end
 
-	if (rotation == 1) then
-		vertex[2]["u"] = 0-scale
-		vertex[2]["v"] = 0-scale
-		vertex[3]["u"] = 1+scale
-		vertex[3]["v"] = 0-scale
-		vertex[4]["u"] = 1+scale
-		vertex[4]["v"] = 1+scale
-		vertex[1]["u"] = 0-scale
-		vertex[1]["v"] = 1+scale
-	end
-
-	if (rotation == 2) then
-		vertex[3]["u"] = 0-scale
-		vertex[3]["v"] = 0-scale
-		vertex[4]["u"] = 1+scale
-		vertex[4]["v"] = 0-scale
-		vertex[1]["u"] = 1+scale
-		vertex[1]["v"] = 1+scale
-		vertex[2]["u"] = 0-scale
-		vertex[2]["v"] = 1+scale
-	end
-
-	if (rotation == 3) then
-		vertex[4]["u"] = 0-scale
-		vertex[4]["v"] = 0-scale
-		vertex[1]["u"] = 1+scale
-		vertex[1]["v"] = 0-scale
-		vertex[2]["u"] = 1+scale
-		vertex[2]["v"] = 1+scale
-		vertex[3]["u"] = 0-scale
-		vertex[3]["v"] = 1+scale
-	end
-
-	surface.DrawPoly(vertex)
+	surface.DrawPoly(vertices)
 end
 
-function WireGPUmeta:RenderToGPU(renderfunction)
+function GPU:RenderToGPU(renderfunction)
 	local oldw = ScrW()
 	local oldh = ScrH()
 
-	local NewRT = self:GetMyRenderTarget()
+	local NewRT = self.RT
 	local OldRT = render.GetRenderTarget()
 
 	render.SetRenderTarget(NewRT)
@@ -139,52 +130,38 @@ function WireGPUmeta:RenderToGPU(renderfunction)
 	render.SetRenderTarget(OldRT)
 end
 
-function WireGPUmeta:Render()
+function GPU:Render()
 	local model = self.Entity:GetModel()
 	local OF, OU, OR, Res, RatioX, Rot90
-	if (WireGPU_Monitors[model]) && (WireGPU_Monitors[model].OF) then
-		OF = WireGPU_Monitors[model].OF
-		OU = WireGPU_Monitors[model].OU
-		OR = WireGPU_Monitors[model].OR
-		Res = WireGPU_Monitors[model].RS
-		RatioX = WireGPU_Monitors[model].RatioX
-		Rot90 = WireGPU_Monitors[model].rot90
-	else
-		OF = 0
-		OU = 0
-		OR = 0
-		Res = 1
-		RatioX = 1
-	end
+	local monitor = WireGPU_Monitors[model]
+	OF = WireGPU_Monitors[model].OF
+	OU = WireGPU_Monitors[model].OU
+	OR = WireGPU_Monitors[model].OR
+	Res = WireGPU_Monitors[model].RS
+	RatioX = WireGPU_Monitors[model].RatioX
+	Rot90 = WireGPU_Monitors[model].rot90
 
-	local ang = self.Entity:GetAngles()
-	local rot = Angle(-90,90,0)
+	local rot = Angle(0, 90, 90)
 	if Rot90 then
-		rot = Angle(0,90,0)
+		rot = Angle(0, 90, 0)
 	end
 
-	ang:RotateAroundAxis(ang:Right(),   rot.p)
-	ang:RotateAroundAxis(ang:Up(),      rot.y)
-	ang:RotateAroundAxis(ang:Forward(), rot.r)
-	--ang = self.Entity:LocalToWorldAngles(rot)
+	local ang = self.Entity:LocalToWorldAngles(rot)
 
 	local pos = self.Entity:GetPos()+(self.Entity:GetForward()*OF)+(self.Entity:GetUp()*OU)+(self.Entity:GetRight()*OR)
 
 	local OldTex = WireGPU_matScreen:GetMaterialTexture("$basetexture")
-	WireGPU_matScreen:SetMaterialTexture("$basetexture", self:GetMyRenderTarget())
+	WireGPU_matScreen:SetMaterialTexture("$basetexture", self.RT)
 
 	cam.Start3D2D(pos,ang,Res)
 		local w = 512
 		local h = 512
-		local x = -w/2
-		local y = -h/2
+		local x = w*-0.5
+		local y = h*-0.5
 
-		surface.SetDrawColor(0,0,0,255)
-		surface.DrawRect(-256,-256,512/RatioX,512)
-
-		surface.SetDrawColor(255,255,255,255)
+		surface.SetDrawColor(255, 255, 255, 255)
 		surface.SetTexture(WireGPU_texScreen)
-		self.DrawScreen(x,y,w/RatioX,h,0,0)
+		self.DrawScreen(x, y, w/RatioX, h, 0, 0)
 	cam.End3D2D()
 
 	WireGPU_matScreen:SetMaterialTexture("$basetexture", OldTex)
@@ -196,19 +173,20 @@ local GPUs = {}
 
 function WireGPU_NeedRenderTarget(entindex)
 	if not GPUs[entindex] then GPUs[entindex] = WireGPU(Entity(entindex)) end
-	return GPUs[entindex]:NeedRenderTarget()
+	return GPUs[entindex].RT
 end
 
 function WireGPU_GetMyRenderTarget(entindex)
-	if not GPUs[entindex] then GPUs[entindex] = WireGPU(Entity(entindex)) end
-	return GPUs[entindex]:GetMyRenderTarget()
+	local self = GPUs[entindex]
+	if self.RTindex then return RenderTargetCache[self.RTindex].Target end
+
+	return self:NeedRenderTarget()
 end
 
 function WireGPU_ReturnRenderTarget(entindex)
-	if not GPUs[entindex] then GPUs[entindex] = WireGPU(Entity(entindex)) end
-	return GPUs[entindex]:ReturnRenderTarget()
+	return GPUs[entindex]:Finalize()
 end
 
-function WireGPU_DrawScreen(x,y,w,h,rotation,scale)
-	return WireGPUmeta.DrawScreen(x,y,w,h,rotation,scale)
+function WireGPU_DrawScreen(x, y, w, h, rotation, scale)
+	return GPU.DrawScreen(x, y, w, h, rotation, scale)
 end
