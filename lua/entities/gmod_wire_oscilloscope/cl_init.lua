@@ -5,31 +5,22 @@ ENT.AdminSpawnable = false
 ENT.RenderGroup    = RENDERGROUP_BOTH
 
 function ENT:Initialize()
-	self.RTTexture = WireGPU_NeedRenderTarget(self:EntIndex())
+	self.GPU = WireGPU(self.Entity)
 end
 
 function ENT:OnRemove()
-	WireGPU_ReturnRenderTarget(self:EntIndex())
+	self.GPU:Finalize()
 end
 
 function ENT:Draw()
 	self.Entity:DrawModel()
 
-	self.RTTexture = WireGPU_GetMyRenderTarget(self:EntIndex())
-
-	local NewRT = self.RTTexture
-	local OldRT = render.GetRenderTarget()
-
-	local OldTex = WireGPU_matScreen:GetMaterialTexture("$basetexture")
-	WireGPU_matScreen:SetMaterialTexture("$basetexture",self.RTTexture)
 
 	if (true) then
 		local oldw = ScrW()
 		local oldh = ScrH()
 
-		render.SetRenderTarget(NewRT)
-		render.SetViewPort(0,0,512,512)
-		cam.Start2D()
+		self.GPU:RenderToGPU(function()
 			surface.SetDrawColor(10,20,5,255)
 			surface.DrawRect(0,0,512,512)
 
@@ -67,55 +58,10 @@ function ENT:Draw()
 			surface.SetDrawColor(180, 200, 10, 255)
 			surface.DrawLine(0, 256, 512, 256)
 			surface.DrawLine(256, 0, 256, 512)
-		cam.End2D()
-		render.SetViewPort(0,0,oldw,oldh)
-		render.SetRenderTarget(OldRT)
+		end)
 	end
 
-
-	local model = self.Entity:GetModel()
-	local OF, OU, OR, Res, RatioX, Rot90
-	if (WireGPU_Monitors[model]) && (WireGPU_Monitors[model].OF) then
-		OF = WireGPU_Monitors[model].OF
-		OU = WireGPU_Monitors[model].OU
-		OR = WireGPU_Monitors[model].OR
-		Res = WireGPU_Monitors[model].RS
-		RatioX = WireGPU_Monitors[model].RatioX
-		Rot90 = WireGPU_Monitors[model].rot90
-	else
-		OF = 0
-		OU = 0
-		OR = 0
-		Res = 1
-		RatioX = 1
-	end
-
-	local ang = self.Entity:GetAngles()
-	local rot = Vector(-90,90,0)
-	if Rot90 then
-		rot = Angle(0,90,0)
-	end
-
-	ang:RotateAroundAxis(ang:Right(),   rot.x)
-	ang:RotateAroundAxis(ang:Up(),      rot.y)
-	ang:RotateAroundAxis(ang:Forward(), rot.z)
-
-	local pos = self.Entity:GetPos() + (self.Entity:GetForward() * OF) + (self.Entity:GetUp() * OU) + (self.Entity:GetRight() * OR)
-
-	cam.Start3D2D(pos,ang,Res)
-		local w = 512
-		local h = 512
-		local x = -w/2
-		local y = -h/2
-
-		surface.SetDrawColor(0,0,0,255)
-		surface.DrawRect(-256,-256,512/RatioX,512)
-
-		surface.SetDrawColor(255,255,255,255)
-		surface.SetTexture(WireGPU_texScreen)
-		WireGPU_DrawScreen(x,y,w/RatioX,h,0,0)
-	cam.End3D2D()
-
+	self.GPU:Render()
 	Wire_Render(self.Entity)
 end
 

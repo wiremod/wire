@@ -1,3 +1,5 @@
+AddCSLuaFile("shared.lua")
+
 SWEP.Author = "ShaRose"
 SWEP.Contact = ""
 SWEP.Purpose = "Remote control for Adv. Pods in wire."
@@ -37,10 +39,10 @@ function SWEP:PrimaryAttack()
 		if not gamemode.Call("CanTool", self.Owner, trace, "wire_adv_pod") then return end
 		if trace.HitNonWorld and trace.Entity:GetClass() == "gmod_wire_adv_pod" then
 			if trace.Entity:Link(self.Owner,true) then
-				self.Owner:PrintMessage(HUD_PRINTTALK,"You are now linked!")
+				self.Owner:PrintMessage(HUD_PRINTTALK, "You are now linked!")
 				self.Owner.Linked = true
 			else
-				self.Owner:PrintMessage(HUD_PRINTTALK,"Link failed!")
+				self.Owner:PrintMessage(HUD_PRINTTALK, "Link failed!")
 			end
 		end
 	end
