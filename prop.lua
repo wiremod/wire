@@ -12,6 +12,7 @@ local sbox_E2_maxProps = CreateConVar( "sbox_E2_maxProps", "-1", FCVAR_ARCHIVE )
 local sbox_E2_maxPropsPerSecond = CreateConVar( "sbox_E2_maxPropsPerSecond", "4", FCVAR_ARCHIVE )
 local sbox_E2_PropCore = CreateConVar( "sbox_E2_PropCore", "1", FCVAR_ARCHIVE )
 
+local E2Helper = { Descriptions = {} }
 local E2totalspawnedprops = 0
 local E2tempSpawnedProps = 0
 local TimeStamp = 0
@@ -67,7 +68,7 @@ local function createpropsfromE2(self,model,pos,angles,freeze)
 end
 
 --------------------------------------------------------------------------------
-E2Helper.Descriptions["propSpawn"] = "Use the model string or a template entity to spawn a prop you can set the position and/or the rotation last number indicates frozen/unfrozen."
+E2Helper.Descriptions["propSpawn"] = "Use the model string or a template entity to spawn a prop. You can set the position and/or the rotation as well. The last number indicates frozen/unfrozen."
 e2function entity propSpawn(string model, number frozen)
 	if not ValidAction(self.player) then return nil end
 	return createpropsfromE2(self,model,self.entity:GetPos()+self.entity:GetUp()*25,self.entity:GetAngles(),frozen)
@@ -113,7 +114,7 @@ e2function entity propSpawn(entity template, vector pos, angle rot, number froze
 end
 
 --------------------------------------------------------------------------------
-E2Helper.Descriptions["propDelete"] = "Remove the given entity or all entites in table/array returns how may are deleted"
+E2Helper.Descriptions["propDelete"] = "Removes the given entity(s). Returns how may are deleted."
 e2function void entity:propDelete()
 	if not ValidAction(self.player) then return end
 	if not validEntity(this) then return end
@@ -137,18 +138,18 @@ end
 e2function number array:propDelete() = e2function number table:propDelete()
 
 --------------------------------------------------------------------------------
-E2Helper.Descriptions["propFreeze"] = "Freeze the entity 1/0"
+E2Helper.Descriptions["propFreeze"] = "Passing 0 unfreezes the entity, everything else freezes it."
 e2function void entity:propFreeze(number freeze)
 	if not ValidAction(self.player) then return end
 	if (!validPhysics(this)) then return end
 	if(!isOwner(self, this)) then return end
 	if(!this:IsWorld()) then
 		local phys = this:GetPhysicsObject()
-		phys:EnableMotion(freeze==0)
+		phys:EnableMotion(freeze == 0)
 	end
 end
 
-E2Helper.Descriptions["propNotSolid"] = "Turns the prop into a Ghost like adv.dupe. 1/0"
+E2Helper.Descriptions["propNotSolid"] = "Passing 0 makes the entity solid, everything else makes it non-solid."
 e2function void entity:propNotSolid(number notsolid)
 	if not ValidAction(self.player) then return end
 	if not validEntity(this) then return end
@@ -158,7 +159,7 @@ e2function void entity:propNotSolid(number notsolid)
 	end
 end
 
-E2Helper.Descriptions["propGravity"] = "Turn gravity On/Off. 1/0"
+E2Helper.Descriptions["propGravity"] = "Passing 0 makes the entity weightless, everything else makes it weighty."
 e2function void entity:propGravity(number gravity)
 	if not ValidAction(self.player) then return end
 	if (!validPhysics(this)) then return end
