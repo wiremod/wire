@@ -262,8 +262,9 @@ end
 registerFunction("round", "nn", "n", function(self, args)
 	local op1, op2 = args[2], args[3]
 	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+
 	local shf = 10 ^ rv2
-	return rv1 - ((rv1 * shf + 0.5) % 1 + 0.5) / shf
+	return floor(rv1*shf+0.5)/shf
 end)
 
 --- rounds towards zero

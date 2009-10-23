@@ -222,7 +222,7 @@ function ENT:WriteCell(Address,value)
 		local highc = math.floor(math.Clamp(self.Memory1[2032],0,29))
 		if (value > 0) then
 			for j = low, high-delta do
-				for i = 2*lowc,2*highc+1  do
+				for i = 2*lowc,2*highc+1 do
 					if (self.NewClk) then
 						self.Memory1[j*60+i] = self.Memory1[(j+delta)*60+i]
 					end
