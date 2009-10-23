@@ -93,11 +93,11 @@ function ENT:Initialize()
 	self.FramesSinceRedraw = 0
 	self.NewClk = true
 
-	WireGPU_NeedRenderTarget(self:EntIndex())
+	self.GPU = WireGPU(self.Entity)
 end
 
 function ENT:OnRemove()
-	WireGPU_ReturnRenderTarget(self:EntIndex())
+	self.GPU:ReturnRenderTarget()
 end
 
 local function calcoffset(offset, Address)
@@ -371,14 +371,6 @@ function ENT:Draw()
 	self.PrevTime = (self.PrevTime or CurTime())+DeltaTime
 	self.IntTimer = self.IntTimer + DeltaTime
 
-	self.RTTexture = WireGPU_GetMyRenderTarget(self:EntIndex())
-
-	local NewRT = self.RTTexture
-	local OldRT = render.GetRenderTarget()
-
-	local OldTex = WireGPU_matScreen:GetMaterialTexture("$basetexture")
-	WireGPU_matScreen:SetMaterialTexture("$basetexture",self.RTTexture)
-
 	self.FramesSinceRedraw = self.FramesSinceRedraw + 1
 
 	if (self.NeedRefresh == true) then
@@ -388,12 +380,7 @@ function ENT:Draw()
 
 		if (self.Memory1[2046] >= 1) then self.FrameNeedsFlash = true end
 
-		local oldw = ScrW()
-		local oldh = ScrH()
-
-		render.SetRenderTarget(NewRT)
-		render.SetViewPort(0,0,512,512)
-		cam.Start2D()
+		self.GPU:RenderToGPU(function()
 			//Draw terminal here
 			//W/H = 16
 			local szx = 512/31
@@ -494,9 +481,7 @@ function ENT:Draw()
 					)
 				end
 			end
-	 	cam.End2D()
-	 	render.SetViewPort(0,0,oldw,oldh)
-	 	render.SetRenderTarget(OldRT)
+	 	end)
 	end
 
 	if (self.FrameNeedsFlash == true) then
@@ -519,54 +504,9 @@ function ENT:Draw()
 		end
 	end
 
-	if (EmuFox) then
-		return
-	end
+	if EmuFox then return end
 
-	local model = self.Entity:GetModel()
-	local OF, OU, OR, Res, RatioX, Rot90
-	if (WireGPU_Monitors[model]) && (WireGPU_Monitors[model].OF) then
-		OF = WireGPU_Monitors[model].OF
-		OU = WireGPU_Monitors[model].OU
-		OR = WireGPU_Monitors[model].OR
-		Res = WireGPU_Monitors[model].RS
-		RatioX = WireGPU_Monitors[model].RatioX
-		Rot90 = WireGPU_Monitors[model].rot90
-	else
-		OF = 0
-		OU = 0
-		OR = 0
-		Res = 1
-		RatioX = 1
-	end
-
-	local ang = self.Entity:GetAngles()
-	local rot = Vector(-90,90,0)
-	if Rot90 then
-		rot = Angle(0,90,0)
-	end
-
-	ang:RotateAroundAxis(ang:Right(),   rot.x)
-	ang:RotateAroundAxis(ang:Up(),      rot.y)
-	ang:RotateAroundAxis(ang:Forward(), rot.z)
-
-	local pos = self.Entity:GetPos()+(self.Entity:GetForward()*OF)+(self.Entity:GetUp()*OU)+(self.Entity:GetRight()*OR)
-
-	cam.Start3D2D(pos,ang,Res)
-		local w = 512*math.Clamp(self.Memory1[2030],0,1)
-		local h = 512*math.Clamp(self.Memory1[2029],0,1)
-		local x = -w/2
-		local y = -h/2
-
-		surface.SetDrawColor(0,0,0,255)
-		surface.DrawRect(-256,-256,512/RatioX,512)
-
-		surface.SetDrawColor(255,255,255,255)
-		surface.SetTexture(WireGPU_texScreen)
-		WireGPU_DrawScreen(x,y,w/RatioX,h,self.Memory1[2024],self.Memory1[2023])
-	cam.End3D2D()
-
-	WireGPU_matScreen:SetMaterialTexture("$basetexture",OldTex)
+	self.GPU:Render()
 	Wire_Render(self.Entity)
 end
 
