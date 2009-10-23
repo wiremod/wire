@@ -52,6 +52,10 @@ local function delayed(t,func)
 	end
 end
 
+local function getdesc(name, args)
+	return E2Helper.Descriptions[string.format("%s(%s)", name, args)] or E2Helper.Descriptions[name]
+end
+
 function E2Helper.Create(reset)
 	local x, y, w, h
 
@@ -92,7 +96,7 @@ function E2Helper.Create(reset)
 		self:ClearSelection()
 		self:SelectItem(line)
 		E2Helper.FuncEntry:SetText(E2Helper.GetFunctionSyntax(line:GetValue(1), line:GetValue(2), line:GetValue(3)))
-		local desc = E2Helper.Descriptions[line:GetValue(1)]
+		local desc = getdesc(line:GetValue(1), line:GetValue(2))
 		if desc then
 			E2Helper.DescriptionEntry:SetText(desc)
 			E2Helper.DescriptionEntry:SetTextColor(Color(0, 0, 0))
