@@ -104,7 +104,7 @@ function GPU.DrawScreen(x, y, w, h, rotation, scale)
 	}
 
 	//Rotation
-	local rotated_texcoords = texcoords[rotation]
+	local rotated_texcoords = texcoords[rotation] or texcoords[0]
 	for index,vertex in ipairs(vertices) do
 		local tex = rotated_texcoords[index]
 		if tex.u == 0 then

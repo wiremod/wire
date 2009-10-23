@@ -287,88 +287,46 @@ function ENT:WriteCell(Address,value)
 	return true
 end
 
+local graphics_chars = {
+	[128] = {
+		{ x = 0, y = 1 },
+		{ x = 1, y = 1 },
+		{ x = 1, y = 0 },
+	},
+	[129] = {
+		{ x = 0, y = 1 },
+		{ x = 0, y = 0 },
+		{ x = 1, y = 1 },
+	},
+	[130] = {
+		{ x = 0, y = 1 },
+		{ x = 1, y = 0 },
+		{ x = 0, y = 0 },
+	},
+	[131] = {
+		{ x = 0, y = 0 },
+		{ x = 1, y = 0 },
+		{ x = 1, y = 1 },
+	},
+}
+
+
 function ENT:DrawGraphicsChar(c,x,y,w,h,r,g,b)
 	surface.SetDrawColor(r,g,b,255)
 	surface.SetTexture(0)
 
-	if (c == 128) then
-		vertex = {}
+	local vertices = graphics_chars[c]
 
-		//Generate vertex data
-		vertex[1] = {}
-		vertex[1]["x"] = x
-		vertex[1]["y"] = y+h
-
-		vertex[2] = {}
-		vertex[2]["x"] = x+w
-		vertex[2]["y"] = y+h
-
-		vertex[3] = {}
-		vertex[3]["x"] = x+w
-		vertex[3]["y"] = y
-		surface.DrawPoly(vertex)
-	end
-
-	if (c == 129) then
-		vertex = {}
-
-		//Generate vertex data
-		vertex[1] = {}
-		vertex[1]["x"] = x
-		vertex[1]["y"] = y+h
-
-		vertex[2] = {}
-		vertex[2]["x"] = x
-		vertex[2]["y"] = y
-
-		vertex[3] = {}
-		vertex[3]["x"] = x+w
-		vertex[3]["y"] = y+h
-		surface.DrawPoly(vertex)
-	end
-
-	if (c == 130) then
-		vertex = {}
-
-		//Generate vertex data
-		vertex[1] = {}
-		vertex[1]["x"] = x
-		vertex[1]["y"] = y+h
-
-		vertex[2] = {}
-		vertex[2]["x"] = x+w
-		vertex[2]["y"] = y
-
-		vertex[3] = {}
-		vertex[3]["x"] = x
-		vertex[3]["y"] = y
-		surface.DrawPoly(vertex)
-	end
-
-	if (c == 131) then
-		vertex = {}
-
-		//Generate vertex data
-		vertex[1] = {}
-		vertex[1]["x"] = x
-		vertex[1]["y"] = y
-
-		vertex[2] = {}
-		vertex[2]["x"] = x+w
-		vertex[2]["y"] = y
-
-		vertex[3] = {}
-		vertex[3]["x"] = x+w
-		vertex[3]["y"] = y+h
-		surface.DrawPoly(vertex)
-	end
+	if vertices then surface.DrawPoly(vertices) end
 end
 
 function ENT:Draw()
 	self.Entity:DrawModel()
 
-	local DeltaTime = CurTime()-(self.PrevTime or CurTime())
-	self.PrevTime = (self.PrevTime or CurTime())+DeltaTime
+	local curtime = CurTime()
+	local DeltaTime = curtime - self.PrevTime
+	self.PrevTime = curtime
+
 	self.IntTimer = self.IntTimer + DeltaTime
 
 	self.FramesSinceRedraw = self.FramesSinceRedraw + 1
@@ -433,17 +391,25 @@ function ENT:Draw()
 
 					if (c1 ~= 0) && (cfrnt ~= 0) then
 						if (c1 <= 127) then
-							draw.DrawText(string.char(c1),"WireGPU_ConsoleFont",
-							tx*szx+szx/8+szx/2,ty*szy+szy/4+szy/2,
-							Color(math.Clamp(fr*self.Memory1[2028]*self.Memory1[2025],0,255),
-							      math.Clamp(fg*self.Memory1[2027]*self.Memory1[2025],0,255),
-							      math.Clamp(fb*self.Memory1[2026]*self.Memory1[2025],0,255),
-							      255),0)
+							draw.DrawText(
+								string.char(c1),
+								"WireGPU_ConsoleFont",
+								(tx+0.625)*szx, (ty+0.75)*szy,
+								Color(
+									math.Clamp(fr*self.Memory1[2028]*self.Memory1[2025],0,255),
+									math.Clamp(fg*self.Memory1[2027]*self.Memory1[2025],0,255),
+									math.Clamp(fb*self.Memory1[2026]*self.Memory1[2025],0,255),
+									255
+								),
+								0
+							)
 						else
-							self:DrawGraphicsChar(c1,tx*szx+szx/2,ty*szy+szy/2,szx,szy,
+							self:DrawGraphicsChar(
+								c1, (tx+0.5)*szx, (ty+0.5)*szy, szx, szy,
 								math.Clamp(fr*self.Memory1[2028]*self.Memory1[2025],0,255),
 								math.Clamp(fg*self.Memory1[2027]*self.Memory1[2025],0,255),
-								math.Clamp(fb*self.Memory1[2026]*self.Memory1[2025],0,255))
+								math.Clamp(fb*self.Memory1[2026]*self.Memory1[2025],0,255)
+							)
 						end
 					end
 				end
