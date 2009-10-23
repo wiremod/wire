@@ -140,9 +140,8 @@ end
 
 function GPU:Render(rotation, scale)
 	local model = self.Entity:GetModel()
-	local RatioX, Rot90
 	local monitor = WireGPU_Monitors[model]
-	local Offset = Vector(monitor.OF, -monitor.OR, monitor.OU)
+	local offset = monitor.offset
 
 	local rot = Angle(0, 90, 90)
 	if monitor.rot90 then
@@ -150,7 +149,7 @@ function GPU:Render(rotation, scale)
 	end
 
 	local ang = self.Entity:LocalToWorldAngles(rot)
-	local pos = self.Entity:LocalToWorld(Offset)
+	local pos = self.Entity:LocalToWorld(offset)
 
 	local OldTex = WireGPU_matScreen:GetMaterialTexture("$basetexture")
 	WireGPU_matScreen:SetMaterialTexture("$basetexture", self.RT)

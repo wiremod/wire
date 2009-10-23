@@ -7,9 +7,7 @@ WireGPU_Monitors = {}
 function WireGPU_AddMonitor(name,model,tof,tou,tor,trs,x1,x2,y1,y2,rot90)
 	WireGPU_Monitors[model] = {
 		Name = name,
-		OF = tof,
-		OU = tou,
-		OR = tor,
+		offset = Vector(tof, -tor, tou),
 		RS = trs,
 		RatioX = math.abs((y1-y2)/(x2-x1)),
 
@@ -67,9 +65,7 @@ local function fallback(self, model)
 
 	local monitor = {
 		Name = "Auto: "..model:match("([^/]*)$"),
-		OF = offset.x,
-		OR = -offset.y,
-		OU = offset.z,
+		offset = offset,
 		RS = (y2-y1)/512,
 		RatioX = math.abs((y2-y1)/(x2-x1)),
 
@@ -82,7 +78,7 @@ local function fallback(self, model)
 
 		rot90 = true,
 	}
-	monitor.OR = monitor.OR-y1*(1/monitor.RatioX-1) -- silly...,
+	monitor.offset.y = monitor.offset.y+y1*(1/monitor.RatioX-1) -- silly...,
 
 	self[model] = monitor
 	return monitor
