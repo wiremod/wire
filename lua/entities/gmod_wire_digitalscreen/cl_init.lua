@@ -93,10 +93,11 @@ function ENT:WriteCell(Address,value)
 			mem2[addr] = self.Memory2[addr]
 		end
 		self.Memory1,self.Memory2 = mem1,mem2
-		self.NeedRefresh = true
-		for i = 1,self.ScreenHeight do
-			self.RefreshRows[i] = i-1
-		end
+		--self.NeedRefresh = true
+		--for i = 1,self.ScreenHeight do
+		--	self.RefreshRows[i] = i-1
+		--end
+		self.GPU:Clear()
 	elseif Address == 1048572 then
 		self.ScreenHeight = value
 		self.NeedRefresh = true
@@ -150,6 +151,8 @@ transformcolor[3] = function(c) -- RRRGGGBBB
 	return cr, cg, cb
 end
 
+local floor = math.floor
+
 function ENT:RedrawPixel(a)
 	if a >= self.ScreenWidth*self.ScreenHeight then return end
 
@@ -161,7 +164,7 @@ function ENT:RedrawPixel(a)
 	local colormode = self.Memory1[1048569] or 0
 
 	if colormode == 1 then
-		cr = self.Memory1[a*3+0] or 0
+		cr = self.Memory1[a*3  ] or 0
 		cg = self.Memory1[a*3+1] or 0
 		cb = self.Memory1[a*3+2] or 0
 	else
@@ -173,14 +176,15 @@ function ENT:RedrawPixel(a)
 	local ystep = (512/self.ScreenHeight)
 
 	surface.SetDrawColor(cr,cg,cb,255)
-	surface.DrawRect(x*xstep,y*ystep,xstep,ystep)
+	local tx, ty = floor(x*xstep), floor(y*ystep)
+	surface.DrawRect( tx, ty, floor((x+1)*xstep-tx), floor((y+1)*ystep-ty) )
 end
 
 function ENT:RedrawRow(y)
 	local xstep = (512/self.ScreenWidth)
 	local ystep = (512/self.ScreenHeight)
+	if y >= self.ScreenHeight then return end
 	local a = y*self.ScreenWidth
-	if (a >= self.ScreenWidth*self.ScreenHeight) then return end
 
 	local colormode = self.Memory1[1048569] or 0
 
@@ -197,7 +201,8 @@ function ENT:RedrawRow(y)
 		end
 
 		surface.SetDrawColor(cr,cg,cb,255)
-		surface.DrawRect(x*xstep,y*ystep,xstep,ystep)
+		local tx, ty = floor(x*xstep), floor(y*ystep)
+		surface.DrawRect( tx, ty, floor((x+1)*xstep-tx), floor((y+1)*ystep-ty) )
 	end
 end
 

@@ -506,7 +506,7 @@ function ENT:Draw()
 
 	if EmuFox then return end
 
-	self.GPU:Render()
+	self.GPU:Render(self.Memory1[2024],self.Memory1[2023])
 	Wire_Render(self.Entity)
 end
 

@@ -41,22 +41,30 @@ function GPU:Initialize()
 	//
 	// Rendertarget cache management
 	//
+
+	-- fallback
+	self.RT = RenderTargetCache[1].Target
+
+	-- find a free one
 	for i = 1,#RenderTargetCache do
 		if not RenderTargetCache[i].Used then
 			RenderTargetCache[i].Used = true
 			self.RTindex = i
 			self.RT = RenderTargetCache[i].Target
-			return RenderTargetCache[i].Target
+			break
 		end
 	end
 
-	//Need to create new. PANIC?!
-	//print("RENDER TARGET PANIC. RENDER TARGET PANIC!")
-	return RenderTargetCache[1].Target
+	self:Clear()
+	return self.RT
 end
 
 function GPU:Finalize()
 	RenderTargetCache[self.RTindex].Used = false
+end
+
+function GPU:Clear()
+	render.ClearRenderTarget(self.RT, Color(0, 0, 0))
 end
 
 local texcoords = {
@@ -122,46 +130,40 @@ function GPU:RenderToGPU(renderfunction)
 	local OldRT = render.GetRenderTarget()
 
 	render.SetRenderTarget(NewRT)
-	render.SetViewPort(0,0,512,512)
+	render.SetViewPort(0, 0, 512, 512)
 	cam.Start2D()
 		PCallError(renderfunction)
 	cam.End2D()
-	render.SetViewPort(0,0,oldw,oldh)
+	render.SetViewPort(0, 0, oldw, oldh)
 	render.SetRenderTarget(OldRT)
 end
 
-function GPU:Render()
+function GPU:Render(rotation, scale)
 	local model = self.Entity:GetModel()
-	local OF, OU, OR, Res, RatioX, Rot90
+	local RatioX, Rot90
 	local monitor = WireGPU_Monitors[model]
-	OF = WireGPU_Monitors[model].OF
-	OU = WireGPU_Monitors[model].OU
-	OR = WireGPU_Monitors[model].OR
-	Res = WireGPU_Monitors[model].RS
-	RatioX = WireGPU_Monitors[model].RatioX
-	Rot90 = WireGPU_Monitors[model].rot90
+	local Offset = Vector(monitor.OF, -monitor.OR, monitor.OU)
 
 	local rot = Angle(0, 90, 90)
-	if Rot90 then
+	if monitor.rot90 then
 		rot = Angle(0, 90, 0)
 	end
 
 	local ang = self.Entity:LocalToWorldAngles(rot)
-
-	local pos = self.Entity:GetPos()+(self.Entity:GetForward()*OF)+(self.Entity:GetUp()*OU)+(self.Entity:GetRight()*OR)
+	local pos = self.Entity:LocalToWorld(Offset)
 
 	local OldTex = WireGPU_matScreen:GetMaterialTexture("$basetexture")
 	WireGPU_matScreen:SetMaterialTexture("$basetexture", self.RT)
 
-	cam.Start3D2D(pos,ang,Res)
+	cam.Start3D2D(pos, ang, monitor.RS)
 		local w = 512
 		local h = 512
-		local x = w*-0.5
-		local y = h*-0.5
+		local x = -256
+		local y = -256
 
 		surface.SetDrawColor(255, 255, 255, 255)
 		surface.SetTexture(WireGPU_texScreen)
-		self.DrawScreen(x, y, w/RatioX, h, 0, 0)
+		self.DrawScreen(x, y, w/monitor.RatioX, h, rotation or 0, scale or 0)
 	cam.End3D2D()
 
 	WireGPU_matScreen:SetMaterialTexture("$basetexture", OldTex)
@@ -178,9 +180,9 @@ end
 
 function WireGPU_GetMyRenderTarget(entindex)
 	local self = GPUs[entindex]
-	if self.RTindex then return RenderTargetCache[self.RTindex].Target end
+	if self.RT then return self.RT end
 
-	return self:NeedRenderTarget()
+	return self:Initialize()
 end
 
 function WireGPU_ReturnRenderTarget(entindex)
