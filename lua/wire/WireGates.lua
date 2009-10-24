@@ -2896,6 +2896,21 @@ GateActions["entity_entid"] = {
 	end
 }
 
+GateActions["entity_id2ent"] = {
+	group = "Entity",
+	name = "ID to Entity",
+	inputs = { "A" },
+	outputtypes = { "ENTITY" },
+	output = function(gate, A)
+		local Ent = Entity(A)
+		if !Ent:IsValid() then return NULL end
+		return Ent
+	end,
+	label = function(Out, A)
+		return string.format ("entID(%s) = %d", A, Out)
+	end
+}
+
 GateActions["entity_model"] = {
 	group = "Entity",
 	name = "Model",
@@ -3386,9 +3401,9 @@ GateActions["entity_aimentity"] = {
 	outputtypes = { "ENTITY" },
 	timed = true,
 	output = function(gate, Ent)
-		if !Ent:IsValid() then return nil end
+		if !Ent:IsValid() then return NULL end
 		local EntR = Ent:GetEyeTraceNoCursor().Entity
-		if !EntR:IsValid() then return nil end
+		if !EntR:IsValid() then return NULL end
 		return EntR
 	end,
 	label = function(Out)
@@ -3404,7 +3419,7 @@ GateActions["entity_aimenormal"] = {
 	outputtypes = { "VECTOR" },
 	timed = true,
 	output = function(gate, Ent)
-		if !Ent:IsValid() then return nil end
+		if !Ent:IsValid() then return Vector(0,0,0) end
 		if (Ent:IsPlayer()) then
 			return Ent:GetAimVector()
 		else
@@ -3959,7 +3974,7 @@ GateActions["rd_entity"] = {
 	outputtypes = { "ENTITY" },
 	timed = true,
 	output = function(gate, A)
-		if !A then return nil end
+		if !A then return NULL end
 		return A.Entity
 	end,
 	label = function(Out, A)
