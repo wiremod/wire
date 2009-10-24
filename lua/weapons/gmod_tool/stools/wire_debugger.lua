@@ -394,7 +394,7 @@ if (SERVER) then
 		formatPort[typename:upper()] = func
 	end
 
-	hook.Add("Think", "Wire_DebuggerThink", function()
+	local function Wire_DebuggerThink()
 		for ply,cmps in pairs(Components) do
 
 			if ( !ply ) or ( !ply:IsValid() ) or ( !ply:IsPlayer() ) then -- if player has left, clear the hud
@@ -503,7 +503,8 @@ if (SERVER) then
 			end
 
 		end
-	end)
+	end
+	hook.Add("Think", "Wire_DebuggerThink", function() PCallError(Wire_DebuggerThink) end)
 
 end
 
