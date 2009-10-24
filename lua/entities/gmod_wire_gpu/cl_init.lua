@@ -205,33 +205,27 @@ function ENT:Draw()
 
 	local model = self.Entity:GetModel()
 	local monitor = WireGPU_Monitors[model]
-	local offset = monitor.offset
 
 	self:WriteCell(65513,1/monitor.RatioX)
 
-	local rot = Angle(0, 90, 90)
-	if monitor.rot90 then
-		rot = Angle(0, 90, 0)
-	end
-
-	local ang = self.Entity:LocalToWorldAngles(rot)
-	local pos = self.Entity:LocalToWorld(offset)
+	local ang = self.Entity:LocalToWorldAngles(monitor.rot)
+	local pos = self.Entity:LocalToWorld(monitor.offset)
 
 	local OldTex = WireGPU_matScreen:GetMaterialTexture("$basetexture")
 	WireGPU_matScreen:SetMaterialTexture("$basetexture",self.FrameBuffer)
 
 	cam.Start3D2D(pos,ang,monitor.RS)
-		local w = 512*math.Clamp(self:ReadCell(65525),0,1)
+		local w = 512*math.Clamp(self:ReadCell(65525),0,1)/monitor.RatioX
 		local h = 512*math.Clamp(self:ReadCell(65524),0,1)
 		local x = -w/2
 		local y = -h/2
 
 		surface.SetDrawColor(0,0,0,255)
-		surface.DrawRect(-256,-256,512/monitor.RatioX,512)
+		surface.DrawRect(-256/monitor.RatioX,-256,512/monitor.RatioX,512)
 
 		surface.SetDrawColor(255,255,255,255)
 		surface.SetTexture(WireGPU_texScreen)
-		WireGPU_DrawScreen(x,y,w/monitor.RatioX,h,self:ReadCell(65522),self:ReadCell(65523)-self:ReadCell(65518)/512)
+		WireGPU_DrawScreen(x,y,w,h,self:ReadCell(65522),self:ReadCell(65523)-self:ReadCell(65518)/512)
 
 		local trace = {}
 		trace.start = LocalPlayer():GetShootPos()
@@ -250,7 +244,7 @@ function ENT:Draw()
 			if (self:ReadCell(65503) == 1) and (cx >= 0 and cy >= 0 and cx <= 1 and cy <= 1) then
 				surface.SetDrawColor(255,255,255,255)
 				surface.SetTexture(surface.GetTextureID("gui/arrow"))
-				surface.DrawTexturedRectRotated(-256+cx*512/monitor.RatioX,-256+cy*512,32,32,45)
+				surface.DrawTexturedRectRotated(-256/monitor.RatioX+cx*512/monitor.RatioX,-256+cy*512,32,32,45)
 			end
 		end
 	cam.End3D2D()
