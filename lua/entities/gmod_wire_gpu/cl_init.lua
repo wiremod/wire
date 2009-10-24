@@ -10,9 +10,9 @@ else
 	include('gpu_clientbus.lua')
 end
 
-ENT.Spawnable			= false
-ENT.AdminSpawnable		= false
-ENT.RenderGroup 		= RENDERGROUP_BOTH
+ENT.Spawnable      = false
+ENT.AdminSpawnable = false
+ENT.RenderGroup    = RENDERGROUP_BOTH
 
 WireGPU_HookedGPU = nil
 
@@ -148,13 +148,13 @@ function ENT:RenderGPU(clearbg)
 		local OldRT = render.GetRenderTarget()
 		local NewRT = self.FrameBuffer
 
-	 	render.SetRenderTarget(NewRT)
-	 	render.SetViewPort(0,0,512,512)
-	 	cam.Start2D()
+		render.SetRenderTarget(NewRT)
+		render.SetViewPort(0,0,512,512)
+		cam.Start2D()
 			if (self:ReadCell(65531) == 0) then
 				if ((self:ReadCell(65533) == 1) && (clearbg == true)) then
-			 		surface.SetDrawColor(0,0,0,255)
-			 		surface.DrawRect(0,0,512,512)
+					surface.SetDrawColor(0,0,0,255)
+					surface.DrawRect(0,0,512,512)
 				end
 				if (self:ReadCell(65535) == 1) then
 					if (self.EntryPoint[3]) && (self.HandleError == 1) then
@@ -164,7 +164,7 @@ function ENT:RenderGPU(clearbg)
 					end
 				end
 			end
-	 	cam.End2D()
+		cam.End2D()
 
 		//matFSB:SetMaterialFloat("$alpha", 1)
 		//render.SetMaterial(matFSB)
@@ -174,7 +174,7 @@ function ENT:RenderGPU(clearbg)
 		//render.SetRenderTarget(TempRT)
 		//render.Clear(255,0,0,127)
 
-	 	//render.SetRenderTarget(NewRT)
+		//render.SetRenderTarget(NewRT)
 		//matFSB:SetMaterialTexture("$basetexture",self.SpriteBuffer)
 		//render.SetMaterial(matFSB)
 		//render.DrawQuad(Vector(0,0,0),Vector(256,0,0),Vector(256,256,0),Vector(0,256,0))
@@ -182,8 +182,8 @@ function ENT:RenderGPU(clearbg)
 
 		//render.CopyRenderTargetToTexture(NewRT)
 
-	 	render.SetViewPort(0,0,oldw,oldh)
-	 	render.SetRenderTarget(OldRT)
+		render.SetViewPort(0,0,oldw,oldh)
+		render.SetRenderTarget(OldRT)
 	end
 end
 
@@ -223,8 +223,7 @@ function ENT:Draw()
 		surface.SetDrawColor(0,0,0,255)
 		surface.DrawRect(-256/monitor.RatioX,-256,512/monitor.RatioX,512)
 
-		surface.SetDrawColor(255,255,255,255)
-		surface.SetTexture(WireGPU_texScreen)
+		render.SetMaterial(WireGPU_matScreen)
 		WireGPU_DrawScreen(x,y,w,h,self:ReadCell(65522),self:ReadCell(65523)-self:ReadCell(65518)/512)
 
 		local trace = {}
@@ -272,8 +271,7 @@ function drawGPUHUD()
 		local x = 0
 		local y = 0
 
-		surface.SetDrawColor(255,255,255,255)
-		surface.SetTexture(WireGPU_texScreen)
+		render.SetMaterial(WireGPU_matScreen)
 		WireGPU_DrawScreen(x,y,w,h,WireGPU_HookedGPU:ReadCell(65522),WireGPU_HookedGPU:ReadCell(65523))
 
 		WireGPU_matScreen:SetMaterialTexture("$basetexture",OldTex)

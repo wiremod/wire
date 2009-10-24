@@ -22,7 +22,6 @@ surface.CreateFont("lucida console", 20, 800, true, false, "WireGPU_ConsoleFont"
 // Create screen textures and materials
 //
 WireGPU_matScreen = Material("ignore_this_error")
-WireGPU_texScreen = surface.GetTextureID("ignore_this_error")
 
 local GPU = {}
 GPU.__index = GPU
@@ -97,10 +96,16 @@ local texcoords = {
 function GPU.DrawScreen(x, y, w, h, rotation, scale)
 	//Generate vertex data
 	local vertices = {
+		Vector(x  , y  ),
+		Vector(x+w, y  ),
+		Vector(x+w, y+h),
+		Vector(x  , y+h),
+		--[[
 		{ x = x  , y = y   },
 		{ x = x+w, y = y   },
 		{ x = x+w, y = y+h },
 		{ x = x  , y = y+h },
+		]]
 	}
 
 	//Rotation
@@ -119,7 +124,8 @@ function GPU.DrawScreen(x, y, w, h, rotation, scale)
 		end
 	end
 
-	surface.DrawPoly(vertices)
+	--surface.DrawPoly(vertices)
+	render.DrawQuad(unpack(vertices))
 end
 
 function GPU:RenderToGPU(renderfunction)
@@ -149,17 +155,18 @@ function GPU:Render(rotation, scale)
 	WireGPU_matScreen:SetMaterialTexture("$basetexture", self.RT)
 
 	cam.Start3D2D(pos, ang, monitor.RS)
-		local w = 512/monitor.RatioX
-		local h = 512
-		local x = -w/2
-		local y = -h/2
+		PCallError(function()
+			local w = 512/monitor.RatioX
+			local h = 512
+			local x = -w/2
+			local y = -h/2
 
-		surface.SetDrawColor(0,0,0,255)
-		surface.DrawRect(-256/monitor.RatioX,-256,512/monitor.RatioX,512)
+			surface.SetDrawColor(0,0,0,255)
+			surface.DrawRect(-256/monitor.RatioX,-256,512/monitor.RatioX,512)
 
-		surface.SetDrawColor(255, 255, 255, 255)
-		surface.SetTexture(WireGPU_texScreen)
-		self.DrawScreen(x, y, w, h, rotation or 0, scale or 0)
+			render.SetMaterial(WireGPU_matScreen)
+			self.DrawScreen(x, y, w, h, rotation or 0, scale or 0)
+		end)
 	cam.End3D2D()
 
 	WireGPU_matScreen:SetMaterialTexture("$basetexture", OldTex)
