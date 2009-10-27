@@ -30,17 +30,80 @@ function WireGPU_AddMonitor(name,model,tof,tou,tor,trs,x1,x2,y1,y2,rot)
 	WireGPU_Monitors[model] = monitor
 end
 
-function WireGPU_FromBox(name, model, boxmin, boxmax, rot)
-	if not rot then
-		rot = Angle(0,90,90)
-	elseif rot == true then
-		rot = Angle(0,90,0)
+local function mindimension(vec)
+	-- add a bias to make the screen appear on the front face of a cube
+	if vec.x-0.002 < vec.y then
+		-- x < y
+		-- another bit of bias, otherwise it'd appear on the left face.
+		if vec.x-0.002 < vec.z then
+			-- x < y, x < z
+			return Vector(1,0,0)
+		else
+			-- x < y, z<=x -> z < y
+			return Vector(0,0,1)
+		end
+	else
+		-- y <= x
+		if vec.y < vec.z then
+			-- y <= x, y < z
+			return Vector(0,1,0)
+		else
+			-- y <= x, z <= y -> z <= x
+			return Vector(0,0,1)
+		end
+	end
+end
+
+local function maxdimension(vec)
+	-- add a small bias, so squared screens draw text in the correct orientation (y+/down = forward axis)
+	if vec.x-0.002 > vec.y then
+		-- x > y
+		if vec.x > vec.z then
+			-- x > y, x > z
+			return Vector(1,0,0)
+		else
+			-- x > y, z>=x -> z > y
+			return Vector(0,0,1)
+		end
+	else
+		-- y >= x
+		-- more bias, this time to give the front face the correct orientation
+		if vec.y+0.002 > vec.z then
+			-- y >= x, y > z
+			return Vector(0,1,0)
+		else
+			-- y >= x, z >= y -> z >= x
+			return Vector(0,0,1)
+		end
+	end
+end
+
+function WireGPU_FromBox(name, model, boxmin, boxmax)
+	--if not rot then
+	--	rot = Angle(0,90,90)
+	--elseif rot == true then
+	--	rot = Angle(0,90,0)
+	--end
+	local dim = boxmax-boxmin
+	local mindim, maxdim = mindimension(dim), maxdimension(dim)
+
+	-- get an angle with up=mindim
+	rot = mindim:Angle()+Angle(90,0,0)
+
+	-- make sure forward=maxdim
+	if math.abs(maxdim:Dot(rot:Forward())) < 0.01 then
+		rot:RotateAroundAxis(mindim, 90)
 	end
 
+	-- unrotate boxmin/max
 	local box1 = WorldToLocal(boxmin, Angle(0,0,0), Vector(0,0,0), rot)
 	local box2 = WorldToLocal(boxmax, Angle(0,0,0), Vector(0,0,0), rot)
+
+	-- sort boxmin/max
 	local boxmin = Vector(math.min(box1.x,box2.x), math.min(box1.y,box2.y), math.min(box1.z,box2.z))
 	local boxmax = Vector(math.max(box1.x,box2.x), math.max(box1.y,box2.y), math.max(box1.z,box2.z))
+
+	-- make a new gpu screen
 	return WireGPU_FromBox_Helper(name, model, boxmin, boxmax, rot)
 end
 
@@ -139,7 +202,6 @@ models/props_lab/monitor01a.mdl
 
 workspaces:
 models/props_lab/workspace003.mdl
-models/props_lab/workspace002.mdl
 models/props_lab/securitybank.mdl
 
 too curvy?
@@ -157,10 +219,10 @@ local function fallback(self, model)
 	if not ent then return nil end
 
 	local gap = Vector(0.25,0.25,0.25)
-	local obbmin = ent:OBBMins()+gap
-	local obbmax = ent:OBBMaxs()-gap
+	local boxmin = ent:OBBMins()+gap
+	local boxmax = ent:OBBMaxs()-gap
 
-	return WireGPU_FromBox("Auto: "..model:match("([^/]*)$"), model, obbmin, obbmax, true)
+	return WireGPU_FromBox("Auto: "..model:match("([^/]*)$"), model, boxmin, boxmax, true)
 end
 
 setmetatable(WireGPU_Monitors, { __index = fallback })

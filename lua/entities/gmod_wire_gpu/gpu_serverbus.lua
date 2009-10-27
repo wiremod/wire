@@ -19,37 +19,43 @@ end
 function ENT:Notify(message, value)
 	local rp = RecipientFilter()
 	if (self.ForcePlayer) then
+		if not self.ForcePlayer:IsValid then rp = false end -- player left => abort send
 		rp:AddPlayer(self.ForcePlayer)
 	else
 		rp:AddAllPlayers()
 	end
 
-	umsg.Start(message, rp)
-		umsg.Long(self:EntIndex())
-		umsg.Long(value)
-	umsg.End()
+	if rp then
+		umsg.Start(message, rp)
+			umsg.Long(self:EntIndex())
+			umsg.Long(value)
+		umsg.End()
+	end
 end
 
 function ENT:FlushCache()
 	local rp = RecipientFilter()
 	if (self.ForcePlayer) then
+		if not self.ForcePlayer:IsValid then rp = false end -- player left => abort send
 		rp:AddPlayer(self.ForcePlayer)
 	else
 		rp:AddAllPlayers()
 	end
 
-	umsg.Start("wiregpu_memorymessage", rp)
-		umsg.Long(self:EntIndex())
-		umsg.Long(self.MemoryCacheBase)
-		umsg.Long(self.MemoryCacheSize)
-		for i=0,self.MemoryCacheSize-1 do
-			if (self.MemoryCache[i]) then
-				umsg.Float(self.MemoryCache[i])
-			else
-				umsg.Float(0)
+	if rp then
+		umsg.Start("wiregpu_memorymessage", rp)
+			umsg.Long(self:EntIndex())
+			umsg.Long(self.MemoryCacheBase)
+			umsg.Long(self.MemoryCacheSize)
+			for i=0,self.MemoryCacheSize-1 do
+				if (self.MemoryCache[i]) then
+					umsg.Float(self.MemoryCache[i])
+				else
+					umsg.Float(0)
+				end
 			end
-		end
-	umsg.End()
+		umsg.End()
+	end
 
 	self.MemoryCacheSize = 0
 	self.MemoryCacheBase = 0
@@ -99,17 +105,20 @@ function ENT:WriteCell(Address, value)
 		else
 			local rp = RecipientFilter()
 			if (self.ForcePlayer) then
+				if not self.ForcePlayer:IsValid then rp = false end -- player left => abort send
 				rp:AddPlayer(self.ForcePlayer)
 			else
 				rp:AddAllPlayers()
 			end
 
-			umsg.Start("wiregpu_memorymessage", rp)
-				umsg.Long(self:EntIndex())
-				umsg.Long(Address)
-				umsg.Long(1)
-				umsg.Float(value)
-			umsg.End()
+			if rp then
+				umsg.Start("wiregpu_memorymessage", rp)
+					umsg.Long(self:EntIndex())
+					umsg.Long(Address)
+					umsg.Long(1)
+					umsg.Float(value)
+				umsg.End()
+			end
 		end
 		return true
 	end
