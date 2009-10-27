@@ -103,7 +103,7 @@ function WireGPU_FromRotatedBox(name, model, box1, box2, box3, box4, rot)
 	return WireGPU_FromBox_Helper(name, model, boxmin, boxmax, rot)
 end
 
-WireGPU_FromBox_Helper("Workspace 002", "models/props_lab/workspace002.mdl", Vector(-20, 49, -34), Vector(16, 83.7, -30.5), Angle(0, 133.34, 59.683))
+WireGPU_FromBox_Helper("Workspace 002", "models/props_lab/workspace002.mdl", Vector(-20, 49, -34), Vector(16.2, 84, -30.5), Angle(0, 133.34, 59.683))
 
 -- Offset front, offset up, offset right, resolution/scale                                OF   OU     OR   SCALE   LOWX      HIGHX    LOWY     HIGHY   ROTATE90
 WireGPU_AddMonitor("Small TV",          "models/props_lab/monitor01b.mdl",                6.4, 0.45 , 1.0, 0.018 , -5.535  , 3.5    , -4.1   , 5.091 )
