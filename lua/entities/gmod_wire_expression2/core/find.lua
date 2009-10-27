@@ -390,7 +390,7 @@ end
 
 local function findPlayer(name)
 	name = string.lower(name)
-	return filterList(player.GetAll(), function(ent) return string.match(string.lower(ent:GetName()), name) end)[1]
+	return filterList(player.GetAll(), function(ent) return string.find(string.lower(ent:GetName()), name,1,true) end)[1]
 end
 
 --- Returns the player with the given name, this is an exception to the rule
