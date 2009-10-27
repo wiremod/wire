@@ -84,11 +84,13 @@ end
 
 --wire input routine
 function ENT:TriggerInput(iname, value)
-	if (!iname) then
-		//do nothing, this prevents the next line from erroring
-	elseif (iname == "Text") then
+	if (iname == "Text") then
 		self.currentTextnum = math.abs(value)
 		self:UpdateScreen()
+	elseif (iname == "String") then
+		self.String = value
+		UpdateValuesCheck(self)
+--------------------------------------------------------------------------------
 	elseif (iname == "Clk") then
 		if (math.abs(value) > 0) then
 			self.clock = true
@@ -102,9 +104,6 @@ function ENT:TriggerInput(iname, value)
 		end
 		self.StringNum = value
 		UpdateValuesCheck(self)
-	elseif (iname == "String") then
-		self.String = value
-		UpdateValuesCheck(self)
 	elseif (iname == "StringClk") then
 		if (value==1) then
 			self.StringClk=1
@@ -112,9 +111,13 @@ function ENT:TriggerInput(iname, value)
 		else
 			self.StringClk=0
 		end
-	elseif (string.sub(iname, 1, 6) == "Value ") then
-		self.Val[tonumber(string.sub(iname, 7, -1))] = math.abs(value)
-		self:UpdateScreen()
+	elseif iname then
+		local index = tonumber(iname:match("^Value (.*)$"))
+		if index then
+			self.Val[index] = math.abs(value)
+			self:UpdateScreen()
+		end
+--------------------------------------------------------------------------------
 	end
 end
 

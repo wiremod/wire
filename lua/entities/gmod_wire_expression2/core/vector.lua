@@ -410,7 +410,7 @@ registerFunction("round", "vn", "v", function(self, args)
 	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
 
 	local shf = 10 ^ rv2
-	local x,y,z = unpack(rv1)
+	local x,y,z = rv1[1], rv1[2], rv1[3]
 
 	return {
 		floor(x*shf+0.5)/shf,
