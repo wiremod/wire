@@ -37,9 +37,7 @@ function WireGPU(ent)
 end
 
 function GPU:Initialize()
-	//
-	// Rendertarget cache management
-	//
+	-- Rendertarget cache management
 
 	-- fallback
 	self.RT = RenderTargetCache[1].Target
@@ -94,7 +92,7 @@ local texcoords = {
 }
 -- helper function for GPU:Render
 function GPU.DrawScreen(x, y, w, h, rotation, scale)
-	//Generate vertex data
+	-- generate vertex data
 	local vertices = {
 		Vector(x  , y  ),
 		Vector(x+w, y  ),
@@ -108,7 +106,7 @@ function GPU.DrawScreen(x, y, w, h, rotation, scale)
 		]]
 	}
 
-	//Rotation
+	-- rotation and scaling
 	local rotated_texcoords = texcoords[rotation] or texcoords[0]
 	for index,vertex in ipairs(vertices) do
 		local tex = rotated_texcoords[index]
@@ -144,7 +142,7 @@ function GPU:RenderToGPU(renderfunction)
 	render.SetRenderTarget(OldRT)
 end
 
-function GPU:Render(rotation, scale)
+function GPU:Render(rotation, scale, width, height, postrenderfunction)
 	local model = self.Entity:GetModel()
 	local monitor = WireGPU_Monitors[model]
 
@@ -156,8 +154,8 @@ function GPU:Render(rotation, scale)
 
 	cam.Start3D2D(pos, ang, monitor.RS)
 		PCallError(function()
-			local w = 512/monitor.RatioX
-			local h = 512
+			local w = (width  or 512)/monitor.RatioX
+			local h = (height or 512)
 			local x = -w/2
 			local y = -h/2
 
@@ -166,6 +164,8 @@ function GPU:Render(rotation, scale)
 
 			render.SetMaterial(WireGPU_matScreen)
 			self.DrawScreen(x, y, w, h, rotation or 0, scale or 0)
+
+			if postrenderfunction then postrenderfunction() end
 		end)
 	cam.End3D2D()
 

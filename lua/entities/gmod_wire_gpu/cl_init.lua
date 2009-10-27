@@ -44,7 +44,7 @@ function ENT:Initialize()
 	self.FrameRateRatio = 4
 	self.FrameInstructions = 0
 
-	WireGPU_NeedRenderTarget(self:EntIndex())
+	self.GPU = WireGPU(self.Entity)
 
 	self.OF = CreateClientConVar("gpu_of",0,false,false)
 	self.OR = CreateClientConVar("gpu_or",0,false,false)
@@ -56,7 +56,7 @@ function ENT:Initialize()
 end
 
 function ENT:OnRemove()
-	WireGPU_ReturnRenderTarget(self:EntIndex())
+	self.GPU:Finalize()
 end
 
 function DebugMessage(msg)
@@ -134,7 +134,7 @@ function ENT:RenderGPU(clearbg)
 		self:WriteCell(65513,1.33)
 	end
 
-	self.FrameBuffer = WireGPU_GetMyRenderTarget(self:EntIndex())
+	self.FrameBuffer = self.GPU.RT
 	//self.SpriteBuffer = WireGPU_GetMyRenderTarget(self:EntIndex().."_sprite")
 
 	local FrameRate = self.MinFrameRateRatio:GetFloat() or 4
@@ -203,52 +203,35 @@ function ENT:Draw()
 
 	self:RenderGPU(true)
 
-	local model = self.Entity:GetModel()
-	local monitor = WireGPU_Monitors[model]
+	self:WriteCell(65513,1/WireGPU_Monitors[self.Entity:GetModel()].RatioX)
 
-	self:WriteCell(65513,1/monitor.RatioX)
+	self.GPU:Render(
+		self:ReadCell(65522), self:ReadCell(65523)-self:ReadCell(65518)/512, -- rotation, scale
+		512*math.Clamp(self:ReadCell(65525),0,1), 512*math.Clamp(self:ReadCell(65524),0,1), -- width, height
+		function() -- postrenderfunction
+			local trace = {}
+			trace.start = LocalPlayer():GetShootPos()
+			trace.endpos = (LocalPlayer():GetAimVector() * self.workingDistance) + trace.start
+			trace.filter = LocalPlayer()
+			local trace = util.TraceLine(trace)
 
-	local ang = self.Entity:LocalToWorldAngles(monitor.rot)
-	local pos = self.Entity:LocalToWorld(monitor.offset)
+			if (trace.Entity == self.Entity) then
+				local pos = self.Entity:WorldToLocal(trace.HitPos)
+				local cx = (self.x1 - pos.y) / (self.x1 - self.x2)
+				local cy = (self.y1 - pos.z) / (self.y1 - self.y2)
 
-	local OldTex = WireGPU_matScreen:GetMaterialTexture("$basetexture")
-	WireGPU_matScreen:SetMaterialTexture("$basetexture",self.FrameBuffer)
+				self:WriteCell(65505,cx)
+				self:WriteCell(65504,cy)
 
-	cam.Start3D2D(pos,ang,monitor.RS)
-		local w = 512*math.Clamp(self:ReadCell(65525),0,1)/monitor.RatioX
-		local h = 512*math.Clamp(self:ReadCell(65524),0,1)
-		local x = -w/2
-		local y = -h/2
-
-		surface.SetDrawColor(0,0,0,255)
-		surface.DrawRect(-256/monitor.RatioX,-256,512/monitor.RatioX,512)
-
-		render.SetMaterial(WireGPU_matScreen)
-		WireGPU_DrawScreen(x,y,w,h,self:ReadCell(65522),self:ReadCell(65523)-self:ReadCell(65518)/512)
-
-		local trace = {}
-		trace.start = LocalPlayer():GetShootPos()
-		trace.endpos = (LocalPlayer():GetAimVector() * self.workingDistance) + trace.start
-		trace.filter = LocalPlayer()
-		local trace = util.TraceLine(trace)
-
-		if (trace.Entity == self.Entity) then
-			local pos = self.Entity:WorldToLocal(trace.HitPos)
-			local cx = (self.x1 - pos.y) / (self.x1 - self.x2)
-			local cy = (self.y1 - pos.z) / (self.y1 - self.y2)
-
-			self:WriteCell(65505,cx)
-			self:WriteCell(65504,cy)
-
-			if (self:ReadCell(65503) == 1) and (cx >= 0 and cy >= 0 and cx <= 1 and cy <= 1) then
-				surface.SetDrawColor(255,255,255,255)
-				surface.SetTexture(surface.GetTextureID("gui/arrow"))
-				surface.DrawTexturedRectRotated(-256/monitor.RatioX+cx*512/monitor.RatioX,-256+cy*512,32,32,45)
+				if (self:ReadCell(65503) == 1) and (cx >= 0 and cy >= 0 and cx <= 1 and cy <= 1) then
+					surface.SetDrawColor(255,255,255,255)
+					surface.SetTexture(surface.GetTextureID("gui/arrow"))
+					surface.DrawTexturedRectRotated(-256/monitor.RatioX+cx*512/monitor.RatioX,-256+cy*512,32,32,45)
+				end
 			end
 		end
-	cam.End3D2D()
+	)
 
-	WireGPU_matScreen:SetMaterialTexture("$basetexture",OldTex)
 	Wire_Render(self.Entity)
 end
 
