@@ -541,11 +541,11 @@ do -- wire_light
 		end
 	end
 
-	TOOL.Model = "models/jaanus/wiretool/wiretool_siren.mdl"
 	TOOL.ClientConVar = {
-		directional	= 0,
-		radiant		= 0,
-		weld		= 1,
+		model       = "models/jaanus/wiretool/wiretool_siren.mdl",
+		directional = 0,
+		radiant     = 0,
+		weld        = 1,
 	}
 
 	function TOOL.BuildCPanel(panel)
