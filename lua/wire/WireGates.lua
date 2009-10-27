@@ -2311,7 +2311,7 @@ GateActions["vector_rand"] = {
 -- Component Derivative
 GateActions["vector_derive"] = {
 	group = "Vector",
-	name = "Component Derivative",
+	name = "Delta",
 	inputs = { "A" },
 	inputtypes = { "VECTOR" },
 	outputtypes = { "VECTOR" },
@@ -2755,9 +2755,9 @@ GateActions["entity_applyf"] = {
 	inputtypes = { "ENTITY" , "VECTOR" },
 	timed = true,
 	output = function(gate, Ent , Vec )
-		if !Ent then return nil end
+		if !Ent then return end
 		if !Ent:IsValid() or !Ent:GetPhysicsObject():IsValid() then return end
-		if !(E2Lib.getOwner(gate, Ent) == E2Lib.getOwner(gate, gate)) then return nil end
+		if !(E2Lib.getOwner(gate, Ent) == E2Lib.getOwner(gate, gate)) then return end
 		if !IsVector(Vec) then Vec = Vector (0, 0, 0) end
 		Ent:GetPhysicsObject():ApplyForceCenter(Vec)
 	end,
@@ -2773,9 +2773,9 @@ GateActions["entity_applyof"] = {
 	inputtypes = { "ENTITY" , "VECTOR" , "VECTOR" },
 	timed = true,
 	output = function(gate, Ent , Vec , Offset )
-		if !Ent then return nil end
+		if !Ent then return end
 		if !Ent:IsValid() or !Ent:GetPhysicsObject():IsValid() then return end
-		if !(E2Lib.getOwner(gate, Ent) == E2Lib.getOwner(gate, gate)) then return nil end
+		if !(E2Lib.getOwner(gate, Ent) == E2Lib.getOwner(gate, gate)) then return end
 		if !IsVector(Vec) then Vec = Vector (0, 0, 0) end
 		if !IsVector(Offset) then Offset = Vector (0, 0, 0) end
 		Ent:GetPhysicsObject():ApplyForceOffset(Vec, Offset)
@@ -2794,9 +2794,9 @@ GateActions["entity_applyaf"] = {
 	inputtypes = { "ENTITY" , "ANGLE" },
 	timed = true,
 	output = function(gate, Ent , Ang )
-		if !Ent then return nil end
+		if !Ent then return end
 		if !Ent:IsValid() or !Ent:GetPhysicsObject():IsValid() then return end
-		if !(E2Lib.getOwner(gate, Ent) == E2Lib.getOwner(gate, gate)) then return nil end
+		if !(E2Lib.getOwner(gate, Ent) == E2Lib.getOwner(gate, gate)) then return end
 		if !Ang then Ang = Angle (0, 0, 0) end
 			local phys = Ent:GetPhysicsObject()
 			local pos = Ent:LocalToWorld(phys:GetMassCenter())
@@ -2837,9 +2837,9 @@ GateActions["entity_applytorq"] = {
 	inputtypes = { "ENTITY" , "VECTOR" },
 	timed = true,
 	output = function(gate, Ent , Vec )
-		if !Ent then return nil end
+		if !Ent then return end
 		if not Ent:IsValid() then return end
-		if !(E2Lib.getOwner(gate, Ent) == E2Lib.getOwner(gate, gate)) then return nil end
+		if !(E2Lib.getOwner(gate, Ent) == E2Lib.getOwner(gate, gate)) then return end
 		local phys = Ent:GetPhysicsObject()
 		if not phys:IsValid() then return end
 
@@ -2888,7 +2888,7 @@ GateActions["entity_entid"] = {
 	inputs = { "A" },
 	inputtypes = { "ENTITY" },
 	output = function(gate, A)
-		if (A and IsEntity (A) and A:IsValid ()) then return A:EntIndex () end
+		if (A and A:IsValid()) then return A:EntIndex() end
 		return 0
 	end,
 	label = function(Out, A)
@@ -2910,6 +2910,7 @@ GateActions["entity_id2ent"] = {
 		return string.format ("entID(%s) = %d", A, Out)
 	end
 }
+
 
 GateActions["entity_model"] = {
 	group = "Entity",
@@ -3419,7 +3420,7 @@ GateActions["entity_aimenormal"] = {
 	outputtypes = { "VECTOR" },
 	timed = true,
 	output = function(gate, Ent)
-		if !Ent:IsValid() then return Vector(0,0,0) end
+		if !Ent:IsValid() then return end
 		if (Ent:IsPlayer()) then
 			return Ent:GetAimVector()
 		else
@@ -3470,9 +3471,9 @@ GateActions["entity_setmass"] = {
 	inputtypes = { "ENTITY" , "NORMAL" },
 	timed = true,
 	output = function(gate, Ent, Val )
-		if !Ent:IsValid() then return nil end
-		if !Ent:GetPhysicsObject():IsValid() then return nil end
-		if !(E2Lib.getOwner(gate, gate) == E2Lib.getOwner(gate, Ent)) then return nil end
+		if !Ent:IsValid() then return end
+		if !Ent:GetPhysicsObject():IsValid() then return end
+		if !(E2Lib.getOwner(gate, gate) == E2Lib.getOwner(gate, Ent)) then return end
 		if !Val then Val = Ent:GetPhysicsObject():GetMass() end
 		Val = math.Clamp(Val, 0.001, 50000)
 		Ent:GetPhysicsObject():SetMass(Val)
@@ -3515,17 +3516,35 @@ GateActions["entity_setcol"] = {
 	inputtypes = { "ENTITY" , "VECTOR" },
 	timed = true,
 	output = function(gate, Ent, Col )
-		if !Ent:IsValid() then return nil end
-		if !(E2Lib.getOwner(gate, gate) == E2Lib.getOwner(gate, Ent)) then return nil end
+		if !Ent:IsValid() then return end
+		if !(E2Lib.getOwner(gate, gate) == E2Lib.getOwner(gate, Ent)) then return end
 		if !IsVector(Col) then Col = Vector(255,255,255) end
 		Ent:SetColor(Col.x,Col.y,Col.z,255)
-		return nil
 	end,
 	label = function(Out, Ent , Col)
 		if !IsVector(Col) then Col = Vector(0,0,0) end
 		return string.format ("setColor(%s ,(%d,%d,%d) )", Ent , Col.x, Col.y, Col.z)
 	end
 }
+
+GateActions["entity_driver"] = {
+	group = "Entity",
+	name = "Driver",
+	inputs = { "Ent" },
+	inputtypes = { "ENTITY" },
+	outputtypes = { "ENTITY" },
+	timed = true,
+	output = function(gate, Ent)
+		if !Ent:IsValid() or !Ent:IsVehicle() then return NULL end
+		return Ent:GetDriver()
+	end,
+	label = function(Out, A)
+		local Name = "NULL"
+		if Out:IsValid() then Name = Out:Nick() end
+		return string.format ("Driver: %s", Name)
+	end
+}
+
 
 GateActions["entity_clr"] = {
 	group = "Entity",
@@ -3669,6 +3688,33 @@ GateActions["angle_mul"] = {
 	end,
 	label = function(Out, A, B)
 		return string.format ("%s * %s = (%d,%d,%d)", A, B, Out.p, Out.y, Out.r)
+	end
+}
+
+-- Component Derivative
+GateActions["angle_derive"] = {
+	group = "Angle",
+	name = "Delta",
+	inputs = { "A" },
+	inputtypes = { "ANGLE" },
+	outputtypes = { "ANGLE" },
+	timed = true,
+	output = function(gate, A)
+		local t = CurTime ()
+		if !A then A = Angle (0, 0, 0) end
+		local dT, dA = t - gate.LastT, A - gate.LastA
+		gate.LastT, gate.LastA = t, A
+		if (dT) then
+			return Angle (dA.p/dT, dA.y/dT, dA.r/dT)
+		else
+			return Angle (0, 0, 0)
+		end
+	end,
+	reset = function(gate)
+		gate.LastT, gate.LastA = CurTime (), Angle (0, 0, 0)
+	end,
+	label = function(Out, A)
+		return string.format ("diff(%s) = (%d,%d,%d)", A, Out.p, Out.y, Out.r)
 	end
 }
 
