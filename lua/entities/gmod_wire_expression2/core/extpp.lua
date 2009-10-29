@@ -266,7 +266,7 @@ function e2_extpp_pass2(contents)
 					table.insert(argtable.typeids, 1, this_typeid..":")
 				end
 				table.insert(argtable.argnames, 1, "this")
-			end -- if colon ~= ""
+			end -- if thistype ~= ""
 
 			-- add a sub-table for flagging arguments as "no opfetch"
 			argtable.no_opfetch = {}
@@ -312,15 +312,25 @@ function e2_extpp_pass2(contents)
 					-- generate a registerFunction line
 					table.insert(function_register, string.format('if %s then %s(%q, %q, %q, %s) end\n', mangled_name, regfn, name, arg_typeids.."...", ret_typeid, mangled_name))
 
+					-- number of regular arguments
+					local argn = #argtable.typeids
+					--if thistype ~= "" then argn = argn+1 end
+
 					-- generate a new function header and append it to the output
 					table.insert(output, 'local function '..mangled_name..'(self, args, typeids, ...)')
 					table.insert(output, " if not typeids then")
 					table.insert(output,     " local arr,typeids,source_typeids,tmp={},{},args[#args]")
-					table.insert(output,     " for i="..(2+#argtable.typeids)..",#args-1 do")
+					table.insert(output,     " for i="..(2+argn)..",#args-1 do")
 					table.insert(output,         " tmp=args[i]")
 					table.insert(output,         " arr[#arr+1]=tmp[1](self,tmp)")
-					table.insert(output,         " typeids[#typeids+1]=source_typeids[i-1]")
+					if thistype ~= "" then
+						table.insert(output,     " typeids[#typeids+1]=source_typeids[i]")
+					else
+						table.insert(output,     " typeids[#typeids+1]=source_typeids[i-1]")
+					end
 					table.insert(output,     " end")
+					table.insert(output,     " PrintTable(source_typeids)")
+					table.insert(output,     " print('argn='.."..argn..")")
 					table.insert(output,     " return "..mangled_name.."(self,args,typeids,unpack(arr))")
 					table.insert(output, " end")
 				else

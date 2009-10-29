@@ -119,9 +119,9 @@ local printColor_typeids = {
 	e = function(e) return validEntity(e) and e:IsPlayer() and e or "" end,
 }
 
---- Works like [[chat.AddText]](...). Parameters can be any amount and combination of numbers, strings, player entities, color vectors (both 3D and 4D).
-e2function void printColor(...)
+local function printColorVarArg(chip, ply, typeids, ...)
 	local send_array = { ... }
+
 	for i,tp in ipairs(typeids) do
 		if printColor_typeids[tp] then
 			send_array[i] = printColor_typeids[tp](send_array[i])
@@ -129,9 +129,10 @@ e2function void printColor(...)
 			send_array[i] = ""
 		end
 	end
-	datastream.StreamToClients(self.player, "wire_expression2_printColor", send_array)
-end
 
+	send_array.chip = chip
+	datastream.StreamToClients(ply, "wire_expression2_printColor", send_array)
+end
 
 local printColor_types = {
 	number = tostring,
@@ -148,9 +149,9 @@ local printColor_types = {
 	Player = function(e) return validEntity(e) and e:IsPlayer() and e or "" end,
 }
 
---- Like printColor(...), except taking an array containing all the parameters.
-e2function void printColor(array arr)
+local function printColorArray(chip, ply, arr)
 	local send_array = {}
+
 	for i,tp in ipairs_map(arr,type) do
 		if printColor_types[tp] then
 			send_array[i] = printColor_types[tp](arr[i])
@@ -158,5 +159,48 @@ e2function void printColor(array arr)
 			send_array[i] = ""
 		end
 	end
-	datastream.StreamToClients(self.player, "wire_expression2_printColor", send_array)
+
+	send_array.chip = chip
+	datastream.StreamToClients(ply, "wire_expression2_printColor", send_array)
+end
+
+
+--- Works like [[chat.AddText]](...). Parameters can be any amount and combination of numbers, strings, player entities, color vectors (both 3D and 4D).
+e2function void printColor(...)
+	print("printColor")
+	PrintTable(typeids)
+	PrintTable({...})
+	printColorVarArg(nil, self.player, typeids, ...)
+end
+
+--- Like printColor(...), except taking an array containing all the parameters.
+e2function void printColor(array arr)
+	printColorArr(nil, self.player, arr)
+end
+
+--- Like printColor(...), except printing in <this>'s driver's chat area instead of yours.
+e2function void entity:printColorDriver(...)
+	if not validEntity(this) then return end
+	if not this:IsVehicle() then return end
+	if not isOwner(self, this) then return end
+
+	local driver = this:GetDriver()
+	if not validEntity(driver) then return end
+
+	print("printColorDriver")
+	PrintTable(typeids)
+	PrintTable({...})
+	printColorVarArg(self.entity, driver, typeids, ...)
+end
+
+--- Like printColor(R), except printing in <this>'s driver's chat area instead of yours.
+e2function void entity:printColorDriver(array arr)
+	if not validEntity(this) then return end
+	if not this:IsVehicle() then return end
+	if not isOwner(self, this) then return end
+
+	local driver = this:GetDriver()
+	if not validEntity(driver) then return end
+
+	printColorArr(self.entity, driver, arr)
 end

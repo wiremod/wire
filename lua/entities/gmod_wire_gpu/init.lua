@@ -86,7 +86,7 @@ function GPU_PlayerRespawn(pl)
 		v:GPU_ResendData(pl)
 	end
 end
-hook.Add("PlayerSpawn", "GPUPlayerRespawn", GPU_PlayerRespawn)
+hook.Add("PlayerInitialSpawn", "GPUPlayerRespawn", GPU_PlayerRespawn)
 
 function ENT:Reset()
 	self:WriteCell(65534,1)
