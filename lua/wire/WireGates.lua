@@ -2907,7 +2907,7 @@ GateActions["entity_id2ent"] = {
 		return Ent
 	end,
 	label = function(Out, A)
-		return string.format ("entID(%s) = %d", A, Out)
+		return string.format ("Entity(%s) = %s", A, tostring(Out))
 	end
 }
 
