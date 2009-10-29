@@ -167,9 +167,6 @@ end
 
 --- Works like [[chat.AddText]](...). Parameters can be any amount and combination of numbers, strings, player entities, color vectors (both 3D and 4D).
 e2function void printColor(...)
-	print("printColor")
-	PrintTable(typeids)
-	PrintTable({...})
 	printColorVarArg(nil, self.player, typeids, ...)
 end
 
@@ -187,9 +184,6 @@ e2function void entity:printColorDriver(...)
 	local driver = this:GetDriver()
 	if not validEntity(driver) then return end
 
-	print("printColorDriver")
-	PrintTable(typeids)
-	PrintTable({...})
 	printColorVarArg(self.entity, driver, typeids, ...)
 end
 
