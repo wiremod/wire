@@ -30,7 +30,7 @@ if SERVER then
 	AddCSLuaFile("wire/client/e2descriptions.lua")
 
 	-- resource files
-	for i=1,16 do
+	for i=1,32 do
 		resource.AddFile("settings/render_targets/WireGPU_RT_"..i..".txt")
 	end
 	resource.AddFile("materials/expression 2/cog.vtf")
