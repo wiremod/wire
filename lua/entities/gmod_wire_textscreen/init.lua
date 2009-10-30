@@ -7,181 +7,146 @@ AddCSLuaFile( "shared.lua" )
 include('shared.lua')
 
 ENT.WireDebugName = "Text Screen"
-ENT.initOn = true
-ENT.firstConfig = true
-ENT.clock = false
-ENT.currentLine = 0
-ENT.currentText = ""
-ENT.currentTextnum = 0
-
-wire_text_screen_lastCreated = nil
 
 function ENT:Initialize()
 	self.Entity:PhysicsInit( SOLID_VPHYSICS )
 	self.Entity:SetMoveType( MOVETYPE_VPHYSICS )
 	self.Entity:SetSolid( SOLID_VPHYSICS )
+
+	self.Inputs = WireLib.CreateSpecialInputs(self.Entity, { "String", "FGColor", "BGColor" }, { "STRING", "VECTOR", "VECTOR" })
+	self:InitializeShared()
 end
 
-function ENT:Setup(TextList, chrPl, textJust, tRed, tGreen, tBlue, numInputs, defaultOn)
-	self.TextList = TextList	--table of text lines
-	self.TextList[0] = ""
-
-	self.maxLineLen = math.abs(chrPl)
-	self.maxLines = math.abs(chrPl) / 2
-	self.chrPerLine = math.abs(chrPl)
-	self.numInputs = math.abs(numInputs)
+function ENT:Setup(DefaultText, chrPerLine, textJust, fgcolor, bgcolor)
+	self.fgcolor = fgcolor
+	self.bgcolor = bgcolor
+	self.chrPerLine = chrPerLine
 	self.textJust = textJust
-	self.tRed = tRed
-	self.tGreen = tGreen
-	self.tBlue = tBlue
-	self.currentLine = 0
-	self.StringNum = 1
-	self.String = self.TextList[1]
-	self.StringClk = 0
+	self:SendConfig()
 
-	--setup input with required number of value inputs
-	valInputs = {}
-	self.Val = {}
-	local SpecialInputs = {}
-	SpecialInputTypes = {"NORMAL", "NORMAL", "NORMAL", "STRING", "NORMAL"}
-	for n=1, numInputs do
-		table.insert(self.Val, 0)
-		table.insert(valInputs, "Value "..n)
-		table.insert(SpecialInputTypes, "NORMAL")
-	end
-	inputTable = {"Clk", "Text", "StringNum", "String", "StringClk"}
-	table.Add(inputTable, valInputs)
-	self.Inputs = Wire_CreateInputs(self.Entity, inputTable)
-	WireLib.AdjustSpecialInputs(self.Entity, inputTable, SpecialInputTypes)
-
-	self.defaultOn = defaultOn
-
-	--send config to client
-	self:SetConfig()
-	--format text and send to client
-	self:UpdateScreen()
-
-	--if option is selected, show text without the need for wire inputs
-	if (defaultOn == 1) then
-		self:TriggerInput("Clk", 1)	--make text on by default
-		self:TriggerInput("Text", 1)
-	else
-		self:TriggerInput("Clk", 0)
-		self:TriggerInput("Text", 0)
-	end
-end
-
-local function UpdateValuesCheck(self)
-	if (self.StringClk==1) then
-		if (self.TextList[self.StringNum]!=self.String) then
-			self.TextList[self.StringNum] = self.String
-			if (self.StringNum==self.currentTextnum) then
-			self:UpdateScreen()
-			end
-		end
-	end
+	self:TriggerInput("String", DefaultText)
 end
 
 --wire input routine
 function ENT:TriggerInput(iname, value)
-	if (iname == "Text") then
-		self.currentTextnum = math.abs(value)
-		self:UpdateScreen()
-	elseif (iname == "String") then
-		self.String = value
-		UpdateValuesCheck(self)
---------------------------------------------------------------------------------
-	elseif (iname == "Clk") then
-		if (math.abs(value) > 0) then
-			self.clock = true
-			self:UpdateScreen()
-		else
-			self.clock = false
-		end
-	elseif (iname == "StringNum") then
-		if (value<=12 && value>=1) then
-		value = value - value % 1
-		end
-		self.StringNum = value
-		UpdateValuesCheck(self)
-	elseif (iname == "StringClk") then
-		if (value==1) then
-			self.StringClk=1
-			UpdateValuesCheck(self)
-		else
-			self.StringClk=0
-		end
-	elseif iname then
-		local index = tonumber(iname:match("^Value (.*)$"))
-		if index then
-			self.Val[index] = math.abs(value)
-			self:UpdateScreen()
-		end
---------------------------------------------------------------------------------
+	if iname == "String" then
+		self:SetText(value)
+	elseif iname == "FGColor" then
+		self.fgcolor = Color(value.x, value.y, value.z)
+		self.doSendConfig = true
+	elseif iname == "BGColor" then
+		self.bgcolor = Color(value.x, value.y, value.z)
+		self.doSendConfig = true
 	end
 end
 
---format text and send it to the client(s)
-function ENT:UpdateScreen()
-	if (self.clock && (self.currentLine <= self.maxLines)) then
-		local compstring = ""
-		local outString = ""
-		local intoText = false
-		local basestring = self.TextList[self.currentTextnum]
-		if (!basestring) then return false end
+--format text, need to get rid of this...
+local function formatText(basestring, chrPerLine)
+	self_maxLineLen = math.abs(chrPerLine)
+	self_maxLines = math.abs(chrPerLine) / 2
+	self_chrPerLine = math.abs(chrPerLine)
 
-		for k,inp in ipairs(self.Val) do
-			local nString = string.format("%G", inp)
-			basestring = string.gsub(basestring, "<"..k..">", nString)
-		end
+	local compstring = ""
+	local outString = ""
+	local intoText = false
+	if (!basestring) then return false end
 
-		basestring = string.gsub(basestring, "<br>", "\n")
-		compstring = basestring
-		local outString = ""
-		if (string.len(compstring) > self.maxLineLen) then
-			local lastSpace = 0
-			local lastBreak = 1
-			local numLines = 1
-			for chrNum = 1, string.len(compstring) do
-				if (string.byte(string.sub(compstring, chrNum, chrNum)) == 10) && (numLines <= self.maxLines) then
-					outString = outString..string.Left(string.sub(compstring, lastBreak, chrNum), self.chrPerLine)
-					lastBreak = chrNum + 1
+	--[[
+	for k,inp in ipairs(self.Val) do
+		local nString = string.format("%G", inp)
+		basestring = string.gsub(basestring, "<"..k..">", nString)
+	end
+	]]
+
+	basestring = string.gsub(basestring, "<br>", "\n")
+	compstring = basestring
+	local outString = ""
+	if (string.len(compstring) > self_maxLineLen) then
+		local lastSpace = 0
+		local lastBreak = 1
+		local numLines = 1
+		for chrNum = 1, string.len(compstring) do
+			if (string.byte(string.sub(compstring, chrNum, chrNum)) == 10) && (numLines <= self_maxLines) then
+				outString = outString..string.Left(string.sub(compstring, lastBreak, chrNum), self_chrPerLine)
+				lastBreak = chrNum + 1
+				lastSpace = 0
+				numLines = numLines + 1
+			end
+			if (string.sub(compstring, chrNum, chrNum) == " ") then
+				lastSpace = chrNum
+			end
+			if (chrNum >= lastBreak + self_maxLineLen) && (numLines <= self_maxLines) then	--if we've gone past a line length since the last break and line is still on screen
+				if (lastSpace > 0) then
+					outString = outString..string.Left(string.sub(compstring, lastBreak, lastSpace), self_chrPerLine).."\n"
+					lastBreak = lastSpace + 1
 					lastSpace = 0
 					numLines = numLines + 1
 				end
-				if (string.sub(compstring, chrNum, chrNum) == " ") then
-					lastSpace = chrNum
-				end
-				if (chrNum >= lastBreak + self.maxLineLen) && (numLines <= self.maxLines) then	--if we've gone past a line length since the last break and line is still on screen
-					if (lastSpace > 0) then
-						outString = outString..string.Left(string.sub(compstring, lastBreak, lastSpace), self.chrPerLine).."\n"
-						lastBreak = lastSpace + 1
-						lastSpace = 0
-						numLines = numLines + 1
-					end
-				end
 			end
-			if (numLines <= self.maxLines) then
-				local foff = 0
-				outString = outString..string.Left(string.sub(compstring, lastBreak + foff, string.len(compstring)), self.chrPerLine).."\n"
-			end
-		else
-			outString = compstring
 		end
-		self:SetText (outString)
+		if (numLines <= self_maxLines) then
+			local foff = 0
+			outString = outString..string.Left(string.sub(compstring, lastBreak + foff, string.len(compstring)), self_chrPerLine).."\n"
+		end
+	else
+		outString = compstring
+	end
+	return outString
+end
+
+function ENT:SetText(text, ply)
+	self.text = text
+	umsg.Start("wire_textscreen_SetText", ply)
+		umsg.Entity(self.Entity)
+		umsg.String(formatText(text, self.chrPerLine))
+	umsg.End()
+end
+
+function ENT:Think()
+	if self.doSendConfig then
+		self.doSendConfig = nil
+		self:SendConfig()
 	end
 end
 
+function ENT:SendConfig(ply)
+	umsg.Start("wire_textscreen_SendConfig", ply)
+		umsg.Entity(self.Entity)
 
-function MakeWireTextScreen( pl, Pos, Ang, model, TextList, chrPerLine, textJust, tRed, tGreen, tBlue, numInputs, defaultOn, frozen)
+		umsg.Char(self.chrPerLine)
+		umsg.Char(self.textJust)
+
+		umsg.Char(self.fgcolor.r-128)
+		umsg.Char(self.fgcolor.g-128)
+		umsg.Char(self.fgcolor.b-128)
+
+		umsg.Char(self.bgcolor.r-128)
+		umsg.Char(self.bgcolor.g-128)
+		umsg.Char(self.bgcolor.b-128)
+	umsg.End()
+end
+
+function ENT:PlayerInitialSpawn(ply)
+	self:SetText(self.text, ply)
+	self:SendConfig(ply)
+end
+
+hook.Add("PlayerInitialSpawn", "wire_textscreen", function(ply)
+	for k,screen in ipairs(ents.FindByClass("gmod_wire_textscreen")) do
+		screen:PlayerInitialSpawn(ply)
+	end
+end)
+
+function MakeWireTextScreen( pl, Pos, Ang, model, text, chrPerLine, textJust, fgcolor, bgcolor, frozen)
 	if ( !pl:CheckLimit( "wire_textscreens" ) ) then return false end
 	local wire_textscreen = ents.Create( "gmod_wire_textscreen" )
 	if (!wire_textscreen:IsValid()) then return false end
 	wire_textscreen:SetModel(model)
-	wire_textscreen:Setup(TextList, chrPerLine, textJust, tRed, tGreen, tBlue, numInputs, defaultOn)
 	wire_textscreen:SetAngles( Ang )
 	wire_textscreen:SetPos( Pos )
 	wire_textscreen:Spawn()
+
+	wire_textscreen:Setup(text, chrPerLine, textJust, fgcolor, bgcolor)
 
 	if wire_textscreen:GetPhysicsObject():IsValid() then
 		local Phys = wire_textscreen:GetPhysicsObject()
@@ -194,4 +159,4 @@ function MakeWireTextScreen( pl, Pos, Ang, model, TextList, chrPerLine, textJust
 	pl:AddCount( "wire_textscreens", wire_textscreen )
 	return wire_textscreen
 end
-duplicator.RegisterEntityClass("gmod_wire_textscreen", MakeWireTextScreen, "Pos", "Ang", "Model", "TextList", "chrPerLine", "textJust", "tRed", "tGreen", "tBlue", "numInputs", "defaultOn", "frozen")
+duplicator.RegisterEntityClass("gmod_wire_textscreen", MakeWireTextScreen, "Pos", "Ang", "Model", "text", "chrPerLine", "textJust", "fgcolor", "bgcolor", "frozen")

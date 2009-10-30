@@ -823,20 +823,29 @@ do -- wire_textscreen
 	WireToolSetup.open( "textscreen", "Text Screen", "gmod_wire_textscreen", nil, "Text Screens" )
 
 	TOOL.Model = "models/kobilica/wiremonitorbig.mdl"
+	TOOL.ClientConVar = {
+		tsize       = 10,
+		tjust       = 1,
+		tred        = 255,
+		tblue       = 255,
+		tgreen      = 255,
+		ninputs     = 3,
+		createflat  = 1,
+		weld        = 1,
+		text        = "",
+	}
 
 	if CLIENT then
-		language.Add( "Tool_wire_textscreen_name", "Text Screen Tool (Wire)" )
-		language.Add( "Tool_wire_textscreen_desc", "Spawns a screen that display text." )
-		language.Add( "Tool_wire_textscreen_0", "Primary: Create/Update text screen Secondary: Copy textscreenlines" )
-		for i=1,12 do
-			language.Add("Tool_wire_textscreen_text"..i, "Text "..i..":")
-		end
+		language.Add("Tool_wire_textscreen_name", "Text Screen Tool (Wire)" )
+		language.Add("Tool_wire_textscreen_desc", "Spawns a screen that display text." )
+		language.Add("Tool_wire_textscreen_0", "Primary: Create/Update text screen, Secondary: Copy settings" )
+
 		language.Add("Tool_wire_textscreen_tsize", "Text size:")
 		language.Add("Tool_wire_textscreen_tjust", "Text justification:")
-		language.Add("Tool_wire_textscreen_colour", "Text colour:")
 		language.Add("Tool_wire_textscreen_ninputs", "Number of inputs:")
+		language.Add("Tool_wire_textscreen_colour", "Text colour:")
 		language.Add("Tool_wire_textscreen_createflat", "Create flat to surface")
-		language.Add("Tool_wire_textscreen_defaulton", "Force show text (make wires optional)")
+		language.Add("Tool_wire_textscreen_text", "Default text:")
 	end
 	WireToolSetup.BaseLang()
 
@@ -846,18 +855,16 @@ do -- wire_textscreen
 		ModelPlug_Register("speaker")
 
 		function TOOL:GetConVars()
-			local TextList = {}
-			for i = 1, 12 do
-				TextList[i] = self:GetClientInfo("text"..i)
-			end
-			return TextList,
-			(16 - tonumber(self:GetClientInfo("tsize"))),
-			self:GetClientInfo("tjust"),
-			math.min(self:GetClientNumber("tred"), 255),
-			math.min(self:GetClientNumber("tgreen"), 255),
-			math.min(self:GetClientNumber("tblue"), 255),
-			self:GetClientNumber("ninputs"),
-			self:GetClientNumber("defaulton")
+			return
+				self:GetClientInfo("text"),
+				(16 - tonumber(self:GetClientInfo("tsize"))),
+				self:GetClientInfo("tjust"),
+				Color(
+					math.min(self:GetClientNumber("tred"), 255),
+					math.min(self:GetClientNumber("tgreen"), 255),
+					math.min(self:GetClientNumber("tblue"), 255)
+				),
+				Color(0,0,0)
 		end
 
 		function TOOL:MakeEnt( ply, model, Ang, trace )
@@ -867,36 +874,17 @@ do -- wire_textscreen
 
 
 	TOOL.GetAngle = CreateFlatGetAngle
-	TOOL.ClientConVar = {
-		tsize		= 10,
-		tjust		= 1,
-		tred		= 255,
-		tblue		= 255,
-		tgreen		= 255,
-		ninputs		= 3,
-		defaulton	= 1,
-		createflat	= 1,
-		weld		= 1,
-	}
-	for i = 1, 12 do
-		TOOL.ClientConVar["text"..i] = ""
-	end
 
 	function TOOL:RightClick( trace )
 		if not trace.HitPos then return false end
-		if trace.Entity:IsPlayer() then return false end
+		local ent = trace.Entity
+		if ent:IsPlayer() then return false end
 		if CLIENT then return true end
 
 		local ply = self:GetOwner()
 
-		if trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_textscreen" then
-			for i=1, 12 do
-				if(trace.Entity.TextList[i]!="") then
-				ply:ConCommand("wire_textscreen_text"..i.." "..trace.Entity.TextList[i])
-				else
-				ply:ConCommand("wire_textscreen_text"..i.." \"\"")
-				end
-			end
+		if ent:IsValid() && ent:GetClass() == "gmod_wire_textscreen" then
+			ply:ConCommand('wire_textscreen_text "'..ent.text..'"')
 			return true
 		end
 
@@ -919,9 +907,8 @@ do -- wire_textscreen
 		})
 		panel:CheckBox("#Tool_wire_textscreen_createflat", "wire_textscreen_createflat")
 		panel:CheckBox("#Tool_wire_textscreen_defaulton", "wire_textscreen_defaulton")
-		for i = 1, 12 do
-			panel:TextEntry("#Tool_wire_textscreen_text"..i, "wire_textscreen_text"..i)
-		end
+		panel:TextEntry("#Tool_wire_textscreen_text", "wire_textscreen_text")
+
 		panel:CheckBox("Weld", "wire_textscreen_weld")
 	end
 end -- wire_textscreen

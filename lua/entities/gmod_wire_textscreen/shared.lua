@@ -16,29 +16,11 @@ ENT.Instructions    = ""
 ENT.Spawnable       = false
 ENT.AdminSpawnable  = false
 
+function ENT:InitializeShared()
+	self.text = ""
+	self.chrPerLine = 5
+	self.textJust = 0
 
-function ENT:SetText(text)
-	self.Entity:SetNetworkedString("TLine", text)
-end
-
-function ENT:GetText()
-	return self.Entity:GetNetworkedString("TLine")
-end
-
-
-function ENT:GetConfig()
-	self.chrPerLine = self.Entity:GetNetworkedInt("chrpl")
-	self.textJust = self.Entity:GetNetworkedInt("textjust")
-	self.tRed = self.Entity:GetNetworkedInt("colourr")
-	self.tGreen = self.Entity:GetNetworkedInt("colourg")
-	self.tBlue = self.Entity:GetNetworkedInt("colourb")
-	return
-end
-
-function ENT:SetConfig()
-	self.Entity:SetNetworkedInt("chrpl", self.chrPerLine)
-	self.Entity:SetNetworkedInt("textjust", self.textJust)
-	self.Entity:SetNetworkedInt("colourr", self.tRed)
-	self.Entity:SetNetworkedInt("colourg", self.tGreen)
-	self.Entity:SetNetworkedInt("colourb", self.tBlue)
+	self.fgcolor = Color(255,255,255)
+	self.bgcolor = Color(0,0,0)
 end
