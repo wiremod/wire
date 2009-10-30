@@ -1,7 +1,3 @@
---Wire text screen by greenarrow and wire team
---http://gmodreviews.googlepages.com/
---http://forums.facepunchstudios.com/greenarrow
-
 include('shared.lua')
 ENT.RenderGroup = RENDERGROUP_BOTH
 

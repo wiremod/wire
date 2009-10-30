@@ -23,35 +23,40 @@ function ENT:Setup(DefaultText, chrPerLine, textJust, fgcolor, bgcolor)
 	self:TriggerInput("String", DefaultText)
 end
 
---wire input routine
 function ENT:TriggerInput(iname, value)
 	if iname == "String" then
 		self:SetText(value)
+
 	elseif iname == "FGColor" then
 		self.fgcolor = Color(value.x, value.y, value.z)
 		self.doSendConfig = true
+
 	elseif iname == "BGColor" then
 		self.bgcolor = Color(value.x, value.y, value.z)
 		self.doSendConfig = true
 	end
 end
 
+local function formatText(text)
+	return text:gsub("<br>", "\n")
+end
+
 function ENT:SetText(text, ply)
 	self.text = text
 	umsg.Start("wire_textscreen_SetText", ply)
 		umsg.Entity(self.Entity)
-		umsg.String(string.gsub(text,"<br>", "\n"))
+		umsg.String(formatText(text))
 	umsg.End()
 end
 
 function ENT:Think()
 	if self.doSendConfig then
-		self.doSendConfig = nil
 		self:SendConfig()
 	end
 end
 
 function ENT:SendConfig(ply)
+	self.doSendConfig = nil
 	umsg.Start("wire_textscreen_SendConfig", ply)
 		umsg.Entity(self.Entity)
 
