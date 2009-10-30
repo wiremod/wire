@@ -5,44 +5,108 @@
 include('shared.lua')
 ENT.RenderGroup = RENDERGROUP_BOTH
 
+--------------------------------------------------------------------------------
+local Layouter = {}
+Layouter.__index = Layouter
+
+local function MakeLayouter()
+	return setmetatable({}, Layouter)
+end
+
+function Layouter:AddString(s)
+	local width, height = surface.GetTextSize(s)
+	if self.LineWidth+width >= self.w then return false end
+
+	table.insert(self.drawlist, { surface.DrawText, s, self.LineWidth, self.y })
+
+	self.LineWidth = self.LineWidth+width
+	self.LineHeight = math.max(height, self.LineHeight)
+
+	return true
+end
+
+function Layouter:NextLine()
+	if self.LineHeight == 0 then
+		self:AddString(" ")
+	end
+
+	local offsetx = self.x+(self.w-self.LineWidth)*self.justify/2
+
+	for _,entry in ipairs(self.drawlist) do
+		surface.SetTextPos(entry[3]+offsetx, entry[4])
+		entry[1](entry[2], entry)
+	end
+	self.y = self.y+self.LineHeight
+	self:ResetLine()
+end
+
+function Layouter:ResetLine()
+	self.LineHeight = 0
+	self.LineWidth = 0
+	self.drawlist = {}
+end
+
+function Layouter:layout(text, x, y, w, h, justify)
+	self.x = x
+	self.y = y
+	self.w = w
+	self.h = h
+	self.justify = justify
+	self:ResetLine()
+
+	for line,newlines in text:gmatch("([^\n]*)(\n*)") do
+		for spaces,word in line:gmatch("( *)([^ ]*)") do
+			if not self:AddString(spaces..word) then
+				self:NextLine()
+				self:AddString(word)
+			end
+		end
+		for i = 1,#newlines do
+			self:NextLine()
+		end
+	end
+	self:NextLine()
+end
+--------------------------------------------------------------------------------
 
 function ENT:Initialize()
 	self:InitializeShared()
 
+	self.GPU = WireGPU(self.Entity)
+	self.layouter = MakeLayouter()
+	self.NeedRefresh = true
+
 	self:ApplyProperties()
+end
+
+function ENT:OnRemove()
+	self.GPU:Finalize()
 end
 
 function ENT:Draw()
 	self.Entity:DrawModel()
-	--nighteagle screen vector rotation and positioning legacy code
-	local OF = 0.3
-	local OU = 11.8
-	local OR = -2.35
-	local Res = 0.12
-	local RatioX = 1
 
-	local ang = self.Entity:GetAngles()
-	local rot = Vector(-90,90,0)
-	ang:RotateAroundAxis(ang:Right(), rot.x)
-	ang:RotateAroundAxis(ang:Up(), rot.y)
-	ang:RotateAroundAxis(ang:Forward(), rot.z)
-	local pos = self.Entity:GetPos() + (self.Entity:GetForward() * OF) + (self.Entity:GetUp() * OU) + (self.Entity:GetRight() * OR)
+	if self.NeedRefresh then
+		self.NeedRefresh = nil
+		self.GPU:RenderToGPU(function()
+			local RatioX = 1
+			local w = 512
+			local h = 512
 
-	cam.Start3D2D(pos,ang,Res)
-		local x = -112
-		local y = -104
-		local w = 296
-		local h = 292
+			--add changable backround colour some time.
+			surface.SetDrawColor(self.bgcolor.r, self.bgcolor.g, self.bgcolor.b, 255)
+			surface.DrawRect(0, 0, w, h)
 
-		--add changable backround colour some time.
-		surface.SetDrawColor(self.bgcolor.r,self.bgcolor.g,self.bgcolor.b,255)
-		surface.DrawRect(x/RatioX,y,(x+w)/RatioX,y+h)
+			surface.SetFont("textScreenfont"..self.chrPerLine)
+			surface.SetTextColor(self.fgcolor)
+			self.layouter = MakeLayouter()
+			self.layouter:layout(self.text, 0, 0, w, h, self.textJust)
 
-		local justOffset = (w / 3) + (self.textJust * (w / 3.5))
-		if (self.chrPerLine ~= 0) then
-			draw.DrawText(self.text, "textScreenfont"..tostring(self.chrPerLine), (x + justOffset - 92) / RatioX, y + 2, self.fgcolor, self.textJust)
-		end
-	cam.End3D2D()
+			--draw.DrawText(self.text, "textScreenfont"..self.chrPerLine, self.textJust/2*w, 2, self.fgcolor, self.textJust)
+		end)
+	end
+
+	self.GPU:Render()
 	Wire_Render(self.Entity)
 end
 
@@ -52,6 +116,7 @@ end
 
 function ENT:SetText(text)
 	self.text = text
+	self.NeedRefresh = true
 end
 
 function ENT:ReceiveConfig(um)
@@ -67,6 +132,7 @@ function ENT:ReceiveConfig(um)
 	local g = um:ReadChar()+128
 	local b = um:ReadChar()+128
 	self.bgcolor = Color(r,g,b)
+	self.NeedRefresh = true
 end
 
 --------------------------------------------------------------------------------
@@ -84,8 +150,6 @@ function ENT:ApplyProperties()
 	end
 end
 
-local ENT_ReceiveConfig = ENT.ReceiveConfig
-
 usermessage.Hook("wire_textscreen_SetText", function(um)
 	local ent = um:ReadEntity()
 	local text = um:ReadString()
@@ -99,6 +163,7 @@ usermessage.Hook("wire_textscreen_SetText", function(um)
 	end
 end)
 
+local ENT_ReceiveConfig = ENT.ReceiveConfig
 usermessage.Hook("wire_textscreen_SendConfig", function(um)
 	local ent = um:ReadEntity()
 	if ent:GetTable() then
@@ -119,6 +184,6 @@ if not wire_textscreen_FontsCreated then
 
 	local fontSize = 380
 	for i = 1,15 do
-		surface.CreateFont( "coolvetica", fontSize / i, 400, false, false, "textScreenfont"..i )
+		surface.CreateFont( "coolvetica", fontSize / i, 400, true, false, "textScreenfont"..i )
 	end
 end

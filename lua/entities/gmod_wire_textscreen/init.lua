@@ -1,7 +1,3 @@
---Wire text screen by greenarrow + wire team
---http://gmodreviews.googlepages.com/
---http://forums.facepunchstudios.com/greenarrow
-
 AddCSLuaFile( "cl_init.lua" )
 AddCSLuaFile( "shared.lua" )
 include('shared.lua')
@@ -40,65 +36,11 @@ function ENT:TriggerInput(iname, value)
 	end
 end
 
---format text, need to get rid of this...
-local function formatText(basestring, chrPerLine)
-	self_maxLineLen = math.abs(chrPerLine)
-	self_maxLines = math.abs(chrPerLine) / 2
-	self_chrPerLine = math.abs(chrPerLine)
-
-	local compstring = ""
-	local outString = ""
-	local intoText = false
-	if (!basestring) then return false end
-
-	--[[
-	for k,inp in ipairs(self.Val) do
-		local nString = string.format("%G", inp)
-		basestring = string.gsub(basestring, "<"..k..">", nString)
-	end
-	]]
-
-	basestring = string.gsub(basestring, "<br>", "\n")
-	compstring = basestring
-	local outString = ""
-	if (string.len(compstring) > self_maxLineLen) then
-		local lastSpace = 0
-		local lastBreak = 1
-		local numLines = 1
-		for chrNum = 1, string.len(compstring) do
-			if (string.byte(string.sub(compstring, chrNum, chrNum)) == 10) && (numLines <= self_maxLines) then
-				outString = outString..string.Left(string.sub(compstring, lastBreak, chrNum), self_chrPerLine)
-				lastBreak = chrNum + 1
-				lastSpace = 0
-				numLines = numLines + 1
-			end
-			if (string.sub(compstring, chrNum, chrNum) == " ") then
-				lastSpace = chrNum
-			end
-			if (chrNum >= lastBreak + self_maxLineLen) && (numLines <= self_maxLines) then	--if we've gone past a line length since the last break and line is still on screen
-				if (lastSpace > 0) then
-					outString = outString..string.Left(string.sub(compstring, lastBreak, lastSpace), self_chrPerLine).."\n"
-					lastBreak = lastSpace + 1
-					lastSpace = 0
-					numLines = numLines + 1
-				end
-			end
-		end
-		if (numLines <= self_maxLines) then
-			local foff = 0
-			outString = outString..string.Left(string.sub(compstring, lastBreak + foff, string.len(compstring)), self_chrPerLine).."\n"
-		end
-	else
-		outString = compstring
-	end
-	return outString
-end
-
 function ENT:SetText(text, ply)
 	self.text = text
 	umsg.Start("wire_textscreen_SetText", ply)
 		umsg.Entity(self.Entity)
-		umsg.String(formatText(text, self.chrPerLine))
+		umsg.String(string.gsub(text,"<br>", "\n"))
 	umsg.End()
 end
 

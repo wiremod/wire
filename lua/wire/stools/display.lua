@@ -57,21 +57,21 @@ do -- wire_indicator
 	end
 
 	TOOL.ClientConVar = {
-		model		= "models/jaanus/wiretool/wiretool_siren.mdl",
-		a			= 0,
-		ar			= 255,
-		ag			= 0,
-		ab			= 0,
-		aa			= 255,
-		b			= 1,
-		br			= 0,
-		bg			= 255,
-		bb			= 0,
-		ba			= 255,
-		material	= "models/debug/debugwhite",
-		noclip		= 0,
-		rotate90	= 0,
-		weld		= 1,
+		model    = "models/jaanus/wiretool/wiretool_siren.mdl",
+		a        = 0,
+		ar       = 255,
+		ag       = 0,
+		ab       = 0,
+		aa       = 255,
+		b        = 1,
+		br       = 0,
+		bg       = 255,
+		bb       = 0,
+		ba       = 255,
+		material = "models/debug/debugwhite",
+		noclip   = 0,
+		rotate90 = 0,
+		weld     = 1,
 	}
 
 	--function TOOL:GetGhostAngle( Ang )
@@ -185,16 +185,16 @@ do -- wire_7seg
 	end
 
 	TOOL.ClientConVar = {
-		model		= "models/segment.mdl",
-		ar			= 70, --default: dark grey off, full red on
-		ag			= 70,
-		ab			= 70,
-		aa			= 255,
-		br			= 255,
-		bg			= 0,
-		bb			= 0,
-		ba			= 255,
-		worldweld	= 1,
+		model     = "models/segment.mdl",
+		ar        = 70, --default: dark grey off, full red on
+		ag        = 70,
+		ab        = 70,
+		aa        = 255,
+		br        = 255,
+		bg        = 0,
+		bb        = 0,
+		ba        = 255,
+		worldweld = 1,
 	}
 
 	function TOOL:PostMake_SetPos() end
@@ -280,9 +280,9 @@ do -- wire_consolescreen
 	TOOL.GetAngle = CreateFlatGetAngle
 	TOOL.NoLeftOnClass = true -- no update ent function needed
 	TOOL.ClientConVar = {
-		model		= "models/props_lab/monitor01b.mdl",
-		createflat	= 0,
-		weld		= 1,
+		model      = "models/props_lab/monitor01b.mdl",
+		createflat = 0,
+		weld       = 1,
 	}
 
 	function TOOL.BuildCPanel(panel)
@@ -331,11 +331,11 @@ do -- wire_digitalscreen
 	TOOL.NoLeftOnClass = true -- no update ent function needed
 	TOOL.GetAngle = CreateFlatGetAngle
 	TOOL.ClientConVar = {
-		model		= "models/props_lab/monitor01b.mdl",
-		width		= 32,
-		height		= 32,
-		createflat	= 0,
-		weld		= 1,
+		model      = "models/props_lab/monitor01b.mdl",
+		width      = 32,
+		height     = 32,
+		createflat = 0,
+		weld       = 1,
 	}
 
 	function TOOL.BuildCPanel(panel)
@@ -390,7 +390,7 @@ do -- wire_lamp
 			if ent == true then return true end
 			if ent == nil or ent == false or not ent:IsValid() then return false end
 
-			local const		= self:GetClientInfo( "const" )
+			local const = self:GetClientInfo( "const" )
 
 			if const == "weld" then
 				local const = WireLib.Weld( ent, trace.Entity, trace.PhysicsBone, true )
@@ -401,8 +401,8 @@ do -- wire_lamp
 				undo.Finish()
 			elseif const == "rope" then
 
-				local length 	= self:GetClientNumber( "ropelength" )
-				local material 	= self:GetClientInfo( "ropematerial" )
+				local length   = self:GetClientNumber( "ropelength" )
+				local material = self:GetClientInfo( "ropematerial" )
 
 				local LPos1 = Vector( 0, 0, 5 )
 				local LPos2 = trace.Entity:WorldToLocal( trace.HitPos )
@@ -449,17 +449,18 @@ do -- wire_lamp
 	--TOOL.GhostAngle = Angle(180, 0, 0)
 	TOOL.Model = "models/props_wasteland/prison_lamp001c.mdl"
 	TOOL.ClientConVar = {
-		ropelength		= 64,
-		ropematerial	= "cable/rope",
-		r				= 255,
-		g				= 255,
-		b				= 255,
-		const			= "rope",
-		texture			= "effects/flashlight001",
+		ropelength   = 64,
+		ropematerial = "cable/rope",
+		r            = 255,
+		g            = 255,
+		b            = 255,
+		const        = "rope",
+		texture      = "effects/flashlight001",
 	}
 
-	-- TODO: redo this function
-	function TOOL:RightClick( trace )		-- Spawn a lamp without constraints (just frozen)
+	-- Spawn a lamp without constraints (just frozen)
+	function TOOL:RightClick( trace )
+		-- TODO: redo this function
 		if not trace.HitPos then return false end
 		if trace.Entity:IsPlayer() then return false end
 		if CLIENT then return true end
@@ -501,9 +502,9 @@ do -- wire_lamp
 		panel:AddControl("ComboBox", {
 			Label = "#WireLampTool_Const",
 			Options = {
-				["Rope"]	= { wire_lamp_const = "rope" },
-				["Weld"]	= { wire_lamp_const = "weld" },
-				["None"]	= { wire_lamp_const = "none" },
+				["Rope"] = { wire_lamp_const = "rope" },
+				["Weld"] = { wire_lamp_const = "weld" },
+				["None"] = { wire_lamp_const = "none" },
 			}
 		})
 
@@ -580,9 +581,9 @@ do -- wire_oscilloscope
 	TOOL.NoLeftOnClass = true -- no update ent function needed
 	TOOL.GetAngle = CreateFlatGetAngle
 	TOOL.ClientConVar = {
-		model		= "models/props_lab/monitor01b.mdl",
-		createflat	= 0,
-		weld		= 1,
+		model      = "models/props_lab/monitor01b.mdl",
+		createflat = 0,
+		weld       = 1,
 	}
 
 
@@ -628,9 +629,9 @@ do -- wire_panel
 	TOOL.GetAngle = CreateFlatGetAngle
 	TOOL.NoLeftOnClass = true -- no update ent function needed
 	TOOL.ClientConVar = {
-		model		= "models/props_lab/monitor01b.mdl",
-		createflat	= 1,
-		weld		= 1,
+		model      = "models/props_lab/monitor01b.mdl",
+		createflat = 1,
+		weld       = 1,
 	}
 
 	function TOOL.BuildCPanel(panel)
@@ -678,9 +679,9 @@ do -- wire_pixel
 
 	TOOL.NoLeftOnClass = true -- no update ent function needed
 	TOOL.ClientConVar = {
-		model	= "models/jaanus/wiretool/wiretool_siren.mdl",
-		noclip	= 0,
-		weld	= 1,
+		model  = "models/jaanus/wiretool/wiretool_siren.mdl",
+		noclip = 0,
+		weld   = 1,
 	}
 
 	function TOOL.BuildCPanel(panel)
@@ -730,15 +731,15 @@ do -- wire_screen
 
 	TOOL.GetAngle = CreateFlatGetAngle
 	TOOL.ClientConVar = {
-		model			= "models/props_lab/monitor01b.mdl",
-		singlevalue		= 0,
-		singlebigfont	= 1,
-		texta			= "Value A",
-		textb			= "Value B",
-		createflat		= 1,
-		leftalign		= 0,
-		floor			= 0,
-		weld			= 1,
+		model         = "models/props_lab/monitor01b.mdl",
+		singlevalue   = 0,
+		singlebigfont = 1,
+		texta         = "Value A",
+		textb         = "Value B",
+		createflat    = 1,
+		leftalign     = 0,
+		floor         = 0,
+		weld          = 1,
 	}
 
 	function TOOL.BuildCPanel(panel)
@@ -746,11 +747,11 @@ do -- wire_screen
 		panel:AddControl("ComboBox", {
 			Label = "#WireThrusterTool_Model",
 			Options = {
-				["#Small tv"]		= { wire_screen_model = "models/props_lab/monitor01b.mdl" },
-				["#Plasma tv"]		= { wire_screen_model = "models/props/cs_office/TV_plasma.mdl" },
-				["#LCD monitor"]	= { wire_screen_model = "models/props/cs_office/computer_monitor.mdl" },
-				["#Monitor Big"]	= { wire_screen_model = "models/kobilica/wiremonitorbig.mdl" },
-				["#Monitor Small"]	= { wire_screen_model = "models/kobilica/wiremonitorsmall.mdl" },
+				["#Small tv"]      = { wire_screen_model = "models/props_lab/monitor01b.mdl" },
+				["#Plasma tv"]     = { wire_screen_model = "models/props/cs_office/TV_plasma.mdl" },
+				["#LCD monitor"]   = { wire_screen_model = "models/props/cs_office/computer_monitor.mdl" },
+				["#Monitor Big"]   = { wire_screen_model = "models/kobilica/wiremonitorbig.mdl" },
+				["#Monitor Small"] = { wire_screen_model = "models/kobilica/wiremonitorsmall.mdl" },
 			}
 		})
 		WireDermaExts.ModelSelect(panel, "wire_screen_model", list.Get( "WireScreenModels" ), 2)
@@ -794,10 +795,10 @@ do -- wire_soundemitter
 	end
 
 	TOOL.ClientConVar = {
-		model		= "models/cheeze/wires/speaker.mdl",
-		sound		= "synth/square.wav",
-		collision	= 0,
-		weld		= 1,
+		model     = "models/cheeze/wires/speaker.mdl",
+		sound     = "synth/square.wav",
+		collision = 0,
+		weld      = 1,
 	}
 
 	function TOOL.BuildCPanel(panel)
@@ -822,27 +823,13 @@ do -- wire_textscreen
 	--http://forums.facepunchstudios.com/greenarrow
 	WireToolSetup.open( "textscreen", "Text Screen", "gmod_wire_textscreen", nil, "Text Screens" )
 
-	TOOL.Model = "models/kobilica/wiremonitorbig.mdl"
-	TOOL.ClientConVar = {
-		tsize       = 10,
-		tjust       = 1,
-		tred        = 255,
-		tblue       = 255,
-		tgreen      = 255,
-		ninputs     = 3,
-		createflat  = 1,
-		weld        = 1,
-		text        = "",
-	}
-
 	if CLIENT then
 		language.Add("Tool_wire_textscreen_name", "Text Screen Tool (Wire)" )
-		language.Add("Tool_wire_textscreen_desc", "Spawns a screen that display text." )
+		language.Add("Tool_wire_textscreen_desc", "Spawns a screen that displays text." )
 		language.Add("Tool_wire_textscreen_0", "Primary: Create/Update text screen, Secondary: Copy settings" )
 
 		language.Add("Tool_wire_textscreen_tsize", "Text size:")
 		language.Add("Tool_wire_textscreen_tjust", "Text justification:")
-		language.Add("Tool_wire_textscreen_ninputs", "Number of inputs:")
 		language.Add("Tool_wire_textscreen_colour", "Text colour:")
 		language.Add("Tool_wire_textscreen_createflat", "Create flat to surface")
 		language.Add("Tool_wire_textscreen_text", "Default text:")
@@ -872,8 +859,19 @@ do -- wire_textscreen
 		end
 	end
 
-
 	TOOL.GetAngle = CreateFlatGetAngle
+	TOOL.ClientConVar = {
+		model       = "models/kobilica/wiremonitorbig.mdl",
+		tsize       = 10,
+		tjust       = 1,
+		tred        = 255,
+		tblue       = 255,
+		tgreen      = 255,
+		ninputs     = 3,
+		createflat  = 1,
+		weld        = 1,
+		text        = "",
+	}
 
 	function TOOL:RightClick( trace )
 		if not trace.HitPos then return false end
@@ -894,7 +892,6 @@ do -- wire_textscreen
 		WireToolHelpers.MakePresetControl(panel, "wire_textscreen")
 		panel:NumSlider("#Tool_wire_textscreen_tsize", "wire_textscreen_tsize", 1, 15, 0)
 		panel:NumSlider("#Tool_wire_textscreen_tjust", "wire_textscreen_tjust", 0, 2, 0)
-		panel:NumSlider("#Tool_wire_textscreen_ninputs", "wire_textscreen_ninputs", 1, 10, 0)
 		panel:AddControl("Color", {
 			Label = "#Tool_wire_textscreen_colour",
 			Red = "wire_textscreen_tred",
@@ -906,7 +903,6 @@ do -- wire_textscreen
 			Multiplier = "255"
 		})
 		panel:CheckBox("#Tool_wire_textscreen_createflat", "wire_textscreen_createflat")
-		panel:CheckBox("#Tool_wire_textscreen_defaulton", "wire_textscreen_defaulton")
 		panel:TextEntry("#Tool_wire_textscreen_text", "wire_textscreen_text")
 
 		panel:CheckBox("Weld", "wire_textscreen_weld")
@@ -1008,11 +1004,11 @@ do -- Holography--
 			end
 		end
 
-		TOOL.RightClick		= HoloRightClick
-		TOOL.Reload			= HoloReload
-		TOOL.Model			= "models/jaanus/wiretool/wiretool_range.mdl"
-		TOOL.NoGhostOn		= { "gmod_wire_hologrid" }
-		TOOL.ClientConVar	= {
+		TOOL.RightClick   = HoloRightClick
+		TOOL.Reload       = HoloReload
+		TOOL.Model        = "models/jaanus/wiretool/wiretool_range.mdl"
+		TOOL.NoGhostOn    = { "gmod_wire_hologrid" }
+		TOOL.ClientConVar = {
 			r           = 255,
 			g           = 255,
 			b           = 255,
@@ -1020,7 +1016,7 @@ do -- Holography--
 			showbeams   = 1,
 			groundbeams = 1,
 			size        = 4,
-			weld		= 1,
+			weld        = 1,
 		}
 
 		function TOOL.BuildCPanel( panel )
@@ -1073,14 +1069,14 @@ do -- Holography--
 			end
 		end
 
-		TOOL.RightClick		= HoloRightClick
-		TOOL.Reload			= HoloReload
-		TOOL.Model			= "models/jaanus/wiretool/wiretool_siren.mdl"
-		TOOL.NoGhostOn		= { "sbox_maxwire_holoemitters" }
-		TOOL.NoLeftOnClass	= true
-		TOOL.ClientConVar	={
-			usegps	= 0,
-			weld	= 1,
+		TOOL.RightClick    = HoloRightClick
+		TOOL.Reload        = HoloReload
+		TOOL.Model         = "models/jaanus/wiretool/wiretool_siren.mdl"
+		TOOL.NoGhostOn     = { "sbox_maxwire_holoemitters" }
+		TOOL.NoLeftOnClass = true
+		TOOL.ClientConVar  = {
+			usegps = 0,
+			weld   = 1,
 		}
 
 		function TOOL.BuildCPanel( panel )
