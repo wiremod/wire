@@ -328,14 +328,14 @@ function ENT:SendCode(pl)
 	local code = self.original
 	local chunks = math.ceil(code:len() / chunksize)
 	umsg.Start("wire_expression2_download", pl)
-	umsg.Short(chunks)
-	umsg.String(self.name)
+		umsg.Short(chunks)
+		umsg.String(self.name)
 	umsg.End()
 
 	for i=0,chunks do
 		umsg.Start("wire_expression2_download", pl)
-		umsg.Short(i)
-		umsg.String(code:sub(i * chunksize + 1, (i + 1) * chunksize))
+			umsg.Short(i)
+			umsg.String(code:sub(i * chunksize + 1, (i + 1) * chunksize))
 		umsg.End()
 	end
 end

@@ -154,7 +154,7 @@ local function HUDFormatDescription( eindex )
 	// Do any extra processing for certain HUD styles
 	// so we aren't calculating this every frame
 	surface.SetFont("Default")
-	local textwidth, _ = surface.GetTextSize(hudindicators[eindex].FullText)
+	local textwidth, _ = surface.GetTextSize(hudindicators[eindex].FullText or "")
 
 	if (indinfo.Style == 1) then // Gradient
 		local ent = ents.GetByIndex(eindex)

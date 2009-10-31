@@ -20,8 +20,7 @@ if (SERVER) then
 end
 
 
-TOOL.Model = "models/jaanus/wiretool/wiretool_siren.mdl"
-
+TOOL.ClientConVar[ "model" ] = "models/jaanus/wiretool/wiretool_siren.mdl"
 TOOL.ClientConVar[ "Static" ] = "0"
 
 cleanup.Register( "wire_cams" )
@@ -44,7 +43,7 @@ function TOOL:LeftClick( trace )
 
 	local Static = self:GetClientNumber("Static")
 
-	local wire_cam = MakeWireCam( ply, trace.HitPos, Ang, self.Model, Static )
+	local wire_cam = MakeWireCam( ply, trace.HitPos, Ang, self:GetModel(), Static )
 
 	local min = wire_cam:OBBMins()
 	wire_cam:SetPos( trace.HitPos - trace.HitNormal * min.z )
@@ -141,8 +140,8 @@ end
 function TOOL:UpdateGhostWirecam( ent, player )
 	if ( !ent || !ent:IsValid() ) then return end
 
-	local tr 	= utilx.GetPlayerTrace( player, player:GetCursorAimVector() )
-	local trace 	= util.TraceLine( tr )
+	local tr    = utilx.GetPlayerTrace( player, player:GetCursorAimVector() )
+	local trace = util.TraceLine( tr )
 
 	if (!trace.Hit || trace.Entity:IsPlayer() || trace.Entity:GetClass() == "gmod_wire_cameracontroller" ) then
 		ent:SetNoDraw( true )
@@ -160,15 +159,26 @@ function TOOL:UpdateGhostWirecam( ent, player )
 end
 
 function TOOL:Think()
-	if (!self.GhostEntity || !self.GhostEntity:IsValid() || self.GhostEntity:GetModel() != self.Model ) then
-		self:MakeGhostEntity( self.Model, Vector(0,0,0), Angle(0,0,0) )
+	local model = self:GetModel()
+
+	if (!self.GhostEntity || !self.GhostEntity:IsValid() || self.GhostEntity:GetModel() != model ) then
+		self:MakeGhostEntity( Model( model ), Vector(0,0,0), Angle(0,0,0) )
 	end
 
 	self:UpdateGhostWirecam( self.GhostEntity, self:GetOwner() )
+end
+
+function TOOL:GetModel()
+	local model = "models/jaanus/wiretool/wiretool_siren.mdl"
+
+	if (util.IsValidModel( self:GetClientInfo( "model" ) )) then
+		model = self:GetClientInfo( "model" )
+	end
+
+	return model
 end
 
 function TOOL.BuildCPanel(panel)
 	panel:AddControl("Header", { Text = "#Tool_wire_cam_name", Description = "#Tool_wire_cam_desc" })
 	panel:AddControl( "Checkbox", { Label = "#Wirecamtool_Static", Command = "wire_cam_static" } )
 end
-

@@ -15,7 +15,7 @@ elseif ( SERVER ) then
     CreateConVar('sbox_maxwire_emarkers',30)
 end
 
-TOOL.Model = "models/jaanus/wiretool/wiretool_siren.mdl"
+TOOL.ClientConVar[ "model" ] = "models/jaanus/wiretool/wiretool_siren.mdl"
 
 cleanup.Register( "wire_emarkers" )
 
@@ -64,7 +64,7 @@ function TOOL:LeftClick(trace)
 		local Ang = trace.HitNormal:Angle()
 		Ang.pitch = Ang.pitch + 90
 
-		local wire_emarker = MakeWireEmarker( ply, trace.HitPos, Ang, self.Model )
+		local wire_emarker = MakeWireEmarker( ply, trace.HitPos, Ang, self:GetModel() )
 
 		local min = wire_emarker:OBBMins()
 		wire_emarker:SetPos( trace.HitPos - trace.HitNormal * (min.z) )
@@ -191,12 +191,23 @@ function TOOL:UpdateGhostEmarker( ent, player )
 end
 
 function TOOL:Think()
+	local model = self:GetModel()
 
-	if (!self.GhostEntity || !self.GhostEntity:IsValid() || self.GhostEntity:GetModel() != self.Model ) then
-		self:MakeGhostEntity( self.Model, Vector(0,0,0), Angle(0,0,0) )
+	if (!self.GhostEntity || !self.GhostEntity:IsValid() || self.GhostEntity:GetModel() != model ) then
+		self:MakeGhostEntity( Model(model), Vector(0,0,0), Angle(0,0,0) )
 	end
 
 	self:UpdateGhostEmarker( self.GhostEntity, self:GetOwner() )
+end
+
+function TOOL:GetModel()
+	local model = "models/jaanus/wiretool/wiretool_siren.mdl"
+
+	if (util.IsValidModel( self:GetClientInfo( "model" ) )) then
+		model = self:GetClientInfo( "model" )
+	end
+
+	return model
 end
 
 function TOOL.BuildCPanel(panel)

@@ -19,8 +19,8 @@ end
 function ENT:Notify(message, value)
 	local rp = RecipientFilter()
 	if (self.ForcePlayer) then
-		if not self.ForcePlayer:IsValid() then rp = false end -- player left => abort send
 		rp:AddPlayer(self.ForcePlayer)
+		if not self.ForcePlayer:IsValid() then rp = false end -- player left => abort send
 	else
 		rp:AddAllPlayers()
 	end
@@ -36,8 +36,8 @@ end
 function ENT:FlushCache()
 	local rp = RecipientFilter()
 	if (self.ForcePlayer) then
-		if not self.ForcePlayer:IsValid() then rp = false end -- player left => abort send
 		rp:AddPlayer(self.ForcePlayer)
+		if not self.ForcePlayer:IsValid() then rp = false end -- player left => abort send
 	else
 		rp:AddAllPlayers()
 	end
@@ -105,8 +105,8 @@ function ENT:WriteCell(Address, value)
 		else
 			local rp = RecipientFilter()
 			if (self.ForcePlayer) then
-				if not self.ForcePlayer:IsValid() then rp = false end -- player left => abort send
 				rp:AddPlayer(self.ForcePlayer)
+				if not self.ForcePlayer:IsValid() then rp = false end -- player left => abort send
 			else
 				rp:AddAllPlayers()
 			end

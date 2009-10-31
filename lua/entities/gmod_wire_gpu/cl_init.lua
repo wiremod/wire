@@ -10,11 +10,9 @@ else
 	include('gpu_clientbus.lua')
 end
 
-ENT.Spawnable      = false
-ENT.AdminSpawnable = false
-ENT.RenderGroup    = RENDERGROUP_BOTH
+ENT.RenderGroup = RENDERGROUP_BOTH
 
-WireGPU_HookedGPU = nil
+WireGPU_HookedGPU = nil -- TODO: local?
 
 //local texFSB = render.GetSuperFPTex()
 //local matFSB = Material("pp/motionblur")
@@ -46,13 +44,15 @@ function ENT:Initialize()
 
 	self.GPU = WireGPU(self.Entity)
 
+	self.MinFrameRateRatio = CreateClientConVar("wire_gpu_frameratio",4,false,false)
+
+	-- TODO: what are these for?
 	self.OF = CreateClientConVar("gpu_of",0,false,false)
 	self.OR = CreateClientConVar("gpu_or",0,false,false)
 	self.OU = CreateClientConVar("gpu_ou",0,false,false)
 	self.Scale = CreateClientConVar("gpu_scale",1,false,false)
 	self.Ratio = CreateClientConVar("gpu_ratio",1,false,false)
 	self.Rot90 = CreateClientConVar("gpu_rot90",0,false,false)
-	self.MinFrameRateRatio = CreateClientConVar("wire_gpu_frameratio",4,false,false)
 end
 
 function ENT:OnRemove()
@@ -135,7 +135,7 @@ function ENT:RenderGPU(clearbg)
 	end
 
 	self.FrameBuffer = self.GPU.RT
-	//self.SpriteBuffer = WireGPU_GetMyRenderTarget(self:EntIndex().."_sprite")
+	//self.SpriteBuffer = self.SpriteGPU.RT --WireGPU_GetMyRenderTarget(self:EntIndex().."_sprite")
 
 	local FrameRate = self.MinFrameRateRatio:GetFloat() or 4
 	self.FramesSinceRedraw = self.FramesSinceRedraw + 1
@@ -255,7 +255,7 @@ function drawGPUHUD()
 		local y = 0
 
 		render.SetMaterial(WireGPU_matScreen)
-		WireGPU_DrawScreen(x,y,w,h,WireGPU_HookedGPU:ReadCell(65522),WireGPU_HookedGPU:ReadCell(65523))
+		WireGPU_HookedGPU.GPU.DrawScreen(x,y,w,h,WireGPU_HookedGPU:ReadCell(65522),WireGPU_HookedGPU:ReadCell(65523))
 
 		WireGPU_matScreen:SetMaterialTexture("$basetexture",OldTex)
 	end

@@ -23,6 +23,25 @@ surface.CreateFont("lucida console", 20, 800, true, false, "WireGPU_ConsoleFont"
 //
 WireGPU_matScreen = Material("ignore_this_error")
 
+--------------------------------------------------------------------------------
+-- WireGPU class
+--------------------------------------------------------------------------------
+--   Usage:
+--     Initialize:
+--       self.GPU = WireGPU(self.Entity)
+--
+--     OnRemove:
+--       self.GPU:Finalize()
+--
+--     Draw (if something changes):
+--       self.GPU:RenderToGPU(function()
+--           ...code...
+--       end)
+--
+--     Draw (every frame):
+--       self.GPU:Render()
+--------------------------------------------------------------------------------
+
 local GPU = {}
 GPU.__index = GPU
 
@@ -57,7 +76,9 @@ function GPU:Initialize()
 end
 
 function GPU:Finalize()
-	RenderTargetCache[self.RTindex].Used = false
+	if self.RTindex and RenderTargetCache[self.RTindex] then
+		RenderTargetCache[self.RTindex].Used = false
+	end
 end
 
 function GPU:Clear()

@@ -145,8 +145,9 @@ if SERVER then
 	end
 
 	function TOOL:Think()
-		if !self.GhostEntity || !self.GhostEntity:IsValid() || !self.GhostEntity:GetModel() || self.GhostEntity:GetModel() != self:GetModel() then
-			self:MakeGhostEntity(self:GetModel(), Vector(0, 0, 0), Angle(0, 0, 0))
+		local model = self:GetModel()
+		if !self.GhostEntity || !self.GhostEntity:IsValid() || !self.GhostEntity:GetModel() || self.GhostEntity:GetModel() != model then
+			self:MakeGhostEntity(model, Vector(0, 0, 0), Angle(0, 0, 0))
 		end
 		self:UpdateGhostWireExpression2(self.GhostEntity, self:GetOwner())
 	end
