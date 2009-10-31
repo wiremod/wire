@@ -17,16 +17,9 @@ function ENT:Write(value)
 end
 
 function ENT:Notify(message, value)
-	local rp = RecipientFilter()
-	if (self.ForcePlayer) then
-		rp:AddPlayer(self.ForcePlayer)
-		if not self.ForcePlayer:IsValid() then rp = false end -- player left => abort send
-	else
-		rp:AddAllPlayers()
-	end
-
-	if rp then
-		umsg.Start(message, rp)
+	local ply = self.ForcePlayer
+	if not ply or ply:IsValid() then -- if the player left, abort send
+		umsg.Start(message, ply)
 			umsg.Long(self:EntIndex())
 			umsg.Long(value)
 		umsg.End()
@@ -34,16 +27,9 @@ function ENT:Notify(message, value)
 end
 
 function ENT:FlushCache()
-	local rp = RecipientFilter()
-	if (self.ForcePlayer) then
-		rp:AddPlayer(self.ForcePlayer)
-		if not self.ForcePlayer:IsValid() then rp = false end -- player left => abort send
-	else
-		rp:AddAllPlayers()
-	end
-
-	if rp then
-		umsg.Start("wiregpu_memorymessage", rp)
+	local ply = self.ForcePlayer
+	if not ply or ply:IsValid() then -- if the player left, abort send
+		umsg.Start("wiregpu_memorymessage", ply)
 			umsg.Long(self:EntIndex())
 			umsg.Long(self.MemoryCacheBase)
 			umsg.Long(self.MemoryCacheSize)
@@ -103,16 +89,9 @@ function ENT:WriteCell(Address, value)
 			self.MemoryCacheBase = Address
 			self.MemoryCache[0] = value
 		else
-			local rp = RecipientFilter()
-			if (self.ForcePlayer) then
-				rp:AddPlayer(self.ForcePlayer)
-				if not self.ForcePlayer:IsValid() then rp = false end -- player left => abort send
-			else
-				rp:AddAllPlayers()
-			end
-
-			if rp then
-				umsg.Start("wiregpu_memorymessage", rp)
+			local ply = self.ForcePlayer
+			if not ply or ply:IsValid() then -- if the player left, abort send
+				umsg.Start("wiregpu_memorymessage", ply)
 					umsg.Long(self:EntIndex())
 					umsg.Long(Address)
 					umsg.Long(1)
