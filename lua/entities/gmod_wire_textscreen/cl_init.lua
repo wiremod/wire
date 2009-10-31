@@ -147,9 +147,10 @@ function ENT:ApplyProperties()
 end
 
 usermessage.Hook("wire_textscreen_SetText", function(um)
-	local ent = um:ReadEntity()
+	local ent = Entity(um:ReadShort())
+
 	local text = um:ReadString()
-	if ent:GetTable() then
+	if ent:IsValid() and ent:GetTable() then
 		if properties[ent] then properties[ent].text = nil end
 		ent:SetText(text)
 	else
@@ -161,8 +162,9 @@ end)
 
 local ENT_ReceiveConfig = ENT.ReceiveConfig
 usermessage.Hook("wire_textscreen_SendConfig", function(um)
-	local ent = um:ReadEntity()
-	if ent:GetTable() then
+	local ent = Entity(um:ReadShort())
+
+	if ent:IsValid() and ent:GetTable() then
 		if properties[ent] then properties[ent].config = nil end
 		ent:ReceiveConfig(um)
 	else

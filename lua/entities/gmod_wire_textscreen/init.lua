@@ -44,7 +44,8 @@ end
 function ENT:SetText(text, ply)
 	self.text = text
 	umsg.Start("wire_textscreen_SetText", ply)
-		umsg.Entity(self.Entity)
+		umsg.Short(self:EntIndex())
+
 		umsg.String(formatText(text))
 	umsg.End()
 end
@@ -58,7 +59,7 @@ end
 function ENT:SendConfig(ply)
 	self.doSendConfig = nil
 	umsg.Start("wire_textscreen_SendConfig", ply)
-		umsg.Entity(self.Entity)
+		umsg.Short(self:EntIndex())
 
 		umsg.Char(self.chrPerLine)
 		umsg.Char(self.textJust)
