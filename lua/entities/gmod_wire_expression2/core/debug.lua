@@ -172,7 +172,7 @@ end
 
 --- Like printColor(...), except taking an array containing all the parameters.
 e2function void printColor(array arr)
-	printColorArr(nil, self.player, arr)
+	printColorArray(nil, self.player, arr)
 end
 
 --- Like printColor(...), except printing in <this>'s driver's chat area instead of yours.
@@ -196,5 +196,5 @@ e2function void entity:printColorDriver(array arr)
 	local driver = this:GetDriver()
 	if not validEntity(driver) then return end
 
-	printColorArr(self.entity, driver, arr)
+	printColorArray(self.entity, driver, arr)
 end
