@@ -10,7 +10,7 @@ end)
 
 local sbox_E2_maxProps = CreateConVar( "sbox_E2_maxProps", "-1", FCVAR_ARCHIVE )
 local sbox_E2_maxPropsPerSecond = CreateConVar( "sbox_E2_maxPropsPerSecond", "4", FCVAR_ARCHIVE )
-local sbox_E2_PropCore = CreateConVar( "sbox_E2_PropCore", "1", FCVAR_ARCHIVE )
+local sbox_E2_PropCore = CreateConVar( "sbox_E2_PropCore", "2", FCVAR_ARCHIVE )
 
 local E2Helper = { Descriptions = {} }
 local E2totalspawnedprops = 0
