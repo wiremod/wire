@@ -322,18 +322,19 @@ function ENT:TriggerOutputs()
 	end
 end
 
-function ENT:SendCode(pl)
+function ENT:SendCode(ply)
+	if self:GetPlayer() ~= ply and wire_expression2_protected:GetFloat() ~= 0 then return end
 	local chunksize = 200
-	if(!self.original || !pl) then return end
+	if(!self.original || !ply) then return end
 	local code = self.original
 	local chunks = math.ceil(code:len() / chunksize)
-	umsg.Start("wire_expression2_download", pl)
+	umsg.Start("wire_expression2_download", ply)
 		umsg.Short(chunks)
 		umsg.String(self.name)
 	umsg.End()
 
 	for i=0,chunks do
-		umsg.Start("wire_expression2_download", pl)
+		umsg.Start("wire_expression2_download", ply)
 			umsg.Short(i)
 			umsg.String(code:sub(i * chunksize + 1, (i + 1) * chunksize))
 		umsg.End()
