@@ -130,17 +130,18 @@ if SERVER then
 	duplicator.RegisterEntityClass("gmod_wire_expression2", MakeWireExpression2, "Pos", "Ang", "Model", "_original", "_name", "_inputs", "_outputs", "_vars")
 
 	function TOOL:RightClick(trace)
-		if trace.Entity:IsPlayer() then return false end
+		local ent = trace.Entity
+		if ent:IsPlayer() then return false end
 
-		local player = self:GetOwner()
+		local ply = self:GetOwner()
 
-		if (trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_expression2" && (trace.Entity:GetPlayer() == player || wire_expression2_protected:GetFloat() == 0 || wire_expression2_protected:GetFloat() == 2)) then
-			trace.Entity:SendCode(player)
-			trace.Entity:Prepare(player)
+		if (ent:IsValid() && ent:GetClass() == "gmod_wire_expression2" && (ent:GetPlayer() == ply || wire_expression2_protected:GetFloat() == 0 || wire_expression2_protected:GetFloat() == 2)) then
+			ent:SendCode(ply)
+			ent:Prepare(ply)
 			return true
 		end
 
-		player:SendLua("openE2Editor()")
+		ply:SendLua("openE2Editor()")
 		return false
 	end
 
@@ -152,10 +153,10 @@ if SERVER then
 		self:UpdateGhostWireExpression2(self.GhostEntity, self:GetOwner())
 	end
 
-	function TOOL:UpdateGhostWireExpression2(entity, player)
+	function TOOL:UpdateGhostWireExpression2(entity, ply)
 		if !entity or !entity:IsValid() then return end
 
-		local trace = util.TraceLine(utilx.GetPlayerTrace(player, player:GetCursorAimVector()))
+		local trace = util.TraceLine(utilx.GetPlayerTrace(ply, ply:GetCursorAimVector()))
 		if !trace.Hit then return end
 
 		if (trace.Entity && trace.Entity:GetClass() == "gmod_wire_expression2" || trace.Entity:IsPlayer()) then
