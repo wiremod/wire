@@ -129,15 +129,12 @@ function ENT:DoJob()
 			end
 		end
 
-		local sector_addr = self.Sector.."."..self.Track.."."..self.Stack//{s=sector,t=track,st=stack}
-		if (self.Command[0] ~= 0) then //write ray
-			disk.DiskMemory[sector_addr] = self.WriteBuffer
-		else //read ray
-			if (disk.DiskMemory[sector_addr]) then
-				self.WriteBuffer = disk.DiskMemory[sector_addr]
-			else
-				self.WriteBuffer = {}
-				self.WriteBuffer[0] = 0
+		if dojob then
+			local sector_addr = self.Sector.."."..self.Track.."."..self.Stack//{s=sector,t=track,st=stack}
+			if (self.Command[0] ~= 0) then //write ray
+				disk.DiskMemory[sector_addr] = table.Copy(self.WriteBuffer)
+			else //read ray
+				self.WriteBuffer = disk.DiskMemory[sector_addr] or { [0] = 0 }
 			end
 		end
 	end

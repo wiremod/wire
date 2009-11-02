@@ -88,7 +88,7 @@ function WireGPU_FromBox(name, model, boxmin, boxmax)
 	local mindim, maxdim = mindimension(dim), maxdimension(dim)
 
 	-- get an angle with up=mindim
-	rot = mindim:Angle()+Angle(90,0,0)
+	local rot = mindim:Angle()+Angle(90,0,0)
 
 	-- make sure forward=maxdim
 	if math.abs(maxdim:Dot(rot:Forward())) < 0.01 then
