@@ -25,7 +25,7 @@ cleanup.Register("wire_expressions")
 
 if SERVER then
 	CreateConVar('sbox_maxwire_expressions', 20)
-	local wire_expression2_protected = CreateConVar('wire_expression2_protected', 1)
+	wire_expression2_protected = CreateConVar('wire_expression2_protected', 1)
 
 	function TOOL:LeftClick(trace)
 		if trace.Entity:IsPlayer() then return false end
