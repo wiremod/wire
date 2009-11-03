@@ -323,7 +323,7 @@ function ENT:TriggerOutputs()
 end
 
 function ENT:SendCode(ply)
-	if self:GetPlayer() ~= ply and wire_expression2_protected:GetFloat() ~= 0 then return end
+	if self:GetPlayer() ~= ply and wire_expression2_protected:GetFloat() ~= 0 and wire_expression2_protected:GetFloat() ~= 2 then return end
 	local chunksize = 200
 	if(!self.original || !ply) then return end
 	local code = self.original
