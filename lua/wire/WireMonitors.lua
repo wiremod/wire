@@ -7,7 +7,7 @@ WireGPU_Monitors = {}
 function WireGPU_AddMonitor(name,model,tof,tou,tor,trs,x1,x2,y1,y2,rot)
 	if not rot then
 		rot = Angle(0,90,90)
-	elseif rot == true then
+	elseif type(rot) ~= "Angle" then
 		rot = Angle(0,90,0)
 	end
 	local RatioX = (y2-y1)/(x2-x1)
@@ -79,11 +79,6 @@ local function maxdimension(vec)
 end
 
 function WireGPU_FromBox(name, model, boxmin, boxmax)
-	--if not rot then
-	--	rot = Angle(0,90,90)
-	--elseif rot == true then
-	--	rot = Angle(0,90,0)
-	--end
 	local dim = boxmax-boxmin
 	local mindim, maxdim = mindimension(dim), maxdimension(dim)
 
