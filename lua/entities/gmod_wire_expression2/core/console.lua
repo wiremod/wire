@@ -34,3 +34,12 @@ e2function number convarnum(string cvar)
 	if not ret then return 0 end
 	return ret
 end
+
+e2function number maxOfType(string typename)
+	return GetConVarNumber("sbox_max"..typename) or 0
+end
+
+e2function number playerDamage()
+	local ret = GetConVarNumber("sbox_plpldamage") or 0
+	return ret ~= 0 and 1 or 0
+end
