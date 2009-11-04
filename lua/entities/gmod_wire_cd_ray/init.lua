@@ -119,7 +119,6 @@ function ENT:DoJob()
 	local disk = self.Disk
 	if (self.Command[8] ~= 0) then
 		local dojob = true
-		if (self.Command[9] == 0) then self.Command[8] = 0 end
 		if (self.Command[10] ~= 0) then
 			if (self.Command[11] ~= self.Command[7]) then dojob = false end
 		end
@@ -130,6 +129,7 @@ function ENT:DoJob()
 		end
 
 		if dojob then
+			if (self.Command[9] == 0) then self.Command[8] = 0 end
 			local sector_addr = self.Sector.."."..self.Track.."."..self.Stack//{s=sector,t=track,st=stack}
 			if (self.Command[0] ~= 0) then //write ray
 				disk.DiskMemory[sector_addr] = table.Copy(self.WriteBuffer)
