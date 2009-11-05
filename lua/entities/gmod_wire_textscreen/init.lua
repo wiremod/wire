@@ -81,7 +81,8 @@ end
 
 hook.Add("PlayerInitialSpawn", "wire_textscreen", function(ply)
 	for k,screen in ipairs(ents.FindByClass("gmod_wire_textscreen")) do
-		screen:PlayerInitialSpawn(ply)
+		--screen:PlayerInitialSpawn(ply)
+		timer.Simple(0.5, screen.PlayerInitialSpawn, screen, ply)
 	end
 end)
 

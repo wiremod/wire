@@ -136,42 +136,41 @@ end
 local properties = {}
 
 function ENT:ApplyProperties()
-	local props = properties[self.Entity]
+	local props = properties[self:EntIndex()]
 	if props then
-		local text = props.text
-		local config = props.config
-		if props.text then self:SetText(text) end
-		if props.config then table.Merge(self:GetTable(), config) end
-		properties[self.Entity] = nil
+		if props then table.Merge(self:GetTable(), props) end
+		properties[self:EntIndex()] = nil
 	end
 end
 
+local ENT_SetText = ENT.SetText
 usermessage.Hook("wire_textscreen_SetText", function(um)
-	local ent = Entity(um:ReadShort())
+	local entid = um:ReadShort()
+	local ent = Entity(entid)
 
 	local text = um:ReadString()
 	if ent:IsValid() and ent:GetTable() then
-		if properties[ent] then properties[ent].text = nil end
+		if properties[entid] then properties[entid] = nil end
 		ent:SetText(text)
 	else
 		-- TODO: get rid of this
-		properties[ent] = properties[ent] or {}
-		properties[ent].text = text
+		properties[entid] = properties[entid] or {}
+		ENT_SetText(properties[entid], text)
 	end
 end)
 
 local ENT_ReceiveConfig = ENT.ReceiveConfig
 usermessage.Hook("wire_textscreen_SendConfig", function(um)
-	local ent = Entity(um:ReadShort())
+	local entid = um:ReadShort()
+	local ent = Entity(entid)
 
 	if ent:IsValid() and ent:GetTable() then
-		if properties[ent] then properties[ent].config = nil end
+		if properties[entid] then properties[entid] = nil end
 		ent:ReceiveConfig(um)
 	else
 		-- TODO: get rid of this
-		properties[ent] = properties[ent] or {}
-		properties[ent].config = {}
-		ENT_ReceiveConfig(properties[ent].config, um)
+		properties[entid] = properties[entid] or {}
+		ENT_ReceiveConfig(properties[entid], um)
 	end
 end)
 
