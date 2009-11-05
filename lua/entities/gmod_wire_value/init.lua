@@ -68,6 +68,7 @@ function ENT:Initialize()
 end
 
 function ENT:Setup(values)
+	self.value = table.Copy(values) -- for advdupe
 
 	local adjoutputs, adjtypes = {}, {}
 	for k,v in pairs(values) do
@@ -83,18 +84,18 @@ function ENT:Setup(values)
 		else
 			tp = "NORMAL"
 		end
-		print(k,v,tp)
+		--print(k,v,tp)
 
 		values[k] = v
 		adjoutputs[k] = "Value"..tostring(k)
 		adjtypes[k] = tp
 	end
 
-	self.value = values
-	//this is where storing the values as strings comes in
+	// this is where storing the values as strings comes in: they are the descriptions for the inputs.
 	WireLib.AdjustSpecialOutputs(self.Entity, adjoutputs, adjtypes, values)
 
 	local txt = ""
+	self.Memory = {}
 
 	for k,v in pairs(values) do
 		//line break after 4 values
@@ -105,6 +106,7 @@ function ENT:Setup(values)
 		local tp = adjtypes[k]
 		v = ParseType[tp](v)
 
+		if tp == "NORMAL" then self.Memory[k] = v end
 		Wire_TriggerOutput(self.Entity, adjoutputs[k], v)
 	end
 
@@ -114,17 +116,5 @@ end
 
 
 function ENT:ReadCell( Address )
-	if (Address >= 0) && (Address < table.Count(self.value)) then
-		return self.value[Address+1]
-	else
-		return nil
-	end
-end
-
-function ENT:WriteCell( Address, value )
-	if (Address >= 0) && (Address < table.Count(self.value)) then
-		return true
-	else
-		return false
-	end
+	return self.value[Address+1]
 end

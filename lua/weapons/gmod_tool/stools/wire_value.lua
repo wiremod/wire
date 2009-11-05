@@ -121,12 +121,6 @@ if (SERVER) then
 		wire_value:Setup(value)
 		wire_value:SetPlayer( pl )
 
-		local ttable = {
-			value	= value,
-			pl		= pl
-		}
-		table.Merge(wire_value:GetTable(), ttable )
-
 		pl:AddCount( "wire_values", wire_value )
 
 		return wire_value
