@@ -58,7 +58,7 @@ function TOOL:LeftClick( trace )
 		value[i] = self:GetClientInfo( "value"..i )
 	end
 
-	if ( trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_value" && trace.Entity.pl == ply ) then
+	if ( trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_value" && trace.Entity:GetPlayer() == ply ) then
 		trace.Entity:Setup(value)
 		trace.Entity.value = value
 		return true
@@ -107,8 +107,8 @@ end
 
 if (SERVER) then
 
-	function MakeWireValue( pl, Pos, Ang, model, value )
-		if ( !pl:CheckLimit( "wire_values" ) ) then return false end
+	function MakeWireValue( ply, Pos, Ang, model, value )
+		if ( !ply:CheckLimit( "wire_values" ) ) then return false end
 
 		local wire_value = ents.Create( "gmod_wire_value" )
 		if (!wire_value:IsValid()) then return false end
@@ -119,9 +119,9 @@ if (SERVER) then
 		wire_value:Spawn()
 
 		wire_value:Setup(value)
-		wire_value:SetPlayer( pl )
+		wire_value:SetPlayer( ply )
 
-		pl:AddCount( "wire_values", wire_value )
+		ply:AddCount( "wire_values", wire_value )
 
 		return wire_value
 	end
