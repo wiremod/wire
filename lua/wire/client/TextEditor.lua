@@ -1549,6 +1549,7 @@ do -- E2 Syntax highlighting
 
 	local directives = {
 		["@name"] = 0,
+		["@model"] = 0,
 		["@inputs"] = 1,
 		["@outputs"] = 1,
 		["@persist"] = 1,

@@ -5,10 +5,11 @@ TOOL.ConfigName 	= ""
 TOOL.Tab			= "Wire"
 
 TOOL.ClientConVar = {
-	model      = "models/beer/wiremod/gate_e2.mdl",
-	size       = "",
-	select     = "",
-	autoindent = 1,
+	model       = "models/beer/wiremod/gate_e2.mdl",
+	scriptmodel = "",
+	size        = "",
+	select      = "",
+	autoindent  = 1,
 }
 
 if CLIENT then
@@ -181,6 +182,9 @@ if SERVER then
 	end
 
 	function TOOL:GetModel()
+		local scriptmodel = self:GetClientInfo("scriptmodel")
+		if scriptmodel and scriptmodel ~= "" and validModelCached(scriptmodel) then return scriptmodel end
+
 		local model = self:GetClientInfo("model")
 		local size = self:GetClientInfo("size")
 
@@ -189,9 +193,9 @@ if SERVER then
 			if not modelext then return model end
 			local newmodel = modelname .. size .. modelext
 			if validModelCached(newmodel) then
-				return newmodel
+				return Model(newmodel)
 			else
-				return model
+				return Model(model)
 			end
 		end
 	end

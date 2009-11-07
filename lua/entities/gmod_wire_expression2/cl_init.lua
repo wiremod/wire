@@ -10,8 +10,8 @@ function wire_expression2_validate(buffer)
 	if not status then return directives end
 
 	-- decompose directives
-	local name, inports, outports, persists = directives.name, directives.inputs, directives.outputs, directives.persist
-	if name == "" then name = "generic" end
+	local inports, outports, persists = directives.inputs, directives.outputs, directives.persist
+	if CLIENT then RunConsoleCommand("wire_expression2_scriptmodel", directives.model or "") end
 
 	-- invoke tokenizer (=lexer)
 	local status, tokens = Tokenizer.Execute(buffer)

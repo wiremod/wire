@@ -100,6 +100,12 @@ function PreProcessor:ParseDirectives(line)
 		else
 			self:Error("Directive (@name) must not be specified twice")
 		end
+	elseif directive == "model" then
+		if self.directives.model == nil then
+			self.directives.model = value
+		else
+			self:Error("Directive (@model) must not be specified twice")
+		end
 	elseif directive == "inputs" then
 		local retval, columns = self:ParsePorts(value,#directive+2)
 
@@ -181,6 +187,7 @@ function PreProcessor:Process(buffer, params)
 
 	self.directives = {
 		name = nil,
+		model = nil,
 		inputs = { {}, {}, {} },
 		outputs = { {}, {}, {} },
 		persist = { {}, {}, {} },
