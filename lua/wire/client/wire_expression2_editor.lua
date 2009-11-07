@@ -708,6 +708,7 @@ function Editor:Close()
 	timer.Stop("e2autosave")
 	self:AutoSave()
 
+	self:Validate()
 	self:ExtractName()
 	self:SetV(false)
 	self.chip = false
