@@ -493,15 +493,12 @@ function ENT:ParseDB()
 				local char2 = self:_char()
 				if (char2 == "n") then
 					self:Write(10)
-				end
-				if (char2 == "\\") then
-					self:Write(string.byte('\\'))
-				end
-				if (char2 == "r") then
+				elseif (char2 == "r") then
 					self:Write(10)
-				end
-				if (char2 == "0") then
+				elseif (char2 == "0") then
 					self:Write(0)
+				else
+					self:Write(string.byte(char2))
 				end
 			else
 				self:Write(string.byte(char))
