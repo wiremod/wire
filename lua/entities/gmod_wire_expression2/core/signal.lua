@@ -9,7 +9,7 @@ Rewrite that made it work: TomyLobo
 local scopes = {{}, {}}
 
 -- holds the currently queued signals. Format:
--- signal_queue[group][name][receiverid] = { group, name, scope, sender, senderid }
+-- signal_queue[group][name][receiver] = { group, name, scope, sender, senderid }
 local signal_queue = {}
 
 -- holds the current signal data. Format:
@@ -19,13 +19,13 @@ local currentSignal = nil
 --[[************************************************************************]]--
 
 -- executes a chip's code
-local function triggerSignal(receiverid, signaldata)
+local function triggerSignal(receiver, signaldata)
 	currentSignal = signaldata
-	Entity(receiverid):Execute()
+	receiver.entity:Execute()
 	currentSignal = nil
 end
 
-local timerRunning = false
+local timerRunning=false
 
 local function checkSignals()
 	timerRunning = false
@@ -41,9 +41,9 @@ local function checkSignals()
 		-- loop through all queued signals in the group
 		for name,receivers in pairs(signals) do
 			-- ... and all receivers
-			for receiverid,signaldata in pairs(receivers) do
+			for receiver,signaldata in pairs(receivers) do
 				-- and trigger all signals on the queue
-				triggerSignal(receiverid, signaldata)
+				triggerSignal(receiver, signaldata)
 			end
 		end
 	end
@@ -51,16 +51,16 @@ local function checkSignals()
 end
 
 -- queues a chip's code for execution after at most
-local function postSignal(receiverid, group, name, scope, sender, senderid)
+local function postSignal(receiver, group, name, scope, sender, senderid)
 	-- don't send the signal back to the sender
-	if senderid == receiverid then return end
+	if sender == receiver then return end
 
 	-- create signal's spot on the queue, if it doesnt exist
 	if not signal_queue[group] then signal_queue[group] = {} end
 	if not signal_queue[group][name] then signal_queue[group][name] = {} end
 
 	-- add the given signal to the queue
-	signal_queue[group][name][receiverid] = { group, name, scope, sender, senderid }
+	signal_queue[group][name][receiver] = { group, name, scope, sender.entity, senderid }
 
 	-- set a timer if it isnt already set
 	if not timerRunning then
@@ -89,12 +89,11 @@ local function broadcastSignal(group, name, scope, sender, filter_player)
 	-- there was no signal registered for the selected scope/group/name combination.
 	if not contexts then return end
 
-	local senderid = sender:EntIndex()
+	local senderid = sender.entity:EntIndex()
 
-	for receiverid,_ in pairs(contexts) do
-		local receiver_player = Entity(receiverid).player
-		if (not filter_player or receiver_player == filter_player) and (scope ~= 2 or receiver_player ~= sender_player) then
-			postSignal(receiverid, group, name, scope, sender, senderid)
+	for receiver,_ in pairs(contexts) do
+		if (not filter_player or receiver.player == filter_player) and (scope ~= 2 or receiver.player ~= sender_player) then
+			postSignal(receiver, group, name, scope, sender, senderid)
 		end
 	end
 end
@@ -158,7 +157,7 @@ e2function void runOnSignal(string name, scope, activate)
 	if not signals[name] then signals[name] = {} end
 
 	-- (un-)register signal
-	signals[name][self.entity:EntIndex()] = activate
+	signals[name][self] = activate
 end
 
 --[[************************************************************************]]--
@@ -216,7 +215,7 @@ end
 
 --- Sets the signal that the chip sends when it is removed from the world.
 e2function void signalSetOnRemove(string name, scope)
-	self.data.removeSignal = { self.data.signalgroup, name, scope, self.entity }
+	self.data.removeSignal = { self.data.signalgroup, name, scope, self }
 end
 
 --- Clears the signal that the chip sends when it is removed from the world.
@@ -226,35 +225,34 @@ end
 
 --- Sends signal <name> to scope <scope>. Additional calls to this function with the same signal will overwrite the old call until the signal is issued.
 e2function void signalSend(string name, scope)
-	broadcastSignal(self.data.signalgroup, name, scope, self.entity)
+	broadcastSignal(self.data.signalgroup, name, scope, self)
 end
 
 --- Sends signal S to the given chip. Multiple calls for different chips do not overwrite each other.
 e2function void signalSendDirect(string name, entity receiver)
 	if not validEntity(receiver) then return end
-
-	local receiverid = receiver:EntIndex()
+	receiver = receiver.context
 
 	-- filter out non-E2 entities
-	if not receiver.context then return end
+	if not receiver then return end
 
 	-- dont send back to ourselves
-	if receiver.context == self then return end
+	if receiver == self then return end
 
 	local group = self.data.signalgroup
 
 	-- check whether the target entity accepts signals from the "anyone" scope.
 	if not scopes[1][group][name] then return end
-	if not scopes[1][group][name][receiverid] then return end
+	if not scopes[1][group][name][receiver] then return end
 
 	-- send the signal
-	postSignal(receiverid, group, name, 1, self.entity, self.entity:EntIndex())
+	postSignal(receiver, group, name, 1, self, self.entity:EntIndex())
 end
 
 --- sends signal S to chips owned by the given player, multiple calls for different players do not overwrite each other
 e2function void signalSendToPlayer(string name, entity player)
 	if not validEntity(player) then return end
-	broadcastSignal(self.data.signalgroup, name, 1, self.entity, player)
+	broadcastSignal(self.data.signalgroup, name, 1, self, player)
 end
 
 --[[************************************************************************]]--
