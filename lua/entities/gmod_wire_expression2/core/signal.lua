@@ -21,7 +21,7 @@ local currentSignal = nil
 -- executes a chip's code
 local function triggerSignal(receiverid, signaldata)
 	local receiver = Entity(receiverid)
-	if not receiver or not receiver.Execute then return end
+	if not validEntity(receiver) or not receiver.Execute then return end
 	currentSignal = signaldata
 	receiver:Execute()
 	currentSignal = nil
