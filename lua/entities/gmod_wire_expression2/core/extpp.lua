@@ -189,6 +189,8 @@ function e2_extpp_pass2(contents)
 	local output = {}
 	-- this is a list of registerFunction lines that will be put at the end of the file.
 	local function_register = {}
+	-- this is a lookup table for the local vars to be created at the top of the file.
+	local locals = {}
 	-- We start from position 2, since char #1 is always the \n we added earlier
 	local lastpos = 2
 
@@ -308,13 +310,13 @@ function e2_extpp_pass2(contents)
 			else
 				-- save tempcost
 				table.insert(output, string.format("tempcosts[%q]=__e2getcost() ", mangled_name))
+				locals[mangled_name] = true
 				if ellipses then
 					-- generate a registerFunction line
 					table.insert(function_register, string.format('if %s then %s(%q, %q, %q, %s) end\n', mangled_name, regfn, name, arg_typeids.."...", ret_typeid, mangled_name))
 
-
 					-- generate a new function header and append it to the output
-					table.insert(output, 'local function '..mangled_name..'(self, args, typeids, ...)')
+					table.insert(output, 'function '..mangled_name..'(self, args, typeids, ...)')
 					table.insert(output, " if not typeids then")
 					table.insert(output,     " local arr,typeids,source_typeids,tmp={},{},args[#args]")
 					table.insert(output,     " for i="..(2+#argtable.typeids)..",#args-1 do")
@@ -334,7 +336,7 @@ function e2_extpp_pass2(contents)
 					table.insert(function_register, string.format('if %s then %s(%q, %q, %q, %s, tempcosts[%q], %s) end\n', mangled_name, regfn, name, arg_typeids, ret_typeid, mangled_name, mangled_name, makestringtable(argtable.argnames,(thistype~="") and 2 or 1)))
 
 					-- generate a new function header and append it to the output
-					table.insert(output, 'local function '..mangled_name..'(self, args)')
+					table.insert(output, 'function '..mangled_name..'(self, args)')
 				end
 
 				-- if the function has arguments, insert argument fetch code
@@ -373,13 +375,21 @@ function e2_extpp_pass2(contents)
 				error(": PP internal error: "..msg,0)
 			end
 		end
-	end -- for gmatch(e2function)
+	end -- for contents:gmatch(e2function)
 
 
 	-- did the preprocessor change anything?
 	if changed then
 		-- yes => sweep everything together into a neat pile of hopefully valid lua code
-		return table.concat(output)..contents:sub(lastpos,-6)..table.concat(function_register)
+		local locals_str = ""
+		for loc,_ in pairs(locals) do
+			if locals_str == "" then
+				locals_str = "local " .. loc
+			else
+				locals_str = locals_str .. "," .. loc
+			end
+		end
+		return locals_str.." "..table.concat(output)..contents:sub(lastpos,-6)..table.concat(function_register)
 	else
 		-- no => tell the environment about it, so it can include() the source file instead.
 		return false
