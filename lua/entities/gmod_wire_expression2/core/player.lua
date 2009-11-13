@@ -232,4 +232,47 @@ registerFunction("keyUse", "e:", "n", function(self,args)
 	return 0
 end)
 
+/******************************************************************************/
+
+if CPPI and _R.Player.CPPIGetFriends then
+
+	local function Trusts(ply, ofwhom)
+		if ply == ofwhom then return true end
+		local friends = ofwhom:CPPIGetFriends()
+		for _,friend in pairs(friends) do
+			if ply == friend then return true end
+		end
+		return false
+	end
+
+	e2function array entity:friends()
+		if not validEntity(this) then return {} end
+		if not this:IsPlayer() then return {} end
+		if not Trusts(self.player, this) then return {} end
+
+		return this:CPPIGetFriends()
+	end
+
+	e2function number entity:trusts(entity friend)
+		if not validEntity(this) then return 0 end
+		if not this:IsPlayer() then return 0 end
+		if not Trusts(self.player, this) then return 0 end
+
+		return Trusts(friend, this) and 1 or 0
+	end
+
+else
+
+	e2function array entity:friends()
+		return {}
+	end
+
+	e2function number entity:trusts(entity friend)
+		return friend == this and 1 or 0
+	end
+
+end
+
+/******************************************************************************/
+
 __e2setcost(nil) -- temporary
