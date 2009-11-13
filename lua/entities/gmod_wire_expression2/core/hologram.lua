@@ -666,6 +666,10 @@ e2function number holoIndex(entity ent)
 end
 __e2setcost(5)
 
+e2function number holoRemainingSpawns()
+	return self.data.holo.remainingSpawns
+end
+
 /******************************************************************************/
 
 registerCallback("construct", function(self)
