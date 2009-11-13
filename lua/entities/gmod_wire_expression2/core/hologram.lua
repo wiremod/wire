@@ -3,6 +3,10 @@ E2Lib.RegisterExtension("holo", true)
 if not datastream then require( "datastream" ) end
 
 CreateConVar("wire_holograms_max","50")
+CreateConVar("sbox_maxwire_holograms",GetConVarNumber("wire_holograms_max"))
+timer.Create("reload_maxholos",1,0, function()
+	game.ConsoleCommand("sbox_maxwire_holograms "..GetConVarNumber("wire_holograms_max").."\n")
+end)
 local wire_holograms_size_max = CreateConVar("wire_holograms_size_max","50")
 
 -- context = chip.context = self
