@@ -13,20 +13,20 @@ function ENT:Initialize()
 	self.Entity:SetMoveType( MOVETYPE_VPHYSICS )
 	self.Entity:SetSolid( SOLID_VPHYSICS )
 
-	self.F = 0
-	self.FoO = 0
-	self.V = 0
+	self.Force = 0
+	self.OffsetForce = 0
+	self.Velocity = 0
 
 	self.Inputs = Wire_CreateInputs(self.Entity, { "Force", "OffsetForce", "Velocity" })
 	self:SetForceBeam(false)
 end
 
 function ENT:Setup(force, length, showbeam, reaction)
-	self.Force = math.max(force, 1)
+	self.ForceMul = math.max(force, 1)
 	self.Tlength = math.max(length, 1)
-	self.F = 0
-	self.FoO = 0
-	self.V = 0
+	self.Force = 0
+	self.OffsetForce = 0
+	self.Velocity = 0
 	if showbeam then
 		self:SetBeamLength(length)
 	else
@@ -38,15 +38,15 @@ end
 
 function ENT:TriggerInput(iname, value)
 	if iname == "Force" then
-		self.F = value
-		self:SetForceBeam(self.F != 0)
+		self.Force = value
+		self:SetForceBeam(self.Force != 0)
 		self:ShowOutput()
 	elseif iname == "OffsetForce" then
-		self.FoO = value
+		self.OffsetForce = value
 		self:ShowOutput()
 	elseif iname == "Velocity" then
-		self.V = math.max(math.min(100000,value),-100000)
-		self:SetForceBeam(self.V != 0)
+		self.Velocity = math.max(math.min(100000,value),-100000)
+		self:SetForceBeam(self.Velocity != 0)
 		self:ShowOutput()
 	end
 end
@@ -58,7 +58,7 @@ local function clamp_length(vector)
 end
 
 function ENT:Think()
-	if self.F > 0.1 or self.FoO > 0.1 or self.V > 0.1 or self.F < -0.1 or self.FoO < -0.1 or self.V < -0.1 then
+	if self.Force > 0.1 or self.OffsetForce > 0.1 or self.Velocity > 0.1 or self.Force < -0.1 or self.OffsetForce < -0.1 or self.Velocity < -0.1 then
 		local vForward = self.Entity:GetUp()
 		local vStart = self.Entity:GetPos() + vForward*self.Entity:OBBMaxs().z
 
@@ -73,20 +73,20 @@ function ENT:Think()
 			if trace.Entity:GetMoveType() == MOVETYPE_VPHYSICS then
 				local phys = trace.Entity:GetPhysicsObject()
 				if phys:IsValid() then
-					if self.F > 0.1 or self.F < -0.1 then phys:ApplyForceCenter( vForward * self.Force * self.F ) end
-					if self.FoO > 0.1 or self.FoO < -0.1 then phys:ApplyForceOffset( vForward * self.FoO, trace.HitPos ) end
-					--if self.V > 0.1 or self.V < -0.1 then phys:SetVelocity( vForward * self.V ) end
-					if self.V > 0.1 or self.V < -0.1 then phys:SetVelocityInstantaneous( vForward * self.V ) end
-				end
-				if self.Reaction then
-					phys = self.Entity:GetPhysicsObject()
-					if (phys:IsValid()) then
-						if self.F > 0.1 or self.F < -0.1 then phys:ApplyForceCenter( vForward * -self.Force * self.F ) end
-						if self.FoO > 0.1 or self.FoO < -0.1 then phys:ApplyForceCenter( vForward * -self.FoO ) end
-					end
+					if self.Force > 0.1 or self.Force < -0.1 then phys:ApplyForceCenter( vForward * self.ForceMul * self.Force ) end
+					if self.OffsetForce > 0.1 or self.OffsetForce < -0.1 then phys:ApplyForceOffset( vForward * self.OffsetForce, trace.HitPos ) end
+					--if self.Velocity > 0.1 or self.Velocity < -0.1 then phys:SetVelocity( vForward * self.Velocity ) end
+					if self.Velocity > 0.1 or self.Velocity < -0.1 then phys:SetVelocityInstantaneous( vForward * self.Velocity ) end
 				end
 			else
-				if self.V > 0.1 or self.V < -0.1 then trace.Entity:SetVelocity( vForward * self.V ) end
+				if self.Velocity > 0.1 or self.Velocity < -0.1 then trace.Entity:SetVelocity( vForward * self.Velocity ) end
+			end
+		end
+		if self.Reaction then
+			local phys = self.Entity:GetPhysicsObject()
+			if (phys:IsValid()) then
+				if self.Force > 0.1 or self.Force < -0.1 then phys:ApplyForceCenter( vForward * -self.ForceMul * self.Force ) end
+				if self.OffsetForce > 0.1 or self.OffsetForce < -0.1 then phys:ApplyForceCenter( vForward * -self.OffsetForce ) end
 			end
 		end
 	end
@@ -97,9 +97,10 @@ end
 
 function ENT:ShowOutput()
 	self:SetOverlayText(
-		"Forcer\nCenter Force= "..tostring(math.Round(self.F * self.Force))..
-		"\nOffset Force= "..tostring(math.Round(self.FoO))..
-		"\nVelocity= "..tostring(math.Round(self.V))
+		"Forcer"..
+		"\nCenter Force= "..tostring(math.Round(self.Force * self.ForceMul))..
+		"\nOffset Force= "..tostring(math.Round(self.OffsetForce))..
+		"\nVelocity= "..tostring(math.Round(self.Velocity))
 	)
 end
 
