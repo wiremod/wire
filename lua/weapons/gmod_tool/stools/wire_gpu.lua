@@ -559,6 +559,27 @@ function TOOL.BuildCPanel(panel)
 		MaxLength = "128"
 	})
 
+	local dir
+	local FileBrowser = vgui.Create("wire_expression2_browser" , panel)
+	panel:AddPanel(FileBrowser)
+	FileBrowser:Setup("GPUChip")
+	FileBrowser:SetSize(235,400)
+	function FileBrowser:OnFileClick()
+		local lastclick = CurTime()
+		if not GPU_Editor then
+			GPU_Editor = vgui.Create( "Expression2EditorFrame")
+			GPU_Editor:Setup("GPU Editor", "GPUChip", "GPU")
+		end
+
+		if(dir == self.File.FileDir and CurTime() - lastclick < 1) then
+			GPU_Editor:Open(dir)
+		else
+			lastclick = CurTime()
+			dir = self.File.FileDir
+			LocalPlayer():ConCommand("wire_gpu_filename "..string.Right(dir, string.len(dir)-8))
+		end
+	end
+
 	panel:AddControl("Button", {
 		Text = "Quick Load",
 		Name = "Load",

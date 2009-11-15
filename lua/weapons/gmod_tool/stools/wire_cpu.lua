@@ -553,6 +553,27 @@ function TOOL.BuildCPanel(panel)
 		MaxLength = "128"
 	})
 
+	local dir
+	local FileBrowser = vgui.Create("wire_expression2_browser" , panel)
+	panel:AddPanel(FileBrowser)
+	FileBrowser:Setup("CPUChip")
+	FileBrowser:SetSize(235,400)
+	function FileBrowser:OnFileClick()
+		local lastclick = CurTime()
+		if not CPU_Editor then
+			CPU_Editor = vgui.Create( "Expression2EditorFrame")
+			CPU_Editor:Setup("CPU Editor", "CPUChip", "CPU")
+		end
+
+		if(dir == self.File.FileDir and CurTime() - lastclick < 1) then
+			CPU_Editor:Open(dir)
+		else
+			lastclick = CurTime()
+			dir = self.File.FileDir
+			LocalPlayer():ConCommand("wire_cpu_filename "..string.Right(dir, string.len(dir)-8))
+		end
+	end
+
 	panel:AddControl("Button", {
 		Text = "Load into compiler",
 		Name = "Load",
