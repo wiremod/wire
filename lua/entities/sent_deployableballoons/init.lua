@@ -94,7 +94,7 @@ local balloon_registry = {}
 
 hook.Add("EntityRemoved", "balloon_deployer", function(ent)
 	local deployer = balloon_registry[ent]
-	if deployer then
+	if validEntity(deployer) and deployer.TriggerInput then
 		deployer.Deployed = 0
 		deployer:TriggerInput("Deploy", 0)
 	end
