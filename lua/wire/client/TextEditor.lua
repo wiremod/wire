@@ -1548,12 +1548,12 @@ do -- E2 Syntax highlighting
 	setmetatable(keywords, { __index=function(tbl,index) return {} end })
 
 	local directives = {
-		["@name"] = 0,
+		["@name"] = 0, -- all yellow
 		["@model"] = 0,
-		["@inputs"] = 1,
+		["@inputs"] = 1, -- directive yellow, types orange, rest normal
 		["@outputs"] = 1,
 		["@persist"] = 1,
-		["@trigger"] = 2,
+		["@trigger"] = 2, -- like 1, except that all/none are yellow
 	}
 
 	local colors = {

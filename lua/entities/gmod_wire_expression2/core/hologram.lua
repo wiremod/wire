@@ -286,16 +286,6 @@ local function SetIndex(self, index, Holo)
 	end
 end
 
---[[
-local function MakePropNoEffect(...)
-	local backup = DoPropSpawnedEffect
-	DoPropSpawnedEffect = function() end
-	local ret = MakeProp(...)
-	DoPropSpawnedEffect = backup
-	return ret
-end
-]]
-
 local function CreateHolo(self, index, pos, scale, ang, color, model)
 	if not pos   then pos   = self.entity:GetPos() end
 	if not scale then scale = Vector(1,1,1) end
