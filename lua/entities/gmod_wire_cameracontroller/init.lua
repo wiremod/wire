@@ -6,6 +6,8 @@ include('shared.lua')
 
 ENT.WireDebugName = "Camera Controller"
 
+local Cams = {}
+
 function ENT:Initialize()
 	self.Entity:PhysicsInit( SOLID_VPHYSICS )
 	self.Entity:SetMoveType( MOVETYPE_VPHYSICS )
@@ -30,9 +32,10 @@ function ENT:Setup(Player, Static)
 
 	if Static == 0 then
 		local cam = ents.Create("gmod_wire_cam") -- TODO: RT camera
+		-- TODO: respawn cam when removed
 		if not cam:IsValid() then return false end
 
-		cam:SetAngles( Vector(0, 0, 0) )
+		cam:SetAngles( Angle(0, 0, 0) )
 		cam:SetPos( self:GetPos() )
 		cam:SetModel( Model("models/props_junk/PopCan01a.mdl") )
 		cam:SetColor(0, 0, 0, 0)
@@ -41,6 +44,16 @@ function ENT:Setup(Player, Static)
 		self.CamEnt = cam
 		self.Inputs = WireLib.CreateSpecialInputs(self.Entity, {"Activated", "Zoom", "X", "Y", "Z", "Pitch", "Yaw", "Roll", "Angle", "Position", "Direction", "Velocity", "Parent"}, {"NORMAL", "NORMAL", "NORMAL", "NORMAL", "NORMAL", "NORMAL", "NORMAL", "NORMAL", "ANGLE", "VECTOR", "VECTOR", "VECTOR", "ENTITY"})
 	else
+		local cam = ents.Create("prop_physics")
+		if (!cam:IsValid()) then return false end
+
+		cam:SetAngles( Angle(0,0,0) )
+		cam:SetPos( self:GetPos()+Vector(0,0,64) )
+		cam:SetModel( Model("models/dav0r/camera.mdl") )
+		cam:Spawn()
+
+		self.CamEnt = cam
+
 		self.Inputs = Wire_CreateInputs(self.Entity, {"Activated", "Zoom"})
 		self.Static = 1
 	end
@@ -145,6 +158,9 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 		end
 	end
 	if info.cam then
+		if ValidEntity(self.CamEnt) then
+			self.CamEnt:Remove()
+		end
 		self.CamEnt = GetEntByID(info.cam)
 		if not self.CamEnt then
 			self.CamEnt = ents.GetByIndex(info.cam)

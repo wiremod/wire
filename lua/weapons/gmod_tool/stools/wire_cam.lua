@@ -50,22 +50,12 @@ function TOOL:LeftClick( trace )
 
 	local const = WireLib.Weld(wire_cam, trace.Entity, trace.PhysicsBone, true)
 
-	if(Static == 1)then
-		local cam = ents.Create("prop_physics")
-		if (!cam:IsValid()) then return false end
-
-		cam:SetAngles( Vector(0,0,0) )
-		cam:SetPos( wire_cam:GetPos()+Vector(0,0,64) )
-		cam:SetModel( Model("models/dav0r/camera.mdl") )
-		cam:Spawn()
-
-		wire_cam.CamEnt = cam
-	end
-
 	undo.Create("Wire Cam")
 		undo.AddEntity( wire_cam )
 		undo.AddEntity( const )
-		undo.AddEntity( cam )
+		if Static == 1 then
+			undo.AddEntity( wire_cam.CamEnt )
+		end
 		undo.SetPlayer( ply )
 	undo.Finish()
 
