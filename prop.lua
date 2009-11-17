@@ -39,11 +39,24 @@ local function ValidAction(ply)
 	return sbox_E2_PropCore:GetInt()==2 or (sbox_E2_PropCore:GetInt()==1 and ply:IsAdmin())
 end
 
+local function MakePropNoEffect(...)
+	local backup = DoPropSpawnedEffect
+	DoPropSpawnedEffect = function() end
+	local ret = MakeProp(...)
+	DoPropSpawnedEffect = backup
+	return ret
+end
+
 local function createpropsfromE2(self,model,pos,angles,freeze)
 	if(!util.IsValidModel(model) || !util.IsValidProp(model) || not ValidSpawn() )then
 		return nil
 	end
-	local prop = MakeProp( self.player, pos, angles, model, {}, {} )
+	local prop
+	if self.data.propSpawnEffect then
+		prop = MakeProp( self.player, pos, angles, model, {}, {} )
+	else
+		prop = MakePropNoEffect( self.player, pos, angles, model, {}, {} )
+	end
 	if not prop then return end
 	prop:Activate()
 	self.player:AddCleanup( "props", prop )
@@ -223,3 +236,11 @@ e2function void entity:deparent()
 	if(!isOwner(self, this)) then return end
 	this:SetParent( nil )
 end
+
+e2function void propSpawnEffect(number on)
+	self.data.propSpawnEffect = on ~= 0
+end
+
+registerCallback("construct", function(self)
+	self.data.propSpawnEffect = true
+end)
