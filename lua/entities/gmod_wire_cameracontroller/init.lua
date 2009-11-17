@@ -11,7 +11,7 @@ function ENT:Initialize()
 	self.Entity:SetMoveType( MOVETYPE_VPHYSICS )
 	self.Entity:SetSolid( SOLID_VPHYSICS )
 	self.Outputs = Wire_CreateOutputs(self.Entity, {"On", "X", "Y", "Z"})
-	self.Active = false
+	self.Active = 0
 	self.OriginalOwner = nil
 	self.CamEnt = nil
 	self.CamPlayer = nil
@@ -39,6 +39,10 @@ function ENT:MakeDynamicCam(oldcam)
 	cam:CallOnRemove("wire_cam_restore", function(oldcam) self:MakeDynamicCam(oldcam) end)
 
 	self.CamEnt = cam
+
+	if oldcam then
+		self:TriggerInput("Activated", self.Active)
+	end
 	return cam
 end
 
