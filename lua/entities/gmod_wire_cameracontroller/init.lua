@@ -6,8 +6,6 @@ include('shared.lua')
 
 ENT.WireDebugName = "Camera Controller"
 
-local Cams = {}
-
 function ENT:Initialize()
 	self.Entity:PhysicsInit( SOLID_VPHYSICS )
 	self.Entity:SetMoveType( MOVETYPE_VPHYSICS )
@@ -23,6 +21,27 @@ function ENT:Initialize()
 	self.Static = 0
 end
 
+function ENT:MakeDynamicCam(oldcam)
+	local cam = ents.Create("gmod_wire_cam") -- TODO: RT camera
+	if not cam:IsValid() then return false end
+
+	if oldcam then
+		cam:SetAngles( oldcam:GetAngles() )
+		cam:SetPos( oldcam:GetPos() )
+	else
+		cam:SetAngles( Angle(0, 0, 0) )
+		cam:SetPos( self:GetPos() )
+	end
+	cam:SetModel( Model("models/props_junk/PopCan01a.mdl") )
+	cam:SetColor(0, 0, 0, 0)
+	cam:Spawn()
+
+	cam:CallOnRemove("wire_cam_restore", function(oldcam) self:MakeDynamicCam(oldcam) end)
+
+	self.CamEnt = cam
+	return cam
+end
+
 function ENT:Setup(Player, Static)
 	if Player and Player:IsValid() and Player:IsPlayer() then
 		self.CamPlayer = Player
@@ -31,17 +50,7 @@ function ENT:Setup(Player, Static)
 	end
 
 	if Static == 0 then
-		local cam = ents.Create("gmod_wire_cam") -- TODO: RT camera
-		-- TODO: respawn cam when removed
-		if not cam:IsValid() then return false end
-
-		cam:SetAngles( Angle(0, 0, 0) )
-		cam:SetPos( self:GetPos() )
-		cam:SetModel( Model("models/props_junk/PopCan01a.mdl") )
-		cam:SetColor(0, 0, 0, 0)
-		cam:Spawn()
-
-		self.CamEnt = cam
+		if not self:MakeDynamicCam() then return false end
 		self.Inputs = WireLib.CreateSpecialInputs(self.Entity, {"Activated", "Zoom", "X", "Y", "Z", "Pitch", "Yaw", "Roll", "Angle", "Position", "Direction", "Velocity", "Parent"}, {"NORMAL", "NORMAL", "NORMAL", "NORMAL", "NORMAL", "NORMAL", "NORMAL", "NORMAL", "ANGLE", "VECTOR", "VECTOR", "VECTOR", "ENTITY"})
 	else
 		local cam = ents.Create("prop_physics")
@@ -87,6 +96,7 @@ end
 
 function ENT:OnRemove()
 	if self.CamEnt and self.CamEnt:IsValid() then
+		self.CamEnt:RemoveCallOnRemove("wire_cam_restore")
 		self.CamEnt:Remove()
 	end
 
@@ -159,6 +169,7 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 	end
 	if info.cam then
 		if ValidEntity(self.CamEnt) then
+			self.CamEnt:RemoveCallOnRemove("wire_cam_restore")
 			self.CamEnt:Remove()
 		end
 		self.CamEnt = GetEntByID(info.cam)
