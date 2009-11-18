@@ -496,6 +496,24 @@ registerFunction("popEntity", "r:", "e", function(self, args)
 	return nil
 end)
 
+registerFunction("pushComplex", "r:c", "", function(self, args)
+	local op1, op2 = args[2], args[3]
+	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+	if ((table.getn(rv1)+1) >= E2_MAX_ARRAY_SIZE) then return end
+//	if rv2[1] == 0 and rv2[2] == 0 then rv2 = nil end
+	table.insert(rv1,rv2)
+	self.vclk[rv1] = true
+end)
+
+registerFunction("popComplex", "r:", "c", function(self, args)
+	local op1 = args[2]
+	local rv1 = op1[1](self, op1)
+	local ret = table.remove(rv1)
+	self.vclk[rv1] = true
+	if (type(ret) == "table" and table.getn(ret) == 2) then return ret end
+	return { 0, 0, 0 }
+end)
+
 registerFunction("pop", "r:", "", function(self,args)
 	local op1 = args[2]
 	local rv1 = op1[1](self, op1)
@@ -879,6 +897,24 @@ registerFunction("shift", "r:", "", function(self,args)
 	local rv1 = op1[1](self, op1)
 	table.remove(rv1,1)
 	self.vclk[rv1] = true
+end)
+
+registerFunction("unshiftComplex", "r:c", "", function(self, args)
+	local op1, op2 = args[2], args[3]
+	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+	if ((table.getn(rv1)+1) >= E2_MAX_ARRAY_SIZE) then return end
+//	if rv2[1] == 0 and rv2[2] == 0 then rv2 = nil end
+	table.insert(rv1,1,rv2)
+	self.vclk[rv1] = true
+end)
+
+registerFunction("shiftComplex", "r:", "c", function(self, args)
+	local op1 = args[2]
+	local rv1 = op1[1](self, op1)
+	local ret = table.remove(rv1,1)
+	self.vclk[rv1] = true
+	if (type(ret) == "table" and table.getn(ret) == 2) then return ret end
+	return { 0, 0, 0 }
 end)
 
 /******************************************************************************/

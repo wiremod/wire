@@ -459,10 +459,22 @@ registerFunction("cos", "n", "n", function(self, args)
 	return cos(rv1 * deg2rad)
 end)
 
+registerFunction("sec", "n", "n", function(self, args)
+	local op1 = args[2]
+	local rv1 = op1[1](self, op1)
+	return 1/cos(rv1 * deg2rad)
+end)
+
 registerFunction("sin", "n", "n", function(self, args)
 	local op1 = args[2]
 	local rv1 = op1[1](self, op1)
 	return sin(rv1 * deg2rad)
+end)
+
+registerFunction("csc", "n", "n", function(self, args)
+	local op1 = args[2]
+	local rv1 = op1[1](self, op1)
+	return 1/sin(rv1 * deg2rad)
 end)
 
 registerFunction("tan", "n", "n", function(self, args)
@@ -471,10 +483,22 @@ registerFunction("tan", "n", "n", function(self, args)
 	return tan(rv1 * deg2rad)
 end)
 
+registerFunction("cot", "n", "n", function(self, args)
+	local op1 = args[2]
+	local rv1 = op1[1](self, op1)
+	return 1/tan(rv1 * deg2rad)
+end)
+
 registerFunction("cosh", "n", "n", function(self, args)
 	local op1 = args[2]
 	local rv1 = op1[1](self, op1)
 	return cosh(rv1)
+end)
+
+registerFunction("sech", "n", "n", function(self, args)
+	local op1 = args[2]
+	local rv1 = op1[1](self, op1)
+	return 1/cosh(rv1)
 end)
 
 registerFunction("sinh", "n", "n", function(self, args)
@@ -483,10 +507,22 @@ registerFunction("sinh", "n", "n", function(self, args)
 	return sinh(rv1)
 end)
 
+registerFunction("csch", "n", "n", function(self, args)
+	local op1 = args[2]
+	local rv1 = op1[1](self, op1)
+	return 1/sinh(rv1)
+end)
+
 registerFunction("tanh", "n", "n", function(self, args)
 	local op1 = args[2]
 	local rv1 = op1[1](self, op1)
 	return tanh(rv1)
+end)
+
+registerFunction("coth", "n", "n", function(self, args)
+	local op1 = args[2]
+	local rv1 = op1[1](self, op1)
+	return 1/tanh(rv1)
 end)
 
 registerFunction("acosr", "n", "n", function(self, args)
@@ -519,10 +555,22 @@ registerFunction("cosr", "n", "n", function(self, args)
 	return cos(rv1)
 end)
 
+registerFunction("secr", "n", "n", function(self, args)
+	local op1 = args[2]
+	local rv1 = op1[1](self, op1)
+	return 1/cos(rv1)
+end)
+
 registerFunction("sinr", "n", "n", function(self, args)
 	local op1 = args[2]
 	local rv1 = op1[1](self, op1)
 	return sin(rv1)
+end)
+
+registerFunction("cscr", "n", "n", function(self, args)
+	local op1 = args[2]
+	local rv1 = op1[1](self, op1)
+	return 1/sin(rv1)
 end)
 
 registerFunction("tanr", "n", "n", function(self, args)
@@ -531,10 +579,22 @@ registerFunction("tanr", "n", "n", function(self, args)
 	return tan(rv1)
 end)
 
+registerFunction("cotr", "n", "n", function(self, args)
+	local op1 = args[2]
+	local rv1 = op1[1](self, op1)
+	return 1/tan(rv1)
+end)
+
 registerFunction("coshr", "n", "n", function(self, args)
 	local op1 = args[2]
 	local rv1 = op1[1](self, op1)
 	return cosh(rv1)
+end)
+
+registerFunction("sechr", "n", "n", function(self, args)
+	local op1 = args[2]
+	local rv1 = op1[1](self, op1)
+	return 1/cosh(rv1)
 end)
 
 registerFunction("sinhr", "n", "n", function(self, args)
@@ -543,10 +603,22 @@ registerFunction("sinhr", "n", "n", function(self, args)
 	return sinh(rv1)
 end)
 
+registerFunction("cschr", "n", "n", function(self, args)
+	local op1 = args[2]
+	local rv1 = op1[1](self, op1)
+	return 1/sinh(rv1)
+end)
+
 registerFunction("tanhr", "n", "n", function(self, args)
 	local op1 = args[2]
 	local rv1 = op1[1](self, op1)
 	return tanh(rv1)
+end)
+
+registerFunction("cothr", "n", "n", function(self, args)
+	local op1 = args[2]
+	local rv1 = op1[1](self, op1)
+	return 1/tanh(rv1)
 end)
 
 --[[************************************************************************]]--

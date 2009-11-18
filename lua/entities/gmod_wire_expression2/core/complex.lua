@@ -13,6 +13,7 @@ local cos   = math.cos
 local sinh  = math.sinh
 local cosh  = math.cosh
 local acos  = math.acos
+local atan2 = math.atan2
 
 local function format(value)
 	local dbginfo
@@ -57,21 +58,21 @@ local function cexp(x,y)
 end
 
 local function clog(x,y)
-	local r,i,l
+        local r,i,l
 
-	l = x*x+y*y
+        l = x*x+y*y
 
-	if l==0 then return {0, 0} end
+        if l < delta then return {-1e+100, 0} end
 
-	r = log(sqrt(l))
+        r = log(sqrt(l))
 
-	local c,s
-	c = x/sqrt(l)
+        local c,s
+        c = x/sqrt(l)
 
-	i = acos(c)
-	if y<0 then i = -i end
+        i = acos(c)
+        if y<0 then i = -i end
 
-	return {r, i}
+        return {r, i}
 end
 
 local function cdiv(a,b)
@@ -334,9 +335,99 @@ e2function complex cosh(complex z)
 	return {cosh(z[1])*cos(z[2]), sinh(z[1])*sin(z[2])}
 end
 
+--- Calculates the tangent of <z>
+e2function complex tan(complex z)
+    local s,c
+        s = {sin(z[1])*cosh(z[2]), sinh(z[2])*cos(z[1])}
+        c = {cos(z[1])*cosh(z[2]), -sin(z[1])*sinh(z[2])}
+        return cdiv(s,c)
+end
+
+--- Calculates the cotangent of <z>
+e2function complex cot(complex z)
+    local s,c
+        s = {sin(z[1])*cosh(z[2]), sinh(z[2])*cos(z[1])}
+        c = {cos(z[1])*cosh(z[2]), -sin(z[1])*sinh(z[2])}
+        return cdiv(c,s)
+end
+
+--- Calculates the inverse sine of <z>
+e2function complex asin(complex z)
+        local log1mz2 = clog(1-z[1]*z[1]+z[2]*z[2], 2*z[1]*z[2])
+        local rt = cexp(log1mz2[1]*0.5,log1mz2[2]*0.5)
+        local flog = clog(rt[1]-z[2], z[1]+rt[2])
+        return {flog[2], -flog[1]}
+end
+
+--- Calculates the inverse cosine of <z>
+e2function complex acos(complex z)
+        local logz2m1 = clog(z[1]*z[1]-z[2]*z[2]-1, 2*z[1]*z[2])
+        local rt = cexp(logz2m1[1]*0.5,logz2m1[2]*0.5)
+        local flog = clog(z[1]+rt[1], z[2]+rt[2])
+        return {flog[2], -flog[1]}
+end
+
+--- Calculates the inverse tangent of <z>
+e2function complex atan(complex z)
+        local frac = cdiv({-z[1],1-z[2]},{z[1],1+z[2]})
+        local logfrac = clog(frac[1], frac[2])
+        local rt = cexp(logfrac[1]*0.5,logfrac[2]*0.5)
+        local flog = clog(rt[1], rt[2])
+        return {flog[2], -flog[1]}
+end
+
+-- ******************** hyperbolic functions *********************** --
+
+--- Calculates the hyperbolic tangent of <z>
+e2function complex tanh(complex z)
+    local s,c
+        s = {sinh(z[1])*cos(z[2]), sin(z[2])*cosh(z[1])}
+        c = {cosh(z[1])*cos(z[2]), sinh(z[1])*sin(z[2])}
+        return cdiv(s,c)
+end
+
+--- Calculates the hyperbolic cotangent of <z>
+e2function complex coth(complex z)
+    local s,c
+        s = {sinh(z[1])*cos(z[2]), sin(z[2])*cosh(z[1])}
+        c = {cosh(z[1])*cos(z[2]), sinh(z[1])*sin(z[2])}
+        return cdiv(c,s)
+end
+
+--- Calculates the secant of <z>
+e2function complex sec(complex z)
+    local c
+        c = {cos(z[1])*cosh(z[2]), -sin(z[1])*sinh(z[2])}
+        return cdiv({1,0},c)
+end
+
+--- Calculates the cosecant of <z>
+e2function complex csc(complex z)
+    local s
+        s = {sin(z[1])*cosh(z[2]), sinh(z[2])*cos(z[1])}
+        return cdiv({1,0},s)
+end
+
+--- Calculates the hyperbolic secant of <z>
+e2function complex sech(complex z)
+    local c
+        c = {cosh(z[1])*cos(z[2]), sinh(z[1])*sin(z[2])}
+        return cdiv({1,0},c)
+end
+
+--- Calculates the hyperbolic cosecant of <z>
+e2function complex csch(complex z)
+    local s
+        s = {sinh(z[1])*cos(z[2]), sin(z[2])*cosh(z[1])}
+        return cdiv({1,0},s)
+end
+
 /******************************************************************************/
 
 --- Formats <z> as a string.
 e2function string toString(complex z)
 	return format(z)
+end
+e2function string complex:toString()
+	return format(this)
 end
