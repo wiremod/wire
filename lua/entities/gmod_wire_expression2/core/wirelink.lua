@@ -2,6 +2,9 @@
   Wire link support
 \******************************************************************************/
 
+local floor = math.floor
+local Clamp = math.Clamp
+
 registerCallback("construct", function(self)
 	self.triggercache = {}
 end)
@@ -43,7 +46,7 @@ local function ReadStringZero(entity, address)
 		if not byte then return "" end
 		if byte < 1 then break end
 		if byte >= 256 then byte = 32 end
-		table.insert(tbl,string.char(math.floor(byte)))
+		table.insert(tbl,string.char(floor(byte)))
 	end
 	return table.concat(tbl)
 end
@@ -393,19 +396,30 @@ end
 
 __e2setcost(20) -- temporary
 
-local function WriteString(entity, string, X, Y, Tcolour, Bgcolour, Flash)
+local function conv(vec)
+	local r = Clamp(floor(vec[1]/28),0,9)
+	local g = Clamp(floor(vec[2]/28),0,9)
+	local b = Clamp(floor(vec[3]/28),0,9)
+
+	return floor(r)*100+floor(g)*10+floor(b)
+end
+
+local function WriteString(entity, string, X, Y, textcolor, bgcolor, Flash)
+	if type(textcolor) ~= "number" then textcolor = conv(textcolor) end
+	if type(bgcolor) ~= "number" then bgcolor = conv(bgcolor) end
+
 	if not validEntity(entity) then return end
 	if not entity.extended or not entity.WriteCell then return end
 
-	Tcolour = math.Clamp(math.floor(Tcolour), 0, 999)
-	Bgcolour = math.Clamp(math.floor(Bgcolour), 0, 999)
-	Flash = (Flash ~= 0) and 1 or 0
-	local Params = Flash*1000000 + Bgcolour*1000 + Tcolour
+	textcolor = Clamp(floor(textcolor), 0, 999)
+	bgcolor = Clamp(floor(bgcolor), 0, 999)
+	Flash = Flash ~= 0 and 1 or 0
+	local Params = Flash*1000000 + bgcolor*1000 + textcolor
 
-	for N = 1,#string do
-		local Address = 2*(X+N-1+30*Y)
+	for i = 1,#string do
+		local Address = 2*(Y*30+(X+i-1))
 		if (Address>1080 or Address<0) then return end
-		local Byte = string.byte(string,N)
+		local Byte = string.byte(string,i)
 		entity:WriteCell(Address, Byte)
 		entity:WriteCell(Address+1, Params)
 	end
@@ -415,9 +429,11 @@ e2function void wirelink:writeString(string text, x, y, textcolor, bgcolor, flas
 	WriteString(this,text,x,y,textcolor,bgcolor,flash)
 end
 
+
 e2function void wirelink:writeString(string text, x, y, textcolor, bgcolor)
 	WriteString(this,text,x,y,textcolor,bgcolor,0)
 end
+
 
 e2function void wirelink:writeString(string text, x, y, textcolor)
 	WriteString(this,text,x,y,textcolor,0,0)
@@ -426,6 +442,16 @@ end
 e2function void wirelink:writeString(string text, x, y)
 	WriteString(this,text,x,y,999,0,0)
 end
+
+e2function void wirelink:writeString(string text, x, y,        textcolor, vector bgcolor, flash) = e2function void wirelink:writeString(string text, x, y, textcolor, bgcolor, flash)
+e2function void wirelink:writeString(string text, x, y, vector textcolor,        bgcolor, flash) = e2function void wirelink:writeString(string text, x, y, textcolor, bgcolor, flash)
+e2function void wirelink:writeString(string text, x, y, vector textcolor, vector bgcolor, flash) = e2function void wirelink:writeString(string text, x, y, textcolor, bgcolor, flash)
+
+e2function void wirelink:writeString(string text, x, y,        textcolor, vector bgcolor) = e2function void wirelink:writeString(string text, x, y, textcolor, bgcolor)
+e2function void wirelink:writeString(string text, x, y, vector textcolor,        bgcolor) = e2function void wirelink:writeString(string text, x, y, textcolor, bgcolor)
+e2function void wirelink:writeString(string text, x, y, vector textcolor, vector bgcolor) = e2function void wirelink:writeString(string text, x, y, textcolor, bgcolor)
+
+e2function void wirelink:writeString(string text, x, y, vector textcolor) = e2function void wirelink:writeString(string text, x, y, textcolor)
 
 /******************************************************************************/
 

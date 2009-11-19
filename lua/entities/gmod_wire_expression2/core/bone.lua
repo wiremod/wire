@@ -393,6 +393,29 @@ e2function void bone:applyTorque(vector torque)
 	phys:ApplyForceOffset( dir * -0.5, phys:LocalToWorld(masscenter-off) )
 end
 
+--- Applies torque according to the axis, magnitude and sense given by the vector's direction, magnitude and orientation.
+e2function void bone:applyOffsetTorque(vector torque, vector offset)
+	local ent = isValidBone(this)
+	if not ent then return end
+	if not isOwner(self, ent) then return end
+	local phys = this
+
+	local tq = Vector(torque[1], torque[2], torque[3])
+	local torqueamount = tq:Length()
+	local off
+	if abs(torque[3]) > torqueamount*0.1 or abs(torque[1]) > torqueamount*0.1 then
+		off = Vector(-torque[3], 0, torque[1])
+	else
+		off = Vector(-torque[2], torque[1], 0)
+	end
+	off:Normalize()
+	local dir = tq:Cross(off)
+
+	dir = phys:LocalToWorld(dir)-phys:GetPos()
+	phys:ApplyForceOffset( dir * 0.5, phys:LocalToWorld(offset+off) )
+	phys:ApplyForceOffset( dir * -0.5, phys:LocalToWorld(offset-off) )
+end
+
 --[[************************************************************************]]--
 
 --- Returns 1 if <this> is frozen, 0 otherwise

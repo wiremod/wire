@@ -125,7 +125,7 @@ converters[0] = function(r, g, b)
 	local g = Clamp(floor(g/28),0,9)
 	local b = Clamp(floor(b/28),0,9)
 
-	return floor(r)*100000+floor(g)*10000+floor(b)*1000
+	return r*100000+g*10000+b*1000
 end
 converters[2] = function(r, g, b)
 	return floor(r)*65536+floor(g)*256+floor(b)
@@ -136,14 +136,14 @@ end
 
 --- Converts an RGB vector <rgb> to a number in digital screen format. <mode> Specifies a mode, either 0, 2 or 3, corresponding to Digital Screen color modes.
 e2function number rgb2digi(vector rgb, mode)
-	conv = converters[mode]
+	local conv = converters[mode]
 	if not conv then return 0 end
 	return conv(rgb[1], rgb[2], rgb[3])
 end
 
 --- Converts the RGB color (<r>,<g>,<b>) to a number in digital screen format. <mode> Specifies a mode, either 0, 2 or 3, corresponding to Digital Screen color modes.
 e2function number rgb2digi(r, g, b, mode)
-	conv = converters[mode]
+	local conv = converters[mode]
 	if not conv then return 0 end
 	return conv(r, g, b)
 end

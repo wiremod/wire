@@ -588,12 +588,34 @@ e2function void entity:applyTorque(vector torque)
 	phys:ApplyForceOffset( dir * -0.5, phys:LocalToWorld(masscenter-off) )
 end
 
+--- Applies torque according to the axis, magnitude and sense given by the vector's direction, magnitude and orientation.
+e2function void entity:applyOffsetTorque(vector torque, vector offset)
+	if not validEntity(this) then return end
+	if not isOwner(self, this) then return end
+	local phys = this:GetPhysicsObject()
+	if not phys:IsValid() then return end
+
+	local tq = Vector(torque[1], torque[2], torque[3])
+	local torqueamount = tq:Length()
+	local off
+	if abs(torque[3]) > torqueamount*0.1 or abs(torque[1]) > torqueamount*0.1 then
+		off = Vector(-torque[3], 0, torque[1])
+	else
+		off = Vector(-torque[2], torque[1], 0)
+	end
+	off:Normalize()
+	local dir = tq:Cross(off)
+
+	dir = phys:LocalToWorld(dir)-phys:GetPos()
+	phys:ApplyForceOffset( dir * 0.5, phys:LocalToWorld(offset+off) )
+	phys:ApplyForceOffset( dir * -0.5, phys:LocalToWorld(offset-off) )
+end
+
 registerFunction("inertia", "e:", "v", function(self, args)
 	local op1 = args[2]
 	local rv1 = op1[1](self, op1)
 	if(!validPhysics(rv1)) then return {0,0,0} end
-	local vec = rv1:GetPhysicsObject():GetInertia()
-	return {vec.x,vec.y,vec.z}
+	return rv1:GetPhysicsObject():GetInertia()
 end)
 
 
