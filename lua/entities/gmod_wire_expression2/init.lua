@@ -322,6 +322,26 @@ function ENT:TriggerOutputs()
 	end
 end
 
+function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID, GetConstByID)
+	self:Setup(self.buffer, true)
+
+	if not self.error then
+		for k,v in pairs(self.dupevars) do
+			self.context.vars[k] = v
+		end
+		--table.Merge(self.context.vars, self.dupevars)
+		self.dupevars = nil
+
+		self.duped = true
+		self:Execute()
+		self.duped = false
+	end
+
+	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID, GetConstByID)
+end
+
+/********************************** Transfer **********************************/
+
 function ENT:SendCode(ply)
 	if self:GetPlayer() ~= ply and wire_expression2_protected:GetFloat() ~= 0 and wire_expression2_protected:GetFloat() ~= 2 then return end
 	local chunksize = 200

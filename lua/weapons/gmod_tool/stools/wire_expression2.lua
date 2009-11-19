@@ -94,38 +94,29 @@ if SERVER then
 	function MakeWireExpression2(player, Pos, Ang, model, buffer, name, inputs, outputs, vars)
 		if !player:CheckLimit("wire_expressions") then return false end
 
-		local entity = ents.Create("gmod_wire_expression2")
-		if !entity:IsValid() then return false end
+		local self = ents.Create("gmod_wire_expression2")
+		if !self:IsValid() then return false end
 
-		entity:SetModel(model)
-		entity:SetAngles(Ang)
-		entity:SetPos(Pos)
-		entity:Spawn()
-		entity:SetPlayer(player)
-		entity.player = player
+		self:SetModel(model)
+		self:SetAngles(Ang)
+		self:SetPos(Pos)
+		self:Spawn()
+		self:SetPlayer(player)
+		self.player = player
 
 		buffer = string.Replace(string.Replace(buffer,"£","\""),"€","\n")
 
-		entity:SetOverlayText("Expression 2\n" .. name)
-		entity.buffer = buffer
+		self:SetOverlayText("Expression 2\n" .. name)
+		self.buffer = buffer
 
-		entity.Inputs = WireLib.AdjustSpecialInputs(entity, inputs[1], inputs[2])
-		entity.Outputs = WireLib.AdjustSpecialOutputs(entity, outputs[1], outputs[2])
-		entity:Setup(buffer, true)
+		self.Inputs = WireLib.AdjustSpecialInputs(self, inputs[1], inputs[2])
+		self.Outputs = WireLib.AdjustSpecialOutputs(self, outputs[1], outputs[2])
 
-		if !entity.error then
-			for k,v in pairs(vars) do
-				entity.context.vars[k] = v
-			end
+		self.dupevars = vars
 
-			entity.duped = true
-			entity:Execute()
-			entity.duped = false
-		end
-
-		player:AddCount("wire_expressions", entity)
-		player:AddCleanup("wire_expressions", entity)
-		return entity
+		player:AddCount("wire_expressions", self)
+		player:AddCleanup("wire_expressions", self)
+		return self
 	end
 
 	duplicator.RegisterEntityClass("gmod_wire_expression2", MakeWireExpression2, "Pos", "Ang", "Model", "_original", "_name", "_inputs", "_outputs", "_vars")
