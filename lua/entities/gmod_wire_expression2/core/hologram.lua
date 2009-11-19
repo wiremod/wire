@@ -42,8 +42,13 @@ local ModelList = {
 	["torus2"] = true,
 	["torus3"] = true
 }
-
-if not wire_expression2_is_reload and not SinglePlayer() then
+if resource.AddSingleFile then
+	for k,_ in pairs(ModelList) do
+		util.PrecacheModel( "models/Holograms/"..k..".mdl" )
+		resource.AddSingleFile( "models/Holograms/"..k..".mdl" )
+	end
+elseif not wire_expression2_is_reload and not SinglePlayer() then
+	-- TODO: delete this branch once resource.AddSingleFile is present in the regular gmod version.
 	print("Ignore the following bunch of error messages:")
 	for k,_ in pairs(ModelList) do
 		util.PrecacheModel( "models/Holograms/"..k..".mdl" )

@@ -35,8 +35,13 @@ if SERVER then
 	end
 	resource.AddFile("materials/expression 2/cog.vtf")
 	resource.AddFile("materials/expression 2/cog.vmt")
-	print("Ignore the following error message about cog_world.vtf:")
-	resource.AddFile("materials/expression 2/cog_world.vmt")
+	if resource.AddSingleFile then
+		resource.AddSingleFile("materials/expression 2/cog_world.vmt")
+	else
+		-- TODO: delete this branch once resource.AddSingleFile is present in the regular gmod version.
+		print("Ignore the following error message about cog_world.vtf:")
+		resource.AddFile("materials/expression 2/cog_world.vmt")
+	end
 end
 
 -- shared includes

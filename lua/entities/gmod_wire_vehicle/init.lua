@@ -18,6 +18,7 @@ function ENT:Initialize()
 	-- Create outputs
 	self.Inputs = Wire_CreateOutputs( self.Entity, { "Throttle", "Steering", "Handbrake", "Engine", "Lock" } )
 	self:SetOverlayText( "Vehicle Controller" )
+	self.Steering = 0
 end
 
 -- Link to Vehicle
@@ -27,13 +28,14 @@ end
 
 -- Inputs
 function ENT:TriggerInput(iname, value)
-	-- Check  that we have a vehicle and that the vehicle is valid
-	if not (self.Vehicle and self.Vehicle:IsValid()) then return end
+	-- ake sure we have a valid vehicle
+	if not ValidEntity(self.Vehicle) then return end
 
 	if (iname == "Throttle") then
 		self.Vehicle:Fire("throttle", tostring(value), 0)
 	elseif (iname == "Steering") then
-		self.Vehicle:Fire("steer", tostring(value), 0)
+		self.Steering = value
+		self.Vehicle:Fire("steer", tostring(self.Steering), 0)
 	elseif (iname == "Handbrake") then
 		if value > 0 then self.Vehicle:Fire("handbrakeon", 1, 0)
 		else self.Vehicle:Fire("handbrakeoff", 1, 0) end
@@ -58,7 +60,9 @@ function ENT:OnRestore()
 end
 
 function ENT:Think()
-
+	if not ValidEntity(self.Vehicle) then return end
+	self.Vehicle:Fire("steer", tostring(self.Steering), 0)
+	self:NextThink(CurTime())
 end
 
 
