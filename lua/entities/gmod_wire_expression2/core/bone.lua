@@ -400,6 +400,8 @@ e2function void bone:applyOffsetTorque(vector torque, vector offset)
 	if not isOwner(self, ent) then return end
 	local phys = this
 
+	offset = Vector(offset[1], offset[2], offset[3])
+
 	local tq = Vector(torque[1], torque[2], torque[3])
 	local torqueamount = tq:Length()
 	local off

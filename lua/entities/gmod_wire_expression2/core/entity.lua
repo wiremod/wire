@@ -595,6 +595,8 @@ e2function void entity:applyOffsetTorque(vector torque, vector offset)
 	local phys = this:GetPhysicsObject()
 	if not phys:IsValid() then return end
 
+	offset = Vector(offset[1], offset[2], offset[3])
+
 	local tq = Vector(torque[1], torque[2], torque[3])
 	local torqueamount = tq:Length()
 	local off
