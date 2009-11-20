@@ -38,11 +38,18 @@ end
 function Wire_CreateInputs(ent, names)
 	local ent_Inputs = {}
 	for n,v in pairs(names) do
+		-- Allow to specify the type in square brackets, like "Name [TYPE]"
+		local name, tp = v:match("^(.+) %[(.+)%]$")
+		if not name then
+			name = v
+			tp = "NORMAL"
+		end
+
 		local input = {
 			Entity = ent,
-			Name = v,
+			Name = name,
 			Value = 0,
-			Type = "NORMAL",
+			Type = tp,
 			Material = "tripmine_laser",
 			Color = Color(255, 255, 255, 255),
 			Width = 1,
@@ -55,7 +62,7 @@ function Wire_CreateInputs(ent, names)
 		end
 		input.Idx = idx
 
-		ent_Inputs[v] = input
+		ent_Inputs[name] = input
 		Inputs[idx] = input
 	end
 
@@ -68,11 +75,18 @@ end
 function Wire_CreateOutputs(ent, names, desc)
 	local ent_Outputs = {}
 	for n,v in pairs(names) do
+		-- Allow to specify the type in square brackets, like "Name [TYPE]"
+		local name, tp = v:match("^(.+) %[(.+)%]$")
+		if not name then
+			name = v
+			tp = "NORMAL"
+		end
+
 		local output = {
 			Entity = ent,
-			Name = v,
+			Name = name,
 			Value = 0,
-			Type = "NORMAL",
+			Type = tp,
 			Connected = {},
 			TriggerLimit = 8,
 			Num = n,
@@ -88,7 +102,7 @@ function Wire_CreateOutputs(ent, names, desc)
 		end
 		output.Idx = idx
 
-		ent_Outputs[v] = output
+		ent_Outputs[name] = output
 		Outputs[idx] = output
 	end
 
@@ -99,13 +113,20 @@ end
 function Wire_AdjustInputs(ent, names)
 	local ent_Inputs = ent.Inputs
 	for n,v in pairs(names) do
-		if (ent_Inputs[v]) then
-			ent_Inputs[v].Keep = true
-			ent_Inputs[v].Num = n
+		-- Allow to specify the type in square brackets, like "Name [TYPE]"
+		local name, tp = v:match("^(.+) %[(.+)%]$")
+		if not name then
+			name = v
+			tp = "NORMAL"
+		end
+
+		if (ent_Inputs[name]) then
+			ent_Inputs[name].Keep = true
+			ent_Inputs[name].Num = n
 		else
 			local input = {
 				Entity = ent,
-				Name = v,
+				Name = name,
 				Value = 0,
 				Type = "NORMAL",
 				Material = "tripmine_laser",
@@ -121,7 +142,7 @@ function Wire_AdjustInputs(ent, names)
 			end
 			input.Idx = idx
 
-			ent_Inputs[v] = input
+			ent_Inputs[name] = input
 			Inputs[idx] = input
 		end
 	end
@@ -143,16 +164,23 @@ end
 function Wire_AdjustOutputs(ent, names, desc)
 	local ent_Outputs = ent.Outputs
 	for n,v in pairs(names) do
-		if (ent_Outputs[v]) then
-			ent_Outputs[v].Keep = true
-			ent_Outputs[v].Num = n
+		-- Allow to specify the type in square brackets, like "Name [TYPE]"
+		local name, tp = v:match("^(.+) %[(.+)%]$")
+		if not name then
+			name = v
+			tp = "NORMAL"
+		end
+
+		if (ent_Outputs[name]) then
+			ent_Outputs[name].Keep = true
+			ent_Outputs[name].Num = n
 			if (desc) and (desc[n]) then
-				ent_Outputs[v].Desc = desc[n]
+				ent_Outputs[name].Desc = desc[n]
 			end
 		else
 			local output = {
 				Keep = true,
-				Name = v,
+				Name = name,
 				Value = 0,
 				Type = "NORMAL",
 				Connected = {},
@@ -170,7 +198,7 @@ function Wire_AdjustOutputs(ent, names, desc)
 			end
 			output.Idx = idx
 
-			ent_Outputs[v] = output
+			ent_Outputs[name] = output
 			Outputs[idx] = output
 		end
 	end

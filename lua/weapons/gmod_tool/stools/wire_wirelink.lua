@@ -41,15 +41,22 @@ if SERVER then
 	end
 
 	function InfuseSpecialOutputs(func, ent, names, types, desc)
-		if ent.extended == nil then
-			return func(ent, names, types, desc)
-		end
-
 		if types == nil then
 			types = {}
-			for i,_ in ipairs(names) do
-				types[i] = "NORMAL"
+			for i,v in ipairs(names) do
+				-- Allow to specify the type in square brackets, like "Name [TYPE]"
+				local name, tp = v:match("^(.+) %[(.+)%]$")
+				if not name then
+					name = v
+					tp = "NORMAL"
+				end
+				names[i] = name
+				types[i] = tp
 			end
+		end
+
+		if ent.extended == nil then
+			return func(ent, names, types, desc)
 		end
 
 		table.insert(names, "link")
