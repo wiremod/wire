@@ -10,7 +10,7 @@ function ENT:Initialize()
 	self.Entity:SetMoveType( MOVETYPE_VPHYSICS )
 	self.Entity:SetSolid( SOLID_VPHYSICS )
 
-	self.Inputs = Wire_CreateInputs(self.Entity, { "X", "Y", "Pause" })
+	self.Inputs = Wire_CreateInputs(self.Entity, { "X", "Y", "R", "G", "B", "Pause", "Length", "Update Frequency" })
 end
 
 function ENT:Think()
@@ -21,11 +21,25 @@ function ENT:Think()
 		local y = math.max(-1, math.min(self.Inputs.Y.Value or 0, 1))
 		self:SetNextNode(x, y)
 
-		self.Entity:NextThink(CurTime()+0.08)
+		self.Entity:NextThink(CurTime()+(self.updaterate or 0.08))
 		return true
 	end
 end
 
+function ENT:TriggerInput(iname, value)
+	if iname == "R" then
+		self.Entity:SetNetworkedFloat("R", value)
+	elseif iname == "G" then
+		self.Entity:SetNetworkedFloat("G", value)
+	elseif iname == "B" then
+		self.Entity:SetNetworkedFloat("B", value)
+	elseif iname == "Length" then
+		self.Entity:SetNetworkedFloat("Length", value)
+	elseif iname == "Update Frequency" then
+		if value <= 0 then value = 0.08 end
+		self.updaterate = value
+	end
+end
 
 function MakeWireOscilloscope( pl, Pos, Ang, model )
 
