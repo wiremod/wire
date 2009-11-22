@@ -23,13 +23,11 @@ if SERVER then
 		local descs = {}
 
 		if ent.Outputs then
-			local index = 1
-
 			for _,output in pairs(ent.Outputs) do
+				local index = output.Num
 				names[index] = output.Name
 				types[index] = output.Type
 				descs[index] = output.Desc
-				index = index + 1
 			end
 
 			ent.Outputs = WireLib.AdjustSpecialOutputs(ent, names, types, descs)
