@@ -182,7 +182,7 @@ end
 e2function array table:keys()
 	local ret = {}
 	local c = 0
-	for index,value in pairs(tbl) do
+	for index,value in pairs(this) do
 		c = c + 1
 		local long_typeid = index:sub(1,1) == "x"
 		--local typeid = index:sub(1,long_typeid and 3 or 1)
@@ -197,7 +197,7 @@ end
 e2function array table:values()
 	local ret = {}
 	local c = 0
-	for index,value in pairs(tbl) do
+	for index,value in pairs(this) do
 		c = c + 1
 		--local long_typeid = index:sub(1,1) == "x"
 		--local typeid = index:sub(1,long_typeid and 3 or 1)
@@ -212,7 +212,7 @@ end
 e2function array table:typeids()
 	local ret = {}
 	local c = 0
-	for index,value in pairs(tbl) do
+	for index,value in pairs(this) do
 		c = c + 1
 		local long_typeid = index:sub(1,1) == "x"
 		local typeid = index:sub(1,long_typeid and 3 or 1)
