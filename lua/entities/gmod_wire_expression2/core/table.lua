@@ -179,6 +179,51 @@ e2function table invert(table tbl)
 	return ret
 end
 
+e2function array table:keys()
+	local ret = {}
+	local c = 0
+	for index,value in pairs(tbl) do
+		c = c + 1
+		local long_typeid = index:sub(1,1) == "x"
+		--local typeid = index:sub(1,long_typeid and 3 or 1)
+		local key = index:sub(long_typeid and 4 or 2)
+
+		ret[#ret+1] = key
+	end
+	self.prf = self.prf + c / 2
+	return ret
+end
+
+e2function array table:values()
+	local ret = {}
+	local c = 0
+	for index,value in pairs(tbl) do
+		c = c + 1
+		--local long_typeid = index:sub(1,1) == "x"
+		--local typeid = index:sub(1,long_typeid and 3 or 1)
+		--local key = index:sub(long_typeid and 4 or 2)
+
+		ret[#ret+1] = value
+	end
+	self.prf = self.prf + c / 2
+	return ret
+end
+
+e2function array table:typeids()
+	local ret = {}
+	local c = 0
+	for index,value in pairs(tbl) do
+		c = c + 1
+		local long_typeid = index:sub(1,1) == "x"
+		local typeid = index:sub(1,long_typeid and 3 or 1)
+		--local key = index:sub(long_typeid and 4 or 2)
+
+		ret[#ret+1] = typeid
+	end
+	self.prf = self.prf + c / 2
+	return ret
+end
+
 /******************************************************************************/
 
 registerCallback("postinit", function()
