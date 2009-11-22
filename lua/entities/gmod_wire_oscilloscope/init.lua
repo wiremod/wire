@@ -10,18 +10,20 @@ function ENT:Initialize()
 	self.Entity:SetMoveType( MOVETYPE_VPHYSICS )
 	self.Entity:SetSolid( SOLID_VPHYSICS )
 
-	self.Inputs = Wire_CreateInputs(self.Entity, { "X", "Y" })
+	self.Inputs = Wire_CreateInputs(self.Entity, { "X", "Y", "Pause" })
 end
 
 function ENT:Think()
-	self.BaseClass.Think(self)
+	if (self.Inputs.Pause.Value == 0) then
+		self.BaseClass.Think(self)
 
-	local x = math.max(-1, math.min(self.Inputs.X.Value or 0, 1))
-	local y = math.max(-1, math.min(self.Inputs.Y.Value or 0, 1))
-	self:SetNextNode(x, y)
+		local x = math.max(-1, math.min(self.Inputs.X.Value or 0, 1))
+		local y = math.max(-1, math.min(self.Inputs.Y.Value or 0, 1))
+		self:SetNextNode(x, y)
 
-	self.Entity:NextThink(CurTime()+0.08)
-	return true
+		self.Entity:NextThink(CurTime()+0.08)
+		return true
+	end
 end
 
 

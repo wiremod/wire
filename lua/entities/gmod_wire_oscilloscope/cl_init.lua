@@ -1,5 +1,12 @@
 include('shared.lua')
 
+if not ConVarExists("wire_oscilloscope_color") then
+	CreateClientConVar("wire_oscilloscope_color", "0,255,0", false, false)
+end
+if not ConVarExists("wire_oscilloscope_length") then
+	CreateClientConVar("wire_oscilloscope_length", 50, false, false)
+end
+
 ENT.Spawnable      = false
 ENT.AdminSpawnable = false
 ENT.RenderGroup    = RENDERGROUP_BOTH
@@ -20,12 +27,14 @@ function ENT:Draw()
 		local oldw = ScrW()
 		local oldh = ScrH()
 
+		local length = math.Clamp(GetConVarNumber("wire_oscilloscope_length"),1,100)
+
 		self.GPU:RenderToGPU(function()
 			surface.SetDrawColor(10,20,5,255)
 			surface.DrawRect(0,0,512,512)
 
 			local nodes = self:GetNodeList()
-			for i=1,39 do
+			for i=1,length do
 				local i_next = i+1
 
 				local nx1 = nodes[i].X*256+256
@@ -34,17 +43,20 @@ function ENT:Draw()
 				local ny2 = -nodes[i_next].Y*256+256
 
 				if ((nx1-nx2)*(nx1-nx2) + (ny1-ny2)*(ny1-ny2) < 256*256) then
-					local b = math.max(0, math.min(i*i*0.16, 255))
+					local a = math.max(1,3.75-(3*i)/length)
+					local a2 = math.max(1,a/2)
 
+					local rgb = string.Explode(",", GetConVarString("wire_oscilloscope_color"))
+					local r,g,b = tonumber(rgb[1]) or 0, tonumber(rgb[2]) or 200, tonumber(rgb[3]) or 0
 
 					for i=-3,3 do
-						surface.SetDrawColor(b/8, b/2, b/8, 255)
+						surface.SetDrawColor(r/a, g/a, b/a, 255)
 						surface.DrawLine(nx1, ny1+i, nx2, ny2+i)
-						surface.SetDrawColor(b/8, b/2, b/8, 255)
+						surface.SetDrawColor(r/a, g/a, b/a, 255)
 						surface.DrawLine(nx1+i, ny1, nx2+i, ny2)
 					end
 
-					surface.SetDrawColor(b/4, b, b/4, 255)
+					surface.SetDrawColor(r/a2, g/a2, b/a2, 255)
 					surface.DrawLine(nx1, ny1, nx2, ny2)
 				end
 			end
