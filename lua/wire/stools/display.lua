@@ -526,6 +526,7 @@ do -- wire_light
 		language.Add( "Tool_wire_light_0", "Primary: Create Light" )
 		language.Add( "WireLightTool_directional", "Directional Component" )
 		language.Add( "WireLightTool_radiant", "Radiant Component" )
+		language.Add( "WireLightTool_glow", "Glow Component" )
 	end
 	WireToolSetup.BaseLang()
 
@@ -533,8 +534,10 @@ do -- wire_light
 
 	if SERVER then
 		function TOOL:GetConVars()
-			return self:GetClientNumber("directional") ~= 0,
-			self:GetClientNumber("radiant") ~= 0
+			return
+				self:GetClientNumber("directional") ~= 0,
+				self:GetClientNumber("radiant") ~= 0,
+				self:GetClientNumber("glow") ~= 0
 		end
 
 		function TOOL:MakeEnt( ply, model, Ang, trace )
@@ -546,12 +549,14 @@ do -- wire_light
 		model       = "models/jaanus/wiretool/wiretool_siren.mdl",
 		directional = 0,
 		radiant     = 0,
+		glow        = 0,
 		weld        = 1,
 	}
 
 	function TOOL.BuildCPanel(panel)
 		panel:CheckBox("#WireLightTool_directional", "wire_light_directional")
 		panel:CheckBox("#WireLightTool_radiant", "wire_light_radiant")
+		panel:CheckBox("#WireLightTool_glow", "wire_light_glow")
 		panel:CheckBox("Weld", "wire_light_weld")
 	end
 end -- wire_light

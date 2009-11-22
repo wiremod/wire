@@ -13,7 +13,8 @@ function ENT:Initialize()
 	self.R, self.G, self.B = 0, 0, 0
 	self.Entity:SetColor( 0, 0, 0, 255 )
 
-	self.Inputs = WireLib.CreateSpecialInputs(self.Entity, {"Red", "Green", "Blue", "RGB"}, {"NORMAL", "NORMAL", "NORMAL", "VECTOR"})
+	self.Inputs = WireLib.CreateInputs(self.Entity, {"Red", "Green", "Blue", "RGB [VECTOR]"})
+	print("Initialize")
 end
 
 function ENT:OnRemove()
@@ -76,7 +77,7 @@ function ENT:RadiantOn()
 		self.RadiantComponent = dynlight
 	end
 
-	self.RadiantState = 1
+	self.RadiantState = true
 end
 
 function ENT:RadiantOff()
@@ -84,9 +85,22 @@ function ENT:RadiantOff()
 	if not self.RadiantComponent:IsValid() then return end
 	self.RadiantComponent:Fire("TurnOff","","0")
 
-	self.RadiantState = 0
+	self.RadiantState = false
 	--self.RadiantComponent:Remove()
 	--self.RadiantComponent = nil
+end
+
+
+function ENT:GlowOn()
+	self:SetGlow(true)
+
+	self.GlowState = true
+end
+
+function ENT:GlowOff()
+	self:SetGlow(false)
+
+	self.GlowState = false
 end
 
 function ENT:TriggerInput(iname, value)
@@ -99,14 +113,22 @@ function ENT:TriggerInput(iname, value)
 		B = value
 	elseif (iname == "RGB") then
 		R,G,B = value[1], value[2], value[3]
+
+	elseif (iname == "GlowBrightness") then
+		self:SetBrightness(value)
+	elseif (iname == "GlowDecay") then
+		self:SetDecay(value)
+	elseif (iname == "GlowSize") then
+		self:SetSize(value)
 	end
 	self:ShowOutput( R, G, B )
 end
 
-function ENT:Setup(directional, radiant)
+function ENT:Setup(directional, radiant, glow)
+	print("Setup")
 	self.directional = directional
 	self.radiant = radiant
-	self.RadiantState = 0
+	self.glow = glow
 	if (self.directional) then
 		if (!self.DirectionalComponent) then
 			self:DirectionalOn()
@@ -117,7 +139,7 @@ function ENT:Setup(directional, radiant)
 		end
 	end
 	if (self.radiant) then
-		if (self.RadiantState == 0) then
+		if (!self.RadiantState) then
 			self:RadiantOn()
 		end
 	else
@@ -125,7 +147,17 @@ function ENT:Setup(directional, radiant)
 			self:RadiantOff()
 		end
 	end
-
+	if (self.glow) then
+		WireLib.AdjustInputs(self.Entity, {"Red", "Green", "Blue", "RGB [VECTOR]", "GlowBrightness", "GlowDecay", "GlowSize"})
+		if (!self.GlowState) then
+			self:GlowOn()
+		end
+	else
+		WireLib.AdjustInputs(self.Entity, {"Red", "Green", "Blue", "RGB [VECTOR]"})
+		if (self.GlowState) then
+			self:GlowOff()
+		end
+	end
 end
 
 function ENT:ShowOutput( R, G, B )
@@ -138,7 +170,7 @@ function ENT:ShowOutput( R, G, B )
 				self.DirectionalComponent:SetKeyValue( "lightcolor", Format( "%i %i %i", R, G, B ) )
 			end
 			if (self.radiant) then
-				if (self.RadiantState == 0) then
+				if (!self.RadiantState) then
 					self:RadiantOn()
 				end
 				self.RadiantComponent:SetColor( R, G, B, 255 )
@@ -154,7 +186,7 @@ function ENT:ShowOutput( R, G, B )
 	end
 end
 
-function MakeWireLight( pl, Pos, Ang, model, directional, radiant, nocollide, frozen, nocollide )
+function MakeWireLight( pl, Pos, Ang, model, directional, radiant, glow, nocollide, frozen)
 	if ( !pl:CheckLimit( "wire_lights" ) ) then return false end
 
 	local wire_light = ents.Create( "gmod_wire_light" )
@@ -165,7 +197,7 @@ function MakeWireLight( pl, Pos, Ang, model, directional, radiant, nocollide, fr
 	wire_light:SetModel( model )
 	wire_light:Spawn()
 
-	wire_light:GetTable():Setup(directional, radiant)
+	wire_light:GetTable():Setup(directional, radiant, glow)
 	wire_light:GetTable():SetPlayer(pl)
 
 	if wire_light:GetPhysicsObject():IsValid() then
@@ -187,4 +219,4 @@ function MakeWireLight( pl, Pos, Ang, model, directional, radiant, nocollide, fr
 	return wire_light
 end
 
-duplicator.RegisterEntityClass("gmod_wire_light", MakeWireLight, "Pos", "Ang", "Model", "directional", "radiant", "nocollide", "frozen", "nocollide")
+duplicator.RegisterEntityClass("gmod_wire_light", MakeWireLight, "Pos", "Ang", "Model", "directional", "radiant", "glow", "nocollide", "frozen")

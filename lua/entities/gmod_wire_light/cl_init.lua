@@ -56,3 +56,22 @@ function ENT:DrawTranslucent()
 	render.DrawSprite( LightPos, Size, Size, Col, Visible * ViewDot )
 
 end
+
+function ENT:Think()
+	if self:GetGlow() then
+
+		local dlight = DynamicLight( self:EntIndex() )
+		if ( dlight ) then
+			--local r, g, b, a = self:GetColor()
+			local LightNrm = self.Entity:GetAngles():Up()*(-1)
+
+			dlight.Pos = self.Entity:GetPos() + LightNrm * -10
+			dlight.r,dlight.g,dlight.b = self:GetColor()
+			dlight.Brightness = self:GetBrightness()
+			dlight.Decay = self:GetDecay()
+			dlight.Size = self:GetSize()
+			dlight.DieTime = CurTime() + 1
+		end
+
+	end
+end
