@@ -34,6 +34,9 @@ local function splitargs(args)
 			if args:sub(i) ~= "..." then error("Misplaced '.' in args",2) end
 			table.insert(ret, "...")
 			i=i+2
+		elseif letter == "=" then
+			if #ret ~= 1 then error("Misplaced '=' in args",2) end
+			ret = {}
 		else
 			local typeid = letter
 			if letter == "x" then
