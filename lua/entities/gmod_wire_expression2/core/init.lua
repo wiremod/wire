@@ -50,13 +50,31 @@ local function removecheck(signature)
 	entry.oldfunc = oldfunc
 end
 
+-- TODO: combine with makecheck
+local function namefunc(func, name)
+	name = "e2_"..name:gsub("[^A-Za-z_0-9]","_")
+
+	wire_expression2_namefunc = func
+	RunString(([[
+		local %s = wire_expression2_namefunc
+		function wire_expression2_namefunc(...)
+			local ret = %s(...)
+			return ret
+		end
+	]]):format(name, name))
+	local ret = wire_expression2_namefunc
+	wire_expression2_namefunc = nil
+	return ret
+end
+
 -- Installs a typecheck in a function identified by the given signature.
 local function makecheck(signature)
+	local name = signature:match("^([^(]*)")
 	local entry = wire_expression2_funcs[signature]
 	local oldfunc,signature, rets, func,cost = entry.oldfunc,unpack(entry)
 
 	if oldfunc then return end
-	oldfunc = func
+	oldfunc = namefunc(func, name)
 
 	function func(...)
 		local retval = oldfunc(...)
