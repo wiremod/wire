@@ -264,8 +264,11 @@ registerCallback("postinit", function()
 					function setf(self, args)
 						local op1, op2, op3 = args[2], args[3], args[4]
 						local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
-						if table_IsEmpty(rv3) then rv3 = nil end
-						rv1[id .. rv2] = rv3
+						if table_IsEmpty(rv3) then
+							rv1[id .. rv2] = nil
+						else
+							rv1[id .. rv2] = rv3
+						end
 						self.vclk[rv1] = true
 						return rv3
 					end
@@ -297,8 +300,11 @@ registerCallback("postinit", function()
 				function setf(self, args)
 					local op1, op2, op3 = args[2], args[3], args[4]
 					local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
-					if rv3 == zero then rv3 = nil end
-					rv1[id .. rv2] = rv3
+					if rv3 == zero then
+						rv1[id .. rv2] = nil
+					else
+						rv1[id .. rv2] = rv3
+					end
 					self.vclk[rv1] = true
 					return rv3
 				end

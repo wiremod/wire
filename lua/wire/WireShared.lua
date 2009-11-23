@@ -97,76 +97,128 @@ end
 
 /******************************************************************************/
 
-WireLib.containers = {}
-
-function WireLib.containers.new(metatable, ...)
-	local tbl = {}
-	setmetatable(tbl, metatable)
-	if tbl.Initialize then tbl:Initialize(...) end
-	return tbl
-end
-
-do -- class deque
-	local deque = {}
-	WireLib.containers.deque = deque
-
-	deque.__index = deque
-
-	function deque:Initialize()
-		self.offset = 0
+do -- containers
+	local function new(metatable, ...)
+		local tbl = {}
+		setmetatable(tbl, metatable)
+		local init = metatable.Initialize
+		if init then init(tbl, ...) end
+		return tbl
 	end
 
-	function deque:size()
-		return #self-self.offset
+	local function newclass(container_name)
+		meta = { new = new }
+		meta.__index = meta
+		WireLib.containers[container_name] = meta
+		return meta
 	end
 
-	-- Prepends the given element.
-	function deque:unshift(value)
-		if offset < 1 then
-			-- TODO: improve
-			table.insert(self, 1, value)
-			return
-		end
-		self.offset = self.offset - 1
-		self[self.offset+1] = value
-	end
+	WireLib.containers = { new = new }
 
-	-- Removes the first element and returns it
-	function deque:shift()
-		--do return table.remove(self, 1) end
-		local offset = self.offset + 1
-		local ret = self[offset]
-		if not ret then self.offset = offset-1 return nil end
-		self.offset = offset
-		if offset > 127 then
-			for i = offset+1,#self-offset do
-				self[i-offset] = self[i]
-			end
-			for i = #self-offset+1,#self do
-				self[i-offset],self[i] = self[i],nil
-			end
+	do -- class deque
+		local deque = newclass("deque")
+
+		function deque:Initialize()
 			self.offset = 0
 		end
-		return ret
-	end
 
-	-- Appends the given element.
-	function deque:push(value)
-		self[#self+1] = value
-	end
+		function deque:size()
+			return #self-self.offset
+		end
 
-	-- Removes the last element and returns it.
-	function deque:pop()
-		local ret = self[#self]
-		self[#self] = nil
-		return ret
-	end
+		-- Prepends the given element.
+		function deque:unshift(value)
+			if offset < 1 then
+				-- TODO: improve
+				table.insert(self, 1, value)
+				return
+			end
+			self.offset = self.offset - 1
+			self[self.offset+1] = value
+		end
 
-	-- Returns the last element.
-	function deque:top()
-		return self[#self]
-	end
-end
+		-- Removes the first element and returns it
+		function deque:shift()
+			--do return table.remove(self, 1) end
+			local offset = self.offset + 1
+			local ret = self[offset]
+			if not ret then self.offset = offset-1 return nil end
+			self.offset = offset
+			if offset > 127 then
+				for i = offset+1,#self-offset do
+					self[i-offset] = self[i]
+				end
+				for i = #self-offset+1,#self do
+					self[i-offset],self[i] = self[i],nil
+				end
+				self.offset = 0
+			end
+			return ret
+		end
+
+		-- Appends the given element.
+		function deque:push(value)
+			self[#self+1] = value
+		end
+
+		-- Removes the last element and returns it.
+		function deque:pop()
+			local ret = self[#self]
+			self[#self] = nil
+			return ret
+		end
+
+		-- Returns the last element.
+		function deque:top()
+			return self[#self]
+		end
+	end -- class deque
+
+	do -- class autocleanup
+		local autocleanup = newclass("autocleanup")
+
+		function autocleanup:Initialize(depth, parent, parentindex)
+			rawset(self, "depth", depth or 0)
+			rawset(self, "parent", parent)
+			rawset(self, "parentindex", parentindex)
+			rawset(self, "data", {})
+		end
+
+		function autocleanup:__index(index)
+			local data  = rawget(self, "data")
+
+			if not index then debug.Trace() end
+			local element = data[index]
+			if element then return element end
+
+			local depth = rawget(self, "depth")
+			if depth == 0 then return nil end
+			element = new(autocleanup, depth-1, self, index)
+
+			data[index] = element
+			return element
+		end
+
+		function autocleanup:__newindex(index, value)
+			local data   = rawget(self, "data")
+			local parent = rawget(self, "parent")
+
+			data[index] = value
+			if value == nil and not next(data) and parent then
+				local parentindex = rawget(self, "parentindex")
+				parent[parentindex] = nil
+			end
+		end
+
+		function autocleanup:pairs()
+			local data = rawget(self, "data")
+
+			return pairs(data)
+		end
+
+		pairs_ac = autocleanup.pairs
+	end -- class autocleanup
+end -- containers
 
 /******************************************************************************/
 

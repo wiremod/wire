@@ -1,9 +1,12 @@
 if not glon then require("glon") end
 
+local last_glon_error = ""
+
 --- Encodes <data> into a string, using [[GLON]].
 e2function string glonEncode(array data)
 	local ok, ret = pcall(glon.encode, data)
 	if not ok then
+		last_glon_error = ret
 		ErrorNoHalt("glon.encode error: "..ret)
 		return ""
 	end
@@ -18,6 +21,7 @@ e2function string glonEncode(table data) = e2function string glonEncode(array da
 e2function array glonDecode(string data)
 	local ok, ret = pcall(glon.decode, data)
 	if not ok then
+		last_glon_error = ret
 		ErrorNoHalt("glon.decode error: "..ret)
 		return {}
 	end
@@ -29,11 +33,16 @@ end
 e2function table glonDecodeTable(string data)
 	local ok, ret = pcall(glon.decode, data)
 	if not ok then
+		last_glon_error = ret
 		ErrorNoHalt("glon.decode error: "..ret)
 		return {}
 	end
 
 	return ret or {}
+end
+
+e2function string glonError()
+	return last_glon_error
 end
 
 hook.Add("InitPostEntity", "wire_expression2_glonfix", function()

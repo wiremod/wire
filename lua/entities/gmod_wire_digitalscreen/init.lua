@@ -23,7 +23,7 @@ function ENT:Initialize()
 	self.ScreenWidth = 32
 	self.ScreenHeight = 32
 
-	self.DataCache = WireLib.containers.new(WireLib.containers.deque)
+	self.DataCache = WireLib.containers.deque:new()
 
 	self.IgnoreDataTransfer = false
 end
