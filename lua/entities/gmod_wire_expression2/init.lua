@@ -140,6 +140,7 @@ end
 
 function ENT:OnRemove( )
 	if not self.error then -- make sure destruct hooks aren't called twice (once on error, once on remove)
+		self.error = true
 		self:PCallHook('destruct')
 	end
 end

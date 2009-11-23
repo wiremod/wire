@@ -187,7 +187,6 @@ do -- containers
 		function autocleanup:__index(index)
 			local data  = rawget(self, "data")
 
-			if not index then debug.Trace() end
 			local element = data[index]
 			if element then return element end
 
