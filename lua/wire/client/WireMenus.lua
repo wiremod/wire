@@ -13,7 +13,7 @@ local Wire_Categories = {
 	"Wire - I/O",
 	"Wire - Physics",
 	"Wire - Tools",
-	"Administration",
+--	"Administration",    --unused
 }
 
 local function WireTab()
@@ -33,7 +33,7 @@ end
 hook.Add( "AddToolMenuTabs", "WireTab", WireTab)
 
 
-
+--[[
 -- TODO: add these to the device files themselves???
 local devs = {
 	["#Max Wiremod Wheels"] 			= "wheels",
@@ -93,4 +93,4 @@ local function AddWireAdminControlPanelMenu()
 	spawnmenu.AddToolMenuOption("Wire", "Administration", "WireAdminControlPanel", "Max Wire Devices", "", "", BuildAdminControlPanel, {})
 end
 hook.Add("PopulateToolMenu", "AddAddWireAdminControlPanelMenu", AddWireAdminControlPanelMenu)
-
+]]--

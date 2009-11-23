@@ -7,25 +7,6 @@ local Radio_Entities = {}
 function Radio_Register(ent)
 	table.insert(Radio_Entities, ent)
 end
-/*
-function Radio_Update() //FIXME
-	for ks,vs in ipairs(Radio_Entities) do
-		if (not IsEntity(vs.Entity)) then //Invalid radio
-			table.remove(Radio_Entities, ks)
-		else
-			if (vs.Transmitting == true) then //Radio has something to transmit
-				for kr,vr in ipairs(Radio_Entities) do
-					if (not IsEntity(vr.Entity)) then
-						table.remove(Radio_Entities, vr)
-					elseif (ks ~= kr) then
-						vs.TransmitTo(vr)
-					end
-				end
-			end
-		end
-	end
-end
-hook.Add("Think", "RadioLib_Think", Radio_Update)*/
 
 function Radio_Unregister(ent)
 	for k,v in ipairs(Radio_Entities) do
