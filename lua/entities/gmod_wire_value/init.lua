@@ -68,7 +68,8 @@ function ENT:Initialize()
 end
 
 function ENT:Setup(values)
-	self.value = table.Copy(values) -- for advdupe
+	self.value = values -- for advdupe
+	values = table.Copy(values)
 
 	local adjoutputs, adjtypes = {}, {}
 	for k,v in pairs(values) do
