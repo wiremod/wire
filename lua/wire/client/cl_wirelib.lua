@@ -283,7 +283,7 @@ function Wire_DrawTracerBeam( ent, beam_num, hilight, beam_length )
 		trace.start = start
 		trace.endpos = ent.endpos
 		trace.filter = { ent }
-		if (ent:GetNetworkedBool("TraceWater")) then trace.mask = MASK_ALL end
+		if ent:GetNetworkedBool("TraceWater") then trace.mask = MASK_ALL end
 		trace = util.TraceLine(trace)
 
 		render.SetMaterial(beam_mat)
@@ -313,3 +313,27 @@ if not CanRunConsoleCommand then
 		hook.Remove("OnEntityCreated", "CanRunConsoleCommand")
 	end)
 end
+
+local ent_tool_mappings = {
+	prop_physics = "!weapon_physgun",
+	gmod_wire_cameracontroller = "wire_cam",
+	gmod_wire_cd_lock = "wire_cd_ray",
+	gmod_wire_vectorthruster = "wire_vthruster",
+}
+
+concommand.Add("gmod_tool_auto", function(ply, command, args)
+	local trace = ply:GetEyeTrace()
+	local ent = trace.Entity
+	local class = ent:GetClass()
+	local toolmode = ent_tool_mappings[class] or class:match("^gmod_(.*)$")
+
+	if not toolmode then return end
+	local weapon = toolmode:match("^!(.*)$")
+	if weapon then
+		RunConsoleCommand( "use", weapon )
+		return
+	end
+
+	RunConsoleCommand( "gmod_tool", toolmode )
+	RunConsoleCommand( "tool_" .. toolmode )
+end)
