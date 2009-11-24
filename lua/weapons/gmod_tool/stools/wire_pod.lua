@@ -67,7 +67,7 @@ function TOOL:LeftClick(trace)
 
 	local ply = self:GetOwner()
 
-	if trace.Entity:IsValid() and trace.Entity:GetClass() == "gmod_wire_pod" and trace.Entity:GetTable().pl == ply then
+	if trace.Entity:IsValid() and trace.Entity:GetClass() == "gmod_wire_pod" and trace.Entity.pl == ply then
 		trace.Entity:SetKeys(ParseKeys(self:GetClientInfo("Keys")))
 		return true
 	end

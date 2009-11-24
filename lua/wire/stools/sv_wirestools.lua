@@ -14,7 +14,7 @@ function WireToolMakeGate( self, trace, ply )
 
 	if trace.Entity:IsValid() and trace.Entity:GetClass() == "gmod_wire_gate" and trace.Entity.pl == ply then
 		trace.Entity:Setup( GateActions[action], noclip )
-		trace.Entity:GetTable().action = action
+		trace.Entity.action = action
 		return true
 	end
 

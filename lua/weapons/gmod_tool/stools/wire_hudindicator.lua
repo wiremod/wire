@@ -183,16 +183,16 @@ function TOOL:RightClick( trace )
 		return false
 	end
 
-	if (!trace.Entity:GetTable():CheckRegister(ply)) then
+	if (!trace.Entity:CheckRegister(ply)) then
 		// Has the creator allowed this HUD Indicator to be hooked?
-		if (!trace.Entity:GetTable().AllowHook) then
+		if (!trace.Entity.AllowHook) then
 			WireLib.AddNotify(self:GetOwner(), "You are not allowed to hook this HUD Indicator.", NOTIFY_GENERIC, 7)
 			return false
 		end
 
-		trace.Entity:GetTable():RegisterPlayer(ply, hookhidehud)
+		trace.Entity:RegisterPlayer(ply, hookhidehud)
 	else
-		trace.Entity:GetTable():UnRegisterPlayer(ply)
+		trace.Entity:UnRegisterPlayer(ply)
 	end
 
 	return true
@@ -227,7 +227,7 @@ function TOOL:Reload( trace )
 			end
 
 			local ent = self:GetEnt(1)
-			local bool = ent:GetTable():LinkVehicle(trace.Entity)
+			local bool = ent:LinkVehicle(trace.Entity)
 
 			if (!bool) then
 				WireLib.AddNotify(self:GetOwner(), "Could not link HUD Indicator!", NOTIFY_GENERIC, 7)
@@ -235,7 +235,7 @@ function TOOL:Reload( trace )
 			end
 		else
 			// Unlink HUD Indicator from this vehicle
-			trace.Entity:GetTable():UnLinkVehicle()
+			trace.Entity:UnLinkVehicle()
 		end
 
 		self:ClearObjects()
@@ -366,7 +366,7 @@ function TOOL:Think()
 			local trace = util.TraceLine(tr)
 
 			if (trace.Hit && trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_hudindicator" && trace.Entity:GetPlayer() != ply) then
-				local currentcheck = trace.Entity:GetTable():CheckRegister(ply)
+				local currentcheck = trace.Entity:CheckRegister(ply)
 				if (currentcheck != self.LastRegisterCheck) then
 					self.LastRegisterCheck = currentcheck
 					self:GetWeapon():SetNetworkedBool("HUDIndicatorCheckRegister", currentcheck)

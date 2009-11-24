@@ -37,7 +37,7 @@ function TOOL:LeftClick( trace )
 	local model = self:GetClientInfo( "Model" )
 	local flim = self:GetClientNumber( "forcelim" )
 
-	if ( trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_nailer" && trace.Entity:GetTable().pl == ply ) then
+	if ( trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_nailer" && trace.Entity.pl == ply ) then
 		trace.Entity:Setup( flim )
 		trace.Entity.Flim = flim
 		return true

@@ -34,7 +34,7 @@ function TOOL:LeftClick(trace)
 	local delay			= self:GetClientNumber("delay", 0)
 	local undo_delay	= self:GetClientNumber("undo_delay", 0)
 
-	if ent:GetClass() == "gmod_wire_spawner" && ent:GetTable().pl == pl then
+	if ent:GetClass() == "gmod_wire_spawner" && ent.pl == pl then
 		local spawner = ent
 
 		// In multiplayer we clamp the delay to help prevent people being idiots

@@ -40,7 +40,7 @@ function TOOL:LeftClick( trace )
 	local range = self:GetClientNumber("Range")
 	local model = self:GetClientInfo("Model")
 
-	if ( trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_user" && trace.Entity:GetTable().pl == ply ) then
+	if ( trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_user" && trace.Entity.pl == ply ) then
 		trace.Entity:Setup(range)
 		trace.Entity.Range = range
 		return true

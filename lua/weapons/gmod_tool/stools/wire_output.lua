@@ -95,7 +95,7 @@ if (SERVER) then
 		}
 		table.Merge(wire_output:GetTable(), ttable )
 
-		wire_output:GetTable():ShowOutput()
+		wire_output:ShowOutput()
 		pl:AddCount( "wire_outputs", wire_output )
 
 		return wire_output

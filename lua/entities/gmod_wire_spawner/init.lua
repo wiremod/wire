@@ -162,7 +162,7 @@ function ENT:TriggerInput(iname, value)
 
 			local TimedSpawn = 	function ( ent, pl )
 				if not ValidEntity(ent) then return end
-				ent:GetTable():DoSpawn( pl )
+				ent:DoSpawn( pl )
 			end
 
 			timer.Simple( self.delay, TimedSpawn, self.Entity, pl )

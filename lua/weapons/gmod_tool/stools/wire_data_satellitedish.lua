@@ -33,7 +33,7 @@ function TOOL:LeftClick( trace )
 
 	self:SetStage(0)
 
-	if ( trace.Entity:IsValid() and trace.Entity:GetClass() == "gmod_wire_data_satellitedish" and trace.Entity:GetTable().pl == ply ) then
+	if ( trace.Entity:IsValid() and trace.Entity:GetClass() == "gmod_wire_data_satellitedish" and trace.Entity.pl == ply ) then
 		local satellite_dish = trace.Entity
 		if IsValid(satellite_dish.Transmitter) then
 			self:GetWeapon():SetNetworkedEntity( "WireSatelliteDishTransmitter", satellite_dish.Transmitter )
