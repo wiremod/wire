@@ -33,7 +33,6 @@ end
 hook.Add( "AddToolMenuTabs", "WireTab", WireTab)
 
 
---[[
 -- TODO: add these to the device files themselves???
 local devs = {
 	["#Max Wiremod Wheels"] 			= "wheels",
@@ -82,15 +81,16 @@ function AddWireAdminMaxDevice(pluralname, dev)
 	devs["Max Wiremod "..pluralname] = dev
 end
 
-local function BuildAdminControlPanel(Panel)
-	for name,dev in pairs(devs) do
-		local slider = Panel:NumSlider(name, "sbox_maxwire_"..dev, 0, 999, 0)
-		slider.dev = dev
+if SinglePlayer() then
+	local function BuildAdminControlPanel(Panel)
+		for name,dev in pairs(devs) do
+			local slider = Panel:NumSlider(name, "sbox_maxwire_"..dev, 0, 999, 0)
+			slider.dev = dev
+		end
 	end
-end
 
-local function AddWireAdminControlPanelMenu()
-	spawnmenu.AddToolMenuOption("Wire", "Administration", "WireAdminControlPanel", "Max Wire Devices", "", "", BuildAdminControlPanel, {})
+	local function AddWireAdminControlPanelMenu()
+		spawnmenu.AddToolMenuOption("Wire", "Administration", "WireAdminControlPanel", "Max Wire Devices", "", "", BuildAdminControlPanel, {})
+	end
+	hook.Add("PopulateToolMenu", "AddAddWireAdminControlPanelMenu", AddWireAdminControlPanelMenu)
 end
-hook.Add("PopulateToolMenu", "AddAddWireAdminControlPanelMenu", AddWireAdminControlPanelMenu)
-]]--
