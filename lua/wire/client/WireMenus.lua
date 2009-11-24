@@ -13,7 +13,7 @@ local Wire_Categories = {
 	"Wire - I/O",
 	"Wire - Physics",
 	"Wire - Tools",
---	"Administration",    --unused
+	"Administration",
 }
 
 local function WireTab()
