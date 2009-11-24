@@ -468,6 +468,14 @@ e2function void holoReset(index, string model, vector scale, vector color, strin
 	rescale(Holo, scale)
 end
 
+e2function number holoCanCreate()
+	if CheckSpawnTimer(self) then
+		return 1
+	end
+
+	return 0
+end
+
 /******************************************************************************/
 
 __e2setcost(5) -- temporary
