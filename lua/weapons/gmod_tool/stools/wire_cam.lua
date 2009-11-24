@@ -32,7 +32,7 @@ function TOOL:LeftClick( trace )
 
 	local ply = self:GetOwner()
 
-	if ( trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_cameracontroller" && trace.Entity:GetTable().pl == ply ) then
+	if ( trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_cameracontroller" && trace.Entity.pl == ply ) then
 		return true
 	end
 
@@ -110,7 +110,7 @@ if (SERVER) then
 		wire_cam:Spawn()
 		wire_cam:Setup(pl,Static)
 
-		wire_cam:GetTable():SetPlayer( pl )
+		wire_cam:SetPlayer( pl )
 
 		local ttable = {
 			pl = pl,

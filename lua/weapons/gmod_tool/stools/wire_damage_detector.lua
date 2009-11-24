@@ -35,7 +35,7 @@ function TOOL:LeftClick( trace )
 	local ply = self:GetOwner()
 	local includeconstrained = self:GetClientNumber( "includeconstrained" )
 
-	if ( trace.Entity:IsValid() and trace.Entity:GetClass() == "gmod_wire_damage_detector" and trace.Entity:GetTable().pl == ply ) then
+	if ( trace.Entity:IsValid() and trace.Entity:GetClass() == "gmod_wire_damage_detector" and trace.Entity.pl == ply ) then
 		-- Update the detector's settings
 		trace.Entity:Setup( includeconstrained )
 		return true
@@ -103,7 +103,7 @@ if ( SERVER ) then
 		wire_damage_detector:Setup( includeconstrained )
 		wire_damage_detector:LinkEntity( wire_damage_detector )	-- Link the detector to itself by default
 
-		wire_damage_detector:GetTable():SetPlayer( pl )
+		wire_damage_detector:SetPlayer( pl )
 
 		local ttable = {
 		    includeconstrained = includeconstrained,

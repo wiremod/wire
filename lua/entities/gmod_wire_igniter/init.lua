@@ -81,7 +81,7 @@ function MakeWireIgniter( pl, Pos, Ang, model, TargetPlayers, Range )
 	wire_igniter:Spawn()
 	wire_igniter:Setup(TargetPlayers,Range)
 
-	wire_igniter:GetTable():SetPlayer( pl )
+	wire_igniter:SetPlayer( pl )
 
 	local ttable = {
 		TargetPlayers = TargetPlayers,

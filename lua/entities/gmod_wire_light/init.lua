@@ -197,8 +197,8 @@ function MakeWireLight( pl, Pos, Ang, model, directional, radiant, glow, nocolli
 	wire_light:SetModel( model )
 	wire_light:Spawn()
 
-	wire_light:GetTable():Setup(directional, radiant, glow)
-	wire_light:GetTable():SetPlayer(pl)
+	wire_light:Setup(directional, radiant, glow)
+	wire_light:SetPlayer(pl)
 
 	if wire_light:GetPhysicsObject():IsValid() then
 		local Phys = wire_light:GetPhysicsObject()

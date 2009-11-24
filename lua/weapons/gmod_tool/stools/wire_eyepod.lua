@@ -192,7 +192,7 @@ if (SERVER) then
 		ent:SetPlayer(pl)
 		ent:Setup(DefaultToZero,ShowRateOfChange,ClampXMin,ClampXMax,ClampYMin,ClampYMax, ClampX, ClampY)
 
-		ent:GetTable():SetPlayer( pl )
+		ent:SetPlayer( pl )
 
 		local ttable = {
 		    DefaultToZero = DefaultToZero,

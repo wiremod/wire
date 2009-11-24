@@ -55,10 +55,10 @@ function TOOL:LeftClick( trace )
 	delay = math.Clamp( delay, 0.05, 20 )
 
 	// We shot an existing emitter - just change its values
-	if ( trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_fx_emitter" && trace.Entity:GetTable().pl == ply ) then
+	if ( trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_fx_emitter" && trace.Entity.pl == ply ) then
 
-		if !trace.Entity.Inputs.Delay.Src then trace.Entity:GetTable():SetDelay( delay ) end
-		if !trace.Entity.Inputs.On.Src then trace.Entity:GetTable():SetEffect( effect ) end
+		if !trace.Entity.Inputs.Delay.Src then trace.Entity:SetDelay( delay ) end
+		if !trace.Entity.Inputs.On.Src then trace.Entity:SetEffect( effect ) end
 		return true
 
 	end
@@ -89,7 +89,7 @@ function TOOL:LeftClick( trace )
 
 		// >:(
 		wire_fx_emitter:GetPhysicsObject():EnableCollisions( false )
-		wire_fx_emitter:GetTable().nocollide = true
+		wire_fx_emitter.nocollide = true
 
 	end
 
@@ -121,9 +121,9 @@ if (SERVER) then
 		wire_fx_emitter:SetModel(model or "models/props_lab/tpplug.mdl")
 		wire_fx_emitter:Spawn()
 
-		wire_fx_emitter:GetTable():SetDelay( delay )
-		wire_fx_emitter:GetTable():SetEffect( effect )
-		wire_fx_emitter:GetTable():SetPlayer( ply )
+		wire_fx_emitter:SetDelay( delay )
+		wire_fx_emitter:SetEffect( effect )
+		wire_fx_emitter:SetPlayer( ply )
 
 		if ( nocollide == true ) then wire_fx_emitter:GetPhysicsObject():EnableCollisions( false ) end
 

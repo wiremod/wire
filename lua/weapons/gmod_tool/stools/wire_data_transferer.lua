@@ -42,7 +42,7 @@ function TOOL:LeftClick( trace )
 
 	local ply = self:GetOwner()
 
-	if ( trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_data_transferer" && trace.Entity:GetTable().pl == ply ) then
+	if ( trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_data_transferer" && trace.Entity.pl == ply ) then
 		return true
 	end
 
@@ -89,7 +89,7 @@ if (SERVER) then
 		wire_data_transferer:Spawn()
 		wire_data_transferer:Setup(Range,DefaultZero,IgnoreZero)
 
-		wire_data_transferer:GetTable():SetPlayer( pl )
+		wire_data_transferer:SetPlayer( pl )
 
 		local ttable = {
 		    Range = Range,

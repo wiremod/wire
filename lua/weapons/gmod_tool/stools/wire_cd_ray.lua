@@ -36,7 +36,7 @@ function TOOL:LeftClick(trace)
 
 	local ply = self:GetOwner()
 
-	if ( trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_cd_ray" && trace.Entity:GetTable().pl == ply ) then
+	if ( trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_cd_ray" && trace.Entity.pl == ply ) then
 		return true
 	end
 
@@ -76,7 +76,7 @@ function TOOL:RightClick(trace)
 
 	local ply = self:GetOwner()
 
-	if ( trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_cd_lock" && trace.Entity:GetTable().pl == ply ) then
+	if ( trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_cd_lock" && trace.Entity.pl == ply ) then
 		return true
 	end
 
@@ -122,7 +122,7 @@ if (SERVER) then
 		wire_cd_ray:Spawn()
 		wire_cd_ray:Setup(Range,DefaultZero)
 
-		wire_cd_ray:GetTable():SetPlayer( pl )
+		wire_cd_ray:SetPlayer( pl )
 
 		local ttable = {
 		    Range = Range,
@@ -148,7 +148,7 @@ if (SERVER) then
 		wire_cd_lock:SetModel( model )
 		wire_cd_lock:Spawn()
 
-		wire_cd_lock:GetTable():SetPlayer( pl )
+		wire_cd_lock:SetPlayer( pl )
 
 		local ttable = {
 		    Range = Range,

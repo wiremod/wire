@@ -115,7 +115,7 @@ do --wire_simple_explosive
 	function TOOL:RightClick( trace )
 		local ply = self:GetOwner()
 		--shot an explosive, update it instead
-		if ( trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_simple_explosive" && trace.Entity:GetTable().pl == ply ) then
+		if ( trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_simple_explosive" && trace.Entity.pl == ply ) then
 			local _trigger			= self:GetClientNumber( "tirgger" )
 			local _damage 			= math.Clamp( self:GetClientNumber( "damage" ), 0, 1500 )
 			local _removeafter		= self:GetClientNumber( "removeafter" ) == 1
@@ -210,9 +210,9 @@ do --wire_wheel
 
 		local wheelEnt = trace.Entity
 
-		-- Only change your own wheels..
-		if wheelEnt:GetTable():GetPlayer():IsValid() and
-			 wheelEnt:GetTable():GetPlayer() != self:GetOwner() then
+		-- Only change your own wheels...
+		if wheelEnt:GetPlayer():IsValid() and
+			 wheelEnt:GetPlayer() != self:GetOwner() then
 			 return false
 		end
 
