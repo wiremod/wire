@@ -6,11 +6,11 @@ Rewrite that made it work: TomyLobo
 
 -- holds the currently registered signal handlers. Format:
 -- scopes[player|1|2][group][name][context] = true|nil
-local scopes = {{}, {}}
+local scopes = WireLib.containers.autocleanup:new(3)
 
 -- holds the currently queued signals. Format:
 -- signal_queue[group][name][receiverid] = { group, name, scope, sender, senderid }
-local signal_queue = {}
+local signal_queue = WireLib.containers.autocleanup:new(2)
 
 -- holds the current signal data. Format:
 -- currentSignal = nil|{ group, name, scope, sender, senderid }
@@ -36,14 +36,14 @@ local function checkSignals()
 	local queue = signal_queue
 
 	-- clear the signal queue
-	signal_queue = {}
+	signal_queue = WireLib.containers.autocleanup:new(2)
 
 	-- loop through all queued signal groups
-	for group,signals in pairs(queue) do
+	for group,signals in pairs_ac(queue) do
 		-- loop through all queued signals in the group
-		for name,receivers in pairs(signals) do
+		for name,receivers in pairs_ac(signals) do
 			-- ... and all receivers
-			for receiverid,signaldata in pairs(receivers) do
+			for receiverid,signaldata in pairs_ac(receivers) do
 				-- and trigger all signals on the queue
 				triggerSignal(receiverid, signaldata)
 			end
@@ -56,10 +56,6 @@ end
 local function postSignal(receiverid, group, name, scope, sender, senderid)
 	-- don't send the signal back to the sender
 	if senderid == receiverid then return end
-
-	-- create signal's spot on the queue, if it doesnt exist
-	if not signal_queue[group] then signal_queue[group] = {} end
-	if not signal_queue[group][name] then signal_queue[group][name] = {} end
 
 	-- add the given signal to the queue
 	signal_queue[group][name][receiverid] = { group, name, scope, sender, senderid }
@@ -76,24 +72,16 @@ local function broadcastSignal(group, name, scope, sender, filter_player)
 
 	local sender_player = sender.player
 
-	local groups
-	if scope == 0 then
-		-- scope 0 => read from scopes[sender.player]
-		groups = scopes[sender_player]
-	else
-		-- scope 1/2 => read from scopes[scope]
-		groups = scopes[scope]
-	end
-
-	if not groups[group] then return end
-	local contexts = groups[group][name]
+	-- scope 0 => read from scopes[sender.player]
+	-- scope 1/2 => read from scopes[scope]
+	local contexts = scopes[scope == 0 and sender_player or scope][group][name]
 
 	-- there was no signal registered for the selected scope/group/name combination.
 	if not contexts then return end
 
 	local senderid = sender:EntIndex()
 
-	for receiverid,_ in pairs(contexts) do
+	for receiverid,_ in pairs_ac(contexts) do
 		local receiver_player = Entity(receiverid).player
 		if (not filter_player or receiver_player == filter_player) and (scope ~= 2 or receiver_player ~= sender_player) then
 			postSignal(receiverid, group, name, scope, sender, senderid)
@@ -105,28 +93,6 @@ end
 local function table_IsEmpty(t) return not next(t) end
 
 local function setGroup(self, group)
-	local oldgroup = self.data.signalgroup
-
-	-- no change? don't waste precious cycles and get out here
-	if oldgroup == group then return end
-
-	-- get the signal scope
-	local s = scopes[self.player]
-	-- remove the old group, if empty
-	if s[oldgroup] and table_IsEmpty(s[oldgroup]) then s[oldgroup] = nil end
-	-- set up the new group
-	if not s[group] then s[group] = {} end
-
-	-- same for scope 1
-	local s = scopes[1]
-	if s[oldgroup] and table_IsEmpty(s[oldgroup]) then s[oldgroup] = nil end
-	if not s[group] then s[group] = {} end
-
-	-- same for scope 2
-	local s = scopes[2]
-	if s[oldgroup] and table_IsEmpty(s[oldgroup]) then s[oldgroup] = nil end
-	if not s[group] then s[group] = {} end
-
 	-- set the current group to the new group
 	self.data.signalgroup = group
 end
@@ -153,14 +119,8 @@ e2function void runOnSignal(string name, scope, activate)
 	activate = activate ~= 0 or nil
 	if scope == 0 then scope = self.player end
 
-	-- fetch the signal group
-	local signals = scopes[scope][self.data.signalgroup]
-
-	-- if there is no entry for the signal in the group yet, create it
-	if not signals[name] then signals[name] = {} end
-
 	-- (un-)register signal
-	signals[name][self.entity:EntIndex()] = activate
+	scopes[scope][self.data.signalgroup][name][self.entity:EntIndex()] = activate
 end
 
 --[[************************************************************************]]--
@@ -246,7 +206,6 @@ e2function void signalSendDirect(string name, entity receiver)
 	local group = self.data.signalgroup
 
 	-- check whether the target entity accepts signals from the "anyone" scope.
-	if not scopes[1][group][name] then return end
 	if not scopes[1][group][name][receiverid] then return end
 
 	-- send the signal
@@ -262,44 +221,21 @@ end
 --[[************************************************************************]]--
 
 registerCallback("construct",function(self)
-	-- if there is no personal scope for us yet, create it.
-	if not scopes[self.player] then scopes[self.player] = {} end
-
-	-- place a bogus group into the personal scope to mark it as used.
-	scopes[self.player][self] = {{{}}}
-	--                          ^^^-- context
-	--                          |+-- signal
-	--                          +-- group
-
 	-- set a default group
 	setGroup(self, "default")
 end)
 
 registerCallback("destruct",function(self)
 	-- loop through all scopes, ...
-	for scope,groups in pairs(scopes) do
+	for scope,groups in pairs_ac(scopes) do
 		-- ... all groups ...
-		for group, signals in pairs(groups) do
+		for group, signals in pairs_ac(groups) do
 			-- ... and all signals ...
-			for name, contexts in pairs(signals) do
+			for name, contexts in pairs_ac(signals) do
 				-- to remove all signals the chip registered for.
 				contexts[self] = nil
-
-				-- are we the last chip that received this signal?
-				if table_IsEmpty(contexts) then signals[name] = nil end
 			end
-
-			-- was this the last signal in this group?
-			if table_IsEmpty(signals) then groups[group] = nil end
 		end
-	end
-
-	-- remove the bogus group from the personal scope
-	if (scopes[self.player]) then
-		scopes[self.player][self] = nil
-
-		-- and check whether this was the last group
-		if table_IsEmpty(scopes[self.player]) then scopes[self.player] = nil end
 	end
 
 	-- broadcast the on-remove signal, if one was registered

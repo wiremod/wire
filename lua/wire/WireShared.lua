@@ -194,28 +194,26 @@ do -- containers
 			if depth == 0 then return nil end
 			element = new(autocleanup, depth-1, self, index)
 
-			data[index] = element
 			return element
 		end
 
 		function autocleanup:__newindex(index, value)
 			local data   = rawget(self, "data")
 			local parent = rawget(self, "parent")
+			local parentindex = rawget(self, "parentindex")
 
+			if value ~= nil and not next(data) and parent then parent[parentindex] = self end
 			data[index] = value
-			if value == nil and not next(data) and parent then
-				local parentindex = rawget(self, "parentindex")
-				parent[parentindex] = nil
-			end
+			if value == nil and not next(data) and parent then parent[parentindex] = nil end
 		end
 
-		function autocleanup:pairs()
+		function autocleanup:__pairs()
 			local data = rawget(self, "data")
 
 			return pairs(data)
 		end
 
-		pairs_ac = autocleanup.pairs
+		pairs_ac = autocleanup.__pairs
 	end -- class autocleanup
 end -- containers
 
