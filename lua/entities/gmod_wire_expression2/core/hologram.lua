@@ -469,7 +469,7 @@ e2function void holoReset(index, string model, vector scale, vector color, strin
 end
 
 e2function number holoCanCreate()
-	if CheckSpawnTimer(self) then
+	if CheckSpawnTimer(self) and PlayerAmount[self.player] < GetConVar("wire_holograms_max"):GetInt() then
 		return 1
 	end
 
