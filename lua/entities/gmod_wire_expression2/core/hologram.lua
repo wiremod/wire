@@ -457,6 +457,7 @@ e2function void holoDeleteAll()
 end
 
 e2function void holoReset(index, string model, vector scale, vector color, string color)
+	if !ModelList[model] then return end
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
 
@@ -478,6 +479,13 @@ e2function void holoScale(index, vector scale)
 	rescale(Holo, scale)
 end
 
+e2function vector holoScale(index)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return end
+
+	return Holo.scale or Vector(0,0,0)
+end
+
 e2function void holoScaleUnits(index, vector size)
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
@@ -488,6 +496,16 @@ e2function void holoScaleUnits(index, vector size)
 	z = size[3] / propsize.z
 
 	rescale(Holo, Vector(x, y, z))
+end
+
+e2function vector holoScaleUnits(index)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return end
+
+	local scale = Holo.scale
+	local propsize = Holo.ent:OBBMaxs() - Holo.ent:OBBMins()
+
+	return Vector(scale[1] * propsize.x, scale[2] * propsize.y, scale[3] * propsize.z)
 end
 
 e2function void holoPos(index, vector position)
