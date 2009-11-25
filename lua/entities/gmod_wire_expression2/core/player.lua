@@ -234,9 +234,11 @@ end)
 
 /******************************************************************************/
 
+local Trusts
+
 if CPPI and _R.Player.CPPIGetFriends then
 
-	local function Trusts(ply, ofwhom)
+	function Trusts(ply, ofwhom)
 		if ply == ofwhom then return true end
 		local friends = ofwhom:CPPIGetFriends()
 		for _,friend in pairs(friends) do
@@ -263,6 +265,10 @@ if CPPI and _R.Player.CPPIGetFriends then
 
 else
 
+	function Trusts(ply, ofwhom)
+		return ply == ofwhom
+	end
+
 	e2function array entity:friends()
 		return {}
 	end
@@ -271,6 +277,46 @@ else
 		return friend == this and 1 or 0
 	end
 
+end
+
+
+local steamfriends = {}
+
+concommand.Add("wire_expression2_friend_status", function(ply, command, args)
+	local friends = {}
+
+	for index in args[1]:gmatch("[^,]") do
+		local n = tonumber(index)
+		if not n then return end
+		table.insert(friends, Entity(index))
+	end
+
+	steamfriends[ply:EntIndex()] = friends
+end)
+
+hook.Add("EntityRemoved", "wire_expression2_friend_status", function(ply)
+	steamfriends[ply:EntIndex()] = nil
+end)
+
+--- Returns an array containing <this>'s steam friends currently on the server
+e2function array entity:steamFriends()
+	if not validEntity(this) then return {} end
+	if not this:IsPlayer() then return {} end
+	if not Trusts(self.player, this) then return {} end
+
+	return steamfriends[this:EntIndex()] or {}
+end
+
+--- Returns 1 if <this> and <friend> are steam friends, 0 otherwise.
+e2function number entity:isSteamFriend(entity friend)
+	if not validEntity(this) then return 0 end
+	if not this:IsPlayer() then return 0 end
+	if not Trusts(self.player, this) then return 0 end
+
+	local friends = steamfriends[this:EntIndex()]
+	if not friends then return 0 end
+
+	return table.HasValue(friends, friend) and 1 or 0
 end
 
 /******************************************************************************/
