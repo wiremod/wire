@@ -339,7 +339,7 @@ local ent_tool_mappings = {
 	base_default_res_module = "sbep_res_mods",
 }
 
-local function lifesupport_mappings(class)
+local function ls3_mappings(class)
 	if class:match("^storage_.*)$") then return "ls3_receptacles" end
 	if class:match("^generator_.*$") then return "ls3_energysystems" end
 	if class:match("^other_.*$") then return "ls3_environmental_control" end
@@ -352,7 +352,7 @@ concommand.Add("gmod_tool_auto", function(ply, command, args)
 	local trace = ply:GetEyeTrace()
 	local ent = trace.Entity
 	local class = ent:GetClass()
-	local toolmode = ent_tool_mappings[class] or class:match("^gmod_(.*)$") or spacebuild_mappings(class)
+	local toolmode = ent_tool_mappings[class] or class:match("^gmod_(.*)$") or ls3_mappings(class)
 
 	if not toolmode then return end
 	local weapon = toolmode:match("^!(.*)$")
