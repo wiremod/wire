@@ -315,17 +315,44 @@ if not CanRunConsoleCommand then
 end
 
 local ent_tool_mappings = {
+	-- gmod
 	prop_physics = "!weapon_physgun",
+	prop_ragdoll = "!weapon_physgun",
+
+	-- wiremod
 	gmod_wire_cameracontroller = "wire_cam",
 	gmod_wire_cd_lock = "wire_cd_ray",
 	gmod_wire_vectorthruster = "wire_vthruster",
+
+	-- resource distribution
+	resource_node = "resourcenodes",
+	rd_pump = "pumps",
+
+	-- life support
+	other_screen = "ls3_other",
+	other_lamp = "ls3_other_lights",
+	other_spotlight = "ls3_other_lights",
+
+	-- spacebuild
+	base_terraformer = "sb_terraformer",
+	nature_dev_tree = "sb_dev_plants",
+	base_default_res_module = "sbep_res_mods",
 }
+
+local function lifesupport_mappings(class)
+	if class:match("^storage_.*)$") then return "ls3_receptacles" end
+	if class:match("^generator_.*$") then return "ls3_energysystems" end
+	if class:match("^other_.*$") then return "ls3_environmental_control" end
+	if class:match("^base_.*$") then return "ls3_environmental_control" end
+	if class:match("^nature_.*$") then return "ls3_environmental_control" end
+	if class:match("^rd_.*_valve$") then return "valves" end
+end
 
 concommand.Add("gmod_tool_auto", function(ply, command, args)
 	local trace = ply:GetEyeTrace()
 	local ent = trace.Entity
 	local class = ent:GetClass()
-	local toolmode = ent_tool_mappings[class] or class:match("^gmod_(.*)$")
+	local toolmode = ent_tool_mappings[class] or class:match("^gmod_(.*)$") or spacebuild_mappings(class)
 
 	if not toolmode then return end
 	local weapon = toolmode:match("^!(.*)$")
