@@ -238,11 +238,11 @@ local Trusts
 
 if CPPI and _R.Player.CPPIGetFriends then
 
-	function Trusts(ply, ofwhom)
-		if ply == ofwhom then return true end
-		local friends = ofwhom:CPPIGetFriends()
+	function Trusts(ply, whom)
+		if ply == whom then return true end
+		local friends = ply:CPPIGetFriends()
 		for _,friend in pairs(friends) do
-			if ply == friend then return true end
+			if whom == friend then return true end
 		end
 		return false
 	end
@@ -250,31 +250,31 @@ if CPPI and _R.Player.CPPIGetFriends then
 	e2function array entity:friends()
 		if not validEntity(this) then return {} end
 		if not this:IsPlayer() then return {} end
-		if not Trusts(self.player, this) then return {} end
+		if not Trusts(this, self.player) then return {} end
 
 		return this:CPPIGetFriends()
 	end
 
-	e2function number entity:trusts(entity friend)
+	e2function number entity:trusts(entity whom)
 		if not validEntity(this) then return 0 end
 		if not this:IsPlayer() then return 0 end
-		if not Trusts(self.player, this) then return 0 end
+		if not Trusts(this, self.player) then return 0 end
 
-		return Trusts(friend, this) and 1 or 0
+		return Trusts(this, whom) and 1 or 0
 	end
 
 else
 
-	function Trusts(ply, ofwhom)
-		return ply == ofwhom
+	function Trusts(ply, whom)
+		return ply == whom
 	end
 
 	e2function array entity:friends()
 		return {}
 	end
 
-	e2function number entity:trusts(entity friend)
-		return friend == this and 1 or 0
+	e2function number entity:trusts(entity whom)
+		return whom == this and 1 or 0
 	end
 
 end
@@ -302,7 +302,7 @@ end)
 e2function array entity:steamFriends()
 	if not validEntity(this) then return {} end
 	if not this:IsPlayer() then return {} end
-	if not Trusts(self.player, this) then return {} end
+	if not Trusts(this, self.player) then return {} end
 
 	return steamfriends[this:EntIndex()] or {}
 end
@@ -311,7 +311,7 @@ end
 e2function number entity:isSteamFriend(entity friend)
 	if not validEntity(this) then return 0 end
 	if not this:IsPlayer() then return 0 end
-	if not Trusts(self.player, this) then return 0 end
+	if not Trusts(this, self.player) then return 0 end
 
 	local friends = steamfriends[this:EntIndex()]
 	if not friends then return 0 end
