@@ -3,8 +3,11 @@ include( "shared.lua" )
 ENT.RenderGroup = RENDERGROUP_BOTH
 
 local scales = {}
+local clips = {}
+
 hook.Add("EntityRemoved", "gmod_wire_hologram", function(ent)
 	scales[ent:EntIndex()] = nil
+	clips[ent:EntIndex()] = nil
 end)
 
 local blocked = {}
@@ -64,8 +67,17 @@ function()
 	return names
 end)
 
+//Thanks Viktor :)
+local function GetDistance(Pos, Dir)
+	return Dir:Dot(Pos)
+end
+
 function ENT:Initialize( )
 	self:DoScale()
+
+	self:SetClipEnabled()
+	self:SetClip()
+
 	local ownerid = self:GetNetworkedInt("ownerid")
 	self.blocked = blocked[ownerid] or false
 end
@@ -73,6 +85,12 @@ end
 function ENT:Draw()
 	if self.blocked then return end
 	self.BaseClass.Draw(self)
+
+	local clip = clips[self:EntIndex()]
+
+	if clip and clip.enabled and clip.isglobal == 0 then
+		self:SetClip()
+	end
 end
 
 function ENT:DoScale()
@@ -93,6 +111,29 @@ function ENT:DoScale()
 	self:SetRenderBounds( propmax, propmin )
 end
 
+function ENT:SetClipEnabled()
+	local clip = clips[self:EntIndex()]
+
+	if clip and clip.enabled != nil then
+		self:SetRenderClipPlaneEnabled( clip.enabled )
+	end
+end
+
+function ENT:SetClip()
+	local clip = clips[self:EntIndex()]
+
+	if clip and clip.normal and clip.origin and clip.isglobal then
+		if clip.isglobal == 1 then
+			self:SetRenderClipPlane(clip.normal, GetDistance(clip.origin, clip.normal))
+		else
+			local norm = self:LocalToWorldAngles(clip.normal:Angle()):Forward()
+			local origin = self:LocalToWorld(clip.origin)
+
+			self:SetRenderClipPlane(norm, GetDistance(origin, norm))
+		end
+	end
+end
+
 local function SetScale(entindex, scale)
 	scales[entindex] = scale
 	local prop = ents.GetByIndex(entindex)
@@ -108,5 +149,33 @@ usermessage.Hook("wire_holograms_set_scale", function( um )
 
 		SetScale(index, scale)
 		index = um:ReadShort()
+	end
+end)
+
+usermessage.Hook("wire_holograms_clip", function( um )
+	local idx = um:ReadShort()
+
+	while idx != 0 do
+		clips[idx] = clips[idx] or {}
+		local clip = clips[idx]
+		local ent = ents.GetByIndex(idx)
+
+		if um:ReadBool() then
+			clip.enabled = um:ReadBool()
+
+			if ent and ent.SetClipEnabled then
+				ent:SetClipEnabled()
+			end
+		else
+			clip.origin = um:ReadVector()
+			clip.normal = um:ReadVector()
+			clip.isglobal = um:ReadShort()
+
+			if ent and ent.SetClip and clip.isglobal == 1 then
+				ent:SetClip()
+			end
+		end
+
+		idx = um:ReadShort()
 	end
 end)

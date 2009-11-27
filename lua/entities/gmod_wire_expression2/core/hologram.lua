@@ -195,6 +195,7 @@ end )
 /******************************************************************************/
 
 local scale_queue = {}
+local clip_queue = {}
 
 -- If no recipient is given, the umsg is sent to everyone (umsg.Start does that)
 local function flush_scale_queue(queue, recipient)
@@ -218,9 +219,47 @@ local function flush_scale_queue(queue, recipient)
 	umsg.End()
 end
 
+local function flush_clip_queue(queue, recipient)
+	if !queue then queue = clip_queue end
+	if #queue == 0 then return end
+
+	local bytes = 4
+
+	umsg.Start("wire_holograms_clip", recipient)
+		for _,Holo,clip in ipairs_map(queue, unpack) do
+			bytes = bytes + 3
+
+			if bytes > 255 then
+				umsg.Short(0)
+				umsg.End()
+				umsg.Start("wire_holograms_clip", recipient)
+
+				bytes = 7
+			end
+
+			umsg.Short(Holo.ent:EntIndex())
+
+			if clip and clip.enabled != nil then
+				umsg.Bool(true)
+				umsg.Bool(clip.enabled)
+			elseif clip and clip.origin and clip.normal and clip.isglobal then
+				umsg.Bool(false)
+
+				bytes = bytes + 26
+				umsg.Vector(clip.origin)
+				umsg.Vector(clip.normal)
+				umsg.Short(clip.isglobal)
+			end
+		end
+		umsg.Short(0)
+	umsg.End()
+end
+
 registerCallback("postexecute", function(self)
 	flush_scale_queue()
+	flush_clip_queue()
 	scale_queue = {}
+	clip_queue = {}
 end)
 
 local function rescale(Holo, scale)
@@ -238,18 +277,78 @@ local function rescale(Holo, scale)
 	end
 end
 
-hook.Add( "PlayerInitialSpawn", "wire_holograms_set_scales", function(ply)
+local function enable_clip(Holo, enabled)
+	Holo.clip = Holo.clip or {}
+	local clip = Holo.clip
+
+	if clip.enabled != enabled then
+		clip.enabled = enabled
+
+		table.insert(clip_queue, {
+			Holo,
+			{
+				enabled = enabled
+			}
+		} )
+	end
+end
+
+local function set_clip(Holo, origin, normal, isglobal)
+	Holo.clip = Holo.clip or {}
+	local clip = Holo.clip
+
+	if clip.origin != origin or clip.normal != normal or clip.isglobal != isglobal then
+		clip.origin = origin
+		clip.normal = normal
+		clip.isglobal = isglobal
+
+		table.insert(clip_queue, {
+			Holo,
+			{
+				origin = origin,
+				normal = normal,
+				isglobal = isglobal
+			}
+		} )
+	end
+end
+
+hook.Add( "PlayerInitialSpawn", "wire_holograms_set_vars", function(ply)
 	local queue = {}
+	local c_queue = {}
 
 	for pl,rep in pairs( E2HoloRepo ) do
 		for k,Holo in pairs( rep ) do
 			if Holo and validEntity(Holo.ent) then
 				table.insert(queue, { Holo, Holo.scale })
+
+				local clip = Holo.clip
+
+				if clip and clip.enabled != nil then
+					table.insert(c_queue, {
+						Holo,
+						{
+							enabled = clip.enabled
+						}
+					} )
+				end
+
+				if clip and clip.origin and clip.normal and clip.isglobal then
+					table.insert(c_queue, {
+						Holo,
+						{
+							origin = origin,
+							normal = normal,
+							isglobal = isglobal
+						}
+					} )
+				end
 			end
 		end
 	end
 
 	flush_scale_queue(queue, ply)
+	flush_clip_queue(c_queue, ply)
 end)
 
 /******************************************************************************/
@@ -468,12 +567,18 @@ e2function void holoReset(index, string model, vector scale, vector color, strin
 	rescale(Holo, scale)
 end
 
+__e2setcost(5)
+
 e2function number holoCanCreate()
 	if CheckSpawnTimer(self) and PlayerAmount[self.player] < GetConVar("wire_holograms_max"):GetInt() then
 		return 1
 	end
 
 	return 0
+end
+
+e2function number holoRemainingSpawns()
+	return self.data.holo.remainingSpawns
 end
 
 /******************************************************************************/
@@ -514,6 +619,24 @@ e2function vector holoScaleUnits(index)
 	local propsize = Holo.ent:OBBMaxs() - Holo.ent:OBBMins()
 
 	return Vector(scale[1] * propsize.x, scale[2] * propsize.y, scale[3] * propsize.z)
+end
+
+e2function void holoClipEnabled(index, enabled)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return end
+
+	if enabled == 1 then
+		enable_clip(Holo, true)
+	elseif enabled == 0 then
+		enable_clip(Holo, false)
+	end
+end
+
+e2function void holoClip(index, vector origin, vector normal, isglobal)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return end
+
+	set_clip(Holo, Vector(origin[1], origin[2], origin[3]), Vector(normal[1], normal[2], normal[3]), isglobal)
 end
 
 e2function void holoPos(index, vector position)
