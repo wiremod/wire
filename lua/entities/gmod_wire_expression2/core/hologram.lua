@@ -224,34 +224,35 @@ local function flush_clip_queue(queue, recipient)
 	if #queue == 0 then return end
 
 	local bytes = 4
-
 	umsg.Start("wire_holograms_clip", recipient)
 		for _,Holo,clip in ipairs_map(queue, unpack) do
-			bytes = bytes + 3
+			bytes = bytes + 2
 
 			if bytes > 255 then
 				umsg.Short(0)
 				umsg.End()
 				umsg.Start("wire_holograms_clip", recipient)
 
-				bytes = 7
+				bytes = 6
 			end
 
 			umsg.Short(Holo.ent:EntIndex())
 
 			if clip and clip.enabled != nil then
+				bytes = bytes + 2
+
 				umsg.Bool(true)
 				umsg.Bool(clip.enabled)
 			elseif clip and clip.origin and clip.normal and clip.isglobal then
-				umsg.Bool(false)
+				bytes = bytes + 27
 
-				bytes = bytes + 26
+				umsg.Bool(false)
 				umsg.Vector(clip.origin)
 				umsg.Vector(clip.normal)
 				umsg.Short(clip.isglobal)
 			end
 		end
-		umsg.Short(0)
+		umsg.Short(0) //stop list
 	umsg.End()
 end
 
