@@ -8,19 +8,28 @@ E2Lib.RegisterExtension("ranger", true)
 -- Main function --
 -------------------
 
-local function ranger(self, rangertype, range, p1, p2)
+local function ResetRanger(self)
 	local data = self.data
-	local chip = self.entity
-	local defaultzero = data.rangerdefaultzero
-	local ignoreworld = data.rangerignoreworld
-	local water = data.rangerwater
-	local entities = data.rangerentities
-	local filter = data.rangerfilter
 	data.rangerdefaultzero = false
 	data.rangerignoreworld = false
 	data.rangerwater = false
 	data.rangerentities = true
 	data.rangerfilter = {}
+end
+
+local function ranger(self, rangertype, range, p1, p2)
+	local data = self.data
+	local chip = self.entity
+
+	local defaultzero = data.rangerdefaultzero
+	local ignoreworld = data.rangerignoreworld
+	local water = data.rangerwater
+	local entities = data.rangerentities
+	local filter = data.rangerfilter
+
+	if not data.rangerpersist then
+		ResetRanger(self)
+	end
 
 	-- begin building tracedata structure
 	table.insert(filter, chip)
@@ -123,13 +132,14 @@ end
 
 __e2setcost(1) -- temporary
 
+--- Passing 0 (the default) resets all ranger flags and filters every execution and after calling ranger/rangerOffset. Passing anything else will make the flags and filters persist until they're changed again.
+e2function void rangerPersist(persist)
+	self.data.rangerpersist = persist ~= 0
+end
+
 --- Resets all ranger flags and filters.
 e2function void rangerReset()
-	self.data.rangerwater = false
-	self.data.rangerentities = true
-	self.data.rangerignoreworld = false
-	self.data.rangerdefaultzero = false
-	self.data.rangerfilter = {}
+	ResetRanger(self)
 end
 
 local flaglookup = {
@@ -275,12 +285,14 @@ end
 
 /******************************************************************************/
 
+registerCallback("construct", function(self)
+	self.data.rangerpersist = false
+end)
+
 registerCallback("preexecute", function(self)
-	self.data.rangerwater = false
-	self.data.rangerentities = true
-	self.data.rangerignoreworld = false
-	self.data.rangerdefaultzero = false
-	self.data.rangerfilter = {}
+	if not self.data.rangerpersist then
+		ResetRanger(self)
+	end
 end)
 
 __e2setcost(nil) -- temporary

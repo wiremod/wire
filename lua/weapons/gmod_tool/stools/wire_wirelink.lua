@@ -123,7 +123,7 @@ function TOOL:LeftClick(trace)
 	if CLIENT then return true end
 
 	local ply = self:GetOwner()
-	if ( trace.Entity:IsValid() && (trace.Entity.Base == "base_wire_entity" || trace.Entity.TriggerInput) && (trace.Entity.pl == ply || trace.Entity.pl == nil) ) then
+	if ( trace.Entity:IsValid() && (trace.Entity.Base == "base_wire_entity" || trace.Entity.Inputs || trace.Entity.Outputs) && (trace.Entity.pl == ply || trace.Entity.pl == nil) ) then
 		local ent = trace.Entity
 		if ent.extended then return false end
 
@@ -142,7 +142,7 @@ function TOOL:RightClick(trace)
 	if CLIENT then return true end
 
 	local ply = self:GetOwner()
-	if ( trace.Entity:IsValid() && trace.Entity.TriggerInput && (trace.Entity.pl == ply || trace.Entity.pl == nil) ) then
+	if ( trace.Entity:IsValid() && (trace.Entity.pl == ply || trace.Entity.pl == nil) ) then
 		local ent = trace.Entity
 		if !ent.extended then return false end
 
