@@ -57,8 +57,10 @@ function ENT:DrawTranslucent()
 
 end
 
+local wire_light_block = CreateClientConVar("wire_light_block", 0, false, false)
+
 function ENT:Think()
-	if self:GetGlow() then
+	if self:GetGlow() and not wire_light_block:GetBool() then
 
 		local dlight = DynamicLight( self:EntIndex() )
 		if ( dlight ) then
