@@ -203,7 +203,9 @@ function ENT:Draw()
 
 	self:RenderGPU(true)
 
-	self:WriteCell(65513,1/WireGPU_Monitors[self.Entity:GetModel()].RatioX)
+	local monitor = WireGPU_Monitors[self.Entity:GetModel()]
+
+	self:WriteCell(65513,1/monitor.RatioX)
 
 	self.GPU:Render(
 		self:ReadCell(65522), self:ReadCell(65523)-self:ReadCell(65518)/512, -- rotation, scale
