@@ -31,14 +31,13 @@ end
 
 function ENT:GetBeaconPos(sensor)
 	if ((sensor:GetPos()-self.Entity:GetPos()):Length() < self.Range) then
-	    sensor:SetBeacon(self:GetNextWaypoint())
+		sensor:SetBeacon(self:GetNextWaypoint())
 	end
 
 	return self.Entity:GetPos()
 end
 
 function ENT:SetNextWaypoint(wp)
-	print(self, wp)
 	local SavedNextWaypoint = self:GetNextWaypoint()
 
 	if SavedNextWaypoint:IsValid() and SavedNextWaypoint ~= wp then
