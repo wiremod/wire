@@ -48,6 +48,18 @@ function ENT:SendVars( Ent1, Ent2, Bone1, Bone2, const )
 	self.Constraint = const
 end
 
+local function UnNoCollide(Ent1, Ent2, Bone1, Bone2)
+	local Phys1 = Ent1:GetPhysicsObjectNum(Bone1)
+	local Phys2 = Ent2:GetPhysicsObjectNum(Bone2)
+
+	local Constraint = ents.Create( "phys_constraint" )
+		Constraint:SetKeyValue( "spawnflags", 1 )
+		Constraint:SetPhysConstraintObjects( Phys1, Phys2 )
+	Constraint:Spawn()
+	Constraint:Activate()
+	Constraint:Remove()
+end
+
 function ENT:TriggerInput(iname, value)
 	if iname == "Activate" then
 
@@ -94,13 +106,19 @@ function ENT:TriggerInput(iname, value)
 			if self.nocollide then
 				-- disable NoCollide between the two entities
 				self.nocollide:Remove()
-				self.nocollide=nil
+				self.nocollide = nil
+				UnNoCollide(self.Ent1, self.Ent2, self.Bone1, self.Bone2)
 			end
 		end
 
 	end
 
 	self:UpdateOverlay()
+end
+
+function ENT:OnRemove()
+	self:TriggerInput("Activate", 0)
+	self:TriggerInput("NoCollide", 0)
 end
 
 function ENT:UpdateOverlay()
