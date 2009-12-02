@@ -6,9 +6,7 @@ ENT.Author      = ""
 ENT.Contact     = ""
 
 
-function ENT:SetNextWaypoint(wp)
-	self.Entity:SetNetworkedEntity("NextWaypoint", wp)
-end
+-- ENT:SetNextWaypoint is in init.lua
 
 function ENT:GetNextWaypoint()
 	return self.Entity:GetNetworkedEntity("NextWaypoint")
