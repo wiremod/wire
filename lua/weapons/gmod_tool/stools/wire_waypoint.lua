@@ -7,7 +7,7 @@ TOOL.Tab			= "Wire"
 if ( CLIENT ) then
     language.Add( "Tool_wire_waypoint_name", "Waypoint Beacon Tool (Wire)" )
     language.Add( "Tool_wire_waypoint_desc", "Spawns a waypoint beacon for use with the wire system." )
-    language.Add( "Tool_wire_waypoint_0", "Primary: Create/Update Waypoint Beacon    Secondary: Link to next waypoint" )
+    language.Add( "Tool_wire_waypoint_0", "Primary: Create/Update Waypoint Beacon, Secondary: Link to next waypoint, Reload: Remove link to next waypoint" )
     language.Add( "Tool_wire_waypoint_1", "Primary: Select waypoint to go to after this one" )
     language.Add( "WireWaypointTool_range", "Range:" )
 	language.Add( "WireWaypointTool_alink", "Auto-link previous" )
@@ -91,6 +91,16 @@ function TOOL:RightClick(trace)
 	end
 
 	return self:LeftClick(trace)
+end
+
+function TOOL:Reload(trace)
+	if self:GetStage() ~= 0 then return false end
+
+	if (trace.Entity:IsValid()) and (trace.Entity:GetClass() == "gmod_wire_waypoint") then
+		trace.Entity:SetNextWaypoint(NULL)
+
+		return true
+	end
 end
 
 if SERVER then
