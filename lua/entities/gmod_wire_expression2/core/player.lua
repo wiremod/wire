@@ -199,13 +199,6 @@ e2function array teams()
 	return team_indexes
 end
 
-registerFunction("ping", "e:", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	if not validEntity(rv1) then return 0 end
-	if(rv1:IsPlayer()) then return rv1:Ping() else return 0 end
-end)
-
 /******************************************************************************/
 
 registerFunction("keyAttack1", "e:", "n", function(self,args)
@@ -317,6 +310,21 @@ e2function number entity:isSteamFriend(entity friend)
 	if not friends then return 0 end
 
 	return table.HasValue(friends, friend) and 1 or 0
+end
+
+/******************************************************************************/
+
+registerFunction("ping", "e:", "n", function(self, args)
+	local op1 = args[2]
+	local rv1 = op1[1](self, op1)
+	if not validEntity(rv1) then return 0 end
+	if(rv1:IsPlayer()) then return rv1:Ping() else return 0 end
+end)
+
+e2function entity entity:vehicle()
+	if not validEntity(this) then return nil end
+	if not this:IsPlayer() then return nil end
+	return this:GetVehicle()
 end
 
 /******************************************************************************/

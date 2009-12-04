@@ -205,22 +205,25 @@ function ENT:Draw()
 
 	local monitor = WireGPU_Monitors[self.Entity:GetModel()]
 
-	self:WriteCell(65513,1/monitor.RatioX)
-
 	self.GPU:Render(
 		self:ReadCell(65522), self:ReadCell(65523)-self:ReadCell(65518)/512, -- rotation, scale
 		512*math.Clamp(self:ReadCell(65525),0,1), 512*math.Clamp(self:ReadCell(65524),0,1), -- width, height
-		function() -- postrenderfunction
-			local trace = {}
-			trace.start = LocalPlayer():GetShootPos()
-			trace.endpos = (LocalPlayer():GetAimVector() * self.workingDistance) + trace.start
-			trace.filter = LocalPlayer()
-			local trace = util.TraceLine(trace)
+		function(pos, ang, resolution, aspect) -- postrenderfunction
+			self:WriteCell(65513, aspect)
+			local ply = LocalPlayer()
+			local shootpos = ply:GetShootPos()
+			local tracedata = {
+				start = shootpos,
+				endpos = shootpos + ply:GetAimVector()*self.workingDistance,
+				filter = ply,
+			}
+			local trace = util.TraceLine(tracedata)
 
 			if (trace.Entity == self.Entity) then
-				local pos = self.Entity:WorldToLocal(trace.HitPos)
-				local cx = (self.x1 - pos.y) / (self.x1 - self.x2)
-				local cy = (self.y1 - pos.z) / (self.y1 - self.y2)
+				local cpos = WorldToLocal(trace.HitPos, Angle(), pos, ang)
+
+				local cx = (self.x1 - cpos.x) / (self.x1 - self.x2)
+				local cy = 1-(self.y1 - cpos.y) / (self.y1 - self.y2)
 
 				self:WriteCell(65505,cx)
 				self:WriteCell(65504,cy)
@@ -228,7 +231,7 @@ function ENT:Draw()
 				if (self:ReadCell(65503) == 1) and (cx >= 0 and cy >= 0 and cx <= 1 and cy <= 1) then
 					surface.SetDrawColor(255,255,255,255)
 					surface.SetTexture(surface.GetTextureID("gui/arrow"))
-					surface.DrawTexturedRectRotated(-256/monitor.RatioX+cx*512/monitor.RatioX,-256+cy*512,32,32,45)
+					surface.DrawTexturedRectRotated(-256*aspect+cx*512*aspect,-256+cy*512,32,32,45)
 				end
 			end
 		end

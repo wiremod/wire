@@ -2,69 +2,48 @@
   Server Information
 \******************************************************************************/
 
-local ostime_arguments = {
-	year = true,
-	month = true,
-	day = true,
-	hour = true,
-	min = true,
-	sec = true,
-	wday = true,
-	yday = true,
-	isdst = true
-}
+e2function string map()
+	return game.GetMap()
+end
 
-registerFunction("map", "", "s", function(self, args)
-	return string.Replace(game.GetMap(),".bsp","")
-end)
+local hostname = GetConVar("hostname")
+e2function string hostname()
+	return hostname:GetString()
+end
 
-registerFunction("hostname", "", "s", function(self, args)
-	if(SinglePlayer()) then return "" end
-	return GetConVarString("hostname")
-end)
+local sv_lan = GetConVar("sv_lan")
+e2function number isLan()
+	return sv_lan:GetBool() and 1 or 0
+end
 
-registerFunction("isLan", "", "n", function(self, args)
-	if(GetConVar("sv_lan"):GetBool()) then return 1 else return 0 end
-end)
-
-registerFunction("gamemode", "", "s", function(self, args)
+e2function string gamemode()
 	return gmod.GetGamemode().Name
-end)
+end
 
-registerFunction("isSinglePlayer", "", "n", function(self, args)
-	if(SinglePlayer()) then return 1 else return 0 end
-end)
+e2function number isSinglePlayer()
+	return SinglePlayer() and 1 or 0
+end
 
-registerFunction("isDedicated", "", "n", function(self, args)
-	if(SinglePlayer()) then return 0 end
-	if(isDedicatedServer()) then return 1 else return 0 end
-end)
+e2function number isDedicated()
+	return isDedicatedServer() and 1 or 0
+end
 
-registerFunction("numPlayers", "", "n", function(self, args)
-	return table.Count(player.GetAll())
-end)
+e2function number numPlayers()
+	return #player.GetAll()
+end
 
-registerFunction("maxPlayers", "", "n", function(self, args)
+e2function number maxPlayers()
 	return MaxPlayers()
-end)
+end
 
-registerFunction("gravity", "", "n", function(self, args)
-	return GetConVarNumber("sv_gravity")
-end)
+local sv_gravity = GetConVar("sv_gravity")
+e2function number gravity()
+	return sv_gravity:GetFloat()
+end
 
-registerFunction("time", "s", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-
-	if not ostime_arguments[rv1] then return 0 end
+e2function number time(string component)
 	local ostime = os.date("!*t")
-	local ret = ostime[rv1]
+	local ret = ostime[component]
 
-	if tonumber(ret) then
-		return ret
-	elseif ret == true then		-- Occurs if input string is "isdst"
-		return 1
-	else
-		return 0
-	end
-end)
+	return tonumber(ret) or ret and 1 or 0 -- the later parts account for invalid components and isdst
+end

@@ -175,18 +175,19 @@ function GPU:Render(rotation, scale, width, height, postrenderfunction)
 
 	cam.Start3D2D(pos, ang, monitor.RS)
 		PCallError(function()
-			local w = (width  or 512)/monitor.RatioX
+			local aspect = 1/monitor.RatioX
+			local w = (width  or 512)*aspect
 			local h = (height or 512)
 			local x = -w/2
 			local y = -h/2
 
 			surface.SetDrawColor(0,0,0,255)
-			surface.DrawRect(-256/monitor.RatioX,-256,512/monitor.RatioX,512)
+			surface.DrawRect(-256*aspect,-256,512*aspect,512)
 
 			render.SetMaterial(WireGPU_matScreen)
 			self.DrawScreen(x, y, w, h, rotation or 0, scale or 0)
 
-			if postrenderfunction then postrenderfunction() end
+			if postrenderfunction then postrenderfunction(pos, ang, monitor.RS, aspect) end
 		end)
 	cam.End3D2D()
 
