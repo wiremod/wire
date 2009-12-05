@@ -316,7 +316,7 @@ end
 
 local ent_tool_mappings = {
 	-- gmod
-	prop_physics = "!weapon_physgun",
+	prop_physics = "easy_precision",
 	prop_ragdoll = "!weapon_physgun",
 
 	-- wiremod
@@ -348,7 +348,7 @@ local ent_tool_patterns = {
 	{"^rd_.*_valve$", "valves"},
 
 	-- life support
-	{"^storage_.*)$", "ls3_receptacles"},
+	{"^storage_.*$", "ls3_receptacles"},
 	{"^generator_.*$", "ls3_energysystems"},
 	{"^other_.*$", "ls3_environmental_control"},
 	{"^base_.*$", "ls3_environmental_control"},
