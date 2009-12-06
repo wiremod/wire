@@ -94,7 +94,7 @@ function E2Lib.validPhysics(entity)
 end
 
 function E2Lib.getOwner(self, entity)
-	if(entity == self.entity or entity == self.player) then return self.player end
+	if entity == self.entity or entity == self.player then return self.player end
 	if entity.GetPlayer then
 		local ply = entity:GetPlayer()
 		if validEntity(ply) then return ply end
@@ -412,18 +412,28 @@ hook.Add("InitPostEntity", "e2lib", function()
 	end)
 
 	-- check for a CPPI compliant plugin
-	if SERVER and CPPI and _R.Player.CPPIGetFriends then
-		E2Lib.replace_function("isOwner", function(self, entity)
-			local ply = self.player
-			local owner = getOwner(self, entity)
-			if not validEntity(owner) then return false end
-			if ply == owner then return true end
+	if SERVER and CPPI then
+		if _R.Player.CPPIGetFriends then
+			E2Lib.replace_function("isOwner", function(self, entity)
+				local ply = self.player
+				local owner = getOwner(self, entity)
+				if not validEntity(owner) then return false end
+				if ply == owner then return true end
 
-			local friends = owner:CPPIGetFriends()
-			for _,friend in pairs(friends) do
-				if ply == friend then return true end
-			end
-			return false
-		end)
+				local friends = owner:CPPIGetFriends()
+				for _,friend in pairs(friends) do
+					if ply == friend then return true end
+				end
+				return false
+			end)
+		end
+
+		if _R.Entity.CPPIGetOwner then
+			E2Lib.replace_function("getOwner", function(self, entity)
+				if entity == self.entity or entity == self.player then return self.player end
+
+				return entity:CPPIGetOwner()
+			end)
+		end
 	end
 end)
