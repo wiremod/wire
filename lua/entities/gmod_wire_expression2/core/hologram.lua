@@ -60,7 +60,7 @@ end
 /******************************************************************************/
 
 concommand.Add( "wire_holograms_remove_all", function( ply, com, args )
-	if not ply:IsAdmin() then return end
+	if ply:IsValid() and not ply:IsAdmin() then return end
 
 	for pl,rep in pairs( E2HoloRepo ) do
 		for k,Holo in pairs( rep ) do
@@ -73,12 +73,20 @@ concommand.Add( "wire_holograms_remove_all", function( ply, com, args )
 
 end )
 
+local function ConsoleMessage(ply, text)
+	if ply:IsValid() then
+		ply:PrintMessage( HUD_PRINTCONSOLE, text )
+	else
+		print(text)
+	end
+end
+
 concommand.Add( "wire_holograms_block", function( ply, com, args )
-	if not ply:IsAdmin() then return end
+	if ply:IsValid() and not ply:IsAdmin() then return end
 
 	if not args[1] then
-		ply:PrintMessage( HUD_PRINTCONSOLE, "Command requires a player's name (or part of their name)" )
-		ply:PrintMessage( HUD_PRINTCONSOLE, "Usage: wire_holograms_block [name]" )
+		ConsoleMessage( ply, "Command requires a player's name (or part of their name)" )
+		ConsoleMessage( ply, "Usage: wire_holograms_block [name]" )
 		return
 	end
 
@@ -88,7 +96,7 @@ concommand.Add( "wire_holograms_block", function( ply, com, args )
 	if #players == 1 then
 		local v = players[1]
 		if BlockList[v:SteamID()] == true then
-			ply:PrintMessage( HUD_PRINTCONSOLE, v:GetName() .. " is already in the holograms blocklist!" )
+			ConsoleMessage( ply, v:GetName() .. " is already in the holograms blocklist!" )
 		else
 			if E2HoloRepo[v] then
 				for k2,v2 in pairs( E2HoloRepo[v] ) do
@@ -104,18 +112,18 @@ concommand.Add( "wire_holograms_block", function( ply, com, args )
 			end
 		end
 	elseif #players > 1 then
-		ply:PrintMessage( HUD_PRINTCONSOLE, "More than one player matches that name!" )
+		ConsoleMessage( ply, "More than one player matches that name!" )
 	else
-		ply:PrintMessage( HUD_PRINTCONSOLE, "No player names found with " .. args[1] )
+		ConsoleMessage( ply, "No player names found with " .. args[1] )
 	end
 end )
 
 concommand.Add( "wire_holograms_unblock", function( ply, com, args )
-	if not ply:IsAdmin() then return end
+	if ply:IsValid() and not ply:IsAdmin() then return end
 
 	if not args[1] then
-		ply:PrintMessage( HUD_PRINTCONSOLE, "Command requires a player's name (or part of their name)" )
-		ply:PrintMessage( HUD_PRINTCONSOLE, "Usage: wire_holograms_unblock [name]" )
+		ConsoleMessage( ply, "Command requires a player's name (or part of their name)" )
+		ConsoleMessage( ply, "Usage: wire_holograms_unblock [name]" )
 		return
 	end
 
@@ -130,28 +138,28 @@ concommand.Add( "wire_holograms_unblock", function( ply, com, args )
 				player:PrintMessage( HUD_PRINTTALK, "(ADMIN) " .. v:GetName() .. " removed from holograms blocklist" )
 			end
 		else
-			ply:PrintMessage( HUD_PRINTCONSOLE, v:GetName() .. " is not in the holograms blocklist!" )
+			ConsoleMessage( ply, v:GetName() .. " is not in the holograms blocklist!" )
 		end
 	elseif #players > 1 then
-		ply:PrintMessage( HUD_PRINTCONSOLE, "More than one player matches that name!" )
+		ConsoleMessage( ply, "More than one player matches that name!" )
 	else
-		ply:PrintMessage( HUD_PRINTCONSOLE, "No player names found with " .. args[1] )
+		ConsoleMessage( ply, "No player names found with " .. args[1] )
 	end
 end )
 
 concommand.Add( "wire_holograms_block_id", function( ply, com, args )
-	if not ply:IsAdmin() then return end
+	if ply:IsValid() and not ply:IsAdmin() then return end
 
 	local steamID = table.concat(args)
 
 	if not steamID:match("STEAM_[0-9]:[0-9]:[0-9]+") then
-		ply:PrintMessage( HUD_PRINTCONSOLE, "Invalid SteamID format" )
-		ply:PrintMessage( HUD_PRINTCONSOLE, "Usage: wire_holograms_block_id STEAM_X:X:XXXXXX" )
+		ConsoleMessage( ply, "Invalid SteamID format" )
+		ConsoleMessage( ply, "Usage: wire_holograms_block_id STEAM_X:X:XXXXXX" )
 		return
 	end
 
 	if BlockList[steamID] == true then
-		ply:PrintMessage( HUD_PRINTCONSOLE, steamID .. " is already in the holograms blocklist!" )
+		ConsoleMessage( ply, steamID .. " is already in the holograms blocklist!" )
 	else
 		BlockList[steamID] = true
 		for _,player in ipairs( player.GetAll() ) do
@@ -172,13 +180,13 @@ concommand.Add( "wire_holograms_block_id", function( ply, com, args )
 end )
 
 concommand.Add( "wire_holograms_unblock_id", function( ply, com, args )
-	if not ply:IsAdmin() then return end
+	if ply:IsValid() and not ply:IsAdmin() then return end
 
 	local steamID = table.concat(args)
 
 	if not steamID:match("STEAM_[0-9]:[0-9]:[0-9]+") then
-		ply:PrintMessage( HUD_PRINTCONSOLE, "Invalid SteamID format" )
-		ply:PrintMessage( HUD_PRINTCONSOLE, "Usage: wire_holograms_unblock_id STEAM_X:X:XXXXXX" )
+		ConsoleMessage( ply, "Invalid SteamID format" )
+		ConsoleMessage( ply, "Usage: wire_holograms_unblock_id STEAM_X:X:XXXXXX" )
 		return
 	end
 
@@ -188,7 +196,7 @@ concommand.Add( "wire_holograms_unblock_id", function( ply, com, args )
 			player:PrintMessage( HUD_PRINTTALK, "(ADMIN) " .. steamID .. " removed from holograms blocklist" )
 		end
 	else
-		ply:PrintMessage( HUD_PRINTCONSOLE, steamID .. " is not in the holograms blocklist!" )
+		ConsoleMessage( ply, steamID .. " is not in the holograms blocklist!" )
 	end
 end )
 
@@ -836,6 +844,7 @@ end)
 
 local DisplayOwners = {}
 concommand.Add( "wire_holograms_display_owners", function( ply, com, args )
+	if not ply:IsValid() then return end
 
 	if !DisplayOwners[ply] then
 		DisplayOwners[ply] = {}
