@@ -544,9 +544,9 @@ hook.Add( "EntityRemoved", "e2_globalvars_playerdisconnect", function( ply )
 	if not ply:IsValid() then return end
 	if not ply:IsPlayer() then return end
 	local T = _G[ply:UniqueID()]
-	for i=0, table.Count(T)  do
-		table.remove(T,table.Count(T)-i)
-	end
+	if not T then return end
+
+	table.Empty(T)
 end)
 
 hook.Add( "PlayerInitialSpawn", "e2_globalvars_playerconnect", function( ply )
