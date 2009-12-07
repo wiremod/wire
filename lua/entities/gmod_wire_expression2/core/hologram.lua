@@ -59,6 +59,14 @@ end
 
 /******************************************************************************/
 
+local function ConsoleMessage(ply, text)
+	if ply:IsValid() then
+		ply:PrintMessage( HUD_PRINTCONSOLE, text )
+	else
+		print(text)
+	end
+end
+
 concommand.Add( "wire_holograms_remove_all", function( ply, com, args )
 	if ply:IsValid() and not ply:IsAdmin() then return end
 
@@ -72,14 +80,6 @@ concommand.Add( "wire_holograms_remove_all", function( ply, com, args )
 	end
 
 end )
-
-local function ConsoleMessage(ply, text)
-	if ply:IsValid() then
-		ply:PrintMessage( HUD_PRINTCONSOLE, text )
-	else
-		print(text)
-	end
-end
 
 concommand.Add( "wire_holograms_block", function( ply, com, args )
 	if ply:IsValid() and not ply:IsAdmin() then return end
@@ -107,8 +107,8 @@ concommand.Add( "wire_holograms_block", function( ply, com, args )
 				end
 			end
 			BlockList[v:SteamID()] = true
-			for _,player in ipairs( player.GetAll() ) do
-				player:PrintMessage( HUD_PRINTTALK, "(ADMIN) " .. v:GetName() .. " added to holograms blocklist" )
+			for _,p in ipairs( player.GetAll() ) do
+				p:PrintMessage( HUD_PRINTTALK, "(ADMIN) " .. v:GetName() .. " added to holograms blocklist" )
 			end
 		end
 	elseif #players > 1 then

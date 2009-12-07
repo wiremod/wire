@@ -429,10 +429,14 @@ hook.Add("InitPostEntity", "e2lib", function()
 		end
 
 		if _R.Entity.CPPIGetOwner then
+			local _getOwner = E2Lib.getOwner
 			E2Lib.replace_function("getOwner", function(self, entity)
 				if entity == self.entity or entity == self.player then return self.player end
 
-				return entity:CPPIGetOwner()
+				local owner = entity:CPPIGetOwner()
+				if validEntity(owner) then return owner end
+
+				return _getOwner(self, entity)
 			end)
 		end
 	end

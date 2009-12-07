@@ -387,10 +387,14 @@ e2function void bone:applyTorque(vector torque)
 	off:Normalize()
 	local dir = tq:Cross(off)
 
+	local len = dir:Length()
+	dir = dir / len
+	off = off * len * 0.5
+
 	dir = phys:LocalToWorld(dir)-phys:GetPos()
 	local masscenter = phys:GetMassCenter()
-	phys:ApplyForceOffset( dir * 0.5, phys:LocalToWorld(masscenter+off) )
-	phys:ApplyForceOffset( dir * -0.5, phys:LocalToWorld(masscenter-off) )
+	phys:ApplyForceOffset( dir     , phys:LocalToWorld(masscenter+off) )
+	phys:ApplyForceOffset( dir * -1, phys:LocalToWorld(masscenter-off) )
 end
 
 --- Applies torque according to the axis, magnitude and sense given by the vector's direction, magnitude and orientation.
@@ -413,9 +417,13 @@ e2function void bone:applyOffsetTorque(vector torque, vector offset)
 	off:Normalize()
 	local dir = tq:Cross(off)
 
+	local len = dir:Length()
+	dir = dir / len
+	off = off * len*0.5
+
 	dir = phys:LocalToWorld(dir)-phys:GetPos()
-	phys:ApplyForceOffset( dir * 0.5, phys:LocalToWorld(offset+off) )
-	phys:ApplyForceOffset( dir * -0.5, phys:LocalToWorld(offset-off) )
+	phys:ApplyForceOffset( dir     , phys:LocalToWorld(offset+off) )
+	phys:ApplyForceOffset( dir * -1, phys:LocalToWorld(offset-off) )
 end
 
 --[[************************************************************************]]--
