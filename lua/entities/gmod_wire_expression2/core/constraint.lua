@@ -91,7 +91,7 @@ end
 
 --- Returns the first entity <this> was constrained to.
 e2function entity entity:isConstrainedTo()
-	if not validEntity(this) then return 0 end
+	if not validEntity(this) then return nil end
 	if not constraint.HasConstraints(this) then return nil end
 
 	return ent1or2(this,constraint.GetTable(this),1)

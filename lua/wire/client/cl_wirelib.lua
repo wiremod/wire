@@ -317,7 +317,7 @@ end
 /******************************* gmod_tool_auto *******************************/
 
 -- Separate table so they can be cycled with wire_adv and wire_debugger.
-local wiretoolmappings = {
+local wiremod_mappings = {
 	-- wiremod+advdupe
 	gmod_wire_gate = "wire_gates",
 	gmod_wire_cameracontroller = "wire_cam",
@@ -354,7 +354,7 @@ local ent_tool_patterns = {
 	bogus = {"^gmod_(.*)$", true}, -- true means "pass pattern result". The bogus index ensures that this always is iterated last.
 
 	-- wiremod
-	{"^gmod_.*$", { wiretoolmappings, "wire_adv", "wire_debugger" }},
+	{"^gmod_.*$", { wiremod_mappings, "wire_adv", "wire_debugger" }},
 	{"^gmod_(wire_.*)$", { true, "wire_adv", "wire_debugger" }},
 
 	-- resource distribution
