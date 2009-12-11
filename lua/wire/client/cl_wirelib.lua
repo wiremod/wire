@@ -368,7 +368,7 @@ local ent_tool_patterns = {
 	{"^nature_.*$", "ls3_environmental_control"},
 }
 
-local function pattern_mappings(class, ntapped)
+local function pattern_mappings(ent, class, ntapped)
 	local function maprep(replacement, result, ...)
 		if not result then return end
 
@@ -385,7 +385,7 @@ local function pattern_mappings(class, ntapped)
 				return maprep(replacement[((ntapped-1) % narray)+1], result, ...)
 			end
 		elseif tp == "function" then
-			return maprep(replacement(ntapped, result, ...), result, ...)
+			return maprep(replacement(ent, ntapped, result, ...), result, ...)
 		end
 	end
 
@@ -408,7 +408,7 @@ concommand.Add("gmod_tool_auto", function(ply, command, args)
 		ntapped = 0
 	end
 	ntapped = ntapped + 1
-	local toolmode = pattern_mappings(class, ntapped)
+	local toolmode = pattern_mappings(ent, class, ntapped)
 
 	if not toolmode then return end
 	local weapon = toolmode:match("^!(.*)$")
@@ -433,7 +433,7 @@ local lastuniqueid = 0
 ---   string: Use this string as the toolmode.
 ---   table: Look up first pattern capture and use the result as the  If nothing was found, the match is ignored
 ---   array table: Cycles through the table's entries when using gmod_tool_auto multiple times on the same entity.
----   function(ntapped, capture1, capture2, ...): pass the captures to a function, along with a number that specifies how often gmod_tool_auto was used on the same entity.
+---   function(ent, ntapped, capture1, capture2, ...): pass the captures to a function, along with a number that specifies how often gmod_tool_auto was used on the same entity.
 ---
 --- The table/array lookups and function calls are done recursively.
 function gmod_tool_auto.AddPattern(pattern, replacement, index)
