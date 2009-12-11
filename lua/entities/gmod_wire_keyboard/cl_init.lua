@@ -12,7 +12,7 @@ local function Wire_BlockInput()
 	end
 
 	if (GetConVarString("wire_keyboard_sync") == "1") then
-		BlockFrame = vgui.Create("Panel")
+		if not BlockFrame then BlockFrame = vgui.Create("Panel") end
 		BlockFrame:SetSize(10,10)
 		BlockFrame:SetPos(-100,-100)
 		BlockFrame:SetVisible(true)
@@ -34,9 +34,9 @@ concommand.Add("wire_keyboard_releaseinput", Wire_ReleaseInput)
 
 
 local KeyEvents = {}
-hook.Add("CalcView", "wire_keyboard", function()
+hook.Add("PostRenderVGUI", "wire_keyboard_checkkeys", function()
 	if (WIRE_SERVER_INSTALLED) then
-		for i=1,130 do
+		for i = 1,130 do
 			if(input.IsKeyDown(i) && !KeyEvents[i]) then
 				// The key has been pressed
 				KeyEvents[i] = true
