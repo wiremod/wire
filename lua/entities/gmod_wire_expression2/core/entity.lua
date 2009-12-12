@@ -582,9 +582,8 @@ e2function void entity:applyTorque(vector torque)
 	off:Normalize()
 	local dir = tq:Cross(off)
 
-	local len = dir:Length()
-	dir = dir / len
-	off = off * len * 0.5
+	off = off * dir:Length() * 0.5
+	dir:Normalize()
 
 	dir = phys:LocalToWorld(dir)-phys:GetPos()
 	local masscenter = phys:GetMassCenter()
@@ -612,9 +611,8 @@ e2function void entity:applyOffsetTorque(vector torque, vector offset)
 	off:Normalize()
 	local dir = tq:Cross(off)
 
-	local len = dir:Length()
-	dir = dir / len
-	off = off * len * 0.5
+	off = off * dir:Length() * 0.5
+	dir:Normalize()
 
 	dir = phys:LocalToWorld(dir)-phys:GetPos()
 	phys:ApplyForceOffset( dir     , phys:LocalToWorld(offset+off) )
