@@ -231,6 +231,7 @@ registerCallback("destruct", function(self)
 
 	self.resetting = false
 	self.data.runOnLast = false
+
 	self.data.last = true
 	entity:Execute()
 	self.data.last = false
@@ -239,6 +240,11 @@ end)
 --- Returns 1 if it is being called on the last execution of the expression gate before it is removed or reset. This execution must be requested with the runOnLast(1) command.
 e2function number last()
 	return self.data.last and 1 or 0
+end
+
+--- Returns 1 if this is the last() execution and caused by the entity being removed.
+e2function number removing()
+	return self.entity.removing and 1 or 0
 end
 
 --- If <activate> != 0, the chip will run once when it is removed, setting the last() flag when it does.
