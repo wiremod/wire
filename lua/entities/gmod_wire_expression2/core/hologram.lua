@@ -745,6 +745,18 @@ e2function void holoRenderFX(index, effect)
 end
 
 /******************************************************************************/
+local function Parent_Hologram(holo, ent, bone, attachment)
+	if ent:GetParent() and ent:GetParent():IsValid() and ent:GetParent() == holo.ent then return end
+
+	holo.ent:SetParent(ent)
+
+	if bone != nil then
+		holo.ent:SetParentPhysNum(bone)
+	end
+	if attachment != nil then
+		holo.ent:Fire("SetParentAttachmentMaintainOffset", attachment, 0.01)
+	end
+end
 
 e2function void holoParent(index, otherindex)
 	local Holo = CheckIndex(self, index)
@@ -753,7 +765,7 @@ e2function void holoParent(index, otherindex)
 	local Holo2 = CheckIndex(self, otherindex)
 	if not Holo2 then return end
 
-	Holo.ent:SetParent( Holo2.ent )
+	Parent_Hologram(Holo, Holo2.ent, nil, nil)
 end
 
 e2function void holoParent(index, entity ent)
@@ -761,8 +773,7 @@ e2function void holoParent(index, entity ent)
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
 
-	Holo.ent:SetParent(ent)
-	Holo.ent:SetParentPhysNum(0)
+	Parent_Hologram(Holo, ent, 0, nil)
 end
 
 e2function void holoParent(index, bone b)
@@ -772,8 +783,7 @@ e2function void holoParent(index, bone b)
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
 
-	Holo.ent:SetParent(ent)
-	Holo.ent:SetParentPhysNum(boneindex)
+	Parent_Hologram(Holo, ent, boneindex, nil)
 end
 
 e2function void holoParentAttachment(index, entity ent, string attachmentName)
@@ -781,8 +791,7 @@ e2function void holoParentAttachment(index, entity ent, string attachmentName)
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
 
-	Holo.ent:SetParent(ent)
-	Holo.ent:Fire("SetParentAttachmentMaintainOffset", attachmentName, 0.01)
+	Parent_Hologram(Holo, ent, nil, attachmentName)
 end
 
 e2function void holoUnparent(index)
