@@ -113,7 +113,7 @@ do -- containers
 		return meta
 	end
 
-	WireLib.containers = { new = new }
+	WireLib.containers = { new = new, newclass = newclass }
 
 	do -- class deque
 		local deque = newclass("deque")

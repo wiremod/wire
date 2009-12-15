@@ -82,8 +82,8 @@ function GPU:Finalize()
 	end
 end
 
-function GPU:Clear()
-	render.ClearRenderTarget(self.RT, Color(0, 0, 0))
+function GPU:Clear(color)
+	render.ClearRenderTarget(self.RT, color or Color(0, 0, 0))
 end
 
 local texcoords = {
