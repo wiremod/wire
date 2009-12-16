@@ -67,11 +67,6 @@ function()
 	return names
 end)
 
-//Thanks Viktor :)
-local function GetDistance(Pos, Dir)
-	return Dir:Dot(Pos)
-end
-
 function ENT:Initialize( )
 	self:DoScale()
 
@@ -84,13 +79,13 @@ end
 
 function ENT:Draw()
 	if self.blocked then return end
-	self.BaseClass.Draw(self)
 
 	local clip = clips[self:EntIndex()]
 
-	if clip and clip.enabled and clip.isglobal == 0 then
+	if clip and clip.enabled and not clip.isglobal then
 		self:SetClip()
 	end
+	self.BaseClass.Draw(self)
 end
 
 function ENT:DoScale()
@@ -114,7 +109,7 @@ end
 function ENT:SetClipEnabled()
 	local clip = clips[self:EntIndex()]
 
-	if clip and clip.enabled != nil then
+	if clip and clip.enabled ~= nil then
 		self:SetRenderClipPlaneEnabled( clip.enabled )
 	end
 end
@@ -122,15 +117,16 @@ end
 function ENT:SetClip()
 	local clip = clips[self:EntIndex()]
 
-	if clip and clip.normal and clip.origin and clip.isglobal then
-		if clip.isglobal == 1 then
-			self:SetRenderClipPlane(clip.normal, GetDistance(clip.origin, clip.normal))
-		else
-			local norm = self:LocalToWorldAngles(clip.normal:Angle()):Forward()
-			local origin = self:LocalToWorld(clip.origin)
+	if clip and clip.origin then
+		local norm = clip.normal
+		local origin = clip.origin
 
-			self:SetRenderClipPlane(norm, GetDistance(origin, norm))
+		if not clip.isglobal then
+			norm = self:LocalToWorld(norm)-self:GetPos()
+			origin = self:LocalToWorld(origin)
 		end
+
+		self:SetRenderClipPlane(norm, norm:Dot(origin))
 	end
 end
 
@@ -169,9 +165,9 @@ usermessage.Hook("wire_holograms_clip", function( um )
 		else
 			clip.origin = um:ReadVector()
 			clip.normal = um:ReadVector()
-			clip.isglobal = um:ReadShort()
+			clip.isglobal = um:ReadShort() ~= 0
 
-			if ent and ent.SetClip and clip.isglobal == 1 then
+			if ent and ent.SetClip and clip.isglobal then
 				ent:SetClip()
 			end
 		end
