@@ -58,7 +58,7 @@ function ENT:Draw()
 		OR = -2.2
 		Res = 0.085
 		RatioX = 0.75
-	elseif self.Entity:GetModel() == "models/props/cs_office/TV_plasma.mdl" then
+	elseif self.Entity:GetModel() == "models/props/cs_office/tv_plasma.mdl" then
 		OF = 6.1
 		OU = 17.05
 		OR = -5.99

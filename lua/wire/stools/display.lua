@@ -286,19 +286,7 @@ do -- wire_consolescreen
 	}
 
 	function TOOL.BuildCPanel(panel)
-		panel:AddControl("ComboBox", {
-			Label = "#WireThrusterTool_Model",
-			Options = {
-				["#Small tv (4:3)"]		= { wire_consolescreen_model = "models/props_lab/monitor01b.mdl" },
-				["#Plasma tv (16:10)"]		= { wire_consolescreen_model = "models/props/cs_office/TV_plasma.mdl" },
-				["#Plasma tv (4:3)"]		= { wire_consolescreen_model = "models/blacknecro/tv_plasma_4_3.mdl" },
-				["#LCD Monitor (4:3)"]		= { wire_consolescreen_model = "models/props/cs_office/computer_monitor.mdl" },
-				["#Monitor Big (1:1)"]		= { wire_consolescreen_model = "models/kobilica/wiremonitorbig.mdl" },
-				["#Monitor Small (1:1)"]	= { wire_consolescreen_model = "models/kobilica/wiremonitorsmall.mdl" },
-				["#Billboard"]				= { wire_consolescreen_model = "models/props/cs_assault/Billboard.mdl" },
-				["#LCD Screen (1:1)"]		= { wire_consolescreen_model = "models/blacknecro/ledboard60.mdl" },
-			}
-		})
+		WireDermaExts.ModelSelect(panel, "wire_consolescreen_model", list.Get( "WireScreenModels" ), 2)
 		panel:CheckBox("#Create Flat to Surface", "wire_consolescreen_createflat")
 		panel:CheckBox("Weld", "wire_consolescreen_weld")
 	end
@@ -339,16 +327,7 @@ do -- wire_digitalscreen
 	}
 
 	function TOOL.BuildCPanel(panel)
-		panel:AddControl("ComboBox", {
-			Label = "#WireThrusterTool_Model",
-			Options = {
-				["#Small tv"]		= { wire_digitalscreen_model = "models/props_lab/monitor01b.mdl" },
-				["#Plasma tv"]		= { wire_digitalscreen_model = "models/props/cs_office/TV_plasma.mdl" },
-				["#LCD monitor"]	= { wire_digitalscreen_model = "models/props/cs_office/computer_monitor.mdl" },
-				["#Monitor Big"]	= { wire_digitalscreen_model = "models/kobilica/wiremonitorbig.mdl" },
-				["#Monitor Small"]	= { wire_digitalscreen_model = "models/kobilica/wiremonitorsmall.mdl" },
-			}
-		})
+		WireDermaExts.ModelSelect(panel, "wire_digitalscreen_model", list.Get( "WireScreenModels" ), 2)
 		panel:NumSlider("Width", "wire_digitalscreen_width", 1, 512, 0)
 		panel:NumSlider("Height", "wire_digitalscreen_height", 1, 512, 0)
 		panel:CheckBox("#Create Flat to Surface", "wire_digitalscreen_createflat")
@@ -593,16 +572,7 @@ do -- wire_oscilloscope
 
 
 	function TOOL.BuildCPanel(panel)
-		panel:AddControl("ComboBox", {
-			Label = "#WireThrusterTool_Model",
-			Options = {
-				["#Small tv"]		= { wire_oscilloscope_model = "models/props_lab/monitor01b.mdl" },
-				["#Plasma tv"]		= { wire_oscilloscope_model = "models/props/cs_office/TV_plasma.mdl" },
-				["#LCD monitor"]	= { wire_oscilloscope_model = "models/props/cs_office/computer_monitor.mdl" },
-				["#Monitor Big"]	= { wire_oscilloscope_model = "models/kobilica/wiremonitorbig.mdl" },
-				["#Monitor Small"]	= { wire_oscilloscope_model = "models/kobilica/wiremonitorsmall.mdl" },
-			}
-		})
+		WireDermaExts.ModelSelect(panel, "wire_oscilloscope_model", list.Get( "WireScreenModels" ), 2)
 		panel:CheckBox("#Create Flat to Surface", "wire_oscilloscope_createflat")
 		panel:CheckBox("Weld", "wire_oscilloscope_weld")
 	end
@@ -640,17 +610,7 @@ do -- wire_panel
 	}
 
 	function TOOL.BuildCPanel(panel)
-		panel:AddControl("ComboBox", {
-			Label = "#WireThrusterTool_Model",
-			Options = {
-				["#Small tv"]		= { wire_panel_model = "models/props_lab/monitor01b.mdl" },
-				["#Plasma tv"]		= { wire_panel_model = "models/props/cs_office/TV_plasma.mdl" },
-				["#LCD monitor"]	= { wire_panel_model = "models/props/cs_office/computer_monitor.mdl" },
-				["#Monitor Big"]	= { wire_panel_model = "models/kobilica/wiremonitorbig.mdl" },
-				["#Monitor Small"]	= { wire_panel_model = "models/kobilica/wiremonitorsmall.mdl" },
-			}
-		})
-		WireDermaExts.ModelSelect(panel, "wire_panel_model", list.Get( "WireScreenModels" ), 2)
+		WireDermaExts.ModelSelect(panel, "wire_panel_model", list.Get( "WireNoGPULibScreenModels" ), 2) -- screen with out a GPUlip setup
 		panel:CheckBox("#Tool_wire_panel_createflat", "wire_panel_createflat")
 		panel:CheckBox("Weld", "wire_panel_weld")
 	end
@@ -749,17 +709,7 @@ do -- wire_screen
 
 	function TOOL.BuildCPanel(panel)
 		WireToolHelpers.MakePresetControl(panel, "wire_screen")
-		panel:AddControl("ComboBox", {
-			Label = "#WireThrusterTool_Model",
-			Options = {
-				["#Small tv"]      = { wire_screen_model = "models/props_lab/monitor01b.mdl" },
-				["#Plasma tv"]     = { wire_screen_model = "models/props/cs_office/TV_plasma.mdl" },
-				["#LCD monitor"]   = { wire_screen_model = "models/props/cs_office/computer_monitor.mdl" },
-				["#Monitor Big"]   = { wire_screen_model = "models/kobilica/wiremonitorbig.mdl" },
-				["#Monitor Small"] = { wire_screen_model = "models/kobilica/wiremonitorsmall.mdl" },
-			}
-		})
-		WireDermaExts.ModelSelect(panel, "wire_screen_model", list.Get( "WireScreenModels" ), 2)
+		WireDermaExts.ModelSelect(panel, "wire_screen_model", list.Get( "WireNoGPULibScreenModels" ), 2) -- screen with out a GPUlip setup
 		panel:CheckBox("#Tool_wire_screen_singlevalue", "wire_screen_singlevalue")
 		panel:CheckBox("#Tool_wire_screen_singlebigfont", "wire_screen_singlebigfont")
 		panel:CheckBox("#Tool_wire_screen_leftalign", "wire_screen_leftalign")
@@ -807,12 +757,6 @@ do -- wire_soundemitter
 	}
 
 	function TOOL.BuildCPanel(panel)
-		panel:AddControl("ComboBox", {
-			Label = "#WireEmitterTool_sound",
-			MenuButton = "1", -- Don't remove that "MenuButton = 1" again please. Without that, we can't save our sounds, we added manually @aVoN
-			Folder = "wire_soundemitter",
-			Options = list.Get( "WireSounds" ),
-		})
 		panel:TextEntry("#WireEmitterTool_sound", "wire_soundemitter_sound")
 		panel:CheckBox("#WireEmitterTool_collision", "wire_soundemitter_collision" )
 		ModelPlug_AddToCPanel(panel, "speaker", "wire_soundemitter", nil, nil, true)
@@ -907,6 +851,7 @@ do -- wire_textscreen
 			ShowRGB = "1",
 			Multiplier = "255"
 		})
+		WireDermaExts.ModelSelect(panel, "wire_textscreen_model", list.Get( "WireScreenModels" ), 2)
 		panel:CheckBox("#Tool_wire_textscreen_createflat", "wire_textscreen_createflat")
 		panel:TextEntry("#Tool_wire_textscreen_text", "wire_textscreen_text")
 

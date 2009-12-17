@@ -25,12 +25,32 @@ end
 --	Add some more options to the stools
 --
 
---screens
+--screens with a GPULib setup
 list.Set( "WireScreenModels", "models/props_lab/monitor01b.mdl", {} )
-list.Set( "WireScreenModels", "models/props/cs_office/TV_plasma.mdl", {} )
+list.Set( "WireScreenModels", "models/props/cs_office/tv_plasma.mdl", {} )
+list.Set( "WireScreenModels", "models/blacknecro/tv_plasma_4_3.mdl", {} )
 list.Set( "WireScreenModels", "models/props/cs_office/computer_monitor.mdl", {} )
 list.Set( "WireScreenModels", "models/kobilica/wiremonitorbig.mdl", {} )
 list.Set( "WireScreenModels", "models/kobilica/wiremonitorsmall.mdl", {} )
+list.Set( "WireScreenModels", "models/props/cs_assault/Billboard.mdl", {} )
+--list.Set( "WireScreenModels", "models/blacknecro/ledboard60.mdl", {} ) --broken
+
+--TF2 Billboards
+list.Set( "WireScreenModels", "models/props_mining/billboard001.mdl", {} )
+list.Set( "WireScreenModels", "models/props_mining/billboard002.mdl", {} )
+
+--PHX3
+list.Set( "WireScreenModels", "models/hunter/blocks/cube1x1x1.mdl", {} )
+list.Set( "WireScreenModels", "models/hunter/plates/plate1x1.mdl", {} )
+list.Set( "WireScreenModels", "models/hunter/plates/plate2x2.mdl", {} )
+list.Set( "WireScreenModels", "models/hunter/plates/plate05x05.mdl", {} )
+
+--screens with out a GPULib setup (for the tools wire_panel and wire_screen)
+list.Set( "WireNoGPULibScreenModels", "models/props_lab/monitor01b.mdl", {} )
+list.Set( "WireNoGPULibScreenModels", "models/props/cs_office/tv_plasma.mdl", {} )
+list.Set( "WireNoGPULibScreenModels", "models/props/cs_office/computer_monitor.mdl", {} )
+list.Set( "WireNoGPULibScreenModels", "models/kobilica/wiremonitorbig.mdl", {} )
+list.Set( "WireNoGPULibScreenModels", "models/kobilica/wiremonitorsmall.mdl", {} )
 
 --sounds
 local WireSounds = {

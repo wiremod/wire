@@ -604,22 +604,7 @@ function TOOL.BuildCPanel(panel)
 
 	panel:AddControl("Label", {Text = ""})
 
-	panel:AddControl("ComboBox", {
-		Label = "#WireThrusterTool_Model",
-		MenuButton = "0",
-
-		Options = {
-			["#Small tv"]          = { wire_gpu_model = "models/props_lab/monitor01b.mdl" },
-			["#Plasma tv (16:10)"] = { wire_gpu_model = "models/props/cs_office/TV_plasma.mdl" },
-			["#Plasma tv (4:3)"]   = { wire_gpu_model = "models/blacknecro/tv_plasma_4_3.mdl" },
-			["#LCD Monitor (4:3)"] = { wire_gpu_model = "models/props/cs_office/computer_monitor.mdl" },
-			["#Monitor Big"]       = { wire_gpu_model = "models/kobilica/wiremonitorbig.mdl" },
-			["#Monitor Small"]     = { wire_gpu_model = "models/kobilica/wiremonitorsmall.mdl" },
-			["#Billboard"]         = { wire_gpu_model = "models/props/cs_assault/Billboard.mdl" },
-			["#LCD Screen"]        = { wire_gpu_model = "models/blacknecro/ledboard60.mdl" },
-		}
-	})
-
+	WireDermaExts.ModelSelect(panel, "wire_gpu_model", list.Get( "WireScreenModels" ), 2)
 	panel:AddControl("Label", {
 		Text = ""
 	})
