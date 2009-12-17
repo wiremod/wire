@@ -343,7 +343,13 @@ function Editor:InitComponents()
 		end
 	end
 	self.C['Browser'].panel:AddRightClick( self.C['Browser'].panel.filemenu, "Save To" , function()
-		self:SaveFile( self.C['Browser'].panel.File.FileDir)
+		Derma_Query(
+			"Overwrite this file?", "Save To",
+			"Overwrite", function()
+				self:SaveFile( self.C['Browser'].panel.File.FileDir)
+			end,
+			"Cancel"
+		)
 	end )
 	self.C['Editor'].panel.OnTextChanged = function(panel)
 		timer.Create("e2autosave", 5, 1, function()
@@ -671,7 +677,7 @@ function Editor:SaveFile(Line, close, SaveAs)
 		return
 	end
 	if(!Line or SaveAs or Line == self.Location .. "/" .. ".txt") then
-		Derma_StringRequest( "Save to New File", "", e2savefilenfn,
+		Derma_StringRequestNoBlur( "Save to New File", "", e2savefilenfn,
 		function( strTextOut )
 			strTextOut = string.gsub(strTextOut, ".", invalid_filename_chars)
 			self:SaveFile( self.Location .. "/" .. strTextOut .. ".txt", close )

@@ -61,7 +61,7 @@ function PANEL:Init()
 	self.foldermenu = {}
 
 	self:AddRightClick( self.filemenu, "New File" , function()
-		Derma_StringRequest( "New File in \"" .. string.GetPathFromFilename(self.File.FileDir) .. "\"", "Create new file", "",
+		Derma_StringRequestNoBlur( "New File in \"" .. string.GetPathFromFilename(self.File.FileDir) .. "\"", "Create new file", "",
 		function( strTextOut )
 			strTextOut = string.gsub(strTextOut, ".", invalid_filename_chars)
 			file.Write( string.GetPathFromFilename(self.File.FileDir) .. "/" .. strTextOut .. ".txt", "" )
@@ -69,7 +69,7 @@ function PANEL:Init()
 		end )
 	end)
 	self:AddRightClick( self.filemenu, "Rename to.." , function()
-		Derma_StringRequest( "Rename File \"" .. self.File.Name .. "\"", "Rename file " .. self.File.Name, self.File.Name,
+		Derma_StringRequestNoBlur( "Rename File \"" .. self.File.Name .. "\"", "Rename file " .. self.File.Name, self.File.Name,
  		function( strTextOut )
 			// Renaming starts in the garrysmod folder now, in comparison to other commands that start in the data folder.
 			strTextOut = string.gsub(strTextOut, ".", invalid_filename_chars)
@@ -78,11 +78,17 @@ function PANEL:Init()
 		end )
 	end )
 	self:AddRightClick( self.filemenu, "Delete" , function()
-		if(file.Exists(self.File.FileDir)) then file.Delete(self.File.FileDir) end
-		self:UpdateFolders()
+		Derma_Query(
+			"Delete this file?", "Delete",
+			"Delete", function()
+				if(file.Exists(self.File.FileDir)) then file.Delete(self.File.FileDir) end
+				self:UpdateFolders()
+			end,
+			"Cancel"
+		)
 	end )
 	self:AddRightClick( self.filemenu, "Copy to.." , function()
-		Derma_StringRequest( "Copy File \"" .. self.File.Name .. "\"", "Copy File to..." , self.File.Name,
+		Derma_StringRequestNoBlur( "Copy File \"" .. self.File.Name .. "\"", "Copy File to..." , self.File.Name,
  		function( strTextOut )
 			strTextOut = string.gsub(strTextOut, ".", invalid_filename_chars)
 			file.Write(string.GetPathFromFilename(self.File.FileDir) .. "/" .. strTextOut .. ".txt", file.Read(self.File.FileDir) )
@@ -90,7 +96,7 @@ function PANEL:Init()
 		end )
 	end )
 	self:AddRightClick( self.foldermenu, "New File.." , function()
-		Derma_StringRequest( "New File in \"" .. self.File.FileDir .. "\"", "Create new file", "",
+		Derma_StringRequestNoBlur( "New File in \"" .. self.File.FileDir .. "\"", "Create new file", "",
  		function( strTextOut )
 			strTextOut = string.gsub(strTextOut, ".", invalid_filename_chars)
 			file.Write( self.File.FileDir .. "/" .. strTextOut .. ".txt", "" )
@@ -98,7 +104,7 @@ function PANEL:Init()
 		end )
 	end )
 	self:AddRightClick( self.panelmenu, "New File.." , function()
-		Derma_StringRequest( "New File in \"" .. self.File.FileDir .. "\"", "Create new file", "",
+		Derma_StringRequestNoBlur( "New File in \"" .. self.File.FileDir .. "\"", "Create new file", "",
  		function( strTextOut )
 			strTextOut = string.gsub(strTextOut, ".", invalid_filename_chars)
 			file.Write( self.File.FileDir .. "/" .. strTextOut .. ".txt", "" )

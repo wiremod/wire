@@ -313,3 +313,26 @@ if not CanRunConsoleCommand then
 		hook.Remove("OnEntityCreated", "CanRunConsoleCommand")
 	end)
 end
+
+function Derma_StringRequestNoBlur(...)
+	local f = math.max
+
+	function math.max(...)
+		local ret = f(...)
+
+		for i = 1,20 do
+			local name, value = debug.getlocal(2, i)
+			if name == "Window" then
+				value:SetBackgroundBlur( false )
+				break
+			end
+		end
+
+		return ret
+	end
+	local ok, ret = pcall(Derma_StringRequest, ...)
+	math.max = f
+
+	if not ok then error(ret, 0) end
+	return ret
+end
