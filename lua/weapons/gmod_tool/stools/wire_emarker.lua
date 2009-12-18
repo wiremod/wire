@@ -65,7 +65,6 @@ function TOOL:LeftClick(trace)
 		Ang.pitch = Ang.pitch + 90
 
 		local wire_emarker = MakeWireEmarker( ply, trace.HitPos, Ang, self:GetModel() )
-		if ValidEntity(trace.Entity) then wire_emarker:LinkEMarker(trace.Entity) end
 
 		local min = wire_emarker:OBBMins()
 		wire_emarker:SetPos( trace.HitPos - trace.HitNormal * (min.z) )
