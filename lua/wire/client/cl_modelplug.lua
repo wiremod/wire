@@ -33,6 +33,12 @@ list.Set( "WireScreenModels", "models/props/cs_office/computer_monitor.mdl", {} 
 list.Set( "WireScreenModels", "models/kobilica/wiremonitorbig.mdl", {} )
 list.Set( "WireScreenModels", "models/kobilica/wiremonitorsmall.mdl", {} )
 list.Set( "WireScreenModels", "models/props/cs_assault/Billboard.mdl", {} )
+list.Set( "WireScreenModels", "models/cheeze/pcb/pcb4.mdl", {} )
+list.Set( "WireScreenModels", "models/cheeze/pcb/pcb6.mdl", {} )
+list.Set( "WireScreenModels", "models/cheeze/pcb/pcb5.mdl", {} )
+list.Set( "WireScreenModels", "models/cheeze/pcb/pcb7.mdl", {} )
+list.Set( "WireScreenModels", "models/cheeze/pcb/pcb8.mdl", {} )
+list.Set( "WireScreenModels", "models/cheeze/pcb2/pcb8.mdl", {} )
 --list.Set( "WireScreenModels", "models/blacknecro/ledboard60.mdl", {} ) --broken
 
 --TF2 Billboards
