@@ -3,15 +3,13 @@ local RT_CACHE_SIZE = 32
 //
 // Create rendertarget cache
 //
-if not RenderTargetCache then
-	RenderTargetCache = {}
+--if not RenderTargetCache then
+	RenderTargetCache = { Used = {}, Free = {} }
 	for i = 1,RT_CACHE_SIZE do
-		RenderTargetCache[i] = {
-			Target = GetRenderTarget("WireGPU_RT_"..i, 512, 512),
-			Used = false
-		}
+		local Target = GetRenderTarget("WireGPU_RT_"..i, 512, 512)
+		RenderTargetCache.Free[Target] = true
 	end
-end
+--end
 
 //
 // Create basic fonts
@@ -59,30 +57,29 @@ end
 function GPU:Initialize()
 	-- Rendertarget cache management
 
-	-- fallback
-	self.RT = RenderTargetCache[1].Target
-
 	-- find a free one
-	for i = 1,#RenderTargetCache do
-		if not RenderTargetCache[i].Used then
-			RenderTargetCache[i].Used = true
-			self.RTindex = i
-			self.RT = RenderTargetCache[i].Target
-			break
-		end
-	end
+	self.RT = next(RenderTargetCache.Free)
 
+	-- no free RT? bail out
+	if not self.RT then return end
+
+	-- mark RT as used
+	RenderTargetCache.Free[self.RT] = nil
+	RenderTargetCache.Used[self.RT] = true
+
+	-- clear the new RT
 	self:Clear()
 	return self.RT
 end
 
 function GPU:Finalize()
-	if self.RTindex and RenderTargetCache[self.RTindex] then
-		RenderTargetCache[self.RTindex].Used = false
-	end
+	if not self.RT then return end
+	RenderTargetCache.Used[self.RT] = nil
+	RenderTargetCache.Free[self.RT] = true
 end
 
 function GPU:Clear(color)
+	if not self.RT then return end
 	render.ClearRenderTarget(self.RT, color or Color(0, 0, 0))
 end
 
@@ -149,6 +146,7 @@ function GPU.DrawScreen(x, y, w, h, rotation, scale)
 end
 
 function GPU:RenderToGPU(renderfunction)
+	if not self.RT then return end
 	local oldw = ScrW()
 	local oldh = ScrH()
 
@@ -165,6 +163,7 @@ function GPU:RenderToGPU(renderfunction)
 end
 
 function GPU:Render(rotation, scale, width, height, postrenderfunction)
+	if not self.RT then return end
 	local model = self.Entity:GetModel()
 	local monitor = WireGPU_Monitors[model]
 
