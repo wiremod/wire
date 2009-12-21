@@ -15,6 +15,14 @@ usermessage.Hook( "wire_expression2_fileload", function( um )
 	end
 end )
 
+usermessage.Hook( "wire_expression2_filerequestlist", function( um )
+
+	file.TFind( "data/e2files/*.txt", function( _, _, files )
+		datastream.StreamToServer( "wire_expression2_filelist", files )
+	end )
+
+end )
+
 datastream.Hook( "wire_expression2_filewrite", function( handler, id, encoded, decoded )
 	local file_name = "e2files/"..decoded.name
 	if string.find(file_name, "..", 1, true) then return end
