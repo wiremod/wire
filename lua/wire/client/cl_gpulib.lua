@@ -7,7 +7,7 @@ if not RenderTargetCache then
 	RenderTargetCache = { Used = {}, Free = {} }
 	for i = 1,RT_CACHE_SIZE do
 		local Target = GetRenderTarget("WireGPU_RT_"..i, 512, 512)
-		RenderTargetCache.Free[Target] = true
+		RenderTargetCache.Free[Target] = i
 	end
 end
 
@@ -64,8 +64,8 @@ function GPU:Initialize()
 	if not self.RT then return end
 
 	-- mark RT as used
+	RenderTargetCache.Used[self.RT] = RenderTargetCache.Free[self.RT]
 	RenderTargetCache.Free[self.RT] = nil
-	RenderTargetCache.Used[self.RT] = true
 
 	-- clear the new RT
 	self:Clear()
@@ -74,8 +74,8 @@ end
 
 function GPU:Finalize()
 	if not self.RT then return end
+	RenderTargetCache.Free[self.RT] = RenderTargetCache.Used[self.RT]
 	RenderTargetCache.Used[self.RT] = nil
-	RenderTargetCache.Free[self.RT] = true
 end
 
 function GPU:Clear(color)
