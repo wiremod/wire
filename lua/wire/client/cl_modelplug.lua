@@ -49,6 +49,8 @@ list.Set( "WireScreenModels", "models/props_mining/billboard002.mdl", {} )
 list.Set( "WireScreenModels", "models/hunter/blocks/cube1x1x1.mdl", {} )
 list.Set( "WireScreenModels", "models/hunter/plates/plate1x1.mdl", {} )
 list.Set( "WireScreenModels", "models/hunter/plates/plate2x2.mdl", {} )
+list.Set( "WireScreenModels", "models/hunter/plates/plate4x4.mdl", {} )
+list.Set( "WireScreenModels", "models/hunter/plates/plate8x8.mdl", {} )
 list.Set( "WireScreenModels", "models/hunter/plates/plate05x05.mdl", {} )
 
 --screens with out a GPULib setup (for the tools wire_panel and wire_screen)
