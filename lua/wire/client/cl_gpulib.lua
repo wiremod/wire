@@ -3,13 +3,13 @@ local RT_CACHE_SIZE = 32
 //
 // Create rendertarget cache
 //
---if not RenderTargetCache then
+if not RenderTargetCache then
 	RenderTargetCache = { Used = {}, Free = {} }
 	for i = 1,RT_CACHE_SIZE do
 		local Target = GetRenderTarget("WireGPU_RT_"..i, 512, 512)
 		RenderTargetCache.Free[Target] = true
 	end
---end
+end
 
 //
 // Create basic fonts

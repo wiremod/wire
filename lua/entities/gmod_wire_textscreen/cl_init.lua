@@ -5,7 +5,7 @@ ENT.RenderGroup = RENDERGROUP_BOTH
 local Layouter = {}
 Layouter.__index = Layouter
 
-local function MakeLayouter()
+function MakeTextScreenLayouter()
 	return setmetatable({}, Layouter)
 end
 
@@ -69,7 +69,7 @@ function ENT:Initialize()
 	self:InitializeShared()
 
 	self.GPU = WireGPU(self.Entity)
-	self.layouter = MakeLayouter()
+	self.layouter = MakeTextScreenLayouter()
 	self.NeedRefresh = true
 
 	self:ApplyProperties()
@@ -95,7 +95,7 @@ function ENT:Draw()
 
 			surface.SetFont("textScreenfont"..self.chrPerLine)
 			surface.SetTextColor(self.fgcolor)
-			self.layouter = MakeLayouter()
+			self.layouter = MakeTextScreenLayouter()
 			self.layouter:layout(self.text, 0, 0, w, h, self.textJust)
 
 			--draw.DrawText(self.text, "textScreenfont"..self.chrPerLine, self.textJust/2*w, 2, self.fgcolor, self.textJust)
