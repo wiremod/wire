@@ -26,7 +26,7 @@ function Layouter:NextLine()
 		self:AddString(" ")
 	end
 
-	local offsetx = self.x+(self.w-self.LineWidth)*self.justify/2
+	local offsetx = self.x+(self.w-self.LineWidth)*self.halign/2
 
 	for _,entry in ipairs(self.drawlist) do
 		surface.SetTextPos(entry[3]+offsetx, entry[4])
@@ -42,12 +42,13 @@ function Layouter:ResetLine()
 	self.drawlist = {}
 end
 
-function Layouter:layout(text, x, y, w, h, justify)
+-- valign is not supported yet
+function Layouter:layout(text, x, y, w, h, halign, valign)
 	self.x = x
 	self.y = y
 	self.w = w
 	self.h = h
-	self.justify = justify
+	self.halign = halign
 	self:ResetLine()
 
 	for line,newlines in text:gmatch("([^\n]*)(\n*)") do
