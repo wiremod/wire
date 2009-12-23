@@ -409,14 +409,15 @@ concommand.Add("wire_expression_upload_end", function(player, command, args)
 	if not buf.text then
 		-- caused by concurrent download from the same chip
 		ent:SetOverlayText("Expression 2\n(transfer error)")
-		local r,g,b,a = self:GetColor()
+		local r,g,b,a = ent:GetColor()
 		ent:SetColor(255, 0, 0, a)
 	end
 
 	local decoded = E2Lib.decode(buf.text or "")
 	if(decoded:len() != buf.len) then
 		ent:SetOverlayText("Expression 2\n(transfer error)")
-		ent:SetColor(255, 0, 0, 255)
+		local r,g,b,a = ent:GetColor()
+		ent:SetColor(255, 0, 0, a)
 	else
 		ent:Setup(decoded)
 		ent.player = player
