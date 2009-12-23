@@ -11,11 +11,13 @@ end
 
 function Layouter:AddString(s)
 	local width, height = surface.GetTextSize(s)
-	if self.LineWidth+width >= self.w then return false end
 
-	table.insert(self.drawlist, { surface.DrawText, s, self.LineWidth, self.y })
+	local nextx = self.x+width
+	if nextx > self.x2 then return false end
 
-	self.LineWidth = self.LineWidth+width
+	table.insert(self.drawlist, { s, self.x, self.y })
+
+	self.x = nextx
 	self.LineHeight = math.max(height, self.LineHeight)
 
 	return true
@@ -26,43 +28,67 @@ function Layouter:NextLine()
 		self:AddString(" ")
 	end
 
-	local offsetx = self.x+(self.w-self.LineWidth)*self.halign/2
+	local nexty = self.y+self.LineHeight
 
-	for _,entry in ipairs(self.drawlist) do
-		surface.SetTextPos(entry[3]+offsetx, entry[4])
-		entry[1](entry[2], entry)
-	end
-	self.y = self.y+self.LineHeight
+	if nexty > self.y2 then return false end
+
+	local offsetx = (self.x2-self.x)*self.halign/2
+
+	table.insert(self.lines, { offsetx, self.drawlist })
+
+	self.y = nexty
 	self:ResetLine()
+	return true
 end
 
 function Layouter:ResetLine()
 	self.LineHeight = 0
-	self.LineWidth = 0
+	self.x = self.x1
 	self.drawlist = {}
 end
 
--- valign is not supported yet
-function Layouter:layout(text, x, y, w, h, halign, valign)
-	self.x = x
-	self.y = y
-	self.w = w
-	self.h = h
-	self.halign = halign
+function Layouter:ResetPage()
 	self:ResetLine()
+	self.y = self.y1
+	self.lines = {}
+end
+
+-- valign is not supported yet
+function Layouter:layout(text, x, y, w, h, halign)
+	self.x1 = x
+	self.y1 = y
+	self.x2 = x+w
+	self.y2 = y+h
+	self.halign = halign
+
+	self:ResetPage()
 
 	for line,newlines in text:gmatch("([^\n]*)(\n*)") do
 		for spaces,word in line:gmatch("( *)([^ ]*)") do
 			if not self:AddString(spaces..word) then
-				self:NextLine()
+				if not self:NextLine() then return false end
 				self:AddString(word)
 			end
 		end
 		for i = 1,#newlines do
-			self:NextLine()
+			if not self:NextLine() then return false end
 		end
 	end
-	self:NextLine()
+	if not self:NextLine() then return false end
+	return true
+end
+
+function Layouter:DrawText(text, x, y, w, h, halign, valign)
+	self:layout(text, x, y, w, h, halign, valign)
+
+	local offsety = (self.y2-self.y)*valign/2
+
+	for _,offsetx,drawlist in ipairs_map(self.lines,unpack) do
+		for _,s,x,y in ipairs_map(drawlist,unpack) do
+			surface.SetTextPos(x+offsetx, y+offsety)
+			surface.DrawText(s)
+		end
+	end
 end
 --------------------------------------------------------------------------------
 
@@ -70,7 +96,7 @@ function ENT:Initialize()
 	self:InitializeShared()
 
 	self.GPU = WireGPU(self.Entity)
-	self.layouter = MakeTextScreenLayouter()
+	--self.layouter = MakeTextScreenLayouter()
 	self.NeedRefresh = true
 
 	self:ApplyProperties()
@@ -96,8 +122,8 @@ function ENT:Draw()
 
 			surface.SetFont("textScreenfont"..self.chrPerLine)
 			surface.SetTextColor(self.fgcolor)
-			self.layouter = MakeTextScreenLayouter()
-			self.layouter:layout(self.text, 0, 0, w, h, self.textJust)
+			self.layouter = MakeTextScreenLayouter() -- TODO: test if necessary
+			self.layouter:DrawText(self.text, 0, 0, w, h, self.textJust, 0)
 
 			--draw.DrawText(self.text, "textScreenfont"..self.chrPerLine, self.textJust/2*w, 2, self.fgcolor, self.textJust)
 		end)
