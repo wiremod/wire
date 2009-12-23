@@ -58,7 +58,8 @@ function ENT:Initialize()
 	self.Outputs = WireLib.CreateOutputs(self.Entity, {})
 
 	self:SetOverlayText("Expression 2\n(none)")
-	self:SetColor(255, 0, 0, 255)
+	local r,g,b,a = self:GetColor()
+	self:SetColor(255, 0, 0, a)
 end
 
 function ENT:OnRestore()
@@ -156,7 +157,8 @@ end
 
 function ENT:Error(message, overlaytext)
 	self:SetOverlayText("Expression 2\n" .. self.name .. "\n("..(overlaytext or "script error")..")")
-	self:SetColor(255, 0, 0, 255)
+	local r,g,b,a = self:GetColor()
+	self:SetColor(255, 0, 0, a)
 
 	self.error = true
 	ErrorNoHalt(message .. "\n")
@@ -205,7 +207,8 @@ function ENT:Setup(buffer, restore)
 	if not status then self:Error(script) return end
 
 	self:SetOverlayText("Expression 2\n" .. self.name)
-	self:SetColor(255, 255, 255, 255)
+	local r,g,b,a = self:GetColor()
+	self:SetColor(255, 255, 255, a)
 
 
 
@@ -406,7 +409,8 @@ concommand.Add("wire_expression_upload_end", function(player, command, args)
 	if not buf.text then
 		-- caused by concurrent download from the same chip
 		ent:SetOverlayText("Expression 2\n(transfer error)")
-		ent:SetColor(255, 0, 0, 255)
+		local r,g,b,a = self:GetColor()
+		ent:SetColor(255, 0, 0, a)
 	end
 
 	local decoded = E2Lib.decode(buf.text or "")
