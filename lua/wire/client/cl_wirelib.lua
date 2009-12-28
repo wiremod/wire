@@ -215,7 +215,7 @@ local function Wire_GetWireRenderBounds(ent)
 	end
 
 	if (ent.ExtraRBoxPoints) then
-		for _,point_l in ipairs( ent.ExtraRBoxPoints ) do
+		for _,point_l in pairs( ent.ExtraRBoxPoints ) do
 			local point = point_l
 			if (point.x < bbmin.x) then bbmin.x = point.x end
 			if (point.y < bbmin.y) then bbmin.y = point.y end
