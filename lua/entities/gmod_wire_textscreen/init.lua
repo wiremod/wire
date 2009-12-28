@@ -13,11 +13,12 @@ function ENT:Initialize()
 	self:InitializeShared()
 end
 
-function ENT:Setup(DefaultText, chrPerLine, textJust, fgcolor, bgcolor)
+function ENT:Setup(DefaultText, chrPerLine, textJust, valign, fgcolor, bgcolor)
 	self.fgcolor = fgcolor
 	self.bgcolor = bgcolor
 	self.chrPerLine = chrPerLine
 	self.textJust = textJust
+	self.valign = valign
 	self:SendConfig()
 
 	self:TriggerInput("String", DefaultText)
@@ -63,6 +64,7 @@ function ENT:SendConfig(ply)
 
 		umsg.Char(self.chrPerLine)
 		umsg.Char(self.textJust)
+		umsg.Char(self.valign)
 
 		umsg.Char(self.fgcolor.r-128)
 		umsg.Char(self.fgcolor.g-128)
@@ -86,7 +88,7 @@ hook.Add("PlayerInitialSpawn", "wire_textscreen", function(ply)
 	end
 end)
 
-function MakeWireTextScreen( pl, Pos, Ang, model, text, chrPerLine, textJust, fgcolor, bgcolor, frozen)
+function MakeWireTextScreen( pl, Pos, Ang, model, text, chrPerLine, textJust, valign, fgcolor, bgcolor, frozen)
 	if ( !pl:CheckLimit( "wire_textscreens" ) ) then return false end
 	local wire_textscreen = ents.Create( "gmod_wire_textscreen" )
 	if (!wire_textscreen:IsValid()) then return false end
@@ -95,7 +97,7 @@ function MakeWireTextScreen( pl, Pos, Ang, model, text, chrPerLine, textJust, fg
 	wire_textscreen:SetPos( Pos )
 	wire_textscreen:Spawn()
 
-	wire_textscreen:Setup(text, chrPerLine, textJust, fgcolor, bgcolor)
+	wire_textscreen:Setup(text, chrPerLine, textJust, valign, fgcolor, bgcolor)
 
 	if wire_textscreen:GetPhysicsObject():IsValid() then
 		local Phys = wire_textscreen:GetPhysicsObject()
@@ -108,4 +110,4 @@ function MakeWireTextScreen( pl, Pos, Ang, model, text, chrPerLine, textJust, fg
 	pl:AddCount( "wire_textscreens", wire_textscreen )
 	return wire_textscreen
 end
-duplicator.RegisterEntityClass("gmod_wire_textscreen", MakeWireTextScreen, "Pos", "Ang", "Model", "text", "chrPerLine", "textJust", "fgcolor", "bgcolor", "frozen")
+duplicator.RegisterEntityClass("gmod_wire_textscreen", MakeWireTextScreen, "Pos", "Ang", "Model", "text", "chrPerLine", "textJust", "valign", "fgcolor", "bgcolor", "frozen")

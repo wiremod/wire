@@ -116,16 +116,13 @@ function ENT:Draw()
 			local w = 512
 			local h = 512
 
-			--add changable backround colour some time.
 			surface.SetDrawColor(self.bgcolor.r, self.bgcolor.g, self.bgcolor.b, 255)
 			surface.DrawRect(0, 0, w, h)
 
 			surface.SetFont("textScreenfont"..self.chrPerLine)
 			surface.SetTextColor(self.fgcolor)
 			self.layouter = MakeTextScreenLayouter() -- TODO: test if necessary
-			self.layouter:DrawText(self.text, 0, 0, w, h, self.textJust, 0)
-
-			--draw.DrawText(self.text, "textScreenfont"..self.chrPerLine, self.textJust/2*w, 2, self.fgcolor, self.textJust)
+			self.layouter:DrawText(self.text, 0, 0, w, h, self.textJust, self.valign)
 		end)
 	end
 
@@ -145,6 +142,7 @@ end
 function ENT:ReceiveConfig(um)
 	self.chrPerLine = um:ReadChar()
 	self.textJust = um:ReadChar()
+	self.valign = um:ReadChar()
 
 	local r = um:ReadChar()+128
 	local g = um:ReadChar()+128

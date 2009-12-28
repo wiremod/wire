@@ -778,7 +778,8 @@ do -- wire_textscreen
 		language.Add("Tool_wire_textscreen_0", "Primary: Create/Update text screen, Secondary: Copy settings" )
 
 		language.Add("Tool_wire_textscreen_tsize", "Text size:")
-		language.Add("Tool_wire_textscreen_tjust", "Text justification:")
+		language.Add("Tool_wire_textscreen_tjust", "Horizontal alignment:")
+		language.Add("Tool_wire_textscreen_valign", "Vertical alignment:")
 		language.Add("Tool_wire_textscreen_colour", "Text colour:")
 		language.Add("Tool_wire_textscreen_createflat", "Create flat to surface")
 		language.Add("Tool_wire_textscreen_text", "Default text:")
@@ -794,7 +795,8 @@ do -- wire_textscreen
 			return
 				self:GetClientInfo("text"),
 				(16 - tonumber(self:GetClientInfo("tsize"))),
-				self:GetClientInfo("tjust"),
+				self:GetClientNumber("tjust"),
+				self:GetClientNumber("valign"),
 				Color(
 					math.min(self:GetClientNumber("tred"), 255),
 					math.min(self:GetClientNumber("tgreen"), 255),
@@ -813,6 +815,7 @@ do -- wire_textscreen
 		model       = "models/kobilica/wiremonitorbig.mdl",
 		tsize       = 10,
 		tjust       = 1,
+		valign      = 0,
 		tred        = 255,
 		tblue       = 255,
 		tgreen      = 255,
@@ -841,6 +844,7 @@ do -- wire_textscreen
 		WireToolHelpers.MakePresetControl(panel, "wire_textscreen")
 		panel:NumSlider("#Tool_wire_textscreen_tsize", "wire_textscreen_tsize", 1, 15, 0)
 		panel:NumSlider("#Tool_wire_textscreen_tjust", "wire_textscreen_tjust", 0, 2, 0)
+		panel:NumSlider("#Tool_wire_textscreen_valign", "wire_textscreen_valign", 0, 2, 0)
 		panel:AddControl("Color", {
 			Label = "#Tool_wire_textscreen_colour",
 			Red = "wire_textscreen_tred",
