@@ -7,7 +7,8 @@ TOOL.Tab        = "Wire"
 if (CLIENT) then
 	language.Add("Tool_wire_gpulib_switcher_name", "GPULib Screen Switcher")
 	language.Add("Tool_wire_gpulib_switcher_desc", "Spawns a graphics processing unit")
-	language.Add("Tool_wire_gpulib_switcher_0", "Primary: Link a GPULib Screen (Console/Digital/Text Screen/GPU/Oscilloscope) to a different prop, Reload: Unlink")
+	language.Add("Tool_wire_gpulib_switcher_0", "Primary: Link a GPULib Screen (Console/Digital/Text Screen/GPU/Oscilloscope) to a different prop/entity, Reload: Unlink")
+	language.Add("Tool_wire_gpulib_switcher_1", "Now click a prop or other entity to link to.")
 end
 
 local function switchscreen(screen, ent)
@@ -29,6 +30,10 @@ if CLIENT then
 		screen.GPU.Entity = ent
 		screen.GPU.entindex = ent:EntIndex()
 
+		if screen == ent then return end
+
+		screen.GPU.actualEntity = screen
+
 		local model = ent:GetModel()
 		local monitor = WireGPU_Monitors[model]
 
@@ -37,7 +42,7 @@ if CLIENT then
 		local x = -w/2
 		local y = -h/2
 
-		local vecs = {
+		local corners = {
 			{ x  , y   },
 			{ x  , y+h },
 			{ x+w, y   },
@@ -51,12 +56,27 @@ if CLIENT then
 				timer.Remove(timerid)
 				return
 			end
+			if not ent:IsValid() then
+				timer.Remove(timerid)
+
+				screen.ExtraRBoxPoints[1001] = nil
+				screen.ExtraRBoxPoints[1002] = nil
+				screen.ExtraRBoxPoints[1003] = nil
+				screen.ExtraRBoxPoints[1004] = nil
+				Wire_UpdateRenderBounds(screen)
+
+				screen.GPU.Entity = screen.GPU.actualEntity
+				screen.GPU.entindex = screen.GPU.actualEntity:EntIndex()
+				screen.GPU.actualEntity = nil
+
+				return
+			end
 
 			local ang = ent:LocalToWorldAngles(monitor.rot)
 			local pos = ent:LocalToWorld(monitor.offset)
 
 			screen.ExtraRBoxPoints = screen.ExtraRBoxPoints or {}
-			for i,x,y in ipairs_map(vecs, unpack) do
+			for i,x,y in ipairs_map(corners, unpack) do
 				local p = Vector(x, y, 0)
 				p:Rotate(ang)
 				p = screen:WorldToLocal(p+pos)

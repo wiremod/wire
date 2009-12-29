@@ -164,11 +164,16 @@ end
 
 function GPU:Render(rotation, scale, width, height, postrenderfunction)
 	if not self.RT then return end
-	local model = self.Entity:GetModel()
+
+	local ent = self.Entity
+	if not ent:IsValid() then ent = self.actualEntity end
+	if not ent then return end
+
+	local model = ent:GetModel()
 	local monitor = WireGPU_Monitors[model]
 
-	local ang = self.Entity:LocalToWorldAngles(monitor.rot)
-	local pos = self.Entity:LocalToWorld(monitor.offset)
+	local ang = ent:LocalToWorldAngles(monitor.rot)
+	local pos = ent:LocalToWorld(monitor.offset)
 
 	local OldTex = WireGPU_matScreen:GetMaterialTexture("$basetexture")
 	WireGPU_matScreen:SetMaterialTexture("$basetexture", self.RT)
