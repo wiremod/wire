@@ -715,12 +715,14 @@ e2function entity findClosest(vector position)
 	local closest = nil
 	local dist = math.huge
 	for _,ent in pairs(self.data.findlist) do
-		local pos = ent:GetPos()
-		local xd, yd, zd = pos.x-position[1], pos.y-position[2], pos.z-position[3]
-		local curdist = xd*xd + yd*yd + zd*zd
-		if curdist < dist then
-			closest = ent
-			dist = curdist
+		if validEntity(ent) then
+			local pos = ent:GetPos()
+			local xd, yd, zd = pos.x-position[1], pos.y-position[2], pos.z-position[3]
+			local curdist = xd*xd + yd*yd + zd*zd
+			if curdist < dist then
+				closest = ent
+				dist = curdist
+			end
 		end
 	end
 	return closest
