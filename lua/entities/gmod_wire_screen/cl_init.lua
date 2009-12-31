@@ -14,141 +14,80 @@ function ENT:Initialize()
 	surface.CreateFont("coolvetica", 128, 400, false, false, "screen_font_single")
 	surface.CreateFont("Trebuchet", 36, 400, false, false, "Trebuchet36")
 
+	self.GPU = WireGPU(self, true)
+end
+
+function ENT:OnRemove()
+	self.GPU:Finalize()
 end
 
 function ENT:Draw()
 	self.Entity:DrawModel()
 
-	local OF = 0
-	local OU = 0
-	local OR = 0
-	local Res = 0.1
-	local RatioX = 1
+	self.GPU:RenderToWorld(nil, 188, function(x, y, w, h)
+		surface.SetDrawColor(0, 0, 0, 255)
+		surface.DrawRect(x, y, w, h)
 
-	if self.Entity:GetModel() == "models/props_lab/monitor01b.mdl" then
-		OF = 6.53
-		OU = 0
-		OR = 0
-		Res = 0.05
-	elseif self.Entity:GetModel() == "models/kobilica/wiremonitorsmall.mdl" then
-		OF = 0.2
-		OU = 4.5
-		OR = -0.85
-		Res = 0.045
-	elseif self.Entity:GetModel() == "models/kobilica/wiremonitorbig.mdl" then
-		OF = 0.3
-		OU = 11.8
-		OR = -2.35
-		Res = 0.12
-	elseif self.Entity:GetModel() == "models/props/cs_office/computer_monitor.mdl" then
-		OF = 3.25
-		OU = 15.85
-		OR = -2.2
-		Res = 0.085
-		RatioX = 0.75
-	elseif self.Entity:GetModel() == "models/props/cs_office/tv_plasma.mdl" then
-		OF = 6.1
-		OU = 17.05
-		OR = -5.99
-		Res = 0.175
-		RatioX = 0.57
-	end
+		// Check for Single Value (TheApathetic)
+		if (self:GetSingleValue()) then
+			local rectheight = 20
+			local textfont = "Trebuchet18"
+			local valuefont = "screen_font"
 
-	local ang = self.Entity:GetAngles()
-	local rot = Vector(-90,90,0)
-	ang:RotateAroundAxis(ang:Right(), 	rot.x)
-	ang:RotateAroundAxis(ang:Up(), 		rot.y)
-	ang:RotateAroundAxis(ang:Forward(), rot.z)
+			// Check for Single Bigger Font setting
+			if (self:GetSingleBigFont()) then
+				rectheight = 40
+				textfont = "Trebuchet36"
+				valuefont = "screen_font_single"
+			end
 
-	local pos = self.Entity:GetPos() + (self.Entity:GetForward() * OF) + (self.Entity:GetUp() * OU) + (self.Entity:GetRight() * OR)
+			// Sizes here have been doubled when possible
+			surface.SetDrawColor(100,100,150,255)
+			surface.DrawRect(x,y,w,rectheight)
 
-	cam.Start3D2D(pos,ang,Res)
+			draw.DrawText(self:GetTextA(), textfont, x + w/2, y + 2, Color(255,255,255,255), 1)
 
-	local x = -112
-	local y = -104
-	local w = 296
-	local h = 292
+			local DisplayA
 
-	local x1 = -5.535
-	local x2 = 3.5
-	local y1 = 5.091
-	local y2 = -4.1
+			if (self:GetFloor()) then
+				DisplayA = math.floor(self:GetDisplayA( ))
+			else
+				DisplayA = math.floor(self:GetDisplayA( ) * 1000)/ 1000
+			end
 
-	local ox = 5
-	local oy = 5
-
-	local pos
-	local cx
-	local cy
-
-	surface.SetDrawColor(0,0,0,255)
-	surface.DrawRect(x/RatioX,y,(x+w)/RatioX,y+h)
-
-	// Check for Single Value (TheApathetic)
-	if (self:GetSingleValue()) then
-		local rectheight = 20
-		local fontsize = "18"
-		local sf_suffix = ""
-
-		// Check for Single Bigger Font setting
-		if (self:GetSingleBigFont()) then
-			rectheight = 40
-			fontsize = "36"
-			sf_suffix = "_single"
-		end
-
-		// Sizes here have been doubled when possible
-		surface.SetDrawColor(100,100,150,255)
-		surface.DrawRect(x/RatioX,y,(x+w)/RatioX,rectheight)
-
-		draw.DrawText(self:GetTextA(),"Trebuchet"..fontsize,(x + 92)/RatioX,y + 2,Color(255,255,255,255),1)
-
-		local DisplayA
-
-		if (self:GetFloor()) then
-			DisplayA = math.floor(self:GetDisplayA( ))
+			local halign = self:GetLeftAlign() and 0 or 1
+			draw.DrawText(DisplayA,valuefont,x + w/2*halign,y + rectheight,Color(255,255,255,255),halign)
 		else
-			DisplayA = math.floor(self:GetDisplayA( ) * 1000)/ 1000
+			// Normal two-value Wire Screen
+
+			-- draw top bars
+			surface.SetDrawColor(100,100,150,255)
+			surface.DrawRect(x,y,w,20)
+
+			surface.SetDrawColor(100,100,150,255)
+			surface.DrawRect(x,y+94,w,20)
+
+			// Replaced "Value A" and "Value B" here (TheApathetic)
+			draw.DrawText(self:GetTextA(), "Trebuchet18", x + w/2, y +  2, Color(255,255,255,255), 1)
+			draw.DrawText(self:GetTextB(), "Trebuchet18", x + w/2, y + 96, Color(255,255,255,255), 1)
+
+			local DisplayA
+			local DisplayB
+
+			if (self:GetFloor()) then
+				DisplayA = math.floor(self:GetDisplayA( ))
+				DisplayB = math.floor(self:GetDisplayB( ))
+			else
+				DisplayA = math.floor(self:GetDisplayA( ) * 1000)/ 1000
+				DisplayB = math.floor(self:GetDisplayB( ) * 1000)/ 1000
+			end
+
+			local halign = self:GetLeftAlign() and 0 or 1
+			draw.DrawText(DisplayA, "screen_font", x + w/2*halign, y +  20, Color(255,255,255,255), halign)
+			draw.DrawText(DisplayB, "screen_font", x + w/2*halign, y + 114, Color(255,255,255,255), halign)
 		end
 
-		if (self:GetLeftAlign()) then
-			draw.DrawText(DisplayA,"screen_font"..sf_suffix,x/RatioX,y + rectheight,Color(255,255,255,255),0)
-		else
-			draw.DrawText(DisplayA,"screen_font"..sf_suffix,(x + 92)/RatioX,y + rectheight,Color(255,255,255,255),1)
-		end
-	else
-		// Normal two-value Wire Screen
-		surface.SetDrawColor(100,100,150,255)
-		surface.DrawRect(x/RatioX,y,(x+w)/RatioX,20)
-
-		surface.SetDrawColor(100,100,150,255)
-		surface.DrawRect(x/RatioX,y+94,(x+w)/RatioX,20)
-
-		// Replaced "Value A" and "Value B" here (TheApathetic)
-		draw.DrawText(self:GetTextA(),"Trebuchet18",(x + 92)/RatioX,y + 2,Color(255,255,255,255),1)
-		draw.DrawText(self:GetTextB(),"Trebuchet18",(x + 92)/RatioX,y + 96,Color(255,255,255,255),1)
-
-		local DisplayA
-		local DisplayB
-
-		if (self:GetFloor()) then
-			DisplayA = math.floor(self:GetDisplayA( ))
-			DisplayB = math.floor(self:GetDisplayB( ))
-		else
-			DisplayA = math.floor(self:GetDisplayA( ) * 1000)/ 1000
-			DisplayB = math.floor(self:GetDisplayB( ) * 1000)/ 1000
-		end
-
-		if (self:GetLeftAlign()) then
-			draw.DrawText(DisplayA,"screen_font",x/RatioX,y + 20,Color(255,255,255,255),0)
-			draw.DrawText(DisplayB,"screen_font",x/RatioX,y + 114,Color(255,255,255,255),0)
-		else
-			draw.DrawText(DisplayA,"screen_font",(x + 90)/RatioX,y + 20,Color(255,255,255,255),1)
-			draw.DrawText(DisplayB,"screen_font",(x + 92)/RatioX,y + 114,Color(255,255,255,255),1)
-		end
-	end
-
-	cam.End3D2D()
+	end)
 
 	Wire_Render(self.Entity)
 end

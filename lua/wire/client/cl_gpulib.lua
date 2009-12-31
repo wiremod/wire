@@ -44,24 +44,25 @@ WireGPU_texScreen = surface.GetTextureID("ignore_this_error")
 local GPU = {}
 GPU.__index = GPU
 
-function WireGPU(ent)
+function WireGPU(ent, ...)
 	local self = {
 		entindex = ent:EntIndex(),
 		Entity = ent,
 	}
 	setmetatable(self, GPU)
-	self:Initialize()
+	self:Initialize(...)
 	return self
 end
 
-function GPU:Initialize()
+function GPU:Initialize(no_rendertarget)
+	if no_rendertarget then return nil end
 	-- Rendertarget cache management
 
 	-- find a free one
 	self.RT = next(RenderTargetCache.Free)
 
 	-- no free RT? bail out
-	if not self.RT then return end
+	if not self.RT then return nil end
 
 	-- mark RT as used
 	RenderTargetCache.Used[self.RT] = RenderTargetCache.Free[self.RT]
@@ -162,9 +163,7 @@ function GPU:RenderToGPU(renderfunction)
 	render.SetRenderTarget(OldRT)
 end
 
-function GPU:Render(rotation, scale, width, height, postrenderfunction)
-	if not self.RT then return end
-
+function GPU:GetInfo()
 	local ent = self.Entity
 	if not ent:IsValid() then ent = self.actualEntity end
 	if not ent then return end
@@ -174,6 +173,27 @@ function GPU:Render(rotation, scale, width, height, postrenderfunction)
 
 	local ang = ent:LocalToWorldAngles(monitor.rot)
 	local pos = ent:LocalToWorld(monitor.offset)
+
+	return monitor, pos, ang
+end
+
+-- If width is specified, height is ignored. if neither is specified, a height of 512 is used.
+function GPU:RenderToWorld(width, height, renderfunction)
+	local monitor, pos, ang = self:GetInfo()
+
+	local h = width and width*monitor.RatioX or height or 512
+	local w = h/monitor.RatioX
+	local x = -w/2
+	local y = -h/2
+	cam.Start3D2D(pos, ang, monitor.RS*512/h)
+		PCallError(renderfunction, x, y, w, h, monitor, pos, ang)
+	cam.End3D2D()
+end
+
+function GPU:Render(rotation, scale, width, height, postrenderfunction)
+	if not self.RT then return end
+
+	local monitor, pos, ang = self:GetInfo()
 
 	local OldTex = WireGPU_matScreen:GetMaterialTexture("$basetexture")
 	WireGPU_matScreen:SetMaterialTexture("$basetexture", self.RT)
