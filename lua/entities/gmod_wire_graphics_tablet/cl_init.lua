@@ -8,6 +8,12 @@ ENT.paramSetup = false
 function ENT:Initialize()
 	self:SetupParams()
 	self.allowDraw = true
+
+	self.GPU = WireGPU(self, true)
+end
+
+function ENT:OnRemove()
+	self.GPU:Finalize()
 end
 
 function ENT:Draw()
@@ -18,42 +24,40 @@ function ENT:Draw()
 	end
 
 	self.Entity:DrawModel()
-	--begin adapted nighteagle code (amazing work with vectors!!!):  --Nighteagles has put a lot of work into refining the use of cam3d2d and traces to create cursor screen systems.
-	local ang = self.Entity:GetAngles()
-	local rot = Vector(-90,90,0)
-	ang:RotateAroundAxis(ang:Right(), rot.x)
-	ang:RotateAroundAxis(ang:Up(), rot.y)
-	ang:RotateAroundAxis(ang:Forward(), rot.z)
-	local pos = self.Entity:GetPos() + (self.Entity:GetForward() * self.z)
 
-	cam.Start3D2D(pos, ang, self.res)
-		local trace = {}
-			trace.start = LocalPlayer():GetShootPos()
-			trace.endpos = (LocalPlayer():GetAimVector() * self.workingDistance) + trace.start
-			trace.filter = LocalPlayer()
-		local trace = util.TraceLine(trace)
+	self.GPU:RenderToWorld(nil, 512, function(x, y, w, h, monitor, pos, ang)
+		-- only draw the background when not drawing on another GPU
+		if self.GPU.Entity == self or not self.GPU.Entity.GPU then
+			surface.SetDrawColor(0,0,0,255)
+			surface.DrawRect(x,y,w,h)
+		end
 
-		if (trace.Entity == self.Entity) then
-			local pos = self.Entity:WorldToLocal(trace.HitPos)
-			local cx = (self.x1 - pos.y) / (self.x1 - self.x2)
-			local cy = (self.y1 - pos.z) / (self.y1 - self.y2)
+		local ply = LocalPlayer()
+		local trace = ply:GetEyeTraceNoCursor()
+		if trace.Entity:IsValid() then
+			local dist = trace.Normal:Dot(trace.HitNormal)*trace.Fraction*-16384
+			dist = math.max(dist, trace.Fraction*16384-trace.Entity:BoundingRadius())
+			WireLib.hud_debug(""..dist, true)
 
-			--surface.SetDrawColor(0,0,255,255)
-			--surface.DrawRect(self.x ,self.y, self.w, self.h)
+			if dist < self.workingDistance and trace.Entity == self.GPU.Entity then
+				local cpos = WorldToLocal(trace.HitPos, Angle(), pos, ang)
 
-			if (cx >= 0 and cy >= 0 and cx <= 1 and cy <= 1) then
-				surface.SetDrawColor (255, 255, 255, 255)
-				--surface.SetTexture (surface.GetTextureID ("gui/arrow"))
-				--surface.DrawTexturedRectRotated (self.x + (self.w * cx) + self.ox, self.y + (self.h * cy) + self.oy, 16, 16, 45)
-				local curSize = 16
-				local curWidth = 2
-				local midX = self.x + (self.w * cx)
-				local midY = self.y + (self.h * cy)
-				surface.DrawRect (midX - curSize, midY - curWidth, curSize * 2, curWidth * 2)
-				surface.DrawRect (midX - curWidth, midY - curSize, curWidth * 2, curSize * 2)
+				local cx = 0.5+cpos.x/(monitor.RS*w)
+				local cy = 0.5-cpos.y/(monitor.RS*h)
+
+				if cx >= 0 and cy >= 0 and cx <= 1 and cy <= 1 then
+					surface.SetDrawColor(255, 255, 255, 255)
+					--surface.SetTexture(surface.GetTextureID("gui/arrow"))
+					--surface.DrawTexturedRectRotated(x+cx*w+11,y+cy*w+11,32,32,45)
+
+					local curSize = 16
+					local curWidth = 2
+					local midX, midY = x+cx*w,y+cy*h
+					surface.DrawRect(midX - curSize, midY - curWidth, curSize * 2, curWidth * 2)
+					surface.DrawRect(midX - curWidth, midY - curSize, curWidth * 2, curSize * 2)
+				end
 			end
 		end
-	cam.End3D2D()
-	--end adapted nighteagle code
+	end)
 	Wire_Render(self.Entity)
 end

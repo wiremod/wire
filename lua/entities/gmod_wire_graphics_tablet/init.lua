@@ -26,6 +26,9 @@ function ENT:Initialize()
 	self:SetupParams()
 end
 
+function ENT:OnRemove()
+end
+
 function ENT:Setup(gmode)
 	self.outputMode = gmode
 end
@@ -38,33 +41,44 @@ function ENT:Think()
 	local onScreen = 0
 	local clickActive = 0
 
-	for i, player in pairs(player.GetAll()) do
-		local trace = {}
-			trace.start = player:GetShootPos()
-			trace.endpos = (player:GetAimVector() * self.workingDistance) + trace.start
-			trace.filter = player
-		local trace = util.TraceLine(trace)
+	local ent = self.GPUEntity or self
+	local model = ent:GetModel()
+	local monitor = WireGPU_Monitors[model]
+	local ang = ent:LocalToWorldAngles(monitor.rot)
+	local pos = ent:LocalToWorld(monitor.offset)
+	local h = 512
+	local w = h/monitor.RatioX
+	local x = -w/2
+	local y = -h/2
 
-		if (trace.Entity == self.Entity) then
-			if (player:KeyDown (IN_ATTACK) or player:KeyDown (IN_USE)) then
-				clickActive = 1
-			end
-			local pos = self.Entity:WorldToLocal(trace.HitPos)
-			local xval = (self.x1 - pos.y) / (self.x1 - self.x2)
-			local yval = (self.y1 - pos.z) / (self.y1 - self.y2)
+	for _,ply in pairs(player.GetAll()) do
+		local trace = ply:GetEyeTraceNoCursor()
+		if trace.Entity:IsValid() then
+			local dist = trace.Normal:Dot(trace.HitNormal)*trace.Fraction*-16384
+			dist = math.max(dist, trace.Fraction*16384-trace.Entity:BoundingRadius())
 
-			if (xval >= 0 and yval >= 0 and xval <= 1 and yval <= 1) then
-				onScreen = 1
-				if (xval ~= self.lastX or yval ~= self.lastY) then
-					if (self.outputMode) then
-						xval = (xval * 2) - 1
-						yval = (-yval * 2) + 1
+			if dist < 64 and trace.Entity == ent then
+				if ply:KeyDown(IN_ATTACK) or ply:KeyDown(IN_USE) then
+					clickActive = 1
+				end
+				local cpos = WorldToLocal(trace.HitPos, Angle(), pos, ang)
+
+				local cx = 0.5+cpos.x/(monitor.RS*w)
+				local cy = 0.5-cpos.y/(monitor.RS*h)
+
+				if (cx >= 0 and cy >= 0 and cx <= 1 and cy <= 1) then
+					onScreen = 1
+					if (cx ~= self.lastX or cy ~= self.lastY) then
+						self.lastX = cx
+						self.lastY = cy
+						if (self.outputMode) then
+							cx = cx * 2 - 1
+							cy = -(cy * 2 - 1)
+						end
+						Wire_TriggerOutput(self.Entity, "X", cx)
+						Wire_TriggerOutput(self.Entity, "Y", cy)
+						self:ShowOutput(cx, cy, clickActive, 1)
 					end
-					Wire_TriggerOutput(self.Entity, "X", xval)
-					Wire_TriggerOutput(self.Entity, "Y", yval)
-					self:ShowOutput(xval, yval, self.lastClick, self.lastOnScreen)
-					self.lastX = xval
-					self.lastY = yval
 				end
 			end
 		end
@@ -86,8 +100,8 @@ function ENT:Think()
 	return true
 end
 
-function ENT:ShowOutput(xval, yval, activeval, osval)
-	self:SetOverlayText(string.format("X = %f, Y = %f, Use = %d, On Screen = %d\n", xval, yval, activeval, osval))
+function ENT:ShowOutput(cx, cy, activeval, osval)
+	self:SetOverlayText(string.format("X = %f, Y = %f, Use = %d, On Screen = %d\n", cx, cy, activeval, osval))
 end
 
 function ENT:OnRestore()

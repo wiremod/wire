@@ -8,10 +8,11 @@ if (CLIENT) then
 	language.Add("Tool_wire_gpulib_switcher_name", "GPULib Screen Switcher")
 	language.Add("Tool_wire_gpulib_switcher_desc", "Spawns a graphics processing unit")
 	language.Add("Tool_wire_gpulib_switcher_0", "Primary: Link a GPULib Screen (Console/Digital/Text Screen/GPU/Oscilloscope) to a different prop/entity, Reload: Unlink")
-	language.Add("Tool_wire_gpulib_switcher_1", "Now click a prop or other entity to link to.")
+	language.Add("Tool_wire_gpulib_switcher_1", "Now click a prop or other entity to link to. Press Reload to cancel.")
 end
 
 local function switchscreen(screen, ent)
+	screen.GPUEntity = ent
 	umsg.Start("wire_gpulib_setent")
 		umsg.Short(screen:EntIndex())
 		umsg.Short(ent:EntIndex())

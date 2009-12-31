@@ -336,3 +336,10 @@ function Derma_StringRequestNoBlur(...)
 	if not ok then error(ret, 0) end
 	return ret
 end
+
+function WireLib.hud_debug(text, oneframe)
+	hook.Add("HUDPaint","wire_hud_debug",function()
+		if oneframe then hook.Remove("HUDPaint","mehdebug") end
+		draw.DrawText(text,"Trebuchet24",10,200,Color(255,255,255,255),0)
+	end)
+end

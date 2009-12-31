@@ -96,7 +96,7 @@ function ENT:Initialize()
 	self:InitializeShared()
 
 	self.GPU = WireGPU(self.Entity)
-	--self.layouter = MakeTextScreenLayouter()
+	self.layouter = MakeTextScreenLayouter()
 	self.NeedRefresh = true
 
 	self:ApplyProperties()
@@ -105,14 +105,12 @@ end
 function ENT:OnRemove()
 	self.GPU:Finalize()
 end
-
 function ENT:Draw()
 	self.Entity:DrawModel()
 
 	if self.NeedRefresh then
 		self.NeedRefresh = nil
 		self.GPU:RenderToGPU(function()
-			local RatioX = 1
 			local w = 512
 			local h = 512
 
@@ -121,12 +119,22 @@ function ENT:Draw()
 
 			surface.SetFont("textScreenfont"..self.chrPerLine)
 			surface.SetTextColor(self.fgcolor)
-			self.layouter = MakeTextScreenLayouter() -- TODO: test if necessary
 			self.layouter:DrawText(self.text, 0, 0, w, h, self.textJust, self.valign)
 		end)
 	end
 
 	self.GPU:Render()
+	--[[
+	self.GPU:RenderToWorld(512, nil, function(x, y, w, h)
+
+		surface.SetDrawColor(self.bgcolor.r, self.bgcolor.g, self.bgcolor.b, 255)
+		surface.DrawRect(x, y, w, h)
+
+		surface.SetFont("textScreenfont"..self.chrPerLine)
+		surface.SetTextColor(self.fgcolor)
+		self.layouter:DrawText(self.text, x, y, w, h, self.textJust, self.valign)
+	end)
+	]]
 	Wire_Render(self.Entity)
 end
 

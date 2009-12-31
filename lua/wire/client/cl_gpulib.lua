@@ -46,8 +46,8 @@ GPU.__index = GPU
 
 function WireGPU(ent, ...)
 	local self = {
-		entindex = ent:EntIndex(),
-		Entity = ent,
+		entindex = ent and ent:EntIndex() or 0,
+		Entity = ent or NULL,
 	}
 	setmetatable(self, GPU)
 	self:Initialize(...)
