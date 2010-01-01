@@ -610,7 +610,7 @@ do -- wire_panel
 	}
 
 	function TOOL.BuildCPanel(panel)
-		WireDermaExts.ModelSelect(panel, "wire_panel_model", list.Get( "WireNoGPULibScreenModels" ), 2) -- screen with out a GPUlip setup
+		WireDermaExts.ModelSelect(panel, "wire_panel_model", list.Get( "WireNoGPULibScreenModels" ), 2) -- screen without a GPULib setup
 		panel:CheckBox("#Tool_wire_panel_createflat", "wire_panel_createflat")
 		panel:CheckBox("Weld", "wire_panel_weld")
 	end
@@ -709,7 +709,7 @@ do -- wire_screen
 
 	function TOOL.BuildCPanel(panel)
 		WireToolHelpers.MakePresetControl(panel, "wire_screen")
-		WireDermaExts.ModelSelect(panel, "wire_screen_model", list.Get( "WireNoGPULibScreenModels" ), 2) -- screen with out a GPUlip setup
+		WireDermaExts.ModelSelect(panel, "wire_screen_model", list.Get( "WireScreenModels" ), 2) -- screen with GPULib setup
 		panel:CheckBox("#Tool_wire_screen_singlevalue", "wire_screen_singlevalue")
 		panel:CheckBox("#Tool_wire_screen_singlebigfont", "wire_screen_singlebigfont")
 		panel:CheckBox("#Tool_wire_screen_leftalign", "wire_screen_leftalign")

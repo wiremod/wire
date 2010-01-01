@@ -2,13 +2,9 @@
 
 include('shared.lua')
 
-ENT.RenderGroup 		= RENDERGROUP_BOTH
-ENT.paramSetup = false
+ENT.RenderGroup = RENDERGROUP_BOTH
 
 function ENT:Initialize()
-	self:SetupParams()
-	self.allowDraw = true
-
 	self.GPU = WireGPU(self, true)
 end
 
@@ -17,29 +13,23 @@ function ENT:OnRemove()
 end
 
 function ENT:Draw()
-	if !self.allowDraw then return true end
-
-	if !self.paramsSetup then
-		self:SetupParams()
-	end
-
 	self.Entity:DrawModel()
 
 	self.GPU:RenderToWorld(nil, 512, function(x, y, w, h, monitor, pos, ang)
-		-- only draw the background when not drawing on another GPU
-		if self.GPU.Entity == self or not self.GPU.Entity.GPU then
-			surface.SetDrawColor(0,0,0,255)
-			surface.DrawRect(x,y,w,h)
+		if self:GetNetworkedBeamBool("draw_background", true) then
+			surface.SetDrawColor(0, 0, 0, 255)
+			surface.DrawRect(x, y, w, h)
 		end
 
 		local ply = LocalPlayer()
 		local trace = ply:GetEyeTraceNoCursor()
-		if trace.Entity:IsValid() then
+		local ent = trace.Entity
+		if ent:IsValid() then
 			local dist = trace.Normal:Dot(trace.HitNormal)*trace.Fraction*-16384
-			dist = math.max(dist, trace.Fraction*16384-trace.Entity:BoundingRadius())
-			WireLib.hud_debug(""..dist, true)
+			dist = math.max(dist, trace.Fraction*16384-ent:BoundingRadius())
+			--WireLib.hud_debug(""..dist, true)
 
-			if dist < self.workingDistance and trace.Entity == self.GPU.Entity then
+			if dist < self.workingDistance and ent == self.GPU.Entity then
 				local cpos = WorldToLocal(trace.HitPos, Angle(), pos, ang)
 
 				local cx = 0.5+cpos.x/(monitor.RS*w)

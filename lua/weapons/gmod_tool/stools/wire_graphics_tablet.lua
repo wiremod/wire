@@ -12,21 +12,25 @@ TOOL.Tab			= "Wire"
 
 if ( CLIENT ) then
     language.Add( "Tool_wire_graphics_tablet_name", "Graphics Tablet Tool (Wire)" )
-    language.Add( "Tool_wire_graphics_tablet_desc", "Spawns a grphics tablet, which outputs cursor coordinates" )
+    language.Add( "Tool_wire_graphics_tablet_desc", "Spawns a graphics tablet, which outputs cursor coordinates" )
     language.Add( "Tool_wire_graphics_tablet_0", "Primary: Create/Update graphics tablet" )
 	language.Add( "sboxlimit_wire_graphics_tablets", "You've hit graphics tablets limit!" )
 	language.Add( "undone_wire_graphics_tablet", "Undone Wire Graphics Tablet" )
 	language.Add( "Tool_wire_graphics_tablet_mode", "Output mode: -1 to 1 (ticked), 0 to 1 (unticked)" )
-	language.Add("Tool_wire_graphics_tablet_createflat", "Create flat to surface")
+	language.Add( "Tool_wire_graphics_tablet_draw_background", "Draw background" )
+	language.Add( "Tool_wire_graphics_tablet_createflat", "Create flat to surface" )
 end
 
 if (SERVER) then
 	CreateConVar('sbox_maxwire_graphics_tablets', 20)
 end
 
-TOOL.ClientConVar["model"] = "models/kobilica/wiremonitorbig.mdl"
-TOOL.ClientConVar["outmode"] = 0
-TOOL.ClientConVar["createflat"] = 1
+TOOL.ClientConVar = {
+	model = "models/kobilica/wiremonitorbig.mdl",
+	outmode = 0,
+	createflat = 1,
+	draw_background = 1,
+}
 
 cleanup.Register( "wire_graphics_tablets" )
 
@@ -42,19 +46,20 @@ function TOOL:LeftClick( trace )
 	local ply = self:GetOwner()
 	local Ang = trace.HitNormal:Angle()
 	local model = self:GetClientInfo("model")
-	local gmode = (self:GetClientNumber("outmode") ~= 0)
-	local CreateFlat = self:GetClientNumber("createflat")
+	local gmode = self:GetClientNumber("outmode") ~= 0
+	local CreateFlat = self:GetClientNumber("createflat") ~= 0
+	local draw_background = self:GetClientNumber("draw_background") ~= 0
 
 	if (trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_graphics_tablet" && trace.Entity.pl == ply) then
-		trace.Entity:Setup(gmode)
+		trace.Entity:Setup(gmode, draw_background)
 		return true
 	end
 
-	if (CreateFlat == 0) then
+	if not CreateFlat then
 		Ang.pitch = Ang.pitch + 90
 	end
 
-	local wire_graphics_tablet = MakeWireGraphicsTablet(ply, trace.HitPos, Ang, model, gmode)
+	local wire_graphics_tablet = MakeWireGraphicsTablet(ply, trace.HitPos, Ang, model, gmode, draw_background)
 	local min = wire_graphics_tablet:OBBMins()
 	wire_graphics_tablet:SetPos( trace.HitPos - trace.HitNormal * min.z )
 
@@ -71,7 +76,7 @@ function TOOL:LeftClick( trace )
 end
 
 if (SERVER) then
-	function MakeWireGraphicsTablet( pl, Pos, Ang, model, gmode )
+	function MakeWireGraphicsTablet( pl, Pos, Ang, model, gmode, draw_background )
 		if ( !pl:CheckLimit( "wire_graphics_tablets" ) ) then return false end
 
 		local wire_graphics_tablet = ents.Create( "gmod_wire_graphics_tablet" )
@@ -80,7 +85,7 @@ if (SERVER) then
 
 		wire_graphics_tablet:SetAngles( Ang )
 		wire_graphics_tablet:SetPos( Pos )
-		wire_graphics_tablet:Setup(gmode)
+		wire_graphics_tablet:Setup(gmode, draw_background)
 		wire_graphics_tablet:Spawn()
 		wire_graphics_tablet:SetPlayer(pl)
 
@@ -93,7 +98,7 @@ if (SERVER) then
 		pl:AddCount( "wire_graphics_tablets", wire_graphics_tablet )
 		return wire_graphics_tablet
 	end
-	duplicator.RegisterEntityClass("gmod_wire_graphics_tablet", MakeWireGraphicsTablet, "Pos", "Ang", "Model", "gmode")
+	duplicator.RegisterEntityClass("gmod_wire_graphics_tablet", MakeWireGraphicsTablet, "Pos", "Ang", "Model", "gmode", "draw_background")
 end
 
 function TOOL:UpdateGhostWireGraphicsTablet( ent, player )
@@ -129,21 +134,14 @@ end
 function TOOL.BuildCPanel(panel)
 	panel:AddControl("Header", { Text = "#Tool_wire_graphics_tablet_name", Description = "#Tool_wire_graphics_tablet_desc" })
 
-	panel:AddControl("ComboBox", {
-		Label = "#WireThrusterTool_Model",
-		MenuButton = "0",
-
-		Options = {
-			["#Small tv"]		= { wire_graphics_tablet_model = "models/props_lab/monitor01b.mdl" },
-			["#Plasma tv"]		= { wire_graphics_tablet_model = "models/props/cs_office/TV_plasma.mdl" },
-			["#LCD monitor"]	= { wire_graphics_tablet_model = "models/props/cs_office/computer_monitor.mdl" },
-			["#Monitor Big"]	= { wire_graphics_tablet_model = "models/kobilica/wiremonitorbig.mdl" },
-			["#Monitor Small"]	= { wire_graphics_tablet_model = "models/kobilica/wiremonitorsmall.mdl" },
-		}
-	})
+	WireDermaExts.ModelSelect(panel, "wire_graphics_tablet_model", list.Get( "WireScreenModels" ), 2) -- screen with out a GPUlip setup
 	panel:AddControl("CheckBox", {
 		Label = "#Tool_wire_graphics_tablet_mode",
 		Command = "wire_graphics_tablet_outmode"
+	})
+	panel:AddControl("CheckBox", {
+		Label = "#Tool_wire_graphics_tablet_draw_background",
+		Command = "wire_graphics_tablet_draw_background"
 	})
 	panel:AddControl("Checkbox", {
 		Label = "#Tool_wire_graphics_tablet_createflat",

@@ -203,7 +203,7 @@ local function AddNetworkFunctions( name, SetFunction, GetFunction, Default )
 		local out = GetNetworkTable( self, name )[ key ]
 		if ( out != nil ) then return out end
 		if ( default == nil ) then return Default end
-		//default = default or Default
+		//default = default or Default -- not a good idea for booleans :)
 
 		return default
 

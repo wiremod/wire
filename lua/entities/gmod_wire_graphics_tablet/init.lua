@@ -23,17 +23,15 @@ function ENT:Initialize()
 	self.lastX = 0
 	self.lastY = 0
 	self.lastClick = 0
-	self:SetupParams()
 end
 
 function ENT:OnRemove()
 end
 
-function ENT:Setup(gmode)
+function ENT:Setup(gmode, draw_background)
 	self.outputMode = gmode
-end
-
-function ENT:Use()
+	self.draw_background = draw_background
+	self:SetNetworkedBeamBool("draw_background", draw_background, true)
 end
 
 function ENT:Think()
@@ -41,11 +39,11 @@ function ENT:Think()
 	local onScreen = 0
 	local clickActive = 0
 
-	local ent = self.GPUEntity or self
-	local model = ent:GetModel()
+	local GPUEntity = self.GPUEntity or self
+	local model = GPUEntity:GetModel()
 	local monitor = WireGPU_Monitors[model]
-	local ang = ent:LocalToWorldAngles(monitor.rot)
-	local pos = ent:LocalToWorld(monitor.offset)
+	local ang = GPUEntity:LocalToWorldAngles(monitor.rot)
+	local pos = GPUEntity:LocalToWorld(monitor.offset)
 	local h = 512
 	local w = h/monitor.RatioX
 	local x = -w/2
@@ -53,11 +51,12 @@ function ENT:Think()
 
 	for _,ply in pairs(player.GetAll()) do
 		local trace = ply:GetEyeTraceNoCursor()
-		if trace.Entity:IsValid() then
+		local ent = trace.Entity
+		if ent:IsValid() then
 			local dist = trace.Normal:Dot(trace.HitNormal)*trace.Fraction*-16384
-			dist = math.max(dist, trace.Fraction*16384-trace.Entity:BoundingRadius())
+			dist = math.max(dist, trace.Fraction*16384-ent:BoundingRadius())
 
-			if dist < 64 and trace.Entity == ent then
+			if dist < 64 and ent == GPUEntity then
 				if ply:KeyDown(IN_ATTACK) or ply:KeyDown(IN_USE) then
 					clickActive = 1
 				end
@@ -105,6 +104,6 @@ function ENT:ShowOutput(cx, cy, activeval, osval)
 end
 
 function ENT:OnRestore()
-    self.BaseClass.OnRestore(self)
+	self.BaseClass.OnRestore(self)
 	Wire_AdjustOutputs(self.Entity, { "X", "Y", "Use", "OnScreen" })
 end

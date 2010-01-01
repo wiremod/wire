@@ -14,10 +14,4 @@ ENT.Instructions    = ""
 ENT.Spawnable       = false
 ENT.AdminSpawnable  = false
 
-
-function ENT:OnRemove()
-end
-
-function ENT:SetupParams()
-	self.workingDistance = 64
-end
+ENT.workingDistance = 64
