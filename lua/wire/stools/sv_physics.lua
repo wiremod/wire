@@ -212,14 +212,12 @@ end
 
 function WireToolMakeGrabber( self, trace, ply )
 
-	local range 	= self:GetClientNumber("Range")
-	local gravity	= self:GetClientNumber("Gravity") ~= 0
+	local Range 	= self:GetClientNumber("Range")
+	local Gravity	= self:GetClientNumber("Gravity") ~= 0
 	local model		= self:GetModel()
 
 	if trace.Entity:IsValid() and trace.Entity:GetClass() == "gmod_wire_grabber" and trace.Entity.pl == ply then
-		trace.Entity:Setup(range, gravity)
-		trace.Entity.Gange = range
-		trace.Entity.Gravity = gravity
+		trace.Entity:Setup(Range, Gravity)
 		return true
 	end
 
@@ -229,7 +227,7 @@ function WireToolMakeGrabber( self, trace, ply )
 	local Ang = trace.HitNormal:Angle()
 	Ang.pitch = Ang.pitch + 90
 
-	local wire_grabber = MakeWireGrabber( ply, trace.HitPos, Ang, model, range, gravity )
+	local wire_grabber = MakeWireGrabber( ply, trace.HitPos, Ang, model, Range, Gravity )
 
 	local min = wire_grabber:OBBMins()
 	if model == "models/jaanus/wiretool/wiretool_grabber_forcer.mdl" then

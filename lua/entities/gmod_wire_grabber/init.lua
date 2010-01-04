@@ -33,14 +33,15 @@ function ENT:Initialize()
 end
 
 function ENT:OnRemove()
-	if self.Weld ~= nil then
+	if self.Weld then
 		self:ResetGrab()
 	end
 	Wire_Remove(self.Entity)
 end
 
-function ENT:Setup(Range,Gravity)
+function ENT:Setup(Range, Gravity)
 	self:SetBeamLength(Range)
+	self.Range = Range
 	self.Gravity = Gravity
 	--Msg("Setup:\n\tRange:"..tostring(Range).."\n\tGravity:"..tostring(Gravity).."\n")
 end
@@ -66,7 +67,8 @@ function ENT:ResetGrab()
 	self.WeldEntity = nil
 	self.ExtraPropWeld = nil
 
-	self.Entity:SetColor(255,255,255,255)
+	local r,g,b,a = self:GetColor()
+	self:SetColor(255, 255, 255, a)
 	Wire_TriggerOutput(self.Entity,"Holding",0)
 end
 
@@ -78,7 +80,7 @@ function ENT:TriggerInput(iname, value)
 
 			local trace = {}
 				trace.start = vStart
-				trace.endpos = vStart + (vForward * self:GetBeamLength())
+				trace.endpos = vStart + (vForward * self.Range)
 				trace.filter = { self.Entity }
 			local trace = util.TraceLine( trace )
 
@@ -114,7 +116,8 @@ function ENT:TriggerInput(iname, value)
 			self.Weld = const
 			self.ExtraPropWeld = const2
 
-			self.Entity:SetColor(255, 0, 0, 255)
+			local r,g,b,a = self:GetColor()
+			self:SetColor(255, 0, 0, a)
 			Wire_TriggerOutput(self.Entity, "Holding", 1)
 		elseif value == 0 then
 			if self.Weld ~= nil or self.ExtraPropWeld ~= nil then
@@ -182,7 +185,8 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 			self.WeldEntity:GetPhysicsObject():EnableGravity(false)
 		end
 
-		self.Entity:SetColor(255, 0, 0, 255)
+		local r,g,b,a = self:GetColor()
+		self:SetColor(255, 0, 0, a)
 		Wire_TriggerOutput(self.Entity, "Holding", 1)
 
 	end
@@ -262,13 +266,7 @@ function MakeWireGrabber( pl, Pos, Ang, model, Range, Gravity )
 	wire_grabber:Setup(Range, Gravity)
 
 	wire_grabber:SetPlayer( pl )
-
-	local ttable = {
-		Range = Range,
-		Gravity = Gravity,
-		pl = pl
-	}
-	table.Merge(wire_grabber:GetTable(), ttable )
+	wire_grabber.pl = pl
 
 	pl:AddCount( "wire_grabbers", wire_grabber )
 

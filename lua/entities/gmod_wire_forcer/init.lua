@@ -13,7 +13,7 @@ function ENT:Initialize()
 	self.Entity:SetMoveType( MOVETYPE_VPHYSICS )
 	self.Entity:SetSolid( SOLID_VPHYSICS )
 
-	self.Force = 0
+	self.ForceInput = 0
 	self.OffsetForce = 0
 	self.Velocity = 0
 
@@ -21,25 +21,26 @@ function ENT:Initialize()
 	self:SetForceBeam(false)
 end
 
-function ENT:Setup(force, length, showbeam, reaction)
-	self.ForceMul = math.max(force, 1)
-	self.Tlength = math.max(length, 1)
-	self.Force = 0
+function ENT:Setup(Force, Length, showbeam, reaction)
+	self.Force = math.max(Force, 1)
+	self.Length = math.max(Length, 1)
+	self.ForceInput = 0
 	self.OffsetForce = 0
 	self.Velocity = 0
+	self.showbeam = showbeam
 	if showbeam then
-		self:SetBeamLength(length)
+		self:SetBeamLength(Length)
 	else
 		self:SetBeamLength(0)
 	end
-	self.Reaction = reaction
+	self.reaction = reaction
 	self:TriggerInput("Force", 0)
 end
 
 function ENT:TriggerInput(iname, value)
 	if iname == "Force" then
-		self.Force = value
-		self:SetForceBeam(self.Force != 0)
+		self.ForceInput = value
+		self:SetForceBeam(self.ForceInput != 0)
 		self:ShowOutput()
 	elseif iname == "OffsetForce" then
 		self.OffsetForce = value
@@ -58,13 +59,13 @@ local function clamp_length(vector)
 end
 
 function ENT:Think()
-	if self.Force > 0.1 or self.OffsetForce > 0.1 or self.Velocity > 0.1 or self.Force < -0.1 or self.OffsetForce < -0.1 or self.Velocity < -0.1 then
+	if self.ForceInput > 0.1 or self.OffsetForce > 0.1 or self.Velocity > 0.1 or self.ForceInput < -0.1 or self.OffsetForce < -0.1 or self.Velocity < -0.1 then
 		local vForward = self.Entity:GetUp()
 		local vStart = self.Entity:GetPos() + vForward*self.Entity:OBBMaxs().z
 
 		local trace = {}
 		trace.start = vStart
-		trace.endpos = vStart + (vForward * self.Tlength)
+		trace.endpos = vStart + (vForward * self.Length)
 		trace.filter = { self.Entity }
 
 		local trace = util.TraceLine( trace )
@@ -73,7 +74,7 @@ function ENT:Think()
 			if trace.Entity:GetMoveType() == MOVETYPE_VPHYSICS then
 				local phys = trace.Entity:GetPhysicsObject()
 				if phys:IsValid() then
-					if self.Force > 0.1 or self.Force < -0.1 then phys:ApplyForceCenter( vForward * self.ForceMul * self.Force ) end
+					if self.ForceInput > 0.1 or self.ForceInput < -0.1 then phys:ApplyForceCenter( vForward * self.Force * self.ForceInput ) end
 					if self.OffsetForce > 0.1 or self.OffsetForce < -0.1 then phys:ApplyForceOffset( vForward * self.OffsetForce, trace.HitPos ) end
 					--if self.Velocity > 0.1 or self.Velocity < -0.1 then phys:SetVelocity( vForward * self.Velocity ) end
 					if self.Velocity > 0.1 or self.Velocity < -0.1 then phys:SetVelocityInstantaneous( vForward * self.Velocity ) end
@@ -82,10 +83,10 @@ function ENT:Think()
 				if self.Velocity > 0.1 or self.Velocity < -0.1 then trace.Entity:SetVelocity( vForward * self.Velocity ) end
 			end
 		end
-		if self.Reaction then
+		if self.reaction then
 			local phys = self.Entity:GetPhysicsObject()
 			if (phys:IsValid()) then
-				if self.Force > 0.1 or self.Force < -0.1 then phys:ApplyForceCenter( vForward * -self.ForceMul * self.Force ) end
+				if self.ForceInput > 0.1 or self.ForceInput < -0.1 then phys:ApplyForceCenter( vForward * -self.Force * self.ForceInput ) end
 				if self.OffsetForce > 0.1 or self.OffsetForce < -0.1 then phys:ApplyForceCenter( vForward * -self.OffsetForce ) end
 			end
 		end
@@ -98,7 +99,7 @@ end
 function ENT:ShowOutput()
 	self:SetOverlayText(
 		"Forcer"..
-		"\nCenter Force= "..tostring(math.Round(self.Force * self.ForceMul))..
+		"\nCenter Force= "..tostring(math.Round(self.ForceInput * self.Force))..
 		"\nOffset Force= "..tostring(math.Round(self.OffsetForce))..
 		"\nVelocity= "..tostring(math.Round(self.Velocity))
 	)
@@ -128,15 +129,7 @@ function MakeWireForcer( pl, Pos, Ang, model, Force, Length, showbeam, reaction 
 
 	wire_forcer:Setup(Force, Length, showbeam, reaction)
 	wire_forcer:SetPlayer( pl )
-
-	local ttable = {
-		pl		= pl,
-		Force	= Force,
-		Length	= Length,
-		showbeam = showbeam,
-		reaction = reaction,
-	}
-	table.Merge(wire_forcer:GetTable(), ttable )
+	wire_forcer.pl = pl
 
 	pl:AddCount( "wire_forcers", wire_forcer )
 
