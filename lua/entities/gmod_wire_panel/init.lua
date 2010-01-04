@@ -5,9 +5,9 @@ include('shared.lua')
 ENT.WireDebugName = "Panel"
 
 function ENT:OnRemove()
---	SetGlobalInt( "chan", nil )
-	for i,pl in pairs(player.GetAll()) do
-		pl:SetNetworkedInt(self.Entity:EntIndex().."click",nil)
+	--SetGlobalInt( "chan", nil )
+	for _,pl in ipairs(player.GetAll()) do
+		pl:SetNetworkedInt(self:EntIndex().."click",nil)
 	end
 end
 
@@ -23,41 +23,30 @@ function ENT:Initialize()
 	self.Entity:SetMoveType( MOVETYPE_VPHYSICS )
 	self.Entity:SetSolid( SOLID_VPHYSICS )
 
-	self.Inputs = Wire_CreateInputs(self.Entity, { "Ch1", "Ch2", "Ch3", "Ch4", "Ch5", "Ch6", "Ch7", "Ch8" })
+	self.Inputs = Wire_CreateInputs(self, { "Ch1", "Ch2", "Ch3", "Ch4", "Ch5", "Ch6", "Ch7", "Ch8" })
 
---	SetGlobalInt( "chan", self.chan )
+	--SetGlobalInt( "chan", self.chan )
 
 	self.Entity:SetNetworkedInt('chan',self.chan)
-	self.Outputs = Wire_CreateOutputs(self.Entity, { "Out" })
+	self.Outputs = Wire_CreateOutputs(self, { "Out" })
 
 	for i,pl in pairs(player.GetAll()) do
-		pl:SetNetworkedInt(self.Entity:EntIndex().."click",self.click)
+		pl:SetNetworkedInt(self:EntIndex().."click",self.click)
 	end
-end
-
-
-function ENT:Setup()
-	for i = 0, 7 do
-		self:SetChannelValue( i, string.format("%.2f", 0.0) )
-	end
-end
-
-
-function ENT:Use()
 end
 
 function ENT:Think()
 	self.BaseClass.Think(self)
 
-	for i,pl in pairs(player.GetAll()) do
+	for _,pl in pairs(player.GetAll()) do
 		local trace = {}
 			trace.start = pl:GetShootPos()
 			trace.endpos = pl:GetAimVector() * 64 + trace.start
 			trace.filter = pl
 		local trace = util.TraceLine(trace)
 
-		if trace.Entity == self.Entity then
-			pl:SetNetworkedBool(self.Entity:EntIndex().."control",true)
+		if trace.Entity == self then
+			pl:SetNetworkedBool(self:EntIndex().."control",true)
 			local s_set = self.chan
 			local c_set = pl:GetInfoNum("wire_panel_chan", 1)
 			if s_set != c_set then
@@ -66,15 +55,15 @@ function ENT:Think()
 					self.chan = c_set
 					local value = self:GetChannelValue( self.chan )
 					pl:ConCommand("wire_panel_chan 0\n")
-					Wire_TriggerOutput(self.Entity, "Out", value)
+					Wire_TriggerOutput(self, "Out", value)
 				end
 			end
 		else
-			pl:SetNetworkedBool(self.Entity:EntIndex().."control",false)
+			pl:SetNetworkedBool(self:EntIndex().."control",false)
 		end
 	end
 
-	self.Entity:NextThink(CurTime()+0.08)
+	self:NextThink(CurTime()+0.08)
 	return true
 end
 
@@ -84,45 +73,16 @@ function ENT:AcceptInput(name,activator,caller)
 		if self.click > 8 then
 			self.click = 1
 		end
-		caller:SetNetworkedInt(self.Entity:EntIndex().."click",self.click)
+		caller:SetNetworkedInt(self:EntIndex().."click",self.click)
 	end
 end
-
 
 function ENT:TriggerInput(iname, value, iter)
-	if (iname == "Ch1") then
-		if (self.chan == 1) then Wire_TriggerOutput(self.Entity, "Out", value, iter) end
-		self:SetChannelValue( 1, string.format("%.2f", value) )
-	elseif (iname == "Ch2") then
-		if (self.chan == 2) then Wire_TriggerOutput(self.Entity, "Out", value, iter) end
-		self:SetChannelValue( 2, string.format("%.2f", value) )
-	elseif (iname == "Ch3") then
-		if (self.chan == 3) then Wire_TriggerOutput(self.Entity, "Out", value, iter) end
-		self:SetChannelValue( 3, string.format("%.2f", value) )
-	elseif (iname == "Ch4") then
-		if (self.chan == 4) then Wire_TriggerOutput(self.Entity, "Out", value, iter) end
-		self:SetChannelValue( 4, string.format("%.2f", value) )
-	elseif (iname == "Ch5") then
-		if (self.chan == 5) then Wire_TriggerOutput(self.Entity, "Out", value, iter) end
-		self:SetChannelValue( 5, string.format("%.2f", value) )
-	elseif (iname == "Ch6") then
-		if (self.chan == 6) then Wire_TriggerOutput(self.Entity, "Out", value, iter) end
-		self:SetChannelValue( 6, string.format("%.2f", value) )
-	elseif (iname == "Ch7") then
-		if (self.chan == 7) then Wire_TriggerOutput(self.Entity, "Out", value, iter) end
-		self:SetChannelValue( 7, string.format("%.2f", value) )
-	elseif (iname == "Ch8") then
-		if (self.chan == 8) then Wire_TriggerOutput(self.Entity, "Out", value, iter) end
-		self:SetChannelValue( 8, string.format("%.2f", value) )
-	end
-
+	local channel_number = tonumber(iname:match("^Ch([1-8])$"))
+	if not channel_number then return end
+	if self.chan == channel_number then Wire_TriggerOutput(self, "Out", value, iter) end
+	self:SetChannelValue( channel_number, value )
 end
-
-
-function ENT:OnRestore()
-    self.BaseClass.OnRestore(self)
-end
-
 
 function MakeWirePanel( pl, Pos, Ang, model )
 

@@ -1,10 +1,9 @@
-
 include('shared.lua')
 CreateClientConVar( "wire_panel_chan", 1, true, true )  --client variable to server goodness
 
-ENT.Spawnable			= false
-ENT.AdminSpawnable		= false
-ENT.RenderGroup 		= RENDERGROUP_BOTH
+ENT.Spawnable      = false
+ENT.AdminSpawnable = false
+ENT.RenderGroup    = RENDERGROUP_BOTH
 
 function ENT:Initialize()
 	self.menu = nil
@@ -12,16 +11,16 @@ function ENT:Initialize()
 	self.chan = 1
 	self.disp1 = 0
 
-	//Edit the menu here. Maximum of 10 lines.
-	self.menus = {"","", //Do not use these. The menus start at 3.
-	"Ch. 1|Channel 1",
-	"Ch. 2|Channel 2",
-	"Ch. 3|Channel 3",
-	"Ch. 4|Channel 4",
-	"Ch. 5|Channel 5",
-	"Ch. 6|Channel 6",
-	"Ch. 7|Channel 7",
-	"Ch. 8|Channel 8"
+	-- Edit the menu here. Maximum of 10 lines.
+	self.menus = {"","", -- Do not use these. The menus start at 3.
+		"Ch. 1|Channel 1",
+		"Ch. 2|Channel 2",
+		"Ch. 3|Channel 3",
+		"Ch. 4|Channel 4",
+		"Ch. 5|Channel 5",
+		"Ch. 6|Channel 6",
+		"Ch. 7|Channel 7",
+		"Ch. 8|Channel 8",
 	}
 
 	surface.CreateFont( "coolvetica", 80, 400, false, false, "panel_font" )
@@ -117,7 +116,7 @@ function ENT:Draw()
 			surface.DrawRect(x/RatioX,y,(x+w)/RatioX,y+h)
 
 			pos = self.Entity:WorldToLocal(trace.HitPos)
---			pos = self.Entity:GetPos() + (self.Entity:GetForward() * OF) + (self.Entity:GetUp() * OU) + (self.Entity:GetRight() * OR)
+			--pos = self.Entity:GetPos() + (self.Entity:GetForward() * OF) + (self.Entity:GetUp() * OU) + (self.Entity:GetRight() * OR)
 			local posfix_x
 			local posfix_y
 			if (OR == 0) then
@@ -130,10 +129,10 @@ function ENT:Draw()
 			else
 				posfix_y = math.abs(OU)
 			end
---			cx = (pos.y - x1) / (math.abs(x1) + math.abs(x2))
+			--cx = (pos.y - x1) / (math.abs(x1) + math.abs(x2))
 			cx = (((pos.y + OR)/math.abs(posfix_x)) - x1) / (math.abs(x1) + math.abs(x2))
---			cy = 1 - ((pos.z + y1) / (math.abs(y1) + math.abs(y2)))
---			cy = 1 - (((pos.z + (OU / 2)) + (y1 - OU)) / (math.abs(y1 - OU) + math.abs(y2 - OU)))
+			--cy = 1 - ((pos.z + y1) / (math.abs(y1) + math.abs(y2)))
+			--cy = 1 - (((pos.z + (OU / 2)) + (y1 - OU)) / (math.abs(y1 - OU) + math.abs(y2 - OU)))
 			cy = 1 - (((pos.z - OU) + y1)) / (math.abs(y1) + math.abs(y2))
 			if trace.Entity == self.Entity and cx >= 0 and cy >= 0 and cx <= 1 and cy <= 1 then
 				onscreen = true
@@ -222,10 +221,7 @@ function ENT:Draw()
 				surface.SetTexture(surface.GetTextureID("gui/arrow"))
 				surface.DrawTexturedRectRotated((x+(w*cx*.621)+ox)/RatioX,y+(h*cy*.621)+oy,16,16,45)
 			end
-		else
 		end
-
-
 	cam.End3D2D()
 
 	Wire_Render(self.Entity)
