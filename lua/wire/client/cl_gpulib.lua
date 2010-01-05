@@ -185,8 +185,10 @@ function GPU:RenderToWorld(width, height, renderfunction)
 	local w = h/monitor.RatioX
 	local x = -w/2
 	local y = -h/2
-	cam.Start3D2D(pos, ang, monitor.RS*512/h)
-		PCallError(renderfunction, x, y, w, h, monitor, pos, ang)
+
+	local res = monitor.RS*512/h
+	cam.Start3D2D(pos, ang, res)
+		PCallError(renderfunction, x, y, w, h, monitor, pos, ang, res)
 	cam.End3D2D()
 end
 

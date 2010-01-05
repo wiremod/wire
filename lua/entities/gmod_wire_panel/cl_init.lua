@@ -1,228 +1,156 @@
 include('shared.lua')
-CreateClientConVar( "wire_panel_chan", 1, true, true )  --client variable to server goodness
-
-ENT.Spawnable      = false
-ENT.AdminSpawnable = false
 ENT.RenderGroup    = RENDERGROUP_BOTH
 
 function ENT:Initialize()
 	self.menu = nil
-	self.click = 0
 	self.chan = 1
 	self.disp1 = 0
 
 	-- Edit the menu here. Maximum of 10 lines.
-	self.menus = {"","", -- Do not use these. The menus start at 3.
-		"Ch. 1|Channel 1",
-		"Ch. 2|Channel 2",
-		"Ch. 3|Channel 3",
-		"Ch. 4|Channel 4",
-		"Ch. 5|Channel 5",
-		"Ch. 6|Channel 6",
-		"Ch. 7|Channel 7",
-		"Ch. 8|Channel 8",
+	self.menus = {
+		[-1] = { "Channel", nil },
+		[ 0] = { "Index", nil },
+		{ "Ch. 1", "Channel 1" },
+		{ "Ch. 2", "Channel 2" },
+		{ "Ch. 3", "Channel 3" },
+		{ "Ch. 4", "Channel 4" },
+		{ "Ch. 5", "Channel 5" },
+		{ "Ch. 6", "Channel 6" },
+		{ "Ch. 7", "Channel 7" },
+		{ "Ch. 8", "Channel 8" },
 	}
 
 	surface.CreateFont( "coolvetica", 80, 400, false, false, "panel_font" )
 
+	RunConsoleCommand("wire_panel_data", self:EntIndex(), "r") -- request registration and channel value transmission
+	self:InitializeShared()
+
+	self.GPU = WireGPU(self, true)
+	self.workingDistance = 64*128
+end
+
+function ENT:OnRemove()
+	self.GPU:Finalize()
+end
+
+function ENT:Think()
+	local ply = LocalPlayer()
+	if ply:KeyDown(IN_USE) and not ply:KeyDownLast(IN_USE) and ply:GetEyeTraceNoCursor().Entity == self.GPU.Entity then self:Use() end
+end
+
+function ENT:Use()
+	if self.lasthovermenu then
+		self.menu = self.lasthovermenu
+	end
+	if self.lasthoverchan then
+		self:ChangeChannelNumber(self.lasthoverchan)
+	end
 end
 
 function ENT:Draw()
 	self.Entity:DrawModel()
 
-	local OF = 0
-	local OU = 0
-	local OR = 0
-	local Res = 0.1
-	local RatioX = 1
+	self.GPU:RenderToWorld(nil, 184, function(x, y, w, h, monitor, pos, ang, res)
+		surface.SetDrawColor(0,0,0,255)
+		surface.DrawRect(x,y,w,h)
+		local ply = LocalPlayer()
+		local trace = ply:GetEyeTraceNoCursor()
+		local ent = trace.Entity
+		if not ent:IsValid() then return end
+		local dist = trace.Normal:Dot(trace.HitNormal)*trace.Fraction*-16384
+		dist = math.max(dist, trace.Fraction*16384-ent:BoundingRadius())
 
-	if self.Entity:GetModel() == "models/props_lab/monitor01b.mdl" then
-		OF = 6.53
-		OU = 0
-		OR = 0
-		Res = 0.05
-	elseif self.Entity:GetModel() == "models/kobilica/wiremonitorsmall.mdl" then
-		OF = 0.2
-		OU = 4.5
-		OR = -0.85
-		Res = 0.045
-	elseif self.Entity:GetModel() == "models/kobilica/wiremonitorbig.mdl" then
-		OF = 0.3
-		OU = 11.8
-		OR = -2.35
-		Res = 0.12
-	elseif self.Entity:GetModel() == "models/props/cs_office/computer_monitor.mdl" then
-		OF = 3.25
-		OU = 15.85
-		OR = -2.2
-		Res = 0.085
-		RatioX = 0.75
-	elseif self.Entity:GetModel() == "models/props/cs_office/tv_plasma.mdl" then
-		OF = 6.1
-		OU = 17.05
-		OR = -5.99
-		Res = 0.175
-		RatioX = 0.57
-	end
-
-	local ang = self.Entity:GetAngles()
-	local rot = Vector(-90,90,0)
-	ang:RotateAroundAxis(ang:Right(), 	rot.x)
-	ang:RotateAroundAxis(ang:Up(), 		rot.y)
-	ang:RotateAroundAxis(ang:Forward(), rot.z)
-
-	local pos = self.Entity:GetPos() + (self.Entity:GetForward() * OF) + (self.Entity:GetUp() * OU) + (self.Entity:GetRight() * OR)
-
-	cam.Start3D2D(pos,ang,Res)
-		local clicker = LocalPlayer():GetNetworkedInt(self.Entity:EntIndex().."click")
-		local click = false
-		if clicker >= 8 and self.click ~= 0 then
-			self.click = 0
-			click = true
-		elseif clicker < 8 then
-			if clicker > self.click then
-				self.click = clicker
-				click = true
-			end
-		end
-
-		local x = -112
-		local y = -104
-		local w = 296
-		local h = 292
-
-		local x1 = -5.535
-		local x2 = 3.5
-		local y1 = 5.091
-		local y2 = -4.1
-
-		local ox = 5
-		local oy = 5
-
-		local pos
-		local cx
-		local cy
 		local onscreen = false
 
-		local trace = {}
-			trace.start = LocalPlayer():GetShootPos()
-			trace.endpos = LocalPlayer():GetAimVector() * 64 + trace.start
-			trace.filter = LocalPlayer()
-		local trace = util.TraceLine(trace)
-
-		local control = LocalPlayer():GetNetworkedBool(self.Entity:EntIndex().."control")
+		local cx, cy = 100,100
+		local control = dist < self.workingDistance and ent == self.GPU.Entity
 		if control then
-			surface.SetDrawColor(0,0,0,255)
-			surface.DrawRect(x/RatioX,y,(x+w)/RatioX,y+h)
+			local cpos = WorldToLocal(trace.HitPos, Angle(), pos, ang)
 
-			pos = self.Entity:WorldToLocal(trace.HitPos)
-			--pos = self.Entity:GetPos() + (self.Entity:GetForward() * OF) + (self.Entity:GetUp() * OU) + (self.Entity:GetRight() * OR)
-			local posfix_x
-			local posfix_y
-			if (OR == 0) then
-				posfix_x = 1
-			else
-				posfix_x = math.abs(OR)
-			end
-			if (OU == 0) then
-				posfix_y = 1
-			else
-				posfix_y = math.abs(OU)
-			end
-			--cx = (pos.y - x1) / (math.abs(x1) + math.abs(x2))
-			cx = (((pos.y + OR)/math.abs(posfix_x)) - x1) / (math.abs(x1) + math.abs(x2))
-			--cy = 1 - ((pos.z + y1) / (math.abs(y1) + math.abs(y2)))
-			--cy = 1 - (((pos.z + (OU / 2)) + (y1 - OU)) / (math.abs(y1 - OU) + math.abs(y2 - OU)))
-			cy = 1 - (((pos.z - OU) + y1)) / (math.abs(y1) + math.abs(y2))
-			if trace.Entity == self.Entity and cx >= 0 and cy >= 0 and cx <= 1 and cy <= 1 then
+			cx = 0.5+cpos.x/(res*w)
+			cy = 0.5-cpos.y/(res*h)
+
+			if cx >= 0 and cy >= 0 and cx <= 1 and cy <= 1 then
 				onscreen = true
 			end
-		else
-			self.menu = nil
+		end
 
-			surface.SetDrawColor(0,0,0,255)
-			surface.DrawRect(x/RatioX,y,(x+w)/RatioX,y+h)
+		local cxp, cyp = x+cx*w, y+cy*h
 
+		if self.menu then
+			-- "SET" button
+			local onbutton = onscreen and cxp>=x+50 and cy>=0.5
+			self.lasthoverchan = onbutton and self.menu or nil
+			local intensity = onbutton and 150 or 100
+
+			if self.menu == self.chan then
+				surface.SetDrawColor(0,intensity,0,255)
+			else
+				surface.SetDrawColor(intensity,0,0,255)
+			end
+			surface.DrawRect(x+50,y+h/2,w-50,h/2)
+
+			surface.SetFont("panel_font")
+			surface.SetTextColor(Color(255,255,255,255))
+
+			local textw, texth = surface.GetTextSize("SET")
+			surface.SetTextPos(x+25+w/2-textw/2, y+h*3/4-texth/2)
+
+			surface.DrawText("SET")
+		end
+
+		-- selection bar on the left
+		surface.SetDrawColor(100,100,100,255)
+		surface.DrawRect(x, y, 50, h)
+
+		do
+			local onbar = cxp >= x and cxp < x+50
+			-- menu text
+			surface.SetFont("Trebuchet18")
+			surface.SetTextColor(Color(255,255,255,255))
+			local yp = y
+			self.lasthovermenu = nil
+			for i = -1,8 do
+				local disp = self.menus[i][1]
+				local textw, texth = surface.GetTextSize(disp)
+
+				if self.menus[i][2] then
+					if onbar and cyp >= yp and cyp < yp+texth then
+						surface.SetDrawColor(80,120,180,255)
+						surface.DrawRect(x,yp,50,texth)
+						self.lasthovermenu = i
+					elseif self.chan == i then
+						surface.SetDrawColor(60,160,60,255)
+						surface.DrawRect(x,yp,50,texth)
+					elseif self.menu == i then
+						surface.SetDrawColor(60,60,60,255)
+						surface.DrawRect(x,yp,50,texth)
+					end
+				end
+				surface.SetTextPos(x+2, yp)
+				surface.DrawText(disp)
+
+				yp = yp+texth
+			end
+		end
+		--draw.DrawText(out,"Trebuchet18",x+2,y,Color(255,255,255,255))
+		if self.menu then
+			local ChannelValue = self:GetChannelValue( self.menu )
+			local disp = self.menus[self.menu][2].."\n\n"..string.format("%.2f", ChannelValue)
+			draw.DrawText(disp,"Trebuchet18",x+54,y,Color(255,255,255,255))
+		end
+		if onscreen then
+			surface.SetDrawColor(255, 255, 255, 255)
+			surface.SetTexture(surface.GetTextureID("gui/arrow"))
+			surface.DrawTexturedRectRotated(x+cx*w+11,y+cy*h+11,32,32,45)
+		elseif not control then
 			surface.SetDrawColor(255,255,255,255)
 			surface.SetTexture(surface.GetTextureID("gui/info"))
-			surface.DrawTexturedRect((x+(w*.4*.621))/RatioX,y + h*.4*.621,w*.2*.621,w*.2*.621)
-		end
 
-
-		if control then
-			surface.SetDrawColor(100,100,100,255)
-			surface.DrawRect((x+(w*0*.621))/RatioX,y+(h*0*.621),w*.3*.621,h*1*.621)
-			if self.menu then
-				if ((self.menu-2) == self.chan) then
-					surface.SetDrawColor(0,100,0,255)
-				else
-					surface.SetDrawColor(100,0,0,255)
-				end
-				surface.DrawRect((x+(w*.3*.621))/RatioX,y+(h*.5*.621),w*.7*.621,h*.5*.621)
-				draw.DrawText("SET","panel_font",(x+(w*.32*.621))/RatioX,(y+(h*.55*.621)),Color(255,255,255,255),0)
-			end
+			local infow, infoh = h*0.2,h*0.2
+			surface.DrawTexturedRect(x+(w-infow)/2, y+(h-infoh)/2, infow, infoh)
 		end
-		if control and onscreen then
-			if (math.abs(pos.x - OF) < 1.0) then
-				if cx <= .3 then
-					for i = 3,10 do
-						if cy >= .1*i-.1 and cy < .1*i then
-							surface.SetDrawColor(30,144,255,100)
-							surface.DrawRect((x+(w*0*.621))/RatioX,y+(h*(.1*i-.1)*.621),w*.3*.621,h*.1*.621)
-							if click then
-								self.menu = i
-							end
-						end
-					end
-				else
-					if cy >= 0.5 then
-						if self.menu then
-							if ((self.menu-2) == self.chan) then
-								surface.SetDrawColor(0,150,0,255)
-							else
-								surface.SetDrawColor(150,0,0,255)
-							end
-							surface.DrawRect((x+(w*.3*.621))/RatioX,y+(h*.5*.621),w*.7*.621,h*.5*.621)
-							draw.DrawText("SET","panel_font",(x+(w*.32*.621))/RatioX,(y+(h*.55*.621)),Color(255,255,255,255),0)
-							if click then
-								self.chan = self.menu-2
-								LocalPlayer():ConCommand("wire_panel_chan "..self.chan.."\n")
-							end
-						end
-					end
-				end
-			end
-		end
-		if control then
-			local out = "Channel\nIndex\n"
-			for i = 3, 10 do
-				local disp = self.menus[i]
-				local loc = string.find(disp,"|", 1, true)
-				if loc then
-					out = out..string.sub(disp,1,loc-1).."\n"
-				else
-					out = out.."\n"
-				end
-			end
-			draw.DrawText(out,"Trebuchet18",(x+2)/RatioX,y,Color(255,255,255,255))
-			if self.menu then
-				local ChannelValue = self:GetChannelValue( self.menu-2 )
-				local disp = self.menus[self.menu].."\n\n"..string.format("%.2f", ChannelValue)
-				local loc = string.find(disp,"|", 1, true)
-				if loc then
-					local disp = string.sub(disp,loc+1)
-					draw.DrawText(disp,"Trebuchet18",(x+2+(w*.3*.621))/RatioX,y,Color(255,255,255,255))
-				end
-			end
-		end
-		if control and onscreen then
-			if (math.abs(pos.x - OF) < 1.0) then
-				surface.SetDrawColor(255,255,255,255)
-				surface.SetTexture(surface.GetTextureID("gui/arrow"))
-				surface.DrawTexturedRectRotated((x+(w*cx*.621)+ox)/RatioX,y+(h*cy*.621)+oy,16,16,45)
-			end
-		end
-	cam.End3D2D()
+	end)
 
 	Wire_Render(self.Entity)
 end
