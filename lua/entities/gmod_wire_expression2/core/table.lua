@@ -1,4 +1,3 @@
-
 local function table_IsEmpty(t) return not next(t) end
 
 /******************************************************************************\
@@ -28,29 +27,27 @@ registerCallback("postexecute", function(self)
 
 	-- Go through all registered values of the types table and array.
 	for value,varnames in pairs(lookup) do
-		-- Was the value changed?
-		if vclk[value] then
-			local still_assigned = false
-			-- For each changed value, go through the variables they're assigned to and trigger them.
-			for varname,_ in pairs(varnames) do
-				if value == vars[varname] then
-					-- The value is still assigned to the variable? => trigger it.
-					vclk[varname] = true
-					still_assigned = true
-				else
-					-- The value is no longer assigned to the variable? => remove the lookup table entry.
-					varnames[varname] = nil
-				end
-			end
+		local clk = vclk[value]
 
-			-- if the value is no longer assigned to anything, remove all references to it.
-			if not still_assigned then
-				vclk[value] = nil
-				lookup[value] = nil
+		local still_assigned = false
+		-- For each value, go through the variables they're assigned to and trigger them.
+		for varname,_ in pairs(varnames) do
+			if value == vars[varname] then
+				-- The value is still assigned to the variable? => trigger it.
+				if clk then vclk[varname] = true end
+				still_assigned = true
+			else
+				-- The value is no longer assigned to the variable? => remove the lookup table entry.
+				varnames[varname] = nil
 			end
-			-- If the value has no more variable names associated, remove the value's place in the lookup table.
-			if table_IsEmpty(varnames) then lookup[value] = nil end
 		end
+
+		-- if the value is no longer assigned to anything, remove all references to it.
+		if not still_assigned then
+			lookup[value] = nil
+		end
+		-- If the value has no more variable names associated, remove the value's place in the lookup table.
+		if table_IsEmpty(varnames) then lookup[value] = nil end
 	end
 end)
 
