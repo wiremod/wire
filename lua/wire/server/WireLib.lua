@@ -761,13 +761,14 @@ end
 
 
 function Wire_Link_Cancel(idx)
-	if (not CurLink[idx]) or (not CurLink[idx].Dst) then return end
+	if not CurLink[idx] then return end
+	if not CurLink[idx].Dst then return end
 
 	--local orig = CurLink[idx].OldPath[0]
 	--RDbeamlib.StartWireBeam( CurLink[idx].Dst, CurLink[idx].DstId, orig.pos, orig.material, orig.color, orig.width )
 
 	local path_len = 0
-	if (CurLink[idx].OldPath) then path_len = table.getn(CurLink[idx].OldPath) end
+	if (CurLink[idx].OldPath) then path_len = #CurLink[idx].OldPath end
 
 	local net_name = "wp_" .. CurLink[idx].DstId
 	for i=1,path_len do
@@ -793,41 +794,38 @@ function Wire_SetPathNames(ent, names)
 	for k,v in pairs(names) do
 		ent:SetNetworkedBeamString("wpn_" .. k, v)
 	end
-	ent:SetNetworkedBeamInt("wpn_count", table.getn(names))
+	ent:SetNetworkedBeamInt("wpn_count", #names)
 end
 
+local OutputIterator = {}
+OutputIterator.__index = OutputIterator
+
+function OutputIterator:Add(ent, iname, value)
+	table.insert(self.Queue, { Entity = ent, IName = iname, Value = value })
+end
+
+function OutputIterator:Process()
+	if self.Processing then return end -- should not occur
+	self.Processing = true
+
+	while #self > 0 do
+		local nextelement = self[1]
+		table.remove(self, 1)
+
+		WireLib.TriggerInput(nextelement.Entity, nextelement.IName, nextelement.Value, self)
+	end
+
+	self.Processing = nil
+end
 
 function Wire_CreateOutputIterator()
-	local iter = {
-		Queue = {}
-	}
-
-	function iter:Add(ent, iname, value)
-		table.insert(self.Queue, { Entity = ent, IName = iname, Value = value })
-	end
-
-	function iter:Process()
-		if (self.Processing) then return end
-		self.Processing = true
-
-		while (table.getn(self.Queue) > 0) do
-			local next = self.Queue[1]
-			table.remove(self.Queue, 1)
-
-			WireLib.TriggerInput(next.Entity, next.IName, next.Value, self)
-		end
-
-		self.Processing = nil
-	end
-
-	return iter
+	return setmetatable({}, OutputIterator)
 end
 
 
-function Wire_AfterPasteMods(ply, Ent, DupeInfo)
+duplicator.RegisterEntityModifier("WireDupeInfo", function(ply, Ent, DupeInfo)
 	-- this does nothing for now, we need the blank function to get the duplicator to copy the WireDupeInfo into the pasted ent
-end
-duplicator.RegisterEntityModifier( "WireDupeInfo", Wire_AfterPasteMods )
+end)
 
 
 -- used for welding wired stuff, if trace is world, the ent is not welded and is frozen instead
@@ -874,7 +872,7 @@ function WireLib.BuildDupeInfo( Ent )
 					end
 				end
 
-				local n = table.getn(info.Wires[k].Path)
+				local n = #info.Wires[k].Path
 				if (n > 0) and (info.Wires[k].Path[n].Entity == info.Wires[k].Src) then
 					info.Wires[k].SrcPos = info.Wires[k].Path[n].Pos
 					table.remove(info.Wires[k].Path, n)
@@ -942,7 +940,6 @@ WireLib.Link_Cancel				= Wire_Link_Cancel
 WireLib.Link_Clear				= Wire_Link_Clear
 WireLib.SetPathNames			= Wire_SetPathNames
 WireLib.CreateOutputIterator	= Wire_CreateOutputIterator
-WireLib.AfterPasteMods			= Wire_AfterPasteMods
 Wire_BuildDupeInfo				= WireLib.BuildDupeInfo
 Wire_ApplyDupeInfo				= WireLib.ApplyDupeInfo
 

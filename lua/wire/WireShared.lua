@@ -8,7 +8,7 @@ WireLib = {}
 
 -- Compacts an array by rejecting entries according to cb.
 function table.Compact(tbl, cb, n)
-	n = n or table.getn(tbl)
+	n = n or #tbl
 	local cpos = 1
 	for i = 1, n do
 		if cb(tbl[i]) then

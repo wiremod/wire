@@ -176,7 +176,7 @@ function TOOL:RightClick( trace )
 		if (iNextInput) then
 			self:GetOwner():EmitSound("weapons/pistol/pistol_empty.wav")
 
-			if (iNextInput > table.getn(self.Inputs)) then iNextInput = 1 end
+			if (iNextInput > #self.Inputs) then iNextInput = 1 end
 
 			self.CurrentInput = self.Inputs[iNextInput]
 			if (self.CurrentInput) then self.LastValidInput = self.CurrentInput end
@@ -218,7 +218,7 @@ function TOOL:RightClick( trace )
 		if (iNextOutput) then
 			self:GetOwner():EmitSound("weapons/pistol/pistol_empty.wav")
 
-			if (iNextOutput > table.getn(self.Outputs)) then iNextOutput = 1 end
+			if (iNextOutput > #self.Outputs) then iNextOutput = 1 end
 
 			self.CurrentOutput = self.Outputs[iNextOutput] or "" --if that's nil then somethis is wrong with the ent
 

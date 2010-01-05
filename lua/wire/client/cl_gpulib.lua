@@ -182,7 +182,7 @@ function GPU:RenderToWorld(width, height, renderfunction)
 	local monitor, pos, ang = self:GetInfo()
 
 	local h = width and width*monitor.RatioX or height or 512
-	local w = h/monitor.RatioX
+	local w = width or h/monitor.RatioX
 	local x = -w/2
 	local y = -h/2
 
@@ -200,7 +200,8 @@ function GPU:Render(rotation, scale, width, height, postrenderfunction)
 	local OldTex = WireGPU_matScreen:GetMaterialTexture("$basetexture")
 	WireGPU_matScreen:SetMaterialTexture("$basetexture", self.RT)
 
-	cam.Start3D2D(pos, ang, monitor.RS)
+	local res = monitor.RS
+	cam.Start3D2D(pos, ang, res)
 		PCallError(function()
 			local aspect = 1/monitor.RatioX
 			local w = (width  or 512)*aspect
@@ -214,7 +215,7 @@ function GPU:Render(rotation, scale, width, height, postrenderfunction)
 			surface.SetTexture(WireGPU_texScreen)
 			self.DrawScreen(x, y, w, h, rotation or 0, scale or 0)
 
-			if postrenderfunction then postrenderfunction(pos, ang, monitor.RS, aspect) end
+			if postrenderfunction then postrenderfunction(pos, ang, res, aspect) end
 		end)
 	cam.End3D2D()
 

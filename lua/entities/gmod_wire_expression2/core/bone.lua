@@ -466,7 +466,7 @@ end
 --- Inserts <value> as the last element of <this>.
 --- @nodoc
 e2function void array:pushBone(bone value)
-	if table.getn(this)+1 >= E2_MAX_ARRAY_SIZE then return end
+	if #this+1 >= E2_MAX_ARRAY_SIZE then return end
 	table.insert(this, value)
 end
 
@@ -482,7 +482,7 @@ end
 --- Inserts <value> as the <index>th element of <this>.
 --- @nodoc
 e2function void array:insertBone(index, bone value)
-	if table.getn(this)+1 >= E2_MAX_ARRAY_SIZE then return end
+	if #this+1 >= E2_MAX_ARRAY_SIZE then return end
 	table.insert(this, index, value)
 	self.vclk[args[2][2]] = true
 end
@@ -499,7 +499,7 @@ end
 --- Inserts <value> as the first element of <this>.
 --- @nodoc
 e2function void array:unshiftBone(bone value)
-	if table.getn(this)+1 >= E2_MAX_ARRAY_SIZE then return end
+	if #this+1 >= E2_MAX_ARRAY_SIZE then return end
 	table.insert(this, 1, value)
 	self.vclk[args[2][2]] = true
 end

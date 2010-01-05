@@ -274,7 +274,7 @@ end)
 registerFunction("gGetAng", "", "a", function(self, args)
 	local T = glTid(self)
 	local ret = T["xa"]
-	if type(ret) == "table" and table.getn(ret) == 3 then return ret end
+	if type(ret) == "table" and #ret == 3 then return ret end
 	return { 0, 0, 0 }
 end)
 
@@ -299,7 +299,7 @@ registerFunction("gGetAng", "s", "a", function(self, args)
     local rv1 = op1[1](self, op1)
 	local T = glTid(self)
 	local ret = T["a"][rv1]
-	if type(ret) == "table" and table.getn(ret) == 3 then return ret end
+	if type(ret) == "table" and #ret == 3 then return ret end
 	return { 0, 0, 0 }
 end)
 
@@ -328,7 +328,7 @@ registerFunction("gGetAng", "n", "a", function(self, args)
 	rv1 = rv1 - rv1 % 1
 	local T = glTid(self)
 	local ret = T["a"][rv1]
-	if type(ret) == "table" and table.getn(ret) == 3 then return ret end
+	if type(ret) == "table" and #ret == 3 then return ret end
 	return { 0, 0, 0 }
 end)
 

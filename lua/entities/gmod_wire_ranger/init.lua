@@ -324,7 +324,7 @@ function ENT:TriggerOutput(dist, pos, vel, ang, col, val, sid, uid, ent, hnrm, t
 		Wire_TriggerOutput(self.Entity, "HitNormal Z", hnrm.z)
 	end
 
-	if (val != nil && table.getn(val) > 0 && self.Inputs.SelectValue.Value < table.Count(val)) then
+	if (val != nil && #val > 0 && self.Inputs.SelectValue.Value < table.Count(val)) then
 		Wire_TriggerOutput(self.Entity, "Val", val[self.Inputs.SelectValue.Value])
 		Wire_TriggerOutput(self.Entity, "ValSize", table.Count(val))
 	else

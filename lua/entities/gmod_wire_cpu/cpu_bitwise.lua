@@ -42,7 +42,7 @@ function ENT:IntegerToBinary(n)
 end
 
 function ENT:BinaryToInteger(tbl)
-	local n = table.getn(tbl)
+	local n = #tbl
 	local sign = 0
 	if (n > self.IPREC-1) then
 		sign = tbl[self.IPREC-1]
@@ -68,7 +68,7 @@ function ENT:BinaryOr(m,n)
 	local tbl_n = self:IntegerToBinary(n)
 	local tbl = {}
 
-	local rslt = math.max(table.getn(tbl_m), table.getn(tbl_n))
+	local rslt = math.max(#tbl_m, #tbl_n)
 	for i = 0, rslt-1 do
 		tbl[i] = math.min(1,tbl_m[i]+tbl_n[i])
 	end
@@ -81,7 +81,7 @@ function ENT:BinaryAnd(m,n)
 	local tbl_n = self:IntegerToBinary(n)
 	local tbl = {}
 
-	local rslt = math.max(table.getn(tbl_m), table.getn(tbl_n))
+	local rslt = math.max(#tbl_m, #tbl_n)
 	for i = 0, rslt-1 do
 		tbl[i] = tbl_m[i]*tbl_n[i]
 	end
@@ -93,7 +93,7 @@ function ENT:BinaryNot(n)
 	local tbl_n = self:IntegerToBinary(n)
 	local tbl = {}
 
-	local rslt = table.getn(tbl_n)
+	local rslt = #tbl_n
 	for i = 0, rslt-1 do
 		tbl[i] = 1-tbl_n[i]
 	end
@@ -105,7 +105,7 @@ function ENT:BinaryXor(m,n)
 	local tbl_n = self:IntegerToBinary(n)
 	local tbl = {}
 
-	local rslt = math.max(table.getn(tbl_m), table.getn(tbl_n))
+	local rslt = math.max(#tbl_m, #tbl_n)
 	for i = 0, rslt-1 do
 		tbl[i] = (tbl_m[i]+tbl_n[i]) % 2
 	end
@@ -117,7 +117,7 @@ function ENT:BinarySHR(n,bits)
 	local tbl_n = self:IntegerToBinary(n)
 	local tbl = {}
 
-	local rslt = table.getn(tbl_n)
+	local rslt = #tbl_n
 	for i = 0, self.IPREC-bits-1 do
 		tbl[i] = tbl_n[i+bits]
 	end
