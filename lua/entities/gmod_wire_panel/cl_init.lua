@@ -26,7 +26,7 @@ function ENT:Initialize()
 	self:InitializeShared()
 
 	self.GPU = WireGPU(self, true)
-	self.workingDistance = 64*128
+	self.workingDistance = 64
 end
 
 function ENT:OnRemove()
@@ -56,94 +56,91 @@ function ENT:Draw()
 		local ply = LocalPlayer()
 		local trace = ply:GetEyeTraceNoCursor()
 		local ent = trace.Entity
-		if not ent:IsValid() then return end
 		local dist = trace.Normal:Dot(trace.HitNormal)*trace.Fraction*-16384
-		dist = math.max(dist, trace.Fraction*16384-ent:BoundingRadius())
+		dist = math.max(dist, trace.Fraction*16384-self.GPU.Entity:BoundingRadius())
 
 		local onscreen = false
 
-		local cx, cy = 100,100
-		local control = dist < self.workingDistance and ent == self.GPU.Entity
-		if control then
+		if dist < self.workingDistance and ent == self.GPU.Entity then
 			local cpos = WorldToLocal(trace.HitPos, Angle(), pos, ang)
 
-			cx = 0.5+cpos.x/(res*w)
-			cy = 0.5-cpos.y/(res*h)
+			local cx = 0.5+cpos.x/(res*w)
+			local cy = 0.5-cpos.y/(res*h)
 
 			if cx >= 0 and cy >= 0 and cx <= 1 and cy <= 1 then
 				onscreen = true
 			end
-		end
 
-		local cxp, cyp = x+cx*w, y+cy*h
+			local cxp, cyp = x+cx*w, y+cy*h
 
-		if self.menu then
-			-- "SET" button
-			local onbutton = onscreen and cxp>=x+50 and cy>=0.5
-			self.lasthoverchan = onbutton and self.menu or nil
-			local intensity = onbutton and 150 or 100
+			if self.menu then
+				-- "SET" button
+				local onbutton = onscreen and cxp>=x+50 and cy>=0.5
+				self.lasthoverchan = onbutton and self.menu or nil
+				local intensity = onbutton and 150 or 100
 
-			if self.menu == self.chan then
-				surface.SetDrawColor(0,intensity,0,255)
-			else
-				surface.SetDrawColor(intensity,0,0,255)
-			end
-			surface.DrawRect(x+50,y+h/2,w-50,h/2)
-
-			surface.SetFont("panel_font")
-			surface.SetTextColor(Color(255,255,255,255))
-
-			local textw, texth = surface.GetTextSize("SET")
-			surface.SetTextPos(x+25+w/2-textw/2, y+h*3/4-texth/2)
-
-			surface.DrawText("SET")
-		end
-
-		-- selection bar on the left
-		surface.SetDrawColor(100,100,100,255)
-		surface.DrawRect(x, y, 50, h)
-
-		do
-			local onbar = cxp >= x and cxp < x+50
-			-- menu text
-			surface.SetFont("Trebuchet18")
-			surface.SetTextColor(Color(255,255,255,255))
-			local yp = y
-			self.lasthovermenu = nil
-			for i = -1,8 do
-				local disp = self.menus[i][1]
-				local textw, texth = surface.GetTextSize(disp)
-
-				if self.menus[i][2] then
-					if onbar and cyp >= yp and cyp < yp+texth then
-						surface.SetDrawColor(80,120,180,255)
-						surface.DrawRect(x,yp,50,texth)
-						self.lasthovermenu = i
-					elseif self.chan == i then
-						surface.SetDrawColor(60,160,60,255)
-						surface.DrawRect(x,yp,50,texth)
-					elseif self.menu == i then
-						surface.SetDrawColor(60,60,60,255)
-						surface.DrawRect(x,yp,50,texth)
-					end
+				if self.menu == self.chan then
+					surface.SetDrawColor(0,intensity,0,255)
+				else
+					surface.SetDrawColor(intensity,0,0,255)
 				end
-				surface.SetTextPos(x+2, yp)
-				surface.DrawText(disp)
+				surface.DrawRect(x+50,y+h/2,w-50,h/2)
 
-				yp = yp+texth
+				surface.SetFont("panel_font")
+				surface.SetTextColor(Color(255,255,255,255))
+
+				local textw, texth = surface.GetTextSize("SET")
+				surface.SetTextPos(x+25+w/2-textw/2, y+h*3/4-texth/2)
+
+				surface.DrawText("SET")
 			end
-		end
-		--draw.DrawText(out,"Trebuchet18",x+2,y,Color(255,255,255,255))
-		if self.menu then
-			local ChannelValue = self:GetChannelValue( self.menu )
-			local disp = self.menus[self.menu][2].."\n\n"..string.format("%.2f", ChannelValue)
-			draw.DrawText(disp,"Trebuchet18",x+54,y,Color(255,255,255,255))
-		end
-		if onscreen then
-			surface.SetDrawColor(255, 255, 255, 255)
-			surface.SetTexture(surface.GetTextureID("gui/arrow"))
-			surface.DrawTexturedRectRotated(x+cx*w+11,y+cy*h+11,32,32,45)
-		elseif not control then
+
+			-- selection bar on the left
+			surface.SetDrawColor(100,100,100,255)
+			surface.DrawRect(x, y, 50, h)
+
+			do
+				local onbar = cxp >= x and cxp < x+50
+				-- menu text
+				surface.SetFont("Trebuchet18")
+				surface.SetTextColor(Color(255,255,255,255))
+				local yp = y
+				self.lasthovermenu = nil
+				for i = -1,8 do
+					local disp = self.menus[i][1]
+					local textw, texth = surface.GetTextSize(disp)
+
+					if self.menus[i][2] then
+						if onbar and cyp >= yp and cyp < yp+texth then
+							surface.SetDrawColor(80,120,180,255)
+							surface.DrawRect(x,yp,50,texth)
+							self.lasthovermenu = i
+						elseif self.chan == i then
+							surface.SetDrawColor(60,160,60,255)
+							surface.DrawRect(x,yp,50,texth)
+						elseif self.menu == i then
+							surface.SetDrawColor(48,48,48,255)
+							surface.DrawRect(x,yp,50,texth)
+						end
+					end
+					surface.SetTextPos(x+2, yp)
+					surface.DrawText(disp)
+
+					yp = yp+texth
+				end
+			end
+			--draw.DrawText(out,"Trebuchet18",x+2,y,Color(255,255,255,255))
+			if self.menu then
+				local ChannelValue = self:GetChannelValue( self.menu )
+				local disp = self.menus[self.menu][2].."\n\n"..string.format("%.2f", ChannelValue)
+				draw.DrawText(disp,"Trebuchet18",x+54,y,Color(255,255,255,255))
+			end
+			if onscreen then
+				surface.SetDrawColor(255, 255, 255, 255)
+				surface.SetTexture(surface.GetTextureID("gui/arrow"))
+				surface.DrawTexturedRectRotated(x+cx*w+11,y+cy*h+11,32,32,45)
+			end
+		else
 			surface.SetDrawColor(255,255,255,255)
 			surface.SetTexture(surface.GetTextureID("gui/info"))
 
