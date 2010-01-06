@@ -93,7 +93,7 @@ else
 	end
 
 	function ENT:ChangeChannelNumber(channel_number)
-		RunConsoleCommand("wire_panel_data", self:EntIndex(), "c", channel_number)
+		RunConsoleCommand("wire_panel_setchannel", self:EntIndex(), channel_number)
 	end
 end -- SERVER
 

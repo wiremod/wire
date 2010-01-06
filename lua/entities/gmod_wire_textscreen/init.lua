@@ -44,8 +44,8 @@ end
 
 function ENT:SetText(text, ply)
 	self.text = text
-	umsg.Start("wire_textscreen_SetText", ply)
-		umsg.Short(self:EntIndex())
+	self:umsg(ply)
+		umsg.Char(2) -- text
 
 		umsg.String(formatText(text))
 	umsg.End()
@@ -59,8 +59,8 @@ end
 
 function ENT:SendConfig(ply)
 	self.doSendConfig = nil
-	umsg.Start("wire_textscreen_SendConfig", ply)
-		umsg.Short(self:EntIndex())
+	self:umsg(ply)
+		umsg.Char(1) -- config
 
 		umsg.Char(self.chrPerLine)
 		umsg.Char(self.textJust)
@@ -76,17 +76,10 @@ function ENT:SendConfig(ply)
 	umsg.End()
 end
 
-function ENT:PlayerInitialSpawn(ply)
+function ENT:Retransmit(ply)
 	self:SetText(self.text, ply)
 	self:SendConfig(ply)
 end
-
-hook.Add("PlayerInitialSpawn", "wire_textscreen", function(ply)
-	for k,screen in ipairs(ents.FindByClass("gmod_wire_textscreen")) do
-		--screen:PlayerInitialSpawn(ply)
-		timer.Simple(0.5, screen.PlayerInitialSpawn, screen, ply)
-	end
-end)
 
 function MakeWireTextScreen( pl, Pos, Ang, model, text, chrPerLine, textJust, valign, fgcolor, bgcolor, frozen)
 	if ( !pl:CheckLimit( "wire_textscreens" ) ) then return false end

@@ -98,8 +98,6 @@ function ENT:Initialize()
 	self.GPU = WireGPU(self.Entity)
 	self.layouter = MakeTextScreenLayouter()
 	self.NeedRefresh = true
-
-	self:ApplyProperties()
 end
 
 function ENT:OnRemove()
@@ -147,67 +145,27 @@ function ENT:SetText(text)
 	self.NeedRefresh = true
 end
 
-function ENT:ReceiveConfig(um)
-	self.chrPerLine = um:ReadChar()
-	self.textJust = um:ReadChar()
-	self.valign = um:ReadChar()
+function ENT:Receive(um)
+	local what = um:ReadChar()
+	if what == 1 then
+		self.chrPerLine = um:ReadChar()
+		self.textJust = um:ReadChar()
+		self.valign = um:ReadChar()
 
-	local r = um:ReadChar()+128
-	local g = um:ReadChar()+128
-	local b = um:ReadChar()+128
-	self.fgcolor = Color(r,g,b)
+		local r = um:ReadChar()+128
+		local g = um:ReadChar()+128
+		local b = um:ReadChar()+128
+		self.fgcolor = Color(r,g,b)
 
-	local r = um:ReadChar()+128
-	local g = um:ReadChar()+128
-	local b = um:ReadChar()+128
-	self.bgcolor = Color(r,g,b)
-	self.NeedRefresh = true
-end
-
---------------------------------------------------------------------------------
-
-local properties = {}
-
-function ENT:ApplyProperties()
-	local props = properties[self:EntIndex()]
-	if props then
-		if props then table.Merge(self:GetTable(), props) end
-		properties[self:EntIndex()] = nil
+		local r = um:ReadChar()+128
+		local g = um:ReadChar()+128
+		local b = um:ReadChar()+128
+		self.bgcolor = Color(r,g,b)
+		self.NeedRefresh = true
+	elseif what == 2 then
+		self:SetText(um:ReadString())
 	end
 end
-
-local ENT_SetText = ENT.SetText
-usermessage.Hook("wire_textscreen_SetText", function(um)
-	local entid = um:ReadShort()
-	local ent = Entity(entid)
-
-	local text = um:ReadString()
-	if ent:IsValid() and ent:GetTable() then
-		if properties[entid] then properties[entid] = nil end
-		ent:SetText(text)
-	else
-		-- TODO: get rid of this
-		properties[entid] = properties[entid] or {}
-		ENT_SetText(properties[entid], text)
-	end
-end)
-
-local ENT_ReceiveConfig = ENT.ReceiveConfig
-usermessage.Hook("wire_textscreen_SendConfig", function(um)
-	local entid = um:ReadShort()
-	local ent = Entity(entid)
-
-	if ent:IsValid() and ent:GetTable() then
-		if properties[entid] then properties[entid] = nil end
-		ent:ReceiveConfig(um)
-	else
-		-- TODO: get rid of this
-		properties[entid] = properties[entid] or {}
-		ENT_ReceiveConfig(properties[entid], um)
-	end
-end)
-
---------------------------------------------------------------------------------
 
 if not wire_textscreen_FontsCreated then
 	wire_textscreen_FontsCreated = true

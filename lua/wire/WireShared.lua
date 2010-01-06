@@ -327,7 +327,7 @@ if SERVER then
 
 	local function wire_umsg(self, receiver)
 		umsg.Start("wire_umsg", receiver or self.rp)
-		umsg.Entity(self)
+		umsg.Short(self:EntIndex())
 	end
 
 	function WireLib.umsgRegister(self)
@@ -348,7 +348,7 @@ elseif CLIENT then
 	end
 
 	usermessage.Hook("wire_umsg", function(um)
-		local self = um:ReadEntity()
+		local self = Entity(um:ReadShort())
 		if self:IsValid() and self.Receive then self:Receive(um) end
 	end)
 

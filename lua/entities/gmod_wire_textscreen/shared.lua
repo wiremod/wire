@@ -24,4 +24,6 @@ function ENT:InitializeShared()
 
 	self.fgcolor = Color(255,255,255)
 	self.bgcolor = Color(0,0,0)
+
+	WireLib.umsgRegister(self)
 end
