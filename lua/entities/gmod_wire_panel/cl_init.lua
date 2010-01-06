@@ -6,27 +6,12 @@ function ENT:Initialize()
 	self.chan = 1
 	self.disp1 = 0
 
-	-- Edit the menu here. Maximum of 10 lines.
-	self.menus = {
-		[-1] = { "Channel", nil },
-		[ 0] = { "Index", nil },
-		{ "Ch. 1", "Channel 1" },
-		{ "Ch. 2", "Channel 2" },
-		{ "Ch. 3", "Channel 3" },
-		{ "Ch. 4", "Channel 4" },
-		{ "Ch. 5", "Channel 5" },
-		{ "Ch. 6", "Channel 6" },
-		{ "Ch. 7", "Channel 7" },
-		{ "Ch. 8", "Channel 8" },
-	}
-
 	surface.CreateFont( "coolvetica", 80, 400, false, false, "panel_font" )
-
-	RunConsoleCommand("wire_panel_data", self:EntIndex(), "r") -- request registration and channel value transmission
-	self:InitializeShared()
 
 	self.GPU = WireGPU(self, true)
 	self.workingDistance = 64
+
+	self:InitializeShared()
 end
 
 function ENT:OnRemove()

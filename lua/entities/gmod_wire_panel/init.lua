@@ -20,9 +20,7 @@ function ENT:Initialize()
 	self.Entity:SetNetworkedInt('chan',self.chan)
 	self.Outputs = Wire_CreateOutputs(self, { "Out" })
 
-	self.rp = RecipientFilter()
 	self:InitializeShared()
-
 end
 
 function ENT:TriggerInput(iname, value, iter)

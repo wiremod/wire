@@ -312,3 +312,44 @@ elseif SERVER then
 		umsg.End()
 	end
 end
+
+--[[ self:umsg() system
+	Shared requirements: WireLib.umsgRegister(self) in ENT:Initialize()
+	Server requirements: ENT:Retransmit(ply)
+	Client requirements: ENT:Receive(um)
+
+	To send:
+	self:umsg() -- you can pass a player or a RecipientFilter here to only send to some clients.
+		umsg.Whatever(whatever)
+	umsg.End()
+]]
+if SERVER then
+
+	local function wire_umsg(self, receiver)
+		umsg.Start("wire_umsg", receiver or self.rp)
+		umsg.Entity(self)
+	end
+
+	function WireLib.umsgRegister(self)
+		self.umsg = wire_umsg
+		self.tdrp = RecipientFilter()
+	end
+
+	concommand.Add("wire_umsg", function(ply, cmd, args)
+		local self = Entity(tonumber(args[1]))
+		self.tdrp:AddPlayer(ply)
+		if self:IsValid() then self:Retransmit(ply) end
+	end)
+
+elseif CLIENT then
+
+	function WireLib.umsgRegister(self)
+		RunConsoleCommand("wire_umsg", self:EntIndex())
+	end
+
+	usermessage.Hook("wire_umsg", function(um)
+		local self = um:ReadEntity()
+		if self:IsValid() and self.Receive then self:Receive(um) end
+	end)
+
+end
