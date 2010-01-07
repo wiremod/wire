@@ -104,11 +104,10 @@ elseif SERVER then
 	end
 
 	duplicator.RegisterEntityModifier("wire_gpulib_switcher", function(ply, screen, data)
-		local eid = data[2]
-		if eid == data[1] then return end -- no
-		--switchscreen(screen, ent)
+		local screenid, entid = unpack(data)
+		if entid == screenid then return end -- no need to switch the screen
 
-		WireLib.PostDupe(eid, function(ent)
+		WireLib.PostDupe(entid, function(ent)
 			switchscreen(screen, ent)
 		end)
 	end)

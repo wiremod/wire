@@ -395,8 +395,6 @@ end
 function WireLib.AdjustSpecialOutputs(ent, names, types, desc)
 	types = types or {}
 	desc = desc or {}
-	PrintTable(names)
-	PrintTable(types)
 	local ent_Outputs = ent.Outputs
 	for n,v in ipairs(names) do
 		if (ent_Outputs[v]) then
