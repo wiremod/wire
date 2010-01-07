@@ -411,7 +411,6 @@ if SERVER then
 		else
 			local eid = ent:EntIndex()
 			local hasinputs, hasoutputs = ents_with_inputs[eid], ents_with_outputs[eid]
-			print(eid, hasinputs, hasoutputs)
 			if hasinputs or hasoutputs then
 				ents_with_inputs[eid] = nil
 				ents_with_outputs[eid] = nil
@@ -487,14 +486,14 @@ if SERVER then
 
 			if msgtype == DELETE then
 				ports_msg = nil
-				bytes = bytes+1
+				bytes = bytes + 1
 				table.insert(ret, { umsg.Char, msg[3] == INPUT and -1 or -2 })
 
 			elseif msgtype == PORT then
 				local _,_,IO,entry,num = unpack(msg)
 
 				if not ports_msg then
-					bytes = bytes+2
+					bytes = bytes + 2
 					table.insert(ret, { umsg.Char, num })
 					ports_msg = { umsg.Char, 0 }
 					table.insert(ret, ports_msg)
@@ -502,13 +501,14 @@ if SERVER then
 
 				ports_msg[2] = ports_msg[2]+IO
 
-				bytes = bytes+#entry[1]+#entry[2]+#entry[3]+3
+				bytes = bytes + #entry[1] + #entry[2] + #entry[3]+3
 				table.insert(ret, { umsg.String, entry[1] })
 				table.insert(ret, { umsg.String, entry[2] })
 				table.insert(ret, { umsg.String, entry[3] })
 
 			elseif msgtype == LINK then
 				local _,_,num,state = unpack(msg)
+				bytes = bytes + 3
 				table.insert(ret, { umsg.Char, -4 })
 				table.insert(ret, { umsg.Char, num })
 				table.insert(ret, { umsg.Bool, state })
