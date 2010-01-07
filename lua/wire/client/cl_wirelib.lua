@@ -339,7 +339,7 @@ end
 
 function WireLib.hud_debug(text, oneframe)
 	hook.Add("HUDPaint","wire_hud_debug",function()
-		if oneframe then hook.Remove("HUDPaint","mehdebug") end
+		if oneframe then hook.Remove("HUDPaint","wire_hud_debug") end
 		draw.DrawText(text,"Trebuchet24",10,200,Color(255,255,255,255),0)
 	end)
 end

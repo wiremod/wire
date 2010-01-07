@@ -73,7 +73,7 @@ if CLIENT then
 
 		local inputs, outputs = WireLib.GetPorts(ent)
 
-		if inputs and #inputs then
+		if inputs and #inputs ~= 0 then
 			surface.SetFont("Trebuchet24")
 			local boxh, boxw = 0,0
 			for num,port in ipairs(inputs) do
@@ -106,7 +106,7 @@ if CLIENT then
 			end
 		end
 
-		if outputs and #outputs then
+		if outputs and #outputs ~= 0 then
 			surface.SetFont("Trebuchet24")
 			local boxh, boxw = 0,0
 			for num,port in ipairs(outputs) do

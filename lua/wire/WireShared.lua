@@ -626,6 +626,8 @@ elseif CLIENT then
 
 					entry[i] = { name, tp, desc }
 				end
+
+				return false
 			end
 
 		end)() do end

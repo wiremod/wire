@@ -150,7 +150,7 @@ function TOOL:LeftClick( trace )
 		self:SelectComponent(nil)
 		self:SetStage(0)
 		self:GetWeapon():SetNetworkedInt("WireAdvStage",0)
-	else
+	else--if stage == 2 then
 		if CLIENT then
 			self:SetStage(0)
 			return true
@@ -166,7 +166,7 @@ function TOOL:LeftClick( trace )
 		self:SelectComponent(nil)
 		self:SetStage(0)
 		self:GetWeapon():SetNetworkedInt("WireAdvStage",0)
-	end
+	end -- stage
 
 	return true
 end
