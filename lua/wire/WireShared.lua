@@ -95,6 +95,8 @@ function pairs_map(tbl, mapfunction)
 	end, state, k
 end
 
+-- end extra table functions
+
 --------------------------------------------------------------------------------
 
 do -- containers
@@ -223,8 +225,6 @@ do -- containers
 end -- containers
 
 --------------------------------------------------------------------------------
-
--- end extra table functions
 
 --[[ wire_addnotify: send notifications to the client
 	WireLib.AddNotify([ply, ]Message, Type, Duration[, Sound])
@@ -642,23 +642,21 @@ elseif CLIENT then
 		if flag then
 			local lasteid = 0
 			hook.Add("HUDPaint", "wire_ports_test", function()
-				local ent = LocalPlayer():GetEyeTrace().Entity
+				local ent = LocalPlayer():GetEyeTraceNoCursor().Entity
 				--if not ent:IsValid() then return end
 				local eid = ent:IsValid() and ent:EntIndex() or lasteid
 				lasteid = eid
 
 				local text = "ID "..eid.."\nInputs:\n"
-				for num,name,tp,desc,connected in pairs_map(ents_with_inputs[eid] or {}, unpack) do
+				for num,name,tp,desc,connected in ipairs_map(ents_with_inputs[eid] or {}, unpack) do
 
 					text = text..(connected and "-" or " ")
-					text = text..string.format("%s [%s] (%s)\n", name, tp, desc)
+					text = text..string.format("%s (%s) [%s]\n", name, tp, desc)
 				end
 				text = text.."\nOutputs:\n"
-				for num,name,tp,desc in pairs_map(ents_with_outputs[eid] or {}, unpack) do
-
-					text = text..string.format("%s [%s] (%s)\n", name, tp, desc)
+				for num,name,tp,desc in ipairs_map(ents_with_outputs[eid] or {}, unpack) do
+					text = text..string.format("%s (%s) [%s]\n", name, tp, desc)
 				end
-				--for eid, entry in pairs(ents_with_outputs) do
 				draw.DrawText(text,"Trebuchet24",10,300,Color(255,255,255,255),0)
 			end)
 		else

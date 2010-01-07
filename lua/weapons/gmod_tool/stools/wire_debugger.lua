@@ -65,160 +65,75 @@ function TOOL:RightClick(trace)
 	end
 end
 
-local LastOverBoxInput = ""
-local LastOverBoxOutput = ""
-
-function TOOL:Think() --get and transmit the info on the overlay, but only when needed
-	local ply = self:GetOwner()
-	if(CLIENT) then return end
-	local Trace = ply:GetEyeTraceNoCursor()
-
-	local ShowPorts = self:GetClientNumber("showports") ~= 0
-
-	if(Trace.Hit and Trace.Entity and Trace.Entity:IsValid() and IsWire(Trace.Entity) and ShowPorts) then
-		local Ent = Trace.Entity
-		--get the inputs and put their current use state in-between
-		if(Ent.Inputs) then
-			local InputString = ""
-			for InputIdx, CurInput in pairs_sortvalues(Ent.Inputs, WireLib.PortComparator) do
-				InputString = InputString..InputIdx
-				if(CurInput.Type != "NORMAL") then
-					InputString = InputString.." ["..CurInput.Type.."]"
-				end
-				if(CurInput.Src and CurInput.Src:IsValid()) then -- check whether the input is wired up or not
-					InputString = InputString..",W\n"
-				else
-					InputString = InputString..",N\n"
-				end
-			end
-
-			if(InputString != LastOverBoxInput) then
-				self:GetWeapon():SetNetworkedString("WireDebugOverlayInputs", InputString)
-				LastOverBoxInput = InputString
-			end
-		else
-			if(LastOverBoxInput != "") then
-				LastOverBoxInput = ""
-				self:GetWeapon():SetNetworkedString("WireDebugOverlayInputs", "")
-			end
-		end
-
-		--get the outputs
-		if(Ent.Outputs) then
-			local OutputString = ""
-			for OutputIdx, CurOutput in pairs_sortvalues(Ent.Outputs, WireLib.PortComparator) do
-				OutputString = OutputString..OutputIdx
-				if(CurOutput.Type != "NORMAL") then
-					OutputString = OutputString.." ["..CurOutput.Type.."]"
-				end
-				OutputString = OutputString.."\n"
-			end
-
-			if(OutputString != LastOverBoxOutput) then
-				self:GetWeapon():SetNetworkedString("WireDebugOverlayOutputs", OutputString)
-				LastOverBoxOutput = OutputString
-			end
-		else
-			if(LastOverBoxOutput != "") then
-				LastOverBoxOutput = ""
-				self:GetWeapon():SetNetworkedString("WireDebugOverlayOutputs", "")
-			end
-		end
-	else
-		if(LastOverBoxInput != "") then
-			LastOverBoxInput = ""
-			self:GetWeapon():SetNetworkedString("WireDebugOverlayInputs", "")
-		end
-
-		if(LastOverBoxOutput != "") then
-			LastOverBoxOutput = ""
-			self:GetWeapon():SetNetworkedString("WireDebugOverlayOutputs", "")
-		end
-	end
-
-end
-
 if CLIENT then
-
 	function TOOL:DrawHUD()
-		local InputText = self:GetWeapon():GetNetworkedString("WireDebugOverlayInputs") or ""
-		local OutputText = self:GetWeapon():GetNetworkedString("WireDebugOverlayOutputs") or ""
+		if self:GetClientNumber("showports") == 0 then return end
+		local ent = LocalPlayer():GetEyeTraceNoCursor().Entity
+		if not ent:IsValid() then return end
 
-		if(InputText != "") then
+		local inputs, outputs = WireLib.GetPorts(ent)
+
+		if inputs and #inputs then
 			surface.SetFont("Trebuchet24")
-			local Inputs = string.Explode("\n",InputText)
-			local InputsUsed = {}
-			for i, Input in ipairs(Inputs) do
-				InputsUsed[i] = string.Right(Input,2) == ",W"
-				Inputs[i] = string.sub(Inputs[i],1,-3)
+			local boxh, boxw = 0,0
+			for num,port in ipairs(inputs) do
+				local name,tp,desc,connected = unpack(port)
+				local text = tp == "NORMAL" and name or string.format("%s [%s]", name, tp)
+				port.text = text
+				port.y = boxh
+				local textw,texth = surface.GetTextSize(text)
+				if textw > boxw then boxw = textw end
+				boxh = boxh + texth
 			end
 
-			local FontHeight = draw.GetFontHeight("Trebuchet24")+1
-			local MaxWidth = 0
-			for i, Input in ipairs(Inputs) do
-				local W, H = surface.GetTextSize(Input)
-				if(W > MaxWidth) then
-					MaxWidth = W
-				end
-			end
-
-
+			local boxx, boxy = ScrW()/2-boxw-32, ScrH()/2-boxh/2
 			draw.RoundedBox(8,
-				ScrW()/2-(MaxWidth+16)-20,
-				ScrH()/2-#Inputs*FontHeight/2-8,
-				MaxWidth+16,
-				(#Inputs-1)*FontHeight+16,
+				boxx-8, boxy-8,
+				boxw+16, boxh+16,
 				Color(109,146,129,192)
 			)
 
-			for i, Input in ipairs(Inputs) do
-				local TextCol = Color(255,255,255)
-				if(InputsUsed[i] == true) then
-					TextCol = Color(255,0,0)
+			for num,port in ipairs(inputs) do
+				surface.SetTextPos(boxx,boxy+port.y)
+				if port[4] then
+					surface.SetTextColor(Color(255,0,0,255))
+				else
+					surface.SetTextColor(Color(255,255,255,255))
 				end
-				draw.Text({
-					text = Input or "",
-					font = "Trebuchet24",
-					pos = {ScrW()/2-(MaxWidth+16)-12, (FontHeight)*(i-1)+(ScrH()/2-#Inputs*FontHeight/2)},
-					color = TextCol
-				})
+				surface.DrawText(port.text)
+				port.text = nil
+				port.y = nil
 			end
-
 		end
 
-		if(OutputText != "") then
+		if outputs and #outputs then
 			surface.SetFont("Trebuchet24")
-			local Outputs = string.Explode("\n",OutputText)
-
-			local FontHeight = draw.GetFontHeight("Trebuchet24")+1
-			local MaxWidth = 0
-			for i, Output in ipairs(Outputs) do
-				local W, H = surface.GetTextSize(Output)
-				if(W > MaxWidth) then
-					MaxWidth = W
-				end
+			local boxh, boxw = 0,0
+			for num,port in ipairs(outputs) do
+				local name,tp,desc = unpack(port)
+				local text = tp == "NORMAL" and name or string.format("%s [%s]", name, tp)
+				port.text = text
+				port.y = boxh
+				local textw,texth = surface.GetTextSize(text)
+				if textw > boxw then boxw = textw end
+				boxh = boxh + texth
 			end
 
-
+			local boxx, boxy = ScrW()/2+32, ScrH()/2-boxh/2
 			draw.RoundedBox(8,
-				ScrW()/2+20,
-				ScrH()/2-#Outputs*FontHeight/2-8,
-				MaxWidth+16,
-				(#Outputs-1)*FontHeight+16,
+				boxx-8, boxy-8,
+				boxw+16, boxh+16,
 				Color(109,146,129,192)
 			)
 
-			for i, Output in ipairs(Outputs) do
-				draw.Text({
-					text = Output or "",
-					font = "Trebuchet24",
-					pos = {ScrW()/2+28, (FontHeight)*(i-1)+(ScrH()/2-#Outputs*FontHeight/2)},
-					color = Color(255,255,255)
-				})
+			for num,port in ipairs(outputs) do
+				surface.SetTextPos(boxx,boxy+port.y)
+				surface.SetTextColor(Color(255,255,255,255))
+				surface.DrawText(port.text)
+				port.text = nil
+				port.y = nil
 			end
 		end
-
-
 	end
 end
 
