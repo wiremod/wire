@@ -2,7 +2,7 @@
 -- $LastChangedDate: 2009-10-05 04:19:53 -0700 (Mon, 05 Oct 2009) $
 -- $LastChangedBy: TomyLobo $
 
-WireLib = {}
+WireLib = WireLib or {}
 
 -- extra table functions
 
@@ -95,7 +95,7 @@ function pairs_map(tbl, mapfunction)
 	end, state, k
 end
 
-/******************************************************************************/
+--------------------------------------------------------------------------------
 
 do -- containers
 	local function new(metatable, ...)
@@ -172,6 +172,11 @@ do -- containers
 		function deque:top()
 			return self[#self]
 		end
+
+		-- Returns the first element.
+		function deque:bottom()
+			return self[self.offset+1]
+		end
 	end -- class deque
 
 	do -- class autocleanup
@@ -217,7 +222,7 @@ do -- containers
 	end -- class autocleanup
 end -- containers
 
-/******************************************************************************/
+--------------------------------------------------------------------------------
 
 -- end extra table functions
 
@@ -319,11 +324,23 @@ end
 	Client requirements: ENT:Receive(um)
 
 	To send:
-	self:umsg() -- you can pass a player or a RecipientFilter here to only send to some clients.
+	self:umsg() -- you can pass a Player or a RecipientFilter here to only send to some clients.
 		umsg.Whatever(whatever)
 	umsg.End()
 ]]
 if SERVER then
+
+	local registered_ents = {}
+
+	hook.Add("EntityRemoved", "wire_umsg", function(ent)
+		if ent:IsPlayer() then
+			for e,_ in pairs(registered_ents) do
+				if e.tdrp then e.tdrp:RemovePlayer(ent) end
+			end
+		else
+			registered_ents[ent] = nil
+		end
+	end)
 
 	local function wire_umsg(self, receiver)
 		umsg.Start("wire_umsg", receiver or self.rp)
@@ -331,6 +348,7 @@ if SERVER then
 	end
 
 	function WireLib.umsgRegister(self)
+		registered_ents[self] = true
 		self.umsg = wire_umsg
 		self.tdrp = RecipientFilter()
 	end
@@ -352,4 +370,217 @@ elseif CLIENT then
 		if self:IsValid() and self.Receive then self:Receive(um) end
 	end)
 
+end
+
+--[[ client-side input/output names/types/descs
+	umsg format:
+	any number of the following:
+		Char start
+			start==0: break
+			start==-1: delete inputs
+			start==-2: delete outputs
+			start==-3: set eid
+			start > 0:
+				Char amount
+				abs(amount)*3 strings describing name, type, desc
+]]
+
+if SERVER then
+	local INPUT, OUTPUT = 1,-1
+	local DELETE, ENTRY, PORTS = 1,2,3
+
+	local ents_with_inputs = {}
+	local ents_with_outputs = {}
+	local IOlookup = { [INPUT] = ents_with_inputs, [OUTPUT] = ents_with_outputs }
+
+	local queue = WireLib.containers.deque:new()
+	local rp = RecipientFilter()
+
+	hook.Add("EntityRemoved", "wire_ports", function(ent)
+		local eid = ent:EntIndex()
+		ents_with_inputs[eid] = nil
+		ents_with_outputs[eid] = nil
+		umsg.Start("wire_ports", rp)
+			umsg.Char(-3) -- set eid
+			umsg.Short(eid)
+			umsg.Char(-1) -- delete input entry
+			umsg.Char(-2) -- delete output entry
+			umsg.Char(0) -- break
+		umsg.End()
+	end)
+
+	function WireLib._SetInputs(ent, lqueue)
+		local queue = lqueue or queue
+		local eid = ent:EntIndex()
+
+		queue:push({ eid, DELETE, INPUT })
+
+		for Name, CurPort in pairs_sortvalues(ent.Inputs, WireLib.PortComparator) do
+			local entry = { Name, CurPort.Type, CurPort.Desc or "" }
+			ents_with_inputs[eid] = entry
+			queue:push({ eid, ENTRY, INPUT, entry, CurPort.Idx })
+		end
+	end
+
+	function WireLib._SetOutputs(ent, lqueue)
+		local queue = lqueue or queue
+		local eid = ent:EntIndex()
+
+		queue:push({ eid, DELETE, OUTPUT })
+
+		for Name, CurPort in pairs_sortvalues(ent.Outputs, WireLib.PortComparator) do
+			local entry = { Name, CurPort.Type, CurPort.Desc or "" }
+			ents_with_outputs[eid] = entry
+			queue:push({ eid, ENTRY, OUTPUT, entry, CurPort.Idx })
+		end
+	end
+
+
+	local function FlushQueue(lqueue, ply)
+		ply = ply or rp
+		local eid = 0
+		local ports_msg = nil
+		local function parsemsg(msg)
+			local same_eid = msg[1] == eid
+			local bytes, ret
+			if same_eid then
+				bytes = 0
+				ret = {}
+			else
+				eid = msg[1]
+				bytes = 3
+				ret = { { umsg.Char, -3 }, { umsg.Short, eid } }
+				ports_msg = nil
+			end
+
+			local msgtype = msg[2]
+
+			if msgtype == DELETE then
+				ports_msg = nil
+				bytes = bytes+1
+				table.insert(ret, { umsg.Char, msg[3] == INPUT and -1 or -2 })
+			elseif msgtype == ENTRY then
+				local _,_,IO,entry,index = unpack(msg)
+
+				if not ports_msg then
+					bytes = bytes+2
+					table.insert(ret, { umsg.Char, index })
+					ports_msg = { umsg.Char, 0 }
+					table.insert(ret, ports_msg)
+				end
+
+				ports_msg[2] = ports_msg[2]+IO
+
+				bytes = bytes+#entry[1]+#entry[2]+#entry[3]+3
+				table.insert(ret, { umsg.String, entry[1] })
+				table.insert(ret, { umsg.String, entry[2] })
+				table.insert(ret, { umsg.String, entry[3] })
+			end
+			return bytes, ret
+		end
+
+		umsg.Start("wire_ports")
+		local maxsize = 240
+		local bytes = 0
+		local msgs = {}
+		while lqueue:size()>0 do
+			local msg = lqueue:bottom()
+			local size,contents = parsemsg(msg)
+			bytes = bytes+size
+			if bytes>maxsize then break end
+
+			table.insert(msgs, contents)
+			lqueue:shift()
+		end
+		for _,contents in ipairs(msgs) do
+			for _,func,value in ipairs_map(contents,unpack) do
+				func(value)
+			end
+		end
+		umsg.Char(0)
+		umsg.End()
+
+		if lqueue:size() == 0 then return end
+		return FlushQueue(lqueue, ply)
+	end
+
+	hook.Add("Think", "wire_ports", function()
+		if queue:size() == 0 then return end
+		return FlushQueue(queue)
+	end)
+
+	hook.Add("PlayerInitialSpawn", "wire_ports", function(ply)
+		rp:AddPlayer(ply)
+		local lqueue = WireLib.containers.deque:new()
+		for eid, entry in pairs(ents_with_inputs) do
+			WireLib._SetInputs(Entity(eid), lqueue)
+		end
+		for eid, entry in pairs(ents_with_outputs) do
+			WireLib._SetOutputs(Entity(eid), lqueue)
+		end
+		FlushQueue(lqueue, ply)
+	end)
+
+elseif CLIENT then
+	local ents_with_inputs = {}
+	local ents_with_outputs = {}
+
+	usermessage.Hook("wire_ports", function(um)
+		local eid = 0
+
+		while not (function()
+			local start = um:ReadChar()
+			if start == 0 then
+				-- break
+				return true
+			elseif start == -1 then
+				-- delete input entry
+				ents_with_inputs[eid] = nil
+				return false
+			elseif start == -2 then
+				-- delete output entry
+				ents_with_outputs[eid] = nil
+				return false
+			elseif start == -3 then
+				-- set eid
+				eid = um:ReadShort()
+				return false
+			elseif start > 0 then
+				local entry
+
+				local amount = um:ReadChar()
+				if amount < 0 then
+					-- outputs
+					amount = -amount
+					entry = ents_with_outputs[eid]
+					if not entry then
+						entry = {}
+						ents_with_outputs[eid] = entry
+					end
+				else
+					-- inputs
+					entry = ents_with_inputs[eid]
+					if not entry then
+						entry = {}
+						ents_with_inputs[eid] = entry
+					end
+				end
+
+				local endindex = start+amount-1
+				for i = start,endindex do
+					local name = um:ReadString()
+					local tp = um:ReadString()
+					local desc = um:ReadString()
+
+					entry[i] = { name, tp, desc }
+				end
+			end
+
+		end)() do end
+	end)
+
+	function WireLib.GetPorts(ent)
+		local eid = ent:EntIndex()
+		return ents_with_inputs[eid], ents_with_outputs[eid]
+	end
 end

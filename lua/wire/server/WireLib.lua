@@ -37,6 +37,7 @@ end
 
 function Wire_CreateInputs(ent, names)
 	local ent_Inputs = {}
+	ent.Inputs = ent_Inputs
 	for n,v in pairs(names) do
 		-- Allow to specify the type in square brackets, like "Name [TYPE]"
 		local name, tp = v:match("^(.+) %[(.+)%]$")
@@ -67,6 +68,7 @@ function Wire_CreateInputs(ent, names)
 	end
 
 	Wire_SetPathNames(ent, names)
+	WireLib._SetInputs(ent)
 
 	return ent_Inputs
 end
@@ -74,6 +76,7 @@ end
 
 function Wire_CreateOutputs(ent, names, desc)
 	local ent_Outputs = {}
+	ent.Outputs = ent_Outputs
 	for n,v in pairs(names) do
 		-- Allow to specify the type in square brackets, like "Name [TYPE]"
 		local name, tp = v:match("^(.+) %[(.+)%]$")
@@ -90,11 +93,8 @@ function Wire_CreateOutputs(ent, names, desc)
 			Connected = {},
 			TriggerLimit = 8,
 			Num = n,
+			Desc = desc and desc[n],
 		}
-
-		if (desc) and (desc[n]) then
-			output.Desc = desc[n]
-		end
 
 		local idx = 1
 		while (Outputs[idx]) do
@@ -105,6 +105,8 @@ function Wire_CreateOutputs(ent, names, desc)
 		ent_Outputs[name] = output
 		Outputs[idx] = output
 	end
+
+	WireLib._SetOutputs(ent)
 
 	return ent_Outputs
 end
@@ -147,17 +149,18 @@ function Wire_AdjustInputs(ent, names)
 		end
 	end
 
-	for k,v in pairs(ent_Inputs) do
-		if (v.Keep) then
-			v.Keep = nil
+	for portname,port in pairs(ent_Inputs) do
+		if (port.Keep) then
+			port.Keep = nil
 		else
-			Wire_Link_Clear(ent, k)
+			Wire_Link_Clear(ent, portname)
 
-			ent_Inputs[k] = nil
+			ent_Inputs[portname] = nil
 		end
 	end
 
 	Wire_SetPathNames(ent, names)
+	WireLib._SetInputs(ent)
 end
 
 
@@ -203,19 +206,21 @@ function Wire_AdjustOutputs(ent, names, desc)
 		end
 	end
 
-	for k,v in pairs(ent_Outputs) do
-		if (v.Keep) then
-			v.Keep = nil
+	for portname,port in pairs(ent_Outputs) do
+		if (port.Keep) then
+			port.Keep = nil
 		else
 			-- fix by Syranide: unlinks wires of removed outputs
-			for i,v in ipairs(ent_Outputs[k].Connected) do
-				if (v.Entity:IsValid()) then
-					Wire_Link_Clear(v.Entity, v.Name)
+			for i,port in ipairs(port.Connected) do
+				if (port.Entity:IsValid()) then
+					Wire_Link_Clear(port.Entity, port.Name)
 				end
 			end
-			ent_Outputs[k] = nil
+			ent_Outputs[portname] = nil
 		end
 	end
+
+	WireLib._SetOutputs(ent)
 end
 
 
@@ -265,6 +270,7 @@ function WireLib.CreateSpecialInputs(ent, names, types, desc)
 	types = types or {}
 	desc = desc or {}
 	local ent_Inputs = {}
+	ent.Inputs = ent_Inputs
 	for n,v in pairs(names) do
 		local input = {
 			Entity = ent,
@@ -289,6 +295,7 @@ function WireLib.CreateSpecialInputs(ent, names, types, desc)
 	end
 
 	WireLib.SetPathNames(ent, names)
+	WireLib._SetInputs(ent)
 
 	return ent_Inputs
 end
@@ -298,6 +305,7 @@ function WireLib.CreateSpecialOutputs(ent, names, types, desc)
 	types = types or {}
 	desc = desc or {}
 	local ent_Outputs = {}
+	ent.Outputs = ent_Outputs
 	for n,v in pairs(names) do
 		local output = {
 			Entity = ent,
@@ -320,6 +328,8 @@ function WireLib.CreateSpecialOutputs(ent, names, types, desc)
 		Outputs[idx] = output
 	end
 
+	WireLib._SetOutputs(ent)
+
 	return ent_Outputs
 end
 
@@ -329,7 +339,7 @@ function WireLib.AdjustSpecialInputs(ent, names, types, desc)
 	types = types or {}
 	desc = desc or {}
 	local ent_Inputs = ent.Inputs
-	for n,v in pairs(names) do
+	for n,v in ipairs(names) do
 		if (ent_Inputs[v]) then
 			local newtype = types[n] or "NORMAL"
 			if newtype ~= ent_Inputs[v].Type then
@@ -346,7 +356,7 @@ function WireLib.AdjustSpecialInputs(ent, names, types, desc)
 				Name = v,
 				Desc = desc[n],
 				Type = types[n] or "NORMAL",
-				Value = WireLib.DT[ (types[n] or "NORMAL") ].Zero,
+				Value = WireLib.DT[ types[n] or "NORMAL" ].Zero,
 				Material = "tripmine_laser",
 				Color = Color(255, 255, 255, 255),
 				Width = 1,
@@ -365,17 +375,18 @@ function WireLib.AdjustSpecialInputs(ent, names, types, desc)
 		end
 	end
 
-	for k,v in pairs(ent_Inputs) do
-		if (v.Keep) then
-			v.Keep = nil
+	for portname,port in pairs(ent_Inputs) do
+		if (port.Keep) then
+			port.Keep = nil
 		else
-			Wire_Link_Clear(ent, k)
+			Wire_Link_Clear(ent, portname)
 
-			ent_Inputs[k] = nil
+			ent_Inputs[portname] = nil
 		end
 	end
 
 	WireLib.SetPathNames(ent, names)
+	WireLib._SetInputs(ent)
 
 	return ent_Inputs
 end
@@ -384,8 +395,10 @@ end
 function WireLib.AdjustSpecialOutputs(ent, names, types, desc)
 	types = types or {}
 	desc = desc or {}
+	PrintTable(names)
+	PrintTable(types)
 	local ent_Outputs = ent.Outputs
-	for n,v in pairs(names) do
+	for n,v in ipairs(names) do
 		if (ent_Outputs[v]) then
 			local newtype = types[n] or "NORMAL"
 			if newtype ~= ent_Outputs[v].Type then
@@ -422,19 +435,21 @@ function WireLib.AdjustSpecialOutputs(ent, names, types, desc)
 		end
 	end
 
-	for k,v in pairs(ent_Outputs) do
-		if (v.Keep) then
-			v.Keep = nil
+	for portname,port in pairs(ent_Outputs) do
+		if (port.Keep) then
+			port.Keep = nil
 		else
 			-- fix by Syranide: unlinks wires of removed outputs
-			for i,v in ipairs(ent_Outputs[k].Connected) do
-				if (v.Entity:IsValid()) then
-					Wire_Link_Clear(v.Entity, v.Name)
+			for i,port in ipairs(ent_Outputs[portname].Connected) do
+				if (port.Entity:IsValid()) then
+					Wire_Link_Clear(port.Entity, port.Name)
 				end
 			end
-			ent_Outputs[k] = nil
+			ent_Outputs[portname] = nil
 		end
 	end
+
+	WireLib._SetOutputs(ent)
 
 	return ent_Outputs
 end
@@ -446,6 +461,8 @@ function WireLib.RetypeInputs(ent, iname, itype, desc)
 	ent_Inputs[iname].Desc = desc
 	ent_Inputs[iname].Type = itype
 	ent_Inputs[iname].Value = WireLib.DT[itype].Zero
+
+	WireLib._SetInputs(ent)
 end
 
 
@@ -455,6 +472,8 @@ function WireLib.RetypeOutputs(ent, oname, otype, desc)
 	ent_Outputs[oname].Desc = desc
 	ent_Outputs[oname].Type = otype
 	ent_Outputs[oname].Value = WireLib.DT[otype].Zero
+
+	WireLib._SetOutputs(ent)
 end
 
 
@@ -797,30 +816,32 @@ function Wire_SetPathNames(ent, names)
 	ent:SetNetworkedBeamInt("wpn_count", #names)
 end
 
-local OutputIterator = {}
-OutputIterator.__index = OutputIterator
+do -- class OutputIterator
+	local OutputIterator = {}
+	OutputIterator.__index = OutputIterator
 
-function OutputIterator:Add(ent, iname, value)
-	table.insert(self.Queue, { Entity = ent, IName = iname, Value = value })
-end
-
-function OutputIterator:Process()
-	if self.Processing then return end -- should not occur
-	self.Processing = true
-
-	while #self > 0 do
-		local nextelement = self[1]
-		table.remove(self, 1)
-
-		WireLib.TriggerInput(nextelement.Entity, nextelement.IName, nextelement.Value, self)
+	function OutputIterator:Add(ent, iname, value)
+		table.insert(self.Queue, { Entity = ent, IName = iname, Value = value })
 	end
 
-	self.Processing = nil
-end
+	function OutputIterator:Process()
+		if self.Processing then return end -- should not occur
+		self.Processing = true
 
-function Wire_CreateOutputIterator()
-	return setmetatable({}, OutputIterator)
-end
+		while #self > 0 do
+			local nextelement = self[1]
+			table.remove(self, 1)
+
+			WireLib.TriggerInput(nextelement.Entity, nextelement.IName, nextelement.Value, self)
+		end
+
+		self.Processing = nil
+	end
+
+	function Wire_CreateOutputIterator()
+		return setmetatable({}, OutputIterator)
+	end
+end -- class OutputIterator
 
 
 duplicator.RegisterEntityModifier("WireDupeInfo", function(ply, Ent, DupeInfo)
@@ -851,9 +872,9 @@ function WireLib.BuildDupeInfo( Ent )
 	if (not Ent.Inputs) then return end
 
 	local info = { Wires = {} }
-	for k,input in pairs(Ent.Inputs) do
+	for portname,input in pairs(Ent.Inputs) do
 		if (input.Src) and (input.Src:IsValid()) then
-			info.Wires[k] = {
+			info.Wires[portname] = {
 				StartPos = input.StartPos,
 				Material = input.Material,
 				Color = input.Color,
@@ -864,18 +885,18 @@ function WireLib.BuildDupeInfo( Ent )
 			}
 
 			if (input.Path) then
-				info.Wires[k].Path = {}
+				info.Wires[portname].Path = {}
 
 				for _,v in ipairs(input.Path) do
 					if (v.Entity) and (v.Entity:IsValid()) then
-						table.insert(info.Wires[k].Path, { Entity = v.Entity:EntIndex(), Pos = v.Pos })
+						table.insert(info.Wires[portname].Path, { Entity = v.Entity:EntIndex(), Pos = v.Pos })
 					end
 				end
 
-				local n = #info.Wires[k].Path
-				if (n > 0) and (info.Wires[k].Path[n].Entity == info.Wires[k].Src) then
-					info.Wires[k].SrcPos = info.Wires[k].Path[n].Pos
-					table.remove(info.Wires[k].Path, n)
+				local n = #info.Wires[portname].Path
+				if (n > 0) and (info.Wires[portname].Path[n].Entity == info.Wires[portname].Src) then
+					info.Wires[portname].SrcPos = info.Wires[portname].Path[n].Pos
+					table.remove(info.Wires[portname].Path, n)
 				end
 			end
 		end
@@ -1101,3 +1122,48 @@ hook.Add("InitPostEntity", "antiantinoclip", function()
 	ENT.lastt = 0
 	ENT.oldpos = Vector(0,0,0)
 end)
+
+-- Calls "func", once (Advanced) Duplicator has finished spawning the entity that was copied with the entity id "entid".
+-- Must be called from an duplicator.RegisterEntityClass or duplicator.RegisterEntityModifier handler.
+-- Usage: WireLib.PostDupe(entid, function(ent) ... end)
+function WireLib.PostDupe(entid, func)
+	local CreatedEntities
+
+	local paste_functions = {
+		[duplicator.Paste] = true,
+		[AdvDupe.Paste] = true,
+		[AdvDupe.OverTimePasteProcess] = true,
+	}
+
+	-- Go through the call stack to find someone who has a CreatedEntities table for us.
+	local i,info = 1,debug.getinfo(1)
+	while info do
+		if paste_functions[info.func] then
+			for j = 1,20 do
+				local name, value = debug.getlocal(i, j)
+				if name == "CreatedEntities" then
+					CreatedEntities = value
+					break
+				end
+			end
+			break
+		end
+		i = i+1
+		info = debug.getinfo(i)
+	end
+
+	-- Nothing found? Too bad...
+	if not CreatedEntities then return end
+
+	-- Wait until the selected entity has been spawned...
+	local unique = {}
+	timer.Create(unique, 1, 240, function(CreatedEntities, entid, unique, func)
+		local ent = CreatedEntities[entid]
+		if ent then
+			timer.Remove(unique)
+
+			-- and call the callback
+			func(ent)
+		end
+	end, CreatedEntities, entid, unique, func)
+end

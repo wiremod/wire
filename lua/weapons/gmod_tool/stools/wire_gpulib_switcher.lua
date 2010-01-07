@@ -11,15 +11,8 @@ if (CLIENT) then
 	language.Add("Tool_wire_gpulib_switcher_1", "Now click a prop or other entity to link to. Press Reload to cancel.")
 end
 
-local function switchscreen(screen, ent)
-	screen.GPUEntity = ent
-	umsg.Start("wire_gpulib_setent")
-		umsg.Short(screen:EntIndex())
-		umsg.Short(ent:EntIndex())
-	umsg.End()
-end
-
 if CLIENT then
+
 	usermessage.Hook("wire_gpulib_setent", function(um)
 		local screen = Entity(um:ReadShort())
 		if not screen:IsValid() then return end
@@ -52,7 +45,7 @@ if CLIENT then
 
 		local mins, maxs = screen:OBBMins(), screen:OBBMaxs()
 
-		local function foo(timerid)
+		local function setbounds(timerid)
 			if not screen:IsValid() then
 				timer.Remove(timerid)
 				return
@@ -89,53 +82,76 @@ if CLIENT then
 		end
 
 		local timerid = "wire_gpulib_updatebounds"..screen:EntIndex()
-		timer.Create(timerid, 5, 0, foo, timerid)
+		timer.Create(timerid, 5, 0, setbounds, timerid)
 
-		foo()
-	end)
-end
+		setbounds()
+	end) -- umsg hook
 
-function TOOL:LeftClick(trace)
-	local ent = trace.Entity
-
-	if ent:IsPlayer() then return false end
-	if CLIENT then return true end
-
-	if not ent:IsValid() then return false end
-
-	if self:GetStage() == 0 then
-		--if not ent.IsGPU then return false end -- needs check for GPULib-ness
-		self.screen = ent
-
-		self:SetStage(1)
-
-		return true
-	elseif self:GetStage() == 1 then
-		switchscreen(self.screen, ent)
-		self.screen = nil
-
-		self:SetStage(0)
-
-		return true
+	function TOOL.BuildCPanel(panel)
+		panel:AddControl("Header", { Text = "#Tool_wire_gpulib_switcher_name", Description = "#Tool_wire_gpulib_switcher_desc" })
 	end
-end
 
-function TOOL:Reload(trace)
-	if self:GetStage() == 0 then
+elseif SERVER then
+
+	local function switchscreen(screen, ent)
+		screen.GPUEntity = ent
+		umsg.Start("wire_gpulib_setent")
+			umsg.Short(screen:EntIndex())
+			umsg.Short(ent:EntIndex())
+		umsg.End()
+
+		duplicator.StoreEntityModifier(screen, "wire_gpulib_switcher", { screen:EntIndex(), ent:EntIndex() })
+	end
+
+	duplicator.RegisterEntityModifier("wire_gpulib_switcher", function(ply, screen, data)
+		local eid = data[2]
+		if eid == data[1] then return end -- no
+		--switchscreen(screen, ent)
+
+		WireLib.PostDupe(eid, function(ent)
+			switchscreen(screen, ent)
+		end)
+	end)
+
+	function TOOL:LeftClick(trace)
 		local ent = trace.Entity
 
 		if ent:IsPlayer() then return false end
 		if CLIENT then return true end
 
-		switchscreen(ent, ent)
+		if not ent:IsValid() then return false end
 
-		return true
-	else
-		self:SetStage(0)
-		return true
+		if self:GetStage() == 0 then
+			--if not ent.IsGPU then return false end -- needs check for GPULib-ness
+			self.screen = ent
+
+			self:SetStage(1)
+
+			return true
+		elseif self:GetStage() == 1 then
+			switchscreen(self.screen, ent)
+			self.screen = nil
+
+			self:SetStage(0)
+
+			return true
+		end
 	end
-end
 
-function TOOL.BuildCPanel(panel)
-	panel:AddControl("Header", { Text = "#Tool_wire_gpulib_switcher_name", Description = "#Tool_wire_gpulib_switcher_desc" })
-end
+	function TOOL:Reload(trace)
+		if self:GetStage() == 0 then
+			local ent = trace.Entity
+
+			if ent:IsPlayer() then return false end
+			if CLIENT then return true end
+
+			switchscreen(ent, ent)
+
+			return true
+		else
+			self:SetStage(0)
+			return true
+		end
+	end
+
+end -- if SERVER
