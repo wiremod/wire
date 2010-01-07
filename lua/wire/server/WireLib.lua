@@ -823,7 +823,7 @@ do -- class OutputIterator
 	OutputIterator.__index = OutputIterator
 
 	function OutputIterator:Add(ent, iname, value)
-		table.insert(self.Queue, { Entity = ent, IName = iname, Value = value })
+		table.insert(self, { Entity = ent, IName = iname, Value = value })
 	end
 
 	function OutputIterator:Process()
