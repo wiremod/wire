@@ -7,17 +7,17 @@ if CLIENT then
 	language.Add( "Tool_wire_improved_desc", "Used to connect wirable props." )
 	language.Add( "Tool_wire_improved_0", "Primary: Attach to selected input, Secondary: Next input, Reload: Unlink selected input, Wheel: Select input." )
 	language.Add( "Tool_wire_improved_1", "Primary: Attach to output, Secondary: Attach but continue, Reload: Cancel." )
-	language.Add( "Tool_wire_improved_2", "Primary: Confirm attach to output, Secondary: Next output, Reload: Cancel." )
+	language.Add( "Tool_wire_improved_2", "Primary: Confirm attach to output, Secondary: Next output, Reload: Cancel, Wheel: Select output." )
 	--language.Add( "WireTool_scrollwithoutmod", "Scroll without modifier key" )
 end
 
 TOOL.ClientConVar = {
-	width		= 2,
-	material	= "cable/cable2",
-	color_r		= 255,
-	color_g		= 255,
-	color_b		= 255,
-	scrollwithoutmod = 1, -- moo
+	width = 2,
+	material = "cable/cable2",
+	r = 255,
+	g = 255,
+	b = 255,
+	scrollwithoutmod = 1, -- unused
 }
 
 local function dummytrace(ent)
@@ -61,7 +61,8 @@ local get_active_tool = get_tool -- TODO: separate
 if SERVER then
 	function TOOL:RightClick(trace)
 		if self:GetStage() == 1 then
-			-- create subwires
+			local ent = trace.Entity
+			Wire_Link_Node(self:GetOwner():UniqueID(), ent, ent:WorldToLocal(trace.HitPos+trace.HitNormal))
 		end
 
 		return false
@@ -87,17 +88,18 @@ if SERVER then
 			if not target:IsValid() then return end
 			if not gamemode.Call("CanTool", self:GetOwner(), dummytrace(target), "wire_improved") then return end
 
-			local material  = self:GetClientInfo("material")
-			local width     = self:GetClientNumber("width")
-			local color     = Color(self:GetClientNumber("color_r"), self:GetClientNumber("color_g"), self:GetClientNumber("color_b"))
+			local material = self:GetClientInfo("material")
+			local width    = self:GetClientNumber("width")
+			local color    = Color(self:GetClientNumber("r"), self:GetClientNumber("g"), self:GetClientNumber("b"))
 
-			local lpos = Vector(tonumber(x),tonumber(y),tonumber(z))
+			local lpos = Vector(tonumber(x), tonumber(y), tonumber(z))
 
 			if Wire_Link_Start(self:GetOwner():UniqueID(), target, lpos, portname, material, color, width) then
 				self:SetStage(1)
 				self.target = target
 				self.input = portname
 			end
+
 		elseif mode == "s" then -- select source entity
 			if self:GetStage() ~= 1 then return end
 
@@ -125,9 +127,10 @@ if SERVER then
 			end
 
 			self.source = source
-			self.lpos = Vector(tonumber(x),tonumber(y),tonumber(z))
+			self.lpos = Vector(tonumber(x), tonumber(y), tonumber(z))
 
 			self:SetStage(2)
+
 		elseif mode == "o" then -- select output
 			if self:GetStage() ~= 2 then return end
 
@@ -167,13 +170,14 @@ elseif CLIENT then
 		if #ports == 0 then return end
 
 		surface.SetFont("Trebuchet24")
-		local FontHeight = draw.GetFontHeight("Trebuchet24")
-		local boxh, boxw = #ports*FontHeight,0
+		local texth = draw.GetFontHeight("Trebuchet24")
+
+		local boxh, boxw = #ports*texth,0
 		for num,port in ipairs(ports) do
 			local name,tp,desc,connected = unpack(port)
-			local text = tp == "NORMAL" and name or string.format("%s [%s]", name, tp)
+			local text = (tp == "NORMAL") and name or string.format("%s [%s]", name, tp)
 			port.text = text
-			local textw,texth = surface.GetTextSize(text)
+			local textw = surface.GetTextSize(text)
 			if textw > boxw then boxw = textw end
 		end
 
@@ -186,11 +190,11 @@ elseif CLIENT then
 		)
 
 		for num,port in ipairs(ports) do
-			local texty = boxy+(num-1)*FontHeight
+			local texty = boxy+(num-1)*texth
 			if num == selindex then
 				draw.RoundedBox(4,
 					boxx-4, texty-1,
-					boxw+8, FontHeight+2,
+					boxw+8, texth+2,
 					Color(0,150,0,192)
 				)
 			end
@@ -334,7 +338,7 @@ elseif CLIENT then
 		local hook = self[hookname]
 		if not hook then return end
 
-		local trace = ply:GetEyeTrace()
+		local trace = ply:GetEyeTraceNoCursor()
 		local ret = hook(self, trace)
 		if ret then
 			if doeffect then
@@ -401,9 +405,9 @@ elseif CLIENT then
 
 		panel:AddControl("Color", {
 			Label = "#WireTool_colour",
-			Red = "wire_improved_color_r",
-			Green = "wire_improved_color_g",
-			Blue = "wire_improved_color_b",
+			Red = "wire_improved_r",
+			Green = "wire_improved_g",
+			Blue = "wire_improved_b",
 			ShowAlpha = "0",
 			ShowHSV = "1",
 			ShowRGB = "1",
@@ -417,3 +421,17 @@ elseif CLIENT then
 	end
 
 end
+
+--[[ TODO:
+	fixes:
+	- Only play effects when appropriate
+	- use WireLib.TriggerInput for wire-to-entity
+	- replace wire_adv
+	- separate get_active_tool and get_tool
+	- use scrollwithoutmod
+
+	new features:
+	- wire-to-wirelink
+	- grey out and skip non-matching output types
+	- mouse control (just using c maybe?)
+]]
