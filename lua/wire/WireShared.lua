@@ -226,79 +226,85 @@ end -- containers
 
 -- end extra table functions
 
--- WireLib.AddNotify([ply, ]Message, Type, Duration[, Sound])
--- If ply is left out, the notification is sent to everyone. If Sound is left out, no sound is played.
--- On the client, only the local player can be notified.
+--[[ wire_addnotify: send notifications to the client
+	WireLib.AddNotify([ply, ]Message, Type, Duration[, Sound])
+	If ply is left out, the notification is sent to everyone. If Sound is left out, no sound is played.
+	On the client, only the local player can be notified.
+]]
+do
+	-- The following sounds can be used:
+	NOTIFYSOUND_NONE = 0 -- optional, default
+	NOTIFYSOUND_DRIP1 = 1
+	NOTIFYSOUND_DRIP2 = 2
+	NOTIFYSOUND_DRIP3 = 3
+	NOTIFYSOUND_DRIP4 = 4
+	NOTIFYSOUND_DRIP5 = 5
+	NOTIFYSOUND_ERROR1 = 6
+	NOTIFYSOUND_CONFIRM1 = 7
+	NOTIFYSOUND_CONFIRM2 = 8
+	NOTIFYSOUND_CONFIRM3 = 9
+	NOTIFYSOUND_CONFIRM4 = 10
 
--- The following sounds can be used:
-NOTIFYSOUND_NONE = 0 -- optional
-NOTIFYSOUND_DRIP1 = 1
-NOTIFYSOUND_DRIP2 = 2
-NOTIFYSOUND_DRIP3 = 3
-NOTIFYSOUND_DRIP4 = 4
-NOTIFYSOUND_DRIP5 = 5
-NOTIFYSOUND_ERROR1 = 6
-NOTIFYSOUND_CONFIRM1 = 7
-NOTIFYSOUND_CONFIRM2 = 8
-NOTIFYSOUND_CONFIRM3 = 9
-NOTIFYSOUND_CONFIRM4 = 10
+	if CLIENT then
 
-if CLIENT then
+		local sounds = {
+			[NOTIFYSOUND_DRIP1   ] = "ambient/water/drip1.wav",
+			[NOTIFYSOUND_DRIP2   ] = "ambient/water/drip2.wav",
+			[NOTIFYSOUND_DRIP3   ] = "ambient/water/drip3.wav",
+			[NOTIFYSOUND_DRIP4   ] = "ambient/water/drip4.wav",
+			[NOTIFYSOUND_DRIP5   ] = "ambient/water/drip5.wav",
+			[NOTIFYSOUND_ERROR1  ] = "buttons/button10.wav",
+			[NOTIFYSOUND_CONFIRM1] = "buttons/button3.wav",
+			[NOTIFYSOUND_CONFIRM2] = "buttons/button14.wav",
+			[NOTIFYSOUND_CONFIRM3] = "buttons/button15.wav",
+			[NOTIFYSOUND_CONFIRM4] = "buttons/button17.wav",
+		}
 
-	local sounds = {
-		[NOTIFYSOUND_DRIP1   ] = "ambient/water/drip1.wav",
-		[NOTIFYSOUND_DRIP2   ] = "ambient/water/drip2.wav",
-		[NOTIFYSOUND_DRIP3   ] = "ambient/water/drip3.wav",
-		[NOTIFYSOUND_DRIP4   ] = "ambient/water/drip4.wav",
-		[NOTIFYSOUND_DRIP5   ] = "ambient/water/drip5.wav",
-		[NOTIFYSOUND_ERROR1  ] = "buttons/button10.wav",
-		[NOTIFYSOUND_CONFIRM1] = "buttons/button3.wav",
-		[NOTIFYSOUND_CONFIRM2] = "buttons/button14.wav",
-		[NOTIFYSOUND_CONFIRM3] = "buttons/button15.wav",
-		[NOTIFYSOUND_CONFIRM4] = "buttons/button17.wav",
-	}
-
-	function WireLib.AddNotify(ply, Message, Type, Duration, Sound)
-		if type(ply) == "string" then
-			Message, Type, Duration, Sound = ply, Message, Type, Duration
-		elseif ply ~= LocalPlayer() then
-			return
+		function WireLib.AddNotify(ply, Message, Type, Duration, Sound)
+			if type(ply) == "string" then
+				Message, Type, Duration, Sound = ply, Message, Type, Duration
+			elseif ply ~= LocalPlayer() then
+				return
+			end
+			GAMEMODE:AddNotify(Message, Type, Duration)
+			if Sound and sounds[Sound] then surface.PlaySound(sounds[Sound]) end
 		end
-		GAMEMODE:AddNotify(Message, Type, Duration)
-		if Sound and sounds[Sound] then surface.PlaySound(sounds[Sound]) end
+
+		usermessage.Hook("wire_addnotify", function(um)
+			local Message = um:ReadString()
+			local Type = um:ReadChar()
+			local Duration = um:ReadFloat()
+			local Sound = um:ReadChar()
+
+			WireLib.AddNotify(LocalPlayer(), Message, Type, Duration, Sound)
+		end)
+
+	elseif SERVER then
+
+		NOTIFY_GENERIC = 0
+		NOTIFY_ERROR = 1
+		NOTIFY_UNDO = 2
+		NOTIFY_HINT = 3
+		NOTIFY_CLEANUP = 4
+
+		function WireLib.AddNotify(ply, Message, Type, Duration, Sound)
+			if type(ply) == "string" then ply, Message, Type, Duration, Sound = nil, ply, Message, Type, Duration end
+			umsg.Start("wire_addnotify", ply)
+				umsg.String(Message)
+				umsg.Char(Type)
+				umsg.Float(Duration)
+				umsg.Char(Sound or 0)
+			umsg.End()
+		end
+
 	end
+end -- wire_addnotify
 
-	usermessage.Hook("wl_addnotify", function(um)
-		local Message = um:ReadString()
-		local Type = um:ReadChar()
-		local Duration = um:ReadFloat()
-		local Sound = um:ReadChar()
-
-		WireLib.AddNotify(LocalPlayer(), Message, Type, Duration, Sound)
-	end)
-
-elseif SERVER then
-
-	NOTIFY_GENERIC = 0
-	NOTIFY_ERROR = 1
-	NOTIFY_UNDO = 2
-	NOTIFY_HINT = 3
-	NOTIFY_CLEANUP = 4
-
-	function WireLib.AddNotify(ply, Message, Type, Duration, Sound)
-		if type(ply) == "string" then ply, Message, Type, Duration, Sound = nil, ply, Message, Type, Duration end
-		umsg.Start("wl_addnotify", ply)
-			umsg.String(Message)
-			umsg.Char(Type)
-			umsg.Float(Duration)
-			umsg.Char(Sound or 0)
-		umsg.End()
-	end
-
-end
-
+--[[ wire_clienterror: displays Lua errors on the client
+	Usage: WireLib.ClientError("Hello", ply)
+]]
 if CLIENT then
-	usermessage.Hook("wirelib_clienterror", function(um)
+	usermessage.Hook("wire_clienterror", function(um)
 		local message = um:ReadString()
 		print("sv: "..message)
 		local lines = string.Explode("\n", message)
@@ -312,13 +318,13 @@ if CLIENT then
 	end)
 elseif SERVER then
 	function WireLib.ClientError(message, player)
-		umsg.Start("wirelib_clienterror", player)
+		umsg.Start("wire_clienterror", player)
 			umsg.String(message)
 		umsg.End()
 	end
 end
 
---[[ self:umsg() system
+--[[ wire_umsg: self:umsg() system
 	Shared requirements: WireLib.umsgRegister(self) in ENT:Initialize()
 	Server requirements: ENT:Retransmit(ply)
 	Client requirements: ENT:Receive(um)
@@ -333,6 +339,7 @@ if SERVER then
 	local registered_ents = {}
 
 	hook.Add("EntityRemoved", "wire_umsg", function(ent)
+		if not ent:IsValid() then return end
 		if ent:IsPlayer() then
 			for e,_ in pairs(registered_ents) do
 				if e.tdrp then e.tdrp:RemovePlayer(ent) end
@@ -372,7 +379,7 @@ elseif CLIENT then
 
 end
 
---[[ client-side input/output names/types/descs
+--[[ wire_ports: client-side input/output names/types/descs
 	umsg format:
 	any number of the following:
 		Char start
@@ -398,6 +405,7 @@ if SERVER then
 	local rp = RecipientFilter()
 
 	hook.Add("EntityRemoved", "wire_ports", function(ent)
+		if not ent:IsValid() then return end
 		if ent:IsPlayer() then
 			rp:RemovePlayer(ent)
 		else
