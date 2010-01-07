@@ -380,14 +380,15 @@ end
 			start==-1: delete inputs
 			start==-2: delete outputs
 			start==-3: set eid
+			start==-4: connection state
 			start > 0:
 				Char amount
 				abs(amount)*3 strings describing name, type, desc
 ]]
 
 if SERVER then
-	local INPUT, OUTPUT = 1,-1
-	local DELETE, ENTRY, PORTS = 1,2,3
+	local INPUT,OUTPUT = 1,-1
+	local DELETE,PORT,LINK = 1,2,3
 
 	local ents_with_inputs = {}
 	local ents_with_outputs = {}
@@ -397,16 +398,23 @@ if SERVER then
 	local rp = RecipientFilter()
 
 	hook.Add("EntityRemoved", "wire_ports", function(ent)
-		local eid = ent:EntIndex()
-		ents_with_inputs[eid] = nil
-		ents_with_outputs[eid] = nil
-		umsg.Start("wire_ports", rp)
-			umsg.Char(-3) -- set eid
-			umsg.Short(eid)
-			umsg.Char(-1) -- delete input entry
-			umsg.Char(-2) -- delete output entry
-			umsg.Char(0) -- break
-		umsg.End()
+		if ent:IsPlayer() then
+			rp:RemovePlayer(ent)
+		else
+			local hasinputs, hasoutputs = ents_with_inputs[eid], ents_with_outputs[eid]
+			if hasinputs or hasoutputs then
+				local eid = ent:EntIndex()
+				ents_with_inputs[eid] = nil
+				ents_with_outputs[eid] = nil
+				umsg.Start("wire_ports", rp)
+					umsg.Char(-3) -- set eid
+					umsg.Short(eid)
+					if hasinputs then umsg.Char(-1) end
+					if hasoutputs then umsg.Char(-2) end
+					umsg.Char(0) -- break
+				umsg.End()
+			end
+		end
 	end)
 
 	function WireLib._SetInputs(ent, lqueue)
@@ -418,7 +426,10 @@ if SERVER then
 		for Name, CurPort in pairs_sortvalues(ent.Inputs, WireLib.PortComparator) do
 			local entry = { Name, CurPort.Type, CurPort.Desc or "" }
 			ents_with_inputs[eid] = entry
-			queue:push({ eid, ENTRY, INPUT, entry, CurPort.Idx })
+			queue:push({ eid, PORT, INPUT, entry, CurPort.Num })
+		end
+		for Name, CurPort in pairs_sortvalues(ent.Inputs, WireLib.PortComparator) do
+			WireLib._SetLink(CurPort, lqueue)
 		end
 	end
 
@@ -431,10 +442,20 @@ if SERVER then
 		for Name, CurPort in pairs_sortvalues(ent.Outputs, WireLib.PortComparator) do
 			local entry = { Name, CurPort.Type, CurPort.Desc or "" }
 			ents_with_outputs[eid] = entry
-			queue:push({ eid, ENTRY, OUTPUT, entry, CurPort.Idx })
+			queue:push({ eid, PORT, OUTPUT, entry, CurPort.Num })
 		end
 	end
 
+	function WireLib._SetLink(input, lqueue)
+		local ent = input.Entity
+		local num = input.Num
+		local state = input.SrcId and true or false
+
+		local queue = lqueue or queue
+		local eid = ent:EntIndex()
+
+		queue:push({eid, LINK, num, state})
+	end
 
 	local function FlushQueue(lqueue, ply)
 		ply = ply or rp
@@ -459,12 +480,13 @@ if SERVER then
 				ports_msg = nil
 				bytes = bytes+1
 				table.insert(ret, { umsg.Char, msg[3] == INPUT and -1 or -2 })
-			elseif msgtype == ENTRY then
-				local _,_,IO,entry,index = unpack(msg)
+
+			elseif msgtype == PORT then
+				local _,_,IO,entry,num = unpack(msg)
 
 				if not ports_msg then
 					bytes = bytes+2
-					table.insert(ret, { umsg.Char, index })
+					table.insert(ret, { umsg.Char, num })
 					ports_msg = { umsg.Char, 0 }
 					table.insert(ret, ports_msg)
 				end
@@ -475,6 +497,12 @@ if SERVER then
 				table.insert(ret, { umsg.String, entry[1] })
 				table.insert(ret, { umsg.String, entry[2] })
 				table.insert(ret, { umsg.String, entry[3] })
+
+			elseif msgtype == LINK then
+				local _,_,num,state = unpack(msg)
+				table.insert(ret, { umsg.Char, -4 })
+				table.insert(ret, { umsg.Char, num })
+				table.insert(ret, { umsg.Bool, state })
 			end
 			return bytes, ret
 		end
@@ -545,6 +573,21 @@ elseif CLIENT then
 				-- set eid
 				eid = um:ReadShort()
 				return false
+			elseif start == -4 then
+				-- connection state
+				local num = um:ReadChar()
+				local state = um:ReadBool()
+
+				local entry = ents_with_inputs[eid]
+				if not entry then
+					entry = {}
+					ents_with_inputs[eid] = entry
+				end
+
+				if not entry[num] then return false end
+				entry[num][4] = state
+
+				return false
 			elseif start > 0 then
 				local entry
 
@@ -582,5 +625,30 @@ elseif CLIENT then
 	function WireLib.GetPorts(ent)
 		local eid = ent:EntIndex()
 		return ents_with_inputs[eid], ents_with_outputs[eid]
+	end
+
+	local flag = false
+	function WireLib.TestPorts()
+		flag = not flag
+		if flag then
+			hook.Add("HUDPaint", "wire_ports_test", function()
+				local ent = LocalPlayer():GetEyeTrace().Entity
+				local eid = ent:EntIndex()
+
+				local tbl = ents_with_inputs[eid]
+				if not tbl then return end
+
+				local text = ""
+				for num,name,tp,desc,connected in pairs_map(tbl, unpack) do
+
+					text = text..(connected and "-" or " ")
+					text = text..string.format("%s [%s] (%s)\n", name, tp, desc)
+				end
+				--for eid, entry in pairs(ents_with_outputs) do
+				draw.DrawText(text,"Trebuchet24",10,300,Color(255,255,255,255),0)
+			end)
+		else
+			hook.Remove("HUDPaint", "wire_ports_test")
+		end
 	end
 end

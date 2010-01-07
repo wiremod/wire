@@ -601,6 +601,8 @@ local function Wire_Link(dst, dstid, src, srcid, path)
 	input.SrcId = srcid
 	input.Path = path
 
+	WireLib._SetLink(input)
+
 	table.insert(output.Connected, { Entity = dst, Name = dstid })
 
 	if dst.OnInputWireLink then
@@ -675,6 +677,8 @@ local function Wire_Unlink(ent, iname)
 
 		input.Src = nil
 		input.SrcId = nil
+
+		WireLib._SetLink(input)
 	end
 end
 
