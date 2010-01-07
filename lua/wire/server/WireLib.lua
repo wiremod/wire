@@ -7,7 +7,7 @@ WireAddon = 1
 
 
 function WireLib.PortComparator(a,b)
-	return a.Idx < b.Idx
+	return a.Num < b.Num
 end
 
 

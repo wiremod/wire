@@ -399,7 +399,7 @@ if SERVER then
 
 	local ents_with_inputs = {}
 	local ents_with_outputs = {}
-	local IOlookup = { [INPUT] = ents_with_inputs, [OUTPUT] = ents_with_outputs }
+	--local IOlookup = { [INPUT] = ents_with_inputs, [OUTPUT] = ents_with_outputs }
 
 	local queue = WireLib.containers.deque:new()
 	local rp = RecipientFilter()
@@ -409,9 +409,10 @@ if SERVER then
 		if ent:IsPlayer() then
 			rp:RemovePlayer(ent)
 		else
+			local eid = ent:EntIndex()
 			local hasinputs, hasoutputs = ents_with_inputs[eid], ents_with_outputs[eid]
+			print(eid, hasinputs, hasoutputs)
 			if hasinputs or hasoutputs then
-				local eid = ent:EntIndex()
 				ents_with_inputs[eid] = nil
 				ents_with_outputs[eid] = nil
 				umsg.Start("wire_ports", rp)
@@ -515,7 +516,7 @@ if SERVER then
 			return bytes, ret
 		end
 
-		umsg.Start("wire_ports")
+		umsg.Start("wire_ports", ply or rp)
 		local maxsize = 240
 		local bytes = 0
 		local msgs = {}
@@ -639,17 +640,22 @@ elseif CLIENT then
 	function WireLib.TestPorts()
 		flag = not flag
 		if flag then
+			local lasteid = 0
 			hook.Add("HUDPaint", "wire_ports_test", function()
 				local ent = LocalPlayer():GetEyeTrace().Entity
-				local eid = ent:EntIndex()
+				--if not ent:IsValid() then return end
+				local eid = ent:IsValid() and ent:EntIndex() or lasteid
+				lasteid = eid
 
-				local tbl = ents_with_inputs[eid]
-				if not tbl then return end
-
-				local text = ""
-				for num,name,tp,desc,connected in pairs_map(tbl, unpack) do
+				local text = "ID "..eid.."\nInputs:\n"
+				for num,name,tp,desc,connected in pairs_map(ents_with_inputs[eid] or {}, unpack) do
 
 					text = text..(connected and "-" or " ")
+					text = text..string.format("%s [%s] (%s)\n", name, tp, desc)
+				end
+				text = text.."\nOutputs:\n"
+				for num,name,tp,desc in pairs_map(ents_with_outputs[eid] or {}, unpack) do
+
 					text = text..string.format("%s [%s] (%s)\n", name, tp, desc)
 				end
 				--for eid, entry in pairs(ents_with_outputs) do
