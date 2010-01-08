@@ -209,15 +209,33 @@ elseif CLIENT then
 		end
 	end
 
+	function TOOL:NewStage(stage, laststage)
+		if stage == 0 then
+			self.target = nil
+			self.input = nil
+			self.source = nil
+			self.output = nil
+			self.lastent = nil
+		elseif stage == 2 then
+			self.lastent = nil
+		end
+	end
+
 	function TOOL:DrawHUD()
-		if self:GetStage() ~= 0 and self.input then DrawPortBox({self.input}, nil, 0) end
+		local stage = self:GetStage()
+		if self.laststage ~= stage then
+			self:NewStage(stage, self.laststage)
+			self.laststage = stage
+		end
+
+		if stage ~= 0 and self.input then DrawPortBox({self.input}, nil, 0) end
 
 		local ent = LocalPlayer():GetEyeTraceNoCursor().Entity
 		local newent = ent:IsValid() and ent ~= self.lastent
-		if self:GetStage() ~= 1 and newent then
+		if stage ~= 1 and newent then
 			self.lastent = ent
 			self.port = 1
-			if self:GetStage() == 2 then
+			if stage == 2 then
 				local inputname = self.input[1]
 				for num,output in ipairs(self.ports) do
 					if output[1] == inputname then
@@ -230,18 +248,17 @@ elseif CLIENT then
 
 		local inputs, outputs = WireLib.GetPorts(ent)
 
-		if self:GetStage() == 0 then
+		if stage == 0 then
 			self.ports = inputs
-		elseif self:GetStage() == 1 then
+		elseif stage == 1 then
 			self.ports = outputs
-			self.lastent = nil
 		end
 
-		if self:GetStage() == 0 then
+		if stage == 0 then
 			DrawPortBox(self.ports, self.port, 0)
-		elseif self:GetStage() == 1 then
+		elseif stage == 1 then
 			DrawPortBox(outputs, 0, 2)
-		elseif self:GetStage() == 2 then
+		elseif stage == 2 then
 			DrawPortBox(self.ports, self.port, 2)
 		end
 	end
@@ -277,9 +294,6 @@ elseif CLIENT then
 
 			RunConsoleCommand("wire_improved", "o", 0, self.output[1])
 
-			self.input = nil
-			self.output = nil
-
 			return true
 		end
 	end
@@ -294,9 +308,6 @@ elseif CLIENT then
 			if not self.ports then return end
 			RunConsoleCommand("wire_improved", "c", trace.Entity:EntIndex(), self.ports[self.port][1])
 			return true
-		else
-			self.input = nil
-			self.output = nil
 		end
 	end
 
