@@ -228,7 +228,7 @@ elseif CLIENT then
 			self.laststage = stage
 		end
 
-		if stage ~= 0 and self.input then DrawPortBox({self.input}, nil, 0) end
+		if self.input then DrawPortBox({ self.input }, nil, 0) end
 
 		local ent = LocalPlayer():GetEyeTraceNoCursor().Entity
 		local newent = ent:IsValid() and ent ~= self.lastent
@@ -263,7 +263,7 @@ elseif CLIENT then
 		end
 	end
 
-	function TOOL:LeftClick(trace)
+	function TOOL:LeftClickB(trace)
 		if self:GetStage() == 0 then
 			if not self.ports then return end
 			if not self.port then return end
@@ -298,12 +298,12 @@ elseif CLIENT then
 		end
 	end
 
-	function TOOL:RightClick(trace)
+	function TOOL:RightClickB(trace)
 		if self:GetStage() ~= 1 then self:ScrollDown(trace) end
 		return false
 	end
 
-	function TOOL:Reload(trace)
+	function TOOL:ReloadB(trace)
 		if self:GetStage() == 0 then
 			if not self.ports then return end
 			RunConsoleCommand("wire_improved", "c", trace.Entity:EntIndex(), self.ports[self.port][1])
@@ -334,9 +334,9 @@ elseif CLIENT then
 	end
 
 	local bind_mappings = {
-		["+attack" ] = { "LeftClick", true },
-		["+attack2"] = { "RightClick", true },
-		["+reload" ] = { "Reload", true },
+		["+attack" ] = { "LeftClickB", true },
+		["+attack2"] = { "RightClickB", true },
+		["+reload" ] = { "ReloadB", true },
 		["invprev" ] = { "ScrollUp" },
 		["invnext" ] = { "ScrollDown" },
 	}
