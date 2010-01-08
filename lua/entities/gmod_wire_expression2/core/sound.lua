@@ -190,6 +190,10 @@ registerFunction("soundPurge", "", "", function(self, args)
 	self.data['currentsound'] = {}
 end)
 
+e2function number soundDuration(string sound)
+	return SoundDuration(sound) or 0
+end
+
 /******************************************************************************/
 
 registerCallback("construct", function(self)
