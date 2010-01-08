@@ -217,10 +217,18 @@ elseif CLIENT then
 
 		local ent = LocalPlayer():GetEyeTraceNoCursor().Entity
 		local newent = ent:IsValid() and ent ~= self.lastent
-		if newent then self.lastent = ent end
-
 		if newent then
+			self.lastent = ent
 			self.port = 1
+			if self:GetStage() == 2 then
+				local inputname = self.input[1]
+				for num,output in ipairs(self.ports) do
+					if output[1] == inputname then
+						self.port = num
+						return
+					end
+				end
+			end
 		end
 
 		local inputs, outputs = WireLib.GetPorts(ent)
@@ -372,7 +380,7 @@ elseif CLIENT then
 		panel:AddControl("Slider", {
 			Label = "#WireTool_width",
 			Type = "Float",
-			Min = ".1",
+			Min = "0",
 			Max = "5",
 			Command = "wire_improved_width"
 		})

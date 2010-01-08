@@ -342,7 +342,7 @@ if SERVER then
 		if not ent:IsValid() then return end
 		if ent:IsPlayer() then
 			for e,_ in pairs(registered_ents) do
-				if e.tdrp then e.tdrp:RemovePlayer(ent) end
+				if e.wire_umsg_rp then e.wire_umsg_rp:RemovePlayer(ent) end
 			end
 		else
 			registered_ents[ent] = nil
@@ -357,12 +357,12 @@ if SERVER then
 	function WireLib.umsgRegister(self)
 		registered_ents[self] = true
 		self.umsg = wire_umsg
-		self.tdrp = RecipientFilter()
+		self.wire_umsg_rp = RecipientFilter()
 	end
 
 	concommand.Add("wire_umsg", function(ply, cmd, args)
 		local self = Entity(tonumber(args[1]))
-		self.tdrp:AddPlayer(ply)
+		self.wire_umsg_rp:AddPlayer(ply)
 		if self:IsValid() then self:Retransmit(ply) end
 	end)
 
