@@ -742,7 +742,7 @@ function Wire_Link_End(idx, ent, pos, oname, pl)
 	if not ent.Outputs then return end
 
 	if (CurLink[idx].Dst:GetClass() == "gmod_wire_sensor") and (ent:GetClass() != "gmod_wire_target_finder") then
-		Msg("Wire_link: Beacon Sensor can only be wired to a Target Finder!\n")
+		MsgN("Wire_link: Beacon Sensor can only be wired to a Target Finder!")
 		if pl then
 			WireLib.AddNotify(pl, "Beacon Sensor can only be wired to a Target Finder!", NOTIFY_GENERIC, 7)
 		end
@@ -756,19 +756,15 @@ function Wire_Link_End(idx, ent, pos, oname, pl)
 		--output = { Type = "NORMAL" }
 		local text = "Selected output not found or no output present."
 		MsgN(text)
-		if pl then
-			WireLib.AddNotify(pl, text, NOTIFY_GENERIC, 7)
-		end
+		if pl then WireLib.AddNotify(pl, text, NOTIFY_GENERIC, 7) end
 		Wire_Link_Cancel(idx)
 		return
 	end
 	--Msg("input type= " .. input.Type .. "  output type= " .. (output.Type or "NIL") .. "\n")	-- I bet that was getting anoying (TAD2020)
 	if (input.Type != output.Type) and (input.Type != "ANY") and (output.Type != "ANY") then
 		local text = "Data Type Mismatch! Input takes "..input.Type.." and Output gives "..output.Type
-		Msg(text.."\n")
-		if pl then
-			WireLib.AddNotify(pl, text, NOTIFY_GENERIC, 7)
-		end
+		MsgN(text)
+		if pl then WireLib.AddNotify(pl, text, NOTIFY_GENERIC, 7) end
 		Wire_Link_Cancel(idx)
 		return
 	end

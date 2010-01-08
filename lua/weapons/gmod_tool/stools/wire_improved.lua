@@ -42,6 +42,17 @@ util.PrecacheSound("weapons/pistol/pistol_empty.wav")
 
 local function get_tool(ply, tool)
 	-- find toolgun
+	local activeWep = ply:GetWeapon("gmod_tool")
+	if not ValidEntity(activeWep) then return end
+
+	-- find tool
+	local tool = activeWep:GetToolObject(tool)
+
+	return tool
+end
+
+local function get_active_tool(ply, tool)
+	-- find toolgun
 	local activeWep = ply:GetActiveWeapon()
 	if not ValidEntity(activeWep) then return end
 
@@ -54,7 +65,6 @@ local function get_tool(ply, tool)
 
 	return tool
 end
-local get_active_tool = get_tool -- TODO: separate
 
 if SERVER then
 	function TOOL:RightClick(trace)
@@ -114,7 +124,6 @@ if SERVER then
 				local inp = self.target.Inputs[self.input]
 
 				if inp.Type == "ENTITY" then
-					-- TODO: use WireLib.TriggerInput
 					WireLib.TriggerInput(self.target, self.input, source)
 					WireLib.AddNotify(self:GetOwner(), "Triggered entity input '"..self.input.."' with '"..tostring(source).."'.", NOTIFY_GENERIC, 7)
 					return
@@ -169,8 +178,9 @@ if SERVER then
 
 elseif CLIENT then
 
-	local function DrawPortBox(ports, selindex, align)
+	local function DrawPortBox(ports, selindex, align, seltype)
 		align = align or 1
+
 		if not ports then return end
 		if #ports == 0 then return end
 
@@ -195,6 +205,7 @@ elseif CLIENT then
 		)
 
 		for num,port in ipairs(ports) do
+			local name,tp,desc,connected = unpack(port)
 			local texty = boxy+(num-1)*texth
 			if num == selindex then
 				draw.RoundedBox(4,
@@ -205,8 +216,10 @@ elseif CLIENT then
 			end
 
 			surface.SetTextPos(boxx,texty)
-			if port[4] then
+			if connected then
 				surface.SetTextColor(Color(255,0,0,255))
+			elseif seltype and seltype ~= tp then
+				surface.SetTextColor(Color(255,255,255,32))
 			else
 				surface.SetTextColor(Color(255,255,255,255))
 			end
@@ -234,7 +247,8 @@ elseif CLIENT then
 
 	function TOOL:DrawHUD()
 		local stage = self:GetStage()
-		if self.laststage ~= stage then
+		local newstage = self.laststage ~= stage
+		if newstage then
 			self:NewStage(stage, self.laststage)
 			self.laststage = stage
 
@@ -244,28 +258,40 @@ elseif CLIENT then
 
 		local ent = LocalPlayer():GetEyeTraceNoCursor().Entity
 		local newent = ent:IsValid() and ent ~= self.lastent
-		if newent then
+		if newent and (stage ~= 2 or newstage) then
 			self.lastent = ent
-			self.port = 1
 
 			local inputs, outputs = WireLib.GetPorts(ent)
 
 			if stage == 0 then
+				self.port = 1
 				self.ports = inputs
+
 			elseif stage == 1 then
-				print("ports stage 1",ent)
-				if outputs then PrintTable(outputs) end
 				self.ports = outputs
+
 			elseif stage == 2 then
 				self.ports = outputs
 				if outputs then
-					local inputname = self.input[1]
-					for num,output in ipairs(outputs) do
-						if output[1] == inputname then
-							self.port = num
-							break
+					-- we have outputs, so pick a port of a matching type
+					local inputname, inputtype = unpack(self.input)
+					self.port = nil
+					for num,name,tp in ipairs_map(outputs,unpack) do
+						if tp == inputtype then
+							-- found a port of a matching type
+							if name == inputname then
+								-- the name matches too? select and break
+								self.port = num
+								break
+							elseif not self.port then
+								-- no port selected? select this one
+								self.port = num
+							end
 						end
 					end
+
+					-- no matching port? default to 1
+					if not self.port then self.port = 1 end
 				end
 			end
 		end
@@ -277,13 +303,14 @@ elseif CLIENT then
 			if stage == 0 then
 				DrawPortBox(self.ports, self.port, 0)
 			elseif stage == 1 then
-				if #self.ports == 1 then
-					DrawPortBox(self.ports, 1, 2)
+				local seltype = self.input[2]
+				if #self.ports == 1 and self.ports[1][2] == seltype then
+					DrawPortBox(self.ports, 1, 2, seltype)
 				else
-					DrawPortBox(self.ports, 0, 2)
+					DrawPortBox(self.ports, 0, 2, seltype)
 				end
 			elseif stage == 2 then
-				DrawPortBox(self.ports, self.port, 2)
+				DrawPortBox(self.ports, self.port, 2, self.input[2])
 			end
 		end
 	end
@@ -335,11 +362,23 @@ elseif CLIENT then
 	end
 
 	function TOOL:ScrollUp(trace)
-		if self:GetStage() == 1 then return end
 		if not self.menu then return end
 
-		self.port = self.port-1
-		if self.port < 1 then self.port = #self.ports end
+		local stage = self:GetStage()
+		if stage == 1 then return end
+
+		local seltype = stage ~= 0 and self.input[2]
+
+		local oldport = math.Clamp(self.port, 1, #self.ports)
+		repeat
+			self.port = self.port-1
+			if self.port < 1 then self.port = #self.ports end
+		until stage == 0 or self.ports[self.port][2] == seltype or self.port == oldport
+
+		if stage ~= 0 and self.ports[self.port][2] ~= seltype then
+			self.port = self.port-1
+			if self.port < 1 then self.port = #self.ports end
+		end
 
 		self:GetOwner():EmitSound("weapons/pistol/pistol_empty.wav")
 
@@ -347,11 +386,23 @@ elseif CLIENT then
 	end
 
 	function TOOL:ScrollDown(trace)
-		if self:GetStage() == 1 then return end
 		if not self.menu then return end
 
-		self.port = self.port+1
-		if self.port > #self.ports then self.port = 1 end
+		local stage = self:GetStage()
+		if stage == 1 then return end
+
+		local seltype = stage ~= 0 and self.input[2]
+
+		local oldport = math.Clamp(self.port, 1, #self.ports)
+		repeat
+			self.port = self.port+1
+			if self.port > #self.ports then self.port = 1 end
+		until stage == 0 or self.ports[self.port][2] == seltype or self.port == oldport
+
+		if stage ~= 0 and self.ports[self.port][2] ~= seltype then
+			self.port = self.port+1
+			if self.port > #self.ports then self.port = 1 end
+		end
 
 		self:GetOwner():EmitSound("weapons/pistol/pistol_empty.wav")
 
@@ -463,12 +514,9 @@ end
 --[[ TODO:
 	fixes:
 	- Only play effects when appropriate
-	- use WireLib.TriggerInput for wire-to-entity
 	- replace wire_adv
-	- separate get_active_tool and get_tool
 
 	new features:
 	- wire-to-wirelink
-	- grey out and skip non-matching output types
 	- mouse control (just using c maybe?)
 ]]
