@@ -8,7 +8,6 @@ if CLIENT then
 	language.Add( "Tool_wire_improved_0", "Primary: Attach to selected input, Secondary: Next input, Reload: Unlink selected input, Wheel: Select input." )
 	language.Add( "Tool_wire_improved_1", "Primary: Attach to output, Secondary: Attach but continue, Reload: Cancel." )
 	language.Add( "Tool_wire_improved_2", "Primary: Confirm attach to output, Secondary: Next output, Reload: Cancel, Wheel: Select output." )
-	--language.Add( "WireTool_scrollwithoutmod", "Scroll without modifier key" )
 end
 
 TOOL.ClientConVar = {
@@ -17,7 +16,6 @@ TOOL.ClientConVar = {
 	r = 255,
 	g = 255,
 	b = 255,
-	scrollwithoutmod = 1, -- unused
 }
 
 local function dummytrace(ent)
@@ -141,6 +139,7 @@ if SERVER then
 			Wire_Link_End(self:GetOwner():UniqueID(), self.source, self.lpos, self.output, self:GetOwner())
 
 			self:SetStage(0)
+
 		elseif mode == "c" then -- clear link
 			if self:GetStage() ~= 0 then return end
 
@@ -211,13 +210,11 @@ elseif CLIENT then
 	end
 
 	function TOOL:DrawHUD()
-		--WireLib.hud_debug(tostring(self:GetStage()),true) -- TODO: remove
-
 		if self:GetStage() ~= 0 and self.input then DrawPortBox({self.input}, nil, 0) end
 
 		local ent = LocalPlayer():GetEyeTraceNoCursor().Entity
 		local newent = ent:IsValid() and ent ~= self.lastent
-		if newent then
+		if self:GetStage() ~= 1 and newent then
 			self.lastent = ent
 			self.port = 1
 			if self:GetStage() == 2 then
@@ -237,6 +234,7 @@ elseif CLIENT then
 			self.ports = inputs
 		elseif self:GetStage() == 1 then
 			self.ports = outputs
+			self.lastent = nil
 		end
 
 		if self:GetStage() == 0 then
@@ -246,8 +244,6 @@ elseif CLIENT then
 		elseif self:GetStage() == 2 then
 			DrawPortBox(self.ports, self.port, 2)
 		end
-
-		--if self.ports and self.port and self.ports[self.port] then WireLib.hud_debug(self.ports[self.port][1],true) end -- TODO: remove
 	end
 
 	function TOOL:LeftClick(trace)
@@ -264,12 +260,14 @@ elseif CLIENT then
 			RunConsoleCommand("wire_improved", "i", target:EntIndex(), self.input[1], lpos.x, lpos.y, lpos.z)
 
 			return true
+
 		elseif self:GetStage() == 1 then
 			local source = trace.Entity
 			local lpos = source:WorldToLocal(trace.HitPos)
 			RunConsoleCommand("wire_improved", "s", source:EntIndex(), 0, lpos.x, lpos.y, lpos.z)
 
 			return true
+
 		elseif self:GetStage() == 2 then
 			if not self.ports then return end
 			if not self.port then return end
@@ -421,11 +419,6 @@ elseif CLIENT then
 			ShowRGB = "1",
 			Multiplier = "255"
 		})
-
-		panel:AddControl("CheckBox", {
-			Label = "#WireTool_scrollwithoutmod",
-			Command = "wire_improved_scrollwithoutmod"
-		})
 	end
 
 end
@@ -436,7 +429,6 @@ end
 	- use WireLib.TriggerInput for wire-to-entity
 	- replace wire_adv
 	- separate get_active_tool and get_tool
-	- use scrollwithoutmod
 
 	new features:
 	- wire-to-wirelink
