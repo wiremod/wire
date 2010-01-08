@@ -14,7 +14,6 @@ end
 local Inputs = {}
 local Outputs = {}
 local CurLink = {}
-local PathQueue = {}
 
 hook.Add("Think", "WireLib_Think", function()
 	for idx, output in pairs(Outputs) do
@@ -677,6 +676,7 @@ local function Wire_Unlink(ent, iname)
 
 		input.Src = nil
 		input.SrcId = nil
+		input.Path = nil
 
 		WireLib._SetLink(input)
 	end
@@ -694,12 +694,12 @@ function Wire_Link_Start(idx, ent, pos, iname, material, color, width)
 		OldPath = input.Path,
 		}
 
-	CurLink[idx].OldPath				= CurLink[idx].OldPath or {}
-	CurLink[idx].OldPath[0]				= {}
-	CurLink[idx].OldPath[0].pos			= input.StartPos
-	CurLink[idx].OldPath[0].material	= input.Material
-	CurLink[idx].OldPath[0].color		= input.Color
-	CurLink[idx].OldPath[0].width		= input.Width
+	CurLink[idx].OldPath             = CurLink[idx].OldPath or {}
+	CurLink[idx].OldPath[0]          = {}
+	CurLink[idx].OldPath[0].pos      = input.StartPos
+	CurLink[idx].OldPath[0].material = input.Material
+	CurLink[idx].OldPath[0].color    = input.Color
+	CurLink[idx].OldPath[0].width    = input.Width
 
 	local net_name = "wp_" .. iname
 	ent:SetNetworkedBeamInt(net_name, 0)
@@ -720,8 +720,9 @@ end
 
 
 function Wire_Link_Node(idx, ent, pos)
-	if (not CurLink[idx]) or (not CurLink[idx].Dst) then return end
-	if (!ent:IsValid()) then return end -- its the world, give up
+	if not CurLink[idx] then return end
+	if not CurLink[idx].Dst then return end
+	if not ent:IsValid() then return end -- its the world, give up
 
 	local net_name = "wp_" .. CurLink[idx].DstId
 	local node_idx = CurLink[idx].Dst:GetNetworkedBeamInt(net_name)+1
@@ -736,7 +737,9 @@ end
 
 
 function Wire_Link_End(idx, ent, pos, oname, pl)
-	if (not CurLink[idx]) or (not CurLink[idx].Dst) or (not ent.Outputs) then return end
+	if not CurLink[idx] then return end
+	if not CurLink[idx].Dst then return end
+	if not ent.Outputs then return end
 
 	if (CurLink[idx].Dst:GetClass() == "gmod_wire_sensor") and (ent:GetClass() != "gmod_wire_target_finder") then
 		Msg("Wire_link: Beacon Sensor can only be wired to a Target Finder!\n")
@@ -748,14 +751,23 @@ function Wire_Link_End(idx, ent, pos, oname, pl)
 	end
 
 	local input = CurLink[idx].Dst.Inputs[CurLink[idx].DstId]
-	local output = ent.Outputs[oname] or {}
-	--Msg("input type= " .. input.Type .. "  output type= " .. (output.Type or "NIL") .. "\n")	-- I bet that was getting anoying (TAD2020)
-	output.Type = output.Type or "NORMAL"
-	if (input.Type != output.Type) and (input.Type != "ANY") and (output.Type != "ANY") then
-		local txt = "Data Type Mismatch! Input takes "..input.Type.." and Output gives "..output.Type
-		Msg(txt.."\n")
+	local output = ent.Outputs[oname]
+	if not output then
+		--output = { Type = "NORMAL" }
+		local text = "Selected output not found or no output present."
+		MsgN(text)
 		if pl then
-			WireLib.AddNotify(pl, txt, NOTIFY_GENERIC, 7)
+			WireLib.AddNotify(pl, text, NOTIFY_GENERIC, 7)
+		end
+		Wire_Link_Cancel(idx)
+		return
+	end
+	--Msg("input type= " .. input.Type .. "  output type= " .. (output.Type or "NIL") .. "\n")	-- I bet that was getting anoying (TAD2020)
+	if (input.Type != output.Type) and (input.Type != "ANY") and (output.Type != "ANY") then
+		local text = "Data Type Mismatch! Input takes "..input.Type.." and Output gives "..output.Type
+		Msg(text.."\n")
+		if pl then
+			WireLib.AddNotify(pl, text, NOTIFY_GENERIC, 7)
 		end
 		Wire_Link_Cancel(idx)
 		return

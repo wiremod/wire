@@ -105,7 +105,8 @@ if SERVER then
 			if not source:IsValid() then return end
 			if not gamemode.Call("CanTool", self:GetOwner(), dummytrace(source), "wire_improved") then return end
 
-			if not source.Outputs then
+			local outputs = source.Outputs
+			if not outputs then
 				self:SetStage(0)
 
 				Wire_Link_Cancel(self:GetOwner():UniqueID())
@@ -114,13 +115,17 @@ if SERVER then
 
 				if inp.Type == "ENTITY" then
 					-- TODO: use WireLib.TriggerInput
-					inp.Value = source
-					self.target:TriggerInput(self.input, source)
-					WireLib.AddNotify(self:GetOwner(), "Triggered entity input '"..self.input.."' with '"..tostring(source).."'.", NOTIFY_GENERIC, 7 )
+					WireLib.TriggerInput(self.target, self.input, source)
+					WireLib.AddNotify(self:GetOwner(), "Triggered entity input '"..self.input.."' with '"..tostring(source).."'.", NOTIFY_GENERIC, 7)
 					return
 				end
 
-				WireLib.AddNotify(self:GetOwner(), "Wire source invalid!", NOTIFY_GENERIC, 7)
+				outputs = {}
+			end
+
+			local firstport = next(outputs)
+			if not firstport then
+				WireLib.AddNotify(self:GetOwner(), "The selected entity has no outputs. Please select a different entity.", NOTIFY_GENERIC, 7)
 				return
 			end
 
@@ -128,11 +133,12 @@ if SERVER then
 			self.lpos = Vector(tonumber(x), tonumber(y), tonumber(z))
 
 			self:SetStage(2)
+			if not next(outputs, firstport) then return self:Receive("o", "0", firstport) end
 
 		elseif mode == "o" then -- select output
 			if self:GetStage() ~= 2 then return end
 
-			if not gamemode.Call("CanTool", self:GetOwner(), dummytrace(self.source), "wire_improved") then return end
+			if not gamemode.Call("CanTool", self:GetOwner(), dummytrace(self.source), "wire_improved") then return end -- actually useless
 
 			self.output = portname
 
@@ -215,10 +221,15 @@ elseif CLIENT then
 			self.input = nil
 			self.source = nil
 			self.output = nil
-			self.lastent = nil
-		elseif stage == 2 then
-			self.lastent = nil
+
+		elseif stage == 1 then
+			self.input = self.selinput
+			self.selinput = nil
 		end
+	end
+
+	function TOOL:Holster()
+		self.lastent = nil
 	end
 
 	function TOOL:DrawHUD()
@@ -226,40 +237,54 @@ elseif CLIENT then
 		if self.laststage ~= stage then
 			self:NewStage(stage, self.laststage)
 			self.laststage = stage
-		end
 
-		if self.input then DrawPortBox({ self.input }, nil, 0) end
+			-- trigger a "newent" event
+			self.lastent = nil
+		end
 
 		local ent = LocalPlayer():GetEyeTraceNoCursor().Entity
 		local newent = ent:IsValid() and ent ~= self.lastent
-		if stage ~= 1 and newent then
+		if newent then
 			self.lastent = ent
 			self.port = 1
-			if stage == 2 then
-				local inputname = self.input[1]
-				for num,output in ipairs(self.ports) do
-					if output[1] == inputname then
-						self.port = num
-						return
+
+			local inputs, outputs = WireLib.GetPorts(ent)
+
+			if stage == 0 then
+				self.ports = inputs
+			elseif stage == 1 then
+				print("ports stage 1",ent)
+				if outputs then PrintTable(outputs) end
+				self.ports = outputs
+			elseif stage == 2 then
+				self.ports = outputs
+				if outputs then
+					local inputname = self.input[1]
+					for num,output in ipairs(outputs) do
+						if output[1] == inputname then
+							self.port = num
+							break
+						end
 					end
 				end
 			end
 		end
 
-		local inputs, outputs = WireLib.GetPorts(ent)
+		if self.input then DrawPortBox({ self.input }, nil, 0) end
 
-		if stage == 0 then
-			self.ports = inputs
-		elseif stage == 1 then
-			self.ports = outputs
-		end
-
-		if stage == 0 then
-			DrawPortBox(self.ports, self.port, 0)
-		elseif stage == 1 then
-			DrawPortBox(outputs, 0, 2)
-		elseif stage == 2 then
-			DrawPortBox(self.ports, self.port, 2)
+		self.menu = self.ports and (ent:IsValid() or stage == 2)
+		if self.menu then
+			if stage == 0 then
+				DrawPortBox(self.ports, self.port, 0)
+			elseif stage == 1 then
+				if #self.ports == 1 then
+					DrawPortBox(self.ports, 1, 2)
+				else
+					DrawPortBox(self.ports, 0, 2)
+				end
+			elseif stage == 2 then
+				DrawPortBox(self.ports, self.port, 2)
+			end
 		end
 	end
 
@@ -268,18 +293,21 @@ elseif CLIENT then
 			if not self.ports then return end
 			if not self.port then return end
 
-			self.input = self.ports[self.port]
-			if not self.input then return end
+			self.selinput = self.ports[self.port]
+			if not self.selinput then return end
 
 			local target = trace.Entity
-			local lpos = target:WorldToLocal(trace.HitPos)
+			if not ValidEntity(target) then return end
 
-			RunConsoleCommand("wire_improved", "i", target:EntIndex(), self.input[1], lpos.x, lpos.y, lpos.z)
+			local lpos = target:WorldToLocal(trace.HitPos)
+			RunConsoleCommand("wire_improved", "i", target:EntIndex(), self.selinput[1], lpos.x, lpos.y, lpos.z)
 
 			return true
 
 		elseif self:GetStage() == 1 then
 			local source = trace.Entity
+			if not ValidEntity(source) then return end
+
 			local lpos = source:WorldToLocal(trace.HitPos)
 			RunConsoleCommand("wire_improved", "s", source:EntIndex(), 0, lpos.x, lpos.y, lpos.z)
 
@@ -298,11 +326,6 @@ elseif CLIENT then
 		end
 	end
 
-	function TOOL:RightClickB(trace)
-		if self:GetStage() ~= 1 then self:ScrollDown(trace) end
-		return false
-	end
-
 	function TOOL:ReloadB(trace)
 		if self:GetStage() == 0 then
 			if not self.ports then return end
@@ -312,7 +335,8 @@ elseif CLIENT then
 	end
 
 	function TOOL:ScrollUp(trace)
-		if not self.ports then return end
+		if self:GetStage() == 1 then return end
+		if not self.menu then return end
 
 		self.port = self.port-1
 		if self.port < 1 then self.port = #self.ports end
@@ -323,7 +347,8 @@ elseif CLIENT then
 	end
 
 	function TOOL:ScrollDown(trace)
-		if not self.ports then return end
+		if self:GetStage() == 1 then return end
+		if not self.menu then return end
 
 		self.port = self.port+1
 		if self.port > #self.ports then self.port = 1 end
@@ -332,10 +357,11 @@ elseif CLIENT then
 
 		return true
 	end
+	TOOL.RightClickB = TOOL.ScrollDown
 
 	local bind_mappings = {
 		["+attack" ] = { "LeftClickB", true },
-		["+attack2"] = { "RightClickB", true },
+		["+attack2"] = { "RightClickB" },
 		["+reload" ] = { "ReloadB", true },
 		["invprev" ] = { "ScrollUp" },
 		["invnext" ] = { "ScrollDown" },

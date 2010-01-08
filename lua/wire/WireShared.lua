@@ -571,11 +571,11 @@ elseif CLIENT then
 				-- break
 				return true
 			elseif start == -1 then
-				-- delete input entry
+				print("-- delete input entry"..eid)
 				ents_with_inputs[eid] = nil
 				return false
 			elseif start == -2 then
-				-- delete output entry
+				print("-- delete output entry"..eid)
 				ents_with_outputs[eid] = nil
 				return false
 			elseif start == -3 then
