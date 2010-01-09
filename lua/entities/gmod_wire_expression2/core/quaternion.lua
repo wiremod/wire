@@ -94,11 +94,15 @@ end
 
 local function qlog(q)
 	local l = sqrt(q[1]*q[1] + q[2]*q[2] + q[3]*q[3] + q[4]*q[4])
-	if l == 0 then return { 0, 0, 0, 0 } end
+	if l == 0 then return { -1e+100, 0, 0, 0 } end
 	local u = { q[1]/l, q[2]/l, q[3]/l, q[4]/l }
 	local a = acos(u[1])
 	local m = sqrt(u[2]*u[2] + u[3]*u[3] + u[4]*u[4])
-	return { log(l), a*u[2]/m, a*u[3]/m, a*u[4]/m }
+	if abs(m) > delta then
+		return { log(l), a*u[2]/m, a*u[3]/m, a*u[4]/m }
+	else
+		return { log(l), 0, 0, 0 }  --when m is 0, u[2], u[3] and u[4] are 0 too
+	end
 end
 
 /******************************************************************************/
@@ -140,7 +144,33 @@ e2function quaternion quat(angle ang)
 	return qmul(qy,qmul(qp,qr))
 end
 
+--- Creates a quaternion given forward (<forward>) and up (<up>) vectors
+e2function quaternion quat(vector forward, vector up)
+	local x = Vector(forward[1], forward[2], forward[3])
+	local z = Vector(up[1], up[2], up[3])
+	local y = z:Cross(x):GetNormalized() --up x forward = left
 
+	local ang = x:Angle()
+	if ang.p > 180 then ang.p = ang.p - 360 end
+	if ang.y > 180 then ang.y = ang.y - 360 end
+
+	local yyaw = Vector(0,1,0)
+	yyaw:Rotate(Angle(0,ang.y,0))
+
+	local roll = acos(y:Dot(yyaw))*rad2deg
+
+	local dot = y.z
+	if dot < 0 then roll = -roll end
+
+	local p, y, r = ang.p, ang.y, roll
+	p = p*deg2rad*0.5
+	y = y*deg2rad*0.5
+	r = r*deg2rad*0.5
+	local qr = {cos(r), sin(r), 0, 0}
+	local qp = {cos(p), 0, sin(p), 0}
+	local qy = {cos(y), 0, 0, sin(y)}
+	return qmul(qy,qmul(qp,qr))
+end
 
 --- Converts angle of <ent> to a quaternion
 e2function quaternion quat(entity ent)
@@ -589,7 +619,7 @@ e2function angle quaternion:toAngle()
 	local yyaw = Vector(0,1,0)
 	yyaw:Rotate(Angle(0,ang.y,0))
 
-	local roll = acos(y:DotProduct(yyaw))*rad2deg
+	local roll = acos(y:Dot(yyaw))*rad2deg
 
 	local dot = q2*q1 + q3*q4
 	if dot < 0 then roll = -roll end
