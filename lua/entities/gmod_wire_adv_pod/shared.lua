@@ -21,7 +21,7 @@ ENT.keys = {
 	{ "Mouse2", IN_ATTACK2 },
 	{ "R", IN_RELOAD },
 	{ "Space", IN_JUMP },
-	--{ "Duck", IN_DUCK }, -- Doesn't work with pods, apparently
+	--{ "Duck", IN_DUCK }, -- Doesn't work with pods, since it's intercepted by one of Garry's scripts on the client.
 	{ "Shift", IN_SPEED },
 	{ "Zoom", IN_ZOOM },
 	{ "Alt", IN_WALK },

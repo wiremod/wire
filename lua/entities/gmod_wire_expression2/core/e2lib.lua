@@ -226,49 +226,71 @@ end
 
 --[[**************************** compiler stuff ******************************]]
 
--- TODO: rewrite this!
-E2Lib.optable = {
-	["+"] = {"add", {["="] = {"aadd"}, ["+"] = {"inc"}}},
-	["-"] = {"sub", {["="] = {"asub"}, ["-"] = {"dec"}}},
-	["*"] = {"mul", {["="] = {"amul"}}},
-	["/"] = {"div", {["="] = {"adiv"}}},
-	["%"] = {"mod"},
-	["^"] = {"exp"},
+E2Lib.optable_inv = {
+	add  = "+",
+	sub  = "-",
+	mul  = "*",
+	div  = "/",
+	mod  = "%",
+	exp  = "^",
 
-	["="] = {"ass", {["="] = {"eq"}}},
-	["!"] = {"not", {["="] = {"neq"}}},
-	[">"] = {"gth", {["="] = {"geq"}}},
-	["<"] = {"lth", {["="] = {"leq"}}},
+	ass  = "=",
+	aadd = "+=",
+	asub = "-=",
+	amul = "*=",
+	adiv = "/=",
 
-	["&"] = {"and"},
-	["|"] = {"or"},
+	inc  = "++",
+	dec  = "--",
 
-	["?"] = {"qsm"},
-	[":"] = {"col"},
-	[","] = {"com"},
+	eq   = "==",
+	neq  = "!=",
+	lth  = "<",
+	geq  = ">=",
+	leq  = "<=",
+	gth  = ">",
 
-	["("] = {"lpa"},
-	[")"] = {"rpa"},
-	["{"] = {"lcb"},
-	["}"] = {"rcb"},
-	["["] = {"lsb"},
-	["]"] = {"rsb"},
+	["not"] = "!",
+	["and"] = "&",
+	["or"] = "|",
 
-	["$"] = {"dlt"},
-	["~"] = {"trg"},
+	qsm  = "?",
+	col  = ":",
+	com  = ",",
+
+	lpa  = "(",
+	rpa  = ")",
+	lcb  = "{",
+	rcb  = "}",
+	lsb  = "[",
+	rsb  = "]",
+
+	dlt  = "$",
+	trg  = "~",
+	imp  = "->",
 }
 
-E2Lib.optable_inv = {}
+E2Lib.optable = {}
+for token,op in pairs(E2Lib.optable_inv) do
+	local current = E2Lib.optable
+	for i = 1,#op do
+		local c = op:sub(i,i)
+		local nxt = current[c]
+		if not nxt then
+			nxt = {}
+			current[c] = nxt
+		end
 
-do
-	-- TODO: Reverse this and build optable from optable_inv.
-	local function build_op_index(optable,prefix)
-		for k,v in pairs(optable) do
-			if v[1] then E2Lib.optable_inv[v[1]] = prefix..k end
-			if v[2] then build_op_index(v[2],prefix..k) end
+		if i == #op then
+			nxt[1] = token
+		else
+			if not nxt[2] then
+				nxt[2] = {}
+			end
+
+			current = nxt[2]
 		end
 	end
-	build_op_index(E2Lib.optable, "")
 end
 
 function E2Lib.printops()

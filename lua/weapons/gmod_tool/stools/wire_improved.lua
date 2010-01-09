@@ -275,11 +275,12 @@ elseif CLIENT then
 				if outputs then
 					-- we have outputs, so pick a port of a matching type
 					local inputname, inputtype = unpack(self.input)
+					inputname = inputname:gsub(" ", "")
 					self.port = nil
 					for num,name,tp in ipairs_map(outputs,unpack) do
 						if tp == inputtype then
 							-- found a port of a matching type
-							if name == inputname then
+							if name:gsub(" ", "") == inputname then
 								-- the name matches too? select and break
 								self.port = num
 								break
