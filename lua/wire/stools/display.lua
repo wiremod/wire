@@ -610,7 +610,7 @@ do -- wire_panel
 	}
 
 	function TOOL.BuildCPanel(panel)
-		WireDermaExts.ModelSelect(panel, "wire_panel_model", list.Get( "WireNoGPULibScreenModels" ), 2) -- screen without a GPULib setup
+		WireDermaExts.ModelSelect(panel, "wire_panel_model", list.Get( "WireScreenModels" ), 2) -- screen witha GPULib setup
 		panel:CheckBox("#Tool_wire_panel_createflat", "wire_panel_createflat")
 		panel:CheckBox("Weld", "wire_panel_weld")
 	end
