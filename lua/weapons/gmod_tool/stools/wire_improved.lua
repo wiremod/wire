@@ -135,6 +135,8 @@ if SERVER then
 
 				else
 					-- for all other types, cancel the link and display an error.
+					self:SetStage(0)
+
 					Wire_Link_Cancel(self:GetOwner():UniqueID())
 					WireLib.AddNotify(self:GetOwner(), "The selected entity has no outputs. Please select a different entity.", NOTIFY_GENERIC, 7)
 					return
@@ -192,8 +194,8 @@ elseif CLIENT then
 
 		surface.SetFont("Trebuchet24")
 		local texth = draw.GetFontHeight("Trebuchet24")
-
 		local boxh, boxw = #ports*texth,0
+
 		local haswl = seltype ~= "WIRELINK"
 		for num,port in ipairs(ports) do
 			local name,tp,desc,connected = unpack(port)
@@ -204,10 +206,12 @@ elseif CLIENT then
 			local textw = surface.GetTextSize(text)
 			if textw > boxw then boxw = textw end
 
+			-- If this is a wirelink output, signal that we don't need the "Create Wirelink" option.
 			if tp == "WIRELINK" then haswl = true end
 		end
 
 		if not haswl then
+			-- we seem to need a "Create Wirelink" option, so add one.
 			local text = "Create Wirelink"
 			ports.wl = { "link", "WIRELINK", "", text = text }
 
@@ -557,6 +561,5 @@ end
 	- replace wire_adv
 
 	new features:
-	- wire-to-wirelink
-	- mouse control (just using c maybe?)
+	- mouse control (just using the c key maybe?)
 ]]
