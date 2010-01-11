@@ -134,10 +134,7 @@ if SERVER then
 					return
 
 				else
-					-- for all other types, cancel the link and display an error.
-					self:SetStage(0)
-
-					Wire_Link_Cancel(self:GetOwner():UniqueID())
+					-- for all other types, display an error.
 					WireLib.AddNotify(self:GetOwner(), "The selected entity has no outputs. Please select a different entity.", NOTIFY_GENERIC, 7)
 					return
 				end
