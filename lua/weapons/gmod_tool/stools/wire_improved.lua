@@ -42,11 +42,11 @@ util.PrecacheSound("weapons/pistol/pistol_empty.wav")
 
 local function get_tool(ply, tool)
 	-- find toolgun
-	local activeWep = ply:GetWeapon("gmod_tool")
-	if not ValidEntity(activeWep) then return end
+	local gmod_tool = ply:GetWeapon("gmod_tool")
+	if not ValidEntity(gmod_tool) then return end
 
 	-- find tool
-	local tool = activeWep:GetToolObject(tool)
+	local tool = gmod_tool:GetToolObject(tool)
 
 	return tool
 end
@@ -116,32 +116,38 @@ if SERVER then
 			if not gamemode.Call("CanTool", self:GetOwner(), dummytrace(source), "wire_improved") then return end
 
 			local outputs = source.Outputs
-			if not outputs then
-				self:SetStage(0)
+			local input_type = self.target.Inputs[self.input].Type
+			if not outputs or not next(outputs) then
+				-- the entity has no outputs
+				if input_type == "WIRELINK" then
+					-- for wirelink, fake a "link" output.
+					outputs = { link = true }
+					-- TODO: check if wirelink makes sense (props etc)
 
-				Wire_Link_Cancel(self:GetOwner():UniqueID())
+				elseif input_type == "ENTITY" then
+					-- for entities, trigger the input with that entity and cancel the link.
+					self:SetStage(0)
 
-				local inp = self.target.Inputs[self.input]
-
-				if inp.Type == "ENTITY" then
+					Wire_Link_Cancel(self:GetOwner():UniqueID())
 					WireLib.TriggerInput(self.target, self.input, source)
 					WireLib.AddNotify(self:GetOwner(), "Triggered entity input '"..self.input.."' with '"..tostring(source).."'.", NOTIFY_GENERIC, 7)
 					return
+
+				else
+					-- for all other types, cancel the link and display an error.
+					Wire_Link_Cancel(self:GetOwner():UniqueID())
+					WireLib.AddNotify(self:GetOwner(), "The selected entity has no outputs. Please select a different entity.", NOTIFY_GENERIC, 7)
+					return
 				end
-
-				outputs = {}
-			end
-
-			local firstport = next(outputs)
-			if not firstport then
-				WireLib.AddNotify(self:GetOwner(), "The selected entity has no outputs. Please select a different entity.", NOTIFY_GENERIC, 7)
-				return
 			end
 
 			self.source = source
 			self.lpos = Vector(tonumber(x), tonumber(y), tonumber(z))
 
 			self:SetStage(2)
+
+			-- only one port? skip stage 2 and finish the link right away.
+			local firstport = next(outputs)
 			if not next(outputs, firstport) then return self:Receive("o", "0", firstport) end
 
 		elseif mode == "o" then -- select output
@@ -182,18 +188,32 @@ elseif CLIENT then
 		align = align or 1
 
 		if not ports then return end
-		if #ports == 0 then return end
+		--if #ports == 0 then return end
 
 		surface.SetFont("Trebuchet24")
 		local texth = draw.GetFontHeight("Trebuchet24")
 
 		local boxh, boxw = #ports*texth,0
+		local haswl = seltype ~= "WIRELINK"
 		for num,port in ipairs(ports) do
 			local name,tp,desc,connected = unpack(port)
+
 			local text = (tp == "NORMAL") and name or string.format("%s [%s]", name, tp)
 			port.text = text
+
 			local textw = surface.GetTextSize(text)
 			if textw > boxw then boxw = textw end
+
+			if tp == "WIRELINK" then haswl = true end
+		end
+
+		if not haswl then
+			local text = "Create Wirelink"
+			ports.wl = { "link", "WIRELINK", "", text = text }
+
+			local textw = surface.GetTextSize(text)
+			if textw > boxw then boxw = textw end
+			boxh = boxh+texth
 		end
 
 		local boxx, boxy = ScrW()/2-boxw-32, ScrH()/2-boxh/2
@@ -204,9 +224,10 @@ elseif CLIENT then
 			Color(50,50,75,192)
 		)
 
-		for num,port in ipairs(ports) do
+		for num,port in pairs(ports) do
+			local ind = num == "wl" and #ports+1 or num
 			local name,tp,desc,connected = unpack(port)
-			local texty = boxy+(num-1)*texth
+			local texty = boxy+(ind-1)*texth
 			if num == selindex then
 				draw.RoundedBox(4,
 					boxx-4, texty-1,
@@ -268,33 +289,45 @@ elseif CLIENT then
 				self.ports = inputs
 
 			elseif stage == 1 then
-				self.ports = outputs
+				if outputs then
+					self.ports = outputs
+				elseif self.input[2] == "WIRELINK" then
+					self.ports = {}
+					self.port = "wl"
+				end
 
 			elseif stage == 2 then
 				self.ports = outputs
 				if outputs then
-					-- we have outputs, so pick a port of a matching type
-					local inputname, inputtype = unpack(self.input)
-					inputname = inputname:gsub(" ", "")
-					self.port = nil
-					for num,name,tp in ipairs_map(outputs,unpack) do
-						if tp == inputtype then
-							-- found a port of a matching type
-							if name:gsub(" ", "") == inputname then
-								-- the name matches too? select and break
-								self.port = num
-								break
-							elseif not self.port then
-								-- no port selected? select this one
-								self.port = num
+					if self.ports.wl then
+						self.port = "wl"
+					else
+						-- we have outputs, so pick a port of a matching type
+						local inputname, inputtype = unpack(self.input)
+						inputname = inputname:gsub(" ", "")
+						self.port = nil
+						for num,name,tp in ipairs_map(outputs,unpack) do
+							if tp == inputtype then
+								-- found a port of a matching type
+								if name:gsub(" ", "") == inputname then
+									-- the name matches too? select and break
+									self.port = num
+									break
+								elseif not self.port then
+									-- no port selected? select this one
+									self.port = num
+								end
 							end
 						end
-					end
 
-					-- no matching port? default to 1
-					if not self.port then self.port = 1 end
-				end
-			end
+						-- no matching port? default to 1
+						if not self.port then self.port = 1 end
+					end -- if self.ports.wl
+				elseif self.input[2] == "WIRELINK" then
+					self.ports = {}
+					self.port = "wl"
+				end -- if outputs
+			end -- if stage
 		end
 
 		if self.input then DrawPortBox({ self.input }, nil, 0) end
@@ -307,6 +340,8 @@ elseif CLIENT then
 				local seltype = self.input[2]
 				if #self.ports == 1 and self.ports[1][2] == seltype then
 					DrawPortBox(self.ports, 1, 2, seltype)
+				elseif #self.ports == 0 and self.ports.wl then
+					DrawPortBox(self.ports, "wl", 2, seltype)
 				else
 					DrawPortBox(self.ports, 0, 2, seltype)
 				end
@@ -368,17 +403,19 @@ elseif CLIENT then
 		local stage = self:GetStage()
 		if stage == 1 then return end
 
-		local seltype = stage ~= 0 and self.input[2]
+		if not self.ports.wl then
+			local seltype = stage ~= 0 and self.input[2]
 
-		local oldport = math.Clamp(self.port, 1, #self.ports)
-		repeat
-			self.port = self.port-1
-			if self.port < 1 then self.port = #self.ports end
-		until stage == 0 or self.ports[self.port][2] == seltype or self.port == oldport
+			local oldport = math.Clamp(self.port, 1, #self.ports)
+			repeat
+				self.port = self.port-1
+				if self.port < 1 then self.port = #self.ports end
+			until stage == 0 or self.ports[self.port][2] == seltype or self.port == oldport
 
-		if stage ~= 0 and self.ports[self.port][2] ~= seltype then
-			self.port = self.port-1
-			if self.port < 1 then self.port = #self.ports end
+			if stage ~= 0 and self.ports[self.port][2] ~= seltype then
+				self.port = self.port-1
+				if self.port < 1 then self.port = #self.ports end
+			end
 		end
 
 		self:GetOwner():EmitSound("weapons/pistol/pistol_empty.wav")
@@ -392,17 +429,19 @@ elseif CLIENT then
 		local stage = self:GetStage()
 		if stage == 1 then return end
 
-		local seltype = stage ~= 0 and self.input[2]
+		if not self.ports.wl then
+			local seltype = stage ~= 0 and self.input[2]
 
-		local oldport = math.Clamp(self.port, 1, #self.ports)
-		repeat
-			self.port = self.port+1
-			if self.port > #self.ports then self.port = 1 end
-		until stage == 0 or self.ports[self.port][2] == seltype or self.port == oldport
+			local oldport = math.Clamp(self.port, 1, #self.ports)
+			repeat
+				self.port = self.port+1
+				if self.port > #self.ports then self.port = 1 end
+			until stage == 0 or self.ports[self.port][2] == seltype or self.port == oldport
 
-		if stage ~= 0 and self.ports[self.port][2] ~= seltype then
-			self.port = self.port+1
-			if self.port > #self.ports then self.port = 1 end
+			if stage ~= 0 and self.ports[self.port][2] ~= seltype then
+				self.port = self.port+1
+				if self.port > #self.ports then self.port = 1 end
+			end
 		end
 
 		self:GetOwner():EmitSound("weapons/pistol/pistol_empty.wav")
