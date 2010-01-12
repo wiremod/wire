@@ -603,9 +603,9 @@ end
 
 e2function vector holoScale(index)
 	local Holo = CheckIndex(self, index)
-	if not Holo then return end
+	if not Holo then return {0,0,0} end
 
-	return Holo.scale or Vector(0,0,0)
+	return Holo.scale or {0,0,0} -- TODO: maybe {1,1,1}?
 end
 
 e2function void holoScaleUnits(index, vector size)
@@ -622,9 +622,9 @@ end
 
 e2function vector holoScaleUnits(index)
 	local Holo = CheckIndex(self, index)
-	if not Holo then return end
+	if not Holo then return {0,0,0} end
 
-	local scale = Holo.scale
+	local scale = Holo.scale or {0,0,0} -- TODO: maybe {1,1,1}?
 	local propsize = Holo.ent:OBBMaxs() - Holo.ent:OBBMins()
 
 	return Vector(scale[1] * propsize.x, scale[2] * propsize.y, scale[3] * propsize.z)
