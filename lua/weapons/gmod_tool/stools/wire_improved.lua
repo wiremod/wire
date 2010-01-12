@@ -183,6 +183,27 @@ if SERVER then
 
 elseif CLIENT then
 
+	hook.Add("GUIMousePressed", "wire_improved", function(mousecode, aimvec)
+		local self = get_active_tool(LocalPlayer(), "wire_improved")
+		if not self then return end
+
+		if self:GUIMousePressed(mousecode, aimvec) then return true end
+	end)
+
+	function TOOL:GUIMousePressed(mousecode, aimvec)
+		if mousecode ~= MOUSE_LEFT then return end
+		if not self.menu then return end
+
+		if self.mousenum then
+			if self.input and self.ports[self.mousenum][2] ~= self.input[2] then return end
+
+			self.port = self.mousenum
+
+			self:GetOwner():EmitSound("weapons/pistol/pistol_empty.wav")
+		end
+
+	end
+
 	local function DrawPortBox(ports, selindex, align, seltype)
 		align = align or 1
 
@@ -225,6 +246,10 @@ elseif CLIENT then
 			Color(50,50,75,192)
 		)
 
+		local mousenum
+
+		local cx, cy = gui.MousePos()
+		local mouseindex = selindex and cx >= boxx and cx < boxx+boxw and math.floor((cy-boxy)/texth+1)
 		for num,port in pairs(ports) do
 			local ind = num == "wl" and #ports+1 or num
 			local name,tp,desc,connected = unpack(port)
@@ -235,6 +260,14 @@ elseif CLIENT then
 					boxw+8, texth+2,
 					Color(0,150,0,192)
 				)
+			end
+			if mouseindex == ind then
+				draw.RoundedBox(4,
+					boxx-4, texty-1,
+					boxw+8, texth+2,
+					Color(255,255,255,16)
+				)
+				mousenum = num
 			end
 
 			surface.SetTextPos(boxx,texty)
@@ -248,6 +281,8 @@ elseif CLIENT then
 			surface.DrawText(port.text)
 			port.text = nil
 		end
+
+		return mousenum
 	end
 
 	function TOOL:NewStage(stage, laststage)
@@ -336,18 +371,19 @@ elseif CLIENT then
 		self.menu = self.ports and (ent:IsValid() or stage == 2)
 		if self.menu then
 			if stage == 0 then
-				DrawPortBox(self.ports, self.port, 0)
+				self.mousenum = DrawPortBox(self.ports, self.port, 0)
 			elseif stage == 1 then
+				self.mousenum = nil
 				local seltype = self.input[2]
 				if #self.ports == 1 and self.ports[1][2] == seltype then
 					DrawPortBox(self.ports, 1, 2, seltype)
 				elseif #self.ports == 0 and self.ports.wl then
 					DrawPortBox(self.ports, "wl", 2, seltype)
 				else
-					DrawPortBox(self.ports, 0, 2, seltype)
+					DrawPortBox(self.ports, nil, 2, seltype)
 				end
 			elseif stage == 2 then
-				DrawPortBox(self.ports, self.port, 2, self.input[2])
+				self.mousenum = DrawPortBox(self.ports, self.port, 2, self.input[2])
 			end
 		end
 	end
@@ -556,7 +592,7 @@ end
 	fixes:
 	- Only play effects when appropriate
 	- replace wire_adv
+	- desc
 
 	new features:
-	- mouse control (just using the c key maybe?)
 ]]
