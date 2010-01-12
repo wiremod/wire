@@ -121,7 +121,7 @@ if SERVER then
 				-- the entity has no outputs
 				if input_type == "WIRELINK" then
 					-- for wirelink, fake a "link" output.
-					outputs = { link = true }
+					outputs = { link = { Type = "WIRELINK" } }
 					-- TODO: check if wirelink makes sense (props etc)
 
 				elseif input_type == "ENTITY" then
@@ -146,8 +146,8 @@ if SERVER then
 			self:SetStage(2)
 
 			-- only one port? skip stage 2 and finish the link right away.
-			local firstport = next(outputs)
-			if not next(outputs, firstport) then return self:Receive("o", "0", firstport) end
+			local firstportname,firstport = next(outputs)
+			if not next(outputs, firstportname) and (input_type ~= "WIRELINK" or firstport.Type == "WIRELINK") then return self:Receive("o", "0", firstportname) end
 
 		elseif mode == "o" then -- select output
 			if self:GetStage() ~= 2 then return end
