@@ -187,10 +187,16 @@ elseif CLIENT then
 		local self = get_active_tool(LocalPlayer(), "wire_improved")
 		if not self then return end
 
-		if self:GUIMousePressed(mousecode, aimvec) then return true end
+		if self:Click(mousecode, aimvec, false) then return true end
+	end)
+	hook.Add("GUIMouseDoublePressed", "wire_improved", function(mousecode, aimvec)
+		local self = get_active_tool(LocalPlayer(), "wire_improved")
+		if not self then return end
+
+		if self:Click(mousecode, aimvec, true) then return true end
 	end)
 
-	function TOOL:GUIMousePressed(mousecode, aimvec)
+	function TOOL:Click(mousecode, aimvec, doubleclick)
 		if mousecode ~= MOUSE_LEFT then return end
 		if not self.menu then return end
 
@@ -199,7 +205,14 @@ elseif CLIENT then
 
 			self.port = self.mousenum
 
-			self:GetOwner():EmitSound("weapons/pistol/pistol_empty.wav")
+			if doubleclick then
+				local trace = self:GetOwner():GetEyeTraceNoCursor()
+				if self:LeftClickB(trace) then
+					self:GetWeapon():DoShootEffect(trace.HitPos, trace.HitNormal, trace.Entity, trace.PhysicsBone)
+				end
+			else
+				self:GetOwner():EmitSound("weapons/pistol/pistol_empty.wav")
+			end
 		end
 
 	end
