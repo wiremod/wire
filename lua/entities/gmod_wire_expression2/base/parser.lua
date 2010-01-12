@@ -41,7 +41,7 @@ Expression
 10 : +e11, -e11, !e10
 11 : e11:fun([e1, ...]), e11[var,type]
 12 : (e1), fun([e1, ...])
-13 : string, num, ~var, $var
+13 : string, num, ~var, $var, ->var
 14 : var++, var-- [ERROR]
 15 : var
 
@@ -738,6 +738,22 @@ function Parser:Expr13()
 		return self:Instruction(trace, "dlt", var)
 	end
 
+	if self:AcceptRoamingToken("imp") then
+		local trace = self:GetTokenTrace()
+
+		if !self:AcceptTailingToken("var") then
+			if self:AcceptRoamingToken("var") then
+				self:Error("Connected operator (->) must not be succeeded by whitespace")
+			else
+				self:Error("Connected operator (->) must be preceded by variable")
+			end
+		end
+
+		local var = self:GetTokenData()
+
+		return self:Instruction(trace, "iwc", var)
+	end
+
 	return self:Expr14()
 end
 
@@ -844,7 +860,7 @@ function Parser:ExprError()
 			self:Error("Else keyword (else) must be part of an if-statement")
 
 		else
-			self:Error("Unexpected token found (" .. self.readtoken[1] .. "), please report this to me@syranide.com")
+			self:Error("Unexpected token found (" .. self.readtoken[1] .. ")")
 		end
 	else
 		self:Error("Further input required at end of code, incomplete expression", self.exprtoken)

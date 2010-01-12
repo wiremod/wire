@@ -25,6 +25,7 @@ function Compiler:Process(root, inputs, outputs, persist, delta, params)
 
 	self:PushContext()
 
+	self.inputs = inputs
 	self.prfcounter = 0
 	self.prfcounters = {}
 	self.dvars = {}
@@ -530,13 +531,25 @@ function Compiler:InstrDLT(args)
 	local op = args[3]
 	local tp = self:GetVariableType(args, op)
 	if !self.vars[op] then
-		self:Error("Delta operator ($" .. E2Lib.limitString(op, 10) .. ") cannot be used on a temporary variable", args)
+		self:Error("Delta operator ($" .. E2Lib.limitString(op, 10) .. ") cannot be used on temporary variables", args)
 	end
 	self.dvars[op] = true
 	self:AssertOperator(args, "sub", "dlt", {tp, tp})
 	local rt = self:GetOperator(args, "sub", {tp, tp})
 	local rtvar = self:GetOperator(args, "var", {})
 	return {rt[1], {rtvar[1], op}, {rtvar[1], "$" .. op}}, rt[2]
+end
+
+function Compiler:InstrIWC(args)
+	local op = args[3]
+
+	if !self.inputs[op] then
+		self:Error("Connected operator (->" .. E2Lib.limitString(op, 10) .. ") can only be used on inputs", args)
+	end
+
+	local tp = self:GetVariableType(args, op)
+	local rt = self:GetOperator(args, "iwc", {})
+	return {rt[1], op}, rt[2]
 end
 
 function Compiler:InstrNUM(args)

@@ -162,6 +162,13 @@ registerOperator("trg", "", "n", function(self, args)
 	   then return 1 else return 0 end
 end)
 
+
+registerOperator("iwc", "", "n", function(self, args)
+	local op1 = args[2]
+	if validEntity(self.entity.Inputs[op1].Src)
+	   then return 1 else return 0 end
+end)
+
 /******************************************************************************/
 
 __e2setcost(0) -- cascaded

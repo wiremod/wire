@@ -520,9 +520,8 @@ end
 local code1 = "@name \n@inputs \n@outputs \n@persist \n@trigger \n\n"
 -- code2 contains the code that is to be marked, so it can simply be overwritten or deleted.
 local code2 = [[
-# IMPORTANT: Cannot get past "Loading Extensions..."? Remove the "PCMod" addon.
-# IMPORTANT: Strange errors when validating? Update the "Stargate Extras" addon.
-# IMPORTANT: Not playing on your own server? Tell owner to remove those addons.
+# Functionality for checking if inputs are connected have now been added.
+# Example: if (->Input) { ... }
 #
 # Performance monitoring and restriction have been implemented.
 # While-loops and for-loops now exist! (break and continue too)
