@@ -271,6 +271,12 @@ e2function void entity:setMass(mass)
 	phys:SetMass(mass)
 end
 
+e2function number entity:volume()
+	if not validPhysics(this) then return 0 end
+	local phys = this:GetPhysicsObject()
+	return phys:GetVolume()
+end
+
 /******************************************************************************/
 // Functions getting boolean/number
 e2function number entity:isPlayer()
