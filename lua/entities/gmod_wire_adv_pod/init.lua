@@ -34,7 +34,7 @@ function ENT:Initialize()
 
 	self.lockvar = 0
 	self.disablevar = false
-	self.crossvar = 0
+	self.crossvar = false
 	self.Entity:SetColor( 255, 0, 0, 255 )
 
 	local outputs = {
@@ -140,15 +140,12 @@ function ENT:TriggerInput(iname, value)
 	elseif (iname == "Disable") then
 		self.disablevar = (value >= 1)
 	elseif (iname == "Crosshairs") then
-		if (value > 0) then
-			if self.Ply and self.Ply:IsValid() then
-				if (self.crossvar == 0) then
-					self.Ply:CrosshairEnable()
-					self.crossvar = 1
-				else
-					self.Ply:CrosshairDisable()
-					self.crossvar = 0
-				end
+		self.crossvar = value ~= 0
+		if self.Ply and self.Ply:IsValid() then
+			if self.crossvar then
+				self.Ply:CrosshairEnable()
+			else
+				self.Ply:CrosshairDisable()
 			end
 		end
 	elseif (iname == "Brake") then
@@ -217,6 +214,11 @@ function ENT:Think()
 		if Ply and Ply:IsValid() then
 			local temp = false
 			if self.Ply == nil then
+				if self.crossvar then
+					Ply:CrosshairEnable()
+				else
+					Ply:CrosshairDisable()
+				end
 				if !self.RC then
 					self.junkBE = CurTime() + 2
 				else
