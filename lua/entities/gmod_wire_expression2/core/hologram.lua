@@ -446,13 +446,13 @@ local function CheckSpawnTimer( self )
 	if CurTime() >= holo.nextSpawn then
 		holo.nextSpawn = CurTime()+1
 		if CurTime() >= holo.nextBurst then
-			holo.remainingSpawns = 30
+			holo.remainingSpawns = GetConVar("wire_holograms_burst_amount"):GetInt()
 		elseif holo.remainingSpawns < 10 then
-			holo.remainingSpawns = 10
+			holo.remainingSpawns = GetConVar("wire_holograms_spawn_amount"):GetInt()
 		end
 	end
 
-	holo.nextBurst = CurTime()+10
+	holo.nextBurst = CurTime()+GetConVar("wire_holograms_burst_delay"):GetInt()
 
 	if holo.remainingSpawns > 0 then
 		holo.remainingSpawns = holo.remainingSpawns - 1
@@ -838,8 +838,8 @@ registerCallback("construct", function(self)
 	self.data.holos = {}
 	self.data.holo = {
 		nextSpawn = CurTime()+1,
-		nextBurst = CurTime()+10,
-		remainingSpawns = 30
+		nextBurst = CurTime()+GetConVar("wire_holograms_burst_delay"):GetInt(),
+		remainingSpawns = GetConVar("wire_holograms_burst_amount"):GetInt()
 	}
 end)
 
