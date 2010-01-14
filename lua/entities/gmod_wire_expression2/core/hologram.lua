@@ -3,6 +3,9 @@ E2Lib.RegisterExtension("holo", true)
 if not datastream then require( "datastream" ) end
 
 CreateConVar("wire_holograms_max","50")
+CreateConVar("wire_holograms_spawn_amount", "10")
+CreateConVar("wire_holograms_burst_amount", "30")
+CreateConVar("wire_holograms_burst_delay", "10")
 local wire_holograms_size_max = CreateConVar("wire_holograms_size_max","50")
 
 -- context = chip.context = self
