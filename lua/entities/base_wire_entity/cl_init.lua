@@ -1,8 +1,16 @@
 include("shared.lua")
 
-ENT.RenderGroup 		= RENDERGROUP_TRANSLUCENT//RENDERGROUP_OPAQUE//RENDERGROUP_BOTH
+ENT.RenderGroup = RENDERGROUP_OPAQUE//RENDERGROUP_TRANSLUCENT//RENDERGROUP_BOTH
 
 local wire_drawoutline = CreateClientConVar("wire_drawoutline", 1, true, false)
+local wire_drawoutline_bool = wire_drawoutline:GetBool()
+
+cvars.AddChangeCallback("wire_drawoutline", function(...) return wire_changey(...) end)
+
+function wire_changey(cvar, prev, new)
+	if prev == new then return end
+	wire_drawoutline_bool = wire_drawoutline:GetBool()
+end
 
 function ENT:Draw()
 	self:DoNormalDraw()
@@ -10,23 +18,24 @@ function ENT:Draw()
 end
 
 function ENT:DoNormalDraw()
-	local looked_at = LocalPlayer():GetEyeTrace().Entity == self.Entity and EyePos():Distance(self:GetPos()) < 256
-	if wire_drawoutline:GetBool() and looked_at then
-		if ( self.RenderGroup == RENDERGROUP_OPAQUE) then
+	local trace = LocalPlayer():GetEyeTrace()
+	local looked_at = trace.Entity == self.Entity and trace.Fraction*16384 < 256
+	if wire_drawoutline_bool and looked_at then
+		if self.RenderGroup == RENDERGROUP_OPAQUE then
 			self.OldRenderGroup = self.RenderGroup
 			self.RenderGroup = RENDERGROUP_TRANSLUCENT
 		end
-		if wire_drawoutline:GetBool() then self:DrawEntityOutline(1.0) end
+		self:DrawEntityOutline(1.0)
 		self:DrawModel()
 	else
-		if(self.OldRenderGroup) then
+		if self.OldRenderGroup then
 			self.RenderGroup = self.OldRenderGroup
 			self.OldRenderGroup = nil
 		end
 		self:DrawModel()
 	end
 	if looked_at then
-		if(self:GetOverlayText() ~= "") then
+		if self:GetOverlayText() ~= "" then
 			AddWorldTip(self:EntIndex(),self:GetOverlayText(),0.5,self:GetPos(),e)
 		end
 	end

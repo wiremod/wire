@@ -77,6 +77,7 @@ function GPU:Finalize()
 	if not self.RT then return end
 	RenderTargetCache.Free[self.RT] = RenderTargetCache.Used[self.RT]
 	RenderTargetCache.Used[self.RT] = nil
+	self.RT = nil
 end
 
 function GPU:Clear(color)
@@ -178,8 +179,12 @@ function GPU:GetInfo()
 end
 
 -- If width is specified, height is ignored. if neither is specified, a height of 512 is used.
-function GPU:RenderToWorld(width, height, renderfunction)
+function GPU:RenderToWorld(width, height, renderfunction, zoffset)
 	local monitor, pos, ang = self:GetInfo()
+
+	if zoffset then
+		pos = pos + ang:Up()*zoffset
+	end
 
 	local h = width and width*monitor.RatioX or height or 512
 	local w = width or h/monitor.RatioX
