@@ -158,15 +158,13 @@ __e2setcost(1) -- approximation
 
 registerOperator("trg", "", "n", function(self, args)
 	local op1 = args[2]
-	if self.triggerinput == op1
-	   then return 1 else return 0 end
+	return self.triggerinput == op1 and 1 or 0
 end)
 
 
 registerOperator("iwc", "", "n", function(self, args)
 	local op1 = args[2]
-	if validEntity(self.entity.Inputs[op1].Src)
-	   then return 1 else return 0 end
+	return validEntity(self.entity.Inputs[op1].Src) and 1 or 0
 end)
 
 /******************************************************************************/
@@ -176,8 +174,7 @@ __e2setcost(0) -- cascaded
 registerOperator("is", "n", "n", function(self, args)
 	local op1 = args[2]
 	local rv1 = op1[1](self, op1)
-	if rv1 != 0
-	   then return 1 else return 0 end
+	return rv1 ~= 0 and 1 or 0
 end)
 
 __e2setcost(1) -- approximation
@@ -185,32 +182,27 @@ __e2setcost(1) -- approximation
 registerOperator("not", "n", "n", function(self, args)
 	local op1 = args[2]
 	local rv1 = op1[1](self, op1)
-	if rv1 == 0
-	   then return 1 else return 0 end
+	return rv1 == 0 and 1 or 0
 end)
 
 registerOperator("and", "nn", "n", function(self, args)
 	local op1 = args[2]
 	local rv1 = op1[1](self, op1)
-	if rv1 == 0
-	   then return 0 end
+	if rv1 == 0 then return 0 end
 
 	local op2 = args[3]
 	local rv2 = op2[1](self, op2)
-	if rv2 == 0
-	   then return 0 else return 1 end
+	return rv2 ~= 0 and 1 or 0
 end)
 
 registerOperator("or", "nn", "n", function(self, args)
 	local op1 = args[2]
 	local rv1 = op1[1](self, op1)
-	if rv1 != 0
-	   then return 1 end
+	if rv1 ~= 0 then return 1 end
 
 	local op2 = args[3]
 	local rv2 = op2[1](self, op2)
-	if rv2 != 0
-	   then return 1 else return 0 end
+	return rv2 ~= 0 and 1 or 0
 end)
 
 /******************************************************************************/

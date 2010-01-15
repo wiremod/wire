@@ -11,6 +11,13 @@ e2function entity entity:weapon()
 	return this:GetActiveWeapon()
 end
 
+e2function entity entity:weapon(string weaponclassname)
+	if not validEntity(this) then return nil end
+	if not this:IsPlayer() and not this:IsNPC() then return nil end
+
+	return this:GetWeapon(weaponclassname)
+end
+
 
 e2function string entity:primaryAmmoType()
 	if not validEntity(this) then return "" end
