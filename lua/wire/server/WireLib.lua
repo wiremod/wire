@@ -672,11 +672,11 @@ local function Wire_Unlink(ent, iname)
 			end
 		end
 
-		WireLib.TriggerInput(ent, iname, WireLib.DT[input.Type].Zero)
-
 		input.Src = nil
 		input.SrcId = nil
 		input.Path = nil
+
+		WireLib.TriggerInput(ent, iname, WireLib.DT[input.Type].Zero)
 
 		WireLib._SetLink(input)
 	end
