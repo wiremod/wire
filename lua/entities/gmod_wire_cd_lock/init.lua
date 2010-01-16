@@ -19,7 +19,7 @@ function ENT:Initialize()
 	self.Disk = nil
 	self.DisableLinking = 0
 
-	self.Inputs = Wire_CreateOutputs(self.Entity, { "Disable" })
+	self.Inputs = Wire_CreateInputs(self.Entity, { "Disable" })
 	self.Outputs = Wire_CreateOutputs(self.Entity, { "Locked" })
 	self:SetOverlayText("CD lock")
 

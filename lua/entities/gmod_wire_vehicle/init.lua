@@ -16,7 +16,7 @@ function ENT:Initialize()
 	self.Entity:SetMoveType( MOVETYPE_VPHYSICS )
 	self.Entity:SetSolid( SOLID_VPHYSICS )
 	-- Create outputs
-	self.Inputs = Wire_CreateOutputs( self.Entity, { "Throttle", "Steering", "Handbrake", "Engine", "Lock" } )
+	self.Inputs = Wire_CreateInputs( self.Entity, { "Throttle", "Steering", "Handbrake", "Engine", "Lock" } )
 	self:SetOverlayText( "Vehicle Controller" )
 	self.Steering = 0
 end
