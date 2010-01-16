@@ -446,6 +446,8 @@ e2function string toString(bone b)
 	return string.format("%s:bone(%d)", tostring(ent), bone2index[b])
 end
 
+WireLib.registerDebuggerFormat("BONE", e2_tostring_bone)
+
 --[[************************************************************************]]--
 
 --- Returns the <index>th element of <this>. Returns nobone() if it's not a '''bone'''.
