@@ -853,8 +853,8 @@ GateActions["ram8"] = {
 		else
 			return gate.LatchStore[Address] or 0
 		end
-		end,
-		WriteCell = function(dummy,gate,Address,value)
+	end,
+	WriteCell = function(dummy,gate,Address,value)
 		if (Address < 0) || (Address >= 8) then
 			return false
 		else

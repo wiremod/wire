@@ -16,7 +16,7 @@ function ENT:Initialize()
 	self.Outputs = Wire_CreateOutputs(self.Entity, { "Out" })
 end
 
-
+local ENT = ENT
 function ENT:Setup( action, noclip )
 	if (action) then
 		self.WireDebugName = action.name
@@ -31,6 +31,24 @@ function ENT:Setup( action, noclip )
 
 		if (action.reset) then
 			action.reset(self)
+		end
+
+		local ReadCell = action.ReadCell
+		if ReadCell then
+			function self:ReadCell(Address)
+				return ReadCell(action,self,Address)
+			end
+		else
+			self.ReadCell = nil
+		end
+
+		local WriteCell = action.WriteCell
+		if WriteCell then
+			function self:WriteCell(Address,value)
+				return WriteCell(action,self,Address,value)
+			end
+		else
+			self.WriteCell = nil
 		end
 	end
 
@@ -95,22 +113,6 @@ function ENT:CalcOutput(iter)
 
 			Wire_TriggerOutput(self.Entity, "Out", value, iter)
 		end
-	end
-end
-
-function ENT:ReadCell(Address)
-	if (self.Action) && (self.Action.ReadCell) then
-		return self.Action:ReadCell(self,Address)
-	else
-		return nil
-	end
-end
-
-function ENT:WriteCell(Address,value)
-	if (self.Action) && (self.Action.WriteCell) then
-		return self.Action:WriteCell(self,Address,value)
-	else
-		return false
 	end
 end
 
