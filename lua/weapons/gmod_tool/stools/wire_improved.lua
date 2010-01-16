@@ -507,29 +507,57 @@ elseif CLIENT then
 		["invprev" ] = { "ScrollUp" },
 		["invnext" ] = { "ScrollDown" },
 	}
+	local weapon_selection_close_time = 0
+
+	local function scroll()
+		if CurTime() <= weapon_selection_close_time then
+			weapon_selection_close_time = CurTime()+6
+		end
+	end
+
+	local function attack()
+		weapon_selection_close_time = 0
+	end
+
+	local bind_post = {
+		invnext = scroll,
+		invprev = scroll,
+		["+attack" ] = attack,
+		["+attack2"] = attack,
+	}
 
 	hook.Add("PlayerBindPress", "wire_improved", function(ply, bind, pressed)
 		if not pressed then return end
 
-		local mapping = bind_mappings[bind]
-		if not mapping then return end
-
-		local hookname, doeffect = unpack(mapping)
-
-		local self = get_active_tool(ply, "wire_improved")
-		if not self then return end
-
-		local hook = self[hookname]
-		if not hook then return end
-
-		local trace = ply:GetEyeTraceNoCursor()
-		local ret = hook(self, trace)
-		if ret then
-			if doeffect then
-				self:GetWeapon():DoShootEffect(trace.HitPos, trace.HitNormal, trace.Entity, trace.PhysicsBone)
-			end
-			return true
+		if bind:match("^slot%d+$") then
+			weapon_selection_close_time = CurTime()+6
+			return
 		end
+
+		if CurTime() > weapon_selection_close_time then
+			local mapping = bind_mappings[bind]
+			if not mapping then return end
+
+			local hookname, doeffect = unpack(mapping)
+
+			local self = get_active_tool(ply, "wire_improved")
+			if not self then return end
+
+			local hook = self[hookname]
+			if not hook then return end
+
+			local trace = ply:GetEyeTraceNoCursor()
+			local ret = hook(self, trace)
+			if ret then
+				if doeffect then
+					self:GetWeapon():DoShootEffect(trace.HitPos, trace.HitNormal, trace.Entity, trace.PhysicsBone)
+				end
+				return true
+			end
+		end
+
+		local wsel = bind_post[bind]
+		if wsel then wsel() end
 	end)
 
 	function TOOL.BuildCPanel(panel)
