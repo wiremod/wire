@@ -88,6 +88,7 @@ if SERVER then
 		self:SetStage(0)
 	end
 
+	-- SERVER --
 	function TOOL:Receive(mode, entid, portname, x, y, z)
 		if mode == "i" then -- select input and target entity
 			if self:GetStage() ~= 0 then return end
@@ -171,6 +172,7 @@ if SERVER then
 		end
 	end
 
+	-- SERVER --
 	concommand.Add("wire_improved", function(ply, cmd, args)
 		local tool = get_tool(ply, "wire_improved")
 		if not tool then return end
@@ -183,12 +185,19 @@ if SERVER then
 
 elseif CLIENT then
 
+	function TOOL:Holster()
+		self.lastent = nil
+		self.lastinput = {}
+		self.lastoutput = {}
+	end
+
 	hook.Add("GUIMousePressed", "wire_improved", function(mousecode, aimvec)
 		local self = get_active_tool(LocalPlayer(), "wire_improved")
 		if not self then return end
 
 		if self:Click(mousecode, aimvec, false) then return true end
 	end)
+
 	hook.Add("GUIMouseDoublePressed", "wire_improved", function(mousecode, aimvec)
 		local self = get_active_tool(LocalPlayer(), "wire_improved")
 		if not self then return end
@@ -217,6 +226,7 @@ elseif CLIENT then
 
 	end
 
+	-- CLIENT --
 	local function DrawPortBox(ports, selindex, align, seltype)
 		align = align or 1
 
@@ -298,7 +308,16 @@ elseif CLIENT then
 		return mousenum
 	end
 
+	-- CLIENT --
 	function TOOL:NewStage(stage, laststage)
+		if laststage == nil then
+			self:Holster() -- initialize lastinput/output tables
+		elseif laststage == 0 then
+			if self.target and self.selinput then self.lastinput[self.target] = self.selinput end
+		elseif laststage == 2 then
+			if self.source and self.output then self.lastoutput[self.source] = self.output end
+		end
+
 		if stage == 0 then
 			self.target = nil
 			self.input = nil
@@ -311,10 +330,13 @@ elseif CLIENT then
 		end
 	end
 
-	function TOOL:Holster()
-		self.lastent = nil
+	local function lookup(tbl, value)
+		for k,v in pairs(tbl) do
+			if value == v then return k end
+		end
 	end
 
+	-- CLIENT --
 	function TOOL:DrawHUD()
 		local stage = self:GetStage()
 		local newstage = self.laststage ~= stage
@@ -334,8 +356,8 @@ elseif CLIENT then
 			local inputs, outputs = WireLib.GetPorts(ent)
 
 			if stage == 0 then
-				self.port = 1
 				self.ports = inputs
+				self.port = lookup(self.ports,self.lastinput[ent]) or 1
 
 			elseif stage == 1 then
 				if outputs then
@@ -354,7 +376,10 @@ elseif CLIENT then
 						-- we have outputs, so pick a port of a matching type
 						local inputname, inputtype = unpack(self.input)
 						inputname = inputname:gsub(" ", "")
-						self.port = nil
+
+						local lastoutput = self.lastoutput[ent]
+						self.port = lastoutput and lastoutput[2] == inputtype and lookup(self.ports,lastoutput)
+
 						for num,name,tp in ipairs_map(outputs,unpack) do
 							if tp == inputtype then
 								-- found a port of a matching type
@@ -370,7 +395,7 @@ elseif CLIENT then
 						end
 
 						-- no matching port? default to 1
-						if not self.port then self.port = 1 end
+						if not self.port then self.port = lookup(self.ports,lastoutput) or 1 end
 					end -- if self.ports.wl
 				elseif self.input[2] == "WIRELINK" then
 					self.ports = {}
@@ -401,6 +426,7 @@ elseif CLIENT then
 		end
 	end
 
+	-- CLIENT --
 	function TOOL:LeftClickB(trace)
 		if self:GetStage() == 0 then
 			if not self.ports then return end
@@ -409,20 +435,20 @@ elseif CLIENT then
 			self.selinput = self.ports[self.port]
 			if not self.selinput then return end
 
-			local target = trace.Entity
-			if not ValidEntity(target) then return end
+			self.target = trace.Entity
+			if not ValidEntity(self.target) then return end
 
-			local lpos = target:WorldToLocal(trace.HitPos)
-			RunConsoleCommand("wire_improved", "i", target:EntIndex(), self.selinput[1], lpos.x, lpos.y, lpos.z)
+			local lpos = self.target:WorldToLocal(trace.HitPos)
+			RunConsoleCommand("wire_improved", "i", self.target:EntIndex(), self.selinput[1], lpos.x, lpos.y, lpos.z)
 
 			return true
 
 		elseif self:GetStage() == 1 then
-			local source = trace.Entity
-			if not ValidEntity(source) then return end
+			self.source = trace.Entity
+			if not ValidEntity(self.source) then return end
 
-			local lpos = source:WorldToLocal(trace.HitPos)
-			RunConsoleCommand("wire_improved", "s", source:EntIndex(), 0, lpos.x, lpos.y, lpos.z)
+			local lpos = self.source:WorldToLocal(trace.HitPos)
+			RunConsoleCommand("wire_improved", "s", self.source:EntIndex(), 0, lpos.x, lpos.y, lpos.z)
 
 			return true
 
@@ -447,6 +473,7 @@ elseif CLIENT then
 		end
 	end
 
+	-- CLIENT --
 	function TOOL:ScrollUp(trace)
 		if not self.menu then return end
 
@@ -500,6 +527,7 @@ elseif CLIENT then
 	end
 	TOOL.RightClickB = TOOL.ScrollDown
 
+	-- CLIENT --
 	local bind_mappings = {
 		["+attack" ] = { "LeftClickB", true },
 		["+attack2"] = { "RightClickB" },
@@ -560,6 +588,7 @@ elseif CLIENT then
 		if wsel then wsel() end
 	end)
 
+	-- CLIENT --
 	function TOOL.BuildCPanel(panel)
 		panel:AddControl("Header", { Text = "#Tool_wire_name", Description = "#Tool_wire_desc" })
 
