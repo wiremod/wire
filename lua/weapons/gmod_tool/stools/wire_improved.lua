@@ -237,7 +237,7 @@ elseif CLIENT then
 		local texth = draw.GetFontHeight("Trebuchet24")
 		local boxh, boxw = #ports*texth,0
 
-		local haswl = seltype ~= "WIRELINK"
+		local createwl = seltype == "WIRELINK"
 		for num,port in ipairs(ports) do
 			local name,tp,desc,connected = unpack(port)
 
@@ -248,10 +248,10 @@ elseif CLIENT then
 			if textw > boxw then boxw = textw end
 
 			-- If this is a wirelink output, signal that we don't need the "Create Wirelink" option.
-			if tp == "WIRELINK" then haswl = true end
+			if tp == "WIRELINK" then createwl = false end
 		end
 
-		if not haswl then
+		if createwl then
 			-- we seem to need a "Create Wirelink" option, so add one.
 			local text = "Create Wirelink"
 			ports.wl = { "link", "WIRELINK", "", text = text }
@@ -356,6 +356,7 @@ elseif CLIENT then
 			self.lastent = ent
 
 			local inputs, outputs = WireLib.GetPorts(ent)
+			local iswire = (inputs or outputs or ent.Base == "base_wire_entity") and true or false
 
 			if stage == 0 then
 				self.ports = inputs
@@ -364,9 +365,11 @@ elseif CLIENT then
 			elseif stage == 1 then
 				if outputs then
 					self.ports = outputs
-				elseif self.input[2] == "WIRELINK" then
+				elseif iswire and self.input[2] == "WIRELINK" then
 					self.ports = {}
 					self.port = "wl"
+				else
+					self.ports = nil
 				end
 
 			elseif stage == 2 then
@@ -399,7 +402,7 @@ elseif CLIENT then
 						-- no matching port? default to 1
 						if not self.port then self.port = lookup(self.ports,lastoutput) or 1 end
 					end -- if self.ports.wl
-				elseif self.input[2] == "WIRELINK" then
+				elseif iswire and self.input[2] == "WIRELINK" then
 					self.ports = {}
 					self.port = "wl"
 				end -- if outputs
@@ -430,7 +433,8 @@ elseif CLIENT then
 
 	-- CLIENT --
 	function TOOL:LeftClickB(trace)
-		if self:GetStage() == 0 then
+		local stage = self:GetStage()
+		if stage == 0 then
 			if not self.ports then return end
 			if not self.port then return end
 
@@ -445,7 +449,8 @@ elseif CLIENT then
 
 			return true
 
-		elseif self:GetStage() == 1 then
+		elseif stage == 1 then
+			if not self.ports then return end
 			self.source = trace.Entity
 			if not ValidEntity(self.source) then return end
 
@@ -454,7 +459,7 @@ elseif CLIENT then
 
 			return true
 
-		elseif self:GetStage() == 2 then
+		elseif stage == 2 then
 			if not self.ports then return end
 			if not self.port then return end
 
