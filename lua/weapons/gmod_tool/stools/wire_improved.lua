@@ -331,6 +331,8 @@ elseif CLIENT then
 	end
 
 	local function lookup(tbl, value)
+		if not tbl then return end
+		if not value then return end
 		for k,v in pairs(tbl) do
 			if value == v then return k end
 		end
