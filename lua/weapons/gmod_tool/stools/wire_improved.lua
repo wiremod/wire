@@ -226,19 +226,24 @@ elseif CLIENT then
 
 	end
 
-	local fontnames = { "Trebuchet24", "Trebuchet22", "Trebuchet20", "Trebuchet19", "Trebuchet18", "DefaultBold", "HudSelectionText", "ConsoleText" }
-	local fontheights = {}
-	for i,fontname in ipairs(fontnames) do
-		fontheights[i] = draw.GetFontHeight(fontname)
-	end
-	local function fitfont(nlines, h)
-		local maxfontheight = h/nlines
-		for i,fontheight in ipairs(fontheights) do
-			if fontheight <= maxfontheight then
-				return fontnames[i]
-			end
+	local function fitfont(...)
+		local fontnames = { "Trebuchet24", "Trebuchet22", "Trebuchet20", "Trebuchet19", "CloseCaption_Bold", "HudHintTextLarge", "DefaultBold", "HudSelectionText", "ConsoleText" }
+		local fontheights = {}
+
+		for i,fontname in ipairs(fontnames) do
+			fontheights[i] = draw.GetFontHeight(fontname)
 		end
-		return fontnames[#fontnames]
+
+		function fitfont(nlines, h)
+			local maxfontheight = h/nlines
+			for i,fontheight in ipairs(fontheights) do
+				if fontheight <= maxfontheight then
+					return fontnames[i]
+				end
+			end
+			return fontnames[#fontnames]
+		end
+		return fitfont(...)
 	end
 
 	-- CLIENT --
@@ -558,30 +563,25 @@ elseif CLIENT then
 	}
 	local weapon_selection_close_time = 0
 
-	local function scroll()
-		if CurTime() <= weapon_selection_close_time then
-			weapon_selection_close_time = CurTime()+6
-		end
+	local function open_menu()
+		weapon_selection_close_time = CurTime()+6
 	end
 
-	local function attack()
+	local function close_menu()
 		weapon_selection_close_time = 0
 	end
 
 	local bind_post = {
-		invnext = scroll,
-		invprev = scroll,
-		["+attack" ] = attack,
-		["+attack2"] = attack,
+		invnext = open_menu,
+		invprev = open_menu,
+		["+attack" ] = close_menu,
+		["+attack2"] = close_menu,
 	}
 
 	hook.Add("PlayerBindPress", "wire_improved", function(ply, bind, pressed)
 		if not pressed then return end
 
-		if bind:match("^slot%d+$") then
-			weapon_selection_close_time = CurTime()+6
-			return
-		end
+		if bind:match("^slot%d+$") then return open_menu() end
 
 		if CurTime() > weapon_selection_close_time then
 			local mapping = bind_mappings[bind]

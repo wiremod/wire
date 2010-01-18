@@ -7,12 +7,6 @@ ENT.RenderGroup 		= RENDERGROUP_BOTH
 
 function ENT:Initialize()
 
-	surface.CreateFont( "coolvetica", 64, 400, false, false, "screen_font" )
-
-	// Create new fonts here for Single Value screens
-	// According to the wiki, the font size is capped at 128 (TheApathetic)
-	surface.CreateFont("coolvetica", 128, 400, false, false, "screen_font_single")
-	surface.CreateFont("Trebuchet", 36, 400, false, false, "Trebuchet36")
 
 	self.GPU = WireGPU(self, true)
 end
@@ -95,3 +89,10 @@ end
 function ENT:IsTranslucent()
 	return true
 end
+
+surface.CreateFont( "coolvetica", 64, 400, false, false, "screen_font" )
+
+// Create new fonts here for Single Value screens
+// According to the wiki, the font size is capped at 128 (TheApathetic)
+surface.CreateFont("coolvetica", 128, 400, false, false, "screen_font_single")
+surface.CreateFont("Trebuchet", 36, 400, false, false, "Trebuchet36")
