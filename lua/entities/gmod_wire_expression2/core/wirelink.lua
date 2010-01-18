@@ -416,14 +416,23 @@ local function WriteString(entity, string, X, Y, textcolor, bgcolor, Flash)
 	Flash = Flash ~= 0 and 1 or 0
 	local Params = Flash*1000000 + bgcolor*1000 + textcolor
 
-	local j = 1
+	local Xorig = X
 	for i = 1,#string do
 		local Byte = string.byte(string,i)
-		if Byte == 10 then Y = Y+1 j = j + i end
-		local Address = 2*(Y*30+(X+i-j))
-		if (Address>1080 or Address<0) then return end
-		entity:WriteCell(Address, Byte)
-		entity:WriteCell(Address+1, Params)
+		if Byte == 10 then
+			Y = Y+1
+			X = Xorig
+		else
+			if (X >= 30) then
+				X = 0
+				Y = Y + 1
+			end
+			local Address = 2*(Y*30+(X))
+			X = X + 1
+			if (Address>1080 or Address<0) then return end
+			entity:WriteCell(Address, Byte)
+			entity:WriteCell(Address+1, Params)
+		end
 	end
 end
 
