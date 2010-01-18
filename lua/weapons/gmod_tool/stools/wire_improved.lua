@@ -226,15 +226,29 @@ elseif CLIENT then
 
 	end
 
+	local fontnames = { "Trebuchet24", "Trebuchet22", "Trebuchet20", "Trebuchet19", "Trebuchet18", "DefaultBold", "HudSelectionText", "ConsoleText" }
+	local fontheights = {}
+	for i,fontname in ipairs(fontnames) do
+		fontheights[i] = draw.GetFontHeight(fontname)
+	end
+	local function fitfont(nlines, h)
+		local maxfontheight = h/nlines
+		for i,fontheight in ipairs(fontheights) do
+			if fontheight <= maxfontheight then
+				return fontnames[i]
+			end
+		end
+		return fontnames[#fontnames]
+	end
+
 	-- CLIENT --
 	local function DrawPortBox(ports, selindex, align, seltype)
 		align = align or 1
 
 		if not ports then return end
-		--if #ports == 0 then return end
 
-		surface.SetFont("Trebuchet24")
-		local texth = draw.GetFontHeight("Trebuchet24")
+		surface.SetFont(fitfont(#ports, ScrH()-32))
+		local _,texth = surface.GetTextSize(" ")
 		local boxh, boxw = #ports*texth,0
 
 		local createwl = seltype == "WIRELINK"
@@ -331,8 +345,8 @@ elseif CLIENT then
 	end
 
 	local function lookup(tbl, value)
-		if not tbl then return end
-		if not value then return end
+		if not value then return end -- this is an optimization
+
 		for k,v in pairs(tbl) do
 			if value == v then return k end
 		end
@@ -356,11 +370,11 @@ elseif CLIENT then
 			self.lastent = ent
 
 			local inputs, outputs = WireLib.GetPorts(ent)
-			local iswire = (inputs or outputs or ent.Base == "base_wire_entity") and true or false
+			local iswire = inputs or outputs or ent.Base == "base_wire_entity"
 
 			if stage == 0 then
 				self.ports = inputs
-				self.port = lookup(self.ports,self.lastinput[ent]) or 1
+				self.port = self.ports and lookup(self.ports,self.lastinput[ent]) or 1
 
 			elseif stage == 1 then
 				if outputs then
