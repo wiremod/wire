@@ -15,11 +15,11 @@ if SERVER then
 	AddCSLuaFile("wire/WireGates.lua")
 	AddCSLuaFile("wire/WireMonitors.lua")
 	AddCSLuaFile("wire/opcodes.lua")
+	AddCSLuaFile("wire/GPULib.lua")
 
 	-- client includes
 	AddCSLuaFile("wire/client/cl_wirelib.lua")
 	AddCSLuaFile("wire/client/cl_modelplug.lua")
-	AddCSLuaFile("wire/client/cl_gpulib.lua")
 	AddCSLuaFile("wire/client/WireDermaExts.lua")
 	AddCSLuaFile("wire/client/WireMenus.lua")
 	AddCSLuaFile("wire/client/TextEditor.lua")
@@ -36,13 +36,7 @@ if SERVER then
 	end
 	resource.AddFile("materials/expression 2/cog.vtf")
 	resource.AddFile("materials/expression 2/cog.vmt")
-	if resource.AddSingleFile then
-		resource.AddSingleFile("materials/expression 2/cog_world.vmt")
-	else
-		-- TODO: delete this branch once resource.AddSingleFile is present in the regular gmod version.
-		print("Ignore the following error message about cog_world.vtf:")
-		resource.AddFile("materials/expression 2/cog_world.vmt")
-	end
+	resource.AddSingleFile("materials/expression 2/cog_world.vmt")
 end
 
 -- shared includes
@@ -52,6 +46,7 @@ include("wire/Beam_NetVars.lua")
 include("wire/WireGates.lua")
 include("wire/WireMonitors.lua")
 include("wire/opcodes.lua")
+include("wire/GPULib.lua")
 
 -- server includes
 if SERVER then

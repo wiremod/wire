@@ -376,6 +376,7 @@ elseif CLIENT then
 
 			local inputs, outputs = WireLib.GetPorts(ent)
 			local iswire = inputs or outputs or ent.Base == "base_wire_entity"
+			self.iswire = iswire
 
 			if stage == 0 then
 				self.ports = inputs
@@ -469,7 +470,7 @@ elseif CLIENT then
 			return true
 
 		elseif stage == 1 then
-			if not self.ports then return end
+			if not self.ports and self.iswire then return end
 			self.source = trace.Entity
 			if not ValidEntity(self.source) then return end
 
