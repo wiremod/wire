@@ -349,9 +349,13 @@ if SERVER then
 		end
 	end)
 
-	local function wire_umsg(self, receiver)
-		umsg.Start("wire_umsg", receiver or self.rp)
-		umsg.Short(self:EntIndex())
+	local wire_umsg = table.Copy(umsg)--{} -- TODO: replace
+	WireLib.wire_umsg = wire_umsg
+	setmetatable(wire_umsg, wire_umsg)
+
+	function wire_umsg:__call(ent, receiver)
+		umsg.Start("wire_umsg", receiver or ent.rp)
+		umsg.Short(ent:EntIndex())
 	end
 
 	function WireLib.umsgRegister(self)

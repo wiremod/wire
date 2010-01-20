@@ -45,10 +45,10 @@ end
 function ENT:SetText(text, ply)
 	self.text = text
 	self:umsg(ply)
-		umsg.Char(2) -- text
+		self.umsg.Char(2) -- text
 
-		umsg.String(formatText(text))
-	umsg.End()
+		self.umsg.String(formatText(text))
+	self.umsg.End()
 end
 
 function ENT:Think()
@@ -60,20 +60,20 @@ end
 function ENT:SendConfig(ply)
 	self.doSendConfig = nil
 	self:umsg(ply)
-		umsg.Char(1) -- config
+		self.umsg.Char(1) -- config
 
-		umsg.Char(self.chrPerLine)
-		umsg.Char(self.textJust)
-		umsg.Char(self.valign)
+		self.umsg.Char(self.chrPerLine)
+		self.umsg.Char(self.textJust)
+		self.umsg.Char(self.valign)
 
-		umsg.Char(self.fgcolor.r-128)
-		umsg.Char(self.fgcolor.g-128)
-		umsg.Char(self.fgcolor.b-128)
+		self.umsg.Char(self.fgcolor.r-128)
+		self.umsg.Char(self.fgcolor.g-128)
+		self.umsg.Char(self.fgcolor.b-128)
 
-		umsg.Char(self.bgcolor.r-128)
-		umsg.Char(self.bgcolor.g-128)
-		umsg.Char(self.bgcolor.b-128)
-	umsg.End()
+		self.umsg.Char(self.bgcolor.r-128)
+		self.umsg.Char(self.bgcolor.g-128)
+		self.umsg.Char(self.bgcolor.b-128)
+	self.umsg.End()
 end
 
 function ENT:Retransmit(ply)

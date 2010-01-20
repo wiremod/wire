@@ -37,10 +37,10 @@ if SERVER then
 
 		self.channels[channel_number] = value
 		self:umsg()
-			umsg.Char(channel_number)
-			umsg.Float(value)
-			umsg.Char(0)
-		umsg.End()
+			self.umsg.Char(channel_number)
+			self.umsg.Float(value)
+			self.umsg.Char(0)
+		self.umsg.End()
 	end
 
 	function ENT:SetChannelNumber(channel_number)
@@ -50,10 +50,10 @@ if SERVER then
 		Wire_TriggerOutput(self, "Out", self.channels[self.chan])
 
 		self:umsg()
-			umsg.Char(-1)
-			umsg.Char(self.chan)
-			umsg.Char(0)
-		umsg.End()
+			self.umsg.Char(-1)
+			self.umsg.Char(self.chan)
+			self.umsg.Char(0)
+		self.umsg.End()
 	end
 
 	concommand.Add("wire_panel_setchannel", function(ply, cmd, args)
@@ -69,13 +69,13 @@ if SERVER then
 	function ENT:Retransmit(ply)
 		self:umsg(ply)
 			for channel_number,value in ipairs(self.channels) do
-				umsg.Char(channel_number)
-				umsg.Float(value)
+				self.umsg.Char(channel_number)
+				self.umsg.Float(value)
 			end
-			umsg.Char(-1)
-			umsg.Char(self.chan)
-			umsg.Char(0)
-		umsg.End()
+			self.umsg.Char(-1)
+			self.umsg.Char(self.chan)
+			self.umsg.Char(0)
+		self.umsg.End()
 	end
 else
 	function ENT:Receive(um)

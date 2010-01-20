@@ -64,15 +64,15 @@ function DebugMessage(msg)
 	Msg(msg.."\n")
 end
 
-function WireGPU_MemoryMessage(umsg)
-	local ent = ents.GetByIndex(umsg:ReadLong())
-	local cachebase = umsg:ReadLong()
-	local cachesize = umsg:ReadLong()
+function WireGPU_MemoryMessage(um)
+	local ent = ents.GetByIndex(um:ReadLong())
+	local cachebase = um:ReadLong()
+	local cachesize = um:ReadLong()
 
 	if ((ent) && (ent.Memory)) then
 		if (cachebase >= 0) && (cachebase + cachesize < 65537) then
 			for i=0,cachesize-1 do
-				local value = umsg:ReadFloat()
+				local value = um:ReadFloat()
 
 				ent:WriteCell(cachebase+i,value)
 				ent.ROMMemory[cachebase+i] = value
