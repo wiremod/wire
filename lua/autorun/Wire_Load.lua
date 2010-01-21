@@ -59,7 +59,6 @@ end
 if CLIENT then
 	include("wire/client/cl_wirelib.lua")
 	include("wire/client/cl_modelplug.lua")
-	include("wire/client/cl_gpulib.lua")
 	include("wire/client/WireDermaExts.lua")
 	include("wire/client/WireMenus.lua")
 	include("wire/client/toolscreen.lua")
