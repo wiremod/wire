@@ -18,26 +18,6 @@ TOOL.ClientConVar = {
 	b = 255,
 }
 
-local function dummytrace(ent)
-	local pos = ent:GetPos()
-	return {
-		FractionLeftSolid = 0,
-		HitNonWorld       = true,
-		Fraction          = 0,
-		Entity            = ent,
-		HitPos            = pos,
-		HitNormal         = Vector(0,0,0),
-		HitBox            = 0,
-		Normal            = Vector(1,0,0),
-		Hit               = true,
-		HitGroup          = 0,
-		MatType           = 0,
-		StartPos          = pos,
-		PhysicsBone       = 0,
-		WorldToLocal      = Vector(0,0,0),
-	}
-end
-
 util.PrecacheSound("weapons/pistol/pistol_empty.wav")
 
 local function get_tool(ply, tool)
@@ -95,7 +75,7 @@ if SERVER then
 
 			local target = Entity(tonumber(entid))
 			if not target:IsValid() then return end
-			if not gamemode.Call("CanTool", self:GetOwner(), dummytrace(target), "wire_improved") then return end
+			if not gamemode.Call("CanTool", self:GetOwner(), WireLib.dummytrace(target), "wire_improved") then return end
 
 			local material = self:GetClientInfo("material")
 			local width    = self:GetClientNumber("width")
@@ -114,7 +94,7 @@ if SERVER then
 
 			local source = Entity(tonumber(entid))
 			if not source:IsValid() then return end
-			if not gamemode.Call("CanTool", self:GetOwner(), dummytrace(source), "wire_improved") then return end
+			if not gamemode.Call("CanTool", self:GetOwner(), WireLib.dummytrace(source), "wire_improved") then return end
 
 			local outputs = source.Outputs
 			local input_type = self.target.Inputs[self.input].Type
@@ -153,7 +133,7 @@ if SERVER then
 		elseif mode == "o" then -- select output
 			if self:GetStage() ~= 2 then return end
 
-			if not gamemode.Call("CanTool", self:GetOwner(), dummytrace(self.source), "wire_improved") then return end -- actually useless
+			if not gamemode.Call("CanTool", self:GetOwner(), WireLib.dummytrace(self.source), "wire_improved") then return end -- actually useless
 
 			self.output = portname
 
@@ -166,7 +146,7 @@ if SERVER then
 
 			local target = Entity(tonumber(entid))
 			if not target:IsValid() then return end
-			if not gamemode.Call("CanTool", self:GetOwner(), dummytrace(target), "wire_improved") then return end
+			if not gamemode.Call("CanTool", self:GetOwner(), WireLib.dummytrace(target), "wire_improved") then return end
 
 			Wire_Link_Clear(target, portname)
 		end
