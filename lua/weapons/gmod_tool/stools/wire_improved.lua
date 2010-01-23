@@ -260,6 +260,8 @@ elseif CLIENT then
 			local textw = surface.GetTextSize(text)
 			if textw > boxw then boxw = textw end
 			boxh = boxh+texth
+		else
+			ports.wl = nil
 		end
 
 		local boxx, boxy = ScrW()/2-boxw-32, ScrH()/2-boxh/2
