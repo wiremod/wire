@@ -421,15 +421,15 @@ local function WriteString(entity, string, X, Y, textcolor, bgcolor, Flash)
 		local Byte = string.byte(string,i)
 		if Byte == 10 then
 			Y = Y+1
-			X = Xorig
+			X = Xorig -- shouldn't this be 0 as well? would be more consistent.
 		else
-			if (X >= 30) then
+			if X >= 30 then
 				X = 0
 				Y = Y + 1
 			end
 			local Address = 2*(Y*30+(X))
 			X = X + 1
-			if (Address>1080 or Address<0) then return end
+			if Address>=1080 or Address<0 then return end
 			entity:WriteCell(Address, Byte)
 			entity:WriteCell(Address+1, Params)
 		end

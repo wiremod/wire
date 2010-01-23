@@ -240,7 +240,9 @@ elseif CLIENT then
 		for num,port in ipairs(ports) do
 			local name,tp,desc,connected = unpack(port)
 
-			local text = (tp == "NORMAL") and name or string.format("%s [%s]", name, tp)
+			local text = name
+			if desc ~= "" then text = text.." ("..desc..")" end
+			if tp ~= "NORMAL" then text = text.." ["..tp.."]" end
 			port.text = text
 
 			local textw = surface.GetTextSize(text)
@@ -662,9 +664,8 @@ end
 
 --[[ TODO:
 	fixes:
-	- Only play effects when appropriate
+	- Only play effects when appropriate (already better than wire_adv there)
 	- replace wire_adv
-	- desc
 
 	new features:
 ]]
