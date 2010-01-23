@@ -103,4 +103,4 @@ function MakeGPULibController( pl, Pos, Ang, model, screen )
 	return controller
 end
 
-duplicator.RegisterEntityClass("gmod_wire_cameracontroller", MakeGPULibController, "Pos", "Ang", "Model", "screen")
+duplicator.RegisterEntityClass("gmod_wire_gpulib_controller", MakeGPULibController, "Pos", "Ang", "Model", "screen")
