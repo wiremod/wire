@@ -3,6 +3,7 @@
 \******************************************************************************/
 
 local Clamp = math.Clamp
+local floor = math.floor
 
 local function ColorClamp(col1, col2, col3, col4)
 	return Clamp(col1, 0, 255), Clamp(col2, 0, 255), Clamp(col3, 0, 255), Clamp(col4, 0, 255)
@@ -112,13 +113,16 @@ e2function vector hsv2rgb(vector hsv)
 	return { col.r, col.g, col.b }
 end
 
+e2function vector hsv2rgb(h, s, v)
+	local col = HSVToColor(h, s, v)
+	return { col.r, col.g, col.b }
+end
+
 --- Converts <rgb> from the [http://en.wikipedia.org/wiki/RGB_color_space RGB color space] to the [http://en.wikipedia.org/wiki/HSV_color_space HSV color space]
 e2function vector rgb2hsv(vector rgb)
 	return { ColorToHSV(Color(rgb[1], rgb[2], rgb[3])) }
 end
 
-local floor = math.floor
-local Clamp = math.Clamp
 local converters = {}
 converters[0] = function(r, g, b)
 	local r = Clamp(floor(r/28),0,9)
@@ -127,6 +131,7 @@ converters[0] = function(r, g, b)
 
 	return r*100000+g*10000+b*1000
 end
+converters[1] = false
 converters[2] = function(r, g, b)
 	return floor(r)*65536+floor(g)*256+floor(b)
 end

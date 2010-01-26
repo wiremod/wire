@@ -21,3 +21,7 @@ end
 e2function number number:teamFrags()
 	return team.TotalFrags(this)
 end
+
+e2function void setColor(r, g, b)
+	self.entity:SetColor(math.Clamp(r, 0, 255), math.Clamp(g, 0, 255), math.Clamp(b, 0, 255), 255)
+end
