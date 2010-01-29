@@ -520,7 +520,15 @@ end
 local code1 = "@name \n@inputs \n@outputs \n@persist \n@trigger \n\n"
 -- code2 contains the code that is to be marked, so it can simply be overwritten or deleted.
 local code2 = [[
-# Functionality for checking if inputs are connected have now been added.
+# Expression 2 now uses the friends list of any prop protection
+# installed on the server to determine if a player may interact
+# with your props and read your code. To allow friends to write to your
+# expressions, execute the following: wire_expression2_friendwrite 1
+#
+# A new operator [A ?: B] has been added, shortcut for [A ? A : B]
+# Example: Output = A ?: B, Output = A ?: B ?: C
+#
+# Functionality for checking if inputs are connected is now available
 # Example: if (->Input) { ... }
 #
 # Performance monitoring and restriction have been implemented.

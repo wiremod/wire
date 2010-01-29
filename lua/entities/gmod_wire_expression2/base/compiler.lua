@@ -315,6 +315,25 @@ function Compiler:InstrIF(args)
 	return { rtif[1], prf_cond, { rtis[1], ex1 }, st1, st2 }
 end
 
+function Compiler:InstrDEF(args)
+	self:PushPrfCounter()
+	local ex1, tp1 = self:Evaluate(args, 1)
+	local prf_ex1 = self:PopPrfCounter()
+
+	self:PushPrfCounter()
+	local ex2, tp2 = self:Evaluate(args, 2)
+	local prf_ex2 = self:PopPrfCounter()
+
+	local rtis = self:GetOperator(args, "is", {tp1})
+	local rtif = self:GetOperator(args, "cnd", {rtis[2]})
+
+	if tp1 != tp2 then
+		self:Error("Different types (" .. tps_pretty({tp1}) .. ", " .. tps_pretty({tp2}) .. ") specified returned in default conditional", args)
+	end
+
+	return { rtif[1], { rtis[1], ex1 }, ex1, ex2, prf_ex1 + prf_ex1, prf_ex2 + prf_ex1 }, tp1
+end
+
 function Compiler:InstrCND(args)
 	local ex1, tp1 = self:Evaluate(args, 1)
 

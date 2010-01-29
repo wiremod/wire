@@ -3,7 +3,6 @@
 resource.AddFile("materials/expression 2/cog.vmt")
 resource.AddFile("materials/expression 2/cog.vtf")
 
-AddCSLuaFile('init.lua')
 AddCSLuaFile('cl_init.lua')
 AddCSLuaFile('shared.lua')
 include('shared.lua')
@@ -347,21 +346,22 @@ end
 /********************************** Transfer **********************************/
 
 function ENT:SendCode(ply)
-	if self:GetPlayer() ~= ply and wire_expression2_protected:GetFloat() ~= 0 and wire_expression2_protected:GetFloat() ~= 2 then return end
-	local chunksize = 200
-	if(!self.original || !ply) then return end
-	local code = self.original
-	local chunks = math.ceil(code:len() / chunksize)
-	umsg.Start("wire_expression2_download", ply)
-		umsg.Short(chunks)
-		umsg.String(self.name)
-	umsg.End()
-
-	for i=0,chunks do
+	if (E2Lib.isFriend(self.player, ply)) then
+		local chunksize = 200
+		if(!self.original || !ply) then return end
+		local code = self.original
+		local chunks = math.ceil(code:len() / chunksize)
 		umsg.Start("wire_expression2_download", ply)
-			umsg.Short(i)
-			umsg.String(code:sub(i * chunksize + 1, (i + 1) * chunksize))
+			umsg.Short(chunks)
+			umsg.String(self.name)
 		umsg.End()
+
+		for i=0,chunks do
+			umsg.Start("wire_expression2_download", ply)
+				umsg.Short(i)
+				umsg.String(code:sub(i * chunksize + 1, (i + 1) * chunksize))
+			umsg.End()
+		end
 	end
 end
 
@@ -371,10 +371,16 @@ function ENT:Prepare(player)
 	local ID = player:UserID()
 	buffer[ID] = {}
 	buffer[ID].ent = self
+
+	if !(E2Lib.isFriend(buffer[ID].ent.player, player)
+	     && (buffer[ID].ent.player == player || buffer[ID].ent.player:GetInfoNum("wire_expression2_friendwrite") != 0)) then return end
 end
 
 concommand.Add("wire_expression_upload_begin", function(player, command, args)
 	local ID = player:UserID()
+	if !(E2Lib.isFriend(buffer[ID].ent.player, player)
+	     && (buffer[ID].ent.player == player || buffer[ID].ent.player:GetInfoNum("wire_expression2_friendwrite") != 0)) then return end
+
 	buffer[ID].text = ""
 	buffer[ID].len = tonumber(args[1])
 	buffer[ID].chunk = 0
@@ -391,6 +397,9 @@ concommand.Add("wire_expression_upload_data", function(player, command, args)
 		return
 	end
 
+	if !(E2Lib.isFriend(buffer[ID].ent.player, player)
+	     && (buffer[ID].ent.player == player || buffer[ID].ent.player:GetInfoNum("wire_expression2_friendwrite") != 0)) then return end
+
 	buffer[ID].text = buffer[ID].text .. args[1]
 	buffer[ID].chunk = buffer[ID].chunk + 1
 
@@ -399,6 +408,8 @@ end)
 
 concommand.Add("wire_expression_upload_end", function(player, command, args)
 	local ID = player:UserID()
+	if !(E2Lib.isFriend(buffer[ID].ent.player, player)
+	     && (buffer[ID].ent.player == player || buffer[ID].ent.player:GetInfoNum("wire_expression2_friendwrite") != 0)) then return end
 
 	local buf = buffer[ID]
 	buffer[ID] = nil
@@ -420,6 +431,7 @@ concommand.Add("wire_expression_upload_end", function(player, command, args)
 		ent:SetColor(255, 0, 0, a)
 	else
 		ent:Setup(decoded)
-		ent.player = player
+		--ent.player = player
 	end
 end)
+

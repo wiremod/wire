@@ -24,9 +24,21 @@ end
 
 cleanup.Register("wire_expressions")
 
+if CLIENT then
+	if CanRunConsoleCommand() then
+		CreateClientConVar("wire_expression2_friendwrite", 0, false, true)
+	else
+		hook.Add("OnEntityCreated", "wire_expression2_console", function(ent)
+			if not ValidEntity(ent) then return end
+			if ent ~= LocalPlayer() then return end
+
+			CreateClientConVar("wire_expression2_friendwrite", 0, false, true)
+		end)
+	end
+end
+
 if SERVER then
 	CreateConVar('sbox_maxwire_expressions', 20)
-	wire_expression2_protected = CreateConVar('wire_expression2_protected', 1)
 
 	function TOOL:LeftClick(trace)
 		if trace.Entity:IsPlayer() then return false end
@@ -37,9 +49,11 @@ if SERVER then
 		local ang = trace.HitNormal:Angle()
 		ang.pitch = ang.pitch + 90
 
-		if (trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_expression2" && (trace.Entity:GetPlayer() == player || wire_expression2_protected:GetFloat() == 0)) then
-			trace.Entity:SetPlayer(player)
-			trace.Entity.player = player
+		if  trace.Entity:IsValid()
+		    && trace.Entity:GetClass() == "gmod_wire_expression2"
+			&& (trace.Entity.player == player || trace.Entity.player:GetInfoNum("wire_expression2_friendwrite") != 0)
+			&& E2Lib.isFriend(trace.Entity.player, player)
+		then
 			trace.Entity:Prepare(player)
 			player:SendLua("wire_expression2_upload()")
 			return true
@@ -83,7 +97,11 @@ if SERVER then
 
 		local player = self:GetOwner()
 
-		if (trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_expression2" && (trace.Entity:GetPlayer() == player || wire_expression2_protected:GetFloat() == 0)) then
+		if  trace.Entity:IsValid()
+		    && trace.Entity:GetClass() == "gmod_wire_expression2"
+			&& (trace.Entity.player == player || trace.Entity.player:GetInfoNum("wire_expression2_friendwrite") != 0)
+			&& E2Lib.isFriend(trace.Entity.player, player)
+		then
 			trace.Entity:Reset()
 			return true
 		else
@@ -122,18 +140,20 @@ if SERVER then
 	duplicator.RegisterEntityClass("gmod_wire_expression2", MakeWireExpression2, "Pos", "Ang", "Model", "_original", "_name", "_inputs", "_outputs", "_vars")
 
 	function TOOL:RightClick(trace)
-		local ent = trace.Entity
-		if ent:IsPlayer() then return false end
+		if trace.Entity:IsPlayer() then return false end
 
-		local ply = self:GetOwner()
+		local player = self:GetOwner()
 
-		if (ent:IsValid() && ent:GetClass() == "gmod_wire_expression2" && (ent:GetPlayer() == ply || wire_expression2_protected:GetFloat() == 0 || wire_expression2_protected:GetFloat() == 2)) then
-			ent:SendCode(ply)
-			ent:Prepare(ply)
+		if  trace.Entity:IsValid()
+		    && trace.Entity:GetClass() == "gmod_wire_expression2"
+			&& E2Lib.isFriend(trace.Entity.player, player)
+		then
+			trace.Entity:SendCode(player)
+			trace.Entity:Prepare(player)
 			return true
 		end
 
-		ply:SendLua("openE2Editor()")
+		player:SendLua("openE2Editor()")
 		return false
 	end
 

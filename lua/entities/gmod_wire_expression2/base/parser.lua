@@ -30,7 +30,7 @@ If
 
 Expression
  1 : var = e1, var += e1, var -= e1, var *= e1, var /= e1 [ERROR]
- 2 : e3 ? e1 : e1
+ 2 : e3 ? e1 : e1, e3 ?: e1
  3 : e3 | e4
  4 : e4 & e5
  5 : e5 == e6, e5 != e6
@@ -502,6 +502,12 @@ function Parser:Expr2()
 		end
 
 		return self:Instruction(trace, "cnd", expr, exprtrue, self:Expr1())
+	end
+
+	if self:AcceptRoamingToken("def") then
+		local trace = self:GetTokenTrace()
+
+		return self:Instruction(trace, "def", expr, self:Expr1())
 	end
 
 	return expr

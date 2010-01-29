@@ -122,12 +122,16 @@ function E2Lib.getOwner(self, entity)
 	return nil
 end
 
-local wire_expression2_restricted = CreateConVar('wire_expression2_restricted', 1)
+function E2Lib.isFriend(owner, player)
+	return owner == player
+end
+
 function E2Lib.isOwner(self, entity)
-	if wire_expression2_restricted:GetBool() then
-		return getOwner(self, entity) == self.player
-	end
-	return true
+	local player = self.player
+	local owner = getOwner(self, entity)
+	if not validEntity(owner) then return false end
+
+	return E2Lib.isFriend(owner, player)
 end
 local isOwner = E2Lib.isOwner
 
@@ -256,6 +260,7 @@ E2Lib.optable_inv = {
 
 	qsm  = "?",
 	col  = ":",
+	def  = "?:",
 	com  = ",",
 
 	lpa  = "(",
@@ -436,15 +441,12 @@ hook.Add("InitPostEntity", "e2lib", function()
 	-- check for a CPPI compliant plugin
 	if SERVER and CPPI then
 		if _R.Player.CPPIGetFriends then
-			E2Lib.replace_function("isOwner", function(self, entity)
-				local ply = self.player
-				local owner = getOwner(self, entity)
-				if not validEntity(owner) then return false end
-				if ply == owner then return true end
+			E2Lib.replace_function("isFriend", function(owner, player)
+				if owner == player then return true end
 
 				local friends = owner:CPPIGetFriends()
 				for _,friend in pairs(friends) do
-					if ply == friend then return true end
+					if player == friend then return true end
 				end
 				return false
 			end)
