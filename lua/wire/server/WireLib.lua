@@ -10,14 +10,29 @@ function WireLib.PortComparator(a,b)
 	return a.Num < b.Num
 end
 
+-- Allow to specify the description and type, like "Name (Description) [TYPE]"
+local function ParsePortName(namedesctype, fbtype, fbdesc)
+	local namedesc, tp = namedesctype:match("^(.+) %[(.+)%]$")
+	if not namedesc then
+		namedesc = namedesctype
+		tp = fbtype
+	end
+
+	local name, desc = namedesc:match("^(.+) %((.*)%)$")
+	if not name then
+		name = namedesc
+		desc = fbdesc
+	end
+	return name, desc, tp
+end
 
 local Inputs = {}
 local Outputs = {}
 local CurLink = {}
 
 hook.Add("Think", "WireLib_Think", function()
-	for idx, output in pairs(Outputs) do
-		output.TriggerLimit = 4
+	for idx,port in pairs(Outputs) do
+		port.TriggerLimit = 4
 	end
 end)
 
@@ -34,196 +49,7 @@ function WireLib.TriggerInput(ent, name, value, ...)
 	end
 end
 
-function Wire_CreateInputs(ent, names)
-	local ent_Inputs = {}
-	ent.Inputs = ent_Inputs
-	for n,v in pairs(names) do
-		-- Allow to specify the type in square brackets, like "Name [TYPE]"
-		local name, tp = v:match("^(.+) %[(.+)%]$")
-		if not name then
-			name = v
-			tp = "NORMAL"
-		end
-
-		local input = {
-			Entity = ent,
-			Name = name,
-			Value = 0,
-			Type = tp,
-			Material = "tripmine_laser",
-			Color = Color(255, 255, 255, 255),
-			Width = 1,
-			Num = n,
-		}
-
-		local idx = 1
-		while (Inputs[idx]) do
-			idx = idx+1
-		end
-		input.Idx = idx
-
-		ent_Inputs[name] = input
-		Inputs[idx] = input
-	end
-
-	Wire_SetPathNames(ent, names)
-	WireLib._SetInputs(ent)
-
-	return ent_Inputs
-end
-
-
-function Wire_CreateOutputs(ent, names, desc)
-	local ent_Outputs = {}
-	ent.Outputs = ent_Outputs
-	for n,v in pairs(names) do
-		-- Allow to specify the type in square brackets, like "Name [TYPE]"
-		local name, tp = v:match("^(.+) %[(.+)%]$")
-		if not name then
-			name = v
-			tp = "NORMAL"
-		end
-
-		local output = {
-			Entity = ent,
-			Name = name,
-			Value = 0,
-			Type = tp,
-			Connected = {},
-			TriggerLimit = 8,
-			Num = n,
-			Desc = desc and desc[n],
-		}
-
-		local idx = 1
-		while (Outputs[idx]) do
-			idx = idx+1
-		end
-		output.Idx = idx
-
-		ent_Outputs[name] = output
-		Outputs[idx] = output
-	end
-
-	WireLib._SetOutputs(ent)
-
-	return ent_Outputs
-end
-
-
-function Wire_AdjustInputs(ent, names)
-	local ent_Inputs = ent.Inputs
-	for n,v in pairs(names) do
-		-- Allow to specify the type in square brackets, like "Name [TYPE]"
-		local name, tp = v:match("^(.+) %[(.+)%]$")
-		if not name then
-			name = v
-			tp = "NORMAL"
-		end
-
-		if (ent_Inputs[name]) then
-			ent_Inputs[name].Keep = true
-			ent_Inputs[name].Num = n
-		else
-			local input = {
-				Entity = ent,
-				Name = name,
-				Value = 0,
-				Type = "NORMAL",
-				Material = "tripmine_laser",
-				Color = Color(255, 255, 255, 255),
-				Width = 1,
-				Keep = true,
-				Num = n,
-			}
-
-			local idx = 1
-			while (Inputs[idx]) do
-				idx = idx+1
-			end
-			input.Idx = idx
-
-			ent_Inputs[name] = input
-			Inputs[idx] = input
-		end
-	end
-
-	for portname,port in pairs(ent_Inputs) do
-		if (port.Keep) then
-			port.Keep = nil
-		else
-			Wire_Link_Clear(ent, portname)
-
-			ent_Inputs[portname] = nil
-		end
-	end
-
-	Wire_SetPathNames(ent, names)
-	WireLib._SetInputs(ent)
-end
-
-
-function Wire_AdjustOutputs(ent, names, desc)
-	local ent_Outputs = ent.Outputs
-	for n,v in pairs(names) do
-		-- Allow to specify the type in square brackets, like "Name [TYPE]"
-		local name, tp = v:match("^(.+) %[(.+)%]$")
-		if not name then
-			name = v
-			tp = "NORMAL"
-		end
-
-		if (ent_Outputs[name]) then
-			ent_Outputs[name].Keep = true
-			ent_Outputs[name].Num = n
-			if (desc) and (desc[n]) then
-				ent_Outputs[name].Desc = desc[n]
-			end
-		else
-			local output = {
-				Keep = true,
-				Name = name,
-				Value = 0,
-				Type = "NORMAL",
-				Connected = {},
-				TriggerLimit = 8,
-				Num = n,
-			}
-
-			if (desc) and (desc[n]) then
-				output.Desc = desc[n]
-			end
-
-			local idx = 1
-			while (Outputs[idx]) do
-				idx = idx+1
-			end
-			output.Idx = idx
-
-			ent_Outputs[name] = output
-			Outputs[idx] = output
-		end
-	end
-
-	for portname,port in pairs(ent_Outputs) do
-		if (port.Keep) then
-			port.Keep = nil
-		else
-			-- fix by Syranide: unlinks wires of removed outputs
-			for i,port in ipairs(port.Connected) do
-				if (port.Entity:IsValid()) then
-					Wire_Link_Clear(port.Entity, port.Name)
-				end
-			end
-			ent_Outputs[portname] = nil
-		end
-	end
-
-	WireLib._SetOutputs(ent)
-end
-
-
--- and array of data types
+-- an array of data types
 WireLib.DT = {
 	NORMAL = {
 		Zero = 0
@@ -253,9 +79,6 @@ WireLib.DT = {
 	ANY = {
 		Zero = 0
 	},
-	HOVERDATAPORT = {
-		Zero = 0
-	},
 	ARRAY = {
 		Zero = {}
 	},
@@ -263,20 +86,25 @@ WireLib.DT = {
 		Zero = {},
 		BiDir = true
 	},
+	/*HOVERDATAPORT = {
+		Zero = 0
+	},*/
 }
 
-function WireLib.CreateSpecialInputs(ent, names, types, desc)
+function WireLib.CreateSpecialInputs(ent, names, types, descs)
 	types = types or {}
-	desc = desc or {}
-	local ent_Inputs = {}
-	ent.Inputs = ent_Inputs
+	descs = descs or {}
+	local ent_ports = {}
+	ent.Inputs = ent_ports
 	for n,v in pairs(names) do
-		local input = {
+		local name, desc, tp = ParsePortName(v, types[n] or "NORMAL", descs and descs[n])
+
+		local port = {
 			Entity = ent,
-			Name = v,
-			Desc = desc[n],
-			Type = types[n] or "NORMAL",
-			Value = WireLib.DT[ (types[n] or "NORMAL") ].Zero,
+			Name = name,
+			Desc = desc,
+			Type = tp,
+			Value = WireLib.DT[ tp ].Zero,
 			Material = "tripmine_laser",
 			Color = Color(255, 255, 255, 255),
 			Width = 1,
@@ -287,31 +115,33 @@ function WireLib.CreateSpecialInputs(ent, names, types, desc)
 		while (Inputs[idx]) do
 			idx = idx+1
 		end
-		input.Idx = idx
+		port.Idx = idx
 
-		ent_Inputs[v] = input
-		Inputs[idx] = input
+		ent_ports[name] = port
+		Inputs[idx] = port
 	end
 
 	WireLib.SetPathNames(ent, names)
 	WireLib._SetInputs(ent)
 
-	return ent_Inputs
+	return ent_ports
 end
 
 
-function WireLib.CreateSpecialOutputs(ent, names, types, desc)
+function WireLib.CreateSpecialOutputs(ent, names, types, descs)
 	types = types or {}
-	desc = desc or {}
-	local ent_Outputs = {}
-	ent.Outputs = ent_Outputs
+	descs = descs or {}
+	local ent_ports = {}
+	ent.Outputs = ent_ports
 	for n,v in pairs(names) do
-		local output = {
+		local name, desc, tp = ParsePortName(v, types[n] or "NORMAL", descs and descs[n])
+
+		local port = {
 			Entity = ent,
-			Name = v,
-			Desc = desc[n],
-			Type = types[n] or "NORMAL",
-			Value = WireLib.DT[ (types[n] or "NORMAL") ].Zero,
+			Name = name,
+			Desc = desc,
+			Type = tp,
+			Value = WireLib.DT[ tp ].Zero,
 			Connected = {},
 			TriggerLimit = 8,
 			Num = n,
@@ -321,41 +151,42 @@ function WireLib.CreateSpecialOutputs(ent, names, types, desc)
 		while (Outputs[idx]) do
 			idx = idx+1
 		end
-		output.Idx = idx
+		port.Idx = idx
 
-		ent_Outputs[v] = output
-		Outputs[idx] = output
+		ent_ports[name] = port
+		Outputs[idx] = port
 	end
 
 	WireLib._SetOutputs(ent)
 
-	return ent_Outputs
+	return ent_ports
 end
 
 
 
-function WireLib.AdjustSpecialInputs(ent, names, types, desc)
+function WireLib.AdjustSpecialInputs(ent, names, types, descs)
 	types = types or {}
-	desc = desc or {}
-	local ent_Inputs = ent.Inputs
+	descs = descs or {}
+	local ent_ports = ent.Inputs
 	for n,v in ipairs(names) do
-		if (ent_Inputs[v]) then
-			local newtype = types[n] or "NORMAL"
-			if newtype ~= ent_Inputs[v].Type then
-				timer.Simple(0, Wire_Link_Clear, ent, v) -- TODO: Think of a non-triggering way to clear a link. But delayed triggering will do for now.
-				ent_Inputs[v].Value = WireLib.DT[newtype].Zero
+		local name, desc, tp = ParsePortName(v, types[n] or "NORMAL", descs and descs[n])
+
+		if (ent_ports[name]) then
+			if tp ~= ent_ports[name].Type then
+				timer.Simple(0, Wire_Link_Clear, ent, name)
+				ent_ports[name].Value = WireLib.DT[tp].Zero
+				ent_ports[name].Type = tp
 			end
-			ent_Inputs[v].Keep = true
-			ent_Inputs[v].Num = n
-			ent_Inputs[v].Desc = desc[n]
-			ent_Inputs[v].Type = newtype
+			ent_ports[name].Keep = true
+			ent_ports[name].Num = n
+			ent_ports[name].Desc = descs[n]
 		else
-			local input = {
+			local port = {
 				Entity = ent,
-				Name = v,
-				Desc = desc[n],
-				Type = types[n] or "NORMAL",
-				Value = WireLib.DT[ types[n] or "NORMAL" ].Zero,
+				Name = name,
+				Desc = desc,
+				Type = tp,
+				Value = WireLib.DT[ tp ].Zero,
 				Material = "tripmine_laser",
 				Color = Color(255, 255, 255, 255),
 				Width = 1,
@@ -367,53 +198,54 @@ function WireLib.AdjustSpecialInputs(ent, names, types, desc)
 			while (Inputs[idx]) do
 				idx = idx+1
 			end
-			input.Idx = idx
+			port.Idx = idx
 
-			ent_Inputs[v] = input
-			Inputs[idx] = input
+			ent_ports[name] = port
+			Inputs[idx] = port
 		end
 	end
 
-	for portname,port in pairs(ent_Inputs) do
+	for portname,port in pairs(ent_ports) do
 		if (port.Keep) then
 			port.Keep = nil
 		else
 			Wire_Link_Clear(ent, portname)
 
-			ent_Inputs[portname] = nil
+			ent_ports[portname] = nil
 		end
 	end
 
 	WireLib.SetPathNames(ent, names)
 	WireLib._SetInputs(ent)
 
-	return ent_Inputs
+	return ent_ports
 end
 
 
-function WireLib.AdjustSpecialOutputs(ent, names, types, desc)
+function WireLib.AdjustSpecialOutputs(ent, names, types, descs)
 	types = types or {}
-	desc = desc or {}
-	local ent_Outputs = ent.Outputs
+	descs = descs or {}
+	local ent_ports = ent.Outputs
 	for n,v in ipairs(names) do
-		if (ent_Outputs[v]) then
-			local newtype = types[n] or "NORMAL"
-			if newtype ~= ent_Outputs[v].Type then
-				for i,inp in ipairs(ent_Outputs[v].Connected) do
+		local name, desc, tp = ParsePortName(v, types[n] or "NORMAL", descs and descs[n])
+
+		if (ent_ports[name]) then
+			if tp ~= ent_ports[name].Type then
+				for i,inp in ipairs(ent_ports[name].Connected) do
 					if (inp.Entity:IsValid()) then
 						Wire_Link_Clear(inp.Entity, inp.Name)
 					end
 				end
+				ent_ports[name].Type = tp
 			end
-			ent_Outputs[v].Keep = true
-			ent_Outputs[v].Num = n
-			ent_Outputs[v].Desc = desc[n]
-			ent_Outputs[v].Type = newtype
+			ent_ports[name].Keep = true
+			ent_ports[name].Num = n
+			ent_ports[name].Desc = descs[n]
 		else
-			local output = {
+			local port = {
 				Keep = true,
-				Name = v,
-				Desc = desc[n],
+				Name = name,
+				Desc = descs[n],
 				Type = types[n] or "NORMAL",
 				Value = WireLib.DT[ (types[n] or "NORMAL") ].Zero,
 				Connected = {},
@@ -425,50 +257,50 @@ function WireLib.AdjustSpecialOutputs(ent, names, types, desc)
 			while (Outputs[idx]) do
 				idx = idx+1
 			end
-			output.Idx = idx
+			port.Idx = idx
 
-			ent_Outputs[v] = output
-			Outputs[idx] = output
+			ent_ports[name] = port
+			Outputs[idx] = port
 		end
 	end
 
-	for portname,port in pairs(ent_Outputs) do
+	for portname,port in pairs(ent_ports) do
 		if (port.Keep) then
 			port.Keep = nil
 		else
 			-- fix by Syranide: unlinks wires of removed outputs
-			for i,port in ipairs(ent_Outputs[portname].Connected) do
-				if (port.Entity:IsValid()) then
-					Wire_Link_Clear(port.Entity, port.Name)
+			for i,inp in ipairs(port.Connected) do
+				if (inp.Entity:IsValid()) then
+					Wire_Link_Clear(inp.Entity, inp.Name)
 				end
 			end
-			ent_Outputs[portname] = nil
+			ent_ports[portname] = nil
 		end
 	end
 
 	WireLib._SetOutputs(ent)
 
-	return ent_Outputs
+	return ent_ports
 end
 
 
-function WireLib.RetypeInputs(ent, iname, itype, desc)
-	local ent_Inputs = ent.Inputs
-	if (!ent_Inputs[iname]) or (!itype) then return end
-	ent_Inputs[iname].Desc = desc
-	ent_Inputs[iname].Type = itype
-	ent_Inputs[iname].Value = WireLib.DT[itype].Zero
+function WireLib.RetypeInputs(ent, iname, itype, descs)
+	local ent_ports = ent.Inputs
+	if (!ent_ports[iname]) or (!itype) then return end
+	ent_ports[iname].Desc = descs
+	ent_ports[iname].Type = itype
+	ent_ports[iname].Value = WireLib.DT[itype].Zero
 
 	WireLib._SetInputs(ent)
 end
 
 
-function WireLib.RetypeOutputs(ent, oname, otype, desc)
-	local ent_Outputs = ent.Outputs
-	if (!ent_Outputs[oname]) or (!otype) then return end
-	ent_Outputs[oname].Desc = desc
-	ent_Outputs[oname].Type = otype
-	ent_Outputs[oname].Value = WireLib.DT[otype].Zero
+function WireLib.RetypeOutputs(ent, oname, otype, descs)
+	local ent_ports = ent.Outputs
+	if (!ent_ports[oname]) or (!otype) then return end
+	ent_ports[oname].Desc = descs
+	ent_ports[oname].Type = otype
+	ent_ports[oname].Value = WireLib.DT[otype].Zero
 
 	WireLib._SetOutputs(ent)
 end
@@ -476,53 +308,53 @@ end
 
 -- force_outputs is only needed for existing components to allow them to be updated
 function Wire_Restored(ent, force_outputs)
-	local ent_Inputs = ent.Inputs
-	if (ent_Inputs) then
-		for name,input in pairs(ent_Inputs) do
-			if (not input.Material) then  -- Must be an old save
-				input.Name = name
+	local ent_ports = ent.Inputs
+	if (ent_ports) then
+		for name,port in pairs(ent_ports) do
+			if (not port.Material) then  -- Must be an old save
+				port.Name = name
 
-				if (input.Ropes) then
-					for _,rope in pairs(input.Ropes) do
+				if (port.Ropes) then
+					for _,rope in pairs(port.Ropes) do
 						rope:Remove()
 					end
-					input.Ropes = nil
+					port.Ropes = nil
 				end
 			end
 
-			input.Entity = ent
-			input.Type = input.Type or "NORMAL"
-			input.Material = input.Material or "cable/blue_elec"
-			input.Color = input.Color or Color(255, 255, 255, 255)
-			input.Width = input.Width or 2
-			input.StartPos = input.StartPos or Vector(0, 0, 0)
-			if (input.Src) and (not input.Path) then
-				input.Path = { { Entity = input.Src, Pos = Vector(0, 0, 0) } }
+			port.Entity = ent
+			port.Type = port.Type or "NORMAL"
+			port.Material = port.Material or "cable/blue_elec"
+			port.Color = port.Color or Color(255, 255, 255, 255)
+			port.Width = port.Width or 2
+			port.StartPos = port.StartPos or Vector(0, 0, 0)
+			if (port.Src) and (not port.Path) then
+				port.Path = { { Entity = port.Src, Pos = Vector(0, 0, 0) } }
 			end
 
 			local idx = 1
 			while (Inputs[idx]) do
 				idx = idx+1
 			end
-			input.Idx = idx
+			port.Idx = idx
 
-			Inputs[idx] = input
+			Inputs[idx] = port
 		end
 	end
 
-	local ent_Outputs = ent.Outputs
-	if (ent_Outputs) then
-		for _,output in pairs(ent_Outputs) do
-			output.Entity = ent
-			output.Type = output.Type or "NORMAL"
+	local ent_ports = ent.Outputs
+	if (ent_ports) then
+		for _,port in pairs(ent_ports) do
+			port.Entity = ent
+			port.Type = port.Type or "NORMAL"
 
 			local idx = 1
 			while (Outputs[idx]) do
 				idx = idx+1
 			end
-			output.Idx = idx
+			port.Idx = idx
 
-			Outputs[idx] = output
+			Outputs[idx] = port
 		end
 	elseif (force_outputs) then
 		ent.Outputs = Wire_CreateOutputs(ent, force_outputs)
@@ -531,32 +363,32 @@ end
 
 
 function Wire_Remove(ent)
-	local ent_Inputs = ent.Inputs
-	if (ent_Inputs) then
-		for _,input in pairs(ent_Inputs) do
-			if (input.Src) and (input.Src:IsValid()) then
-				local output = input.Src.Outputs[input.SrcId]
-				if (output) then
-					for k,v in ipairs(output.Connected) do
+	local ent_ports = ent.Inputs
+	if (ent_ports) then
+		for _,port in pairs(ent_ports) do
+			if (port.Src) and (port.Src:IsValid()) then
+				local port = port.Src.Outputs[port.SrcId]
+				if (port) then
+					for k,v in ipairs(port.Connected) do
 						if (v.Entity == dst) and (v.Name == dstid) then
-							table.remove(output.Connected, k)
+							table.remove(port.Connected, k)
 							break
 						end
 					end
 				end
 			end
 
-			Inputs[input.Idx] = nil
+			Inputs[port.Idx] = nil
 		end
 	end
 
-	local ent_Outputs = ent.Outputs
-	if (ent_Outputs) then
-		for _,output in pairs(ent_Outputs) do
-			for _,v in ipairs(output.Connected) do
+	local ent_ports = ent.Outputs
+	if (ent_ports) then
+		for _,port in pairs(ent_ports) do
+			for _,v in ipairs(port.Connected) do
 				if (v.Entity:IsValid()) then
-					local input = v.Entity.Inputs[v.Name]
-					local zero = WireLib.DT[input.Type].Zero
+					local port = v.Entity.Inputs[v.Name]
+					local zero = WireLib.DT[port.Type].Zero
 
 					WireLib.TriggerInput(v.Entity, v.Name, zero)
 					-- disable for beamlib
@@ -564,7 +396,7 @@ function Wire_Remove(ent)
 				end
 			end
 
-			Outputs[output.Idx] = nil
+			Outputs[port.Idx] = nil
 		end
 	end
 end
@@ -955,24 +787,41 @@ function WireLib.ApplyDupeInfo( ply, ent, info, GetEntByID )
 	end
 end
 
+function Wire_CreateInputs(ent, names)
+	return WireLib.CreateSpecialInputs(ent, names)
+end
 
 
-WireLib.CreateInputs			= Wire_CreateInputs
-WireLib.CreateOutputs			= Wire_CreateOutputs
-WireLib.AdjustInputs			= Wire_AdjustInputs
-WireLib.AdjustOutputs			= Wire_AdjustOutputs
-WireLib.Restored				= Wire_Restored
-WireLib.Remove					= Wire_Remove
-WireLib.TriggerOutput			= Wire_TriggerOutput
-WireLib.Link_Start				= Wire_Link_Start
-WireLib.Link_Node				= Wire_Link_Node
-WireLib.Link_End				= Wire_Link_End
-WireLib.Link_Cancel				= Wire_Link_Cancel
-WireLib.Link_Clear				= Wire_Link_Clear
-WireLib.SetPathNames			= Wire_SetPathNames
-WireLib.CreateOutputIterator	= Wire_CreateOutputIterator
-Wire_BuildDupeInfo				= WireLib.BuildDupeInfo
-Wire_ApplyDupeInfo				= WireLib.ApplyDupeInfo
+function Wire_CreateOutputs(ent, names, descs)
+	return WireLib.CreateSpecialOutputs(ent, names, {}, descs)
+end
+
+
+function Wire_AdjustInputs(ent, names)
+	return WireLib.AdjustSpecialInputs(ent, names, {}, {})
+end
+
+
+function Wire_AdjustOutputs(ent, names, descs)
+	return WireLib.AdjustSpecialOutputs(ent, names, {}, descs)
+end
+
+WireLib.CreateInputs         = Wire_CreateInputs
+WireLib.CreateOutputs        = Wire_CreateOutputs
+WireLib.AdjustInputs         = Wire_AdjustInputs
+WireLib.AdjustOutputs        = Wire_AdjustOutputs
+WireLib.Restored             = Wire_Restored
+WireLib.Remove               = Wire_Remove
+WireLib.TriggerOutput        = Wire_TriggerOutput
+WireLib.Link_Start           = Wire_Link_Start
+WireLib.Link_Node            = Wire_Link_Node
+WireLib.Link_End             = Wire_Link_End
+WireLib.Link_Cancel          = Wire_Link_Cancel
+WireLib.Link_Clear           = Wire_Link_Clear
+WireLib.SetPathNames         = Wire_SetPathNames
+WireLib.CreateOutputIterator = Wire_CreateOutputIterator
+Wire_BuildDupeInfo           = WireLib.BuildDupeInfo
+Wire_ApplyDupeInfo           = WireLib.ApplyDupeInfo
 
 --backwards logic: set enable to false to show show values on gates instead
 Wire_EnableGateInputValues = true

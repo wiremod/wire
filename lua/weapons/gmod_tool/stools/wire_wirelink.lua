@@ -81,7 +81,7 @@ if SERVER then
 			RefreshSpecialOutputs(ent)
 		end
 
-		_Wire_ApplyDupeInfo(ply, ent, info, GetEntByID)
+		return _Wire_ApplyDupeInfo(ply, ent, info, GetEntByID)
 	end
 
 	function WireLib.CreateSpecialOutputs(ent, names, types, desc)
@@ -90,14 +90,6 @@ if SERVER then
 
 	function WireLib.AdjustSpecialOutputs(ent, names, types, desc)
 		return InfuseSpecialOutputs(_Wire_AdjustSpecialOutputs, ent, names, types, desc)
-	end
-
-	function WireLib.CreateOutputs(ent, names, desc)
-		return WireLib.CreateSpecialOutputs(ent, names, nil, desc)
-	end
-
-	function WireLib.AdjustOutputs(ent, names, desc)
-		return WireLib.AdjustSpecialOutputs(ent, names, nil, desc)
 	end
 
 	function WireLib.Link_End(idx, ent, pos, oname, pl)
@@ -110,8 +102,6 @@ if SERVER then
 	end
 
 	Wire_Link_End = WireLib.Link_End
-	Wire_CreateOutputs = WireLib.CreateOutputs
-	Wire_AdjustOutputs = WireLib.AdjustOutputs
 	Wire_BuildDupeInfo = WireLib.BuildDupeInfo
 	Wire_ApplyDupeInfo = WireLib.ApplyDupeInfo
 end

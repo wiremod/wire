@@ -56,8 +56,8 @@ function ENT:Initialize()
 
 	self.Sound = true
 
-	self.Inputs = WireLib.CreateSpecialInputs( self.Entity, { "X_JumpTarget", "Y_JumpTarget", "Z_JumpTarget", "SetJumpTarget", "Jump", "JumpTarget", "Sound" }, { "NORMAL", "NORMAL", "NORMAL", "NORMAL", "NORMAL", "VECTOR", "NORMAL" } ) //"X_Velocity", "Y_Velocity", "Z_Velocity", "Pitch_Velocity", "Yaw_Velocity", "Roll_Velocity", "HoverMode",
-	//self.Outputs = WireLib.CreateSpecialOutputs(self.Entity, {"Data"}, {"HOVERDATAPORT"})
+	self.Inputs = WireLib.CreateInputs( self, { "X_JumpTarget", "Y_JumpTarget", "Z_JumpTarget", "SetJumpTarget (deprecated)", "Jump", "JumpTarget [VECTOR]", "Sound" } ) //"X_Velocity", "Y_Velocity", "Z_Velocity", "Pitch_Velocity", "Yaw_Velocity", "Roll_Velocity", "HoverMode",
+	//self.Outputs = WireLib.CreateOutputs(self, { "Data [HOVERDATAPORT]" })
 	self:ShowOutput()
 end
 
