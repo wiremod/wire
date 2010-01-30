@@ -79,7 +79,7 @@
 
 	"Clock"
 	{
-		"categories"    "button"
+		"categories"    "button,indicator"
 		"model"         "models/props_c17/clock01.mdl"
 	}
 
@@ -137,6 +137,13 @@
 		"model"         "models/props_junk/PopCan01a.mdl"
 	}
 
+	"Grave Stone"
+	{
+		"categories"    "indicator"
+		"model"         "models/props_c17/gravestone004a.mdl"
+	}
+
+
 	"Barrel"
 	{
 		"categories"    "indicator"
@@ -163,7 +170,7 @@
 	
 	"Ranger"
 	{
-		"categories"    "ranger,podctrlr"
+		"categories"    "ranger,podctrlr,indicator"
 		"model"         "models/jaanus/wiretool/wiretool_range.mdl"
 	}
 	

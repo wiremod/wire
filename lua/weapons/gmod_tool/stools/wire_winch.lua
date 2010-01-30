@@ -4,10 +4,13 @@ TOOL.Command		= nil
 TOOL.ConfigName		= ""
 TOOL.Tab			= "Wire"
 
-TOOL.ClientConVar[ "material" ] = "cable/rope"
-TOOL.ClientConVar[ "width" ] = "3"
-TOOL.ClientConVar[ "fwd_speed" ] = "64"
-TOOL.ClientConVar[ "bwd_speed" ] = "64"
+TOOL.ClientConVar = {
+	material = "cable/rope",
+	width = "3",
+	fwd_speed = "64",
+	bwd_speed = "64",
+	model = "models/jaanus/wiretool/wiretool_siren.mdl",
+}
 
 if CLIENT then
 	language.Add( "Tool_wire_winch_name", "Winch Tool (Wire)" )
@@ -54,7 +57,7 @@ function TOOL:LeftClick( trace )
 		-- Attach our Controller to the Elastic constraint
 		local Ang = trace.HitNormal:Angle()
 		Ang.pitch = Ang.pitch + 90
-		local controller = MakeWireWinchController(ply, trace.HitPos, Ang, "models/jaanus/wiretool/wiretool_siren.mdl", nil, const, rope)
+		local controller = MakeWireWinchController(ply, trace.HitPos, Ang, self:GetModel(), nil, const, rope)
 
 		local min = controller:OBBMins()
 		controller:SetPos( trace.HitPos - trace.HitNormal * min.z )
@@ -257,7 +260,7 @@ if SERVER then
 
 		controller:SetPos( Pos )
 		controller:SetAngles( Ang )
-		controller:SetModel( Model(model) )
+		controller:SetModel(model)
 		controller:Setup()
 		controller:SetPlayer(pl)
 		controller:Spawn()
@@ -333,7 +336,20 @@ function TOOL:Reload( trace )
 
 end
 
+function TOOL:GetModel()
+	local model = "models/jaanus/wiretool/wiretool_siren.mdl"
+
+	if (util.IsValidModel( self:GetClientInfo( "model" ) )) then
+		model = self:GetClientInfo( "model" )
+	end
+
+	return model
+end
+
 function TOOL.BuildCPanel(panel)
+	panel:AddControl("Header", { Text = "#Tool_wire_winch_name", Description = "#Tool_wire_winch_desc" })
+	WireDermaExts.ModelSelect(panel, "wire_vehicle_model", list.Get( "Wire_Misc_Tools_Models" ), 1)
+
 	panel:AddControl("CheckBox", {
 		Label = "#WireWinchTool_fixed",
 		Command = "wire_winch_fixed"

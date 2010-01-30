@@ -4,7 +4,7 @@ TOOL.Command		= nil
 TOOL.ConfigName		= ""
 TOOL.Tab			= "Wire"
 
-TOOL.Model = "models/jaanus/wiretool/wiretool_siren.mdl"
+TOOL.ClientConVar[ "model" ] = "models/jaanus/wiretool/wiretool_siren.mdl"
 
 /* If we're running on the client, setup the description strings */
 if ( CLIENT ) then
@@ -109,7 +109,7 @@ function TOOL:LeftClick( trace )
 	Ang.pitch = Ang.pitch + 90
 
 	/* Make the EyePod */
-	local ent = MakeWireEyePod(ply, trace.HitPos, Ang, self.Model, DefaultToZero, ShowRateOfChange, ClampXMin, ClampXMax, ClampYMin, ClampYMax, ClampX, ClampY)
+	local ent = MakeWireEyePod(ply, trace.HitPos, Ang, self:GetModel(), DefaultToZero, ShowRateOfChange, ClampXMin, ClampXMax, ClampYMin, ClampYMax, ClampX, ClampY)
 
 	local min = ent:OBBMins()
 	ent:SetPos( trace.HitPos - trace.HitNormal * min.z )
@@ -241,11 +241,23 @@ end
 
 
 function TOOL:Think()
-	if (!self.GhostEntity || !self.GhostEntity:IsValid() || self.GhostEntity:GetModel() != self.Model ) then
-		self:MakeGhostEntity( self.Model, Vector(0,0,0), Angle(0,0,0) )
+	local model = self:GetModel()
+
+	if (!self.GhostEntity || !self.GhostEntity:IsValid() || self.GhostEntity:GetModel() != model ) then
+		self:MakeGhostEntity( Model(model), Vector(0,0,0), Angle(0,0,0) )
 	end
 
 	self:UpdateGhostWireEyePod( self.GhostEntity, self:GetOwner() )
+end
+
+function TOOL:GetModel()
+	local model = "models/jaanus/wiretool/wiretool_siren.mdl"
+
+	if (util.IsValidModel( self:GetClientInfo( "model" ) )) then
+		model = self:GetClientInfo( "model" )
+	end
+
+	return model
 end
 
 -------------------------------------- TOOL Menu ---------------------------------------------------
@@ -287,6 +299,8 @@ if (CLIENT) then
 				[5] = "wire_eyepod_YMax"
 			}
 		})
+
+		WireDermaExts.ModelSelect(panel, "wire_eyepod_model", list.Get( "Wire_Misc_Tools_Models" ), 1)
 
 		panel:AddControl("CheckBox", {
 			Label = "#WireEyePod_CumulativeOutput",

@@ -209,6 +209,9 @@ function TOOL:GetModel()
 	return model
 end
 
-function TOOL.BuildCPanel(panel)
-	panel:AddControl("Header", { Text = "#Tool_wire_emarker_name", Description = "#Tool_wire_emarker_desc" })
+if (CLIENT) then
+	function TOOL.BuildCPanel(panel)
+		panel:AddControl("Header", { Text = "#Tool_wire_emarker_name", Description = "#Tool_wire_emarker_desc" })
+		WireDermaExts.ModelSelect(panel, "wire_emarker_model", list.Get( "Wire_Misc_Tools_Models" ), 1)
+	end
 end

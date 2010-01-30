@@ -200,3 +200,7 @@ list.Set( "Wire_WaterSensor_Models", "models/jaanus/wiretool/wiretool_range.mdl"
 --Target Finder
 list.Set( "Wire_TargetFinder_Models", "models/beer/wiremod/targetfinder.mdl", {} )
 list.Set( "Wire_TargetFinder_Models", "models/props_lab/powerbox02d.mdl", {} )
+
+--Misc Tools (Entity Marker, Eye Pod, GpuLib Switcher)
+list.Set( "Wire_Misc_Tools_Models", "models/jaanus/wiretool/wiretool_range.mdl", {} )
+list.Set( "Wire_Misc_Tools_Models", "models/jaanus/wiretool/wiretool_siren.mdl", {} )

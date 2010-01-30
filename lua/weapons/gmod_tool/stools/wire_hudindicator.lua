@@ -489,21 +489,7 @@ function TOOL.BuildCPanel(panel)
 		Multiplier = "255"
 	})
 
-	panel:AddControl("ComboBox", {
-		Label = "#ToolWireIndicator_Model",
-		MenuButton = "0",
-
-		Options = {
-			["Siren"]				= { wire_hudindicator_model = "models/jaanus/wiretool/wiretool_siren.mdl" },
-			["Medium 7-seg bar"]	= { wire_hudindicator_model = "models/segment2.mdl" },
-			["Small 7-seg bar"]		= { wire_hudindicator_model = "models/segment.mdl" },
-			["Barrel"]				= { wire_hudindicator_model = "models/props_borealis/bluebarrel001.mdl" },
-			["Grave stone"]			= { wire_hudindicator_model = "models/props_c17/gravestone004a.mdl" },
-			["Pop can"]				= { wire_hudindicator_model = "models/props_junk/PopCan01a.mdl" },
-			["Traffic Cone"]		= { wire_hudindicator_model = "models/props_junk/TrafficCone001a.mdl" },
-			["Big Clock"]			= { wire_hudindicator_model = "models/props_trainstation/trainstation_clock001.mdl" }
-		}
-	})
+	ModelPlug_AddToCPanel(panel, "indicator", "wire_hudindicator", "#ToolWireIndicator_Model", nil, "#ToolWireIndicator_Model")
 
 	panel:AddControl("ComboBox", {
 		Label = "#ToolWireIndicator_Material",

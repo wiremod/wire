@@ -4,6 +4,8 @@ TOOL.Command    = nil
 TOOL.ConfigName = ""
 TOOL.Tab        = "Wire"
 
+TOOL.ClientConVar[ "model" ] = "models/jaanus/wiretool/wiretool_siren.mdl"
+
 if (CLIENT) then
 	language.Add("Tool_wire_gpulib_switcher_name", "GPULib Screen Switcher")
 	language.Add("Tool_wire_gpulib_switcher_desc", "Displays one entity's GPULib screen on another entity.")
@@ -12,6 +14,7 @@ if (CLIENT) then
 
 	function TOOL.BuildCPanel(panel)
 		panel:AddControl("Header", { Text = "#Tool_wire_gpulib_switcher_name", Description = "#Tool_wire_gpulib_switcher_desc" })
+		WireDermaExts.ModelSelect(panel, "wire_gpulib_switcher_model", list.Get( "Wire_Misc_Tools_Models" ), 1)
 	end
 
 elseif SERVER then
