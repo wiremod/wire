@@ -32,6 +32,14 @@ end)
 ENT.OverlayDelay = 0
 ENT.WireDebugName = "Expression 2"
 
+local function copytype(var)
+	if type(var) == "table" then
+		return table.Copy(var)
+	else
+		return var
+	end
+end
+
 function tablekeys(tbl)
 	l = {}
 	for k,v in pairs(tbl) do
@@ -69,6 +77,10 @@ function ENT:Execute()
 	if self.error then return end
 	if self.context.resetting then return end
 
+	for k,v in pairs(self.tvars) do
+		self.context.vars[k] = copytype(wire_expression_types2[v][2])
+	end
+
 	e2_install_hook_fix()
 	self:PCallHook('preexecute')
 
@@ -77,7 +89,6 @@ function ENT:Execute()
 		if msg == "exit" then
 		elseif msg == "perf" then
 			self:Error("Expression 2 (" .. self.name .. "): tick quota exceeded", "tick quota exceeded")
-
 		else
 			self:Error("Expression 2 (" .. self.name .. "): " .. e2_processerror(msg), "script error")
 		end
@@ -164,14 +175,6 @@ function ENT:Error(message, overlaytext)
 	WireLib.ClientError(message, self.player)
 end
 
-local function copytype(var)
-	if type(var) == "table" then
-		return table.Copy(var)
-	else
-		return var
-	end
-end
-
 function ENT:Setup(buffer, restore)
 	if self.script then
 		self:PCallHook('destruct')
@@ -202,8 +205,9 @@ function ENT:Setup(buffer, restore)
 	local status, tree, dvars = Parser.Execute(tokens)
 	if not status then self:Error(tree) return end
 
-	local status, script, dvars = Compiler.Execute(tree, self.inports[3], self.outports[3], self.persists[3], dvars)
+	local status, script, dvars, tvars = Compiler.Execute(tree, self.inports[3], self.outports[3], self.persists[3], dvars)
 	if not status then self:Error(script) return end
+	self.tvars = tvars
 
 	self:SetOverlayText("Expression 2\n" .. self.name)
 	local r,g,b,a = self:GetColor()

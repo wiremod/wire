@@ -7,7 +7,11 @@ local delta = wire_expression2_delta
 __e2setcost(1) -- approximation
 
 registerOperator("dat", "", "", function(self, args)
-	return args[2]
+	if type(args[2]) == "table" then
+		return table.Copy(args[2])
+	else
+		return args[2]
+	end
 end)
 
 __e2setcost(2) -- approximation

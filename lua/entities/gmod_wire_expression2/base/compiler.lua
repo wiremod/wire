@@ -52,14 +52,7 @@ function Compiler:Process(root, inputs, outputs, persist, delta, params)
 	local script = Compiler["Instr" .. string.upper(root[1])](self, root)
 	local ctx = self:PopContext()
 
-	local init = {self:GetOperator(args, "seq", {})[1], 0}
-	for name,tp in pairs(self.tvars) do
-		self:SetVariableType(name, tp, args)
-		init[#init + 1] = { self:GetOperator(args, "ass", {tp})[1], name, { self:GetOperator(args, "dat", {})[1], wire_expression_types2[tp][2] } }
-	end
-	init[#init + 1] = script
-
-	return init, self.dvars
+	return script, self.dvars, self.tvars
 end
 
 /******************************************************************************/
