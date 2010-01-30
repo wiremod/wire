@@ -29,6 +29,7 @@ function Compiler:Process(root, inputs, outputs, persist, delta, params)
 	self.prfcounter = 0
 	self.prfcounters = {}
 	self.dvars = {}
+	self.tvars = {}
 	self.vars = {}
 
 	for name,v in pairs(inputs) do
@@ -48,12 +49,17 @@ function Compiler:Process(root, inputs, outputs, persist, delta, params)
 	end
 
 	self:PushContext()
-
 	local script = Compiler["Instr" .. string.upper(root[1])](self, root)
-
 	local ctx = self:PopContext()
 
-	return script, self.dvars
+	local init = {self:GetOperator(args, "seq", {})[1], 0}
+	for name,tp in pairs(self.tvars) do
+		self:SetVariableType(name, tp, args)
+		init[#init + 1] = { self:GetOperator(args, "ass", {tp})[1], name, { self:GetOperator(args, "dat", {})[1], wire_expression_types2[tp][2] } }
+	end
+	init[#init + 1] = script
+
+	return init, self.dvars
 end
 
 /******************************************************************************/
@@ -160,10 +166,14 @@ function Compiler:PopContext()
 	return context
 end
 
-function Compiler:MergeContext(cx1, cx2, instr)
-	local vr1 = {}
-	local vr2 = {}
+function Compiler:SingleContext(cx, instr)
+	for name,tp in pairs(cx) do
+		self:SetVariableType(name, tp, instr)
+		self.tvars[name] = tp
+	end
+end
 
+function Compiler:MergeContext(cx1, cx2, instr)
 	for name,tp in pairs(cx1) do
 		if cx2[name] and cx2[name] != tp then
 			self:Error("Variable (" .. E2Lib.limitString(name, 10) .. ") is assigned different types (" .. tps_pretty({tp}) .. ", " .. tps_pretty({cx2[name]}) .. ") in if-statement", instr)
@@ -172,15 +182,13 @@ function Compiler:MergeContext(cx1, cx2, instr)
 
 	for name,tp in pairs(cx1) do
 		self:SetVariableType(name, tp, instr)
-		if !cx2[name] then vr2[name] = tp end
+		if !cx2[name] then self.tvars[name] = tp end
 	end
 
 	for name,tp in pairs(cx2) do
 		self:SetVariableType(name, tp, instr)
-		if !cx1[name] then vr1[name] = tp end
+		if !cx1[name] then self.tvars[name] = tp end
 	end
-
-	return vr1, vr2
 end
 
 
@@ -254,13 +262,9 @@ function Compiler:InstrFOR(args)
 	local stmt = self:EvaluateStatement(args, 5)
 	local cx = self:PopContext()
 
-	local init = {self:GetOperator(args, "seq", {})[1], 0}
-	for name,tp in pairs(cx) do
-		self:SetVariableType(name, tp, args)
-		init[#init + 1] = { self:GetOperator(args, "ass", {tp})[1], name, { self:GetOperator(args, "dat", {})[1], wire_expression_types2[tp][2] } }
-	end
+	self:SingleContext(cx, args)
 
-	return {self:GetOperator(args, "for", {})[1], var, estart, estop, estep, stmt, init}
+	return {self:GetOperator(args, "for", {})[1], var, estart, estop, estep, stmt}
 end
 
 function Compiler:InstrWHL(args)
@@ -273,13 +277,9 @@ function Compiler:InstrWHL(args)
 	local stmt = self:EvaluateStatement(args, 2)
 	local cx = self:PopContext()
 
-	local init = {self:GetOperator(args, "seq", {})[1], 0}
-	for name,tp in pairs(cx) do
-		self:SetVariableType(name, tp, args)
-		init[#init + 1] = { self:GetOperator(args, "ass", {tp})[1], name, { self:GetOperator(args, "dat", {})[1], wire_expression_types2[tp][2] } }
-	end
+	self:SingleContext(cx, args)
 
-	return {self:GetOperator(args, "whl", {})[1], cond, stmt, init, prf_cond}
+	return {self:GetOperator(args, "whl", {})[1], cond, stmt, prf_cond}
 end
 
 
@@ -296,19 +296,7 @@ function Compiler:InstrIF(args)
 	local st2 = self:EvaluateStatement(args, 3)
 	local cx2 = self:PopContext()
 
-	local vr1, vr2 = self:MergeContext(cx1, cx2, args)
-
-	self:PushPrfCounter()
-	for name,tp in pairs(vr1) do
-		st1[#st1 + 1] = { self:GetOperator(args, "ass", {tp})[1], name, { self:GetOperator(args, "dat", {})[1], wire_expression_types2[tp][2] } }
-	end
-	st1[2] = st1[2] + self:PopPrfCounter()
-
-	self:PushPrfCounter()
-	for name,tp in pairs(vr2) do
-		st2[#st2 + 1] = { self:GetOperator(args, "ass", {tp})[1], name, { self:GetOperator(args, "dat", {})[1], wire_expression_types2[tp][2] } }
-	end
-	st2[2] = st2[2] + self:PopPrfCounter()
+	self:MergeContext(cx1, cx2, args)
 
 	local rtis = self:GetOperator(args, "is", {tp1})
 	local rtif = self:GetOperator(args, "if", {rtis[2]})
@@ -316,22 +304,21 @@ function Compiler:InstrIF(args)
 end
 
 function Compiler:InstrDEF(args)
-	self:PushPrfCounter()
 	local ex1, tp1 = self:Evaluate(args, 1)
-	local prf_ex1 = self:PopPrfCounter()
 
 	self:PushPrfCounter()
 	local ex2, tp2 = self:Evaluate(args, 2)
 	local prf_ex2 = self:PopPrfCounter()
 
 	local rtis = self:GetOperator(args, "is", {tp1})
-	local rtif = self:GetOperator(args, "cnd", {rtis[2]})
+	local rtif = self:GetOperator(args, "def", {rtis[2]})
+	local rtdat = self:GetOperator(args, "dat", {})
 
 	if tp1 != tp2 then
 		self:Error("Different types (" .. tps_pretty({tp1}) .. ", " .. tps_pretty({tp2}) .. ") specified returned in default conditional", args)
 	end
 
-	return { rtif[1], { rtis[1], ex1 }, ex1, ex2, prf_ex1 + prf_ex1, prf_ex2 + prf_ex1 }, tp1
+	return { rtif[1], { rtis[1], { rtdat[1], nil } }, ex1, ex2, prf_ex2 }, tp1
 end
 
 function Compiler:InstrCND(args)

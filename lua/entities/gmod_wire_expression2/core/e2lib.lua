@@ -442,6 +442,7 @@ hook.Add("InitPostEntity", "e2lib", function()
 	if SERVER and CPPI then
 		if _R.Player.CPPIGetFriends then
 			E2Lib.replace_function("isFriend", function(owner, player)
+				if owner == nil then return false end
 				if owner == player then return true end
 
 				local friends = owner:CPPIGetFriends()

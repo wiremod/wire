@@ -41,11 +41,9 @@ end)
 __e2setcost(0) -- approximation
 
 registerOperator("whl", "", "", function(self, args)
-	local op1, op2, op3 = args[2], args[3], args[4]
+	local op1, op2 = args[2], args[3]
 
-	op3[1](self, op3)
-
-	self.prf = self.prf + args[5] + 3
+	self.prf = self.prf + args[4] + 3
 	while op1[1](self, op1) != 0 do
 		local ok, msg = pcall(op2[1], self, op2)
 		if !ok then
@@ -54,14 +52,12 @@ registerOperator("whl", "", "", function(self, args)
 			else error(msg, 0) end
 		end
 
-		self.prf = self.prf + args[5] + 3
+		self.prf = self.prf + args[4] + 3
 	end
 end)
 
 registerOperator("for", "", "", function(self, args)
-	local var, op1, op2, op3, op4, op5 = args[2], args[3], args[4], args[5], args[6], args[7]
-
-	op5[1](self, op5)
+	local var, op1, op2, op3, op4 = args[2], args[3], args[4], args[5], args[6]
 
 	local rstart, rend, rstep
 	rstart = op1[1](self, op1)
@@ -135,6 +131,24 @@ registerOperator("if", "n", "", function(self, args)
 		local op3 = args[5]
 		op3[1](self, op3)
 		return
+	end
+end)
+
+registerOperator("def", "n", "", function(self, args)
+	local op1 = args[2]
+	local op2 = args[3]
+	local rv2 = op2[1](self, op2)
+
+	-- sets the argument for the DAT-operator
+	op1[2][2] = rv2
+	local rv1 = op1[1](self, op1)
+
+	if rv1 != 0 then
+		return rv2
+	else
+		self.prf = self.prf + args[5]
+		local op3 = args[4]
+		return op3[1](self, op3)
 	end
 end)
 
