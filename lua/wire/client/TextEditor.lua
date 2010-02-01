@@ -196,7 +196,7 @@ function EDITOR:SetText(text)
 end
 
 function EDITOR:GetValue()
-	return table.concat(self.Rows, "\n")
+	return string.Replace(table.concat(self.Rows, "\n"), "\r", "")
 end
 
 function EDITOR:PaintLine(row)
