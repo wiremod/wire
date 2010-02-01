@@ -11,101 +11,83 @@ end
 
 /******************************************************************************/
 
-registerFunction("getColor", "e:", "v", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	if !validEntity(rv1) then return {0,0,0} end
+e2function vector entity:getColor()
+	if !validEntity(this) then return {0,0,0} end
 
-	local r,g,b = rv1:GetColor()
+	local r,g,b = this:GetColor()
 	return { r, g, b }
-end)
+end
 
-registerFunction("getColor4", "e:", "xv4", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	if !validEntity(rv1) then return {0,0,0,0} end
+e2function vector4 entity:getColor4()
+	if !validEntity(this) then return {0,0,0,0} end
 
-	return { rv1:GetColor() }
-end)
+	return { this:GetColor() }
+end
 
-registerFunction("getAlpha", "e:", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	if !validEntity(rv1) then return 0 end
+e2function number entity:getAlpha()
+	if !validEntity(this) then return 0 end
 
-	local _,_,_,alpha = rv1:GetColor()
+	local _,_,_,alpha = this:GetColor()
 	return alpha
-end)
+end
 
-registerFunction("setColor", "e:nnn", "", function(self, args)
-	local op1, op2, op3, op4 = args[2], args[3], args[4], args[5]
-	local rv1, rv2, rv3, rv4 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3), op4[1](self, op4)
-	if !validEntity(rv1) then return end
-	if !isOwner(self, rv1) then return end
+e2function void entity:setColor(rv2, rv3, rv4)
+	if !validEntity(this) then return end
+	if !isOwner(self, this) then return end
 
-	local _,_,_,alpha = rv1:GetColor()
-	rv1:SetColor(ColorClamp(rv2, rv3, rv4, alpha))
-end)
+	local _,_,_,alpha = this:GetColor()
+	this:SetColor(ColorClamp(rv2, rv3, rv4, alpha))
+end
 
-registerFunction("setColor", "e:nnnn", "", function(self, args)
-	local op1, op2, op3, op4, op5 = args[2], args[3], args[4], args[5], args[6]
-	local rv1, rv2, rv3, rv4, rv5 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3), op4[1](self, op4), op5[1](self, op5)
-	if !validEntity(rv1) then return end
-	if !isOwner(self, rv1) then return end
+e2function void entity:setColor(rv2, rv3, rv4, rv5)
+	if !validEntity(this) then return end
+	if !isOwner(self, this) then return end
 
-	if rv1:IsPlayer() or rv1:IsWeapon() then rv5 = 255 end
+	if this:IsPlayer() or this:IsWeapon() then rv5 = 255 end
 
-	rv1:SetColor(ColorClamp(rv2, rv3, rv4, rv5))
-end)
+	this:SetColor(ColorClamp(rv2, rv3, rv4, rv5))
+end
 
-registerFunction("setColor", "e:v", "", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	if !validEntity(rv1) then return end
-	if !isOwner(self, rv1) then return end
+e2function void entity:setColor(vector rv2)
+	if !validEntity(this) then return end
+	if !isOwner(self, this) then return end
 
-	local _,_,_,alpha = rv1:GetColor()
-	rv1:SetColor(ColorClamp(rv2[1], rv2[2], rv2[3], alpha))
-end)
+	local _,_,_,alpha = this:GetColor()
+	this:SetColor(ColorClamp(rv2[1], rv2[2], rv2[3], alpha))
+end
 
-registerFunction("setColor", "e:vn", "", function(self, args)
-	local op1, op2, op3 = args[2], args[3], args[4]
-	local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
-	if !validEntity(rv1) then return end
-	if !isOwner(self, rv1) then return end
+e2function void entity:setColor(vector rv2, rv3)
+	if !validEntity(this) then return end
+	if !isOwner(self, this) then return end
 
-	if rv1:IsPlayer() or rv1:IsWeapon() then rv3 = 255 end
+	if this:IsPlayer() or this:IsWeapon() then rv3 = 255 end
 
-	rv1:SetColor(ColorClamp(rv2[1], rv2[2], rv2[3], rv3))
-end)
+	this:SetColor(ColorClamp(rv2[1], rv2[2], rv2[3], rv3))
+end
 
-registerFunction("setColor", "e:xv4", "", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	if !validEntity(rv1) then return end
-	if !isOwner(self, rv1) then return end
+e2function void entity:setColor(vector4 rv2)
+	if !validEntity(this) then return end
+	if !isOwner(self, this) then return end
 
 	local alpha
-	if rv1:IsPlayer() or rv1:IsWeapon() then
+	if this:IsPlayer() or this:IsWeapon() then
 		alpha = 255
 	else
 		alpha = rv2[4]
 	end
 
-	rv1:SetColor(ColorClamp(rv2[1], rv2[2], rv2[3], alpha))
-end)
+	this:SetColor(ColorClamp(rv2[1], rv2[2], rv2[3], alpha))
+end
 
-registerFunction("setAlpha", "e:n", "", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	if !validEntity(rv1) then return end
-	if !isOwner(self, rv1) then return end
+e2function void entity:setAlpha(rv2)
+	if !validEntity(this) then return end
+	if !isOwner(self, this) then return end
 
-	if rv1:IsPlayer() or rv1:IsWeapon() then return end
+	if this:IsPlayer() or this:IsWeapon() then return end
 
-	local r,g,b = rv1:GetColor()
-	rv1:SetColor(r, g, b, Clamp(rv2, 0, 255))
-end)
+	local r,g,b = this:GetColor()
+	this:SetColor(r, g, b, Clamp(rv2, 0, 255))
+end
 
 --- Converts <hsv> from the [http://en.wikipedia.org/wiki/HSV_color_space HSV color space] to the [http://en.wikipedia.org/wiki/RGB_color_space RGB color space]
 e2function vector hsv2rgb(vector hsv)

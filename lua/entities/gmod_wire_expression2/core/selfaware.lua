@@ -4,29 +4,29 @@
 
 __e2setcost(1) -- temporary
 
-registerFunction("entity", "", "e", function(self, args)
+e2function entity entity()
 	return self.entity
-end)
+end
 
-registerFunction("owner", "", "e", function(self, args)
+e2function entity owner()
 	return self.player
-end)
+end
 
 __e2setcost(nil) -- temporary
 
-registerFunction("selfDestruct", "", "", function(self, args)
-    self.entity:Remove()
-end)
+e2function void selfDestruct()
+	self.entity:Remove()
+end
 
-registerFunction("selfDestructAll", "", "", function(self, args)
-    for k,v in pairs(constraint.GetAllConstrainedEntities(self.entity)) do
+e2function void selfDestructAll()
+	for k,v in pairs(constraint.GetAllConstrainedEntities(self.entity)) do
 		if(getOwner(self,v)==self.player) then
 			v:Remove()
 		end
-    end
-    //constraint.RemoveAll(self.entity)
-    self.entity:Remove()
-end)
+	end
+	//constraint.RemoveAll(self.entity)
+	self.entity:Remove()
+end
 
 /******************************************************************************/
 

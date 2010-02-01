@@ -16,43 +16,35 @@ end)
 
 __e2setcost(5) -- temporary
 
-registerFunction("isAdmin", "e:", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	if not validEntity(rv1) then return 0 end
-	if not rv1:IsPlayer() then return 0 end
-	if rv1:IsAdmin() then return 1 else return 0 end
-end)
+e2function number entity:isAdmin()
+	if not validEntity(this) then return 0 end
+	if not this:IsPlayer() then return 0 end
+	if this:IsAdmin() then return 1 else return 0 end
+end
 
-registerFunction("isSuperAdmin", "e:", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	if not validEntity(rv1) then return 0 end
-	if not rv1:IsPlayer() then return 0 end
-	if rv1:IsSuperAdmin() then return 1 else return 0 end
-end)
+e2function number entity:isSuperAdmin()
+	if not validEntity(this) then return 0 end
+	if not this:IsPlayer() then return 0 end
+	if this:IsSuperAdmin() then return 1 else return 0 end
+end
 
 /******************************************************************************/
 
-registerFunction("shootPos", "e:", "v", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	if(!validEntity(rv1)) then return {0,0,0} end
-	if(rv1:IsPlayer() or rv1:IsNPC()) then
-		return rv1:GetShootPos()
+e2function vector entity:shootPos()
+	if(!validEntity(this)) then return {0,0,0} end
+	if(this:IsPlayer() or this:IsNPC()) then
+		return this:GetShootPos()
 	else return {0,0,0} end
-end)
+end
 
-registerFunction("eye", "e:", "v", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	if (!validEntity(rv1)) then return {0,0,0} end
-	if (rv1:IsPlayer()) then
-		return rv1:GetAimVector()
+e2function vector entity:eye()
+	if (!validEntity(this)) then return {0,0,0} end
+	if (this:IsPlayer()) then
+		return this:GetAimVector()
 	else
-		return rv1:GetForward()
+		return this:GetForward()
 	end
-end)
+end
 
 --- Returns a local angle describing player <this>'s view angles.
 e2function angle entity:eyeAngles()
@@ -63,127 +55,97 @@ end
 
 /******************************************************************************/
 
-registerFunction("name", "e:", "s", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	if(!validEntity(rv1)) then return "" end
-	if(!rv1:IsPlayer()) then return "" end
-	return rv1:Name()
-end)
+e2function string entity:name()
+	if(!validEntity(this)) then return "" end
+	if(!this:IsPlayer()) then return "" end
+	return this:Name()
+end
 
-registerFunction("steamID", "e:", "s", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	if(!validEntity(rv1)) then return "" end
-	if(!rv1:IsPlayer()) then return "" end
-	return rv1:SteamID()
-end)
+e2function string entity:steamID()
+	if(!validEntity(this)) then return "" end
+	if(!this:IsPlayer()) then return "" end
+	return this:SteamID()
+end
 
-registerFunction("armor", "e:", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	if(!validEntity(rv1)) then return 0 end
-	if(rv1:IsPlayer() or rv1:IsNPC()) then return rv1:Armor() else return 0 end
-end)
+e2function number entity:armor()
+	if(!validEntity(this)) then return 0 end
+	if(this:IsPlayer() or this:IsNPC()) then return this:Armor() else return 0 end
+end
 
 /******************************************************************************/
 
-registerFunction("height", "e:", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	if(!validEntity(rv1)) then return 0 end
-	if(rv1:IsPlayer() or rv1:IsNPC()) then
-		local pos = rv1:GetPos()
-		local up = rv1:GetUp()
-		return rv1:NearestPoint(Vector(pos.x+up.x*100,pos.y+up.y*100,pos.z+up.z*100)).z-rv1:NearestPoint(Vector(pos.x-up.x*100,pos.y-up.y*100,pos.z-up.z*100)).z
+e2function number entity:height()
+	if(!validEntity(this)) then return 0 end
+	if(this:IsPlayer() or this:IsNPC()) then
+		local pos = this:GetPos()
+		local up = this:GetUp()
+		return this:NearestPoint(Vector(pos.x+up.x*100,pos.y+up.y*100,pos.z+up.z*100)).z-this:NearestPoint(Vector(pos.x-up.x*100,pos.y-up.y*100,pos.z-up.z*100)).z
 	else return 0 end
-end)
+end
 
-registerFunction("width", "e:", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	if(!validEntity(rv1)) then return 0 end
-	if(rv1:IsPlayer() or rv1:IsNPC()) then
-		local pos = rv1:GetPos()
-		local right = rv1:GetRight()
-		return rv1:NearestPoint(Vector(pos.x+right.x*100,pos.y+right.y*100,pos.z+right.z*100)).z-rv1:NearestPoint(Vector(pos.x-right.x*100,pos.y-right.y*100,pos.z-right.z*100)).z
+e2function number entity:width()
+	if(!validEntity(this)) then return 0 end
+	if(this:IsPlayer() or this:IsNPC()) then
+		local pos = this:GetPos()
+		local right = this:GetRight()
+		return this:NearestPoint(Vector(pos.x+right.x*100,pos.y+right.y*100,pos.z+right.z*100)).z-this:NearestPoint(Vector(pos.x-right.x*100,pos.y-right.y*100,pos.z-right.z*100)).z
 	else return 0 end
-end)
+end
 
 /******************************************************************************/
 
-registerFunction("isCrouch", "e:", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	if(!validEntity(rv1)) then return 0 end
-	if(rv1:IsPlayer() and rv1:Crouching()) then return 1 else return 0 end
-end)
+e2function number entity:isCrouch()
+	if(!validEntity(this)) then return 0 end
+	if(this:IsPlayer() and this:Crouching()) then return 1 else return 0 end
+end
 
-registerFunction("isAlive", "e:", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	if(!validEntity(rv1)) then return 0 end
-	if(rv1:IsPlayer() and rv1:Alive()) then return 1 end
-	if(rv1:IsNPC() and rv1:Health() > 0) then return 1 end
+e2function number entity:isAlive()
+	if(!validEntity(this)) then return 0 end
+	if(this:IsPlayer() and this:Alive()) then return 1 end
+	if(this:IsNPC() and this:Health() > 0) then return 1 end
 	return 0
-end)
+end
 
 /******************************************************************************/
 
-registerFunction("frags", "e:", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	if(!validEntity(rv1)) then return 0 end
-	if(rv1:IsPlayer()) then return rv1:Frags() else return 0 end
-end)
+e2function number entity:frags()
+	if(!validEntity(this)) then return 0 end
+	if(this:IsPlayer()) then return this:Frags() else return 0 end
+end
 
-registerFunction("deaths", "e:", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	if(!rv1 or !rv1:IsValid()) then return 0 end
-	if(rv1:IsPlayer()) then return rv1:Deaths() else return 0 end
-end)
+e2function number entity:deaths()
+	if(!this or !this:IsValid()) then return 0 end
+	if(this:IsPlayer()) then return this:Deaths() else return 0 end
+end
 
 /******************************************************************************/
 
-registerFunction("team", "e:", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	if(!validEntity(rv1)) then return 0 end
-	if(rv1:IsPlayer()) then return rv1:Team() else return 0 end
-end)
+e2function number entity:team()
+	if(!validEntity(this)) then return 0 end
+	if(this:IsPlayer()) then return this:Team() else return 0 end
+end
 
-registerFunction("teamName", "n", "s", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
+e2function string teamName(rv1)
 	local str = team.GetName(rv1)
 	if str == nil then return "" end
 	return str
-end)
+end
 
-registerFunction("teamScore", "n", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
+e2function number teamScore(rv1)
 	return team.GetScore(rv1)
-end)
+end
 
-registerFunction("teamPlayers", "n", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
+e2function number teamPlayers(rv1)
 	return team.NumPlayers(rv1)
-end)
+end
 
-registerFunction("teamDeaths", "n", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
+e2function number teamDeaths(rv1)
 	return team.TotalDeaths(rv1)
-end)
+end
 
-registerFunction("teamFrags", "n", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
+e2function number teamFrags(rv1)
 	return team.TotalFrags(rv1)
-end)
+end
 
 e2function vector teamColor(index)
 	local col = team.GetColor(index)
@@ -201,29 +163,23 @@ end
 
 /******************************************************************************/
 
-registerFunction("keyAttack1", "e:", "n", function(self,args)
-	local op1 = args[2]
-	local rv1 = op1[1](self,op1)
-	if not validEntity(rv1) then return 0 end
-	if rv1:IsPlayer() and rv1:KeyDown(1) then return 1 end -- IN_ATTACK
+e2function number entity:keyAttack1()
+	if not validEntity(this) then return 0 end
+	if this:IsPlayer() and this:KeyDown(1) then return 1 end -- IN_ATTACK
 	return 0
-end)
+end
 
-registerFunction("keyAttack2", "e:", "n", function(self,args)
-	local op1 = args[2]
-	local rv1 = op1[1](self,op1)
-	if not validEntity(rv1) then return 0 end
-	if rv1:IsPlayer() and rv1:KeyDown(2048) then return 1 end -- IN_ATTACK2
+e2function number entity:keyAttack2()
+	if not validEntity(this) then return 0 end
+	if this:IsPlayer() and this:KeyDown(2048) then return 1 end -- IN_ATTACK2
 	return 0
-end)
+end
 
-registerFunction("keyUse", "e:", "n", function(self,args)
-	local op1 = args[2]
-	local rv1 = op1[1](self,op1)
-	if not validEntity(rv1) then return 0 end
-	if rv1:IsPlayer() and rv1:KeyDown(32) then return 1 end -- IN_USE
+e2function number entity:keyUse()
+	if not validEntity(this) then return 0 end
+	if this:IsPlayer() and this:KeyDown(32) then return 1 end -- IN_USE
 	return 0
-end)
+end
 
 /******************************************************************************/
 
@@ -314,12 +270,10 @@ end
 
 /******************************************************************************/
 
-registerFunction("ping", "e:", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	if not validEntity(rv1) then return 0 end
-	if(rv1:IsPlayer()) then return rv1:Ping() else return 0 end
-end)
+e2function number entity:ping()
+	if not validEntity(this) then return 0 end
+	if(this:IsPlayer()) then return this:Ping() else return 0 end
+end
 
 e2function entity entity:vehicle()
 	if not validEntity(this) then return nil end

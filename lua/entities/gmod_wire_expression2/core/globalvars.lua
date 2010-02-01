@@ -29,443 +29,373 @@ end
 
 __e2setcost(5) -- temporary
 
-registerFunction("gSetStr", "s", "", function(self, args)
-    local op1 = args[2]
-    local rv1 = op1[1](self, op1)
+e2function void gSetStr(string rv1)
 	local T = glTid(self)
 	T["xs"] = rv1
-end)
+end
 
-registerFunction("gGetStr", "", "s", function(self, args)
+e2function string gGetStr()
 	local T = glTid(self)
 	if T["xs"]==nil then return "" end
 	return T["xs"]
-end)
+end
 
-registerFunction("gDeleteStr", "", "s", function(self, args)
+e2function string gDeleteStr()
 	local T = glTid(self)
 	if T["xs"]==nil then return "" end
 	local value = T["xs"]
 	T["xs"] = nil
 	return value
-end)
+end
 
-registerFunction("gSetStr", "ss", "", function(self, args)
-    local op1, op2 = args[2], args[3]
-    local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+e2function void gSetStr(string rv1, string rv2)
 	local T = glTid(self)
 	T["s"][rv1] = rv2
-end)
+end
 
-registerFunction("gGetStr", "s", "s", function(self, args)
-    local op1 = args[2]
-    local rv1 = op1[1](self, op1)
+e2function string gGetStr(string rv1)
 	local T = glTid(self)
 	if T["s"][rv1]==nil then return "" end
 	return T["s"][rv1]
-end)
+end
 
-registerFunction("gDeleteStr", "s", "s", function(self, args)
-    local op1 = args[2]
-    local rv1 = op1[1](self, op1)
+e2function string gDeleteStr(string rv1)
 	local T = glTid(self)
 	if T["s"][rv1]==nil then return "" end
 	local value = T["s"][rv1]
 	T["s"][rv1] = nil
 	return value
-end)
+end
 
-registerFunction("gSetStr", "ns", "", function(self, args)
-    local op1, op2 = args[2], args[3]
-    local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+e2function void gSetStr(rv1, string rv2)
 	rv1 = rv1 - rv1 % 1
 	local T = glTid(self)
 	T["s"][rv1] = rv2
-end)
+end
 
-registerFunction("gGetStr", "n", "s", function(self, args)
-    local op1 = args[2]
-    local rv1 = op1[1](self, op1)
+e2function string gGetStr(rv1)
 	rv1 = rv1 - rv1 % 1
 	local T = glTid(self)
 	if T["s"][rv1]==nil then return "" end
 	return T["s"][rv1]
-end)
+end
 
-registerFunction("gDeleteStr", "n", "s", function(self, args)
-    local op1 = args[2]
-    local rv1 = op1[1](self, op1)
+e2function string gDeleteStr(rv1)
 	rv1 = rv1 - rv1 % 1
 	local T = glTid(self)
 	if T["s"][rv1]==nil then return "" end
 	local value = T["s"][rv1]
 	T["s"][rv1] = nil
 	return value
-end)
+end
 
 //--------------------------//
 //--       Numbers        --//
 //--------------------------//
 
-registerFunction("gSetNum", "n", "", function(self, args)
-    local op1 = args[2]
-    local rv1 = op1[1](self, op1)
+e2function void gSetNum(rv1)
 	local T = glTid(self)
 	T["xn"] = rv1
-end)
+end
 
-registerFunction("gGetNum", "", "n", function(self, args)
+e2function number gGetNum()
 	local T = glTid(self)
 	if T["xn"]==nil then return 0 end
 	return T["xn"]
-end)
+end
 
-registerFunction("gDeleteNum", "", "n", function(self, args)
+e2function number gDeleteNum()
 	local T = glTid(self)
 	if T["xn"]==nil then return 0 end
 	local value = T["xn"]
 	T["xn"] = nil
 	return value
-end)
+end
 
-registerFunction("gSetNum", "sn", "", function(self, args)
-    local op1, op2 = args[2], args[3]
-    local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+e2function void gSetNum(string rv1, rv2)
 	local T = glTid(self)
 	T["n"][rv1] = rv2
-end)
+end
 
-registerFunction("gGetNum", "s", "n", function(self, args)
-    local op1 = args[2]
-    local rv1 = op1[1](self, op1)
+e2function number gGetNum(string rv1)
 	local T = glTid(self)
 	if T["n"][rv1]==nil then return 0 end
 	return T["n"][rv1]
-end)
+end
 
-registerFunction("gDeleteNum", "s", "n", function(self, args)
-    local op1 = args[2]
-    local rv1 = op1[1](self, op1)
+e2function number gDeleteNum(string rv1)
 	local T = glTid(self)
 	if T["n"][rv1]==nil then return 0 end
 	local value = T["n"][rv1]
 	T["n"][rv1] = nil
 	return value
-end)
+end
 
-registerFunction("gSetNum", "nn", "", function(self, args)
-    local op1, op2 = args[2], args[3]
-    local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+e2function void gSetNum(rv1, rv2)
 	rv1 = rv1 - rv1 % 1
 	local T = glTid(self)
 	T["n"][rv1] = rv2
-end)
+end
 
-registerFunction("gGetNum", "n", "n", function(self, args)
-    local op1 = args[2]
-    local rv1 = op1[1](self, op1)
+e2function number gGetNum(rv1)
 	rv1 = rv1 - rv1 % 1
 	local T = glTid(self)
 	if T["n"][rv1]==nil then return 0 end
 	return T["n"][rv1]
-end)
+end
 
-registerFunction("gDeleteNum", "n", "n", function(self, args)
-    local op1 = args[2]
-    local rv1 = op1[1](self, op1)
+e2function number gDeleteNum(rv1)
 	rv1 = rv1 - rv1 % 1
 	local T = glTid(self)
 	if T["n"][rv1]==nil then return 0 end
 	local value = T["n"][rv1]
 	T["n"][rv1] = nil
 	return value
-end)
+end
 
 //--------------------------//
 //--       Vectors        --//
 //--------------------------//
 
-registerFunction("gSetVec", "v", "", function(self, args)
-    local op1 = args[2]
-    local rv1 = op1[1](self, op1)
+e2function void gSetVec(vector rv1)
 	local T = glTid(self)
 	if rv1[1] == 0 and rv1[2] == 0 and rv1[3] == 0 then rv1 = nil end
 	T["xv"] = rv1
-end)
+end
 
-registerFunction("gGetVec", "", "v", function(self, args)
+e2function vector gGetVec()
 	local T = glTid(self)
 	return T["xv"] or { 0, 0, 0 }
-end)
+end
 
-registerFunction("gDeleteVec", "", "v", function(self, args)
+e2function vector gDeleteVec()
 	local T = glTid(self)
 	if T["xv"]==nil then return { 0, 0, 0 } end
 	local value = T["xv"]
 	T["xv"] = nil
 	return value
-end)
+end
 
-registerFunction("gSetVec", "sv", "", function(self, args)
-    local op1, op2 = args[2], args[3]
-    local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+e2function void gSetVec(string rv1, vector rv2)
 	local T = glTid(self)
 	if rv2[1] == 0 and rv2[2] == 0 and rv2[3] == 0 then rv2 = nil end
 	T["v"][rv1] = rv2
-end)
+end
 
-registerFunction("gGetVec", "s", "v", function(self, args)
-    local op1 = args[2]
-    local rv1 = op1[1](self, op1)
+e2function vector gGetVec(string rv1)
 	local T = glTid(self)
 	return T["v"][rv1] or { 0, 0, 0 }
-end)
+end
 
-registerFunction("gDeleteVec", "s", "v", function(self, args)
-    local op1 = args[2]
-    local rv1 = op1[1](self, op1)
+e2function vector gDeleteVec(string rv1)
 	local T = glTid(self)
 	if T["v"][rv1]==nil then return { 0, 0, 0 } end
 	local value = T["v"][rv1]
 	T["v"][rv1] = nil
 	return value
-end)
+end
 
-registerFunction("gSetVec", "nv", "", function(self, args)
-    local op1, op2 = args[2], args[3]
-    local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+e2function void gSetVec(rv1, vector rv2)
 	rv1 = rv1 - rv1 % 1
 	local T = glTid(self)
 	if rv2[1] == 0 and rv2[2] == 0 and rv2[3] == 0 then rv2 = nil end
 	T["v"][rv1] = rv2
-end)
+end
 
-registerFunction("gGetVec", "n", "v", function(self, args)
-    local op1 = args[2]
-    local rv1 = op1[1](self, op1)
+e2function vector gGetVec(rv1)
 	rv1 = rv1 - rv1 % 1
 	local T = glTid(self)
 	return T["v"][rv1] or { 0, 0, 0 }
-end)
+end
 
-registerFunction("gDeleteVec", "n", "v", function(self, args)
-    local op1 = args[2]
-    local rv1 = op1[1](self, op1)
+e2function vector gDeleteVec(rv1)
 	rv1 = rv1 - rv1 % 1
 	local T = glTid(self)
 	if T["v"][rv1]==nil then return { 0, 0, 0 } end
 	local value = T["v"][rv1]
 	T["v"][rv1] = nil
 	return value
-end)
+end
 
 //--------------------------//
 //--        Angles        --//
 //--------------------------//
 
-registerFunction("gSetAng", "a", "", function(self, args)
-    local op1 = args[2]
-    local rv1 = op1[1](self, op1)
+e2function void gSetAng(angle rv1)
 	local T = glTid(self)
 	if rv1[1] == 0 and rv1[2] == 0 and rv1[3] == 0 then rv1 = nil end
 	T["xa"] = rv1
-end)
+end
 
-registerFunction("gGetAng", "", "a", function(self, args)
+e2function angle gGetAng()
 	local T = glTid(self)
 	local ret = T["xa"]
 	if type(ret) == "table" and #ret == 3 then return ret end
 	return { 0, 0, 0 }
-end)
+end
 
-registerFunction("gDeleteAng", "", "a", function(self, args)
+e2function angle gDeleteAng()
 	local T = glTid(self)
 	if T["xa"]==nil then return { 0, 0, 0 } end
 	local value = T["xa"]
 	T["xa"] = nil
 	return value
-end)
+end
 
-registerFunction("gSetAng", "sa", "", function(self, args)
-    local op1, op2 = args[2], args[3]
-    local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+e2function void gSetAng(string rv1, angle rv2)
 	local T = glTid(self)
 	if rv2[1] == 0 and rv2[2] == 0 and rv2[3] == 0 then rv2 = nil end
 	T["a"][rv1] = rv2
-end)
+end
 
-registerFunction("gGetAng", "s", "a", function(self, args)
-    local op1 = args[2]
-    local rv1 = op1[1](self, op1)
+e2function angle gGetAng(string rv1)
 	local T = glTid(self)
 	local ret = T["a"][rv1]
 	if type(ret) == "table" and #ret == 3 then return ret end
 	return { 0, 0, 0 }
-end)
+end
 
-registerFunction("gDeleteAng", "s", "a", function(self, args)
-    local op1 = args[2]
-    local rv1 = op1[1](self, op1)
+e2function angle gDeleteAng(string rv1)
 	local T = glTid(self)
 	if T["a"][rv1]==nil then return { 0, 0, 0 } end
 	local value = T["a"][rv1]
 	T["a"][rv1] = nil
 	return value
-end)
+end
 
-registerFunction("gSetAng", "na", "", function(self, args)
-    local op1, op2 = args[2], args[3]
-    local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+e2function void gSetAng(rv1, angle rv2)
 	rv1 = rv1 - rv1 % 1
 	local T = glTid(self)
 	if rv2[1] == 0 and rv2[2] == 0 and rv2[3] == 0 then rv2 = nil end
 	T["a"][rv1] = rv2
-end)
+end
 
-registerFunction("gGetAng", "n", "a", function(self, args)
-    local op1 = args[2]
-    local rv1 = op1[1](self, op1)
+e2function angle gGetAng(rv1)
 	rv1 = rv1 - rv1 % 1
 	local T = glTid(self)
 	local ret = T["a"][rv1]
 	if type(ret) == "table" and #ret == 3 then return ret end
 	return { 0, 0, 0 }
-end)
+end
 
-registerFunction("gDeleteAng", "n", "a", function(self, args)
-    local op1 = args[2]
-    local rv1 = op1[1](self, op1)
+e2function angle gDeleteAng(rv1)
 	rv1 = rv1 - rv1 % 1
 	local T = glTid(self)
 	if T["a"][rv1]==nil then return { 0, 0, 0 } end
 	local value = T["a"][rv1]
 	T["a"][rv1] = nil
 	return value
-end)
+end
 
 //--------------------------//
 //--        Entity        --//
 //--------------------------//
 
-registerFunction("gSetEnt", "e", "", function(self, args)
-    local op1 = args[2]
-    local rv1 = op1[1](self, op1)
+e2function void gSetEnt(entity rv1)
 	local T = glTid(self)
 	T["xe"] = rv1
-end)
+end
 
-registerFunction("gGetEnt", "", "e", function(self, args)
+e2function entity gGetEnt()
 	local T = glTid(self)
 	local ret = T["xe"]
 	if validEntity(ret) then return ret end
 	return nil
-end)
+end
 
-registerFunction("gDeleteEnt", "", "e", function(self, args)
+e2function entity gDeleteEnt()
 	local T = glTid(self)
 	local ret = T["xe"]
 	T["xe"] = nil
 	if validEntity(ret) then return ret end
 	return nil
-end)
+end
 
-registerFunction("gSetEnt", "se", "", function(self, args)
-    local op1, op2 = args[2], args[3]
-    local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+e2function void gSetEnt(string rv1, entity rv2)
 	local T = glTid(self)
 	T["e"][rv1] = rv2
-end)
+end
 
-registerFunction("gGetEnt", "s", "e", function(self, args)
-    local op1 = args[2]
-    local rv1 = op1[1](self, op1)
+e2function entity gGetEnt(string rv1)
 	local T = glTid(self)
 	local ret = T["e"][rv1]
 	if validEntity(ret) then return ret end
 	return nil
-end)
+end
 
-registerFunction("gDeleteEnt", "s", "e", function(self, args)
-    local op1 = args[2]
-    local rv1 = op1[1](self, op1)
+e2function entity gDeleteEnt(string rv1)
 	local T = glTid(self)
 	local ret = T["e"][rv1]
 	T["e"][rv1] = nil
 	if validEntity(ret) then return ret end
 	return nil
-end)
+end
 
-registerFunction("gSetEnt", "ne", "", function(self, args)
-    local op1, op2 = args[2], args[3]
-    local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+e2function void gSetEnt(rv1, entity rv2)
 	rv1 = rv1 - rv1 % 1
 	local T = glTid(self)
 	T["e"][rv1] = rv2
-end)
+end
 
-registerFunction("gGetEnt", "n", "e", function(self, args)
-    local op1 = args[2]
-    local rv1 = op1[1](self, op1)
+e2function entity gGetEnt(rv1)
 	rv1 = rv1 - rv1 % 1
 	local T = glTid(self)
 	local ret = T["e"][rv1]
 	if validEntity(ret) then return ret end
 	return nil
-end)
+end
 
-registerFunction("gDeleteEnt", "n", "e", function(self, args)
-    local op1 = args[2]
-    local rv1 = op1[1](self, op1)
+e2function entity gDeleteEnt(rv1)
 	rv1 = rv1 - rv1 % 1
 	local T = glTid(self)
 	local ret = T["e"][rv1]
 	T["e"][rv1] = nil
 	if validEntity(ret) then return ret end
 	return nil
-end)
+end
 
 //--------------------------//
 //--       Clean Up       --//
 //--------------------------//
 
-registerFunction("gDeleteAll", "", "", function(self, args)
+e2function void gDeleteAll()
 	local group = self.data['globavars']
 	local uid = "exp2globalshare"
 	if self.data['globashare']==0 then uid = self.data['globaply'] end
 	if _G[uid][group] then
 	_G[uid][group] = nil
 	end
-end)
+end
 
-registerFunction("gDeleteAllStr", "", "", function(self, args)
+e2function void gDeleteAllStr()
 	local T = glTid(self)
 	T["s"] = {}
 	T["xs"] = nil
-end)
+end
 
-registerFunction("gDeleteAllNum", "", "", function(self, args)
+e2function void gDeleteAllNum()
 	local T = glTid(self)
 	T["n"] = {}
 	T["xn"] = nil
-end)
+end
 
-registerFunction("gDeleteAllVec", "", "", function(self, args)
+e2function void gDeleteAllVec()
 	local T = glTid(self)
 	T["v"] = {}
 	T["xv"] = nil
-end)
+end
 
-registerFunction("gDeleteAllAng", "", "", function(self, args)
+e2function void gDeleteAllAng()
 	local T = glTid(self)
 	T["a"] = {}
 	T["xa"] = nil
-end)
+end
 
-registerFunction("gDeleteAllEnt", "", "", function(self, args)
+e2function void gDeleteAllEnt()
 	local T = glTid(self)
 	T["e"] = {}
 	T["xe"] = nil
-end)
+end
 
 
 
@@ -473,20 +403,16 @@ end)
 //--       Sharing        --//
 //--------------------------//
 
-registerFunction("gShare", "n", "", function(self, args)
-    local op1 = args[2]
-    local rv1 = op1[1](self, op1)
+e2function void gShare(rv1)
 	if rv1==0 then self.data['globashare'] = 0
 	else self.data['globashare'] = 1 end
-end)
+end
 
 //--------------------------//
 //--    Group Commands    --//
 //--------------------------//
 
-registerFunction("gSetGroup", "s", "", function(self, args)
-    local op1 = args[2]
-    local rv1 = op1[1](self, op1)
+e2function void gSetGroup(string rv1)
 	local uid = "exp2globalshare"
 	if self.data['globashare']==0 then uid = self.data['globaply'] end
 	self.data['globavars'] = rv1
@@ -498,13 +424,13 @@ registerFunction("gSetGroup", "s", "", function(self, args)
 	if !T["v"] then T["v"] = {} end
 	if !T["a"] then T["a"] = {} end
 	if !T["e"] then T["e"] = {} end
-end)
+end
 
-registerFunction("gGetGroup", "", "s", function(self, args)
+e2function string gGetGroup()
 	return self.data['globavars']
-end)
+end
 
-registerFunction("gResetGroup", "", "", function(self, args)
+e2function void gResetGroup()
 	local uid = "exp2globalshare"
 	if self.data['globashare']==0 then uid = self.data['globaply'] end
 	self.data['globavars'] = "default"
@@ -516,7 +442,7 @@ registerFunction("gResetGroup", "", "", function(self, args)
 	if !T["v"] then T["v"] = {} end
 	if !T["a"] then T["a"] = {} end
 	if !T["e"] then T["e"] = {} end
-end)
+end
 
 /******************************************************************************/
 

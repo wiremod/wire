@@ -20,24 +20,20 @@ registerType("angle", "a", { 0, 0, 0 },
 
 __e2setcost(1) -- approximated
 
-registerFunction("ang", "", "a", function(self, args)
+e2function angle ang()
 	return { 0, 0, 0 }
-end)
+end
 
 __e2setcost(3) -- temporary
 
-registerFunction("ang", "nnn", "a", function(self, args)
-	local op1, op2, op3 = args[2], args[3], args[4]
-	local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
+e2function angle ang(rv1, rv2, rv3)
 	return { rv1, rv2, rv3 }
-end)
+end
 
 // Convert Vector -> Angle
-registerFunction("ang", "v", "a", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
+e2function angle ang(vector rv1)
 	return {rv1[1],rv1[2],rv1[3]}
-end)
+end
 
 /******************************************************************************/
 
@@ -51,66 +47,52 @@ end)
 
 /******************************************************************************/
 
-registerOperator("is", "a", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
+e2function number operator_is(angle rv1)
 	if rv1[1] != 0 || rv1[2] != 0 || rv1[3] != 0
 	   then return 1 else return 0 end
-end)
+end
 
-registerOperator("eq", "aa", "n", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+e2function number operator==(angle rv1, angle rv2)
 	if rv1[1] - rv2[1] <= delta && rv2[1] - rv1[1] <= delta &&
 	   rv1[2] - rv2[2] <= delta && rv2[2] - rv1[2] <= delta &&
 	   rv1[3] - rv2[3] <= delta && rv2[3] - rv1[3] <= delta
 	   then return 1 else return 0 end
-end)
+end
 
-registerOperator("neq", "aa", "n", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+e2function number operator!=(angle rv1, angle rv2)
 	if rv1[1] - rv2[1] > delta || rv2[1] - rv1[1] > delta ||
 	   rv1[2] - rv2[2] > delta || rv2[2] - rv1[2] > delta ||
 	   rv1[3] - rv2[3] > delta || rv2[3] - rv1[3] > delta
 	   then return 1 else return 0 end
-end)
+end
 
-registerOperator("geq", "aa", "n", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+e2function number operator>=(angle rv1, angle rv2)
 	if rv2[1] - rv1[1] <= delta &&
 	   rv2[2] - rv1[2] <= delta &&
 	   rv2[3] - rv1[3] <= delta
 	   then return 1 else return 0 end
-end)
+end
 
-registerOperator("leq", "aa", "n", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+e2function number operator<=(angle rv1, angle rv2)
 	if rv1[1] - rv2[1] <= delta &&
 	   rv1[2] - rv2[2] <= delta &&
 	   rv1[3] - rv2[3] <= delta
 	   then return 1 else return 0 end
-end)
+end
 
-registerOperator("gth", "aa", "n", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+e2function number operator>(angle rv1, angle rv2)
 	if rv1[1] - rv2[1] > delta &&
 	   rv1[2] - rv2[2] > delta &&
 	   rv1[3] - rv2[3] > delta
 	   then return 1 else return 0 end
-end)
+end
 
-registerOperator("lth", "aa", "n", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+e2function number operator<(angle rv1, angle rv2)
 	if rv2[1] - rv1[1] > delta &&
 	   rv2[2] - rv1[2] > delta &&
 	   rv2[3] - rv1[3] > delta
 	   then return 1 else return 0 end
-end)
+end
 
 /******************************************************************************/
 
@@ -120,171 +102,125 @@ registerOperator("dlt", "a", "a", function(self, args)
 	return { rv1[1] - rv2[1], rv1[2] - rv2[2], rv1[3] - rv2[3] }
 end)
 
-registerOperator("neg", "a", "a", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
+e2function angle operator_neg(angle rv1)
 	return { -rv1[1], -rv1[2], -rv1[3] }
-end)
+end
 
-registerOperator("add", "aa", "a", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+e2function angle operator+(angle rv1, angle rv2)
 	return { rv1[1] + rv2[1], rv1[2] + rv2[2], rv1[3] + rv2[3] }
-end)
+end
 
-registerOperator("sub", "aa", "a", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+e2function angle operator-(angle rv1, angle rv2)
 	return { rv1[1] - rv2[1], rv1[2] - rv2[2], rv1[3] - rv2[3] }
-end)
+end
 
-registerOperator("mul", "aa", "a", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+e2function angle operator*(angle rv1, angle rv2)
 	return { rv1[1] * rv2[1], rv1[2] * rv2[2], rv1[3] * rv2[3] }
-end)
+end
 
-registerOperator("mul", "na", "a", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+e2function angle operator*(rv1, angle rv2)
 	return { rv1 * rv2[1], rv1 * rv2[2], rv1 * rv2[3] }
-end)
+end
 
-registerOperator("mul", "an", "a", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+e2function angle operator*(angle rv1, rv2)
 	return { rv1[1] * rv2, rv1[2] * rv2, rv1[3] * rv2 }
-end)
+end
 
-registerOperator("div", "na", "a", function(self, args)
-    local op1, op2 = args[2], args[3]
-    local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+e2function angle operator/(rv1, angle rv2)
     return { rv1 / rv2[1], rv1 / rv2[2], rv1 / rv2[3] }
-end)
+end
 
-registerOperator("div", "an", "a", function(self, args)
-    local op1, op2 = args[2], args[3]
-    local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+e2function angle operator/(angle rv1, rv2)
     return { rv1[1] / rv2, rv1[2] / rv2, rv1[3] / rv2 }
-end)
+end
 
 /******************************************************************************/
 
 __e2setcost(5) -- temporary
 
-registerFunction("angnorm", "a", "a", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
+e2function angle angnorm(angle rv1)
 	return {(rv1[1] + 180) % 360 - 180,(rv1[2] + 180) % 360 - 180,(rv1[3] + 180) % 360 - 180}
-end)
+end
 
-registerFunction("angnorm", "n", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
+e2function number angnorm(rv1)
 	return (rv1 + 180) % 360 - 180
-end)
+end
 
-registerFunction("pitch", "a:", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	return rv1[1]
-end)
+e2function number angle:pitch()
+	return this[1]
+end
 
-registerFunction("yaw", "a:", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	return rv1[2]
-end)
+e2function number angle:yaw()
+	return this[2]
+end
 
-registerFunction("roll", "a:", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	return rv1[3]
-end)
+e2function number angle:roll()
+	return this[3]
+end
 
 // SET methods that returns angles
-registerFunction("setPitch", "a:n", "a", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	return { rv2, rv1[2], rv1[3] }
-end)
+e2function angle angle:setPitch(rv2)
+	return { rv2, this[2], this[3] }
+end
 
-registerFunction("setYaw", "a:n", "a", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	return { rv1[1], rv2, rv1[3] }
-end)
+e2function angle angle:setYaw(rv2)
+	return { this[1], rv2, this[3] }
+end
 
-registerFunction("setRoll", "a:n", "a", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	return { rv1[1], rv1[2], rv2 }
-end)
+e2function angle angle:setRoll(rv2)
+	return { this[1], this[2], rv2 }
+end
 
 /******************************************************************************/
 
-registerFunction("round", "a", "a", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
+e2function angle round(angle rv1)
 	local p = rv1[1] - (rv1[1] + 0.5) % 1 + 0.5
 	local y = rv1[2] - (rv1[2] + 0.5) % 1 + 0.5
 	local r = rv1[3] - (rv1[3] + 0.5) % 1 + 0.5
 	return {p, y, r}
-end)
+end
 
-registerFunction("round", "an", "a", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+e2function angle round(angle rv1, rv2)
 	local shf = 10 ^ rv2
 	local p = rv1[1] - ((rv1[1] * shf + 0.5) % 1 + 0.5) / shf
 	local y = rv1[2] - ((rv1[2] * shf + 0.5) % 1 + 0.5) / shf
 	local r = rv1[3] - ((rv1[3] * shf + 0.5) % 1 + 0.5) / shf
 	return {p, y, r}
-end)
+end
 
 // ceil/floor on p,y,r separately
-registerFunction("ceil", "a", "a", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
+e2function angle ceil(angle rv1)
 	local p = rv1[1] - rv1[1] % -1
 	local y = rv1[2] - rv1[2] % -1
 	local r = rv1[3] - rv1[3] % -1
 	return {p, y, r}
-end)
+end
 
-registerFunction("ceil", "an", "a", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+e2function angle ceil(angle rv1, rv2)
 	local shf = 10 ^ rv2
 	local p = rv1[1] - ((rv1[1] * shf) % -1) / shf
 	local y = rv1[2] - ((rv1[2] * shf) % -1) / shf
 	local r = rv1[3] - ((rv1[3] * shf) % -1) / shf
 	return {p, y, r}
-end)
+end
 
-registerFunction("floor", "a", "a", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
+e2function angle floor(angle rv1)
 	local p = rv1[1] - rv1[1] % 1
 	local y = rv1[2] - rv1[2] % 1
 	local r = rv1[3] - rv1[3] % 1
 	return {p, y, r}
-end)
+end
 
-registerFunction("floor", "an", "a", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+e2function angle floor(angle rv1, rv2)
 	local shf = 10 ^ rv2
 	local p = rv1[1] - ((rv1[1] * shf) % 1) / shf
 	local y = rv1[2] - ((rv1[2] * shf) % 1) / shf
 	local r = rv1[3] - ((rv1[3] * shf) % 1) / shf
 	return {p, y, r}
-end)
+end
 
 // Performs modulo on p,y,r separately
-registerFunction("mod", "an", "a", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+e2function angle mod(angle rv1, rv2)
 	local p,y,r
 	if rv1[1] >= 0 then
 		p = rv1[1] % rv2
@@ -296,12 +232,10 @@ registerFunction("mod", "an", "a", function(self, args)
 		r = rv1[3] % rv2
 	else r = rv1[3] % -rv2 end
 	return {p, y, r}
-end)
+end
 
 // Modulo where divisors are defined as an angle
-registerFunction("mod", "aa", "a", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+e2function angle mod(angle rv1, angle rv2)
 	local p,y,r
 	if rv1[1] >= 0 then
 		p = rv1[1] % rv2[1]
@@ -313,12 +247,10 @@ registerFunction("mod", "aa", "a", function(self, args)
 		y = rv1[3] % rv2[3]
 	else y = rv1[3] % -rv2[3] end
 	return {p, y, r}
-end)
+end
 
 // Clamp each p,y,r separately
-registerFunction("clamp", "ann", "a", function(self, args)
-	local op1, op2, op3 = args[2], args[3], args[4]
-	local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
+e2function angle clamp(angle rv1, rv2, rv3)
 	local p,y,r
 
 	if rv1[1] < rv2 then p = rv2
@@ -334,12 +266,10 @@ registerFunction("clamp", "ann", "a", function(self, args)
 	else r = rv1[3] end
 
 	return {p, y, r}
-end)
+end
 
 // Clamp according to limits defined by two min/max angles
-registerFunction("clamp", "aaa", "a", function(self, args)
-	local op1, op2, op3 = args[2], args[3], args[4]
-	local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
+e2function angle clamp(angle rv1, angle rv2, angle rv3)
 	local p,y,r
 
 	if rv1[1] < rv2[1] then p = rv2[1]
@@ -355,12 +285,10 @@ registerFunction("clamp", "aaa", "a", function(self, args)
 	else r = rv1[3] end
 
 	return {p, y, r}
-end)
+end
 
 // Mix two angles by a given proportion (between 0 and 1)
-registerFunction("mix", "aan", "a", function(self, args)
-	local op1, op2, op3 = args[2], args[3], args[4]
-	local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
+e2function angle mix(angle rv1, angle rv2, rv3)
 	local n
 	if rv3 < 0 then n = 0
 	elseif rv3 > 1 then n = 1
@@ -369,20 +297,16 @@ registerFunction("mix", "aan", "a", function(self, args)
 	local y = rv1[2] * n + rv2[2] * (1-n)
 	local r = rv1[3] * n + rv2[3] * (1-n)
 	return {p, y, r}
-end)
+end
 
 // Circular shift function: shiftr(  p,y,r ) = ( r,p,y )
-registerFunction("shiftR", "a", "a", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
+e2function angle shiftR(angle rv1)
 	return {rv1[3], rv1[1], rv1[2]}
-end)
+end
 
-registerFunction("shiftL", "a", "a", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
+e2function angle shiftL(angle rv1)
 	return {rv1[2], rv1[3], rv1[1]}
-end)
+end
 
 /******************************************************************************/
 

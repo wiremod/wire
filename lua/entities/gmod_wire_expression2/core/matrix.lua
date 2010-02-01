@@ -54,38 +54,32 @@ end
 
 __e2setcost(1) -- approximated
 
-registerFunction("matrix2", "", "xm2", function(self, args)
+e2function matrix2 matrix2()
 	return { 0, 0,
 			 0, 0 }
-end)
+end
 
 __e2setcost(5) -- temporary
 
-registerFunction("matrix2", "xv2xv2", "xm2", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+e2function matrix2 matrix2(vector2 rv1, vector2 rv2)
 	return { rv1[1], rv2[1],
 			 rv1[2], rv2[2] }
-end)
+end
 
-registerFunction("matrix2", "nnnn", "xm2", function(self, args)
-	local op1, op2, op3, op4 = args[2], args[3], args[4], args[5]
-	local rv1, rv2, rv3, rv4 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3), op4[1](self, op4)
+e2function matrix2 matrix2(rv1, rv2, rv3, rv4)
 	return { rv1, rv2,
 			 rv3, rv4 }
-end)
+end
 
-registerFunction("matrix2", "m", "xm2", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
+e2function matrix2 matrix2(matrix rv1)
 	return { rv1[1], rv2[2],
 			 rv1[4], rv2[5] }
-end)
+end
 
-registerFunction("identity2", "", "xm2", function(self, args)
+e2function matrix2 identity2()
 	return { 1, 0,
 			 0, 1 }
-end)
+end
 
 /******************************************************************************/
 
@@ -100,35 +94,29 @@ end)
 /******************************************************************************/
 // Comparison
 
-registerOperator("is", "xm2", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
+e2function number operator_is(matrix2 rv1)
 	if rv1[1] > delta || -rv1[1] > delta ||
 	   rv1[2] > delta || -rv1[2] > delta ||
 	   rv1[3] > delta || -rv1[3] > delta ||
 	   rv1[4] > delta || -rv1[4] > delta
 	   then return 1 else return 0 end
-end)
+end
 
-registerOperator("eq", "xm2xm2", "n", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+e2function number operator==(matrix2 rv1, matrix2 rv2)
 	if rv1[1] - rv2[1] <= delta && rv2[1] - rv1[1] <= delta &&
 	   rv1[2] - rv2[2] <= delta && rv2[2] - rv1[2] <= delta &&
 	   rv1[3] - rv2[3] <= delta && rv2[3] - rv1[3] <= delta &&
 	   rv1[4] - rv2[4] <= delta && rv2[4] - rv1[4] <= delta
 	   then return 1 else return 0 end
-end)
+end
 
-registerOperator("neq", "xm2xm2", "n", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+e2function number operator!=(matrix2 rv1, matrix2 rv2)
 	if rv1[1] - rv2[1] > delta && rv2[1] - rv1[1] > delta &&
 	   rv1[2] - rv2[2] > delta && rv2[2] - rv1[2] > delta &&
 	   rv1[3] - rv2[3] > delta && rv2[3] - rv1[3] > delta &&
 	   rv1[4] - rv2[4] > delta && rv2[4] - rv1[4] > delta
 	   then return 1 else return 0 end
-end)
+end
 
 /******************************************************************************/
 // Basic operations
@@ -140,67 +128,49 @@ registerOperator("dlt", "xm2", "xm2", function(self, args)
 			 rv1[3] - rv2[3], rv1[4] - rv2[4] }
 end)
 
-registerOperator("neg", "xm2", "xm2", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
+e2function matrix2 operator_neg(matrix2 rv1)
 	return { -rv1[1], -rv1[2],
 			 -rv1[3], -rv1[4] }
-end)
+end
 
-registerOperator("add", "xm2xm2", "xm2", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+e2function matrix2 operator+(matrix2 rv1, matrix2 rv2)
 	return { rv1[1] + rv2[1], rv1[2] + rv2[2],
 			 rv1[3] + rv2[3], rv1[4] + rv2[4] }
-end)
+end
 
-registerOperator("sub", "xm2xm2", "xm2", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+e2function matrix2 operator-(matrix2 rv1, matrix2 rv2)
 	return { rv1[1] - rv2[1], rv1[2] - rv2[2],
 			 rv1[3] - rv2[3], rv1[4] - rv2[4] }
-end)
+end
 
-registerOperator("mul", "nxm2", "xm2", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+e2function matrix2 operator*(rv1, matrix2 rv2)
 	return { rv1 * rv2[1], rv1 * rv2[2],
 			 rv1 * rv2[3], rv1 * rv2[4] }
-end)
+end
 
-registerOperator("mul", "xm2n", "xm2", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+e2function matrix2 operator*(matrix2 rv1, rv2)
 	return { rv1[1] * rv2, rv1[2] * rv2,
 			 rv1[3] * rv2, rv1[4] * rv2 }
-end)
+end
 
-registerOperator("mul", "xm2xv2", "xv2", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+e2function vector2 operator*(matrix2 rv1, vector2 rv2)
 	return { rv1[1] * rv2[1] + rv1[2] * rv2[2],
 			 rv1[3] * rv2[1] + rv1[4] * rv2[2] }
-end)
+end
 
-registerOperator("mul", "xm2xm2", "xm2", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+e2function matrix2 operator*(matrix2 rv1, matrix2 rv2)
 	return { rv1[1] * rv2[1] + rv1[2] * rv2[3],
 			 rv1[1] * rv2[2] + rv1[2] * rv2[4],
 			 rv1[3] * rv2[1] + rv1[4] * rv2[3],
 			 rv1[3] * rv2[2] + rv1[4] * rv2[4] }
-end)
+end
 
-registerOperator("div", "xm2n", "xm2", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+e2function matrix2 operator/(matrix2 rv1, rv2)
 	return { rv1[1] / rv2, rv1[2] / rv2,
 			 rv1[3] / rv2, rv1[4] / rv2 }
-end)
+end
 
-registerOperator("exp", "xm2n", "xm2", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+e2function matrix2 operator^(matrix2 rv1, rv2)
 
 	if rv2 == -1 then return ( inverse2(rv1) )
 
@@ -218,121 +188,103 @@ registerOperator("exp", "xm2n", "xm2", function(self, args)
 	else return { 0, 0,
 				  0, 0 }
 	end
-end)
+end
 
 /******************************************************************************/
 // Row/column/element manipulation
 
-registerFunction("row", "xm2:n", "xv2", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+e2function vector2 matrix2:row(rv2)
 	local k
 
 	if rv2 < 1 then k = 1
 	elseif rv2 > 2 then k = 2
 	else k = rv2 - rv2 % 1 end
 
-	local x = rv1[k * 2 - 1]
-	local y = rv1[k * 2]
+	local x = this[k * 2 - 1]
+	local y = this[k * 2]
 	return { x, y }
-end)
+end
 
-registerFunction("column", "xm2:n", "xv2", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+e2function vector2 matrix2:column(rv2)
 	local k
 
 	if rv2 < 1 then k = 1
 	elseif rv2 > 2 then k = 2
 	else k = rv2 - rv2 % 1 end
 
-	local x = rv1[k]
-	local y = rv1[k + 2]
+	local x = this[k]
+	local y = this[k + 2]
 	return { x, y }
-end)
+end
 
-registerFunction("setRow", "xm2:nnn", "xm2", function(self, args)
-	local op1, op2, op3, op4 = args[2], args[3], args[4], args[5]
-	local rv1, rv2, rv3, rv4 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3), op4[1](self, op4)
+e2function matrix2 matrix2:setRow(rv2, rv3, rv4)
 	local k
 
 	if rv2 < 1 then k = 2
 	elseif rv2 > 2 then k = 4
 	else k = (rv2 - rv2 % 1)*2 end
 
-	local a = clone(rv1)
+	local a = clone(this)
 	a[k - 1] = rv3
 	a[k] = rv4
 	return a
-end)
+end
 
-registerFunction("setRow", "xm2:nxv2", "xm2", function(self, args)
-	local op1, op2, op3, op4 = args[2], args[3], args[4], args[5]
-	local rv1, rv2, rv3, rv4 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3), op4[1](self, op4)
+e2function matrix2 matrix2:setRow(rv2, vector2 rv3)
 	local k
 
 	if rv2 < 1 then k = 2
 	elseif rv2 > 2 then k = 4
 	else k = (rv2 - rv2 % 1)*2 end
 
-	local a = clone(rv1)
+	local a = clone(this)
 	a[k - 1] = rv3[1]
 	a[k] = rv3[2]
 	return a
-end)
+end
 
 
-registerFunction("setColumn", "xm2:nnn", "xm2", function(self, args)
-	local op1, op2, op3, op4 = args[2], args[3], args[4], args[5]
-	local rv1, rv2, rv3, rv4 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3), op4[1](self, op4)
+e2function matrix2 matrix2:setColumn(rv2, rv3, rv4)
 	local k
 
 	if rv2 < 1 then k = 1
 	elseif rv2 > 2 then k = 2
 	else k = rv2 - rv2 % 1 end
 
-	local a = clone(rv1)
+	local a = clone(this)
 	a[k] = rv3
 	a[k + 2] = rv4
 	return a
-end)
+end
 
-registerFunction("setColumn", "xm2:nxv2", "xm2", function(self, args)
-	local op1, op2, op3, op4 = args[2], args[3], args[4], args[5]
-	local rv1, rv2, rv3, rv4 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3), op4[1](self, op4)
+e2function matrix2 matrix2:setColumn(rv2, vector2 rv3)
 	local k
 
 	if rv2 < 1 then k = 1
 	elseif rv2 > 2 then k = 2
 	else k = rv2 - rv2 % 1 end
 
-	local a = clone(rv1)
+	local a = clone(this)
 	a[k] = rv3[1]
 	a[k + 2] = rv3[2]
 	return a
-end)
+end
 
-registerFunction("swapRows", "xm2:", "xm2", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
+e2function matrix2 matrix2:swapRows()
 
-	rv1 = { rv1[3], rv1[4],
-			rv1[1], rv1[2] }
-	return rv1
-end)
+	this = { this[3], this[4],
+			this[1], this[2] }
+	return this
+end
 
-registerFunction("swapColumns", "xm2:", "xm2", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
+e2function matrix2 matrix2:swapColumns()
 
-	rv1 = { rv1[2], rv1[1],
-			rv1[4], rv1[3] }
-	return rv1
-end)
+	this = { this[2], this[1],
+			this[4], this[3] }
+	return this
+end
 
-registerFunction("element", "xm2:nn", "n", function(self, args)
-	local op1, op2, op3 = args[2], args[3], args[4]
-	local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
+e2function number matrix2:element(rv2, rv3)
 	local i, j
 
 	if rv2 < 1 then i = 1
@@ -343,12 +295,10 @@ registerFunction("element", "xm2:nn", "n", function(self, args)
 	else j = rv3 - rv3 % 1 end
 
 	local k = i + (j - 1) * 2
-	return rv1[k]
-end)
+	return this[k]
+end
 
-registerFunction("setElement", "xm2:nnn", "xm2", function(self, args)
-	local op1, op2, op3, op4 = args[2], args[3], args[4], args[5]
-	local rv1, rv2, rv3, rv4 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3), op4[1](self, op4)
+e2function matrix2 matrix2:setElement(rv2, rv3, rv4)
 	local i, j
 
 	if rv2 < 1 then i = 1
@@ -358,14 +308,12 @@ registerFunction("setElement", "xm2:nnn", "xm2", function(self, args)
 	elseif rv3 > 2 then j = 2
 	else j = rv3 - rv3 % 1 end
 
-	local a = clone(rv1)
+	local a = clone(this)
 	a[i + (j - 1) * 2] = rv4
 	return a
-end)
+end
 
-registerFunction("swapElements", "xm2:nnnn", "xm2", function(self, args)
-	local op1, op2, op3, op4, op5 = args[2], args[3], args[4], args[5], args[6]
-	local rv1, rv2, rv3, rv4, rv5 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3), op4[1](self, op4), op5[1](self, op5)
+e2function matrix2 matrix2:swapElements(rv2, rv3, rv4, rv5)
 	local i1, j1, i2, j2
 
 	if rv2 < 1 then i1 = 1
@@ -386,45 +334,35 @@ registerFunction("swapElements", "xm2:nnnn", "xm2", function(self, args)
 
 	local k1 = i1 + (j1 - 1) * 2
 	local k2 = i2 + (j2 - 1) * 2
-	local a = clone(rv1)
-	a[k1], a[k2] = rv1[k2], rv1[k1]
+	local a = clone(this)
+	a[k1], a[k2] = this[k2], this[k1]
 	return a
-end)
+end
 
 /******************************************************************************/
 // Useful matrix maths functions
 
-registerFunction("diagonal", "xm2", "xv2", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
+e2function vector2 diagonal(matrix2 rv1)
 	return { rv1[1], rv1[4] }
-end)
+end
 
-registerFunction("trace", "xm2", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
+e2function number trace(matrix2 rv1)
 	return ( rv1[1] + rv[4] )
-end)
+end
 
-registerFunction("det", "xm2", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
+e2function number det(matrix2 rv1)
 	return ( det2(rv1) )
-end)
+end
 
-registerFunction("transpose", "xm2", "xm2", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
+e2function matrix2 transpose(matrix2 rv1)
 	return { rv1[1], rv1[3],
 			 rv1[2], rv1[4] }
-end)
+end
 
-registerFunction("adj", "xm2", "xm2", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
+e2function matrix2 adj(matrix2 rv1)
 	return {  rv1[4], -rv1[2],
 			 -rv1[3],  rv1[1] }
-end)
+end
 
 
 /******************************************************************************\
@@ -490,47 +428,37 @@ end
 
 __e2setcost(1) -- approximated
 
-registerFunction("matrix", "", "m", function(self, args)
+e2function matrix matrix()
 	return { 0, 0, 0,
 			 0, 0, 0,
 			 0, 0, 0 }
-end)
+end
 
 __e2setcost(5) -- temporary
 
-registerFunction("matrix", "vvv", "m", function(self, args)
-	local op1, op2, op3 = args[2], args[3], args[4]
-	local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
+e2function matrix matrix(vector rv1, vector rv2, vector rv3)
 	return { rv1[1], rv2[1], rv3[1],
 			 rv1[2], rv2[2], rv3[2],
 			 rv1[3], rv2[3], rv3[3] }
-end)
+end
 
-registerFunction("matrix", "nnnnnnnnn", "m", function(self, args)
-	local op1, op2, op3 = args[2], args[3], args[4]
-	local op4, op5, op6 = args[5], args[6], args[7]
-	local op7, op8, op9 = args[8], args[9], args[10]
-	local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
-	local rv4, rv5, rv6 = op4[1](self, op4), op5[1](self, op5), op6[1](self, op6)
-	local rv7, rv8, rv9 = op7[1](self, op7), op8[1](self, op8), op9[1](self, op9)
+e2function matrix matrix(rv1, rv2, rv3, rv4, rv5, rv6, rv7, rv8, rv9)
 	return { rv1, rv2, rv3,
 			 rv4, rv5, rv6,
 			 rv7, rv8, rv9 }
-end)
+end
 
-registerFunction("matrix", "xm2", "m", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
+e2function matrix matrix(matrix2 rv1)
 	return { rv1[1], rv1[2], 0,
 			 rv1[3], rv1[4], 0,
 			 0,		 0,		 0 }
-end)
+end
 
-registerFunction("identity", "", "m", function(self, args)
+e2function matrix identity()
 	return { 1, 0, 0,
 			 0, 1, 0,
 			 0, 0, 1 }
-end)
+end
 
 /******************************************************************************/
 
@@ -545,9 +473,7 @@ end)
 /******************************************************************************/
 // Comparison
 
-registerOperator("is", "m", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
+e2function number operator_is(matrix rv1)
 	if rv1[1] > delta || -rv1[1] > delta ||
 	   rv1[2] > delta || -rv1[2] > delta ||
 	   rv1[3] > delta || -rv1[3] > delta ||
@@ -558,11 +484,9 @@ registerOperator("is", "m", "n", function(self, args)
 	   rv1[8] > delta || -rv1[8] > delta ||
 	   rv1[9] > delta || -rv1[9] > delta
 	   then return 1 else return 0 end
-end)
+end
 
-registerOperator("eq", "mm", "n", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+e2function number operator==(matrix rv1, matrix rv2)
 	if rv1[1] - rv2[1] <= delta && rv2[1] - rv1[1] <= delta &&
 	   rv1[2] - rv2[2] <= delta && rv2[2] - rv1[2] <= delta &&
 	   rv1[3] - rv2[3] <= delta && rv2[3] - rv1[3] <= delta &&
@@ -573,11 +497,9 @@ registerOperator("eq", "mm", "n", function(self, args)
 	   rv1[8] - rv2[8] <= delta && rv2[8] - rv1[8] <= delta &&
 	   rv1[9] - rv2[9] <= delta && rv2[9] - rv1[9] <= delta
 	   then return 1 else return 0 end
-end)
+end
 
-registerOperator("neq", "mm", "n", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+e2function number operator!=(matrix rv1, matrix rv2)
 	if rv1[1] - rv2[1] > delta && rv2[1] - rv1[1] > delta &&
 	   rv1[2] - rv2[2] > delta && rv2[2] - rv1[2] > delta &&
 	   rv1[3] - rv2[3] > delta && rv2[3] - rv1[3] > delta &&
@@ -588,7 +510,7 @@ registerOperator("neq", "mm", "n", function(self, args)
 	   rv1[8] - rv2[8] > delta && rv2[8] - rv1[8] > delta &&
 	   rv1[9] - rv2[9] > delta && rv2[9] - rv1[9] > delta
 	   then return 1 else return 0 end
-end)
+end
 
 /******************************************************************************/
 // Basic operations
@@ -601,57 +523,43 @@ registerOperator("dlt", "m", "m", function(self, args)
 			 rv1[7] - rv2[7], rv1[8] - rv2[8], rv1[9] - rv2[9]	}
 end)
 
-registerOperator("neg", "m", "m", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
+e2function matrix operator_neg(matrix rv1)
 	return { -rv1[1], -rv1[2], -rv1[3],
 			 -rv1[4], -rv1[5], -rv1[6],
 			 -rv1[7], -rv1[8], -rv1[9] }
-end)
+end
 
-registerOperator("add", "mm", "m", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+e2function matrix operator+(matrix rv1, matrix rv2)
 	return { rv1[1] + rv2[1], rv1[2] + rv2[2], rv1[3] + rv2[3],
 			 rv1[4] + rv2[4], rv1[5] + rv2[5], rv1[6] + rv2[6],
 			 rv1[7] + rv2[7], rv1[8] + rv2[8], rv1[9] + rv2[9] }
-end)
+end
 
-registerOperator("sub", "mm", "m", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+e2function matrix operator-(matrix rv1, matrix rv2)
 	return { rv1[1] - rv2[1], rv1[2] - rv2[2], rv1[3] - rv2[3],
 			 rv1[4] - rv2[4], rv1[5] - rv2[5], rv1[6] - rv2[6],
 			 rv1[7] - rv2[7], rv1[8] - rv2[8], rv1[9] - rv2[9] }
-end)
+end
 
-registerOperator("mul", "nm", "m", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+e2function matrix operator*(rv1, matrix rv2)
 	return { rv1 * rv2[1], rv1 * rv2[2], rv1 * rv2[3],
 			 rv1 * rv2[4], rv1 * rv2[5], rv1 * rv2[6],
 			 rv1 * rv2[7], rv1 * rv2[8], rv1 * rv2[9] }
-end)
+end
 
-registerOperator("mul", "mn", "m", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+e2function matrix operator*(matrix rv1, rv2)
 	return { rv1[1] * rv2, rv1[2] * rv2, rv1[3] * rv2,
 			 rv1[4] * rv2, rv1[5] * rv2, rv1[6] * rv2,
 			 rv1[7] * rv2, rv1[8] * rv2, rv1[9] * rv2 }
-end)
+end
 
-registerOperator("mul", "mv", "v", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+e2function vector operator*(matrix rv1, vector rv2)
 	return { rv1[1] * rv2[1] + rv1[2] * rv2[2] + rv1[3] * rv2[3],
 			 rv1[4] * rv2[1] + rv1[5] * rv2[2] + rv1[6] * rv2[3],
 			 rv1[7] * rv2[1] + rv1[8] * rv2[2] + rv1[9] * rv2[3] }
-end)
+end
 
-registerOperator("mul", "mm", "m", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+e2function matrix operator*(matrix rv1, matrix rv2)
 	return { rv1[1] * rv2[1] + rv1[2] * rv2[4] + rv1[3] * rv2[7],
 			 rv1[1] * rv2[2] + rv1[2] * rv2[5] + rv1[3] * rv2[8],
 			 rv1[1] * rv2[3] + rv1[2] * rv2[6] + rv1[3] * rv2[9],
@@ -661,19 +569,15 @@ registerOperator("mul", "mm", "m", function(self, args)
 			 rv1[7] * rv2[1] + rv1[8] * rv2[4] + rv1[9] * rv2[7],
 			 rv1[7] * rv2[2] + rv1[8] * rv2[5] + rv1[9] * rv2[8],
 			 rv1[7] * rv2[3] + rv1[8] * rv2[6] + rv1[9] * rv2[9] }
-end)
+end
 
-registerOperator("div", "mn", "m", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+e2function matrix operator/(matrix rv1, rv2)
 	return { rv1[1] / rv2, rv1[2] / rv2, rv1[3] / rv2,
 			 rv1[4] / rv2, rv1[5] / rv2, rv1[6] / rv2,
 			 rv1[7] / rv2, rv1[8] / rv2, rv1[9] / rv2 }
-end)
+end
 
-registerOperator("exp", "mn", "m", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+e2function matrix operator^(matrix rv1, rv2)
 
 	if rv2 == -1 then return ( inverse3(rv1) )
 
@@ -698,108 +602,94 @@ registerOperator("exp", "mn", "m", function(self, args)
 				  0, 0, 0,
 				  0, 0, 0 }
 	end
-end)
+end
 
 /******************************************************************************/
 // Row/column/element manipulation
 
-registerFunction("row", "m:n", "v", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+e2function vector matrix:row(rv2)
 	local k
 
 	if rv2 < 1 then k = 3
 	elseif rv2 > 3 then k = 9
 	else k = (rv2 - rv2 % 1)*3 end
 
-	local x = rv1[k - 2]
-	local y = rv1[k - 1]
-	local z = rv1[k]
+	local x = this[k - 2]
+	local y = this[k - 1]
+	local z = this[k]
 	return { x, y, z }
-end)
+end
 
-registerFunction("column", "m:n", "v", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+e2function vector matrix:column(rv2)
 	local k
 
 	if rv2 < 1 then k = 1
 	elseif rv2 > 3 then k = 3
 	else k = rv2 - rv2 % 1 end
 
-	local x = rv1[k]
-	local y = rv1[k + 3]
-	local z = rv1[k + 6]
+	local x = this[k]
+	local y = this[k + 3]
+	local z = this[k + 6]
 	return { x, y, z }
-end)
+end
 
-registerFunction("setRow", "m:nnnn", "m", function(self, args)
-	local op1, op2, op3, op4, op5 = args[2], args[3], args[4], args[5], args[6]
-	local rv1, rv2, rv3, rv4, rv5 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3), op4[1](self, op4), op5[1](self, op5)
+e2function matrix matrix:setRow(rv2, rv3, rv4, rv5)
 	local k
 
 	if rv2 < 1 then k = 1
 	elseif rv2 > 3 then k = 3
 	else k = rv2 - rv2 % 1 end
 
-	local a = clone(rv1)
+	local a = clone(this)
 	a[k * 3 - 2] = rv3
 	a[k * 3 - 1] = rv4
 	a[k * 3] = rv5
 	return a
-end)
+end
 
-registerFunction("setRow", "m:nv", "m", function(self, args)
-	local op1, op2, op3 = args[2], args[3], args[4]
-	local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
+e2function matrix matrix:setRow(rv2, vector rv3)
 	local k
 
 	if rv2 < 1 then k = 1
 	elseif rv2 > 3 then k = 3
 	else k = rv2 - rv2 % 1 end
 
-	local a = clone(rv1)
+	local a = clone(this)
 	a[k * 3 - 2] = rv3[1]
 	a[k * 3 - 1] = rv3[2]
 	a[k * 3] = rv3[3]
 	return a
-end)
+end
 
-registerFunction("setColumn", "m:nnnn", "m", function(self, args)
-	local op1, op2, op3, op4, op5 = args[2], args[3], args[4], args[5], args[6]
-	local rv1, rv2, rv3, rv4, rv5 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3), op4[1](self, op4), op5[1](self, op5)
+e2function matrix matrix:setColumn(rv2, rv3, rv4, rv5)
 	local k
 
 	if rv2 < 1 then k = 1
 	elseif rv2 > 3 then k = 3
 	else k = rv2 - rv2 % 1 end
 
-	local a = clone(rv1)
+	local a = clone(this)
 	a[k] = rv3
 	a[k + 3] = rv4
 	a[k + 6] = rv5
 	return a
-end)
+end
 
-registerFunction("setColumn", "m:nv", "m", function(self, args)
-	local op1, op2, op3 = args[2], args[3], args[4]
-	local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
+e2function matrix matrix:setColumn(rv2, vector rv3)
 	local k
 
 	if rv2 < 1 then k = 1
 	elseif rv2 > 3 then k = 3
 	else k = rv2 - rv2 % 1 end
 
-	local a = clone(rv1)
+	local a = clone(this)
 	a[k] = rv3[1]
 	a[k + 3] = rv3[2]
 	a[k + 6] = rv3[3]
 	return a
-end)
+end
 
-registerFunction("swapRows", "m:nn", "m", function(self, args)
-	local op1, op2, op3 = args[2], args[3], args[4]
-	local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
+e2function matrix matrix:swapRows(rv2, rv3)
 	local r1, r2
 
 	if rv2 < 1 then r1 = 1
@@ -809,26 +699,24 @@ registerFunction("swapRows", "m:nn", "m", function(self, args)
 	elseif rv3 > 3 then r2 = 3
 	else r2 = rv3 - rv3 % 1 end
 
-	if r1 == r2 then return rv1
+	if r1 == r2 then return this
 	elseif (r1 == 1 && r2 == 2) || (r1 == 2 && r2 == 1) then
-		rv1 = { rv1[4], rv1[5], rv1[6],
-				rv1[1], rv1[2], rv1[3],
-				rv1[7], rv1[8], rv1[9] }
+		this = { this[4], this[5], this[6],
+				this[1], this[2], this[3],
+				this[7], this[8], this[9] }
 	elseif (r1 == 2 && r2 == 3) || (r1 == 3 && r2 == 2) then
-		rv1 = { rv1[1], rv1[2], rv1[3],
-				rv1[7], rv1[8], rv1[9],
-				rv1[4], rv1[5], rv1[6] }
+		this = { this[1], this[2], this[3],
+				this[7], this[8], this[9],
+				this[4], this[5], this[6] }
 	elseif (r1 == 1 && r2 == 3) || (r1 == 3 && r2 == 1) then
-		rv1 = { rv1[7], rv1[8], rv1[9],
-				rv1[4], rv1[5], rv1[6],
-				rv1[1], rv1[2], rv1[3] }
+		this = { this[7], this[8], this[9],
+				this[4], this[5], this[6],
+				this[1], this[2], this[3] }
 	end
-	return rv1
-end)
+	return this
+end
 
-registerFunction("swapColumns", "m:nn", "m", function(self, args)
-	local op1, op2, op3 = args[2], args[3], args[4]
-	local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
+e2function matrix matrix:swapColumns(rv2, rv3)
 	local r1, r2
 
 	if rv2 < 1 then r1 = 1
@@ -838,26 +726,24 @@ registerFunction("swapColumns", "m:nn", "m", function(self, args)
 	elseif rv3 > 3 then r2 = 3
 	else r2 = rv3 - rv3 % 1 end
 
-	if r1 == r2 then return rv1
+	if r1 == r2 then return this
 	elseif (r1 == 1 && r2 == 2) || (r1 == 2 && r2 == 1) then
-		rv1 = { rv1[2], rv1[1], rv1[3],
-				rv1[5], rv1[4], rv1[6],
-				rv1[8], rv1[7], rv1[9] }
+		this = { this[2], this[1], this[3],
+				this[5], this[4], this[6],
+				this[8], this[7], this[9] }
 	elseif (r1 == 2 && r2 == 3) || (r1 == 3 && r2 == 2) then
-		rv1 = { rv1[1], rv1[3], rv1[2],
-				rv1[4], rv1[6], rv1[5],
-				rv1[7], rv1[9], rv1[8] }
+		this = { this[1], this[3], this[2],
+				this[4], this[6], this[5],
+				this[7], this[9], this[8] }
 	elseif (r1 == 1 && r2 == 3) || (r1 == 3 && r2 == 1) then
-		rv1 = { rv1[3], rv1[2], rv1[1],
-				rv1[6], rv1[5], rv1[4],
-				rv1[9], rv1[8], rv1[7] }
+		this = { this[3], this[2], this[1],
+				this[6], this[5], this[4],
+				this[9], this[8], this[7] }
 	end
-	return rv1
-end)
+	return this
+end
 
-registerFunction("element", "m:nn", "n", function(self, args)
-	local op1, op2, op3 = args[2], args[3], args[4]
-	local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
+e2function number matrix:element(rv2, rv3)
 	local i, j
 
 	if rv2 < 1 then i = 1
@@ -868,12 +754,10 @@ registerFunction("element", "m:nn", "n", function(self, args)
 	else j = rv3 - rv3 % 1 end
 
 	local k = i + (j - 1) * 3
-	return rv1[k]
-end)
+	return this[k]
+end
 
-registerFunction("setElement", "m:nnn", "m", function(self, args)
-	local op1, op2, op3, op4 = args[2], args[3], args[4], args[5]
-	local rv1, rv2, rv3, rv4 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3), op4[1](self, op4)
+e2function matrix matrix:setElement(rv2, rv3, rv4)
 	local i, j
 
 	if rv2 < 1 then i = 1
@@ -883,14 +767,12 @@ registerFunction("setElement", "m:nnn", "m", function(self, args)
 	elseif rv3 > 3 then j = 3
 	else j = rv3 - rv3 % 1 end
 
-	local a = clone(rv1)
+	local a = clone(this)
 	a[i + (j - 1) * 3] = rv4
 	return a
-end)
+end
 
-registerFunction("swapElements", "m:nnnn", "m", function(self, args)
-	local op1, op2, op3, op4, op5 = args[2], args[3], args[4], args[5], args[6]
-	local rv1, rv2, rv3, rv4, rv5 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3), op4[1](self, op4), op5[1](self, op5)
+e2function matrix matrix:swapElements(rv2, rv3, rv4, rv5)
 	local i1, j1, i2, j2
 
 	if rv2 < 1 then i1 = 1
@@ -911,70 +793,54 @@ registerFunction("swapElements", "m:nnnn", "m", function(self, args)
 
 	local k1 = i1 + (j1 - 1) * 3
 	local k2 = i2 + (j2 - 1) * 3
-	local a = clone(rv1)
-	a[k1], a[k2] = rv1[k2], rv1[k1]
+	local a = clone(this)
+	a[k1], a[k2] = this[k2], this[k1]
 	return a
-end)
+end
 
-registerFunction("setDiagonal", "m:v", "m", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	return { rv2[1], rv1[4], rv1[7],
-			 rv1[2], rv2[2], rv1[8],
-			 rv1[3], rv1[6], rv2[3] }
-end)
+e2function matrix matrix:setDiagonal(vector rv2)
+	return { rv2[1], this[4], this[7],
+			 this[2], rv2[2], this[8],
+			 this[3], this[6], rv2[3] }
+end
 
-registerFunction("setDiagonal", "m:nnn", "m", function(self, args)
-	local op1, op2, op3, op4 = args[2], args[3], args[4], args[5]
-	local rv1, rv2, rv3, rv4 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3), op4[1](self, op4)
-	return { rv2, rv1[4], rv1[7],
-			 rv1[2], rv3, rv1[8],
-			 rv1[3], rv1[6], rv4 }
-end)
+e2function matrix matrix:setDiagonal(rv2, rv3, rv4)
+	return { rv2, this[4], this[7],
+			 this[2], rv3, this[8],
+			 this[3], this[6], rv4 }
+end
 
 /******************************************************************************/
 // Useful matrix maths functions
 
-registerFunction("diagonal", "m", "v", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
+e2function vector diagonal(matrix rv1)
 	return { rv1[1], rv1[5], rv1[9] }
-end)
+end
 
-registerFunction("trace", "m", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
+e2function number trace(matrix rv1)
 	return ( rv1[1] + rv1[5] + rv1[9] )
-end)
+end
 
-registerFunction("det", "m", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
+e2function number det(matrix rv1)
 	return ( det3(rv1) )
-end)
+end
 
-registerFunction("transpose", "m", "m", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
+e2function matrix transpose(matrix rv1)
 	return { rv1[1], rv1[4], rv1[7],
 			 rv1[2], rv1[5], rv1[8],
 			 rv1[3], rv1[6], rv1[9] }
-end)
+end
 
-registerFunction("adj", "m", "m", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
+e2function matrix adj(matrix rv1)
 	return { rv1[5] * rv1[9] - rv1[8] * rv1[6],	rv1[8] * rv1[3] - rv1[2] * rv1[9],	rv1[2] * rv1[6] - rv1[5] * rv1[3],
 			 rv1[7] * rv1[6] - rv1[4] * rv1[9],	rv1[1] * rv1[9] - rv1[7] * rv1[3],	rv1[4] * rv1[3] - rv1[1] * rv1[6],
 			 rv1[4] * rv1[8] - rv1[7] * rv1[5],	rv1[7] * rv1[2] - rv1[1] * rv1[8],	rv1[1] * rv1[5] - rv1[4] * rv1[2] }
-end)
+end
 
 /******************************************************************************/
 // Extra functions
 
-registerFunction("matrix", "e", "m", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
+e2function matrix matrix(entity rv1)
 	if(!validEntity(rv1)) then
 		return { 0, 0, 0,
 				 0, 0, 0,
@@ -988,30 +854,22 @@ registerFunction("matrix", "e", "m", function(self, args)
 	return { x.x/factor, y.x/factor, z.x/factor,
 			 x.y/factor, y.y/factor, z.y/factor,
 			 x.z/factor, y.z/factor, z.z/factor }
-end)
+end
 
-registerFunction("x", "m:", "v", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	return { rv1[1], rv1[4], rv1[7] }
-end)
+e2function vector matrix:x()
+	return { this[1], this[4], this[7] }
+end
 
-registerFunction("y", "m:", "v", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	return { rv1[2], rv1[5], rv1[8] }
-end)
+e2function vector matrix:y()
+	return { this[2], this[5], this[8] }
+end
 
-registerFunction("z", "m:", "v", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	return { rv1[3], rv1[6], rv1[9] }
-end)
+e2function vector matrix:z()
+	return { this[3], this[6], this[9] }
+end
 
 // Create a rotation matrix in the format (v,n) where v is the axis direction vector and n is degrees (right-handed rotation)
-registerFunction("mRotation", "vn", "m", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+e2function matrix mRotation(vector rv1, rv2)
 
 	local vec
 	local len = (rv1[1] * rv1[1] + rv1[2] * rv1[2] + rv1[3] * rv1[3]) ^ 0.5
@@ -1036,7 +894,7 @@ registerFunction("mRotation", "vn", "m", function(self, args)
 			 vec[1] * vec[3] * cosmin - vec[2] * sin,
 			 vec[2] * vec[3] * cosmin + vec[1] * sin,
 			 vec2[3] + (1 - vec2[3]) * cos }
-end)
+end
 
 /******************************************************************************\
   4x4 Matrices
@@ -1065,72 +923,56 @@ registerType("matrix4", "xm4", { 0, 0, 0, 0,
 
 __e2setcost(1) -- approximated
 
-registerFunction("matrix4", "", "xm4", function(self, args)
+e2function matrix4 matrix4()
 	return { 0, 0, 0, 0,
 			 0, 0, 0, 0,
 			 0, 0, 0, 0,
 			 0, 0, 0, 0 }
-end)
+end
 
 __e2setcost(5) -- temporary
 
-registerFunction("matrix4", "xv4xv4xv4xv4", "xm4", function(self, args)
-	local op1, op2, op3, op4 = args[2], args[3], args[4], args[5]
-	local rv1, rv2, rv3, rv4 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3), op4[1](self, op4)
+e2function matrix4 matrix4(vector4 rv1, vector4 rv2, vector4 rv3, vector4 rv4)
 	return { rv1[1], rv2[1], rv3[1], rv4[1],
 			 rv1[2], rv2[2], rv3[2], rv4[2],
 			 rv1[3], rv2[3], rv3[3], rv4[3],
 			 rv1[4], rv2[4], rv3[4], rv4[4] }
-end)
+end
 
-registerFunction("matrix4", "nnnnnnnnnnnnnnnn", "xm4", function(self, args)
-	local op1, op2, op3, op4		= args[2], args[3], args[4], args[5]
-	local op5, op6, op7, op8		= args[6], args[7], args[8], args[9]
-	local op9, op10, op11, op12		= args[10], args[11], args[12], args[13]
-	local op13, op14, op15, op16	= args[14], args[15], args[16], args[17]
-	local rv1, rv2, rv3, rv4		= op1[1](self, op1), op2[1](self, op2), op3[1](self, op3), op4[1](self, op4)
-	local rv5, rv6, rv7, rv8		= op5[1](self, op5), op6[1](self, op6), op7[1](self, op7), op8[1](self, op8)
-	local rv9, rv10, rv11, rv12		= op9[1](self, op9), op10[1](self, op10), op11[1](self, op11), op12[1](self, op12)
-	local rv13, rv14, rv15, rv16	= op13[1](self, op13), op14[1](self, op14), op15[1](self, op15), op16[1](self, op16)
+e2function matrix4 matrix4(rv1, rv2, rv3, rv4, rv5, rv6, rv7, rv8, rv9, rv10, rv11, rv12, rv13, rv14, rv15, rv16)
 	return { rv1, rv2, rv3, rv4,
 			 rv5, rv6, rv7, rv8,
 			 rv9, rv10, rv11, rv12,
 			 rv13, rv14, rv15, rv16 }
-end)
+end
 
-registerFunction("matrix4", "xm2", "xm4", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
+e2function matrix4 matrix4(matrix2 rv1)
 	return { rv1[1], rv1[2], 0, 0,
 			 rv1[3], rv1[4], 0, 0,
 			 0,		 0,		 0, 0,
 			 0,		 0,		 0, 0 }
-end)
+end
 
-registerFunction("matrix4", "xm2xm2xm2xm2", "xm4", function(self, args)
-	local op1, op2, op3, op4 = args[2], args[3], args[4], args[5]
-	local rv1, rv2, rv3, rv4 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3), op4[1](self, op4)
+e2function matrix4 matrix4(matrix2 rv1, matrix2 rv2, matrix2 rv3, matrix2 rv4)
 	return { rv1[1], rv1[2], rv2[1], rv2[2],
 			 rv1[3], rv1[4], rv2[3], rv2[4],
 			 rv3[1], rv3[2], rv4[1], rv4[2],
 			 rv3[3], rv3[4], rv4[3], rv4[4] }
-end)
+end
 
-registerFunction("matrix4", "m", "xm4", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
+e2function matrix4 matrix4(matrix rv1)
 	return { rv1[1], rv1[2], rv1[3], 0,
 			 rv1[4], rv1[5], rv1[6], 0,
 			 rv1[7], rv1[8], rv1[9], 0,
 			 0,		 0,		 0,		 0 }
-end)
+end
 
-registerFunction("identity4", "", "xm4", function(self, args)
+e2function matrix4 identity4()
 	return { 1, 0, 0, 0,
 			 0, 1, 0, 0,
 			 0, 0, 1, 0,
 			 0, 0, 0, 1 }
-end)
+end
 
 /******************************************************************************/
 
@@ -1145,9 +987,7 @@ end)
 /******************************************************************************/
 // Comparison
 
-registerOperator("is", "xm4", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
+e2function number operator_is(matrix4 rv1)
 	if rv1[1] > delta || -rv1[1] > delta ||
 	   rv1[2] > delta || -rv1[2] > delta ||
 	   rv1[3] > delta || -rv1[3] > delta ||
@@ -1165,11 +1005,9 @@ registerOperator("is", "xm4", "n", function(self, args)
 	   rv1[15] > delta || -rv1[15] > delta ||
 	   rv1[16] > delta || -rv1[16] > delta
 	   then return 1 else return 0 end
-end)
+end
 
-registerOperator("eq", "xm4xm4", "n", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+e2function number operator==(matrix4 rv1, matrix4 rv2)
 	if rv1[1] - rv2[1] <= delta && rv2[1] - rv1[1] <= delta &&
 	   rv1[2] - rv2[2] <= delta && rv2[2] - rv1[2] <= delta &&
 	   rv1[3] - rv2[3] <= delta && rv2[3] - rv1[3] <= delta &&
@@ -1187,11 +1025,9 @@ registerOperator("eq", "xm4xm4", "n", function(self, args)
 	   rv1[15] - rv2[15] <= delta && rv2[15] - rv1[15] <= delta &&
 	   rv1[16] - rv2[16] <= delta && rv2[16] - rv1[16] <= delta
 	   then return 1 else return 0 end
-end)
+end
 
-registerOperator("neq", "xm4xm4", "n", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+e2function number operator!=(matrix4 rv1, matrix4 rv2)
 	if rv1[1] - rv2[1] > delta && rv2[1] - rv1[1] > delta &&
 	   rv1[2] - rv2[2] > delta && rv2[2] - rv1[2] > delta &&
 	   rv1[3] - rv2[3] > delta && rv2[3] - rv1[3] > delta &&
@@ -1209,7 +1045,7 @@ registerOperator("neq", "xm4xm4", "n", function(self, args)
 	   rv1[15] - rv2[15] > delta && rv2[15] - rv1[15] > delta &&
 	   rv1[16] - rv2[16] > delta && rv2[16] - rv1[16] > delta
 	   then return 1 else return 0 end
-end)
+end
 
 /******************************************************************************/
 // Basic operations
@@ -1223,63 +1059,49 @@ registerOperator("dlt", "xm4", "xm4", function(self, args)
 			 rv1[13] - rv2[13],	rv1[14] - rv2[14],	rv1[15] - rv2[15],	rv1[16] - rv2[16] }
 end)
 
-registerOperator("neg", "xm4", "xm4", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
+e2function matrix4 operator_neg(matrix4 rv1)
 	return { -rv1[1],	-rv1[2],	-rv1[3],	-rv1[4],
 			 -rv1[5],	-rv1[6],	-rv1[7],	-rv1[8],
 			 -rv1[9],	-rv1[10],	-rv1[11],	-rv1[12],
 			 -rv1[13],	-rv1[14],	-rv1[15],	-rv1[16] }
-end)
+end
 
-registerOperator("add", "xm4xm4", "xm4", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+e2function matrix4 operator+(matrix4 rv1, matrix4 rv2)
 	return { rv1[1] + rv2[1],	rv1[2] + rv2[2],	rv1[3] + rv2[3],	rv1[4] + rv2[4],
 			 rv1[5] + rv2[5],	rv1[6] + rv2[6],	rv1[7] + rv2[7],	rv1[8] + rv2[8],
 			 rv1[9] + rv2[9],	rv1[10] + rv2[10],	rv1[11] + rv2[11],	rv1[12] + rv2[12],
 			 rv1[13] + rv2[13],	rv1[14] + rv2[14],	rv1[15] + rv2[15],	rv1[16] + rv2[16] }
-end)
+end
 
-registerOperator("sub", "xm4xm4", "xm4", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+e2function matrix4 operator-(matrix4 rv1, matrix4 rv2)
 	return { rv1[1] - rv2[1],	rv1[2] - rv2[2],	rv1[3] - rv2[3],	rv1[4] - rv2[4],
 			 rv1[5] - rv2[5],	rv1[6] - rv2[6],	rv1[7] - rv2[7],	rv1[8] - rv2[8],
 			 rv1[9] - rv2[9],	rv1[10] - rv2[10],	rv1[11] - rv2[11],	rv1[12] - rv2[12],
 			 rv1[13] - rv2[13],	rv1[14] - rv2[14],	rv1[15] - rv2[15],	rv1[16] - rv2[16] }
-end)
+end
 
-registerOperator("mul", "nxm4", "xm4", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+e2function matrix4 operator*(rv1, matrix4 rv2)
 	return { rv1 * rv2[1],	rv1 * rv2[2],	rv1 * rv2[3],	rv1 * rv2[4],
 			 rv1 * rv2[5],	rv1 * rv2[6],	rv1 * rv2[7],	rv1 * rv2[8],
 			 rv1 * rv2[9],	rv1 * rv2[10],	rv1 * rv2[11],	rv1 * rv2[12],
 			 rv1 * rv2[13],	rv1 * rv2[14],	rv1 * rv2[15],	rv1 * rv2[16] }
-end)
+end
 
-registerOperator("mul", "xm4n", "xm4", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+e2function matrix4 operator*(matrix4 rv1, rv2)
 	return { rv1[1] * rv2,	rv1[2] * rv2,	rv1[3] * rv2,	rv1[4] * rv2,
 			 rv1[5] * rv2,	rv1[6] * rv2,	rv1[7] * rv2,	rv1[8] * rv2,
 			 rv1[9] * rv2,	rv1[10] * rv2,	rv1[11] * rv2,	rv1[12] * rv2,
 			 rv1[13] * rv2,	rv1[14] * rv2,	rv1[15] * rv2,	rv1[16] * rv2 }
-end)
+end
 
-registerOperator("mul", "xm4xv4", "xv4", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+e2function vector4 operator*(matrix4 rv1, vector4 rv2)
 	return { rv1[1] * rv2[1] + rv1[2] * rv2[2] + rv1[3] * rv2[3] + rv1[4] * rv2[4],
 			 rv1[5] * rv2[1] + rv1[6] * rv2[2] + rv1[7] * rv2[3] + rv1[8] * rv2[4],
 			 rv1[9] * rv2[1] + rv1[10] * rv2[2] + rv1[11] * rv2[3] + rv1[12] * rv2[4],
 			 rv1[13] * rv2[1] + rv1[14] * rv2[2] + rv1[15] * rv2[3] + rv1[16] * rv2[4] }
-end)
+end
 
-registerOperator("mul", "xm4xm4", "xm4", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local lhs, rhs = op1[1](self, op1), op2[1](self, op2)
+e2function matrix4 operator*(matrix4 lhs, matrix4 rhs)
 	return {
 		lhs[ 1] * rhs[ 1] + lhs[ 2] * rhs[ 5] + lhs[ 3] * rhs[ 9] + lhs[ 4] * rhs[13],
 		lhs[ 1] * rhs[ 2] + lhs[ 2] * rhs[ 6] + lhs[ 3] * rhs[10] + lhs[ 4] * rhs[14],
@@ -1298,20 +1120,16 @@ registerOperator("mul", "xm4xm4", "xm4", function(self, args)
 		lhs[13] * rhs[ 3] + lhs[14] * rhs[ 7] + lhs[15] * rhs[11] + lhs[16] * rhs[15],
 		lhs[13] * rhs[ 4] + lhs[14] * rhs[ 8] + lhs[15] * rhs[12] + lhs[16] * rhs[16]
 	}
-end)
+end
 
-registerOperator("div", "xm4n", "xm4", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+e2function matrix4 operator/(matrix4 rv1, rv2)
 	return { rv1[1] / rv2,	rv1[2] / rv2,	rv1[3] / rv2,	rv1[4] / rv2,
 			 rv1[5] / rv2,	rv1[6] / rv2,	rv1[7] / rv2,	rv1[8] / rv2,
 			 rv1[9] / rv2,	rv1[10] / rv2,	rv1[11] / rv2,	rv1[12] / rv2,
 			 rv1[13] / rv2,	rv1[14] / rv2,	rv1[15] / rv2,	rv1[16] / rv2 }
-end)
+end
 
-registerOperator("exp", "xm4n", "xm4", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local lhs, rhs = op1[1](self, op1), op2[1](self, op2)
+e2function matrix4 operator^(matrix4 lhs, rhs)
 
 	//if rhs == -1 then return ( inverse4(lhs) )
 
@@ -1347,114 +1165,100 @@ registerOperator("exp", "xm4n", "xm4", function(self, args)
 				  0, 0, 0, 0,
 				  0, 0, 0, 0 }
 	end
-end)
+end
 
 /******************************************************************************/
 // Row/column/element manipulation
 
-registerFunction("row", "xm4:n", "xv4", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+e2function vector4 matrix4:row(rv2)
 	local k
 
 	if rv2 < 1 then k = 4
 	elseif rv2 > 4 then k = 16
 	else k = (rv2 - rv2 % 1)*4 end
 
-	local x = rv1[k - 3]
-	local y = rv1[k - 2]
-	local z = rv1[k - 1]
-	local w = rv1[k]
+	local x = this[k - 3]
+	local y = this[k - 2]
+	local z = this[k - 1]
+	local w = this[k]
 	return { x, y, z, w }
-end)
+end
 
-registerFunction("column", "xm4:n", "xv4", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+e2function vector4 matrix4:column(rv2)
 	local k
 
 	if rv2 < 1 then k = 1
 	elseif rv2 > 4 then k = 4
 	else k = rv2 - rv2 % 1 end
 
-	local x = rv1[k]
-	local y = rv1[k + 4]
-	local z = rv1[k + 8]
-	local w = rv1[k + 12]
+	local x = this[k]
+	local y = this[k + 4]
+	local z = this[k + 8]
+	local w = this[k + 12]
 	return { x, y, z, w }
-end)
+end
 
-registerFunction("setRow", "xm4:nnnnn", "xm4", function(self, args)
-	local op1, op2, op3, op4, op5, op6 = args[2], args[3], args[4], args[5], args[6], args[7]
-	local rv1, rv2, rv3, rv4, rv5, rv6 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3), op4[1](self, op4), op5[1](self, op5), op6[1](self, op6)
+e2function matrix4 matrix4:setRow(rv2, rv3, rv4, rv5, rv6)
 	local k
 
 	if rv2 < 1 then k = 1
 	elseif rv2 > 4 then k = 4
 	else k = rv2 - rv2 % 1 end
 
-	local a = clone(rv1)
+	local a = clone(this)
 	a[k * 4 - 3] = rv3
 	a[k * 4 - 2] = rv4
 	a[k * 4 - 1] = rv5
 	a[k * 4]	 = rv6
 	return a
-end)
+end
 
-registerFunction("setRow", "xm4:nxv4", "xm4", function(self, args)
-	local op1, op2, op3 = args[2], args[3], args[4]
-	local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
+e2function matrix4 matrix4:setRow(rv2, vector4 rv3)
 	local k
 
 	if rv2 < 1 then k = 1
 	elseif rv2 > 4 then k = 4
 	else k = rv2 - rv2 % 1 end
 
-	local a = clone(rv1)
+	local a = clone(this)
 	a[k * 4 - 3] = rv3[1]
 	a[k * 4 - 2] = rv3[2]
 	a[k * 4 - 1] = rv3[3]
 	a[k * 4]	 = rv3[4]
 	return a
-end)
+end
 
-registerFunction("setColumn", "xm4:nnnnn", "xm4", function(self, args)
-	local op1, op2, op3, op4, op5, op6 = args[2], args[3], args[4], args[5], args[6], args[7]
-	local rv1, rv2, rv3, rv4, rv5, rv6 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3), op4[1](self, op4), op5[1](self, op5), op6[1](self, op6)
+e2function matrix4 matrix4:setColumn(rv2, rv3, rv4, rv5, rv6)
 	local k
 
 	if rv2 < 1 then k = 1
 	elseif rv2 > 4 then k = 4
 	else k = rv2 - rv2 % 1 end
 
-	local a = clone(rv1)
+	local a = clone(this)
 	a[k]		= rv3
 	a[k + 4]	= rv4
 	a[k + 8]	= rv5
 	a[k + 12]	= rv6
 	return a
-end)
+end
 
-registerFunction("setColumn", "xm4:nxv4", "xm4", function(self, args)
-	local op1, op2, op3 = args[2], args[3], args[4]
-	local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
+e2function matrix4 matrix4:setColumn(rv2, vector4 rv3)
 	local k
 
 	if rv2 < 1 then k = 1
 	elseif rv2 > 4 then k = 4
 	else k = rv2 - rv2 % 1 end
 
-	local a = clone(rv1)
+	local a = clone(this)
 	a[k]		= rv3[1]
 	a[k + 4]	= rv3[2]
 	a[k + 8]	= rv3[3]
 	a[k + 12]	= rv3[4]
 	return a
-end)
+end
 
-registerFunction("swapRows", "m:nn", "m", function(self, args)
-	local op1, op2, op3 = args[2], args[3], args[4]
-	local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
+e2function matrix matrix:swapRows(rv2, rv3)
 	local r1, r2
 
 	if rv2 < 1 then r1 = 1
@@ -1464,44 +1268,42 @@ registerFunction("swapRows", "m:nn", "m", function(self, args)
 	elseif rv3 > 4 then r2 = 4
 	else r2 = rv3 - rv3 % 1 end
 
-	if r1 == r2 then return rv1
+	if r1 == r2 then return this
 	elseif (r1 == 1 && r2 == 2) || (r1 == 2 && r2 == 1) then
-		rv1 = { rv1[5], rv1[6], rv1[7], rv1[8],
-				rv1[1], rv1[2], rv1[3], rv1[4],
-				rv1[9], rv1[10], rv1[11], rv1[12],
-				rv1[13], rv1[14], rv1[15], rv1[16] }
+		this = { this[5], this[6], this[7], this[8],
+				this[1], this[2], this[3], this[4],
+				this[9], this[10], this[11], this[12],
+				this[13], this[14], this[15], this[16] }
 	elseif (r1 == 2 && r2 == 3) || (r1 == 3 && r2 == 2) then
-		rv1 = { rv1[1], rv1[2], rv1[3], rv1[4],
-				rv1[9], rv1[10], rv1[11], rv1[12],
-				rv1[5], rv1[6], rv1[7], rv1[8],
-				rv1[13], rv1[14], rv1[15], rv1[16] }
+		this = { this[1], this[2], this[3], this[4],
+				this[9], this[10], this[11], this[12],
+				this[5], this[6], this[7], this[8],
+				this[13], this[14], this[15], this[16] }
 	elseif (r1 == 3 && r2 == 4) || (r1 == 4 && r2 == 3) then
-		rv1 = { rv1[1], rv1[2], rv1[3], rv1[4],
-				rv1[5], rv1[6], rv1[7], rv1[8],
-				rv1[13], rv1[14], rv1[15], rv1[16],
-				rv1[9], rv1[10], rv1[11], rv1[12] }
+		this = { this[1], this[2], this[3], this[4],
+				this[5], this[6], this[7], this[8],
+				this[13], this[14], this[15], this[16],
+				this[9], this[10], this[11], this[12] }
 	elseif (r1 == 1 && r2 == 3) || (r1 == 3 && r2 == 1) then
-		rv1 = { rv1[9], rv1[10], rv1[11], rv1[12],
-				rv1[5], rv1[6], rv1[7], rv1[8],
-				rv1[1], rv1[2], rv1[3], rv1[4],
-				rv1[13], rv1[14], rv1[15], rv1[16] }
+		this = { this[9], this[10], this[11], this[12],
+				this[5], this[6], this[7], this[8],
+				this[1], this[2], this[3], this[4],
+				this[13], this[14], this[15], this[16] }
 	elseif (r1 == 2 && r2 == 4) || (r1 == 4 && r2 == 2) then
-		rv1 = { rv1[1], rv1[2], rv1[3], rv1[4],
-				rv1[13], rv1[14], rv1[15], rv1[16],
-				rv1[9], rv1[10], rv1[11], rv1[12],
-				rv1[5], rv1[6], rv1[7], rv1[8] }
+		this = { this[1], this[2], this[3], this[4],
+				this[13], this[14], this[15], this[16],
+				this[9], this[10], this[11], this[12],
+				this[5], this[6], this[7], this[8] }
 	elseif (r1 == 1 && r2 == 4) || (r1 == 4 && r2 == 1) then
-		rv1 = { rv1[13], rv1[14], rv1[15], rv1[16],
-				rv1[5], rv1[6], rv1[7], rv1[8],
-				rv1[9], rv1[10], rv1[11], rv1[12],
-				rv1[1], rv1[2], rv1[3], rv1[4] }
+		this = { this[13], this[14], this[15], this[16],
+				this[5], this[6], this[7], this[8],
+				this[9], this[10], this[11], this[12],
+				this[1], this[2], this[3], this[4] }
 	end
-	return rv1
-end)
+	return this
+end
 
-registerFunction("swapColumns", "xm4:nn", "xm4", function(self, args)
-	local op1, op2, op3 = args[2], args[3], args[4]
-	local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
+e2function matrix4 matrix4:swapColumns(rv2, rv3)
 	local r1, r2
 
 	if rv2 < 1 then r1 = 1
@@ -1511,44 +1313,42 @@ registerFunction("swapColumns", "xm4:nn", "xm4", function(self, args)
 	elseif rv3 > 4 then r2 = 4
 	else r2 = rv3 - rv3 % 1 end
 
-	if r1 == r2 then return rv1
+	if r1 == r2 then return this
 	elseif (r1 == 1 && r2 == 2) || (r1 == 2 && r2 == 1) then
-		rv1 = { rv1[2], rv1[1], rv1[3], rv1[4],
-				rv1[6], rv1[5], rv1[7], rv1[8],
-				rv1[10], rv1[9], rv1[11], rv1[12],
-				rv1[14], rv1[13], rv1[15], rv1[16] }
+		this = { this[2], this[1], this[3], this[4],
+				this[6], this[5], this[7], this[8],
+				this[10], this[9], this[11], this[12],
+				this[14], this[13], this[15], this[16] }
 	elseif (r1 == 2 && r2 == 3) || (r1 == 3 && r2 == 2) then
-		rv1 = { rv1[1], rv1[3], rv1[2], rv1[4],
-				rv1[5], rv1[7], rv1[6], rv1[8],
-				rv1[9], rv1[11], rv1[10], rv1[12],
-				rv1[13], rv1[15], rv1[14], rv1[16] }
+		this = { this[1], this[3], this[2], this[4],
+				this[5], this[7], this[6], this[8],
+				this[9], this[11], this[10], this[12],
+				this[13], this[15], this[14], this[16] }
 	elseif (r1 == 3 && r2 == 4) || (r1 == 4 && r2 == 3) then
-		rv1 = { rv1[1], rv1[2], rv1[4], rv1[3],
-				rv1[5], rv1[6], rv1[8], rv1[7],
-				rv1[9], rv1[10], rv1[12], rv1[11],
-				rv1[13], rv1[14], rv1[16], rv1[15] }
+		this = { this[1], this[2], this[4], this[3],
+				this[5], this[6], this[8], this[7],
+				this[9], this[10], this[12], this[11],
+				this[13], this[14], this[16], this[15] }
 	elseif (r1 == 1 && r2 == 3) || (r1 == 3 && r2 == 1) then
-		rv1 = { rv1[3], rv1[2], rv1[1], rv1[4],
-				rv1[7], rv1[6], rv1[5], rv1[8],
-				rv1[11], rv1[10], rv1[9], rv1[12],
-				rv1[15], rv1[14], rv1[13], rv1[16] }
+		this = { this[3], this[2], this[1], this[4],
+				this[7], this[6], this[5], this[8],
+				this[11], this[10], this[9], this[12],
+				this[15], this[14], this[13], this[16] }
 	elseif (r1 == 2 && r2 == 4) || (r1 == 4 && r2 == 2) then
-		rv1 = { rv1[1], rv1[4], rv1[3], rv1[2],
-				rv1[5], rv1[8], rv1[7], rv1[6],
-				rv1[9], rv1[12], rv1[11], rv1[10],
-				rv1[13], rv1[16], rv1[15], rv1[14] }
+		this = { this[1], this[4], this[3], this[2],
+				this[5], this[8], this[7], this[6],
+				this[9], this[12], this[11], this[10],
+				this[13], this[16], this[15], this[14] }
 	elseif (r1 == 1 && r2 == 4) || (r1 == 4 && r2 == 1) then
-		rv1 = { rv1[4], rv1[2], rv1[3], rv1[1],
-				rv1[8], rv1[6], rv1[7], rv1[5],
-				rv1[12], rv1[10], rv1[11], rv1[9],
-				rv1[16], rv1[14], rv1[15], rv1[13] }
+		this = { this[4], this[2], this[3], this[1],
+				this[8], this[6], this[7], this[5],
+				this[12], this[10], this[11], this[9],
+				this[16], this[14], this[15], this[13] }
 	end
-	return rv1
-end)
+	return this
+end
 
-registerFunction("element", "xm4:nn", "n", function(self, args)
-	local op1, op2, op3 = args[2], args[3], args[4]
-	local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
+e2function number matrix4:element(rv2, rv3)
 	local i, j
 
 	if rv2 < 1 then i = 1
@@ -1559,12 +1359,10 @@ registerFunction("element", "xm4:nn", "n", function(self, args)
 	else j = rv3 - rv3 % 1 end
 
 	local k = i + (j - 1) * 4
-	return rv1[k]
-end)
+	return this[k]
+end
 
-registerFunction("setElement", "xm4:nnn", "xm4", function(self, args)
-	local op1, op2, op3, op4 = args[2], args[3], args[4], args[5]
-	local rv1, rv2, rv3, rv4 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3), op4[1](self, op4)
+e2function matrix4 matrix4:setElement(rv2, rv3, rv4)
 	local i, j
 
 	if rv2 < 1 then i = 1
@@ -1574,14 +1372,12 @@ registerFunction("setElement", "xm4:nnn", "xm4", function(self, args)
 	elseif rv3 > 4 then j = 4
 	else j = rv3 - rv3 % 1 end
 
-	local a = clone(rv1)
+	local a = clone(this)
 	a[i + (j - 1) * 4] = rv4
 	return a
-end)
+end
 
-registerFunction("swapElements", "xm4:nnnn", "xm4", function(self, args)
-	local op1, op2, op3, op4, op5 = args[2], args[3], args[4], args[5], args[6]
-	local rv1, rv2, rv3, rv4, rv5 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3), op4[1](self, op4), op5[1](self, op5)
+e2function matrix4 matrix4:swapElements(rv2, rv3, rv4, rv5)
 	local i1, j1, i2, j2
 
 	if rv2 < 1 then i1 = 1
@@ -1602,57 +1398,45 @@ registerFunction("swapElements", "xm4:nnnn", "xm4", function(self, args)
 
 	local k1 = i1 + (j1 - 1) * 4
 	local k2 = i2 + (j2 - 1) * 4
-	local a = clone(rv1)
-	a[k1], a[k2] = rv1[k2], rv1[k1]
+	local a = clone(this)
+	a[k1], a[k2] = this[k2], this[k1]
 	return a
-end)
+end
 
-registerFunction("setDiagonal", "xm4:xv4", "xm4", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	return { rv2[1], rv1[2], rv1[3], rv1[4],
-			 rv1[5], rv2[2], rv1[7], rv1[8],
-			 rv1[9], rv1[10], rv2[3], rv1[12],
-			 rv1[13], rv1[14], rv1[15], rv2[4] }
-end)
+e2function matrix4 matrix4:setDiagonal(vector4 rv2)
+	return { rv2[1], this[2], this[3], this[4],
+			 this[5], rv2[2], this[7], this[8],
+			 this[9], this[10], rv2[3], this[12],
+			 this[13], this[14], this[15], rv2[4] }
+end
 
-registerFunction("setDiagonal", "xm4:nnnn", "xm4", function(self, args)
-	local op1, op2, op3, op4, op5 = args[2], args[3], args[4], args[5], args[6]
-	local rv1, rv2, rv3, rv4, rv5 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3), op4[1](self, op4), op5[1](self, op5)
-	return { rv2, rv1[2], rv1[3], rv1[4],
-			 rv1[5], rv3, rv1[7], rv1[8],
-			 rv1[9], rv1[10], rv4, rv1[12],
-			 rv1[13], rv1[14], rv1[15], rv5 }
-end)
+e2function matrix4 matrix4:setDiagonal(rv2, rv3, rv4, rv5)
+	return { rv2, this[2], this[3], this[4],
+			 this[5], rv3, this[7], this[8],
+			 this[9], this[10], rv4, this[12],
+			 this[13], this[14], this[15], rv5 }
+end
 
 /******************************************************************************/
 // Useful matrix maths functions
 
-registerFunction("diagonal", "xm4", "xv4", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
+e2function vector4 diagonal(matrix4 rv1)
 	return { rv1[1], rv1[6], rv1[11], rv1[16] }
-end)
+end
 
-registerFunction("trace", "xm4", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
+e2function number trace(matrix4 rv1)
 	return ( rv1[1] + rv1[6] + rv1[11] + rv1[16] )
-end)
+end
 
-registerFunction("transpose", "xm4", "xm4", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
+e2function matrix4 transpose(matrix4 rv1)
 	return { rv1[1], rv1[5], rv1[9], rv1[13],
 			 rv1[2], rv1[6], rv1[10], rv1[14],
 			 rv1[3], rv1[7], rv1[11], rv1[15],
 			 rv1[4], rv1[8], rv1[12], rv1[16] }
-end)
+end
 
 // find the inverse for a standard affine transformation matix
-registerFunction("inverseA", "xm4", "xm4", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
+e2function matrix4 inverseA(matrix4 rv1)
 	local t1 = rv1[1] * rv1[4] + rv1[5] * rv1[8] + rv1[9] * rv1[12]
 	local t2 = rv1[2] * rv1[4] + rv1[6] * rv1[8] + rv1[10] * rv1[12]
 	local t3 = rv1[3] * rv1[4] + rv1[7] * rv1[8] + rv1[11] * rv1[12]
@@ -1660,14 +1444,12 @@ registerFunction("inverseA", "xm4", "xm4", function(self, args)
 			 rv1[2], rv1[6], rv1[10], -t2,
 			 rv1[3], rv1[7], rv1[11], -t3,
 			 0, 0, 0, 1 }
-end)
+end
 
 /******************************************************************************/
 // Extra functions
 
-registerFunction("matrix4", "e", "xm4", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
+e2function matrix4 matrix4(entity rv1)
 	if(!validEntity(rv1)) then
 		return { 0, 0, 0, 0,
 				 0, 0, 0, 0,
@@ -1683,31 +1465,23 @@ registerFunction("matrix4", "e", "xm4", function(self, args)
 			 x.y/factor, y.y/factor, z.y/factor, pos.y,
 			 x.z/factor, y.z/factor, z.z/factor, pos.z,
 			 0, 0, 0, 1 }
-end)
+end
 
-registerFunction("x", "xm4:", "v", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	return { rv1[1], rv1[5], rv1[9] }
-end)
+e2function vector matrix4:x()
+	return { this[1], this[5], this[9] }
+end
 
-registerFunction("y", "xm4:", "v", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	return { rv1[2], rv1[6], rv1[10] }
-end)
+e2function vector matrix4:y()
+	return { this[2], this[6], this[10] }
+end
 
-registerFunction("z", "xm4:", "v", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	return { rv1[3], rv1[7], rv1[11] }
-end)
+e2function vector matrix4:z()
+	return { this[3], this[7], this[11] }
+end
 
-registerFunction("pos", "xm4:", "v", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	return { rv1[4], rv1[8], rv1[12] }
-end)
+e2function vector matrix4:pos()
+	return { this[4], this[8], this[12] }
+end
 
 --- Returns a 3x3 reference frame matrix as described by the angle <ang>. Multiplying by this matrix will be the same as rotating by the given angle.
 e2function matrix matrix(angle ang)

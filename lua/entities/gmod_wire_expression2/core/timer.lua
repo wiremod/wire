@@ -61,48 +61,40 @@ end)
 
 __e2setcost(5) -- approximation
 
-registerFunction("interval", "n", "", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
+e2function void interval(rv1)
 	AddTimer(self, "interval", rv1)
-end)
+end
 
-registerFunction("timer", "sn", "", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+e2function void timer(string rv1, rv2)
 	AddTimer(self, rv1, rv2)
-end)
+end
 
-registerFunction("stoptimer", "s", "", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
+e2function void stoptimer(string rv1)
 	RemoveTimer(self, rv1)
-end)
+end
 
-registerFunction("clk", "", "n", function(self, args)
+e2function number clk()
 	if runner == "interval"
 	   then return 1 else return 0 end
-end)
+end
 
-registerFunction("clk", "s", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
+e2function number clk(string rv1)
 	if runner == rv1
 	   then return 1 else return 0 end
-end)
+end
 
 /******************************************************************************/
 
-registerFunction("curtime", "", "n", function(self, args)
+e2function number curtime()
 	return CurTime()
-end)
+end
 
-registerFunction("realtime", "", "n", function(self, args)
+e2function number realtime()
 	return RealTime()
-end)
+end
 
-registerFunction("systime", "", "n", function(self, args)
+e2function number systime()
 	return SysTime()
-end)
+end
 
 __e2setcost(nil)

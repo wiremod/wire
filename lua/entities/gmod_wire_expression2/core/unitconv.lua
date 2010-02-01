@@ -83,9 +83,7 @@ local weight = {
 
 __e2setcost(2) -- approximated
 
-registerFunction("toUnit", "sn", "n", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+e2function number toUnit(string rv1, rv2)
 
 	if speed[rv1] then
 		return rv2 * speed[rv1]
@@ -96,11 +94,9 @@ registerFunction("toUnit", "sn", "n", function(self, args)
 	end
 
 	return -1
-end)
+end
 
-registerFunction("fromUnit", "sn", "n", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+e2function number fromUnit(string rv1, rv2)
 
 	if speed[rv1] then
 		return rv2 / speed[rv1]
@@ -111,11 +107,9 @@ registerFunction("fromUnit", "sn", "n", function(self, args)
 	end
 
 	return -1
-end)
+end
 
-registerFunction("convertUnit", "ssn", "n", function(self, args)
-	local op1, op2, op3 = args[2], args[3], args[4]
-	local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
+e2function number convertUnit(string rv1, string rv2, rv3)
 
 	if speed[rv1] and speed[rv2] then
 		return rv3 * (speed[rv2] / speed[rv1])
@@ -126,6 +120,6 @@ registerFunction("convertUnit", "ssn", "n", function(self, args)
 	end
 
 	return -1
-end)
+end
 
 __e2setcost(nil)
