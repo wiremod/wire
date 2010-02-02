@@ -21,8 +21,10 @@ function ENT:Initialize()
 
 	self.MyPlug = nil
 	self.Memory = nil
+	self.OwnMemory = nil
 	self.Const = nil
 
+	self.Inputs = Wire_CreateInputs(self.Entity, { "Memory" })
 	self.Outputs = Wire_CreateOutputs(self.Entity, { "Memory" })
 	self:SetOverlayText( "Data socket" )
 	Wire_TriggerOutput(self.Entity, "Memory", 0)
@@ -157,4 +159,10 @@ function ENT:OnRestore()
 	self.AA = self.AA or 255
 
     	self.BaseClass.OnRestore(self)
+end
+
+function ENT:TriggerInput(iname, value, iter)
+	if (iname == "Memory") then
+		self.OwnMemory = self.Inputs.Memory.Src
+	end
 end

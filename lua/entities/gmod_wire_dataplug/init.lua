@@ -23,6 +23,30 @@ function ENT:Initialize()
 	Wire_TriggerOutput(self.Entity, "Connected", 0)
 end
 
+function ENT:ReadCell( Address )
+        if (self.MySocket) and (self.MySocket:IsValid()) and (self.MySocket.OwnMemory) then
+		if (self.MySocket.OwnMemory.ReadCell) then
+			return self.MySocket.OwnMemory:ReadCell( Address )
+		else
+			return nil
+		end
+	else
+		return nil
+	end
+end
+
+function ENT:WriteCell( Address, value )
+        if (self.MySocket) and (self.MySocket:IsValid()) and (self.MySocket.OwnMemory) then
+		if (self.MySocket.OwnMemory.WriteCell) then
+			return self.MySocket.OwnMemory:WriteCell( Address, value )
+		else
+			return false
+		end
+	else
+		return false
+	end
+end
+
 function ENT:OnRemove()
 	self.BaseClass.Think(self)
 
