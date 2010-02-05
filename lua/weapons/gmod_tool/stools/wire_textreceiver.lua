@@ -57,7 +57,7 @@ TOOL.ClientConVar["utrigger"] = "0"
 TOOL.ClientConVar["parsetext"] = ""
 TOOL.ClientConVar["playerout"] = "0"
 
-TOOL.Model = "models/jaanus/wiretool/wiretool_range.mdl"
+TOOL.ClientConVar[ "model" ] = "models/jaanus/wiretool/wiretool_range.mdl"
 
 local MaxTextLength = 500
 
@@ -109,13 +109,10 @@ function TOOL:LeftClick( trace )
 
 	if ( !self:GetSWEP():CheckLimit( "wire_textreceivers" ) ) then return false end
 
-	if (not util.IsValidModel(self.Model)) then return false end
-	if (not util.IsValidProp(self.Model)) then return false end		// Allow ragdolls to be used?
-
 	local Ang = trace.HitNormal:Angle()
 	Ang.pitch = Ang.pitch + 90
 
-	text_receiver = MakeWireReceiver( ply, trace.HitPos, Ang, self.Model, lines, global, outputtext, hold, trigger, SELF, sensitivity, toggle, utrigger, parsetext, secure, playerout)
+	text_receiver = MakeWireReceiver( ply, trace.HitPos, Ang, self:GetModel(), lines, global, outputtext, hold, trigger, SELF, sensitivity, toggle, utrigger, parsetext, secure, playerout)
 
 	local min = text_receiver:OBBMins()
 	text_receiver:SetPos( trace.HitPos - trace.HitNormal * min.z )
@@ -238,15 +235,93 @@ end
 
 
 function TOOL:Think()
-	if (!self.GhostEntity || !self.GhostEntity:IsValid() || self.GhostEntity:GetModel() != self.Model ) then
-		self:MakeGhostEntity( self.Model, Vector(0,0,0), Angle(0,0,0) )
+	local model = self:GetModel()
+
+	if (!self.GhostEntity || !self.GhostEntity:IsValid() || self.GhostEntity:GetModel() != model ) then
+		self:MakeGhostEntity( Model(model), Vector(0,0,0), Angle(0,0,0) )
 	end
 
 	self:UpdateGhostWireTextReceiver( self.GhostEntity, self:GetOwner() )
 end
 
+function TOOL:GetModel()
+	local model = "models/jaanus/wiretool/wiretool_range.mdl"
+	local modelcheck = self:GetClientInfo( "model" )
+
+	if (util.IsValidModel(modelcheck) and util.IsValidProp(modelcheck)) then
+		model = modelcheck
+	end
+
+	return model
+end
+
 function TOOL.BuildCPanel(panel)
 	panel:AddControl("Header", { Text = "#Tool_wire_textreceiver_name", Description = "#Tool_wire_textreceiver_desc" })
+
+	//preset chooser
+	panel:AddControl("ComboBox", {
+		Label = "#Presets",
+		MenuButton = "1",
+		Folder = "wire_textreceiver",
+
+		Options = {
+			Default = {
+				wire_textreceiver_model = "models/jaanus/wiretool/wiretool_siren.mdl",
+				wire_textreceiver_parsetext = "",
+				wire_textreceiver_utrigger = "0",
+				wire_textreceiver_trigger = "1",
+				wire_textreceiver_hold = "0.1",
+				wire_textreceiver_global = "0",
+				wire_textreceiver_toggle = "0",
+				wire_textreceiver_outputtext = "1",
+				wire_textreceiver_SELF = "1",
+				wire_textreceiver_secure = "0",
+				wire_textreceiver_playerout = "0",
+				wire_textreceiver_sensitivity = "1",
+				wire_textreceiver_text1 = "",
+				wire_textreceiver_text2 = "",
+				wire_textreceiver_text3 = "",
+				wire_textreceiver_text4 = "",
+				wire_textreceiver_text5 = "",
+				wire_textreceiver_text6 = "",
+				wire_textreceiver_text7 = "",
+				wire_textreceiver_text8 = "",
+				wire_textreceiver_text9 = "",
+				wire_textreceiver_text10 = "",
+				wire_textreceiver_text11 = "",
+				wire_textreceiver_text12 = ""
+			}
+		},
+
+		CVars = {
+			[0] = "wire_textreceiver_model",
+			[1] = "wire_textreceiver_parsetext",
+			[2] = "wire_textreceiver_utrigger",
+			[3] = "wire_textreceiver_trigger",
+			[4] = "wire_textreceiver_hold",
+			[5] = "wire_textreceiver_global",
+			[6] = "wire_textreceiver_toggle",
+			[7] = "wire_textreceiver_outputtext",
+			[8] = "wire_textreceiver_SELF",
+			[9] = "wire_textreceiver_secure",
+			[10] = "wire_textreceiver_playerout",
+			[11] = "wire_textreceiver_sensitivity",
+			[12] = "wire_textreceiver_text1",
+			[13] = "wire_textreceiver_text2",
+			[14] = "wire_textreceiver_text3",
+			[15] = "wire_textreceiver_text4",
+			[16] = "wire_textreceiver_text5",
+			[17] = "wire_textreceiver_text6",
+			[18] = "wire_textreceiver_text7",
+			[19] = "wire_textreceiver_text8",
+			[20] = "wire_textreceiver_text9",
+			[21] = "wire_textreceiver_text10",
+			[22] = "wire_textreceiver_text11",
+			[23] = "wire_textreceiver_text12"
+		}
+	})
+
+	WireDermaExts.ModelSelect(panel, "wire_textreceiver_model", list.Get( "Wire_Misc_Tools_Models" ), 1)
 
 	panel:AddControl("Slider", {
 		Label = "#WiretextreceiverTool_utrigger",

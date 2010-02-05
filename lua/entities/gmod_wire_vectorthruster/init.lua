@@ -7,13 +7,11 @@ include('shared.lua')
 ENT.WireDebugName = "Thruster"
 
 local Thruster_Sound 	= Sound( "PhysicsCannister.ThrusterLoop" )
---local MODEL = Model("models/jaanus/wiretool/wiretool_speed.mdl")
 
 function ENT:Initialize()
 	self.Entity:PhysicsInit( SOLID_VPHYSICS )
 	self.Entity:SetMoveType( MOVETYPE_VPHYSICS )
 	self.Entity:SetSolid( SOLID_VPHYSICS )
-	--self.Entity:SetModel( MODEL )
 
 	local phys = self.Entity:GetPhysicsObject()
 	if (phys:IsValid()) then

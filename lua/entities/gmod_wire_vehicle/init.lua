@@ -5,13 +5,10 @@ include('shared.lua')
 
 ENT.WireDebugName = "Vehicle Controller"
 
-local MODEL = Model("models/jaanus/wiretool/wiretool_siren.mdl")
-
 -- Number of Vehicles (Used for creating an uniqe name)
 -- wire_Vehicle_count = 0
 
 function ENT:Initialize()
-	self.Entity:SetModel( MODEL )
 	self.Entity:PhysicsInit( SOLID_VPHYSICS )
 	self.Entity:SetMoveType( MOVETYPE_VPHYSICS )
 	self.Entity:SetSolid( SOLID_VPHYSICS )

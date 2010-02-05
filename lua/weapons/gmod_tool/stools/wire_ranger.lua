@@ -30,11 +30,12 @@ end
 
 if (SERVER) then
 	CreateConVar('sbox_maxwire_rangers', 10)
+	ModelPlug_Register("ranger")
 end
 
 TOOL.ClientConVar[ "range" ] = "1500"
 TOOL.ClientConVar[ "default_zero" ] = "1"
-TOOL.ClientConVar[ "show_beam" ] = "0"
+TOOL.ClientConVar[ "show_beam" ] = "1"
 TOOL.ClientConVar[ "ignore_world" ] = "0"
 TOOL.ClientConVar[ "trace_water" ] = "0"
 TOOL.ClientConVar[ "out_dist" ] = "1"
@@ -49,7 +50,7 @@ TOOL.ClientConVar[ "out_eid" ] = "0"
 TOOL.ClientConVar[ "out_hnrm" ] = "0"
 TOOL.ClientConVar[ "hires" ] = "0"
 
-TOOL.Model = "models/jaanus/wiretool/wiretool_range.mdl"
+TOOL.ClientConVar[ "model" ] = "models/jaanus/wiretool/wiretool_range.mdl"
 
 cleanup.Register( "wire_rangers" )
 
@@ -83,13 +84,10 @@ function TOOL:LeftClick( trace )
 
 	if ( !self:GetSWEP():CheckLimit( "wire_rangers" ) ) then return false end
 
-	if (not util.IsValidModel(self.Model)) then return false end
-	if (not util.IsValidProp(self.Model)) then return false end		// Allow ragdolls to be used?
-
 	local Ang = trace.HitNormal:Angle()
 	Ang.pitch = Ang.pitch + 90
 
-	local wire_ranger = MakeWireRanger( ply, trace.HitPos, Ang, self.Model, range, default_zero, show_beam, ignore_world, trace_water, out_dist, out_pos, out_vel, out_ang, out_col, out_val, out_sid, out_uid, out_eid, out_hnrm )
+	local wire_ranger = MakeWireRanger( ply, trace.HitPos, Ang, self:GetModel(), range, default_zero, show_beam, ignore_world, trace_water, out_dist, out_pos, out_vel, out_ang, out_col, out_val, out_sid, out_uid, out_eid, out_hnrm )
 
 	local min = wire_ranger:OBBMins()
 	wire_ranger:SetPos( trace.HitPos - trace.HitNormal * min.z )
@@ -162,11 +160,24 @@ end
 
 
 function TOOL:Think()
-	if (!self.GhostEntity || !self.GhostEntity:IsValid() || self.GhostEntity:GetModel() != self.Model ) then
-		self:MakeGhostEntity( self.Model, Vector(0,0,0), Angle(0,0,0) )
+	local model = self:GetModel()
+
+	if (!self.GhostEntity || !self.GhostEntity:IsValid() || self.GhostEntity:GetModel() != model ) then
+		self:MakeGhostEntity( Model(model), Vector(0,0,0), Angle(0,0,0) )
 	end
 
 	self:UpdateGhostWireRanger( self.GhostEntity, self:GetOwner() )
+end
+
+function TOOL:GetModel()
+	local model = "models/jaanus/wiretool/wiretool_range.mdl"
+	local modelcheck = self:GetClientInfo( "model" )
+
+	if (util.IsValidModel(modelcheck) and util.IsValidProp(modelcheck)) then
+		model = modelcheck
+	end
+
+	return model
 end
 
 function TOOL.BuildCPanel(panel)
@@ -179,16 +190,46 @@ function TOOL.BuildCPanel(panel)
 
 		Options = {
 			Default = {
-				wire_ranger_range = "20",
-				wire_ranger_default_zero = "0",
+				wire_ranger_range = "1500",
+				wire_ranger_default_zero = "1",
+				wire_ranger_show_beam = "1",
+				wire_ranger_ignore_world = "0",
+				wire_ranger_trace_water = "0",
+				wire_ranger_out_dist = "1",
+				wire_ranger_out_pos = "0",
+				wire_ranger_out_vel = "0",
+				wire_ranger_out_ang = "0",
+				wire_ranger_out_col = "0",
+				wire_ranger_out_val = "0",
+				wire_ranger_out_sid = "0",
+				wire_ranger_out_uid = "0",
+				wire_ranger_out_hnrm = "0",
+				wire_ranger_hires = "0",
+				wire_ranger_model = "models/jaanus/wiretool/wiretool_range.mdl"
 			}
 		},
 
 		CVars = {
 			[0] = "wire_ranger_range",
-			[1] = "wire_ranger_default_zero"
+			[1] = "wire_ranger_default_zero",
+			[2] = "wire_ranger_show_beam",
+			[3] = "wire_ranger_ignore_world",
+			[4] = "wire_ranger_trace_wate",
+			[5] = "wire_ranger_out_dist",
+			[6] = "wire_ranger_out_pos",
+			[7] = "wire_ranger_out_vel",
+			[8] = "wire_ranger_out_an",
+			[9] = "wire_ranger_out_co",
+			[10] = "wire_ranger_out_val",
+			[11] = "wire_ranger_out_sid",
+			[12] = "wire_ranger_out_uid",
+			[13] = "wire_ranger_out_hnrm",
+			[14] = "wire_ranger_hires",
+			[15] = "wire_ranger_model"
 		}
 	})
+
+	ModelPlug_AddToCPanel(panel, "ranger", "wire_ranger", "#ToolWireIndicator_Model", nil, "#ToolWireIndicator_Model")
 
 	panel:AddControl("Slider", {
 		Label = "#WireRangerTool_range",

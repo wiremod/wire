@@ -533,6 +533,7 @@ do -- wire_light
 	}
 
 	function TOOL.BuildCPanel(panel)
+		WireDermaExts.ModelSelect(panel, "wire_light_model", list.Get( "Wire_Misc_Tools_Models" ), 1)
 		panel:CheckBox("#WireLightTool_directional", "wire_light_directional")
 		panel:CheckBox("#WireLightTool_radiant", "wire_light_radiant")
 		panel:CheckBox("#WireLightTool_glow", "wire_light_glow")
@@ -960,9 +961,9 @@ do -- Holography--
 
 		TOOL.RightClick   = HoloRightClick
 		TOOL.Reload       = HoloReload
-		TOOL.Model        = "models/jaanus/wiretool/wiretool_range.mdl"
 		TOOL.NoGhostOn    = { "gmod_wire_hologrid" }
 		TOOL.ClientConVar = {
+			model      = "models/jaanus/wiretool/wiretool_range.mdl",
 			r           = 255,
 			g           = 255,
 			b           = 255,
@@ -975,6 +976,7 @@ do -- Holography--
 
 		function TOOL.BuildCPanel( panel )
 			WireToolHelpers.MakePresetControl(panel, "wire_holoemitter")
+			WireDermaExts.ModelSelect(panel, "wire_holoemitter_model", list.Get( "Wire_Misc_Tools_Models" ), 1)
 			panel:CheckBox("#Tool_wire_holoemitter_showbeams", "wire_holoemitter_showbeams")
 			panel:CheckBox("#Tool_wire_holoemitter_groundbeams", "wire_holoemitter_groundbeams")
 			panel:NumSlider("#Tool_wire_holoemitter_size","wire_holoemitter_size", 1, 32, 1)
@@ -992,6 +994,7 @@ do -- Holography--
 			})
 
 			if not SinglePlayer() then
+				WireDermaExts.ModelSelect(panel, "wire_holoemitter_model", list.Get( "WireScreenModels" ), 2)
 				panel:NumSlider("#Tool_wire_holoemitter_minimum_fade_rate", "cl_wire_holoemitter_minfaderate", 0.1, 100, 1)
 			end
 			panel:CheckBox("Weld", "wire_holoemitter_weld")
@@ -1025,15 +1028,16 @@ do -- Holography--
 
 		TOOL.RightClick    = HoloRightClick
 		TOOL.Reload        = HoloReload
-		TOOL.Model         = "models/jaanus/wiretool/wiretool_siren.mdl"
 		TOOL.NoGhostOn     = { "sbox_maxwire_holoemitters" }
 		TOOL.NoLeftOnClass = true
 		TOOL.ClientConVar  = {
+			model = "models/jaanus/wiretool/wiretool_siren.mdl",
 			usegps = 0,
 			weld   = 1,
 		}
 
 		function TOOL.BuildCPanel( panel )
+			WireDermaExts.ModelSelect(panel, "wire_hologrid_model", list.Get( "Wire_Misc_Tools_Models" ), 1)
 			panel:CheckBox("#Tool_wire_hologrid_usegps", "wire_hologrid_usegps")
 			panel:CheckBox("Weld", "wire_hologrid_weld")
 		end

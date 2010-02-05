@@ -44,7 +44,6 @@ function TOOL:LeftClick( trace )
 
 	local ply = self:GetOwner()
 
-	local model		= self:GetClientInfo( "model" )
 	local numvalues	= self:GetClientNumber( "numvalues" )
 
 	//value is a table of strings so we can save a step later in adjusting the outputs
@@ -69,7 +68,7 @@ function TOOL:LeftClick( trace )
 	local Ang = trace.HitNormal:Angle()
 	Ang.pitch = Ang.pitch + 90
 
-	local wire_value = MakeWireValue( ply, trace.HitPos, Ang, model, value )
+	local wire_value = MakeWireValue( ply, trace.HitPos, Ang, self:GetModel(), value )
 
 	local min = wire_value:OBBMins()
 	wire_value:SetPos( trace.HitPos - trace.HitNormal * min.z )
@@ -152,11 +151,24 @@ function TOOL:UpdateGhostWireValue( ent, player )
 end
 
 function TOOL:Think()
-	if (!self.GhostEntity || !self.GhostEntity:IsValid() || self.GhostEntity:GetModel() != self:GetClientInfo( "model" )) then
-		self:MakeGhostEntity( self:GetClientInfo( "model" ), Vector(0,0,0), Angle(0,0,0) )
+	local model = self:GetModel()
+
+	if (!self.GhostEntity || !self.GhostEntity:IsValid() || self.GhostEntity:GetModel() != model ) then
+		self:MakeGhostEntity( Model(model), Vector(0,0,0), Angle(0,0,0) )
 	end
 
 	self:UpdateGhostWireValue( self.GhostEntity, self:GetOwner() )
+end
+
+function TOOL:GetModel()
+	local model = "models/kobilica/value.mdl"
+	local modelcheck = self:GetClientInfo( "model" )
+
+	if (util.IsValidModel(modelcheck) and util.IsValidProp(modelcheck)) then
+		model = modelcheck
+	end
+
+	return model
 end
 
 function TOOL.BuildCPanel(panel)
@@ -169,12 +181,38 @@ function TOOL.BuildCPanel(panel)
 
 		Options = {
 			Default = {
-				wire_value_value = "0",
+				wire_value_numvalues = "1",
+				wire_value_value1 = "0",
+				wire_value_value2 = "0",
+				wire_value_value3 = "0",
+				wire_value_value4 = "0",
+				wire_value_value5 = "0",
+				wire_value_value6 = "0",
+				wire_value_value7 = "0",
+				wire_value_value8 = "0",
+				wire_value_value9 = "0",
+				wire_value_value10 = "0",
+				wire_value_value11 = "0",
+				wire_value_value12 = "0",
+				wire_value_model = "0"
 			}
 		},
 
 		CVars = {
-			[0] = "wire_value_value",
+			[0] = "wire_value_numvalues",
+			[1] = "wire_value_value1",
+			[2] = "wire_value_value2",
+			[3] = "wire_value_value3",
+			[4] = "wire_value_value4",
+			[5] = "wire_value_value5",
+			[6] = "wire_value_value6",
+			[7] = "wire_value_value7",
+			[8] = "wire_value_value8",
+			[9] = "wire_value_value9",
+			[10] = "wire_value_value10",
+			[11] = "wire_value_value11",
+			[12] = "wire_value_value12",
+			[13] = "wire_value_model"
 		}
 	})
 

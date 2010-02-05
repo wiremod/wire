@@ -84,13 +84,10 @@ function TOOL:LeftClick( trace )
 
 		if ( !self:GetSWEP():CheckLimit( "wire_thrusters" ) ) then return false end
 
-		if (not util.IsValidModel(model)) then return false end
-		if (not util.IsValidProp(model)) then return false end		// Allow ragdolls to be used?
-
 		local ang = trace.HitNormal:Angle()
 		ang.pitch = ang.pitch + 90
 
-		local wire_thruster = MakeWireVectorThruster( ply, trace.HitPos, ang, model, force, force_min, force_max, oweffect, uweffect, owater, uwater, bidir, sound, nocollide, mode, angleinputs )
+		local wire_thruster = MakeWireVectorThruster( ply, trace.HitPos, ang, self:GetModel(), force, force_min, force_max, oweffect, uweffect, owater, uwater, bidir, sound, nocollide, mode, angleinputs )
 
 		local min = wire_thruster:OBBMins()
 		wire_thruster:SetPos( trace.HitPos - trace.HitNormal * min.z )
@@ -225,12 +222,26 @@ function TOOL:Think()
 			Phys2:Wake()
 		end
 	else
-		if (!self.GhostEntity || !self.GhostEntity:IsValid() || self.GhostEntity:GetModel() != self:GetClientInfo( "model" )) then
-			self:MakeGhostEntity( self:GetClientInfo( "model" ), Vector(0,0,0), Angle(0,0,0) )
+		local model = self:GetModel()
+
+		if (!self.GhostEntity || !self.GhostEntity:IsValid() || self.GhostEntity:GetModel() != model ) then
+			self:MakeGhostEntity( Model(model), Vector(0,0,0), Angle(0,0,0) )
 		end
+
 		self:UpdateGhostWireThruster( self.GhostEntity, self:GetOwner() )
 	end
 
+end
+
+function TOOL:GetModel()
+	local model = "models/jaanus/wiretool/wiretool_range.mdl"
+	local modelcheck = self:GetClientInfo( "model" )
+
+	if (util.IsValidModel(modelcheck) and util.IsValidProp(modelcheck)) then
+		model = modelcheck
+	end
+
+	return model
 end
 
 if (CLIENT) then
@@ -253,43 +264,39 @@ function TOOL.BuildCPanel(panel)
 
 		Options = {
 			Default = {
-				wire_vthruster_force = "20",
 				wire_vthruster_model = "models/jaanus/wiretool/wiretool_speed.mdl",
-				wire_vthruster_effect = "fire",
+				wire_vthruster_force = "1500",
+				wire_vthruster_force_min = "0",
+				wire_vthruster_force_max = "10000",
+				wire_vthruster_bidir = "1",
+				wire_vthruster_sound = "0",
+				wire_vthruster_oweffect = "fire",
+				wire_vthruster_uweffect = "same",
+				wire_vthruster_owater = "1",
+				wire_vthruster_uwater = "1",
+				wire_vthruster_mode = "0",
+				wire_vthruster_angleinputs = "0"
+
 			}
 		},
 
 		CVars = {
 			[0] = "wire_vthruster_model",
 			[1] = "wire_vthruster_force",
-			[2] = "wire_vthruster_effect"
+			[2] = "wire_vthruster_force_min",
+			[3] = "wire_vthruster_force_max",
+			[4] = "wire_vthruster_bidir",
+			[5] = "wire_vthruster_sound",
+			[6] = "wire_vthruster_oweffect",
+			[7] = "wire_vthruster_uweffect",
+			[8] = "wire_vthruster_owater",
+			[9] = "wire_vthruster_uwater",
+			[10] = "wire_vthruster_mode",
+			[11] = "wire_vthruster_angleinputs"
 		}
 	})
 
-	/*panel:AddControl("ComboBox", {
-		Label = "#WireThrusterTool_Model",
-		MenuButton = "0",
-
-		Options = {
-			["#Spedo"]                  = { wire_vthruster_model = "models/jaanus/wiretool/wiretool_speed.mdl" },
-			["#Thruster"]               = { wire_vthruster_model = "models/dav0r/thruster.mdl" },
-			["#Paint_Bucket"]           = { wire_vthruster_model = "models/props_junk/plasticbucket001a.mdl" },
-			["#Small_Propane_Canister"] = { wire_vthruster_model = "models/props_junk/PropaneCanister001a.mdl" },
-			["#Medium_Propane_Tank"]    = { wire_vthruster_model = "models/props_junk/propane_tank001a.mdl" },
-			["#Cola_Can"]               = { wire_vthruster_model = "models/props_junk/PopCan01a.mdl" },
-			["#Bucket"]                 = { wire_vthruster_model = "models/props_junk/MetalBucket01a.mdl" },
-			["#Vitamin_Jar"]            = { wire_vthruster_model = "models/props_lab/jar01a.mdl" },
-			["#Lamp_Shade"]             = { wire_vthruster_model = "models/props_c17/lampShade001a.mdl" },
-			["#Fat_Can"]                = { wire_vthruster_model = "models/props_c17/canister_propane01a.mdl" },
-			["#Black_Canister"]         = { wire_vthruster_model = "models/props_c17/canister01a.mdl" },
-			["#Red_Canister"]           = { wire_vthruster_model = "models/props_c17/canister02a.mdl" }
-		}
-	})*/
-	/*panel:AddControl( "PropSelect", { Label = "#WireThrusterTool_Model",
-		ConVar = "wire_vthruster_model",
-		Category = "Thrusters",
-		Models = list.Get( "ThrusterModels" )
-	})*/
+	WireDermaExts.ModelSelect(panel, "wire_vthruster_model", list.Get( "ThrusterModels" ), 4, true)
 
 	panel:AddControl("ComboBox", {
 		Label = "#WireThrusterTool_OWEffects",

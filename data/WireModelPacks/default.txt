@@ -59,6 +59,20 @@
 		}
 	}
 
+	"Siren"
+	{
+		 // A very common Model
+		"categories"    "pixel,indicator,podctrlr,ranger"
+		"model"         "models/jaanus/wiretool/wiretool_siren.mdl"
+	}
+
+	"Ranger"
+	{
+		 // A very common Model
+		"categories"    "pixel,indicator,podctrlr,ranger"
+		"model"         "models/jaanus/wiretool/wiretool_range.mdl"
+	}
+
 	"Metal Can"
 	{
 		"categories"    "speaker"
@@ -99,12 +113,6 @@
 	{
 		"categories"    "radio2"
 		"model"         "models/props_lab/bindergreen.mdl"
-	}
-
-	"Siren"
-	{
-		"categories"    "pixel,indicator,podctrlr"
-		"model"         "models/jaanus/wiretool/wiretool_siren.mdl"
 	}
 
 	"Medium 7-seg bar"
@@ -166,12 +174,6 @@
 	{
 		"categories"    "indicator"
 		"model"         "models/props_trainstation/trainstation_clock001.mdl"
-	}
-	
-	"Ranger"
-	{
-		"categories"    "ranger,podctrlr,indicator"
-		"model"         "models/jaanus/wiretool/wiretool_range.mdl"
 	}
 	
 	"Weight"

@@ -338,9 +338,10 @@ end
 
 function TOOL:GetModel()
 	local model = "models/jaanus/wiretool/wiretool_siren.mdl"
+	local modelcheck = self:GetClientInfo( "model" )
 
-	if (util.IsValidModel( self:GetClientInfo( "model" ) )) then
-		model = self:GetClientInfo( "model" )
+	if (util.IsValidModel(modelcheck) and util.IsValidProp(modelcheck)) then
+		model = modelcheck
 	end
 
 	return model
@@ -348,7 +349,7 @@ end
 
 function TOOL.BuildCPanel(panel)
 	panel:AddControl("Header", { Text = "#Tool_wire_winch_name", Description = "#Tool_wire_winch_desc" })
-	WireDermaExts.ModelSelect(panel, "wire_vehicle_model", list.Get( "Wire_Misc_Tools_Models" ), 1)
+	WireDermaExts.ModelSelect(panel, "wire_winch_model", list.Get( "Wire_Misc_Tools_Models" ), 1)
 
 	panel:AddControl("CheckBox", {
 		Label = "#WireWinchTool_fixed",

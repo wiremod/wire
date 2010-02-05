@@ -6,8 +6,6 @@ ENT.WireDebugName = "Winch"
 
 include('shared.lua')
 
-local MODEL = Model("models/jaanus/wiretool/wiretool_siren.mdl")
-
 DIR_BACKWARD 	= -1
 DIR_NONE 		= 0
 DIR_FORWARD 	= 1
@@ -20,7 +18,6 @@ TYPE_MUSCLE	= 1
    Desc: First function called. Use to set up your entity
 ---------------------------------------------------------*/
 function ENT:Initialize()
-	self.Entity:SetModel( MODEL )
 	self.Entity:PhysicsInit( SOLID_VPHYSICS )
 	self.Entity:SetMoveType( MOVETYPE_VPHYSICS )
 	self.Entity:SetSolid( SOLID_VPHYSICS )

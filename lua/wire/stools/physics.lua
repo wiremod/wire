@@ -21,7 +21,7 @@ do --wire_weight
 	TOOL.ClientConVar = {model	= "models/props_interiors/pot01a.mdl"}
 
 	function TOOL.BuildCPanel(panel)
-		WireToolHelpers.MakeModelSel(panel, "wire_weight")
+		ModelPlug_AddToCPanel(panel, "weight", "wire_weight", nil, nil, nil, 1)
 	end
 end --wire_weight
 

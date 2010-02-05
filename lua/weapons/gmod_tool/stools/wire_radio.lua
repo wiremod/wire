@@ -17,8 +17,8 @@ if ( CLIENT ) then
 end
 
 if (SERVER) then
-	CreateConVar('sbox_maxwire_radioes',30)
 	ModelPlug_Register("radio")
+	CreateConVar('sbox_maxwire_radioes',30)
 end
 
 TOOL.ClientConVar = {
@@ -27,8 +27,6 @@ TOOL.ClientConVar = {
 	secure  = 0,
 	model   = "models/props_lab/binderblue.mdl"
 }
-
-TOOL.Model = "models/props_lab/binderblue.mdl"
 
 cleanup.Register( "wire_radioes" )
 
@@ -40,7 +38,6 @@ function TOOL:LeftClick( trace )
 	local ply = self:GetOwner()
 
 	local _channel	= self:GetClientInfo( "channel" )
-	local model			= self:GetClientInfo( "model" )
 	local values		= self:GetClientNumber("values")
 	local secure		= (self:GetClientNumber("secure") ~= 0)
 
@@ -55,7 +52,7 @@ function TOOL:LeftClick( trace )
 	local Ang = trace.HitNormal:Angle()
 	Ang.pitch = Ang.pitch + 90
 
-	local wire_radio = MakeWireRadio( ply, trace.HitPos, Ang, model, _channel,values,secure)
+	local wire_radio = MakeWireRadio( ply, trace.HitPos, Ang, self:GetModel(), _channel,values,secure)
 
 	local min = wire_radio:OBBMins()
 	wire_radio:SetPos( trace.HitPos - trace.HitNormal * min.z )
@@ -129,11 +126,24 @@ function TOOL:UpdateGhostWireRadio( ent, player )
 end
 
 function TOOL:Think()
-	if (!self.GhostEntity || !self.GhostEntity:IsValid() || self.GhostEntity:GetModel() != self:GetClientInfo( "model" )) then
-		self:MakeGhostEntity( self:GetClientInfo( "model" ), Vector(0,0,0), Angle(0,0,0) )
+	local model = self:GetModel()
+
+	if (!self.GhostEntity || !self.GhostEntity:IsValid() || self.GhostEntity:GetModel() != model ) then
+		self:MakeGhostEntity( Model(model), Vector(0,0,0), Angle(0,0,0) )
 	end
 
 	self:UpdateGhostWireRadio( self.GhostEntity, self:GetOwner() )
+end
+
+function TOOL:GetModel()
+	local model = "models/props_lab/binderblue.mdl"
+	local modelcheck = self:GetClientInfo( "model" )
+
+	if (util.IsValidModel(modelcheck) and util.IsValidProp(modelcheck)) then
+		model = modelcheck
+	end
+
+	return model
 end
 
 function TOOL.BuildCPanel(panel)
@@ -147,11 +157,17 @@ function TOOL.BuildCPanel(panel)
 		Options = {
 			Default = {
 				wire_radio_channel = "1",
+				wire_radio_values = "4",
+				wire_radio_secure = "0",
+				wire_radio_model = "models/props_lab/binderblue.mdl"
 			}
 		},
 
 		CVars = {
 			[0] = "wire_radio_channel",
+			[1] = "wire_radio_values",
+			[2] = "wire_radio_secure",
+			[3] = "wire_radio_model"
 		}
 	})
 

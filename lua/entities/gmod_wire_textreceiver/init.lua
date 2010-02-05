@@ -5,8 +5,6 @@ include('shared.lua')
 
 ENT.WireDebugName = "TextReceiver"
 
-local MODEL = Model("models/jaanus/wiretool/wiretool_range.mdl")
-
 local TextReceivers = {}
 local securetext = nil
 local returntext = false
@@ -31,7 +29,6 @@ hook.Add("PlayerSay","TextReceiverSay", function(pl, text, toall)
 end)
 
 function ENT:Initialize()
-	self.Entity:SetModel( MODEL )
 	self.Entity:PhysicsInit( SOLID_VPHYSICS )
 	self.Entity:SetMoveType( MOVETYPE_VPHYSICS )
 	self.Entity:SetSolid( SOLID_VPHYSICS )
