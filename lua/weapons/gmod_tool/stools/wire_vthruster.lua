@@ -234,7 +234,7 @@ function TOOL:Think()
 end
 
 function TOOL:GetModel()
-	local model = "models/jaanus/wiretool/wiretool_range.mdl"
+	local model = "models/jaanus/wiretool/wiretool_speed.mdl"
 	local modelcheck = self:GetClientInfo( "model" )
 
 	if (util.IsValidModel(modelcheck) and util.IsValidProp(modelcheck)) then

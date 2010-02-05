@@ -194,7 +194,7 @@ function TOOL.BuildCPanel(panel)
 				wire_value_value10 = "0",
 				wire_value_value11 = "0",
 				wire_value_value12 = "0",
-				wire_value_model = "0"
+				wire_value_model = "models/kobilica/value.mdl"
 			}
 		},
 

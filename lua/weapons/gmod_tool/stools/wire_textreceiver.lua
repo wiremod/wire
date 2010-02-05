@@ -266,7 +266,7 @@ function TOOL.BuildCPanel(panel)
 
 		Options = {
 			Default = {
-				wire_textreceiver_model = "models/jaanus/wiretool/wiretool_siren.mdl",
+				wire_textreceiver_model = "models/jaanus/wiretool/wiretool_range.mdl",
 				wire_textreceiver_parsetext = "",
 				wire_textreceiver_utrigger = "0",
 				wire_textreceiver_trigger = "1",

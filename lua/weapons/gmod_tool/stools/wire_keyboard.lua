@@ -18,7 +18,7 @@ if (SERVER) then
 	CreateConVar('sbox_maxwire_keyboards', 20)
 end
 
-TOOL.ClientConVar[ "model" ] = "models/beer/wiremod/keyboard.mdl"
+TOOL.ClientConVar[ "model" ] = "models/jaanus/wiretool/wiretool_input.mdl"
 TOOL.ClientConVar[ "sync" ] = "1"
 
 cleanup.Register( "wire_keyboards" )
