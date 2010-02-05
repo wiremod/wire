@@ -8,9 +8,6 @@ ENT.OverlayDelay 	= 0;
 
 -- init.
 function ENT:Initialize( )
-	-- set model
-	util.PrecacheModel( "models/jaanus/wiretool/wiretool_siren.mdl" );
-	self.Entity:SetModel( "models/jaanus/wiretool/wiretool_siren.mdl" );
 
 	-- setup physics
 	self.Entity:PhysicsInit( SOLID_VPHYSICS );

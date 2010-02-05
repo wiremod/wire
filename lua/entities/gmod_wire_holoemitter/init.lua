@@ -9,9 +9,6 @@ ENT.LastClear       = 0
 
 -- init.
 function ENT:Initialize( )
-	-- set model
-	util.PrecacheModel( "models/jaanus/wiretool/wiretool_range.mdl" )
-	self.Entity:SetModel( "models/jaanus/wiretool/wiretool_range.mdl" )
 	self:DrawShadow( false )
 
 	-- setup physics
