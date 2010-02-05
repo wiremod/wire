@@ -17,9 +17,10 @@ end
 
 if SERVER then
 	CreateConVar('sbox_maxwire_pods', 20)
+	ModelPlug_Register("podctrlr")
 end
 
-TOOL.Model = "models/jaanus/wiretool/wiretool_siren.mdl"
+TOOL.ClientConVar[ "model" ] = "models/jaanus/wiretool/wiretool_siren.mdl"
 TOOL.ClientConVar["Keys"] = "W=0,1;A=0,1;S=0,1;D=0,1;"
 
 cleanup.Register("wire_pods")
@@ -77,7 +78,7 @@ function TOOL:LeftClick(trace)
 	local Ang = trace.HitNormal:Angle()
 	Ang.pitch = Ang.pitch + 90
 
-	local wire_pod = MakeWirePod(ply, trace.HitPos, Ang, self.Model, ParseKeys(self:GetClientInfo("Keys")))
+	local wire_pod = MakeWirePod(ply, trace.HitPos, Ang, self:GetModel(), ParseKeys(self:GetClientInfo("Keys")))
 
 	wire_pod:SetPos(trace.HitPos - trace.HitNormal * wire_pod:OBBMins().z)
 
@@ -124,6 +125,7 @@ if SERVER then
 
 		wire_pod:SetAngles(Ang)
 		wire_pod:SetPos(Pos)
+		wire_pod:SetModel(Model(model or "models/jaanus/wiretool/wiretool_siren.mdl"))
 		wire_pod:Spawn()
 		wire_pod:SetPlayer(pl)
 		wire_pod.pl = pl
@@ -161,15 +163,29 @@ function TOOL:UpdateGhostWirePod(ent, player)
 end
 
 function TOOL:Think()
-	if not self.GhostEntity or not self.GhostEntity:IsValid() or self.GhostEntity:GetModel() ~= self.Model then
-		self:MakeGhostEntity(self.Model, Vector(0,0,0), Angle(0,0,0))
+	local model = self:GetModel()
+
+	if (!self.GhostEntity || !self.GhostEntity:IsValid() || self.GhostEntity:GetModel() != model ) then
+		self:MakeGhostEntity( Model(model), Vector(0,0,0), Angle(0,0,0) )
 	end
 
 	self:UpdateGhostWirePod(self.GhostEntity, self:GetOwner())
 end
 
+function TOOL:GetModel()
+	local model = "models/jaanus/wiretool/wiretool_range.mdl"
+	local modelcheck = self:GetClientInfo( "model" )
+
+	if (util.IsValidModel(modelcheck) and util.IsValidProp(modelcheck)) then
+		model = modelcheck
+	end
+
+	return model
+end
+
 function TOOL.BuildCPanel(panel)
 	panel:AddControl("Header", { Text = "#Tool_wire_pod_name", Description = "#Tool_wire_pod_desc" })
+	ModelPlug_AddToCPanel(panel, "podctrlr", "wire_pod", nil, nil, nil, 1)
 
 	panel:AddControl("TextBox", {
 		Label = "#WirePodTool_Keys",

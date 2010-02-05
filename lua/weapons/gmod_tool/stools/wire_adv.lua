@@ -607,12 +607,19 @@ elseif CLIENT then
 				Default = {
 					wire_adv_material = "cable/rope",
 					wire_adv_width = "3",
+					wire_adv_r = "255",
+					wire_adv_g = "255",
+					wire_adv_b = "255"
+
 				}
 			},
 
 			CVars = {
 				[0] = "wire_adv_width",
 				[1] = "wire_adv_material",
+				[2] = "wire_adv_r",
+				[3] = "wire_adv_g",
+				[4] = "wire_adv_b",
 			}
 		})
 

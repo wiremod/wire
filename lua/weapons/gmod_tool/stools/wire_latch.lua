@@ -4,6 +4,8 @@ TOOL.Command		= nil
 TOOL.ConfigName		= ""
 TOOL.Tab			= "Wire"
 
+TOOL.ClientConVar[ "model" ] = "models/jaanus/wiretool/wiretool_siren.mdl"
+
 if CLIENT then
     language.Add( "Tool_wire_latch_name", "Latch Tool (Wire)" )
     language.Add( "Tool_wire_latch_desc", "Makes a controllable latch" )
@@ -45,7 +47,7 @@ function TOOL:LeftClick( trace )
 		// Attach our Controller to the weld constraint
 		local Ang = trace.HitNormal:Angle()
 		Ang.pitch = Ang.pitch + 90
-		local controller = MakeWireLatchController( ply, trace.HitPos, Ang, "models/jaanus/wiretool/wiretool_siren.mdl" )
+		local controller = MakeWireLatchController( ply, trace.HitPos, Ang, self:GetModel() )
 
 		// Send Entity and Constraint info over to the controller
 		controller:SendVars(self.Ent1, self.Ent2, self.Bone1, self.Bone2, self.constraint)
@@ -132,6 +134,18 @@ if SERVER then
 
 end
 
+function TOOL:GetModel()
+	local model = "models/jaanus/wiretool/wiretool_siren.mdl"
+	local modelcheck = self:GetClientInfo( "model" )
+
+	if (util.IsValidModel(modelcheck) and util.IsValidProp(modelcheck)) then
+		model = modelcheck
+	end
+
+	return model
+end
+
 function TOOL.BuildCPanel( panel )
 	panel:AddControl( "Header", { Text = "#Tool_wire_latch_name", Description = "#Tool_wire_latch_desc" } )
+	WireDermaExts.ModelSelect(panel, "wire_latch_model", list.Get( "Wire_Misc_Tools_Models" ), 1)
 end

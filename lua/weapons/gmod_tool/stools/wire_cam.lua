@@ -159,10 +159,11 @@ function TOOL:Think()
 end
 
 function TOOL:GetModel()
-	local model = "models/jaanus/wiretool/wiretool_siren.mdl"
+	local model = "models/jaanus/wiretool/wiretool_range.mdl"
+	local modelcheck = self:GetClientInfo( "model" )
 
-	if (util.IsValidModel( self:GetClientInfo( "model" ) )) then
-		model = self:GetClientInfo( "model" )
+	if (util.IsValidModel(modelcheck) and util.IsValidProp(modelcheck)) then
+		model = modelcheck
 	end
 
 	return model
@@ -170,5 +171,6 @@ end
 
 function TOOL.BuildCPanel(panel)
 	panel:AddControl("Header", { Text = "#Tool_wire_cam_name", Description = "#Tool_wire_cam_desc" })
+	WireDermaExts.ModelSelect(panel, "wire_cam_model", list.Get( "Wire_Misc_Tools_Models" ), 1)
 	panel:AddControl( "Checkbox", { Label = "#Wirecamtool_Static", Command = "wire_cam_static" } )
 end

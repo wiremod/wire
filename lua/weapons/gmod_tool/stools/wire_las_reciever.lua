@@ -17,7 +17,7 @@ if (SERVER) then
 	CreateConVar('sbox_maxwire_las_receivers', 20)
 end
 
-TOOL.Model = "models/jaanus/wiretool/wiretool_range.mdl"
+TOOL.ClientConVar[ "model" ] = "models/jaanus/wiretool/wiretool_range.mdl"
 
 cleanup.Register( "wire_las_receivers" )
 
@@ -37,7 +37,7 @@ function TOOL:LeftClick( trace )
 	local Ang = trace.HitNormal:Angle()
 	Ang.pitch = Ang.pitch + 90
 
-	local wire_las_reciever = MakeWireLaserReciever( ply, trace.HitPos, Ang, self.Model )
+	local wire_las_reciever = MakeWireLaserReciever( ply, trace.HitPos, Ang, self:GetModel() )
 
 	local min = wire_las_reciever:OBBMins()
 	wire_las_reciever:SetPos( trace.HitPos - trace.HitNormal * min.z )
@@ -102,11 +102,24 @@ function TOOL:UpdateGhostWireLaserReciever( ent, player )
 end
 
 function TOOL:Think()
-	if (!self.GhostEntity || !self.GhostEntity:IsValid() || self.GhostEntity:GetModel() != self.Model ) then
-		self:MakeGhostEntity( self.Model, Vector(0,0,0), Angle(0,0,0) )
+	local model = self:GetModel()
+
+	if (!self.GhostEntity || !self.GhostEntity:IsValid() || self.GhostEntity:GetModel() != model ) then
+		self:MakeGhostEntity( Model(model), Vector(0,0,0), Angle(0,0,0) )
 	end
 
 	self:UpdateGhostWireLaserReciever( self.GhostEntity, self:GetOwner() )
+end
+
+function TOOL:GetModel()
+	local model = "models/jaanus/wiretool/wiretool_range.mdl"
+	local modelcheck = self:GetClientInfo( "model" )
+
+	if (util.IsValidModel(modelcheck) and util.IsValidProp(modelcheck)) then
+		model = modelcheck
+	end
+
+	return model
 end
 
 function TOOL.BuildCPanel(panel)
@@ -120,10 +133,14 @@ function TOOL.BuildCPanel(panel)
 		Options = {
 			Default = {
 				wire_las_reciever_las_reciever = "0",
+				wire_las_reciever_model = "models/jaanus/wiretool/wiretool_range.mdl"
 			}
 		},
 		CVars = {
+			[0] = "wire_las_reciever_las_reciever ",
+			[1] = "wire_las_reciever_model"
 		}
 	})
+	WireDermaExts.ModelSelect(panel, "wire_las_reciever_model", list.Get( "Wire_Misc_Tools_Models" ), 1)
 end
 

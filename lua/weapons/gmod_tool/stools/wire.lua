@@ -1,4 +1,4 @@
-if VERSION < 34 then
+if VERSION < 70 then -- Gmod version check
 	TOOL.Mode			= "wire"
 	TOOL.Category		= "Wire - Tools"
 	TOOL.Name			= "Wire"
@@ -303,19 +303,26 @@ function TOOL.BuildCPanel(panel)
 			Default = {
 				wire_material = "cable/rope",
 				wire_width = "3",
+				wire_color_r = "255",
+				wire_color_g = "255",
+				wire_color_b = "255"
+
 			}
 		},
 
 		CVars = {
 			[0] = "wire_width",
 			[1] = "wire_material",
+			[2] = "wire_color_r",
+			[3] = "wire_color_g",
+			[4] = "wire_color_b"
 		}
 	})
 
 	panel:AddControl("Slider", {
 		Label = "#WireTool_width",
 		Type = "Float",
-		Min = ".1",
+		Min = "0",
 		Max = "5",
 		Command = "wire_width"
 	})

@@ -252,9 +252,10 @@ end
 
 function TOOL:GetModel()
 	local model = "models/jaanus/wiretool/wiretool_siren.mdl"
+	local modelcheck = self:GetClientInfo( "model" )
 
-	if (util.IsValidModel( self:GetClientInfo( "model" ) )) then
-		model = self:GetClientInfo( "model" )
+	if (util.IsValidModel(modelcheck) and util.IsValidProp(modelcheck)) then
+		model = modelcheck
 	end
 
 	return model

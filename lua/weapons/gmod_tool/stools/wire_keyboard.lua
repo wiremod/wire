@@ -36,15 +36,10 @@ function TOOL:LeftClick( trace )
 
 	if ( !self:GetSWEP():CheckLimit( "wire_keyboards" ) ) then return false end
 
-	local model = self:GetClientInfo( "model" )
-
-	if ( !util.IsValidModel( model ) ) then return false end
-	if ( !util.IsValidProp( model ) ) then return false end
-
 	local Ang = trace.HitNormal:Angle()
 	Ang.pitch = Ang.pitch + 90
 
-	local wire_keyboard = MakeWireKeyboard( ply, trace.HitPos, Ang, model )
+	local wire_keyboard = MakeWireKeyboard( ply, trace.HitPos, Ang, self:GetModel() )
 
 	local min = wire_keyboard:OBBMins()
 	wire_keyboard:SetPos( trace.HitPos - trace.HitNormal * min.z )
@@ -115,11 +110,7 @@ if (SERVER) then
 
 		wire_keyboard:SetAngles( Ang )
 		wire_keyboard:SetPos( Pos )
-		if(!model) then
-			wire_keyboard:SetModel( Model("models/jaanus/wiretool/wiretool_input.mdl") )
-		else
-			wire_keyboard:SetModel( Model(model) )
-		end
+		wire_keyboard:SetModel( Model(model or "models/jaanus/wiretool/wiretool_input.mdl") )
 		wire_keyboard:Spawn()
 
 		wire_keyboard:SetPlayer( pl )
@@ -158,10 +149,24 @@ function TOOL:UpdateGhostWireKeyboard( ent, player )
 end
 
 function TOOL:Think()
-	if (!self.GhostEntity || !self.GhostEntity:IsValid() || self.GhostEntity:GetModel() != self:GetClientInfo( "model" ) ) then
-		self:MakeGhostEntity( self:GetClientInfo( "model" ), Vector(0,0,0), Angle(0,0,0) )
+	local model = self:GetModel()
+
+	if (!self.GhostEntity || !self.GhostEntity:IsValid() || self.GhostEntity:GetModel() != model ) then
+		self:MakeGhostEntity( Model(model), Vector(0,0,0), Angle(0,0,0) )
 	end
+
 	self:UpdateGhostWireKeyboard( self.GhostEntity, self:GetOwner() )
+end
+
+function TOOL:GetModel()
+	local model = "models/jaanus/wiretool/wiretool_input.mdl"
+	local modelcheck = self:GetClientInfo( "model" )
+
+	if (util.IsValidModel(modelcheck) and util.IsValidProp(modelcheck)) then
+		model = modelcheck
+	end
+
+	return model
 end
 
 function TOOL.BuildCPanel(panel)
