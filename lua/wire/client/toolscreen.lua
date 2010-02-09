@@ -16,11 +16,11 @@ hook.Add("InitPostEntity", "RenderToolScreenInitialize", function()
 	local ToolGunMaterial = Material("models/weapons/v_toolgun/screen")
 	local NewRT = GetRenderTarget("GModToolgunScreen", 256, 256)
 
-	local _ViewModelDrawn = SWEP.ViewModelDrawn
-	function SWEP:ViewModelDrawn()
+	local _RenderScreen = SWEP.RenderScreen
+	function SWEP:RenderScreen()
 		local tool = self.Tool[gmod_toolmode:GetString()]
-		if not tool then return _ViewModelDrawn(self) end
-		if not tool.RenderToolScreen then return _ViewModelDrawn(self) end
+		if not tool then return _RenderScreen(self) end
+		if not tool.RenderToolScreen then return _RenderScreen(self) end
 
 		local ToolGunRT = render.GetRenderTarget()
 
