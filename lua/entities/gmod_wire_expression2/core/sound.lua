@@ -116,40 +116,40 @@ e2function void soundStop(string rv1, rv2)
 end
 
 e2function void soundVolume(rv1, rv2)
-	rv1 = math.Clamp(rv1,0,1)
 	rv1 = rv1 - rv1 % 1
 	local data = self.data['currentsound']
 	if data[rv1] then
-	local sound = data[rv1]
-	sound:ChangeVolume(rv2)
+		local sound = data[rv1]
+		rv2 = math.Clamp(rv2,0,1)
+		sound:ChangeVolume(rv2)
 	end
 end
 
 e2function void soundVolume(string rv1, rv2)
-	rv1 = math.Clamp(rv1,0,1)
 	local data = self.data['currentsound']
 	if data[rv1] then
-	local sound = data[rv1]
-	sound:ChangeVolume(rv2)
+		local sound = data[rv1]
+		rv2 = math.Clamp(rv2,0,1)
+		sound:ChangeVolume(rv2)
 	end
 end
 
 e2function void soundPitch(rv1, rv2)
-	rv1 = math.Clamp(rv1,0,255)
 	rv1 = rv1 - rv1 % 1
 	local data = self.data['currentsound']
 	if data[rv1] then
-	local sound = data[rv1]
-	sound:ChangePitch(rv2)
+		local sound = data[rv1]
+		rv2 = math.Clamp(rv2,0,255)
+		sound:ChangePitch(rv2)
 	end
 end
 
 e2function void soundPitch(string rv1, rv2)
-	rv1 = math.Clamp(rv1,0,255)
 	local data = self.data['currentsound']
 	if data[rv1] then
-	local sound = data[rv1]
-	sound:ChangePitch(rv2)
+		local sound = data[rv1]
+		rv2 = math.Clamp(rv2,0,255)
+		sound:ChangePitch(rv2)
 	end
 end
 
