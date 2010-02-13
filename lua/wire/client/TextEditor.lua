@@ -247,18 +247,18 @@ function EDITOR:PaintLine(row)
 				offset = line:len()
 
 				if cell[2][2] then
-					draw.SimpleText(line, "Expression2EditorFontBold", width * 3 + 6, (row - self.Scroll[1]) * height, cell[2][1])
+					draw.SimpleText(line .. " ", "Expression2EditorFontBold", width * 3 + 6, (row - self.Scroll[1]) * height, cell[2][1])
 				else
-					draw.SimpleText(line, "Expression2EditorFont", width * 3 + 6, (row - self.Scroll[1]) * height, cell[2][1])
+					draw.SimpleText(line .. " ", "Expression2EditorFont", width * 3 + 6, (row - self.Scroll[1]) * height, cell[2][1])
 				end
 			else
 				offset = offset + cell[1]:len()
 			end
 		else
 			if cell[2][2] then
-				draw.SimpleText(cell[1], "Expression2EditorFontBold", offset * width + width * 3 + 6, (row - self.Scroll[1]) * height, cell[2][1])
+				draw.SimpleText(cell[1] .. " ", "Expression2EditorFontBold", offset * width + width * 3 + 6, (row - self.Scroll[1]) * height, cell[2][1])
 			else
-				draw.SimpleText(cell[1], "Expression2EditorFont", offset * width + width * 3 + 6, (row - self.Scroll[1]) * height, cell[2][1])
+				draw.SimpleText(cell[1] .. " ", "Expression2EditorFont", offset * width + width * 3 + 6, (row - self.Scroll[1]) * height, cell[2][1])
 			end
 
 			offset = offset + cell[1]:len()
