@@ -238,7 +238,7 @@ end
 registerFunction("ceil", "nn", "n", function(self, args)
 	local op1, op2 = args[2], args[3]
 	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	local shf = 10 ^ rv2
+	local shf = 10 ^ floor(rv2 + 0.5)
 	return rv1 - ((rv1 * shf) % -1) / shf
 end)
 
@@ -250,7 +250,7 @@ end
 registerFunction("floor", "nn", "n", function(self, args)
 	local op1, op2 = args[2], args[3]
 	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	local shf = 10 ^ rv2
+	local shf = 10 ^ floor(rv2 + 0.5)
 	return rv1 - ((rv1 * shf) % 1) / shf
 end)
 
@@ -263,7 +263,7 @@ registerFunction("round", "nn", "n", function(self, args)
 	local op1, op2 = args[2], args[3]
 	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
 
-	local shf = 10 ^ rv2
+	local shf = 10 ^ floor(rv2 + 0.5)
 	return floor(rv1*shf+0.5)/shf
 end)
 
