@@ -101,7 +101,7 @@ e2function table tablekv(...)
 			local key = ret[i]
 			local value = ret[i + 1]
 
-			if type(key) == "string" then
+			if type(key) == "string" and type(value) ~= "table" then
 				final[key] = value
 			end
 		end
