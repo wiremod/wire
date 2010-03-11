@@ -91,25 +91,6 @@ e2function table table()
 	return {}
 end
 
-e2function table tablekv(...)
-	local ret = {...}
-	local final = {}
-	local count = #ret
-
-	if (count % 2) == 0 then
-		for i = 1, count, 2 do
-			local key = ret[i]
-			local value = ret[i + 1]
-
-			if type(key) == "string" and type(value) ~= "table" then
-				final[key] = value
-			end
-		end
-	end
-
-	return final
-end
-
 e2function table table:clear()
 	self.prf = self.prf + table.Count(this) / 3
 	table.Empty(this)

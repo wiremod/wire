@@ -55,8 +55,15 @@ e2function void entity:npcStop()
 	this:SetSchedule( SCHED_NONE )
 end
 
+e2function entity entity:npcGetTarget()
+	if !validNPC(this) or !isOwner(self, this) then return end
+	return this:GetEnemy()
+end
 
-
+e2function void entity:npcSetTarget(entity ent)
+	if !(validEntity(ent) and (ent:IsNPC() or ent:IsPlayer())) or !validNPC(this) or !isOwner(self, this) then return end
+	this:SetEnemy(ent)
+end
 
 //--Relationship functions--//
 
