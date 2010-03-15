@@ -17,7 +17,7 @@ local function ResetRanger(self)
 	data.rangerfilter = {}
 end
 
-local function ranger(self, rangertype, range, p1, p2)
+local function ranger(self, rangertype, range, p1, p2, hulltype, mins, maxs )
 	local data = self.data
 	local chip = self.entity
 
@@ -85,8 +85,25 @@ local function ranger(self, rangertype, range, p1, p2)
 		end
 	end
 
-	-- do the trace
-	local trace = util.TraceLine(tracedata)
+	---------------------------------------------------------------------------------------
+	local trace
+	if (hulltype) then
+		if (hulltype == 1) then
+			local s = Vector(mins[1], mins[2], mins[3])
+			tracedata.mins = s/2*-1
+			tracedata.maxs = s/2
+		elseif (hulltype == 2) then
+			local s1 = Vector(mins[1], mins[2], mins[3])
+			local s2 = Vector(maxs[1], maxs[2], maxs[3])
+			tracedata.mins = s1
+			tracedata.maxs = s2
+		end
+
+		trace = util.TraceHull( tracedata )
+	else
+		trace = util.TraceLine( tracedata )
+	end
+	---------------------------------------------------------------------------------------
 
 	-- handle some ranger settings
 	if ignoreworld and trace.HitWorld then
@@ -281,6 +298,59 @@ end
 e2function vector ranger:hitNormal()
 	if not this then return { 0, 0, 0 } end
 	return this.HitNormal
+end
+
+/******************************************************************************/
+-- Hull traces
+
+-- distance, size
+e2function ranger rangerHull( number distance, vector size )
+	return ranger( self, 0, distance, 0, 0, 1, size )
+end
+
+-- distance, mins, maxs
+e2function ranger rangerHull(distance, vector mins, vector maxs)
+	return ranger(self, 0, distance, 0, 0, 2, mins, maxs )
+end
+
+-- distance, xskew, yskew, size
+e2function ranger rangerHull(distance, xskew, yskew, vector size)
+	return ranger(self, 0, distance, xskew, yskew, 1, size)
+end
+
+-- distance, xskew, yskew, mins, maxs
+e2function ranger rangerHull(distance, xskew, yskew, vector mins, vector maxs)
+	return ranger(self, 0, distance, xskew, yskew, 2, mins, maxs)
+end
+
+-- distance, xangle, yangle, size
+e2function ranger rangerAngleHull(distance, xangle, yangle, vector size)
+	return ranger(self, 1, distance, xangle, yangle, 1, size)
+end
+
+-- distance, xangle, yangle, mins, maxs
+e2function ranger rangerAngleHull(distance, xangle, yangle, vector mins, vector maxs)
+	return ranger(self, 1, distance, xangle, yangle, 2, mins, maxs)
+end
+
+-- startpos, endpos, size
+e2function ranger rangerOffsetHull( vector startpos, vector endpos, vector size )
+	return ranger( self, 2, 0, startpos, endpos, 1, size )
+end
+
+-- startpos, endpos, mins, maxs
+e2function ranger rangerOffsetHull( vector startpos, vector endpos, vector mins, vector maxs )
+	return ranger( self, 2, 0, startpos, endpos, 2, mins, maxs )
+end
+
+-- distance, startpos, direction, size
+e2function ranger rangerOffsetHull( number distance, vector startpos, vector direction, vector size )
+	return ranger( self, 3, distance, startpos, direction, 1, size )
+end
+
+-- distance, startpos, direction mins, maxs
+e2function ranger rangerOffsetHull( number distance, vector startpos, vector direction, vector mins, vector maxs )
+	return ranger( self, 3, distance, startpos, direction, 2, mins, maxs )
 end
 
 /******************************************************************************/

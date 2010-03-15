@@ -134,6 +134,11 @@ e2function angle operator/(angle rv1, rv2)
     return { rv1[1] / rv2, rv1[2] / rv2, rv1[3] / rv2 }
 end
 
+e2function normal angle:operator[](index)
+	index = math.Round(math.Clamp(index,1,3))
+	return this[index]
+end
+
 /******************************************************************************/
 
 __e2setcost(5) -- temporary

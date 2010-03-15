@@ -76,6 +76,8 @@ function ENT:Initialize()
 
 	self.pushbuttons = false
 	self.LastPressed = 0
+	self.CanPress = true
+	self.lastpresseddelay = 0.2
 	self.BE_rel = false
 end
 
@@ -282,6 +284,7 @@ function ENT:Think()
 				end
 
 				if self.pushbuttons then
+					--[[
 					if EyeTrace.Entity and EyeTrace.Entity:IsValid() and EyeTrace.Entity:GetClass() == "gmod_wire_button" and dist < 256 and self.Ply:KeyDownLast( IN_ATTACK ) then
 						if EyeTrace.Entity.Toggle then
 							if self.LastPressed + 0.5 < CurTime() then
@@ -294,6 +297,34 @@ function ENT:Think()
 							EyeTrace.Entity.podpress = true
 						end
 					end
+					--]]
+					if EyeTrace.Entity and EyeTrace.Entity:IsValid() and EyeTrace.Entity:GetClass() == "gmod_wire_button" and dist < 82 and self.Ply:KeyDownLast( IN_ATTACK ) then
+						-- If it is a toggled button
+						if EyeTrace.Entity.toggle then
+							if self.CanPress then
+							--And if its NOT on and you havent pressed it in 0.5 seconds.
+								if not EyeTrace.Entity:IsOn() and self.LastPressed + self.lastpresseddelay < CurTime() then
+									EyeTrace.Entity:Switch(true)
+									self.LastPressed = CurTime()
+									self.CanPress = false
+								--And if it IS on and you havent pressed it in 0.5 seconds.
+								elseif EyeTrace.Entity:IsOn() and self.LastPressed + self.lastpresseddelay < CurTime() then
+									EyeTrace.Entity:Switch(false)
+									self.LastPressed = CurTime()
+									self.CanPress = false
+								end
+							end
+						--If it is a Non-toggle button and its not on
+						elseif not EyeTrace.Entity:IsOn() then
+							EyeTrace.Entity:Switch(true)
+							EyeTrace.Entity.PrevUser = self.Ply
+							EyeTrace.Entity.podpress = true
+						end
+					else
+						--Makes a check so you cant hold your mousebutton on the button so the button goes on/off/on/off
+						self.CanPress = true
+					end
+
 				end
 			end
 		else -- if ValidEntity(Ply)

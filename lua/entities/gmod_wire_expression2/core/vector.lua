@@ -194,6 +194,11 @@ registerOperator("div", "vv", "v", function(self, args)
 	return { rv1[1] / rv2[1], rv1[2] / rv2[2], rv1[3] / rv2[3] }
 end)
 
+e2function normal vector:operator[](index)
+	index = math.Round(math.Clamp(index,1,3))
+	return this[index]
+end
+
 /******************************************************************************/
 
 __e2setcost(5) -- temporary
