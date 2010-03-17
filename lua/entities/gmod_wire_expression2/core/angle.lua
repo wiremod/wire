@@ -313,6 +313,29 @@ e2function angle shiftL(angle rv1)
 	return {rv1[2], rv1[3], rv1[1]}
 end
 
+// Returns 1 if the angle lies between (or is equal to) the min/max angles
+e2function normal inrange(angle rv1, angle rv2, angle rv3)
+	if rv1[1] < rv2[1] then return 0 end
+	if rv1[2] < rv2[2] then return 0 end
+	if rv1[3] < rv2[3] then return 0 end
+
+	if rv1[1] > rv3[1] then return 0 end
+	if rv1[2] > rv3[2] then return 0 end
+	if rv1[3] > rv3[3] then return 0 end
+
+	return 1
+end
+
+// Rotate an angle around a vector by the given number of degrees
+e2function angle angle:rotateAroundAxis(vector axis, degrees)
+	local ang = Angle(this[1], this[2], this[3])
+	local vec = Vector(axis[1], axis[2], axis[3]):GetNormal()
+
+	ang:RotateAroundAxis(vec, degrees)
+	return {ang.p, ang.y, ang.r}
+end
+
+
 /******************************************************************************/
 
 e2function vector angle:forward()
