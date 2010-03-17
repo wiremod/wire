@@ -38,6 +38,10 @@ if CLIENT then
 	language.Add( "Tool_wire_gate_logic_desc", "Spawns a logic gate for use with the wire system." )
 	language.Add( "Tool_wire_gate_logic_0", "Primary: Create/Update Logic Gate" )
 
+	language.Add( "Tool_wire_gate_bitwise_name", "Bitwise Gate Tool (Wire)" )
+	language.Add( "Tool_wire_gate_bitwise_desc", "Spawns a bitwise gate for use with the wire system." )
+	language.Add( "Tool_wire_gate_bitwise_0", "Primary: Create/Update Bitwise Gate" )
+
 	language.Add( "Tool_wire_gate_memory_name", "Memory Chip Tool (Wire)" )
 	language.Add( "Tool_wire_gate_memory_desc", "Spawns a memory chip for use with the wire system." )
 	language.Add( "Tool_wire_gate_memory_0", "Primary: Create/Update Memory Chip" )
@@ -72,6 +76,7 @@ if SERVER then
 	CreateConVar('sbox_maxwire_gate_comparisons', 30)
 	CreateConVar('sbox_maxwire_gate_duplexer', 16)
 	CreateConVar('sbox_maxwire_gate_logics', 30)
+	CreateConVar('sbox_maxwire_gate_bitwises', 30)
 	CreateConVar('sbox_maxwire_gate_memorys', 30)
 	CreateConVar('sbox_maxwire_gate_selections', 30)
 	CreateConVar('sbox_maxwire_gate_times', 30)
@@ -149,6 +154,8 @@ buildTOOL( "Entity", "owner" )
 buildTOOL( "Array", "table_8duplexer" )
 
 buildTOOL( "Logic", "and" )
+
+buildTOOL( "Bitwise", "and" )
 
 buildTOOL( "Memory", "latch" )
 

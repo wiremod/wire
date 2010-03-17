@@ -565,6 +565,84 @@ GateActions["inrangee"] = {
 
 
 --***********************************************************
+--		Bitwise Gates
+--***********************************************************
+
+GateActions["bnot"] = {
+	group = "Bitwise",
+	name = "Not",
+	inputs = { "A" },
+	output = function(gate, A)
+		return (-1)-A
+	end,
+	label = function(Out, A)
+		return "not "..A.." = "..Out
+	end
+}
+
+GateActions["bor"] = {
+	group = "Bitwise",
+	name = "Or",
+	inputs = { "A", "B" },
+	output = function(gate, A, B)
+		return (A | B)
+	end,
+	label = function(Out, A, B)
+		return A.." or "..B.." = "..Out
+	end
+}
+
+GateActions["band"] = {
+	group = "Bitwise",
+	name = "And",
+	inputs = { "A", "B" },
+	output = function(gate, A, B)
+		return (A & B)
+	end,
+	label = function(Out, A, B)
+		return A.." and "..B.." = "..Out
+	end
+}
+
+GateActions["bxor"] = {
+	group = "Bitwise",
+	name = "Xor",
+	inputs = { "A", "B" },
+	output = function(gate, A, B)
+		return (A | B) & (-1-(A & B))
+	end,
+	label = function(Out, A, B)
+		return A.." xor "..B.." = "..Out
+	end
+}
+
+GateActions["bshr"] = {
+	group = "Bitwise",
+	name = "Bit shift right",
+	inputs = { "A", "B" },
+	output = function(gate, A, B)
+		RunString(string.format("garry_sucks = %d >> %d", A, B))
+		return garry_sucks
+	end,
+	label = function(Out, A, B)
+		return A.." >> "..B.." = "..Out
+	end
+}
+
+GateActions["bshl"] = {
+	group = "Bitwise",
+	name = "Bit shift left",
+	inputs = { "A", "B" },
+	output = function(gate, A, B)
+		RunString(string.format("garry_sucks = %d << %d", A, B))
+		return garry_sucks
+	end,
+	label = function(Out, A, B)
+		return A.." << "..B.." = "..Out
+	end
+}
+
+--***********************************************************
 --		Logic Gates
 --***********************************************************
 GateActions["not"] = {
