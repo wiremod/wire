@@ -4452,7 +4452,7 @@ GateActions["string_ident"] = {
 	name = "Identity",
 	inputs = { "A" },
 	inputtypes = { "STRING" },
-	outputtypes = { "STRIN" },
+	outputtypes = { "STRING" },
 	output = function(gate, A )
 		return A
 	end,
