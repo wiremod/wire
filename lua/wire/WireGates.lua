@@ -847,6 +847,26 @@ GateActions["srlatch"] = {
 	end
 }
 
+GateActions["rslatch"] = {
+	group = "Memory",
+	name = "RS-Latch",
+	inputs = { "S", "R" },
+	output = function(gate, S, R)
+		if (S > 0) and (R < 1) then
+			gate.LatchStore = 1
+		elseif (R > 0) then
+			gate.LatchStore = 0
+		end
+		return gate.LatchStore
+	end,
+	reset = function(gate)
+		gate.LatchStore = 0
+	end,
+	label = function(Out, S, R)
+		return "S:"..S.." R:"..R.." == "..Out
+	end
+}
+
 GateActions["toggle"] = {
 	group = "Memory",
 	name = "Toggle (Edge triggered)",
