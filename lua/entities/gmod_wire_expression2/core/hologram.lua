@@ -7,6 +7,7 @@ CreateConVar("wire_holograms_spawn_amount", "10")
 CreateConVar("wire_holograms_burst_amount", "30")
 CreateConVar("wire_holograms_burst_delay", "10")
 local wire_holograms_size_max = CreateConVar("wire_holograms_size_max","50")
+CreateConVar("wire_holograms_max_clips", "5")
 
 -- context = chip.context = self
 -- Holo = { ent = prop, scale = scale, e2owner = context }
@@ -45,153 +46,11 @@ local ModelList = {
 	["torus2"] = true,
 	["torus3"] = true
 }
+
 for k,_ in pairs(ModelList) do
 	util.PrecacheModel( "models/Holograms/"..k..".mdl" )
 	resource.AddSingleFile( "models/Holograms/"..k..".mdl" )
 end
-
-/******************************************************************************/
-
-local function ConsoleMessage(ply, text)
-	if ply:IsValid() then
-		ply:PrintMessage( HUD_PRINTCONSOLE, text )
-	else
-		print(text)
-	end
-end
-
-concommand.Add( "wire_holograms_remove_all", function( ply, com, args )
-	if ply:IsValid() and not ply:IsAdmin() then return end
-
-	for pl,rep in pairs( E2HoloRepo ) do
-		for k,Holo in pairs( rep ) do
-			if Holo and validEntity(Holo.ent) then
-				Holo.ent:Remove()
-				PlayerAmount[pl] = PlayerAmount[pl] - 1
-			end
-		end
-	end
-
-end )
-
-concommand.Add( "wire_holograms_block", function( ply, com, args )
-	if ply:IsValid() and not ply:IsAdmin() then return end
-
-	if not args[1] then
-		ConsoleMessage( ply, "Command requires a player's name (or part of their name)" )
-		ConsoleMessage( ply, "Usage: wire_holograms_block [name]" )
-		return
-	end
-
-	local name = args[1]:lower()
-	local players = E2Lib.filterList(player.GetAll(), function(ent) return ent:GetName():lower():match(name) end)
-
-	if #players == 1 then
-		local v = players[1]
-		if BlockList[v:SteamID()] == true then
-			ConsoleMessage( ply, v:GetName() .. " is already in the holograms blocklist!" )
-		else
-			if E2HoloRepo[v] then
-				for k2,v2 in pairs( E2HoloRepo[v] ) do
-					if v2 and validEntity(v2.ent) then
-						v2.ent:Remove()
-						PlayerAmount[v] = PlayerAmount[v] - 1
-					end
-				end
-			end
-			BlockList[v:SteamID()] = true
-			for _,p in ipairs( player.GetAll() ) do
-				p:PrintMessage( HUD_PRINTTALK, "(ADMIN) " .. v:GetName() .. " added to holograms blocklist" )
-			end
-		end
-	elseif #players > 1 then
-		ConsoleMessage( ply, "More than one player matches that name!" )
-	else
-		ConsoleMessage( ply, "No player names found with " .. args[1] )
-	end
-end )
-
-concommand.Add( "wire_holograms_unblock", function( ply, com, args )
-	if ply:IsValid() and not ply:IsAdmin() then return end
-
-	if not args[1] then
-		ConsoleMessage( ply, "Command requires a player's name (or part of their name)" )
-		ConsoleMessage( ply, "Usage: wire_holograms_unblock [name]" )
-		return
-	end
-
-	local name = args[1]:lower()
-	local players = E2Lib.filterList(player.GetAll(), function(ent) return ent:GetName():lower():match(name) end)
-
-	if #players == 1 then
-		local v = players[1]
-		if BlockList[v:SteamID()] == true then
-			BlockList[v:SteamID()] = nil
-			for _,player in ipairs( player.GetAll() ) do
-				player:PrintMessage( HUD_PRINTTALK, "(ADMIN) " .. v:GetName() .. " removed from holograms blocklist" )
-			end
-		else
-			ConsoleMessage( ply, v:GetName() .. " is not in the holograms blocklist!" )
-		end
-	elseif #players > 1 then
-		ConsoleMessage( ply, "More than one player matches that name!" )
-	else
-		ConsoleMessage( ply, "No player names found with " .. args[1] )
-	end
-end )
-
-concommand.Add( "wire_holograms_block_id", function( ply, com, args )
-	if ply:IsValid() and not ply:IsAdmin() then return end
-
-	local steamID = table.concat(args)
-
-	if not steamID:match("STEAM_[0-9]:[0-9]:[0-9]+") then
-		ConsoleMessage( ply, "Invalid SteamID format" )
-		ConsoleMessage( ply, "Usage: wire_holograms_block_id STEAM_X:X:XXXXXX" )
-		return
-	end
-
-	if BlockList[steamID] == true then
-		ConsoleMessage( ply, steamID .. " is already in the holograms blocklist!" )
-	else
-		BlockList[steamID] = true
-		for _,player in ipairs( player.GetAll() ) do
-			player:PrintMessage( HUD_PRINTTALK, "(ADMIN) " .. steamID .. " added to holograms blocklist" )
-		end
-		for _,v in pairs( player.GetAll() ) do
-			if v:SteamID() == steamID and E2HoloRepo[v] then
-				for k2,v2 in pairs( E2HoloRepo[v] ) do
-					if v2 and validEntity(v2.ent) then
-						v2.ent:Remove()
-						PlayerAmount[v] = PlayerAmount[v] - 1
-					end
-				end
-				return
-			end
-		end
-	end
-end )
-
-concommand.Add( "wire_holograms_unblock_id", function( ply, com, args )
-	if ply:IsValid() and not ply:IsAdmin() then return end
-
-	local steamID = table.concat(args)
-
-	if not steamID:match("STEAM_[0-9]:[0-9]:[0-9]+") then
-		ConsoleMessage( ply, "Invalid SteamID format" )
-		ConsoleMessage( ply, "Usage: wire_holograms_unblock_id STEAM_X:X:XXXXXX" )
-		return
-	end
-
-	if BlockList[steamID] == true then
-		BlockList[steamID] = nil
-		for _,player in ipairs( player.GetAll() ) do
-			player:PrintMessage( HUD_PRINTTALK, "(ADMIN) " .. steamID .. " removed from holograms blocklist" )
-		end
-	else
-		ConsoleMessage( ply, steamID .. " is not in the holograms blocklist!" )
-	end
-end )
 
 /******************************************************************************/
 
@@ -227,30 +86,33 @@ local function flush_clip_queue(queue, recipient)
 	local bytes = 4
 	umsg.Start("wire_holograms_clip", recipient)
 		for _,Holo,clip in ipairs_map(queue, unpack) do
-			bytes = bytes + 2
-
 			if bytes > 255 then
 				umsg.Short(0)
 				umsg.End()
 				umsg.Start("wire_holograms_clip", recipient)
 
-				bytes = 6
+				bytes = 4
 			end
 
-			umsg.Short(Holo.ent:EntIndex())
+			if clip and clip.index then
+				bytes = bytes + 4
 
-			if clip and clip.enabled != nil then
-				bytes = bytes + 2
+				umsg.Short(Holo.ent:EntIndex())
+				umsg.Short(clip.index)
 
-				umsg.Bool(true)
-				umsg.Bool(clip.enabled)
-			elseif clip and clip.origin and clip.normal and clip.isglobal then
-				bytes = bytes + 27
+				if clip.enabled != nil then
+					bytes = bytes + 2
 
-				umsg.Bool(false)
-				umsg.Vector(clip.origin)
-				umsg.Vector(clip.normal)
-				umsg.Short(clip.isglobal)
+					umsg.Bool(true)
+					umsg.Bool(clip.enabled)
+				elseif clip.origin and clip.normal and clip.isglobal then
+					bytes = bytes + 27
+
+					umsg.Bool(false)
+					umsg.Vector(clip.origin)
+					umsg.Vector(clip.normal)
+					umsg.Short(clip.isglobal)
+				end
 			end
 		end
 		umsg.Short(0) //stop list
@@ -279,27 +141,44 @@ local function rescale(Holo, scale)
 	end
 end
 
-local function enable_clip(Holo, enabled)
-	Holo.clip = Holo.clip or {}
-	local clip = Holo.clip
+local function check_clip(Holo, idx)
+	Holo.clips = Holo.clips or {}
 
-	if clip.enabled != enabled then
+	if idx > 0 and idx <= GetConVar("wire_holograms_max_clips"):GetInt() then
+		Holo.clips[idx] = Holo.clips[idx] or {}
+		local clip = Holo.clips[idx]
+
+		clip.enabled = clip.enabled or false
+		clip.origin = clip.origin or Vector(0,0,0)
+		clip.normal = clip.normal or Vector(0,0,0)
+		clip.isglobal = clip.isglobal or false
+
+		return clip
+	end
+
+	return nil
+end
+
+local function enable_clip(Holo, idx, enabled)
+	local clip = check_clip(Holo, idx)
+
+	if clip and clip.enabled != enabled then
 		clip.enabled = enabled
 
 		table.insert(clip_queue, {
 			Holo,
 			{
+				index = idx,
 				enabled = enabled
 			}
 		} )
 	end
 end
 
-local function set_clip(Holo, origin, normal, isglobal)
-	Holo.clip = Holo.clip or {}
-	local clip = Holo.clip
+local function set_clip(Holo, idx, origin, normal, isglobal)
+	local clip = check_clip(Holo, idx)
 
-	if clip.origin != origin or clip.normal != normal or clip.isglobal != isglobal then
+	if clip and (clip.origin != origin or clip.normal != normal or clip.isglobal != isglobal) then
 		clip.origin = origin
 		clip.normal = normal
 		clip.isglobal = isglobal
@@ -307,6 +186,7 @@ local function set_clip(Holo, origin, normal, isglobal)
 		table.insert(clip_queue, {
 			Holo,
 			{
+				index = idx,
 				origin = origin,
 				normal = normal,
 				isglobal = isglobal
@@ -324,26 +204,32 @@ hook.Add( "PlayerInitialSpawn", "wire_holograms_set_vars", function(ply)
 			if Holo and validEntity(Holo.ent) then
 				table.insert(queue, { Holo, Holo.scale })
 
-				local clip = Holo.clip
+				local clips = Holo.clips
 
-				if clip and clip.enabled != nil then
-					table.insert(c_queue, {
-						Holo,
-						{
-							enabled = clip.enabled
-						}
-					} )
-				end
+				if clips and table.Count(clips) > 0 then
+					for cidx,clip in pairs(clips) do
+						if clip.enabled then
+							table.insert(clip_queue, {
+								Holo,
+								{
+									index = cidx,
+									enabled = clip.enabled
+								}
+							} )
+						end
 
-				if clip and clip.origin and clip.normal and clip.isglobal then
-					table.insert(c_queue, {
-						Holo,
-						{
-							origin = origin,
-							normal = normal,
-							isglobal = isglobal
-						}
-					} )
+						if clip.origin and clip.normal and clip.isglobal != nil then
+							table.insert(clip_queue, {
+								Holo,
+								{
+									index = cidx,
+									origin = clip.origin,
+									normal = clip.normal,
+									isglobal = clip.isglobal
+								}
+							} )
+						end
+					end
 				end
 			end
 		end
@@ -362,6 +248,7 @@ local function MakeHolo(Player, Pos, Ang, model)
 	prop:SetModel(model)
 	prop:SetPlayer(Player)
 	prop:SetNetworkedInt("ownerid", Player:UserID())
+
 	return prop
 end
 
@@ -623,22 +510,50 @@ e2function vector holoScaleUnits(index)
 	return Vector(scale[1] * propsize.x, scale[2] * propsize.y, scale[3] * propsize.z)
 end
 
-e2function void holoClipEnabled(index, enabled)
+e2function number holoClipsAvailable()
+	local mclips = GetConVar("wire_holograms_max_clips")
+
+	if mclips then
+		return mclips:GetInt() or 0
+	end
+
+	return 0
+end
+
+e2function void holoClipEnabled(index, enabled) //Clip at first index
 	local Holo = CheckIndex(self, index)
-	if not Holo then return end
+	if !Holo then return end
 
 	if enabled == 1 then
-		enable_clip(Holo, true)
+		enable_clip(Holo, 1, true)
 	elseif enabled == 0 then
-		enable_clip(Holo, false)
+		enable_clip(Holo, 1, false)
 	end
 end
 
-e2function void holoClip(index, vector origin, vector normal, isglobal)
+e2function void holoClipEnabled(index, clipidx, enabled)
 	local Holo = CheckIndex(self, index)
-	if not Holo then return end
+	if !Holo then return end
 
-	set_clip(Holo, Vector(origin[1], origin[2], origin[3]), Vector(normal[1], normal[2], normal[3]), isglobal)
+	if enabled == 1 then
+		enable_clip(Holo, clipidx, true)
+	elseif enabled == 0 then
+		enable_clip(Holo, clipidx, false)
+	end
+end
+
+e2function void holoClip(index, vector origin, vector normal, isglobal) //Clip at first index
+	local Holo = CheckIndex(self, index)
+	if !Holo then return end
+
+	set_clip(Holo, 1, Vector(origin[1], origin[2], origin[3]), Vector(normal[1], normal[2], normal[3]), isglobal)
+end
+
+e2function void holoClip(index, clipidx, vector origin, vector normal, isglobal)
+	local Holo = CheckIndex(self, index)
+	if !Holo then return end
+
+	set_clip(Holo, clipidx, Vector(origin[1], origin[2], origin[3]), Vector(normal[1], normal[2], normal[3]), isglobal)
 end
 
 e2function void holoPos(index, vector position)
@@ -820,6 +735,8 @@ e2function number holoIndex(entity ent)
 	return 0
 end
 
+__e2setcost(nil) -- temporary
+
 /******************************************************************************/
 
 registerCallback("construct", function(self)
@@ -843,6 +760,15 @@ registerCallback("destruct", function(self)
 end)
 
 /******************************************************************************/
+
+local function ConsoleMessage(ply, text)
+	if ply:IsValid() then
+		ply:PrintMessage( HUD_PRINTCONSOLE, text )
+	else
+		print(text)
+	end
+end
+
 
 local DisplayOwners = {}
 concommand.Add( "wire_holograms_display_owners", function( ply, com, args )
@@ -884,4 +810,137 @@ concommand.Add( "wire_holograms_display_owners", function( ply, com, args )
 
 end )
 
-__e2setcost(nil) -- temporary
+concommand.Add( "wire_holograms_remove_all", function( ply, com, args )
+	if ply:IsValid() and not ply:IsAdmin() then return end
+
+	for pl,rep in pairs( E2HoloRepo ) do
+		for k,Holo in pairs( rep ) do
+			if Holo and validEntity(Holo.ent) then
+				Holo.ent:Remove()
+				PlayerAmount[pl] = PlayerAmount[pl] - 1
+			end
+		end
+	end
+
+end )
+
+concommand.Add( "wire_holograms_block", function( ply, com, args )
+	if ply:IsValid() and not ply:IsAdmin() then return end
+
+	if not args[1] then
+		ConsoleMessage( ply, "Command requires a player's name (or part of their name)" )
+		ConsoleMessage( ply, "Usage: wire_holograms_block [name]" )
+		return
+	end
+
+	local name = args[1]:lower()
+	local players = E2Lib.filterList(player.GetAll(), function(ent) return ent:GetName():lower():match(name) end)
+
+	if #players == 1 then
+		local v = players[1]
+		if BlockList[v:SteamID()] == true then
+			ConsoleMessage( ply, v:GetName() .. " is already in the holograms blocklist!" )
+		else
+			if E2HoloRepo[v] then
+				for k2,v2 in pairs( E2HoloRepo[v] ) do
+					if v2 and validEntity(v2.ent) then
+						v2.ent:Remove()
+						PlayerAmount[v] = PlayerAmount[v] - 1
+					end
+				end
+			end
+			BlockList[v:SteamID()] = true
+			for _,p in ipairs( player.GetAll() ) do
+				p:PrintMessage( HUD_PRINTTALK, "(ADMIN) " .. v:GetName() .. " added to holograms blocklist" )
+			end
+		end
+	elseif #players > 1 then
+		ConsoleMessage( ply, "More than one player matches that name!" )
+	else
+		ConsoleMessage( ply, "No player names found with " .. args[1] )
+	end
+end )
+
+concommand.Add( "wire_holograms_unblock", function( ply, com, args )
+	if ply:IsValid() and not ply:IsAdmin() then return end
+
+	if not args[1] then
+		ConsoleMessage( ply, "Command requires a player's name (or part of their name)" )
+		ConsoleMessage( ply, "Usage: wire_holograms_unblock [name]" )
+		return
+	end
+
+	local name = args[1]:lower()
+	local players = E2Lib.filterList(player.GetAll(), function(ent) return ent:GetName():lower():match(name) end)
+
+	if #players == 1 then
+		local v = players[1]
+		if BlockList[v:SteamID()] == true then
+			BlockList[v:SteamID()] = nil
+			for _,player in ipairs( player.GetAll() ) do
+				player:PrintMessage( HUD_PRINTTALK, "(ADMIN) " .. v:GetName() .. " removed from holograms blocklist" )
+			end
+		else
+			ConsoleMessage( ply, v:GetName() .. " is not in the holograms blocklist!" )
+		end
+	elseif #players > 1 then
+		ConsoleMessage( ply, "More than one player matches that name!" )
+	else
+		ConsoleMessage( ply, "No player names found with " .. args[1] )
+	end
+end )
+
+concommand.Add( "wire_holograms_block_id", function( ply, com, args )
+	if ply:IsValid() and not ply:IsAdmin() then return end
+
+	local steamID = table.concat(args)
+
+	if not steamID:match("STEAM_[0-9]:[0-9]:[0-9]+") then
+		ConsoleMessage( ply, "Invalid SteamID format" )
+		ConsoleMessage( ply, "Usage: wire_holograms_block_id STEAM_X:X:XXXXXX" )
+		return
+	end
+
+	if BlockList[steamID] == true then
+		ConsoleMessage( ply, steamID .. " is already in the holograms blocklist!" )
+	else
+		BlockList[steamID] = true
+		for _,player in ipairs( player.GetAll() ) do
+			player:PrintMessage( HUD_PRINTTALK, "(ADMIN) " .. steamID .. " added to holograms blocklist" )
+		end
+		for _,v in pairs( player.GetAll() ) do
+			if v:SteamID() == steamID and E2HoloRepo[v] then
+				for k2,v2 in pairs( E2HoloRepo[v] ) do
+					if v2 and validEntity(v2.ent) then
+						v2.ent:Remove()
+						PlayerAmount[v] = PlayerAmount[v] - 1
+					end
+				end
+				return
+			end
+		end
+	end
+end )
+
+concommand.Add( "wire_holograms_unblock_id", function( ply, com, args )
+	if ply:IsValid() and not ply:IsAdmin() then return end
+
+	local steamID = table.concat(args)
+
+	if not steamID:match("STEAM_[0-9]:[0-9]:[0-9]+") then
+		ConsoleMessage( ply, "Invalid SteamID format" )
+		ConsoleMessage( ply, "Usage: wire_holograms_unblock_id STEAM_X:X:XXXXXX" )
+		return
+	end
+
+	if BlockList[steamID] == true then
+		BlockList[steamID] = nil
+		for _,player in ipairs( player.GetAll() ) do
+			player:PrintMessage( HUD_PRINTTALK, "(ADMIN) " .. steamID .. " removed from holograms blocklist" )
+		end
+	else
+		ConsoleMessage( ply, steamID .. " is not in the holograms blocklist!" )
+	end
+end )
+
+/******************************************************************************/
