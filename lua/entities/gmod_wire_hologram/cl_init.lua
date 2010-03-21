@@ -2,90 +2,103 @@ include( "shared.lua" )
 
 ENT.RenderGroup = RENDERGROUP_BOTH
 
+local blocked = {}
 local scales = {}
 local clips = {}
 
-hook.Add("EntityRemoved", "gmod_wire_hologram", function(ent)
-	scales[ent:EntIndex()] = nil
-	clips[ent:EntIndex()] = nil
-end)
-
-local blocked = {}
-concommand.Add("wire_holograms_block_client", function(ply, command, args)
-	local toblock
-	for _,ply in ipairs(player.GetAll()) do
-		if ply:Name() == args[1] then
-			toblock = ply
-			break
-		end
-	end
-	if not toblock then error("Player not found") end
-
-	local id = toblock:UserID()
-	blocked[id] = true
-	for _,ent in ipairs(ents.FindByClass("gmod_wire_hologram")) do
-		if ent:GetNetworkedInt("ownerid") == id then
-			ent.blocked = true
-		end
-	end
-end,
-function()
-	local names = {}
-	for _,ply in ipairs(player.GetAll()) do
-		table.insert(names, "wire_holograms_block_client \""..ply:Name().."\"")
-	end
-	table.sort(names)
-	return names
-end)
-
-concommand.Add("wire_holograms_unblock_client", function(ply, command, args)
-	local toblock
-	for _,ply in ipairs(player.GetAll()) do
-		if ply:Name() == args[1] then
-			toblock = ply
-			break
-		end
-	end
-	if not toblock then error("Player not found") end
-
-	local id = toblock:UserID()
-	blocked[id] = nil
-	for _,ent in ipairs(ents.FindByClass("gmod_wire_hologram")) do
-		if ent:GetNetworkedInt("ownerid") == id then
-			ent.blocked = false
-		end
-	end
-end,
-function()
-	local names = {}
-	for _,ply in ipairs(player.GetAll()) do
-		if blocked[ply:UserID()] then
-			table.insert(names, "wire_holograms_unblock_client \""..ply:Name().."\"")
-		end
-	end
-	table.sort(names)
-	return names
-end)
-
 function ENT:Initialize( )
 	self:DoScale()
-
-	self:SetClipEnabled()
-	self:SetClip()
 
 	local ownerid = self:GetNetworkedInt("ownerid")
 	self.blocked = blocked[ownerid] or false
 end
 
+/******************************************************************************/
+
+local function CheckClip(eidx, cidx)
+	clips[eidx] = clips[eidx] or {}
+	clips[eidx][cidx] = clips[eidx][cidx] or {}
+
+	return clips[eidx][cidx]
+end
+
+local function SetClipEnabled(eidx, cidx, enabled)
+	local clip = CheckClip(eidx, cidx)
+
+	clip.enabled = enabled
+end
+
+local function SetClip(eidx, cidx, origin, norm, isglobal)
+	local clip = CheckClip(eidx, cidx)
+
+	clip.normal = norm
+	clip.origin = origin
+	clip.isglobal = isglobal
+end
+
 function ENT:Draw()
 	if self.blocked then return end
 
-	local clip = clips[self:EntIndex()]
+	local cliptbl = clips[self:EntIndex()]
+	local nclips = 0
 
-	if clip and clip.enabled and not clip.isglobal then
-		self:SetClip()
+	if cliptbl then nclips = table.Count(cliptbl) end
+
+	if nclips > 0 then
+		render.EnableClipping( true )
+
+		for _,clip in pairs(cliptbl) do
+			if clip.enabled and clip.normal and clip.origin then
+				local norm = clip.normal
+				local origin = clip.origin
+
+				if !clip.isglobal then
+					norm = self:LocalToWorld( norm ) - self:GetPos()
+					origin = self:LocalToWorld( origin )
+				end
+
+				render.PushCustomClipPlane( norm, norm:Dot( origin ) )
+			end
+		end
 	end
-	self.BaseClass.Draw(self)
+
+	self.BaseClass.Draw( self )
+
+	if nclips > 0 then
+		for i = 1, nclips do
+			render.PopCustomClipPlane()
+		end
+
+		render.EnableClipping( false )
+	end
+end
+
+usermessage.Hook("wire_holograms_clip", function( um )
+	local eidx = um:ReadShort()
+
+	while eidx != 0 do
+		local cidx = um:ReadShort()
+
+		if um:ReadBool() then
+			SetClipEnabled(eidx, cidx, um:ReadBool())
+		else
+			SetClip(eidx, cidx, um:ReadVector(), um:ReadVector(), um:ReadShort() ~= 0)
+		end
+
+		eidx = um:ReadShort()
+	end
+end)
+
+/******************************************************************************/
+
+local function SetScale(entindex, scale)
+	scales[entindex] = scale
+
+	local ent = Entity(entindex)
+
+	if ent and ent.DoScale then
+		ent:DoScale()
+	end
 end
 
 function ENT:DoScale()
@@ -106,38 +119,6 @@ function ENT:DoScale()
 	self:SetRenderBounds( propmax, propmin )
 end
 
-function ENT:SetClipEnabled()
-	local clip = clips[self:EntIndex()]
-
-	if clip and clip.enabled ~= nil then
-		self:SetRenderClipPlaneEnabled( clip.enabled )
-	end
-end
-
-function ENT:SetClip()
-	local clip = clips[self:EntIndex()]
-
-	if clip and clip.origin then
-		local norm = clip.normal
-		local origin = clip.origin
-
-		if not clip.isglobal then
-			norm = self:LocalToWorld(norm)-self:GetPos()
-			origin = self:LocalToWorld(origin)
-		end
-
-		self:SetRenderClipPlane(norm, norm:Dot(origin))
-	end
-end
-
-local function SetScale(entindex, scale)
-	scales[entindex] = scale
-	local prop = ents.GetByIndex(entindex)
-	if prop and prop.DoScale then
-		prop:DoScale()
-	end
-end
-
 usermessage.Hook("wire_holograms_set_scale", function( um )
 	local index = um:ReadShort()
 	while index ~= 0 do
@@ -148,30 +129,69 @@ usermessage.Hook("wire_holograms_set_scale", function( um )
 	end
 end)
 
-usermessage.Hook("wire_holograms_clip", function( um )
-	local idx = um:ReadShort()
+/******************************************************************************/
 
-	while idx != 0 do
-		clips[idx] = clips[idx] or {}
-		local clip = clips[idx]
-		local ent = ents.GetByIndex(idx)
+hook.Add("EntityRemoved", "gmod_wire_hologram", function(ent)
+	scales[ent:EntIndex()] = nil
+	clips[ent:EntIndex()] = nil
+end)
 
-		if um:ReadBool() then
-			clip.enabled = um:ReadBool()
-
-			if ent and ent.SetClipEnabled then
-				ent:SetClipEnabled()
-			end
-		else
-			clip.origin = um:ReadVector()
-			clip.normal = um:ReadVector()
-			clip.isglobal = um:ReadShort() ~= 0
-
-			if ent and ent.SetClip and clip.isglobal then
-				ent:SetClip()
+concommand.Add("wire_holograms_block_client",
+	function(ply, command, args)
+		local toblock
+		for _,ply in ipairs(player.GetAll()) do
+			if ply:Name() == args[1] then
+				toblock = ply
+				break
 			end
 		end
+		if not toblock then error("Player not found") end
 
-		idx = um:ReadShort()
+		local id = toblock:UserID()
+		blocked[id] = true
+		for _,ent in ipairs(ents.FindByClass("gmod_wire_hologram")) do
+			if ent:GetNetworkedInt("ownerid") == id then
+				ent.blocked = true
+			end
+		end
+	end,
+	function()
+		local names = {}
+		for _,ply in ipairs(player.GetAll()) do
+			table.insert(names, "wire_holograms_block_client \""..ply:Name().."\"")
+		end
+		table.sort(names)
+		return names
 	end
-end)
+)
+
+concommand.Add( "wire_holograms_unblock_client",
+	function(ply, command, args)
+		local toblock
+		for _,ply in ipairs(player.GetAll()) do
+			if ply:Name() == args[1] then
+				toblock = ply
+				break
+			end
+		end
+		if not toblock then error("Player not found") end
+
+		local id = toblock:UserID()
+		blocked[id] = nil
+		for _,ent in ipairs(ents.FindByClass("gmod_wire_hologram")) do
+			if ent:GetNetworkedInt("ownerid") == id then
+				ent.blocked = false
+			end
+		end
+	end,
+	function()
+		local names = {}
+		for _,ply in ipairs(player.GetAll()) do
+			if blocked[ply:UserID()] then
+				table.insert(names, "wire_holograms_unblock_client \""..ply:Name().."\"")
+			end
+		end
+		table.sort(names)
+		return names
+	end
+)
