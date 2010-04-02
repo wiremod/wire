@@ -827,3 +827,55 @@ e2function number findClipToRegion(vector origin, vector perpendicular)
 		return perpdot < perpendicular:Dot(ent:GetPos())
 	end)
 end
+
+-- inrange used in findClip*Box (below)
+local function inrange( vec1, vecmin, vecmax )
+	if (vec1.x < vecmin.x) then return false end
+	if (vec1.y < vecmin.y) then return false end
+	if (vec1.z < vecmin.z) then return false end
+
+	if (vec1.x > vecmax.x) then return false end
+	if (vec1.y > vecmax.y) then return false end
+	if (vec1.z > vecmax.z) then return false end
+
+	return true
+end
+
+-- If vecmin is greater than vecmax, flip it
+local function sanitize( vecmin, vecmax )
+	for I=1, 3 do
+		if (vecmin[I] > vecmax[I]) then
+			local temp = vecmin[I]
+			vecmin[I] = vecmax[I]
+			vecmax[I] = temp
+		end
+	end
+	return vecmin, vecmax
+end
+
+-- Filters the list of entities by removing all entities within the specified box
+e2function number findClipFromBox( vector min, vector max )
+
+	min, max = sanitize( min, max )
+
+	min = Vector(min[1], min[2], min[3])
+	max = Vector(max[1], max[2], max[3])
+
+	return applyClip( self, function(ent)
+		return !inrange(ent:GetPos(),min,max)
+	end)
+end
+
+-- Filters the list of entities by removing all entities not within the specified box
+e2function number findClipToBox( vector min, vector max )
+
+	min, max = sanitize( min, max )
+
+	min = Vector(min[1], min[2], min[3])
+	max = Vector(max[1], max[2], max[3])
+
+	return applyClip( self, function(ent)
+		return inrange(ent:GetPos(),min,max)
+	end)
+end
+

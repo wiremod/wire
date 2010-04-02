@@ -2073,7 +2073,29 @@ GateActions["angdiff_d"] = {
 	end
 }
 
+GateActions["clamp"] = {
+	group = "Arithmetic",
+	name = "Clamp",
+	inputs = { "A", "Min", "Max" },
+	output = function( gate, A, Min, Max )
+		return math.Clamp( A, Min, Max )
+	end,
+	label = function( Out, A, Min, Max )
+		return "Clamp(" .. A .. "," .. Min .. "," .. Max .. ") = " .. Out
+	end
+}
 
+GateActions["atan2"] = {
+	group = "Trig",
+	name = "Atan2",
+	inputs = { "A", "B" },
+	output = function( gate, A, B )
+		return math.atan2( A, B )
+	end,
+	label = function( Out, A, B )
+		return "atan2(" .. A .. "," .. B .. ") = " .. Out
+	end
+}
 
 
 --***********************************************************
@@ -2838,6 +2860,40 @@ GateActions["vector_mulcomp"] = {
 	end,
 	label = function(Out, A, B)
 	    return string.format ("%s * %s = "..tostring(Out), A, B )
+	end
+}
+
+GateActions["vector_clampn"] = {
+	group = "Vector",
+	name = "Clamp (numbers)",
+	inputs = { "A", "Min", "Max" },
+	inputtypes = { "VECTOR", "NORMAL", "NORMAL" },
+	outputtypes = { "VECTOR" },
+	output = function( gate, A, Min, Max )
+		if (Min > Max) then Min, Max = Max, Min end
+		return Vector( math.Clamp(A.x,Min,Max), math.Clamp(A.y,Min,Max), math.Clamp(A.z,Min,Max) )
+	end,
+	label = function( Out, A, Min, Max )
+		return "Clamp(" .. A .. "," .. Min .. "," .. Max .. ") = " .. tostring(Out)
+	end
+}
+
+GateActions["vector_clampv"] = {
+	group = "Vector",
+	name = "Clamp (vectors)",
+	inputs = { "A", "Min", "Max" },
+	inputtypes = { "VECTOR", "VECTOR", "VECTOR" },
+	outputtypes = { "VECTOR" },
+	output = function( gate, A, Min, Max )
+		for i=1,3 do
+			if (Min[i] > Max[i]) then
+				Min[i], Max[i] = Max[i], Min[i]
+			end
+		end
+		return Vector( math.Clamp(A.x,Min.x,Max.x), math.Clamp(A.y,Min.y,Max.y), math.Clamp(A.z,Min.z,Max.z) )
+	end,
+	label = function( Out, A, Min, Max )
+		return "Clamp(" .. A .. "," .. Min .. "," .. Max .. ") = " .. tostring(Out)
 	end
 }
 
@@ -3709,6 +3765,66 @@ GateActions["entity_select"] = {
 	end
 }
 
+-- Bearing and Elevation, copied from E2
+
+GateActions["entity_bearing"] = {
+	group = "Entity",
+	name = "Bearing",
+	inputs = { "Entity", "Position", "Clk" },
+	inputtypes = { "ENTITY", "VECTOR", "NORMAL" },
+	outputtypes = { "NORMAL" },
+	output = function( gate, Entity, Position )
+		if (!Entity:IsValid()) then return 0 end
+		Position = Entity:WorldToLocal(Position)
+		return 180 / math.pi * math.atan2( Position.y, Position.x )
+	end,
+	label = function( Out, Entity, Position )
+		return Entity .. ":Bearing(" .. Position .. ") = " .. Out
+	end
+}
+
+GateActions["entity_elevation"] = {
+	group = "Entity",
+	name = "Elevation",
+	inputs = { "Entity", "Position", "Clk" },
+	inputtypes = { "ENTITY", "VECTOR", "NORMAL" },
+	outputtypes = { "NORMAL" },
+	output = function( gate, Entity, Position )
+		if (!Entity:IsValid()) then return 0 end
+		Position = Entity:WorldToLocal(Position)
+		local len = Position:Length()
+		return 180 / math.pi * math.asin(Position.z / len)
+	end,
+	label = function( Out, Entity, Position )
+		return Entity .. ":Elevation(" .. Position .. ") = " .. Out
+	end
+}
+
+GateActions["entity_heading"] = {
+	group = "Entity",
+	name = "Heading",
+	inputs = { "Entity", "Position", "Clk" },
+	inputtypes = { "ENTITY", "VECTOR", "NORMAL" },
+	outputs = { "Bearing", "Elevation", "Heading" },
+	outputtypes = { "NORMAL", "NORMAL", "ANGLE" },
+	output = function( gate, Entity, Position )
+		if (!Entity:IsValid()) then return 0, 0, Angle(0,0,0) end
+		Position = Entity:WorldToLocal(Position)
+
+		-- Bearing
+		local bearing = 180 / math.pi * math.atan2( Position.y, Position.x )
+
+		-- Elevation
+		local len = Position:Length()
+		elevation = 180 / math.pi * math.asin( Position.z / len )
+
+		return bearing, elevation, Angle(bearing,elevation,0)
+	end,
+	label = function( Out, Entity, Position )
+		return Entity .. ":Heading(" .. Position .. ") = " .. tostring(Out.Heading)
+	end
+}
+
 
 -------------------------------------------------------------------------------
 -- Angle gates
@@ -4050,6 +4166,38 @@ GateActions["angle_mulcomp"] = {
 	end,
 	label = function(Out, A, B)
 	    return string.format ("%s * %s = "..tostring(Out), A, B )
+	end
+}
+
+GateActions["angle_clampn"] = {
+	group = "Angle",
+	name = "Clamp (numbers)",
+	inputs = { "A", "Min", "Max" },
+	inputtypes = { "ANGLE", "NORMAL", "NORMAL" },
+	outputtypes = { "ANGLE" },
+	output = function( gate, A, Min, Max )
+		if (Min > Max) then Min, Max = Max, Min end
+		return Angle( math.Clamp(A.p,Min,Max), math.Clamp(A.y,Min,Max), math.Clamp(A.r,Min,Max) )
+	end,
+	label = function( Out, A, Min, Max )
+		return "Clamp(" .. A .. "," .. Min .. "," .. Max .. ") = " .. tostring(Out)
+	end
+}
+
+GateActions["angle_clampa"] = {
+	group = "Angle",
+	name = "Clamp (angles)",
+	inputs = { "A", "Min", "Max" },
+	inputtypes = { "ANGLE", "ANGLE", "ANGLE" },
+	outputtypes = { "ANGLE" },
+	output = function( gate, A, Min, Max )
+		if (Min.p > Max.p) then Min.p, Max.p = Max.p, Min.p end
+		if (Min.y > Max.y) then Min.y, Max.y = Max.y, Min.y end
+		if (Min.r > Max.r) then Min.r, Max.r = Max.r, Min.r end
+		return Angle( math.Clamp(A.p,Min.p,Max.p), math.Clamp(A.y,Min.y,Max.y), math.Clamp(A.r,Min.r,Max.r) )
+	end,
+	label = function( Out, A, Min, Max )
+		return "Clamp(" .. A .. "," .. Min .. "," .. Max .. ") = " .. tostring(Out)
 	end
 }
 
