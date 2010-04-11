@@ -259,6 +259,29 @@ e2function number last()
 	return self.data.last and 1 or 0
 end
 
+-- dupefinished()
+-- Made by Divran
+
+if (!AdvDupe) then return end
+
+local DupeFinished = 0
+
+local OldFunc = AdvDupe.FinishPasting
+function AdvDupe.FinishPasting( TimedPasteData,TimedPasteDataCurrent )
+	DupeFinished = 1
+	for k,v in pairs( TimedPasteData[TimedPasteDataCurrent].CreatedEntities ) do
+		if (v:GetClass() == "gmod_wire_expression2") then
+			v:Execute()
+		end
+	end
+	DupeFinished = 0
+	OldFunc( TimedPasteData,TimedPasteDataCurrent )
+end
+
+e2function number dupefinished()
+	return DupeFinished
+end
+
 --- Returns 1 if this is the last() execution and caused by the entity being removed.
 e2function number removing()
 	return self.entity.removing and 1 or 0
