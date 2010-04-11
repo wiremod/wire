@@ -262,24 +262,30 @@ end
 -- dupefinished()
 -- Made by Divran
 
-if (!AdvDupe) then return end
+if (AdvDupe) then
 
-local DupeFinished = 0
+	local DupeFinished = 0
 
-local OldFunc = AdvDupe.FinishPasting
-function AdvDupe.FinishPasting( TimedPasteData,TimedPasteDataCurrent )
-	DupeFinished = 1
-	for k,v in pairs( TimedPasteData[TimedPasteDataCurrent].CreatedEntities ) do
-		if (v:GetClass() == "gmod_wire_expression2") then
-			v:Execute()
+	local OldFunc = AdvDupe.FinishPasting
+
+	function AdvDupe.FinishPasting( TimedPasteData,TimedPasteDataCurrent )
+		DupeFinished = 1
+		for k,v in pairs( TimedPasteData[TimedPasteDataCurrent].CreatedEntities ) do
+			if (!v.LastRunByDupeFinished or v.LastRunByDupeFinished < CurTime()) then
+				if (v:GetClass() == "gmod_wire_expression2") then
+					v:Execute()
+					v.LastRunByDupeFinished = CurTime()
+				end
+			end
 		end
+		DupeFinished = 0
+		OldFunc( TimedPasteData,TimedPasteDataCurrent )
 	end
-	DupeFinished = 0
-	OldFunc( TimedPasteData,TimedPasteDataCurrent )
-end
 
-e2function number dupefinished()
-	return DupeFinished
+	e2function number dupefinished()
+		return DupeFinished
+	end
+
 end
 
 --- Returns 1 if this is the last() execution and caused by the entity being removed.
