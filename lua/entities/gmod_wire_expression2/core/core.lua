@@ -272,7 +272,7 @@ if (AdvDupe) then
 		DupeFinished = 1
 		for k,v in pairs( TimedPasteData[TimedPasteDataCurrent].CreatedEntities ) do
 			if (!v.LastRunByDupeFinished or v.LastRunByDupeFinished < CurTime()) then
-				if (v:GetClass() == "gmod_wire_expression2") then
+				if (type(v) == "Entity" and v:IsValid() and v:GetClass() == "gmod_wire_expression2") then
 					v:Execute()
 					v.LastRunByDupeFinished = CurTime()
 				end
