@@ -73,6 +73,40 @@ function WireToolMakeButton( self, trace, ply )
 	return wire_button
 end
 
+function WireToolMakeDynamicButton( self, trace, ply )
+
+	local _model			= self:GetModel()
+	local _toggle			= (self:GetClientNumber( "toggle" ) ~= 0)
+	local _value_off		= self:GetClientNumber( "value_off" )
+	local _value_on			= self:GetClientNumber( "value_on" )
+	local _description		= self:GetClientInfo( "description" )
+	local _entityout		= (self:GetClientNumber( "entityout" ) ~= 0)
+	local _material_off		= self:GetClientInfo( "material_off" )
+	local _material_on		= self:GetClientInfo( "material_on" )
+	local _on_r			    = self:GetClientNumber( "on_r" )
+	local _on_g			    = self:GetClientNumber( "on_g" )
+	local _on_b			    = self:GetClientNumber( "on_b" )
+	local _off_r			= self:GetClientNumber( "off_r" )
+	local _off_g		    = self:GetClientNumber( "off_g" )
+	local _off_b			= self:GetClientNumber( "off_b" )
+
+	if trace.Entity:IsValid() and trace.Entity:GetClass() == "gmod_wire_dynamic_button" and trace.Entity.pl == ply then
+		trace.Entity:Setup(_toggle, _value_off, _value_on, _entityout, _material_on, _material_off, _on_r, _on_g, _on_b, _off_r, _off_g, _off_b  )
+		return true
+	end
+
+	if not self:GetSWEP():CheckLimit( "wire_dynamic_buttons" ) then return false end
+
+	local Ang = trace.HitNormal:Angle()
+	Ang.pitch = Ang.pitch + 90
+
+	local wire_dynamic_button = MakeWireDynamicButton( ply, trace.HitPos, Ang, _model, _toggle, _value_off, _value_on, _description, _entityout, _material_on, _material_off, _on_r, _on_g, _on_b, _off_r, _off_g, _off_b )
+
+	local min = wire_dynamic_button:OBBMins()
+	wire_dynamic_button:SetPos( trace.HitPos - trace.HitNormal * min.z )
+
+	return wire_dynamic_button
+end
 
 function WireToolMakeDualInput( self, trace, ply )
 

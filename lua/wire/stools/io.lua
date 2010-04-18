@@ -180,7 +180,97 @@ do --wire_button
 	end
 end --wire_button
 
+do --wire_dynamic_button
+	WireToolSetup.open( "dynamic_button", "Dynamic Button", "gmod_wire_dynamic_button", WireToolMakeDynamicButton )
 
+	if CLIENT then
+		language.Add( "Tool_wire_dynamic_button_name", "Dynamic Button Tool (Wire)" )
+		language.Add( "Tool_wire_dynamic_button_desc", "Spawns a dynamic button for use with the wire system." )
+		language.Add( "Tool_wire_dynamic_button_0", "Primary: Create/Update Dynamic Button" )
+		language.Add( "WireDynamicButtonTool_toggle", "Toggle" )
+		language.Add( "WireDynamicButtonTool_entityout", "Output Entity" )
+		language.Add( "WireDynamicButtonTool_value_on", "Value On:" )
+		language.Add( "WireDynamicButtonTool_value_off", "Value Off:" )
+		language.Add( "sboxlimit_wire_dynamic_buttons", "You've hit wired dynamic buttons limit!" )
+	end
+	WireToolSetup.BaseLang("Dynamic Buttons")
+
+	if SERVER then
+		CreateConVar('sbox_maxwire_dynamic_buttons', 20)
+	end
+
+	TOOL.ClientConVar = {
+		model = "models/bull/ranger.mdl",
+		model_category = "dynamic_button",
+		toggle = "0",
+		value_off = "0",
+		value_on = "1",
+		description = "",
+		entityout = "0",
+        material_on  = "bull/dynamic_button_1",
+        material_off = "bull/dynamic_button_0",
+        on_r = 0,
+        on_g = 255,
+        on_b = 0,
+        off_r = 255,
+        off_g = 0,
+        off_b = 0
+	}
+
+	function TOOL.BuildCPanel(panel)
+		WireToolHelpers.MakePresetControl(panel, "wire_dynamic_button")
+
+		ModelPlug_AddToCPanel_Multi(
+			panel,
+			{	dynamic_button = "Normal",
+				dynamic_button_small = "Small"
+			},
+			"wire_dynamic_button",
+			"#Dynamic_Button_Model", nil, "#Dynamic_Button_Model", 1.1
+		)
+
+		panel:NumSlider("#WireDynamicButtonTool_value_on", "wire_dynamic_button_value_on", -10, 10, 1)
+        panel:AddControl("ComboBox", {
+			Label = "WireDynamicButtonMaterialsOn",
+			MenuButton = "0",
+			Options = list.Get( "WireDynamicButtonMaterialsOn" )
+        } )
+
+		panel:AddControl("Color", {
+			Label = "#ToolWireDynamicButton_colour_on",
+			Red = "wire_dynamic_button_on_r",
+			Green = "wire_dynamic_button_on_g",
+			Blue = "wire_dynamic_button_on_b",
+			ShowAlpha = "0",
+			ShowHSV = "1",
+			ShowRGB = "1",
+			Multiplier = "255"
+		})
+
+		panel:NumSlider("#WireDynamicButtonTool_value_off", "wire_dynamic_button_value_off", -10, 10, 1)
+        panel:AddControl("ComboBox", {
+			Label = "#WireDynamicButtonTool_entityout",
+			MenuButton = "0",
+			Options = list.Get( "WireDynamicButtonMaterialsOff" )
+        } )
+
+		panel:AddControl("Color", {
+			Label = "#ToolWireDynamicButton_colour_off",
+			Red = "wire_dynamic_button_off_r",
+			Green = "wire_dynamic_button_off_g",
+			Blue = "wire_dynamic_button_off_b",
+			ShowAlpha = "0",
+			ShowHSV = "1",
+			ShowRGB = "1",
+			Multiplier = "255"
+		})
+
+		panel:CheckBox("#WireDynamicButtonTool_toggle", "wire_dynamic_button_toggle")
+		panel:CheckBox("#WireDynamicButtonTool_entityout", "wire_dynamic_button_entityout")
+
+
+	end
+end --wire_dynamic_button
 
 do -- wire_dual_input
 	WireToolSetup.open( "dual_input", "Dual Input", "gmod_wire_dual_input", WireToolMakeDualInput )

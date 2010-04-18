@@ -152,6 +152,25 @@ for k,v in ipairs(Buttons) do
 	end
 end
 
+--Dynamic button materials
+local WireDynamicButtonMaterials = {
+    ["Clean"] = "bull/dynamic_button_clean",
+    ["0"]     = "bull/dynamic_button_0",
+    ["1"]     = "bull/dynamic_button_1",
+    ["2"]     = "bull/dynamic_button_2",
+    ["3"]     = "bull/dynamic_button_3",
+    ["4"]     = "bull/dynamic_button_4",
+    ["5"]     = "bull/dynamic_button_5",
+    ["6"]     = "bull/dynamic_button_6",
+    ["7"]     = "bull/dynamic_button_7",
+    ["8"]     = "bull/dynamic_button_8",
+    ["9"]     = "bull/dynamic_button_9"
+}
+
+for k,v in pairs(WireDynamicButtonMaterials) do
+    list.Set("WireDynamicButtonMaterialsOn" ,k,{wire_dynamic_button_material_on =v});
+    list.Set("WireDynamicButtonMaterialsOff",k,{wire_dynamic_button_material_off=v});
+end
 
 --Thrusters
 --Jaanus Thruster Pack
