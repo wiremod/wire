@@ -606,6 +606,8 @@ e2function string toString(entity ent)
 	return tostring(ent)
 end
 
+e2function string entity:toString() = e2function string toString(entity ent)
+
 /******************************************************************************/
 
 local function SetTrails(Player, Entity, Data)
