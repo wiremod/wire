@@ -527,6 +527,7 @@ registerFunction("insertNumber", "r:nn", "", function(self, args)
 	local op1, op2, op3 = args[2], args[3], args[4]
 	local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
 	if ((table.getn(rv1)+1) >= E2_MAX_ARRAY_SIZE) then return end
+	if rv2 < 0 then return end --table.insert won't work for negative numbers
 	--if (rv3 == 0) then rv3 = nil end
 	table.insert(rv1,rv2,rv3)
 	self.vclk[rv1] = true
@@ -545,6 +546,7 @@ registerFunction("insertVector2", "r:nxv2", "", function(self, args)
 	local op1, op2, op3 = args[2], args[3], args[4]
 	local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
 	if ((table.getn(rv1)+1) >= E2_MAX_ARRAY_SIZE) then return end
+	if rv2 < 0 then return end --table.insert won't work for negative numbers
 	table.insert(rv1,rv2,rv3)
 	self.vclk[rv1] = true
 end)
@@ -562,6 +564,7 @@ registerFunction("insertVector", "r:nv", "", function(self, args)
 	local op1, op2, op3 = args[2], args[3], args[4]
 	local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
 	if ((table.getn(rv1)+1) >= E2_MAX_ARRAY_SIZE) then return end
+	if rv2 < 0 then return end --table.insert won't work for negative numbers
 	--if rv3[1] == 0 and rv3[2] == 0 and rv3[3] == 0 then rv3 = nil end
 	table.insert(rv1,rv2,rv3)
 	self.vclk[rv1] = true
@@ -580,6 +583,7 @@ registerFunction("insertVector4", "r:nxv4", "", function(self, args)
 	local op1, op2, op3 = args[2], args[3], args[4]
 	local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
 	if ((table.getn(rv1)+1) >= E2_MAX_ARRAY_SIZE) then return end
+	if rv2 < 0 then return end --table.insert won't work for negative numbers
 	table.insert(rv1,rv2,rv3)
 	self.vclk[rv1] = true
 end)
@@ -597,6 +601,7 @@ registerFunction("insertAngle", "r:na", "", function(self, args)
 	local op1, op2, op3 = args[2], args[3], args[4]
 	local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
 	if ((table.getn(rv1)+1) >= E2_MAX_ARRAY_SIZE) then return end
+	if rv2 < 0 then return end --table.insert won't work for negative numbers
 	--if rv3[1] == 0 and rv3[2] == 0 and rv3[3] == 0 then rv3 = nil end
 	table.insert(rv1,rv2,rv3)
 	self.vclk[rv1] = true
@@ -615,6 +620,7 @@ registerFunction("insertMatrix2", "r:nxm2", "", function(self, args)
 	local op1, op2, op3 = args[2], args[3], args[4]
 	local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
 	if ((table.getn(rv1)+1) >= E2_MAX_ARRAY_SIZE) then return end
+	if rv2 < 0 then return end --table.insert won't work for negative numbers
 	table.insert(rv1,rv2,rv3)
 	self.vclk[rv1] = true
 end)
@@ -633,6 +639,7 @@ registerFunction("insertMatrix", "r:nm", "", function(self, args)
 	local op1, op2, op3 = args[2], args[3], args[4]
 	local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
 	if ((table.getn(rv1)+1) >= E2_MAX_ARRAY_SIZE) then return end
+	if rv2 < 0 then return end --table.insert won't work for negative numbers
 	table.insert(rv1,rv2,rv3)
 	self.vclk[rv1] = true
 end)
@@ -652,6 +659,7 @@ registerFunction("insertMatrix4", "r:nxm4", "", function(self, args)
 	local op1, op2, op3 = args[2], args[3], args[4]
 	local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
 	if ((table.getn(rv1)+1) >= E2_MAX_ARRAY_SIZE) then return end
+	if rv2 < 0 then return end --table.insert won't work for negative numbers
 	table.insert(rv1,rv2,rv3)
 	self.vclk[rv1] = true
 end)
@@ -672,6 +680,7 @@ registerFunction("insertString", "r:ns", "", function(self, args)
 	local op1, op2, op3 = args[2], args[3], args[4]
 	local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
 	if ((table.getn(rv1)+1) >= E2_MAX_ARRAY_SIZE) then return end
+	if rv2 < 0 then return end --table.insert won't work for negative numbers
 	--if (rv3 == "") then rv3 = nil end
 	table.insert(rv1,rv2,rv3)
 	self.vclk[rv1] = true
@@ -690,6 +699,7 @@ registerFunction("insertEntity", "r:ne", "", function(self, args)
 	local op1, op2, op3 = args[2], args[3], args[4]
 	local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
 	if ((table.getn(rv1)+1) >= E2_MAX_ARRAY_SIZE) then return end
+	if rv2 < 0 then return end --table.insert won't work for negative numbers
 	table.insert(rv1,rv2,rv3)
 	self.vclk[rv1] = true
 end)
