@@ -14,7 +14,7 @@ local function ResetRanger(self)
 	data.rangerignoreworld = false
 	data.rangerwater = false
 	data.rangerentities = true
-	data.rangerfilter = {}
+	data.rangerfilter = { self.entity }
 end
 
 local function ranger(self, rangertype, range, p1, p2, hulltype, mins, maxs )
@@ -151,14 +151,7 @@ __e2setcost(1) -- temporary
 
 --- Passing 0 (the default) resets all ranger flags and filters every execution and after calling ranger/rangerOffset. Passing anything else will make the flags and filters persist until they're changed again.
 e2function void rangerPersist(persist)
-	if persist ~= 0 then
-		self.data.rangerpersist = true
-		if !table.HasValue(self.data.rangerfilter, self.entity) then
-			table.insert(self.data.rangerfilter, self.entity)
-		end
-	else
-		self.data.rangerpersist = false
-	end
+	data.rangerpersist = persist ~= 0
 end
 
 --- Resets all ranger flags and filters.
