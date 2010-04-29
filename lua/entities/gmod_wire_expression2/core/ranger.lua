@@ -151,7 +151,7 @@ __e2setcost(1) -- temporary
 
 --- Passing 0 (the default) resets all ranger flags and filters every execution and after calling ranger/rangerOffset. Passing anything else will make the flags and filters persist until they're changed again.
 e2function void rangerPersist(persist)
-	data.rangerpersist = persist ~= 0
+	self.data.rangerpersist = persist ~= 0
 end
 
 --- Resets all ranger flags and filters.
