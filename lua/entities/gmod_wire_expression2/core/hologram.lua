@@ -666,12 +666,26 @@ local function Parent_Hologram(holo, ent, bone, attachment)
 	end
 end
 
+-- Check for recursive parenting
+local function Check_Parents(child, parent)
+	while IsValid(parent:GetParent()) do
+		parent = parent:GetParent()
+		if parent == child then
+			return false
+		end
+	end
+
+	return true
+end
+
 e2function void holoParent(index, otherindex)
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
 
 	local Holo2 = CheckIndex(self, otherindex)
 	if not Holo2 then return end
+
+	if !Check_Parents(Holo.ent, Holo2.ent) then return end
 
 	Parent_Hologram(Holo, Holo2.ent, nil, nil)
 end
@@ -680,6 +694,8 @@ e2function void holoParent(index, entity ent)
 	if not validEntity(ent) then return end
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
+
+	if !Check_Parents(Holo.ent, ent) then return end
 
 	Parent_Hologram(Holo, ent, 0, nil)
 end
