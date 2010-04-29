@@ -27,10 +27,7 @@ local function ranger(self, rangertype, range, p1, p2, hulltype, mins, maxs )
 	local entities = data.rangerentities
 	local filter = data.rangerfilter
 
-	if not data.rangerpersist then
-		ResetRanger(self)
-		table.insert(filter, chip)
-	end
+	if not data.rangerpersist then ResetRanger(self) end
 
 	-- begin building tracedata structure
 	local tracedata = { filter = filter }
