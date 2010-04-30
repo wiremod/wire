@@ -190,14 +190,14 @@ GateActions["+"] = {
 	compact_inputs = 2,
 	output = function(gate, ...)
 		local result = 0
-		for k,v in ipairs(arg) do
+		for k,v in ipairs({...}) do
 			if (v) then result = result+v end
 		end
 		return result
 	end,
 	label = function(Out, ...)
 		local txt = ""
-		for k,v in ipairs(arg) do
+		for k,v in ipairs({...}) do
 			if (v) then txt = txt..v.." + " end
 		end
 		return string.sub(txt, 1, -4).." = "..Out
@@ -224,14 +224,14 @@ GateActions["*"] = {
 	compact_inputs = 2,
 	output = function(gate, ...)
 		local result = 1
-		for k,v in ipairs(arg) do
+		for k,v in ipairs({...}) do
 			if (v) then result = result*v end
 		end
 		return result
 	end,
 	label = function(Out, ...)
 		local txt = ""
-		for k,v in ipairs(arg) do
+		for k,v in ipairs({...}) do
 			if (v) then txt = txt..v.." * " end
 		end
 		return string.sub(txt, 1, -4).." = "..Out
@@ -384,7 +384,7 @@ GateActions["Average"] = {
 	output = function(gate, ...)
 		local vals = 0
 		local value = 0
-		for k,v in ipairs(arg) do
+		for k,v in ipairs({...}) do
 			vals = vals + 1
 			value = value + v
 		end
@@ -393,7 +393,7 @@ GateActions["Average"] = {
 	label = function(Out, ...)
 		local vals = 0
 		local message = "("
-		for k,v in ipairs(arg) do
+		for k,v in ipairs({...}) do
 			vals = vals + 1
 			message = message .. v .. " + "
 		end
@@ -664,14 +664,14 @@ GateActions["and"] = {
 	inputs = { "A", "B", "C", "D", "E", "F", "G", "H" },
 	compact_inputs = 2,
 	output = function(gate, ...)
-		for k,v in ipairs(arg) do
+		for k,v in ipairs({...}) do
 			if (v) and (v <= 0) then return 0 end
 		end
 		return 1
 	end,
 	label = function(Out, ...)
 		local txt = ""
-		for k,v in ipairs(arg) do
+		for k,v in ipairs({...}) do
 			if (v) then txt = txt..v.." and " end
 		end
 		return string.sub(txt, 1, -6).." = "..Out
@@ -684,14 +684,14 @@ GateActions["or"] = {
 	inputs = { "A", "B", "C", "D", "E", "F", "G", "H" },
 	compact_inputs = 2,
 	output = function(gate, ...)
-		for k,v in ipairs(arg) do
+		for k,v in ipairs({...}) do
 			if (v) and (v > 0) then return 1 end
 		end
 		return 0
 	end,
 	label = function(Out, ...)
 		local txt = ""
-		for k,v in ipairs(arg) do
+		for k,v in ipairs({...}) do
 			if (v) then txt = txt..v.." or " end
 		end
 		return string.sub(txt, 1, -5).." = "..Out
@@ -705,14 +705,14 @@ GateActions["xor"] = {
 	compact_inputs = 2,
 	output = function(gate, ...)
 		local result = 0
-		for k,v in ipairs(arg) do
+		for k,v in ipairs({...}) do
 			if (v) and (v > 0) then result = (1-result) end
 		end
 		return result
 	end,
 	label = function(Out, ...)
 		local txt = ""
-		for k,v in ipairs(arg) do
+		for k,v in ipairs({...}) do
 			if (v) then txt = txt..v.." xor " end
 		end
 		return string.sub(txt, 1, -6).." = "..Out
@@ -725,14 +725,14 @@ GateActions["nand"] = {
 	inputs = { "A", "B", "C", "D", "E", "F", "G", "H" },
 	compact_inputs = 2,
 	output = function(gate, ...)
-		for k,v in ipairs(arg) do
+		for k,v in ipairs({...}) do
 			if (v) and (v <= 0) then return 1 end
 		end
 		return 0
 	end,
 	label = function(Out, ...)
 		local txt = ""
-		for k,v in ipairs(arg) do
+		for k,v in ipairs({...}) do
 			if (v) then txt = txt..v.." nand " end
 		end
 		return string.sub(txt, 1, -7).." = "..Out
@@ -745,14 +745,14 @@ GateActions["nor"] = {
 	inputs = { "A", "B", "C", "D", "E", "F", "G", "H" },
 	compact_inputs = 2,
 	output = function(gate, ...)
-		for k,v in ipairs(arg) do
+		for k,v in ipairs({...}) do
 			if (v) and (v > 0) then return 0 end
 		end
 		return 1
 	end,
 	label = function(Out, ...)
 		local txt = ""
-		for k,v in ipairs(arg) do
+		for k,v in ipairs({...}) do
 			if (v) then txt = txt..v.." nor " end
 		end
 		return string.sub(txt, 1, -6).." = "..Out
@@ -766,14 +766,14 @@ GateActions["xnor"] = {
 	compact_inputs = 2,
 	output = function(gate, ...)
 		local result = 1
-		for k,v in ipairs(arg) do
+		for k,v in ipairs({...}) do
 			if (v) and (v > 0) then result = (1-result) end
 		end
 		return result
 	end,
 	label = function(Out, ...)
 		local txt = ""
-		for k,v in ipairs(arg) do
+		for k,v in ipairs({...}) do
 			if (v) then txt = txt..v.." xnor " end
 		end
 		return string.sub(txt, 1, -7).." = "..Out
@@ -1209,11 +1209,11 @@ GateActions["min"] = {
 	inputs = { "A", "B", "C", "D", "E", "F", "G", "H" },
 	compact_inputs = 2,
 	output = function(gate, ...)
-		return math.min(unpack(arg))
+		return math.min(unpack({...}))
 	end,
 	label = function(Out, ...)
 		local txt = "min("
-		for k,v in ipairs(arg) do
+		for k,v in ipairs({...}) do
 			if (v) then txt = txt..v..", " end
 		end
 		return string.sub(txt, 1, -3)..") = "..Out
@@ -1226,11 +1226,11 @@ GateActions["max"] = {
 	inputs = { "A", "B", "C", "D", "E", "F", "G", "H" },
 	compact_inputs = 2,
 	output = function(gate, ...)
-		return math.max(unpack(arg))
+		return math.max(unpack({...}))
 	end,
 	label = function(Out, ...)
 		local txt = "max("
-		for k,v in ipairs(arg) do
+		for k,v in ipairs({...}) do
 			if (v) then txt = txt..v..", " end
 		end
 		return string.sub(txt, 1, -3)..") = "..Out
@@ -1281,7 +1281,7 @@ GateActions["select"] = {
 	output = function(gate, Choice, ...)
 		local idx = math.floor(Choice)
 		if (idx > 0) and (idx <= 8) then
-			return arg[idx]
+			return ({...})[idx]
 		end
 
 		return 0
@@ -2177,7 +2177,7 @@ GateActions["vector_add"] = {
 	outputtypes = { "VECTOR" },
 	output = function(gate, ...)
 		local sum = Vector (0, 0, 0)
-		for _, v in pairs (arg) do
+		for _, v in pairs ({...}) do
 			if (v and IsVector (v)) then
 				sum = sum + v
 			end
@@ -2186,7 +2186,7 @@ GateActions["vector_add"] = {
 	end,
 	label = function(Out, ...)
 		local tip = ""
-		for _, v in ipairs (arg) do
+		for _, v in ipairs ({...}) do
 			if (v) then tip = tip .. " + " .. v end
 		end
 		return string.format ("%s = (%d,%d,%d)", string.sub (tip, 3),
@@ -2495,9 +2495,9 @@ GateActions["vector_mux"] = {
 	compact_inputs = 3,
 	outputtypes = { "VECTOR" },
 	output = function(gate, Sel, ...)
-		Sel = math.floor (Sel)
+		Sel = math.floor(Sel)
 		if (Sel > 0 && Sel <= 8) then
-			return arg[Sel]
+			return ({...})[Sel]
 		end
 		return Vector (0, 0, 0)
 	end,
@@ -2823,7 +2823,7 @@ GateActions["vector_select"] = {
 	outputtypes = { "VECTOR" },
 	output = function(gate, Choice, ...)
 		math.Clamp(Choice,1,8)
-		return arg[Choice]
+		return ({...})[Choice]
 	end,
 	label = function(Out, Choice)
 	    return string.format ("select(%s) = %s", Choice, Out)
@@ -3758,7 +3758,7 @@ GateActions["entity_select"] = {
 	outputtypes = { "ENTITY" },
 	output = function(gate, Choice, ...)
 		math.Clamp(Choice,1,8)
-		return arg[Choice]
+		return ({...})[Choice]
 	end,
 	label = function(Out, Choice)
 	    return string.format ("select(%s) = %s", Choice, Out)
@@ -4145,7 +4145,7 @@ GateActions["angle_select"] = {
 	outputtypes = { "ANGLE" },
 	output = function(gate, Choice, ...)
 		math.Clamp(Choice,1,8)
-		return arg[Choice]
+		return ({...})[Choice]
 	end,
 	label = function(Out, Choice)
 	    return string.format ("select(%s) = %s", Choice, Out)
@@ -4637,7 +4637,7 @@ GateActions["string_select"] = {
 	outputtypes = { "STRING" },
 	output = function(gate, Choice, ...)
 		math.Clamp(Choice,1,8)
-		return arg[Choice]
+		return ({...})[Choice]
 	end,
 	label = function(Out, Choice)
 	    return string.format ("select(%s) = %s", Choice, Out)
