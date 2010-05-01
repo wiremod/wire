@@ -7,7 +7,7 @@ do --wire_weight
 	if CLIENT then
 		language.Add( "Tool_wire_weight_name", "Weight Tool (Wire)" )
 		language.Add( "Tool_wire_weight_desc", "Spawns a weight." )
-		language.Add( "Tool_wire_weight_0", "Primary: Create/Update weight" )
+		language.Add( "Tool_wire_weight_0", "Primary: Create/Update weight, Reload: Copy model" )
 		language.Add( "WireDataWeightTool_weight", "Weight:" )
 		language.Add( "sboxlimit_wire_weights", "You've hit weights limit!" )
 	end
@@ -19,6 +19,22 @@ do --wire_weight
 	end
 
 	TOOL.ClientConVar = {model	= "models/props_interiors/pot01a.mdl"}
+
+	function TOOL:Reload( trace )
+		if !IsValid(trace.Entity) then return false end
+
+		local ply = self:GetOwner()
+
+		if (trace.Entity:GetClass() ~= "prop_physics") then
+			ply:PrintMessage( HUD_PRINTTALK, "You can only copy models from physics props!" )
+			return true
+		end
+
+		local model = trace.Entity:GetModel()
+		ply:ConCommand("wire_weight_model " .. model)
+		ply:PrintMessage( HUD_PRINTTALK, "Wire weight model set to " .. model )
+		return true
+	end
 
 	function TOOL.BuildCPanel(panel)
 		ModelPlug_AddToCPanel(panel, "weight", "wire_weight", nil, nil, nil, 1)
@@ -89,7 +105,7 @@ do --wire_simple_explosive
 			if (self.reloadmodel && string.len(self.reloadmodel) > 0) then
 				model = self.reloadmodel
 			else
-				local message = "You need to select a model model."
+				local message = "You need to select a model."
 				if (showerr) then
 					self:GetOwner():PrintMessage(3, message)
 					self:GetOwner():PrintMessage(2, message)
@@ -100,7 +116,7 @@ do --wire_simple_explosive
 
 		if (not util.IsValidModel(model)) then
 			--something fucked up, notify user of that
-			local message = "This is not a valid model."..model
+			local message = "This is not a valid model. " .. model
 			if (showerr) then
 				self:GetOwner():PrintMessage(3, message)
 				self:GetOwner():PrintMessage(2, message)
