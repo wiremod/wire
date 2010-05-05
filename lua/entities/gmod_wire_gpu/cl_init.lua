@@ -148,6 +148,7 @@ function ENT:RenderGPU(clearbg)
 		local OldRT = render.GetRenderTarget()
 		local NewRT = self.FrameBuffer
 
+		WireGPU_matScreen:SetMaterialTexture( "$basetexture", NewRT )
 		render.SetRenderTarget(NewRT)
 		render.SetViewPort(0,0,512,512)
 		cam.Start2D()
