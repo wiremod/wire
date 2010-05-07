@@ -300,6 +300,8 @@ end
 /******************************************************************************/
 -- Hull traces
 
+__e2setcost(20)
+
 -- distance, size
 e2function ranger rangerHull( number distance, vector size )
 	return ranger( self, 0, distance, 0, 0, 1, size )
