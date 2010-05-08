@@ -148,6 +148,7 @@ function ENT:RenderGPU(clearbg)
 		local OldRT = render.GetRenderTarget()
 		local NewRT = self.FrameBuffer
 
+		if (not NewRT) then return end
 		WireGPU_matScreen:SetMaterialTexture( "$basetexture", NewRT )
 		render.SetRenderTarget(NewRT)
 		render.SetViewPort(0,0,512,512)
