@@ -82,12 +82,12 @@ function ENT:Think()
 			else
 				if self.Velocity > 0.1 or self.Velocity < -0.1 then trace.Entity:SetVelocity( vForward * self.Velocity ) end
 			end
-		end
-		if self.reaction then
-			local phys = self.Entity:GetPhysicsObject()
-			if (phys:IsValid()) then
-				if self.ForceInput > 0.1 or self.ForceInput < -0.1 then phys:ApplyForceCenter( vForward * -self.Force * self.ForceInput ) end
-				if self.OffsetForce > 0.1 or self.OffsetForce < -0.1 then phys:ApplyForceCenter( vForward * -self.OffsetForce ) end
+			if self.reaction then
+				local phys = self.Entity:GetPhysicsObject()
+				if (phys:IsValid()) then
+					if self.ForceInput > 0.1 or self.ForceInput < -0.1 then phys:ApplyForceCenter( vForward * -self.Force * self.ForceInput ) end
+					if self.OffsetForce > 0.1 or self.OffsetForce < -0.1 then phys:ApplyForceCenter( vForward * -self.OffsetForce ) end
+				end
 			end
 		end
 	end
