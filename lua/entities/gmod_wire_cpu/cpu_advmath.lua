@@ -85,8 +85,8 @@ function ENT:InitializeAdvMathOpcodeTable()
 			self:WriteCell(Param1 + self[self.PrecompileData[self.XEIP].Segment1],
 				v1.x * v2.y - v1.y * v2.x)
 		else
-			local vec1 = self:Read3f(Param1 + self[self.PrecompileData[self.XEIP].Segment1])
-			local vec2 = self:Read3f(Param2 + self[self.PrecompileData[self.XEIP].Segment1])
+			local v1 = self:Read3f(Param1 + self[self.PrecompileData[self.XEIP].Segment1])
+			local v2 = self:Read3f(Param2 + self[self.PrecompileData[self.XEIP].Segment1])
 			self:Write3f(Param1 + self[self.PrecompileData[self.XEIP].Segment2],
 				{x = v1.y * v2.z - v1.z * v2.y, y = v1.z * v2.x - v1.x * v2.z, z = v1.x * v2.y - v1.y * v2.x})
 		end
