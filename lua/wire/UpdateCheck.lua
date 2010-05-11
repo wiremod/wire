@@ -6,12 +6,14 @@
 local rss_url = "http://www.wiremod.com:8060/changelog/~rss,feedmax=1/Wiremod/wire/rss.xml"
 
 
-WireVersion = "1910" --manual revision, change this value to the revision-to-be once changes are committed
+WireVersion = "2114" --manual revision, change this value to the revision-to-be once changes are committed
 WireVersion = WireVersion .. " (exported)" -- leave this alone, it's to differentiate SVN checkouts from SVN Exported or downloaded versions of wire when a player types "wire_PrintVersion"
-if file.Exists("../lua/wire/.svn/entries") then
-	WireVersion = tonumber(string.Explode("\n", file.Read( "../lua/wire/.svn/entries"))[4]) --get svn revision, stolen from ULX
-	SVNver = WireVersion -- this is for the sv_tags changing function at the bottom of WireLib.lua
-end
+
+// This function is broken, as gmod now prevents file.Read for .svn file type
+-- if file.Exists("../lua/wire/.svn/entries") then
+	-- WireVersion = tonumber(string.Explode("\n", file.Read( "../lua/wire/.svn/entries"))[4]) --get svn revision, stolen from ULX
+	-- SVNver = WireVersion -- this is for the sv_tags changing function at the bottom of WireLib.lua
+-- end
 WireLib.Version = WireVersion
 
 
