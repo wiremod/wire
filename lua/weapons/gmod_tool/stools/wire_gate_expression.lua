@@ -6,11 +6,14 @@
 -- the parser should verify which functions actually exists
 -- make better transfer from client->server (server->client needed?) ... limit of like 100 chars per line now
 
+-- uncomment these lines and fix line 76 to enable the tool
+/*
 TOOL.Category		= "Wire - Control"
 TOOL.Name			= "Chip - Expression 1"
 TOOL.Command		= nil
 TOOL.ConfigName		= ""
 TOOL.Tab			= "Wire"
+*/
 
 --[[function StringTrimRight(str)
 	local i = string.len(str)
@@ -70,7 +73,7 @@ function MakeWireGateExpressionParser(lines, inputs, outputs)
 	return WireGateExpressionParser:New(code, inputs, outputs)
 end
 
-if CLIENT then
+if CLIENT  and false then -- don't show tool
 	language.Add("Tool_wire_gate_expression_name", "Expression Gate Tool (Wire)")
 	language.Add("Tool_wire_gate_expression_desc", "Spawns an expression gate for use with the wire system.")
 	language.Add("Tool_wire_gate_expression_0",    "Primary: Create/Update Expression Gate, Secondary: Load Expression Gate, Reload: Reset Variables")
