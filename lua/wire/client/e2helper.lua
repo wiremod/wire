@@ -1,15 +1,45 @@
 /******************************************************************************\
   Expression 2 Helper for Expression 2
-  -HP- (and tomylobo, though he breaks a lot ^^)
+  -HP- (and tomylobo, though he breaks a lot ^^) Divran made CPU support
 \******************************************************************************/
-
--- TODO: fix the desciptions (aka talk to pyro making him fix his php script)
 
 E2Helper = {}
 local E2Helper = E2Helper -- faster access
 E2Helper.Descriptions = {}
 
 include("e2descriptions.lua")
+
+-------------------------------
+---- CPU support
+E2Helper.CPUDescriptions = {}
+E2Helper.CPUTable = {}
+E2Helper.CurrentMode = true -- E2/CPU. True = E2, false = CPU
+
+function E2Helper.AddCPUDesc( FuncName, Args, Desc, ForWhat, Type )
+	table.insert( E2Helper.CPUTable, { [1] = FuncName, [2] = Args, [3] = ForWhat, [4] = Type} )
+	E2Helper.CPUDescriptions[FuncName] = Desc
+end
+
+include("cpudescriptions.lua")
+
+
+-- Which tables are we going to use?
+local function CurrentDescs()
+	if (E2Helper.CurrentMode == true) then
+		return E2Helper.Descriptions
+	else
+		return E2Helper.CPUDescriptions
+	end
+end
+
+local function CurrentTable()
+	if (E2Helper.CurrentMode == true) then
+		return wire_expression2_funcs
+	else
+		return E2Helper.CPUTable
+	end
+end
+-------------------------------
 
 local lastmax = 0
 local cookie_maxresults, cookie_tooltip, cookie_w, cookie_h
@@ -53,7 +83,7 @@ local function delayed(t,func)
 end
 
 local function getdesc(name, args)
-	return E2Helper.Descriptions[string.format("%s(%s)", name, args)] or E2Helper.Descriptions[name]
+	return CurrentDescs()[string.format("%s(%s)", name, args)] or CurrentDescs()[name]
 end
 
 function E2Helper.Create(reset)
@@ -89,8 +119,10 @@ function E2Helper.Create(reset)
 	E2Helper.ResultFrame:SetMultiSelect(false)
 	E2Helper.ResultFrame:AddColumn("Function"):SetWidth(126)
 	E2Helper.ResultFrame:AddColumn("Takes"):SetWidth(60)
-	E2Helper.ResultFrame:AddColumn("Returns"):SetWidth(60)
-	E2Helper.ResultFrame:AddColumn("Cost"):SetWidth(30)
+	E2Helper.ReturnsColumn = E2Helper.ResultFrame:AddColumn("Returns")
+	E2Helper.ReturnsColumn:SetWidth(60)
+	E2Helper.CostColumn = E2Helper.ResultFrame:AddColumn("Cost")
+	E2Helper.CostColumn:SetWidth(30)
 
 	function E2Helper.ResultFrame:OnClickLine(line)
 		self:ClearSelection()
@@ -152,7 +184,7 @@ function E2Helper.Create(reset)
 	E2Helper.MaxEntry:SetTooltip("E2 is being loaded, please wait...")
 	timer.Create("E2Helper.SetMaxEntry", 1, 0, function()
 		if  e2_function_data_received then
-			E2Helper.MaxEntry:SetMax(table.Count(wire_expression2_funcs))
+			E2Helper.MaxEntry:SetMax(table.Count(CurrentTable()))
 			timer.Remove("E2Helper.SetMaxEntry")
 			E2Helper.MaxEntry:SetTooltip(false)
 		end
@@ -165,6 +197,33 @@ function E2Helper.Create(reset)
 	E2Helper.MaxLabel:SetText("Max results:")
 	E2Helper.MaxLabel:SizeToContents()
 
+	E2Helper.E2Mode = vgui.Create("DCheckBoxLabel", E2Helper.Frame)
+	E2Helper.E2Mode:SetPos(90, 384)
+	E2Helper.E2Mode:SetText("E2")
+	E2Helper.E2Mode:SetValue(true)
+	E2Helper.E2Mode:SizeToContents()
+	function E2Helper.E2Mode.Button:Toggle()
+		self:SetValue( true )
+		E2Helper.CurrentMode = true
+		E2Helper.CPUMode:SetValue( false )
+		E2Helper.CostColumn:SetName("Cost")
+		E2Helper.ReturnsColumn:SetName("Returns")
+		E2Helper.Update()
+	end
+
+	E2Helper.CPUMode = vgui.Create("DCheckBoxLabel", E2Helper.Frame)
+	E2Helper.CPUMode:SetPos(90, 404)
+	E2Helper.CPUMode:SetText("CPU/GPU")
+	E2Helper.CPUMode:SetValue(false)
+	E2Helper.CPUMode:SizeToContents()
+	function E2Helper.CPUMode.Button:Toggle()
+		self:SetValue( true )
+		E2Helper.CurrentMode = false
+		E2Helper.E2Mode:SetValue( false )
+		E2Helper.CostColumn:SetName("Type")
+		E2Helper.ReturnsColumn:SetName("For What")
+		E2Helper.Update()
+	end
 
 	E2Helper.NameEntry.OnTextChanged = delayed(0.1, E2Helper.Update)
 	E2Helper.ParamEntry.OnTextChanged = delayed(0.1, E2Helper.Update)
@@ -191,10 +250,15 @@ function E2Helper.Create(reset)
 end
 
 function E2Helper.GetFunctionSyntax(func, args, rets)
-	local signature = func.."("..args..")"
-	local ret = E2Lib.generate_signature(signature, rets, wire_expression2_funcs[signature].argnames)
-	if rets ~= "" then ret = ret:sub(1, 1):upper()..ret:sub(2) end
-	return ret
+	if (E2Helper.CurrentMode == true) then
+		local signature = func.."("..args..")"
+		local ret = E2Lib.generate_signature(signature, rets, wire_expression2_funcs[signature].argnames)
+		if rets ~= "" then ret = ret:sub(1, 1):upper()..ret:sub(2) end
+		return ret
+	else
+		--local args = string.gsub(args, "(%a)", "%1,", string.len( args ) - 1) -- this gsub puts a comma in between each letter
+		return func.." "..args
+	end
 end
 
 function E2Helper.Update()
@@ -208,18 +272,30 @@ function E2Helper.Update()
 	local maxcount = E2Helper.MaxEntry:GetValue()
 	local tooltip = E2Helper.Tooltip:GetChecked(true)
 
-	for _,v in pairs(wire_expression2_funcs) do
-		local argnames, signature,rets,func,cost = v.argnames, unpack(v)
-		local name, args = string.match(signature, "^([^(]+)%(([^)]*)%)$")
+	for _,v in pairs(CurrentTable()) do
+		if (E2Helper.CurrentMode == true) then
+			local argnames, signature,rets,func,cost = v.argnames, unpack(v)
+			local name, args = string.match(signature, "^([^(]+)%(([^)]*)%)$")
 
-		if signature:sub(1, 3) ~= "op:" and
-		name:lower():find(search_name,1,true) and
-		args:lower():find(search_args,1,true) and
-		rets:lower():find(search_rets,1,true) then
-			local line = E2Helper.ResultFrame:AddLine(name, args, rets, cost or 20)
-			if tooltip then line:SetTooltip(E2Helper.GetFunctionSyntax(name, args, rets)) end
-			count = count + 1
-			if count >= maxcount then break end
+			if signature:sub(1, 3) ~= "op:" and
+			name:lower():find(search_name,1,true) and
+			args:lower():find(search_args,1,true) and
+			rets:lower():find(search_rets,1,true) then
+				local line = E2Helper.ResultFrame:AddLine(name, args, rets, cost or 20)
+				if tooltip then line:SetTooltip(E2Helper.GetFunctionSyntax(name, args, rets)) end
+				count = count + 1
+				if count >= maxcount then break end
+			end
+		else
+			local funcname, args, forwhat, functype = unpack(v)
+			if (funcname:lower():find(search_name,1,true) and
+			args:lower():find(search_args,1,true) and
+			forwhat:lower():find(search_rets,1,true)) then
+				local line = E2Helper.ResultFrame:AddLine( funcname, args, forwhat, functype )
+				if tooltip then line:SetTooltip(funcname.." "..args) end
+				count = count + 1
+				if count >= maxcount then break end
+			end
 		end
 	end
 
@@ -263,6 +339,8 @@ function E2Helper.Resize()
 	E2Helper.DescriptionEntry:SetPos(orig.DescriptionEntry[1], orig.DescriptionEntry[2]+changeh)
 	E2Helper.DescriptionEntry:SetSize(orig.DescriptionEntry[3]+changew, orig.DescriptionEntry[4])
 	E2Helper.ResultFrame:SetSize(orig.ResultFrame[3]+changew, orig.ResultFrame[4]+changeh)
+	E2Helper.E2Mode:SetPos( orig.E2Mode[1], orig.E2Mode[2] + changeh )
+	E2Helper.CPUMode:SetPos( orig.CPUMode[1], orig.CPUMode[2] + changeh )
 
 	E2Helper.NameEntry:SetSize(orig.NameEntry[3]+changew*0.5, orig.NameEntry[4])
 	E2Helper.ParamEntry:SetPos(orig.ParamEntry[1]+changew*0.5, orig.ParamEntry[2])
@@ -289,7 +367,7 @@ function E2Helper.Resize()
 		h1 = w1
 	end
 
-	-- apply position ans size
+	-- apply position and size
 	E2Helper.Image:SetPos(x1, y1)
 	E2Helper.Image:SetSize(w1, h1)
 

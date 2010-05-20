@@ -28,6 +28,7 @@ if SERVER then
 	AddCSLuaFile("wire/client/wire_expression2_editor.lua")
 	AddCSLuaFile("wire/client/e2helper.lua")
 	AddCSLuaFile("wire/client/e2descriptions.lua")
+	AddCSLuaFile("wire/client/cpudescriptions.lua")
 	AddCSLuaFile("wire/client/gmod_tool_auto.lua")
 
 	-- resource files

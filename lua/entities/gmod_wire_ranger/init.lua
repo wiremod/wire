@@ -170,10 +170,13 @@ function ENT:Think()
 			end
 
 		elseif(self.ignore_world) then
-			if (self.default_zero) then
-				dist = 0
-			else
-				dist = self.range
+			if (trace.HitWorld) then
+				if (self.default_zero) then
+					dist = 0
+				else
+					dist = self.range
+				end
+				pos = Vector(0,0,0)
 			end
 		end
 
@@ -193,7 +196,7 @@ function ENT:Think()
 	self:ShowOutput()
 
 	if (self.hires) then
-		self.Entity:NextThink(CurTime()+0.01)
+		self.Entity:NextThink(CurTime())
 	else
 		self.Entity:NextThink(CurTime()+0.04)
 	end

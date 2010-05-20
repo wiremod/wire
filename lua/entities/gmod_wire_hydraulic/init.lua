@@ -11,10 +11,14 @@ function ENT:Initialize()
 	self.Entity:SetMoveType( MOVETYPE_VPHYSICS )
 	self.Entity:SetSolid( SOLID_VPHYSICS )
 
-	self.Inputs = Wire_CreateInputs( self.Entity, { "Length" } )
-	self.Outputs = Wire_CreateOutputs( self.Entity, { "Length" } )
+	self.Inputs = Wire_CreateInputs( self.Entity, { "Length", "Constant", "Damping" } )
+	self.Outputs = Wire_CreateOutputs( self.Entity, { "Length", "Constant", "Damping" } )
 
 	self.Trigger = 0
+	if (self.constraint) then
+		WireLib.TriggerOutput( self.Entity, "Constant", self.constraint:GetKeyValues().constant )
+		WireLib.TriggerOutput( self.Entity, "Damping", self.constraint:GetKeyValues().damping )
+	end
 end
 
 function ENT:Think()
@@ -53,7 +57,9 @@ function ENT:SetConstraint( c )
 	local p2 = self:GetWPos(c:GetTable().Ent2, c:GetTable().Phys2, c:GetTable().LPos2)
 	local dist = (p1 - p2)
 
-	self:ShowOutput( dist:Length() )
+	self:SetOverlayText( "Hydraulic length : " .. self.current_length .. "\nConstant: -\nDamping: -" )
+	WireLib.TriggerOutput( self.Entity, "Constant", self.constraint:GetKeyValues().constant )
+	WireLib.TriggerOutput( self.Entity, "Damping", self.constraint:GetKeyValues().damping )
 	self.constraint:Fire("SetSpringLength", self.current_length, 0)
 	if self.rope then self.rope:Fire("SetLength", self.current_length, 0) end
 end
@@ -66,20 +72,26 @@ end
 
 function ENT:TriggerInput(iname, value)
 	if (iname == "Length") then
-		self:ShowOutput( math.max(1, value) )
-	end
-end
-
-
-function ENT:ShowOutput( Length )
-	if ( Length ~= self.current_length and self.constraint ) then
-		self:SetOverlayText( "Hydraulic length : " .. Length )
-		self.current_length = Length
-		self.constraint:Fire("SetSpringLength", self.current_length, 0)
+		self.current_length = math.max(value,1)
+		self.constraint:Fire("SetSpringLength", self.current_length)
 		if self.rope then self.rope:Fire("SetLength", self.current_length, 0) end
+	elseif (iname == "Constant") then
+		self.current_constant = math.max(value,1)--math.Clamp(value,1,50000)
+		self.constraint:Fire("SetSpringConstant",self.current_constant)
+		timer.Simple( 0.1, function(a) WireLib.TriggerOutput( a.Entity, "Constant", a.constraint:GetKeyValues().constant ) end, self ) -- Needs to be delayed because ent:Fire doesn't update that fast.
+	elseif (iname == "Damping") then
+		self.current_damping = math.max(value,1)--math.Clamp(value,1,10000)
+		self.constraint:Fire("SetSpringDamping",self.current_damping)
+		timer.Simple( 0.1, function(a) WireLib.TriggerOutput( a.Entity, "Damping", a.constraint:GetKeyValues().damping ) end, self )
 	end
+	self:SetOverlayText( "Hydraulic Length : " .. self.current_length .. "\nConstant: " .. (self.current_constant or "-") .. "\nDamping: " .. (self.current_damping or "-") )
 end
 
+--[[
+function ENT:ShowOutput()
+
+end
+]]
 
 /*function ENT:BuildDupeInfo()
 	local info = self.BaseClass.BuildDupeInfo(self) or {}

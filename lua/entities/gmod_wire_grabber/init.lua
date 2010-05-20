@@ -12,7 +12,7 @@ function ENT:Initialize()
 	self.Entity:SetMoveType( MOVETYPE_VPHYSICS )
 	self.Entity:SetSolid( SOLID_VPHYSICS )
 	self.Inputs = Wire_CreateInputs(self.Entity, { "Grab","Strength" })
-	self.Outputs = Wire_CreateOutputs(self.Entity, {"Holding"})
+	self.Outputs = Wire_CreateOutputs(self.Entity, {"Holding", "Grabbed Entity [ENTITY]"})
 	self.WeldStrength = 0
 	self.Weld = nil
 	self.WeldEntity = nil
@@ -70,6 +70,7 @@ function ENT:ResetGrab()
 	local r,g,b,a = self:GetColor()
 	self:SetColor(255, 255, 255, a)
 	Wire_TriggerOutput(self.Entity,"Holding",0)
+	Wire_TriggerOutput(self.Entity, "Grabbed Entity", self.WeldEntity)
 end
 
 function ENT:TriggerInput(iname, value)
@@ -119,6 +120,7 @@ function ENT:TriggerInput(iname, value)
 			local r,g,b,a = self:GetColor()
 			self:SetColor(255, 0, 0, a)
 			Wire_TriggerOutput(self.Entity, "Holding", 1)
+			Wire_TriggerOutput(self.Entity, "Grabbed Entity", self.WeldEntity)
 		elseif value == 0 then
 			if self.Weld ~= nil or self.ExtraPropWeld ~= nil then
 				self:ResetGrab()
@@ -188,7 +190,7 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 		local r,g,b,a = self:GetColor()
 		self:SetColor(255, 0, 0, a)
 		Wire_TriggerOutput(self.Entity, "Holding", 1)
-
+		Wire_TriggerOutput(self.Entity, "Grabbed Entity", self.WeldEntity)
 	end
 end
 

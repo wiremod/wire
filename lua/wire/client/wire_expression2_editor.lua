@@ -739,6 +739,29 @@ function Editor:Setup(nTitle, nLocation, nEditorType)
 		self.C['Editor'].h = -10
 		self.C['Val'].panel:SetVisible(false)
 	elseif nEditorType == "CPU" or nEditorType == "GPU" then
+		-- Add "E2Helper" button
+		local E2Help = self:addComponent(vgui.Create("Button", self), -200, 30, -145, 20)
+		E2Help.panel:SetText("")
+		E2Help.panel.Font = "E2SmallFont"
+		E2Help.panel.Paint = function(button)
+			local w,h = button:GetSize()
+			draw.RoundedBox(1, 0, 0, w, h, self.colors.col_FL)
+			if ( button.Hovered ) then draw.RoundedBox(0, 1, 1, w - 2, h - 2, Color(0,0,0,192)) end
+			surface.SetFont(button.Font)
+			surface.SetTextPos( 3, 4 )
+			surface.SetTextColor( 255, 255, 255, 255 )
+			surface.DrawText("  E2Helper")
+		end
+		E2Help.panel.DoClick = function()
+			E2Helper.Show()
+			E2Helper.CPUMode:Toggle()
+			E2Helper.CostColumn:SetName("Type")
+			E2Helper.ReturnsColumn:SetName("For What")
+			E2Helper.ReturnEntry:SetText(nEditorType)
+			E2Helper.Update()
+		end
+		self.C.E2Help = E2Help
+
 		-- Select syntax highlighter
 		self.C['Editor'].panel.SyntaxColorLine = self.C['Editor'].panel.CPUGPUSyntaxColorLine
 
@@ -764,7 +787,15 @@ function Editor:Setup(nTitle, nLocation, nEditorType)
 			surface.SetTextColor( 255, 255, 255, 255 )
 			surface.DrawText("  E2Helper")
 		end
-		E2Help.panel.DoClick = function() E2Helper.Show() end
+		E2Help.panel.DoClick = function()
+			E2Helper.Show()
+			E2Helper.E2Mode:Toggle()
+			local val = E2Helper.ReturnEntry:GetValue()
+			if (val and (val == "CPU" or val == "GPU")) then E2Helper.ReturnEntry:SetText("") end
+			E2Helper.CostColumn:SetName("Cost")
+			E2Helper.ReturnsColumn:SetName("Returns")
+			E2Helper.Update()
+		end
 		self.C.E2Help = E2Help
 
 		-- Flag as E2
