@@ -1,4 +1,3 @@
-
 AddCSLuaFile( "cl_init.lua" )
 AddCSLuaFile( "shared.lua" )
 
@@ -71,6 +70,7 @@ end
 
 
 function ENT:TriggerInput(iname, value)
+	if (!self.constraint) then return end
 	if (iname == "Length") then
 		self.current_length = math.max(value,1)
 		self.constraint:Fire("SetSpringLength", self.current_length)
