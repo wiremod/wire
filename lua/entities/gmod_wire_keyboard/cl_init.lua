@@ -6,18 +6,26 @@ ENT.RenderGroup 		= RENDERGROUP_OPAQUE
 
 local BlockFrame
 
+
+local KeyEvents = {}
 local function Wire_BlockInput()
 	if (BlockFrame) then
 		BlockFrame:SetVisible(false)
 	end
 
 	if (GetConVarString("wire_keyboard_sync") == "1") then
-		if not BlockFrame then BlockFrame = vgui.Create("Panel") end
+		if not BlockFrame then BlockFrame = vgui.Create("TextEntry") end
 		BlockFrame:SetSize(10,10)
 		BlockFrame:SetPos(-100,-100)
 		BlockFrame:SetVisible(true)
 		BlockFrame:MakePopup()
 		BlockFrame:SetMouseInputEnabled(false)
+		BlockFrame.OnKeyCodeTyped = function(b,key)
+			if !KeyEvents[key] then
+				LocalPlayer():ConCommand("wire_keyboard_press p "..key)
+				KeyEvents[key] = true
+			end
+		end
 	end
 end
 usermessage.Hook("wire_keyboard_blockinput", Wire_BlockInput)
@@ -32,8 +40,6 @@ end
 usermessage.Hook("wire_keyboard_releaseinput", Wire_ReleaseInput)
 concommand.Add("wire_keyboard_releaseinput", Wire_ReleaseInput)
 
-
-local KeyEvents = {}
 hook.Add("PostRenderVGUI", "wire_keyboard_checkkeys", function()
 	if (WIRE_SERVER_INSTALLED) then
 		for i = 1,130 do

@@ -24,6 +24,7 @@ local function triggerSignal(receiverid, signaldata)
 	if not validEntity(receiver) or not receiver.Execute then return end
 	currentSignal = signaldata
 	receiver:Execute()
+	if (signaldata.sender and signaldata.sender:IsValid()) then signaldata.sender.context.prf = signaldata.sender.context.prf + 80 end
 	currentSignal = nil
 end
 
@@ -99,6 +100,8 @@ end
 
 --[[************************************************************************]]--
 
+__e2setcost(5)
+
 --- Sets the E-2's current signal group to <group>, this is applied during runOnSignal, signalSend, and signalSetOnRemove calls, so call it first.
 e2function void signalSetGroup(string group)
 	setGroup(self, group)
@@ -108,6 +111,8 @@ end
 e2function string signalGetGroup()
 	return self.data.signalgroup
 end
+
+__e2setcost(5)
 
 --- If <activate> == 0 the chip will no longer run on this signal, otherwise it makes this chip execute when signal <name> is sent by someone in scope <scope>.
 e2function void runOnSignal(string name, scope, activate)
@@ -124,6 +129,8 @@ e2function void runOnSignal(string name, scope, activate)
 end
 
 --[[************************************************************************]]--
+
+__e2setcost(1)
 
 --- Returns 1 if the chip was executed because of any signal, regardless of name, group or scope. Returns 0 otherwise.
 e2function number signalClk()
@@ -149,6 +156,8 @@ end
 e2function number signalClk(string group, string name, scope)
 	return (currentSignal and currentSignal[1] == group and currentSignal[2] == name and currentSignal[3] == scope) and 1 or 0
 end
+
+__e2setcost(4)
 
 --- Returns the name of the received signal.
 e2function string signalName()
@@ -176,6 +185,8 @@ end
 
 --[[************************************************************************]]--
 
+__e2setcost(10)
+
 --- Sets the signal that the chip sends when it is removed from the world.
 e2function void signalSetOnRemove(string name, scope)
 	self.data.removeSignal = { self.data.signalgroup, name, scope, self.entity }
@@ -186,10 +197,14 @@ e2function void signalClearOnRemove()
 	self.data.removeSignal = nil
 end
 
+__e2setcost(20)
+
 --- Sends signal <name> to scope <scope>. Additional calls to this function with the same signal will overwrite the old call until the signal is issued.
 e2function void signalSend(string name, scope)
 	broadcastSignal(self.data.signalgroup, name, scope, self.entity)
 end
+
+__e2setcost(10)
 
 --- Sends signal S to the given chip. Multiple calls for different chips do not overwrite each other.
 e2function void signalSendDirect(string name, entity receiver)
@@ -212,11 +227,15 @@ e2function void signalSendDirect(string name, entity receiver)
 	postSignal(receiverid, group, name, 1, self.entity, self.entity:EntIndex())
 end
 
+__e2setcost(20)
+
 --- sends signal S to chips owned by the given player, multiple calls for different players do not overwrite each other
 e2function void signalSendToPlayer(string name, entity player)
 	if not validEntity(player) then return end
 	broadcastSignal(self.data.signalgroup, name, 1, self.entity, player)
 end
+
+__e2setcost(nil)
 
 --[[************************************************************************]]--
 

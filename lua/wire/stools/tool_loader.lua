@@ -89,6 +89,14 @@ if SERVER then
 		if ent == true then return true end
 		if ent == nil or ent == false or not ent:IsValid() then return false end
 
+		-- Parenting
+		if (!self.ClientConVar.parent or self:GetClientNumber( "parent" ) == 1) then
+			if (trace.Entity:IsValid()) then
+				ent:SetParent( trace.Entity )
+			end
+		end
+
+		-- Welding
 		local const
 		if not self.ClientConVar.weld or self:GetClientNumber( "weld" ) == 1 then
 			const = WireLib.Weld( ent, trace.Entity, trace.PhysicsBone, true )
@@ -104,6 +112,34 @@ if SERVER then
 
 		return true
 	end
+end
+
+-- Unparent
+function WireToolObj:Reload( trace )
+	if (!trace or !trace.Hit) then return false end
+	if (CLIENT and trace.Entity) then return true end
+	if (trace.Entity:GetParent():IsValid()) then
+
+		-- Get its position
+		local pos = trace.Entity:GetPos()
+
+		-- Unparent
+		trace.Entity:SetParent()
+
+		-- Teleport it back to where it was before unparenting it (because unparenting causes issues which makes the gate teleport to random wierd places)
+		trace.Entity:SetPos( pos )
+
+		-- Wake
+		local phys = trace.Entity:GetPhysicsObject()
+		if (phys) then
+			phys:Wake()
+		end
+
+		-- Notify
+		self:GetOwner():ChatPrint("Entity unparented.")
+		return true
+	end
+	return false
 end
 
 -- basic UpdateGhost function that should cover most of wire's ghost updating needs [default]

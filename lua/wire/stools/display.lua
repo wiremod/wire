@@ -756,9 +756,13 @@ do -- wire_soundemitter
 		collision = 0,
 		weld      = 1,
 	}
-
 	function TOOL.BuildCPanel(panel)
 		panel:TextEntry("#WireEmitterTool_sound", "wire_soundemitter_sound")
+		panel:AddControl("Button", { // Sound Browser Button
+			Text = "Open Sound Browser",
+			Name = "Open Sound Browser",
+			Command = "wire_sound_browser_open"
+		})
 		panel:CheckBox("#WireEmitterTool_collision", "wire_soundemitter_collision" )
 		ModelPlug_AddToCPanel(panel, "speaker", "wire_soundemitter", nil, nil, true)
 		panel:CheckBox("Weld", "wire_soundemitter_weld")
