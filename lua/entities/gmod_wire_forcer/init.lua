@@ -1,107 +1,102 @@
-
 AddCSLuaFile( "cl_init.lua" )
 AddCSLuaFile( "shared.lua" )
-
 include('shared.lua')
 
 ENT.WireDebugName = "Forcer"
-ENT.OverlayDelay = .05
-
+ENT.OverlayDelay = 0
 
 function ENT:Initialize()
 	self.Entity:PhysicsInit( SOLID_VPHYSICS )
 	self.Entity:SetMoveType( MOVETYPE_VPHYSICS )
 	self.Entity:SetSolid( SOLID_VPHYSICS )
 
-	self.ForceInput = 0
+	self.ForceMul = 0
+	self.Force = 0
 	self.OffsetForce = 0
 	self.Velocity = 0
+	self.Length = 100
+	self.Reaction = false
 
-	self.Inputs = Wire_CreateInputs(self.Entity, { "Force", "OffsetForce", "Velocity" })
-	self:SetForceBeam(false)
+	self.Inputs = WireLib.CreateInputs( self.Entity, { "Force", "OffsetForce", "Velocity", "Length" } )
+
+	self:SetNWBool("ShowBeam",false)
+	self:SetNWBool("ShowForceBeam",false)
+	self:SetNWInt("BeamLength",100)
+	self:ShowOutput()
 end
 
-function ENT:Setup(Force, Length, showbeam, reaction)
-	self.Force = math.max(Force, 1)
-	self.Length = math.max(Length, 1)
-	self.ForceInput = 0
-	self.OffsetForce = 0
-	self.Velocity = 0
-	self.showbeam = showbeam
-	if showbeam then
-		self:SetBeamLength(Length)
-	else
-		self:SetBeamLength(0)
-	end
-	self.reaction = reaction
-	self:TriggerInput("Force", 0)
+function ENT:Setup( Force, Length, ShowBeam, Reaction )
+	self.ForceMul = Force
+	self.Length = math.max(Length,1)
+	self.Reaction = Reaction
+	self:SetNWBool("ShowBeam",ShowBeam)
+	self:SetNWInt("BeamLength",math.Round(Length))
+	self:ShowOutput()
 end
 
-function ENT:TriggerInput(iname, value)
-	if iname == "Force" then
-		self.ForceInput = value
-		self:SetForceBeam(self.ForceInput != 0)
+function ENT:TriggerInput( name, value )
+	if (name == "Force") then
+		self.Force = value
+		self:SetNWBool("ShowForceBeam",value != 0)
 		self:ShowOutput()
-	elseif iname == "OffsetForce" then
+	elseif (name == "OffsetForce") then
 		self.OffsetForce = value
+		self:SetNWBool("ShowForceBeam",value != 0)
 		self:ShowOutput()
-	elseif iname == "Velocity" then
-		self.Velocity = math.max(math.min(100000,value),-100000)
-		self:SetForceBeam(self.Velocity != 0)
+	elseif (name == "Velocity") then
+		self.Velocity = math.Clamp(value,-100000,100000)
+		self:SetNWBool("ShowForceBeam",value != 0)
+		self:ShowOutput()
+	elseif (name == "Length") then
+		self.Length = value
+		self:SetNWInt("BeamLength",math.Round(value))
 		self:ShowOutput()
 	end
-end
-
-local function clamp_length(vector)
-	local length = vector:length()
-	if length > 100000 then return vector / length * 100000 end
-	return vector
 end
 
 function ENT:Think()
-	if self.ForceInput > 0.1 or self.OffsetForce > 0.1 or self.Velocity > 0.1 or self.ForceInput < -0.1 or self.OffsetForce < -0.1 or self.Velocity < -0.1 then
-		local vForward = self.Entity:GetUp()
-		local vStart = self.Entity:GetPos() + vForward*self.Entity:OBBMaxs().z
+	if (self.Force != 0 or self.OffsetForce != 0 or self.Velocity != 0) then
+		local Forward = self.Entity:GetUp()
+		local StartPos = self.Entity:GetPos() + Forward * self.Entity:OBBMaxs().z
 
-		local trace = {}
-		trace.start = vStart
-		trace.endpos = vStart + (vForward * self.Length)
-		trace.filter = { self.Entity }
-
-		local trace = util.TraceLine( trace )
-
-		if trace.Entity and trace.Entity:IsValid() then
-			if trace.Entity:GetMoveType() == MOVETYPE_VPHYSICS then
-				local phys = trace.Entity:GetPhysicsObject()
-				if phys:IsValid() then
-					if self.ForceInput > 0.1 or self.ForceInput < -0.1 then phys:ApplyForceCenter( vForward * self.Force * self.ForceInput ) end
-					if self.OffsetForce > 0.1 or self.OffsetForce < -0.1 then phys:ApplyForceOffset( vForward * self.OffsetForce, trace.HitPos ) end
-					--if self.Velocity > 0.1 or self.Velocity < -0.1 then phys:SetVelocity( vForward * self.Velocity ) end
-					if self.Velocity > 0.1 or self.Velocity < -0.1 then phys:SetVelocityInstantaneous( vForward * self.Velocity ) end
-				end
-			else
-				if self.Velocity > 0.1 or self.Velocity < -0.1 then trace.Entity:SetVelocity( vForward * self.Velocity ) end
-			end
-			if self.reaction then
-				local phys = self.Entity:GetPhysicsObject()
-				if (phys:IsValid()) then
-					if self.ForceInput > 0.1 or self.ForceInput < -0.1 then phys:ApplyForceCenter( vForward * -self.Force * self.ForceInput ) end
-					if self.OffsetForce > 0.1 or self.OffsetForce < -0.1 then phys:ApplyForceCenter( vForward * -self.OffsetForce ) end
+		local tr = {}
+		tr.start = StartPos
+		tr.endpos = StartPos + self.Length * Forward
+		tr.filter = self.Entity
+		local trace = util.TraceLine( tr )
+		if (trace) then
+			if (trace.Entity and trace.Entity:IsValid()) then
+				if (trace.Entity:GetMoveType() == MOVETYPE_VPHYSICS) then
+					local phys = trace.Entity:GetPhysicsObject()
+					if (phys:IsValid()) then
+						if (self.Force != 0) then phys:ApplyForceCenter( Forward * self.Force * self.ForceMul ) end
+						if (self.OffsetForce != 0) then phys:ApplyForceOffset( Forward * self.OffsetForce * self.ForceMul, trace.HitPos ) end
+						if (self.Velocity != 0) then phys:SetVelocityInstantaneous( Forward * self.Velocity ) end
+					end
+				else
+					if (self.Velocity != 0) then trace.Entity:SetVelocity( Forward * self.Velocity ) end
 				end
 			end
 		end
-	end
 
-	self.Entity:NextThink(CurTime() + 0.1)
+		if (self.Reaction) then
+			local phys = self.Entity:GetPhysicsObject()
+			if (phys:IsValid()) then
+				if (self.Force != 0 or self.OffsetForce != 0) then phys:ApplyForceCenter( Forward * -self.Force * self.ForceMul ) end
+			end
+		end
+	end
+	self.Entity:NextThink( CurTime() )
 	return true
 end
 
 function ENT:ShowOutput()
 	self:SetOverlayText(
 		"Forcer"..
-		"\nCenter Force= "..tostring(math.Round(self.ForceInput * self.Force))..
-		"\nOffset Force= "..tostring(math.Round(self.OffsetForce))..
-		"\nVelocity= "..tostring(math.Round(self.Velocity))
+		"\nCenter Force = "..math.Round(self.ForceMul * self.Force)..
+		"\nOffset Force = "..math.Round(self.ForceMul * self.OffsetForce)..
+		"\nVelocity = "..math.Round(self.Velocity)..
+		"\nLength = " .. math.Round(self.Length)
 	)
 end
 
@@ -137,4 +132,3 @@ function MakeWireForcer( pl, Pos, Ang, model, Force, Length, showbeam, reaction 
 end
 
 duplicator.RegisterEntityClass("gmod_wire_forcer", MakeWireForcer, "Pos", "Ang", "Model", "Force", "Length", "showbeam", "reaction")
-
