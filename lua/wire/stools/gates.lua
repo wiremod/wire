@@ -74,6 +74,7 @@ end
 
 if SERVER then
 	ModelPlug_Register("gate")
+	CreateConVar("sbox_maxwire_gates",30)
 end
 
 cleanup.Register("wire_gates")
