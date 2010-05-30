@@ -16,10 +16,7 @@ E2Lib.RegisterExtension("datasignal", true)
 ---------------------------------------------
 -- Lua helper functions
 
-local signalname = ""
-local data = nil
-local sender = nil
-local datatype = nil
+local currentsignal
 local runbydatasignal = 0
 
 local groups = {}
@@ -61,20 +58,13 @@ local function CheckQueue( ent )
 		if (queue[QueueIndex] == nil) then break end
 		local s = queue[QueueIndex]
 			if (s.to and s.to:IsValid()) then
-				signalname = s.name
-				data = s.var
-				datatype = s.vartype
-				sender = s.from
+				currentsignal = s
 				s.to:Execute()
 			end
 		QueueIndex = QueueIndex + 1
 	end
 
-	data = nil
-	datatype = nil
-	sender = nil
-	signalname = ""
-
+	currentsignal = nil
 	runbydatasignal = 0
 	QueueIndex = 1
 	queue = {}
@@ -87,7 +77,7 @@ end)
 ------------
 -- Sending from one E2 to another
 
-local function E2toE2( signalname, fromscope, from, toscope, to, var, vartype ) -- For sending from an E2 to another E2
+local function E2toE2( signalname, fromscope, from, toscope, to, var, vartype, groupname ) -- For sending from an E2 to another E2
 	if (!from or !from:IsValid() or from:GetClass() != "gmod_wire_expression2") then return 0 end -- Failed
 	if (!to or !to:IsValid() or to:GetClass() != "gmod_wire_expression2") then return 0 end -- Failed
 	if (!from.context or !to.context) then return 0 end -- OSHI-
@@ -96,7 +86,7 @@ local function E2toE2( signalname, fromscope, from, toscope, to, var, vartype ) 
 	if (!IsAllowed( fromscope, from, toscope, to )) then return 0 end -- Not allowed.
 	if (!var or !vartype) then return 0 end -- Failed
 
-	queue[#queue+1] = { name = signalname, from = from, to = to, var = var, vartype = vartype } -- Add to queue
+	queue[#queue+1] = { name = signalname, from = from, to = to, var = var, vartype = vartype, groupname = groupname } -- Add to queue
 	from.context.prf = from.context.prf + 80 -- Add 80 to ops
 
 	return 1 -- Transfer successful
@@ -116,7 +106,7 @@ local function E2toGroup( signalname, from, groupname, scope, var, vartype ) -- 
 				groups[groupname][k] = nil
 			else
 				if (toent != from) then
-					local tempret = E2toE2( signalname, scope, from, toent.context.datasignal.scope, toent, var, vartype ) -- Send the signal
+					local tempret = E2toE2( signalname, scope, from, toent.context.datasignal.scope, toent, var, vartype, groupname ) -- Send the signal
 					if (tempret == 0) then -- Did the send fail?
 						ret = 0
 					end
@@ -232,8 +222,9 @@ for k,v in pairs( wire_expression_types ) do
 
 	-- Get variable
 	registerFunction("dsGet" .. upperfirst( k ), "", v[1], function(self,args)
-		if (datatype != k) then return v[2] end -- If the type is not that type, return the type's default value
-		return data
+		if (!currentsignal) then return v[2] end -- If the current execution was not caused by a signal, return the type's default value
+		if (!currentsignal.vartype or currentsignal.vartype != k) then return v[2] end -- If the type is not that type, return the type's default value
+		return currentsignal.var or v[2]
 	end)
 
 end
@@ -292,25 +283,34 @@ end
 
 -- Check if the current execution was caused by a datasignal named <name>
 e2function number dsClk( string name )
-	if (signalname == name) then return 1 else return 0 end
+	if (currentsignal.name == name) then return runbydatasignal else return 0 end
 end
 
 -- Returns the name of the current signal
 e2function string dsClkName()
-	return signalname
+	if (!currentsignal) then return nil end
+	return currentsignal.name or ""
 end
 
 __e2setcost(4)
 
 -- Get the type of the current data
 e2function string dsGetType()
-	return datatype or ""
+	if (!currentsignal) then return nil end
+	return currentsignal.vartype or ""
 end
 
--- Get the which E2 sent the data
+-- Get which E2 sent the data
 e2function entity dsGetSender()
-	if (!sender or !sender:IsValid()) then return nil end
-	return sender
+	if (!currentsignal) then return nil end
+	if (!currentsignal.sender or !currentsignal.sender:IsValid()) then return nil end
+	return currentsignal.sender
+end
+
+-- Get the group which the signal was sent to
+e2function string dsGetGroup()
+	if (!currentsignal) then return "" end
+	return currentsignal.groupname or ""
 end
 
 __e2setcost(20)
