@@ -20,7 +20,6 @@ local currentsignal
 local runbydatasignal = 0
 
 local groups = {}
-groups.default = {}
 local queue = {}
 
 -----------------
@@ -95,7 +94,7 @@ end
 ---------------------
 -- Send from one E2 to an entire group of E2s
 local function E2toGroup( signalname, from, groupname, scope, var, vartype ) -- For sending from an E2 to an entire group. Returns 0 if ANY of the sends failed
-	if (groupname == nil) then groupname = "default" end
+	if (groupname == nil) then return 0 end
 	if (scope == nil) then scope = from.context.datasignal.scope end
 
 	local ret = 1
@@ -150,11 +149,9 @@ local function LeaveGroup( self, groupname )
 	-- Remove the E2 from the group
 	groups[groupname][self.entity] = nil
 
-	if (groupname != "default") then -- Do not remove the default group
-		-- If there are no more E2s in this group, remove it
-		if (table.Count(groups[groupname]) == 0) then
-			groups[groupname] = nil
-		end
+	-- If there are no more E2s in this group, remove it
+	if (table.Count(groups[groupname]) == 0) then
+		groups[groupname] = nil
 	end
 end
 
@@ -237,7 +234,7 @@ e2function void dsClearGroups()
 			if (groups[v][self.entity] == true) then
 				groups[v][self.entity] = nil
 			end
-			if (table.Count(groups[v]) == 0 and v != "default") then
+			if (table.Count(groups[v]) == 0) then
 				groups[v] = nil
 			end
 		end
@@ -333,10 +330,8 @@ registerCallback("destruct",function(self)
 	for k,v in pairs( self.datasignal.groups ) do
 		if (groups[v]) then
 			groups[v][self.entity] = nil
-			if (v != "default") then
-				if (table.Count(groups[v]) == 0) then
-					groups[v] = nil
-				end
+			if (table.Count(groups[v]) == 0) then
+				groups[v] = nil
 			end
 		end
 	end
@@ -346,7 +341,5 @@ end)
 registerCallback("construct",function(self)
 	self.datasignal = {}
 	self.datasignal.groups = {}
-	self.datasignal.groups[1] = "default"
 	self.datasignal.scope = 0
-	groups.default[self.entity] = true
 end)
