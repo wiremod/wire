@@ -6,9 +6,9 @@ if CLIENT then
 	language.Add( "Tool_wire_gate_arithmetic_desc", "Spawns an arithmetic gate for use with the wire system." )
 	language.Add( "Tool_wire_gate_arithmetic_0", "Primary: Create/Update Arithmetic Gate, Reload: Unparent gate (if parented)" )
 
-	language.Add( "Tool_wire_gate_rd_name", "Ranger Data Gate Tool (Wire)" )
-	language.Add( "Tool_wire_gate_rd_desc", "Spawns a ranger data gate for use with the wire system." )
-	language.Add( "Tool_wire_gate_rd_0", "Primary: Create/Update Ranger Data Gate, Reload: Unparent gate (if parented)" )
+	language.Add( "Tool_wire_gate_ranger_name", "Ranger Data Gate Tool (Wire)" )
+	language.Add( "Tool_wire_gate_ranger_desc", "Spawns a ranger data gate for use with the wire system." )
+	language.Add( "Tool_wire_gate_ranger_0", "Primary: Create/Update Ranger Data Gate, Reload: Unparent gate (if parented)" )
 
 	language.Add( "Tool_wire_gate_vector_name", "Vector Gate Tool (Wire)" )
 	language.Add( "Tool_wire_gate_vector_desc", "Spawns a vector gate for use with the wire system." )
@@ -30,9 +30,9 @@ if CLIENT then
 	language.Add( "Tool_wire_gate_comparison_desc", "Spawns a comparison gate for use with the wire system." )
 	language.Add( "Tool_wire_gate_comparison_0", "Primary: Create/Update Comparison Gate, Reload: Unparent gate (if parented)" )
 
-	language.Add( "Tool_wire_gate_duplexer_name", "Duplexer Chip Tool (Wire)" )
-	language.Add( "Tool_wire_gate_duplexer_desc", "Spawns a duplexer chip for use with the wire system." )
-	language.Add( "Tool_wire_gate_duplexer_0", "Primary: Create/Update Duplexer Chip, Reload: Unparent gate (if parented)" )
+	language.Add( "Tool_wire_gate_array_name", "Duplexer Chip Tool (Wire)" )
+	language.Add( "Tool_wire_gate_array_desc", "Spawns a duplexer chip for use with the wire system." )
+	language.Add( "Tool_wire_gate_array_0", "Primary: Create/Update Duplexer Chip, Reload: Unparent gate (if parented)" )
 
 	language.Add( "Tool_wire_gate_logic_name", "Logic Gate Tool (Wire)" )
 	language.Add( "Tool_wire_gate_logic_desc", "Spawns a logic gate for use with the wire system." )
@@ -73,15 +73,6 @@ if CLIENT then
 end
 
 if SERVER then
-	CreateConVar('sbox_maxwire_gates', 30)
-	CreateConVar('sbox_maxwire_gate_comparisons', 30)
-	CreateConVar('sbox_maxwire_gate_duplexer', 16)
-	CreateConVar('sbox_maxwire_gate_logics', 30)
-	CreateConVar('sbox_maxwire_gate_bitwises', 30)
-	CreateConVar('sbox_maxwire_gate_memorys', 30)
-	CreateConVar('sbox_maxwire_gate_selections', 30)
-	CreateConVar('sbox_maxwire_gate_times', 30)
-	CreateConVar('sbox_maxwire_gate_trigs', 30)
 	ModelPlug_Register("gate")
 end
 
@@ -108,22 +99,46 @@ local function GateGetModel(self)
 	return self:GetOwner():GetInfo( "wire_gates_model" )
 end
 
-local function buildTOOL( s_name, s_def )
+local function buildTOOL( s_name, s_def, deflimit )
 	openTOOL()
 	local s_mode             = "wire_gate_"..string.lower(s_name)
 	TOOL.Mode                = s_mode
 	TOOL.Name                = "Gate - "..s_name
 	TOOL.ClientConVar.action = s_def
 	TOOL.GetModel            = GateGetModel
+
+	-- Create limit
+	CreateConVar("sbox_maxwire_gate_" .. string.lower(s_name) .. "s", deflimit or 30 )
+
 	if CLIENT then
 		TOOL.BuildCPanel = function(panel)
-			local nocollidebox = panel:CheckBox("#WireGatesTool_noclip", s_mode.."_noclip")
-			local weldbox = panel:CheckBox("#WireGatesTool_weld", s_mode.."_weld")
-			local parentbox = panel:CheckBox("#WireGatesTool_parent",s_mode.."_parent")
+			local nocollidebox = panel:CheckBox("#WireGatesTool_noclip", "wire_gates_noclip")
+			local weldbox = panel:CheckBox("#WireGatesTool_weld", "wire_gates_weld")
+			local parentbox = panel:CheckBox("#WireGatesTool_parent","wire_gates_parent")
+
+			panel:AddControl("label",{text="When parenting, you should check the nocollide box, or adv duplicator might not dupe the gate."})
+
+			function nocollidebox.Button:DoClick()
+				self:Toggle()
+
+				-- Run command (this is because I changed the above to wire_gates_*)
+				if (nocollidebox:GetChecked()) then
+					RunConsoleCommand(s_mode.."_noclip",1)
+				else
+					RunConsoleCommand(s_mode.."_noclip",0)
+				end
+			end
 
 			function weldbox.Button:DoClick() -- block the weld checkbox from being toggled while the parent box is checked
 				if (parentbox:GetChecked() == false) then
 					self:Toggle()
+
+					-- Run command
+					if (weldbox:GetChecked()) then
+						RunConsoleCommand(s_mode.."_weld",1)
+					else
+						RunConsoleCommand(s_mode.."_weld",0)
+					end
 				end
 			end
 
@@ -131,7 +146,16 @@ local function buildTOOL( s_name, s_def )
 				self:Toggle()
 				if (self:GetChecked() == true) then
 					weldbox:SetValue(0)
+					RunConsoleCommand(s_mode.."_weld",0)
 					nocollidebox:SetValue(1)
+					RunConsoleCommand(s_mode.."_noclip",1)
+				end
+
+				-- Run command
+				if (parentbox:GetChecked()) then
+					RunConsoleCommand(s_mode.."_parent",1)
+				else
+					RunConsoleCommand(s_mode.."_parent",0)
 				end
 			end
 
@@ -169,7 +193,7 @@ buildTOOL( "String", "index" )
 
 buildTOOL( "Entity", "owner" )
 
-buildTOOL( "Array", "table_8duplexer" )
+buildTOOL( "Array", "table_8duplexer", 16 )
 
 buildTOOL( "Logic", "and" )
 
@@ -193,8 +217,52 @@ TOOL.ClientConVar.action = "+"
 function TOOL.BuildCPanel(panel)
 	WireDermaExts.ModelSelect(panel, "wire_gates_model", list.Get("Wire_gate_Models"), 3, true)
 
-	panel:CheckBox("#WireGatesTool_noclip", "wire_gates_noclip")
-	panel:CheckBox("#WireGatesTool_weld", "wire_gates_weld")
+	local nocollidebox = panel:CheckBox("#WireGatesTool_noclip", "wire_gates_noclip")
+	local weldbox = panel:CheckBox("#WireGatesTool_weld", "wire_gates_weld")
+	local parentbox = panel:CheckBox("#WireGatesTool_parent","wire_gates_parent")
+
+	panel:AddControl("label",{text="When parenting, you should check the nocollide box, or adv duplicator might not dupe the gate."})
+
+	function nocollidebox.Button:DoClick()
+		self:Toggle()
+
+		-- Run command (this is because I changed the above to wire_gates_*)
+		if (nocollidebox:GetChecked()) then
+			RunConsoleCommand(s_mode.."_noclip",1)
+		else
+			RunConsoleCommand(s_mode.."_noclip",0)
+		end
+	end
+
+	function weldbox.Button:DoClick() -- block the weld checkbox from being toggled while the parent box is checked
+		if (parentbox:GetChecked() == false) then
+			self:Toggle()
+
+			-- Run command
+			if (weldbox:GetChecked()) then
+				RunConsoleCommand(s_mode.."_weld",1)
+			else
+				RunConsoleCommand(s_mode.."_weld",0)
+			end
+		end
+	end
+
+	function parentbox.Button:DoClick() -- when you check the parent box, uncheck the weld box and check the nocollide box
+		self:Toggle()
+		if (self:GetChecked() == true) then
+			weldbox:SetValue(0)
+			RunConsoleCommand(s_mode.."_weld",0)
+			nocollidebox:SetValue(1)
+			RunConsoleCommand(s_mode.."_noclip",1)
+		end
+
+		-- Run command
+		if (parentbox:GetChecked()) then
+			RunConsoleCommand(s_mode.."_parent",1)
+		else
+			RunConsoleCommand(s_mode.."_parent",0)
+		end
+	end
 
 	local tree = vgui.Create( "DTree" )
 	tree:SetTall( 400 )

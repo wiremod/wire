@@ -90,8 +90,15 @@ if SERVER then
 		if ent == nil or ent == false or not ent:IsValid() then return false end
 
 		-- Parenting
+		local nocollide
 		if (!self.ClientConVar.parent or self:GetClientNumber( "parent" ) == 1) then
 			if (trace.Entity:IsValid()) then
+
+				-- Nocollide the gate to the prop to make adv duplicator (and normal duplicator) find it
+				if (!self.ClientConVar.noclip or self:GetClientNumber( "noclip" ) == 1) then
+					nocollide = constraint.NoCollide( ent, trace.Entity, 0,trace.PhysicsBone )
+				end
+
 				ent:SetParent( trace.Entity )
 			end
 		end
@@ -102,9 +109,11 @@ if SERVER then
 			const = WireLib.Weld( ent, trace.Entity, trace.PhysicsBone, true )
 		end
 
+
 		undo.Create( self.WireClass )
 			undo.AddEntity( ent )
-			undo.AddEntity( const )
+			if (const) then undo.AddEntity( const ) end
+			if (nocollide) then undo.AddEntity( nocollide ) end
 			undo.SetPlayer( self:GetOwner() )
 		undo.Finish()
 

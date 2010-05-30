@@ -20,14 +20,11 @@ function WireToolMakeGate( self, trace, ply )
 
 	if not util.IsValidModel(model) and not util.IsValidProp(model) then return false end
 
-	if ( GateActions[action].group == "Arithmetic" and not self:GetSWEP():CheckLimit( "wire_gates" ) ) or
-	( GateActions[action].group == "Comparison" and not self:GetSWEP():CheckLimit( "wire_gate_comparisons" ) ) or
-	( GateActions[action].group == "Logic" and not self:GetSWEP():CheckLimit( "wire_gate_logics" ) ) or
-	( GateActions[action].group == "Memory" and not self:GetSWEP():CheckLimit( "wire_gate_memorys" ) ) or
-	( GateActions[action].group == "Selection" and not self:GetSWEP():CheckLimit( "wire_gate_selections" ) ) or
-	( GateActions[action].group == "Time" and not self:GetSWEP():CheckLimit( "wire_gate_times" ) ) or
-	( GateActions[action].group == "Trig" and not self:GetSWEP():CheckLimit( "wire_gate_trigs" ) ) or
-	( GateActions[action].group == "Table" and not self:GetSWEP():CheckLimit( "wire_gate_duplexer" ) ) then return false end
+	-- Check common limit
+	if (!ply:CheckLimit( "wire_gates" )) then return false end
+
+	-- Check individual limit (doesn't work for some reason)
+	if (!ply:CheckLimit( "wire_gate_" .. string.lower( GateActions[action].group ) .. "s" )) then return false end
 
 	local Ang = trace.HitNormal:Angle()
 	Ang.pitch = Ang.pitch + 90
