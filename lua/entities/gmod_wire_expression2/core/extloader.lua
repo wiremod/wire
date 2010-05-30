@@ -241,6 +241,8 @@ e2_include("debug.lua")
 e2_include("compat.lua")
 e2_include("custom.lua")
 
+e2_include("dataSignal.lua")
+
 do
 	local list = file.FindInLua("entities/gmod_wire_expression2/core/custom/*.lua")
 	for _,filename in pairs(list) do
