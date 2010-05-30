@@ -79,7 +79,7 @@ function ENT:DebugMessage(msg)
 	if (self.CPUName) then
 		Msg(self.CPUName.." ")
 	end
-	Msg("============================================\n")
+	Msg("===========================================\n")
 	Msg(msg.."\n")
 end
 
