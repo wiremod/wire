@@ -112,33 +112,19 @@ local function buildTOOL( s_name, s_def, deflimit )
 
 	if CLIENT then
 		TOOL.BuildCPanel = function(panel)
-			local nocollidebox = panel:CheckBox("#WireGatesTool_noclip", "wire_gates_noclip")
-			local weldbox = panel:CheckBox("#WireGatesTool_weld", "wire_gates_weld")
-			local parentbox = panel:CheckBox("#WireGatesTool_parent","wire_gates_parent")
+			local nocollidebox = panel:CheckBox("#WireGatesTool_noclip", s_mode.."_noclip")
+			local weldbox = panel:CheckBox("#WireGatesTool_weld", s_mode.."_weld")
+			local parentbox = panel:CheckBox("#WireGatesTool_parent",s_mode.."_parent")
 
 			panel:AddControl("label",{text="When parenting, you should check the nocollide box, or adv duplicator might not dupe the gate."})
 
 			function nocollidebox.Button:DoClick()
 				self:Toggle()
-
-				-- Run command (this is because I changed the above to wire_gates_*)
-				if (nocollidebox:GetChecked()) then
-					RunConsoleCommand(s_mode.."_noclip",1)
-				else
-					RunConsoleCommand(s_mode.."_noclip",0)
-				end
 			end
 
 			function weldbox.Button:DoClick() -- block the weld checkbox from being toggled while the parent box is checked
 				if (parentbox:GetChecked() == false) then
 					self:Toggle()
-
-					-- Run command
-					if (weldbox:GetChecked()) then
-						RunConsoleCommand(s_mode.."_weld",1)
-					else
-						RunConsoleCommand(s_mode.."_weld",0)
-					end
 				end
 			end
 
@@ -146,16 +132,7 @@ local function buildTOOL( s_name, s_def, deflimit )
 				self:Toggle()
 				if (self:GetChecked() == true) then
 					weldbox:SetValue(0)
-					RunConsoleCommand(s_mode.."_weld",0)
 					nocollidebox:SetValue(1)
-					RunConsoleCommand(s_mode.."_noclip",1)
-				end
-
-				-- Run command
-				if (parentbox:GetChecked()) then
-					RunConsoleCommand(s_mode.."_parent",1)
-				else
-					RunConsoleCommand(s_mode.."_parent",0)
 				end
 			end
 
@@ -225,25 +202,11 @@ function TOOL.BuildCPanel(panel)
 
 	function nocollidebox.Button:DoClick()
 		self:Toggle()
-
-		-- Run command (this is because I changed the above to wire_gates_*)
-		if (nocollidebox:GetChecked()) then
-			RunConsoleCommand(s_mode.."_noclip",1)
-		else
-			RunConsoleCommand(s_mode.."_noclip",0)
-		end
 	end
 
 	function weldbox.Button:DoClick() -- block the weld checkbox from being toggled while the parent box is checked
 		if (parentbox:GetChecked() == false) then
 			self:Toggle()
-
-			-- Run command
-			if (weldbox:GetChecked()) then
-				RunConsoleCommand(s_mode.."_weld",1)
-			else
-				RunConsoleCommand(s_mode.."_weld",0)
-			end
 		end
 	end
 
@@ -251,16 +214,7 @@ function TOOL.BuildCPanel(panel)
 		self:Toggle()
 		if (self:GetChecked() == true) then
 			weldbox:SetValue(0)
-			RunConsoleCommand(s_mode.."_weld",0)
 			nocollidebox:SetValue(1)
-			RunConsoleCommand(s_mode.."_noclip",1)
-		end
-
-		-- Run command
-		if (parentbox:GetChecked()) then
-			RunConsoleCommand(s_mode.."_parent",1)
-		else
-			RunConsoleCommand(s_mode.."_parent",0)
 		end
 	end
 
