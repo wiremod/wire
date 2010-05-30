@@ -108,7 +108,7 @@ end
 ---------------------
 -- Send from one E2 to an entire group of E2s
 local function E2toGroup( signalname, from, groupname, scope, var, vartype ) -- For sending from an E2 to an entire group. Returns 0 if ANY of the sends failed
-	if (groupname == nil) then groupname = from.context.datasignal.group end
+	if (groupname == nil) then groupname = "default" end
 	if (scope == nil) then scope = from.context.datasignal.scope end
 
 	local ret = 1
@@ -132,21 +132,12 @@ local function E2toGroup( signalname, from, groupname, scope, var, vartype ) -- 
 	return ret
 end
 
-local function ChangeGroup( self, groupname )
-	if (self.datasignal.group == groupname) then return end -- Nothing changed!
+local function JoinGroup( self, groupname )
+	-- Is the E2 already in that group?
+	if (table.HasValue( self.datasignal.groups, groupname )) then return end
 
-	-- Remove the E2 from the previous group
-	groups[self.datasignal.group][self.entity] = nil
-
-	if (self.datasignal.group != "default") then -- Do not remove the default group
-		-- If there are no more E2s in this group, remove it
-		if (table.Count(groups[self.datasignal.group]) == 0) then
-			groups[self.datasignal.group] = nil
-		end
-	end
-
-	-- Set the group
-	self.datasignal.group = groupname
+	-- Else add it
+	table.insert( self.datasignal.groups, groupname )
 
 	-- If that group does not exist, create it
 	if (!groups[groupname]) then
@@ -155,6 +146,29 @@ local function ChangeGroup( self, groupname )
 
 	-- Add the E2 to that group
 	groups[groupname][self.entity] = true
+end
+
+local function LeaveGroup( self, groupname )
+	-- Is the E2 in that group?
+	if (!table.HasValue( self.datasignal.groups, groupname )) then return end
+
+	-- Else remove it
+	for k,v in pairs( self.datasignal.groups ) do
+		if (v == groupname) then
+			table.remove( self.datasignal.groups, k )
+			break
+		end
+	end
+
+	-- Remove the E2 from the group
+	groups[groupname][self.entity] = nil
+
+	if (groupname != "default") then -- Do not remove the default group
+		-- If there are no more E2s in this group, remove it
+		if (table.Count(groups[groupname]) == 0) then
+			groups[groupname] = nil
+		end
+	end
 end
 
 -- Get a table of E2s which the signal would have been sent to if it was sent
@@ -203,20 +217,6 @@ for k,v in pairs( wire_expression_types ) do
 
 	__e2setcost(20)
 
-	-- Send a ds to the E2s group in the E2s scope
-	registerFunction("dsSend","s"..v[1],"n",function(self,args)
-		local op1, op2 = args[2], args[3]
-		local rv1, rv2 = op1[1](self, op1),op2[1](self, op2)
-		return E2toGroup( rv1, self.entity, nil, nil, rv2, k )
-	end)
-
-	-- Send a ds to the E2s group in scope <rv2>
-	registerFunction("dsSend","sn" .. v[1], "n", function(self,args)
-		local op1, op2, op3 = args[2], args[3], args[4]
-		local rv1, rv2, rv3 = op1[1](self, op1),op2[1](self, op2),op3[1](self,op3)
-		return E2toGroup( rv1, self.entity, nil, rv2, rv3, k )
-	end)
-
 	-- Send a ds to the group <rv2> in the E2s scope
 	registerFunction("dsSend","ss"..v[1],"n",function(self,args)
 		local op1, op2, op3 = args[2], args[3], args[4]
@@ -241,16 +241,36 @@ for k,v in pairs( wire_expression_types ) do
 
 end
 
-__e2setcost(5)
+__e2setcost(10)
 
--- Set group
-e2function void dsSetGroup( string groupname )
-	ChangeGroup( self, groupname )
+e2function void dsClearGroups()
+	for k,v in ipairs( self.datasignal.groups ) do
+		if (groups[v]) then
+			if (groups[v][self.entity] == true) then
+				groups[v][self.entity] = nil
+			end
+			if (table.Count(groups[v]) == 0 and v != "default") then
+				groups[v] = nil
+			end
+		end
+	end
+	self.datasignal.groups = nil
 end
 
--- Get group
-e2function string dsGetGroup()
-	return self.datasignal.group
+-- Join group
+e2function void dsJoinGroup( string groupname )
+	JoinGroup( self, groupname )
+end
+
+e2function void dsLeaveGroup( string groupname )
+	LeaveGroup( self, groupname )
+end
+
+__e2setcost(5)
+
+-- Get all groups in an array
+e2function array dsGetGroups()
+	return self.datasignal.groups
 end
 
 -- 0 = only you, 1 = only pp friends, 2 = everyone
@@ -261,13 +281,6 @@ end
 -- Get current scope
 e2function number dsGetScope()
 	return self.datasignal.scope
-end
-
-e2function void dsSetGroup( string groupname, number scope )
-	-- group:
-	ChangeGroup( self, groupname )
-	-- scope:
-	self.datasignal.scope = math.Clamp(math.Round(scope),0,2)
 end
 
 ----------------
@@ -305,19 +318,9 @@ end
 
 __e2setcost(20)
 
--- Get all E2s which would have recieved a signal if you had sent it to the E2s group and scope
-e2function array dsProbe()
-	return GetE2s( self.entity, self.datasignal.group, self.datasignal.scope )
-end
-
 -- Get all E2s which would have recieved a signal if you had sent it to this group and the E2s scope
 e2function array dsProbe( string groupname )
 	return GetE2s( self.entity, groupname, self.datasignal.scope )
-end
-
--- get all E2s which would have recieved a signal if you had sent it to the E2s group and this scope
-e2function array dsProbe( number scope )
-	return GetE2s( self.entity, self.datasignal.group, math.Clamp(math.Round(scope),0,2) )
 end
 
 -- Get all E2s which would have recieved a signal if you had sent it to this group and scope
@@ -330,11 +333,13 @@ __e2setcost(nil)
 ---------------------------------------------
 -- When an E2 is removed, clear it from the groups table
 registerCallback("destruct",function(self)
-	if (groups[self.datasignal.group]) then
-		groups[self.datasignal.group][self.entity] = nil
-		if (self.datasignal.group != "default") then
-			if (table.Count(groups[self.datasignal.group]) == 0) then
-				groups[self.datasignal.group] = nil
+	for k,v in pairs( self.datasignal.groups ) do
+		if (groups[v]) then
+			groups[v][self.entity] = nil
+			if (v != "default") then
+				if (table.Count(groups[v]) == 0) then
+					groups[v] = nil
+				end
 			end
 		end
 	end
@@ -343,7 +348,8 @@ end)
 -- When an E2 is spawned, set its group and scope to the defaults
 registerCallback("construct",function(self)
 	self.datasignal = {}
-	self.datasignal.group = "default"
+	self.datasignal.groups = {}
+	self.datasignal.groups[1] = "default"
 	self.datasignal.scope = 0
 	groups.default[self.entity] = true
 end)
