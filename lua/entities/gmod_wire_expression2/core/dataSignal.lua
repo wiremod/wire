@@ -66,10 +66,6 @@ local function CheckQueue( ent )
 				datatype = s.vartype
 				sender = s.from
 				s.to:Execute()
-
-				if (s.from and s.from:IsValid()) then
-					s.from.context.prf = s.from.context.prf + 80 -- Add 80 to ops
-				end
 			end
 		QueueIndex = QueueIndex + 1
 	end
@@ -101,6 +97,7 @@ local function E2toE2( signalname, fromscope, from, toscope, to, var, vartype ) 
 	if (!var or !vartype) then return 0 end -- Failed
 
 	queue[#queue+1] = { name = signalname, from = from, to = to, var = var, vartype = vartype } -- Add to queue
+	from.context.prf = from.context.prf + 80 -- Add 80 to ops
 
 	return 1 -- Transfer successful
 end
