@@ -5,10 +5,40 @@ local Clamp        = math.Clamp
 
 /******************************************************************************/
 
---- Posts <text> to the chat area.
-e2function void print(string text)
-	self.player:ChatPrint(text)
+local function SpecialCase( arg )
+	if (type(arg) == "table") then
+		if (#arg != 0) then -- A table with only numerical indexes
+			local str = "["
+			for k,v in ipairs( arg ) do
+				if (k != #arg) then
+					str = str .. v .. ","
+				else
+					str = str .. v .. "]"
+				end
+			end
+			return str
+		else -- Else it's a table with string indexes (which this function can't handle)
+			return "[table]"
+		end
+	end
 end
+
+-- Prints <...> like lua's print(...), except to the chat area
+e2function void print(...)
+	local args = {...}
+	if (#args>0) then
+		local text = ""
+		for k,v in ipairs( args ) do
+			text = text .. (SpecialCase( v ) or tostring(v)) .. "\t"
+		end
+		self.player:ChatPrint(text)
+	end
+end
+
+--- Posts <text> to the chat area. (deprecated due to print(...))
+--e2 function void print(string text)
+--	self.player:ChatPrint(text)
+--end
 
 --- Posts a string to the chat of <this>'s driver. Returns 1 if the text was printed, 0 if not.
 e2function number entity:printDriver(string text)

@@ -520,6 +520,9 @@ end
 local code1 = "@name \n@inputs \n@outputs \n@persist \n@trigger \n\n"
 -- code2 contains the code that is to be marked, so it can simply be overwritten or deleted.
 local code2 = [[
+# Data Signals have been added! These functions allow you to transmit
+# data and execute E2s remotely. Read the wiki for more information.
+#
 # Expression 2 now uses the friends list of any prop protection
 # installed on the server to determine if a player may interact
 # with your props and read your code. To allow friends to write to your
@@ -530,11 +533,6 @@ local code2 = [[
 #
 # Functionality for checking if inputs are connected is now available
 # Example: if (->Input) { ... }
-#
-# Performance monitoring and restriction have been implemented.
-# While-loops and for-loops now exist! (break and continue too)
-# Example: while(Val < Max) { Val++, if (Val == 10) { break } }
-# Example: for(I=Start, End) { ... }, for(I=Start, End, Step) { ... }
 #
 # Documentation and examples are available at:
 # http://wiki.garrysmod.com/?title=Wire_Expression2

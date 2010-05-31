@@ -243,7 +243,7 @@ e2function void dsClearGroups()
 			end
 		end
 	end
-	self.datasignal.groups = nil
+	self.datasignal.groups = {}
 end
 
 -- Join group
