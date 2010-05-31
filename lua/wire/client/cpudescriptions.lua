@@ -2,7 +2,7 @@
 
 local AddDesc = E2Helper.AddCPUDesc
 
-// CPU opcodes
+// CPU Opcodes
 //----------------------------------------------------------------------------------------------------------------------------------
 AddDesc( "jne", "label", "Jump to label if comparison is not equal to value (Requires a comparison first)", "CPU/GPU", "opcode[1]" )
 AddDesc( "jnz", "label", "Jump if bit is not zero (See BIT opcode)", "CPU/GPU", "opcode[1]" )
@@ -145,7 +145,7 @@ AddDesc( "smap", "", "Remap one RAM page to another", "CPU/GPU", "opcode[131]" )
 AddDesc( "gmap", "", "Remap one RAM page to another", "CPU/GPU", "opcode[132]" )
 
 
-// GPU opcodes
+// GPU Opcodes
 //----------------------------------------------------------------------------------------------------------------------------------
 AddDesc( "drect_test", "", "Perform GPU graphics test", "GPU", "opcode[200]" )
 AddDesc( "dexit", "", "Exit current frame (Must always be used to end program execution)", "GPU", "opcode[201]" )
@@ -178,7 +178,7 @@ AddDesc( "drect", "vec2f,vec2f", "Draw rectangle from 1st vec2f variable to 2nd 
 AddDesc( "dcircle", "vec2f,number", "Draw circle at vec2f variable with a number radius", "GPU", "opcode[226]" )
 AddDesc( "dline", "vec2f,vec2f", "Draw line from 1st vec2f variable to 2nd vec2f variable", "GPU", "opcode[227]" )
 AddDesc( "drectwh", "vec2f,vec2f", "Draw rectangle from 1st vec2f variable to 2nd vec2f variable with specified width and height", "GPU", "opcode[228]" )
---AddDesc( "drectwh", "vec2f,vec2f", "Draw textured rectangle", "GPU", "opcode[229]" ) // Non-functional opcode
+--AddDesc( "dtrectwh", "vec2f,vec2f", "Draw textured rectangle", "GPU", "opcode[229]" ) // Non-functional opcode
 AddDesc( "dtransform2f", "", "", "GPU", "opcode[230]" ) // Describe me
 AddDesc( "dtransform3f", "", "", "GPU", "opcode[231]" ) // Describe me
 AddDesc( "dscrsize", "number,number", "Set screen size (Must set dcvxpipe 1 first)", "GPU", "opcode[232]" )
@@ -214,7 +214,7 @@ AddDesc( "dtranslate", "vec4f", "", "GPU", "opcode[301]" ) // Describe me
 AddDesc( "dscale", "vec4f", "", "GPU", "opcode[302]" ) // Describe me
 
 
-// AdvMath opcodes
+// AdvMath Opcodes
 //----------------------------------------------------------------------------------------------------------------------------------
 AddDesc( "vadd", "vec2f,vec2f", "Adds the 2nd vector to the 1st vector", "CPU/GPU", "opcode[250]" )
 AddDesc( "vadd", "vec3f,vec3f", "Adds the 2nd vector to the 1st vector (Must set vmode 3 first)", "CPU/GPU", "opcode[250]" )
@@ -248,3 +248,24 @@ AddDesc( "vdiv", "vec2f,vec2f", "Divide the 1st vector by the 2nd vector", "CPU/
 AddDesc( "vdiv", "vec3f,vec3f", "Divide the 1st vector by the 2nd vector (Must set vmode 3 first)", "CPU/GPU", "opcode[295]" )
 AddDesc( "vtransform", "vec2f,matrix", "Multiply 1st vector by matrix", "CPU/GPU", "opcode[296]" )
 AddDesc( "vtransform", "vec3f,matrix", "Multiply 1st vector by matrix (Must set vmode 3 first)", "CPU/GPU", "opcode[296]" )
+
+
+// Registers
+//----------------------------------------------------------------------------------------------------------------------------------
+AddDesc( "eax", "", "Accumulator register", "CPU/GPU", "register" )
+AddDesc( "ebx", "", "Base register", "CPU/GPU", "register" )
+AddDesc( "ecx", "", "Counter register", "CPU/GPU", "register" )
+AddDesc( "edx", "", "Data register", "CPU/GPU", "register" )
+AddDesc( "esi", "", "Source index (pointer)", "CPU/GPU", "register" )
+AddDesc( "edi", "", "Destination index (pointer)", "CPU/GPU", "register" )
+AddDesc( "esp", "", "Stack pointer", "CPU/GPU", "register" )
+AddDesc( "ebp", "", "Base pointer", "CPU/GPU", "register" )
+AddDesc( "esz", "", "Stack size (for stack underflow check). DEFAULTS TO 65536!", "CPU/GPU", "register" )
+AddDesc( "cs", "", "Code segment (WARNING: not read only!)", "CPU/GPU", "register" )
+AddDesc( "ss", "", "Stack segment", "CPU/GPU", "register" )
+AddDesc( "ds", "", "Data segment", "CPU/GPU", "register" )
+AddDesc( "es", "", "Extra segment", "CPU/GPU", "register" )
+AddDesc( "gs", "", "", "CPU/GPU", "register" )
+AddDesc( "fs", "", "F**ing segment", "CPU/GPU", "register" )
+AddDesc( "ks", "", "Key segment", "CPU/GPU", "register" )
+AddDesc( "ls", "", "Library segment", "CPU/GPU", "register" )
