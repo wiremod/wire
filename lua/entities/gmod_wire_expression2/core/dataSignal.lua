@@ -284,12 +284,13 @@ end
 
 -- Check if the current execution was caused by a datasignal named <name>
 e2function number dsClk( string name )
+	if (!currentsignal) then return 0 end
 	if (currentsignal.name == name) then return runbydatasignal else return 0 end
 end
 
 -- Returns the name of the current signal
 e2function string dsClkName()
-	if (!currentsignal) then return nil end
+	if (!currentsignal) then return "" end
 	return currentsignal.name or ""
 end
 
@@ -297,7 +298,7 @@ __e2setcost(4)
 
 -- Get the type of the current data
 e2function string dsGetType()
-	if (!currentsignal) then return nil end
+	if (!currentsignal) then return "" end
 	return currentsignal.vartype or ""
 end
 
