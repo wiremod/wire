@@ -255,7 +255,7 @@ __e2setcost(5)
 
 -- Get all groups in an array
 e2function array dsGetGroups()
-	return self.datasignal.groups
+	return self.datasignal.groups or {}
 end
 
 -- 0 = only you, 1 = only pp friends, 2 = everyone
@@ -327,11 +327,15 @@ __e2setcost(nil)
 ---------------------------------------------
 -- When an E2 is removed, clear it from the groups table
 registerCallback("destruct",function(self)
-	for k,v in pairs( self.datasignal.groups ) do
-		if (groups[v]) then
-			groups[v][self.entity] = nil
-			if (table.Count(groups[v]) == 0) then
-				groups[v] = nil
+	if (self.datasignal.groups) then
+		if (#self.datasignal.groups > 0) then
+			for k,v in pairs( self.datasignal.groups ) do
+				if (groups[v]) then
+					groups[v][self.entity] = nil
+					if (table.Count(groups[v]) == 0) then
+						groups[v] = nil
+					end
+				end
 			end
 		end
 	end
