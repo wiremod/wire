@@ -229,13 +229,17 @@ end
 __e2setcost(10)
 
 e2function void dsClearGroups()
-	for k,v in ipairs( self.datasignal.groups ) do
-		if (groups[v]) then
-			if (groups[v][self.entity] == true) then
-				groups[v][self.entity] = nil
-			end
-			if (table.Count(groups[v]) == 0) then
-				groups[v] = nil
+	if (self.datasignal.groups) then
+		if (#self.datasignal.groups>0) then
+			for k,v in ipairs( self.datasignal.groups ) do
+				if (groups[v]) then
+					if (groups[v][self.entity] == true) then
+						groups[v][self.entity] = nil
+					end
+					if (table.Count(groups[v]) == 0) then
+						groups[v] = nil
+					end
+				end
 			end
 		end
 	end
