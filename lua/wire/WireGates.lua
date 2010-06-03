@@ -2388,10 +2388,11 @@ GateActions["vector_norm"] = {
 	outputtypes = { "VECTOR" },
 	output = function(gate, A)
 		if !IsVector (A) then A = Vector (0, 0, 0) end
-		return A:Normalize ()
+		return A:GetNormal()
 	end,
 	label = function(Out, A)
-		return string.format ("norm(%s) = (%d,%d,%d)", A, Out.x, Out.y, Out.z)
+		return string.format( "norm(%s) = (%d,%d,%d)", A, Out.x, Out.y, Out.z )
+		--return "norm(" .. A .. ") = [" .. math.Round(Out.x,3) .. "," .. math.Round(Out.y,3) .. "," .. math.Round(Out.z,3) .. "]"
 	end
 }
 
