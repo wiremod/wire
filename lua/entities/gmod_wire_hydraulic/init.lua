@@ -56,6 +56,8 @@ function ENT:SetConstraint( c )
 	local p2 = self:GetWPos(c:GetTable().Ent2, c:GetTable().Phys2, c:GetTable().LPos2)
 	local dist = (p1 - p2)
 
+	self.current_length = dist:Length()
+
 	self:SetOverlayText( "Hydraulic length : " .. self.current_length .. "\nConstant: -\nDamping: -" )
 	WireLib.TriggerOutput( self.Entity, "Constant", self.constraint:GetKeyValues().constant )
 	WireLib.TriggerOutput( self.Entity, "Damping", self.constraint:GetKeyValues().damping )
