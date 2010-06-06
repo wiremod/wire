@@ -305,8 +305,8 @@ end
 -- Get which E2 sent the data
 e2function entity dsGetSender()
 	if (!currentsignal) then return nil end
-	if (!currentsignal.sender or !currentsignal.sender:IsValid()) then return nil end
-	return currentsignal.sender
+	if (!currentsignal.from or !currentsignal.from:IsValid()) then return nil end
+	return currentsignal.from
 end
 
 -- Get the group which the signal was sent to

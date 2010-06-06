@@ -91,7 +91,7 @@ if SERVER then
 
 		-- Parenting
 		local nocollide
-		if (!self.ClientConVar.parent or self:GetClientNumber( "parent" ) == 1) then
+		if (self.ClientConVar.parent and self:GetClientNumber( "parent" ) == 1) then
 			if (trace.Entity:IsValid()) then
 
 				-- Nocollide the gate to the prop to make adv duplicator (and normal duplicator) find it

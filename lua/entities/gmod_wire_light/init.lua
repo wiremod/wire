@@ -14,7 +14,6 @@ function ENT:Initialize()
 	self.Entity:SetColor( 0, 0, 0, 255 )
 
 	self.Inputs = WireLib.CreateInputs(self.Entity, {"Red", "Green", "Blue", "RGB [VECTOR]"})
-	print("Initialize")
 end
 
 function ENT:OnRemove()
@@ -125,7 +124,6 @@ function ENT:TriggerInput(iname, value)
 end
 
 function ENT:Setup(directional, radiant, glow)
-	print("Setup")
 	self.directional = directional
 	self.radiant = radiant
 	self.glow = glow
