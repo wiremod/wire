@@ -11,8 +11,6 @@ send the data at the same time.
 Have fun!
 ]]
 
-E2Lib.RegisterExtension("datasignal", true)
-
 ---------------------------------------------
 -- Lua helper functions
 
@@ -120,10 +118,10 @@ end
 
 local function JoinGroup( self, groupname )
 	-- Is the E2 already in that group?
-	if (table.HasValue( self.datasignal.groups, groupname )) then return end
+	if (table.HasValue( self.data.datasignal.groups, groupname )) then return end
 
 	-- Else add it
-	table.insert( self.datasignal.groups, groupname )
+	table.insert( self.data.datasignal.groups, groupname )
 
 	-- If that group does not exist, create it
 	if (!groups[groupname]) then
@@ -136,12 +134,12 @@ end
 
 local function LeaveGroup( self, groupname )
 	-- Is the E2 in that group?
-	if (!table.HasValue( self.datasignal.groups, groupname )) then return end
+	if (!table.HasValue( self.data.datasignal.groups, groupname )) then return end
 
 	-- Else remove it
-	for k,v in pairs( self.datasignal.groups ) do
+	for k,v in pairs( self.data.datasignal.groups ) do
 		if (v == groupname) then
-			table.remove( self.datasignal.groups, k )
+			table.remove( self.data.datasignal.groups, k )
 			break
 		end
 	end
@@ -185,53 +183,70 @@ end
 ---------------------------------------------
 -- E2 functions
 
--- Add support for EVERY SINGLE type. Yeah!!
-for k,v in pairs( wire_expression_types ) do
-	if (k == "NORMAL") then k = "NUMBER" end
-	k = string.lower(k)
+registerCallback("postinit",function()
 
-	__e2setcost(10)
+	-- Add support for EVERY SINGLE type. Yeah!!
+	for k,v in pairs( wire_expression_types ) do
+		if (k == "NORMAL") then k = "NUMBER" end
+		k = string.lower(k)
 
-	-- Send a signal directly to another E2
-	registerFunction("dsSendDirect","se"..v[1],"n",function(self,args)
-		local op1, op2, op3 = args[2], args[3], args[4]
-		local rv1, rv2, rv3 = op1[1](self, op1),op2[1](self, op2),op3[1](self,op3)
-		return E2toE2( rv1, 2, self.entity, nil, rv2, rv3, k )
-	end)
+		__e2setcost(10)
 
-	__e2setcost(20)
+		-- Send a signal directly to another E2
+		registerFunction("dsSendDirect","se"..v[1],"n",function(self,args)
+			local op1, op2, op3 = args[2], args[3], args[4]
+			local rv1, rv2, rv3 = op1[1](self, op1),op2[1](self, op2),op3[1](self,op3)
+			return E2toE2( rv1, 2, self.entity, nil, rv2, rv3, k )
+		end)
 
-	-- Send a ds to the group <rv2> in the E2s scope
-	registerFunction("dsSend","ss"..v[1],"n",function(self,args)
-		local op1, op2, op3 = args[2], args[3], args[4]
-		local rv1, rv2, rv3 = op1[1](self, op1),op2[1](self, op2),op3[1](self,op3)
-		return E2toGroup( rv1, self.entity, rv2, nil, rv3, k )
-	end)
+		__e2setcost(15)
 
-	-- Send a ds to the group <rv2> in scope <rv3>
-	registerFunction("dsSend","ssn"..v[1],"n",function(self,args)
-		local op1, op2, op3, op4 = args[2], args[3], args[4], args[5]
-		local rv1, rv2, rv3, rv4 = op1[1](self, op1),op2[1](self, op2),op3[1](self,op3),op4[1](self,op4)
-		return E2toGroup( rv1, self.entity, rv2, rv3, rv4, k )
-	end)
+		registerFunction("dsSendDirect","sr"..v[1],"n",function(self,args)
+			local op1, op2, op3 = args[2], args[3], args[4]
+			local rv1, rv2, rv3 = op1[1](self, op1),op2[1](self, op2),op3[1](self,op3)
+			local ret = 1
+			for _,e2 in ipairs( rv2 ) do
+				local temp = E2toE2( rv1, 2, self.entity, nil, e2, rv3, k )
+				if (temp == 0) then ret = 0 end
+			end
+			return ret
+		end)
 
-	__e2setcost(5)
+		__e2setcost(20)
 
-	-- Get variable
-	registerFunction("dsGet" .. upperfirst( k ), "", v[1], function(self,args)
-		if (!currentsignal) then return v[2] end -- If the current execution was not caused by a signal, return the type's default value
-		if (!currentsignal.vartype or currentsignal.vartype != k) then return v[2] end -- If the type is not that type, return the type's default value
-		return currentsignal.var or v[2]
-	end)
+		-- Send a ds to the group <rv2> in the E2s scope
+		registerFunction("dsSend","ss"..v[1],"n",function(self,args)
+			local op1, op2, op3 = args[2], args[3], args[4]
+			local rv1, rv2, rv3 = op1[1](self, op1),op2[1](self, op2),op3[1](self,op3)
+			return E2toGroup( rv1, self.entity, rv2, nil, rv3, k )
+		end)
 
-end
+		-- Send a ds to the group <rv2> in scope <rv3>
+		registerFunction("dsSend","ssn"..v[1],"n",function(self,args)
+			local op1, op2, op3, op4 = args[2], args[3], args[4], args[5]
+			local rv1, rv2, rv3, rv4 = op1[1](self, op1),op2[1](self, op2),op3[1](self,op3),op4[1](self,op4)
+			return E2toGroup( rv1, self.entity, rv2, rv3, rv4, k )
+		end)
+
+		__e2setcost(5)
+
+		-- Get variable
+		registerFunction("dsGet" .. upperfirst( k ), "", v[1], function(self,args)
+			if (!currentsignal) then return v[2] end -- If the current execution was not caused by a signal, return the type's default value
+			if (!currentsignal.vartype or currentsignal.vartype != k) then return v[2] end -- If the type is not that type, return the type's default value
+			return currentsignal.var or v[2]
+		end)
+
+	end -- loop
+
+end) -- postinit
 
 __e2setcost(10)
 
 e2function void dsClearGroups()
-	if (self.datasignal.groups) then
-		if (#self.datasignal.groups>0) then
-			for k,v in ipairs( self.datasignal.groups ) do
+	if (self.data.datasignal.groups) then
+		if (#self.data.datasignal.groups>0) then
+			for k,v in ipairs( self.data.datasignal.groups ) do
 				if (groups[v]) then
 					if (groups[v][self.entity] == true) then
 						groups[v][self.entity] = nil
@@ -243,7 +258,7 @@ e2function void dsClearGroups()
 			end
 		end
 	end
-	self.datasignal.groups = {}
+	self.data.datasignal.groups = {}
 end
 
 -- Join group
@@ -259,17 +274,17 @@ __e2setcost(5)
 
 -- Get all groups in an array
 e2function array dsGetGroups()
-	return self.datasignal.groups or {}
+	return self.data.datasignal.groups or {}
 end
 
 -- 0 = only you, 1 = only pp friends, 2 = everyone
 e2function void dsSetScope( number scope )
-	self.datasignal.scope = math.Clamp(math.Round(scope),0,2)
+	self.data.datasignal.scope = math.Clamp(math.Round(scope),0,2)
 end
 
 -- Get current scope
 e2function number dsGetScope()
-	return self.datasignal.scope
+	return self.data.datasignal.scope
 end
 
 ----------------
@@ -305,8 +320,8 @@ end
 -- Get which E2 sent the data
 e2function entity dsGetSender()
 	if (!currentsignal) then return nil end
-	if (!currentsignal.from or !currentsignal.from:IsValid()) then return nil end
-	return currentsignal.from
+	if (!currentsignal.sender or !currentsignal.sender:IsValid()) then return nil end
+	return currentsignal.sender
 end
 
 -- Get the group which the signal was sent to
@@ -319,7 +334,7 @@ __e2setcost(20)
 
 -- Get all E2s which would have recieved a signal if you had sent it to this group and the E2s scope
 e2function array dsProbe( string groupname )
-	return GetE2s( self.entity, groupname, self.datasignal.scope )
+	return GetE2s( self.entity, groupname, self.data.datasignal.scope )
 end
 
 -- Get all E2s which would have recieved a signal if you had sent it to this group and scope
@@ -332,9 +347,9 @@ __e2setcost(nil)
 ---------------------------------------------
 -- When an E2 is removed, clear it from the groups table
 registerCallback("destruct",function(self)
-	if (self.datasignal.groups) then
-		if (#self.datasignal.groups > 0) then
-			for k,v in pairs( self.datasignal.groups ) do
+	if (self.data.datasignal.groups) then
+		if (#self.data.datasignal.groups > 0) then
+			for k,v in pairs( self.data.datasignal.groups ) do
 				if (groups[v]) then
 					groups[v][self.entity] = nil
 					if (table.Count(groups[v]) == 0) then
@@ -348,7 +363,7 @@ end)
 
 -- When an E2 is spawned, set its group and scope to the defaults
 registerCallback("construct",function(self)
-	self.datasignal = {}
-	self.datasignal.groups = {}
-	self.datasignal.scope = 0
+	self.data.datasignal = {}
+	self.data.datasignal.groups = {}
+	self.data.datasignal.scope = 0
 end)
