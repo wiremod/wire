@@ -564,7 +564,6 @@ E2Helper.Descriptions["findClipFromName(s)"] = "Filters the list of entities by 
 E2Helper.Descriptions["findClipToSphere(vn)"] = "Filters the list of entities by removing all entities NOT within the specified sphere (center, radius)"
 E2Helper.Descriptions["findClipFromSphere(vn)"] = "Filters the list of entities by removing all entities within the specified sphere (center, radius)"
 E2Helper.Descriptions["findClipToRegion(vv2)"] = "Filters the list of entities by removing all entities NOT on the positive side of the defined plane. (Plane origin, vector perpendicular to the plane) You can define any convex hull using this."
-E2Helper.Descriptions["gGetGroup()"] = "Returns the name of the current group for the chip"
 E2Helper.Descriptions["rangerFlags()"] = "Returns the ranger flags as a string."
 E2Helper.Descriptions["ranger(n)"] = "You input max range, it returns ranger data"
 E2Helper.Descriptions["ranger(nnn)"] = "Same as above with added inputs for X and Y skew"
@@ -622,4 +621,25 @@ E2Helper.Descriptions["fileListLoaded()"] = "If the list has been loaded and it 
 E2Helper.Descriptions["fileList()"] = "Returns an array of file names that have been loaded."
 E2Helper.Descriptions["fileListTable()"] = "Returns a table of file names that have been loaded. (Tbl[\"filename\"] = \"filename\")"
 E2Helper.Descriptions["fileListClk()"] = "Returns whether the execution was run because a list was uploaded to the server."
+
+-- Datasignals
+E2Helper.Descriptions["dsSend"] = "Sends a datasignal to the specified group and scope."
+E2Helper.Descriptions["dsSendDirect"] = "Sends a datasignal to the specified E2 (or use an array for several E2s)."
+E2Helper.Descriptions["dsGetSender()"] = "Returns the entity of the E2 which sent the signal."
+E2Helper.Descriptions["dsJoinGroup(s)"] = "Join the group to receive signals from it."
+E2Helper.Descriptions["dsLeaveGroup(s)"] = "Leave the group to stop receiving signals from it."
+E2Helper.Descriptions["dsClearGroups()"] = "Leave all groups."
+E2Helper.Descriptions["dsClk()"] = "Returns 1 if the current execution was caused by a datasignal."
+E2Helper.Descriptions["dsClk(s)"] = "Returns 1 if the current execution was caused by a datasignal with the specified signal name."
+E2Helper.Descriptions["dsClkName()"] = "Returns the name of the signal."
+E2Helper.Descriptions["dsGetType()"] = "Returns the type of the received data."
+E2Helper.Descriptions["dsGetGroups()"] = "Returns an array of the groups the E2 is in."
+E2Helper.Descriptions["dsGetGroup()"] = "Get the name of the group the signal was sent to."
+E2Helper.Descriptions["dsProbe"] = "Returns an array of E2s the signal would have been sent to if it had been sent with the specified arguments."
+E2Helper.Descriptions["dsSetScope(n)"] = "Sets the scope of the E2. Setting the scope determines which signals the E2 can receive. Check the wiki for more info about scopes."
+E2Helper.Descriptions["dsGetScope()"] = "Returns the scope the E2 is currently in."
+
+-- gvars
+E2Helper.Descriptions["gTable(sn)"] = "Returns the gTable. The string determines group, and the number determines wether or not the table should be shared."
+E2Helper.Descriptions["gRemoveAll()"] = "Removes all non-shared variables and group tables you have created."
 end

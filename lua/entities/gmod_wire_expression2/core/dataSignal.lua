@@ -78,8 +78,8 @@ local function E2toE2( signalname, fromscope, from, toscope, to, var, vartype, g
 	if (!from or !from:IsValid() or from:GetClass() != "gmod_wire_expression2") then return 0 end -- Failed
 	if (!to or !to:IsValid() or to:GetClass() != "gmod_wire_expression2") then return 0 end -- Failed
 	if (!from.context or !to.context) then return 0 end -- OSHI-
-	if (!fromscope) then fromscope = from.context.datasignal.scope end
-	if (!toscope) then toscope = to.context.datasignal.scope end
+	if (!fromscope) then fromscope = from.context.data.datasignal.scope end
+	if (!toscope) then toscope = to.context.data.datasignal.scope end
 	if (!IsAllowed( fromscope, from, toscope, to )) then return 0 end -- Not allowed.
 	if (!var or !vartype) then return 0 end -- Failed
 
@@ -93,7 +93,7 @@ end
 -- Send from one E2 to an entire group of E2s
 local function E2toGroup( signalname, from, groupname, scope, var, vartype ) -- For sending from an E2 to an entire group. Returns 0 if ANY of the sends failed
 	if (groupname == nil) then return 0 end
-	if (scope == nil) then scope = from.context.datasignal.scope end
+	if (scope == nil) then scope = from.context.data.datasignal.scope end
 
 	local ret = 1
 	if (groups[groupname]) then
@@ -103,7 +103,7 @@ local function E2toGroup( signalname, from, groupname, scope, var, vartype ) -- 
 				groups[groupname][k] = nil
 			else
 				if (toent != from) then
-					local tempret = E2toE2( signalname, scope, from, toent.context.datasignal.scope, toent, var, vartype, groupname ) -- Send the signal
+					local tempret = E2toE2( signalname, scope, from, toent.context.data.datasignal.scope, toent, var, vartype, groupname ) -- Send the signal
 					if (tempret == 0) then -- Did the send fail?
 						ret = 0
 					end
@@ -164,7 +164,7 @@ local function GetE2s( froment, groupname, scope )
 				groups[groupname][k] = nil
 			else
 				if (froment != ent) then
-					if (IsAllowed( scope, froment, ent.context.datasignal.scope, ent )) then
+					if (IsAllowed( scope, froment, ent.context.data.datasignal.scope, ent )) then
 						table.insert( ret, ent )
 					end
 				end
@@ -320,8 +320,8 @@ end
 -- Get which E2 sent the data
 e2function entity dsGetSender()
 	if (!currentsignal) then return nil end
-	if (!currentsignal.sender or !currentsignal.sender:IsValid()) then return nil end
-	return currentsignal.sender
+	if (!currentsignal.from or !currentsignal.from:IsValid()) then return nil end
+	return currentsignal.from
 end
 
 -- Get the group which the signal was sent to
