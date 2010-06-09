@@ -13,8 +13,8 @@ gvars.shared = {}
 -- Type
 ------------------------------------------------
 registerType( "gtable", "xgt", {},
-	function(self) self.entity:error("You may not input a gtable.") end,
-	function(self) self.entity:error("You may not output a gtable.") end,
+	function(self) self.entity:Error("You may not input a gtable.") end,
+	function(self) self.entity:Error("You may not output a gtable.") end,
 	function(retval)
 		if type(retval) ~= "table" then error("Return value is not a gtable, but a "..type(retval).."!",0) end
 	end,
@@ -54,6 +54,11 @@ end
 ------------------------------------------------
 __e2setcost(20)
 
+e2function gtable gTable( string groupname )
+	if (!gravs[self.player][groupname]) then gvars[self.player][groupname] = {} end
+	return gvars[self.player][groupname]
+end
+
 e2function gtable gTable( string groupname, number shared )
 	if (shared == 1) then
 		if (!gvars.shared[groupname]) then gvars.shared[groupname] = {} end
@@ -79,58 +84,66 @@ local function upperfirst( word )
 	return word:Left(1):upper() .. word:Right(-2):lower()
 end
 
+local non_allowed_types = { "xgt" } -- If anyone can think of any other types that should never be allowed, enter them here.
+
 registerCallback("postinit",function()
 	for k,v in pairs( wire_expression_types ) do
-		__e2setcost(10)
+		if (!table.HasValue(non_allowed_types,v[1])) then
+			if (k == "NORMAL") then k == "NUMBER" end
+			k = upperfirst(k)
 
-		-- Table[index,type] functions
-		local function getf( self, args )
-			local op1, op2 = args[2], args[3]
-			local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-			if (type(rv2) == "number") then rv2 = tostring(rv2) end
-			local val = rv1[v[1]..rv2]
-			if (val) then -- If the var exists
-				return val -- return it
-			end
-			return v[2] -- Return default
-		end
-		local function setf( self, args )
-			local op1, op2, op3 = args[2], args[3], args[4]
-			local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
-			if (type(rv2) == "number") then rv2 = tostring(rv2) end
-			rv1[v[1]..rv2] = rv3
-		end
+			__e2setcost(10)
 
-		registerOperator("idx", v[1].."=xgts", v[1], getf) -- G[S,type]
-		registerOperator("idx", v[1].."=xgts"..v[1], v[1], setf) -- G[S,type]
-		registerOperator("idx", v[1].."=xgtn", v[1], getf) -- G[N,type] (same as G[N:toString(),type])
-		registerOperator("idx", v[1].."=xgtn"..v[1], v[1], setf) -- G[N,type] (same as G[N:toString(),type])
-		------
-
-		__e2setcost(15)
-		--gRemove*
-		registerFunction("gRemove"..upperfirst(k),"xgt:s",v[1],function(self,args)
-			local op1, op2 = args[2], args[3]
-			local rv1, rv2 = op1[1](self,op1), op2[1](self,op2)
-			local val = rv1[v[1]..rv2]
-			if (val) then
-				rv1[v[1]..rv2] = nil
-				return val
-			end
-			return v[2]
-		end)
-
-		__e2setcost(25)
-		-- gRemoveAll*()
-		registerFunction("gRemoveAll"..upperfirst(k),"","",function(self,args)
-			for k,v in pairs( gvars[self.player][self.data.gvars.group] ) do
-				if (string.Left(k,#v[1]) == v[1]) then
-					v = nil
+			-- Table[index,type] functions
+			local function getf( self, args )
+				local op1, op2 = args[2], args[3]
+				local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+				if (type(rv2) == "number") then rv2 = tostring(rv2) end
+				local val = rv1[v[1]..rv2]
+				if (val) then -- If the var exists
+					return val -- return it
 				end
+				return v[2] -- Return default
 			end
-		end)
-	end
-end)
+			local function setf( self, args )
+				local op1, op2, op3 = args[2], args[3], args[4]
+				local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
+				if (type(rv2) == "number") then rv2 = tostring(rv2) end
+				rv1[v[1]..rv2] = rv3
+			end
+
+			registerOperator("idx", v[1].."=xgts", v[1], getf) -- G[S,type]
+			registerOperator("idx", v[1].."=xgts"..v[1], v[1], setf) -- G[S,type]
+			registerOperator("idx", v[1].."=xgtn", v[1], getf) -- G[N,type] (same as G[N:toString(),type])
+			registerOperator("idx", v[1].."=xgtn"..v[1], v[1], setf) -- G[N,type] (same as G[N:toString(),type])
+			------
+
+			__e2setcost(15)
+			--gRemove* -- Remove the variable at the specified index and return it
+			registerFunction("remove"..k,"xgt:s",v[1],function(self,args)
+				local op1, op2 = args[2], args[3]
+				local rv1, rv2 = op1[1](self,op1), op2[1](self,op2)
+				local val = rv1[v[1]..rv2]
+				if (val) then
+					rv1[v[1]..rv2] = nil
+					return val
+				end
+				return v[2]
+			end)
+
+			__e2setcost(25)
+			-- gRemoveAll*() - Remove all variables of a type in the player's non-shared table
+			registerFunction("gRemoveAll"..k.."s","","",function(self,args)
+				for k,v in pairs( gvars[self.player][self.data.gvars.group] ) do
+					if (string.Left(k,#v[1]) == v[1]) then
+						v = nil
+					end
+				end
+			end)
+
+		end -- allowed check
+	end -- loop
+end) -- postinit
 
 
 ------------------------------------------------------------------------------------------------
