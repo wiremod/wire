@@ -193,6 +193,8 @@ AddDesc( "dsetlight", "number,label", "Set light number and label containing vec
 AddDesc( "dgetlight", "number,label", "Get light number and label containing vec3f(lightpos) and color definition", "GPU", "opcode[245]" )
 AddDesc( "dwritefmt", "vec2f,string", "Write formatted string at vec2f variable position with a string containing special parameters", "GPU", "opcode[246]" )
 AddDesc( "dwritefix", "vec2f,number", "Write fixed number to vec2f variable position", "GPU", "opcode[247]" )
+AddDesc( "dtextwidth", "number,string", "1st number equals width of string if drawn", "GPU", "opcode[248]" )
+AddDesc( "dtextheight", "number,string", "1st number equals height of string if drawn", "GPU", "opcode[249]" )
 --AddDesc( "dhaschanged", "number,number", "", "GPU", "opcode[258]" ) // Non-functional opcode
 --AddDesc( "dloopxy", "number,number", "", "GPU", "opcode[259]" ) // Describe me
 AddDesc( "mload", "matrix", "Load matrix into view matrix", "GPU", "opcode[271]" )
@@ -212,6 +214,8 @@ AddDesc( "dmuldt", "vec2f,vec2f", "Multiply by delta-time", "GPU", "opcode[294]"
 AddDesc( "drotate", "vec4f", "", "GPU", "opcode[300]" ) // Describe me
 AddDesc( "dtranslate", "vec4f", "", "GPU", "opcode[301]" ) // Describe me
 AddDesc( "dscale", "vec4f", "", "GPU", "opcode[302]" ) // Describe me
+AddDesc( "dsettextbox", "vec2f", "Set textbox size for word wrapping", "GPU", "opcode[990]" )
+AddDesc( "dsettextwrap", "number", "Set word wrapping mode", "GPU", "opcode[991]" )
 
 
 // AdvMath Opcodes

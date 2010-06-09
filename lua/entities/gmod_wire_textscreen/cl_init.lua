@@ -90,6 +90,22 @@ function Layouter:DrawText(text, x, y, w, h, halign, valign)
 		end
 	end
 end
+
+function Layouter:GetTextSize(text, w, h)
+	self:layout(text, 0, 0, w, h, 2, 0)
+
+	local minoffset = nil
+
+	for _, offsetx, drawlist in ipairs_map(self.lines, unpack) do
+		if not minoffset then
+			minoffset = offsetx
+		else
+			minoffset = math.min(minoffset, offsetx)
+		end
+	end
+
+	return minoffset and self.x2 - minoffset or 0, self.y
+end
 --------------------------------------------------------------------------------
 
 function ENT:Initialize()

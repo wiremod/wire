@@ -233,7 +233,6 @@ function ENT:InitializeASMOpcodes()
 			self.OpcodeCount[i] = 2
 		end
 	end
-	self.OpcodeCount[280] = 1 //DDFRAME
 end
 
 function ENT:InitializeOpcodeTable()

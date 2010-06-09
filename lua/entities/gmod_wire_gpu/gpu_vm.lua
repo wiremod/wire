@@ -150,6 +150,7 @@ function ENT:GPUResetRegisters()
 	//[65474] - Scale Y
 	//[65473] - Font align
 	//[65472] - ZOffset
+	//[65471] - Font valign
 
 	self.Memory[65485] = 32
 	self.Memory[65484] = 0
@@ -165,6 +166,7 @@ function ENT:GPUResetRegisters()
 	self.Memory[65474] = 1
 	self.Memory[65473] = 0
 	self.Memory[65472] = 0
+	self.Memory[65471] = 0
 
 
 	//=================================
@@ -250,12 +252,16 @@ function ENT:GPUMathInit()
 	self.FontNames[2] = "Trebuchet"
 	self.FontNames[3] = "Arial"
 	self.FontNames[4] = "Times New Roman"
+	self.FontNames[5] = "Coolvetica"
+	self.FontNames[6] = "Akbar"
+	self.FontNames[7] = "csd"
 
 	self:GPUMathReset()
 end
 
 function ENT:GPUMathReset()
 	self.StringCache = {}
+	self.Layouter = MakeTextScreenLayouter()
 
 	//CVertex pipes:
 	//0 - direct (0..512 or 0..1024 range)
@@ -300,6 +306,13 @@ function ENT:GPUMathReset()
 
 	self.CurFont = 0
 	self.CurFontSize = 12
+	self.CurTextbox = {
+		x = 100,
+		y = 100,
+		z = 0,
+		w = 0
+	}
+	self.CurWordWrapMode = 0
 	self.CurColor = {x = 0, y = 0, z = 0, w = 255}
 
 	//Model transform matrix
@@ -535,6 +548,19 @@ function ENT:ReadStr(addr)
 	return str
 end
 
+-- sk89q edit: Text size support
+function ENT:GetTextSize(text)
+	surface.CreateFont(self.FontNames[self.CurFont], self.CurFontSize, 800, true, false,
+					   "WireGPU_"..self.FontNames[self.CurFont]..self.CurFontSize)
+	surface.SetFont("WireGPU_"..self.FontNames[self.CurFont]..self.CurFontSize)
+
+	if self.CurWordWrapMode == 1 then
+		return self.Layouter:GetTextSize(text, self.CurTextbox.x, self.CurTextbox.y)
+	else
+		return surface.GetTextSize(text)
+	end
+end
+
 function ENT:FontWrite(posaddr,text)
 	local vertexbuf = {}
 	vertexbuf.x = self:ReadCell(posaddr+0)
@@ -542,10 +568,19 @@ function ENT:FontWrite(posaddr,text)
 	vertexbuf = self:VertexTransform(vertexbuf)
 
 	surface.CreateFont(self.FontNames[self.CurFont], self.CurFontSize, 800, true, false,
-			   "WireGPU_"..self.FontNames[self.CurFont]..self.CurFontSize)
-	draw.DrawText(text,"WireGPU_"..self.FontNames[self.CurFont]..self.CurFontSize,
-	              vertexbuf.x,vertexbuf.y,Color(self.CurColor.x,self.CurColor.y,self.CurColor.z,255),
-	              self:ReadCell(65473))
+					   "WireGPU_"..self.FontNames[self.CurFont]..self.CurFontSize)
+
+	-- skedit: Word wrapping
+	if self.CurWordWrapMode == 1 then
+		surface.SetTextColor(self.CurColor.x,self.CurColor.y,self.CurColor.z,255)
+		surface.SetFont("WireGPU_"..self.FontNames[self.CurFont]..self.CurFontSize)
+		self.Layouter:DrawText(tostring(text), vertexbuf.x, vertexbuf.y, self.CurTextbox.x,
+							   self.CurTextbox.y, self:ReadCell(65473), self:ReadCell(65471))
+	else
+		draw.DrawText(text,"WireGPU_"..self.FontNames[self.CurFont]..self.CurFontSize,
+					  vertexbuf.x,vertexbuf.y,Color(self.CurColor.x,self.CurColor.y,self.CurColor.z,255),
+					  self:ReadCell(65473))
+	end
 end
 
 function ENT:DrawLine(point1,point2)

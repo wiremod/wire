@@ -58,8 +58,8 @@ function ENT:InitializeGPUOpcodeNames()
 	self.DecodeOpcode["dgetlight"]      = 245 //DGETLIGHT X,Y	: Get light Y to X (X points to [pos,color])		[INT,3F+COLOR]
 	self.DecodeOpcode["dwritefmt"]      = 246 //DWRITEFMT X,Y	: Write formatted string Y to coordinates X		[2F,STRING+PARAMS]
 	self.DecodeOpcode["dwritefix"]      = 247 //DWRITEFIX X,Y	: Write fixed value Y to coordinates X			[2F,F]
-//	self.DecodeOpcode[""]               = 248 //DTEXTWIDTH X,Y	: Return text width of Y				[INT,STRING]
-//	self.DecodeOpcode[""]               = 249 //DTEXTHEIGHT X,Y	: Return text height of Y				[INT,STRING]
+	self.DecodeOpcode["dtextwidth"]     = 248 //DTEXTWIDTH X,Y	: Return text width of Y				[INT,STRING]
+	self.DecodeOpcode["dtextheight"]    = 249 //DTEXTHEIGHT X,Y	: Return text height of Y				[INT,STRING]
 	//---------------------------------------------------------------------------------------------------------------------
 //	self.DecodeOpcode[""]               = 258 //
 	self.DecodeOpcode["dloopxy"]        = 259 //DLOOPXY X,Y		: IF DX>0 {IP=X;IF CX>0{CX--}ELSE{DX--;CX=Y}}		[INT,INT]
@@ -78,6 +78,8 @@ function ENT:InitializeGPUOpcodeNames()
 	self.DecodeOpcode["ddgauge"]        = 282 //DDGAUGE X		: Draw gauge needle					[GAUGE_STRUCT]
 	self.DecodeOpcode["draster"]        = 284 //DRASTER X		: Rasterize level					[INT]
 	self.DecodeOpcode["ddterrain"]      = 285 //DDTERRAIN X		: Draw terrain						[TERRAIN_STRUCT]
+	self.DecodeOpcode["dsettextbox"]	= 288 //DSETTEXTBOX X	: Set textbox dimensions					[2F]
+	self.DecodeOpcode["dsettextwrap"]	= 289 //DSETTEXTWRAP X	: Toggle text wrapping					[INT]
 	//- Sprites -----------------------------------------------------------------------------------------------------------
 	self.DecodeOpcode["dloadbytes"]     = 290 //DLOADBYTES X,Y	: Load Y textures starting from ptr X			[INT,INT]
 //	self.DecodeOpcode[""]               = 291 //DCOPYTO
@@ -579,6 +581,22 @@ function ENT:InitializeGPUOpcodeTable()
 
 		self:FontWrite(Param1,text)
 	end
+	self.OpcodeTable[248] = function (Param1, Param2)	//DTEXTWIDTH
+		if (not self.StringCache[Param2]) then
+			self.StringCache[Param2] = self:ReadStr(Param2)
+		end
+		local text = self.StringCache[Param2]
+		local w, h = self:GetTextSize(text)
+		return w
+	end
+	self.OpcodeTable[249] = function (Param1, Param2)	//DTEXTHEIGHT
+		if (not self.StringCache[Param2]) then
+			self.StringCache[Param2] = self:ReadStr(Param2)
+		end
+		local text = self.StringCache[Param2]
+		local w, h = self:GetTextSize(text)
+		return h
+	end
 	//------------------------------------------------------------
 	self.OpcodeTable[271] = function (Param1, Param2) 	//MLOADPROJ
 		self.ProjectionMatrix = self:ReadMatrix(Param1)
@@ -687,6 +705,12 @@ function ENT:InitializeGPUOpcodeTable()
 				end
 			end
 		end
+	end
+	self.OpcodeTable[288] = function (Param1, Param2)	//DSETTEXTBOX
+		self.CurTextbox = self:Read2f(Param1)
+	end
+	self.OpcodeTable[289] = function (Param1, Param2)	//DSETTEXTWRAP
+		self.CurWordWrapMode = Param1
 	end
 	//------------------------------------------------------------
 	self.OpcodeTable[294] = function (Param1, Param2)	//DMULDT
