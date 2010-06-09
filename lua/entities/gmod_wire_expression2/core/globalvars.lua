@@ -89,7 +89,7 @@ local non_allowed_types = { "xgt" } -- If anyone can think of any other types th
 registerCallback("postinit",function()
 	for k,v in pairs( wire_expression_types ) do
 		if (!table.HasValue(non_allowed_types,v[1])) then
-			if (k == "NORMAL") then k == "NUMBER" end
+			if (k == "NORMAL") then k = "NUMBER" end
 			k = upperfirst(k)
 
 			__e2setcost(10)
