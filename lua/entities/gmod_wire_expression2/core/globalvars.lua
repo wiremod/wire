@@ -170,6 +170,10 @@ e2function number gGetShare()
 	return self.data.gvars.shared or 0
 end
 
+e2function void gResetGroup()
+	self.data.gvars.group = "default"
+end
+
 ------------------------------------------------
 -- Get/Set functions
 ------------------------------------------------
