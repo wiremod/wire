@@ -247,10 +247,15 @@ function Compiler:InstrFOR(args)
 	local var = args[3]
 	self:SetVariableType(var, "n", args)
 
-	local estart = self:Evaluate(args, 2)
-	local estop = self:Evaluate(args, 3)
-	local estep
-	if args[6] then estep = self:Evaluate(args, 4) end
+	local estart, tp1 = self:Evaluate(args, 2)
+	local estop, tp2 = self:Evaluate(args, 3)
+	local estep, tp3
+	if args[6] then
+		estep, tp3 = self:Evaluate(args, 4)
+		if tp1 != "n" || tp2 != "n" || tp3 != "n" then self:Error("for(" .. tps_pretty({tp1}) .. ", " .. tps_pretty({tp2}) .. ", " .. tps_pretty({tp3}) .. ") is invalid, only supports indexing by number", args) end
+	else
+		if tp1 != "n" || tp2 != "n" then self:Error("for(" .. tps_pretty({tp1}) .. ", " .. tps_pretty({tp2}) .. ") is invalid, only supports indexing by number", args) end
+	end
 
 	local stmt = self:EvaluateStatement(args, 5)
 	local cx = self:PopContext()
