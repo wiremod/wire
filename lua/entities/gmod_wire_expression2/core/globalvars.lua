@@ -55,7 +55,7 @@ end
 __e2setcost(20)
 
 e2function gtable gTable( string groupname )
-	if (!gravs[self.player][groupname]) then gvars[self.player][groupname] = {} end
+	if (!gvars[self.player][groupname]) then gvars[self.player][groupname] = {} end
 	return gvars[self.player][groupname]
 end
 
