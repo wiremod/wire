@@ -94,6 +94,7 @@ function E2Lib.validPhysics(entity)
 end
 
 function E2Lib.getOwner(self, entity)
+	if entity == nil then return end
 	if entity == self.entity or entity == self.player then return self.player end
 	if entity.GetPlayer then
 		local ply = entity:GetPlayer()
