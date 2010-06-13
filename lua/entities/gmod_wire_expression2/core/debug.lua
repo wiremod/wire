@@ -31,7 +31,9 @@ e2function void print(...)
 		for k,v in ipairs( args ) do
 			text = text .. (SpecialCase( v ) or tostring(v)) .. "\t"
 		end
-		self.player:ChatPrint(text)
+		if (text and #text>0) then
+			self.player:ChatPrint(text)
+		end
 	end
 end
 
