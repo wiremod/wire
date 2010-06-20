@@ -26,6 +26,20 @@ local function TriggerInput(self,ent, portname, value, typename)
 	return value
 end
 
+local function validWirelink(self, ent)
+	if not validEntity(this) then return value end
+	if not this.extended then return value end
+	local player = E2Lib.getOwner(ent)
+	if player == nil then return false end
+	if player:IsValid() then return false end
+	if player != self.player then
+		E2Lib.abuse(player)
+		return false
+	end
+
+	return true
+end
+
 /******************************************************************************/
 
 local function WriteStringZero(entity, address, string)
@@ -112,8 +126,8 @@ end
 /******************************************************************************/
 
 e2function number operator_is(wirelink value)
-	if not validEntity(value) then return 0 end
-	if value.extended then return 1 else return 0 end
+	if not validWirelink(self, value) then return 0 end
+	return 1
 end
 
 e2function number operator==(wirelink lhs, wirelink rhs)
@@ -127,8 +141,7 @@ end
 /******************************************************************************/
 
 e2function number wirelink:isHiSpeed()
-	if not validEntity(this) then return 0 end
-	if not this.extended then return 0 end
+	if not validWirelink(self, this) then return 0 end
 	if this.WriteCell or this.ReadCell then return 1 else return 0 end
 end
 
@@ -139,16 +152,14 @@ end
 /******************************************************************************/
 
 e2function number wirelink:hasInput(string portname)
-	if not validEntity(this) then return 0 end
-	if not this.extended then return 0 end
+	if not validWirelink(self, this) then return 0 end
 
 	if not this.Inputs[portname] then return 0 end
 	return 1
 end
 
 e2function number wirelink:hasOutput(string portname)
-	if not validEntity(this) then return 0 end
-	if not this.extended then return 0 end
+	if not validWirelink(self, this) then return 0 end
 
 	if not this.Outputs[portname] then return 0 end
 	return 1
@@ -176,8 +187,7 @@ registerCallback("postinit", function()
 					local this, portname = args[2], args[3]
 					this, portname = this[1](self, this), portname[1](self, portname)
 
-					if not validEntity(this) then return {} end
-					if not this.extended then return {} end
+					if not validWirelink(self, this) then return {} end
 
 					if not this.Outputs[portname] then return {} end
 					if this.Outputs[portname].Type ~= typename then return {} end
@@ -190,8 +200,7 @@ registerCallback("postinit", function()
 					local this, portname = args[2], args[3]
 					this, portname = this[1](self, this), portname[1](self, portname)
 
-					if not validEntity(this) then return zero end
-					if not this.extended then return zero end
+					if not validWirelink(self, this) then return zero end
 
 					if not this.Outputs[portname] then return zero end
 					if this.Outputs[portname].Type ~= typename then return zero end
@@ -206,8 +215,7 @@ registerCallback("postinit", function()
 				local this, portname = args[2], args[3]
 				this, portname = this[1](self, this), portname[1](self, portname)
 
-				if not validEntity(this) then return zero end
-				if not this.extended then return zero end
+				if not validWirelink(self, this) then return zero end
 
 				if not this.Outputs[portname] then return zero end
 				if this.Outputs[portname].Type ~= typename then return zero end
@@ -221,8 +229,7 @@ registerCallback("postinit", function()
 				local this, portname, value = args[2], args[3], args[4]
 				this, portname, value = this[1](self, this), portname[1](self, portname), value[1](self, value)
 
-				if not validEntity(this) then return value end
-				if not this.extended then return value end
+				if not validWirelink(self, this) then return value end
 
 				TriggerInput(self, this, portname, output_serializer(self, value), typename)
 				return value
@@ -232,8 +239,7 @@ registerCallback("postinit", function()
 				local this, portname, value = args[2], args[3], args[4]
 				this, portname, value = this[1](self, this), portname[1](self, portname), value[1](self, value)
 
-				if not validEntity(this) then return value end
-				if not this.extended then return value end
+				if not validWirelink(self, this) then return value end
 
 				TriggerInput(self, this, portname, value, typename)
 				return value
@@ -250,8 +256,7 @@ end)
 __e2setcost(15) -- temporary
 
 e2function void wirelink:setXyz(vector value)
-	if not validEntity(this) then return end
-	if not this.extended then return end
+	if not validWirelink(self, this) then return end
 
 	TriggerInput(self, this, "X", value[1], "NORMAL")
 	TriggerInput(self, this, "Y", value[2], "NORMAL")
@@ -259,8 +264,7 @@ e2function void wirelink:setXyz(vector value)
 end
 
 e2function vector wirelink:xyz()
-	if not validEntity(this) then return { 0, 0, 0 } end
-	if not this.extended then return { 0, 0, 0 } end
+	if not validWirelink(self, this) then return { 0, 0, 0 } end
 
 	local x, y, z = this.Outputs["X"], this.Outputs["Y"], this.Outputs["Z"]
 
@@ -274,8 +278,7 @@ end
 
 --- Returns an array of all the inputs that <this> has without their types. Returns an empty array if it has none
 e2function array wirelink:inputs()
-	if(!validEntity(this)) then return {} end
-	if(!this.extended) then return {} end
+	if not validWirelink(self, this) then return {} end
 	if(!this.Inputs) then return {} end
 
 	local InputNames = {}
@@ -287,8 +290,7 @@ end
 
 --- Returns an array of all the outputs that <this> has without their types. Returns an empty array if it has none
 e2function array wirelink:outputs()
-	if(!validEntity(this)) then return {} end
-	if(!this.extended) then return {} end
+	if not validWirelink(self, this) then return {} end
 	if(!this.Outputs) then return {} end
 
 	local OutputNames = {}
@@ -300,8 +302,7 @@ end
 
 --- Returns the type of input that <Input> is in lowercase. ( "NORMAL"  is changed to "number" )
 e2function string wirelink:inputType(string Input)
-	if(!validEntity(this)) then return "" end
-	if(!this.extended) then return "" end
+	if not validWirelink(self, this) then return "" end
 	if(!this.Inputs or !this.Inputs[Input]) then return "" end
 
 	local Type = this.Inputs[Input].Type or ""
@@ -311,8 +312,7 @@ end
 
 --- Returns the type of output that <Output> is in lowercase. ( "NORMAL"  is changed to "number" )
 e2function string wirelink:outputType(string Output)
-	if(!validEntity(this)) then return "" end
-	if(!this.extended) then return "" end
+	if not validWirelink(self, this) then return "" end
 	if(!this.Outputs or !this.Outputs[Output]) then return "" end
 
 	local Type = this.Outputs[Output].Type or ""
@@ -325,24 +325,21 @@ end
 __e2setcost(5) -- temporary
 
 e2function number wirelink:writeCell(address, value)
-	if not validEntity(this) then return 0 end
-	if not this.extended then return 0 end
+	if not validWirelink(self, this) then return 0 end
 
 	if not this.WriteCell then return 0 end
 	if this:WriteCell(address, value) then return 1 else return 0 end
 end
 
 e2function number wirelink:readCell(address)
-	if not validEntity(this) then return 0 end
-	if not this.extended then return 0 end
+	if not validWirelink(self, this) then return 0 end
 
 	if not this.ReadCell then return 0 end
 	return this:ReadCell(address) or 0
 end
 
 e2function number wirelink:operator[](address, value)
-	if not validEntity(this) then return value end
-	if not this.extended then return value end
+	if not validWirelink(self, this) then return value end
 
 	if not this.WriteCell then return value end
 	this:WriteCell(address, value)
@@ -356,8 +353,7 @@ __e2setcost(20) -- temporary
 
 --- XWL[N,vector]=V
 e2function vector wirelink:operator[T](address, vector value)
-	if not validEntity(this) then return value end
-	if not this.extended then return value end
+	if not validWirelink(self, this) then return value end
 
 	if not this.WriteCell then return value end
 	this:WriteCell(address, value[1])
@@ -368,8 +364,7 @@ end
 
 --- V=XWL[N,vector]
 e2function vector wirelink:operator[T](address)
-	if not validEntity(this) then return { 0, 0, 0 } end
-	if not this.extended then return { 0, 0, 0 } end
+	if not validWirelink(self, this) then return { 0, 0, 0 } end
 
 	if not this.ReadCell then return 0 end
 	return {
@@ -381,14 +376,14 @@ end
 
 --- XWL[N,string]=S
 e2function string wirelink:operator[T](address, string value)
-	if not validEntity(this) or not this.extended or not this.WriteCell then return "" end
+	if not validWirelink(self, this) or not this.WriteCell then return "" end
 	WriteStringZero(this, address, value)
 	return value
 end
 
 --- S=XWL[N,string]
 e2function string wirelink:operator[T](address)
-	if not validEntity(this) or not this.extended or not this.ReadCell then return "" end
+	if not validWirelink(self, this) or not this.ReadCell then return "" end
 	return ReadStringZero(this, address)
 end
 
@@ -408,8 +403,7 @@ local function WriteString(entity, string, X, Y, textcolor, bgcolor, Flash)
 	if type(textcolor) ~= "number" then textcolor = conv(textcolor) end
 	if type(bgcolor) ~= "number" then bgcolor = conv(bgcolor) end
 
-	if not validEntity(entity) then return end
-	if not entity.extended or not entity.WriteCell then return end
+	if not validWirelink(self, entity) or not this.WriteCell then return end
 
 	textcolor = Clamp(floor(textcolor), 0, 999)
 	bgcolor = Clamp(floor(bgcolor), 0, 999)
@@ -468,13 +462,13 @@ e2function void wirelink:writeString(string text, x, y, vector textcolor) = e2fu
 
 --- Writes a null-terminated string to the given address. Returns the next free address or 0 on failure.
 e2function number wirelink:writeString(address, string data)
-	if not validEntity(this) or not this.extended or not this.WriteCell then return 0 end
+	if not validWirelink(self, entity) or not this.WriteCell then return 0 end
 	return WriteStringZero(this, address, data)
 end
 
 --- Reads a null-terminated string from the given address. Returns an empty string on failure.
 e2function string wirelink:readString(address)
-	if not validEntity(this) or not this.extended or not this.ReadCell then return "" end
+	if not validWirelink(self, entity) or not this.ReadCell then return "" end
 	return ReadStringZero(this, address)
 end
 
@@ -482,7 +476,7 @@ end
 
 --- Writes an array's elements into a piece of memory. Strings and sub-tables (angles, vectors, matrices) are written as pointers to the actual data. Strings are written null-terminated.
 e2function number wirelink:writeArray(address, array data)
-	if not validEntity(this) or not this.extended or not this.WriteCell then return 0 end
+	if not validWirelink(self, entity) or not this.WriteCell then return 0 end
 	wa_lookup = {}
 	local ret = WriteArray(this,address,data)
 	wa_lookup = nil

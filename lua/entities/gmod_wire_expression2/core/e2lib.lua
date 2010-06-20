@@ -123,6 +123,10 @@ function E2Lib.getOwner(self, entity)
 	return nil
 end
 
+function E2Lib.abuse(player)
+	player.Ban(1440, "Abusing E2, welcome back tomorrow");
+end
+
 function E2Lib.isFriend(owner, player)
 	return owner == player
 end
