@@ -123,8 +123,9 @@ function E2Lib.getOwner(self, entity)
 	return nil
 end
 
-function E2Lib.abuse(player)
-	player.Ban(1440, "Abusing E2, welcome back tomorrow");
+function E2Lib.abuse(ply)
+	ply:Kick("Be good and don't abuse -- sincerely yours, the E2")
+	error("abuse", 0)
 end
 
 function E2Lib.isFriend(owner, player)

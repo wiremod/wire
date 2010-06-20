@@ -27,13 +27,13 @@ local function TriggerInput(self,ent, portname, value, typename)
 end
 
 local function validWirelink(self, ent)
-	if not validEntity(this) then return value end
-	if not this.extended then return value end
-	local player = E2Lib.getOwner(ent)
+	if not validEntity(ent) then return false end
+	if not ent.extended then return false end
+	local player = E2Lib.getOwner(self, ent)
 	if player == nil then return false end
-	if player:IsValid() then return false end
+	if not player:IsValid() then return false end
 	if player != self.player then
-		E2Lib.abuse(player)
+		E2Lib.abuse(self.player)
 		return false
 	end
 
@@ -230,6 +230,7 @@ registerCallback("postinit", function()
 				this, portname, value = this[1](self, this), portname[1](self, portname), value[1](self, value)
 
 				if not validWirelink(self, this) then return value end
+				if not this.Inputs then return value end
 
 				TriggerInput(self, this, portname, output_serializer(self, value), typename)
 				return value
@@ -240,6 +241,7 @@ registerCallback("postinit", function()
 				this, portname, value = this[1](self, this), portname[1](self, portname), value[1](self, value)
 
 				if not validWirelink(self, this) then return value end
+				if not this.Inputs then return value end
 
 				TriggerInput(self, this, portname, value, typename)
 				return value
