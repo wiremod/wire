@@ -523,6 +523,8 @@ local code2 = [[
 # Data Signals have been added! These functions allow you to transmit
 # data and execute E2s remotely. Read the wiki for more information.
 #
+# [wirelink]s can be wired to friends without getting kicked
+#
 # Expression 2 now uses the friends list of any prop protection
 # installed on the server to determine if a player may interact
 # with your props and read your code. To allow friends to write to your
