@@ -405,7 +405,7 @@ local function WriteString(entity, string, X, Y, textcolor, bgcolor, Flash)
 	if type(textcolor) ~= "number" then textcolor = conv(textcolor) end
 	if type(bgcolor) ~= "number" then bgcolor = conv(bgcolor) end
 
-	if not validWirelink(self, entity) or not this.WriteCell then return end
+	if not validWirelink(self, entity) or not entity.WriteCell then return end
 
 	textcolor = Clamp(floor(textcolor), 0, 999)
 	bgcolor = Clamp(floor(bgcolor), 0, 999)
@@ -486,3 +486,4 @@ e2function number wirelink:writeArray(address, array data)
 end
 
 __e2setcost(nil) -- temporary
+
