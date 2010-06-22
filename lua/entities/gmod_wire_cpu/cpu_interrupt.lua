@@ -120,7 +120,17 @@ function ENT:Interrupt(intnumber,intparam,isNMI)
 				local int_      =                      self:ReadCell(intaddress+2)
 				local int_flags = self:IntegerToBinary(self:ReadCell(intaddress+3))
 				self:SetCurrentPage(self.XEIP)
+				self:SetPrevPage(intaddress) //set interrupt page as previous one
 				self.BusLock = 1
+
+				//WARNING:
+				//if you use runlevel protection, then interrupts can be called from
+				//user program even if its not runlevel 0 UNLESS you will set
+				//runlevel of pages where interrupt table is located to non-zero
+				//
+				//When interrupt table runlevel is non-zero, you will only be able
+				//to call those interrupts, which handlers are also located on pages
+				//with non-zero runlevel
 
 				//Flags:
 				//3  [8 ] = CMPR shows if interrupt occured

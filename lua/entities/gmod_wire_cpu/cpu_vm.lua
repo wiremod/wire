@@ -37,12 +37,21 @@ function ENT:Reset()
 	self.TMR = 0	 //Internal timer
 	self.TIMER = 0	 //Internal clock
 	self.CPAGE = 0	 //Current page ID
+	self.PPAGE = 0   //Previous page ID
 
 	self.BPREC = 48	 //Binary precision for integer emulation mode
 	self.IPREC = 48	 //Integer precision
 	self.VMODE = 2	 //Vector mode (2D)
 
 	self.CODEBYTES = 0 //Executed size of code
+	self.HWDEBUG = 0   //Hardware debug mode
+	self.DBGSTATE = 0  //0: halt; 1: reset; 2: step fwd and halt; 3: run; 4: read registers; 5: write registers
+	self.DBGADDR = 0   //0: external ports, everything else: absolute memory address
+
+	self.TimerMode = 0 //0: disable; NMI: 1: every X seconds; 2: every N ticks
+	self.TimerRate = 0 //Seconds or ticks
+	self.TimerPrevTime = 0 //Previous fire time
+	self.TimerAddress  = 32 //NMI number to call (modes 1,2)
 
 	self.INTR = 0
 	self.BusLock = 0
@@ -111,6 +120,8 @@ function ENT:InitializeCPUVariableSet()
 	self.CPUVariable[33] = "PF"
 	self.CPUVariable[34] = "EF"
 
+	self.CPUVariable[41] = "PPAGE" 		self.CPUVariableReadonly[41] = true
+
 	self.CPUVariable[45] = "BusLock"
 	self.CPUVariable[46] = "Idle"
 	self.CPUVariable[47] = "INTR"
@@ -125,6 +136,14 @@ function ENT:InitializeCPUVariableSet()
 	self.CPUVariable[55] = "VMODE"
 	self.CPUVariable[56] = "XTRL"
 	self.CPUVariable[57] = "HaltPort"
+	self.CPUVariable[58] = "HWDEBUG"
+	self.CPUVariable[59] = "DBGSTATE"
+	self.CPUVariable[60] = "DBGADDR"
+
+	self.CPUVariable[64] = "TimerMode"
+	self.CPUVariable[65] = "TimerRate"
+	self.CPUVariable[66] = "TimerPrevTime"
+	self.CPUVariable[67] = "TimerAddress"
 end
 
 function ENT:InitializeLookupTables()
@@ -632,13 +651,98 @@ function ENT:SetCurrentPage(address)
 	self.CurrentPage = self.Page[self.CPAGE]
 end
 
+function ENT:SetPrevPage(address)
+	self.PPAGE = math.floor(address /  128)
+
+	if (not self.Page[self.PPAGE]) then
+		self.Page[self.PPAGE] = {}
+		self.Page[self.PPAGE].Read = 1
+		self.Page[self.PPAGE].Write = 1
+		self.Page[self.PPAGE].Execute = 1
+		self.Page[self.PPAGE].RunLevel = 0
+		self.Page[self.PPAGE].MappedTo = self.PPAGE
+	end
+	self.PrevPage = self.Page[self.PPAGE]
+end
+
 function ENT:Execute()
 	self.AuxIO = 0
 	self.DeltaTime = CurTime()-(self.PrevTime or CurTime())
 	self.PrevTime = (self.PrevTime or CurTime())+self.DeltaTime
 
 	self.TIMER = self.TIMER + self.DeltaTime
+
+	if (self.HWDEBUG ~= 0) then
+		if (self.DBGSTATE == 0) then
+			return
+		elseif (self.DBGSTATE == 2) then
+			self.DBGSTATE = 0
+		elseif (self.DBGSTATE == 4) then
+			local prevIF = self.IF
+			self.IF = 0
+			for i=0,127 do
+				if (self.DBGADDR ~= 0) then
+					if (self.CPUVariable[i])
+					then self:WriteCell(self.DBGADDR+i,self[self.CPUVariable[i]])
+					else self:WriteCell(self.DBGADDR+i,0)
+					end
+				else
+					if (self.CPUVariable[i])
+					then self:WritePort(i,self[self.CPUVariable[i]])
+					else self:WritePort(i,0)
+					end
+				end
+			end
+			self.IF = prevIF
+			return
+		elseif (self.DBGSTATE == 5) then
+			local prevIF = self.IF
+			self.IF = 0
+			for i=0,127 do
+				if (self.CPUVariableReadonly[i] ~= true) then
+					if (self.DBGADDR ~= 0) then
+						if (self.CPUVariable[i])
+						then self[self.CPUVariable[i]] = self:ReadCell(self.DBGADDR+i)
+						end
+					else
+						if (self.CPUVariable[i])
+						then self[self.CPUVariable[i]] = self:ReadPort(i)
+						end
+					end
+				end
+			end
+			self.IF = prevIF
+			self.DBGSTATE = 0
+			return
+		end
+	end
+
 	self.TMR = self.TMR + 1
+
+	//Check timer
+	if (self.TimerMode ~= 0) then
+                if (self.PrevMode ~= self.TimerMode) then
+                	if (self.TimerMode == 1) then
+                                self.TimerPrevTime = self.TIMER
+                	elseif (self.TimerMode == 2) then
+                                self.TimerPrevTime = self.TMR
+               		end
+                        self.PrevMode = self.TimerMode
+                end
+
+                if (self.TimerMode == 1) then
+                        if (self.TIMER - self.TimerPrevTime >= self.TimerRate) then
+                        	self:NMIInterrupt(math.floor(self.TimerAddress))
+                                self.TimerPrevTime = self.TIMER
+                        end
+
+                elseif (self.TimerMode == 2) then
+                        if (self.TMR - self.TimerPrevTime >= self.TimerRate) then
+                        	self:NMIInterrupt(math.floor(self.TimerAddress))
+                                self.TimerPrevTime = self.TMR
+                        end
+                end
+        end
 
 	if (self.BusLock == 1) then
 		if (self.Debug) then
@@ -654,11 +758,17 @@ function ENT:Execute()
 
 	self.XEIP = self.IP+self.CS
 	self:SetCurrentPage(self.XEIP)
+	if (not self.PrevPage) then self:SetPrevPage(self.XEIP) end
 
-	if (self.CurrentPage.Execute == 0) then
+	//Do not allow execute if we are not on kernel page, or not calling from kernel page
+	if ((self.CurrentPage.RunLevel ~= 0) or
+	    (self.PrevPage.RunLevel ~= 0)) and (self.CurrentPage.Execute == 0) then
 		self:Interrupt(14,self.CPAGE)
 		return
 	end
+
+	//Set this page as previous if we could really run it
+	self:SetPrevPage(self.XEIP)
 
 	if (self.NextIF) then
 		self.IF = self.NextIF
@@ -679,7 +789,7 @@ function ENT:Execute()
 		if (self.PrecompileData[self.XEIP].Valid) then
 			if (self.OpcodeRunLevel[self.PrecompileData[self.XEIP].Opcode]) then
 				if (self.OpcodeRunLevel[self.PrecompileData[self.XEIP].Opcode] == 0) then
-					if (self.Page[self.CPAGE].RunLevel ~= 0) then
+					if (self.CurrentPage.RunLevel ~= 0) then
 						self:Interrupt(13,self.PrecompileData[self.XEIP].Opcode)
 					end
 				end

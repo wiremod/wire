@@ -207,7 +207,7 @@ function ENT:InitializeGPUOpcodeTable()
 	self.OpcodeTable[216] = function (Param1, Param2)	//DBINDTEXTURE
 	end
 	self.OpcodeTable[217] = function (Param1, Param2)	//DSETFONT
-		self.CurFont = math.floor(math.Clamp(Param1,0,#self.FontNames-1))
+		self.CurFont = math.floor(math.Clamp(Param1,0,#self.FontNames+1))
 	end
 	self.OpcodeTable[218] = function (Param1, Param2)	//DSETSIZE
  		self.CurFontSize = math.floor(math.Clamp(Param1,4,200))

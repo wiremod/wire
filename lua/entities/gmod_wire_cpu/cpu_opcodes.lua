@@ -152,6 +152,7 @@ function ENT:InitializeOpcodeNames()
 	//self.DecodeOpcode[""]     = 113 //RESERVED
 	self.DecodeOpcode["pusha"]  = 114 //PUSHA      : Push all GP registers		8.00
 	self.DecodeOpcode["popa"]   = 115 //POPA       : Pop all GP registers		8.00
+	self.DecodeOpcode["std2"]   = 116 //STD2       : Enable hardware debug mode	10.00
 	//-----------------------------------------------------------------------------------
 	self.DecodeOpcode["cpuget"] = 120 //CPUGET X,Y : X = CPU[Y]		   	5.00
 	self.DecodeOpcode["cpuset"] = 121 //CPUSET X,Y : CPU[X] = Y		   	5.00
@@ -910,6 +911,10 @@ function ENT:InitializeOpcodeTable()
 		newval = self:Pop() if (newval) then self.ESI = newval else return end
 		newval = self:Pop() if (newval) then self.EDI = newval else return end
 	end
+	self.OpcodeTable[116] = function (Param1,Param2)	//STD2
+		self.HWDEBUG = 1
+		self.DBGSTATE = 0
+	end
 	//------------------------------------------------------------
 	self.OpcodeTable[120] = function (Param1,Param2)	//CPUGET
 		if (self.CPUVariable[Param2]) then
@@ -1251,6 +1256,7 @@ function ENT:InitializeOpcodeRunlevels()
 	self.OpcodeRunLevel[99]  = 0	//LIDTR
 	self.OpcodeRunLevel[110] = 0	//NMIRET
 	self.OpcodeRunLevel[111] = 0	//IDLE
+	self.OpcodeRunLevel[116] = 0	//STD2
 	self.OpcodeRunLevel[121] = 0	//CPUSET
 	self.OpcodeRunLevel[122] = 0	//CPP
 	self.OpcodeRunLevel[123] = 0	//SPP
