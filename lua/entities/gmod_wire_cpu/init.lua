@@ -72,7 +72,7 @@ end
 function ENT:CPUID_Version()
 	//SVN shit doesnt want to work!!
 	local SVNString = "$Revision: 643 $"
-	return 900//tonumber(string.sub(SVNString,12,14))
+	return 990//tonumber(string.sub(SVNString,12,14))
 end
 
 function ENT:DebugMessage(msg)
@@ -116,7 +116,7 @@ end//self.Freq
 
 function ENT:Think()
 	local DeltaTime = CurTime() - self.PrevThinkTime
-	local Iterations = math.floor(self.Freq*DeltaTime*0.5)
+	local Iterations = math.max(1,math.floor(self.Freq*DeltaTime*0.5))
 	self:RunExecute(Iterations)
 
 	self.PrevThinkTime = CurTime()
@@ -196,8 +196,11 @@ function ENT:TriggerInput(iname, value)
 			self.Freq = math.floor(value)
 		end
 	elseif (iname == "Reset") then
-		if (value >= 1.0) then
-			self:Reset()
+		if (self.HWDEBUG ~= 0) then
+			self.DBGSTATE = math.floor(value)
+			if (value > 0) and (value <= 1.0) then self:Reset() end
+		else
+			if (value >= 1.0) then self:Reset() end
 		end
 	elseif (iname == "NMI") then
 		if (value >= 32) && (value < 256) then
