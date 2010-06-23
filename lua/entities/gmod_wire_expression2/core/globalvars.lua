@@ -131,12 +131,30 @@ registerCallback("postinit",function()
 				return v[2]
 			end)
 
-			__e2setcost(25)
+			__e2setcost(50)
 			-- gRemoveAll*() - Remove all variables of a type in the player's non-shared table
 			registerFunction("gRemoveAll"..k.."s","","",function(self,args)
-				for k,v in pairs( gvars[self.player][self.data.gvars.group] ) do
-					if (string.Left(k,#v[1]) == v[1]) then
-						v = nil
+				for k2,v2 in pairs( gvars[self.player] ) do
+					for k3, v3 in pairs( v2 ) do
+						if (string.Left(k3,#v[1]) == v[1]) then
+							gvars[self.player][k2][k3] = nil
+							--v3 = nil
+						end
+					end
+				end
+			end)
+
+			__e2setcost(25)
+			-- gRemoveAll*(S) - Remove all variables of a type in the player's non-shared table in the specified group
+			registerFunction("gRemoveAll"..k.."s","s","",function(self,args)
+				local op1 = args[2]
+				local rv1 = op1[1](self,op1)
+				if (gvars[self.player][rv1]) then
+					for k2,v2 in pairs( gvars[self.player][rv1] ) do
+						if (string.Left(k2,#v[1]) == v[1]) then
+							gvars[self.player][rv1][k2] = nil
+							--v2 = nil
+						end
 					end
 				end
 			end)
