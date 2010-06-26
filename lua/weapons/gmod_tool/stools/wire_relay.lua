@@ -96,7 +96,7 @@ end
 if (SERVER) then
 
 	function MakeWireRelay( pl, Pos, Ang, model, keygroup1, keygroup2, keygroup3, keygroup4, keygroup5, keygroupoff, toggle, normclose, poles, throws, nokey)
-		print(model)
+		--print(model)
 		if ( !pl:CheckLimit( "wire_relays" ) ) then return false end
 
 		local wire_relay = ents.Create( "gmod_wire_relay" )

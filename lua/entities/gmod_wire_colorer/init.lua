@@ -25,7 +25,7 @@ function ENT:OnRemove()
 end
 
 function ENT:Setup(outColor,Range)
-	Msg("setup\n")
+	--Msg("setup\n")
 	if(outColor)then
 		local onames = {}
 		table.insert(onames, "R")

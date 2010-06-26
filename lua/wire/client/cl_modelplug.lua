@@ -2,7 +2,7 @@
 -- $LastChangedDate: 2009-08-10 07:26:51 -0700 (Mon, 10 Aug 2009) $
 -- $LastChangedBy: TomyLobo $
 
-Msg("=== Loading Wire Model Packs ===\n")
+--Msg("=== Loading Wire Model Packs ===\n")
 
 CreateConVar("cl_showmodeltextbox", "0")
 
@@ -16,7 +16,7 @@ for _,filename in ipairs( file.Find("WireModelPacks/*.txt") ) do
 			list.Set( "Wire_"..cat.."_Models", entry.model, {} )
 		end
 	end
-	MsgN("\tLoaded: "..filename)
+	--MsgN("\tLoaded: "..filename)
 end
 
 
@@ -102,7 +102,7 @@ end
 
 
 --Cheeze's Buttons Pack or Wire Model Pack 1
-MsgN("\tAdding Cheeze's Buttons Pack")
+--MsgN("\tAdding Cheeze's Buttons Pack")
 local CheezesButtons = {
 	"models/cheeze/buttons/button_0.mdl",
 	"models/cheeze/buttons/button_1.mdl",
@@ -133,7 +133,7 @@ for k,v in ipairs(CheezesButtons) do
 	end
 end
 
-MsgN("\tAdding various Buttons from HL2 and Portal")
+--MsgN("\tAdding various Buttons from HL2 and Portal")
 local Buttons = {
 	"models/props_citizen_tech/Firetrap_button01a.mdl",
 	--animated buttons from here
@@ -174,7 +174,7 @@ end
 
 --Thrusters
 --Jaanus Thruster Pack
-MsgN("\tJaanus' Thruster Pack")
+--MsgN("\tJaanus' Thruster Pack")
 local JaanusThrusters = {
 	"models/props_junk/garbage_metalcan001a.mdl",
 	"models/jaanus/thruster_flat.mdl",
@@ -193,7 +193,7 @@ for k,v in pairs(JaanusThrusters) do
 end
 
 --Beer's models
-MsgN("\tBeer's Model pack")
+--MsgN("\tBeer's Model pack")
 
 --Keyboard
 list.Set( "Wire_Keyboard_Models", "models/beer/wiremod/keyboard.mdl", {} )

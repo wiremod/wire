@@ -2,7 +2,7 @@
 -- $LastChangedDate: 2009-09-24 15:06:08 -0700 (Thu, 24 Sep 2009) $
 -- $LastChangedBy: tad2020 $
 
-MsgN("Loading Wire Tools")
+--MsgN("Loading Wire Tools")
 
 AddCSLuaFile( "tool_loader.lua" )
 

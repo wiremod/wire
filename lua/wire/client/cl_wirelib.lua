@@ -9,7 +9,7 @@ local Wire_DisableWireRender = 2 --bug with mode 0 and gmod2007beta
 
 WIRE_CLIENT_INSTALLED = 1
 
-Msg("loading materials\n")
+--Msg("loading materials\n")
 list.Add( "WireMaterials", "cable/rope_icon" )
 list.Add( "WireMaterials", "cable/cable2" )
 list.Add( "WireMaterials", "cable/xbeam" )
@@ -26,7 +26,7 @@ local mats = {
 	["Models/effects/comball_tape"] = Material("Models/effects/comball_tape")
 }
 for _,mat in pairs(list.Get( "WireMaterials" )) do
-	Msg("loading material: ",mat,"\n")
+	--Msg("loading material: ",mat,"\n")
 	mats[mat] = Material(mat)
 end
 local function getmat( mat )

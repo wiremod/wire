@@ -36,7 +36,7 @@ if (BeamNetVars) and (BeamNetVars.Version) and (BeamNetVars.Version > ThisBeamNe
 		"======== This ver: "..ThisBeamNetVarsVersion.." || Detected ver: "..BeamNetVars.Version.." || Skipping\n")
 	return
 elseif (BeamNetVars) and (BeamNetVars.Version) and (BeamNetVars.Version == ThisBeamNetVarsVersion) then
-	Msg("======== The Same Version of BeamNetVars Detected || Skipping ========\n")
+	--Msg("======== The Same Version of BeamNetVars Detected || Skipping ========\n")
 	return
 elseif (BeamNetVars) and (BeamNetVars.Version) then
 	Msg("======== Am Older Version of BeamNetVars Detected ========\n"..
@@ -405,4 +405,4 @@ end //end SERVER olny
 
 
 
-Msg("======== Beam NetVars Lib v"..BeamNetVars.Version.." Installed ========\n")
+--Msg("======== Beam NetVars Lib v"..BeamNetVars.Version.." Installed ========\n")
