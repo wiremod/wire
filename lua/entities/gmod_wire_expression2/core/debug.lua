@@ -19,9 +19,9 @@ local function SpecialCase( arg )
 					end
 				else
 					if (k != #arg) then
-						str = str .. v .. ","
+						str = str .. tostring(v) .. ","
 					else
-						str = str .. v .. "]"
+						str = str .. tostring(v) .. "]"
 					end
 				end
 			end
