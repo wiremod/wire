@@ -2,18 +2,27 @@
 local validEntity  = E2Lib.validEntity
 local isOwner      = E2Lib.isOwner
 local Clamp        = math.Clamp
+local seq = table.IsSequential
 
 /******************************************************************************/
 
 local function SpecialCase( arg )
 	if (type(arg) == "table") then
-		if (#arg != 0) then -- A table with only numerical indexes
+		if (seq(arg)) then -- A table with only numerical indexes
 			local str = "["
 			for k,v in ipairs( arg ) do
-				if (k != #arg) then
-					str = str .. v .. ","
+				if (type(v) == "table") then
+					if (k != #arg) then
+						str = str .. SpecialCase( v ) .. ","
+					else
+						str = str .. SpecialCase( v ) .. "]"
+					end
 				else
-					str = str .. v .. "]"
+					if (k != #arg) then
+						str = str .. v .. ","
+					else
+						str = str .. v .. "]"
+					end
 				end
 			end
 			return str
