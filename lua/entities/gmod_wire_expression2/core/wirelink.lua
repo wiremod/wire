@@ -464,13 +464,13 @@ e2function void wirelink:writeString(string text, x, y, vector textcolor) = e2fu
 
 --- Writes a null-terminated string to the given address. Returns the next free address or 0 on failure.
 e2function number wirelink:writeString(address, string data)
-	if not validWirelink(self, entity) or not this.WriteCell then return 0 end
+	if not validWirelink(self, this) or not this.WriteCell then return 0 end
 	return WriteStringZero(this, address, data)
 end
 
 --- Reads a null-terminated string from the given address. Returns an empty string on failure.
 e2function string wirelink:readString(address)
-	if not validWirelink(self, entity) or not this.ReadCell then return "" end
+	if not validWirelink(self, this) or not this.ReadCell then return "" end
 	return ReadStringZero(this, address)
 end
 
@@ -478,7 +478,7 @@ end
 
 --- Writes an array's elements into a piece of memory. Strings and sub-tables (angles, vectors, matrices) are written as pointers to the actual data. Strings are written null-terminated.
 e2function number wirelink:writeArray(address, array data)
-	if not validWirelink(self, entity) or not this.WriteCell then return 0 end
+	if not validWirelink(self, this) or not this.WriteCell then return 0 end
 	wa_lookup = {}
 	local ret = WriteArray(this,address,data)
 	wa_lookup = nil
