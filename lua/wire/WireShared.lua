@@ -62,6 +62,7 @@ function pairs_sortvalues(tbl, criterion)
 		end
 
 	tmp = {}
+	tbl = tbl or {}
 	for k,v in pairs(tbl) do table.insert(tmp,k) end
 	table.sort(tmp, crit)
 
