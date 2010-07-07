@@ -42,11 +42,25 @@ end
 
 e2function void entity:npcGiveWeapon()
 	if !validNPC(this) || !isOwner(self,this) then return end
+
+	local weapon = this:GetActiveWeapon()
+	if (weapon:IsValid()) then
+		if (weapon:GetClass() == "weapon_smg1") then return end
+		weapon:Remove()
+	end
+
 	this:Give( "ai_weapon_smg1" )
 end
 
 e2function void entity:npcGiveWeapon(string rv2)
 	if !validNPC(this) || !isOwner(self,this) then return end
+
+	local weapon = this:GetActiveWeapon()
+	if (weapon:IsValid()) then
+		if (weapon:GetClass() == "weapon_" .. rv2) then return end
+		weapon:Remove()
+	end
+
 	this:Give( "ai_weapon_" .. rv2 )
 end
 
