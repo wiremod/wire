@@ -167,7 +167,6 @@ function ENT:TriggerOutput()		-- Entity outputs won't trigger again until they c
 			end
 
 			Wire_TriggerOutput( self.Entity, "Victims", self.victims )
-			PrintTable(self.victims)
 
 			local position = self.firsthit_dmginfo[3]
 			if !position then
