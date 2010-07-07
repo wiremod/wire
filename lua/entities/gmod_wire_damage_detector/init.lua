@@ -6,7 +6,44 @@ include( 'shared.lua' )
 
 ENT.WireDebugName = "Damage Detector"
 
-local damage_detectors = {}
+// Global table to keep track of all detectors
+local Wire_Damage_Detectors = {}
+
+// Unlink if linked prop removed
+local function linkRemoved( ent )
+	local entID = ent:EntIndex()
+	for k, v in pairs( Wire_Damage_Detectors ) do
+		local detector = ents.GetByIndex(k)
+		if detector.linked_entities then
+			if entID == detector.linked_entities[0] then
+				detector:Unlink()
+			end
+		end
+	end
+end
+hook.Add("EntityRemoved", "DamageDetector_LinkRemoved", linkRemoved)
+
+// Damage detection function
+local function CheckWireDamageDetectors( ent, inflictor, attacker, amount, dmginfo )
+	if amount > 0  then
+		local entID = ent:EntIndex()
+		for k,_ in pairs(Wire_Damage_Detectors) do
+			local detector = ents.GetByIndex(k)
+			if ValidEntity(detector) and detector.on then
+				if !detector.updated then
+					detector:UpdateLinkedEnts()
+					detector:NextThink(CurTime()+0.001)		-- Update link info once per tick per detector at most
+				end
+				if detector.key_ents[entID] then
+					detector:UpdateDamage( dmginfo, entID )
+				end
+				detector.updated = true
+			end
+		end
+	end
+end
+hook.Add("EntityTakeDamage", "CheckWireDamageDetectors", CheckWireDamageDetectors)
+
 
 function ENT:Initialize()
 	local self = self.Entity
@@ -15,7 +52,7 @@ function ENT:Initialize()
 	self:SetMoveType( MOVETYPE_VPHYSICS )
 	self:SetSolid( SOLID_VPHYSICS )
 
-	self.Outputs = WireLib.CreateSpecialOutputs(self, { "Damage", "Attacker", "Inflictor", "Victim" } , { "NORMAL", "ENTITY", "ENTITY", "ENTITY" } )
+	self.Outputs = WireLib.CreateSpecialOutputs(self, { "Damage", "Attacker", "Victim", "Victims", "Position", "Force", "Type" } , { "NORMAL", "ENTITY", "ENTITY", "TABLE", "VECTOR", "VECTOR", "STRING" } )
 	self.Inputs = WireLib.CreateSpecialInputs(self, { "On", "Entity", "Entities" }, { "NORMAL", "ENTITY", "ARRAY" } )
 
 	self.on = 0
@@ -23,9 +60,10 @@ function ENT:Initialize()
 
 	self.firsthit_dmginfo = {}		-- Stores damage info representing damage during an interval
 	self.output_dmginfo = {}		-- Stores the current damage info outputs
+	self.linked_entities = {}
 	self.damage = 0
 
-	damage_detectors[self:EntIndex()] = true
+	Wire_Damage_Detectors[self:EntIndex()] = true
 end
 
 /******************************
@@ -35,18 +73,37 @@ end
 ******************************/
 
 function ENT:OnRemove()
-	damage_detectors[self.Entity:EntIndex()] = nil
+	Wire_Damage_Detectors[self.Entity:EntIndex()] = nil
 	Wire_Remove(self.Entity)
 end
 
+// Update overlay
 function ENT:ShowOutput()
+	local text
 	if self.includeconstrained == 0 then
-		self:SetOverlayText( "Damage Detector\n" ..
-							 "(Individual Props)" )
+		text = ( "Damage Detector\n" ..
+				 "(Individual Props)\n" )
 	else
-		self:SetOverlayText( "Damage Detector\n" ..
-							 "(Constrained Props)" )
+		text = ( "Damage Detector\n" ..
+				 "(Constrained Props)\n" )
 	end
+
+	local linkedent
+	if self.linked_entities and self.linked_entities[0] then
+		linkedent = ents.GetByIndex( self.linked_entities[0] )
+	end
+
+	if IsValid( linkedent ) then
+		if linkedent == self.Entity then
+			text = text .. "Linked - Self"
+		else
+			text = text .. "Linked - " .. linkedent:GetModel()
+		end
+	else
+		text = text .. "Not linked"
+	end
+
+	self:SetOverlayText(text)
 end
 
 function ENT:SetOverlayText(txt)
@@ -61,6 +118,12 @@ end
 function ENT:LinkEntity( ent )
 	self.linked_entities = {}
 	self.linked_entities[0] = ent:EntIndex()		-- [0] is used to store single links (e.g. manual links)
+	self:ShowOutput()
+end
+
+function ENT:Unlink()
+	self.linked_entities = {}
+	self:ShowOutput()
 end
 
 function ENT:TriggerInput( iname, value )
@@ -95,21 +158,30 @@ function ENT:TriggerOutput()		-- Entity outputs won't trigger again until they c
 				end
 			end
 
-			local inflictor = self.firsthit_dmginfo[2]
-			if ValidEntity(inflictor) then
-				if self.output_dmginfo[2] != inflictor then
-					self.output_dmginfo[2] = inflictor
-					Wire_TriggerOutput( self.Entity, "Inflictor", inflictor )
-				end
-			end
-
-			local victim = self.firsthit_dmginfo[3]
+			local victim = self.firsthit_dmginfo[2]
 			if ValidEntity( ents.GetByIndex(victim) ) then
 				if self.output_dmginfo[3] != victim then
 					self.output_dmginfo[3] = victim
 					Wire_TriggerOutput( self.Entity, "Victim", ents.GetByIndex(victim) )
 				end
 			end
+
+			Wire_TriggerOutput( self.Entity, "Victims", self.victims )
+			PrintTable(self.victims)
+
+			local position = self.firsthit_dmginfo[3]
+			if !position then
+				position = Vector(0,0,0)
+			end
+			Wire_TriggerOutput( self.Entity, "Position", position )
+
+			local force = self.firsthit_dmginfo[4]
+			if !force then
+				force = Vector(0,0,0)
+			end
+			Wire_TriggerOutput( self.Entity, "Force", force )
+
+			Wire_TriggerOutput( self.Entity, "Type", self.firsthit_dmginfo[5] )
 
 			Wire_TriggerOutput( self.Entity, "Damage", self.damage )
 			Wire_TriggerOutput( self.Entity, "Damage", 0 )		-- Set damage back to 0 after it's been dealt
@@ -144,25 +216,41 @@ function ENT:UpdateConstrainedEnts()		-- Finds all entities constrained to linke
 	end
 end
 
-function ENT:UpdateDamage( dmginfo, entID )
+function ENT:UpdateDamage( dmginfo, entID )		-- Update damage table
+	local damage = dmginfo:GetDamage()
+
 	if !self.updated then		-- Only register the first target's damage info
 		self.firsthit_dmginfo = {
 			dmginfo:GetAttacker(),
-			dmginfo:GetInflictor(),
-			entID
-			}
+			entID,
+			dmginfo:GetDamagePosition(),
+			dmginfo:GetDamageForce()
+		}
+
+		// Damage type (handle common types)
+		self.dmgtype = ""
+		if dmginfo:IsExplosionDamage() then self.dmgtype = "Explosive"
+		elseif dmginfo:IsBulletDamage() or dmginfo:IsDamageType(DMG_BUCKSHOT) then self.dmgtype = "Bullet"
+		elseif dmginfo:IsDamageType(DMG_SLASH) or dmginfo:IsDamageType(DMG_CLUB) then self.dmgtype = "Melee"
+		elseif dmginfo:IsFallDamage() then self.dmgtype = "Fall"
+		elseif dmginfo:IsDamageType(DMG_CRUSH) then self.dmgtype = "Crush"
+		end
+
+		self.victims = {}
+		self.firsthit_dmginfo[5] = self.dmgtype
 	end
 
-	local damage = dmginfo:GetDamage()
-
-	if dmginfo:IsExplosionDamage() then		-- Explosives will affect the entity that receives the most damage
+	if self.dmgtype == "Explosive" then		-- Explosives will affect the entity that receives the most damage
 		if self.damage < damage then
 			self.damage = damage
-			self.firsthit_dmginfo[3] = entID
+			self.firsthit_dmginfo[2] = entID
 		end
 	else
 		self.damage = self.damage + damage
 	end
+
+	// Update victims table (ent, damage)
+	self.victims["n" .. tostring(entID)] = ( self.victims["n" .. tostring(entID)] or 0 ) + damage
 end
 
 function ENT:Think()
@@ -173,26 +261,6 @@ function ENT:Think()
 	end
 	return true
 end
-
-local function CheckWireDamageDetectors( ent, inflictor, attacker, amount, dmginfo )
-	if amount > 0  then
-		local entID = ent:EntIndex()
-		for k,_ in pairs(damage_detectors) do
-			local detector = ents.GetByIndex(k)
-			if ValidEntity(detector) and detector.on then
-				if !detector.updated then
-					detector:UpdateLinkedEnts()
-					detector:NextThink(CurTime()+0.001)		-- Update link info once per tick per detector at most
-				end
-				if detector.key_ents[entID] then
-					detector:UpdateDamage( dmginfo, entID )
-				end
-				detector.updated = true
-			end
-		end
-	end
-end
-hook.Add( "EntityTakeDamage", "CheckWireDamageDetectors", CheckWireDamageDetectors )
 
 // Advanced Duplicator Support
 
