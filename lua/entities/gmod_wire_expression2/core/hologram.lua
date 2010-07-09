@@ -126,13 +126,48 @@ registerCallback("postexecute", function(self)
 	clip_queue = {}
 end)
 
+local function rescale_modelany( Holo, scale )
+	local maxval = wire_holograms_size_max:GetInt() * 12.04
+
+	scale = Vector(scale[1],scale[2],scale[3])
+	local size = Holo.ent:OBBMaxs()-Holo.ent:OBBMins()
+	local cl = math.Clamp
+	local vec = Vector(size.x*scale.x,size.y*scale.y,size.z*scale.z)
+
+	if (math.abs(vec.x) > maxval) then -- Is the hologram going to be bigger than the maximum allowed size if we scale it now?
+		local maxval2 = size.x*maxval -- Get the max allowed multiplier
+		scale.x = cl(maxval/size.x,-maxval2,maxval2) -- Clamp it
+	end
+
+	-- Do the same for Y and Z
+	if (math.abs(vec.y) > maxval) then
+		local maxval2 = size.y*maxval
+		scale.y = cl(maxval/size.y,-maxval2,maxval2)
+	end
+	if (math.abs(vec.z) > maxval) then
+		local maxval2 = size.z*maxval
+		scale.z = cl(maxval/size.z,-maxval2,maxval2)
+	end
+
+	if Holo.scale ~= scale then
+		table.insert(scale_queue, { Holo, scale })
+		Holo.scale = scale
+	end
+end
+
 local function rescale(Holo, scale)
+
+	if (Holo.modelany == true) then
+		rescale_modelany( Holo, scale )
+		return
+	end
+
 	local maxval = wire_holograms_size_max:GetInt()
 	local minval = -maxval
 
-	x = math.Clamp( scale[1], minval, maxval )
-	y = math.Clamp( scale[2], minval, maxval )
-	z = math.Clamp( scale[3], minval, maxval )
+	local x = math.Clamp( scale[1], minval, maxval )
+	local y = math.Clamp( scale[2], minval, maxval )
+	local z = math.Clamp( scale[3], minval, maxval )
 
 	local scale = Vector(x, y, z)
 	if Holo.scale ~= scale then
@@ -612,21 +647,36 @@ end
 /******************************************************************************/
 
 e2function void holoModel(index, string model)
-	if !ModelList[model] then return end
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
 
-	Holo.ent:SetModel(Model("models/Holograms/"..model..".mdl"))
+	if (ModelList[model]) then
+		Holo.ent:SetModel( Model( "models/Holograms/"..model..".mdl") )
+		Holo.modelany = nil
+		return
+	end
+
+	if (!util.IsValidModel( model )) then return end
+	Holo.modelany = true
+	Holo.ent:SetModel( Model( model ) )
 end
 
 e2function void holoModel(index, string model, skin)
-	if !ModelList[model] then return end
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
 
 	skin = skin - skin % 1
-	Holo.ent:SetModel(Model("models/Holograms/"..model..".mdl"))
 	Holo.ent:SetSkin(skin)
+
+	if (ModelList[model]) then
+		Holo.ent:SetModel( Model( "models/Holograms/"..model..".mdl") )
+		Holo.modelany = nil
+		return
+	end
+
+	if (!util.IsValidModel( model )) then return end
+	Holo.modelany = true
+	Holo.ent:SetModel( Model( model ) )
 end
 
 e2function void holoSkin(index, skin)

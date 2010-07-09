@@ -150,6 +150,8 @@ function Tokenizer:NextSymbol()
 			tokenname = "brk"
 		elseif self.tokendata == "continue" then
 			tokenname = "cnt"
+		elseif self.tokendata == "foreach" then
+			tokenname = "fea"
 		elseif self.tokendata:match("^[ijk]$") and self.character ~= "(" then
 			tokenname, self.tokendata = "num", "1"..self.tokendata
 		else

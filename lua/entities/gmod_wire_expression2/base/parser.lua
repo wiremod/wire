@@ -18,11 +18,12 @@ Statement
  1 : if (e1) { q1 } i1
  2 : while (e1) { q1 }
  3 : for (var = e1, e1[, e1]) { q1 }
- 4 : break, continue
- 5 : var++, var--
- 6 : var += e1, var -= e1, var *= e1, var /= e1
- 7 : var = s7, var[e1,type] = s7
- 8 : e1
+ 4 : foreach(var, var:type = e1) { q1}
+ 5 : break, continue
+ 6 : var++, var--
+ 7 : var += e1, var -= e1, var *= e1, var /= e1
+ 8 : var = s7, var[e1,type] = s7
+ 9 : e1
 
 If
  1 : elseif (e1) { q1 } i1
@@ -271,6 +272,64 @@ function Parser:Stmt3()
 end
 
 function Parser:Stmt4()
+	if self:AcceptRoamingToken("fea") then
+		local trace = self:GetTokenTrace()
+		loopdepth = loopdepth + 1
+
+		if not self:AcceptRoamingToken("lpa") then
+			self:Error("Left parenthesis missing (() after foreach statement")
+		end
+
+		if not self:AcceptRoamingToken("var") then
+			self:Error("Variable expected to hold the key")
+		end
+		local keyvar = self:GetTokenData()
+
+		if not self:AcceptRoamingToken("com") then
+			self:Error("Comma (,) expected after key variable")
+		end
+
+		if not self:AcceptRoamingToken("var") then
+			self:Error("Variable expected to hold the value")
+		end
+		local valvar = self:GetTokenData()
+
+		if not self:AcceptRoamingToken("col") then
+			self:Error("Colon (:) expected to separate type from variable")
+		end
+
+		-- NOTICE: This also checks for UDF type. Don't worry if you
+		-- don't have it installed, because if you don't, the second
+		-- condition will never be true.
+		if not self:AcceptRoamingToken("fun") and not self:AcceptRoamingToken("udf") then
+			self:Error("Type expected after colon")
+		end
+		local valtype = self:GetTokenData()
+		if valtype == "number" then valtype = "normal" end
+		if wire_expression_types[string.upper(valtype)] == nil then
+			self:Error("Unknown type: "..valtype)
+		end
+		valtype = wire_expression_types[string.upper(valtype)][1]
+
+		if not self:AcceptRoamingToken("com") then
+			self:Error("Comma expected after value type")
+		end
+
+		local tableexpr = self:Expr1()
+
+		if not self:AcceptRoamingToken("rpa") then
+			self:Error("Missing right parenthesis after foreach statement")
+		end
+
+		local sfea = self:Instruction(trace, "fea", keyvar, valvar, valtype, tableexpr, self:Block("foreach statement"))
+		loopdepth = loopdepth -1
+		return sfea
+	end
+
+	return self:Stmt5()
+end
+
+function Parser:Stmt5()
 	if self:AcceptRoamingToken("brk") then
 		if loopdepth > 0 then
 			local trace = self:GetTokenTrace()
@@ -287,10 +346,10 @@ function Parser:Stmt4()
 		end
 	end
 
-	return self:Stmt5()
+	return self:Stmt6()
 end
 
-function Parser:Stmt5()
+function Parser:Stmt6()
 	if self:AcceptRoamingToken("var") then
 		local trace = self:GetTokenTrace()
 		local var = self:GetTokenData()
@@ -310,10 +369,10 @@ function Parser:Stmt5()
 		self:TrackBack()
 	end
 
-	return self:Stmt6()
+	return self:Stmt7()
 end
 
-function Parser:Stmt6()
+function Parser:Stmt7()
 	if self:AcceptRoamingToken("var") then
 		local trace = self:GetTokenTrace()
 		local var = self:GetTokenData()
@@ -331,10 +390,10 @@ function Parser:Stmt6()
 		self:TrackBack()
 	end
 
-	return self:Stmt7()
+	return self:Stmt8()
 end
 
-function Parser:Stmt7()
+function Parser:Stmt8()
 	if self:AcceptRoamingToken("var") then
 		local tbpos = self.index
 		local trace = self:GetTokenTrace()
@@ -383,10 +442,10 @@ function Parser:Stmt7()
 		self:NextToken()
 	end
 
-	return self:Stmt8()
+	return self:Stmt9()
 end
 
-function Parser:Stmt8()
+function Parser:Stmt9()
 	return self:Expr1()
 end
 
