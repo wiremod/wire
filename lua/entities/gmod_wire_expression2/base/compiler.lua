@@ -595,24 +595,3 @@ function Compiler:InstrVAR(args)
 	RunString(string.format("Compiler.native = function(self) return self.vars[%q] end", args[3]))
 	return {Compiler.native}, tp
 end
-
-function Compiler:InstrFEA(args)
-	--local sfea = self:Instruction(trace, "fea", keyvar, valvar, valtype, tableexpr, self:Block("foreach statement"))
-	self:PushContext()
-
-	local keyvar, valvar, valtype = args[3],args[4],args[5]
-	local tableexpr, tabletp = self:Evaluate(args,4)
-
-	local op = self:GetOperator(args,"fea",{tabletp})
-
-	self:SetVariableType(keyvar, op[2], args)
-	self:SetVariableType(valvar, valtype, args)
-
-	local stmt,_ = self:EvaluateStatement(args,5)
-
-	local cx = self:PopContext()
-
-	self:SingleContext(cx,args)
-
-	return {op[1],keyvar,valvar,valtype,tableexpr,stmt}
-end
