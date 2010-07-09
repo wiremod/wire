@@ -59,8 +59,8 @@ function ENT:Setup(DefaultToZero,RateOfChange,ClampXMin,ClampXMax,ClampYMin,Clam
 end
 
 function ENT:PodLink(vehicle)
-	if (!vehicle || !vehicle:IsValid() || !vehicle:IsVehicle()) then
-		if (self.pod != nil) then
+	if !IsValid(vehicle) or !vehicle:IsVehicle() then
+		if IsValid(self.pod) then
 			self.pod.AttachedWireEyePod = nil
 		end
 		self.pod = nil
@@ -87,8 +87,8 @@ function ENT:PodLink(vehicle)
 	}
 	self.Rotate90 = false
 	self.EyeAng = Angle(0,0,0)
-	if (self.pod and self.pod:IsValid() and self.pod:IsVehicle()) then
-		if ( table.HasValue( Rotate90ModelList,string.lower( self.pod:GetModel() ) ) ) then
+	if IsValid(self.pod) and self.pod:IsVehicle() then
+		if table.HasValue( Rotate90ModelList,string.lower( self.pod:GetModel() ) ) then
 			self.Rotate90 = true
 			self.EyeAng = Angle(0,90,0)
 		end
@@ -103,10 +103,11 @@ function ENT:PodLink(vehicle)
 end
 
 function ENT:OnRemove()
-	if (self.pod and self.pod:IsValid() and self.pod:IsVehicle()) then
+	if IsValid(self.pod) and self.pod:IsVehicle() then
 		self.pod:GetTable().AttachedWireEyePod = nil
 	end
-	if (self.driver != nil) then
+
+	if IsValid(self.driver) then
 		umsg.Start("UpdateEyePodState", self.driver)
 			umsg.Short(0)
 			umsg.Angle(self.EyeAng)
@@ -120,12 +121,12 @@ function ENT:Think()
 	-- Make sure the gate updates even if we don't receive any input
 	self:TriggerInput()
 
-	if (self.pod and self.pod:IsValid()) then
+	if IsValid(self.pod) then
 		-- if we are in a pod, set the player
-		if ( self.pod:IsVehicle() and self.pod:GetDriver():IsPlayer() ) then
+		if self.pod:IsVehicle() and self.pod:GetDriver():IsPlayer() then
 			self.driver = self.pod:GetDriver()
 		else -- else set X and Y to 0
-			if (self.driver != nil) then
+			if IsValid(self.driver) then
 				umsg.Start("UpdateEyePodState", self.driver)
 					umsg.Short(0)
 					umsg.Angle(self.EyeAng)
@@ -143,7 +144,7 @@ function ENT:Think()
 			end
 		end
 	else -- else set X and Y to 0
-		if (self.driver != nil) then
+		if IsValid(self.driver) then
 			umsg.Start("UpdateEyePodState", self.driver)
 				umsg.Short(0)
 				umsg.Angle(self.EyeAng)
@@ -164,12 +165,12 @@ function ENT:Think()
 
 	-- update the overlay with the user's name
 	local Txt = "Eye Pod Control"
-	if self.Entity.enabled == 1 and self.driver and self.driver:IsPlayer() then
+	if self.Entity.enabled == 1 and IsValid(self.driver) and self.driver:IsPlayer() then
 		Txt = Txt.." - In use by "..self.driver:Name()
 	else
 		Txt = Txt.." - Not Active"
 	end
-	if self.pod and self.pod:IsValid() and self.pod:IsVehicle() then
+	if IsValid(self.pod) and self.pod:IsVehicle() then
 		Txt = Txt.."\nLinked to "..self.pod:GetModel()
 	else
 		Txt = Txt.."\nNot Linked"
@@ -226,7 +227,7 @@ function ENT:TriggerInput(iname, value)
 			local XY_Vec = {self.X,self.Y}
 			Wire_TriggerOutput(self.Entity, "XY", XY_Vec)
 		end
-		if (self.driver != nil and self.pod and self.pod:IsValid()) then
+		if IsValid(self.driver) and IsValid(self.pod) then
 			umsg.Start("UpdateEyePodState", self.driver)
 				umsg.Short(self.enabled)
 				umsg.Angle(self.EyeAng)
@@ -238,7 +239,7 @@ function ENT:TriggerInput(iname, value)
 
 	--Turn on the EyePod Control file
 	self.enabled = 1
-	if (self.driver != nil and self.pod and self.pod:IsValid()) then
+	if IsValid(self.driver) and IsValid(self.pod) then
 		umsg.Start("UpdateEyePodState", self.driver)
 			umsg.Short(self.enabled)
 			umsg.Angle(self.EyeAng)
@@ -254,11 +255,11 @@ local function EyePodMouseControl(ply, movedata)
 	local Vehicle = nil
 	local EyePod = nil
 	--is the player in a vehicle?
-	if (ply and ply:InVehicle() and ply:GetVehicle():IsValid()) then
+	if ply and ply:InVehicle() and IsValid(ply:GetVehicle()) then
 		Vehicle = ply:GetVehicle()
 		local Table = Vehicle:GetTable()
 		--is the vehicle linked to an EyePod?
-		if (Table and Table.AttachedWireEyePod and Table.AttachedWireEyePod:IsValid()) then
+		if Table and IsValid(Table.AttachedWireEyePod) then
 			--get the EyePod
 			EyePod = Table.AttachedWireEyePod
 		else
@@ -268,7 +269,7 @@ local function EyePodMouseControl(ply, movedata)
 		return
 	end
 
-	if (EyePod == nil or Vehicle == nil) then return end
+	if !IsValid(EyePod) or !IsValid(Vehicle) then return end
 
 	if (EyePod.enabled == 1) then
 
@@ -279,10 +280,10 @@ local function EyePodMouseControl(ply, movedata)
 		EyePod.Y = -cmd:GetMouseY()/10 + EyePod.Y
 
 		--clamp the output
-		if(EyePod.ClampX == 1)then
+		if EyePod.ClampX == 1 then
 			EyePod.X = math.Clamp(EyePod.X,EyePod.ClampXMin,EyePod.ClampXMax)
 		end
-		if(EyePod.ClampY == 1) then
+		if EyePod.ClampY == 1 then
 			EyePod.Y = math.Clamp(EyePod.Y,EyePod.ClampYMin,EyePod.ClampYMax)
 		end
 
@@ -293,7 +294,7 @@ local function EyePodMouseControl(ply, movedata)
 			local XY_Vec = {EyePod.X,EyePod.Y}
 			Wire_TriggerOutput(EyePod, "XY", XY_Vec)
 			--reset the output so it is not cumualative if you want the rate of change
-			if (EyePod.ShowRateOfChange == 1)then
+			if EyePod.ShowRateOfChange == 1 then
 				EyePod.X = 0
 				EyePod.Y = 0
 			end
@@ -312,7 +313,7 @@ hook.Add("SetupMove", "WireEyePodMouseControl", EyePodMouseControl)
 -- Advanced Duplicator Support
 function ENT:BuildDupeInfo()
 	local info = self.BaseClass.BuildDupeInfo(self) or {}
-	if (self.pod) and (self.pod:IsValid()) then
+	if IsValid(self.pod) then
 		info.pod = self.pod:EntIndex()
 	end
 	return info
@@ -322,10 +323,10 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
 	if (info.pod) then
 		self.pod = GetEntByID(info.pod)
-		if (!self.pod) then
+		if !self.pod then
 			self.pod = ents.GetByIndex(info.pod)
 		end
-		if (self.pod) then
+		if self.pod then
 			self.Entity:PodLink(self.pod)
 		end
 	end
