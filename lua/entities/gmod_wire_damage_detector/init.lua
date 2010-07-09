@@ -32,17 +32,20 @@ local function CheckWireDamageDetectors( ent, inflictor, attacker, amount, dmgin
 			if ValidEntity(detector) and detector.on then
 				if !detector.updated then
 					detector:UpdateLinkedEnts()
+					detector.updated = true
 					detector:NextThink(CurTime()+0.001)		-- Update link info once per tick per detector at most
 				end
 				if detector.key_ents[entID] then
 					detector:UpdateDamage( dmginfo, entID )
 				end
-				detector.updated = true
 			end
 		end
 	end
 end
-hook.Add("EntityTakeDamage", "CheckWireDamageDetectors", CheckWireDamageDetectors)
+hook.Add("EntityTakeDamage", "CheckWireDamageDetectors", function( ent, inflictor, attacker, amount, dmginfo )
+	local r, e = pcall( CheckWireDamageDetectors, ent, inflictor, attacker, amount, dmginfo )
+	if !r then print( "Wire damage detector error: " .. e ) end
+end)
 
 
 function ENT:Initialize()
@@ -56,11 +59,15 @@ function ENT:Initialize()
 	self.Inputs = WireLib.CreateSpecialInputs(self, { "On", "Entity", "Entities" }, { "NORMAL", "ENTITY", "ARRAY" } )
 
 	self.on = 0
-	self.updated = false
+	self.updated = false		-- Tracks whether constraints were updated that tick
+	self.hit = false			-- Tracks whether detector registered any damage that tick
 
 	self.firsthit_dmginfo = {}		-- Stores damage info representing damage during an interval
 	self.output_dmginfo = {}		-- Stores the current damage info outputs
 	self.linked_entities = {}
+
+	// Store output damage info
+	self.victims = {}
 	self.damage = 0
 
 	Wire_Damage_Detectors[self:EntIndex()] = true
@@ -152,37 +159,24 @@ end
 function ENT:TriggerOutput()		-- Entity outputs won't trigger again until they change
 			local attacker = self.firsthit_dmginfo[1]
 			if ValidEntity(attacker) then
-				if self.output_dmginfo[1] != attacker then
-					self.output_dmginfo[1] = attacker
-					Wire_TriggerOutput( self.Entity, "Attacker", attacker )
-				end
+				Wire_TriggerOutput( self.Entity, "Attacker", attacker )
+			else
+				Wire_TriggerOutput( self.Entity, "Attacker", null )
 			end
 
 			local victim = self.firsthit_dmginfo[2]
 			if ValidEntity( ents.GetByIndex(victim) ) then
-				if self.output_dmginfo[3] != victim then
-					self.output_dmginfo[3] = victim
-					Wire_TriggerOutput( self.Entity, "Victim", ents.GetByIndex(victim) )
-				end
+				Wire_TriggerOutput( self.Entity, "Victim", ents.GetByIndex(victim) )
+			else
+				Wire_TriggerOutput( self.Entity, "Victim", null )
 			end
 
-			Wire_TriggerOutput( self.Entity, "Victims", self.victims )
+			Wire_TriggerOutput( self.Entity, "Victims", self.victims or {} )
+			Wire_TriggerOutput( self.Entity, "Position", self.firsthit_dmginfo[3] or Vector(0,0,0) )
+			Wire_TriggerOutput( self.Entity, "Force", self.firsthit_dmginfo[4] or Vector(0,0,0) )
+			Wire_TriggerOutput( self.Entity, "Type", self.firsthit_dmginfo[5] or "" )
 
-			local position = self.firsthit_dmginfo[3]
-			if !position then
-				position = Vector(0,0,0)
-			end
-			Wire_TriggerOutput( self.Entity, "Position", position )
-
-			local force = self.firsthit_dmginfo[4]
-			if !force then
-				force = Vector(0,0,0)
-			end
-			Wire_TriggerOutput( self.Entity, "Force", force )
-
-			Wire_TriggerOutput( self.Entity, "Type", self.firsthit_dmginfo[5] )
-
-			Wire_TriggerOutput( self.Entity, "Damage", self.damage )
+			Wire_TriggerOutput( self.Entity, "Damage", self.damage or 0 )
 			Wire_TriggerOutput( self.Entity, "Damage", 0 )		-- Set damage back to 0 after it's been dealt
 end
 
@@ -218,7 +212,7 @@ end
 function ENT:UpdateDamage( dmginfo, entID )		-- Update damage table
 	local damage = dmginfo:GetDamage()
 
-	if !self.updated then		-- Only register the first target's damage info
+	if !self.hit then		-- Only register the first target's damage info
 		self.firsthit_dmginfo = {
 			dmginfo:GetAttacker(),
 			entID,
@@ -235,11 +229,13 @@ function ENT:UpdateDamage( dmginfo, entID )		-- Update damage table
 		elseif dmginfo:IsDamageType(DMG_CRUSH) then self.dmgtype = "Crush"
 		end
 
-		self.victims = {}
+		table.Empty(self.victims)
 		self.firsthit_dmginfo[5] = self.dmgtype
+
+		self.hit = true
 	end
 
-	if self.dmgtype == "Explosive" then		-- Explosives will affect the entity that receives the most damage
+	if self.dmgtype == "Explosive" then		-- Explosives will output the entity that receives the most damage
 		if self.damage < damage then
 			self.damage = damage
 			self.firsthit_dmginfo[2] = entID
@@ -254,6 +250,7 @@ end
 
 function ENT:Think()
 	self.updated = false
+	self.hit = false
 	if self.damage > 0 then
 		self:TriggerOutput()
 		self.damage = 0
@@ -274,10 +271,10 @@ end
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
 
-	if IsValid( GetEntByID(info.linked_entities) ) then
+	if ValidEntity( GetEntByID(info.linked_entities) ) then
 		self.linked_entities = {}
 		self.linked_entities[0] = GetEntByID(info.linked_entities):EntIndex()
-	elseif IsValid( ents.GetByIndex(info.linked_entities) ) then
+	elseif ValidEntity( ents.GetByIndex(info.linked_entities) ) then
 		self.linked_entities = {}
 		self.linked_entities[0] = info.linked_entities
 	end
