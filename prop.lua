@@ -4,15 +4,10 @@ Prop Core by ZeikJT and MrFaul
 
 E2Lib.RegisterExtension("propcore", false)
 
-hook.Add("PlayerInitialSpawn", "wire_expression2_propcore", function(ply)
-	ply:SendLua('language.Add("Undone_e2_spawned_prop", "E2 Spawned Prop")')
-end)
-
 local sbox_E2_maxProps = CreateConVar( "sbox_E2_maxProps", "-1", FCVAR_ARCHIVE )
 local sbox_E2_maxPropsPerSecond = CreateConVar( "sbox_E2_maxPropsPerSecond", "4", FCVAR_ARCHIVE )
 local sbox_E2_PropCore = CreateConVar( "sbox_E2_PropCore", "2", FCVAR_ARCHIVE )
 
-local E2Helper = { Descriptions = {} }
 local E2totalspawnedprops = 0
 local E2tempSpawnedProps = 0
 local TimeStamp = 0
@@ -78,6 +73,20 @@ local function createpropsfromE2(self,model,pos,angles,freeze)
 	E2totalspawnedprops = E2totalspawnedprops+1
 	E2tempSpawnedProps = E2tempSpawnedProps+1
 	return prop
+end
+
+local function physManipulate(this, pos, rot, freeze, gravity, notsolid)
+	if(notsolid!=nil) then this:SetNotSolid(notsolid ~= 0) end
+	local phys = this:GetPhysicsObject()
+	if(pos!=nil) then phys:SetPos(Vector(pos[1],pos[2],pos[3])) end
+	if(rot!=nil) then phys:SetAngle(Angle(rot[1],rot[2],rot[3])) end
+	if(freeze!=nil) then phys:EnableMotion(freeze == 0) end
+	if(gravity!=nil) then phys:EnableGravity(gravity~=0) end
+	phys:Wake()
+	if(!phys:IsMoveable())then
+		phys:EnableMotion(true)
+		phys:EnableMotion(false)
+	end
 end
 
 --------------------------------------------------------------------------------
@@ -149,48 +158,40 @@ end
 e2function number array:propDelete() = e2function number table:propDelete()
 
 --------------------------------------------------------------------------------
+e2function void entity:propManipulate(vector pos, angle rot, number freeze, number gravity, number notsolid)
+	if not ValidAction(self.player) then return end
+	if (!validPhysics(this)) then return end
+	if(!isOwner(self, this)) then return end
+	physManipulate(this, pos, rot, freeze, gravity, notsolid)
+end
+
 e2function void entity:propFreeze(number freeze)
 	if not ValidAction(self.player) then return end
 	if (!validPhysics(this)) then return end
 	if(!isOwner(self, this)) then return end
-	if(!this:IsWorld()) then
-		local phys = this:GetPhysicsObject()
-		phys:EnableMotion(freeze == 0)
-	end
+	physManipulate(this, pos, rot, freeze, gravity, notsolid)
 end
 
 e2function void entity:propNotSolid(number notsolid)
 	if not ValidAction(self.player) then return end
-	if not validEntity(this) then return end
+	if (!validPhysics(this)) then return end
 	if(!isOwner(self, this)) then return end
-	if(!this:IsWorld()) then
-		this:SetNotSolid(notsolid ~= 0)
-	end
+	physManipulate(this, pos, rot, freeze, gravity, notsolid)
 end
 
 e2function void entity:propGravity(number gravity)
 	if not ValidAction(self.player) then return end
 	if (!validPhysics(this)) then return end
 	if(!isOwner(self, this)) then return end
-	if(!this:IsWorld()) then
-		local phys = this:GetPhysicsObject()
-		phys:EnableGravity(gravity~=0)
-	end
+	physManipulate(this, pos, rot, freeze, gravity, notsolid)
 end
-
 --------------------------------------------------------------------------------
 
 e2function void entity:setPos(vector pos)
 	if not ValidAction(self.player) then return end
 	if (!validPhysics(this)) then return end
 	if(!isOwner(self, this)) then return end
-	local phys = this:GetPhysicsObject()
-	phys:SetPos(Vector(pos[1],pos[2],pos[3]))
-	phys:Wake()
-	if(!phys:IsMoveable())then
-	phys:EnableMotion(true)
-	phys:EnableMotion(false)
-	end
+	physManipulate(this, pos, rot, freeze, gravity, notsolid)
 end
 
 e2function void entity:reposition(vector pos) = e2function void entity:setPos(vector pos)
@@ -199,13 +200,7 @@ e2function void entity:setAng(angle rot)
 	if not ValidAction(self.player) then return end
 	if (!validPhysics(this)) then return end
 	if(!isOwner(self, this)) then return end
-	local phys = this:GetPhysicsObject()
-	phys:SetAngle(Angle(rot[1],rot[2],rot[3]))
-	phys:Wake()
-	if(!phys:IsMoveable())then
-	phys:EnableMotion(true)
-	phys:EnableMotion(false)
-	end
+	physManipulate(this, pos, rot, freeze, gravity, notsolid)
 end
 
 e2function void entity:rerotate(angle rot) = e2function void entity:setAng(angle rot)
@@ -216,6 +211,7 @@ e2function void entity:parentTo(entity target)
 	if not validEntity(this) then return nil end
 	if not validEntity(target) then return nil end
 	if(!isOwner(self, this) || !isOwner(self, target)) then return end
+	if this == target then return end
 	this:SetParent(target)
 end
 
