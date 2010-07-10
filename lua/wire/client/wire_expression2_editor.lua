@@ -520,22 +520,21 @@ end
 local code1 = "@name \n@inputs \n@outputs \n@persist \n@trigger \n\n"
 -- code2 contains the code that is to be marked, so it can simply be overwritten or deleted.
 local code2 = [[
-# foreach loops have been added! Created by Colonel 32.
-# Syntax: foreach( Key, Value:type, Table ) { ... }
-#
-# Holograms now support ANY model. The syntax, however, is not
-# holoModelAny. It is simply holoModel.
-# If you still have the custom extension installed called
-# holoModelAny, you will be able to scale the holograms to any size.
-# Using the official holoModel, the scale will be clamped.
-#
 # Data Signals have been added! These functions allow you to transmit
 # data and execute E2s remotely. Read the wiki for more information.
+#
+# [wirelink]s can be wired to friends without getting kicked
 #
 # Expression 2 now uses the friends list of any prop protection
 # installed on the server to determine if a player may interact
 # with your props and read your code. To allow friends to write to your
 # expressions, execute the following: wire_expression2_friendwrite 1
+#
+# A new operator [A ?: B] has been added, shortcut for [A ? A : B]
+# Example: Output = A ?: B, Output = A ?: B ?: C
+#
+# Functionality for checking if inputs are connected is now available
+# Example: if (->Input) { ... }
 #
 # Documentation and examples are available at:
 # http://wiki.garrysmod.com/?title=Wire_Expression2
