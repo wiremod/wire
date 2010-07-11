@@ -16,21 +16,23 @@ function ENT:Initialize()
 	self.Velocity = 0
 	self.Length = 100
 	self.Reaction = false
+	self.ShowBeam = true
 
 	self.Inputs = WireLib.CreateInputs( self.Entity, { "Force", "OffsetForce", "Velocity", "Length" } )
 
 	self:SetNWBool("ShowBeam",false)
 	self:SetNWBool("ShowForceBeam",false)
-	self:SetNWInt("BeamLength",100)
+	self:SetBeamLength(100)
 	self:ShowOutput()
 end
 
 function ENT:Setup( Force, Length, ShowBeam, Reaction )
-	self.ForceMul = Force
-	self.Length = math.max(Length,1)
-	self.Reaction = Reaction
+	self.ForceMul = Force or 1
+	self.Length = math.max(Length or 100,1)
+	self.Reaction = Reaction or false
 	self:SetNWBool("ShowBeam",ShowBeam)
-	self:SetNWInt("BeamLength",math.Round(Length))
+	self.ShowBeam = ShowBeam or true
+	self:SetBeamLength(math.Round(Length or 100))
 	self:ShowOutput()
 end
 
@@ -103,6 +105,9 @@ end
 function ENT:BuildDupeInfo()
 	local info = self.BaseClass.BuildDupeInfo(self) or {}
 	info.ForceMul = self.ForceMul
+	info.ShowBeam = self.ShowBeam
+	info.Reaction = self.Reaction
+	info.Length = self.Length
 	return info
 end
 
@@ -114,13 +119,13 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 		info.Wires.A = nil
 	end
 
-	self.ForceMul = info.ForceMul or 1
+	self:Setup( info.ForceMul, info.Length, info.ShowBeam, info.Reaction )
 
 	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
 end
 
 
-function MakeWireForcer( pl, Pos, Ang, model, Force, Length, showbeam, reaction )
+function MakeWireForcer( pl, Pos, Ang, model, Force, Length, ShowBeam, Reaction )
 	if not pl:CheckLimit( "wire_forcers" ) then return false end
 
 	local wire_forcer = ents.Create( "gmod_wire_forcer" )
@@ -131,7 +136,7 @@ function MakeWireForcer( pl, Pos, Ang, model, Force, Length, showbeam, reaction 
 	wire_forcer:SetModel( model )
 	wire_forcer:Spawn()
 
-	wire_forcer:Setup(Force, Length, showbeam, reaction)
+	wire_forcer:Setup(Force, Length, ShowBeam, Reaction)
 	wire_forcer:SetPlayer( pl )
 	wire_forcer.pl = pl
 
@@ -140,4 +145,4 @@ function MakeWireForcer( pl, Pos, Ang, model, Force, Length, showbeam, reaction 
 	return wire_forcer
 end
 
-duplicator.RegisterEntityClass("gmod_wire_forcer", MakeWireForcer, "Pos", "Ang", "Model", "Force", "Length", "showbeam", "reaction")
+duplicator.RegisterEntityClass("gmod_wire_forcer", MakeWireForcer, "Pos", "Ang", "Model", "Force", "Length", "ShowBeam", "Reaction")

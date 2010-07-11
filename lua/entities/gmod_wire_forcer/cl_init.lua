@@ -2,5 +2,5 @@ include('shared.lua')
 
 function ENT:Draw()
 	self.BaseClass.Draw(self)
-	Wire_DrawTracerBeam( self, 1, self:GetForceBeam() )
+	if (self:GetNWBool("ShowBeam",false)) then Wire_DrawTracerBeam( self, 1, self:GetForceBeam() ) end
 end
