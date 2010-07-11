@@ -37,19 +37,19 @@ end
 function ENT:TriggerInput( name, value )
 	if (name == "Force") then
 		self.Force = value
-		self:SetNWBool("ShowForceBeam",value != 0)
+		self:SetForceBeam(value != 0)
 		self:ShowOutput()
 	elseif (name == "OffsetForce") then
 		self.OffsetForce = value
-		self:SetNWBool("ShowForceBeam",value != 0)
+		self:SetForceBeam(value != 0)
 		self:ShowOutput()
 	elseif (name == "Velocity") then
 		self.Velocity = math.Clamp(value,-100000,100000)
-		self:SetNWBool("ShowForceBeam",value != 0)
+		self:SetForceBeam(value != 0)
 		self:ShowOutput()
 	elseif (name == "Length") then
 		self.Length = value
-		self:SetNWInt("BeamLength",math.Round(value))
+		self:SetBeamLength(math.Round(value))
 		self:ShowOutput()
 	end
 end
@@ -100,12 +100,21 @@ function ENT:ShowOutput()
 	)
 end
 
+function ENT:BuildDupeInfo()
+	local info = self.BaseClass.BuildDupeInfo(self) or {}
+	info.ForceMul = self.ForceMul
+	return info
+end
+
+
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 	--Moves old "A" input to new "Force" input for older saves
 	if info.Wires and info.Wires.A then
 		info.Wires.Force = info.Wires.A
 		info.Wires.A = nil
 	end
+
+	self.ForceMul = info.ForceMul or 1
 
 	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
 end
