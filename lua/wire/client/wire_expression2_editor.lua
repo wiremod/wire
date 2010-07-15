@@ -520,6 +520,9 @@ end
 local code1 = "@name \n@inputs \n@outputs \n@persist \n@trigger \n\n"
 -- code2 contains the code that is to be marked, so it can simply be overwritten or deleted.
 local code2 = [[
+# Foreach loops have been added! The syntax is:
+# foreach(Key,Value:type = Table) { }
+#
 # Data Signals have been added! These functions allow you to transmit
 # data and execute E2s remotely. Read the wiki for more information.
 #
@@ -532,9 +535,6 @@ local code2 = [[
 #
 # A new operator [A ?: B] has been added, shortcut for [A ? A : B]
 # Example: Output = A ?: B, Output = A ?: B ?: C
-#
-# Functionality for checking if inputs are connected is now available
-# Example: if (->Input) { ... }
 #
 # Documentation and examples are available at:
 # http://wiki.garrysmod.com/?title=Wire_Expression2

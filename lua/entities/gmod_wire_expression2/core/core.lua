@@ -110,6 +110,40 @@ registerOperator("for", "", "", function(self, args)
 	end
 end)
 
+registerOperator("fea","t","s",function(self,args)
+	local keyname,valname,valtyp = args[2],args[3],args[4]
+	local tbl = args[5][1](self,args[5])
+	local stmt = args[6]
+
+	self.vclk[keyname] = true
+	self.vclk[valname] = true
+
+	local len = valtyp:len()
+
+	local keys = {}
+	for key,_ in pairs(tbl) do
+		if key:sub(1,len) == valtyp then
+			keys[#keys+1] = key
+		end
+	end
+
+	for _,key in ipairs(keys) do
+		if tbl[key] ~= nil then
+			self.prf = self.prf + 3
+
+			self.vars[keyname] = key:sub(len+1)
+			self.vars[valname] = tbl[key]
+
+			local ok, msg = pcall(stmt[1], self, stmt)
+			if !ok then
+				if msg == "break" then break
+				elseif msg == "continue" then
+				else error(msg, 0) end
+			end
+		end
+	end
+end)
+
 __e2setcost(2) -- approximation
 
 registerOperator("brk", "", "", function(self, args)

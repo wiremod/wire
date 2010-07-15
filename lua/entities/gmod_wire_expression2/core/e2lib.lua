@@ -279,6 +279,7 @@ E2Lib.optable_inv = {
 	dlt  = "$",
 	trg  = "~",
 	imp  = "->",
+	fea = "foreach",
 }
 
 E2Lib.optable = {}
