@@ -22,7 +22,7 @@ Statement
  5 : break, continue
  6 : var++, var--
  7 : var += e1, var -= e1, var *= e1, var /= e1
- 8 : var = s7, var[e1,type] = s7
+ 8 : var = s8, var[e1,type] = s8
  9 : e1
 
 If
@@ -420,11 +420,11 @@ function Parser:Stmt8()
 					end
 
 					local tp = wire_expression_types[string.upper(longtp)][1]
-					return self:Instruction(trace, "set", var, expr, self:Stmt7(), tp)
+					return self:Instruction(trace, "set", var, expr, self:Stmt8(), tp)
 				end
 			elseif self:AcceptRoamingToken("rsb") then
 				if self:AcceptRoamingToken("ass") then
-					return self:Instruction(trace, "set", var, expr, self:Stmt7())
+					return self:Instruction(trace, "set", var, expr, self:Stmt8())
 				end
 			else
 				self:Error("Indexing operator ([]) needs to be closed with comma (,) or right square bracket (])")
@@ -432,7 +432,7 @@ function Parser:Stmt8()
 		elseif self:AcceptRoamingToken("lsb") then
 			self:Error("Indexing operator ([]) must not be preceded by whitespace")
 		elseif self:AcceptRoamingToken("ass") then
-			return self:Instruction(trace, "ass", var, self:Stmt7())
+			return self:Instruction(trace, "ass", var, self:Stmt8())
 		end
 
 		self.index = tbpos - 2
