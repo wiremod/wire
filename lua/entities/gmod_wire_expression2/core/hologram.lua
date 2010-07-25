@@ -9,6 +9,10 @@ CreateConVar("wire_holograms_burst_delay", "10")
 local wire_holograms_size_max = CreateConVar("wire_holograms_size_max","50")
 CreateConVar("wire_holograms_max_clips", "5")
 
+wire_holograms = {} -- This global table is used to share certain functions and variables with UWSVN
+wire_holograms.wire_holograms_size_max = wire_holograms_size_max
+registerCallback("postinit",function() timer.Simple(1,function() wire_holograms = nil end) end)
+
 -- context = chip.context = self
 -- Holo = { ent = prop, scale = scale, e2owner = context }
 -- E2HoloRepo[player][-index] = Holo <-- global holos
@@ -46,6 +50,7 @@ local ModelList = {
 	["torus2"] = true,
 	["torus3"] = true
 }
+wire_holograms.ModelList = ModelList
 
 for k,_ in pairs(ModelList) do
 	util.PrecacheModel( "models/Holograms/"..k..".mdl" )
@@ -56,6 +61,8 @@ end
 
 local scale_queue = {}
 local clip_queue = {}
+
+wire_holograms.scale_queue = scale_queue
 
 -- If no recipient is given, the umsg is sent to everyone (umsg.Start does that)
 local function flush_scale_queue(queue, recipient)
@@ -140,6 +147,8 @@ local function rescale(Holo, scale)
 		Holo.scale = scale
 	end
 end
+
+wire_holograms.recsale = rescale
 
 local function check_clip(Holo, idx)
 	Holo.clips = Holo.clips or {}
@@ -264,6 +273,7 @@ local function CheckIndex(self, index)
 	if not Holo or not validEntity(Holo.ent) then return nil end
 	return Holo
 end
+wire_holograms.CheckIndex = CheckIndex
 
 -- Sets the given index to the given hologram.
 local function SetIndex(self, index, Holo)
@@ -493,9 +503,9 @@ e2function void holoScaleUnits(index, vector size)
 	if not Holo then return end
 
 	local propsize = Holo.ent:OBBMaxs() - Holo.ent:OBBMins()
-	x = size[1] / propsize.x
-	y = size[2] / propsize.y
-	z = size[3] / propsize.z
+	local x = size[1] / propsize.x
+	local y = size[2] / propsize.y
+	local z = size[3] / propsize.z
 
 	rescale(Holo, Vector(x, y, z))
 end
