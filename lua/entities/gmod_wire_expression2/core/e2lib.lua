@@ -453,9 +453,12 @@ hook.Add("InitPostEntity", "e2lib", function()
 				if owner == player then return true end
 
 				local friends = owner:CPPIGetFriends()
+				if type( friends ) != "table" then return end
+
 				for _,friend in pairs(friends) do
 					if player == friend then return true end
 				end
+
 				return false
 			end)
 		end
