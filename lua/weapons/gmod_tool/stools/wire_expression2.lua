@@ -157,60 +157,6 @@ if SERVER then
 		return false
 	end
 
-	function TOOL:Think()
-		local model = self:GetModel()
-		if !self.GhostEntity || !self.GhostEntity:IsValid() || !self.GhostEntity:GetModel() || self.GhostEntity:GetModel() != model then
-			self:MakeGhostEntity(model, Vector(0, 0, 0), Angle(0, 0, 0))
-		end
-		self:UpdateGhostWireExpression2(self.GhostEntity, self:GetOwner())
-	end
-
-	function TOOL:UpdateGhostWireExpression2(entity, ply)
-		if !entity or !entity:IsValid() then return end
-
-		local trace = util.TraceLine(utilx.GetPlayerTrace(ply, ply:GetCursorAimVector()))
-		if !trace.Hit then return end
-
-		if (trace.Entity && trace.Entity:GetClass() == "gmod_wire_expression2" || trace.Entity:IsPlayer()) then
-			entity:SetNoDraw(true)
-		else
-			local ang = trace.HitNormal:Angle()
-			ang.pitch = ang.pitch + 90
-
-			entity:SetPos(trace.HitPos - trace.HitNormal * entity:OBBMins().z)
-			entity:SetAngles(ang)
-			entity:SetNoDraw(false)
-		end
-	end
-
-	local prevmodel,prevvalid
-	function validModelCached(model)
-		if model ~= prevmodel then
-			prevmodel = model
-			prevvalid = util.IsValidModel(model)
-		end
-		return prevvalid
-	end
-
-	function TOOL:GetModel()
-		local scriptmodel = self:GetClientInfo("scriptmodel")
-		if scriptmodel and scriptmodel ~= "" and validModelCached(scriptmodel) then return scriptmodel end
-
-		local model = self:GetClientInfo("model")
-		local size = self:GetClientInfo("size")
-
-		if model and size then
-			local modelname, modelext = model:match("(.*)(%..*)")
-			if not modelext then return model end
-			local newmodel = modelname .. size .. modelext
-			if validModelCached(newmodel) then
-				return Model(newmodel)
-			else
-				return Model(model)
-			end
-		end
-	end
-
 elseif CLIENT then
 
 	local dir
@@ -554,3 +500,69 @@ elseif CLIENT then
 	end)
 
 end
+
+
+function TOOL:UpdateGhostWireExpression2( ent, player )
+
+		if ( !ent ) then return end
+		if ( !ent:IsValid() ) then return end
+
+		local tr 	= utilx.GetPlayerTrace( player, player:GetCursorAimVector() )
+		local trace 	= util.TraceLine( tr )
+		if (!trace.Hit) then return end
+
+		if (trace.Entity && trace.Entity:GetClass() == "gmod_wire_expression2" || trace.Entity:IsPlayer()) then
+			ent:SetNoDraw( true )
+			return
+		end
+
+		local Ang = trace.HitNormal:Angle()
+		Ang.pitch = Ang.pitch + 90
+
+		local min = ent:OBBMins()
+		ent:SetPos( trace.HitPos - trace.HitNormal * min.z )
+		ent:SetAngles( Ang )
+
+		ent:SetNoDraw( false )
+
+	end
+
+	function TOOL:Think()
+		if (!self.GhostEntity || !self.GhostEntity:IsValid() || self.GhostEntity:GetModel() != self:GetClientInfo( "model" ) || (not self.GhostEntity:GetModel()) ) then
+			self:MakeGhostEntity( self:GetModel(), Vector(0,0,0), Angle(0,0,0) )
+		end
+
+		self:UpdateGhostWireExpression2( self.GhostEntity, self:GetOwner() )
+	end
+
+
+
+	local prevmodel,prevvalid
+	function validModelCached(model)
+		if model ~= prevmodel then
+			prevmodel = model
+			prevvalid = util.IsValidModel(model)
+		end
+		return prevvalid
+	end
+
+	function TOOL:GetModel()
+		local scriptmodel = self:GetClientInfo("scriptmodel")
+		if scriptmodel and scriptmodel ~= "" and validModelCached(scriptmodel) then return Model(scriptmodel) end
+
+		local model = self:GetClientInfo("model")
+		local size = self:GetClientInfo("size")
+
+		if model and size then
+			local modelname, modelext = model:match("(.*)(%..*)")
+			if not modelext then return model end
+			local newmodel = modelname .. size .. modelext
+			//Msg(newmodel)
+			//if validModelCached(newmodel) then
+				return Model(newmodel)
+			//else
+			//	return Model(model)
+			//end
+		end
+	end
+
