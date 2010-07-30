@@ -164,7 +164,7 @@ AddDesc( "ddisable", "number", "Disable control flags [0 = VERTEX_ZSORT, 1 = VER
 AddDesc( "dclrscr", "color", "Clear GPU background color to color variable", "GPU", "opcode[214]" )
 AddDesc( "dcolor", "color", "Set GPU draw color to color variable", "GPU", "opcode[215]" )
 --AddDesc( "dbindtexture", "string", "Bind a texture to a string", "GPU", "opcode[216]" ) // Non-functional opcode
-AddDesc( "dsetfont", "number", "Set font type to number ID [0-4]", "GPU", "opcode[217]" )
+AddDesc( "dsetfont", "number", "Set font type to number ID [0-7]", "GPU", "opcode[217]" )
 AddDesc( "dsetsize", "number", "Set text size to number value", "GPU", "opcode[218]" )
 AddDesc( "dmove", "vec2f", "Set offset position to vec2f variable", "GPU", "opcode[219]" )
 AddDesc( "dvxdata_2f", "label,number", "Draw solid 2D polygon", "GPU", "opcode[220]" )
@@ -193,8 +193,8 @@ AddDesc( "dsetlight", "number,label", "Set light number and label containing vec
 AddDesc( "dgetlight", "number,label", "Get light number and label containing vec3f(lightpos) and color definition", "GPU", "opcode[245]" )
 AddDesc( "dwritefmt", "vec2f,string", "Write formatted string at vec2f variable position with a string containing special parameters", "GPU", "opcode[246]" )
 AddDesc( "dwritefix", "vec2f,number", "Write fixed number to vec2f variable position", "GPU", "opcode[247]" )
-AddDesc( "dtextwidth", "number,string", "1st number equals width of string if drawn", "GPU", "opcode[248]" )
-AddDesc( "dtextheight", "number,string", "1st number equals height of string if drawn", "GPU", "opcode[249]" )
+AddDesc( "dtextwidth", "number,string", "Store the width of the string (2nd parameter) in the 1st parameter", "GPU", "opcode[248]" )
+AddDesc( "dtextheight", "number,string", "Store the height of the string (2nd parameter) in the 1st parameter", "GPU", "opcode[249]" )
 --AddDesc( "dhaschanged", "number,number", "", "GPU", "opcode[258]" ) // Non-functional opcode
 --AddDesc( "dloopxy", "number,number", "", "GPU", "opcode[259]" ) // Describe me
 AddDesc( "mload", "matrix", "Load matrix into view matrix", "GPU", "opcode[271]" )
@@ -214,26 +214,26 @@ AddDesc( "dmuldt", "vec2f,vec2f", "Multiply by delta-time", "GPU", "opcode[294]"
 AddDesc( "drotate", "vec4f", "", "GPU", "opcode[300]" ) // Describe me
 AddDesc( "dtranslate", "vec4f", "", "GPU", "opcode[301]" ) // Describe me
 AddDesc( "dscale", "vec4f", "", "GPU", "opcode[302]" ) // Describe me
-AddDesc( "dsettextbox", "vec2f", "Set textbox size for word wrapping", "GPU", "opcode[990]" )
-AddDesc( "dsettextwrap", "number", "Set word wrapping mode", "GPU", "opcode[991]" )
+AddDesc( "dsettextbox", "vec2f", "Set textbox size for word wrap", "GPU", "opcode[990]" )
+AddDesc( "dsettextwrap", "number", "Enable or disable word wrap (0 or 1)", "GPU", "opcode[991]" )
 
 
 // AdvMath Opcodes
 //----------------------------------------------------------------------------------------------------------------------------------
-AddDesc( "vadd", "vec2f,vec2f", "Adds the 2nd vector to the 1st vector", "CPU/GPU", "opcode[250]" )
-AddDesc( "vadd", "vec3f,vec3f", "Adds the 2nd vector to the 1st vector (Must set vmode 3 first)", "CPU/GPU", "opcode[250]" )
-AddDesc( "vsub", "vec2f,vec2f", "Subtracts the 2nd vector from the 1st vector", "CPU/GPU", "opcode[251]" )
-AddDesc( "vsub", "vec3f,vec3f", "Subtracts the 2nd vector from the 1st vector (Must set vmode 3 first)", "CPU/GPU", "opcode[251]" )
-AddDesc( "vmul", "vec2f,vec2f", "Multiplies the 1st vector by the 2nd vector", "CPU/GPU", "opcode[252]" )
-AddDesc( "vmul", "vec3f,vec3f", "Multiplies the 1st vector by the 2nd vector (Must set vmode 3 first)", "CPU/GPU", "opcode[252]" )
-AddDesc( "vdot", "vec2f,vec2f", "1st vector equals the dot product of the 2nd vector", "CPU/GPU", "opcode[253]" )
-AddDesc( "vdot", "vec3f,vec3f", "1st vector equals the dot product of the 2nd vector (Must set vmode 3 first)", "CPU/GPU", "opcode[253]" )
-AddDesc( "vcross", "vec2f,vec2f", "1st vector equals the cross product of the 2nd vector", "CPU/GPU", "opcode[254]" )
-AddDesc( "vcross", "vec3f,vec3f", "1st vector equals the cross product of the 2nd vector (Must set vmode 3 first)", "CPU/GPU", "opcode[254]" )
-AddDesc( "vmov", "vec2f,vec2f", "Assign the 1st vector to the 2nd vector's value", "CPU/GPU", "opcode[255]" )
-AddDesc( "vmov", "vec3f,vec3f", "Assign the 1st vector to the 2nd vector's value (Must set vmode 3 first)", "CPU/GPU", "opcode[255]" )
-AddDesc( "vnorm", "vec2f,vec2f", "Gets the normalized vector of the 2nd parameter", "CPU/GPU", "opcode[256]" )
-AddDesc( "vnorm", "vec3f,vec3f", "Gets the normalized vector of the 2nd parameter (Must set vmode 3 first)", "CPU/GPU", "opcode[256]" )
+AddDesc( "vadd", "vec2f,vec2f", "Adds the 2nd vector to the 1st vector (Set vmode to 2 for vec2f, Set vmode to 3 for vec3f)", "CPU/GPU", "opcode[250]" )
+AddDesc( "vadd", "vec3f,vec3f", "Adds the 2nd vector to the 1st vector (Set vmode to 2 for vec2f, Set vmode to 3 for vec3f)", "CPU/GPU", "opcode[250]" )
+AddDesc( "vsub", "vec2f,vec2f", "Subtracts the 2nd vector from the 1st vector (Set vmode to 2 for vec2f, Set vmode to 3 for vec3f)", "CPU/GPU", "opcode[251]" )
+AddDesc( "vsub", "vec3f,vec3f", "Subtracts the 2nd vector from the 1st vector (Set vmode to 2 for vec2f, Set vmode to 3 for vec3f)", "CPU/GPU", "opcode[251]" )
+AddDesc( "vmul", "vec2f,vec2f", "Multiplies the 1st vector by the 2nd vector (Set vmode to 2 for vec2f, Set vmode to 3 for vec3f)", "CPU/GPU", "opcode[252]" )
+AddDesc( "vmul", "vec3f,vec3f", "Multiplies the 1st vector by the 2nd vector (Set vmode to 2 for vec2f, Set vmode to 3 for vec3f)", "CPU/GPU", "opcode[252]" )
+AddDesc( "vdot", "vec2f,vec2f", "1st vector equals the dot product of the 2nd vector (Set vmode to 2 for vec2f, Set vmode to 3 for vec3f)", "CPU/GPU", "opcode[253]" )
+AddDesc( "vdot", "vec3f,vec3f", "1st vector equals the dot product of the 2nd vector (Set vmode to 2 for vec2f, Set vmode to 3 for vec3f)", "CPU/GPU", "opcode[253]" )
+AddDesc( "vcross", "vec2f,vec2f", "1st vector equals the cross product of the 2nd vector (Set vmode to 2 for vec2f, Set vmode to 3 for vec3f)", "CPU/GPU", "opcode[254]" )
+AddDesc( "vcross", "vec3f,vec3f", "1st vector equals the cross product of the 2nd vector (Set vmode to 2 for vec2f, Set vmode to 3 for vec3f)", "CPU/GPU", "opcode[254]" )
+AddDesc( "vmov", "vec2f,vec2f", "Assign the 1st vector to the 2nd vector's value (Set vmode to 2 for vec2f, Set vmode to 3 for vec3f)", "CPU/GPU", "opcode[255]" )
+AddDesc( "vmov", "vec3f,vec3f", "Assign the 1st vector to the 2nd vector's value (Set vmode to 2 for vec2f, Set vmode to 3 for vec3f)", "CPU/GPU", "opcode[255]" )
+AddDesc( "vnorm", "vec2f,vec2f", "Gets the normalized vector of the 2nd parameter (Set vmode to 2 for vec2f, Set vmode to 3 for vec3f)", "CPU/GPU", "opcode[256]" )
+AddDesc( "vnorm", "vec3f,vec3f", "Gets the normalized vector of the 2nd parameter (Set vmode to 2 for vec2f, Set vmode to 3 for vec3f)", "CPU/GPU", "opcode[256]" )
 --AddDesc( "vcolornorm", "", "", "CPU/GPU", "opcode[257]" ) // Non-functional opcode
 AddDesc( "madd", "matrix,matrix", "Adds the 2nd matrix to the 1st matrix", "CPU/GPU", "opcode[260]" )
 AddDesc( "msub", "matrix,matrix", "Subtracts the 2nd matrix from the 1st matrix", "CPU/GPU", "opcode[261]" )
@@ -244,14 +244,14 @@ AddDesc( "mperspective", "matrix,vec4f", "Create a perspective matrix from a vec
 AddDesc( "mtranslate", "matrix,vec4f", "Create a translation matrix from a vec4f variable (X, Y, Z, <none>) ", "CPU/GPU", "opcode[266]" )
 AddDesc( "mlookat", "matrix,label", "Look at a matrix based upon a label containing (CAM POS, VIEW CENTER, UP DIRECTION)", "CPU/GPU", "opcode[267]" )
 AddDesc( "mmov", "matrix,matrix", "Assign the 1st matrix to the 2nd matrix", "CPU/GPU", "opcode[268]" )
-AddDesc( "vlen", "number,vec2f", "Gets the length of a vector", "CPU/GPU", "opcode[269]" )
-AddDesc( "vlen", "number,vec3f", "Gets the length of a vector (Must set vmode 3 first)", "CPU/GPU", "opcode[269]" )
+AddDesc( "vlen", "number,vec2f", "Gets the length of a vector (Set vmode to 2 for vec2f, Set vmode to 3 for vec3f)", "CPU/GPU", "opcode[269]" )
+AddDesc( "vlen", "number,vec3f", "Gets the length of a vector (Set vmode to 2 for vec2f, Set vmode to 3 for vec3f)", "CPU/GPU", "opcode[269]" )
 AddDesc( "mident", "matrix", "Load identity matrix into the matrix variable given in the 1st parameter", "CPU/GPU", "opcode[270]" )
 AddDesc( "vmode", "number", "Set vector mode for opcodes prefixed with 'v' (2 = 2D Vector, 3 = 3D Vector)", "CPU/GPU", "opcode[273]" )
-AddDesc( "vdiv", "vec2f,vec2f", "Divide the 1st vector by the 2nd vector", "CPU/GPU", "opcode[295]" )
-AddDesc( "vdiv", "vec3f,vec3f", "Divide the 1st vector by the 2nd vector (Must set vmode 3 first)", "CPU/GPU", "opcode[295]" )
-AddDesc( "vtransform", "vec2f,matrix", "Multiply 1st vector by matrix", "CPU/GPU", "opcode[296]" )
-AddDesc( "vtransform", "vec3f,matrix", "Multiply 1st vector by matrix (Must set vmode 3 first)", "CPU/GPU", "opcode[296]" )
+AddDesc( "vdiv", "vec2f,vec2f", "Divide the 1st vector by the 2nd vector (Set vmode to 2 for vec2f, Set vmode to 3 for vec3f)", "CPU/GPU", "opcode[295]" )
+AddDesc( "vdiv", "vec3f,vec3f", "Divide the 1st vector by the 2nd vector (Set vmode to 2 for vec2f, Set vmode to 3 for vec3f)", "CPU/GPU", "opcode[295]" )
+AddDesc( "vtransform", "vec2f,matrix", "Multiply 1st vector by matrix (Set vmode to 2 for vec2f, Set vmode to 3 for vec3f)", "CPU/GPU", "opcode[296]" )
+AddDesc( "vtransform", "vec3f,matrix", "Multiply 1st vector by matrix (Set vmode to 2 for vec2f, Set vmode to 3 for vec3f)", "CPU/GPU", "opcode[296]" )
 
 
 // Registers
