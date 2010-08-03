@@ -299,7 +299,7 @@ do -- wire_digitalscreen
 
 	if CLIENT then
 		language.Add( "Tool_wire_digitalscreen_name", "Digital Screen Tool (Wire)" )
-		language.Add( "Tool_wire_digitalscreen_desc", "Spawns a digital screen, which can be used to draw pixel by pixel. Resoultion is 32x32!" )
+		language.Add( "Tool_wire_digitalscreen_desc", "Spawns a digital screen, which can be used to draw pixel by pixel." )
 		language.Add( "Tool_wire_digitalscreen_0", "Primary: Create/Update screen" )
 	end
 	WireToolSetup.BaseLang()

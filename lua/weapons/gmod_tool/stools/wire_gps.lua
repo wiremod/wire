@@ -8,7 +8,7 @@ if ( CLIENT ) then
     language.Add( "Tool_wire_gps_name", "GPS Tool (Wire)" )
     language.Add( "Tool_wire_gps_desc", "Spawns a gps for use with the wire system." )
     language.Add( "Tool_wire_gps_0", "Primary: Create/Update GPS" )
-	language.Add( "sboxlimit_wire_gpss", "You've hit gpss limit!" )
+	language.Add( "sboxlimit_wire_gpss", "You've hit GPS limit!" )
 	language.Add( "undone_wiregps", "Undone Wire GPS" )
 end
 
