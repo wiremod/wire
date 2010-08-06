@@ -5,6 +5,7 @@ ENT.RenderGroup = RENDERGROUP_BOTH
 local blocked = {}
 local scales = {}
 local clips = {}
+local vistbl = {}
 
 function ENT:Initialize( )
 	self:DoScale()
@@ -37,7 +38,7 @@ local function SetClip(eidx, cidx, origin, norm, isglobal)
 end
 
 function ENT:Draw()
-	if self.blocked then return end
+	if self.blocked or (!vistbl[self.Entity] and vistbl[self.Entity] != nil) then return end
 
 	local cliptbl = clips[self:EntIndex()]
 	local nclips = 0
@@ -128,6 +129,23 @@ usermessage.Hook("wire_holograms_set_scale", function( um )
 		index = um:ReadShort()
 	end
 end)
+
+/******************************************************************************/
+
+usermessage.Hook( "wire_holograms_set_visible", function( um )
+	local index = um:ReadShort()
+
+	while index ~= 0 do
+		local holo = Entity( index )
+		local visible = um:ReadBool()
+
+		if IsValid( holo ) then
+			vistbl[holo] = visible
+		end
+
+		index = um:ReadShort()
+	end
+end )
 
 /******************************************************************************/
 

@@ -61,6 +61,7 @@ end
 
 local scale_queue = {}
 local clip_queue = {}
+local vis_queue = {}
 
 wire_holograms.scale_queue = scale_queue
 
@@ -126,11 +127,43 @@ local function flush_clip_queue(queue, recipient)
 	umsg.End()
 end
 
+local function flush_vis_queue(queue, recipient)
+	if !queue then queue = vis_queue end
+	if table.Count( queue ) == 0 then return end
+
+	for ply,tbl in pairs( queue ) do
+		if IsValid( ply ) and #tbl > 0 then
+			local bytes = 4
+			umsg.Start( "wire_holograms_set_visible", ply )
+				for _,Holo,visible in ipairs_map(tbl, unpack) do
+					if IsValid( Holo.ent ) then
+						bytes = bytes + 3
+						if bytes > 255 then
+							umsg.Short( 0 )
+							umsg.End()
+							umsg.Start( "wire_holograms_set_visible", ply )
+							bytes = 4 + 3
+						end
+
+						umsg.Short( Holo.ent:EntIndex() )
+						umsg.Bool( visible )
+					end
+				end
+
+				umsg.Short( 0 )
+			umsg.End()
+		end
+	end
+end
+
 registerCallback("postexecute", function(self)
 	flush_scale_queue()
 	flush_clip_queue()
+	flush_vis_queue()
+
 	scale_queue = {}
 	clip_queue = {}
+	vis_queue = {}
 end)
 
 local function rescale(Holo, scale)
@@ -201,6 +234,16 @@ local function set_clip(Holo, idx, origin, normal, isglobal)
 				isglobal = isglobal
 			}
 		} )
+	end
+end
+
+local function set_visible(Holo, players, visible)
+	for _,ply in pairs( players ) do
+		if IsValid( ply ) and ply:IsPlayer() then
+			vis_queue[ply] = vis_queue[ply] or {}
+
+			table.insert( vis_queue[ply], { Holo, visible == 1 or visible == true } )
+		end
 	end
 end
 
@@ -662,6 +705,22 @@ e2function void holoRenderFX(index, effect)
 
 	effect = effect - effect % 1
 	Holo.ent:SetKeyValue("renderfx",effect)
+end
+
+/******************************************************************************/
+
+e2function void holoVisible(index, entity ply, visible)
+	local Holo = CheckIndex(self, index)
+	if !Holo or !IsValid( ply ) or !ply:IsPlayer() then return end
+
+	set_visible(Holo, { ply }, visible)
+end
+
+e2function void holoVisible(index, array players, visible)
+	local Holo = CheckIndex(self, index)
+	if !Holo then return end
+
+	set_visible(Holo, players, visible)
 end
 
 /******************************************************************************/

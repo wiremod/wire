@@ -2,17 +2,19 @@ ENT.Type            = "anim"
 ENT.Base            = "base_anim"
 
 ENT.PrintName       = "Wire Hologram"
-ENT.Author          = "I am McLovin"
+ENT.Author          = "McLovin"
 
 ENT.Spawnable       = false
 ENT.AdminSpawnable  = false
 
+--Taken from base_gmodentity--
+function ENT:SetPlayer( ply )
+	self:SetVar( "Founder", ply )
+	self:SetVar( "FounderIndex", ply:UniqueID() )
 
--- copy some functions from base_gmodentity
-local ENT = ENT
-hook.Add("InitPostEntity", "gmod_wire_hologram_shared", function()
-	base_gmodentity = scripted_ents.GetList().base_gmodentity.t
+	self:SetNetworkedString( "FounderName", ply:Nick() )
+end
 
-	ENT.SetPlayer = base_gmodentity.SetPlayer
-	ENT.GetPlayer = base_gmodentity.GetPlayer
-end)
+function ENT:GetPlayer()
+	return self:GetVar( "Founder", NULL )
+end
