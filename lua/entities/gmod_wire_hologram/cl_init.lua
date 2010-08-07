@@ -38,7 +38,7 @@ local function SetClip(eidx, cidx, origin, norm, isglobal)
 end
 
 function ENT:Draw()
-	if self.blocked or (!vistbl[self.Entity] and vistbl[self.Entity] != nil) then return end
+	if self.blocked or (!vistbl[self:EntIndex()] and vistbl[self:EntIndex()] != nil) then return end
 
 	local cliptbl = clips[self:EntIndex()]
 	local nclips = 0
