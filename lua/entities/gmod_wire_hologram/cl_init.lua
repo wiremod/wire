@@ -136,12 +136,7 @@ usermessage.Hook( "wire_holograms_set_visible", function( um )
 	local index = um:ReadShort()
 
 	while index ~= 0 do
-		local holo = Entity( index )
-		local visible = um:ReadBool()
-
-		if IsValid( holo ) then
-			vistbl[holo] = visible
-		end
+		vistbl[index] = um:ReadBool()
 
 		index = um:ReadShort()
 	end
@@ -152,6 +147,7 @@ end )
 hook.Add("EntityRemoved", "gmod_wire_hologram", function(ent)
 	scales[ent:EntIndex()] = nil
 	clips[ent:EntIndex()] = nil
+	vistbl[ent:EntIndex()] = nil
 end)
 
 concommand.Add("wire_holograms_block_client",
