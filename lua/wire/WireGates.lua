@@ -25,7 +25,7 @@ GateActions["increment"] = {
 				if ( gate.Memory == nil ) then
 					gate.Memory = A
 				else
-					gate.Memory = gate.Memory + 1
+					gate.Memory = gate.Memory + A
 				end
 			end
 		end
@@ -40,7 +40,7 @@ GateActions["increment"] = {
 		return gate.Memory
 	end,
 	label = function(Out, A)
-		return "(" .. A .. " + LastNum)++ = " .. Out
+		return "LastNum += " .. A .. " = " .. Out
 	end
 }
 
