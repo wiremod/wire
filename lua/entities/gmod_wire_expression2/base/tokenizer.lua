@@ -198,13 +198,17 @@ function Tokenizer:NextSymbol()
 			if self.character == "\\" then
 				self:SkipCharacter()
 				if self.character == "n" then
-					self.character = "\n"
+					self.tokendata = self.tokendata .. "\n"
+					self:SkipCharacter()
 				elseif self.character == "t" then
-					self.character = "\t"
+					self.tokendata = self.tokendata .. "\t"
+					self:SkipCharacter()
+				else
+					self:NextCharacter()
 				end
+			else
+				self:NextCharacter()
 			end
-
-			self:NextCharacter()
 		end
 		-- skip closing quotation mark
 		self:SkipCharacter()
