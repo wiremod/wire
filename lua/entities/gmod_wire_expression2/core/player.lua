@@ -30,6 +30,8 @@ end
 
 /******************************************************************************/
 
+__e2setcost(8)
+
 e2function vector entity:shootPos()
 	if(!validEntity(this)) then return {0,0,0} end
 	if(this:IsPlayer() or this:IsNPC()) then
@@ -55,6 +57,8 @@ end
 
 /******************************************************************************/
 
+__e2setcost(5)
+
 e2function string entity:name()
 	if(!validEntity(this)) then return "" end
 	if(!this:IsPlayer()) then return "" end
@@ -73,6 +77,8 @@ e2function number entity:armor()
 end
 
 /******************************************************************************/
+
+__e2setcost(10)
 
 e2function number entity:height()
 	if(!validEntity(this)) then return 0 end
@@ -93,6 +99,8 @@ e2function number entity:width()
 end
 
 /******************************************************************************/
+
+__e2setcost(5)
 
 e2function number entity:isCrouch()
 	if(!validEntity(this)) then return 0 end
@@ -151,6 +159,8 @@ e2function vector teamColor(index)
 	local col = team.GetColor(index)
 	return { col.r, col.g, col.b }
 end
+
+__e2setcost(10)
 
 e2function array teams()
 	local team_indexes = {}
@@ -247,6 +257,8 @@ hook.Add("EntityRemoved", "wire_expression2_friend_status", function(ply)
 	steamfriends[ply:EntIndex()] = nil
 end)
 
+__e2setcost(15)
+
 --- Returns an array containing <this>'s steam friends currently on the server
 e2function array entity:steamFriends()
 	if not validEntity(this) then return {} end
@@ -270,6 +282,8 @@ end
 
 /******************************************************************************/
 
+__e2setcost(5)
+
 e2function number entity:ping()
 	if not validEntity(this) then return 0 end
 	if(this:IsPlayer()) then return this:Ping() else return 0 end
@@ -279,6 +293,36 @@ e2function entity entity:vehicle()
 	if not validEntity(this) then return nil end
 	if not this:IsPlayer() then return nil end
 	return this:GetVehicle()
+end
+
+/******************************************************************************/
+
+local player = player
+
+__e2setcost(10)
+
+e2function array players()
+	return player.GetAll()
+end
+
+e2function array playersAdmins()
+	local Admins = {}
+	for _,ply in ipairs(player.GetAll()) do
+		if (ply:IsAdmin()) then
+			table.insert(Admins,ply)
+		end
+	end
+	return Admins
+end
+
+e2function array playersSuperAdmins()
+	local Admins = {}
+	for _,ply in ipairs(player.GetAll()) do
+		if (ply:IsSuperAdmin()) then
+			table.insert(Admins,ply)
+		end
+	end
+	return Admins
 end
 
 /******************************************************************************/
