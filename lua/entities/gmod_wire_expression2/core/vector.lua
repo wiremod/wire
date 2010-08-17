@@ -201,7 +201,7 @@ end
 
 /******************************************************************************/
 
-__e2setcost(10) -- temporary
+__e2setcost(5) -- temporary
 
 --- Returns a uniformly distributed, random, normalized direction vector.
 e2function vector randvec()
@@ -240,8 +240,6 @@ e2function vector randvec()
 	]]
 end
 
-__e2setcost(5)
-
 --- Returns a random vector with its components between <min> and <max>
 e2function vector randvec(min, max)
 	local range = max-min
@@ -255,8 +253,6 @@ e2function vector randvec(vector min, vector max)
 end
 
 /******************************************************************************/
-
-__e2setcost(10)
 
 registerFunction("length", "v:", "n", function(self, args)
 	local op1 = args[2]
@@ -366,8 +362,6 @@ end
 
 /******************************************************************************/
 
-__e2setcost(2)
-
 registerFunction("x", "v:", "n", function(self, args)
 	local op1 = args[2]
 	local rv1 = op1[1](self, op1)
@@ -406,8 +400,6 @@ registerFunction("setZ", "v:n", "v", function(self, args)
 end)
 
 /******************************************************************************/
-
-__e2setcost(10)
 
 registerFunction("round", "v", "v", function(self, args)
 	local op1 = args[2]
@@ -617,115 +609,11 @@ end)
 
 /******************************************************************************/
 
-local contents = {}
-local contents_inverted = {}
-local binlog_mem = {}
-
-local n = 0
-for k,v in pairs(_E) do
-	if k:sub(1,9) == "CONTENTS_" then
-		E2Lib.registerConstant(k, v)
-		contents[k] = v
-		contents_inverted[v] = k
-		binlog_mem[v] = n
-		n = n + 1
-	end
-end
-
-local function hascontents( raw, content )
-
-	if (content == 0 and raw == 0) then
-		return 1
-	elseif raw == content then
-		return 1
-	elseif raw > content and content ~= 0 then
-		RunString(string.format("garry_sucks = ( %d >> %d ) & 1", raw, binlog_mem[content]))
-		return garry_sucks == 1 and 1 or 0
-	else
-		return 0
-	end
-
-end
-
-__e2setcost( 10 )
-
-e2function number ranger:hitWater()
-	if (!this) then return 0 end
-	return hascontents( util.PointContents( this.HitPos ), CONTENTS_WATER )
-end
-
-local function getcontents( n )
-	if n == 0 then return {0} end -- = CONTENTS_EMPTY
-
-	local ret, s = {}, math.IntToBin(n):reverse()
-
-	local w = s:find("1")
-
-	while w do
-			ret[#ret+1] = 2^(w-1)
-			w = s:find("1",w+1)
-	end
-
-	return ret
-end
-
-__e2setcost( 8 )
-
-e2function number pointContentsRaw( vector point )
-	return util.PointContents( Vector( point[1], point[2], point[3] ) )
-end
-
-__e2setcost( 10 )
-
-e2function array pointContents( vector point )
-	local n = util.PointContents( Vector( point[1], point[2], point[3] ) )
-	return getcontents( n )
-end
-
-e2function array pointContents( n )
-	return getcontents( n )
-end
-
-__e2setcost( 12 )
-
-e2function number pointHasContent( vector point, string enum )
-	local n = contents[enum]
-	if (!n) then return 0 end
-	return hascontents( util.PointContents( Vector( point[1], point[2], point[3] ) ), n )
-end
-
-e2function number pointHasContent( vector point, enum )
-	local check = contents_inverted[enum]
-	if (!check) then return 0 end
-	return hascontents( util.PointContents( Vector( point[1], point[2], point[3] ) ), enum )
-end
-
-__e2setcost( 8 )
-
-e2function number pointHasContent( rawnum, string enum )
-	local n = contents[enum]
-	if (!n) then return 0 end
-	return hascontents( rawnum,n )
-end
-
-e2function number pointHasContent( rawnum, enum )
-	local check = contents_inverted[enum]
-	if (!check) then return 0 end
-	return hascontents( rawnum,enum )
-end
-
-/******************************************************************************/
-
-__e2setcost( 10 )
-
-
 registerFunction("isInWorld", "v:", "n", function(self, args)
 	local op1 = args[2]
 	local rv1 = op1[1](self, op1)
 	if util.IsInWorld(Vector(rv1[1], rv1[2], rv1[3])) then return 1 else return 0 end
 end)
-
-__e2setcost( 5 )
 
 --- Gets the vector nicely formatted as a string "[X,Y,Z]"
 e2function string toString(vector v)
