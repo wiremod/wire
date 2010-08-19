@@ -201,7 +201,7 @@ end
 
 /******************************************************************************/
 
-__e2setcost(5) -- temporary
+__e2setcost(10) -- temporary
 
 --- Returns a uniformly distributed, random, normalized direction vector.
 e2function vector randvec()
@@ -240,6 +240,8 @@ e2function vector randvec()
 	]]
 end
 
+__e2setcost(5)
+
 --- Returns a random vector with its components between <min> and <max>
 e2function vector randvec(min, max)
 	local range = max-min
@@ -253,6 +255,8 @@ e2function vector randvec(vector min, vector max)
 end
 
 /******************************************************************************/
+
+__e2setcost(10)
 
 registerFunction("length", "v:", "n", function(self, args)
 	local op1 = args[2]
@@ -362,6 +366,8 @@ end
 
 /******************************************************************************/
 
+__e2setcost(2)
+
 registerFunction("x", "v:", "n", function(self, args)
 	local op1 = args[2]
 	local rv1 = op1[1](self, op1)
@@ -400,6 +406,8 @@ registerFunction("setZ", "v:n", "v", function(self, args)
 end)
 
 /******************************************************************************/
+
+__e2setcost(10)
 
 registerFunction("round", "v", "v", function(self, args)
 	local op1 = args[2]
@@ -609,11 +617,71 @@ end)
 
 /******************************************************************************/
 
+local contents = {}
+for k,v in pairs(_E) do
+	if (k:sub(1,9) == "CONTENTS_") then
+		contents[v] = k:sub(10):lower()
+	end
+end
+
+local contents_numerical_cache = {}
+
+local function getcontents( n )
+	if n == 0 then return "empty" end -- = CONTENTS_EMPTY
+
+	if (contents_numerical_cache[n]) then
+		return contents_numerical_cache[n]
+	else
+		local ret, s = "", math.IntToBin(n):reverse()
+		local w = s:find("1")
+		local skipfirstcomma = true
+		while w do
+			if (skipfirstcomma) then
+				ret = ret .. contents[2^(w-1)]
+				skipfirstcomma = false
+			else
+				ret = ret .. "," .. contents[2^(w-1)]
+			end
+			w = s:find("1",w+1)
+		end
+		contents_numerical_cache[n] = ret
+		return ret
+	end
+end
+
+__e2setcost( 50 )
+
+e2function number pointHasContent( vector point, string has )
+	local finds, found = {}, 0
+	has:gsub(" ","_"):lower():gsub("([^,]+),?", function(m) finds[#finds+1] = m end)
+
+	local cont = getcontents( util.PointContents( Vector(point[1],point[2],point[3]) ) )
+
+	for i=1,#finds do
+		if (cont:find(finds[i],1,true)) then return 1 end
+	end
+
+	return 0
+end
+
+__e2setcost( 35 )
+
+e2function string pointContents( vector point )
+	return getcontents( util.PointContents( Vector(point[1],point[2],point[3]) ) )
+end
+
+/******************************************************************************/
+
+__e2setcost( 10 )
+
+
 registerFunction("isInWorld", "v:", "n", function(self, args)
 	local op1 = args[2]
 	local rv1 = op1[1](self, op1)
 	if util.IsInWorld(Vector(rv1[1], rv1[2], rv1[3])) then return 1 else return 0 end
 end)
+
+__e2setcost( 5 )
 
 --- Gets the vector nicely formatted as a string "[X,Y,Z]"
 e2function string toString(vector v)
