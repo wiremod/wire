@@ -106,9 +106,12 @@ local function ranger(self, rangertype, range, p1, p2, hulltype, mins, maxs )
 	if ignoreworld and trace.HitWorld then
 		trace.HitPos = defaultzero and tracedata.start or tracedata.endpos
 		trace.Hit = false
+		trace.HitWorld = false
 	elseif defaultzero and not trace.Hit then
 		trace.HitPos = tracedata.start
 	end
+
+	trace.RealStartPos = tracedata.start
 
 	return trace
 end
@@ -204,6 +207,7 @@ end
 e2function void rangerFilter(entity ent)
 	if validEntity(ent) then
 		table.insert(self.data.rangerfilter,ent)
+		if (#self.data.rangerfilter > 1000) then self.perf = self.perf + 50 end
 	end
 end
 
@@ -217,6 +221,7 @@ e2function void rangerFilter(array filter)
 			table.insert(rangerfilter,ent)
 		end
 	end
+	if (#self.data.rangerfilter > 1000) then self.perf = self.perf + #filter * 50 end
 end
 
 /******************************************************************************/
@@ -235,6 +240,15 @@ end
 --- Same as above with added inputs for X and Y skew
 e2function ranger ranger(distance, xskew, yskew)
 	return ranger(self, 0, distance, xskew, yskew) -- type 0, with skew
+end
+
+-- Same as ranger(distance) but for another entity
+e2function ranger entity:ranger(distance)
+	if not ValidEntity( this ) then return nil end
+	if not table.HasValue( self.data.rangerfilter, this ) then
+		self.data.rangerfilter[#self.data.rangerfilter+1] = this
+	end
+	return ranger(self,3,distance,this:GetPos(),this:GetUp())
 end
 
 --- You input the distance, x-angle and y-angle (both in degrees) it returns ranger data
@@ -259,14 +273,29 @@ __e2setcost(2) -- temporary
 --- Returns the distance from the rangerdata input, else depends on rangerDefault
 e2function number ranger:distance()
 	if not this then return 0 end
-	if this.StartSolid then return this.StartPos:Distance(this.HitPos)*(1/(1-this.FractionLeftSolid)-1) end
-	return this.StartPos:Distance(this.HitPos)
+
+	local startpos
+	if (this.StartSolid) then
+		startpos = this.RealStartPos
+	else
+		startpos = this.StartPos
+	end
+
+	--if this.StartSolid then return this.StartPos:Distance(this.HitPos)*(1/(1-this.FractionLeftSolid)-1) end
+	return startpos:Distance(this.HitPos)
 end
 
 --- Returns the position of the input ranger data trace IF it hit anything, else returns vec(0,0,0)
 e2function vector ranger:position()
 	if not this then return { 0, 0, 0 } end
 	if this.StartSolid then return this.StartPos end
+	return this.HitPos
+end
+
+-- Returns the position of the input ranger data trace IF it it anything, else returns vec(0,0,0).
+-- NOTE: This function works like Lua's trace, while the above "position" function returns the same as positionLeftSolid IF it was created inside the world.
+e2function vector ranger:pos()
+	if not this then return {0,0,0} end
 	return this.HitPos
 end
 
@@ -295,6 +324,108 @@ end
 e2function vector ranger:hitNormal()
 	if not this then return { 0, 0, 0 } end
 	return this.HitNormal
+end
+
+-- Returns a number between 0 and 1, ie R:distance()/maxdistance
+e2function number ranger:fraction()
+	if not this then return 0 end
+	return this.Fraction
+end
+
+-- Returns 1 if the ranger hit the world, else 0
+e2function number ranger:hitWorld()
+	if not this then return 0 end
+	return this.HitWorld and 1 or 0
+end
+
+-- Returns 1 if the ranger hit the skybox, else 0
+e2function number ranger:hitSky()
+	if not this then return 0 end
+	return this.HitSky and 1 or 0
+end
+
+-- Returns the position at which the trace left the world if it was started inside the world
+e2function vector ranger:positionLeftSolid()
+	if not this then return { 0,0,0 } end
+	return this.StartPos
+end
+
+e2function number ranger:distanceLeftSolid()
+	if not this then return 0 end
+	return this.RealStartPos:Distance(this.StartPos)
+end
+
+-- Returns a number between 0 and 1
+e2function number ranger:fractionLeftSolid()
+	if not this then return 0 end
+	return this.FractionLeftSolid
+end
+
+-- Returns 1 if the trace started inside the world, else 0
+e2function number ranger:startSolid()
+	if not this then return 0 end
+	return this.StartSolid and 1 or 0
+end
+
+local mat_enums = {}
+local hitgroup_enums = {}
+for k,v in pairs( _E ) do
+	if (k:sub(1,4) == "MAT_") then
+		mat_enums[v] = k:sub(5):lower()
+	elseif (k:sub(1,9) == "HITGROUP_") then
+		hitgroup_enums[v] = k:sub(10):lower()
+	end
+end
+
+-- Returns the material type (ie "contrete", "dirt", "flesh", etc)
+e2function string ranger:matType()
+	if not this then return "" end
+	if not this.MatType then return "" end
+	return mat_enums[this.MatType] or ""
+end
+
+-- Returns the hit group if the trace hit a player (ie "chest", "stomach", "head", "leftarm", etc)
+e2function string ranger:hitGroup()
+	if not this then return "" end
+	if not this.HitGroup then return "" end
+	return hitgroup_enums[this.HitGroup] or ""
+end
+
+-- Helper table used for toTable
+local prefixes = {
+	["FractionLeftSolid"] = "n",
+	["HitNonWorld"] = "n",
+	["Fraction"] = "n",
+	["Entity"] = "e",
+	["HitNoDraw"] = "n",
+	["HitSky"] = "n",
+	["HitPos"] = "v",
+	["StartSolid"] = "n",
+	["HitWorld"] = "n",
+	["HitGroup"] = "n",
+	["HitNormal"] = "v",
+	["HitBox"] = "n",
+	["Normal"] = "v",
+	["Hit"] = "n",
+	["MatType"] = "n",
+	["StartPos"] = "v",
+	["PhysicsBone"] = "n",
+	["WorldToLocal"] = "v",
+	["RealStartPos"] = "v",
+	["HitTexture"] = "s",
+	["HitBoxBone"] = "n"
+}
+
+-- Converts the ranger into a table. This allows you to manually get any and all raw data from the trace.
+e2function table ranger:toTable()
+	if not this then return {} end
+	local ret = {}
+	for k,v in pairs( this ) do
+		if (type(v) == "boolean") then v = v and 1 or 0 end
+		if (!prefixes[k]) then error("Invalid/Unknown traceres data (k: " .. k .. ". Please report to Divran at wiremod.com") end
+		ret[prefixes[k]..k] = v
+	end
+	return ret
 end
 
 /******************************************************************************/
