@@ -339,7 +339,7 @@ function WireToolMakeThruster( self, trace, ply )
 	local model			= self:GetModel()
 	local bidir			= self:GetClientNumber( "bidir" ) ~= 0
 	local nocollide		= self:GetClientNumber( "collision" ) == 0
-	local sound			= self:GetClientNumber( "sound" ) ~= 0
+	local soundname		= self:GetClientInfo( "soundname" )
 	local oweffect		= self:GetClientInfo( "oweffect" )
 	local uweffect		= self:GetClientInfo( "uweffect" )
 	local owater		= self:GetClientNumber( "owater" ) ~= 0
@@ -351,13 +351,13 @@ function WireToolMakeThruster( self, trace, ply )
 	if trace.Entity:IsValid() and trace.Entity:GetClass() == "gmod_wire_thruster" and trace.Entity.pl == ply then
 		trace.Entity:SetForce( force )
 		trace.Entity:SetEffect( effect )
-		trace.Entity:Setup(force, force_min, force_max, oweffect, uweffect, owater, uwater, bidir, sound)
+		trace.Entity:Setup(force, force_min, force_max, oweffect, uweffect, owater, uwater, bidir, soundname)
 
 		trace.Entity.force		= force
 		trace.Entity.force_min	= force_min
 		trace.Entity.force_max	= force_max
 		trace.Entity.bidir		= bidir
-		trace.Entity.sound		= sound
+		trace.Entity.soundname	= soundname
 		trace.Entity.oweffect	= oweffect
 		trace.Entity.uweffect	= uweffect
 		trace.Entity.owater		= owater
@@ -375,7 +375,7 @@ function WireToolMakeThruster( self, trace, ply )
 	local Ang = trace.HitNormal:Angle()
 	Ang.pitch = Ang.pitch + 90
 
-	local wire_thruster = MakeWireThruster( ply, trace.HitPos, Ang, model, force, force_min, force_max, oweffect, uweffect, owater, uwater, bidir, sound, nocollide )
+	local wire_thruster = MakeWireThruster( ply, trace.HitPos, Ang, model, force, force_min, force_max, oweffect, uweffect, owater, uwater, bidir, soundname, nocollide )
 
 	local min = wire_thruster:OBBMins()
 	wire_thruster:SetPos( trace.HitPos - trace.HitNormal * min.z )

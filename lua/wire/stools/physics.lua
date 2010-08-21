@@ -791,7 +791,7 @@ do --wire_thruster
 		language.Add( "WireThrusterTool_force_max", "Force maximum:" )
 		language.Add( "WireThrusterTool_bidir", "Bi-directional" )
 		language.Add( "WireThrusterTool_collision", "Collision" )
-		language.Add( "WireThrusterTool_sound", "Enable sound" )
+		language.Add( "WireThrusterTool_soundname", "Select sound" )
 		language.Add( "WireThrusterTool_owater", "Works out of water" )
 		language.Add( "WireThrusterTool_uwater", "Works under water" )
 		language.Add( "sboxlimit_wire_thrusters", "You've hit thrusters limit!" )
@@ -810,7 +810,7 @@ do --wire_thruster
 		model		= "models/props_c17/lampShade001a.mdl",
 		bidir		= 1,
 		collision	= 0,
-		sound		= 0,
+		soundname 	= "",
 		oweffect	= "fire",
 		uweffect	= "same",
 		owater		= 1,
@@ -935,12 +935,24 @@ do --wire_thruster
 			}
 		})
 
+		local lst = {}
+		for k,v in pairs( list.Get("ThrusterSounds") ) do
+			lst[k] = {}
+			for k2,v2 in pairs( v ) do
+				lst[k]["wire_"..k2] = v2
+			end
+		end
+
+		panel:AddControl( "ComboBox", { Label = "#WireThrusterTool_soundname",
+										 Description = "Thruster_Sounds_Desc",
+										 MenuButton = "0",
+										 Options = lst } )
+
 		panel:NumSlider("#WireThrusterTool_force", "wire_thruster_force", 1, 10000, 0)
 		panel:NumSlider("#WireThrusterTool_force_min", "wire_thruster_force_min", -10000, 10000, 0)
 		panel:NumSlider("#WireThrusterTool_force_max", "wire_thruster_force_max", -10000, 10000, 0)
 		panel:CheckBox("#WireThrusterTool_bidir", "wire_thruster_bidir")
 		panel:CheckBox("#WireThrusterTool_collision", "wire_thruster_collision")
-		panel:CheckBox("#WireThrusterTool_sound", "wire_thruster_sound")
 		panel:CheckBox("#WireThrusterTool_owater", "wire_thruster_owater")
 		panel:CheckBox("#WireThrusterTool_uwater", "wire_thruster_uwater")
 	end

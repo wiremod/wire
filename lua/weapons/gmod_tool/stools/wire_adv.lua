@@ -304,7 +304,7 @@ elseif CLIENT then
 			else
 				surface.SetTextColor(Color(255,255,255,255))
 			end
-			surface.DrawText(port.text)
+			if (port.text) then surface.DrawText(port.text) end
 			port.text = nil
 		end
 

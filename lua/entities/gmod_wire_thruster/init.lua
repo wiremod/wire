@@ -6,8 +6,6 @@ include('shared.lua')
 
 ENT.WireDebugName = "Thruster"
 
-local Thruster_Sound 	= Sound( "PhysicsCannister.ThrusterLoop" )
-
 function ENT:Initialize()
 	self.Entity:PhysicsInit( SOLID_VPHYSICS )
 	self.Entity:SetMoveType( MOVETYPE_VPHYSICS )
@@ -38,13 +36,15 @@ function ENT:Initialize()
 	self:Switch( false )
 
 	self.Inputs = Wire_CreateInputs(self.Entity, { "A" })
+
+	self.SoundName = Sound( "PhysicsCannister.ThrusterLoop" )
 end
 
 function ENT:OnRemove()
 	self.BaseClass.OnRemove(self)
 
-	if (self.EnableSound) then
-		self.Entity:StopSound(Thruster_Sound)
+	if (self.SoundName and self.SoundName != "") then
+		self.Entity:StopSound(self.SoundName)
 	end
 end
 
@@ -80,7 +80,7 @@ function ENT:SetForce( force, mul )
 --	self.Entity:SetNetworkedVector( 2, self.ForceLinear )
 end
 
-function ENT:Setup(force, force_min, force_max, oweffect, uweffect, owater, uwater, bidir, sound)
+function ENT:Setup(force, force_min, force_max, oweffect, uweffect, owater, uwater, bidir, soundname)
 	self:SetForce(force)
 
 	self.OWEffect = oweffect
@@ -88,13 +88,16 @@ function ENT:Setup(force, force_min, force_max, oweffect, uweffect, owater, uwat
 	self.ForceMin = force_min
 	self.ForceMax = force_max
 	self.BiDir = bidir
-	self.EnableSound = sound
 	self.OWater = owater
 	self.UWater = uwater
 
-	if (not sound) then
-		self.Entity:StopSound(Thruster_Sound)
+	if (!soundname) then soundname = "" end
+
+	if (soundname == "") then
+		self.Entity:StopSound( self.SoundName )
 	end
+
+	self.SoundName = Sound( soundname )
 
 	--self:SetOverlayText( "Thrust = " .. 0 .. "\nMul: " .. math.Round(force*1000)/1000 )
 end
@@ -145,9 +148,9 @@ function ENT:Switch( on, mul )
 
 
 	if (on) then
-		if (changed) and (self.EnableSound) then
-			self.Entity:StopSound( Thruster_Sound )
-			self.Entity:EmitSound( Thruster_Sound )
+		if (changed) and (self.SoundName and self.SoundName != "") then
+			self.Entity:StopSound( self.SoundName )
+			self.Entity:EmitSound( self.SoundName )
 		end
 
 		self:NetSetMul( mul )
@@ -159,8 +162,8 @@ function ENT:Switch( on, mul )
 
 		self:SetForce( nil, mul )
 	else
-		if (self.EnableSound) then
-			self.Entity:StopSound( Thruster_Sound )
+		if (self.SoundName and self.SoundName != "") then
+			self.Entity:StopSound( self.SoundName )
 		end
 
 		/*if (self.PrevOutput) then
@@ -223,7 +226,7 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 end
 
 
-function MakeWireThruster( pl, Pos, Ang, model, force, force_min, force_max, oweffect, uweffect, owater, uwater, bidir, sound, nocollide )
+function MakeWireThruster( pl, Pos, Ang, model, force, force_min, force_max, oweffect, uweffect, owater, uwater, bidir, soundname, nocollide )
 	if not pl:CheckLimit( "wire_thrusters" ) then return false end
 
 	local wire_thruster = ents.Create( "gmod_wire_thruster" )
@@ -234,7 +237,7 @@ function MakeWireThruster( pl, Pos, Ang, model, force, force_min, force_max, owe
 	wire_thruster:SetPos( Pos )
 	wire_thruster:Spawn()
 
-	wire_thruster:Setup(force, force_min, force_max, oweffect, uweffect, owater, uwater, bidir, sound)
+	wire_thruster:Setup(force, force_min, force_max, oweffect, uweffect, owater, uwater, bidir, soundname)
 	wire_thruster:SetPlayer( pl )
 
 	if nocollide == true then wire_thruster:GetPhysicsObject():EnableCollisions( false ) end
@@ -244,7 +247,7 @@ function MakeWireThruster( pl, Pos, Ang, model, force, force_min, force_max, owe
 		force_min	= force_min,
 		force_max	= force_max,
 		bidir       = bidir,
-		sound       = sound,
+		soundname   = soundname,
 		pl			= pl,
 		oweffect	= oweffect,
 		uweffect	= uweffect,
@@ -259,5 +262,5 @@ function MakeWireThruster( pl, Pos, Ang, model, force, force_min, force_max, owe
 	return wire_thruster
 end
 
-duplicator.RegisterEntityClass("gmod_wire_thruster", MakeWireThruster, "Pos", "Ang", "Model", "force", "force_min", "force_max", "oweffect", "uweffect", "owater", "uwater", "bidir", "sound", "nocollide")
+duplicator.RegisterEntityClass("gmod_wire_thruster", MakeWireThruster, "Pos", "Ang", "Model", "force", "force_min", "force_max", "oweffect", "uweffect", "owater", "uwater", "bidir", "soundname", "nocollide")
 

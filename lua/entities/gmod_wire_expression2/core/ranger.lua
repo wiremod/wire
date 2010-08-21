@@ -207,7 +207,13 @@ end
 e2function void rangerFilter(entity ent)
 	if validEntity(ent) then
 		table.insert(self.data.rangerfilter,ent)
-		if (#self.data.rangerfilter > 1000) then self.perf = self.perf + 50 end
+		local n = #self.data.rangerfilter
+		if (n > 1000) then
+			if (n > 100000) then
+				error("Ranger filter spam. E2 halted.")
+			end
+			self.prf = self.prf + 50
+		end
 	end
 end
 
@@ -221,7 +227,13 @@ e2function void rangerFilter(array filter)
 			table.insert(rangerfilter,ent)
 		end
 	end
-	if (#self.data.rangerfilter > 1000) then self.perf = self.perf + #filter * 50 end
+	local n = #self.data.rangerfilter
+	if (n > 1000) then
+		if (n > 100000) then
+			error("Ranger filter spam. E2 halted.")
+		end
+		self.prf = self.prf + #filter
+	end
 end
 
 /******************************************************************************/
