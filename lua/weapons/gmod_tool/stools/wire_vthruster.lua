@@ -20,7 +20,7 @@ TOOL.ClientConVar[ "force_max" ] = "10000"
 TOOL.ClientConVar[ "model" ] = "models/jaanus/wiretool/wiretool_speed.mdl"
 TOOL.ClientConVar[ "bidir" ] = "1"
 TOOL.ClientConVar[ "collision" ] = "0"
-TOOL.ClientConVar[ "sound" ] = "0"
+TOOL.ClientConVar[ "soundname" ] = ""
 TOOL.ClientConVar[ "oweffect" ] = "fire"
 TOOL.ClientConVar[ "uweffect" ] = "same"
 TOOL.ClientConVar[ "owater" ] = "1"
@@ -41,7 +41,7 @@ function TOOL:LeftClick( trace )
 	local model       = self:GetClientInfo( "model" )
 	local bidir       = self:GetClientNumber( "bidir" ) ~= 0
 	local nocollide   = self:GetClientNumber( "collision" ) == 0
-	local sound       = self:GetClientNumber( "sound" ) ~= 0
+	local soundname   = self:GetClientInfo( "soundname" )
 	local oweffect    = self:GetClientInfo( "oweffect" )
 	local uweffect    = self:GetClientInfo( "uweffect" )
 	local owater      = self:GetClientNumber( "owater" ) ~= 0
@@ -62,13 +62,13 @@ function TOOL:LeftClick( trace )
 
 			trace.Entity:SetForce( force )
 			trace.Entity:SetEffect( effect )
-			trace.Entity:Setup(force, force_min, force_max, oweffect, uweffect, owater, uwater, bidir, sound, mode, angleinputs)
+			trace.Entity:Setup(force, force_min, force_max, oweffect, uweffect, owater, uwater, bidir, soundname, mode, angleinputs)
 
 			trace.Entity.force       = force
 			trace.Entity.force_min   = force_min
 			trace.Entity.force_max   = force_max
 			trace.Entity.bidir       = bidir
-			trace.Entity.sound       = sound
+			trace.Entity.soundname   = soundname
 			trace.Entity.oweffect    = oweffect
 			trace.Entity.uweffect    = uweffect
 			trace.Entity.owater      = owater
@@ -87,7 +87,7 @@ function TOOL:LeftClick( trace )
 		local ang = trace.HitNormal:Angle()
 		ang.pitch = ang.pitch + 90
 
-		local wire_thruster = MakeWireVectorThruster( ply, trace.HitPos, ang, self:GetModel(), force, force_min, force_max, oweffect, uweffect, owater, uwater, bidir, sound, nocollide, mode, angleinputs )
+		local wire_thruster = MakeWireVectorThruster( ply, trace.HitPos, ang, self:GetModel(), force, force_min, force_max, oweffect, uweffect, owater, uwater, bidir, soundname, nocollide, mode, angleinputs )
 
 		local min = wire_thruster:OBBMins()
 		wire_thruster:SetPos( trace.HitPos - trace.HitNormal * min.z )
@@ -138,8 +138,7 @@ end
 
 if (SERVER) then
 
-	function MakeWireVectorThruster( pl, Pos, Ang, model, force, force_min, force_max, oweffect, uweffect, owater, uwater, bidir, sound, nocollide, mode, angleinputs)
-		print("angleinputs=",angleinputs)
+	function MakeWireVectorThruster( pl, Pos, Ang, model, force, force_min, force_max, oweffect, uweffect, owater, uwater, bidir, soundname, nocollide, mode, angleinputs)
 		if ( !pl:CheckLimit( "wire_thrusters" ) ) then return false end
 		mode = mode or 0
 
@@ -151,7 +150,7 @@ if (SERVER) then
 		wire_thruster:SetPos( Pos )
 		wire_thruster:Spawn()
 
-		wire_thruster:Setup(force, force_min, force_max, oweffect, uweffect, owater, uwater, bidir, sound, mode, angleinputs)
+		wire_thruster:Setup(force, force_min, force_max, oweffect, uweffect, owater, uwater, bidir, soundname, mode, angleinputs)
 		wire_thruster:SetPlayer( pl )
 
 		if ( nocollide == true ) then wire_thruster:GetPhysicsObject():EnableCollisions( false ) end
@@ -161,7 +160,7 @@ if (SERVER) then
 			force_min   = force_min,
 			force_max   = force_max,
 			bidir       = bidir,
-			sound       = sound,
+			soundname   = soundname,
 			pl          = pl,
 			oweffect    = oweffect,
 			uweffect    = uweffect,
@@ -177,7 +176,7 @@ if (SERVER) then
 
 		return wire_thruster
 	end
-	duplicator.RegisterEntityClass("gmod_wire_vectorthruster", MakeWireVectorThruster, "Pos", "Ang", "Model", "force", "force_min", "force_max", "oweffect", "uweffect", "owater", "uwater", "bidir", "sound", "nocollide", "mode", "angleinputs")
+	duplicator.RegisterEntityClass("gmod_wire_vectorthruster", MakeWireVectorThruster, "Pos", "Ang", "Model", "force", "force_min", "force_max", "oweffect", "uweffect", "owater", "uwater", "bidir", "soundname", "nocollide", "mode", "angleinputs")
 
 end
 
@@ -269,7 +268,7 @@ function TOOL.BuildCPanel(panel)
 				wire_vthruster_force_min = "0",
 				wire_vthruster_force_max = "10000",
 				wire_vthruster_bidir = "1",
-				wire_vthruster_sound = "0",
+				wire_vthruster_soundname = "",
 				wire_vthruster_oweffect = "fire",
 				wire_vthruster_uweffect = "same",
 				wire_vthruster_owater = "1",
@@ -286,7 +285,7 @@ function TOOL.BuildCPanel(panel)
 			[2] = "wire_vthruster_force_min",
 			[3] = "wire_vthruster_force_max",
 			[4] = "wire_vthruster_bidir",
-			[5] = "wire_vthruster_sound",
+			[5] = "wire_vthruster_soundname",
 			[6] = "wire_vthruster_oweffect",
 			[7] = "wire_vthruster_uweffect",
 			[8] = "wire_vthruster_owater",
@@ -411,6 +410,19 @@ function TOOL.BuildCPanel(panel)
 		}
 	})
 
+	local lst = {}
+	for k,v in pairs( list.Get("ThrusterSounds") ) do
+		lst[k] = {}
+		for k2,v2 in pairs( v ) do
+			lst[k]["wire_v"..k2] = v2
+		end
+	end
+
+	panel:AddControl( "ComboBox", { Label = "#Thruster_Sounds",
+									 Description = "Thruster_Sounds_Desc",
+									 MenuButton = "0",
+									 Options = lst } )
+
 	panel:AddControl("Slider", {
 		Label = "#WireThrusterTool_force",
 		Type = "Float",
@@ -443,11 +455,6 @@ function TOOL.BuildCPanel(panel)
 	panel:AddControl("CheckBox", {
 		Label = "#WireThrusterTool_collision",
 		Command = "wire_vthruster_collision"
-	})
-
-	panel:AddControl("CheckBox", {
-		Label = "#WireThrusterTool_sound",
-		Command = "wire_vthruster_sound"
 	})
 
 	panel:AddControl("CheckBox", {

@@ -6,8 +6,6 @@ include('shared.lua')
 
 ENT.WireDebugName = "Thruster"
 
-local Thruster_Sound 	= Sound( "PhysicsCannister.ThrusterLoop" )
-
 function ENT:Initialize()
 	self.Entity:PhysicsInit( SOLID_VPHYSICS )
 	self.Entity:SetMoveType( MOVETYPE_VPHYSICS )
@@ -43,13 +41,15 @@ function ENT:Initialize()
 	self:Switch( false )
 
 	self.Inputs = Wire_CreateInputs(self.Entity, { "Mul" })
+
+	self.SoundName = Sound( "PhysicsCannister.ThrusterLoop" )
 end
 
 function ENT:OnRemove()
 	self.BaseClass.OnRemove(self)
 
-	if (self.EnableSound) then
-		self.Entity:StopSound(Thruster_Sound)
+	if (self.SoundName) then
+		self.Entity:StopSound(self.SoundName)
 	end
 end
 
@@ -117,7 +117,7 @@ end
 	end
 end*/
 
-function ENT:Setup(force, force_min, force_max, oweffect, uweffect, owater, uwater, bidir, sound, mode, angleinputs)
+function ENT:Setup(force, force_min, force_max, oweffect, uweffect, owater, uwater, bidir, soundname, mode, angleinputs)
 	self:SetForce(force)
 
 	self.OWEffect = oweffect
@@ -125,15 +125,17 @@ function ENT:Setup(force, force_min, force_max, oweffect, uweffect, owater, uwat
 	self.ForceMin = force_min
 	self.ForceMax = force_max
 	self.BiDir = bidir
-	self.EnableSound = sound
 	self.OWater = owater
 	self.UWater = uwater
 
-	if (not sound) then
-		self.Entity:StopSound(Thruster_Sound)
+	if (soundname and soundname == "" and self.SoundName and self.SoundName != "") then
+		self.Entity:StopSound(self.SoundName)
 	end
 
-	Msg("mode = "..mode.."\n")
+	if (soundname) then
+		self.SoundName = Sound(soundname)
+	end
+
 	self.Mode = mode
 	self:SetMode( self.Mode )
 
@@ -225,9 +227,9 @@ function ENT:Switch( on, mul )
 	self:SetOn( on )
 
 	if (on) then
-		if (changed) and (self.EnableSound) then
-			self.Entity:StopSound( Thruster_Sound )
-			self.Entity:EmitSound( Thruster_Sound )
+		if (changed) and (self.SoundName and self.SoundName != "") then
+			self.Entity:StopSound( self.SoundName )
+			self.Entity:EmitSound( self.SoundName )
 		end
 
 		self:NetSetMul( mul )
@@ -240,8 +242,8 @@ function ENT:Switch( on, mul )
 
 		self:SetForce( nil, mul )
 	else
-		if (self.EnableSound) then
-			self.Entity:StopSound( Thruster_Sound )
+		if (self.SoundName and self.SoundName != "") then
+			self.Entity:StopSound( self.SoundName )
 		end
 
 		if (self.PrevOutput) then
