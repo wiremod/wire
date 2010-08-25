@@ -16,10 +16,10 @@ if CLIENT then
 end
 
 function TOOL:LeftClick( trace )
-	if ( trace.Entity:IsValid() && trace.Entity:IsPlayer() ) then return end
+	if trace.Entity:IsValid() and trace.Entity:IsPlayer() then return end
 
 	// If there's no physics object then we can't constraint it!
-	if ( SERVER && !util.IsValidPhysicsObject( trace.Entity, trace.PhysicsBone ) ) then return false end
+	if SERVER and !util.IsValidPhysicsObject( trace.Entity, trace.PhysicsBone ) then return false end
 
 	local iNum = self:NumObjects()
 
@@ -27,51 +27,53 @@ function TOOL:LeftClick( trace )
 	self:SetObject( iNum + 1, trace.Entity, trace.HitPos, Phys, trace.PhysicsBone, trace.HitNormal )
 
 	if ( iNum > 1 ) then
-
-		if ( CLIENT ) then
+		if CLIENT then
 			self:ClearObjects()
 			return true
 		end
 
 		local ply = self:GetOwner()
 		local Ent1, Ent2, Ent3  = self:GetEnt(1),	 self:GetEnt(2), trace.Entity
-		local const = self.constraint
+		local const = self.Constraint
 
-		if ( !const ) or ( !const:IsValid() ) then
-			WireLib.AddNotify(self:GetOwner(), "Latch Weld Invalid!", NOTIFY_GENERIC, 7)
-			self:ClearObjects()
-			self:SetStage(0)
-			return
-		end
-
-		// Attach our Controller to the weld constraint
+		// Attach controller to the weld constraint
 		local Ang = trace.HitNormal:Angle()
 		Ang.pitch = Ang.pitch + 90
 		local controller = MakeWireLatchController( ply, trace.HitPos, Ang, self:GetModel() )
 
-		// Send Entity and Constraint info over to the controller
-		controller:SendVars(self.Ent1, self.Ent2, self.Bone1, self.Bone2, self.constraint)
+		if !IsValid(controller) then
+			WireLib.AddNotify( self:GetOwner(), "Weld latch controller placement failed!", NOTIFY_GENERIC, 7 )
+			self.Constraint = nil
+			self:ClearObjects()
+			self:SetStage(0)
+			return false
+		end
 
+		// Send entity and constraint info over to the controller
+		controller:SendVars( self.Ent1, self.Ent2, self.Bone1, self.Bone2, self.Constraint )
+
+		// Initialize controller inputs/outputs
+		controller:TriggerInput( "Activate", 1 )
+		Wire_TriggerOutput( controller, "Welded", 1 )
+
+		// Finish placing the controller
 		local min = controller:OBBMins()
 		controller:SetPos( trace.HitPos - trace.HitNormal * min.z )
 
-		local const2 = WireLib.Weld(controller, trace.Entity, trace.PhysicsBone, true)
+		local const2 = WireLib.Weld( controller, trace.Entity, trace.PhysicsBone, true )
 
 		undo.Create("WireLatch")
 			undo.AddEntity( controller )
-			undo.AddEntity( const )
 			undo.AddEntity( const2 )
 			undo.SetPlayer( ply )
 		undo.Finish()
 
-		if const then controller:DeleteOnRemove( const ) end
-
+		self.Constraint = nil
 		self:ClearObjects()
 		self:SetStage(0)
 
 	elseif ( iNum == 1 ) then
-
-		if ( CLIENT ) then
+		if CLIENT then
 			return true
 		end
 
@@ -79,29 +81,35 @@ function TOOL:LeftClick( trace )
 		self.Ent1,  self.Ent2  = self:GetEnt(1),	 self:GetEnt(2)
 		self.Bone1, self.Bone2 = self:GetBone(1),	 self:GetBone(2)
 
-		local const = MakeWireLatch( self.Ent1, self.Ent2, self.Bone1, self.Bone2 )
+		self.Constraint = MakeWireLatch( self.Ent1, self.Ent2, self.Bone1, self.Bone2 )
 
-		self.constraint = const
-
-		undo.Create("WireLatch")
-			if constraint then undo.AddEntity( const ) end
-			undo.SetPlayer( self:GetOwner() )
-		undo.Finish()
-
-		self:SetStage(2)
+		if IsValid(self.Constraint) then
+			self:SetStage(2)
+		else
+			WireLib.AddNotify( self:GetOwner(), "Weld latch invalid!", NOTIFY_GENERIC, 7 )
+			self:ClearObjects()
+			self:SetStage(0)
+		end
 
 	else
-
 		self:SetStage( iNum+1 )
 
 	end
 
 	return true
+end
 
+function TOOL:Reload( trace )
+	if IsValid(self.Constraint) then
+		self.Constraint:Remove()
+	end
+
+	self.Constraint = nil
+	self:ClearObjects()
+	self:SetStage(0)
 end
 
 if SERVER then
-
 	function MakeWireLatchController( pl, Pos, Ang, model )
 		local controller = ents.Create("gmod_wire_latch")
 
@@ -116,22 +124,23 @@ if SERVER then
 	end
 	duplicator.RegisterEntityClass("gmod_wire_latch", MakeWireLatchController, "Pos", "Ang", "Model")
 
-	function MakeWireLatch( Ent1, Ent2, Bone1, Bone2 )
+	function MakeWireLatch( Ent1, Ent2, Bone1, Bone2, forcelimit )
 		if ( !constraint.CanConstrain( Ent1, Bone1 ) ) then return false end
 		if ( !constraint.CanConstrain( Ent2, Bone2 ) ) then return false end
 
 		local Phys1 = Ent1:GetPhysicsObjectNum( Bone1 )
-		local Phys2 = Ent2:GetPhysicsObjectNum( Bone2)
+		local Phys2 = Ent2:GetPhysicsObjectNum( Bone2 )
 
 		if ( Phys1 == Phys2 ) then return false end
 
-		local const = constraint.Weld( Ent1, Ent2, Bone1, Bone2, 0 )
+		local const = constraint.Weld( Ent1, Ent2, Bone1, Bone2, forcelimit or 0 )
 
-		if ( !const ) then return nil end
+		if !IsValid(const) then return nil end
+
+		const.Type = "" -- prevents the duplicator from copying this weld
 
 		return const
 	end
-
 end
 
 function TOOL:GetModel()

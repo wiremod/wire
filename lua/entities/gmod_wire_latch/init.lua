@@ -11,7 +11,8 @@ function ENT:Initialize()
 	self.Entity:SetMoveType( MOVETYPE_VPHYSICS )
 	self.Entity:SetSolid( SOLID_VPHYSICS )
 
-	self.Inputs = Wire_CreateInputs( self.Entity, { "Activate", "NoCollide" } )
+	self.Inputs = Wire_CreateInputs( self.Entity, { "Activate", "NoCollide", "Strength" } )
+	self.Outputs = Wire_CreateOutputs( self.Entity, { "Welded" } )
 
 	-- masks containing all current states
 	self.nocollide_masks = {
@@ -27,13 +28,40 @@ function ENT:Initialize()
 		"NoCollided",
 		"Ent1 has collisions disabled",
 		"Ent2 has collisions disabled",
-		"all collisions disabled"
+		"All collisions disabled"
 	}
 
-	-- the constraint
-	self.nocollide = nil
-
+	self.Nocollide = nil
 	self:TriggerInput("NoCollide", 0)
+end
+
+-- Run if weld is removed (will run *after* Create_Weld)
+local function Weld_Removed( weld, ent )
+	if IsValid(ent) then
+		if !ent.Constraint or ent.Constraint == weld then
+			ent.Constraint = nil
+			Wire_TriggerOutput( ent, "Welded", 0 )
+			ent:UpdateOverlay()
+		end
+	end
+end
+
+function ENT:Remove_Weld()
+	if self.Constraint then
+		if self.Constraint:IsValid() then
+			self.Constraint:Remove()
+		end
+		self.Constraint = nil
+	end
+end
+
+function ENT:Create_Weld()
+	self:Remove_Weld()
+	self.Constraint = MakeWireLatch( self.Ent1, self.Ent2, self.Bone1, self.Bone2, self.weld_strength or 0 )
+
+	if self.Constraint then
+		self.Constraint:CallOnRemove( "Weld Latch Removed", Weld_Removed, self.Entity )
+	end
 end
 
 -- This function is called by the STOOL
@@ -45,28 +73,17 @@ function ENT:SendVars( Ent1, Ent2, Bone1, Bone2, const )
 	self.Constraint = const
 end
 
-function ENT:TriggerInput(iname, value)
+function ENT:TriggerInput( iname, value )
 	if iname == "Activate" then
-
 		if value == 0 and self.Constraint then
+			self:Remove_Weld()
 
-			self.Constraint:Remove()
-			self.Constraint = nil
-
-			self:SetOverlayText( "Weld Latch - Deactivated" )
-
-		end
-
-		if value ~= 0 and not self.Constraint then
-			self.Constraint = constraint.Weld( self.Ent1, self.Ent2, self.Bone1, self.Bone2, 0 )
-
-			if self.Constraint then
-				self.Constraint.Type = "" -- prevents the duplicator from making this weld
-			end
+		elseif value ~= 0 and not self.Constraint then
+			self:Create_Weld()
+			Wire_TriggerOutput( self.Entity, "Welded", 1 )
 		end
 
 	elseif iname == "NoCollide" then
-
 		self.nocollide_status = value
 		local mask = self.nocollide_masks[value] or {false, false, false}
 
@@ -81,18 +98,30 @@ function ENT:TriggerInput(iname, value)
 		end
 
 		if mask[3] then
-			if not self.nocollide then
+			if not self.Nocollide then
 				if self.Ent1 and self.Ent2 then
 					-- enable NoCollide between the two entities
-					self.nocollide = constraint.NoCollide( self.Ent1, self.Ent2, self.Bone1, self.Bone2 )
+					self.Nocollide = constraint.NoCollide( self.Ent1, self.Ent2, self.Bone1, self.Bone2 )
 				end
 			end
 		else
-			if self.nocollide then
-				-- disable NoCollide between the two entities
-				self.nocollide:Input("EnableCollisions", nil, nil, nil)
-				self.nocollide:Remove()
-				self.nocollide = nil
+			if self.Nocollide then
+				if self.Nocollide:IsValid() then
+					-- disable NoCollide between the two entities
+					self.Nocollide:Input("EnableCollisions", nil, nil, nil)
+					self.Nocollide:Remove()
+				end
+				self.Nocollide = nil
+			end
+		end
+
+	elseif iname == "Strength" then
+		local newvalue = math.max( value, 0 )
+		if newvalue ~= self.weld_strength then
+			self.weld_strength = newvalue
+
+			if self.Constraint then
+				self:Create_Weld()
 			end
 		end
 
@@ -109,7 +138,7 @@ end
 function ENT:UpdateOverlay()
 	local desc = self.nocollide_description[self.nocollide_status]
 	if not desc then
-		if self.Constraint then
+		if IsValid( self.Constraint ) then
 			self:SetOverlayText( "Weld Latch - Welded" )
 		else
 			self:SetOverlayText( "Weld Latch - Deactivated" )
@@ -121,7 +150,7 @@ function ENT:UpdateOverlay()
 	self:SetOverlayText( text )
 end
 
--- duplicator support (TAD2020)
+-- duplicator support
 function ENT:BuildDupeInfo()
 	local info = self.BaseClass.BuildDupeInfo(self) or {}
 	if (self.Ent1) and (self.Ent1:IsValid()) then
@@ -132,8 +161,11 @@ function ENT:BuildDupeInfo()
 		info.Ent2 = self.Ent2:EntIndex()
 		info.Bone2 = self.Bone2
 	end
+
 	info.Activate = self.Constraint and 1 or 0
 	info.NoCollide = self.nocollide_status
+	info.weld_strength = self.weld_strength
+
 	return info
 end
 
@@ -153,6 +185,8 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 			self.Ent2 = ents.GetByIndex(info.Ent2)
 		end
 	end
+
+	self:TriggerInput("Strength", info.weld_strength or 0)
 	self:TriggerInput("Activate", info.Activate)
 	self:TriggerInput("NoCollide", info.NoCollide)
 end
