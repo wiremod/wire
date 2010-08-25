@@ -772,38 +772,57 @@ end
 --- Filters the list of entities by removing all entities that are NOT of this class
 e2function number findClipToClass(string class)
 	class = string.lower(class)
-	return applyClip(self, function(ent) return string.match(string.lower(ent:GetClass()), class) end)
+	return applyClip(self, function(ent)
+		if !validEntity(ent) then return false end
+		return string.match(string.lower(ent:GetClass()), class)
+	end)
 end
 
 --- Filters the list of entities by removing all entities that are of this class
 e2function number findClipFromClass(string class)
-	return applyClip(self, function(ent) return not string.match(string.lower(ent:GetClass()), class) end)
+	return applyClip(self, function(ent)
+		if !validEntity(ent) then return false end
+		return not string.match(string.lower(ent:GetClass()), class)
+	end)
 end
 
 --- Filters the list of entities by removing all entities that do NOT have this model
 e2function number findClipToModel(string model)
-	return applyClip(self, function(ent) return string.match(string.lower(ent:GetModel() or ""), model) end)
+	return applyClip(self, function(ent)
+		if !validEntity(ent) then return false end
+		return string.match(string.lower(ent:GetModel() or ""), model)
+	end)
 end
 
 --- Filters the list of entities by removing all entities that do have this model
 e2function number findClipFromModel(string model)
-	return applyClip(self, function(ent) return not string.match(string.lower(ent:GetModel() or ""), model) end)
+	return applyClip(self, function(ent)
+		if !validEntity(ent) then return false end
+		return not string.match(string.lower(ent:GetModel() or ""), model)
+	end)
 end
 
 --- Filters the list of entities by removing all entities that do NOT have this name
 e2function number findClipToName(string name)
-	return applyClip(self, function(ent) return string.match(string.lower(ent:GetName()), name) end)
+	return applyClip(self, function(ent)
+		if !validEntity(ent) then return false end
+		return string.match(string.lower(ent:GetName()), name)
+	end)
 end
 
 --- Filters the list of entities by removing all entities that do have this name
 e2function number findClipFromName(string name)
-	return applyClip(self, function(ent) return not string.match(string.lower(ent:GetName()), name) end)
+	return applyClip(self, function(ent)
+		if !validEntity(ent) then return false end
+		return not string.match(string.lower(ent:GetName()), name)
+	end)
 end
 
 --- Filters the list of entities by removing all entities NOT within the specified sphere (center, radius)
 e2function number findClipToSphere(vector center, radius)
 	center = Vector(center[1], center[2], center[3])
 	return applyClip(self, function(ent)
+		if !validEntity(ent) then return false end
 		return center:Distance(ent:GetPos()) <= radius
 	end)
 end
@@ -812,6 +831,7 @@ end
 e2function number findClipFromSphere(vector center, radius)
 	center = Vector(center[1], center[2], center[3])
 	return applyClip(self, function(ent)
+		if !validEntity(ent) then return false end
 		return center:Distance(ent:GetPos()) > radius
 	end)
 end
@@ -824,6 +844,7 @@ e2function number findClipToRegion(vector origin, vector perpendicular)
 	local perpdot = perpendicular:Dot(origin)
 
 	return applyClip(self, function(ent)
+		if !validEntity(ent) then return false end
 		return perpdot < perpendicular:Dot(ent:GetPos())
 	end)
 end
