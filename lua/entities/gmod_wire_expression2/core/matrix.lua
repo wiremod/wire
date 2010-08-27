@@ -868,6 +868,29 @@ e2function vector matrix:z()
 	return { this[3], this[6], this[9] }
 end
 
+// Returns a 3x3 reference frame matrix as described by the angle <ang>. Multiplying by this matrix will be the same as rotating by the given angle.
+e2function matrix matrix(angle ang)
+	ang = Angle(ang[1], ang[2], ang[3])
+	local x = ang:Forward()
+	local y = ang:Right() * -1
+	local z = ang:Up()
+	return {
+		x.x, y.x, z.x,
+		x.y, y.y, z.y,
+		x.z, y.z, z.z
+	}
+end
+
+// Converts a rotation matrix to angle form (assumes matrix is orthogonal)
+local rad2deg = 180 / math.pi
+
+e2function angle matrix:toAngle()
+	local pitch = math.asin( -this[7] ) * rad2deg
+	local yaw = math.atan2( this[4], this[1] ) * rad2deg
+	local roll = math.atan2( this[8], this[9] ) * rad2deg
+	return { pitch, yaw, roll }
+end
+
 // Create a rotation matrix in the format (v,n) where v is the axis direction vector and n is degrees (right-handed rotation)
 e2function matrix mRotation(vector rv1, rv2)
 
@@ -1481,19 +1504,6 @@ end
 
 e2function vector matrix4:pos()
 	return { this[4], this[8], this[12] }
-end
-
---- Returns a 3x3 reference frame matrix as described by the angle <ang>. Multiplying by this matrix will be the same as rotating by the given angle.
-e2function matrix matrix(angle ang)
-	ang = Angle(ang[1], ang[2], ang[3])
-	local x = ang:Forward()
-	local y = ang:Right() * -1
-	local z = ang:Up()
-	return {
-		x.x, y.x, z.x,
-		x.y, y.y, z.y,
-		x.z, y.z, z.z
-	}
 end
 
 --- Returns a 4x4 reference frame matrix as described by the angle <ang>. Multiplying by this matrix will be the same as rotating by the given angle.
