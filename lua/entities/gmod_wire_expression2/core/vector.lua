@@ -8,6 +8,7 @@ local random = math.random
 local Vector = Vector
 local sqrt = math.sqrt
 local floor = math.floor
+local pi = math.pi
 
 // TODO: add reflect?
 // TODO: add absdotproduct?
@@ -256,7 +257,7 @@ end
 
 /******************************************************************************/
 
-__e2setcost(10)
+__e2setcost(5)
 
 registerFunction("length", "v:", "n", function(self, args)
 	local op1 = args[2]
@@ -345,6 +346,16 @@ registerFunction("positive", "v", "v", function(self, args)
 	if rv1[3] >= 0 then z = rv1[3] else z = -rv1[3] end
 	return { x, y, z }
 end)
+
+// Convert the magnitude of the vector to radians
+e2function vector toRad(vector rv1)
+	return Vector(rv1[1] * pi / 180, rv1[2] * pi / 180, rv1[3] * pi / 180)
+end
+
+// Convert the magnitude of the vector to degrees
+e2function vector toDeg(vector rv1)
+	return Vector(rv1[1] * 180 / pi, rv1[2] * 180 / pi, rv1[3] * 180 / pi)
+end
 
 /******************************************************************************/
 

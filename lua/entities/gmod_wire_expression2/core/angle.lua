@@ -16,6 +16,8 @@ registerType("angle", "a", { 0, 0, 0 },
 	end
 )
 
+local pi = math.pi
+
 /******************************************************************************/
 
 __e2setcost(1) -- approximated
@@ -335,6 +337,15 @@ e2function angle angle:rotateAroundAxis(vector axis, degrees)
 	return {ang.p, ang.y, ang.r}
 end
 
+// Convert the magnitude of the angle to radians
+e2function angle toRad(angle rv1)
+	return {rv1[1] * pi / 180, rv1[2] * pi / 180, rv1[3] * pi / 180}
+end
+
+// Convert the magnitude of the angle to degrees
+e2function angle toDeg(angle rv1)
+	return {rv1[1] * 180 / pi, rv1[2] * 180 / pi, rv1[3] * 180 / pi}
+end
 
 /******************************************************************************/
 

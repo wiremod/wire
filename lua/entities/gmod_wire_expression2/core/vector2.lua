@@ -5,6 +5,7 @@
 local delta  = wire_expression2_delta
 
 local floor = math.floor
+local pi = math.pi
 
 /******************************************************************************/
 
@@ -222,6 +223,15 @@ registerFunction("positive", "xv2", "xv2", function(self, args)
 	return { x, y }
 end)
 
+// Convert the magnitude of the vector to radians
+e2function vector2 toRad(vector2 xv2)
+	return {xv2[1] * pi / 180, xv2[2] * pi / 180}
+end
+
+// Convert the magnitude of the vector to degrees
+e2function vector2 toDeg(vector2 xv2)
+	return {xv2[1] * 180 / pi, xv2[2] * 180 / pi}
+end
 
 /******************************************************************************/
 
@@ -998,6 +1008,16 @@ registerFunction("inrange", "xv4xv4xv4", "n", function(self, args)
 
 	return 1
 end)
+
+// Convert the magnitude of the vector to radians
+e2function vector4 toRad(vector4 xv4)
+	return {xv4[1] * pi / 180, xv4[2] * pi / 180, xv4[3] * pi / 180, xv4[4] * pi / 180}
+end
+
+// Convert the magnitude of the vector to degrees
+e2function vector4 toDeg(vector4 xv4)
+	return {xv4[1] * 180 / pi, xv4[2] * 180 / pi, xv4[3] * 180 / pi, xv4[4] * 180 / pi}
+end
 
 /******************************************************************************/
 
