@@ -43,7 +43,7 @@ e2function void entity:setColor(rv2, rv3, rv4, rv5)
 	if !validEntity(this) then return end
 	if !isOwner(self, this) then return end
 
-	if this:IsPlayer() or this:IsWeapon() then rv5 = 255 end
+	if this:IsPlayer() --[[or this:IsWeapon()]] then rv5 = 255 end
 
 	this:SetColor(ColorClamp(rv2, rv3, rv4, rv5))
 end
@@ -60,7 +60,7 @@ e2function void entity:setColor(vector rv2, rv3)
 	if !validEntity(this) then return end
 	if !isOwner(self, this) then return end
 
-	if this:IsPlayer() or this:IsWeapon() then rv3 = 255 end
+	if this:IsPlayer() --[[or this:IsWeapon()]] then rv3 = 255 end
 
 	this:SetColor(ColorClamp(rv2[1], rv2[2], rv2[3], rv3))
 end
@@ -70,7 +70,7 @@ e2function void entity:setColor(vector4 rv2)
 	if !isOwner(self, this) then return end
 
 	local alpha
-	if this:IsPlayer() or this:IsWeapon() then
+	if this:IsPlayer() --[[or this:IsWeapon()]] then
 		alpha = 255
 	else
 		alpha = rv2[4]
@@ -83,7 +83,7 @@ e2function void entity:setAlpha(rv2)
 	if !validEntity(this) then return end
 	if !isOwner(self, this) then return end
 
-	if this:IsPlayer() or this:IsWeapon() then return end
+	if this:IsPlayer() --[[or this:IsWeapon()]] then return end
 
 	local r,g,b = this:GetColor()
 	this:SetColor(r, g, b, Clamp(rv2, 0, 255))
