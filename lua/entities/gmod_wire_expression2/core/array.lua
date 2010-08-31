@@ -26,13 +26,16 @@ registerType("array", "r", {},
 
 __e2setcost(5) -- temporary
 
+--[[ array(...) overwrites this function
 e2function array array()
 	return {}
 end
+]]
 
 --- Constructs an array with the given values as elements. If you specify types that are not supported by the array data type, the behaviour is undefined.
 e2function array array(...)
 	local ret = { ... }
+	if (#ret == 0) then return {} end -- This line is in place of 'array()'
 	for i,v in ipairs(ret) do
 		if typeids[i] == "r" or typeids[i] == "t" then ret[i] = nil end
 	end
