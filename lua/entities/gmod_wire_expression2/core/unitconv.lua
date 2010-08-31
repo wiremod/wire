@@ -3,6 +3,10 @@
 \******************************************************************************/
 
 /*
+	u   - source unit
+	A Source Unit is 0.75 Inch long, more info here:
+	http://developer.valvesoftware.com/wiki/Dimensions#Map_Grid_Units:_quick_reference
+
 	mm  - millimeter
 	cm  - centimeter
 	dm  - decimeter
@@ -22,6 +26,10 @@
 */
 
 local speed = {
+	["u/s"]   = 1 / 0.75,
+	["u/m"]   = 60 * (1 / 0.75),
+	["u/h"]   = 3600 * (1 / 0.75),
+
 	["mm/s"]  = 25.4,
 	["cm/s"]  = 2.54,
 	["dm/s"]  = 0.254,
@@ -61,6 +69,8 @@ local speed = {
 }
 
 local length = {
+	["u"]   = 1 / 0.75,
+
 	["mm"]  = 25.4,
 	["cm"]  = 2.54,
 	["dm"]  = 0.254,
@@ -86,9 +96,9 @@ __e2setcost(2) -- approximated
 e2function number toUnit(string rv1, rv2)
 
 	if speed[rv1] then
-		return rv2 * speed[rv1]
+		return (rv2 * 0.75) * speed[rv1]
 	elseif length[rv1] then
-		return rv2 * length[rv1]
+		return (rv2 * 0.75) * length[rv1]
 	elseif weight[rv1] then
 		return rv2 * weight[rv1]
 	end
@@ -99,9 +109,9 @@ end
 e2function number fromUnit(string rv1, rv2)
 
 	if speed[rv1] then
-		return rv2 / speed[rv1]
+		return (rv2 / 0.75) / speed[rv1]
 	elseif length[rv1] then
-		return rv2 / length[rv1]
+		return (rv2 / 0.75) / length[rv1]
 	elseif weight[rv1] then
 		return rv2 / weight[rv1]
 	end

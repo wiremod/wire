@@ -4,6 +4,7 @@ SWEP.Author = "ShaRose"
 SWEP.Contact = ""
 SWEP.Purpose = "Remote control for Adv. Pods in wire."
 SWEP.Instructions = "Left Click on Adv. Pod to link up, and use to start controlling."
+SWEP.Category = "Wiremod"
 
 SWEP.PrintName = "Remote Control"
 SWEP.Slot = 0

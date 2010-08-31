@@ -1,10 +1,10 @@
-if VERSION < 70 then -- Gmod version check
+if VERSION < 94 then -- Gmod version check
 	TOOL.Mode			= "wire"
 	TOOL.Category		= "Wire - Tools"
 	TOOL.Name			= "Wire"
 	TOOL.Tab			= "Wire"
 	function TOOL.BuildCPanel(panel)
-		panel:AddControl( "Label", { Text = "Avast!\nYer GMOD be too farrgin' ole ye scurvy sea dog!\nYaaarrr!" })
+		panel:AddControl( "Label", { Text = "Your GMod is years too old. Loading of the wire tools aborted.\n" })
 	end
 	return
 end

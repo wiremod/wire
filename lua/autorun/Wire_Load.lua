@@ -2,7 +2,7 @@
 -- $LastChangedDate: 2009-09-12 03:34:53 -0700 (Sat, 12 Sep 2009) $
 -- $LastChangedBy: TomyLobo $
 
-if VERSION < 70 then Error("WireMod: Your GMod is years too old. Load aborted.\n") end
+if VERSION < 94 then Error("WireMod: Your GMod is years too old. Load aborted.\n") end
 
 if SERVER then
 	-- this file

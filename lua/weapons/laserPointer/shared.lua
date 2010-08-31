@@ -2,6 +2,7 @@ SWEP.Author = ""
 SWEP.Contact = ""
 SWEP.Purpose = ""
 SWEP.Instructions = "Left Click to designate targets. Right click to select laser receiver."
+SWEP.Category = "Wiremod"
 
 SWEP.Spawnable = true;
 SWEP.AdminSpawnable = true;

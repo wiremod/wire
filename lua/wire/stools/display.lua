@@ -757,13 +757,63 @@ do -- wire_soundemitter
 		weld      = 1,
 	}
 	function TOOL.BuildCPanel(panel)
-		panel:TextEntry("#WireEmitterTool_sound", "wire_soundemitter_sound")
-		panel:AddControl("Button", { // Sound Browser Button
-			Text = "Open Sound Browser",
-			Name = "Open Sound Browser",
-			Command = "wire_sound_browser_open"
-		})
-		panel:CheckBox("#WireEmitterTool_collision", "wire_soundemitter_collision" )
+		local wide = panel:GetWide()
+
+		local SoundNameText = vgui.Create("DTextEntry", ValuePanel)
+		SoundNameText:SetText("")
+		SoundNameText:SetWide(wide)
+		SoundNameText:SetTall(20)
+		SoundNameText:SetMultiline(false)
+		SoundNameText:SetConVar("wire_soundemitter_sound")
+		SoundNameText:SetVisible(true)
+		panel:AddItem(SoundNameText)
+
+		local SoundBrowserButton = vgui.Create("DButton")
+		SoundBrowserButton:SetText("Open Sound Browser")
+		SoundBrowserButton:SetWide(wide)
+		SoundBrowserButton:SetTall(20)
+		SoundBrowserButton:SetVisible(true)
+		SoundBrowserButton.DoClick = function()
+			RunConsoleCommand("wire_sound_browser_open",SoundNameText:GetValue())
+		end
+		panel:AddItem(SoundBrowserButton)
+
+		local SoundPre = vgui.Create("DPanel")
+		SoundPre:SetWide(wide)
+		SoundPre:SetTall(20)
+		SoundPre:SetVisible(true)
+
+		local SoundPreWide = SoundPre:GetWide()
+
+		local SoundPrePlay = vgui.Create("DButton", SoundPre)
+		SoundPrePlay:SetText("Play")
+		SoundPrePlay:SetWide(SoundPreWide / 2)
+		SoundPrePlay:SetPos(0, 0)
+		SoundPrePlay:SetTall(20)
+		SoundPrePlay:SetVisible(true)
+		SoundPrePlay.DoClick = function()
+			RunConsoleCommand("play",SoundNameText:GetValue())
+		end
+
+		local SoundPreStop = vgui.Create("DButton", SoundPre)
+		SoundPreStop:SetText("Stop")
+		SoundPreStop:SetWide(SoundPreWide / 2)
+		SoundPreStop:SetPos(SoundPreWide / 2, 0)
+		SoundPreStop:SetTall(20)
+		SoundPreStop:SetVisible(true)
+		SoundPreStop.DoClick = function()
+			RunConsoleCommand("play", "common/NULL.WAV") //Playing a silent sound will mute the preview but not the sound emitters.
+		end
+		panel:AddItem(SoundPre)
+		SoundPre:InvalidateLayout(true)
+		SoundPre.PerformLayout = function()
+			local SoundPreWide = SoundPre:GetWide()
+			SoundPrePlay:SetWide(SoundPreWide / 2)
+			SoundPreStop:SetWide(SoundPreWide / 2)
+			SoundPreStop:SetPos(SoundPreWide / 2, 0)
+		end
+
+		panel:CheckBox("#WireEmitterTool_collision", "wire_soundemitter_collision")
 		ModelPlug_AddToCPanel(panel, "speaker", "wire_soundemitter", nil, nil, true)
 		panel:CheckBox("Weld", "wire_soundemitter_weld")
 	end

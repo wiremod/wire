@@ -4,11 +4,12 @@ ENT.Base            = "base_wire_entity"
 ENT.PrintName       = "Hover Drive Controller"
 ENT.Author          = "TAD2020"
 ENT.Contact         = ""
-ENT.Purpose         = ""
-ENT.Instructions    = ""
+ENT.Purpose         = "It Teleports."
+ENT.Instructions    = "Use wire."
+ENT.Category		= "Wiremod"
 
 ENT.Spawnable       = true
-ENT.AdminSpawnable  = false
+ENT.AdminSpawnable  = true
 
 cleanup.Register("hoverdrivecontrolers")
 

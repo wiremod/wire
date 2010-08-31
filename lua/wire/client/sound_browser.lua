@@ -6,7 +6,7 @@ local PANEL = {}
 local MaxElements = 1800 // If you try to show more then 2000 files at once then the tree will disappear and you cant reopen it, so leave the value at 1800 or below to be safe.
 local MaxPerTimerTick = 15 // Set Max count of elements to in to the tree per timertick. If the value is to high it will cause the "Infinite Loop Detected!" Error.
 
-local timername = "File_Search_timertick_kajghsidfjhasofjsaiashfias" // Timer names must be unique!
+local timername = {} // Timer names must be unique and can be a empty table!
 local lastselected = ""
 
 function PANEL:GetFileName(filepath) // Return the filename of the given filepath without "/" or "\" at the beginning.
@@ -46,7 +46,7 @@ function PANEL:FindItemsInTree(pFolders, dir, parent, fileicon, filepart, fileco
 							local IsDir = file.IsDir(Filepath)
 							local FileExists = file.Exists(Filepath)
 							local NodeID = ("Node_ID_"..index..tostring(IsDir)..Filepath)
-							if (!string.match(v, "%.%.") and !table.HasValue(AddedItems, Filepath)) then // No allow double foders and folder with ".." in thay names to be shown and check if the folder is a real folder, this prevents some errors.
+							if (!string.match(v, "%.%.") and !AddedItems[Filepath]) then // No allow double foders and folder with ".." in thay names to be shown and check if the folder is a real folder, this prevents some errors.
 								if (IsDir) then
 									// Folders:
 									local pNode = parent:AddNode(v)
@@ -67,7 +67,7 @@ function PANEL:FindItemsInTree(pFolders, dir, parent, fileicon, filepart, fileco
 										self.FolderTree:SetSelectedItem(pNode)
 									end
 								end
-								AddedItems[index] = Filepath // A list of shown files to prevent showing files again are already shown.
+								AddedItems[Filepath] = true // A list of shown files to prevent showing files again are already shown.
 							end
 							if (index == TCount) then
 								if timer.IsTimer(timername) then
@@ -96,8 +96,7 @@ end
 local olddir = ""
 
 function PANEL:BuildFileTree(dir, parent, filepart) // Build the file tree.
-	if(type(dir) ~= "string") then return end
-	if((!parent) or (!parent:IsValid())) then return end
+	if(type(dir) ~= "string" or !IsValid(parent)) then return end
 
 	parent:Clear()
 	parent.ChildNodes = nil
@@ -232,18 +231,33 @@ end
 function PANEL:Sendmenu(sound) // Open a sending and setup menu on right click on a sound file or on pressing the "Sent To" button.
 	if ((type(sound) == "string") and (sound ~= "")) then
 		MenuButtonOptions = DermaMenu()
-		MenuButtonOptions:AddOption("Copy to Clipboard", function()
-			// Copy the soundpath to Clipboard.
-			LocalPlayer():PrintMessage( HUD_PRINTTALK, "The soundpath has been copied to Clipboard." )
-			SetClipboardText(sound)
-		end)
-		MenuButtonOptions:AddOption("Setup Soundemitter", function()
-			// Setup the Soundemitter stool with the soundpath.
-			LocalPlayer():PrintMessage( HUD_PRINTTALK, "The soundemitter stool has been setup with the soundpath." )
-			RunConsoleCommand("wire_soundemitter_sound", sound)
-			// Pull out the soundemitter stool after setup.
-			RunConsoleCommand("tool_wire_soundemitter")
-		end)
+		if (self.SoundEmitter) then
+			MenuButtonOptions:AddOption("Setup Soundemitter", function()
+				// Setup the Soundemitter stool with the soundpath.
+				LocalPlayer():PrintMessage( HUD_PRINTTALK, "The soundemitter stool has been setup with the soundpath." )
+				RunConsoleCommand("wire_soundemitter_sound", sound)
+				// Pull out the soundemitter stool after setup.
+				RunConsoleCommand("tool_wire_soundemitter")
+			end)
+			MenuButtonOptions:AddOption("Copy to Clipboard", function()
+				// Copy the soundpath to Clipboard.
+				LocalPlayer():PrintMessage( HUD_PRINTTALK, "The soundpath has been copied to Clipboard." )
+				SetClipboardText(sound)
+			end)
+		else
+			MenuButtonOptions:AddOption("Copy to Clipboard", function()
+				// Copy the soundpath to Clipboard.
+				LocalPlayer():PrintMessage( HUD_PRINTTALK, "The soundpath has been copied to Clipboard." )
+				SetClipboardText(sound)
+			end)
+			MenuButtonOptions:AddOption("Setup Soundemitter", function()
+				// Setup the Soundemitter stool with the soundpath.
+				LocalPlayer():PrintMessage( HUD_PRINTTALK, "The soundemitter stool has been setup with the soundpath." )
+				RunConsoleCommand("wire_soundemitter_sound", sound)
+				// Pull out the soundemitter stool after setup.
+				RunConsoleCommand("tool_wire_soundemitter")
+			end)
+		end
 		MenuButtonOptions:AddOption("Print to Console", function()
 			// Print the soundpath in the Console.
 			LocalPlayer():PrintMessage( HUD_PRINTTALK, "The soundpath has been printed to the console.")
@@ -281,8 +295,7 @@ function PANEL:GetSoundInfors(sound) // Output the infos about the given sound.
 end
 
 function PANEL:UpdateFolders(Foldername, Panel, Text, filepart) // Make the file tree panel.
-	if((!Panel) or (!Panel:IsValid())) then return end
-	if((!Text) or (!Text:IsValid())) then return end
+	if(!IsValid(Text) or !IsValid(Panel)) then return end
 
 	function self:OnDoubleClick(lastclick, func) // Add double the click support.
 		if ((CurTime() - lastclick) < 0.5) then
@@ -314,6 +327,11 @@ function PANEL:UpdateFolders(Foldername, Panel, Text, filepart) // Make the file
 		if(node.IsFile) then
 			self.SoundPath = string.sub(node.FileDir, 10) // Remove "../sound/" part out of the string.
 			Text:SetText(self:GetSoundInfors(self.SoundPath))
+			if (self.SoundEmitter) then
+				self.EmitterLastSoundPath = self.SoundPath
+			else
+				self.LastSoundPath = self.SoundPath
+			end
 			self:OnDoubleClick(self.LastClick, function()
 				self:PlaySound(self.SoundPath)
 			end)
@@ -338,6 +356,11 @@ function PANEL:UpdateFolders(Foldername, Panel, Text, filepart) // Make the file
 		if(node.IsFile) then
 			self.SoundPath = string.sub(node.FileDir, 10) // Remove "../sound/" part out of the string.
 			Text:SetText(self:GetSoundInfors(self.SoundPath))
+			if (self.SoundEmitter) then
+				self.EmitterLastSoundPath = self.SoundPath
+			else
+				self.LastSoundPath = self.SoundPath
+			end
 			self:Sendmenu(self.SoundPath)
 		end
 		lastselected = node.ID // Save the ID of the selected item.
@@ -347,13 +370,18 @@ end
 
 function PANEL:OpenFolder(dir)
 	self.Foldername = self:GetValidFolder(dir)
+	if (self.SoundEmitter) then
+		self.EmitterLastFoldername = self.Foldername
+	else
+		self.LastFoldername = self.Foldername
+	end
 	self.FilepartNumber = 0
 	self:UpdateFolders(self.Foldername, self.SoundBrowserPanel, self.SoundInfoText, self.FilepartNumber)
 end
 
 
 function PANEL:GetEndBounds(Panel) // This is to return position of the down-right corner of the given panel, the position is relativ to the panels parent.
-	if((!Panel) or (!Panel:IsValid())) then return end
+	if(!IsValid(Panel)) then return end
 	local x, y, w, h = Panel:GetBounds()
 	local EndX, EndY = x + w, y + h
 	return EndX, EndY
@@ -399,9 +427,24 @@ function PANEL:ResizeSoundBrowser(w, h) // Resize the sound browser panel.
 	self.SoundInfoText:SetWide(w - 25)
 end
 
-function PANEL:CreateSoundBrowser() // Make the sound browser panel.
-	self.SoundPath = self.SoundPath or ""
-	self.Foldername = self.Foldername or ""
+function PANEL:CreateSoundBrowser(path) // Make the sound browser panel.
+	if (type(path) == "string" and path ~= "") then
+		self.EmitterLastSoundPath = self.EmitterLastSoundPath or path or self.SoundPath or ""
+		self.EmitterLastFoldername = self.EmitterLastFoldername or self:GetValidFolder(path) or self.Foldername or ""
+
+		self.SoundPath = self.EmitterLastSoundPath
+		self.Foldername = self.EmitterLastFoldername
+
+		self.SoundEmitter = true
+	else
+		self.LastSoundPath = self.LastSoundPath or self.SoundPath or ""
+		self.LastFoldername = self.LastFoldername or self.Foldername or ""
+
+		self.SoundPath = self.LastSoundPath
+		self.Foldername = self.LastFoldername
+
+		self.SoundEmitter = false
+	end
 	self.FilepartNumber = self.FilepartNumber or 0
 	self.LastClick = 0
 	self.StatusValue = 0
@@ -553,6 +596,8 @@ function PANEL:CreateSoundBrowser() // Make the sound browser panel.
 end
 
 function PANEL:GetValidFolder(Folder) // Filter invalid chars out.
+	if (type(Folder) ~= "string" or Folder == "") then return end
+
 	local ValidFolder = string.lower(Folder)
 	local invalid_chars = {
 		["%.%."] = "", // Disallow access to folders outside the sound folder by typing ".." in the folder browser.
@@ -579,7 +624,10 @@ function PANEL:GetValidFolder(Folder) // Filter invalid chars out.
 	end
 
 	ValidFolder = string.Trim(ValidFolder, "/")
-	self.FolderPathText:SetText(ValidFolder)
+
+	if (IsValid(self.FolderPathText)) then
+		self.FolderPathText:SetText(ValidFolder)
+	end
 
 	local Dirs = table.Count(string.Explode("/", ValidFolder))
 	for i = 1, Dirs do
@@ -594,14 +642,15 @@ function PANEL:GetValidFolder(Folder) // Filter invalid chars out.
 end
 
 local function CloseSoundBrowser() // Close the Sound Browser.
-	if (PANEL.SoundBrowserPanel and PANEL.SoundBrowserPanel:IsValid()) then
-		PANEL.SoundBrowserPanel:Close()
+	if (IsValid(PANEL.SoundBrowserPanel)) then
+		//PANEL.SoundBrowserPanel:Close()
+		PANEL.SoundBrowserPanel:Remove()
 	end
 end
 
-local function OpenSoundBrowser() // Open the Sound Browser.
-	if (!PANEL.SoundBrowserPanel or !PANEL.SoundBrowserPanel:IsValid()) then
-		PANEL:CreateSoundBrowser()
+local function OpenSoundBrowser(pl, cmd, args) // Open the Sound Browser.
+	if (!IsValid(PANEL.SoundBrowserPanel)) then
+		PANEL:CreateSoundBrowser(args[1])
 	end
 
 	PANEL.SoundBrowserPanel:MakePopup()
