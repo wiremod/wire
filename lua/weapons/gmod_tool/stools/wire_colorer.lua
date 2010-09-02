@@ -4,7 +4,7 @@ TOOL.Command		= nil
 TOOL.ConfigName		= ""
 TOOL.Tab			= "Wire"
 
-if ( CLIENT ) then
+if CLIENT then
     language.Add( "Tool_wire_colorer_name", "Colorer Tool (Wire)" )
     language.Add( "Tool_wire_colorer_desc", "Spawns a constant colorer prop for use with the wire system." )
     language.Add( "Tool_wire_colorer_0", "Primary: Create/Update Colorer" )
@@ -16,7 +16,7 @@ if ( CLIENT ) then
 	language.Add( "undone_Wire Colorer", "Undone Wire Colorer" )
 end
 
-if (SERVER) then
+if SERVER then
 	CreateConVar('sbox_maxwire_colorers', 20)
 end
 
@@ -26,38 +26,41 @@ TOOL.ClientConVar[ "Range" ] = "2000"
 
 local colormodels = {
     ["models/jaanus/wiretool/wiretool_siren.mdl"] = {},
-    ["models/jaanus/wiretool/wiretool_beamcaster.mdl"] = {}};
+    ["models/jaanus/wiretool/wiretool_beamcaster.mdl"] = {},
+	["models/jaanus/wiretool/wiretool_range.mdl"] = {}
+}
 
 cleanup.Register( "wire_colorers" )
 
 function TOOL:LeftClick( trace )
-	if (!trace.HitPos) then return false end
-	if (trace.Entity:IsPlayer()) then return false end
-	if ( CLIENT ) then return true end
+	if !trace.HitPos then return false end
+	if trace.Entity:IsPlayer() then return false end
+	if CLIENT then return true end
 
 	local ply = self:GetOwner()
 
-	if ( trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_colorer" && trace.Entity.pl == ply ) then
+	if IsValid(trace.Entity) and trace.Entity:GetClass() == "gmod_wire_colorer" and trace.Entity.pl == ply then
+		trace.Entity:SetBeamLength( self:GetClientNumber( "Range" ) )
 		return true
 	end
 
-	if ( !self:GetSWEP():CheckLimit( "wire_colorers" ) ) then return false end
+	if !self:GetSWEP():CheckLimit( "wire_colorers" ) then return false end
 
 	local Ang = trace.HitNormal:Angle()
 	Ang.pitch = Ang.pitch + 90
 
     local outColor = (self:GetClientNumber( "outColor" ) ~= 0)
-    local range = self:GetClientNumber("Range")
-    local model = self:GetClientInfo("Model")
+    local range = self:GetClientNumber( "Range" )
+    local model = self:GetClientInfo( "Model" )
 
 	local wire_colorer = MakeWireColorer( ply, trace.HitPos, Ang, model, outColor, range )
 
 	local min = wire_colorer:OBBMins()
 	wire_colorer:SetPos( trace.HitPos - trace.HitNormal * min.z )
 
-	local const = WireLib.Weld(wire_colorer, trace.Entity, trace.PhysicsBone, true)
+	local const = WireLib.Weld( wire_colorer, trace.Entity, trace.PhysicsBone, true )
 
-	undo.Create("Wire Colorer")
+	undo.Create( "Wire Colorer" )
 		undo.AddEntity( wire_colorer )
 		undo.AddEntity( const )
 		undo.SetPlayer( ply )
@@ -69,19 +72,19 @@ function TOOL:LeftClick( trace )
 	return true
 end
 
-if (SERVER) then
+if SERVER then
 
 	function MakeWireColorer( pl, Pos, Ang, model, outColor, Range )
-		if ( !pl:CheckLimit( "wire_colorers" ) ) then return false end
+		if !pl:CheckLimit( "wire_colorers" ) then return false end
 
 		local wire_colorer = ents.Create( "gmod_wire_colorer" )
-		if (!wire_colorer:IsValid()) then return false end
+		if !IsValid(wire_colorer) then return false end
 
 		wire_colorer:SetAngles( Ang )
 		wire_colorer:SetPos( Pos )
 		wire_colorer:SetModel( model )
 		wire_colorer:Spawn()
-		wire_colorer:Setup(outColor,Range)
+		wire_colorer:Setup( outColor, Range )
 
 		wire_colorer:SetPlayer( pl )
 
@@ -90,7 +93,7 @@ if (SERVER) then
 		    Range = Range,
 			pl = pl
 		}
-		table.Merge(wire_colorer:GetTable(), ttable )
+		table.Merge( wire_colorer:GetTable(), ttable )
 
 		pl:AddCount( "wire_colorers", wire_colorer )
 
@@ -102,12 +105,12 @@ if (SERVER) then
 end
 
 function TOOL:UpdateGhostWireColorer( ent, player )
-	if ( !ent || !ent:IsValid() ) then return end
+	if !IsValid(ent) then return end
 
 	local tr 	= utilx.GetPlayerTrace( player, player:GetCursorAimVector() )
 	local trace 	= util.TraceLine( tr )
 
-	if (!trace.Hit || trace.Entity:IsPlayer() || trace.Entity:GetClass() == "gmod_wire_colorer" ) then
+	if !trace.Hit or trace.Entity:IsPlayer() or trace.Entity:GetClass() == "gmod_wire_colorer" then
 		ent:SetNoDraw( true )
 		return
 	end
@@ -123,7 +126,7 @@ function TOOL:UpdateGhostWireColorer( ent, player )
 end
 
 function TOOL:Think()
-	if (!self.GhostEntity || !self.GhostEntity:IsValid() || self.GhostEntity:GetModel() != self:GetClientInfo("Model") ) then
+	if !self.GhostEntity or !self.GhostEntity:IsValid() or self.GhostEntity:GetModel() ~= self:GetClientInfo("Model") then
 		self:MakeGhostEntity( self:GetClientInfo("Model"), Vector(0,0,0), Angle(0,0,0) )
 	end
 
