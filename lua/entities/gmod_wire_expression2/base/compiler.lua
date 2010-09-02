@@ -26,6 +26,7 @@ function Compiler:Process(root, inputs, outputs, persist, delta, params)
 	self:PushContext()
 
 	self.inputs = inputs
+	self.outputs = outputs
 	self.prfcounter = 0
 	self.prfcounters = {}
 	self.dvars = {}
@@ -547,13 +548,17 @@ end
 function Compiler:InstrIWC(args)
 	local op = args[3]
 
-	if !self.inputs[op] then
-		self:Error("Connected operator (->" .. E2Lib.limitString(op, 10) .. ") can only be used on inputs", args)
+	if self.inputs[op] then
+		local tp = self:GetVariableType(args, op)
+		local rt = self:GetOperator(args, "iwc", {})
+		return {rt[1], op}, rt[2]
+	elseif self.outputs[op] then
+		local tp = self:GetVariableType(args, op)
+		local rt = self:GetOperator(args, "owc", {})
+		return {rt[1], op}, rt[2]
+	else
+		self:Error("Connected operator (->" .. E2Lib.limitString(op, 10) .. ") can only be used on inputs or outputs", args)
 	end
-
-	local tp = self:GetVariableType(args, op)
-	local rt = self:GetOperator(args, "iwc", {})
-	return {rt[1], op}, rt[2]
 end
 
 function Compiler:InstrNUM(args)

@@ -251,6 +251,14 @@ registerOperator("iwc", "", "n", function(self, args)
 	return validEntity(self.entity.Inputs[op1].Src) and 1 or 0
 end)
 
+registerOperator("owc","","n",function(self,args)
+	local op1 = args[2]
+	local tbl = self.entity.Outputs[op1].Connected
+	local ret = #tbl
+	for i=1,ret do if (!ValidEntity(tbl[i].Entity)) then ret = ret - 1 end end
+	return ret
+end)
+
 /******************************************************************************/
 
 __e2setcost(0) -- cascaded
