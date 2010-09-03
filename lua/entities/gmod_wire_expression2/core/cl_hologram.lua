@@ -1,28 +1,22 @@
-if not datastream then require( "datastream" ) end
+local display_owners = false
 
-local hologram_owners = {}
+concommand.Add( "wire_holograms_display_owners", function()
+	display_owners = !display_owners
+end )
 
-datastream.Hook( "wire_holograms_owners", function( ply, handler, id, encoded, decoded )
+hook.Add( "HUDPaint", "wire_holograms_showowners", function()
+	if !display_owners then return end
 
-	for k,v in pairs( encoded[1] ) do
-		if v.owner and v.owner:IsValid() and v.hologram and v.hologram:IsValid() then
-			table.insert( hologram_owners, { ["owner"] = v.owner, ["hologram"] = v.hologram } )
-		end
-	end
+	for _,ent in pairs( ents.FindByClass( "gmod_wire_hologram" ) ) do
+		local id = ent:GetNWInt( "ownerid" )
 
-	hook.Add( "HUDPaint", "draw_wire_hologram_owners", function( )
-		for k,v in pairs( hologram_owners ) do
-			if v.owner and v.owner:IsValid() and v.owner:IsPlayer() and v.hologram and v.hologram:IsValid() then
-				local vec = v.hologram:GetPos():ToScreen()
-				draw.DrawText(v.owner:Name(), "ScoreboardText", vec.x, vec.y, Color(255,0,0,255), 1)
+		for _,ply in pairs( player.GetAll() ) do
+			if ply:UserID() == id then
+				local vec = ent:GetPos():ToScreen()
+
+				draw.DrawText( ply:Name() .. "\n" .. ply:SteamID(), "ScoreboardText", vec.x, vec.y, Color(255,0,0,255), 1 )
+				break
 			end
 		end
-	end )
-
-end)
-
--- this function is called from the client side
-function wire_holograms_remove_owners_display()
-	hook.Remove( "HUDPaint", "draw_wire_hologram_owners" )
-	hologram_owners = {}
-end
+	end
+end )

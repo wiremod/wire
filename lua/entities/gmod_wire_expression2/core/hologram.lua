@@ -856,47 +856,6 @@ local function ConsoleMessage(ply, text)
 	end
 end
 
-
-local DisplayOwners = {}
-concommand.Add( "wire_holograms_display_owners", function( ply, com, args )
-	if not ply:IsValid() then return end
-
-	if !DisplayOwners[ply] then
-		DisplayOwners[ply] = {}
-		DisplayOwners[ply].bool = false
-	end
-
-	if DisplayOwners[ply].bool == false then
-		timer.Create( "wire_holograms_update_owners"..ply:EntIndex(), 0.5, 0, function(ply)
-			local tbl = {}
-			for _,owner in ipairs( player.GetAll() ) do
-				if owner and owner:IsValid() and owner:IsPlayer() and E2HoloRepo[owner] then
-					for _,Holo in pairs( E2HoloRepo[owner] ) do
-						if Holo and type( Holo ) == "table" and Holo.ent and Holo.ent:IsValid() then
-							if !DisplayOwners[ply][Holo.ent] then
-								DisplayOwners[ply][Holo.ent] = true
-								table.insert( tbl, { owner = owner, hologram = Holo.ent } )
-							end
-						end
-					end
-				end
-			end
-			if #tbl > 0 then
-				datastream.StreamToClients( ply, "wire_holograms_owners", { tbl } )
-			end
-		end, ply )
-		DisplayOwners[ply].bool = true
-	else
-		if timer.IsTimer( "wire_holograms_update_owners"..ply:EntIndex() ) then -- TODO: is this check necessary?
-			timer.Remove( "wire_holograms_update_owners"..ply:EntIndex() )
-		end
-		ply:SendLua( "wire_holograms_remove_owners_display()")
-		DisplayOwners[ply] = {}
-		DisplayOwners[ply].bool = false
-	end
-
-end )
-
 concommand.Add( "wire_holograms_remove_all", function( ply, com, args )
 	if ply:IsValid() and not ply:IsAdmin() then return end
 
