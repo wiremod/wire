@@ -84,6 +84,14 @@ e2function string httpRequestUrl()
 	return preq.url or ""
 end
 
+e2function string httpUrlEncode(string url)
+	local nurl = string.gsub( url, "[^%w _.~-]", function( str )
+		return "%" .. string.format( "%X", string.byte( str ) )
+	end )
+
+	return string.gsub( nurl, " ", "+" )
+end
+
 e2function void runOnHTTP( number rohttp )
 	run_on.ents[self.entity] = ( rohttp != 0 ) and self.player or nil
 end
