@@ -84,12 +84,22 @@ e2function string httpRequestUrl()
 	return preq.url or ""
 end
 
-e2function string httpUrlEncode(string url)
-	local nurl = string.gsub( url, "[^%w _.~-]", function( str )
-		return "%" .. string.format( "%X", string.byte( str ) )
+e2function string httpUrlEncode(string data)
+	local ndata = string.gsub( data, "[^%w _~%.%-]", function( str )
+		local nstr = string.format( "%X", string.byte( str ) )
+
+		return "%" .. ( ( string.len( nstr ) == 1 ) and "0" or "" ) .. nstr
 	end )
 
-	return string.gsub( nurl, " ", "+" )
+	return string.gsub( ndata, " ", "+" )
+end
+
+e2function string httpUrlDecode(string data)
+	local ndata = string.gsub( data, "+", " " )
+
+	return string.gsub( ndata, "(%%%x%x)", function( str )
+		return string.char( tonumber( string.Right( str, 2 ), 16 ) )
+	end )
 end
 
 e2function void runOnHTTP( number rohttp )
