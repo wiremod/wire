@@ -103,7 +103,9 @@ registerCallback("postinit",function()
 				if (val) then -- If the var exists
 					return val -- return it
 				end
-				return v[2] -- Return default
+				local default = v[2]
+				if (type(default) == "table") then default = table.Copy(default) end
+				return default
 			end
 			local function setf( self, args )
 				local op1, op2, op3 = args[2], args[3], args[4]
@@ -128,7 +130,9 @@ registerCallback("postinit",function()
 					rv1[v[1]..rv2] = nil
 					return val
 				end
-				return v[2]
+				local default = v[2]
+				if (type(default) == "table") then default = table.Copy(default) end
+				return default
 			end)
 
 			__e2setcost(50)
@@ -215,6 +219,7 @@ registerCallback("postinit",function()
 	end
 
 	for k,v in pairs( types ) do
+
 		__e2setcost(10)
 
 		-- gSet*(S,*)
@@ -235,9 +240,17 @@ registerCallback("postinit",function()
 			local op1 = args[2]
 			local rv1 = op1[1](self,op1)
 			if (self.data.gvars.shared == 1) then
-				return GetVar(self.data.gvars.group,gvars.shared,rv1,v[1]) or v[2][2]
+				local ret = GetVar(self.data.gvars.group,gvars.shared,rv1,v[1])
+				if (ret) then return ret end
+				local default = v[2][2]
+				if (type(default) == "table") then default = table.Copy(default) end
+				return default
 			else
-				return GetVar(self.data.gvars.group,gvars[self.player],rv1,v[1]) or v[2][2]
+				local ret = GetVar(self.data.gvars.group,gvars[self.player],rv1,v[1])
+				if (ret) then return ret end
+				local default = v[2][2]
+				if (type(default) == "table") then default = table.Copy(default) end
+				return default
 			end
 		end)
 
@@ -259,9 +272,17 @@ registerCallback("postinit",function()
 			local op1 = args[2]
 			local rv1 = tostring(op1[1](self,op1))
 			if (self.data.gvars.shared == 1) then
-				return GetVar(self.data.gvars.group,gvars.shared,rv1,v[1]) or v[2][2]
+				local ret = GetVar(self.data.gvars.group,gvars.shared,rv1,v[1])
+				if (ret) then return ret end
+				local default = v[2][2]
+				if (type(default) == "table") then default = table.Copy(default) end
+				return default
 			else
-				return GetVar(self.data.gvars.group,gvars[self.player],rv1,v[1]) or v[2][2]
+				local ret = GetVar(self.data.gvars.group,gvars[self.player],rv1,v[1])
+				if (ret) then return ret end
+				local default = v[2][2]
+				if (type(default) == "table") then default = table.Copy(default) end
+				return default
 			end
 		end)
 
@@ -288,7 +309,9 @@ registerCallback("postinit",function()
 					end
 				end
 			end
-			return v[2][2]
+			local default = v[2][2]
+			if (type(default) == "table") then default = table.Copy(default) end
+			return default
 		end)
 
 		-- gDelete*(N) (same as gDelete*(N:toString()))
@@ -312,7 +335,9 @@ registerCallback("postinit",function()
 					end
 				end
 			end
-			return v[2][2]
+			local default = v[2][2]
+			if (type(default) == "table") then default = table.Copy(default) end
+			return default
 		end)
 
 		__e2setcost(25)

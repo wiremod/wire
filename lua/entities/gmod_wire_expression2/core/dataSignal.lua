@@ -235,9 +235,11 @@ registerCallback("postinit",function()
 
 			-- Get variable
 			registerFunction("dsGet" .. upperfirst( k ), "", v[1], function(self,args)
-				if (!currentsignal) then return v[2] end -- If the current execution was not caused by a signal, return the type's default value
-				if (!currentsignal.vartype or currentsignal.vartype != k) then return v[2] end -- If the type is not that type, return the type's default value
-				return currentsignal.var or v[2]
+				local default = v[2]
+				if (type(default) == "table") then default = table.Copy(default) end
+				if (!currentsignal) then return default end -- If the current execution was not caused by a signal, return the type's default value
+				if (!currentsignal.vartype or currentsignal.vartype != k) then return default end -- If the type is not that type, return the type's default value
+				return currentsignal.var or default
 			end)
 
 		end -- allowed check
