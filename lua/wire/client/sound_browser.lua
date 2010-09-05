@@ -6,7 +6,7 @@ local PANEL = {}
 local MaxElements = 1800 // If you try to show more then 2000 files at once then the tree will disappear and you cant reopen it, so leave the value at 1800 or below to be safe.
 local MaxPerTimerTick = 15 // Set Max count of elements to in to the tree per timertick. If the value is to high it will cause the "Infinite Loop Detected!" Error.
 
-local timername = {} // Timer names must be unique and can be a empty table!
+local timername = {} // Timer names must be unique and can be an empty table!
 local lastselected = ""
 
 function PANEL:GetFileName(filepath) // Return the filename of the given filepath without "/" or "\" at the beginning.
@@ -15,7 +15,7 @@ function PANEL:GetFileName(filepath) // Return the filename of the given filepat
 end
 
 function PANEL:FindItemsInTree(pFolders, dir, parent, fileicon, filepart, filecount, MaxFileParts) // Build the folders and files to the tree.
-	if (timer.IsTimer(timername) ~= true) then
+	if !timer.IsTimer(timername) then
 		local TCount = math.Clamp(filecount, 0, MaxElements)
 		local TableCount = TCount/MaxPerTimerTick
 		local AddedItems = {}
@@ -26,7 +26,7 @@ function PANEL:FindItemsInTree(pFolders, dir, parent, fileicon, filepart, fileco
 			local pBackNode = parent:AddNode("..")
 			pBackNode.FileDir = dir
 			pBackNode.ID = ("Node_ID_BackNode")
-			pBackNode.Icon:SetImage("vgui/spawnmenu/FolderUp")
+			pBackNode.Icon:SetImage("vgui/spawnmenu/folderUp")
 			if (lastselected == "Node_ID_BackNode") then // Get the saved ItemID and select its owner.
 				self.FolderTree:SetSelectedItem(pBackNode)
 			end
@@ -35,7 +35,6 @@ function PANEL:FindItemsInTree(pFolders, dir, parent, fileicon, filepart, fileco
 		if (TableCount > 0) then
 			timer.Create(timername, 0.01, TableCount, function() // The timer is VERY important to prevent the "Infinite Loop Detected!" error on folders with many folders inseide!
 				if ((Timervalue < TCount) and (self.SoundBrowserPanel:IsVisible() == true)) then
-					local StartTall = parent:GetTall()
 					Timervalue = Timervalue + MaxPerTimerTick
 
 					for i = 1, MaxPerTimerTick do
@@ -53,6 +52,7 @@ function PANEL:FindItemsInTree(pFolders, dir, parent, fileicon, filepart, fileco
 									pNode.IsFile = !IsDir
 									pNode.FileDir = Filepath
 									pNode.ID = NodeID
+									pNode.Icon:SetImage("vgui/spawnmenu/folder")
 									if (NodeID == lastselected) then // Get the saved ItemID and select its owner.
 										self.FolderTree:SetSelectedItem(pNode)
 									end
@@ -67,7 +67,7 @@ function PANEL:FindItemsInTree(pFolders, dir, parent, fileicon, filepart, fileco
 										self.FolderTree:SetSelectedItem(pNode)
 									end
 								end
-								AddedItems[Filepath] = true // A list of shown files to prevent showing files again are already shown.
+								AddedItems[Filepath] = true // A list of shown files to prevent showing files that are shown already.
 							end
 							if (index == TCount) then
 								if timer.IsTimer(timername) then
@@ -510,7 +510,7 @@ function PANEL:CreateSoundBrowser(path) // Make the sound browser panel.
 	end
 
 	self.FolderPathIcon = vgui.Create("DImageButton", self.SoundBrowserPanel) // The Folder Button.
-	self.FolderPathIcon:SetImage("vgui/spawnmenu/folder")
+	self.FolderPathIcon:SetImage("gui/silkicons/magnifier")
 	self.FolderPathIcon:SetPos(12.5, 37.5)
 	self.FolderPathIcon:SetSize(20, 20)
 	self.FolderPathIcon.DoClick = function()
