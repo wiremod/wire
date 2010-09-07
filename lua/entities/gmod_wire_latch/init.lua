@@ -87,12 +87,12 @@ function ENT:TriggerInput( iname, value )
 		self.nocollide_status = value
 		local mask = self.nocollide_masks[value] or {false, false, false}
 
-		if self.Ent1 and not self.Ent1:IsWorld() then
+		if IsValid( self.Ent1 ) and not self.Ent1:IsWorld() then
 			local phys = self.Ent1:GetPhysicsObject()
 			if phys:IsValid() then phys:EnableCollisions(not mask[1]) end
 		end
 
-		if self.Ent2 and not self.Ent2:IsWorld() then
+		if IsValid( self.Ent2 ) and not self.Ent2:IsWorld() then
 			local phys = self.Ent2:GetPhysicsObject()
 			if phys:IsValid() then phys:EnableCollisions(not mask[2]) end
 		end
@@ -153,11 +153,11 @@ end
 -- duplicator support
 function ENT:BuildDupeInfo()
 	local info = self.BaseClass.BuildDupeInfo(self) or {}
-	if (self.Ent1) and (self.Ent1:IsValid()) then
+	if IsValid( self.Ent1 ) then
 		info.Ent1 = self.Ent1:EntIndex()
 		info.Bone1 = self.Bone1
 	end
-	if (self.Ent2) and (self.Ent2:IsValid()) then
+	if IsValid( self.Ent2 ) then
 		info.Ent2 = self.Ent2:EntIndex()
 		info.Bone2 = self.Bone2
 	end
