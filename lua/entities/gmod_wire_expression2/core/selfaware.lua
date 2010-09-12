@@ -29,10 +29,72 @@ e2function void selfDestructAll()
 end
 
 /******************************************************************************/
+-- i/o functions
+
+__e2setcost(10)
+
+-- Returns an array of all entities wired to the output
+e2function array ioOutputEntities( string output )
+	local ret = {}
+	if (self.entity.Outputs[output]) then
+		local tbl = self.entity.Outputs[output].Connected
+		for i=1,#tbl do if (ValidEntity(tbl[i].Entity)) then ret[#ret+1] = tbl[i].Entity end end
+		self.prf = self.prf + #ret
+	end
+	return ret
+end
+
+-- Returns the entity the input is wired to
+e2function entity ioInputEntity( string input )
+	if (self.entity.Inputs[input] and self.entity.Inputs[input].Src and ValidEntity(self.entity.Inputs[input].Src)) then return self.entity.Inputs[input].Src end
+end
+
+local function setOutput( self, args, Type )
+	local op1, op2 = args[2], args[3]
+	local rv1, rv2 = op1[1](self,op1), op2[1](self,op2)
+	if (self.entity.Outputs[rv1] and self.entity.Outputs[rv1].Type == Type) then
+		self.vars[rv1] = rv2
+		self.vclk[rv1] = true
+	end
+end
+
+local function getInput( self, args, default, Type )
+	local op1 = args[2]
+	local rv1 = op1[1](self,op1)
+	if (type(default) == "table") then default = table.Copy(default) end
+	if (self.entity.Inputs[rv1] and self.entity.Inputs[rv1].Type == Type) then
+		return self.vars[rv1] or default
+	end
+	return default
+end
+
+local excluded_types = {
+	xgt = true,
+}
+
+local function upperfirst( word )
+	return word:Left(1):upper() .. word:Right(-2):lower()
+end
+
+__e2setcost(5)
+
+registerCallback("postinit",function()
+	for k,v in pairs( wire_expression_types ) do
+		if (!excluded_types[short]) then
+			local short = v[1]
+			registerFunction("ioSetOutput","s"..short,""..short,function(self,args) return setOutput(self,args,k) end)
+			registerFunction("ioGetInput"..upperfirst(k == "NORMAL" and "NUMBER" or k),"s",short,function(self,args) return getInput(self,args,v[2],k) end)
+		end
+	end
+end)
+
+/******************************************************************************/
 
 registerCallback("construct", function(self)
 	self.data.changed = {}
 end)
+
+__e2setcost(1)
 
 -- This is the prototype for everything that can be compared using the == operator
 e2function number changed(value)
