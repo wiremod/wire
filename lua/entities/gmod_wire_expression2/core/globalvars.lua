@@ -73,7 +73,17 @@ __e2setcost(10)
 
 -- Clear the non-shared table
 e2function void gRemoveAll()
-	gvars[self.player] = {}
+	self.prf = self.prf + table.Count(gvars[self.player]) / 3
+	for k,v in pairs( gvars[self.player] ) do
+		self.prf = self.prf + table.Count(v) / 3
+		table.Empty( v )
+	end
+	table.Empty(gvars[self.player])
+end
+
+e2function void gtable:clear()
+	self.prf = self.prf + table.Count(this) / 3
+	table.Empty(this)
 end
 
 ------------------------------------------------
