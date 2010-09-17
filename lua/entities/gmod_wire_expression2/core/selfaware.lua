@@ -89,6 +89,34 @@ registerCallback("postinit",function()
 end)
 
 /******************************************************************************/
+-- Name functions
+
+-- Set the name of the E2 itself
+e2function void setName( string name )
+	local e = self.entity
+	if (e.name == name) then return end
+	if (name == "generic" or name == "") then
+		name = "generic"
+		e.WireDebugName = "Expression 2"
+	else
+		e.WireDebugName = "E2 - " .. name
+	end
+	e.name = name
+	if self.prfcount / e2_hardquota > 0.33 then
+		e:SetOverlayText("Expression 2\n" .. name .. "\n" .. tostring(math.Round(self.prfbench)) .. " ops, " .. tostring(math.Round(self.prfbench / e2_softquota * 100)) .. "% (+" .. tostring(math.Round(self.prfcount / e2_hardquota * 100)) .. "%)")
+	else
+		e:SetOverlayText("Expression 2\n" .. name .. "\n" .. tostring(math.Round(self.prfbench)) .. " ops, " .. tostring(math.Round(self.prfbench / e2_softquota * 100)) .. "%")
+	end
+end
+
+-- Get the name of another E2
+e2function string entity:getName()
+	if (!validEntity(this) or this:GetClass() != "gmod_wire_expression2") then return "" end
+	return this.name
+end
+
+
+/******************************************************************************/
 
 registerCallback("construct", function(self)
 	self.data.changed = {}
