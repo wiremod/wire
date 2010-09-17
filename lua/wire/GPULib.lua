@@ -21,8 +21,7 @@ if CLIENT then
 	//
 	// Create screen textures and materials
 	//
-	WireGPU_matScreen = Material("ignore_this_error")
-	WireGPU_texScreen = surface.GetTextureID("ignore_this_error")
+	WireGPU_matScreen = CreateMaterial("GPURT","UnlitGeneric",{})
 
 end
 
@@ -227,7 +226,7 @@ if CLIENT then
 				surface.SetDrawColor(0,0,0,255)
 				surface.DrawRect(-256*aspect,-256,512*aspect,512)
 
-				surface.SetTexture(WireGPU_texScreen)
+				surface.SetMaterial(WireGPU_matScreen)
 				self.DrawScreen(x, y, w, h, rotation or 0, scale or 0)
 
 				if postrenderfunction then postrenderfunction(pos, ang, res, aspect) end
