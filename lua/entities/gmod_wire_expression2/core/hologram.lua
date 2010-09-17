@@ -385,7 +385,9 @@ local function CheckSpawnTimer( self )
 		end
 	end
 
-	holo.nextBurst = CurTime()+GetConVar("wire_holograms_burst_delay"):GetInt()
+	if CurTime() >= holo.nextBurst then
+		holo.nextBurst = CurTime()+GetConVar("wire_holograms_burst_delay"):GetInt()
+	end
 
 	if holo.remainingSpawns > 0 then
 		holo.remainingSpawns = holo.remainingSpawns - 1
