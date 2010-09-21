@@ -362,7 +362,7 @@ e2function vector angle:up()
 end
 
 e2function string toString(angle a)
-	return "[" .. tostring(a[1]) .. "," .. tostring(a[2]) .. "," .. tostring(a[3]) .. "]"
+	return string.format("[%d,%d,%d]",a[1],a[2],a[3])
 end
 
 e2function string angle:toString() = e2function string toString(angle a)

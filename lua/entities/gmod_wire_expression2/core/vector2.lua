@@ -469,7 +469,7 @@ registerFunction("toAngle", "xv2:", "n", function(self, args)
 end)
 
 e2function string toString(vector2 v)
-	return "[" .. tostring(v[1]) .. "," .. tostring(v[2]) .. "]"
+	return string.format("[%d,%d]",v[1],v[2])
 end
 
 e2function string vector2:toString() = e2function string toString(vector2 v)
@@ -478,6 +478,27 @@ e2function string vector2:toString() = e2function string toString(vector2 v)
 WireLib.registerDebuggerFormat("VECTOR2", function(value)
 	return "(" .. math.Round(value[1]*10)/10 .. "," .. math.Round(value[2]*10)/10 .. ")"
 end)
+
+/******************************************************************************/
+
+__e2setcost(5)
+
+-- Returns a random vector2 between -1 and 1
+e2function vector2 randvec2()
+	local vec = { random()*2-1, random()*2-1 }
+	local length = sqrt( vec[1]^2+vec[2]^2 )
+	return { vec[1] / length, vec[2] / length }
+end
+
+-- Returns a random vector2 between min and max
+e2function vector2 randvec2(min,max)
+	return { min+random()*(max-min), min+random()*(max-min) }
+end
+
+-- Returns a random vector2 between vec2 min and vec2 max
+e2function vector2 randvec2( vector2 min, vector2 max )
+	return { min[1]+random()*(max[1]-min[1]), min[2]+random()*(max[2]-min[2]) }
+end
 
 /******************************************************************************\
   4D Vector support
@@ -1021,10 +1042,31 @@ end
 
 /******************************************************************************/
 
-e2function string toString(vector4 v)
-	return "[" .. tostring(v[1]) .. "," .. tostring(v[2]) .. "," .. tostring(v[3]) .. "," .. tostring(v[4]) .. "]"
+__e2setcost(5)
+
+-- Returns a random vector4 between -1 and 1
+e2function vector4 randvec4()
+	local vec = { random()*2-1, random()*2-1, random()*2-1, random()*2-1 }
+	local length = sqrt( vec[1]^2+vec[2]^2+vec[3]^2+vec[4]^2 )
+	return { vec[1] / length, vec[2] / length }
 end
 
+-- Returns a random vector4 between min and max
+e2function vector4 randvec4(min,max)
+	return { min+random()*(max-min), min+random()*(max-min), min+random()*(max-min), min+random()*(max-min) }
+end
+
+-- Returns a random vector4 between vec4 min and vec4 max
+e2function vector4 randvec4( vector4 min, vector4 max )
+	local minx, miny, minz, minw = min[1], min[2], min[3], min[4]
+	return { minx+random()*(max[1]-minx), miny+random()*(max[2]-miny), minz+random()*(max[2]-minz), minw+random()*(max[2]-minw) }
+end
+
+/******************************************************************************/
+
+e2function string toString(vector4 v)
+	return string.format("[%d,%d,%d,%d]",v[1],v[2],v[3],v[4])
+end
 e2function string vector4:toString() = e2function string toString(vector4 v)
 
 -- register a formatter for the debugger

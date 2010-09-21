@@ -345,6 +345,8 @@ end)
 registerFunction("randint", "nn", "n", function(self, args)
 	local op1, op2 = args[2], args[3]
 	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+	local temp = rv1
+	if (rv1 > rv2) then rv1 = rv2 rv2 = temp end
 	return random(rv1, rv2)
 end)
 

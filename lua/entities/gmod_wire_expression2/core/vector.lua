@@ -696,7 +696,7 @@ __e2setcost( 5 )
 
 --- Gets the vector nicely formatted as a string "[X,Y,Z]"
 e2function string toString(vector v)
-	return "[" .. tostring(v[1]) .. "," .. tostring(v[2]) .. "," .. tostring(v[3]) .. "]"
+	return string.format("[%d,%d,%d]",v[1],v[2],v[3])
 end
 
 --- Gets the vector nicely formatted as a string "[X,Y,Z]"
