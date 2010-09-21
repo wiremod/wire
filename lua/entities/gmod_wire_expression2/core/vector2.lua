@@ -485,9 +485,8 @@ __e2setcost(5)
 
 -- Returns a random vector2 between -1 and 1
 e2function vector2 randvec2()
-	local vec = { random()*2-1, random()*2-1 }
-	local length = sqrt( vec[1]^2+vec[2]^2 )
-	return { vec[1] / length, vec[2] / length }
+	local randomang = random() * math.pi * 2
+	return { math.cos( randomang ), math.sin( randomang ) }
 end
 
 -- Returns a random vector2 between min and max
