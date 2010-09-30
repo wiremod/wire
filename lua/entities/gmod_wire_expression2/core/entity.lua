@@ -737,5 +737,50 @@ e2function angle entity:attachmentAng(string attachmentName)
 	return { ang.p, ang.y, ang.r }
 end
 
+local function upperfirst( word )
+	return word:Left(1):upper() .. word:Right(-2):lower()
+end
+
+local function fixdef( def )
+	if (type(def) == "table") then return table.Copy(def) else return def end
+end
+
+/******************************************************************************/
+
+registerCallback("postinit",function()
+	for k,v in pairs( wire_expression_types ) do
+		--if (!table.HasValue(non_allowed_types,v[1])) then
+			if (k == "NORMAL") then k = "NUMBER" end
+			k = upperfirst(k)
+
+			__e2setcost(5)
+
+			local function getf( self, args )
+				local op1, op2 = args[2], args[3]
+				local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+				if (!rv1 or !rv1:IsValid() or !rv2) then return fixdef( v[2] ) end
+				local id = self.player:UniqueID()
+				if (!rv1["EVar_"..id]) then return fixdef( v[2] ) end
+				return rv1["EVar_"..id][rv2] or fixdef( v[2] )
+			end
+
+			local function setf( self, args )
+				local op1, op2, op3 = args[2], args[3], args[4]
+				local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
+				local id = self.player:UniqueID()
+				if (!rv1 or !rv1:IsValid() or !rv2 or !rv3) then return end
+				if (!rv1["EVar_"..id]) then
+					rv1["EVar_"..id] = {}
+				end
+				rv1["EVar_"..id][rv2] = rv3
+				return rv3
+			end
+
+			registerOperator("idx", v[1].."=es", v[1], getf)
+			registerOperator("idx", v[1].."=es"..v[1], v[1], setf)
+		--end -- allowed check
+	end -- loop
+end) -- postinit
+
 __e2setcost(nil)
 
