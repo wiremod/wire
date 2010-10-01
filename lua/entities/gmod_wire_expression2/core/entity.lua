@@ -747,9 +747,11 @@ end
 
 /******************************************************************************/
 
+local non_allowed_types = { "xgt", "t", "r" } -- If anyone can think of any other types that should never be allowed, enter them here.
+
 registerCallback("postinit",function()
 	for k,v in pairs( wire_expression_types ) do
-		--if (!table.HasValue(non_allowed_types,v[1])) then
+		if (!table.HasValue(non_allowed_types,v[1])) then
 			if (k == "NORMAL") then k = "NUMBER" end
 			k = upperfirst(k)
 
@@ -778,7 +780,7 @@ registerCallback("postinit",function()
 
 			registerOperator("idx", v[1].."=es", v[1], getf)
 			registerOperator("idx", v[1].."=es"..v[1], v[1], setf)
-		--end -- allowed check
+		end -- allowed check
 	end -- loop
 end) -- postinit
 
