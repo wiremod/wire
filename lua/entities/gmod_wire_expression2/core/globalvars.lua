@@ -94,11 +94,13 @@ local function upperfirst( word )
 	return word:Left(1):upper() .. word:Right(-2):lower()
 end
 
-local non_allowed_types = { "xgt" } -- If anyone can think of any other types that should never be allowed, enter them here.
+local non_allowed_types = { -- If anyone can think of any other types that should never be allowed, enter them here.
+	xgt = true,
+}
 
 registerCallback("postinit",function()
 	for k,v in pairs( wire_expression_types ) do
-		if (!table.HasValue(non_allowed_types,v[1])) then
+		if (!non_allowed_types[v[1]]) then
 			if (k == "NORMAL") then k = "NUMBER" end
 			k = upperfirst(k)
 

@@ -51,9 +51,22 @@ registerCallback("postexecute", function(self)
 	end
 end)
 
+local tbls = {
+	ARRAY = true,
+	TABLE = true,
+	MTABLE = true,
+}
+
 registerCallback("construct", function(self)
-	--self.data.lookup[rhs][lhs] = true|nil
 	self.data.lookup = {}
+
+	for k,v in pairs( self.vars ) do
+		local datatype = self.entity.outports[3][k]
+		if (tbls[datatype]) then
+			if (!self.data.lookup[v]) then self.data.lookup[v] = {} end
+			self.data.lookup[v][k] = true
+		end
+	end
 end)
 
 /******************************************************************************/
@@ -61,19 +74,6 @@ end)
 __e2setcost(5) -- temporary
 
 e2function table operator=(table lhs, table rhs)
-	local lookup = self.data.lookup
-
-	-- remove old lookup entry
-	if lookup[rhs] then lookup[rhs][lhs] = nil end
-
-	-- add new lookup entry
-	local lookup_entry = lookup[rhs]
-	if not lookup_entry then
-		lookup_entry = {}
-		lookup[rhs] = lookup_entry
-	end
-	lookup_entry[lhs] = true
-
 	self.vars[lhs] = rhs
 	self.vclk[lhs] = true
 	return rhs
@@ -243,6 +243,8 @@ registerCallback("postinit", function()
 	-- we don't want tables and arrays as table elements, so get rid of them
 	types["TABLE"] = nil
 	types["ARRAY"] = nil
+	types["GTABLE"] = nil
+	types["MTABLE"] = nil
 
 	local getf, setf
 	-- generate getters and setters for all types

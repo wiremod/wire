@@ -37,7 +37,7 @@ e2function array array(...)
 	local ret = { ... }
 	if (#ret == 0) then return {} end -- This line is in place of 'array()'
 	for i,v in ipairs(ret) do
-		if typeids[i] == "r" or typeids[i] == "t" then ret[i] = nil end
+		if typeids[i] == "r" or typeids[i] == "t" or typeids[i] == "xgt" or typeids[i] == "xmt" then ret[i] = nil end
 	end
 	return ret
 end
@@ -45,19 +45,6 @@ end
 /******************************************************************************/
 
 e2function array operator=(array lhs, array rhs)
-	local lookup = self.data.lookup
-
-	-- remove old lookup entry
-	if lookup[rhs] then lookup[rhs][lhs] = nil end
-
-	-- add new lookup entry
-	local lookup_entry = lookup[rhs]
-	if not lookup_entry then
-		lookup_entry = {}
-		lookup[rhs] = lookup_entry
-	end
-	lookup_entry[lhs] = true
-
 	self.vars[lhs] = rhs
 	self.vclk[lhs] = true
 	return rhs
@@ -80,6 +67,8 @@ registerCallback("postinit", function()
 	-- we don't want tables and arrays as array elements, so get rid of them
 	types["TABLE"] = nil
 	types["ARRAY"] = nil
+	types["GTABLE"] = nil
+	types["MTABLE"] = nil
 
 	-- generate op[] for all types
 	for name,id in pairs_map(types, unpack) do

@@ -272,7 +272,21 @@ end
 
 --- Splits the string into an array, along the boundaries formed by the string <pattern>. See also [[string.Explode]]
 e2function array string:explode(string pattern)
-	return string.Explode(pattern, this)
+	if (pattern == "") then -- If the pattern is an empty string
+		local ret = {}
+		for char in string.gmatch( this, "." ) do
+			ret[#ret+1] = char
+		end
+		return ret
+	elseif (#pattern == 1) then -- If the length of the pattern is 1
+		local ret = {}
+		for str in string.gmatch( this, "[^"..pattern.."]+" ) do
+			ret[#ret+1] = str
+		end
+		return ret
+	else -- Worst case scenario
+		return string.Explode( pattern, this )
+	end
 end
 
 --- Returns a reversed version of <this>
