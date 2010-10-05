@@ -161,7 +161,7 @@ local function mtable_tostring( tbl, indenting, printed, abortafter )
 			cost = cost + 2
 		end
 		if (abortafter and cost > abortafter) then
-			ret = ret .. "\n- Aborted to prevent lag -\n"
+			ret = ret .. "\n- Aborted to prevent lag -"
 			return ret, cost
 		end
 	end
@@ -187,7 +187,7 @@ local function mtable_tostring( tbl, indenting, printed, abortafter )
 			cost = cost + 2
 		end
 		if (abortafter and cost > abortafter) then
-			ret = ret .. "\n- Aborted to prevent lag -\n"
+			ret = ret .. "\n- Aborted to prevent lag -"
 			return ret, cost
 		end
 	end
@@ -393,8 +393,6 @@ e2function mtable mtable:parent()
 	return this.parent or table.Copy(DEFAULT)
 end
 
-
-
 __e2setcost(15)
 
 e2function void printTable( mtable tbl )
@@ -405,7 +403,7 @@ e2function void printTable( mtable tbl )
 	local printed = { [tbl] = true }
 	local ret, cost = mtable_tostring( tbl, 0, printed, 200 )
 	self.prf = self.prf + cost
-	for str in string.gmatch( ret, "[^(\n)]+" ) do
+	for str in string.gmatch( ret, "[^\n]+" ) do
 		self.player:ChatPrint( str )
 	end
 end
@@ -580,34 +578,12 @@ end
 
 __e2setcost(20)
 
-local function temp( tbl, indenting, alreadyprinted )
-	indenting = indenting + 1
-	local ret = ""
-	for k,v in pairs( tbl ) do
-		if (type(v) == "table" and !alreadyprinted[v]) then
-			alreadyprinted[v] = true
-			if (v.ismtable) then
-				ret = ret .. string.rep("\t",indenting) .. tostring(k) .. "\t= {\n" .. temp( v.n, indenting+1, alreadyprinted ) .. "\n" .. temp( v.s, indenting+1, alreadyprinted ) .. string.rep("\t",indenting+1 ) .. "}\n"
-			else
-				ret = ret .. string.rep("\t",indenting) .. tostring(k) .. "\t= {\n" .. temp( v, indenting+1, alreadyprinted ) .. "\n" .. string.rep("\t",indenting+1 ) .. "}\n"
-			end
-		else
-			ret = ret .. string.rep("\t",indenting) .. tostring(k) .. "\t=\t" .. tostring(v) .. "\n"
-		end
-	end
-	return ret
-end
-
 -- Formats the table as a human readable string
 e2function string mtable:toString()
 	local printed = { [this] = true }
 	local ret, cost = mtable_tostring( this, 0, printed )
 	self.prf = self.prf + cost * opcost
 	return ret
-	--local ret = ""
-	--local alreadyprinted = { [this] = true }
-	--ret = ret .. temp( this.n, -1, alreadyprinted ) .. "\n" .. temp( this.s, -1, alreadyprinted )
-	--return ret
 end
 
 --------------------------------------------------------------------------------
