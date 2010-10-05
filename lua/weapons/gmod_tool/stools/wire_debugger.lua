@@ -152,6 +152,7 @@ if (SERVER) then
 	local dbg_line_time = {}
 
 	local formatPort = {}
+	WireLib.Debugger = { formatPort = formatPort } -- Make it global
 	function formatPort.NORMAL(value)
 		return string.format("%.3f",value)
 	end
