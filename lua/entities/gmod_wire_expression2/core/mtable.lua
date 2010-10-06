@@ -122,11 +122,21 @@ end
 
 -- Sets the depth of all mtables in the mtable, and returns the deepest depth
 local function checkdepth( tbl, depth, setdepth )
-	local deepest = depth
+	local deepest = depth or 0
 	for k,v in pairs( tbl.n ) do
 		if (tbl.ntypes[k] == "xmt") then
 			if (depth + 1 > maxdepth()) then return depth + 1 end
-			if (setdepth != false) then v.depth = depth+1 end
+			if (setdepth != false) then v.depth = depth + 1 end
+			local temp = checkdepth( v, depth + 1, setdepth )
+			if (temp > deepest) then
+				deepest = temp
+			end
+		end
+	end
+	for k,v in pairs( tbl.s ) do
+		if (tbl.stypes[k] == "xmt") then
+			if (depth + 1 > maxdepth()) then return depth + 1 end
+			if (setdepth != false) then v.depth = depth + 1 end
 			local temp = checkdepth( v, depth + 1, setdepth )
 			if (temp > deepest) then
 				deepest = temp
@@ -136,29 +146,44 @@ local function checkdepth( tbl, depth, setdepth )
 	return deepest
 end
 
+local function normal_table_tostring( tbl, indenting, printed, abortafter )
+	ret = ""
+	cost = 0
+	for k,v in pairs( tbl ) do
+		if (type(v) == "table" and !printed[v]) then
+			printed[v] = true
+			ret = ret .. rep("\t",indenting) .. k .. ":\n"
+			local ret2, cost2 = normal_table_tostring( tbl, indenting + 2, printed, abortafter )
+			cost = cost + cost2 + 2
+		else
+			ret = ret .. rep("\t",indenting) .. k .. "\t=\t" .. tostring(v) .. "\n"
+			cost = cost + 1
+		end
+		if (abortafter and cost > abortafter) then
+			ret = ret .. "\n- Aborted to prevent lag -"
+			return ret, cost
+		end
+	end
+	return ret, cost
+end
+
 local function mtable_tostring( tbl, indenting, printed, abortafter )
 	local ret = ""
 	local cost = 0
 	for k,v in pairs( tbl.n ) do
-		if (tbl.ntypes[k] == "xmt") then
-			if (printed[v]) then
-				ret = ret .. rep("\t",indenting) .. k .. "\t=\tMTable with "..v.size.." elements.\n"
-				cost = cost + 1
-			else
-				printed[v] = true
-				ret = ret .. rep("\t",indenting) .. k .. "\t= {\n"
-				local ret2, cost2 = mtable_tostring( v, indenting + 2, printed, abortafter )
-				ret = ret .. ret2 .. rep("\t",indenting+1) .. "}\n"
-				cost = cost + cost2 + 2
-			end
-		else
-			local func = formatPort[wire_expression_types2[tbl.ntypes[k]][1]]
-			if (func) then
-				ret = ret .. rep("\t",indenting) .. k .. "\t=\t" .. func(v,false) .. "\n"
-			else
-				ret = ret .. rep("\t",indenting) .. k .. "\t=\t" .. tostring(v) .. "\n"
-			end
-			cost = cost + 2
+		if (tbl.ntypes[k] == "xmt" and !printed[v]) then -- If it's an mtable
+			printed[v] = true
+			ret = ret .. rep("\t",indenting) .. k .. ":\n"
+			local ret2, cost2 = mtable_tostring( v, indenting + 2, printed, abortafter )
+			ret = ret .. ret2
+			cost = cost + cost2 + 2
+		elseif (type(v) == "table" and !printed[v]) then -- If it's another kind of table
+			printed[v] = true
+			ret = ret .. rep("\t",indenting) .. k .. ":\n"
+			local ret2, cost2 = normal_table_tostring( v, indenting + 2, printed, abortafter )
+			ret = ret .. ret2
+		else -- If it's anything else (or a table which has already been printed)
+			ret = ret .. rep("\t",indenting) .. k .. "\t=\t" .. tostring(v) .. "\n"
 		end
 		if (abortafter and cost > abortafter) then
 			ret = ret .. "\n- Aborted to prevent lag -"
@@ -166,25 +191,19 @@ local function mtable_tostring( tbl, indenting, printed, abortafter )
 		end
 	end
 	for k,v in pairs( tbl.s ) do
-		if (tbl.stypes[k] == "xmt") then
-			if (printed[v]) then
-				ret = ret .. rep("\t",indenting) .. k .. "\t=\tMTable with "..v.size.." elements.\n"
-				cost = cost + 1
-			else
-				printed[v] = true
-				ret = ret .. rep("\t",indenting) .. k .. "\t= {\n"
-				local ret2, cost2 = mtable_tostring( v, indenting + 2, printed, abortafter )
-				ret = ret .. ret2 .. rep("\t",indenting+1) .. "}\n"
-				cost = cost + cost2 + 2
-			end
-		else
-			local func = formatPort[wire_expression_types2[tbl.stypes[k]][1]]
-			if (func) then
-				ret = ret .. rep("\t",indenting) .. k .. "\t=\t" .. func(v,false) .. "\n"
-			else
-				ret = ret .. rep("\t",indenting) .. k .. "\t=\t" .. tostring(v) .. "\n"
-			end
-			cost = cost + 2
+		if (tbl.stypes[k] == "xmt" and !printed[v]) then -- If it's an mtable
+			printed[v] = true
+			ret = ret .. rep("\t",indenting) .. k .. ":\n"
+			local ret2, cost2 = mtable_tostring( v, indenting + 2, printed, abortafter )
+			ret = ret .. ret2
+			cost = cost + cost2 + 2
+		elseif (type(v) == "table" and !printed[v]) then -- If it's another kind of table
+			printed[v] = true
+			ret = ret .. rep("\t",indenting) .. k .. ":\n"
+			local ret2, cost2 = normal_table_tostring( v, indenting + 2, printed, abortafter )
+			ret = ret .. ret2
+		else -- If it's anything else (or a table which has already been printed)
+			ret = ret .. rep("\t",indenting) .. k .. "\t=\t" .. tostring(v) .. "\n"
 		end
 		if (abortafter and cost > abortafter) then
 			ret = ret .. "\n- Aborted to prevent lag -"
@@ -806,8 +825,9 @@ registerCallback( "postinit", function()
 			local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
 			if (!rv1 or !rv2 or !rv3) then return fixdef(v[2]) end
 			if (id == "xmt") then
-				rv3.depth = rv3.depth + 1
-				if (rv3.depth > maxdepth()) then
+				if (rv1 == rv3) then return fixdef(v[2]) end -- You can't put a table inside itself
+				rv3.depth = rv1.depth + 1
+				if (checkdepth( rv3, rv3.depth, true ) > maxdepth()) then -- max depth check
 					self.prf = self.prf + 500
 					return fixdef(v[2])
 				end
@@ -829,8 +849,9 @@ registerCallback( "postinit", function()
 			local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
 			if (!rv1 or !rv2 or !rv3) then return fixdef(v[2]) end
 			if (id == "xmt") then
-				rv3.depth = rv3.depth + 1
-				if (rv3.depth > maxdepth()) then -- max depth check
+				if (rv1 == rv3) then return fixdef(v[2]) end -- You can't put a table inside itself
+				rv3.depth = rv1.depth + 1
+				if (checkdepth( rv3, rv3.depth, true ) > maxdepth()) then -- max depth check
 					self.prf = self.prf + 500
 					return fixdef(v[2])
 				end
@@ -851,9 +872,9 @@ registerCallback( "postinit", function()
 
 		__e2setcost(15)
 
-		local function removefunc( self, rv1, rv2 )
+		local function removefunc( self, rv1, rv2, numidx )
 			if (!rv1 or !rv2) then return fixdef(v[2]) end
-			if (type(rv2) == "number") then
+			if (numidx) then
 				if (!rv1.n[rv2] or rv1.ntypes[rv2] != id) then return fixdef(v[2]) end
 				local ret = rv1.n[rv2]
 				table.remove( rv1.n, rv2 )
@@ -882,7 +903,7 @@ registerCallback( "postinit", function()
 		registerFunction("remove"..name,"xmt:n",id,function(self,args)
 			local op1, op2 = args[2], args[3]
 			local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-			return removefunc(self, rv1, rv2)
+			return removefunc(self, rv1, rv2, true)
 		end)
 
 
@@ -896,8 +917,9 @@ registerCallback( "postinit", function()
 			local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
 			local n = #rv1.n+1
 			if (id == "xmt") then
-				rv2.depth = rv2.depth + 1
-				if (rv2.depth > maxdepth()) then
+				if (rv1 == rv2) then return fixdef(v[2]) end -- You can't put a table inside itself
+				rv2.depth = rv1.depth + 1
+				if (checkdepth( rv2, rv2.depth, true ) > maxdepth()) then
 					self.prf = self.prf + 500
 					return fixdef(v[2])
 				end
@@ -917,7 +939,7 @@ registerCallback( "postinit", function()
 		registerFunction( "pop"..name,"xmt:",id,function(self,args)
 			local op1 = args[2]
 			local rv1 = op1[1](self, op1)
-			return removefunc(self, rv1, #rv1.n)
+			return removefunc(self, rv1, #rv1.n, true)
 		end)
 
 		registerFunction( "insert"..name,"xmt:n"..id,"",function(self,args)
@@ -925,8 +947,9 @@ registerCallback( "postinit", function()
 			local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self,op3)
 			if (!rv1 or !rv2 or !rv3 or rv2 < 0) then return end
 			if (id == "xmt") then
-				rv3.depth = rv3.depth + 1
-				if (rv3.depth > maxdepth()) then
+				if (rv1 == rv3) then return fixdef(v[2]) end -- You can't put a table inside itself
+				rv3.depth = rv1.depth + 1
+				if (checkdepth( rv3, rv3.depth, true ) > maxdepth()) then
 					self.prf = self.prf + 500
 					return fixdef(v[2])
 				end
@@ -948,8 +971,9 @@ registerCallback( "postinit", function()
 			local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self,op3)
 			if (!rv1 or !rv2) then return end
 			if (id == "xmt") then
-				rv2.depth = rv2.depth + 1
-				if (rv2.depth > maxdepth()) then
+				if (rv1 == rv2) then return fixdef(v[2]) end -- You can't put a table inside itself
+				rv2.depth = rv1.depth + 1
+				if (checkdepth( rv2, rv2.depth, true ) > maxdepth()) then
 					self.prf = self.prf + 500
 					return fixdef(v[2])
 				end
