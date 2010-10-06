@@ -825,7 +825,6 @@ registerCallback( "postinit", function()
 			local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
 			if (!rv1 or !rv2 or !rv3) then return fixdef(v[2]) end
 			if (id == "xmt") then
-				if (rv1 == rv3) then return fixdef(v[2]) end -- You can't put a table inside itself
 				rv3.depth = rv1.depth + 1
 				if (checkdepth( rv3, rv3.depth, true ) > maxdepth()) then -- max depth check
 					self.prf = self.prf + 500
@@ -849,7 +848,6 @@ registerCallback( "postinit", function()
 			local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
 			if (!rv1 or !rv2 or !rv3) then return fixdef(v[2]) end
 			if (id == "xmt") then
-				if (rv1 == rv3) then return fixdef(v[2]) end -- You can't put a table inside itself
 				rv3.depth = rv1.depth + 1
 				if (checkdepth( rv3, rv3.depth, true ) > maxdepth()) then -- max depth check
 					self.prf = self.prf + 500
@@ -917,7 +915,6 @@ registerCallback( "postinit", function()
 			local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
 			local n = #rv1.n+1
 			if (id == "xmt") then
-				if (rv1 == rv2) then return fixdef(v[2]) end -- You can't put a table inside itself
 				rv2.depth = rv1.depth + 1
 				if (checkdepth( rv2, rv2.depth, true ) > maxdepth()) then
 					self.prf = self.prf + 500
@@ -947,7 +944,6 @@ registerCallback( "postinit", function()
 			local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self,op3)
 			if (!rv1 or !rv2 or !rv3 or rv2 < 0) then return end
 			if (id == "xmt") then
-				if (rv1 == rv3) then return fixdef(v[2]) end -- You can't put a table inside itself
 				rv3.depth = rv1.depth + 1
 				if (checkdepth( rv3, rv3.depth, true ) > maxdepth()) then
 					self.prf = self.prf + 500
@@ -971,7 +967,6 @@ registerCallback( "postinit", function()
 			local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self,op3)
 			if (!rv1 or !rv2) then return end
 			if (id == "xmt") then
-				if (rv1 == rv2) then return fixdef(v[2]) end -- You can't put a table inside itself
 				rv2.depth = rv1.depth + 1
 				if (checkdepth( rv2, rv2.depth, true ) > maxdepth()) then
 					self.prf = self.prf + 500
