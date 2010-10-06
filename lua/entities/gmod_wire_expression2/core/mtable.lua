@@ -726,6 +726,7 @@ e2function mtable findToMTable()
 	for k,v in ipairs( self.data.findlist ) do
 		ret.n[k] = v
 		ret.ntypes[k] = "e"
+		ret.size = k
 	end
 	return ret
 end
