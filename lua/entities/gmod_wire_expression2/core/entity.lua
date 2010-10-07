@@ -408,84 +408,66 @@ end
 e2function void entity:applyAngForce(angle angForce)
 	if not validPhysics(this) then return nil end
 	if not isOwner(self, this) then return nil end
+
+	if angForce[1] == 0 and angForce[2] == 0 and angForce[3] == 0 then return end
+
 	local phys = this:GetPhysicsObject()
 
 	-- assign vectors
-	local pos = this:LocalToWorld(phys:GetMassCenter())
 	local up = this:GetUp()
-	local left = this:GetRight()*-1
+	local left = this:GetRight() * -1
 	local forward = this:GetForward()
 
-	local pitch = up      * (angForce[1]*0.5)
-	local yaw   = forward * (angForce[2]*0.5)
-	local roll  = left    * (angForce[3]*0.5)
-
 	-- apply pitch force
-	phys:ApplyForceOffset( forward, pos + pitch )
-	phys:ApplyForceOffset( forward * -1, pos - pitch )
+	if angForce[1] ~= 0 then
+		local pitch = up      * (angForce[1] * 0.5)
+		phys:ApplyForceOffset( forward, pitch )
+		phys:ApplyForceOffset( forward * -1, pitch * -1 )
+	end
 
 	-- apply yaw force
-	phys:ApplyForceOffset( left, pos + yaw )
-	phys:ApplyForceOffset( left * -1, pos - yaw )
+	if angForce[2] ~= 0 then
+		local yaw   = forward * (angForce[2] * 0.5)
+		phys:ApplyForceOffset( left, yaw )
+		phys:ApplyForceOffset( left * -1, yaw * -1 )
+	end
 
 	-- apply roll force
-	phys:ApplyForceOffset( up, pos + roll )
-	phys:ApplyForceOffset( up * -1, pos - roll )
+	if angForce[2] ~= 0 then
+		local roll  = left    * (angForce[3] * 0.5)
+		phys:ApplyForceOffset( up, roll )
+		phys:ApplyForceOffset( up * -1, roll * -1 )
+	end
 end
 
---- Applies torque according to the axis, magnitude and sense given by the vector's direction, magnitude and orientation.
+--- Applies torque according to a local torque vector, with magnitude and sense given by the vector's direction, magnitude and orientation.
 e2function void entity:applyTorque(vector torque)
 	if not validEntity(this) then return end
 	if not isOwner(self, this) then return end
+
+	if torque[1] == 0 and torque[2] == 0 and torque[3] == 0 then return end
+
 	local phys = this:GetPhysicsObject()
-	if not phys:IsValid() then return end
 
 	local tq = Vector(torque[1], torque[2], torque[3])
 	local torqueamount = tq:Length()
+
+	-- Convert torque from local to world axis
+	tq = phys:LocalToWorld( tq ) - phys:GetPos()
+
+	-- Find two vectors perpendicular to the torque axis
 	local off
-	if abs(torque[3]) > torqueamount*0.1 or abs(torque[1]) > torqueamount*0.1 then
-		off = Vector(-torque[3], 0, torque[1])
+	if abs(tq.x) > torqueamount * 0.1 or abs(tq.z) > torqueamount * 0.1 then
+		off = Vector(-tq.z, 0, tq.x)
 	else
-		off = Vector(-torque[2], torque[1], 0)
+		off = Vector(-tq.y, tq.x, 0)
 	end
-	off:Normalize()
-	local dir = tq:Cross(off)
+	off = off:GetNormal() * torqueamount * 0.5
 
-	off = off * dir:Length() * 0.5
-	dir:Normalize()
+	local dir = ( tq:Cross(off) ):GetNormal()
 
-	dir = phys:LocalToWorld(dir)-phys:GetPos()
-	local masscenter = phys:GetMassCenter()
-	phys:ApplyForceOffset( dir     , phys:LocalToWorld(masscenter+off) )
-	phys:ApplyForceOffset( dir * -1, phys:LocalToWorld(masscenter-off) )
-end
-
---- Applies torque according to the axis, magnitude and sense given by the vector's direction, magnitude and orientation.
-e2function void entity:applyOffsetTorque(vector torque, vector offset)
-	if not validEntity(this) then return end
-	if not isOwner(self, this) then return end
-	local phys = this:GetPhysicsObject()
-	if not phys:IsValid() then return end
-
-	offset = Vector(offset[1], offset[2], offset[3])
-
-	local tq = Vector(torque[1], torque[2], torque[3])
-	local torqueamount = tq:Length()
-	local off
-	if abs(torque[3]) > torqueamount*0.1 or abs(torque[1]) > torqueamount*0.1 then
-		off = Vector(-torque[3], 0, torque[1])
-	else
-		off = Vector(-torque[2], torque[1], 0)
-	end
-	off:Normalize()
-	local dir = tq:Cross(off)
-
-	off = off * dir:Length() * 0.5
-	dir:Normalize()
-
-	dir = phys:LocalToWorld(dir)-phys:GetPos()
-	phys:ApplyForceOffset( dir     , phys:LocalToWorld(offset+off) )
-	phys:ApplyForceOffset( dir * -1, phys:LocalToWorld(offset-off) )
+	phys:ApplyForceOffset( dir, off )
+	phys:ApplyForceOffset( dir * -1, off * -1 )
 end
 
 e2function vector entity:inertia()
