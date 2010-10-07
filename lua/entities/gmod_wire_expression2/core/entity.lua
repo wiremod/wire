@@ -524,50 +524,6 @@ end
 
 /******************************************************************************/
 
-e2function entity entity:aimEntity()
-	if not validEntity(this) then return nil end
-	if not this:IsPlayer() then return nil end
-
-	local ent = this:GetEyeTraceNoCursor().Entity
-	if not ent:IsValid() then return nil end
-	return ent
-end
-
-e2function vector entity:aimPos()
-	if not validEntity(this) then return {0,0,0} end
-	if not this:IsPlayer() then return {0,0,0} end
-
-	return this:GetEyeTraceNoCursor().HitPos
-end
-
-e2function vector entity:aimNormal()
-	if not validEntity(this) then return {0,0,0} end
-	if not this:IsPlayer() then return {0,0,0} end
-
-	return this:GetEyeTraceNoCursor().HitNormal
-end
-
---- Returns the bone the player is currently aiming at.
-e2function bone entity:aimBone()
-	if not validEntity(this) then return nil end
-	if not this:IsPlayer() then return nil end
-
-	local trace = this:GetEyeTraceNoCursor()
-	local ent = trace.Entity
-	if not validEntity(ent) then return nil end
-	return getBone(ent, trace.PhysicsBone)
-end
-
---- Equivalent to rangerOffset(16384, <this>:shootPos(), <this>:eye()), but faster (causing less lag)
-e2function ranger entity:eyeTrace()
-	if not validEntity(this) then return nil end
-	if not this:IsPlayer() then return nil end
-
-	return this:GetEyeTraceNoCursor()
-end
-
-/******************************************************************************/
-
 e2function vector entity:boxSize()
 	if not validEntity(this) then return {0,0,0} end
 	return this:OBBMaxs() - this:OBBMins()
@@ -747,11 +703,16 @@ end
 
 /******************************************************************************/
 
-local non_allowed_types = { "xgt", "t", "r" } -- If anyone can think of any other types that should never be allowed, enter them here.
+local non_allowed_types = {
+	xgt = true,
+	t = true,
+	r = true,
+	xmt = true,
+	}
 
 registerCallback("postinit",function()
 	for k,v in pairs( wire_expression_types ) do
-		if (!table.HasValue(non_allowed_types,v[1])) then
+		if (!non_allowed_types[v[1]]) then
 			if (k == "NORMAL") then k = "NUMBER" end
 			k = upperfirst(k)
 

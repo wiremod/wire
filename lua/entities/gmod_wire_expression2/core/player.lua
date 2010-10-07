@@ -327,4 +327,48 @@ end
 
 /******************************************************************************/
 
+e2function entity entity:aimEntity()
+	if not validEntity(this) then return nil end
+	if not this:IsPlayer() then return nil end
+
+	local ent = this:GetEyeTraceNoCursor().Entity
+	if not ent:IsValid() then return nil end
+	return ent
+end
+
+e2function vector entity:aimPos()
+	if not validEntity(this) then return {0,0,0} end
+	if not this:IsPlayer() then return {0,0,0} end
+
+	return this:GetEyeTraceNoCursor().HitPos
+end
+
+e2function vector entity:aimNormal()
+	if not validEntity(this) then return {0,0,0} end
+	if not this:IsPlayer() then return {0,0,0} end
+
+	return this:GetEyeTraceNoCursor().HitNormal
+end
+
+--- Returns the bone the player is currently aiming at.
+e2function bone entity:aimBone()
+	if not validEntity(this) then return nil end
+	if not this:IsPlayer() then return nil end
+
+	local trace = this:GetEyeTraceNoCursor()
+	local ent = trace.Entity
+	if not validEntity(ent) then return nil end
+	return getBone(ent, trace.PhysicsBone)
+end
+
+--- Equivalent to rangerOffset(16384, <this>:shootPos(), <this>:eye()), but faster (causing less lag)
+e2function ranger entity:eyeTrace()
+	if not validEntity(this) then return nil end
+	if not this:IsPlayer() then return nil end
+
+	return this:GetEyeTraceNoCursor()
+end
+
+/******************************************************************************/
+
 __e2setcost(nil) -- temporary
