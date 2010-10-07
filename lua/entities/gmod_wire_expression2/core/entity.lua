@@ -433,7 +433,7 @@ e2function void entity:applyAngForce(angle angForce)
 	end
 
 	-- apply roll force
-	if angForce[2] ~= 0 then
+	if angForce[3] ~= 0 then
 		local roll  = left    * (angForce[3] * 0.5)
 		phys:ApplyForceOffset( up, roll )
 		phys:ApplyForceOffset( up * -1, roll * -1 )
