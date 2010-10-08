@@ -87,12 +87,12 @@ function ENT:TriggerInput( iname, value )
 		self.nocollide_status = value
 		local mask = self.nocollide_masks[value] or {false, false, false}
 
-		if IsValid( self.Ent1 ) and not self.Ent1:IsWorld() then
+		if IsValid( self.Ent1 ) then
 			local phys = self.Ent1:GetPhysicsObject()
 			if phys:IsValid() then phys:EnableCollisions(not mask[1]) end
 		end
 
-		if IsValid( self.Ent2 ) and not self.Ent2:IsWorld() then
+		if IsValid( self.Ent2 ) then
 			local phys = self.Ent2:GetPhysicsObject()
 			if phys:IsValid() then phys:EnableCollisions(not mask[2]) end
 		end
@@ -171,18 +171,29 @@ end
 
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
-	if (info.Ent1) then
+
+	if info.Ent1 then
 		self.Ent1 = GetEntByID(info.Ent1)
 		self.Bone1 = info.Bone1
-		if (!self.Ent1) then
+		if !self.Ent1 then
 			self.Ent1 = ents.GetByIndex(info.Ent1)
 		end
 	end
-	if (info.Ent2) then
+
+	if info.Ent2 then
 		self.Ent2 = GetEntByID(info.Ent2)
 		self.Bone2 = info.Bone2
-		if (!self.Ent2) then
+		if !self.Ent2 then
 			self.Ent2 = ents.GetByIndex(info.Ent2)
+		end
+	end
+
+	-- Default to world entity
+	if self.Ent1 or self.Ent2 then
+		if self.Ent1 then
+			self.Ent2 = self.Ent2 or GetWorldEntity()
+		else
+			self.Ent1 = self.Ent1 or GetWorldEntity()
 		end
 	end
 
