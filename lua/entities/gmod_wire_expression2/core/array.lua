@@ -45,6 +45,18 @@ end
 /******************************************************************************/
 
 e2function array operator=(array lhs, array rhs)
+
+	local lookup = self.data.lookup
+
+	-- remove old lookup entry
+	if (lookup[rhs]) then lookup[rhs][lhs] = nil end
+
+	-- add new
+	if (!lookup[rhs]) then
+		lookup[rhs] = {}
+	end
+	lookup[rhs][lhs] = true
+
 	self.vars[lhs] = rhs
 	self.vclk[lhs] = true
 	return rhs
