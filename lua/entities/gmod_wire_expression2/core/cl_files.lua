@@ -1,39 +1,102 @@
---------------------------------------------------------------------------------
---                    File extension by {iG} I_am_McLovin                     --
---------------------------------------------------------------------------------
+--[[
+	File Extension
+	By: Dan (McLovin)
+]]--
 
-if not datastream then require( "datastream" ) end
+local cv_max_transfer_size = CreateConVar( "wire_expression2_file_max_size", "100", { FCVAR_REPLICATED, FCVAR_ARCHIVE } ) //in kb
 
-usermessage.Hook( "wire_expression2_fileload", function( um )
-	local raw_filename = um:ReadString()
-	local filename = "e2files/"..raw_filename
-	if string.find(filename, "..", 1, true) then return end
+local upload_buffer = {}
+local download_buffer = {}
 
-	if file.Exists( filename ) and file.Size( filename ) <= 102400 then
-		local filedata = file.Read( filename )
-		datastream.StreamToServer( "wire_expression2_filedata", { filename = raw_filename, filedata = filedata } )
+local upload_chunk_size = 229
+
+local allowed_directories = { //prefix with >(allowed directory)/file.txt for files outside of e2files/ directory
+	["e1shared"] = "ExpressionGate/e2shared",
+	["e2shared"] = "Expression2/e2shared",
+	["cpushared"] = "CPUChip/e2shared"
+}
+
+for _,dir in pairs( allowed_directories ) do
+	if !file.IsDir( dir ) then file.CreateDir( dir ) end
+end
+
+local function process_filename( filename )
+	if string.find( filename, "..", 1, true ) then return "e2files/noname.txt" end
+
+	if string.Left( filename, 1 ) == ">" then
+		local diresc = string.find( filename, "/" )
+		local extdir = string.sub( filename, 2, diresc - 1 )
+
+		filename = (allowed_directories[extdir] or "e2files") .. string.sub( filename, diresc, string.len( filename ) )
+	else
+		filename = "e2files/" .. filename
+	end
+
+	return filename or "e2files/noname.txt"
+end
+
+/* --- File Read --- */
+
+local function upload_callback()
+	if !upload_buffer or !upload_buffer.data then return end
+
+	local chunk_size = math.Clamp( string.len( upload_buffer.data ), 0, upload_chunk_size )
+
+	RunConsoleCommand( "wire_expression2_file_chunk", string.Left( upload_buffer.data, chunk_size ) )
+	upload_buffer.data = string.sub( upload_buffer.data, chunk_size + 1, string.len( upload_buffer.data ) )
+
+	if upload_buffer.chunk >= upload_buffer.chunks then
+		RunConsoleCommand( "wire_expression2_file_finish" )
+
+		timer.Remove( "wire_expression2_file_upload" )
+
+		return
+	end
+
+	upload_buffer.chunk = upload_buffer.chunk + 1
+end
+
+usermessage.Hook( "wire_expression2_request_file", function( um )
+	local filename = process_filename( um:ReadString() )
+
+	if file.Exists( filename ) and file.Size( filename ) <= (cv_max_transfer_size:GetInt() * 1024) then
+		local filedata = file.Read( filename ) or ""
+
+		local encoded = E2Lib.encode( filedata )
+
+		upload_buffer = {
+			chunk = 1,
+			chunks = math.ceil( string.len( encoded ) / upload_chunk_size ),
+			data = encoded
+		}
+
+		RunConsoleCommand( "wire_expression2_file_begin", string.len( filedata ) )
+
+		timer.Create( "wire_expression2_file_upload", 1/60, upload_buffer.chunks, upload_callback )
 	end
 end )
 
-usermessage.Hook( "wire_expression2_filerequestlist", function( um )
+/* --- File Write --- */
 
-	file.TFind( "data/e2files/*.txt", function( _, _, files )
-		datastream.StreamToServer( "wire_expression2_filelist", files )
-	end )
-
+usermessage.Hook( "wire_expression2_file_download_begin", function( um )
+	download_buffer = {
+		name = process_filename( um:ReadString() ),
+		data = ""
+	}
 end )
 
-datastream.Hook( "wire_expression2_filewrite", function( handler, id, encoded, decoded )
-	local file_name = "e2files/"..decoded.name
-	if string.find(file_name, "..", 1, true) then return end
+usermessage.Hook( "wire_expression2_file_download_chunk", function( um )
+	download_buffer.data = (download_buffer.data or "") .. um:ReadString()
+end )
 
-	local old_file = ""
+usermessage.Hook( "wire_expresison2_file_download_finish", function( um )
+	if !download_buffer.name or string.Right( download_buffer.name, 4 ) != ".txt" then return end
 
-	if decoded.append then
-		if file.Exists( file_name ) then
-			old_file = file.Read( file_name )
-		end
+	local ofile = ""
+
+	if um:ReadBool() and file.Exists( download_buffer.name ) then
+		local ofile = file.Read( download_buffer.name ) or ""
 	end
 
-	file.Write( file_name, old_file .. decoded.data )
+	file.Write( (download_buffer.name or "e2files/noname.txt"), ofile .. download_buffer.data )
 end )

@@ -1,297 +1,277 @@
---------------------------------------------------------------------------------
---                    File extension by {iG} I_am_McLovin                     --
---------------------------------------------------------------------------------
+--[[
+	File Extension
+	By: Dan (McLovin)
+]]--
 
-E2Lib.RegisterExtension("file", true)
+local cv_transfer_delay    = CreateConVar( "wire_expression2_file_delay", "5", { FCVAR_ARCHIVE } )
+local cv_max_transfer_size = CreateConVar( "wire_expression2_file_max_size", "100", { FCVAR_REPLICATED, FCVAR_ARCHIVE } ) //in kb
 
-if not datastream then require( "datastream" ) end
+E2Lib.RegisterExtension( "file", true )
 
-local uploaded = {
-	files = {},
-	lists = {}
-}
-
+local delays = {}
+local uploads = {}
+local downloads = {}
 local run_on = {
 	file = {
 		run = 0,
 		name = "",
 		ents = {}
-	},
-	list = {
-		run = 0,
-		ents = {}
 	}
 }
 
-/******************************** File loading ********************************/
+local function file_canUpload( ply )
+	local pfile = uploads[ply]
+	local pdel = (delays[ply] or {}).upload
 
-e2function void fileLoad(string filename)
+	if (pfile and pfile.uploading) or
+		(pdel and (CurTime() - pdel) < cv_transfer_delay:GetInt()) then return false end
 
-	local pl_files = uploaded.files[self.player]
+	return true
+end
 
-	if !timer.IsTimer( "wire_expression2_file_delay_" .. self.player:EntIndex() ) and ( pl_files and ( pl_files.amt > 100 or ( uploaded.files[self.player][filename] and pl_files[filename].uploaded ) ) ) then return end
+local function file_Upload( ply, entity, filename )
+	if !file_canUpload( ply ) or !IsValid( entity ) or !IsValid( ply ) or !ply:IsPlayer() or string.Right( filename, 4 ) != ".txt" then return false end
 
-	pl_files[filename] = {
+	uploads[ply] = {
+		name = filename,
+		uploading = false, //don't halt other uploads incase file does not exist
 		uploaded = false,
 		data = "",
-		ent = self.entity
+		ent = entity
 	}
 
-	umsg.Start( "wire_expression2_fileload", self.player )
+	umsg.Start( "wire_expression2_request_file", ply )
 		umsg.String( filename )
 	umsg.End()
 
-	timer.Create( "wire_expression2_file_delay_" .. self.player:EntIndex(), 1, 5, function( ply )
-		timer.Remove( "wire_expression2_file_delay_" .. ply:EntIndex() )
-	end, self.player )
-
+	delays[ply].upload = CurTime()
 end
 
-e2function number fileLoaded(string filename)
+local function file_canDownload( ply )
+	local pfile = downloads[ply]
+	local pdel = (delays[ply] or {}).download
 
-	local pl_files = uploaded.files[self.player]
+	if (pfile and pfile.downloading) or
+		(pdel and (CurTime() - pdel) < cv_transfer_delay:GetInt()) then return false end
 
-	if pl_files and pl_files[filename] and pl_files[filename].uploaded == true then
-		return 1
-	end
+	return true
+end
 
-	return 0
+local function file_Download( ply, filename, data, append )
+	if !file_canDownload( ply ) or !IsValid( ply ) or !ply:IsPlayer() or string.Right( filename, 4 ) != ".txt" then return false end
+	if string.len( data ) > (cv_max_transfer_size:GetInt() * 1024) then return false end
 
+	downloads[ply] = {
+		name = filename,
+		data = data,
+		started = false,
+		downloading = true,
+		downloaded = false,
+		append = append
+	}
+end
+
+/* --- File loading --- */
+
+e2function void fileLoad( string filename )
+	file_Upload( self.player, self.entity, filename )
 end
 
 e2function number fileCanLoad()
-
-	if !timer.IsTimer( "wire_expression2_file_delay_" .. self.player:EntIndex() ) then
-		return 1
-	end
-
-	return 0
-
+	return file_canUpload( self.player ) and 1 or 0
 end
 
-/**************************** File reading/writing ****************************/
+e2function number fileUploaded()
+	local pfile = uploads[self.player]
 
-e2function string fileRead(string filename)
+	return (!pfile.uploading and pfile.uploaded) and 1 or 0
+end
 
-	local pl_files = uploaded.files[self.player]
+/* --- File reading/writing --- */
 
-	if pl_files and pl_files[filename] and pl_files[filename].uploaded == true then
-		return pl_files[filename].data
+e2function string fileName()
+	local pfile = uploads[self.player]
+
+	if pfile.uploaded and !pfile.uploading then
+		return pfile.name
 	end
 
 	return ""
-
 end
 
-e2function void fileWrite(string filename, string data)
+e2function string fileRead()
+	local pfile = uploads[self.player]
 
-	local pl_files = uploaded.files[self.player]
-
-	if pl_files and pl_files.amt < 100 then
-		pl_files[filename] = {
-			uploaded = true,
-			data = data,
-			ent = self.entity
-		}
+	if pfile.uploaded and !pfile.uploading then
+		return pfile.data
 	end
 
-	datastream.StreamToClients( self.player, "wire_expression2_filewrite", { ["name"] = filename, ["data"] = data, ["append"] = false } )
-
+	return ""
 end
 
-e2function void fileAppend(string filename, string data)
-
-	local pl_files = uploaded.files[self.player]
-
-	if pl_files and pl_files.amt <= 100 then
-		local old_file = ""
-
-		if pl_files[filename] and pl_files[filename].uploaded == true then
-			old_file = pl_files[filename].data
-		end
-
-		pl_files[filename] = {
-			uploaded = true,
-			data = old_file .. data,
-			ent = self.entity
-		}
-	end
-
-	datastream.StreamToClients( self.player, "wire_expression2_filewrite", { ["name"] = filename, ["data"] = data, ["append"] = true } )
-
+e2function number fileMaxSize()
+	return cv_max_transfer_size:GetInt()
 end
 
-e2function void fileRemove(string filename)
-
-	local pl_files = uploaded.files[self.player]
-
-	if pl_files and pl_files[filename] then
-		pl_files[filename] = nil
-		pl_files.amt = pl_files.amt - 1
-	end
+e2function number fileCanWrite()
+	return file_canDownload( self.player ) and 1 or 0
 end
 
-
-/**************************** File lists ****************************/
-
-e2function void fileLoadList()
-
-	uploaded.lists[self.player] = { ent = self.entity }
-
-	umsg.Start( "wire_expression2_filerequestlist", self.player )
-	umsg.End()
-
+e2function void fileWrite( string filename, string data )
+	file_Download( self.player, filename, data, false )
 end
 
-e2function number fileListLoaded()
-
-	if uploaded.lists[self.player] and uploaded.lists[self.player].loaded then
-		uploaded.lists[self.player].loaded = false
-		return 1
-	end
-
-	return 0
-
+e2function void fileAppend( string filename, string data )
+	file_Download( self.player, filename, data, true )
 end
 
-e2function table fileListTable()
+/* --- runOnFile event --- */
 
-	if !uploaded.lists[self.player] or !uploaded.lists[self.player].list then return end
-
-	local tbl = {}
-
-	for _,v in pairs( uploaded.lists[self.player].list ) do
-		tbl[v] = v
-	end
-
-	return tbl
-
-end
-
-e2function array fileList()
-
-	if !uploaded.lists[self.player] or !uploaded.lists[self.player].list then return end
-
-	return uploaded.lists[self.player].list
-
-end
-
-/****************************** runOnFile event *******************************/
-
-e2function void runOnFile(active)
-
-	if active == 1 then
-		run_on.file.ents[self.entity] = true
-	else
-		run_on.file.ents[self.entity] = nil
-	end
-
+e2function void runOnFile( active )
+	run_on.file.ents[self.entity] = (active != 0)
 end
 
 e2function number fileClk()
-
 	return run_on.file.run
-
 end
 
-e2function number fileClk(string filename)
-
+e2function number fileClk( string filename )
 	if run_on.file.run == 1 and run_on.file.name == filename then
 		return 1
 	else
 		return 0
 	end
-
 end
 
-/****************************** runOnList event *******************************/
-
-e2function void runOnList(active)
-
-	if active == 1 then
-		run_on.list.ents[self.entity] = true
-	else
-		run_on.list.ents[self.entity] = nil
-	end
-
-end
-
-e2function number fileListClk()
-	return run_on.list.run
-end
-
-/******************************** Hooks'n'shit ********************************/
-
-local function e2_loop_execute( tbl, ent )
-
-	for e,_ in pairs( tbl ) do
-		if ent == e then
-			e:Execute()
-			break
-		end
-	end
-
-end
+/* --- Hooks 'n' Shit --- */
 
 registerCallback( "construct", function( self )
+	uploads[self.player] = uploads[self.player] or {
+		uploading = false,
+		uploaded = false
+	}
+	downloads[self.player] = downloads[self.player] or {
+		downloading = false,
+		downloaded = false
+	}
+	delays[self.player] = delays[self.player] or {
+		upload = 0,
+		download = 0
+	}
+end )
 
-	if !uploaded.files[self.player] then
-		uploaded.files[self.player] = { amt = 0 }
-		uploaded.lists[self.player] = {}
+timer.Create(
+	"wire_expression2_flush_file_buffer",
+	1/60,
+	0,
+	function()
+		for ply,fdata in pairs( downloads ) do
+			if IsValid( ply ) and ply:IsPlayer() and fdata.downloading then
+				local chunks = 5
+
+				if !fdata.started then
+					umsg.Start( "wire_expression2_file_download_begin", ply )
+						umsg.String( fdata.name or "" )
+					umsg.End()
+
+					fdata.started = true
+				end
+
+				for chunk = 1, chunks do
+					local strlen = math.Clamp( string.len( fdata.data ), 0, 100 )
+
+					if strlen < 1 then break end
+
+					umsg.Start( "wire_expression2_file_download_chunk", ply )
+						umsg.String( string.sub( fdata.data, 1, strlen ) )
+					umsg.End()
+
+					fdata.data = string.sub( fdata.data, strlen + 1, string.len( fdata.data ) )
+				end
+
+				if string.len( fdata.data ) < 1 then
+					umsg.Start( "wire_expresison2_file_download_finish", ply )
+						umsg.Bool( fdata.append or false )
+					umsg.End()
+
+					fdata.downloaded = true
+					fdata.downloading = false
+				end
+			end
+		end
+	end
+)
+
+local function timeout_callback( ply )
+	local pfile = uploads[ply]
+
+	if !pfile then return end
+
+	pfile.uploading = false
+	pfile.uploaded = false
+end
+
+concommand.Add( "wire_expression2_file_begin", function( ply, com, args )
+	local len = tonumber( args[1] )
+
+	if (len / 1024) > cv_max_transfer_size:GetInt() then return end
+
+	local pfile = uploads[ply]
+
+	if !pfile then return end
+
+	pfile.buffer = ""
+	pfile.len = len
+	pfile.uploading = true
+	pfile.uploaded = false
+
+	timer.Create( "wire_expression2_file_check_timeout_" .. ply:EntIndex(), 5, 1, timeout_callback, ply )
+end )
+
+concommand.Add( "wire_expression2_file_chunk", function( ply, com, args )
+	local pfile = uploads[ply]
+
+	if !pfile or !pfile.uploading then return end
+
+	pfile.buffer = pfile.buffer .. args[1]
+
+	local timername = "wire_expression2_file_check_timeout_" .. ply:EntIndex()
+
+	if timer.IsTimer( timername ) then
+		timer.Remove( timername )
+		timer.Create( timername, 5, 1, timeout_callback, ply )
+	end
+end )
+
+concommand.Add( "wire_expression2_file_finish", function( ply, com, args )
+	local timername = "wire_expression2_file_check_timeout_" .. ply:EntIndex()
+
+	if timer.IsTimer( timername ) then
+		timer.Remove( timername )
 	end
 
-end )
+	local pfile = uploads[ply]
 
-hook.Add( "EntityRemoved", "wire_expression2_filedata_delete", function( ply )
+	if !pfile then return end
 
-	if ply and ply:IsPlayer() and ( uploaded.files[ply] or uploaded.lists[ply] ) then
-		uploaded.files[ply] = nil
-		uploaded.lists[ply] = nil
+	pfile.uploading = false
+	pfile.data = E2Lib.decode( pfile.buffer )
+	pfile.buffer = ""
+
+	if string.len( pfile.data ) != pfile.len then //transfer error
+		pfile.data = ""
+		return
 	end
 
-end )
-
-hook.Add( "AcceptStream", "wire_expression2_filedata", function( ply, handler, id )
-	if handler == "wire_expression2_filedata" or handler == "wire_expression2_filelist" then return true end
-end )
-
-datastream.Hook( "wire_expression2_filedata", function( ply, handler, id, encoded, decoded )
-
-	if not decoded.filename then return end
-	if not decoded.filedata then return end
-
-	local plfiles = uploaded.files[ply]
-	if not plfiles then return end
-
-	local fileentry = plfiles[decoded.filename]
-	if not fileentry then return end
-
-	fileentry.uploaded = true
-	fileentry.data = decoded.filedata
-
-	plfiles.amt = plfiles.amt + 1
+	pfile.uploaded = true
 
 	run_on.file.run = 1
-	run_on.file.name = decoded.filename
+	run_on.file.name = pfile.name
 
-	e2_loop_execute( run_on.file.ents, fileentry.ent )
+	if IsValid( pfile.ent )  and run_on.file.ents[pfile.ent] then
+		pfile.ent:Execute()
+	end
 
 	run_on.file.run = 0
 	run_on.file.name = ""
-
-end )
-
-datastream.Hook( "wire_expression2_filelist", function( ply, handler, id, encoded, decoded )
-
-	if not decoded then return end
-
-	uploaded.lists[ply].loaded = true
-	uploaded.lists[ply].list = decoded
-
-	run_on.list.run = 1
-
-	e2_loop_execute( run_on.list.ents, uploaded.lists[ply].ent )
-
-	run_on.list.run = 0
-
 end )
