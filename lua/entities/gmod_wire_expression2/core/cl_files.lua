@@ -13,7 +13,8 @@ local upload_chunk_size = 229
 local allowed_directories = { //prefix with >(allowed directory)/file.txt for files outside of e2files/ directory
 	["e1shared"] = "ExpressionGate/e2shared",
 	["e2shared"] = "Expression2/e2shared",
-	["cpushared"] = "CPUChip/e2shared"
+	["cpushared"] = "CPUChip/e2shared",
+	["gpushared"] = "GPUChip/e2shared"
 }
 
 for _,dir in pairs( allowed_directories ) do
