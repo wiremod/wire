@@ -72,10 +72,13 @@ local function file_Download( ply, filename, data, append )
 end
 
 /* --- File loading --- */
+__e2setcost( 20 )
 
 e2function void fileLoad( string filename )
 	file_Upload( self.player, self.entity, filename )
 end
+
+__e2setcost( 5 )
 
 e2function number fileCanLoad()
 	return file_canUpload( self.player ) and 1 or 0
@@ -85,6 +88,12 @@ e2function number fileUploaded()
 	local pfile = uploads[self.player]
 
 	return (!pfile.uploading and pfile.uploaded) and 1 or 0
+end
+
+e2function number fileUploading()
+	local pfile = uploads[self.player]
+
+	return pfile.uploading and 1 or 0
 end
 
 /* --- File reading/writing --- */
@@ -99,6 +108,8 @@ e2function string fileName()
 	return ""
 end
 
+__e2setcost( 10 )
+
 e2function string fileRead()
 	local pfile = uploads[self.player]
 
@@ -109,6 +120,8 @@ e2function string fileRead()
 	return ""
 end
 
+__e2setcost( 5 )
+
 e2function number fileMaxSize()
 	return cv_max_transfer_size:GetInt()
 end
@@ -116,6 +129,8 @@ end
 e2function number fileCanWrite()
 	return file_canDownload( self.player ) and 1 or 0
 end
+
+__e2setcost( 20 )
 
 e2function void fileWrite( string filename, string data )
 	file_Download( self.player, filename, data, false )
@@ -126,6 +141,8 @@ e2function void fileAppend( string filename, string data )
 end
 
 /* --- runOnFile event --- */
+
+__e2setcost( 5 )
 
 e2function void runOnFile( active )
 	run_on.file.ents[self.entity] = (active != 0)
