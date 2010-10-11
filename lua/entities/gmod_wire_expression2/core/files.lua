@@ -84,13 +84,13 @@ e2function number fileCanLoad()
 	return file_canUpload( self.player ) and 1 or 0
 end
 
-e2function number fileUploaded()
+e2function number fileLoaded()
 	local pfile = uploads[self.player]
 
 	return (!pfile.uploading and pfile.uploaded) and 1 or 0
 end
 
-e2function number fileUploading()
+e2function number fileLoading()
 	local pfile = uploads[self.player]
 
 	return pfile.uploading and 1 or 0
