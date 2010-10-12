@@ -71,9 +71,11 @@ usermessage.Hook( "wire_expression2_request_file", function( um )
 			data = encoded
 		}
 
-		RunConsoleCommand( "wire_expression2_file_begin", string.len( filedata ) )
+		RunConsoleCommand( "wire_expression2_file_begin", "1", string.len( filedata ) )
 
 		timer.Create( "wire_expression2_file_upload", 1/60, upload_buffer.chunks, upload_callback )
+	else
+		RunConsoleCommand( "wire_expression2_file_begin", "0" )
 	end
 end )
 

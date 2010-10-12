@@ -8,6 +8,18 @@ local cv_max_transfer_size = CreateConVar( "wire_expression2_file_max_size", "10
 
 E2Lib.RegisterExtension( "file", true )
 
+local FILE_UNKNOWN = 0
+local FILE_OK = 1
+local FILE_TIMEOUT = 2
+local FILE_404 = 3
+local FILE_TRANSFER_ERROR = 4
+
+E2Lib.registerConstant( "FILE_UNKNOWN", FILE_UNKNOWN )
+E2Lib.registerConstant( "FILE_OK", FILE_OK )
+E2Lib.registerConstant( "FILE_TIMEOUT", FILE_TIMEOUT )
+E2Lib.registerConstant( "FILE_404", FILE_404 )
+E2Lib.registerConstant( "FILE_TRANSFER_ERROR", FILE_TRANSFER_ERROR )
+
 local delays = {}
 local uploads = {}
 local downloads = {}
@@ -15,7 +27,8 @@ local run_on = {
 	file = {
 		run = 0,
 		name = "",
-		ents = {}
+		ents = {},
+		status = FILE_UNKNOWN
 	}
 }
 
@@ -94,6 +107,10 @@ e2function number fileLoading()
 	local pfile = uploads[self.player]
 
 	return pfile.uploading and 1 or 0
+end
+
+e2function number fileStatus()
+	return run_on.file.status or FILE_UNKNOWN
 end
 
 /* --- File reading/writing --- */
@@ -219,6 +236,20 @@ timer.Create(
 	end
 )
 
+local function file_execute( ent, filename, status )
+	if !IsValid( ent ) or !run_on.file.ents[ent] then return end
+
+	run_on.file.run = 1
+	run_on.file.name = filename
+	run_on.file.status = status
+
+	ent:Execute()
+
+	run_on.file.run = 0
+	run_on.file.name = ""
+	run_on.file.status = FILE_UNKNOWN
+end
+
 local function timeout_callback( ply )
 	local pfile = uploads[ply]
 
@@ -226,16 +257,26 @@ local function timeout_callback( ply )
 
 	pfile.uploading = false
 	pfile.uploaded = false
+
+	file_execute( pfile.ent, pfile.name, FILE_TIMEOUT )
 end
 
 concommand.Add( "wire_expression2_file_begin", function( ply, com, args )
-	local len = tonumber( args[1] )
-
-	if (len / 1024) > cv_max_transfer_size:GetInt() then return end
-
 	local pfile = uploads[ply]
 
-	if !pfile then return end
+	if !pfile then
+		file_execute( pfile.ent, pfile.name, FILE_TRANSFER_ERROR )
+	end
+
+	if args[1] == "0" then //file not found
+		file_execute( pfile.ent, pfile.name, FILE_404 )
+
+		return
+	end
+
+	local len = tonumber( args[2] ) or 0
+
+	if (len / 1024) > cv_max_transfer_size:GetInt() then return end
 
 	pfile.buffer = ""
 	pfile.len = len
@@ -248,7 +289,9 @@ end )
 concommand.Add( "wire_expression2_file_chunk", function( ply, com, args )
 	local pfile = uploads[ply]
 
-	if !pfile or !pfile.uploading then return end
+	if !pfile or !pfile.uploading then
+		file_execute( pfile.ent, pfile.name, FILE_TRANSFER_ERROR )
+	end
 
 	pfile.buffer = pfile.buffer .. args[1]
 
@@ -269,7 +312,9 @@ concommand.Add( "wire_expression2_file_finish", function( ply, com, args )
 
 	local pfile = uploads[ply]
 
-	if !pfile then return end
+	if !pfile then
+		file_execute( pfile.ent, pfile.name, FILE_TRANSFER_ERROR )
+	end
 
 	pfile.uploading = false
 	pfile.data = E2Lib.decode( pfile.buffer )
@@ -277,18 +322,13 @@ concommand.Add( "wire_expression2_file_finish", function( ply, com, args )
 
 	if string.len( pfile.data ) != pfile.len then //transfer error
 		pfile.data = ""
+
+		file_execute( pfile.ent, pfile.name, FILE_TRANSFER_ERROR )
+
 		return
 	end
 
 	pfile.uploaded = true
 
-	run_on.file.run = 1
-	run_on.file.name = pfile.name
-
-	if IsValid( pfile.ent )  and run_on.file.ents[pfile.ent] then
-		pfile.ent:Execute()
-	end
-
-	run_on.file.run = 0
-	run_on.file.name = ""
+	file_execute( pfile.ent, pfile.name, FILE_OK )
 end )
