@@ -5,6 +5,7 @@
 local delta  = wire_expression2_delta
 
 local floor = math.floor
+local random = math.random
 local pi = math.pi
 
 /******************************************************************************/
