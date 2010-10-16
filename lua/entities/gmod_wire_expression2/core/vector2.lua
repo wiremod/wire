@@ -209,9 +209,9 @@ end)
 registerFunction("rotate", "xv2:n", "xv2", function(self, args)
 	local op1, op2 = args[2], args[3]
 	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	local a = rv2 * 3.14159265 / 180
+	local a = rv2 * pi / 180
 	local x = math.cos(a) * rv1[1] - math.sin(a) * rv1[2]
-	local y = math.sin(a) * rv1[1] - math.cos(a) * rv1[2]
+	local y = math.sin(a) * rv1[1] + math.cos(a) * rv1[2]
 	return { x, y }
 end)
 
