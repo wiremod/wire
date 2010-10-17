@@ -460,6 +460,92 @@ e2function void wirelink:writeString(string text, x, y, vector textcolor, vector
 
 e2function void wirelink:writeString(string text, x, y, vector textcolor) = e2function void wirelink:writeString(string text, x, y, textcolor)
 
+-- Unicode strings
+local function WriteUnicodeString(entity, string, X, Y, textcolor, bgcolor, Flash)
+	if type(textcolor) ~= "number" then textcolor = conv(textcolor) end
+	if type(bgcolor) ~= "number" then bgcolor = conv(bgcolor) end
+
+	if not validWirelink(self, entity) or not entity.WriteCell then return end
+
+	textcolor = Clamp(floor(textcolor), 0, 999)
+	bgcolor = Clamp(floor(bgcolor), 0, 999)
+	Flash = Flash ~= 0 and 1 or 0
+	local Params = Flash*1000000 + bgcolor*1000 + textcolor
+
+	local Xorig = X
+	local i = 1
+	while i <= #string do
+		local Byte = string.byte(string,i)
+		if Byte == 10 then
+			Y = Y+1
+			X = Xorig -- shouldn't this be 0 as well? would be more consistent.
+		else
+			if Byte >= 128 then
+				if Byte >= 240 then
+					-- 4 byte sequence (unsupported by engine, but it should only occupy one character on the console screen)
+					Byte = (Byte & 7) * 262144
+					Byte = Byte + (string.byte (string, i + 1) & 63) * 4096
+					Byte = Byte + (string.byte (string, i + 2) & 63) * 64
+					Byte = Byte + (string.byte (string, i + 3) & 63)
+					i = i + 3
+				elseif Byte >= 224 then
+					-- 3 byte sequence
+					Byte = (Byte & 15) * 4096
+					Byte = Byte + (string.byte (string, i + 1) & 63) * 64
+					Byte = Byte + (string.byte (string, i + 2) & 63)
+					i = i + 2
+				elseif Byte >= 192 then
+					-- 2 byte sequence
+					Byte = (Byte & 31) * 64
+					Byte = Byte + (string.byte (string, i + 1) & 63)
+					i = i + 1
+				else
+					-- invalid sequence
+					Byte = 0
+				end
+			end
+			if X >= 30 then
+				X = 0
+				Y = Y + 1
+			end
+			local Address = 2*(Y*30+(X))
+			X = X + 1
+			if Address>=1080 or Address<0 then return end
+			entity:WriteCell(Address, Byte)
+			entity:WriteCell(Address+1, Params)
+		end
+		i = i + 1
+	end
+end
+
+e2function void wirelink:writeUnicodeString(string text, x, y, textcolor, bgcolor, flash)
+	WriteUnicodeString(this,text,x,y,textcolor,bgcolor,flash)
+end
+
+
+e2function void wirelink:writeUnicodeString(string text, x, y, textcolor, bgcolor)
+	WriteUnicodeString(this,text,x,y,textcolor,bgcolor,0)
+end
+
+
+e2function void wirelink:writeUnicodeString(string text, x, y, textcolor)
+	WriteUnicodeString(this,text,x,y,textcolor,0,0)
+end
+
+e2function void wirelink:writeUnicodeString(string text, x, y)
+	WriteUnicodeString(this,text,x,y,999,0,0)
+end
+
+e2function void wirelink:writeUnicodeString(string text, x, y,        textcolor, vector bgcolor, flash) = e2function void wirelink:writeUnicodeString(string text, x, y, textcolor, bgcolor, flash)
+e2function void wirelink:writeUnicodeString(string text, x, y, vector textcolor,        bgcolor, flash) = e2function void wirelink:writeUnicodeString(string text, x, y, textcolor, bgcolor, flash)
+e2function void wirelink:writeUnicodeString(string text, x, y, vector textcolor, vector bgcolor, flash) = e2function void wirelink:writeUnicodeString(string text, x, y, textcolor, bgcolor, flash)
+
+e2function void wirelink:writeUnicodeString(string text, x, y,        textcolor, vector bgcolor) = e2function void wirelink:writeUnicodeString(string text, x, y, textcolor, bgcolor)
+e2function void wirelink:writeUnicodeString(string text, x, y, vector textcolor,        bgcolor) = e2function void wirelink:writeUnicodeString(string text, x, y, textcolor, bgcolor)
+e2function void wirelink:writeUnicodeString(string text, x, y, vector textcolor, vector bgcolor) = e2function void wirelink:writeUnicodeString(string text, x, y, textcolor, bgcolor)
+
+e2function void wirelink:writeUnicodeString(string text, x, y, vector textcolor) = e2function void wirelink:writeUnicodeString(string text, x, y, textcolor)
+
 /******************************************************************************/
 
 --- Writes a null-terminated string to the given address. Returns the next free address or 0 on failure.

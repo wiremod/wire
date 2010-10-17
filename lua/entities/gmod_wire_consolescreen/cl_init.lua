@@ -287,39 +287,6 @@ function ENT:WriteCell(Address,value)
 	return true
 end
 
-local graphics_chars = {
-	[128] = {
-		{ x = 0, y = 1 },
-		{ x = 1, y = 1 },
-		{ x = 1, y = 0 },
-	},
-	[129] = {
-		{ x = 0, y = 1 },
-		{ x = 0, y = 0 },
-		{ x = 1, y = 1 },
-	},
-	[130] = {
-		{ x = 0, y = 1 },
-		{ x = 1, y = 0 },
-		{ x = 0, y = 0 },
-	},
-	[131] = {
-		{ x = 0, y = 0 },
-		{ x = 1, y = 0 },
-		{ x = 1, y = 1 },
-	},
-}
-
-
-function ENT:DrawGraphicsChar(c,x,y,w,h,r,g,b)
-	surface.SetDrawColor(r,g,b,255)
-	surface.SetTexture(0)
-
-	local vertices = graphics_chars[c]
-
-	if vertices then surface.DrawPoly(vertices) end
-end
-
 function ENT:Draw()
 	self.Entity:DrawModel()
 
@@ -378,7 +345,7 @@ function ENT:Draw()
 						self.FrameNeedsFlash = true
 					end
 
-					if (c1 > 255) then c1 = 0 end
+					if (c1 >= 2097152) then c1 = 0 end
 					if (c1 < 0) then c1 = 0 end
 
 					if (cback ~= 0) then
@@ -390,27 +357,29 @@ function ENT:Draw()
 					end
 
 					if (c1 ~= 0) && (cfrnt ~= 0) then
-						if (c1 <= 127) then
-							draw.DrawText(
-								string.char(c1),
-								"WireGPU_ConsoleFont",
-								(tx+0.625)*szx, (ty+0.75)*szy,
-								Color(
-									math.Clamp(fr*self.Memory1[2028]*self.Memory1[2025],0,255),
-									math.Clamp(fg*self.Memory1[2027]*self.Memory1[2025],0,255),
-									math.Clamp(fb*self.Memory1[2026]*self.Memory1[2025],0,255),
-									255
-								),
-								0
-							)
-						else
-							self:DrawGraphicsChar(
-								c1, (tx+0.5)*szx, (ty+0.5)*szy, szx, szy,
+						-- Note: the source engine does not handle unicode characters above 65535 properly.
+						local utf8 = ""
+						if c1 <= 127 then
+							utf8 = string.char (c1)
+						elseif c1 < 2048 then
+							utf8 = string.format ("%c%c", 192 + math.floor (c1 / 64), 128 + (c1 & 63))
+						elseif c1 < 65536 then
+							utf8 = string.format ("%c%c%c", 224 + math.floor (c1 / 4096), 128 + (math.floor (c1 / 64) & 63), 128 + (c1 & 63))
+						elseif c1 < 2097152 then
+							utf8 = string.format ("%c%c%c%c", 240 + math.floor (c1 / 262144), 128 + (math.floor (c1 / 4096) & 63), 128 + (math.floor (c1 / 64) & 63), 128 + (c1 & 63))
+						end
+						draw.DrawText(
+							utf8,
+							"WireGPU_ConsoleFont",
+							(tx + 0.625) * szx, (ty + 0.75) * szy,
+							Color(
 								math.Clamp(fr*self.Memory1[2028]*self.Memory1[2025],0,255),
 								math.Clamp(fg*self.Memory1[2027]*self.Memory1[2025],0,255),
-								math.Clamp(fb*self.Memory1[2026]*self.Memory1[2025],0,255)
-							)
-						end
+								math.Clamp(fb*self.Memory1[2026]*self.Memory1[2025],0,255),
+								255
+							),
+							0
+						)
 					end
 				end
 			end
