@@ -191,6 +191,18 @@ e2function number entity:keyUse()
 	return 0
 end
 
+e2function number entity:keyReload()
+    if not validEntity(this) then return 0 end
+    if this:IsPlayer() and this:KeyDown( IN_RELOAD ) then return 1 end
+    return 0
+end
+
+e2function number entity:keyZoom()
+    if not validEntity(this) then return 0 end
+    if this:IsPlayer() and this:KeyDown( IN_ZOOM ) then return 1 end
+    return 0
+end
+
 /******************************************************************************/
 
 local Trusts
