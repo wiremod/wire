@@ -483,21 +483,33 @@ local function WriteUnicodeString(entity, string, X, Y, textcolor, bgcolor, Flas
 			if Byte >= 128 then
 				if Byte >= 240 then
 					-- 4 byte sequence (unsupported by engine, but it should only occupy one character on the console screen)
-					Byte = (Byte & 7) * 262144
-					Byte = Byte + (string.byte (string, i + 1) & 63) * 4096
-					Byte = Byte + (string.byte (string, i + 2) & 63) * 64
-					Byte = Byte + (string.byte (string, i + 3) & 63)
+					if i + 3 > #string then
+						Byte = 0
+					else
+						Byte = (Byte & 7) * 262144
+						Byte = Byte + (string.byte (string, i + 1) & 63) * 4096
+						Byte = Byte + (string.byte (string, i + 2) & 63) * 64
+						Byte = Byte + (string.byte (string, i + 3) & 63)
+					end
 					i = i + 3
 				elseif Byte >= 224 then
 					-- 3 byte sequence
-					Byte = (Byte & 15) * 4096
-					Byte = Byte + (string.byte (string, i + 1) & 63) * 64
-					Byte = Byte + (string.byte (string, i + 2) & 63)
+					if i + 2 > #string then
+						Byte = 0
+					else
+						Byte = (Byte & 15) * 4096
+						Byte = Byte + (string.byte (string, i + 1) & 63) * 64
+						Byte = Byte + (string.byte (string, i + 2) & 63)
+					end
 					i = i + 2
 				elseif Byte >= 192 then
 					-- 2 byte sequence
-					Byte = (Byte & 31) * 64
-					Byte = Byte + (string.byte (string, i + 1) & 63)
+					if i + 1 > #string then
+						Byte = 0
+					else
+						Byte = (Byte & 31) * 64
+						Byte = Byte + (string.byte (string, i + 1) & 63)
+					end
 					i = i + 1
 				else
 					-- invalid sequence

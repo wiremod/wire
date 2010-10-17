@@ -142,6 +142,62 @@ registerFunction("toByte", "sn", "n", function(self, args)
 	return string.byte(rv1, rv2)
 end)
 
+registerFunction("toUnicodeChar", "n", "s", function(self, args)
+	local op1 = args[2]
+	local rv1 = op1[1](self, op1)
+	local utf8 = ""
+	if rv1 < 1 then
+		return ""
+	elseif rv1 <= 127 then
+		utf8 = string.char (rv1)
+	elseif rv1 < 2048 then
+		utf8 = string.format ("%c%c", 192 + math.floor (rv1 / 64), 128 + (rv1 & 63))
+	elseif rv1 < 65536 then
+		utf8 = string.format ("%c%c%c", 224 + math.floor (rv1 / 4096), 128 + (math.floor (rv1 / 64) & 63), 128 + (rv1 & 63))
+	elseif rv1 < 2097152 then
+		utf8 = string.format ("%c%c%c%c", 240 + math.floor (rv1 / 262144), 128 + (math.floor (rv1 / 4096) & 63), 128 + (math.floor (rv1 / 64) & 63), 128 + (rv1 & 63))
+	end
+	return utf8
+end)
+
+registerFunction("toUnicodeByte", "s", "n", function(self, args)
+	local op1 = args[2]
+	local rv1 = op1[1](self, op1)
+	if rv1 == "" then return -1 end
+	local byte = string.byte(rv1)
+	if byte >= 128 then
+		if byte >= 240 then
+			-- 4 byte sequence
+			if string.len (rv1) < 4 then
+				return -1
+			end
+			byte = (byte & 7) * 262144
+			byte = byte + (string.byte (rv1, 2) & 63) * 4096
+			byte = byte + (string.byte (rv1, 3) & 63) * 64
+			byte = byte + (string.byte (rv1, 4) & 63)
+		elseif byte >= 224 then
+			-- 3 byte sequence
+			if string.len (rv1) < 3 then
+				return -1
+			end
+			byte = (byte & 15) * 4096
+			byte = byte + (string.byte (rv1, 2) & 63) * 64
+			byte = byte + (string.byte (rv1, 3) & 63)
+		elseif byte >= 192 then
+			-- 2 byte sequence
+			if string.len (rv1) < 2 then
+				return -1
+			end
+			byte = (byte & 31) * 64
+			byte = byte + (string.byte (rv1, 2) & 63)
+		else
+			-- invalid sequence
+			byte = -1
+		end
+	end
+	return byte
+end)
+
 /******************************************************************************/
 
 registerFunction("index", "s:n", "s", function(self, args)
@@ -192,6 +248,30 @@ registerFunction("length", "s:", "n", function(self, args)
 	local op1 = args[2], args[3]
 	local rv1 = op1[1](self, op1)
 	return rv1:len()
+end)
+
+registerFunction("unicodeLength", "s:", "n", function(self, args)
+	local op1 = args[2], args[3]
+	local rv1 = op1[1](self, op1)
+	-- the string.gsub method is inconsistent with how writeUnicodeString and toUnicodeByte handles badly-formed sequences.
+	-- local _, length = string.gsub (rv1, "[^\128-\191]", "")
+	local length = 0
+	local i = 1
+	while i <= #rv1 do
+		local byte = string.byte (rv1, i)
+		if byte >= 240 then
+			i = i + 4
+		elseif byte >= 224 then
+			i = i + 3
+		elseif byte >= 192 then
+			i = i + 2
+		else
+			i = i + 1
+		end
+		length = length + 1
+	end
+	self.prf = self.prf + length * 0.1
+	return length
 end)
 
 /******************************************************************************/
