@@ -824,7 +824,7 @@ function EDITOR:FindWindow()
 	end
 
 	// Create the frame, make it highlight the line and show cursor
-	FW = vgui.Create("DFrame",self)
+	local FW = vgui.Create("DFrame",self)
 	self.FW = FW
 	FW.OldThink = FW.Think
 	FW.Think = function(self)
@@ -847,6 +847,7 @@ function EDITOR:FindWindow()
 	FW.String = vgui.Create("DTextEntry",FW)
 	FW.String:SetPos(10,30)
 	FW.String:SetSize(230,20)
+	FW.String:SetText(self:GetSelection():Left(100))
 	FW.String:RequestFocus()
 	FW.String.OnKeyCodeTyped = function(self,code)
 		if ( code == KEY_ENTER ) then
@@ -922,7 +923,7 @@ function EDITOR:FindAndReplaceWindow()
 	end
 
 	// Create the frame, make it highlight the line and show cursor
-	FRW = vgui.Create("DFrame",self)
+	local FRW = vgui.Create("DFrame",self)
 	self.FRW = FRW
 	FRW.OldThink = FRW.Think
 	FRW.Think = function(self)
@@ -944,6 +945,7 @@ function EDITOR:FindAndReplaceWindow()
 	FRW.ToRep = vgui.Create("DTextEntry",FRW)
 	FRW.ToRep:SetPos(10,30)
 	FRW.ToRep:SetSize(230,20)
+	FRW.ToRep:SetText(self:GetSelection():Left(100))
 	FRW.ToRep:RequestFocus()
 	FRW.ToRep.OnKeyCodeTyped = function(self,code)
 		if ( code == KEY_ENTER ) then
