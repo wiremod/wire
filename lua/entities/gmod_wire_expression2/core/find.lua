@@ -900,3 +900,42 @@ e2function number findClipToBox( vector min, vector max )
 	end)
 end
 
+-- Filters the list of entities by removing all entities equal to this entity
+e2function number findClipFromEntity( entity ent )
+	if !validEntity( ent ) then return -1 end
+	return applyClip( self, function( ent2 )
+		if !validEntity(ent2) then return false end
+		return ent != ent2
+	end)
+end
+
+-- Filters the list of entities by removing all entities equal to one of these entities
+e2function number findClipFromEntities( array entities )
+	local lookup = {}
+	self.prf = self.prf + #entities / 3
+	for k,v in ipairs( entities ) do lookup[v] = true end
+	return applyClip( self, function( ent )
+		if !validEntity(ent) then return false end
+		return !lookup[ent]
+	end)
+end
+
+-- Filters the list of entities by removing all entities not equal to this entity
+e2function number findClipToEntity( entity ent )
+	if !validEntity( ent ) then return -1 end
+	return applyClip( self, function( ent2 )
+		if !validEntity(ent2) then return false end
+		return ent == ent2
+	end)
+end
+
+-- Filters the list of entities by removing all entities not equal to one of these entities
+e2function number findClipToEntities( array entities )
+	local lookup = {}
+	self.prf = self.prf + #entities / 3
+	for k,v in ipairs( entities ) do lookup[v] = true end
+	return applyClip( self, function( ent )
+		if !validEntity(ent) then return false end
+		return lookup[ent]
+	end)
+end
