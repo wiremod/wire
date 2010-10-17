@@ -153,6 +153,9 @@ end
 
 /******************************************************************************/
 // Functions  using vector getting vector
+
+__e2setcost(15)
+
 e2function vector entity:toWorld(vector localPosition)
 	if not validEntity(this) then return {0,0,0} end
 	return this:LocalToWorld(Vector(localPosition[1],localPosition[2],localPosition[3]))
@@ -189,6 +192,9 @@ end
 
 /******************************************************************************/
 // Functions getting number
+
+__e2setcost(5)
+
 e2function number entity:health()
 	if not validEntity(this) then return 0 end
 	return this:Health()
@@ -201,6 +207,9 @@ end
 
 // original bearing & elevation thanks to Gwahir
 --- Returns the bearing (yaw) from <this> to <pos>
+
+__e2setcost(15)
+
 e2function number entity:bearing(vector pos)
 	if not validEntity(this) then return 0 end
 
@@ -236,6 +245,8 @@ e2function angle entity:heading(vector pos)
 
 	return { elevation, bearing, 0 }
 end
+
+__e2setcost(10)
 
 e2function number entity:mass()
 	if not validPhysics(this) then return 0 end
@@ -478,7 +489,7 @@ end
 
 /******************************************************************************/
 
-__e2setcost(5) -- temporary
+__e2setcost(10) -- temporary
 
 e2function void entity:lockPod(lock)
 	if not validEntity(this) or not this:IsVehicle() then return end
@@ -506,6 +517,8 @@ end
 
 /******************************************************************************/
 
+__e2setcost(10)
+
 e2function vector entity:boxSize()
 	if not validEntity(this) then return {0,0,0} end
 	return this:OBBMaxs() - this:OBBMins()
@@ -514,6 +527,12 @@ end
 e2function vector entity:boxCenter()
 	if not validEntity(this) then return {0,0,0} end
 	return this:OBBCenter()
+end
+
+-- Same as using E:toWorld(E:boxCenter()) in E2, but since Lua runs faster, this is more efficient.
+e2function vector entity:boxCenterW()
+	if not validEntity(this) then return {0,0,0} end
+	return this:LocalToWorld(this:OBBCenter())
 end
 
 e2function vector entity:boxMax()
@@ -527,6 +546,8 @@ e2function vector entity:boxMin()
 end
 
 /******************************************************************************/
+
+__e2setcost(5)
 
 e2function entity entity:driver()
 	if not validEntity(this) or not this:IsVehicle() then return nil end
@@ -618,6 +639,8 @@ e2function void entity:setTrails(startSize, endSize, length, string material, ve
 	SetTrails(self.player, this, Data)
 end
 
+__e2setcost(30)
+
 --- StartSize, EndSize, Length, Material, Color (RGB), Alpha, AttachmentID, Additive
 --- Adds a trail to <this> with the specified attributes.
 e2function void entity:setTrails(startSize, endSize, length, string material, vector color, alpha, attachmentID, additive)
@@ -634,6 +657,8 @@ e2function void entity:setTrails(startSize, endSize, length, string material, ve
 end
 
 /******************************************************************************/
+
+__e2setcost( 15 )
 
 --- Returns <this>'s attachment ID associated with <attachmentName>
 e2function number entity:lookupAttachment(string attachmentName)
@@ -675,6 +700,17 @@ e2function angle entity:attachmentAng(string attachmentName)
 	return { ang.p, ang.y, ang.r }
 end
 
+/******************************************************************************/
+
+__e2setcost(15)
+
+e2function vector entity:nearestPoint( vector point )
+	if (!validEntity(this)) then return {0,0,0} end
+	return this:NearestPoint( Vector(point[1],point[2],point[3]) )
+end
+
+/******************************************************************************/
+
 local function upperfirst( word )
 	return word:Left(1):upper() .. word:Right(-2):lower()
 end
@@ -682,8 +718,6 @@ end
 local function fixdef( def )
 	if (type(def) == "table") then return table.Copy(def) else return def end
 end
-
-/******************************************************************************/
 
 local non_allowed_types = {
 	xgt = true,
@@ -728,4 +762,3 @@ registerCallback("postinit",function()
 end) -- postinit
 
 __e2setcost(nil)
-

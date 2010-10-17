@@ -1,4 +1,6 @@
 if E2Helper then
+
+-- Number
 E2Helper.Descriptions["mod(n n)"] = "Modulo, returns the Remainder after Argument 1 has been divided by Argument 2. Note \"mod(-1, 3) = -1\""
 E2Helper.Descriptions["sqrt(n)"] = "Returns the Square Root of the Argument"
 E2Helper.Descriptions["cbrt(n)"] = "Returns the Cube Root of the Argument"
@@ -60,6 +62,8 @@ E2Helper.Descriptions["asinr(n)"] = "Returns the inverse sine of the argument, i
 E2Helper.Descriptions["acosr(n)"] = "Returns the inverse cosine of the argument, in radians"
 E2Helper.Descriptions["atanr(n)"] = "Returns the inverse tangent of the argument, in radians"
 E2Helper.Descriptions["atanr(nn)"] = "Returns the inverse tangent of the arguments (arg1 / arg2), in radians. This function accounts for positive/negative arguments, and arguments at or close to 0"
+
+-- String
 E2Helper.Descriptions["index(s:n)"] = "Returns Nth letter of the string, formatted as a string."
 E2Helper.Descriptions["length(s:)"] = "Returns the length of the string."
 E2Helper.Descriptions["upper(s:)"] = "All characters are made uppercase"
@@ -92,6 +96,8 @@ E2Helper.Descriptions["match(s:s2)"] = "runs string.match(S, S2) and returns the
 E2Helper.Descriptions["match(s:s2n)"] = "runs string.match(S, S2, N) and returns the sub-captures as an array."
 E2Helper.Descriptions["matchFirst(s:s2)"] = "runs string.match(S, S2) and returns the first match or an empty string if the match failed."
 E2Helper.Descriptions["matchFirst(s:s2n)"] = "runs string.match(S, S2, N) and returns the first match or an empty string if the match failed."
+
+-- Entity/Player
 E2Helper.Descriptions["entity(n)"] = "Gets the entity associated with the id"
 E2Helper.Descriptions["owner()"] = "Gets the owner of the expression ( same as entity():owner() )"
 E2Helper.Descriptions["id(e:)"] = "Gets the numeric id of an entity"
@@ -186,11 +192,17 @@ E2Helper.Descriptions["primaryAmmoType(e:)"] = "Returns the type of primary ammo
 E2Helper.Descriptions["secondaryAmmoType(e:)"] = "Returns the type of secondary ammo of weapon E as number in a string"
 E2Helper.Descriptions["ammoCount(e:s)"] = "Returns the amount of stored ammo of type S on player E, excluding current clip"
 E2Helper.Descriptions["tool(e:)"] = "returns the name of the tool the player E is currently holding"
+E2Helper.Descriptions["nearestPoint(e:v)"] = "Returns the closest point on the edge of the entity's bounding box to the given vector."
+E2Helper.Descriptions["boxCenterW(e:)"] = "Same as using E:toWorld(E:boxCenter()), but since Lua is faster, this is more efficient (also shorter to write)."
+
+-- Attachment
 E2Helper.Descriptions["lookupAttachment(e:string attachmentname)"] = "Returns Es attachment ID associated with attachmentName"
 E2Helper.Descriptions["attachmentPos(e:attachmentid)"] = "Returns Es attachment position associated with attachmentID"
 E2Helper.Descriptions["attachmentAng(e:attachmentid)"] = "Returns Es attachment angle associated with attachmentID"
 E2Helper.Descriptions["attachmentPos(e:string attachmentname)"] = "Same as E:attachmentPos(E:lookupAttachment(attachmentName))"
 E2Helper.Descriptions["attachmentAng(e:string attachmentname)"] = "Same as E:attachmentAng(E:lookupAttachment(attachmentName))"
+
+-- Vector
 E2Helper.Descriptions["vec2(nn)"] = "Makes a 2D vector"
 E2Helper.Descriptions["vec2()"] = "Same as vec2(0,0)"
 E2Helper.Descriptions["vec2(v)"] = "Converts a 3D vector into a 2D vector (the z component is dropped)"
@@ -255,6 +267,14 @@ E2Helper.Descriptions["setY(v:n)"] = "Returns a copy of the vector with Y replac
 E2Helper.Descriptions["setZ(v:n)"] = "Returns a copy of the vector with Z replaced (use as Vec = Vec:setZ(...))"
 E2Helper.Descriptions["setW(v:n)"] = "Returns a copy of the vector with W replaced (use as Vec = Vec:setW(...))"
 E2Helper.Descriptions["toString(v:)"] = "Gets the vector nicely formatted as a string \"[X,Y,Z]\""
+E2Helper.Descriptions["toWorld(vava)"] = "Converts a local position/angle to a world position/angle and returns the position"
+E2Helper.Descriptions["toWorldAng(vava)"] = "Converts a local position/angle to a world position/angle and returns the angle"
+E2Helper.Descriptions["toWorldPosAng(vava)"] = "Converts a local position/angle to a world position/angle and returns both in an array"
+E2Helper.Descriptions["toLocal(vava)"] = "Converts a world position/angle to a local position/angle and returns the position"
+E2Helper.Descriptions["toLocalAng(vava)"] = "Converts a world position/angle to a local position/angle and returns the angle"
+E2Helper.Descriptions["toLocalPosAng(vava)"] = "Converts a world position/angle to a local position/angle and returns both in an array"
+
+-- Matrix
 E2Helper.Descriptions["identity2()"] = "Creates a 2x2 identity matrix"
 E2Helper.Descriptions["matrix2()"] = "Creates a 2x2 zero matrix"
 E2Helper.Descriptions["matrix2(nnnn)"] = "Creates a matrix with values in order (i.j) of: (1,1), (1,2), (2,1), (2,2)"
@@ -332,6 +352,8 @@ E2Helper.Descriptions["trace(m)"] = "Returns the trace of a matrix"
 E2Helper.Descriptions["det(m)"] = "Returns the determinant of a matrix (Does not work for 4x4 matrices)"
 E2Helper.Descriptions["transpose(m)"] = "Returns the transpose of a matrix"
 E2Helper.Descriptions["adj(m)"] = "Returns the adjugate of a matrix (Does not work for 4x4 matrices)"
+
+-- Angle
 E2Helper.Descriptions["ang(nnn)"] = "Makes an angle"
 E2Helper.Descriptions["ang()"] = "Same as ang(0,0,0)"
 E2Helper.Descriptions["ang(v)"] = "Changes a vector variable into an angle variable"
@@ -358,6 +380,8 @@ E2Helper.Descriptions["setPitch(a:n)"] = "Returns a copy of the angle with Pitch
 E2Helper.Descriptions["setYaw(a:n)"] = "Returns a copy of the angle with Yaw replaced (use as Ang = Ang:setYaw(...)) "
 E2Helper.Descriptions["setRoll(a:n)"] = "Returns a copy of the angle with Roll replaced (use as Ang = Ang:setRoll(...)) "
 E2Helper.Descriptions["toString(a:)"] = "Gets the angle nicely formatted as a string \"[P,Y,R]\""
+
+-- Entity
 E2Helper.Descriptions["forward(a:)"] = "Gets the forward vector of the angle."
 E2Helper.Descriptions["right(a:)"] = "Gets the right vector of the angle."
 E2Helper.Descriptions["up(a:)"] = "Gets the up vector of the angle."
@@ -386,6 +410,8 @@ E2Helper.Descriptions["massCenter(b:)"] = "Returns Bs Center of Mass"
 E2Helper.Descriptions["massCenterL(b:)"] = "Returns Bs Center of Mass in local coordinates"
 E2Helper.Descriptions["inertia(b:)"] = "Gets the principal components of Bs inertia tensor in the form vec(Ixx, Iyy, Izz)"
 E2Helper.Descriptions["isFrozen(b:)"] = "Returns 1 if B is frozen, 0 otherwise"
+
+-- Wirelink
 E2Helper.Descriptions["isHiSpeed(xwl:)"] = "Returns true if the linked component is high-speed capable."
 E2Helper.Descriptions["entity(xwl:)"] = "Returns the entity of the linked component."
 E2Helper.Descriptions["hasInput(xwl:s)"] = "Returns true if the linked component has an input of the specified name."
@@ -398,6 +424,8 @@ E2Helper.Descriptions["inputs(xwl:)"] = "Returns an array of all the inputs that
 E2Helper.Descriptions["outputs(xwl:)"] = "Returns an array of all the outputs that XWL has without their types. Returns an empty array if it has none"
 E2Helper.Descriptions["inputType(xwl:s)"] = "Returns the type of input that S is in lowercase. ( \"NORMAL\"  is changed to \"number\" )"
 E2Helper.Descriptions["outputType(xwl:s)"] = "Returns the type of output that S is in lowercase. ( \"NORMAL\"  is changed to \"number\" )"
+
+-- Quaternions
 E2Helper.Descriptions["comp()"] = "Returns complex zero"
 E2Helper.Descriptions["comp(n)"] = "Converts a real number to complex (returns complex number with real part N and imaginary part 0)"
 E2Helper.Descriptions["comp(nn2)"] = "Returns N+N2*i"
@@ -470,6 +498,8 @@ E2Helper.Descriptions["vec(q)"] = "Converts Q to a vector by dropping the real c
 E2Helper.Descriptions["matrix(q)"] = "Converts Q to a transformation matrix"
 E2Helper.Descriptions["toAngle(q:)"] = "Returns angle represented by Q"
 E2Helper.Descriptions["toString(q)"] = "Formats Q as a string."
+
+-- Selfaware
 E2Helper.Descriptions["first()"] = "Returns 1 if the expression was spawned or reset"
 E2Helper.Descriptions["duped()"] = "Returns 1 if the expression was duplicated"
 E2Helper.Descriptions["dupefinished()"] = "Returns 1 when the contraption has finished duping. (Only triggers on Adv Duplicator, not the normal duplicator)"
@@ -482,18 +512,27 @@ E2Helper.Descriptions["minquota()"] = "The ops left before soft quota is used up
 E2Helper.Descriptions["maxquota()"] = "The ops left before hard quota is exceeded and the expression shuts down"
 E2Helper.Descriptions["perf()"] = "If used as a while loop condition, stabilizes the expression around  hardquota used."
 E2Helper.Descriptions["entity()"] = "Gets the entity of the expression"
+
 E2Helper.Descriptions["concmd(s)"] = "Takes a string and executes it in console. Returns 1 if it succeeded and 0 if it failed.The client must enable this in the console with \"wire_expression2_concmd 1\". \"wire_expression2_concmd_whitelist\" allows you to choose which commands can be used.[http://www.wiremod.com/forum/151800-post12.html]"
 E2Helper.Descriptions["select(n*...)"] = "Returns the Nth value given after the index, *'s zero element otherwise. If you mix types, the behaviour is undefined."
+
+-- Driver hints
 E2Helper.Descriptions["printDriver(e:s)"] = "Posts a string to the chat of Es driver. Returns 1 if the text was printed, 0 if not."
 E2Helper.Descriptions["hintDriver(e:sn)"] = "Displays a hint popup to the driver of vehicle E, with message S for N seconds (N being clamped between 0.7 and 7). Same return value as printDriver."
 E2Helper.Descriptions["printDriver(e:ns)"] = "Same as EE:printDriver(S), but can make the text show up in different places. N can be one of the following: _HUD_PRINTCENTER, _HUD_PRINTCONSOLE, _HUD_PRINTNOTIFY, _HUD_PRINTTALK."
+
+-- Time
 E2Helper.Descriptions["tickClk()"] = "Returns 1 if the current execution was caused by \"runOnTick\""
 E2Helper.Descriptions["curtime()"] = "Returns the current game time since server-start in seconds*"
 E2Helper.Descriptions["realtime()"] = "Returns the current real time since server-start in seconds*"
 E2Helper.Descriptions["clk(s)"] = "Returns 1 if the current execution was caused by the inserted name"
+
+-- Unit conversion
 E2Helper.Descriptions["toUnit(sn)"] = "Converts default garrysmod units to specified units"
 E2Helper.Descriptions["fromUnit(sn)"] = "Converts specified units to default garrysmod units"
 E2Helper.Descriptions["convertUnit(ssn)"] = "Converts between two units"
+
+-- Server information
 E2Helper.Descriptions["map()"] = "Returns the current map name"
 E2Helper.Descriptions["hostname()"] = "Returns the Name of the server"
 E2Helper.Descriptions["isLan()"] = "Returns 1 if lan mode is enabled"
@@ -509,6 +548,8 @@ E2Helper.Descriptions["playerDamage()"] = "Returns 1 if player vs player damage 
 E2Helper.Descriptions["convar(s)"] = "Give a console command such as \"name\" and it returns the set value"
 E2Helper.Descriptions["convarnum(s)"] = "Give a console command such as \"sbox_godmode\" and it returns the set value"
 E2Helper.Descriptions["time(s)"] = "Returns numerical time/date info from the server. Possible arguments: \"year\", \"month\", \"day\", \"hour\", \"min\", \"sec\", \"wday\" (weekday, Sunday is 1), \"yday\" (day of the year), and \"isdst\" (daylight saving flag 0/1)"
+
+-- Constraints
 E2Helper.Descriptions["getConstraints(e:)"] = "Returns an array with all entities directly or indirectly constrained to E, except E itself."
 E2Helper.Descriptions["hasConstraints(e:)"] = "Returns the number of the constraints E has"
 E2Helper.Descriptions["hasConstraints(e:s)"] = "Returns the number of the constraints E has with the given constraint type (see the types list below)"
@@ -521,6 +562,8 @@ E2Helper.Descriptions["isConstrainedTo(e:s)"] = "Returns the first entity E was 
 E2Helper.Descriptions["isConstrainedTo(e:s n)"] = "Returns the Nth entity E was constrained to with the given constraint type (see the types list below)"
 E2Helper.Descriptions["parent(e:)"] = "Returns the entity E is parented to."
 E2Helper.Descriptions["parentBone(e:)"] = "Returns the bone E is parented to."
+
+-- Chat
 E2Helper.Descriptions["chatClk()"] = "Returns 1 if the chip is being executed because of a chat event. Returns 0 otherwise."
 E2Helper.Descriptions["chatClk(e)"] = "Returns 1 if the chip is being executed because of a chat event by player E. Returns 0 otherwise."
 E2Helper.Descriptions["lastSpoke()"] = "Returns the last player to speak."
@@ -530,6 +573,8 @@ E2Helper.Descriptions["lastSaidTeam()"] = "Returns 1 if the last message was sen
 E2Helper.Descriptions["lastSaid(e:)"] = "Returns what the player E last said."
 E2Helper.Descriptions["lastSaidWhen(e:)"] = "Returns when the given player last said something."
 E2Helper.Descriptions["lastSaidTeam(e:)"] = "Returns 1 if the last message was sent in the team chat, 0 otherwise."
+
+-- Color
 E2Helper.Descriptions["getColor(e:)"] = "Returns the color of an entity as a vector (R,G,B)"
 E2Helper.Descriptions["getColor4(e:)"] = "Returns the color of an entity as a 4D vector (R,G,B,A)"
 E2Helper.Descriptions["getAlpha(e:)"] = "Returns the alpha of an entity"
@@ -540,6 +585,8 @@ E2Helper.Descriptions["hsv2rgb(v)"] = "Converts V from the [http://en.wikipedia.
 E2Helper.Descriptions["rgb2hsv(v)"] = "Converts V from the [http://en.wikipedia.org/wiki/RGB_color_space RGB color space] to the [http://en.wikipedia.org/wiki/HSV_color_space HSV color space]"
 E2Helper.Descriptions["rgb2digi(vn)"] = "Converts an RGB vector V to a number in digital screen format. N Specifies a mode, either 0, 2 or 3, corresponding to Digital Screen color modes."
 E2Helper.Descriptions["rgb2digi(nn2n3n4)"] = "Converts the RGB color (N,N2,N3) to a number in digital screen format. N4 Specifies a mode, either 0, 2 or 3, corresponding to Digital Screen color modes."
+
+-- Entity Discovery
 E2Helper.Descriptions["findUpdateRate()"] = "Returns the minimum delay between entity find events on a chip"
 E2Helper.Descriptions["findPlayerUpdateRate()"] = "Returns the minimum delay between entity find events per player"
 E2Helper.Descriptions["findCanQuery()"] = "Returns 1 if find functions can be used, 0 otherwise."
@@ -564,6 +611,8 @@ E2Helper.Descriptions["findClipFromName(s)"] = "Filters the list of entities by 
 E2Helper.Descriptions["findClipToSphere(vn)"] = "Filters the list of entities by removing all entities NOT within the specified sphere (center, radius)"
 E2Helper.Descriptions["findClipFromSphere(vn)"] = "Filters the list of entities by removing all entities within the specified sphere (center, radius)"
 E2Helper.Descriptions["findClipToRegion(vv2)"] = "Filters the list of entities by removing all entities NOT on the positive side of the defined plane. (Plane origin, vector perpendicular to the plane) You can define any convex hull using this."
+
+-- Ranger
 E2Helper.Descriptions["rangerFlags()"] = "Returns the ranger flags as a string."
 E2Helper.Descriptions["ranger(n)"] = "You input max range, it returns ranger data"
 E2Helper.Descriptions["ranger(nnn)"] = "Same as above with added inputs for X and Y skew"
@@ -585,10 +634,15 @@ E2Helper.Descriptions["position(rd:)"] = "Outputs the position of the input rang
 E2Helper.Descriptions["entity(rd:)"] = "Returns the entity of the input ranger data trace IF it hit an entity, else returns nil"
 E2Helper.Descriptions["hit(rd:)"] = "Returns 1 if the input ranger data hit anything and 0 if it didn't"
 E2Helper.Descriptions["hitNormal(rd:)"] = "Outputs a normalized vector perpendicular to the surface the ranger is pointed at."
+
 E2Helper.Descriptions["soundDuration(s)"] = "soundDuration(string Path to File) Returns the duration of the sound. Note: If the server hasn't the file it returns 60"
+
+-- NPCs
 E2Helper.Descriptions["npcGetTarget(e:)"] = "Returns what the npc is currently targeting."
 E2Helper.Descriptions["npcRelationshipByOwner(e:esn)"] = " Sets the NPC's relationship to all currently existing NPCs owned by player E. Returns number of entities added to relationships."
 E2Helper.Descriptions["npcDisp(e:e)"] = " Returns the NPC's relationship to entity E."
+
+-- Signals
 E2Helper.Descriptions["signalGetGroup()"] = "Gets the E-2's current signal group"
 E2Helper.Descriptions["signalClk()"] = "Returns 1 if the chip was executed because of any signal, regardless of name, group or scope. Returns 0 otherwise."
 E2Helper.Descriptions["signalClk(s)"] = "Returns 1 if the chip was executed because the signal S was sent, regardless of group or scope. Returns 0 otherwise."
@@ -599,10 +653,14 @@ E2Helper.Descriptions["signalName()"] = "Returns the name of the received signal
 E2Helper.Descriptions["signalGroup()"] = "Returns the group name of the received signal."
 E2Helper.Descriptions["signalSender()"] = "Returns the entity of the chip that sent the signal."
 E2Helper.Descriptions["signalSenderId()"] = "Returns the entity ID of the chip that sent the signal. Useful if the entity doesn't exist anymore."
+
+-- Glon
 E2Helper.Descriptions["glonEncode(r)"] = "Encodes R into a string, using GLON."
 E2Helper.Descriptions["glonEncode(t)"] = "Encodes T into a string, using GLON."
 E2Helper.Descriptions["glonDecode(s)"] = "Decodes S into an array, using GLON."
 E2Helper.Descriptions["glonDecodeTable(s)"] = "Decodes S into a table, using GLON."
+
+-- Holograms
 E2Helper.Descriptions["holoEntity(n)"] = "Returns the entity corresponding to the hologram given by the specified index."
 E2Helper.Descriptions["holoIndex(e)"] = "Returns the index of the given hologram entity."
 E2Helper.Descriptions["holoCanCreate()"] = "Returns 1 when holoCreate() will successfully create a new hologram until the Max limit is reached\nReplaces holoRemainingSpawns()"
@@ -613,6 +671,8 @@ E2Helper.Descriptions["holoCreate(nv)"] = "Index, Position\nCreates a new hologr
 E2Helper.Descriptions["holoCreate(n)"] = "Index\nCreates a new hologram entity"
 E2Helper.Descriptions["holoScale(n)"] = "Index\nReturns the scale of the given hologram"
 E2Helper.Descriptions["holoScaleUnits(n)"] = "Index\nReturns the scale of the given hologram"
+
+-- File
 E2Helper.Descriptions["fileLoaded(s)"] = "Returns whether or not the file has been loaded onto the server."
 E2Helper.Descriptions["fileRead(s)"] = "Returns the string data from a given file (has to be loaded onto server)."
 E2Helper.Descriptions["fileClk(s)"] = "Returns whether the execution was run because a file finished uploading and was that file of a specific file name."

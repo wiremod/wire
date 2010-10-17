@@ -683,6 +683,68 @@ end
 
 /******************************************************************************/
 
+__e2setcost(15)
+
+-- Converts a local position/angle to a world position/angle and returns the position
+e2function vector toWorld( vector localpos, angle localang, vector worldpos, angle worldang )
+	local localpos = Vector(localpos[1],localpos[2],localpos[3])
+	local localang = Angle(localang[1],localang[2],localang[3])
+	local worldpos = Vector(worldpos[1],worldpos[2],worldpos[3])
+	local worldang = Angle(worldang[1],worldang[2],worldang[3])
+	return LocalToWorld(localpos,localang,worldpos,worldang)
+end
+
+-- Converts a local position/angle to a world position/angle and returns the angle
+e2function angle toWorldAng( vector localpos, angle localang, vector worldpos, angle worldang )
+	local localpos = Vector(localpos[1],localpos[2],localpos[3])
+	local localang = Angle(localang[1],localang[2],localang[3])
+	local worldpos = Vector(worldpos[1],worldpos[2],worldpos[3])
+	local worldang = Angle(worldang[1],worldang[2],worldang[3])
+	local pos, ang = LocalToWorld(localpos,localang,worldpos,worldang)
+	return {ang.p,ang.y,ang.r}
+end
+
+-- Converts a local position/angle to a world position/angle and returns both in an array
+e2function array toWorldPosAng( vector localpos, angle localang, vector worldpos, angle worldang )
+	local localpos = Vector(localpos[1],localpos[2],localpos[3])
+	local localang = Angle(localang[1],localang[2],localang[3])
+	local worldpos = Vector(worldpos[1],worldpos[2],worldpos[3])
+	local worldang = Angle(worldang[1],worldang[2],worldang[3])
+	local pos, ang = LocalToWorld(localpos,localang,worldpos,worldang)
+	return {pos, {ang.p,ang.y,ang.r}}
+end
+
+-- Converts a world position/angle to a local position/angle and returns the position
+e2function vector toLocal( vector localpos, angle localang, vector worldpos, angle worldang )
+	local localpos = Vector(localpos[1],localpos[2],localpos[3])
+	local localang = Angle(localang[1],localang[2],localang[3])
+	local worldpos = Vector(worldpos[1],worldpos[2],worldpos[3])
+	local worldang = Angle(worldang[1],worldang[2],worldang[3])
+	return WorldToLocal(localpos,localang,worldpos,worldang)
+end
+
+-- Converts a world position/angle to a local position/angle and returns the angle
+e2function angle toLocalAng( vector localpos, angle localang, vector worldpos, angle worldang )
+	local localpos = Vector(localpos[1],localpos[2],localpos[3])
+	local localang = Angle(localang[1],localang[2],localang[3])
+	local worldpos = Vector(worldpos[1],worldpos[2],worldpos[3])
+	local worldang = Angle(worldang[1],worldang[2],worldang[3])
+	local vec, ang = WorldToLocal(localpos,localang,worldpos,worldang)
+	return {ang.p,ang.y,ang.r}
+end
+
+-- Converts a world position/angle to a local position/angle and returns both in an array
+e2function array toLocalPosAng( vector localpos, angle localang, vector worldpos, angle worldang )
+	local localpos = Vector(localpos[1],localpos[2],localpos[3])
+	local localang = Angle(localang[1],localang[2],localang[3])
+	local worldpos = Vector(worldpos[1],worldpos[2],worldpos[3])
+	local worldang = Angle(worldang[1],worldang[2],worldang[3])
+	local pos, ang = WorldToLocal(localpos,localang,worldpos,worldang)
+	return {pos, {ang.p,ang.y,ang.r}}
+end
+
+/******************************************************************************/
+
 __e2setcost( 10 )
 
 
