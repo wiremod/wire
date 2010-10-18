@@ -31,6 +31,7 @@ if SERVER then
 	AddCSLuaFile("wire/client/cpudescriptions.lua")
 	AddCSLuaFile("wire/client/gmod_tool_auto.lua")
 	AddCSLuaFile("wire/client/sound_browser.lua")
+	AddCSLuaFile("wire/client/rendertarget_fix.lua")
 
 	-- resource files
 	for i=1,32 do
@@ -71,4 +72,5 @@ if CLIENT then
 	include("wire/client/e2descriptions.lua")
 	include("wire/client/gmod_tool_auto.lua")
 	include("wire/client/sound_browser.lua")
+	include("wire/client/rendertarget_fix.lua")
 end
