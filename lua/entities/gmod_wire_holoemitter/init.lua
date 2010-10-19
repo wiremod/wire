@@ -24,6 +24,7 @@ function ENT:Initialize( )
 	self.Points = {}
 
 	self.Data = {}
+	self.Data.Pos = Vector(0,0,0)
 	self.Data.Local = false
 	self.Data.Color = Vector(255,255,255)
 	self.Data.FadeTime = 1
@@ -32,27 +33,61 @@ function ENT:Initialize( )
 	self.Data.Size = 1
 end
 
+function ENT:AddPoint()
+	n = #self.Points
+	if (n > 7) then return end -- Max points per interval (7 is the max amount before the umsg gets too large.)
+	self.Points[n+1] = {
+		Pos = self.Data.Pos,
+		Local = self.Data.Local,
+		Color = self.Data.Color,
+		FadeTime = self.Data.FadeTime,
+		LineBeam = self.Data.LineBeam,
+		GroundBeam = self.Data.GroundBeam,
+		Size = self.Data.Size
+	}
+end
+
 function ENT:TriggerInput( name, value )
-	if (name == "Pos") then
-		n = #self.Points
-		if (n > 7) then return end -- Max points per interval (7 is the max amount before the umsg gets too large.)
-		self.Points[n+1] = {
-			Pos = value,
-			Local = self.Data.Local,
-			Color = self.Data.Color,
-			FadeTime = self.Data.FadeTime,
-			LineBeam = self.Data.LineBeam,
-			GroundBeam = self.Data.GroundBeam,
-			Size = self.Data.Size
-		}
+	--[[ I'll just leave this here if anyone wants it
+	if (name == "X") then -- X
+		if (self.Data.Pos.x != value) then
+			self.Data.Pos.x = value
+			self:AddPoint()
+		end
+	elseif (name == "Y") then -- Y
+		if (self.Data.Pos.y != value) then
+			self.Data.Pos.y = value
+			self:AddPoint()
+		end
+	elseif (name == "Z") then -- Z
+		if (self.Data.Pos.z != value) then
+			self.Data.Pos.z = value
+			self:AddPoint()
+		end
+	else]]
+	if (name == "Pos") then -- XYZ
+		if (self.Data.Pos != value) then
+			self.Data.Pos = value
+			self:AddPoint()
+		end
 	else
+		-- Clear & Active
 		if (name == "Clear" or name == "Active") then
 			self:SetNWBool(name,!(value == 0 and true) or false)
 		else
+			-- Other data
 			if (self.bools[name]) then value = !(value == 0 and true) or false end
 			self.Data[name] = value
 		end
 	end
+end
+
+function ENT:Link( ent )
+	self:SetNWEntity( "Link", ent )
+end
+
+function ENT:UnLink()
+	self:SetNWEntity( "Link", nil )
 end
 
 umsg.PoolString("Wire_HoloEmitter_Data")

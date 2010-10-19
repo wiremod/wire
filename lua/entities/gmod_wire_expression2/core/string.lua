@@ -350,24 +350,78 @@ e2function string string:replaceRE(string pattern, string new)
 	end
 end
 
+local specialchars = {
+	["%"] = true,
+	["^"] = true,
+	["$"] = true,
+	["("] = true,
+	[")"] = true,
+	["."] = true,
+	["["] = true,
+	["]"] = true,
+	["*"] = true,
+	["+"] = true,
+	["-"] = true,
+	["?"] = true
+}
+
+__e2setcost(5)
+
+local gmatch = string.gmatch
+local sub = string.sub
+local Right = string.Right
+
 --- Splits the string into an array, along the boundaries formed by the string <pattern>. See also [[string.Explode]]
 e2function array string:explode(string pattern)
-	if (pattern == "") then -- If the pattern is an empty string
+	if (this == "") then return {} end
+
+	if (pattern == "") then -- Quicker loop for when the pattern is empty
 		local ret = {}
-		for char in string.gmatch( this, "." ) do
-			ret[#ret+1] = char
+		for i=1,#this do
+			ret[i] = this:sub(i,i)
+			self.prf = self.prf + 0.5
 		end
 		return ret
-	elseif (#pattern == 1) then -- If the length of the pattern is 1
+	else
+
+		-- Get first letter
+		local firstletter = pattern:sub(1,1)
+		local _firstletter = firstletter
+
+		-- Check if the first letter is a special regex char
+		if (specialchars[firstletter]) then firstletter = "%" .. firstletter end
+
+		-- Get other letters
+		local otherletters = pattern:Right(-2)
+		local len = #otherletters
+
+		-- Other vars...
+		local first = true
 		local ret = {}
-		for str in string.gmatch( this, "[^"..pattern.."]+" ) do
-			ret[#ret+1] = str
+
+		-- Loop
+		for word in this:gmatch( "[^".. firstletter .."]+" ) do
+			if (word:Left(len) == otherletters) then -- Check if we need to explode here
+				ret[#ret+1] = word:Right(-(1+len)) -- Add the word minus 'otherletters'
+			else -- We didn't need to explode there
+				if (first) then -- First time around?
+					ret[#ret+1] = word -- Add just the word
+				else
+					ret[#ret] = (ret[#ret] or "") .. _firstletter .. word -- Append the word plus the first letter to whatever was there before
+				end
+			end
+			first = false
+			self.prf = self.prf + 0.5
 		end
+
 		return ret
-	else -- Worst case scenario
-		return string.Explode( pattern, this )
+
 	end
+
+	return {} -- shouldn't ever get down here
 end
+
+__e2setcost(20)
 
 --- Returns a reversed version of <this>
 e2function string string:reverse()

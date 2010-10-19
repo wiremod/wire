@@ -926,10 +926,38 @@ do -- Holography--
 	do -- wire_holoemitter
 		WireToolSetup.open( "holoemitter", "HoloEmitter", "gmod_wire_holoemitter", nil, "HoloEmitters" )
 
+		local function HoloRightClick( self, trace )
+			if CLIENT then return true end
+
+			local ent = trace.Entity
+
+			if (self:GetStage() == 0) then
+				if (ent:GetClass() == "gmod_wire_holoemitter") then
+					self.Target = ent
+					self:SetStage(1)
+				else
+					self:GetOwner():ChatPrint("That's not a holoemitter.")
+					return false
+				end
+			else
+				if (self.Target == ent) then
+					self:GetOwner():ChatPrint("Holoemitter unlinked.")
+					self.Target:UnLink()
+					return true
+				end
+				self.Target:Link( ent )
+				self:SetStage(0)
+				self:GetOwner():ChatPrint( "Holoemitter linked to entity (".. tostring(ent)..")" )
+			end
+
+			return true
+		end
+
 		if CLIENT then
 			language.Add( "Tool_wire_holoemitter_name", "Holographic Emitter Tool (Wire)" )
 			language.Add( "Tool_wire_holoemitter_desc", "The emitter required for holographic projections" )
-			language.Add( "Tool_wire_holoemitter_0", "Primary: Create emitter" )
+			language.Add( "Tool_wire_holoemitter_0", "Primary: Create emitter, Secondary: Link emitter to any entity (makes it draw local to that entity instead)" )
+			language.Add( "Tool_wire_holoemitter_1", "Secondary: Link to entity (click the same holoemitter again to unlink it)" )
 			language.Add( "Tool_wire_holoemitter_fadetime", "CLIENT: Maximum fade time - applied to all holoemitters (set to 0 to never fade)." )
 		end
 		WireToolSetup.BaseLang()

@@ -66,7 +66,11 @@ end
 
 function ENT:Draw()
 	self:DrawModel()
-	local selfpos = self:GetPos()
+
+	local ent = self:GetNWEntity( "Link" )
+	if (!ent or !ValidEntity(ent)) then ent = self end
+	local selfpos = ent:GetPos()
+
 	local n = #self.Points
 
 	if (n == 0 or self:GetNWBool("Active",true) == false) then return end
@@ -75,7 +79,7 @@ function ENT:Draw()
 		local Pos = v.Pos
 
 		if (v.Local) then
-			Pos = self:LocalToWorld( Pos )
+			Pos = ent:LocalToWorld( Pos )
 		end
 
 		if (v.GroundBeam) then
@@ -95,7 +99,7 @@ function ENT:Draw()
 			local NextPoint = self.Points[k+1]
 			local NextPos = NextPoint.Pos
 			if (NextPoint.Local) then
-				NextPos = self:LocalToWorld( NextPos )
+				NextPos = ent:LocalToWorld( NextPos )
 			end
 
 			render.DrawBeam(
