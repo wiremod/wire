@@ -4,137 +4,99 @@ include( "shared.lua" )
 
 -- wire debug and overlay crap.
 ENT.WireDebugName	= "Holographic Emitter"
-ENT.OverlayDelay 	= 0
-ENT.LastClear       = 0
 
--- init.
 function ENT:Initialize( )
+	self:PhysicsInit( SOLID_VPHYSICS )
+	self:SetMoveType( MOVETYPE_VPHYSICS )
+	self:SetSolid( SOLID_VPHYSICS )
 	self:DrawShadow( false )
 
-	-- setup physics
-	self.Entity:PhysicsInit( SOLID_VPHYSICS )
-	self.Entity:SetMoveType( MOVETYPE_VPHYSICS )
-	self.Entity:SetSolid( SOLID_VPHYSICS )
+	self:SetNWBool( "Clear", false )
+	self:SetNWBool( "Active", true )
 
-	-- vars
-	self.Entity:SetNetworkedFloat( "X", 0 )
-	self.Entity:SetNetworkedFloat( "Y", 0 )
-	self.Entity:SetNetworkedFloat( "Z", 0 )
-	self.Entity:SetNetworkedFloat( "FadeRate", 50 )
-	self.Entity:SetNetworkedFloat( "PointSize", 0.2 )
-	self.Entity:SetNetworkedBool( "ShowBeam", true )
-	self.Entity:SetNetworkedBool( "GroundBeam", true )
-	self.Entity:SetNetworkedBool( "Active", false )
-	self.Entity:SetNetworkedEntity( "reference", self.Entity )
-	self.Entity:SetNetworkedInt( "LastClear", 0 )
-	self:LinkToGrid(nil)
+	self.bools = {}
+	self.bools.Local = true
+	self.bools.LineBeam = true
+	self.bools.GroundBeam = true
 
-	-- create inputs.
-	self.Inputs = WireLib.CreateSpecialInputs( self.Entity, { "X", "Y", "Z", "Vector", "Active", "FadeRate", "Clear" }, { "NORMAL", "NORMAL", "NORMAL", "VECTOR", "NORMAL", "NORMAL", "NORMAL" } )
+	self.Inputs = WireLib.CreateInputs( self, { "Pos [VECTOR]", "Local", "Color [VECTOR]", "FadeTime", "LineBeam", "GroundBeam", "Size", "Clear", "Active" } )
+
+	self.Points = {}
+
+	self.Data = {}
+	self.Data.Local = false
+	self.Data.Color = Vector(255,255,255)
+	self.Data.FadeTime = 1
+	self.Data.LineBeam = false
+	self.Data.GroundBeam = false
+	self.Data.Size = 1
 end
 
--- link to grid
-function ENT:LinkToGrid( ent )
-	if ent == nil then ent = self.Entity end
-	self.Entity:SetNetworkedEntity( "grid", ent )
-end
-
--- trigger input
-function ENT:TriggerInput( inputname, value, iter )
-	-- store values.
-	if(not value) then return end
-	if (inputname == "Clear" and value ~= 0)  then
-		self.LastClear = self.LastClear + 1
-		self.Entity:SetNetworkedInt( "Clear", self.LastClear )
-
-	elseif ( inputname == "Active" ) then
-		self.Entity:SetNetworkedBool( "Active", value ~= 0 )
-
-	-- store float values.
-	elseif ( inputname == "Vector" ) and ( type(value) == "Vector" ) then
-		self.Entity:SetNetworkedFloat( "X", value.x )
-		self.Entity:SetNetworkedFloat( "Y", value.y )
-		self.Entity:SetNetworkedFloat( "Z", value.z )
-
-	elseif ( inputname ~= nil ) then
-		self.Entity:SetNetworkedFloat( inputname, value )
+function ENT:TriggerInput( name, value )
+	if (name == "Pos") then
+		n = #self.Points
+		if (n > 7) then return end -- Max points per interval (7 is the max amount before the umsg gets too large.)
+		self.Points[n+1] = {
+			Pos = value,
+			Local = self.Data.Local,
+			Color = self.Data.Color,
+			FadeTime = self.Data.FadeTime,
+			LineBeam = self.Data.LineBeam,
+			GroundBeam = self.Data.GroundBeam,
+			Size = self.Data.Size
+		}
+	else
+		if (name == "Clear" or name == "Active") then
+			self:SetNWBool(name,!(value == 0 and true) or false)
+		else
+			if (self.bools[name]) then value = !(value == 0 and true) or false end
+			self.Data[name] = value
+		end
 	end
 end
 
-function ENT:Setup( r, g, b, a, showbeams, groundbeams, size )
-	self:SetColor( r, g, b, a );
-
-	-- update size and show states
-	self:SetNetworkedBool( "ShowBeam", showbeams );
-	self:SetNetworkedBool( "GroundBeam", groundbeams );
-	self:SetNetworkedFloat( "PointSize", size );
-
-	self.r = r
-	self.g = g
-	self.b = b
-	self.a = a
-	self.showbeams = showbeams
-	self.groundbeams = groundbeams
-	self.size = size
+umsg.PoolString("Wire_HoloEmitter_Data")
+function ENT:Think()
+	self:NextThink( CurTime() + 0.1 )
+	if (#self.Points == 0) then return true end
+	umsg.Start( "Wire_HoloEmitter_Data" )
+		umsg.Entity( self )
+		umsg.Char( #self.Points )
+		for k,v in ipairs( self.Points ) do
+			umsg.Vector( v.Pos )
+			umsg.Bool( v.Local )
+			umsg.Vector( v.Color )
+			umsg.Float( v.FadeTime )
+			umsg.Bool( v.LineBeam )
+			umsg.Bool( v.GroundBeam )
+			umsg.Float( v.Size )
+		end
+	umsg.End()
+	self.Points = {}
+	return true
 end
 
+function MakeWireHoloemitter( ply, Pos, Ang, model, frozen )
+	if (!ply:CheckLimit( "wire_holoemitters" )) then return end
 
-
-function MakeWireHoloemitter( pl, Pos, Ang, model, r, g, b, a, showbeams, groundbeams, size, frozen )
-	-- check the players limit
-	if( !pl:CheckLimit( "wire_holoemitters" ) ) then return end
-
-	-- create the emitter
 	local emitter = ents.Create( "gmod_wire_holoemitter" )
-		emitter:SetPos( Pos )
-		emitter:SetAngles( Ang )
-		emitter:SetModel( model )
+	emitter:SetPos( Pos )
+	emitter:SetAngles( Ang )
+	emitter:SetModel( model )
 	emitter:Spawn()
 	emitter:Activate()
 
-	if emitter:GetPhysicsObject():IsValid() then
-		local Phys = emitter:GetPhysicsObject()
-		Phys:EnableMotion(not frozen)
+	local phys = emitter:GetPhysicsObject()
+	if (phys) then
+		phys:EnableMotion(!frozen)
 	end
 
-	-- setup the emitter.
-	emitter:Setup( r, g, b, a, showbeams, groundbeams, size, frozen )
-	emitter.pl = pl
-	emitter:SetPlayer( pl )
+	emitter:SetPlayer( ply )
 
-	-- add to the players count
-	pl:AddCount( "wire_holoemitters", emitter )
+	ply:AddCount( "wire_holoemitters", emitter )
 
 	return emitter
 end
 
-duplicator.RegisterEntityClass("gmod_wire_holoemitter", MakeWireHoloemitter, "Pos", "Ang", "Model", "r", "g", "b", "a", "showbeams", "groundbeams", "size", "frozen")
-
-
-function ENT:BuildDupeInfo()
-	local info = self.BaseClass.BuildDupeInfo(self) or {}
-
-	grid = self.Entity:GetNetworkedEntity( "grid" )
-	if (grid) and (grid:IsValid()) then
-		info.holoemitter_grid = grid:EntIndex()
-	end
-
-	return info
-end
-
-function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
-	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
-
-	local grid = nil
-	if (info.holoemitter_grid) then
-		grid = GetEntByID(info.holoemitter_grid)
-		if (!grid) then
-			grid = ents.GetByIndex(info.holoemitter_grid)
-		end
-	end
-	if (grid && grid:IsValid()) then
-		self:LinkToGrid(grid)
-	end
-end
-
+duplicator.RegisterEntityClass("gmod_wire_holoemitter", MakeWireHoloemitter, "Pos", "Ang", "Model", "frozen")
 

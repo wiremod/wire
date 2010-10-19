@@ -2,222 +2,116 @@ include('shared.lua')
 
 ENT.RenderGroup = RENDERGROUP_BOTH
 
-CreateClientConVar("cl_wire_holoemitter_minfaderate",10,true,false)
+local cvar = CreateClientConVar("cl_wire_holoemitter_maxfadetime",5,true,false)
 
--- mats
+-- Materials
 local matbeam = Material( "tripmine_laser" )
 local matpoint = Material( "sprites/gmdm_pickups/light" )
 
-local render_SetMaterial = render.SetMaterial
-local render_DrawBeam = render.DrawBeam
-local render_DrawSprite = render.DrawSprite
-
-
 function ENT:Initialize()
-	-- self.PointList[i] = { pos, alpha, faderate }
-	self.PointList = {}
-	self.LastClear = self.Entity:GetNetworkedInt("Clear")
-
-	-- active point
-	self.ActivePoint = Vector( 0, 0, 0 )
-
-	-- make the hologram visible even when not looking at it
+	self.Points = {}
 	self.Entity:SetRenderBounds( Vector(-8192,-8192,-8192), Vector(8192,8192,8192) )
-
-	self.nextremove = 0 -- the next time the point list is cleaned up (ENT:Think)
-	self.lastfade = 0 -- the last time the alphas were calculated (ENT:Think, ENT:Draw)
 end
 
+usermessage.Hook("Wire_HoloEmitter_Data",function( um )
+	local ent = um:ReadEntity()
+	local n = um:ReadChar()
+	for i=1,n do
+		t = {
+			Pos = um:ReadVector(),
+			Local = um:ReadBool(),
+			Color = um:ReadVector(),
+			DieTime = math.Clamp(um:ReadFloat(),0,cvar:GetFloat()),
+			SpawnTime = CurTime(),
+			LineBeam = um:ReadBool(),
+			GroundBeam = um:ReadBool(),
+			Size = um:ReadFloat(),
+		}
+		t.Color = Color(t.Color.x,t.Color.y,t.Color.z,255)
+		if (t.DieTime != 0) then t.DieTime = CurTime() + t.DieTime else t.DieTime = nil end
+		ent.Points[#ent.Points+1] = t
+	end
+end)
 
 function ENT:Think()
-	local emitter = self.Entity
+	self:NextThink( CurTime() )
 
-	-- read point.
-	local point = Vector(
-		emitter:GetNetworkedFloat( "X" ),
-		emitter:GetNetworkedFloat( "Y" ),
-		emitter:GetNetworkedFloat( "Z" )+64 -- who came up with this offset?
-	)
-
-	lastclear = emitter:GetNetworkedInt("Clear")
-	if lastclear ~= self.LastClear then
-		self.PointList = {}
-		self.LastClear = lastclear
+	if (self:GetNWBool( "Clear", false ) == true) then
+		self.Points = {}
+		return true
 	end
 
-	-- did the point differ from active point?
-	if point ~= self.ActivePoint && emitter:GetNetworkedBool( "Active" ) then
-		-- fetch color.
-		local _, _, _, a = emitter:GetColor()
+	local n = #self.Points
 
-		-- determine fade rate
-		local minfaderate = 0.1
-		if not SinglePlayer() then
-			-- Due to a request, in Multiplayer, the people can control this with a client-side cvar (aVoN)
-			minfaderate = GetConVarNumber("cl_wire_holoemitter_minfaderate") or 10
-		end
+	if (n == 0) then return true end
 
-		local tempfaderate = math.Clamp( emitter:GetNetworkedFloat( "FadeRate" ),minfaderate, 255 )
-
-		-- store this point inside the point list
-		table.insert( self.PointList, { self.ActivePoint, a, tempfaderate } )
-
-		-- store new active point
-		self.ActivePoint = point
-
-	end
-
-	-- This is repeated here, so the client doesn't lag and die when not looking at a holo.
-	if self.nextremove <= CurTime() then
-		local t = CurTime()
-		local frametime = t-self.lastfade
-		self.lastfade = t
-		self.nextremove = t+0.5
-		for i = #self.PointList,1,-1 do
-			-- easy access
-			local point = self.PointList[i]
-			-- alpha -= faderate*frametime
-			point[2] = point[2] - point[3] * frametime
-
-			-- if the point is no longer visible, remove it
-			if( point[2] <= 0 ) then -- [2] = alpha
-				table.remove( self.PointList, i )
+	local removetable = {}
+	for k,v in ipairs( self.Points ) do
+		if (v.DieTime and v.DieTime < CurTime()) then
+			removetable[#removetable+1] = k
+			if (self.Points[k-1]) then self.Points[k-1].LineBeam = false end -- Don't draw to this point anymore
+		elseif (cvar:GetFloat() != 0) then -- If the client changes the max fade time later on
+			if (v.SpawnTime + cvar:GetFloat() < CurTime()) then
+				removetable[#removetable+1] = k
+				if (self.Points[k-1]) then self.Points[k-1].LineBeam = false end -- Don't draw to this point anymore
 			end
 		end
 	end
+	for k,v in ipairs( removetable ) do
+		table.remove( self.Points, v )
+	end
+
+	return true
 end
 
 function ENT:Draw()
-	local emitter = self.Entity
+	self:DrawModel()
+	local selfpos = self:GetPos()
+	local n = #self.Points
 
-	-- render model
-	emitter:DrawModel()
+	if (n == 0 or self:GetNWBool("Active",true) == false) then return end
 
-	-- are we rendering?
-	if not emitter:GetNetworkedBool( "Active" ) then return end
+	for k,v in ipairs( self.Points ) do
+		local Pos = v.Pos
 
-	-- read HoloGrid.
-	local hologrid = emitter:GetNetworkedEntity( "grid" )
-	if not hologrid or not hologrid:IsValid() then return end
+		if (v.Local) then
+			Pos = self:LocalToWorld( Pos )
+		end
 
-	local reference_entity = hologrid:GetNetworkedEntity( "reference" )
-	local LocalToWorld
-	if ValidEntity(reference_entity) then
-		LocalToWorld = reference_entity.LocalToWorld
-	else
-		-- LocalToWorld(reference_entity, pos) <=> Vector.__add(Vector(0,0,-64), pos) <=> pos - Vector(0,0,64)
-		reference_entity = Vector(0,0,-64)
-		LocalToWorld = reference_entity.__add
-	end
+		if (v.GroundBeam) then
+			render.SetMaterial( matbeam )
+			render.DrawBeam(
+				selfpos,
+				Pos,
+				v.Size,
+				0,1,
+				v.Color
+			)
+		end
 
-	-- draw beam?
-	local drawbeam = emitter:GetNetworkedBool( "ShowBeam" )
-	local groundbeam = emitter:GetNetworkedBool( "GroundBeam" )
+		if (v.LineBeam and k < n) then
+			render.SetMaterial( matbeam )
 
-	-- read point size
-	local size = emitter:GetNetworkedFloat( "PointSize" )
-	local beamsize = 2
-	if size > 8 then beamsize = size * 0.25 end
-	local pointbeamsize = beamsize * 2
-
-	-- read color
-	local r,g,b,a = emitter:GetColor()
-	local color = Color(r,g,b,a)
-
-	-- calculate pixel point.
-	local emitterpos = emitter:GetPos()
-	local pixelpos
-
-	--------------------------------------------------------------------------------
-	-- draw ActivePoint
-	pixelpos = LocalToWorld(reference_entity, self.ActivePoint)
-
-	-- draw emitter-ActivePoint beam
-	if groundbeam then
-		render_SetMaterial( matbeam )
-		render_DrawBeam(
-			emitterpos,
-			pixelpos,
-			beamsize,
-			0, 1,
-			color
-		)
-	end
-
-	local drawpoints = size > 0
-	if drawpoints then
-		-- draw Active Point sprite
-		render_SetMaterial( matpoint )
-		render_DrawSprite(
-			pixelpos,
-			size, size,
-			color
-		)
-	end
-
-	--------------------------------------------------------------------------------
-	-- draw fading points.
-	local lastpos = pixelpos
-
-	local t = CurTime()
-	local frametime = t-self.lastfade
-	self.lastfade = t
-
-	local PointList = self.PointList -- easy access
-	for i = #PointList, 1, -1 do
-		-- easy access
-		local point = PointList[i]
-
-
-		-- fade away
-		-- alpha -= faderate*frametime
-		local a = point[2] - point[3] * frametime
-		point[2] = a
-
-		-- if the point is no longer visible, remove it
-		if a <= 0 then
-			table.remove( PointList, i )
-		else
-			-- calculate pixel point.
-			pixelpos = LocalToWorld(reference_entity, point[1])
-
-			-- calculate color.
-			color = Color( r, g, b, alpha ) -- [2] = alpha
-
-			-- draw emitter-point beam
-			if groundbeam then
-				render_SetMaterial( matbeam )
-				render_DrawBeam(
-					emitterpos,
-					pixelpos,
-					beamsize,
-					0, 1,
-					color
-				)
+			local NextPoint = self.Points[k+1]
+			local NextPos = NextPoint.Pos
+			if (NextPoint.Local) then
+				NextPos = self:LocalToWorld( NextPos )
 			end
 
-			-- draw point-point beam
-			if drawbeam then
-				render_SetMaterial( matbeam )
-				render_DrawBeam(
-					lastpos,
-					pixelpos,
-					pointbeamsize,
-					0, 1,
-					color
-				)
-				lastpos = pixelpos
-			end
+			render.DrawBeam(
+				NextPos,
+				Pos,
+				v.Size * 2,
+				0, 1,
+				v.Color
+			)
+		end
 
-			if drawpoints then
-				-- draw active point - sprite
-				render_SetMaterial( matpoint )
-				render_DrawSprite(
-					pixelpos,
-					size, size,
-					color
-				)
-			end -- if drawpoints
-		end -- if alpha > 0
-	end -- for PointList
-end -- ENT:Draw
+		render.SetMaterial( matpoint )
+		render.DrawSprite(
+			Pos,
+			v.Size, v.Size,
+			v.Color
+		)
+	end
+end

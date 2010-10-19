@@ -26,7 +26,6 @@ local function maxdepth()
 end
 local maxsize = 1024*1024
 
-
 --------------------------------------------------------------------------------
 -- Type defining
 --------------------------------------------------------------------------------
@@ -228,19 +227,6 @@ e2function mtable operator=(mtable lhs, mtable rhs)
 		self.prf = self.prf + 500
 		return table.Copy(DEFAULT)
 	end
-
-
-	local lookup = self.data.lookup
-
-	-- remove old lookup entry
-	if (lookup[rhs]) then lookup[rhs][lhs] = nil end
-
-	-- add new
-	if (!lookup[rhs]) then
-		lookup[rhs] = {}
-	end
-	lookup[rhs][lhs] = true
-
 	self.vars[lhs] = rhs
 	self.vclk[lhs] = true
 	return rhs
@@ -378,6 +364,14 @@ e2function mtable table:toMTable()
 			index = k:Right(-2)
 		end
 		if (!blocked_types[id]) then
+
+			if ((id == "t" and type(v) != "table") or id == "xmt") then
+				return table.Copy(DEFAULT)
+				--MsgN( "[E2] WARNING! " .. self.player:Nick() .. " (" .. self.player:SteamID() .. ") tried to read a non-table type as a table. This is a known and serious exploit that has been prevented." )
+				--error( "Tried to read a non-table type as a table." )
+			end
+
+
 			size = size + 1
 			if (size > maxsize) then
 				self.prf = self.prf + size * opcost + 500
@@ -520,6 +514,40 @@ e2function string glonEncode(mtable data)
 	return ret or ""
 end
 
+local function ExploitFix( self, tbl, checked )
+	if (!self or !tbl) then return true end
+
+	if (!tbl.ismtable) then return false end
+
+	local ret = true
+
+	for k,v in pairs( tbl.n ) do
+		self.prf = self.prf + 1
+		if (!checked[v]) then
+			checked[v] = true
+			if ((tbl.ntypes[k] == "t" or tbl.ntypes[k] == "xmt") and type(v) != "table") then
+				ret = false
+			elseif (tbl.ntypes[k] == "xmt") then
+				local temp = ExploitFix( self, v, checked )
+				if (temp == false) then ret = false end
+			end
+		end
+	end
+	for k,v in pairs( tbl.s ) do
+		self.prf = self.prf + 1
+		if (!checked[v]) then
+			checked[v] = true
+			if ((tbl.stypes[k] == "t" or tbl.stypes[k] == "xmt") and type(v) != "table") then
+				ret = false
+			elseif (tbl.stypes[k] == "xmt") then
+				local temp = ExploitFix( self, v, checked )
+				if (temp == false) then ret = false end
+			end
+		end
+	end
+	return ret
+end
+
 -- decodes a glon string and returns an mtable
 e2function mtable glonDecodeMTable(string data)
 	self.prf = self.prf + string.len(data) / 2
@@ -534,6 +562,12 @@ e2function mtable glonDecodeMTable(string data)
 	end
 
 	if (!ret.ismtable) then return table.Copy(DEFAULT) end
+
+	if (type(ret) != "table" or ExploitFix( self, ret, { [ret] = true } ) == false) then
+		return table.Copy(DEFAULT)
+		--MsgN( "[E2] WARNING! " .. self.player:Nick() .. " (" .. self.player:SteamID() .. ") tried to read a non-table type as a table. This is a known and serious exploit that has been prevented." )
+		--error( "Tried to read a non-table type as a table." )
+	end
 
 	return ret or table.Copy(DEFAULT)
 end

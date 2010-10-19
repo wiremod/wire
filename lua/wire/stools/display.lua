@@ -923,177 +923,39 @@ end -- wire_textscreen
 do -- Holography--
 	WireToolSetup.setCategory( "Render" )
 
-	local function HoloRightClick( self, trace )
-		if CLIENT then return true end
-
-		local ent = trace.Entity
-		if not trace.HitNonWorld or not ent:IsValid() then return false end
-
-		local class = ent:GetClass()
-
-		if self:GetStage()==0 then
-			if class == "gmod_wire_holoemitter" then
-				self.Linked = trace.Entity
-				self:SetStage(1)
-				return true
-			elseif class == "gmod_wire_hologrid" then
-				self.Linked = trace.Entity
-				self:SetStage(2)
-				return true
-			end
-		elseif self:GetStage()==1 then
-			if class ~= "gmod_wire_hologrid" then return false end
-			self.Linked:LinkToGrid(ent);
-			self:SetStage(0)
-			return true
-		elseif self:GetStage()==2 then
-			if class ~= "gmod_wire_holoemitter" then
-				self.Linked:TriggerInput("Reference", ent)
-				self.Linked:TriggerInput("UseGPS", 0)
-				self:SetStage(0)
-				return true
-			end
-			ent:LinkToGrid(self.Linked);
-			self:SetStage(0)
-			return true
-		end
-
-		return false
-	end
-
-	local function HoloReload( self, trace )
-		self.Linked = nil
-		self:SetStage(0)
-
-		local ent = trace.Entity
-		if not trace.HitNonWorld or not ent:IsValid() then return false end
-		if trace.Entity:GetClass() == "gmod_wire_holoemitter" then
-			ent:LinkToGrid( nil );
-			return true
-		elseif trace.Entity:GetClass() == "gmod_wire_hologrid" then
-			self.Linked:TriggerInput("Reference", nil)
-		end
-	end
-
-	local stage0 = "Secondary: Link HoloGrid with HoloEmitter or reference entity, Reload: Unlink HoloEmitter or HoloGrid"
-	local stage1 = "Select the HoloGrid to link to."
-	local stage2 = "Select the Holo Emitter or reference entity to link to."
-
 	do -- wire_holoemitter
 		WireToolSetup.open( "holoemitter", "HoloEmitter", "gmod_wire_holoemitter", nil, "HoloEmitters" )
 
 		if CLIENT then
 			language.Add( "Tool_wire_holoemitter_name", "Holographic Emitter Tool (Wire)" )
 			language.Add( "Tool_wire_holoemitter_desc", "The emitter required for holographic projections" )
-			language.Add( "Tool_wire_holoemitter_0", "Primary: Create emitter, "..stage0 )
-			language.Add( "Tool_wire_holoemitter_1", stage1 )
-			language.Add( "Tool_wire_holoemitter_2", stage2 )
-			language.Add( "Tool_wire_holoemitter_showbeams", "Show Point->Point beams" )
-			language.Add( "Tool_wire_holoemitter_groundbeams", "Show Emitter->Point beams" )
-			language.Add( "Tool_wire_holoemitter_size", "Point size" )
-			language.Add( "Tool_wire_holoemitter_minimum_fade_rate", "CLIENT: Minimum Fade Rate - Applied to all holoemitters" )
+			language.Add( "Tool_wire_holoemitter_0", "Primary: Create emitter" )
+			language.Add( "Tool_wire_holoemitter_fadetime", "CLIENT: Maximum fade time - applied to all holoemitters (set to 0 to never fade)." )
 		end
 		WireToolSetup.BaseLang()
 
-		WireToolSetup.SetupMax( 20, "wire_holoemitters", "You've hit sound holoemitters limit!" )
+		WireToolSetup.SetupMax( 10, "wire_holoemitters", "You've hit the holoemitters limit!" )
 
 		if SERVER then
-			function TOOL:GetConVars()
-				return self:GetClientNumber( "r" ),
-				self:GetClientNumber( "g" ),
-				self:GetClientNumber( "b" ),
-				self:GetClientNumber( "a" ),
-				util.tobool( self:GetClientNumber( "showbeams" ) ),
-				util.tobool( self:GetClientNumber( "groundbeams" ) ),
-				self:GetClientNumber( "size" )
-			end
-
 			function TOOL:MakeEnt( ply, model, Ang, trace )
-				return MakeWireHoloemitter( ply, trace.HitPos, Ang, model, self:GetConVars() )
+				return MakeWireHoloemitter( ply, trace.HitPos, Ang, model )
 			end
 		end
 
 		TOOL.RightClick   = HoloRightClick
 		TOOL.Reload       = HoloReload
-		TOOL.NoGhostOn    = { "gmod_wire_hologrid" }
 		TOOL.ClientConVar = {
-			model      = "models/jaanus/wiretool/wiretool_range.mdl",
-			r           = 255,
-			g           = 255,
-			b           = 255,
-			a           = 255,
-			showbeams   = 1,
-			groundbeams = 1,
-			size        = 4,
-			weld        = 1,
+			weld = 1
 		}
 
 		function TOOL.BuildCPanel( panel )
 			WireToolHelpers.MakePresetControl(panel, "wire_holoemitter")
 			WireDermaExts.ModelSelect(panel, "wire_holoemitter_model", list.Get( "Wire_Misc_Tools_Models" ), 1)
-			panel:CheckBox("#Tool_wire_holoemitter_showbeams", "wire_holoemitter_showbeams")
-			panel:CheckBox("#Tool_wire_holoemitter_groundbeams", "wire_holoemitter_groundbeams")
-			panel:NumSlider("#Tool_wire_holoemitter_size","wire_holoemitter_size", 1, 32, 1)
 
-			panel:AddControl( "Color", {
-				Label       = "Color",
-				Red         = "wire_holoemitter_r",
-				Green       = "wire_holoemitter_g",
-				Blue        = "wire_holoemitter_b",
-				Alpha       = "wire_holoemitter_a",
-				ShowAlpha   = 1,
-				ShowHSV     = 1,
-				ShowRGB     = 1,
-				Multiplier  = 255,
-			})
+			WireDermaExts.ModelSelect(panel, "wire_holoemitter_model", list.Get( "WireScreenModels" ), 2)
+			panel:NumSlider("#Tool_wire_holoemitter_fadetime", "cl_wire_holoemitter_maxfadetime", 0, 100, 1)
 
-			if not SinglePlayer() then
-				WireDermaExts.ModelSelect(panel, "wire_holoemitter_model", list.Get( "WireScreenModels" ), 2)
-				panel:NumSlider("#Tool_wire_holoemitter_minimum_fade_rate", "cl_wire_holoemitter_minfaderate", 0.1, 100, 1)
-			end
 			panel:CheckBox("Weld", "wire_holoemitter_weld")
 		end
 	end -- wire_holoemitter
-
-	do -- wire_hologrid
-		WireToolSetup.open( "hologrid", "HoloGrid", "gmod_wire_hologrid", nil, "HoloGrids" )
-
-		if CLIENT then
-			language.Add( "Tool_wire_hologrid_name", "Holographic Grid Tool (Wire)" )
-			language.Add( "Tool_wire_hologrid_desc", "The grid to aid in holographic projections" )
-			language.Add( "Tool_wire_hologrid_0", "Primary: Create grid, "..stage0 )
-			language.Add( "Tool_wire_hologrid_1", stage1 )
-			language.Add( "Tool_wire_hologrid_2", stage2 )
-			language.Add( "Tool_wire_hologrid_usegps", "Use GPS coordinates" )
-		end
-		WireToolSetup.BaseLang()
-
-		WireToolSetup.SetupMax( 20, "wire_hologrids", "You've hit sound hologrids limit!" )
-
-		if SERVER then
-			function TOOL:GetConVars()
-				return util.tobool(self:GetClientNumber( "usegps" ))
-			end
-
-			function TOOL:MakeEnt( ply, model, Ang, trace )
-				return MakeWireHologrid( ply, trace.HitPos, Ang, model, self:GetConVars() )
-			end
-		end
-
-		TOOL.RightClick    = HoloRightClick
-		TOOL.Reload        = HoloReload
-		TOOL.NoGhostOn     = { "sbox_maxwire_holoemitters" }
-		TOOL.NoLeftOnClass = true
-		TOOL.ClientConVar  = {
-			model = "models/jaanus/wiretool/wiretool_siren.mdl",
-			usegps = 0,
-			weld   = 1,
-		}
-
-		function TOOL.BuildCPanel( panel )
-			WireDermaExts.ModelSelect(panel, "wire_hologrid_model", list.Get( "Wire_Misc_Tools_Models" ), 1)
-			panel:CheckBox("#Tool_wire_hologrid_usegps", "wire_hologrid_usegps")
-			panel:CheckBox("Weld", "wire_hologrid_weld")
-		end
-	end -- wire_hologrid
 end -- holography
