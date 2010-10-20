@@ -992,6 +992,11 @@ do -- Holography--
 		WireToolSetup.open( "hologrid", "HoloGrid", "gmod_wire_hologrid", nil, "HoloGrids" )
 
 		if CLIENT then
+
+			local stage0 = "Secondary: Link HoloGrid with HoloEmitter or reference entity, Reload: Unlink HoloEmitter or HoloGrid"
+			local stage1 = "Select the HoloGrid to link to."
+			local stage2 = "Select the Holo Emitter or reference entity to link to."
+
 			language.Add( "Tool_wire_hologrid_name", "Holographic Grid Tool (Wire)" )
 			language.Add( "Tool_wire_hologrid_desc", "The grid to aid in holographic projections" )
 			language.Add( "Tool_wire_hologrid_0", "Primary: Create grid, "..stage0 )
