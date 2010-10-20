@@ -15,6 +15,7 @@ end
 
 usermessage.Hook("Wire_HoloEmitter_Data",function( um )
 	local ent = um:ReadEntity()
+	if (!ent or !ent:IsValid()) then return end
 	local n = um:ReadChar()
 	for i=1,n do
 		t = {

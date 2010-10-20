@@ -347,6 +347,8 @@ end
 
 __e2setcost(20)
 
+local exploitables = { Entity = true, NPC = true, Vehicle = true }
+
 -- Converts a table into an mtable
 e2function mtable table:toMTable()
 	if (IsEmpty( this )) then return table.Copy(DEFAULT) end
@@ -363,12 +365,12 @@ e2function mtable table:toMTable()
 		else
 			index = k:Right(-2)
 		end
-		if (!blocked_types[id]) then
+		if (!blocked_types[id]) then -- Check for blocked types.. there's also no way there could be a table inside a table.
 
-			if ((id == "t" and type(v) != "table") or id == "xmt") then
-				return table.Copy(DEFAULT)
+			if ((exploitables[type(v)] and id != "e") or id != "xmt" or id != "t" or id != "r") then -- Exploit check
 				--MsgN( "[E2] WARNING! " .. self.player:Nick() .. " (" .. self.player:SteamID() .. ") tried to read a non-table type as a table. This is a known and serious exploit that has been prevented." )
 				--error( "Tried to read a non-table type as a table." )
+				return table.Copy(DEFAULT)
 			end
 
 
@@ -525,7 +527,7 @@ local function ExploitFix( self, tbl, checked )
 		self.prf = self.prf + 1
 		if (!checked[v]) then
 			checked[v] = true
-			if ((tbl.ntypes[k] == "t" or tbl.ntypes[k] == "xmt") and type(v) != "table") then
+			if (exploitables[type(v)] and tbl.ntypes[k] != "e") then
 				ret = false
 			elseif (tbl.ntypes[k] == "xmt") then
 				local temp = ExploitFix( self, v, checked )
@@ -537,7 +539,7 @@ local function ExploitFix( self, tbl, checked )
 		self.prf = self.prf + 1
 		if (!checked[v]) then
 			checked[v] = true
-			if ((tbl.stypes[k] == "t" or tbl.stypes[k] == "xmt") and type(v) != "table") then
+			if (exploitables[type(v)] and tbl.stypes[k] != "e") then
 				ret = false
 			elseif (tbl.stypes[k] == "xmt") then
 				local temp = ExploitFix( self, v, checked )
@@ -563,10 +565,10 @@ e2function mtable glonDecodeMTable(string data)
 
 	if (!ret.ismtable) then return table.Copy(DEFAULT) end
 
-	if (type(ret) != "table" or ExploitFix( self, ret, { [ret] = true } ) == false) then
-		return table.Copy(DEFAULT)
+	if (type(ret) != "table" or ExploitFix( self, ret, { [ret] = true } ) == false) then -- Exploit check
 		--MsgN( "[E2] WARNING! " .. self.player:Nick() .. " (" .. self.player:SteamID() .. ") tried to read a non-table type as a table. This is a known and serious exploit that has been prevented." )
 		--error( "Tried to read a non-table type as a table." )
+		return table.Copy(DEFAULT)
 	end
 
 	return ret or table.Copy(DEFAULT)
@@ -856,6 +858,7 @@ registerCallback( "postinit", function()
 			local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
 			if (!rv1 or !rv2) then return fixdef(v[2]) end
 			if (!rv1.s[rv2] or rv1.stypes[rv2] != id) then return fixdef(v[2]) end
+			if (v[6] and v[6](rv1.n[rv2])) then return fixdef(v[2]) end -- Type check
 			return rv1.s[rv2]
 		end)
 
@@ -864,6 +867,7 @@ registerCallback( "postinit", function()
 			local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
 			if (!rv1 or !rv2) then return fixdef(v[2]) end
 			if (!rv1.n[rv2] or rv1.ntypes[rv2] != id) then return fixdef(v[2]) end
+			if (v[6] and v[6](rv1.n[rv2])) then return fixdef(v[2]) end -- Type check
 			return rv1.n[rv2]
 		end)
 

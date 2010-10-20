@@ -37,9 +37,9 @@ e2function array glonDecode(string data)
 	end
 
 	if (type(ret) != "table") then -- Exploit detected
-		return {}
 		--MsgN( "[E2] WARNING! " .. self.player:Nick() .. " (" .. self.player:SteamID() .. ") tried to read a non-table type as a table. This is a known and serious exploit that has been prevented." )
 		--error( "Tried to read a non-table type as a table." )
+		return {}
 	end
 
 	return ret or {}
@@ -59,9 +59,9 @@ e2function table glonDecodeTable(string data)
 	end
 
 	if (type(ret) != "table") then -- Exploit detected
-		return {}
 		--MsgN( "[E2] WARNING! " .. self.player:Nick() .. " (" .. self.player:SteamID() .. ") tried to read a non-table type as a table. This is a known and serious exploit that has been prevented." )
 		--error( "Tried to read a non-table type as a table." )
+		return {}
 	end
 
 	return ret or {}

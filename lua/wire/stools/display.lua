@@ -973,6 +973,7 @@ do -- Holography--
 		TOOL.RightClick   = HoloRightClick
 		TOOL.Reload       = HoloReload
 		TOOL.ClientConVar = {
+			model = "models/jaanus/wiretool/wiretool_range.mdl",
 			weld = 1
 		}
 
@@ -986,4 +987,46 @@ do -- Holography--
 			panel:CheckBox("Weld", "wire_holoemitter_weld")
 		end
 	end -- wire_holoemitter
+
+	do -- wire_hologrid
+		WireToolSetup.open( "hologrid", "HoloGrid", "gmod_wire_hologrid", nil, "HoloGrids" )
+
+		if CLIENT then
+			language.Add( "Tool_wire_hologrid_name", "Holographic Grid Tool (Wire)" )
+			language.Add( "Tool_wire_hologrid_desc", "The grid to aid in holographic projections" )
+			language.Add( "Tool_wire_hologrid_0", "Primary: Create grid, "..stage0 )
+			language.Add( "Tool_wire_hologrid_1", stage1 )
+			language.Add( "Tool_wire_hologrid_2", stage2 )
+			language.Add( "Tool_wire_hologrid_usegps", "Use GPS coordinates" )
+		end
+		WireToolSetup.BaseLang()
+
+		WireToolSetup.SetupMax( 20, "wire_hologrids", "You've hit sound hologrids limit!" )
+
+		if SERVER then
+			function TOOL:GetConVars()
+				return util.tobool(self:GetClientNumber( "usegps" ))
+			end
+
+			function TOOL:MakeEnt( ply, model, Ang, trace )
+				return MakeWireHologrid( ply, trace.HitPos, Ang, model, self:GetConVars() )
+			end
+		end
+
+		TOOL.RightClick    = HoloRightClick
+		TOOL.Reload        = HoloReload
+		TOOL.NoGhostOn     = { "sbox_maxwire_holoemitters" }
+		TOOL.NoLeftOnClass = true
+		TOOL.ClientConVar  = {
+			model = "models/jaanus/wiretool/wiretool_siren.mdl",
+			usegps = 0,
+			weld   = 1,
+		}
+
+		function TOOL.BuildCPanel( panel )
+			WireDermaExts.ModelSelect(panel, "wire_hologrid_model", list.Get( "Wire_Misc_Tools_Models" ), 1)
+			panel:CheckBox("#Tool_wire_hologrid_usegps", "wire_hologrid_usegps")
+			panel:CheckBox("Weld", "wire_hologrid_weld")
+		end
+	end -- wire_hologrid
 end -- holography
