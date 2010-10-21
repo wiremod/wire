@@ -234,3 +234,6 @@ end
 
 duplicator.RegisterEntityClass("gmod_wire_holoemitter", MakeWireHoloemitter, "Pos", "Ang", "Model", "frozen")
 
+function ENT:UpdateTransmitState()
+    return TRANSMIT_ALWAYS
+end

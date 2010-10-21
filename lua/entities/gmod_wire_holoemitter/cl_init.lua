@@ -10,7 +10,7 @@ local matpoint = Material( "sprites/gmdm_pickups/light" )
 
 function ENT:Initialize()
 	self.Points = {}
-	self.Entity:SetRenderBounds( Vector(-8192,-8192,-8192), Vector(8192,8192,8192) )
+	self.RBound = Vector(1024,1024,1024)
 end
 
 usermessage.Hook("Wire_HoloEmitter_Data",function( um )
@@ -45,6 +45,10 @@ function ENT:Think()
 	local n = #self.Points
 
 	if (n == 0) then return true end
+
+	-- To make it visible across the entire map
+	local p = LocalPlayer():GetPos()
+	self:SetRenderBoundsWS( p - self.RBound, p + self.RBound )
 
 	local removetable = {}
 	for k,v in ipairs( self.Points ) do
