@@ -261,6 +261,12 @@ end
 
 --[[************************************************************************]]--
 
+
+local _findrate = CreateConVar("wire_expression2_find_rate", 0.05,{FCVAR_ARCHIVE,FCVAR_NOTIFY})
+local _maxfinds = CreateConVar("wire_expression2_find_max",10,{FCVAR_ARCHIVE,FCVAR_NOTIFY})
+local function findrate() return _findrate:GetFloat() end
+local function maxfinds() return _maxfinds:GetInt() end
+
 local chiplist = {}
 
 registerCallback("construct", function(self)
@@ -279,6 +285,7 @@ registerCallback("construct", function(self)
 	invalidate_filters(self)
 	self.data.findnext = 0
 	self.data.findlist = {}
+	self.data.findcount = maxfinds()
 	chiplist[self.data] = true
 end)
 
@@ -298,31 +305,60 @@ hook.Add("EntityRemoved", "wire_expression2_find_EntityRemoved", function(ent)
 	end
 end)
 
-local wire_exp2_entFindRate = CreateConVar("wire_exp2_entFindRate", ".05")
-local wire_exp2_playerFindRate = CreateConVar("wire_exp2_playerFindRate", ".01")
 
 --[[************************************************************************]]--
 
 function query_blocked(self, update)
-	local time = CurTime()
-	if time < self.data.findnext then return true end
-	if update then self.data.findnext = time+wire_exp2_entFindRate:GetFloat()*update end
-	return false
+	if (update) then
+		if (self.data.findcount > 0) then
+			self.data.findcount = self.data.findcount - 1
+			return false
+		else
+			return true
+		end
+	end
+	return (self.data.findcount < 1)
 end
+
+-- Adds to the available find calls
+local delay = 0
+local function addcount()
+	if (delay > CurTime()) then return end
+	delay = CurTime() + findrate()
+
+	for v,_ in pairs( chiplist ) do
+		if (v and v.findcount and v.findcount < maxfinds()) then
+			v.findcount = v.findcount + 1
+		end
+	end
+end
+hook.Add("Think","Wire_Expression2_Find_AddCount",addcount)
 
 --- Returns the minimum delay between entity find events on a chip
 e2function number findUpdateRate()
-	return wire_exp2_entFindRate:GetFloat()
+	return findrate()
 end
 
+-- Returns the maximum number of finds per E2
+e2function number findMax()
+	return maxfinds()
+end
+
+-- Returns the remaining available find calls
+e2function number findCount()
+	return self.data.findcount
+end
+
+--[[ This function wasn't used
 --- Returns the minimum delay between entity find events per player
-e2function number findPlayerUpdateRate()
+e2 function number findPlayerUpdateRate()
 	return wire_exp2_playerFindRate:GetFloat()
 end
+]]
 
 --- Returns 1 if find functions can be used, 0 otherwise.
 e2function number findCanQuery()
-	if query_blocked(self) then return 0 else return 1 end
+	return query_blocked(self) and 0 or 1
 end
 
 --[[************************************************************************]]--
