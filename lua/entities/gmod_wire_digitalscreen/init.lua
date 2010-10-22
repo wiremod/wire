@@ -4,6 +4,8 @@ include('shared.lua')
 
 ENT.WireDebugName = "DigitalScreen"
 
+local max_umsgs_per_tick = 8
+
 function ENT:Initialize()
 
 	self.Entity:PhysicsInit(SOLID_VPHYSICS)
@@ -23,9 +25,7 @@ function ENT:Initialize()
 	self.ScreenWidth = 32
 	self.ScreenHeight = 32
 
-	self.DataCache = WireLib.containers.deque:new()
-
-	self.IgnoreDataTransfer = false
+	self.ChangedCellRanges = {}
 end
 
 function ENT:SetDigitalSize(ScreenWidth, ScreenHeight)
@@ -51,28 +51,64 @@ function ENT:ReadCell(Address)
 	return self.Memory[Address] or 0
 end
 
-local per_tick = 8
+local per_tick = max_umsgs_per_tick
 hook.Add("Think", "resetdigitickrate", function()
-	per_tick = math.min(per_tick+2,8)
+	per_tick = math.min(per_tick+2,max_umsgs_per_tick)
 end)
 
-function ENT:FlushCache()
-	if per_tick <= 0 then return end
-	if self.DataCache:size() == 0 then return end
-
-	per_tick = per_tick - 1
-	umsg.Start("hispeed_datamessage")
-		umsg.Short(self:EntIndex())
-		local bytes = math.min(self.DataCache:size(), 31)
-		umsg.Char(bytes)
-		for i = 1,bytes do
-			local element = self.DataCache:shift()
-			umsg.Long(element[1])
-			umsg.Long(element[2])
+function ENT:MarkCellChanged(Address)
+	local lastrange = self.ChangedCellRanges[#self.ChangedCellRanges]
+	if lastrange then
+		if Address == lastrange.start + lastrange.length then
+			-- wrote just after the end of the range, append
+			lastrange.length = lastrange.length + 1
+		elseif Address == lastrange.start - 1 then
+			-- wrote just before the start of the range, prepend
+			lastrange.start = lastrange.start - 1
+			lastrange.length = lastrange.length + 1
+		elseif Address < lastrange.start - 1 or Address > lastrange.start + lastrange.length then
+			-- wrote outside the range
+			lastrange = nil
 		end
+	end
+	if not lastrange then
+		lastrange = {
+			start = Address,
+			length = 1
+		}
+		self.ChangedCellRanges[#self.ChangedCellRanges + 1] = lastrange
+	end
+end
 
-	umsg.End()
-	self:FlushCache() -- re-flush until the quota is used up or the cache is empty
+function ENT:FlushCache()
+	while per_tick > 0 and
+		  #self.ChangedCellRanges > 0 do
+		per_tick = per_tick - 1
+
+		local bytesleft = 249
+		umsg.Start("hispeed_digiscreen")
+			umsg.Short(self:EntIndex())
+			while #self.ChangedCellRanges > 0 do
+				local range = self.ChangedCellRanges[1]
+				local datasize = math.min(range.length, math.floor((bytesleft - 5) * 0.25))
+				if datasize < 1 then
+					break
+				end
+				umsg.Char(datasize)
+				umsg.Long(range.start)
+				bytesleft = bytesleft - 5 - datasize * 4
+				for i = range.start,range.start + datasize - 1 do
+					umsg.Long(self.Memory[i])
+				end
+				range.start = range.start + datasize
+				range.length = range.length - datasize
+				if range.length == 0 then
+					table.remove(self.ChangedCellRanges, 1)
+				end
+			end
+			umsg.Char(-1)
+		umsg.End()
+	end
 end
 
 function ENT:ClearPixel(i)
@@ -88,19 +124,30 @@ function ENT:ClearPixel(i)
 	self.Memory[i] = 0
 end
 
+function ENT:ClearCellRange(start, length)
+	for i = start, start + length - 1 do
+		self.Memory[i] = 0
+	end
+end
+
 function ENT:WriteCell(Address, value)
 	if Address < 0 then return false end
 	if Address >= 1048576 then return false end
 
 	if Address < 1048500 then -- RGB data
-		if self.Memory[Address] == value then return true end
+		if self.Memory[Address] == value or
+		   (value == 0 and self.Memory[Address] == nil) then
+			return true
+		end
 	else
 		if Address == 1048569 then -- Color mode (0: RGBXXX; 1: R G B; 2: 24 bit RGB; 3: RRRGGGBBB)
 			-- not needed (yet)
 		elseif Address == 1048570 then -- Clear row
 			local row = math.Clamp(value, 0, self.ScreenHeight-1)
-			for i = row*self.ScreenWidth,(row+1)*self.ScreenWidth-1 do
-				self:ClearPixel(i)
+			if self.Memory[1048569] == 1 then
+				self:ClearCellRange(row*self.ScreenWidth*3, self.ScreenWidth*3)
+			else
+				self:ClearCellRange(row*self.ScreenWidth, self.ScreenWidth)
 			end
 		elseif Address == 1048571 then -- Clear column
 			local col = math.Clamp(value, 0, self.ScreenWidth-1)
@@ -112,8 +159,15 @@ function ENT:WriteCell(Address, value)
 		elseif Address == 1048573 then -- Width
 			self.ScreenWidth  = math.Clamp(math.floor(value), 1, 512)
 		elseif Address == 1048574 then -- Hardware Clear Screen
-			for i = 0,self.ScreenWidth*self.ScreenHeight-1 do
-				self:ClearPixel(i)
+			local mem = {}
+			for addr = 1048500,1048575 do
+				mem[addr] = self.Memory[addr]
+			end
+			self.Memory = mem
+			-- clear pixel data from usermessage queue
+			while #self.ChangedCellRanges > 0 and
+				  self.ChangedCellRanges[1].start + self.ChangedCellRanges[1].length < 1048500 do
+				table.remove(self.ChangedCellRanges, 1)
 			end
 		elseif Address == 1048575 then -- CLK
 			-- not needed atm
@@ -122,23 +176,14 @@ function ENT:WriteCell(Address, value)
 
 	self.Memory[Address] = value
 
-	self.DataCache:push({ Address, value })
+	self:MarkCellChanged(Address)
 
-	if per_tick > 0 and self.DataCache:size() >= 31 then
-		self:FlushCache()
-		self.IgnoreDataTransfer = true
-	end
 	return true
 end
 
 function ENT:Think()
-	if (self.IgnoreDataTransfer == true) then
-		self.IgnoreDataTransfer = false
-		self.Entity:NextThink(CurTime()+0.2)
-	else
-		self:FlushCache()
-		self.Entity:NextThink(CurTime()+0.1)
-	end
+	self:FlushCache()
+	self.Entity:NextThink(CurTime()+0.2)
 	return true
 end
 

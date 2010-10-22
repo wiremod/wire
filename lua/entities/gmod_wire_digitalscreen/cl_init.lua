@@ -14,6 +14,8 @@ function ENT:Initialize()
 	self.Memory1[1048575] = 1
 	self.Memory2[1048575] = 1
 	self.NeedRefresh = true
+	self.IsClear = true
+	self.ClearQueued = false
 	self.RefreshPixels = {}
 	self.RefreshRows = {}
 
@@ -44,15 +46,21 @@ function ENT:OnRemove()
 	self.GPU:Finalize()
 end
 
-usermessage.Hook("hispeed_datamessage", function(um)
+usermessage.Hook("hispeed_digiscreen", function(um)
 	local ent = ents.GetByIndex(um:ReadShort())
-	local datasize = um:ReadChar()
 
 	if ValidEntity(ent) and ent.Memory1 and ent.Memory2 then
-		for i = 1,datasize do
+		while true do
+			local datasize = um:ReadChar()
+			if datasize < 0 then
+				break
+			end
 			local address = um:ReadLong()
-			local value = um:ReadLong()
-			ent:WriteCell(address,value)
+			for j = 1,datasize do
+				local value = um:ReadLong()
+				ent:WriteCell(address,value)
+				address = address + 1
+			end
 		end
 	end
 end)
@@ -68,10 +76,12 @@ function ENT:WriteCell(Address,value)
 	if Address < 0 then return false end
 	if Address >= 1048576 then return false end
 
-	if (Address == 1048575) then
+	if Address == 1048575 then
 		self.NewClk = value ~= 0
+	elseif Address < 1048500 then
+		self.IsClear = false
 	end
-	--print("recv: "..Address.." pixs: "..#self.RefreshPixels)
+
 	if (self.NewClk) then
 		self.Memory1[Address] = value -- visible buffer
 		self.NeedRefresh = true
@@ -93,22 +103,24 @@ function ENT:WriteCell(Address,value)
 			mem2[addr] = self.Memory2[addr]
 		end
 		self.Memory1,self.Memory2 = mem1,mem2
-		--self.NeedRefresh = true
-		--for i = 1,self.ScreenHeight do
-		--	self.RefreshRows[i] = i-1
-		--end
-		self.GPU:Clear()
+		self.IsClear = true
+		self.ClearQueued = true
+		self.NeedRefresh = true
 	elseif Address == 1048572 then
 		self.ScreenHeight = value
-		self.NeedRefresh = true
-		for i = 1,self.ScreenHeight do
-			self.RefreshRows[i] = i-1
+		if not self.IsClear then
+			self.NeedRefresh = true
+			for i = 1,self.ScreenHeight do
+				self.RefreshRows[i] = i-1
+			end
 		end
 	elseif Address == 1048573 then
 		self.ScreenWidth = value
-		self.NeedRefresh = true
-		for i = 1,self.ScreenHeight do
-			self.RefreshRows[i] = i-1
+		if not self.IsClear then
+			self.NeedRefresh = true
+			for i = 1,self.ScreenHeight do
+				self.RefreshRows[i] = i-1
+			end
 		end
 	end
 
@@ -215,6 +227,12 @@ function ENT:Draw()
 		self.GPU:RenderToGPU(function()
 			local pixels = 0
 			local idx = 1
+
+			if self.ClearQueued then
+				surface.SetDrawColor(0,0,0,255)
+				surface.DrawRect(0,0, 512,512)
+				self.ClearQueued = false
+			end
 
 			if (#self.RefreshRows > 0) then
 				idx = #self.RefreshRows
