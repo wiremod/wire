@@ -858,7 +858,7 @@ registerCallback( "postinit", function()
 			local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
 			if (!rv1 or !rv2) then return fixdef(v[2]) end
 			if (!rv1.s[rv2] or rv1.stypes[rv2] != id) then return fixdef(v[2]) end
-			if (v[6] and v[6](rv1.n[rv2])) then return fixdef(v[2]) end -- Type check
+			if (v[6] and v[6](rv1.s[rv2])) then return fixdef(v[2]) end -- Type check
 			return rv1.s[rv2]
 		end)
 
