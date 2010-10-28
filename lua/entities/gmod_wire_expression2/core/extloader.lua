@@ -239,11 +239,10 @@ e2_include("quaternion.lua")
 e2_include("debug.lua")
 e2_include("http.lua")
 e2_include("mtable.lua")
-
 e2_include("compat.lua")
 e2_include("custom.lua")
-
-e2_include("dataSignal.lua")
+e2_include("datasignal.lua")
+e2_include("egpfunctions.lua")
 
 do
 	local list = file.FindInLua("entities/gmod_wire_expression2/core/custom/*.lua")
