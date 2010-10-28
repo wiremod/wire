@@ -1,23 +1,27 @@
-E2Lib.RegisterExtension("holo", true)
+E2Lib.RegisterExtension( "holo", true )
 
-if not datastream then require( "datastream" ) end
-
-CreateConVar("wire_holograms_max","50")
-CreateConVar("wire_holograms_spawn_amount", "10")
-CreateConVar("wire_holograms_burst_amount", "30")
-CreateConVar("wire_holograms_burst_delay", "10")
-local wire_holograms_size_max = CreateConVar("wire_holograms_size_max","50")
-CreateConVar("wire_holograms_max_clips", "5")
+CreateConVar( "wire_holograms_max", "128" )
+CreateConVar( "wire_holograms_spawn_amount", "10" )
+CreateConVar( "wire_holograms_burst_amount", "30" )
+CreateConVar( "wire_holograms_burst_delay", "10" )
+CreateConVar( "wire_holograms_max_clips", "5" )
+local wire_holograms_size_max = CreateConVar( "wire_holograms_size_max", "50" )
 
 wire_holograms = {} -- This global table is used to share certain functions and variables with UWSVN
 wire_holograms.wire_holograms_size_max = wire_holograms_size_max
-registerCallback("postinit",function() timer.Simple(1,function() wire_holograms = nil end) end)
+
+registerCallback( "postinit", function()
+	timer.Simple( 1, function()
+		wire_holograms = nil
+	end )
+end )
 
 -- context = chip.context = self
 -- Holo = { ent = prop, scale = scale, e2owner = context }
 -- E2HoloRepo[player][-index] = Holo <-- global holos
 -- E2HoloRepo[player][Holo] = Holo <-- local holos
 -- context.data.holos[index] = Holo <-- local holos
+
 local E2HoloRepo = {}
 local PlayerAmount = {}
 local BlockList = {}
@@ -52,9 +56,9 @@ local ModelList = {
 }
 wire_holograms.ModelList = ModelList
 
-for k,_ in pairs(ModelList) do
-	util.PrecacheModel( "models/Holograms/"..k..".mdl" )
-	resource.AddSingleFile( "models/Holograms/"..k..".mdl" )
+for k,_ in pairs( ModelList ) do
+	util.PrecacheModel( "models/Holograms/" .. k .. ".mdl" )
+	resource.AddSingleFile( "models/Holograms/" .. k .. ".mdl" )
 end
 
 /******************************************************************************/
@@ -401,11 +405,13 @@ end
 local function removeholo(self, index)
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
+
+	PlayerAmount[self.player] = PlayerAmount[self.player] - 1
+	SetIndex(self, index, nil)
+
 	if validEntity(Holo.ent) then
 		Holo.ent:Remove()
 	end
-	PlayerAmount[self.player] = PlayerAmount[self.player] - 1
-	SetIndex(self, index, nil)
 end
 
 -- Removes all holograms from the given chip.
@@ -847,6 +853,29 @@ registerCallback("destruct", function(self)
 
 	clearholos(self)
 end)
+
+hook.Add( "EntityRemoved", "clear_holo_on_parent_removal", function( ent )
+	if validEntity( ent ) and ent:GetClass() == "gmod_wire_hologram" and validEntity( ent:GetParent() ) then
+		local ply = ent:GetPlayer()
+		local repo = E2HoloRepo[ply]
+
+		if !repo or !validEntity( ply ) then return end
+
+		for k,Holo in pairs( repo ) do
+			if type( k ) == number and ent == Holo.ent then
+				local self = Holo.e2owner
+
+				local Holo = CheckIndex(self, k)
+				if not Holo then return end
+
+				PlayerAmount[self.player] = PlayerAmount[self.player] - 1
+				SetIndex(self, k, nil)
+
+				return
+			end
+		end
+	end
+end )
 
 /******************************************************************************/
 
