@@ -481,8 +481,8 @@ __e2setcost(15)
 e2function void mtable:remove( number index )
 	if (#this.n == 0) then return end
 	if (!this.n[index]) then return end
-	this.size = this.size - 1
-	this.n[index] = nil
+	table.remove( this.n, index )
+	table.remove( this.ntypes, index )
 	this.size = this.size - 1
 	self.vclk[this] = true
 end
@@ -492,6 +492,7 @@ e2function void mtable:remove( string index )
 	if (IsEmpty(this.s)) then return end
 	if (!this.s[index]) then return end
 	this.s[index] = nil
+	this.stypes[index] = nil
 	this.size = this.size - 1
 	self.vclk[this] = true
 end
