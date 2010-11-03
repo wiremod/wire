@@ -34,4 +34,20 @@ function ENT:Use( ply )
 	umsg.Start( "EGP_HUD_Use", ply ) umsg.Entity( self ) umsg.End()
 end
 
+function ENT:SetEGPOwner( ply )
+	self.ply = ply
+	self.plyID = ply:UniqueID()
+end
+
+function ENT:GetEGPOwner()
+	if (!self.ply or !self.ply:IsValid()) then
+		local ply = player.GetByUniqueID( self.plyID )
+		if (ply) then self.ply = ply end
+		return ply
+	else
+		return self.ply
+	end
+	return false
+end
+
 function ENT:UpdateTransmitState() return TRANSMIT_ALWAYS end

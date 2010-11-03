@@ -106,8 +106,9 @@ end
 function EGP:IsAllowed( E2, Ent )
 	if (!EGP:ValidEGP( Ent )) then return false end
 	if (E2 and E2.entity and E2.entity:IsValid()) then
-		if (!E2Lib.isOwner(E2,Ent)) then
-			return E2Lib.isFriend(E2.player,E2Lib.getOwner(Ent))
+		local owner = Ent:GetEGPOwner()
+		if (E2.player != owner) then
+			return E2Lib.isFriend(E2.player,Ent:GetEGPOwner())
 		else
 			return true
 		end
@@ -121,72 +122,16 @@ end
 -----------------------
 -- Material
 -----------------------
-EGP.SavedMaterials = {}
-function EGP:GetSavedMaterial( Mat )
-	if (!table.HasValue( self.SavedMaterials, Mat )) then
-		self:SaveMaterial( Mat )
-		return "?" .. Mat
-	else
-		local str
-		for k,v in ipairs( self.SavedMaterials ) do
-			if (v == Mat) then
-				str = k
-				break
-			end
-		end
-		return "." .. str
-	end
-end
-
-function EGP:SaveMaterial( Mat )
-	if (!Mat or #Mat == 0) then return end
-	if (!table.HasValue( self.SavedMaterials, Mat )) then
-		table.insert( self.SavedMaterials, Mat )
-	end
-end
 
 function EGP:SendMaterial( obj ) -- ALWAYS use this when sending material
-	local str
-
-	-- "!" = entity
-	-- "?" = string
-	-- "." = number
-
-	if (type(obj.material) == "Entity") then
-		if (!obj.material:IsValid()) then
-			str = ""
-		else
-			str = "!" .. obj.material:EntIndex()
-		end
-	elseif (type(obj.material) == "string") then
-		if (obj.material == "") then
-			str = ""
-		else
-			str = self:GetSavedMaterial( obj.material )
-		end
+	if (obj.material and obj.material != "") then
+		umsg.PoolString( obj.material )
 	end
-	EGP.umsg.String( str )
+	EGP.umsg.String( obj.material )
 end
 
 function EGP:ReceiveMaterial( tbl, um ) -- ALWAYS use this when receiving material
-	local mat = um:ReadString()
-	local first = mat:Left(1)
-	if (first == "!" or first == "?" or first == ".") then
-		mat = mat:Right(-2)
-		if (first == "!") then
-			mat = Entity(tonumber(mat))
-		elseif (first == ".") then
-			for k,v in pairs( self.SavedMaterials ) do
-				if (mat == tostring(k)) then
-					mat = v
-					break
-				end
-			end
-		elseif (first == "?") then
-			self:SaveMaterial( mat )
-		end
-	end
-	tbl.material = mat
+	tbl.material = um:ReadString()
 end
 
 -----------------------
