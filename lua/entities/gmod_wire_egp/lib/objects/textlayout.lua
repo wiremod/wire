@@ -84,5 +84,5 @@ Obj.Receive = function( self, um )
 	return tbl
 end
 Obj.DataStreamInfo = function( self )
-	return { x = self.x, y = self.y, w = self.w, h = self.h, align = self.align, size = self.size, r = self.r, g = self.g, b = self.b, a = self.a, text = self.text, fontid = self.fontid, parent = self.parent }
+	return { x = self.x, y = self.y, w = self.w, h = self.h, valign = self.valign, halign = self.halign, size = self.size, r = self.r, g = self.g, b = self.b, a = self.a, text = self.text, fontid = self.fontid, parent = self.parent }
 end
