@@ -43,7 +43,15 @@ if SERVER then
 	function TOOL:LeftClick(trace)
 		if trace.Entity:IsPlayer() then return false end
 
+		local ply = trace.Entity.player
+		if (ply and type(ply) == "string") then -- If the player has left the server
+			ply = player.GetByUniqueID(ply) -- Attempt to find the player again
+			if (!ply) then return false end
+			trace.Entity.player = ply
+		end
+
 		local player = self:GetOwner()
+
 		local model = self:GetModel()
 		local pos = trace.HitPos
 		local ang = trace.HitNormal:Angle()
@@ -95,6 +103,13 @@ if SERVER then
 		if trace.Entity:IsPlayer() then return false end
 		if CLIENT then return true end
 
+		local ply = trace.Entity.player
+		if (ply and type(ply) == "string") then -- If the player has left the server
+			ply = player.GetByUniqueID(ply) -- Attempt to find the player again
+			if (!ply) then return false end
+			trace.Entity.player = ply
+		end
+
 		local player = self:GetOwner()
 
 		if  trace.Entity:IsValid()
@@ -141,6 +156,13 @@ if SERVER then
 
 	function TOOL:RightClick(trace)
 		if trace.Entity:IsPlayer() then return false end
+
+		local ply = trace.Entity.player
+		if (ply and type(ply) == "string") then -- If the player has left the server
+			ply = player.GetByUniqueID(ply) -- Attempt to find the player again
+			if (!ply) then return false end
+			trace.Entity.player = ply
+		end
 
 		local player = self:GetOwner()
 

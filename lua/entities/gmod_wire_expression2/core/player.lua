@@ -387,8 +387,9 @@ end
 e2function ranger entity:eyeTrace()
 	if not validEntity(this) then return nil end
 	if not this:IsPlayer() then return nil end
-
-	return this:GetEyeTraceNoCursor()
+	local ret = this:GetEyeTraceNoCursor()
+	ret.RealStartPos = this:GetShootPos()
+	return ret
 end
 
 /******************************************************************************/

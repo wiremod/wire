@@ -131,6 +131,7 @@ function ENT:ClearCellRange(start, length)
 end
 
 function ENT:WriteCell(Address, value)
+	Address = math.floor (Address)
 	if Address < 0 then return false end
 	if Address >= 1048576 then return false end
 
@@ -143,14 +144,14 @@ function ENT:WriteCell(Address, value)
 		if Address == 1048569 then -- Color mode (0: RGBXXX; 1: R G B; 2: 24 bit RGB; 3: RRRGGGBBB)
 			-- not needed (yet)
 		elseif Address == 1048570 then -- Clear row
-			local row = math.Clamp(value, 0, self.ScreenHeight-1)
+			local row = math.Clamp(math.floor(value), 0, self.ScreenHeight-1)
 			if self.Memory[1048569] == 1 then
 				self:ClearCellRange(row*self.ScreenWidth*3, self.ScreenWidth*3)
 			else
 				self:ClearCellRange(row*self.ScreenWidth, self.ScreenWidth)
 			end
 		elseif Address == 1048571 then -- Clear column
-			local col = math.Clamp(value, 0, self.ScreenWidth-1)
+			local col = math.Clamp(math.floor(value), 0, self.ScreenWidth-1)
 			for i = col,col+self.ScreenWidth*(self.ScreenHeight-1),self.ScreenWidth do
 				self:ClearPixel(i)
 			end
