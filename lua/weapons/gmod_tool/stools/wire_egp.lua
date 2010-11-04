@@ -28,6 +28,7 @@ if (SERVER) then
 		ent:Activate()
 
 		ent:SetPlayer(ply)
+		ent:SetEGPOwner( ply )
 
 		ply:AddCount( "wire_egps", ent )
 
