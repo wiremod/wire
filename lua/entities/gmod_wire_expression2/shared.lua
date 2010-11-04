@@ -27,6 +27,7 @@ hook.Add("EntityRemoved","Wire_Expression2_Player_Disconnected",function(ent)
 	if (ent and ent:IsPlayer()) then
 		for k,v in ipairs( ents.FindByClass("gmod_wire_expression2") ) do
 			if (v.player == ent) then
+				if (SERVER) then v:Error("Owner disconnected.","Owner disconnected.") end
 				v.player = ent:UniqueID()
 			end
 		end
