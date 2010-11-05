@@ -669,6 +669,16 @@ e2function string wirelink:egpMaterial( number index )
 	return ""
 end
 
+e2function number wirelink:egpRadius( number index )
+	local bool, k, v = EGP:HasObject( this, index )
+	if (bool) then
+		if (v.radius) then
+			return v.radius
+		end
+	end
+	return -1
+end
+
 __e2setcost(10)
 
 e2function array wirelink:egpVertices( number index )
@@ -688,7 +698,6 @@ e2function array wirelink:egpVertices( number index )
 	end
 	return {}
 end
-
 
 --------------------------------------------------------
 -- Additional Functions
