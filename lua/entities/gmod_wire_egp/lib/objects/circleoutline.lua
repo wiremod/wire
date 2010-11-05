@@ -1,3 +1,4 @@
+-- Author: Divran
 local Obj = EGP:NewObject( "CircleOutline" )
 Obj.material = ""
 Obj.angle = 0

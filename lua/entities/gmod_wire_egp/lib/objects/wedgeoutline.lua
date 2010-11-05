@@ -1,3 +1,4 @@
+-- Author: Divran
 local Obj = EGP:NewObject( "WedgeOutline" )
 Obj.angle = 0
 Obj.size = 45

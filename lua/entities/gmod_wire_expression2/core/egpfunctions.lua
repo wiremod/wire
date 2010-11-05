@@ -103,6 +103,41 @@ e2function void wirelink:egpBox( number index, vector2 pos, vector2 size )
 end
 
 --------------------------------------------------------
+-- BoxOutline
+--------------------------------------------------------
+e2function void wirelink:egpBoxOutline( number index, vector2 pos, vector2 size )
+	if (!EGP:IsAllowed( self, this )) then return end
+	local bool, obj = EGP:CreateObject( this, EGP.Objects.Names["BoxOutline"], { index = index, w = size[1], h = size[2], x = pos[1], y = pos[2] }, self.player )
+	if (bool) then EGP:DoAction( this, self, "SendObject", obj ) Update(self,this) end
+end
+
+--------------------------------------------------------
+-- RoundedBox
+--------------------------------------------------------
+e2function void wirelink:egpRoundedBox( number index, vector2 pos, vector2 size )
+	if (!EGP:IsAllowed( self, this )) then return end
+	local bool, obj = EGP:CreateObject( this, EGP.Objects.Names["RoundedBox"], { index = index, w = size[1], h = size[2], x = pos[1], y = pos[2] }, self.player )
+	if (bool) then EGP:DoAction( this, self, "SendObject", obj ) Update(self,this) end
+end
+
+e2function void wirelink:egpRadius( number index, number radius )
+	if (!EGP:IsAllowed( self, this )) then return end
+	local bool, k, v = EGP:HasObject( this, index )
+	if (bool) then
+		if (EGP:EditObject( v, { radius = radius } )) then EGP:DoAction( this, self, "SendObject", v ) Update(self,this) end
+	end
+end
+
+--------------------------------------------------------
+-- RoundedBoxOutline
+--------------------------------------------------------
+e2function void wirelink:egpRoundedBoxOutline( number index, vector2 pos, vector2 size )
+	if (!EGP:IsAllowed( self, this )) then return end
+	local bool, obj = EGP:CreateObject( this, EGP.Objects.Names["RoundedBoxOutline"], { index = index, w = size[1], h = size[2], x = pos[1], y = pos[2] }, self.player )
+	if (bool) then EGP:DoAction( this, self, "SendObject", obj ) Update(self,this) end
+end
+
+--------------------------------------------------------
 -- Text
 --------------------------------------------------------
 e2function void wirelink:egpText( number index, string text, vector2 pos )
@@ -182,18 +217,6 @@ e2function void wirelink:egpFont( number index, string font, number size )
 	end
 end
 
-
-__e2setcost(15)
-
---------------------------------------------------------
--- BoxOutline
---------------------------------------------------------
-e2function void wirelink:egpBoxOutline( number index, vector2 pos, vector2 size )
-	if (!EGP:IsAllowed( self, this )) then return end
-	local bool, obj = EGP:CreateObject( this, EGP.Objects.Names["BoxOutline"], { index = index, w = size[1], h = size[2], x = pos[1], y = pos[2] }, self.player )
-	if (bool) then EGP:DoAction( this, self, "SendObject", obj ) Update(self,this) end
-end
-
 --------------------------------------------------------
 -- Poly
 --------------------------------------------------------
@@ -244,6 +267,57 @@ e2function void wirelink:egpPoly( number index, array args )
 	end
 
 	local bool, obj = EGP:CreateObject( this, EGP.Objects.Names["Poly"], { index = index, vertices = vertices }, self.player )
+	if (bool) then EGP:DoAction( this, self, "SendObject", obj ) Update(self,this) end
+end
+
+--------------------------------------------------------
+-- PolyOutline
+--------------------------------------------------------
+
+e2function void wirelink:egpPolyOutline( number index, ... )
+	if (!EGP:IsAllowed( self, this )) then return end
+	if (!EGP:ValidEGP( this )) then return end
+	local args = {...}
+	if (#args<3) then return end -- No less than 3
+
+	-- Each arg must be a vec2 or vec4
+	local vertices = {}
+	for k,v in ipairs( args ) do
+		if (typeids[k] == "xv2" or typeids[k] == "xv4") then
+			n = #vertices
+			if (n > 17) then break end -- No more than 17
+			vertices[n+1] = { x = v[1], y = v[2] }
+			if (typeids[k] == "xv4") then
+				vertices[n+1].u = v[3]
+				vertices[n+1].v = v[4]
+			end
+		end
+	end
+
+	local bool, obj = EGP:CreateObject( this, EGP.Objects.Names["PolyOutline"], { index = index, vertices = vertices }, self.player )
+	if (bool) then EGP:DoAction( this, self, "SendObject", obj ) Update(self,this) end
+end
+
+e2function void wirelink:egpPolyOutline( number index, array args )
+	if (!EGP:IsAllowed( self, this )) then return end
+	if (!EGP:ValidEGP( this )) then return end
+	if (#args<3) then return end -- No less than 3
+
+	-- Each arg must be a vec2 or vec4
+	local vertices = {}
+	for k,v in ipairs( args ) do
+		if (type(v) == "table" and (#v == 2 or #v == 4)) then
+			n = #vertices
+			if (n > 17) then break end -- No more than 17
+			vertices[n+1] = { x = v[1], y = v[2] }
+			if (#v == 4) then
+				vertices[n+1].u = v[3]
+				vertices[n+1].v = v[4]
+			end
+		end
+	end
+
+	local bool, obj = EGP:CreateObject( this, EGP.Objects.Names["PolyOutline"], { index = index, vertices = vertices }, self.player )
 	if (bool) then EGP:DoAction( this, self, "SendObject", obj ) Update(self,this) end
 end
 

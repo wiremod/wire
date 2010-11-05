@@ -1,3 +1,4 @@
+-- Author: Divran
 local Obj = EGP:NewObject( "Line" )
 Obj.w = nil
 Obj.h = nil

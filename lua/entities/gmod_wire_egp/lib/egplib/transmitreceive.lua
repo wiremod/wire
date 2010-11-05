@@ -53,7 +53,7 @@ if (SERVER) then
 				EGP:InsertQueue( Ent, ply, ClearScreen, "ClearScreen" )
 				return
 			end
-		end
+		else return end
 
 		if (!EGP.umsg.Start( "EGP_Transmit_Data" )) then return end
 			EGP.umsg.Entity( Ent )
@@ -71,7 +71,7 @@ if (SERVER) then
 				EGP:InsertQueue( Ent, ply, SaveFrame, "SaveFrame", FrameName )
 				return
 			end
-		end
+		else return end
 
 		umsg.PoolString( FrameName )
 		if (!EGP.umsg.Start( "EGP_Transmit_Data" )) then return end
@@ -92,7 +92,7 @@ if (SERVER) then
 				EGP:InsertQueue( Ent, ply, LoadFrame, "LoadFrame", FrameName )
 				return
 			end
-		end
+		else return end
 
 		local bool, _ = EGP:LoadFrame( ply, Ent, FrameName )
 		if (!bool) then return end
@@ -116,7 +116,7 @@ if (SERVER) then
 				EGP:InsertQueue( Ent, ply, AddText, "AddText", index, text )
 				return
 			end
-		end
+		else return end
 
 		local bool, k, v = EGP:HasObject( Ent, index )
 		if (bool) then
@@ -140,7 +140,8 @@ if (SERVER) then
 				EGP:InsertQueue( Ent, ply, EGP._SetText, "SetText", index, text )
 				return
 			end
-		end
+		else return end
+
 		local bool, k, v = EGP:HasObject( Ent, index )
 		if (bool) then
 			if (#text > 220) then
@@ -202,7 +203,7 @@ if (SERVER) then
 				EGP:InsertQueueObjects( Ent, ply, SendObjects, DataToSend )
 				return
 			end
-		end
+		else return end
 
 		local removetable = {}
 
@@ -246,12 +247,7 @@ if (SERVER) then
 						EGP.umsg.Short( 0 ) -- Don't change order
 					end
 
-					 -- Object-specific data
-					if (v.text != nil) then
-						v:Transmit( Ent, ply )
-					else
-						v:Transmit()
-					end
+					v:Transmit( Ent, ply )
 				end
 
 				Done = Done + 1
@@ -303,39 +299,6 @@ if (SERVER) then
 			end
 
 			self:AddQueueObject( Ent, E2.player, SendObjects, { index = Data[1], remove = true } )
-		--[[elseif (Action == "Send") then -- This isn't used at the moment, but I left it here in case I need it
-			local DataToSend = {}
-
-			for k,v in ipairs( Ent.RenderTable ) do
-				if (!Ent.OldRenderTable[k] or Ent.OldRenderTable[k].ID != v.ID) then -- Check for differences
-					table.insert( DataToSend, v )
-				else
-					for k2,v2 in pairs( v ) do
-						if (k2 != "BaseClass") then
-							if (!Ent.OldRenderTable[k][k2] or Ent.OldRenderTable[k][k2] != v2) then -- Check for differences
-								table.insert( DataToSend, v )
-							end
-						end
-					end
-				end
-			end
-
-			-- Check if any object was removed
-			for k,v in ipairs( Ent.OldRenderTable ) do
-				if (!Ent.RenderTable[k]) then
-					table.insert( DataToSend, { index = v.index, remove = true} )
-				end
-			end
-
-			if (E2 and E2.entity and E2.entity:IsValid()) then
-				E2.prf = E2.prf + #DataToSend * 100
-			end
-
-			self:AddQueue( Ent, E2.player, SendObjects, "Send", DataToSend )
-
-			for k,v in ipairs( Ent.RenderTable ) do
-				if (v.ChangeOrder) then v.ChangeOrder = nil end
-			end]]
 		elseif (Action == "ClearScreen") then
 			if (E2 and E2.entity and E2.entity:IsValid()) then
 				E2.prf = E2.prf + 100

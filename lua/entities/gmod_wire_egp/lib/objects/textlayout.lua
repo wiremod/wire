@@ -1,3 +1,4 @@
+-- Author: Divran
 local Obj = EGP:NewObject( "TextLayout" )
 Obj.h = 512
 Obj.w = 512

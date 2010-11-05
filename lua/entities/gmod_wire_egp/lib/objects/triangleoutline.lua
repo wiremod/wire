@@ -1,3 +1,4 @@
+-- Author: Divran
 local Obj = EGP:NewObject( "TriangleOutline" )
 Obj.x2 = 0
 Obj.y2 = 0

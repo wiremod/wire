@@ -1,3 +1,4 @@
+-- Author: Divran
 local Obj = EGP:NewObject( "Text" )
 Obj.h = nil
 Obj.w = nil

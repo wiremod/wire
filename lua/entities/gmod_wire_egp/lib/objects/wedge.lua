@@ -1,3 +1,4 @@
+-- Author: Divran
 local Obj = EGP:NewObject( "Wedge" )
 Obj.angle = 0
 Obj.size = 45
