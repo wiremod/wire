@@ -3,22 +3,18 @@ local Obj = EGP:NewObject( "Wedge" )
 Obj.angle = 0
 Obj.size = 45
 Obj.Draw = function( self )
-	if (self.a>0 and self.w > 0 and self.h > 0) then
+	if (self.a>0 and self.w > 0 and self.h > 0 and self.size != 360) then
 		local vertices = {}
-
-		self.size = math.Clamp(self.size,0,359)
 
 		vertices[1] = { x = self.x, y = self.y, u = 0, v = 0 }
 		local to = 360
-		local step = 10
 		if (self.size != 0) then
-			to = 359-self.size
-			step = math.floor((360-self.size)/36)
+			to = 360-self.size
 		end
 		local ang = -math.rad(self.angle)
 		local c = math.cos(ang)
 		local s = math.sin(ang)
-		for i=0,to,step do
+		for i=0,to do
 			local rad = math.rad(i)
 			local x = math.cos(rad)
 			local u = (x+1)/2
@@ -41,7 +37,7 @@ Obj.Draw = function( self )
 end
 Obj.Transmit = function( self )
 	EGP.umsg.Short( math.Round(self.angle) )
-	EGP.umsg.Short( math.Round(self.size) )
+	EGP.umsg.Short( math.Clamp(math.Round(self.size),0,360) )
 	self.BaseClass.Transmit( self )
 end
 Obj.Receive = function( self, um )
