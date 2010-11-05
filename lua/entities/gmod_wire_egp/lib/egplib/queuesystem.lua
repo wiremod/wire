@@ -17,7 +17,9 @@ function EGP:AddQueueObject( Ent, ply, Function, Object )
 					found = true
 					--self:EditObject( v, Object )
 
-					if (v.ID != Object.ID) then -- Not the same kind of object, create new
+					if (Object.remove) then -- The object has been removed
+						table.remove( LastItem.Args[1], k )
+					elseif (v.ID != Object.ID) then -- Not the same kind of object, create new
 						if (v.OnRemove) then v:OnRemove() end
 						local Obj = self:GetObjectByID( Object.ID )
 						self:EditObject( Obj, Object:DataStreamInfo() )
