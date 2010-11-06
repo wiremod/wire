@@ -20,8 +20,10 @@ Obj.Draw = function( self )
 		local vec3 = rotate( { 0, h / 2 - s / 2 }, -a )
 		local vec4 = rotate( { 0, -h / 2 + s / 2 }, -a )
 
-		surface.DrawTexturedRectRotated( x + math.ceil(vec1[1]), y + math.ceil(vec1[2]), h, s, a + 90 )
-		surface.DrawTexturedRectRotated( x + math.ceil(vec2[1]), y + math.ceil(vec2[2]), h, s, a + 90 )
+		if (h - s*2 > 0) then
+			surface.DrawTexturedRectRotated( x + math.ceil(vec1[1]), y + math.ceil(vec1[2]), h - s*2, s, a + 90 )
+			surface.DrawTexturedRectRotated( x + math.ceil(vec2[1]), y + math.ceil(vec2[2]), h - s*2, s, a + 90 )
+		end
 		surface.DrawTexturedRectRotated( x + math.ceil(vec3[1]), y + math.ceil(vec3[2]), w, s, a )
 		surface.DrawTexturedRectRotated( x + math.ceil(vec4[1]), y + math.ceil(vec4[2]), w, s, a )
 	end
