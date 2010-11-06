@@ -26,7 +26,7 @@ EGP.umsg = {}
 function EGP.umsg.CurrentCost() return CurrentCost end
 
 -- Start
-function EGP.umsg.Start( name, repicient )
+function EGP.umsg.Start( name, recipient )
 	if (CurrentCost != 0) then
 		if (LastErrorTime + 1 < CurTime()) then
 			ErrorNoHalt("[EGP] Umsg error. It seems another umsg is already sending, but it occured over 1 second ago. Ending umsg.")
@@ -40,7 +40,8 @@ function EGP.umsg.Start( name, repicient )
 		end
 	end
 	CurrentCost = 0
-	umsg.Start( name, repicient )
+
+	umsg.Start( name, recipient )
 	return true
 end
 -- End

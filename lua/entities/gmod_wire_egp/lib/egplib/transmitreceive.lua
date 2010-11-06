@@ -339,7 +339,7 @@ if (SERVER) then
 else -- SERVER/CLIENT
 	function EGP:Receive( um )
 		local Ent = um:ReadEntity()
-		if (!Ent or !Ent:IsValid()) then return end
+		if (!self:ValidEGP( Ent ) or !Ent.RenderTable) then return end
 
 		local Action = um:ReadString()
 		if (Action == "ClearScreen") then
@@ -495,9 +495,9 @@ if (SERVER) then
 			if (v.RenderTable and #v.RenderTable>0) then
 				local DataToSend2 = {}
 				for k2, v2 in ipairs( v.RenderTable ) do
-					table.insert( DataToSend2, { ID = v2.ID, index = v2.index, Settings = v2:DataStreamInfo() } )
+					DataToSend2[#DataToSend2+1] = { ID = v2.ID, index = v2.index, Settings = v2:DataStreamInfo() }
 				end
-				table.insert( DataToSend, { Ent = v, Objects = DataToSend2 } )
+				DataToSend[#DataToSend+1] = DataToSend, { Ent = v, Objects = DataToSend2 }
 			end
 		end
 		if (DataToSend and #DataToSend>0) then
@@ -507,7 +507,7 @@ if (SERVER) then
 		return false, "None of the screens have any objects drawn on them."
 	end
 
-	local function recheck(ply)
+	local function initspawn(ply)
 		timer.Simple(10,function(ply)
 			if (ply and ply:IsValid()) then
 				local bool, msg = EGP:SendDataStream( ply )
@@ -518,8 +518,7 @@ if (SERVER) then
 		end,ply)
 	end
 
-	hook.Add("PlayerInitialSpawn","EGP_SpawnFunc",recheck)
-
+	hook.Add("PlayerInitialSpawn","EGP_SpawnFunc",initspawn)
 else
 
 	function EGP:ReceiveDataStream( decoded )
