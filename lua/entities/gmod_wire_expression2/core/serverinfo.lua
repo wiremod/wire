@@ -41,6 +41,30 @@ e2function number gravity()
 	return sv_gravity:GetFloat()
 end
 
+e2function vector propGravity()
+	return physenv.GetGravity()
+end
+
+e2function number airDensity()
+	return physenv.GetAirDensity()
+end
+
+e2function number maxFrictionMass()
+	return physenv.GetPerformanceSettings()["MaxFrictionMass"]
+end
+
+e2function number minFrictionMass()
+	return physenv.GetPerformanceSettings()["MinFrictionMass"]
+end
+
+e2function number speedLimit()
+	return physenv.GetPerformanceSettings()["MaxVelocity"]
+end
+
+e2function number angSpeedLimit()
+	return physenv.GetPerformanceSettings()["MaxAngularVelocity"]
+end
+
 e2function number time(string component)
 	local ostime = os.date("!*t")
 	local ret = ostime[component]

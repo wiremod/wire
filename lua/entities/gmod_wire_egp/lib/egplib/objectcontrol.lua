@@ -46,7 +46,7 @@ function EGP:GetObjectByID( ID )
 	for k,v in pairs( EGP.Objects ) do
 		if (v.ID == ID) then return table.Copy( v ) end
 	end
-	ErrorNoHalt( "[EGP] Error! Object with ID '" .. ID .. "' does not exist. Please post this bug message on the EGP thread on the wiremod forums.\n" )
+	ErrorNoHalt( "[EGP] Error! Object with ID '" .. ID .. "' does not exist. Please post this bug message in the EGP thread on the wiremod forums.\n" )
 end
 
 ----------------------------
