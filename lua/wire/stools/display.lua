@@ -981,7 +981,6 @@ do -- Holography--
 			WireToolHelpers.MakePresetControl(panel, "wire_holoemitter")
 			WireDermaExts.ModelSelect(panel, "wire_holoemitter_model", list.Get( "Wire_Misc_Tools_Models" ), 1)
 
-			WireDermaExts.ModelSelect(panel, "wire_holoemitter_model", list.Get( "WireScreenModels" ), 2)
 			panel:NumSlider("#Tool_wire_holoemitter_fadetime", "cl_wire_holoemitter_maxfadetime", 0, 100, 1)
 
 			panel:CheckBox("Weld", "wire_holoemitter_weld")

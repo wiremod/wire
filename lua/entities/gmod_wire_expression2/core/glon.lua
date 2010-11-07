@@ -84,4 +84,89 @@ hook.Add("InitPostEntity", "wire_expression2_glonfix", function()
 	end
 end)
 
+---------------------------------------------------------------------------
+-- mtable glon
+---------------------------------------------------------------------------
+
+__e2setcost(25)
+
+-- encodes an mtable
+e2function string glonEncode(mtable data)
+	local ok, ret = pcall(glon.encode, data)
+	if not ok then
+		last_glon_error = ret
+		ErrorNoHalt("glon.encode error: "..ret)
+		return ""
+	end
+
+	if ret then
+		self.prf = self.prf + string.len(ret) / 2
+	end
+
+	return ret or ""
+end
+
+local function ExploitFix( self, tbl, checked )
+	if (!self or !tbl) then return true end
+
+	if (!tbl.ismtable) then return false end
+
+	local ret = true
+
+	for k,v in pairs( tbl.n ) do
+		self.prf = self.prf + 1
+		if (!checked[v]) then
+			checked[v] = true
+			if (exploitables[type(v)] and tbl.ntypes[k] != "e") then
+				ret = false
+			elseif (tbl.ntypes[k] == "xmt") then
+				local temp = ExploitFix( self, v, checked )
+				if (temp == false) then ret = false end
+			end
+		end
+	end
+	for k,v in pairs( tbl.s ) do
+		self.prf = self.prf + 1
+		if (!checked[v]) then
+			checked[v] = true
+			if (exploitables[type(v)] and tbl.stypes[k] != "e") then
+				ret = false
+			elseif (tbl.stypes[k] == "xmt") then
+				local temp = ExploitFix( self, v, checked )
+				if (temp == false) then ret = false end
+			end
+		end
+	end
+	return ret
+end
+
+local DEFAULT = {n={},ntypes={},s={},stypes={},size=0,ismtable=true,depth=0}
+
+-- decodes a glon string and returns an mtable
+e2function mtable glonDecodeMTable(string data)
+	if (!data or data == "") then return table.Copy(DEFAULT) end
+
+	self.prf = self.prf + string.len(data) / 2
+
+	data = string.Replace(data, "\7xwl", "\7xxx")
+
+	local ok, ret = pcall(glon.decode, data)
+	print("ok: " .. tostring(ok) .. " ret: " .. ret)
+	if not ok then
+		last_glon_error = ret
+		ErrorNoHalt("glon.decode error: "..ret)
+		return table.Copy(DEFAULT)
+	end
+
+	if (!ret or !ret.ismtable) then return table.Copy(DEFAULT) end
+
+	if (type(ret) != "table" or ExploitFix( self, ret, { [ret] = true } ) == false) then -- Exploit check
+		--MsgN( "[E2] WARNING! " .. self.player:Nick() .. " (" .. self.player:SteamID() .. ") tried to read a non-table type as a table. This is a known and serious exploit that has been prevented." )
+		--error( "Tried to read a non-table type as a table." )
+		return table.Copy(DEFAULT)
+	end
+
+	return ret or table.Copy(DEFAULT)
+end
+
 __e2setcost(nil)
