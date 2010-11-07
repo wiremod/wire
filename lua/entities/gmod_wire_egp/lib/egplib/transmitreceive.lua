@@ -183,6 +183,12 @@ if (SERVER) then
 
 	local function SetScale( ent, ply, x, y )
 		EGP:SetScale( ent, x, y )
+		EGP:SendQueueItem( ply )
+	end
+
+	local function MoveTopLeft( ent, ply, bool )
+		ent.TopLeft = bool
+		EGP:SendQueueItem( ply )
 	end
 
 	umsg.PoolString( "ReceiveObjects" )
@@ -219,10 +225,19 @@ if (SERVER) then
 				--	EGP:CreateObject( Ent, v.ID, v )
 				--end
 
+
+				if (Ent.Scaling or Ent.TopLeft) then
+					v = table.Copy(v) -- Make a copy of the table so it doesn't overwrite the serverside object
+				end
+
 				-- Scale the positions and size
 				if (Ent.Scaling) then
-					v = table.Copy(v) -- Make a copy of the table so it doesn't overwrite the serverside object
 					EGP:ScaleObject( Ent, v )
+				end
+
+				-- Move the object to draw from the top left
+				if (Ent.TopLeft) then
+					EGP:MoveTopLeft( Ent, v )
 				end
 
 				EGP.umsg.Short( v.index ) -- Send index of object
@@ -334,6 +349,9 @@ if (SERVER) then
 		elseif (Action == "SetScale") then
 			local Data = {...}
 			self:AddQueue( Ent, E2.player, SetScale, "SetScale", Data[1], Data[2] )
+		elseif (Action == "MoveTopLeft") then
+			local Data = {...}
+			self:AddQueue( Ent, E2.player, MoveTopLeft, "MoveTopLeft", Data[1] )
 		end
 	end
 else -- SERVER/CLIENT

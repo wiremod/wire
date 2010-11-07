@@ -22,6 +22,8 @@ function ENT:Initialize()
 	self.xScale = { 0, 512 }
 	self.yScale = { 0, 512 }
 	self.Scaling = false
+
+	self.TopLeft = false
 end
 
 function ENT:TriggerInput( name, value )

@@ -3,6 +3,7 @@ local Obj = EGP:NewObject( "RoundedBox" )
 Obj.material = ""
 Obj.angle = 0
 Obj.radius = 16
+Obj.CanTopLeft = true
 Obj.Draw = function( self )
 	local xs,ys , sx,sy = self.x,self.y , self.w, self.h
     local polys = {}

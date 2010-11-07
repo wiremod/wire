@@ -70,6 +70,21 @@ function EGP:ScaleObject( ent, v )
 	end
 end
 
+--------------------------------------------------------
+-- Draw from top left
+--------------------------------------------------------
+
+function EGP:MoveTopLeft( ent, v )
+	if (!self:ValidEGP( ent )) then return end
+
+	if (v.CanTopLeft and v.x and v.y and v.w and v.h) then
+		local vec, ang = LocalToWorld( Vector( v.w/2, v.h/2, 0 ), Angle(0,0,0), Vector( v.x, v.y, 0 ), Angle( 0, -v.angle or 0, 0 ) )
+		local t = { x = vec.x, y = vec.y }
+		if (v.angle) then t.angle = -ang.yaw end
+		self:EditObject( v, t )
+	end
+end
+
 ----------------------------
 -- IsDifferent check
 ----------------------------

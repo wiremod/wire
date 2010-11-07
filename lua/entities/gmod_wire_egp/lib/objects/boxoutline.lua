@@ -2,6 +2,7 @@
 local Obj = EGP:NewObject( "BoxOutline" )
 Obj.size = 1
 Obj.angle = 0
+Obj.CanTopLeft = true
 local function rotate( v, a )
 	local a = a * math.pi / 180
 	local x = math.cos(a) * v[1] - math.sin(a) * v[2]
