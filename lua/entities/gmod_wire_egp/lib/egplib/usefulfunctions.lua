@@ -28,8 +28,12 @@ end
 -- Scaling functions
 --------------------------------------------------------
 
-local makeArray = EGP.ParentingFuncs.makeArray
-local makeTable = EGP.ParentingFuncs.makeTable
+local makeArray
+local makeTable
+hook.Add("Initialize","EGP_WaitForParentingFile",function()
+	makeArray = EGP.ParentingFuncs.makeArray
+	makeTable = EGP.ParentingFuncs.makeTable
+end)
 
 function EGP:ScaleObject( ent, v )
 	if (!self:ValidEGP( ent )) then return end

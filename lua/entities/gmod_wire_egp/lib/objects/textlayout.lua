@@ -66,7 +66,7 @@ Obj.Transmit = function( self, Ent, ply )
 		EGP.umsg.String( self.text )
 	end
 	EGP.umsg.Char( self.fontid-128 )
-	EGP.umsg.Char( math.Clamp(self.size,0,128)-128 )
+	EGP.umsg.Char( math.Clamp(self.size,0,128) )
 	EGP.umsg.Char( math.Clamp(self.valign,0,2) )
 	EGP.umsg.Char( math.Clamp(self.halign,0,2) )
 	EGP.umsg.Short( self.parent )
@@ -77,7 +77,7 @@ Obj.Receive = function( self, um )
 	EGP:ReceivePosSize( tbl, um )
 	tbl.text = um:ReadString()
 	tbl.fontid = um:ReadChar()+128
-	tbl.size = um:ReadChar()+128
+	tbl.size = um:ReadChar()
 	tbl.valign = um:ReadChar()
 	tbl.halign = um:ReadChar()
 	tbl.parent = um:ReadShort()
