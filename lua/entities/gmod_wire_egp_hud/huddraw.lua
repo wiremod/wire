@@ -83,6 +83,7 @@ hook.Add("Initialize","EGP_HUD_Initialize",function()
 
 		function EGP:LinkHUDToVehicle( hud, vehicle )
 			vehiclelinks[hud] = vehicle
+			hud.LinkedVehicle = vehicle
 		end
 
 		function EGP:UnlinkHUDFromVehicle( hud )
@@ -97,6 +98,7 @@ hook.Add("Initialize","EGP_HUD_Initialize",function()
 					end
 				end
 				vehiclelinks[hud] = nil
+				hud.LinkedVehicle = nil
 			end
 		end
 
@@ -107,7 +109,6 @@ hook.Add("Initialize","EGP_HUD_Initialize",function()
 						umsg.Entity( k )
 						umsg.Char( 1 )
 					umsg.End()
-					return
 				end
 			end
 		end)
@@ -119,7 +120,6 @@ hook.Add("Initialize","EGP_HUD_Initialize",function()
 						umsg.Entity( k )
 						umsg.Char( -1 )
 					umsg.End()
-					return
 				end
 			end
 		end)

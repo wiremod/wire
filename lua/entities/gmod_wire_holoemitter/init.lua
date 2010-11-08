@@ -237,3 +237,26 @@ duplicator.RegisterEntityClass("gmod_wire_holoemitter", MakeWireHoloemitter, "Po
 function ENT:UpdateTransmitState()
     return TRANSMIT_ALWAYS
 end
+
+function ENT:BuildDupeInfo()
+	local info = self.BaseClass.BuildDupeInfo(self) or {}
+
+	local link = self:GetNWEntity("Link",false)
+	if (link) then
+		info.holoemitter_link = link:EntIndex()
+	end
+
+	return info
+end
+
+function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
+	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
+
+	local link = info.holoemitter_link
+	if (link) then
+		link = GetEntByID(link)
+		if (link and link:IsValid()) then
+			self:Link(link)
+		end
+	end
+end

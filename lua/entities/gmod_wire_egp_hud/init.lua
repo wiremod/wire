@@ -53,3 +53,26 @@ function ENT:GetEGPOwner()
 end
 
 function ENT:UpdateTransmitState() return TRANSMIT_ALWAYS end
+
+function ENT:BuildDupeInfo()
+	local info = self.BaseClass.BuildDupeInfo(self) or {}
+
+	local vehicle = self.LinkedVehicle
+	if (vehicle) then
+		info.egp_hud_vehicle = vehicle:EntIndex()
+	end
+
+	return info
+end
+
+function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
+	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
+
+	local vehicle = info.egp_hud_vehicle
+	if (vehicle) then
+		vehicle = GetEntByID( vehicle )
+		if (vehicle and vehicle:IsValid()) then
+			EGP:LinkHUDToVehicle( self, vehicle )
+		end
+	end
+end

@@ -7,7 +7,7 @@ local EGP = EGP
 -- Table IsEmpty
 ----------------------------
 
-function EGP:EmptyTable( tbl ) return next(tbl) == nil end
+function EGP:Table_IsEmpty( tbl ) return next(tbl) == nil end
 
 ----------------------------
 -- SetScale
@@ -93,7 +93,7 @@ end
 -- IsDifferent check
 ----------------------------
 function EGP:IsDifferent( tbl1, tbl2 )
-	if (self:EmptyTable( tbl1 ) != self:EmptyTable( tbl2 )) then return true end -- One is empty, the other is not
+	if (self:Table_IsEmpty( tbl1 ) != self:Table_IsEmpty( tbl2 )) then return true end -- One is empty, the other is not
 
 	for k,v in ipairs( tbl1 ) do
 		if (!tbl2[k] or tbl2[k].ID != v.ID) then -- Different ID?
