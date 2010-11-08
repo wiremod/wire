@@ -31,13 +31,13 @@ Obj.Draw = function( self )
 end
 Obj.Transmit = function( self )
 	EGP.umsg.Short( self.size )
-	EGP.umsg.Short( self.angle )
+	EGP.umsg.Short( (self.angle%360)*20 )
 	self.BaseClass.Transmit( self )
 end
 Obj.Receive = function( self, um )
 	local tbl = {}
 	tbl.size = um:ReadShort()
-	tbl.angle = um:ReadShort()
+	tbl.angle = um:ReadShort()/20
 	table.Merge( tbl, self.BaseClass.Receive( self, um ) )
 	return tbl
 end

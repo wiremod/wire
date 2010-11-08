@@ -7,14 +7,11 @@ Obj.Draw = function( self )
 		local vertices = {}
 
 		vertices[1] = { x = self.x, y = self.y }
-		local to = 360
-		if (self.size != 0) then
-			to = 359-self.size
-		end
 		local ang = -math.rad(self.angle)
 		local c = math.cos(ang)
 		local s = math.sin(ang)
-		for i=0,to,2 do
+		for ii=0,180 do
+			local i = ii*(360-self.size)/180
 			local rad = math.rad(i)
 			local x = math.cos(rad)
 			local y = math.sin(rad)
@@ -26,26 +23,25 @@ Obj.Draw = function( self )
 		end
 
 		surface.SetDrawColor( self.r, self.g, self.b, self.a )
-
+		local n = #vertices
 		for k,v in ipairs( vertices ) do
-			if (k+1<=#vertices) then
-				local x, y = v.x, v.y
-				local x2, y2 = vertices[k+1].x, vertices[k+1].y
-				surface.DrawLine( x, y, x2, y2 )
-			end
+			if (k+1 == n) then break end
+			local x, y = v.x, v.y
+			local x2, y2 = vertices[k+1].x, vertices[k+1].y
+			surface.DrawLine( x, y, x2, y2 )
 		end
-		surface.DrawLine( vertices[#vertices].x, vertices[#vertices].y, vertices[1].x, vertices[1].y )
+		surface.DrawLine( vertices[n].x, vertices[n].y, vertices[1].x, vertices[1].y )
 	end
 end
 Obj.Transmit = function( self )
-	EGP.umsg.Short( math.Round(self.angle) )
-	EGP.umsg.Short( math.Clamp(math.Round(self.size),0,360) )
+	EGP.umsg.Short( (self.angle%360)*20 )
+	EGP.umsg.Short( (self.size%360)*20 )
 	self.BaseClass.Transmit( self )
 end
 Obj.Receive = function( self, um )
 	local tbl = {}
-	tbl.angle = um:ReadShort()
-	tbl.size = um:ReadShort()
+	tbl.angle = um:ReadShort()/20
+	tbl.size = um:ReadShort()/20
 	table.Merge( tbl, self.BaseClass.Receive( self, um ) )
 	return tbl
 end
