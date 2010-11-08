@@ -206,12 +206,24 @@ end
 e2function void entity:rerotate(angle rot) = e2function void entity:setAng(angle rot)
 
 --------------------------------------------------------------------------------
+
+local function parent_check( child, parent )
+	while IsValid( parent ) do
+		if (child == parent) then
+			return false
+		end
+		parent = parent:GetParent()
+	end
+	return true
+end
+
 e2function void entity:parentTo(entity target)
 	if not ValidAction(self.player) then return end
 	if not validEntity(this) then return nil end
 	if not validEntity(target) then return nil end
 	if(!isOwner(self, this) || !isOwner(self, target)) then return end
 	if this == target then return end
+	if (!parent_check( this, target )) then return end
 	this:SetParent(target)
 end
 
