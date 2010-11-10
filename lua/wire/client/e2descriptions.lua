@@ -512,6 +512,8 @@ E2Helper.Descriptions["minquota()"] = "The ops left before soft quota is used up
 E2Helper.Descriptions["maxquota()"] = "The ops left before hard quota is exceeded and the expression shuts down"
 E2Helper.Descriptions["perf()"] = "If used as a while loop condition, stabilizes the expression around  hardquota used."
 E2Helper.Descriptions["entity()"] = "Gets the entity of the expression"
+E2Helper.Descriptions["getName(e)"] = "Get the name of another E2."
+E2Helper.Descriptions["setName()"] = "Set the name of the E2."
 
 E2Helper.Descriptions["concmd(s)"] = "Takes a string and executes it in console. Returns 1 if it succeeded and 0 if it failed.The client must enable this in the console with \"wire_expression2_concmd 1\". \"wire_expression2_concmd_whitelist\" allows you to choose which commands can be used.[http://www.wiremod.com/forum/151800-post12.html]"
 E2Helper.Descriptions["select(n*...)"] = "Returns the Nth value given after the index, *'s zero element otherwise. If you mix types, the behaviour is undefined."

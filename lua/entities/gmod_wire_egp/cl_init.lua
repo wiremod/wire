@@ -19,18 +19,11 @@ function ENT:_EGP_Update( bool )
 
 	if (Table) then
 		self.UpdateConstantly = nil
-		-- Check if an object is parented to the cursor
-		for k,v in ipairs( Table ) do
-			if (v.parent == -1) then
-				self.UpdateConstantly = true
-			end
-		end
 
 		self.GPU:RenderToGPU( function()
 			render.Clear( 0, 0, 0, 0 )
-			surface.SetDrawColor(0,0,0,255)
-			surface.DrawRect(0,0,512,512)
 			for k,v in ipairs( Table ) do
+				if (v.parent == -1) then self.UpdateConstantly = true end -- Check if an object is parented to the cursor
 				if (v.parent and v.parent != 0) then
 					if (!v.IsParented) then EGP:SetParent( self, v.index, v.parent ) end
 					local _, data = EGP:GetGlobalPos( self, v.index )
@@ -46,10 +39,11 @@ function ENT:_EGP_Update( bool )
 	end
 end
 
+function ENT:DrawEntityOutline() end
+
 function ENT:Draw()
-	self.Entity.DrawEntityOutline = function() end
-	self.Entity:DrawModel()
-	Wire_Render(self.Entity)
+	self:DrawModel()
+	Wire_Render(self)
 	self:_EGP_Update( self.UpdateConstantly or self.NeedsUpdate )
 	self.GPU:Render()
 end
