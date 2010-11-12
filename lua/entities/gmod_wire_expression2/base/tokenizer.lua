@@ -116,7 +116,11 @@ end
 function Tokenizer:NextSymbol()
 	local tokenname
 
-	if self:NextPattern("^[0-9]+%.?[0-9]*") then
+	if self:NextPattern("^0x[0-9A-F]+") then
+		-- Hexadecimal number literal
+		tokenname = "num"
+		self.tokendata = tonumber(self.tokendata) or self:Error("Invalid number format (" .. E2Lib.limitString(self.tokendata, 10) .. ")")
+	elseif self:NextPattern("^[0-9]+%.?[0-9]*") then
 		-- real/imaginary/quaternion number literals
 		local errorpos = self.tokendata:match("^0()[0-9]") or self.tokendata:find("%.$")
 		if self:NextPattern("^[eE][+-]?[0-9][0-9]*") then
@@ -133,7 +137,6 @@ function Tokenizer:NextSymbol()
 		end
 
 		tokenname = "num"
-
 	elseif self:NextPattern("^[a-z][a-zA-Z0-9_]*") then
 		-- keywords/functions
 		if self.tokendata == "if" then

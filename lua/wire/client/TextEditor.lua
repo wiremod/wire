@@ -1645,7 +1645,9 @@ do -- E2 Syntax highlighting
 				end
 			else
 				-- eat next token
-				if self:NextPattern("^[0-9][0-9.e]*") then
+				if self:NextPattern("^0x[0-9A-F]+") then
+					tokenname = "number"
+				elseif self:NextPattern("^[0-9][0-9.e]*") then
 					tokenname = "number"
 
 				elseif self:NextPattern("^[a-z][a-zA-Z0-9_]*") then
