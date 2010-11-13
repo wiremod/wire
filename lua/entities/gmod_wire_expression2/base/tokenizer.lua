@@ -120,6 +120,10 @@ function Tokenizer:NextSymbol()
 		-- Hexadecimal number literal
 		tokenname = "num"
 		self.tokendata = tonumber(self.tokendata) or self:Error("Invalid number format (" .. E2Lib.limitString(self.tokendata, 10) .. ")")
+	elseif self:NextPattern("^0b[0-1]+") then
+		-- Binary number literal
+		tokenname = "num"
+		self.tokendata = tonumber(self.tokendata:sub(3), 2) or self:Error("Invalid number format (" .. E2Lib.limitString(self.tokendata, 10) .. ")")
 	elseif self:NextPattern("^[0-9]+%.?[0-9]*") then
 		-- real/imaginary/quaternion number literals
 		local errorpos = self.tokendata:match("^0()[0-9]") or self.tokendata:find("%.$")
