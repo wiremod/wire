@@ -11,8 +11,8 @@ if ( CLIENT ) then
     language.Add( "Tool_wire_adv_emarker_name", "Adv Entity Marker Tool (Wire)" )
     language.Add( "Tool_wire_adv_emarker_desc", "Spawns an Adv Entity Marker for use with the wire system." )
     language.Add( "Tool_wire_adv_emarker_0", "Primary: Create Entity Marker, Secondary: Add a link, Reload: Remove a link" )
-	language.Add( "Tool_wire_adv_emarker_1", "Now select the entity to link to.")
-	language.Add( "Tool_wire_adv_emarker_2", "Now select the entity to unlink." )
+	language.Add( "Tool_wire_adv_emarker_1", "Now select the entity to link to (Tip: Hold down shift to link to more entities).")
+	language.Add( "Tool_wire_adv_emarker_2", "Now select the entity to unlink (Tip: Hold down shift to unlink from more entities). Click Reload on the same entity marker again to clear all linked entities." )
 	language.Add( "sboxlimit_wire_adv_emarker", "You've hit adv entity marker limit!" )
 	language.Add( "undone_wire_adv_emarker", "Undone Adv Wire Entity Marker" )
 elseif ( SERVER ) then
@@ -32,18 +32,22 @@ end
 local AdvEntityMarkers = {}
 
 function AddAdvEMarker( ent )
-	table.insert( AdvEntityMarkers, ent )
+	AdvEntityMarkers[#AdvEntityMarkers+1] = ent
 end
 
 local function CheckRemovedEnt( ent )
+	local removetable = {}
 	for index, e in pairs( AdvEntityMarkers ) do
 		if (e:IsValid()) then
 			if (e == ent) then
-				table.remove( AdvEntityMarkers, index )
+				removetable[#removetable+1] = index
 			else
 				e:RemoveEnt( ent )
 			end
 		end
+	end
+	for i=1,#removetable do
+		table.remove( AdvEntityMarkers, removetable[i] )
 	end
 end
 hook.Add("EntityRemoved","AdvEntityMarkerEntRemoved",CheckRemovedEnt)
@@ -51,6 +55,7 @@ hook.Add("EntityRemoved","AdvEntityMarkerEntRemoved",CheckRemovedEnt)
 if (SERVER) then
 	function TOOL:CreateMarker( ply, trace, Model )
 		if (!ply:CheckLimit("wire_adv_emarkers")) then return end
+		if (!trace or !trace.Hit or trace.Entity:IsPlayer()) then return end
 		local ent = ents.Create( "gmod_wire_adv_emarker" )
 		if (!ent:IsValid()) then return end
 
@@ -100,7 +105,7 @@ if (SERVER) then
 			elseif (self:GetStage() == 1) then
 				local ret = self.marker:AddEnt(ent)
 				if (ret) then
-					self:SetStage(0)
+					if (!ply:KeyDown(IN_SPEED)) then self:SetStage(0) end
 					ply:ChatPrint("Added entity: " .. tostring(ent) .. " to the Adv Entity Marker.")
 				else
 					ply:ChatPrint("The Entity Marker is already linked to that entity.")
@@ -121,13 +126,19 @@ if (SERVER) then
 				self.marker = ent
 				self:SetStage(2)
 			elseif (self:GetStage() == 2) then
-				local ret = self.marker:CheckEnt(ent)
-				if (ret) then
+				if (ent == self.marker) then
+					ent:ClearEntities()
+					ply:ChatPrint("Adv Entity Marker unlinked from all entities.")
 					self:SetStage(0)
-					self.marker:RemoveEnt( ent )
-					ply:ChatPrint("Removed entity: " .. tostring(ent) .. " from the Adv Entity Marker.")
 				else
-					ply:ChatPrint("The Entity Marker is not linked to that entity.")
+					local ret = self.marker:CheckEnt(ent)
+					if (ret) then
+						if (!ply:KeyDown(IN_SPEED)) then self:SetStage(0) end
+						self.marker:RemoveEnt( ent )
+						ply:ChatPrint("Removed entity: " .. tostring(ent) .. " from the Adv Entity Marker.")
+					else
+						ply:ChatPrint("The Entity Marker is not linked to that entity.")
+					end
 				end
 			end
 		end
@@ -152,7 +163,7 @@ else
 			for i=1,nr do
 				local en = Entity(um:ReadShort())
 				if (en:IsValid()) then
-					table.insert( marks, en )
+					marks[#marks+1] = en
 				end
 			end
 			Marker.Marks = marks
@@ -176,8 +187,6 @@ function TOOL:UpdateGhostEmarker( ent, ply )
 
 	ent:SetNoDraw( false )
 end
-
-TOOL.viewing = nil
 
 function TOOL:Think()
 	local model = self:GetModel()
@@ -205,11 +214,8 @@ function TOOL:DrawHUD()
 			for _, ent in pairs( marks ) do
 				if (ent:IsValid()) then
 					local markpos = ent:GetPos():ToScreen()
-					if ( markpos.x > 0 and markpos.x < ScrW() and
-						 markpos.y > 0 and markpos.y < ScrW() ) then
-						surface.SetDrawColor( 255,255,100,255 )
-						surface.DrawLine( markerpos.x, markerpos.y, markpos.x, markpos.y )
-					end
+					surface.SetDrawColor( 255,255,100,255 )
+					surface.DrawLine( markerpos.x, markerpos.y, markpos.x, markpos.y )
 				end
 			end
 		end

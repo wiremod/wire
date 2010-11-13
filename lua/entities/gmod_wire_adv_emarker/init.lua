@@ -58,9 +58,7 @@ function ENT:TriggerInput( name, value )
 			end
 		end
 	elseif (name == "Clear Entities") then
-		for _, ent in pairs( self.Marks ) do
-			self:RemoveEnt( ent )
-		end
+		self:ClearEntities()
 	end
 end
 
@@ -109,6 +107,11 @@ function ENT:RemoveEnt( ent )
 		table.remove( self.Marks, index )
 		self:UpdateOutputs()
 	end
+end
+
+function ENT:ClearEntities()
+	self.Marks = {}
+	self:UpdateOutputs()
 end
 
 
