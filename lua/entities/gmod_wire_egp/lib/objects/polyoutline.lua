@@ -17,11 +17,16 @@ Obj.Draw = function( self )
 		end
 	end
 end
-Obj.Transmit = function( self )
-	EGP.umsg.Char(#self.vertices)
-	for i=1,#self.vertices do
-		EGP.umsg.Short( self.vertices[i].x )
-		EGP.umsg.Short( self.vertices[i].y )
+Obj.Transmit = function( self, Ent, ply )
+	if (#self.vertices <= 56) then
+		EGP.umsg.Char(#self.vertices)
+		for i=1,#self.vertices do
+			EGP.umsg.Short( self.vertices[i].x )
+			EGP.umsg.Short( self.vertices[i].y )
+		end
+	else
+		EGP.umsg.Char(-1)
+		EGP:InsertQueue( Ent, ply, EGP._SetVertex, "SetVertex", self.index, self.vertices )
 	end
 	EGP.umsg.Short( self.parent )
 	EGP.umsg.Short( self.size )

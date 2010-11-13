@@ -107,6 +107,94 @@ if (SERVER) then
 		EGP:SendQueueItem( ply )
 	end
 
+	-- Extra Add Poly queue item, used by poly objects with a lot of vertices in them
+	umsg.PoolString( "AddVertex" )
+	local function AddVertex( Ent, ply, index, vertices )
+		-- Check interval
+		if (ply and ply:IsValid() and ply:IsPlayer()) then
+			if (EGP:CheckInterval( ply ) == false) then
+				EGP:InsertQueue( Ent, ply, AddVertex, "AddVertex", index, vertices )
+				return
+			end
+		else return end
+
+		local bool, k, v = EGP:HasObject( Ent, index )
+		if (bool) then
+			if (!EGP.umsg.Start("EGP_Transmit_Data")) then return end
+				EGP.umsg.Entity( Ent )
+				EGP.umsg.String( "AddVertex" )
+				EGP.umsg.Short( index )
+				EGP.umsg.Char( #vertices )
+				for i=1,#vertices do
+					local vert = vertices[i]
+					EGP.umsg.Short( vert.x )
+					EGP.umsg.Short( vert.y )
+					if (v.HasUV) then
+						EGP.umsg.Short( (vert.u or 0) * 100 )
+						EGP.umsg.Short( (vert.v or 0) * 100 )
+					end
+				end
+			EGP.umsg.End()
+		end
+
+		EGP:SendQueueItem( ply )
+	end
+
+	-- Extra Set Poly queue item, used by poly objects with a lot of vertices in them
+	umsg.PoolString( "SetVertex" )
+	function EGP._SetVertex( Ent, ply, index, vertices, skiptoadd )
+		-- Check interval
+		if (ply and ply:IsValid() and ply:IsPlayer()) then
+			if (EGP:CheckInterval( ply ) == false) then
+				EGP:InsertQueue( Ent, ply, EGP._SetVertex, "SetVertex", index, vertices, skiptoadd )
+				return
+			end
+		else return end
+
+		local bool, k, v = EGP:HasObject( Ent, index )
+		if (bool) then
+			local limit = 60
+			if (v.HasUV) then limit = 30 end
+			if (#vertices > limit or skiptoadd == true) then
+				local DataToSend = {}
+				local temp = {}
+				for i=1,#vertices do
+					temp[#temp+1] = vertices[i]
+					if (#temp >= limit) then
+						table.insert( DataToSend, 1, {index, table.Copy(temp)} )
+						temp = {}
+					end
+				end
+				if (#temp > 0) then
+					table.insert( DataToSend, 1, {index, table.Copy(temp)} )
+				end
+
+				-- This step is required because otherwise it adds the vertices backwards to the queue.
+				for i=1,#DataToSend do
+					EGP:InsertQueue( Ent, ply, AddVertex, "AddVertex", unpack(DataToSend[i]) )
+				end
+			else
+				if (!EGP.umsg.Start("EGP_Transmit_Data")) then return end
+					EGP.umsg.Entity( Ent )
+					EGP.umsg.String( "SetVertex" )
+					EGP.umsg.Short( index )
+					EGP.umsg.Char( #vertices )
+					for i=1,#vertices do
+						local vert = vertices[i]
+						EGP.umsg.Short( vert.x )
+						EGP.umsg.Short( vert.y )
+						if (v.HasUV) then
+							EGP.umsg.Short( (vert.u or 0) * 100 )
+							EGP.umsg.Short( (vert.v or 0) * 100 )
+						end
+					end
+				EGP.umsg.End()
+			end
+		end
+
+		EGP:SendQueueItem( ply )
+	end
+
 	-- Extra Add Text queue item, used by text objects with a lot of text in them
 	umsg.PoolString( "AddText" )
 	local function AddText( Ent, ply, index, text )
@@ -385,6 +473,50 @@ else -- SERVER/CLIENT
 			local bool,k,v = EGP:HasObject( Ent, index )
 			if (bool) then
 				if (EGP:EditObject( v, { text = v.text .. text } )) then Ent:EGP_Update() end
+			end
+		elseif (Action == "SetVertex") then
+			local index = um:ReadShort()
+			local bool, k,v = EGP:HasObject( Ent, index )
+			if (bool) then
+				local vertices = {}
+
+				if (v.HasUV) then
+					local n = 0
+					for i=1,um:ReadShort() do
+						local x, y, u, _v = um:ReadShort(), um:ReadShort(), um:ReadShort() / 100, um:ReadShort() / 100
+						vertices[i] = { x=x, y=y, u=u, v=_v }
+					end
+				else
+					local n = 0
+					for i=1,um:ReadShort() do
+						local x, y = um:ReadShort(), um:ReadShort()
+						vertices[i] = { x=x, y=y }
+					end
+				end
+
+				if (EGP:EditObject( v, { vertices = vertices })) then Ent:EGP_Update() end
+			end
+		elseif (Action == "AddVertex") then
+			local index = um:ReadShort()
+			local bool, k, v = EGP:HasObject( Ent, index )
+			if (bool) then
+				local vertices = table.Copy(v.vertices)
+
+				if (v.HasUV) then
+					local n = 0
+					for i=1,um:ReadChar() do
+						local x, y, u, _v = um:ReadShort(), um:ReadShort(), um:ReadShort() / 100, um:ReadShort() / 100
+						vertices[#vertices+1] = { x=x, y=y, u=u, v=_v }
+					end
+				else
+					local n = 0
+					for i=1,um:ReadChar() do
+						local x, y = um:ReadShort(), um:ReadShort()
+						vertices[#vertices+1] = { x=x, y=y }
+					end
+				end
+
+				if (EGP:EditObject( v, { vertices = vertices })) then Ent:EGP_Update() end
 			end
 		elseif (Action == "ReceiveObjects") then
 			local Nr = um:ReadShort() -- Estimated amount

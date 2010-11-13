@@ -915,33 +915,6 @@ local function WireUseOldGateOutputLables(pl, cmd, args)
 end
 concommand.Add( "Wire_UseOldGateOutputLables", WireUseOldGateOutputLables )]]
 
-
-
--- add wiresvn tag
-
--- add wiresvn_rev tag (doesn't work like it should)
---RunConsoleCommand("sv_tags", (GetConVarString("sv_tags") or "")..",wiresvn"..WireVersion)
-
--- this still doesn't quiet work like it looks like it should, must be some issues with setting sv_tags (long tags, similar tags might be ignored/removed while duplicates might get though)
-
-local tags = string.Explode(",", GetConVarString("sv_tags") or "")
--- remove old tags
-for i = #tags,1,-1 do
-	local tag = tags[i]
-	if tag:find("wiresvn") then table.remove(tags,i) end
-	if tag == "e2_restricted" then table.remove(tags,i) end
-end
-
--- insert new ones
-table.insert(tags, "wiresvn")
-if SVNver then
-	table.insert(tags, "wiresvn" .. SVNver)
-end
-
--- sort and update tags
-table.sort(tags)
-RunConsoleCommand("sv_tags", table.concat(tags, ","))
-
 -- prevent applyForce+Anti-noclip-based killing contraptions
 hook.Add("InitPostEntity", "antiantinoclip", function()
 	local ENT = scripted_ents.GetList().rt_antinoclip_handler

@@ -31,6 +31,8 @@ if SERVER then
 	AddCSLuaFile("wire/client/cpudescriptions.lua")
 	AddCSLuaFile("wire/client/gmod_tool_auto.lua")
 	AddCSLuaFile("wire/client/sound_browser.lua")
+	AddCSLuaFile("wire/welcome_menu.lua")
+	AddCSLuaFile("wire/client/welcome_menu_derma.lua")
 	AddCSLuaFile("wire/client/rendertarget_fix.lua")
 
 	-- resource files
@@ -39,6 +41,8 @@ if SERVER then
 	end
 	resource.AddFile("materials/expression 2/cog.vtf")
 	resource.AddFile("materials/expression 2/cog.vmt")
+	resource.AddFile("materials/wirelogo.vmt")
+	resource.AddFile("materials/wirelogo.vtf")
 	resource.AddSingleFile("materials/expression 2/cog_world.vmt")
 end
 
@@ -50,6 +54,7 @@ include("wire/WireGates.lua")
 include("wire/WireMonitors.lua")
 include("wire/opcodes.lua")
 include("wire/GPULib.lua")
+include("wire/welcome_menu.lua")
 
 -- server includes
 if SERVER then
@@ -72,5 +77,6 @@ if CLIENT then
 	include("wire/client/e2descriptions.lua")
 	include("wire/client/gmod_tool_auto.lua")
 	include("wire/client/sound_browser.lua")
+	include("wire/client/welcome_menu_derma.lua")
 	include("wire/client/rendertarget_fix.lua")
 end

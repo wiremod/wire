@@ -1,88 +1,132 @@
--- $Rev: 1621 $
--- $LastChangedDate: 2009-09-03 15:24:56 -0700 (Thu, 03 Sep 2009) $
--- $LastChangedBy: TomyLobo $
+-- $Rev: 2289 $
+-- $LastChangedDate: 2010-11-13 01:20am +0100 (Sat, 13 Nov 2010) $
+-- $LastChangedBy: Divran $
 
+-- Get version
+function WireLib.GetWireVersion()
+	local version = "2288 (OLD VERSION)"
+	local plainversion = 2288
+	local exported = true
 
-local rss_url = "http://www.wiremod.com:8060/changelog/~rss,feedmax=1/Wiremod/wire/rss.xml"
-
-
-WireVersion = "2207" --manual revision, change this value to the revision-to-be once changes are committed
-WireVersion = WireVersion .. " (exported)" -- leave this alone, it's to differentiate SVN checkouts from SVN Exported or downloaded versions of wire when a player types "wire_PrintVersion"
-
-// This function is broken, as gmod now prevents file.Read for .svn file type
--- if file.Exists("../lua/wire/.svn/entries") then
-	-- WireVersion = tonumber(string.Explode("\n", file.Read( "../lua/wire/.svn/entries"))[4]) --get svn revision, stolen from ULX
-	-- SVNver = WireVersion -- this is for the sv_tags changing function at the bottom of WireLib.lua
--- end
-WireLib.Version = WireVersion
-
-
-if SERVER then
-	local function initplayer(pl)
-		umsg.Start("wire_rev", pl)
-			umsg.Short(WireVersion)
-		umsg.End()
+	-- Try getting the version using the .svn files:
+	if (file.Exists("lua/wire/.svn/entries", true)) then
+		version = string.Explode("\n", file.Read( "lua/wire/.svn/entries", true) or "")[4]
+		exported = false
+		plainversion = version
+	elseif (file.Exists("wire_version.txt")) then -- Try getting the version by reading the text file:
+		plainversion = file.Read("wire_version.txt")
+		version = plainversion .. " (EXPORTED)"
 	end
-	hook.Add( "PlayerInitialSpawn", "WirePlayerInitSpawn", initplayer )
 
-	local function PrintWireVersion(pl,cmd,args)
-		if (pl and pl:IsValid()) then
-			pl:PrintMessage(HUD_PRINTTALK, "Wire revision: "..WireVersion)
-		else
-			print("Wire revision: "..WireVersion)
+	return version, tonumber(plainversion), exported
+end
+
+-- Get online version
+function WireLib.GetOnlineWireVersion( callback )
+	http.Get("http://wiremod.svn.sourceforge.net/svnroot/wiremod/trunk/","",function(contents,size)
+		local rev = tonumber(string.match( contents, "Revision ([0-9]+)" ))
+		callback(rev,contents,size)
+	end)
+end
+
+if (SERVER) then
+	------------------------------------------------------------------
+	-- Get the version
+	------------------------------------------------------------------
+	WireLib.Version = WireLib.GetWireVersion()
+	WireVersion = WireLib.Version -- Backwards compatibility
+
+	-- Print the version to the console on load:
+	local v = WireLib.Version
+Msg([[
+===================================================
+== WireMod Installed. Version: ]]..v..[[ ==
+===================================================
+]])
+
+	------------------------------------------------------------------
+	-- Send the version to the client
+	------------------------------------------------------------------
+	local function recheck( ply, tries )
+		timer.Simple(5,function(ply)
+			if (ply and ply:IsValid()) then -- Success!
+				umsg.Start("wire_rev",ply)
+					umsg.String( WireLib.Version )
+				umsg.End()
+			else
+				if (tries and tries > 3) then return end -- several failures.. stop trying
+				recheck(ply, (tries or 0) + 1) -- Try again
+			end
+		end)
+	end
+	hook.Add("PlayerInitialSpawn","WirePlayerInitSpawn",recheck)
+
+
+	-- Send the version to the client ON REQUEST
+	local antispam = {}
+	concommand.Add("Wire_RequestVersion",function(ply,cmd,args)
+		if (!antispam[ply]) then antispam[ply] = 0 end
+		if (antispam[ply] < CurTime()) then
+			antispam[ply] = CurTime() + 0.5
+			umsg.Start("wire_rev",ply)
+				umsg.String( WireLib.Version )
+			umsg.End()
 		end
-	end
-	concommand.Add( "Wire_PrintVersion", PrintWireVersion )
+	end)
 
-	MsgN("================================\n===  Wire  "..WireVersion.."   Installed  ===\n================================")
-end
-
-if CLIENT then
-	WireVersionLocal = WireVersion
-	local function initplayer(um)
-		WIRE_SERVER_INSTALLED = true
-		WireVersion = um:ReadShort()
-		MsgN("================================\n===  Wire revision: "..WireVersion.."     ===\n=== Local Wire revision:"..WireVersion.." ===\n================================")
-	end
-	usermessage.Hook( "wire_rev", initplayer )
-end
-
-
---[[ Doesn't work, and nobody seems to know how to fix. Also, do not enable without uncommenting administration menu option in wiremenus.lua!
-local update_check_lbl
-
--- http.Get Callback
-local function CheckForUpdateCallback(contents, size)
-	local rev = string.match(contents, "http://www%.wiremod%.com:8060/changelog/Wiremod%?cs=(%d+)&amp;csize=1")
-	if rev then
-		if tonumber(rev) > WireVersion then
-			update_check_lbl:SetText("There's a newer rev of wire!\nYou have: "..WireVersion.."\n"..rev.." is current.")
+	------------------------------------------------------------------
+	-- Wire_PrintVersion
+	-- prints the server's version on the client
+	-- This doesn't use the above sending-to-client because it's meant to work even if the above code fails.
+	------------------------------------------------------------------
+	concommand.Add("Wire_PrintVersion",function(ply,cmd,args)
+		if (ply and ply:IsValid()) then
+			ply:ChatPrint("Server's Wire Version: " .. WireLib.Version)
 		else
-			update_check_lbl:SetText("You have: "..WireVersion.."\nYour Wire is up to date!")
+			print("Server's Wire Version: " .. WireLib.Version)
 		end
-	else
-		update_check_lbl:SetText("Unable to contact SVN server.\nD:")
-	end
-	update_check_lbl:GetParent():PerformLayout()
+	end)
+
+	------------------------------------------------------------------
+	-- Tags
+	-- Adds "wireexport####" or "wiresvn####" to tags
+	------------------------------------------------------------------
+
+	local cvar = GetConVar("sv_tags")
+	timer.Create("Wire_Tags",1,0,function()
+		local tags = cvar:GetString()
+		if (!tags:find( "wire" )) then
+			local version, plainversion, exported = WireLib.GetWireVersion()
+			local tag = "wire" .. ( exported and "exported" or "svn" ) .. plainversion
+			RunConsoleCommand( "sv_tags", tags .. "," .. tag )
+		end
+	end)
+
+else -- CLIENT
+
+	------------------------------------------------------------------
+	-- Get the version
+	------------------------------------------------------------------
+	WireLib.LocalVersion = WireLib.GetWireVersion()
+	WireVersionLocal = WireLib.LocalVersion -- Backwards compatibility
+
+	-- Print the version to the console on load:
+	local v = WireLib.LocalVersion
+Msg([[
+===================================================
+== WireMod Installed. Version: ]]..v..[[ ==
+===================================================
+]])
+
+	------------------------------------------------------------------
+	-- Receive the version from the server
+	------------------------------------------------------------------
+
+	WireLib.Version = "-unknown-" -- We don't know the server's version yet
+	WireVersion = "-unknown-" -- Backwards compatibility
+
+	usermessage.Hook("wire_rev",function(um)
+		WireLib.Version = um:ReadString()
+		WireVersion = WireLib.Version
+	end)
 end
-
-local function CheckForUpdateCP(Panel)
-	local update_check_btn = vgui.Create("DButton")
-	update_check_btn:SetText("Check for Update")
-	update_check_btn.DoClick = function(button)
-		http.Get(rss_url, "", CheckForUpdateCallback)
-		button:SetDisabled(true)
-		button:SetText("Checking....")
-	end
-	Panel:AddItem(update_check_btn)
-
-	update_check_lbl = vgui.Create("DLabel")
-	update_check_lbl:SetText("")
-	update_check_lbl:SetAutoStretchVertical(true)
-	Panel:AddItem(update_check_lbl)
-end
-
-hook.Add("PopulateToolMenu", "AddWireAdminUpdateCheck", function()
-	spawnmenu.AddToolMenuOption("Wire", "Administration", "WireAdminUpdateCheck", "Check For Update", "", "", CheckForUpdateCP, {})
-end)
-]]
