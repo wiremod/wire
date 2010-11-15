@@ -98,7 +98,7 @@ usermessage.Hook( "wire_expresison2_file_download_finish", function( um )
 	local ofile = ""
 
 	if um:ReadBool() and file.Exists( download_buffer.name ) then
-		local ofile = file.Read( download_buffer.name ) or ""
+		ofile = file.Read( download_buffer.name )
 	end
 
 	file.Write( (download_buffer.name or "e2files/noname.txt"), ofile .. download_buffer.data )
