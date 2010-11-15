@@ -288,16 +288,6 @@ e2function number entity:volume()
 	return phys:GetVolume()
 end
 
-e2function number entity:elasticity()
-	if not validEntity(this) then return 0 end
-	return this:GetElasticity()
-end
-
-e2function number entity:friction()
-	if not validEntity(this) then return 0 end
-	return this:GetFriction()
-end
-
 /******************************************************************************/
 // Functions getting boolean/number
 e2function number entity:isPlayer()
@@ -733,7 +723,6 @@ local non_allowed_types = {
 	xgt = true,
 	t = true,
 	r = true,
-	xmt = true,
 	}
 
 registerCallback("postinit",function()

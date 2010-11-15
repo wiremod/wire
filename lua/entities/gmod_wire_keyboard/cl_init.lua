@@ -6,6 +6,12 @@ ENT.RenderGroup 		= RENDERGROUP_OPAQUE
 
 local BlockFrame
 
+function ENT:Initialize()
+	if (WireLib.Version == "-unknown-") then -- WireLib.Version is defined in UpdateCheck.lua
+		RunConsoleCommand("Wire_RequestVersion")
+	end
+end
+
 
 local KeyEvents = {}
 local function Wire_BlockInput()
@@ -41,7 +47,7 @@ usermessage.Hook("wire_keyboard_releaseinput", Wire_ReleaseInput)
 concommand.Add("wire_keyboard_releaseinput", Wire_ReleaseInput)
 
 hook.Add("PostRenderVGUI", "wire_keyboard_checkkeys", function()
-	if (WIRE_SERVER_INSTALLED) then
+	if (WireLib.Version != "-unknown-") then -- WireLib.Version is defined in UpdateCheck.lua
 		for i = 1,130 do
 			if(input.IsKeyDown(i) && !KeyEvents[i]) then
 				// The key has been pressed

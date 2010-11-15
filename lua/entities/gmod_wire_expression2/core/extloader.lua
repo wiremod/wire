@@ -238,7 +238,7 @@ e2_include("bitwise.lua")
 e2_include("quaternion.lua")
 e2_include("debug.lua")
 e2_include("http.lua")
-e2_include("mtable.lua")
+--e2_include("mtable.lua") <- mtables have replaced tables
 e2_include("compat.lua")
 e2_include("custom.lua")
 e2_include("datasignal.lua")

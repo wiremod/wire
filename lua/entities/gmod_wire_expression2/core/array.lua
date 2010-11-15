@@ -37,7 +37,7 @@ e2function array array(...)
 	local ret = { ... }
 	if (#ret == 0) then return {} end -- This line is in place of 'array()'
 	for i,v in ipairs(ret) do
-		if typeids[i] == "r" or typeids[i] == "t" or typeids[i] == "xgt" or typeids[i] == "xmt" then ret[i] = nil end
+		if typeids[i] == "r" or typeids[i] == "t" or typeids[i] == "xgt" then ret[i] = nil end
 	end
 	return ret
 end
@@ -80,7 +80,6 @@ registerCallback("postinit", function()
 	types["TABLE"] = nil
 	types["ARRAY"] = nil
 	types["GTABLE"] = nil
-	types["MTABLE"] = nil
 
 	-- generate op[] for all types
 	for name,id in pairs_map(types, unpack) do

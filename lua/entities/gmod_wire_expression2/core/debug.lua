@@ -126,18 +126,6 @@ local function MyMsg(s)
 	table.insert(msgbuf, s)
 end
 
---- Prints a table like the lua function [[G.PrintTable|PrintTable]] does, except to the chat area.
-e2function void printTable(table tbl)
-	msgbuf = {}
-	Msg = MyMsg
-	PrintTable(tbl)
-	Msg = _Msg
-	for _,line in ipairs(string.Explode("\n",table.concat(msgbuf))) do
-		self.player:ChatPrint(line)
-	end
-	msgbuf = nil
-end
-
 --- Prints an array like the lua function [[G.PrintTable|PrintTable]] does, except to the chat area.
 e2function void printTable(array arr)
 	msgbuf = {}

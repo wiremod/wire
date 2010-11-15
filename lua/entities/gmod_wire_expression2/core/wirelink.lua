@@ -583,5 +583,13 @@ e2function number wirelink:writeArray(address, array data)
 	return ret
 end
 
+e2function number wirelink:writeTable(address, table data )
+	if not validWirelink(self, this) or not this.WriteCell then return 0 end
+	wa_lookup = {}
+	local ret = WriteArray(this,address,data.n)
+	wa_lookup = nil
+	return ret
+end
+
 __e2setcost(nil) -- temporary
 

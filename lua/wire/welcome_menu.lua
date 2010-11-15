@@ -143,7 +143,7 @@ to enable the cursor.]] )
 		end)
 	end
 
-	timer.Simple(10,function() -- 10 second run the first time, 10 minutes after that.
+	timer.Simple(60,function() -- 60 second run the first time, 10 minutes after that.
 		UN:CheckForUpdate()
 		timer.Create("Wire_UpdateNotification_Timer",600,0,function() UN:CheckForUpdate()  end)
 	end)
@@ -552,7 +552,7 @@ Installation problems:                            Tutorials:                    
 
 		local a = vgui.Create("Wire_WMenu_Copypasta",pnl)
 		a:SetPos( w1+w, h1+h*2 )
-		a:SetURL( "GPU/CPU Tutorials", "GPU/CPU tutorials forum\nhttp://www.wiremod.com/forum/cpu-gpu-hi-speed-discussion-help/", "http://www.wiremod.com/forum/cpu-gpu-hi-speed-discussion-help/" )
+		a:SetURL( "GPU/CPU Tutorials", "GPU/CPU tutorials forum\nhttp://www.wiremod.com/forum/cpu-tutorials/", "http://www.wiremod.com/forum/cpu-tutorials/" )
 
 		local a = vgui.Create("Wire_WMenu_Copypasta",pnl)
 		a:SetPos( w1+w*2, h1 )

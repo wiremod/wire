@@ -221,8 +221,16 @@ if SERVER then
 		wire_expression2_prepare_functiondata()
 
 
-		function wire_expression2_sendfunctions(ply)
-			-- send the prepared function data to the client
+		local antispam = {}
+		function wire_expression2_sendfunctions(ply,isconcmd)
+			if (isconcmd) then
+				if (!antispam[ply]) then antispam[ply] = 0 end
+				if (antispam[ply] > CurTime()) then
+					ply:PrintMessage(HUD_PRINTCONSOLE,"This command has a 60 second anti spam protection. Try again in " .. math.Round(antispam[ply] - CurTime()) .. " seconds.")
+					return
+				end
+				antispam[ply] = CurTime() + 60
+			end
 			datastream.StreamToClients( ply, "wire_expression2_sendfunctions_hook", functiondata )
 			datastream.StreamToClients( ply, "wire_expression2_sendfunctions_hook2", functiondata2 )
 		end

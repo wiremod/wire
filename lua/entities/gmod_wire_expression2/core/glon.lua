@@ -20,38 +20,12 @@ e2function string glonEncode(array data)
 	return ret or ""
 end
 
---- Encodes <data> into a string, using [[GLON]].
-e2function string glonEncode(table data) = e2function string glonEncode(array data)
-
-
 --- Decodes <data> into an array, using [[GLON]].
 e2function array glonDecode(string data)
 	self.prf = self.prf + string.len(data) / 2
 
 	local ok, ret = pcall(glon.decode, data)
 
-	if not ok then
-		last_glon_error = ret
-		ErrorNoHalt("glon.decode error: "..ret)
-		return {}
-	end
-
-	if (type(ret) != "table") then -- Exploit detected
-		--MsgN( "[E2] WARNING! " .. self.player:Nick() .. " (" .. self.player:SteamID() .. ") tried to read a non-table type as a table. This is a known and serious exploit that has been prevented." )
-		--error( "Tried to read a non-table type as a table." )
-		return {}
-	end
-
-	return ret or {}
-end
-
---- Decodes <data> into a table, using [[GLON]].
-e2function table glonDecodeTable(string data)
-	self.prf = self.prf + string.len(data) / 2
-
-	data = string.Replace(data, "\7xwl", "\7xxx")
-
-	local ok, ret = pcall(glon.decode, data)
 	if not ok then
 		last_glon_error = ret
 		ErrorNoHalt("glon.decode error: "..ret)
@@ -85,31 +59,20 @@ hook.Add("InitPostEntity", "wire_expression2_glonfix", function()
 end)
 
 ---------------------------------------------------------------------------
--- mtable glon
+-- table glon
 ---------------------------------------------------------------------------
 
+__e2setcost(15)
+
+--- Encodes <data> into a string, using [[GLON]].
+e2function string glonEncode(table data) = e2function string glonEncode(array data)
+
 __e2setcost(25)
-
--- encodes an mtable
-e2function string glonEncode(mtable data)
-	local ok, ret = pcall(glon.encode, data)
-	if not ok then
-		last_glon_error = ret
-		ErrorNoHalt("glon.encode error: "..ret)
-		return ""
-	end
-
-	if ret then
-		self.prf = self.prf + string.len(ret) / 2
-	end
-
-	return ret or ""
-end
 
 local function ExploitFix( self, tbl, checked )
 	if (!self or !tbl) then return true end
 
-	if (!tbl.ismtable) then return false end
+	if (!tbl.istable) then return false end
 
 	local ret = true
 
@@ -119,7 +82,7 @@ local function ExploitFix( self, tbl, checked )
 			checked[v] = true
 			if (exploitables[type(v)] and tbl.ntypes[k] != "e") then
 				ret = false
-			elseif (tbl.ntypes[k] == "xmt") then
+			elseif (tbl.ntypes[k] == "t") then
 				local temp = ExploitFix( self, v, checked )
 				if (temp == false) then ret = false end
 			end
@@ -131,7 +94,7 @@ local function ExploitFix( self, tbl, checked )
 			checked[v] = true
 			if (exploitables[type(v)] and tbl.stypes[k] != "e") then
 				ret = false
-			elseif (tbl.stypes[k] == "xmt") then
+			elseif (tbl.stypes[k] == "t") then
 				local temp = ExploitFix( self, v, checked )
 				if (temp == false) then ret = false end
 			end
@@ -140,10 +103,10 @@ local function ExploitFix( self, tbl, checked )
 	return ret
 end
 
-local DEFAULT = {n={},ntypes={},s={},stypes={},size=0,ismtable=true,depth=0}
+local DEFAULT = {n={},ntypes={},s={},stypes={},size=0,istable=true,depth=0}
 
--- decodes a glon string and returns an mtable
-e2function mtable glonDecodeMTable(string data)
+-- decodes a glon string and returns an table
+e2function table glonDecodeTable(string data)
 	if (!data or data == "") then return table.Copy(DEFAULT) end
 
 	self.prf = self.prf + string.len(data) / 2
@@ -158,7 +121,7 @@ e2function mtable glonDecodeMTable(string data)
 		return table.Copy(DEFAULT)
 	end
 
-	if (!ret or !ret.ismtable) then return table.Copy(DEFAULT) end
+	if (!ret or !ret.istable) then return table.Copy(DEFAULT) end
 
 	if (type(ret) != "table" or ExploitFix( self, ret, { [ret] = true } ) == false) then -- Exploit check
 		--MsgN( "[E2] WARNING! " .. self.player:Nick() .. " (" .. self.player:SteamID() .. ") tried to read a non-table type as a table. This is a known and serious exploit that has been prevented." )
