@@ -1054,4 +1054,10 @@ e2function string array:concat(string delimiter)
 	return string.Left(out, string.len(out) - string.len(delimiter))
 end
 
+/******************************************************************************/
+
+e2function string array:id()
+	return tostring(this)
+end
+
 __e2setcost(nil) -- temporary

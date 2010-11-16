@@ -5,6 +5,8 @@
 local function IsEmpty( t ) return !next(t) end
 local rep = string.rep
 local tostring = tostring
+local table = table
+local type = type
 
 local opcost = 1/3 -- cost of looping through table multiplier
 
@@ -24,7 +26,10 @@ local _maxdepth = CreateConVar("wire_expression2_table_maxdepth",6,{FCVAR_ARCHIV
 local function maxdepth()
 	return _maxdepth:GetInt()
 end
-local maxsize = 1024*1024
+local _maxsize = 1024*1024
+local function maxsize()
+	return _maxsize
+end
 
 --------------------------------------------------------------------------------
 -- Type defining
@@ -34,6 +39,9 @@ local DEFAULT = {n={},ntypes={},s={},stypes={},size=0,istable=true,depth=0}
 
 registerType("table", "t", table.Copy(DEFAULT),
 	function(self, input)
+		if (IsEmpty(input) or !input.istable) then
+			return table.Copy(DEFAULT)
+		end
 		return input
 	end,
 	nil,
@@ -221,7 +229,7 @@ e2function table operator=(table lhs, table rhs)
 		self.prf = self.prf + 500
 		return table.Copy(DEFAULT)
 	end
-	if (rhs.size > maxsize) then
+	if (rhs.size > maxsize()) then
 		self.prf = self.prf + 500
 		return table.Copy(DEFAULT)
 	end
@@ -254,32 +262,133 @@ end
 
 __e2setcost(40)
 
-e2function table operator+( table rv1, table rv2 )
-	local ret = table.Copy(rv1)
-	local size = ret.size
-	local cost = 0
-	for k,v in ipairs( rv2.n ) do
+-- Adds rv2 to the end of 'this' (adds numerical indexes to the end of the array-part, and only inserts string indexes that don't exist on rv1)
+e2function table table:add( table rv2 )
+	local ret = table.Copy(this)
+	local cost = this.size
+	local size = this.size
+
+	for k,v in pairs( rv2.n ) do
 		cost = cost + 1
-		if (!blocked_types[rv2.ntypes[k]]) then
-			if (!ret.n[k]) then size = size + 1 end
-			ret.n[k] = v
-			ret.ntypes[k] = rv2.ntypes[k]
+		local id = rv2.ntypes[k]
+		if (!blocked_types[id]) then
+			size = size + 1
+			ret.n[size] = v
+			ret.ntypes[size] = id
 		end
 	end
+
 	for k,v in pairs( rv2.s ) do
 		cost = cost + 1
-		if (!blocked_types[rv2.stypes[k]]) then
-			if (!ret.s[k]) then size = size + 1 end
-			ret.s[k] = v
-			ret.stypes[k] = rv2.stypes[k]
+		if (!ret.s[k]) then
+			local id = rv2.stypes[k]
+			if (!blocked_types[id]) then
+				size = size + 1
+				ret.s[k] = v
+				ret.stypes[k] = id
+			end
 		end
 	end
-	ret.size = size
+
 	self.prf = self.prf + cost * opcost
 	if (checkdepth( ret, 0, false ) > maxdepth()) then
 		self.prf = self.prf + 500 -- Punishment
 		return table.Copy(DEFAULT)
 	end
+	ret.size = size
+	return ret
+end
+
+-- Merges rv2 with 'this' (both numerical and string indexes are overwritten)
+e2function table table:merge( table rv2 )
+	local ret = table.Copy(this)
+	local cost = this.size
+	local size = this.size
+
+	for k,v in pairs( rv2.n ) do
+		cost = cost + 1
+		local id = rv2.ntypes[k]
+		if (!blocked_types[id]) then
+			if (!ret.n[k]) then size = size + 1 end
+			ret.n[k] = v
+			ret.ntypes[k] = id
+		end
+	end
+
+	for k,v in pairs( rv2.s ) do
+		cost = cost + 1
+		local id = rv2.stypes[k]
+		if (!blocked_types[id]) then
+			if (!ret.s[k]) then size = size + 1 end
+			ret.s[k] = v
+			ret.stypes[k] = id
+		end
+	end
+
+	self.prf = self.prf + cost * opcost
+	if (checkdepth( ret, 0, false ) > maxdepth()) then
+		self.prf = self.prf + 500 -- Punishment
+		return table.Copy(DEFAULT)
+	end
+	ret.size = size
+	return ret
+end
+
+-- Removes all variables from 'this' which have keys which exist in rv2
+e2function table table:difference( table rv2 )
+	local ret = table.Copy(DEFAULT)
+	local cost = 0
+	local size = 0
+
+	for k,v in pairs( this.n ) do
+		cost = cost + 1
+		if (!rv2.n[k]) then
+			size = size + 1
+			ret.n[size] = v
+			ret.ntypes[size] = this.ntypes[k]
+		end
+	end
+
+	for k,v in pairs( this.s ) do
+		cost = cost + 1
+		if (!rv2.s[k]) then
+			size = size + 1
+			ret.s[size] = v
+			ret.stypes[size] = this.stypes[k]
+		end
+	end
+	self.prf = self.prf + cost * opcost
+	ret.size = size
+
+	return ret
+end
+
+-- Removes all variables from 'this' which don't have keys which exist in rv2
+e2function table table:intersect( table rv2 )
+	local ret = table.Copy(DEFAULT)
+	local cost = 0
+	local size = 0
+
+	for k,v in pairs( this.n ) do
+		cost = cost + 1
+		if (rv2.n[k]) then
+			size = size + 1
+			ret.n[size] = v
+			ret.ntypes[size] = this.ntypes[k]
+		end
+	end
+
+	for k,v in pairs( this.s ) do
+		cost = cost + 1
+		if (rv2.s[k]) then
+			size = size + 1
+			ret.s[size] = v
+			ret.stypes[size] = this.stypes[k]
+		end
+	end
+	self.prf = self.prf + cost * opcost
+	ret.size = size
+
 	return ret
 end
 
@@ -334,7 +443,7 @@ e2function table table(...)
 	for k,v in ipairs( tbl ) do
 		if (!blocked_types[typeids[k]]) then
 			size = size + 1
-			if (size > maxsize) then -- Max size check
+			if (size > maxsize()) then -- Max size check
 				self.prf = self.prf + size * opcost + 500
 				return table.Copy(DEFAULT)
 			end
@@ -354,51 +463,6 @@ e2function table table(...)
 	self.prf = self.prf + size * opcost
 	return ret
 end
-
-__e2setcost(20)
-
-local exploitables = { Entity = true, NPC = true, Vehicle = true }
-
---[[ This function is no longer necessary. Will likely be removed soon - leaving it here just in case
--- Converts a table into an table
-e2 function table table:toTable()
-	if (IsEmpty( this )) then return table.Copy(DEFAULT) end
-	local ret = table.Copy(DEFAULT)
-	local size = 0
-	local cost = 0
-	for k,v in pairs( this ) do
-		cost = cost + 1
-		local id = k:Left(1)
-		local index
-		if (id == "x") then
-			id = k:Left(3)
-			index = k:Right(-4)
-		else
-			index = k:Right(-2)
-		end
-		if (!blocked_types[id]) then -- Check for blocked types.. there's also no way there could be a table inside a table.
-
-			if ((exploitables[type(v)] and id != "e") or id != "t" or id != "t" or id != "r") then -- Exploit check
-				--MsgN( "[E2] WARNING! " .. self.player:Nick() .. " (" .. self.player:SteamID() .. ") tried to read a non-table type as a table. This is a known and serious exploit that has been prevented." )
-				--error( "Tried to read a non-table type as a table." )
-				return table.Copy(DEFAULT)
-			end
-
-
-			size = size + 1
-			if (size > maxsize) then
-				self.prf = self.prf + size * opcost + 500
-				return table.Copy(DEFUALT)
-			end
-			ret.s[index] = v
-			ret.stypes[index] = id
-		end
-	end
-	ret.size = size
-	self.prf = self.prf + cost * opcost
-	return ret
-end
-]]
 
 __e2setcost(5)
 
@@ -682,6 +746,7 @@ __e2setcost(20)
 
 -- Returns the types of the variables in the array-part
 e2function array table:typeidsArray()
+	if (IsEmpty(this.n)) then return {} end
 	self.prf = self.prf + table.Count(this.ntypes) * opcost
 	return table.Copy(this.ntypes)
 end
@@ -741,26 +806,10 @@ end
 
 __e2setcost(20)
 
--- Converts an table into a table
-e2function table table:toTable()
-	if (IsEmpty( this.s )) then return {} end
-	local cost = 0
-	local ret = {}
-	for k,v in pairs( this.s ) do
-		cost = cost + 1
-		local id = this.stypes[k]
-		if (tbls[id] != true) then
-			ret[id..k] = v
-		end
-	end
-	self.prf = self.prf + cost * opcost
-	return ret
-end
+--------------------------------------------------------------------------------
+-- Backwards compatibility functions (invert & co.)
+--------------------------------------------------------------------------------
 
----[[
---------------------------------------------------------------------------------
--- Backwards compatibility functions (invert)
---------------------------------------------------------------------------------
 -- for invert(R)
 local tostrings = {
 	number=tostring,
@@ -779,19 +828,28 @@ function tostrings.table(t)
 end
 
 function tostrings.Vector(v)
-	return "[" .. tostring(v[1]) .. "," .. tostring(v[2]) .. "," .. tostring(v[3]) .. "]"
+	return string.format("[%d,%d,%d]",v[1],v[2],v[4])
 end
 
 -- for invert(T)
 local tostring_typeid = {
-	n=tostring,
-	s=tostring,
-	e=tostring,
-	xv2=tostrings.table,
-	v=tostrings.Vector,
-	xv4=tostrings.table,
-	a=tostrings.table,
-	b=e2_tostring_bone,
+	c =		formatPort.COMPLEX,
+	b =		tostring,
+	e =		tostring,
+	xwl =	tostring,
+	xrd =	tostring,
+	n =		tostring,
+	q =		formatPort.QUATERNION,
+	s =		function(s) return s end,
+	r =		tostring,
+	xm4 =	tostrings.table,
+	t =		tostring,
+	v =		tostrings.table,
+	m =		tostrings.table,
+	xv2 = 	tostrings.table,
+	xm2 = 	tostrings.table,
+	a = 	tostrings.table,
+	xv4 = 	tostrings.table,
 }
 
 --- Returns a lookup table for <arr>. Usage: Index = T:number(toString(Value)).
@@ -836,9 +894,13 @@ end
 e2function array table:keys()
 	local ret = {}
 	local c = 0
-	for index,value in pairs(this.stypes) do
+	for index,value in pairs(this.n) do
 		c = c + 1
-		ret[#ret+1] = value
+		ret[#ret+1] = index
+	end
+	for index,value in pairs(this.s) do
+		c = c + 1
+		ret[#ret+1] = index
 	end
 	self.prf = self.prf + c * opcost
 	return ret
@@ -847,14 +909,21 @@ end
 e2function array table:values()
 	local ret = {}
 	local c = 0
+	for index,value in pairs(this.n) do
+		c = c + 1
+		if (!tbls[this.ntypes[index]]) then
+			ret[#ret+1] = value
+		end
+	end
 	for index,value in pairs(this.s) do
 		c = c + 1
-		ret[#ret+1] = value
+		if (!tbls[this.stypes[index]]) then
+			ret[#ret+1] = value
+		end
 	end
 	self.prf = self.prf + c * opcost
 	return ret
 end
---]]
 
 --------------------------------------------------------------------------------
 -- Looped functions
@@ -907,7 +976,7 @@ registerCallback( "postinit", function()
 				rv3.parent = rv1
 			end
 			if (!rv1.s[rv2]) then rv1.size = rv1.size + 1 end
-			if (rv1.size > maxsize) then
+			if (rv1.size > maxsize()) then
 				self.prf = self.prf + 500
 				return fixdef(v[2])
 			end
@@ -930,7 +999,7 @@ registerCallback( "postinit", function()
 				rv3.parent = rv1
 			end
 			if (!rv1.n[rv2]) then rv1.size = rv1.size + 1 end
-			if (rv1.size > maxsize) then return fixdef(v[2]) end
+			if (rv1.size > maxsize()) then return fixdef(v[2]) end
 			rv1.n[rv2] = rv3
 			rv1.ntypes[rv2] = id
 			self.vclk[rv1] = true
@@ -997,7 +1066,7 @@ registerCallback( "postinit", function()
 				rv2.parent = rv1
 			end
 			rv1.size = rv1.size + 1
-			if (rv1.size > maxsize) then
+			if (rv1.size > maxsize()) then
 				self.prf = self.prf + 500
 				return fixdef(v[2])
 			end
@@ -1026,7 +1095,7 @@ registerCallback( "postinit", function()
 				rv3.parent = rv1
 			end
 			rv1.size = rv1.size + 1
-			if (rv1.size > maxsize) then
+			if (rv1.size > maxsize()) then
 				self.prf = self.prf + 500
 				return fixdef(v[2])
 			end
@@ -1049,7 +1118,7 @@ registerCallback( "postinit", function()
 				rv2.parent = rv1
 			end
 			rv1.size = rv1.size + 1
-			if (rv1.size > maxsize) then
+			if (rv1.size > maxsize()) then
 				self.prf = self.prf + 500
 				return fixdef(v[2])
 			end

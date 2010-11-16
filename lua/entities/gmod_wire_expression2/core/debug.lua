@@ -140,6 +140,39 @@ end
 
 /******************************************************************************/
 
+__e2setcost(100)
+
+local print_delay = 0.5
+local print_max = 10
+
+local print_delays = {}
+
+timer.Create("e2_printcolor_delays",print_delay,0,function()
+	for k,v in pairs( print_delays ) do
+		if (k and k:IsValid() and k:IsPlayer()) then
+			if (print_delays[k] < print_max) then
+				print_delays[k] = print_delays[k] + 1
+			end
+		else
+			print_delays[k] = nil
+		end
+	end
+end)
+
+local function check_delay( ply )
+	if (!print_delays[ply]) then
+		print_delays[ply] = print_max - 1
+		return true
+	end
+
+	if (print_delays[ply] > 0) then
+		print_delays[ply] = print_delays[ply] - 1
+		return true
+	end
+
+	return false
+end
+
 local printColor_typeids = {
 	n = tostring,
 	s = tostring,
@@ -149,6 +182,8 @@ local printColor_typeids = {
 }
 
 local function printColorVarArg(chip, ply, typeids, ...)
+	if (!check_delay( ply )) then return end
+
 	local send_array = { ... }
 
 	for i,tp in ipairs(typeids) do
@@ -179,6 +214,8 @@ local printColor_types = {
 }
 
 local function printColorArray(chip, ply, arr)
+	if (!check_delay( ply )) then return end
+
 	local send_array = {}
 
 	for i,tp in ipairs_map(arr,type) do
