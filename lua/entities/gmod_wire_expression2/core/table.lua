@@ -260,138 +260,6 @@ e2function number operator==( table rv1, table rv2 )
 	return (rv1 == rv2) and 1 or 0
 end
 
-__e2setcost(40)
-
--- Adds rv2 to the end of 'this' (adds numerical indexes to the end of the array-part, and only inserts string indexes that don't exist on rv1)
-e2function table table:add( table rv2 )
-	local ret = table.Copy(this)
-	local cost = this.size
-	local size = this.size
-
-	for k,v in pairs( rv2.n ) do
-		cost = cost + 1
-		local id = rv2.ntypes[k]
-		if (!blocked_types[id]) then
-			size = size + 1
-			ret.n[size] = v
-			ret.ntypes[size] = id
-		end
-	end
-
-	for k,v in pairs( rv2.s ) do
-		cost = cost + 1
-		if (!ret.s[k]) then
-			local id = rv2.stypes[k]
-			if (!blocked_types[id]) then
-				size = size + 1
-				ret.s[k] = v
-				ret.stypes[k] = id
-			end
-		end
-	end
-
-	self.prf = self.prf + cost * opcost
-	if (checkdepth( ret, 0, false ) > maxdepth()) then
-		self.prf = self.prf + 500 -- Punishment
-		return table.Copy(DEFAULT)
-	end
-	ret.size = size
-	return ret
-end
-
--- Merges rv2 with 'this' (both numerical and string indexes are overwritten)
-e2function table table:merge( table rv2 )
-	local ret = table.Copy(this)
-	local cost = this.size
-	local size = this.size
-
-	for k,v in pairs( rv2.n ) do
-		cost = cost + 1
-		local id = rv2.ntypes[k]
-		if (!blocked_types[id]) then
-			if (!ret.n[k]) then size = size + 1 end
-			ret.n[k] = v
-			ret.ntypes[k] = id
-		end
-	end
-
-	for k,v in pairs( rv2.s ) do
-		cost = cost + 1
-		local id = rv2.stypes[k]
-		if (!blocked_types[id]) then
-			if (!ret.s[k]) then size = size + 1 end
-			ret.s[k] = v
-			ret.stypes[k] = id
-		end
-	end
-
-	self.prf = self.prf + cost * opcost
-	if (checkdepth( ret, 0, false ) > maxdepth()) then
-		self.prf = self.prf + 500 -- Punishment
-		return table.Copy(DEFAULT)
-	end
-	ret.size = size
-	return ret
-end
-
--- Removes all variables from 'this' which have keys which exist in rv2
-e2function table table:difference( table rv2 )
-	local ret = table.Copy(DEFAULT)
-	local cost = 0
-	local size = 0
-
-	for k,v in pairs( this.n ) do
-		cost = cost + 1
-		if (!rv2.n[k]) then
-			size = size + 1
-			ret.n[size] = v
-			ret.ntypes[size] = this.ntypes[k]
-		end
-	end
-
-	for k,v in pairs( this.s ) do
-		cost = cost + 1
-		if (!rv2.s[k]) then
-			size = size + 1
-			ret.s[size] = v
-			ret.stypes[size] = this.stypes[k]
-		end
-	end
-	self.prf = self.prf + cost * opcost
-	ret.size = size
-
-	return ret
-end
-
--- Removes all variables from 'this' which don't have keys which exist in rv2
-e2function table table:intersect( table rv2 )
-	local ret = table.Copy(DEFAULT)
-	local cost = 0
-	local size = 0
-
-	for k,v in pairs( this.n ) do
-		cost = cost + 1
-		if (rv2.n[k]) then
-			size = size + 1
-			ret.n[size] = v
-			ret.ntypes[size] = this.ntypes[k]
-		end
-	end
-
-	for k,v in pairs( this.s ) do
-		cost = cost + 1
-		if (rv2.s[k]) then
-			size = size + 1
-			ret.s[size] = v
-			ret.stypes[size] = this.stypes[k]
-		end
-	end
-	self.prf = self.prf + cost * opcost
-	ret.size = size
-
-	return ret
-end
-
 __e2setcost(nil)
 
 registerOperator("fea","t","s",function(self,args)
@@ -653,6 +521,138 @@ e2function string table:toString()
 	return ret
 end
 
+__e2setcost(40)
+
+-- Adds rv2 to the end of 'this' (adds numerical indexes to the end of the array-part, and only inserts string indexes that don't exist on rv1)
+e2function table table:add( table rv2 )
+	local ret = table.Copy(this)
+	local cost = this.size
+	local size = this.size
+
+	for k,v in pairs( rv2.n ) do
+		cost = cost + 1
+		local id = rv2.ntypes[k]
+		if (!blocked_types[id]) then
+			size = size + 1
+			ret.n[size] = v
+			ret.ntypes[size] = id
+		end
+	end
+
+	for k,v in pairs( rv2.s ) do
+		cost = cost + 1
+		if (!ret.s[k]) then
+			local id = rv2.stypes[k]
+			if (!blocked_types[id]) then
+				size = size + 1
+				ret.s[k] = v
+				ret.stypes[k] = id
+			end
+		end
+	end
+
+	self.prf = self.prf + cost * opcost
+	if (checkdepth( ret, 0, false ) > maxdepth()) then
+		self.prf = self.prf + 500 -- Punishment
+		return table.Copy(DEFAULT)
+	end
+	ret.size = size
+	return ret
+end
+
+-- Merges rv2 with 'this' (both numerical and string indexes are overwritten)
+e2function table table:merge( table rv2 )
+	local ret = table.Copy(this)
+	local cost = this.size
+	local size = this.size
+
+	for k,v in pairs( rv2.n ) do
+		cost = cost + 1
+		local id = rv2.ntypes[k]
+		if (!blocked_types[id]) then
+			if (!ret.n[k]) then size = size + 1 end
+			ret.n[k] = v
+			ret.ntypes[k] = id
+		end
+	end
+
+	for k,v in pairs( rv2.s ) do
+		cost = cost + 1
+		local id = rv2.stypes[k]
+		if (!blocked_types[id]) then
+			if (!ret.s[k]) then size = size + 1 end
+			ret.s[k] = v
+			ret.stypes[k] = id
+		end
+	end
+
+	self.prf = self.prf + cost * opcost
+	if (checkdepth( ret, 0, false ) > maxdepth()) then
+		self.prf = self.prf + 500 -- Punishment
+		return table.Copy(DEFAULT)
+	end
+	ret.size = size
+	return ret
+end
+
+-- Removes all variables from 'this' which have keys which exist in rv2
+e2function table table:difference( table rv2 )
+	local ret = table.Copy(DEFAULT)
+	local cost = 0
+	local size = 0
+
+	for k,v in pairs( this.n ) do
+		cost = cost + 1
+		if (!rv2.n[k]) then
+			size = size + 1
+			ret.n[size] = v
+			ret.ntypes[size] = this.ntypes[k]
+		end
+	end
+
+	for k,v in pairs( this.s ) do
+		cost = cost + 1
+		if (!rv2.s[k]) then
+			size = size + 1
+			ret.s[size] = v
+			ret.stypes[size] = this.stypes[k]
+		end
+	end
+	self.prf = self.prf + cost * opcost
+	ret.size = size
+
+	return ret
+end
+
+-- Removes all variables from 'this' which don't have keys which exist in rv2
+e2function table table:intersect( table rv2 )
+	local ret = table.Copy(DEFAULT)
+	local cost = 0
+	local size = 0
+
+	for k,v in pairs( this.n ) do
+		cost = cost + 1
+		if (rv2.n[k]) then
+			size = size + 1
+			ret.n[size] = v
+			ret.ntypes[size] = this.ntypes[k]
+		end
+	end
+
+	for k,v in pairs( this.s ) do
+		cost = cost + 1
+		if (rv2.s[k]) then
+			size = size + 1
+			ret.s[size] = v
+			ret.stypes[size] = this.stypes[k]
+		end
+	end
+	self.prf = self.prf + cost * opcost
+	ret.size = size
+
+	return ret
+end
+
 --------------------------------------------------------------------------------
 -- Array-part-only functions
 --------------------------------------------------------------------------------
@@ -751,7 +751,7 @@ e2function array table:typeidsArray()
 	return table.Copy(this.ntypes)
 end
 
--- Converts an table into an array
+-- Converts the table into an array
 e2function array table:toArray()
 	if (IsEmpty(this.n)) then return {} end
 	local ret = {}

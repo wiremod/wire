@@ -4,6 +4,40 @@ local isOwner      = E2Lib.isOwner
 local Clamp        = math.Clamp
 local seq = table.IsSequential
 
+
+/******************************************************************************/
+
+local print_delay = 0.3
+local print_max = 15
+
+local print_delays = {}
+
+timer.Create("e2_printcolor_delays",print_delay,0,function()
+	for k,v in pairs( print_delays ) do
+		if (k and k:IsValid() and k:IsPlayer()) then
+			if (print_delays[k] < print_max) then
+				print_delays[k] = print_delays[k] + 1
+			end
+		else
+			print_delays[k] = nil
+		end
+	end
+end)
+
+local function check_delay( ply )
+	if (!print_delays[ply]) then
+		print_delays[ply] = print_max - 1
+		return true
+	end
+
+	if (print_delays[ply] > 0) then
+		print_delays[ply] = print_delays[ply] - 1
+		return true
+	end
+
+	return false
+end
+
 /******************************************************************************/
 
 local function SpecialCase( arg )
@@ -61,6 +95,8 @@ e2function number entity:printDriver(string text)
 	local driver = this:GetDriver()
 	if not validEntity(driver) then return 0 end
 
+	if (!check_delay( self.player )) then return 0 end
+
 	driver:ChatPrint(text)
 	return 1
 end
@@ -81,6 +117,8 @@ e2function number entity:hintDriver(string text, duration)
 
 	local driver = this:GetDriver()
 	if not validEntity(driver) then return 0 end
+
+	if (!check_delay( self.player )) then return 0 end
 
 	WireLib.AddNotify(driver, text, NOTIFY_GENERIC, Clamp(duration,0.7,7))
 	return 1
@@ -113,6 +151,8 @@ e2function number entity:printDriver(print_type, string text)
 	local driver = this:GetDriver()
 	if not validEntity(driver) then return 0 end
 
+	if (!check_delay( self.player )) then return 0 end
+
 	driver:PrintMessage(print_type, text)
 	return 1
 end
@@ -138,40 +178,11 @@ e2function void printTable(array arr)
 	msgbuf = nil
 end
 
+-- The printTable(T) function is in table.lua because it uses a local function
+
 /******************************************************************************/
 
 __e2setcost(100)
-
-local print_delay = 0.5
-local print_max = 10
-
-local print_delays = {}
-
-timer.Create("e2_printcolor_delays",print_delay,0,function()
-	for k,v in pairs( print_delays ) do
-		if (k and k:IsValid() and k:IsPlayer()) then
-			if (print_delays[k] < print_max) then
-				print_delays[k] = print_delays[k] + 1
-			end
-		else
-			print_delays[k] = nil
-		end
-	end
-end)
-
-local function check_delay( ply )
-	if (!print_delays[ply]) then
-		print_delays[ply] = print_max - 1
-		return true
-	end
-
-	if (print_delays[ply] > 0) then
-		print_delays[ply] = print_delays[ply] - 1
-		return true
-	end
-
-	return false
-end
 
 local printColor_typeids = {
 	n = tostring,
@@ -182,8 +193,6 @@ local printColor_typeids = {
 }
 
 local function printColorVarArg(chip, ply, typeids, ...)
-	if (!check_delay( ply )) then return end
-
 	local send_array = { ... }
 
 	for i,tp in ipairs(typeids) do
@@ -250,6 +259,8 @@ e2function void entity:printColorDriver(...)
 	local driver = this:GetDriver()
 	if not validEntity(driver) then return end
 
+	if (!check_delay( self.player )) then return 0 end
+
 	printColorVarArg(self.entity, driver, typeids, ...)
 end
 
@@ -261,6 +272,8 @@ e2function void entity:printColorDriver(array arr)
 
 	local driver = this:GetDriver()
 	if not validEntity(driver) then return end
+
+	if (!check_delay( self.player )) then return 0 end
 
 	printColorArray(self.entity, driver, arr)
 end
