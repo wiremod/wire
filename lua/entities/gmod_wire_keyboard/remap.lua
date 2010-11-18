@@ -206,7 +206,7 @@ remap[KEY_EQUAL] 		= "+"
 Wire_Keyboard_Remap.British = {}
 Wire_Keyboard_Remap.British = table.Copy(Wire_Keyboard_Remap.American)
 Wire_Keyboard_Remap.British[83] = {}
-Wire_Keyboard_Remap.Swedish[KEY_RSHIFT] = Wire_Keyboard_Remap.Swedish[KEY_LSHIFT]
+Wire_Keyboard_Remap.British[KEY_RSHIFT] = Wire_Keyboard_Remap.British[KEY_LSHIFT]
 
 local remap = Wire_Keyboard_Remap.British.normal
 remap[KEY_BACKQUOTE] = "'"
@@ -295,13 +295,14 @@ local remap = Wire_Keyboard_Remap.Norwegian.normal
 remap[KEY_BACKQUOTE] 	= "ø"
 remap[KEY_APOSTROPHE] 	= "æ"
 remap[KEY_BACKSLASH] 	= "|"
-remap[KEY_SLASH] 		= "\\"
+remap[KEY_LBRACKET] 	= "\\"
 
 local remap = Wire_Keyboard_Remap.Norwegian[KEY_LSHIFT]
-
-local remap = Wire_Keyboard_Remap.Norwegian[83]
 remap[KEY_BACKQUOTE] 	= "Ø"
 remap[KEY_APOSTROPHE] 	= "Æ"
+remap[KEY_BACKSLASH] 	= "§"
+
+local remap = Wire_Keyboard_Remap.Norwegian[83]
 remap[KEY_EQUAL] = nil
 remap[KEY_M] = "µ"
-remap[KEY_SLASH] 		= "´"
+remap[KEY_LBRACKET] 		= "´"
