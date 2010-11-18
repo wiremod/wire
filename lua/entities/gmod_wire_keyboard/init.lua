@@ -1,8 +1,8 @@
 AddCSLuaFile("cl_init.lua")
 AddCSLuaFile("shared.lua")
+AddCSLuaFile("remap.lua")
 
 include('shared.lua')
-include('remap.lua')
 
 ENT.WireDebugName = "Wired Keyboard"
 ENT.OverlayDelay = 0
@@ -49,7 +49,7 @@ function ENT:Initialize()
 	self.InUse = false
 	self.IgnoredFirstChar = false
 	self:SetOverlayText("Keyboard - not in use")
-	Wire_TriggerOutput(self.Entity, "InUse", 0)
+	WireLib.TriggerOutput(self, "InUse", 0)
 end
 
 
@@ -112,10 +112,10 @@ function ENT:Switch(on, key)
 			if (self.InUse) then
 				self.Buffer[0] = self.Buffer[0] + 1
 				self.Buffer[self.Buffer[0]] = key
-				Wire_TriggerOutput(self.Entity, "Memory", key)
+				WireLib.TriggerOutput(self, "Memory", key)
 			end
 		else
-			Wire_TriggerOutput(self.Entity, "Memory", 0)
+			WireLib.TriggerOutput(self, "Memory", 0)
 			for i = 1,self.Buffer[0] do
 				if (self.Buffer[i] == key) then
 					self.Buffer[0] = self.Buffer[0] - 1
@@ -144,8 +144,8 @@ end)
 local function Wire_KeyOff(pl)
 	local prev_ent = KeyBoardPlayerKeys[pl:EntIndex()]
 	if (prev_ent) && (prev_ent:IsValid()) && (prev_ent.InUse) then
-		Wire_TriggerOutput(prev_ent, "User", NULL)
-		Wire_TriggerOutput(prev_ent, "InUse", 0)
+		WireLib.TriggerOutput(prev_ent, "User", NULL)
+		WireLib.TriggerOutput(prev_ent, "InUse", 0)
 		prev_ent.InUse = false
 		prev_ent:SetOverlayText("Keyboard - not in use")
 	end
@@ -159,7 +159,6 @@ end
 local function Wire_KeyOn(pl, ent)
 	local prev_ent = KeyBoardPlayerKeys[pl:EntIndex()]
 	if prev_ent and prev_ent.InUse then return end -- If the player is already using the keyboard, don't use another one
-
 	KeyBoardPlayerKeys[pl:EntIndex()] = ent
 
 	umsg.Start("wire_keyboard_blockinput", pl) umsg.End()
@@ -173,15 +172,14 @@ end
 function ENT:PlayerAttach(pl)
 	if self.InUse then return end -- If the keyboard is already in use, don't attach the player
 	if self.lock == 1 then return end -- If the keyboard is locked, don't attach the player
-
 	self.InUse = true
 	self.IgnoredFirstChar = false
 	self.InUseBy = pl
-	Wire_TriggerOutput(self.Entity, "User", pl.Entity)
-	Wire_TriggerOutput(self.Entity, "InUse", 1)
+	WireLib.TriggerOutput(self, "User", pl.Entity)
+	WireLib.TriggerOutput(self, "InUse", 1)
 
 	self:SetOverlayText("Keyboard - In use by " .. pl:GetName())
-	Wire_KeyOn(pl, self.Entity)
+	Wire_KeyOn(pl, self)
 end
 
 function ENT:PlayerDetach(pl)
@@ -202,7 +200,10 @@ end
 
 
 concommand.Add("wire_keyboard_press", function(pl, cmd, args)
-	local key = tonumber(args[2])
+	local ascii = tonumber(args[2])
+	local key_enum = tonumber(args[3])
+
+	--print("Received key: " .. string.char(ascii) .. " - " .. tostring(ascii) .. " - enum: " .. tostring(key_enum) .. " - p/r: " .. tostring(args[1]))
 
 	if (!KeyBoardPlayerKeys[pl:EntIndex()]) then return end
 	local ent = KeyBoardPlayerKeys[pl:EntIndex()]
@@ -215,39 +216,26 @@ concommand.Add("wire_keyboard_press", function(pl, cmd, args)
 		return
 	end
 
-	if (key == KEY_RALT) || (key == KEY_LALT) then
-		ent:PlayerDetach(pl)
-		return
-	end
-
-	//Get normalized/ASCII key
-	local nkey
-	if (Keyboard_ReMap[key]) then nkey = Keyboard_ReMap[key]
-	else nkey = 0 end
-
-	if (ent.On[21] == true) then
-		if (Keyboard_CaseReMap[string.char(nkey)]) then
-			nkey = string.byte(Keyboard_CaseReMap[string.char(nkey)])
-		end
-	end
-
 	if (ent.IgnoredFirstChar == false) then
 		ent.IgnoredFirstChar = true
 		return
 	end
 
-	//Msg("Received key press ("..string.char(nkey)..") for player "..pl:EntIndex()..", entity "..ent:EntIndex().."\n")
+	if (key_enum == KEY_LALT and args[1] == "p" and !ent.On[158]) then
+		ent:PlayerDetach(pl)
+		return
+	end
 
 	if (args[1] == "p") then
-		if (key == KEY_LCONTROL) || (key == KEY_RCONTROL) then ent:Switch(true,16) end
-		if (key == KEY_LSHIFT) || (key == KEY_RSHIFT) then ent:Switch(true,21) end
+		if (key_enum == KEY_LCONTROL) || (key_enum == KEY_RCONTROL) then ent:Switch(true,16) end
+		if (key_enum == KEY_LSHIFT) || (key_enum == KEY_RSHIFT) then ent:Switch(true,21) end
 
-		ent:Switch(true,nkey)
+		ent:Switch(true,ascii)
 	else
-		if (key == KEY_LCONTROL) || (key == KEY_RCONTROL) then ent:Switch(false,16) end
-		if (key == KEY_LSHIFT) || (key == KEY_RSHIFT) then ent:Switch(false,21) end
+		if (key_enum == KEY_LCONTROL) || (key_enum == KEY_RCONTROL) then ent:Switch(false,16) end
+		if (key_enum == KEY_LSHIFT) || (key_enum == KEY_RSHIFT) then ent:Switch(false,21) end
 
-		ent:Switch(false,nkey)
+		ent:Switch(false,ascii)
 	end
 end)
 

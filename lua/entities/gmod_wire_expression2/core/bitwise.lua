@@ -1,5 +1,8 @@
 --   By asiekierka,  2009   --
 --Non-luabit XOR by TomyLobo--
+
+__e2setcost(2)
+
 e2function number bAnd(a, b)
 	return (a & b)
 end
@@ -10,12 +13,10 @@ e2function number bXor(a, b)
 	return (a | b) & (-1-(a & b))
 end
 e2function number bShr(a, b)
-	RunString(string.format("garry_sucks = %d >> %d", a, b))
-	return garry_sucks
+	return a >> b
 end
 e2function number bShl(a, b)
-	RunString(string.format("garry_sucks = %d << %d", a, b))
-	return garry_sucks
+	return a << b
 end
 e2function number bNot(n)
 	return (-1)-n
@@ -27,3 +28,5 @@ e2function number bNot(n,bits)
 		return (math.pow(2,bits)-1)-n
 	end
 end
+
+__e2setcost(nil)

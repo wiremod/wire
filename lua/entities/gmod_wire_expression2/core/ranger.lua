@@ -15,6 +15,7 @@ local function ResetRanger(self)
 	data.rangerwater = false
 	data.rangerentities = true
 	data.rangerfilter = { self.entity }
+	data.rangerfilter_lookup = { [self.entity] = true }
 end
 
 local function ranger(self, rangertype, range, p1, p2, hulltype, mins, maxs )
@@ -203,37 +204,31 @@ e2function void rangerDefaultZero(defaultzero)
 	self.data.rangerdefaultzero = defaultzero ~= 0
 end
 
+__e2setcost(10)
+
 --- Feed entities you don't want the trace to hit
 e2function void rangerFilter(entity ent)
-	if validEntity(ent) then
-		table.insert(self.data.rangerfilter,ent)
-		local n = #self.data.rangerfilter
-		if (n > 1000) then
-			if (n > 100000) then
-				error("Ranger filter spam. E2 halted.")
-			end
-			self.prf = self.prf + 50
-		end
+	if validEntity(ent) and !self.data.rangerfilter_lookup[ent] then
+		local n = #self.data.rangerfilter+1
+		self.data.rangerfilter[n] = ent
+		self.data.rangerfilter_lookup[ent] = true
 	end
 end
 
-__e2setcost(5)
+__e2setcost(1)
 
 --- Feed an array of entities you don't want the trace to hit
 e2function void rangerFilter(array filter)
 	local rangerfilter = self.data.rangerfilter
+	local n = #rangerfilter
 	for _,ent in ipairs(filter) do
-		if validEntity(ent) then
-			table.insert(rangerfilter,ent)
+		if validEntity(ent) and !self.data.rangerfilter_lookup[ent] then
+			n = n + 1
+			rangerfilter[n] = ent
+			self.data.rangerfilter_lookup[ent] = true
 		end
 	end
-	local n = #self.data.rangerfilter
-	if (n > 1000) then
-		if (n > 100000) then
-			error("Ranger filter spam. E2 halted.")
-		end
-		self.prf = self.prf + #filter
-	end
+	self.prf = self.prf + #filter * 10
 end
 
 /******************************************************************************/
