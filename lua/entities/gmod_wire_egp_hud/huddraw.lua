@@ -18,6 +18,9 @@ hook.Add("Initialize","EGP_HUD_Initialize",function()
 					ent.On = nil
 					LocalPlayer():ChatPrint("[EGP] EGP HUD Disconnected.")
 				else
+					if (!table.HasValue( tbl, ent )) then -- strange... this entity should be in the table. Might have gotten removed due to a lagspike. Add it again
+						EGP:AddHUDEGP( ent )
+					end
 					ent.On = true
 					if (EGP_HUD_FirstPrint) then
 						LocalPlayer():ChatPrint("[EGP] EGP HUD Connected. NOTE: Type 'wire_egp_hud_unlink' in console to disconnect yourself from all EGP HUDs.")
@@ -45,7 +48,9 @@ hook.Add("Initialize","EGP_HUD_Initialize",function()
 		-- Add / Remove HUD Entities
 		--------------------------------------------------------
 		function EGP:AddHUDEGP( Ent )
-			table.insert( tbl, Ent )
+			if (!table.HasValue( tbl, Ent )) then
+				tbl[#tbl+1] = Ent
+			end
 		end
 
 		function EGP:RemoveHUDEGP( Ent )

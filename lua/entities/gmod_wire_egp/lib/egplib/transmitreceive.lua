@@ -644,7 +644,7 @@ if (SERVER) then
 		for k,v in ipairs( targets ) do
 			if (v.RenderTable and #v.RenderTable>0) then
 				local DataToSend2 = {}
-				for k2, v2 in ipairs( v.RenderTable ) do
+				for k2, v2 in pairs( v.RenderTable ) do
 					DataToSend2[#DataToSend2+1] = { ID = v2.ID, index = v2.index, Settings = v2:DataStreamInfo() }
 				end
 				DataToSend[#DataToSend+1] = DataToSend, { Ent = v, Objects = DataToSend2 }
@@ -672,7 +672,7 @@ if (SERVER) then
 else
 
 	function EGP:ReceiveDataStream( decoded )
-		for k,v in ipairs( decoded ) do
+		for k,v in pairs( decoded ) do
 			local Ent = v.Ent
 			if (self:ValidEGP( Ent )) then
 				Ent.RenderTable = {}

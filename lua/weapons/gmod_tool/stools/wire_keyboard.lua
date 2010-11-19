@@ -20,6 +20,8 @@ end
 
 TOOL.ClientConVar[ "model" ] = "models/jaanus/wiretool/wiretool_input.mdl"
 TOOL.ClientConVar[ "sync" ] = "1"
+TOOL.ClientConVar[ "layout" ] = "American"
+
 
 cleanup.Register( "wire_keyboards" )
 
@@ -176,4 +178,16 @@ function TOOL.BuildCPanel(panel)
 	panel:AddControl( "CheckBox", { Label = "Synchronous keyboard",
 					 Description = "Pause user input when keyboard is active (clientside)",
 					 Command = "wire_keyboard_sync" } )
+
+	local txt = vgui.Create("DLabel")
+	txt:SetText("Keyboard language layout:")
+	txt:SetToolTip("If you would like to contribute your keyboard layout, so that it may be added, go post on the wiremod forums.")
+	panel:AddItem(txt)
+
+	local list = vgui.Create("DMultiChoice")
+	for k,v in pairs( Wire_Keyboard_Remap ) do
+		list:AddChoice( k )
+		list:SetConVar( "wire_keyboard_layout" )
+	end
+	panel:AddItem(list)
 end
