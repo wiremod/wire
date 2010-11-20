@@ -22,7 +22,7 @@ function ENT:_EGP_Update( bool )
 
 		self.GPU:RenderToGPU( function()
 			render.Clear( 0, 0, 0, 0 )
-			for k,v in ipairs( Table ) do
+			for k,v in pairs( Table ) do
 				if (v.parent == -1) then self.UpdateConstantly = true end -- Check if an object is parented to the cursor
 				if (v.parent and v.parent != 0) then
 					if (!v.IsParented) then EGP:SetParent( self, v.index, v.parent ) end

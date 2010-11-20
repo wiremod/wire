@@ -114,7 +114,6 @@ e2function table glonDecodeTable(string data)
 	data = string.Replace(data, "\7xwl", "\7xxx")
 
 	local ok, ret = pcall(glon.decode, data)
-	print("ok: " .. tostring(ok) .. " ret: " .. ret)
 	if not ok then
 		last_glon_error = ret
 		ErrorNoHalt("glon.decode error: "..ret)

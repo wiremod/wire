@@ -73,7 +73,7 @@ hook.Add("Initialize","EGP_HUD_Initialize",function()
 				else
 					if (v.On == true) then
 						if (v.RenderTable and #v.RenderTable > 0) then
-							for k2,v2 in ipairs( v.RenderTable ) do
+							for k2,v2 in pairs( v.RenderTable ) do
 								local oldtex = EGP:SetMaterial( v2.material )
 								v2:Draw()
 								EGP:FixMaterial( oldtex )

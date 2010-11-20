@@ -65,7 +65,7 @@ function ENT:Initialize()
 end
 
 function ENT:EGP_Update()
-	for k,v in ipairs( self.RenderTable ) do
+	for k,v in pairs( self.RenderTable ) do
 		if (v.res == nil) then v.res = false end
 		if (v.res != self.Resolution) then
 			self:ScaleObject( !v.res, v )
