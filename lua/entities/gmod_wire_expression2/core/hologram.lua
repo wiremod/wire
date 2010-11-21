@@ -27,39 +27,39 @@ local PlayerAmount = {}
 local BlockList = {}
 local ModelList = {
 	["cone"] = true,
-	["cube"] = true,
-	["dome"] = true,
-	["dome2"] = true,
-	["cylinder"] = true,
-	["hqcone"] = true,
-	["hqcylinder"] = true,
-	["hqcylinder2"] = true,
-	["hqicosphere"] = true,
-	["hqicosphere2"] = true,
-	["hqsphere"] = true,
-	["hqsphere2"] = true,
-	["hqtorus"] = true,
-	["hqtorus2"] = true,
-	["icosphere"] = true,
-	["icosphere2"] = true,
-	["icosphere3"] = true,
-	["prism"] = true,
-	["pyramid"] = true,
-	["plane"] = true,
-	["sphere"] = true,
-	["sphere2"] = true,
-	["sphere3"] = true,
-	["tetra"] = true,
+	["tube_thin"] = true,
+	["tube_thick"] = true,
+	["tube"] = true,
+	["torus_thin"] = true,
+	["torus_thick"] = true,
 	["torus"] = true,
-	["torus2"] = true,
-	["torus3"] = true
+	["sphere"] = true,
+	["rcylinder_thin"] = true,
+	["rcylinder_thick"] = true,
+	["rcylinder"] = true,
+	["rcube_thin"] = true,
+	["rcube_thick"] = true,
+	["rcube"] = true,
+	["icosphere"] = true,
+	["hdome_thin"] = true,
+	["hdome_thick"] = true,
+	["hdome"] = true,
+	["dome"] = true,
+	["cylinder"] = true,
+	["tetra"] = true,
+	["pyramid"] = true,
+	["prism"] = true,
+	["plane"] = true,
+	["cube"] = true
 }
 wire_holograms.ModelList = ModelList
 
 for k,_ in pairs( ModelList ) do
-	util.PrecacheModel( "models/Holograms/" .. k .. ".mdl" )
-	resource.AddSingleFile( "models/Holograms/" .. k .. ".mdl" )
+	util.PrecacheModel( "models/holograms/" .. k .. ".mdl" )
+	resource.AddFile( "models/holograms/" .. k .. ".mdl" )
 end
+
+resource.AddFile( "materials/models/holograms/holo.vmt" )
 
 /******************************************************************************/
 
@@ -671,6 +671,16 @@ e2function void holoShadow(index, has_shadow)
 end
 
 /******************************************************************************/
+
+e2function array holoModelList()
+	local mlist = {}
+
+	for m,_ in pairs( ModelList ) do
+		mlist[#mlist + 1] = m
+	end
+
+	return mlist
+end
 
 e2function void holoModel(index, string model)
 	local Holo = CheckIndex(self, index)
