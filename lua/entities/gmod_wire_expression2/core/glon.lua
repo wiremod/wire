@@ -69,6 +69,8 @@ e2function string glonEncode(table data) = e2function string glonEncode(array da
 
 __e2setcost(25)
 
+local exploitables = {}
+
 local function ExploitFix( self, tbl, checked )
 	if (!self or !tbl) then return true end
 
@@ -80,7 +82,7 @@ local function ExploitFix( self, tbl, checked )
 		self.prf = self.prf + 1
 		if (!checked[v]) then
 			checked[v] = true
-			if (exploitables[type(v)] and tbl.ntypes[k] != "e") then
+			if (exploitables[type(v)] or tbl.ntypes[k] == "e") then
 				ret = false
 			elseif (tbl.ntypes[k] == "t") then
 				local temp = ExploitFix( self, v, checked )
@@ -92,7 +94,7 @@ local function ExploitFix( self, tbl, checked )
 		self.prf = self.prf + 1
 		if (!checked[v]) then
 			checked[v] = true
-			if (exploitables[type(v)] and tbl.stypes[k] != "e") then
+			if (exploitables[type(v)] or tbl.stypes[k] == "e") then
 				ret = false
 			elseif (tbl.stypes[k] == "t") then
 				local temp = ExploitFix( self, v, checked )
