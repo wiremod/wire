@@ -40,7 +40,6 @@ local ModelList = {
 	["rcube_thin"] = true,
 	["rcube_thick"] = true,
 	["rcube"] = true,
-	["icosphere"] = true,
 	["hdome_thin"] = true,
 	["hdome_thick"] = true,
 	["hdome"] = true,
@@ -521,11 +520,11 @@ end
 __e2setcost(5)
 
 e2function number holoCanCreate()
-	if CheckSpawnTimer(self) and PlayerAmount[self.player] < GetConVar("wire_holograms_max"):GetInt() then
-		return 1
+	if CheckSpawnTimer(self) == false or PlayerAmount[self.player] >= GetConVar("wire_holograms_max"):GetInt() then
+		return 0
 	end
 
-	return 0
+	return 1
 end
 
 e2function number holoRemainingSpawns()
