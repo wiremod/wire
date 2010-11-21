@@ -49,6 +49,7 @@ local ModelList = {
 	["tetra"] = true,
 	["pyramid"] = true,
 	["prism"] = true,
+	["right_prism"] = true,
 	["plane"] = true,
 	["cube"] = true
 }
