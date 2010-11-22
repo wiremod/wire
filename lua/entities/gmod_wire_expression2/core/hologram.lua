@@ -61,7 +61,26 @@ local ModelList = {
 	["lq_sphere3"] = true,
 	["lq_torus1"] = true,
 	["lq_torus2"] = true,
-	["lq_torus3"] = true
+	["lq_torus3"] = true,
+
+	["sphere2"] = "sphere",
+	["sphere3"] = "sphere",
+	["icosphere"] = "sphere",
+	["icosphere2"] = "sphere",
+	["icosphere3"] = "sphere",
+	["hqsphere"] = "sphere",
+	["hqsphere2"] = "sphere",
+	["hqicosphere"] = "sphere",
+	["hqicosphere2"] = "sphere",
+	["hqicosphere3"] = "sphere",
+	["hqcylinder"] = "cylinder",
+	["hqcylinder2"] = "cylinder",
+	["torus2"] = "torus",
+	["torus3"] = "torus",
+	["hqtorus"] = "torus",
+	["hqtorus2"] = "torus",
+	["hqcone"] = "cone",
+	["dome2"] = "hdome"
 }
 wire_holograms.ModelList = ModelList
 
@@ -79,6 +98,14 @@ local clip_queue = {}
 local vis_queue = {}
 
 wire_holograms.scale_queue = scale_queue
+
+local function hologram_depreciate(self)
+	if not self.data.holograms_depreciated_warned then
+		self.data.holograms_depreciated_warned = true
+		WireLib.AddNotify(self.player, "Warning: This E2 uses depreciated models. Please check the wiki for new model names.",
+			NOTIFY_ERROR, 5)
+	end
+end
 
 -- If no recipient is given, the umsg is sent to everyone (umsg.Start does that)
 local function flush_scale_queue(queue, recipient)
@@ -352,6 +379,10 @@ local function CreateHolo(self, index, pos, scale, ang, color, model)
 	if not scale then scale = Vector(1,1,1) end
 	if not ang   then ang   = self.entity:GetAngles() end
 	if not model or not ModelList[model] then model = "cube" end
+	if type(ModelList[model]) == "string" then
+		model = ModelList[model]
+		hologram_depreciate(self)
+	end
 
 	local Holo = CheckIndex(self, index)
 	if not Holo then
@@ -518,6 +549,10 @@ end
 
 e2function void holoReset(index, string model, vector scale, vector color, string color)
 	if !ModelList[model] then return end
+	if type(ModelList[model]) == "string" then
+		model = ModelList[model]
+		hologram_depreciate(self)
+	end
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
 
@@ -697,6 +732,10 @@ e2function void holoModel(index, string model)
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
 	if !ModelList[model] then return end
+	if type(ModelList[model]) == "string" then
+		model = ModelList[model]
+		hologram_depreciate(self)
+	end
 
 	Holo.ent:SetModel( Model( "models/Holograms/"..model..".mdl") )
 end
@@ -709,6 +748,10 @@ e2function void holoModel(index, string model, skin)
 	Holo.ent:SetSkin(skin)
 
 	if !ModelList[model] then return end
+	if type(ModelList[model]) == "string" then
+		model = ModelList[model]
+		hologram_depreciate(self)
+	end
 
 	Holo.ent:SetModel( Model( "models/Holograms/"..model..".mdl") )
 end
