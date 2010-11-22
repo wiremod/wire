@@ -50,7 +50,18 @@ local ModelList = {
 	["prism"] = true,
 	["right_prism"] = true,
 	["plane"] = true,
-	["cube"] = true
+	["cube"] = true,
+	["lq_cone"] = true,
+	["lq_cylinder"] = true,
+	["lq_icosphere1"] = true,
+	["lq_icosphere2"] = true,
+	["lq_icosphere3"] = true,
+	["lq_sphere1"] = true,
+	["lq_sphere2"] = true,
+	["lq_sphere3"] = true,
+	["lq_torus1"] = true,
+	["lq_torus2"] = true,
+	["lq_torus3"] = true
 }
 wire_holograms.ModelList = ModelList
 
