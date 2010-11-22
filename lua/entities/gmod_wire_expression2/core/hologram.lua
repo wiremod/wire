@@ -599,10 +599,11 @@ e2function void holoScaleUnits(index, vector size)
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
 
+	local offset = 0.5
 	local propsize = Holo.ent:OBBMaxs() - Holo.ent:OBBMins()
-	local x = size[1] / propsize.x
-	local y = size[2] / propsize.y
-	local z = size[3] / propsize.z
+	local x = (size[1] / (propsize.x - offset) - 0.025)
+	local y = (size[2] / (propsize.y - offset) - 0.025)
+	local z = (size[3] / (propsize.z - offset) - 0.025)
 
 	rescale(Holo, Vector(x, y, z))
 end
@@ -611,10 +612,15 @@ e2function vector holoScaleUnits(index)
 	local Holo = CheckIndex(self, index)
 	if not Holo then return {0,0,0} end
 
+	local offset = 0.5
 	local scale = Holo.scale or {0,0,0} -- TODO: maybe {1,1,1}?
 	local propsize = Holo.ent:OBBMaxs() - Holo.ent:OBBMins()
 
-	return Vector(scale[1] * propsize.x, scale[2] * propsize.y, scale[3] * propsize.z)
+	return Vector(
+		scale[1] * (propsize.x + offset),
+		scale[2] * (propsize.y + offset),
+		scale[3] * (propsize.z + offset)
+	)
 end
 
 e2function number holoClipsAvailable()
