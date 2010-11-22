@@ -370,58 +370,43 @@ __e2setcost(5)
 local gmatch = string.gmatch
 local sub = string.sub
 local Right = string.Right
+local find = string.find
 
 --- Splits the string into an array, along the boundaries formed by the string <pattern>. See also [[string.Explode]]
-e2function array string:explode(string pattern)
+e2function array string:explode(string delim)
 	if (this == "") then return {} end
-
-	if (pattern == "") then -- Quicker loop for when the pattern is empty
-		local ret = {}
-		for i=1,#this do
-			ret[i] = this:sub(i,i)
+    if (delim == "") then -- Quicker loop for when the delim is empty
+        local ret = {}
+        for i=1,#this do
+            ret[i] = this:sub(i,i)
+        end
+		self.prf = self.prf + #this / 2
+        return ret
+    elseif (#delim == 1) then -- Quicker loop when delim is 1 char
+        local ret = {}
+        local _delim, count = delim, 0
+        if (specialchars[delim]) then delim = "%" .. delim end
+        for word in this:gmatch( "[^" .. delim .. "]+" ) do
 			self.prf = self.prf + 0.5
-		end
-		return ret
-	else
-
-		-- Get first letter
-		local firstletter = pattern:sub(1,1)
-		local _firstletter = firstletter
-
-		-- Check if the first letter is a special regex char
-		if (specialchars[firstletter]) then firstletter = "%" .. firstletter end
-
-		-- Get other letters
-		local otherletters = pattern:Right(-2)
-		local len = #otherletters
-
-		-- Other vars...
-		local first = true
-		local ret = {}
-
-		-- Loop
-		for word in this:gmatch( "[^".. firstletter .."]+" ) do
-			if (word:Left(len) == otherletters) then -- Check if we need to explode here
-				ret[#ret+1] = word:Right(-(1+len)) -- Add the word minus 'otherletters'
-			else -- We didn't need to explode there
-				if (first) then -- First time around?
-					ret[#ret+1] = word -- Add just the word
-				else
-					ret[#ret] = (ret[#ret] or "") .. _firstletter .. word -- Append the word plus the first letter to whatever was there before
-				end
-			end
-			first = false
+            count = count + 1
+            ret[count] = word
+        end
+        return ret
+    else -- Thanks to Deco Da Man for making this part
+        local res = {}
+        local count, newpos, pos, start = 1, 0
+        repeat
+            pos = newpos+1
+            start, newpos = this:find( delim, pos, true )
+            res[count] = this:sub( pos, (start or 0)-1)
+            count = count + 1
 			self.prf = self.prf + 0.5
-		end
-
-		return ret
-
-	end
-
-	return {} -- shouldn't ever get down here
+        until not start
+        return res
+    end
 end
 
-__e2setcost(20)
+__e2setcost(10)
 
 --- Returns a reversed version of <this>
 e2function string string:reverse()
