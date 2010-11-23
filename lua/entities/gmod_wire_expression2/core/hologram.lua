@@ -106,6 +106,7 @@ local function hologram_depreciate(self)
 			NOTIFY_ERROR, 5)
 	end
 end
+wire_holograms.hologram_depreciate = hologram_depreciate
 
 -- If no recipient is given, the umsg is sent to everyone (umsg.Start does that)
 local function flush_scale_queue(queue, recipient)
@@ -203,7 +204,7 @@ registerCallback("postexecute", function(self)
 	flush_clip_queue()
 	flush_vis_queue()
 
-	scale_queue = {}
+	table.Empty(scale_queue) -- table.Empty clears the table without replacing its pointer. This is necessary for holoModel(-Any) in UWSVN to work
 	clip_queue = {}
 	vis_queue = {}
 end)
@@ -223,7 +224,7 @@ local function rescale(Holo, scale)
 	end
 end
 
-wire_holograms.recsale = rescale
+wire_holograms.rescale = rescale
 
 local function check_clip(Holo, idx)
 	Holo.clips = Holo.clips or {}
