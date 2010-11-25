@@ -416,11 +416,10 @@ to enable the cursor.]] )
 			Panel.Paint = function() end
 		end
 
-		self.Menu.TabHolder:AddSheet( Name, Panel, Icon, false, false, Description )
+		local Sheet = self.Menu.TabHolder:AddSheet( Name, Panel, Icon, false, false, Description )
 
 		local n = #self.Tabs+1
 
-		local Sheet = self.Menu.TabHolder.Items[#self.Menu.TabHolder.Items]
 		local OldFunc = Sheet.Tab.OnMousePressed
 		function Sheet.Tab:OnMousePressed(...)
 			if (!Menu:IsResizing()) then

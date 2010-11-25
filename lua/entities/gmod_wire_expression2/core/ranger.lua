@@ -252,8 +252,9 @@ end
 -- Same as ranger(distance) but for another entity
 e2function ranger entity:ranger(distance)
 	if not ValidEntity( this ) then return nil end
-	if not table.HasValue( self.data.rangerfilter, this ) then
+	if (!self.data.rangerfilter_lookup[this]) then
 		self.data.rangerfilter[#self.data.rangerfilter+1] = this
+		self.data.rangerfilter_lookup[this] = true
 	end
 	return ranger(self,3,distance,this:GetPos(),this:GetUp())
 end
@@ -398,8 +399,14 @@ e2function string ranger:hitGroup()
 	return hitgroup_enums[this.HitGroup] or ""
 end
 
+-- Returns the texture that the trace hits
+e2function string ranger:hitTexture()
+	if not this then return "" end
+	return this.HitTexture or ""
+end
+
 -- Helper table used for toTable
-local prefixes = {
+local ids = {
 	["FractionLeftSolid"] = "n",
 	["HitNonWorld"] = "n",
 	["Fraction"] = "n",
@@ -423,15 +430,22 @@ local prefixes = {
 	["HitBoxBone"] = "n"
 }
 
+local DEFAULT = {n={},ntypes={},s={},stypes={},size=0,istable=true,depth=0}
+
 -- Converts the ranger into a table. This allows you to manually get any and all raw data from the trace.
 e2function table ranger:toTable()
 	if not this then return {} end
-	local ret = {}
+	local ret = table.Copy(DEFAULT)
+	local size = 0
 	for k,v in pairs( this ) do
-		if (type(v) == "boolean") then v = v and 1 or 0 end
-		if (!prefixes[k]) then error("Invalid/Unknown traceres data (k: " .. k .. ". Please report to Divran at wiremod.com") end
-		ret[prefixes[k]..k] = v
+		if (ids[k]) then
+			if (type(v) == "boolean") then v = v and 1 or 0 end
+			ret.s[k] = v
+			ret.stypes[k] = ids[k]
+			size = size + 1
+		end
 	end
+	ret.size = size
 	return ret
 end
 
