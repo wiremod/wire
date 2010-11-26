@@ -27,69 +27,39 @@ local PlayerAmount = {}
 local BlockList = {}
 local ModelList = {
 	["cone"] = true,
-	["tube_thin"] = true,
-	["tube_thick"] = true,
-	["tube"] = true,
-	["torus_thin"] = true,
-	["torus_thick"] = true,
-	["torus"] = true,
-	["sphere"] = true,
-	["rcylinder_thin"] = true,
-	["rcylinder_thick"] = true,
-	["rcylinder"] = true,
-	["rcube_thin"] = true,
-	["rcube_thick"] = true,
-	["rcube"] = true,
-	["hdome_thin"] = true,
-	["hdome_thick"] = true,
-	["hdome"] = true,
-	["dome"] = true,
-	["cylinder"] = true,
-	["tetra"] = true,
-	["pyramid"] = true,
-	["prism"] = true,
-	["right_prism"] = true,
-	["plane"] = true,
 	["cube"] = true,
-	["lq_cone"] = true,
-	["lq_cylinder"] = true,
-	["lq_icosphere1"] = true,
-	["lq_icosphere2"] = true,
-	["lq_icosphere3"] = true,
-	["lq_sphere1"] = true,
-	["lq_sphere2"] = true,
-	["lq_sphere3"] = true,
-	["lq_torus1"] = true,
-	["lq_torus2"] = true,
-	["lq_torus3"] = true,
-
-	["sphere2"] = "sphere",
-	["sphere3"] = "sphere",
-	["icosphere"] = "sphere",
-	["icosphere2"] = "sphere",
-	["icosphere3"] = "sphere",
-	["hqsphere"] = "sphere",
-	["hqsphere2"] = "sphere",
-	["hqicosphere"] = "sphere",
-	["hqicosphere2"] = "sphere",
-	["hqicosphere3"] = "sphere",
-	["hqcylinder"] = "cylinder",
-	["hqcylinder2"] = "cylinder",
-	["torus2"] = "torus",
-	["torus3"] = "torus",
-	["hqtorus"] = "torus",
-	["hqtorus2"] = "torus",
-	["hqcone"] = "cone",
-	["dome2"] = "hdome"
+	["dome"] = true,
+	["dome2"] = true,
+	["cylinder"] = true,
+	["hqcone"] = true,
+	["hqcylinder"] = true,
+	["hqcylinder2"] = true,
+	["hqicosphere"] = true,
+	["hqicosphere2"] = true,
+	["hqsphere"] = true,
+	["hqsphere2"] = true,
+	["hqtorus"] = true,
+	["hqtorus2"] = true,
+	["icosphere"] = true,
+	["icosphere2"] = true,
+	["icosphere3"] = true,
+	["prism"] = true,
+	["pyramid"] = true,
+	["plane"] = true,
+	["sphere"] = true,
+	["sphere2"] = true,
+	["sphere3"] = true,
+	["tetra"] = true,
+	["torus"] = true,
+	["torus2"] = true,
+	["torus3"] = true
 }
 wire_holograms.ModelList = ModelList
 
 for k,_ in pairs( ModelList ) do
-	util.PrecacheModel( "models/holograms/" .. k .. ".mdl" )
-	resource.AddFile( "models/holograms/" .. k .. ".mdl" )
+	util.PrecacheModel( "models/Holograms/" .. k .. ".mdl" )
+	resource.AddSingleFile( "models/Holograms/" .. k .. ".mdl" )
 end
-
-resource.AddFile( "materials/models/holograms/holo.vmt" )
 
 /******************************************************************************/
 
@@ -98,15 +68,6 @@ local clip_queue = {}
 local vis_queue = {}
 
 wire_holograms.scale_queue = scale_queue
-
-local function hologram_depreciate(self)
-	if not self.data.holograms_depreciated_warned then
-		self.data.holograms_depreciated_warned = true
-		WireLib.AddNotify(self.player, "Warning: This E2 uses depreciated models. Please check the wiki for new model names.",
-			NOTIFY_ERROR, 5)
-	end
-end
-wire_holograms.hologram_depreciate = hologram_depreciate
 
 -- If no recipient is given, the umsg is sent to everyone (umsg.Start does that)
 local function flush_scale_queue(queue, recipient)
@@ -204,7 +165,7 @@ registerCallback("postexecute", function(self)
 	flush_clip_queue()
 	flush_vis_queue()
 
-	table.Empty(scale_queue) -- table.Empty clears the table without replacing its pointer. This is necessary for holoModel(-Any) in UWSVN to work
+	scale_queue = {}
 	clip_queue = {}
 	vis_queue = {}
 end)
@@ -224,7 +185,7 @@ local function rescale(Holo, scale)
 	end
 end
 
-wire_holograms.rescale = rescale
+wire_holograms.recsale = rescale
 
 local function check_clip(Holo, idx)
 	Holo.clips = Holo.clips or {}
@@ -380,10 +341,6 @@ local function CreateHolo(self, index, pos, scale, ang, color, model)
 	if not scale then scale = Vector(1,1,1) end
 	if not ang   then ang   = self.entity:GetAngles() end
 	if not model or not ModelList[model] then model = "cube" end
-	if type(ModelList[model]) == "string" then
-		model = ModelList[model]
-		hologram_depreciate(self)
-	end
 
 	local Holo = CheckIndex(self, index)
 	if not Holo then
@@ -550,10 +507,6 @@ end
 
 e2function void holoReset(index, string model, vector scale, vector color, string color)
 	if !ModelList[model] then return end
-	if type(ModelList[model]) == "string" then
-		model = ModelList[model]
-		hologram_depreciate(self)
-	end
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
 
@@ -568,8 +521,10 @@ __e2setcost(5)
 
 e2function number holoCanCreate()
 	if CheckSpawnTimer(self) == false or PlayerAmount[self.player] >= GetConVar("wire_holograms_max"):GetInt() then
+
 		return 0
 	end
+
 
 	return 1
 end
@@ -600,11 +555,10 @@ e2function void holoScaleUnits(index, vector size)
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
 
-	local offset = 0.5
 	local propsize = Holo.ent:OBBMaxs() - Holo.ent:OBBMins()
-	local x = (size[1] / (propsize.x - offset) - 0.025)
-	local y = (size[2] / (propsize.y - offset) - 0.025)
-	local z = (size[3] / (propsize.z - offset) - 0.025)
+	local x = size[1] / propsize.x
+	local y = size[2] / propsize.y
+	local z = size[3] / propsize.z
 
 	rescale(Holo, Vector(x, y, z))
 end
@@ -613,15 +567,10 @@ e2function vector holoScaleUnits(index)
 	local Holo = CheckIndex(self, index)
 	if not Holo then return {0,0,0} end
 
-	local offset = 0.5
 	local scale = Holo.scale or {0,0,0} -- TODO: maybe {1,1,1}?
 	local propsize = Holo.ent:OBBMaxs() - Holo.ent:OBBMins()
 
-	return Vector(
-		scale[1] * (propsize.x + offset),
-		scale[2] * (propsize.y + offset),
-		scale[3] * (propsize.z + offset)
-	)
+	return Vector(scale[1] * propsize.x, scale[2] * propsize.y, scale[3] * propsize.z)
 end
 
 e2function number holoClipsAvailable()
@@ -734,15 +683,10 @@ e2function array holoModelList()
 
 	return mlist
 end
-
 e2function void holoModel(index, string model)
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
 	if !ModelList[model] then return end
-	if type(ModelList[model]) == "string" then
-		model = ModelList[model]
-		hologram_depreciate(self)
-	end
 
 	Holo.ent:SetModel( Model( "models/Holograms/"..model..".mdl") )
 end
@@ -755,10 +699,6 @@ e2function void holoModel(index, string model, skin)
 	Holo.ent:SetSkin(skin)
 
 	if !ModelList[model] then return end
-	if type(ModelList[model]) == "string" then
-		model = ModelList[model]
-		hologram_depreciate(self)
-	end
 
 	Holo.ent:SetModel( Model( "models/Holograms/"..model..".mdl") )
 end
