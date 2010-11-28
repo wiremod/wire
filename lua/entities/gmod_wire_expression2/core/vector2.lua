@@ -470,7 +470,7 @@ registerFunction("toAngle", "xv2:", "n", function(self, args)
 end)
 
 e2function string toString(vector2 v)
-	return string.format("[%d,%d]",v[1],v[2])
+	return string.format("[%g,%g]",round(v[1],3),round(v[2],3))
 end
 
 e2function string vector2:toString() = e2function string toString(vector2 v)
@@ -1065,7 +1065,7 @@ end
 /******************************************************************************/
 
 e2function string toString(vector4 v)
-	return string.format("[%d,%d,%d,%d]",v[1],v[2],v[3],v[4])
+	return string.format("[%g,%g,%g,%g]",round(v[1],3),round(v[2],3),round(v[3],3),round(v[4],3))
 end
 e2function string vector4:toString() = e2function string toString(vector4 v)
 

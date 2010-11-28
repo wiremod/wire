@@ -21,13 +21,15 @@ function ENT:Initialize()
 end
 
 function ENT:Think()
+	self.BaseClass.Think( self )
 	local c = self.constraint
 	if(not (c and c:IsValid())) then return end;
 	local p1 = self:GetWPos(c:GetTable().Ent1, c:GetTable().Phys1, c:GetTable().LPos1)
 	local p2 = self:GetWPos(c:GetTable().Ent2, c:GetTable().Phys2, c:GetTable().LPos2)
-
-	Wire_TriggerOutput(self.Entity, "Length", (p1 - p2):Length())
+	self.current_length = (p1-p2):Length()
+	Wire_TriggerOutput(self.Entity, "Length", self.current_length)
 	self.Entity:NextThink(CurTime()+0.04)
+	self:SetOverlayText( "Hydraulic Length : " .. self.current_length .. "\nConstant: " .. (self.current_constant or "-") .. "\nDamping: " .. (self.current_damping or "-") )
 end
 
 function ENT:Setup()
@@ -58,11 +60,11 @@ function ENT:SetConstraint( c )
 
 	self.current_length = dist:Length()
 
-	self:SetOverlayText( "Hydraulic length : " .. self.current_length .. "\nConstant: -\nDamping: -" )
 	WireLib.TriggerOutput( self.Entity, "Constant", self.constraint:GetKeyValues().constant )
 	WireLib.TriggerOutput( self.Entity, "Damping", self.constraint:GetKeyValues().damping )
 	self.constraint:Fire("SetSpringLength", self.current_length, 0)
 	if self.rope then self.rope:Fire("SetLength", self.current_length, 0) end
+	self:SetOverlayText( "Hydraulic length : " .. self.current_length .. "\nConstant: " .. (self.constraint:GetKeyValues().constant or "-") .. "\nDamping: " .. (self.constraint:GetKeyValues().damping or "-") )
 end
 
 
@@ -72,7 +74,7 @@ end
 
 
 function ENT:TriggerInput(iname, value)
-	if (!self.constraint) then return end
+	if (!self.constraint or !self.constraint:IsValid()) then return end
 	if (iname == "Length") then
 		self.current_length = math.max(value,1)
 		self.constraint:Fire("SetSpringLength", self.current_length)
@@ -89,13 +91,8 @@ function ENT:TriggerInput(iname, value)
 	self:SetOverlayText( "Hydraulic Length : " .. self.current_length .. "\nConstant: " .. (self.current_constant or "-") .. "\nDamping: " .. (self.current_damping or "-") )
 end
 
---[[
-function ENT:ShowOutput()
-
-end
-]]
-
-/*function ENT:BuildDupeInfo()
+--[[ apparently this is handled in the toolgun...
+function ENT:BuildDupeInfo()
 	local info = self.BaseClass.BuildDupeInfo(self) or {}
 
 	if (self.constraint) and (self.constraint:IsValid()) then
@@ -106,7 +103,7 @@ end
 	end
 
 	return info
-end*/
+end
 
 
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID, GetConstByID)
@@ -128,4 +125,5 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID, GetConstByID)
 		end
 	end
 end
+]]
 

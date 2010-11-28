@@ -6,193 +6,289 @@ include('shared.lua')
 
 ENT.WireDebugName = "Socket"
 
-local MODEL = Model( "models/props_lab/tpplugholder_single.mdl" )
-
-//Time after loosing one plug to search for another
+------------------------------------------------------------
+-- Helper functions & variables
+------------------------------------------------------------
 local NEW_PLUG_WAIT_TIME = 2
-local PLUG_IN_SOCKET_CONSTRAINT_POWER = 5000
-local PLUG_IN_ATTACH_RANGE = 3
+local LETTERS = { "A", "B", "C", "D", "E", "F", "G", "H" }
+local LETTERS_INV = {}
+for k,v in pairs( LETTERS ) do
+	LETTERS_INV[v] = k
+end
 
+------------------------------------------------------------
+-- Initialize
+------------------------------------------------------------
 function ENT:Initialize()
-	self.Entity:SetModel( MODEL )
-	self.Entity:PhysicsInit( SOLID_VPHYSICS )
-	self.Entity:SetMoveType( MOVETYPE_VPHYSICS )
-	self.Entity:SetSolid( SOLID_VPHYSICS )
-
-	self.MyPlug = nil
-	self.Const = nil
-
-	self.Inputs = Wire_CreateInputs(self.Entity, { "A","B","C","D","E","F","G","H" })
-	self.Outputs = Wire_CreateOutputs(self.Entity, { "A","B","C","D","E","F","G","H" })
+	self:PhysicsInit( SOLID_VPHYSICS )
+	self:SetMoveType( MOVETYPE_VPHYSICS )
+	self:SetSolid( SOLID_VPHYSICS )
 end
 
-function ENT:TriggerInput(iname, value)
-    if (self.MyPlug) and (self.MyPlug:IsValid()) then
-		self.MyPlug:SetValue(iname, value)
-	end
-	self:ShowOutput()
-end
+------------------------------------------------------------
+-- SetUp
+------------------------------------------------------------
+function ENT:SetUp( ArrayInput, WeldForce, AttachRange )
+	local old = self.ArrayInput
+	self.ArrayInput = ArrayInput or false
 
-function ENT:SetValue(index,value)
-	if (self.Const) and (self.Const:IsValid()) then
-		Wire_TriggerOutput(self.Entity, index, value)
-	else
-		Wire_TriggerOutput(self.Entity, index, 0)
-	end
-
-	self:ShowOutput()
-end
-
-function ENT:Setup()
-	self:ShowOutput()
-end
-
-function ENT:Think()
-	self.BaseClass.Think(self)
-
-	// If we were unplugged, reset the plug and socket to accept new ones.
-	if (self.Const) and (not self.Const:IsValid()) then
-		self.Const = nil
-		self.NoCollideConst = nil
-		if (self.MyPlug) and (self.MyPlug:IsValid()) then
-			self.MyPlug:SetSocket(nil)
-			self.MyPlug = nil
+	if (!self.Inputs or !self.Outputs or self.ArrayInput != old) then
+		if (self.ArrayInput) then
+			self.Inputs = WireLib.CreateInputs( self, { "In [ARRAY]" } )
+			self.Outputs = WireLib.CreateOutputs( self, { "Out [ARRAY]" } )
+		else
+			self.Inputs = WireLib.CreateInputs( self, LETTERS )
+			self.Outputs = WireLib.CreateOutputs( self, LETTERS )
 		end
-
-		self.ReceivedValue = 0 //We're now getting no signal
-		for i,v in pairs(self.Outputs)do
-		  Wire_TriggerOutput(self.Entity, v.Name, 0)
-		end
-		self:ShowOutput()
-
-		self.Entity:NextThink( CurTime() + NEW_PLUG_WAIT_TIME ) //Give time before next grabbing a plug.
-		return true
 	end
 
-	// If we have no plug in us
-	if (not self.MyPlug) or (not self.MyPlug:IsValid()) then
+	self.WeldForce = WeldForce or 5000
+	self.AttachRange = AttachRange or 5
+	self:SetNWInt( "AttachRange", self.AttachRange )
 
-		// Find entities near us
-		local sockCenter = self:GetOffset( Vector(8, -13, -10) )
-		local local_ents = ents.FindInSphere( sockCenter, PLUG_IN_ATTACH_RANGE )
-		for key, plug in pairs(local_ents) do
+	self:ShowOutput()
+end
 
-			// If we find a plug, try to attach it to us
-			if ( plug:IsValid() && plug:GetClass() == "gmod_wire_plug" ) then
+------------------------------------------------------------
+-- TriggerInput
+------------------------------------------------------------
+function ENT:TriggerInput( name, value )
+	if (self.Plug and self.Plug:IsValid()) then
+		self.Plug:SetValue( name, value )
+	end
+	self:ShowOutput()
+end
 
-				// If no other sockets are using it
-				if plug.MySocket == nil then
-				    local plugpos = plug:GetPos()
-					local dist = (sockCenter-plugpos):Length()
-
-					self:AttachPlug(plug)
+------------------------------------------------------------
+-- SetValue
+-- Recieve data from the plug
+------------------------------------------------------------
+function ENT:SetValue( name, value )
+	if (!self.Plug or !self.Plug:IsValid()) then return end
+	if (name == "In") then
+		if (self.ArrayInput) then -- Both have array
+			WireLib.TriggerOutput( self, "Out", table.Copy( value ) )
+		else -- Target has array, this does not
+			for i=1,#LETTERS do
+				local val = (value or {})[i]
+				if (val != nil and type(val) == "number") then
+					WireLib.TriggerOutput( self, LETTERS[i], val )
 				end
 			end
 		end
+	else
+		if (self.ArrayInput) then -- Target does not have array, this does
+			if (value != nil) then
+				local data = table.Copy( self.Outputs.Out.Value )
+				data[LETTERS_INV[name]] = value
+				WireLib.TriggerOutput( self, "Out", data )
+			end
+		else -- Niether have array
+			if (value != nil) then
+				WireLib.TriggerOutput( self, name, value )
+			end
+		end
 	end
-end
-
-function ENT:AttachPlug( plug )
-	// Set references between them
-	plug:SetSocket(self.Entity)
-	self.MyPlug = plug
-
-	// Position plug
-	local newpos = self:GetOffset( Vector(8, -13, -5) )
-	local socketAng = self.Entity:GetAngles()
-	plug:SetPos( newpos )
-	plug:SetAngles( socketAng )
-
-	self.NoCollideConst = constraint.NoCollide(self.Entity, plug, 0, 0)
-	if (not self.NoCollideConst) then
-	    self.MyPlug = nil
-		plug:SetSocket(nil)
-	    return
-	end
-
-	// Constrain together
-	self.Const = constraint.Weld( self.Entity, plug, 0, 0, PLUG_IN_SOCKET_CONSTRAINT_POWER, true )
-	if (not self.Const) then
-	    self.NoCollideConst:Remove()
-	    self.NoCollideConst = nil
-	    self.MyPlug = nil
-		plug:SetSocket(nil)
-	    return
-	end
-
-	// Prepare clearup incase one is removed
-	plug:DeleteOnRemove( self.Const )
-	self.Entity:DeleteOnRemove( self.Const )
-	self.Const:DeleteOnRemove( self.NoCollideConst )
-
-	for i,v in pairs(self.Inputs)do
-        plug:SetValue(v.Name,v.Value)
- 	end
-
-	plug:AttachedToSocket(self.Entity)
-
 	self:ShowOutput()
 end
 
-function ENT:ShowOutput()
-	self.OutText = "Socket"
-	if (self.Inputs) then
-		self.OutText = self.OutText .. "\nInputs: "
-		if (self.Inputs.A.Value) then
-			self.OutText = self.OutText .. " A:" .. self.Inputs.A.Value
-		end
-		if (self.Inputs.B.Value) then
-			self.OutText = self.OutText .. " B:" .. self.Inputs.B.Value
-		end
-		if (self.Inputs.C.Value) then
-			self.OutText = self.OutText .. " C:" .. self.Inputs.C.Value
-		end
-		if (self.Inputs.D.Value) then
-			self.OutText = self.OutText .. " D:" .. self.Inputs.D.Value
-		end
-		if (self.Inputs.E.Value) then
-			self.OutText = self.OutText .. " E:" .. self.Inputs.E.Value
-		end
-		if (self.Inputs.F.Value) then
-			self.OutText = self.OutText .. " F:" .. self.Inputs.F.Value
-		end
-		if (self.Inputs.G.Value) then
-			self.OutText = self.OutText .. " G:" .. self.Inputs.G.Value
-		end
-		if (self.Inputs.H.Value) then
-			self.OutText = self.OutText .. " H:" .. self.Inputs.H.Value
+------------------------------------------------------------
+-- ResetValues
+-- Resets all values
+------------------------------------------------------------
+function ENT:ResetValues()
+	if (self.ArrayInput) then
+		WireLib.TriggerOutput( self, "Out", {} )
+		WireLib.TriggerInput( self, "In", {} )
+	else
+		for i=1,#LETTERS do
+			WireLib.TriggerOutput( self, LETTERS[i], 0 )
+			WireLib.TriggerInput( self, LETTERS[i], 0 )
 		end
 	end
-	if (self.Outputs) then
-		self.OutText = self.OutText .. "\nOutputs: "
-		if (self.Outputs.A.Value) then
-			self.OutText = self.OutText .. " A:" .. self.Outputs.A.Value
-		end
-		if (self.Outputs.B.Value) then
-			self.OutText = self.OutText .. " B:" .. self.Outputs.B.Value
-		end
-		if (self.Outputs.C.Value) then
-			self.OutText = self.OutText .. " C:" .. self.Outputs.C.Value
-		end
-		if (self.Outputs.D.Value) then
-			self.OutText = self.OutText .. " D:" .. self.Outputs.D.Value
-		end
-		if (self.Outputs.E.Value) then
-			self.OutText = self.OutText .. " E:" .. self.Outputs.E.Value
-		end
-		if (self.Outputs.F.Value) then
-			self.OutText = self.OutText .. " F:" .. self.Outputs.F.Value
-		end
-		if (self.Outputs.G.Value) then
-			self.OutText = self.OutText .. " G:" .. self.Outputs.G.Value
-		end
-		if (self.Outputs.H.Value) then
-			self.OutText = self.OutText .. " H:" .. self.Outputs.H.Value
-		end
-	end
-	self:SetOverlayText(self.OutText)
+	self:ShowOutput()
 end
 
+------------------------------------------------------------
+-- Think
+-- Find nearby plugs and connect to them
+------------------------------------------------------------
+function ENT:Think()
+	self.BaseClass.Think(self)
+
+	if (!self.Plug or !self.Plug:IsValid()) then
+		local Pos, Ang = self:GetLinkPos()
+
+		local Closest = self:GetClosestPlug()
+
+		if (Closest and Closest:IsValid() and self:CanLink( Closest ) and !Closest:IsPlayerHolding() and Closest:GetClosestSocket() == self) then
+			self.Plug = Closest
+			Closest.Socket = self
+
+			-- Move
+			Closest:SetPos( Pos )
+			Closest:SetAngles( Ang )
+
+			-- Weld
+			local weld = constraint.Weld( self, Closest, 0, 0, self.WeldForce, true )
+			if (weld and weld:IsValid()) then
+				Closest:DeleteOnRemove( weld )
+				self:DeleteOnRemove( weld )
+				self.Weld = weld
+			end
+
+			-- Reset all values
+			Closest:ResetValues()
+			self:ResetValues()
+
+			self:SetNWBool( "Linked", true )
+		end
+
+		self:NextThink( CurTime() + 0.05 )
+		return true
+	else
+		if (self.Weld and !self.Weld:IsValid()) then -- Plug was unplugged
+			self.Weld = nil
+
+			self.Plug.Socket = nil
+			self.Plug:ResetValues()
+
+			self.Plug = nil
+			self:ResetValues()
+
+			self:SetNWBool( "Linked", false )
+
+			self:NextThink( CurTime() + NEW_PLUG_WAIT_TIME )
+			return true
+		end
+	end
+end
+
+------------------------------------------------------------
+-- ShowOutput
+-- Show all out and inputs
+------------------------------------------------------------
+function ENT:ShowOutput()
+	local OutText = "Socket [" .. self:EntIndex() .. "]\n"
+	if (self.ArrayInput) then
+		OutText = OutText .. "Array input/output. Showing the first 8 values.\nInputs:\n"
+		local n = 0
+		for k,v in pairs( self.Inputs.In.Value ) do
+			n = n + 1
+			if (n > 8) then break end
+			OutText = OutText .. k .. " = " .. v .. "\n"
+		end
+
+		OutText = OutText .. "Outputs:\n"
+		local n = 0
+		for k,v in pairs( self.Outputs.Out.Value ) do
+			n = n + 1
+			if (n > 8) then break end
+			OutText = OutText .. k .. " = " .. v .. "\n"
+		end
+	else
+		OutText = OutText .. "Inputs:\n"
+		for i=1,8 do
+			OutText = OutText .. LETTERS[i] .. " = " .. self.Inputs[LETTERS[i]].Value .. "\n"
+		end
+
+		OutText = OutText .. "Outputs:\n"
+		for i=1,8 do
+			OutText = OutText .. LETTERS[i] .. " = " .. self.Outputs[LETTERS[i]].Value .. "\n"
+		end
+	end
+	if (self.Plug and self.Plug:IsValid()) then
+		OutText = OutText .. "Linked to plug [" .. self.Plug:EntIndex() .. "]"
+	end
+	self:SetOverlayText(OutText)
+end
+
+
+------------------------------------------------------------
+-- Adv Duplicator Support
+------------------------------------------------------------
+function ENT:BuildDupeInfo()
+	local info = self.BaseClass.BuildDupeInfo(self) or {}
+
+	info.Socket = {}
+	info.Socket.ArrayInput = self.ArrayInput
+	info.Socket.WeldForce = self.WeldForce
+	info.Socket.AttachRange = self.AttachRange
+	if (self.Plug) then info.Socket.Plug = self.Plug:EntIndex() end
+
+	return info
+end
+
+local function FindConstraint( ent, plug )
+	timer.Simple(0.5,function( ent, plug )
+		if (ent and ent:IsValid() and plug and plug:IsValid()) then
+			local welds = constraint.FindConstraints( ent, "Weld" )
+			for k,v in pairs( welds ) do
+				if (v.Ent2 == plug) then
+					ent.Weld = v.Constraint
+					return
+				end
+			end
+			local welds = constraint.FindConstraints( plug, "Weld" )
+			for k,v in pairs( welds ) do
+				if (v.Ent2 == ent) then
+					ent.Weld = v.Constraint
+					return
+				end
+			end
+		end
+	end, ent, plug )
+end
+
+function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID, GetConstByID)
+	if (!ply:CheckLimit("wire_sockets")) then
+		ent:Remove()
+		return
+	end
+	ply:AddCount( "wire_sockets", ent )
+
+	if (info.Socket) then
+		ent:SetUp( info.Socket.ArrayInput, info.Socket.WeldForce, info.Socket.AttachRange )
+		if (info.Socket.Plug) then
+			local plug = GetEntByID( info.Socket.Plug )
+			if (plug and plug:IsValid()) then
+				ent.Plug = plug
+				plug.Socket = ent
+				ent.Weld = { ["IsValid"] = function() return true end }
+
+				if (GetConstByID) then
+					if (info.Socket.Weld) then
+						local weld = GetConstByID( info.Socket.Weld )
+						if (weld and weld:IsValid()) then
+							ent.Weld = weld
+						end
+					end
+				else
+					FindConstraint( ent, plug )
+				end
+			end
+		end
+	else -- OLD DUPES COMPATIBILITY
+		ent:SetUp() -- default values
+
+		-- Attempt to find connected plug
+		timer.Simple(0.5,function(ent)
+			local welds = constraint.FindConstraints( ent, "Weld" )
+			for k,v in pairs( welds ) do
+				if (v.Ent2:GetClass() == "gmod_wire_plug") then
+					ent.Plug = v.Ent2
+					v.Ent2.Socket = ent
+					ent.Weld = v.Constraint
+				end
+			end
+		end,ent)
+	end -- /OLD DUPES COMPATIBILITY
+
+	ent:SetPlayer( ply )
+	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
+end
+
+-- OnRestore
 function ENT:OnRestore()
 	self.BaseClass.OnRestore(self)
 end

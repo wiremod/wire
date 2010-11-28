@@ -309,7 +309,7 @@ if SERVER then
 		const:SetTable( ctable ) -- Shouldn't this be merged instead of replaced?
 
 		if (MyCrtl) then
-			Msg("finding crtl for this wired wnc const\n")
+			--Msg("finding crtl for this wired wnc const\n")
 			local controller = WireWinchTracking[ MyCrtl ]
 
 			SetWinchParameters(controller, const, rope)

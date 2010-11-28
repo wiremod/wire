@@ -756,9 +756,11 @@ end)
 
 __e2setcost( 5 )
 
+local round = math.Round
+
 --- Gets the vector nicely formatted as a string "[X,Y,Z]"
 e2function string toString(vector v)
-	return string.format("[%d,%d,%d]",v[1],v[2],v[3])
+	return string.format("[%g,%g,%g]",round(v[1],3),round(v[2],3),round(v[3],3))
 end
 
 --- Gets the vector nicely formatted as a string "[X,Y,Z]"

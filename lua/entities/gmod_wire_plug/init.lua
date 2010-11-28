@@ -4,127 +4,183 @@ AddCSLuaFile( "shared.lua" )
 
 include('shared.lua')
 
-local MODEL = Model( "models/props_lab/tpplug.mdl" )
-
 ENT.WireDebugName = "Plug"
 
+------------------------------------------------------------
+-- Helper functions & variables
+------------------------------------------------------------
+local LETTERS = { "A", "B", "C", "D", "E", "F", "G", "H" }
+local LETTERS_INV = {}
+for k,v in pairs( LETTERS ) do
+	LETTERS_INV[v] = k
+end
+
+------------------------------------------------------------
+-- Initialize
+------------------------------------------------------------
 function ENT:Initialize()
-	self.Entity:SetModel( MODEL )
-	self.Entity:PhysicsInit( SOLID_VPHYSICS )
-	self.Entity:SetMoveType( MOVETYPE_VPHYSICS )
-	self.Entity:SetSolid( SOLID_VPHYSICS )
-
-	self.MySocket = nil
-
-	self.Inputs = Wire_CreateInputs(self.Entity, { "A","B","C","D","E","F","G","H" })
-	self.Outputs = Wire_CreateOutputs(self.Entity, { "A","B","C","D","E","F","G","H" })
+	self:PhysicsInit( SOLID_VPHYSICS )
+	self:SetMoveType( MOVETYPE_VPHYSICS )
+	self:SetSolid( SOLID_VPHYSICS )
 end
 
-function ENT:SetValue(index,value)
-	if (self.MySocket.Const) and (self.MySocket.Const:IsValid()) then
-		Wire_TriggerOutput(self.Entity, index, value)
+------------------------------------------------------------
+-- SetUp
+------------------------------------------------------------
+function ENT:SetUp( ArrayInput )
+	self.ArrayInput = ArrayInput or false
+
+	if (!self.Inputs or !self.Outputs or self.ArrayInput != old) then
+		if (self.ArrayInput) then
+			self.Inputs = WireLib.CreateInputs( self, { "In [ARRAY]" } )
+			self.Outputs = WireLib.CreateOutputs( self, { "Out [ARRAY]" } )
+		else
+			self.Inputs = WireLib.CreateInputs( self, LETTERS )
+			self.Outputs = WireLib.CreateOutputs( self, LETTERS )
+		end
+	end
+
+	self:ShowOutput()
+end
+
+------------------------------------------------------------
+-- TriggerInput
+------------------------------------------------------------
+function ENT:TriggerInput( name, value )
+	if (self.Socket and self.Socket:IsValid()) then
+		self.Socket:SetValue( name, value )
+	end
+	self:ShowOutput()
+end
+
+------------------------------------------------------------
+-- SetValue
+-- Recieve data from the socket
+------------------------------------------------------------
+function ENT:SetValue( name, value )
+	if (!self.Socket or !self.Socket:IsValid()) then return end
+	if (name == "In") then
+		if (self.ArrayInput) then -- Both have array
+			WireLib.TriggerOutput( self, "Out", table.Copy( value ) )
+		else -- Target has array, this does not
+			for i=1,#LETTERS do
+				local val = (value or {})[i]
+				if (val != nil and type(val) == "number") then
+					WireLib.TriggerOutput( self, LETTERS[i], val )
+				end
+			end
+		end
 	else
-		Wire_TriggerOutput(self.Entity, index, 0)
-	end
-
-	self:ShowOutput()
-end
-
-function ENT:OnRemove()
-	self.BaseClass.Think(self)
-
-	if (self.MySocket) and (self.MySocket:IsValid()) then
-		self.MySocket.MyPlug = nil
-	end
-end
-
-function ENT:Setup()
-	self:ShowOutput()
-end
-
-function ENT:TriggerInput(iname, value)
-    if (self.MySocket) and (self.MySocket:IsValid()) then
-		self.MySocket:SetValue(iname, value)
+		if (self.ArrayInput) then -- Target does not have array, this does
+			if (value != nil) then
+				local data = table.Copy( self.Outputs.Out.Value )
+				data[LETTERS_INV[name]] = value
+				WireLib.TriggerOutput( self, "Out", data )
+			end
+		else -- Niether have array
+			if (value != nil) then
+				WireLib.TriggerOutput( self, name, value )
+			end
+		end
 	end
 	self:ShowOutput()
 end
 
-function ENT:SetSocket(socket)
-	if (socket == nil) then
-		for i,v in pairs(self.Outputs)do
-			Wire_TriggerOutput(self.Entity, v.Name, 0)
-		end
-		self:ShowOutput()
-	end
-	self.MySocket = socket
+------------------------------------------------------------
+-- Think
+-- Set PlayerHolding
+------------------------------------------------------------
+function ENT:Think()
+	self.BaseClass.Think( self )
+	self:SetNWBool( "PlayerHolding", self:IsPlayerHolding() )
 end
 
-function ENT:AttachedToSocket(socket)
-    for i,v in pairs(self.Inputs)do
-        socket:SetValue(v.Name,v.Value)
- 	end
+------------------------------------------------------------
+-- ResetValues
+-- Resets all values
+------------------------------------------------------------
+function ENT:ResetValues()
+	if (self.ArrayInput) then
+		WireLib.TriggerOutput( self, "Out", {} )
+		WireLib.TriggerInput( self, "In", {} )
+	else
+		for i=1,#LETTERS do
+			WireLib.TriggerOutput( self, LETTERS[i], 0 )
+			WireLib.TriggerInput( self, LETTERS[i], 0 )
+		end
+	end
 	self:ShowOutput()
 end
 
-function ENT:ShowOutput(value)
-	self.OutText = "Plug:"
-	if (self.Inputs) then
-		self.OutText = self.OutText .. "\nInputs: "
-		if (self.Inputs.A.Value) then
-			self.OutText = self.OutText .. " A:" .. self.Inputs.A.Value
+------------------------------------------------------------
+-- ShowOutput
+-- Show all out and inputs
+------------------------------------------------------------
+function ENT:ShowOutput()
+	local OutText = "Plug [" .. self:EntIndex() .. "]\n"
+	if (self.ArrayInput) then
+		OutText = OutText .. "Array input/output. Showing the first 8 values.\nInputs:\n"
+		local n = 0
+		for k,v in pairs( self.Inputs.In.Value ) do
+			n = n + 1
+			if (n > 8) then break end
+			OutText = OutText .. k .. " = " .. v .. "\n"
 		end
-		if (self.Inputs.B.Value) then
-			self.OutText = self.OutText .. " B:" .. self.Inputs.B.Value
+
+		OutText = OutText .. "Outputs:\n"
+		local n = 0
+		for k,v in pairs( self.Outputs.Out.Value ) do
+			n = n + 1
+			if (n > 8) then break end
+			OutText = OutText .. k .. " = " .. v .. "\n"
 		end
-		if (self.Inputs.C.Value) then
-			self.OutText = self.OutText .. " C:" .. self.Inputs.C.Value
+	else
+		OutText = OutText .. "Inputs:\n"
+		for i=1,8 do
+			OutText = OutText .. LETTERS[i] .. " = " .. self.Inputs[LETTERS[i]].Value .. "\n"
 		end
-		if (self.Inputs.D.Value) then
-			self.OutText = self.OutText .. " D:" .. self.Inputs.D.Value
-		end
-		if (self.Inputs.E.Value) then
-			self.OutText = self.OutText .. " E:" .. self.Inputs.E.Value
-		end
-		if (self.Inputs.F.Value) then
-			self.OutText = self.OutText .. " F:" .. self.Inputs.F.Value
-		end
-		if (self.Inputs.G.Value) then
-			self.OutText = self.OutText .. " G:" .. self.Inputs.G.Value
-		end
-		if (self.Inputs.H.Value) then
-			self.OutText = self.OutText .. " H:" .. self.Inputs.H.Value
-		end
-	end
-	if (self.Outputs) then
-		self.OutText = self.OutText .. "\nOutputs: "
-		if (self.Outputs.A.Value) then
-			self.OutText = self.OutText .. " A:" .. self.Outputs.A.Value
-		end
-		if (self.Outputs.B.Value) then
-			self.OutText = self.OutText .. " B:" .. self.Outputs.B.Value
-		end
-		if (self.Outputs.C.Value) then
-			self.OutText = self.OutText .. " C:" .. self.Outputs.C.Value
-		end
-		if (self.Outputs.D.Value) then
-			self.OutText = self.OutText .. " D:" .. self.Outputs.D.Value
-		end
-		if (self.Outputs.E.Value) then
-			self.OutText = self.OutText .. " E:" .. self.Outputs.E.Value
-		end
-		if (self.Outputs.F.Value) then
-			self.OutText = self.OutText .. " F:" .. self.Outputs.F.Value
-		end
-		if (self.Outputs.G.Value) then
-			self.OutText = self.OutText .. " G:" .. self.Outputs.G.Value
-		end
-		if (self.Outputs.H.Value) then
-			self.OutText = self.OutText .. " H:" .. self.Outputs.H.Value
+
+		OutText = OutText .. "Outputs:\n"
+		for i=1,8 do
+			OutText = OutText .. LETTERS[i] .. " = " .. self.Outputs[LETTERS[i]].Value .. "\n"
 		end
 	end
-	self:SetOverlayText(self.OutText)
+	if (self.Socket and self.Socket:IsValid()) then
+		OutText = OutText .. "Linked to socket [" .. self.Socket:EntIndex() .. "]"
+	end
+	self:SetOverlayText(OutText)
 end
 
+------------------------------------------------------------
+-- Adv Duplicator Support
+------------------------------------------------------------
+function ENT:BuildDupeInfo()
+	local info = self.BaseClass.BuildDupeInfo(self) or {}
+
+	info.Plug = {}
+	info.Plug.ArrayInput = self.ArrayInput
+
+	return info
+end
+
+function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
+	if (!ply:CheckLimit("wire_plugs")) then
+		ent:Remove()
+		return
+	end
+	ply:AddCount( "wire_plugs", ent )
+
+	if (info.Plug) then
+		ent:SetUp( info.Plug.ArrayInput )
+	else
+		ent:SetUp() -- default values
+	end
+
+	ent:SetPlayer( ply )
+	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
+end
+
+-- OnRestore
 function ENT:OnRestore()
     self.BaseClass.OnRestore(self)
 end

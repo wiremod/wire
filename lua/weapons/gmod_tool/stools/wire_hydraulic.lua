@@ -319,7 +319,7 @@ if SERVER then
 		const:SetTable( ctable )
 
 		if (MyCrtl) then
-			Msg("finding crtl for this wired hyd const\n")
+			--Msg("finding crtl for this wired hyd const\n")
 			local controller = WireHydraulicTracking[ MyCrtl ]
 
 			const.MyCrtl = controller:EntIndex()
