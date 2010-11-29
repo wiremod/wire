@@ -22,6 +22,8 @@ function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )
 	self:SetMoveType( MOVETYPE_VPHYSICS )
 	self:SetSolid( SOLID_VPHYSICS )
+
+	self.Memory = {}
 end
 
 ------------------------------------------------------------
@@ -87,6 +89,32 @@ function ENT:SetValue( name, value )
 end
 
 ------------------------------------------------------------
+-- WriteCell
+-- Hi-speed support
+------------------------------------------------------------
+function ENT:WriteCell( Address, Value, WriteToMe )
+	if (WriteToMe) then
+		self.Memory[Address or 1] = Value or 0
+		return true
+	else
+		if (self.Socket and self.Socket:IsValid()) then
+			self.Socket:WriteCell( Address, Value, true )
+			return true
+		else
+			return false
+		end
+	end
+end
+
+------------------------------------------------------------
+-- ReadCell
+-- Hi-speed support
+------------------------------------------------------------
+function ENT:ReadCell( Address )
+	return self.Memory[Address or 1] or 0
+end
+
+------------------------------------------------------------
 -- Think
 -- Set PlayerHolding
 ------------------------------------------------------------
@@ -109,6 +137,7 @@ function ENT:ResetValues()
 			WireLib.TriggerInput( self, LETTERS[i], 0 )
 		end
 	end
+	self.Memory = {}
 	self:ShowOutput()
 end
 

@@ -12,15 +12,21 @@ ENT.AdminSpawnable  = false
 
 local PositionOffsets = {
 	["models/props_lab/tpplugholder_single.mdl"] = Vector(5, 13, 10),
-	["models/bull/various/usb_socket.mdl"] = Vector(8,0,0)
+	["models/bull/various/usb_socket.mdl"] = Vector(8,0,0),
+	["models/hammy/pci_slot.mdl"] = Vector(0,0,0),
+	["models//hammy/pci_slot.mdl"] = Vector(0,0,0), -- For some reason, GetModel on this model has two / on the client... Bug?
 }
 local AngleOffsets = {
 	["models/props_lab/tpplugholder_single.mdl"] = Angle(0,0,0),
 	["models/bull/various/usb_socket.mdl"] = Angle(0,0,0),
+	["models/hammy/pci_slot.mdl"] = Angle(0,0,0),
+	["models//hammy/pci_slot.mdl"] = Vector(0,0,0), -- For some reason, GetModel on this model has two / on the client... Bug?
 }
 local SocketModels = {
 	["models/props_lab/tpplugholder_single.mdl"] = "models/props_lab/tpplug.mdl",
 	["models/bull/various/usb_socket.mdl"] = "models/bull/various/usb_stick.mdl",
+	["models/hammy/pci_slot.mdl"] = "models/hammy/pci_card.mdl",
+	["models//hammy/pci_slot.mdl"] = "models//hammy/pci_card.mdl", -- For some reason, GetModel on this model has two / on the client... Bug?
 }
 
 function ENT:GetLinkPos()

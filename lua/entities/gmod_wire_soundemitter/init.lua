@@ -184,6 +184,8 @@ function ENT:StopSounds()
 end
 
 function ENT:Think()
+	self.BaseClass.Think( self )
+
 	if (self.LFOType == 5) then //Random noise
 		if ((self.LFORate ~= 0) && (CurTime() - self.LFONoiseTime > 1 / self.LFORate)) then
 			self.LFONoiseTime = CurTime()

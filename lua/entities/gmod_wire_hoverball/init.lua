@@ -99,6 +99,8 @@ end
 ---------------------------------------------------------*/
 function ENT:Think()
 
+	self.BaseClass.Think( self )
+
 	self.Entity:NextThink( CurTime() + 0.25 )
 
 	self.Entity:SetNetworkedInt( "TargetZ", self:GetTargetZ() )

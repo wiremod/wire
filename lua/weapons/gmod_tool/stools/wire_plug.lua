@@ -53,6 +53,7 @@ else
 	----------------------------------------------------------------------------------------------------
 	list.Set( "wire_socket_models", "models/props_lab/tpplugholder_single.mdl", {} )
 	list.Set( "wire_socket_models", "models/bull/various/usb_socket.mdl", {} )
+	list.Set( "wire_socket_models", "models/hammy/pci_slot.mdl", {} )
 
 	function TOOL.BuildCPanel( CPanel )
 		CPanel:AddControl("Header", { Text = "#Tool_wire_plug_name", Description = "#Tool_wire_plug_desc" })
@@ -114,7 +115,17 @@ end
 
 local SocketModels = {
 		["models/props_lab/tpplugholder_single.mdl"] = "models/props_lab/tpplug.mdl",
-		["models/bull/various/usb_socket.mdl"] = "models/bull/various/usb_stick.mdl"
+		["models/bull/various/usb_socket.mdl"] = "models/bull/various/usb_stick.mdl",
+		["models/hammy/pci_slot.mdl"] = "models/hammy/pci_card.mdl",
+}
+
+local AngleOffset = {
+	["models/props_lab/tpplugholder_single.mdl"] = Angle(),
+	["models/props_lab/tpplug.mdl"] = Angle(),
+	["models/bull/various/usb_socket.mdl"] = Angle(),
+	["models/bull/various/usb_stick.mdl"] = Angle(),
+	["models/hammy/pci_slot.mdl"] = Angle(90,0,0),
+	["models/hammy/pci_card.mdl"] = Angle(90,0,0),
 }
 
 cleanup.Register( "wire_plugs" )
@@ -150,24 +161,26 @@ function TOOL:LeftClick( trace )
 
 	local ply = self:GetOwner()
 	local socketmodel, plugmodel = self:GetModel()
-	local Pos, Ang = trace.HitPos, trace.HitNormal:Angle()
+	local Pos, Ang = trace.HitPos, trace.HitNormal:Angle() + (AngleOffset[socketmodel] or Angle())
 
-	local socket = MakeWireSocket( ply, Pos, Ang, socketmodel, self:GetClientNumber( "array" ) != 0, self:GetClientNumber( "weldforce" ), math.Clamp( self:GetClientNumber( "attachrange" ), 1, 100 ) )
+	local socket = MakeWireSocket( ply, Pos, Ang, socketmodel, 	self:GetClientNumber( "array" ) != 0,
+																self:GetClientNumber( "weldforce" ),
+																math.Clamp( self:GetClientNumber( "attachrange" ), 1, 100 ) )
 
 	if (!socket or !socket:IsValid()) then return false end
 
 	local weld
-	if (self:GetClientNumber( "weld" )) then
+	if (self:GetClientNumber( "weld" ) != 0) then
 		weld = WireLib.Weld( socket, trace.Entity, trace.PhysicsBone, true, false, self:GetClientNumber( "weldtoworld" ) != 0 )
 	end
 
-	if (self:GetClientNumber( "freeze")) then
+	if (self:GetClientNumber( "freeze") != 0) then
 		socket:GetPhysicsObject():EnableMotion( false )
 	end
 
 	undo.Create("wiresocket")
 		undo.AddEntity( socket )
-		undo.AddEntity( weld )
+		if (weld) then undo.AddEntity( weld ) end
 		undo.SetPlayer( ply )
 	undo.Finish()
 
@@ -182,7 +195,7 @@ end
 -- Creation Function
 --------------------
 if (SERVER) then
-	function MakeWireSocket( ply, Pos, Ang, model, ArrayInput, WeldForce, AttachRange )
+	function MakeWireSocket( ply, Pos, Ang, model, ArrayInput, WeldForce, AttachRange, ArrayHiSpeed )
 		if (!ply:CheckLimit( "wire_sockets" )) then return false end
 
 		local socket = ents.Create( "gmod_wire_socket" )
@@ -193,7 +206,7 @@ if (SERVER) then
 		socket:SetModel( model )
 		socket:SetPlayer( ply )
 		socket:Spawn()
-		socket:SetUp( ArrayInput, WeldForce, AttachRange )
+		socket:SetUp( ArrayInput, WeldForce, AttachRange, ArrayHiSpeed )
 		socket:Activate()
 
 		ply:AddCount( "wire_socket", socket )
@@ -224,9 +237,9 @@ function TOOL:RightClick( trace )
 
 	local ply = self:GetOwner()
 	local socketmodel, plugmodel = self:GetModel()
-	local Pos, Ang = trace.HitPos, trace.HitNormal:Angle()
+	local Pos, Ang = trace.HitPos, trace.HitNormal:Angle() + (AngleOffset[plugmodel] or Angle())
 
-	local plug = MakeWirePlug( ply, Pos, Ang, plugmodel, self:GetClientNumber( "array" ) != 0 )
+	local plug = MakeWirePlug( ply, Pos, Ang, plugmodel, 	self:GetClientNumber( "array" ) != 0 )
 
 	if (!plug or !plug:IsValid()) then return false end
 
@@ -248,7 +261,7 @@ end
 -- Creation Function
 --------------------
 if (SERVER) then
-	function MakeWirePlug( ply, Pos, Ang, model, ArrayInput )
+	function MakeWirePlug( ply, Pos, Ang, model, ArrayInput, ArrayHiSpeed )
 		if (!ply:CheckLimit( "wire_plugs" )) then return false end
 
 		local plug = ents.Create( "gmod_wire_plug" )
@@ -259,7 +272,7 @@ if (SERVER) then
 		plug:SetModel( model )
 		plug:SetPlayer( ply )
 		plug:Spawn()
-		plug:SetUp( ArrayInput )
+		plug:SetUp( ArrayInput, ArrayHiSpeed )
 		plug:Activate()
 
 
@@ -286,7 +299,7 @@ function TOOL:DrawGhost()
 
 	local Pos, Ang = trace.HitPos, trace.HitNormal:Angle()
 	ent:SetPos( Pos )
-	ent:SetAngles( Ang )
+	ent:SetAngles( Ang + (AngleOffset[self.GhostEntity:GetModel()] or Angle()) )
 
 	ent:SetNoDraw( false )
 end
