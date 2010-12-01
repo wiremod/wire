@@ -198,6 +198,8 @@ end
 --Keyboard
 list.Set( "Wire_Keyboard_Models", "models/beer/wiremod/keyboard.mdl", {} )
 list.Set( "Wire_Keyboard_Models", "models/jaanus/wiretool/wiretool_input.mdl", {} )
+list.Set( "Wire_Keyboard_Models", "models/props/kb_mouse/keyboard.mdl", {} )
+list.Set( "Wire_Keyboard_Models", "models/props_c17/computer01_keyboard.mdl", {} )
 
 --Hydraulic
 list.Set( "Wire_Hydraulic_Models", "models/beer/wiremod/hydraulic.mdl", {} )

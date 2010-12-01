@@ -545,6 +545,30 @@ e2function vector entity:boxMin()
 	return this:OBBMins()
 end
 
+
+/******************************************************************************/
+
+-- Returns the entity's (min) axis-aligned bounding box
+e2function vector entity:aabbMin()
+	if (!this or !this:IsValid() or !this:GetPhysicsObject() or !this:GetPhysicsObject():IsValid()) then return Vector(0,0,0) end
+	local ret, _ = this:GetPhysicsObject():GetAABB()
+	return ret
+end
+
+-- Returns the entity's (max) axis-aligned bounding box
+e2function vector entity:aabbMax()
+	if (!this or !this:IsValid() or !this:GetPhysicsObject() or !this:GetPhysicsObject():IsValid()) then return Vector(0,0,0) end
+	local _, ret = this:GetPhysicsObject():GetAABB()
+	return ret
+end
+
+-- Returns the entity's axis-aligned bounding box size
+e2function vector entity:aabbSize()
+	if (!this or !this:IsValid() or !this:GetPhysicsObject() or !this:GetPhysicsObject():IsValid()) then return Vector(0,0,0) end
+	local ret, ret2 = this:GetPhysicsObject():GetAABB()
+	return ret2 - ret
+end
+
 /******************************************************************************/
 
 __e2setcost(5)

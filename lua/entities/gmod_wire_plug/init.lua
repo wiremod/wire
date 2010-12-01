@@ -23,6 +23,8 @@ function ENT:Initialize()
 	self:SetMoveType( MOVETYPE_VPHYSICS )
 	self:SetSolid( SOLID_VPHYSICS )
 
+	self:SetNWBool( "Linked", false )
+
 	self.Memory = {}
 end
 
@@ -148,34 +150,12 @@ end
 function ENT:ShowOutput()
 	local OutText = "Plug [" .. self:EntIndex() .. "]\n"
 	if (self.ArrayInput) then
-		OutText = OutText .. "Array input/output. Showing the first 8 values.\nInputs:\n"
-		local n = 0
-		for k,v in pairs( self.Inputs.In.Value ) do
-			n = n + 1
-			if (n > 8) then break end
-			OutText = OutText .. k .. " = " .. v .. "\n"
-		end
-
-		OutText = OutText .. "Outputs:\n"
-		local n = 0
-		for k,v in pairs( self.Outputs.Out.Value ) do
-			n = n + 1
-			if (n > 8) then break end
-			OutText = OutText .. k .. " = " .. v .. "\n"
-		end
+		OutText = OutText .. "Array input/outputs."
 	else
-		OutText = OutText .. "Inputs:\n"
-		for i=1,8 do
-			OutText = OutText .. LETTERS[i] .. " = " .. self.Inputs[LETTERS[i]].Value .. "\n"
-		end
-
-		OutText = OutText .. "Outputs:\n"
-		for i=1,8 do
-			OutText = OutText .. LETTERS[i] .. " = " .. self.Outputs[LETTERS[i]].Value .. "\n"
-		end
+		OutText = OutText .. "Number input/outputs."
 	end
 	if (self.Socket and self.Socket:IsValid()) then
-		OutText = OutText .. "Linked to socket [" .. self.Socket:EntIndex() .. "]"
+		OutText = OutText .. "\nLinked to socket [" .. self.Socket:EntIndex() .. "]"
 	end
 	self:SetOverlayText(OutText)
 end

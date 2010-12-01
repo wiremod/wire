@@ -96,6 +96,8 @@ E2Helper.Descriptions["match(s:s2)"] = "runs string.match(S, S2) and returns the
 E2Helper.Descriptions["match(s:s2n)"] = "runs string.match(S, S2, N) and returns the sub-captures as an array."
 E2Helper.Descriptions["matchFirst(s:s2)"] = "runs string.match(S, S2) and returns the first match or an empty string if the match failed."
 E2Helper.Descriptions["matchFirst(s:s2n)"] = "runs string.match(S, S2, N) and returns the first match or an empty string if the match failed."
+E2Helper.Descriptions["gmatch(s:s2)"] = "runs string.gmatch(S, S2) and returns the captures in an array."
+E2Helper.Descriptions["gmatch(s:s2n)"] = "runs string.gmatch(S, S2, N) and returns the captures in an array."
 
 -- Entity/Player
 E2Helper.Descriptions["entity(n)"] = "Gets the entity associated with the id"
@@ -194,6 +196,10 @@ E2Helper.Descriptions["ammoCount(e:s)"] = "Returns the amount of stored ammo of 
 E2Helper.Descriptions["tool(e:)"] = "returns the name of the tool the player E is currently holding"
 E2Helper.Descriptions["nearestPoint(e:v)"] = "Returns the closest point on the edge of the entity's bounding box to the given vector."
 E2Helper.Descriptions["boxCenterW(e:)"] = "Same as using E:toWorld(E:boxCenter()), but since Lua is faster, this is more efficient (also shorter to write)."
+E2Helper.Descriptions["aabbMin(e:)"] = "Returns the entity's (min) axis-aligned bounding box."
+E2Helper.Descriptions["aabbMax(e:)"] = "Returns the entity's (max) axis-aligned bounding box."
+E2Helper.Descriptions["aabbCenter(e:)"] = "Returns the entity's axis-aligned bounding box size."
+
 
 -- Attachment
 E2Helper.Descriptions["lookupAttachment(e:string attachmentname)"] = "Returns Es attachment ID associated with attachmentName"

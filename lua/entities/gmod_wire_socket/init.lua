@@ -24,6 +24,9 @@ function ENT:Initialize()
 	self:SetMoveType( MOVETYPE_VPHYSICS )
 	self:SetSolid( SOLID_VPHYSICS )
 
+
+	self:SetNWBool( "Linked", false )
+
 	self.Memory = {}
 end
 
@@ -145,10 +148,12 @@ end
 function ENT:Think()
 	self.BaseClass.Think(self)
 
-	if (!self.Plug or !self.Plug:IsValid()) then
+	if (!self.Plug or !self.Plug:IsValid()) then -- Has not been linked or plug was deleted
 		local Pos, Ang = self:GetLinkPos()
 
 		local Closest = self:GetClosestPlug()
+
+		self:SetNWBool( "Linked", false )
 
 		if (Closest and Closest:IsValid() and self:CanLink( Closest ) and !Closest:IsPlayerHolding() and Closest:GetClosestSocket() == self) then
 			self.Plug = Closest
@@ -170,6 +175,7 @@ function ENT:Think()
 			Closest:ResetValues()
 			self:ResetValues()
 
+			Closest:SetNWBool( "Linked", true )
 			self:SetNWBool( "Linked", true )
 		end
 
@@ -179,13 +185,14 @@ function ENT:Think()
 		if (self.Weld and !self.Weld:IsValid()) then -- Plug was unplugged
 			self.Weld = nil
 
+			self.Plug:SetNWBool( "Linked", false )
+			self:SetNWBool( "Linked", false )
+
 			self.Plug.Socket = nil
 			self.Plug:ResetValues()
 
 			self.Plug = nil
 			self:ResetValues()
-
-			self:SetNWBool( "Linked", false )
 
 			self:NextThink( CurTime() + NEW_PLUG_WAIT_TIME )
 			return true
@@ -200,34 +207,12 @@ end
 function ENT:ShowOutput()
 	local OutText = "Socket [" .. self:EntIndex() .. "]\n"
 	if (self.ArrayInput) then
-		OutText = OutText .. "Array input/output. Showing the first 8 values.\nInputs:\n"
-		local n = 0
-		for k,v in pairs( self.Inputs.In.Value ) do
-			n = n + 1
-			if (n > 8) then break end
-			OutText = OutText .. k .. " = " .. v .. "\n"
-		end
-
-		OutText = OutText .. "Outputs:\n"
-		local n = 0
-		for k,v in pairs( self.Outputs.Out.Value ) do
-			n = n + 1
-			if (n > 8) then break end
-			OutText = OutText .. k .. " = " .. v .. "\n"
-		end
+		OutText = OutText .. "Array input/outputs."
 	else
-		OutText = OutText .. "Inputs:\n"
-		for i=1,8 do
-			OutText = OutText .. LETTERS[i] .. " = " .. self.Inputs[LETTERS[i]].Value .. "\n"
-		end
-
-		OutText = OutText .. "Outputs:\n"
-		for i=1,8 do
-			OutText = OutText .. LETTERS[i] .. " = " .. self.Outputs[LETTERS[i]].Value .. "\n"
-		end
+		OutText = OutText .. "Number input/outputs."
 	end
 	if (self.Plug and self.Plug:IsValid()) then
-		OutText = OutText .. "Linked to plug [" .. self.Plug:EntIndex() .. "]"
+		OutText = OutText .. "\nLinked to plug [" .. self.Plug:EntIndex() .. "]"
 	end
 	self:SetOverlayText(OutText)
 end
@@ -285,6 +270,10 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID, GetConstByID)
 				plug.Socket = ent
 				ent.Weld = { ["IsValid"] = function() return true end }
 
+
+				plug:SetNWBool( "Linked", true )
+				ent:SetNWBool( "Linked", true )
+
 				if (GetConstByID) then
 					if (info.Socket.Weld) then
 						local weld = GetConstByID( info.Socket.Weld )
@@ -308,6 +297,8 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID, GetConstByID)
 					ent.Plug = v.Ent2
 					v.Ent2.Socket = ent
 					ent.Weld = v.Constraint
+					ent.Plug:SetNWBool( "Linked", true )
+					ent:SetNWBool( "Linked", true )
 				end
 			end
 		end,ent)

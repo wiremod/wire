@@ -431,23 +431,61 @@ end
 
 --- runs [[string.match]](<this>, <pattern>) and returns the sub-captures as an array. Prints malformed pattern errors to the chat area.
 e2function array string:match(string pattern)
-	local OK, Ret = pcall(string.match, this, pattern)
-	if not OK then
+	local args = {pcall(string.match, this, pattern)}
+	if not args[1] then
 		self.player:ChatPrint(Ret)
 		return {}
 	else
-		return { string.match(this, pattern) }
+		table.remove( args, 1 ) -- Remove "OK" boolean
+		return args or {}
 	end
 end
 
 --- runs [[string.match]](<this>, <pattern>, <position>) and returns the sub-captures as an array. Prints malformed pattern errors to the chat area.
 e2function array string:match(string pattern, position)
-	local OK, Ret = pcall(string.match, this, pattern, position)
-	if not OK then
+	local args = {pcall(string.match, this, pattern, position)}
+	if not args[1] then
 		self.player:ChatPrint(Ret)
 		return {}
 	else
-		return { string.match(this, pattern) }
+		table.remove( args, 1 ) -- Remove "OK" boolean
+		return args or {}
+	end
+end
+
+local function gmatch( self, this, pattern )
+	local ret = {}
+	local n = 0
+	for match in this:gmatch( pattern ) do
+		self.prf = self.prf + 1
+		n = n + 1
+		ret[n] = match
+	end
+	return ret
+end
+
+--- runs [[string.gmatch]](<this>, <pattern>) and returns the captures in an array. Prints malformed pattern errors to the chat area.
+-- (By Divran)
+e2function array string:gmatch(string pattern)
+	local OK, ret = pcall( gmatch, self, this, pattern )
+	if (!OK) then
+		self.player:ChatPrint( ret )
+		return {}
+	else
+		return ret
+	end
+end
+
+--- runs [[string.gmatch]](<this>, <pattern>, <position>) and returns the captures in an array. Prints malformed pattern errors to the chat area.
+-- (By Divran)
+e2function array string:gmatch(string pattern, position)
+	this = this:Right( -position-1 )
+	local OK, ret = pcall( gmatch, self, this, pattern )
+	if (!OK) then
+		self.player:ChatPrint( ret )
+		return {}
+	else
+		return ret
 	end
 end
 

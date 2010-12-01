@@ -17,7 +17,7 @@ function ENT:GetClosestSocket()
 	local Closest
 
 	for k,v in pairs( sockets ) do
-		if (v:GetClass() == "gmod_wire_socket") then
+		if (v:GetClass() == "gmod_wire_socket" and !v:GetNWBool( "Linked", false )) then
 			local pos, _ = v:GetLinkPos()
 			local Dist = self:GetPos():Distance( pos )
 			if (ClosestDist == nil or ClosestDist > Dist) then

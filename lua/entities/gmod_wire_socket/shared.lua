@@ -48,7 +48,7 @@ function ENT:GetClosestPlug()
 	local Closest
 
 	for k,v in pairs( plugs ) do
-		if (v:GetClass() == "gmod_wire_plug") then
+		if (v:GetClass() == "gmod_wire_plug" and !v:GetNWBool( "Linked", false )) then
 			local Dist = v:GetPos():Distance( Pos )
 			if (ClosestDist == nil or ClosestDist > Dist) then
 				ClosestDist = Dist
