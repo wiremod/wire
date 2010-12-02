@@ -5,8 +5,17 @@ include("HUDDraw.lua")
 -- 0-512 to screen res & back
 --------------------------------------------------------
 
-local makeArray = EGP.ParentingFuncs.makeArray
-local makeTable = EGP.ParentingFuncs.makeTable
+local makeArray
+local makeTable
+if (EGP) then -- If the table has been loaded
+	makeArray = EGP.ParentingFuncs.makeArray
+	makeTable = EGP.ParentingFuncs.makeTable
+else -- If the table hasn't been loaded
+	hook.Add("Initialize",function()
+		makeArray = EGP.ParentingFuncs.makeArray
+		makeTable = EGP.ParentingFuncs.makeTable
+	end)
+end
 
 function ENT:ScaleObject( bool, v )
 	local xMin, xMax, yMin, yMax, _xMul, _yMul

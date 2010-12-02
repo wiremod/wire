@@ -433,7 +433,7 @@ end
 e2function array string:match(string pattern)
 	local args = {pcall(string.match, this, pattern)}
 	if not args[1] then
-		self.player:ChatPrint(Ret)
+		self.player:ChatPrint(args[2] or "Unknown error in str:match")
 		return {}
 	else
 		table.remove( args, 1 ) -- Remove "OK" boolean
@@ -445,7 +445,7 @@ end
 e2function array string:match(string pattern, position)
 	local args = {pcall(string.match, this, pattern, position)}
 	if not args[1] then
-		self.player:ChatPrint(Ret)
+		self.player:ChatPrint(args[2] or "Unknown error in str:match")
 		return {}
 	else
 		table.remove( args, 1 ) -- Remove "OK" boolean
@@ -453,37 +453,46 @@ e2function array string:match(string pattern, position)
 	end
 end
 
+-- Helper function for gmatch (below)
+-- (By Divran)
+local DEFAULT = {n={},ntypes={},s={},stypes={},size=0,istable=true,depth=0}
 local function gmatch( self, this, pattern )
-	local ret = {}
-	local n = 0
-	for match in this:gmatch( pattern ) do
-		self.prf = self.prf + 1
-		n = n + 1
-		ret[n] = match
+	local ret = table.Copy( DEFAULT )
+	local num = 0
+	local iter = this:gmatch( pattern )
+	local v
+	while true do
+		v = {iter()}
+		if (!v or #v==0) then break end
+		num = num + 1
+		ret.n[num] = v
+		ret.ntypes[num] = "r"
 	end
+	self.prf = self.prf + num
+	ret.size = num
 	return ret
 end
 
---- runs [[string.gmatch]](<this>, <pattern>) and returns the captures in an array. Prints malformed pattern errors to the chat area.
+--- runs [[string.gmatch]](<this>, <pattern>) and returns the captures in an array in a table. Prints malformed pattern errors to the chat area.
 -- (By Divran)
-e2function array string:gmatch(string pattern)
+e2function table string:gmatch(string pattern)
 	local OK, ret = pcall( gmatch, self, this, pattern )
 	if (!OK) then
-		self.player:ChatPrint( ret )
-		return {}
+		self.player:ChatPrint( ret or "Unknown error in str:gmatch" )
+		return table.Copy( DEFAULT )
 	else
 		return ret
 	end
 end
 
---- runs [[string.gmatch]](<this>, <pattern>, <position>) and returns the captures in an array. Prints malformed pattern errors to the chat area.
+--- runs [[string.gmatch]](<this>, <pattern>, <position>) and returns the captures in an array in a table. Prints malformed pattern errors to the chat area.
 -- (By Divran)
-e2function array string:gmatch(string pattern, position)
+e2function table string:gmatch(string pattern, position)
 	this = this:Right( -position-1 )
 	local OK, ret = pcall( gmatch, self, this, pattern )
 	if (!OK) then
-		self.player:ChatPrint( ret )
-		return {}
+		self.player:ChatPrint( ret or "Unknown error in str:gmatch" )
+		return table.Copy( DEFAULT )
 	else
 		return ret
 	end

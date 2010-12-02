@@ -26,6 +26,12 @@ TOOL.ClientConVar[ "packet_rate" ] = 0.4
 
 cleanup.Register( "wire_hdds" )
 
+function TOOL:GetModel()
+	local model = self:GetClientInfo( "model" )
+	if (!util.IsValidModel( model ) or !util.IsValidProp( model )) then return "models/jaanus/wiretool/wiretool_gate.mdl" end
+	return model
+end
+
 function TOOL:LeftClick( trace )
 	if trace.Entity:IsPlayer() then return false end
 	if (CLIENT) then return true end
@@ -46,7 +52,7 @@ function TOOL:LeftClick( trace )
 
 	local ply = self:GetOwner()
 	local Ang = trace.HitNormal:Angle()
-	local model = self:GetClientInfo( "model" )
+	local model = self:GetModel()
 	Ang.pitch = Ang.pitch + 90
 
 	local wire_hdd = MakeWirehdd( ply, trace.HitPos, Ang, model, self:GetClientInfo( "driveid" ), self:GetClientInfo( "drivecap" ) )
@@ -129,8 +135,8 @@ function TOOL:UpdateGhostWirehdd( ent, player )
 end
 
 function TOOL:Think()
-	if (!self.GhostEntity || !self.GhostEntity:IsValid() || self.GhostEntity:GetModel() != self:GetClientInfo( "model" ) || (not self.GhostEntity:GetModel()) ) then
-		self:MakeGhostEntity( self:GetClientInfo( "model" ), Vector(0,0,0), Angle(0,0,0) )
+	if (!self.GhostEntity || !self.GhostEntity:IsValid() || self.GhostEntity:GetModel() != self:GetModel() || (not self.GhostEntity:GetModel()) ) then
+		self:MakeGhostEntity( self:GetModel(), Vector(0,0,0), Angle(0,0,0) )
 	end
 
 	self:UpdateGhostWirehdd( self.GhostEntity, self:GetOwner() )
@@ -186,6 +192,11 @@ end*/
 
 function TOOL.BuildCPanel(panel)
 	panel:AddControl("Header", { Text = "#Tool_wire_hdd_name", Description = "#Tool_wire_hdd_desc" })
+
+	local mdl = vgui.Create("DWireModelSelect")
+	mdl:SetModelList( list.Get("Wire_gate_Models"), "wire_hdd_model" )
+	mdl:SetHeight( 5 )
+	panel:AddItem( mdl )
 
 	panel:AddControl("Slider", {
 		Label = "Drive ID",
