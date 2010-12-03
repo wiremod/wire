@@ -44,6 +44,11 @@ local Clamp = math.Clamp
 
 local rad2deg = 180 / math.pi
 
+/******************************************************************************/
+
+local function checkOwner(self)
+	return validEntity(self.player);
+end
 
 /******************************************************************************/
 // Functions using operators
@@ -632,6 +637,7 @@ end)
 
 --- Removes the trail from <this>.
 e2function void entity:removeTrails()
+	if (not checkOwner(self)) then return; end
 	if not validEntity(this) then return end
 	if not isOwner(self, this) then return end
 
@@ -654,6 +660,7 @@ end
 --- StartSize, EndSize, Length, Material, Color (RGB), Alpha
 --- Adds a trail to <this> with the specified attributes.
 e2function void entity:setTrails(startSize, endSize, length, string material, vector color, alpha)
+	if (not checkOwner(self)) then return; end
 	if not validEntity(this) then return end
 	if not isOwner(self, this) then return end
 
@@ -668,6 +675,7 @@ __e2setcost(30)
 --- StartSize, EndSize, Length, Material, Color (RGB), Alpha, AttachmentID, Additive
 --- Adds a trail to <this> with the specified attributes.
 e2function void entity:setTrails(startSize, endSize, length, string material, vector color, alpha, attachmentID, additive)
+	if (not checkOwner(self)) then return; end
 	if not validEntity(this) then return end
 	if not isOwner(self, this) then return end
 
@@ -761,7 +769,7 @@ registerCallback("postinit",function()
 				local op1, op2 = args[2], args[3]
 				local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
 				if (!rv1 or !rv1:IsValid() or !rv2) then return fixdef( v[2] ) end
-				local id = self.player:UniqueID()
+				local id = self.uid
 				if (!rv1["EVar_"..id]) then return fixdef( v[2] ) end
 				return rv1["EVar_"..id][rv2] or fixdef( v[2] )
 			end
@@ -769,7 +777,7 @@ registerCallback("postinit",function()
 			local function setf( self, args )
 				local op1, op2, op3 = args[2], args[3], args[4]
 				local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
-				local id = self.player:UniqueID()
+				local id = self.uid
 				if (!rv1 or !rv1:IsValid() or !rv2 or !rv3) then return end
 				if (!rv1["EVar_"..id]) then
 					rv1["EVar_"..id] = {}

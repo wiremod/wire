@@ -4,6 +4,11 @@ local isOwner      = E2Lib.isOwner
 local Clamp        = math.Clamp
 local seq = table.IsSequential
 
+/******************************************************************************/
+
+local function checkOwner(self)
+	return validEntity(self.player);
+end
 
 /******************************************************************************/
 
@@ -68,6 +73,7 @@ end
 
 -- Prints <...> like lua's print(...), except to the chat area
 e2function void print(...)
+	if (not checkOwner(self)) then return; end
 	local args = {...}
 	if (#args>0) then
 		local text = ""
@@ -135,6 +141,7 @@ end
 
 --- Same as print(<text>), but can make the text show up in different places. <print_type> can be one of the following: _HUD_PRINTCENTER, _HUD_PRINTCONSOLE, _HUD_PRINTNOTIFY, _HUD_PRINTTALK.
 e2function void print(print_type, string text)
+	if (not checkOwner(self)) then return; end
 	if not valid_print_types[print_type] then return end
 
 	self.player:PrintMessage(print_type, text)
@@ -168,6 +175,7 @@ end
 
 --- Prints an array like the lua function [[G.PrintTable|PrintTable]] does, except to the chat area.
 e2function void printTable(array arr)
+	if (not checkOwner(self)) then return; end
 	msgbuf = {}
 	Msg = MyMsg
 	PrintTable(arr)
@@ -193,6 +201,7 @@ local printColor_typeids = {
 }
 
 local function printColorVarArg(chip, ply, typeids, ...)
+	if (not validEntity(ply)) then return; end
 	local send_array = { ... }
 
 	for i,tp in ipairs(typeids) do
@@ -223,6 +232,7 @@ local printColor_types = {
 }
 
 local function printColorArray(chip, ply, arr)
+	if (not validEntity(ply)) then return; end
 	if (!check_delay( ply )) then return end
 
 	local send_array = {}

@@ -220,12 +220,15 @@ function ENT:Setup(buffer, restore)
 
 	self.script = script
 
+	self.uid = self.player:UniqueID()
+
 	self.context = {
 		vars = {},
 		vclk = {},
 		data = {},
 		entity = self,
 		player = self.player,
+		uid = self.uid,
 		prf = 0,
 		prfcount = 0,
 		prfbench = 0,
@@ -439,3 +442,49 @@ concommand.Add("wire_expression_upload_end", function(player, command, args)
 	end
 end)
 
+
+--[[
+	Player Disconnection Magic
+--]]
+local cvar = CreateConVar("wire_expression2_pause_on_disconnect", 0, 0, "Decides if chips should pause execution on their owner's disconnect.\n0 = no, 1 = yes, 2 = non-admins only.");
+-- This is a global function so it can be overwritten for greater control over whose chips are frozenated
+function wire_expression2_ShouldFreezeChip(ply)
+	return not ply:IsAdmin();
+end
+
+-- It uses EntityRemoved because PlayerDisconnected doesn't catch all disconnects.
+hook.Add("EntityRemoved","Wire_Expression2_Player_Disconnected",function(ent)
+	if (not (ent and ent:IsPlayer())) then
+		return;
+	end
+	local ret = cvar:GetInt();
+	if (ret == 0 or (ret == 2 and not wire_expression2_ShouldFreezeChip(ent))) then
+		return;
+	end
+	for k,v in ipairs( ents.FindByClass("gmod_wire_expression2") ) do
+		if (v.player == ent) then
+			v:SetOverlayText("Expression 2\n" .. v.name .. "\n(Owner disconnected.)")
+			local r,g,b,a = v:GetColor()
+			v:SetColor(255, 0, 0, a)
+			v.disconnectPaused = {r,g,b,a};
+			v.error = true
+		end
+	end
+end)
+
+hook.Add("PlayerAuthed", "Wire_Expression2_Player_Authed", function(ply, sid, uid)
+	local c;
+	for _,ent in pairs(ents.FindByClass("gmod_wire_expression2")) do
+		if (ent.uid == uid) then
+			ent.context.player = ply;
+			ent.player = ply;
+			if (ent.disconnectPaused) then
+				c = ent.disconnectPaused;
+				ent:SetColor(c[1],c[2],c[3],c[4]);
+				ent.error = false;
+				ent.disconnectPaused = false;
+				ent:SetOverlayText("Expression 2\n" .. ent.name);
+			end
+		end
+	end
+end);

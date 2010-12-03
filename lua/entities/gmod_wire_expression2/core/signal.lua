@@ -2,10 +2,11 @@
 Original idea: Gwahir
 Original implementation: Gwahir
 Rewrite that made it work: TomyLobo
+Minor rewrite that made it work even if the player disconnected: Lexi
 ]]
 
 -- holds the currently registered signal handlers. Format:
--- scopes[player|1|2][group][name][context] = true|nil
+-- scopes[uniqueID|1|2][group][name][context] = true|nil
 local scopes = WireLib.containers.autocleanup:new(3)
 
 -- holds the currently queued signals. Format:
@@ -69,11 +70,12 @@ local function postSignal(receiverid, group, name, scope, sender, senderid)
 end
 
 -- Sends the given signal group/name combination to everyone listening
+-- Note: filter_player is a UNIQUE ID!
 local function broadcastSignal(group, name, scope, sender, filter_player)
 
-	local sender_player = sender.player
+	local sender_player = sender.uid
 
-	-- scope 0 => read from scopes[sender.player]
+	-- scope 0 => read from scopes[sender.uid]
 	-- scope 1/2 => read from scopes[scope]
 	local contexts = scopes[scope == 0 and sender_player or scope][group][name]
 
@@ -83,7 +85,7 @@ local function broadcastSignal(group, name, scope, sender, filter_player)
 	local senderid = sender:EntIndex()
 
 	for receiverid,_ in pairs_ac(contexts) do
-		local receiver_player = Entity(receiverid).player
+		local receiver_player = Entity(receiverid).uid
 		if (not filter_player or receiver_player == filter_player) and (scope ~= 2 or receiver_player ~= sender_player) then
 			postSignal(receiverid, group, name, scope, sender, senderid)
 		end
@@ -117,12 +119,12 @@ __e2setcost(5)
 --- If <activate> == 0 the chip will no longer run on this signal, otherwise it makes this chip execute when signal <name> is sent by someone in scope <scope>.
 e2function void runOnSignal(string name, scope, activate)
 	-- sanitize inputs
-	if scope >= 3 or scope < 0 then return end
-	scope = math.floor(scope)
+	--if scope >= 3 or scope < 0 then return end
+	scope = math.Clamp(math.floor(scope), 0, 2)
 
 	-- process inputs
 	activate = activate ~= 0 or nil
-	if scope == 0 then scope = self.player end
+	if scope == 0 then scope = self.uid end
 
 	-- (un-)register signal
 	scopes[scope][self.data.signalgroup][name][self.entity:EntIndex()] = activate

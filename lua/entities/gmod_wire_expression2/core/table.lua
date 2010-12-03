@@ -31,6 +31,14 @@ local function maxsize()
 	return _maxsize
 end
 
+
+--------------------------------------------------------------------------------
+
+local function checkOwner(self)
+	return E2Lib.validEntity(self.player);
+end
+
+
 --------------------------------------------------------------------------------
 -- Type defining
 --------------------------------------------------------------------------------
@@ -368,6 +376,7 @@ end
 __e2setcost(15)
 
 e2function void printTable( table tbl )
+	if (not checkOwner(self)) then return; end
 	if (tbl.size > 200) then
 		self.player:ChatPrint("Table has more than 200 ("..tbl.size..") elements. PrintTable cancelled to prevent lag")
 		return
@@ -863,7 +872,7 @@ e2function table invert(array arr)
 		if tostring_this then
 			ret.s[tostring_this(v)] = i
 			ret.stypes[i] = "n"
-		else
+		elseif (checkOwner(self)) then
 			self.player:ChatPrint("E2: invert(R): Invalid type ("..type(v)..") in array. Ignored.")
 		end
 	end
@@ -883,7 +892,7 @@ e2function table invert(table tbl)
 		if tostring_this then
 			ret.s[tostring_this(v)] = i
 			ret.stypes[i] = "s"
-		else
+		elseif (checkOwner(self)) then
 			self.player:ChatPrint("E2: invert(T): Invalid type ("..typeid..") in table. Ignored.")
 		end
 	end

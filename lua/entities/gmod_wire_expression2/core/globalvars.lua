@@ -55,8 +55,8 @@ end
 __e2setcost(20)
 
 e2function gtable gTable( string groupname )
-	if (!gvars[self.player][groupname]) then gvars[self.player][groupname] = {} end
-	return gvars[self.player][groupname]
+	if (!gvars[self.uid][groupname]) then gvars[self.uid][groupname] = {} end
+	return gvars[self.uid][groupname]
 end
 
 e2function gtable gTable( string groupname, number shared )
@@ -64,8 +64,8 @@ e2function gtable gTable( string groupname, number shared )
 		if (!gvars.shared[groupname]) then gvars.shared[groupname] = {} end
 		return gvars.shared[groupname]
 	else
-		if (!gvars[self.player][groupname]) then gvars[self.player][groupname] = {} end
-		return gvars[self.player][groupname]
+		if (!gvars[self.uid][groupname]) then gvars[self.uid][groupname] = {} end
+		return gvars[self.uid][groupname]
 	end
 end
 
@@ -73,12 +73,12 @@ __e2setcost(10)
 
 -- Clear the non-shared table
 e2function void gRemoveAll()
-	self.prf = self.prf + table.Count(gvars[self.player]) / 3
-	for k,v in pairs( gvars[self.player] ) do
+	self.prf = self.prf + table.Count(gvars[self.uid]) / 3
+	for k,v in pairs( gvars[self.uid] ) do
 		self.prf = self.prf + table.Count(v) / 3
 		table.Empty( v )
 	end
-	table.Empty(gvars[self.player])
+	table.Empty(gvars[self.uid])
 end
 
 e2function void gtable:clear()
@@ -150,10 +150,10 @@ registerCallback("postinit",function()
 			__e2setcost(50)
 			-- gRemoveAll*() - Remove all variables of a type in the player's non-shared table
 			registerFunction("gRemoveAll"..k.."s","","",function(self,args)
-				for k2,v2 in pairs( gvars[self.player] ) do
+				for k2,v2 in pairs( gvars[self.uid] ) do
 					for k3, v3 in pairs( v2 ) do
 						if (string.Left(k3,#v[1]) == v[1]) then
-							gvars[self.player][k2][k3] = nil
+							gvars[self.uid][k2][k3] = nil
 							--v3 = nil
 						end
 					end
@@ -165,10 +165,10 @@ registerCallback("postinit",function()
 			registerFunction("gRemoveAll"..k.."s","s","",function(self,args)
 				local op1 = args[2]
 				local rv1 = op1[1](self,op1)
-				if (gvars[self.player][rv1]) then
-					for k2,v2 in pairs( gvars[self.player][rv1] ) do
+				if (gvars[self.uid][rv1]) then
+					for k2,v2 in pairs( gvars[self.uid][rv1] ) do
 						if (string.Left(k2,#v[1]) == v[1]) then
-							gvars[self.player][rv1][k2] = nil
+							gvars[self.uid][rv1][k2] = nil
 							--v2 = nil
 						end
 					end
@@ -242,8 +242,8 @@ registerCallback("postinit",function()
 				if (!gvars.shared[self.data.gvars.group]) then gvars.shared[self.data.gvars.group] = {} end
 				gvars.shared[self.data.gvars.group][v[1]..rv1] = rv2
 			else
-				if (!gvars[self.player][self.data.gvars.group]) then gvars[self.player][self.data.gvars.group] = {} end
-				gvars[self.player][self.data.gvars.group][v[1]..rv1] = rv2
+				if (!gvars[self.uid][self.data.gvars.group]) then gvars[self.uid][self.data.gvars.group] = {} end
+				gvars[self.uid][self.data.gvars.group][v[1]..rv1] = rv2
 			end
 		end)
 
@@ -258,7 +258,7 @@ registerCallback("postinit",function()
 				if (type(default) == "table") then default = table.Copy(default) end
 				return default
 			else
-				local ret = GetVar(self.data.gvars.group,gvars[self.player],rv1,v[1])
+				local ret = GetVar(self.data.gvars.group,gvars[self.uid],rv1,v[1])
 				if (ret) then return ret end
 				local default = v[2][2]
 				if (type(default) == "table") then default = table.Copy(default) end
@@ -274,8 +274,8 @@ registerCallback("postinit",function()
 				if (!gvars.shared[self.data.gvars.group]) then gvars.shared[self.data.gvars.group] = {} end
 				gvars.shared[self.data.gvars.group][v[1]..tostring(rv1)] = rv2
 			else
-				if (!gvars[self.player][self.data.gvars.group]) then gvars[self.player][self.data.gvars.group] = {} end
-				gvars[self.player][self.data.gvars.group][v[1]..tostring(rv1)] = rv2
+				if (!gvars[self.uid][self.data.gvars.group]) then gvars[self.uid][self.data.gvars.group] = {} end
+				gvars[self.uid][self.data.gvars.group][v[1]..tostring(rv1)] = rv2
 			end
 		end)
 
@@ -290,7 +290,7 @@ registerCallback("postinit",function()
 				if (type(default) == "table") then default = table.Copy(default) end
 				return default
 			else
-				local ret = GetVar(self.data.gvars.group,gvars[self.player],rv1,v[1])
+				local ret = GetVar(self.data.gvars.group,gvars[self.uid],rv1,v[1])
 				if (ret) then return ret end
 				local default = v[2][2]
 				if (type(default) == "table") then default = table.Copy(default) end
@@ -313,10 +313,10 @@ registerCallback("postinit",function()
 					end
 				end
 			else
-				if (gvars[self.player][self.data.gvars.group]) then
-					if (gvars[self.player][self.data.gvars.group][v[1]..rv1]) then
-						local val = gvars[self.player][self.data.gvars.group][v[1]..rv1]
-						gvars[self.player][self.data.gvars.group][v[1]..rv1] = nil
+				if (gvars[self.uid][self.data.gvars.group]) then
+					if (gvars[self.uid][self.data.gvars.group][v[1]..rv1]) then
+						local val = gvars[self.uid][self.data.gvars.group][v[1]..rv1]
+						gvars[self.uid][self.data.gvars.group][v[1]..rv1] = nil
 						return val
 					end
 				end
@@ -339,10 +339,10 @@ registerCallback("postinit",function()
 					end
 				end
 			else
-				if (gvars[self.player][self.data.gvars.group]) then
-					if (gvars[self.player][self.data.gvars.group][v[1]..rv1]) then
-						local val = gvars[self.player][self.data.gvars.group][v[1]..rv1]
-						gvars[self.player][self.data.gvars.group][v[1]..rv1] = nil
+				if (gvars[self.uid][self.data.gvars.group]) then
+					if (gvars[self.uid][self.data.gvars.group][v[1]..rv1]) then
+						local val = gvars[self.uid][self.data.gvars.group][v[1]..rv1]
+						gvars[self.uid][self.data.gvars.group][v[1]..rv1] = nil
 						return val
 					end
 				end
@@ -356,7 +356,7 @@ registerCallback("postinit",function()
 
 		-- gDeleteAll*()
 		registerFunction("gDeleteAll"..k,"","",function(self,args)
-			for k,v in pairs( gvars[self.player][self.data.gvars.group] ) do
+			for k,v in pairs( gvars[self.uid][self.data.gvars.group] ) do
 				if (string.Left(k,#v[1]) == v[1]) then
 					v = nil
 				end
@@ -375,12 +375,19 @@ registerCallback("construct",function(self)
 	self.data.gvars = {}
 	self.data.gvars.group = "default"
 	self.data.gvars.shared = 0
-	if (!gvars[self.player]) then gvars[self.player] = {} end
+	if (!gvars[self.uid]) then gvars[self.uid] = {} end
 end)
 
+--[[
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!! TODO: Now there is no reason to do this,          !!!
+!!!        as the table will never get lost in NULLs. !!!
+!!!       Keep doing it? ~Lex                         !!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+--]]
 hook.Add("EntityRemoved","Expression2_gvars_PlayerDisconnected",function(ply)
-	if (ply:IsValid() and ply:IsPlayer() and gvars[ply]) then
-		gvars[ply] = nil
+	if (ply:IsValid() and ply:IsPlayer() and gvars[ply:UniqueID()]) then
+		gvars[ply:UniqueID()] = nil
 	end
 end)
 

@@ -18,7 +18,7 @@ function ENT:Initialize()
 	self.Memory = {}
 	self.MemSize = 0
 
-	self.overlay = "DHDD"
+	self:SetOverlayText("DHDD")
 end
 
 -- Check if we're going to hit the max size if we add 1 more
@@ -27,57 +27,54 @@ function ENT:CheckMaxSize( size )
 	return true
 end
 
--- Add 1 to current size if we're creating a new index
-function ENT:AddSize( Address )
-	if (!self.Memory[Address or 1]) then
+-- Write an address & check max size etc
+function ENT:WriteAddress( Address, value )
+	if (!self.Memory[Address]) then
+		if (!self:CheckMaxSize()) then return false end
 		self.MemSize = self.MemSize + 1
+	end
+	self.Memory[Address] = value
+	return true
+end
+
+-- Copy an array into the gate's memory
+function ENT:CopyArray( R )
+	local firstloop = true
+	for k,v in pairs( R ) do
+		if (firstloop) then -- If the new array actually has any data in it, clear the memory, then write to it
+			firstloop = false
+			self.Memory = {}
+			self.MemSize = 0
+		end
+		if (!self:WriteAddress( k, v )) then -- Write to memory
+			return
+		end
 	end
 end
 
 -- Read cell
 function ENT:ReadCell( Address )
 	local data = self.Memory[Address or 1] or 0
-	if (type(data) == "number") then
-		return data
-	end
+	return (type(data) == "number") and data or 0
 end
 
 -- Write cell
 function ENT:WriteCell( Address, value )
-	if (!self:CheckMaxSize()) then return false end
-	self:AddSize( Address )
-	self.Memory[Address or 1] = value or 0
+	self:WriteAddress( Address or 1, value or 0 )
 	self:ShowOutputs()
 	return true
 end
 
 function ENT:ShowOutputs()
 	WireLib.TriggerOutput( self, "Size", self.MemSize )
-	WireLib.TriggerOutput( self, "Memory", self.Memory )
-
-	self.overlay = "DHDD\nSize: " .. self.MemSize
-end
-
--- You don't need to update the overlay constantly...
-function ENT:Think()
-	if self.overlay != "DHDD\nSize: " .. self.MemSize then
-		self.overlay = "DHDD\nSize: " .. self.MemSize
-
-		self:SetOverlayText( self.overlay )
-	end
-
-	self:NextThink( CurTime() + 0.25 )
-	return true
+	WireLib.TriggerOutput( self, "Memory", table.Copy(self.Memory) )
+	self:SetOverlayText("DHDD\nSize: " .. self.MemSize )
 end
 
 function ENT:TriggerInput( name, value )
 	if (name == "Data") then
 		if (!value) then return end
-		local size = table.Count( value )
-		if (size == 0) then return end
-		if (!self:CheckMaxSize( size )) then return false end
-		self.Memory = table.Copy( value )
-		self.MemSize = size
+		self:CopyArray( value )
 		self:ShowOutputs()
 	elseif (name == "Clear") then
 		self.Memory = {}
