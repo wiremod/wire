@@ -18,7 +18,7 @@ function ENT:Initialize()
 	self.Memory = {}
 	self.MemSize = 0
 
-	self:SetOverlayText("DHDD")
+	self.overlay = "DHDD"
 end
 
 -- Check if we're going to hit the max size if we add 1 more
@@ -52,9 +52,22 @@ function ENT:WriteCell( Address, value )
 end
 
 function ENT:ShowOutputs()
-	WireLib.TriggerOutput( self, "Memory", table.Copy(self.Memory) )
 	WireLib.TriggerOutput( self, "Size", self.MemSize )
-	self:SetOverlayText( "DHDD\nSize: " .. self.MemSize )
+	WireLib.TriggerOutput( self, "Memory", self.Memory )
+
+	self.overlay = "DHDD\nSize: " .. self.MemSize
+end
+
+-- You don't need to update the overlay constantly...
+function ENT:Think()
+	if self.overlay != "DHDD\nSize: " .. self.MemSize then
+		self.overlay = "DHDD\nSize: " .. self.MemSize
+
+		self:SetOverlayText( self.overlay )
+	end
+
+	self:NextThink( CurTime() + 0.25 )
+	return true
 end
 
 function ENT:TriggerInput( name, value )
