@@ -340,6 +340,20 @@ e2function number wirelink:readCell(address)
 	return this:ReadCell(address) or 0
 end
 
+e2function array wirelink:readArray(start, size)
+	if !validWirelink(self, this) or !this.ReadCell then return {} end
+
+	self.prf = self.prf + size
+
+	local ret = {}
+
+	for i = 1, size do
+		ret[i] = this:ReadCell(start + (i - 1))
+	end
+
+	return ret
+end
+
 e2function number wirelink:operator[](address, value)
 	if not validWirelink(self, this) then return value end
 
@@ -592,4 +606,3 @@ e2function number wirelink:writeTable(address, table data )
 end
 
 __e2setcost(nil) -- temporary
-
