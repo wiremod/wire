@@ -410,8 +410,8 @@ end
 
 
 function TOOL.BuildCPanel( panel )
-	panel:AddControl( "Header", { Text = "#Tool_wire_latch_name", Description = "#Tool_wire_latch_desc" } )
-	WireDermaExts.ModelSelect(panel, "wire_latch_model", list.Get( "Wire_Misc_Tools_Models" ), 1)
+	panel:AddControl( "Header", { Text = "#Tool_wire_clutch_name", Description = "#Tool_wire_clutch_desc" } )
+	WireDermaExts.ModelSelect(panel, "wire_clutch_model", list.Get( "Wire_Misc_Tools_Models" ), 1)
 end
 
 
