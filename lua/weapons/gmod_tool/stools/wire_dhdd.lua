@@ -23,6 +23,7 @@ else
 	language.Add( "Tool_wire_dhdd_weld", "Weld the DHDD." )
 	language.Add( "Tool_wire_dhdd_weldtoworld", "Weld the DHDD to the world." )
 	language.Add( "Tool_wire_dhdd_freeze", "Freeze the DHDD." )
+	language.Add( "Tool_wire_dhdd_note", "NOTE: The DHDD only saves the first\n512^2 values to prevent\nmassive dupe files and lag." )
 
 	TOOL.ClientConVar["model"] = "models/jaanus/wiretool/wiretool_gate.mdl"
 	TOOL.ClientConVar["weld"] = 1
@@ -58,6 +59,11 @@ else
 		freeze:SizeToContents()
 		freeze:SetConVar( "wire_dhdd_freeze" )
 		CPanel:AddItem( freeze )
+
+		local label = vgui.Create("DLabel",CPanel)
+		label:SetText( "#Tool_wire_dhdd_note" )
+		label:SizeToContents()
+		CPanel:AddItem( label )
 	end
 
 end
