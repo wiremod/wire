@@ -610,8 +610,8 @@ local function SetTrails(Player, Entity, Data)
 	end
 
 	// Only set max value - negative values have their uses!
-	Data.StartSize = math.Max( Data.StartSize, 500 )
-	Data.EndSize = math.Max( Data.EndSize, 500 )
+	Data.StartSize = math.Min( Data.StartSize, 500 )
+	Data.EndSize = math.Min( Data.EndSize, 500 )
 
 	local trail_entity = util.SpriteTrail(
 		Entity,  //Entity
