@@ -933,101 +933,85 @@ end)
 /*********************** Now leaving the code of horror ***********************/
 
 e2function number array:sum()
-	local out = 0
-
-	self.prf = self.prf + #this / 2
-
-	for _,value in ipairs(this) do
-		out = out + (tonumber(value) or 0)
+	local ret = 0
+	local indexes = 0
+	for k,v in pairs( this ) do
+		indexes = indexes + 1
+		ret = ret + (tonumber(v) or 0)
 	end
-	return out
+	self.prf = self.prf + indexes / 2
+	return ret
 end
 
 e2function number array:average()
-	local totalValue = 0
-	local totalIndex = 0
-	local averageValue = 0
-
-	self.prf = self.prf + #this / 2
-
-	for k,v in ipairs(this) do
-		if type( v ) == "number" then
-			totalValue = totalValue + this[k]
-			totalIndex = totalIndex + 1
-		end
+	local ret = 0
+	local indexes = 0
+	for k,v in pairs( this ) do
+		indexes = indexes + 1
+		ret = ret + (tonumber(v) or 0)
 	end
-	averageValue = totalValue / totalIndex
-	return averageValue
+	self.prf = self.prf + indexes / 2
+	return ret / indexes
 end
 
 e2function number array:min()
-	local min = nil
-
-	self.prf = self.prf + #this / 2
-
-	for k,v in ipairs(this) do
-		if type( v ) == "number" then
-			if min == nil || v < min then
-				min = this[k]
-			end
+	local num
+	local indexes = 0
+	for k,v in pairs( this ) do
+		indexes = indexes + 1
+		local val = tonumber(v) or 0
+		if (num == nil or val < num) then
+			num = val
 		end
 	end
-	if min == nil then min = 0 end
-	local ret = min
-	min = nil
-	return ret
+	self.prf = self.prf + indexes / 2
+	return num
 end
 
 e2function number array:minIndex()
-	local minIndex = 0
-	local min = nil
-
-	self.prf = self.prf + #this / 2
-
-	for k,v in ipairs(this) do
-		if type( v ) == "number" then
-			if min == nil || v < min then
-				min = this[k]
-				minIndex = k
-			end
+	local num = nil
+	local index = nil
+	local indexes = 0
+	for k,v in pairs( this ) do
+		indexes = indexes + 1
+		local val = tonumber(v) or 0
+		if (num == nil or v < num) then
+			num = v
+			index = k
 		end
 	end
-	if min == nil then min = 0 end
-	local ret = minIndex
-	min = nil
-	return ret
+	self.prf = self.prf + indexes / 2
+	return index
 end
 
 e2function number array:max()
-	local ret = 0
-
-	self.prf = self.prf + #this / 2
-
-	for k,v in ipairs(this) do
-		if type( v ) == "number" then
-			if v > ret then
-				ret = this[k]
-			end
+	local num
+	local indexes = 0
+	for k,v in pairs( this ) do
+		indexes = indexes + 1
+		local val = tonumber(v) or 0
+		if (num == nil or val > num) then
+			num = val
 		end
 	end
-	return ret
+	self.prf = self.prf + indexes / 2
+	return num
 end
 
 e2function number array:maxIndex()
-	local retIndex = 0
-	local ret = 0
-
-	self.prf = self.prf + #this / 2
-
-	for k,v in ipairs(this) do
-		if type( v ) == "number" then
-			if v > ret then
-				ret = this[k]
-				retIndex = k
-			end
+	local num = nil
+	local index = nil
+	local indexes = 0
+	for k,v in pairs( this ) do
+		indexes = indexes + 1
+		local val = tonumber(v) or 0
+		if (num == nil or v > num) then
+			num = v
+			index = k
 		end
 	end
-	return retIndex
+	self.prf = self.prf + indexes / 2
+	return index
 end
 
 /******************************************************************************/
