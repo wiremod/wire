@@ -110,7 +110,7 @@ local e2_lastline = 10
 
 function e2_processerror(e)
 	--if e:sub(1,1) ~= ":" then return e end
-	local line, err = string.match(e,"^%[@RunString:([1-9][0-9]*)%]%w*(.*)$")
+	local line, err = string.match(e,"^%[@?RunString:([1-9][0-9]*)%]%w*(.*)$")
 	if not line then return e end
 	line = tonumber(line)
 	local found_chunk = e2_chunks[#e2_chunks]
