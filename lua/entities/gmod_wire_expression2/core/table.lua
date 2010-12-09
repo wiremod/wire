@@ -836,8 +836,16 @@ function tostrings.table(t)
 	return "["..table.concat(t, ",").."]"
 end
 
+function tostrings.Vector2(v)
+	return ("[%s,%s]"):format(v[1],v[2])
+end
+
 function tostrings.Vector(v)
-	return string.format("[%d,%d,%d]",v[1],v[2],v[4])
+	return ("[%s,%s,%s]"):format(v[1],v[2],v[3])
+end
+
+function tostrings.Vector4(v)
+	return ("[%s,%s,%s,%s]"):format(v[1],v[2],v[3],v[4])
 end
 
 -- for invert(T)
@@ -853,12 +861,12 @@ local tostring_typeid = {
 	r =		tostring,
 	xm4 =	tostrings.table,
 	t =		tostring,
-	v =		tostrings.table,
+	v =		tostrings.Vector,
 	m =		tostrings.table,
-	xv2 = 	tostrings.table,
+	xv2 = 	tostrings.Vector2,
 	xm2 = 	tostrings.table,
-	a = 	tostrings.table,
-	xv4 = 	tostrings.table,
+	a = 	tostrings.Vector,
+	xv4 = 	tostrings.Vector4,
 }
 
 --- Returns a lookup table for <arr>. Usage: Index = T:number(toString(Value)).
@@ -871,7 +879,7 @@ e2function table invert(array arr)
 		local tostring_this = tostrings[type(v)]
 		if tostring_this then
 			ret.s[tostring_this(v)] = i
-			ret.stypes[i] = "n"
+			ret.stypes[tostring_this(v)] = "n"
 		elseif (checkOwner(self)) then
 			self.player:ChatPrint("E2: invert(R): Invalid type ("..type(v)..") in array. Ignored.")
 		end
@@ -885,13 +893,24 @@ end
 e2function table invert(table tbl)
 	local ret = table.Copy(DEFAULT)
 	local c = 0
+	for i,v in pairs(tbl.n) do
+		c = c + 1
+		local typeid = tbl.ntypes[i]
+		local tostring_this = tostring_typeid[typeid]
+		if tostring_this then
+			ret.s[tostring_this(v)] = i
+			ret.stypes[tostring_this(v)] = "n"
+		elseif (checkOwner(self)) then
+			self.player:ChatPrint("E2: invert(T): Invalid type ("..typeid..") in table. Ignored.")
+		end
+	end
 	for i,v in pairs(tbl.s) do
 		c = c + 1
 		local typeid = tbl.stypes[i]
 		local tostring_this = tostring_typeid[typeid]
 		if tostring_this then
 			ret.s[tostring_this(v)] = i
-			ret.stypes[i] = "s"
+			ret.stypes[tostring_this(v)] = "s"
 		elseif (checkOwner(self)) then
 			self.player:ChatPrint("E2: invert(T): Invalid type ("..typeid..") in table. Ignored.")
 		end

@@ -361,10 +361,8 @@ e2function vector angle:up()
 	return Angle(this[1], this[2], this[3]):Up()
 end
 
-local round = math.Round
-
 e2function string toString(angle a)
-	return string.format("[%g,%g,%g]",round(a[1],3),round(a[2],3),round(a[3],3))
+	return ("[%s,%s,%s]"):format(a[1],a[2],a[3])
 end
 
 e2function string angle:toString() = e2function string toString(angle a)

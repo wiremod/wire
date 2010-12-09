@@ -80,13 +80,13 @@ end)
 registerOperator("add", "sv", "s", function(self, args)
 	local op1, op2 = args[2], args[3]
 	local rv2 = op2[1](self, op2)
-	return string.format( "%s[%g,%g,%g]", op1[1](self, op1),rv2[1],rv2[2],rv2[3] )
+	return ("%s[%s,%s,%s]"):format( op1[1](self, op1),rv2[1],rv2[2],rv2[3] )
 end)
 
 registerOperator("add", "vs", "s", function(self, args)
 	local op1, op2 = args[2], args[3]
 	local rv1 = op1[1](self, op1)
-	return string.format( "[%g,%g,%g]%s", rv1[1],rv1[2],rv1[3],op2[1](self, op2))
+	return ("[%s,%s,%s]%s"):format( rv1[1],rv1[2],rv1[3],op2[1](self, op2))
 end)
 
 /******************************************************************************/
@@ -94,13 +94,13 @@ end)
 registerOperator("add", "sa", "s", function(self, args)
 	local op1, op2 = args[2], args[3]
 	local rv2 = op2[1](self, op2)
-	return string.format( "%s[%g,%g,%g]", op1[1](self, op1),rv2[1],rv2[2],rv2[3] )
+	return ("%s[%s,%s,%s]"):format( op1[1](self, op1),rv2[1],rv2[2],rv2[3] )
 end)
 
 registerOperator("add", "as", "s", function(self, args)
 	local op1, op2 = args[2], args[3]
 	local rv1 = op1[1](self, op1)
-	return string.format( "[%g,%g,%g]%s", rv1[1],rv1[2],rv1[3],op2[1](self, op2))
+	return ("[%s,%s,%s]%s"):format( rv1[1],rv1[2],rv1[3],op2[1](self, op2))
 end)
 
 /******************************************************************************/
