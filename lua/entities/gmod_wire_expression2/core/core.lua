@@ -25,11 +25,11 @@ end)
 __e2setcost(0)
 
 registerOperator("seq", "", "", function(self, args)
-	local n = #args
-	if n == 2 then return end
-
 	self.prf = self.prf + args[2]
 	if self.prf > e2_tickquota then error("perf", 0) end
+
+	local n = #args
+	if n == 2 then return end
 
 	for i=3,n-1 do
 		local op = args[i]
