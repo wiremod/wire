@@ -263,7 +263,7 @@ function Editor:InitComponents()
 	self.C['Val']       = self:addComponent(vgui.Create( "Label", self )                    , 170, -30, -10,  20)   // Validation line
 	self.C['Btoggle']   = self:addComponent(vgui.Create( "Button", self )                   , 170,  30,  20,  20)   // Toggle Browser being shown
 	self.C['ConBut']    = self:addComponent(vgui.Create( "Button", self )                   , -62,  4,   18,  18)   // Control panel open/close
-	self.C['Control']   = self:addComponent(vgui.Create( "Panel", self )                    ,-210,  52, 200, 150)   // Control Panel
+	self.C['Control']   = self:addComponent(vgui.Create( "Panel", self )                    ,-210,  52, 200, 170)   // Control Panel
 	self.C['Credit']    = self:addComponent(vgui.Create( "TextEntry", self )                ,-160,  52, 150,  60)   // Credit box
 	/*self.C['CtC']       = self:addComponent(vgui.Create( "Button", self )                   ,-105,  30, -71,  20)   // Copy to Clipboard button
 
@@ -439,7 +439,7 @@ function Editor:InitControlPanel(frame)
 
 	local ColorPanel = vgui.Create( "Panel" , frame)
 	ColorPanel:SetPos(0,0)
-	ColorPanel:SetSize(200,130)
+	ColorPanel:SetSize(200,170)
 	ColorPanel.Paint = function(panel)
 		local w,h = panel:GetSize()
 		surface.SetDrawColor( 0, 0, 0, 150 )
@@ -485,6 +485,47 @@ function Editor:InitControlPanel(frame)
 		return x, 0.5
 	end
 	DarknessColor:SetSlideX(0)
+
+	local editorpanel = self.C['Editor'].panel
+
+	local FontLabel = vgui.Create( "DLabel", ColorPanel )
+	FontLabel:SetText( "Font:                            Font Size:" )
+	FontLabel:SizeToContents()
+	FontLabel:SetPos( 10, 130 )
+
+	local FontSelect = vgui.Create( "DMultiChoice", ColorPanel )
+	FontSelect.OnSelect = function( panel, index, value )
+		if (value == "Custom...") then
+			Derma_StringRequestNoBlur( "Enter custom font:", "", "", function( value )
+				editorpanel:ChangeFont( value, editorpanel.FontSizeConVar:GetInt() )
+				RunConsoleCommand( "wire_expression2_editor_font", value )
+			end)
+		else
+			value = value:gsub( " %b()", "" ) -- Remove description
+			editorpanel:ChangeFont( value, editorpanel.FontSizeConVar:GetInt() )
+			RunConsoleCommand( "wire_expression2_editor_font", value )
+		end
+	end
+	for k,v in pairs( editorpanel.Fonts ) do
+		FontSelect:AddChoice( k .. (v != "" and " (" .. v .. ")" or "") )
+	end
+	FontSelect:AddChoice( "Custom..." )
+	FontSelect:SetEditable( false )
+	FontSelect:SetPos( 10, 145 )
+	FontSelect:SetSize( 180 - 50 - 4, 20 )
+
+	local FontSizeSelect = vgui.Create( "DMultiChoice", ColorPanel )
+	FontSizeSelect.OnSelect = function( panel, index, value )
+		value = value:gsub( " %b()", "" )
+		editorpanel:ChangeFont( editorpanel.FontConVar:GetString(), tonumber(value) )
+		RunConsoleCommand( "wire_expression2_editor_font_size", value )
+	end
+	for i=11,26 do
+		FontSizeSelect:AddChoice( i .. (i == 16 and " (Default)" or "") )
+	end
+	FontSizeSelect:SetEditable( false )
+	FontSizeSelect:SetPos( 10 + FontSelect:GetWide() + 4, 145 )
+	FontSizeSelect:SetSize( 50, 20 )
 end
 
 function Editor:CalculateColor()

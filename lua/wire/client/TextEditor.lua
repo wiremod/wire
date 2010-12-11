@@ -5,14 +5,29 @@
 
 local EDITOR = {}
 
-surface.CreateFont("Courier New", 16, 400, false, false, "Expression2EditorFont")
-surface.CreateFont("Courier New", 16, 700, false, false, "Expression2EditorFontBold")
+EDITOR.FontConVar = CreateClientConVar( "wire_expression2_editor_font", "Courier New", true, false )
+EDITOR.FontSizeConVar = CreateClientConVar( "wire_expression2_editor_font_size", 16, true, false )
+
+EDITOR.Fonts = {}
+-- 				Font					Description
+
+-- Windows
+EDITOR.Fonts["Courier New"] 			= "Default font"
+EDITOR.Fonts["DejaVu Sans Mono"] 		= ""
+EDITOR.Fonts["Consolas"] 				= ""
+EDITOR.Fonts["Fixedsys"] 				= ""
+EDITOR.Fonts["Lucida Console"]			= ""
+
+-- Mac
+EDITOR.Fonts["Monaco"] 					= "Mac standard font"
+
+
+EDITOR.CreatedFonts = {}
 
 function EDITOR:Init()
 	self:SetCursor("beam")
 
-	surface.SetFont("Expression2EditorFont")
-	self.FontWidth, self.FontHeight = surface.GetTextSize(" ")
+	self:ChangeFont( self.FontConVar:GetString(), self.FontSizeConVar:GetInt() )
 
 	self.Rows = {""}
 	self.Caret = {1, 1}
@@ -39,6 +54,22 @@ function EDITOR:Init()
 	self.TextEntry.Parent = self
 
 	self.LastClick = 0
+end
+
+function EDITOR:ChangeFont( FontName, Size )
+	-- if (!self.Fonts[FontName]) then return end
+	-- We're not checking if the font exists to allow custom fonts
+
+	-- If font is not already created, create it.
+	if (!self.CreatedFonts[FontName .. "_" .. Size]) then
+		surface.CreateFont( FontName, Size, 400, false, false, "Expression2_" .. FontName .. "_" .. Size )
+		surface.CreateFont( FontName, Size, 700, false, false, "Expression2_" .. FontName .. "_" .. Size .. "_Bold" )
+		self.CreatedFonts[FontName .. "_" .. Size] = true
+	end
+
+	self.CurrentFont = "Expression2_" .. FontName .. "_" .. Size
+	surface.SetFont( self.CurrentFont )
+	self.FontWidth, self.FontHeight = surface.GetTextSize(" ")
 end
 
 function EDITOR:RequestFocus()
@@ -237,7 +268,7 @@ function EDITOR:PaintLine(row)
 		end
 	end
 
-	draw.SimpleText(tostring(row), "Expression2EditorFont", width * 3, (row - self.Scroll[1]) * height, Color(128, 128, 128, 255), TEXT_ALIGN_RIGHT)
+	draw.SimpleText(tostring(row), self.CurrentFont, width * 3, (row - self.Scroll[1]) * height, Color(128, 128, 128, 255), TEXT_ALIGN_RIGHT)
 
 	local offset = -self.Scroll[2] + 1
 	for i,cell in ipairs(self.PaintRows[row]) do
@@ -247,18 +278,18 @@ function EDITOR:PaintLine(row)
 				offset = line:len()
 
 				if cell[2][2] then
-					draw.SimpleText(line .. " ", "Expression2EditorFontBold", width * 3 + 6, (row - self.Scroll[1]) * height, cell[2][1])
+					draw.SimpleText(line .. " ", self.CurrentFont .. "_Bold", width * 3 + 6, (row - self.Scroll[1]) * height, cell[2][1])
 				else
-					draw.SimpleText(line .. " ", "Expression2EditorFont", width * 3 + 6, (row - self.Scroll[1]) * height, cell[2][1])
+					draw.SimpleText(line .. " ", self.CurrentFont, width * 3 + 6, (row - self.Scroll[1]) * height, cell[2][1])
 				end
 			else
 				offset = offset + cell[1]:len()
 			end
 		else
 			if cell[2][2] then
-				draw.SimpleText(cell[1] .. " ", "Expression2EditorFontBold", offset * width + width * 3 + 6, (row - self.Scroll[1]) * height, cell[2][1])
+				draw.SimpleText(cell[1] .. " ", self.CurrentFont .. "_Bold", offset * width + width * 3 + 6, (row - self.Scroll[1]) * height, cell[2][1])
 			else
-				draw.SimpleText(cell[1] .. " ", "Expression2EditorFont", offset * width + width * 3 + 6, (row - self.Scroll[1]) * height, cell[2][1])
+				draw.SimpleText(cell[1] .. " ", self.CurrentFont, offset * width + width * 3 + 6, (row - self.Scroll[1]) * height, cell[2][1])
 			end
 
 			offset = offset + cell[1]:len()
