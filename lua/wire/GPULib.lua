@@ -9,6 +9,7 @@ if CLIENT then
 		RenderTargetCache = { Used = {}, Free = {} }
 		for i = 1,RT_CACHE_SIZE do
 			local Target = GetRenderTarget("WireGPU_RT_"..i, 512, 512)
+			if not Target then break end
 			RenderTargetCache.Free[Target] = i
 		end
 	end
@@ -23,6 +24,40 @@ if CLIENT then
 	//
 	WireGPU_matScreen = CreateMaterial("GPURT","UnlitGeneric",{})
 
+	local function PrintWBI(text)
+		local fontnames = {
+			"Trebuchet24",
+			"Trebuchet22",
+			"Trebuchet20",
+			"Trebuchet19",
+			"Trebuchet18",
+		}
+
+		hook.Add("HUDPaint", "wiremod_installed_improperly_popup", function()
+			local fontname,w,h
+
+			-- Find a font that fits the screen
+			local fontindex = 0
+			repeat
+				fontindex = fontindex + 1
+				fontname = fontnames[fontindex]
+				surface.SetFont(fontname)
+				w,h = surface.GetTextSize(text)
+			until w+20 < ScrW() or fontindex == #fontnames
+
+			-- draw the text centered on the screen
+			local x,y = ScrW()/2-w/2, ScrH()/2-h/2
+
+			-- on a grey box with black borders
+			draw.RoundedBox(1, x-11, y-7, w+22, h+14, Color(0,0,0,192) )
+			draw.RoundedBox(1, x-9, y-5, w+18, h+10, Color(128,128,128,255) )
+
+			-- draw the text
+			draw.DrawText(text, fontname, x, y, Color(255,255,255,255), TEXT_ALIGN_LEFT)
+		end)
+
+		print(text)
+	end -- function PrintWBI
 end
 
 --------------------------------------------------------------------------------
@@ -85,7 +120,19 @@ if CLIENT then
 		self.RT = next(RenderTargetCache.Free)
 
 		-- no free RT? bail out
-		if not self.RT then return nil end
+		if not self.RT then
+			if not next(RenderTargetCache.Used) then
+				PrintWBI([[
+					In order for rendertargets to work, you need to restart Garry's Mod.
+
+					You might need to unblock .txt file download if restarting didn't help.
+					If that also fails, go to wiremod.com and download+install wiremod.
+
+					To get rid of this message, write 'lua_run_cl hook.Remove("HUDPaint", "wiremod_installed_improperly_popup")' into your console.
+				]])
+			end
+			return nil
+		end
 
 		-- mark RT as used
 		RenderTargetCache.Used[self.RT] = RenderTargetCache.Free[self.RT]
