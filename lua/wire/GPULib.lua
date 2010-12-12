@@ -121,7 +121,7 @@ if CLIENT then
 
 		-- no free RT? bail out
 		if not self.RT then
-			if not next(RenderTargetCache.Used) then
+			if not MissingRenderTargetMessageDisplayed and not next(RenderTargetCache.Used) then
 				PrintWBI([[
 					In order for rendertargets to work, you need to restart Garry's Mod.
 
@@ -130,6 +130,7 @@ if CLIENT then
 
 					To get rid of this message, write 'lua_run_cl hook.Remove("HUDPaint", "wiremod_installed_improperly_popup")' into your console.
 				]])
+				MissingRenderTargetMessageDisplayed = true
 			end
 			return nil
 		end
