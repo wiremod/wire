@@ -74,7 +74,11 @@ function ENT:Draw()
 
 	self:SetupClipping()
 
+	render.SuppressEngineLighting( true )
+
 	self:DrawModel()
+
+	render.SuppressEngineLighting( false )
 
 	self:FinishClipping()
 end
