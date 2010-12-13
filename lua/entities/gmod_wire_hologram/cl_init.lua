@@ -74,7 +74,9 @@ function ENT:Draw()
 
 	self:SetupClipping()
 
-	render.SuppressEngineLighting( true )
+	if self:GetNWBool( "disable_shading" ) then
+		render.SuppressEngineLighting( true )
+	end
 
 	self:DrawModel()
 

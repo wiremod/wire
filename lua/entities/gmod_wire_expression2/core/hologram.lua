@@ -690,6 +690,13 @@ e2function void holoShadow(index, has_shadow)
 	Holo.ent:DrawShadow( has_shadow ~= 0 )
 end
 
+e2function void holoDisableShading( index, disable )
+	local Holo = CheckIndex(self, index)
+	if not Holo then return end
+
+	Holo.ent:SetNWBool( "disable_shading", disable == 1 )
+end
+
 /******************************************************************************/
 
 e2function array holoModelList()
