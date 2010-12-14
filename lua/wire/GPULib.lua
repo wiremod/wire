@@ -24,7 +24,7 @@ if CLIENT then
 	//
 	WireGPU_matScreen = CreateMaterial("GPURT","UnlitGeneric",{})
 
-	local function PrintWBI(text)
+	function PrintWBI(text)
 		local fontnames = {
 			"Trebuchet24",
 			"Trebuchet22",
