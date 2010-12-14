@@ -56,6 +56,11 @@ if CLIENT then
 			draw.DrawText(text, fontname, x, y, Color(255,255,255,255), TEXT_ALIGN_LEFT)
 		end)
 
+		concommand.Add("kill_screen_error_message", function(ply, cmd, args)
+			hook.Remove("HUDPaint", "wiremod_installed_improperly_popup")
+		end)
+
+
 		print(text)
 	end -- function PrintWBI
 end
@@ -122,14 +127,14 @@ if CLIENT then
 		-- no free RT? bail out
 		if not self.RT then
 			if not MissingRenderTargetMessageDisplayed and not next(RenderTargetCache.Used) then
-				PrintWBI([[
-					In order for rendertargets to work, you need to restart Garry's Mod.
+				PrintWBI([[Hello and welcome to wiremod!
+It looks like this is the first time you connect to a wiremod server.
+For certain screen entities on this server to work you will need to restart Garry's Mod.
 
-					You might need to unblock .txt file download if restarting didn't help.
-					If that also fails, go to wiremod.com and download+install wiremod.
+If you already restarted and this message still persists, go to wiremod.com and download+install wiremod.
+If, for whatever reason, you don't want to install wiremod, you can try unblocking .txt file download and reconnect+restart.
 
-					To get rid of this message, write 'lua_run_cl hook.Remove("HUDPaint", "wiremod_installed_improperly_popup")' into your console.
-				]])
+To get rid of this message, write 'kill_screen_error_message' into your console.]])
 				MissingRenderTargetMessageDisplayed = true
 			end
 			return nil
