@@ -965,7 +965,7 @@ e2function number array:min()
 		end
 	end
 	self.prf = self.prf + indexes / 2
-	return num
+	return num or 0
 end
 
 e2function number array:minIndex()
@@ -981,7 +981,7 @@ e2function number array:minIndex()
 		end
 	end
 	self.prf = self.prf + indexes / 2
-	return index
+	return index or 0
 end
 
 e2function number array:max()
@@ -995,7 +995,7 @@ e2function number array:max()
 		end
 	end
 	self.prf = self.prf + indexes / 2
-	return num
+	return num or 0
 end
 
 e2function number array:maxIndex()
@@ -1011,7 +1011,7 @@ e2function number array:maxIndex()
 		end
 	end
 	self.prf = self.prf + indexes / 2
-	return index
+	return index or 0
 end
 
 /******************************************************************************/

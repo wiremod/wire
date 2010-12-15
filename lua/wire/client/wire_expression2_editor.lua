@@ -489,7 +489,7 @@ function Editor:InitControlPanel(frame)
 	local editorpanel = self.C['Editor'].panel
 
 	local FontLabel = vgui.Create( "DLabel", ColorPanel )
-	FontLabel:SetText( "Font:                            Font Size:" )
+	FontLabel:SetText( "Font:                                   Font Size:" )
 	FontLabel:SizeToContents()
 	FontLabel:SetPos( 10, 130 )
 
