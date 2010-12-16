@@ -578,13 +578,10 @@ end)
 registerFunction("mix", "vvn", "v", function(self, args)
 	local op1, op2, op3 = args[2], args[3], args[4]
 	local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
-	local n
-	if rv3 < 0 then n = 0
-	elseif rv3 > 1 then n = 1
-	else n = rv3 end
-	local x = rv1[1] * n + rv2[1] * (1-n)
-	local y = rv1[2] * n + rv2[2] * (1-n)
-	local z = rv1[3] * n + rv2[3] * (1-n)
+
+	local x = rv1[1] * rv3 + rv2[1] * (1-rv3)
+	local y = rv1[2] * rv3 + rv2[2] * (1-rv3)
+	local z = rv1[3] * rv3 + rv2[3] * (1-rv3)
 	return {x, y, z}
 end)
 

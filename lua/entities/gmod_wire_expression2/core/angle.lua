@@ -296,13 +296,9 @@ end
 
 // Mix two angles by a given proportion (between 0 and 1)
 e2function angle mix(angle rv1, angle rv2, rv3)
-	local n
-	if rv3 < 0 then n = 0
-	elseif rv3 > 1 then n = 1
-	else n = rv3 end
-	local p = rv1[1] * n + rv2[1] * (1-n)
-	local y = rv1[2] * n + rv2[2] * (1-n)
-	local r = rv1[3] * n + rv2[3] * (1-n)
+	local p = rv1[1] * rv3 + rv2[1] * (1-rv3)
+	local y = rv1[2] * rv3 + rv2[2] * (1-rv3)
+	local r = rv1[3] * rv3 + rv2[3] * (1-rv3)
 	return {p, y, r}
 end
 
