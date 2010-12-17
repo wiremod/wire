@@ -263,7 +263,7 @@ function Editor:InitComponents()
 	self.C['Val']       = self:addComponent(vgui.Create( "Label", self )                    , 170, -30, -10,  20)   // Validation line
 	self.C['Btoggle']   = self:addComponent(vgui.Create( "Button", self )                   , 170,  30,  20,  20)   // Toggle Browser being shown
 	self.C['ConBut']    = self:addComponent(vgui.Create( "Button", self )                   , -62,  4,   18,  18)   // Control panel open/close
-	self.C['Control']   = self:addComponent(vgui.Create( "Panel", self )                    ,-210,  52, 200, 170)   // Control Panel
+	self.C['Control']   = self:addComponent(vgui.Create( "Panel", self )                    ,-210,  52, 200, 255)   // Control Panel
 	self.C['Credit']    = self:addComponent(vgui.Create( "TextEntry", self )                ,-160,  52, 150,  60)   // Credit box
 	/*self.C['CtC']       = self:addComponent(vgui.Create( "Button", self )                   ,-105,  30, -71,  20)   // Copy to Clipboard button
 
@@ -439,7 +439,11 @@ function Editor:InitControlPanel(frame)
 
 	local ColorPanel = vgui.Create( "Panel" , frame)
 	ColorPanel:SetPos(0,0)
-	ColorPanel:SetSize(200,170)
+
+	 -- Note to anyone who wants to edit this: This is changed to 170 in Editor:Setup() when the editor is designated a CPU/GPU editor to hide the E2 comment style checkbox.
+	 -- It's also changed in the OnChanged function of said checkbox
+	ColorPanel:SetSize(200,255)
+
 	ColorPanel.Paint = function(panel)
 		local w,h = panel:GetSize()
 		surface.SetDrawColor( 0, 0, 0, 150 )
@@ -526,6 +530,33 @@ function Editor:InitControlPanel(frame)
 	FontSizeSelect:SetEditable( false )
 	FontSizeSelect:SetPos( 10 + FontSelect:GetWide() + 4, 145 )
 	FontSizeSelect:SetSize( 50, 20 )
+
+	local BlockCommentStyle = vgui.Create( "DCheckBoxLabel", ColorPanel )
+
+	local modes = {}
+	modes[true] = [[Block comment style
+Current mode:
+#[
+Code here
+Code here
+]#]]
+	modes[false] = [[Block comment style
+Current mode:
+#[Code here
+Code here]#]]
+
+	BlockCommentStyle:SetText( modes[editorpanel.BlockCommentStyleConVar:GetBool()] )
+	BlockCommentStyle:SetSize( 200, 200 )
+	ColorPanel:SetHeight( editorpanel.BlockCommentStyleConVar:GetBool() and 250 or 225 )
+
+	function BlockCommentStyle:OnChange( val )
+		self:SetText( modes[val] )
+		ColorPanel:SetHeight( (val and 255 or 230 ) )
+	end
+
+	BlockCommentStyle:SetConVar( "wire_expression2_editor_block_comment_style" )
+
+	BlockCommentStyle:SetPos( 10, 170 )
 end
 
 function Editor:CalculateColor()
@@ -560,27 +591,31 @@ end
 -- code1 contains the code that is not to be marked
 local code1 = "@name \n@inputs \n@outputs \n@persist \n@trigger \n\n"
 -- code2 contains the code that is to be marked, so it can simply be overwritten or deleted.
-local code2 = [[
-# Foreach loops have been added! The syntax is:
-# foreach(Key,Value:type = Table) { }
-#
-# Data Signals have been added! These functions allow you to transmit
-# data and execute E2s remotely. Read the wiki for more information.
-#
-# [wirelink]s can be wired to friends without getting kicked
-#
-# Expression 2 now uses the friends list of any prop protection
-# installed on the server to determine if a player may interact
-# with your props and read your code. To allow friends to write to your
-# expressions, execute the following: wire_expression2_friendwrite 1
-#
-# A new operator [A ?: B] has been added, shortcut for [A ? A : B]
-# Example: Output = A ?: B, Output = A ?: B ?: C
-#
-# Documentation and examples are available at:
-# http://wiki.garrysmod.com/?title=Wire_Expression2
-# The community is available at http://www.wiremod.com
-]]
+local code2 = [[#[
+    Block comments and multi line strings have been added!
+    You can see the block comment syntax in this comment.
+    Two new buttons have also been added to the right click menu.
+    These buttons put block comments around the current selection.
+    A checkbox has been added to the control menu (the wrench icon)
+    which lets you change the block comment style.
+
+    Multi line strings have also been added.
+    Using multi line strings is easy:
+    TestString = "Hello world
+    this is a
+    multi line string
+    example."
+
+    Font and font size options have been added to the control
+    menu (the wrench at the top)!
+
+    Foreach loops have been added! The syntax is:
+    foreach(Key,Value:type = Table) { }
+
+    Documentation and examples are available at:
+    http://wiki.garrysmod.com/?title=Wire_Expression2
+    The community is available at http://www.wiremod.com
+]#]]
 local defaultcode = code1 .. code2
 
 function Editor:NewScript()
@@ -814,6 +849,9 @@ function Editor:Setup(nTitle, nLocation, nEditorType)
 		local ed = self.C['Editor'].panel
 		ed.Start = ed:MovePosition({ 1, 1 }, 0)
 		ed.Caret = ed:MovePosition({ 1, 1 }, code:len())
+
+		-- Change height of control panel to hide E2's block comment style checkbox
+		self.C['Control']:SetHeight( 170 )
 	elseif nEditorType == "E2" then
 		-- Add "E2Helper" button
 		local E2Help = self:addComponent(vgui.Create("Button", self), -200, 30, -145, 20)

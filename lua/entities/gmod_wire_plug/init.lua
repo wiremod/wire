@@ -132,15 +132,28 @@ end
 function ENT:ResetValues()
 	if (self.ArrayInput) then
 		WireLib.TriggerOutput( self, "Out", {} )
-		WireLib.TriggerInput( self, "In", {} )
 	else
 		for i=1,#LETTERS do
 			WireLib.TriggerOutput( self, LETTERS[i], 0 )
-			WireLib.TriggerInput( self, LETTERS[i], 0 )
 		end
 	end
 	self.Memory = {}
 	self:ShowOutput()
+end
+
+------------------------------------------------------------
+-- ResendValues
+-- Resends the values when plugging in
+------------------------------------------------------------
+function ENT:ResendValues()
+	if (!self.Socket) then return end
+	if (self.ArrayInput) then
+		self.Socket:SetValue( "In", self.Inputs.In.Value )
+	else
+		for i=1,#LETTERS do
+			self.Socket:SetValue( LETTERS[i], self.Inputs[LETTERS[i]].Value )
+		end
+	end
 end
 
 ------------------------------------------------------------

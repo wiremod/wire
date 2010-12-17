@@ -194,7 +194,7 @@ local function rescale(Holo, scale)
 	end
 end
 
-wire_holograms.recsale = rescale
+wire_holograms.rescale = rescale
 
 local function check_clip(Holo, idx)
 	Holo.clips = Holo.clips or {}

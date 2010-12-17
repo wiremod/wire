@@ -41,38 +41,91 @@ function PreProcessor:HandlePPCommand(comment)
 	if handler then return handler(self, args) end
 end
 
-function PreProcessor:RemoveComments(line)
-	-- Search for string literals and comments
-	local comment = string.find(line, '[#"]')
-
-	-- While the current match is not a comment...
-	while (comment and (string.sub(line, comment, comment) != '#')) do
-		-- ...skip the string literal...
-		-- condition: comment points to a "
-		comment = string.find(line, '[\\"]', comment+1)
-		-- condition: comment points to a \ or a "
-		while (comment and (string.sub(line, comment, comment) == '\\')) do
-			-- comment points to a \ -> skip 2 characters
-			comment = string.find(line, '[\\"]', comment+2)
-			-- comment points to a \ or a " or nil
-			if (comment == nil) then break end -- syntax error: missing closing quote -> break
-			-- comment points to a \ or a "
+function PreProcessor:FindComments( line )
+	local ret, count, pos, found = {}, 0, 1
+	repeat
+		found = line:find( '[#"]', pos )
+		if (found) then -- We found something
+			local char = line:sub(found,found)
+			if (char == "#") then -- We found a comment
+				local before = line:sub( found-1, found-1 )
+				if (before == "]") then -- We found an ending
+					count = count + 1
+					ret[count] = { type = "end", pos = found-1 }
+					pos = found + 1
+				else
+					local after = line:sub( found+1, found+1 )
+					if (after == "[") then -- We found a start
+						count = count + 1
+						ret[count] = { type = "start", pos = found }
+						pos = found + 2
+					else -- We found a normal comment
+						count = count + 1
+						ret[count] = { type = "normal", pos = found }
+						pos = found + 1
+					end
+				end
+			elseif (char == '"') then -- We found a string
+				local before = line:sub( found-1, found-1 )
+				if (before == "\\") then -- It was an escaped character
+					pos = found + 1 -- Skip it
+				else -- It's a string
+					count = count + 1
+					ret[count] = { type = "string", pos = found }
+					pos = found + 1
+				end
+			end
 		end
-		-- condition: comment points to a " or nil
-		if (comment == nil) then break end -- syntax error: missing closing quote -> break
-		-- condition: comment points to a "
-		-- ...and look for the next string literal or comment.
-		comment = string.find(line, '[#"]', comment+1)
+	until(!found)
+	return ret, count
+end
+
+function PreProcessor:RemoveComments(line)
+
+	local comments, num = self:FindComments( line ) -- Find all comments and strings on this line
+
+	if (num == 0 and self.blockcomment) then
+		return ""
 	end
 
-	local prev_disabled = self.disabled
-	if comment then
-		self:HandlePPCommand(line:sub(comment+1))
-		line = string.sub(line, 1, comment - 1)
+	local prev_disabled, ret, lastpos = self.disabled, "", 1
+
+	for i=1, num do
+		local type = comments[i].type
+		if (type == "string" and !self.blockcomment) then -- Is it a string?
+			self.multilinestring = !self.multilinestring
+		elseif (!self.multilinestring) then -- Else it's a comment if we're not inside a multiline string
+			if (self.blockcomment) then -- Time to look for a ]#
+				if (type == "end") then -- We found one
+					local pos = comments[i].pos
+					ret = ret .. (" "):rep( pos - lastpos + 4 ) -- Replace the stuff in between with spaces
+					lastpos = pos+2
+					self.blockcomment = nil -- We're no longer in a block comment
+				end
+			else -- Time to look for a #[
+				if (type == "start") then -- We found one
+					local pos = comments[i].pos
+					ret = ret .. line:sub( lastpos, pos-1 )
+					lastpos = pos+2
+					self.blockcomment = true -- We're now inside a block comment
+				elseif (type == "normal") then -- We found a # instead
+					local pos = comments[i].pos
+					ret = ret .. line:sub( lastpos, pos-1 )
+					lastpos = -1
+					self:HandlePPCommand(line:sub(pos+1))
+					break -- Don't care what comes after
+				end
+			end
+		end
 	end
 
-	if prev_disabled then return "" end
-	return line
+	if (prev_disabled) then
+		return ""
+	elseif (lastpos != -1 and !self.blockcomment) then
+		return ret .. line:sub( lastpos, -1 )
+	else
+		return ret
+	end
 end
 
 function PreProcessor:ParseDirectives(line)

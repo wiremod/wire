@@ -198,8 +198,8 @@ function Tokenizer:NextSymbol()
 		-- loop until the closing quotation mark
 		while self.character != "\"" do
 			-- check for line/file endings
-			if self.character == "\n" or !self.character then
-				self:Error("Unterminated string (\"" .. E2Lib.limitString(self.tokendata, 10) .. ")")
+			if !self.character then
+				self:Error("Unterminated string (\"" .. E2Lib.limitString(self.tokendata, 10):gsub( "\n", "" ) .. ")")
 			end
 
 			if self.character == "\\" then

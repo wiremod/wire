@@ -7,6 +7,7 @@ local EDITOR = {}
 
 EDITOR.FontConVar = CreateClientConVar( "wire_expression2_editor_font", "Courier New", true, false )
 EDITOR.FontSizeConVar = CreateClientConVar( "wire_expression2_editor_font_size", 16, true, false )
+EDITOR.BlockCommentStyleConVar = CreateClientConVar( "wire_expression2_editor_block_comment_style", "1", true, false )
 
 EDITOR.Fonts = {}
 -- 				Font					Description
@@ -193,6 +194,13 @@ function EDITOR:OnMousePressed(code)
 			end)
 			menu:AddOption("Uncomment Block", function()
 				self:CommentSelection(true)
+			end)
+
+			menu:AddOption("Comment Selection",function()
+				self:BlockCommentSelection( false )
+			end)
+			menu:AddOption("Uncomment Selection",function()
+				self:BlockCommentSelection( true )
 			end)
 		end
 
@@ -1107,41 +1115,101 @@ function EDITOR:Indent(shift)
 	self:ScrollCaret()
 end
 
-function EDITOR:CommentSelection(shift) -- Multi-line comment feature ((shift-)ctrl-k) (idea by Jeremydeath)
-	if not self:HasSelection() then return end
+function EDITOR:BlockCommentSelection( removecomment )
+	if (!self:HasSelection()) then return end
 
-	local comment_char = self:GetParent().E2 and "#" or "//"
+	local scroll = self:CopyPosition( self.Scroll )
 
-	-- Comment a selection --
-	-- remember scroll position
-	local scroll = self:CopyPosition(self.Scroll)
+	-- Remember selection
+	local sel_start, sel_caret = self:MakeSelection( self:Selection() )
 
-	-- normalize selection, so it spans whole lines
-	local sel_start, sel_caret = self:MakeSelection(self:Selection())
+	if (removecomment) then
+		local str = self:GetSelection()
+		if (str:find( "#[",1,true ) and str:find( "]#", 1, true )) then
+			self:SetSelection( self:GetSelection():gsub( "(#%[)(.+)(%]#)", "%2" ) )
+
+			sel_caret[2] = sel_caret[2] - 2
+		end
+	else
+		self:SetSelection( self:GetSelection():gsub( "(.+)", "#%[%1%]#" ) )
+
+		if (sel_caret[1] == sel_start[1]) then
+			sel_caret[2] = sel_caret[2] + 4
+		else
+			sel_caret[2] = sel_caret[2] + 2
+		end
+	end
+
+	-- restore selection
+	self.Caret = self:CopyPosition(sel_caret)
+	self.Start = self:CopyPosition(sel_start)
+	-- restore scroll position
+	self.Scroll = self:CopyPosition(scroll)
+	-- trigger scroll bar update (TODO: find a better way)
+	self:ScrollCaret()
+end
+
+-- CommentSelection
+-- Idea by Jeremydeath
+-- Rewritten by Divran to use block comment
+function EDITOR:CommentSelection( removecomment )
+	if (!self:HasSelection()) then return end
+
+	-- Remember scroll position
+	local scroll = self:CopyPosition( self.Scroll )
+
+	-- Normalize selection, so it spans whole lines
+	local sel_start, sel_caret = self:MakeSelection( self:Selection() )
 	sel_start[2] = 1
 
-	if (sel_caret[2] ~= 1) then
+	if (sel_caret[2] != 1) then
 		sel_caret[1] = sel_caret[1] + 1
 		sel_caret[2] = 1
 	end
 
-	-- remember selection
-	self.Caret = self:CopyPosition(sel_caret)
-	self.Start = self:CopyPosition(sel_start)
+	-- Remember selection
+	self.Caret = self:CopyPosition( sel_caret )
+	self.Start = self:CopyPosition( sel_start )
 	-- (temporarily) adjust selection, so there is no empty line at its end.
 	if (self.Caret[2] == 1) then
 		self.Caret = self:MovePosition(self.Caret, -1)
 	end
-	if shift then
-		-- shift-TAB with a selection --
-		local tmp = string.gsub("\n"..self:GetSelection(), "\n"..comment_char, "\n")
 
-		-- makes sure that the first line is outdented
-		self:SetSelection(tmp:sub(2))
-	else
-		-- plain TAB with a selection --
-		self:SetSelection(comment_char .. self:GetSelection():gsub("\n", "\n"..comment_char))
+	if (self:GetParent().E2) then -- For the E2 Editor
+		if (removecomment) then -- Remove the commenting
+			local str = self:GetSelection()
+			if (str:find( "#[", 1, true ) and str:find( "]#", 1, true )) then
+				local cvar = self.BlockCommentStyleConVar:GetBool()
+				if (cvar) then
+					self:SetSelection( str:gsub( "(#%[\n)(.+)(\n%]#)", "%2" ) )
+					sel_caret[1] = sel_caret[1] - 2
+				else
+					self:SetSelection( str:gsub( "(#%[)(.+)(%]#)", "%2" ) )
+				end
+			end
+		else -- Add commenting
+			local cvar = self.BlockCommentStyleConVar:GetBool()
+			if (cvar) then
+				self:SetSelection( self:GetSelection():gsub( "(.+)", "#%[\n%1\n%]#" ) )
+				sel_caret[1] = sel_caret[1] + 2
+			else
+				self:SetSelection( self:GetSelection():gsub( "(.+)", "#%[%1%]#" ) )
+			end
+		end
+	else -- For CPU/GPU Editors
+		local comment_char = "//"
+		if removecomment then
+			-- shift-TAB with a selection --
+			local tmp = string.gsub("\n"..self:GetSelection(), "\n"..comment_char, "\n")
+
+			-- makes sure that the first line is outdented
+			self:SetSelection(tmp:sub(2))
+		else
+			-- plain TAB with a selection --
+			self:SetSelection(comment_char .. self:GetSelection():gsub("\n", "\n"..comment_char))
+		end
 	end
+
 	-- restore selection
 	self.Caret = self:CopyPosition(sel_caret)
 	self.Start = self:CopyPosition(sel_start)
@@ -1735,20 +1803,9 @@ do -- E2 Syntax highlighting
 						self:NextCharacter()
 					end
 
-					--[[ This is the old code. Does not support multiline strings
-						local foundending = false
-						while self.character and self.character != '"' do
-							if self.character == "\\" then self:NextCharacter() end
-							self:NextCharacter()
-						end
-						self:NextCharacter()
-
-						tokenname = "string"
-					]]
-
-				elseif self:NextPattern("#[^ ]*") then
-					if (self.tokendata:sub(2,2) == "[") then -- Check if there is a [ directly after the #
-						self:NextCharacter()
+				elseif self.character == "#" then
+					self:NextCharacter()
+					if (self.character == "[") then -- Check if there is a [ directly after the #
 						while self.character do -- Find the ending ]
 							if (self.character == "]") then
 								self:NextCharacter()
@@ -1769,6 +1826,8 @@ do -- E2 Syntax highlighting
 					end
 
 					if (tokenname == "") then
+
+						self:NextPattern("[^ ]*") -- Find the whole word
 
 						if PreProcessor["PP_"..self.tokendata:sub(2)] then
 							-- there is a preprocessor command by that name => mark as such
