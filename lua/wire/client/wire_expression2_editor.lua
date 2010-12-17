@@ -118,7 +118,7 @@ function Editor:OnMousePressed(mousecode)
 		self.p_my           = gui.MouseY()
 		self.p_mode         = self:getMode()
 		if(self.p_mode == "drag") then
-			if(self.GuiClick>CurTime()-1) then
+			if(self.GuiClick>CurTime()-0.2) then
 				self:fullscreen()
 				self.pressed = false
 				self.GuiClick = 0
@@ -137,7 +137,7 @@ end
 function Editor:Think()
 	if(self.fs) then return end
 	if(self.pressed) then
-		if(!input.IsMouseDown()) then	// needs this if you let go of the mouse outside the panel
+		if(!input.IsMouseDown( MOUSE_LEFT )) then	// needs this if you let go of the mouse outside the panel
 			self.pressed = false
 		end
 		local movedX = gui.MouseX()-self.p_mx
@@ -263,8 +263,8 @@ function Editor:InitComponents()
 	self.C['Val']       = self:addComponent(vgui.Create( "Label", self )                    , 170, -30, -10,  20)   // Validation line
 	self.C['Btoggle']   = self:addComponent(vgui.Create( "Button", self )                   , 170,  30,  20,  20)   // Toggle Browser being shown
 	self.C['ConBut']    = self:addComponent(vgui.Create( "Button", self )                   , -62,  4,   18,  18)   // Control panel open/close
-	self.C['Control']   = self:addComponent(vgui.Create( "Panel", self )                    ,-210,  52, 200, 255)   // Control Panel
-	self.C['Credit']    = self:addComponent(vgui.Create( "TextEntry", self )                ,-160,  52, 150,  60)   // Credit box
+	self.C['Control']   = self:addComponent(vgui.Create( "Panel", self )                    ,-210,  52, 200, 360)   // Control Panel
+	self.C['Credit']    = self:addComponent(vgui.Create( "TextEntry", self )                ,-160,  52, 170,  60)   // Credit box
 	/*self.C['CtC']       = self:addComponent(vgui.Create( "Button", self )                   ,-105,  30, -71,  20)   // Copy to Clipboard button
 
 	self.C['CtC'].panel:SetText("")
@@ -439,10 +439,7 @@ function Editor:InitControlPanel(frame)
 
 	local ColorPanel = vgui.Create( "Panel" , frame)
 	ColorPanel:SetPos(0,0)
-
-	 -- Note to anyone who wants to edit this: This is changed to 170 in Editor:Setup() when the editor is designated a CPU/GPU editor to hide the E2 comment style checkbox.
-	 -- It's also changed in the OnChanged function of said checkbox
-	ColorPanel:SetSize(200,255)
+	ColorPanel:SetSize(200,340)
 
 	ColorPanel.Paint = function(panel)
 		local w,h = panel:GetSize()
@@ -531,6 +528,32 @@ function Editor:InitControlPanel(frame)
 	FontSizeSelect:SetPos( 10 + FontSelect:GetWide() + 4, 145 )
 	FontSizeSelect:SetSize( 50, 20 )
 
+	local Label = vgui.Create( "DLabel", ColorPanel )
+	Label:SetPos( 10, 170 )
+	Label:SetText( "Expression 2 only settings:\n(Not for CPU/GPU)" )
+	Label:SizeToContents()
+
+	local AutoIndent = vgui.Create( "DCheckBoxLabel", ColorPanel )
+	AutoIndent:SetConVar( "wire_expression2_autoindent" )
+	AutoIndent:SetText( "Auto indenting" )
+	AutoIndent:SizeToContents()
+	AutoIndent:SetTooltip( "Enable/disable auto indenting." )
+	AutoIndent:SetPos( 10, 200 )
+
+	local Concmd = vgui.Create( "DCheckBoxLabel", ColorPanel )
+	Concmd:SetConVar( "wire_expression2_concmd" )
+	Concmd:SetText( "concmd" )
+	Concmd:SizeToContents()
+	Concmd:SetTooltip( "Allow/disallow the E2 from running console commands on you." )
+	Concmd:SetPos( 10, 220 )
+
+	local FriendWrite = vgui.Create( "DCheckBoxLabel", ColorPanel )
+	FriendWrite:SetConVar( "wire_expression2_friendwrite" )
+	FriendWrite:SetText( "Friend Write" )
+	FriendWrite:SizeToContents()
+	FriendWrite:SetTooltip( "Allow/disallow people in your prop protection friends list from reading and writing to your E2s." )
+	FriendWrite:SetPos( 10, 240 )
+
 	local BlockCommentStyle = vgui.Create( "DCheckBoxLabel", ColorPanel )
 
 	local modes = {}
@@ -547,16 +570,11 @@ Code here]#]]
 
 	BlockCommentStyle:SetText( modes[editorpanel.BlockCommentStyleConVar:GetBool()] )
 	BlockCommentStyle:SetSize( 200, 200 )
-	ColorPanel:SetHeight( editorpanel.BlockCommentStyleConVar:GetBool() and 250 or 225 )
-
-	function BlockCommentStyle:OnChange( val )
-		self:SetText( modes[val] )
-		ColorPanel:SetHeight( (val and 255 or 230 ) )
+	BlockCommentStyle.OnChange = function( panel, val )
+		panel:SetText( modes[val] )
 	end
-
 	BlockCommentStyle:SetConVar( "wire_expression2_editor_block_comment_style" )
-
-	BlockCommentStyle:SetPos( 10, 170 )
+	BlockCommentStyle:SetPos( 10, 260 )
 end
 
 function Editor:CalculateColor()
@@ -849,9 +867,6 @@ function Editor:Setup(nTitle, nLocation, nEditorType)
 		local ed = self.C['Editor'].panel
 		ed.Start = ed:MovePosition({ 1, 1 }, 0)
 		ed.Caret = ed:MovePosition({ 1, 1 }, code:len())
-
-		-- Change height of control panel to hide E2's block comment style checkbox
-		self.C['Control']:SetHeight( 170 )
 	elseif nEditorType == "E2" then
 		-- Add "E2Helper" button
 		local E2Help = self:addComponent(vgui.Create("Button", self), -200, 30, -145, 20)
