@@ -862,7 +862,7 @@ function Parser:ExprError()
 		elseif self:AcceptRoamingToken("mod") then
 			self:Error("Modulo operator (%) must be preceded by equation or value")
 		elseif self:AcceptRoamingToken("exp") then
-			self:Error("Exponentiation operator (%) must be preceded by equation or value")
+			self:Error("Exponentiation operator (^) must be preceded by equation or value")
 
 		elseif self:AcceptRoamingToken("ass") then
 			self:Error("Assignment operator (=) must be preceded by variable")

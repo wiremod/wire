@@ -7,7 +7,7 @@ local EDITOR = {}
 
 EDITOR.FontConVar = CreateClientConVar( "wire_expression2_editor_font", "Courier New", true, false )
 EDITOR.FontSizeConVar = CreateClientConVar( "wire_expression2_editor_font_size", 16, true, false )
-EDITOR.BlockCommentStyleConVar = CreateClientConVar( "wire_expression2_editor_block_comment_style", "1", true, false )
+EDITOR.BlockCommentStyleConVar = CreateClientConVar( "wire_expression2_editor_block_comment_style", 1, true, false )
 
 EDITOR.Fonts = {}
 -- 				Font					Description
@@ -1115,6 +1115,7 @@ function EDITOR:Indent(shift)
 	self:ScrollCaret()
 end
 
+-- Comment the currently selected area
 function EDITOR:BlockCommentSelection( removecomment )
 	if (!self:HasSelection()) then return end
 
@@ -1175,28 +1176,45 @@ function EDITOR:CommentSelection( removecomment )
 		self.Caret = self:MovePosition(self.Caret, -1)
 	end
 
-	if (self:GetParent().E2) then -- For the E2 Editor
-		if (removecomment) then -- Remove the commenting
-			local str = self:GetSelection()
-			if (str:find( "#[", 1, true ) and str:find( "]#", 1, true )) then
-				local cvar = self.BlockCommentStyleConVar:GetBool()
-				if (cvar) then
+	if (self:GetParent().E2) then -- For Expression 2
+		local mode = self.BlockCommentStyleConVar:GetInt()
+
+		if (mode == 0) then -- New (alt 1)
+			if (removecomment) then
+				local str = self:GetSelection()
+				if (str:find( "#[", 1, true ) and str:find( "]#", 1, true )) then
 					self:SetSelection( str:gsub( "(#%[\n)(.+)(\n%]#)", "%2" ) )
 					sel_caret[1] = sel_caret[1] - 2
-				else
-					self:SetSelection( str:gsub( "(#%[)(.+)(%]#)", "%2" ) )
 				end
-			end
-		else -- Add commenting
-			local cvar = self.BlockCommentStyleConVar:GetBool()
-			if (cvar) then
+			else
 				self:SetSelection( self:GetSelection():gsub( "(.+)", "#%[\n%1\n%]#" ) )
 				sel_caret[1] = sel_caret[1] + 2
+			end
+		elseif (mode == 1) then -- New (alt 2)
+			if (removecomment) then
+				local str = self:GetSelection()
+				if (str:find( "#[", 1, true ) and str:find( "]#", 1, true )) then
+					self:SetSelection( str:gsub( "(#%[)(.+)(%]#)", "%2" ) )
+				end
 			else
 				self:SetSelection( self:GetSelection():gsub( "(.+)", "#%[%1%]#" ) )
 			end
+		elseif (mode == 2) then -- Old
+			local comment_char = "#"
+			if removecomment then
+				-- shift-TAB with a selection --
+				local tmp = string.gsub("\n"..self:GetSelection(), "\n"..comment_char, "\n")
+
+				-- makes sure that the first line is outdented
+				self:SetSelection(tmp:sub(2))
+			else
+				-- plain TAB with a selection --
+				self:SetSelection(comment_char .. self:GetSelection():gsub("\n", "\n"..comment_char))
+			end
+		else
+			ErrorNoHalt( "Invalid block comment style" )
 		end
-	else -- For CPU/GPU Editors
+	else -- For CPU/GPU
 		local comment_char = "//"
 		if removecomment then
 			-- shift-TAB with a selection --

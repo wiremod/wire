@@ -67,7 +67,7 @@ function PreProcessor:FindComments( line )
 				end
 			elseif (char == '"') then -- We found a string
 				local before = line:sub( found-1, found-1 )
-				if (before == "\\") then -- It was an escaped character
+				if (before == "\\" and line:sub( found-2, found-2 ) != "\\") then -- It was an escaped character
 					pos = found + 1 -- Skip it
 				else -- It's a string
 					count = count + 1

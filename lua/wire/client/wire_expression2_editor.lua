@@ -554,27 +554,48 @@ function Editor:InitControlPanel(frame)
 	FriendWrite:SetTooltip( "Allow/disallow people in your prop protection friends list from reading and writing to your E2s." )
 	FriendWrite:SetPos( 10, 240 )
 
-	local BlockCommentStyle = vgui.Create( "DCheckBoxLabel", ColorPanel )
+	local BlockCommentStyle = vgui.Create( "DMultiChoice", ColorPanel )
+	local BlockCommentStyleLabel = vgui.Create( "DLabel", ColorPanel )
 
 	local modes = {}
-	modes[true] = [[Block comment style
-Current mode:
-#[
-Code here
-Code here
-]#]]
-	modes[false] = [[Block comment style
-Current mode:
-#[Code here
-Code here]#]]
+	modes["New (alt 1)"] = { 0, [[Block comment style
+                          Current mode:
+                          #[
+                          Code here
+                          Code here
+                          ]#]] }
+	modes["New (alt 2)"] = { 1, [[Block comment style
+                          Current mode:
+                          #[Code here
+                          Code here]#
 
-	BlockCommentStyle:SetText( modes[editorpanel.BlockCommentStyleConVar:GetBool()] )
-	BlockCommentStyle:SetSize( 200, 200 )
-	BlockCommentStyle.OnChange = function( panel, val )
-		panel:SetText( modes[val] )
+						  ]] }
+	modes["Old"] 		 = { 2, [[Block comment style
+                          Current mode:
+                          #Code here
+                          #Code here
+
+						  ]] }
+
+	for k,v in pairs( modes ) do
+		BlockCommentStyle:AddChoice( k )
 	end
-	BlockCommentStyle:SetConVar( "wire_expression2_editor_block_comment_style" )
-	BlockCommentStyle:SetPos( 10, 260 )
+
+	modes[0] = modes["New (alt 1)"][2]
+	modes[1] = modes["New (alt 2)"][2]
+	modes[2] = modes["Old"][2]
+
+	BlockCommentStyleLabel:SetText( modes[editorpanel.BlockCommentStyleConVar:GetInt()] )
+	BlockCommentStyleLabel:SetSize(200,200)
+	BlockCommentStyle:SetEditable( false )
+	BlockCommentStyleLabel:SetPos( 10, 195 )
+	BlockCommentStyle:SetPos( 10, 275 )
+
+
+	BlockCommentStyle.OnSelect = function( panel, index, value )
+		BlockCommentStyleLabel:SetText( modes[value][2] )
+		RunConsoleCommand( "wire_expression2_editor_block_comment_style", modes[value][1] )
+	end
 end
 
 function Editor:CalculateColor()
