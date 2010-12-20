@@ -143,6 +143,14 @@ e2function void entity:propDelete()
 	this:Remove()
 end
 
+e2function void entity:propBreak()
+	if not ValidAction(self.player) then return end
+	if not validEntity(this) then return end
+	if(!isOwner(self, this)) then return end
+	if this:IsPlayer() then return end	
+	this:Fire("break",1,0)
+end
+
 e2function number table:propDelete()
 	if not ValidAction(self.player) then return 0 end
 	local count = 0
