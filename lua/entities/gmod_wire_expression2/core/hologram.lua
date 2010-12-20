@@ -76,7 +76,10 @@ local scale_queue = {}
 local clip_queue = {}
 local vis_queue = {}
 
-wire_holograms.scale_queue = scale_queue
+local function add_scale_queue( Holo, scale ) -- Add an item to the scale queue (used by UWSVN holoModel)
+	scale_queue[#scale_queue+1] = { Holo, scale }
+end
+wire_holograms.add_scale_queue = add_scale_queue
 
 -- If no recipient is given, the umsg is sent to everyone (umsg.Start does that)
 local function flush_scale_queue(queue, recipient)
