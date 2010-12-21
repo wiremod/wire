@@ -14,7 +14,8 @@ local allowed_directories = { //prefix with >(allowed directory)/file.txt for fi
 	["e1shared"] = "ExpressionGate/e2shared",
 	["e2shared"] = "Expression2/e2shared",
 	["cpushared"] = "CPUChip/e2shared",
-	["gpushared"] = "GPUChip/e2shared"
+	["gpushared"] = "GPUChip/e2shared",
+	["dupeshared"] = "adv_duplicator/e2shared"
 }
 
 for _,dir in pairs( allowed_directories ) do
