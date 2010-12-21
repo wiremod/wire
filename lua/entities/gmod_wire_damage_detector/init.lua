@@ -6,6 +6,8 @@ include( 'shared.lua' )
 
 ENT.WireDebugName = "Damage Detector"
 
+local DEFAULT = {n={},ntypes={},s={},stypes={},size=0,istable=true,depth=0}
+
 // Global table to keep track of all detectors
 local Wire_Damage_Detectors = {}
 
@@ -67,7 +69,8 @@ function ENT:Initialize()
 	self.linked_entities = {}
 
 	// Store output damage info
-	self.victims = {}
+	self.victims = table.Copy(DEFAULT)
+	WireLib.TriggerOutput( self, "Victims", self.victims )
 	self.damage = 0
 
 	Wire_Damage_Detectors[self:EntIndex()] = true
@@ -171,7 +174,7 @@ function ENT:TriggerOutput()		-- Entity outputs won't trigger again until they c
 				Wire_TriggerOutput( self.Entity, "Victim", null )
 			end
 
-			Wire_TriggerOutput( self.Entity, "Victims", self.victims or {} )
+			Wire_TriggerOutput( self.Entity, "Victims", self.victims or table.Copy(DEFAULT) )
 			Wire_TriggerOutput( self.Entity, "Position", self.firsthit_dmginfo[3] or Vector(0,0,0) )
 			Wire_TriggerOutput( self.Entity, "Force", self.firsthit_dmginfo[4] or Vector(0,0,0) )
 			Wire_TriggerOutput( self.Entity, "Type", self.firsthit_dmginfo[5] or "" )
@@ -229,7 +232,7 @@ function ENT:UpdateDamage( dmginfo, entID )		-- Update damage table
 		elseif dmginfo:IsDamageType(DMG_CRUSH) then self.dmgtype = "Crush"
 		end
 
-		table.Empty(self.victims)
+		self.victims = table.Copy(DEFAULT)
 		self.firsthit_dmginfo[5] = self.dmgtype
 
 		self.hit = true
@@ -245,7 +248,8 @@ function ENT:UpdateDamage( dmginfo, entID )		-- Update damage table
 	end
 
 	// Update victims table (ent, damage)
-	self.victims["n" .. tostring(entID)] = ( self.victims["n" .. tostring(entID)] or 0 ) + damage
+	self.victims.s[tostring(entID)] = ( self.victims[tostring(entID)] or 0 ) + damage
+	self.victims.stypes[tostring(entID)] = "n"
 end
 
 function ENT:Think()
