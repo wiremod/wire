@@ -1,10 +1,38 @@
-/******************************************************************************\
-  Array support
-\******************************************************************************/
+--------------------------------------------------------------------------------
+-- Array Support
+-- Original author: Unknown (But the Wiki mentions Erkle)
+-- Rewritten by Divran at 2010-12-21
+--------------------------------------------------------------------------------
 
-E2_MAX_ARRAY_SIZE = 1024*1024	// 1MB
+--------------------------------------------------------------------------------
+-- Helper functions and constants
+--------------------------------------------------------------------------------
 
-/******************************************************************************/
+local table_insert = table.insert
+local table_remove = table.remove
+local floor = math.floor
+
+E2_MAX_ARRAY_SIZE = 1024*1024	-- 1MB
+
+local blocked_types = {
+	["t"] = true,
+	["r"] = true,
+	["xgt"] = true
+}
+
+-- Fix return values
+local function fixdef( val )
+	return (type(val) == "table") and table.Copy(val) or val
+end
+
+-- Uppercases the first letter
+local function upperfirst( word )
+	return word:Left(1):upper() .. word:Right(-2):lower()
+end
+
+--------------------------------------------------------------------------------
+-- Type
+--------------------------------------------------------------------------------
 
 registerType("array", "r", {},
 	function(self, input)
@@ -22,28 +50,24 @@ registerType("array", "r", {},
 	end
 )
 
-/******************************************************************************/
-
-__e2setcost(5) -- temporary
-
---[[ array(...) overwrites this function
-e2function array array()
-	return {}
-end
-]]
-
---- Constructs an array with the given values as elements. If you specify types that are not supported by the array data type, the behaviour is undefined.
+--------------------------------------------------------------------------------
+-- Array(...)
+-- Constructs and returns an array with the given values as elements. If you specify values that are not supported by the array data type, they are skipped
+--------------------------------------------------------------------------------
+__e2setcost(1)
 e2function array array(...)
-	local ret = { ... }
-	if (#ret == 0) then return {} end -- This line is in place of 'array()'
-	for i,v in ipairs(ret) do
-		if typeids[i] == "r" or typeids[i] == "t" or typeids[i] == "xgt" then ret[i] = nil end
+	local ret = {...}
+	if (#ret == 0) then return {} end -- This is in place of the old "array()" function (now deleted because array(...) overwrote it)
+	for k,v in pairs( ret ) do
+		self.prf = self.prf + 1/3
+		if (blocked_types[typeids[k]]) then ret[k] = nil end
 	end
 	return ret
 end
 
-/******************************************************************************/
-
+--------------------------------------------------------------------------------
+-- = operator
+--------------------------------------------------------------------------------
 e2function array operator=(array lhs, array rhs)
 
 	local lookup = self.data.lookup
@@ -62,876 +86,235 @@ e2function array operator=(array lhs, array rhs)
 	return rhs
 end
 
-/******************************************************************************/
-
+--------------------------------------------------------------------------------
+-- IS operator
+--------------------------------------------------------------------------------
 e2function number operator_is(array arr)
 	return type(arr) == "table" and 1 or 0
 end
 
-registerCallback("postinit", function()
-	-- retrieve information about all registered types
-	local types = table.Copy(wire_expression_types)
+--------------------------------------------------------------------------------
+-- Looped functions and operators
+--------------------------------------------------------------------------------
+registerCallback( "postinit", function()
+	local getf, setf
+	for k,v in pairs( wire_expression_types ) do
+		local name = k:lower()
+		if (name == "normal") then name = "number" end
+		local nameupperfirst = upperfirst( name )
+		local id = v[1]
+		local default = v[2]
+		local typecheck = v[6]
 
-	-- change the name for numbers from "NORMAL" to "NUMBER"
-	types["NUMBER"] = types["NORMAL"]
-	types["NORMAL"] = nil
+		if (!blocked_types[id]) then -- blocked check start
 
-	-- we don't want tables and arrays as array elements, so get rid of them
-	types["TABLE"] = nil
-	types["ARRAY"] = nil
-	types["GTABLE"] = nil
+			--------------------------------------------------------------------------------
+			-- Get functions
+			-- value = R[N,type], and value = R:<type>(N)
+			--------------------------------------------------------------------------------
+			__e2setcost(10)
 
-	-- generate op[] for all types
-	for name,id in pairs_map(types, unpack) do
-
-		-- R:number() etc
-		local getter = name:lower()
-
-		-- R:setNumber() etc
-		local setter = "set"..name:sub(1,1):upper()..name:sub(2):lower()
-
-		local getf = wire_expression2_funcs[getter.."(r:n)"]
-		local setf = wire_expression2_funcs[setter.."(r:n"..id..")"]
-
-		if getf then
-			local f = getf.oldfunc or getf[3] -- use oldfunc if present, else func
-			if getf then
-				registerOperator("idx", id.."=rn", id, f, getf[4], getf[5])
+			local function getter( self, array, index, doremove )
+				if (!array or !index) then return fixdef( default ) end -- Make sure array and index are value
+				local ret
+				if (doremove) then
+					ret = table_remove( array, index )
+					self.vclk[array] = true
+				else
+					ret = array[floor(index)]
+				end
+				if (typecheck and typecheck( ret )) then return fixdef( default ) end -- If typecheck returns true, the type is wrong.
+				return ret
 			end
-		end
-		if setf then
-			local f = setf.oldfunc or setf[3] -- use oldfunc if present, else func
-			if setf then
-				registerOperator("idx", id.."=rn"..id, id, f, setf[4], setf[5])
+
+			registerOperator("idx", id.."=rn", id, function(self,args)
+				local op1, op2 = args[2], args[3]
+				local array, index = op1[1](self,op1), op2[1](self,op2)
+				return getter( self, array, index )
+			end)
+
+			registerFunction( name, "r:n", id, function(self,args)
+				local op1, op2 = args[2], args[3]
+				local array, index = op1[1](self,op1), op2[1](self,op2)
+				return getter( self, array, index )
+			end)
+
+			--------------------------------------------------------------------------------
+			-- Set functions
+			-- R[N,type] = value, and R:set<type>(N,value)
+			--------------------------------------------------------------------------------
+
+			local function setter( self, array, index, value, doinsert )
+				if (!array or !index) then return fixdef( default ) end -- Make sure array and index are valid
+				if (typecheck and typecheck( value )) then return fixdef( default ) end -- If typecheck returns true, the type is wrong.
+				if (doinsert) then
+					if (#array + 1 > E2_MAX_ARRAY_SIZE) then return fixdef( default ) end -- Check max size
+					table_insert( array, index, value )
+				else
+					if (index > E2_MAX_ARRAY_SIZE) then return fixdef( default ) end -- Check max size
+					array[floor(index)] = value
+				end
+				self.vclk[array] = true
+				return value
 			end
-		end
+
+			registerOperator("idx", id.."=rn"..id, id, function(self,args)
+				local op1, op2, op3 = args[2], args[3], args[4]
+				local array, index, value = op1[1](self,op1), op2[1](self,op2), op3[1](self,op3)
+				return setter( self, array, index, value )
+			end)
+
+			registerFunction("set" .. nameupperfirst, "r:n"..id, id, function(self,args)
+				local op1, op2, op3 = args[2], args[3], args[4]
+				local array, index, value = op1[1](self,op1), op2[1](self,op2), op3[1](self,op3)
+				return setter( self, array, index, value )
+			end)
+
+
+			--------------------------------------------------------------------------------
+			-- Push functions
+			-- Inserts the value at the end of the array
+			--------------------------------------------------------------------------------
+			__e2setcost(15)
+
+			registerFunction( "push" .. nameupperfirst, "r:" .. id, id, function(self,args)
+				local op1, op2 = args[2], args[3]
+				local array, value = op1[1](self,op1), op2[1](self,op2)
+				return setter( self, array, #array + 1, value )
+			end)
+
+			--------------------------------------------------------------------------------
+			-- Insert functions
+			-- Inserts the value at the specified index. Subsequent values are moved up to compensate.
+			--------------------------------------------------------------------------------
+			registerFunction( "insert" .. nameupperfirst, "r:n" .. id, id, function( self, args )
+				local op1, op2, op3 = args[2], args[3], args[4]
+				local array, index, value = op1[1](self,op1), op2[1](self,op2), op3[1](self,op3)
+				return setter( self, array, index, value, true )
+			end)
+
+			--------------------------------------------------------------------------------
+			-- Pop functions
+			-- Removes and returns the last value in the array.
+			--------------------------------------------------------------------------------
+			registerFunction( "pop" .. nameupperfirst, "r:", id, function(self,args)
+				local op1 = args[2]
+				local array = op1[1](self,op1)
+				if (!array) then return fixdef( default ) end
+				return getter( self, array, #array, true )
+			end)
+
+			--------------------------------------------------------------------------------
+			-- Unshift functions
+			-- Inserts the value at the beginning of the array. Subsequent values are moved up to compensate.
+			--------------------------------------------------------------------------------
+			registerFunction( "unshift" .. nameupperfirst, "r:" .. id, id, function(self,args)
+				local op1, op2 = args[2], args[3]
+				local array, value = op1[1](self,op1), op2[1](self,op2)
+				return setter( self, array, 1, value, true )
+			end)
+
+			--------------------------------------------------------------------------------
+			-- Shift functions
+			-- Removes and returns the first value of the array. Subsequent values are moved down to compensate.
+			--------------------------------------------------------------------------------
+			registerFunction( "shift" .. nameupperfirst, "r:", id, function(self,args)
+				local op1 = args[2]
+				local array = op1[1](self,op1)
+				if (!array) then return fixdef( default ) end
+				return getter( self, array, 1, true )
+			end)
+
+			--------------------------------------------------------------------------------
+			-- Remove functions
+			-- Removes and returns the specified value of the array. Subsequent values are moved down to compensate.
+			--------------------------------------------------------------------------------
+			registerFunction( "remove" .. nameupperfirst, "r:n", id, function(self,args)
+				local op1, op2 = args[2], args[3]
+				local array, index = op1[1](self,op1), op2[1](self,op2)
+				if (!array or !index) then return fixdef( default ) end
+				return getter( self, array, index, true )
+			end)
+
+
+		end -- blocked check end
 	end
 end)
 
-/******************************************************************************/
+--------------------------------------------------------------------------------
+-- Pop
+-- Returns and removes the last entry in the array
+--------------------------------------------------------------------------------
+__e2setcost(15)
+registerFunction("pop", "r:", "", function(self,args)
+	local op1 = args[2]
+	local rv1 = op1[1](self, op1)
+	table_remove(rv1)
+	self.vclk[rv1] = true
+end)
 
+--------------------------------------------------------------------------------
+-- Remove
+-- Returns and removes the specified entry in the array
+--------------------------------------------------------------------------------
+__e2setcost(15)
+registerFunction("remove", "r:n", "", function(self,args)
+	local op1, op2 = args[2], args[3]
+	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+	table_remove(rv1,rv2)
+	self.vclk[rv1] = true
+end)
+
+--------------------------------------------------------------------------------
+-- Shift
+-- Returns and removes the first entry in the array
+--------------------------------------------------------------------------------
+__e2setcost(15)
+registerFunction("shift", "r:", "", function(self,args)
+	local op1 = args[2]
+	local rv1 = op1[1](self, op1)
+	table_remove(rv1,1)
+	self.vclk[rv1] = true
+end)
+
+--------------------------------------------------------------------------------
+-- Count
+-- Returns the number of entries in the array
+--------------------------------------------------------------------------------
+__e2setcost(5)
 e2function number array:count()
 	return #this
 end
 
-/******************************************************************************/
-
+--------------------------------------------------------------------------------
+-- Clear
+-- Empties the array
+--------------------------------------------------------------------------------
+__e2setcost(1)
 e2function void array:clear()
-
 	self.prf = self.prf + #this / 3
-
 	table.Empty(this)
 end
 
+--------------------------------------------------------------------------------
+-- Clone
+-- Returns a copy of the array
+--------------------------------------------------------------------------------
+__e2setcost(1)
 e2function array array:clone()
 	local ret = {}
-
 	self.prf = self.prf + #this / 3
-
 	for k,v in pairs(this) do
 		ret[k] = v
 	end
-
 	return ret
 end
 
-/********************* The Old, Haunted Part of array.lua *********************/
-
-registerFunction("number", "r:n", "n", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	local ret = rv1[rv2]
-	if ret then return tonumber(ret) or 0 end
-	return 0
-end)
-
-registerFunction("setNumber", "r:nn", "n", function(self, args)
-	local op1, op2, op3 = args[2], args[3], args[4]
-	local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
-	if(rv2 >= E2_MAX_ARRAY_SIZE) then return end
-	--if rv3 == 0 then rv3 = nil end
-	rv1[rv2] = rv3
-	self.vclk[rv1] = true
-	return rv3
-end)
-
-registerFunction("vector2", "r:n", "xv2", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	local ret = rv1[rv2]
-	if type(ret) == "table" and table.getn(ret) == 2 then return ret end
-	return { 0, 0 }
-end)
-
-registerFunction("setVector2", "r:nxv2", "xv2", function(self, args)
-	local op1, op2, op3 = args[2], args[3], args[4]
-	local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
-	if(rv2 >= E2_MAX_ARRAY_SIZE) then return end
-	rv1[rv2] = rv3
-	self.vclk[rv1] = true
-	return rv3
-end)
-
-registerFunction("vector", "r:n", "v", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	local ret = rv1[rv2]
-	if (type(ret) == "table" and table.getn(ret) == 3) or type(ret) == "Vector" then return ret end
-	return { 0, 0, 0 }
-end)
-
-registerFunction("setVector", "r:nv", "v", function(self, args)
-	local op1, op2, op3 = args[2], args[3], args[4]
-	local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
-	if(rv2 >= E2_MAX_ARRAY_SIZE) then return end
-	--if rv3[1] == 0 and rv3[2] == 0 and rv3[3] == 0 then rv3 = nil end
-	rv1[rv2] = rv3
-	self.vclk[rv1] = true
-	return rv3
-end)
-
-registerFunction("vector4", "r:n", "xv4", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	local ret = rv1[rv2]
-	if type(ret) == "table" and table.getn(ret) == 4 then return ret end
-	return { 0, 0, 0, 0 }
-end)
-
-registerFunction("setVector4", "r:nxv4", "xv4", function(self, args)
-	local op1, op2, op3 = args[2], args[3], args[4]
-	local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
-	if(rv2 >= E2_MAX_ARRAY_SIZE) then return end
-	rv1[rv2] = rv3
-	self.vclk[rv1] = true
-	return rv3
-end)
-
-registerFunction("angle", "r:n", "a", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	local ret = rv1[rv2]
-	if type(ret) == "table" and table.getn(ret) == 3 then return ret end
-	return { 0, 0, 0 }
-end)
-
-registerFunction("setAngle", "r:na", "a", function(self, args)
-	local op1, op2, op3 = args[2], args[3], args[4]
-	local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
-	if(rv2 >= E2_MAX_ARRAY_SIZE) then return end
-	--if rv3[1] == 0 and rv3[2] == 0 and rv3[3] == 0 then rv3 = nil end
-	rv1[rv2] = rv3
-	self.vclk[rv1] = true
-	return rv3
-end)
-
-registerFunction("matrix2", "r:n", "xm2", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	local ret = rv1[rv2]
-	if type(ret) == "table" and table.getn(ret) == 4 then return ret end
-	return { 0, 0,
-			 0, 0 }
-end)
-
-registerFunction("setMatrix2", "r:nxm2", "xm2", function(self, args)
-	local op1, op2, op3 = args[2], args[3], args[4]
-	local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
-	if(rv2 >= E2_MAX_ARRAY_SIZE) then return end
-	rv1[rv2] = rv3
-	self.vclk[rv1] = true
-	return rv3
-end)
-
-registerFunction("matrix", "r:n", "m", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	local ret = rv1[rv2]
-	if type(ret) == "table" and table.getn(ret) == 9 then return ret end
-	return { 0, 0, 0,
-			 0, 0, 0,
-			 0, 0, 0 }
-end)
-
-registerFunction("setMatrix", "r:nm", "m", function(self, args)
-	local op1, op2, op3 = args[2], args[3], args[4]
-	local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
-	if(rv2 >= E2_MAX_ARRAY_SIZE) then return end
-	rv1[rv2] = rv3
-	self.vclk[rv1] = true
-	return rv3
-end)
-
-registerFunction("matrix4", "r:n", "xm4", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	local ret = rv1[rv2]
-	if type(ret) == "table" and table.getn(ret) == 16 then return ret end
-	return { 0, 0, 0, 0,
-			 0, 0, 0, 0,
-			 0, 0, 0, 0,
-			 0, 0, 0, 0 }
-end)
-
-registerFunction("setMatrix4", "r:nxm4", "xm4", function(self, args)
-	local op1, op2, op3 = args[2], args[3], args[4]
-	local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
-	if(rv2 >= E2_MAX_ARRAY_SIZE) then return end
-	rv1[rv2] = rv3
-	self.vclk[rv1] = true
-	return rv3
-end)
-
-registerFunction("string", "r:n", "s", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	local ret = rv1[rv2]
-	if ret then return tostring(ret) end
-	return ""
-end)
-
-registerFunction("setString", "r:ns", "s", function(self, args)
-	local op1, op2, op3 = args[2], args[3], args[4]
-	local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
-	if(rv2 >= E2_MAX_ARRAY_SIZE) then return end
-	--if rv3 == "" then rv3 = nil end
-	rv1[rv2] = rv3
-	self.vclk[rv1] = true
-	return rv3
-end)
-
-registerFunction("entity", "r:n", "e", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	local ret = rv1[rv2]
-	if validEntity(ret) then return ret end
-	return nil
-end)
-
-registerFunction("setEntity", "r:ne", "e", function(self, args)
-	local op1, op2, op3 = args[2], args[3], args[4]
-	local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
-	if(rv2 >= E2_MAX_ARRAY_SIZE) then return end
-	rv1[rv2] = rv3
-	self.vclk[rv1] = true
-	return rv3
-end)
-
-/******************************************************************************/
-
-registerFunction("pushNumber", "r:n", "", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	if ((table.getn(rv1)+1) >= E2_MAX_ARRAY_SIZE) then return end
-	--if (rv2 == 0) then rv2 = nil end
-	table.insert(rv1,rv2)
-	self.vclk[rv1] = true
-end)
-
-registerFunction("popNumber", "r:", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	local ret = table.remove(rv1)
-	self.vclk[rv1] = true
-	if ret then return tonumber(ret) or 0 end
-	return 0
-end)
-
-registerFunction("pushVector2", "r:xv2", "", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	if ((table.getn(rv1)+1) >= E2_MAX_ARRAY_SIZE) then return end
-	table.insert(rv1,rv2)
-	self.vclk[rv1] = true
-end)
-
-registerFunction("popVector2", "r:", "xv2", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	local ret = table.remove(rv1)
-	self.vclk[rv1] = true
-	if type(ret) == "table" and table.getn(ret) == 2 then return ret end
-	return { 0, 0 }
-end)
-
-registerFunction("pushVector", "r:v", "", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	if ((table.getn(rv1)+1) >= E2_MAX_ARRAY_SIZE) then return end
-	--if rv2[1] == 0 and rv2[2] == 0 and rv2[3] == 0 then rv2 = nil end
-	table.insert(rv1,rv2)
-	self.vclk[rv1] = true
-end)
-
-registerFunction("popVector", "r:", "v", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	local ret = table.remove(rv1)
-	self.vclk[rv1] = true
-	if (type(ret) == "table" and table.getn(ret) == 3) or type(ret) == "Vector" then return ret end
-	return { 0, 0, 0 }
-end)
-
-registerFunction("pushVector4", "r:xv4", "", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	if ((table.getn(rv1)+1) >= E2_MAX_ARRAY_SIZE) then return end
-	table.insert(rv1,rv2)
-	self.vclk[rv1] = true
-end)
-
-registerFunction("popVector4", "r:", "xv4", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	local ret = table.remove(rv1)
-	self.vclk[rv1] = true
-	if type(ret) == "table" and table.getn(ret) == 4 then return ret end
-	return { 0, 0, 0, 0 }
-end)
-
-registerFunction("pushAngle", "r:a", "", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	if ((table.getn(rv1)+1) >= E2_MAX_ARRAY_SIZE) then return end
-	--if rv2[1] == 0 and rv2[2] == 0 and rv2[3] == 0 then rv2 = nil end
-	table.insert(rv1,rv2)
-	self.vclk[rv1] = true
-end)
-
-registerFunction("popAngle", "r:", "a", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	local ret = table.remove(rv1)
-	self.vclk[rv1] = true
-	if type(ret) == "table" and table.getn(ret) == 3 then return ret end
-	return { 0, 0, 0 }
-end)
-
-registerFunction("pushMatrix2", "r:xm2", "", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	if ((table.getn(rv1)+1) >= E2_MAX_ARRAY_SIZE) then return end
-	table.insert(rv1,rv2)
-	self.vclk[rv1] = true
-end)
-
-registerFunction("popMatrix2", "r:", "xm2", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	local ret = table.remove(rv1)
-	self.vclk[rv1] = true
-	if type(ret) == "table" and table.getn(ret) == 4 then return ret end
-	return { 0, 0,
-			 0, 0 }
-end)
-
-registerFunction("pushMatrix", "r:m", "", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	if ((table.getn(rv1)+1) >= E2_MAX_ARRAY_SIZE) then return end
-	table.insert(rv1,rv2)
-	self.vclk[rv1] = true
-end)
-
-registerFunction("popMatrix", "r:", "m", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	local ret = table.remove(rv1)
-	self.vclk[rv1] = true
-	if type(ret) == "table" and table.getn(ret) == 9 then return ret end
-	return { 0, 0, 0,
-			 0, 0, 0,
-			 0, 0, 0 }
-end)
-
-registerFunction("pushMatrix4", "r:xm4", "", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	if ((table.getn(rv1)+1) >= E2_MAX_ARRAY_SIZE) then return end
-	table.insert(rv1,rv2)
-	self.vclk[rv1] = true
-end)
-
-registerFunction("popMatrix4", "r:", "xm4", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	local ret = table.remove(rv1)
-	self.vclk[rv1] = true
-	if type(ret) == "table" and table.getn(ret) == 16 then return ret end
-	return { 0, 0, 0, 0,
-			 0, 0, 0, 0,
-			 0, 0, 0, 0,
-			 0, 0, 0, 0 }
-end)
-
-registerFunction("pushString", "r:s", "", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	if ((table.getn(rv1)+1) >= E2_MAX_ARRAY_SIZE) then return end
-	--if (rv2 == "") then rv2 = nil end
-	table.insert(rv1,rv2)
-	self.vclk[rv1] = true
-end)
-
-registerFunction("popString", "r:", "s", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	local ret = table.remove(rv1)
-	self.vclk[rv1] = true
-	if ret then return tostring(ret) end
-	return ""
-end)
-
-registerFunction("pushEntity", "r:e", "", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	if ((table.getn(rv1)+1) >= E2_MAX_ARRAY_SIZE) then return end
-	table.insert(rv1,rv2)
-	self.vclk[rv1] = true
-end)
-
-registerFunction("popEntity", "r:", "e", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	local ret = table.remove(rv1)
-	self.vclk[rv1] = true
-	if validEntity(ret) then return ret end
-	return nil
-end)
-
-registerFunction("pushComplex", "r:c", "", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	if ((table.getn(rv1)+1) >= E2_MAX_ARRAY_SIZE) then return end
-	--if rv2[1] == 0 and rv2[2] == 0 then rv2 = nil end
-	table.insert(rv1,rv2)
-	self.vclk[rv1] = true
-end)
-
-registerFunction("popComplex", "r:", "c", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	local ret = table.remove(rv1)
-	self.vclk[rv1] = true
-	if (type(ret) == "table" and table.getn(ret) == 2) then return ret end
-	return { 0, 0, 0 }
-end)
-
-registerFunction("pop", "r:", "", function(self,args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	table.remove(rv1)
-	self.vclk[rv1] = true
-end)
-
-/******************************************************************************/
-
-registerFunction("insertNumber", "r:nn", "", function(self, args)
-	local op1, op2, op3 = args[2], args[3], args[4]
-	local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
-	if ((table.getn(rv1)+1) >= E2_MAX_ARRAY_SIZE) then return end
-	if rv2 < 0 then return end --table.insert won't work for negative numbers
-	--if (rv3 == 0) then rv3 = nil end
-	table.insert(rv1,rv2,rv3)
-	self.vclk[rv1] = true
-end)
-
-registerFunction("removeNumber", "r:n", "n", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	local ret = table.remove(rv1,rv2)
-	self.vclk[rv1] = true
-	if ret then return tonumber(ret) or 0 end
-	return 0
-end)
-
-registerFunction("insertVector2", "r:nxv2", "", function(self, args)
-	local op1, op2, op3 = args[2], args[3], args[4]
-	local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
-	if ((table.getn(rv1)+1) >= E2_MAX_ARRAY_SIZE) then return end
-	if rv2 < 0 then return end --table.insert won't work for negative numbers
-	table.insert(rv1,rv2,rv3)
-	self.vclk[rv1] = true
-end)
-
-registerFunction("removeVector2", "r:n", "xv2", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	local ret = table.remove(rv1,rv2)
-	self.vclk[rv1] = true
-	if type(ret) == "table" and table.getn(ret) == 2 then return ret end
-	return { 0, 0 }
-end)
-
-registerFunction("insertVector", "r:nv", "", function(self, args)
-	local op1, op2, op3 = args[2], args[3], args[4]
-	local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
-	if ((table.getn(rv1)+1) >= E2_MAX_ARRAY_SIZE) then return end
-	if rv2 < 0 then return end --table.insert won't work for negative numbers
-	--if rv3[1] == 0 and rv3[2] == 0 and rv3[3] == 0 then rv3 = nil end
-	table.insert(rv1,rv2,rv3)
-	self.vclk[rv1] = true
-end)
-
-registerFunction("removeVector", "r:n", "v", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	local ret = table.remove(rv1,rv2)
-	self.vclk[rv1] = true
-	if (type(ret) == "table" and table.getn(ret) == 3) or type(ret) == "Vector" then return ret end
-	return { 0, 0, 0 }
-end)
-
-registerFunction("insertVector4", "r:nxv4", "", function(self, args)
-	local op1, op2, op3 = args[2], args[3], args[4]
-	local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
-	if ((table.getn(rv1)+1) >= E2_MAX_ARRAY_SIZE) then return end
-	if rv2 < 0 then return end --table.insert won't work for negative numbers
-	table.insert(rv1,rv2,rv3)
-	self.vclk[rv1] = true
-end)
-
-registerFunction("removeVector4", "r:n", "xv4", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	local ret = table.remove(rv1,rv2)
-	self.vclk[rv1] = true
-	if type(ret) == "table" and table.getn(ret) == 4 then return ret end
-	return { 0, 0, 0, 0 }
-end)
-
-registerFunction("insertAngle", "r:na", "", function(self, args)
-	local op1, op2, op3 = args[2], args[3], args[4]
-	local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
-	if ((table.getn(rv1)+1) >= E2_MAX_ARRAY_SIZE) then return end
-	if rv2 < 0 then return end --table.insert won't work for negative numbers
-	--if rv3[1] == 0 and rv3[2] == 0 and rv3[3] == 0 then rv3 = nil end
-	table.insert(rv1,rv2,rv3)
-	self.vclk[rv1] = true
-end)
-
-registerFunction("removeAngle", "r:n", "a", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	local ret = table.remove(rv1,rv2)
-	self.vclk[rv1] = true
-	if type(ret) == "table" and table.getn(ret) == 3 then return ret end
-	return { 0, 0, 0 }
-end)
-
-registerFunction("insertMatrix2", "r:nxm2", "", function(self, args)
-	local op1, op2, op3 = args[2], args[3], args[4]
-	local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
-	if ((table.getn(rv1)+1) >= E2_MAX_ARRAY_SIZE) then return end
-	if rv2 < 0 then return end --table.insert won't work for negative numbers
-	table.insert(rv1,rv2,rv3)
-	self.vclk[rv1] = true
-end)
-
-registerFunction("removeMatrix2", "r:n", "xm2", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	local ret = table.remove(rv1,rv2)
-	self.vclk[rv1] = true
-	if type(ret) == "table" and table.getn(ret) == 4 then return ret end
-	return { 0, 0,
-			 0, 0 }
-end)
-
-registerFunction("insertMatrix", "r:nm", "", function(self, args)
-	local op1, op2, op3 = args[2], args[3], args[4]
-	local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
-	if ((table.getn(rv1)+1) >= E2_MAX_ARRAY_SIZE) then return end
-	if rv2 < 0 then return end --table.insert won't work for negative numbers
-	table.insert(rv1,rv2,rv3)
-	self.vclk[rv1] = true
-end)
-
-registerFunction("removeMatrix", "r:n", "m", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	local ret = table.remove(rv1,rv2)
-	self.vclk[rv1] = true
-	if type(ret) == "table" and table.getn(ret) == 9 then return ret end
-	return { 0, 0, 0,
-			 0, 0, 0,
-			 0, 0, 0 }
-end)
-
-registerFunction("insertMatrix4", "r:nxm4", "", function(self, args)
-	local op1, op2, op3 = args[2], args[3], args[4]
-	local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
-	if ((table.getn(rv1)+1) >= E2_MAX_ARRAY_SIZE) then return end
-	if rv2 < 0 then return end --table.insert won't work for negative numbers
-	table.insert(rv1,rv2,rv3)
-	self.vclk[rv1] = true
-end)
-
-registerFunction("removeMatrix4", "r:n", "xm4", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	local ret = table.remove(rv1,rv2)
-	self.vclk[rv1] = true
-	if type(ret) == "table" and table.getn(ret) == 16 then return ret end
-	return { 0, 0, 0, 0,
-			 0, 0, 0, 0,
-			 0, 0, 0, 0,
-			 0, 0, 0, 0 }
-end)
-
-registerFunction("insertString", "r:ns", "", function(self, args)
-	local op1, op2, op3 = args[2], args[3], args[4]
-	local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
-	if ((table.getn(rv1)+1) >= E2_MAX_ARRAY_SIZE) then return end
-	if rv2 < 0 then return end --table.insert won't work for negative numbers
-	--if (rv3 == "") then rv3 = nil end
-	table.insert(rv1,rv2,rv3)
-	self.vclk[rv1] = true
-end)
-
-registerFunction("removeString", "r:n", "s", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	local ret = table.remove(rv1,rv2)
-	self.vclk[rv1] = true
-	if ret then return tostring(ret) end
-	return ""
-end)
-
-registerFunction("insertEntity", "r:ne", "", function(self, args)
-	local op1, op2, op3 = args[2], args[3], args[4]
-	local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
-	if ((table.getn(rv1)+1) >= E2_MAX_ARRAY_SIZE) then return end
-	if rv2 < 0 then return end --table.insert won't work for negative numbers
-	table.insert(rv1,rv2,rv3)
-	self.vclk[rv1] = true
-end)
-
-registerFunction("removeEntity", "r:n", "e", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	local ret = table.remove(rv1,rv2)
-	self.vclk[rv1] = true
-	if validEntity(ret) then return ret end
-	return nil
-end)
-
-registerFunction("remove", "r:n", "", function(self,args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	table.remove(rv1,rv2)
-	self.vclk[rv1] = true
-end)
-
-/******************************************************************************/
-
-registerFunction("unshiftNumber", "r:n", "", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	if ((table.getn(rv1)+1) >= E2_MAX_ARRAY_SIZE) then return end
-	--if (rv2 == 0) then rv2 = nil end
-	table.insert(rv1,1,rv2)
-	self.vclk[rv1] = true
-end)
-
-registerFunction("shiftNumber", "r:", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	local ret = table.remove(rv1,1)
-	self.vclk[rv1] = true
-	if ret then return tonumber(ret) or 0 end
-	return 0
-end)
-
-registerFunction("unshiftVector2", "r:xv2", "", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	if ((table.getn(rv1)+1) >= E2_MAX_ARRAY_SIZE) then return end
-	table.insert(rv1,1,rv2)
-	self.vclk[rv1] = true
-end)
-
-registerFunction("shiftVector2", "r:", "xv2", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	local ret = table.remove(rv1,1)
-	self.vclk[rv1] = true
-	if type(ret) == "table" and table.getn(ret) == 2 then return ret end
-	return { 0, 0 }
-end)
-
-registerFunction("unshiftVector", "r:v", "", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	if ((table.getn(rv1)+1) >= E2_MAX_ARRAY_SIZE) then return end
-	--if rv2[1] == 0 and rv2[2] == 0 and rv2[3] == 0 then rv2 = nil end
-	table.insert(rv1,1,rv2)
-	self.vclk[rv1] = true
-end)
-
-registerFunction("shiftVector", "r:", "v", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	local ret = table.remove(rv1,1)
-	self.vclk[rv1] = true
-	if (type(ret) == "table" and table.getn(ret) == 3) or type(ret) == "Vector" then return ret end
-	return { 0, 0, 0 }
-end)
-
-registerFunction("unshiftVector4", "r:xv4", "", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	if ((table.getn(rv1)+1) >= E2_MAX_ARRAY_SIZE) then return end
-	table.insert(rv1,1,rv2)
-	self.vclk[rv1] = true
-end)
-
-registerFunction("shiftVector4", "r:", "xv4", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	local ret = table.remove(rv1,1)
-	self.vclk[rv1] = true
-	if type(ret) == "table" and table.getn(ret) == 4 then return ret end
-	return { 0, 0, 0, 0 }
-end)
-
-registerFunction("unshiftAngle", "r:a", "", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	if ((table.getn(rv1)+1) >= E2_MAX_ARRAY_SIZE) then return end
-	--if rv2[1] == 0 and rv2[2] == 0 and rv2[3] == 0 then rv2 = nil end
-	table.insert(rv1,1,rv2)
-	self.vclk[rv1] = true
-end)
-
-registerFunction("shiftAngle", "r:", "a", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	local ret = table.remove(rv1,1)
-	self.vclk[rv1] = true
-	if type(ret) == "table" and table.getn(ret) == 3 then return ret end
-	return { 0, 0, 0 }
-end)
-
-registerFunction("unshiftMatrix2", "r:xm2", "", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	if ((table.getn(rv1)+1) >= E2_MAX_ARRAY_SIZE) then return end
-	table.insert(rv1,1,rv2)
-	self.vclk[rv1] = true
-end)
-
-registerFunction("shiftMatrix2", "r:", "xm2", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	local ret = table.remove(rv1,1)
-	self.vclk[rv1] = true
-	if type(ret) == "table" and table.getn(ret) == 4 then return ret end
-	return { 0, 0,
-			 0, 0 }
-end)
-
-registerFunction("unshiftMatrix", "r:m", "", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	if ((table.getn(rv1)+1) >= E2_MAX_ARRAY_SIZE) then return end
-	table.insert(rv1,1,rv2)
-	self.vclk[rv1] = true
-end)
-
-registerFunction("shiftMatrix", "r:", "m", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	local ret = table.remove(rv1,1)
-	self.vclk[rv1] = true
-	if type(ret) == "table" and table.getn(ret) == 9 then return ret end
-	return { 0, 0, 0,
-			 0, 0, 0,
-			 0, 0, 0 }
-end)
-
-registerFunction("unshiftMatrix4", "r:xm4", "", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	if ((table.getn(rv1)+1) >= E2_MAX_ARRAY_SIZE) then return end
-	table.insert(rv1,1,rv2)
-	self.vclk[rv1] = true
-end)
-
-registerFunction("shiftMatrix4", "r:", "xm4", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	local ret = table.remove(rv1,1)
-	self.vclk[rv1] = true
-	if type(ret) == "table" and table.getn(ret) == 16 then return ret end
-	return { 0, 0, 0, 0,
-			 0, 0, 0, 0,
-			 0, 0, 0, 0,
-			 0, 0, 0, 0 }
-end)
-
-registerFunction("unshiftString", "r:s", "", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	if ((table.getn(rv1)+1) >= E2_MAX_ARRAY_SIZE) then return end
-	--if (rv2 == "") then rv2 = nil end
-	table.insert(rv1,1,rv2)
-	self.vclk[rv1] = true
-end)
-
-registerFunction("shiftString", "r:", "s", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	local ret = table.remove(rv1,1)
-	self.vclk[rv1] = true
-	if ret then return tostring(ret) end
-	return ""
-end)
-
-registerFunction("unshiftEntity", "r:e", "", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	if ((table.getn(rv1)+1) >= E2_MAX_ARRAY_SIZE) then return end
-	table.insert(rv1,1,rv2)
-	self.vclk[rv1] = true
-end)
-
-registerFunction("shiftEntity", "r:", "e", function(self, args)
-	local op1 = args[2]
-	local rv1= op1[1](self, op1)
-	local ret = table.remove(rv1,1)
-	self.vclk[rv1] = true
-	if validEntity(ret) then return ret end
-	return nil
-end)
-
-registerFunction("shift", "r:", "", function(self,args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	table.remove(rv1,1)
-	self.vclk[rv1] = true
-end)
-
-registerFunction("unshiftComplex", "r:c", "", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	if ((table.getn(rv1)+1) >= E2_MAX_ARRAY_SIZE) then return end
-	--if rv2[1] == 0 and rv2[2] == 0 then rv2 = nil end
-	table.insert(rv1,1,rv2)
-	self.vclk[rv1] = true
-end)
-
-registerFunction("shiftComplex", "r:", "c", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	local ret = table.remove(rv1,1)
-	self.vclk[rv1] = true
-	if (type(ret) == "table" and table.getn(ret) == 2) then return ret end
-	return { 0, 0, 0 }
-end)
-
-/*********************** Now leaving the code of horror ***********************/
-
+--------------------------------------------------------------------------------
+-- Sum
+-- Returns the sum of all numerical values in the array
+--------------------------------------------------------------------------------
+__e2setcost(1)
 e2function number array:sum()
 	local ret = 0
 	local indexes = 0
@@ -943,6 +326,11 @@ e2function number array:sum()
 	return ret
 end
 
+--------------------------------------------------------------------------------
+-- Average
+-- Returns the average of all numerical values in the array
+--------------------------------------------------------------------------------
+__e2setcost(1)
 e2function number array:average()
 	local ret = 0
 	local indexes = 0
@@ -954,6 +342,11 @@ e2function number array:average()
 	return ret / indexes
 end
 
+--------------------------------------------------------------------------------
+-- Min
+-- Returns the smallest value in the array
+--------------------------------------------------------------------------------
+__e2setcost(1)
 e2function number array:min()
 	local num
 	local indexes = 0
@@ -968,6 +361,11 @@ e2function number array:min()
 	return num or 0
 end
 
+--------------------------------------------------------------------------------
+-- MinIndex
+-- Returns the index of the smallest value in the array
+--------------------------------------------------------------------------------
+__e2setcost(1)
 e2function number array:minIndex()
 	local num = nil
 	local index = nil
@@ -984,6 +382,11 @@ e2function number array:minIndex()
 	return index or 0
 end
 
+--------------------------------------------------------------------------------
+-- Max
+-- Returns the largest value in the array
+--------------------------------------------------------------------------------
+__e2setcost(1)
 e2function number array:max()
 	local num
 	local indexes = 0
@@ -998,6 +401,11 @@ e2function number array:max()
 	return num or 0
 end
 
+--------------------------------------------------------------------------------
+-- MaxIndex
+-- Returns the index of the largest value in the array
+--------------------------------------------------------------------------------
+__e2setcost(1)
 e2function number array:maxIndex()
 	local num = nil
 	local index = nil
@@ -1014,8 +422,11 @@ e2function number array:maxIndex()
 	return index or 0
 end
 
-/******************************************************************************/
-
+--------------------------------------------------------------------------------
+-- Concat
+-- Concatenatest the values of the array
+--------------------------------------------------------------------------------
+__e2setcost(1)
 e2function string array:concat()
 	local out = ""
 
@@ -1038,10 +449,13 @@ e2function string array:concat(string delimiter)
 	return string.Left(out, string.len(out) - string.len(delimiter))
 end
 
-/******************************************************************************/
-
+--------------------------------------------------------------------------------
+-- Id
+-- Returns a string identifier representing the array
+--------------------------------------------------------------------------------
+__e2setcost(1)
 e2function string array:id()
 	return tostring(this)
 end
 
-__e2setcost(nil) -- temporary
+__e2setcost(nil)

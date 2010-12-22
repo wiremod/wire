@@ -1,0 +1,7 @@
+"UnlitGeneric"
+{
+	"$basetexture" "gui/thrustereffects/striderblood_huge"
+	"$nolod" 1
+	"$vertexalpha" 1
+	"$vertexcolor" 1
+}

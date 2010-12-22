@@ -1,0 +1,7 @@
+"UnlitGeneric"
+{
+	"$basetexture" "gui/thrustereffects/rings_grow_rings"
+	"$nolod" 1
+	"$vertexalpha" 1
+	"$vertexcolor" 1
+}

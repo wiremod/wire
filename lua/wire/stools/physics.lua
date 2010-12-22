@@ -784,8 +784,6 @@ do --wire_thruster
 		language.Add( "Tool_wire_thruster_desc", "Spawns a thruster for use with the wire system." )
 		language.Add( "Tool_wire_thruster_0", "Primary: Create/Update Thruster" )
 		language.Add( "WireThrusterTool_Model", "Model:" )
-		language.Add( "WireThrusterTool_OWEffects", "Over water effects:" )
-		language.Add( "WireThrusterTool_UWEffects", "Under water effects:" )
 		language.Add( "WireThrusterTool_force", "Force multiplier:" )
 		language.Add( "WireThrusterTool_force_min", "Force minimum:" )
 		language.Add( "WireThrusterTool_force_max", "Force maximum:" )
@@ -822,118 +820,94 @@ do --wire_thruster
 
 		WireDermaExts.ModelSelect(panel, "wire_thruster_model", list.Get( "ThrusterModels" ), 4, true)
 
-		panel:AddControl("ComboBox", {
-			Label = "#WireThrusterTool_OWEffects",
-			MenuButton = "0",
+		local Effects = {
+			["#No Effects"] = "none",
+			//["#Same as over water"] = "same",
+			["#Flames"] = "fire",
+			["#Plasma"] = "plasma",
+			["#Smoke"] = "smoke",
+			["#Smoke Random"] = "smoke_random",
+			["#Smoke Do it Youself"] = "smoke_diy",
+			["#Rings"] = "rings",
+			["#Rings Growing"] = "rings_grow",
+			["#Rings Shrinking"] = "rings_shrink",
+			["#Bubbles"] = "bubble",
+			["#Magic"] = "magic",
+			["#Magic Random"] = "magic_color",
+			["#Magic Do It Yourself"] = "magic_diy",
+			["#Colors"] = "color",
+			["#Colors Random"] = "color_random",
+			["#Colors Do It Yourself"] = "color_diy",
+			["#Blood"] = "blood",
+			["#Money"] = "money",
+			["#Sperms"] = "sperm",
+			["#Feathers"] = "feather",
+			["#Candy Cane"] = "candy_cane",
+			["#Goldstar"] = "goldstar",
+			["#Water Small"] = "water_small",
+			["#Water Medium"] = "water_medium",
+			["#Water Big"] = "water_big",
+			["#Water Huge"] = "water_huge",
+			["#Striderblood Small"] = "striderblood_small",
+			["#Striderblood Medium"] = "striderblood_medium",
+			["#Striderblood Big"] = "striderblood_big",
+			["#Striderblood Huge"] = "striderblood_huge",
+			["#More Sparks"] = "more_sparks",
+			["#Spark Fountain"] = "spark_fountain",
+			["#Jetflame"] = "jetflame",
+			["#Jetflame Advanced"] = "jetflame_advanced",
+			["#Jetflame Blue"] = "jetflame_blue",
+			["#Jetflame Red"] = "jetflame_red",
+			["#Jetflame Purple"] = "jetflame_purple",
+			["#Comic Balls"] = "balls",
+			["#Comic Balls Random"] = "balls_random",
+			["#Comic Balls Fire Colors"] = "balls_firecolors",
+			["#Souls"] = "souls",
+			//["#Debugger 10 Seconds"] = "debug_10", These are just buggy and shouldn't be used.
+			//["#Debugger 30 Seconds"] = "debug_30",
+			//["#Debugger 60 Seconds"] = "debug_60",
+			["#Fire and Smoke"] = "fire_smoke",
+			["#Fire and Smoke Huge"] = "fire_smoke_big",
+			["#5 Growing Rings"] = "rings_grow_rings",
+			["#Color and Magic"] = "color_magic",
+		}
 
-			Options = {
-				["#No_Effects"] = { wire_thruster_oweffect = "none" },
-				["#Flames"] = { wire_thruster_oweffect = "fire" },
-				["#Plasma"] = { wire_thruster_oweffect = "plasma" },
-				["#Smoke"] = { wire_thruster_oweffect = "smoke" },
-				["#Smoke Random"] = { wire_thruster_oweffect = "smoke_random" },
-				["#Smoke Do it Youself"] = { wire_thruster_oweffect = "smoke_diy" },
-				["#Rings"] = { wire_thruster_oweffect = "rings" },
-				["#Rings Growing"] = { wire_thruster_oweffect = "rings_grow" },
-				["#Rings Shrinking"] = { wire_thruster_oweffect = "rings_shrink" },
-				["#Bubbles"] = { wire_thruster_oweffect = "bubble" },
-				["#Magic"] = { wire_thruster_oweffect = "magic" },
-				["#Magic Random"] = { wire_thruster_oweffect = "magic_color" },
-				["#Magic Do It Yourself"] = { wire_thruster_oweffect = "magic_diy" },
-				["#Colors"] = { wire_thruster_oweffect = "color" },
-				["#Colors Random"] = { wire_thruster_oweffect = "color_random" },
-				["#Colors Do It Yourself"] = { wire_thruster_oweffect = "color_diy" },
-				["#Blood"] = { wire_thruster_oweffect = "blood" },
-				["#Money"] = { wire_thruster_oweffect = "money" },
-				["#Sperms"] = { wire_thruster_oweffect = "sperm" },
-				["#Feathers"] = { wire_thruster_oweffect = "feather" },
-				["#Candy Cane"] = { wire_thruster_oweffect = "candy_cane" },
-				["#Goldstar"] = { wire_thruster_oweffect = "goldstar" },
-				["#Water Small"] = { wire_thruster_oweffect = "water_small" },
-				["#Water Medium"] = { wire_thruster_oweffect = "water_medium" },
-				["#Water Big"] = { wire_thruster_oweffect = "water_big" },
-				["#Water Huge"] = { wire_thruster_oweffect = "water_huge" },
-				["#Striderblood Small"] = { wire_thruster_oweffect = "striderblood_small" },
-				["#Striderblood Medium"] = { wire_thruster_oweffect = "striderblood_medium" },
-				["#Striderblood Big"] = { wire_thruster_oweffect = "striderblood_big" },
-				["#Striderblood Huge"] = { wire_thruster_oweffect = "striderblood_huge" },
-				["#More Sparks"] = { wire_thruster_oweffect = "more_sparks" },
-				["#Spark Fountain"] = { wire_thruster_oweffect = "spark_fountain" },
-				["#Jetflame"] = { wire_thruster_oweffect = "jetflame" },
-				["#Jetflame Advanced"] = { wire_thruster_oweffect = "jetflame_advanced" },
-				["#Jetflame Blue"] = { wire_thruster_oweffect = "jetflame_blue" },
-				["#Jetflame Red"] = { wire_thruster_oweffect = "jetflame_red" },
-				["#Jetflame Purple"] = { wire_thruster_oweffect = "jetflame_purple" },
-				["#Comic Balls"] = { wire_thruster_oweffect = "balls" },
-				["#Comic Balls Random"] = { wire_thruster_oweffect = "balls_random" },
-				["#Comic Balls Fire Colors"] = { wire_thruster_oweffect = "balls_firecolors" },
-				["#Souls"] = { wire_thruster_oweffect = "souls" },
-				["#Debugger 10 Seconds"] = { wire_thruster_oweffect = "debug_10" },
-				["#Debugger 30 Seconds"] = { wire_thruster_oweffect = "debug_30" },
-				["#Debugger 60 Seconds"] = { wire_thruster_oweffect = "debug_60" },
-				["#Fire and Smoke"] = { wire_thruster_oweffect = "fire_smoke" },
-				["#Fire and Smoke Huge"] = { wire_thruster_oweffect = "fire_smoke_big" },
-				["#5 Growing Rings"] = { wire_thruster_oweffect = "rings_grow_rings" },
-				["#Color and Magic"] = { wire_thruster_oweffect = "color_magic" },
-			}
-		})
+		local CateGoryOW = vgui.Create("DCollapsibleCategory")
+			CateGoryOW:SetSize(0, 50)
+			CateGoryOW:SetExpanded(0)
+			CateGoryOW:SetLabel("Overwater Effect List")
 
-		panel:AddControl("ComboBox", {
-			Label = "#WireThrusterTool_UWEffects",
-			MenuButton = "0",
+		local ctrl = vgui.Create( "MatSelect", CateGoryOW )
+			ctrl:SetItemWidth( 128 )
+			ctrl:SetItemHeight( 128 )
+			ctrl:SetConVar("wire_thruster_oweffect")
+			for name, mat in pairs( Effects ) do
+				ctrl:AddMaterialEx( name, "gui/thrustereffects/"..mat, mat, {wire_thruster_oweffect = mat} )
+			end
 
-			Options = {
-				["#No_Effects"] = { wire_thruster_uweffect = "none" },
-				["#Same as over water"] = { wire_thruster_uweffect = "same" },
-				["#Flames"] = { wire_thruster_uweffect = "fire" },
-				["#Plasma"] = { wire_thruster_uweffect = "plasma" },
-				["#Smoke"] = { wire_thruster_uweffect = "smoke" },
-				["#Smoke Random"] = { wire_thruster_uweffect = "smoke_random" },
-				["#Smoke Do it Youself"] = { wire_thruster_uweffect = "smoke_diy" },
-				["#Rings"] = { wire_thruster_uweffect = "rings" },
-				["#Rings Growing"] = { wire_thruster_uweffect = "rings_grow" },
-				["#Rings Shrinking"] = { wire_thruster_uweffect = "rings_shrink" },
-				["#Bubbles"] = { wire_thruster_uweffect = "bubble" },
-				["#Magic"] = { wire_thruster_uweffect = "magic" },
-				["#Magic Random"] = { wire_thruster_uweffect = "magic_color" },
-				["#Magic Do It Yourself"] = { wire_thruster_uweffect = "magic_diy" },
-				["#Colors"] = { wire_thruster_uweffect = "color" },
-				["#Colors Random"] = { wire_thruster_uweffect = "color_random" },
-				["#Colors Do It Yourself"] = { wire_thruster_uweffect = "color_diy" },
-				["#Blood"] = { wire_thruster_uweffect = "blood" },
-				["#Money"] = { wire_thruster_uweffect = "money" },
-				["#Sperms"] = { wire_thruster_uweffect = "sperm" },
-				["#Feathers"] = { wire_thruster_uweffect = "feather" },
-				["#Candy Cane"] = { wire_thruster_uweffect = "candy_cane" },
-				["#Goldstar"] = { wire_thruster_uweffect = "goldstar" },
-				["#Water Small"] = { wire_thruster_uweffect = "water_small" },
-				["#Water Medium"] = { wire_thruster_uweffect = "water_medium" },
-				["#Water Big"] = { wire_thruster_uweffect = "water_big" },
-				["#Water Huge"] = { wire_thruster_uweffect = "water_huge" },
-				["#Striderblood Small"] = { wire_thruster_uweffect = "striderblood_small" },
-				["#Striderblood Medium"] = { wire_thruster_uweffect = "striderblood_medium" },
-				["#Striderblood Big"] = { wire_thruster_uweffect = "striderblood_big" },
-				["#Striderblood Huge"] = { wire_thruster_uweffect = "striderblood_huge" },
-				["#More Sparks"] = { wire_thruster_uweffect = "more_sparks" },
-				["#Spark Fountain"] = { wire_thruster_uweffect = "spark_fountain" },
-				["#Jetflame"] = { wire_thruster_uweffect = "jetflame" },
-				["#Jetflame Advanced"] = { wire_thruster_uweffect = "jetflame_advanced" },
-				["#Jetflame Blue"] = { wire_thruster_uweffect = "jetflame_blue" },
-				["#Jetflame Red"] = { wire_thruster_uweffect = "jetflame_red" },
-				["#Jetflame Purple"] = { wire_thruster_uweffect = "jetflame_purple" },
-				["#Comic Balls"] = { wire_thruster_uweffect = "balls" },
-				["#Comic Balls Random"] = { wire_thruster_uweffect = "balls_random" },
-				["#Comic Balls Fire Colors"] = { wire_thruster_uweffect = "balls_firecolors" },
-				["#Souls"] = { wire_thruster_uweffect = "souls" },
-				["#Debugger 10 Seconds"] = { wire_thruster_uweffect = "debug_10" },
-				["#Debugger 30 Seconds"] = { wire_thruster_uweffect = "debug_30" },
-				["#Debugger 60 Seconds"] = { wire_thruster_uweffect = "debug_60" },
-				["#Fire and Smoke"] = { wire_thruster_uweffect = "fire_smoke" },
-				["#Fire and Smoke Huge"] = { wire_thruster_uweffect = "fire_smoke_big" },
-				["#5 Growing Rings"] = { wire_thruster_uweffect = "rings_grow_rings" },
-				["#Color and Magic"] = { wire_thruster_uweffect = "color_magic" },
-			}
-		})
+		CateGoryOW:SetContents( ctrl )
+
+		panel:AddItem(CateGoryOW)
+
+		Effects["#Same as over water"] = "same"
+
+		local CateGoryUW = vgui.Create("DCollapsibleCategory")
+			CateGoryUW:SetSize(0, 50)
+			CateGoryUW:SetExpanded(0)
+			CateGoryUW:SetLabel("Underwater Effect List")
+
+		local ctrlUW = vgui.Create( "MatSelect", CateGoryUW )
+			ctrlUW:SetItemWidth( 128 )
+			ctrlUW:SetItemHeight( 128 )
+			ctrlUW:SetConVar("wire_thruster_uweffect")
+			for name, mat in pairs( Effects ) do
+				ctrlUW:AddMaterialEx( name, "gui/thrustereffects/"..mat, mat, {wire_thruster_uweffect = mat} )
+			end
+
+		CateGoryUW:SetContents( ctrlUW )
+
+		panel:AddItem(CateGoryUW)
+
 
 		local lst = {}
 		for k,v in pairs( list.Get("ThrusterSounds") ) do

@@ -1,0 +1,7 @@
+"UnlitGeneric"
+{
+	"$basetexture" "gui/thrustereffects/rings_shrink"
+	"$nolod" 1
+	"$vertexalpha" 1
+	"$vertexcolor" 1
+}
