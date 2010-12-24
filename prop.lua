@@ -1,9 +1,10 @@
 /******************************************************************************\
-Prop Core by ZeikJT and MrFaul
+Prop Core by MrFaul started by ZeikJT
+report any wishes, issues to Mr.Faul@gmx.de (GER or ENG pls)
 \******************************************************************************/
 
 E2Lib.RegisterExtension("propcore", false)
-
+PropCore = {}
 local sbox_E2_maxProps = CreateConVar( "sbox_E2_maxProps", "-1", FCVAR_ARCHIVE )
 local sbox_E2_maxPropsPerSecond = CreateConVar( "sbox_E2_maxPropsPerSecond", "4", FCVAR_ARCHIVE )
 local sbox_E2_PropCore = CreateConVar( "sbox_E2_PropCore", "2", FCVAR_ARCHIVE )
@@ -20,7 +21,7 @@ local function TempReset()
 end
 hook.Add("Think","TempReset",TempReset)
 
-local function ValidSpawn()
+function PropCore:ValidSpawn()
 	if E2tempSpawnedProps >= sbox_E2_maxPropsPerSecond:GetInt() then return false end
 	if sbox_E2_maxProps:GetInt() <= -1 then
 		return true
@@ -30,7 +31,13 @@ local function ValidSpawn()
 	return true
 end
 
-local function ValidAction(ply)
+function PropCore:ValidAction(self, entity, cmd)
+	local ply = self.player
+	if(cmd=="spawn" or cmd=="Tdelete") then return true end
+	if(!validPhysics(entity)) then return false end
+	if(!isOwner(self, entity)) then return false end
+	if entity:IsPlayer() then return false end
+	if(!validEntity(entity)) then return false end
 	return sbox_E2_PropCore:GetInt()==2 or (sbox_E2_PropCore:GetInt()==1 and ply:IsAdmin())
 end
 
@@ -42,8 +49,8 @@ local function MakePropNoEffect(...)
 	return ret
 end
 
-local function createpropsfromE2(self,model,pos,angles,freeze)
-	if(!util.IsValidModel(model) || !util.IsValidProp(model) || not ValidSpawn() )then
+function PropCore:CreateProp(self,model,pos,angles,freeze)
+	if(!util.IsValidModel(model) || !util.IsValidProp(model) || not PropCore:ValidSpawn() )then
 		return nil
 	end
 	local prop
@@ -75,7 +82,7 @@ local function createpropsfromE2(self,model,pos,angles,freeze)
 	return prop
 end
 
-local function physManipulate(this, pos, rot, freeze, gravity, notsolid)
+function PropCore:PhysManipulate(this, pos, rot, freeze, gravity, notsolid)
 	if(notsolid!=nil) then this:SetNotSolid(notsolid ~= 0) end
 	local phys = this:GetPhysicsObject()
 	if(pos!=nil) then phys:SetPos(Vector(pos[1],pos[2],pos[3])) end
@@ -91,68 +98,62 @@ end
 
 --------------------------------------------------------------------------------
 e2function entity propSpawn(string model, number frozen)
-	if not ValidAction(self.player) then return nil end
-	return createpropsfromE2(self,model,self.entity:GetPos()+self.entity:GetUp()*25,self.entity:GetAngles(),frozen)
+	if not PropCore:ValidAction(self, nil, "spawn") then return nil end
+	return PropCore:CreateProp(self,model,self.entity:GetPos()+self.entity:GetUp()*25,self.entity:GetAngles(),frozen)
 end
 
 e2function entity propSpawn(entity template, number frozen)
-	if not ValidAction(self.player) then return nil end
+	if not PropCore:ValidAction(self, nil, "spawn") then return nil end
 	if not validEntity(template) then return nil end
-	return createpropsfromE2(self,template:GetModel(),self.entity:GetPos()+self.entity:GetUp()*25,self.entity:GetAngles(),frozen)
+	return PropCore:CreateProp(self,template:GetModel(),self.entity:GetPos()+self.entity:GetUp()*25,self.entity:GetAngles(),frozen)
 end
 
 e2function entity propSpawn(string model, vector pos, number frozen)
-	if not ValidAction(self.player) then return nil end
-	return createpropsfromE2(self,model,Vector(pos[1],pos[2],pos[3]),self.entity:GetAngles(),frozen)
+	if not PropCore:ValidAction(self, nil, "spawn") then return nil end
+	return PropCore:CreateProp(self,model,Vector(pos[1],pos[2],pos[3]),self.entity:GetAngles(),frozen)
 end
 
 e2function entity propSpawn(entity template, vector pos, number frozen)
-	if not ValidAction(self.player) then return nil end
+	if not PropCore:ValidAction(self, nil, "spawn") then return nil end
 	if not validEntity(template) then return nil end
-	return createpropsfromE2(self,template:GetModel(),Vector(pos[1],pos[2],pos[3]),self.entity:GetAngles(),frozen)
+	return PropCore:CreateProp(self,template:GetModel(),Vector(pos[1],pos[2],pos[3]),self.entity:GetAngles(),frozen)
 end
 
 e2function entity propSpawn(string model, angle rot, number frozen)
-	if not ValidAction(self.player) then return nil end
-	return createpropsfromE2(self,model,self.entity:GetPos()+self.entity:GetUp()*25,Angle(rot[1],rot[2],rot[3]),frozen)
+	if not PropCore:ValidAction(self, nil, "spawn") then return nil end
+	return PropCore:CreateProp(self,model,self.entity:GetPos()+self.entity:GetUp()*25,Angle(rot[1],rot[2],rot[3]),frozen)
 end
 
 e2function entity propSpawn(entity template, angle rot, number frozen)
-	if not ValidAction(self.player) then return nil end
+	if not PropCore:ValidAction(self, nil, "spawn") then return nil end
 	if not validEntity(template) then return nil end
-	return createpropsfromE2(self,template:GetModel(),self.entity:GetPos()+self.entity:GetUp()*25,Angle(rot[1],rot[2],rot[3]),frozen)
+	return PropCore:CreateProp(self,template:GetModel(),self.entity:GetPos()+self.entity:GetUp()*25,Angle(rot[1],rot[2],rot[3]),frozen)
 end
 
 e2function entity propSpawn(string model, vector pos, angle rot, number frozen)
-	if not ValidAction(self.player) then return nil end
-	return createpropsfromE2(self,model,Vector(pos[1],pos[2],pos[3]),Angle(rot[1],rot[2],rot[3]),frozen)
+	if not PropCore:ValidAction(self, nil, "spawn") then return nil end
+	return PropCore:CreateProp(self,model,Vector(pos[1],pos[2],pos[3]),Angle(rot[1],rot[2],rot[3]),frozen)
 end
 
 e2function entity propSpawn(entity template, vector pos, angle rot, number frozen)
-	if not ValidAction(self.player) then return nil end
+	if not PropCore:ValidAction(self, nil, "spawn") then return nil end
 	if not validEntity(template) then return nil end
-	return createpropsfromE2(self,template:GetModel(),Vector(pos[1],pos[2],pos[3]),Angle(rot[1],rot[2],rot[3]),frozen)
+	return PropCore:CreateProp(self,template:GetModel(),Vector(pos[1],pos[2],pos[3]),Angle(rot[1],rot[2],rot[3]),frozen)
 end
 
 --------------------------------------------------------------------------------
 e2function void entity:propDelete()
-	if not ValidAction(self.player) then return end
-	if not validEntity(this) then return end
-	if(!isOwner(self, this)) then return end
-	if this:IsPlayer() then return end	
+	if not PropCore:ValidAction(self, this, "delete") then return end
 	this:Remove()
 end
 
 e2function void entity:propBreak()
-	if not ValidAction(self.player) then return end
-	if not validEntity(this) then return end
-	if(!isOwner(self, this)) then return end
-	if this:IsPlayer() then return end	
+	if not PropCore:ValidAction(self, this, "break") then return end
 	this:Fire("break",1,0)
 end
 
 e2function number table:propDelete()
-	if not ValidAction(self.player) then return 0 end
+	if not PropCore:ValidAction(self, nil, "Tdelete") then return end
 	local count = 0
 	for _,ent in pairs(this) do
 		if validEntity(ent) and isOwner(self, ent) and not ent:IsPlayer() then
@@ -167,48 +168,36 @@ e2function number array:propDelete() = e2function number table:propDelete()
 
 --------------------------------------------------------------------------------
 e2function void entity:propManipulate(vector pos, angle rot, number freeze, number gravity, number notsolid)
-	if not ValidAction(self.player) then return end
-	if (!validPhysics(this)) then return end
-	if(!isOwner(self, this)) then return end
-	physManipulate(this, pos, rot, freeze, gravity, notsolid)
+	if not PropCore:ValidAction(self, this, "manipulate") then return end
+	PropCore:PhysManipulate(this, pos, rot, freeze, gravity, notsolid)
 end
 
 e2function void entity:propFreeze(number freeze)
-	if not ValidAction(self.player) then return end
-	if (!validPhysics(this)) then return end
-	if(!isOwner(self, this)) then return end
-	physManipulate(this, pos, rot, freeze, gravity, notsolid)
+	if not PropCore:ValidAction(self, this, "freeze") then return end
+	PropCore:PhysManipulate(this, pos, rot, freeze, gravity, notsolid)
 end
 
 e2function void entity:propNotSolid(number notsolid)
-	if not ValidAction(self.player) then return end
-	if (!validPhysics(this)) then return end
-	if(!isOwner(self, this)) then return end
-	physManipulate(this, pos, rot, freeze, gravity, notsolid)
+	if not PropCore:ValidAction(self, this, "solid") then return end
+	PropCore:PhysManipulate(this, pos, rot, freeze, gravity, notsolid)
 end
 
 e2function void entity:propGravity(number gravity)
-	if not ValidAction(self.player) then return end
-	if (!validPhysics(this)) then return end
-	if(!isOwner(self, this)) then return end
-	physManipulate(this, pos, rot, freeze, gravity, notsolid)
+	if not PropCore:ValidAction(self, this, "gravity") then return end
+	PropCore:PhysManipulate(this, pos, rot, freeze, gravity, notsolid)
 end
 --------------------------------------------------------------------------------
 
 e2function void entity:setPos(vector pos)
-	if not ValidAction(self.player) then return end
-	if (!validPhysics(this)) then return end
-	if(!isOwner(self, this)) then return end
-	physManipulate(this, pos, rot, freeze, gravity, notsolid)
+	if not PropCore:ValidAction(self, this, "pos") then return end
+	PropCore:PhysManipulate(this, pos, rot, freeze, gravity, notsolid)
 end
 
 e2function void entity:reposition(vector pos) = e2function void entity:setPos(vector pos)
 
 e2function void entity:setAng(angle rot)
-	if not ValidAction(self.player) then return end
-	if (!validPhysics(this)) then return end
-	if(!isOwner(self, this)) then return end
-	physManipulate(this, pos, rot, freeze, gravity, notsolid)
+	if not PropCore:ValidAction(self, this, "ang") then return end
+	PropCore:PhysManipulate(this, pos, rot, freeze, gravity, notsolid)
 end
 
 e2function void entity:rerotate(angle rot) = e2function void entity:setAng(angle rot)
@@ -226,19 +215,16 @@ local function parent_check( child, parent )
 end
 
 e2function void entity:parentTo(entity target)
-	if not ValidAction(self.player) then return end
-	if not validEntity(this) then return nil end
+	if not PropCore:ValidAction(self, this, "parent") then return end
 	if not validEntity(target) then return nil end
-	if(!isOwner(self, this) || !isOwner(self, target)) then return end
+	if(!isOwner(self, target)) then return end
 	if this == target then return end
 	if (!parent_check( this, target )) then return end
 	this:SetParent(target)
 end
 
 e2function void entity:deparent()
-	if not ValidAction(self.player) then return end
-	if not validEntity(this) then return nil end
-	if(!isOwner(self, this)) then return end
+	if not PropCore:ValidAction(self, this, "deparent") then return end
 	this:SetParent( nil )
 end
 
