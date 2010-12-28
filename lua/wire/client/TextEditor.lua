@@ -5,30 +5,8 @@
 
 local EDITOR = {}
 
-EDITOR.FontConVar = CreateClientConVar( "wire_expression2_editor_font", "Courier New", true, false )
-EDITOR.FontSizeConVar = CreateClientConVar( "wire_expression2_editor_font_size", 16, true, false )
-EDITOR.BlockCommentStyleConVar = CreateClientConVar( "wire_expression2_editor_block_comment_style", 1, true, false )
-
-EDITOR.Fonts = {}
--- 				Font					Description
-
--- Windows
-EDITOR.Fonts["Courier New"] 			= "Default font"
-EDITOR.Fonts["DejaVu Sans Mono"] 		= ""
-EDITOR.Fonts["Consolas"] 				= ""
-EDITOR.Fonts["Fixedsys"] 				= ""
-EDITOR.Fonts["Lucida Console"]			= ""
-
--- Mac
-EDITOR.Fonts["Monaco"] 					= "Mac standard font"
-
-
-EDITOR.CreatedFonts = {}
-
 function EDITOR:Init()
 	self:SetCursor("beam")
-
-	self:ChangeFont( self.FontConVar:GetString(), self.FontSizeConVar:GetInt() )
 
 	self.Rows = {""}
 	self.Caret = {1, 1}
@@ -59,22 +37,6 @@ end
 
 function EDITOR:GetParent()
 	return self.parentpanel
-end
-
-function EDITOR:ChangeFont( FontName, Size )
-	-- if (!self.Fonts[FontName]) then return end
-	-- We're not checking if the font exists to allow custom fonts
-
-	-- If font is not already created, create it.
-	if (!self.CreatedFonts[FontName .. "_" .. Size]) then
-		surface.CreateFont( FontName, Size, 400, false, false, "Expression2_" .. FontName .. "_" .. Size )
-		surface.CreateFont( FontName, Size, 700, false, false, "Expression2_" .. FontName .. "_" .. Size .. "_Bold" )
-		self.CreatedFonts[FontName .. "_" .. Size] = true
-	end
-
-	self.CurrentFont = "Expression2_" .. FontName .. "_" .. Size
-	surface.SetFont( self.CurrentFont )
-	self.FontWidth, self.FontHeight = surface.GetTextSize(" ")
 end
 
 function EDITOR:RequestFocus()
@@ -1181,7 +1143,7 @@ function EDITOR:CommentSelection( removecomment )
 	end
 
 	if (self:GetParent().E2) then -- For Expression 2
-		local mode = self.BlockCommentStyleConVar:GetInt()
+		local mode = self:GetParent().BlockCommentStyleConVar:GetInt()
 
 		if (mode == 0) then -- New (alt 1)
 			if (removecomment) then

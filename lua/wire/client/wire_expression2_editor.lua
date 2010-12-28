@@ -1,5 +1,55 @@
 local Editor = {}
 
+Editor.FontConVar = CreateClientConVar( "wire_expression2_editor_font", "Courier New", true, false )
+Editor.FontSizeConVar = CreateClientConVar( "wire_expression2_editor_font_size", 16, true, false )
+Editor.BlockCommentStyleConVar = CreateClientConVar( "wire_expression2_editor_block_comment_style", 1, true, false )
+
+Editor.Fonts = {}
+-- 				Font					Description
+
+-- Windows
+Editor.Fonts["Courier New"] 			= "Default font"
+Editor.Fonts["DejaVu Sans Mono"] 		= ""
+Editor.Fonts["Consolas"] 				= ""
+Editor.Fonts["Fixedsys"] 				= ""
+Editor.Fonts["Lucida Console"]			= ""
+
+-- Mac
+Editor.Fonts["Monaco"] 					= "Mac standard font"
+
+
+Editor.CreatedFonts = {}
+
+function Editor:SetEditorFont( editor )
+	if (!self.CurrentFont) then
+		self:ChangeFont( self.FontConVar:GetString(), self.FontSizeConVar:GetInt() )
+		return
+	end
+
+	editor.CurrentFont = self.CurrentFont
+	editor.FontWidth = self.FontWidth
+	editor.FontHeight = self.FontHeight
+end
+
+function Editor:ChangeFont( FontName, Size )
+	if (!FontName or FontName == "" or !Size) then return end
+
+	-- If font is not already created, create it.
+	if (!self.CreatedFonts[FontName .. "_" .. Size]) then
+		surface.CreateFont( FontName, Size, 400, false, false, "Expression2_" .. FontName .. "_" .. Size )
+		surface.CreateFont( FontName, Size, 700, false, false, "Expression2_" .. FontName .. "_" .. Size .. "_Bold" )
+		self.CreatedFonts[FontName .. "_" .. Size] = true
+	end
+
+	self.CurrentFont = "Expression2_" .. FontName .. "_" .. Size
+	surface.SetFont( self.CurrentFont )
+	self.FontWidth, self.FontHeight = surface.GetTextSize( " " )
+
+	for i=1,self:GetNumTabs() do
+		self:SetEditorFont( self:GetEditor( i ) )
+	end
+end
+
 local invalid_filename_chars = {
 	["*"] = "",
 	["?"] = "",
@@ -323,6 +373,7 @@ function Editor:CreateTab( chosenfile )
 	editor.parentpanel = self
 
 	local sheet = self.C['TabHolder'].panel:AddSheet( extractNameFromFilePath( chosenfile ), editor )
+	self:SetEditorFont( editor )
 	editor.chosenfile = chosenfile
 
 	local old = sheet.Tab.OnMousePressed
@@ -704,8 +755,6 @@ function Editor:InitControlPanel(frame)
 	end
 	DarknessColor:SetSlideX(0)
 
-	local editorpanel = self:GetCurrentEditor()
-
 	local FontLabel = vgui.Create( "DLabel", ColorPanel )
 	FontLabel:SetText( "Font:                                   Font Size:" )
 	FontLabel:SizeToContents()
@@ -715,16 +764,16 @@ function Editor:InitControlPanel(frame)
 	FontSelect.OnSelect = function( panel, index, value )
 		if (value == "Custom...") then
 			Derma_StringRequestNoBlur( "Enter custom font:", "", "", function( value )
-				editorpanel:ChangeFont( value, editorpanel.FontSizeConVar:GetInt() )
+				self:ChangeFont( value, self.FontSizeConVar:GetInt() )
 				RunConsoleCommand( "wire_expression2_editor_font", value )
 			end)
 		else
 			value = value:gsub( " %b()", "" ) -- Remove description
-			editorpanel:ChangeFont( value, editorpanel.FontSizeConVar:GetInt() )
+			self:ChangeFont( value, self.FontSizeConVar:GetInt() )
 			RunConsoleCommand( "wire_expression2_editor_font", value )
 		end
 	end
-	for k,v in pairs( editorpanel.Fonts ) do
+	for k,v in pairs( self.Fonts ) do
 		FontSelect:AddChoice( k .. (v != "" and " (" .. v .. ")" or "") )
 	end
 	FontSelect:AddChoice( "Custom..." )
@@ -735,7 +784,7 @@ function Editor:InitControlPanel(frame)
 	local FontSizeSelect = vgui.Create( "DMultiChoice", ColorPanel )
 	FontSizeSelect.OnSelect = function( panel, index, value )
 		value = value:gsub( " %b()", "" )
-		editorpanel:ChangeFont( editorpanel.FontConVar:GetString(), tonumber(value) )
+		self:ChangeFont( self.FontConVar:GetString(), tonumber(value) )
 		RunConsoleCommand( "wire_expression2_editor_font_size", value )
 	end
 	for i=11,26 do
@@ -802,7 +851,7 @@ function Editor:InitControlPanel(frame)
 	modes[1] = modes["New (alt 2)"][2]
 	modes[2] = modes["Old"][2]
 
-	BlockCommentStyleLabel:SetText( modes[editorpanel.BlockCommentStyleConVar:GetInt()] )
+	BlockCommentStyleLabel:SetText( modes[self.BlockCommentStyleConVar:GetInt()] )
 	BlockCommentStyleLabel:SetSize(200,200)
 	BlockCommentStyle:SetEditable( false )
 	BlockCommentStyleLabel:SetPos( 10, 195 )
