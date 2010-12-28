@@ -249,6 +249,27 @@ local function extractNameFromCode( str )
 	return str:match( "@name ([^\r\n]+)" )
 end
 
+local function getPreferredTitles( Line, code )
+	local title
+	local tabtext
+
+	local str = Line
+	if (str and str != "") then
+		title = str
+		tabtext = str
+	end
+
+	local str = extractNameFromCode( code )
+	if (str and str != "") then
+		if (!title) then
+			title = str
+		end
+		tabtext = str
+	end
+
+	return title, tabtext
+end
+
 function Editor:GetLastTab() return self.LastTab end
 function Editor:SetLastTab( Tab ) self.LastTab = Tab end
 function Editor:GetActiveTab() return self.C['TabHolder'].panel:GetActiveTab() end
@@ -266,25 +287,15 @@ function Editor:SetActiveTab( val )
 		self.C['TabHolder'].panel:SetActiveTab( val )
 		val:GetPanel():RequestFocus()
 	end
-	if (self:GetChosenFile() and self:GetChosenFile() != "") then
-		local title = self:GetChosenFile()
-		self:SubTitle( "Editing: " .. title )
-		if (self:GetActiveTab():GetText() != title) then
-			self:GetActiveTab():SetText( title )
-			self.C['TabHolder'].panel:InvalidateLayout()
-		end
-	elseif (extractNameFromCode( self:GetCode() )) then
-		local title = extractNameFromCode( self:GetCode() )
-		self:SubTitle( "Editing: " .. title )
-		if (self:GetActiveTab():GetText() != title) then
-			self:GetActiveTab():SetText( title )
-			self.C['TabHolder'].panel:InvalidateLayout()
-		end
-	else
-		self:SubTitle()
-		local title = "generic"
-		if (self:GetActiveTab():GetText() != title) then
-			self:GetActiveTab():SetText( title )
+
+
+	-- Editor subtitle and tab text
+	local title, tabtext = getPreferredTitles( self:GetChosenFile(), self:GetCode() )
+
+	if (title) then self:SubTitle("Editing: " .. title ) else self:SubTitle() end
+	if (tabtext) then
+		if (self:GetActiveTab():GetText() != tabtext) then
+			self:GetActiveTab():SetText( tabtext )
 			self.C['TabHolder'].panel:InvalidateLayout()
 		end
 	end
@@ -309,6 +320,8 @@ function Editor:GetSyntaxColorLine() return self.SyntaxColorLine end
 
 function Editor:CreateTab( chosenfile )
 	local editor = vgui.Create("Expression2Editor")
+	editor.parentpanel = self
+
 	local sheet = self.C['TabHolder'].panel:AddSheet( extractNameFromFilePath( chosenfile ), editor )
 	editor.chosenfile = chosenfile
 
@@ -835,8 +848,8 @@ end
 local code1 = "@name \n@inputs \n@outputs \n@persist \n@trigger \n\n"
 -- code2 contains the code that is to be marked, so it can simply be overwritten or deleted.
 local code2 = [[#[
-    Tabs have been added! You can now edit an infinite number
-    of Expression 2s at the same time :)
+    Tabs have been added! You can now edit as many E2s
+    as you like simultaneously.
 
     Block comments and multi line strings have been added!
     You can see the block comment syntax in this comment.
@@ -1009,7 +1022,8 @@ function Editor:Open(Line,code)
 				return
 			end
 		end
-		local sheet = self:CreateTab( Line )
+		local title, tabtext = getPreferredTitles( Line, code )
+		local sheet = self:CreateTab( tabtext )
 		self:SetActiveTab( sheet.Tab )
 		self:ChosenFile()
 		self:SetCode(code)
@@ -1086,7 +1100,8 @@ function Editor:LoadFile( Line )
 			end
 		end
 		if(!self.chip) then
-			local sheet = self:CreateTab( Line )
+			local title, tabtext = getPreferredTitles( Line, str )
+			local sheet = self:CreateTab( tabtext )
 			self:SetActiveTab( sheet.Tab )
 			self:ChosenFile(Line)
 		end

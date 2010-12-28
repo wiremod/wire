@@ -57,6 +57,10 @@ function EDITOR:Init()
 	self.LastClick = 0
 end
 
+function EDITOR:GetParent()
+	return self.parentpanel
+end
+
 function EDITOR:ChangeFont( FontName, Size )
 	-- if (!self.Fonts[FontName]) then return end
 	-- We're not checking if the font exists to allow custom fonts
