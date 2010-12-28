@@ -134,7 +134,6 @@ function ENT:EffectDraw_heatwave()
 
 end
 
-
 function ENT:EffectDraw_color()
 
 	local vOffset = self.Entity:LocalToWorld( self:GetOffset() )
@@ -339,7 +338,7 @@ function ENT:EffectDraw_fire_smoke_big()
 
 	self.RingTimer = self.RingTimer or 0
 	if ( self.RingTimer > CurTime() ) then return end
-	self.RingTimer = CurTime() + 0.00005
+	self.RingTimer = CurTime() + 0.005
 
 	local vOffset = self.Entity:LocalToWorld( self:GetOffset() )
 	local vNormal = (vOffset - self.Entity:GetPos()):GetNormalized()
@@ -347,8 +346,8 @@ function ENT:EffectDraw_fire_smoke_big()
 	local effectdata = EffectData()
 		effectdata:SetOrigin( vOffset )
 		effectdata:SetNormal( vNormal )
-		effectdata:SetRadius( 10 )
-		effectdata:SetScale( 6 )
+		effectdata:SetRadius( 5 )
+		effectdata:SetScale( 3 )
 	util.Effect( "HelicopterMegaBomb", effectdata )
 
 	vOffset = self.Entity:LocalToWorld( self:GetOffset() ) + Vector( math.Rand( -3, 3 ), math.Rand( -3, 3 ), math.Rand( -3, 3 ) )
@@ -356,8 +355,8 @@ function ENT:EffectDraw_fire_smoke_big()
 
 		local particle = emitter:Add( "particles/smokey", vOffset )
 			particle:SetVelocity( vNormal * math.Rand( 10, 20 ) )
-			particle:SetDieTime( 5.0 )
-			particle:SetStartAlpha( math.Rand( 50, 150 ) )
+			particle:SetDieTime( 3.0 )
+			particle:SetStartAlpha( math.Rand( 150, 255 ) )
 			particle:SetStartSize( math.Rand( 64, 128 ) )
 			particle:SetEndSize( math.Rand( 256, 128 ) )
 			particle:SetRoll( math.Rand( -0.2, 0.2 ) )
@@ -371,7 +370,6 @@ function ENT:EffectDraw_fire_smoke_big()
 	util.Effect( "ThumperDust ", effectdata )
 
 end
-
 
 function ENT:EffectThink_smoke()
 
@@ -690,7 +688,6 @@ function ENT:EffectThink_sperm()
 
 end
 
-
 function ENT:EffectThink_feather()
 
 	self.SmokeTimer = self.SmokeTimer or 0
@@ -767,34 +764,29 @@ function ENT:EffectThink_candy_cane()
 end
 
 function ENT:EffectThink_jetflame_advanced()
-	self.Smoking = self.Smoking or false
-	if self.Entity:GetVelocity():Length() == 0 then
-	self.Smoking = false
-	end
-	self.SmokeTimer = self.SmokeTimer or 0
-	if ( self.SmokeTimer > CurTime() ) then return end
+	local vel = self.Entity:GetVelocity():Length()
 
-	self.SmokeTimer = CurTime() + 0.0000005
+	self.FlameTimer = self.FlameTimer or 0
+	if ( self.FlameTimer > CurTime() ) then return end
+	self.FlameTimer = CurTime() + 0.001
+
 
 	local vOffset = self.Entity:LocalToWorld( self:GetOffset() )
 	local vNormal = (vOffset - self.Entity:GetPos()):GetNormalized()
 
-	//vOffset = vOffset + VectorRand() * 5
-
 	local r,g,b
-	if self.Entity:GetVelocity():Length() < 1700 then
-		r = math.Rand(220,255)
-		g = math.Rand(180,220)
-		b = 55
-	else
-		r = 55
-		g = 55
-		b = math.Rand(200,255)
+	if vel < 3000 then // White -> Yellow
+		r = 255
+		g = 255
+		b = math.Clamp(255-(vel-1000)/7.8,0,255)
+	else // Yellow -> Red
+		r = 255
+		g = math.Clamp(255-(vel-1000)/7.8,0,255)
+		b = 0
 	end
 
 	local speed = math.Rand(90,252)
 	local roll = math.Rand(-90,90)
-
 		local particle = emitter:Add( "particle/fire", vOffset )
 			particle:SetVelocity( vNormal * speed )
 			particle:SetDieTime( 0.3 )
@@ -802,7 +794,7 @@ function ENT:EffectThink_jetflame_advanced()
 			particle:SetEndAlpha( 150 )
 			particle:SetStartSize( 15.8 )
 			particle:SetEndSize( 9 )
-			particle:SetColor( r,g,b)
+			particle:SetColor(r, g, b)
 			particle:SetRoll( roll )
 
 		local particle3 = emitter:Add( "sprites/heatwave", vOffset )
@@ -827,25 +819,26 @@ function ENT:EffectThink_jetflame_advanced()
 			particle2:SetColor( 200,200,200 )
 			particle2:SetRoll( roll )
 
-	if self.Entity:GetVelocity():Length() < 1000 then
-	if not self.Smoking then
-	 local particle4 = emitter:Add( "particles/smokey", vOffset )
+	if vel < 1000 then
+		self.SmokeTimer = self.SmokeTimer or 0
+		if ( self.SmokeTimer > CurTime() ) then return end
+		self.SmokeTimer = CurTime() + 0.1
+
+		local particle4 = emitter:Add( "particles/smokey", vOffset )
 			particle4:SetVelocity( vNormal * math.Rand( 10, 30 ) )
-			particle4:SetDieTime( 20.0 )
-			particle4:SetStartAlpha( math.Rand( 50, 150 ) )
+			particle4:SetDieTime( 5.0 )
+			particle4:SetStartAlpha( math.Rand( 150, 255 ) )
 			particle4:SetEndAlpha( math.Rand( 0, 10 ) )
-			particle4:SetStartSize( math.Rand( 512, 1024 ) )
+			particle4:SetStartSize( math.Rand( 128-((vel/3.9)/2), 256-(vel/3.9) ) )
 			particle4:SetEndSize( math.Rand( 16,32  ) )
 			particle4:SetRoll( math.Rand( -0.2, 0.2 ) )
 			particle4:SetColor( 200, 200, 210 )
-	end
-	elseif self.Entity:GetVelocity():Length() > 1000 then
-	self.Smoking = true
 	end
 
 	emitter:Finish()
 
 end
+
 function ENT:EffectThink_jetflame()
 
 	self.SmokeTimer = self.SmokeTimer or 0
@@ -1006,7 +999,6 @@ function ENT:EffectThink_jetflame_red()
 
 end
 
-
 function ENT:EffectThink_jetflame_blue()
 
 	self.SmokeTimer = self.SmokeTimer or 0
@@ -1059,7 +1051,6 @@ function ENT:EffectThink_jetflame_blue()
 	emitter:Finish()
 
 end
-
 
 function ENT:EffectThink_balls_firecolors()
 	self.SmokeTimer = self.SmokeTimer or 0
@@ -1262,7 +1253,6 @@ function ENT:EffectThink_magic_color()
 
 end
 
-
 function ENT:EffectDraw_rings()
 
 	self.RingTimer = self.RingTimer or 0
@@ -1373,99 +1363,7 @@ function ENT:EffectDraw_water_small()
 
 	self.RingTimer = self.RingTimer or 0
 	if ( self.RingTimer > CurTime() ) then return end
-	self.RingTimer = CurTime() + 0.00005
-
-	local vOffset = self.Entity:LocalToWorld( self:GetOffset() )
-	local vNormal = (vOffset - self.Entity:GetPos()):GetNormalized()
-
-	local effectdata = EffectData()
-		effectdata:SetOrigin( vOffset )
-		effectdata:SetNormal( vNormal )
-		effectdata:SetRadius( 1 )
-		effectdata:SetScale( 1 )
-	util.Effect( "watersplash", effectdata )
-
-end
-
-function ENT:EffectDraw_water_medium()
-
-	self.RingTimer = self.RingTimer or 0
-	if ( self.RingTimer > CurTime() ) then return end
-	self.RingTimer = CurTime() + 0.00005
-
-	local vOffset = self.Entity:LocalToWorld( self:GetOffset() )
-	local vNormal = (vOffset - self.Entity:GetPos()):GetNormalized()
-
-	local effectdata = EffectData()
-		effectdata:SetOrigin( vOffset )
-		effectdata:SetNormal( vNormal )
-		effectdata:SetRadius( 5 )
-		effectdata:SetScale( 3 )
-
-	util.Effect( "watersplash", effectdata )
-
-end
-
-function ENT:EffectDraw_water_big()
-
-	self.RingTimer = self.RingTimer or 0
-	if ( self.RingTimer > CurTime() ) then return end
-	self.RingTimer = CurTime() + 0.00005
-
-	local vOffset = self.Entity:LocalToWorld( self:GetOffset() )
-	local vNormal = (vOffset - self.Entity:GetPos()):GetNormalized()
-
-	local effectdata = EffectData()
-		effectdata:SetOrigin( vOffset )
-		effectdata:SetNormal( vNormal )
-		effectdata:SetRadius( 10 )
-		effectdata:SetScale( 6 )
-	util.Effect( "watersplash", effectdata )
-
-end
-
-function ENT:EffectDraw_water_huge()
-
-	self.RingTimer = self.RingTimer or 0
-	if ( self.RingTimer > CurTime() ) then return end
-	self.RingTimer = CurTime() + 0.00005
-
-	local vOffset = self.Entity:LocalToWorld( self:GetOffset() )
-	local vNormal = (vOffset - self.Entity:GetPos()):GetNormalized()
-
-	local effectdata = EffectData()
-		effectdata:SetOrigin( vOffset )
-		effectdata:SetNormal( vNormal )
-		effectdata:SetRadius( 50 )
-		effectdata:SetScale( 50 )
-	util.Effect( "watersplash", effectdata )
-
-end
-
-
-function ENT:EffectDraw_striderblood_small()
-
-	self.RingTimer = self.RingTimer or 0
-	if ( self.RingTimer > CurTime() ) then return end
-	self.RingTimer = CurTime() + 0.00005
-
-	local vOffset = self.Entity:LocalToWorld( self:GetOffset() )
-	local vNormal = (vOffset - self.Entity:GetPos()):GetNormalized()
-
-	local effectdata = EffectData()
-		effectdata:SetOrigin( vOffset )
-		effectdata:SetNormal( vNormal )
-		effectdata:SetRadius( 1 )
-		effectdata:SetScale( 1 )
-	util.Effect( "StriderBlood", effectdata )
-
-end
-
-function ENT:EffectDraw_striderblood_medium()
-
-	self.RingTimer = self.RingTimer or 0
-	if ( self.RingTimer > CurTime() ) then return end
-	self.RingTimer = CurTime() + 0.00005
+	self.RingTimer = CurTime() + 0.05
 
 	local vOffset = self.Entity:LocalToWorld( self:GetOffset() )
 	local vNormal = (vOffset - self.Entity:GetPos()):GetNormalized()
@@ -1475,6 +1373,97 @@ function ENT:EffectDraw_striderblood_medium()
 		effectdata:SetNormal( vNormal )
 		effectdata:SetRadius( 2 )
 		effectdata:SetScale( 2 )
+	util.Effect( "watersplash", effectdata )
+
+end
+
+function ENT:EffectDraw_water_medium()
+
+	self.RingTimer = self.RingTimer or 0
+	if ( self.RingTimer > CurTime() ) then return end
+	self.RingTimer = CurTime() + 0.05
+
+	local vOffset = self.Entity:LocalToWorld( self:GetOffset() )
+	local vNormal = (vOffset - self.Entity:GetPos()):GetNormalized()
+
+	local effectdata = EffectData()
+		effectdata:SetOrigin( vOffset )
+		effectdata:SetNormal( vNormal )
+		effectdata:SetRadius( 15 )
+		effectdata:SetScale( 15 )
+
+	util.Effect( "watersplash", effectdata )
+
+end
+
+function ENT:EffectDraw_water_big()
+
+	self.RingTimer = self.RingTimer or 0
+	if ( self.RingTimer > CurTime() ) then return end
+	self.RingTimer = CurTime() + 0.05
+
+	local vOffset = self.Entity:LocalToWorld( self:GetOffset() )
+	local vNormal = (vOffset - self.Entity:GetPos()):GetNormalized()
+
+	local effectdata = EffectData()
+		effectdata:SetOrigin( vOffset )
+		effectdata:SetNormal( vNormal )
+		effectdata:SetRadius( 30 )
+		effectdata:SetScale( 30 )
+	util.Effect( "watersplash", effectdata )
+
+end
+
+function ENT:EffectDraw_water_huge()
+
+	self.RingTimer = self.RingTimer or 0
+	if ( self.RingTimer > CurTime() ) then return end
+	self.RingTimer = CurTime() + 0.05
+
+	local vOffset = self.Entity:LocalToWorld( self:GetOffset() )
+	local vNormal = (vOffset - self.Entity:GetPos()):GetNormalized()
+
+	local effectdata = EffectData()
+		effectdata:SetOrigin( vOffset )
+		effectdata:SetNormal( vNormal )
+		effectdata:SetRadius( 40 )
+		effectdata:SetScale( 40 )
+	util.Effect( "watersplash", effectdata )
+
+end
+
+function ENT:EffectDraw_striderblood_small()
+
+	self.RingTimer = self.RingTimer or 0
+	if ( self.RingTimer > CurTime() ) then return end
+	self.RingTimer = CurTime() + 0.05
+
+	local vOffset = self.Entity:LocalToWorld( self:GetOffset() )
+	local vNormal = (vOffset - self.Entity:GetPos()):GetNormalized()
+
+	local effectdata = EffectData()
+		effectdata:SetOrigin( vOffset )
+		effectdata:SetNormal( vNormal )
+		effectdata:SetRadius( 0.1 )
+		effectdata:SetScale( 0.1 )
+	util.Effect( "StriderBlood", effectdata )
+
+end
+
+function ENT:EffectDraw_striderblood_medium()
+
+	self.RingTimer = self.RingTimer or 0
+	if ( self.RingTimer > CurTime() ) then return end
+	self.RingTimer = CurTime() + 0.05
+
+	local vOffset = self.Entity:LocalToWorld( self:GetOffset() )
+	local vNormal = (vOffset - self.Entity:GetPos()):GetNormalized()
+
+	local effectdata = EffectData()
+		effectdata:SetOrigin( vOffset )
+		effectdata:SetNormal( vNormal )
+		effectdata:SetRadius( 1 )
+		effectdata:SetScale( 1 )
 
 	util.Effect( "StriderBlood", effectdata )
 
@@ -1484,7 +1473,7 @@ function ENT:EffectDraw_striderblood_big()
 
 	self.RingTimer = self.RingTimer or 0
 	if ( self.RingTimer > CurTime() ) then return end
-	self.RingTimer = CurTime() + 0.00005
+	self.RingTimer = CurTime() + 0.05
 
 	local vOffset = self.Entity:LocalToWorld( self:GetOffset() )
 	local vNormal = (vOffset - self.Entity:GetPos()):GetNormalized()
@@ -1492,8 +1481,8 @@ function ENT:EffectDraw_striderblood_big()
 	local effectdata = EffectData()
 		effectdata:SetOrigin( vOffset )
 		effectdata:SetNormal( vNormal )
-		effectdata:SetRadius( 3 )
-		effectdata:SetScale( 3 )
+		effectdata:SetRadius( 2 )
+		effectdata:SetScale( 2 )
 	util.Effect( "StriderBlood", effectdata )
 
 end
@@ -1502,7 +1491,7 @@ function ENT:EffectDraw_striderblood_huge()
 
 	self.RingTimer = self.RingTimer or 0
 	if ( self.RingTimer > CurTime() ) then return end
-	self.RingTimer = CurTime() + 0.00005
+	self.RingTimer = CurTime() + 0.05
 
 	local vOffset = self.Entity:LocalToWorld( self:GetOffset() )
 	local vNormal = (vOffset - self.Entity:GetPos()):GetNormalized()
@@ -1510,8 +1499,8 @@ function ENT:EffectDraw_striderblood_huge()
 	local effectdata = EffectData()
 		effectdata:SetOrigin( vOffset )
 		effectdata:SetNormal( vNormal )
-		effectdata:SetRadius( 4)
-		effectdata:SetScale( 4 )
+		effectdata:SetRadius( 2.5 )
+		effectdata:SetScale( 2.5 )
 	util.Effect( "StriderBlood", effectdata )
 
 end
@@ -1552,7 +1541,6 @@ function ENT:EffectDraw_rings_grow_rings()
 
 end
 
-
 function ENT:EffectDraw_rings_shrink()
 
 	self.RingTimer = self.RingTimer or 0
@@ -1568,7 +1556,6 @@ function ENT:EffectDraw_rings_shrink()
 	util.Effect( "thruster_ring_shrink", effectdata )
 
 end
-
 
 function ENT:EffectThink_bubble()
 	self.SmokeTimer = self.SmokeTimer or 0

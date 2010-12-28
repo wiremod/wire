@@ -227,13 +227,15 @@ end
 function EGP:SetParent( Ent, index, parentindex )
 	local bool, k, v = self:HasObject( Ent, index )
 	if (bool) then
-		local bool2, k2, v2 = self:HasObject( Ent, parentindex )
-		if (bool2) then
-			if (CLIENT or SinglePlayer()) then
-				self:AddParentIndexes( v )
-			end
+		if (parentindex == -1) then -- Parent to cursor?
+			if (self:EditObject( v, { parent = parentindex } )) then return true, v end
+		else
+			local bool2, k2, v2 = self:HasObject( Ent, parentindex )
+			if (bool2) then
+				if (CLIENT or SinglePlayer()) then
+					self:AddParentIndexes( v )
+				end
 
-			if (parentindex != -1) then -- Parent to cursor?
 				if (SERVER) then parentindex = math.Clamp(parentindex,1,self.ConVars.MaxObjects:GetInt()) end
 
 				-- If it's already parented to that object
@@ -242,9 +244,9 @@ function EGP:SetParent( Ent, index, parentindex )
 				if (v.parent and v.parent == v.index) then return false end
 				-- If the user is trying to create a circle of parents, causing an infinite loop
 				if (!CheckParents( Ent, v, parentindex, {} )) then return false end
-			end
 
-			if (self:EditObject( v, { parent = parentindex }, Ent:GetPlayer() )) then return true, v end
+				if (self:EditObject( v, { parent = parentindex } )) then return true, v end
+			end
 		end
 	end
 end

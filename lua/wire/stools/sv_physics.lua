@@ -350,7 +350,10 @@ function WireToolMakeThruster( self, trace, ply )
 	-- If we shot a wire_thruster change its force
 	if trace.Entity:IsValid() and trace.Entity:GetClass() == "gmod_wire_thruster" and trace.Entity.pl == ply then
 		trace.Entity:SetForce( force )
-		trace.Entity:SetEffect( effect )
+
+		trace.Entity:SetDatEffect(uwater, owater, uweffect, oweffect)
+
+
 		trace.Entity:Setup(force, force_min, force_max, oweffect, uweffect, owater, uwater, bidir, soundname)
 
 		trace.Entity.force		= force

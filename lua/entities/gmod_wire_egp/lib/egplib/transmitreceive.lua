@@ -265,7 +265,7 @@ if (SERVER) then
 
 	local function removetbl( tbl, Ent )
 		for k,v in ipairs( tbl ) do
-			if (Ent.RenderTable[k]) then table.remove( Ent.RenderTable, k ) end
+			if (Ent.RenderTable[v]) then table.remove( Ent.RenderTable, v ) end
 		end
 	end
 

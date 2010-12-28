@@ -174,6 +174,7 @@ function ENT:TriggerOutput()		-- Entity outputs won't trigger again until they c
 				Wire_TriggerOutput( self.Entity, "Victim", null )
 			end
 
+			self.victims.size = table.Count(self.victims.s)
 			Wire_TriggerOutput( self.Entity, "Victims", self.victims or table.Copy(DEFAULT) )
 			Wire_TriggerOutput( self.Entity, "Position", self.firsthit_dmginfo[3] or Vector(0,0,0) )
 			Wire_TriggerOutput( self.Entity, "Force", self.firsthit_dmginfo[4] or Vector(0,0,0) )

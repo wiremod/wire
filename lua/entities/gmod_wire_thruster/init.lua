@@ -80,8 +80,34 @@ function ENT:SetForce( force, mul )
 --	self.Entity:SetNetworkedVector( 2, self.ForceLinear )
 end
 
+function ENT:SetDatEffect(uwater, owater, uweffect, oweffect)
+	if self:WaterLevel() > 0 then
+		if not uwater then
+			self:SetEffect("none")
+			return
+		end
+
+		if uweffect == "same" then
+			self:SetEffect(oweffect)
+			return
+		else
+			self:SetEffect(uweffect)
+			return
+		end
+	else
+		if not owater then
+			self:SetEffect("none")
+			return
+		end
+		self:SetEffect(oweffect)
+		return
+	end
+end
+
 function ENT:Setup(force, force_min, force_max, oweffect, uweffect, owater, uwater, bidir, soundname)
 	self:SetForce(force)
+
+	self:SetDatEffect(uwater, owater, uweffect, oweffect)
 
 	self.OWEffect = oweffect
 	self.UWEffect = uweffect

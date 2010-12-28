@@ -7,6 +7,18 @@ local function checkargtype(argn, value, argtype)
 	if type(value) ~= argtype then error(string.format("bad argument #%d to 'E2Lib.%s' (%s expected, got %s)", argn, debug.getinfo(2,"n").name, argtype, type(text)),2) end
 end
 
+--[[************************* Helper functions ***************************]]
+local unpack = unpack
+
+-- This functions should not be used in functions that tend to be used very often, as it is slower than getting the arguments manually.
+function E2Lib.getArguments( self, args )
+	local ret = {}
+	for i=2,#args[7]+1 do
+		ret[i-1] = args[i][1]( self, args[i] )
+	end
+	return unpack( ret )
+end
+
 --[[************************* signature generation ***************************]]
 
 local function maketype(typeid)

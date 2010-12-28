@@ -1142,10 +1142,10 @@ function EDITOR:BlockCommentSelection( removecomment )
 	end
 
 	-- restore selection
-	self.Caret = self:CopyPosition(sel_caret)
-	self.Start = self:CopyPosition(sel_start)
+	self.Caret = sel_caret
+	self.Start = sel_start
 	-- restore scroll position
-	self.Scroll = self:CopyPosition(scroll)
+	self.Scroll = scroll
 	-- trigger scroll bar update (TODO: find a better way)
 	self:ScrollCaret()
 end
@@ -1229,10 +1229,10 @@ function EDITOR:CommentSelection( removecomment )
 	end
 
 	-- restore selection
-	self.Caret = self:CopyPosition(sel_caret)
-	self.Start = self:CopyPosition(sel_start)
+	self.Caret = sel_caret
+	self.Start = sel_start
 	-- restore scroll position
-	self.Scroll = self:CopyPosition(scroll)
+	self.Scroll = scroll
 	-- trigger scroll bar update (TODO: find a better way)
 	self:ScrollCaret()
 end
@@ -1377,6 +1377,30 @@ function EDITOR:_OnKeyCodeTyped(code)
 			if !shift then
 				self.Start = self:CopyPosition(self.Caret)
 			end
+		elseif code == KEY_D then
+			-- Save current selection
+			local old_start = self:CopyPosition( self.Start )
+			local old_end = self:CopyPosition( self.Caret )
+			local old_scroll = self:CopyPosition( self.Scroll )
+
+			local str = self:GetSelection()
+			if (str != "") then -- If you have a selection
+				self:SetSelection( str:rep(2) ) -- Repeat it
+			else -- If you don't
+				-- Select the current line
+				self.Start = { self.Start[1], 1 }
+				self.Caret = { self.Start[1], #self.Rows[self.Start[1]]+1 }
+				-- Get the text
+				local str = self:GetSelection()
+				-- Repeat it
+				self:SetSelection( str .. "\n" .. str )
+			end
+
+			-- Restore selection
+			self.Caret = old_end
+			self.Start = old_start
+			self.Scroll = old_scroll
+			self:ScrollCaret()
 		end
 
 	else

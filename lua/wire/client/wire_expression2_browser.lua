@@ -183,7 +183,14 @@ function PANEL:Init()
  		function(strTextOut)
 			// Renaming starts in the garrysmod folder now, in comparison to other commands that start in the data folder.
 			strTextOut = string.gsub(strTextOut, ".", invalid_filename_chars)
-			file.Rename("data/" .. self.File.FileDir, "data/" .. string.GetPathFromFilename(self.File.FileDir) .. "/" .. strTextOut .. ".txt")
+
+			-- The rename function appears to be broken. Using file.Read, file.Delete, and file.Write instead.
+			--file.Rename("data/" .. self.File.FileDir, "data/" .. string.GetPathFromFilename(self.File.FileDir) .. "/" .. strTextOut .. ".txt")
+
+			local contents = file.Read( "data/" .. self.File.FileDir )
+			file.Delete( "data/" .. self.File.FileDir )
+			file.Write( "data/" .. string.GetPathFromFilename(self.File.FileDir) .. "/" .. strTextOut .. ".txt", contents )
+
 			self:UpdateFolders()
 		end)
 	end)
@@ -191,8 +198,10 @@ function PANEL:Init()
 		Derma_Query(
 			"Delete this file?", "Delete",
 			"Delete", function()
-				if(file.Exists(self.File.FileDir)) then file.Delete(self.File.FileDir) end
-				self:UpdateFolders()
+				if(file.Exists(self.File.FileDir)) then
+					file.Delete(self.File.FileDir)
+					self:UpdateFolders()
+				end
 			end,
 			"Cancel"
 		)
@@ -213,6 +222,14 @@ function PANEL:Init()
 			self:UpdateFolders()
 		end)
 	end)
+	self:AddRightClick(self.foldermenu,"New Folder..",function()
+		Derma_StringRequestNoBlur("new folder in \"" .. self.File.FileDir .. "\"", "Create new folder", "",
+		function(strTextOut)
+			strTextOut = string.gsub(strTextOut, ".", invalid_filename_chars )
+			file.CreateDir( self.File.FileDir .. "/" .. strTextOut )
+			self:UpdateFolders()
+		end)
+	end)
 	self:AddRightClick(self.panelmenu, "New File..", function()
 		Derma_StringRequestNoBlur("New File in \"" .. self.File.FileDir .. "\"", "Create new file", "",
  		function(strTextOut)
@@ -221,11 +238,20 @@ function PANEL:Init()
 			self:UpdateFolders()
 		end)
 	end)
+	self:AddRightClick(self.panelmenu,"New Folder..",function()
+		Derma_StringRequestNoBlur("new folder in \"" .. self.File.FileDir .. "\"", "Create new folder", "",
+		function(strTextOut)
+			strTextOut = string.gsub(strTextOut, ".", invalid_filename_chars )
+			file.CreateDir( self.File.FileDir .. "/" .. strTextOut )
+			self:UpdateFolders()
+		end)
+	end)
 end
 
 function PANEL:OnFileClick(Dir)
 	//Override this.
 end
+
 function PANEL:OnFolderClick(Dir)
 	//Override this.
 end
@@ -314,17 +340,9 @@ function PANEL:UpdateFolders()
 	self.Folders.DoRightClick = function(tree, node)
 		self.File = node
 		if node.IsFile then
-			self:OnFileClick(node.FileDir)
+			self:OpenMenu(self.filemenu)
 		else
-			if node.loaded then
-				self:AllowExpanding(node, true)
-				node:SetExpanded(!node.m_bExpanded)
-			else
-				self:AllowExpanding(node, false)
-				node:SetExpanded(false)
-			end
-			OpenFolderNode(node)
-			self:OnFolderClick(node.FileDir)
+			self:OpenMenu(self.foldermenu)
 		end
 		return true
 	end

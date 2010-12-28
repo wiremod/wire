@@ -36,7 +36,7 @@ function Editor:Init()
 
 	self:InitComponents()
 
-	local width, height = math.min(surface.ScreenWidth()-200, 780), math.min(surface.ScreenHeight()-200, 580)
+	local width, height = math.min(surface.ScreenWidth()-200, 800), math.min(surface.ScreenHeight()-200, 620)
 	self:SetPos((surface.ScreenWidth() - width) / 2, (surface.ScreenHeight() - height) / 2)
 	self:SetSize(width, height)
 
@@ -244,6 +244,202 @@ function Editor:addComponent(panel,x,y,w,h)
 	return self.Components[t]
 end
 
+-- TODO: Fix this function
+local function extractNameFromCode( str )
+	return str:match( "@name ([^\r\n]+)" )
+end
+
+function Editor:GetLastTab() return self.LastTab end
+function Editor:SetLastTab( Tab ) self.LastTab = Tab end
+function Editor:GetActiveTab() return self.C['TabHolder'].panel:GetActiveTab() end
+function Editor:GetNumTabs() return #self.C['TabHolder'].panel.Items end
+function Editor:SetActiveTab( val )
+	if (self:GetActiveTab() == val) then
+		val:GetPanel():RequestFocus()
+		return
+	end
+	self:SetLastTab( self:GetActiveTab() )
+	if (type(val) == "number") then
+		self.C['TabHolder'].panel:SetActiveTab( self.C['TabHolder'].panel.Items[val].Tab )
+		self:GetActiveTab():GetPanel():RequestFocus()
+	elseif (val and val:IsValid()) then
+		self.C['TabHolder'].panel:SetActiveTab( val )
+		val:GetPanel():RequestFocus()
+	end
+	if (self:GetChosenFile() and self:GetChosenFile() != "") then
+		local title = self:GetChosenFile()
+		self:SubTitle( "Editing: " .. title )
+		if (self:GetActiveTab():GetText() != title) then
+			self:GetActiveTab():SetText( title )
+			self.C['TabHolder'].panel:InvalidateLayout()
+		end
+	elseif (extractNameFromCode( self:GetCode() )) then
+		local title = extractNameFromCode( self:GetCode() )
+		self:SubTitle( "Editing: " .. title )
+		if (self:GetActiveTab():GetText() != title) then
+			self:GetActiveTab():SetText( title )
+			self.C['TabHolder'].panel:InvalidateLayout()
+		end
+	else
+		self:SubTitle()
+		local title = "generic"
+		if (self:GetActiveTab():GetText() != title) then
+			self:GetActiveTab():SetText( title )
+			self.C['TabHolder'].panel:InvalidateLayout()
+		end
+	end
+end
+
+local function extractNameFromFilePath( str )
+	local found = str:reverse():find( "/", 1, true )
+	if (found) then
+		return str:Right( found-1 )
+	else
+		return str
+	end
+end
+
+function Editor:SetSyntaxColorLine( func )
+	self.SyntaxColorLine = func
+	for i=1,self:GetNumTabs() do
+		self:GetEditor( i ).SyntaxColorLine = func
+	end
+end
+function Editor:GetSyntaxColorLine() return self.SyntaxColorLine end
+
+function Editor:CreateTab( chosenfile )
+	local editor = vgui.Create("Expression2Editor")
+	local sheet = self.C['TabHolder'].panel:AddSheet( extractNameFromFilePath( chosenfile ), editor )
+	editor.chosenfile = chosenfile
+
+	local old = sheet.Tab.OnMousePressed
+	sheet.Tab.OnMousePressed = function( pnl, keycode, ... )
+
+		if (keycode == MOUSE_MIDDLE) then
+			local old = self.C['TabHolder'].panel:GetFadeTime()
+			self.C['TabHolder'].panel:SetFadeTime( 0 )
+			timer.Simple( old, function() self.C['TabHolder'].panel:SetFadeTime( old ) end )
+			self:SetActiveTab( sheet.Tab )
+			self:CloseTab()
+			return
+		end
+
+		self:SetActiveTab( sheet.Tab )
+	end
+
+	sheet.Tab.Paint = function( tab )
+		local w,h = tab:GetSize()
+		draw.RoundedBox(1, 0, 0, w, h, self.colors.col_FL)
+		if (self:GetActiveTab() == tab) then
+			draw.RoundedBox(0, 1, 1, w - 2, h - 2, Color(0,0,0,192))
+		elseif (self:GetLastTab() == tab) then
+			draw.RoundedBox(0,1,1,w-2,h-2,Color(0,0,0,145))
+		end
+	end
+
+	editor.OnTextChanged = function(panel)
+		timer.Create("e2autosave", 5, 1, function()
+			self:AutoSave()
+		end)
+	end
+	editor.OnShortcut = function(_, code)
+		if code == KEY_S then
+			self:SaveFile(self:GetChosenFile())
+			self:Validate()
+		elseif code == KEY_SPACE then
+			self:Validate(true)
+		end
+	end
+	editor:RequestFocus()
+
+	local func = self:GetSyntaxColorLine()
+	if (func != nil) then
+		editor.SyntaxColorLine = func
+	end
+
+	return sheet
+end
+
+function Editor:GetNextAvailableTab()
+	local activetab = self:GetActiveTab()
+	for k,v in pairs( self.C['TabHolder'].panel.Items ) do
+		if (v.Tab and v.Tab:IsValid() and v.Tab != activetab) then
+			return v.Tab
+		end
+	end
+end
+
+function Editor:CloseTab()
+	self:AutoSave()
+
+	-- There's only one tab open, no need to actually close any tabs
+	if (self:GetNumTabs() == 1) then
+		self:GetActiveTab():SetText( "generic" )
+		self.C['TabHolder'].panel:InvalidateLayout()
+		self:NewScript()
+		return
+	end
+
+	local activetab = self:GetActiveTab()
+
+	-- Find the sheet index
+	local sheetindex
+	for k,v in pairs( self.C['TabHolder'].panel.Items ) do
+		if (activetab == v.Tab) then
+			sheetindex = k
+			break
+		end
+	end
+
+	-- Find the panel (for the scroller)
+	local tabscroller_sheetindex
+	for k,v in pairs( self.C['TabHolder'].panel.tabScroller.Panels ) do
+		if (v == activetab) then
+			tabscroller_sheetindex = k
+			break
+		end
+	end
+
+	local old = self.C['TabHolder'].panel:GetFadeTime()
+	self.C['TabHolder'].panel:SetFadeTime( 0 )
+	timer.Simple( old, function() self.C['TabHolder'].panel:SetFadeTime( old ) end )
+
+	if (self:GetLastTab() and self:GetLastTab():IsValid()) then
+		if (activetab == self:GetLastTab()) then
+			local othertab = self:GetNextAvailableTab()
+			if (othertab and othertab:IsValid()) then
+				self:SetActiveTab( othertab )
+				self:SetLastTab()
+			else
+				self:GetActiveTab():SetText( "generic" )
+				self.C['TabHolder'].panel:InvalidateLayout()
+				self:NewScript()
+				return
+			end
+		else
+			self:SetActiveTab( self:GetLastTab() )
+			self:SetLastTab()
+		end
+	else
+		local othertab = self:GetNextAvailableTab()
+		if (othertab and othertab:IsValid()) then
+			self:SetActiveTab( othertab )
+		else
+			self:GetActiveTab():SetText( "generic" )
+			self.C['TabHolder'].panel:InvalidateLayout()
+			self:NewScript()
+			return
+		end
+	end
+
+	activetab:GetPanel():Remove()
+	activetab:Remove()
+	table.remove( self.C['TabHolder'].panel.Items, sheetindex )
+	table.remove( self.C['TabHolder'].panel.tabScroller.Panels, tabscroller_sheetindex )
+
+	self.C['TabHolder'].panel:InvalidateLayout()
+end
+
 // initialization commands
 
 function Editor:InitComponents()
@@ -255,32 +451,20 @@ function Editor:InitComponents()
 	self.C['Close']     = self:addComponent(vgui.Create( "DSysButton", self )               , -22,   4,  18,  18)   // Close button
 	self.C['Inf']       = self:addComponent(vgui.Create( "DSysButton", self )               , -42,   4,  18,  18)   // Info button
 	self.C['Sav']       = self:addComponent(vgui.Create( "Button", self )                   , 191,  30,  20,  20)   // Save button
-	self.C['Dir']       = self:addComponent(vgui.Create( "Label", self )                    , 220,  30, -70,  20)   // Directory line
+	self.C['NewTab']	= self:addComponent(vgui.Create( "Button", self )					, 212,  30,  20,  20)   // New tab button
+	self.C['CloseTab']	= self:addComponent(vgui.Create( "Button", self )					, 233,  30,  20,  20)   // Close tab button
 	self.C['SaE']       = self:addComponent(vgui.Create( "Button", self )                   , -70,  30, -10,  20)   // Save & Exit button
-	self.C['SavAs']     = self:addComponent(vgui.Create( "Button", self )                   , -135, 30, -80,  20)   // Save As button
+	self.C['SavAs']     = self:addComponent(vgui.Create( "Button", self )                   , -123, 30, -72,  20)   // Save As button
 	self.C['Browser']   = self:addComponent(vgui.Create( "wire_expression2_browser", self ) ,  10,  30, 157, -10)   // Expression browser
-	self.C['Editor']    = self:addComponent(vgui.Create( "Expression2Editor", self )        , 170,  53, -10, -33)   // Expression editor
+	self.C['TabHolder'] = self:addComponent(vgui.Create( "DPropertySheet", self )			, 165, 	52,	-5,  -27)	// TabHolder
+	self:CreateTab( "generic" )
 	self.C['Val']       = self:addComponent(vgui.Create( "Label", self )                    , 170, -30, -10,  20)   // Validation line
 	self.C['Btoggle']   = self:addComponent(vgui.Create( "Button", self )                   , 170,  30,  20,  20)   // Toggle Browser being shown
 	self.C['ConBut']    = self:addComponent(vgui.Create( "Button", self )                   , -62,  4,   18,  18)   // Control panel open/close
 	self.C['Control']   = self:addComponent(vgui.Create( "Panel", self )                    ,-210,  52, 200, 360)   // Control Panel
 	self.C['Credit']    = self:addComponent(vgui.Create( "TextEntry", self )                ,-160,  52, 170,  60)   // Credit box
-	/*self.C['CtC']       = self:addComponent(vgui.Create( "Button", self )                   ,-105,  30, -71,  20)   // Copy to Clipboard button
 
-	self.C['CtC'].panel:SetText("")
-	self.C['CtC'].panel.Font = "E2SmallFont"
-	self.C['CtC'].panel.Paint = function(button)
-		local w,h = button:GetSize()
-		draw.RoundedBox(1, 0, 0, w, h, self.colors.col_FL)
-		if ( button.Hovered ) then draw.RoundedBox(0, 1, 1, w - 2, h - 2, Color(0,0,0,192)) end
-		surface.SetFont(button.Font)
-		surface.SetTextPos( 3, 4 )
-		surface.SetTextColor( 255, 255, 255, 255 )
-		surface.DrawText(" Copy")
-	end
-	self.C['CtC'].panel.DoClick = function( button )
-		SetClipboardText(string.gsub(self.C['Editor'].panel:GetValue(),"\n", "\r\n"))
-	end*/
+	self.C['TabHolder'].panel.Paint = function() end
 
 	// extra component options
 	self.C['Close'].panel:SetType( "close" )
@@ -305,7 +489,39 @@ function Editor:InitComponents()
 		surface.SetDrawColor( 255, 255, 255, 255 )
 		surface.DrawTexturedRect( 2, 2, w-4, h-4)
 	end
-	self.C['Sav'].panel.DoClick = function( button ) self:SaveFile( self.chosenfile ) end
+	self.C['Sav'].panel.DoClick = function( button ) self:SaveFile( self:GetChosenFile() ) end
+
+	self.C['NewTab'].panel:SetText("")
+	self.C['NewTab'].panel.Icon = surface.GetTextureID( "gui/silkicons/page_white_add" )
+	self.C['NewTab'].panel.Paint = function(button)
+		local w,h = button:GetSize()
+		draw.RoundedBox(1, 0, 0, w, h, self.colors.col_FL)
+		if ( button.Hovered ) then draw.RoundedBox(0, 1, 1, w - 2, h - 2, Color(0,0,0,192)) end
+		surface.SetTexture(button.Icon)
+		surface.SetDrawColor( 255, 255, 255, 255 )
+		surface.DrawTexturedRect( 2, 2, w-4, h-4)
+	end
+	self.C['NewTab'].panel.DoClick = function( button )
+		local sheet = self:CreateTab( "generic" )
+		self:SetActiveTab(sheet.Tab)
+		if (self.E2) then
+			self:NewScript()
+		end
+	end
+
+	self.C['CloseTab'].panel:SetText("")
+	self.C['CloseTab'].panel.Icon = surface.GetTextureID( "gui/silkicons/page_white_delete" )
+	self.C['CloseTab'].panel.Paint = function(button)
+		local w,h = button:GetSize()
+		draw.RoundedBox(1, 0, 0, w, h, self.colors.col_FL)
+		if ( button.Hovered ) then draw.RoundedBox(0, 1, 1, w - 2, h - 2, Color(0,0,0,192)) end
+		surface.SetTexture(button.Icon)
+		surface.SetDrawColor( 255, 255, 255, 255 )
+		surface.DrawTexturedRect( 2, 2, w-4, h-4)
+	end
+	self.C['CloseTab'].panel.DoClick = function( button )
+		self:CloseTab()
+	end
 
 	self.C['SaE'].panel:SetText("")
 	self.C['SaE'].panel.Font = "E2SmallFont"
@@ -319,7 +535,7 @@ function Editor:InitComponents()
 		if(self.chip) then surface.DrawText("Upload & Exit")
 		else surface.DrawText(" Save & Exit") end
 	end
-	self.C['SaE'].panel.DoClick = function( button ) self:SaveFile( self.chosenfile, true ) end
+	self.C['SaE'].panel.DoClick = function( button ) self:SaveFile( self:GetChosenFile(), true ) end
 
 	self.C['SavAs'].panel:SetText("")
 	self.C['SavAs'].panel.Font = "E2SmallFont"
@@ -332,7 +548,7 @@ function Editor:InitComponents()
 		surface.SetTextColor( 255, 255, 255, 255 )
 		surface.DrawText("  Save As")
 	end
-	self.C['SavAs'].panel.DoClick = function( button ) self:SaveFile( self.chosenfile, false, true ) end
+	self.C['SavAs'].panel.DoClick = function( button ) self:SaveFile( self:GetChosenFile(), false, true ) end
 
 	self.C['Browser'].panel.OnFileClick = function(panel)
 		if(panel.sDir and panel.sDir == panel.File.FileDir and CurTime()-LastClick < 1) then
@@ -351,20 +567,6 @@ function Editor:InitComponents()
 			"Cancel"
 		)
 	end )
-	self.C['Editor'].panel.OnTextChanged = function(panel)
-		timer.Create("e2autosave", 5, 1, function()
-			self:AutoSave()
-		end)
-	end
-	self.C['Editor'].panel.OnShortcut = function(_, code)
-		if code == KEY_S then
-			self:SaveFile(self.chosenfile)
-			self:Validate()
-		elseif code == KEY_SPACE then
-			self:Validate(true)
-		end
-	end
-	self.C['Editor'].panel:RequestFocus()
 	self.C['Val'].panel:SetText( "   Click to validate..." )
 	self.C['Val'].panel.OnMousePressed = function(panel) self:Validate(true) end
 	self.C['Btoggle'].panel:SetText("<")
@@ -389,15 +591,17 @@ function Editor:InitComponents()
 		if(button.hide and self.C['Btoggle'].x > 10) then
 			self.C['Btoggle'].x 	= self.C['Btoggle'].x-button.anispeed
 			self.C['Sav'].x 		= self.C['Sav'].x-button.anispeed
-			self.C['Dir'].x 		= self.C['Dir'].x-button.anispeed
-			self.C['Editor'].x 		= self.C['Editor'].x-button.anispeed
+			self.C['NewTab'].x 		= self.C['NewTab'].x-button.anispeed
+			self.C['CloseTab'].x 	= self.C['CloseTab'].x-button.anispeed
+			self.C['TabHolder'].x 	= self.C['TabHolder'].x-button.anispeed
 			self.C['Val'].x 		= self.C['Val'].x-button.anispeed
 			self.C['Browser'].w 	= self.C['Browser'].w-button.anispeed
 		elseif(!button.hide and self.C['Btoggle'].x < 170) then
 			self.C['Btoggle'].x 	= self.C['Btoggle'].x+button.anispeed
 			self.C['Sav'].x 		= self.C['Sav'].x+button.anispeed
-			self.C['Dir'].x 		= self.C['Dir'].x+button.anispeed
-			self.C['Editor'].x 		= self.C['Editor'].x+button.anispeed
+			self.C['NewTab'].x 		= self.C['NewTab'].x+button.anispeed
+			self.C['CloseTab'].x 	= self.C['CloseTab'].x+button.anispeed
+			self.C['TabHolder'].x 		= self.C['TabHolder'].x+button.anispeed
 			self.C['Val'].x 		= self.C['Val'].x+button.anispeed
 			self.C['Browser'].w 	= self.C['Browser'].w+button.anispeed
 		end
@@ -406,10 +610,10 @@ function Editor:InitComponents()
 		elseif(!self.C['Browser'].panel:IsVisible() and self.C['Browser'].w > 0) then self.C['Browser'].panel:SetVisible(true) end
 		self:InvalidateLayout()
 		if(button.hide) then
-			if(self.C['Btoggle'].x > 10 or self.C['Sav'].x > 30 or self.C['Dir'].x > 50 or self.C['Val'].x < 170 or self.C['Browser'].w > 0) then return end
+			if(self.C['Btoggle'].x > 10 or self.C['Sav'].x > 30 or self.C['Val'].x < 170 or self.C['Browser'].w > 0) then return end
 			button.toggle = false
 		else
-			if(self.C['Btoggle'].x < 170 or self.C['Sav'].x < 190 or self.C['Dir'].x < 210 or self.C['Val'].x < 170 or self.C['Browser'].w < 150) then return end
+			if(self.C['Btoggle'].x < 170 or self.C['Sav'].x < 190 or self.C['Val'].x < 170 or self.C['Browser'].w < 150) then return end
 			button.toggle = false
 		end
 
@@ -487,7 +691,7 @@ function Editor:InitControlPanel(frame)
 	end
 	DarknessColor:SetSlideX(0)
 
-	local editorpanel = self.C['Editor'].panel
+	local editorpanel = self:GetCurrentEditor()
 
 	local FontLabel = vgui.Create( "DLabel", ColorPanel )
 	FontLabel:SetText( "Font:                                   Font Size:" )
@@ -631,12 +835,16 @@ end
 local code1 = "@name \n@inputs \n@outputs \n@persist \n@trigger \n\n"
 -- code2 contains the code that is to be marked, so it can simply be overwritten or deleted.
 local code2 = [[#[
+    Tabs have been added! You can now edit an infinite number
+    of Expression 2s at the same time :)
+
     Block comments and multi line strings have been added!
     You can see the block comment syntax in this comment.
     Two new buttons have also been added to the right click menu.
     These buttons put block comments around the current selection.
-    A checkbox has been added to the control menu (the wrench icon)
-    which lets you change the block comment style.
+
+    Font and block comment options have been added to the control
+    menu (the wrench icon).
 
     Multi line strings have also been added.
     Using multi line strings is easy:
@@ -644,12 +852,6 @@ local code2 = [[#[
     this is a
     multi line string
     example."
-
-    Font and font size options have been added to the control
-    menu (the wrench at the top)!
-
-    Foreach loops have been added! The syntax is:
-    foreach(Key,Value:type = Table) { }
 
     Documentation and examples are available at:
     http://wiki.garrysmod.com/?title=Wire_Expression2
@@ -663,7 +865,7 @@ function Editor:NewScript()
 
 	-- add both code1 and code2 to the editor
 	self:SetCode(defaultcode)
-	local ed = self.C['Editor'].panel
+	local ed = self:GetCurrentEditor()
 	-- mark only code2
 	ed.Start = ed:MovePosition({ 1, 1 }, code1:len())
 	ed.Caret = ed:MovePosition({ 1, 1 }, defaultcode:len())
@@ -707,7 +909,7 @@ function Editor:Validate(gotoerror)
 		if not row then
 			row, col = errors:match("at line ([0-9]+)$"), 1
 		end
-		if row then self.C['Editor'].panel:SetCaret({ tonumber(row), tonumber(col) }) end
+		if row then self:GetCurrentEditor():SetCaret({ tonumber(row), tonumber(col) }) end
 	end
 	self.C['Val'].panel:SetBGColor(128, 0, 0, 180)
 	self.C['Val'].panel:SetFGColor(255, 255, 255, 128)
@@ -734,20 +936,31 @@ function Editor:SetV(bool)
 	if CanRunConsoleCommand() then RunConsoleCommand("wire_expression2_event", bool and "editor_open" or "editor_close") end
 end
 
+function Editor:GetChosenFile()
+	return self:GetActiveTab():GetPanel().chosenfile
+end
+
 function Editor:ChosenFile(Line)
-	self.chosenfile = Line
+	self:GetActiveTab():GetPanel().chosenfile = Line
 	if(Line) then
 		self:SubTitle("Editing: " .. Line)
-		self.C['Dir'].panel:SetText(Line)
 	else
 		self:SubTitle()
-		self.C['Dir'].panel:SetText("")
 	end
 end
 
 function Editor:ExtractName()
 	if(!self.E2) then return end
 	local code = self:GetCode()
+	local name = extractNameFromCode( code )
+	if (name and name != "") then
+		Expression2SetName( name )
+		e2savefilenfn = name
+	else
+		Expression2SetName(nil)
+		e2savefilenfn = "filename"
+	end
+
 	local lines = string.Explode("\n", code)
 	e2savefilenfn = "filename"
 	for _,line in ipairs(lines) do
@@ -767,21 +980,37 @@ function Editor:ExtractName()
 end
 
 function Editor:SetCode(code)
-	self.C['Editor'].panel:SetText(code)
+	self:GetCurrentEditor():SetText(code)
 	self.savebuffer = self:GetCode()
 	self:Validate()
 	self:ExtractName()
 end
 
+function Editor:GetEditor( n )
+	return self.C['TabHolder'].panel.Items[ n ].Panel
+end
+
+function Editor:GetCurrentEditor()
+	return self:GetActiveTab():GetPanel()
+end
+
 function Editor:GetCode()
-	return self.C['Editor'].panel:GetValue()
+	return self:GetCurrentEditor():GetValue()
 end
 
 function Editor:Open(Line,code)
 	if(self:IsVisible() and !Line and !code) then self:Close() end
 	self:SetV(true)
 	if(code) then
-		if self:GetCode() == code then return end
+		for i=1, self:GetNumTabs() do
+			if (self:GetEditor(i):GetValue() == code or self:GetEditor(i).chosenfile == Line) then
+				self:SetActiveTab( i )
+				self:SetCode( code )
+				return
+			end
+		end
+		local sheet = self:CreateTab( Line )
+		self:SetActiveTab( sheet.Tab )
 		self:ChosenFile()
 		self:SetCode(code)
 		if(Line) then self:SubTitle("Editing: " .. Line) end
@@ -799,7 +1028,29 @@ function Editor:SaveFile(Line, close, SaveAs)
 		return
 	end
 	if(!Line or SaveAs or Line == self.Location .. "/" .. ".txt") then
-		Derma_StringRequestNoBlur( "Save to New File", "", e2savefilenfn,
+		local str
+		if (self.C['Browser'].panel.File) then
+			str = self.C['Browser'].panel.File.FileDir -- Get FileDir
+			if (str and str != "") then -- Check if not nil
+				-- Remove "Expression2/" or "CPU/" etc
+				local n, _ = str:find( "/", 1, true )
+				str = str:sub( n+1, -1 )
+
+				if (str and str != "") then -- Check if not nil
+					if (str:Right(4) == ".txt") then -- If it's a file
+						str = string.GetPathFromFilename( str ):Left(-2) -- Get the file path instead
+						if (!str or str == "") then
+							str = nil
+						end
+					end
+				else
+					str = nil
+				end
+			else
+				str = nil
+			end
+		end
+		Derma_StringRequestNoBlur( "Save to New File", "", (str != nil and str .. "/" or "" ) .. e2savefilenfn,
 		function( strTextOut )
 			strTextOut = string.gsub(strTextOut, ".", invalid_filename_chars)
 			self:SaveFile( self.Location .. "/" .. strTextOut .. ".txt", close )
@@ -827,7 +1078,18 @@ function Editor:LoadFile( Line )
 		Error("ERROR LOADING FILE!")
 	else
 		self:AutoSave()
-		if(!self.chip) then self:ChosenFile(Line) end
+		for i=1, self:GetNumTabs() do
+			if (self:GetEditor(i):GetValue() == str or self:GetEditor(i).chosenfile == Line) then
+				self:SetActiveTab( i )
+				self:SetCode( str )
+				return
+			end
+		end
+		if(!self.chip) then
+			local sheet = self:CreateTab( Line )
+			self:SetActiveTab( sheet.Tab )
+			self:ChosenFile(Line)
+		end
 		self:SetCode(str)
 	end
 end
@@ -848,14 +1110,20 @@ function Editor:Setup(nTitle, nLocation, nEditorType)
 	self.EditorType = nEditorType
 	self.C['Browser'].panel:Setup(nLocation)
 	if(!nEditorType) then
-		self.C['Editor'].panel.SyntaxColorLine = function(self, row) return {{self.Rows[row], { Color(255, 255, 255, 255), false}}} end
+		-- Remove syntax highlighting
+		local func = function(self, row) return {{self.Rows[row], { Color(255, 255, 255, 255), false}}} end
+		self:SetSyntaxColorLine( func )
 
 		-- Remove validation line
-		self.C['Editor'].h = -10
+		self.C['TabHolder'].h = -10
 		self.C['Val'].panel:SetVisible(false)
 	elseif nEditorType == "CPU" or nEditorType == "GPU" then
+		-- Set syntax highlighting
+		local func = self:GetCurrentEditor().CPUGPUSyntaxColorLine
+		self:SetSyntaxColorLine( func )
+
 		-- Add "E2Helper" button
-		local E2Help = self:addComponent(vgui.Create("Button", self), -200, 30, -145, 20)
+		local E2Help = self:addComponent(vgui.Create("Button", self), -180, 30, -125, 20)
 		E2Help.panel:SetText("")
 		E2Help.panel.Font = "E2SmallFont"
 		E2Help.panel.Paint = function(button)
@@ -877,20 +1145,17 @@ function Editor:Setup(nTitle, nLocation, nEditorType)
 		end
 		self.C.E2Help = E2Help
 
-		-- Select syntax highlighter
-		self.C['Editor'].panel.SyntaxColorLine = self.C['Editor'].panel.CPUGPUSyntaxColorLine
-
 		-- insert default code
 		local code = "// "..nEditorType.." Syntax Higlighting \n// By -HP-"
 		self:SetCode(code)
 
 		-- mark all code
-		local ed = self.C['Editor'].panel
+		local ed = self:GetCurrentEditor()
 		ed.Start = ed:MovePosition({ 1, 1 }, 0)
 		ed.Caret = ed:MovePosition({ 1, 1 }, code:len())
 	elseif nEditorType == "E2" then
 		-- Add "E2Helper" button
-		local E2Help = self:addComponent(vgui.Create("Button", self), -200, 30, -145, 20)
+		local E2Help = self:addComponent(vgui.Create("Button", self), -180, 30, -125, 20)
 		E2Help.panel:SetText("")
 		E2Help.panel.Font = "E2SmallFont"
 		E2Help.panel.Paint = function(button)
@@ -914,7 +1179,7 @@ function Editor:Setup(nTitle, nLocation, nEditorType)
 		self.C.E2Help = E2Help
 
 		-- Add "Sound Browser" button
-		local SoundBrw = self:addComponent(vgui.Create("Button", self), -290, 30, -210, 20)
+		local SoundBrw = self:addComponent(vgui.Create("Button", self), -262, 30, -182, 20)
 		SoundBrw.panel:SetText("")
 		SoundBrw.panel.Font = "E2SmallFont"
 		SoundBrw.panel.Paint = function(button)
