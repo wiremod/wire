@@ -152,19 +152,37 @@ e2function void entity:propBreak()
 	this:Fire("break",1,0)
 end
 
-e2function number table:propDelete()
-	if not PropCore.ValidAction(self, nil, "Tdelete") then return end
+local function removeAllIn( self, tbl )
 	local count = 0
-	for _,ent in pairs(this) do
-		if validEntity(ent) and isOwner(self, ent) and not ent:IsPlayer() then
-			count = count+1
-			ent:Remove()
+	for k,v in pairs( tbl ) do
+		if (validEntity(v) and isOwner(self,v) and !v:IsPlayer()) then
+			count = count + 1
+			v:Remove()
 		end
 	end
 	return count
 end
 
-e2function number array:propDelete() = e2function number table:propDelete()
+e2function number table:propDelete()
+	if not PropCore.ValidAction(self, nil, "Tdelete") then return end
+
+	local count = removeAllIn( self, this.s )
+	count = count + removeAllIn( self, this.n )
+
+	self.prf = self.prf + count
+
+	return count
+end
+
+e2function number array:propDelete()
+	if not PropCore.ValidAction(self, nil, "Tdelete") then return end
+
+	local count = removeAllIn( self, this )
+
+	self.prf = self.prf + count
+
+	return count
+end
 
 --------------------------------------------------------------------------------
 e2function void entity:propManipulate(vector pos, angle rot, number freeze, number gravity, number notsolid)
