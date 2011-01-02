@@ -8,10 +8,11 @@ function ENT:Initialize()
 	self:PhysicsInit(SOLID_VPHYSICS)
 	self:SetMoveType(MOVETYPE_VPHYSICS)
 	self:SetSolid(SOLID_VPHYSICS)
+	self:SetUseType( SIMPLE_USE )
 
 	self.RenderTable = {}
 
-	self.Outputs = WireLib.CreateOutputs( self, { "link [WIRELINK]" } )
+	self.Outputs = WireLib.CreateOutputs( self, { "User [ENTITY]", "link [WIRELINK]" } )
 	WireLib.TriggerOutput( self, "link", self )
 
 	self.xScale = { 0, 512 }
@@ -19,6 +20,14 @@ function ENT:Initialize()
 	self.Scaling = false
 
 	self.TopLeft = false
+end
+
+function ENT:Use( ply )
+	WireLib.TriggerOutput( self, "User", ply )
+end
+
+function ENT:Think()
+	WireLib.TriggerOutput( self, "User", nil )
 end
 
 function ENT:SetEGPOwner( ply )

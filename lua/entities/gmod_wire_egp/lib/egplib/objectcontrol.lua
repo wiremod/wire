@@ -85,7 +85,7 @@ function EGP:HasObject( Ent, index )
 	if (!EGP:ValidEGP( Ent )) then return false end
 	index = math.Round(math.Clamp(index or 1, 1, self.ConVars.MaxObjects:GetInt()))
 	if (!Ent.RenderTable or #Ent.RenderTable == 0) then return false end
-	for k,v in ipairs( Ent.RenderTable ) do
+	for k,v in pairs( Ent.RenderTable ) do
 		if (v.index == index) then
 			return true, k, v
 		end

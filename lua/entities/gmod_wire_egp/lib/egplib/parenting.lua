@@ -271,7 +271,14 @@ function EGP:RemoveParentIndexes( v, hasVertices )
 end
 
 function EGP:UnParent( Ent, index )
-	local bool, k, v = self:HasObject( Ent, index )
+	local bool, k, v = false
+	if (type(index) == "number") then
+		bool, k, v = self:HasObject( Ent, index )
+	elseif (type(index) == "table") then
+		bool = true
+		v = index
+		index = v.index
+	end
 	if (bool) then
 		local hasVertices, data
 		if (CLIENT) then

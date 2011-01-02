@@ -29,7 +29,7 @@ function ENT:_EGP_Update( bool )
 					if (!v.IsParented) then EGP:SetParent( self, v.index, v.parent ) end
 					local _, data = EGP:GetGlobalPos( self, v.index )
 					EGP:EditObject( v, data )
-				elseif (!v.parent or v.parent == 0 and v.IsParented) then
+				elseif ((!v.parent or v.parent == 0) and v.IsParented) then
 					EGP:UnParent( self, v.index )
 				end
 				local oldtex = EGP:SetMaterial( v.material )

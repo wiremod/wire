@@ -265,7 +265,17 @@ if (SERVER) then
 
 	local function removetbl( tbl, Ent )
 		for k,v in ipairs( tbl ) do
-			if (Ent.RenderTable[v]) then table.remove( Ent.RenderTable, v ) end
+			if (Ent.RenderTable[v]) then
+
+				-- Unparent all objects parented to this object
+				for k2,v2 in pairs( Ent.RenderTable ) do
+					if (v2.parent and Ent.RenderTable[v].index and v2.parent == Ent.RenderTable[v].index) then
+						EGP:UnParent( Ent, v2 )
+					end
+				end
+
+				table.remove( Ent.RenderTable, v )
+			end
 		end
 	end
 
@@ -530,6 +540,14 @@ else -- SERVER/CLIENT
 					local bool, k, v = EGP:HasObject( Ent, index )
 					if (bool) then
 						if (v.OnRemove) then v:OnRemove() end
+
+						-- Unparent all objects parented to this object
+						for k2,v2 in pairs( Ent.RenderTable ) do
+							if (v2.parent and v.index and v2.parent == v.index) then
+								EGP:UnParent( Ent, v2 )
+							end
+						end
+
 						table.remove( Ent.RenderTable, k )
 					end
 				else
