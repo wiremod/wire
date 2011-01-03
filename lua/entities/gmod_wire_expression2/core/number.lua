@@ -637,24 +637,28 @@ end
 
 __e2setcost(25) -- approximation
 
-local function tobase(number, base)
+local function tobase(number, base, self)
 	local ret = ""
 	if base < 2 or base > 36 or number == 0 then return "0" end
 	if base == 10 then return tostring(number) end
 	local chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	local loops = 0
 	while number > 0 do
+		loops = loops + 1
 		number, d = math.floor(number/base),(number%base)+1
 		ret = string.sub(chars,d,d)..ret
+		if (loops > 32000) then break end
 	end
+	self.prf = self.prf + loops
 	return ret
 end
 
 e2function string toString(number number, number base)
-    return tobase(number, base)
+    return tobase(number, base, self)
 end
 
 e2function string number:toString(number base)
-    return tobase(this, base)
+    return tobase(this, base, self)
 end
 
 __e2setcost(nil)

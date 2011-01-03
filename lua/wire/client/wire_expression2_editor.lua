@@ -1065,11 +1065,19 @@ function Editor:Open(Line,code)
 	self:SetV(true)
 	if(code) then
 		for i=1, self:GetNumTabs() do
-			if (self:GetEditor(i):GetValue() == code or self:GetEditor(i).chosenfile == Line) then
+			if (self:GetEditor(i).chosenfile == Line) then
 				self:SetActiveTab( i )
 				self:SetCode( code )
 				return
+			elseif (self:GetEditor(i):GetValue() == code) then
+				self:SetActiveTab( i )
+				return
 			end
+			--if (self:GetEditor(i):GetValue() == code or self:GetEditor(i).chosenfile == Line) then
+			--	self:SetActiveTab( i )
+			--	self:SetCode( code )
+			--	return
+			--end
 		end
 		local title, tabtext = getPreferredTitles( Line, code )
 		local sheet = self:CreateTab( tabtext )
@@ -1142,11 +1150,19 @@ function Editor:LoadFile( Line )
 	else
 		self:AutoSave()
 		for i=1, self:GetNumTabs() do
-			if (self:GetEditor(i):GetValue() == str or self:GetEditor(i).chosenfile == Line) then
+			if (self:GetEditor(i).chosenfile == Line) then
 				self:SetActiveTab( i )
-				self:SetCode( str )
+				self:SetCode( code )
+				return
+			elseif (self:GetEditor(i):GetValue() == str) then
+				self:SetActiveTab( i )
 				return
 			end
+			--if (self:GetEditor(i):GetValue() == str or self:GetEditor(i).chosenfile == Line) then
+			--	self:SetActiveTab( i )
+			--	self:SetCode( str )
+			--	return
+			--end
 		end
 		if(!self.chip) then
 			local title, tabtext = getPreferredTitles( Line, str )
