@@ -390,7 +390,7 @@ end
 
 /******************************************************************************/
 
-local function CheckSpawnTimer( self )
+local function CheckSpawnTimer( self, readonly )
 	local holo = self.data.holo
 	if CurTime() >= holo.nextSpawn then
 		holo.nextSpawn = CurTime()+1
@@ -406,7 +406,9 @@ local function CheckSpawnTimer( self )
 	end
 
 	if holo.remainingSpawns > 0 then
-		holo.remainingSpawns = holo.remainingSpawns - 1
+		if not readonly then
+			holo.remainingSpawns = holo.remainingSpawns - 1
+		end
 		return true
 	else
 		return false
@@ -541,7 +543,7 @@ __e2setcost(5)
 
 e2function number holoCanCreate()
 	if (not checkOwner(self)) then return 0; end
-	if CheckSpawnTimer(self) == false or PlayerAmount[self.uid] >= GetConVar("wire_holograms_max"):GetInt() then
+	if CheckSpawnTimer(self, true) == false or PlayerAmount[self.uid] >= GetConVar("wire_holograms_max"):GetInt() then
 
 		return 0
 	end
@@ -551,6 +553,7 @@ e2function number holoCanCreate()
 end
 
 e2function number holoRemainingSpawns()
+	CheckSpawnTimer(self, true)
 	return self.data.holo.remainingSpawns
 end
 
