@@ -1022,23 +1022,6 @@ function Editor:ExtractName()
 		Expression2SetName(nil)
 		e2savefilenfn = "filename"
 	end
-
-	local lines = string.Explode("\n", code)
-	e2savefilenfn = "filename"
-	for _,line in ipairs(lines) do
-		if string.sub(line, 1, 6) == "@name " then
-			if string.Trim(string.sub(line, 7)) == "" then
-				Expression2SetName(nil)
-				e2savefilenfn = "filename"
-				return
-			else
-				Expression2SetName(string.Trim(string.sub(line, 7)))
-				e2savefilenfn = string.Replace(string.Trim(string.sub(line, 7)), "/", "")
-				e2savefilenfn = string.gsub(e2savefilenfn, ".", invalid_filename_chars)
-				return
-			end
-		end
-	end
 end
 
 function Editor:SetCode(code)
@@ -1152,7 +1135,7 @@ function Editor:LoadFile( Line )
 		for i=1, self:GetNumTabs() do
 			if (self:GetEditor(i).chosenfile == Line) then
 				self:SetActiveTab( i )
-				self:SetCode( code )
+				self:SetCode( str )
 				return
 			elseif (self:GetEditor(i):GetValue() == str) then
 				self:SetActiveTab( i )

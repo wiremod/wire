@@ -202,9 +202,11 @@ if SERVER then
 	function _R.CRecipientFilter.IsValid() return true end -- workaround for this bug: http://www.facepunch.com/showpost.php?p=15117600 - thanks Lexi
 
 	do
+		if (!glon) then require("glon") end -- Doubt this will be necessary, but still
+
 		local functiondata,functiondata2
 
-		-- prepares a table with information about E2 types and functions
+		-- prepares a table with information (no, a glon string! - edit by Divran) about E2 types and functions
 		function wire_expression2_prepare_functiondata()
 			functiondata = { {}, {}, clientside_files, wire_expression2_constants }
 			functiondata2 = {}
@@ -216,6 +218,9 @@ if SERVER then
 				functiondata[2][signature] = v[2] -- ret
 				functiondata2[signature] = { v[4], v.argnames } -- cost, argnames
 			end
+
+			functiondata = glon.encode( functiondata )
+			functiondata2 = glon.encode( functiondata2 )
 		end
 
 		wire_expression2_prepare_functiondata()
@@ -231,8 +236,8 @@ if SERVER then
 				end
 				antispam[ply] = CurTime() + 60
 			end
-			datastream.StreamToClients( ply, "wire_expression2_sendfunctions_hook", functiondata )
-			datastream.StreamToClients( ply, "wire_expression2_sendfunctions_hook2", functiondata2 )
+			datastream.StreamToClients( ply, "wire_expression2_sendfunctions_hook", { functiondata } )
+			datastream.StreamToClients( ply, "wire_expression2_sendfunctions_hook2", { functiondata2 } )
 		end
 
 		-- add a console command the user can use to re-request the function info, in case of errors or updates
@@ -251,6 +256,8 @@ elseif CLIENT then
 
 	datastream.Hook( "wire_expression2_sendfunctions_hook", function( ply, handle, id, functiondata )
 		wire_expression2_reset_extensions()
+
+		functiondata = glon.decode( functiondata[1] )
 
 		-- types
 		for typename,typeid in pairs(functiondata[1]) do
@@ -278,6 +285,9 @@ elseif CLIENT then
 		if wire_expression2_editor then wire_expression2_editor:Validate(false) end
 	end)
 	datastream.Hook( "wire_expression2_sendfunctions_hook2", function( ply, handle, id, functiondata2 )
+
+		functiondata2 = glon.decode( functiondata2[1] )
+
 		for signature,v in pairs(functiondata2) do
 			local entry = wire_expression2_funcs[signature]
 			if entry then

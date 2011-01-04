@@ -41,6 +41,10 @@ if SERVER then
 	end
 	resource.AddFile("materials/expression 2/cog.vtf")
 	resource.AddFile("materials/expression 2/cog.vmt")
+	resource.AddFile("materials/gui/silkicons/page_white_add.vmt")
+	resource.AddFile("materials/gui/silkicons/page_white_add.vtf")
+	resource.AddFile("materials/gui/silkicons/page_white_delete.vmt")
+	resource.AddFile("materials/gui/silkicons/page_white_delete.vtf")
 	resource.AddFile("materials/wirelogo.vmt")
 	resource.AddFile("materials/wirelogo.vtf")
 	resource.AddSingleFile("materials/expression 2/cog_world.vmt")
