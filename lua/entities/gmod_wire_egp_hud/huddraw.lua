@@ -18,7 +18,7 @@ hook.Add("Initialize","EGP_HUD_Initialize",function()
 					ent.On = nil
 					LocalPlayer():ChatPrint("[EGP] EGP HUD Disconnected.")
 				else
-					if (!table.HasValue( tbl, ent )) then -- strange... this entity should be in the table. Might have gotten removed due to a lagspike. Add it again
+					if (!tbl[ent]) then -- strange... this entity should be in the table. Might have gotten removed due to a lagspike. Add it again
 						EGP:AddHUDEGP( ent )
 					end
 					ent.On = true
@@ -48,35 +48,38 @@ hook.Add("Initialize","EGP_HUD_Initialize",function()
 		-- Add / Remove HUD Entities
 		--------------------------------------------------------
 		function EGP:AddHUDEGP( Ent )
-			if (!table.HasValue( tbl, Ent )) then
-				tbl[#tbl+1] = Ent
-			end
+			tbl[Ent] = true
 		end
 
 		function EGP:RemoveHUDEGP( Ent )
-			for k,v in ipairs( tbl ) do
-				if (v == Ent) then
-					table.remove( tbl, k )
-					return
-				end
-			end
+			tbl[Ent] = nil
 		end
 
 		--------------------------------------------------------
 		-- Paint
 		--------------------------------------------------------
 		hook.Add("HUDPaint","EGP_HUDPaint",function()
-			for k,v in ipairs( tbl ) do
+			for v,_ in pairs( tbl ) do
 				if (!v or !v:IsValid()) then
-					table.remove( tbl, k )
+					EGP:RemoveHUDEGP( v )
 					break
 				else
 					if (v.On == true) then
+						v.HasUpdatedThisFrame = nil
 						if (v.RenderTable and #v.RenderTable > 0) then
 							for k2,v2 in pairs( v.RenderTable ) do
 								local oldtex = EGP:SetMaterial( v2.material )
 								v2:Draw()
 								EGP:FixMaterial( oldtex )
+
+								-- Check for 3DTracker parent
+								if (!v.HasUpdatedThisFrame and v2.parent) then
+									local bool, k3, v3 = EGP:HasObject( v, v2.parent )
+									if (bool and v3.Is3DTracker) then
+										v:EGP_Update()
+										v.HasUpdatedThisFrame = true
+									end
+								end
 							end
 						end
 					end

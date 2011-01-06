@@ -444,6 +444,25 @@ end
 ]]
 
 --------------------------------------------------------
+-- 3DHolder
+--------------------------------------------------------
+e2function void wirelink:egp3DTracker( number index, vector pos )
+	if (!EGP:IsAllowed( self, this )) then return end
+	local bool, obj = EGP:CreateObject( this, EGP.Objects.Names["3DTracker"], { index = index, target_x = pos[1], target_y = pos[2], target_z = pos[3] }, self.player )
+	if (bool) then EGP:DoAction( this, self, "SendObject", obj ) Update(self,this) end
+end
+
+__e2setcost(10)
+
+e2function void wirelink:egpPos( number index, vector pos )
+	if (!EGP:IsAllowed( self, this )) then return end
+	local bool, k, v = EGP:HasObject( this, index )
+	if (bool) then
+		if (EGP:EditObject( v, { target_x = pos[1], target_y = pos[2], target_z = pos[3] } )) then EGP:DoAction( this, self, "SendObject", v ) Update(self,this) end
+	end
+end
+
+--------------------------------------------------------
 -- Set functions
 --------------------------------------------------------
 

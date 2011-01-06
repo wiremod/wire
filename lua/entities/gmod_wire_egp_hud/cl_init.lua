@@ -80,7 +80,7 @@ function ENT:EGP_Update()
 			self:ScaleObject( !v.res, v )
 		end
 		if (v.parent and v.parent != 0) then
-			if (!v.IsParented) then EGP:SetParent( self, v.index, v.parentindex ) end
+			if (!v.IsParented) then EGP:SetParent( self, v.index, v.parent ) end
 			local _, data = EGP:GetGlobalPos( self, v.index )
 			EGP:EditObject( v, data )
 		elseif (!v.parent or v.parent == 0 and v.IsParented) then

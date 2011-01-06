@@ -205,10 +205,6 @@ function ENT:CompileCode( buffer )
 	if not status then self:Error(script) return end
 	self.tvars = tvars
 
-	self:SetOverlayText("Expression 2\n" .. self.name)
-	local r,g,b,a = self:GetColor()
-	self:SetColor(255, 255, 255, a)
-
 	self.script = script
 	self.dvars = dvars
 	self:ResetContext()
@@ -280,6 +276,10 @@ function ENT:Setup(buffer, restore)
 	else
 		self:ResetContext()
 	end
+
+	self:SetOverlayText("Expression 2\n" .. self.name)
+	local r,g,b,a = self:GetColor()
+	self:SetColor(255, 255, 255, a)
 
 	local ok, msg = pcall(self.CallHook, self, 'construct')
 	if not ok then
