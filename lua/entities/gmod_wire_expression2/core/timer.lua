@@ -17,8 +17,6 @@ local function Execute(self, name)
 	if !self.data['timer'].timers[name] then
 		timer.Destroy("e2_" .. self.data['timer'].timerid .. "_" .. name)
 	end
-
-	runner = nil
 end
 
 local function AddTimer(self, name, delay)
@@ -42,6 +40,8 @@ local function RemoveTimer(self, name)
 end
 
 /******************************************************************************/
+
+registerCallback("postexecute", function(self) runner = nil end)
 
 registerCallback("construct", function(self)
 	self.data['timer'] = {}

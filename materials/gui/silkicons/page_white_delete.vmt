@@ -1,5 +1,5 @@
 "LightmappedGeneric"
 {
-	"$basetexture" "Documents and Settings/Todd/Desktop/famfamfam_silk_icons_v013/vtf/page_white_delete"
+	"$basetexture" "gui/silkicons/page_white_delete"
 	"$translucent" 1
 }

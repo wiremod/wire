@@ -337,8 +337,8 @@ end
 /******************************************************************************/
 
 e2function string entity:getMaterial()
-	if not validEntity(this) then return end
-	return this:GetMaterial()
+	if not validEntity(this) then return "" end
+	return this:GetMaterial() or ""
 end
 
 e2function void entity:setMaterial(string material)

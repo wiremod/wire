@@ -175,11 +175,7 @@ function ENT:Error(message, overlaytext)
 	WireLib.ClientError(message, self.player)
 end
 
-function ENT:Setup(buffer, restore)
-	if self.script then
-		self:PCallHook('destruct')
-	end
-
+function ENT:CompileCode( buffer )
 	self.original = buffer
 	local status, directives, buffer = PreProcessor.Execute(buffer)
 	if not status then self:Error(directives) return end
@@ -213,15 +209,12 @@ function ENT:Setup(buffer, restore)
 	local r,g,b,a = self:GetColor()
 	self:SetColor(255, 255, 255, a)
 
-
-
-	self.Inputs = WireLib.AdjustSpecialInputs(self.Entity, self.inports[1], self.inports[2])
-	self.Outputs = WireLib.AdjustSpecialOutputs(self.Entity, self.outports[1], self.outports[2])
-
 	self.script = script
+	self.dvars = dvars
+	self:ResetContext()
+end
 
-	self.uid = self.player:UniqueID()
-
+function ENT:ResetContext()
 	self.context = {
 		vars = {},
 		vclk = {},
@@ -233,6 +226,10 @@ function ENT:Setup(buffer, restore)
 		prfcount = 0,
 		prfbench = 0,
 	}
+	self._vars = self.context.vars
+
+	self.Inputs = WireLib.AdjustSpecialInputs(self.Entity, self.inports[1], self.inports[2])
+	self.Outputs = WireLib.AdjustSpecialOutputs(self.Entity, self.outports[1], self.outports[2])
 
 	self._original = string.Replace(string.Replace(self.original,"\"","£"),"\n","€")
 	self._buffer = self.original -- TODO: is that really intended?
@@ -240,7 +237,6 @@ function ENT:Setup(buffer, restore)
 	self._name = self.name
 	self._inputs = { {}, {} }
 	self._outputs = { {}, {} }
-	self._vars = self.context.vars
 
 	for k,v in pairs(self.inports[3]) do
 		self._inputs[1][#self._inputs[1] + 1] = k
@@ -267,8 +263,22 @@ function ENT:Setup(buffer, restore)
 		end
 	end
 
-	for k,v in pairs(dvars) do
+	for k,v in pairs(self.dvars) do
 		self.context.vars["$" .. k] = self.context.vars[k]
+	end
+end
+
+function ENT:Setup(buffer, restore)
+	if self.script then
+		self:PCallHook('destruct')
+	end
+
+	self.uid = self.player:UniqueID()
+
+	if (self.original != buffer) then
+		self:CompileCode( buffer )
+	else
+		self:ResetContext()
 	end
 
 	local ok, msg = pcall(self.CallHook, self, 'construct')
