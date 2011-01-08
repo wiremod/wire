@@ -1,5 +1,8 @@
-"LightmappedGeneric"
+"UnlitGeneric"
 {
 	"$basetexture" "gui/silkicons/page_white_add"
-	"$translucent" 1
+	"$ignorez"	1
+	"$vertexcolor" 	1
+	"$vertexalpha" 	1
+	"$nolod"	1
 }

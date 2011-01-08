@@ -235,9 +235,16 @@ if SERVER then
 					return
 				end
 				antispam[ply] = CurTime() + 60
+				datastream.StreamToClients( ply, "wire_expression2_sendfunctions_hook", { functiondata } )
+				datastream.StreamToClients( ply, "wire_expression2_sendfunctions_hook2", { functiondata2 } )
+			else
+				timer.Simple(30,function(ply)
+					if (ply and ply:IsValid()) then
+						datastream.StreamToClients( ply, "wire_expression2_sendfunctions_hook", { functiondata } )
+						datastream.StreamToClients( ply, "wire_expression2_sendfunctions_hook2", { functiondata2 } )
+					end
+				end,ply)
 			end
-			datastream.StreamToClients( ply, "wire_expression2_sendfunctions_hook", { functiondata } )
-			datastream.StreamToClients( ply, "wire_expression2_sendfunctions_hook2", { functiondata2 } )
 		end
 
 		-- add a console command the user can use to re-request the function info, in case of errors or updates

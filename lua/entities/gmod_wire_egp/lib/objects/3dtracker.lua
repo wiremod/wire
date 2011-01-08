@@ -12,6 +12,7 @@ Obj.b = nil
 Obj.a = nil
 Obj.parent = nil
 Obj.Is3DTracker = true
+Obj.angle = 0
 Obj.Draw = function( self )
 	local pos = Vector( self.target_x, self.target_y, self.target_z ):ToScreen()
 	self.x = pos.x
@@ -21,12 +22,14 @@ Obj.Transmit = function( self )
 	EGP.umsg.Float( self.target_x )
 	EGP.umsg.Float( self.target_y )
 	EGP.umsg.Float( self.target_z )
+	EGP.umsg.Short((self.angle%360)*20)
 end
 Obj.Receive = function( self, um )
 	local tbl = {}
 	tbl.target_x = um:ReadFloat()
 	tbl.target_y = um:ReadFloat()
 	tbl.target_z = um:ReadFloat()
+	tbl.angle = um:ReadShort()/20
 	return tbl
 end
 Obj.DataStreamInfo = function( self )

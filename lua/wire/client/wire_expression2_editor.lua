@@ -332,7 +332,7 @@ function Editor:SetActiveTab( val )
 	self:SetLastTab( self:GetActiveTab() )
 	if (type(val) == "number") then
 		self.C['TabHolder'].panel:SetActiveTab( self.C['TabHolder'].panel.Items[val].Tab )
-		self:GetActiveTab():GetPanel():RequestFocus()
+		self:GetCurrentEditor():RequestFocus()
 	elseif (val and val:IsValid()) then
 		self.C['TabHolder'].panel:SetActiveTab( val )
 		val:GetPanel():RequestFocus()
@@ -526,7 +526,7 @@ function Editor:InitComponents()
 	self.C['Btoggle']   = self:addComponent(vgui.Create( "Button", self )                   , 170,  30,  20,  20)   // Toggle Browser being shown
 	self.C['ConBut']    = self:addComponent(vgui.Create( "Button", self )                   , -62,  4,   18,  18)   // Control panel open/close
 	self.C['Control']   = self:addComponent(vgui.Create( "Panel", self )                    ,-210,  52, 200, 360)   // Control Panel
-	self.C['Credit']    = self:addComponent(vgui.Create( "TextEntry", self )                ,-160,  52, 170,  60)   // Credit box
+	self.C['Credit']    = self:addComponent(vgui.Create( "TextEntry", self )                ,-160,  52, 150, 100)   // Credit box
 
 	self.C['TabHolder'].panel.Paint = function() end
 
@@ -535,7 +535,7 @@ function Editor:InitComponents()
 	self.C['Close'].panel:SetDrawBorder( false )
 	self.C['Close'].panel:SetDrawBackground( false )
 	self.C['Close'].panel.DoClick = function ( button ) self:Close() end
-	self.C['Credit'].panel:SetText("\t\tCREDITS\n\n\tEditor by: \tSyranide and Shandolum")
+	self.C['Credit'].panel:SetText("\t\tCREDITS\n\n\tEditor by: \tSyranide and Shandolum\n\n\tTabs (and more) added by Divran.")
 	self.C['Credit'].panel:SetMultiline(true)
 	self.C['Credit'].panel:SetVisible(false)
 	self.C['Inf'].panel:SetType( "question" )
@@ -999,11 +999,11 @@ function Editor:SetV(bool)
 end
 
 function Editor:GetChosenFile()
-	return self:GetActiveTab():GetPanel().chosenfile
+	return self:GetCurrentEditor().chosenfile
 end
 
 function Editor:ChosenFile(Line)
-	self:GetActiveTab():GetPanel().chosenfile = Line
+	self:GetCurrentEditor().chosenfile = Line
 	if(Line) then
 		self:SubTitle("Editing: " .. Line)
 	else
@@ -1017,10 +1017,10 @@ function Editor:ExtractName()
 	local name = extractNameFromCode( code )
 	if (name and name != "") then
 		Expression2SetName( name )
-		e2savefilenfn = name
+		self.savefilefn = name
 	else
 		Expression2SetName(nil)
-		e2savefilenfn = "filename"
+		self.savefilefn = "filename"
 	end
 end
 
@@ -1056,11 +1056,6 @@ function Editor:Open(Line,code)
 				self:SetActiveTab( i )
 				return
 			end
-			--if (self:GetEditor(i):GetValue() == code or self:GetEditor(i).chosenfile == Line) then
-			--	self:SetActiveTab( i )
-			--	self:SetCode( code )
-			--	return
-			--end
 		end
 		local title, tabtext = getPreferredTitles( Line, code )
 		local sheet = self:CreateTab( tabtext )
@@ -1086,6 +1081,7 @@ function Editor:SaveFile(Line, close, SaveAs)
 		if (self.C['Browser'].panel.File) then
 			str = self.C['Browser'].panel.File.FileDir -- Get FileDir
 			if (str and str != "") then -- Check if not nil
+
 				-- Remove "Expression2/" or "CPU/" etc
 				local n, _ = str:find( "/", 1, true )
 				str = str:sub( n+1, -1 )
@@ -1104,7 +1100,7 @@ function Editor:SaveFile(Line, close, SaveAs)
 				str = nil
 			end
 		end
-		Derma_StringRequestNoBlur( "Save to New File", "", (str != nil and str .. "/" or "" ) .. e2savefilenfn,
+		Derma_StringRequestNoBlur( "Save to New File", "", (str != nil and str .. "/" or "" ) .. self.savefilefn,
 		function( strTextOut )
 			strTextOut = string.gsub(strTextOut, ".", invalid_filename_chars)
 			self:SaveFile( self.Location .. "/" .. strTextOut .. ".txt", close )
@@ -1141,11 +1137,6 @@ function Editor:LoadFile( Line )
 				self:SetActiveTab( i )
 				return
 			end
-			--if (self:GetEditor(i):GetValue() == str or self:GetEditor(i).chosenfile == Line) then
-			--	self:SetActiveTab( i )
-			--	self:SetCode( str )
-			--	return
-			--end
 		end
 		if(!self.chip) then
 			local title, tabtext = getPreferredTitles( Line, str )
