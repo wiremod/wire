@@ -1012,7 +1012,7 @@ function Editor:ChosenFile(Line)
 end
 
 function Editor:ExtractName()
-	if(!self.E2) then return end
+	if(!self.E2) then self.savefilefn = "filename" return end
 	local code = self:GetCode()
 	local name = extractNameFromCode( code )
 	if (name and name != "") then

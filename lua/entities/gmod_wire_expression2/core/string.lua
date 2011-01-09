@@ -119,28 +119,33 @@ e2function number string:toNumber(number base)
 	return ret
 end
 
+local string_char = string.char
+local string_byte = string.byte
+local string_len = string.len
 
 registerFunction("toChar", "n", "s", function(self, args)
 	local op1 = args[2]
 	local rv1 = op1[1](self, op1)
-	if rv1 < 32 then return "" end
+	if rv1 < 1 then return "" end
 	if rv1 > 255 then return "" end
-	return string.char(rv1)
+	return string_char(rv1)
 end)
 
 registerFunction("toByte", "s", "n", function(self, args)
 	local op1 = args[2]
 	local rv1 = op1[1](self, op1)
 	if rv1 == "" then return -1 end
-	return string.byte(rv1)
+	return string_byte(rv1)
 end)
 
 registerFunction("toByte", "sn", "n", function(self, args)
 	local op1, op2 = args[2], args[3]
 	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	if rv2 < 1 || rv2 > string.len(rv1) then return -1 end
-	return string.byte(rv1, rv2)
+	if rv2 < 1 || rv2 > string_len(rv1) then return -1 end
+	return string_byte(rv1, rv2)
 end)
+
+local math_floor = math.floor
 
 registerFunction("toUnicodeChar", "n", "s", function(self, args)
 	local op1 = args[2]
@@ -149,13 +154,13 @@ registerFunction("toUnicodeChar", "n", "s", function(self, args)
 	if rv1 < 1 then
 		return ""
 	elseif rv1 <= 127 then
-		utf8 = string.char (rv1)
+		utf8 = string_char (rv1)
 	elseif rv1 < 2048 then
-		utf8 = string.format ("%c%c", 192 + math.floor (rv1 / 64), 128 + (rv1 & 63))
+		utf8 = ("%c%c"):format( 192 + math_floor (rv1 / 64), 128 + (rv1 & 63))
 	elseif rv1 < 65536 then
-		utf8 = string.format ("%c%c%c", 224 + math.floor (rv1 / 4096), 128 + (math.floor (rv1 / 64) & 63), 128 + (rv1 & 63))
+		utf8 = ("%c%c%c"):format( 224 + math_floor (rv1 / 4096), 128 + (math_floor (rv1 / 64) & 63), 128 + (rv1 & 63))
 	elseif rv1 < 2097152 then
-		utf8 = string.format ("%c%c%c%c", 240 + math.floor (rv1 / 262144), 128 + (math.floor (rv1 / 4096) & 63), 128 + (math.floor (rv1 / 64) & 63), 128 + (rv1 & 63))
+		utf8 = ("%c%c%c%c"):format( 240 + math_floor (rv1 / 262144), 128 + (math_floor(rv1 / 4096) & 63), 128 + (math_floor (rv1 / 64) & 63), 128 + (rv1 & 63))
 	end
 	return utf8
 end)
@@ -164,32 +169,32 @@ registerFunction("toUnicodeByte", "s", "n", function(self, args)
 	local op1 = args[2]
 	local rv1 = op1[1](self, op1)
 	if rv1 == "" then return -1 end
-	local byte = string.byte(rv1)
+	local byte = string_byte(rv1)
 	if byte >= 128 then
 		if byte >= 240 then
 			-- 4 byte sequence
-			if string.len (rv1) < 4 then
+			if string_len (rv1) < 4 then
 				return -1
 			end
 			byte = (byte & 7) * 262144
-			byte = byte + (string.byte (rv1, 2) & 63) * 4096
-			byte = byte + (string.byte (rv1, 3) & 63) * 64
-			byte = byte + (string.byte (rv1, 4) & 63)
+			byte = byte + (string_byte (rv1, 2) & 63) * 4096
+			byte = byte + (string_byte (rv1, 3) & 63) * 64
+			byte = byte + (string_byte (rv1, 4) & 63)
 		elseif byte >= 224 then
 			-- 3 byte sequence
-			if string.len (rv1) < 3 then
+			if string_len (rv1) < 3 then
 				return -1
 			end
 			byte = (byte & 15) * 4096
-			byte = byte + (string.byte (rv1, 2) & 63) * 64
-			byte = byte + (string.byte (rv1, 3) & 63)
+			byte = byte + (string_byte (rv1, 2) & 63) * 64
+			byte = byte + (string_byte (rv1, 3) & 63)
 		elseif byte >= 192 then
 			-- 2 byte sequence
-			if string.len (rv1) < 2 then
+			if string_len (rv1) < 2 then
 				return -1
 			end
 			byte = (byte & 31) * 64
-			byte = byte + (string.byte (rv1, 2) & 63)
+			byte = byte + (string_byte (rv1, 2) & 63)
 		else
 			-- invalid sequence
 			byte = -1
@@ -225,7 +230,7 @@ registerFunction("sub", "s:nn", "s", function(self, args)
 end)
 
 e2function string string:sub(start)
-	return string.sub(this,start)
+	return this:sub(start)
 end
 
 e2function string string:operator[](index)
@@ -258,7 +263,7 @@ registerFunction("unicodeLength", "s:", "n", function(self, args)
 	local length = 0
 	local i = 1
 	while i <= #rv1 do
-		local byte = string.byte (rv1, i)
+		local byte = string_byte (rv1, i)
 		if byte >= 240 then
 			i = i + 4
 		elseif byte >= 224 then
@@ -279,7 +284,7 @@ end)
 registerFunction("repeat", "s:n", "s", function(self,args)
 	local op1, op2 = args[2], args[3]
 	local rv1, rv2 = op1[1](self, op1),op2[1](self, op2)
-	return string.rep(rv1,rv2)
+	return rv1:rep(rv2)
 end)
 
 registerFunction("trim", "s:", "s", function(self,args)
@@ -291,16 +296,21 @@ end)
 registerFunction("trimLeft", "s:", "s", function(self,args)
 	local op1 = args[2]
 	local rv1 = op1[1](self, op1)
-	return string.match(rv1, "^ *(.-)$")
+	return rv1:match( "^ *(.-)$")
 end)
 
 registerFunction("trimRight", "s:", "s", function(self,args)
 	local op1 = args[2]
 	local rv1 = op1[1](self, op1)
-	return string.TrimRight(rv1)
+	return rv1:TrimRight()
 end)
 
 /******************************************************************************/
+
+local sub = string.sub
+local gsub = string.gsub
+local find = string.find
+
 --- Returns the 1st occurrence of the string <pattern>, returns 0 if not found. Prints malformed string errors to the chat area.
 e2function number string:findRE(string pattern)
 	local OK, Ret = pcall(string.find, this, pattern)
@@ -314,7 +324,7 @@ end
 
 ---  Returns the 1st occurrence of the string <pattern> starting at <start> and going to the end of the string, returns 0 if not found. Prints malformed string errors to the chat area.
 e2function number string:findRE(string pattern, start)
-	local OK, Ret = pcall(string.find, this, pattern, start)
+	local OK, Ret = pcall(find, this, pattern, start)
 	if not OK then
 		self.player:ChatPrint(Ret)
 		return 0
@@ -325,23 +335,23 @@ end
 
 --- Returns the 1st occurrence of the string <needle>, returns 0 if not found. Does not use LUA patterns.
 e2function number string:find(string needle)
-	return string.find(this, needle, 1, true) or 0
+	return this:find( needle, 1, true) or 0
 end
 
 ---  Returns the 1st occurrence of the string <needle> starting at <start> and going to the end of the string, returns 0 if not found. Does not use LUA patterns.
 e2function number string:find(string needle, start)
-	return string.find(this, needle, start, true) or 0
+	return this:find( needle, start, true) or 0
 end
 
 --- Finds and replaces every occurrence of <needle> with <new> without regular expressions
 e2function string string:replace(string needle, string new)
 	if needle == "" then return "" end -- prevent crashes. stupid garry...
-	return string.Replace(this, needle, new)
+	return this:Replace( needle, new)
 end
 
 ---  Finds and replaces every occurrence of <pattern> with <new> using regular expressions. Prints malformed string errors to the chat area.
 e2function string string:replaceRE(string pattern, string new)
-	local OK, NewStr = pcall(string.gsub, this, pattern, new)
+	local OK, NewStr = pcall(gsub, this, pattern, new)
 	if not OK then
 		self.player:ChatPrint(NewStr)
 		return ""
@@ -368,9 +378,7 @@ local specialchars = {
 __e2setcost(5)
 
 local gmatch = string.gmatch
-local sub = string.sub
 local Right = string.Right
-local find = string.find
 
 --- Splits the string into an array, along the boundaries formed by the string <pattern>. See also [[string.Explode]]
 e2function array string:explode(string delim)
@@ -410,15 +418,16 @@ __e2setcost(10)
 
 --- Returns a reversed version of <this>
 e2function string string:reverse()
-	return string.reverse(this)
+	return this:reverse()
 end
 
 /******************************************************************************/
+local string_format = string.format
 
 --- Formats a values exactly like Lua's [http://www.lua.org/manual/5.1/manual.html#pdf-string.format string.format]. Any number and type of parameter can be passed through the "...". Prints errors to the chat area.
 e2function string format(string fmt, ...)
 	-- TODO: call toString for table-based types
-	local ok, ret = pcall(string.format, fmt, ...)
+	local ok, ret = pcall(string_format, fmt, ...)
 	if not ok then
 		self.player:ChatPrint(ret)
 		return ""
@@ -428,36 +437,40 @@ end
 
 /******************************************************************************/
 -- string.match wrappers by Jeremydeath, 2009-08-30
+local string_match = string.match
+local table_remove = table.remove
 
 --- runs [[string.match]](<this>, <pattern>) and returns the sub-captures as an array. Prints malformed pattern errors to the chat area.
 e2function array string:match(string pattern)
-	local args = {pcall(string.match, this, pattern)}
+	local args = {pcall(string_match, this, pattern)}
 	if not args[1] then
 		self.player:ChatPrint(args[2] or "Unknown error in str:match")
 		return {}
 	else
-		table.remove( args, 1 ) -- Remove "OK" boolean
+		table_remove( args, 1 ) -- Remove "OK" boolean
 		return args or {}
 	end
 end
 
 --- runs [[string.match]](<this>, <pattern>, <position>) and returns the sub-captures as an array. Prints malformed pattern errors to the chat area.
 e2function array string:match(string pattern, position)
-	local args = {pcall(string.match, this, pattern, position)}
+	local args = {pcall(string_match, this, pattern, position)}
 	if not args[1] then
 		self.player:ChatPrint(args[2] or "Unknown error in str:match")
 		return {}
 	else
-		table.remove( args, 1 ) -- Remove "OK" boolean
+		table_remove( args, 1 ) -- Remove "OK" boolean
 		return args or {}
 	end
 end
+
+local table_Copy = table.Copy
 
 -- Helper function for gmatch (below)
 -- (By Divran)
 local DEFAULT = {n={},ntypes={},s={},stypes={},size=0,istable=true,depth=0}
 local function gmatch( self, this, pattern )
-	local ret = table.Copy( DEFAULT )
+	local ret = table_Copy( DEFAULT )
 	local num = 0
 	local iter = this:gmatch( pattern )
 	local v
@@ -479,7 +492,7 @@ e2function table string:gmatch(string pattern)
 	local OK, ret = pcall( gmatch, self, this, pattern )
 	if (!OK) then
 		self.player:ChatPrint( ret or "Unknown error in str:gmatch" )
-		return table.Copy( DEFAULT )
+		return table_Copy( DEFAULT )
 	else
 		return ret
 	end
@@ -492,7 +505,7 @@ e2function table string:gmatch(string pattern, position)
 	local OK, ret = pcall( gmatch, self, this, pattern )
 	if (!OK) then
 		self.player:ChatPrint( ret or "Unknown error in str:gmatch" )
-		return table.Copy( DEFAULT )
+		return table_Copy( DEFAULT )
 	else
 		return ret
 	end
@@ -500,7 +513,7 @@ end
 
 --- runs [[string.match]](<this>, <pattern>) and returns the first match or an empty string if the match failed. Prints malformed pattern errors to the chat area.
 e2function string string:matchFirst(string pattern)
-	local OK, Ret = pcall(string.match, this, pattern)
+	local OK, Ret = pcall(string_match, this, pattern)
 	if not OK then
 		self.player:ChatPrint(Ret)
 		return ""
@@ -511,7 +524,7 @@ end
 
 --- runs [[string.match]](<this>, <pattern>, <position>) and returns the first match or an empty string if the match failed. Prints malformed pattern errors to the chat area.
 e2function string string:matchFirst(string pattern, position)
-	local OK, Ret = pcall(string.match, this, pattern, position)
+	local OK, Ret = pcall(string_match, this, pattern, position)
 	if not OK then
 		self.player:ChatPrint(Ret)
 		return ""

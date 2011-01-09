@@ -205,6 +205,7 @@ if SERVER then
 		if (!glon) then require("glon") end -- Doubt this will be necessary, but still
 
 		local functiondata,functiondata2
+		local functiondata_buffer, functiondata2_buffer = {}, {}
 
 		-- prepares a table with information (no, a glon string! - edit by Divran) about E2 types and functions
 		function wire_expression2_prepare_functiondata()
@@ -219,15 +220,82 @@ if SERVER then
 				functiondata2[signature] = { v[4], v.argnames } -- cost, argnames
 			end
 
-			functiondata = glon.encode( functiondata )
-			functiondata2 = glon.encode( functiondata2 )
+			-- Add functiondata to buffer
+			local temp = glon.encode( functiondata )
+			local count = 1
+			local char = temp:sub(1,1)
+			local temp2 = ""
+			while( char != "" ) do
+				temp2 = temp2 .. char
+				if (count % 245 == 0) then
+					functiondata_buffer[#functiondata_buffer+1] = temp2
+					temp2 = ""
+				end
+				count = count + 1
+				char = temp:sub(count,count)
+			end
+			if (temp2 != "") then
+				functiondata_buffer[#functiondata_buffer+1] = temp2
+			end
+
+			-- Add functiondata2 to buffer
+			local temp = glon.encode( functiondata2 )
+			local count = 1
+			local char = temp:sub(1,1)
+			local temp2 = ""
+			while( char != "" ) do
+				temp2 = temp2 .. char
+				if (count % 245 == 0) then
+					functiondata2_buffer[#functiondata2_buffer+1] = temp2
+					temp2 = ""
+				end
+				count = count + 1
+				char = temp:sub(count,count)
+			end
+			if (temp2 != "") then
+				functiondata2_buffer[#functiondata2_buffer+1] = temp2
+			end
 		end
 
 		wire_expression2_prepare_functiondata()
 
+		local targets = {}
+		local function sendData( target )
+			--Msg("SERVER - Added target: " .. tostring(target))
+			targets[target] = { 1, 0 }
+		end
+
+		hook.Add("Think","wire_expression2_sendfunctions_think",function()
+			for k,v in pairs( targets ) do
+				if (!k:IsValid() or !k:IsPlayer() or v[1] == 3) then
+					targets[k] = nil
+				elseif (v[1] == 1) then -- functiondata
+					v[2] = v[2] + 1
+					--Msg("SERVER - Sending block nr: " .. v[2] .. " str: " .. functiondata_buffer[v[2]] .. "\n")
+					umsg.Start("e2sd",k) umsg.String( functiondata_buffer[v[2]] ) umsg.End()
+					if (v[2] == #functiondata_buffer) then
+						--Msg("SERVER - Sending ended.\n")
+						umsg.Start("e2se",k) umsg.Bool(false) umsg.End()
+						v[1] = 2
+						v[2] = 0
+					end
+				elseif (v[1] == 2) then -- functiondata2
+					v[2] = v[2] + 1
+					--Msg("SERVER - Sending block nr: " .. v[2] .. " - str: " .. functiondata2_buffer[v[2]] .. "\n")
+					umsg.Start("e2sd",k) umsg.String( functiondata2_buffer[v[2]] ) umsg.End()
+					if (v[2] == #functiondata2_buffer) then
+						--Msg("SERVER - Sending 2 ended.\n")
+						umsg.Start("e2se",k) umsg.Bool(true) umsg.End()
+						v[1] = 3
+						v[2] = 0
+					end
+				end
+			end
+		end)
 
 		local antispam = {}
 		function wire_expression2_sendfunctions(ply,isconcmd)
+			--Msg("SERVER - Sendfunctions\n")
 			if (isconcmd) then
 				if (!antispam[ply]) then antispam[ply] = 0 end
 				if (antispam[ply] > CurTime()) then
@@ -235,15 +303,9 @@ if SERVER then
 					return
 				end
 				antispam[ply] = CurTime() + 60
-				datastream.StreamToClients( ply, "wire_expression2_sendfunctions_hook", { functiondata } )
-				datastream.StreamToClients( ply, "wire_expression2_sendfunctions_hook2", { functiondata2 } )
+				sendData( ply )
 			else
-				timer.Simple(30,function(ply)
-					if (ply and ply:IsValid()) then
-						datastream.StreamToClients( ply, "wire_expression2_sendfunctions_hook", { functiondata } )
-						datastream.StreamToClients( ply, "wire_expression2_sendfunctions_hook2", { functiondata2 } )
-					end
-				end,ply)
+				sendData( ply )
 			end
 		end
 
@@ -261,10 +323,8 @@ elseif CLIENT then
 
 	wire_expression2_reset_extensions()
 
-	datastream.Hook( "wire_expression2_sendfunctions_hook", function( ply, handle, id, functiondata )
+	local function insertData( functiondata )
 		wire_expression2_reset_extensions()
-
-		functiondata = glon.decode( functiondata[1] )
 
 		-- types
 		for typename,typeid in pairs(functiondata[1]) do
@@ -290,11 +350,8 @@ elseif CLIENT then
 		e2_function_data_received = true
 
 		if wire_expression2_editor then wire_expression2_editor:Validate(false) end
-	end)
-	datastream.Hook( "wire_expression2_sendfunctions_hook2", function( ply, handle, id, functiondata2 )
-
-		functiondata2 = glon.decode( functiondata2[1] )
-
+	end
+	local function insertData2( functiondata2 )
 		for signature,v in pairs(functiondata2) do
 			local entry = wire_expression2_funcs[signature]
 			if entry then
@@ -302,6 +359,23 @@ elseif CLIENT then
 				entry.argnames = v[2] -- argnames
 			end
 		end
+	end
+
+	local buffer = ""
+	usermessage.Hook("e2sd",function( um )
+		local str = um:ReadString()
+		--Msg("CLIENT - Receiving: " .. str .. "\n")
+		buffer = buffer .. str
+	end)
+	usermessage.Hook("e2se",function( um )
+		--Msg("CLIENT - Sending ended.\n")
+		local what = um:ReadBool()
+		if (!what) then
+			insertData( glon.decode( buffer ) )
+		else
+			insertData2( glon.decode( buffer ) )
+		end
+		buffer = ""
 	end)
 
 	if CanRunConsoleCommand() then
