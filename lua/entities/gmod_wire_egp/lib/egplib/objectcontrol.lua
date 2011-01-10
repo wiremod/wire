@@ -97,10 +97,20 @@ end
 ----------------------------
 -- Object order changing
 ----------------------------
+local function maxIndex( tbl )
+	local max
+	for k,v in pairs( tbl ) do
+		if (k and type(k) == "number") then
+			max = k
+		end
+	end
+	return max
+end
+
 function EGP:SetOrder( Ent, from, to )
 	if (!Ent.RenderTable or #Ent.RenderTable == 0) then return false end
 	if (Ent.RenderTable[from]) then
-		to = math.Clamp(math.Round(to or 1),1,#Ent.RenderTable)
+		to = math.Clamp(math.Round(to or 1),1,maxIndex( Ent.RenderTable )+1)
 		local temp = Ent.RenderTable[from]
 		table.remove( Ent.RenderTable, from )
 		table.insert( Ent.RenderTable, to, temp )

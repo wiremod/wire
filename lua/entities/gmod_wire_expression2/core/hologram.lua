@@ -15,14 +15,6 @@ CreateConVar( "wire_holograms_burst_delay", "10" )
 CreateConVar( "wire_holograms_max_clips", "5" )
 local wire_holograms_size_max = CreateConVar( "wire_holograms_size_max", "50" )
 
-wire_holograms = {} -- This global table is used to share certain functions and variables with UWSVN
-wire_holograms.wire_holograms_size_max = wire_holograms_size_max
-
-registerCallback( "postinit", function()
-	timer.Simple( 1, function()
-		wire_holograms = nil
-	end )
-end )
 
 -- context = chip.context = self
 -- uid = context.uid = self.uid = chip.uid = player:UniqueID()
@@ -63,7 +55,6 @@ local ModelList = {
 	["torus2"] = true,
 	["torus3"] = true
 }
-wire_holograms.ModelList = ModelList
 
 for k,_ in pairs( ModelList ) do
 	util.PrecacheModel( "models/Holograms/" .. k .. ".mdl" )
@@ -79,7 +70,6 @@ local vis_queue = {}
 local function add_scale_queue( Holo, scale ) -- Add an item to the scale queue (used by UWSVN holoModel)
 	scale_queue[#scale_queue+1] = { Holo, scale }
 end
-wire_holograms.add_scale_queue = add_scale_queue
 
 -- If no recipient is given, the umsg is sent to everyone (umsg.Start does that)
 local function flush_scale_queue(queue, recipient)
@@ -196,8 +186,6 @@ local function rescale(Holo, scale)
 		Holo.scale = scale
 	end
 end
-
-wire_holograms.rescale = rescale
 
 local function check_clip(Holo, idx)
 	Holo.clips = Holo.clips or {}
@@ -332,7 +320,6 @@ local function CheckIndex(self, index)
 	if not Holo or not validEntity(Holo.ent) then return nil end
 	return Holo
 end
-wire_holograms.CheckIndex = CheckIndex
 
 -- Sets the given index to the given hologram.
 local function SetIndex(self, index, Holo)
@@ -1070,3 +1057,16 @@ concommand.Add( "wire_holograms_unblock_id", function( ply, com, args )
 end )
 
 /******************************************************************************/
+
+wire_holograms = {} -- This global table is used to share certain functions and variables with UWSVN
+wire_holograms.wire_holograms_size_max = wire_holograms_size_max
+wire_holograms.ModelList = ModelList
+wire_holograms.add_scale_queue = add_scale_queue
+wire_holograms.rescale = rescale
+wire_holograms.CheckIndex = CheckIndex
+
+registerCallback( "postinit", function()
+	timer.Simple( 1, function()
+		wire_holograms = nil
+	end )
+end )

@@ -261,7 +261,14 @@ if SERVER then
 
 		local targets = {}
 		local function sendData( target )
-			--Msg("SERVER - Added target: " .. tostring(target))
+			if (type(target) == "table") then
+				for k,v in pairs( target ) do
+					if (type(v) == "Player") then
+						sendData( v )
+					end
+				end
+				return
+			end
 			targets[target] = { 1, 0 }
 		end
 
@@ -271,20 +278,16 @@ if SERVER then
 					targets[k] = nil
 				elseif (v[1] == 1) then -- functiondata
 					v[2] = v[2] + 1
-					--Msg("SERVER - Sending block nr: " .. v[2] .. " str: " .. functiondata_buffer[v[2]] .. "\n")
 					umsg.Start("e2sd",k) umsg.String( functiondata_buffer[v[2]] ) umsg.End()
 					if (v[2] == #functiondata_buffer) then
-						--Msg("SERVER - Sending ended.\n")
 						umsg.Start("e2se",k) umsg.Bool(false) umsg.End()
 						v[1] = 2
 						v[2] = 0
 					end
 				elseif (v[1] == 2) then -- functiondata2
 					v[2] = v[2] + 1
-					--Msg("SERVER - Sending block nr: " .. v[2] .. " - str: " .. functiondata2_buffer[v[2]] .. "\n")
 					umsg.Start("e2sd",k) umsg.String( functiondata2_buffer[v[2]] ) umsg.End()
 					if (v[2] == #functiondata2_buffer) then
-						--Msg("SERVER - Sending 2 ended.\n")
 						umsg.Start("e2se",k) umsg.Bool(true) umsg.End()
 						v[1] = 3
 						v[2] = 0
@@ -295,7 +298,6 @@ if SERVER then
 
 		local antispam = {}
 		function wire_expression2_sendfunctions(ply,isconcmd)
-			--Msg("SERVER - Sendfunctions\n")
 			if (isconcmd) then
 				if (!antispam[ply]) then antispam[ply] = 0 end
 				if (antispam[ply] > CurTime()) then
@@ -364,11 +366,9 @@ elseif CLIENT then
 	local buffer = ""
 	usermessage.Hook("e2sd",function( um )
 		local str = um:ReadString()
-		--Msg("CLIENT - Receiving: " .. str .. "\n")
 		buffer = buffer .. str
 	end)
 	usermessage.Hook("e2se",function( um )
-		--Msg("CLIENT - Sending ended.\n")
 		local what = um:ReadBool()
 		if (!what) then
 			insertData( glon.decode( buffer ) )
