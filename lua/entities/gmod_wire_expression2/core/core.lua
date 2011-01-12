@@ -108,40 +108,6 @@ registerOperator("for", "", "", function(self, args)
 	end
 end)
 
-registerOperator("fea","t","s",function(self,args)
-	local keyname,valname,valtypeid = args[2],args[3],args[4]
-	local tbl = args[5]
-	tbl = tbl[1](self,tbl)
-	local statement = args[6]
-
-	self.vclk[keyname] = true
-	self.vclk[valname] = true
-
-	local len = valtypeid:len()
-
-	local keys = {}
-	for key,_ in pairs(tbl) do
-		if key:sub(1,len) == valtypeid then
-			keys[#keys+1] = key
-		end
-	end
-
-	for _,key in ipairs(keys) do
-		if tbl[key] ~= nil then
-			self.prf = self.prf + 3
-
-			self.vars[keyname] = key:sub(len+1)
-			self.vars[valname] = tbl[key]
-
-			local ok, msg = pcall(statement[1], self, statement)
-			if not ok then
-				if msg == "break" then break
-				elseif msg ~= "continue" then error(msg, 0) end
-			end
-		end
-	end
-end)
-
 registerOperator("fea","r","n",function(self,args)
 	local keyname,valname,valtypeid = args[2],args[3],args[4]
 	local tbl = args[5]
@@ -154,13 +120,16 @@ registerOperator("fea","r","n",function(self,args)
 	local typechecker = wire_expression_types2[valtypeid][6]
 
 	local keys = {}
+	local count = 0
 	for key,value in pairs(tbl) do
 		if not typechecker(value) then
-			keys[#keys+1] = key
+			count = count + 1
+			keys[count] = key
 		end
 	end
 
-	for _,key in ipairs(keys) do
+	for i=1,count do
+		local key = keys[i]
 		if tbl[key] ~= nil then
 			self.prf = self.prf + 3
 

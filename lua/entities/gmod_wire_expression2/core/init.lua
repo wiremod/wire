@@ -307,7 +307,11 @@ if SERVER then
 				antispam[ply] = CurTime() + 60
 				sendData( ply )
 			else
-				sendData( ply )
+				timer.Simple( 5, function(ply)
+					if (ply and ply:IsValid()) then
+						sendData( ply )
+					end
+				end, ply)
 			end
 		end
 
@@ -363,17 +367,29 @@ elseif CLIENT then
 		end
 	end
 
+	local already_tried
 	local buffer = ""
 	usermessage.Hook("e2sd",function( um )
 		local str = um:ReadString()
 		buffer = buffer .. str
 	end)
 	usermessage.Hook("e2se",function( um )
-		local what = um:ReadBool()
-		if (!what) then
-			insertData( glon.decode( buffer ) )
+		local OK, data = pcall( glon.decode, buffer )
+		if (!OK) then
+			if (already_tried) then
+				LocalPlayer():ChatPrint("[E2] Failed to receive functions data. Error message was:\n" .. data)
+			else
+				already_tried = true
+				RunConsoleCommand("wire_expression2_sendfunctions")
+				LocalPlayer():ChatPrint("[E2] Failed to receive functions data. Trying again. Error message was:\n" .. data)
+			end
 		else
-			insertData2( glon.decode( buffer ) )
+			local what = um:ReadBool()
+			if (!what) then
+				insertData( data )
+			else
+				insertData2( data )
+			end
 		end
 		buffer = ""
 	end)

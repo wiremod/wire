@@ -279,16 +279,17 @@ registerOperator("fea","t","s",function(self,args)
 	self.vclk[keyname] = true
 	self.vclk[valname] = true
 
-	local len = valtypeid:len()
-
 	local keys = {}
+	local count = 0
 	for key,_ in pairs(tbl.s) do
 		if (tbl.stypes[key] == valtypeid) then
-			keys[#keys+1] = key
+			count = count + 1
+			keys[count] = key
 		end
 	end
 
-	for _,key in ipairs(keys) do
+	for i=1, count do
+		local key = keys[count]
 		if tbl.s[key] ~= nil then
 			self.prf = self.prf + 3
 

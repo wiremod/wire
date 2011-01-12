@@ -148,6 +148,14 @@ local function Wire_KeyOff(pl)
 		WireLib.TriggerOutput(prev_ent, "InUse", 0)
 		prev_ent.InUse = false
 		prev_ent:SetOverlayText("Keyboard - not in use")
+
+		for i = 0,223 do
+			prev_ent.On[i] = false
+		end
+
+		for i = 0,31 do
+			prev_ent.Buffer[i] = 0
+		end
 	end
 	KeyBoardPlayerKeys[pl:EntIndex()] = nil
 

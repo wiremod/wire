@@ -323,21 +323,6 @@ if (SERVER) then
 				--	EGP:CreateObject( Ent, v.ID, v )
 				--end
 
-
-				if (Ent.Scaling or Ent.TopLeft) then
-					v = table.Copy(v) -- Make a copy of the table so it doesn't overwrite the serverside object
-				end
-
-				-- Scale the positions and size
-				if (Ent.Scaling) then
-					EGP:ScaleObject( Ent, v )
-				end
-
-				-- Move the object to draw from the top left
-				if (Ent.TopLeft) then
-					EGP:MoveTopLeft( Ent, v )
-				end
-
 				EGP.umsg.Short( v.index ) -- Send index of object
 
 				if (v.remove == true) then
@@ -347,6 +332,20 @@ if (SERVER) then
 					end
 				else
 					EGP.umsg.Char( v.ID - 128 ) -- Else send the ID of the object
+
+					if (Ent.Scaling or Ent.TopLeft) then
+						v = table.Copy(v) -- Make a copy of the table so it doesn't overwrite the serverside object
+					end
+
+					-- Scale the positions and size
+					if (Ent.Scaling) then
+						EGP:ScaleObject( Ent, v )
+					end
+
+					-- Move the object to draw from the top left
+					if (Ent.TopLeft) then
+						EGP:MoveTopLeft( Ent, v )
+					end
 
 					if (v.ChangeOrder) then -- We want to change the order of this object, send the index to where we wish to move it
 						local from = v.ChangeOrder[1]
@@ -404,11 +403,6 @@ if (SERVER) then
 
 			if (E1 and E2.entity and E2.entity:IsValid()) then
 				E2.prf = E2.prf + 100
-			end
-
-			local bool, k, v = EGP:HasObject( Ent, Data[1] )
-			if (bool) then
-				table.remove( Ent.RenderTable, k )
 			end
 
 			self:AddQueueObject( Ent, E2.player, SendObjects, { index = Data[1], remove = true } )

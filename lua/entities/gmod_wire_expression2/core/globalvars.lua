@@ -45,6 +45,43 @@ e2function gtable operator=(gtable lhs, gtable rhs)
 	return rhs
 end
 
+registerOperator("fea","xgt","s",function(self,args)
+	local keyname,valname,valtypeid = args[2],args[3],args[4]
+	local tbl = args[5]
+	tbl = tbl[1](self,tbl)
+	local statement = args[6]
+
+	self.vclk[keyname] = true
+	self.vclk[valname] = true
+
+	local len = valtypeid:len()
+
+	local keys = {}
+	local count = 0
+	for key,_ in pairs(tbl) do
+		if key:sub(1,len) == valtypeid then
+			count = count + 1
+			keys[count] = key
+		end
+	end
+
+	for i=1,count do
+		local key = keys[i]
+		if tbl[key] ~= nil then
+			self.prf = self.prf + 3
+
+			self.vars[keyname] = key:sub(len+1)
+			self.vars[valname] = tbl[key]
+
+			local ok, msg = pcall(statement[1], self, statement)
+			if not ok then
+				if msg == "break" then break
+				elseif msg ~= "continue" then error(msg, 0) end
+			end
+		end
+	end
+end)
+
 e2function number operator_is( gtable tbl )
 	return (type(tbl) == "table")
 end
@@ -84,6 +121,12 @@ end
 e2function void gtable:clear()
 	self.prf = self.prf + table.Count(this) / 3
 	table.Empty(this)
+end
+
+e2function number gtable:count()
+	local ret = table.Count( this )
+	self.prf = self.prf + ret / 3
+	return ret
 end
 
 ------------------------------------------------
@@ -378,24 +421,4 @@ registerCallback("construct",function(self)
 	if (!gvars[self.uid]) then gvars[self.uid] = {} end
 end)
 
---[[
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!! TODO: Now there is no reason to do this,          !!!
-!!!        as the table will never get lost in NULLs. !!!
-!!!       Keep doing it? ~Lex                         !!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
---]]
-hook.Add("EntityRemoved","Expression2_gvars_PlayerDisconnected",function(ply)
-	if (ply:IsValid() and ply:IsPlayer() and gvars[ply:UniqueID()]) then
-		gvars[ply:UniqueID()] = nil
-	end
-end)
-
 __e2setcost(nil)
-
---[[
-registerCallback("postexecute",function(self)
-	self.data.gvars.group = "default"
-	self.data.gvars.shared = 0
-end)
-]]

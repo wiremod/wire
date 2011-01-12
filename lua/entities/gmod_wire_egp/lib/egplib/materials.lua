@@ -19,7 +19,7 @@ if (CLIENT) then
 	local new = {}
 	for k,v in ipairs( EGP.ValidFonts ) do
 		local font = "WireEGP_18_"..k
-		surface.CreateFont(v,18,800,true,false,font)
+		surface.CreateFont(v,18,400,true,false,font)
 		EGP.ValidFonts_Lookup[font] = true
 		table.insert( new, font )
 	end
