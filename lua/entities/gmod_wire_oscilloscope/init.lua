@@ -6,11 +6,11 @@ ENT.WireDebugName = "Oscilloscope"
 
 function ENT:Initialize()
 
-	self.Entity:PhysicsInit( SOLID_VPHYSICS )
-	self.Entity:SetMoveType( MOVETYPE_VPHYSICS )
-	self.Entity:SetSolid( SOLID_VPHYSICS )
+	self:PhysicsInit( SOLID_VPHYSICS )
+	self:SetMoveType( MOVETYPE_VPHYSICS )
+	self:SetSolid( SOLID_VPHYSICS )
 
-	self.Inputs = Wire_CreateInputs(self.Entity, { "X", "Y", "R", "G", "B", "Pause", "Length", "Update Frequency" })
+	self.Inputs = Wire_CreateInputs(self, { "X", "Y", "R", "G", "B", "Pause", "Length", "Update Frequency" })
 end
 
 function ENT:Think()
@@ -21,20 +21,20 @@ function ENT:Think()
 		local y = math.max(-1, math.min(self.Inputs.Y.Value or 0, 1))
 		self:SetNextNode(x, y)
 
-		self.Entity:NextThink(CurTime()+(self.updaterate or 0.08))
+		self:NextThink(CurTime()+(self.updaterate or 0.08))
 		return true
 	end
 end
 
 function ENT:TriggerInput(iname, value)
 	if iname == "R" then
-		self.Entity:SetNetworkedFloat("R", value)
+		self:SetNetworkedFloat("R", value)
 	elseif iname == "G" then
-		self.Entity:SetNetworkedFloat("G", value)
+		self:SetNetworkedFloat("G", value)
 	elseif iname == "B" then
-		self.Entity:SetNetworkedFloat("B", value)
+		self:SetNetworkedFloat("B", value)
 	elseif iname == "Length" then
-		self.Entity:SetNetworkedFloat("Length", value)
+		self:SetNetworkedFloat("Length", value)
 	elseif iname == "Update Frequency" then
 		if value <= 0 then value = 0.08 end
 		self.updaterate = value

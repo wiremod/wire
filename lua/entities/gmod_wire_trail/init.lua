@@ -7,11 +7,11 @@ include('shared.lua')
 ENT.WireDebugName = "Trail"
 
 function ENT:Initialize()
-	self.Entity:PhysicsInit( SOLID_VPHYSICS )
-	self.Entity:SetMoveType( MOVETYPE_VPHYSICS )
-	self.Entity:SetSolid( SOLID_VPHYSICS )
-	self.Inputs = Wire_CreateInputs(self.Entity, {"Set", "Length","StartSize","EndSize","R","G","B","A"})
-	self.Outputs = Wire_CreateOutputs(self.Entity, {})
+	self:PhysicsInit( SOLID_VPHYSICS )
+	self:SetMoveType( MOVETYPE_VPHYSICS )
+	self:SetSolid( SOLID_VPHYSICS )
+	self.Inputs = Wire_CreateInputs(self, {"Set", "Length","StartSize","EndSize","R","G","B","A"})
+	self.Outputs = Wire_CreateOutputs(self, {})
 	self.R = 0
 	self.G = 0
 	self.B = 0
@@ -23,7 +23,7 @@ function ENT:Initialize()
 end
 
 function ENT:OnRemove()
-	Wire_Remove(self.Entity)
+	Wire_Remove(self)
 end
 
 function ENT:Setup(Material)
@@ -61,7 +61,7 @@ end
 function ENT:TriggerInput(iname, value)
 	if (iname == "Set") then
 		if (value ~= 0) then
-			self:SetTrails( self:GetOwner(), self.Entity, {
+			self:SetTrails( self:GetOwner(), self, {
 		  		Color = Color( self.R, self.G, self.B, self.A ),
 				Length = self.Length,
 				StartSize = self.StartSize,
@@ -92,7 +92,7 @@ function ENT:ShowOutput()
 end
 
 function ENT:OnRestore()
-	Wire_Restored(self.Entity)
+	Wire_Restored(self)
 end
 
 

@@ -4,9 +4,9 @@ include('cl_init.lua')
 ENT.WireDebugName = "GPULib Controller"
 
 function ENT:Initialize()
-	self.Entity:PhysicsInit( SOLID_VPHYSICS )
-	self.Entity:SetMoveType( MOVETYPE_VPHYSICS )
-	self.Entity:SetSolid( SOLID_VPHYSICS )
+	self:PhysicsInit( SOLID_VPHYSICS )
+	self:SetMoveType( MOVETYPE_VPHYSICS )
+	self:SetSolid( SOLID_VPHYSICS )
 
 	WireLib.CreateInputs(self, { "Target [ENTITY]" })
 	WireLib.CreateOutputs(self, { "Screen [ENTITY]", "Target [ENTITY]", "LocalPosition [VECTOR]", "LocalAngle [ANGLE]", "Resolution" })

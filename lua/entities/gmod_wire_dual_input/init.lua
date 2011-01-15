@@ -8,11 +8,11 @@ ENT.WireDebugName = "DualInput"
 ENT.OverlayDelay = 0
 
 function ENT:Initialize()
-	self.Entity:PhysicsInit( SOLID_VPHYSICS )
-	self.Entity:SetMoveType( MOVETYPE_VPHYSICS )
-	self.Entity:SetSolid( SOLID_VPHYSICS )
+	self:PhysicsInit( SOLID_VPHYSICS )
+	self:SetMoveType( MOVETYPE_VPHYSICS )
+	self:SetSolid( SOLID_VPHYSICS )
 
-	self.Outputs = Wire_CreateOutputs(self.Entity, { "Out" })
+	self.Outputs = Wire_CreateOutputs(self, { "Out" })
 end
 
 function ENT:Setup(keygroup, keygroup2, toggle, value_off, value_on, value_on2)
@@ -26,7 +26,7 @@ function ENT:Setup(keygroup, keygroup2, toggle, value_off, value_on, value_on2)
 	self.Select = 0
 
 	self:ShowOutput(self.value_off)
-	Wire_TriggerOutput(self.Entity, "Out", self.value_off)
+	Wire_TriggerOutput(self, "Out", self.value_off)
 end
 
 function ENT:InputActivate( mul )
@@ -44,7 +44,7 @@ function ENT:InputDeactivate( mul )
 end
 
 function ENT:Switch( on, mul )
-	if (!self.Entity:IsValid()) then return false end
+	if (!self:IsValid()) then return false end
 
 	self.On = on
 	self.Select = mul
@@ -60,7 +60,7 @@ function ENT:Switch( on, mul )
 		self.Value = self.value_off
 	end
 
-	Wire_TriggerOutput(self.Entity, "Out", self.Value)
+	Wire_TriggerOutput(self, "Out", self.Value)
 
 	return true
 end

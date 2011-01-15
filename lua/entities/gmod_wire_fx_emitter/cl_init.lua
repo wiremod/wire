@@ -40,13 +40,13 @@ function ENT:Think()
 	// Missing effect... replace it if possible :/
 	if ( !self.Effects[ Effect ] ) then if ( self.Effects[1] ) then Effect = 1 else return end end
 
-	local Angle = self.Entity:GetAngles()
+	local Angle = self:GetAngles()
 
 	local FXDir = self:GetFXDir()
-	if(FXDir && FXDir!=Vector(0,0,0))then Angle = FXDir:Angle() else self.Entity:GetUp():Angle() end
+	if(FXDir && FXDir!=Vector(0,0,0))then Angle = FXDir:Angle() else self:GetUp():Angle() end
 
 	local FXPos = self:GetFXPos()
-	if (!FXPos || FXPos==Vector(0,0,0)) then FXPos=self.Entity:GetPos() + Angle:Forward() * 12 end
+	if (!FXPos || FXPos==Vector(0,0,0)) then FXPos=self:GetPos() + Angle:Forward() * 12 end
 
 	local b, e = pcall( self.Effects[Effect], FXPos, Angle )
 

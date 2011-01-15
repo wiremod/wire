@@ -7,11 +7,11 @@ ENT.OverlayDelay = 0.1
 ENT.OverlayRandom = 0.025
 
 function ENT:Initialize()
-	self.Entity:PhysicsInit( SOLID_VPHYSICS )
-	self.Entity:SetMoveType( MOVETYPE_VPHYSICS )
-	self.Entity:SetSolid( SOLID_VPHYSICS )
-	self.Inputs = Wire_CreateInputs(self.Entity,{"Reset"})
-	self.Outputs = Wire_CreateOutputs(self.Entity,{"Out"})
+	self:PhysicsInit( SOLID_VPHYSICS )
+	self:SetMoveType( MOVETYPE_VPHYSICS )
+	self:SetSolid( SOLID_VPHYSICS )
+	self.Inputs = Wire_CreateInputs(self,{"Reset"})
+	self.Outputs = Wire_CreateOutputs(self,{"Out"})
 end
 
 function ENT:Setup(key_more,key_less,toggle,value_min,value_max,value_start,speed)
@@ -24,7 +24,7 @@ function ENT:Setup(key_more,key_less,toggle,value_min,value_max,value_start,spee
 	self.value_start = value_start
 	self.speed = speed
 	self:ShowOutput()
-	Wire_TriggerOutput(self.Entity,"Out",self.Value)
+	Wire_TriggerOutput(self,"Out",self.Value)
 end
 
 function ENT:TriggerInput(iname, value)
@@ -32,7 +32,7 @@ function ENT:TriggerInput(iname, value)
         if(value != 0)then
             self.Value = self.value_start
             self:ShowOutput()
-	        Wire_TriggerOutput(self.Entity,"Out",self.Value)
+	        Wire_TriggerOutput(self,"Out",self.Value)
 	    end
 	end
 end
@@ -50,7 +50,7 @@ function ENT:InputDeactivate( mul )
 end
 
 function ENT:Switch( on, mul )
-	if (!self.Entity:IsValid()) then return false end
+	if (!self:IsValid()) then return false end
 	self.On = on
 	if(on) then
 		self.dir = mul
@@ -72,8 +72,8 @@ function ENT:Think()
 			self.Value = self.value_max
 		end
 		self:ShowOutput()
-		Wire_TriggerOutput(self.Entity,"Out",self.Value)
-		self.Entity:NextThink(CurTime()+0.02)
+		Wire_TriggerOutput(self,"Out",self.Value)
+		self:NextThink(CurTime()+0.02)
 		return true
 	end
 end

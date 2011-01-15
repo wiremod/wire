@@ -32,7 +32,7 @@ function ENT:Initialize()
 	self.lightg = 255
 	self.lightb = 255
 
-	self.Inputs = WireLib.CreateSpecialInputs(self.Entity, {"Red", "Green", "Blue", "RGB", "On", "Texture"}, {"NORMAL", "NORMAL", "NORMAL", "VECTOR", "NORMAL", "STRING"})
+	self.Inputs = WireLib.CreateSpecialInputs(self, {"Red", "Green", "Blue", "RGB", "On", "Texture"}, {"NORMAL", "NORMAL", "NORMAL", "VECTOR", "NORMAL", "STRING"})
 	self:TurnOn()
 end
 
@@ -55,7 +55,7 @@ function ENT:SetLightColor( r, g, b )
 
 	self:SetColor( r, g, b, 255 )
 
-	self.Entity:SetColor( r, g, b, 255 )
+	self:SetColor( r, g, b, 255 )
 
 	self.m_strLightColor = Format( "%i %i %i", r, g, b )
 
@@ -87,7 +87,7 @@ end
    Name: OnTakeDamage
 ---------------------------------------------------------*/
 function ENT:OnTakeDamage( dmginfo )
-	self.Entity:TakePhysicsDamage( dmginfo )
+	self:TakePhysicsDamage( dmginfo )
 end
 
 /*---------------------------------------------------------
@@ -118,11 +118,11 @@ end
 
 function ENT:TurnOn()
 	self:SetOn(true)
-	local angForward = self.Entity:GetAngles() + Angle( 90, 0, 0 )
+	local angForward = self:GetAngles() + Angle( 90, 0, 0 )
 
 	self.flashlight = ents.Create( "env_projectedtexture" )
 
-		self.flashlight:SetParent( self.Entity )
+		self.flashlight:SetParent( self )
 
 		// The local positions are the offsets from parent..
 		self.flashlight:SetLocalPos( Vector( 0, 0, 0 ) )
@@ -152,11 +152,11 @@ function ENT:TurnOff()
 end
 
 function ENT:OnRemove()
-	Wire_Remove(self.Entity)
+	Wire_Remove(self)
 end
 
 function ENT:OnRestore()
-	Wire_Restored(self.Entity)
+	Wire_Restored(self)
 end
 
 function ENT:Setup( r, g, b, Texture )

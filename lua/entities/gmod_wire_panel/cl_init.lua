@@ -33,7 +33,7 @@ function ENT:Use()
 end
 
 function ENT:Draw()
-	self.Entity:DrawModel()
+	self:DrawModel()
 
 	self.GPU:RenderToWorld(nil, 184, function(x, y, w, h, monitor, pos, ang, res)
 		surface.SetDrawColor(0,0,0,255)
@@ -134,7 +134,7 @@ function ENT:Draw()
 		end
 	end)
 
-	Wire_Render(self.Entity)
+	Wire_Render(self)
 end
 
 function ENT:IsTranslucent()

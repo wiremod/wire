@@ -269,7 +269,9 @@ if SERVER then
 				end
 				return
 			end
-			targets[target] = { 1, 0 }
+			if (target and type(target) == "Player" and target:IsValid()) then
+				targets[target] = { 1, 0 }
+			end
 		end
 
 		hook.Add("Think","wire_expression2_sendfunctions_think",function()
@@ -308,9 +310,7 @@ if SERVER then
 				sendData( ply )
 			else
 				timer.Simple( 5, function(ply)
-					if (ply and ply:IsValid()) then
-						sendData( ply )
-					end
+					sendData( ply )
 				end, ply)
 			end
 		end

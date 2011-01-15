@@ -9,5 +9,5 @@ ENT.Contact     = ""
 -- ENT:SetNextWaypoint is in init.lua
 
 function ENT:GetNextWaypoint()
-	return self.Entity:GetNetworkedEntity("NextWaypoint")
+	return self:GetNetworkedEntity("NextWaypoint")
 end

@@ -78,7 +78,7 @@ function ENT:Reset()
 	self.HaltPort = -1
 
 	if (self.Debug) then self:DebugMessage("CPU RESET") end
-	if (not self.IsGPU) then Wire_TriggerOutput(self.Entity, "Error", 0.0) end
+	if (not self.IsGPU) then Wire_TriggerOutput(self, "Error", 0.0) end
 end
 
 function ENT:InitializeCPUVariableSet()
@@ -752,7 +752,7 @@ function ENT:Execute()
 
 	if (not self.IP) then
 		self:Reset()
-		Wire_TriggerOutput(self.Entity, "Error", 5.0)
+		Wire_TriggerOutput(self, "Error", 5.0)
 		return
 	end
 

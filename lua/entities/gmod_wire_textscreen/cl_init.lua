@@ -111,7 +111,7 @@ end
 function ENT:Initialize()
 	self:InitializeShared()
 
-	self.GPU = WireGPU(self.Entity)
+	self.GPU = WireGPU(self)
 	self.layouter = MakeTextScreenLayouter()
 	self.NeedRefresh = true
 end
@@ -120,7 +120,7 @@ function ENT:OnRemove()
 	self.GPU:Finalize()
 end
 function ENT:Draw()
-	self.Entity:DrawModel()
+	self:DrawModel()
 
 	if self.NeedRefresh then
 		self.NeedRefresh = nil
@@ -149,7 +149,7 @@ function ENT:Draw()
 		self.layouter:DrawText(self.text, x, y, w, h, self.textJust, self.valign)
 	end)
 	]]
-	Wire_Render(self.Entity)
+	Wire_Render(self)
 end
 
 function ENT:IsTranslucent()

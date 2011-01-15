@@ -8,14 +8,14 @@ ENT.WireDebugName = "Satellite Dish"
 
 
 function ENT:Initialize()
-	self.Entity:PhysicsInit( SOLID_VPHYSICS )
-	self.Entity:SetMoveType( MOVETYPE_VPHYSICS )
-	self.Entity:SetSolid( SOLID_VPHYSICS )
+	self:PhysicsInit( SOLID_VPHYSICS )
+	self:SetMoveType( MOVETYPE_VPHYSICS )
+	self:SetSolid( SOLID_VPHYSICS )
 	self:ShowOutput()
 end
 
 function ENT:OnRemove()
-	Wire_Remove(self.Entity)
+	Wire_Remove(self)
 end
 
 function ENT:ShowOutput()
@@ -27,7 +27,7 @@ function ENT:ShowOutput()
 end
 
 function ENT:OnRestore()
-    Wire_Restored(self.Entity)
+    Wire_Restored(self)
 end
 
 // Advanced Duplicator Support

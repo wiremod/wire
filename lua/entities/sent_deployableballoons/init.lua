@@ -35,10 +35,10 @@ function ENT:SpawnFunction( ply, tr )
 end
 
 function ENT:Initialize()
-	self.Entity:SetModel("models/props_junk/PropaneCanister001a.mdl")
-	self.Entity:PhysicsInit(SOLID_VPHYSICS)
-	self.Entity:SetMoveType( MOVETYPE_VPHYSICS )
-	self.Entity:SetSolid(SOLID_VPHYSICS)
+	self:SetModel("models/props_junk/PropaneCanister001a.mdl")
+	self:PhysicsInit(SOLID_VPHYSICS)
+	self:SetMoveType( MOVETYPE_VPHYSICS )
+	self:SetSolid(SOLID_VPHYSICS)
 	self.Deployed = 0
 	self.Balloon = nil
 	self.Constraints = {}
@@ -47,12 +47,12 @@ function ENT:Initialize()
 	self.popable = false
 	self.rl = 64
 	if WireAddon then
-		self.Inputs = Wire_CreateInputs(self.Entity,{ "Force", "Lenght", "Weld?", "Popable?", "Deploy" })
-		self.Outputs = Wire_CreateOutputs(self.Entity,{ "Deployed" })
-		Wire_TriggerOutput(self.Entity,"Deployed", self.Deployed)
-		--Wire_TriggerOutput(self.Entity,"Force", self.force)
+		self.Inputs = Wire_CreateInputs(self,{ "Force", "Lenght", "Weld?", "Popable?", "Deploy" })
+		self.Outputs = Wire_CreateOutputs(self,{ "Deployed" })
+		Wire_TriggerOutput(self,"Deployed", self.Deployed)
+		--Wire_TriggerOutput(self,"Force", self.force)
 	end
-	local phys = self.Entity:GetPhysicsObject()
+	local phys = self:GetPhysicsObject()
 	if(phys:IsValid()) then
 		phys:SetMass(250)
 		phys:Wake()
@@ -67,13 +67,13 @@ function ENT:TriggerInput(key,value)
 				self:DeployBalloons()
 				self.Deployed = 1
 			end
-			Wire_TriggerOutput(self.Entity, "Deployed", self.Deployed)
+			Wire_TriggerOutput(self, "Deployed", self.Deployed)
 		else
 			if self.Deployed ~= 0 then
 				self:RetractBalloons()
 				self.Deployed = 0
 			end
-			Wire_TriggerOutput(self.Entity, "Deployed", self.Deployed)
+			Wire_TriggerOutput(self, "Deployed", self.Deployed)
 		end
 	elseif (key == "Force") then
 		self.force = value
@@ -113,11 +113,11 @@ function ENT:DeployBalloons()
 	balloon:SetForce(self.force)
 	balloon:SetMaterial("models/balloon/balloon")
 	balloon:SetPlayer(self:GetPlayer())
-	duplicator.DoGeneric(balloon,{Pos = self.Entity:GetPos() + (self.Entity:GetUp()*25)})
+	duplicator.DoGeneric(balloon,{Pos = self:GetPos() + (self:GetUp()*25)})
 	duplicator.DoGenericPhysics(balloon,pl,{Pos = Pos})
-	local spawnervec = (self.Entity:GetPos()-balloon:GetPos()):Normalize()*250 --just to be sure
+	local spawnervec = (self:GetPos()-balloon:GetPos()):Normalize()*250 --just to be sure
 	local trace = util.QuickTrace(balloon:GetPos(),spawnervec,balloon)
-	local Pos = self.Entity:GetPos()+(self.Entity:GetUp()*25)
+	local Pos = self:GetPos()+(self:GetUp()*25)
 	local attachpoint = Pos + Vector(0,0,-10)
 	local LPos1 = balloon:WorldToLocal(attachpoint)
 	local LPos2 = trace.Entity:WorldToLocal(trace.HitPos)
@@ -133,17 +133,17 @@ function ENT:DeployBalloons()
 		balloon:DeleteOnRemove(constraint)
 		balloon:DeleteOnRemove(rope)
 	end
-	self.Entity:DeleteOnRemove(balloon)
+	self:DeleteOnRemove(balloon)
 	self.Balloon = balloon
 
-	balloon_registry[balloon] = self.Entity
+	balloon_registry[balloon] = self
 end
 
 function ENT:OnRemove()
 	if self.Balloon then
 		balloon_registry[self.Balloon] = nil
 	end
-	Wire_Remove(self.Entity)
+	Wire_Remove(self)
 end
 
 function ENT:RetractBalloons()

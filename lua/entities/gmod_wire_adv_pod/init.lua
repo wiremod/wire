@@ -26,16 +26,16 @@ end)
 
 
 function ENT:Initialize()
-	--self.Entity:SetModel( MODEL )
-	self.Entity:PhysicsInit( SOLID_VPHYSICS )
-	self.Entity:SetMoveType( MOVETYPE_VPHYSICS )
-	self.Entity:SetSolid( SOLID_VPHYSICS )
-	self.Entity:SetUseType(SIMPLE_USE)
+	--self:SetModel( MODEL )
+	self:PhysicsInit( SOLID_VPHYSICS )
+	self:SetMoveType( MOVETYPE_VPHYSICS )
+	self:SetSolid( SOLID_VPHYSICS )
+	self:SetUseType(SIMPLE_USE)
 
 	self.lockvar = 0
 	self.disablevar = false
 	self.crossvar = false
-	self.Entity:SetColor( 255, 0, 0, 255 )
+	self:SetColor( 255, 0, 0, 255 )
 
 	local outputs = {
 		--aim
@@ -69,9 +69,9 @@ function ENT:Initialize()
 		end
 	end
 
-	//self.Outputs = Wire_CreateOutputs( self.Entity, outputs )
-	self.Outputs = WireLib.CreateSpecialOutputs(self.Entity, outputs, outputtypes)
-	self.Inputs = Wire_CreateInputs( self.Entity, { "Lock", "Terminate", "Strip weapons", "Eject", "Disable", "Crosshairs", "Brake", "Allow Buttons", "Relative", "Damage Health", "Damage Armor"} )
+	//self.Outputs = Wire_CreateOutputs( self, outputs )
+	self.Outputs = WireLib.CreateSpecialOutputs(self, outputs, outputtypes)
+	self.Inputs = Wire_CreateInputs( self, { "Lock", "Terminate", "Strip weapons", "Eject", "Disable", "Crosshairs", "Brake", "Allow Buttons", "Relative", "Damage Health", "Damage Armor"} )
 	self:SetOverlayText( "Adv. Pod Controller" )
 
 	self.pushbuttons = false
@@ -201,9 +201,9 @@ local function fixupangle(angle)
 end
 
 function ENT:Think()
-	local _,_,_,coloralpha = self.Entity:GetColor()
+	local _,_,_,coloralpha = self:GetColor()
 	if self.Pod and self.Pod:IsValid() then
-		Wire_TriggerOutput( self.Entity, "Entity", self.Pod )
+		Wire_TriggerOutput( self, "Entity", self.Pod )
 		local Ply = nil
 		if self.RC then
 			if !self.Pod:Alive() then self.Pod.Active = false end
@@ -230,24 +230,24 @@ function ENT:Think()
 			end
 			self.Ply = Ply
 			if temp then self.Ply.Initial = self.Ply:GetAimVector():Angle() end
-			self.Entity:SetColor( 0, 255, 0, coloralpha )
-			Wire_TriggerOutput(self.Entity, "Active", 1)
-			Wire_TriggerOutput(self.Entity, "ThirdPerson", self.Ply:GetInfoNum("gmod_vehicle_viewmode", 0))
+			self:SetColor( 0, 255, 0, coloralpha )
+			Wire_TriggerOutput(self, "Active", 1)
+			Wire_TriggerOutput(self, "ThirdPerson", self.Ply:GetInfoNum("gmod_vehicle_viewmode", 0))
 
 			if not self.disablevar then
 				for index,output,inkey in ipairs_map(keys, unpack) do
 					if not self.disablevar and self.Ply:KeyDownLast( inkey ) then
-						Wire_TriggerOutput( self.Entity, output, 1 )
+						Wire_TriggerOutput( self, output, 1 )
 					else
-						Wire_TriggerOutput( self.Entity, output, 0 )
+						Wire_TriggerOutput( self, output, 0 )
 					end
 				end
 			end
 
 			--player info
-			Wire_TriggerOutput(self.Entity, "Team", self.Ply:Team())
-			Wire_TriggerOutput(self.Entity, "Health", self.Ply:Health())
-			Wire_TriggerOutput(self.Entity, "Armor", self.Ply:Armor())
+			Wire_TriggerOutput(self, "Team", self.Ply:Team())
+			Wire_TriggerOutput(self, "Health", self.Ply:Health())
+			Wire_TriggerOutput(self, "Armor", self.Ply:Armor())
 
 			if self.junkBE then --all this info is garbage while the player is entering the pod, junk it for the first 2 second
 				if self.junkBE < CurTime() then self.junkBE = nil end
@@ -257,12 +257,12 @@ function ENT:Think()
 				local EyeTrace = util.TraceLine( trace )
 				self.VPos = EyeTrace.HitPos
 				local dist = (EyeTrace.HitPos-self.Ply:GetShootPos()):Length()
-				Wire_TriggerOutput(self.Entity, "Distance", dist)
+				Wire_TriggerOutput(self, "Distance", dist)
 
-				Wire_TriggerOutput(self.Entity, "X", EyeTrace.HitPos.x )
-				Wire_TriggerOutput(self.Entity, "Y", EyeTrace.HitPos.y )
-				Wire_TriggerOutput(self.Entity, "Z", EyeTrace.HitPos.z )
-				Wire_TriggerOutput(self.Entity, "AimPos", EyeTrace.HitPos )
+				Wire_TriggerOutput(self, "X", EyeTrace.HitPos.x )
+				Wire_TriggerOutput(self, "Y", EyeTrace.HitPos.y )
+				Wire_TriggerOutput(self, "Z", EyeTrace.HitPos.z )
+				Wire_TriggerOutput(self, "AimPos", EyeTrace.HitPos )
 
 				local AimVectorAngle = self.Ply:GetAimVector():Angle()
 
@@ -276,11 +276,11 @@ function ENT:Think()
 					else
 						PodAngle = self.Ply.Initial
 					end
-					Wire_TriggerOutput(self.Entity, "Bearing", fixupangle((AimVectorAngle.y - PodAngle.y)))
-					Wire_TriggerOutput(self.Entity, "Elevation", fixupangle(-(AimVectorAngle.p - PodAngle.p)))
+					Wire_TriggerOutput(self, "Bearing", fixupangle((AimVectorAngle.y - PodAngle.y)))
+					Wire_TriggerOutput(self, "Elevation", fixupangle(-(AimVectorAngle.p - PodAngle.p)))
 				else
-					Wire_TriggerOutput(self.Entity, "Bearing", fixupangle((AimVectorAngle.y)))
-					Wire_TriggerOutput(self.Entity, "Elevation", fixupangle(-AimVectorAngle.p))
+					Wire_TriggerOutput(self, "Bearing", fixupangle((AimVectorAngle.y)))
+					Wire_TriggerOutput(self, "Elevation", fixupangle(-AimVectorAngle.p))
 				end
 
 				if self.pushbuttons then
@@ -329,37 +329,37 @@ function ENT:Think()
 			end
 		else -- if ValidEntity(Ply)
 			if self.Ply then --clear outputs
-				Wire_TriggerOutput(self.Entity, "Active", 0)
-				Wire_TriggerOutput(self.Entity, "ThirdPerson", 0)
-				self.Entity:SetColor( 255, 0, 0, coloralpha )
+				Wire_TriggerOutput(self, "Active", 0)
+				Wire_TriggerOutput(self, "ThirdPerson", 0)
+				self:SetColor( 255, 0, 0, coloralpha )
 				for index,output,inkey in ipairs_map(keys, unpack) do
-					Wire_TriggerOutput(self.Entity, output, 0)
+					Wire_TriggerOutput(self, output, 0)
 				end
 				self.Pod.Initial = nil
-				Wire_TriggerOutput(self.Entity, "Team", 0)
-				Wire_TriggerOutput(self.Entity, "Health", 0)
-				Wire_TriggerOutput(self.Entity, "Armor", 0)
-				Wire_TriggerOutput(self.Entity, "Distance", 0)
-				Wire_TriggerOutput(self.Entity, "X", 0)
-				Wire_TriggerOutput(self.Entity, "Y", 0)
-				Wire_TriggerOutput(self.Entity, "Z", 0)
-				Wire_TriggerOutput(self.Entity, "AimPos", Vector(0, 0, 0))
-				Wire_TriggerOutput(self.Entity, "Bearing", 0)
-				Wire_TriggerOutput(self.Entity, "Elevation", 0)
+				Wire_TriggerOutput(self, "Team", 0)
+				Wire_TriggerOutput(self, "Health", 0)
+				Wire_TriggerOutput(self, "Armor", 0)
+				Wire_TriggerOutput(self, "Distance", 0)
+				Wire_TriggerOutput(self, "X", 0)
+				Wire_TriggerOutput(self, "Y", 0)
+				Wire_TriggerOutput(self, "Z", 0)
+				Wire_TriggerOutput(self, "AimPos", Vector(0, 0, 0))
+				Wire_TriggerOutput(self, "Bearing", 0)
+				Wire_TriggerOutput(self, "Elevation", 0)
 				--self.Ply.Initial = nil
 			end
 			self.Ply = nil
 		end -- if ValidEntity(Ply)
 		if self.disablevar then
 			for index,output,inkey in ipairs_map(keys, unpack) do
-				Wire_TriggerOutput( self.Entity, output, 0 )
+				Wire_TriggerOutput( self, output, 0 )
 			end
-			Wire_TriggerOutput(self.Entity, "Disabled", 1)
+			Wire_TriggerOutput(self, "Disabled", 1)
 		else
-			Wire_TriggerOutput(self.Entity, "Disabled", 0)
+			Wire_TriggerOutput(self, "Disabled", 0)
 		end
 	end
-	self.Entity:NextThink(CurTime() + 0.01)
+	self:NextThink(CurTime() + 0.01)
 	return true
 end
 

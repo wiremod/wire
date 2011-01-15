@@ -13,10 +13,10 @@ ENT.OverlayDelay = 0
 ---------------------------------------------------------]]
 function ENT:Initialize()
 
-	self.Entity:PhysicsInit( SOLID_VPHYSICS )
-	self.Entity:SetMoveType( MOVETYPE_VPHYSICS )
-	self.Entity:SetSolid( SOLID_VPHYSICS )
-	self.Entity:SetUseType( SIMPLE_USE )
+	self:PhysicsInit( SOLID_VPHYSICS )
+	self:SetMoveType( MOVETYPE_VPHYSICS )
+	self:SetSolid( SOLID_VPHYSICS )
+	self:SetUseType( SIMPLE_USE )
 
 	self:SetToggle( false )
 
@@ -27,7 +27,7 @@ function ENT:Initialize()
 	self.SpeedMod = 0
 	self.Go = 0
 
-	self.Inputs = Wire_CreateInputs(self.Entity, { "A: Go", "B: Break", "C: SpeedMod" })
+	self.Inputs = Wire_CreateInputs(self, { "A: Go", "B: Break", "C: SpeedMod" })
 
 end
 
@@ -57,9 +57,9 @@ end
 ---------------------------------------------------------]]
 function ENT:SetAxis( vec )
 
-	self.Axis = self.Entity:GetPos() + vec * 512
-	self.Axis = self.Entity:NearestPoint( self.Axis )
-	self.Axis = self.Entity:WorldToLocal( self.Axis )
+	self.Axis = self:GetPos() + vec * 512
+	self.Axis = self:NearestPoint( self.Axis )
+	self.Axis = self:WorldToLocal( self.Axis )
 
 end
 
@@ -103,7 +103,7 @@ end
 ---------------------------------------------------------]]
 function ENT:OnTakeDamage( dmginfo )
 
-	self.Entity:TakePhysicsDamage( dmginfo )
+	self:TakePhysicsDamage( dmginfo )
 
 end
 
@@ -115,7 +115,7 @@ end
 function ENT:GetMotor()
 
 	if (!self.Motor) then
-		self.Motor = constraint.FindConstraintEntity( self.Entity, "Motor" )
+		self.Motor = constraint.FindConstraintEntity( self, "Motor" )
 		if (!self.Motor or !self.Motor:IsValid()) then
 			self.Motor = nil
 		end
@@ -126,7 +126,7 @@ end
 
 
 function ENT:SetDirection( dir )
-	self.Entity:SetNetworkedInt( 1, dir )
+	self:SetNetworkedInt( 1, dir )
 	self.Direction = dir
 end
 
@@ -158,7 +158,7 @@ end
 function ENT:Forward( mul )
 
 	-- Is this key invalid now? If so return false to remove it
-	if ( !self.Entity:IsValid() ) then return false end
+	if ( !self:IsValid() ) then return false end
 	local Motor = self:GetMotor()
 	if ( Motor and !Motor:IsValid() ) then
 		Msg("Wheel doesn't have a motor!\n");
@@ -259,7 +259,7 @@ function ENT:DoDirectionEffect()
 
 	local effectdata = EffectData()
 		effectdata:SetOrigin( self.Axis )
-		effectdata:SetEntity( self.Entity )
+		effectdata:SetEntity( self )
 		effectdata:SetScale( Motor.direction )
 	util.Effect( "wheel_indicator", effectdata, true, true )
 

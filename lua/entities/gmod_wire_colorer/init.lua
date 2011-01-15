@@ -8,17 +8,17 @@ ENT.WireDebugName = "Colorer"
 
 
 function ENT:Initialize()
-	self.Entity:PhysicsInit( SOLID_VPHYSICS )
-	self.Entity:SetMoveType( MOVETYPE_VPHYSICS )
-	self.Entity:SetSolid( SOLID_VPHYSICS )
-	self.Inputs = WireLib.CreateSpecialInputs(self.Entity, { "Fire", "R", "G", "B", "A", "RGB" }, {"NORMAL", "NORMAL", "NORMAL", "NORMAL", "NORMAL", "VECTOR"})
-	self.Outputs = Wire_CreateOutputs(self.Entity, {"Out"})
+	self:PhysicsInit( SOLID_VPHYSICS )
+	self:SetMoveType( MOVETYPE_VPHYSICS )
+	self:SetSolid( SOLID_VPHYSICS )
+	self.Inputs = WireLib.CreateSpecialInputs(self, { "Fire", "R", "G", "B", "A", "RGB" }, {"NORMAL", "NORMAL", "NORMAL", "NORMAL", "NORMAL", "VECTOR"})
+	self.Outputs = Wire_CreateOutputs(self, {"Out"})
 	self.InColor = Color(255, 255, 255, 255)
 	self:SetBeamLength(2048)
 end
 
 function ENT:OnRemove()
-	Wire_Remove(self.Entity)
+	Wire_Remove(self)
 end
 
 function ENT:Setup(outColor,Range)
@@ -29,7 +29,7 @@ function ENT:Setup(outColor,Range)
 		table.insert(onames, "G")
 		table.insert(onames, "B")
 		table.insert(onames, "A")
-		Wire_AdjustOutputs(self.Entity, onames)
+		Wire_AdjustOutputs(self, onames)
 	end
 	self:SetBeamLength(Range)
 	self:ShowOutput()
@@ -48,13 +48,13 @@ end
 function ENT:TriggerInput(iname, value)
 	if iname == "Fire" then
 		if value ~= 0 then
-			local vStart = self.Entity:GetPos()
-			local vForward = self.Entity:GetUp()
+			local vStart = self:GetPos()
+			local vForward = self:GetUp()
 
 			local trace = {}
 				trace.start = vStart
 				trace.endpos = vStart + (vForward * self:GetBeamLength())
-				trace.filter = { self.Entity }
+				trace.filter = { self }
 			local trace = util.TraceLine( trace )
 
 			if !CheckPP( self.pl, trace.Entity ) then return end
@@ -90,31 +90,31 @@ function ENT:ShowOutput()
 end
 
 function ENT:OnRestore()
-	Wire_Restored(self.Entity)
+	Wire_Restored(self)
 end
 
 function ENT:Think()
 	self.BaseClass.Think(self)
 	if self.Outputs["R"]then
-		local vStart = self.Entity:GetPos()
-		local vForward = self.Entity:GetUp()
+		local vStart = self:GetPos()
+		local vForward = self:GetUp()
 
 		local trace = {}
 			trace.start = vStart
 			trace.endpos = vStart + (vForward * self:GetBeamLength())
-			trace.filter = { self.Entity }
+			trace.filter = { self }
 		local trace = util.TraceLine( trace )
 
 		if !IsValid( trace.Entity ) then return end
 		local r,g,b,a = trace.Entity:GetColor()
 
-		Wire_TriggerOutput(self.Entity,"R", r)
-		Wire_TriggerOutput(self.Entity,"G", g)
-		Wire_TriggerOutput(self.Entity,"B", b)
-		Wire_TriggerOutput(self.Entity,"A", a)
+		Wire_TriggerOutput(self,"R", r)
+		Wire_TriggerOutput(self,"G", g)
+		Wire_TriggerOutput(self,"B", b)
+		Wire_TriggerOutput(self,"A", a)
 
 		self:ShowOutput()
 	end
-	self.Entity:NextThink(CurTime() + 0.05)
+	self:NextThink(CurTime() + 0.05)
 	return true
 end

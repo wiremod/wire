@@ -11,13 +11,13 @@ function ENT:OnRemove()
 end
 
 function ENT:Initialize()
-	self.Entity:PhysicsInit(SOLID_VPHYSICS)
-	self.Entity:SetMoveType(MOVETYPE_VPHYSICS)
-	self.Entity:SetSolid(SOLID_VPHYSICS)
-	self.Entity:SetUseType(SIMPLE_USE)
+	self:PhysicsInit(SOLID_VPHYSICS)
+	self:SetMoveType(MOVETYPE_VPHYSICS)
+	self:SetSolid(SOLID_VPHYSICS)
+	self:SetUseType(SIMPLE_USE)
 
-	self.Outputs = Wire_CreateOutputs(self.Entity, { "Data" })
-	self.Inputs = Wire_CreateInputs(self.Entity, { "Clk", "AddrRead", "AddrWrite", "Data" })
+	self.Outputs = Wire_CreateOutputs(self, { "Data" })
+	self.Inputs = Wire_CreateInputs(self, { "Clk", "AddrRead", "AddrWrite", "Data" })
 
 	self.Clk = 0
 	self.AWrite = 0
@@ -270,7 +270,7 @@ function ENT:TriggerInput(iname, value)
 			if (self.ARead == self.AWrite) then
 				local val = self:ReadCell(self.ARead)
 				if (val) then
-					Wire_TriggerOutput(self.Entity, "Data", val)
+					Wire_TriggerOutput(self, "Data", val)
 					self.Out = val
 				end
 			end
@@ -279,7 +279,7 @@ function ENT:TriggerInput(iname, value)
 		self.ARead = value
 		local val = self:ReadCell(value)
 		if (val) then
-			Wire_TriggerOutput(self.Entity, "Data", val)
+			Wire_TriggerOutput(self, "Data", val)
 			self.Out = val
 		end
 	elseif (iname == "AddrWrite") then
@@ -294,7 +294,7 @@ function ENT:TriggerInput(iname, value)
 			if (self.ARead == self.AWrite) then
 				local val = self:ReadCell(self.ARead)
 				if (val) then
-					Wire_TriggerOutput(self.Entity, "Data", val)
+					Wire_TriggerOutput(self, "Data", val)
 					self.Out = val
 				end
 			end

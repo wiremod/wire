@@ -15,12 +15,12 @@ ENT.AdminSpawnable = false
 ---------------------------------------------------------*/
 function ENT:SetEffect( value )
 	if value ~= self.datanstuff.effect then
-		self.Entity:SetNWInt( "Effect", value )
+		self:SetNWInt( "Effect", value )
 		self.datanstuff.effect = value
 	end
 end
 function ENT:GetEffect()
-	return self.Entity:GetNWInt( "Effect" )
+	return self:GetNWInt( "Effect" )
 end
 
 /*---------------------------------------------------------
@@ -28,12 +28,12 @@ end
 ---------------------------------------------------------*/
 function ENT:SetDelay( f )
 	if f ~= self.datanstuff.delay then
-		self.Entity:SetNWFloat( "Delay", f )
+		self:SetNWFloat( "Delay", f )
 		self.datanstuff.delay=f
 	end
 end
 function ENT:GetDelay()
-	return self.Entity:GetNWFloat( "Delay" )
+	return self:GetNWFloat( "Delay" )
 end
 
 /*---------------------------------------------------------
@@ -41,13 +41,13 @@ end
 ---------------------------------------------------------*/
 --function ENT:SetFXPos( pos )
 --	if pos ~= self.datanstuff.pos then
---		self.Entity:SetNWVector( "FXPos", pos )
+--		self:SetNWVector( "FXPos", pos )
 --		self.datanstuff.pos = pos
 --	end
 --end
 function ENT:GetFXPos()
-	--return self.Entity:GetNWVector( "FXPos" )
-	return self.Entity:GetPos()
+	--return self:GetNWVector( "FXPos" )
+	return self:GetPos()
 end
 
 /*---------------------------------------------------------
@@ -55,12 +55,12 @@ end
 ---------------------------------------------------------*/
 function ENT:SetFXDir( dir )
 	if dir ~= self.datanstuff.dir then
-		self.Entity:SetNWVector( "FXDir", dir:Normalize() )
+		self:SetNWVector( "FXDir", dir:Normalize() )
 		self.datanstuff.dir = dir
 	end
 end
 function ENT:GetFXDir()
-	return self.Entity:GetNWVector( "FXDir" )
+	return self:GetNWVector( "FXDir" )
 end
 
 /*---------------------------------------------------------
@@ -68,12 +68,12 @@ end
 ---------------------------------------------------------*/
 function ENT:SetOn( b )
 	if b ~= self.datanstuff.on then
-		self.Entity:SetNWInt( "On", b )
+		self:SetNWInt( "On", b )
 		self.datanstuff.on = b
 	end
 end
 function ENT:GetOn()
-	return self.Entity:GetNWInt( "On" )
+	return self:GetNWInt( "On" )
 end
 
 

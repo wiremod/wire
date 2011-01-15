@@ -7,10 +7,10 @@ include('shared.lua')
 ENT.WireDebugName = "Igniter"
 
 function ENT:Initialize()
-	self.Entity:PhysicsInit( SOLID_VPHYSICS )
-	self.Entity:SetMoveType( MOVETYPE_VPHYSICS )
-	self.Entity:SetSolid( SOLID_VPHYSICS )
-	self.Inputs = Wire_CreateInputs(self.Entity, { "A", "Length" })
+	self:PhysicsInit( SOLID_VPHYSICS )
+	self:SetMoveType( MOVETYPE_VPHYSICS )
+	self:SetSolid( SOLID_VPHYSICS )
+	self.Inputs = Wire_CreateInputs(self, { "A", "Length" })
 	self.IgniteLength = 10
 	self.TargetPlayers = false
 	self:SetBeamLength(2048)
@@ -18,7 +18,7 @@ function ENT:Initialize()
 end
 
 function ENT:OnRemove()
-	Wire_Remove(self.Entity)
+	Wire_Remove(self)
 end
 
 function ENT:Setup(trgply,Range)
@@ -29,13 +29,13 @@ end
 function ENT:TriggerInput(iname, value)
 	if (iname == "A") then
 		if (value ~= 0) then
-			local vStart = self.Entity:GetPos()
-			local vForward = self.Entity:GetUp()
+			local vStart = self:GetPos()
+			local vForward = self:GetUp()
 
 			local trace = {}
 				trace.start = vStart
 				trace.endpos = vStart + (vForward * self:GetBeamLength())
-				trace.filter = { self.Entity }
+				trace.filter = { self }
 			local trace = util.TraceLine( trace )
 
 			local svarTargetPlayers = false
@@ -65,7 +65,7 @@ function ENT:ShowOutput()
 end
 
 function ENT:OnRestore()
-	Wire_Restored(self.Entity)
+	Wire_Restored(self)
 end
 
 

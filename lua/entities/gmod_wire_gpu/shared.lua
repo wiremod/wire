@@ -12,7 +12,7 @@ ENT.AdminSpawnable  = false
 
 
 function ENT:InitGraphicTablet()
-	local model = tostring(self.Entity:GetModel())
+	local model = tostring(self:GetModel())
 
 	if WireGPU_Monitors[model] then
 		self.x1 = WireGPU_Monitors[model].x1

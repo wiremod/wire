@@ -7,19 +7,19 @@ include('shared.lua')
 ENT.WireDebugName = "Thruster"
 
 function ENT:Initialize()
-	self.Entity:PhysicsInit( SOLID_VPHYSICS )
-	self.Entity:SetMoveType( MOVETYPE_VPHYSICS )
-	self.Entity:SetSolid( SOLID_VPHYSICS )
+	self:PhysicsInit( SOLID_VPHYSICS )
+	self:SetMoveType( MOVETYPE_VPHYSICS )
+	self:SetSolid( SOLID_VPHYSICS )
 
-	self.Entity:DrawShadow( false )
+	self:DrawShadow( false )
 
-	local phys = self.Entity:GetPhysicsObject()
+	local phys = self:GetPhysicsObject()
 	if (phys:IsValid()) then
 		phys:Wake()
 	end
 
-	local max = self.Entity:OBBMaxs()
-	local min = self.Entity:OBBMins()
+	local max = self:OBBMaxs()
+	local min = self:OBBMins()
 
 	self.ThrustOffset 	= Vector( 0, 0, max.z )
 	self.ThrustOffsetR 	= Vector( 0, 0, min.z )
@@ -31,11 +31,11 @@ function ENT:Initialize()
 	self.UWEffect = "same"
 
 	self:SetOffset( self.ThrustOffset )
-	self.Entity:StartMotionController()
+	self:StartMotionController()
 
 	self:Switch( false )
 
-	self.Inputs = Wire_CreateInputs(self.Entity, { "A" })
+	self.Inputs = Wire_CreateInputs(self, { "A" })
 
 	self.SoundName = Sound( "PhysicsCannister.ThrusterLoop" )
 end
@@ -44,7 +44,7 @@ function ENT:OnRemove()
 	self.BaseClass.OnRemove(self)
 
 	if (self.SoundName and self.SoundName != "") then
-		self.Entity:StopSound(self.SoundName)
+		self:StopSound(self.SoundName)
 	end
 end
 
@@ -55,7 +55,7 @@ function ENT:SetForce( force, mul )
 	end
 	mul = mul or 1
 
-	local phys = self.Entity:GetPhysicsObject()
+	local phys = self:GetPhysicsObject()
 	if (!phys:IsValid()) then
 		Msg("Warning: [gmod_thruster] Physics object isn't valid!\n")
 		return
@@ -76,8 +76,8 @@ function ENT:SetForce( force, mul )
 		self:SetOffset( self.ThrustOffsetR )
 	end
 
---	self.Entity:SetNetworkedVector( 1, self.ForceAngle )
---	self.Entity:SetNetworkedVector( 2, self.ForceLinear )
+--	self:SetNetworkedVector( 1, self.ForceAngle )
+--	self:SetNetworkedVector( 2, self.ForceLinear )
 end
 
 function ENT:SetDatEffect(uwater, owater, uweffect, oweffect)
@@ -120,7 +120,7 @@ function ENT:Setup(force, force_min, force_max, oweffect, uweffect, owater, uwat
 	if (!soundname) then soundname = "" end
 
 	if (soundname == "") then
-		self.Entity:StopSound( self.SoundName )
+		self:StopSound( self.SoundName )
 	end
 
 	self.SoundName = Sound( soundname )
@@ -141,7 +141,7 @@ end
 function ENT:PhysicsSimulate( phys, deltatime )
 	if (!self:IsOn()) then return SIM_NOTHING end
 
-	if (self.Entity:WaterLevel() > 0) then
+	if (self:WaterLevel() > 0) then
 		if (not self.UWater) then
 			self:SetEffect("none")
 			return SIM_NOTHING
@@ -167,7 +167,7 @@ function ENT:PhysicsSimulate( phys, deltatime )
 end
 
 function ENT:Switch( on, mul )
-	if (!self.Entity:IsValid()) then return false end
+	if (!self:IsValid()) then return false end
 
 	local changed = (self:IsOn() ~= on)
 	self:SetOn( on )
@@ -175,8 +175,8 @@ function ENT:Switch( on, mul )
 
 	if (on) then
 		if (changed) and (self.SoundName and self.SoundName != "") then
-			self.Entity:StopSound( self.SoundName )
-			self.Entity:EmitSound( self.SoundName )
+			self:StopSound( self.SoundName )
+			self:EmitSound( self.SoundName )
 		end
 
 		self:NetSetMul( mul )
@@ -189,7 +189,7 @@ function ENT:Switch( on, mul )
 		self:SetForce( nil, mul )
 	else
 		if (self.SoundName and self.SoundName != "") then
-			self.Entity:StopSound( self.SoundName )
+			self:StopSound( self.SoundName )
 		end
 
 		/*if (self.PrevOutput) then
@@ -198,7 +198,7 @@ function ENT:Switch( on, mul )
 		end*/
 	end
 
-	local phys = self.Entity:GetPhysicsObject()
+	local phys = self:GetPhysicsObject()
 	if (phys:IsValid()) then
 		phys:Wake()
 	end
@@ -207,21 +207,21 @@ function ENT:Switch( on, mul )
 end
 
 function ENT:OnRestore()
-	local phys = self.Entity:GetPhysicsObject()
+	local phys = self:GetPhysicsObject()
 
 	if (phys:IsValid()) then
 		phys:Wake()
 	end
 
-	local max = self.Entity:OBBMaxs()
-	local min = self.Entity:OBBMins()
+	local max = self:OBBMaxs()
+	local min = self:OBBMins()
 
 	self.ThrustOffset 	= Vector( 0, 0, max.z )
 	self.ThrustOffsetR 	= Vector( 0, 0, min.z )
 	self.ForceAngle		= self.ThrustOffset:GetNormalized() * -1
 
 	self:SetOffset( self.ThrustOffset )
-	self.Entity:StartMotionController()
+	self:StartMotionController()
 
 	if (self.PrevOutput) then
 		self:Switch(true, self.PrevOutput)

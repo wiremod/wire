@@ -7,9 +7,9 @@ include('shared.lua')
 ENT.WireDebugName = "Indicator"
 
 function ENT:Initialize()
-	self.Entity:PhysicsInit( SOLID_VPHYSICS )
-	self.Entity:SetMoveType( MOVETYPE_VPHYSICS )
-	self.Entity:SetSolid( SOLID_VPHYSICS )
+	self:PhysicsInit( SOLID_VPHYSICS )
+	self:SetMoveType( MOVETYPE_VPHYSICS )
+	self:SetSolid( SOLID_VPHYSICS )
 
 	self.a = 0
 	self.ar = 0
@@ -22,7 +22,7 @@ function ENT:Initialize()
 	self.bb = 0
 	self.ba = 0
 
-	self.Inputs = Wire_CreateInputs(self.Entity, { "A" })
+	self.Inputs = Wire_CreateInputs(self, { "A" })
 end
 
 function ENT:Setup(a, ar, ag, ab, aa, b, br, bg, bb, ba, material)
@@ -51,7 +51,7 @@ function ENT:TriggerInput(iname, value)
 		local g = math.Clamp((self.bg-self.ag)*factor+self.ag, 0, 255)
 		local b = math.Clamp((self.bb-self.ab)*factor+self.ab, 0, 255)
 		local a = math.Clamp((self.ba-self.aa)*factor+self.aa, 0, 255)
-		self.Entity:SetColor(r, g, b, a)
+		self:SetColor(r, g, b, a)
 	end
 end
 

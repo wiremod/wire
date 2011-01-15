@@ -57,12 +57,12 @@ function tablevalues(tbl)
 end
 
 function ENT:Initialize()
-	self.Entity:PhysicsInit(SOLID_VPHYSICS)
-	self.Entity:SetMoveType(MOVETYPE_VPHYSICS)
-	self.Entity:SetSolid(SOLID_VPHYSICS)
+	self:PhysicsInit(SOLID_VPHYSICS)
+	self:SetMoveType(MOVETYPE_VPHYSICS)
+	self:SetSolid(SOLID_VPHYSICS)
 
-	self.Inputs = WireLib.CreateInputs(self.Entity, {})
-	self.Outputs = WireLib.CreateOutputs(self.Entity, {})
+	self.Inputs = WireLib.CreateInputs(self, {})
+	self.Outputs = WireLib.CreateOutputs(self, {})
 
 	self:SetOverlayText("Expression 2\n(none)")
 	local r,g,b,a = self:GetColor()
@@ -124,7 +124,7 @@ end
 
 function ENT:Think()
 	self.BaseClass.Think(self)
-	self.Entity:NextThink(CurTime())
+	self:NextThink(CurTime())
 
 	if self.context and not self.error then
 		self.context.prfbench = self.context.prfbench * 0.95 + self.context.prf * 0.05
@@ -224,8 +224,8 @@ function ENT:ResetContext()
 	}
 	self._vars = self.context.vars
 
-	self.Inputs = WireLib.AdjustSpecialInputs(self.Entity, self.inports[1], self.inports[2])
-	self.Outputs = WireLib.AdjustSpecialOutputs(self.Entity, self.outports[1], self.outports[2])
+	self.Inputs = WireLib.AdjustSpecialInputs(self, self.inports[1], self.inports[2])
+	self.Outputs = WireLib.AdjustSpecialOutputs(self, self.outports[1], self.outports[2])
 
 	self._original = string.Replace(string.Replace(self.original,"\"","£"),"\n","€")
 	self._buffer = self.original -- TODO: is that really intended?
@@ -300,7 +300,7 @@ function ENT:Setup(buffer, restore)
 		self:Execute()
 	end
 
-	self.Entity:NextThink(CurTime())
+	self:NextThink(CurTime())
 	self:Think()
 end
 
@@ -334,9 +334,9 @@ function ENT:TriggerOutputs()
 	for key,t in pairs(self.outports[3]) do
 		if self.context.vclk[key] or self.first then
 			if wire_expression_types[t][4] then
-				WireLib.TriggerOutput(self.Entity, key, wire_expression_types[t][4](self.context, self.context.vars[key]))
+				WireLib.TriggerOutput(self, key, wire_expression_types[t][4](self.context, self.context.vars[key]))
 			else
-				WireLib.TriggerOutput(self.Entity, key, self.context.vars[key])
+				WireLib.TriggerOutput(self, key, self.context.vars[key])
 			end
 		end
 	end

@@ -13,18 +13,18 @@ ENT.OverlayDelay = 0.5
 ---------------------------------------------------------]]
 function ENT:Initialize()
 
-	self.Entity:PhysicsInit( SOLID_VPHYSICS )
-	self.Entity:SetMoveType( MOVETYPE_VPHYSICS )
-	self.Entity:SetSolid( SOLID_VPHYSICS )
+	self:PhysicsInit( SOLID_VPHYSICS )
+	self:SetMoveType( MOVETYPE_VPHYSICS )
+	self:SetSolid( SOLID_VPHYSICS )
 
-	local phys = self.Entity:GetPhysicsObject()
+	local phys = self:GetPhysicsObject()
 	if (phys:IsValid()) then
 		phys:Wake()
 	end
 
 	self.NormInfo = ""
 
-	self.Inputs = Wire_CreateInputs(self.Entity, { "Detonate" })
+	self.Inputs = Wire_CreateInputs(self, { "Detonate" })
 
 end
 
@@ -42,9 +42,9 @@ function ENT:Setup( damage, delaytime, removeafter, doblastdamage, radius, nocol
 	self.Removeafter		= removeafter
 
 	if (self.NoCollide) then
-		self.Entity:SetCollisionGroup(COLLISION_GROUP_DEBRIS_TRIGGER)
+		self:SetCollisionGroup(COLLISION_GROUP_DEBRIS_TRIGGER)
 	else
-		self.Entity:SetCollisionGroup(COLLISION_GROUP_NONE)
+		self:SetCollisionGroup(COLLISION_GROUP_NONE)
 	end
 
 	self.NormInfo = ""
@@ -64,7 +64,7 @@ end
    Desc: Entity takes damage
 ---------------------------------------------------------]]
 function ENT:OnTakeDamage( dmginfo )
-	self.Entity:TakePhysicsDamage( dmginfo )
+	self:TakePhysicsDamage( dmginfo )
 end
 
 
@@ -89,24 +89,24 @@ end
 ---------------------------------------------------------]]
 function ENT:Explode( )
 
-	if ( !self.Entity:IsValid() ) then return end
+	if ( !self:IsValid() ) then return end
 	if (self.Exploded) then return end
 
-	ply = self:GetPlayer() or self.Entity
+	ply = self:GetPlayer() or self
 
 	if ( self.DoBlastDamage ) then
-		util.BlastDamage( self.Entity, ply, self.Entity:GetPos(), self.Radius, self.Damage )
+		util.BlastDamage( self, ply, self:GetPos(), self.Radius, self.Damage )
 	end
 
 	local effectdata = EffectData()
-	 effectdata:SetOrigin( self.Entity:GetPos() )
+	 effectdata:SetOrigin( self:GetPos() )
 	util.Effect( "Explosion", effectdata, true, true )
 
 	self.Exploded = true
 	self:ShowOutput()
 
 	if ( self.Removeafter ) then
-		self.Entity:Remove()
+		self:Remove()
 		return
 	end
 

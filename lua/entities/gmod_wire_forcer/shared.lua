@@ -4,17 +4,17 @@ ENT.Base        = "base_wire_entity"
 ENT.PrintName   = "Wire Forcer"
 
 function ENT:SetForceBeam(on)
-    self.Entity:SetNetworkedBool("ForceBeam",on,true)
+    self:SetNetworkedBool("ForceBeam",on,true)
 end
 
 function ENT:GetForceBeam()
-    return self.Entity:GetNetworkedBool("ForceBeam")
+    return self:GetNetworkedBool("ForceBeam")
 end
 
 function ENT:SetBeamLength(length)
-	self.Entity:SetNetworkedFloat("BeamLength", length)
+	self:SetNetworkedFloat("BeamLength", length)
 end
 
 function ENT:GetBeamLength()
-	return self.Entity:GetNetworkedFloat("BeamLength") or 0
+	return self:GetNetworkedFloat("BeamLength") or 0
 end

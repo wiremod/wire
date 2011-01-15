@@ -8,13 +8,13 @@ ENT.WireDebugName = "Sound"
 ENT.OverlayDelay = 0
 
 function ENT:Initialize()
-	self.Entity:PhysicsInit( SOLID_VPHYSICS )
-	self.Entity:SetMoveType( MOVETYPE_VPHYSICS )
-	self.Entity:SetSolid( SOLID_VPHYSICS )
+	self:PhysicsInit( SOLID_VPHYSICS )
+	self:SetMoveType( MOVETYPE_VPHYSICS )
+	self:SetSolid( SOLID_VPHYSICS )
 
-	self.Inputs = Wire_CreateInputs(self.Entity, { "A", "Toggle", "Volume", "Play", "Stop",
+	self.Inputs = Wire_CreateInputs(self, { "A", "Toggle", "Volume", "Play", "Stop",
 		"PitchRelative", "LFOType", "LFORate", "LFOModPitch", "LFOModVolume", "Sample" })
-	self.Outputs = Wire_CreateOutputs(self.Entity, { "Memory" })
+	self.Outputs = Wire_CreateOutputs(self, { "Memory" })
 
 	self.Active = 0
 	self.Volume = 5
@@ -160,7 +160,7 @@ function ENT:SetSound(sound)
 	util.PrecacheSound(parsedsound)
 
 	self.SampleTable[0] = parsedsound
-	self.SND = CreateSound(self.Entity, Sound(self.SampleTable[0]))
+	self.SND = CreateSound(self, Sound(self.SampleTable[0]))
 	self:SetOverlayText( "Sound: " .. parsedsound:gsub("[/\\]+","/") )
 end
 
@@ -199,7 +199,7 @@ function ENT:Think()
 		end
 	end
 
-	self.Entity:NextThink(CurTime()+0.01)
+	self:NextThink(CurTime()+0.01)
 	return true
 end
 

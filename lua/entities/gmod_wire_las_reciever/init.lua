@@ -8,15 +8,15 @@ ENT.WireDebugName = "Laser Receiver"
 
 
 function ENT:Initialize()
-	self.Entity:PhysicsInit( SOLID_VPHYSICS )
-	self.Entity:SetMoveType( MOVETYPE_VPHYSICS )
-	self.Entity:SetSolid( SOLID_VPHYSICS )
-	self.Outputs = WireLib.CreateSpecialOutputs(self.Entity, {"X", "Y", "Z", "Active", "Pos", "RangerData"}, {"NORMAL", "NORMAL", "NORMAL", "NORMAL", "VECTOR", "RANGER"})
+	self:PhysicsInit( SOLID_VPHYSICS )
+	self:SetMoveType( MOVETYPE_VPHYSICS )
+	self:SetSolid( SOLID_VPHYSICS )
+	self.Outputs = WireLib.CreateSpecialOutputs(self, {"X", "Y", "Z", "Active", "Pos", "RangerData"}, {"NORMAL", "NORMAL", "NORMAL", "NORMAL", "VECTOR", "RANGER"})
 	self.VPos = Vector(0,0,0)
 end
 
 function ENT:OnRemove()
-	Wire_Remove(self.Entity)
+	Wire_Remove(self)
 end
 
 function ENT:Setup()
@@ -34,7 +34,7 @@ function ENT:ShowOutput(value)
 end
 
 function ENT:OnRestore()
-	Wire_Restored(self.Entity)
+	Wire_Restored(self)
 end
 
 function playerDeath( victim, weapon, killer)

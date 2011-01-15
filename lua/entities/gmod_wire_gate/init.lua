@@ -8,12 +8,12 @@ ENT.WireDebugName = "Gate"
 ENT.OverlayDelay = 0
 
 function ENT:Initialize()
-	self.Entity:PhysicsInit( SOLID_VPHYSICS )
-	self.Entity:SetMoveType( MOVETYPE_VPHYSICS )
-	self.Entity:SetSolid( SOLID_VPHYSICS )
+	self:PhysicsInit( SOLID_VPHYSICS )
+	self:SetMoveType( MOVETYPE_VPHYSICS )
+	self:SetSolid( SOLID_VPHYSICS )
 
-	self.Inputs = Wire_CreateInputs(self.Entity, { "A" })
-	self.Outputs = Wire_CreateOutputs(self.Entity, { "Out" })
+	self.Inputs = Wire_CreateInputs(self, { "A" })
+	self.Outputs = Wire_CreateOutputs(self, { "Out" })
 end
 
 local ENT = ENT
@@ -21,12 +21,12 @@ function ENT:Setup( action, noclip )
 	if (action) then
 		self.WireDebugName = action.name
 
-		WireLib.AdjustSpecialInputs(self.Entity, action.inputs, action.inputtypes )
+		WireLib.AdjustSpecialInputs(self, action.inputs, action.inputtypes )
 		if (action.outputs) then
-			WireLib.AdjustSpecialOutputs(self.Entity, action.outputs, action.outputtypes)
+			WireLib.AdjustSpecialOutputs(self, action.outputs, action.outputtypes)
 		else
-			//Wire_AdjustOutputs(self.Entity, { "Out" })
-			WireLib.AdjustSpecialOutputs(self.Entity, { "Out" }, action.outputtypes)
+			//Wire_AdjustOutputs(self, { "Out" })
+			WireLib.AdjustSpecialOutputs(self, { "Out" }, action.outputtypes)
 		end
 
 		if (action.reset) then
@@ -53,7 +53,7 @@ function ENT:Setup( action, noclip )
 	end
 
 	if (noclip) then
-		self.Entity:SetCollisionGroup( COLLISION_GROUP_WORLD )
+		self:SetCollisionGroup( COLLISION_GROUP_WORLD )
 	end
 
 	self.Action = action
@@ -94,7 +94,7 @@ function ENT:Think()
 		self:CalcOutput()
 		self:ShowOutput()
 
-		self.Entity:NextThink(CurTime()+0.02)
+		self:NextThink(CurTime()+0.02)
 		return true
 	end
 end
@@ -106,12 +106,12 @@ function ENT:CalcOutput(iter)
 			local result = { self.Action.output(self, unpack(self:GetActionInputs())) }
 
 			for k,v in ipairs(self.Action.outputs) do
-				Wire_TriggerOutput(self.Entity, v, result[k], iter)
+				Wire_TriggerOutput(self, v, result[k], iter)
 			end
 		else
 			local value = self.Action.output(self, unpack(self:GetActionInputs())) or 0
 
-			Wire_TriggerOutput(self.Entity, "Out", value, iter)
+			Wire_TriggerOutput(self, "Out", value, iter)
 		end
 	end
 end

@@ -10,16 +10,16 @@ ENT.OverlayDelay = 0
 local keylist = {"0","1","2","3","4","5","6","7","8","9",".","Enter","+","-","*","/"}
 
 function ENT:Initialize()
-	self.Entity:PhysicsInit( SOLID_VPHYSICS )
-	self.Entity:SetMoveType( MOVETYPE_VPHYSICS )
-	self.Entity:SetSolid( SOLID_VPHYSICS )
+	self:PhysicsInit( SOLID_VPHYSICS )
+	self:SetMoveType( MOVETYPE_VPHYSICS )
+	self:SetSolid( SOLID_VPHYSICS )
 
 	// Used to keep track of numpad.OnUp/Down returns
 	// Fixes bug where player cannot change numpad key (TheApathetic)
 	self.OnUpImpulse = nil
 	self.OnDownImpulse = nil
 
-	self.Outputs = Wire_CreateOutputs(self.Entity, { "Out" })
+	self.Outputs = Wire_CreateOutputs(self, { "Out" })
 end
 
 function ENT:Setup(keygroup, toggle, value_off, value_on)
@@ -35,12 +35,12 @@ function ENT:Setup(keygroup, toggle, value_off, value_on)
 	end
 
 	local pl = self:GetPlayer()
-	self.OnDownImpulse = numpad.OnDown( pl, keygroup, "WireInput_On", self.Entity, 1 )
-	self.OnUpImpulse = numpad.OnUp( pl, keygroup, "WireInput_Off", self.Entity, 1 )
+	self.OnDownImpulse = numpad.OnDown( pl, keygroup, "WireInput_On", self, 1 )
+	self.OnUpImpulse = numpad.OnUp( pl, keygroup, "WireInput_Off", self, 1 )
 
 
 	self:ShowOutput(self.value_off)
-	Wire_TriggerOutput(self.Entity, "Out", self.value_off)
+	Wire_TriggerOutput(self, "Out", self.value_off)
 end
 
 function ENT:InputActivate( mul )
@@ -58,7 +58,7 @@ function ENT:InputDeactivate( mul )
 end
 
 function ENT:Switch( on, mul )
-	if (!self.Entity:IsValid()) then return false end
+	if (!self:IsValid()) then return false end
 
 	self.On = on
 
@@ -70,7 +70,7 @@ function ENT:Switch( on, mul )
 		self.Value = self.value_off
 	end
 
-	Wire_TriggerOutput(self.Entity, "Out", self.Value)
+	Wire_TriggerOutput(self, "Out", self.Value)
 
 	return true
 end

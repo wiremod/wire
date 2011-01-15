@@ -7,11 +7,11 @@ include('shared.lua')
 ENT.WireDebugName = "Detonator"
 
 function ENT:Initialize()
-	self.Entity:PhysicsInit( SOLID_VPHYSICS )
-	self.Entity:SetMoveType( MOVETYPE_VPHYSICS )
-	self.Entity:SetSolid( SOLID_VPHYSICS )
+	self:PhysicsInit( SOLID_VPHYSICS )
+	self:SetMoveType( MOVETYPE_VPHYSICS )
+	self:SetSolid( SOLID_VPHYSICS )
 
-	self.Inputs = Wire_CreateInputs( self.Entity, { "Trigger" } )
+	self.Inputs = Wire_CreateInputs( self, { "Trigger" } )
 	self.Trigger = 0
 end
 
@@ -48,9 +48,9 @@ function ENT:DoDamage()
 	end
 
 	local effectdata = EffectData()
-	effectdata:SetOrigin( self.Entity:GetPos() )
+	effectdata:SetOrigin( self:GetPos() )
 	util.Effect( "Explosion", effectdata, true, true )
-	self.Entity:Remove()
+	self:Remove()
 end
 
 -- Dupe info functions added by TheApathetic

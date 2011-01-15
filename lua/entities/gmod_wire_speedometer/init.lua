@@ -8,12 +8,12 @@ ENT.WireDebugName = "Speedo"
 local MODEL = Model("models/jaanus/wiretool/wiretool_speed.mdl")
 
 function ENT:Initialize()
-	self.Entity:SetModel( MODEL )
-	self.Entity:PhysicsInit( SOLID_VPHYSICS )
-	self.Entity:SetMoveType( MOVETYPE_VPHYSICS )
-	self.Entity:SetSolid( SOLID_VPHYSICS )
+	self:SetModel( MODEL )
+	self:PhysicsInit( SOLID_VPHYSICS )
+	self:SetMoveType( MOVETYPE_VPHYSICS )
+	self:SetSolid( SOLID_VPHYSICS )
 
-	self.Outputs = Wire_CreateOutputs(self.Entity, { "Out", "MPH", "KPH" })
+	self.Outputs = Wire_CreateOutputs(self, { "Out", "MPH", "KPH" })
 end
 
 function ENT:Setup( xyz_mode, AngVel )
@@ -31,34 +31,34 @@ function ENT:Setup( xyz_mode, AngVel )
 	if (AngVel) then
 		table.Add(outs, {"AngVel_P", "AngVel_Y", "AngVel_R" } )
 	end
-	Wire_AdjustOutputs(self.Entity, outs)
+	Wire_AdjustOutputs(self, outs)
 end
 
 function ENT:Think()
 	self.BaseClass.Think(self)
 
 	if (self.XYZMode) then
-		local vel = self.Entity:WorldToLocal(self.Entity:GetVelocity()+self.Entity:GetPos())
+		local vel = self:WorldToLocal(self:GetVelocity()+self:GetPos())
 		if (COLOSSAL_SANDBOX) then vel = vel * 6.25 end
-		Wire_TriggerOutput(self.Entity, "X", -vel.y)
-		Wire_TriggerOutput(self.Entity, "Y", vel.x)
-		Wire_TriggerOutput(self.Entity, "Z", vel.z)
+		Wire_TriggerOutput(self, "X", -vel.y)
+		Wire_TriggerOutput(self, "Y", vel.x)
+		Wire_TriggerOutput(self, "Z", vel.z)
 	else
-		local vel = self.Entity:GetVelocity():Length()
+		local vel = self:GetVelocity():Length()
 		if (COLOSSAL_SANDBOX) then vel = vel * 6.25 end
-		Wire_TriggerOutput(self.Entity, "Out", vel) // vel = Source Units / sec, Source Units = Inch * 0.75 , more info here: http://developer.valvesoftware.com/wiki/Dimensions#Map_Grid_Units:_quick_reference
-		Wire_TriggerOutput(self.Entity, "MPH", vel * 3600 / 63360 * 0.75)
-		Wire_TriggerOutput(self.Entity, "KPH", vel * 3600 * 0.0000254 * 0.75)
+		Wire_TriggerOutput(self, "Out", vel) // vel = Source Units / sec, Source Units = Inch * 0.75 , more info here: http://developer.valvesoftware.com/wiki/Dimensions#Map_Grid_Units:_quick_reference
+		Wire_TriggerOutput(self, "MPH", vel * 3600 / 63360 * 0.75)
+		Wire_TriggerOutput(self, "KPH", vel * 3600 * 0.0000254 * 0.75)
 	end
 
 	if (self.AngVel) then
-		local ang = self.Entity:GetPhysicsObject():GetAngleVelocity()
-		Wire_TriggerOutput(self.Entity, "AngVel_P", ang.y)
-		Wire_TriggerOutput(self.Entity, "AngVel_Y", ang.z)
-		Wire_TriggerOutput(self.Entity, "AngVel_R", ang.x)
+		local ang = self:GetPhysicsObject():GetAngleVelocity()
+		Wire_TriggerOutput(self, "AngVel_P", ang.y)
+		Wire_TriggerOutput(self, "AngVel_Y", ang.z)
+		Wire_TriggerOutput(self, "AngVel_R", ang.x)
 	end
 
-	self.Entity:NextThink(CurTime()+0.04)
+	self:NextThink(CurTime()+0.04)
 	return true
 end
 

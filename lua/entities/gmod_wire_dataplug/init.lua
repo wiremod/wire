@@ -9,18 +9,18 @@ local MODEL = Model( "models/hammy/pci_card.mdl" )
 ENT.WireDebugName = "DataPlug"
 
 function ENT:Initialize()
-	self.Entity:SetModel( MODEL )
-	self.Entity:PhysicsInit( SOLID_VPHYSICS )
-	self.Entity:SetMoveType( MOVETYPE_VPHYSICS )
-	self.Entity:SetSolid( SOLID_VPHYSICS )
+	self:SetModel( MODEL )
+	self:PhysicsInit( SOLID_VPHYSICS )
+	self:SetMoveType( MOVETYPE_VPHYSICS )
+	self:SetSolid( SOLID_VPHYSICS )
 
 	self.MySocket = nil
 	self.Memory = nil
 
-	self.Inputs = Wire_CreateInputs(self.Entity, { "Memory" })
-	self.Outputs = Wire_CreateOutputs(self.Entity, { "Connected" })
+	self.Inputs = Wire_CreateInputs(self, { "Memory" })
+	self.Outputs = Wire_CreateOutputs(self, { "Connected" })
 	self:SetOverlayText( "Data plug" )
-	Wire_TriggerOutput(self.Entity, "Connected", 0)
+	Wire_TriggerOutput(self, "Connected", 0)
 end
 
 function ENT:ReadCell( Address )
@@ -61,7 +61,7 @@ function ENT:Setup(a,ar,ag,ab,aa)
 	self.AG = ag or 0
 	self.AB = ab or 0
 	self.AA = aa or 255
-	self.Entity:SetColor(ar, ag, ab, aa)
+	self:SetColor(ar, ag, ab, aa)
 end
 
 function ENT:TriggerInput(iname, value, iter)
@@ -78,13 +78,13 @@ function ENT:SetSocket(socket)
 	if (self.MySocket) and (self.MySocket:IsValid()) then
 		self.MySocket:SetMemory(self.Memory)
 	else
-		Wire_TriggerOutput(self.Entity, "Connected", 0)
+		Wire_TriggerOutput(self, "Connected", 0)
 	end
 end
 
 function ENT:AttachedToSocket(socket)
 	socket:SetMemory(self.Memory)
-	Wire_TriggerOutput(self.Entity, "Connected", 1)
+	Wire_TriggerOutput(self, "Connected", 1)
 end
 
 function ENT:OnRestore()

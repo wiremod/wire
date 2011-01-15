@@ -8,18 +8,18 @@ ENT.OverlayDelay = 0
 
 function ENT:Initialize()
 	-- Make Physics work
-	self.Entity:PhysicsInit( SOLID_VPHYSICS )
-	self.Entity:SetMoveType( MOVETYPE_VPHYSICS )
-	self.Entity:SetSolid( SOLID_VPHYSICS )
+	self:PhysicsInit( SOLID_VPHYSICS )
+	self:SetMoveType( MOVETYPE_VPHYSICS )
+	self:SetSolid( SOLID_VPHYSICS )
 	-- set it so we don't colide
 	self:SetCollisionGroup( COLLISION_GROUP_WORLD )
 	self.CollisionGroup = COLLISION_GROUP_WORLD
 	-- turn off shadow
-	self.Entity:DrawShadow(false)
+	self:DrawShadow(false)
 
 	-- Set wire I/O
-	self.Entity.Inputs = WireLib.CreateSpecialInputs(self.Entity, { "Enable", "SetPitch", "SetYaw", "SetViewAngle" }, {"NORMAL", "NORMAL", "NORMAL", "ANGLE"})
-	self.Entity.Outputs = WireLib.CreateSpecialOutputs(self.Entity, { "X", "Y", "XY" }, {"NORMAL", "NORMAL", "VECTOR2"})
+	self.Inputs = WireLib.CreateSpecialInputs(self, { "Enable", "SetPitch", "SetYaw", "SetViewAngle" }, {"NORMAL", "NORMAL", "NORMAL", "ANGLE"})
+	self.Outputs = WireLib.CreateSpecialOutputs(self, { "X", "Y", "XY" }, {"NORMAL", "NORMAL", "VECTOR2"})
 
 	-- Initialize values
 	self.driver = nil
@@ -41,7 +41,7 @@ function ENT:Initialize()
 	self.ClampX = 0
 	self.ClampY = 0
 
-	local phys = self.Entity:GetPhysicsObject()
+	local phys = self:GetPhysicsObject()
 	if phys:IsValid() then
 		phys:Wake()
 	end
@@ -96,7 +96,7 @@ function ENT:PodLink(vehicle)
 
 
 	local ttable = {
-		AttachedWireEyePod = self.Entity
+		AttachedWireEyePod = self
 	}
 	table.Merge(vehicle:GetTable(), ttable )
 	return true
@@ -137,10 +137,10 @@ function ENT:Think()
 			if (self.DefaultToZero == 1) then
 				self.X = 0
 				self.Y = 0
-				Wire_TriggerOutput(self.Entity, "X", self.X)
-				Wire_TriggerOutput(self.Entity, "Y", self.Y)
+				Wire_TriggerOutput(self, "X", self.X)
+				Wire_TriggerOutput(self, "Y", self.Y)
 				local XY_Vec = {self.X,self.Y}
-				Wire_TriggerOutput(self.Entity, "XY", XY_Vec)
+				Wire_TriggerOutput(self, "XY", XY_Vec)
 			end
 		end
 	else -- else set X and Y to 0
@@ -155,17 +155,17 @@ function ENT:Think()
 		if (self.DefaultToZero == 1) then
 			self.X = 0
 			self.Y = 0
-			Wire_TriggerOutput(self.Entity, "X", self.X)
-			Wire_TriggerOutput(self.Entity, "Y", self.Y)
+			Wire_TriggerOutput(self, "X", self.X)
+			Wire_TriggerOutput(self, "Y", self.Y)
 			local XY_Vec = {self.X,self.Y}
-			Wire_TriggerOutput(self.Entity, "XY", XY_Vec)
+			Wire_TriggerOutput(self, "XY", XY_Vec)
 		end
 		self.pod = nil
 	end
 
 	-- update the overlay with the user's name
 	local Txt = "Eye Pod Control"
-	if self.Entity.enabled == 1 and IsValid(self.driver) and self.driver:IsPlayer() then
+	if self.enabled == 1 and IsValid(self.driver) and self.driver:IsPlayer() then
 		Txt = Txt.." - In use by "..self.driver:Name()
 	else
 		Txt = Txt.." - Not Active"
@@ -177,11 +177,11 @@ function ENT:Think()
 	end
 
 	if Txt ~= self.LastOverlay then
-		self.Entity:SetNetworkedBeamString("GModOverlayText", Txt)
+		self:SetNetworkedBeamString("GModOverlayText", Txt)
 		self.LastOverlay = Txt
 	end
 
-	self.Entity:NextThink(CurTime() + 0.1)
+	self:NextThink(CurTime() + 0.1)
 
 	return true
 end
@@ -222,10 +222,10 @@ function ENT:TriggerInput(iname, value)
 		if (self.DefaultToZero == 1) then
 			self.X = 0
 			self.Y = 0
-			Wire_TriggerOutput(self.Entity, "X", self.X)
-			Wire_TriggerOutput(self.Entity, "Y", self.Y)
+			Wire_TriggerOutput(self, "X", self.X)
+			Wire_TriggerOutput(self, "Y", self.Y)
 			local XY_Vec = {self.X,self.Y}
-			Wire_TriggerOutput(self.Entity, "XY", XY_Vec)
+			Wire_TriggerOutput(self, "XY", XY_Vec)
 		end
 		if IsValid(self.driver) and IsValid(self.pod) then
 			umsg.Start("UpdateEyePodState", self.driver)
@@ -327,7 +327,7 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 			self.pod = ents.GetByIndex(info.pod)
 		end
 		if self.pod then
-			self.Entity:PodLink(self.pod)
+			self:PodLink(self.pod)
 		end
 	end
 end

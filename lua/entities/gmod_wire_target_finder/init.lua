@@ -8,12 +8,12 @@ ENT.WireDebugName = "Targetter"
 ENT.OverlayDelay = 0
 
 function ENT:Initialize()
-	self.Entity:PhysicsInit( SOLID_VPHYSICS )
-	self.Entity:SetMoveType( MOVETYPE_VPHYSICS )
-	self.Entity:SetSolid( SOLID_VPHYSICS )
+	self:PhysicsInit( SOLID_VPHYSICS )
+	self:SetMoveType( MOVETYPE_VPHYSICS )
+	self:SetSolid( SOLID_VPHYSICS )
 
-	self.Inputs = Wire_CreateInputs(self.Entity, { "Hold" })
-	self.Outputs = WireLib.CreateSpecialOutputs( self.Entity, { "Out" }, { "ENTITY" } )
+	self.Inputs = Wire_CreateInputs(self, { "Hold" })
+	self.Outputs = WireLib.CreateSpecialOutputs( self, { "Out" }, { "ENTITY" } )
 end
 
 function ENT:Setup(maxrange, players, npcs, npcname, beacons, hoverballs, thrusters, props, propmodel, vehicles, playername, casesen, rpgs, painttarget, minrange, maxtargets, maxbogeys, notargetowner, entity, notownersstuff, steamname, colorcheck, colortarget, pcolR, pcolG, pcolB, pcolA, checkbuddylist, onbuddylist )
@@ -63,7 +63,7 @@ function ENT:Setup(maxrange, players, npcs, npcname, beacons, hoverballs, thrust
 		table.insert(AdjOutputs, tostring(i).."_Ent")
 		table.insert(AdjOutputsT, "ENTITY")
 	end
-	WireLib.AdjustSpecialOutputs(self.Entity, AdjOutputs, AdjOutputsT)
+	WireLib.AdjustSpecialOutputs(self, AdjOutputs, AdjOutputsT)
 
 
 	self.Selector = {}
@@ -83,7 +83,7 @@ function ENT:Setup(maxrange, players, npcs, npcname, beacons, hoverballs, thrust
 		table.insert(AdjInputs, inputhold)
 	end
 	table.insert(AdjInputs, "Hold")
-	Wire_AdjustInputs(self.Entity, AdjInputs)
+	Wire_AdjustInputs(self, AdjInputs)
 
 
 	self:ShowOutput(false)
@@ -110,7 +110,7 @@ function ENT:GetBeaconPos(sensor)
 	if self.SelectedTargets[ch] then
 		if (not self.SelectedTargets[ch]:IsValid()) then
 			self.SelectedTargets[ch] = nil
-			Wire_TriggerOutput(self.Entity, tostring(ch), 0)
+			Wire_TriggerOutput(self, tostring(ch), 0)
 			return sensor:GetPos()
 		end
 
@@ -128,7 +128,7 @@ function ENT:GetBeaconVelocity(sensor)
 	if self.SelectedTargets[ch] then
 		if (not self.SelectedTargets[ch]:IsValid()) then
 			self.SelectedTargets[ch] = nil
-			Wire_TriggerOutput(self.Entity, tostring(ch), 0)
+			Wire_TriggerOutput(self, tostring(ch), 0)
 			return sensor:GetVelocity()
 		end
 		return self.SelectedTargets[ch]:GetVelocity()
@@ -160,8 +160,8 @@ function ENT:SelectorNext(ch)
 
 		self.SelectedTargetsSel[ch] = sel + 1
 		self.Inputs[ch.."-HoldTarget"].Value = 1 //put the channel on hold so it wont change in the next scan
-		Wire_TriggerOutput(self.Entity, tostring(ch), 1)
-		Wire_TriggerOutput(self.Entity, tostring(ch).."_Ent", self.SelectedTargets[ch])
+		Wire_TriggerOutput(self, tostring(ch), 1)
+		Wire_TriggerOutput(self, tostring(ch).."_Ent", self.SelectedTargets[ch])
 	end
 end
 
@@ -221,9 +221,9 @@ function ENT:Think()
 		self.NextTargetTime = CurTime()+1
 
 		// Find targets that meet requirements
-		local mypos = self.Entity:GetPos()
+		local mypos = self:GetPos()
 		local bogeys,dists = {},{}
-		for _,contact in pairs(ents.FindInSphere(self.Entity:GetPos(), self.MaxRange or 10)) do
+		for _,contact in pairs(ents.FindInSphere(self:GetPos(), self.MaxRange or 10)) do
 			local class = contact:GetClass()
 			if (not self.NoTargetOwnersStuff or (class == "player") or (contact:GetOwner() ~= self:GetPlayer() and not self:checkOwnership(contact))) and (
 				-- NPCs
@@ -279,12 +279,12 @@ function ENT:Think()
 				if (#self.Bogeys > 0) then
 					self.SelectedTargets[i] = table.remove(self.Bogeys, 1)
 					if (self.PaintTarget) then self:TargetPainter(self.SelectedTargets[i], true) end
-					Wire_TriggerOutput(self.Entity, tostring(i), 1)
-					Wire_TriggerOutput(self.Entity, tostring(i).."_Ent", self.SelectedTargets[i])
+					Wire_TriggerOutput(self, tostring(i), 1)
+					Wire_TriggerOutput(self, tostring(i).."_Ent", self.SelectedTargets[i])
 				else
 					self.SelectedTargets[i] = nil
-					Wire_TriggerOutput(self.Entity, tostring(i), 0)
-					Wire_TriggerOutput(self.Entity, tostring(i).."_Ent", NULL)
+					Wire_TriggerOutput(self, tostring(i), 0)
+					Wire_TriggerOutput(self, tostring(i).."_Ent", NULL)
 				end
 			end
 		end

@@ -14,12 +14,12 @@ end
 
 function ENT:Draw()
 	self:DoNormalDraw()
-	Wire_Render(self.Entity)
+	Wire_Render(self)
 end
 
 function ENT:DoNormalDraw()
 	local trace = LocalPlayer():GetEyeTrace()
-	local looked_at = trace.Entity == self.Entity and trace.Fraction*16384 < 256
+	local looked_at = trace.Entity == self and trace.Fraction*16384 < 256
 	if wire_drawoutline_bool and looked_at then
 		if self.RenderGroup == RENDERGROUP_OPAQUE then
 			self.OldRenderGroup = self.RenderGroup
@@ -44,6 +44,6 @@ end
 function ENT:Think()
 	if (CurTime() >= (self.NextRBUpdate or 0)) then
 		self.NextRBUpdate = CurTime() + math.random(30,100)/10 --update renderbounds every 3 to 10 seconds
-		Wire_UpdateRenderBounds(self.Entity)
+		Wire_UpdateRenderBounds(self)
 	end
 end

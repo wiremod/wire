@@ -12,19 +12,19 @@ ENT.AdminSpawnable  = false
 
 
 function ENT:SetNextNode(x, y)
-	local node_idx = self.Entity:GetNetworkedInt("OscN") or 0
+	local node_idx = self:GetNetworkedInt("OscN") or 0
 	if (node_idx > 102) then node_idx = node_idx-102 end
 
-	self.Entity:SetNetworkedFloat("OscX"..node_idx, x)
-	self.Entity:SetNetworkedFloat("OscY"..node_idx, y)
-	self.Entity:SetNetworkedInt("OscN", node_idx+1)
+	self:SetNetworkedFloat("OscX"..node_idx, x)
+	self:SetNetworkedFloat("OscY"..node_idx, y)
+	self:SetNetworkedInt("OscN", node_idx+1)
 end
 
 function ENT:GetNodeList()
 	local nodes = {}
-	local node_idx = self.Entity:GetNetworkedInt("OscN")
+	local node_idx = self:GetNetworkedInt("OscN")
 	for i=1,101 do
-		table.insert(nodes, { X = (self.Entity:GetNetworkedFloat("OscX"..node_idx) or 0), Y = (self.Entity:GetNetworkedFloat("OscY"..node_idx) or 0) })
+		table.insert(nodes, { X = (self:GetNetworkedFloat("OscX"..node_idx) or 0), Y = (self:GetNetworkedFloat("OscY"..node_idx) or 0) })
 
 		node_idx = node_idx+1
 		if (node_idx > 102) then node_idx = node_idx-102 end

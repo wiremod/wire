@@ -12,8 +12,8 @@ ENT.AdminSpawnable  = false
 
 
 function ENT:SetOn( bOn )
-	self.Entity:SetNetworkedBool( "OnOff", bOn, true )
+	self:SetNetworkedBool( "OnOff", bOn, true )
 end
 function ENT:IsOn()
-	return self.Entity:GetNetworkedBool( "OnOff" )
+	return self:GetNetworkedBool( "OnOff" )
 end

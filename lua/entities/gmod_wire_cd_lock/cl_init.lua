@@ -6,5 +6,5 @@ ENT.RenderGroup 		= RENDERGROUP_BOTH
 
 function ENT:Draw()
 	self.BaseClass.Draw(self)
-    Wire_Render(self.Entity)
+    Wire_Render(self)
 end

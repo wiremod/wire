@@ -7,10 +7,10 @@ include('shared.lua')
 ENT.WireDebugName = "Camera Controller"
 
 function ENT:Initialize()
-	self.Entity:PhysicsInit( SOLID_VPHYSICS )
-	self.Entity:SetMoveType( MOVETYPE_VPHYSICS )
-	self.Entity:SetSolid( SOLID_VPHYSICS )
-	self.Outputs = Wire_CreateOutputs(self.Entity, {"On", "X", "Y", "Z"})
+	self:PhysicsInit( SOLID_VPHYSICS )
+	self:SetMoveType( MOVETYPE_VPHYSICS )
+	self:SetSolid( SOLID_VPHYSICS )
+	self.Outputs = Wire_CreateOutputs(self, {"On", "X", "Y", "Z"})
 	self.Active = 0
 	self.OriginalOwner = nil
 	self.CamEnt = nil
@@ -55,7 +55,7 @@ function ENT:Setup(Player, Static)
 
 	if Static == 0 then
 		if not self:MakeDynamicCam() then return false end
-		self.Inputs = WireLib.CreateSpecialInputs(self.Entity, {"Activated", "Zoom", "X", "Y", "Z", "Pitch", "Yaw", "Roll", "Angle", "Position", "Direction", "Velocity", "Parent"}, {"NORMAL", "NORMAL", "NORMAL", "NORMAL", "NORMAL", "NORMAL", "NORMAL", "NORMAL", "ANGLE", "VECTOR", "VECTOR", "VECTOR", "ENTITY"})
+		self.Inputs = WireLib.CreateSpecialInputs(self, {"Activated", "Zoom", "X", "Y", "Z", "Pitch", "Yaw", "Roll", "Angle", "Position", "Direction", "Velocity", "Parent"}, {"NORMAL", "NORMAL", "NORMAL", "NORMAL", "NORMAL", "NORMAL", "NORMAL", "NORMAL", "ANGLE", "VECTOR", "VECTOR", "VECTOR", "ENTITY"})
 	else
 		local cam = ents.Create("prop_physics")
 		if (!cam:IsValid()) then return false end
@@ -67,7 +67,7 @@ function ENT:Setup(Player, Static)
 
 		self.CamEnt = cam
 
-		self.Inputs = Wire_CreateInputs(self.Entity, {"Activated", "Zoom"})
+		self.Inputs = Wire_CreateInputs(self, {"Activated", "Zoom"})
 		self.Static = 1
 	end
 end
@@ -85,16 +85,16 @@ function ENT:Think()
 	local trace = util.TraceLine( trace )
 
 	if trace.HitPos then
-		Wire_TriggerOutput(self.Entity, "X", trace.HitPos.x)
-		Wire_TriggerOutput(self.Entity, "Y", trace.HitPos.y)
-		Wire_TriggerOutput(self.Entity, "Z", trace.HitPos.z)
+		Wire_TriggerOutput(self, "X", trace.HitPos.x)
+		Wire_TriggerOutput(self, "Y", trace.HitPos.y)
+		Wire_TriggerOutput(self, "Z", trace.HitPos.z)
 	else
-		Wire_TriggerOutput(self.Entity, "X", 0)
-		Wire_TriggerOutput(self.Entity, "Y", 0)
-		Wire_TriggerOutput(self.Entity, "Z", 0)
+		Wire_TriggerOutput(self, "X", 0)
+		Wire_TriggerOutput(self, "Y", 0)
+		Wire_TriggerOutput(self, "Z", 0)
 	end
 
-	self.Entity:NextThink(CurTime()+0.1)
+	self:NextThink(CurTime()+0.1)
 	return true
 end
 
@@ -107,14 +107,14 @@ function ENT:OnRemove()
 	if self.Active == 1 then
 		self.CamPlayer:SetViewEntity(self.CamPlayer)
 	end
-	Wire_Remove(self.Entity)
+	Wire_Remove(self)
 end
 
 function ENT:TriggerInput(iname, value)
 	if iname == "Activated" then
 		if value == 0 then
 			self.Active = 0
-			Wire_TriggerOutput(self.Entity, "On", 0)
+			Wire_TriggerOutput(self, "On", 0)
 			if not ValidEntity(self.CamPlayer) then return end
 			self.CamPlayer:SetViewEntity(self.CamPlayer)
 			self.CamPlayer:SetFOV(self.OrginialFOV, 0.01)
@@ -129,7 +129,7 @@ function ENT:TriggerInput(iname, value)
 			self.CamPlayer:SetViewEntity(self.CamEnt)
 			self.CamPlayer:SetFOV(self.ZoomAmount, 0.01)
 			self.Active = 1
-			Wire_TriggerOutput(self.Entity, "On", 1)
+			Wire_TriggerOutput(self, "On", 1)
 		end
 	elseif iname == "Zoom" /* and not self.RT */ then
 		self.ZoomAmount = math.Clamp(value, 1, self.OriginalFOV)
@@ -149,7 +149,7 @@ function ENT:ShowOutput()
 end
 
 function ENT:OnRestore()
-	Wire_Restored(self.Entity)
+	Wire_Restored(self)
 end
 
 function ENT:BuildDupeInfo()

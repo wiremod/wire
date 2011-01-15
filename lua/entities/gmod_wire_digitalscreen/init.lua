@@ -8,12 +8,12 @@ local max_umsgs_per_tick = 8
 
 function ENT:Initialize()
 
-	self.Entity:PhysicsInit(SOLID_VPHYSICS)
-	self.Entity:SetMoveType(MOVETYPE_VPHYSICS)
-	self.Entity:SetSolid(SOLID_VPHYSICS)
+	self:PhysicsInit(SOLID_VPHYSICS)
+	self:SetMoveType(MOVETYPE_VPHYSICS)
+	self:SetSolid(SOLID_VPHYSICS)
 
-	self.Inputs = Wire_CreateInputs(self.Entity, { "PixelX", "PixelY", "PixelG", "Clk", "FillColor", "ClearRow", "ClearCol" })
-	self.Outputs = Wire_CreateOutputs(self.Entity, { "Memory" })
+	self.Inputs = Wire_CreateInputs(self, { "PixelX", "PixelY", "PixelG", "Clk", "FillColor", "ClearRow", "ClearCol" })
+	self.Outputs = Wire_CreateOutputs(self, { "Memory" })
 
 	self.Memory = {}
 
@@ -184,7 +184,7 @@ end
 
 function ENT:Think()
 	self:FlushCache()
-	self.Entity:NextThink(CurTime()+0.2)
+	self:NextThink(CurTime()+0.2)
 	return true
 end
 

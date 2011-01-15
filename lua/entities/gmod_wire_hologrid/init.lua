@@ -10,27 +10,27 @@ ENT.OverlayDelay 	= 0;
 function ENT:Initialize( )
 
 	-- setup physics
-	self.Entity:PhysicsInit( SOLID_VPHYSICS );
-	self.Entity:SetMoveType( MOVETYPE_VPHYSICS );
-	self.Entity:SetSolid( SOLID_VPHYSICS );
-	self.Entity:SetUseType(SIMPLE_USE)
+	self:PhysicsInit( SOLID_VPHYSICS );
+	self:SetMoveType( MOVETYPE_VPHYSICS );
+	self:SetSolid( SOLID_VPHYSICS );
+	self:SetUseType(SIMPLE_USE)
 
 	-- vars
 	self:UpdateGPS(false)
 
 	-- create inputs.
-	self.Inputs = WireLib.CreateSpecialInputs(self.Entity, { "UseGPS", "Reference" }, { "NORMAL", "ENTITY" })
-	self.reference = self.Entity
+	self.Inputs = WireLib.CreateSpecialInputs(self, { "UseGPS", "Reference" }, { "NORMAL", "ENTITY" })
+	self.reference = self
 end
 
 function ENT:UpdateGPS(UseGPS)
 	if UseGPS then
 		self.usesgps = true
-		self.Entity:SetNetworkedEntity( "reference", ents.GetByIndex(-1) )
+		self:SetNetworkedEntity( "reference", ents.GetByIndex(-1) )
 		self:SetOverlayText( "Holo Grid\n(GPS)" )
 	else
 		self.usesgps = false
-		self.Entity:SetNetworkedEntity( "reference", self.reference )
+		self:SetNetworkedEntity( "reference", self.reference )
 		self:SetOverlayText( "Holo Grid\n(Local)" )
 	end
 end
@@ -44,7 +44,7 @@ function ENT:TriggerInput( inputname, value )
 		if ValidEntity(value) then
 			self.reference = value
 		else
-			self.reference = self.Entity
+			self.reference = self
 		end
 		self:UpdateGPS(self.usesgps)
 	end
@@ -115,7 +115,7 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 	if reference then
 		self.reference = reference
 	else
-		self.reference = self.Entity
+		self.reference = self
 	end
 
 	self:UpdateGPS(info.hologrid_usegps ~= 0)

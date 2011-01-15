@@ -6,9 +6,9 @@ ENT.WireDebugName = "Forcer"
 ENT.OverlayDelay = 0
 
 function ENT:Initialize()
-	self.Entity:PhysicsInit( SOLID_VPHYSICS )
-	self.Entity:SetMoveType( MOVETYPE_VPHYSICS )
-	self.Entity:SetSolid( SOLID_VPHYSICS )
+	self:PhysicsInit( SOLID_VPHYSICS )
+	self:SetMoveType( MOVETYPE_VPHYSICS )
+	self:SetSolid( SOLID_VPHYSICS )
 
 	self.ForceMul = 0
 	self.Force = 0
@@ -18,7 +18,7 @@ function ENT:Initialize()
 	self.Reaction = false
 	self.ShowBeam = true
 
-	self.Inputs = WireLib.CreateInputs( self.Entity, { "Force", "OffsetForce", "Velocity", "Length" } )
+	self.Inputs = WireLib.CreateInputs( self, { "Force", "OffsetForce", "Velocity", "Length" } )
 
 	self:SetNWBool("ShowBeam",false)
 	self:SetNWBool("ShowForceBeam",false)
@@ -58,13 +58,13 @@ end
 
 function ENT:Think()
 	if (self.Force != 0 or self.OffsetForce != 0 or self.Velocity != 0) then
-		local Forward = self.Entity:GetUp()
-		local StartPos = self.Entity:GetPos() + Forward * self.Entity:OBBMaxs().z
+		local Forward = self:GetUp()
+		local StartPos = self:GetPos() + Forward * self:OBBMaxs().z
 
 		local tr = {}
 		tr.start = StartPos
 		tr.endpos = StartPos + self.Length * Forward
-		tr.filter = self.Entity
+		tr.filter = self
 		local trace = util.TraceLine( tr )
 		if (trace) then
 			if (trace.Entity and trace.Entity:IsValid()) then
@@ -82,13 +82,13 @@ function ENT:Think()
 		end
 
 		if (self.Reaction) then
-			local phys = self.Entity:GetPhysicsObject()
+			local phys = self:GetPhysicsObject()
 			if (phys:IsValid()) then
 				if (self.Force != 0 or self.OffsetForce != 0) then phys:ApplyForceCenter( Forward * -self.Force * self.ForceMul ) end
 			end
 		end
 	end
-	self.Entity:NextThink( CurTime() )
+	self:NextThink( CurTime() )
 	return true
 end
 

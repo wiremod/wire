@@ -93,7 +93,7 @@ function ENT:Initialize()
 	self.FramesSinceRedraw = 0
 	self.NewClk = true
 
-	self.GPU = WireGPU(self.Entity)
+	self.GPU = WireGPU(self)
 end
 
 function ENT:OnRemove()
@@ -288,7 +288,7 @@ function ENT:WriteCell(Address,value)
 end
 
 function ENT:Draw()
-	self.Entity:DrawModel()
+	self:DrawModel()
 
 	local curtime = CurTime()
 	local DeltaTime = curtime - self.PrevTime
@@ -442,7 +442,7 @@ function ENT:Draw()
 	if EmuFox then return end
 
 	self.GPU:Render(self.Memory1[2024],self.Memory1[2023])
-	Wire_Render(self.Entity)
+	Wire_Render(self)
 end
 
 function ENT:IsTranslucent()

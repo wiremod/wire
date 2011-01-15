@@ -11,23 +11,23 @@ local DISK_IN_SOCKET_CONSTRAINT_POWER = 5000
 local DISK_IN_ATTACH_RANGE = 16
 
 function ENT:Initialize()
-	self.Entity:PhysicsInit(SOLID_VPHYSICS)
-	self.Entity:SetMoveType(MOVETYPE_VPHYSICS)
-	self.Entity:SetSolid(SOLID_VPHYSICS)
+	self:PhysicsInit(SOLID_VPHYSICS)
+	self:SetMoveType(MOVETYPE_VPHYSICS)
+	self:SetSolid(SOLID_VPHYSICS)
 
 	self.Const = nil
 	self.Disk = nil
 	self.DisableLinking = 0
 
-	self.Inputs = Wire_CreateInputs(self.Entity, { "Disable" })
-	self.Outputs = Wire_CreateOutputs(self.Entity, { "Locked" })
+	self.Inputs = Wire_CreateInputs(self, { "Disable" })
+	self.Outputs = Wire_CreateOutputs(self, { "Locked" })
 	self:SetOverlayText("CD lock")
 
-	self.Entity:NextThink(CurTime() + 0.25)
+	self:NextThink(CurTime() + 0.25)
 end
 
 function ENT:OnRemove()
-	Wire_Remove(self.Entity)
+	Wire_Remove(self)
 end
 
 function ENT:TriggerInput(iname, value)
@@ -42,8 +42,8 @@ function ENT:TriggerInput(iname, value)
 			self.Disk = nil
 			//self.NoCollideConst = nil
 
-			Wire_TriggerOutput(self.Entity, "Locked", 0)
-			self.Entity:NextThink(CurTime() + NEW_DISK_WAIT_TIME)
+			Wire_TriggerOutput(self, "Locked", 0)
+			self:NextThink(CurTime() + NEW_DISK_WAIT_TIME)
 		end
 	end
 end
@@ -58,9 +58,9 @@ function ENT:Think()
 		self.Disk = nil
 		self.NoCollideConst = nil
 
-		Wire_TriggerOutput(self.Entity, "Locked", 0)
+		Wire_TriggerOutput(self, "Locked", 0)
 
-		self.Entity:NextThink(CurTime() + NEW_DISK_WAIT_TIME) //Give time before next grabbing a disk.
+		self:NextThink(CurTime() + NEW_DISK_WAIT_TIME) //Give time before next grabbing a disk.
 		return true
 	else
 		if (self.DisableLinking < 1) and (self.Disk == nil) then
@@ -77,7 +77,7 @@ function ENT:Think()
 			end
 		end
 	end
-	self.Entity:NextThink(CurTime() + 0.25)
+	self:NextThink(CurTime() + 0.25)
 end
 
 function ENT:AttachDisk(disk)
@@ -86,36 +86,36 @@ function ENT:AttachDisk(disk)
 	local max = disk:OBBMaxs()
 
 	local newpos = self:LocalToWorld(Vector(0, 0, 0))
-	local lockAng = self.Entity:GetAngles()
+	local lockAng = self:GetAngles()
 	disk:SetPos(newpos)
 	disk:SetAngles(lockAng)
 
-	self.NoCollideConst = constraint.NoCollide(self.Entity, disk, 0, 0)
+	self.NoCollideConst = constraint.NoCollide(self, disk, 0, 0)
 	if (not self.NoCollideConst) then
-		Wire_TriggerOutput(self.Entity, "Locked", 0)
+		Wire_TriggerOutput(self, "Locked", 0)
 		return
 	end
 
 	//Constrain together
-	self.Const = constraint.Weld(self.Entity, disk, 0, 0, DISK_IN_SOCKET_CONSTRAINT_POWER, true)
+	self.Const = constraint.Weld(self, disk, 0, 0, DISK_IN_SOCKET_CONSTRAINT_POWER, true)
 	if (not self.Const) then
 	    self.NoCollideConst:Remove()
 	    self.NoCollideConst = nil
-	    Wire_TriggerOutput(self.Entity, "Locked", 0)
+	    Wire_TriggerOutput(self, "Locked", 0)
 	    return
 	end
 
 	//Prepare clearup incase one is removed
 	disk:DeleteOnRemove(self.Const)
-	self.Entity:DeleteOnRemove(self.Const)
+	self:DeleteOnRemove(self.Const)
 	self.Const:DeleteOnRemove(self.NoCollideConst)
 
 	disk.Lock = self
 	self.Disk = disk
-	Wire_TriggerOutput(self.Entity, "Locked", 1)
+	Wire_TriggerOutput(self, "Locked", 1)
 end
 
 function ENT:OnRestore()
-	Wire_Restored(self.Entity)
+	Wire_Restored(self)
 end
 

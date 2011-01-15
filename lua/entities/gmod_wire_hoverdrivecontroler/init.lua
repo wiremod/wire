@@ -12,18 +12,18 @@ local useenergy = CreateConVar( "sv_HoverDriveUseEnergy", 0, {FCVAR_ARCHIVE} )
 ---------------------------------------------------------*/
 function ENT:Initialize()
 
-	self.Entity:SetModel( "models//props_c17/utilityconducter001.mdl" )
+	self:SetModel( "models//props_c17/utilityconducter001.mdl" )
 
-	self.Entity:PhysicsInit( SOLID_VPHYSICS )
-	self.Entity:SetMoveType( MOVETYPE_VPHYSICS )
-	self.Entity:SetSolid( SOLID_VPHYSICS )
+	self:PhysicsInit( SOLID_VPHYSICS )
+	self:SetMoveType( MOVETYPE_VPHYSICS )
+	self:SetSolid( SOLID_VPHYSICS )
 
-	self.Entity:DrawShadow(false)
+	self:DrawShadow(false)
 
-	//self.Entity:SetModel( "models/dav0r/hoverball.mdl" )
-	//self.Entity:PhysicsInitSphere( 8, "metal_bouncy" )
+	//self:SetModel( "models/dav0r/hoverball.mdl" )
+	//self:PhysicsInitSphere( 8, "metal_bouncy" )
 
-	local phys = self.Entity:GetPhysicsObject()
+	local phys = self:GetPhysicsObject()
 
 	if ( phys:IsValid() ) then
 		phys:SetMass( 100 )
@@ -36,13 +36,13 @@ function ENT:Initialize()
 		if(LS_RegisterEnt) then LS_RegisterEnt(self, "Generator") end; -- Not everyone uses LifeSupport if he has Resource Distribution installed
 	end
 
-	//self.Entity:StartMotionController()
+	//self:StartMotionController()
 
 	self.Fraction = 0
 
 	self.Velocity = Vector(0,0,0)
-	self:SetTargetZ( self.Entity:GetPos().z )
-	self.Target = self.Entity:GetPos()
+	self:SetTargetZ( self:GetPos().z )
+	self.Target = self:GetPos()
 	self:SetSpeed( 1 )
 	self:SetHoverMode( 1 )
 
@@ -132,7 +132,7 @@ function ENT:TriggerInput(iname, value)
 		self:SetYVelocity( value )
 	elseif (iname == "HoverMode") then
 		if (value ~= 0) then
-			self.Target = self.Entity:GetPos()
+			self.Target = self:GetPos()
 			self:SetHoverMode( 1 )
 		else
 			self:SetHoverMode( 0 )
@@ -159,7 +159,7 @@ end
 
 function ENT:OnRestore()
 	self.Velocity = Vector(0,0,0)
-	self.Target = self.Entity:GetPos()
+	self.Target = self:GetPos()
 
 	self.BaseClass.OnRestore(self)
 end
@@ -168,7 +168,7 @@ end
    Name: OnTakeDamage
 ---------------------------------------------------------*/
 /*function ENT:OnTakeDamage( dmginfo )
-	//self.Entity:TakePhysicsDamage( dmginfo )
+	//self:TakePhysicsDamage( dmginfo )
 end*/
 
 
@@ -220,7 +220,7 @@ end
 		self.TargetAngle.r = math.fmod( ( self.TargetAngle.r + ( self.AngleVelocity.r * deltatime ) ), 360 )
 	end
 
-	local Vel = self.Entity:GetPhysicsObject():LocalToWorldVector( self.Velocity )
+	local Vel = self:GetPhysicsObject():LocalToWorldVector( self.Velocity )
 
 	self.Target = self.Target + ( Vel * deltatime * self:GetSpeed() )
 	self:SetTargetZ(self.Target.Z)
@@ -230,9 +230,9 @@ end
 	data.Target = self.Target
 	//data.TargetYaw = self.TargetYaw
 	data.TargetAngle = self.TargetAngle
-	//data.ControlerPos = self.Entity:GetPos()
+	//data.ControlerPos = self:GetPos()
 
-	Wire_TriggerOutput(self.Entity, "Data", data)
+	Wire_TriggerOutput(self, "Data", data)
 
 	local txt = "-HoverDrive-\nJump Target = "..tostring(self.JumpTarget)
 	if (self:GetHoverMode()) then
@@ -251,9 +251,9 @@ end
 
 	local txt = "TargetX = "..self.Target.x.."\nTargetY = "..self.Target.y.."\nTargetZ = "..self.Target.z
 
-	Wire_TriggerOutput(self.Entity, "A: Zpos", Pos.z)
-	Wire_TriggerOutput(self.Entity, "B: Xpos", Pos.x)
-	Wire_TriggerOutput(self.Entity, "C: Ypos", Pos.y)
+	Wire_TriggerOutput(self, "A: Zpos", Pos.z)
+	Wire_TriggerOutput(self, "B: Xpos", Pos.x)
+	Wire_TriggerOutput(self, "C: Ypos", Pos.y)
 
 
 	if (self:GetHoverMode()) then
@@ -310,10 +310,10 @@ end
 	local data = {}
 	data.Hover = self:GetHoverMode()
 	data.Target = self.Target
-	data.TargetNorm = self.Entity:GetForward()
-	//data.ControlerPos = self.Entity:GetPos()
+	data.TargetNorm = self:GetForward()
+	//data.ControlerPos = self:GetPos()
 
-	Wire_TriggerOutput(self.Entity, "Data", data)
+	Wire_TriggerOutput(self, "Data", data)
 
 	local txt = "Target = "..tostring(self.Target)
 	if (self:GetHoverMode()) then
@@ -327,7 +327,7 @@ end*/
 
 
 function ENT:WakePhys()
-	local phys = self.Entity:GetPhysicsObject()
+	local phys = self:GetPhysicsObject()
 	if ( phys:IsValid() ) then
 		phys:Wake()
 	end
@@ -373,7 +373,7 @@ end
    GetAirFriction
 ---------------------------------------------------------*/
 function ENT:GetAirResistance( )
-	return self.Entity:GetVar( "AirResistance", 0 )
+	return self:GetVar( "AirResistance", 0 )
 end
 
 
@@ -381,7 +381,7 @@ end
    SetAirFriction
 ---------------------------------------------------------*/
 function ENT:SetAirResistance( num )
-	self.Entity:SetVar( "AirResistance", num )
+	self:SetVar( "AirResistance", num )
 end
 
 /*---------------------------------------------------------
@@ -389,7 +389,7 @@ end
 ---------------------------------------------------------*/
 function ENT:SetStrength( strength )
 
-	local phys = self.Entity:GetPhysicsObject()
+	local phys = self:GetPhysicsObject()
 	if ( phys:IsValid() ) then
 		phys:SetMass( 150 * strength )
 	end
@@ -409,41 +409,41 @@ util.PrecacheSound("ambient/levels/citadel/weapon_disintegrate2.wav")
 util.PrecacheSound("buttons/button2.wav")
 util.PrecacheSound("buttons/button8.wav")
 function ENT:FailJump()
-	self.Entity:EmitSound("npc/turret_floor/die.wav", 450, 70)
+	self:EmitSound("npc/turret_floor/die.wav", 450, 70)
 end
 
 function ENT:Jump()
 	if (self.Jumping) then return end
 
 	if (!self.JumpTargetSet) then
-		self.Entity:EmitSound("buttons/button8.wav", 130)
+		self:EmitSound("buttons/button8.wav", 130)
 		return
 	end
 
 	if ( RES_DISTRIB == 2 and useenergy:GetBool() ) then
-		local dist = self.Entity:GetPos():Distance(self.JumpTarget)
+		local dist = self:GetPos():Distance(self.JumpTarget)
 		local needed = math.floor(dist ^ 2 / 5000 + 200)
 		--Msg("hover drive requires ",needed," energy to jump ",dist,"\n")
 		local energy = RD_GetResourceAmount(self, "energy")
 		if (energy >= needed) then
 			RD_ConsumeResource(self, "energy", needed)
 		else
-			self.Entity:EmitSound("buttons/button2.wav", 500)
+			self:EmitSound("buttons/button2.wav", 500)
 			self:FailJump()
 			return
 		end
 	end
 
 	if ( not util.IsInWorld( self.JumpTarget ) ) then
-		self.Entity:EmitSound("buttons/button8.wav", 500)
+		self:EmitSound("buttons/button8.wav", 500)
 		self:FailJump()
 		return
 	end
 
 	self.Jumping = true
 
-	self.other_gate = self.Entity
-	self.LastPos = self.Entity:GetPos()// + Vector(0,0,5)
+	self.other_gate = self
+	self.LastPos = self:GetPos()// + Vector(0,0,5)
 
 	self.JumpStage = 1
 	self.JumpTargetSet = false
@@ -454,20 +454,20 @@ function ENT:Think()
 	if (self.JumpStage == 1) then
 		--Msg("Start Jump 1\n")
 
-		local attached = self:GetEntitiesForTeleport(self.Entity);
+		local attached = self:GetEntitiesForTeleport(self);
 		if(attached) then
 
 			--TODO: LS2 energy required based on attached mass
 			/*if ( RES_DISTRIB == 2 and useenergy:GetBool() ) then
 				local mass = something
-				local dist = self.Entity:GetPos():Distance(self.JumpTarget)
+				local dist = self:GetPos():Distance(self.JumpTarget)
 				local needed = math.floor(dist ^ 2 / 5000 + 200) + mass?
 				--Msg("hover drive requires ",needed," energy to jump ",dist,"\n")
 				local energy = RD_GetResourceAmount(self, "energy")
 				if (energy >= needed) then
 					RD_ConsumeResource(self, "energy", needed)
 				else
-					self.Entity:EmitSound("buttons/button2.wav", 500)
+					self:EmitSound("buttons/button2.wav", 500)
 					self:FailJump()
 					self.JumpStage = 0
 					return
@@ -476,17 +476,17 @@ function ENT:Think()
 
 			self.ents = self:PrepareTeleport(attached);
 
-			DoPropSpawnedEffect( self.Entity );
+			DoPropSpawnedEffect( self );
 
-			//self.LastPos = self.Entity:GetPos()
+			//self.LastPos = self:GetPos()
 
-			local Ofs = self.JumpTarget - self.Entity:GetPos()
+			local Ofs = self.JumpTarget - self:GetPos()
 			//local ang = Ofs:Angle()
-			//local effectend = self.Entity:GetPos() + (Ofs:Normalize() * 180)
+			//local effectend = self:GetPos() + (Ofs:Normalize() * 180)
 
 			local ed = EffectData()
-				ed:SetEntity( self.Entity )
-				ed:SetOrigin( self.Entity:GetPos() + (Ofs:Normalize() * math.Clamp( self.Entity:BoundingRadius() * 5, 180, 4092 ) ) )
+				ed:SetEntity( self )
+				ed:SetOrigin( self:GetPos() + (Ofs:Normalize() * math.Clamp( self:BoundingRadius() * 5, 180, 4092 ) ) )
 			util.Effect( "jump_out", ed, true, true );
 
 			for _,v in pairs(self.ents.Attached) do
@@ -498,16 +498,16 @@ function ENT:Think()
 
 					local ed = EffectData()
 						ed:SetEntity( v.Entity )
-						ed:SetOrigin( self.Entity:GetPos() + (Ofs:Normalize() * math.Clamp( v.Entity:BoundingRadius() * 5, 180, 4092 ) ) )
+						ed:SetOrigin( self:GetPos() + (Ofs:Normalize() * math.Clamp( v.Entity:BoundingRadius() * 5, 180, 4092 ) ) )
 					util.Effect( "jump_out", ed, true, true );
 
 				end
 			end
 
-			//self.Entity:EmitSound("stargate/teleport.mp3")
-			//self.Entity:EmitSound("npc/scanner/combat_scan_loop2.wav", 500)
+			//self:EmitSound("stargate/teleport.mp3")
+			//self:EmitSound("npc/scanner/combat_scan_loop2.wav", 500)
 			if self.Sound then
-				self.Entity:EmitSound("ambient/levels/citadel/weapon_disintegrate2.wav", 500)
+				self:EmitSound("ambient/levels/citadel/weapon_disintegrate2.wav", 500)
 			end
 			self.JumpStage = 2
 		else
@@ -519,19 +519,19 @@ function ENT:Think()
 	elseif (self.JumpStage == 2) then
 		--Msg("Start Jump 2\n")
 
-		self:Teleport(self.ents.Entity, self.Entity);
+		self:Teleport(self.ents.Entity, self);
 
-		DoPropSpawnedEffect( self.Entity );
+		DoPropSpawnedEffect( self );
 
-		local Ofs = self.LastPos - self.Entity:GetPos()
+		local Ofs = self.LastPos - self:GetPos()
 
 		local ed = EffectData()
-			ed:SetEntity( self.Entity )
-			ed:SetOrigin( self.Entity:GetPos() + (Ofs:Normalize() * math.Clamp( self.Entity:BoundingRadius() * 5, 180, 4092 ) ) )
+			ed:SetEntity( self )
+			ed:SetOrigin( self:GetPos() + (Ofs:Normalize() * math.Clamp( self:BoundingRadius() * 5, 180, 4092 ) ) )
 		util.Effect( "jump_in", ed, true, true );
 
 		for _,v in pairs(self.ents.Attached) do
-			self:Teleport(v,self.Entity);
+			self:Teleport(v,self);
 
 			if (v and v.Entity and v.Entity:IsValid()) then
 
@@ -541,20 +541,20 @@ function ENT:Think()
 
 				local ed = EffectData()
 					ed:SetEntity( v.Entity )
-					ed:SetOrigin( self.Entity:GetPos() + (Ofs:Normalize() * math.Clamp( v.Entity:BoundingRadius() * 5, 180, 4092 ) ) )
+					ed:SetOrigin( self:GetPos() + (Ofs:Normalize() * math.Clamp( v.Entity:BoundingRadius() * 5, 180, 4092 ) ) )
 				util.Effect( "jump_in", ed, true, true );
 
 			end
 		end
 
 		if self.Sound then
-			//self.Entity:EmitSound("stargate/teleport.mp3")
-			self.Entity:EmitSound("npc/turret_floor/die.wav", 450, 70)
-			//self.Entity:EmitSound("ambient/levels/labs/electric_explosion2.wav", 500, 90)
+			//self:EmitSound("stargate/teleport.mp3")
+			self:EmitSound("npc/turret_floor/die.wav", 450, 70)
+			//self:EmitSound("ambient/levels/labs/electric_explosion2.wav", 500, 90)
 		end
 
 		//self.JumpTarget = self.NextJumpTarget
-		self.Target = self.Entity:GetPos()
+		self.Target = self:GetPos()
 		self.JumpStage = 0
 		self.Jumping = false
 
@@ -621,7 +621,7 @@ function ENT:PrepareTeleport(tbl)
 	-- Entities
 	local e = tbl.Entity;
 	-- Gate specific
-	local g = {self.Entity,self.other_gate} -- Gates
+	local g = {self,self.other_gate} -- Gates
 	local a = { -- Angles
 		This=g[1]:GetAngles(),
 		Other=g[2]:GetAngles(),
@@ -708,12 +708,12 @@ function ENT:PrepareTeleport(tbl)
 		util.TraceLine({
 			start=e:GetPos(),
 			endpos=e:GetPos()-Vector(0,0,height),
-			filter=self.Entity,
+			filter=self,
 		}),
 		util.TraceLine({
 			start=ret.Entity.Position.New+Vector(0,0,height),
 			endpos=ret.Entity.Position.New-Vector(0,0,height),
-			filter=self.Entity,
+			filter=self,
 		}),
 	}
 	if(trace[1].Hit and trace[2].Hit) then
@@ -735,7 +735,7 @@ function ENT:GetEntitiesForTeleport(e)
 		--################# Check, if the prop is attached to the gate (like hoverballs) and disallow it's teleportataion then
 		local allow = true;
 		/*for _,v in pairs(attached[1]) do
-			if(v == self.Entity) then
+			if(v == self) then
 				allow = false;
 				break;
 			end
@@ -794,7 +794,7 @@ end
 
 --################# Teleportation function
 function ENT:Teleport(tbl,base)
-	local g = {self.Entity,self.other_gate} -- Gates
+	local g = {self,self.other_gate} -- Gates
 	local p = tbl.Position;
 	local b = tbl.Bones;
 	local e = tbl.Entity;

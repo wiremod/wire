@@ -8,11 +8,11 @@ ENT.ValueA = 0
 ENT.ValueB = 0
 
 function ENT:Initialize()
-	self.Entity:PhysicsInit( SOLID_VPHYSICS )
-	self.Entity:SetMoveType( MOVETYPE_VPHYSICS )
-	self.Entity:SetSolid( SOLID_VPHYSICS )
+	self:PhysicsInit( SOLID_VPHYSICS )
+	self:SetMoveType( MOVETYPE_VPHYSICS )
+	self:SetSolid( SOLID_VPHYSICS )
 
-	self.Inputs = Wire_CreateInputs(self.Entity, { "A", "B" })
+	self.Inputs = Wire_CreateInputs(self, { "A", "B" })
 end
 
 function ENT:Think()

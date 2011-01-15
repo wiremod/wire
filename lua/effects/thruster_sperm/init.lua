@@ -8,12 +8,12 @@ EFFECT.Mat = Material( "thrusteraddon/sperm" )
 function EFFECT:Init( data )
 
 	local size = 16
-	self.Entity:SetCollisionBounds( Vector( -size,-size,-size ), Vector( size,size,size ) )
+	self:SetCollisionBounds( Vector( -size,-size,-size ), Vector( size,size,size ) )
 
 	local Pos = data:GetOrigin() + data:GetNormal() * 2
 
-	self.Entity:SetPos( Pos )
-	self.Entity:SetAngles( data:GetNormal():Angle() + Angle( 0.01, 0.01, 0.01 ) )
+	self:SetPos( Pos )
+	self:SetAngles( data:GetNormal():Angle() + Angle( 0.01, 0.01, 0.01 ) )
 
 	self.Pos = data:GetOrigin()
 	self.Normal = data:GetNormal()
@@ -37,7 +37,7 @@ function EFFECT:Think( )
 	//self.Size = self.Size + speed * self.Speed
 	self.Alpha = self.Alpha - 250.0 * speed
 
-	self.Entity:SetPos( self.Entity:GetPos() + self.Normal * speed * 128 )
+	self:SetPos( self:GetPos() + self.Normal * speed * 128 )
 
 	if (self.Alpha < 0 ) then return false end
 	if (self.Size < 0) then return false end
@@ -53,11 +53,11 @@ function EFFECT:Render( )
 	if (self.Alpha < 1 ) then return end
 
 	render.SetMaterial( self.Mat )
-	local ang = self.Entity:GetAngles():Forward()
+	local ang = self:GetAngles():Forward()
 	ang.yaw = ang.yaw + 90
 	ang.roll = ang.roll + 90
 
-	render.DrawQuadEasy( self.Entity:GetPos(),
+	render.DrawQuadEasy( self:GetPos(),
 		ang,
 		self.Size, self.Size,
 		Color( 255,255,255, self.Alpha )

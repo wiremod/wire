@@ -14,25 +14,25 @@ local PLUG_IN_SOCKET_CONSTRAINT_POWER = 5000
 local PLUG_IN_ATTACH_RANGE = 3
 
 function ENT:Initialize()
-	self.Entity:SetModel( MODEL )
-	self.Entity:PhysicsInit( SOLID_VPHYSICS )
-	self.Entity:SetMoveType( MOVETYPE_VPHYSICS )
-	self.Entity:SetSolid( SOLID_VPHYSICS )
+	self:SetModel( MODEL )
+	self:PhysicsInit( SOLID_VPHYSICS )
+	self:SetMoveType( MOVETYPE_VPHYSICS )
+	self:SetSolid( SOLID_VPHYSICS )
 
 	self.MyPlug = nil
 	self.Memory = nil
 	self.OwnMemory = nil
 	self.Const = nil
 
-	self.Inputs = Wire_CreateInputs(self.Entity, { "Memory" })
-	self.Outputs = Wire_CreateOutputs(self.Entity, { "Memory" })
+	self.Inputs = Wire_CreateInputs(self, { "Memory" })
+	self.Outputs = Wire_CreateOutputs(self, { "Memory" })
 	self:SetOverlayText( "Data socket" )
-	Wire_TriggerOutput(self.Entity, "Memory", 0)
+	Wire_TriggerOutput(self, "Memory", 0)
 end
 
 function ENT:SetMemory(mement)
 	self.Memory = mement
-	Wire_TriggerOutput(self.Entity, "Memory", 1)
+	Wire_TriggerOutput(self, "Memory", 1)
 end
 
 function ENT:Setup(a,ar,ag,ab,aa)
@@ -42,7 +42,7 @@ function ENT:Setup(a,ar,ag,ab,aa)
 	self.AB = ab or 0
 	self.AA = aa or 255
 
-	self.Entity:SetColor(ar, ag, ab, aa)
+	self:SetColor(ar, ag, ab, aa)
 end
 
 function ENT:ReadCell( Address )
@@ -82,9 +82,9 @@ function ENT:Think()
 		end
 
 		self.Memory = nil //We're now getting no signal
-		Wire_TriggerOutput(self.Entity, "Memory", 0)
+		Wire_TriggerOutput(self, "Memory", 0)
 
-		self.Entity:NextThink( CurTime() + NEW_PLUG_WAIT_TIME ) //Give time before next grabbing a plug.
+		self:NextThink( CurTime() + NEW_PLUG_WAIT_TIME ) //Give time before next grabbing a plug.
 		return true
 	end
 
@@ -113,42 +113,42 @@ end
 
 function ENT:AttachPlug( plug )
 	// Set references between them
-	plug:SetSocket(self.Entity)
+	plug:SetSocket(self)
 	self.MyPlug = plug
 
 	// Position plug
 	local newpos = self:GetOffset( Vector(-1.75, 0, 0) )
-	local socketAng = self.Entity:GetAngles()
+	local socketAng = self:GetAngles()
 	plug:SetPos( newpos )
 	plug:SetAngles( socketAng )
 
-	self.NoCollideConst = constraint.NoCollide(self.Entity, plug, 0, 0)
+	self.NoCollideConst = constraint.NoCollide(self, plug, 0, 0)
 	if (not self.NoCollideConst) then
 	    self.MyPlug = nil
 		plug:SetSocket(nil)
 	    self.Memory = nil
-    	    Wire_TriggerOutput(self.Entity, "Memory", 0)
+    	    Wire_TriggerOutput(self, "Memory", 0)
 	    return
 	end
 
 	// Constrain together
-	self.Const = constraint.Weld( self.Entity, plug, 0, 0, PLUG_IN_SOCKET_CONSTRAINT_POWER, true )
+	self.Const = constraint.Weld( self, plug, 0, 0, PLUG_IN_SOCKET_CONSTRAINT_POWER, true )
 	if (not self.Const) then
 	    self.NoCollideConst:Remove()
 	    self.NoCollideConst = nil
 	    self.MyPlug = nil
 	    plug:SetSocket(nil)
 	    self.Memory = nil
-            Wire_TriggerOutput(self.Entity, "Memory", 0)
+            Wire_TriggerOutput(self, "Memory", 0)
 	    return
 	end
 
 	// Prepare clearup incase one is removed
 	plug:DeleteOnRemove( self.Const )
-	self.Entity:DeleteOnRemove( self.Const )
+	self:DeleteOnRemove( self.Const )
 	self.Const:DeleteOnRemove( self.NoCollideConst )
 
-	plug:AttachedToSocket(self.Entity)
+	plug:AttachedToSocket(self)
 end
 
 function ENT:OnRestore()

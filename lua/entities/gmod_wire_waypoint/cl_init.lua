@@ -9,8 +9,8 @@ function ENT:Draw()
 	self.BaseClass.Draw(self)
 
 	local nextWP = self:GetNextWaypoint()
-	if (nextWP) and (nextWP:IsValid()) and (LocalPlayer():GetEyeTrace().Entity == self.Entity) and (EyePos():Distance(self.Entity:GetPos()) < 4096) then
-	    local start = self.Entity:GetPos()
+	if (nextWP) and (nextWP:IsValid()) and (LocalPlayer():GetEyeTrace().Entity == self) and (EyePos():Distance(self:GetPos()) < 4096) then
+	    local start = self:GetPos()
 		local endpos = nextWP:GetPos()
 		local scroll = -3*CurTime()
 

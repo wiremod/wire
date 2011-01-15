@@ -18,12 +18,12 @@ TYPE_MUSCLE	= 1
    Desc: First function called. Use to set up your entity
 ---------------------------------------------------------*/
 function ENT:Initialize()
-	self.Entity:PhysicsInit( SOLID_VPHYSICS )
-	self.Entity:SetMoveType( MOVETYPE_VPHYSICS )
-	self.Entity:SetSolid( SOLID_VPHYSICS )
+	self:PhysicsInit( SOLID_VPHYSICS )
+	self:SetMoveType( MOVETYPE_VPHYSICS )
+	self:SetSolid( SOLID_VPHYSICS )
 
-	self.Inputs = Wire_CreateInputs( self.Entity, { "In", "Out", "Length" } )
-	self.Outputs = Wire_CreateOutputs(self.Entity, { "Length" })
+	self.Inputs = Wire_CreateInputs( self, { "In", "Out", "Length" } )
+	self.Outputs = Wire_CreateOutputs(self, { "Length" })
 	self.Trigger = 0
 
 	self.last_time = CurTime()
@@ -56,7 +56,7 @@ end
 ---------------------------------------------------------*/
 function ENT:Think()
 
-	self.Entity:NextThink( CurTime() + 0.01 )
+	self:NextThink( CurTime() + 0.01 )
 	local TimeDiff = CurTime() - self.last_time
 	self.last_time = CurTime()
 
@@ -128,7 +128,7 @@ function ENT:Think()
 	if (self.rope) then	self.rope:Fire("SetLength", current_length, 0)	end
 
 	self:SetOverlayText( "Winch length : " .. current_length )
-	Wire_TriggerOutput(self.Entity, "Length", current_length)
+	Wire_TriggerOutput(self, "Length", current_length)
 
 end
 
@@ -178,7 +178,7 @@ function ENT:SetConstraint( c )
 	if self.rope then self.rope:Fire("SetLength", self.current_length, 0) end
 
 	self:SetOverlayText( "Winch length : " .. self.current_length )
-	Wire_TriggerOutput(self.Entity, "Length", self.current_length)
+	Wire_TriggerOutput(self, "Length", self.current_length)
 
 end
 
@@ -214,7 +214,7 @@ end
 function ENT:ShowOutput( Length )
 	if ( Length ~= self.current_length and self.constraint ) then
 		self:SetOverlayText( "Winch length : " .. Length )
-		Wire_TriggerOutput(self.Entity, "Length", Length)
+		Wire_TriggerOutput(self, "Length", Length)
 		self.current_length = Length
 		self.constraint:Fire("SetSpringLength", self.current_length, 0)
 		if self.rope then self.rope:Fire("SetLength", self.current_length, 0) end

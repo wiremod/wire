@@ -11,21 +11,21 @@ function ENT:Think()
 	local txt
 
 	if (self:GetXYZMode()) then
-	    local vel = self.Entity:WorldToLocal(self.Entity:GetVelocity()+self.Entity:GetPos())
+	    local vel = self:WorldToLocal(self:GetVelocity()+self:GetPos())
 		txt =  "Velocity = " .. math.Round((-vel.y or 0)*1000)/1000 .. "," .. math.Round((vel.x or 0)*1000)/1000 .. "," .. math.Round((vel.z or 0)*1000)/1000
 	else
-	    local vel = self.Entity:GetVelocity():Length()
+	    local vel = self:GetVelocity():Length()
 		txt =  "Speed = " .. math.Round((x or 0)*1000)/1000
 	end
 
-	--sadly self.Entity:GetPhysicsObject():GetAngleVelocity() does work client side, so read out is unlikely
+	--sadly self:GetPhysicsObject():GetAngleVelocity() does work client side, so read out is unlikely
 	/*if (self:GetAngVel()) then
-		local ang = self.Entity:GetPhysicsObject():GetAngleVelocity()
+		local ang = self:GetPhysicsObject():GetAngleVelocity()
 		txt = txt .. "\nAngVel = P " .. math.Round((ang.y or 0)*1000)/1000 .. ", Y " .. math.Round((ang.z or 0)*1000) /1000 .. ", R " .. math.Round((ang.x or 0)*1000)/1000
 	end*/
 
-	self.Entity:SetNetworkedBeamString( "GModOverlayText", txt )
+	self:SetNetworkedBeamString( "GModOverlayText", txt )
 
-	self.Entity:NextThink(CurTime()+0.04)
+	self:NextThink(CurTime()+0.04)
 	return true
 end

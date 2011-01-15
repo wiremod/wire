@@ -22,9 +22,9 @@ if !WireModVector then
 end
 
 function ENT:Initialize()
-	self.Entity:PhysicsInit(SOLID_VPHYSICS)
-	self.Entity:SetMoveType(MOVETYPE_VPHYSICS)
-	self.Entity:SetSolid(SOLID_VPHYSICS)
+	self:PhysicsInit(SOLID_VPHYSICS)
+	self:SetMoveType(MOVETYPE_VPHYSICS)
+	self:SetSolid(SOLID_VPHYSICS)
 
 	self.Xinputs =  {}
 	self.Xoutputs = {}
@@ -35,8 +35,8 @@ function ENT:Initialize()
 	self.triggvars = {}
 	self.variables = {}
 
-	self.Inputs = Wire_CreateInputs(self.Entity, {})
-	self.Outputs = Wire_CreateOutputs(self.Entity, {})
+	self.Inputs = Wire_CreateInputs(self, {})
+	self.Outputs = Wire_CreateOutputs(self, {})
 end
 
 function ENT:TriggerInput(key, value)
@@ -45,7 +45,7 @@ function ENT:TriggerInput(key, value)
 		self.inputvars[key] = value
 		self.triggvars[key] = true
 		self:Update()
-		--self.Entity:NextThink(CurTime()+0.001)
+		--self:NextThink(CurTime()+0.001)
 	end
 end
 
@@ -81,13 +81,13 @@ function ENT:Update()
 		if self.schedule < 0  then self.schedule = -self.schedule end
 		if self.schedule < 20 then self.schedule = 20 end
 		self.scheduled = self.schedule
-		self.Entity:NextThink(self.curtime + self.schedule / 1000)
+		self:NextThink(self.curtime + self.schedule / 1000)
 	elseif self.scheduled and self.schedule and math.abs(self.schedule) < self.Delta then
 		self.scheduled = nil
 	end
 
 	for _,key in ipairs(self.Xoutputs) do
-		Wire_TriggerOutput(self.Entity, key, self.variables[key]) --major overhead, add lazy updates?
+		Wire_TriggerOutput(self, key, self.variables[key]) --major overhead, add lazy updates?
 	end
 end
 
@@ -156,8 +156,8 @@ function ENT:Setup(name, parser)
 
 	self.instructions = parser:GetInstructions()
 
-	Wire_AdjustInputs(self.Entity, inputs)
-	Wire_AdjustOutputs(self.Entity, outputs)
+	Wire_AdjustInputs(self, inputs)
+	Wire_AdjustOutputs(self, outputs)
 
 	if name == "" then name = "generic" end
 	self:SetOverlayText("Expression (" .. name .. ")")

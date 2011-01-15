@@ -8,9 +8,9 @@ ENT.WireDebugName = "Data Store"
 
 
 function ENT:Initialize()
-	self.Entity:PhysicsInit( SOLID_VPHYSICS )
-	self.Entity:SetMoveType( MOVETYPE_VPHYSICS )
-	self.Entity:SetSolid( SOLID_VPHYSICS )
+	self:PhysicsInit( SOLID_VPHYSICS )
+	self:SetMoveType( MOVETYPE_VPHYSICS )
+	self:SetSolid( SOLID_VPHYSICS )
 	self.Values = {};
 	self.Values["A"] = 0
 	self.Values["B"] = 0
@@ -24,7 +24,7 @@ function ENT:Initialize()
 end
 
 function ENT:OnRemove()
-	Wire_Remove(self.Entity)
+	Wire_Remove(self)
 end
 
 function ENT:Think()
@@ -38,6 +38,6 @@ function ENT:ShowOutput()
 end
 
 function ENT:OnRestore()
-    Wire_Restored(self.Entity)
+    Wire_Restored(self)
 end
 

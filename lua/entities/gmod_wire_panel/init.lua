@@ -17,7 +17,7 @@ function ENT:Initialize()
 
 	self.Inputs = WireLib.CreateInputs(self, { "Ch1", "Ch2", "Ch3", "Ch4", "Ch5", "Ch6", "Ch7", "Ch8" })
 
-	self.Entity:SetNetworkedInt('chan',self.chan)
+	self:SetNetworkedInt('chan',self.chan)
 	self.Outputs = Wire_CreateOutputs(self, { "Out" })
 
 	self:InitializeShared()

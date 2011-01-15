@@ -42,7 +42,7 @@ function ENT:Initialize()
 	self.FrameRateRatio = 4
 	self.FrameInstructions = 0
 
-	self.GPU = WireGPU(self.Entity)
+	self.GPU = WireGPU(self)
 
 	self.MinFrameRateRatio = CreateClientConVar("wire_gpu_frameratio",4,false,false)
 
@@ -190,22 +190,22 @@ function ENT:RenderGPU(clearbg)
 end
 
 function ENT:Draw()
-	self.Entity.DoNormalDraw = function() end
-	self.Entity.DrawEntityOutline = function() end
-	self.Entity:DrawModel()
+	self.DoNormalDraw = function() end
+	self.DrawEntityOutline = function() end
+	self:DrawModel()
 
 	local DeltaTime = CurTime()-(self.PrevTime or CurTime())
 	self.PrevTime = CurTime()
 	self.DeltaTime = DeltaTime
 
 	if (WireGPU_HookedGPU == self) then
-		Wire_Render(self.Entity)
+		Wire_Render(self)
 		return
 	end
 
 	self:RenderGPU(true)
 
-	local monitor = WireGPU_Monitors[self.Entity:GetModel()]
+	local monitor = WireGPU_Monitors[self:GetModel()]
 
 	self.GPU:Render(
 		self:ReadCell(65522), self:ReadCell(65523)-self:ReadCell(65518)/512, -- rotation, scale
@@ -221,7 +221,7 @@ function ENT:Draw()
 			}
 			local trace = util.TraceLine(tracedata)
 
-			if (trace.Entity == self.Entity) then
+			if (trace.Entity == self) then
 				local cpos = WorldToLocal(trace.HitPos, Angle(), pos, ang)
 
 				local cx = (self.x1 - cpos.x) / (self.x1 - self.x2)
@@ -239,7 +239,7 @@ function ENT:Draw()
 		end
 	)
 
-	Wire_Render(self.Entity)
+	Wire_Render(self)
 end
 
 function drawGPUHUD()

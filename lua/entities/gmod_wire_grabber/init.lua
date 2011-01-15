@@ -8,18 +8,18 @@ ENT.WireDebugName = "Grabber"
 
 
 function ENT:Initialize()
-	self.Entity:PhysicsInit( SOLID_VPHYSICS )
-	self.Entity:SetMoveType( MOVETYPE_VPHYSICS )
-	self.Entity:SetSolid( SOLID_VPHYSICS )
-	self.Inputs = Wire_CreateInputs(self.Entity, { "Grab","Strength" })
-	self.Outputs = Wire_CreateOutputs(self.Entity, {"Holding", "Grabbed Entity [ENTITY]"})
+	self:PhysicsInit( SOLID_VPHYSICS )
+	self:SetMoveType( MOVETYPE_VPHYSICS )
+	self:SetSolid( SOLID_VPHYSICS )
+	self.Inputs = Wire_CreateInputs(self, { "Grab","Strength" })
+	self.Outputs = Wire_CreateOutputs(self, {"Holding", "Grabbed Entity [ENTITY]"})
 	self.WeldStrength = 0
 	self.Weld = nil
 	self.WeldEntity = nil
 	self.ExtraProp = nil
 	self.ExtraPropWeld = nil
 	self.Gravity = true
-	self.Entity:GetPhysicsObject():SetMass(10)
+	self:GetPhysicsObject():SetMass(10)
 
 	self:SetBeamLength(100)
 
@@ -36,7 +36,7 @@ function ENT:OnRemove()
 	if self.Weld then
 		self:ResetGrab()
 	end
-	Wire_Remove(self.Entity)
+	Wire_Remove(self)
 end
 
 function ENT:Setup(Range, Gravity)
@@ -69,20 +69,20 @@ function ENT:ResetGrab()
 
 	local r,g,b,a = self:GetColor()
 	self:SetColor(255, 255, 255, a)
-	Wire_TriggerOutput(self.Entity,"Holding",0)
-	Wire_TriggerOutput(self.Entity, "Grabbed Entity", self.WeldEntity)
+	Wire_TriggerOutput(self,"Holding",0)
+	Wire_TriggerOutput(self, "Grabbed Entity", self.WeldEntity)
 end
 
 function ENT:TriggerInput(iname, value)
 	if iname == "Grab" then
 		if value ~= 0 and self.Weld == nil then
-			local vStart = self.Entity:GetPos()
-			local vForward = self.Entity:GetUp()
+			local vStart = self:GetPos()
+			local vForward = self:GetUp()
 
 			local trace = {}
 				trace.start = vStart
 				trace.endpos = vStart + (vForward * self.Range)
-				trace.filter = { self.Entity }
+				trace.filter = { self }
 			local trace = util.TraceLine( trace )
 
 			-- Bail if we hit world or a player
@@ -93,7 +93,7 @@ function ENT:TriggerInput(iname, value)
 			if self.OnlyGrabOwners and (trace.Entity.Owner ~= self.Owner or not self:CheckOwner(trace.Entity)) then return end
 
 			-- Weld them!
-			local const = constraint.Weld(self.Entity, trace.Entity, 0, 0, self.WeldStrength)
+			local const = constraint.Weld(self, trace.Entity, 0, 0, self.WeldStrength)
 			if const then
 				const.Type = "" --prevents the duplicator from making this weld
 			end
@@ -119,8 +119,8 @@ function ENT:TriggerInput(iname, value)
 
 			local r,g,b,a = self:GetColor()
 			self:SetColor(255, 0, 0, a)
-			Wire_TriggerOutput(self.Entity, "Holding", 1)
-			Wire_TriggerOutput(self.Entity, "Grabbed Entity", self.WeldEntity)
+			Wire_TriggerOutput(self, "Holding", 1)
+			Wire_TriggerOutput(self, "Grabbed Entity", self.WeldEntity)
 		elseif value == 0 then
 			if self.Weld ~= nil or self.ExtraPropWeld ~= nil then
 				self:ResetGrab()
@@ -136,7 +136,7 @@ function ENT:ShowOutput()
 end
 
 function ENT:OnRestore()
-	Wire_Restored(self.Entity)
+	Wire_Restored(self)
 end
 
 --duplicator support (TAD2020)
@@ -174,7 +174,7 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 	if self.WeldEntity and self.Inputs.Grab.Value ~= 0 then
 
 		if not self.Weld then
-			self.Weld = constraint.Weld(self.Entity, trace.Entity, 0, 0, self.WeldStrength)
+			self.Weld = constraint.Weld(self, trace.Entity, 0, 0, self.WeldStrength)
 			self.Weld.Type = "" --prevents the duplicator from making this weld
 		end
 
@@ -189,8 +189,8 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 
 		local r,g,b,a = self:GetColor()
 		self:SetColor(255, 0, 0, a)
-		Wire_TriggerOutput(self.Entity, "Holding", 1)
-		Wire_TriggerOutput(self.Entity, "Grabbed Entity", self.WeldEntity)
+		Wire_TriggerOutput(self, "Holding", 1)
+		Wire_TriggerOutput(self, "Grabbed Entity", self.WeldEntity)
 	end
 end
 

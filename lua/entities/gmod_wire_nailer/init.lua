@@ -7,14 +7,14 @@ include('shared.lua')
 ENT.WireDebugName = "Nailer"
 
 function ENT:Initialize()
-	self.Entity:PhysicsInit( SOLID_VPHYSICS )
-	self.Entity:SetMoveType( MOVETYPE_VPHYSICS )
-	self.Entity:SetSolid( SOLID_VPHYSICS )
-	self.Inputs = Wire_CreateInputs(self.Entity, { "A" })
+	self:PhysicsInit( SOLID_VPHYSICS )
+	self:SetMoveType( MOVETYPE_VPHYSICS )
+	self:SetSolid( SOLID_VPHYSICS )
+	self.Inputs = Wire_CreateInputs(self, { "A" })
 end
 
 function ENT:OnRemove()
-	Wire_Remove(self.Entity)
+	Wire_Remove(self)
 end
 
 function ENT:Setup(flim)
@@ -26,13 +26,13 @@ end
 function ENT:TriggerInput(iname, value)
 	if iname == "A" then
 		if value ~= 0 then
-			 local vStart = self.Entity:GetPos()
-			 local vForward = self.Entity:GetUp()
+			 local vStart = self:GetPos()
+			 local vForward = self:GetUp()
 
 			 local trace = {}
 				 trace.start = vStart
 				 trace.endpos = vStart + (vForward * 2048)
-				 trace.filter = { self.Entity }
+				 trace.filter = { self }
 			 local trace = util.TraceLine( trace )
 
 			-- Bail if we hit world or a player
@@ -42,8 +42,8 @@ function ENT:TriggerInput(iname, value)
 
 			local tr = {}
 				tr.start = trace.HitPos
-				tr.endpos = trace.HitPos + (self.Entity:GetUp() * 50.0)
-				tr.filter = { trace.Entity, self.Entity }
+				tr.endpos = trace.HitPos + (self:GetUp() * 50.0)
+				tr.filter = { trace.Entity, self }
 			local trTwo = util.TraceLine( tr )
 
 			if trTwo.Hit and not trTwo.Entity:IsPlayer() then
@@ -70,7 +70,7 @@ function ENT:ShowOutput()
 end
 
 function ENT:OnRestore()
-	Wire_Restored(self.Entity)
+	Wire_Restored(self)
 end
 
 -- Free Fall's Owner Check Code

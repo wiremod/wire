@@ -5,7 +5,7 @@ ENT.AdminSpawnable = false
 ENT.RenderGroup    = RENDERGROUP_BOTH
 
 function ENT:Initialize()
-	self.GPU = WireGPU(self.Entity)
+	self.GPU = WireGPU(self)
 end
 
 function ENT:OnRemove()
@@ -13,15 +13,15 @@ function ENT:OnRemove()
 end
 
 function ENT:Draw()
-	self.Entity:DrawModel()
+	self:DrawModel()
 
 
 	if (true) then
 		local oldw = ScrW()
 		local oldh = ScrH()
 
-		local length = math.Clamp(self.Entity:GetNetworkedFloat("Length"), 1, 100)
-		if self.Entity:GetNetworkedFloat("Length") <= 0 then length = 50 end
+		local length = math.Clamp(self:GetNetworkedFloat("Length"), 1, 100)
+		if self:GetNetworkedFloat("Length") <= 0 then length = 50 end
 
 		self.GPU:RenderToGPU(function()
 			surface.SetDrawColor(10,20,5,255)
@@ -40,7 +40,7 @@ function ENT:Draw()
 					local a = math.max(1, 3.75-(3*(i-100+length))/length)
 					local a2 = math.max(1, a/2)
 
-					local r,g,b = math.Clamp(self.Entity:GetNetworkedFloat("R"), 0, 255), math.Clamp(self.Entity:GetNetworkedFloat("G"), 0, 255), math.Clamp(self.Entity:GetNetworkedFloat("B"), 0, 255)
+					local r,g,b = math.Clamp(self:GetNetworkedFloat("R"), 0, 255), math.Clamp(self:GetNetworkedFloat("G"), 0, 255), math.Clamp(self:GetNetworkedFloat("B"), 0, 255)
 					if r <= 0 and g <= 0 and b <= 0 then g = 200 end
 
 					for i=-3,3 do
@@ -68,7 +68,7 @@ function ENT:Draw()
 	end
 
 	self.GPU:Render()
-	Wire_Render(self.Entity)
+	Wire_Render(self)
 end
 
 function ENT:IsTranslucent()

@@ -6,12 +6,12 @@ ENT.WireDebugName = "ConsoleScreen"
 
 function ENT:Initialize()
 
-	self.Entity:PhysicsInit(SOLID_VPHYSICS)
-	self.Entity:SetMoveType(MOVETYPE_VPHYSICS)
-	self.Entity:SetSolid(SOLID_VPHYSICS)
+	self:PhysicsInit(SOLID_VPHYSICS)
+	self:SetMoveType(MOVETYPE_VPHYSICS)
+	self:SetSolid(SOLID_VPHYSICS)
 
-	self.Inputs = Wire_CreateInputs(self.Entity, { "CharX", "CharY", "Char", "CharParam", "Clk", "Reset" })
-	self.Outputs = Wire_CreateOutputs(self.Entity, { "Memory" })
+	self.Inputs = Wire_CreateInputs(self, { "CharX", "CharY", "Char", "CharParam", "Clk", "Reset" })
+	self.Outputs = Wire_CreateOutputs(self, { "Memory" })
 
 	self.Memory = {}
 
@@ -117,7 +117,7 @@ function ENT:ReadCell(Address)
 	if Address < 0 then return nil end
 	if Address >= 2048 then return nil end
 
-	if Address == 2022 then return WireGPU_Monitors[self.Entity:GetModel()].RatioX end
+	if Address == 2022 then return WireGPU_Monitors[self:GetModel()].RatioX end
 
 	return self.Memory[Address]
 end
@@ -142,10 +142,10 @@ end
 function ENT:Think()
 	if (self.IgnoreDataTransfer == true) then
 		self.IgnoreDataTransfer = false
-		self.Entity:NextThink(CurTime()+0.2)
+		self:NextThink(CurTime()+0.2)
 	else
 		self:FlushCache()
-		self.Entity:NextThink(CurTime()+0.1)
+		self:NextThink(CurTime()+0.1)
 	end
 	return true
 end

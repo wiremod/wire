@@ -12,80 +12,80 @@ ENT.AdminSpawnable  = false
 
 
 function ENT:SetDisplayA( float )
-	self.Entity:SetNetworkedBeamFloat( 1, float, true )
+	self:SetNetworkedBeamFloat( 1, float, true )
 end
 
 function ENT:SetDisplayB( float )
-	self.Entity:SetNetworkedBeamFloat( 2, float, true )
+	self:SetNetworkedBeamFloat( 2, float, true )
 end
 
 function ENT:GetDisplayA( )
-	return self.Entity:GetNetworkedBeamFloat( 1 )
+	return self:GetNetworkedBeamFloat( 1 )
 end
 
 function ENT:GetDisplayB( )
-	return self.Entity:GetNetworkedBeamFloat( 2 )
+	return self:GetNetworkedBeamFloat( 2 )
 end
 
 
 // Extra stuff for Wire Screen (TheApathetic)
 function ENT:SetSingleValue(singlevalue)
-	self.Entity:SetNetworkedBool("SingleValue",singlevalue)
+	self:SetNetworkedBool("SingleValue",singlevalue)
 
 	// Change inputs if necessary
 	if (singlevalue) then
-		Wire_AdjustInputs(self.Entity, {"A"})
+		Wire_AdjustInputs(self, {"A"})
 	else
-		Wire_AdjustInputs(self.Entity, {"A","B"})
+		Wire_AdjustInputs(self, {"A","B"})
 	end
 end
 
 function ENT:GetSingleValue()
-	return self.Entity:GetNetworkedBool("SingleValue")
+	return self:GetNetworkedBool("SingleValue")
 end
 
 
 function ENT:SetSingleBigFont(singlebigfont)
-	self.Entity:SetNetworkedBool("SingleBigFont",singlebigfont)
+	self:SetNetworkedBool("SingleBigFont",singlebigfont)
 end
 
 function ENT:GetSingleBigFont()
-	return self.Entity:GetNetworkedBool("SingleBigFont")
+	return self:GetNetworkedBool("SingleBigFont")
 end
 
 
 function ENT:SetTextA(text)
-	self.Entity:SetNetworkedString("TextA",text)
+	self:SetNetworkedString("TextA",text)
 end
 
 function ENT:GetTextA()
-	return self.Entity:GetNetworkedString("TextA")
+	return self:GetNetworkedString("TextA")
 end
 
 function ENT:SetTextB(text)
-	self.Entity:SetNetworkedString("TextB",text)
+	self:SetNetworkedString("TextB",text)
 end
 
 function ENT:GetTextB()
-	return self.Entity:GetNetworkedString("TextB")
+	return self:GetNetworkedString("TextB")
 end
 
 
 //LeftAlign (TAD2020)
 function ENT:SetLeftAlign(leftalign)
-	self.Entity:SetNetworkedBool("LeftAlign",leftalign)
+	self:SetNetworkedBool("LeftAlign",leftalign)
 end
 
 function ENT:GetLeftAlign()
-	return self.Entity:GetNetworkedBool("LeftAlign")
+	return self:GetNetworkedBool("LeftAlign")
 end
 
 
 //Floor (TAD2020)
 function ENT:SetFloor(Floor)
-	self.Entity:SetNetworkedBool("Floor",Floor)
+	self:SetNetworkedBool("Floor",Floor)
 end
 
 function ENT:GetFloor()
-	return self.Entity:GetNetworkedBool("Floor")
+	return self:GetNetworkedBool("Floor")
 end

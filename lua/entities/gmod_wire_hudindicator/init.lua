@@ -7,9 +7,9 @@ include('shared.lua')
 ENT.WireDebugName = "HUD Indicator"
 
 function ENT:Initialize()
-	self.Entity:PhysicsInit( SOLID_VPHYSICS )
-	self.Entity:SetMoveType( MOVETYPE_VPHYSICS )
-	self.Entity:SetSolid( SOLID_VPHYSICS )
+	self:PhysicsInit( SOLID_VPHYSICS )
+	self:SetMoveType( MOVETYPE_VPHYSICS )
+	self:SetSolid( SOLID_VPHYSICS )
 
 	self.A = 0
 	self.AR = 0
@@ -26,7 +26,7 @@ function ENT:Initialize()
 	self.RegisteredPlayers = {}
 	self.PrefixText = "(Hud) Color = "
 
-	self.Inputs = Wire_CreateInputs(self.Entity, { "A", "HideHUD" })
+	self.Inputs = Wire_CreateInputs(self, { "A", "HideHUD" })
 end
 
 function ENT:Setup(a, ar, ag, ab, aa, b, br, bg, bb, ba)
@@ -51,13 +51,13 @@ end
 // For HUD Indicators
 function ENT:HUDSetup(showinhud, huddesc, hudaddname, hudshowvalue, hudstyle, allowhook, fullcircleangle)
 	local ply = self:GetPlayer()
-	local eindex = self.Entity:EntIndex()
+	local eindex = self:EntIndex()
 	// If user updates with the STool to take indicator off of HUD
 	if (!showinhud && self.ShowInHUD) then
 		self:UnRegisterPlayer(ply)
 
 		// Adjust inputs back to normal
-		//Wire_AdjustInputs(self.Entity, { "A" })
+		//Wire_AdjustInputs(self, { "A" })
 	elseif (showinhud) then
 		// Basic style is useless without a value
 		// to show so set a default if necessary
@@ -73,16 +73,16 @@ function ENT:HUDSetup(showinhud, huddesc, hudaddname, hudshowvalue, hudstyle, al
 
 		// Add name if desired
 		if (hudaddname) then
-			self.Entity:SetNetworkedString("WireName", huddesc)
-		elseif (self.Entity:GetNetworkedString("WireName") == huddesc) then
+			self:SetNetworkedString("WireName", huddesc)
+		elseif (self:GetNetworkedString("WireName") == huddesc) then
 			// Only remove it if the HUD Description was there
 			// because there might be another name on it
-			self.Entity:SetNetworkedString("WireName", "")
+			self:SetNetworkedString("WireName", "")
 		end
 
 		// Adjust inputs accordingly
 		/* if (!self.Inputs.HideHUD) then
-			Wire_AdjustInputs(self.Entity, { "A", "HideHUD" })
+			Wire_AdjustInputs(self, { "A", "HideHUD" })
 			self:TriggerInput("HideHUD", 0)
 			self.PrevHideHUD = false
 		end */
@@ -130,13 +130,13 @@ function ENT:SetupHUDStyle(hudstyle, rplayer)
 		local ainfo = self.AR.."|"..self.AG.."|"..self.AB
 		local binfo = self.BR.."|"..self.BG.."|"..self.BB
 		umsg.Start("HUDIndicatorStylePercent", pl)
-			umsg.Short(self.Entity:EntIndex())
+			umsg.Short(self:EntIndex())
 			umsg.String(ainfo)
 			umsg.String(binfo)
 		umsg.End()
 	elseif (hudstyle == 3) then // Full Circle Gauge
 		umsg.Start("HUDIndicatorStyleFullCircle", pl)
-			umsg.Short(self.Entity:EntIndex())
+			umsg.Short(self:EntIndex())
 			umsg.Float(self.FullCircleAngle)
 		umsg.End()
 	end
@@ -145,14 +145,14 @@ end
 // Hook this player to the HUD Indicator
 function ENT:RegisterPlayer(ply, hookhidehud, podonly)
 	local plyuid = ply:UniqueID()
-	local eindex = self.Entity:EntIndex()
+	local eindex = self:EntIndex()
 
 	// If player is already registered, this will send an update
 	// The podonly is used for players who are registered only because they are in a linked pod
 	if (!self.RegisteredPlayers[plyuid]) then
 		self.RegisteredPlayers[plyuid] = { ply = ply, hookhidehud = hookhidehud, podonly = podonly }
 		// This is used to check for pod-only status in ClientCheckRegister()
-		self.Entity:SetNetworkedBool( plyuid, util.tobool(podonly) )
+		self:SetNetworkedBool( plyuid, util.tobool(podonly) )
 	end
 
 	umsg.Start("HUDIndicatorRegister", ply)
@@ -174,7 +174,7 @@ end
 
 function ENT:UnRegisterPlayer(ply)
 	umsg.Start("HUDIndicatorUnRegister", ply)
-		umsg.Short(self.Entity:EntIndex())
+		umsg.Short(self:EntIndex())
 	umsg.End()
 	self.RegisteredPlayers[ply:UniqueID()] = nil
 end
@@ -199,7 +199,7 @@ function ENT:TriggerInput(iname, value)
 		local g = math.Clamp((self.BG-self.AG)*factor+self.AG, 0, 255)
 		local b = math.Clamp((self.BB-self.AB)*factor+self.AB, 0, 255)
 		local a = math.Clamp((self.BA-self.AA)*factor+self.AA, 0, 255)
-		self.Entity:SetColor(r, g, b, a)
+		self:SetColor(r, g, b, a)
 	elseif (iname == "HideHUD") then
 		if (self.PrevHideHUD == (value > 0)) then return end
 
@@ -229,7 +229,7 @@ function ENT:ShowOutput(factor, value)
 		end
 
 		umsg.Start("HUDIndicatorFactor", rf)
-			umsg.Short(self.Entity:EntIndex())
+			umsg.Short(self:EntIndex())
 			// Send both to ensure that all styles work properly
 			umsg.Float(factor)
 			umsg.Float(value)
@@ -245,7 +245,7 @@ function ENT:SendHUDInfo(hidehud)
 		if (rplayer.ply) then
 			if (rplayer.ply != pl || (self.ShowInHUD || self.PodPly == pl)) then
 				umsg.Start("HUDIndicatorHideHUD", rplayer.ply)
-					umsg.Short(self.Entity:EntIndex())
+					umsg.Short(self:EntIndex())
 					// Check player's preference
 					if (rplayer.hookhidehud) then
 						umsg.Bool(hidehud)
@@ -339,7 +339,7 @@ function ENT:Think()
 		self.PodPly = nil
 	end
 
-	self.Entity:NextThink(CurTime() + 0.1)
+	self:NextThink(CurTime() + 0.1)
 	return true
 end
 

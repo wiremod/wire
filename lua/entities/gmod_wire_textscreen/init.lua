@@ -5,11 +5,11 @@ include('shared.lua')
 ENT.WireDebugName = "Text Screen"
 
 function ENT:Initialize()
-	self.Entity:PhysicsInit( SOLID_VPHYSICS )
-	self.Entity:SetMoveType( MOVETYPE_VPHYSICS )
-	self.Entity:SetSolid( SOLID_VPHYSICS )
+	self:PhysicsInit( SOLID_VPHYSICS )
+	self:SetMoveType( MOVETYPE_VPHYSICS )
+	self:SetSolid( SOLID_VPHYSICS )
 
-	self.Inputs = WireLib.CreateSpecialInputs(self.Entity, { "String", "FGColor", "BGColor" }, { "STRING", "VECTOR", "VECTOR" })
+	self.Inputs = WireLib.CreateSpecialInputs(self, { "String", "FGColor", "BGColor" }, { "STRING", "VECTOR", "VECTOR" })
 	self:InitializeShared()
 end
 

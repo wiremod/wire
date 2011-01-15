@@ -20,7 +20,7 @@ local function cut_rect(x1,y1,w1,h1,x2,y2,w2,h2)
 end
 
 function ENT:Draw()
-	self.Entity:DrawModel()
+	self:DrawModel()
 
 	local draw_background = self:GetNetworkedBeamBool("draw_background", true)
 	self.GPU:RenderToWorld(nil, 512, function(x, y, w, h, monitor, pos, ang, res)
@@ -60,5 +60,5 @@ function ENT:Draw()
 			end
 		end
 	end, draw_background and nil or 0.1)
-	Wire_Render(self.Entity)
+	Wire_Render(self)
 end

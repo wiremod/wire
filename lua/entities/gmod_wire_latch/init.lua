@@ -7,12 +7,12 @@ include('shared.lua')
 
 
 function ENT:Initialize()
-	self.Entity:PhysicsInit( SOLID_VPHYSICS )
-	self.Entity:SetMoveType( MOVETYPE_VPHYSICS )
-	self.Entity:SetSolid( SOLID_VPHYSICS )
+	self:PhysicsInit( SOLID_VPHYSICS )
+	self:SetMoveType( MOVETYPE_VPHYSICS )
+	self:SetSolid( SOLID_VPHYSICS )
 
-	self.Inputs = Wire_CreateInputs( self.Entity, { "Activate", "NoCollide", "Strength" } )
-	self.Outputs = Wire_CreateOutputs( self.Entity, { "Welded" } )
+	self.Inputs = Wire_CreateInputs( self, { "Activate", "NoCollide", "Strength" } )
+	self.Outputs = Wire_CreateOutputs( self, { "Welded" } )
 
 	-- masks containing all current states
 	self.nocollide_masks = {
@@ -60,7 +60,7 @@ function ENT:Create_Weld()
 	self.Constraint = MakeWireLatch( self.Ent1, self.Ent2, self.Bone1, self.Bone2, self.weld_strength or 0 )
 
 	if self.Constraint then
-		self.Constraint:CallOnRemove( "Weld Latch Removed", Weld_Removed, self.Entity )
+		self.Constraint:CallOnRemove( "Weld Latch Removed", Weld_Removed, self )
 	end
 end
 
@@ -80,7 +80,7 @@ function ENT:TriggerInput( iname, value )
 
 		elseif value ~= 0 and not self.Constraint then
 			self:Create_Weld()
-			Wire_TriggerOutput( self.Entity, "Welded", 1 )
+			Wire_TriggerOutput( self, "Welded", 1 )
 		end
 
 	elseif iname == "NoCollide" then

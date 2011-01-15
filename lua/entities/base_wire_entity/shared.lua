@@ -13,9 +13,9 @@ ENT.AdminSpawnable = false
 ENT.IsWire = true
 
 function ENT:GetOverlayText()
-	local name = self.Entity:GetNetworkedString("WireName")
+	local name = self:GetNetworkedString("WireName")
 	//local txt = self.BaseClass.BaseClass.GetOverlayText(self) or ""
-	local txt = self.Entity:GetNetworkedBeamString("GModOverlayText") or ""
+	local txt = self:GetNetworkedBeamString("GModOverlayText") or ""
 	if (not SinglePlayer()) then
 		local PlayerName = self:GetPlayerName()
 		txt = txt .. "\n(" .. PlayerName .. ")"

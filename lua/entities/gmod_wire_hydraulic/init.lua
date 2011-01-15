@@ -6,17 +6,17 @@ ENT.WireDebugName = "Hydraulic"
 include('shared.lua')
 
 function ENT:Initialize()
-	self.Entity:PhysicsInit( SOLID_VPHYSICS )
-	self.Entity:SetMoveType( MOVETYPE_VPHYSICS )
-	self.Entity:SetSolid( SOLID_VPHYSICS )
+	self:PhysicsInit( SOLID_VPHYSICS )
+	self:SetMoveType( MOVETYPE_VPHYSICS )
+	self:SetSolid( SOLID_VPHYSICS )
 
-	self.Inputs = Wire_CreateInputs( self.Entity, { "Length", "Constant", "Damping" } )
-	self.Outputs = Wire_CreateOutputs( self.Entity, { "Length", "Constant", "Damping" } )
+	self.Inputs = Wire_CreateInputs( self, { "Length", "Constant", "Damping" } )
+	self.Outputs = Wire_CreateOutputs( self, { "Length", "Constant", "Damping" } )
 
 	self.Trigger = 0
 	if self.constraint then
-		WireLib.TriggerOutput( self.Entity, "Constant", self.constraint:GetKeyValues().constant )
-		WireLib.TriggerOutput( self.Entity, "Damping", self.constraint:GetKeyValues().damping )
+		WireLib.TriggerOutput( self, "Constant", self.constraint:GetKeyValues().constant )
+		WireLib.TriggerOutput( self, "Damping", self.constraint:GetKeyValues().damping )
 	end
 end
 
@@ -51,8 +51,8 @@ function ENT:Think()
 
 	self.current_length = p1:Distance(p2)
 
-	Wire_TriggerOutput( self.Entity, "Length", self.current_length)
-	self.Entity:NextThink(CurTime()+0.04)
+	Wire_TriggerOutput( self, "Length", self.current_length)
+	self:NextThink(CurTime()+0.04)
 	self:SetOverlayText( "Hydraulic Length : " .. self.current_length .. "\nConstant: " .. (self.current_constant or "-") .. "\nDamping: " .. (self.current_damping or "-") )
 end
 
@@ -66,8 +66,8 @@ function ENT:SetConstraint( c )
 
 	self.current_length = p1:Distance(p2)
 
-	WireLib.TriggerOutput( self.Entity, "Constant", self.constraint:GetKeyValues().constant )
-	WireLib.TriggerOutput( self.Entity, "Damping", self.constraint:GetKeyValues().damping )
+	WireLib.TriggerOutput( self, "Constant", self.constraint:GetKeyValues().constant )
+	WireLib.TriggerOutput( self, "Damping", self.constraint:GetKeyValues().damping )
 	self.constraint:Fire( "SetSpringLength", self.current_length, 0 )
 	if self.rope then self.rope:Fire( "SetLength", self.current_length, 0 ) end
 	self:SetOverlayText( "Hydraulic length : " .. self.current_length .. "\nConstant: " .. (self.constraint:GetKeyValues().constant or "-") .. "\nDamping: " .. (self.constraint:GetKeyValues().damping or "-") )

@@ -462,7 +462,7 @@ function ENT:InitializeOpcodeTable()
 			local newIP = self:Pop()
 			self.IP = newIP
 		end
-		Wire_TriggerOutput(self.Entity, "Error", 0)
+		Wire_TriggerOutput(self, "Error", 0)
 	end
 	self.OpcodeTable[42] = function (Param1,Param2)	//STI
 		self.NextIF = 1

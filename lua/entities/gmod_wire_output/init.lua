@@ -8,13 +8,13 @@ ENT.WireDebugName = "Output"
 local keylist = {"0","1","2","3","4","5","6","7","8","9",".","Enter","+","-","*","/"}
 
 function ENT:Initialize()
-	self.Entity:PhysicsInit( SOLID_VPHYSICS )
-	self.Entity:SetMoveType( MOVETYPE_VPHYSICS )
-	self.Entity:SetSolid( SOLID_VPHYSICS )
+	self:PhysicsInit( SOLID_VPHYSICS )
+	self:SetMoveType( MOVETYPE_VPHYSICS )
+	self:SetSolid( SOLID_VPHYSICS )
 
 	self:SetOn( false )
 
-	self.Inputs = Wire_CreateInputs(self.Entity, { "A" })
+	self.Inputs = Wire_CreateInputs(self, { "A" })
 end
 
 

@@ -11,7 +11,7 @@ ENT.RenderGroup 		= RENDERGROUP_OPAQUE
 ---------------------------------------------------------*/
 function ENT:DrawTranslucent()
 
-	if ( LocalPlayer():GetEyeTrace().Entity == self.Entity && EyePos():Distance( self.Entity:GetPos() ) < 512 ) then
+	if ( LocalPlayer():GetEyeTrace().Entity == self && EyePos():Distance( self:GetPos() ) < 512 ) then
 
 		if ( self:IsOn() ) then
 			self:DrawEntityOutline( 1.05 + math.sin( CurTime() * 60 ) * 0.05 )

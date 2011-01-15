@@ -7,12 +7,12 @@ include('shared.lua')
 ENT.WireDebugName = "2W Radio"
 
 function ENT:Initialize()
-	self.Entity:PhysicsInit( SOLID_VPHYSICS )
-	self.Entity:SetMoveType( MOVETYPE_VPHYSICS )
-	self.Entity:SetSolid( SOLID_VPHYSICS )
+	self:PhysicsInit( SOLID_VPHYSICS )
+	self:SetMoveType( MOVETYPE_VPHYSICS )
+	self:SetSolid( SOLID_VPHYSICS )
 
-	self.Inputs = Wire_CreateInputs(self.Entity, { "A", "B", "C", "D" })
-	self.Outputs = Wire_CreateOutputs(self.Entity, { "A", "B", "C", "D" })
+	self.Inputs = Wire_CreateInputs(self, { "A", "B", "C", "D" })
+	self.Outputs = Wire_CreateOutputs(self, { "A", "B", "C", "D" })
 
 	self.PairID = nil
 	self.Other = nil
@@ -26,10 +26,10 @@ function ENT:Setup( channel )
 	self.PrevOutputD = nil
 
 	self:ShowOutput("update", 1)
-	Wire_TriggerOutput(self.Entity, "A", self.Outputs.A.Value or 0)
-	Wire_TriggerOutput(self.Entity, "B", self.Outputs.B.Value or 0)
-	Wire_TriggerOutput(self.Entity, "C", self.Outputs.C.Value or 0)
-	Wire_TriggerOutput(self.Entity, "D", self.Outputs.D.Value or 0)
+	Wire_TriggerOutput(self, "A", self.Outputs.A.Value or 0)
+	Wire_TriggerOutput(self, "B", self.Outputs.B.Value or 0)
+	Wire_TriggerOutput(self, "C", self.Outputs.C.Value or 0)
+	Wire_TriggerOutput(self, "D", self.Outputs.D.Value or 0)
 end
 
 function ENT:TriggerInput(iname, value)
@@ -50,13 +50,13 @@ end
 
 function ENT:ReceiveRadio(iname, value)
 	if (iname == "A") and (self.Other) and (self.Other:IsValid()) then
-		Wire_TriggerOutput(self.Entity, "A", value)
+		Wire_TriggerOutput(self, "A", value)
 	elseif (iname == "B") and (self.Other) and (self.Other:IsValid()) then
-		Wire_TriggerOutput(self.Entity, "B", value)
+		Wire_TriggerOutput(self, "B", value)
 	elseif (iname == "C") and (self.Other) and (self.Other:IsValid()) then
-		Wire_TriggerOutput(self.Entity, "C", value)
+		Wire_TriggerOutput(self, "C", value)
 	elseif (iname == "D") and (self.Other) and (self.Other:IsValid()) then
-		Wire_TriggerOutput(self.Entity, "D", value)
+		Wire_TriggerOutput(self, "D", value)
 	end
 	self:ShowOutput(iname, value)
 end
@@ -112,8 +112,8 @@ end
 function ENT:OnRestore()
 	self.BaseClass.OnRestore(self)
 
-	Wire_AdjustInputs(self.Entity, { "A", "B", "C", "D" })
-	Wire_AdjustOutputs(self.Entity, { "A", "B", "C", "D" })
+	Wire_AdjustInputs(self, { "A", "B", "C", "D" })
+	Wire_AdjustOutputs(self, { "A", "B", "C", "D" })
 end
 
 // Dupe info functions added by TheApathetic

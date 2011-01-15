@@ -19,7 +19,7 @@ function ENT:Draw()
 
 	self.BaseClass.Draw( self )
 
-	Wire_Render(self.Entity)
+	Wire_Render(self)
 
 end
 
@@ -34,13 +34,13 @@ function ENT:DrawTranslucent()
 	// No glow if we're not switched on!
 	if ( !self:GetOn() ) then return end
 
-	local LightNrm = self.Entity:GetAngles():Up()
-	local ViewNormal = self.Entity:GetPos() - EyePos()
+	local LightNrm = self:GetAngles():Up()
+	local ViewNormal = self:GetPos() - EyePos()
 	local Distance = ViewNormal:Length()
 	ViewNormal:Normalize()
 	local ViewDot = ViewNormal:Dot( LightNrm )
 	local r, g, b, a = self:GetColor()
-	local LightPos = self.Entity:GetPos() + LightNrm * -6
+	local LightPos = self:GetPos() + LightNrm * -6
 
 	// glow sprite
 	/*

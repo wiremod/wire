@@ -8,25 +8,25 @@ ENT.WireDebugName = "EMarker"
 ENT.OverlayDelay = 0
 
 function ENT:Initialize()
-	self.Entity:PhysicsInit( SOLID_VPHYSICS )
-	self.Entity:SetMoveType( MOVETYPE_VPHYSICS )
-	self.Entity:SetSolid( SOLID_VPHYSICS )
-	Add_EntityMarker(self.Entity)
+	self:PhysicsInit( SOLID_VPHYSICS )
+	self:SetMoveType( MOVETYPE_VPHYSICS )
+	self:SetSolid( SOLID_VPHYSICS )
+	Add_EntityMarker(self)
 
-	self.Outputs = WireLib.CreateSpecialOutputs(self.Entity, { "Entity" }, { "ENTITY" })
+	self.Outputs = WireLib.CreateSpecialOutputs(self, { "Entity" }, { "ENTITY" })
 	self:SetOverlayText( "No Mark selected" )
 end
 
 function ENT:LinkEMarker(mark)
 	if mark then self.mark = mark end
 	if (!self.mark || !self.mark:IsValid()) then self:SetOverlayText( "No Mark selected" ) return end
-	Wire_TriggerOutput(self.Entity, "Entity", self.mark)
+	Wire_TriggerOutput(self, "Entity", self.mark)
 	self:SetOverlayText( "Linked - " .. self.mark:GetModel() )
 end
 
 function ENT:UnLinkEMarker()
 	self.mark = null
-	Wire_TriggerOutput(self.Entity, "Entity", null)
+	Wire_TriggerOutput(self, "Entity", null)
 	self:SetOverlayText( "No Mark selected" )
 end
 

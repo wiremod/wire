@@ -7,14 +7,14 @@ include('shared.lua')
 ENT.WireDebugName = "Water_Sensor"
 
 function ENT:Initialize()
-	self.Entity:PhysicsInit( SOLID_VPHYSICS )
-	self.Entity:SetMoveType( MOVETYPE_VPHYSICS )
-	self.Entity:SetSolid( SOLID_VPHYSICS )
-	self.Outputs = Wire_CreateOutputs(self.Entity, {"Out"})
+	self:PhysicsInit( SOLID_VPHYSICS )
+	self:SetMoveType( MOVETYPE_VPHYSICS )
+	self:SetSolid( SOLID_VPHYSICS )
+	self.Outputs = Wire_CreateOutputs(self, {"Out"})
 end
 
 function ENT:OnRemove()
-	Wire_Remove(self.Entity)
+	Wire_Remove(self)
 end
 
 function ENT:TriggerInput(iname, value)
@@ -33,16 +33,16 @@ function ENT:ShowOutput()
 end
 
 function ENT:OnRestore()
-	Wire_Restored(self.Entity)
+	Wire_Restored(self)
 end
 
 function ENT:Think()
 	self.BaseClass.Think(self)
-	if(self.Entity:WaterLevel()>0)then
-		Wire_TriggerOutput(self.Entity,"Out",1)
+	if(self:WaterLevel()>0)then
+		Wire_TriggerOutput(self,"Out",1)
 	else
-		Wire_TriggerOutput(self.Entity,"Out",0)
+		Wire_TriggerOutput(self,"Out",0)
 	end
 	self:ShowOutput()
-	self.Entity:NextThink(CurTime()+0.125)
+	self:NextThink(CurTime()+0.125)
 end

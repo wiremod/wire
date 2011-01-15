@@ -9,15 +9,15 @@ ENT.WireDebugName = "Graphics Tablet"
 ENT.outputMode = false
 
 function ENT:Initialize()
-	self.Entity:PhysicsInit( SOLID_VPHYSICS )
-	self.Entity:SetMoveType( MOVETYPE_VPHYSICS )
-	self.Entity:SetSolid( SOLID_VPHYSICS )
-	self.Outputs = Wire_CreateOutputs(self.Entity, { "X", "Y", "Use", "OnScreen" })
+	self:PhysicsInit( SOLID_VPHYSICS )
+	self:SetMoveType( MOVETYPE_VPHYSICS )
+	self:SetSolid( SOLID_VPHYSICS )
+	self.Outputs = Wire_CreateOutputs(self, { "X", "Y", "Use", "OnScreen" })
 
-	Wire_TriggerOutput(self.Entity, "X", 0)
-	Wire_TriggerOutput(self.Entity, "Y", 0)
-	Wire_TriggerOutput(self.Entity, "Use", 0)
-	Wire_TriggerOutput(self.Entity, "OnScreen", 0)
+	Wire_TriggerOutput(self, "X", 0)
+	Wire_TriggerOutput(self, "Y", 0)
+	Wire_TriggerOutput(self, "Use", 0)
+	Wire_TriggerOutput(self, "OnScreen", 0)
 
 	self.lastOnscreen = 0
 	self.lastX = 0
@@ -74,8 +74,8 @@ function ENT:Think()
 							cx = cx * 2 - 1
 							cy = -(cy * 2 - 1)
 						end
-						Wire_TriggerOutput(self.Entity, "X", cx)
-						Wire_TriggerOutput(self.Entity, "Y", cy)
+						Wire_TriggerOutput(self, "X", cx)
+						Wire_TriggerOutput(self, "Y", cy)
 						self:ShowOutput(cx, cy, clickActive, 1)
 					end
 				end
@@ -84,18 +84,18 @@ function ENT:Think()
 	end
 
 	if (onScreen ~= self.lastOnScreen) then
-		Wire_TriggerOutput(self.Entity, "OnScreen", onScreen)
+		Wire_TriggerOutput(self, "OnScreen", onScreen)
 		self:ShowOutput(self.lastX, self.lastY, self.lastClick, onScreen)
 		self.lastOnScreen = onScreen
 	end
 
 	if (clickActive ~= self.lastClick) then
-		Wire_TriggerOutput(self.Entity, "Use", clickActive)
+		Wire_TriggerOutput(self, "Use", clickActive)
 		self:ShowOutput(self.lastX, self.lastY, clickActive, self.lastOnScreen)
 		self.lastClick = clickActive
 	end
 
-	self.Entity:NextThink(CurTime()+0.08)
+	self:NextThink(CurTime()+0.08)
 	return true
 end
 
@@ -105,5 +105,5 @@ end
 
 function ENT:OnRestore()
 	self.BaseClass.OnRestore(self)
-	Wire_AdjustOutputs(self.Entity, { "X", "Y", "Use", "OnScreen" })
+	Wire_AdjustOutputs(self, { "X", "Y", "Use", "OnScreen" })
 end

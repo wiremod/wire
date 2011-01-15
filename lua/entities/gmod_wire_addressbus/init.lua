@@ -7,12 +7,12 @@ ENT.WireDebugName = "AddressBus"
 ENT.OverlayDelay = 0
 
 function ENT:Initialize()
-	self.Entity:PhysicsInit( SOLID_VPHYSICS )
-	self.Entity:SetMoveType( MOVETYPE_VPHYSICS )
-	self.Entity:SetSolid( SOLID_VPHYSICS )
-	self.Entity:SetUseType( SIMPLE_USE )
-	self.Outputs = Wire_CreateOutputs(self.Entity, {"Memory"})
-	self.Inputs = Wire_CreateInputs(self.Entity,{"Memory1","Memory2","Memory3","Memory4"})
+	self:PhysicsInit( SOLID_VPHYSICS )
+	self:SetMoveType( MOVETYPE_VPHYSICS )
+	self:SetSolid( SOLID_VPHYSICS )
+	self:SetUseType( SIMPLE_USE )
+	self.Outputs = Wire_CreateOutputs(self, {"Memory"})
+	self.Inputs = Wire_CreateInputs(self,{"Memory1","Memory2","Memory3","Memory4"})
 	self.Memory = {}
 	self.MemStart = {}
 	self.MemEnd = {}
@@ -32,10 +32,10 @@ function ENT:Think()
 	self.DataRate = (self.DataRate*1.2 + self.DataBytes * 4 * 0.8) / 2
 	self.DataBytes = 0
 
-	Wire_TriggerOutput(self.Entity, "Memory", self.DataRate)
+	Wire_TriggerOutput(self, "Memory", self.DataRate)
 
 	self:SetOverlayText("Address bus\nData rate: "..math.floor(self.DataRate).." bps")
-	self.Entity:NextThink(CurTime()+0.25)
+	self:NextThink(CurTime()+0.25)
 end
 
 function ENT:ReadCell( Address )

@@ -24,12 +24,12 @@ include('gpu_opcodes.lua')				//Include ZGPU opcodes for ZASM
 ENT.WireDebugName = "GPU"
 
 function ENT:Initialize()
-	self.Entity:PhysicsInit(SOLID_VPHYSICS)
-	self.Entity:SetMoveType(MOVETYPE_VPHYSICS)
-	self.Entity:SetSolid(SOLID_VPHYSICS)
+	self:PhysicsInit(SOLID_VPHYSICS)
+	self:SetMoveType(MOVETYPE_VPHYSICS)
+	self:SetSolid(SOLID_VPHYSICS)
 
-	self.Inputs = Wire_CreateInputs(self.Entity, { "Clk", "Reset", "MemBus", "IOBus" })
-	self.Outputs = Wire_CreateOutputs(self.Entity, { "Memory" })
+	self.Inputs = Wire_CreateInputs(self, { "Clk", "Reset", "MemBus", "IOBus" })
+	self.Outputs = Wire_CreateOutputs(self, { "Memory" })
 
 	self.Clk = 1
 	self.IOBus = nil
@@ -60,7 +60,7 @@ end
 //function ENT:Use(pl)
 //	//if (!self.Using) then
 //	//	self.Using = true
-//	//	self.Entity:NextThink(CurTime()+0.4)
+//	//	self:NextThink(CurTime()+0.4)
 //
 //		local rp = RecipientFilter()
 //		rp:AddPlayer(pl)
@@ -123,7 +123,7 @@ function ENT:Think()
 			self:FlushCache()
 		end
 	end
-	self.Entity:NextThink(CurTime()+0.05)
+	self:NextThink(CurTime()+0.05)
 	return true
 end
 

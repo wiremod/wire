@@ -9,15 +9,15 @@ include('shared.lua')
 ---------------------------------------------------------]]
 function ENT:Initialize()
 
-	//self.Entity:SetModel( "models/weapons/w_smg1.mdl" )
-	self.Entity:PhysicsInit( SOLID_VPHYSICS )
-	self.Entity:SetMoveType( MOVETYPE_VPHYSICS )
-	self.Entity:SetSolid( SOLID_VPHYSICS )
+	//self:SetModel( "models/weapons/w_smg1.mdl" )
+	self:PhysicsInit( SOLID_VPHYSICS )
+	self:SetMoveType( MOVETYPE_VPHYSICS )
+	self:SetSolid( SOLID_VPHYSICS )
 
-	self.Entity:DrawShadow( false )
-	self.Entity:SetCollisionGroup( COLLISION_GROUP_WEAPON )
+	self:DrawShadow( false )
+	self:SetCollisionGroup( COLLISION_GROUP_WEAPON )
 
-	local phys = self.Entity:GetPhysicsObject()
+	local phys = self:GetPhysicsObject()
 	if (phys:IsValid()) then
 		phys:Wake()
 	end
@@ -25,7 +25,7 @@ function ENT:Initialize()
 	self.Firing 	= false
 	self.NextShot 	= 0
 
-	self.Inputs = Wire_CreateInputs(self.Entity, { "Fire" })
+	self.Inputs = Wire_CreateInputs(self, { "Fire" })
 
 end
 
@@ -102,15 +102,15 @@ function ENT:FireShot()
 
 	-- Make a sound if you want to.
 	if ( self:GetSound() ) then
-		self.Entity:EmitSound( self:GetSound() )
+		self:EmitSound( self:GetSound() )
 	end
 
 	-- Get the muzzle attachment (this is pretty much always 1)
-	local Attachment = self.Entity:GetAttachment( 1 )
+	local Attachment = self:GetAttachment( 1 )
 
 	-- Get the shot angles and stuff.
 	local shootOrigin = Attachment.Pos
-	local shootAngles = self.Entity:GetAngles()
+	local shootAngles = self:GetAngles()
 	local shootDir = shootAngles:Forward()
 
 	-- Shoot a bullet
@@ -124,7 +124,7 @@ function ENT:FireShot()
 		bullet.Force		= self:GetForce()
 		bullet.Damage		= self:GetDamage()
 		bullet.Attacker 	= self:GetPlayer()
-	self.Entity:FireBullets( bullet )
+	self:FireBullets( bullet )
 
 	-- Make a muzzle flash
 	local effectdata = EffectData()
@@ -139,7 +139,7 @@ end
    Name: OnTakeDamage
 ---------------------------------------------------------]]
 function ENT:OnTakeDamage( dmginfo )
-	self.Entity:TakePhysicsDamage( dmginfo )
+	self:TakePhysicsDamage( dmginfo )
 end
 
 function ENT:Think()
@@ -149,7 +149,7 @@ function ENT:Think()
 		self:FireShot()
 	end
 
-	self.Entity:NextThink(CurTime())
+	self:NextThink(CurTime())
 	return true
 end
 

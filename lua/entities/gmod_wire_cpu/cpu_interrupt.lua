@@ -76,7 +76,7 @@ function ENT:Interrupt(intnumber,intparam,isNMI)
 			fracparam = fracparam / 10
 		end
 	end
-	Wire_TriggerOutput(self.Entity, "Error", intnumber+fracparam)
+	Wire_TriggerOutput(self, "Error", intnumber+fracparam)
 
 	if (self.IF == 1) then
 		if (self.PF == 0) && (self.EF == 0) then

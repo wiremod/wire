@@ -9,23 +9,22 @@ local function validConCmd(self, command)
 	if not ply:IsValid() then return false end
 	if ply:GetInfoNum("wire_expression2_concmd") == 0 then return false end
 
-
 	local whitelist = (ply:GetInfo("wire_expression2_concmd_whitelist") or ""):Trim()
 	if whitelist == "" then return true end
 
-	command = command.." "
-	for _,whitelist_element in ipairs(string.Explode(",",whitelist)) do
-		whitelist_element = whitelist_element:Trim().." "
-		if whitelist_element == command:sub(1,whitelist_element:len()) then return true end
+	for cmd in command:gmatch( "[^;]+" ) do -- Split around ; and space
+		cmd = cmd:match( "[^%s]+" ) -- Get everything up to the first space
+		local found = false
+		for whitelist_element in whitelist:gmatch( "[^,]+" ) do -- Split around ,
+			if (cmd == whitelist_element) then -- This command is in the whitelist
+				found = true
+				break
+			end
+		end
+		if (!found) then return false end -- If the command is not in the whitelist, return false
 	end
-	return false
+	return true
 end
-
---[[
-e2function trace(string message)
-	self.player:Msg(message .. "\n")
-end
-]]
 
 e2function number concmd(string command)
 	if not validConCmd(self, command) then return 0 end

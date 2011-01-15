@@ -39,7 +39,7 @@ function ENT:Initialize()
 	//1048574 - Hardware Clear Screen
 	//1048575 - CLK
 
-	self.GPU = WireGPU(self.Entity)
+	self.GPU = WireGPU(self)
 end
 
 function ENT:OnRemove()
@@ -219,7 +219,7 @@ function ENT:RedrawRow(y)
 end
 
 function ENT:Draw()
-	self.Entity:DrawModel()
+	self:DrawModel()
 
 	if self.NeedRefresh then
 		self.NeedRefresh = false
@@ -264,7 +264,7 @@ function ENT:Draw()
 	if EmuFox then return end
 
 	self.GPU:Render()
-	Wire_Render(self.Entity)
+	Wire_Render(self)
 end
 
 function ENT:IsTranslucent()

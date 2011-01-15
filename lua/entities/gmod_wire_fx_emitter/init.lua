@@ -14,19 +14,19 @@ ENT.LastClear     = 0
 ---------------------------------------------------------*/
 function ENT:Initialize()
 
-	self.Entity:SetModel( "models/props_lab/tpplug.mdl" )
-	self.Entity:PhysicsInit( SOLID_VPHYSICS )
-	self.Entity:SetMoveType( MOVETYPE_VPHYSICS )
-	self.Entity:SetSolid( SOLID_VPHYSICS )
+	self:SetModel( "models/props_lab/tpplug.mdl" )
+	self:PhysicsInit( SOLID_VPHYSICS )
+	self:SetMoveType( MOVETYPE_VPHYSICS )
+	self:SetSolid( SOLID_VPHYSICS )
 
-	self.Entity:DrawShadow( false )
-	self.Entity:SetCollisionGroup( COLLISION_GROUP_WEAPON )
+	self:DrawShadow( false )
+	self:SetCollisionGroup( COLLISION_GROUP_WEAPON )
 
-	local phys = self.Entity:GetPhysicsObject()
+	local phys = self:GetPhysicsObject()
 	if (phys:IsValid()) then
 		phys:Wake()
 	end
-	self.Inputs = WireLib.CreateSpecialInputs( self.Entity, { "On", "Effect", "Delay", "Direction" }, { "NORMAL", "NORMAL", "NORMAL", "VECTOR" } )
+	self.Inputs = WireLib.CreateSpecialInputs( self, { "On", "Effect", "Delay", "Direction" }, { "NORMAL", "NORMAL", "NORMAL", "VECTOR" } )
 	self:SetOverlayText( "Wire FX Emitter" )
 
 	self.datanstuff = {
@@ -42,7 +42,7 @@ end
    Name: OnTakeDamage
 ---------------------------------------------------------
 function ENT:OnTakeDamage( dmginfo )
-	self.Entity:TakePhysicsDamage( dmginfo )
+	self:TakePhysicsDamage( dmginfo )
 end
 */
 

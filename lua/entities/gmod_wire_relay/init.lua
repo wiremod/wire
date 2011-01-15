@@ -8,16 +8,16 @@ ENT.WireDebugName = "Relay"
 ENT.OverlayDelay = 0
 
 function ENT:Initialize()
-	self.Entity:PhysicsInit( SOLID_VPHYSICS )
-	self.Entity:SetMoveType( MOVETYPE_VPHYSICS )
-	self.Entity:SetSolid( SOLID_VPHYSICS )
+	self:PhysicsInit( SOLID_VPHYSICS )
+	self:SetMoveType( MOVETYPE_VPHYSICS )
+	self:SetSolid( SOLID_VPHYSICS )
 
 
 	self.Value = {}		//stores current output value
 	self.Last = {}		//stores last input value for each input
 
-	self.Inputs = Wire_CreateInputs(self.Entity, { "1A", "2A", "Switch" })
-	self.Outputs = Wire_CreateOutputs(self.Entity, { "A" })
+	self.Inputs = Wire_CreateInputs(self, { "1A", "2A", "Switch" })
+	self.Outputs = Wire_CreateOutputs(self, { "A" })
 end
 
 function ENT:Setup(keygroup1, keygroup2, keygroup3, keygroup4, keygroup5, keygroupoff, toggle, normclose, poles, throws)
@@ -50,8 +50,8 @@ function ENT:Setup(keygroup1, keygroup2, keygroup3, keygroup4, keygroup5, keygro
 	//add switch input to end of input list
 	table.insert(inputs, "Switch")
 
-	Wire_AdjustInputs(self.Entity, inputs)
-	Wire_AdjustOutputs(self.Entity, self.outputs)
+	Wire_AdjustInputs(self, inputs)
+	Wire_AdjustOutputs(self, self.outputs)
 
 	//set the switch to its new normal state
 	self:Switch( normclose )
@@ -71,11 +71,11 @@ end
 
 
 function ENT:Switch( mul )
-	if (!self.Entity:IsValid()) then return false end
+	if (!self:IsValid()) then return false end
 	self.SelInput = mul
 	for p,v in ipairs(self.outputs) do
 		self.Value[p] = self.Last[ mul .. v ] or 0
-		Wire_TriggerOutput(self.Entity, v, self.Value[p])
+		Wire_TriggerOutput(self, v, self.Value[p])
 	end
 	self:ShowOutput()
 	return true

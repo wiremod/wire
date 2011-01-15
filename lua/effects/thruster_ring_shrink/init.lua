@@ -8,12 +8,12 @@ EFFECT.Mat = Material( "effects/select_ring" )
 function EFFECT:Init( data )
 
 	local size = 16
-	self.Entity:SetCollisionBounds( Vector( -size,-size,-size ), Vector( size,size,size ) )
+	self:SetCollisionBounds( Vector( -size,-size,-size ), Vector( size,size,size ) )
 
 	local Pos = data:GetOrigin() + data:GetNormal() * 2
 
-	self.Entity:SetPos( Pos )
-	self.Entity:SetAngles( data:GetNormal():Angle() + Angle( 0.01, 0.01, 0.01 ) )
+	self:SetPos( Pos )
+	self:SetAngles( data:GetNormal():Angle() + Angle( 0.01, 0.01, 0.01 ) )
 
 	self.Pos = data:GetOrigin()
 	self.Normal = data:GetNormal()
@@ -38,7 +38,7 @@ function EFFECT:Think( )
 	self.Size = self.Size - (255 - self.Alpha)*0.02
 	self.Alpha = self.Alpha - 250.0 * speed
 
-	self.Entity:SetPos( self.Entity:GetPos() + self.Normal * speed * 128 )
+	self:SetPos( self:GetPos() + self.Normal * speed * 128 )
 
 	if (self.Alpha < 0 ) then return false end
 	if (self.Size < 0) then return false end
@@ -55,8 +55,8 @@ function EFFECT:Render( )
 
 	render.SetMaterial( self.Mat )
 
-	render.DrawQuadEasy( self.Entity:GetPos(),
-		self.Entity:GetAngles():Forward(),
+	render.DrawQuadEasy( self:GetPos(),
+		self:GetAngles():Forward(),
 		self.Size, self.Size,
 		Color( math.Rand( 10, 100), math.Rand( 100, 220), math.Rand( 240, 255), self.Alpha )
 	)

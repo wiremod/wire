@@ -29,12 +29,12 @@ hook.Add("PlayerSay","TextReceiverSay", function(pl, text, toall)
 end)
 
 function ENT:Initialize()
-	self.Entity:PhysicsInit( SOLID_VPHYSICS )
-	self.Entity:SetMoveType( MOVETYPE_VPHYSICS )
-	self.Entity:SetSolid( SOLID_VPHYSICS )
-	Add_TextReceiver(self.Entity)
+	self:PhysicsInit( SOLID_VPHYSICS )
+	self:SetMoveType( MOVETYPE_VPHYSICS )
+	self:SetSolid( SOLID_VPHYSICS )
+	Add_TextReceiver(self)
 
-	self.Outputs = Wire_CreateOutputs(self.Entity, { "Error" })
+	self.Outputs = Wire_CreateOutputs(self, { "Error" })
 end
 
 function ENT:Setup( liness, globall,OutputTextt,Holdd,Triggerr,SELFF,sensitivityy,togglee,utriggerr,parsetextt,secure,playerout)
@@ -79,7 +79,7 @@ function ENT:Setup( liness, globall,OutputTextt,Holdd,Triggerr,SELFF,sensitivity
 		table.insert(onames,"Z")
 		table.insert(onames,"EntId")
 	end
-	Wire_AdjustOutputs(self.Entity, onames)
+	Wire_AdjustOutputs(self, onames)
 
 	self.changed = false
 
@@ -235,7 +235,7 @@ function ENT:Think()
 		end
 	end
 
-	self.Entity:NextThink(CurTime()+0.04)
+	self:NextThink(CurTime()+0.04)
 	return true
 end
 
@@ -275,7 +275,7 @@ function ENT:TextReceived(pl,text)
 		if (text != nil && o.line != nil) then
 			TextReceivertext = text
 			TextReceiverarg = nil
-			if (self:InRadius(pl:GetPos(),self.Entity:GetPos(),o.Radius) == true) then
+			if (self:InRadius(pl:GetPos(),self:GetPos(),o.Radius) == true) then
 				if (o.argsC == true) then
 					if (self:CheckforChar(TextReceivertext or "",self.char1,self.char2) == true) then
 						TextReceiverarg = {}
@@ -395,7 +395,7 @@ function ENT:ReloadLines()
 		table.insert(onames,"Z")
 		table.insert(onames,"EntId")
 	end
-	Wire_AdjustOutputs(self.Entity, onames)
+	Wire_AdjustOutputs(self, onames)
 end
 
 function ENT:WriteCell(Addr,value)
@@ -426,19 +426,19 @@ function ENT:TriggerOutput()
 	local pos = nil
 	if (self.playerout == true && self.Caller != nil) then
 		pos = self.Caller:GetPos()
-		Wire_TriggerOutput(self.Entity,"X",pos.X)
-		Wire_TriggerOutput(self.Entity,"Y",pos.Y)
-		Wire_TriggerOutput(self.Entity,"Z",pos.Z)
-		Wire_TriggerOutput(self.Entity,"EntId",self.Caller:EntIndex())
+		Wire_TriggerOutput(self,"X",pos.X)
+		Wire_TriggerOutput(self,"Y",pos.Y)
+		Wire_TriggerOutput(self,"Z",pos.Z)
+		Wire_TriggerOutput(self,"EntId",self.Caller:EntIndex())
 	end
 	local i = 1
 	for k,o in pairs(self.lines) do
 		if (self.OutputText == true) then self.OutText = self.OutText .. "\n" .. (o.line or "") .. ":" .. (o.value or 0) end
 		for q = 1, table.Count(o.args) do
-			Wire_TriggerOutput(self.Entity,o.args[q].A,(o.args[q].V or 0))
+			Wire_TriggerOutput(self,o.args[q].A,(o.args[q].V or 0))
 			if (self.OutputText == true) then self.OutText =self.OutText .. "  " .. (o.args[q].A or "") .. ":" .. (o.args[q].V or 0) end
 		end
-		Wire_TriggerOutput(self.Entity,o.line,o.value)
+		Wire_TriggerOutput(self,o.line,o.value)
 		i = i + 1
 	end
 	if (self.playerout == true) then //We want it to trigger first BUT display last.

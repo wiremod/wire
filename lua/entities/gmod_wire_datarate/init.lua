@@ -7,12 +7,12 @@ ENT.WireDebugName = "DataTransfer"
 ENT.OverlayDelay = 0
 
 function ENT:Initialize()
-	self.Entity:PhysicsInit( SOLID_VPHYSICS )
-	self.Entity:SetMoveType( MOVETYPE_VPHYSICS )
-	self.Entity:SetSolid( SOLID_VPHYSICS )
-	self.Entity:SetUseType( SIMPLE_USE )
-	self.Outputs = Wire_CreateOutputs(self.Entity, {"Output","HiSpeed_DataRate","Wire_DataRate"})
-	self.Inputs = Wire_CreateInputs(self.Entity,{"Input","Smooth", "Interval"})
+	self:PhysicsInit( SOLID_VPHYSICS )
+	self:SetMoveType( MOVETYPE_VPHYSICS )
+	self:SetSolid( SOLID_VPHYSICS )
+	self:SetUseType( SIMPLE_USE )
+	self.Outputs = Wire_CreateOutputs(self, {"Output","HiSpeed_DataRate","Wire_DataRate"})
+	self.Inputs = Wire_CreateInputs(self,{"Input","Smooth", "Interval"})
 
 	self.Memory = nil
 	self.Smooth = 0.5
@@ -35,11 +35,11 @@ function ENT:Think()
 	self.HDataRate = (self.HDataRate*(2-self.Smooth) + self.HDataBytes * (1/self.Interval) * (self.Smooth)) / 2
 	self.HDataBytes = 0
 
-	Wire_TriggerOutput(self.Entity, "HiSpeed_DataRate", self.HDataRate)
-	Wire_TriggerOutput(self.Entity, "Wire_DataRate", self.WDataRate)
+	Wire_TriggerOutput(self, "HiSpeed_DataRate", self.HDataRate)
+	Wire_TriggerOutput(self, "Wire_DataRate", self.WDataRate)
 
 	self:SetOverlayText("Data transferrer\nHi-Speed data rate: "..math.floor(self.HDataRate).." bps\nWire data rate: "..math.floor(self.WDataRate).." bps")
-	self.Entity:NextThink(CurTime()+self.Interval)
+	self:NextThink(CurTime()+self.Interval)
 
 	return true
 end
@@ -78,7 +78,7 @@ function ENT:TriggerInput(iname, value)
 	if (iname == "Input") then
 		self.Memory = self.Inputs.Input.Src
 		self.WDataBytes = self.WDataBytes + 1
-		Wire_TriggerOutput(self.Entity, "Output", value)
+		Wire_TriggerOutput(self, "Output", value)
 	elseif (iname == "Smooth") then
 		self.Smooth = 2*(1-math.Clamp(value,0,1))
 	elseif (iname == "Interval") then

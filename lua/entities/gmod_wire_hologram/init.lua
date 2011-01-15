@@ -5,8 +5,8 @@ include( "shared.lua" )
 
 function ENT:Initialize()
 
-	self.Entity:SetSolid( SOLID_NONE )
-	self.Entity:SetMoveType( MOVETYPE_NONE )
-	self.Entity:DrawShadow( false )
+	self:SetSolid( SOLID_NONE )
+	self:SetMoveType( MOVETYPE_NONE )
+	self:DrawShadow( false )
 
 end

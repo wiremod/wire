@@ -8,11 +8,11 @@ ENT.WireDebugName = "Data Transferer"
 
 
 function ENT:Initialize()
-	self.Entity:PhysicsInit( SOLID_VPHYSICS )
-	self.Entity:SetMoveType( MOVETYPE_VPHYSICS )
-	self.Entity:SetSolid( SOLID_VPHYSICS )
-	self.Inputs = Wire_CreateInputs(self.Entity, {"Send","A","B","C","D","E","F","G","H"})
-	self.Outputs = Wire_CreateOutputs(self.Entity, {"A","B","C","D","E","F","G","H"})
+	self:PhysicsInit( SOLID_VPHYSICS )
+	self:SetMoveType( MOVETYPE_VPHYSICS )
+	self:SetSolid( SOLID_VPHYSICS )
+	self.Inputs = Wire_CreateInputs(self, {"Send","A","B","C","D","E","F","G","H"})
+	self.Outputs = Wire_CreateOutputs(self, {"A","B","C","D","E","F","G","H"})
 	self.Sending = false
 	self.Activated = false
 	self.ActivateTime = 0
@@ -39,7 +39,7 @@ function ENT:Setup(Range,DefaultZero,IgnoreZero)
 end
 
 function ENT:OnRemove()
-	Wire_Remove(self.Entity)
+	Wire_Remove(self)
 end
 
 function ENT:TriggerInput(iname, value)
@@ -56,14 +56,14 @@ end
 
 function ENT:Think()
 	if(self.Activated == false && self.DefaultZero)then
-		Wire_TriggerOutput(self.Entity,"A",0)
-		Wire_TriggerOutput(self.Entity,"B",0)
-		Wire_TriggerOutput(self.Entity,"C",0)
-		Wire_TriggerOutput(self.Entity,"D",0)
-		Wire_TriggerOutput(self.Entity,"E",0)
-		Wire_TriggerOutput(self.Entity,"F",0)
-		Wire_TriggerOutput(self.Entity,"G",0)
-		Wire_TriggerOutput(self.Entity,"H",0)
+		Wire_TriggerOutput(self,"A",0)
+		Wire_TriggerOutput(self,"B",0)
+		Wire_TriggerOutput(self,"C",0)
+		Wire_TriggerOutput(self,"D",0)
+		Wire_TriggerOutput(self,"E",0)
+		Wire_TriggerOutput(self,"F",0)
+		Wire_TriggerOutput(self,"G",0)
+		Wire_TriggerOutput(self,"H",0)
 	else
 		if(CurTime() > self.ActivateTime + 0.5)then
 			self.Activated = false
@@ -71,13 +71,13 @@ function ENT:Think()
 	end
 
 
-	local vStart = self.Entity:GetPos()
-	local vForward = self.Entity:GetUp()
+	local vStart = self:GetPos()
+	local vForward = self:GetUp()
 
 	local trace = {}
 	   trace.start = vStart
 	   trace.endpos = vStart + (vForward * self:GetBeamRange())
-	   trace.filter = { self.Entity }
+	   trace.filter = { self }
 	local trace = util.TraceLine( trace )
 
 	local ent = trace.Entity
@@ -86,14 +86,14 @@ function ENT:Think()
 	(trace.Entity:GetClass() == "gmod_wire_data_transferer" ||
 	 trace.Entity:GetClass() == "gmod_wire_data_satellitedish" ||
 	  trace.Entity:GetClass() == "gmod_wire_data_store" ))then
-		if(Color(self.Entity:GetColor()) != Color(255,255,255,255))then
-			self.Entity:SetColor(255, 255, 255, 255)
+		if(Color(self:GetColor()) != Color(255,255,255,255))then
+			self:SetColor(255, 255, 255, 255)
 		end
 	return false
 	end
 
-	if(Color(self.Entity:GetColor()) != Color(0,255,0,255))then
-		self.Entity:SetColor(0, 255, 0, 255)
+	if(Color(self:GetColor()) != Color(0,255,0,255))then
+		self:SetColor(0, 255, 0, 255)
 	end
 
 	if(trace.Entity:GetClass() == "gmod_wire_data_transferer")then
@@ -116,29 +116,29 @@ function ENT:Think()
 			ent.Transmitter:RecieveValue("G",self.Values.G)
 			ent.Transmitter:RecieveValue("H",self.Values.H)
 		else
-			self.Entity:SetColor(255, 0, 0, 255)
+			self:SetColor(255, 0, 0, 255)
 		end
 	elseif(trace.Entity:GetClass() == "gmod_wire_data_store")then
-		Wire_TriggerOutput(self.Entity,"A",ent.Values.A)
-		Wire_TriggerOutput(self.Entity,"B",ent.Values.B)
-		Wire_TriggerOutput(self.Entity,"C",ent.Values.C)
-		Wire_TriggerOutput(self.Entity,"D",ent.Values.D)
-		Wire_TriggerOutput(self.Entity,"E",ent.Values.E)
-		Wire_TriggerOutput(self.Entity,"F",ent.Values.F)
-		Wire_TriggerOutput(self.Entity,"G",ent.Values.G)
-		Wire_TriggerOutput(self.Entity,"H",ent.Values.H)
+		Wire_TriggerOutput(self,"A",ent.Values.A)
+		Wire_TriggerOutput(self,"B",ent.Values.B)
+		Wire_TriggerOutput(self,"C",ent.Values.C)
+		Wire_TriggerOutput(self,"D",ent.Values.D)
+		Wire_TriggerOutput(self,"E",ent.Values.E)
+		Wire_TriggerOutput(self,"F",ent.Values.F)
+		Wire_TriggerOutput(self,"G",ent.Values.G)
+		Wire_TriggerOutput(self,"H",ent.Values.H)
 		if(self.Sending)then
-			ent.Values.A = self.Entity.Inputs["A"].Value
-			ent.Values.B = self.Entity.Inputs["B"].Value
-			ent.Values.C = self.Entity.Inputs["C"].Value
-			ent.Values.D = self.Entity.Inputs["D"].Value
-			ent.Values.E = self.Entity.Inputs["E"].Value
-			ent.Values.F = self.Entity.Inputs["F"].Value
-			ent.Values.G = self.Entity.Inputs["G"].Value
-			ent.Values.H = self.Entity.Inputs["H"].Value
+			ent.Values.A = self.Inputs["A"].Value
+			ent.Values.B = self.Inputs["B"].Value
+			ent.Values.C = self.Inputs["C"].Value
+			ent.Values.D = self.Inputs["D"].Value
+			ent.Values.E = self.Inputs["E"].Value
+			ent.Values.F = self.Inputs["F"].Value
+			ent.Values.G = self.Inputs["G"].Value
+			ent.Values.H = self.Inputs["H"].Value
 		end
 	end
-	self.Entity:NextThink(CurTime()+0.125)
+	self:NextThink(CurTime()+0.125)
 end
 
 function ENT:ShowOutput()
@@ -146,13 +146,13 @@ function ENT:ShowOutput()
 end
 
 function ENT:OnRestore()
-	Wire_Restored(self.Entity)
+	Wire_Restored(self)
 end
 
 function ENT:RecieveValue(output,value)
 	self.Activated = true
 	self.ActivateTime = CurTime()
 	if value ~= 0 or not self.IgnoreZero then
-		Wire_TriggerOutput(self.Entity,output,value)
+		Wire_TriggerOutput(self,output,value)
 	end
 end

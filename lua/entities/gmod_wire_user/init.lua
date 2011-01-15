@@ -7,16 +7,16 @@ include('shared.lua')
 ENT.WireDebugName = "User"
 
 function ENT:Initialize()
-	self.Entity:PhysicsInit( SOLID_VPHYSICS )
-	self.Entity:SetMoveType( MOVETYPE_VPHYSICS )
-	self.Entity:SetSolid( SOLID_VPHYSICS )
-	self.Inputs = Wire_CreateInputs(self.Entity, { "Fire"})
-	self.Outputs = Wire_CreateOutputs(self.Entity, {})
+	self:PhysicsInit( SOLID_VPHYSICS )
+	self:SetMoveType( MOVETYPE_VPHYSICS )
+	self:SetSolid( SOLID_VPHYSICS )
+	self.Inputs = Wire_CreateInputs(self, { "Fire"})
+	self.Outputs = Wire_CreateOutputs(self, {})
 	self:SetBeamLength(2048)
 end
 
 function ENT:OnRemove()
-	Wire_Remove(self.Entity)
+	Wire_Remove(self)
 end
 
 function ENT:Setup(Range)
@@ -27,13 +27,13 @@ end
 function ENT:TriggerInput(iname, value)
 	if (iname == "Fire") then
 		if (value ~= 0) then
-			local vStart = self.Entity:GetPos()
-			local vForward = self.Entity:GetUp()
+			local vStart = self:GetPos()
+			local vForward = self:GetUp()
 
 			local trace = {}
 				trace.start = vStart
 				trace.endpos = vStart + (vForward * self:GetBeamLength())
-				trace.filter = { self.Entity }
+				trace.filter = { self }
 			local trace = util.TraceLine( trace )
 
 			if (!trace.Entity) then return false end
@@ -55,5 +55,5 @@ function ENT:ShowOutput()
 end
 
 function ENT:OnRestore()
-	Wire_Restored(self.Entity)
+	Wire_Restored(self)
 end

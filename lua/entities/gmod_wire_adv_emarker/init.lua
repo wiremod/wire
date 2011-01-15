@@ -10,13 +10,13 @@ ENT.WireDebugName = "Adv EMarker"
 ENT.OverlayDelay = 0
 
 function ENT:Initialize()
-	self.Entity:PhysicsInit( SOLID_VPHYSICS )
-	self.Entity:SetMoveType( MOVETYPE_VPHYSICS )
-	self.Entity:SetSolid( SOLID_VPHYSICS )
+	self:PhysicsInit( SOLID_VPHYSICS )
+	self:SetMoveType( MOVETYPE_VPHYSICS )
+	self:SetSolid( SOLID_VPHYSICS )
 
 	self.Target = nil
 
-	AddAdvEMarker( self.Entity )
+	AddAdvEMarker( self )
 
 	self.Marks = {}
 	local outputs = {}
@@ -29,8 +29,8 @@ function ENT:Initialize()
 		outputs[i] = "Entity" .. (i-2)
 		types[i] = "ENTITY"
 	end
-	self.Inputs = WireLib.CreateInputs( self.Entity, { "Entity [ENTITY]", "Add Entity", "Remove Entity", "Clear Entities" } )
-	self.Outputs = WireLib.CreateSpecialOutputs( self.Entity, outputs, types )
+	self.Inputs = WireLib.CreateInputs( self, { "Entity [ENTITY]", "Add Entity", "Remove Entity", "Clear Entities" } )
+	self.Outputs = WireLib.CreateSpecialOutputs( self, outputs, types )
 	self:SetOverlayText( "Number of entities linked: 0" )
 end
 
@@ -64,12 +64,12 @@ end
 
 function ENT:UpdateOutputs()
 	-- Trigger regular outputs
-	WireLib.TriggerOutput( self.Entity, "Entities", self.Marks )
-	WireLib.TriggerOutput( self.Entity, "Nr", #self.Marks )
+	WireLib.TriggerOutput( self, "Entities", self.Marks )
+	WireLib.TriggerOutput( self, "Nr", #self.Marks )
 
 	-- Trigger special outputs
 	for i=3,12 do
-		WireLib.TriggerOutput( self.Entity, "Entity" .. (i-2), self.Marks[i-2] )
+		WireLib.TriggerOutput( self, "Entity" .. (i-2), self.Marks[i-2] )
 	end
 
 	-- Overlay text
@@ -78,7 +78,7 @@ function ENT:UpdateOutputs()
 	-- Yellow lines information
 	if (SERVER) then
 		umsg.Start("Wire_Adv_EMarker_Links")
-			umsg.Short(self.Entity:EntIndex())
+			umsg.Short(self:EntIndex())
 			umsg.Short(#self.Marks)
 			for k,v in pairs( self.Marks ) do
 				umsg.Short(v:EntIndex())

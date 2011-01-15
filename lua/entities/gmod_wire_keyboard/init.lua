@@ -28,14 +28,14 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 end
 
 function ENT:Initialize()
-	self.Entity:PhysicsInit(SOLID_VPHYSICS)
-	self.Entity:SetMoveType(MOVETYPE_VPHYSICS)
-	self.Entity:SetSolid(SOLID_VPHYSICS)
-	self.Entity:SetUseType(SIMPLE_USE)
+	self:PhysicsInit(SOLID_VPHYSICS)
+	self:SetMoveType(MOVETYPE_VPHYSICS)
+	self:SetSolid(SOLID_VPHYSICS)
+	self:SetUseType(SIMPLE_USE)
 
 	self.On = {}
-	self.Inputs = Wire_CreateInputs(self.Entity, { "Kick the bastard out of keyboard" })
-	self.Outputs = WireLib.CreateSpecialOutputs(self.Entity, { "Memory", "User", "InUse" }, { "NORMAL", "ENTITY", "NORMAL" })
+	self.Inputs = Wire_CreateInputs(self, { "Kick the bastard out of keyboard" })
+	self.Outputs = WireLib.CreateSpecialOutputs(self, { "Memory", "User", "InUse" }, { "NORMAL", "ENTITY", "NORMAL" })
 
 	for i = 0,223 do
 		self.On[i] = false
@@ -98,7 +98,7 @@ end
 //=============================================================================
 
 function ENT:Switch(on, key)
-	if (!self.Entity:IsValid()) then return false end
+	if (!self:IsValid()) then return false end
 
 	if (key == -1) then
 		self.Buffer[0] = 0

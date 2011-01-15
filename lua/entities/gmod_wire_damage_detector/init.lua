@@ -51,7 +51,7 @@ end)
 
 
 function ENT:Initialize()
-	local self = self.Entity
+	local self = self
 
 	self:PhysicsInit( SOLID_VPHYSICS )
 	self:SetMoveType( MOVETYPE_VPHYSICS )
@@ -83,8 +83,8 @@ end
 ******************************/
 
 function ENT:OnRemove()
-	Wire_Damage_Detectors[self.Entity:EntIndex()] = nil
-	Wire_Remove(self.Entity)
+	Wire_Damage_Detectors[self:EntIndex()] = nil
+	Wire_Remove(self)
 end
 
 // Update overlay
@@ -104,7 +104,7 @@ function ENT:ShowOutput()
 	end
 
 	if IsValid( linkedent ) then
-		if linkedent == self.Entity then
+		if linkedent == self then
 			text = text .. "Linked - Self"
 		else
 			text = text .. "Linked - " .. linkedent:GetModel()
@@ -117,7 +117,7 @@ function ENT:ShowOutput()
 end
 
 function ENT:SetOverlayText(txt)
-	self.Entity:SetNetworkedBeamString("GModOverlayText", txt)
+	self:SetNetworkedBeamString("GModOverlayText", txt)
 end
 
 function ENT:Setup( includeconstrained )
@@ -162,26 +162,26 @@ end
 function ENT:TriggerOutput()		-- Entity outputs won't trigger again until they change
 			local attacker = self.firsthit_dmginfo[1]
 			if ValidEntity(attacker) then
-				Wire_TriggerOutput( self.Entity, "Attacker", attacker )
+				Wire_TriggerOutput( self, "Attacker", attacker )
 			else
-				Wire_TriggerOutput( self.Entity, "Attacker", null )
+				Wire_TriggerOutput( self, "Attacker", null )
 			end
 
 			local victim = self.firsthit_dmginfo[2]
 			if ValidEntity( ents.GetByIndex(victim) ) then
-				Wire_TriggerOutput( self.Entity, "Victim", ents.GetByIndex(victim) )
+				Wire_TriggerOutput( self, "Victim", ents.GetByIndex(victim) )
 			else
-				Wire_TriggerOutput( self.Entity, "Victim", null )
+				Wire_TriggerOutput( self, "Victim", null )
 			end
 
 			self.victims.size = table.Count(self.victims.s)
-			Wire_TriggerOutput( self.Entity, "Victims", self.victims or table.Copy(DEFAULT) )
-			Wire_TriggerOutput( self.Entity, "Position", self.firsthit_dmginfo[3] or Vector(0,0,0) )
-			Wire_TriggerOutput( self.Entity, "Force", self.firsthit_dmginfo[4] or Vector(0,0,0) )
-			Wire_TriggerOutput( self.Entity, "Type", self.firsthit_dmginfo[5] or "" )
+			Wire_TriggerOutput( self, "Victims", self.victims or table.Copy(DEFAULT) )
+			Wire_TriggerOutput( self, "Position", self.firsthit_dmginfo[3] or Vector(0,0,0) )
+			Wire_TriggerOutput( self, "Force", self.firsthit_dmginfo[4] or Vector(0,0,0) )
+			Wire_TriggerOutput( self, "Type", self.firsthit_dmginfo[5] or "" )
 
-			Wire_TriggerOutput( self.Entity, "Damage", self.damage or 0 )
-			Wire_TriggerOutput( self.Entity, "Damage", 0 )		-- Set damage back to 0 after it's been dealt
+			Wire_TriggerOutput( self, "Damage", self.damage or 0 )
+			Wire_TriggerOutput( self, "Damage", 0 )		-- Set damage back to 0 after it's been dealt
 end
 
 function ENT:UpdateLinkedEnts()		-- Check to see if prop is registered by the detector

@@ -10,14 +10,14 @@ ENT.OverlayDelay = 0
 local MODEL = Model( "models/props_lab/powerbox02d.mdl" )
 
 function ENT:Initialize()
-	self.Entity:SetModel( MODEL )
-	self.Entity:PhysicsInit( SOLID_VPHYSICS )
-	self.Entity:SetMoveType( MOVETYPE_VPHYSICS )
-	self.Entity:SetSolid( SOLID_VPHYSICS )
+	self:SetModel( MODEL )
+	self:PhysicsInit( SOLID_VPHYSICS )
+	self:SetMoveType( MOVETYPE_VPHYSICS )
+	self:SetSolid( SOLID_VPHYSICS )
 
 	self.Outputs = Wire_CreateOutputs(self, { "Waypoints [ARRAY]" })
 
-	self.waypoints = { self.Entity }
+	self.waypoints = { self }
 	Wire_TriggerOutput(self, "Waypoints", self.waypoints)
 end
 
@@ -30,18 +30,18 @@ end
 
 
 function ENT:GetBeaconPos(sensor)
-	if ((sensor:GetPos()-self.Entity:GetPos()):Length() < self.Range) then
+	if ((sensor:GetPos()-self:GetPos()):Length() < self.Range) then
 		sensor:SetBeacon(self:GetNextWaypoint())
 	end
 
-	return self.Entity:GetPos()
+	return self:GetPos()
 end
 
 function ENT:SetNextWaypoint(wp)
 	local SavedNextWaypoint = self:GetNextWaypoint()
 
 	if SavedNextWaypoint:IsValid() and SavedNextWaypoint ~= wp then
-		self.Entity:SetNetworkedEntity("NextWaypoint", wp)
+		self:SetNetworkedEntity("NextWaypoint", wp)
 
 		local waypoints = self.waypoints
 		for _,ent in ipairs(waypoints) do
@@ -55,7 +55,7 @@ function ENT:SetNextWaypoint(wp)
 		return
 	end
 
-	self.Entity:SetNetworkedEntity("NextWaypoint", wp)
+	self:SetNetworkedEntity("NextWaypoint", wp)
 
 	if table.HasValue(self.waypoints, wp) then return end
 

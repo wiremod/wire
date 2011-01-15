@@ -14,14 +14,14 @@ for k,v in ipairs(keynames) do
 	lookupkeynames[k-1] = v
 end
 function ENT:Initialize()
-	self.Entity:PhysicsInit( SOLID_VPHYSICS )
-	self.Entity:SetMoveType( MOVETYPE_VPHYSICS )
-	self.Entity:SetSolid( SOLID_VPHYSICS )
+	self:PhysicsInit( SOLID_VPHYSICS )
+	self:SetMoveType( MOVETYPE_VPHYSICS )
+	self:SetSolid( SOLID_VPHYSICS )
 
 	self.On = {}
 
-	self.Inputs = Wire_CreateInputs(self.Entity, keynames)
-	self.Outputs = Wire_CreateOutputs(self.Entity, keynames)
+	self.Inputs = Wire_CreateInputs(self, keynames)
+	self.Outputs = Wire_CreateOutputs(self, keynames)
 
 	self.Buffer = {}
 	for i = 0,#keynames-1 do
@@ -78,7 +78,7 @@ function ENT:NumpadDeactivate( key )
 end
 
 function ENT:Switch( on, key )
-	if (!self.Entity:IsValid()) then return false end
+	if (!self:IsValid()) then return false end
 
 	self.On[ key ] = on
 
@@ -90,7 +90,7 @@ function ENT:Switch( on, key )
 		self.Value = self.ValueOff
 	end
 
-	Wire_TriggerOutput(self.Entity, lookupkeynames[key], self.Value)
+	Wire_TriggerOutput(self, lookupkeynames[key], self.Value)
 
 	if ( on ) then
 		self.Buffer[key] = 1

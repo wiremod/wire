@@ -6,14 +6,14 @@ include('shared.lua')
 ENT.WireDebugName = "Light"
 
 function ENT:Initialize()
-	self.Entity:PhysicsInit( SOLID_VPHYSICS )
-	self.Entity:SetMoveType( MOVETYPE_VPHYSICS )
-	self.Entity:SetSolid( SOLID_VPHYSICS )
+	self:PhysicsInit( SOLID_VPHYSICS )
+	self:SetMoveType( MOVETYPE_VPHYSICS )
+	self:SetSolid( SOLID_VPHYSICS )
 
 	self.R, self.G, self.B = 0, 0, 0
-	self.Entity:SetColor( 0, 0, 0, 255 )
+	self:SetColor( 0, 0, 0, 255 )
 
-	self.Inputs = WireLib.CreateInputs(self.Entity, {"Red", "Green", "Blue", "RGB [VECTOR]"})
+	self.Inputs = WireLib.CreateInputs(self, {"Red", "Green", "Blue", "RGB [VECTOR]"})
 end
 
 function ENT:OnRemove()
@@ -30,11 +30,11 @@ function ENT:DirectionalOn()
 	end
 
 	local flashlight = ents.Create( "env_projectedtexture" )
-		flashlight:SetParent( self.Entity )
+		flashlight:SetParent( self )
 
 		// The local positions are the offsets from parent..
 		flashlight:SetLocalPos( Vector( 0, 0, 0 ) )
-		flashlight:SetAngles( self.Entity:GetAngles() + Angle( -90, 0, 0 ) )
+		flashlight:SetAngles( self:GetAngles() + Angle( -90, 0, 0 ) )
 
 		// Looks like only one flashlight can have shadows enabled!
 		flashlight:SetKeyValue( "enableshadows", 1 )
@@ -64,14 +64,14 @@ function ENT:RadiantOn()
 		self.RadiantComponent:Fire("TurnOn","","0")
 	else
 		local dynlight = ents.Create( "light_dynamic" )
-		dynlight:SetPos( self.Entity:GetPos() )
+		dynlight:SetPos( self:GetPos() )
 		local dynlightpos = dynlight:GetPos()+Vector( 0, 0, 10 )
 		dynlight:SetPos( dynlightpos )
 		dynlight:SetKeyValue( "_light", self.R .. " " .. self.G .. " " .. self.B .. " " .. 255 )
 		dynlight:SetKeyValue( "style", 0 )
 		dynlight:SetKeyValue( "distance", 255 )
 		dynlight:SetKeyValue( "brightness", 5 )
-		dynlight:SetParent( self.Entity )
+		dynlight:SetParent( self )
 		dynlight:Spawn()
 		self.RadiantComponent = dynlight
 	end
@@ -146,12 +146,12 @@ function ENT:Setup(directional, radiant, glow)
 		end
 	end
 	if (self.glow) then
-		WireLib.AdjustInputs(self.Entity, {"Red", "Green", "Blue", "RGB [VECTOR]", "GlowBrightness", "GlowDecay", "GlowSize"})
+		WireLib.AdjustInputs(self, {"Red", "Green", "Blue", "RGB [VECTOR]", "GlowBrightness", "GlowDecay", "GlowSize"})
 		if (!self.GlowState) then
 			self:GlowOn()
 		end
 	else
-		WireLib.AdjustInputs(self.Entity, {"Red", "Green", "Blue", "RGB [VECTOR]"})
+		WireLib.AdjustInputs(self, {"Red", "Green", "Blue", "RGB [VECTOR]"})
 		if (self.GlowState) then
 			self:GlowOff()
 		end
@@ -179,8 +179,8 @@ function ENT:ShowOutput( R, G, B )
 		end
 		self:SetOverlayText( "Light: Red=" .. R .. " Green:" .. G .. " Blue:" .. B )
 		self.R, self.G, self.B = R, G, B
-		local _,_,_,A = self.Entity:GetColor()
-		self.Entity:SetColor( R, G, B, A )
+		local _,_,_,A = self:GetColor()
+		self:SetColor( R, G, B, A )
 	end
 end
 

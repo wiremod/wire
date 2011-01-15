@@ -6,9 +6,9 @@ include('shared.lua')
 ENT.WireDebugName = "Pod Controller"
 
 function ENT:Initialize()
-	self.Entity:PhysicsInit( SOLID_VPHYSICS )
-	self.Entity:SetMoveType( MOVETYPE_VPHYSICS )
-	self.Entity:SetSolid( SOLID_VPHYSICS )
+	self:PhysicsInit( SOLID_VPHYSICS )
+	self:SetMoveType( MOVETYPE_VPHYSICS )
+	self:SetSolid( SOLID_VPHYSICS )
 
 	-- Output keys. Format: self.Keys["name"] = IN_*
 	self.Keys = { }
@@ -38,8 +38,8 @@ function ENT:Initialize()
 	self.VPos = Vector(0, 0, 0)
 
 	-- Create outputs
-	self.Outputs = Wire_CreateOutputs( self.Entity, outputs )
-	self.Inputs = Wire_CreateInputs( self.Entity, { "Lock", "Eject", "Crosshair", "Open" } )
+	self.Outputs = Wire_CreateOutputs( self, outputs )
+	self.Inputs = Wire_CreateInputs( self, { "Lock", "Eject", "Crosshair", "Open" } )
 	self:SetOverlayText( "Pod Controller" )
 end
 
@@ -50,7 +50,7 @@ function ENT:SetKeys(keys)
 		out[#out+1] = k
 	end
 	out[#out+1] = "Active"
-	WireLib.AdjustOutputs(self.Entity, out)
+	WireLib.AdjustOutputs(self, out)
 end
 
 -- Link to pod
@@ -79,20 +79,20 @@ function ENT:Think()
 			-- Loop through all the self.Keys, and check if they was pressed last frame
 			for k, v in pairs(self.Keys)  do
 				if self.Ply:KeyDownLast(v) then
-					Wire_TriggerOutput(self.Entity, k, 1)
+					Wire_TriggerOutput(self, k, 1)
 				else
-					Wire_TriggerOutput(self.Entity, k, 0)
+					Wire_TriggerOutput(self, k, 0)
 				end
 			end
 			local trace = util.GetPlayerTrace(self.Ply)
 			trace.filter = self.Pod
 			self.VPos = util.TraceLine(trace).HitPos
-			Wire_TriggerOutput(self.Entity, "Active", 1)
+			Wire_TriggerOutput(self, "Active", 1)
 		else
-			Wire_TriggerOutput(self.Entity, "Active", 0)
+			Wire_TriggerOutput(self, "Active", 0)
 		end
 	end
-	self.Entity:NextThink(CurTime() + 0.01)
+	self:NextThink(CurTime() + 0.01)
 	return true
 end
 

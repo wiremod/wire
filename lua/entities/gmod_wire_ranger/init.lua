@@ -9,13 +9,13 @@ include('shared.lua')
 ENT.WireDebugName = "Ranger"
 
 function ENT:Initialize()
-	self.Entity:PhysicsInit( SOLID_VPHYSICS )
-	self.Entity:SetMoveType( MOVETYPE_VPHYSICS )
-	self.Entity:SetSolid( SOLID_VPHYSICS )
-	self.Entity:StartMotionController()
+	self:PhysicsInit( SOLID_VPHYSICS )
+	self:SetMoveType( MOVETYPE_VPHYSICS )
+	self:SetSolid( SOLID_VPHYSICS )
+	self:StartMotionController()
 
-	self.Inputs = Wire_CreateInputs(self.Entity, { "X", "Y", "SelectValue"})
-	self.Outputs = Wire_CreateOutputs(self.Entity, { "Dist" })
+	self.Inputs = Wire_CreateInputs(self, { "X", "Y", "SelectValue"})
+	self.Outputs = Wire_CreateOutputs(self, { "Dist" })
 	self.hires = false
 end
 
@@ -46,7 +46,7 @@ function ENT:Setup( range, default_zero, show_beam, ignore_world, trace_water, o
 		self:SetBeamLength(0)
 	end
 
-	self.Entity:SetNetworkedBool("TraceWater", trace_water)
+	self:SetNetworkedBool("TraceWater", trace_water)
 
 	local onames, otypes = {}, {}
 	if (out_dist) then
@@ -98,7 +98,7 @@ function ENT:Setup( range, default_zero, show_beam, ignore_world, trace_water, o
 		table.insert(onames, "HitNormal Z") table.insert(otypes, "NORMAL")
 	end
 	table.insert(onames, "RangerData") table.insert(otypes, "RANGER")
-	WireLib.AdjustSpecialOutputs(self.Entity, onames, otypes)
+	WireLib.AdjustSpecialOutputs(self, onames, otypes)
 
 	self:TriggerOutput(0, Vector(0, 0, 0), Vector(0, 0, 0), Angle(0, 0, 0), Color(255, 255, 255, 255),nil,0,0,NULL, Vector(0, 0, 0),nil)
 	self:ShowOutput()
@@ -116,18 +116,18 @@ function ENT:Think()
 	self.BaseClass.Think(self)
 
 	local trace = {}
-	trace.start = self.Entity:GetPos()
+	trace.start = self:GetPos()
 	if (self.Inputs.X.Value == 0 and self.Inputs.Y.Value == 0) then
-		trace.endpos = trace.start + self.Entity:GetUp()*self.range
+		trace.endpos = trace.start + self:GetUp()*self.range
 	else
 		local skew = Vector(self.Inputs.X.Value, self.Inputs.Y.Value, 1)
 		skew = skew*(self.range/skew:Length())
-		local beam_x = self.Entity:GetRight()*skew.x
-		local beam_y = self.Entity:GetForward()*skew.y
-		local beam_z = self.Entity:GetUp()*skew.z
+		local beam_x = self:GetRight()*skew.x
+		local beam_y = self:GetForward()*skew.y
+		local beam_z = self:GetUp()*skew.z
 		trace.endpos = trace.start + beam_x + beam_y + beam_z
 	end
-	trace.filter = { self.Entity }
+	trace.filter = { self }
 	if (self.trace_water) then trace.mask = -1 end
 	trace = util.TraceLine(trace)
 
@@ -196,9 +196,9 @@ function ENT:Think()
 	self:ShowOutput()
 
 	if (self.hires) then
-		self.Entity:NextThink(CurTime())
+		self:NextThink(CurTime())
 	else
-		self.Entity:NextThink(CurTime()+0.04)
+		self:NextThink(CurTime()+0.04)
 	end
 
 	return true
@@ -270,65 +270,65 @@ end
 function ENT:TriggerOutput(dist, pos, vel, ang, col, val, sid, uid, ent, hnrm, trace)
 
 	if (self.out_dist) then
-		Wire_TriggerOutput(self.Entity, "Dist", dist)
+		Wire_TriggerOutput(self, "Dist", dist)
 	end
 
 	if (self.out_pos) then
-		Wire_TriggerOutput(self.Entity, "Pos", pos)
-		Wire_TriggerOutput(self.Entity, "Pos X", pos.x)
-		Wire_TriggerOutput(self.Entity, "Pos Y", pos.y)
-		Wire_TriggerOutput(self.Entity, "Pos Z", pos.z)
+		Wire_TriggerOutput(self, "Pos", pos)
+		Wire_TriggerOutput(self, "Pos X", pos.x)
+		Wire_TriggerOutput(self, "Pos Y", pos.y)
+		Wire_TriggerOutput(self, "Pos Z", pos.z)
 	end
 
 	if (self.out_vel) then
-		Wire_TriggerOutput(self.Entity, "Vel", vel)
-		Wire_TriggerOutput(self.Entity, "Vel X", vel.x)
-		Wire_TriggerOutput(self.Entity, "Vel Y", vel.y)
-		Wire_TriggerOutput(self.Entity, "Vel Z", vel.z)
+		Wire_TriggerOutput(self, "Vel", vel)
+		Wire_TriggerOutput(self, "Vel X", vel.x)
+		Wire_TriggerOutput(self, "Vel Y", vel.y)
+		Wire_TriggerOutput(self, "Vel Z", vel.z)
 	end
 
 	if (self.out_ang) then
-		Wire_TriggerOutput(self.Entity, "Ang", ang)
-		Wire_TriggerOutput(self.Entity, "Ang Pitch", ang.p)
-		Wire_TriggerOutput(self.Entity, "Ang Yaw", ang.y)
-		Wire_TriggerOutput(self.Entity, "Ang Roll", ang.r)
+		Wire_TriggerOutput(self, "Ang", ang)
+		Wire_TriggerOutput(self, "Ang Pitch", ang.p)
+		Wire_TriggerOutput(self, "Ang Yaw", ang.y)
+		Wire_TriggerOutput(self, "Ang Roll", ang.r)
 	end
 
 	if (self.out_col) then
-		Wire_TriggerOutput(self.Entity, "Col RGB", Vector(col.r, col.g, col.b))
-		Wire_TriggerOutput(self.Entity, "Col R", col.r)
-		Wire_TriggerOutput(self.Entity, "Col G", col.g)
-		Wire_TriggerOutput(self.Entity, "Col B", col.b)
-		Wire_TriggerOutput(self.Entity, "Col A", col.a)
+		Wire_TriggerOutput(self, "Col RGB", Vector(col.r, col.g, col.b))
+		Wire_TriggerOutput(self, "Col R", col.r)
+		Wire_TriggerOutput(self, "Col G", col.g)
+		Wire_TriggerOutput(self, "Col B", col.b)
+		Wire_TriggerOutput(self, "Col A", col.a)
 	end
 
 	if (self.out_sid) then
-		Wire_TriggerOutput(self.Entity, "SteamID", sid)
+		Wire_TriggerOutput(self, "SteamID", sid)
 	end
 
 	if (self.out_uid) then
-		Wire_TriggerOutput(self.Entity, "UniqueID", uid)
+		Wire_TriggerOutput(self, "UniqueID", uid)
 	end
 
 	if (self.out_eid) then
-		Wire_TriggerOutput(self.Entity, "EntID", ent:EntIndex())
-		Wire_TriggerOutput(self.Entity, "Entity", ent)
+		Wire_TriggerOutput(self, "EntID", ent:EntIndex())
+		Wire_TriggerOutput(self, "Entity", ent)
 	end
 
 	if (self.out_hnrm and hnrm) then
-		Wire_TriggerOutput(self.Entity, "HitNormal", hnrm)
-		Wire_TriggerOutput(self.Entity, "HitNormal X", hnrm.x)
-		Wire_TriggerOutput(self.Entity, "HitNormal Y", hnrm.y)
-		Wire_TriggerOutput(self.Entity, "HitNormal Z", hnrm.z)
+		Wire_TriggerOutput(self, "HitNormal", hnrm)
+		Wire_TriggerOutput(self, "HitNormal X", hnrm.x)
+		Wire_TriggerOutput(self, "HitNormal Y", hnrm.y)
+		Wire_TriggerOutput(self, "HitNormal Z", hnrm.z)
 	end
 
 	if (val != nil && #val > 0 && self.Inputs.SelectValue.Value < table.Count(val)) then
-		Wire_TriggerOutput(self.Entity, "Val", val[self.Inputs.SelectValue.Value])
-		Wire_TriggerOutput(self.Entity, "ValSize", table.Count(val))
+		Wire_TriggerOutput(self, "Val", val[self.Inputs.SelectValue.Value])
+		Wire_TriggerOutput(self, "ValSize", table.Count(val))
 	else
-		Wire_TriggerOutput(self.Entity, "Val", 0)
-		Wire_TriggerOutput(self.Entity, "ValSize", 0)
+		Wire_TriggerOutput(self, "Val", 0)
+		Wire_TriggerOutput(self, "ValSize", 0)
 	end
-	Wire_TriggerOutput(self.Entity, "RangerData", trace)
+	Wire_TriggerOutput(self, "RangerData", trace)
 
 end

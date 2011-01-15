@@ -9,9 +9,9 @@ ENT.WireDebugName = "Radio"
 local MODEL = Model( "models/props_lab/binderblue.mdl" )
 
 function ENT:Initialize()
-	self.Entity:PhysicsInit( SOLID_VPHYSICS )
-	self.Entity:SetMoveType( MOVETYPE_VPHYSICS )
-	self.Entity:SetSolid( SOLID_VPHYSICS )
+	self:PhysicsInit( SOLID_VPHYSICS )
+	self:SetMoveType( MOVETYPE_VPHYSICS )
+	self:SetSolid( SOLID_VPHYSICS )
 
 	self.Inputs = Wire_CreateInputs(self, { "Channel"})
 	self.Outputs = Wire_CreateOutputs(self, { "ERRORS!!!" })

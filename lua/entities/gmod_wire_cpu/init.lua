@@ -21,12 +21,12 @@ end
 ENT.WireDebugName = "CPU"
 
 function ENT:Initialize()
-	self.Entity:PhysicsInit(SOLID_VPHYSICS)
-	self.Entity:SetMoveType(MOVETYPE_VPHYSICS)
-	self.Entity:SetSolid(SOLID_VPHYSICS)
+	self:PhysicsInit(SOLID_VPHYSICS)
+	self:SetMoveType(MOVETYPE_VPHYSICS)
+	self:SetSolid(SOLID_VPHYSICS)
 
-	self.Inputs = Wire_CreateInputs(self.Entity, { "MemBus", "IOBus", "Frequency", "Clk", "Reset", "NMI"})
-	self.Outputs = Wire_CreateOutputs(self.Entity, { "Error" })
+	self.Inputs = Wire_CreateInputs(self, { "MemBus", "IOBus", "Frequency", "Clk", "Reset", "NMI"})
+	self.Outputs = Wire_CreateOutputs(self, { "Error" })
 
 	self.Debug = false //!!!GLOBAL DEBUG MODE SWITCH!!!
 
@@ -122,7 +122,7 @@ function ENT:Think()
 	self.PrevThinkTime = CurTime()
 
 	//Run every tick (or at least attempt to)
-	if (self.Clk >= 1.0) then self.Entity:NextThink(CurTime()) end
+	if (self.Clk >= 1.0) then self:NextThink(CurTime()) end
 	return true
 end
 
@@ -186,7 +186,7 @@ function ENT:TriggerInput(iname, value)
 		self.InputClk = value
 		self.PrevTime = CurTime()
 		self.PrevThinkTime = CurTime()
-		self.Entity:NextThink(CurTime())
+		self:NextThink(CurTime())
 	elseif (iname == "Frequency") then
 		if (not SinglePlayer() && (value > 120000)) then
 			self.Freq = 120000

@@ -14,12 +14,12 @@ end)
 
 function ENT:Initialize()
 
-	self.Entity:SetMoveType( MOVETYPE_NONE )
-	self.Entity:PhysicsInit( SOLID_VPHYSICS )
-	self.Entity:SetCollisionGroup( COLLISION_GROUP_WEAPON )
-	self.Entity:DrawShadow( false )
+	self:SetMoveType( MOVETYPE_NONE )
+	self:PhysicsInit( SOLID_VPHYSICS )
+	self:SetCollisionGroup( COLLISION_GROUP_WEAPON )
+	self:DrawShadow( false )
 
-	local phys = self.Entity:GetPhysicsObject()
+	local phys = self:GetPhysicsObject()
 	if (phys:IsValid()) then phys:Wake() end
 
 	self.UndoList = {}
@@ -33,10 +33,10 @@ function ENT:Initialize()
 	self.CurrentPropCount = 0
 
 	-- Add inputs/outputs (TheApathetic)
-	self.Inputs = WireLib.CreateSpecialInputs(self.Entity, { "Spawn", "Undo", "UndoEnt" }, { "NORMAL", "NORMAL", "ENTITY" })
-	self.Outputs = WireLib.CreateSpecialOutputs(self.Entity, { "Out", "LastSpawned", "Props" }, { "NORMAL", "ENTITY", "ARRAY" })
+	self.Inputs = WireLib.CreateSpecialInputs(self, { "Spawn", "Undo", "UndoEnt" }, { "NORMAL", "NORMAL", "ENTITY" })
+	self.Outputs = WireLib.CreateSpecialOutputs(self, { "Out", "LastSpawned", "Props" }, { "NORMAL", "ENTITY", "ARRAY" })
 
-	Wire_TriggerOutput(self.Entity, "Props", self.UndoList)
+	Wire_TriggerOutput(self, "Props", self.UndoList)
 end
 
 function ENT:Setup( delay, undo_delay )
@@ -47,7 +47,7 @@ end
 
 function ENT:DoSpawn( pl, down )
 
-	local ent	= self.Entity
+	local ent	= self
 	if (not ent:IsValid()) then return end
 
 	local phys	= ent:GetPhysicsObject()
@@ -89,12 +89,12 @@ function ENT:DoSpawn( pl, down )
 	pl:AddCleanup( "props", nocollide )
 
 	table.insert( self.UndoList, 1, prop )
-	GlobalUndoList[prop] = self.Entity
+	GlobalUndoList[prop] = self
 
-	Wire_TriggerOutput(self.Entity, "LastSpawned", prop)
+	Wire_TriggerOutput(self, "LastSpawned", prop)
 	self.CurrentPropCount = #self.UndoList
-	Wire_TriggerOutput(self.Entity, "Out", self.CurrentPropCount)
-	Wire_TriggerOutput(self.Entity, "Props", self.UndoList)
+	Wire_TriggerOutput(self, "Out", self.CurrentPropCount)
+	Wire_TriggerOutput(self, "Props", self.UndoList)
 	self:ShowOutput()
 
 	if (self.undo_delay == 0) then return end
@@ -122,7 +122,7 @@ end
 function ENT:DoUndoEnt( pl, ent )
 	if (not ent or not ent:IsValid()) then return end
 
-	if GlobalUndoList[ent] ~= self.Entity then return end
+	if GlobalUndoList[ent] ~= self then return end
 
 	ent:Remove()
 	WireLib.AddNotify(pl, "Undone Prop", NOTIFY_UNDO, 2 )
@@ -141,8 +141,8 @@ function ENT:CheckEnts(removed_entity)
 	-- Check to see if active prop count has changed
 	if (#self.UndoList ~= self.CurrentPropCount) then
 		self.CurrentPropCount = #self.UndoList
-		Wire_TriggerOutput(self.Entity, "Out", self.CurrentPropCount)
-		Wire_TriggerOutput(self.Entity, "Props", self.UndoList)
+		Wire_TriggerOutput(self, "Out", self.CurrentPropCount)
+		Wire_TriggerOutput(self, "Props", self.UndoList)
 		self:ShowOutput()
 	end
 end
@@ -165,7 +165,7 @@ function ENT:TriggerInput(iname, value)
 				ent:DoSpawn( pl )
 			end
 
-			timer.Simple( self.delay, TimedSpawn, self.Entity, pl )
+			timer.Simple( self.delay, TimedSpawn, self, pl )
 		end
 	elseif (iname == "Undo") then
 		-- Same here

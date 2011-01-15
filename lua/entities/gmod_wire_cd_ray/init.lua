@@ -8,11 +8,11 @@ ENT.WireDebugName = "CD Ray"
 
 
 function ENT:Initialize()
-	self.Entity:PhysicsInit( SOLID_VPHYSICS )
-	self.Entity:SetMoveType( MOVETYPE_VPHYSICS )
-	self.Entity:SetSolid( SOLID_VPHYSICS )
-	self.Inputs = Wire_CreateInputs(self.Entity, {"Write","Read","Value"})
-	self.Outputs = Wire_CreateOutputs(self.Entity, {"Data","Sector","LocalSector","Track","Stack","Address"})
+	self:PhysicsInit( SOLID_VPHYSICS )
+	self:SetMoveType( MOVETYPE_VPHYSICS )
+	self:SetSolid( SOLID_VPHYSICS )
+	self.Inputs = Wire_CreateInputs(self, {"Write","Read","Value"})
+	self.Outputs = Wire_CreateOutputs(self, {"Data","Sector","LocalSector","Track","Stack","Address"})
 
 	self.Command = {}
 	self.Command[0]  = 0 //[W] Write ray on
@@ -95,7 +95,7 @@ function ENT:Setup(Range,DefaultZero)
 end
 
 function ENT:OnRemove()
-	Wire_Remove(self.Entity)
+	Wire_Remove(self)
 end
 
 function ENT:TriggerInput(iname, value)
@@ -141,28 +141,28 @@ function ENT:DoJob()
 end
 
 function ENT:Think()
-	local vStart = self.Entity:GetPos()
-	local vForward = self.Entity:GetUp()
+	local vStart = self:GetPos()
+	local vForward = self:GetUp()
 
 		local trace = {}
 		trace.start = vStart
 		trace.endpos = vStart + (vForward * self:GetBeamRange())
-		trace.filter = { self.Entity }
+		trace.filter = { self }
 	local trace = util.TraceLine( trace )
 
 	if ((self.Command[0] ~= 0) or (self.Command[1] ~= 0)) then
 		if (self.Command[0] == 1) then //write ray (blue)
-			if (Color(self.Entity:GetColor()) != Color(0,0,255,255)) then
-				self.Entity:SetColor(0, 0, 255, 255)
+			if (Color(self:GetColor()) != Color(0,0,255,255)) then
+				self:SetColor(0, 0, 255, 255)
 			end
 		else //read ray (red)
-			if (Color(self.Entity:GetColor()) != Color(255,0,0,255)) then
-				self.Entity:SetColor(255, 0, 0, 255)
+			if (Color(self:GetColor()) != Color(255,0,0,255)) then
+				self:SetColor(255, 0, 0, 255)
 			end
 		end
 	else
-		if (Color(self.Entity:GetColor()) != Color(255,255,255,255)) then
-			self.Entity:SetColor(255, 255, 255, 255)
+		if (Color(self:GetColor()) != Color(255,255,255,255)) then
+			self:SetColor(255, 255, 255, 255)
 		end
 	end
 
@@ -259,17 +259,17 @@ function ENT:Think()
 
 	//Update output
 	if (self.WriteBuffer[0]) then
-		Wire_TriggerOutput(self.Entity, "Data",self.WriteBuffer[0])
+		Wire_TriggerOutput(self, "Data",self.WriteBuffer[0])
 	else
-		Wire_TriggerOutput(self.Entity, "Data",0)
+		Wire_TriggerOutput(self, "Data",0)
 	end
-	Wire_TriggerOutput(self.Entity, "Sector", 	self.Command[2])
-	Wire_TriggerOutput(self.Entity, "LocalSector",	self.Command[3])
-	Wire_TriggerOutput(self.Entity, "Track", 	self.Command[4])
-	Wire_TriggerOutput(self.Entity, "Stack", 	self.Command[5])
-	Wire_TriggerOutput(self.Entity, "Address", 	self.Command[6])
+	Wire_TriggerOutput(self, "Sector", 	self.Command[2])
+	Wire_TriggerOutput(self, "LocalSector",	self.Command[3])
+	Wire_TriggerOutput(self, "Track", 	self.Command[4])
+	Wire_TriggerOutput(self, "Stack", 	self.Command[5])
+	Wire_TriggerOutput(self, "Address", 	self.Command[6])
 
-	self.Entity:NextThink(CurTime()+0.01)
+	self:NextThink(CurTime()+0.01)
 	return true
 end
 
@@ -278,5 +278,5 @@ function ENT:ShowOutput()
 end
 
 function ENT:OnRestore()
-	Wire_Restored(self.Entity)
+	Wire_Restored(self)
 end

@@ -9,7 +9,7 @@ function ENT:Think()
 	if self.NextOverlayTextTime and CurTime() < self.NextOverlayTextTime then return end
 
 	//self.BaseClass.BaseClass.SetOverlayText(self, self.NextOverlayText)
-	self.Entity:SetNetworkedBeamString("GModOverlayText",self.NextOverlayText)
+	self:SetNetworkedBeamString("GModOverlayText",self.NextOverlayText)
 	self.NextOverlayText = nil
 	self.NextOverlayTextTime = CurTime() + (self.OverlayDelay or 0.4) + math.random()*(self.OverlayRandom or 0.2)
 	if Wire_SlowerOverlayTextUpdate then
@@ -20,12 +20,12 @@ end
 function ENT:SetOverlayText(txt)
 	if Wire_DisableOverlayTextUpdate then return end
 	if Wire_FastOverlayTextUpdate then
-		self.Entity:SetNetworkedBeamString("GModOverlayText",txt,true) //send it now, damn it!
+		self:SetNetworkedBeamString("GModOverlayText",txt,true) //send it now, damn it!
 	else
 		if self.NextOverlayTextTime or self.is_looked_at == false then
 			self.NextOverlayText = txt
 		else
-			self.Entity:SetNetworkedBeamString("GModOverlayText",txt)
+			self:SetNetworkedBeamString("GModOverlayText",txt)
 			self.NextOverlayText = nil
 			if not self.OverlayDelay or self.OverlayDelay > 0 or Wire_SlowerOverlayTextUpdate or not SinglePlayer() or Wire_ForceDelayOverlayTextUpdate then
 				self.NextOverlayTextTime = CurTime() + (self.OverlayDelay or 0.6) + math.random()*(self.OverlayRandom or 0.2)
@@ -62,15 +62,15 @@ function ENT:IsLookedAt(ply)
 end
 
 function ENT:OnRemove()
-	Wire_Remove(self.Entity)
+	Wire_Remove(self)
 end
 
 function ENT:OnRestore()
-    Wire_Restored(self.Entity)
+    Wire_Restored(self)
 end
 
 function ENT:BuildDupeInfo()
-	return WireLib.BuildDupeInfo(self.Entity)
+	return WireLib.BuildDupeInfo(self)
 end
 
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
@@ -81,7 +81,7 @@ function ENT:PreEntityCopy()
 	//build the DupeInfo table and save it as an entity mod
 	local DupeInfo = self:BuildDupeInfo()
 	if(DupeInfo) then
-		duplicator.StoreEntityModifier(self.Entity,"WireDupeInfo",DupeInfo)
+		duplicator.StoreEntityModifier(self,"WireDupeInfo",DupeInfo)
 	end
 end
 

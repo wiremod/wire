@@ -7,19 +7,19 @@ ENT.WireDebugName = "DataPort"
 ENT.OverlayDelay = 0
 
 function ENT:Initialize()
-	self.Entity:PhysicsInit( SOLID_VPHYSICS )
-	self.Entity:SetMoveType( MOVETYPE_VPHYSICS )
-	self.Entity:SetSolid( SOLID_VPHYSICS )
-	self.Entity:SetUseType( SIMPLE_USE )
+	self:PhysicsInit( SOLID_VPHYSICS )
+	self:SetMoveType( MOVETYPE_VPHYSICS )
+	self:SetSolid( SOLID_VPHYSICS )
+	self:SetUseType( SIMPLE_USE )
 
 	//makeoutputs = {}
 	//for i = 0,7 do
 	//	makeoutputs[i] = "Port"..i
 	//end
-	//self.Outputs = Wire_CreateOutputs(self.Entity, makeoutputs)
+	//self.Outputs = Wire_CreateOutputs(self, makeoutputs)
 
-	self.Outputs = Wire_CreateOutputs(self.Entity, { "Port0","Port1","Port2","Port3","Port4","Port5","Port6","Port7" })
-	self.Inputs = Wire_CreateInputs(self.Entity, { "Port0","Port1","Port2","Port3","Port4","Port5","Port6","Port7" })
+	self.Outputs = Wire_CreateOutputs(self, { "Port0","Port1","Port2","Port3","Port4","Port5","Port6","Port7" })
+	self.Inputs = Wire_CreateInputs(self, { "Port0","Port1","Port2","Port3","Port4","Port5","Port6","Port7" })
 
 	self.Ports = {}
 	for i = 0,7 do
@@ -42,7 +42,7 @@ end
 
 function ENT:WriteCell( Address, value )
 	if (Address >= 0) && (Address <= 7) then
-		Wire_TriggerOutput(self.Entity, "Port"..Address, value)
+		Wire_TriggerOutput(self, "Port"..Address, value)
 		return true
 	else
 		return false

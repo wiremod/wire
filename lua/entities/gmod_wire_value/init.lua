@@ -60,11 +60,11 @@ ENT.WireDebugName = "Value"
 ENT.OverlayDelay = 0
 
 function ENT:Initialize()
-	self.Entity:PhysicsInit( SOLID_VPHYSICS )
-	self.Entity:SetMoveType( MOVETYPE_VPHYSICS )
-	self.Entity:SetSolid( SOLID_VPHYSICS )
+	self:PhysicsInit( SOLID_VPHYSICS )
+	self:SetMoveType( MOVETYPE_VPHYSICS )
+	self:SetSolid( SOLID_VPHYSICS )
 
-	self.Outputs = Wire_CreateOutputs(self.Entity, { "Out" })
+	self.Outputs = Wire_CreateOutputs(self, { "Out" })
 end
 
 function ENT:Setup(values)
@@ -93,7 +93,7 @@ function ENT:Setup(values)
 	end
 
 	// this is where storing the values as strings comes in: they are the descriptions for the inputs.
-	WireLib.AdjustSpecialOutputs(self.Entity, adjoutputs, adjtypes, values)
+	WireLib.AdjustSpecialOutputs(self, adjoutputs, adjtypes, values)
 
 	local txt = ""
 	self.Memory = {}
@@ -108,7 +108,7 @@ function ENT:Setup(values)
 		v = ParseType[tp](v)
 
 		if tp == "NORMAL" then self.Memory[k] = v end
-		Wire_TriggerOutput(self.Entity, adjoutputs[k], v)
+		Wire_TriggerOutput(self, adjoutputs[k], v)
 	end
 
 	self:SetOverlayText(txt)

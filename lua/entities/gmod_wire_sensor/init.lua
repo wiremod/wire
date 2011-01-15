@@ -9,13 +9,13 @@ ENT.WireDebugName = "Distance"
 local MODEL = Model( "models/props_lab/huladoll.mdl" )
 
 function ENT:Initialize()
-	self.Entity:SetModel( MODEL )
-	self.Entity:PhysicsInit( SOLID_VPHYSICS )
-	self.Entity:SetMoveType( MOVETYPE_VPHYSICS )
-	self.Entity:SetSolid( SOLID_VPHYSICS )
+	self:SetModel( MODEL )
+	self:PhysicsInit( SOLID_VPHYSICS )
+	self:SetMoveType( MOVETYPE_VPHYSICS )
+	self:SetSolid( SOLID_VPHYSICS )
 
-	self.Inputs = Wire_CreateInputs(self.Entity, { "Target" })
-	self.Outputs = Wire_CreateOutputs(self.Entity, { "Out" })
+	self.Inputs = Wire_CreateInputs(self, { "Target" })
+	self.Outputs = Wire_CreateOutputs(self, { "Out" })
 end
 
 function ENT:Setup( xyz_mode, outdist, outbrng, gpscord, swapyz,direction_vector,direction_normalized,target_velocity,velocity_normalized)
@@ -63,7 +63,7 @@ function ENT:Setup( xyz_mode, outdist, outbrng, gpscord, swapyz,direction_vector
 	    table.insert(onames, "Velocity_Z")
 	end
 
-	Wire_AdjustOutputs(self.Entity, onames)
+	Wire_AdjustOutputs(self, onames)
 	self:TriggerOutputs(0, Angle(0, 0, 0),Vector(0, 0, 0),Vector(0, 0, 0),Vector(0, 0, 0),Vector(0,0,0))
 	self:ShowOutput()
 end
@@ -81,14 +81,14 @@ function ENT:Think()
 		local velo = Vector(0,0,0);
 		local gpscords = Vector(0,0,0);
 		local dirvec = Vector(0,0,0);
-		local MyPos = self.Entity:GetPos()
-		//local BeaconPos = self.Inputs["Target"].Src:GetBeaconPos(self.Entity)
-		local BeaconPos = self.ToSense:GetBeaconPos(self.Entity)
+		local MyPos = self:GetPos()
+		//local BeaconPos = self.Inputs["Target"].Src:GetBeaconPos(self)
+		local BeaconPos = self.ToSense:GetBeaconPos(self)
 		if (self.OutDist) then
 			dist = (BeaconPos-MyPos):Length()
 		end
 		if (self.XYZMode) then
-			local DeltaPos = self.Entity:WorldToLocal(BeaconPos)
+			local DeltaPos = self:WorldToLocal(BeaconPos)
 			if (self.SwapYZ) then
 				distc = Vector(DeltaPos.z,DeltaPos.x,-DeltaPos.y)
 			else
@@ -96,7 +96,7 @@ function ENT:Think()
 			end
 		end
 		if (self.OutBrng) then
-		    local DeltaPos = self.Entity:WorldToLocal(BeaconPos)
+		    local DeltaPos = self:WorldToLocal(BeaconPos)
 		    brng = DeltaPos:Angle()
 		end
 		if (self.GPSCord) then gpscords = BeaconPos end
@@ -105,13 +105,13 @@ function ENT:Think()
 			if(self.direction_normalized) then dirvec:Normalize() end;
 		end;
 		if (self.target_velocity) then
-			velo = self.ToSense:GetBeaconVelocity(self.Entity);
+			velo = self.ToSense:GetBeaconVelocity(self);
 			if(self.velocity_normalized) then velo:Normalize() end;
 		end
 		self:TriggerOutputs(dist, brng, distc, gpscords,dirvec,velo)
 		self:ShowOutput()
 
-		self.Entity:NextThink(CurTime()+0.04)
+		self:NextThink(CurTime()+0.04)
 		return true
 	end
 end
@@ -144,17 +144,17 @@ end
 
 function ENT:TriggerOutputs(dist, brng, distc, gpscords,dirvec,velo)
     if (self.OutDist) then
-		Wire_TriggerOutput(self.Entity, "Distance", dist)
+		Wire_TriggerOutput(self, "Distance", dist)
 	end
 	if (self.XYZMode) then
-	    Wire_TriggerOutput(self.Entity, "X", distc.x)
-	    Wire_TriggerOutput(self.Entity, "Y", distc.y)
-	    Wire_TriggerOutput(self.Entity, "Z", distc.z)
+	    Wire_TriggerOutput(self, "X", distc.x)
+	    Wire_TriggerOutput(self, "Y", distc.y)
+	    Wire_TriggerOutput(self, "Z", distc.z)
 	end
 	if (self.GPSCord) then
-	    Wire_TriggerOutput(self.Entity, "World_X", gpscords.x)
-	    Wire_TriggerOutput(self.Entity, "World_Y", gpscords.y)
-	    Wire_TriggerOutput(self.Entity, "World_Z", gpscords.z)
+	    Wire_TriggerOutput(self, "World_X", gpscords.x)
+	    Wire_TriggerOutput(self, "World_Y", gpscords.y)
+	    Wire_TriggerOutput(self, "World_Z", gpscords.z)
 	end
 	if (self.OutBrng) then
 		local pitch = brng.p
@@ -163,18 +163,18 @@ function ENT:TriggerOutputs(dist, brng, distc, gpscords,dirvec,velo)
 		if (pitch > 180) then pitch = pitch - 360 end
 		if (yaw > 180) then yaw = yaw - 360 end
 
-		Wire_TriggerOutput(self.Entity, "Bearing", -yaw)
-	    Wire_TriggerOutput(self.Entity, "Elevation", -pitch)
+		Wire_TriggerOutput(self, "Bearing", -yaw)
+	    Wire_TriggerOutput(self, "Elevation", -pitch)
 	end
 	if(self.direction_vector) then
-	    Wire_TriggerOutput(self.Entity, "Direction_X", dirvec.x)
-	    Wire_TriggerOutput(self.Entity, "Direction_Y", dirvec.y)
-	    Wire_TriggerOutput(self.Entity, "Direction_Z", dirvec.z)
+	    Wire_TriggerOutput(self, "Direction_X", dirvec.x)
+	    Wire_TriggerOutput(self, "Direction_Y", dirvec.y)
+	    Wire_TriggerOutput(self, "Direction_Z", dirvec.z)
 	end
 	if(self.target_velocity) then
-	    Wire_TriggerOutput(self.Entity, "Velocity_X", velo.x)
-	    Wire_TriggerOutput(self.Entity, "Velocity_Y", velo.y)
-	    Wire_TriggerOutput(self.Entity, "Velocity_Z", velo.z)
+	    Wire_TriggerOutput(self, "Velocity_X", velo.x)
+	    Wire_TriggerOutput(self, "Velocity_Y", velo.y)
+	    Wire_TriggerOutput(self, "Velocity_Z", velo.z)
 	end
 end
 
