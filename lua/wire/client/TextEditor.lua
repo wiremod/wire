@@ -1293,13 +1293,28 @@ function EDITOR:_OnKeyCodeTyped(code)
 			self:GetParent():NewTab()
 		elseif code == KEY_W then
 			self:GetParent():CloseTab()
+		elseif code == KEY_PAGEUP then
+			local parent = self:GetParent()
+
+			local currentTab = parent:GetActiveTabIndex() - 1
+			if currentTab < 1 then currentTab = currentTab + parent:GetNumTabs() end
+
+			parent:SetActiveTabIndex(currentTab)
+		elseif code == KEY_PAGEDOWN then
+			local parent = self:GetParent()
+
+			local currentTab = parent:GetActiveTabIndex() + 1
+			local numTabs = parent:GetNumTabs()
+			if currentTab > numTabs then currentTab = currentTab - numTabs end
+
+			parent:SetActiveTabIndex(currentTab)
 		elseif code == KEY_UP then
 			self.Scroll[1] = self.Scroll[1] - 1
 			if self.Scroll[1] < 1 then self.Scroll[1] = 1 end
 		elseif code == KEY_DOWN then
 			self.Scroll[1] = self.Scroll[1] + 1
 		elseif code == KEY_LEFT then
-			if self:HasSelection() and !shift then
+			if self:HasSelection() and not shift then
 				self.Start = self:CopyPosition(self.Caret)
 			else
 				self.Caret = self:wordLeft(self.Caret)
@@ -1307,7 +1322,7 @@ function EDITOR:_OnKeyCodeTyped(code)
 
 			self:ScrollCaret()
 
-			if !shift then
+			if not shift then
 				self.Start = self:CopyPosition(self.Caret)
 			end
 		elseif code == KEY_RIGHT then

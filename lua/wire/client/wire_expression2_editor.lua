@@ -351,6 +351,25 @@ function Editor:SetActiveTab( val )
 	end
 end
 
+function Editor:GetActiveTabIndex()
+	local tab = self:GetActiveTab()
+	for k,v in pairs(self.C['TabHolder'].panel.Items) do
+		if tab == v.Tab then
+			return k
+		end
+	end
+	return -1
+end
+
+
+function Editor:SetActiveTabIndex(index)
+	local tab = self.C['TabHolder'].panel.Items[index].Tab
+
+	if not tab then return end
+
+	self:SetActiveTab(tab)
+end
+
 local function extractNameFromFilePath( str )
 	local found = str:reverse():find( "/", 1, true )
 	if (found) then
@@ -427,7 +446,7 @@ end
 function Editor:GetNextAvailableTab()
 	local activetab = self:GetActiveTab()
 	for k,v in pairs( self.C['TabHolder'].panel.Items ) do
-		if (v.Tab and v.Tab:IsValid() and v.Tab != activetab) then
+		if (v.Tab and v.Tab:IsValid() and v.Tab ~= activetab) then
 			return v.Tab
 		end
 	end
