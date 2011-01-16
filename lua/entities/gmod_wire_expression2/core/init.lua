@@ -113,6 +113,7 @@ function wire_expression2_reset_extensions()
 	}
 	wire_expression2_funcs = {}
 	wire_expression2_funclist = {}
+	if CLIENT then wire_expression2_funclist_lowercase = {} end
 	wire_expression2_constants = {}
 end
 
@@ -341,7 +342,10 @@ elseif CLIENT then
 		-- functions
 		for signature,ret in pairs(functiondata[2]) do
 			local fname = signature:match("^([^(:]+)%(")
-			if fname then wire_expression2_funclist[fname] = true end
+			if fname then
+				wire_expression2_funclist[fname] = true
+				wire_expression2_funclist_lowercase[fname:lower()] = fname
+			end
 			wire_expression2_funcs[signature] = { signature, ret, false }
 		end
 

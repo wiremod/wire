@@ -1669,22 +1669,30 @@ do -- E2 Syntax highlighting
 	}
 
 	local colors = {
-		["directive"] = { Color(240, 240, 160), false},
-		["number"]    = { Color(240, 160, 160), false},
-		["function"]  = { Color(160, 160, 240), false},
-		["notfound"]  = { Color(240,  96,  96), false},
-		["variable"]  = { Color(160, 240, 160), false},
-		["string"]    = { Color(128, 128, 128), false},
-		["keyword"]   = { Color(160, 240, 240), false},
-		["operator"]  = { Color(224, 224, 224), false},
-		["comment"]   = { Color(128, 128, 128), false},
-		["ppcommand"] = { Color(240,  96, 240), false},
-		["typename"]  = { Color(240, 160,  96), false},
+		["directive"] = { Color(240, 240, 160), false}, -- yellow
+		["number"]    = { Color(240, 160, 160), false}, -- light red
+		["function"]  = { Color(160, 160, 240), false}, -- blue
+		["notfound"]  = { Color(240,  96,  96), false}, -- dark red
+		["variable"]  = { Color(160, 240, 160), false}, -- light green
+		["string"]    = { Color(128, 128, 128), false}, -- grey
+		["keyword"]   = { Color(160, 240, 240), false}, -- turquoise
+		["operator"]  = { Color(224, 224, 224), false}, -- white
+		["comment"]   = { Color(128, 128, 128), false}, -- grey
+		["ppcommand"] = { Color(240,  96, 240), false}, -- purple
+		["typename"]  = { Color(240, 160,  96), false}, -- orange
 	}
 
 	function EDITOR:SyntaxColorLine(row)
 		-- cols[n] = { tokendata, color }
 		local cols = {}
+		function addToken(tokenname, tokendata)
+			color = colors[tokenname]
+			if #cols > 1 and color == cols[#cols][2] then
+				cols[#cols][1] = cols[#cols][1] .. tokendata
+			else
+				cols[#cols + 1] = { tokendata, color }
+			end
+		end
 
 		self:ResetTokenizer(row)
 		self:NextCharacter()
@@ -1758,7 +1766,7 @@ do -- E2 Syntax highlighting
 					tokenname = "number"
 
 				elseif self:NextPattern("^[a-z][a-zA-Z0-9_]*") then
-					local sstr = string.Trim(self.tokendata)
+					local sstr = self.tokendata
 					if highlightmode then
 						if highlightmode == 1 and istype(sstr) then
 							tokenname = "typename"
@@ -1787,6 +1795,24 @@ do -- E2 Syntax highlighting
 							tokenname = "function"
 						else
 							tokenname = "notfound"
+
+							local correctName = wire_expression2_funclist_lowercase[sstr:lower()]
+							if correctName then
+								self.tokendata = ""
+								for i = 1,#sstr do
+									local c = sstr:sub(i,i)
+									if correctName:sub(i,i) == c then
+										tokenname = "function"
+									else
+										tokenname = "notfound"
+									end
+									if i == #sstr then
+										self.tokendata = c
+									else
+										addToken(tokenname, c)
+									end
+								end
+							end
 						end
 					end
 
@@ -1855,12 +1881,7 @@ do -- E2 Syntax highlighting
 
 			end -- blockcomment check
 
-			color = colors[tokenname]
-			if #cols > 1 and color == cols[#cols][2] then
-				cols[#cols][1] = cols[#cols][1] .. self.tokendata
-			else
-				cols[#cols + 1] = {self.tokendata, color}
-			end
+			addToken(tokenname, self.tokendata)
 		end
 
 		return cols
