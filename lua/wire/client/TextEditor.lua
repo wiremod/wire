@@ -1682,24 +1682,49 @@ do -- E2 Syntax highlighting
 		["typename"]  = { Color(240, 160,  96), false}, -- orange
 	}
 
-	function EDITOR:SyntaxColorLine(row)
-		-- cols[n] = { tokendata, color }
-		local cols = {}
-		function addToken(tokenname, tokendata)
-			color = colors[tokenname]
-			if #cols > 1 and color == cols[#cols][2] then
-				cols[#cols][1] = cols[#cols][1] .. tokendata
-			else
-				cols[#cols + 1] = { tokendata, color }
-			end
+	-- cols[n] = { tokendata, color }
+	local cols = {}
+	local lastcol
+	local function addToken(tokenname, tokendata)
+		color = colors[tokenname]
+		if lastcol and color == lastcol[2] then
+			lastcol[1] = lastcol[1] .. tokendata
+		else
+			cols[#cols + 1] = { tokendata, color }
+			lastcol = cols[#cols]
 		end
+	end
+
+	function EDITOR:SyntaxColorLine(row)
+		cols,lastcol = {}, nil
+
 
 		self:ResetTokenizer(row)
 		self:NextCharacter()
 
 		-- 0=name 1=port 2=trigger 3=foreach
 		local highlightmode = nil
-		if self:NextPattern("^@[^ ]*") then
+		if self.blockcomment then
+			if self:NextPattern(".-]#") then
+				self.blockcomment = nil
+			else
+				self:NextPattern(".*")
+			end
+
+			addToken("comment", self.tokendata)
+		elseif self.multilinestring then
+			while self.character do -- Find the ending "
+				if (self.character == '"') then
+					self.multilinestring = nil
+					self:NextCharacter()
+					break
+				end
+				if (self.character == "\\") then self:NextCharacter() end
+				self:NextCharacter()
+			end
+
+			addToken("string", self.tokendata)
+		elseif self:NextPattern("^@[^ ]*") then
 			highlightmode = directives[self.tokendata]
 
 			-- check for unknown directives
@@ -1724,28 +1749,70 @@ do -- E2 Syntax highlighting
 			self.NextPattern(" *")
 			if !self.character then break end
 
-			if (self.blockcomment) then
-				while self.character do -- Find the ending ]
-					if (self.character == "]") then
-						self:NextCharacter()
-						if (self.character == "#") then -- Check if there is a # directly after the ending ]
-							tokenname = "comment"
-							self.blockcomment = nil
-							break
+			-- eat next token
+			if self:NextPattern("^0[xb][0-9A-F]+") then
+				tokenname = "number"
+			elseif self:NextPattern("^[0-9][0-9.e]*") then
+				tokenname = "number"
+
+			elseif self:NextPattern("^[a-z][a-zA-Z0-9_]*") then
+				local sstr = self.tokendata
+				if highlightmode then
+					if highlightmode == 1 and istype(sstr) then
+						tokenname = "typename"
+					elseif highlightmode == 2 and (sstr == "all" or sstr == "none") then
+						tokenname = "directive"
+					elseif highlightmode == 3 and istype(sstr) then
+						tokenname = "typename"
+						highlightmode = nil
+					else
+						tokenname = "notfound"
+					end
+				else
+					-- is this a keyword or a function?
+					local char = self.character or ""
+					local keyword = char != "("
+
+					self:NextPattern(" *")
+
+					if self.character == "]" then
+						-- X[Y,typename]
+						tokenname = istype(sstr) and "typename" or "notfound"
+					elseif keywords[sstr][keyword] then
+						tokenname = "keyword"
+						if sstr == "foreach" then highlightmode = 3 end
+					elseif wire_expression2_funclist[sstr] then
+						tokenname = "function"
+					else
+						tokenname = "notfound"
+
+						local correctName = wire_expression2_funclist_lowercase[sstr:lower()]
+						if correctName then
+							self.tokendata = ""
+							for i = 1,#sstr do
+								local c = sstr:sub(i,i)
+								if correctName:sub(i,i) == c then
+									tokenname = "function"
+								else
+									tokenname = "notfound"
+								end
+								if i == #sstr then
+									self.tokendata = c
+								else
+									addToken(tokenname, c)
+								end
+							end
 						end
 					end
-					if self.character == "\\" then self:NextCharacter() end
-					self:NextCharacter()
 				end
-				if (tokenname == "") then -- If no ending ]# was found...
-					tokenname = "comment"
-				else
-					self:NextCharacter()
-				end
-			elseif (self.multilinestring) then
+
+			elseif self:NextPattern("^[A-Z][a-zA-Z0-9_]*") then
+				tokenname = "variable"
+
+			elseif self.character == '"' then
+				self:NextCharacter()
 				while self.character do -- Find the ending "
 					if (self.character == '"') then
-						self.multilinestring = nil
 						tokenname = "string"
 						break
 					end
@@ -1753,133 +1820,54 @@ do -- E2 Syntax highlighting
 					self:NextCharacter()
 				end
 
-				if (tokenname == "") then -- if no ending " was found...
+				if (tokenname == "") then -- If no ending " was found...
+					self.multilinestring = true
 					tokenname = "string"
 				else
 					self:NextCharacter()
 				end
-			else
-				-- eat next token
-				if self:NextPattern("^0[xb][0-9A-F]+") then
-					tokenname = "number"
-				elseif self:NextPattern("^[0-9][0-9.e]*") then
-					tokenname = "number"
 
-				elseif self:NextPattern("^[a-z][a-zA-Z0-9_]*") then
-					local sstr = self.tokendata
-					if highlightmode then
-						if highlightmode == 1 and istype(sstr) then
-							tokenname = "typename"
-						elseif highlightmode == 2 and (sstr == "all" or sstr == "none") then
-							tokenname = "directive"
-						elseif highlightmode == 3 and istype(sstr) then
-							tokenname = "typename"
-							highlightmode = nil
-						else
-							tokenname = "notfound"
-						end
-					else
-						-- is this a keyword or a function?
-						local char = self.character or ""
-						local keyword = char != "("
-
-						self:NextPattern(" *")
-
-						if self.character == "]" then
-							-- X[Y,typename]
-							tokenname = istype(sstr) and "typename" or "notfound"
-						elseif keywords[sstr][keyword] then
-							tokenname = "keyword"
-							if sstr == "foreach" then highlightmode = 3 end
-						elseif wire_expression2_funclist[sstr] then
-							tokenname = "function"
-						else
-							tokenname = "notfound"
-
-							local correctName = wire_expression2_funclist_lowercase[sstr:lower()]
-							if correctName then
-								self.tokendata = ""
-								for i = 1,#sstr do
-									local c = sstr:sub(i,i)
-									if correctName:sub(i,i) == c then
-										tokenname = "function"
-									else
-										tokenname = "notfound"
-									end
-									if i == #sstr then
-										self.tokendata = c
-									else
-										addToken(tokenname, c)
-									end
-								end
+			elseif self.character == "#" then
+				self:NextCharacter()
+				if (self.character == "[") then -- Check if there is a [ directly after the #
+					while self.character do -- Find the ending ]
+						if (self.character == "]") then
+							self:NextCharacter()
+							if (self.character == "#") then -- Check if there is a # directly after the ending ]
+								tokenname = "comment"
+								break
 							end
 						end
-					end
-
-				elseif self:NextPattern("^[A-Z][a-zA-Z0-9_]*") then
-					tokenname = "variable"
-
-				elseif self.character == '"' then
-					self:NextCharacter()
-					while self.character do -- Find the ending "
-						if (self.character == '"') then
-							tokenname = "string"
-							break
-						end
-						if (self.character == "\\") then self:NextCharacter() end
+						if self.character == "\\" then self:NextCharacter() end
 						self:NextCharacter()
 					end
-
-					if (tokenname == "") then -- If no ending " was found...
-						self.multilinestring = true
-						tokenname = "string"
+					if (tokenname == "") then -- If no ending ]# was found...
+						self.blockcomment = true
+						tokenname = "comment"
 					else
 						self:NextCharacter()
 					end
-
-				elseif self.character == "#" then
-					self:NextCharacter()
-					if (self.character == "[") then -- Check if there is a [ directly after the #
-						while self.character do -- Find the ending ]
-							if (self.character == "]") then
-								self:NextCharacter()
-								if (self.character == "#") then -- Check if there is a # directly after the ending ]
-									tokenname = "comment"
-									break
-								end
-							end
-							if self.character == "\\" then self:NextCharacter() end
-							self:NextCharacter()
-						end
-						if (tokenname == "") then -- If no ending ]# was found...
-							self.blockcomment = true
-							tokenname = "comment"
-						else
-							self:NextCharacter()
-						end
-					end
-
-					if (tokenname == "") then
-
-						self:NextPattern("[^ ]*") -- Find the whole word
-
-						if PreProcessor["PP_"..self.tokendata:sub(2)] then
-							-- there is a preprocessor command by that name => mark as such
-							tokenname = "ppcommand"
-						else
-							-- eat the rest and mark as a comment
-							self:NextPattern(".*")
-							tokenname = "comment"
-						end
-
-					end
-				else
-					self:NextCharacter()
-
-					tokenname = "operator"
 				end
 
-			end -- blockcomment check
+				if (tokenname == "") then
+
+					self:NextPattern("[^ ]*") -- Find the whole word
+
+					if PreProcessor["PP_"..self.tokendata:sub(2)] then
+						-- there is a preprocessor command by that name => mark as such
+						tokenname = "ppcommand"
+					else
+						-- eat the rest and mark as a comment
+						self:NextPattern(".*")
+						tokenname = "comment"
+					end
+
+				end
+			else
+				self:NextCharacter()
+
+				tokenname = "operator"
+			end
 
 			addToken(tokenname, self.tokendata)
 		end
