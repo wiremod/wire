@@ -1289,6 +1289,10 @@ function EDITOR:_OnKeyCodeTyped(code)
 			self:CommentSelection(shift)
 		elseif code == KEY_Q then
 			self:GetParent():Close()
+		elseif code == KEY_T then
+			self:GetParent():NewTab()
+		elseif code == KEY_W then
+			self:GetParent():CloseTab()
 		elseif code == KEY_UP then
 			self.Scroll[1] = self.Scroll[1] - 1
 			if self.Scroll[1] < 1 then self.Scroll[1] = 1 end

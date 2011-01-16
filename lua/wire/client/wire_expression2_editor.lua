@@ -433,6 +433,14 @@ function Editor:GetNextAvailableTab()
 	end
 end
 
+function Editor:NewTab()
+	local sheet = self:CreateTab( "generic" )
+	self:SetActiveTab(sheet.Tab)
+	if (self.E2) then
+		self:NewScript()
+	end
+end
+
 function Editor:CloseTab()
 	self:AutoSave()
 
@@ -566,11 +574,7 @@ function Editor:InitComponents()
 		surface.DrawTexturedRect( 2, 2, w-4, h-4)
 	end
 	self.C['NewTab'].panel.DoClick = function( button )
-		local sheet = self:CreateTab( "generic" )
-		self:SetActiveTab(sheet.Tab)
-		if (self.E2) then
-			self:NewScript()
-		end
+		self:NewTab()
 	end
 
 	self.C['CloseTab'].panel:SetText("")
