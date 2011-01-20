@@ -114,8 +114,7 @@ function TOOL:UpdateGhostWirehdd( ent, player )
 	if ( !ent ) then return end
 	if ( !ent:IsValid() ) then return end
 
-	local tr 	= utilx.GetPlayerTrace( player, player:GetCursorAimVector() )
-	local trace 	= util.TraceLine( tr )
+	local trace = player:GetEyeTrace()
 	if (!trace.Hit) then return end
 
 	if (trace.Entity && trace.Entity:GetClass() == "gmod_wire_hdd" || trace.Entity:IsPlayer()) then

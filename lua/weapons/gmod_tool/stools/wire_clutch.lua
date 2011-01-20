@@ -381,8 +381,7 @@ function TOOL:UpdateGhostWireClutch( ent, ply )
 		return
 	end
 
-	local tr 	= utilx.GetPlayerTrace( ply, ply:GetCursorAimVector() )
-	local trace	= util.TraceLine( tr )
+	local trace = ply:GetEyeTrace()
 
 	if !trace.Hit or trace.Entity:IsPlayer() or trace.Entity:GetClass() == "gmod_wire_clutch" then
 		ent:SetNoDraw( true )

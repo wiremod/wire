@@ -138,8 +138,7 @@ function TOOL:UpdateGhostWireWaypoint( ent, player )
 
 	if ( !ent || !ent:IsValid() ) then return end
 
-	local tr 	= utilx.GetPlayerTrace( player, player:GetCursorAimVector() )
-	local trace 	= util.TraceLine( tr )
+	local trace = player:GetEyeTrace()
 
 	if (!trace.Hit || trace.Entity:IsPlayer() || trace.Entity:GetClass() == "gmod_wire_waypoint" ) then
 		ent:SetNoDraw( true )

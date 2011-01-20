@@ -101,8 +101,7 @@ end
 function TOOL:UpdateGhostWireVehicle(ent, player)
 	if  not ent or not ent:IsValid() then return end
 
-	local tr = utilx.GetPlayerTrace(player, player:GetCursorAimVector())
-	local trace = util.TraceLine(tr)
+	local trace = player:GetEyeTrace()
 
 	if not trace.Hit or trace.Entity:IsPlayer() or trace.Entity:GetClass() == "gmod_wire_vehicle" then
 		ent:SetNoDraw(true)

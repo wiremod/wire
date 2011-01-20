@@ -171,8 +171,7 @@ end
 function TOOL:UpdateGhostWireDamageDetector( ent, player )
 	if !IsValid(ent) then return end
 
-	local tr 	= utilx.GetPlayerTrace( player, player:GetCursorAimVector() )
-	local trace 	= util.TraceLine( tr )
+	local trace = player:GetEyeTrace()
 
 	if !trace.Hit or trace.Entity:IsPlayer() or trace.Entity:GetClass() == "gmod_wire_damage_detector" then
 		ent:SetNoDraw( true )

@@ -279,8 +279,7 @@ end
 function TOOL:Think()
 	if (self:GetStage() == 0) then
 		local player = self:GetOwner()
-		local tr = utilx.GetPlayerTrace(player, player:GetCursorAimVector())
-		local trace = util.TraceLine(tr)
+		local trace = player:GetEyeTrace()
 
 		if (trace.Hit) and (trace.Entity:IsValid()) then
 			self:SelectComponent(trace.Entity)

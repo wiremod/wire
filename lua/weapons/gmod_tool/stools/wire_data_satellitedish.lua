@@ -166,8 +166,7 @@ end
 function TOOL:UpdateGhostWireSatellitedish( ent, player )
 	if ( !ent or !ent:IsValid() ) then return end
 
-	local tr 	= utilx.GetPlayerTrace( player, player:GetCursorAimVector() )
-	local trace 	= util.TraceLine( tr )
+	local trace = player:GetEyeTrace()
 
 	if (!trace.Hit or trace.Entity:IsPlayer() or trace.Entity:GetClass() == "gmod_wire_data_satellitedish" ) then
 		ent:SetNoDraw( true )

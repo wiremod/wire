@@ -155,8 +155,7 @@ end
 function WireToolObj:UpdateGhost( ent )
 	if not ent or not ent:IsValid() then return end
 
-	local tr 		= utilx.GetPlayerTrace( self:GetOwner(), self:GetOwner():GetCursorAimVector() )
-	local trace 	= util.TraceLine( tr )
+	local trace = self:GetOwner():GetEyeTrace()
 	if not trace.Hit then return end
 
 	-- don't draw the ghost if we hit nothing, a player, an npc, the type of device this tool makes, or any class this tool says not to
