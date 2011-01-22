@@ -9,7 +9,7 @@ local is_reload = e2_processerror ~= nil
 if ENT then
 	local wire_expression2_ENT = ENT
 	function wire_expression2_reload(ply)
-		if validEntity(ply) and ply:IsPlayer() and not ply:IsSuperAdmin() then return end
+		if validEntity(ply) and ply:IsPlayer() and not ply:IsSuperAdmin() and not SinglePlayer() then return end
 
 		Msg("Calling destructors for all Expression2 chips.\n")
 		local chips = ents.FindByClass("gmod_wire_expression2")
