@@ -8,7 +8,7 @@ local is_reload = e2_processerror ~= nil
 -- Save E2's metatable for wire_expression2_reload
 if ENT then
 	local wire_expression2_ENT = ENT
-	function wire_expression2_reload(ply)
+	function wire_expression2_reload(ply, cmd, args)
 		if validEntity(ply) and ply:IsPlayer() and not ply:IsSuperAdmin() and not SinglePlayer() then return end
 
 		Msg("Calling destructors for all Expression2 chips.\n")
@@ -29,7 +29,9 @@ if ENT then
 
 		Msg("Calling constructors for all Expression2 chips.\n")
 		wire_expression2_prepare_functiondata()
-		wire_expression2_sendfunctions(player.GetAll())
+		if not args or args[1] ~= "nosend" then
+			wire_expression2_sendfunctions(player.GetAll())
+		end
 		for _,chip in ipairs(chips) do
 			pcall(chip.OnRestore, chip)
 		end

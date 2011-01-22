@@ -4,6 +4,7 @@
 
 local Clamp = math.Clamp
 local floor = math.floor
+local abs = math.abs
 
 local function ColorClamp(col1, col2, col3, col4)
 	return Clamp(col1, 0, 255), Clamp(col2, 0, 255), Clamp(col3, 0, 255), Clamp(col4, 0, 255)
@@ -103,6 +104,86 @@ end
 --- Converts <rgb> from the [http://en.wikipedia.org/wiki/RGB_color_space RGB color space] to the [http://en.wikipedia.org/wiki/HSV_color_space HSV color space]
 e2function vector rgb2hsv(vector rgb)
 	return { ColorToHSV(Color(rgb[1], rgb[2], rgb[3])) }
+end
+
+e2function vector hsl2rgb(hue, saturation, lightness)
+	local chroma = (1 - abs(2*lightness - 1)) * saturation * 255
+	local m = lightness*255 - chroma * 0.5
+	local hue_quadrant = hue/60
+	local x_m = chroma * (1 - abs(hue_quadrant % 2 - 1)) + m
+
+	if hue_quadrant < 3 then
+		-- hue_quadrant < 3
+		if hue_quadrant < 2 then
+			-- hue_quadrant < 2
+			if hue_quadrant < 1 then
+				-- hue_quadrant < 1
+				return { chroma + m, x_m, m }
+			else
+				-- 1 <= hue_quadrant < 2
+				return { x_m, chroma + m, m }
+			end
+		else
+			-- 2 <= hue_quadrant < 3
+			return { m, chroma + m, x_m }
+		end
+	else
+		-- 3 <= hue_quadrant
+		if 4 <= hue_quadrant then
+			-- 4 <= hue_quadrant
+			if 5 <= hue_quadrant then
+				-- 5 <= hue_quadrant
+				return { chroma + m, m, x_m }
+			else
+				-- 4 <= hue_quadrant < 5
+				return { x_m, m, chroma + m }
+			end
+		else
+			-- 3 <= hue_quadrant < 4
+			return { m, x_m, chroma + m }
+		end
+	end
+end
+
+e2function vector hsl2rgb(vector hsl)
+	local hue, saturation, lightness = hsl[1], hsl[2], hsl[3]
+
+	local chroma = (1 - abs(2*lightness - 1)) * saturation * 255
+	local m = lightness*255 - chroma * 0.5
+	local hue_quadrant = hue/60
+	local x_m = chroma * (1 - abs(hue_quadrant % 2 - 1)) + m
+
+	if hue_quadrant < 3 then
+		-- hue_quadrant < 3
+		if hue_quadrant < 2 then
+			-- hue_quadrant < 2
+			if hue_quadrant < 1 then
+				-- hue_quadrant < 1
+				return { chroma + m, x_m, m }
+			else
+				-- 1 <= hue_quadrant < 2
+				return { x_m, chroma + m, m }
+			end
+		else
+			-- 2 <= hue_quadrant < 3
+			return { m, chroma + m, x_m }
+		end
+	else
+		-- 3 <= hue_quadrant
+		if 4 <= hue_quadrant then
+			-- 4 <= hue_quadrant
+			if 5 <= hue_quadrant then
+				-- 5 <= hue_quadrant
+				return { chroma + m, m, x_m }
+			else
+				-- 4 <= hue_quadrant < 5
+				return { x_m, m, chroma + m }
+			end
+		else
+			-- 3 <= hue_quadrant < 4
+			return { m, x_m, chroma + m }
+		end
+	end
 end
 
 local converters = {}
