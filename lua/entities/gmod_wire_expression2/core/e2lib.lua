@@ -418,13 +418,13 @@ do
 	end
 
 	concommand.Add("wire_expression2_extension_enable", function(ply, cmd, args)
-		if ValidEntity(ply) and not ply:IsSuperAdmin() then return end
+		if validEntity(ply) and ply:IsPlayer() and not ply:IsSuperAdmin() and not SinglePlayer() then return end
 
 		extensions.SetStatus(args[1], true)
 	end)
 
 	concommand.Add("wire_expression2_extension_disable", function(ply, cmd, args)
-		if ValidEntity(ply) and not ply:IsSuperAdmin() then return end
+		if validEntity(ply) and ply:IsPlayer() and not ply:IsSuperAdmin() and not SinglePlayer() then return end
 
 		extensions.SetStatus(args[1], false)
 	end)
