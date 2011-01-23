@@ -632,50 +632,59 @@ for k,v in pairs(_E) do
 	end
 end
 
-local contents_numerical_cache = {}
+local cachemeta = {}
 
-local function getcontents( n )
-	if n == 0 then return "empty" end -- = CONTENTS_EMPTY
+local cache_parts_array = setmetatable({ [0] = {} }, cachemeta)
+local cache_lookup_table = setmetatable({ [0] = { empty = true } }, cachemeta)
+local cache_concatenated_parts = setmetatable({ [0] = "empty" }, cachemeta)
 
-	if (contents_numerical_cache[n]) then
-		return contents_numerical_cache[n]
-	else
-		local ret, s = "", math.IntToBin(n):reverse()
-		local w = s:find("1")
-		local skipfirstcomma = true
-		while w do
-			if (skipfirstcomma) then
-				ret = ret .. contents[2^(w-1)]
-				skipfirstcomma = false
-			else
-				ret = ret .. "," .. contents[2^(w-1)]
-			end
-			w = s:find("1",w+1)
+local function generateContents( n )
+	local parts_array, lookup_table = {}, {}
+	local ret = {}
+
+	for i = 0,30 do
+		if n & (2^i) ~= 0 then
+			local name = contents[2^i]
+			lookup_table[name] = true
+			parts_array[#parts_array+1] = name
 		end
-		contents_numerical_cache[n] = ret
-		return ret
 	end
+
+	concatenated_parts = table.concat(parts_array, ",")
+
+	cache_parts_array[n] = parts_array
+	cache_lookup_table[n] = lookup_table
+	cache_concatenated_parts[n] = concatenated_parts
+	return concatenated_parts
 end
 
-__e2setcost( 50 )
+function cachemeta:__index(n)
+	generateContents(n)
+	return rawget(self, n)
+end
+
+__e2setcost( 20 )
 
 e2function number pointHasContent( vector point, string has )
-	local finds, found = {}, 0
-	has:gsub(" ","_"):lower():gsub("([^,]+),?", function(m) finds[#finds+1] = m end)
+	local cont = cache_lookup_table[util.PointContents(Vector(point[1], point[2], point[3]))]
 
-	local cont = getcontents( util.PointContents( Vector(point[1],point[2],point[3]) ) )
+	has = has:gsub(" ", "_"):lower()
 
-	for i=1,#finds do
-		if (cont:find(finds[i],1,true)) then return 1 end
+	for m in has:gmatch("([^,]+),?") do
+		if cont[m] then return 1 end
 	end
 
 	return 0
 end
 
-__e2setcost( 35 )
+__e2setcost( 15 )
 
 e2function string pointContents( vector point )
-	return getcontents( util.PointContents( Vector(point[1],point[2],point[3]) ) )
+	return cache_concatenated_parts[util.PointContents( Vector(point[1],point[2],point[3]))]
+end
+
+e2function array pointContentsArray( vector point )
+	return cache_parts_array[util.PointContents( Vector(point[1],point[2],point[3]))]
 end
 
 /******************************************************************************/
