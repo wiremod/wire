@@ -54,6 +54,8 @@ end
 ----------------------------
 
 function EGP:NewObject( Name )
+	if self.Objects[Name] then return self.Objects[Name] end
+
 	-- Create table
 	self.Objects[Name] = {}
 	-- Set info
