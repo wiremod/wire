@@ -1,6 +1,8 @@
 include('shared.lua')
 include("HUDDraw.lua")
 
+ENT.gmod_wire_egp_hud = true
+
 --------------------------------------------------------
 -- 0-512 to screen res & back
 --------------------------------------------------------

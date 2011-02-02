@@ -59,25 +59,25 @@ hook.Add("Initialize","EGP_HUD_Initialize",function()
 		-- Paint
 		--------------------------------------------------------
 		hook.Add("HUDPaint","EGP_HUDPaint",function()
-			for v,_ in pairs( tbl ) do
-				if (!v or !v:IsValid()) then
-					EGP:RemoveHUDEGP( v )
+			for Ent,_ in pairs( tbl ) do
+				if (!Ent or !Ent:IsValid()) then
+					EGP:RemoveHUDEGP( Ent )
 					break
 				else
-					if (v.On == true) then
-						v.HasUpdatedThisFrame = nil
-						if (v.RenderTable and #v.RenderTable > 0) then
-							for k2,v2 in pairs( v.RenderTable ) do
-								local oldtex = EGP:SetMaterial( v2.material )
-								v2:Draw()
+					if (Ent.On == true) then
+						Ent.HasUpdatedThisFrame = nil
+						if (Ent.RenderTable and #Ent.RenderTable > 0) then
+							for _,object in pairs( Ent.RenderTable ) do
+								local oldtex = EGP:SetMaterial( object.material )
+								object:Draw(Ent)
 								EGP:FixMaterial( oldtex )
 
 								-- Check for 3DTracker parent
-								if (!v.HasUpdatedThisFrame and v2.parent) then
-									local bool, k3, v3 = EGP:HasObject( v, v2.parent )
-									if (bool and v3.Is3DTracker) then
-										v:EGP_Update()
-										v.HasUpdatedThisFrame = true
+								if (!Ent.HasUpdatedThisFrame and object.parent) then
+									local hasObject, _, parent = EGP:HasObject( Ent, object.parent )
+									if (hasObject and parent.Is3DTracker) then
+										Ent:EGP_Update()
+										Ent.HasUpdatedThisFrame = true
 									end
 								end
 							end
@@ -85,7 +85,7 @@ hook.Add("Initialize","EGP_HUD_Initialize",function()
 					end
 				end
 			end
-		end)
+		end) -- HUDPaint hook
 	else
 		local vehiclelinks = {}
 
