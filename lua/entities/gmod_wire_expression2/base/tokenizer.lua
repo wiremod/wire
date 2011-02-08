@@ -84,6 +84,31 @@ function Tokenizer:NextCharacter()
 	self:SkipCharacter()
 end
 
+-- FIXME: REMOVE THIS AFTER GMOD UPDATE FIXES STRING.EXLODE
+local function string_Asplode( seperator, str )
+	local tbl = {}
+	local i = 1
+
+	if ( seperator == "" ) then
+		return string.ToTable( str )
+	elseif ( #seperator > 1 or seperator == "%" ) then
+		local newpos, pos, start = 0
+		repeat
+			pos = newpos + 1
+			start, newpos = str:find( seperator, pos, true )
+			tbl[i] = str:sub( pos, ( start or 0 ) - 1 )
+			i = i + 1
+		until not start
+	else
+		for s in string.gmatch( str, "([^" .. seperator .. "]*)" .. seperator .. "?" ) do
+			tbl[i] = s
+			i = i + 1
+		end
+	end
+
+	return tbl
+end
+
 -- Returns true on success, nothing if it fails.
 function Tokenizer:NextPattern(pattern)
 	if not self.character then return false end
@@ -103,7 +128,7 @@ function Tokenizer:NextPattern(pattern)
 		self.character = nil
 	end
 
-	buf = string.Explode("\n", buf)
+	buf = string_Asplode("\n", buf)
 	if #buf > 1 then
 		self.readline = self.readline+#buf-1
 		self.readchar = #buf[#buf]+1

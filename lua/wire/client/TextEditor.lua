@@ -1765,7 +1765,7 @@ do -- E2 Syntax highlighting
 			self.tokendata = ""
 
 			-- eat all spaces
-			self.NextPattern(" *")
+			self:NextPattern(" *")
 			if !self.character then break end
 
 			-- eat next token

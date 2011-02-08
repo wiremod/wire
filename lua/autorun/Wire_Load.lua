@@ -16,6 +16,7 @@ if SERVER then
 	AddCSLuaFile("wire/WireMonitors.lua")
 	AddCSLuaFile("wire/opcodes.lua")
 	AddCSLuaFile("wire/GPULib.lua")
+	AddCSLuaFile("wire/CPULib.lua")
 
 	-- client includes
 	AddCSLuaFile("wire/client/cl_wirelib.lua")
@@ -35,6 +36,21 @@ if SERVER then
 	AddCSLuaFile("wire/client/welcome_menu_derma.lua")
 	AddCSLuaFile("wire/client/rendertarget_fix.lua")
 
+	-- HL-ZASM
+        AddCSLuaFile("wire/client/hlzasm/hc_compiler.lua")
+	AddCSLuaFile("wire/client/hlzasm/hc_opcodes.lua")
+	AddCSLuaFile("wire/client/hlzasm/hc_expression.lua")
+	AddCSLuaFile("wire/client/hlzasm/hc_preprocess.lua")
+	AddCSLuaFile("wire/client/hlzasm/hc_syntax.lua")
+        AddCSLuaFile("wire/client/hlzasm/hc_codetree.lua")
+        AddCSLuaFile("wire/client/hlzasm/hc_optimize.lua")
+        AddCSLuaFile("wire/client/hlzasm/hc_output.lua")
+
+        -- ZVM
+        AddCSLuaFile("wire/zvm/zvm_core.lua")
+        AddCSLuaFile("wire/zvm/zvm_features.lua")
+        AddCSLuaFile("wire/zvm/zvm_opcodes.lua")
+
 	-- resource files
 	for i=1,32 do
 		resource.AddFile("settings/render_targets/WireGPU_RT_"..i..".txt")
@@ -50,6 +66,11 @@ if SERVER then
 	resource.AddSingleFile("materials/expression 2/cog_world.vmt")
 end
 
+-- HL-ZASM (must be included before CPULib on client)
+if CLIENT then
+	include("wire/client/hlzasm/hc_compiler.lua")
+end
+
 -- shared includes
 include("wire/WireShared.lua")
 include("wire/UpdateCheck.lua")
@@ -58,6 +79,7 @@ include("wire/WireGates.lua")
 include("wire/WireMonitors.lua")
 include("wire/opcodes.lua")
 include("wire/GPULib.lua")
+include("wire/CPULib.lua")
 include("wire/welcome_menu.lua")
 
 -- server includes
