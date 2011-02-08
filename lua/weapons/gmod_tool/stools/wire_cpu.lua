@@ -466,6 +466,31 @@ if (CLIENT) then
 		end
 	end
 
+	-- FIXME: REMOVE THIS AFTER GMOD UPDATE FIXES STRING.EXLODE
+local function string_Asplode( seperator, str )
+	local tbl = {}
+	local i = 1
+
+	if ( seperator == "" ) then
+		return string.ToTable( str )
+	elseif ( #seperator > 1 or seperator == "%" ) then
+		local newpos, pos, start = 0
+		repeat
+			pos = newpos + 1
+			start, newpos = str:find( seperator, pos, true )
+			tbl[i] = str:sub( pos, ( start or 0 ) - 1 )
+			i = i + 1
+		until not start
+	else
+		for s in string.gmatch( str, "([^" .. seperator .. "]*)" .. seperator .. "?" ) do
+			tbl[i] = s
+			i = i + 1
+		end
+	end
+
+	return tbl
+end
+
 	function CPU_LoadProgram(pl, command, args)
 		local fname = "CPUChip\\"..pl:GetInfo("wire_cpu_filename")
 		if (!file.Exists(fname)) then
@@ -485,7 +510,7 @@ if (CLIENT) then
 			return
 		end
 
-		SourceLines = string.Explode("\n", filedata)
+		SourceLines = string_Asplode("\n", filedata)
 		SourceLinesSent = 0
 		SourceTotalChars = string.len(filedata)
 
