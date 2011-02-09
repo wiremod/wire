@@ -42,6 +42,7 @@ end
 
 function ENT:Think()
 	self.BaseClass.Think( self )
+
 	local c = self.constraint
 	if !IsValid( c ) then return end
 
@@ -51,9 +52,27 @@ function ENT:Think()
 
 	self.current_length = p1:Distance(p2)
 
-	Wire_TriggerOutput( self, "Length", self.current_length)
-	self:NextThink(CurTime()+0.04)
-	self:SetOverlayText( "Hydraulic Length : " .. self.current_length .. "\nConstant: " .. (self.current_constant or "-") .. "\nDamping: " .. (self.current_damping or "-") )
+	self:UpdateOutputs( true )
+
+	self.Entity:NextThink(CurTime()+0.04)
+end
+
+local function updateOutput( a, what )
+	if (a and a:IsValid()) then
+		WireLib.TriggerOutput( a.Entity, what, a.constraint:GetKeyValues()[what:lower()] )
+	end
+end
+
+function ENT:UpdateOutputs( OnlyLength )
+	if (OnlyLength) then
+		WireLib.TriggerOutput( self, "Length", self.current_length )
+		self:SetOverlayText( "Hydraulic length: " .. self.current_length .. "\nConstant: " .. (self.current_constant or "-") .. "\nDamping: " .. (self.current_damping or "-") )
+	else
+		WireLib.TriggerOutput( self, "Length", self.current_length )
+		WireLib.TriggerOutput( self, "Constant", self.current_constant )
+		WireLib.TriggerOutput( self, "Damping", self.current_damping )
+		self:SetOverlayText( "Hydraulic length: " .. self.current_length .. "\nConstant: " .. (self.current_constant or "-") .. "\nDamping: " .. (self.current_damping or "-") )
+	end
 end
 
 
@@ -66,18 +85,30 @@ function ENT:SetConstraint( c )
 
 	self.current_length = p1:Distance(p2)
 
-	WireLib.TriggerOutput( self, "Constant", self.constraint:GetKeyValues().constant )
-	WireLib.TriggerOutput( self, "Damping", self.constraint:GetKeyValues().damping )
+	if (self.current_constant != nil or self.Inputs.Constant.Src != nil) then
+		self.constraint:Fire( "SetSpringConstant", self.current_constant or self.Inputs.Constant.Value, 0 )
+		if (!self.current_constant) then self.current_constant = self.Inputs.Constant.Value end
+	else
+		self.current_constant = self.constraint:GetKeyValues().constant
+	end
+
+	if (self.current_damping != nil or self.Inputs.Damping.Src != nil) then
+		self.constraint:Fire( "SetSpringDamping", self.current_damping or self.Inputs.Damping.Value, 0 )
+		if (!self.current_damping) then self.current_damping = self.Inputs.Damping.Value end
+	else
+		self.current_damping = self.constraint:GetKeyValues().damping
+	end
+
 	self.constraint:Fire( "SetSpringLength", self.current_length, 0 )
 	if self.rope then self.rope:Fire( "SetLength", self.current_length, 0 ) end
-	self:SetOverlayText( "Hydraulic length : " .. self.current_length .. "\nConstant: " .. (self.constraint:GetKeyValues().constant or "-") .. "\nDamping: " .. (self.constraint:GetKeyValues().damping or "-") )
+
+	self:UpdateOutputs()
 end
 
 
 function ENT:SetRope( r )
 	self.rope = r
 end
-
 
 function ENT:TriggerInput(iname, value)
 	if !IsValid( self.constraint ) then return end
@@ -87,14 +118,14 @@ function ENT:TriggerInput(iname, value)
 		if self.rope then self.rope:Fire("SetLength", self.current_length, 0) end
 
 	elseif (iname == "Constant") then
-		self.current_constant = math.max(value,1)--math.Clamp(value,1,50000)
+		self.current_constant = math.max(value,1)
 		self.constraint:Fire("SetSpringConstant",self.current_constant)
-		timer.Simple( 0.1, function(a) WireLib.TriggerOutput( a.Entity, "Constant", a.constraint:GetKeyValues().constant ) end, self ) -- Needs to be delayed because ent:Fire doesn't update that fast.
+		timer.Simple( 0.1, function(a) if (a and a:IsValid()) then a:UpdateOutputs() end end, self ) -- Needs to be delayed because ent:Fire doesn't update that fast.
 
 	elseif (iname == "Damping") then
-		self.current_damping = math.max(value,1)--math.Clamp(value,1,10000)
+		self.current_damping = math.max(value,1)
 		self.constraint:Fire("SetSpringDamping",self.current_damping)
-		timer.Simple( 0.1, function(a) WireLib.TriggerOutput( a.Entity, "Damping", a.constraint:GetKeyValues().damping ) end, self )
+		timer.Simple( 0.1, function(a) if (a and a:IsValid()) then a:UpdateOutputs() end end, self )
 	end
 
 	self:SetOverlayText( "Hydraulic Length : " .. self.current_length .. "\nConstant: " .. (self.current_constant or "-") .. "\nDamping: " .. (self.current_damping or "-") )

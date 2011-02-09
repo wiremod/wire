@@ -183,6 +183,8 @@ if (CLIENT) then
 	language.Add( "Tool_wire_egp_weld", "Weld" )
 	language.Add( "Tool_wire_egp_weldworld", "Weld to world" )
 	language.Add( "Tool_wire_egp_freeze", "Freeze" )
+	language.Add( "Tool_wire_egp_drawemitters", "Draw emitters (Clientside)" )
+	language.Add( "Tool_wire_egp_emitter_drawdist", "Additional emitter draw distance (Clientside)" )
 
 	local Menu = {}
 	local CurEnt
@@ -359,6 +361,15 @@ if (CLIENT) then
 		panel:AddControl("Checkbox", {Label = "#Tool_wire_egp_weld",Command="wire_egp_weld"})
 		panel:AddControl("Checkbox", {Label = "#Tool_wire_egp_weldworld",Command="wire_egp_weldworld"})
 		panel:AddControl("Checkbox", {Label = "#Tool_wire_egp_freeze",Command="wire_egp_freeze"})
+		panel:AddControl("Checkbox", {Label = "#Tool_wire_egp_drawemitters",Command="wire_egp_drawemitters"})
+
+		local slider = vgui.Create("DNumSlider")
+		slider:SetText("#Tool_wire_egp_emitter_drawdist")
+		slider:SetConVar("wire_egp_emitter_drawdist")
+		slider:SetMin( 0 )
+		slider:SetMax( 5000 )
+		slider:SetDecimals( 0 )
+		panel:AddItem(slider)
 	end
 end
 

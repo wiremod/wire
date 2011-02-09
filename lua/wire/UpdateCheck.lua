@@ -2,31 +2,6 @@
 -- $LastChangedDate: 2010-11-13 01:20am +0100 (Sat, 13 Nov 2010) $
 -- $LastChangedBy: Divran $
 
--- FIXME: REMOVE THIS AFTER GMOD UPDATE FIXES STRING.EXLODE
-local function string_Asplode( seperator, str )
-	local tbl = {}
-	local i = 1
-
-	if ( seperator == "" ) then
-		return string.ToTable( str )
-	elseif ( #seperator > 1 or seperator == "%" ) then
-		local newpos, pos, start = 0
-		repeat
-			pos = newpos + 1
-			start, newpos = str:find( seperator, pos, true )
-			tbl[i] = str:sub( pos, ( start or 0 ) - 1 )
-			i = i + 1
-		until not start
-	else
-		for s in string.gmatch( str, "([^" .. seperator .. "]*)" .. seperator .. "?" ) do
-			tbl[i] = s
-			i = i + 1
-		end
-	end
-
-	return tbl
-end
-
 -- Get version
 function WireLib.GetWireVersion()
 	local version = "2288 (OLD VERSION)"
@@ -35,7 +10,7 @@ function WireLib.GetWireVersion()
 
 	-- Try getting the version using the .svn files:
 	if (file.Exists("lua/wire/.svn/entries", true)) then
-		version = string_Asplode("\n", file.Read( "lua/wire/.svn/entries", true) or "")[4]
+		version = string.Explode("\n", file.Read( "lua/wire/.svn/entries", true) or "")[4]
 		exported = false
 		plainversion = version
 	elseif (file.Exists("wire_version.txt")) then -- Try getting the version by reading the text file:

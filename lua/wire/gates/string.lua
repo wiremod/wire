@@ -1,0 +1,304 @@
+--[[
+	String gates  !  :P
+]]
+
+GateActions("String")
+
+GateActions["string_ceq"] = {
+	name = "Equal",
+	inputs = { "A" , "B" },
+	inputtypes = { "STRING" , "STRING" },
+	output = function(gate, A, B)
+		if A == B then return 1 else return 0 end
+	end,
+	label = function(Out, A, B)
+		return string.format ("(%s == %s) = %d", A, B, Out)
+	end
+}
+
+GateActions["string_cineq"] = {
+	name = "Inequal",
+	inputs = { "A" , "B" },
+	inputtypes = { "STRING" , "STRING" },
+	output = function(gate, A, B)
+		if A ~= B then return 1 else return 0 end
+	end,
+	label = function(Out, A, B)
+		return string.format ("(%s != %s) = %d", A, B, Out)
+	end
+}
+
+GateActions["string_index"] = {
+	name = "Index",
+	inputs = { "A" , "Index" },
+	inputtypes = { "STRING" , "NORMAL" },
+	outputtypes = { "STRING" },
+	output = function(gate, A, B)
+		if !A then A = "" end
+		if !B then B = 0 end
+		return string.sub(A,B,B)
+	end,
+	label = function(Out, A, B)
+		return string.format ("index(%s , %s) = %q", A, B, Out)
+	end
+}
+
+GateActions["string_length"] = {
+	name = "Length",
+	inputs = { "A" },
+	inputtypes = { "STRING" },
+	output = function(gate, A)
+		if !A then A = "" end
+		if string.len(A) then return string.len(A) else return 0 end
+	end,
+	label = function(Out, A)
+		return string.format ("length(%s) = %d", A, Out)
+	end
+}
+
+GateActions["string_upper"] = {
+	name = "Uppercase",
+	inputs = { "A" },
+	inputtypes = { "STRING" },
+	outputtypes = { "STRING" },
+	output = function(gate, A)
+		if !A then A = "" end
+		return string.upper(A)
+	end,
+	label = function(Out, A)
+		return string.format ("upper(%s) = %q", A, Out)
+	end
+}
+
+GateActions["string_lower"] = {
+	name = "Lowercase",
+	inputs = { "A" },
+	inputtypes = { "STRING" },
+	outputtypes = { "STRING" },
+	output = function(gate, A)
+		if !A then A = "" end
+		return string.lower(A)
+	end,
+	label = function(Out, A)
+		return string.format ("lower(%s) = %q", A, Out)
+	end
+}
+
+GateActions["string_sub"] = {
+	name = "Substring",
+	inputs = { "A" , "Start" , "End" },
+	inputtypes = { "STRING" , "NORMAL" , "NORMAL" },
+	outputtypes = { "STRING" },
+	output = function(gate, A, B, C)
+		if !A then A = "" end
+		if !B then B = 1 end  -- defaults to start of string
+		if !C then C = -1 end -- defaults to end of string
+		return string.sub(A,B,C)
+	end,
+	label = function(Out, A, B, C)
+		return string.format ("%s:sub(%s , %s) = %q", A, B, C, Out)
+	end
+}
+
+GateActions["string_explode"] = {
+	name = "Explode",
+	inputs = { "A" , "Separator" },
+	inputtypes = { "STRING" , "STRING" },
+	outputtypes = { "ARRAY" },
+	output = function(gate, A, B)
+		if !A then A = "" end
+		if !B then B = "" end
+		return string.Explode(B,A)
+	end,
+	label = function(Out, A, B)
+		return string.format ("explode(%s , %s)", A, B)
+	end
+}
+
+GateActions["string_find"] = {
+	name = "Find",
+	inputs = { "A", "B", "StartIndex" },
+	inputtypes = { "STRING", "STRING" },
+	outputs = { "Out" },
+	output = function(gate, A, B, StartIndex)
+		local r = string.find(A,B,StartIndex)
+		if r==nil then r=0 end
+		return r
+	end,
+	label = function(Out, A, B)
+	    return string.format ("find(%s , %s) = %d", A, B, Out)
+	end
+}
+
+
+GateActions["string_concat"] = {
+	name = "Concatenate",
+	inputs = { "A" , "B" , "C" , "D" , "E" , "F" , "G" , "H" },
+	inputtypes = { "STRING" , "STRING" , "STRING" , "STRING" , "STRING" , "STRING" , "STRING" , "STRING" },
+	outputtypes = { "STRING" },
+	output = function(gate, A, B, C, D, E, F, G, H)
+		local T = {A,B,C,D,E,F,G,H}
+		return table.concat(T)
+	end,
+	label = function(Out)
+		return string.format ("concat = %q", Out)
+	end
+}
+
+GateActions["string_trim"] = {
+	name = "Trim",
+	inputs = { "A" },
+	inputtypes = { "STRING" },
+	outputtypes = { "STRING" },
+	output = function(gate, A)
+		if !A then A = "" end
+		return string.Trim(A)
+	end,
+	label = function(Out, A)
+		return string.format ("trim(%s) = %q", A, Out)
+	end
+}
+
+GateActions["string_replace"] = {
+	name = "Replace",
+	inputs = { "String" , "ToBeReplaced" , "Replacer" },
+	inputtypes = { "STRING" , "STRING" , "STRING" },
+	outputtypes = { "STRING" },
+	output = function(gate, A, B, C)
+		if !A then A = "" end
+		if !B then B = "" end
+		if !C then C = "" end
+		return string.gsub(A,B,C)
+	end,
+	label = function(Out, A, B, C)
+		return string.format ("%s:replace(%s , %s) = %q", A, B, C, Out)
+	end
+}
+
+GateActions["string_reverse"] = {
+	name = "Reverse",
+	inputs = { "A" },
+	inputtypes = { "STRING" },
+	outputtypes = { "STRING" },
+	output = function(gate, A)
+		if !A then A = "" end
+		return string.reverse(A)
+	end,
+	label = function(Out, A)
+		return string.format ("reverse(%s) = %q", A, Out)
+	end
+}
+
+GateActions["string_tonum"] = {
+	name = "To Number",
+	inputs = { "A" },
+	inputtypes = { "STRING" },
+	outputtypes = { "NORMAL" },
+	output = function(gate, A)
+		if !A then A = "" end
+		return tonumber(A)
+	end,
+	label = function(Out, A)
+		return string.format ("tonumber(%s) = %d", A, Out)
+	end
+}
+
+GateActions["string_tostr"] = {
+	name = "Number to String",
+	inputs = { "A" },
+	inputtypes = { "NORMAL" },
+	outputtypes = { "STRING" },
+	output = function(gate, A)
+		if !A then A = 0 end
+		return tostring(A)
+	end,
+	label = function(Out, A)
+		return string.format ("tostring(%s) = %q", A, Out)
+	end
+}
+
+GateActions["string_tobyte"] = {
+	name = "To Byte",
+	inputs = { "A" },
+	inputtypes = { "STRING" },
+	outputtypes = { "NORMAL" },
+	output = function(gate, A)
+		if !A then A = "" end
+		return string.byte(A)
+	end,
+	label = function(Out, A)
+		return string.format ("tobyte(%s) = %d", A, Out)
+	end
+}
+
+GateActions["string_tochar"] = {
+	name = "To Character",
+	inputs = { "A" },
+	inputtypes = { "NORMAL" },
+	outputtypes = { "STRING" },
+	output = function(gate, A)
+		if !A then A = 0 end
+		return string.char(A)
+	end,
+	label = function(Out, A)
+		return string.format ("tochar(%s) = %q", A, Out)
+	end
+}
+
+GateActions["string_repeat"] = {
+	name = "Repeat",
+	inputs = { "A" , "Num"},
+	inputtypes = { "STRING" , "NORMAL" },
+	outputtypes = { "STRING" },
+	output = function(gate, A, B)
+		if !A then A = "" end
+		if !B or B<1 then B = 1 end
+		return string.rep(A,B)
+	end,
+	label = function(Out, A)
+		return string.format ("repeat(%s) = %q", A, Out)
+	end
+}
+
+GateActions["string_find"] = {
+	name = "Find",
+	inputs = { "A", "B", "StartIndex" },
+	inputtypes = { "STRING", "STRING" },
+	output = function(gate, A, B, C)
+		local R = string.find(A, B, C)
+		if !R then R = 0 end
+		return R
+	end,
+	label = function(Out, A, B)
+	    return string.format ("find(%s , %s) = %d", A, B, Out)
+	end
+}
+
+GateActions["string_ident"] = {
+	name = "Identity",
+	inputs = { "A" },
+	inputtypes = { "STRING" },
+	outputtypes = { "STRING" },
+	output = function(gate, A )
+		return A
+	end,
+	label = function(Out, A)
+	    return string.format ("%s = %s", A, Out)
+	end
+}
+
+GateActions["string_select"] = {
+	name = "Select",
+	inputs = { "Choice", "A", "B", "C", "D", "E", "F", "G", "H" },
+	inputtypes = { "NORMAL", "STRING", "STRING", "STRING", "STRING", "STRING", "STRING", "STRING", "STRING" },
+	outputtypes = { "STRING" },
+	output = function(gate, Choice, ...)
+		math.Clamp(Choice,1,8)
+		return ({...})[Choice]
+	end,
+	label = function(Out, Choice)
+	    return string.format ("select(%s) = %s", Choice, Out)
+	end
+}
+
+GateActions()

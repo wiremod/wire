@@ -659,7 +659,7 @@ if (SERVER) then
 				for k2, v2 in pairs( v.RenderTable ) do
 					DataToSend2[#DataToSend2+1] = { ID = v2.ID, index = v2.index, Settings = v2:DataStreamInfo() }
 				end
-				DataToSend[#DataToSend+1] = DataToSend, { Ent = v, Objects = DataToSend2 }
+				DataToSend[#DataToSend+1] = { Ent = v, Objects = DataToSend2 }
 			end
 		end
 		if (DataToSend and #DataToSend>0) then

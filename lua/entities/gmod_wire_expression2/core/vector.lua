@@ -750,6 +750,19 @@ e2function array toLocalPosAng( vector localpos, angle localang, vector worldpos
 end
 
 /******************************************************************************/
+-- Credits to Wizard of Ass for these two
+
+e2function number bearing(vector originpos,angle originangle, vector pos)
+	pos = WorldToLocal(Vector(pos[1],pos[2],pos[3]),Angle(0,0,0),Vector(originpos[1],originpos[2],originpos[3]),Angle(originangle[1],originangle[2],originangle[3]))
+	return rad2deg*-atan2(pos.y, pos.x)
+end
+
+e2function number elevation(vector originpos,angle originangle, vector pos)
+	pos = WorldToLocal(Vector(pos[1],pos[2],pos[3]),Angle(0,0,0),Vector(originpos[1],originpos[2],originpos[3]),Angle(originangle[1],originangle[2],originangle[3]))
+	return rad2deg*asin(pos.z / pos:Length())
+end
+
+/******************************************************************************/
 
 __e2setcost( 10 )
 

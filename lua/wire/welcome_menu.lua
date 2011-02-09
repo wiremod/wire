@@ -83,8 +83,8 @@ if (CLIENT) then
 		pnl:SetTitle( "WireMod Update Notification" )
 
 		local txt = vgui.Create("Wire_WMenu_Label",pnl)
-		txt:SetText([[WireMod has been updated!
-Maybe you should go update your SVN?
+		txt:SetText([[You are using an older version of
+Wiremod. Please update your SVN.
 Tip: Open the context menu (default 'C')
 to enable the cursor.]] )
 		txt:SizeToContents()

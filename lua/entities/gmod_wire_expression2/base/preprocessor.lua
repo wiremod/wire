@@ -129,6 +129,8 @@ function PreProcessor:RemoveComments(line)
 end
 
 function PreProcessor:ParseDirectives(line)
+	if (self.multilinestring) then return line end
+
 	-- parse directive
 	local directive, value = line:match("^@([^ ]*) ?(.*)$")
 

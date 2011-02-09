@@ -4,6 +4,32 @@
 
 if VERSION < 94 then Error("WireMod: Your GMod is years too old. Load aborted.\n") end
 
+-- FIXME: REMOVE THIS AFTER GMOD UPDATE FIXES STRING.EXPLODE
+function string.Explode( seperator, str )
+	local tbl = {}
+	local i = 1
+
+	if ( seperator == "" ) then
+		return string.ToTable( str )
+	elseif ( #seperator > 1 or seperator == "%" ) then
+		local newpos, pos, start = 0
+		repeat
+			pos = newpos + 1
+			start, newpos = str:find( seperator, pos, true )
+			tbl[i] = str:sub( pos, ( start or 0 ) - 1 )
+			i = i + 1
+		until not start
+	else
+		for s in string.gmatch( str, "([^" .. seperator .. "]*)" .. seperator ) do
+			tbl[i] = s
+			i = i + 1
+		end
+		tbl[i] = string.match( str, "([^" .. seperator .. "]*)$" )
+	end
+
+	return tbl
+end
+
 if SERVER then
 	-- this file
 	AddCSLuaFile("autorun/Wire_Load.lua")
@@ -16,7 +42,6 @@ if SERVER then
 	AddCSLuaFile("wire/WireMonitors.lua")
 	AddCSLuaFile("wire/opcodes.lua")
 	AddCSLuaFile("wire/GPULib.lua")
-	AddCSLuaFile("wire/CPULib.lua")
 
 	-- client includes
 	AddCSLuaFile("wire/client/cl_wirelib.lua")
@@ -36,21 +61,6 @@ if SERVER then
 	AddCSLuaFile("wire/client/welcome_menu_derma.lua")
 	AddCSLuaFile("wire/client/rendertarget_fix.lua")
 
-	-- HL-ZASM
-        AddCSLuaFile("wire/client/hlzasm/hc_compiler.lua")
-	AddCSLuaFile("wire/client/hlzasm/hc_opcodes.lua")
-	AddCSLuaFile("wire/client/hlzasm/hc_expression.lua")
-	AddCSLuaFile("wire/client/hlzasm/hc_preprocess.lua")
-	AddCSLuaFile("wire/client/hlzasm/hc_syntax.lua")
-        AddCSLuaFile("wire/client/hlzasm/hc_codetree.lua")
-        AddCSLuaFile("wire/client/hlzasm/hc_optimize.lua")
-        AddCSLuaFile("wire/client/hlzasm/hc_output.lua")
-
-        -- ZVM
-        AddCSLuaFile("wire/zvm/zvm_core.lua")
-        AddCSLuaFile("wire/zvm/zvm_features.lua")
-        AddCSLuaFile("wire/zvm/zvm_opcodes.lua")
-
 	-- resource files
 	for i=1,32 do
 		resource.AddFile("settings/render_targets/WireGPU_RT_"..i..".txt")
@@ -66,11 +76,6 @@ if SERVER then
 	resource.AddSingleFile("materials/expression 2/cog_world.vmt")
 end
 
--- HL-ZASM (must be included before CPULib on client)
-if CLIENT then
-	include("wire/client/hlzasm/hc_compiler.lua")
-end
-
 -- shared includes
 include("wire/WireShared.lua")
 include("wire/UpdateCheck.lua")
@@ -79,7 +84,6 @@ include("wire/WireGates.lua")
 include("wire/WireMonitors.lua")
 include("wire/opcodes.lua")
 include("wire/GPULib.lua")
-include("wire/CPULib.lua")
 include("wire/welcome_menu.lua")
 
 -- server includes

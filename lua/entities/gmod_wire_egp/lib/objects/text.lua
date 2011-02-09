@@ -14,7 +14,7 @@ Obj.Draw = function( self )
 		if (!EGP.ValidFonts[self.fontid]) then self.fontid = 1 end
 		local font = "WireEGP_" .. self.size .. "_" .. self.fontid
 		if (!EGP.ValidFonts_Lookup[font]) then
-			surface.CreateFont( EGP.ValidFonts[self.fontid], self.size, 400, true, false, font )
+			surface.CreateFont( EGP.ValidFonts[self.fontid], self.size, 800, true, false, font )
 			table.insert( EGP.ValidFonts, font )
 			EGP.ValidFonts_Lookup[font] = true
 		end
