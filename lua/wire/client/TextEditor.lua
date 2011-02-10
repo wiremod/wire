@@ -1637,14 +1637,12 @@ end
 
 function EDITOR:NextPattern(pattern)
 	if !self.character then return false end
-	local startpos,endpos,text = self.line:find(pattern, self.position)
+	local startpos,endpos = self.line:find(pattern, self.position)
 
 	if startpos ~= self.position then return false end
-	local buf = self.line:sub(startpos, endpos)
-	if not text then text = buf end
+	local text = self.line:sub(startpos, endpos)
 
 	self.tokendata = self.tokendata .. text
-
 
 	self.position = endpos + 1
 	if self.position <= #self.line then
@@ -1764,8 +1762,6 @@ do -- E2 Syntax highlighting
 			local tokenname = ""
 			self.tokendata = ""
 
-			-- eat all spaces
-			self:NextPattern(" *")
 			if !self.character then break end
 
 			-- eat next token
@@ -1929,7 +1925,6 @@ do
 			local tokenname = ""
 			self.tokendata = ""
 
-			self.NextPattern(" *")
 			if !self.character then break end
 
 			if self:NextPattern("^[0-9][0-9.]*") then

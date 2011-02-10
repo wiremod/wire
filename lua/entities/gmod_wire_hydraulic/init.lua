@@ -10,8 +10,8 @@ function ENT:Initialize()
 	self:SetMoveType( MOVETYPE_VPHYSICS )
 	self:SetSolid( SOLID_VPHYSICS )
 
-	self.Inputs = Wire_CreateInputs( self, { "Length", "Constant", "Damping" } )
-	self.Outputs = Wire_CreateOutputs( self, { "Length", "Constant", "Damping" } )
+	self.Inputs = WireLib.CreateInputs( self, { "Length", "Constant", "Damping" } )
+	self.Outputs = WireLib.CreateOutputs( self, { "Length", "Constant", "Damping" } )
 
 	self.Trigger = 0
 	if self.constraint then
@@ -54,7 +54,7 @@ function ENT:Think()
 
 	self:UpdateOutputs( true )
 
-	self.Entity:NextThink(CurTime()+0.04)
+	self:NextThink(CurTime()+0.04)
 end
 
 local function updateOutput( a, what )
@@ -85,14 +85,14 @@ function ENT:SetConstraint( c )
 
 	self.current_length = p1:Distance(p2)
 
-	if (self.current_constant != nil or self.Inputs.Constant.Src != nil) then
+	if (self.current_constant != nil or (self.Inputs and self.Inputs.Constant.Src != nil)) then
 		self.constraint:Fire( "SetSpringConstant", self.current_constant or self.Inputs.Constant.Value, 0 )
 		if (!self.current_constant) then self.current_constant = self.Inputs.Constant.Value end
 	else
 		self.current_constant = self.constraint:GetKeyValues().constant
 	end
 
-	if (self.current_damping != nil or self.Inputs.Damping.Src != nil) then
+	if (self.current_damping != nil or (self.Inputs and self.Inputs.Damping.Src != nil)) then
 		self.constraint:Fire( "SetSpringDamping", self.current_damping or self.Inputs.Damping.Value, 0 )
 		if (!self.current_damping) then self.current_damping = self.Inputs.Damping.Value end
 	else
