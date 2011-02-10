@@ -1635,14 +1635,37 @@ function EDITOR:NextCharacter()
 	end
 end
 
-function EDITOR:NextPattern(pattern)
+function EDITOR:SkipPattern(pattern)
+	-- TODO: share code with NextPattern
 	if !self.character then return false end
-	local startpos,endpos = self.line:find(pattern, self.position)
+	local startpos,endpos,text = self.line:find(pattern, self.position)
 
 	if startpos ~= self.position then return false end
-	local text = self.line:sub(startpos, endpos)
+	local buf = self.line:sub(startpos, endpos)
+	if not text then text = buf end
+
+	--self.tokendata = self.tokendata .. text
+
+
+	--self.position = endpos + 1
+	if self.position <= #self.line then
+		self.character = self.line:sub(self.position, self.position)
+	else
+		self.character = nil
+	end
+	return true
+end
+
+function EDITOR:NextPattern(pattern)
+	if !self.character then return false end
+	local startpos,endpos,text = self.line:find(pattern, self.position)
+
+	if startpos ~= self.position then return false end
+	local buf = self.line:sub(startpos, endpos)
+	if not text then text = buf end
 
 	self.tokendata = self.tokendata .. text
+
 
 	self.position = endpos + 1
 	if self.position <= #self.line then
@@ -1762,6 +1785,8 @@ do -- E2 Syntax highlighting
 			local tokenname = ""
 			self.tokendata = ""
 
+			-- eat all spaces
+			self:SkipPattern(" *")
 			if !self.character then break end
 
 			-- eat next token
@@ -1788,7 +1813,7 @@ do -- E2 Syntax highlighting
 					local char = self.character or ""
 					local keyword = char != "("
 
-					self:NextPattern(" *")
+					self:SkipPattern(" *")
 
 					if self.character == "]" then
 						-- X[Y,typename]
@@ -1925,6 +1950,7 @@ do
 			local tokenname = ""
 			self.tokendata = ""
 
+			self.NextPattern(" *")
 			if !self.character then break end
 
 			if self:NextPattern("^[0-9][0-9.]*") then
