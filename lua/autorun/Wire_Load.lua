@@ -4,30 +4,31 @@
 
 if VERSION < 94 then Error("WireMod: Your GMod is years too old. Load aborted.\n") end
 
+
 -- FIXME: REMOVE THIS AFTER GMOD UPDATE FIXES STRING.EXPLODE
-function string.Explode( seperator, str )
-	local tbl = {}
-	local i = 1
+if #string.Explode( " ", " " ) ~= 2 then
+	function string.Explode( separator, str, withpattern )
+		if (separator == "") then return string.ToTable( str ) end
 
-	if ( seperator == "" ) then
-		return string.ToTable( str )
-	elseif ( #seperator > 1 or seperator == "%" ) then
-		local newpos, pos, start = 0
-		repeat
-			pos = newpos + 1
-			start, newpos = str:find( seperator, pos, true )
-			tbl[i] = str:sub( pos, ( start or 0 ) - 1 )
-			i = i + 1
-		until not start
-	else
-		for s in string.gmatch( str, "([^" .. seperator .. "]*)" .. seperator ) do
-			tbl[i] = s
-			i = i + 1
+		local ret = {}
+		local index,lastPosition = 1,1
+
+		-- Escape all magic characters in separator
+		if not withpattern then separator = separator:gsub( "[%-%^%$%(%)%%%.%[%]%*%+%-%?]", "%%%1" ) end
+
+		-- Find the parts
+		for part,endPosition in str:gmatch( "(.-)" .. separator.."()" ) do
+			ret[index] = part
+			index = index + 1
+
+			-- Keep track of the position
+			lastPosition = endPosition
 		end
-		tbl[i] = string.match( str, "([^" .. seperator .. "]*)$" )
-	end
 
-	return tbl
+		-- Add last part by using the position we stored
+		ret[index] = str:sub(lastPosition)
+		return ret
+	end
 end
 
 if SERVER then
