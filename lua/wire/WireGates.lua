@@ -24,6 +24,7 @@ function LoadWireGates()
 	local entries = file.FindInLua( "wire/gates/*.lua" )
 	for _,v in pairs(entries) do
 		include("gates/"..v)
+		if (SERVER) then AddCSLuaFile("gates/"..v) end
 	end
 
 	WireGatesSorted = {}
