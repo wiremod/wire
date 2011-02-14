@@ -28,7 +28,7 @@ function ENT:DrawEntityOutline() end
 local wire_egp_emitter_drawdist = CreateClientConVar("wire_egp_emitter_drawdist","0",true,false)
 
 function ENT:Think()
-	local dist = Vector(1,0,1)*drawdist:GetInt()
+	local dist = Vector(1,0,1)*wire_egp_emitter_drawdist:GetInt()
 	self:SetRenderBounds(Vector(-64,0,0)-dist,Vector(64,0,135)+dist)
 end
 

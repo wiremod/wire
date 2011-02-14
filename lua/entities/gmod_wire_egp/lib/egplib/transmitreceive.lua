@@ -657,7 +657,25 @@ if (SERVER) then
 			if (v.RenderTable and #v.RenderTable>0) then
 				local DataToSend2 = {}
 				for k2, v2 in pairs( v.RenderTable ) do
-					DataToSend2[#DataToSend2+1] = { ID = v2.ID, index = v2.index, Settings = v2:DataStreamInfo() }
+					local obj = v2
+
+					if (v.Scaling or v.TopLeft) then
+						obj = table.Copy(v2) -- Make a copy of the table so it doesn't overwrite the serverside object
+					else
+						obj = v2
+					end
+
+					-- Scale the positions and size
+					if (v.Scaling) then
+						EGP:ScaleObject( v, obj )
+					end
+
+					-- Move the object to draw from the top left
+					if (v.TopLeft) then
+						EGP:MoveTopLeft( v, obj )
+					end
+
+					DataToSend2[#DataToSend2+1] = { ID = obj.ID, index = obj.index, Settings = obj:DataStreamInfo() }
 				end
 				DataToSend[#DataToSend+1] = { Ent = v, Objects = DataToSend2 }
 			end
@@ -701,7 +719,7 @@ else
 				Ent:EGP_Update()
 			end
 		end
-		LocalPlayer():ChatPrint("[EGP] Received EGP object reload. " .. #decoded .. " screen's objects were reloaded.")
+		LocalPlayer():ChatPrint("[EGP] Received EGP object reload. " .. #decoded .. " screens' objects were reloaded.")
 	end
 	datastream.Hook("EGP_Request_Transmit", function(_,_,_,decoded) EGP:ReceiveDataStream( decoded ) end )
 

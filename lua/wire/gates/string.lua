@@ -260,20 +260,6 @@ GateActions["string_repeat"] = {
 	end
 }
 
-GateActions["string_find"] = {
-	name = "Find",
-	inputs = { "A", "B", "StartIndex" },
-	inputtypes = { "STRING", "STRING" },
-	output = function(gate, A, B, C)
-		local R = string.find(A, B, C)
-		if !R then R = 0 end
-		return R
-	end,
-	label = function(Out, A, B)
-	    return string.format ("find(%s , %s) = %d", A, B, Out)
-	end
-}
-
 GateActions["string_ident"] = {
 	name = "Identity",
 	inputs = { "A" },

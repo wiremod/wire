@@ -160,20 +160,6 @@ GateActions["angle_ident"] = {
 	end
 }
 
-GateActions["angle_round"] = {
-	name = "Round",
-	inputs = { "A" },
-	inputtypes = { "ANGLE" },
-	outputtypes = { "ANGLE" },
-	output = function(gate, A)
-		if !A then A = Angle (0, 0, 0) end
-		return Angle(math.Round(A.p),math.Round(A.y),math.Round(A.r))
-	end,
-	label = function(Out, A)
-		return string.format ("%s = (%d,%d,%d)", A, Out.p, Out.y, Out.r)
-	end
-}
-
 -- Shifts the components left.
 GateActions["angle_shiftl"] = {
 	name = "Shift Components Left",
