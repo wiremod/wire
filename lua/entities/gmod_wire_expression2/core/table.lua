@@ -289,7 +289,7 @@ registerOperator("fea","t","s",function(self,args)
 	end
 
 	for i=1, count do
-		local key = keys[count]
+		local key = keys[i]
 		if tbl.s[key] ~= nil then
 			self.prf = self.prf + 3
 

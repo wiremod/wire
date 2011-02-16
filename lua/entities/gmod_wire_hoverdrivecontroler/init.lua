@@ -847,7 +847,7 @@ function ENT:Teleport(tbl,base)
 			-- Hoverball fix
 			if(e:GetClass() == "gmod_hoverball")then
 				local hp = (p.New-p.Old);
-				e.TargetZ = e.TargetZ + hp.z; -- Set changed hoverball heigh to the hoverball
+				e.dt.TargetZ = e.dt.TargetZ + hp.z; -- Set changed hoverball heigh to the hoverball
 			end
 
 			if (e:GetClass() == "gmod_toggleablehoverball")

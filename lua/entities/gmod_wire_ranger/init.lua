@@ -36,7 +36,7 @@ function ENT:Setup( range, default_zero, show_beam, ignore_world, trace_water, o
 	self.out_uid        = out_uid
 	self.out_eid        = out_eid
 	self.out_hnrm       = out_hnrm
-	self.hires          = hires
+	self.hires          = hiRes
 
 	self.PrevOutput = nil
 

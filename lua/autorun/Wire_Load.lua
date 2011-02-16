@@ -7,8 +7,9 @@ if VERSION < 94 then Error("WireMod: Your GMod is years too old. Load aborted.\n
 
 -- FIXME: REMOVE THIS AFTER GMOD UPDATE FIXES STRING.EXPLODE
 if #string.Explode( " ", " " ) ~= 2 then
-	function string.Explode( separator, str, withpattern )
-		if (separator == "") then return string.ToTable( str ) end
+	local totable = string.ToTable
+	function string.Explode(separator, str, withpattern)
+		if (separator == "") then return totable( str ) end
 
 		local ret = {}
 		local index,lastPosition = 1,1
@@ -16,13 +17,28 @@ if #string.Explode( " ", " " ) ~= 2 then
 		-- Escape all magic characters in separator
 		if not withpattern then separator = separator:gsub( "[%-%^%$%(%)%%%.%[%]%*%+%-%?]", "%%%1" ) end
 
-		-- Find the parts
-		for part,endPosition in str:gmatch( "(.-)" .. separator.."()" ) do
-			ret[index] = part
-			index = index + 1
+		if (#str > 10000) then
 
-			-- Keep track of the position
-			lastPosition = endPosition
+			-- Find the parts
+			for startPosition,endPosition in str:gmatch( "()" .. separator.."()" ) do
+				ret[index] = str:sub(lastPosition, startPosition-1)
+				index = index + 1
+
+				-- Keep track of the position
+				lastPosition = endPosition
+			end
+
+		else
+
+			-- Find the parts
+			for part,endPosition in str:gmatch( "(.-)" .. separator.."()" ) do
+				ret[index] = part
+				index = index + 1
+
+				-- Keep track of the position
+				lastPosition = endPosition
+			end
+
 		end
 
 		-- Add last part by using the position we stored

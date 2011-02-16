@@ -78,7 +78,7 @@ function TOOL:LeftClick( trace )
 	local hires        = (self:GetClientNumber("hires") ~= 0)
 
 	if ( trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_ranger" && trace.Entity.pl == ply ) then
-		trace.Entity:Setup( range, default_zero, show_beam, ignore_world, trace_water, out_dist, out_pos, out_vel, out_ang, out_col, out_val, out_sid, out_uid, out_eid,hires )
+		trace.Entity:Setup( range, default_zero, show_beam, ignore_world, trace_water, out_dist, out_pos, out_vel, out_ang, out_col, out_val, out_sid, out_uid, out_eid, out_hnrm, hires )
 		return true
 	end
 
@@ -87,7 +87,7 @@ function TOOL:LeftClick( trace )
 	local Ang = trace.HitNormal:Angle()
 	Ang.pitch = Ang.pitch + 90
 
-	local wire_ranger = MakeWireRanger( ply, trace.HitPos, Ang, self:GetModel(), range, default_zero, show_beam, ignore_world, trace_water, out_dist, out_pos, out_vel, out_ang, out_col, out_val, out_sid, out_uid, out_eid, out_hnrm )
+	local wire_ranger = MakeWireRanger( ply, trace.HitPos, Ang, self:GetModel(), range, default_zero, show_beam, ignore_world, trace_water, out_dist, out_pos, out_vel, out_ang, out_col, out_val, out_sid, out_uid, out_eid, out_hnrm, hires )
 
 	local min = wire_ranger:OBBMins()
 	wire_ranger:SetPos( trace.HitPos - trace.HitNormal * min.z )

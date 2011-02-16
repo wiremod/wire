@@ -8,6 +8,7 @@ hook.Add("Initialize","EGP_HUD_Initialize",function()
 		--------------------------------------------------------
 		local function EGP_Use( um )
 			local ent = um:ReadEntity()
+			if (!ent or !ent:IsValid()) then return end
 			local bool = um:ReadChar()
 			if (bool == -1) then
 				ent.On = nil
