@@ -1637,23 +1637,23 @@ end
 
 function EDITOR:SkipPattern(pattern)
 	-- TODO: share code with NextPattern
-	if !self.character then return false end
+	if !self.character then return nil end
 	local startpos,endpos,text = self.line:find(pattern, self.position)
 
-	if startpos ~= self.position then return false end
+	if startpos ~= self.position then return nil end
 	local buf = self.line:sub(startpos, endpos)
 	if not text then text = buf end
 
 	--self.tokendata = self.tokendata .. text
 
 
-	--self.position = endpos + 1
+	self.position = endpos + 1
 	if self.position <= #self.line then
 		self.character = self.line:sub(self.position, self.position)
 	else
 		self.character = nil
 	end
-	return true
+	return text
 end
 
 function EDITOR:NextPattern(pattern)
@@ -1786,7 +1786,8 @@ do -- E2 Syntax highlighting
 			self.tokendata = ""
 
 			-- eat all spaces
-			self:SkipPattern(" *")
+			local spaces = self:SkipPattern(" *")
+			if spaces then addToken("operator", spaces) end
 			if !self.character then break end
 
 			-- eat next token
@@ -1813,7 +1814,7 @@ do -- E2 Syntax highlighting
 					local char = self.character or ""
 					local keyword = char != "("
 
-					self:SkipPattern(" *")
+					local spaces = self:SkipPattern(" *") or ""
 
 					if self.character == "]" then
 						-- X[Y,typename]
@@ -1844,6 +1845,9 @@ do -- E2 Syntax highlighting
 							end
 						end
 					end
+					addToken(tokenname, self.tokendata)
+					tokenname = "operator"
+					self.tokendata = spaces
 				end
 
 			elseif self:NextPattern("^[A-Z][a-zA-Z0-9_]*") then
