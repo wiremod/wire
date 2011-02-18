@@ -108,7 +108,7 @@ function wire_expression2_reset_extensions()
 	wire_expression_types = {}
 	wire_expression_types2 = {
 		[""] = {
-			[5] = function() if checker ~= nil then error("Return value of void function is not nil.",0) end end
+			[5] = function(retval) if retval ~= nil then error("Return value of void function is not nil.",0) end end
 		}
 	}
 	wire_expression2_funcs = {}
