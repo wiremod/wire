@@ -1,5 +1,10 @@
 local Editor = {}
 
+
+------------------------------------------------------------------------
+-- Fonts
+------------------------------------------------------------------------
+
 Editor.FontConVar = CreateClientConVar( "wire_expression2_editor_font", "Courier New", true, false )
 Editor.FontSizeConVar = CreateClientConVar( "wire_expression2_editor_font_size", 16, true, false )
 Editor.BlockCommentStyleConVar = CreateClientConVar( "wire_expression2_editor_block_comment_style", 1, true, false )
@@ -50,6 +55,57 @@ function Editor:ChangeFont( FontName, Size )
 	end
 end
 
+------------------------------------------------------------------------
+-- Colors
+------------------------------------------------------------------------
+
+local colors = { -- Table copied from TextEditor, used for saving colors to convars.
+	["directive"] = Color(240, 240, 160), -- yellow
+	["number"]    = Color(240, 160, 160), -- light red
+	["function"]  = Color(160, 160, 240), -- blue
+	["notfound"]  = Color(240,  96,  96), -- dark red
+	["variable"]  = Color(160, 240, 160), -- light green
+	["string"]    = Color(128, 128, 128), -- grey
+	["keyword"]   = Color(160, 240, 240), -- turquoise
+	["operator"]  = Color(224, 224, 224), -- white
+	["comment"]   = Color(128, 128, 128), -- grey
+	["ppcommand"] = Color(240,  96, 240), -- purple
+	["typename"]  = Color(240, 160,  96), -- orange
+	["constant"]  = Color(240, 160, 240), -- pink
+}
+
+local colors_defaults = {}
+
+local colors_convars = {}
+for k,v in pairs( colors ) do
+	colors_defaults[k] = Color(v.r,v.g,v.b) -- Copy to save defaults
+	colors_convars[k] = CreateClientConVar("wire_expression2_editor_color_"..k,v.r.."_"..v.g.."_"..v.b,true,false)
+end
+
+function Editor:LoadSyntaxColors()
+	for k,v in pairs( colors_convars ) do
+		local r,g,b = v:GetString():match( "(%d+)%_(%d+)%_(%d+)" )
+		local def = colors_defaults[k]
+		colors[k] = Color( tonumber(r) or def.r,tonumber(g) or def.g,tonumber(b) or def.b )
+	end
+
+	for i=1,self:GetNumTabs() do
+		self:GetEditor(i):SetSyntaxColors( colors )
+	end
+end
+
+function Editor:SetSyntaxColor( colorname, colr )
+	if (!colors[colorname]) then return end
+	colors[colorname] = colr
+	RunConsoleCommand("wire_expression2_editor_color_"..colorname,colr.r.."_"..colr.g.."_"..colr.b)
+
+	for i=1,self:GetNumTabs() do
+		self:GetEditor(i):SetSyntaxColor( colorname, colr )
+	end
+end
+
+------------------------------------------------------------------------
+
 local invalid_filename_chars = {
 	["*"] = "",
 	["?"] = "",
@@ -85,6 +141,7 @@ function Editor:Init()
 	self.logo = surface.GetTextureID("vgui/e2logo")
 
 	self:InitComponents()
+	self:LoadSyntaxColors()
 
 	local width, height = math.min(surface.ScreenWidth()-200, 800), math.min(surface.ScreenHeight()-200, 620)
 	self:SetPos((surface.ScreenWidth() - width) / 2, (surface.ScreenHeight() - height) / 2)
@@ -436,8 +493,10 @@ function Editor:CreateTab( chosenfile )
 	editor:RequestFocus()
 
 	local func = self:GetSyntaxColorLine()
-	if (func != nil) then
+	if (func != nil) then -- it's a custom syntax highlighter
 		editor.SyntaxColorLine = func
+	else -- else it's E2's syntax highlighter
+		editor:SetSyntaxColors( colors )
 	end
 
 	return sheet
@@ -552,7 +611,7 @@ function Editor:InitComponents()
 	self.C['Val']       = self:addComponent(vgui.Create( "Label", self )                    , 170, -30, -10,  20)   // Validation line
 	self.C['Btoggle']   = self:addComponent(vgui.Create( "Button", self )                   , 170,  30,  20,  20)   // Toggle Browser being shown
 	self.C['ConBut']    = self:addComponent(vgui.Create( "Button", self )                   , -62,  4,   18,  18)   // Control panel open/close
-	self.C['Control']   = self:addComponent(vgui.Create( "Panel", self )                    ,-210,  52, 200, 360)   // Control Panel
+	self.C['Control']   = self:addComponent(vgui.Create( "Panel", self )                    ,-380,  52, 370, 340)   // Control Panel
 	self.C['Credit']    = self:addComponent(vgui.Create( "TextEntry", self )                ,-160,  52, 150, 100)   // Credit box
 
 	self.C['TabHolder'].panel.Paint = function() end
@@ -730,13 +789,15 @@ function Editor:InitControlPanel(frame)
 
 	local ColorPanel = vgui.Create( "Panel" , frame)
 	ColorPanel:SetPos(0,0)
-	ColorPanel:SetSize(200,340)
+	ColorPanel:SetSize(370,340)
 
 	ColorPanel.Paint = function(panel)
 		local w,h = panel:GetSize()
-		surface.SetDrawColor( 0, 0, 0, 150 )
+		surface.SetDrawColor( 0, 0, 0, 230 )
 		surface.DrawRect(0, 0, w, h)
 	end
+
+	-- WINDOW BORDER COLORS
 
 	local SimpleColors = vgui.Create( "Label", ColorPanel)
 	SimpleColors:SetPos(10,10)
@@ -778,10 +839,12 @@ function Editor:InitControlPanel(frame)
 	end
 	DarknessColor:SetSlideX(0)
 
+	---- FONTS
+
 	local FontLabel = vgui.Create( "DLabel", ColorPanel )
 	FontLabel:SetText( "Font:                                   Font Size:" )
 	FontLabel:SizeToContents()
-	FontLabel:SetPos( 10, 130 )
+	FontLabel:SetPos( 10, 125 )
 
 	local FontSelect = vgui.Create( "DMultiChoice", ColorPanel )
 	FontSelect.OnSelect = function( panel, index, value )
@@ -801,7 +864,7 @@ function Editor:InitControlPanel(frame)
 	end
 	FontSelect:AddChoice( "Custom..." )
 	FontSelect:SetEditable( false )
-	FontSelect:SetPos( 10, 145 )
+	FontSelect:SetPos( 10, 140 )
 	FontSelect:SetSize( 180 - 50 - 4, 20 )
 
 	local FontSizeSelect = vgui.Create( "DMultiChoice", ColorPanel )
@@ -814,12 +877,14 @@ function Editor:InitControlPanel(frame)
 		FontSizeSelect:AddChoice( i .. (i == 16 and " (Default)" or "") )
 	end
 	FontSizeSelect:SetEditable( false )
-	FontSizeSelect:SetPos( 10 + FontSelect:GetWide() + 4, 145 )
+	FontSizeSelect:SetPos( 10 + FontSelect:GetWide() + 4, 140 )
 	FontSizeSelect:SetSize( 50, 20 )
 
+	-- E2 SETTINGS
+
 	local Label = vgui.Create( "DLabel", ColorPanel )
-	Label:SetPos( 10, 170 )
-	Label:SetText( "Expression 2 only settings:\n(Not for CPU/GPU)" )
+	Label:SetPos( 10, 150 )
+	Label:SetText( "__________________________________________________________\nExpression 2 only settings: (Not for CPU/GPU)" )
 	Label:SizeToContents()
 
 	local AutoIndent = vgui.Create( "DCheckBoxLabel", ColorPanel )
@@ -827,21 +892,37 @@ function Editor:InitControlPanel(frame)
 	AutoIndent:SetText( "Auto indenting" )
 	AutoIndent:SizeToContents()
 	AutoIndent:SetTooltip( "Enable/disable auto indenting." )
-	AutoIndent:SetPos( 10, 200 )
+	AutoIndent:SetPos( 10, 178 )
 
 	local Concmd = vgui.Create( "DCheckBoxLabel", ColorPanel )
 	Concmd:SetConVar( "wire_expression2_concmd" )
 	Concmd:SetText( "concmd" )
 	Concmd:SizeToContents()
 	Concmd:SetTooltip( "Allow/disallow the E2 from running console commands on you." )
-	Concmd:SetPos( 10, 220 )
+	Concmd:SetPos( 10, 192 )
 
 	local FriendWrite = vgui.Create( "DCheckBoxLabel", ColorPanel )
 	FriendWrite:SetConVar( "wire_expression2_friendwrite" )
 	FriendWrite:SetText( "Friend Write" )
 	FriendWrite:SizeToContents()
 	FriendWrite:SetTooltip( "Allow/disallow people in your prop protection friends list from reading and writing to your E2s." )
-	FriendWrite:SetPos( 10, 240 )
+	FriendWrite:SetPos( 10, 206 )
+
+	local AutoComplete = vgui.Create( "DCheckBoxLabel", ColorPanel )
+	AutoComplete:SetConVar( "wire_expression2_autocomplete" )
+	AutoComplete:SetText( "Auto Completion" )
+	AutoComplete:SizeToContents()
+	AutoComplete:SetTooltip( "Enable/disable auto completion in the E2 editor." )
+	AutoComplete:SetPos( 10, 220 )
+
+	local AutoCompleteExtra = vgui.Create( "DCheckBoxLabel", ColorPanel )
+	AutoCompleteExtra:SetConVar( "wire_expression2_autocomplete_moreinfo" )
+	AutoCompleteExtra:SetText( "More Info (for AC)" )
+	AutoCompleteExtra:SizeToContents()
+	AutoCompleteExtra:SetTooltip( "Enable/disable additional information for auto completion." )
+	AutoCompleteExtra:SetPos( 10, 234 )
+
+	-- BLOCK COMMENT STYLE
 
 	local BlockCommentStyle = vgui.Create( "DMultiChoice", ColorPanel )
 	local BlockCommentStyleLabel = vgui.Create( "DLabel", ColorPanel )
@@ -885,6 +966,133 @@ function Editor:InitControlPanel(frame)
 		BlockCommentStyleLabel:SetText( modes[value][2] )
 		RunConsoleCommand( "wire_expression2_editor_block_comment_style", modes[value][1] )
 	end
+
+	-- SYNTAX HIGHLIGHT COLORS
+
+	local Label = vgui.Create( "DLabel", ColorPanel )
+	Label:SetPos( 175, 190 )
+	Label:SetText( "E2 Syntax Colors" )
+	Label:SizeToContents()
+
+	local SkipUpdate = false
+	local CurrentColor = "directive"
+	local r, g, b = 255,255,255
+
+	-- Create color mixer, number wangs, default button, and drop down menu
+	local ColorMixer = vgui.Create( "DColorMixer", ColorPanel )
+	local RBox = vgui.Create( "DNumberWang", ColorPanel )
+    local GBox = vgui.Create( "DNumberWang", ColorPanel )
+    local BBox = vgui.Create( "DNumberWang", ColorPanel )
+	local DefaultButton = vgui.Create( "DButton", ColorPanel )
+	local CurrentColorSelect = vgui.Create( "DMultiChoice", ColorPanel )
+
+	-- Add choices
+	for k,v in pairs( colors ) do
+		CurrentColorSelect:AddChoice( k )
+	end
+	-- Manage choices
+	CurrentColorSelect.OnSelect = function( panel, index, value )
+		CurrentColor = value
+		ColorMixer:SetColor( colors[value] )
+		r = colors[value].r
+		g = colors[value].g
+		b = colors[value].b
+		RBox:SetValue( r )
+		GBox:SetValue( g )
+		BBox:SetValue( b )
+	end
+	CurrentColorSelect:SetEditable( false )
+
+	-- Default button
+	DefaultButton.DoClick = function( pnl )
+		ColorMixer:SetColor( colors_defaults[CurrentColor] )
+		r = colors_defaults[CurrentColor].r
+		g = colors_defaults[CurrentColor].g
+		b = colors_defaults[CurrentColor].b
+		RBox:SetValue( r )
+		GBox:SetValue( g )
+		BBox:SetValue( b )
+		self:SetSyntaxColor( CurrentColor, colors_defaults[CurrentColor] )
+	end
+
+	DefaultButton:SetText("Default")
+
+	ColorMixer:SetSize( 130,130 )
+	ColorMixer:SetPos( 170, 205 )
+
+	-- Remove alpha bar
+    ColorMixer.AlphaBar:SetVisible( false )
+    ColorMixer.PerformLayout = function( pnl )
+		local w,h = pnl:GetSize()
+		pnl.RGBBar:SetPos( 0, 0 )
+		pnl.RGBBar:SetSize( 20, h )
+		pnl.ColorCube:SetPos( 22, 0 )
+		pnl.ColorCube:SetSize( w - 22, h )
+    end
+
+	local old = ColorMixer.ColorCube.OnMouseReleased
+	ColorMixer.ColorCube.OnMouseReleased = function( ... )
+		local clr = ColorMixer:GetColor()
+		r, g, b = clr.r, clr.g, clr.b
+		SkipUpdate = true
+		RBox:SetValue( r )
+		GBox:SetValue( g )
+		BBox:SetValue( b )
+		SkipUpdate = false
+		self:SetSyntaxColor( CurrentColor, clr )
+		old( ... )
+	end
+
+	local old = ColorMixer.RGBBar.OnMouseReleased
+	ColorMixer.RGBBar.OnMouseReleased = function(...)
+		ColorMixer.ColorCube:OnMouseReleased()
+		old(...)
+	end
+
+	-- Loop this to make it a little neater
+	local temp = { RBox, GBox, BBox }
+	for k,v in pairs( temp ) do
+		v:SetValue( 255 )
+		v:SetMin( 0 )
+		v:SetMax( 255 )
+		v:SetDecimals( 0 )
+		v:SetWide( 64 )
+		local old = v:GetTextArea().OnEnter
+		v:GetTextArea().OnEnter = function( ... )
+			v:OnValueChanged()
+			old( ... )
+		end
+	end
+
+	-- OnValueChanged functions
+	RBox.OnValueChanged = function( pnl )
+		if (SkipUpdate or r == pnl:GetValue()) then return end
+		r = pnl:GetValue()
+		ColorMixer:SetColor( Color(r,g,b) )
+		self:SetSyntaxColor( CurrentColor, Color(r,g,b) )
+	end
+	GBox.OnValueChanged = function( pnl )
+		if (SkipUpdate or g == pnl:GetValue()) then return end
+		g = pnl:GetValue()
+		ColorMixer:SetColor( Color(r,g,b) )
+		self:SetSyntaxColor( CurrentColor, Color(r,g,b) )
+	end
+	BBox.OnValueChanged = function( pnl )
+		if (SkipUpdate or b == pnl:GetValue()) then return end
+		b = pnl:GetValue()
+		ColorMixer:SetColor( Color(r,g,b) )
+		self:SetSyntaxColor( CurrentColor, Color(r,g,b) )
+	end
+
+	-- Positioning
+	local x,y = ColorMixer:GetPos()
+	local w,_ = ColorMixer:GetSize()
+	CurrentColorSelect:SetPos( x + w + 2, y )
+	RBox:SetPos( x + w + 2, y + 2 + 20 )
+	GBox:SetPos( x + w + 2, y + 4 + RBox:GetTall() + 20 )
+	BBox:SetPos( x + w + 2, y + 6 + RBox:GetTall() * 2 + 20 )
+	DefaultButton:SetPos( x + w + 2, y + 8 + RBox:GetTall() * 3 + 20 )
+	DefaultButton:SetSize( RBox:GetSize() )
 end
 
 function Editor:CalculateColor()
@@ -1000,6 +1208,11 @@ function Editor:Validate(gotoerror)
 	self.C['Val'].panel:SetFGColor(255, 255, 255, 128)
 	self.C['Val'].panel:SetText( "   " .. errors )
 	return false
+end
+
+function Editor:SetValidatorStatus( text, r,g,b,a )
+	self.C['Val'].panel:SetBGColor( r or 0,g or 180,b or 0,a or 180 )
+	self.C['Val'].panel:SetText( "   " .. text )
 end
 
 function Editor:SubTitle(sub)

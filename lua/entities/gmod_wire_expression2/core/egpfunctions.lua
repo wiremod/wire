@@ -11,8 +11,6 @@ end
 
 __e2setcost(15)
 
--- the commented out parts in the frame saving/loading don't work, that's why they're commented out. But don't worry, people cant freeze servers by spamming them.
-
 e2function void wirelink:egpSaveFrame( string index )
 	if (!EGP:ValidEGP( this )) then return end
 	if (!index or index == "") then return end
@@ -593,6 +591,28 @@ end
 ]]
 
 ----------------------------
+-- Fidelity (number of corners for circles and wedges)
+----------------------------
+e2function void wirelink:egpFidelity( number index, number fidelity )
+	if (!EGP:IsAllowed( self, this )) then return end
+	local bool, k, v = EGP:HasObject( this, index )
+	if (bool) then
+		if (EGP:EditObject( v, { fidelity = math.Clamp(fidelity,3,180) } )) then EGP:DoAction( this, self, "SendObject", v ) Update(self,this) end
+	end
+end
+
+e2function number wirelink:egpFidelity( number index )
+	if (!EGP:IsAllowed( self, this )) then return end
+	local bool, k, v = EGP:HasObject( this, index )
+	if (bool) then
+		if (v.fidelity) then
+			return v.fidelity
+		end
+	end
+	return 0
+end
+
+----------------------------
 -- Parenting
 ----------------------------
 e2function void wirelink:egpParent( number index, number parentindex )
@@ -658,6 +678,45 @@ e2function vector2 wirelink:egpPos( number index )
 	end
 	return {-1,-1}
 end
+
+-- Overriding ErrorNoHalt to prevent it from printing the error which prints if you try to use GetGlobalPos on a nonexistant object.
+local olderror = ErrorNoHalt
+local override = function() end
+
+__e2setcost(20)
+e2function vector wirelink:egpGlobalPos( number index )
+	ErrorNoHalt = override
+	local hasvertices, posang = EGP:GetGlobalPos( this, index )
+	ErrorNoHalt = olderror
+	if (!hasvertices) then
+		return { posang.x, posang.y, posang.angle }
+	end
+	return { 0,0,0 }
+end
+
+e2function array wirelink:egpGlobalVertices( number index )
+	ErrorNoHalt = override
+	local hasvertices, data = EGP:GetGlobalPos( this, index )
+	ErrorNoHalt = olderror
+	if (hasvertices) then
+		if (data.vertices) then
+			local ret = {}
+			for i=1,#data.vertices do
+				local v = data.vertices[i]
+				ret[i] = {v.x,v.y}
+				self.prf = self.prf + 0.1
+			end
+			return ret
+		elseif (data.x and data.y and data.x2 and data.y2 and data.x3 and data.y3) then
+			return {{data.x,data.y},{data.x2,data.y2},{data.x3,data.y3}}
+		elseif (data.x and data.y and data.x2 and data.y2) then
+			return {{data.x,data.y},{data.x2,data.y2}}
+		end
+	end
+	return { 0,0,0 }
+end
+
+__e2setcost(5)
 
 e2function vector2 wirelink:egpSize( number index )
 	local bool, k, v = EGP:HasObject( this, index )

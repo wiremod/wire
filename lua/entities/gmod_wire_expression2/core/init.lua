@@ -226,6 +226,7 @@ if SERVER then
 			local count = 1
 			local char = temp:sub(1,1)
 			local temp2 = ""
+			functiondata_buffer = {}
 			while( char != "" ) do
 				temp2 = temp2 .. char
 				if (count % 245 == 0) then
@@ -244,6 +245,7 @@ if SERVER then
 			local count = 1
 			local char = temp:sub(1,1)
 			local temp2 = ""
+			functiondata2_buffer = {}
 			while( char != "" ) do
 				temp2 = temp2 .. char
 				if (count % 245 == 0) then
@@ -272,9 +274,11 @@ if SERVER then
 			end
 			if (target and type(target) == "Player" and target:IsValid()) then
 				targets[target] = { 1, 0 }
+				umsg.Start("e2st",target) umsg.Short( #functiondata_buffer + #functiondata2_buffer ) umsg.End()
 			end
 		end
 
+		hook.Remove("Think","wire_expression2_sendfunctions_think") -- Remove the old hook
 		hook.Add("Think","wire_expression2_sendfunctions_think",function()
 			for k,v in pairs( targets ) do
 				if (!k:IsValid() or !k:IsPlayer() or v[1] == 3) then
@@ -310,7 +314,7 @@ if SERVER then
 				antispam[ply] = CurTime() + 60
 				sendData( ply )
 			else
-				timer.Simple( 5, function(ply)
+				timer.Simple( 2, function(ply)
 					sendData( ply )
 				end, ply)
 			end
@@ -356,10 +360,6 @@ elseif CLIENT then
 
 		-- constants
 		wire_expression2_constants = functiondata[4]
-
-		e2_function_data_received = true
-
-		if wire_expression2_editor then wire_expression2_editor:Validate(false) end
 	end
 	local function insertData2( functiondata2 )
 		for signature,v in pairs(functiondata2) do
@@ -369,23 +369,45 @@ elseif CLIENT then
 				entry.argnames = v[2] -- argnames
 			end
 		end
+
+		e2_function_data_received = true
+
+		if wire_expression2_editor then wire_expression2_editor:Validate(false) end
+	end
+
+	local function status( count, total_count )
+		local editor = wire_expression2_editor
+		if (editor and editor:IsValid() and editor:IsVisible()) then
+			local percent = count/total_count
+			editor:SetValidatorStatus( "Receiving extension data. Please wait... " .. math.floor(percent*100) .. "% (" .. count .. "/" .. total_count .. ")", 128-128*percent, 128*percent, 0 )
+		end
 	end
 
 	local already_tried
 	local buffer = ""
+	local buffer_total_count = 0
+	local buffer_current_count = 0
+	usermessage.Hook("e2st",function( um )
+		buffer_total_count = um:ReadShort()
+		draw_progress_bar = true
+		buffer_current_count = 0
+		status( 0, buffer_total_count )
+	end)
 	usermessage.Hook("e2sd",function( um )
 		local str = um:ReadString()
 		buffer = buffer .. str
+		buffer_current_count = buffer_current_count + 1
+		status( buffer_current_count, buffer_total_count )
 	end)
 	usermessage.Hook("e2se",function( um )
 		local OK, data = pcall( glon.decode, buffer )
 		if (!OK) then
 			if (already_tried) then
-				LocalPlayer():ChatPrint("[E2] Failed to receive functions data. Error message was:\n" .. data)
+				LocalPlayer():ChatPrint("[E2] Failed to receive extension data. Error message was:\n" .. data)
 			else
 				already_tried = true
 				RunConsoleCommand("wire_expression2_sendfunctions")
-				LocalPlayer():ChatPrint("[E2] Failed to receive functions data. Trying again. Error message was:\n" .. data)
+				LocalPlayer():ChatPrint("[E2] Failed to receive extension data. Trying again. Error message was:\n" .. data)
 			end
 		else
 			local what = um:ReadBool()
@@ -401,7 +423,6 @@ elseif CLIENT then
 	if CanRunConsoleCommand() then
 		RunConsoleCommand("wire_expression2_sendfunctions")
 	end
-
 end
 
 include("e2doc.lua")

@@ -87,7 +87,9 @@ function EDITOR:OnMousePressed(code)
 		if !input.IsKeyDown(KEY_LSHIFT) and !input.IsKeyDown(KEY_RSHIFT) then
 			self.Start = self:CursorToCaret()
 		end
+		self:AC_Check()
 	elseif code == MOUSE_RIGHT then
+		self:AC_SetVisible( false )
 		local menu = DermaMenu()
 
 		if self:CanUndo() then
@@ -196,6 +198,7 @@ function EDITOR:SetText(text)
 	self.Undo = {}
 	self.Redo = {}
 	self.PaintRows = {}
+	self:AC_Reset()
 
 	self.ScrollBar:SetUp(self.Size[1], #self.Rows - 1)
 end
@@ -203,6 +206,19 @@ end
 function EDITOR:GetValue()
 	return string.Replace(table.concat(self.Rows, "\n"), "\r", "")
 end
+
+function EDITOR:HighlightLine( line, r, g, b, a )
+	if (!self.HighlightedLines) then self.HighlightedLines = {} end
+	if (!r and self.HighlightedLines[line]) then
+		self.HighlightedLines[line] = nil
+		return true
+	elseif (r and g and b and a) then
+		self.HighlightedLines[line] = { r, g, b, a }
+		return true
+	end
+	return false
+end
+function EDITOR:ClearHighlightedLines() self.HighlightedLines = {} end
 
 function EDITOR:PaintLine(row)
 	if row > #self.Rows then return end
@@ -215,6 +231,12 @@ function EDITOR:PaintLine(row)
 
 	if row == self.Caret[1] and self.TextEntry:HasFocus() then
 		surface.SetDrawColor(48, 48, 48, 255)
+		surface.DrawRect(width * 3 + 5, (row - self.Scroll[1]) * height, self:GetWide() - (width * 3 + 5), height)
+	end
+
+	if (self.HighlightedLines and self.HighlightedLines[row]) then
+		local color = self.HighlightedLines[row]
+		surface.SetDrawColor( color[1], color[2], color[3], color[4] )
 		surface.DrawRect(width * 3 + 5, (row - self.Scroll[1]) * height, self:GetWide() - (width * 3 + 5), height)
 	end
 
@@ -651,6 +673,7 @@ function EDITOR:_OnTextChanged()
 	end
 
 	self:SetSelection(text)
+	self:AC_Check()
 end
 
 function EDITOR:OnMouseWheeled(delta)
@@ -1528,6 +1551,12 @@ function EDITOR:_OnKeyCodeTyped(code)
 		end
 	end
 
+	if (code == KEY_TAB and self.AC_HasSuggestions and self.AC_Panel) then
+		self.AC_Panel:RequestFocus()
+		return
+	end
+
+
 	if code == KEY_TAB or (control and (code == KEY_I or code == KEY_O)) then
 		if code == KEY_O then shift = not shift end
 		if code == KEY_TAB and control then shift = not shift end
@@ -1557,35 +1586,678 @@ function EDITOR:_OnKeyCodeTyped(code)
 	if control then
 		self:OnShortcut(code)
 	end
+
+
+	self:AC_Check()
 end
 
-// Auto-completion
+---------------------------------------------------------------------------------------------------------
+-- Auto Completion
+-- By Divran
 
 function EDITOR:IsVarLine()
-	local first = string.Explode(" ", self.Rows[self.Caret[1]])[1]
-	if(first == "@inputs" or first == "@outputs" or first == "@persist") then return true end
-	return false
+	local line = self.Rows[self.Caret[1]]
+	local word = line:match( "^@(%w+)" )
+	return (word == "inputs" or word == "outputs" or word == "persist")
 end
 
-function EDITOR:getWordStart(caret)
-	local line = string.ToTable(self.Rows[caret[1]])
-	if(#line < caret[2]) then return caret end
-	for i=0,caret[2] do
-		if(!line[caret[2]-i]) then return {caret[1],caret[2]-i+1} end
-		if(line[caret[2]-i] >= "a" and line[caret[2]-i] <= "z" or line[caret[2]-i] >= "A" and line[caret[2]-i] <= "Z" or line[caret[2]-i] >= "0" and line[caret[2]-i] <= "9") then else return {caret[1],caret[2]-i+1} end
+function EDITOR:IsDirectiveLine()
+	local line = self.Rows[self.Caret[1]]
+	return line:match( "^@" ) != nil
+end
+
+function EDITOR:getWordStart(caret,getword)
+	local line = self.Rows[caret[1]]
+
+	for startpos, endpos in line:gmatch( "()[a-zA-Z0-9_]+()" ) do -- "()%w+()"
+		if (startpos <= caret[2] and endpos >= caret[2]) then
+			return { caret[1], startpos }, getword and line:sub(startpos,endpos-1) or nil
+		end
 	end
 	return {caret[1],1}
 end
 
-function EDITOR:getWordEnd(caret)
-	local line = string.ToTable(self.Rows[caret[1]])
-	if(#line < caret[2]) then return caret end
-	for i=caret[2],#line do
-		if(!line[i]) then return {caret[1],i} end
-		if(line[i] >= "a" and line[i] <= "z" or line[i] >= "A" and line[i] <= "Z" or line[i] >= "0" and line[i] <= "9") then else return {caret[1],i} end
+function EDITOR:getWordEnd(caret,getword)
+	local line = self.Rows[caret[1]]
+
+	for startpos, endpos in line:gmatch( "()[a-zA-Z0-9_]+()" ) do -- "()%w+()"
+		if (startpos <= caret[2] and endpos >= caret[2]) then
+			return { caret[1], endpos }, getword and line:sub(startpos,endpos-1) or nil
+		end
 	end
 	return {caret[1],#line+1}
 end
+
+-----------------------------------------------------------
+-- GetCurrentWord
+-- Gets the word the cursor is currently at, and the symbol in front
+-----------------------------------------------------------
+
+function EDITOR:AC_GetCurrentWord()
+	local startpos, word = self:getWordStart( self.Caret, true )
+	local symbolinfront = self:GetArea( { { startpos[1], startpos[2] - 1}, startpos } )
+	return word, symbolinfront
+end
+
+-- Thank you http://lua-users.org/lists/lua-l/2009-07/msg00461.html
+-- Returns the minimum number of character changes required to make one of the words equal the other
+-- Used to sort the suggestions in order of relevance
+local function CheckDifference( word1, word2 )
+	local d, sn, tn = {}, #word1, #word2
+	local byte, min = string.byte, math.min
+	for i = 0, sn do d[i * tn] = i end
+	for j = 0, tn do d[j] = j end
+	for i = 1, sn do
+		local si = byte(word1, i)
+		for j = 1, tn do
+			d[i*tn+j] = min(d[(i-1)*tn+j]+1, d[i*tn+j-1]+1, d[(i-1)*tn+j-1]+(si == byte(word2,j) and 0 or 1))
+		end
+	end
+	return d[#d]
+end
+
+-----------------------------------------------------------
+-- NewAutoCompletion
+-- Sets the autocompletion table
+-----------------------------------------------------------
+
+function EDITOR:AC_NewAutoCompletion( tbl )
+	self.AC_AutoCompletion = tbl
+end
+
+local tbl = {}
+
+-----------------------------------------------------------
+-- FindConstants
+-- Adds all matching constants to the suggestions table
+-----------------------------------------------------------
+
+local function GetTableForConstant( str )
+	return { nice_str = function( t ) return t.data[1] end,
+			str = function( t ) return t.data[1] end,
+			replacement = function( t ) return t.data[1], #t.data[1] end,
+			data = { str } }
+end
+
+local function FindConstants( self, word )
+	local len = #word
+	local wordu = word:upper()
+	local count = 0
+
+	local suggestions = {}
+
+	for name,value in pairs( wire_expression2_constants ) do
+		if (name:sub(1,len) == wordu) then
+			count = count + 1
+			suggestions[count] = GetTableForConstant( name:sub(2) )
+		end
+	end
+
+	return count, suggestions
+end
+
+tbl[1] = function( self )
+	local word, symbolinfront = self:AC_GetCurrentWord()
+	if (word and word != "" and word:sub(1,1) == "_") then
+		return FindConstants( self, word )
+	end
+end
+
+--------------------
+-- FindFunctions
+-- Adds all matching functions to the suggestions table
+--------------------
+
+local function GetTableForFunction()
+	return { nice_str = function( t ) return t.data[2] end,
+			str = function( t ) return t.data[1] end,
+			replacement = function( t, editor )
+				local caret = editor:CopyPosition( editor.Caret )
+				caret[2] = caret[2] - 1
+				local wordend = editor:getWordEnd( caret )
+				local has_bracket = editor:GetArea( { wordend, { wordend[1], wordend[2] + 1 } } ) == "(" -- If there already is a bracket, we don't want to add more of them.
+				local ret = t:str()
+				return ret..(has_bracket and "" or "()"), #ret+1
+			end,
+			others = function( t ) return t.data[3] end,
+			description = function( t )
+				if (t.data[4] and E2Helper.Descriptions[t.data[4]]) then
+					return E2Helper.Descriptions[t.data[4]]
+				end
+				if (t.data[1] and E2Helper.Descriptions[t.data[1]]) then
+					return E2Helper.Descriptions[t.data[1]]
+				end
+			end,
+			data = {} }
+end
+
+local function FindFunctions( self, has_colon, word )
+	-- Filter out magic characters
+	word = word:gsub( "[%-%^%$%(%)%%%.%[%]%*%+%-%?]", "%%%1" )
+
+	local len = #word
+	local wordl = word:lower()
+	local count = 0
+	local suggested = {}
+	local suggestions = {}
+
+	for func_id,_ in pairs( wire_expression2_funcs ) do
+		if (wordl == func_id:lower():sub(1,len)) then -- Check if the beginning of the word matches
+			local name, types = func_id:match( "(.+)(%b())" ) -- Get the function name and types
+			local first_type, colon, other_types = types:match( "%((%w*)(:?)(.*)%)" ) -- Sort the function types
+			if (((has_colon and colon == ":") or (!has_colon and colon != ":"))) then -- If they both have colons (or not)
+				first_type = first_type:upper()
+				other_types = other_types:upper()
+				if (!suggested[name]) then -- If it hasn't already been suggested
+					count = count + 1
+					suggested[name] = count
+
+					-- Add to suggestions
+					if (colon == ":") then
+						local t = GetTableForFunction()
+						t.data = { name, first_type .. ":" .. name .. "(" .. other_types .. ")", {}, func_id }
+						suggestions[count] = t
+					else
+						local t = GetTableForFunction()
+						t.data = { name, name .. "(" .. first_type .. ")", {}, func_id }
+						suggestions[count] = t
+					end
+				else -- If it has already been suggested
+					-- Get previous data
+					local others = suggestions[suggested[name]]:others(self)
+					local i = #others+1
+
+					-- Add it to the end of the list
+					if (colon == ":") then
+						local t = GetTableForFunction()
+						t.data = { name, first_type .. ":" .. name .. "(" .. other_types .. ")", nil, func_id }
+						others[i] = t
+					else
+						local t = GetTableForFunction()
+						t.data = { name, name .. "(" .. first_type .. ")", nil, func_id }
+						others[i] = t
+					end
+				end
+			end
+		end
+	end
+	return count, suggestions
+end
+
+tbl[2] = function( self )
+	local word, symbolinfront = self:AC_GetCurrentWord()
+	if (word and word != "" and word:sub(1,1):upper() != word:sub(1,1)) then
+		return FindFunctions( self, (symbolinfront == ":"), word )
+	end
+end
+
+-----------------------------------------------------------
+-- SaveVariables
+-- Saves all variables to a table
+-----------------------------------------------------------
+
+function EDITOR:AC_SaveVariables()
+	local OK, directives,_ = PreProcessor.Execute( self:GetValue() )
+
+	if (!OK or !directives) then
+		return
+	end
+
+	self.AC_Directives = directives
+end
+
+-----------------------------------------------------------
+-- FindVariables
+-- Adds all matching variables to the suggestions table
+-----------------------------------------------------------
+
+local function GetTableForVariables( str )
+	return { nice_str = function( t ) return t.data[1] end,
+			str = function( t ) return t.data[1] end,
+			replacement = function( t ) return t.data[1], #t.data[1] end,
+			data = { str } }
+end
+
+
+local function FindVariables( self, word )
+	local len = #word
+	local wordl = word:lower()
+	local count = 0
+
+	local suggested = {}
+	local suggestions = {}
+
+	local directives = self.AC_Directives
+	if (!directives) then self:AC_SaveVariables() end -- If directives is nil, attempt to find
+	directives = self.AC_Directives
+	if (!directives) then -- If finding failed, abort
+		self:AC_SetVisible( false )
+		return 0
+	end
+
+	for k,v in pairs( directives["inputs"][1] ) do
+		if (v:lower():sub(1,len) == wordl) then
+			if (!suggested[v]) then
+				suggested[v] = true
+				count = count + 1
+				suggestions[count] = GetTableForVariables( v )
+			end
+		end
+	end
+
+	for k,v in pairs( directives["outputs"][1] ) do
+		if (v:lower():sub(1,len) == wordl) then
+			if (!suggested[v]) then
+				suggested[v] = true
+				count = count + 1
+				suggestions[count] = GetTableForVariables( v )
+			end
+		end
+	end
+
+	for k,v in pairs( directives["persist"][1] ) do
+		if (v:lower():sub(1,len) == wordl) then
+			if (!suggested[v]) then
+				suggested[v] = true
+				count = count + 1
+				suggestions[count] = GetTableForVariables( v )
+			end
+		end
+	end
+
+	return count, suggestions
+end
+
+tbl[3] = function( self )
+	local word, symbolinfront = self:AC_GetCurrentWord()
+	if (word and word != "" and word:sub(1,1):upper() == word:sub(1,1)) then
+		return FindVariables( self, word )
+	end
+end
+
+
+
+local wire_expression2_autocomplete = CreateClientConVar( "wire_expression2_autocomplete", "1", true, false )
+tbl.RunOnCheck = function( self )
+	-- Only autocomplete if it's the E2 editor, if it's enabled
+	if (!self:GetParent().E2 or !wire_expression2_autocomplete:GetBool()) then
+		self:AC_SetVisible( false )
+		return false
+	end
+
+	if (self:IsVarLine() and !self.AC_WasVarLine) then -- If the user IS editing a var line, and they WEREN'T editing a var line before this..
+		self.AC_WasVarLine = true
+	elseif (!self:IsVarLine() and self.AC_WasVarLine) then -- If the user ISN'T editing a var line, and they WERE editing a var line before this..
+		self.AC_WasVarLine = nil
+		self:AC_SaveVariables()
+	end
+	if (self:IsDirectiveLine()) then -- In case you're wondering, DirectiveLine != VarLine (A directive line is any line starting with @, a var line is @inputs, @outputs, and @persists)
+		self:AC_SetVisible( false )
+		return false
+	end
+
+	return true
+end
+
+-----------------------------------------------------------
+-- Check
+-- Runs the autocompletion
+-----------------------------------------------------------
+
+function EDITOR:AC_Check()
+	if (!self.AC_AutoCompletion) then self:AC_NewAutoCompletion( tbl ) end -- Default to E2 autocompletion
+	if (!self.AC_Panel) then self:AC_CreatePanel() end
+	if (self.AC_AutoCompletion.RunOnCheck) then
+		if (self.AC_AutoCompletion.RunOnCheck( self ) == false) then
+			return
+		end
+	end
+
+	self.AC_Suggestions = {}
+	self.AC_HasSuggestions = false
+
+	local count, suggestions = 0, {}
+	for i=1,#self.AC_AutoCompletion do
+		local _count, _suggestions = self.AC_AutoCompletion[i]( self )
+		if (_count != nil) then
+			count = _count
+			suggestions = _suggestions
+			break
+		end
+	end
+
+	if (count > 0) then
+
+		local word, _ = self:AC_GetCurrentWord()
+
+		table.sort( suggestions, function( a, b )
+			local diff1 = CheckDifference( word, a.str( a ) )
+			local diff2 = CheckDifference( word, b.str( b ) )
+			return diff1 < diff2
+		end)
+
+		if (word == suggestions[1].str( suggestions[1] ) and count == 1) then -- The word matches the first suggestion exactly, and there are no more suggestions. No need to bother displaying
+			self:AC_SetVisible( false )
+			return
+		end
+
+		for i=1,10 do
+			self.AC_Suggestions[i] = suggestions[i]
+		end
+		self.AC_HasSuggestions = true
+
+		-- Show the panel
+		local panel = self.AC_Panel
+		self:AC_SetVisible( true )
+
+		-- Calculate its position
+		local caret = self:CopyPosition( self.Caret )
+		caret[2] = caret[2] - 1
+		local wordstart = self:getWordStart( caret )
+
+		local x = self.FontWidth * (wordstart[2] - self.Scroll[2] + 1) + 22
+		local y = self.FontHeight * (wordstart[1] - self.Scroll[1] + 1) + 2
+
+		panel:SetPos( x, y )
+
+		-- Fill the list
+		self:AC_FillList()
+		return
+	end
+
+	self:AC_SetVisible( false )
+end
+
+-----------------------------------------------------------
+-- Use
+-- Replaces the word
+-----------------------------------------------------------
+
+function EDITOR:AC_Use( suggestion )
+	if (!suggestion) then return end
+
+	-- Save caret
+	local caret = self:CopyPosition( self.Caret )
+	caret[2] = caret[2] - 1
+
+	-- Get word position
+	local wordstart = self:getWordStart( caret )
+	local wordend = self:getWordEnd( caret )
+
+	-- Change caret to select the word
+	self.Start = wordstart
+	self.Caret = wordend
+
+	-- Change selection
+	local replacement, caretoffset = suggestion:replacement( self )
+	if (replacement and replacement != "") then
+		caretoffset = caretoffset or #replacement
+		self:SetSelection( replacement )
+		wordstart[2] = wordstart[2] + caretoffset
+	end
+
+	-- Reset caret
+	self.Start = wordstart
+	self.Caret = wordstart
+
+	self:RequestFocus()
+	self.AC_HasSuggestion = false
+end
+
+-----------------------------------------------------------
+-- CreatePanel
+-----------------------------------------------------------
+
+function EDITOR:AC_CreatePanel()
+	-- Create the panel
+	local panel = vgui.Create( "DPanel",self )
+	panel:SetSize( 100, 202 )
+	panel.Selected = {}
+	panel.Paint = function( pnl )
+		surface.SetDrawColor( 0,0,0,230 )
+		surface.DrawRect( 0,0,pnl:GetWide(), pnl:GetTall() )
+	end
+
+	-- Override think, to make it listen for key presses
+	panel.Think = function( pnl, code )
+		if (!self.AC_HasSuggestions or !self.AC_Panel_Visible) then return end
+		if (input.IsKeyDown( KEY_ENTER ) or input.IsKeyDown( KEY_SPACE )) then -- If enter or space is pressed
+			self:AC_SetVisible( false )
+			self:AC_Use( self.AC_Suggestions[pnl.Selected] )
+		elseif (input.IsKeyDown( KEY_TAB ) and !pnl.AlreadyTabbed) then -- If tab is pressed
+			if (input.IsKeyDown( KEY_LCONTROL )) then -- If control is held down
+				pnl.Selected = pnl.Selected - 1 -- Scroll up
+				if (pnl.Selected < 1) then pnl.Selected = #self.AC_Suggestions end
+			else -- If control isn't held down
+				pnl.Selected = pnl.Selected + 1 -- Scroll down
+				if (pnl.Selected > #self.AC_Suggestions) then pnl.Selected = 1 end
+			end
+			self:AC_FillInfoList( self.AC_Suggestions[pnl.Selected] ) -- Fill the info list
+			pnl:RequestFocus()
+			pnl.AlreadyTabbed = true -- To keep it from scrolling a thousand times a second
+		elseif (pnl.AlreadyTabbed and !input.IsKeyDown( KEY_TAB )) then
+			pnl.AlreadyTabbed = nil
+		end
+	end
+
+	-- Create list
+	local list = vgui.Create( "DPanelList", panel )
+	list:StretchToParent( 1,1,1,1 )
+	list.Paint = function() end
+
+	-- Create info list
+	local infolist = vgui.Create( "DPanelList", panel )
+	infolist:SetPos( 1000, 1000 )
+	infolist:SetSize( 100, 200 )
+	infolist:EnableVerticalScrollbar( true )
+	infolist.Paint = function() end
+
+	self.AC_Panel = panel
+	panel.list = list
+	panel.infolist = infolist
+	self:AC_SetVisible( false )
+end
+
+
+-----------------------------------------------------------
+-- FillInfoList
+-- Fills the "additional information" box
+-----------------------------------------------------------
+
+local wire_expression2_autocomplete_moreinfo = CreateClientConVar( "wire_expression2_autocomplete_moreinfo", "1", true, false )
+
+local function SimpleWrap( txt, width )
+	local ret = ""
+
+	local prev_end, prev_newline = 0, 0
+	for cur_end in txt:gmatch( "[^ \n]+()" ) do
+		local w, _ = surface.GetTextSize( txt:sub( prev_newline, cur_end ) )
+		if (w > width) then
+			ret = ret .. txt:sub( prev_newline, prev_end ) .. "\n"
+			prev_newline = prev_end + 1
+		end
+		prev_end = cur_end
+	end
+	ret = ret .. txt:sub( prev_newline )
+
+	return ret
+end
+
+function EDITOR:AC_FillInfoList( suggestion )
+	local panel = self.AC_Panel
+
+	if (!suggestion or !suggestion.description or !wire_expression2_autocomplete_moreinfo:GetBool()) then -- If the suggestion is invalid, the suggestion does not need additional information, or if the user has disabled additional information, abort
+		panel:SetSize( panel.curw, panel.curh )
+		panel.infolist:SetPos( 1000, 1000 )
+		return
+	end
+
+	local infolist = panel.infolist
+	infolist:Clear()
+
+	local desc_label = vgui.Create("DLabel")
+	infolist:AddItem( desc_label )
+
+	local desc = suggestion:description( self )
+
+	local maxw = 164
+	local maxh = 0
+
+	local others
+	if (suggestion.others) then others = suggestion:others( self ) end
+
+	if (desc and desc != "") then
+		desc = "Description:\n" .. desc
+	end
+
+	if (#others > 0) then -- If there are other functions with the same name...
+		desc = (desc or "") .. ((desc and desc != "") and "\n" or "") .. "Others with the same name:"
+
+		-- Loop through the "others" table to add all of them
+		surface.SetFont( "E2SmallFont" )
+		for k,v in pairs( others ) do
+			local nice_name = v:nice_str( self )
+
+			local namew, nameh = surface.GetTextSize( nice_name )
+
+			local label = vgui.Create("DLabel")
+			label:SetText( "" )
+			label.Paint = function( pnl )
+				local w,h = pnl:GetSize()
+				draw.RoundedBox( 1,1,1, w-2,h-2, Color( 65,105,225,255 ) )
+				surface.SetFont( "E2SmallFont" )
+				surface.SetTextPos( 6, h/2-nameh/2 )
+				surface.SetTextColor( 255,255,255,255 )
+				surface.DrawText( nice_name )
+			end
+
+			infolist:AddItem( label )
+
+			if (namew + 15 > maxw) then maxw = namew + 15 end
+			maxh = maxh + 20
+		end
+	end
+
+	if (!desc or desc == "") then
+		panel:SetSize( panel.curw, panel.curh )
+		infolist:SetPos( 1000, 1000 )
+		return
+	end
+
+	-- Wrap the text, set it, and calculate size
+	desc = SimpleWrap( desc, maxw )
+	desc_label:SetText( desc )
+	desc_label:SizeToContents()
+	local textw, texth = surface.GetTextSize( desc )
+
+	-- If it's bigger than the size of the panel, change it
+	if (panel.curh < texth + 4) then panel:SetTall( texth + 6 ) else panel:SetTall( panel.curh ) end
+	if (maxh + texth > panel:GetTall()) then maxw = maxw + 25 end
+
+	-- Set other positions/sizes/etc
+	panel:SetWide( panel.curw + maxw )
+	infolist:SetPos( panel.curw, 1 )
+	infolist:SetSize( maxw - 1, panel:GetTall() - 2 )
+end
+
+-----------------------------------------------------------
+-- FillList
+-----------------------------------------------------------
+
+function EDITOR:AC_FillList()
+	local panel = self.AC_Panel
+	panel.list:Clear()
+	panel.Selected = 0
+	local count = 0
+	local maxw = 15
+
+	surface.SetFont( "E2SmallFont" )
+
+	-- Add all suggestions to the list
+	for _,suggestion in pairs( self.AC_Suggestions ) do
+		local nice_name = suggestion:nice_str( self )
+		local name = suggestion:str( self )
+
+		count = count + 1
+
+		local txt = vgui.Create("DLabel")
+		txt:SetText( "" )
+		txt.count = count
+		txt.suggestion = suggestion
+
+		-- Override paint to give it the "E2 theme" and to make it highlight when selected
+		txt.Paint = function( pnl )
+			local w, h = pnl:GetSize()
+			draw.RoundedBox( 1, 1, 1, w-2, h-2, Color( 65, 105, 225, 255 ) )
+			if (panel.Selected == pnl.count) then
+				draw.RoundedBox( 0, 2, 2, w - 4 , h - 4, Color(0,0,0,192) )
+			end
+			surface.SetFont( "E2SmallFont" )
+			local _, h2 = surface.GetTextSize( nice_name )
+			surface.SetTextPos( 6, h/2-h2/2 )
+			surface.SetTextColor( 255,255,255,255 )
+			surface.DrawText( nice_name )
+		end
+
+		-- Enable mouse presses
+		txt.OnMousePressed = function( pnl )
+			self:AC_SetVisible( false )
+			self:AC_Use( pnl.suggestion )
+		end
+
+		-- Enable mouse hovering
+		txt.OnCursorEntered = function( pnl )
+			panel.Selected = pnl.count
+			self:AC_FillInfoList( pnl.suggestion )
+		end
+
+		panel.list:AddItem( txt )
+
+		-- get the width of the widest suggestion
+		local w,_ = surface.GetTextSize( nice_name )
+		w = w + 15
+		if (w > maxw) then maxw = w end
+	end
+
+	-- Size and positions etc
+	panel:SetSize( maxw, count * 20 + 2 )
+	panel.curw = maxw
+	panel.curh = count * 20 + 2
+	panel.list:StretchToParent( 1,1,1,1 )
+	panel.infolist:SetPos( 1000, 1000 )
+end
+
+-----------------------------------------------------------
+-- SetVisible
+-----------------------------------------------------------
+
+function EDITOR:AC_SetVisible( bool )
+	if (self.AC_Panel_Visible == bool or !self.AC_Panel) then return end
+	self.AC_Panel_Visible = bool
+	self.AC_Panel:SetVisible( bool )
+	self.AC_Panel.infolist:SetPos( 1000, 1000 )
+end
+
+-----------------------------------------------------------
+-- Reset
+-----------------------------------------------------------
+
+function EDITOR:AC_Reset()
+	self.AC_HasSuggestions = false
+	self.AC_Suggestions = false
+	self.AC_Directives = nil
+	local panel = self.AC_Panel
+	if (!panel) then return end
+	self:AC_SetVisible( false )
+	panel.list:Clear()
+	panel.infolist:Clear()
+	panel:SetSize( 100, 202 )
+	panel.infolist:SetPos( 1000, 1000 )
+	panel.infolist:SetSize( 100, 200 )
+	panel.list:StretchToParent( 1,1,1,1 )
+end
+
+---------------------------------------------------------------------------------------------------------
 
 -- helpers for ctrl-left/right
 function EDITOR:wordLeft(caret)
@@ -1720,7 +2392,21 @@ do -- E2 Syntax highlighting
 		["comment"]   = { Color(128, 128, 128), false}, -- grey
 		["ppcommand"] = { Color(240,  96, 240), false}, -- purple
 		["typename"]  = { Color(240, 160,  96), false}, -- orange
+		["constant"]  = { Color(240, 160, 240), false}, -- pink
 	}
+
+	function EDITOR:SetSyntaxColors( col )
+		for k,v in pairs( col ) do
+			if (colors[k]) then
+				colors[k][1] = v
+			end
+		end
+	end
+
+	function EDITOR:SetSyntaxColor( colorname, colr )
+		if (!colors[colorname]) then return end
+		colors[colorname][1] = colr
+	end
 
 	-- cols[n] = { tokendata, color }
 	local cols = {}
@@ -1791,7 +2477,15 @@ do -- E2 Syntax highlighting
 			if !self.character then break end
 
 			-- eat next token
-			if self:NextPattern("^0[xb][0-9A-F]+") then
+			if self:NextPattern("^_[A-Z][A-Z_0-9]*") then
+				local word = self.tokendata
+				for k,_ in pairs( wire_expression2_constants ) do
+					if (k == word) then
+						tokenname = "constant"
+					end
+				end
+				if (tokenname == "") then tokenname = "notfound" end
+			elseif self:NextPattern("^0[xb][0-9A-F]+") then
 				tokenname = "number"
 			elseif self:NextPattern("^[0-9][0-9.e]*") then
 				tokenname = "number"
@@ -1954,7 +2648,7 @@ do
 			local tokenname = ""
 			self.tokendata = ""
 
-			self.NextPattern(" *")
+			self:NextPattern(" *")
 			if !self.character then break end
 
 			if self:NextPattern("^[0-9][0-9.]*") then
