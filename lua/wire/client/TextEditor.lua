@@ -1689,7 +1689,7 @@ local function FindConstants( self, word )
 	for name,value in pairs( wire_expression2_constants ) do
 		if (name:sub(1,len) == wordu) then
 			count = count + 1
-			suggestions[count] = GetTableForConstant( name:sub(2) )
+			suggestions[count] = GetTableForConstant( name )
 		end
 	end
 
