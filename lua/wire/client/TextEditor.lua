@@ -1587,13 +1587,13 @@ function EDITOR:_OnKeyCodeTyped(code)
 		self:OnShortcut(code)
 	end
 
-
 	self:AC_Check()
 end
 
 ---------------------------------------------------------------------------------------------------------
 -- Auto Completion
 -- By Divran
+---------------------------------------------------------------------------------------------------------
 
 function EDITOR:IsVarLine()
 	local line = self.Rows[self.Caret[1]]
@@ -1875,12 +1875,18 @@ tbl[3] = function( self )
 	end
 end
 
-
-
 local wire_expression2_autocomplete = CreateClientConVar( "wire_expression2_autocomplete", "1", true, false )
 tbl.RunOnCheck = function( self )
 	-- Only autocomplete if it's the E2 editor, if it's enabled
 	if (!self:GetParent().E2 or !wire_expression2_autocomplete:GetBool()) then
+		self:AC_SetVisible( false )
+		return false
+	end
+
+	local caret = self:CopyPosition( self.Caret )
+	caret[2] = caret[2] - 1
+	local tokenname = self:GetTokenAtPosition( caret )
+	if (tokenname and (tokenname == "string" or tokenname == "comment")) then
 		self:AC_SetVisible( false )
 		return false
 	end
@@ -1904,11 +1910,18 @@ end
 -- Runs the autocompletion
 -----------------------------------------------------------
 
-function EDITOR:AC_Check()
+function EDITOR:AC_Check( notimer )
+
+	if (!notimer) then
+		timer.Simple(0,self.AC_Check,self,true)
+		return
+	end
+
 	if (!self.AC_AutoCompletion) then self:AC_NewAutoCompletion( tbl ) end -- Default to E2 autocompletion
 	if (!self.AC_Panel) then self:AC_CreatePanel() end
 	if (self.AC_AutoCompletion.RunOnCheck) then
-		if (self.AC_AutoCompletion.RunOnCheck( self ) == false) then
+		local ret = self.AC_AutoCompletion.RunOnCheck( self )
+		if (ret == false) then
 			return
 		end
 	end
@@ -2285,6 +2298,18 @@ function EDITOR:wordRight(caret)
 	return caret
 end
 
+function EDITOR:GetTokenAtPosition( caret )
+	local column = caret[2]
+	local line = self.PaintRows[caret[1]]
+	if (line) then
+		local startindex = 1
+		for index,data in pairs( line ) do
+			startindex = startindex+#data[1]
+			if startindex >= column then return data[3] end
+		end
+	end
+end
+
 /***************************** Syntax highlighting ****************************/
 
 function EDITOR:ResetTokenizer(row)
@@ -2416,7 +2441,7 @@ do -- E2 Syntax highlighting
 		if lastcol and color == lastcol[2] then
 			lastcol[1] = lastcol[1] .. tokendata
 		else
-			cols[#cols + 1] = { tokendata, color }
+			cols[#cols + 1] = { tokendata, color, tokenname }
 			lastcol = cols[#cols]
 		end
 	end

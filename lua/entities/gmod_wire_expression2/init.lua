@@ -262,6 +262,8 @@ function ENT:ResetContext()
 	for k,v in pairs(self.dvars) do
 		self.context.vars["$" .. k] = self.context.vars[k]
 	end
+
+	self.error = false
 end
 
 function ENT:Setup(buffer, restore)

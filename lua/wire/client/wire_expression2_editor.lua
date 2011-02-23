@@ -8,6 +8,7 @@ local Editor = {}
 Editor.FontConVar = CreateClientConVar( "wire_expression2_editor_font", "Courier New", true, false )
 Editor.FontSizeConVar = CreateClientConVar( "wire_expression2_editor_font_size", 16, true, false )
 Editor.BlockCommentStyleConVar = CreateClientConVar( "wire_expression2_editor_block_comment_style", 1, true, false )
+Editor.NewTabOnOpen = CreateClientConVar( "wire_expression2_new_tab_on_open", "1", true, false )
 
 Editor.Fonts = {}
 -- 				Font					Description
@@ -444,6 +445,12 @@ function Editor:SetSyntaxColorLine( func )
 end
 function Editor:GetSyntaxColorLine() return self.SyntaxColorLine end
 
+function Editor:FixTabFadeTime()
+	local old = self.C['TabHolder'].panel:GetFadeTime()
+	self.C['TabHolder'].panel:SetFadeTime( 0 )
+	timer.Simple( old, function() self.C['TabHolder'].panel:SetFadeTime( old ) end )
+end
+
 function Editor:CreateTab( chosenfile )
 	local editor = vgui.Create("Expression2Editor")
 	editor.parentpanel = self
@@ -452,15 +459,43 @@ function Editor:CreateTab( chosenfile )
 	self:SetEditorFont( editor )
 	editor.chosenfile = chosenfile
 
-	local old = sheet.Tab.OnMousePressed
 	sheet.Tab.OnMousePressed = function( pnl, keycode, ... )
 
 		if (keycode == MOUSE_MIDDLE) then
-			local old = self.C['TabHolder'].panel:GetFadeTime()
-			self.C['TabHolder'].panel:SetFadeTime( 0 )
-			timer.Simple( old, function() self.C['TabHolder'].panel:SetFadeTime( old ) end )
-			self:SetActiveTab( sheet.Tab )
-			self:CloseTab()
+			self:CloseTab( sheet.Tab )
+			return
+		elseif (keycode == MOUSE_RIGHT) then
+			local menu = DermaMenu()
+			menu:AddOption( "Close", function()
+				self:CloseTab( sheet.Tab )
+			end)
+			menu:AddOption( "Close all others", function()
+				self:FixTabFadeTime()
+				self:SetActiveTab( sheet.Tab )
+				for i=self:GetNumTabs(), 1, -1 do
+					if (self.C['TabHolder'].panel.Items[i] != sheet) then
+						self:CloseTab( i )
+					end
+				end
+			end)
+			menu:AddSpacer()
+			menu:AddOption( "Save", function()
+				self:FixTabFadeTime()
+				local old = self:GetLastTab()
+				self:SetActiveTab( sheet.Tab )
+				self:SaveFile( self:GetChosenFile(), true )
+				self:SetActiveTab( self:GetLastTab() )
+				self:SetLastTab( old )
+			end)
+			menu:AddOption( "Save As", function()
+				self:FixTabFadeTime()
+				local old = self:GetLastTab()
+				self:SetActiveTab( sheet.Tab )
+				self:SaveFile( self:GetChosenFile(), false, true )
+				self:SetActiveTab( self:GetLastTab() )
+				self:SetLastTab( old )
+			end)
+			menu:Open()
 			return
 		end
 
@@ -519,26 +554,49 @@ function Editor:NewTab()
 	end
 end
 
-function Editor:CloseTab()
+function Editor:CloseTab( _tab )
+	local activetab, sheetindex
+	local is_other_tab = false
+	if (_tab) then
+		if (type(_tab) == "number") then
+			local temp = self.C['TabHolder'].panel.Items[_tab]
+			if (temp) then
+				activetab = temp.Tab
+				is_other_tab = true
+				sheetindex = _tab
+			else
+				return
+			end
+		else
+			activetab = _tab
+			is_other_tab = true
+			-- Find the sheet index
+			for k,v in pairs( self.C['TabHolder'].panel.Items ) do
+				if (activetab == v.Tab) then
+					sheetindex = k
+					break
+				end
+			end
+		end
+	else
+		activetab = self:GetActiveTab()
+		-- Find the sheet index
+		for k,v in pairs( self.C['TabHolder'].panel.Items ) do
+			if (activetab == v.Tab) then
+				sheetindex = k
+				break
+			end
+		end
+	end
+
 	self:AutoSave()
 
 	-- There's only one tab open, no need to actually close any tabs
 	if (self:GetNumTabs() == 1) then
-		self:GetActiveTab():SetText( "generic" )
+		activetab:SetText( "generic" )
 		self.C['TabHolder'].panel:InvalidateLayout()
 		self:NewScript()
 		return
-	end
-
-	local activetab = self:GetActiveTab()
-
-	-- Find the sheet index
-	local sheetindex
-	for k,v in pairs( self.C['TabHolder'].panel.Items ) do
-		if (activetab == v.Tab) then
-			sheetindex = k
-			break
-		end
 	end
 
 	-- Find the panel (for the scroller)
@@ -550,35 +608,35 @@ function Editor:CloseTab()
 		end
 	end
 
-	local old = self.C['TabHolder'].panel:GetFadeTime()
-	self.C['TabHolder'].panel:SetFadeTime( 0 )
-	timer.Simple( old, function() self.C['TabHolder'].panel:SetFadeTime( old ) end )
+	self:FixTabFadeTime()
 
-	if (self:GetLastTab() and self:GetLastTab():IsValid()) then
-		if (activetab == self:GetLastTab()) then
+	if (!is_other_tab) then
+		if (self:GetLastTab() and self:GetLastTab():IsValid()) then
+			if (activetab == self:GetLastTab()) then
+				local othertab = self:GetNextAvailableTab()
+				if (othertab and othertab:IsValid()) then
+					self:SetActiveTab( othertab )
+					self:SetLastTab()
+				else
+					self:GetActiveTab():SetText( "generic" )
+					self.C['TabHolder'].panel:InvalidateLayout()
+					self:NewScript()
+					return
+				end
+			else
+				self:SetActiveTab( self:GetLastTab() )
+				self:SetLastTab()
+			end
+		else
 			local othertab = self:GetNextAvailableTab()
 			if (othertab and othertab:IsValid()) then
 				self:SetActiveTab( othertab )
-				self:SetLastTab()
 			else
 				self:GetActiveTab():SetText( "generic" )
 				self.C['TabHolder'].panel:InvalidateLayout()
 				self:NewScript()
 				return
 			end
-		else
-			self:SetActiveTab( self:GetLastTab() )
-			self:SetLastTab()
-		end
-	else
-		local othertab = self:GetNextAvailableTab()
-		if (othertab and othertab:IsValid()) then
-			self:SetActiveTab( othertab )
-		else
-			self:GetActiveTab():SetText( "generic" )
-			self.C['TabHolder'].panel:InvalidateLayout()
-			self:NewScript()
-			return
 		end
 	end
 
@@ -880,6 +938,29 @@ function Editor:InitControlPanel(frame)
 	FontSizeSelect:SetPos( 10 + FontSelect:GetWide() + 4, 140 )
 	FontSizeSelect:SetSize( 50, 20 )
 
+	-- EDITOR SETTINGS
+
+	local AutoComplete = vgui.Create( "DCheckBoxLabel", ColorPanel )
+	AutoComplete:SetConVar( "wire_expression2_autocomplete" )
+	AutoComplete:SetText( "Auto Completion" )
+	AutoComplete:SizeToContents()
+	AutoComplete:SetTooltip( "Enable/disable auto completion in the E2 editor.\nNote: Auto completion does not for for GPU/CPU yet." )
+	AutoComplete:SetPos( 200, 50 )
+
+	local AutoCompleteExtra = vgui.Create( "DCheckBoxLabel", ColorPanel )
+	AutoCompleteExtra:SetConVar( "wire_expression2_autocomplete_moreinfo" )
+	AutoCompleteExtra:SetText( "More Info (for AC)" )
+	AutoCompleteExtra:SizeToContents()
+	AutoCompleteExtra:SetTooltip( "Enable/disable additional information for auto completion.\nNote: Auto completion does not work for GPU/CPU yet." )
+	AutoCompleteExtra:SetPos( 200, 65 )
+
+	local NewTabOnOpen = vgui.Create( "DCheckBoxLabel", ColorPanel )
+	NewTabOnOpen:SetConVar( "wire_expression2_new_tab_on_open" )
+	NewTabOnOpen:SetText( "New tab on open" )
+	NewTabOnOpen:SizeToContents()
+	NewTabOnOpen:SetTooltip( "Enable/disable loaded files opening in a new tab.\nIf disabled, loaded files will be opened in the current tab." )
+	NewTabOnOpen:SetPos( 200, 80 )
+
 	-- E2 SETTINGS
 
 	local Label = vgui.Create( "DLabel", ColorPanel )
@@ -908,19 +989,6 @@ function Editor:InitControlPanel(frame)
 	FriendWrite:SetTooltip( "Allow/disallow people in your prop protection friends list from reading and writing to your E2s." )
 	FriendWrite:SetPos( 10, 206 )
 
-	local AutoComplete = vgui.Create( "DCheckBoxLabel", ColorPanel )
-	AutoComplete:SetConVar( "wire_expression2_autocomplete" )
-	AutoComplete:SetText( "Auto Completion" )
-	AutoComplete:SizeToContents()
-	AutoComplete:SetTooltip( "Enable/disable auto completion in the E2 editor." )
-	AutoComplete:SetPos( 10, 220 )
-
-	local AutoCompleteExtra = vgui.Create( "DCheckBoxLabel", ColorPanel )
-	AutoCompleteExtra:SetConVar( "wire_expression2_autocomplete_moreinfo" )
-	AutoCompleteExtra:SetText( "More Info (for AC)" )
-	AutoCompleteExtra:SizeToContents()
-	AutoCompleteExtra:SetTooltip( "Enable/disable additional information for auto completion." )
-	AutoCompleteExtra:SetPos( 10, 234 )
 
 	-- BLOCK COMMENT STYLE
 
@@ -931,19 +999,19 @@ function Editor:InitControlPanel(frame)
 	modes["New (alt 1)"] = { 0, [[Block comment style
                           Current mode:
                           #[
-                          Code here
-                          Code here
-                          ]#]] }
+                          Text here
+                          ]#
+						  ]] }
 	modes["New (alt 2)"] = { 1, [[Block comment style
                           Current mode:
-                          #[Code here
-                          Code here]#
+                          #[Text here
+                          Text here]#
 
 						  ]] }
 	modes["Old"] 		 = { 2, [[Block comment style
                           Current mode:
-                          #Code here
-                          #Code here
+                          #Text here
+                          #Text here
 
 						  ]] }
 
@@ -958,8 +1026,8 @@ function Editor:InitControlPanel(frame)
 	BlockCommentStyleLabel:SetText( modes[self.BlockCommentStyleConVar:GetInt()] )
 	BlockCommentStyleLabel:SetSize(200,200)
 	BlockCommentStyle:SetEditable( false )
-	BlockCommentStyleLabel:SetPos( 10, 195 )
-	BlockCommentStyle:SetPos( 10, 275 )
+	BlockCommentStyleLabel:SetPos( 10, 210 ) --195
+	BlockCommentStyle:SetPos( 10, 290 ) --275
 
 
 	BlockCommentStyle.OnSelect = function( panel, index, value )
@@ -1294,8 +1362,16 @@ function Editor:Open(Line,code)
 			end
 		end
 		local title, tabtext = getPreferredTitles( Line, code )
-		local sheet = self:CreateTab( tabtext )
-		self:SetActiveTab( sheet.Tab )
+		local tab
+		if (self.NewTabOnOpen:GetBool()) then
+			tab = self:CreateTab( tabtext ).Tab
+		else
+			tab = self:GetActiveTab()
+			tab:SetText( tabtext )
+			self.C['TabHolder'].panel:InvalidateLayout()
+		end
+		self:SetActiveTab( tab )
+
 		self:ChosenFile()
 		self:SetCode(code)
 		if(Line) then self:SubTitle("Editing: " .. Line) end
@@ -1376,8 +1452,15 @@ function Editor:LoadFile( Line )
 		end
 		if(!self.chip) then
 			local title, tabtext = getPreferredTitles( Line, str )
-			local sheet = self:CreateTab( tabtext )
-			self:SetActiveTab( sheet.Tab )
+			local tab
+			if (self.NewTabOnOpen:GetBool()) then
+				tab = self:CreateTab( tabtext ).Tab
+			else
+				tab = self:GetActiveTab()
+				tab:SetText( tabtext )
+				self.C['TabHolder'].panel:InvalidateLayout()
+			end
+			self:SetActiveTab( tab )
 			self:ChosenFile(Line)
 		end
 		self:SetCode(str)
