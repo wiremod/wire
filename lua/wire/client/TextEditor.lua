@@ -677,6 +677,7 @@ function EDITOR:_OnTextChanged()
 end
 
 function EDITOR:OnMouseWheeled(delta)
+	if (self.AC_Panel and self.AC_Panel:IsVisible()) then return end
 	self.Scroll[1] = self.Scroll[1] - 4 * delta
 	if self.Scroll[1] < 1 then self.Scroll[1] = 1 end
 	if self.Scroll[1] > #self.Rows then self.Scroll[1] = #self.Rows end
@@ -1113,20 +1114,43 @@ function EDITOR:BlockCommentSelection( removecomment )
 	-- Remember selection
 	local sel_start, sel_caret = self:MakeSelection( self:Selection() )
 
-	if (removecomment) then
+	if (self:GetParent().E2) then
 		local str = self:GetSelection()
-		if (str:find( "#[",1,true ) and str:find( "]#", 1, true )) then
-			self:SetSelection( self:GetSelection():gsub( "(#%[)(.+)(%]#)", "%2" ) )
+		if (removecomment) then
+			if (str:find( "^#%[" ) and str:find( "%]#$" )) then
+				self:SetSelection( str:gsub( "^#%[(.+)%]#$", "%1" ) )
 
-			sel_caret[2] = sel_caret[2] - 2
+				if (sel_caret[1] == sel_start[1]) then
+					sel_caret[2] = sel_caret[2] - 4
+				else
+					sel_caret[2] = sel_caret[2] - 2
+				end
+			end
+		else
+			self:SetSelection( "#[" .. str .."]#" )
+
+			if (sel_caret[1] == sel_start[1]) then
+				sel_caret[2] = sel_caret[2] + 4
+			else
+				sel_caret[2] = sel_caret[2] + 2
+			end
 		end
 	else
-		self:SetSelection( self:GetSelection():gsub( "(.+)", "#%[%1%]#" ) )
+		local str = self:GetSelection()
+		if (removecomment) then
+			if (str:find( "^/%*" ) and str:find( "%*/$" )) then
+				self:SetSelection( str:gsub( "^/%*(.+)%*/$", "%1" ) )
 
-		if (sel_caret[1] == sel_start[1]) then
-			sel_caret[2] = sel_caret[2] + 4
+				sel_caret[2] = sel_caret[2] - 2
+			end
 		else
-			sel_caret[2] = sel_caret[2] + 2
+			self:SetSelection( "/*" .. str .. "*/" )
+
+			if (sel_caret[1] == sel_start[1]) then
+				sel_caret[2] = sel_caret[2] + 4
+			else
+				sel_caret[2] = sel_caret[2] + 2
+			end
 		end
 	end
 
@@ -1169,24 +1193,27 @@ function EDITOR:CommentSelection( removecomment )
 		local mode = self:GetParent().BlockCommentStyleConVar:GetInt()
 
 		if (mode == 0) then -- New (alt 1)
+			local str = self:GetSelection()
 			if (removecomment) then
-				local str = self:GetSelection()
-				if (str:find( "#[", 1, true ) and str:find( "]#", 1, true )) then
-					self:SetSelection( str:gsub( "(#%[\n)(.+)(\n%]#)", "%2" ) )
+				if (str:find( "^#%[\n" ) and str:find( "\n%]#$" )) then
+					self:SetSelection( str:gsub( "^#%[\n(.+)\n%]#$", "%1" ) )
 					sel_caret[1] = sel_caret[1] - 2
 				end
 			else
-				self:SetSelection( self:GetSelection():gsub( "(.+)", "#%[\n%1\n%]#" ) )
-				sel_caret[1] = sel_caret[1] + 2
+				self:SetSelection( "#[\n" .. str .. "\n]#" )
+				sel_caret[1] = sel_caret[1] + 1
+				sel_caret[2] = 3
 			end
 		elseif (mode == 1) then -- New (alt 2)
+			local str = self:GetSelection()
 			if (removecomment) then
-				local str = self:GetSelection()
-				if (str:find( "#[", 1, true ) and str:find( "]#", 1, true )) then
-					self:SetSelection( str:gsub( "(#%[)(.+)(%]#)", "%2" ) )
+				if (str:find( "^#%[" ) and str:find( "%]#$" )) then
+					self:SetSelection( str:gsub( "^#%[(.+)%]#$", "%1" ) )
+
+					sel_caret[2] = sel_caret[2] - 4
 				end
 			else
-				self:SetSelection( self:GetSelection():gsub( "(.+)", "#%[%1%]#" ) )
+				self:SetSelection( "#[" .. self:GetSelection() .. "]#" )
 			end
 		elseif (mode == 2) then -- Old
 			local comment_char = "#"
@@ -1693,7 +1720,7 @@ local function FindConstants( self, word )
 		end
 	end
 
-	return count, suggestions
+	return suggestions
 end
 
 tbl[1] = function( self )
@@ -1781,7 +1808,7 @@ local function FindFunctions( self, has_colon, word )
 			end
 		end
 	end
-	return count, suggestions
+	return suggestions
 end
 
 tbl[2] = function( self )
@@ -1865,7 +1892,7 @@ local function FindVariables( self, word )
 		end
 	end
 
-	return count, suggestions
+	return suggestions
 end
 
 tbl[3] = function( self )
@@ -1929,17 +1956,16 @@ function EDITOR:AC_Check( notimer )
 	self.AC_Suggestions = {}
 	self.AC_HasSuggestions = false
 
-	local count, suggestions = 0, {}
+	local suggestions = {}
 	for i=1,#self.AC_AutoCompletion do
-		local _count, _suggestions = self.AC_AutoCompletion[i]( self )
-		if (_count != nil) then
-			count = _count
+		local _suggestions = self.AC_AutoCompletion[i]( self )
+		if (_suggestions != nil and #_suggestions > 0) then
 			suggestions = _suggestions
 			break
 		end
 	end
 
-	if (count > 0) then
+	if (#suggestions > 0) then
 
 		local word, _ = self:AC_GetCurrentWord()
 
@@ -1949,7 +1975,7 @@ function EDITOR:AC_Check( notimer )
 			return diff1 < diff2
 		end)
 
-		if (word == suggestions[1].str( suggestions[1] ) and count == 1) then -- The word matches the first suggestion exactly, and there are no more suggestions. No need to bother displaying
+		if (word == suggestions[1].str( suggestions[1] ) and #suggestions) then -- The word matches the first suggestion exactly, and there are no more suggestions. No need to bother displaying
 			self:AC_SetVisible( false )
 			return
 		end
@@ -2181,17 +2207,15 @@ function EDITOR:AC_FillList()
 	local panel = self.AC_Panel
 	panel.list:Clear()
 	panel.Selected = 0
-	local count = 0
 	local maxw = 15
 
 	surface.SetFont( "E2SmallFont" )
 
 	-- Add all suggestions to the list
-	for _,suggestion in pairs( self.AC_Suggestions ) do
+	for count,suggestion in pairs( self.AC_Suggestions ) do
 		local nice_name = suggestion:nice_str( self )
 		local name = suggestion:str( self )
 
-		count = count + 1
 
 		local txt = vgui.Create("DLabel")
 		txt:SetText( "" )
@@ -2233,9 +2257,9 @@ function EDITOR:AC_FillList()
 	end
 
 	-- Size and positions etc
-	panel:SetSize( maxw, count * 20 + 2 )
+	panel:SetSize( maxw, #self.AC_Suggestions * 20 + 2 )
 	panel.curw = maxw
-	panel.curh = count * 20 + 2
+	panel.curh = #self.AC_Suggestions * 20 + 2
 	panel.list:StretchToParent( 1,1,1,1 )
 	panel.infolist:SetPos( 1000, 1000 )
 end
@@ -2386,6 +2410,9 @@ do -- E2 Syntax highlighting
 		["while"]    = { [true] = true, [false] = true },
 		["for"]      = { [true] = true, [false] = true },
 		["foreach"]  = { [true] = true, [false] = true },
+		["switch"] 	 = { [true] = true, [false] = true },
+		["case"]     = { [true] = true, [false] = true },
+		["default"]  = { [true] = true, [false] = true },
 
 		-- keywords that cannot be followed by a "(":
 		["else"]     = { [true] = true },

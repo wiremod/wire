@@ -13,23 +13,42 @@ function ENT:Initialize()
 	self.RBound = Vector(1024,1024,1024)
 end
 
-usermessage.Hook("Wire_HoloEmitter_Data",function( um )
+usermessage.Hook("hed",function( um )
 	local ent = um:ReadEntity()
 	if (!ent or !ent:IsValid()) then return end
 	local n = um:ReadChar()
+
+	local old = {}
+
 	for i=1,n do
-		t = {
-			Pos = um:ReadVector(),
-			Local = um:ReadBool(),
-			Color = um:ReadVector(),
-			DieTime = math.Clamp(um:ReadFloat(),0,cvar:GetFloat()),
-			SpawnTime = CurTime(),
-			LineBeam = um:ReadBool(),
-			GroundBeam = um:ReadBool(),
-			Size = um:ReadFloat(),
-		}
-		t.Color = Color(t.Color.x,t.Color.y,t.Color.z,255)
-		if (t.DieTime != 0) then t.DieTime = CurTime() + t.DieTime else t.DieTime = nil end
+		local curpos = Vector( um:ReadFloat(), um:ReadFloat(), um:ReadFloat() )
+		local IsDifferent = um:ReadBool()
+		local t
+		if (IsDifferent) then
+			t = {
+				Pos = curpos,
+				Local = um:ReadBool(),
+				Color = um:ReadVector(),
+				DieTime = math.min(um:ReadShort()/100,cvar:GetFloat()),
+				SpawnTime = CurTime(),
+				LineBeam = um:ReadBool(),
+				GroundBeam = um:ReadBool(),
+				Size = um:ReadShort()/100,
+			}
+			t.Color = Color(t.Color.x,t.Color.y,t.Color.z,255)
+		else
+			t = old
+			t.Pos = curpos
+		end
+		old = table.Copy(t)
+		if (t.DieTime != 0) then
+			t.DieTime = CurTime() + t.DieTime
+			old.DieTime = t.DieTime
+		else
+			t.DieTime = nil
+			old.DieTime = 0
+		end
+
 		ent.Points[#ent.Points+1] = t
 	end
 end)
@@ -80,7 +99,8 @@ function ENT:Draw()
 
 	if (n == 0 or self:GetNWBool("Active",true) == false) then return end
 
-	for k,v in ipairs( self.Points ) do
+	for k=1, n do
+		local v = self.Points[k]
 		local Pos = v.Pos
 
 		if (v.Local) then

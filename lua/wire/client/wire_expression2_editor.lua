@@ -264,18 +264,18 @@ function Editor:Think()
 			local h = self.p_h + movedY
 			if(self.p_x+w<surface.ScreenWidth()+10 and self.p_x+w>surface.ScreenWidth()-10) then w = surface.ScreenWidth()-self.p_x end
 			if(self.p_y+h<surface.ScreenHeight()+10 and self.p_y+h>surface.ScreenHeight()-10) then h = surface.ScreenHeight()-self.p_y end
-			if(w<400) then w = 400 end
-			if(h<400) then h = 400 end
+			if(w<300) then w = 300 end
+			if(h<200) then h = 200 end
 			self:SetSize(w,h)
 		end
 		if(self.p_mode == "sizeR") then
 			local w = self.p_w + movedX
-			if(w<400) then w = 400 end
+			if(w<300) then w = 300 end
 			self:SetWide(w)
 		end
 		if(self.p_mode == "sizeB") then
 			local h = self.p_h + movedY
-			if(h<400) then h = 400 end
+			if(h<200) then h = 200 end
 			self:SetTall(h)
 		end
 	end
@@ -294,8 +294,8 @@ function Editor:Think()
 	local x, y = self:GetPos()
 	local w, h = self:GetSize()
 
-	if w < 550 then w = 550 end
-	if h < 400 then h = 400 end
+	if w < 518 then w = 518 end
+	if h < 200 then h = 200 end
 	if x < 0 then x = 0 end
 	if y < 0 then y = 0 end
 	if x + w > surface.ScreenWidth() then x = surface.ScreenWidth() - w end
@@ -445,10 +445,12 @@ function Editor:SetSyntaxColorLine( func )
 end
 function Editor:GetSyntaxColorLine() return self.SyntaxColorLine end
 
+local old
 function Editor:FixTabFadeTime()
+	if (old != nil) then return end -- It's already being fixed
 	local old = self.C['TabHolder'].panel:GetFadeTime()
 	self.C['TabHolder'].panel:SetFadeTime( 0 )
-	timer.Simple( old, function() self.C['TabHolder'].panel:SetFadeTime( old ) end )
+	timer.Simple( old, function() self.C['TabHolder'].panel:SetFadeTime( old ) old = nil end )
 end
 
 function Editor:CreateTab( chosenfile )
@@ -462,16 +464,18 @@ function Editor:CreateTab( chosenfile )
 	sheet.Tab.OnMousePressed = function( pnl, keycode, ... )
 
 		if (keycode == MOUSE_MIDDLE) then
-			self:CloseTab( sheet.Tab )
+			--self:FixTabFadeTime()
+			self:CloseTab( pnl )
 			return
 		elseif (keycode == MOUSE_RIGHT) then
 			local menu = DermaMenu()
 			menu:AddOption( "Close", function()
-				self:CloseTab( sheet.Tab )
+				--self:FixTabFadeTime()
+				self:CloseTab( pnl )
 			end)
 			menu:AddOption( "Close all others", function()
 				self:FixTabFadeTime()
-				self:SetActiveTab( sheet.Tab )
+				self:SetActiveTab( pnl )
 				for i=self:GetNumTabs(), 1, -1 do
 					if (self.C['TabHolder'].panel.Items[i] != sheet) then
 						self:CloseTab( i )
@@ -482,7 +486,7 @@ function Editor:CreateTab( chosenfile )
 			menu:AddOption( "Save", function()
 				self:FixTabFadeTime()
 				local old = self:GetLastTab()
-				self:SetActiveTab( sheet.Tab )
+				self:SetActiveTab( pnl )
 				self:SaveFile( self:GetChosenFile(), true )
 				self:SetActiveTab( self:GetLastTab() )
 				self:SetLastTab( old )
@@ -490,7 +494,7 @@ function Editor:CreateTab( chosenfile )
 			menu:AddOption( "Save As", function()
 				self:FixTabFadeTime()
 				local old = self:GetLastTab()
-				self:SetActiveTab( sheet.Tab )
+				self:SetActiveTab( pnl )
 				self:SaveFile( self:GetChosenFile(), false, true )
 				self:SetActiveTab( self:GetLastTab() )
 				self:SetLastTab( old )
@@ -499,7 +503,7 @@ function Editor:CreateTab( chosenfile )
 			return
 		end
 
-		self:SetActiveTab( sheet.Tab )
+		self:SetActiveTab( pnl )
 	end
 
 	sheet.Tab.Paint = function( tab )
@@ -556,20 +560,17 @@ end
 
 function Editor:CloseTab( _tab )
 	local activetab, sheetindex
-	local is_other_tab = false
 	if (_tab) then
 		if (type(_tab) == "number") then
 			local temp = self.C['TabHolder'].panel.Items[_tab]
 			if (temp) then
 				activetab = temp.Tab
-				is_other_tab = true
 				sheetindex = _tab
 			else
 				return
 			end
 		else
 			activetab = _tab
-			is_other_tab = true
 			-- Find the sheet index
 			for k,v in pairs( self.C['TabHolder'].panel.Items ) do
 				if (activetab == v.Tab) then
@@ -610,28 +611,28 @@ function Editor:CloseTab( _tab )
 
 	self:FixTabFadeTime()
 
-	if (!is_other_tab) then
-		if (self:GetLastTab() and self:GetLastTab():IsValid()) then
-			if (activetab == self:GetLastTab()) then
-				local othertab = self:GetNextAvailableTab()
-				if (othertab and othertab:IsValid()) then
+	if (activetab == self:GetActiveTab()) then -- We're about to close the current tab
+		if (self:GetLastTab() and self:GetLastTab():IsValid()) then -- If the previous tab was saved
+			if (activetab == self:GetLastTab()) then -- If the previous tab is equal to the current tab
+				local othertab = self:GetNextAvailableTab() -- Find another tab
+				if (othertab and othertab:IsValid()) then -- If that other tab is valid, use it
 					self:SetActiveTab( othertab )
 					self:SetLastTab()
-				else
+				else -- Reset the current tab (backup)
 					self:GetActiveTab():SetText( "generic" )
 					self.C['TabHolder'].panel:InvalidateLayout()
 					self:NewScript()
 					return
 				end
-			else
+			else -- Change to the previous tab
 				self:SetActiveTab( self:GetLastTab() )
 				self:SetLastTab()
 			end
-		else
-			local othertab = self:GetNextAvailableTab()
-			if (othertab and othertab:IsValid()) then
+		else -- If the previous tab wasn't saved
+			local othertab = self:GetNextAvailableTab() -- Find another tab
+			if (othertab and othertab:IsValid()) then -- If that other tab is valid, use it
 				self:SetActiveTab( othertab )
-			else
+			else -- Reset the current tab (backup)
 				self:GetActiveTab():SetText( "generic" )
 				self.C['TabHolder'].panel:InvalidateLayout()
 				self:NewScript()
@@ -669,7 +670,7 @@ function Editor:InitComponents()
 	self.C['Val']       = self:addComponent(vgui.Create( "Label", self )                    , 170, -30, -10,  20)   // Validation line
 	self.C['Btoggle']   = self:addComponent(vgui.Create( "Button", self )                   , 170,  30,  20,  20)   // Toggle Browser being shown
 	self.C['ConBut']    = self:addComponent(vgui.Create( "Button", self )                   , -62,  4,   18,  18)   // Control panel open/close
-	self.C['Control']   = self:addComponent(vgui.Create( "Panel", self )                    ,-380,  52, 370, 340)   // Control Panel
+	self.C['Control']   = self:addComponent(vgui.Create( "Panel", self )                    ,-350,  52, 342, -32)   // Control Panel
 	self.C['Credit']    = self:addComponent(vgui.Create( "TextEntry", self )                ,-160,  52, 150, 100)   // Credit box
 
 	self.C['TabHolder'].panel.Paint = function() end
@@ -843,22 +844,112 @@ function Editor:AutoSave()
 	file.Write(self.Location .. "/_autosave_.txt", buffer)
 end
 
-function Editor:InitControlPanel(frame)
-
-	local ColorPanel = vgui.Create( "Panel" , frame)
-	ColorPanel:SetPos(0,0)
-	ColorPanel:SetSize(370,340)
-
-	ColorPanel.Paint = function(panel)
-		local w,h = panel:GetSize()
-		surface.SetDrawColor( 0, 0, 0, 230 )
-		surface.DrawRect(0, 0, w, h)
+function Editor:AddControlPanelTab( label, icon, tooltip )
+	local frame = self.C['Control'].panel
+	local panel = vgui.Create( "Panel" )
+	local ret = frame.TabHolder:AddSheet( label, panel, icon, false, false, tooltip )
+	ret.Tab.Paint = function( tab )
+		local w,h = tab:GetSize()
+		draw.RoundedBox(1, 0, 0, w, h, self.colors.col_FL)
+		if (frame.TabHolder:GetActiveTab() == tab) then
+			draw.RoundedBox(0, 1, 1, w - 2, h - 2, Color(0,0,0,192))
+		end
 	end
+	local old = ret.Tab.OnMousePressed
+	function ret.Tab.OnMousePressed( ... )
+		frame:ResizeAll()
+		old( ... )
+	end
+
+	return ret
+end
+
+function Editor:InitControlPanel(frame)
+	local C = self.C['Control']
+
+	-- Give it the nice gradient look
+	frame.Paint = function( pnl )
+		local _w,_h = self:GetSize()
+		local w,h = pnl:GetSize()
+		if(self.SimpleGUI) then
+			draw.RoundedBox(4, 0, 0, w, h, self.colors.col_FL)
+			surface.SetDrawColor( 0, 0, 0, 150 )
+			surface.DrawRect( 0, 22, w, 1 )
+		else
+			local dif = {(self.colors.col_FR.r-self.colors.col_FL.r)/_w, (self.colors.col_FR.g-self.colors.col_FL.g)/_w, (self.colors.col_FR.b-self.colors.col_FL.b)/_w }
+			local i = _w-350
+			draw.RoundedBox(4, 0, 0, 10, h, Color(math.floor(self.colors.col_FL.r + dif[1]*i), math.floor(self.colors.col_FL.g + dif[2]*i), math.floor(self.colors.col_FL.b + dif[3]*i), self.colors.col_FL.a))
+			draw.RoundedBox(4, w-15, 0, 15, h, self.colors.col_FR)
+
+			local _i = 0
+			for i = _w-350+5, _w, 5 do
+				_i = _i + 5
+				surface.SetDrawColor(math.floor(self.colors.col_FL.r + dif[1]*i), math.floor(self.colors.col_FL.g + dif[2]*i), math.floor(self.colors.col_FL.b + dif[3]*i), self.colors.col_FL.a)
+				surface.DrawRect( _i, 0, 5, h )
+			end
+		end
+		draw.RoundedBox(4, 7, 27, w - 14, h - 34, Color(0, 0, 0, 192))
+		draw.RoundedBox(4, 7, 27, w - 14, h - 34, Color(0, 0, 0, 192))
+	end
+
+	-- Add a property sheet to hold the tabs
+	local tabholder = vgui.Create( "DPropertySheet", frame )
+	tabholder:SetPos( 2,4 )
+	frame.TabHolder = tabholder
+
+	-- They need to be resized one at a time... dirty fix incoming (If you know of a nicer way to do this, don't hesitate to fix it.)
+	local function callNext( t, n )
+		local obj = t[n]
+		local pnl = obj[1]
+		if (pnl and pnl:IsValid()) then
+			local x,y = obj[2], obj[3]
+			pnl:SetPos( x, y )
+			local w,h = pnl:GetParent():GetSize()
+			local wofs, hofs = w-x*2, h-y*2
+			pnl:SetSize( wofs, hofs )
+		end
+		n=n+1
+		if (n<=#t) then
+			timer.Simple(0,callNext,t,n)
+		end
+	end
+	function frame:ResizeAll() timer.Simple(0,callNext,self.ResizeObjects,1) end
+
+	-- Resize them at the right times
+	local old = frame.SetSize
+	function frame:SetSize( ... )
+		self:ResizeAll()
+		old( self, ... )
+	end
+	local old = frame.SetVisible
+	function frame:SetVisible( ... )
+		self:ResizeAll()
+		old( self, ... )
+	end
+
+	-- Function to add more objects to resize automatically
+	frame.ResizeObjects = {}
+	function frame:AddResizeObject( ... )
+		self.ResizeObjects[#self.ResizeObjects+1] = {...}
+	end
+
+	-- Our first object to auto resize is the tabholder. This sets it to position 2,4 and with a width and height offset of w-4, h-8.
+	frame:AddResizeObject( tabholder, 2, 4 )
+
+	tabholder.Paint = function() end
+
+	--------------------------------------------- EDITOR TAB
+	local sheet = self:AddControlPanelTab( "Editor", "gui/silkicons/wrench", "Options for the editor itself." )
 
 	-- WINDOW BORDER COLORS
 
-	local SimpleColors = vgui.Create( "Label", ColorPanel)
-	SimpleColors:SetPos(10,10)
+	local dlist = vgui.Create("DPanelList",sheet.Panel)
+	dlist.Paint = function() end
+	frame:AddResizeObject( dlist, 4, 4 )
+	dlist:EnableVerticalScrollbar( true )
+
+	local SimpleColors = vgui.Create( "Label" )
+	dlist:AddItem( SimpleColors )
 	SimpleColors:SetSize(180,20)
 	SimpleColors:SetText("Simple Colors = off")
 	SimpleColors.OnMousePressed = function(check)
@@ -871,24 +962,26 @@ function Editor:InitControlPanel(frame)
 		end
 		self:InvalidateLayout()
 	end
-	local FLColor = vgui.Create( "DColorCircle" , ColorPanel)
-	FLColor:SetPos(30,35)
+	local temp = vgui.Create( "Panel" )
+	dlist:AddItem( temp )
+	temp:SetTall( 70 )
+	local FLColor = vgui.Create( "DColorCircle", temp )
 	FLColor:SetSize(64,64)
 	FLColor.SetFrameColor = function(panel)
 		self.colors.tmp_FL = panel:GetRGB()
 		self:CalculateColor()
 	end
 	FLColor.TranslateValues = function(panel, x, y ) return self:TranslateValues(panel, x, y ) end
-	local FRColor = vgui.Create( "DColorCircle" , ColorPanel)
-	FRColor:SetPos(120,35)
+	local FRColor = vgui.Create( "DColorCircle", temp )
+	FRColor:SetPos(120,0)
 	FRColor:SetSize(64,64)
 	FRColor.SetFrameColor = function(panel)
 		self.colors.tmp_FR = panel:GetRGB()
 		self:CalculateColor()
 	end
 	FRColor.TranslateValues = function(panel, x, y ) return self:TranslateValues(panel, x, y ) end
-	local DarknessColor = vgui.Create( "DSlider" , ColorPanel)
-	DarknessColor:SetPos(10,100)
+	local DarknessColor = vgui.Create( "DSlider" )
+	dlist:AddItem( DarknessColor )
 	DarknessColor:SetSize(180,30)
 	DarknessColor.TranslateValues = function(panel, x, y )
 		self.colors.tmp_Dark = 255-math.floor(x*255)
@@ -899,12 +992,18 @@ function Editor:InitControlPanel(frame)
 
 	---- FONTS
 
-	local FontLabel = vgui.Create( "DLabel", ColorPanel )
+	local FontLabel = vgui.Create( "DLabel" )
+	dlist:AddItem( FontLabel )
 	FontLabel:SetText( "Font:                                   Font Size:" )
 	FontLabel:SizeToContents()
-	FontLabel:SetPos( 10, 125 )
+	FontLabel:SetPos( 10, 0 )
 
-	local FontSelect = vgui.Create( "DMultiChoice", ColorPanel )
+	local temp = vgui.Create("Panel")
+	temp:SetTall( 25 )
+	dlist:AddItem( temp )
+
+	local FontSelect = vgui.Create( "DMultiChoice", temp )
+	--dlist:AddItem( FontSelect )
 	FontSelect.OnSelect = function( panel, index, value )
 		if (value == "Custom...") then
 			Derma_StringRequestNoBlur( "Enter custom font:", "", "", function( value )
@@ -922,10 +1021,9 @@ function Editor:InitControlPanel(frame)
 	end
 	FontSelect:AddChoice( "Custom..." )
 	FontSelect:SetEditable( false )
-	FontSelect:SetPos( 10, 140 )
-	FontSelect:SetSize( 180 - 50 - 4, 20 )
+	FontSelect:SetSize( 240 - 50 - 4, 20 )
 
-	local FontSizeSelect = vgui.Create( "DMultiChoice", ColorPanel )
+	local FontSizeSelect = vgui.Create( "DMultiChoice", temp )
 	FontSizeSelect.OnSelect = function( panel, index, value )
 		value = value:gsub( " %b()", "" )
 		self:ChangeFont( self.FontConVar:GetString(), tonumber(value) )
@@ -935,85 +1033,74 @@ function Editor:InitControlPanel(frame)
 		FontSizeSelect:AddChoice( i .. (i == 16 and " (Default)" or "") )
 	end
 	FontSizeSelect:SetEditable( false )
-	FontSizeSelect:SetPos( 10 + FontSelect:GetWide() + 4, 140 )
+	FontSizeSelect:SetPos( FontSelect:GetWide() + 4, 0 )
 	FontSizeSelect:SetSize( 50, 20 )
 
-	-- EDITOR SETTINGS
-
-	local AutoComplete = vgui.Create( "DCheckBoxLabel", ColorPanel )
+	local AutoComplete = vgui.Create( "DCheckBoxLabel" )
+	dlist:AddItem( AutoComplete )
 	AutoComplete:SetConVar( "wire_expression2_autocomplete" )
 	AutoComplete:SetText( "Auto Completion" )
 	AutoComplete:SizeToContents()
-	AutoComplete:SetTooltip( "Enable/disable auto completion in the E2 editor.\nNote: Auto completion does not for for GPU/CPU yet." )
-	AutoComplete:SetPos( 200, 50 )
+	AutoComplete:SetTooltip( "Enable/disable auto completion in the E2 editor." )
 
-	local AutoCompleteExtra = vgui.Create( "DCheckBoxLabel", ColorPanel )
+	local AutoCompleteExtra = vgui.Create( "DCheckBoxLabel" )
+	dlist:AddItem( AutoCompleteExtra )
 	AutoCompleteExtra:SetConVar( "wire_expression2_autocomplete_moreinfo" )
 	AutoCompleteExtra:SetText( "More Info (for AC)" )
 	AutoCompleteExtra:SizeToContents()
-	AutoCompleteExtra:SetTooltip( "Enable/disable additional information for auto completion.\nNote: Auto completion does not work for GPU/CPU yet." )
-	AutoCompleteExtra:SetPos( 200, 65 )
+	AutoCompleteExtra:SetTooltip( "Enable/disable additional information for auto completion." )
 
-	local NewTabOnOpen = vgui.Create( "DCheckBoxLabel", ColorPanel )
+	local NewTabOnOpen = vgui.Create( "DCheckBoxLabel" )
+	dlist:AddItem( NewTabOnOpen )
 	NewTabOnOpen:SetConVar( "wire_expression2_new_tab_on_open" )
 	NewTabOnOpen:SetText( "New tab on open" )
 	NewTabOnOpen:SizeToContents()
 	NewTabOnOpen:SetTooltip( "Enable/disable loaded files opening in a new tab.\nIf disabled, loaded files will be opened in the current tab." )
-	NewTabOnOpen:SetPos( 200, 80 )
 
-	-- E2 SETTINGS
+	--------------------------------------------- EXPRESSION 2 TAB
+	local sheet = self:AddControlPanelTab( "Expression 2", "gui/silkicons/world", "Options for Expression 2." )
 
-	local Label = vgui.Create( "DLabel", ColorPanel )
-	Label:SetPos( 10, 150 )
-	Label:SetText( "__________________________________________________________\nExpression 2 only settings: (Not for CPU/GPU)" )
-	Label:SizeToContents()
+	local dlist = vgui.Create("DPanelList",sheet.Panel)
+	dlist.Paint = function() end
+	frame:AddResizeObject( dlist, 2, 2 )
+	dlist:EnableVerticalScrollbar( true )
 
-	local AutoIndent = vgui.Create( "DCheckBoxLabel", ColorPanel )
+	local AutoIndent = vgui.Create( "DCheckBoxLabel" )
+	dlist:AddItem( AutoIndent )
 	AutoIndent:SetConVar( "wire_expression2_autoindent" )
 	AutoIndent:SetText( "Auto indenting" )
 	AutoIndent:SizeToContents()
 	AutoIndent:SetTooltip( "Enable/disable auto indenting." )
-	AutoIndent:SetPos( 10, 178 )
 
-	local Concmd = vgui.Create( "DCheckBoxLabel", ColorPanel )
+	local Concmd = vgui.Create( "DCheckBoxLabel" )
+	dlist:AddItem( Concmd )
 	Concmd:SetConVar( "wire_expression2_concmd" )
 	Concmd:SetText( "concmd" )
 	Concmd:SizeToContents()
 	Concmd:SetTooltip( "Allow/disallow the E2 from running console commands on you." )
-	Concmd:SetPos( 10, 192 )
 
-	local FriendWrite = vgui.Create( "DCheckBoxLabel", ColorPanel )
+	local FriendWrite = vgui.Create( "DCheckBoxLabel" )
+	dlist:AddItem( FriendWrite )
 	FriendWrite:SetConVar( "wire_expression2_friendwrite" )
 	FriendWrite:SetText( "Friend Write" )
 	FriendWrite:SizeToContents()
 	FriendWrite:SetTooltip( "Allow/disallow people in your prop protection friends list from reading and writing to your E2s." )
-	FriendWrite:SetPos( 10, 206 )
 
-
-	-- BLOCK COMMENT STYLE
-
-	local BlockCommentStyle = vgui.Create( "DMultiChoice", ColorPanel )
-	local BlockCommentStyleLabel = vgui.Create( "DLabel", ColorPanel )
+	local BlockCommentStyle = vgui.Create( "DMultiChoice" )
+	dlist:AddItem( BlockCommentStyle )
 
 	local modes = {}
-	modes["New (alt 1)"] = { 0, [[Block comment style
-                          Current mode:
-                          #[
-                          Text here
-                          ]#
-						  ]] }
-	modes["New (alt 2)"] = { 1, [[Block comment style
-                          Current mode:
-                          #[Text here
-                          Text here]#
-
-						  ]] }
-	modes["Old"] 		 = { 2, [[Block comment style
-                          Current mode:
-                          #Text here
-                          #Text here
-
-						  ]] }
+	modes["New (alt 1)"] = { 0, [[Current mode:
+#[
+Text here
+Text here
+]#]] }
+	modes["New (alt 2)"] = { 1, [[Current mode:
+#[Text here
+Text here]# ]] }
+	modes["Old"] 		 = { 2, [[Current mode:
+#Text here
+#Text here]] }
 
 	for k,v in pairs( modes ) do
 		BlockCommentStyle:AddChoice( k )
@@ -1022,23 +1109,19 @@ function Editor:InitControlPanel(frame)
 	modes[0] = modes["New (alt 1)"][2]
 	modes[1] = modes["New (alt 2)"][2]
 	modes[2] = modes["Old"][2]
-
-	BlockCommentStyleLabel:SetText( modes[self.BlockCommentStyleConVar:GetInt()] )
-	BlockCommentStyleLabel:SetSize(200,200)
 	BlockCommentStyle:SetEditable( false )
-	BlockCommentStyleLabel:SetPos( 10, 210 ) --195
-	BlockCommentStyle:SetPos( 10, 290 ) --275
+	BlockCommentStyle:SetToolTip( modes[self.BlockCommentStyleConVar:GetInt()] )
 
 
 	BlockCommentStyle.OnSelect = function( panel, index, value )
-		BlockCommentStyleLabel:SetText( modes[value][2] )
+		BlockCommentStyle:SetToolTip( modes[value][2] )
 		RunConsoleCommand( "wire_expression2_editor_block_comment_style", modes[value][1] )
 	end
 
 	-- SYNTAX HIGHLIGHT COLORS
 
-	local Label = vgui.Create( "DLabel", ColorPanel )
-	Label:SetPos( 175, 190 )
+	local Label = vgui.Create( "DLabel" )
+	dlist:AddItem( Label )
 	Label:SetText( "E2 Syntax Colors" )
 	Label:SizeToContents()
 
@@ -1046,13 +1129,17 @@ function Editor:InitControlPanel(frame)
 	local CurrentColor = "directive"
 	local r, g, b = 255,255,255
 
+	local temp = vgui.Create("Panel")
+	dlist:AddItem( temp )
+	temp:SetTall( 132 )
+
 	-- Create color mixer, number wangs, default button, and drop down menu
-	local ColorMixer = vgui.Create( "DColorMixer", ColorPanel )
-	local RBox = vgui.Create( "DNumberWang", ColorPanel )
-    local GBox = vgui.Create( "DNumberWang", ColorPanel )
-    local BBox = vgui.Create( "DNumberWang", ColorPanel )
-	local DefaultButton = vgui.Create( "DButton", ColorPanel )
-	local CurrentColorSelect = vgui.Create( "DMultiChoice", ColorPanel )
+	local ColorMixer = vgui.Create( "DColorMixer", temp )
+	local RBox = vgui.Create( "DNumberWang", temp )
+    local GBox = vgui.Create( "DNumberWang", temp )
+    local BBox = vgui.Create( "DNumberWang", temp )
+	local DefaultButton = vgui.Create( "DButton", temp )
+	local CurrentColorSelect = vgui.Create( "DMultiChoice", temp )
 
 	-- Add choices
 	for k,v in pairs( colors ) do
@@ -1086,7 +1173,7 @@ function Editor:InitControlPanel(frame)
 	DefaultButton:SetText("Default")
 
 	ColorMixer:SetSize( 130,130 )
-	ColorMixer:SetPos( 170, 205 )
+	--ColorMixer:SetPos( 170, 205 )
 
 	-- Remove alpha bar
     ColorMixer.AlphaBar:SetVisible( false )
@@ -1223,6 +1310,10 @@ local defaultcode = code1 .. code2
 function Editor:NewScript()
 	self:AutoSave()
 	self:ChosenFile()
+
+	-- Set title
+	self:GetActiveTab():SetText( "generic" )
+	self.C['TabHolder'].panel:InvalidateLayout()
 
 	-- add both code1 and code2 to the editor
 	self:SetCode(defaultcode)

@@ -2,7 +2,7 @@ AddCSLuaFile( "cl_init.lua" )
 AddCSLuaFile( "shared.lua" )
 include( "shared.lua" )
 
-local cvar = CreateConVar("wire_holoemitter_interval",0.1,{FCVAR_ARCHIVE,FCVAR_NOTIFY})
+local cvar = CreateConVar("wire_holoemitter_interval",0.3,{FCVAR_ARCHIVE,FCVAR_NOTIFY})
 
 -- wire debug and overlay crap.
 ENT.WireDebugName	= "Holographic Emitter"
@@ -21,7 +21,7 @@ function ENT:Initialize( )
 	self.bools.LineBeam = true
 	self.bools.GroundBeam = true
 
-	self.Inputs = WireLib.CreateInputs( self, { "Pos [VECTOR]", "Local", "Color [VECTOR]", "FadeTime", "LineBeam", "GroundBeam", "Size", "Clear", "Active" } )
+	self.Inputs = WireLib.CreateInputs( self, { "Pos [VECTOR]", "X" , "Y", "Z", "Local", "Color [VECTOR]", "FadeTime", "LineBeam", "GroundBeam", "Size", "Clear", "Active" } )
 
 	self.Points = {}
 
@@ -33,25 +33,50 @@ function ENT:Initialize( )
 	self.Data.LineBeam = false
 	self.Data.GroundBeam = false
 	self.Data.Size = 1
-	self.Data.Count = 0
+	self.UmsgSize = 6
+	self.Previous = {}
+end
+
+function ENT:CompareData( data1, data2 ) -- Returns true if the two data tables are different, false if they are the same
+	if (!data1.Local or !data1.Color or !data1.FadeTime or !data1.GroundBeam or !data1.Size or
+		!data2.Local or !data2.Color or !data2.FadeTime or !data2.GroundBeam or !data2.Size) then return true end
+	if (data1.Local != data2.Local or
+		data1.Color.x != data2.Color.x or data1.Color.y != data2.Color.y or data1.Color.z != data2.Color.z or
+		data1.FadeTime != data2.FadeTime or
+		data1.GroundBeam != data2.GroundBeam or
+		data1.Size != data2.Size) then
+		return true
+	end
+	return false
 end
 
 function ENT:AddPoint()
-	if (self.Data.Count > 7) then return end -- Max points per interval (8 is the max amount before the umsg gets too large.)
-	self.Data.Count = self.Data.Count + 1
-	self.Points[self.Data.Count] = {
-		Pos = self.Data.Pos,
+	if (self.UmsgSize >= 250) then return end -- Check umsg size
+
+	local IsDifferent = self:CompareData( self.Previous, self.Data )
+	if (IsDifferent) then
+		self.UmsgSize = self.UmsgSize + 26
+	else
+		self.UmsgSize = self.UmsgSize + 9
+	end
+
+	if (self.UmsgSize >= 250) then return end -- Check umsg size again
+
+	self.Previous = table.Copy( self.Data )
+
+	self.Points[#self.Points+1] = {
+		Pos = Vector(self.Data.Pos.x,self.Data.Pos.y,self.Data.Pos.z),
 		Local = self.Data.Local,
-		Color = self.Data.Color,
+		Color = Vector(self.Data.Color.x,self.Data.Color.y,self.Data.Color.z),
 		FadeTime = self.Data.FadeTime,
 		LineBeam = self.Data.LineBeam,
 		GroundBeam = self.Data.GroundBeam,
-		Size = self.Data.Size
+		Size = self.Data.Size,
+		IsDifferentFromPrevious = IsDifferent,
 	}
 end
 
 function ENT:TriggerInput( name, value )
-	--[[ I'll just leave this here if anyone wants it
 	if (name == "X") then -- X
 		if (self.Data.Pos.x != value) then
 			self.Data.Pos.x = value
@@ -67,8 +92,7 @@ function ENT:TriggerInput( name, value )
 			self.Data.Pos.z = value
 			self:AddPoint()
 		end
-	else]]
-	if (name == "Pos") then -- XYZ
+	elseif (name == "Pos") then -- XYZ
 		if (self.Data.Pos != value) then
 			self.Data.Pos = value
 			self:AddPoint()
@@ -103,7 +127,7 @@ end
 
 function ENT:ReadCell( Address )
 	if (Address == 0) then
-		return (self.Data.Count <= 7 and 1 or 0)
+		return (self.UmsgSize <= 255 and 1 or 0)
 	elseif (Address == 1) then
 		return self.Data.Pos.x
 	elseif (Address == 2) then
@@ -188,25 +212,32 @@ function ENT:UnLink()
 	self:SetNWEntity( "Link", nil )
 end
 
-umsg.PoolString("Wire_HoloEmitter_Data")
 function ENT:Think()
 	self:NextThink( CurTime() + cvar:GetFloat() )
-	if (self.Data.Count == 0) then return true end
-	umsg.Start( "Wire_HoloEmitter_Data" )
+	if (#self.Points == 0) then return true end
+	umsg.Start( "hed" ) -- short for "holo emitter data"
 		umsg.Entity( self )
 		umsg.Char( #self.Points )
-		for k,v in ipairs( self.Points ) do
-			umsg.Vector( v.Pos )
-			umsg.Bool( v.Local )
-			umsg.Vector( v.Color )
-			umsg.Float( v.FadeTime )
-			umsg.Bool( v.LineBeam )
-			umsg.Bool( v.GroundBeam )
-			umsg.Float( v.Size )
+		for k,v in pairs( self.Points ) do
+			umsg.Float( v.Pos.x )
+			umsg.Float( v.Pos.y )
+			umsg.Float( v.Pos.z )
+			if (v.IsDifferentFromPrevious) then
+				umsg.Bool( true ) -- We're sending lots of data
+				umsg.Bool( v.Local )
+				umsg.Vector( v.Color )
+				umsg.Short( math.Clamp(v.FadeTime,0,100)*100 )
+				umsg.Bool( v.LineBeam )
+				umsg.Bool( v.GroundBeam )
+				umsg.Short( math.Clamp(v.Size,0,100)*100 )
+			else
+				umsg.Bool( false ) -- We're not sending lots of data, only a position.
+			end
 		end
 	umsg.End()
 	self.Points = {}
-	self.Data.Count = 0
+	self.UmsgSize = 6
+	self.Previous = {}
 	return true
 end
 
