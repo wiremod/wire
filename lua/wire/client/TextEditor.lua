@@ -3,6 +3,8 @@
   Andreas "Syranide" Svensson, me@syranide.com
 \******************************************************************************/
 
+local wire_expression2_autocomplete_controlstyle = CreateClientConVar( "wire_expression2_autocomplete_controlstyle", "0", true, false )
+
 local EDITOR = {}
 
 function EDITOR:Init()
@@ -677,7 +679,18 @@ function EDITOR:_OnTextChanged()
 end
 
 function EDITOR:OnMouseWheeled(delta)
-	if (self.AC_Panel and self.AC_Panel:IsVisible()) then return end
+	if (self.AC_Panel and self.AC_Panel:IsVisible()) then
+		local mode = wire_expression2_autocomplete_controlstyle:GetInt()
+		if (mode == 2 or mode == 3) then
+			self.AC_Panel.Selected = self.AC_Panel.Selected - delta
+			if (self.AC_Panel.Selected > #self.AC_Suggestions) then self.AC_Panel.Selected = 1 end
+			if (self.AC_Panel.Selected < 1) then self.AC_Panel.Selected = #self.AC_Suggestions end
+			self:AC_FillInfoList( self.AC_Suggestions[self.AC_Panel.Selected] )
+			self.AC_Panel:RequestFocus()
+		end
+		return
+	end
+
 	self.Scroll[1] = self.Scroll[1] - 4 * delta
 	if self.Scroll[1] < 1 then self.Scroll[1] = 1 end
 	if self.Scroll[1] > #self.Rows then self.Scroll[1] = #self.Rows end
@@ -1441,12 +1454,25 @@ function EDITOR:_OnKeyCodeTyped(code)
 	else
 
 		if code == KEY_ENTER then
+			local mode = wire_expression2_autocomplete_controlstyle:GetInt()
+			if (mode == 4 and self.AC_HasSuggestions and self.AC_Suggestions[1]) then
+				self:AC_Use( self.AC_Suggestions[1] )
+				return
+			end
 			local row = self.Rows[self.Caret[1]]:sub(1,self.Caret[2]-1)
 			local diff = (row:find("%S") or (row:len()+1))-1
 			local tabs = string.rep("    ", math.floor(diff / 4))
 			if GetConVarNumber('wire_expression2_autoindent') ~= 0 and (string.match("{" .. row .. "}", "^%b{}.*$") == nil) then tabs = tabs .. "    " end
 			self:SetSelection("\n" .. tabs)
 		elseif code == KEY_UP then
+			if (self.AC_Panel and self.AC_Panel:IsVisible()) then
+				local mode = wire_expression2_autocomplete_controlstyle:GetInt()
+				if (mode == 1) then
+					self.AC_Panel:RequestFocus()
+					return
+				end
+			end
+
 			if self.Caret[1] > 1 then
 				self.Caret[1] = self.Caret[1] - 1
 
@@ -1462,6 +1488,14 @@ function EDITOR:_OnKeyCodeTyped(code)
 				self.Start = self:CopyPosition(self.Caret)
 			end
 		elseif code == KEY_DOWN then
+			if (self.AC_Panel and self.AC_Panel:IsVisible()) then
+				local mode = wire_expression2_autocomplete_controlstyle:GetInt()
+				if (mode == 1) then
+					self.AC_Panel:RequestFocus()
+					return
+				end
+			end
+
 			if self.Caret[1] < #self.Rows then
 				self.Caret[1] = self.Caret[1] + 1
 
@@ -1578,11 +1612,14 @@ function EDITOR:_OnKeyCodeTyped(code)
 		end
 	end
 
-	if (code == KEY_TAB and self.AC_HasSuggestions and self.AC_Panel) then
-		self.AC_Panel:RequestFocus()
-		return
+	if (code == KEY_TAB and self.AC_Panel and self.AC_Panel:IsVisible()) then
+		local mode = wire_expression2_autocomplete_controlstyle:GetInt()
+		if (mode == 0 or mode == 4) then
+			self.AC_Panel:RequestFocus()
+			if (mode == 4 and self.AC_Panel.Selected == 0) then self.AC_Panel.Selected = 1 end
+			return
+		end
 	end
-
 
 	if code == KEY_TAB or (control and (code == KEY_I or code == KEY_O)) then
 		if code == KEY_O then shift = not shift end
@@ -2060,22 +2097,84 @@ function EDITOR:AC_CreatePanel()
 	-- Override think, to make it listen for key presses
 	panel.Think = function( pnl, code )
 		if (!self.AC_HasSuggestions or !self.AC_Panel_Visible) then return end
-		if (input.IsKeyDown( KEY_ENTER ) or input.IsKeyDown( KEY_SPACE )) then -- If enter or space is pressed
-			self:AC_SetVisible( false )
-			self:AC_Use( self.AC_Suggestions[pnl.Selected] )
-		elseif (input.IsKeyDown( KEY_TAB ) and !pnl.AlreadyTabbed) then -- If tab is pressed
-			if (input.IsKeyDown( KEY_LCONTROL )) then -- If control is held down
-				pnl.Selected = pnl.Selected - 1 -- Scroll up
-				if (pnl.Selected < 1) then pnl.Selected = #self.AC_Suggestions end
-			else -- If control isn't held down
+
+		local mode = wire_expression2_autocomplete_controlstyle:GetInt()
+		if (mode == 0) then -- Default style (Tab/CTRL+Tab to choose item; Enter/Space to use.)
+
+			if (input.IsKeyDown( KEY_ENTER ) or input.IsKeyDown( KEY_SPACE )) then -- Use
+				self:AC_SetVisible( false )
+				self:AC_Use( self.AC_Suggestions[pnl.Selected] )
+			elseif (input.IsKeyDown( KEY_TAB ) and !pnl.AlreadySelected) then -- Select
+				if (input.IsKeyDown( KEY_LCONTROL )) then -- If control is held down
+					pnl.Selected = pnl.Selected - 1 -- Scroll up
+					if (pnl.Selected < 1) then pnl.Selected = #self.AC_Suggestions end
+				else -- If control isn't held down
+					pnl.Selected = pnl.Selected + 1 -- Scroll down
+					if (pnl.Selected > #self.AC_Suggestions) then pnl.Selected = 1 end
+				end
+				self:AC_FillInfoList( self.AC_Suggestions[pnl.Selected] ) -- Fill the info list
+				pnl:RequestFocus()
+				pnl.AlreadySelected = true -- To keep it from scrolling a thousand times a second
+			elseif (pnl.AlreadySelected and !input.IsKeyDown( KEY_TAB )) then
+				pnl.AlreadySelected = nil
+			end
+
+		elseif (mode == 1) then -- Visual C# Style (Arrow keys to choose item; Tab to use.)
+
+			if (input.IsKeyDown( KEY_TAB )) then -- Use
+				self:AC_SetVisible( false )
+				self:AC_Use( self.AC_Suggestions[pnl.Selected] )
+			elseif (input.IsKeyDown( KEY_DOWN ) and !pnl.AlreadySelected) then -- Select
 				pnl.Selected = pnl.Selected + 1 -- Scroll down
 				if (pnl.Selected > #self.AC_Suggestions) then pnl.Selected = 1 end
+				self:AC_FillInfoList( self.AC_Suggestions[pnl.Selected] ) -- Fill the info list
+				pnl.AlreadySelected = true -- To keep it from scrolling a thousand times a second
+			elseif (input.IsKeyDown( KEY_UP ) and !pnl.AlreadySelected) then -- Select
+				pnl.Selected = pnl.Selected - 1 -- Scroll up
+				if (pnl.Selected < 1) then pnl.Selected = #self.AC_Suggestions end
+				self:AC_FillInfoList( self.AC_Suggestions[pnl.Selected] ) -- Fill the info list
+				pnl.AlreadySelected = true -- To keep it from scrolling a thousand times a second
+			elseif (pnl.AlreadySelected and !input.IsKeyDown( KEY_UP ) and !input.IsKeyDown( KEY_DOWN )) then
+				pnl.AlreadySelected = nil
 			end
-			self:AC_FillInfoList( self.AC_Suggestions[pnl.Selected] ) -- Fill the info list
-			pnl:RequestFocus()
-			pnl.AlreadyTabbed = true -- To keep it from scrolling a thousand times a second
-		elseif (pnl.AlreadyTabbed and !input.IsKeyDown( KEY_TAB )) then
-			pnl.AlreadyTabbed = nil
+
+		elseif (mode == 2) then -- Scroller style (Mouse scroller to choose item; Middle mouse to use.)
+
+			if (input.IsMouseDown( MOUSE_MIDDLE )) then
+				self:AC_SetVisible( false )
+				self:AC_Use( self.AC_Suggestions[pnl.Selected] )
+			end
+
+		elseif (mode == 3) then -- Scroller Style w/ Enter (Mouse scroller to choose item; Enter to use.)
+
+			if (input.IsKeyDown( KEY_ENTER )) then
+				self:AC_SetVisible( false )
+				self:AC_Use( self.AC_Suggestions[pnl.Selected] )
+			end
+
+		elseif (mode == 4) then -- Eclipse Style (Enter to use top match; Tab to enter auto completion menu; Arrow keys to choose item; Enter to use; Space to abort.)
+
+			if (input.IsKeyDown( KEY_ENTER )) then -- Use
+				self:AC_SetVisible( false )
+				self:AC_Use( self.AC_Suggestions[pnl.Selected] )
+			elseif (input.IsKeyDown( KEY_SPACE )) then
+				self:AC_SetVisible( false )
+				self:RequestFocus()
+				self:SetSelection( self:GetSelection() .. " " )
+			elseif (input.IsKeyDown( KEY_DOWN ) and !pnl.AlreadySelected) then -- Select
+				pnl.Selected = pnl.Selected + 1 -- Scroll down
+				if (pnl.Selected > #self.AC_Suggestions) then pnl.Selected = 1 end
+				self:AC_FillInfoList( self.AC_Suggestions[pnl.Selected] ) -- Fill the info list
+				pnl.AlreadySelected = true -- To keep it from scrolling a thousand times a second
+			elseif (input.IsKeyDown( KEY_UP ) and !pnl.AlreadySelected) then -- Select
+				pnl.Selected = pnl.Selected - 1 -- Scroll up
+				if (pnl.Selected < 1) then pnl.Selected = #self.AC_Suggestions end
+				self:AC_FillInfoList( self.AC_Suggestions[pnl.Selected] ) -- Fill the info list
+				pnl.AlreadySelected = true -- To keep it from scrolling a thousand times a second
+			elseif (pnl.AlreadySelected and !input.IsKeyDown( KEY_UP ) and !input.IsKeyDown( KEY_DOWN )) then
+				pnl.AlreadySelected = nil
+			end
+
 		end
 	end
 
@@ -2237,9 +2336,11 @@ function EDITOR:AC_FillList()
 		end
 
 		-- Enable mouse presses
-		txt.OnMousePressed = function( pnl )
-			self:AC_SetVisible( false )
-			self:AC_Use( pnl.suggestion )
+		txt.OnMousePressed = function( pnl, code )
+			if (code == MOUSE_LEFT) then
+				self:AC_SetVisible( false )
+				self:AC_Use( pnl.suggestion )
+			end
 		end
 
 		-- Enable mouse hovering

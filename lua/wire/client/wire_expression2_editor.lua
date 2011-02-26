@@ -525,8 +525,20 @@ function Editor:CreateTab( chosenfile )
 		if code == KEY_S then
 			self:SaveFile(self:GetChosenFile())
 			self:Validate()
-		elseif code == KEY_SPACE then
-			self:Validate(true)
+		else
+			local mode = GetConVar("wire_expression2_autocomplete_controlstyle"):GetInt()
+			if (mode == 1) then
+				if (code == KEY_B) then
+					self:Validate(true)
+				elseif (code == KEY_SPACE) then
+					local ed = self:GetCurrentEditor()
+					if (ed.AC_Panel and ed.AC_Panel:IsVisible()) then
+						ed:AC_Use(ed.AC_Suggestions[1])
+					end
+				end
+			elseif (code == KEY_SPACE) then
+				self:Validate(true)
+			end
 		end
 	end
 	editor:RequestFocus()
@@ -554,7 +566,7 @@ function Editor:NewTab()
 	local sheet = self:CreateTab( "generic" )
 	self:SetActiveTab(sheet.Tab)
 	if (self.E2) then
-		self:NewScript()
+		self:NewScript( true )
 	end
 end
 
@@ -596,7 +608,7 @@ function Editor:CloseTab( _tab )
 	if (self:GetNumTabs() == 1) then
 		activetab:SetText( "generic" )
 		self.C['TabHolder'].panel:InvalidateLayout()
-		self:NewScript()
+		self:NewScript( true )
 		return
 	end
 
@@ -621,7 +633,7 @@ function Editor:CloseTab( _tab )
 				else -- Reset the current tab (backup)
 					self:GetActiveTab():SetText( "generic" )
 					self.C['TabHolder'].panel:InvalidateLayout()
-					self:NewScript()
+					self:NewScript( true )
 					return
 				end
 			else -- Change to the previous tab
@@ -635,7 +647,7 @@ function Editor:CloseTab( _tab )
 			else -- Reset the current tab (backup)
 				self:GetActiveTab():SetText( "generic" )
 				self.C['TabHolder'].panel:InvalidateLayout()
-				self:NewScript()
+				self:NewScript( true )
 				return
 			end
 		end
@@ -1036,6 +1048,12 @@ function Editor:InitControlPanel(frame)
 	FontSizeSelect:SetPos( FontSelect:GetWide() + 4, 0 )
 	FontSizeSelect:SetSize( 50, 20 )
 
+
+	local label = vgui.Create("DLabel")
+	dlist:AddItem( label )
+	label:SetText( "Auto completion options" )
+	label:SizeToContents()
+
 	local AutoComplete = vgui.Create( "DCheckBoxLabel" )
 	dlist:AddItem( AutoComplete )
 	AutoComplete:SetConVar( "wire_expression2_autocomplete" )
@@ -1049,6 +1067,41 @@ function Editor:InitControlPanel(frame)
 	AutoCompleteExtra:SetText( "More Info (for AC)" )
 	AutoCompleteExtra:SizeToContents()
 	AutoCompleteExtra:SetTooltip( "Enable/disable additional information for auto completion." )
+
+	local label = vgui.Create("DLabel")
+	dlist:AddItem( label )
+	label:SetText( "Auto completion control style" )
+	label:SizeToContents()
+
+	local AutoCompleteControlOptions = vgui.Create( "DMultiChoice" )
+	dlist:AddItem( AutoCompleteControlOptions )
+
+	local modes = {}
+	modes["Default"] 					= { 0, "Current mode:\nTab/CTRL+Tab to choose item;\nEnter/Space to use;\nArrow keys to abort." }
+	modes["Visual C# Style"] 			= { 1, "Current mode:\nCtrl+Space to use the top match;\nArrow keys to choose item;\nTab/Enter/Space to use;\nCode validation (ctrl+space) moved to ctrl+b." }
+	modes["Scroller"] 		 			= { 2, "Current mode:\nMouse scroller to choose item;\nMiddle mouse to use." }
+	modes["Scroller w/ Enter"] 		 	= { 3, "Current mode:\nMouse scroller to choose item;\nEnter to use." }
+	modes["Eclipse Style"]				= { 4, "Current mode:\nEnter to use top match;\nTab to enter auto completion menu;\nArrow keys to choose item;\nEnter to use;\nSpace to abort." }
+	--modes["Qt Creator Style"]			= { 6, "Current mode:\nCtrl+Space to enter auto completion menu;\nSpace to abort; Enter to use top match." } <-- probably wrong. I'll check about adding Qt style later.
+
+
+	for k,v in pairs( modes ) do
+		AutoCompleteControlOptions:AddChoice( k )
+	end
+
+	modes[0] = modes["Default"][2]
+	modes[1] = modes["Visual C# Style"][2]
+	modes[2] = modes["Scroller"][2]
+	modes[3] = modes["Scroller w/ Enter"][2]
+	modes[4] = modes["Eclipse Style"][2]
+	AutoCompleteControlOptions:SetEditable( false )
+	AutoCompleteControlOptions:SetToolTip( modes[self.BlockCommentStyleConVar:GetInt()] )
+
+
+	AutoCompleteControlOptions.OnSelect = function( panel, index, value )
+		panel:SetToolTip( modes[value][2] )
+		RunConsoleCommand( "wire_expression2_autocomplete_controlstyle", modes[value][1] )
+	end
 
 	local NewTabOnOpen = vgui.Create( "DCheckBoxLabel" )
 	dlist:AddItem( NewTabOnOpen )
@@ -1065,6 +1118,11 @@ function Editor:InitControlPanel(frame)
 	frame:AddResizeObject( dlist, 2, 2 )
 	dlist:EnableVerticalScrollbar( true )
 
+	local label = vgui.Create("DLabel")
+	dlist:AddItem( label )
+	label:SetText( "Clientside expression 2 options" )
+	label:SizeToContents()
+
 	local AutoIndent = vgui.Create( "DCheckBoxLabel" )
 	dlist:AddItem( AutoIndent )
 	AutoIndent:SetConVar( "wire_expression2_autoindent" )
@@ -1079,12 +1137,27 @@ function Editor:InitControlPanel(frame)
 	Concmd:SizeToContents()
 	Concmd:SetTooltip( "Allow/disallow the E2 from running console commands on you." )
 
+	local label = vgui.Create("DLabel")
+	dlist:AddItem( label )
+	label:SetText( "Concmd whitelist" )
+	label:SizeToContents()
+
+	local ConcmdWhitelist = vgui.Create( "DTextEntry" )
+	dlist:AddItem( ConcmdWhitelist )
+	ConcmdWhitelist:SetConVar( "wire_expression2_concmd_whitelist" )
+	ConcmdWhitelist:SetToolTip( "Separate the commands with commas." )
+
 	local FriendWrite = vgui.Create( "DCheckBoxLabel" )
 	dlist:AddItem( FriendWrite )
 	FriendWrite:SetConVar( "wire_expression2_friendwrite" )
 	FriendWrite:SetText( "Friend Write" )
 	FriendWrite:SizeToContents()
 	FriendWrite:SetTooltip( "Allow/disallow people in your prop protection friends list from reading and writing to your E2s." )
+
+	local label = vgui.Create("DLabel")
+	dlist:AddItem( label )
+	label:SetText( "Expression 2 block comment style" )
+	label:SizeToContents()
 
 	local BlockCommentStyle = vgui.Create( "DMultiChoice" )
 	dlist:AddItem( BlockCommentStyle )
@@ -1112,9 +1185,8 @@ Text here]# ]] }
 	BlockCommentStyle:SetEditable( false )
 	BlockCommentStyle:SetToolTip( modes[self.BlockCommentStyleConVar:GetInt()] )
 
-
 	BlockCommentStyle.OnSelect = function( panel, index, value )
-		BlockCommentStyle:SetToolTip( modes[value][2] )
+		panel:SetToolTip( modes[value][2] )
 		RunConsoleCommand( "wire_expression2_editor_block_comment_style", modes[value][1] )
 	end
 
@@ -1122,7 +1194,7 @@ Text here]# ]] }
 
 	local Label = vgui.Create( "DLabel" )
 	dlist:AddItem( Label )
-	Label:SetText( "E2 Syntax Colors" )
+	Label:SetText( "Expression 2 syntax highlighting colors" )
 	Label:SizeToContents()
 
 	local SkipUpdate = false
@@ -1283,23 +1355,14 @@ end
 local code1 = "@name \n@inputs \n@outputs \n@persist \n@trigger \n\n"
 -- code2 contains the code that is to be marked, so it can simply be overwritten or deleted.
 local code2 = [[#[
-    Tabs have been added! You can now edit as many E2s
-    as you like simultaneously.
+    The options menu has been redesigned - it's much more
+    organized now.
 
-    Block comments and multi line strings have been added!
-    You can see the block comment syntax in this comment.
-    Two new buttons have also been added to the right click menu.
-    These buttons put block comments around the current selection.
+    Auto completion has been added!
+    Options for it can be found in the options menu.
 
-    Font and block comment options have been added to the control
-    menu (the wrench icon).
-
-    Multi line strings have also been added.
-    Using multi line strings is easy:
-    TestString = "Hello world
-    this is a
-    multi line string
-    example."
+    Syntax highlighting color options have been added in the
+    options menu.
 
     Documentation and examples are available at:
     http://wiki.garrysmod.com/?title=Wire_Expression2
@@ -1307,20 +1370,25 @@ local code2 = [[#[
 ]#]]
 local defaultcode = code1 .. code2
 
-function Editor:NewScript()
-	self:AutoSave()
-	self:ChosenFile()
+function Editor:NewScript( incurrent )
+	if (!incurrent and self.NewTabOnOpen:GetBool()) then
+		self:NewTab()
+	else
+		self:AutoSave()
+		self:ChosenFile()
 
-	-- Set title
-	self:GetActiveTab():SetText( "generic" )
-	self.C['TabHolder'].panel:InvalidateLayout()
+		-- Set title
+		self:GetActiveTab():SetText( "generic" )
+		self.C['TabHolder'].panel:InvalidateLayout()
 
-	-- add both code1 and code2 to the editor
-	self:SetCode(defaultcode)
-	local ed = self:GetCurrentEditor()
-	-- mark only code2
-	ed.Start = ed:MovePosition({ 1, 1 }, code1:len())
-	ed.Caret = ed:MovePosition({ 1, 1 }, defaultcode:len())
+		-- add both code1 and code2 to the editor
+		self:SetCode(defaultcode)
+		local ed = self:GetCurrentEditor()
+		-- mark only code2
+		ed.Start = ed:MovePosition({ 1, 1 }, code1:len())
+		ed.Caret = ed:MovePosition({ 1, 1 }, defaultcode:len())
+
+	end
 end
 
 local id = 0
@@ -1660,7 +1728,7 @@ function Editor:Setup(nTitle, nLocation, nEditorType)
 
 		-- Flag as E2
 		self.E2 = true
-		self:NewScript()
+		self:NewScript( true )
 	end
 	self:InvalidateLayout()
 end
