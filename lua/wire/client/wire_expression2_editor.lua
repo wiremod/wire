@@ -550,8 +550,12 @@ function Editor:CreateTab( chosenfile )
 		editor:SetSyntaxColors( colors )
 	end
 
+	self:OnTabCreated( sheet ) -- Call a function that you can override to do custom stuff to each tab.
+
 	return sheet
 end
+
+function Editor:OnTabCreated( sheet ) end -- This function is made to be overwritten
 
 function Editor:GetNextAvailableTab()
 	local activetab = self:GetActiveTab()
@@ -653,6 +657,8 @@ function Editor:CloseTab( _tab )
 		end
 	end
 
+	self:OnTabClosed( activetab ) -- Call a function that you can override to do custom stuff to each tab.
+
 	activetab:GetPanel():Remove()
 	activetab:Remove()
 	table.remove( self.C['TabHolder'].panel.Items, sheetindex )
@@ -660,6 +666,8 @@ function Editor:CloseTab( _tab )
 
 	self.C['TabHolder'].panel:InvalidateLayout()
 end
+
+function Editor:OnTabClosed( sheet ) end -- This function is made to be overwritten
 
 // initialization commands
 
@@ -1381,12 +1389,14 @@ function Editor:NewScript( incurrent )
 		self:GetActiveTab():SetText( "generic" )
 		self.C['TabHolder'].panel:InvalidateLayout()
 
-		-- add both code1 and code2 to the editor
-		self:SetCode(defaultcode)
-		local ed = self:GetCurrentEditor()
-		-- mark only code2
-		ed.Start = ed:MovePosition({ 1, 1 }, code1:len())
-		ed.Caret = ed:MovePosition({ 1, 1 }, defaultcode:len())
+		if (self.E2) then
+			-- add both code1 and code2 to the editor
+			self:SetCode(defaultcode)
+			local ed = self:GetCurrentEditor()
+			-- mark only code2
+			ed.Start = ed:MovePosition({ 1, 1 }, code1:len())
+			ed.Caret = ed:MovePosition({ 1, 1 }, defaultcode:len())
+		end
 
 	end
 end
@@ -1471,6 +1481,15 @@ function Editor:ChosenFile(Line)
 		self:SubTitle("Editing: " .. Line)
 	else
 		self:SubTitle()
+	end
+end
+
+function Editor:FindOpenFile( FilePath )
+	for i=1,self:GetNumTabs() do
+		local ed = self:GetEditor(i)
+		if (ed.chosenfile == FilePath) then
+			return ed
+		end
 	end
 end
 
