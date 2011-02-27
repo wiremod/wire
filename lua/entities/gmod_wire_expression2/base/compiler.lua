@@ -64,12 +64,11 @@ function Compiler:EvaluateStatement(args, index)
 	return ex, tp
 end
 
-function Compiler:Evaluate(args, index, instr)
+function Compiler:Evaluate(args, index)
 	local ex, tp = self:EvaluateStatement(args, index)
 
 	if tp == "" then
-		if instr == nil then instr = args end
-		self:Error("Function has no return value (void), cannot be part of expression or assigned", instr)
+		self:Error("Function has no return value (void), cannot be part of expression or assigned", args[index+2])
 	end
 
 	return ex, tp
@@ -348,7 +347,7 @@ function Compiler:InstrFUN(args)
 
 	local tps = {}
 	for i=1,#args[4] do
-		local ex, tp = self:Evaluate(args[4], i - 2, args)
+		local ex, tp = self:Evaluate(args[4], i - 2)
 		tps[#tps + 1] = tp
 		exprs[#exprs + 1] = ex
 	end
@@ -369,7 +368,7 @@ function Compiler:InstrMTO(args)
 	exprs[#exprs + 1] = ex
 
 	for i=1,#args[5] do
-		local ex, tp = self:Evaluate(args[5], i - 2, args)
+		local ex, tp = self:Evaluate(args[5], i - 2)
 		tps[#tps + 1] = tp
 		exprs[#exprs + 1] = ex
 	end
