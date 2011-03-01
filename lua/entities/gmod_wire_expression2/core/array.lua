@@ -243,39 +243,42 @@ end)
 
 --------------------------------------------------------------------------------
 -- Pop
--- Returns and removes the last entry in the array
+-- Removes the last entry in the array
 --------------------------------------------------------------------------------
 __e2setcost(15)
-registerFunction("pop", "r:", "", function(self,args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	table_remove(rv1)
-	self.vclk[rv1] = true
-end)
+e2function void array:pop()
+	table_remove( this )
+	self.vclk[this] = true
+end
 
 --------------------------------------------------------------------------------
 -- Remove
--- Returns and removes the specified entry in the array
+-- Removes the specified entry in the array
 --------------------------------------------------------------------------------
 __e2setcost(15)
-registerFunction("remove", "r:n", "", function(self,args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	table_remove(rv1,rv2)
-	self.vclk[rv1] = true
-end)
+e2function void array:remove( index )
+	table_remove( this, index )
+	self.vclk[this] = true
+end
 
 --------------------------------------------------------------------------------
 -- Shift
--- Returns and removes the first entry in the array
+-- Removes the first entry in the array
 --------------------------------------------------------------------------------
 __e2setcost(15)
-registerFunction("shift", "r:", "", function(self,args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	table_remove(rv1,1)
-	self.vclk[rv1] = true
-end)
+e2function void array:shift()
+	table_remove( this, 1 )
+	self.vclk[this] = true
+end
+
+--------------------------------------------------------------------------------
+-- Exists
+-- Returns 1 if any value exists at the specified index, 0 if not
+--------------------------------------------------------------------------------
+__e2setcost(1)
+e2function number array:exists( index )
+	return this[index] != nil and 1 or 0
+end
 
 --------------------------------------------------------------------------------
 -- Count
@@ -456,6 +459,40 @@ end
 __e2setcost(1)
 e2function string array:id()
 	return tostring(this)
+end
+
+--------------------------------------------------------------------------------
+-- Add
+-- Add the contents of the specified array to the end of 'this'
+--------------------------------------------------------------------------------
+__e2setcost(1)
+e2function array array:add( array other )
+	if (!next(this) or !next(other)) then return {} end -- One of them is empty
+	local ret, size1, size2 = {}, #this, #other
+	for i=1,size1+size2 do
+		if (i <= size1) then
+			ret[i] = this[i]
+		else
+			ret[i] = other[i-size2]
+		end
+		self.prf = self.prf + 0.3
+	end
+	return ret
+end
+
+--------------------------------------------------------------------------------
+-- Merge
+-- Merges the two tables. Identical indexes will be overwritten by 'other'
+--------------------------------------------------------------------------------
+__e2setcost(1)
+e2function array array:merge( array other )
+	if (!next(this) or !next(other)) then return {} end -- One of them is empty
+	local ret = {}
+	for i=1,math.max(#this,#other) do
+		ret[i] = other[i] or this[i]
+		self.prf = self.prf + 0.3
+	end
+	return ret
 end
 
 __e2setcost(nil)

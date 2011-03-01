@@ -374,6 +374,15 @@ e2function table table:parent()
 	return this.parent or table.Copy(DEFAULT)
 end
 
+__e2setcost(1)
+-- Returns 1 if any value exists at the specified index, else 0
+e2function number table:exists( index )
+	return this.n[index] != nil and 1 or 0
+end
+e2function number table:exists( string index )
+	return this.s[index] != nil and 1 or 0
+end
+
 __e2setcost(15)
 
 e2function void printTable( table tbl )
@@ -539,15 +548,17 @@ e2function table table:add( table rv2 )
 	local cost = this.size
 	local size = this.size
 
+	local count = #ret.n
 	for k,v in pairs( rv2.n ) do
 		cost = cost + 1
 		local id = rv2.ntypes[k]
 		if (!blocked_types[id]) then
-			size = size + 1
-			ret.n[size] = v
-			ret.ntypes[size] = id
+			count = count + 1
+			ret.n[count] = v
+			ret.ntypes[count] = id
 		end
 	end
+	size = size + count
 
 	for k,v in pairs( rv2.s ) do
 		cost = cost + 1

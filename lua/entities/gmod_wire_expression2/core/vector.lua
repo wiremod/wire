@@ -9,6 +9,10 @@ local Vector = Vector
 local sqrt = math.sqrt
 local floor = math.floor
 local pi = math.pi
+local atan2 = math.atan2
+local asin = math.asin
+local rad2deg = 180 / pi
+local deg2rad = pi / 180
 
 // TODO: add reflect?
 // TODO: add absdotproduct?
@@ -349,12 +353,12 @@ end)
 
 // Convert the magnitude of the vector to radians
 e2function vector toRad(vector rv1)
-	return Vector(rv1[1] * pi / 180, rv1[2] * pi / 180, rv1[3] * pi / 180)
+	return Vector(rv1[1] * deg2rad, rv1[2] * deg2rad, rv1[3] * deg2rad)
 end
 
 // Convert the magnitude of the vector to degrees
 e2function vector toDeg(vector rv1)
-	return Vector(rv1[1] * 180 / pi, rv1[2] * 180 / pi, rv1[3] * 180 / pi)
+	return Vector(rv1[1] * rad2deg, rv1[2] * rad2deg, rv1[3] * rad2deg)
 end
 
 /******************************************************************************/
@@ -750,7 +754,7 @@ e2function array toLocalPosAng( vector localpos, angle localang, vector worldpos
 end
 
 /******************************************************************************/
--- Credits to Wizard of Ass for these two
+-- Credits to Wizard of Ass for bearing(v,a,v) and elevation(v,a,v)
 
 e2function number bearing(vector originpos,angle originangle, vector pos)
 	pos = WorldToLocal(Vector(pos[1],pos[2],pos[3]),Angle(0,0,0),Vector(originpos[1],originpos[2],originpos[3]),Angle(originangle[1],originangle[2],originangle[3]))
@@ -759,7 +763,19 @@ end
 
 e2function number elevation(vector originpos,angle originangle, vector pos)
 	pos = WorldToLocal(Vector(pos[1],pos[2],pos[3]),Angle(0,0,0),Vector(originpos[1],originpos[2],originpos[3]),Angle(originangle[1],originangle[2],originangle[3]))
-	return rad2deg*asin(pos.z / pos:Length())
+	local len = pos:Length()
+	if (len < delta) then return 0 end
+	return rad2deg*asin(pos.z / len)
+end
+
+e2function angle heading(vector originpos,angle originangle, vector pos)
+	pos = WorldToLocal(Vector(pos[1],pos[2],pos[3]),Angle(0,0,0),Vector(originpos[1],originpos[2],originpos[3]),Angle(originangle[1],originangle[2],originangle[3]))
+
+	local bearing = rad2deg*-atan2(pos.y, pos.x)
+
+	local len = pos:Length()
+	if (len < delta) then return { 0, bearing, 0 } end
+	return { rad2deg*asin(pos.z / len), bearing, 0 }
 end
 
 /******************************************************************************/
