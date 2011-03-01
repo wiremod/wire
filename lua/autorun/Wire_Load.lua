@@ -5,46 +5,32 @@
 if VERSION < 94 then Error("WireMod: Your GMod is years too old. Load aborted.\n") end
 
 
--- FIXME: REMOVE THIS AFTER GMOD UPDATE FIXES STRING.EXPLODE
-if #string.Explode( " ", " " ) ~= 2 then
-	local totable = string.ToTable
-	function string.Explode(separator, str, withpattern)
-		if (separator == "") then return totable( str ) end
+-- FIXME: Remove this after Gmod update makes the explode function in the string.lua file look like this one:
+local totable = string.ToTable
+local string_sub = string.sub
+local string_gsub = string.gsub
+local string_gmatch = string.gmatch
+function string.Explode(separator, str, withpattern)
+    if (separator == "") then return totable( str ) end
 
-		local ret = {}
-		local index,lastPosition = 1,1
+    local ret = {}
+    local index,lastPosition = 1,1
 
-		-- Escape all magic characters in separator
-		if not withpattern then separator = separator:gsub( "[%-%^%$%(%)%%%.%[%]%*%+%-%?]", "%%%1" ) end
+    -- Escape all magic characters in separator
+    if not withpattern then separator = string_gsub( separator, "[%-%^%$%(%)%%%.%[%]%*%+%-%?]", "%%%1" ) end
 
-		if (#str > 10000) then
+    -- Find the parts
+    for startPosition,endPosition in string_gmatch( str, "()" .. separator.."()" ) do
+        ret[index] = string_sub(str, lastPosition, startPosition-1)
+        index = index + 1
 
-			-- Find the parts
-			for startPosition,endPosition in str:gmatch( "()" .. separator.."()" ) do
-				ret[index] = str:sub(lastPosition, startPosition-1)
-				index = index + 1
+        -- Keep track of the position
+        lastPosition = endPosition
+    end
 
-				-- Keep track of the position
-				lastPosition = endPosition
-			end
-
-		else
-
-			-- Find the parts
-			for part,endPosition in str:gmatch( "(.-)" .. separator.."()" ) do
-				ret[index] = part
-				index = index + 1
-
-				-- Keep track of the position
-				lastPosition = endPosition
-			end
-
-		end
-
-		-- Add last part by using the position we stored
-		ret[index] = str:sub(lastPosition)
-		return ret
-	end
+    -- Add last part by using the position we stored
+    ret[index] = string_sub(str, lastPosition)
+    return ret
 end
 
 if SERVER then
