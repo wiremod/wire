@@ -4,35 +4,6 @@
 
 if VERSION < 94 then Error("WireMod: Your GMod is years too old. Load aborted.\n") end
 
-
--- FIXME: Remove this after Gmod update makes the explode function in the string.lua file look like this one:
-local totable = string.ToTable
-local string_sub = string.sub
-local string_gsub = string.gsub
-local string_gmatch = string.gmatch
-function string.Explode(separator, str, withpattern)
-    if (separator == "") then return totable( str ) end
-
-    local ret = {}
-    local index,lastPosition = 1,1
-
-    -- Escape all magic characters in separator
-    if not withpattern then separator = string_gsub( separator, "[%-%^%$%(%)%%%.%[%]%*%+%-%?]", "%%%1" ) end
-
-    -- Find the parts
-    for startPosition,endPosition in string_gmatch( str, "()" .. separator.."()" ) do
-        ret[index] = string_sub(str, lastPosition, startPosition-1)
-        index = index + 1
-
-        -- Keep track of the position
-        lastPosition = endPosition
-    end
-
-    -- Add last part by using the position we stored
-    ret[index] = string_sub(str, lastPosition)
-    return ret
-end
-
 if SERVER then
 	-- this file
 	AddCSLuaFile("autorun/Wire_Load.lua")

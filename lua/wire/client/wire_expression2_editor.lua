@@ -527,7 +527,8 @@ function Editor:CreateTab( chosenfile )
 			self:Validate()
 		else
 			local mode = GetConVar("wire_expression2_autocomplete_controlstyle"):GetInt()
-			if (mode == 1) then
+			local enabled = GetConVar("wire_expression2_autocomplete"):GetBool()
+			if (mode == 1 and enabled) then
 				if (code == KEY_B) then
 					self:Validate(true)
 				elseif (code == KEY_SPACE) then
@@ -783,7 +784,7 @@ function Editor:InitComponents()
 			LastClick = CurTime()
 		end
 	end
-	self.C['Browser'].panel:AddRightClick( self.C['Browser'].panel.filemenu, "Save To" , function()
+	self.C['Browser'].panel:AddRightClick( self.C['Browser'].panel.filemenu,4, "Save to" , function()
 		Derma_Query(
 			"Overwrite this file?", "Save To",
 			"Overwrite", function()
@@ -1086,7 +1087,7 @@ function Editor:InitControlPanel(frame)
 
 	local modes = {}
 	modes["Default"] 					= { 0, "Current mode:\nTab/CTRL+Tab to choose item;\nEnter/Space to use;\nArrow keys to abort." }
-	modes["Visual C# Style"] 			= { 1, "Current mode:\nCtrl+Space to use the top match;\nArrow keys to choose item;\nTab/Enter/Space to use;\nCode validation (ctrl+space) moved to ctrl+b." }
+	modes["Visual C# Style"] 			= { 1, "Current mode:\nCtrl+Space to use the top match;\nArrow keys to choose item;\nTab/Enter/Space to use;\nCode validation hotkey (ctrl+space) moved to ctrl+b." }
 	modes["Scroller"] 		 			= { 2, "Current mode:\nMouse scroller to choose item;\nMiddle mouse to use." }
 	modes["Scroller w/ Enter"] 		 	= { 3, "Current mode:\nMouse scroller to choose item;\nEnter to use." }
 	modes["Eclipse Style"]				= { 4, "Current mode:\nEnter to use top match;\nTab to enter auto completion menu;\nArrow keys to choose item;\nEnter to use;\nSpace to abort." }
@@ -1525,23 +1526,25 @@ function Editor:GetCode()
 	return self:GetCurrentEditor():GetValue()
 end
 
-function Editor:Open(Line,code)
+function Editor:Open(Line,code,forcenewtab)
 	if(self:IsVisible() and !Line and !code) then self:Close() end
 	self:SetV(true)
 	if(code) then
-		for i=1, self:GetNumTabs() do
-			if (self:GetEditor(i).chosenfile == Line) then
-				self:SetActiveTab( i )
-				self:SetCode( code )
-				return
-			elseif (self:GetEditor(i):GetValue() == code) then
-				self:SetActiveTab( i )
-				return
+		if (!forcenewtab) then
+			for i=1, self:GetNumTabs() do
+				if (self:GetEditor(i).chosenfile == Line) then
+					self:SetActiveTab( i )
+					self:SetCode( code )
+					return
+				elseif (self:GetEditor(i):GetValue() == code) then
+					self:SetActiveTab( i )
+					return
+				end
 			end
 		end
 		local title, tabtext = getPreferredTitles( Line, code )
 		local tab
-		if (self.NewTabOnOpen:GetBool()) then
+		if (self.NewTabOnOpen:GetBool() or forcenewtab) then
 			tab = self:CreateTab( tabtext ).Tab
 		else
 			tab = self:GetActiveTab()
@@ -1555,7 +1558,7 @@ function Editor:Open(Line,code)
 		if(Line) then self:SubTitle("Editing: " .. Line) end
 		return
 	end
-	if(Line) then self:LoadFile(Line) return end
+	if(Line) then self:LoadFile(Line, forcenewtab) return end
 end
 
 function Editor:SaveFile(Line, close, SaveAs)
@@ -1611,27 +1614,29 @@ function Editor:SaveFile(Line, close, SaveAs)
 	end
 end
 
-function Editor:LoadFile( Line )
+function Editor:LoadFile( Line, forcenewtab )
 	if(!Line or file.IsDir( Line )) then return end
 	local str = file.Read(Line)
 	if str == nil then
 		Error("ERROR LOADING FILE!")
 	else
 		self:AutoSave()
-		for i=1, self:GetNumTabs() do
-			if (self:GetEditor(i).chosenfile == Line) then
-				self:SetActiveTab( i )
-				self:SetCode( str )
-				return
-			elseif (self:GetEditor(i):GetValue() == str) then
-				self:SetActiveTab( i )
-				return
+		if (!forcenewtab) then
+			for i=1, self:GetNumTabs() do
+				if (self:GetEditor(i).chosenfile == Line) then
+					self:SetActiveTab( i )
+					self:SetCode( str )
+					return
+				elseif (self:GetEditor(i):GetValue() == str) then
+					self:SetActiveTab( i )
+					return
+				end
 			end
 		end
 		if(!self.chip) then
 			local title, tabtext = getPreferredTitles( Line, str )
 			local tab
-			if (self.NewTabOnOpen:GetBool()) then
+			if (self.NewTabOnOpen:GetBool() or forcenewtab) then
 				tab = self:CreateTab( tabtext ).Tab
 			else
 				tab = self:GetActiveTab()

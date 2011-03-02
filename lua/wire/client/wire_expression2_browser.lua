@@ -170,15 +170,14 @@ function PANEL:Init()
 	self.filemenu = {}
 	self.foldermenu = {}
 
-	self:AddRightClick(self.filemenu, "New File", function()
-		Derma_StringRequestNoBlur("New File in \"" .. string.GetPathFromFilename(self.File.FileDir) .. "\"", "Create new file", "",
-		function(strTextOut)
-			strTextOut = string.gsub(strTextOut, ".", invalid_filename_chars)
-			file.Write(string.GetPathFromFilename(self.File.FileDir) .. "/" .. strTextOut .. ".txt", "")
-			self:UpdateFolders()
-		end)
+	self:AddRightClick(self.filemenu,nil,"Open",function()
+		wire_expression2_editor:Open( self.File.FileDir )
 	end)
-	self:AddRightClick(self.filemenu, "Rename to..", function()
+	self:AddRightClick(self.filemenu,nil,"Open in New Tab",function()
+		wire_expression2_editor:Open( self.File.FileDir, nil, true )
+	end)
+	self:AddRightClick(self.filemenu,nil,"*SPACER*")
+	self:AddRightClick(self.filemenu,nil,"Rename to..", function()
 		Derma_StringRequestNoBlur("Rename File \"" .. self.File.Name .. "\"", "Rename file " .. self.File.Name, self.File.Name,
  		function(strTextOut)
 			// Renaming starts in the garrysmod folder now, in comparison to other commands that start in the data folder.
@@ -194,7 +193,24 @@ function PANEL:Init()
 			self:UpdateFolders()
 		end)
 	end)
-	self:AddRightClick(self.filemenu, "Delete", function()
+	self:AddRightClick(self.filemenu,nil,"Copy to..", function()
+		Derma_StringRequestNoBlur("Copy File \"" .. self.File.Name .. "\"", "Copy File to...", self.File.Name,
+ 		function(strTextOut)
+			strTextOut = string.gsub(strTextOut, ".", invalid_filename_chars)
+			file.Write(string.GetPathFromFilename(self.File.FileDir) .. "/" .. strTextOut .. ".txt", file.Read(self.File.FileDir))
+			self:UpdateFolders()
+		end)
+	end)
+	self:AddRightClick(self.filemenu,nil,"*SPACER*")
+	self:AddRightClick(self.filemenu,nil,"New File", function()
+		Derma_StringRequestNoBlur("New File in \"" .. string.GetPathFromFilename(self.File.FileDir) .. "\"", "Create new file", "",
+		function(strTextOut)
+			strTextOut = string.gsub(strTextOut, ".", invalid_filename_chars)
+			file.Write(string.GetPathFromFilename(self.File.FileDir) .. "/" .. strTextOut .. ".txt", "")
+			self:UpdateFolders()
+		end)
+	end)
+	self:AddRightClick(self.filemenu,nil,"Delete", function()
 		Derma_Query(
 			"Delete this file?", "Delete",
 			"Delete", function()
@@ -206,15 +222,8 @@ function PANEL:Init()
 			"Cancel"
 		)
 	end)
-	self:AddRightClick(self.filemenu, "Copy to..", function()
-		Derma_StringRequestNoBlur("Copy File \"" .. self.File.Name .. "\"", "Copy File to...", self.File.Name,
- 		function(strTextOut)
-			strTextOut = string.gsub(strTextOut, ".", invalid_filename_chars)
-			file.Write(string.GetPathFromFilename(self.File.FileDir) .. "/" .. strTextOut .. ".txt", file.Read(self.File.FileDir))
-			self:UpdateFolders()
-		end)
-	end)
-	self:AddRightClick(self.foldermenu, "New File..", function()
+
+	self:AddRightClick(self.foldermenu,nil, "New File..", function()
 		Derma_StringRequestNoBlur("New File in \"" .. self.File.FileDir .. "\"", "Create new file", "",
  		function(strTextOut)
 			strTextOut = string.gsub(strTextOut, ".", invalid_filename_chars)
@@ -222,7 +231,7 @@ function PANEL:Init()
 			self:UpdateFolders()
 		end)
 	end)
-	self:AddRightClick(self.foldermenu,"New Folder..",function()
+	self:AddRightClick(self.foldermenu,nil,"New Folder..",function()
 		Derma_StringRequestNoBlur("new folder in \"" .. self.File.FileDir .. "\"", "Create new folder", "",
 		function(strTextOut)
 			strTextOut = string.gsub(strTextOut, ".", invalid_filename_chars )
@@ -230,7 +239,7 @@ function PANEL:Init()
 			self:UpdateFolders()
 		end)
 	end)
-	self:AddRightClick(self.panelmenu, "New File..", function()
+	self:AddRightClick(self.panelmenu,nil, "New File..", function()
 		Derma_StringRequestNoBlur("New File in \"" .. self.File.FileDir .. "\"", "Create new file", "",
  		function(strTextOut)
 			strTextOut = string.gsub(strTextOut, ".", invalid_filename_chars)
@@ -238,7 +247,7 @@ function PANEL:Init()
 			self:UpdateFolders()
 		end)
 	end)
-	self:AddRightClick(self.panelmenu,"New Folder..",function()
+	self:AddRightClick(self.panelmenu,nil,"New Folder..",function()
 		Derma_StringRequestNoBlur("new folder in \"" .. self.File.FileDir .. "\"", "Create new folder", "",
 		function(strTextOut)
 			strTextOut = string.gsub(strTextOut, ".", invalid_filename_chars )
@@ -366,15 +375,24 @@ function PANEL:OpenMenu(menu)
 	if(table.Count(menu)<1) then return end
 	self.Menu = vgui.Create("DMenu", self.Folders)
 	for k, v in pairs(menu) do
-		self.Menu:AddOption(k,v)
+		local name, option = v[1], v[2]
+		if (name == "*SPACER*") then
+			self.Menu:AddSpacer()
+		else
+			self.Menu:AddOption(name,option)
+		end
 	end
 	self.Menu:Open()
 end
 
-function PANEL:AddRightClick(menu, name, option)
+function PANEL:AddRightClick(menu, pos, name, option)
 	if(!menu) then menu = {} end
-	if(menu[name]) then return end
-	menu[name] = option
+	if (!pos) then pos = #menu + 1 end
+	if(menu[pos]) then
+		table.insert(menu,pos,{name,option})
+		return
+	end
+	menu[pos] = {name,option}
 end
 
 function PANEL:Setup(folder)

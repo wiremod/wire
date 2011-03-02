@@ -307,6 +307,7 @@ end)
 
 /******************************************************************************/
 
+
 local sub = string.sub
 local gsub = string.gsub
 local find = string.find
@@ -377,41 +378,18 @@ local specialchars = {
 
 __e2setcost(5)
 
-local gmatch = string.gmatch
-local Right = string.Right
-
 --- Splits the string into an array, along the boundaries formed by the string <pattern>. See also [[string.Explode]]
+local string_Explode = string.Explode
 e2function array string:explode(string delim)
-	if (this == "") then return {} end
-    if (delim == "") then -- Quicker loop for when the delim is empty
-        local ret = {}
-        for i=1,#this do
-            ret[i] = this:sub(i,i)
-        end
-		self.prf = self.prf + #this / 2
-        return ret
-    elseif (#delim == 1) then -- Quicker loop when delim is 1 char
-        local ret = {}
-        local _delim, count = delim, 0
-        if (specialchars[delim]) then delim = "%" .. delim end
-        for word in this:gmatch( "[^" .. delim .. "]+" ) do
-			self.prf = self.prf + 0.5
-            count = count + 1
-            ret[count] = word
-        end
-        return ret
-    else -- Thanks to Deco Da Man for making this part
-        local res = {}
-        local count, newpos, pos, start = 1, 0
-        repeat
-            pos = newpos+1
-            start, newpos = this:find( delim, pos, true )
-            res[count] = this:sub( pos, (start or 0)-1)
-            count = count + 1
-			self.prf = self.prf + 0.5
-        until not start
-        return res
-    end
+	local ret = string_Explode( delim, this )
+	self.prf = self.prf + #ret * 0.3 + #this * 0.1
+	return ret
+end
+
+e2function array string:explodeRE( string delim )
+	local ret = string_Explode( delim, this, true )
+	self.prf = self.prf + #ret * 0.3 + #this * 0.1
+	return ret
 end
 
 __e2setcost(10)
@@ -423,6 +401,8 @@ end
 
 /******************************************************************************/
 local string_format = string.format
+local gmatch = string.gmatch
+local Right = string.Right
 
 --- Formats a values exactly like Lua's [http://www.lua.org/manual/5.1/manual.html#pdf-string.format string.format]. Any number and type of parameter can be passed through the "...". Prints errors to the chat area.
 e2function string format(string fmt, ...)
