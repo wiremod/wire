@@ -23,12 +23,18 @@ E2Lib.registerConstant( "FILE_TRANSFER_ERROR", FILE_TRANSFER_ERROR )
 local delays = {}
 local uploads = {}
 local downloads = {}
+local lists = {}
 local run_on = {
 	file = {
 		run = 0,
 		name = "",
 		ents = {},
 		status = FILE_UNKNOWN
+	},
+	list = {
+		run = 0,
+		dir = "",
+		ents = {}
 	}
 }
 
@@ -44,6 +50,7 @@ end
 
 local function file_Upload( ply, entity, filename )
 	if !file_canUpload( ply ) or !IsValid( entity ) or !IsValid( ply ) or !ply:IsPlayer() or string.Right( filename, 4 ) != ".txt" then return false end
+	if string.len( filename ) > 250 then return false end
 
 	uploads[ply] = {
 		name = filename,
@@ -59,6 +66,7 @@ local function file_Upload( ply, entity, filename )
 
 	delays[ply].upload = CurTime()
 end
+
 
 local function file_canDownload( ply )
 	local pfile = downloads[ply]
@@ -84,7 +92,38 @@ local function file_Download( ply, filename, data, append )
 	}
 end
 
+
+local function file_canList( ply )
+	local plist = lists[ply]
+	local pdel = (delays[ply] or {}).list
+
+	if (plist and plist.uploading) or
+		(pdel and (CurTime() - pdel) < cv_transfer_delay:GetInt()) then return false end
+
+	return true
+end
+
+local function file_List( ply, entity, dir )
+	if !file_canList( ply ) or !IsValid( ply ) or !ply:IsPlayer() then return false end
+	if string.len( dir ) > 250 then return false end
+
+	lists[ply] = {
+		dir = dir,
+		data = {},
+		uploading = true,
+		uploaded = false,
+		ent = entity
+	}
+
+	umsg.Start( "wire_expression2_request_list", ply )
+		umsg.String( dir )
+	umsg.End()
+
+	delays[ply].list = CurTime()
+end
+
 /* --- File loading --- */
+
 __e2setcost( 20 )
 
 e2function void fileLoad( string filename )
@@ -130,11 +169,7 @@ __e2setcost( 10 )
 e2function string fileRead()
 	local pfile = uploads[self.player]
 
-	if pfile.uploaded and !pfile.uploading then
-		return pfile.data
-	end
-
-	return ""
+	return (pfile.uploaded and !pfile.uploading) and pfile.data or ""
 end
 
 __e2setcost( 5 )
@@ -157,6 +192,38 @@ e2function void fileAppend( string filename, string data )
 	file_Download( self.player, filename, data, true )
 end
 
+/* --- File Listing --- */
+
+__e2setcost( 20 )
+
+e2function void fileList( string dir )
+	file_List( self.player, self.entity, dir )
+end
+
+__e2setcost( 5 )
+
+e2function number fileCanList()
+	return file_canList( self.player ) and 1 or 0
+end
+
+e2function number fileLoadedList()
+	local plist = lists[self.player]
+
+	return (!plist.uploading and plist.uploaded) and 1 or 0
+end
+
+e2function number fileLoadingList()
+	local plist = lists[self.player]
+
+	return plist.uploading and 1 or 0
+end
+
+e2function array fileReadList()
+	local plist = lists[self.player]
+
+	return (plist.uploaded and !plist.uploading and plist.data) and plist.data or {}
+end
+
 /* --- runOnFile event --- */
 
 __e2setcost( 5 )
@@ -170,11 +237,23 @@ e2function number fileClk()
 end
 
 e2function number fileClk( string filename )
-	if run_on.file.run == 1 and run_on.file.name == filename then
-		return 1
-	else
-		return 0
-	end
+	return (run_on.file.run == 1 and run_on.file.name == filename) and 1 or 0
+end
+
+/* -- runOnList event --- */
+
+__e2setcost( 5 )
+
+e2function void runOnList( active )
+	run_on.list.ents[self.entity] = (active != 0)
+end
+
+e2function number fileListClk()
+	return run_on.list.run
+end
+
+e2function number fileListClk( string dir )
+	return (run_on.list.run == 1 and run_on.list.dir == dir) and 1 or 0
 end
 
 /* --- Hooks 'n' Shit --- */
@@ -188,11 +267,18 @@ registerCallback( "construct", function( self )
 		downloading = false,
 		downloaded = false
 	}
+	lists[self.player] = lists[self.player] or {
+		uploading = false,
+		uploaded = false
+	}
 	delays[self.player] = delays[self.player] or {
 		upload = 0,
-		download = 0
+		download = 0,
+		list = 0
 	}
 end )
+
+/* Downloading */
 
 timer.Create(
 	"wire_expression2_flush_file_buffer",
@@ -235,6 +321,8 @@ timer.Create(
 		end
 	end
 )
+
+/* Uploading */
 
 local function file_execute( ent, filename, status )
 	if !IsValid( ent ) or !run_on.file.ents[ent] then return end
@@ -331,4 +419,49 @@ concommand.Add( "wire_expression2_file_finish", function( ply, com, args )
 	pfile.uploaded = true
 
 	file_execute( pfile.ent, pfile.name, FILE_OK )
+end )
+
+/* Listing */
+
+local function list_timeout_callback( ply )
+	local plist = lists[ply]
+
+	if !plist then return end
+
+	plist.uploading = false
+	plist.uploaded = false
+
+	//No status for fileList so no real point in calling an execution here...
+end
+
+concommand.Add( "wire_expression2_file_list", function( ply, com, args )
+	local plist = lists[ply]
+	if !plist then return end
+
+	local timername = "wire_expression2_filelist_check_timeout_" .. ply:EntIndex()
+
+	if timer.IsTimer( timername ) then
+		timer.Remove( timername )
+	end
+
+	if args[1] == "1" then
+		timer.Create( timername, 5, 1, list_timeout_callback, ply )
+
+		local data = E2Lib.decode( args[2] )
+
+		table.insert( plist.data, data )
+
+		return
+	end
+
+	plist.uploaded = true
+	plist.uploading = false
+
+	run_on.list.run = 1
+	run_on.list.dir = plist.dir
+
+	plist.ent:Execute()
+
+	run_on.list.run = 0
+	run_on.list.dir = ""
 end )

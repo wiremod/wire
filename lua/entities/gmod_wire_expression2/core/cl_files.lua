@@ -22,19 +22,29 @@ for _,dir in pairs( allowed_directories ) do
 	if !file.IsDir( dir ) then file.CreateDir( dir ) end
 end
 
-local function process_filename( filename )
-	if string.find( filename, "..", 1, true ) then return "e2files/noname.txt" end
-
-	if string.Left( filename, 1 ) == ">" then
-		local diresc = string.find( filename, "/" )
-		local extdir = string.sub( filename, 2, diresc - 1 )
-
-		filename = (allowed_directories[extdir] or "e2files") .. string.sub( filename, diresc, string.len( filename ) )
-	else
-		filename = "e2files/" .. filename
+local function process_filepath( filepath )
+	if string.find( filepath, "..", 1, true ) then
+		return "e2files/", "noname.txt"
 	end
 
-	return filename or "e2files/noname.txt"
+	local fullpath = ""
+
+	if string.Left( filepath, 1 ) == ">" then
+		local diresc = string.find( filepath, "/" )
+
+		if diresc then
+			local extdir = string.sub( filepath, 2, diresc - 1 )
+			local dir = (allowed_directories[extdir] or "e2files") .. "/"
+
+			fullpath = dir .. string.sub( filepath, diresc + 1, string.len( filepath ) )
+		else
+			fullpath = "e2files/" .. filepath
+		end
+	else
+		fullpath = "e2files/" .. filepath
+	end
+
+	return string.GetPathFromFilename( fullpath ) or "e2files/", string.GetFileFromFilename( fullpath ) or "noname.txt"
 end
 
 /* --- File Read --- */
@@ -59,10 +69,11 @@ local function upload_callback()
 end
 
 usermessage.Hook( "wire_expression2_request_file", function( um )
-	local filename = process_filename( um:ReadString() )
+	local fpath,fname = process_filepath( um:ReadString() )
+	local fullpath = fpath .. fname
 
-	if file.Exists( filename ) and file.Size( filename ) <= (cv_max_transfer_size:GetInt() * 1024) then
-		local filedata = file.Read( filename ) or ""
+	if file.Exists( fullpath ) and file.Size( fullpath ) <= (cv_max_transfer_size:GetInt() * 1024) then
+		local filedata = file.Read( fullpath ) or ""
 
 		local encoded = E2Lib.encode( filedata )
 
@@ -83,8 +94,11 @@ end )
 /* --- File Write --- */
 
 usermessage.Hook( "wire_expression2_file_download_begin", function( um )
+	local fpath,fname = process_filepath( um:ReadString() )
+	local fullpath = fpath .. fname
+
 	download_buffer = {
-		name = process_filename( um:ReadString() ),
+		name = fullpath,
 		data = ""
 	}
 end )
@@ -103,4 +117,20 @@ usermessage.Hook( "wire_expresison2_file_download_finish", function( um )
 	end
 
 	file.Write( (download_buffer.name or "e2files/noname.txt"), ofile .. download_buffer.data )
+end )
+
+/* --- File List --- */
+
+usermessage.Hook( "wire_expression2_request_list", function( um )
+	local dir = process_filepath( um:ReadString() or "" )
+
+	for _,fop in pairs( file.Find( dir .. "*" ) ) do
+		local ext = string.GetExtensionFromFilename( fop )
+
+		if (!ext or ext == "txt") and string.len( fop ) < 250 then
+			RunConsoleCommand( "wire_expression2_file_list", "1", E2Lib.encode( fop .. ((!ext) and "/" or "") ) )
+		end
+	end
+
+	RunConsoleCommand( "wire_expression2_file_list", "0" )
 end )
