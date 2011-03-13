@@ -26,34 +26,64 @@ local wire_holograms_size_max = CreateConVar( "wire_holograms_size_max", "50" )
 local E2HoloRepo = {}
 local PlayerAmount = {}
 local BlockList = {}
+
 local ModelList = {
-	["cone"] = true,
-	["cube"] = true,
-	["dome"] = true,
-	["dome2"] = true,
-	["cylinder"] = true,
-	["hqcone"] = true,
-	["hqcylinder"] = true,
-	["hqcylinder2"] = true,
-	["hqicosphere"] = true,
-	["hqicosphere2"] = true,
-	["hqsphere"] = true,
-	["hqsphere2"] = true,
-	["hqtorus"] = true,
-	["hqtorus2"] = true,
-	["icosphere"] = true,
-	["icosphere2"] = true,
-	["icosphere3"] = true,
-	["prism"] = true,
-	["pyramid"] = true,
-	["plane"] = true,
-	["sphere"] = true,
-	["sphere2"] = true,
-	["sphere3"] = true,
-	["tetra"] = true,
-	["torus"] = true,
-	["torus2"] = true,
-	["torus3"] = true
+	["cone"]              = "cone",
+	["cube"]              = "cube",
+	["cylinder"]          = "cylinder",
+	["hq_cone"]           = "hq_cone",
+	["hq_cylinder"]       = "hq_cylinder",
+	["hq_dome"]           = "hq_dome",
+	["hq_hdome"]          = "hq_hdome",
+	["hq_hdome_thick"]    = "hq_hdome_thick",
+	["hq_hdome_thin"]     = "hq_hdome_thin",
+	["hq_icosphere"]      = "hq_icosphere",
+	["hq_sphere"]         = "hq_sphere",
+	["hq_torus"]          = "hq_torus",
+	["hq_torus_thick"]    = "hq_torus_thick",
+	["hq_torus_thin"]     = "hq_torus_thin",
+	["hq_torus_oldsize"]  = "hq_torus_oldsize",
+	["hq_tube"]           = "hq_tube",
+	["hq_tube_thick"]     = "hq_tube_thick",
+	["hq_tube_thin"]      = "hq_tube_thin",
+	["icosphere"]         = "icosphere",
+	["icosphere2"]        = "icosphere2",
+	["icosphere3"]        = "icosphere3",
+	["plane"]             = "plane",
+	["prism"]             = "prism",
+	["pyramid"]           = "pyramid",
+	["sphere"]            = "sphere",
+	["sphere2"]           = "sphere2",
+	["sphere3"]           = "sphere3",
+	["tetra"]             = "tetra",
+	["torus"]             = "torus",
+	["torus2"]            = "torus2",
+	["torus3"]            = "torus3",
+
+	["hq_rcube"]          = "hq_rcube",
+	["hq_rcube_thick"]    = "hq_rcube_thick",
+	["hq_rcube_thin"]     = "hq_rcube_thin",
+	["hq_rcylinder"]      = "hq_rcylinder",
+	["hq_rcylinder_thick"]= "hq_rcylinder_thick",
+	["hq_rcylinder_thin"] = "hq_rcylinder_thin",
+	["hq_cubinder"]       = "hq_cubinder",
+	["hexagon"]           = "hexagon",
+	["octagon"]           = "octagon",
+	["right_prism"]       = "right_prism",
+
+	// Removed models with their replacements
+
+	["dome"]             = "hq_dome",
+	["dome2"]            = "hq_hdome",
+	["hqcone"]           = "hq_cone",
+	["hqcylinder"]       = "hq_cylinder",
+	["hqcylinder2"]      = "hq_cylinder",
+	["hqicosphere"]      = "hq_icosphere",
+	["hqicosphere2"]     = "hq_icosphere",
+	["hqsphere"]         = "hq_sphere",
+	["hqsphere2"]        = "hq_sphere",
+	["hqtorus"]          = "hq_torus_oldsize",
+	["hqtorus2"]         = "hq_torus_oldsize"
 }
 
 for k,_ in pairs( ModelList ) do
@@ -181,6 +211,10 @@ local function rescale(Holo, scale)
 	local z = math.Clamp( scale[3], minval, maxval )
 
 	local scale = Vector(x, y, z)
+
+	local obbmax = Holo.ent:OBBMaxs()
+	local obbmin = Holo.ent:OBBMins()
+
 	if Holo.scale ~= scale then
 		table.insert(scale_queue, { Holo, scale })
 		Holo.scale = scale
@@ -339,7 +373,8 @@ local function CreateHolo(self, index, pos, scale, ang, color, model)
 	if not pos   then pos   = self.entity:GetPos() end
 	if not scale then scale = Vector(1,1,1) end
 	if not ang   then ang   = self.entity:GetAngles() end
-	if not model or not ModelList[model] then model = "cube" end
+	model = ModelList[model]
+	if not model then model = "cube" end
 
 	local Holo = CheckIndex(self, index)
 	if not Holo then
@@ -516,6 +551,7 @@ end
 
 e2function void holoReset(index, string model, vector scale, vector color, string color)
 	if !ModelList[model] then return end
+	model = ModelList[model]
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
 
@@ -529,12 +565,12 @@ end
 __e2setcost(5)
 
 e2function number holoCanCreate()
-	if (not checkOwner(self)) then return 0; end
+	if (not checkOwner(self)) then return 0 end
+
 	if CheckSpawnTimer(self, true) == false or PlayerAmount[self.uid] >= GetConVar("wire_holograms_max"):GetInt() then
 
 		return 0
 	end
-
 
 	return 1
 end
@@ -566,7 +602,9 @@ e2function void holoScaleUnits(index, vector size)
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
 
-	local propsize = Holo.ent:OBBMaxs() - Holo.ent:OBBMins()
+	local a,b = Holo.ent:GetPhysicsObject():GetAABB()
+	local propsize = b - a
+
 	local x = size[1] / propsize.x
 	local y = size[2] / propsize.y
 	local z = size[3] / propsize.z
@@ -579,7 +617,9 @@ e2function vector holoScaleUnits(index)
 	if not Holo then return {0,0,0} end
 
 	local scale = Holo.scale or {0,0,0} -- TODO: maybe {1,1,1}?
-	local propsize = Holo.ent:OBBMaxs() - Holo.ent:OBBMins()
+
+	local a,b = Holo.ent:GetPhysicsObject():GetAABB()
+	local propsize = b - a
 
 	return Vector(scale[1] * propsize.x, scale[2] * propsize.y, scale[3] * propsize.z)
 end
@@ -695,16 +735,18 @@ end
 e2function array holoModelList()
 	local mlist = {}
 
-	for m,_ in pairs( ModelList ) do
-		mlist[#mlist + 1] = m
+	for k,v in pairs( ModelList ) do
+	    if k == v then mlist[#mlist + 1] = k end
 	end
 
 	return mlist
 end
+
 e2function void holoModel(index, string model)
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
 	if !ModelList[model] then return end
+	model = ModelList[model]
 
 	Holo.ent:SetModel( Model( "models/Holograms/"..model..".mdl") )
 end
@@ -717,6 +759,7 @@ e2function void holoModel(index, string model, skin)
 	Holo.ent:SetSkin(skin)
 
 	if !ModelList[model] then return end
+	model = ModelList[model]
 
 	Holo.ent:SetModel( Model( "models/Holograms/"..model..".mdl") )
 end

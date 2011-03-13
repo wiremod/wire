@@ -1,9 +1,0 @@
-"VertexLitGeneric"
-{
-	"$basetexture" "Holograms/Plastic.vtf"
-	"$surfaceprop" "tile"
-	"$bumpmap" "Holograms/Plastic"
-	"$ssbump"	"1"
-	"$halflambert" "1"
-	"$model" "1"
-}
