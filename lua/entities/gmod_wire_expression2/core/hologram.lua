@@ -602,8 +602,7 @@ e2function void holoScaleUnits(index, vector size)
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
 
-	local a,b = Holo.ent:GetPhysicsObject():GetAABB()
-	local propsize = b - a
+	local propsize = Holo.ent:OBBMaxs()-Holo.ent:OBBMins()
 
 	local x = size[1] / propsize.x
 	local y = size[2] / propsize.y
@@ -618,8 +617,7 @@ e2function vector holoScaleUnits(index)
 
 	local scale = Holo.scale or {0,0,0} -- TODO: maybe {1,1,1}?
 
-	local a,b = Holo.ent:GetPhysicsObject():GetAABB()
-	local propsize = b - a
+	local propsize = Holo.ent:OBBMaxs()-Holo.ent:OBBMins()
 
 	return Vector(scale[1] * propsize.x, scale[2] * propsize.y, scale[3] * propsize.z)
 end
