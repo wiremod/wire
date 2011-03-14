@@ -83,7 +83,24 @@ local ModelList = {
 	["hqsphere"]         = "hq_sphere",
 	["hqsphere2"]        = "hq_sphere",
 	["hqtorus"]          = "hq_torus_oldsize",
-	["hqtorus2"]         = "hq_torus_oldsize"
+	["hqtorus2"]         = "hq_torus_oldsize",
+
+	// HQ models with their short names
+
+	["hqhdome"]          = "hq_hdome",
+	["hqhdome2"]         = "hq_hdome_thin",
+	["hqhdome3"]         = "hq_hdome_thick",
+	["hqtorus3"]         = "hq_torus_thick",
+	["hqtube"]           = "hq_tube",
+	["hqtube2"]          = "hq_tube_thin",
+	["hqtube3"]          = "hq_tube_thick",
+	["hqrcube"]          = "hq_rcube",
+	["hqrcube2"]         = "hq_rcube_thick",
+	["hqrcube3"]         = "hq_rcube_thin",
+	["hqrcylinder"]      = "hq_rcylinder",
+	["hqrcylinder2"]     = "hq_rcylinder_thin",
+	["hqrcylinder3"]     = "hq_rcylinder_thick",
+	["hqcubinder"]       = "hq_cubinder",
 }
 
 for k,_ in pairs( ModelList ) do
@@ -117,7 +134,7 @@ local function flush_scale_queue(queue, recipient)
 				bytes = 4+14 -- Header(2)+Short(2)+Vector(12)+Short(2)
 			end
 			umsg.Short(Holo.ent:EntIndex())
-			umsg.Vector(scale)
+			umsg.Float(scale.x) umsg.Float(scale.y) umsg.Float(scale.z)
 		end
 		umsg.Short(0)
 	umsg.End()
@@ -153,8 +170,8 @@ local function flush_clip_queue(queue, recipient)
 					bytes = bytes + 27
 
 					umsg.Bool(false)
-					umsg.Vector(clip.origin)
-					umsg.Vector(clip.normal)
+					umsg.Float(clip.origin.x) umsg.Float(clip.origin.y) umsg.Float(clip.origin.z)
+					umsg.Float(clip.normal.x) umsg.Float(clip.normal.y) umsg.Float(clip.normal.z)
 					umsg.Short(clip.isglobal)
 				end
 			end

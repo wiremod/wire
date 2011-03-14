@@ -70,7 +70,7 @@ function ENT:Initialize()
 end
 
 function ENT:OnRestore()
-	self:Setup(self.original)
+	self:Setup(self.original,nil,true)
 end
 
 function ENT:Execute()
@@ -266,14 +266,14 @@ function ENT:ResetContext()
 	self.error = false
 end
 
-function ENT:Setup(buffer, restore)
+function ENT:Setup(buffer, restore, forcecompile)
 	if self.script then
 		self:PCallHook('destruct')
 	end
 
 	self.uid = self.player:UniqueID()
 
-	if (self.original != buffer) then
+	if (self.original != buffer or forcecompile) then
 		self:CompileCode( buffer )
 	else
 		self:ResetContext()

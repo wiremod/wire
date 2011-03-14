@@ -2012,7 +2012,7 @@ function EDITOR:AC_Check( notimer )
 			return diff1 < diff2
 		end)
 
-		if (word == suggestions[1].str( suggestions[1] ) and #suggestions) then -- The word matches the first suggestion exactly, and there are no more suggestions. No need to bother displaying
+		if (word == suggestions[1].str( suggestions[1] ) and #suggestions == 1) then -- The word matches the first suggestion exactly, and there are no more suggestions. No need to bother displaying
 			self:AC_SetVisible( false )
 			return
 		end
