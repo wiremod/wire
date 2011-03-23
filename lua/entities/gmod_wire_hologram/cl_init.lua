@@ -117,7 +117,7 @@ usermessage.Hook("wire_holograms_clip", function( um )
 		if um:ReadBool() then
 			SetClipEnabled(eidx, cidx, um:ReadBool())
 		else
-			SetClip(eidx, cidx, Vector(um:ReadFloat(),um:ReadFloat(),um:ReadFloat()), Vector(um:ReadFloat(),um:ReadFloat(),um:ReadFloat()), um:ReadShort() ~= 0)
+			SetClip(eidx, cidx, um:ReadVector(), um:ReadVector(), um:ReadShort() ~= 0)
 		end
 
 		eidx = um:ReadShort()

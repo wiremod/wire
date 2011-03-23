@@ -282,9 +282,9 @@ function Editor:Think()
 	if(!self.pressed) then
 		local cursor = "arrow"
 		local mode = self:getMode()
-		if(mode == "sizeBR") then cursor = "sizenwse" end
-		if(mode == "sizeR") then cursor = "sizewe" end
-		if(mode == "sizeB") then cursor = "sizens" end
+		if(mode == "sizeBR") then cursor = "sizenwse"
+		elseif(mode == "sizeR") then cursor = "sizewe"
+		elseif(mode == "sizeB") then cursor = "sizens" end
 		if(cursor != self.cursor) then
 			self.cursor = cursor
 			self:SetCursor(self.cursor)
@@ -1104,7 +1104,7 @@ function Editor:InitControlPanel(frame)
 	modes[3] = modes["Scroller w/ Enter"][2]
 	modes[4] = modes["Eclipse Style"][2]
 	AutoCompleteControlOptions:SetEditable( false )
-	AutoCompleteControlOptions:SetToolTip( modes[self.BlockCommentStyleConVar:GetInt()] )
+	AutoCompleteControlOptions:SetToolTip( modes[GetConVar("wire_expression2_autocomplete_controlstyle"):GetInt()] )
 
 
 	AutoCompleteControlOptions.OnSelect = function( panel, index, value )
@@ -1112,12 +1112,31 @@ function Editor:InitControlPanel(frame)
 		RunConsoleCommand( "wire_expression2_autocomplete_controlstyle", modes[value][1] )
 	end
 
+	local HighightOnUse = vgui.Create( "DCheckBoxLabel" )
+	dlist:AddItem( HighightOnUse )
+	HighightOnUse:SetConVar( "wire_expression2_autocomplete_highlight_after_use" )
+	HighightOnUse:SetText( "Highlight word after AC use." )
+	HighightOnUse:SizeToContents()
+	HighightOnUse:SetTooltip( "Enable/Disable highlighting of the entire word after using auto completion.\nIn E2, this is only for variables/constants, not functions." )
+
+	local label = vgui.Create("DLabel")
+	dlist:AddItem( label )
+	label:SetText( "Other options" )
+	label:SizeToContents()
+
 	local NewTabOnOpen = vgui.Create( "DCheckBoxLabel" )
 	dlist:AddItem( NewTabOnOpen )
 	NewTabOnOpen:SetConVar( "wire_expression2_new_tab_on_open" )
 	NewTabOnOpen:SetText( "New tab on open" )
 	NewTabOnOpen:SizeToContents()
 	NewTabOnOpen:SetTooltip( "Enable/disable loaded files opening in a new tab.\nIf disabled, loaded files will be opened in the current tab." )
+
+	local DisplayCaretPos = vgui.Create( "DCheckBoxLabel" )
+	dlist:AddItem( DisplayCaretPos )
+	DisplayCaretPos:SetConVar( "wire_expression2_editor_display_caret_pos" )
+	DisplayCaretPos:SetText( "Show Caret Position" )
+	DisplayCaretPos:SizeToContents()
+	DisplayCaretPos:SetTooltip( "Shows the position of the caret." )
 
 	--------------------------------------------- EXPRESSION 2 TAB
 	local sheet = self:AddControlPanelTab( "Expression 2", "gui/silkicons/world", "Options for Expression 2." )
@@ -1364,6 +1383,10 @@ end
 local code1 = "@name \n@inputs \n@outputs \n@persist \n@trigger \n\n"
 -- code2 contains the code that is to be marked, so it can simply be overwritten or deleted.
 local code2 = [[#[
+    The find and replace windows have been combined into
+    a single menu, and a go to line function has
+    been added. Simply press ctrl+f/g/h to open it.
+
     The options menu has been redesigned - it's much more
     organized now.
 
