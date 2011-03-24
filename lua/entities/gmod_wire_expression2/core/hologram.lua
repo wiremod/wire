@@ -100,12 +100,12 @@ local ModelList = {
 	["hqrcylinder"]      = "hq_rcylinder",
 	["hqrcylinder2"]     = "hq_rcylinder_thin",
 	["hqrcylinder3"]     = "hq_rcylinder_thick",
-	["hqcubinder"]       = "hq_cubinder",
+	["hqcubinder"]       = "hq_cubinder"
 }
 
-for k,_ in pairs( ModelList ) do
-	util.PrecacheModel( "models/Holograms/" .. k .. ".mdl" )
-	resource.AddSingleFile( "models/Holograms/" .. k .. ".mdl" )
+for _,v in pairs( ModelList ) do
+	util.PrecacheModel( "models/Holograms/" .. v .. ".mdl" )
+	resource.AddSingleFile( "models/Holograms/" .. v .. ".mdl" )
 end
 
 /******************************************************************************/
@@ -750,8 +750,8 @@ end
 e2function array holoModelList()
 	local mlist = {}
 
-	for k,v in pairs( ModelList ) do
-	    if k == v then mlist[#mlist + 1] = k end
+	for k,_ in pairs( ModelList ) do
+	    mlist[#mlist + 1] = k
 	end
 
 	return mlist

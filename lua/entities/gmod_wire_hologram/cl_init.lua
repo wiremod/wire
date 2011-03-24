@@ -162,7 +162,7 @@ usermessage.Hook("wire_holograms_set_scale", function( um )
 	local index = um:ReadShort()
 
 	while index ~= 0 do
-		local scale = Vector(um:ReadFloat(),um:ReadFloat(),um:ReadFloat())
+		local scale = um:ReadVector()
 
 		SetScale(index, scale)
 		index = um:ReadShort()
