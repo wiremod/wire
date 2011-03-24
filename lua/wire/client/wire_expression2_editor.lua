@@ -794,7 +794,17 @@ function Editor:InitComponents()
 		)
 	end )
 	self.C['Val'].panel:SetText( "   Click to validate..." )
-	self.C['Val'].panel.OnMousePressed = function(panel) self:Validate(true) end
+	self.C['Val'].panel.OnMousePressed = function(panel,btn)
+		if (btn == MOUSE_RIGHT) then
+			local menu = DermaMenu()
+			menu:AddOption( "Copy to clipboard", function()
+				SetClipboardText(self.C['Val'].panel:GetValue():sub(4))
+			end)
+			menu:Open()
+		else
+			self:Validate(true)
+		end
+	end
 	self.C['Btoggle'].panel:SetText("<")
 	self.C['Btoggle'].panel.Paint = function(button)
 		local w,h = button:GetSize()
@@ -1137,6 +1147,13 @@ function Editor:InitControlPanel(frame)
 	DisplayCaretPos:SetText( "Show Caret Position" )
 	DisplayCaretPos:SizeToContents()
 	DisplayCaretPos:SetTooltip( "Shows the position of the caret." )
+
+	local HighlightOnDoubleClick = vgui.Create( "DCheckBoxLabel" )
+	dlist:AddItem( HighlightOnDoubleClick )
+	HighlightOnDoubleClick:SetConVar( "wire_expression2_editor_highlight_on_double_click" )
+	HighlightOnDoubleClick:SetText( "Highlight Selected Words" )
+	HighlightOnDoubleClick:SizeToContents()
+	HighlightOnDoubleClick:SetTooltip( "Find all identical words and highlight them after a double-click." )
 
 	--------------------------------------------- EXPRESSION 2 TAB
 	local sheet = self:AddControlPanelTab( "Expression 2", "gui/silkicons/world", "Options for Expression 2." )

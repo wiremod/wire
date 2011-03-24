@@ -186,9 +186,9 @@ function PANEL:Init()
 			-- The rename function appears to be broken. Using file.Read, file.Delete, and file.Write instead.
 			--file.Rename("data/" .. self.File.FileDir, "data/" .. string.GetPathFromFilename(self.File.FileDir) .. "/" .. strTextOut .. ".txt")
 
-			local contents = file.Read( "data/" .. self.File.FileDir )
-			file.Delete( "data/" .. self.File.FileDir )
-			file.Write( "data/" .. string.GetPathFromFilename(self.File.FileDir) .. "/" .. strTextOut .. ".txt", contents )
+			local contents = file.Read( self.File.FileDir )
+			file.Delete( self.File.FileDir )
+			file.Write( string.GetPathFromFilename(self.File.FileDir) .. "/" .. strTextOut .. ".txt", contents )
 
 			self:UpdateFolders()
 		end)
