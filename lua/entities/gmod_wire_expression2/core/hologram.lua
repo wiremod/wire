@@ -103,9 +103,15 @@ local ModelList = {
 	["hqcubinder"]       = "hq_cubinder"
 }
 
+local added = {}
+
 for _,v in pairs( ModelList ) do
-	util.PrecacheModel( "models/Holograms/" .. v .. ".mdl" )
-	resource.AddSingleFile( "models/Holograms/" .. v .. ".mdl" )
+	if !added[v] then
+		util.PrecacheModel( "models/Holograms/" .. v .. ".mdl" )
+		resource.AddSingleFile( "models/Holograms/" .. v .. ".mdl" )
+
+		added[v] = true
+	end
 end
 
 /******************************************************************************/
