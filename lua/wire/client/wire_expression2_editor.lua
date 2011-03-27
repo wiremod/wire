@@ -1103,7 +1103,6 @@ function Editor:InitControlPanel(frame)
 	modes["Eclipse Style"]				= { 4, "Current mode:\nEnter to use top match;\nTab to enter auto completion menu;\nArrow keys to choose item;\nEnter to use;\nSpace to abort." }
 	--modes["Qt Creator Style"]			= { 6, "Current mode:\nCtrl+Space to enter auto completion menu;\nSpace to abort; Enter to use top match." } <-- probably wrong. I'll check about adding Qt style later.
 
-
 	for k,v in pairs( modes ) do
 		AutoCompleteControlOptions:AddChoice( k )
 	end
@@ -1141,6 +1140,13 @@ function Editor:InitControlPanel(frame)
 	NewTabOnOpen:SizeToContents()
 	NewTabOnOpen:SetTooltip( "Enable/disable loaded files opening in a new tab.\nIf disabled, loaded files will be opened in the current tab." )
 
+	local OpenOldTabs = vgui.Create( "DCheckBoxLabel" )
+	dlist:AddItem( OpenOldTabs )
+	OpenOldTabs:SetConVar( "wire_expression2_editor_openoldtabs" )
+	OpenOldTabs:SetText( "Open old tabs" )
+	OpenOldTabs:SizeToContents()
+	OpenOldTabs:SetTooltip( "Open the tabs from the last session on load.\nOnly tabs whose files are saved before disconnecting from the server are stored." )
+
 	local DisplayCaretPos = vgui.Create( "DCheckBoxLabel" )
 	dlist:AddItem( DisplayCaretPos )
 	DisplayCaretPos:SetConVar( "wire_expression2_editor_display_caret_pos" )
@@ -1151,7 +1157,7 @@ function Editor:InitControlPanel(frame)
 	local HighlightOnDoubleClick = vgui.Create( "DCheckBoxLabel" )
 	dlist:AddItem( HighlightOnDoubleClick )
 	HighlightOnDoubleClick:SetConVar( "wire_expression2_editor_highlight_on_double_click" )
-	HighlightOnDoubleClick:SetText( "Highlight Selected Words" )
+	HighlightOnDoubleClick:SetText( "Highlight copies of selected word" )
 	HighlightOnDoubleClick:SizeToContents()
 	HighlightOnDoubleClick:SetTooltip( "Find all identical words and highlight them after a double-click." )
 
@@ -1437,6 +1443,8 @@ function Editor:NewScript( incurrent )
 			-- mark only code2
 			ed.Start = ed:MovePosition({ 1, 1 }, code1:len())
 			ed.Caret = ed:MovePosition({ 1, 1 }, defaultcode:len())
+		else
+			self:SetCode( "" )
 		end
 
 	end
@@ -1452,7 +1460,53 @@ function Editor:InitShutdownHook()
 		local buffer = self:GetCode()
 		if buffer == defaultcode then return end
 		file.Write(self.Location .. "/_shutdown_.txt", buffer)
+
+		self:SaveTabs()
 	end)
+end
+
+function Editor:SaveTabs()
+	local strtabs = ""
+	for i=1,self:GetNumTabs() do
+		local chosenfile = self:GetEditor( i ).chosenfile
+		if (chosenfile and chosenfile != "") then
+			strtabs = strtabs .. chosenfile .. ";"
+		end
+	end
+
+	strtabs = strtabs:sub(1,-2)
+
+	file.Write( self.Location .. "/_tabs_.txt", strtabs )
+end
+
+function Editor:OpenOldTabs()
+	if (!file.Exists( self.Location .. "/_tabs_.txt" )) then return end
+
+	-- Read file
+	local tabs = file.Read( self.Location .. "/_tabs_.txt" )
+	if (!tabs or tabs == "") then return end
+
+	-- Explode around ;
+	tabs = string.Explode( ";", tabs )
+	if (!tabs or #tabs == 0) then return end
+
+	local is_first = true
+	for k,v in pairs( tabs ) do
+		if (v and v != "") then
+			if (file.Exists( v )) then
+				-- Open it in a new tab
+				self:LoadFile( v, true )
+
+				-- If this is the first loop, close the initial tab.
+				if (is_first) then
+					timer.Simple(0,function()
+						self:CloseTab( 1 )
+					end)
+					is_first = false
+				end
+			end
+		end
+	end
 end
 
 local chipmap = {
@@ -1700,6 +1754,8 @@ function Editor:Close()
 	self.chip = false
 end
 
+local wire_expression2_editor_openoldtabs = CreateClientConVar( "wire_expression2_editor_openoldtabs", "1", true, false )
+
 function Editor:Setup(nTitle, nLocation, nEditorType)
 	self.Title = nTitle
 	self.Location = nLocation
@@ -1733,10 +1789,7 @@ function Editor:Setup(nTitle, nLocation, nEditorType)
 		end
 		E2Help.panel.DoClick = function()
 			E2Helper.Show()
-			E2Helper.CPUMode:Toggle()
-			E2Helper.CostColumn:SetName("Type")
-			E2Helper.ReturnsColumn:SetName("For What")
-			E2Helper.ReturnEntry:SetText(nEditorType)
+			E2Helper.UseCPU(nEditorType)
 			E2Helper.Update()
 		end
 		self.C.E2Help = E2Help
@@ -1765,11 +1818,7 @@ function Editor:Setup(nTitle, nLocation, nEditorType)
 		end
 		E2Help.panel.DoClick = function()
 			E2Helper.Show()
-			E2Helper.E2Mode:Toggle()
-			local val = E2Helper.ReturnEntry:GetValue()
-			if (val and (val == "CPU" or val == "GPU")) then E2Helper.ReturnEntry:SetText("") end
-			E2Helper.CostColumn:SetName("Cost")
-			E2Helper.ReturnsColumn:SetName("Returns")
+			E2Helper.UseE2(nEditorType)
 			E2Helper.Update()
 		end
 		self.C.E2Help = E2Help
@@ -1793,6 +1842,9 @@ function Editor:Setup(nTitle, nLocation, nEditorType)
 		-- Flag as E2
 		self.E2 = true
 		self:NewScript( true )
+	end
+	if (wire_expression2_editor_openoldtabs:GetBool()) then
+		self:OpenOldTabs()
 	end
 	self:InvalidateLayout()
 end

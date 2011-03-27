@@ -1821,12 +1821,9 @@ function EDITOR:ContextHelp()
 
 		word = line:sub(startcol, endcol)
 	end
-	if self:GetParent().E2 then
-		E2Helper.Show(word)
-	else
-		-- TODO: Add CPU/GPU context help
-		WireLib.AddNotify('"'..word..'"', NOTIFY_GENERIC, 5) -- TODO: comment this notify once the CPU context help is in
-	end
+	E2Helper.Show()
+	if (self:GetParent().E2) then E2Helper.UseE2(self:GetParent().EditorType) else E2Helper.UseCPU(self:GetParent().EditorType) end
+	E2Helper.Show(word)
 end
 
 function EDITOR:_OnKeyCodeTyped(code)

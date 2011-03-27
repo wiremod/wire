@@ -319,6 +319,23 @@ function E2Helper.Show(searchtext)
 	end
 end
 
+function E2Helper.UseE2(nEditorType)
+	E2Helper.CurrentMode = false
+	E2Helper.E2Mode:Toggle()
+	local val = E2Helper.ReturnEntry:GetValue()
+	if (val and (val == "CPU" or val == "GPU")) then E2Helper.ReturnEntry:SetText("") end
+	E2Helper.CostColumn:SetName("Cost")
+	E2Helper.ReturnsColumn:SetName("Returns")
+end
+
+function E2Helper.UseCPU(nEditorType)
+	E2Helper.CurrentMode = true
+	E2Helper.CPUMode:Toggle()
+	E2Helper.CostColumn:SetName("Type")
+	E2Helper.ReturnsColumn:SetName("For What")
+	E2Helper.ReturnEntry:SetText(nEditorType)
+end
+
 local delayed_cookie_update = delayed(1, cookie_update)
 
 local lastw, lasth

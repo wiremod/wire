@@ -277,7 +277,7 @@ to enable the cursor.]] )
 		pnl:ShowCloseButton( false ) -- We want to create our own close button
 		pnl:MakePopup()
 		pnl:SetVisible( false )
-		pnl:SetTitle( "WireMod Welcome and Information Menu" )
+		pnl:SetTitle( "Wiremod Welcome and Information Menu" )
 
 		local psheet = vgui.Create("DPropertySheet",pnl)
 		self.Menu.TabHolder = psheet
