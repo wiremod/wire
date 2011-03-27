@@ -499,6 +499,23 @@ function Editor:CreateTab( chosenfile )
 				self:SetActiveTab( self:GetLastTab() )
 				self:SetLastTab( old )
 			end)
+			menu:AddSpacer()
+			menu:AddOption( "Copy file path to clipboard", function()
+				if (editor.chosenfile and editor.chosenfile != "") then
+					SetClipboardText( editor.chosenfile )
+				end
+			end)
+			menu:AddOption( "Copy all file paths to clipboard", function()
+				local str = ""
+				for i=1,self:GetNumTabs() do
+					local chosenfile = self:GetEditor( i ).chosenfile
+					if (chosenfile and chosenfile != "") then
+						str = str .. chosenfile .. ";"
+					end
+				end
+				str = str:sub(1,-2)
+				SetClipboardText( str )
+			end)
 			menu:Open()
 			return
 		end
@@ -1140,12 +1157,19 @@ function Editor:InitControlPanel(frame)
 	NewTabOnOpen:SizeToContents()
 	NewTabOnOpen:SetTooltip( "Enable/disable loaded files opening in a new tab.\nIf disabled, loaded files will be opened in the current tab." )
 
+	local SaveTabsOnClose = vgui.Create( "DCheckBoxLabel" )
+	dlist:AddItem( SaveTabsOnClose )
+	SaveTabsOnClose:SetConVar( "wire_expression2_editor_savetabs" )
+	SaveTabsOnClose:SetText( "Save tabs on close" )
+	SaveTabsOnClose:SizeToContents()
+	SaveTabsOnClose:SetTooltip( "Save the currently opened tab file paths on shutdown.\nOnly saves tabs whose files are saved." )
+
 	local OpenOldTabs = vgui.Create( "DCheckBoxLabel" )
 	dlist:AddItem( OpenOldTabs )
 	OpenOldTabs:SetConVar( "wire_expression2_editor_openoldtabs" )
-	OpenOldTabs:SetText( "Open old tabs" )
+	OpenOldTabs:SetText( "Open old tabs on load" )
 	OpenOldTabs:SizeToContents()
-	OpenOldTabs:SetTooltip( "Open the tabs from the last session on load.\nOnly tabs whose files are saved before disconnecting from the server are stored." )
+	OpenOldTabs:SetTooltip( "Open the tabs from the last session on load.\nOnly tabs whose files were saved before disconnecting from the server are stored." )
 
 	local DisplayCaretPos = vgui.Create( "DCheckBoxLabel" )
 	dlist:AddItem( DisplayCaretPos )
@@ -1450,6 +1474,8 @@ function Editor:NewScript( incurrent )
 	end
 end
 
+local wire_expression2_editor_savetabs = CreateClientConVar( "wire_expression2_editor_savetabs", "1", true, false )
+
 local id = 0
 function Editor:InitShutdownHook()
 	id = id + 1
@@ -1461,7 +1487,9 @@ function Editor:InitShutdownHook()
 		if buffer == defaultcode then return end
 		file.Write(self.Location .. "/_shutdown_.txt", buffer)
 
-		self:SaveTabs()
+		if (wire_expression2_editor_savetabs:GetBool()) then
+			self:SaveTabs()
+		end
 	end)
 end
 
@@ -1478,6 +1506,8 @@ function Editor:SaveTabs()
 
 	file.Write( self.Location .. "/_tabs_.txt", strtabs )
 end
+
+local wire_expression2_editor_openoldtabs = CreateClientConVar( "wire_expression2_editor_openoldtabs", "1", true, false )
 
 function Editor:OpenOldTabs()
 	if (!file.Exists( self.Location .. "/_tabs_.txt" )) then return end
@@ -1753,8 +1783,6 @@ function Editor:Close()
 	self:SetV(false)
 	self.chip = false
 end
-
-local wire_expression2_editor_openoldtabs = CreateClientConVar( "wire_expression2_editor_openoldtabs", "1", true, false )
 
 function Editor:Setup(nTitle, nLocation, nEditorType)
 	self.Title = nTitle

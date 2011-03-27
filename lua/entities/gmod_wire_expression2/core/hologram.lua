@@ -46,6 +46,9 @@ local ModelList = {
 	["hq_tube"]           = "hq_tube",
 	["hq_tube_thick"]     = "hq_tube_thick",
 	["hq_tube_thin"]      = "hq_tube_thin",
+	["hq_stube"]           = "hq_stube",
+	["hq_stube_thick"]     = "hq_stube_thick",
+	["hq_stube_thin"]      = "hq_stube_thin",
 	["icosphere"]         = "icosphere",
 	["icosphere2"]        = "icosphere2",
 	["icosphere3"]        = "icosphere3",
@@ -94,6 +97,9 @@ local ModelList = {
 	["hqtube"]           = "hq_tube",
 	["hqtube2"]          = "hq_tube_thin",
 	["hqtube3"]          = "hq_tube_thick",
+	["hqstube"]          = "hq_stube",
+	["hqstube2"]         = "hq_stube_thin",
+	["hqstube3"]         = "hq_stube_thick",
 	["hqrcube"]          = "hq_rcube",
 	["hqrcube2"]         = "hq_rcube_thick",
 	["hqrcube3"]         = "hq_rcube_thin",
@@ -103,15 +109,9 @@ local ModelList = {
 	["hqcubinder"]       = "hq_cubinder"
 }
 
-local added = {}
-
-for _,v in pairs( ModelList ) do
-	if !added[v] then
-		util.PrecacheModel( "models/Holograms/" .. v .. ".mdl" )
-		resource.AddSingleFile( "models/Holograms/" .. v .. ".mdl" )
-
-		added[v] = true
-	end
+for k,_ in pairs( ModelList ) do
+	util.PrecacheModel( "models/Holograms/" .. k .. ".mdl" )
+	resource.AddSingleFile( "models/Holograms/" .. k .. ".mdl" )
 end
 
 /******************************************************************************/
@@ -140,7 +140,7 @@ local function flush_scale_queue(queue, recipient)
 				bytes = 4+14 -- Header(2)+Short(2)+Vector(12)+Short(2)
 			end
 			umsg.Short(Holo.ent:EntIndex())
-			umsg.Vector(scale)
+			umsg.Float(scale.x) umsg.Float(scale.y) umsg.Float(scale.z)
 		end
 		umsg.Short(0)
 	umsg.End()
@@ -176,8 +176,8 @@ local function flush_clip_queue(queue, recipient)
 					bytes = bytes + 27
 
 					umsg.Bool(false)
-					umsg.Vector(clip.origin)
-					umsg.Vector(clip.normal)
+					umsg.Float(clip.origin.x) umsg.Float(clip.origin.y) umsg.Float(clip.origin.z)
+					umsg.Float(clip.normal.x) umsg.Float(clip.normal.y) umsg.Float(clip.normal.z)
 					umsg.Short(clip.isglobal)
 				end
 			end
@@ -756,8 +756,8 @@ end
 e2function array holoModelList()
 	local mlist = {}
 
-	for k,_ in pairs( ModelList ) do
-	    mlist[#mlist + 1] = k
+	for k,v in pairs( ModelList ) do
+	    if k == v then mlist[#mlist + 1] = k end
 	end
 
 	return mlist
