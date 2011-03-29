@@ -85,7 +85,7 @@ end
 
 function Editor:LoadSyntaxColors()
 	for k,v in pairs( colors_convars ) do
-		local r,g,b = v:GetString():match( "(%d+)%_(%d+)%_(%d+)" )
+		local r,g,b = v:GetString():match( "(%d+)_(%d+)_(%d+)" )
 		local def = colors_defaults[k]
 		colors[k] = Color( tonumber(r) or def.r,tonumber(g) or def.g,tonumber(b) or def.b )
 	end
@@ -1037,6 +1037,155 @@ function Editor:InitControlPanel(frame)
 		return x, 0.5
 	end
 	DarknessColor:SetSlideX(0)
+
+	-- Other colors
+
+	local Label = vgui.Create( "DLabel" )
+	dlist:AddItem( Label )
+	Label:SetText( "Other color options" )
+	Label:SizeToContents()
+
+	local SkipUpdate = false
+	local CurrentColor = "Double click highlight"
+	local r, g, b, a = 255,255,255,255
+
+	local temp = vgui.Create("Panel")
+	dlist:AddItem( temp )
+	temp:SetTall( 132 )
+
+	-- Create color mixer, number wangs, default button, and drop down menu
+	local ColorMixer = vgui.Create( "DColorMixer", temp )
+	local RBox = vgui.Create( "DNumberWang", temp )
+    local GBox = vgui.Create( "DNumberWang", temp )
+    local BBox = vgui.Create( "DNumberWang", temp )
+    local ABox = vgui.Create( "DNumberWang", temp )
+	local DefaultButton = vgui.Create( "DButton", temp )
+	local CurrentColorSelect = vgui.Create( "DMultiChoice", temp )
+
+	-- Add choices
+	local Choices = {
+		["Double click highlight"] = { "wire_expression2_editor_color_dblclickhighlight", {0,100,0,100} },
+	}
+	for k,v in pairs( Choices ) do
+		CurrentColorSelect:AddChoice( k )
+	end
+
+	-- Manage choices
+	CurrentColorSelect.OnSelect = function( panel, index, value )
+		if (Choices[value]) then
+			local r,g,b,a = GetConVar(Choices[value][1]):GetString():match( "(%d+)_(%d+)_(%d+)_(%d+)" )
+			r, g, b, a = tonumber(r) or Choices[value][2][1],tonumber(g) or Choices[value][2][2],tonumber(b) or Choices[value][2][3], tonumber(a) or Choices[value][2][4]
+			RBox:SetValue( r )
+			GBox:SetValue( g )
+			BBox:SetValue( b )
+			ABox:SetValue( a )
+			ColorMixer:SetColor( Color(r,g,b,a) )
+			CurrentColor = value
+		end
+	end
+	CurrentColorSelect:SetEditable( false )
+
+	-- Default button
+	DefaultButton.DoClick = function( pnl )
+		r, g, b, a = Choices[CurrentColor][2][1],Choices[CurrentColor][2][2],Choices[CurrentColor][2][3], Choices[CurrentColor][2][4]
+		ColorMixer:SetColor( Color(r,g,b,a) )
+		RBox:SetValue( r )
+		GBox:SetValue( g )
+		BBox:SetValue( b )
+		ABox:SetValue( a )
+		RunConsoleCommand( Choices[CurrentColor][1], r.."_"..g.."_"..b.."_"..a )
+	end
+
+	DefaultButton:SetText("Default")
+
+	ColorMixer:SetSize( 130,130 )
+
+    ColorMixer.PerformLayout = function( pnl )
+		local w,h = pnl:GetSize()
+		pnl.RGBBar:SetPos( 0, 0 )
+		pnl.RGBBar:SetSize( 20, h )
+		pnl.AlphaBar:SetPos( 22, 0 )
+		pnl.AlphaBar:SetSize( 20, h )
+		pnl.ColorCube:SetPos( 44, 0 )
+		pnl.ColorCube:SetSize( w - 44, h )
+    end
+
+	local old = ColorMixer.ColorCube.OnMouseReleased
+	ColorMixer.ColorCube.OnMouseReleased = function( ... )
+		local clr = ColorMixer:GetColor()
+		r, g, b, a = clr.r, clr.g, clr.b, 255-ColorMixer.AlphaBar:GetSlideY()*255
+		SkipUpdate = true
+		RBox:SetValue( r )
+		GBox:SetValue( g )
+		BBox:SetValue( b )
+		ABox:SetValue( a )
+		SkipUpdate = false
+		RunConsoleCommand( Choices[CurrentColor][1], r.."_"..g.."_"..b.."_"..a )
+		old( ... )
+	end
+
+	local old = ColorMixer.RGBBar.OnMouseReleased
+	ColorMixer.RGBBar.OnMouseReleased = function(...)
+		ColorMixer.ColorCube:OnMouseReleased()
+		old(...)
+	end
+	local old = ColorMixer.AlphaBar.OnMouseReleased
+	ColorMixer.AlphaBar.OnMouseReleased = function(...)
+		ColorMixer.ColorCube:OnMouseReleased()
+		old(...)
+	end
+
+	-- Loop this to make it a little neater
+	local temp = { RBox, GBox, BBox, ABox }
+	for k,v in pairs( temp ) do
+		v:SetValue( 255 )
+		v:SetMin( 0 )
+		v:SetMax( 255 )
+		v:SetDecimals( 0 )
+		v:SetWide( 64 )
+		local old = v:GetTextArea().OnEnter
+		v:GetTextArea().OnEnter = function( ... )
+			v:OnValueChanged()
+			old( ... )
+		end
+	end
+
+	-- OnValueChanged functions
+	RBox.OnValueChanged = function( pnl )
+		if (SkipUpdate or r == pnl:GetValue()) then return end
+		r = pnl:GetValue()
+		ColorMixer:SetColor( Color(r,g,b,a) )
+		RunConsoleCommand( Choices[CurrentColor][1], r.."_"..g.."_"..b.."_"..a )
+	end
+	GBox.OnValueChanged = function( pnl )
+		if (SkipUpdate or g == pnl:GetValue()) then return end
+		g = pnl:GetValue()
+		ColorMixer:SetColor( Color(r,g,b,a) )
+		RunConsoleCommand( Choices[CurrentColor][1], r.."_"..g.."_"..b.."_"..a )
+	end
+	BBox.OnValueChanged = function( pnl )
+		if (SkipUpdate or b == pnl:GetValue()) then return end
+		b = pnl:GetValue()
+		ColorMixer:SetColor( Color(r,g,b,a) )
+		RunConsoleCommand( Choices[CurrentColor][1], r.."_"..g.."_"..b.."_"..a )
+	end
+	ABox.OnValueChanged = function( pnl )
+		if (SkipUpdate or a == pnl:GetValue()) then return end
+		a = pnl:GetValue()
+		ColorMixer:SetColor( Color(r,g,b,a) )
+		RunConsoleCommand( Choices[CurrentColor][1], r.."_"..g.."_"..b.."_"..a )
+	end
+
+	-- Positioning
+	local x,y = ColorMixer:GetPos()
+	local w,_ = ColorMixer:GetSize()
+	CurrentColorSelect:SetPos( x + w + 2, y )
+	RBox:SetPos( x + w + 2, y + 2 + 20 )
+	GBox:SetPos( x + w + 2, y + 4 + RBox:GetTall() + 20 )
+	BBox:SetPos( x + w + 2, y + 6 + RBox:GetTall() * 2 + 20 )
+	ABox:SetPos( x + w + 2, y + 6 + RBox:GetTall() * 3 + 20 )
+	DefaultButton:SetPos( x + w + 2, y + 8 + RBox:GetTall() * 4 + 20 )
+	DefaultButton:SetSize( RBox:GetSize() )
 
 	---- FONTS
 

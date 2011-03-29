@@ -73,9 +73,10 @@ if (CLIENT) then
 		function pnl:Paint()
 			draw.RoundedBox( 4, 0,0,self:GetWide(),self:GetTall(), Menu.Colors.BGColor  )
 		end
-		pnl:SetSize( 210, 130 )
+		pnl:SetSize( 210, 152 )
 		pnl:SetPos( 100, ScrH() / 2 - pnl:GetTall() / 2 )
 		pnl:SetDraggable( true )
+		pnl:SetScreenLock( true )
 		pnl:SetDeleteOnClose( false )
 		pnl:ShowCloseButton( false ) -- We want to create our own close button
 		--pnl:MakePopup()
@@ -85,10 +86,13 @@ if (CLIENT) then
 		local txt = vgui.Create("Wire_WMenu_Label",pnl)
 		txt:SetText([[You are using an older version of
 Wiremod. Please update your SVN.
+
+
 Tip: Open the context menu (default 'C')
 to enable the cursor.]] )
 		txt:SizeToContents()
 		txt:SetPos( 4, 24 )
+		UN.txt = txt
 		Menu:AddColoring( txt.SetColor, txt )
 
 		local btn = vgui.Create("Wire_WMenu_Button",pnl)
@@ -116,11 +120,19 @@ to enable the cursor.]] )
 		hide:SetPos( 4, pnl:GetTall()-42 )
 	end
 
-	function UN:OpenMenu()
+	function UN:OpenMenu(version,onlineversion)
 		if (!UN.Panel) then
 			UN:CreateMenu()
 		end
 		UN.Panel:SetVisible( true )
+		UN.txt:SetText([[You are using an older version of
+Wiremod. Please update your SVN.
+Your version: ]] .. version .. [[
+
+Latest version: ]] .. onlineversion .. [[
+
+Tip: Open the context menu (default 'C')
+to enable the cursor.]] )
 	end
 
 	function UN:CloseMenu()
@@ -138,7 +150,7 @@ to enable the cursor.]] )
 		WireLib.GetOnlineWireVersion(function(onlineversion)
 			if (version and onlineversion and version < onlineversion and self.NotifiedVersion < onlineversion) then
 				self.NotifiedVersion = onlineversion
-				self:OpenMenu()
+				self:OpenMenu(version,onlineversion)
 			end
 		end)
 	end
@@ -273,6 +285,7 @@ to enable the cursor.]] )
 		pnl:SetSize( 0, 0 )
 		pnl:SetPos( ScrW() / 2 - self.Menu.Sizes.DefaultWidth / 2, ScrH() / 2 - self.Menu.Sizes.DefaultHeight / 2 )
 		pnl:SetDraggable( true )
+		pnl:SetScreenLock( true )
 		pnl:SetDeleteOnClose( false )
 		pnl:ShowCloseButton( false ) -- We want to create our own close button
 		pnl:MakePopup()

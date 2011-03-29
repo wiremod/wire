@@ -27,6 +27,16 @@ end
 
 duplicator.RegisterEntityClass("sent_deployableballoons", MakeBalloonSpawner, "Data")
 
+function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
+	--Moves old "Lenght" input to new "Length" input for older dupes
+	if info.Wires and info.Wires.Lenght then
+		info.Wires.Length = info.Wires.Lenght
+		info.Wires.Lenght = nil
+	end
+
+	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
+end
+
 function ENT:SpawnFunction( ply, tr )
 	if (not tr.Hit) then return end
 	local SpawnPos = tr.HitPos+tr.HitNormal*16
@@ -47,7 +57,7 @@ function ENT:Initialize()
 	self.popable = false
 	self.rl = 64
 	if WireAddon then
-		self.Inputs = Wire_CreateInputs(self,{ "Force", "Lenght", "Weld?", "Popable?", "Deploy" })
+		self.Inputs = Wire_CreateInputs(self,{ "Force", "Length", "Weld?", "Popable?", "Deploy" })
 		self.Outputs = Wire_CreateOutputs(self,{ "Deployed" })
 		Wire_TriggerOutput(self,"Deployed", self.Deployed)
 		--Wire_TriggerOutput(self,"Force", self.force)
@@ -80,7 +90,7 @@ function ENT:TriggerInput(key,value)
 		if self.Deployed ~= 0 then
 			self.Balloon:SetForce(value)
 		end
-	elseif (key == "Lenght") then
+	elseif (key == "Length") then
 		self.rl = value
 	elseif (key == "Weld?") then
 		self.weld = value ~= 0

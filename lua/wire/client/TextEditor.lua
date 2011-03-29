@@ -98,6 +98,12 @@ function EDITOR:CursorToCaret()
 end
 
 local wire_expression2_editor_highlight_on_double_click = CreateClientConVar( "wire_expression2_editor_highlight_on_double_click", "1", true, false )
+local wire_expression2_editor_color_dblclickhighlight = CreateClientConVar( "wire_expression2_editor_color_dblclickhighlight", "0_100_0_100", true, false )
+local def = Color(0,100,0,100)
+local function GetHighlightColor()
+	local r,g,b,a = wire_expression2_editor_color_dblclickhighlight:GetString():match( "(%d+)_(%d+)_(%d+)_(%d+)" )
+	return tonumber(r) or def.r,tonumber(g) or def.g,tonumber(b) or def.b, tonumber(a) or def.a
+end
 
 function EDITOR:OnMousePressed(code)
 	if code == MOUSE_LEFT then
@@ -124,7 +130,7 @@ function EDITOR:OnMousePressed(code)
 							(caretstart[1] == wordstart[1] and caretstart[2] == wordstart[2] and
 							caretstop[1] == wordstop[1] and caretstop[2] == wordstop[2])) then
 
-								self:HighlightArea( { caretstart, caretstop }, 0,100,0,100 )
+								self:HighlightArea( { caretstart, caretstop }, GetHighlightColor() )
 								self.HighlightedAreasByDoubleClick[#self.HighlightedAreasByDoubleClick+1] = { caretstart, caretstop }
 						end
 					end
