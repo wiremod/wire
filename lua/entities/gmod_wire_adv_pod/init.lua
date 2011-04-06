@@ -3,195 +3,257 @@ AddCSLuaFile("shared.lua")
 include("shared.lua")
 
 ENT.WireDebugName = "Advanced Pod Controller"
-local MODEL = Model("models/jaanus/wiretool/wiretool_siren.mdl")
 
-local keys, bindlist = ENT.keys, ENT.bindlist
-ENT.keys, ENT.bindlist = nil, nil
+local serverside_key_outputs = { "W", "A", "S", "D", "Mouse1", "Mouse2", "R", "Space", "Shift", "Zoom", "Alt", "TurnLeftKey", "TurnRightKey" }
+local serverside_keys = {
+	[IN_FORWARD] = "W",
+	[IN_MOVELEFT] = "A",
+	[IN_BACK] = "S",
+	[IN_MOVERIGHT] = "D",
+	[IN_ATTACK] = "Mouse1",
+	[IN_ATTACK2] = "Mouse2",
+	[IN_RELOAD] = "R",
+	[IN_JUMP] = "Space",
+	[IN_SPEED] = "Shift",
+	[IN_ZOOM] = "Zoom",
+	[IN_WALK] = "Alt",
+	[IN_LEFT] = "TurnLeftKey",
+	[IN_RIGHT] = "TurnRightKey",
+}
 
-concommand.Add("wire_adv_pod_bind", function(ply, command, args)
+function ENT:Initialize()
+	self:PhysicsInit( SOLID_VPHYSICS )
+	self:SetMoveType( MOVETYPE_VPHYSICS )
+	self:SetSolid( SOLID_VPHYSICS )
+	self:SetUseType( SIMPLE_USE )
+
+	-- Keys
+	local outputs = serverside_key_outputs
+
+	-- Clientside keys
+	outputs[#outputs+1] = "PrevWeapon"
+	outputs[#outputs+1] = "NextWeapon"
+	outputs[#outputs+1] = "Light"
+
+	-- Aim Position
+	outputs[#outputs+1] = "X"
+	outputs[#outputs+1] = "Y"
+	outputs[#outputs+1] = "Z"
+	outputs[#outputs+1] = "AimPos [VECTOR]"
+	outputs[#outputs+1] = "Distance"
+	outputs[#outputs+1] = "Bearing"
+	outputs[#outputs+1] = "Elevation"
+
+	-- Other info
+	outputs[#outputs+1] = "ThirdPerson"
+	outputs[#outputs+1] = "Team"
+	outputs[#outputs+1] = "Health"
+	outputs[#outputs+1] = "Armor"
+
+	-- Active
+	outputs[#outputs+1] = "Active"
+
+	-- Entity
+	outputs[#outputs+1] = "Entity [ENTITY]"
+
+	self.Inputs = WireLib.CreateInputs( self, { "Lock", "Terminate", "Strip weapons", "Eject", "Disable", "Crosshairs", "Brake", "Allow Buttons", "Relative", "Damage Health", "Damage Armor", "Hide Player"} )
+	self.Outputs = WireLib.CreateOutputs( self, outputs )
+
+	self:SetLocked( false )
+	self:SetHidePlayer( false )
+	self.HidePlayerVal = false
+	self.Crosshairs = false
+	self.Disable = false
+	self.AllowButtons = false
+	self.Relative = false
+	self.MouseDown = false
+
+	self:SetActivated( false )
+
+	local r,g,b,a = self:GetColor()
+	self:SetColor( 255,0,0, a )
+	self:SetOverlayText( "Adv. Pod Controller" )
+end
+
+-- Accessor funcs for certain functions
+function ENT:SetLocked( b )
+	if (!self:HasPod() or self.Locked == b) then return end
+
+	self.Locked = b
+	self.Pod:Fire( b and "Lock" or "Unlock", "1", 0 )
+end
+
+function ENT:SetActivated( b )
+	if (self.Activated == b) then return end
+
+	local _,_,_,a = self:GetColor()
+	if (b) then
+		self:SetColor( 0,255,0,a )
+	else
+		self:SetColor( 255,0,0,a )
+	end
+
+	self.Activated = b
+	WireLib.TriggerOutput(self, "Active", b and 1 or 0)
+end
+
+function ENT:SetHidePlayer( b )
+	if (self.HidePlayer == b) then return end
+
+	self.HidePlayer = b
+
+	if (self:HasPly()) then
+		local r,g,_b,a = self:GetPly():GetColor()
+		if (b) then
+			self.OldPlyAlpha = a
+			self:GetPly():SetColor(r,g,_b,0)
+		else
+			self:GetPly():SetColor(r,g,_b,self.OldPlyAlpha or 255)
+			self.OldPlyAlpha = nil
+		end
+	end
+end
+
+function ENT:Link( pod )
+	if (!pod or !pod:IsValid() or !pod:IsVehicle()) then return false end
+	self:SetPod( pod )
+	return true
+end
+
+function ENT:HasPod() return (self.Pod and self.Pod:IsValid()) end
+function ENT:GetPod() return self.Pod end
+function ENT:SetPod( pod )
+	if (pod and pod:IsValid() and !pod:IsVehicle()) then return false end
+	self.Pod = pod
+	WireLib.TriggerOutput( self, "Entity", pod )
+	return true
+end
+
+function ENT:HasPly()
+	return (self.Ply and self.Ply:IsValid())
+end
+function ENT:GetPly()
+	return self.Ply
+end
+function ENT:SetPly( ply )
+	if (ply and ply:IsValid() and !ply:IsPlayer()) then return false end
+	self.Ply = ply
+	return true
+end
+
+-- Clientside binds
+concommand.Add("wire_adv_pod_bind", function( ply,cmd,args )
 	local bind = args[1]
-	if not bind then return end
+	if (!bind) then return end
 
-	local output = bindlist[bind]
-	if not output then return end
+	if (bind == "1") then bind = "PrevWeapon"
+	elseif (bind == "2") then bind = "NextWeapon"
+	elseif (bind == "3") then bind = "Light" end
 
-	local allpods = ents.FindByClass("gmod_wire_adv_pod")
-	for _,apod in ipairs(allpods) do
-		if (ply:GetVehicle() == apod.Pod) then
-			Wire_TriggerOutput(apod, output, 1)
-			timer.Simple(0.03, Wire_TriggerOutput, apod, output, 0)
+	for _, pod in pairs( ents.FindByClass( "gmod_wire_adv_pod" ) ) do
+		if (ply:GetVehicle() == pod.Pod) then
+			WireLib.TriggerOutput( pod, bind, 1 )
+			timer.Simple( 0.03, WireLib.TriggerOutput, pod, bind, 0 )
 		end
 	end
 end)
 
-
-function ENT:Initialize()
-	--self:SetModel( MODEL )
-	self:PhysicsInit( SOLID_VPHYSICS )
-	self:SetMoveType( MOVETYPE_VPHYSICS )
-	self:SetSolid( SOLID_VPHYSICS )
-	self:SetUseType(SIMPLE_USE)
-
-	self.lockvar = 0
-	self.disablevar = false
-	self.crossvar = false
-	self:SetColor( 255, 0, 0, 255 )
-
-	local outputs = {
-		--aim
-		"X", "Y", "Z", "AimPos [VECTOR]",
-
-		"Active", "ThirdPerson",
-		"Team", "Health", "Armor",
-		"Distance", "Bearing", "Elevation",
-		--"AimVector [VECTOR]", --TODO: place holder for later
-	}
-	for index,output,bind in ipairs_map(bindlist, unpack) do
-		table.insert(outputs, index, output)
-	end
-	for index,output,inkey in ipairs_map(keys, unpack) do
-		table.insert(outputs, index, output)
-	end
-
-	self.VPos = Vector(0, 0, 0)
-
-	-- Create "Entity" output - should be at the end
-	table.insert(outputs, "Entity [ENTITY]")
-
-	local outputtypes = {}
-	for i = 1,#outputs do
-		local name, tp = outputs[i]:match("^(.*) %[(.*)%]$")
-		if name then
-			outputs[i] = name
-			outputtypes[i] = tp
-		else
-			outputtypes[i] = "NORMAL"
+-- Serverside binds
+hook.Add( "KeyPress", "Wire_Adv_Pod_KeyPress", function( ply, key )
+	if (!serverside_keys[key]) then return end
+	for k,v in pairs( ents.FindByClass( "gmod_wire_adv_pod" ) ) do
+		if (v:HasPly() and v:GetPly() == ply and !v.Disable) then
+			WireLib.TriggerOutput( v, serverside_keys[key], 1 )
 		end
 	end
+end)
 
-	//self.Outputs = Wire_CreateOutputs( self, outputs )
-	self.Outputs = WireLib.CreateSpecialOutputs(self, outputs, outputtypes)
-	self.Inputs = Wire_CreateInputs( self, { "Lock", "Terminate", "Strip weapons", "Eject", "Disable", "Crosshairs", "Brake", "Allow Buttons", "Relative", "Damage Health", "Damage Armor"} )
-	self:SetOverlayText( "Adv. Pod Controller" )
+hook.Add( "KeyRelease", "Wire_Adv_Pod_KeyRelease", function( ply, key )
+	if (!serverside_keys[key]) then return end
+	for k,v in pairs( ents.FindByClass( "gmod_wire_adv_pod" ) ) do
+		if (v:HasPly() and v:GetPly() == ply and !v.Disable) then
+			WireLib.TriggerOutput( v, serverside_keys[key], 0 )
+		end
+	end
+end)
 
-	self.pushbuttons = false
-	self.LastPressed = 0
-	self.CanPress = true
-	self.lastpresseddelay = 0.2
-	self.BE_rel = false
+-- Helper function for ejecting players using the RC remote
+function ENT:RCEject()
+	self.RC:Off()
 end
 
-function ENT:Link(pod,RC)
-	if !pod then return false end
-	self.Pod = pod
-	self.RC = RC
-	return true
-end
+function ENT:TriggerInput( name, value )
+	if (name == "Lock") then
+		if (self.RC) then return end
+		if (!self:HasPod()) then return end
+		self:SetLocked( value != 0 )
+	elseif (name == "Terminate") then
+		if (value == 0 or !self:HasPly()) then return end
+		local ply = self:GetPly()
+		if (self.RC) then self:RCEject( ply ) end
+		ply:Kill()
+	elseif (name == "Strip weapons") then
+		if (value == 0 or !self:HasPly()) then return end
+		local ply = self:GetPly()
+		if (self.RC) then
+			ply:ChatPrint( "Your control has been terminated, and your weapons stripped!" )
+			self:RCEject( ply )
+		else
+			ply:ChatPrint( "Your weapons have been stripped!" )
+		end
+		ply:StripWeapons()
+	elseif (name == "Eject") then
+		if (value == 0 or !self:HasPly()) then return end
+		if (self.RC) then
+			self:RCEject( self:GetPly() )
+		else
+			self:GetPly():ExitVehicle()
+		end
+	elseif (name == "Disable") then
+		self.Disable = (value != 0)
 
-local function RCEject(Ply)
-	Ply.Active = false
-	Ply:SetMoveType(2)
-	Ply:DrawViewModel(true)
-end
-
-function ENT:TriggerInput(iname, value)
-	if (iname == "Lock") then
-		if self.RC then return end
-		if !(self.Pod && self.Pod:IsValid()) then return end
-		if (value > 0) then
-			if (self.lockvar == 0) then
-				self.Pod:Fire("Lock", "1", 0)
-				self.lockvar = 1
+		if (self.Disable) then
+			for k,v in pairs( serverside_keys ) do
+				WireLib.TriggerOutput( self, v, 0 )
+			end
+		end
+	elseif (name == "Crosshairs") then
+		self.Crosshairs = (value != 0)
+		if (self:HasPly()) then
+			if (self.Crosshairs) then
+				self:GetPly():CrosshairEnable()
 			else
-				self.Pod:Fire("Unlock", "1", 0)
-				self.lockvar = 0
+				self:GetPly():CrosshairDisable()
 			end
 		end
-	elseif (iname == "Terminate") then
-		if self.Ply and self.Ply:IsValid() then
-			if (value > 0) then
-				if self.RC then
-					RCEject(self.Ply)
-					self.Ply.Linked = false
-				end
-				self.Ply:Kill()
-			end
-		end
-	elseif (iname == "Strip weapons") then
-		if self.Ply and self.Ply:IsValid() then
-			if (value > 0) then
-				if self.RC then
-					RCEject(self.Ply)
-					self.Ply.Linked = false
-					self.Ply:PrintMessage(HUD_PRINTTALK,"Your control has been terminated, and your weapons stripped!\n")
-				end
-				self.Ply:StripWeapons( )
-				self.Ply:PrintMessage(HUD_PRINTTALK,"Your weapons have been stripped!\n")
-			end
-		end
-	elseif (iname == "Eject") then
-		if self.Ply and self.Ply:IsValid() then
-			if (value > 0) then
-				if self.RC then
-					RCEject(self.Ply)
-				else
-					self.Ply:ExitVehicle( )
-				end
-			end
-		end
-	elseif (iname == "Disable") then
-		self.disablevar = (value >= 1)
-	elseif (iname == "Crosshairs") then
-		self.crossvar = value ~= 0
-		if self.Ply and self.Ply:IsValid() then
-			if self.crossvar then
-				self.Ply:CrosshairEnable()
-			else
-				self.Ply:CrosshairDisable()
-			end
-		end
-	elseif (iname == "Brake") then
-		if self.RC then return end
-		if value > 0 then
-			self.Pod:Fire("TurnOff", "1", 0)
-			self.Pod:Fire("HandBrakeOn", "1", 0)
+	elseif (name == "Brake") then
+		if (!self:HasPod()) then return end
+		local pod = self:GetPod()
+		if (value != 0) then
+			pod:Fire("TurnOff","1",0)
+			pod:Fire("HandBrakeOn","1",0)
 		else
-			self.Pod:Fire("TurnOn", "1", 0)
-			self.Pod:Fire("HandBrakeOff", "1", 0)
+			pod:Fire("TurnOn","1",0)
+			pod:Fire("HandBrakeOff","1",0)
 		end
-	elseif (iname == "Damage Health") then
-		if self.Ply and self.Ply:IsValid() then
-			if value > 0 then
-				if value > 100 then value = 100 end
-				self.Ply:TakeDamage(value)
-			end
-		end
-	elseif (iname == "Damage Armor") then
-		if self.Ply and self.Ply:IsValid() then
-			if value > 0 then
-				if value > 100 then value = 100 end
-				local armordam = self.Ply:Armor() - value
-				if armordam < 0 then armordam = 0 end
-				self.Ply:SetArmor(armordam)
-			end
-		end
-	elseif (iname == "Allow Buttons") then
-		if value > 0 then
-			self.pushbuttons = true
-		else
-			self.pushbuttons = false
-		end
-	elseif (iname == "Relative") then
-		if value > 0 then
-			self.BE_rel = true
-		else
-			self.BE_rel = false
-		end
+	elseif (name == "Damage Health") then
+		if (!self:HasPly() or value <= 0) then return end
+		if (value > 100) then value = 100 end
+		self:GetPly():TakeDamage( value )
+	elseif (name == "Damage Armor") then
+		if (!self:HasPly() or value <= 0) then return end
+		if (value > 100) then value = 100 end
+		local dmg = self:GetPly():Armor() - value
+		if (dmg < 0) then dmg = 0 end
+		self:GetPly():SetArmor( dmg )
+	elseif (name == "Allow Buttons") then
+		self.AllowButtons = (value != 0)
+	elseif (name == "Relative") then
+		self.Relative = (value != 0)
+	elseif (name == "Hide Player") then
+		self:SetHidePlayer( value != 0 )
+		self.HidePlayerVal = (value != 0)
 	end
-end
-
-function ENT:OnRestore()
-	self.BaseClass.OnRestore(self)
 end
 
 local function fixupangle(angle)
@@ -201,167 +263,154 @@ local function fixupangle(angle)
 end
 
 function ENT:Think()
-	local _,_,_,coloralpha = self:GetColor()
-	if self.Pod and self.Pod:IsValid() then
-		Wire_TriggerOutput( self, "Entity", self.Pod )
-		local Ply = nil
-		if self.RC then
-			if !self.Pod:Alive() then self.Pod.Active = false end
-			if self.Pod.Active then
-				Ply = self.Pod
-			end
-		else
-			Ply = self.Pod:GetPassenger()
-		end
-		if Ply and Ply:IsValid() then
-			local temp = false
-			if self.Ply == nil then
-				if self.crossvar then
-					Ply:CrosshairEnable()
-				else
-					Ply:CrosshairDisable()
-				end
-				if !self.RC then
-					self.junkBE = CurTime() + 2
-				else
-					self.junkBE = nil
-					temp = true
-				end
-			end
-			self.Ply = Ply
-			if temp then self.Ply.Initial = self.Ply:GetAimVector():Angle() end
-			self:SetColor( 0, 255, 0, coloralpha )
-			Wire_TriggerOutput(self, "Active", 1)
-			Wire_TriggerOutput(self, "ThirdPerson", self.Ply:GetInfoNum("gmod_vehicle_viewmode", 0))
+	if (self:HasPly() and self.Activated) then
+		local ply = self:GetPly()
+		local pod = self:GetPod()
 
-			if not self.disablevar then
-				for index,output,inkey in ipairs_map(keys, unpack) do
-					if not self.disablevar and self.Ply:KeyDownLast( inkey ) then
-						Wire_TriggerOutput( self, output, 1 )
-					else
-						Wire_TriggerOutput( self, output, 0 )
+		-- Tracing
+		local trace = util.TraceLine( { start = ply:GetShootPos(), endpos = ply:GetShootPos() + ply:GetAimVector() * 9999999999, filter = { ply, pod } } )
+		local distance = 0
+		if (self:HasPod()) then distance = trace.HitPos:Distance( pod:GetPos() ) else distance = trace.HitPos:Distance( ply:GetShootPos() ) end
+
+		if (trace.Hit) then
+			-- Position
+			WireLib.TriggerOutput( self, "X", trace.HitPos.x )
+			WireLib.TriggerOutput( self, "Y", trace.HitPos.y )
+			WireLib.TriggerOutput( self, "Z", trace.HitPos.z )
+			WireLib.TriggerOutput( self, "AimPos", trace.HitPos )
+			WireLib.TriggerOutput( self, "Distance", distance )
+			self.VPos = trace.HitPos
+
+			-- Bearing & Elevation
+			local angle = ply:GetAimVector():Angle()
+
+			if (self.Relative) then
+				local originalangle
+				if (self.RC) then
+					originalangle = ply.InitialAngle
+				else
+					originalangle = pod:GetAngles()
+					if (pod:GetClass() != "prop_vehicle_prisoner_pod") then
+						originalangle.y = originalangle.y + 90
 					end
 				end
-			end
-
-			--player info
-			Wire_TriggerOutput(self, "Team", self.Ply:Team())
-			Wire_TriggerOutput(self, "Health", self.Ply:Health())
-			Wire_TriggerOutput(self, "Armor", self.Ply:Armor())
-
-			if self.junkBE then --all this info is garbage while the player is entering the pod, junk it for the first 2 second
-				if self.junkBE < CurTime() then self.junkBE = nil end
+				WireLib.TriggerOutput( self, "Bearing", fixupangle( angle.y - originalangle.y ) )
+				WireLib.TriggerOutput( self, "Elevation", fixupangle( angle.p - originalangle.p ) )
 			else
-				local trace = util.GetPlayerTrace( self.Ply )
-				trace.filter = {self.Ply,self.Pod}
-				local EyeTrace = util.TraceLine( trace )
-				self.VPos = EyeTrace.HitPos
-				local dist = (EyeTrace.HitPos-self.Ply:GetShootPos()):Length()
-				Wire_TriggerOutput(self, "Distance", dist)
-
-				Wire_TriggerOutput(self, "X", EyeTrace.HitPos.x )
-				Wire_TriggerOutput(self, "Y", EyeTrace.HitPos.y )
-				Wire_TriggerOutput(self, "Z", EyeTrace.HitPos.z )
-				Wire_TriggerOutput(self, "AimPos", EyeTrace.HitPos )
-
-				local AimVectorAngle = self.Ply:GetAimVector():Angle()
-
-				if self.BE_rel then
-					local PodAngle
-					if !self.RC then
-						PodAngle = self.Pod:GetAngles()
-						if self.Pod:GetClass() != "prop_vehicle_prisoner_pod" then
-							PodAngle.y = PodAngle.y + 90
-						end
-					else
-						PodAngle = self.Ply.Initial
-					end
-					Wire_TriggerOutput(self, "Bearing", fixupangle((AimVectorAngle.y - PodAngle.y)))
-					Wire_TriggerOutput(self, "Elevation", fixupangle(-(AimVectorAngle.p - PodAngle.p)))
-				else
-					Wire_TriggerOutput(self, "Bearing", fixupangle((AimVectorAngle.y)))
-					Wire_TriggerOutput(self, "Elevation", fixupangle(-AimVectorAngle.p))
-				end
-
-				if self.pushbuttons then
-					--[[
-					if EyeTrace.Entity and EyeTrace.Entity:IsValid() and EyeTrace.Entity:GetClass() == "gmod_wire_button" and dist < 256 and self.Ply:KeyDownLast( IN_ATTACK ) then
-						if EyeTrace.Entity.Toggle then
-							if self.LastPressed + 0.5 < CurTime() then
-								EyeTrace.Entity:Switch(not EyeTrace.Entity:IsOn())
-								self.LastPressed = CurTime()
-							end
-						elseif not EyeTrace.Entity:IsOn() then
-							EyeTrace.Entity:Switch(true)
-							EyeTrace.Entity.PrevUser = self.Ply
-							EyeTrace.Entity.podpress = true
-						end
-					end
-					--]]
-					if EyeTrace.Entity and EyeTrace.Entity:IsValid() and EyeTrace.Entity:GetClass() == "gmod_wire_button" and dist < 82 and self.Ply:KeyDownLast( IN_ATTACK ) then
-						-- If it is a toggled button
-						if EyeTrace.Entity.toggle then
-							if self.CanPress then
-							--And if its NOT on and you havent pressed it in 0.5 seconds.
-								if not EyeTrace.Entity:IsOn() and self.LastPressed + self.lastpresseddelay < CurTime() then
-									EyeTrace.Entity:Switch(true)
-									self.LastPressed = CurTime()
-									self.CanPress = false
-								--And if it IS on and you havent pressed it in 0.5 seconds.
-								elseif EyeTrace.Entity:IsOn() and self.LastPressed + self.lastpresseddelay < CurTime() then
-									EyeTrace.Entity:Switch(false)
-									self.LastPressed = CurTime()
-									self.CanPress = false
-								end
-							end
-						--If it is a Non-toggle button and its not on
-						elseif not EyeTrace.Entity:IsOn() then
-							EyeTrace.Entity:Switch(true)
-							EyeTrace.Entity.PrevUser = self.Ply
-							EyeTrace.Entity.podpress = true
-						end
-					else
-						--Makes a check so you cant hold your mousebutton on the button so the button goes on/off/on/off
-						self.CanPress = true
-					end
-
-				end
+				WireLib.TriggerOutput( self, "Bearing", fixupangle( angle.y ) )
+				WireLib.TriggerOutput( self, "Elevation", fixupangle( -angle.p ) )
 			end
-		else -- if ValidEntity(Ply)
-			if self.Ply then --clear outputs
-				Wire_TriggerOutput(self, "Active", 0)
-				Wire_TriggerOutput(self, "ThirdPerson", 0)
-				self:SetColor( 255, 0, 0, coloralpha )
-				for index,output,inkey in ipairs_map(keys, unpack) do
-					Wire_TriggerOutput(self, output, 0)
-				end
-				self.Pod.Initial = nil
-				Wire_TriggerOutput(self, "Team", 0)
-				Wire_TriggerOutput(self, "Health", 0)
-				Wire_TriggerOutput(self, "Armor", 0)
-				Wire_TriggerOutput(self, "Distance", 0)
-				Wire_TriggerOutput(self, "X", 0)
-				Wire_TriggerOutput(self, "Y", 0)
-				Wire_TriggerOutput(self, "Z", 0)
-				Wire_TriggerOutput(self, "AimPos", Vector(0, 0, 0))
-				Wire_TriggerOutput(self, "Bearing", 0)
-				Wire_TriggerOutput(self, "Elevation", 0)
-				--self.Ply.Initial = nil
-			end
-			self.Ply = nil
-		end -- if ValidEntity(Ply)
-		if self.disablevar then
-			for index,output,inkey in ipairs_map(keys, unpack) do
-				Wire_TriggerOutput( self, output, 0 )
-			end
-			Wire_TriggerOutput(self, "Disabled", 1)
 		else
-			Wire_TriggerOutput(self, "Disabled", 0)
+			WireLib.TriggerOutput( self, "X", 0 )
+			WireLib.TriggerOutput( self, "Y", 0 )
+			WireLib.TriggerOutput( self, "Z", 0 )
+			WireLib.TriggerOutput( self, "AimPos", Vector(0,0,0) )
+			WireLib.TriggerOutput( self, "Bearing", 0 )
+			WireLib.TriggerOutput( self, "Elevation", 0 )
+			self.VPos = Vector(0,0,0)
 		end
+
+		-- Button pressing
+		if (self.AllowButtons and distance < 82) then
+			local button = trace.Entity
+			if (button and button:IsValid() and button:GetClass() == "gmod_wire_button") then
+				if (ply:KeyDown( IN_ATTACK ) and !self.MouseDown) then
+					self.MouseDown = true
+					if (button.toggle) then
+						if (button:IsOn()) then
+							button:Switch( false )
+						else
+							button.EntToOutput = ply
+							button.PrevUser = ply
+							button:Switch( true )
+						end
+					else
+						button.PrevUser = ply
+						button.podpress = true
+						button.EntToOutput = ply
+						button:Switch( true )
+					end
+				elseif (!ply:KeyDown( IN_ATTACK ) and self.MouseDown) then
+					self.MouseDown = false
+				end
+			end
+		end
+
+		-- Other info
+		WireLib.TriggerOutput(self, "Team", ply:Team())
+		WireLib.TriggerOutput(self, "Health", ply:Health())
+		WireLib.TriggerOutput(self, "Armor", ply:Armor())
+		WireLib.TriggerOutput(self, "ThirdPerson", ply:GetInfoNum("gmod_vehicle_viewmode", 0))
 	end
-	self:NextThink(CurTime() + 0.01)
+
+	self:NextThink( CurTime() )
 	return true
 end
+
+function ENT:PlayerEntered( ply, RC )
+	if (self:HasPly()) then return end
+	self:SetPly( ply )
+
+	if (RC != nil) then self.RC = RC else self.RC = nil end
+
+	if (self.Crosshairs) then
+		ply:CrosshairEnable()
+	end
+
+	if (self.HidePlayerVal) then
+		self:SetHidePlayer( true )
+	end
+
+	self:SetActivated( true )
+end
+
+function ENT:PlayerExited( ply )
+	if (!self:HasPly()) then return end
+	self:SetPly( nil )
+
+	self:SetHidePlayer( false )
+
+	ply:CrosshairEnable()
+
+	self:SetActivated( false )
+
+	for k,v in pairs( serverside_keys ) do
+		WireLib.TriggerOutput( self, v, 0 )
+	end
+	WireLib.TriggerOutput( self, "PrevWeapon", 0 )
+	WireLib.TriggerOutput( self, "NextWeapon", 0 )
+	WireLib.TriggerOutput( self, "Light", 0 )
+
+	WireLib.TriggerOutput( self, "X", 0 )
+	WireLib.TriggerOutput( self, "Y", 0 )
+	WireLib.TriggerOutput( self, "Z", 0 )
+	WireLib.TriggerOutput( self, "AimPos", Vector(0,0,0) )
+
+	WireLib.TriggerOutput( self, "Distance", 0 )
+	WireLib.TriggerOutput( self, "Bearing", 0 )
+	WireLib.TriggerOutput( self, "Elevation", 0 )
+
+	WireLib.TriggerOutput( self, "ThirdPerson", 0 )
+	WireLib.TriggerOutput( self, "Team", 0 )
+	WireLib.TriggerOutput( self, "Health", 0 )
+	WireLib.TriggerOutput( self, "Armor", 0 )
+end
+
+hook.Add( "PlayerEnteredVehicle", "Wire_Adv_Pod_EnterVehicle", function( ply, vehicle )
+	for k,v in pairs( ents.FindByClass( "gmod_wire_adv_pod" ) ) do
+		if (v:HasPod() and v:GetPod() == vehicle) then
+			v:PlayerEntered( ply )
+		end
+	end
+end)
+
+hook.Add( "PlayerLeaveVehicle", "Wire_Adv_Pod_ExitVehicle", function( ply, vehicle )
+	for k,v in pairs( ents.FindByClass( "gmod_wire_adv_pod" ) ) do
+		if (v:HasPod() and v:GetPod() == vehicle) then
+			v:PlayerExited( ply )
+		end
+	end
+end)
 
 function ENT:GetBeaconPos(sensor)
 	return self.VPos
@@ -370,7 +419,7 @@ end
 --Duplicator support to save pod link (TAD2020)
 function ENT:BuildDupeInfo()
 	local info = self.BaseClass.BuildDupeInfo(self) or {}
-	if (self.Pod) and (self.Pod:IsValid()) and (!self.RC) then
+	if (self:HasPod() and !self.RC) then
 		info.pod = self.Pod:EntIndex()
 	end
 	return info
@@ -379,13 +428,7 @@ end
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
 	if (info.pod) then
-		self.Pod = GetEntByID(info.pod)
-		if (!self.Pod) then
-			self.Pod = ents.GetByIndex(info.pod)
-		end
-		if not self.Pod.GetPassenger then
-			self.Pod = nil
-		end
+		self:SetPod( GetEntByID( info.pod ) or ents.GetByIndex( info.pod ) )
 	end
 end
 

@@ -12,6 +12,12 @@ function ENT:OnRemove()
 	self.GPU:Finalize()
 end
 
+function ENT:DrawEntityOutline()
+	if (GetConVar("wire_graphics_tablet_drawoutline"):GetBool()) then
+		self.BaseClass.DrawEntityOutline( self )
+	end
+end
+
 local function cut_rect(x1,y1,w1,h1,x2,y2,w2,h2)
 	local x,y = x1>x2 and x1 or x2, y1>y2 and y1 or y2
 	local right1,bottom1,right2,bottom2 = x1+w1,y1+h1, x2+w2,y2+h2

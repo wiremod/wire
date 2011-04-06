@@ -120,10 +120,10 @@ local SocketModels = {
 }
 
 local AngleOffset = {
-	["models/props_lab/tpplugholder_single.mdl"] = Angle(),
-	["models/props_lab/tpplug.mdl"] = Angle(),
-	["models/bull/various/usb_socket.mdl"] = Angle(),
-	["models/bull/various/usb_stick.mdl"] = Angle(),
+	["models/props_lab/tpplugholder_single.mdl"] = Angle(0,0,0),
+	["models/props_lab/tpplug.mdl"] = Angle(0,0,0),
+	["models/bull/various/usb_socket.mdl"] = Angle(0,0,0),
+	["models/bull/various/usb_stick.mdl"] = Angle(0,0,0),
 	["models/hammy/pci_slot.mdl"] = Angle(90,0,0),
 	["models/hammy/pci_card.mdl"] = Angle(90,0,0),
 }
@@ -161,7 +161,7 @@ function TOOL:LeftClick( trace )
 
 	local ply = self:GetOwner()
 	local socketmodel, plugmodel = self:GetModel()
-	local Pos, Ang = trace.HitPos, trace.HitNormal:Angle() + (AngleOffset[socketmodel] or Angle())
+	local Pos, Ang = trace.HitPos, trace.HitNormal:Angle() + (AngleOffset[socketmodel] or Angle(0,0,0))
 
 	local socket = MakeWireSocket( ply, Pos, Ang, socketmodel, 	self:GetClientNumber( "array" ) != 0,
 																self:GetClientNumber( "weldforce" ),
@@ -237,7 +237,7 @@ function TOOL:RightClick( trace )
 
 	local ply = self:GetOwner()
 	local socketmodel, plugmodel = self:GetModel()
-	local Pos, Ang = trace.HitPos, trace.HitNormal:Angle() + (AngleOffset[plugmodel] or Angle())
+	local Pos, Ang = trace.HitPos, trace.HitNormal:Angle() + (AngleOffset[plugmodel] or Angle(0,0,0))
 
 	local plug = MakeWirePlug( ply, Pos, Ang, plugmodel, 	self:GetClientNumber( "array" ) != 0 )
 
@@ -299,7 +299,7 @@ function TOOL:DrawGhost()
 
 	local Pos, Ang = trace.HitPos, trace.HitNormal:Angle()
 	ent:SetPos( Pos )
-	ent:SetAngles( Ang + (AngleOffset[self.GhostEntity:GetModel()] or Angle()) )
+	ent:SetAngles( Ang + (AngleOffset[self.GhostEntity:GetModel()] or Angle(0,0,0)) )
 
 	ent:SetNoDraw( false )
 end
@@ -307,7 +307,7 @@ end
 function TOOL:Think()
 	local model, _ = self:GetModel()
 	if (!self.GhostEntity or !self.GhostEntity:IsValid() or self.GhostEntity:GetModel() != model) then
-		self:MakeGhostEntity( model, Vector(), Angle() )
+		self:MakeGhostEntity( model, Vector(0,0,0), Angle(0,0,0) )
 	end
 
 	self:DrawGhost()

@@ -30,6 +30,7 @@ TOOL.ClientConVar = {
 	outmode = 0,
 	createflat = 1,
 	draw_background = 1,
+	drawoutline = 1,
 }
 
 cleanup.Register( "wire_graphics_tablets" )
@@ -145,5 +146,10 @@ function TOOL.BuildCPanel(panel)
 	panel:AddControl("Checkbox", {
 		Label = "#Tool_wire_graphics_tablet_createflat",
 		Command = "wire_graphics_tablet_createflat"
+	})
+
+	panel:AddControl("Checkbox", {
+		Label = "#Tool_wire_graphics_tablet_drawoutline",
+		Command = "wire_graphics_tablet_drawoutline"
 	})
 end

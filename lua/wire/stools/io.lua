@@ -101,13 +101,14 @@ do -- wire_adv_pod
 	}
 
 	function TOOL:RightClick(trace)
+		if (CLIENT) then return true end
 		if self:GetStage() == 0 and trace.Entity:GetClass() == "gmod_wire_adv_pod" then
 			self.PodCont = trace.Entity
 			self:SetStage(1)
 			return true
-		elseif self:GetStage() == 1 and trace.Entity.GetPassenger then
+		elseif self:GetStage() == 1 and trace.Entity:IsVehicle() then
 			local owner = self:GetOwner()
-			if self.PodCont:Link(trace.Entity,false) then
+			if self.PodCont:Link(trace.Entity) then
 				owner:PrintMessage(HUD_PRINTTALK,"Adv. Pod linked!")
 			else
 				owner:PrintMessage(HUD_PRINTTALK,"Link failed!")

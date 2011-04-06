@@ -11,8 +11,13 @@ ENT.bindlist = nil
 
 hook.Add("PlayerBindPress", "wire_adv_pod", function(ply, bind, pressed)
 	if ply:InVehicle() then
-		if bindlist[bind] then
-			RunConsoleCommand("wire_adv_pod_bind", bind)
-		end
+		if (bind == "invprev") then
+			bind = "1"
+		elseif (bind == "invnext") then
+			bind = "2"
+		elseif (bind == "impulse 100") then
+			bind = "3"
+		else return end
+		RunConsoleCommand("wire_adv_pod_bind", bind )
 	end
 end)

@@ -10,15 +10,15 @@ function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )
 	self:SetMoveType( MOVETYPE_VPHYSICS )
 	self:SetSolid( SOLID_VPHYSICS )
-	self.Outputs = Wire_CreateOutputs(self, {"On", "X", "Y", "Z"})
-	self.Active = 0
-	self.OriginalOwner = nil
-	self.CamEnt = nil
-	self.CamPlayer = nil
-	self.CamPod = nil
+	self.Outputs = WireLib.CreateOutputs( self, { "On", "X", "Y", "Z", "XYZ [VECTOR]" } )
+
+	self.Activated = 0 -- User defined
+	self.Active = false -- Actual status
 	self.ZoomAmount = 0
 	self.OriginalFOV = 0
 	self.Static = 0
+	self.FLIREnabled = false
+	self.FLIR = 0
 end
 
 function ENT:MakeDynamicCam(oldcam)
@@ -41,7 +41,7 @@ function ENT:MakeDynamicCam(oldcam)
 	self.CamEnt = cam
 
 	if oldcam then
-		self:TriggerInput("Activated", self.Active)
+		self:TriggerInput("Activated", self.Activated)
 	end
 	return cam
 end
@@ -55,7 +55,8 @@ function ENT:Setup(Player, Static)
 
 	if Static == 0 then
 		if not self:MakeDynamicCam() then return false end
-		self.Inputs = WireLib.CreateSpecialInputs(self, {"Activated", "Zoom", "X", "Y", "Z", "Pitch", "Yaw", "Roll", "Angle", "Position", "Direction", "Velocity", "Parent"}, {"NORMAL", "NORMAL", "NORMAL", "NORMAL", "NORMAL", "NORMAL", "NORMAL", "NORMAL", "ANGLE", "VECTOR", "VECTOR", "VECTOR", "ENTITY"})
+		self.Inputs = WireLib.CreateInputs( self, { "Activated", "Zoom", "X", "Y", "Z", "Pitch", "Yaw", "Roll",
+													"Angle [ANGLE]", "Position [VECTOR]", "Direction [VECTOR]", "Velocity [VECTOR]", "Parent [ENTITY]", "FLIR" } )
 	else
 		local cam = ents.Create("prop_physics")
 		if (!cam:IsValid()) then return false end
@@ -67,13 +68,15 @@ function ENT:Setup(Player, Static)
 
 		self.CamEnt = cam
 
-		self.Inputs = Wire_CreateInputs(self, {"Activated", "Zoom"})
+		self.Inputs = WireLib.CreateInputs( self, { "Activated", "Zoom", "FLIR" } )
 		self.Static = 1
 	end
 end
 
 function ENT:Think()
 	self.BaseClass.Think(self)
+
+	if (!self.CamEnt or !self.CamEnt:IsValid()) then return end
 
 	local vStart = self.CamEnt:GetPos()
 	local vForward = self.CamEnt:GetForward()
@@ -85,13 +88,15 @@ function ENT:Think()
 	local trace = util.TraceLine( trace )
 
 	if trace.HitPos then
-		Wire_TriggerOutput(self, "X", trace.HitPos.x)
-		Wire_TriggerOutput(self, "Y", trace.HitPos.y)
-		Wire_TriggerOutput(self, "Z", trace.HitPos.z)
+		WireLib.TriggerOutput( self, "XYZ", trace.HitPos )
+		WireLib.TriggerOutput(self, "X", trace.HitPos.x)
+		WireLib.TriggerOutput(self, "Y", trace.HitPos.y)
+		WireLib.TriggerOutput(self, "Z", trace.HitPos.z)
 	else
-		Wire_TriggerOutput(self, "X", 0)
-		Wire_TriggerOutput(self, "Y", 0)
-		Wire_TriggerOutput(self, "Z", 0)
+		WireLib.TriggerOutput( self, "XYZ", Vector(0,0,0) )
+		WireLib.TriggerOutput(self, "X", 0)
+		WireLib.TriggerOutput(self, "Y", 0)
+		WireLib.TriggerOutput(self, "Z", 0)
 	end
 
 	self:NextThink(CurTime()+0.1)
@@ -104,20 +109,47 @@ function ENT:OnRemove()
 		self.CamEnt:Remove()
 	end
 
-	if self.Active == 1 then
-		self.CamPlayer:SetViewEntity(self.CamPlayer)
+	if self.Active then
+		self:ToggleCam( false )
+		self:ToggleFLIR( false )
 	end
 	Wire_Remove(self)
 end
 
-function ENT:TriggerInput(iname, value)
-	if iname == "Activated" then
-		if value == 0 then
-			self.Active = 0
-			Wire_TriggerOutput(self, "On", 0)
-			if not ValidEntity(self.CamPlayer) then return end
-			self.CamPlayer:SetViewEntity(self.CamPlayer)
-			self.CamPlayer:SetFOV(self.OrginialFOV, 0.01)
+function ENT:ToggleFLIR( b )
+	if (b != self.FLIREnabled) then
+		if (self.CamPlayer and self.CamPlayer:IsValid()) then
+			umsg.Start( "toggle_flir", self.CamPlayer )
+				umsg.Bool( b )
+			umsg.End()
+			self.FLIREnabled = b
+		end
+	end
+end
+
+function ENT:ToggleCam( b )
+	if (b != self.Active) then
+		if (self.CamPlayer and self.CamPlayer:IsValid()) then
+			if (b and self.CamEnt and self.CamEnt:IsValid()) then
+				self.CamPlayer:SetViewEntity( self.CamEnt )
+				self.CamPlayer:SetFOV( self.ZoomAmount, 0.01 )
+				self.Active = true
+			else
+				self.CamPlayer:SetViewEntity( self.CamPlayer )
+				self.CamPlayer:SetFOV( self.OriginalFOV, 0.01 )
+				self.Active = false
+			end
+		end
+	end
+end
+
+function ENT:TriggerInput( name, value )
+	if (name == "Activated") then
+		self.Activated = value
+		WireLib.TriggerOutput( self, "On", value )
+		if (value == 0 and self.CamPlayer and self.CamPlayer:IsValid()) then
+			self:ToggleCam( false )
+			self:ToggleFLIR( false )
 		else
 			if self.CamPod then
 				if self.CamPod:GetDriver() and self.CamPod:GetDriver():IsValid() then
@@ -126,19 +158,20 @@ function ENT:TriggerInput(iname, value)
 					self.CamPlayer = self.OriginalOwner
 				end
 			end
-			self.CamPlayer:SetViewEntity(self.CamEnt)
-			self.CamPlayer:SetFOV(self.ZoomAmount, 0.01)
-			self.Active = 1
-			Wire_TriggerOutput(self, "On", 1)
+			self:ToggleCam( true )
+			self:ToggleFLIR( self.FLIR != 0 )
 		end
-	elseif iname == "Zoom" /* and not self.RT */ then
-		self.ZoomAmount = math.Clamp(value, 1, self.OriginalFOV)
-		if self.Active == 1 then
+	elseif (name == "Zoom") then
+		self.ZoomAmount = math.Clamp( value, 1, self.OriginalFOV )
+		if self.Active then
 			self.CamPlayer:SetFOV(self.ZoomAmount, 0.01) -- TODO: RT camera
 		end
+	elseif (name == "FLIR") then
+		self:ToggleFLIR( (self.Active and value != 0) )
+		self.FLIR = value
 	else
-		if self.CamEnt then
-			self.CamEnt:ReceiveInfo(iname, value)
+		if (self.CamEnt and self.CamEnt:IsValid()) then
+			self.CamEnt:ReceiveInfo(name, value)
 		end
 	end
 end
@@ -151,6 +184,46 @@ end
 function ENT:OnRestore()
 	Wire_Restored(self)
 end
+
+-- Detect players exiting the pod
+hook.Add("PlayerLeaveVehicle","Wire_CamController_PlayerEnteredVehicle",function( ply, vehicle )
+	for k,v in pairs( ents.FindByClass( "gmod_wire_cameracontroller" ) ) do
+		if (v.CamPod and v.CamPod:IsValid() and v.CamPod == vehicle) then
+			if (v.Active) then
+				v:ToggleCam( false )
+				v:ToggleFLIR( false )
+				v.CamPlayer = v.OriginalOwner
+			end
+		end
+	end
+end)
+
+local antispam = {}
+concommand.Add( "wire_cameracontroller_leave", function( ply, cmd, args )
+	if (!ply or !ply:IsValid()) then return end
+	if (!antispam[ply]) then antispam[ply] = 0 end
+	if (antispam[ply] > CurTime()) then
+		ply:ChatPrint( "This command has a 5 second anti spam protection. Try again in " .. math.Round(antispam[ply] - CurTime()) .. " seconds.")
+		return
+	end
+	antispam[ply] = CurTime() + 5
+
+	local found = false
+	for k,v in pairs( ents.FindByClass( "gmod_wire_cameracontroller" ) ) do
+		if (v.CamPlayer and v.CamPlayer:IsValid() and v.CamPlayer == ply) then
+			found = true
+			v:ToggleCam( false )
+			v:ToggleFLIR( false )
+			v.CamPlayer = v.OriginalOwner
+		end
+	end
+	if (!found) then
+		ply:SetViewEntity( ply )
+		umsg.Start( "toggle_flir", ply )
+			umsg.Bool( false )
+		umsg.End()
+	end
+end)
 
 function ENT:BuildDupeInfo()
 	local info = self.BaseClass.BuildDupeInfo(self) or {}

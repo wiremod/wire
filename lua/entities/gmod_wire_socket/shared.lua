@@ -20,7 +20,7 @@ local AngleOffsets = {
 	["models/props_lab/tpplugholder_single.mdl"] = Angle(0,0,0),
 	["models/bull/various/usb_socket.mdl"] = Angle(0,0,0),
 	["models/hammy/pci_slot.mdl"] = Angle(0,0,0),
-	["models//hammy/pci_slot.mdl"] = Vector(0,0,0), -- For some reason, GetModel on this model has two / on the client... Bug?
+	["models//hammy/pci_slot.mdl"] = Angle(0,0,0), -- For some reason, GetModel on this model has two / on the client... Bug?
 }
 local SocketModels = {
 	["models/props_lab/tpplugholder_single.mdl"] = "models/props_lab/tpplug.mdl",

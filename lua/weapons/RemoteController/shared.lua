@@ -1,6 +1,6 @@
 AddCSLuaFile("shared.lua")
 
-SWEP.Author = "ShaRose"
+SWEP.Author = "Divran" -- Originally by ShaRose, rewritten by Divran at 2011-04-03
 SWEP.Contact = ""
 SWEP.Purpose = "Remote control for Adv. Pods in wire."
 SWEP.Instructions = "Left Click on Adv. Pod to link up, and use to start controlling."
@@ -30,71 +30,53 @@ SWEP.worldModel = "models/weapons/w_pistol.mdl"
 if CLIENT then return end
 
 function SWEP:PrimaryAttack()
-	if !self.Owner.Active then
-		local tracedata = {
-			start = self.Owner:GetShootPos(),
-			endpos = self.Owner:GetShootPos()+(self.Owner:GetAimVector()*250),
-			filter = self.Owner
-		}
-		local trace = util.TraceLine(tracedata)
-		if not gamemode.Call("CanTool", self.Owner, trace, "wire_adv_pod") then return end
-		if trace.HitNonWorld and trace.Entity:GetClass() == "gmod_wire_adv_pod" then
-			if trace.Entity:Link(self.Owner,true) then
-				self.Owner:PrintMessage(HUD_PRINTTALK, "You are now linked!")
-				self.Owner.Linked = true
-			else
-				self.Owner:PrintMessage(HUD_PRINTTALK, "Link failed!")
-			end
-		end
-	end
-end
-
-function SWEP:Reload()
-	if !self.Owner.Active then
-		self.Owner:PrintMessage(HUD_PRINTTALK,"Link reset!")
-		self.Owner.Linked = false
+	local trace = self.Owner:GetEyeTrace()
+	if (trace.Entity and trace.Entity:IsValid() and trace.Entity:GetClass() == "gmod_wire_adv_pod") then
+		self.Linked = trace.Entity
+		self.Owner:ChatPrint("Remote Controller linked.")
 	end
 end
 
 function SWEP:Holster()
-	self.Owner.Active = false
+	if (self.Linked) then
+		self:Off()
+	end
 	return true
 end
 
 function SWEP:OnDrop()
-	self.Owner.Active = false
-	self.Owner.Linked = false
-	self.Owner:PrintMessage(HUD_PRINTTALK,"SWEP reset!")
-end
-
-function SWEP:Think()
-	if !self.Owner.Linked then return end
-	if self.Owner:KeyPressed(IN_USE) then
-		if self.Owner.Active then
-			self.Owner.Active = false
-			self.Owner:SetMoveType(2)
-			self.Owner:DrawViewModel(true)
-		else
-			self.Owner.Active = true
-			self.Owner:SetMoveType(0)
-			self.Owner:DrawViewModel(false)
-		end
+	if (self.Linked) then
+		self:Off()
+		self.Linked = nil
 	end
 end
 
-function SWEP:OnRestore()
+function SWEP:On()
+	self.Active = true
+	self.Owner:SetMoveType(MOVETYPE_NONE)
+	self.Owner:DrawViewModel(false)
+	if (self.Linked and self.Linked:IsValid()) then
+		self.Linked:PlayerEntered( self.Owner, self )
+	end
+end
+function SWEP:Off()
+	self.Active = nil
+	self.Owner:SetMoveType(MOVETYPE_WALK)
+	self.Owner:DrawViewModel(true)
+	if (self.Linked and self.Linked:IsValid()) then
+		self.Linked:PlayerExited( self.Owner )
+	end
 end
 
-function SWEP:Precache()
-end
-
-function SWEP:OwnerChanged()
-end
-
-function SWEP:SecondaryAttack()
-end
-
-function SWEP:Initialize()
+function SWEP:Think()
+	if (!self.Linked) then return end
+	if (self.Owner:KeyPressed( IN_USE )) then
+		if (!self.Active) then
+			self:On()
+		else
+			self:Off()
+		end
+	end
 end
 
 function SWEP:Deploy()
