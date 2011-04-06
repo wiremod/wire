@@ -4,655 +4,517 @@ TOOL.Command    = nil
 TOOL.ConfigName = ""
 TOOL.Tab        = "Wire"
 
-if (CLIENT) then
-	language.Add("Tool_wire_cpu_name", "CPU Tool (Wire)")
-	language.Add("Tool_wire_cpu_desc", "Spawns a central processing unit")
-	language.Add("Tool_wire_cpu_0", "Primary: Create / Update CPU, Secondary: Open editor")//; Secondary: Debug the CPU
-	language.Add("sboxlimit_wire_cpu", "You've hit CPU limit!")
-	language.Add("undone_wirecpu", "Undone the wire CPU")
-	language.Add( "ToolWirecpu_Model", "Model:" )
+if CLIENT then
+  language.Add("Tool_wire_cpu_name", "CPU Tool (Wire)")
+  language.Add("Tool_wire_cpu_desc", "Spawns a central processing unit")
+  language.Add("Tool_wire_cpu_0",    "Primary: upload program to hispeed device, Reload: attach debugger, Shift+Reload: clear, Secondary: open editor")
+  language.Add("sboxlimit_wire_cpu", "You've hit ZCPU limit!")
+  language.Add("undone_wire_cpu",    "Undone the ZCPU")
+  language.Add("ToolWirecpu_Model",  "Model:" )
 end
 
-if (SERVER) then
-	CreateConVar('sbox_maxwire_cpus', 20)
-end
-
-TOOL.ClientConVar = {
-	model             = "models/cheeze/wires/cpu.mdl",
-	filename          = "",
-	packet_bandwidth  = 300,
-	packet_rate_sp    = 0.05,
-	packet_rate_mp    = 0.4,
-	compile_rate      = 0.05,
-	compile_bandwidth = 200,
-	rom               = 1,
-	rom_present       = 1,
-	dump_data         = 0
-}
-
+if SERVER then CreateConVar("sbox_maxwire_cpus", 7) end
 cleanup.Register("wire_cpus")
 
-//=============================================================================
-if (SERVER) then
-	CPU_SourceCode = {}
+TOOL.ClientConVar = {
+  model             = "models/cheeze/wires/cpu.mdl",
+  filename          = "",
+  memorymodel       = "64krom",
+}
 
-	local function AddSourceLine(pl, command, args)
-		CPU_SourceCode[tonumber(args[1])] = tostring(args[2])
-	end
-	concommand.Add("wire_cpu_addsrc", AddSourceLine)
-
-	local function ClearSource(pl, command, args)
-		CPU_SourceCode = {}
-	end
-	concommand.Add("wire_cpu_clearsrc", ClearSource)
-end
-//=============================================================================
-
-local function CPUStool_Version()
-	local SVNString = "$Revision$"
-	local rev = tonumber(string.sub(SVNString,12,14))
-	if (rev) then
-		return rev
-	else
-		return 0
-	end
-end
-
-//=============================================================================
-
-local function CompileProgram_Timer(tool,firstpass)
-	if (firstpass && tool.FirstPassDone) then return end
-	if (!firstpass && tool.SecondPassDone) then return end
-	if (!tool:GetOwner()) then return end
-	if (!tool.LineNumber) then return end
-
-	local SendLinesMax = tool.LineNumber + tool:GetOwner():GetInfo("wire_cpu_compile_bandwidth")
-	if (SendLinesMax > table.Count(CPU_SourceCode)) then SendLinesMax = table.Count(CPU_SourceCode) end
-	local Rate = 0
-
-	if (CPU_SourceCode[tostring(tool.LineNumber)]) then
-		if (string.len(CPU_SourceCode[tostring(tool.LineNumber)]) > 256) then
-			SendLinesMax = tool.LineNumber
-		end
-	end
-
-	while (tool.LineNumber <= SendLinesMax) and (tool.CPU_Entity) do
-		local line = CPU_SourceCode[tonumber(tool.LineNumber)]
-		if (line) then
-			if (string.len(line) > 254) then
-				tool:GetOwner():PrintMessage(HUD_PRINTCONSOLE,"-> ZyeliosASM: Line "..tool.LineNumber.." too long! I compile it, but it may trigger infinite loop thing.\n")
-			end
-			if (tool.CPU_Entity.ParseProgram_ASM) then
-				tool.CPU_Entity:ParseProgram_ASM(line,tool.LineNumber)
-			end
-		end
-
-		tool.LineNumber = tool.LineNumber + 1
-		Rate = Rate + 1
-	end
-
-	local TimeLeft = (table.Count(CPU_SourceCode)*2 - tool.LineNumber) / Rate
-	if (not firstpass) then
-		TimeLeft = (table.Count(CPU_SourceCode) - tool.LineNumber) / Rate
-	end
-	tool.PrevRate = (tool.PrevRate*1.5+TimeLeft*0.5) / 2
-	TimeLeft = math.floor(tool.PrevRate / 10)
-
-	local TempPercent = ((tool.LineNumber-1)/table.Count(CPU_SourceCode))*100
-	if (firstpass) then
-		if (!tool.FirstPassDone) then
-			tool:GetOwner():ConCommand('wire_cpu_vgui_status "Compiling ('.. TimeLeft ..' seconds left), '..tool.LineNumber..' lines processed"')
-			tool:GetOwner():ConCommand('wire_cpu_vgui_progress "'..math.floor(TempPercent/2)..'"')
-		end
-	else
-		if (!tool.SecondPassDone) then
-			tool:GetOwner():ConCommand('wire_cpu_vgui_status "Compiling ('.. TimeLeft ..' seconds left), '..tool.LineNumber..' lines processed"')
-			tool:GetOwner():ConCommand('wire_cpu_vgui_progress "'..math.floor(50+TempPercent/2)..'"')
-		end
-	end
-
-	if (tool.LineNumber > table.Count(CPU_SourceCode)) || (TempPercent >= 100) then
-		if (!tool.FirstPassDone) then
-			tool.FirstPassDone = true
-			tool:Compile_Pass2()
-		end
-		if (!firstpass) && (!tool.SecondPassDone) then
-			tool.SecondPassDone = true
-			tool:Compile_End()
-		end
-	end
-
-	if (tool.CPU_Entity.FatalError == true) then
-		timer.Destroy("CPUCompileTimer1")
-		timer.Destroy("CPUCompileTimer2")
-		tool:Compile_End()
-	end
-end
-
-//=============================================================================
-
--- TODO: shouldn't this take ent instead of pl? since pl = self:GetOwner()
-function TOOL:StartCompile(pl)
-	local ent = self.CPU_Entity
-	if table.Count(CPU_SourceCode) == 0 then return end
-
-	pl:PrintMessage(HUD_PRINTCONSOLE,"----> ZyeliosASM compiler - Version 2.0 (SVN REV "..CPUStool_Version().."/"..ent:CPUID_Version()..") <----\n")
-	pl:PrintMessage(HUD_PRINTCONSOLE,"-> ZyeliosASM: Compiling...\n")
-
-	pl:ConCommand('wire_cpu_vgui_open')
-	pl:ConCommand('wire_cpu_vgui_title "ZyeliosASM - Compiling"')
-	pl:ConCommand('wire_cpu_vgui_status "Initializing"')
-	pl:ConCommand('wire_cpu_vgui_progress "0"')
-
-	ent.UseROM = self:GetClientInfo("rom") == "1"
-
-	if (self:GetClientInfo("dump_data") == "1") then
-		ent.MakeDump = true
-		ent.Dump = "Code listing:\n"
-	else
-		ent.MakeDump = false
-	end
-
-
-	self.FirstPassDone = false
-	self.SecondPassDone = false
-
-	timer.Destroy("CPUCompileTimer1")
-	timer.Destroy("CPUCompileTimer2")
-
-	ent:Compiler_Stage0(pl)
-	self:Compile_Pass1()
-end
-
-function TOOL:Compile_Pass1()
-	if (!self:GetOwner()) then return end
-	self:GetOwner():PrintMessage(HUD_PRINTCONSOLE,"-> ZyeliosASM: Pass 1\n")
-
-	self.Compiling = true
-	self.CPU_Entity:Compiler_Stage1()
-
-	self.LineNumber = 1
-	self.PrevRate = 0
-	timer.Create("CPUCompileTimer1",self:GetOwner():GetInfo("wire_cpu_compile_rate"),0,CompileProgram_Timer,self,true)
-end
-
-function TOOL:Compile_Pass2()
-	if (!self:GetOwner()) then return end
-	self:GetOwner():PrintMessage(HUD_PRINTCONSOLE,"-> ZyeliosASM: Pass 2\n")
-
-	self.Compiling = true
-	self.CPU_Entity:Compiler_Stage2()
-
-	self.LineNumber = 1
-	timer.Create("CPUCompileTimer2",self:GetOwner():GetInfo("wire_cpu_compile_rate"),0,CompileProgram_Timer,self,false)
+if CLIENT then
+  ------------------------------------------------------------------------------
+  -- Make sure firing animation is displayed clientside
+  ------------------------------------------------------------------------------
+  function TOOL:LeftClick()  return true end
+  function TOOL:Reload()     return true end
+  function TOOL:RightClick() return false end
 end
 
 
-function TOOL:Compile_End()
-	local pl = self:GetOwner()
-	local ent = self.CPU_Entity
 
-	if (ent.FatalError) then
-		pl:PrintMessage(HUD_PRINTCONSOLE,"-> ZyeliosASM: Compile aborted: fatal error has occured\n")
-	else
-		pl:PrintMessage(HUD_PRINTCONSOLE,"-> ZyeliosASM: Compile succeded! "..(table.Count(CPU_SourceCode)-1).." lines, "..ent.WIP.." bytes, "..table.Count(ent.Labels).." definitions.\n")
-	end
 
-	pl:ConCommand('wire_cpu_vgui_close')
+if SERVER then
+  ------------------------------------------------------------------------------
+  -- ZCPU entity factory
+  ------------------------------------------------------------------------------
+  local function MakeWireCPU(player, Pos, Ang, model)
+    if !player:CheckLimit("wire_cpus") then return false end
 
-	if ((self:GetClientInfo("dump_data") == "1") && (SinglePlayer())) then
-		pl:PrintMessage(HUD_PRINTCONSOLE,"ZyeliosASM: Dumping data\n")
-		local codedump = ""
-		for i = 0,ent.WIP do
-			if (ent.Memory[i]) then
-				codedump = codedump.."db "..ent.Memory[i].."\n"
-			end
-		end
-		file.Write("cdump.txt",codedump)
-		file.Write("ldump.txt",ent.Dump)
-		pl:PrintMessage(HUD_PRINTCONSOLE,"ZyeliosASM: Dumped!\n")
-	end
+    local self = ents.Create("gmod_wire_cpu")
+    if !self:IsValid() then return false end
 
-	ent:Reset()
-	ent.Compiling = false
+    self:SetModel(model)
+    self:SetAngles(Ang)
+    self:SetPos(Pos)
+    self:Spawn()
+    self:SetPlayer(player)
+    self.player = player
+
+    player:AddCount("wire_cpus", self)
+    player:AddCleanup("wire_cpus", self)
+    return self
+  end
+  duplicator.RegisterEntityClass("gmod_wire_cpu", MakeWireCPU, "Pos", "Ang", "Model")
+
+
+  ------------------------------------------------------------------------------
+  -- Reload: wipe ROM/RAM and reset memory model, or attach debugger
+  ------------------------------------------------------------------------------
+  function TOOL:Reload(trace)
+    if trace.Entity:IsPlayer() then return false end
+    local player = self:GetOwner()
+
+    if player:KeyDown(IN_SPEED) then
+      if (trace.Entity:IsValid()) and
+         (trace.Entity:GetClass() == "gmod_wire_cpu") and
+         (trace.Entity.player == player) then
+        trace.Entity:SetMemoryModel(self:GetClientInfo("memorymodel"))
+        trace.Entity:FlashData({})
+        player:SendLua("CPULib.InvalidateDebugger()")
+      end
+    else
+      if (not trace.Entity:IsPlayer()) and
+         (trace.Entity:IsValid()) and
+         (trace.Entity:GetClass() == "gmod_wire_cpu") and
+         (trace.Entity.player == player) then
+        CPULib.AttachDebugger(trace.Entity,player)
+        CPULib.SendDebugData(trace.Entity.VM,nil,player)
+        player:SendLua("CPULib.DebuggerAttached = true")
+        player:SendLua("CPULib.InvalidateDebugger()")
+        player:SendLua("GAMEMODE:AddNotify(\"CPU debugger has been attached!\",NOTIFY_GENERIC,7)")
+      else
+        CPULib.AttachDebugger(nil,player)
+        player:SendLua("CPULib.DebuggerAttached = false")
+        player:SendLua("CPULib.InvalidateDebugger()")
+        player:SendLua("GAMEMODE:AddNotify(\"CPU debugger deattached!\",NOTIFY_GENERIC,7)")
+      end
+    end
+    return true
+  end
+
+
+  ------------------------------------------------------------------------------
+  -- Left click: spawn CPU or upload current program into it
+  ------------------------------------------------------------------------------
+  function TOOL:LeftClick(trace)
+    if trace.Entity:IsPlayer() then return false end
+
+    local player = self:GetOwner()
+    local model = self:GetClientInfo("model")
+    local pos = trace.HitPos
+    local ang = trace.HitNormal:Angle()
+    ang.pitch = ang.pitch + 90
+
+    -- Re-upload data to CPU or a hispeed device
+    if (trace.Entity:IsValid()) and
+       ((trace.Entity:GetClass() == "gmod_wire_cpu") or
+        (trace.Entity.WriteCell)) and
+       (trace.Entity:GetPlayer() == player) then
+      CPULib.SetUploadTarget(trace.Entity,player)
+      player:SendLua("ZCPU_RequestCode()")
+      player:SendLua("CPULib.InvalidateDebugger()")
+      return true
+    end
+
+    if !self:GetSWEP():CheckLimit("wire_cpus") then return false end
+
+    local entity = ents.Create("gmod_wire_cpu")
+    if !entity:IsValid() then return false end
+
+    player:AddCount("wire_cpus", entity)
+
+    entity:SetModel(model)
+    entity:SetAngles(ang)
+    entity:SetPos(pos)
+    entity:Spawn()
+    entity:SetPlayer(player)
+    entity.player = player
+
+    entity:SetPos(trace.HitPos - trace.HitNormal * entity:OBBMins().z)
+    local constraint = WireLib.Weld(entity, trace.Entity, trace.PhysicsBone, true)
+
+    undo.Create("wire_cpu")
+      undo.AddEntity(entity)
+      undo.SetPlayer(player)
+      undo.AddEntity(constraint)
+    undo.Finish()
+
+    entity:SetMemoryModel(self:GetClientInfo("memorymodel"))
+
+    player:AddCleanup("wire_cpus", entity)
+    CPULib.SetUploadTarget(entity,player)
+    player:SendLua("ZCPU_RequestCode()")
+    return true
+  end
+
+
+  ------------------------------------------------------------------------------
+  -- Right click: open editor
+  ------------------------------------------------------------------------------
+  function TOOL:RightClick(trace)
+    local player = self:GetOwner()
+    player:SendLua("ZCPU_OpenEditor()")
+    return true
+  end
+
+
+  ------------------------------------------------------------------------------
+  -- Update ghost entity
+  ------------------------------------------------------------------------------
+  function TOOL:UpdateGhostWireCPU(ent, player)
+    if not ent then return end
+    if not ent:IsValid() then return end
+
+    local tr = utilx.GetPlayerTrace(player, player:GetCursorAimVector())
+    local trace = util.TraceLine(tr)
+    if not trace.Hit then return end
+
+    if  (trace.Entity) and
+       ((trace.Entity:GetClass() == "gmod_wire_cpu") or
+        (trace.Entity:IsPlayer()) or
+        (trace.Entity.WriteCell)) then
+      ent:SetNoDraw(true)
+      return
+    end
+
+    local Ang = trace.HitNormal:Angle()
+    Ang.pitch = Ang.pitch + 90
+
+    local min = ent:OBBMins()
+    ent:SetPos(trace.HitPos - trace.HitNormal * min.z)
+    ent:SetAngles(Ang)
+
+    ent:SetNoDraw(false)
+  end
+
+
+  ------------------------------------------------------------------------------
+  -- Think loop
+  ------------------------------------------------------------------------------
+  function TOOL:Think()
+    local model = self:GetClientInfo("model")
+
+    if (not self.GhostEntity) or
+       (not self.GhostEntity:IsValid()) or
+       (self.GhostEntity:GetModel() ~= model) or
+       (not self.GhostEntity:GetModel()) then
+      self:MakeGhostEntity(model, Vector(0,0,0), Angle(0,0,0))
+    end
+
+    self:UpdateGhostWireCPU(self.GhostEntity, self:GetOwner())
+  end
 end
 
-local last_error = "Press Ctrl-Space to go to the last CPU/GPU error."
 
-usermessage.Hook("wire_cpu_error", function(um)
-	last_error = um:ReadString()
-end)
-
-function wire_cpu_validate(buffer)
-	return last_error
-end
 
-//=============================================================================
-function TOOL:Reload(trace)
-	if trace.Entity:IsPlayer() then return false end
-	if (CLIENT) then return true end
 
-	local ply = self:GetOwner()
-	if (trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_cpu" && trace.Entity.pl == ply) then
-		trace.Entity.Memory = {}
-		trace.Entity.ROMMemory = {}
-		trace.Entity.PrecompileData = {}
-		trace.Entity.PrecompileMemory = {}
-		return true
-	end
-end
 
-function TOOL:LeftClick(trace)
-	if trace.Entity:IsPlayer() then return false end
-	if (CLIENT) then return true end
 
-	local ply = self:GetOwner()
-
-	self.CPU_Entity = trace.Entity
-
-	if not trace.Entity:IsValid() or trace.Entity:GetClass() ~= "gmod_wire_cpu" or trace.Entity.pl ~= ply then
-
-		if (!self:GetSWEP():CheckLimit("wire_cpus")) 		then return false end
-		if (not util.IsValidModel(self:GetClientInfo("model"))) then return false end
-		if (not util.IsValidProp(self:GetClientInfo("model"))) 	then return false end
-
-		local ang   = trace.HitNormal:Angle()
-		local model = self:GetClientInfo("model")
-		ang.pitch = ang.pitch + 90
-
-		wire_cpu = MakeWireCpu(ply, trace.HitPos, ang, model)
-		local min = wire_cpu:OBBMins()
-		wire_cpu:SetPos(trace.HitPos - trace.HitNormal * min.z)
-
-		local const = WireLib.Weld(wire_cpu, trace.Entity, trace.PhysicsBone, true)
-
-		undo.Create("Wire CPU")
-			undo.AddEntity(wire_cpu)
-			undo.AddEntity(const)
-			undo.SetPlayer(ply)
-		undo.Finish()
-
-		ply:AddCleanup("wire_cpus", wire_cpu)
-		ply:AddCleanup("wire_cpus", const)
-
-		self.CPU_Entity = wire_cpu
-	end
-
-	self:StartCompile(ply)
-	return true
-end
-
-function TOOL:RightClick(trace)
-	if SERVER then self:GetOwner():SendLua("wire_cpu_OpenEditor()") end
-end
-
-if (SERVER) then
-	function MakeWireCpu(pl, Pos, Ang, model)
-		if (!pl:CheckLimit("wire_cpus")) then return false end
-
-		local wire_cpu = ents.Create("gmod_wire_cpu")
-		if (!wire_cpu:IsValid()) then return false end
-		wire_cpu:SetModel(model)
-
-		wire_cpu:SetAngles(Ang)
-		wire_cpu:SetPos(Pos)
-		wire_cpu:Spawn()
-
-		wire_cpu:SetPlayer(pl)
-
-		local ttable = {
-			pl = pl,
-		}
-		table.Merge(wire_cpu:GetTable(), ttable) -- TODO: remove maybe?
-		pl:AddCount("wire_cpus", wire_cpu)
-
-		return wire_cpu
-	end
-	duplicator.RegisterEntityClass("gmod_wire_cpu", MakeWireCpu, "Pos", "Ang", "Model")
-end
-
-function TOOL:UpdateGhostWireCpu(ent, player)
-	if (!ent) then return end
-	if (!ent:IsValid()) then return end
-
-	local trace = player:GetEyeTrace()
-	if (!trace.Hit) then return end
-
-	if (trace.Entity && trace.Entity:GetClass() == "gmod_wire_cpu" || trace.Entity:IsPlayer()) then
-		ent:SetNoDraw(true)
-		return
-	end
-
-	local ang = trace.HitNormal:Angle()
-	ang.pitch = ang.pitch + 90
-
-	local min = ent:OBBMins()
-	ent:SetPos(trace.HitPos - trace.HitNormal * min.z)
-	ent:SetAngles(ang)
-
-	ent:SetNoDraw(false)
-end
-
-function TOOL:Think()
-	if (!self.GhostEntity || !self.GhostEntity:IsValid() || self.GhostEntity:GetModel() != self:GetClientInfo("model") || (not self.GhostEntity:GetModel())) then
-		self:MakeGhostEntity(self:GetClientInfo("model"), Vector(0,0,0), Angle(0,0,0))
-	end
-
-	self:UpdateGhostWireCpu(self.GhostEntity, self:GetOwner())
-end
-
-//=============================================================================
-// Code sending
-//=============================================================================
-if (CLIENT) then
-	local Frame
-	local StatusLabel
-	local PLabel
-	local ProgressBar
-	local BGBar
-
-	local function VGUI_Open(pl, command, args)
-		if (Frame) then
-			Frame:SetVisible(false)
-		end
-
-		Frame = vgui.Create("Panel")
-		Frame:SetSize(400,50)
-		Frame:SetPos(150,150)
-		Frame:SetVisible(true)
-
-		BGBar = vgui.Create("ProgressBar",Frame)
-		BGBar:SetVisible(true)
-		BGBar:SetSize(400,100)
-		BGBar:SetPos(0,0)
-
-		StatusLabel = vgui.Create("Label",Frame)
-		StatusLabel:SetSize(380,30)
-		StatusLabel:SetPos(10,10)
-		StatusLabel:SetVisible(true)
-
-		PLabel = vgui.Create("Label",Frame)
-		PLabel:SetSize(30,30)
-		PLabel:SetPos(360,10)
-		PLabel:SetVisible(true)
-
-		ProgressBar = vgui.Create("ProgressBar",Frame)
-		ProgressBar:SetSize(280,30)
-		ProgressBar:SetPos(10,60)
-		ProgressBar:SetVisible(false)
-	end
-	concommand.Add("wire_cpu_vgui_open", VGUI_Open)
-
-	local function VGUI_Close(pl, command, args)
-		Frame:SetVisible(false);
-	end
-	concommand.Add("wire_cpu_vgui_close", VGUI_Close)
-
-	local function VGUI_Title(pl, command, args)
-		Frame:PostMessage("SetTitle", "text", args[1]);
-	end
-	concommand.Add("wire_cpu_vgui_title", VGUI_Title)
-
-	local function VGUI_Status(pl, command, args)
-		StatusLabel:PostMessage("SetText", "text", args[1]);
-	end
-	concommand.Add("wire_cpu_vgui_status", VGUI_Status)
-
-	local function VGUI_Progress(pl, command, args)
-		if (args[1]) then
-			ProgressBar:PostMessage("SetValue", "Float", tonumber(args[1])/100);
-			PLabel:PostMessage("SetText", "text", args[1] .. "%");
-		end
-	end
-	concommand.Add("wire_cpu_vgui_progress", VGUI_Progress)
-end
-
-if (CLIENT) then
-
-	SourceLines = {}
-	SourceLineNumbers = {}
-	SourceLinesSent = 0
-	SourcePrevCharRate = 0
-	SourceTotalChars = 0
-	SourceLoadedChars = 0
-
-	function wire_cpu_OpenEditor()
-		if not CPU_Editor then
-			CPU_Editor = vgui.Create( "Expression2EditorFrame")
-			CPU_Editor:Setup("CPU Editor", "CPUChip", "CPU")
-		end
-		CPU_Editor:Open()
-	end
-
-	function CPU_UploadProgram(pl)
-		local SendLinesMax = SourceLinesSent + pl:GetInfo("wire_cpu_packet_bandwidth")
-		local TotalChars = 0
-		if SendLinesMax > table.Count(SourceLines) then
-			SendLinesMax = table.Count(SourceLines)
-		end
-
-		while (SourceLinesSent <= SendLinesMax) && (TotalChars < 1024) do
-			SourceLinesSent = SourceLinesSent + 1
-			local line = SourceLines[SourceLinesSent]
-			local linen = SourceLinesSent
-
-			if (line) && (line ~= "\n") && (string.gsub(line, "\n", "") ~= "") then
-				RunConsoleCommand("wire_cpu_addsrc",linen,string.gsub(line, "\n", ""))
-				TotalChars = TotalChars + string.len(line)
-			else
-				RunConsoleCommand("wire_cpu_addsrc",linen,"")
-			end
-		end
-		SourceLoadedChars = SourceLoadedChars + TotalChars
-
-		local CharRate = (SourcePrevCharRate*1.95 + TotalChars*0.05) / 2
-		SourcePrevCharRate = CharRate
-
-		if SinglePlayer() then
-			CharRate = CharRate / pl:GetInfo("wire_cpu_packet_rate_sp")
-		else
-			CharRate = CharRate / pl:GetInfo("wire_cpu_packet_rate_mp")
-		end
-
-		local TimeLeft = math.floor((SourceTotalChars - SourceLoadedChars) / CharRate)
-		local TempPercent = math.floor(((SourceLinesSent-1)/table.Count(SourceLines))*100)
-
-		pl:ConCommand('wire_cpu_vgui_status "Uploading @ '..math.floor(CharRate / 1024)..' kb/sec, avg. '..TimeLeft..' sec left, '..SourceLinesSent..' lines sent"')
-		pl:ConCommand('wire_cpu_vgui_progress "'..TempPercent..'"')
-
-		if (SourceLinesSent > table.Count(SourceLines)) then
-			pl:ConCommand('wire_cpu_vgui_close')
-			timer.Remove("CPUSendTimer")
-		end
-	end
-
-	function CPU_LoadProgram(pl, command, args)
-		local fname = "CPUChip\\"..pl:GetInfo("wire_cpu_filename")
-		if (!file.Exists(fname)) then
-			fname = "CPUChip\\"..pl:GetInfo("wire_cpu_filename")..".txt"
-		end
-
-		if (!file.Exists(fname)) then
-			pl:PrintMessage(HUD_PRINTTALK,"CPU -> Sorry! Requested file was not found\n")
-			return
-		end
-
-		pl:ConCommand('wire_cpu_clearsrc')
-
-		local filedata = file.Read(fname)
-		if (!filedata) then
-			pl:PrintMessage(HUD_PRINTTALK,"CPU -> Sorry! File was found, but leprechauns prevented it from getting read!\n") //This message occurs rarely enough to put something fun here
-			return
-		end
-
-		SourceLines = string.Explode("\n", filedata)
-		SourceLinesSent = 0
-		SourceTotalChars = string.len(filedata)
-
-		//Parse include files
-		if (string.find(filedata,"##include##", 1, true)) then
-			for i=1,#SourceLines do
-				if (string.sub(SourceLines[i],1,12) == "##include## ") then
-					local fname2 = string.sub(SourceLines[i],13)
-					if (file.Exists("CPUChip\\"..fname2)) then
-						SourceLines[i] = "asmfile "..fname.."\n"..file.Read("CPUChip\\"..fname2).."\nasmend\n"
-					else
-						SourceLines[i] = ""
-					end
-				end
-			end
-
-			filedata = string.Implode("\n", SourceLines)
-			SourceLines = string.Explode("\n", filedata)
-			SourceLinesSent = 0
-			SourceTotalChars = string.len(filedata)
-		end
-
-		SourcePrevCharRate = string.len(SourceLines[1])
-		SourceLoadedChars = 0
-
-		pl:ConCommand('wire_cpu_vgui_open')
-		pl:ConCommand('wire_cpu_vgui_title "CPU - Uploading program"')
-		pl:ConCommand('wire_cpu_vgui_status "Initializing"')
-		pl:ConCommand('wire_cpu_vgui_progress "0"')
-
-		//Send 50 lines
-		if (SinglePlayer()) then
-			timer.Create("CPUSendTimer",pl:GetInfo("wire_cpu_packet_rate_sp"),0,CPU_UploadProgram,pl,false)
-		else
-			timer.Create("CPUSendTimer",pl:GetInfo("wire_cpu_packet_rate_mp"),0,CPU_UploadProgram,pl,false)
-		end
-	end
-
-end
-
-local function LoadProgram(pl, command, args)
-	if (SERVER) then
-		pl:SendLua("CPU_LoadProgram(LocalPlayer())")
-	else
-		CPU_LoadProgram(pl, command, args)
-	end
-end
-concommand.Add("wire_cpu_load", LoadProgram)
-
-local function ClearProgram(pl, command, args)
-	pl:ConCommand('wire_cpu_clearsrc')
-end
-concommand.Add("wire_cpu_clear", ClearProgram)
-
-//end
-
-//=============================================================================
-function TOOL.BuildCPanel(panel)
-	panel:AddControl("Header", { Text = "#Tool_wire_cpu_name", Description = "#Tool_wire_cpu_desc" })
-
-	panel:AddControl("TextBox", {
-		Label = "Source code file name",
-		Command = "wire_cpu_filename",
-		MaxLength = "128"
-	})
-
-	local dir
-	local FileBrowser = vgui.Create("wire_expression2_browser" , panel)
-	panel:AddPanel(FileBrowser)
-	FileBrowser:Setup("CPUChip")
-	FileBrowser:SetSize(235,400)
-	function FileBrowser:OnFileClick()
-		local lastclick = CurTime()
-		if not CPU_Editor then
-			CPU_Editor = vgui.Create( "Expression2EditorFrame")
-			CPU_Editor:Setup("CPU Editor", "CPUChip", "CPU")
-		end
-
-		if(dir == self.File.FileDir and CurTime() - lastclick < 1) then
-			CPU_Editor:Open(dir)
-		else
-			lastclick = CurTime()
-			dir = self.File.FileDir
-			LocalPlayer():ConCommand("wire_cpu_filename "..string.Right(dir, string.len(dir)-8))
-		end
-	end
-
-	panel:AddControl("Button", {
-		Text = "Load into compiler",
-		Name = "Load",
-		Command = "wire_cpu_load"
-	})
-	local New = vgui.Create("DButton" , panel)
-	panel:AddPanel(New)
-	New:SetText("New file")
-	New.DoClick = function(button)
-		wire_cpu_OpenEditor()
-		CPU_Editor:AutoSave()
-		CPU_Editor:ChosenFile()
-		CPU_Editor:SetCode("\n\n")
-	end
-
-	panel:AddControl("Label", {Text = ""})
-
-	//panel:AddControl("Button", {
-	//	Text = "Code editor"
-	//})
-
-	local OpenEditor = vgui.Create("DButton", panel)
-	panel:AddPanel(OpenEditor)
-	OpenEditor:SetText("Code Editor")
-	OpenEditor.DoClick = wire_cpu_OpenEditor
-
-	panel:AddControl("Label", {Text = ""})
-
-	panel:AddControl("Label", {
-		Text = "CPU settings:"
-	})
-
-
-	panel:AddControl("CheckBox", {
-		Label = "Use CPU ROM",
-		Command = "wire_cpu_rom"
-	})
-	panel:AddControl("Label", {
-		Text = "ROM data is saved with advanced duplicator and is stored between CPU resets"
-	})
-
-	panel:AddControl("ComboBox", {
-		Label = "CPU Model",
-		Options = {
-			["AMD64"]    	    = { wire_cpu_model = "models/cheeze/wires/cpu.mdl" },
-			["AMD64 Mini"]    = { wire_cpu_model = "models/cheeze/wires/mini_cpu.mdl" },
-		["WireCPU"]    = { wire_cpu_model = "models/cheeze/wires/cpu2.mdl" },
-		["WireCPU Mini"]    = { wire_cpu_model = "models/cheeze/wires/mini_cpu2.mdl"},
-
-		}
-	})
-
-	panel:AddControl("Label", {Text = ""})
-
-	panel:AddControl("Label", {
-		Text = "These do not work yet:"
-	})
-
-	panel:AddControl("CheckBox", {
-		Label = "CPU ROM Present",
-		Command = "wire_cpu_rom_present"
-	})
-	panel:AddControl("Label", {
-		Text = "CPU can be without internal ROM/RAM (you need to attach RAM/ROM manually)"
-	})
-
-
-	panel:AddControl("CheckBox", {
-		Label = "Dump CPU data",
-		Command = "wire_cpu_dump_data"
-	})
-	panel:AddControl("Label", {
-		Text = "Dumps CPU information and compiled code to pdump/cdump/ldump files in DATA folder (server host, or singleplayer only)"
-	})
-
-
-	panel:AddControl("Button", {
-		Text = "ZCPU documentation (online)"
-	})
-	panel:AddControl("Label", {
-		Text = "Loads online CPU documentation and tutorials"
-	})
+--------------------------------------------------------------------------------
+if CLIENT then
+  ------------------------------------------------------------------------------
+  -- Compiler callbacks on the compiling state
+  ------------------------------------------------------------------------------
+  local function compile_success()
+    CPULib.Upload()
+  end
+
+  local function compile_error(errorText)
+    print(errorText)
+    GAMEMODE:AddNotify(errorText,NOTIFY_GENERIC,7)
+  end
+
+
+  ------------------------------------------------------------------------------
+  -- Request code to be compiled (called remotely from server)
+  ------------------------------------------------------------------------------
+  function ZCPU_RequestCode()
+    if ZCPU_Editor then
+      CPULib.Compile(ZCPU_Editor:GetCode(),ZCPU_Editor:GetChosenFile(),compile_success,compile_error)
+    end
+  end
+
+
+  ------------------------------------------------------------------------------
+  -- Open ZCPU editor
+  ------------------------------------------------------------------------------
+  function ZCPU_OpenEditor()
+    if not ZCPU_Editor then
+      ZCPU_Editor = vgui.Create("Expression2EditorFrame")
+      ZCPU_Editor:Setup("ZCPU Editor", "CPUChip", "CPU")
+    end
+    ZCPU_Editor:Open()
+  end
+
+
+  ------------------------------------------------------------------------------
+  -- Build tool control panel
+  ------------------------------------------------------------------------------
+  function TOOL.BuildCPanel(panel)
+    panel:AddControl("Header", { Text = "#Tool_wire_cpu_name", Description = "#Tool_wire_cpu_desc" })
+
+
+    ----------------------------------------------------------------------------
+    local Button = vgui.Create("DButton" , panel)
+    panel:AddPanel(Button)
+    Button:SetText("Online ZCPU documentation")
+    Button.DoClick = function(button) CPULib.ShowDocumentation("ZCPU") end
+
+
+    ----------------------------------------------------------------------------
+    local currentDirectory
+    local FileBrowser = vgui.Create("wire_expression2_browser" , panel)
+    panel:AddPanel(FileBrowser)
+    FileBrowser:Setup("CPUChip")
+    FileBrowser:SetSize(235,400)
+    function FileBrowser:OnFileClick()
+      local lastClickTime = CurTime()
+      if not ZCPU_Editor then
+        ZCPU_Editor = vgui.Create("Expression2EditorFrame")
+        ZCPU_Editor:Setup("ZCPU Editor", "CPUChip", "CPU")
+      end
+
+      if (currentDirectory == self.File.FileDir) and (CurTime() - lastClickTime < 1) then
+        ZCPU_Editor:Open(currentDirectory)
+      else
+        lastClickTime = CurTime()
+        currentDirectory = self.File.FileDir
+        ZCPU_Editor:LoadFile(currentDirectory)
+      end
+    end
+
+
+    ----------------------------------------------------------------------------
+    local New = vgui.Create("DButton" , panel)
+    panel:AddPanel(New)
+    New:SetText("New file")
+    New.DoClick = function(button)
+      ZCPU_OpenEditor()
+      ZCPU_Editor:AutoSave()
+      ZCPU_Editor:NewScript(false)
+    end
+    panel:AddControl("Label", {Text = ""})
+
+    ----------------------------------------------------------------------------
+    local OpenEditor = vgui.Create("DButton", panel)
+    panel:AddPanel(OpenEditor)
+    OpenEditor:SetText("Open Editor")
+    OpenEditor.DoClick = ZCPU_OpenEditor
+
+
+    ----------------------------------------------------------------------------
+    panel:AddControl("Label", {Text = ""})
+    panel:AddControl("Label", {Text = "CPU settings:"})
+
+
+    ----------------------------------------------------------------------------
+    local modelPanel = WireDermaExts.ModelSelect(panel, "wire_cpu_model", list.Get("Wire_gate_Models"), 2)
+    panel:AddControl("Label", {Text = ""})
+
+
+    ----------------------------------------------------------------------------
+    panel:AddControl("ComboBox", {
+      Label = "Memory model",
+      Options = {
+        ["128 bytes ROM only"]  = {wire_cpu_memorymodel = "128rom"},
+        ["128 bytes RAM/ROM"]   = {wire_cpu_memorymodel = "128"},
+        ["64KB RAM/ROM"]        = {wire_cpu_memorymodel = "64krom"},
+        ["64KB RAM only"]       = {wire_cpu_memorymodel = "64k"},
+        ["128KB RAM/ROM"]       = {wire_cpu_memorymodel = "128krom"},
+        ["No internal RAM/ROM"] = {wire_cpu_memorymodel = "flat"},
+      }
+    })
+    panel:AddControl("Label", {Text = "Sets the processor memory model (determines iteraction with the external devices)"})
+  end
+
+
+  ------------------------------------------------------------------------------
+  -- Tool screen
+  ------------------------------------------------------------------------------
+  surface.CreateFont("Lucida Console", 30, 1000, true, false, "ZCPUToolScreenFont")
+  surface.CreateFont("Lucida Console", 26, 1000, true, false, "ZCPUToolScreenFontSmall")
+
+  local function outc(text,y,color) draw.DrawText(text,"ZCPUToolScreenFont",2,32*y,color,0) end
+  local prevStateTime = RealTime()
+  local prevState = nil
+  local consoleHistory = { "", "", "", "", "", "" }
+  local stageName = {"Preprocessing","Tokenizing","Parsing","Generating","Optimizing","Resolving","Outputting"}
+  local stageNameShort = {"Preproc","Tokenize","Parse","Generate","Optimize","Resolve","Output"}
+
+  local function outform(x,y,w,h,title)
+    surface.SetDrawColor(255, 255, 255, 255)
+    surface.DrawRect(x*28-3,y*32-3,w*28,h*32)
+
+    surface.SetDrawColor(0, 0, 0, 255)
+    surface.DrawRect(x*28+3,y*32+3,w*28,h*32)
+
+    surface.SetDrawColor(192, 220, 192, 255)
+    surface.DrawRect(x*28,y*32,w*28-3,h*32-3)
+
+    surface.SetDrawColor(192, 192, 192, 255)
+    surface.DrawRect(x*28,y*32,w*28,h*32)
+
+    if title then
+      surface.SetDrawColor(0, 0, 128, 255)
+      surface.DrawRect(x*28+4,y*32+4,w*28-4,1*32-4)
+      draw.DrawText(title,"ZCPUToolScreenFontSmall",x*28+4,y*32+4,Color(255,255,255,255),0)
+    end
+  end
+
+  function CPULib.RenderCPUTool(screenIndex,toolName)
+    if screenIndex == 0 then
+      surface.SetDrawColor(0, 0, 128, 255)
+      surface.DrawRect(0, 0, 256, 256)
+
+      surface.SetDrawColor(240, 240, 0, 255)
+      surface.DrawRect(0,0,256,32)
+      outc(" ToolOS r"..VERSION.." ",0,Color(0,0,0,255))
+
+      if CPULib.Uploading then
+        outc("Program size:",2,Color(255,255,255,255))
+        outc(string.format("%d bytes",CPULib.TotalUploadData),3,Color(255,255,255,255))
+        outc(string.format("Uploading %2d%%",100-100*CPULib.RemainingUploadData/(CPULib.TotalUploadData+1e-12)),5,Color(255,255,255,255))
+        outc(string.format("%d bytes",CPULib.RemainingUploadData),6,Color(255,255,255,255))
+        prevStateTime = RealTime()
+      elseif CPULib.ServerUploading then
+        outc("Program size:",2,Color(255,255,255,255))
+        outc(string.format("%d bytes",#CPULib.Buffer),3,Color(255,255,255,255))
+        outc("Uploading 100",5,Color(255,255,255,255))
+        outc("   Standby   ",6,Color(255,255,255,255))
+        prevStateTime = RealTime()
+      elseif CPULib.Compiling then
+        outc(string.format("Stage %2d/7",HCOMP.Stage+1),2,Color(255,255,255,255))
+        outc(stageName[HCOMP.Stage+1],3,Color(255,255,255,255))
+        prevStateTime = RealTime()
+      else
+        if RealTime() - prevStateTime > 0.15 then
+          outc("Flash utility",1,Color(255,255,255,255))
+          outc("(C) 2007-2011",2,Color(255,255,255,255))
+          outc("Black Phoenix",3,Color(255,255,255,255))
+
+          outc(string.format("RAM: %5d KB",collectgarbage("count") or 0),7,Color(255,255,255,255))
+        else
+          surface.SetDrawColor(0, 0, 0, 255)
+          surface.DrawRect(0, 0, 256, 256)
+        end
+      end
+    elseif screenIndex == 1 then
+      surface.SetDrawColor(0, 0, 0, 255)
+      surface.DrawRect(0, 0, 256, 256)
+
+      surface.SetDrawColor(240, 120, 0, 255)
+      surface.DrawRect(16*(#toolName+1),32*0+14,256,4)
+      outc(toolName,0,Color(240, 120,0,255))
+      outc(string.format(" RAM %5d KB",collectgarbage("count") or 0),1,Color(255,255,255,255))
+
+      surface.SetDrawColor(240, 120, 0, 255)
+      surface.DrawRect(16*(5),32*2+14,256,4)
+      outc("TASK",2,Color(240, 120,0,255))
+      outc("       STATUS",3,Color(255,255,255,255))
+
+      surface.SetDrawColor(240, 120, 0, 255)
+      surface.DrawRect(16*(4),32*6+14,256,4)
+      outc("NET",6,Color(240, 120,0,255))
+      if CPULib.Uploading then
+        outc(string.format("UP %.3f KB",CPULib.RemainingUploadData/1024),7,Color(255,255,255,255))
+        outc(string.format("ROMUPL [%3d%%]",100-100*CPULib.RemainingUploadData/(CPULib.TotalUploadData+1e-12)),4,Color(255,255,255,255))
+        outc("UPLMON [ OK ]",5,Color(255,255,255,255))
+      elseif CPULib.ServerUploading then
+        outc("UPLMON [ OK ]",4,Color(255,255,255,255))
+        outc("DOWN SYNC",7,Color(255,255,255,255))
+      elseif CPULib.Compiling then
+        outc(string.format("HCOMP  [%2d/7]",HCOMP.Stage),4,Color(255,255,255,255))
+        outc("IDLE",7,Color(255,255,255,255))
+      else
+        outc("IDLE",7,Color(255,255,255,255))
+      end
+    elseif screenIndex == 2 then
+      surface.SetDrawColor(0, 0, 0, 255)
+      surface.DrawRect(0, 0, 256, 256)
+
+      outc("TL-UNIX "..(VERSION/100),0,Color(200,200,200,255))
+
+      outc(consoleHistory[1],2,Color(200,200,200,255))
+      outc(consoleHistory[2],3,Color(200,200,200,255))
+      outc(consoleHistory[3],4,Color(200,200,200,255))
+      outc(consoleHistory[4],5,Color(200,200,200,255))
+      outc(consoleHistory[5],6,Color(200,200,200,255))
+      outc(consoleHistory[6],7,Color(200,200,200,255))
+
+      if CPULib.Uploading then
+        if prevState ~= 0 then
+          consoleHistory[1] = consoleHistory[2]
+          consoleHistory[2] = consoleHistory[3]
+          consoleHistory[3] = consoleHistory[4]
+          consoleHistory[4] = string.lower(toolName).."@:/# upl"
+        end
+
+        consoleHistory[5] = string.format("  %3d%%",100-100*CPULib.RemainingUploadData/(CPULib.TotalUploadData+1e-12))
+        consoleHistory[6] = string.format("  %d B",CPULib.RemainingUploadData)
+
+        prevState = 0
+      elseif CPULib.ServerUploading then
+        consoleHistory[5] = "  ###"
+        consoleHistory[6] = "  0 B"
+        prevState = 0
+      elseif CPULib.Compiling then
+         if prevState ~= 1 then
+          consoleHistory[1] = consoleHistory[2]
+          consoleHistory[2] = consoleHistory[3]
+          consoleHistory[3] = consoleHistory[4]
+          consoleHistory[4] = consoleHistory[5]
+          consoleHistory[5] = string.lower(toolName).."@:/# hcmp"
+        end
+        consoleHistory[6] = string.format("Stage %2d/7",HCOMP.Stage+1)
+        prevState = 1
+      else
+         if prevState ~= 2 then
+          consoleHistory[1] = consoleHistory[2]
+          consoleHistory[2] = consoleHistory[3]
+          consoleHistory[3] = consoleHistory[4]
+          consoleHistory[4] = consoleHistory[5]
+          consoleHistory[5] = consoleHistory[6]
+          consoleHistory[6] = string.lower(toolName).."@:/# "
+        end
+        prevState = 2
+      end
+    elseif screenIndex == 3 then
+      surface.SetDrawColor(0, 128, 128, 255)
+      surface.DrawRect(0, 0, 256, 256)
+
+      outform(0,7,12,1)
+
+      outform(0,7,3,1)
+      outc("MENU",7,Color(0,0,0,255))
+
+      if CPULib.Uploading then
+        outform(1,1,7,5,"Upload")
+        outc(string.format("  %.3f kb",CPULib.RemainingUploadData/1024),3,Color(0,0,0,255))
+        outc(string.format("  %3d%% done",100-100*CPULib.RemainingUploadData/(CPULib.TotalUploadData+1e-12)),4,Color(0,0,0,255))
+
+        outform(1,5,7,0.9)
+        surface.SetDrawColor(0, 0, 128, 255)
+        surface.DrawRect(1*28+4,5*32+4,
+          math.floor((7*28-4)*(1-CPULib.RemainingUploadData/(CPULib.TotalUploadData+1e-12))/14)*14,
+          1*32-8)
+      elseif CPULib.ServerUploading then
+        outform(1,3,7,3,"Upload")
+        outc("  Standby",5,Color(0,0,0,255))
+      elseif CPULib.Compiling then
+        outform(1,1,7,5,"HL-ZASM")
+        outc(string.format("  Stage %d/7",HCOMP.Stage+1),3,Color(0,0,0,255))
+        outc("  "..stageNameShort[HCOMP.Stage+1],4,Color(0,0,0,255))
+      else
+        --
+      end
+    end
+  end
+
+  function TOOL:RenderToolScreen()
+    cam.Start2D()
+      local currentTime = os.date("*t")
+      CPULib.RenderCPUTool(currentTime.yday % 4,"CPU")
+    cam.End2D()
+  end
 end

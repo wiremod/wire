@@ -1,5 +1,5 @@
 TOOL.Category       = "Wire - Advanced"
-TOOL.Name           = "Address Bus"
+TOOL.Name           = "Data - Address Bus"
 TOOL.Command        = nil
 TOOL.ConfigName     = ""
 TOOL.Tab            = "Wire"
@@ -228,6 +228,8 @@ function TOOL.BuildCPanel(panel)
 			[7] = "wire_addressbus_addrspace4sz",
 		}
 	})
+
+        local modelPanel = WireDermaExts.ModelSelect(panel, "wire_addressbus_model", list.Get("Wire_gate_Models"), 2)
 
 	panel:AddControl("Slider", {
 		Label = "Address space 1 offset",

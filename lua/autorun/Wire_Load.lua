@@ -14,8 +14,8 @@ if SERVER then
 	AddCSLuaFile("wire/Beam_NetVars.lua")
 	AddCSLuaFile("wire/WireGates.lua")
 	AddCSLuaFile("wire/WireMonitors.lua")
-	AddCSLuaFile("wire/opcodes.lua")
 	AddCSLuaFile("wire/GPULib.lua")
+	AddCSLuaFile("wire/CPULib.lua")
 
 	-- client includes
 	AddCSLuaFile("wire/client/cl_wirelib.lua")
@@ -28,12 +28,28 @@ if SERVER then
 	AddCSLuaFile("wire/client/wire_expression2_editor.lua")
 	AddCSLuaFile("wire/client/e2helper.lua")
 	AddCSLuaFile("wire/client/e2descriptions.lua")
-	AddCSLuaFile("wire/client/cpudescriptions.lua")
 	AddCSLuaFile("wire/client/gmod_tool_auto.lua")
 	AddCSLuaFile("wire/client/sound_browser.lua")
 	AddCSLuaFile("wire/welcome_menu.lua")
 	AddCSLuaFile("wire/client/welcome_menu_derma.lua")
 	AddCSLuaFile("wire/client/rendertarget_fix.lua")
+
+	-- HL-ZASM
+	AddCSLuaFile("wire/client/hlzasm/hc_compiler.lua")
+	AddCSLuaFile("wire/client/hlzasm/hc_opcodes.lua")
+	AddCSLuaFile("wire/client/hlzasm/hc_expression.lua")
+	AddCSLuaFile("wire/client/hlzasm/hc_preprocess.lua")
+	AddCSLuaFile("wire/client/hlzasm/hc_syntax.lua")
+	AddCSLuaFile("wire/client/hlzasm/hc_codetree.lua")
+	AddCSLuaFile("wire/client/hlzasm/hc_optimize.lua")
+	AddCSLuaFile("wire/client/hlzasm/hc_output.lua")
+	AddCSLuaFile("wire/client/hlzasm/hc_tokenizer.lua")
+
+	-- ZVM
+	AddCSLuaFile("wire/zvm/zvm_core.lua")
+	AddCSLuaFile("wire/zvm/zvm_features.lua")
+	AddCSLuaFile("wire/zvm/zvm_opcodes.lua")
+	AddCSLuaFile("wire/zvm/zvm_data.lua")
 
 	-- resource files
 	for i=1,32 do
@@ -56,9 +72,13 @@ include("wire/UpdateCheck.lua")
 include("wire/Beam_NetVars.lua")
 include("wire/WireGates.lua")
 include("wire/WireMonitors.lua")
-include("wire/opcodes.lua")
 include("wire/GPULib.lua")
+include("wire/CPULib.lua")
 include("wire/welcome_menu.lua")
+
+if CLIENT then
+	include("wire/client/hlzasm/hc_compiler.lua")
+end
 
 -- server includes
 if SERVER then

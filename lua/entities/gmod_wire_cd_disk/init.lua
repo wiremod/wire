@@ -57,7 +57,7 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 
 	for k,v in pairs(info["DiskMemory"]) do
 		local dataptr = info["DiskMemory"][k]
-        self.DiskMemory[k] = {}
+			self.DiskMemory[k] = {}
 		for k2,v2 in pairs(info["DiskData"..dataptr]) do
 			self.DiskMemory[k][k2] = v2
 		end

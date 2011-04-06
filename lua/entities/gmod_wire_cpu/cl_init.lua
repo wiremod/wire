@@ -1,5 +1,5 @@
-include('shared.lua')
+include("shared.lua")
 
-ENT.Spawnable			= false
-ENT.AdminSpawnable		= false
-ENT.RenderGroup 		= RENDERGROUP_OPAQUE
+ENT.Spawnable      = false
+ENT.AdminSpawnable = false
+ENT.RenderGroup    = RENDERGROUP_OPAQUE

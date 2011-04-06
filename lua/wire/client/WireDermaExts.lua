@@ -45,6 +45,7 @@ function WireDermaExts.ModelSelect(panel, convar, list, height, show_textbox)
 		if show_textbox and GetConVarNumber("cl_showmodeltextbox") > 0 then
 			panel:TextEntry("Model:", convar)
 		end
+		return ModelSelect
 	end
 end
 

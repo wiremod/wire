@@ -541,7 +541,7 @@ function Editor:CreateTab( chosenfile )
 	editor.OnShortcut = function(_, code)
 		if code == KEY_S then
 			self:SaveFile(self:GetChosenFile())
-			self:Validate()
+			if self.E2 then self:Validate() end
 		else
 			local mode = GetConVar("wire_expression2_autocomplete_controlstyle"):GetInt()
 			local enabled = GetConVar("wire_expression2_autocomplete"):GetBool()
@@ -882,7 +882,7 @@ function Editor:InitComponents()
 	self.C['ConBut'].panel.DoClick = function() self.C['Control'].panel:SetVisible(!self.C['Control'].panel:IsVisible()) end
 	self:InitControlPanel(self.C['Control'].panel)	//making it seperate for better overview
 	self.C['Control'].panel:SetVisible(false)
-	self:Validate()
+	if self.E2 then self:Validate() end
 end
 
 function Editor:AutoSave()
@@ -1695,29 +1695,30 @@ local chipmap = {
 }
 
 function Editor:Validate(gotoerror)
-	local validator = chipmap[self.EditorType]
-	if not validator then return end
-	validator = _G[validator]
-	if not validator then return end
-
 	self:ExtractName()
-	local errors = validator(self:GetCode())
-	if not errors then
-		self.C['Val'].panel:SetBGColor(0, 128, 0, 180)
-		self.C['Val'].panel:SetFGColor(255, 255, 255, 128)
-		self.C['Val'].panel:SetText( "   Validation successful" )
-		return true
-	end
-	if gotoerror then
-		local row, col = errors:match("at line ([0-9]+), char ([0-9]+)$")
-		if not row then
-			row, col = errors:match("at line ([0-9]+)$"), 1
+	if self.E2 then
+		local errors = wire_expression2_validate(self:GetCode())
+		if not errors then
+			self.C['Val'].panel:SetBGColor(0, 128, 0, 180)
+			self.C['Val'].panel:SetFGColor(255, 255, 255, 128)
+			self.C['Val'].panel:SetText( "   Validation successful" )
+			return true
 		end
-		if row then self:GetCurrentEditor():SetCaret({ tonumber(row), tonumber(col) }) end
+		if gotoerror then
+			local row, col = errors:match("at line ([0-9]+), char ([0-9]+)$")
+			if not row then
+				row, col = errors:match("at line ([0-9]+)$"), 1
+			end
+		end
+		self.C['Val'].panel:SetBGColor(128, 0, 0, 180)
+		self.C['Val'].panel:SetFGColor(255, 255, 255, 128)
+		self.C['Val'].panel:SetText( "   " .. errors )
+	else
+		self.C['Val'].panel:SetBGColor(64, 64, 64, 180)
+		self.C['Val'].panel:SetFGColor(255, 255, 255, 128)
+		self.C['Val'].panel:SetText( "   Recompiling..." )
+		CPULib.Validate(self,self:GetCode(),self:GetChosenFile())
 	end
-	self.C['Val'].panel:SetBGColor(128, 0, 0, 180)
-	self.C['Val'].panel:SetFGColor(255, 255, 255, 128)
-	self.C['Val'].panel:SetText( "   " .. errors )
 	return false
 end
 
@@ -1737,7 +1738,7 @@ function Editor:SetV(bool)
 		self:SetVisible(true)
 		self:InvalidateLayout(true)
 		self:SetKeyBoardInputEnabled(true)
-		self:Validate()
+		if self.E2 then self:Validate() end
 	else
 		self:SetVisible(false)
 		self:SetKeyBoardInputEnabled()
@@ -1783,12 +1784,16 @@ end
 function Editor:SetCode(code)
 	self:GetCurrentEditor():SetText(code)
 	self.savebuffer = self:GetCode()
-	self:Validate()
+	if self.E2 then self:Validate() end
 	self:ExtractName()
 end
 
 function Editor:GetEditor( n )
-	return self.C['TabHolder'].panel.Items[ n ].Panel
+	if self.C['TabHolder'].panel.Items[ n ] then
+		return self.C['TabHolder'].panel.Items[ n ].Panel
+	else
+		return nil
+	end
 end
 
 function Editor:GetCurrentEditor()
@@ -1882,7 +1887,11 @@ function Editor:SaveFile(Line, close, SaveAs)
 
 	if(!self.chip) then self:ChosenFile(Line) end
 	if(close) then
-		GAMEMODE:AddNotify( "Expression saved as "..Line..".", NOTIFY_GENERIC, 7 )
+		if self.E2 then
+			GAMEMODE:AddNotify( "Expression saved as "..Line..".", NOTIFY_GENERIC, 7 )
+		else
+			GAMEMODE:AddNotify( "Source code saved as "..Line..".", NOTIFY_GENERIC, 7 )
+		end
 		self:Close()
 	end
 end
@@ -1891,7 +1900,7 @@ function Editor:LoadFile( Line, forcenewtab )
 	if(!Line or file.IsDir( Line )) then return end
 	local str = file.Read(Line)
 	if str == nil then
-		Error("ERROR LOADING FILE!")
+		--Error("Error loading file "..Line)
 	else
 		self:AutoSave()
 		if (!forcenewtab) then
@@ -1927,7 +1936,7 @@ function Editor:Close()
 	timer.Stop("e2autosave")
 	self:AutoSave()
 
-	self:Validate()
+	if not self.E2 then self:Validate() end
 	self:ExtractName()
 	self:SetV(false)
 	self.chip = false
@@ -1946,7 +1955,7 @@ function Editor:Setup(nTitle, nLocation, nEditorType)
 		-- Remove validation line
 		self.C['TabHolder'].h = -10
 		self.C['Val'].panel:SetVisible(false)
-	elseif nEditorType == "CPU" or nEditorType == "GPU" then
+	elseif (nEditorType == "CPU") or (nEditorType == "GPU") or (nEditorType == "SPU") then
 		-- Set syntax highlighting
 		local func = self:GetCurrentEditor().CPUGPUSyntaxColorLine
 		self:SetSyntaxColorLine( func )
@@ -1971,14 +1980,81 @@ function Editor:Setup(nTitle, nLocation, nEditorType)
 		end
 		self.C.E2Help = E2Help
 
-		-- insert default code
-		local code = "// "..nEditorType.." Syntax Higlighting \n// By -HP-"
-		self:SetCode(code)
+		if nEditorType == "CPU" then
+			-- Add "step forward" button
+			local DebugForward = self:addComponent(vgui.Create("Button", self), -300, 30, -220, 20)
+			DebugForward.panel:SetText("")
+			DebugForward.panel.Font = "E2SmallFont"
+			DebugForward.panel.Paint = function(button)
+				if not CPULib.DebuggerAttached then return end
+				local w,h = button:GetSize()
+				draw.RoundedBox(1, 0, 0, w, h, self.colors.col_FL)
+				if ( button.Hovered ) then draw.RoundedBox(0, 1, 1, w - 2, h - 2, Color(0,0,0,192)) end
+				surface.SetFont(button.Font)
+				surface.SetTextPos( 3, 4 )
+				surface.SetTextColor( 255, 255, 255, 255 )
+				surface.DrawText("  Step Forward")
+			end
+			DebugForward.panel.DoClick = function()
+				local currentPosition = CPULib.Debugger.PositionByPointer[CPULib.Debugger.Variables.IP]
+				if currentPosition then
+					local linePointers = CPULib.Debugger.PointersByLine[currentPosition.Line..":"..currentPosition.File]
+					if linePointers then -- Run till end of line
+						RunConsoleCommand("wire_cpulib_debugstep",linePointers[2])
+					else -- Run just once
+						RunConsoleCommand("wire_cpulib_debugstep")
+					end
+				else -- Run just once
+					RunConsoleCommand("wire_cpulib_debugstep")
+				end
+				-- Reset interrupt text
+				CPULib.InterruptText = nil
+			end
+			self.C.DebugForward = DebugForward
 
-		-- mark all code
-		local ed = self:GetCurrentEditor()
-		ed.Start = ed:MovePosition({ 1, 1 }, 0)
-		ed.Caret = ed:MovePosition({ 1, 1 }, code:len())
+			-- Add "reset" button
+			local DebugReset = self:addComponent(vgui.Create("Button", self), -350, 30, -310, 20)
+			DebugReset.panel:SetText("")
+			DebugReset.panel.Font = "E2SmallFont"
+			DebugReset.panel.Paint = function(button)
+				if not CPULib.DebuggerAttached then return end
+				local w,h = button:GetSize()
+				draw.RoundedBox(1, 0, 0, w, h, self.colors.col_FL)
+				if ( button.Hovered ) then draw.RoundedBox(0, 1, 1, w - 2, h - 2, Color(0,0,0,192)) end
+				surface.SetFont(button.Font)
+				surface.SetTextPos( 3, 4 )
+				surface.SetTextColor( 255, 255, 255, 255 )
+				surface.DrawText("  Reset")
+			end
+			DebugReset.panel.DoClick = function()
+				RunConsoleCommand("wire_cpulib_debugreset")
+				-- Reset interrupt text
+				CPULib.InterruptText = nil
+			end
+			self.C.DebugReset = DebugReset
+
+			-- Add "run" button
+			local DebugRun = self:addComponent(vgui.Create("Button", self), -395, 30, -360, 20)
+			DebugRun.panel:SetText("")
+			DebugRun.panel.Font = "E2SmallFont"
+			DebugRun.panel.Paint = function(button)
+				if not CPULib.DebuggerAttached then return end
+				local w,h = button:GetSize()
+				draw.RoundedBox(1, 0, 0, w, h, self.colors.col_FL)
+				if ( button.Hovered ) then draw.RoundedBox(0, 1, 1, w - 2, h - 2, Color(0,0,0,192)) end
+				surface.SetFont(button.Font)
+				surface.SetTextPos( 3, 4 )
+				surface.SetTextColor( 255, 255, 255, 255 )
+				surface.DrawText("  Run")
+			end
+			DebugRun.panel.DoClick = function()
+				RunConsoleCommand("wire_cpulib_debugrun")
+			end
+			self.C.DebugRun = DebugRun
+		end
+
+		-- insert default code
+		self:SetCode("")
 	elseif nEditorType == "E2" then
 		-- Add "E2Helper" button
 		local E2Help = self:addComponent(vgui.Create("Button", self), -180, 30, -125, 20)

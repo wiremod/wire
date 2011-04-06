@@ -1,191 +1,365 @@
-AddCSLuaFile("gpu_vm.lua")
-AddCSLuaFile("gpu_opcodes.lua")
-AddCSLuaFile("gpu_serverbus.lua")
-AddCSLuaFile("gpu_interrupt.lua")
-AddCSLuaFile("gpu_clientbus.lua")
-
-AddCSLuaFile("entities/gmod_wire_cpu/cpu_opcodes.lua")
-AddCSLuaFile("entities/gmod_wire_cpu/cpu_vm.lua")
-AddCSLuaFile("entities/gmod_wire_cpu/cpu_bitwise.lua")
-AddCSLuaFile("entities/gmod_wire_cpu/cpu_advmath.lua")
-
-AddCSLuaFile("entities/gmod_wire_cpu/compiler_asm.lua")
-
+-- Load shared/clientside stuff
 AddCSLuaFile("cl_init.lua")
+AddCSLuaFile("cl_gpuvm.lua")
 AddCSLuaFile("shared.lua")
+include("shared.lua")
 
-include('shared.lua')
-include('entities/gmod_wire_cpu/compiler_asm.lua')	//Include ZASM
-include('entities/gmod_wire_cpu/cpu_opcodes.lua')	//Include ZCPU opcodes
-include('entities/gmod_wire_cpu/cpu_advmath.lua')	//Include vector and matrix math
-include('gpu_serverbus.lua')				//Include ZGPU serverside bus
-include('gpu_opcodes.lua')				//Include ZGPU opcodes for ZASM
+ENT.WireDebugName = "ZGPU"
 
-ENT.WireDebugName = "GPU"
 
+--------------------------------------------------------------------------------
 function ENT:Initialize()
-	self:PhysicsInit(SOLID_VPHYSICS)
-	self:SetMoveType(MOVETYPE_VPHYSICS)
-	self:SetSolid(SOLID_VPHYSICS)
+  -- Physics properties
+  self:PhysicsInit(SOLID_VPHYSICS)
+  self:SetMoveType(MOVETYPE_VPHYSICS)
+  self:SetSolid(SOLID_VPHYSICS)
+  self:SetOverlayText("ZGPU")
 
-	self.Inputs = Wire_CreateInputs(self, { "Clk", "Reset", "MemBus", "IOBus" })
-	self.Outputs = Wire_CreateOutputs(self, { "Memory" })
+  -- Inputs/outputs
+  self.Inputs = Wire_CreateInputs(self, { "Clk", "Reset", "IOBus", "MemBus", "VideoOut" })
+  self.Outputs = Wire_CreateOutputs(self, { "Memory" })
 
-	self.Clk = 1
-	self.IOBus = nil
-	self.MemBus = nil
+  -- Setup platform settings
+  self.Clk = 1
+  self.MemBusScanAddress = 65536
+  self.SerialNo = CPULib.GenerateSN("GPU")
+  self:SetMemoryModel("64k",true)
 
-	self.Debug = false //will cause massive fps drop!
+  -- Create serverside memory and cache
+  self.Memory = {}
+  self.Cache = GPUCacheManager(self)
 
-	self.DebugLines = {}
-	self.DebugData = {}
-
-	self.Memory = {}
-	self.PrecompileData = {}
-	self.PrecompileMemory = {}
-
-	self.IsGPU = true
-	self.UseROM = false
-
-	self.SerialNo = 30000000 + math.floor(math.random()*1000000)
-
-	self:SetOverlayText("Graphical Processing Unit")
-
-	self:InitializeGPUOpcodeNames()
-	self:InitializeASMOpcodes()
-	self:InitializeRegisterNames()
-	self:InitializeBus()
+  -- Connected monitors
+  self.Monitors = { }
 end
 
-//function ENT:Use(pl)
-//	//if (!self.Using) then
-//	//	self.Using = true
-//	//	self:NextThink(CurTime()+0.4)
-//
-//		local rp = RecipientFilter()
-//		rp:AddPlayer(pl)
-//
-//		Msg("Binding GPU (server)\n")
-//
-//		umsg.Start("wiregpu_onuse", rp)
-//			umsg.Long(self:EntIndex())
-//		umsg.End()
-//	//end
-//end
-//
-//function ENT:Think()
-//	self.BaseClass.Think(self)
-//
-//	//self.Using = nil
-//	//return false
-//end
-//
 
-function GPU_PlayerRespawn(pl)
-	for k,v in pairs(ents.FindByClass("gmod_wire_gpu")) do
-		v:GPU_ResendData(pl)
-	end
+--------------------------------------------------------------------------------
+-- Set processor
+--------------------------------------------------------------------------------
+function ENT:SetMemoryModel(model,initial)
+  if model then
+    for i=6,11 do
+      if model == (2^i).."k" then
+        self.RAMSize = (2^i)*1024
+        self.ChipType = 0
+      elseif model == (2^i).."kc" then
+        self.RAMSize = (2^i)*1024
+        self.ChipType = 1
+      end
+    end
+  end
+
+  if not initial then
+    timer.Create("wire_gpu_modelupdate_"..math.floor(math.random()*1000000),0.1+math.random()*0.3,1,
+      function()
+        umsg.Start("wire_gpu_memorymodel")
+          umsg.Long(self:EntIndex())
+          umsg.Long (self.RAMSize)
+          umsg.Float(self.SerialNo)
+          umsg.Short(self.ChipType)
+        umsg.End()
+      end)
+  end
+end
+
+
+--------------------------------------------------------------------------------
+-- Resend all GPU cache to newly spawned player
+--------------------------------------------------------------------------------
+function ENT:ResendCache(player)
+  timer.Create("wire_gpu_resendtimer_"..math.floor(math.random()*1000000),0.4+math.random()*1.2,1,
+    function()
+      self.Cache:Flush()
+      for address,value in pairs(self.Memory) do
+        self:WriteCell(address,value,player)
+      end
+      self.Cache:Flush(player)
+
+      self:WriteCell(65534,1,player) -- Reset GPU
+      self:WriteCell(65535,self.Clk,player) -- Update Clk
+    end)
+end
+
+local function GPU_PlayerRespawn(player)
+  for _,Entity in pairs(ents.FindByClass("gmod_wire_gpu")) do
+    Entity:ResendCache(player)
+  end
 end
 hook.Add("PlayerInitialSpawn", "GPUPlayerRespawn", GPU_PlayerRespawn)
+concommand.Add("wire_gpu_resendcache", GPU_PlayerRespawn)
 
-function ENT:Reset()
-	self:WriteCell(65534,1)
-end
 
-function ENT:TriggerInput(iname, value)
-	if (iname == "Clk") then
-		self.Clk = value
-		self:WriteCell(65535,self.Clk)
-	elseif (iname == "Reset") then
-		if (value >= 1.0) then
-			self:WriteCell(65534,1)
-		end
-	end
-end
-
-function ENT:Think()
-	if (self.Inputs.IOBus.Src) then
-		local DataUpdated = false
-
-		for i = 0, 1023 do
-			if (self.Inputs.IOBus.Src.ReadCell) then
-				local var = self.Inputs.IOBus.Src:ReadCell(i)
-				if (var) then
-					if (self:ReadCell(i+63488) ~= var) then
-						self:WriteCell(i+63488,var)
-						DataUpdated = true
-					end
-				end
-			end
-		end
-
-		if (DataUpdated == true) then
-			self:FlushCache()
-		end
-	end
-	self:NextThink(CurTime()+0.05)
-	return true
+--------------------------------------------------------------------------------
+-- Read cell from GPU memory
+--------------------------------------------------------------------------------
+function ENT:ReadCell(Address)
+  if (Address < 0) or (Address >= self.RAMSize) then
+    return nil
+  else
+    if self.Memory[Address] then
+      return self.Memory[Address]
+    else
+      return 0
+    end
+  end
 end
 
 
+--------------------------------------------------------------------------------
+-- Write cell to GPU memory
+--------------------------------------------------------------------------------
+function ENT:WriteCell(Address, Value, Player)
+  if (Address < 0) or (Address >= self.RAMSize) then
+    return false
+  else
+    if (Address ~= 65535) and (Address ~= 65534) and (Address ~= 65502) then
+      -- Write to internal memory
+      self.Memory[Address] = Value
+
+      -- Add address to cache if cache is not big enough yet
+      self.Cache:Write(Address,Value,Player)
+      return true
+    else
+      self.Cache:WriteNow(Address,Value,Player)
+    end
+    return true
+  end
+end
+
+
+
+--------------------------------------------------------------------------------
+-- Use key support
+--------------------------------------------------------------------------------
+function ENT:Use(player)
+--
+end
+
+
+--------------------------------------------------------------------------------
+-- Write advanced dupe
+--------------------------------------------------------------------------------
 function ENT:BuildDupeInfo()
-	local info = self.BaseClass.BuildDupeInfo(self) or {}
+  local info = self.BaseClass.BuildDupeInfo(self) or {}
 
-	info.SerialNo = self.SerialNo
-	info.Memory = {}
-	for i=0,65535 do
-		if (self.Memory[i]) then
-			info.Memory[i] = self.Memory[i]
-		end
-	end
+  info.SerialNo = self.SerialNo
+  info.RAMSize = self.RAMSize
+  info.ChipType = self.ChipType
+  info.Memory = {}
 
-	return info
+  for address = 0,self.RAMSize-1 do
+    if self.Memory[address] and (self.Memory[address] ~= 0) then info.Memory[address] = self.Memory[address] end
+  end
+
+  return info
 end
 
-function Resend_GPU_Data(gpuent)
-	gpuent:InitializeBus()
-	gpuent:FlushCache()
-	for i=0,65535 do
-		if (gpuent.Memory[i]) then
-			gpuent:WriteCell(i,gpuent.Memory[i])
-		end
-	end
-	gpuent:FlushCache()
 
-	gpuent:WriteCell(65534,1) //reset
-	gpuent:WriteCell(65535,gpuent.Clk)
-end
-
-function Reflush_GPU_Data(gpuent,pl)
-	gpuent.ForcePlayer = pl
-	gpuent:FlushCache()
-	for i=0,65535 do
-		if (gpuent.Memory[i]) then
-			gpuent:WriteCell(i,gpuent.Memory[i])
-		end
-	end
-	gpuent:FlushCache()
-
-	gpuent:WriteCell(65534,1) //reset
-	gpuent:WriteCell(65535,gpuent.Clk)
-	gpuent.ForcePlayer = nil
-end
-
+--------------------------------------------------------------------------------
+-- Read from advanced dupe
+--------------------------------------------------------------------------------
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
-	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
+  self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
 
-	self.SerialNo = info.SerialNo
-	self.Memory = {}
+  self.SerialNo = info.SerialNo or 999999
+  self.RAMSize  = info.RAMSize or 65536
+  self.ChipType = info.ChipType or 0
+  self.Memory = {}
 
-	for i=0,65535 do
-		if (info.Memory[i]) then
-			self.Memory[i] = info.Memory[i]
-		end
-	end
+  for address = 0,self.RAMSize-1 do
+    if info.Memory[address] then self.Memory[address] = tonumber(info.Memory[address]) or 0 end
+  end
 
-	timer.Create("GPU_Paste_Timer"..math.floor(math.random()*1000000),0.1+math.random()*0.7,1,Resend_GPU_Data,self)
+  self:SetMemoryModel()
+  self:ResendCache(nil)
 end
 
-function ENT:GPU_ResendData(pl)
-	timer.Create("GPU_Resend_Timer"..math.floor(math.random()*1000000),0.1+math.random()*3.0,1,Reflush_GPU_Data,self,pl)
+
+--------------------------------------------------------------------------------
+-- Handle external input
+--------------------------------------------------------------------------------
+function ENT:TriggerInput(iname, value)
+  if iname == "Clk" then
+    self.Clk = value
+    self:WriteCell(65535,self.Clk)
+  elseif iname == "Reset" then
+    if value >= 1.0 then self:WriteCell(65534,1) end
+  end
 end
+
+
+--------------------------------------------------------------------------------
+-- Find out all monitors connected to the GPU
+--------------------------------------------------------------------------------
+function ENT:QueryMonitors(entity)
+  self.QueryRecurseCounter = self.QueryRecurseCounter + 1
+  if self.QueryRecurseCounter > 128 then return end
+  if (not entity) or (not entity:IsValid()) then return end
+
+  if entity:GetClass() == "gmod_wire_gpu" then -- VideoOut connected to a GPU
+    table.insert(self.QueryResult,entity:EntIndex())
+  elseif entity.MySocket then -- VideoOut connected to a plug
+    self:QueryMonitors(entity.MySocket.Inputs.Memory.Src)
+  elseif entity.MyPlug then -- VideoOut connected to a socket
+    self:QueryMonitors(entity.MyPlug.Inputs.Memory.Src)
+  elseif entity.Ply and entity.Ply:IsValid() then -- VideoOut connected to pod
+    table.insert(self.QueryResult,entity.Ply:EntIndex())
+  elseif entity:GetClass() == "gmod_wire_addressbus" then -- VideoOut connected to address bus
+    self:QueryMonitors(entity.Inputs.Memory1.Src)
+    self:QueryMonitors(entity.Inputs.Memory2.Src)
+    self:QueryMonitors(entity.Inputs.Memory3.Src)
+    self:QueryMonitors(entity.Inputs.Memory4.Src)
+  elseif entity:GetClass() == "gmod_wire_extbus" then -- VideoOut connected to ext bus
+    self:QueryMonitors(entity.Inputs.Memory1.Src)
+    self:QueryMonitors(entity.Inputs.Memory2.Src)
+    self:QueryMonitors(entity.Inputs.Memory3.Src)
+    self:QueryMonitors(entity.Inputs.Memory4.Src)
+    self:QueryMonitors(entity.Inputs.Memory5.Src)
+    self:QueryMonitors(entity.Inputs.Memory6.Src)
+    self:QueryMonitors(entity.Inputs.Memory7.Src)
+    self:QueryMonitors(entity.Inputs.Memory8.Src)
+  end
+end
+
+
+--------------------------------------------------------------------------------
+-- Update cache and external connections
+--------------------------------------------------------------------------------
+function ENT:Think()
+  -- Update IOBus
+  if self.Inputs.IOBus.Src then
+    -- Was there any update in that that would require flushing
+    local DataUpdated = false
+
+    -- Update any cells that must be updated
+    for port = 0,1023 do
+      if self.Inputs.IOBus.Src.ReadCell then
+        local var = self.Inputs.IOBus.Src:ReadCell(port)
+        if var then
+          if self:ReadCell(port+63488) ~= var then
+            self:WriteCell(port+63488,var)
+            DataUpdated = true
+          end
+        end
+      end
+    end
+
+    -- Flush updated data
+    if DataUpdated then self.Cache:Flush() end
+  end
+
+  -- Update MemBus
+  if self.Inputs.MemBus.Src then
+    for address=self.MemBusScanAddress,self.MemBusScanAddress+1023 do
+      local var = self.Inputs.MemBus.Src:ReadCell(address-65536)
+      if var then
+        if self:ReadCell(address) ~= var then
+          self:WriteCell(address,var)
+        end
+      end
+    end
+    self.MemBusScanAddress = self.MemBusScanAddress + 1024
+    if self.MemBusScanAddress >= 131072 then
+      self.MemBusScanAddress = 65536
+    end
+  end
+
+  -- Flush any data in cache
+  self.Cache:Flush()
+
+  -- Update video output, and send any changes to client
+  if self.Inputs.VideoOut.Src then
+    self.QueryRecurseCounter = 0
+    self.QueryResult = { }
+    self:QueryMonitors(self.Inputs.VideoOut.Src)
+
+    -- Check if monitors setup has changed
+    local monitorsChanged = false
+    for k,v in pairs(self.QueryResult) do
+      if self.Monitors[k] ~= v then
+        monitorsChanged = true
+        break
+      end
+    end
+
+    if not monitorsChanged then
+      for k,v in pairs(self.Monitors) do
+        if self.QueryResult[k] ~= v then
+          monitorsChanged = true
+          break
+        end
+      end
+    end
+
+    if #self.QueryResult ~= #self.Monitors then monitorsChanged = true end
+
+    if monitorsChanged then
+      self.Monitors = self.QueryResult
+    end
+
+    -- Send update to all clients
+    if monitorsChanged then
+      umsg.Start("wire_gpu_monitorstate")
+        umsg.Long(self:EntIndex())
+        umsg.Short(#self.Monitors)
+        for idx=1,#self.Monitors do
+          umsg.Long(self.Monitors[idx])
+        end
+      umsg.End()
+    end
+  end
+
+  -- Update serverside cursor
+  local model = self:GetModel()
+  local monitor = WireGPU_Monitors[model]
+  local ang = self:LocalToWorldAngles(monitor.rot)
+  local pos = self:LocalToWorld(monitor.offset)
+
+  for _,player in pairs(player.GetAll()) do
+    local trace = player:GetEyeTraceNoCursor()
+    local ent = trace.Entity
+    if ent:IsValid() then
+      local dist = trace.Normal:Dot(trace.HitNormal)*trace.Fraction*(-16384)
+      dist = math.max(dist, trace.Fraction*16384-ent:BoundingRadius())
+
+      if dist < 64 and ent == self then
+        if player:KeyDown(IN_ATTACK) or player:KeyDown(IN_USE) then
+          self:WriteCell(65502,1)
+        end
+        local cpos = WorldToLocal(trace.HitPos, Angle(), pos, ang)
+        local cx = 0.5+cpos.x/(monitor.RS*(512/monitor.RatioX))
+        local cy = 0.5-cpos.y/(monitor.RS*(512))
+
+        self.Memory[65505] = cx
+        self.Memory[65504] = cy
+      end
+    end
+  end
+
+  self:NextThink(CurTime()+0.05)
+  return true
+end
+
+
+--------------------------------------------------------------------------------
+-- GPU-to-MemBus support
+--------------------------------------------------------------------------------
+concommand.Add("wgm", function(player, command, args)
+  -- Find the referenced GPU
+  local GPU = ents.GetByIndex(args[1])
+  if not GPU then return end
+  if not GPU:IsValid() then return end
+
+  -- Must be a valid GPU, and belong to the caller
+  if GPU.player ~= player then return end
+
+  -- Write on membus
+  local Address = tonumber(args[2]) or 0
+  local Value = tonumber(args[3]) or 0
+
+  -- Perform external write
+  if GPU.Inputs.MemBus.Src then
+    GPU.Inputs.MemBus.Src:WriteCell(Address-65536,Value)
+  end
+end)

@@ -1,5 +1,5 @@
 TOOL.Category		= "Wire - Advanced"
-TOOL.Name			= "Data Plug"
+TOOL.Name			= "Data - Plug/Socket"
 TOOL.Command		= nil
 TOOL.ConfigName		= ""
 TOOL.Tab			= "Wire"
@@ -20,16 +20,47 @@ if (SERVER) then
 	CreateConVar('sbox_maxwire_datasockets', 20)
 end
 
-TOOL.ClientConVar[ "a" ] = "0"
-TOOL.ClientConVar[ "ar" ] = "255"
-TOOL.ClientConVar[ "ag" ] = "255"
-TOOL.ClientConVar[ "ab" ] = "255"
-TOOL.ClientConVar[ "aa" ] = "255"
+TOOL.ClientConVar["a"] = "0"
+TOOL.ClientConVar["ar"] = "255"
+TOOL.ClientConVar["ag"] = "255"
+TOOL.ClientConVar["ab"] = "255"
+TOOL.ClientConVar["aa"] = "255"
 
-TOOL.PlugModel = "models/hammy/pci_card.mdl"
-TOOL.SocketModel = "models/hammy/pci_slot.mdl"
+TOOL.ClientConVar["model"] = "models/hammy/pci_slot.mdl"
+
+local SocketModels = {
+	["models/props_lab/tpplugholder_single.mdl"] = "models/props_lab/tpplug.mdl",
+	["models/bull/various/usb_socket.mdl"] = "models/bull/various/usb_stick.mdl",
+	["models/hammy/pci_slot.mdl"] = "models/hammy/pci_card.mdl",
+        ["models/wingf0x/isasocket.mdl"] = "models/wingf0x/isaplug.mdl",
+	["models/wingf0x/altisasocket.mdl"] = "models/wingf0x/isaplug.mdl",
+        ["models/wingf0x/ethernetsocket.mdl"] = "models/wingf0x/ethernetplug.mdl",
+        ["models/wingf0x/hdmisocket.mdl"] = "models/wingf0x/hdmiplug.mdl",
+}
+
+local AngleOffset = {
+	["models/props_lab/tpplugholder_single.mdl"] = Angle(),
+	["models/props_lab/tpplug.mdl"] = Angle(),
+	["models/bull/various/usb_socket.mdl"] = Angle(),
+	["models/bull/various/usb_stick.mdl"] = Angle(),
+	["models/hammy/pci_slot.mdl"] = Angle(90,0,0),
+	["models/hammy/pci_card.mdl"] = Angle(90,0,0),
+	["models/wingf0x/isasocket.mdl"] = Angle(90,0,0),
+	["models/wingf0x/isaplug.mdl"] = Angle(90,0,0),
+	["models/wingf0x/altisasocket.mdl"] = Angle(90,00,0),
+	["models/wingf0x/ethernetsocket.mdl"] = Angle(90,0,0),
+	["models/wingf0x/ethernetplug.mdl"] = Angle(90,0,0),
+	["models/wingf0x/hdmisocket.mdl"] = Angle(90,0,0),
+	["models/wingf0x/hdmiplug.mdl"] = Angle(90,0,0),
+}
 
 cleanup.Register( "wire_dataplugs" )
+
+function TOOL:GetModel()
+	local model = self:GetClientInfo( "model" )
+	if (!util.IsValidModel( model ) or !util.IsValidProp( model ) or !SocketModels[ model ]) then return "models/props_lab/tpplugholder_single.mdl", "models/props_lab/tpplug.mdl" end
+	return model, SocketModels[ model ]
+end
 
 // Create socket
 function TOOL:LeftClick( trace )
@@ -65,11 +96,10 @@ function TOOL:LeftClick( trace )
 
 	if ( !self:GetSWEP():CheckLimit( "wire_datasockets" ) ) then return false end
 
-	local Ang = trace.HitNormal:Angle()
-	local Pos = trace.HitPos
-	Ang.pitch = Ang.pitch + 90
+	local socketmodel, plugmodel = self:GetModel()
+	local Pos, Ang = trace.HitPos, trace.HitNormal:Angle() + (AngleOffset[plugmodel] or Angle())
 
-	local wire_datasocket = MakeWireDataSocket( ply, Pos, Ang, self.SocketModel, a, ar, ag, ab, aa )
+	local wire_datasocket = MakeWireDataSocket( ply, Pos, Ang, socketmodel, a, ar, ag, ab, aa )
 
 	local const = WireLib.Weld(wire_datasocket, trace.Entity, trace.PhysicsBone, true, false, true)
 
@@ -115,9 +145,10 @@ function TOOL:RightClick( trace )
 
 	if ( !self:GetSWEP():CheckLimit( "wire_dataplugs" ) ) then return false end
 
-	local Ang = trace.HitNormal:Angle()
+	local socketmodel, plugmodel = self:GetModel()
+	local Pos, Ang = trace.HitPos, trace.HitNormal:Angle() + (AngleOffset[plugmodel] or Angle())
 
-	local wire_dataplug = MakeWireDataPlug( ply, trace.HitPos, Ang, self.PlugModel, a, ar, ag, ab, aa )
+	local wire_dataplug = MakeWireDataPlug( ply, trace.HitPos, Ang, plugmodel, a, ar, ag, ab, aa )
 
 	local min = wire_dataplug:OBBMins()
 	wire_dataplug:SetPos( trace.HitPos - trace.HitNormal * min.z )
@@ -233,17 +264,31 @@ function TOOL:Offset( ang, offsetvec )
 end
 
 function TOOL:Think()
-	if (!self.GhostEntity || !self.GhostEntity:IsValid() || self.GhostEntity:GetModel() != self.SocketModel ) then
-		self:MakeGhostEntity( self.SocketModel, Vector(0,0,0), Angle(0,0,0) )
+	local model, _ = self:GetModel()
+	if (!self.GhostEntity || !self.GhostEntity:IsValid() || self.GhostEntity:GetModel() != model ) then
+		self:MakeGhostEntity( model, Vector(0,0,0), Angle(0,0,0) )
 	end
 
 	self:UpdateGhostWireDataSocket( self.GhostEntity, self:GetOwner() )
 end
 
+list.Set( "wire_socket_models", "models/props_lab/tpplugholder_single.mdl", {} )
+list.Set( "wire_socket_models", "models/bull/various/usb_socket.mdl", {} )
+list.Set( "wire_socket_models", "models/hammy/pci_slot.mdl", {} )
+list.Set( "wire_socket_models", "models/wingf0x/isasocket.mdl", {} )
+list.Set( "wire_socket_models", "models/wingf0x/altisasocket.mdl", {} )
+list.Set( "wire_socket_models", "models/wingf0x/ethernetsocket.mdl", {} )
+list.Set( "wire_socket_models", "models/wingf0x/hdmisocket.mdl", {} )
+
 function TOOL.BuildCPanel(panel)
 	panel:AddControl("Header", { Text = "#Tool_wire_dataplug_name", Description = "#Tool_wire_dataplug_desc" })
 
-		panel:AddControl("ComboBox", {
+	local mdl = vgui.Create("DWireModelSelect",CPanel)
+	mdl:SetModelList( list.Get( "wire_socket_models" ), "wire_dataplug_model" )
+	mdl:SetHeight( 2 )
+	panel:AddItem( mdl )
+
+	panel:AddControl("ComboBox", {
 		Label = "#Presets",
 		MenuButton = "1",
 		Folder = "wire_dataplug",

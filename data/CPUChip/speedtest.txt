@@ -1,8 +1,0 @@
-//SpeedTest - Outputs average number of 
-//CPU clocks passed
-//Attach data port to IOBus of CPU
-mov eax,1;
-infloop:
-  add eax,3; //3 cycles for the loop
-  mov port0,eax;
-jmp infloop;

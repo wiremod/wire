@@ -1,5 +1,5 @@
 TOOL.Category		= "Wire - Advanced"
-TOOL.Name			= "Data Port"
+TOOL.Name			= "Data - Port"
 TOOL.Command		= nil
 TOOL.ConfigName		= ""
 TOOL.Tab			= "Wire"

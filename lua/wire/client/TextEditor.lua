@@ -239,6 +239,29 @@ function EDITOR:OnMousePressed(code)
 				self:BlockCommentSelection( true )
 			end)
 		end
+		if (not self:GetParent().E2) then
+			menu:AddSpacer()
+
+			local caretPos = self:CursorToCaret()
+			local IsBreakpointSet = CPULib.GetDebugBreakpoint( self.chosenfile, caretPos )
+
+			if not IsBreakpointSet then
+				menu:AddOption( "Add Breakpoint", function()
+					CPULib.SetDebugBreakpoint( self.chosenfile, caretPos, true )
+				end)
+--				menu:AddOption( "Add Conditional Breakpoint", function()
+--					Derma_StringRequestNoBlur( "Add Conditional Breakpoint", "456", "123",
+--					function( strTextOut )
+--						CPULib.SetDebugBreakpoint( caretPos, strTextOut )
+--					end )
+--				end)
+			else
+				menu:AddOption( "Remove Breakpoint", function()
+					CPULib.SetDebugBreakpoint( self.chosenfile, caretPos )
+				end)
+			end
+		end
+
 
 		menu:Open()
 	end
@@ -563,6 +586,29 @@ function EDITOR:Paint()
 		local w,h = surface_GetTextSize( str )
 		local _w, _h = self:GetSize()
 		draw_WordBox( 4, _w - w - (self.ScrollBar:IsVisible() and 16 or 0) - 10, _h - h - 10, str, "Default", Color( 0,0,0,100 ), Color( 255,255,255,255 ) )
+	end
+
+	-- Paint CPU debug hints
+	if self.CurrentVarValue then
+		local pos = self.CurrentVarValue[1]
+		local x, y = (pos[2]+2) * self.FontWidth, (pos[1]-1-self.Scroll[1]) * self.FontHeight
+		local txt = CPULib.GetDebugPopupText(self.CurrentVarValue[2])
+		if txt then
+			draw.WordBox(2, x, y, txt, "E2SmallFont", Color(0,0,0,255), Color(255,255,255,255) )
+		end
+	end
+
+	if not self:GetParent().E2 then
+		if CPULib.DebuggerAttached then
+			local debugWindowText = CPULib.GetDebugWindowText()
+			for k,v in ipairs(debugWindowText) do
+				if v ~= "" then
+                                        local y = (k % 24)
+                                        local x = 15*(1 + math.floor(#debugWindowText / 24) - math.floor(k / 24))
+					draw.WordBox(2, self:GetWide()-self.FontWidth*x, self.FontHeight*(-1+y), v, "E2SmallFont", Color(0,0,0,255), Color(255,255,255,255) )
+				end
+			end
+		end
 	end
 
 	return true
@@ -2941,6 +2987,41 @@ function EDITOR:AC_Reset()
 end
 
 ---------------------------------------------------------------------------------------------------------
+-- CPU/GPU hint box
+---------------------------------------------------------------------------------------------------------
+local oldpos, haschecked = {0,0}, false
+function EDITOR:Think()
+	if (self:GetParent().E2) then self.Think = nil return end -- E2 doesn't need this
+
+	local caret = self:CursorToCaret()
+	local startpos, word = self:getWordStart( caret, true )
+
+	if (word and word != "") then
+		if !haschecked then
+			oldpos = {startpos[1],startpos[2]}
+			haschecked = true
+			timer.Simple(0.3,function()
+			if not self then return end
+			if not self.CursorToCaret then return end
+				local caret = self:CursorToCaret()
+				local startpos, word = self:getWordStart( caret, true )
+				if (startpos[1] == oldpos[1] and startpos[2] == oldpos[2]) then
+					self.CurrentVarValue = { startpos, word }
+				end
+			end)
+		elseif ((oldpos[1] != startpos[1] or oldpos[2] != startpos[2]) and haschecked) then
+			haschecked = false
+			self.CurrentVarValue = nil
+			oldpos = {0,0}
+		end
+	else
+		self.CurrentVarValue = nil
+		haschecked = false
+		oldpos = {0,0}
+	end
+end
+
+---------------------------------------------------------------------------------------------------------
 
 -- helpers for ctrl-left/right
 function EDITOR:wordLeft(caret)
@@ -3314,33 +3395,70 @@ end -- do...
 
 do
 	local colors = {
-		["normal"]   = { Color(240, 240, 160), false},
-		["number"]   = { Color(240, 160, 160), false},
-		["opcode"]   = { Color(160, 160, 240), false},
-		["compare"]  = { Color(190, 190, 240), false},
-		["register"] = { Color(160, 240, 160), false},
-		["string"]   = { Color(128, 128, 128), false},
-		["label"]    = { Color(160, 240, 255), false},
-		["macro"]    = { Color(240, 160, 255), false},
+		["normal"]   = { Color(255, 255, 136), false},
+		["opcode"]   = { Color(255, 136,   0), false},
 		["comment"]  = { Color(128, 128, 128), false},
-		["white"]    = { Color(224, 224, 224), false},
+		["register"] = { Color(255, 255, 136), false},
+		["number"]   = { Color(232, 232,   0), false},
+		["string"]   = { Color(255, 136, 136), false},
+		["filename"] = { Color(232, 232, 232), false},
+		["label"]    = { Color(255, 255, 176), false},
+		["keyword"]  = { Color(255, 136,   0), false},
+		["memref"]   = { Color(232, 232,   0), false},
+		["pmacro"]   = { Color(136, 136, 255), false},
+
+--		["compare"]  = { Color(255, 186,  40), true},
 	}
 
-	local directives = {
-		DATA   = true,
-		CODE   = true,
-		db     = true,
-		define = true,
-		alloc  = true,
+	-- Build lookup table for opcodes
+	local opcodeTable = {}
+	for k,v in pairs(CPULib.InstructionTable) do
+		if v.Mnemonic ~= "RESERVED" then
+			opcodeTable[v.Mnemonic] = true
+		end
+	end
+
+	-- Build lookup table for keywords
+	local keywordsList = {
+		"GOTO","FOR","IF","ELSE","WHILE","DO","SWITCH","CASE","CONST","RETURN","BREAK",
+		"CONTINUE","EXPORT","INLINE","DB","ALLOC","SCALAR","VECTOR1F","VECTOR2F","UV","VECTOR3F",
+		"VECTOR4F","COLOR","VEC1F","VEC2F","VEC3F","VEC4F","MATRIX","STRING",
+		"DB","DEFINE","CODE","DATA","ORG","OFFSET","INT48","FLOAT","CHAR","VOID",
+		"INT","FLOAT","CHAR","VOID","PRESERVE","ZAP"
+	}
+
+	local keywordsTable = {}
+	for k,v in pairs(keywordsList) do
+		keywordsTable[v] = true
+	end
+
+	-- Build lookup table for registers
+	local registersTable = {
+		EAX = true,EBX = true,ECX = true,EDX = true,ESI = true,EDI = true,
+		ESP = true,EBP = true,CS = true,SS = true,DS = true,ES = true,GS = true,
+		FS = true,KS = true,LS = true
+	}
+	for reg=0,31 do registersTable["R"..reg] = true end
+	for port=0,1023 do registersTable["PORT"..port] = true end
+
+	-- Build lookup table for macros
+	local macroTable = {
+	["PRAGMA"] = true,
+	["INCLUDE"] = true,
+	["#INCLUDE##"] = true,
+	["DEFINE"] = true,
+	["IFDEF"] = true,
+	["ENDIF"] = true,
+	["ELSE"] = true,
+	["UNDEF"] = true,
 	}
 
 	function EDITOR:CPUGPUSyntaxColorLine(row)
-		-- cols[n] = { tokendata, color }
 		local cols = {}
 		self:ResetTokenizer(row)
 		self:NextCharacter()
 
-		local gpu = self:GetParent().EditorType == "GPU"
+		local isGpu = self:GetParent().EditorType == "GPU"
 
 		while self.character do
 			local tokenname = ""
@@ -3351,43 +3469,53 @@ do
 
 			if self:NextPattern("^[0-9][0-9.]*") then
 				tokenname = "number"
-
-			elseif self:NextPattern("^[a-zA-Z0-9_]+:") then
+			elseif self:NextPattern("^[a-zA-Z0-9_@.]+:") then
 				tokenname = "label"
-
 			elseif self:NextPattern("^[a-zA-Z0-9_]+") then
-				local sstr = self.tokendata:Trim()
-				local opcode = WireLib.CPU.opcodes[sstr]
-				if opcode then
+				local sstr = string.upper(self.tokendata:Trim())
+				if opcodeTable[sstr] then
 					tokenname = "opcode"
-					if opcode >= 1 and opcode <= 7 or opcode == 15 then
-						tokenname = "compare"
-					end
-				elseif gpu and WireLib.CPU.gpuopcodes[sstr] then
-					tokenname = "opcode"
-				elseif WireLib.CPU.registers[sstr] then
+				elseif registersTable[sstr] then
 					tokenname = "register"
-				elseif directives[sstr] then
-					tokenname = "macro"
+				elseif keywordsTable[sstr] then
+					tokenname = "keyword"
 				else
 					tokenname = "normal"
 				end
-
-			elseif self.character == "'" then
+			elseif (self.character == "'") or (self.character == "\"")  then
 				self:NextCharacter()
-				while self.character and self.character != "'" do
+				while self.character and (self.character != "'") and (self.character != "\"") do
 					if self.character == "\\" then self:NextCharacter() end
 					self:NextCharacter()
 				end
 				self:NextCharacter()
 				tokenname = "string"
-
+			elseif self:NextPattern("#include <") then  --(self.character == "<")
+				while self.character and (self.character != ">") do
+					self:NextCharacter()
+				end
+				self:NextCharacter()
+				tokenname = "filename"
 			elseif self:NextPattern("^//.*$") then
 				tokenname = "comment"
-
+			elseif (self.character == "#") then
+				self:NextCharacter()
+				if self:NextPattern("^[a-zA-Z0-9_#]+") then
+					local sstr = string.sub(string.upper(self.tokendata:Trim()),2)
+					if macroTable[sstr] then
+						tokenname = "pmacro"
+					else
+						tokenname = "memref"
+					end
+				else
+ 					tokenname = "memref"
+				end
+			elseif (self.character == "[") or (self.character == "]") then
+				self:NextCharacter()
+				tokenname = "memref"
 			else
 				self:NextCharacter()
-				tokenname = "white"
+				tokenname = "normal"
 			end
 
 			color = colors[tokenname]
@@ -3407,8 +3535,8 @@ vgui.Register("Expression2Editor", EDITOR, "Panel");
 concommand.Add("wire_expression2_reloadeditor", function(ply, command, args)
 	local code = wire_expression2_editor and wire_expression2_editor:GetCode()
 	wire_expression2_editor = nil
-	CPU_Editor = nil
-	GPU_Editor = nil
+	ZCPU_Editor = nil
+	ZGPU_Editor = nil
 	include("wire/client/TextEditor.lua")
 	include("wire/client/wire_expression2_editor.lua")
 	initE2Editor()

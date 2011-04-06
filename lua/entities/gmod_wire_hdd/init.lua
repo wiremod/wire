@@ -7,7 +7,9 @@ ENT.WireDebugName = "WireHDD"
 ENT.OverlayDelay = 0
 
 function ENT:OnRemove()
-	self:SaveCachedBlock()
+	for k,v in pairs(self.CacheUpdated) do
+		file.Write(self:GetStructName(k),self:MakeFloatTable(self.Cache[k]))
+	end
 end
 
 function ENT:Initialize()
@@ -25,64 +27,79 @@ function ENT:Initialize()
 	self.Data = 0
 	self.Out = 0
 
+	-- Flash type
+	--   0: compatibility 16 values per block mode
+	--   1: 128 values per block mode
+	self.FlashType = 0
 	self.BlockSize = 16
 
-	//Hard drive id/folder id:
+	-- Hard drive id/folder id:
 	self.DriveID = 0
-	self.PrevDriveID = -1
-	//Hard drive capicacity (loaded from hdd)
+	self.PrevDriveID = nil
+
+	-- Hard drive capicacity (loaded from hdd)
 	self.DriveCap = 0
+	self.MaxAddress = 0
 
-	//Cache for read/written values
-	self.ReadCache = {}
-	//Shows whether block is cached for reading
-	self.BlockCached = {}
-
-	//Current sector cache
+	-- Current cache (array of blocks)
 	self.Cache = {}
-	for i = 0,self.BlockSize-1 do
-		self.Cache[i] = 0
-	end
-	//Block that is cached
-	self.CachedBlock = -1
-	self.CacheWrites = 0
-	//Owners STEAMID
-	self.owner_steamid = "SINGLEPLAYER"
+	self.CacheUpdated = {}
 
+	-- Owners STEAMID
+	self.Owner_SteamID = "SINGLEPLAYER"
+	self.Entity:NextThink(CurTime()+1.0)
 	self:SetOverlayText("Flash memory")
 end
 
 function ENT:GetStructName(name)
-	return "WireFlash\\"..(self.owner_steamid or "UNKNOWN").."\\HDD"..self.DriveID.."\\"..name..".txt"
+	return "WireFlash\\"..(self.Owner_SteamID or "UNKNOWN").."\\HDD"..self.DriveID.."\\"..name..".txt"
 end
 
 function ENT:GetCap()
-	//If hard drive exists
-	if (file.Exists(self:GetStructName("drive"))) then
-		//Read size cap
-		local sizecap = file.Read(self:GetStructName("drive"))
-		//If it is a number
-		if (tonumber(sizecap)) then
-			self.DriveCap = tonumber(sizecap)
+	-- If hard drive exists
+	if file.Exists(self:GetStructName("drive")) then
+		-- Read format data
+		local formatData = file.Read(self:GetStructName("drive"))
+
+		if tonumber(formatData) then
+			self.DriveCap = tonumber(formatData)
+			self.FlashType = 0
+			self.BlockSize = 16
+			self.MaxAddress = self.DriveCap * 1024
 		else
-			file.Write(self:GetStructName("drive"), self.DriveCap)
+			local formatInfo = string.Explode("\n",formatData)
+			if (formatInfo[1] == "FLASH1") then
+				self.DriveCap = tonumber(formatInfo[2]) or 0
+				self.MaxAddress = tonumber(formatInfo[3]) or (self.DriveCap * 1024)
+				self.FlashType = 1
+				self.BlockSize = 32
+			else
+				file.Write(self:GetStructName("drive"),"FLASH1\n"..self.DriveCap.."\n"..self.MaxAddress)
+			end
 		end
 	else
-		file.Write(self:GetStructName("drive"), self.DriveCap)
+		file.Write(self:GetStructName("drive"),"FLASH1\n"..self.DriveCap.."\n"..self.MaxAddress)
+		self.FlashType = 1
+		self.BlockSize = 32
+		self.MaxAddress = 0
 	end
 
-	//Can't have cap bigger than 256 in MP
-	if ((!SinglePlayer()) && (self.DriveCap > 256)) then
+	--Can't have cap bigger than 256 in MP
+	if (not SinglePlayer()) and (self.DriveCap > 256) then
 		self.DriveCap = 256
 	end
 end
 
 function ENT:UpdateCap()
-	//Can't have cap bigger than 256 in MP
-	if ((!SinglePlayer()) && (self.DriveCap > 256)) then
+	--Can't have cap bigger than 256 in MP
+	if (not SinglePlayer()) and (self.DriveCap > 256) then
 		self.DriveCap = 256
 	end
-	file.Write(self:GetStructName("drive"), self.DriveCap)
+	if self.FlashType == 0 then
+		file.Write(self:GetStructName("drive"),self.DriveCap)
+	else
+		file.Write(self:GetStructName("drive"),"FLASH1\n"..self.DriveCap.."\n"..self.MaxAddress)
+	end
 
 	self:GetCap()
 end
@@ -102,10 +119,10 @@ end
 
 function ENT:MakeFloatTable(Table)
 	local text = ""
-	for i=0,table.Count(Table)-1 do
-		//Clamp size to 24 chars
+	for i=0,#Table-1 do
+		--Clamp size to 24 chars
 		local floatstr = string.sub(tostring(Table[i]),1,24)
-		//Make a string, and append missing spaces
+		--Make a string, and append missing spaces
 		floatstr = floatstr .. string.rep(" ",24-string.len(floatstr))
 
 		text = text..floatstr
@@ -115,13 +132,13 @@ function ENT:MakeFloatTable(Table)
 end
 
 function ENT:ReadCell(Address)
-	//DriveID should be > 0, and less than  4 in MP
+	--DriveID should be > 0, and less than  4 in MP
 	if ((self.DriveID < 0) || (!SinglePlayer() && (self.DriveID >= 4))) then
 		return nil
 	end
 
 	local player = self.pl
-	if (player:IsValid()) then
+	if player:IsValid() then
 		local steamid = player:SteamID()
 		steamid = string.gsub(steamid, ":", "_")
 		if (steamid ~= "UNKNOWN") then
@@ -130,44 +147,40 @@ function ENT:ReadCell(Address)
 			self.owner_steamid = "SINGLEPLAYER"
 		end
 
-		//If drive has changed, change cap
-		if (self.DriveID ~= self.PrevDriveID) then
+		-- If drive has changed, change cap
+		if self.DriveID ~= self.PrevDriveID then
 			self:GetCap()
 			self.PrevDriveID = self.DriveID
 		end
 
-		//Check if address is valid
-		if ((Address < self.DriveCap * 1024) && (Address >= 0)) then
-			//1. Check if this address is cached for read
-			if (self.ReadCache[Address]) then
-				return self.ReadCache[Address]
-			end
-
-			//2. Read sector
+		-- Check if address is valid
+		if (Address < self.DriveCap * 1024) and (Address >= 0) then
+			-- Compute address
 			local block = math.floor(Address / self.BlockSize)
 			local blockaddress = math.floor(Address) % self.BlockSize
 
-			//If sector isn't created yet, return 0
-			if (!file.Exists(self:GetStructName(block))) then
+			-- Check if this address is cached for read
+			if self.Cache[block] then
+				return self.Cache[block][blockaddress] or 0
+			end
+
+			-- If sector isn't created yet, return 0
+			if not file.Exists(self:GetStructName(block)) then
+				self.Cache[block] = {}
+				self.CacheUpdated[block] = true
 				for i=0,self.BlockSize-1 do
-					self.ReadCache[block*self.BlockSize+i] = 0
+					self.Cache[block][i] = 0
 				end
-				self.BlockCached[block] = true
 				return 0
 			end
 
-			//Read the block
+			-- Read the block
 			local blockdata = self:GetFloatTable(file.Read(self:GetStructName(block)))
+			self.Cache[block] = {}
 			for i=0,self.BlockSize-1 do
-				if (blockdata[i]) then
-					self.ReadCache[block*self.BlockSize+i] = blockdata[i]
-				else
-					self.ReadCache[block*self.BlockSize+i] = 0
-				end
+				self.Cache[block][i] = blockdata[i] or 0
 			end
-			self.BlockCached[block] = true
-
-			return self.ReadCache[block*self.BlockSize+blockaddress]
+			return self.Cache[block][blockaddress]
 		else
 			return nil
 		end
@@ -176,15 +189,8 @@ function ENT:ReadCell(Address)
 	end
 end
 
-function ENT:SaveCachedBlock()
-	if (self.CachedBlock != -1) then
-		file.Write(self:GetStructName(self.CachedBlock),self:MakeFloatTable(self.Cache))
-	end
-	self.CacheWrites = 0
-end
-
 function ENT:WriteCell(Address, value)
-	//DriveID should be > 0, and less than  4 in MP
+	--DriveID should be > 0, and less than  4 in MP
 	if ((self.DriveID < 0) || (!SinglePlayer() && (self.DriveID >= 4))) then
 		return false
 	end
@@ -199,59 +205,52 @@ function ENT:WriteCell(Address, value)
 			self.owner_steamid = "SINGLEPLAYER"
 		end
 
-		//If drive has changed, change cap
-		if (self.DriveID ~= self.PrevDriveID) then
+		-- If drive has changed, change cap
+		if self.DriveID ~= self.PrevDriveID then
 			self:GetCap()
 			self.PrevDriveID = self.DriveID
 		end
 
-		//Check if address is valid
-		if ((Address < self.DriveCap * 1024) && (Address >= 0)) then
+		-- Check if address is valid
+		if (Address < self.DriveCap * 1024) and (Address >= 0) then
+			-- Compute address
 			local block = math.floor(Address / self.BlockSize)
 			local blockaddress = math.floor(Address) % self.BlockSize
 
-			//1. Check if this sector isn't the one which is cached
-			//   If no, make it current block
-			if (self.CachedBlock != block) then
-				//Save previous one
-				self:SaveCachedBlock()
-
-				//Check if this block is cached for read
-				if (!self.BlockCached[block]) then
-					//If sector isn't created yet, return 0
-					if (!file.Exists(self:GetStructName(block))) then
-						for i=0,self.BlockSize-1 do
-							self.ReadCache[block*self.BlockSize+i] = 0
-						end
-					else
-						//Read the block
-						local blockdata = self:GetFloatTable(file.Read(self:GetStructName(block)))
-						for i=0,self.BlockSize-1 do
-							if (blockdata[i]) then
-								self.ReadCache[block*self.BlockSize+i] = blockdata[i]
-							else
-								self.ReadCache[block*self.BlockSize+i] = 0
-							end
-						end
-					end
-					self.BlockCached[block] = true
+			-- Check if this address is cached
+			if self.Cache[block] then
+				self.CacheUpdated[block] = true
+				self.Cache[block][blockaddress] = value
+				if Address > self.MaxAddress then
+					self.MaxAddress = Address
 				end
-
-				//Load it from readcache
-				for i=0,self.BlockSize-1 do
-					self.Cache[i] = self.ReadCache[block*self.BlockSize+i]
-				end
-				self.CachedBlock = block
+				return true
 			end
 
-			//Write to the block
-			self.Cache[blockaddress] = value
-			self.ReadCache[Address] = value
-			self.CacheWrites = self.CacheWrites + 1
+			-- If sector isn't created yet, cache it
+			if not file.Exists(self:GetStructName(block)) then
+				self.Cache[block] = {}
+				self.CacheUpdated[block] = true
+				for i=0,self.BlockSize-1 do
+					self.Cache[block][i] = 0
+				end
+				self.Cache[block][blockaddress] = value
+				if Address > self.MaxAddress then
+					self.MaxAddress = Address
+				end
+				return true
+			end
 
-			//If under 256 writes to same sector, dont dump sector to disk
-			if (self.CacheWrites > 256) then
-				self:SaveCachedBlock()
+			-- Read the block
+			local blockdata = self:GetFloatTable(file.Read(self:GetStructName(block)))
+			self.Cache[block] = {}
+			for i=0,self.BlockSize-1 do
+				self.Cache[block][i] = blockdata[i] or 0
+			end
+			self.CacheUpdated[block] = true
+			self.Cache[block][blockaddress] = value
+			if Address > self.MaxAddress then
+				self.MaxAddress = Address
 			end
 			return true
 		else
@@ -260,6 +259,17 @@ function ENT:WriteCell(Address, value)
 	else
 		return false
 	end
+end
+
+function ENT:Think()
+	local cachedBlockIndex = next(self.CacheUpdated)
+	if cachedBlockIndex then
+		self.CacheUpdated[cachedBlockIndex] = nil
+		file.Write(self:GetStructName(cachedBlockIndex),self:MakeFloatTable(self.Cache[cachedBlockIndex]))
+		self:UpdateCap()
+	end
+	self.Entity:NextThink(CurTime()+0.25)
+	return true
 end
 
 function ENT:TriggerInput(iname, value)

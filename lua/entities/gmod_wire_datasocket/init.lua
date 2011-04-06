@@ -6,15 +6,22 @@ include('shared.lua')
 
 ENT.WireDebugName = "Socket"
 
-local MODEL = Model( "models/hammy/pci_slot.mdl" )
-
 //Time after loosing one plug to search for another
 local NEW_PLUG_WAIT_TIME = 2
 local PLUG_IN_SOCKET_CONSTRAINT_POWER = 5000
 local PLUG_IN_ATTACH_RANGE = 3
 
+local SocketModels = {
+	["models/props_lab/tpplugholder_single.mdl"] = "models/props_lab/tpplug.mdl",
+	["models/bull/various/usb_socket.mdl"] = "models/bull/various/usb_stick.mdl",
+	["models/hammy/pci_slot.mdl"] = "models/hammy/pci_card.mdl",
+	["models/wingf0x/isasocket.mdl"] = "models/wingf0x/isaplug.mdl",
+	["models/wingf0x/altisasocket.mdl"] = "models/wingf0x/isaplug.mdl",
+	["models/wingf0x/ethernetsocket.mdl"] = "models/wingf0x/ethernetplug.mdl",
+	["models/wingf0x/hdmisocket.mdl"] = "models/wingf0x/hdmiplug.mdl",
+}
+
 function ENT:Initialize()
-	self:SetModel( MODEL )
 	self:PhysicsInit( SOLID_VPHYSICS )
 	self:SetMoveType( MOVETYPE_VPHYSICS )
 	self:SetSolid( SOLID_VPHYSICS )
@@ -101,10 +108,13 @@ function ENT:Think()
 
 				// If no other sockets are using it
 				if plug.MySocket == nil then
-				    local plugpos = plug:GetPos()
+					local plugpos = plug:GetPos()
 					local dist = (sockCenter-plugpos):Length()
 
-					self:AttachPlug(plug)
+					// If model matches up
+					if SocketModels[self:GetModel()] == plug:GetModel() then
+						self:AttachPlug(plug)
+					end
 				end
 			end
 		end
@@ -118,29 +128,36 @@ function ENT:AttachPlug( plug )
 
 	// Position plug
 	local newpos = self:GetOffset( Vector(-1.75, 0, 0) )
+	if self:GetModel() == "models/props_lab/tpplugholder_single.mdl" then newpos = self:GetOffset( Vector( 8, -13, -5) )
+	elseif self:GetModel() == "models/bull/various/usb_socket.mdl" then   newpos = self:GetOffset( Vector(-2,  0, -8) )
+	elseif self:GetModel() == "models/wingf0x/altisasocket.mdl" then      newpos = self:GetOffset( Vector( 0.9,  0,  0) )
+	elseif self:GetModel() == "models/wingf0x/ethernetsocket.mdl" then    newpos = self:GetOffset( Vector(-2.00,  0,  0) )
+	elseif self:GetModel() == "models/wingf0x/hdmisocket.mdl" then        newpos = self:GetOffset( Vector(-2.00,  0,  0) )
+	end
+
 	local socketAng = self:GetAngles()
 	plug:SetPos( newpos )
 	plug:SetAngles( socketAng )
 
 	self.NoCollideConst = constraint.NoCollide(self, plug, 0, 0)
 	if (not self.NoCollideConst) then
-	    self.MyPlug = nil
+		self.MyPlug = nil
 		plug:SetSocket(nil)
-	    self.Memory = nil
-    	    Wire_TriggerOutput(self, "Memory", 0)
-	    return
+		self.Memory = nil
+			Wire_TriggerOutput(self, "Memory", 0)
+		return
 	end
 
 	// Constrain together
 	self.Const = constraint.Weld( self, plug, 0, 0, PLUG_IN_SOCKET_CONSTRAINT_POWER, true )
 	if (not self.Const) then
-	    self.NoCollideConst:Remove()
-	    self.NoCollideConst = nil
-	    self.MyPlug = nil
-	    plug:SetSocket(nil)
-	    self.Memory = nil
-            Wire_TriggerOutput(self, "Memory", 0)
-	    return
+		self.NoCollideConst:Remove()
+		self.NoCollideConst = nil
+		self.MyPlug = nil
+		plug:SetSocket(nil)
+		self.Memory = nil
+		Wire_TriggerOutput(self, "Memory", 0)
+		return
 	end
 
 	// Prepare clearup incase one is removed
@@ -158,7 +175,7 @@ function ENT:OnRestore()
 	self.AB = self.AB or 0
 	self.AA = self.AA or 255
 
-    	self.BaseClass.OnRestore(self)
+	self.BaseClass.OnRestore(self)
 end
 
 function ENT:TriggerInput(iname, value, iter)

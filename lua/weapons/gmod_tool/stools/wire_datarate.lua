@@ -1,13 +1,13 @@
 TOOL.Category		= "Wire - Advanced"
-TOOL.Name			= "Data Transferrer"
+TOOL.Name			= "Data - Transfer Bus"
 TOOL.Command		= nil
 TOOL.ConfigName		= ""
 TOOL.Tab			= "Wire"
 
 if ( CLIENT ) then
-    language.Add( "Tool_wire_datarate_name", "Data transferrer tool (Wire)" )
-    language.Add( "Tool_wire_datarate_desc", "Spawns data transferrer. Data transferrer acts like identity gate for hi-speed and regular links, but also provides data rate of data going through it" )
-    language.Add( "Tool_wire_datarate_0", "Primary: Create/Update data trasnferrer" )
+	language.Add( "Tool_wire_datarate_name", "Data transfer bus tool (Wire)" )
+	language.Add( "Tool_wire_datarate_desc", "Spawns a data transferrer. Data transferrer acts like identity gate for hi-speed and regular links" )
+	language.Add( "Tool_wire_datarate_0", "Primary: Create/Update data trasnferrer" )
 	language.Add( "sboxlimit_wire_datarates", "You've hit data trasnferrers limit!" )
 	language.Add( "undone_wiredatarate", "Undone Data Transferrer" )
 end

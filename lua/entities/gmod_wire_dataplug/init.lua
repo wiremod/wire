@@ -4,12 +4,9 @@ AddCSLuaFile( "shared.lua" )
 
 include('shared.lua')
 
-local MODEL = Model( "models/hammy/pci_card.mdl" )
-
 ENT.WireDebugName = "DataPlug"
 
 function ENT:Initialize()
-	self:SetModel( MODEL )
 	self:PhysicsInit( SOLID_VPHYSICS )
 	self:SetMoveType( MOVETYPE_VPHYSICS )
 	self:SetSolid( SOLID_VPHYSICS )

@@ -15,7 +15,7 @@ function ENT:Initialize()
 	self.Inputs = Wire_CreateInputs(self,{"Input","Smooth", "Interval"})
 
 	self.Memory = nil
-	self.Smooth = 0.5
+	self.Smooth = 0.1
 	self.Interval = 0.25
 
 	self.WDataRate = 0

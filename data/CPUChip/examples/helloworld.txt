@@ -3,9 +3,9 @@
 //Connect CPUs CLK input to button (toggle)
 //Notice how you can store your 
 //subroutines/calls in DATA area
-DATA;
+jmp _code;
 message:
- db 'Hello World!',0;
+  db 'Hello World!',0;
 WriteString: //ESI - String pointer, EDX - Param
   mov eax,65536;
   AWriteLoop:
@@ -18,9 +18,9 @@ WriteString: //ESI - String pointer, EDX - Param
     inc esi;
   jmp AWriteLoop;
   AEnd:
-  ret //Return from call
+ret //Return from call
 
-CODE;
+_code:
   mov esi,message;
   mov edx,000999; //White foreground on black background
   call WriteString;

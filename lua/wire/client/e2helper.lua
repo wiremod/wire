@@ -15,12 +15,28 @@ E2Helper.CPUDescriptions = {}
 E2Helper.CPUTable = {}
 E2Helper.CurrentMode = true -- E2/CPU. True = E2, false = CPU
 
-function E2Helper.AddCPUDesc( FuncName, Args, Desc, ForWhat, Type )
-	table.insert( E2Helper.CPUTable, { [1] = FuncName, [2] = Args, [3] = ForWhat, [4] = Type} )
+local function AddCPUDesc( FuncName, Args, Desc, Platform, Type )
+	table.insert( E2Helper.CPUTable, { [1] = FuncName, [2] = Args, [3] = Platform, [4] = Type} )
 	E2Helper.CPUDescriptions[FuncName] = Desc
 end
 
-include("cpudescriptions.lua")
+-- Add help on all opcodes
+for _,instruction in ipairs(CPULib.InstructionTable) do
+	if (instruction.Mnemonic ~= "RESERVED") and
+	(not instruction.Obsolete) then
+
+	local instructionArgs = instruction.Operand1
+	if instruction.Operand2 ~= "" then
+          instructionArgs = instructionArgs..", "..instruction.Operand2
+        end
+
+	AddCPUDesc(instruction.Mnemonic,
+		instructionArgs,
+		instruction.Reference,
+		instruction.Set,
+                instruction.Opcode)
+	end
+end
 
 
 -- Which tables are we going to use?
@@ -221,8 +237,8 @@ function E2Helper.Create(reset)
 		self:SetValue( true )
 		E2Helper.CurrentMode = false
 		E2Helper.E2Mode:SetValue( false )
-		E2Helper.CostColumn:SetName("Type")
-		E2Helper.ReturnsColumn:SetName("For What")
+		E2Helper.CostColumn:SetName("Opcode")
+		E2Helper.ReturnsColumn:SetName("Platform")
 		E2Helper.Update()
 	end
 
