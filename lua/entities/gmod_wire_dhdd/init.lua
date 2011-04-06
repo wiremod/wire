@@ -23,7 +23,6 @@ end
 -- Read cell
 function ENT:ReadCell( Address )
 	local data = self.Memory[Address or 0] or 0
-	print("fetch",Address,(type(data) == "number") and data or 0)
 	return (type(data) == "number") and data or 0
 end
 
@@ -31,7 +30,6 @@ end
 function ENT:WriteCell( Address, value )
 	if (not self.ROM) or (self.ROM and self.AllowWrite) then
 		self.Memory[Address] = value
-		print("ALLOW",Address,value)
 	end
 	self:ShowOutputs()
 	return true
