@@ -4,7 +4,6 @@ include("shared.lua")
 
 ENT.WireDebugName = "Advanced Pod Controller"
 
-local serverside_key_outputs = { "W", "A", "S", "D", "Mouse1", "Mouse2", "R", "Space", "Shift", "Zoom", "Alt", "TurnLeftKey", "TurnRightKey" }
 local serverside_keys = {
 	[IN_FORWARD] = "W",
 	[IN_MOVELEFT] = "A",
@@ -27,34 +26,27 @@ function ENT:Initialize()
 	self:SetSolid( SOLID_VPHYSICS )
 	self:SetUseType( SIMPLE_USE )
 
-	-- Keys
-	local outputs = serverside_key_outputs
+	local outputs = {
+		-- Keys
+		"W", "A", "S", "D", "Mouse1", "Mouse2",
+		"R", "Space", "Shift", "Zoom", "Alt", "TurnLeftKey", "TurnRightKey",
 
-	-- Clientside keys
-	outputs[#outputs+1] = "PrevWeapon"
-	outputs[#outputs+1] = "NextWeapon"
-	outputs[#outputs+1] = "Light"
+		-- Clientside keys
+		"PrevWeapon", "NextWeapon", "Light",
 
-	-- Aim Position
-	outputs[#outputs+1] = "X"
-	outputs[#outputs+1] = "Y"
-	outputs[#outputs+1] = "Z"
-	outputs[#outputs+1] = "AimPos [VECTOR]"
-	outputs[#outputs+1] = "Distance"
-	outputs[#outputs+1] = "Bearing"
-	outputs[#outputs+1] = "Elevation"
+		-- Aim Position
+		"X", "Y", "Z", "AimPos [VECTOR]",
+		"Distance", "Bearing", "Elevation",
 
-	-- Other info
-	outputs[#outputs+1] = "ThirdPerson"
-	outputs[#outputs+1] = "Team"
-	outputs[#outputs+1] = "Health"
-	outputs[#outputs+1] = "Armor"
+		-- Other info
+		"ThirdPerson", "Team", "Health", "Armor",
 
-	-- Active
-	outputs[#outputs+1] = "Active"
+		-- Active
+		"Active",
 
-	-- Entity
-	outputs[#outputs+1] = "Entity [ENTITY]"
+		-- Entity
+		"Entity [ENTITY]",
+	}
 
 	self.Inputs = WireLib.CreateInputs( self, { "Lock", "Terminate", "Strip weapons", "Eject", "Disable", "Crosshairs", "Brake", "Allow Buttons", "Relative", "Damage Health", "Damage Armor", "Hide Player"} )
 	self.Outputs = WireLib.CreateOutputs( self, outputs )
@@ -478,3 +470,190 @@ function MakeWireAdvPod(pl, Pos, Ang, model, frozen)
 	return wire_pod
 end
 duplicator.RegisterEntityClass("gmod_wire_adv_pod", MakeWireAdvPod, "Pos", "Ang", "Model", "frozen")
+
+--[[
+
+local function fixupangle(angle)
+	if angle > 180 then angle = angle - 360 end
+	if angle < -180 then angle = angle + 360 end
+	return angle
+end
+
+function ENT:Think()
+	local _,_,_,coloralpha = self:GetColor()
+	if self.Pod and self.Pod:IsValid() then
+		Wire_TriggerOutput( self, "Entity", self.Pod )
+		local Ply = nil
+		if self.RC then
+			if !self.Pod:Alive() then self.Pod.Active = false end
+			if self.Pod.Active then
+				Ply = self.Pod
+			end
+		else
+			Ply = self.Pod:GetPassenger()
+		end
+		if Ply and Ply:IsValid() then
+			local temp = false
+			if self.Ply == nil then
+				if self.crossvar then
+					Ply:CrosshairEnable()
+				else
+					Ply:CrosshairDisable()
+				end
+				if !self.RC then
+					self.junkBE = CurTime() + 2
+				else
+					self.junkBE = nil
+					temp = true
+				end
+			end
+			self.Ply = Ply
+			if (self.HidePlayer) then
+				local r,g,b,a = self.Ply:GetColor()
+				self.OldPlyAlpha = a
+				self.Ply:SetColor(r,g,b,0)
+			end
+			if temp then self.Ply.Initial = self.Ply:GetAimVector():Angle() end
+			self:SetColor( 0, 255, 0, coloralpha )
+			Wire_TriggerOutput(self, "Active", 1)
+			Wire_TriggerOutput(self, "ThirdPerson", self.Ply:GetInfoNum("gmod_vehicle_viewmode", 0))
+
+			if not self.disablevar then
+				for index,output,inkey in ipairs_map(keys, unpack) do
+					if not self.disablevar and self.Ply:KeyDownLast( inkey ) then
+						Wire_TriggerOutput( self, output, 1 )
+					else
+						Wire_TriggerOutput( self, output, 0 )
+					end
+				end
+			end
+
+			--player info
+			Wire_TriggerOutput(self, "Team", self.Ply:Team())
+			Wire_TriggerOutput(self, "Health", self.Ply:Health())
+			Wire_TriggerOutput(self, "Armor", self.Ply:Armor())
+
+			if self.junkBE then --all this info is garbage while the player is entering the pod, junk it for the first 2 second
+				if self.junkBE < CurTime() then self.junkBE = nil end
+			else
+				local trace = util.GetPlayerTrace( self.Ply )
+				trace.filter = {self.Ply,self.Pod}
+				local EyeTrace = util.TraceLine( trace )
+				self.VPos = EyeTrace.HitPos
+				local dist = (EyeTrace.HitPos-self.Ply:GetShootPos()):Length()
+				Wire_TriggerOutput(self, "Distance", dist)
+
+				Wire_TriggerOutput(self, "X", EyeTrace.HitPos.x )
+				Wire_TriggerOutput(self, "Y", EyeTrace.HitPos.y )
+				Wire_TriggerOutput(self, "Z", EyeTrace.HitPos.z )
+				Wire_TriggerOutput(self, "AimPos", EyeTrace.HitPos )
+
+				local AimVectorAngle = self.Ply:GetAimVector():Angle()
+
+				if self.BE_rel then
+					local PodAngle
+					if !self.RC then
+						PodAngle = self.Pod:GetAngles()
+						if self.Pod:GetClass() != "prop_vehicle_prisoner_pod" then
+							PodAngle.y = PodAngle.y + 90
+						end
+					else
+						PodAngle = self.Ply.Initial
+					end
+					Wire_TriggerOutput(self, "Bearing", fixupangle((AimVectorAngle.y - PodAngle.y)))
+					Wire_TriggerOutput(self, "Elevation", fixupangle(-(AimVectorAngle.p - PodAngle.p)))
+				else
+					Wire_TriggerOutput(self, "Bearing", fixupangle((AimVectorAngle.y)))
+					Wire_TriggerOutput(self, "Elevation", fixupangle(-AimVectorAngle.p))
+				end
+
+				if self.pushbuttons then
+					--[[
+					if EyeTrace.Entity and EyeTrace.Entity:IsValid() and EyeTrace.Entity:GetClass() == "gmod_wire_button" and dist < 256 and self.Ply:KeyDownLast( IN_ATTACK ) then
+						if EyeTrace.Entity.Toggle then
+							if self.LastPressed + 0.5 < CurTime() then
+								EyeTrace.Entity:Switch(not EyeTrace.Entity:IsOn())
+								self.LastPressed = CurTime()
+							end
+						elseif not EyeTrace.Entity:IsOn() then
+							EyeTrace.Entity:Switch(true)
+							EyeTrace.Entity.PrevUser = self.Ply
+							EyeTrace.Entity.podpress = true
+						end
+					end
+					--] ]
+					if EyeTrace.Entity and EyeTrace.Entity:IsValid() and EyeTrace.Entity:GetClass() == "gmod_wire_button" and dist < 82 and self.Ply:KeyDownLast( IN_ATTACK ) then
+						-- If it is a toggled button
+						if EyeTrace.Entity.toggle then
+							if self.CanPress then
+							--And if its NOT on and you havent pressed it in 0.5 seconds.
+								if not EyeTrace.Entity:IsOn() and self.LastPressed + self.lastpresseddelay < CurTime() then
+									EyeTrace.Entity:Switch(true)
+									self.LastPressed = CurTime()
+									self.CanPress = false
+								--And if it IS on and you havent pressed it in 0.5 seconds.
+								elseif EyeTrace.Entity:IsOn() and self.LastPressed + self.lastpresseddelay < CurTime() then
+									EyeTrace.Entity:Switch(false)
+									self.LastPressed = CurTime()
+									self.CanPress = false
+								end
+							end
+						--If it is a Non-toggle button and its not on
+						elseif not EyeTrace.Entity:IsOn() then
+							EyeTrace.Entity:Switch(true)
+							EyeTrace.Entity.PrevUser = self.Ply
+							EyeTrace.Entity.podpress = true
+						end
+					else
+						--Makes a check so you cant hold your mousebutton on the button so the button goes on/off/on/off
+						self.CanPress = true
+					end
+
+				end
+			end
+		else -- if ValidEntity(Ply)
+			if self.Ply then --clear outputs
+				Wire_TriggerOutput(self, "Active", 0)
+				Wire_TriggerOutput(self, "ThirdPerson", 0)
+				self:SetColor( 255, 0, 0, coloralpha )
+				for index,output,inkey in ipairs_map(keys, unpack) do
+					Wire_TriggerOutput(self, output, 0)
+				end
+				self.Pod.Initial = nil
+				Wire_TriggerOutput(self, "Team", 0)
+				Wire_TriggerOutput(self, "Health", 0)
+				Wire_TriggerOutput(self, "Armor", 0)
+				Wire_TriggerOutput(self, "Distance", 0)
+				Wire_TriggerOutput(self, "X", 0)
+				Wire_TriggerOutput(self, "Y", 0)
+				Wire_TriggerOutput(self, "Z", 0)
+				Wire_TriggerOutput(self, "AimPos", Vector(0, 0, 0))
+				Wire_TriggerOutput(self, "Bearing", 0)
+				Wire_TriggerOutput(self, "Elevation", 0)
+				--self.Ply.Initial = nil
+
+				local r,g,b = self.Ply:GetColor()
+				self.Ply:SetColor( r,g,b,self.OldPlyAlpha or 255 )
+				self.OldPlyAlpha = 0
+			end
+			self.Ply = nil
+		end -- if ValidEntity(Ply)
+		if self.disablevar then
+			for index,output,inkey in ipairs_map(keys, unpack) do
+				Wire_TriggerOutput( self, output, 0 )
+			end
+			Wire_TriggerOutput(self, "Disabled", 1)
+		else
+			Wire_TriggerOutput(self, "Disabled", 0)
+		end
+	end
+	self:NextThink(CurTime() + 0.01)
+	return true
+end
+
+function ENT:GetBeaconPos(sensor)
+	return self.VPos
+end
+
+
+]]

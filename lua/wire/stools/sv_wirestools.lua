@@ -26,8 +26,7 @@ function WireToolMakeGate( self, trace, ply )
 	-- Check individual limit (doesn't work for some reason)
 	if (!ply:CheckLimit( "wire_gate_" .. string.lower( GateActions[action].group ) .. "s" )) then return false end
 
-	local Ang = trace.HitNormal:Angle()
-	Ang.pitch = Ang.pitch + 90
+	local Ang = self:GetAngle( trace )
 
 	local wire_gate = MakeWireGate( ply, trace.HitPos, Ang, model, action, noclip )
 

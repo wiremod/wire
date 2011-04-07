@@ -19,6 +19,7 @@ function ENT:Initialize()
 	self.Static = 0
 	self.FLIREnabled = false
 	self.FLIR = 0
+	self:SetOverlayText( "Camera Controller" )
 end
 
 function ENT:MakeDynamicCam(oldcam)

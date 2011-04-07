@@ -180,7 +180,7 @@ function WireToolObj:Think()
 	local model = self:GetModel()
 	if not self.GhostEntity or not self.GhostEntity:IsValid() or self.GhostEntity:GetModel() ~= model then
 		if self.GetGhostAngle then -- the tool as a function for getting the proper angle for the ghost
-			self:MakeGhostEntity( model, Vector(0,0,0), self:GetGhostAngle(Angle(0,0,0)) )
+			self:MakeGhostEntity( model, Vector(0,0,0), self:GetGhostAngle(self:GetOwner():GetEyeTrace()) )
 		else -- the tool gives a fixed angle to add else use a zero'd angle
 			self:MakeGhostEntity( model, Vector(0,0,0), self.GhostAngle or Angle(0,0,0) )
 		end
@@ -226,7 +226,7 @@ end
 function WireToolObj:GetAngle( trace )
 	local Ang = trace.HitNormal:Angle()
 	if self.GetGhostAngle then -- the tool as a function for getting the proper angle for the ghost
-		Ang = self:GetGhostAngle( Ang )
+		Ang = self:GetGhostAngle( trace )
 	elseif self.GhostAngle then -- the tool gives a fixed angle to add
 		Ang = Ang + self.GhostAngle
 	end
