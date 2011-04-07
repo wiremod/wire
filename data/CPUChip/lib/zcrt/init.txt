@@ -3,6 +3,7 @@
 //
 // C runtime library initialization
 //------------------------------------------------------------------------------
+
 #ifdef ZCRT_EXTENDED_MODE
   // Initialize extended mode
   mov edi,&zcrtInterruptTable; //Need "&" because array is defined below

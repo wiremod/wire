@@ -1,42 +1,58 @@
+//------------------------------------------------------------------------------
+// ZCPU standard library and drivers set              (C) 2011 by Black Phoenix
+//
+// UDH-enabled console screen highspeed driver
+//------------------------------------------------------------------------------
+
+//Define to check if console screen driver is available
 #define CSCR_DRIVER
+
+//Maximum number of console screens supported
 #define MAX_CONSOLE_SCREENS 8
 
-#define CURSOR_RATE 2043
-#define CURSOR_SIZE 2044
-#define CURSOR_POSITION 2045
-#define CURSOR_VISIBLE 2046
-
-#define LOW_SHIFT_COL 2031
-#define HIGH_SHIFT_COL 2032
-#define LOW_SHIFT_ROW 2033
-#define HIGH_SHIFT_ROW 2034
-
-#define SHIFT_ROWS 2038
-#define SHIFT_CELLS 2037
-#define CLEAR_SCREEN 2041
-#define BACKGROUND_COLOR 2042
-#define SCREEN_ACTIVE 2047
-
-#define SCREEN_ROTATION 2024
+//Console screen registers
+#define CURSOR_RATE       2043
+#define CURSOR_SIZE       2044
+#define CURSOR_POSITION   2045
+#define CURSOR_VISIBLE    2046
+#define LOW_SHIFT_COL     2031
+#define HIGH_SHIFT_COL    2032
+#define LOW_SHIFT_ROW     2033
+#define HIGH_SHIFT_ROW    2034
+#define SHIFT_ROWS        2038
+#define SHIFT_CELLS       2037
+#define CLEAR_SCREEN      2041
+#define BACKGROUND_COLOR  2042
+#define SCREEN_ACTIVE     2047
+#define SCREEN_ROTATION   2024
 #define SCREEN_BRIGHTNESS 2036
 
+//Driver data
 char* cscrOffsets[MAX_CONSOLE_SCREENS];
 float cscrDevices[MAX_CONSOLE_SCREENS];
 char* cscrCharacterPointer[MAX_CONSOLE_SCREENS];
 float cscrSelectedScreen;
 
-void cscrInitialize(char* screenOffset) {
+//Update console screen offsets
+void cscrUDHQueryFunction() {
   float i,n;
+  n = udhGetDevices(11,MAX_CONSOLE_SCREENS,cscrDevices);    
+  for (i = 0; i < n; i++) {
+    cscrOffsets[i] = udhGetDeviceOffset(cscrDevices[i]);
+  }
+}
+
+//Initialize console screen driver. screenOffset may be 0 if using UDH
+void cscrInitialize(char* screenOffset) {
+  float i;
 
   for (i = 0; i < MAX_CONSOLE_SCREENS; i++) {
     cscrOffsets[i] = screenOffset;
   }
 
   #ifdef UDH_DRIVER
-    n = udhGetDevices(11,MAX_CONSOLE_SCREENS,cscrDevices);    
-    for (i = 0; i < n; i++) {
-      cscrOffsets[i] = udhGetDeviceOffset(cscrDevices[i]);
-    }
+    udhRegisterDriver(cscrUDHQueryFunction);
+    cscrUDHQueryFunction();
   #endif
   cscrSelectedScreen = 0;
 }
@@ -63,6 +79,15 @@ void cscrSetBackground(float col) {
   *(cscrOffsets[cscrSelectedScreen]+BACKGROUND_COLOR) = col;
 }
 
+void cscrLoadImage(char* imgdata) {
+  if (!cscrOffsets[cscrSelectedScreen]) return;  
+
+  preserve ESI,EDI;
+  ESI = cscrOffsets[cscrSelectedScreen];
+  EDI = imgdata;
+  mcopy 30*18;
+}
+
 void cscrPutLine(char* scrptr, float col, char* str) {
   if (!cscrOffsets[cscrSelectedScreen]) return;  
   char* curptr = scrptr;
@@ -74,6 +99,13 @@ void cscrPutLine(char* scrptr, float col, char* str) {
     str++;
     curptr++;
   }
+}
+
+void cscrPutChar(char* scrptr, float col, char ch) {
+  if (!cscrOffsets[cscrSelectedScreen]) return;  
+
+  *(cscrOffsets[cscrSelectedScreen]+scrptr*2+0) = ch;
+  *(cscrOffsets[cscrSelectedScreen]+scrptr*2+1) = col;
 }
 
 void cscrNewLine() {
@@ -119,12 +151,8 @@ void cscrPrintNumber(float num, float col) {
     a /= 10;
     fint a;  
   }
-
   max ndig,1;
-
   a = num;
-  //flog10 ndig,a;
-  //fint ndig;
 
   cscrCharacterPointer[cscrSelectedScreen] = cscrCharacterPointer[cscrSelectedScreen] + ndig;
   char* charPtr = cscrCharacterPointer[cscrSelectedScreen] - 1;

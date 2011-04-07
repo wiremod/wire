@@ -413,30 +413,7 @@ if CLIENT then
   CPULib.HandbookWindow = nil
 
   function CPULib.ShowDocumentation(platform)
-    if not CPULib.HandbookWindow or (not CPULib.HandbookWindow:IsValid()) then
-      CPULib.HandbookWindow = vgui.Create("DFrame")
-      CPULib.HandbookWindow:SetPos(0, 0)
-      CPULib.HandbookWindow:SetSize(800, 600)
-      CPULib.HandbookWindow:SetTitle("ZCPU Handbook [loading...]")
-      CPULib.HandbookWindow:SetDraggable(true)
-      CPULib.HandbookWindow:SetSizable(true)
-      CPULib.HandbookWindow:ShowCloseButton(true)
-      CPULib.HandbookWindow:MakePopup()
-      CPULib.HandbookWindow:Center()
-      CPULib.HandbookWindow:SetVisible(true)
-
-      local HTML = vgui.Create("HTML", CPULib.HandbookWindow)
-      HTML:SetPos(4,24)
-      HTML:SetSize(800-8,600-24)
-      HTML:OpenURL("http://brain.wireos.com/wiremod/zcpudoc.html")
-      function HTML:FinishedURL() CPULib.HandbookWindow:SetTitle("ZCPU Handbook") end
-
-      timer.Create("CPULib_ResizeDocumentation", 0.01, 0,
-        function()
-          if not HTML:IsValid() then timer.Destroy("CPULib_ResizeDocumentation") return end
-          HTML:SetSize(CPULib.HandbookWindow:GetWide()-8,CPULib.HandbookWindow:GetTall()-24)
-        end)
-    end
+    gui.OpenURL("http://brain.wireos.com/wiremod/zcpudoc.html")
   end
 end
 

@@ -1,8 +1,19 @@
-//Universal device host driver
+//------------------------------------------------------------------------------
+// ZCPU standard library and drivers set              (C) 2011 by Black Phoenix
+//
+// Universal device host driver. Only supports 8 devices right now
+//------------------------------------------------------------------------------
 
 #define UDH_DRIVER
-#define MAX_DEVICES 32
-#define MAX_ADDRESS_RANGE 2048
+
+//Maximum number of devices supported
+#define MAX_UDH_DEVICES 32
+
+//Address range of a single device
+#define MAX_UDH_ADDRESS_RANGE 128*1024
+
+//Maximum number of drivers that may register with UDH
+#define MAX_UDH_DRIVERS 8
 
 //Device name/string data
 string udhDeviceString0,"None";
@@ -38,6 +49,10 @@ udhDeviceName:
 //Extended bus offset
 char* udhBusOffset;
 
+//List of callbacks to call when querying devices
+void* udhQueryCallbacks[MAX_UDH_DRIVERS] = {};
+float udhQueryCallbackCount = 0;
+
 float udhSetBusAddress(char* extOffset) {
   udhBusOffset = extOffset;
   udhQueryDevices();
@@ -47,15 +62,25 @@ void udhQueryDevices() {
   float i;
 
   //Run the query
-  udhBusOffset[16] = 32+MAX_DEVICES;
+  udhBusOffset[16] = 32+MAX_UDH_DEVICES;
   udhBusOffset[17] = 1;  
 
   //Reconfigure all devices
   //FIXME: only supports single extended bus right now
   for (i = 0; i < 8; i++) {
-    udhBusOffset[i*2+0] = MAX_ADDRESS_RANGE*i;
-    udhBusOffset[i*2+1] = MAX_ADDRESS_RANGE*i+(MAX_ADDRESS_RANGE-1);
+    udhBusOffset[i*2+0] = MAX_UDH_ADDRESS_RANGE*i;
+    udhBusOffset[i*2+1] = MAX_UDH_ADDRESS_RANGE*i+(MAX_UDH_ADDRESS_RANGE-1);
   }
+
+  //Update all drivers
+  for (i = 0; i < udhQueryCallbackCount; i++) {
+    udhQueryCallbacks[i]();
+  }
+}
+
+void udhRegisterDriver(void* queryDeviceFunction) {
+  udhQueryCallback[udhQueryCallbackCount] = queryDeviceFunction;
+  if (udhQueryCallbackCount < MAX_UDH_DRIVERS) udhQueryCallbackCount++;
 }
 
 float udhGetDeviceType(float busIndex) {
@@ -63,7 +88,7 @@ float udhGetDeviceType(float busIndex) {
 }
 
 float udhGetDeviceOffset(float busIndex) {
-  return 65536+32+MAX_DEVICES+udhBusOffset[busIndex*2];
+  return 65536+32+MAX_UDH_DEVICES+udhBusOffset[busIndex*2];
 }
 
 char* udhGetDeviceName(float busIndex) {
@@ -75,8 +100,13 @@ char* udhGetDeviceName(float busIndex) {
   }
 }
 
+void udhSetDeviceOffsetSize(float busIndex, char* offset, char* size) {
+  udhBusOffset[busIndex*2+0] = offset;
+  udhBusOffset[busIndex*2+1] = offset+size-1;
+}
+
 float udhGetNumDevices() {
-  return MAX_DEVICES;   
+  return MAX_UDH_DEVICES;   
 }
 
 float udhGetDevices(float type, float maxCount, char* deviceList) {
@@ -84,7 +114,7 @@ float udhGetDevices(float type, float maxCount, char* deviceList) {
   
   devPtr = deviceList;
   n = 0;
-  for (i = 0; i < MAX_DEVICES; i++) {
+  for (i = 0; i < MAX_UDH_DEVICES; i++) {
     if ((udhGetDeviceType(i) == type) && (n < maxCount)) {
       n++;
       *devPtr++ = i; 
