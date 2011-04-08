@@ -13,6 +13,8 @@ void main() {
   
   cscrInitialize(0);
 
+  udhQueryDevices();
+
   for (i = 0; i < MAX_CONSOLE_SCREENS; i++) {
     cscrSelect(i);
     cscrSetActive(1);

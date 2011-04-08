@@ -22,10 +22,17 @@ if CLIENT then
 	//
 	// Create screen textures and materials
 	//
-	WireGPU_matScreen = CreateMaterial("GPURT","UnlitGeneric",{})
+	WireGPU_matScreen = CreateMaterial("GPURT","UnlitGeneric",{
+		["$vertexcolor"] = 1,
+		["$vertexalpha"] = 1,
+		["$ignorez"] = 1,
+		["$nolod"] = 1,
+        })
 	WireGPU_matBuffer = CreateMaterial("GPUBUF","UnlitGeneric",{
 		["$vertexcolor"] = 1,
 		["$vertexalpha"] = 1,
+		["$ignorez"] = 1,
+		["$nolod"] = 1,
 	})
 
 	function PrintWBI(text)
@@ -309,6 +316,7 @@ To get rid of this message, write 'kill_screen_error_message' into your console.
 				surface.SetDrawColor(0,0,0,255)
 				surface.DrawRect(-256*aspect,-256,512*aspect,512)
 
+				surface.SetDrawColor(255,255,255,255)
 				surface.SetMaterial(WireGPU_matScreen)
 				self.DrawScreen(x, y, w, h, rotation or 0, scale or 0)
 

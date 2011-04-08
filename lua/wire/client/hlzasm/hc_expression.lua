@@ -205,7 +205,11 @@ function HCOMP:Expression_Level3() local TOKEN = self.TOKEN
         local callLeaf = self:NewLeaf()
         callLeaf.Opcode = "call"
         callLeaf.Comment = label.Name.."(...)"
-        callLeaf.Operands[1] = { PointerToLabel = label }
+        if label.Type == "Stack" then
+          callLeaf.Operands[1] = { Stack = label.StackOffset }
+        else --{ PointerToLabel = label }
+          callLeaf.Operands[1] = { UnknownOperationByLabel = label }
+        end
         table.insert(genLeaves,callLeaf)
       end
 
@@ -310,7 +314,6 @@ function HCOMP:Expression_Level3() local TOKEN = self.TOKEN
       local forceType = self.TokenData
       operationLeaf = self:Expression_LevelLeaf(3)
       operationLeaf.ForceType = forceType
-      print("FORCE TYPE",forceType)
     else
       operationLeaf = self:Expression_LevelLeaf(0)
     end

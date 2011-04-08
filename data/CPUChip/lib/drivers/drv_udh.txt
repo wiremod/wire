@@ -7,10 +7,10 @@
 #define UDH_DRIVER
 
 //Maximum number of devices supported
-#define MAX_UDH_DEVICES 32
+#define MAX_UDH_DEVICES 8
 
 //Address range of a single device
-#define MAX_UDH_ADDRESS_RANGE 128*1024
+#define MAX_UDH_ADDRESS_RANGE 4*1024
 
 //Maximum number of drivers that may register with UDH
 #define MAX_UDH_DRIVERS 8
@@ -50,7 +50,7 @@ udhDeviceName:
 char* udhBusOffset;
 
 //List of callbacks to call when querying devices
-void* udhQueryCallbacks[MAX_UDH_DRIVERS] = {};
+void* udhQueryCallback[MAX_UDH_DRIVERS];
 float udhQueryCallbackCount = 0;
 
 float udhSetBusAddress(char* extOffset) {
@@ -74,7 +74,8 @@ void udhQueryDevices() {
 
   //Update all drivers
   for (i = 0; i < udhQueryCallbackCount; i++) {
-    udhQueryCallbacks[i]();
+    void* functionPtr = udhQueryCallback[i];
+    functionPtr();
   }
 }
 
@@ -100,9 +101,9 @@ char* udhGetDeviceName(float busIndex) {
   }
 }
 
-void udhSetDeviceOffsetSize(float busIndex, char* offset, char* size) {
-  udhBusOffset[busIndex*2+0] = offset;
-  udhBusOffset[busIndex*2+1] = offset+size-1;
+void udhSetDeviceOffsetSize(float busIndex, char* offst, char* size) {
+  udhBusOffset[busIndex*2+0] = offst;
+  udhBusOffset[busIndex*2+1] = offst+size-1;
 }
 
 float udhGetNumDevices() {

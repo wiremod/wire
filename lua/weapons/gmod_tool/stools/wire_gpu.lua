@@ -235,6 +235,13 @@ if CLIENT then
 
 
     ----------------------------------------------------------------------------
+    local Button = vgui.Create("DButton" , panel)
+    panel:AddPanel(Button)
+    Button:SetText("Online ZGPU documentation")
+    Button.DoClick = function(button) CPULib.ShowDocumentation("ZGPU") end
+
+
+    ----------------------------------------------------------------------------
     local currentDirectory
     local FileBrowser = vgui.Create("wire_expression2_browser" , panel)
     panel:AddPanel(FileBrowser)

@@ -51,10 +51,16 @@ void cscrInitialize(char* screenOffset) {
   }
 
   #ifdef UDH_DRIVER
-    udhRegisterDriver(cscrUDHQueryFunction);
-    cscrUDHQueryFunction();
+    if (!screenOffset) {
+      udhRegisterDriver(cscrUDHQueryFunction);
+      cscrUDHQueryFunction();
+    }
   #endif
   cscrSelectedScreen = 0;
+}
+
+float cscrPresent(float screen) {
+  return cscrOffsets[cscrSelectedScreen] != 0;
 }
 
 void cscrSelect(float screen) {
@@ -79,13 +85,21 @@ void cscrSetBackground(float col) {
   *(cscrOffsets[cscrSelectedScreen]+BACKGROUND_COLOR) = col;
 }
 
+void cscrSetRotation(float rot) {
+  *(cscrOffsets[cscrSelectedScreen]+SCREEN_ROTATION) = rot;    
+}
+
+void cscrSetBrightness(float bright) {
+  *(cscrOffsets[cscrSelectedScreen]+SCREEN_BRIGHTNESS) = bright;
+}
+
 void cscrLoadImage(char* imgdata) {
   if (!cscrOffsets[cscrSelectedScreen]) return;  
 
   preserve ESI,EDI;
-  ESI = cscrOffsets[cscrSelectedScreen];
-  EDI = imgdata;
-  mcopy 30*18;
+  ESI = imgdata;
+  EDI = cscrOffsets[cscrSelectedScreen];
+  mcopy 30*18*2;
 }
 
 void cscrPutLine(char* scrptr, float col, char* str) {

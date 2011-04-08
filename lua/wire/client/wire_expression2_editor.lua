@@ -1980,6 +1980,24 @@ function Editor:Setup(nTitle, nLocation, nEditorType)
 		end
 		self.C.E2Help = E2Help
 
+		if nEditorType == "SPU" then
+			-- Add "Sound Browser" button
+			local SoundBrw = self:addComponent(vgui.Create("Button", self), -262, 30, -182, 20)
+			SoundBrw.panel:SetText("")
+			SoundBrw.panel.Font = "E2SmallFont"
+			SoundBrw.panel.Paint = function(button)
+				local w,h = button:GetSize()
+				draw.RoundedBox(1, 0, 0, w, h, self.colors.col_FL)
+				if ( button.Hovered ) then draw.RoundedBox(0, 1, 1, w - 2, h - 2, Color(0,0,0,192)) end
+				surface.SetFont(button.Font)
+				surface.SetTextPos( 3, 4 )
+				surface.SetTextColor( 255, 255, 255, 255 )
+				surface.DrawText("  Sound Browser")
+			end
+			SoundBrw.panel.DoClick = function() RunConsoleCommand("wire_sound_browser_open") end
+			self.C.SoundBrw = SoundBrw
+		end
+
 		if nEditorType == "CPU" then
 			-- Add "step forward" button
 			local DebugForward = self:addComponent(vgui.Create("Button", self), -300, 30, -220, 20)

@@ -128,6 +128,14 @@ function ENT:WriteCell(Address,value)
   -- 2040 - Hardware Clear Column (Writing clears column)
   -- 2041 - Hardware Clear Screen
 
+  if (Address == 2025) or
+     (Address == 2026) or
+     (Address == 2027) or
+     (Address == 2028) or
+     (Address == 2036) then
+    self.NeedRefresh = true
+  end
+
   if Address == 2019 then
     local low = math.floor(math.Clamp(self.Memory1[2033],0,17))
     local high = math.floor(math.Clamp(self.Memory1[2034],0,17))
@@ -325,9 +333,9 @@ function ENT:Draw()
 
       local ch = self.Memory1[2042]
 
-      local hb = 28*math.fmod(ch,10)
-      local hg = 28*math.fmod(math.floor(ch / 10),10)
-      local hr = 28*math.fmod(math.floor(ch / 100),10)
+      local hb = 28*math.fmod(ch,                  10)*self.Memory1[2026]*self.Memory1[2025] + self.Memory1[2036]
+      local hg = 28*math.fmod(math.floor(ch / 10), 10)*self.Memory1[2027]*self.Memory1[2025] + self.Memory1[2036]
+      local hr = 28*math.fmod(math.floor(ch / 100),10)*self.Memory1[2028]*self.Memory1[2025] + self.Memory1[2036]
       surface.SetDrawColor(hr,hg,hb,255)
       surface.DrawRect(0,0,512,512)
 
@@ -340,12 +348,12 @@ function ENT:Draw()
           local cback = math.floor(c2 / 1000)
           local cfrnt = c2 - math.floor(c2 / 1000)*1000
 
-          local fb = math.Clamp(28*math.fmod(cfrnt,10) + self.Memory1[2036],0,255)
-          local fg = math.Clamp(28*math.fmod(math.floor(cfrnt / 10),10) + self.Memory1[2036],0,255)
-          local fr = math.Clamp(28*math.fmod(math.floor(cfrnt / 100),10) + self.Memory1[2036],0,255)
-          local bb = math.Clamp(28*math.fmod(cback,10) + self.Memory1[2036],0,255)
-          local bg = math.Clamp(28*math.fmod(math.floor(cback / 10),10) + self.Memory1[2036],0,255)
-          local br = math.Clamp(28*math.fmod(math.floor(cback / 100),10) + self.Memory1[2036],0,255)
+          local fb = math.Clamp(28*math.fmod(cfrnt,                  10)*self.Memory1[2026]*self.Memory1[2025] + self.Memory1[2036],0,255)
+          local fg = math.Clamp(28*math.fmod(math.floor(cfrnt / 10), 10)*self.Memory1[2027]*self.Memory1[2025] + self.Memory1[2036],0,255)
+          local fr = math.Clamp(28*math.fmod(math.floor(cfrnt / 100),10)*self.Memory1[2028]*self.Memory1[2025] + self.Memory1[2036],0,255)
+          local bb = math.Clamp(28*math.fmod(cback,                  10)*self.Memory1[2026]*self.Memory1[2025] + self.Memory1[2036],0,255)
+          local bg = math.Clamp(28*math.fmod(math.floor(cback / 10), 10)*self.Memory1[2027]*self.Memory1[2025] + self.Memory1[2036],0,255)
+          local br = math.Clamp(28*math.fmod(math.floor(cback / 100),10)*self.Memory1[2028]*self.Memory1[2025] + self.Memory1[2036],0,255)
 
           if (self.Flash == true) and (cback > 999) then
             fb,bb = bb,fb
@@ -384,22 +392,14 @@ function ENT:Draw()
             if specialCharacters[c1] then
               self:DrawSpecialCharacter(
                 c1, (tx+0.5)*szx, (ty+0.5)*szy, szx, szy,
-                math.Clamp(fr*self.Memory1[2028]*self.Memory1[2025],0,255),
-                math.Clamp(fg*self.Memory1[2027]*self.Memory1[2025],0,255),
-                math.Clamp(fb*self.Memory1[2026]*self.Memory1[2025],0,255)
+                fr,fg,fb
               )
             else
               draw.DrawText(
                 utf8,
                 "WireGPU_ConsoleFont",
                 (tx + 0.625) * szx, (ty + 0.75) * szy,
-                Color(
-                  math.Clamp(fr*self.Memory1[2028]*self.Memory1[2025],0,255),
-                  math.Clamp(fg*self.Memory1[2027]*self.Memory1[2025],0,255),
-                  math.Clamp(fb*self.Memory1[2026]*self.Memory1[2025],0,255),
-                  255
-                ),
-                0
+                Color(fr,fg,fb,255),0
               )
             end
           end

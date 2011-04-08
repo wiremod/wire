@@ -248,6 +248,20 @@ if CLIENT then
 
 
     ----------------------------------------------------------------------------
+    local Button = vgui.Create("DButton" , panel)
+    panel:AddPanel(Button)
+    Button:SetText("Online ZSPU documentation")
+    Button.DoClick = function(button) CPULib.ShowDocumentation("ZSPU") end
+
+    local Button = vgui.Create("DButton" , panel)
+    panel:AddPanel(Button)
+    Button:SetText("Open Sound Browser")
+    Button.DoClick = function()
+      RunConsoleCommand("wire_sound_browser_open")
+    end
+
+
+    ----------------------------------------------------------------------------
     local currentDirectory
     local FileBrowser = vgui.Create("wire_expression2_browser" , panel)
     panel:AddPanel(FileBrowser)
