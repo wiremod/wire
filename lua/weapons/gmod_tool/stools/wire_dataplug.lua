@@ -32,17 +32,17 @@ local SocketModels = {
 	["models/props_lab/tpplugholder_single.mdl"] = "models/props_lab/tpplug.mdl",
 	["models/bull/various/usb_socket.mdl"] = "models/bull/various/usb_stick.mdl",
 	["models/hammy/pci_slot.mdl"] = "models/hammy/pci_card.mdl",
-        ["models/wingf0x/isasocket.mdl"] = "models/wingf0x/isaplug.mdl",
+	["models/wingf0x/isasocket.mdl"] = "models/wingf0x/isaplug.mdl",
 	["models/wingf0x/altisasocket.mdl"] = "models/wingf0x/isaplug.mdl",
-        ["models/wingf0x/ethernetsocket.mdl"] = "models/wingf0x/ethernetplug.mdl",
-        ["models/wingf0x/hdmisocket.mdl"] = "models/wingf0x/hdmiplug.mdl",
+	["models/wingf0x/ethernetsocket.mdl"] = "models/wingf0x/ethernetplug.mdl",
+	["models/wingf0x/hdmisocket.mdl"] = "models/wingf0x/hdmiplug.mdl"
 }
 
 local AngleOffset = {
-	["models/props_lab/tpplugholder_single.mdl"] = Angle(),
-	["models/props_lab/tpplug.mdl"] = Angle(),
-	["models/bull/various/usb_socket.mdl"] = Angle(),
-	["models/bull/various/usb_stick.mdl"] = Angle(),
+	["models/props_lab/tpplugholder_single.mdl"] = Angle(0,0,0),
+	["models/props_lab/tpplug.mdl"] = Angle(0,0,0),
+	["models/bull/various/usb_socket.mdl"] = Angle(0,0,0),
+	["models/bull/various/usb_stick.mdl"] = Angle(0,0,0),
 	["models/hammy/pci_slot.mdl"] = Angle(90,0,0),
 	["models/hammy/pci_card.mdl"] = Angle(90,0,0),
 	["models/wingf0x/isasocket.mdl"] = Angle(90,0,0),
@@ -51,7 +51,7 @@ local AngleOffset = {
 	["models/wingf0x/ethernetsocket.mdl"] = Angle(90,0,0),
 	["models/wingf0x/ethernetplug.mdl"] = Angle(90,0,0),
 	["models/wingf0x/hdmisocket.mdl"] = Angle(90,0,0),
-	["models/wingf0x/hdmiplug.mdl"] = Angle(90,0,0),
+	["models/wingf0x/hdmiplug.mdl"] = Angle(90,0,0)
 }
 
 cleanup.Register( "wire_dataplugs" )
@@ -146,7 +146,7 @@ function TOOL:RightClick( trace )
 	if ( !self:GetSWEP():CheckLimit( "wire_dataplugs" ) ) then return false end
 
 	local socketmodel, plugmodel = self:GetModel()
-	local Pos, Ang = trace.HitPos, trace.HitNormal:Angle() + (AngleOffset[plugmodel] or Angle())
+	local Pos, Ang = trace.HitPos, trace.HitNormal:Angle() + (AngleOffset[plugmodel] or Angle(0,0,0))
 
 	local wire_dataplug = MakeWireDataPlug( ply, trace.HitPos, Ang, plugmodel, a, ar, ag, ab, aa )
 
@@ -246,7 +246,8 @@ function TOOL:UpdateGhostWireDataSocket( ent, player )
 
 	local Pos = trace.HitPos
 
-	Ang.pitch = Ang.pitch + 90
+	local socketmodel = ent:GetModel()
+	Ang = Ang + ( AngleOffset[socketmodel] or Angle(0,0,0))
 
 	ent:SetPos( Pos )
 	ent:SetAngles( Ang )

@@ -51,9 +51,14 @@ else
 	----------------------------------------------------------------------------------------------------
 	-- BuildCPanel
 	----------------------------------------------------------------------------------------------------
+
 	list.Set( "wire_socket_models", "models/props_lab/tpplugholder_single.mdl", {} )
 	list.Set( "wire_socket_models", "models/bull/various/usb_socket.mdl", {} )
 	list.Set( "wire_socket_models", "models/hammy/pci_slot.mdl", {} )
+	list.Set( "wire_socket_models", "models/wingf0x/isasocket.mdl", {} )
+	list.Set( "wire_socket_models", "models/wingf0x/altisasocket.mdl", {} )
+	list.Set( "wire_socket_models", "models/wingf0x/ethernetsocket.mdl", {} )
+	list.Set( "wire_socket_models", "models/wingf0x/hdmisocket.mdl", {} )
 
 	function TOOL.BuildCPanel( CPanel )
 		CPanel:AddControl("Header", { Text = "#Tool_wire_plug_name", Description = "#Tool_wire_plug_desc" })
@@ -114,9 +119,13 @@ else
 end
 
 local SocketModels = {
-		["models/props_lab/tpplugholder_single.mdl"] = "models/props_lab/tpplug.mdl",
-		["models/bull/various/usb_socket.mdl"] = "models/bull/various/usb_stick.mdl",
-		["models/hammy/pci_slot.mdl"] = "models/hammy/pci_card.mdl",
+	["models/props_lab/tpplugholder_single.mdl"] = "models/props_lab/tpplug.mdl",
+	["models/bull/various/usb_socket.mdl"] = "models/bull/various/usb_stick.mdl",
+	["models/hammy/pci_slot.mdl"] = "models/hammy/pci_card.mdl",
+	["models/wingf0x/isasocket.mdl"] = "models/wingf0x/isaplug.mdl",
+	["models/wingf0x/altisasocket.mdl"] = "models/wingf0x/isaplug.mdl",
+	["models/wingf0x/ethernetsocket.mdl"] = "models/wingf0x/ethernetplug.mdl",
+	["models/wingf0x/hdmisocket.mdl"] = "models/wingf0x/hdmiplug.mdl"
 }
 
 local AngleOffset = {
@@ -126,6 +135,13 @@ local AngleOffset = {
 	["models/bull/various/usb_stick.mdl"] = Angle(0,0,0),
 	["models/hammy/pci_slot.mdl"] = Angle(90,0,0),
 	["models/hammy/pci_card.mdl"] = Angle(90,0,0),
+	["models/wingf0x/isasocket.mdl"] = Angle(90,0,0),
+	["models/wingf0x/isaplug.mdl"] = Angle(90,0,0),
+	["models/wingf0x/altisasocket.mdl"] = Angle(90,00,0),
+	["models/wingf0x/ethernetsocket.mdl"] = Angle(90,0,0),
+	["models/wingf0x/ethernetplug.mdl"] = Angle(90,0,0),
+	["models/wingf0x/hdmisocket.mdl"] = Angle(90,0,0),
+	["models/wingf0x/hdmiplug.mdl"] = Angle(90,0,0)
 }
 
 cleanup.Register( "wire_plugs" )
