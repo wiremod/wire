@@ -88,16 +88,16 @@ dexit;
 
 vec2f hud_pos1,50,20;
 string hud_text1,'ROLL %i %tPITCH %i%tHDG %i';
-float roll; 
-float pitch;
-float hdg;
+alloc roll; 
+alloc pitch;
+alloc hdg;
 
 vec2f hud_pos2,45,120;
 string hud_text2,'SPD',10,'%ikt',10,10,'ALT',10,'%ift',10,10,'RALT',10,'%ift',10,10,'VSPD',10,'%ift/s';
-float spd;
-float alt;
-float ralt;
-float vspd;
+alloc spd;
+alloc alt;
+alloc ralt;
+alloc vspd;
 
 vec2f hud_pos3,45,400;
 string hud_text3,'FLAPS';

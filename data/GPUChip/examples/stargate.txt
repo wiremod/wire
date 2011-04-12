@@ -199,8 +199,8 @@ vector2f iris2,44,175;
 vector2f chevcenter,-16,-256;
 vector2f chevsize,32,32;
 
-float eventhorizon_radius;
-float iris_status;
+alloc eventhorizon_radius;
+alloc iris_status;
 
 //raw chevron poly data
 //format: <x> <y>

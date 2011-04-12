@@ -82,9 +82,9 @@ vector2f hud_text2pos,310,212;
 vector2f hud_text3pos,20,460;
 
 string hud_text1,'Left Engine',10,10,'N1 = %i%%',10,'Delta = %i%%';
-float left_power; float left_delta;
+alloc left_power; alloc left_delta;
 string hud_text2,'Right Engine',10,10,'N1 = %i%%',10,'Delta = %i%%';
-float right_power; float right_delta;
+alloc right_power; alloc right_delta;
 string hud_text3,'<FASTEN SEAT BELTS>';
 
 vector2f hud_engine1gauge,128,128;

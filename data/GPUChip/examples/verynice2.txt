@@ -60,64 +60,64 @@ dwritefmt _a_76,_s_77
 dexit
 
 color _c_0,0,0,160
-vector2f _a_1,8,8
-vector2f _a_2,504,504
+vec2f _a_1,8,8
+vec2f _a_2,504,504
 color _c_1,7,51,122
-vector2f _a_4,16,16
-vector2f _a_5,496,496
+vec2f _a_4,16,16
+vec2f _a_5,496,496
 color _c_2,0,0,0
-vector2f _a_7,24,24
-vector2f _a_8,488,488
+vec2f _a_7,24,24
+vec2f _a_8,488,488
 color _c_3,192,192,192
-vector2f _a_10,32,32
-vector2f _a_11,480,216
-vector2f _a_13,32,224
-vector2f _a_14,480,392
-vector2f _a_16,40,40
+vec2f _a_10,32,32
+vec2f _a_11,480,216
+vec2f _a_13,32,224
+vec2f _a_14,480,392
+vec2f _a_16,40,40
 string _s_17,'VERYNICE GUI V2.1 Initialized...'
-float _f_17,0
+alloc _f_17,0
 color _c_4,128,128,128
-vector2f _a_19,32,64
-vector2f _a_20,480,72
-vector2f _a_22,40,232
+vec2f _a_19,32,64
+vec2f _a_20,480,72
+vec2f _a_22,40,232
 string _s_23,'Raw data feed:'
-float _f_23,0
-vector2f _a_25,88,256
+alloc _f_23,0
+vec2f _a_25,88,256
 string _s_26,'Input port 0: %f'
-vector2f _a_28,88,272
+vec2f _a_28,88,272
 string _s_29,'Input port 1: %f'
-vector2f _a_31,88,288
+vec2f _a_31,88,288
 string _s_32,'Input port 2: %f'
-vector2f _a_34,88,304
+vec2f _a_34,88,304
 string _s_35,'Input port 3: %f'
-vector2f _a_37,88,320
+vec2f _a_37,88,320
 string _s_38,'Input port 4: %f'
-vector2f _a_40,88,336
+vec2f _a_40,88,336
 string _s_41,'Input port 5: %f'
-vector2f _a_43,88,352
+vec2f _a_43,88,352
 string _s_44,'Input port 6: %f'
-vector2f _a_46,88,368
+vec2f _a_46,88,368
 string _s_47,'Input port 7: %f'
-vector2f _a_49,32,400
-vector2f _a_50,248,480
-vector2f _a_52,40,408
+vec2f _a_49,32,400
+vec2f _a_50,248,480
+vec2f _a_52,40,408
 string _s_53,'Vector feed 1:'
-float _f_53,0
-vector2f _a_55,264,400
-vector2f _a_56,480,480
-vector2f _a_58,272,408
+alloc _f_53,0
+vec2f _a_55,264,400
+vec2f _a_56,480,480
+vec2f _a_58,272,408
 string _s_59,'Vector feed 2:'
-float _f_59,0
-vector2f _a_61,40,424
+alloc _f_59,0
+vec2f _a_61,40,424
 string _s_62,'X: %f'
-vector2f _a_64,40,440
+vec2f _a_64,40,440
 string _s_65,'Y: %f'
-vector2f _a_67,40,456
+vec2f _a_67,40,456
 string _s_68,'Z: %f'
-vector2f _a_70,272,424
+vec2f _a_70,272,424
 string _s_71,'X: %f'
-vector2f _a_73,272,440
+vec2f _a_73,272,440
 string _s_74,'Y: %f'
-vector2f _a_76,272,456
+vec2f _a_76,272,456
 string _s_77,'Z: %f'
 

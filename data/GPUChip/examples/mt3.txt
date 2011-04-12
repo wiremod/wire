@@ -80,13 +80,13 @@ ret
 
 //==============================================================================
 //Drawing parameters
-float Background.MinDepth;
-float Background.MaxDepth;
-float Background.deltaDepth      ;
-float Background.DepthStep;
-float Background.ShadeStart      ;
-float Background.ShadeStep       ;
-float Background.ShadeStepMul,0.5;
+scalar Background.MinDepth;
+scalar Background.MaxDepth;
+scalar Background.deltaDepth;
+scalar Background.DepthStep;
+scalar Background.ShadeStart;
+scalar Background.ShadeStep;
+scalar Background.ShadeStepMul,0.5;
 
 color HSL;
 

@@ -1,0 +1,267 @@
+// Author: Drunkie
+// Description: A graphics library for rendering in 2D and 3D
+
+void glClear( float r, float g, float b )
+{
+    mov #__BG.r,r; mov #__BG.g,g; mov #__BG.b,b; mov #__BG.a,255;
+    dclrscr __BG;
+}
+void glClear4( float r, float g, float b, float a )
+{
+    mov #__BG.r,r; mov #__BG.g,g; mov #__BG.b,b; mov #__BG.a,a;
+    dclrscr __BG;
+}
+void glClearTexture()
+{
+    dclrtex;
+}
+void glCoordPipe( float coordpipe )
+{
+    dcpipe coordpipe;
+}
+void glVertexPipe( float vertexpipe )
+{
+    dvxpipe vertexpipe;
+}
+void glSleep( float milliseconds )
+{
+    timer #__CURTIME; 
+    sub #__CURTIME,#__TIMESTAMP;
+    if (*__CURTIME <= milliseconds / 1000) {
+        mov #regHWClear,0;
+        jmp glExit;
+    }
+    timer #__TIMESTAMP;   
+}
+void glColor( float r, float g, float b )
+{
+    mov #__FG.r,r; mov #__FG.g,g; mov #__FG.b,b; mov #__FG.a,255;
+    dcolor __FG;
+}
+void glColor4( float r, float g, float b, float a )
+{
+    mov #__FG.r,r; mov #__FG.g,g; mov #__FG.b,b; mov #__FG.a,a;
+    dcolor __FG;
+}
+void glBindTexture( char* texturename )
+{
+    dxtexture texturename;
+}
+void glTexture( float texid )
+{
+    dtexture texid;
+}
+void glOffset( float offx, float offy )
+{
+    mov #__V1.x,offx; mov #__V1.y,offy;
+    dmove __V1;
+}
+float glOffsetX()
+{
+    return *regOffsetX;
+}
+float glOffsetY()
+{
+    return *regOffsetY;
+}
+void glHWScale( float num )
+{
+    mov #regHWScale,num;
+}
+void glHWClear( float num )
+{
+    mov #regHWClear,num;
+}
+void glVertexMode( float num )
+{
+    mov #regVertexMode,num;
+}
+void glCursor( float num )
+{
+    mov #regCursor,num;
+}
+float glCursorX()
+{
+    return *regCursorX;
+}
+float glCursorY()
+{
+    return *regCursorY;
+}
+void glExit()
+{
+    dexit;
+}
+void glTriangle( float posx, float posy, float radius )
+{
+    mov #__V1.x,posx; mov #__V1.y,posy;
+    mov #regCircleQuality,3;
+    dcircle __V1,radius;
+}
+void glCircle( float posx, float posy, float radius, float quality )
+{
+    mov #__V1.x,posx; mov #__V1.y,posy;
+    mov #regCircleQuality,quality;
+    dcircle __V1,radius;
+}
+void glRect( float posx, float posy, float destx, float desty )
+{
+    mov #__V1.x,posx; mov #__V1.y,posy;
+    mov #__V2.x,destx; mov #__V2.y,desty;
+    drect __V1,__V2;
+}
+void glRectWH( float posx, float posy, float sizex, float sizey )
+{
+    mov #__V1.x,posx; mov #__V1.y,posy;
+    mov #__V2.x,sizex; mov #__V2.y,sizey;
+    drectwh __V1,__V2;
+}
+void glORect( float posx, float posy, float destx, float desty )
+{
+    mov #__V1.x,posx; mov #__V1.y,posy;
+    mov #__V2.x,destx; mov #__V2.y,desty;
+    dorect __V1,__V2;
+}
+void glORectWH( float posx, float posy, float sizex, float sizey )
+{
+    mov #__V1.x,posx; mov #__V1.y,posy;
+    mov #__V2.x,sizex; mov #__V2.y,sizey;
+    dorectwh __V1,__V2;
+}
+void glPixel( float posx, float posy )
+{
+    mov #__V1.x,posx; mov #__V1.y,posy;
+    dpixel __V1,__FG;
+}
+void glLine( float posx, float posy, float destx, float desty )
+{
+    mov #__V1.x,posx; mov #__V1.y,posy;
+    mov #__V2.x,destx; mov #__V2.y,desty;
+    dline __V1,__V2;
+}
+void glPoly2D( float* vertexdata, float vertexcount )
+{
+    dvxdata_2f vertexdata,vertexcount;
+}
+void glFont( float fontid )
+{
+    dsetfont fontid;
+}
+void glFontSize( float fontsize )
+{
+    dsetsize fontsize;
+}
+void glLineWidth( float linewidth )
+{
+    dsetwidth linewidth;
+}
+float glTextWidth( char* text )
+{
+    float width;
+    dtextwidth *width,text;
+    return width;
+}
+float glTextHeight( char* text )
+{
+    float height;
+    dtextheight *height,text;
+    return height;
+}
+void glWriteString( float posx, float posy, char* text )
+{
+    mov #__V1.x,posx; mov #__V1.y,posy;
+    dwrite __V1,text;
+}
+void glWriteFloat( float posx, float posy, float num )
+{
+    mov #__V1.x,posx; mov #__V1.y,posy;
+    dwritef __V1,num;
+}
+void glWriteInt( float posx, float posy, float num )
+{
+    mov #__V1.x,posx; mov #__V1.y,posy;
+    dwritei __V1,num;
+}
+void glWriteFmt( float posx, float posy, char* text )
+{
+    mov #__V1.x,posx; mov #__V1.y,posy;
+    dwritefmt __V1,text;
+}
+
+void glPoly3D( float* vertexbuffer, float vertexcount )
+{
+    if (*__FILLMODE == FILLMODE_SOLID)
+        dvxdata_3f vertexbuffer,vertexcount;
+    else if (*__FILLMODE == FILLMODE_WIREFRAME)
+        dvxdata_3f_wf vertexbuffer,vertexcount;
+}
+void glFlush()
+{
+    dvxflush;
+}
+void glEnable( float p0, float p1, float p2, float p3, float p4 )
+{
+    if (p0 == 0) ddisable 0; else denable 0; //Vertex buffer
+    if (p1 == 0) ddisable 1; else denable 1; //ZSortings
+    if (p2 == 0) ddisable 2; else denable 2; //Lighting
+    if (p3 == 0) ddisable 3; else denable 3; //Face culling
+    if (p4 == 0) ddisable 4; else denable 4; //Distance culling
+}
+void glLightPos( float x, float y, float z )
+{
+    mov #__LIGHTPOS.x,x; mov #__LIGHTPOS.y,y; mov #__LIGHTPOS.z,z;
+    dsetlight 0,__LIGHTDATA;
+}
+void glLightColor( float r, float g, float b, float brightness )
+{
+    mov #__LIGHTCOL.r,r; mov #__LIGHTCOL.g,g; mov #__LIGHTCOL.b,b; mov #__LIGHTCOL.a,brightness;
+    dsetlight 0,__LIGHTDATA;
+}
+void glLookAt( float* mViewMatrix, float* vLookAt )
+{
+    mlookat mViewMatrix,vLookAt;
+}
+void glPerspective( float* mProjectionMatrix, float* vPerspective )
+{
+    mperspective mProjectionMatrix,vPerspective; 
+}
+void glRotateMatrix( float* mRotateMatrix, float* vRotate )
+{
+    mrotate mRotateMatrix,vRotate;
+}
+void glTranslateMatrix( float* mTranslateMatrix, float* vTranslate )
+{
+     mtranslate mTranslateMatrix,vTranslate; 
+}
+void glScaleMatrix( float* mScaleMatrix, float* vScale )
+{
+     mscale mScaleMatrix,vScale;
+}
+void glLoadMatrix( float* mModelViewMatrix )
+{
+    mload mModelViewMatrix;
+}
+void glLoadProjection( float* mProjectionMatrix )
+{
+    mloadproj mProjectionMatrix;
+}
+void glFillMode( float fmode )
+{
+    mov #__FILLMODE,fmode;
+}
+
+color __FG;
+color __BG;
+vec4f __V1;
+vec4f __V2;
+
+alloc __TIMESTAMP;
+alloc __CURTIME;
+
+alloc __FILLMODE;
+define FILLMODE_SOLID,0;
+define FILLMODE_WIREFRAME,1;
+
+__LIGHTDATA:
+vec4f __LIGHTPOS,0,0,-5;
+color __LIGHTCOL,255,255,255,1;

@@ -1,0 +1,100 @@
+// Author: Drunkie
+// Description: Draws a 3D model of the letter A
+
+Main();
+
+#include <drivers\drv_gl.txt>
+
+void Main()
+{
+    glSleep( 60 ); // Sleep for 60 milliseconds (reduces fps lag)
+    glClear( 100, 149, 237 ); // Clear screen
+    
+    glCoordPipe( 3 ); // Set coordinate pipe
+    glVertexPipe( 5 ); // Set vertex pipe
+
+    glLightPos( 0, 0, -50 ); // Set the light position
+    glLightColor( 255, 255, 255, 1 ); // Set the light color
+
+    // Rotate model
+    timer #vRotate.w; 
+   
+    // Create our matrices
+    glLookAt( mViewMatrix, vLookAt );
+    glPerspective( mProjectionMatrix, vPerspective );
+    glRotateMatrix( mRotateMatrix, vRotate );
+    glTranslateMatrix( mTranslateMatrix, vTranslate );
+    glScaleMatrix( mScaleMatrix, vScale );
+    
+    // Perform matrix transformations
+    mmov mModelMatrix,mTranslateMatrix;
+    mmul mModelMatrix,mRotateMatrix;
+    mmul mModelMatrix,mScaleMatrix;
+    mmov mModelViewMatrix,mViewMatrix;
+    mmul mModelViewMatrix,mModelMatrix;
+    
+    // Load our matrix and projectopm
+    glLoadMatrix( mModelViewMatrix );
+    glLoadProjection( mProjectionMatrix );
+    
+    // Solid 3D polygon
+    glEnable( 1, 1, 1, 1, 0 ); // Enable parameters (denable)
+    glFillMode( FILLMODE_SOLID ); // Set fillmode as solid
+    glColor4( 255, 255, 255, 255 ); // Set draw color
+    glPoly3D( LetterAModel, 30 ); // Draw 3D polygon 
+    
+    glFlush(); // Flush the vertex buffer to the screen
+    glExit(); // Exit
+}
+
+// The vertex data for our model
+LetterAModel:
+db 1,1,0; db 0.75,1,0; db 0.25,-1,0;
+db 0.75,1,0; db 0,-1,0; db 0.25,-1,0;
+db -1,1,0; db -0.25,-1,0; db -0.75,1,0;
+db -0.75,1,0; db -0.25,-1,0; db 0,-1,0;
+db 1,1,0.25; db 0.25,-1,0.25; db 0.75,1,0.25;
+db 0.75,1,0.25; db 0.25,-1,0.25; db 0,-1,0.25;
+db -1,1,0.25; db -0.75,1,0.25; db -0.25,-1,0.25;
+db -0.75,1,0.25; db 0,-1,0.25; db -0.25,-1,0.25;
+db 0.25,-1,0; db -0.25,-1,0; db 0.25,-1,0.25;
+db -0.25,-1,0; db -0.25,-1,0.25; db 0.25,-1,0.25;
+db -1,1,0; db -1,1,0.25; db -0.25,-1,0;
+db -1,1,0.25; db -0.25,-1,0.25; db -0.25,-1,0;
+db 1,1,0.25; db 1,1,0; db 0.25,-1,0;
+db 1,1,0.25; db 0.25,-1,0; db 0.25,-1,0.25;
+db -0.75,1,0; db 0,-1,0; db -0.75,1,0.25;
+db -0.75,1,0.25; db 0,-1,0; db 0,-1,0.25;
+db 0.75,1,0; db 0.75,1,0.25; db 0,-1,0;
+db 0.75,1,0.25; db 0,-1,0.25; db 0,-1,0;
+db -0.47,0.25,0; db -0.38,0.01,0; db 0.38,0.01,0;
+db 0.38,0.01,0; db 0.47,0.25,0; db -0.47,0.25,0;
+db -0.47,0.25,0.25; db 0.38,0.01,0.25; db -0.38,0.01,0.25;
+db 0.38,0.01,0.25; db -0.47,0.25,0.25; db 0.47,0.25,0.25;
+db -0.38,0.01,0; db -0.38,0.01,0.25; db 0.38,0.01,0;
+db 0.38,0.01,0; db -0.38,0.01,0.25; db 0.38,0.01,0.25; 
+db -0.47,0.25,0; db 0.47,0.25,0; db -0.47,0.25,0.25;
+db -0.47,0.25,0.25; db 0.47,0.25,0; db 0.47,0.25,0.25;
+db -1,1,0; db -0.75,1,0; db -1,1,0.25;
+db -0.75,1,0; db -0.75,1,0.25; db -1,1,0.25;
+db 1,1,0; db 1,1,0.25; db 0.75,1,0;
+db 0.75,1,0; db 1,1,0.25; db 0.75,1,0.25;
+
+matrix mRotateMatrix;
+matrix mTranslateMatrix;
+matrix mScaleMatrix;
+matrix mProjectionMatrix;
+matrix mViewMatrix;
+matrix mModelMatrix;
+matrix mModelViewMatrix;
+
+vec4f vRotate,      0,  1,  0,  1; // <AXIS X Y Z> <ANGLE W>
+vec4f vTranslate,   0,  -0.1,  0,  0; // <TRANSLATION X Y Z> <0>
+vec4f vPerspective, 30, 1,  1,  20; // <FOV> <ASPECT RATIO> <ZNEAR> <ZFAR>
+vec4f vScale,       1,  1,  1,  0; // <SCALE X Y Z> <0>
+
+vLookAt:
+vec3f vLookAt_Eye,    0, 0, -2.8 // Camera position
+vec3f vLookAt_Center, 0, 0, 0;  // Camera direction
+vec3f vLookAt_Up,     0, 1, 0;  // Camera up vector
+

@@ -1,0 +1,59 @@
+// Author: Drunkie
+// Description: Draws a table; useful for calendars or spreadsheets!
+
+Main();
+
+#include <drivers\drv_gl.txt>
+
+float rows = 6;
+float cols = 5;
+float sizex = 476;
+float sizey = 400;
+float linewidth = 3;
+
+float i, j;
+float isDrawn;
+
+void Main()
+{
+    glSleep( 30 ); // Sleep for 30ms
+    glClear( 35, 35, 35 ); // Clear screen color
+    
+    glColor( 255, 255, 255 ); // Set draw color
+    glFont( 3 ); // Set font type
+    glFontSize( 36 ); // Set font size
+    glWriteString( 16, 6, "Insta-Calendar" ); // Write a string on GPU
+    
+    glColor( 120, 120, 120 ); // Set draw color
+    glOffset( 16, 64 ); // Set screen offset
+    glRectWH( 0, 0, sizex + linewidth, sizey + linewidth); // Draw rectangle
+    
+    glFont( 2 ); // Set font type
+    glFontSize( 14 ); // Set font size
+    
+    // Calculate rectangle size
+    float sx = (sizex / rows) - linewidth;
+    float sy = (sizey / cols) - linewidth;
+
+    // Loop through rows
+    for (i = 0; i < rows; i++)
+    {
+        // Loop through columns
+        for (j = 0; j < cols; j++)
+        {
+            // Calculate x,y coordinate to draw at
+            float x = i * (sizex / rows);
+            float y = j * (sizey / cols);
+
+            glColor( 200, 200, 200 ); // Set draw color
+            glRectWH( x + linewidth, y + linewidth, sx, sy ); // Draw rectangle
+            
+            glColor( 0, 0, 0 ); // Set draw color
+            
+            // Write integer to screen
+            glWriteInt( x + linewidth + 2, y + linewidth + 2, (i + j * rows) + 1 ); 
+        }
+    }
+    
+    glExit(); // Exit
+}
