@@ -395,19 +395,26 @@ function HCOMP:ParseElse(blockIF,jumpOverCondLeaf)
     jumpLeaf.Operands[1] = { PointerToLabel = self.SpecialLeaf[#self.SpecialLeaf].Break.Label }
   else
     -- Parse next statement if dont need a block
+    local previousBlockDepth = #self.BlockType
     self:Statement()
 
-    -- Generate exit label
-    local exitLabelLeaf = self:NewLeaf()
-    local exitLabel = self:GetTempLabel()
-    exitLabelLeaf.Opcode = "LABEL"
-    exitLabel.Type = "Pointer"
-    exitLabel.Leaf = exitLabelLeaf
-    exitLabelLeaf.Label = exitLabel
+    -- If entered a new block in statement (IF), update jump over leaf to end of it
+    if (#self.BlockType ~= previousBlockDepth) and
+       (self.BlockType[#self.BlockType] == "IF") then
+      jumpLeaf.Operands[1] = { PointerToLabel = self.SpecialLeaf[#self.SpecialLeaf].Break.Label }
+    else
+      -- Generate exit label
+      local exitLabelLeaf = self:NewLeaf()
+      local exitLabel = self:GetTempLabel()
+      exitLabelLeaf.Opcode = "LABEL"
+      exitLabel.Type = "Pointer"
+      exitLabel.Leaf = exitLabelLeaf
+      exitLabelLeaf.Label = exitLabel
 
-    -- Add exit label and alter the jump
-    self:AddLeafToTail(exitLabelLeaf)
-    jumpLeaf.Operands[1] = { PointerToLabel = exitLabel }
+      -- Add exit label and alter the jump
+      self:AddLeafToTail(exitLabelLeaf)
+      jumpLeaf.Operands[1] = { PointerToLabel = exitLabel }
+    end
   end
 end
 
