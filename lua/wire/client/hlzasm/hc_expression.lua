@@ -534,7 +534,7 @@ function HCOMP:ConstantExpression_Level3()
         self:Error("Ident "..self.TokenData.." is not a variable")
       elseif label.Type == "Variable" then
         if label.Value and (not self.Settings.GenerateLibrary)
-        then return true,true,label.Value
+        then return true,true,label.Value*constSign
         else return true,false,self.Settings.MagicValue
         end
       elseif label.Type == "Stack" then
@@ -558,7 +558,7 @@ function HCOMP:ConstantExpression_Level3()
   elseif self:MatchToken(self.TOKEN.STRING) and (not self.IgnoreStringInExpression) then
     if self.GlobalStringTable[self.TokenData] then
       if self.GlobalStringTable[self.TokenData].Label.Value then
-        return true,true,self.GlobalStringTable[self.TokenData].Label.Value
+        return true,true,self.GlobalStringTable[self.TokenData].Label.Value*constSign
       else
         return true,false,self.Settings.MagicValue
       end
@@ -566,7 +566,7 @@ function HCOMP:ConstantExpression_Level3()
       if self.StringsTable then
         if self.StringsTable[self.TokenData] then
           if self.StringsTable[self.TokenData].Label.Value then
-            return true,true,self.StringsTable[self.TokenData].Label.Value
+            return true,true,self.StringsTable[self.TokenData].Label.Value*constSign
           else
             return true,false,self.Settings.MagicValue
           end
@@ -599,14 +599,14 @@ function HCOMP:ConstantExpression_Level3()
     if label.Type == "Pointer" then
       -- Pointers are constant
       if label.Value and (not self.Settings.GenerateLibrary)
-      then return true,true,label.Value
+      then return true,true,label.Value*constSign
       else return true,false,self.Settings.MagicValue
       end
     elseif label.Type == "Variable" then
       if label.Array then
         -- Array variables must be treated as pointers
         if label.Value and (not self.Settings.GenerateLibrary)
-        then return true,true,label.Value
+        then return true,true,label.Value*constSign
         else return true,false,self.Settings.MagicValue
         end
       else
