@@ -9,7 +9,7 @@ ENT.Base            = "base_wire_entity"
 
 ENT.PrintName       = "Wire Text Screen"
 ENT.Author          = "greenarrow"
-ENT.Contact         = "http://forums.facepunchstudios.com/greenarrow"
+ENT.Contact         = ""
 ENT.Purpose         = ""
 ENT.Instructions    = ""
 

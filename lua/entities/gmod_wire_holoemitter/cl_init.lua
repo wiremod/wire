@@ -90,6 +90,7 @@ end
 
 function ENT:Draw()
 	self:DrawModel()
+	Wire_Render( self )
 
 	local ent = self:GetNWEntity( "Link" )
 	if (!ent or !ValidEntity(ent)) then ent = self end

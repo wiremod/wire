@@ -1,8 +1,5 @@
 -- a variable inside a single if-branch is discarded, even though that type should be forced for any consecutive assignments
 
-resource.AddFile("materials/expression 2/cog.vmt")
-resource.AddFile("materials/expression 2/cog.vtf")
-
 AddCSLuaFile('cl_init.lua')
 AddCSLuaFile('shared.lua')
 include('shared.lua')
@@ -189,6 +186,7 @@ function ENT:CompileCode( buffer )
 	else
 		self.WireDebugName = "E2 - " .. self.name
 	end
+	self:SetNWString( "name", self.name )
 
 	self.inports = directives.inputs
 	self.outports = directives.outputs
@@ -391,14 +389,41 @@ function ENT:Prepare(player)
 	buffer[ID] = {}
 	buffer[ID].ent = self
 
-	if !(E2Lib.isFriend(buffer[ID].ent.player, player)
-	     && (buffer[ID].ent.player == player || buffer[ID].ent.player:GetInfoNum("wire_expression2_friendwrite") != 0)) then return end
+	--if !(E2Lib.isFriend(buffer[ID].ent.player, player)
+	--     && (buffer[ID].ent.player == player || buffer[ID].ent.player:GetInfoNum("wire_expression2_friendwrite") != 0)) then return end
 end
+
+concommand.Add("wire_expression_prepare", function(player, command, args) -- this is for the "E2 remote updater"
+	local E2 = tonumber(args[1])
+	if (!E2) then return end
+	E2 = Entity(E2)
+	if (!E2 or !E2:IsValid() or E2:GetClass() != "gmod_wire_expression2") then return end
+	if !(E2.player == player or (E2Lib.isFriend(E2.player,player) and E2.player:GetInfoNum("wire_expression2_friendwrite"))) then return end
+	E2:Prepare( player )
+end)
+concommand.Add("wire_expression_forcehalt", function(player, command, args) -- this is for the "E2 remote updater"
+	local E2 = tonumber(args[1])
+	if (!E2) then return end
+	E2 = Entity(E2)
+	if (!E2 or !E2:IsValid() or E2:GetClass() != "gmod_wire_expression2") then return end
+	if !(E2.player == player or (E2Lib.isFriend(E2.player,player) and E2.player:GetInfoNum("wire_expression2_friendwrite"))) then return end
+	if (E2.error) then return end
+	E2:Error( "Execution halted", "Execution halted" )
+end)
+concommand.Add("wire_expression_requestcode", function(player, command, args)  -- this is for the "E2 remote updater"
+	local E2 = tonumber(args[1])
+	if (!E2) then return end
+	E2 = Entity(E2)
+	if (!E2 or !E2:IsValid() or E2:GetClass() != "gmod_wire_expression2") then return end
+	if !(E2.player == player or (E2Lib.isFriend(E2.player,player) and E2.player:GetInfoNum("wire_expression2_friendwrite"))) then return end
+	E2:SendCode( player )
+	E2:Prepare( player )
+end)
 
 concommand.Add("wire_expression_upload_begin", function(player, command, args)
 	local ID = player:UserID()
-	if !(E2Lib.isFriend(buffer[ID].ent.player, player)
-	     && (buffer[ID].ent.player == player || buffer[ID].ent.player:GetInfoNum("wire_expression2_friendwrite") != 0)) then return end
+	if !buffer[ID] or (!(E2Lib.isFriend(buffer[ID].ent.player, player)
+	     && (buffer[ID].ent.player == player || buffer[ID].ent.player:GetInfoNum("wire_expression2_friendwrite") != 0))) then return end
 
 	buffer[ID].text = ""
 	buffer[ID].len = tonumber(args[1])
@@ -411,7 +436,7 @@ end)
 concommand.Add("wire_expression_upload_data", function(player, command, args)
 	local ID = player:UserID()
 
-	if not buffer[ID].text or not buffer[ID].chunk then
+	if not buffer[ID] or not buffer[ID].text or not buffer[ID].chunk then
 		--Msg("buffer does not exist! Player="..tostring(player).." chunk="..args[1].."\n")
 		return
 	end
@@ -427,8 +452,8 @@ end)
 
 concommand.Add("wire_expression_upload_end", function(player, command, args)
 	local ID = player:UserID()
-	if !(E2Lib.isFriend(buffer[ID].ent.player, player)
-	     && (buffer[ID].ent.player == player || buffer[ID].ent.player:GetInfoNum("wire_expression2_friendwrite") != 0)) then return end
+	if !buffer[ID] or (!(E2Lib.isFriend(buffer[ID].ent.player, player)
+	     && (buffer[ID].ent.player == player || buffer[ID].ent.player:GetInfoNum("wire_expression2_friendwrite") != 0))) then return end
 
 	local buf = buffer[ID]
 	buffer[ID] = nil
@@ -490,6 +515,7 @@ hook.Add("PlayerAuthed", "Wire_Expression2_Player_Authed", function(ply, sid, ui
 		if (ent.uid == uid) then
 			ent.context.player = ply;
 			ent.player = ply;
+			ent:SetNWEntity( "player", ply )
 			if (ent.disconnectPaused) then
 				c = ent.disconnectPaused;
 				ent:SetColor(c[1],c[2],c[3],c[4]);

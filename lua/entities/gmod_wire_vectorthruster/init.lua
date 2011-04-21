@@ -62,7 +62,7 @@ function ENT:SetForce( force, mul )
 
 	local phys = self:GetPhysicsObject()
 	if (!phys:IsValid()) then
-		Msg("Warning: [gmod_thruster] Physics object isn't valid!\n")
+		Msg("Warning: [",self,"] Physics object isn't valid!\n")
 		return
 	end
 

@@ -37,12 +37,7 @@ if (SERVER) then
 	WireVersion = WireLib.Version -- Backwards compatibility
 
 	-- Print the version to the console on load:
-	local v = WireLib.Version
-Msg([[
-===================================================
-== WireMod Installed. Version: ]]..v..[[ ==
-===================================================
-]])
+	Msg("WireMod Installed. Version: "..tostring(WireLib.Version))
 
 	------------------------------------------------------------------
 	-- Send the version to the client
@@ -111,12 +106,7 @@ else -- CLIENT
 	WireVersionLocal = WireLib.LocalVersion -- Backwards compatibility
 
 	-- Print the version to the console on load:
-	local v = WireLib.LocalVersion
-Msg([[
-===================================================
-== WireMod Installed. Version: ]]..v..[[ ==
-===================================================
-]])
+	Msg("WireMod Installed. Version: "..tostring(WireLib.LocalVersion))
 
 	------------------------------------------------------------------
 	-- Receive the version from the server

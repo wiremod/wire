@@ -367,8 +367,9 @@ if SERVER then
 
 	concommand.Add("wire_umsg", function(ply, cmd, args)
 		local self = Entity(tonumber(args[1]))
+		if !self:IsValid() or !self.wire_umsg_rp then return end
 		self.wire_umsg_rp:AddPlayer(ply)
-		if self:IsValid() then self:Retransmit(ply) end
+		self:Retransmit(ply)
 	end)
 
 elseif CLIENT then

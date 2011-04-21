@@ -1335,7 +1335,7 @@ function Editor:InitControlPanel(frame)
 	HighlightOnDoubleClick:SetTooltip( "Find all identical words and highlight them after a double-click." )
 
 	--------------------------------------------- EXPRESSION 2 TAB
-	local sheet = self:AddControlPanelTab( "Expression 2", "gui/silkicons/world", "Options for Expression 2." )
+	local sheet = self:AddControlPanelTab( "Expression 2", "gui/silkicons/computer", "Options for Expression 2." )
 
 	local dlist = vgui.Create("DPanelList",sheet.Panel)
 	dlist.Paint = function() end
@@ -1544,6 +1544,125 @@ Text here]# ]] }
 	BBox:SetPos( x + w + 2, y + 6 + RBox:GetTall() * 2 + 20 )
 	DefaultButton:SetPos( x + w + 2, y + 8 + RBox:GetTall() * 3 + 20 )
 	DefaultButton:SetSize( RBox:GetSize() )
+
+
+	--------------------------------------------- REMOTE UPDATER TAB
+	local sheet = self:AddControlPanelTab( "Remote Updater", "gui/silkicons/world", "Update your Expressions/GPUs/CPUs from far away.\nNote: Does not work for CPU/GPU yet." )
+
+	local dlist = vgui.Create("DPanelList",sheet.Panel)
+	dlist.Paint = function() end
+	frame:AddResizeObject( dlist, 2, 2 )
+	dlist:EnableVerticalScrollbar( true )
+	dlist:SetSpacing( 2 )
+
+	local dlist2 = vgui.Create("DPanelList")
+	dlist:AddItem(dlist2)
+	dlist2:EnableVerticalScrollbar( true )
+	dlist2:SetTall( 444 )
+	dlist2:SetSpacing( 1 )
+	dlist2.Paint = function() end
+
+	local UpdateList = vgui.Create( "DButton" )
+	UpdateList:SetText( "" )
+	dlist:AddItem( UpdateList )
+	UpdateList.Paint = function( button )
+		local w,h = button:GetSize()
+		draw.RoundedBox(1, 0, 0, w, h, self.colors.col_FL)
+		if ( button.Hovered ) then draw.RoundedBox(0, 1, 1, w - 2, h - 2, Color(0,0,0,192)) end
+		surface.SetFont("E2SmallFont")
+		surface.SetTextPos( w/2-surface.GetTextSize("Update List (Show only yours)")/2, 6 )
+		surface.SetTextColor( 255, 255, 255, 255 )
+		surface.DrawText("Update List (Show only yours)")
+	end
+	UpdateList.DoClick = function( pnl, showall )
+		local E2s = ents.FindByClass( "gmod_wire_expression2" )
+		dlist2:Clear()
+		for k,v in pairs( E2s ) do
+			local ply = v:GetNWEntity( "player", false )
+			if (ply and ply == LocalPlayer() or showall) then
+				local name = v:GetNWString( "name", "generic" )
+				local panel = vgui.Create( "DPanel" )
+				panel:SetTall( 46 )
+				panel.Paint = function( panel )
+					local w,h = panel:GetSize()
+					draw.RoundedBox(1, 0, 0, w, h, Color( 65, 105, 255, 100 ) )
+				end
+				dlist2:AddItem( panel )
+
+				local label = vgui.Create( "DLabel", panel )
+				label:SetText( "Name: " .. name .. "\nEntity ID: '" .. v:EntIndex() .. "'" .. ( showall and "\nOwner: " .. ply:Nick() or "" ) )
+				label:SizeToContents()
+				label:SetWrap(true)
+				label:SetPos( 4, 4 )
+				label:SetTextColor( Color(255,255,255,255) )
+
+				local btn = vgui.Create( "DButton", panel )
+				btn:SetText( "" )
+				btn:SetSize( 55, 18 )
+				timer.Simple(0,function() btn:SetPos( panel:GetWide()-btn:GetWide()*2-6, 4 ) end)
+				btn.DoClick = function( pnl )
+					RunConsoleCommand( "wire_expression_prepare",v:EntIndex())
+					wire_expression2_upload( self:GetCode() )
+				end
+				btn.Paint = function( button )
+					local w,h = button:GetSize()
+					draw.RoundedBox(1, 0, 0, w, h, self.colors.col_FL)
+					if ( button.Hovered ) then draw.RoundedBox(0, 1, 1, w - 2, h - 2, Color(0,0,0,192)) end
+					surface.SetFont("E2SmallFont")
+					surface.SetTextPos( 3, 4 )
+					surface.SetTextColor( 255, 255, 255, 255 )
+					surface.DrawText("    Upload")
+				end
+
+				local btn = vgui.Create( "DButton", panel )
+				btn:SetText( "" )
+				btn:SetSize( 55, 18 )
+				timer.Simple(0,function() btn:SetPos( panel:GetWide()-btn:GetWide()-4, 4 ) end)
+				btn.DoClick = function( pnl )
+					RunConsoleCommand( "wire_expression_requestcode",v:EntIndex())
+				end
+				btn.Paint = function( button )
+					local w,h = button:GetSize()
+					draw.RoundedBox(1, 0, 0, w, h, self.colors.col_FL)
+					if ( button.Hovered ) then draw.RoundedBox(0, 1, 1, w - 2, h - 2, Color(0,0,0,192)) end
+					surface.SetFont("E2SmallFont")
+					surface.SetTextPos( 3, 4 )
+					surface.SetTextColor( 255, 255, 255, 255 )
+					surface.DrawText(" Download")
+				end
+
+				local btn = vgui.Create( "DButton", panel )
+				btn:SetText( "" )
+				btn:SetSize( 75, 18 )
+				timer.Simple(0,function() btn:SetPos( panel:GetWide()-btn:GetWide()-4, 24 ) end)
+				btn.DoClick = function( pnl )
+					RunConsoleCommand( "wire_expression_forcehalt",v:EntIndex() )
+				end
+				btn.Paint = function( button )
+					local w,h = button:GetSize()
+					draw.RoundedBox(1, 0, 0, w, h, self.colors.col_FL)
+					if ( button.Hovered ) then draw.RoundedBox(0, 1, 1, w - 2, h - 2, Color(0,0,0,192)) end
+					surface.SetFont("E2SmallFont")
+					surface.SetTextPos( 3, 4 )
+					surface.SetTextColor( 255, 255, 255, 255 )
+					surface.DrawText("  Halt execution")
+				end
+			end
+		end
+	end
+	local UpdateList2 = vgui.Create( "DButton" )
+	UpdateList2:SetText( "" )
+	dlist:AddItem( UpdateList2 )
+	UpdateList2.Paint = function( button )
+		local w,h = button:GetSize()
+		draw.RoundedBox(1, 0, 0, w, h, self.colors.col_FL)
+		if ( button.Hovered ) then draw.RoundedBox(0, 1, 1, w - 2, h - 2, Color(0,0,0,192)) end
+		surface.SetFont("E2SmallFont")
+		surface.SetTextPos( w/2-surface.GetTextSize("Update List (Show all)")/2, 6 )
+		surface.SetTextColor( 255, 255, 255, 255 )
+		surface.DrawText("Update List (Show all)")
+	end
+	UpdateList2.DoClick = function( pnl ) UpdateList:DoClick( true ) end
 end
 
 function Editor:CalculateColor()
@@ -1688,14 +1807,7 @@ function Editor:OpenOldTabs()
 	end
 end
 
-local chipmap = {
-	E2 = "wire_expression2_validate",
-	CPU = "wire_cpu_validate",
-	GPU = "wire_cpu_validate",
-}
-
 function Editor:Validate(gotoerror)
-	self:ExtractName()
 	if self.E2 then
 		local errors = wire_expression2_validate(self:GetCode())
 		if not errors then
@@ -1709,6 +1821,7 @@ function Editor:Validate(gotoerror)
 			if not row then
 				row, col = errors:match("at line ([0-9]+)$"), 1
 			end
+			if row then self:GetCurrentEditor():SetCaret({ tonumber(row), tonumber(col) }) end
 		end
 		self.C['Val'].panel:SetBGColor(128, 0, 0, 180)
 		self.C['Val'].panel:SetFGColor(255, 255, 255, 128)
@@ -1791,11 +1904,8 @@ end
 function Editor:GetEditor( n )
 	if self.C['TabHolder'].panel.Items[ n ] then
 		return self.C['TabHolder'].panel.Items[ n ].Panel
-	else
-		return nil
 	end
 end
-
 function Editor:GetCurrentEditor()
 	return self:GetActiveTab():GetPanel()
 end
@@ -1900,7 +2010,7 @@ function Editor:LoadFile( Line, forcenewtab )
 	if(!Line or file.IsDir( Line )) then return end
 	local str = file.Read(Line)
 	if str == nil then
-		--Error("Error loading file "..Line)
+		--Error("ERROR LOADING FILE!")
 	else
 		self:AutoSave()
 		if (!forcenewtab) then
@@ -1936,7 +2046,7 @@ function Editor:Close()
 	timer.Stop("e2autosave")
 	self:AutoSave()
 
-	if not self.E2 then self:Validate() end
+	self:Validate()
 	self:ExtractName()
 	self:SetV(false)
 	self.chip = false
