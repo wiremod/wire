@@ -1,81 +1,3 @@
-if CLIENT then
-
-	local RT_CACHE_SIZE = 32
-
-	//
-	// Create rendertarget cache
-	//
-	if not RenderTargetCache then
-		RenderTargetCache = { Used = {}, Free = {} }
-		for i = 1,RT_CACHE_SIZE do
-			local Target = GetRenderTarget("WireGPU_RT_"..i, 512, 512)
-			if not Target then break end
-			RenderTargetCache.Free[Target] = i
-		end
-	end
-
-	//
-	// Create basic fonts
-	//
-	surface.CreateFont("lucida console", 20, 800, true, false, "WireGPU_ConsoleFont")
-
-	//
-	// Create screen textures and materials
-	//
-	WireGPU_matScreen = CreateMaterial("GPURT","UnlitGeneric",{
-		["$vertexcolor"] = 1,
-		["$vertexalpha"] = 1,
-		["$ignorez"] = 1,
-		["$nolod"] = 1,
-        })
-	WireGPU_matBuffer = CreateMaterial("GPUBUF","UnlitGeneric",{
-		["$vertexcolor"] = 1,
-		["$vertexalpha"] = 1,
-		["$ignorez"] = 1,
-		["$nolod"] = 1,
-	})
-
-	function PrintWBI(text)
-		local fontnames = {
-			"Trebuchet24",
-			"Trebuchet22",
-			"Trebuchet20",
-			"Trebuchet19",
-			"Trebuchet18",
-		}
-
-		hook.Add("HUDPaint", "wiremod_installed_improperly_popup", function()
-			local fontname,w,h
-
-			-- Find a font that fits the screen
-			local fontindex = 0
-			repeat
-				fontindex = fontindex + 1
-				fontname = fontnames[fontindex]
-				surface.SetFont(fontname)
-				w,h = surface.GetTextSize(text)
-			until w+20 < ScrW() or fontindex == #fontnames
-
-			-- draw the text centered on the screen
-			local x,y = ScrW()/2-w/2, ScrH()/2-h/2
-
-			-- on a grey box with black borders
-			draw.RoundedBox(1, x-11, y-7, w+22, h+14, Color(0,0,0,192) )
-			draw.RoundedBox(1, x-9, y-5, w+18, h+10, Color(128,128,128,255) )
-
-			-- draw the text
-			draw.DrawText(text, fontname, x, y, Color(255,255,255,255), TEXT_ALIGN_LEFT)
-		end)
-
-		concommand.Add("kill_screen_error_message", function(ply, cmd, args)
-			hook.Remove("HUDPaint", "wiremod_installed_improperly_popup")
-		end)
-
-
-		print(text)
-	end -- function PrintWBI
-end
-
 --------------------------------------------------------------------------------
 -- WireGPU class
 --------------------------------------------------------------------------------
@@ -143,42 +65,137 @@ if CLIENT then
 		return materialCache[name]
 	end
 
+	-- Handles rendertarget caching
+	local RT_CACHE_SIZE = 32
+	local RenderTargetCache = { }
+
+	for i = 1,RT_CACHE_SIZE do
+		local Target = {
+			false, -- Is rendertarget in use
+			false -- The rendertarget (false if doesn't exist)
+		}
+		table.insert( RenderTargetCache, Target )
+	end
+
+	-- Returns a render target from the cache pool and marks it as used
+	local function GetRT()
+
+		for i, RT in pairs( RenderTargetCache ) do
+			if not RT[1] then -- not used
+
+				local rendertarget = RT[2]
+				if rendertarget then
+					RT[1] = true -- Mark as used
+					return rendertarget
+				end
+
+			end
+		end
+
+		-- No free rendertargets. Find first non used and create it.
+		for i, RT in pairs( RenderTargetCache ) do
+			if not RT[1] and  RT[2] == false then -- not used and doesn't exist, let's create the render target.
+
+					local rendertarget = GetRenderTarget("WireGPU_RT_"..i, 512, 512)
+
+					if rendertarget then
+						RT[1] = true -- Mark as used
+						RT[2] = rendertarget -- Assign the RT
+						return rendertarget
+					else
+						RT[1] = true -- Mark as used since we couldn't create it
+						ErrorNoHalt("Wiremod: Render target ".."WireGPU_RT_"..i.." could not be created!\n")
+					end
+
+			end
+		end
+
+		ErrorNoHalt("All render targets are in use, some wire screens may not draw!\n")
+		return nil
+
+	end
+
+	-- Frees an used RT
+	local function FreeRT(rt)
+
+		for i, RT in pairs( RenderTargetCache ) do
+			if RT[2] == rt then
+
+				RT[1] = false
+				return
+			end
+		end
+
+		ErrorNoHalt("RT Screen ",rt," could not be freed (not found)\n")
+
+	end
+
+	//
+	// Create basic fonts
+	//
+	surface.CreateFont("lucida console", 20, 800, true, false, "WireGPU_ConsoleFont")
+
+	//
+	// Create screen textures and materials
+	//
+	WireGPU_matScreen = CreateMaterial("GPURT","UnlitGeneric",{
+		["$vertexcolor"] = 1,
+		["$vertexalpha"] = 1,
+		["$ignorez"] = 1,
+		["$nolod"] = 1,
+		})
+	WireGPU_matBuffer = CreateMaterial("GPUBUF","UnlitGeneric",{
+		["$vertexcolor"] = 1,
+		["$vertexalpha"] = 1,
+		["$ignorez"] = 1,
+		["$nolod"] = 1,
+	})
+
+
 	function GPU:Initialize(no_rendertarget)
 		if no_rendertarget then return nil end
 		-- Rendertarget cache management
 
-		-- find a free one
-		self.RT = next(RenderTargetCache.Free)
-
-		-- no free RT? bail out
-		if not self.RT then
-			if not MissingRenderTargetMessageDisplayed and not next(RenderTargetCache.Used) then
-				PrintWBI([[Hello and welcome to wiremod!
-It looks like this is the first time you connect to a wiremod server.
-For certain screen entities on this server to work you will need to restart Garry's Mod.
-
-If you already restarted and this message still persists, go to wiremod.com and download+install wiremod.
-If, for whatever reason, you don't want to install wiremod, you can try unblocking .txt file download and reconnect+restart.
-
-To get rid of this message, write 'kill_screen_error_message' into your console.]])
-				MissingRenderTargetMessageDisplayed = true
-			end
-			return nil
+		-- This should not even happen.
+		if self.RT then
+			ErrorNoHalt("Warning: GPU:Initialize called, but an RT still existed. Maybe you are not killing it properly?")
+			FreeRT(self.RT)
 		end
 
-		-- mark RT as used
-		RenderTargetCache.Used[self.RT] = RenderTargetCache.Free[self.RT]
-		RenderTargetCache.Free[self.RT] = nil
+		-- find a free one
+		self.RT = GetRT()
+		if not self.RT then
+			return nil
+		end
 
 		-- clear the new RT
 		self.ForceClear = true
 		return self.RT
 	end
 
+	function GPULib.WireGPU(ent, ...)
+		local self = {
+			entindex = ent and ent:EntIndex() or 0,
+			Entity = ent or NULL,
+		}
+		setmetatable(self, GPU)
+		self:Initialize(...)
+		return self
+	end
+
 	function GPU:Finalize()
 		if not self.RT then return end
-		RenderTargetCache.Free[self.RT] = RenderTargetCache.Used[self.RT]
-		RenderTargetCache.Used[self.RT] = nil
+		timer.Simple(0,function() -- This is to test if the entity has truly been removed. If you really know you need to remove the RT, call FreeRT()
+			if ValidEntity(self.Entity) then
+				--MsgN(self,"Entity still exists, exiting.")
+				return
+			end
+			self:FreeRT()
+		end)
+	end
+
+	function GPU:FreeRT()
+		FreeRT( self.RT )
 		self.RT = nil
 	end
 

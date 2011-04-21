@@ -102,6 +102,7 @@ end
 
 function ENT:OnRemove()
   self.GPU:Finalize()
+  self.NeedRefresh = true
 end
 
 function ENT:ReadCell(Address,value)

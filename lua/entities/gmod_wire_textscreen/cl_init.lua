@@ -118,6 +118,7 @@ end
 
 function ENT:OnRemove()
 	self.GPU:Finalize()
+	self.NeedRefresh = true
 end
 function ENT:Draw()
 	self:DrawModel()

@@ -94,7 +94,7 @@ end)
 -- Helper function
 local function def( ent, redrawkey )
 	if (ent.GPU or ent.GPU.RT) then
-		ent.GPU:Finalize()
+		ent.GPU:FreeRT()
 	end
 
 	ent.GPU:Initialize()

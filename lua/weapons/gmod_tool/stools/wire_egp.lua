@@ -219,7 +219,7 @@ if (CLIENT) then
 		btn:SetSize( w, h )
 		function btn:DoClick()
 			pnl:SetVisible( false )
-			CurEnt.GPU:Finalize()
+			CurEnt.GPU:FreeRT()
 			CurEnt.GPU = GPULib.WireGPU( CurEnt )
 			CurEnt:EGP_Update()
 			LocalPlayer():ChatPrint("[EGP] RenderTarget reloaded.")
@@ -244,7 +244,7 @@ if (CLIENT) then
 			if (CurEnt:GetClass() == "gmod_wire_egp_hud" and CurEnt:GetClass() == "gmod_wire_egp_emitter") then
 				LocalPlayer():ChatPrint("[EGP] Entity does not have a RenderTarget")
 			else
-				CurEnt.GPU:Finalize()
+				CurEnt.GPU:FreeRT()
 				CurEnt.GPU = GPULib.WireGPU( CurEnt )
 				CurEnt:EGP_Update()
 				LocalPlayer():ChatPrint("[EGP] RenderTarget reloaded.")
@@ -261,7 +261,7 @@ if (CLIENT) then
 			pnl:SetVisible( false )
 			local tbl = ents.FindByClass("gmod_wire_egp")
 			for k,v in pairs( tbl ) do
-				v.GPU:Finalize()
+				v.GPU:FreeRT()
 				v.GPU = GPULib.WireGPU( v )
 				v:EGP_Update()
 			end
@@ -288,7 +288,7 @@ if (CLIENT) then
 			pnl:SetVisible( false )
 			local tbl = ents.FindByClass("gmod_wire_egp")
 			for k,v in pairs( tbl ) do
-				v.GPU:Finalize()
+				v.GPU:FreeRT()
 				v.GPU = GPULib.WireGPU( v )
 				v:EGP_Update()
 			end

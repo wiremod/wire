@@ -39,11 +39,12 @@ function ENT:Initialize()
 	//1048574 - Hardware Clear Screen
 	//1048575 - CLK
 
-	self.GPU = WireGPU(self)
+	self.GPU = WireGPU(self.Entity)
 end
 
 function ENT:OnRemove()
 	self.GPU:Finalize()
+	self.NeedRefresh = true
 end
 
 usermessage.Hook("hispeed_digiscreen", function(um)
@@ -219,7 +220,7 @@ function ENT:RedrawRow(y)
 end
 
 function ENT:Draw()
-	self:DrawModel()
+	self.Entity:DrawModel()
 
 	if self.NeedRefresh then
 		self.NeedRefresh = false
@@ -264,7 +265,7 @@ function ENT:Draw()
 	if EmuFox then return end
 
 	self.GPU:Render()
-	Wire_Render(self)
+	Wire_Render(self.Entity)
 end
 
 function ENT:IsTranslucent()
