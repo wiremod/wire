@@ -1811,7 +1811,7 @@ function Editor:OpenOldTabs()
 end
 
 function Editor:Validate(gotoerror)
-	if self.E2 then
+	if self.EditorType == "E2" then
 		local errors = wire_expression2_validate(self:GetCode())
 		if not errors then
 			self.C['Val'].panel:SetBGColor(0, 128, 0, 180)
@@ -1829,13 +1829,13 @@ function Editor:Validate(gotoerror)
 		self.C['Val'].panel:SetBGColor(128, 0, 0, 180)
 		self.C['Val'].panel:SetFGColor(255, 255, 255, 128)
 		self.C['Val'].panel:SetText( "   " .. errors )
-	else
+	elseif (self.EditorType == "CPU") or (self.EditorType == "GPU") or (self.EditorType == "SPU") then
 		self.C['Val'].panel:SetBGColor(64, 64, 64, 180)
 		self.C['Val'].panel:SetFGColor(255, 255, 255, 128)
 		self.C['Val'].panel:SetText( "   Recompiling..." )
 		CPULib.Validate(self,self:GetCode(),self:GetChosenFile())
 	end
-	return false
+	return true
 end
 
 function Editor:SetValidatorStatus( text, r,g,b,a )
