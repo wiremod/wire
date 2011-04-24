@@ -1579,7 +1579,7 @@ Text here]# ]] }
 		dlist2:Clear()
 		for k,v in pairs( E2s ) do
 			local ply = v:GetNWEntity( "player", false )
-			if (ply and ply == LocalPlayer() or showall) then
+			if (ply and (ply == LocalPlayer() or showall)) then
 				local name = v:GetNWString( "name", "generic" )
 				local panel = vgui.Create( "DPanel" )
 				panel:SetTall( 46 )
@@ -1787,6 +1787,9 @@ function Editor:OpenOldTabs()
 	-- Explode around ;
 	tabs = string.Explode( ";", tabs )
 	if (!tabs or #tabs == 0) then return end
+
+	-- Temporarily remove fade time
+	self:FixTabFadeTime()
 
 	local is_first = true
 	for k,v in pairs( tabs ) do

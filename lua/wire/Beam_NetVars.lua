@@ -317,10 +317,10 @@ local function NetworkVarsSend()
 	if (CurTime() >= NextBeamVarsDelayedSendTime) then
 
 		if (NormalOpMode) and (DelayedUpdatesNum > 75) then
-			Msg("========BeamVars leaving NormalOpMode | "..DelayedUpdatesNum.."\n")
+			--Msg("========BeamVars leaving NormalOpMode | "..DelayedUpdatesNum.."\n")
 			NormalOpMode = false
 		elseif (!NormalOpMode) and (DelayedUpdatesNum < 50)  then
-			Msg("========BeamVars returning NormalOpMode | "..DelayedUpdatesNum.."\n")
+			--Msg("========BeamVars returning NormalOpMode | "..DelayedUpdatesNum.."\n")
 			NormalOpMode = true
 		end
 

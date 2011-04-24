@@ -457,6 +457,7 @@ function PANEL:CreateSoundBrowser(path) // Make the sound browser panel.
 	self.SoundBrowserPanel:SetSize(400, 567.5)
 	self.SoundBrowserPanel:SetSizable(true)
 	self.SoundBrowserPanel:SetVisible(false)
+	self.SoundBrowserPanel:SetDeleteOnClose( false )
 	self.SoundBrowserPanel:SetTitle("Sound Browser")
 	self.SoundBrowserPanel._PerformLayout = self.SoundBrowserPanel.PerformLayout
 	function self.SoundBrowserPanel:PerformLayout(...)
@@ -642,10 +643,13 @@ function PANEL:GetValidFolder(Folder) // Filter invalid chars out.
 end
 
 local function CloseSoundBrowser() // Close the Sound Browser.
+	PANEL.SoundBrowserPanel:Close()
+	--[[
 	if (IsValid(PANEL.SoundBrowserPanel)) then
 		//PANEL.SoundBrowserPanel:Close()
 		PANEL.SoundBrowserPanel:Remove()
 	end
+	]]
 end
 
 local function OpenSoundBrowser(pl, cmd, args) // Open the Sound Browser.

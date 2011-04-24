@@ -468,14 +468,12 @@ end
 __e2setcost(1)
 e2function array array:add( array other )
 	if (!next(this) or !next(other)) then return {} end -- One of them is empty
-	local ret, size1, size2 = {}, #this, #other
-	for i=1,size1+size2 do
-		if (i <= size1) then
-			ret[i] = this[i]
-		else
-			ret[i] = other[i-size2]
-		end
-		self.prf = self.prf + 0.3
+	local ret = {}
+	for i=1,#this do
+		ret[i] = this[i]
+	end
+	for i=1,#other do
+		ret[#ret+1] = other[i]
 	end
 	return ret
 end

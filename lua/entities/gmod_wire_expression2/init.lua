@@ -393,31 +393,74 @@ function ENT:Prepare(player)
 	--     && (buffer[ID].ent.player == player || buffer[ID].ent.player:GetInfoNum("wire_expression2_friendwrite") != 0)) then return end
 end
 
+local antispam = {}
+-- Returns true if they are spamming, false if they can go ahead and use it
+local function canhas( ply ) -- cheezeburger!
+	if (!antispam[ply]) then antispam[ply] = 0 end
+	if (antispam[ply] < CurTime()) then
+		antispam[ply] = CurTime() + 3
+		return false
+	else
+		WireLib.ClientError( "This command has a 3 second anti spam protection. Try again in " .. math.ceil(antispam[ply] - CurTime()) .. " seconds.", ply )
+		return true
+	end
+end
+
 concommand.Add("wire_expression_prepare", function(player, command, args) -- this is for the "E2 remote updater"
 	local E2 = tonumber(args[1])
 	if (!E2) then return end
 	E2 = Entity(E2)
 	if (!E2 or !E2:IsValid() or E2:GetClass() != "gmod_wire_expression2") then return end
-	if !(E2.player == player or (E2Lib.isFriend(E2.player,player) and E2.player:GetInfoNum("wire_expression2_friendwrite"))) then return end
-	E2:Prepare( player )
+	if (E2.player != player and canhas( player )) then return end
+	if (E2.player == player or (E2Lib.isFriend(E2.player,player) and E2.player:GetInfoNum("wire_expression2_friendwrite") == 1)) then
+		E2:Prepare( player )
+		WireLib.AddNotify( player, "Uploading code...", NOTIFY_GENERIC, 5, math.random(1,5) )
+		player:PrintMessage( HUD_PRINTCONSOLE, "Uploading code..." )
+		if (E2.player != player) then
+			WireLib.AddNotify(E2.player, player:Nick() .. " is writing to your E2 '" .. E2.name .. "' using remote updater.", NOTIFY_GENERIC, 5, math.random(1,5) )
+			E2.player:PrintMessage( HUD_PRINTCONSOLE, player:Nick() .. " is writing to your E2 '" .. E2.name .. "' using remote updater." )
+		end
+	else
+		WireLib.ClientError( "You do not have premission to write to this E2.", player )
+	end
 end)
 concommand.Add("wire_expression_forcehalt", function(player, command, args) -- this is for the "E2 remote updater"
 	local E2 = tonumber(args[1])
 	if (!E2) then return end
 	E2 = Entity(E2)
 	if (!E2 or !E2:IsValid() or E2:GetClass() != "gmod_wire_expression2") then return end
-	if !(E2.player == player or (E2Lib.isFriend(E2.player,player) and E2.player:GetInfoNum("wire_expression2_friendwrite"))) then return end
+	if (E2.player != player and canhas( player )) then return end
 	if (E2.error) then return end
-	E2:Error( "Execution halted", "Execution halted" )
+	if (E2.player == player or (E2Lib.isFriend(E2.player,player) and E2.player:GetInfoNum("wire_expression2_friendwrite") == 1)) then
+		E2:PCallHook( "destruct" )
+		E2:Error( "Execution halted (Triggered by: " .. player:Nick() .. ")", "Execution halted" )
+		if (E2.player != player) then
+			WireLib.AddNotify( player, "Expression halted.", NOTIFY_GENERIC, 5, math.random(1,5) )
+			player:PrintMessage( HUD_PRINTCONSOLE, "Expression halted." )
+		end
+	else
+		WireLib.ClientError( "You do not have premission to halt this E2.", player )
+	end
+
 end)
 concommand.Add("wire_expression_requestcode", function(player, command, args)  -- this is for the "E2 remote updater"
 	local E2 = tonumber(args[1])
 	if (!E2) then return end
 	E2 = Entity(E2)
+	if (E2.player != player and canhas( player )) then return end
 	if (!E2 or !E2:IsValid() or E2:GetClass() != "gmod_wire_expression2") then return end
-	if !(E2.player == player or (E2Lib.isFriend(E2.player,player) and E2.player:GetInfoNum("wire_expression2_friendwrite"))) then return end
-	E2:SendCode( player )
-	E2:Prepare( player )
+	if (E2.player == player or (E2Lib.isFriend(E2.player,player) and E2.player:GetInfoNum("wire_expression2_friendwrite") == 1)) then
+		E2:SendCode( player )
+		E2:Prepare( player )
+		WireLib.AddNotify( player, "Downloading code...", NOTIFY_GENERIC, 5, math.random(1,5) )
+		player:PrintMessage( HUD_PRINTCONSOLE, "Downloading code..." )
+		if (E2.player != player) then
+			WireLib.AddNotify(E2.player, player:Nick() .. " is reading your E2 '" .. E2.name .. "' using remote updater.", NOTIFY_GENERIC, 5, math.random(1,5) )
+			E2.player:PrintMessage( HUD_PRINTCONSOLE, player:Nick() .. " is reading your E2 '" .. E2.name .. "' using remote updater." )
+		end
+	else
+		WireLib.ClientError( "You do not have permission to read this E2.", player )
+	end
 end)
 
 concommand.Add("wire_expression_upload_begin", function(player, command, args)
