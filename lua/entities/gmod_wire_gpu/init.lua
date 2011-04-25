@@ -352,7 +352,7 @@ concommand.Add("wgm", function(player, command, args)
   if not GPU:IsValid() then return end
 
   -- Must be a valid GPU, and belong to the caller
-  if GPU.player ~= player then return end
+--  if GPU.player ~= player then return end
 
   -- Write on membus
   local Address = tonumber(args[2]) or 0

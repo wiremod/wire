@@ -301,29 +301,26 @@ end
 function ENT:RenderMisc(pos, ang, resolution, aspect, monitor)
   self.VM:WriteCell(65513, aspect)
   local ply = LocalPlayer()
-  local shootpos = ply:GetShootPos()
-  local tracedata = {
-    start = shootpos,
-    endpos = shootpos + ply:GetAimVector()*64,
-    filter = ply,
-  }
-  local trace = util.TraceLine(tracedata)
+  local trace = ply:GetEyeTraceNoCursor()
+  if (trace.Entity and trace.Entity:IsValid() and trace.Entity == self) then
+    local dist = trace.Normal:Dot(trace.HitNormal)*trace.Fraction*(-16384)
+    dist = math.max(dist, trace.Fraction*16384-self:BoundingRadius())
 
-  if trace.Entity == self then
-    local cpos = WorldToLocal(trace.HitPos, Angle(), pos, ang)
+    if (dist < 64) then
+      local pos = WorldToLocal( trace.HitPos, Angle(), pos, ang )
+      local x = 0.5+pos.x/(monitor.RS*(512/monitor.RatioX))
+      local y = 0.5-pos.y/(monitor.RS*512)
 
-    local cx = (monitor.x1 - cpos.x) / (monitor.x1 - monitor.x2)
-    local cy = 1-(monitor.y1 - cpos.y) / (monitor.y1 - monitor.y2)
+      self.VM:WriteCell(65505,x)
+      self.VM:WriteCell(65504,y)
 
-    -- Write cursor position
-    self.VM:WriteCell(65505,cx)
-    self.VM:WriteCell(65504,cy)
-
-    -- Display cursor
-    if (self.VM:ReadCell(65503) == 1) and (cx >= 0 and cy >= 0 and cx <= 1 and cy <= 1) then
-      surface.SetDrawColor(255,255,255,255)
-      surface.SetTexture(surface.GetTextureID("gui/arrow"))
-      surface.DrawTexturedRectRotated(-256*aspect+cx*512*aspect,-256+cy*512,32,32,45)
+      if (self.VM:ReadCell(65503) == 1) then
+        surface.SetDrawColor(255,255,255,255)
+        surface.SetTexture(surface.GetTextureID("gui/arrow"))
+        x = math.Clamp(x,0,1)
+        y = math.Clamp(y,0,1)
+        surface.DrawTexturedRectRotated(-256*aspect+x*512*aspect+10,-256+y*512+12,32,32,45)
+      end
     end
   end
 end
