@@ -2,7 +2,8 @@ include('shared.lua')
 
 ENT.RenderGroup = RENDERGROUP_BOTH
 
-local cvar = CreateClientConVar("cl_wire_holoemitter_maxfadetime",5,true,false)
+local cvar = CreateClientConVar("cl_wire_holoemitter_maxfadetime",5,true,false) -- "cl_" in the cvar name isn't very neat... probably too late to change it now, though.
+local keeplatest = CreateClientConVar("wire_holoemitter_keeplatestdot", "0", true, false)
 
 -- Materials
 local matbeam = Material( "tripmine_laser" )
@@ -71,6 +72,7 @@ function ENT:Think()
 
 	local removetable = {}
 	for k,v in ipairs( self.Points ) do
+		if (k == #self.Points and keeplatest:GetBool()) then continue end
 		if (v.DieTime and v.DieTime < CurTime()) then
 			removetable[#removetable+1] = k
 			if (self.Points[k-1]) then self.Points[k-1].LineBeam = false end -- Don't draw to this point anymore
@@ -80,6 +82,7 @@ function ENT:Think()
 				if (self.Points[k-1]) then self.Points[k-1].LineBeam = false end -- Don't draw to this point anymore
 			end
 		end
+		v.Color.a = 255-(CurTime()-v.SpawnTime)/(v.DieTime-v.SpawnTime)*255 -- Set alpha
 	end
 	for k,v in ipairs( removetable ) do
 		table.remove( self.Points, v )

@@ -958,7 +958,8 @@ do -- Holography--
 			language.Add( "Tool_wire_holoemitter_desc", "The emitter required for holographic projections" )
 			language.Add( "Tool_wire_holoemitter_0", "Primary: Create emitter, Secondary: Link emitter to any entity (makes it draw local to that entity instead)" )
 			language.Add( "Tool_wire_holoemitter_1", "Secondary: Link to entity (click the same holoemitter again to unlink it)" )
-			language.Add( "Tool_wire_holoemitter_fadetime", "CLIENT: Maximum fade time - applied to all holoemitters (set to 0 to never fade)." )
+			language.Add( "Tool_wire_holoemitter_fadetime", "Client side max fade time (set to 0 to never fade)." )
+			language.Add( "Tool_wire_holoemitter_keeplatestdot", "Keep latest dot indefinitely (prevent fading)." )
 		end
 		WireToolSetup.BaseLang()
 
@@ -982,6 +983,7 @@ do -- Holography--
 			WireDermaExts.ModelSelect(panel, "wire_holoemitter_model", list.Get( "Wire_Misc_Tools_Models" ), 1)
 
 			panel:NumSlider("#Tool_wire_holoemitter_fadetime", "cl_wire_holoemitter_maxfadetime", 0, 100, 1)
+			panel:CheckBox("#Tool_wire_holoemitter_keeplatestdot", "wire_holoemitter_keeplatestdot")
 
 			panel:CheckBox("Weld", "wire_holoemitter_weld")
 		end

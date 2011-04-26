@@ -73,6 +73,7 @@ if SERVER then
 		entity:Spawn()
 		entity:SetPlayer(player)
 		entity.player = player
+		entity:SetNWEntity( "player", player )
 
 		if !entity then return false end
 
@@ -122,6 +123,7 @@ if SERVER then
 		self:Spawn()
 		self:SetPlayer(player)
 		self.player = player
+		self:SetNWEntity( "player", player )
 
 		buffer = string.Replace(string.Replace(buffer,"£","\""),"€","\n")
 
@@ -164,6 +166,7 @@ elseif CLIENT then
 	local lastclick = CurTime()
 	local download = {}
 	local Validation
+	local transfer
 
 	function wire_expression2_upload()
 		if( wire_expression2_editor == nil ) then initE2Editor() end
@@ -508,7 +511,8 @@ function TOOL:UpdateGhostWireExpression2( ent, player )
 		if ( !ent ) then return end
 		if ( !ent:IsValid() ) then return end
 
-		local trace = player:GetEyeTrace()
+		local tr 	= utilx.GetPlayerTrace( player, player:GetCursorAimVector() )
+		local trace 	= util.TraceLine( tr )
 		if (!trace.Hit) then return end
 
 		if (trace.Entity && trace.Entity:GetClass() == "gmod_wire_expression2" || trace.Entity:IsPlayer()) then
