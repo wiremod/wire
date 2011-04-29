@@ -78,8 +78,19 @@ function ENT:GetSound()
 end
 
 -- Tracer
+local ValidTracers={ -- Valid table...
+	["Tracer" ]=true,
+	["AR2Tracer" ]=true,
+	[ "AirboatGunHeavyTracer" ]=true,
+	["LaserTracer" ]=true,
+	[""]=true,
+}
 function ENT:SetTracer( trcer )
 	self.Tracer = trcer
+
+	if !ValidTracers[string.Trim(trcer)] and !ValidTracers[trcer] then
+		self.Tracer = ""
+	end
 end
 function ENT:GetTracer()
 	return self.Tracer
@@ -162,7 +173,6 @@ function ENT:TriggerInput(iname, value)
 		self.Firing = value > 0
 	end
 end
-
 
 function MakeWireTurret( ply, Pos, Ang, model, delay, damage, force, sound, numbullets, spread, tracer, tracernum, nocollide )
 

@@ -1334,6 +1334,27 @@ function Editor:InitControlPanel(frame)
 	HighlightOnDoubleClick:SizeToContents()
 	HighlightOnDoubleClick:SetTooltip( "Find all identical words and highlight them after a double-click." )
 
+	local label = vgui.Create("DLabel")
+	dlist:AddItem( label )
+	label:SetText( "Browser sorting style" )
+	label:SizeToContents()
+
+	local SortStyle = vgui.Create( "DMultiChoice", temp )
+	dlist:AddItem( SortStyle )
+	SortStyle.OnSelect = function( panel, index, value )
+		value = value:gsub( "(:.+)", "" ) -- Remove description
+		value = tonumber(value) -- Convert to number
+		if (!value) then return end -- If it isn't a valid number, exit
+		value = value - 1 -- Subtract one (to make it 0-3 instead of 1-4)
+		RunConsoleCommand( "wire_expression2_browser_sort_style", value )
+		timer.Simple( 0.1, self.C["Browser"].panel.UpdateFolders, self.C["Browser"].panel )
+	end
+	SortStyle:AddChoice( "1: Alphabetical - A -> Z" )
+	SortStyle:AddChoice( "2: Alphabetical - Z -> A" )
+	SortStyle:AddChoice( "3: Age - New -> Old" )
+	SortStyle:AddChoice( "4: Age - Old -> New" )
+	SortStyle:SetEditable( false )
+
 	--------------------------------------------- EXPRESSION 2 TAB
 	local sheet = self:AddControlPanelTab( "Expression 2", "gui/silkicons/computer", "Options for Expression 2." )
 

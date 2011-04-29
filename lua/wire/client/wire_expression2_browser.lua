@@ -31,6 +31,22 @@ local function InternalDoRightClick(self)
 	if(self:GetRoot():DoRightClick(self)) then return end
 end
 
+local cvar = CreateClientConVar( "wire_expression2_browser_sort_style", "0", true, false )
+local function sort( t, dir )
+	if (cvar:GetInt() == 0) then -- Alphabetical order; a -> z
+		table.sort( t )
+	elseif (cvar:GetInt() == 1) then -- Alphabetical order; z -> a
+		table.sort( t, function( a, b ) return a > b end )
+	elseif (cvar:GetInt() == 2) then -- Time order; new -> old
+		table.sort( t, function( a, b ) return file.Time( dir .. "/" .. a ) > file.Time( dir .. "/" .. b ) end )
+	elseif (cvar:GetInt() == 3) then -- Time order; old -> new
+		table.sort( t, function( a, b ) return file.Time( dir .. "/" .. a ) < file.Time( dir .. "/" .. b ) end )
+	else
+		ErrorNoHalt( "Expression 2 browser: Invalid sort type specified, defaulting to sorting by alphabetical order." )
+		table.sort( t ) -- Default to alphabetical order
+	end
+end
+
 local MaxPerTimerTick = 15 // Set Max count of elements to in to the tree per timertick. If the value is to high it will cause the "Infinite Loop Detected!" Error.
 
 local function setTree(dir, parent)
@@ -41,9 +57,11 @@ local function setTree(dir, parent)
 
 	local timername = {} // Timer names must be unique and can be an empty table!
 	local files = file.FindDir(dir .. "/*")
-	table.sort(files)
+	--table.sort(files)
+	sort( files, dir )
 	local pFiles = file.Find(dir .. "/*.txt")
-	table.sort(pFiles)
+	--table.sort(pFiles)
+	sort( pFiles, dir )
 	table.Add(files, pFiles)
 
 	if !timer.IsTimer(timername) then
