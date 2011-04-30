@@ -12,7 +12,6 @@ float sizey = 400;
 float linewidth = 3;
 
 float i, j;
-float isDrawn;
 
 void Main()
 {
@@ -22,7 +21,7 @@ void Main()
     glColor( 255, 255, 255 ); // Set draw color
     glFont( 3 ); // Set font type
     glFontSize( 36 ); // Set font size
-    glWriteString( 16, 6, "Insta-Calendar" ); // Write a string on GPU
+    glWriteString( 16, 6, "Simple-Calendar 1.0");
     
     glColor( 120, 120, 120 ); // Set draw color
     glOffset( 16, 64 ); // Set screen offset

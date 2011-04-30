@@ -1,6 +1,8 @@
 // Author: Drunkie
 // Description: A graphics library for rendering in 2D and 3D
 
+
+// Clear functions
 void glClear( float r, float g, float b )
 {
     mov #__BG.r,r; mov #__BG.g,g; mov #__BG.b,b; mov #__BG.a,255;
@@ -15,6 +17,8 @@ void glClearTexture()
 {
     dclrtex;
 }
+
+// Pipeline functions
 void glCoordPipe( float coordpipe )
 {
     dcpipe coordpipe;
@@ -23,6 +27,8 @@ void glVertexPipe( float vertexpipe )
 {
     dvxpipe vertexpipe;
 }
+
+// Frame functions
 void glSleep( float milliseconds )
 {
     timer #__CURTIME; 
@@ -33,6 +39,12 @@ void glSleep( float milliseconds )
     }
     timer #__TIMESTAMP;   
 }
+void glExit()
+{
+    dexit;
+}
+
+// Color setters
 void glColor( float r, float g, float b )
 {
     mov #__FG.r,r; mov #__FG.g,g; mov #__FG.b,b; mov #__FG.a,255;
@@ -43,6 +55,8 @@ void glColor4( float r, float g, float b, float a )
     mov #__FG.r,r; mov #__FG.g,g; mov #__FG.b,b; mov #__FG.a,a;
     dcolor __FG;
 }
+
+// Texture setters
 void glBindTexture( char* texturename )
 {
     dxtexture texturename;
@@ -51,6 +65,8 @@ void glTexture( float texid )
 {
     dtexture texid;
 }
+
+// Offset functions
 void glOffset( float offx, float offy )
 {
     mov #__V1.x,offx; mov #__V1.y,offy;
@@ -64,9 +80,11 @@ float glOffsetY()
 {
     return *regOffsetY;
 }
-void glHWScale( float num )
+
+// Label setters
+void glReset( float num )
 {
-    mov #regHWScale,num;
+    mov #regReset,num;
 }
 void glHWClear( float num )
 {
@@ -76,9 +94,81 @@ void glVertexMode( float num )
 {
     mov #regVertexMode,num;
 }
-void glCursor( float num )
+void glHalt( float num )
 {
-    mov #regCursor,num;
+    mov #regHalt,num;
+}
+void glRAMReset( float num )
+{
+    mov #regRAMReset,num;
+}
+void glAsyncReset( float num )
+{
+    mov #regAsyncReset,num;
+}
+void glAsyncClk( float num )
+{
+    mov #regAsyncClk,num;
+}
+void glAsyncFreq( float num )
+{
+    mov #regAsyncFreq,num;
+}
+float glIndex()
+{
+    return *regIndex;
+}
+void glHScale( float num )
+{
+    mov #regHScale,num;
+}
+void glVScale( float num )
+{
+    mov #regVScale,num;
+}
+void glHWScale( float num )
+{
+    mov #regHWScale,num;
+}
+void glRotation( float num )
+{
+    mov #regRotation,num;
+}
+void glTextureSize( float num )
+{
+    mov #regTexSize,num;
+}
+void glTextureDataPtr( float num )
+{
+    mov #regTexDataPtr,num;
+}
+void glTextureDataSize( float num )
+{
+    mov #regTexDataSz,num;
+}
+void glRasterQuality( float num )
+{
+    mov #regRasterQ,num;
+}
+void glTextureBuffer( float num )
+{
+    mov #regTexBuffer,num;
+}
+float glWidth()
+{
+    return *regWidth;
+}
+float glHeight()
+{
+    return *regHeight;
+}
+float glRatio()
+{
+    return *regRatio;
+}
+float glParamList()
+{
+    return *regParamList;
 }
 float glCursorX()
 {
@@ -88,16 +178,136 @@ float glCursorY()
 {
     return *regCursorY;
 }
-void glExit()
+void glCursor( float num )
 {
-    dexit;
+    mov #regCursor,num;
 }
-void glTriangle( float posx, float posy, float radius )
+void glCursorButtons( float num )
 {
-    mov #__V1.x,posx; mov #__V1.y,posy;
-    mov #regCircleQuality,3;
-    dcircle __V1,radius;
+    mov #regCursorButtons,num;
 }
+void glBrightnessW( float num )
+{
+    mov #regBrightnessW,num;
+}
+void glBrightnessR( float num )
+{
+    mov #regBrightnessR,num;
+}
+void glBrightnessG( float num )
+{
+    mov #regBrightnessG,num;
+}
+void glBrightnessB( float num )
+{
+    mov #regBrightnessB,num;
+}
+void glContrastW( float num )
+{
+    mov #regContrastW,num;
+}
+void glContrastR( float num )
+{
+    mov #regContrastR,num;
+}
+void glContrastG( float num )
+{
+    mov #regContrastG,num;
+}
+void glContrastB( float num )
+{
+    mov #regContrastB,num;
+}
+void glCircleQuality( float num )
+{
+    mov #regCircleQuality,num;
+}
+void glScale( float num )
+{
+    mov #regScale,num;
+}
+void glCenterX( float num )
+{
+    mov #regCenterX,num;
+}
+void glCenterY( float num )
+{
+    mov #regCenterY,num;
+}
+void glCircleStart( float num )
+{
+    mov #regCircleStart,num;
+}
+void glCircleEnd( float num )
+{
+    mov #regCircleEnd,num;
+}
+void glScaleX( float num )
+{
+    mov #regScaleX,num;
+}
+void glScaleY( float num )
+{
+    mov #regScaleY,num;
+}
+void glFontAlign( float num )
+{
+    mov #regFontAlign,num;
+}
+void glFontHAlign( float num )
+{
+    mov #regFontHalign,num;
+}
+void glFontVAlign( float num )
+{
+    mov #regFontValign,num;
+}
+void glZOffset( float num )
+{
+    mov #regZOffset,num;
+}
+void glCullDistance( float num )
+{
+    mov #regCullDistance,num;
+}
+void glCullMode( float num )
+{
+    mov #regCullMode,num;
+}
+void glLightMode( float num )
+{
+    mov #regLightMode,num;
+}
+void glVertexArray( float num )
+{
+    mov #regVertexArray,num;
+}
+void glTextureRotation( float num )
+{
+    mov #regTexRotation,num;
+}
+void glTextureScale( float num )
+{
+    mov #regTexScale,num;
+}
+void glTextureCenterU( float num )
+{
+    mov #regTexCenterU,num;
+}
+void glTextureCenterV( float num )
+{
+    mov #regTexCenterV,num;
+}
+void glTextureOffsetU( float num )
+{
+    mov #regTexOffsetU,num;
+}
+void glTextureOffsetV( float num )
+{
+    mov #regTexOffsetV,num;
+}
+
+// 2D graphics functions
 void glCircle( float posx, float posy, float radius, float quality )
 {
     mov #__V1.x,posx; mov #__V1.y,posy;
@@ -143,6 +353,12 @@ void glPoly2D( float* vertexdata, float vertexcount )
 {
     dvxdata_2f vertexdata,vertexcount;
 }
+void glLineWidth( float linewidth )
+{
+    dsetwidth linewidth;
+}
+
+// Font functions
 void glFont( float fontid )
 {
     dsetfont fontid;
@@ -151,10 +367,8 @@ void glFontSize( float fontsize )
 {
     dsetsize fontsize;
 }
-void glLineWidth( float linewidth )
-{
-    dsetwidth linewidth;
-}
+
+// Text functions
 float glTextWidth( char* text )
 {
     float width;
@@ -188,24 +402,25 @@ void glWriteFmt( float posx, float posy, char* text )
     dwritefmt __V1,text;
 }
 
+// 3D graphics functions
 void glPoly3D( float* vertexbuffer, float vertexcount )
 {
-    if (*__FILLMODE == FILLMODE_SOLID)
+    if (*__FILLMODE == 0)
         dvxdata_3f vertexbuffer,vertexcount;
-    else if (*__FILLMODE == FILLMODE_WIREFRAME)
+    else if (*__FILLMODE == 1)
         dvxdata_3f_wf vertexbuffer,vertexcount;
 }
 void glFlush()
 {
     dvxflush;
 }
-void glEnable( float p0, float p1, float p2, float p3, float p4 )
+void glEnable( float num )
 {
-    if (p0 == 0) ddisable 0; else denable 0; //Vertex buffer
-    if (p1 == 0) ddisable 1; else denable 1; //ZSortings
-    if (p2 == 0) ddisable 2; else denable 2; //Lighting
-    if (p3 == 0) ddisable 3; else denable 3; //Face culling
-    if (p4 == 0) ddisable 4; else denable 4; //Distance culling
+    denable num;
+}
+void glDisable( float num )
+{
+    ddisable num;
 }
 void glLightPos( float x, float y, float z )
 {
@@ -217,9 +432,27 @@ void glLightColor( float r, float g, float b, float brightness )
     mov #__LIGHTCOL.r,r; mov #__LIGHTCOL.g,g; mov #__LIGHTCOL.b,b; mov #__LIGHTCOL.a,brightness;
     dsetlight 0,__LIGHTDATA;
 }
-void glLookAt( float* mViewMatrix, float* vLookAt )
+void glFillMode( float fmode )
 {
-    mlookat mViewMatrix,vLookAt;
+    mov #__FILLMODE,fmode;
+}
+
+// 3d matrix functions
+void glLookAt( float* mViewMatrix )
+{
+    mlookat mViewMatrix,__VLOOKAT;
+}
+void glLookAtPos( float x, float y, float z )
+{
+    mov #__VLOOKAT_POS.x,x; mov #__VLOOKAT_POS.y,y; mov #__VLOOKAT_POS.z,z;
+}
+void glLookAtTarget( float x, float y, float z )
+{
+    mov #__VLOOKAT_TARG.x,x; mov #__VLOOKAT_TARG.y,y; mov #__VLOOKAT_TARG.z,z;
+}
+void glLookAtUp( float x, float y, float z )
+{
+    mov #__VLOOKAT_UP.x,x; mov #__VLOOKAT_UP.y,y; mov #__VLOOKAT_UP.z,z;
 }
 void glPerspective( float* mProjectionMatrix, float* vPerspective )
 {
@@ -231,11 +464,11 @@ void glRotateMatrix( float* mRotateMatrix, float* vRotate )
 }
 void glTranslateMatrix( float* mTranslateMatrix, float* vTranslate )
 {
-     mtranslate mTranslateMatrix,vTranslate; 
+    mtranslate mTranslateMatrix,vTranslate; 
 }
 void glScaleMatrix( float* mScaleMatrix, float* vScale )
 {
-     mscale mScaleMatrix,vScale;
+    mscale mScaleMatrix,vScale;
 }
 void glLoadMatrix( float* mModelViewMatrix )
 {
@@ -245,11 +478,59 @@ void glLoadProjection( float* mProjectionMatrix )
 {
     mloadproj mProjectionMatrix;
 }
-void glFillMode( float fmode )
+void glModelMatrix( float* mModelMatrix, float* mTranslateMatrix, float* mRotateMatrix, float* mScaleMatrix )
 {
-    mov #__FILLMODE,fmode;
+    mmov mModelMatrix,mTranslateMatrix;
+    mmul mModelMatrix,mRotateMatrix;
+    mmul mModelMatrix,mScaleMatrix;
+}
+void glModelViewMatrix( float* mModelViewMatrix, float* mModelMatrix, float* mViewMatrix )
+{
+    mmov mModelViewMatrix,mViewMatrix;
+    mmul mModelViewMatrix,mModelMatrix;
 }
 
+// Front/back buffer functions
+void glSetFrontBuffer()
+{
+    dsetbuf_fbo;
+}
+void glSetBackBuffer()
+{
+    dsetbuf_spr;
+}
+void glSetVertexBuffer()
+{
+    dsetbuf_vx;
+}
+void glSwap()
+{
+    dswap;
+}
+
+// Misc functions
+float glFPS()
+{
+    float fps;
+    dt fps;
+    finv fps;
+    fint fps;
+    return fps;
+}
+void glEntryPoint( float idx, float ptr )
+{
+    dentrypoint idx,ptr;
+}
+void glBegin()
+{
+    dbegin;
+}
+void glEnd()
+{
+    dend;
+}
+
+// Global-scope variables
 color __FG;
 color __BG;
 vec4f __V1;
@@ -265,3 +546,8 @@ define FILLMODE_WIREFRAME,1;
 __LIGHTDATA:
 vec4f __LIGHTPOS,0,0,-5;
 color __LIGHTCOL,255,255,255,1;
+
+__VLOOKAT:
+vec3f __VLOOKAT_POS,0,0,-5;
+vec3f __VLOOKAT_TARG,0,0,0;
+vec3f __VLOOKAT_UP,0,1,0;

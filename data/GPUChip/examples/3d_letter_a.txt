@@ -7,8 +7,15 @@ Main();
 
 void Main()
 {
-    glSleep( 60 ); // Sleep for 60 milliseconds (reduces fps lag)
+    glSleep( 40 ); // Sleep for 40 milliseconds (reduces fps lag)
     glClear( 100, 149, 237 ); // Clear screen
+    
+    glFontSize( 20 ); // Set font size
+    glColor( 255, 255, 255 ); // Set draw color
+    glWriteString( 2, 2, "FPS:" ); // Write a string to GPU screen
+    
+    glColor( 0, 255, 0 ); // Set draw color
+    glWriteInt( 56, 3, glFPS() ); // Write the fps
     
     glCoordPipe( 3 ); // Set coordinate pipe
     glVertexPipe( 5 ); // Set vertex pipe
@@ -16,29 +23,36 @@ void Main()
     glLightPos( 0, 0, -50 ); // Set the light position
     glLightColor( 255, 255, 255, 1 ); // Set the light color
 
-    // Rotate model
+    // Sets the camera's pos, target and up vector
+    glLookAtPos( 0, 0, -2.8 );
+    glLookAtTarget( 0, 0, 0 );
+    glLookAtUp( 0, 1, 0 );   
+    
+    // Rotate the model
     timer #vRotate.w; 
    
     // Create our matrices
-    glLookAt( mViewMatrix, vLookAt );
+    glLookAt( mViewMatrix );
     glPerspective( mProjectionMatrix, vPerspective );
     glRotateMatrix( mRotateMatrix, vRotate );
     glTranslateMatrix( mTranslateMatrix, vTranslate );
     glScaleMatrix( mScaleMatrix, vScale );
     
     // Perform matrix transformations
-    mmov mModelMatrix,mTranslateMatrix;
-    mmul mModelMatrix,mRotateMatrix;
-    mmul mModelMatrix,mScaleMatrix;
-    mmov mModelViewMatrix,mViewMatrix;
-    mmul mModelViewMatrix,mModelMatrix;
+    glModelMatrix( mModelMatrix, mTranslateMatrix, mRotateMatrix, mScaleMatrix );
+    glModelViewMatrix( mModelViewMatrix, mModelMatrix, mViewMatrix );
     
     // Load our matrix and projectopm
     glLoadMatrix( mModelViewMatrix );
     glLoadProjection( mProjectionMatrix );
     
+    // Enable parameters
+    glEnable( 0 );
+    glEnable( 1 );
+    glEnable( 2 );
+    glEnable( 3 );
+    
     // Solid 3D polygon
-    glEnable( 1, 1, 1, 1, 0 ); // Enable parameters (denable)
     glFillMode( FILLMODE_SOLID ); // Set fillmode as solid
     glColor4( 255, 255, 255, 255 ); // Set draw color
     glPoly3D( LetterAModel, 30 ); // Draw 3D polygon 
@@ -92,9 +106,4 @@ vec4f vRotate,      0,  1,  0,  1; // <AXIS X Y Z> <ANGLE W>
 vec4f vTranslate,   0,  -0.1,  0,  0; // <TRANSLATION X Y Z> <0>
 vec4f vPerspective, 30, 1,  1,  20; // <FOV> <ASPECT RATIO> <ZNEAR> <ZFAR>
 vec4f vScale,       1,  1,  1,  0; // <SCALE X Y Z> <0>
-
-vLookAt:
-vec3f vLookAt_Eye,    0, 0, -2.8 // Camera position
-vec3f vLookAt_Center, 0, 0, 0;  // Camera direction
-vec3f vLookAt_Up,     0, 1, 0;  // Camera up vector
 

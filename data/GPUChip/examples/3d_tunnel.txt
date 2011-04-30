@@ -18,9 +18,14 @@ void Main()
 
     glLightPos( -1, -1, -1 ); // Set the light position
     glLightColor( 255, 255, 255, 1.25 ); // Set the light color
+
+    // Sets the camera's pos, target and up vector
+    glLookAtPos( 0, 0, -25 );
+    glLookAtTarget( 0, 0, 0 );
+    glLookAtUp( 0, 1, 0 );
    
     // Create our lookat and perspective matrices
-    glLookAt( mViewMatrix, vLookAt );
+    glLookAt( mViewMatrix );
     glPerspective( mProjectionMatrix, vPerspective );
 
     // Loop 4 times and draw 4 models
@@ -28,8 +33,8 @@ void Main()
     {
         // Set translations for each model
         timer zTranslate;
-        mul zTranslate,-16;
-        mod zTranslate,*vScale.z * 2;
+        zTranslate *= -16;
+        mod zTranslate,(*vScale.z * 2);
         *vTranslate.z = zTranslate + (*vScale.z * 2 * i);
         
         // Set transformation matrices
@@ -38,30 +43,31 @@ void Main()
         glScaleMatrix( mScaleMatrix, vScale );
         
         // Perform matrix transformations
-        mmov mModelMatrix,mTranslateMatrix;
-        mmul mModelMatrix,mRotateMatrix;
-        mmul mModelMatrix,mScaleMatrix;
-        mmov mModelViewMatrix,mViewMatrix;
-        mmul mModelViewMatrix,mModelMatrix;
+        glModelMatrix( mModelMatrix, mTranslateMatrix, mRotateMatrix, mScaleMatrix );
+        glModelViewMatrix( mModelViewMatrix, mModelMatrix, mViewMatrix );
         
         // Load model anf projection matrices
         glLoadMatrix( mModelViewMatrix );
         glLoadProjection( mProjectionMatrix );
+        
+        // Enable parameters
+        glEnable( 0 );
+        glEnable( 1 );
+        glEnable( 2 );
+        glEnable( 3 );
 
         // Wireframe 3D polygon
         glLineWidth( 1 ); // Set line width of wireframe
-        glEnable( 1, 0, 0, 0, 0 ); // Enable parameters (denable)
         glFillMode( FILLMODE_WIREFRAME ); // Enable wireframe
         glColor4( 255, 255, 255, 255 ); // Set the draw color
         glPoly3D( TunnelModel, 8 ); // Draw 3D polygon
         
         // Solid 3D polygon
-        glEnable( 1, 1, 1, 0, 0 ); // Enable parameters (denable)
         glFillMode( FILLMODE_SOLID ); // Set fillmode as solid
         glColor4( 255, 255, 255, 150 ); // Set draw color
         glPoly3D( TunnelModel, 8 ); // Draw 3D polygon 
         
-         glFlush(); // Send our vertex buffer to screen
+        glFlush(); // Send our vertex buffer to screen
     }
 
     glExit(); // Exit
@@ -88,10 +94,5 @@ matrix mModelViewMatrix;
 vec4f vRotate,      0,  0,  0,  0; // <AXIS X Y Z> <ANGLE W>
 vec4f vTranslate,   0,  0,  0,  0; // <TRANSLATION X Y Z> <0>
 vec4f vPerspective, 8, 1,  0.4,  20; // <FOV> <ASPECT RATIO> <ZNEAR> <ZFAR>
-vec4f vScale,       1,  1,  8,  0; // <SCALE X Y Z> <0>
-
-vLookAt:
-vec3f vLookAt_Eye,    0, 0, -25; // Where our camera is
-vec3f vLookAt_Center, 0, 0, 0;  // What we look at
-vec3f vLookAt_Up,     0, 1, 0;  // Where our matt-hat is
+vec4f vScale,       1.2,  1,  8,  0; // <SCALE X Y Z> <0>
 
