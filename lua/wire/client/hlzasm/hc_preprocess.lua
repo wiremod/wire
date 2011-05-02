@@ -125,7 +125,13 @@ function HCOMP:Preprocess()
   -- Replace defines with their actual values
   for defineName,defineValue in pairs(self.Defines) do
     if defineValue ~= "" then -- Only do this for defines that replace
-      lineText = string.gsub(lineText,"[^a-zA-Z0-9_]"..defineName.."[^a-zA-Z0-9_]",defineValue)
+      local pos
+      repeat
+        pos = string.find(lineText,"[^a-zA-Z0-9_]"..defineName.."[^a-zA-Z0-9_]")
+        if pos then
+          lineText = string.sub(lineText,1,pos) .. defineValue .. string.sub(lineText,pos+1+#defineName)
+        end
+      until not pos
     end
   end
 

@@ -351,7 +351,7 @@ if CLIENT then
         local file = string.sub(key,  (string.find(key,":") or 0) + 1)
 
         local textEditor = CPULib.SelectTab(ZCPU_Editor,file)
-        if not textEditor then
+        if textEditor then
           if currentPosition and (currentPosition.Line == line) then
             if breakpoint == true then
               textEditor:HighlightLine(line,130,70,20,255)
@@ -945,7 +945,7 @@ CPU(079, "MXCHG",         1,   2.00,    BL,        "INT",   "",      "Swap INT b
 CPU(080, "FPWR",          2,   2.00,    0,         "X",     "Y",     "Raise X to power Y")
 CPU(081, "XCHG",          2,   2.00,    0,         "X",     "Y",     "Swap X and Y")
 CPU(082, "FLOG",          2,   2.00,    OL,        "X",     "Y",     "FLN")
-CPU(082, "FLN",           2,  10.00,    0,         "X",     "Y",     "Write logarithm (base 2) of Y to X")
+CPU(082, "FLN",           2,  10.00,    0,         "X",     "Y",     "Write logarithm (base e) of Y to X")
 CPU(083, "FLOG10",        2,   2.00,    0,         "X",     "Y",     "Write logarithm (base 10) of Y to X")
 CPU(084, "IN",            2,   2.00,    0,         "X",     "PORT",  "Input value from PORT to X")
 CPU(085, "OUT",           2,   2.00,    0,         "PORT",  "Y",     "Write X to PORT")
