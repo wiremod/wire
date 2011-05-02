@@ -223,40 +223,15 @@ if SERVER then
 
 			-- Add functiondata to buffer
 			local temp = glon.encode( functiondata )
-			local count = 1
-			local char = temp:sub(1,1)
-			local temp2 = ""
-			functiondata_buffer = {}
-			while( char != "" ) do
-				temp2 = temp2 .. char
-				if (count % 245 == 0) then
-					functiondata_buffer[#functiondata_buffer+1] = temp2
-					temp2 = ""
-				end
-				count = count + 1
-				char = temp:sub(count,count)
-			end
-			if (temp2 != "") then
-				functiondata_buffer[#functiondata_buffer+1] = temp2
+
+			for i=1,#temp,245 do
+				functiondata_buffer[#functiondata_buffer+1] = temp:sub(i,i+244)
 			end
 
 			-- Add functiondata2 to buffer
 			local temp = glon.encode( functiondata2 )
-			local count = 1
-			local char = temp:sub(1,1)
-			local temp2 = ""
-			functiondata2_buffer = {}
-			while( char != "" ) do
-				temp2 = temp2 .. char
-				if (count % 245 == 0) then
-					functiondata2_buffer[#functiondata2_buffer+1] = temp2
-					temp2 = ""
-				end
-				count = count + 1
-				char = temp:sub(count,count)
-			end
-			if (temp2 != "") then
-				functiondata2_buffer[#functiondata2_buffer+1] = temp2
+			for i=1,#temp,245 do
+				functiondata2_buffer[#functiondata2_buffer+1] = temp:sub(i,i+244)
 			end
 		end
 
@@ -313,17 +288,15 @@ if SERVER then
 				end
 				antispam[ply] = CurTime() + 60
 				sendData( ply )
-			else
-				timer.Simple( 2, function(ply)
-					sendData( ply )
-				end, ply)
+			elseif (SinglePlayer()) then
+				sendData( ply )
 			end
 		end
 
 		-- add a console command the user can use to re-request the function info, in case of errors or updates
 		concommand.Add("wire_expression2_sendfunctions", wire_expression2_sendfunctions)
 
-		-- send function info once the player first spawns (TODO: find an even earlier hook)
+		-- send function info once the player first spawns (NOTE: Only in single player)
 		hook.Add("PlayerInitialSpawn", "wire_expression2_sendfunctions", wire_expression2_sendfunctions)
 	end
 
@@ -403,11 +376,11 @@ elseif CLIENT then
 		local OK, data = pcall( glon.decode, buffer )
 		if (!OK) then
 			if (already_tried) then
-				LocalPlayer():ChatPrint("[E2] Failed to receive extension data. Error message was:\n" .. data)
+				ErrorNoHalt( "[E2] Failed to receive extension data. Error message was:\n" .. data )
 			else
 				already_tried = true
 				RunConsoleCommand("wire_expression2_sendfunctions")
-				LocalPlayer():ChatPrint("[E2] Failed to receive extension data. Trying again. Error message was:\n" .. data)
+				ErrorNoHalt("[E2] Failed to receive extension data. Trying again. Error message was:\n" .. data)
 			end
 		else
 			local what = um:ReadBool()

@@ -1880,7 +1880,12 @@ function Editor:SetV(bool)
 		self:SetVisible(false)
 		self:SetKeyBoardInputEnabled()
 	end
-	if CanRunConsoleCommand() then RunConsoleCommand("wire_expression2_event", bool and "editor_open" or "editor_close") end
+	if CanRunConsoleCommand() then
+		RunConsoleCommand("wire_expression2_event", bool and "editor_open" or "editor_close")
+		if not e2_function_data_received and bool then -- Request the E2 functions
+			RunConsoleCommand("wire_expression2_sendfunctions")
+		end
+	end
 end
 
 function Editor:GetChosenFile()

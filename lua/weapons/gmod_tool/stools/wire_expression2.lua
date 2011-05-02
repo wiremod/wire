@@ -170,10 +170,15 @@ elseif CLIENT then
 
 	function wire_expression2_upload()
 		if( wire_expression2_editor == nil ) then initE2Editor() end
-		local result = wire_expression2_validate(wire_expression2_editor:GetCode())
-		if result then
-			WireLib.AddNotify(result, NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3)
-			return
+
+		if e2_function_data_received then
+			local result = wire_expression2_validate(wire_expression2_editor:GetCode())
+			if result then
+				WireLib.AddNotify(result, NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3)
+				return
+			end
+		else
+			WireLib.AddNotify( "The Expression 2 function data has not been transferred to the client yet; uploading the E2 to the server for validation.", NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3 )
 		end
 
 		transfer(wire_expression2_editor:GetCode())
