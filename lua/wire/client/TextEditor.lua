@@ -594,7 +594,7 @@ function EDITOR:Paint()
 		local x, y = (pos[2]+2) * self.FontWidth, (pos[1]-1-self.Scroll[1]) * self.FontHeight
 		local txt = CPULib.GetDebugPopupText(self.CurrentVarValue[2])
 		if txt then
-			draw.WordBox(2, x, y, txt, "E2SmallFont", Color(0,0,0,255), Color(255,255,255,255) )
+			draw_WordBox(2, x, y, txt, "E2SmallFont", Color(0,0,0,255), Color(255,255,255,255) )
 		end
 	end
 
@@ -604,8 +604,8 @@ function EDITOR:Paint()
 			for k,v in ipairs(debugWindowText) do
 				if v ~= "" then
                                         local y = (k % 24)
-                                        local x = 15*(1 + math.floor(#debugWindowText / 24) - math.floor(k / 24))
-					draw.WordBox(2, self:GetWide()-self.FontWidth*x, self.FontHeight*(-1+y), v, "E2SmallFont", Color(0,0,0,255), Color(255,255,255,255) )
+                                        local x = 15*(1 + math_floor(#debugWindowText / 24) - math_floor(k / 24))
+					draw_WordBox(2, self:GetWide()-self.FontWidth*x, self.FontHeight*(-1+y), v, "E2SmallFont", Color(0,0,0,255), Color(255,255,255,255) )
 				end
 			end
 		end

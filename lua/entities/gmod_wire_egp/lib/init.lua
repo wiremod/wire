@@ -13,7 +13,6 @@ function EGP:Initialize()
 		end
 		include( Folder .. entry )
 	end
-
 end
 
 EGP:Initialize()
