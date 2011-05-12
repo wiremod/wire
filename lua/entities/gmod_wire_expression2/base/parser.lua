@@ -574,11 +574,11 @@ function Parser:Expr2()
 end
 
 function Parser:Expr3()
-	return self:RecurseLeft(self.Expr5, {"or"})
+	return self:RecurseLeft(self.Expr4, {"or"})
 end
 
 function Parser:Expr4()
-	return self:RecurseLeft(self.Expr6, {"and"})
+	return self:RecurseLeft(self.Expr5, {"and"})
 end
 
 function Parser:Expr5()
