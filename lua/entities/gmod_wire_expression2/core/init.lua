@@ -223,13 +223,14 @@ if SERVER then
 
 			-- Add functiondata to buffer
 			local temp = glon.encode( functiondata )
-
+			functiondata_buffer = {}
 			for i=1,#temp,245 do
 				functiondata_buffer[#functiondata_buffer+1] = temp:sub(i,i+244)
 			end
 
 			-- Add functiondata2 to buffer
 			local temp = glon.encode( functiondata2 )
+			functiondata2_buffer = {}
 			for i=1,#temp,245 do
 				functiondata2_buffer[#functiondata2_buffer+1] = temp:sub(i,i+244)
 			end

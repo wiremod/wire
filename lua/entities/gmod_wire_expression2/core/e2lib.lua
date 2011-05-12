@@ -272,6 +272,12 @@ E2Lib.optable_inv = {
 	leq  = "<=",
 	gth  = ">",
 
+	band = "&&",
+	bor = "||",
+	bxor = "^^",
+	bshr = ">>",
+	bshl = "<<",
+
 	["not"] = "!",
 	["and"] = "&",
 	["or"] = "|",

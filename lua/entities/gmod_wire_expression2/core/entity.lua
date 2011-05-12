@@ -325,6 +325,10 @@ e2function number entity:isUnderWater()
 	if this:WaterLevel() > 0 then return 1 else return 0 end
 end
 
+e2function number entity:isValid()
+	return validEntity(this) and 1 or 0
+end
+
 /******************************************************************************/
 // Functions getting angles
 
@@ -385,22 +389,6 @@ e2function number entity:isFrozen()
 	if not validPhysics(this) then return 0 end
 	local phys = this:GetPhysicsObject()
 	if phys:IsMoveable() then return 0 else return 1 end
-end
-
-e2function number entity:inVehicle()
-	if not validEntity(this) then return 0 end
-	if(this:IsPlayer() and this:InVehicle()) then return 1 else return 0 end
-end
-
-e2function number entity:timeConnected()
-	if not validEntity(this) then return 0 end
-	if(this:IsPlayer()) then return this:TimeConnected() else return 0 end
-end
-
---- Returns 1 if the player <this> is in noclip mode, 0 if not.
-e2function number entity:inNoclip()
-	if not this or this:GetMoveType() ~= MOVETYPE_NOCLIP then return 0 end
-	return 1
 end
 
 /******************************************************************************/

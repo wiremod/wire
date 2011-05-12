@@ -78,28 +78,6 @@ end
 
 /******************************************************************************/
 
-__e2setcost(10)
-
-e2function number entity:height()
-	if(!validEntity(this)) then return 0 end
-	if(this:IsPlayer() or this:IsNPC()) then
-		local pos = this:GetPos()
-		local up = this:GetUp()
-		return this:NearestPoint(Vector(pos.x+up.x*100,pos.y+up.y*100,pos.z+up.z*100)).z-this:NearestPoint(Vector(pos.x-up.x*100,pos.y-up.y*100,pos.z-up.z*100)).z
-	else return 0 end
-end
-
-e2function number entity:width()
-	if(!validEntity(this)) then return 0 end
-	if(this:IsPlayer() or this:IsNPC()) then
-		local pos = this:GetPos()
-		local right = this:GetRight()
-		return this:NearestPoint(Vector(pos.x+right.x*100,pos.y+right.y*100,pos.z+right.z*100)).z-this:NearestPoint(Vector(pos.x-right.x*100,pos.y-right.y*100,pos.z-right.z*100)).z
-	else return 0 end
-end
-
-/******************************************************************************/
-
 __e2setcost(5)
 
 e2function number entity:isCrouch()
@@ -311,10 +289,26 @@ e2function number entity:ping()
 	if(this:IsPlayer()) then return this:Ping() else return 0 end
 end
 
+e2function number entity:timeConnected()
+	if not validEntity(this) then return 0 end
+	if(this:IsPlayer()) then return this:TimeConnected() else return 0 end
+end
+
 e2function entity entity:vehicle()
 	if not validEntity(this) then return nil end
 	if not this:IsPlayer() then return nil end
 	return this:GetVehicle()
+end
+
+e2function number entity:inVehicle()
+	if not validEntity(this) then return 0 end
+	if(this:IsPlayer() and this:InVehicle()) then return 1 else return 0 end
+end
+
+--- Returns 1 if the player <this> is in noclip mode, 0 if not.
+e2function number entity:inNoclip()
+	if not this or this:GetMoveType() ~= MOVETYPE_NOCLIP then return 0 end
+	return 1
 end
 
 /******************************************************************************/

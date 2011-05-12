@@ -453,7 +453,7 @@ function Compiler:InstrSET(args)
 end
 
 -- generic code for all binary non-boolean operators
-for _,operator in ipairs({"add", "sub", "mul", "div", "mod", "exp", "eq", "neq", "geq", "leq", "gth", "lth"}) do
+for _,operator in ipairs({"add", "sub", "mul", "div", "mod", "exp", "eq", "neq", "geq", "leq", "gth", "lth", "band", "band", "bor", "bxor", "bshl", "bshr"}) do
 	Compiler["Instr"..operator:upper()] = function(self, args)
 		local ex1, tp1 = self:Evaluate(args, 1)
 		local ex2, tp2 = self:Evaluate(args, 2)

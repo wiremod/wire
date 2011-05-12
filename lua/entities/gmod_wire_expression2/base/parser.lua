@@ -32,19 +32,23 @@ If
 Expression
  1 : var = e1, var += e1, var -= e1, var *= e1, var /= e1 [ERROR]
  2 : e3 ? e1 : e1, e3 ?: e1
- 3 : e3 | e4
- 4 : e4 & e5
- 5 : e5 == e6, e5 != e6
- 6 : e6 < e7, e6 > e7, e6 <= e7, e6 >= e7
- 7 : e7 + e8, e7 - e8
- 8 : e8 * e9, e8 / e9, e8 % e9
- 9 : e9 ^ e10
-10 : +e11, -e11, !e10
-11 : e11:fun([e1, ...]), e11[var,type]
-12 : (e1), fun([e1, ...])
-13 : string, num, ~var, $var, ->var
-14 : var++, var-- [ERROR]
-15 : var
+ 3 : e1 | e2			-- (or)
+ 4 : e1 & e2			-- (and)
+ 5 : e1 || e2 			-- (bit or)
+ 6 : e1 && e1			-- (bit and)
+ 7 : e1 ^^ e2			-- (bit xor)
+ 6 : e5 == e6, e5 != e6
+ 7 : e6 < e7, e6 > e7, e6 <= e7, e6 >= e7
+ 8 : e1 << e2, e1 >> e2 -- (bit shift)
+ 9 : e7 + e8, e7 - e8
+10 : e8 * e9, e8 / e9, e8 % e9
+11 : e9 ^ e10
+12 : +e11, -e11, !e10
+13 : e11:fun([e1, ...]), e11[var,type]
+14 : (e1), fun([e1, ...])
+15 : string, num, ~var, $var, ->var
+16 : var++, var-- [ERROR]
+17 : var
 
 */
 /******************************************************************************/
@@ -570,59 +574,75 @@ function Parser:Expr2()
 end
 
 function Parser:Expr3()
-	return self:RecurseLeft(self.Expr4, {"or"})
+	return self:RecurseLeft(self.Expr5, {"or"})
 end
 
 function Parser:Expr4()
-	return self:RecurseLeft(self.Expr5, {"and"})
+	return self:RecurseLeft(self.Expr6, {"and"})
 end
 
 function Parser:Expr5()
-	return self:RecurseLeft(self.Expr6, {"eq", "neq"})
+	return self:RecurseLeft(self.Expr6, {"bor"})
 end
 
 function Parser:Expr6()
-	return self:RecurseLeft(self.Expr7, {"gth", "lth", "geq", "leq"})
+	return self:RecurseLeft(self.Expr7, {"band"})
 end
 
 function Parser:Expr7()
-	return self:RecurseLeft(self.Expr8, {"add", "sub"})
+	return self:RecurseLeft(self.Expr8, {"bxor"})
 end
 
 function Parser:Expr8()
-	return self:RecurseLeft(self.Expr9, {"mul", "div", "mod"})
+	return self:RecurseLeft(self.Expr9, {"eq", "neq"})
 end
 
 function Parser:Expr9()
-	return self:RecurseLeft(self.Expr10, {"exp"})
+	return self:RecurseLeft(self.Expr10, {"gth", "lth", "geq", "leq"})
 end
 
 function Parser:Expr10()
+	return self:RecurseLeft(self.Expr11, {"bshr", "bshl"})
+end
+
+function Parser:Expr11()
+	return self:RecurseLeft(self.Expr12, {"add", "sub"})
+end
+
+function Parser:Expr12()
+	return self:RecurseLeft(self.Expr13, {"mul", "div", "mod"})
+end
+
+function Parser:Expr13()
+	return self:RecurseLeft(self.Expr14, {"exp"})
+end
+
+function Parser:Expr14()
 	if self:AcceptLeadingToken("add") then
-		return self:Expr11()
+		return self:Expr15()
 	elseif self:AcceptRoamingToken("add") then
 		self:Error("Identity operator (+) must not be succeeded by whitespace")
 	end
 
 	if self:AcceptLeadingToken("sub") then
 		local trace = self:GetTokenTrace()
-		return self:Instruction(trace, "neg", self:Expr11())
+		return self:Instruction(trace, "neg", self:Expr15())
 	elseif self:AcceptRoamingToken("sub") then
 		self:Error("Negation operator (-) must not be succeeded by whitespace")
 	end
 
 	if self:AcceptLeadingToken("not") then
 		local trace = self:GetTokenTrace()
-		return self:Instruction(trace, "not", self:Expr10())
+		return self:Instruction(trace, "not", self:Expr14())
 	elseif self:AcceptRoamingToken("not") then
-		self:Error("Logical not operator (-) must not be succeeded by whitespace")
+		self:Error("Logical not operator (!) must not be succeeded by whitespace")
 	end
 
-	return self:Expr11()
+	return self:Expr15()
 end
 
-function Parser:Expr11()
-	local expr = self:Expr12()
+function Parser:Expr15()
+	local expr = self:Expr16()
 
 	while true do
 		if self:AcceptTailingToken("col") then
@@ -705,7 +725,7 @@ function Parser:Expr11()
 	return expr
 end
 
-function Parser:Expr12()
+function Parser:Expr16()
 	if self:AcceptRoamingToken("lpa") then
 		local token = self:GetToken()
 
@@ -748,10 +768,10 @@ function Parser:Expr12()
 		end
 	end
 
-	return self:Expr13()
+	return self:Expr17()
 end
 
-function Parser:Expr13()
+function Parser:Expr17()
 	if self:AcceptRoamingToken("num") then
 		local trace = self:GetTokenTrace()
 		local tokendata = self:GetTokenData()
@@ -816,10 +836,10 @@ function Parser:Expr13()
 		return self:Instruction(trace, "iwc", var)
 	end
 
-	return self:Expr14()
+	return self:Expr18()
 end
 
-function Parser:Expr14()
+function Parser:Expr18()
 	if self:AcceptRoamingToken("var") then
 		if self:AcceptTailingToken("inc") then
 			self:Error("Increment operator (++) must not be part of equation")
@@ -836,10 +856,10 @@ function Parser:Expr14()
 		self:TrackBack()
 	end
 
-	return self:Expr15()
+	return self:Expr19()
 end
 
-function Parser:Expr15()
+function Parser:Expr19()
 	if self:AcceptRoamingToken("var") then
 		local trace = self:GetTokenTrace()
 		local var = self:GetTokenData()

@@ -44,6 +44,12 @@ local optable = {
 
 	["operator_is" ] = "is",
 	["operator_neg"] = "neg",
+
+	["operator_band"] = "band",
+	["operator_bor"] = "bor",
+	["operator_bxor"] = "bxor",
+	["operator_bshl"] = "bshl",
+	["operator_bshr"] = "bshr",
 }
 
 -- This is an array for types that were parsed from all E2 extensions. We initialize it with an alias "number" for "normal".

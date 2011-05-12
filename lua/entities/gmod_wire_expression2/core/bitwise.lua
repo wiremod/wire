@@ -29,4 +29,21 @@ e2function number bNot(n,bits)
 	end
 end
 
+
+e2function number operator_band( a, b )
+	return a & b
+end
+e2function number operator_bor( a, b )
+	return a | b
+end
+e2function number operator_bxor( a, b )
+	return (a | b) & (-1-(a & b))
+end
+e2function number operator_bshr( a, b )
+	return a >> b
+end
+e2function number operator_bshl( a, b )
+	return a << b
+end
+
 __e2setcost(nil)
