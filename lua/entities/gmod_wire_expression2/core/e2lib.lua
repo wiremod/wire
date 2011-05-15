@@ -19,6 +19,21 @@ function E2Lib.getArguments( self, args )
 	return unpack( ret )
 end
 
+-- This function clamps the position before moving the entity
+local minx, miny, minz = -16384,-16384,-16384
+local maxx, maxy, maxz =  16384, 16384, 16384
+local hasboundary
+local clamp = math.Clamp
+function E2Lib.clampPos( pos )
+	pos.x = clamp( pos.x, minx, maxx )
+	pos.y = clamp( pos.y, miny, maxy )
+	pos.z = clamp( pos.z, minz, maxz )
+	return pos
+end
+function E2Lib.setPos( ent, pos )
+	return ent:SetPos( E2Lib.clampPos( pos ) )
+end
+
 --[[************************* signature generation ***************************]]
 
 local function maketype(typeid)
