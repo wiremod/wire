@@ -118,7 +118,7 @@ function MakeWire7Seg( pl, Pos, Ang, Model, a, ar, ag, ab, aa, b, br, bg, bb, ba
 	wire_indicators[1]:SetNetworkedString("WireName", "G")
 	pl:AddCount( "wire_indicators", wire_indicators[1] )
 	local min = wire_indicators[1]:OBBMins(wire_indicators[1])
-	Pos = Pos - Ang:Up() * min.x --correct Pos for thichness of segment
+	//Pos = Pos - Ang:Up() * min.x --correct Pos for thichness of segment
 	wire_indicators[1]:SetPos( Pos + Ang:Up() )
 
 	if wire_indicators[1]:GetPhysicsObject():IsValid() then
