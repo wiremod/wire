@@ -39,12 +39,7 @@ end
 Obj.Transmit = function( self, Ent, ply )
 	EGP.umsg.Short( self.x )
 	EGP.umsg.Short( self.y )
-	if (#self.text>150) then
-		EGP:InsertQueue( Ent, ply, EGP._SetText, "SetText", self.index, self.text )
-		EGP.umsg.String( "" )
-	else
-		EGP.umsg.String( self.text )
-	end
+	EGP:InsertQueue( Ent, ply, EGP._SetText, "SetText", self.index, self.text )
 	EGP.umsg.Char( self.fontid-128 )
 	EGP.umsg.Char( math.Clamp(self.size,0,128)-128 )
 	EGP.umsg.Char( math.Clamp(self.valign,0,2) )
@@ -56,7 +51,6 @@ Obj.Receive = function( self, um )
 	local tbl = {}
 	tbl.x = um:ReadShort()
 	tbl.y = um:ReadShort()
-	tbl.text = um:ReadString()
 	tbl.fontid = um:ReadChar()+128
 	tbl.size = um:ReadChar()+128
 	tbl.valign = um:ReadChar()

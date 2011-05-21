@@ -59,12 +59,7 @@ Obj.Draw = function( self )
 end
 Obj.Transmit = function( self, Ent, ply )
 	EGP:SendPosSize( self )
-	if (#self.text>150) then
-		EGP:InsertQueue( Ent, ply, EGP._SetText, "SetText", self.index, self.text )
-		EGP.umsg.String( "" )
-	else
-		EGP.umsg.String( self.text )
-	end
+	EGP:InsertQueue( Ent, ply, EGP._SetText, "SetText", self.index, self.text )
 	EGP.umsg.Char( self.fontid-128 )
 	EGP.umsg.Char( math.Clamp(self.size,0,128) )
 	EGP.umsg.Char( math.Clamp(self.valign,0,2) )
@@ -75,7 +70,6 @@ end
 Obj.Receive = function( self, um )
 	local tbl = {}
 	EGP:ReceivePosSize( tbl, um )
-	tbl.text = um:ReadString()
 	tbl.fontid = um:ReadChar()+128
 	tbl.size = um:ReadChar()
 	tbl.valign = um:ReadChar()
