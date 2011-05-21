@@ -246,8 +246,9 @@ do -- wire_7seg
 		panel:AddControl("ComboBox", {
 			Label = "#ToolWireIndicator_Model",
 			Options = {
-				["Medium 7-seg bar"]	= { wire_7seg_model = "models/segment2.mdl" },
-				["Small 7-seg bar"]		= { wire_7seg_model = "models/segment.mdl" },
+				["Huge 7-seg bar"]	= { wire_7seg_model = "models/segment2.mdl" },
+				["Normal 7-seg bar"]		= { wire_7seg_model = "models/segment.mdl" },
+				["Small 7-seg bar"]		= { wire_7seg_model = "models/segment3.mdl" },
 			}
 		})
 
