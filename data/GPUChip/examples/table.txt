@@ -11,7 +11,7 @@ float sizex = 476;
 float sizey = 400;
 float linewidth = 3;
 
-float i, j;
+float i, j, day;
 
 void Main()
 {
@@ -19,16 +19,16 @@ void Main()
     glClear( 35, 35, 35 ); // Clear screen color
     
     glColor( 255, 255, 255 ); // Set draw color
-    glFont( 3 ); // Set font type
+    glFont( GL_FONT_ARIAL ); // Set font type
     glFontSize( 36 ); // Set font size
     glWriteString( 16, 6, "Simple-Calendar 1.0");
     
-    glColor( 120, 120, 120 ); // Set draw color
+    glColor( 120, 120, 120 );
     glOffset( 16, 64 ); // Set screen offset
     glRectWH( 0, 0, sizex + linewidth, sizey + linewidth); // Draw rectangle
     
-    glFont( 2 ); // Set font type
-    glFontSize( 14 ); // Set font size
+    glFont( GL_FONT_TREBUCHET );
+    glFontSize( 14 );
     
     // Calculate rectangle size
     float sx = (sizex / rows) - linewidth;
@@ -50,7 +50,8 @@ void Main()
             glColor( 0, 0, 0 ); // Set draw color
             
             // Write integer to screen
-            glWriteInt( x + linewidth + 2, y + linewidth + 2, (i + j * rows) + 1 ); 
+            day = i + (j * rows)
+            glWriteInt( x + linewidth + 2, y + linewidth + 2, day + 1 ); 
         }
     }
     

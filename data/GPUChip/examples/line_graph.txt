@@ -18,11 +18,11 @@ void Main()
     glVertexMode( 1 ); // Set vertex mode to 1
     
     // Set texture as background
-    glBindTexture( "phoenix_storms/fender_wood" );
+    glSetTexture( "phoenix_storms/fender_wood" );
     glClearTexture();
-    glBindTexture( 0 ); // Discard binded texture
+    glSetTexture( 0 ); // Discard texture
     
-    glFont( 6 ); // Set font type
+    glFont( GL_FONT_AKBAR ); // Set font type
     glFontSize( 36 ); // Set font size
     glColor( 255, 255, 255 ); // Set draw color
     glWriteString( 2, 2, "LAG-O-METER" ); // Write string to screen
@@ -61,5 +61,5 @@ void Main()
     glFontSize( 20 );
     glWriteString( 2, 460, "(just kidding :P)" );
     
-    glExit(); // Exit program
+    glExit(); // Exit
 }

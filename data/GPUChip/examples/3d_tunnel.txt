@@ -13,59 +13,48 @@ void Main()
     glSleep( 60 ); // Sleep for 60 milliseconds (reduces fps lag)
     glClear( 0, 0, 0 ); // Clear screen
     
-    glCoordPipe( 3 ); // Set coordinate pipe
-    glVertexPipe( 5 ); // Set vertex pipe
+    glCoordPipe( GL_CPIPE_N1_1 ); // Set coordinate pipe to [-1 to 1] mode 
+    glVertexPipe( GL_VPIPE_XYZTRANSFORM ); // Set vertex pipe to xyz transformation
 
     glLightPos( -1, -1, -1 ); // Set the light position
     glLightColor( 255, 255, 255, 1.25 ); // Set the light color
 
-    // Sets the camera's pos, target and up vector
-    glLookAtPos( 0, 0, -25 );
-    glLookAtTarget( 0, 0, 0 );
-    glLookAtUp( 0, 1, 0 );
-   
-    // Create our lookat and perspective matrices
-    glLookAt( mViewMatrix );
-    glPerspective( mProjectionMatrix, vPerspective );
+    glLookAt(
+        0, 0, -25, // Camera pos
+        0, 0, 0, // Camera target
+        0, 1, 0 // Camera up
+    ); 
 
-    // Loop 4 times and draw 4 models
+    // Loop and draw 4 models
     for (i = 0; i < 4; i++)
     {
         // Set translations for each model
         timer zTranslate;
         zTranslate *= -16;
-        mod zTranslate,(*vScale.z * 2);
-        *vTranslate.z = zTranslate + (*vScale.z * 2 * i);
-        
-        // Set transformation matrices
-        glRotateMatrix( mRotateMatrix, vRotate );
-        glTranslateMatrix( mTranslateMatrix, vTranslate );
-        glScaleMatrix( mScaleMatrix, vScale );
-        
-        // Perform matrix transformations
-        glModelMatrix( mModelMatrix, mTranslateMatrix, mRotateMatrix, mScaleMatrix );
-        glModelViewMatrix( mModelViewMatrix, mModelMatrix, mViewMatrix );
-        
-        // Load model anf projection matrices
-        glLoadMatrix( mModelViewMatrix );
-        glLoadProjection( mProjectionMatrix );
-        
-        // Enable parameters
-        glEnable( 0 );
-        glEnable( 1 );
-        glEnable( 2 );
-        glEnable( 3 );
+        mod zTranslate,16;
+        zTranslate += (i * 16);
+       
+        // Create perspective and matrix transformations
+        glPerspective( 8, 1, 0.4, 20 ); // FOV, ASPECT RATIO, ZNEAR, ZFAR
+        glRotate( 0, 0, 0, 0 ); // AXIS X, Y, Z, ANGLE W
+        glTranslate( 0, 0, zTranslate ); // TRANSLATION X, Y, Z
+        glScale( 1.2, 1, 8 ); // SCALE X, Y, Z
+    
+        glEnable( GL_VERTEX_ZSORT ); // Enable Z sorting
+        glEnable( GL_VERTEX_LIGHTING ); // Enable vertex lighting
+        glEnable( GL_VERTEX_BUFFER ); // Enable vertex buffer 
+        glEnable( GL_VERTEX_CULLING ); // Enable face culling
 
         // Wireframe 3D polygon
         glLineWidth( 1 ); // Set line width of wireframe
-        glFillMode( FILLMODE_WIREFRAME ); // Enable wireframe
-        glColor4( 255, 255, 255, 255 ); // Set the draw color
-        glPoly3D( TunnelModel, 8 ); // Draw 3D polygon
+        glFillMode( GL_FILL_WIREFRAME ); // Set fillmode to wireframe
+        glColor4( 255, 255, 255, 255 ); // Set the draw color with alpha
+        glPoly3D( VertexBuffer, 8 ); // Draw 3D polygon
         
         // Solid 3D polygon
-        glFillMode( FILLMODE_SOLID ); // Set fillmode as solid
-        glColor4( 255, 255, 255, 150 ); // Set draw color
-        glPoly3D( TunnelModel, 8 ); // Draw 3D polygon 
+        glFillMode( GL_FILL_SOLID ); // Set fillmode as solid
+        glColor4( 255, 255, 255, 150 );
+        glPoly3D( VertexBuffer, 8 );
         
         glFlush(); // Send our vertex buffer to screen
     }
@@ -73,7 +62,7 @@ void Main()
     glExit(); // Exit
 }
 
-TunnelModel:
+VertexBuffer:
 db 1,1,-1; db -1,1,-1; db 1,1,1;
 db -1,1,-1; db -1,1,1; db 1,1,1;
 db 1,1,-1; db 1,1,1; db 1,-1,-1;
@@ -82,17 +71,3 @@ db -1,1,-1; db -1,-1,-1; db -1,1,1;
 db -1,-1,-1; db -1,-1,1; db -1,1,1; 
 db 1,-1,-1; db 1,-1,1; db -1,-1,-1;
 db -1,-1,-1; db 1,-1,1; db -1,-1,1;
-
-matrix mRotateMatrix;
-matrix mTranslateMatrix;
-matrix mScaleMatrix;
-matrix mProjectionMatrix;
-matrix mViewMatrix;
-matrix mModelMatrix;
-matrix mModelViewMatrix;
-
-vec4f vRotate,      0,  0,  0,  0; // <AXIS X Y Z> <ANGLE W>
-vec4f vTranslate,   0,  0,  0,  0; // <TRANSLATION X Y Z> <0>
-vec4f vPerspective, 8, 1,  0.4,  20; // <FOV> <ASPECT RATIO> <ZNEAR> <ZFAR>
-vec4f vScale,       1.2,  1,  8,  0; // <SCALE X Y Z> <0>
-
