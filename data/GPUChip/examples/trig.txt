@@ -8,7 +8,7 @@ Main();
 void Main()
 {
     glClear( 0, 0, 0 ); // Clear screen
-    glCoordPipe( 3 ); // Set coordinate pipe (-1 to 1 mode)
+    glCoordPipe( GL_CPIPE_N1_1 ); // Set coordinate pipe (-1 to 1 mode)
 
     timer R0; // Set time to curtime()
     R0 = -R0 * 1;
@@ -43,11 +43,10 @@ void Main()
 
     // Y part of triangle
     glColor( 255, 0, 0 );
-    glLine( *PosR.x, *PosR.y, *PosX.x, *PosX.y ); // Draw line
-    *sin *= -1; // Negate som
-    glWriteFmt( -0.95, -0.85, sSin ) // Write formatted string
+    glLine( *PosR.x, *PosR.y, *PosX.x, *PosX.y );
+    *sin *= -1; // Negate
+    glWriteFmt( -0.95, -0.85, sSin );
     
-    // Radius of circle, hypotenuse of triangle
     glColor( 255, 255, 255 );
     glLine( *orig.x, *orig.y, *PosR.x, *PosR.y ); // Draw line
     
