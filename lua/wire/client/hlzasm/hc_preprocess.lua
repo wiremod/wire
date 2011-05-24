@@ -124,7 +124,7 @@ function HCOMP:Preprocess()
 
   -- Replace defines with their actual values
   for defineName,defineValue in pairs(self.Defines) do
-    if defineValue ~= "" then -- Only do this for defines that replace
+    if (defineValue ~= "") and (defineName ~= defineValue) then -- Only do this for defines that replace
       local pos
       repeat
         pos = string.find(lineText,"[^a-zA-Z0-9_]"..defineName.."[^a-zA-Z0-9_]")
@@ -182,6 +182,10 @@ function HCOMP:Preprocess()
     elseif macroName == "define" then -- #define
       local defineName = trimString(string.sub(macroParameters,1,(string.find(macroParameters," ") or 0)-1))
       local defineValue = string.sub(macroParameters,(string.find(macroParameters," ") or 0)+1)
+      if tonumber(defineName) then
+        self:Error("Bad idea to redefine numbers",
+          self.SourceCode[#self.SourceCode][3],1,self.SourceCode[#self.SourceCode][1])
+      end
       self.Defines[defineName] = defineValue
     elseif macroName == "undef" then -- #undef
       local defineName = trimString(string.sub(macroParameters,1,(string.find(macroParameters," ") or 0)-1))
