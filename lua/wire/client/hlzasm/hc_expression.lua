@@ -347,13 +347,15 @@ function HCOMP:Expression_Level2()
   local token = self:PeekToken()
   if (token == self.TOKEN.TIMES) or
      (token == self.TOKEN.SLASH) or
-     (token == self.TOKEN.POWER) then
+     (token == self.TOKEN.POWER) or
+     (token == self.TOKEN.MODULUS) then
     self:NextToken()
     local rightLeaf = self:Expression_LevelLeaf(2)
 
-    if token == self.TOKEN.TIMES then return self:NewOpcode("mul", leftLeaf,rightLeaf) end
-    if token == self.TOKEN.SLASH then return self:NewOpcode("div", leftLeaf,rightLeaf) end
-    if token == self.TOKEN.POWER then return self:NewOpcode("fpwr",leftLeaf,rightLeaf) end
+    if token == self.TOKEN.TIMES   then return self:NewOpcode("mul", leftLeaf,rightLeaf) end
+    if token == self.TOKEN.SLASH   then return self:NewOpcode("div", leftLeaf,rightLeaf) end
+    if token == self.TOKEN.POWER   then return self:NewOpcode("fpwr",leftLeaf,rightLeaf) end
+    if token == self.TOKEN.MODULUS then return self:NewOpcode("mod",leftLeaf,rightLeaf) end
   else
     return leftLeaf
   end
@@ -655,14 +657,16 @@ function HCOMP:ConstantExpression_Level2()
   local token = self:PeekToken()
   if (token == self.TOKEN.TIMES) or
      (token == self.TOKEN.SLASH) or
-     (token == self.TOKEN.POWER) then
+     (token == self.TOKEN.POWER) or
+     (token == self.TOKEN.MODULUS) then
     self:NextToken()
     local rightConst,rightPrecise,rightValue = self:ConstantExpression_Level2()
     if not rightConst then return false end
 
-    if token == self.TOKEN.TIMES then return true,(leftPrecise and rightPrecise),leftValue*rightValue end
-    if token == self.TOKEN.SLASH then return true,(leftPrecise and rightPrecise),leftValue/rightValue end
-    if token == self.TOKEN.POWER then return true,(leftPrecise and rightPrecise),leftValue^rightValue end
+    if token == self.TOKEN.TIMES   then return true,(leftPrecise and rightPrecise),leftValue*rightValue end
+    if token == self.TOKEN.SLASH   then return true,(leftPrecise and rightPrecise),leftValue/rightValue end
+    if token == self.TOKEN.POWER   then return true,(leftPrecise and rightPrecise),leftValue^rightValue end
+    if token == self.TOKEN.MODULUS then return true,(leftPrecise and rightPrecise),leftValue%rightValue end
   else
     return true,leftPrecise,leftValue
   end
