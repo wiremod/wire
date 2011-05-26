@@ -445,7 +445,7 @@ local function GPU_DrawHUD()
   local videoSource = HUDLookup[LocalPlayer():EntIndex()]
   if videoSource then
     local videoGPU = ents.GetByIndex(videoSource)
-    if videoGPU and videoGPU:IsValid() then
+    if videoGPU and videoGPU:IsValid() and videoGPU.RenderVertex then
       local screenWidth = ScrW()
       local screenHeight = ScrH()
 

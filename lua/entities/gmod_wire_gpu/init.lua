@@ -31,9 +31,18 @@ function ENT:Initialize()
 
   -- Connected monitors
   self.Monitors = { }
+  self:UpdateClientMonitorState()
 end
 
-
+function ENT:UpdateClientMonitorState()
+  umsg.Start("wire_gpu_monitorstate")
+    umsg.Long(self:EntIndex())
+    umsg.Short(#self.Monitors)
+    for idx=1,#self.Monitors do
+      umsg.Long(self.Monitors[idx])
+    end
+  umsg.End()
+end
 --------------------------------------------------------------------------------
 -- Set processor
 --------------------------------------------------------------------------------
@@ -300,13 +309,7 @@ function ENT:Think()
 
     -- Send update to all clients
     if monitorsChanged then
-      umsg.Start("wire_gpu_monitorstate")
-        umsg.Long(self:EntIndex())
-        umsg.Short(#self.Monitors)
-        for idx=1,#self.Monitors do
-          umsg.Long(self.Monitors[idx])
-        end
-      umsg.End()
+      self:UpdateClientMonitorState()
     end
   end
 
