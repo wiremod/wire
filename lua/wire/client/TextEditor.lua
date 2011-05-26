@@ -3448,6 +3448,7 @@ do
 	["#INCLUDE##"] = true,
 	["DEFINE"] = true,
 	["IFDEF"] = true,
+	["IFNDEF"] = true,
 	["ENDIF"] = true,
 	["ELSE"] = true,
 	["UNDEF"] = true,
