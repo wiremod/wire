@@ -26,7 +26,8 @@ local function flir_start()
 		SetMaterialOverride(living);
 	end);
 	hook.Add("PostPlayerDraw","flir_PostPlayerDraw",function()
-		SetMaterialOverride(nil);
+		--SetMaterialOverride(nil);
+		SetMaterialOverride(normal);
 	end);
 
 	hook.Add("PreDrawOpaqueRenderables","flir_PreDrawOpaqueRenderables",function()

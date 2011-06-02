@@ -189,10 +189,10 @@ function PANEL:Init()
 	self.foldermenu = {}
 
 	self:AddRightClick(self.filemenu,nil,"Open",function()
-		wire_expression2_editor:Open( self.File.FileDir )
+		self:GetParent():Open( self.File.FileDir )
 	end)
 	self:AddRightClick(self.filemenu,nil,"Open in New Tab",function()
-		wire_expression2_editor:Open( self.File.FileDir, nil, true )
+		self:GetParent():Open( self.File.FileDir, nil, true )
 	end)
 	self:AddRightClick(self.filemenu,nil,"*SPACER*")
 	self:AddRightClick(self.filemenu,nil,"Rename to..", function()
