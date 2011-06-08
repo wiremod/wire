@@ -8,6 +8,16 @@ include('shared.lua')
 function ENT:Think()
 	self.BaseClass.Think(self)
 
+	local model = self:GetModel()
+
+	if model == "models/bull/various/gyroscope.mdl" then
+
+        local lineOfNodes = self:WorldToLocal( ( Vector(0,0,1):Cross( self:GetUp() ) ):GetNormal( ) + self:GetPos() )
+
+		self:SetPoseParameter( "rot_yaw"  ,  math.Rad2Deg( math.atan2( lineOfNodes[2] , lineOfNodes[1] ) ) )
+		self:SetPoseParameter( "rot_roll" , -math.Rad2Deg( math.acos( self:GetUp():DotProduct( Vector(0,0,1) ) )  or 0 ) )
+	end
+
     local ang = self:GetAngles()
 	if (ang.p < 0 && !self:GetOut180()) then ang.p = ang.p + 360 end
 	if (ang.y < 0 && !self:GetOut180()) then ang.y = ang.y + 360 end

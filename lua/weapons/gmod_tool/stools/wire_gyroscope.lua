@@ -13,13 +13,18 @@ if ( CLIENT ) then
 	language.Add( "undone_wiregyroscope", "Undone Wire Gyroscope" )
 end
 
+
+TOOL.ClientConVar = {
+  model           = "models/bull/various/gyroscope.mdl",
+  out180          = 0
+}
+
+
 TOOL.ClientConVar[ "out180" ] = 0
 
 if (SERVER) then
 	CreateConVar('sbox_maxwire_gyroscopes', 10)
 end
-
-TOOL.Model = "models/cheeze/wires/gyroscope.mdl"
 
 cleanup.Register( "wire_gyroscopes" )
 
@@ -40,13 +45,10 @@ function TOOL:LeftClick( trace )
 
 	if ( !self:GetSWEP():CheckLimit( "wire_gyroscopes" ) ) then return false end
 
-	if (not util.IsValidModel(self.Model)) then return false end
-	if (not util.IsValidProp(self.Model)) then return false end		// Allow ragdolls to be used?
-
 	local Ang = trace.HitNormal:Angle()
 	Ang.pitch = Ang.pitch + 90
 
-	local wire_gyroscope = MakeWireGyroscope( ply, trace.HitPos, Ang, self.Model, _out180 )
+	local wire_gyroscope = MakeWireGyroscope( ply, trace.HitPos, Ang, self:GetModel(), _out180 )
 
 	local min = wire_gyroscope:OBBMins()
 	wire_gyroscope:SetPos( trace.HitPos - trace.HitNormal * min.z )
@@ -74,7 +76,7 @@ if (SERVER) then
 
 		wire_gyroscope:SetAngles(Ang)
 		wire_gyroscope:SetPos(Pos)
-		wire_gyroscope:SetModel(model)
+		wire_gyroscope:SetModel( Model(model or "models/bull/various/gyroscope.mdl") )
 		wire_gyroscope:Spawn()
 
 		wire_gyroscope:Setup( out180 )
@@ -121,14 +123,28 @@ end
 
 
 function TOOL:Think()
-	if (!self.GhostEntity || !self.GhostEntity:IsValid() || self.GhostEntity:GetModel() != self.Model ) then
-		self:MakeGhostEntity( self.Model, Vector(0,0,0), Angle(0,0,0) )
+	local model = self:GetModel()
+
+	if (!self.GhostEntity || !self.GhostEntity:IsValid() || self.GhostEntity:GetModel() != model ) then
+		self:MakeGhostEntity( Model(model), Vector(0,0,0), Angle(0,0,0) )
 	end
 
 	self:UpdateGhostWireGyroscope( self.GhostEntity, self:GetOwner() )
 end
 
+function TOOL:GetModel()
+	local model = "models/cheeze/wires/gyroscope.mdl"
+	local modelcheck = self:GetClientInfo( "model" )
+
+	if (util.IsValidModel(modelcheck) and util.IsValidProp(modelcheck)) then
+		model = modelcheck
+	end
+
+	return model
+end
+
 function TOOL.BuildCPanel(panel)
 	panel:AddControl("Header", { Text = "#Tool_wire_gyroscope_name", Description = "#Tool_wire_gyroscope_desc" })
+	ModelPlug_AddToCPanel(panel, "gyroscope", "wire_gyroscope", "#ToolWireGyroscope_Model")
 	panel:AddControl( "Checkbox", { Label = "#Tool_wire_gyroscope_out180", Command = "wire_gyroscope_out180" } )
 end

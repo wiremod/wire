@@ -187,4 +187,16 @@
 		"categories"    "weight"
 		"model"         "models/props_lab/huladoll.mdl"
 	}
+	
+	"Cheezes Gyroscope"
+	{
+		"categories"    "gyroscope"
+		"model"         "models/cheeze/wires/gyroscope.mdl"
+	}
+	
+	"Bulls Gyroscope"
+	{
+		"categories"    "gyroscope"
+		"model"         "models/bull/various/gyroscope.mdl"
+	}
 }
