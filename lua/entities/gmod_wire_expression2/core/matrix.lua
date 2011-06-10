@@ -66,6 +66,11 @@ e2function matrix2 matrix2(vector2 rv1, vector2 rv2)
 			 rv1[2], rv2[2] }
 end
 
+e2function matrix2 rowMatrix2(vector2 rv1, vector2 rv2)
+	return { rv1[1], rv1[2],
+			 rv2[1], rv2[2] }
+end
+
 e2function matrix2 matrix2(rv1, rv2, rv3, rv4)
 	return { rv1, rv2,
 			 rv3, rv4 }
@@ -440,6 +445,12 @@ e2function matrix matrix(vector rv1, vector rv2, vector rv3)
 	return { rv1[1], rv2[1], rv3[1],
 			 rv1[2], rv2[2], rv3[2],
 			 rv1[3], rv2[3], rv3[3] }
+end
+
+e2function matrix rowMatrix(vector rv1, vector rv2, vector rv3)
+	return { rv1[1], rv1[2], rv1[3],
+			 rv2[1], rv2[2], rv2[3],
+			 rv3[1], rv3[2], rv3[3],}
 end
 
 e2function matrix matrix(rv1, rv2, rv3, rv4, rv5, rv6, rv7, rv8, rv9)
@@ -960,6 +971,13 @@ e2function matrix4 matrix4(vector4 rv1, vector4 rv2, vector4 rv3, vector4 rv4)
 			 rv1[2], rv2[2], rv3[2], rv4[2],
 			 rv1[3], rv2[3], rv3[3], rv4[3],
 			 rv1[4], rv2[4], rv3[4], rv4[4] }
+end
+
+e2function matrix4 rowMatrix4(vector4 rv1, vector4 rv2, vector4 rv3, vector4 rv4)
+	return { rv1[1], rv1[2], rv1[3], rv1[4],
+			 rv2[1], rv2[2], rv2[3], rv2[4],
+			 rv3[1], rv3[2], rv3[3], rv3[4],
+			 rv4[1], rv4[2], rv4[3], rv4[4] }
 end
 
 e2function matrix4 matrix4(rv1, rv2, rv3, rv4, rv5, rv6, rv7, rv8, rv9, rv10, rv11, rv12, rv13, rv14, rv15, rv16)

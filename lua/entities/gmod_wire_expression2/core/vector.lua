@@ -317,6 +317,19 @@ registerFunction("cross", "v:v", "v", function(self, args)
 	}
 end)
 
+__e2setcost(10)
+
+-- returns the outer product (tensor product) of two vectors
+registerFunction("outerProduct", "v:v", "m", function(self, args)
+	local op1, op2 = args[2], args[3]
+	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+	return { rv1[1] * rv1[1], rv1[1] * rv2[2], rv1[1] * rv2[3],
+			 rv1[2] * rv1[1], rv1[2] * rv2[2], rv1[2] * rv2[3],
+			 rv1[3] * rv1[1], rv1[3] * rv2[2], rv1[3] * rv2[3] }
+end)
+
+__e2setcost(5)
+
 registerFunction("rotate", "v:a", "v", function(self, args)
 	local op1, op2 = args[2], args[3]
 	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
