@@ -206,6 +206,14 @@ registerFunction("cross", "xv2:xv2", "n", function(self, args)
 	return rv1[1] * rv2[2] - rv1[2] * rv2[1]
 end)
 
+-- returns the outer product (tensor product) of two vectors
+registerFunction("outerProduct", "xv2:xv2", "xm2", function(self, args)
+	local op1, op2 = args[2], args[3]
+	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+	return { rv1[1] * rv1[1], rv1[1] * rv2[2],
+			 rv1[2] * rv1[1], rv1[2] * rv2[2] }
+end)
+
 registerFunction("rotate", "xv2:n", "xv2", function(self, args)
 	local op1, op2 = args[2], args[3]
 	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
@@ -705,6 +713,20 @@ registerFunction("dot", "xv4:xv4", "n", function(self, args)
 	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
 	return rv1[1] * rv2[1] + rv1[2] * rv2[2] + rv1[3] * rv2[3] + rv1[4] * rv2[4]
 end)
+
+__e2setcost(15)
+
+-- returns the outer product (tensor product) of two vectors
+registerFunction("outerProduct", "xv4:xv4", "xm4", function(self, args)
+	local op1, op2 = args[2], args[3]
+	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+	return { rv1[1] * rv1[1], rv1[1] * rv2[2], rv1[1] * rv2[3], rv1[1] * rv2[4],
+			 rv1[2] * rv1[1], rv1[2] * rv2[2], rv1[2] * rv2[3], rv1[2] * rv2[4],
+			 rv1[3] * rv1[1], rv1[3] * rv2[2], rv1[3] * rv2[3], rv1[3] * rv2[4],
+			 rv1[4] * rv1[1], rv1[4] * rv2[2], rv1[4] * rv2[3], rv1[4] * rv2[4] }
+end)
+
+__e2setcost(5)
 
 registerFunction("normalized", "xv4:", "xv4", function(self, args)
 	local op1 = args[2]
