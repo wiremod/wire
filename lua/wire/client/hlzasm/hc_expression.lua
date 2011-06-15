@@ -685,9 +685,37 @@ function HCOMP:ConstantExpression_Level1()
     local rightConst,rightPrecise,rightValue = self:ConstantExpression_Level0()
     if not rightConst then return false end
 
---    if token == self.TOKEN.PLUS  then return true,(leftPrecise and rightPrecise),leftValue+rightValue end
     return true,(leftPrecise and rightPrecise),leftValue+rightValue
---    if token == self.TOKEN.MINUS then return true,(leftPrecise and rightPrecise),leftValue-rightValue end
+  elseif (token == self.TOKEN.LAND) or
+         (token == self.TOKEN.LOR) then -- &&, ||
+    self:NextToken()
+    local rightConst,rightPrecise,rightValue = self:ConstantExpression_Level0()
+    if not rightConst then return false end
+
+    if token == self.TOKEN.LAND then
+      if (leftValue > 0) and (rightValeu > 0) then
+        return true,(leftPrecise and rightPrecise),1
+      else
+        return true,(leftPrecise and rightPrecise),0
+      end
+    end
+    if token == self.TOKEN.LOR  then
+      if (leftValue > 0) or (rightValeu > 0) then
+        return true,(leftPrecise and rightPrecise),1
+      else
+        return true,(leftPrecise and rightPrecise),0
+      end
+    end
+  elseif (token == self.TOKEN.AND) or
+         (token == self.TOKEN.OR) or
+         (token == self.TOKEN.XOR) then -- &, |, ^
+    self:NextToken()
+    local rightConst,rightPrecise,rightValue = self:ConstantExpression_Level0()
+    if not rightConst then return false end
+
+    if token == self.TOKEN.AND then return true,(leftPrecise and rightPrecise),self:BinaryAnd(leftValue,rightValue) end
+    if token == self.TOKEN.OR  then return true,(leftPrecise and rightPrecise),self:BinaryOr (leftValue,rightValue) end
+    if token == self.TOKEN.XOR then return true,(leftPrecise and rightPrecise),self:BinaryXor(leftValue,rightValue) end
   else
     return true,leftPrecise,leftValue
   end
@@ -749,6 +777,30 @@ function HCOMP:ConstantExpression_Level0()
     then return true,(leftPrecise and rightPrecise),1
     else return true,(leftPrecise and rightPrecise),0
     end
+  elseif self:MatchToken(self.TOKEN.EQLADD) then -- +=
+    local rightConst,rightPrecise,rightValue = self:ConstantExpression_Level0()
+    if not rightConst then return false end
+    return true,(leftPrecise and rightPrecise),leftValue+rightValue
+  elseif self:MatchToken(self.TOKEN.EQLSUB) then -- -=
+    local rightConst,rightPrecise,rightValue = self:ConstantExpression_Level0()
+    if not rightConst then return false end
+    return true,(leftPrecise and rightPrecise),leftValue-rightValue
+  elseif self:MatchToken(self.TOKEN.EQLMUL) then -- *=
+    local rightConst,rightPrecise,rightValue = self:ConstantExpression_Level0()
+    if not rightConst then return false end
+    return true,(leftPrecise and rightPrecise),leftValue*rightValue
+  elseif self:MatchToken(self.TOKEN.EQLDIV) then -- /=
+    local rightConst,rightPrecise,rightValue = self:ConstantExpression_Level0()
+    if not rightConst then return false end
+    return true,(leftPrecise and rightPrecise),leftValue/rightValue
+  elseif self:MatchToken(self.TOKEN.SHR) then -- >>
+    local rightConst,rightPrecise,rightValue = self:ConstantExpression_Level0()
+    if not rightConst then return false end
+    return true,(leftPrecise and rightPrecise),self:BinarySHR(leftValue,rightValue)
+  elseif self:MatchToken(self.TOKEN.SHL) then -- <<
+    local rightConst,rightPrecise,rightValue = self:ConstantExpression_Level0()
+    if not rightConst then return false end
+    return true,(leftPrecise and rightPrecise),self:BinarySHL(leftValue,rightValue)
   end
 
   return true,leftPrecise,leftValue
