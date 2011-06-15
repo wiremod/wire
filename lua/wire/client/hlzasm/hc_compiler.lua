@@ -213,6 +213,7 @@ function HCOMP:StartCompile(sourceCode,fileName,writeByteCallback,writeByteCalle
   self.Settings.GenerateLibrary = false -- Generate precompiled library
   self.Settings.AlwaysEnterLeave = false -- Always generate the enter/leave blocks
   self.Settings.NoUnreferencedLeaves = true -- Dont generate functions, variables that are not referenced
+  self.Settings.DataSegmentOffset = 0 -- Data segment offset for separate data segment
 
   -- Prepare preprocessor
   self.Stage = 0

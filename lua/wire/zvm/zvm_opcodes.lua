@@ -439,14 +439,12 @@ ZVM.OpcodeTable[66] = function(self)   --BXOR
   self:Dyn_Emit("VM.TMR = VM.TMR + 30")
 end
 ZVM.OpcodeTable[67] = function(self)  --BSHL
---  self:Dyn_EmitOperand("VM:BinarySHL($1,$2)")
---  self:Dyn_Emit("VM.TMR = VM.TMR + 30")
-  self:Dyn_EmitOperand("math.floor($1 * 2)")
+  self:Dyn_EmitOperand("VM:BinarySHL($1,$2)")
+  self:Dyn_Emit("VM.TMR = VM.TMR + 30")
 end
 ZVM.OpcodeTable[68] = function(self)  --BSHR
---  self:Dyn_EmitOperand("VM:BinarySHR($1,$2)")
---  self:Dyn_Emit("VM.TMR = VM.TMR + 30")
-  self:Dyn_EmitOperand("math.floor($1 / 2)")
+  self:Dyn_EmitOperand("VM:BinarySHR($1,$2)")
+  self:Dyn_Emit("VM.TMR = VM.TMR + 30")
 end
 ZVM.OpcodeTable[69] = function(self)  --JMPF
   self:Dyn_Emit("VM:Jump($1,$2)")
@@ -766,7 +764,7 @@ ZVM.OpcodeTable[108] = function(self)  --LNEG
   self:Dyn_EmitOperand("1-math.Clamp($1,0,1)")
 end
 ZVM.OpcodeTable[109] = function(self)   --STATERESTORE
-  self:Dyn_Emit("          VM:ReadCell($1 + 00) or 0")
+  self:Dyn_Emit("          VM:ReadCell($1 + 00)")
 
   self:Dyn_Emit("EAX =     VM:ReadCell($1 + 01) or 0")
   self:Dyn_Emit("EBX =     VM:ReadCell($1 + 02) or 0")
