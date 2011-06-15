@@ -415,7 +415,7 @@ local function conv(vec)
 	return floor(r)*100+floor(g)*10+floor(b)
 end
 
-local function WriteString(entity, string, X, Y, textcolor, bgcolor, Flash)
+local function WriteString(self, entity, string, X, Y, textcolor, bgcolor, Flash)
 	if type(textcolor) ~= "number" then textcolor = conv(textcolor) end
 	if type(bgcolor) ~= "number" then bgcolor = conv(bgcolor) end
 
@@ -447,21 +447,21 @@ local function WriteString(entity, string, X, Y, textcolor, bgcolor, Flash)
 end
 
 e2function void wirelink:writeString(string text, x, y, textcolor, bgcolor, flash)
-	WriteString(this,text,x,y,textcolor,bgcolor,flash)
+	WriteString(self, this,text,x,y,textcolor,bgcolor,flash)
 end
 
 
 e2function void wirelink:writeString(string text, x, y, textcolor, bgcolor)
-	WriteString(this,text,x,y,textcolor,bgcolor,0)
+	WriteString(self, this,text,x,y,textcolor,bgcolor,0)
 end
 
 
 e2function void wirelink:writeString(string text, x, y, textcolor)
-	WriteString(this,text,x,y,textcolor,0,0)
+	WriteString(self, this,text,x,y,textcolor,0,0)
 end
 
 e2function void wirelink:writeString(string text, x, y)
-	WriteString(this,text,x,y,999,0,0)
+	WriteString(self, this,text,x,y,999,0,0)
 end
 
 e2function void wirelink:writeString(string text, x, y,        textcolor, vector bgcolor, flash) = e2function void wirelink:writeString(string text, x, y, textcolor, bgcolor, flash)
