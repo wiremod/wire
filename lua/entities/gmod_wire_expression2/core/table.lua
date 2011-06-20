@@ -1146,8 +1146,8 @@ registerCallback( "postinit", function()
 		end)
 
 		registerFunction( "unshift"..name,"t:"..id,"",function(self,args)
-			local op1, op2, op3 = args[2], args[3], args[4]
-			local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self,op3)
+			local op1, op2 = args[2], args[3]
+			local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
 			if (!rv1 or !rv2) then return end
 			if (id == "t") then
 				rv2.depth = rv1.depth + 1
