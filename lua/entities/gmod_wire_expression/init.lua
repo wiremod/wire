@@ -446,3 +446,64 @@ ENT._extangr_0 =   function (self) return self:GetAngles().r end
 ENT._extangvelp_0 =   function (self) return self:GetPhysicsObject():GetAngleVelocity().x end
 ENT._extangvely_0 =   function (self) return self:GetPhysicsObject():GetAngleVelocity().y end
 ENT._extangvelr_0 =   function (self) return self:GetPhysicsObject():GetAngleVelocity().z end
+
+---------------------------------------------------------------------------------------------------------
+-- The following was accedentally removed when the tool was removed (which was done to hide the entity)
+-- It's necessary to make dupes work
+---------------------------------------------------------------------------------------------------------
+
+local function MakeWireGateExpressionParser(lines, inputs, outputs)
+	local code = ""
+	for _,line in ipairs(lines) do
+		local pos = string.find(line, '#', 1, true)
+		if pos then line = string.sub(line, 0, pos - 1) end
+
+		code = code .. line .. "\n"
+	end
+	return WireGateExpressionParser:New(code, inputs, outputs)
+end
+
+local function SetupWireGateExpression(entity, parser, name, lines, inputs, outputs)
+	entity.GateName =    name
+	entity.GateLines =   lines
+	entity.GateInputs =  inputs
+	entity.GateOutputs = outputs
+
+	entity:Setup(name, parser)
+end
+
+local function VerifyWireGateExpression(player, lines, inputs, outputs)
+	local parser = MakeWireGateExpressionParser(lines, inputs, outputs)
+	if !parser:GetError() then
+		return parser
+	else
+		player:SendLua('wire_gate_expression_status = "' .. parser:GetError() .. '"')
+		player:SendLua('WireGateExpressionRebuildCPanel()')
+		WireLib.AddNotify(player, '"' .. parser:GetError() .. '"', NOTIFY_ERROR, 7)
+		return
+	end
+end
+
+local function MakeWireGateExpression(player, Pos, Ang, model, name, lines, inputs, outputs)
+	if !player:CheckLimit("wire_expressions") then return false end
+
+	local parser = VerifyWireGateExpression(player, lines, inputs, outputs)
+	if !parser then return false end
+
+	local entity = ents.Create("gmod_wire_expression")
+	if !entity:IsValid() then return false end
+
+	entity:SetModel(model)
+	entity:SetAngles(Ang)
+	entity:SetPos(Pos)
+	entity:Spawn()
+	entity:SetPlayer(player)
+
+	SetupWireGateExpression(entity, parser, name, lines, inputs, outputs)
+
+	table.Merge(entity:GetTable(), { player = player })
+	player:AddCount("wire_expressions", entity)
+	return entity
+end
+
+duplicator.RegisterEntityClass("gmod_wire_expression", MakeWireGateExpression, "Pos", "Ang", "Model", "GateName", "GateLines", "GateInputs", "GateOutputs")
