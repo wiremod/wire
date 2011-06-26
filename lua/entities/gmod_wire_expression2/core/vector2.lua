@@ -30,7 +30,7 @@ registerFunction("vec2", "", "xv2", function(self, args)
 	return { 0, 0 }
 end)
 
-__e2setcost(3) -- temporary
+__e2setcost(2)
 
 registerFunction("vec2", "nn", "xv2", function(self, args)
 	local op1, op2 = args[2], args[3]
@@ -155,7 +155,7 @@ end
 
 /******************************************************************************/
 
-__e2setcost(5) -- temporary
+__e2setcost(3)
 
 registerFunction("length", "xv2:", "n", function(self, args)
 	local op1 = args[2]
@@ -232,6 +232,8 @@ registerFunction("positive", "xv2", "xv2", function(self, args)
 	return { x, y }
 end)
 
+__e2setcost(2)
+
 // Convert the magnitude of the vector to radians
 e2function vector2 toRad(vector2 xv2)
 	return {xv2[1] * pi / 180, xv2[2] * pi / 180}
@@ -243,6 +245,8 @@ e2function vector2 toDeg(vector2 xv2)
 end
 
 /******************************************************************************/
+
+__e2setcost(3)
 
 --- Returns a vector in the same direction as <Input>, with a length clamped between <Min> (min) and <Max> (max)
 e2function vector2 clamp(vector2 Input, Min, Max)
@@ -261,6 +265,8 @@ e2function vector2 clamp(vector2 Input, Min, Max)
 end
 
 /******************************************************************************/
+
+__e2setcost(1)
 
 registerFunction("x", "xv2:", "n", function(self, args)
 	local op1 = args[2]
@@ -289,6 +295,8 @@ registerFunction("setY", "xv2:n", "xv2", function(self, args)
 end)
 
 /******************************************************************************/
+
+__e2setcost(5)
 
 registerFunction("round", "xv2", "xv2", function(self, args)
 	local op1 = args[2]
@@ -442,6 +450,8 @@ registerFunction("mix", "xv2xv2n", "xv2", function(self, args)
 	return { x, y }
 end)
 
+__e2setcost(2)
+
 // swap x/y
 registerFunction("shift", "xv2", "xv2", function(self, args)
 	local op1 = args[2]
@@ -467,10 +477,12 @@ end)
 registerFunction("toAngle", "xv2:", "n", function(self, args)
 	local op1 = args[2]
 	local rv1 = op1[1](self, op1)
-	local angle = math.atan2( rv1[2], rv1[1] ) * 180 / 3.14159265
+	local angle = math.atan2( rv1[2], rv1[1] ) * 180 / pi
 	--if (angle < 0) then angle = angle + 180 end
 	return angle
 end)
+
+__e2setcost(5)
 
 e2function string toString(vector2 v)
 	return ("[%s,%s]"):format(v[1],v[2])
@@ -489,7 +501,7 @@ __e2setcost(5)
 
 -- Returns a random vector2 between -1 and 1
 e2function vector2 randvec2()
-	local randomang = random() * math.pi * 2
+	local randomang = random() * pi * 2
 	return { math.cos( randomang ), math.sin( randomang ) }
 end
 
@@ -531,7 +543,7 @@ registerFunction("vec4", "", "xv4", function(self, args)
 	return { 0, 0, 0, 0 }
 end)
 
-__e2setcost(3) -- temporary
+__e2setcost(4)
 
 registerFunction("vec4", "nnnn", "xv4", function(self, args)
 	local op1, op2, op3, op4 = args[2], args[3], args[4], args[5]
@@ -680,7 +692,7 @@ end
 
 /******************************************************************************/
 
-__e2setcost(5) -- temporary
+__e2setcost(7)
 
 registerFunction("length", "xv4:", "n", function(self, args)
 	local op1 = args[2]
@@ -726,7 +738,7 @@ registerFunction("outerProduct", "xv4:xv4", "xm4", function(self, args)
 			 rv1[4] * rv1[1], rv1[4] * rv2[2], rv1[4] * rv2[3], rv1[4] * rv2[4] }
 end)
 
-__e2setcost(5)
+__e2setcost(7)
 
 registerFunction("normalized", "xv4:", "xv4", function(self, args)
 	local op1 = args[2]
@@ -739,6 +751,8 @@ registerFunction("normalized", "xv4:", "xv4", function(self, args)
 	end
 end)
 
+__e2setcost(3)
+
 registerFunction("dehomogenized", "xv4:", "v", function(self, args)
 	local op1 = args[2]
 	local rv1 = op1[1](self, op1)
@@ -746,6 +760,8 @@ registerFunction("dehomogenized", "xv4:", "v", function(self, args)
 	if w == 0 then return { rv1[1], rv1[2], rv1[3] } end
 	return { rv1[1]/w, rv1[2]/w, rv1[3]/w }
 end)
+
+__e2setcost(4)
 
 registerFunction("positive", "xv4", "xv4", function(self, args)
 	local op1 = args[2]
@@ -759,6 +775,8 @@ registerFunction("positive", "xv4", "xv4", function(self, args)
 end)
 
 /******************************************************************************/
+
+__e2setcost(2)
 
 registerFunction("x", "xv4:", "n", function(self, args)
 	local op1 = args[2]
@@ -783,6 +801,8 @@ registerFunction("w", "xv4:", "n", function(self, args)
 	local rv1 = op1[1](self, op1)
 	return rv1[4]
 end)
+
+__e2setcost(3)
 
 // SET methods that returns vectors
 // NOTE: does not change the original vector!
@@ -811,6 +831,8 @@ registerFunction("setW", "xv4:n", "xv4", function(self, args)
 end)
 
 /******************************************************************************/
+
+__e2setcost(9)
 
 registerFunction("round", "xv4", "xv4", function(self, args)
 	local op1 = args[2]
@@ -879,6 +901,8 @@ registerFunction("floor", "xv4n", "xv4", function(self, args)
 	local w = rv1[4] - ((rv1[4] * shf) % 1) / shf
 	return {x, y, z, w}
 end)
+
+__e2setcost(13)
 
 // min/max based on vector length - returns shortest/longest vector
 registerFunction("min", "xv4xv4", "xv4", function(self, args)
@@ -1013,6 +1037,8 @@ registerFunction("mix", "xv4xv4n", "xv4", function(self, args)
 	return {x, y, z, w}
 end)
 
+__e2setcost(4)
+
 // Circular shift function: shiftR( x,y,z,w ) = ( w,x,y,z )
 registerFunction("shiftR", "xv4", "xv4", function(self, args)
 	local op1 = args[2]
@@ -1044,6 +1070,8 @@ registerFunction("inrange", "xv4xv4xv4", "n", function(self, args)
 	return 1
 end)
 
+__e2setcost(5)
+
 // Convert the magnitude of the vector to radians
 e2function vector4 toRad(vector4 xv4)
 	return {xv4[1] * pi / 180, xv4[2] * pi / 180, xv4[3] * pi / 180, xv4[4] * pi / 180}
@@ -1056,7 +1084,7 @@ end
 
 /******************************************************************************/
 
-__e2setcost(5)
+__e2setcost(7)
 
 -- Returns a random vector4 between -1 and 1
 e2function vector4 randvec4()
