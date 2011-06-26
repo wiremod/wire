@@ -107,6 +107,8 @@ end
 
 /******************************************************************************/
 
+__e2setcost(1)
+
 --- Creates a zero quaternion
 e2function quaternion quat()
 	return { 0, 0, 0, 0 }
@@ -132,6 +134,8 @@ e2function quaternion quat(real, i, j, k)
 	return { real, i, j, k }
 end
 
+__e2setcost(6)
+
 --- Converts <ang> to a quaternion
 e2function quaternion quat(angle ang)
 	local p, y, r = ang[1], ang[2], ang[3]
@@ -143,6 +147,8 @@ e2function quaternion quat(angle ang)
 	local qy = {cos(y), 0, 0, sin(y)}
 	return qmul(qy,qmul(qp,qr))
 end
+
+__e2setcost(15)
 
 --- Creates a quaternion given forward (<forward>) and up (<up>) vectors
 e2function quaternion quat(vector forward, vector up)
@@ -188,6 +194,8 @@ e2function quaternion quat(entity ent)
 	return qmul(qy,qmul(qp,qr))
 end
 
+__e2setcost(1)
+
 --- Returns quaternion i
 e2function quaternion qi()
 	return {0, 1, 0, 0}
@@ -220,6 +228,8 @@ end
 
 /******************************************************************************/
 
+__e2setcost(2)
+
 e2function quaternion operator=(quaternion lhs, quaternion rhs)
 	self.vars[lhs] = rhs
 	self.vclk[lhs] = true
@@ -228,6 +238,8 @@ end
 
 /******************************************************************************/
 // TODO: define division as multiplication with (1/x), or is it not useful?
+
+__e2setcost(4)
 
 e2function quaternion operator_neg(quaternion q)
 	return { -q[1], -q[2], -q[3], -q[4] }
@@ -281,6 +293,8 @@ e2function quaternion operator*(quaternion lhs, rhs)
 	return { lhs[1] * rhs, lhs[2] * rhs, lhs[3] * rhs, lhs[4] * rhs }
 end
 
+__e2setcost(6)
+
 e2function quaternion operator*(complex lhs, quaternion rhs)
 	local lhs1, lhs2 = lhs[1], lhs[2]
 	local rhs1, rhs2, rhs3, rhs4 = rhs[1], rhs[2], rhs[3], rhs[4]
@@ -302,6 +316,8 @@ e2function quaternion operator*(quaternion lhs, complex rhs)
 		lhs4 * rhs1 - lhs3 * rhs2
 	}
 end
+
+__e2setcost(9)
 
 e2function quaternion operator*(quaternion lhs, quaternion rhs)
 	local lhs1, lhs2, lhs3, lhs4 = lhs[1], lhs[2], lhs[3], lhs[4]
@@ -381,6 +397,7 @@ e2function quaternion operator/(complex lhs, quaternion rhs)
 	}
 end
 
+__e2setcost(10)
 e2function quaternion operator/(quaternion lhs, quaternion rhs)
 	local lhs1, lhs2, lhs3, lhs4 = lhs[1], lhs[2], lhs[3], lhs[4]
 	local rhs1, rhs2, rhs3, rhs4 = rhs[1], rhs[2], rhs[3], rhs[4]
@@ -392,6 +409,8 @@ e2function quaternion operator/(quaternion lhs, quaternion rhs)
 		(-lhs1 * rhs4 + lhs4 * rhs1 - lhs2 * rhs3 + lhs3 * rhs2)/l
 	}
 end
+
+__e2setcost(4)
 
 e2function quaternion operator^(number lhs, quaternion rhs)
 	if lhs == 0 then return { 0, 0, 0, 0 } end
@@ -405,6 +424,8 @@ e2function quaternion operator^(quaternion lhs, number rhs)
 end
 
 /******************************************************************************/
+
+__e2setcost(6)
 
 e2function number operator==(quaternion lhs, quaternion rhs)
 	local rvd1, rvd2, rvd3, rvd4 = lhs[1] - rhs[1], lhs[2] - rhs[2], lhs[3] - rhs[3], lhs[4] - rhs[4]
@@ -426,6 +447,8 @@ end
 
 /******************************************************************************/
 
+__e2setcost(4)
+
 --- Returns absolute value of <q>
 e2function number abs(quaternion q)
 	return sqrt(q[1]*q[1] + q[2]*q[2] + q[3]*q[3] + q[4]*q[4])
@@ -441,6 +464,8 @@ e2function quaternion inv(quaternion q)
 	local l = q[1]*q[1] + q[2]*q[2] + q[3]*q[3] + q[4]*q[4]
 	return { q[1]/l, -q[2]/l, -q[3]/l, -q[4]/l }
 end
+
+__e2setcost(1)
 
 --- Returns the real component of the quaternion
 e2function number quaternion:real()
@@ -464,6 +489,8 @@ end
 
 /******************************************************************************/
 
+__e2setcost(7)
+
 --- Raises Euler's constant e to the power <q>
 e2function quaternion exp(quaternion q)
 	return qexp(q)
@@ -474,10 +501,14 @@ e2function quaternion log(quaternion q)
 	return qlog(q)
 end
 
+__e2setcost(2)
+
 --- Changes quaternion <q> so that the represented rotation is by an angle between 0 and 180 degrees (by coder0xff)
 e2function quaternion qMod(quaternion q)
 	if q[1]<0 then return {-q[1], -q[2], -q[3], -q[4]} else return {q[1], q[2], q[3], q[4]} end
 end
+
+__e2setcost(13)
 
 --- Performs spherical linear interpolation between <q0> and <q1>. Returns <q0> for <t>=0, <q1> for <t>=1
 e2function quaternion slerp(quaternion q0, quaternion q1, number t)
@@ -498,6 +529,7 @@ e2function quaternion slerp(quaternion q0, quaternion q1, number t)
 end
 
 /******************************************************************************/
+__e2setcost(7)
 
 --- Returns vector pointing forward for <this>
 e2function vector quaternion:forward()
@@ -533,6 +565,7 @@ e2function vector quaternion:up()
 end
 
 /******************************************************************************/
+__e2setcost(9)
 
 --- Returns quaternion for rotation about axis <axis> by angle <ang>
 e2function quaternion qRotation(vector axis, ang)
@@ -583,11 +616,14 @@ e2function vector rotationVector(quaternion q)
 end
 
 /******************************************************************************/
+__e2setcost(3)
 
 --- Converts <q> to a vector by dropping the real component
 e2function vector vec(quaternion q)
 	return { q[2], q[3], q[4] }
 end
+
+__e2setcost(15)
 
 --- Converts <q> to a transformation matrix
 e2function matrix matrix(quaternion q)
@@ -628,7 +664,6 @@ e2function angle quaternion:toAngle()
 end
 
 /******************************************************************************/
-
 --- Formats <q> as a string.
 e2function string toString(quaternion q)
 	return format(q)
@@ -637,3 +672,5 @@ end
 e2function string quaternion:toString()
 	return format(this)
 end
+
+__e2setcost(nil)

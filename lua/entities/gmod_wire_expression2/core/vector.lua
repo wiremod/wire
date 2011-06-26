@@ -364,6 +364,8 @@ registerFunction("positive", "v", "v", function(self, args)
 	return { x, y, z }
 end)
 
+__e2setcost(3)
+
 // Convert the magnitude of the vector to radians
 e2function vector toRad(vector rv1)
 	return Vector(rv1[1] * deg2rad, rv1[2] * deg2rad, rv1[3] * deg2rad)
@@ -375,6 +377,8 @@ e2function vector toDeg(vector rv1)
 end
 
 /******************************************************************************/
+
+__e2setcost(5)
 
 --- Returns a vector in the same direction as <Input>, with a length clamped between <Min> (min) and <Max> (max)
 e2function vector clamp(vector Input, Min, Max)
@@ -435,7 +439,7 @@ end)
 
 /******************************************************************************/
 
-__e2setcost(10)
+__e2setcost(7)
 
 registerFunction("round", "v", "v", function(self, args)
 	local op1 = args[2]
@@ -497,6 +501,8 @@ registerFunction("floor", "vn", "v", function(self, args)
 	local z = rv1[3] - ((rv1[3] * shf) % 1) / shf
 	return {x, y, z}
 end)
+
+__e2setcost(10)
 
 // min/max based on vector length - returns shortest/longest vector
 registerFunction("min", "vv", "v", function(self, args)
@@ -602,6 +608,8 @@ registerFunction("mix", "vvn", "v", function(self, args)
 	return {x, y, z}
 end)
 
+__e2setcost(3)
+
 // Circular shift function: shiftr( x,y,z ) = ( z,x,y )
 registerFunction("shiftR", "v", "v", function(self, args)
 	local op1 = args[2]
@@ -614,6 +622,8 @@ registerFunction("shiftL", "v", "v", function(self, args)
 	local rv1 = op1[1](self, op1)
 	return {rv1[2], rv1[3], rv1[1]}
 end)
+
+__e2setcost(5)
 
 // Returns 1 if the vector lies between (or is equal to) the min/max vectors
 registerFunction("inrange", "vvv", "n", function(self, args)
@@ -632,6 +642,8 @@ registerFunction("inrange", "vvv", "n", function(self, args)
 end)
 
 /******************************************************************************/
+
+__e2setcost(3)
 
 registerFunction("toAngle", "v:", "a", function(self, args)
 	local op1 = args[2]

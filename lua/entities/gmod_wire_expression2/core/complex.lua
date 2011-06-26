@@ -39,6 +39,8 @@ WireLib.registerDebuggerFormat("COMPLEX", format)
 
 /******************************************************************************/
 
+__e2setcost(2)
+
 registerType("complex", "c", { 0, 0 },
 	function(self, input) return { input[1], input[2] } end,
 	nil,
@@ -52,6 +54,8 @@ registerType("complex", "c", { 0, 0 },
 )
 
 /******************************************************************************/
+
+__e2setcost(4)
 
 local function cexp(x,y)
 	return {exp(x)*cos(y), exp(x)*sin(y)}
@@ -82,6 +86,8 @@ local function cdiv(a,b)
 end
 
 /******************************************************************************/
+
+__e2setcost(2)
 
 e2function complex operator=(complex lhs, complex rhs)
 	self.vars[lhs] = rhs
@@ -315,6 +321,8 @@ end
 
 /******************* trigonometric and hyperbolic functions *******************/
 
+__e2setcost(3)
+
 --- Calculates the sine of <z>
 e2function complex sin(complex z)
 	return {sin(z[1])*cosh(z[2]), sinh(z[2])*cos(z[1])}
@@ -351,6 +359,8 @@ e2function complex cot(complex z)
         return cdiv(c,s)
 end
 
+__e2setcost(5)
+
 --- Calculates the inverse sine of <z>
 e2function complex asin(complex z)
         local log1mz2 = clog(1-z[1]*z[1]+z[2]*z[2], 2*z[1]*z[2])
@@ -376,7 +386,16 @@ e2function complex atan(complex z)
         return {flog[2], -flog[1]}
 end
 
+__e2setcost(2)
+
+--- Calculates the principle value of <z>
+e2function number atan2(complex z)
+	return atan2(z[2], z[1])
+end
+
 -- ******************** hyperbolic functions *********************** --
+
+__e2setcost(4)
 
 --- Calculates the hyperbolic tangent of <z>
 e2function complex tanh(complex z)
@@ -393,6 +412,8 @@ e2function complex coth(complex z)
         c = {cosh(z[1])*cos(z[2]), sinh(z[1])*sin(z[2])}
         return cdiv(c,s)
 end
+
+__e2setcost(3)
 
 --- Calculates the secant of <z>
 e2function complex sec(complex z)
@@ -424,6 +445,8 @@ end
 
 /******************************************************************************/
 
+__e2setcost(15)
+
 --- Formats <z> as a string.
 e2function string toString(complex z)
 	return format(z)
@@ -431,3 +454,5 @@ end
 e2function string complex:toString()
 	return format(this)
 end
+
+__e2setcost(nil)

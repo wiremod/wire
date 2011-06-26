@@ -389,6 +389,17 @@ e2function number perf()
 	return 1
 end
 
+e2function number perf(number n)
+	n = math.Clamp(n, 0, 100)
+	if self.prf + self.prfcount >= (e2_hardquota-e2_tickquota) * n * 0.01 then return 0 end
+	if n == 100 then
+		if self.prf >= e2_softquota * 2 then return 0 end
+	else
+		if self.prf >= e2_softquota * n * 0.01 then return 0 end
+	end
+	return 1
+end
+
 e2function number minquota()
 	if self.prf < e2_softquota then
 		return floor(e2_softquota - self.prf)
@@ -410,6 +421,14 @@ e2function number maxquota()
 	else
 		return 0
 	end
+end
+
+e2function number softQuota()
+	return e2_softquota
+end
+
+e2function number hardQuota()
+	return e2_hardquota
 end
 
 __e2setcost(nil)

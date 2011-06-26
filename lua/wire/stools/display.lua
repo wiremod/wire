@@ -941,9 +941,10 @@ do -- Holography--
 					return false
 				end
 			else
-				if (self.Target == ent) then
+				if (self.Target == ent or ent:IsWorld()) then
 					self:GetOwner():ChatPrint("Holoemitter unlinked.")
 					self.Target:UnLink()
+					self:SetStage(0)
 					return true
 				end
 				self.Target:Link( ent )

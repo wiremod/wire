@@ -230,7 +230,7 @@ end
 -- Operators
 --------------------------------------------------------------------------------
 
-__e2setcost(5) -- temporary
+__e2setcost(5)
 
 e2function table operator=(table lhs, table rhs)
 	if (checkdepth( rhs, 0, false ) > maxdepth()) then
@@ -309,7 +309,7 @@ end)
 -- Common functions
 --------------------------------------------------------------------------------
 
-__e2setcost(20)
+__e2setcost(1)
 
 -- Creates an table
 e2function table table(...)
@@ -341,7 +341,7 @@ e2function table table(...)
 	return ret
 end
 
-__e2setcost(5)
+__e2setcost(1)
 
 -- Erases everything in the table
 e2function void table:clear()
@@ -355,7 +355,7 @@ e2function void table:clear()
 	return this
 end
 
-__e2setcost(2)
+__e2setcost(1)
 
 -- Returns the number of elements in the table
 e2function number table:count()
@@ -367,7 +367,7 @@ e2function number table:depth()
 	return this.depth
 end
 
-__e2setcost(10)
+__e2setcost(3)
 
 -- Returns the parent of the table
 e2function table table:parent()
@@ -383,7 +383,7 @@ e2function number table:exists( string index )
 	return this.s[index] != nil and 1 or 0
 end
 
-__e2setcost(15)
+__e2setcost(5)
 
 e2function void printTable( table tbl )
 	if (not checkOwner(self)) then return; end
@@ -399,7 +399,7 @@ e2function void printTable( table tbl )
 	end
 end
 
-__e2setcost(20)
+__e2setcost(5)
 
 -- Flip the numbers and strings of the table
 e2function table table:flip()
@@ -420,8 +420,6 @@ e2function table table:flip()
 	return ret
 end
 
-__e2setcost(20)
-
 -- Returns an table with the typesids of both the array- and table-parts
 e2function table table:typeids()
 	local ret = table.Copy(DEFAULT)
@@ -437,8 +435,6 @@ e2function table table:typeids()
 	self.prf = self.prf + this.size * opcost
 	return ret
 end
-
-__e2setcost(15)
 
 -- Remove a variable at a number index
 e2function void table:remove( number index )
@@ -459,8 +455,6 @@ e2function void table:remove( string index )
 	this.size = this.size - 1
 	self.vclk[this] = true
 end
-
-__e2setcost(20)
 
 -- Removes all variables not of the type
 e2function table table:clipToTypeid( string typeid )
@@ -517,20 +511,20 @@ e2function table table:clipFromTypeid( string typeid )
 	return ret
 end
 
-__e2setcost(50)
+__e2setcost(10)
 
 e2function table table:clone()
 	self.prf = self.prf + this.size * opcost
 	return table.Copy(this)
 end
 
-__e2setcost(5)
+__e2setcost(1)
 
 e2function string table:id()
 	return tostring(this)
 end
 
-__e2setcost(20)
+__e2setcost(5)
 
 -- Formats the table as a human readable string
 e2function string table:toString()
@@ -539,8 +533,6 @@ e2function string table:toString()
 	self.prf = self.prf + cost * opcost
 	return ret
 end
-
-__e2setcost(40)
 
 -- Adds rv2 to the end of 'this' (adds numerical indexes to the end of the array-part, and only inserts string indexes that don't exist on rv1)
 e2function table table:add( table rv2 )
@@ -678,18 +670,27 @@ end
 -- Array-part-only functions
 --------------------------------------------------------------------------------
 
-__e2setcost(10)
+__e2setcost(3)
 
 -- Removes the last element in the array part
 e2function void table:pop()
 	local n = #this.n
 	if (n == 0) then return end
 	this.n[n] = nil
+	this.ntypes[n] = nil
 	this.size = this.size - 1
 	self.vclk[this] = true
 end
 
-__e2setcost(10)
+-- Removes the first emelemt in the array part
+e2function void table:shift()
+	table.remove( this.n, 1 )
+	table.remove( this.ntypes, 1 )
+	this.size = this.size - 1
+	self.vclk[this] = true
+end
+
+__e2setcost(5)
 
 -- Returns the smallest number in the array-part
 e2function number table:min()
@@ -763,8 +764,6 @@ e2function number table:minIndex()
 	return index
 end
 
-__e2setcost(20)
-
 -- Returns the types of the variables in the array-part
 e2function array table:typeidsArray()
 	if (IsEmpty(this.n)) then return {} end
@@ -801,7 +800,7 @@ e2function table findToTable()
 	return ret
 end
 
-__e2setcost(15)
+__e2setcost(5)
 
 e2function string table:concat()
 	self.prf = self.prf + #this.n * opcost
@@ -825,7 +824,7 @@ end
 -- Table-part-only functions
 --------------------------------------------------------------------------------
 
-__e2setcost(20)
+__e2setcost(5)
 
 --------------------------------------------------------------------------------
 -- Backwards compatibility functions (invert & co.)
@@ -981,7 +980,7 @@ registerCallback( "postinit", function()
 		-- Set/Get functions, t[index,type] syntax
 		--------------------------------------------------------------------------------
 
-		__e2setcost(10)
+		__e2setcost(5)
 
 		-- Getters
 		registerOperator("idx",	id.."=ts"		, id, function(self,args)
@@ -1051,7 +1050,7 @@ registerCallback( "postinit", function()
 		-- Remove functions
 		--------------------------------------------------------------------------------
 
-		__e2setcost(15)
+		__e2setcost(8)
 
 		local function removefunc( self, rv1, rv2, numidx )
 			if (!rv1 or !rv2) then return fixdef(v[2]) end
@@ -1091,6 +1090,7 @@ registerCallback( "postinit", function()
 		--------------------------------------------------------------------------------
 		-- Array functions
 		--------------------------------------------------------------------------------
+		__e2setcost(10)
 
 		-- Push a variable into the table (into the array part)
 		registerFunction( "push"..name,"t:"..id,"",function(self,args)

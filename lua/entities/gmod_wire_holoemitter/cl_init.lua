@@ -70,19 +70,25 @@ function ENT:Think()
 	local p = LocalPlayer():GetPos()
 	self:SetRenderBoundsWS( p - self.RBound, p + self.RBound )
 
+	local cvarnum = cvar:GetFloat()
+
 	local removetable = {}
 	for k,v in ipairs( self.Points ) do
 		if (k == #self.Points and keeplatest:GetBool()) then continue end
 		if (v.DieTime and v.DieTime < CurTime()) then
 			removetable[#removetable+1] = k
 			if (self.Points[k-1]) then self.Points[k-1].LineBeam = false end -- Don't draw to this point anymore
-		elseif (cvar:GetFloat() != 0) then -- If the client changes the max fade time later on
-			if (v.SpawnTime + cvar:GetFloat() < CurTime()) then
+		elseif (cvarnum != 0) then -- If the client changes the max fade time later on
+			if (v.SpawnTime + cvarnum < CurTime()) then
 				removetable[#removetable+1] = k
 				if (self.Points[k-1]) then self.Points[k-1].LineBeam = false end -- Don't draw to this point anymore
 			end
 		end
-		v.Color.a = 255-(CurTime()-v.SpawnTime)/(v.DieTime-v.SpawnTime)*255 -- Set alpha
+		if v.DieTime then
+			v.Color.a = 255-(CurTime()-v.SpawnTime)/(v.DieTime-v.SpawnTime)*255 -- Set alpha
+		elseif cvarnum ~= 0 then
+			v.Color.a = 255-(CurTime()-v.SpawnTime)/((v.SpawnTime + cvarnum)-v.SpawnTime)*255 -- Set alpha
+		end
 	end
 	for k,v in ipairs( removetable ) do
 		table.remove( self.Points, v )
