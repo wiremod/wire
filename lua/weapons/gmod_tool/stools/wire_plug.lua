@@ -174,6 +174,7 @@ function TOOL:LeftClick( trace )
 		end
 	end
 	if (CLIENT) then return true end
+	if not util.IsValidPhysicsObject( trace.Entity, trace.PhysicsBone ) then return false end
 
 	local ply = self:GetOwner()
 	local socketmodel, plugmodel = self:GetModel()
@@ -250,6 +251,7 @@ function TOOL:RightClick( trace )
 		end
 	end
 	if (CLIENT) then return true end
+	if not util.IsValidPhysicsObject( trace.Entity, trace.PhysicsBone ) then return false end
 
 	local ply = self:GetOwner()
 	local socketmodel, plugmodel = self:GetModel()

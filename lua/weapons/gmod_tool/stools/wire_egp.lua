@@ -76,7 +76,7 @@ if (SERVER) then
 	duplicator.RegisterEntityClass("gmod_wire_egp_emitter",SpawnEmitter,"Pos","Ang" )
 
 	function TOOL:LeftClick( trace )
-		if (trace.Entity and trace.Entity:IsPlayer()) then return false end
+		if not util.IsValidPhysicsObject( trace.Entity, trace.PhysicsBone ) then return false end
 		local ply = self:GetOwner()
 		if (!ply:CheckLimit( "wire_egps" )) then return false end
 

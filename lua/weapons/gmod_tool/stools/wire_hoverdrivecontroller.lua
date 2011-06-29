@@ -54,7 +54,7 @@ if (SERVER) then
 	end
 
 	function TOOL:LeftClick( trace )
-		if (!trace) then return false end
+		if not util.IsValidPhysicsObject( trace.Entity, trace.PhysicsBone ) then return false end
 		local ply = self:GetOwner()
 
 		if trace.Entity and trace.Entity:GetClass() == "gmod_wire_hoverdrivecontroler" then

@@ -41,7 +41,7 @@ if SERVER then
 	CreateConVar('sbox_maxwire_expressions', 20)
 
 	function TOOL:LeftClick(trace)
-		if trace.Entity:IsPlayer() then return false end
+		if not util.IsValidPhysicsObject( trace.Entity, trace.PhysicsBone ) then return false end
 
 		local player = self:GetOwner()
 

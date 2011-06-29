@@ -75,7 +75,7 @@ if (SERVER) then
 	end
 
 	function TOOL:LeftClick( trace )
-		if (!trace) then return end
+		if (not util.IsValidPhysicsObject( trace.Entity, trace.PhysicsBone )) then return end
 		local ply = self:GetOwner()
 
 		local ent = self:CreateMarker( ply, trace, self:GetModel() )

@@ -31,6 +31,7 @@ cleanup.Register( "wire_gyroscopes" )
 function TOOL:LeftClick( trace )
 	if trace.Entity && trace.Entity:IsPlayer() then return false end
 	if (CLIENT) then return true end
+	if not util.IsValidPhysicsObject( trace.Entity, trace.PhysicsBone ) then return false end
 
 	local ply = self:GetOwner()
 

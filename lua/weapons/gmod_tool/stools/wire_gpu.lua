@@ -78,7 +78,7 @@ if SERVER then
   -- Left click: spawn GPU or upload current program into it
   ------------------------------------------------------------------------------
   function TOOL:LeftClick(trace)
-    if trace.Entity:IsPlayer() then return false end
+	if not util.IsValidPhysicsObject( trace.Entity, trace.PhysicsBone ) then return false end
 
     local player = self:GetOwner()
     local model = self:GetClientInfo("model")
