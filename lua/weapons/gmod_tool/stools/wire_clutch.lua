@@ -195,6 +195,7 @@ function TOOL:LeftClick( trace )
 
 	if trace.Entity:IsValid() and trace.Entity:IsPlayer() then return end
 	if CLIENT then return true end
+	if not util.IsValidPhysicsObject( trace.Entity, trace.PhysicsBone ) then return false end
 
 	// Select an existing controller
 	if IsValid( trace.Entity ) and trace.Entity:GetClass() == "gmod_wire_clutch" then

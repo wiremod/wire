@@ -44,7 +44,7 @@ WireToolObj.Tab			= "Wire"
 
 -- optional LeftClick tool function for basic tools that just place/weld a device [default]
 function WireToolObj:LeftClick( trace )
-	if not trace.HitPos or trace.Entity:IsPlayer() or trace.Entity:IsNPC() then return false end
+	if not trace.HitPos or trace.Entity:IsPlayer() or trace.Entity:IsNPC() or (SERVER and not util.IsValidPhysicsObject( trace.Entity, trace.PhysicsBone )) then return false end
 	if self.NoLeftOnClass and trace.HitNonWorld and (trace.Entity:GetClass() == self.WireClass or NoGhostOn(self, trace)) or (SERVER and trace.Entity:GetClass() == self.WireClass and trace.Entity.pl ~= self:GetOwner()) then return false end
 
 	if CLIENT then return true end

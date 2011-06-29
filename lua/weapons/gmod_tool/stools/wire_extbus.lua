@@ -22,6 +22,7 @@ cleanup.Register( "wire_extbuss" )
 function TOOL:LeftClick( trace )
 	if trace.Entity:IsPlayer() then return false end
 	if (CLIENT) then return true end
+	if not util.IsValidPhysicsObject( trace.Entity, trace.PhysicsBone ) then return false end
 
 	local ply = self:GetOwner()
 
@@ -52,12 +53,6 @@ function TOOL:LeftClick( trace )
 
 	ply:AddCleanup( "wire_extbuss", wire_extbus )
 
-	return true
-end
-
-function TOOL:RightClick( trace )
-	if trace.Entity:IsPlayer() then return false end
-	if (CLIENT) then return true end
 	return true
 end
 
