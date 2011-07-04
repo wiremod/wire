@@ -199,3 +199,20 @@ registerCallback("postinit", function()
 		end
 	end
 end)
+
+/******************************************************************************/
+
+__e2setcost( 5 )
+
+local getHash = E2Lib.getHash
+e2function number hash()
+	return getHash( self, self.entity.original )
+end
+
+e2function number hashNoComments()
+	return getHash( self, self.entity.buffer )
+end
+
+e2function number hash( string str )
+	return getHash( self, str )
+end
