@@ -89,7 +89,7 @@ end
 ------------------------------------------------
 -- gTable
 ------------------------------------------------
-__e2setcost(20)
+__e2setcost(1)
 
 e2function gtable gTable( string groupname )
 	if (!gvars[self.uid][groupname]) then gvars[self.uid][groupname] = {} end
@@ -97,16 +97,27 @@ e2function gtable gTable( string groupname )
 end
 
 e2function gtable gTable( string groupname, number shared )
-	if (shared == 1) then
-		if (!gvars.shared[groupname]) then gvars.shared[groupname] = {} end
-		return gvars.shared[groupname]
-	else
+	if shared == 0 then
 		if (!gvars[self.uid][groupname]) then gvars[self.uid][groupname] = {} end
 		return gvars[self.uid][groupname]
+	else
+		if (!gvars.shared[groupname]) then gvars.shared[groupname] = {} end
+		return gvars.shared[groupname]
 	end
 end
 
-__e2setcost(10)
+e2function gtable gTableSafe( number shared )
+	local hash = getHash( self, self.entity.buffer )
+	if shared == 0 then
+		if not gvars[self.uid][hash] then gvars[self.uid][hash] = {} end
+		return gvars[self.uid][hash]
+	else
+		if not gvars.shared[hash] then gvars.shared[hash] = {} end
+		return gvars.shared[hash]
+	end
+end
+
+__e2setcost(5)
 
 -- Clear the non-shared table
 e2function void gRemoveAll()
@@ -147,7 +158,6 @@ registerCallback("postinit",function()
 			if (k == "NORMAL") then k = "NUMBER" end
 			k = upperfirst(k)
 
-			__e2setcost(10)
 
 			-- Table[index,type] functions
 			local function getf( self, args )
@@ -175,7 +185,6 @@ registerCallback("postinit",function()
 			registerOperator("idx", v[1].."=xgtn"..v[1], v[1], setf) -- G[N,type] (same as G[N:toString(),type])
 			------
 
-			__e2setcost(15)
 			--gRemove* -- Remove the variable at the specified index and return it
 			registerFunction("remove"..k,"xgt:s",v[1],function(self,args)
 				local op1, op2 = args[2], args[3]
@@ -190,11 +199,11 @@ registerCallback("postinit",function()
 				return default
 			end)
 
-			__e2setcost(50)
 			-- gRemoveAll*() - Remove all variables of a type in the player's non-shared table
 			registerFunction("gRemoveAll"..k.."s","","",function(self,args)
 				for k2,v2 in pairs( gvars[self.uid] ) do
 					for k3, v3 in pairs( v2 ) do
+						self.prf = self.prf + 0.3
 						if (string.Left(k3,#v[1]) == v[1]) then
 							gvars[self.uid][k2][k3] = nil
 							--v3 = nil
@@ -203,13 +212,13 @@ registerCallback("postinit",function()
 				end
 			end)
 
-			__e2setcost(25)
 			-- gRemoveAll*(S) - Remove all variables of a type in the player's non-shared table in the specified group
 			registerFunction("gRemoveAll"..k.."s","s","",function(self,args)
 				local op1 = args[2]
 				local rv1 = op1[1](self,op1)
 				if (gvars[self.uid][rv1]) then
 					for k2,v2 in pairs( gvars[self.uid][rv1] ) do
+						self.prf = self.prf + 0.3
 						if (string.Left(k2,#v[1]) == v[1]) then
 							gvars[self.uid][rv1][k2] = nil
 							--v2 = nil
@@ -229,7 +238,7 @@ end) -- postinit
 ------------------------------------------------
 -- Group management
 ------------------------------------------------
-__e2setcost(4)
+__e2setcost(1)
 
 e2function void gSetGroup( string groupname )
 	self.data.gvars.group = groupname
@@ -275,7 +284,7 @@ registerCallback("postinit",function()
 
 	for k,v in pairs( types ) do
 
-		__e2setcost(10)
+		__e2setcost(8)
 
 		-- gSet*(S,*)
 		registerFunction("gSet"..k,"s"..v[1],"",function(self,args)
@@ -341,8 +350,6 @@ registerCallback("postinit",function()
 			end
 		end)
 
-		__e2setcost(20)
-
 		-- gDelete*(S)
 		registerFunction("gDelete"..k,"s",v[1],function(self,args)
 			local op1 = args[2]
@@ -395,11 +402,12 @@ registerCallback("postinit",function()
 			return default
 		end)
 
-		__e2setcost(25)
+		__e2setcost(5)
 
 		-- gDeleteAll*()
 		registerFunction("gDeleteAll"..k,"","",function(self,args)
 			for k,v in pairs( gvars[self.uid][self.data.gvars.group] ) do
+				self.prf = self.prf + 0.3
 				if (string.Left(k,#v[1]) == v[1]) then
 					v = nil
 				end
