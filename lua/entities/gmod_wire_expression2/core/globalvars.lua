@@ -106,6 +106,7 @@ e2function gtable gTable( string groupname, number shared )
 	end
 end
 
+local getHash = E2Lib.getHash
 e2function gtable gTableSafe( number shared )
 	local hash = getHash( self, self.entity.buffer )
 	if shared == 0 then
