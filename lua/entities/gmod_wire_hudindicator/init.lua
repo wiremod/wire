@@ -186,6 +186,7 @@ end
 
 // Is this player registered only because he is in a linked pod?
 function ENT:CheckPodOnly(ply)
+	if not ply or not ply:IsValid() then return false end
 	local plyuid = ply:UniqueID()
 	return (self.RegisteredPlayers[plyuid] != nil && self.RegisteredPlayers[plyuid].podonly)
 end
@@ -219,7 +220,7 @@ function ENT:ShowOutput(factor, value)
 
 		// RecipientFilter will contain all registered players
 		for index,rplayer in pairs(self.RegisteredPlayers) do
-			if (rplayer.ply) then
+			if (rplayer.ply and rplayer.ply:IsValid()) then
 				if (rplayer.ply != pl || (self.ShowInHUD || self.PodPly == pl)) then
 					rf:AddPlayer(rplayer.ply)
 				end
@@ -304,7 +305,7 @@ function ENT:Think()
 	if (self.Pod && self.Pod:IsValid()) then
 		local ply = nil
 
-		if (!self.PodPly || self.PodPly:GetVehicle() != self.Pod) then
+		if (!self.PodPly or not self.PodPly:IsValid() || self.PodPly:GetVehicle() != self.Pod) then
 			for k,v in pairs(player.GetAll()) do
 				if (v:GetVehicle() == self.Pod) then
 					ply = v

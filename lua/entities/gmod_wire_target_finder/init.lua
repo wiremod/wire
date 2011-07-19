@@ -227,7 +227,7 @@ function ENT:Think()
 			local class = contact:GetClass()
 			if (not self.NoTargetOwnersStuff or (class == "player") or (contact:GetOwner() ~= self:GetPlayer() and not self:checkOwnership(contact))) and (
 				-- NPCs
-				((self.TargetNPC) and (string.match(class, "^npc_.*")) and (class ~= "npc_heli_avoidsphere") and (self:FindInValue(class,self.NPCName))) or
+				((self.TargetNPC) and (contact:IsNPC()) and (self:FindInValue(class,self.NPCName))) or
 				--Players
 				((self.TargetPlayer) and (class == "player") and (!self.NoTargetOwner or self:GetPlayer() != contact) and self:FindInValue(contact:GetName(),self.PlayerName,self.CaseSen) and self:FindInValue(contact:SteamID(),self.SteamName) and self:FindColor(contact) and self:CheckTheBuddyList(contact)) or
 				--Locators
@@ -241,7 +241,7 @@ function ENT:Think()
 				-- Props
 				((self.TargetProps) and (class == "prop_physics") and (self:FindInValue(contact:GetModel(),self.PropModel))) or
 				-- Vehicles
-				((self.TargetVehicles) and (string.match(class, "prop_vehicle"))) or
+				((self.TargetVehicles) and (contact:IsVehicle())) or
 				-- Entity classnames
 				(self.EntFil ~= "" and self:FindInValue(class,self.EntFil)))
 			then
@@ -249,7 +249,7 @@ function ENT:Think()
 				if (dist >= self.MinRange) then
 					//put targets in a table index by the distance from the finder
 					bogeys[dist] = contact
-					table.insert(dists,dist)
+					dists[#dists+1] = dist
 				end
 			end
 		end
