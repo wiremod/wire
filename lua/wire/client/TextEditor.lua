@@ -63,6 +63,8 @@ function EDITOR:Init()
 	self.TextEntry.Parent = self
 
 	self.LastClick = 0
+
+	self.e2fs_functions = {}
 end
 
 function EDITOR:GetParent()
@@ -1028,127 +1030,6 @@ function EDITOR:Find( str, looped )
 	end
 	return false
 end
-
-
---[[ Other find function which can't find matches across line breaks
-function EDITOR:Find( str, stoploop )
-	if (stoploop and stoploop == 2) then error("String exists, but we cannot find it. Is it on a line break?") return false end
-	if (str == "") then return end
-
-	local use_patterns = wire_expression2_editor_find_use_patterns:GetBool()
-	local ignore_case = wire_expression2_editor_find_ignore_case:GetBool()
-	local whole_word_only = wire_expression2_editor_find_whole_word_only:GetBool()
-	local wrap_around = wire_expression2_editor_find_wrap_around:GetBool()
-	local dir = wire_expression2_editor_find_dir:GetBool()
-
-	local text = self:GetValue()
-	if (ignore_case) then
-		text = text:lower()
-		str = str:lower()
-	end
-	local _start,_stop = text:find( str, 1, !use_patterns )
-	if (!_start or !_stop) then return false end
-
-	if (dir) then -- Down
-
-		-- Init offset
-		local offset = self.Start[2]+1
-
-		local line_lengths = {}
-
-		for i=self.Start[1],#self.Rows do -- Loop through all lines below curY & curY itself
-
-			-- Get current line
-			local line = self.Rows[i]
-			if (ignore_case) then line = line:lower() end
-			local linelen = #line
-			line_lengths[i] = linelen
-
-			for j=1,100 do
-				if (offset > linelen) then break end -- Loop until offset is larger than the line length
-
-				-- Attempt to find..
-				local start, stop = line:find( str, offset, !use_patterns )
-				if (start and stop) then -- If found
-					offset = start+1
-
-					-- Check for whole word match
-					if (!whole_word_only or (start == self:getWordStart( {i,start+1} )[2] and stop+1 == self:getWordEnd( {i,start+1} )[2])) then
-						self.Start = self:CopyPosition( { i, start } )
-						self.Caret = self:CopyPosition( { i, stop+1 } )
-						self:ScrollCaret()
-						return true
-					end
-
-				else
-					break
-				end
-			end
-			offset = 1
-		end
-
-		if (wrap_around) then
-			self.Start = {1,1}
-			self.Caret = {1,1}
-			return self:Find( str, (stoploop or 0) + 1 )
-		end
-	else -- Up
-		-- Init offset
-		local offset = 1
-
-		for i=self.Start[1],1,-1 do -- Loop through all lines above curY & curY
-
-			-- Get current line
-			local line = self.Rows[i]
-			if (ignore_case) then line = line:lower() end
-			local linelen = #line
-
-			local found
-
-			for j=1,100 do
-				if (offset > linelen) then break end -- Loop until offset is larger than the line length
-
-				-- Attempt to find..
-				local start, stop = line:find( str, offset, !use_patterns )
-				if (start and stop) then -- If found
-					offset = start+1
-
-					if i == self.Start[1] and start >= self.Start[2] then
-						break
-					end
-
-					-- Check for whole word match
-					if (!whole_word_only or (start == self:getWordStart( {i,start+1} )[2] and stop+1 == self:getWordEnd( {i,start+1} )[2])) then
-						found = { i, start, stop+1 }
-					end
-
-				else
-					break
-				end
-			end
-
-			if found then
-				self.Start = self:CopyPosition( { found[1], found[2] } )
-				self.Caret = self:CopyPosition( { found[1], found[3] } )
-				self:ScrollCaret()
-				return true
-			end
-
-
-			offset = 1
-		end
-
-		if (wrap_around) then
-			self.Start = {#self.Rows,#self.Rows[#self.Rows]}
-			self.Caret = {1,1}
-			return self:Find( str, (stoploop or 0) + 1 )
-		end
-	end
-
-
-	return false
-end
-]]
 
 function EDITOR:Replace( str, replacewith )
 	if (str == "" or str == replacewith) then return end
@@ -3068,6 +2949,12 @@ function EDITOR:ResetTokenizer(row)
 	self.position = 0
 	self.character = ""
 	self.tokendata = ""
+
+	for k,v in pairs( self.e2fs_functions ) do
+		if v == row then
+			self.e2fs_functions[k] = nil
+		end
+	end
 end
 
 function EDITOR:NextCharacter()
@@ -3145,6 +3032,8 @@ do -- E2 Syntax highlighting
 		["else"]     = { [true] = true },
 		["break"]    = { [true] = true },
 		["continue"] = { [true] = true },
+		//["function"] = { [true] = true },
+		["return"] = { [true] = true },
 	}
 
 	-- fallback for nonexistant entries:
@@ -3172,6 +3061,7 @@ do -- E2 Syntax highlighting
 		["ppcommand"] = { Color(240,  96, 240), false}, -- purple
 		["typename"]  = { Color(240, 160,  96), false}, -- orange
 		["constant"]  = { Color(240, 160, 240), false}, -- pink
+		["e2fs"]	  = { Color(102, 122, 102), false}, --
 	}
 
 	function EDITOR:SetSyntaxColors( col )
@@ -3209,6 +3099,7 @@ do -- E2 Syntax highlighting
 
 		-- 0=name 1=port 2=trigger 3=foreach
 		local highlightmode = nil
+
 		if self.blockcomment then
 			if self:NextPattern(".-]#") then
 				self.blockcomment = nil
@@ -3245,7 +3136,143 @@ do -- E2 Syntax highlighting
 
 			-- parse the rest like regular code
 			cols = {{ self.tokendata, colors.directive }}
+
+		elseif self:NextPattern("function") then --Thanks to divran!
+			addToken( "keyword", "function" ) -- Add "function"
+			self.tokendata = "" -- Reset tokendata
+
+			local spaces = self:SkipPattern( " *" )
+			if spaces then addToken( "comment", spaces ) end
+
+			if self:NextPattern( "[a-z][a-zA-Z0-9]*%s%s*[a-z][a-zA-Z0-9]*:[a-z][a-zA-Z0-9]*" ) then -- Everything specified (returntype typeindex:funcname)
+				local returntype, spaces, typeindex, funcname = self.tokendata:match( "([a-z][a-zA-Z0-9]*)(%s%s*)([a-z][a-zA-Z0-9]*):([a-z][a-zA-Z0-9]*)" )
+
+				if istype( returntype ) or returntype == "void" then
+					addToken( "typename", returntype )
+				else
+					addToken( "notfound", returntype )
+				end
+				addToken( "comment", spaces )
+				if istype( typeindex ) then
+					addToken( "typename", typeindex )
+				else
+					addToken( "notfound", typeindex )
+				end
+				addToken( "operator", ":" )
+				addToken( "e2fs", funcname )
+
+				if not wire_expression2_funclist[funcname] then
+					self.e2fs_functions[funcname] = row
+				end
+
+				self.tokendata = ""
+			elseif self:NextPattern( "[a-z][a-zA-Z0-9]*%s%s*[a-z][a-zA-Z0-9]*" ) then -- returntype funcname
+				local returntype, spaces, funcname = self.tokendata:match( "([a-z][a-zA-Z0-9]*)(%s%s*)([a-z][a-zA-Z0-9]*)" )
+
+				if istype( returntype ) or returntype == "void" then
+					addToken( "typename", returntype )
+				else
+					addToken( "notfound", returntype )
+				end
+				addToken( "comment", spaces )
+				if istype( funcname ) then -- Hey... this isn't a function name! :O
+					addToken( "typename", funcname )
+				else
+					addToken( "e2fs", funcname )
+				end
+
+				if not wire_expression2_funclist[funcname] then
+					self.e2fs_functions[funcname] = row
+				end
+
+				self.tokendata = ""
+			elseif self:NextPattern( "[a-z][a-zA-Z0-9]*:[a-z][a-zA-Z0-9]*" ) then -- typeindex:funcname
+				local typeindex, funcname = self.tokendata:match( "([a-z][a-zA-Z0-9]*):([a-z][a-zA-Z0-9]*)" )
+
+				if istype( typeindex ) then
+					addToken( "typename", typeindex )
+				else
+					addToken( "notfound", typeindex )
+				end
+				addToken( "operator", ":" )
+				addToken( "e2fs", funcname )
+
+				if not wire_expression2_funclist[funcname] then
+					self.e2fs_functions[funcname] = row
+				end
+
+				self.tokendata = ""
+			elseif self:NextPattern( "[a-z][a-zA-Z0-9]*" ) then -- funcname
+				local funcname = self.tokendata:match( "[a-z][a-zA-Z0-9]*" )
+
+				if istype( funcname ) or funcname == "void" then -- Hey... this isn't a function name! :O
+					addToken( "typename", funcname )
+				else
+					addToken( "e2fs", funcname )
+
+					if not wire_expression2_funclist[funcname] then
+						self.e2fs_functions[funcname] = row
+					end
+				end
+
+				self.tokendata = ""
+			end
+
+			if self:NextPattern( "%(" ) then -- We found a bracket
+				-- Color the bracket
+				addToken( "operator", self.tokendata )
+
+				local abort = false
+				while self.character and self.character ~= ")" do -- Loop until ending bracket
+					self.tokendata = ""
+
+					local spaces = self:SkipPattern( " *" )
+					if spaces then addToken( "comment", spaces ) end
+
+					if self:NextPattern( "[A-Z][a-zA-Z0-9_]*" ) then -- If we found a variable
+						-- Color the variable
+						addToken( "variable", self.tokendata )
+						self.tokendata = ""
+
+						if self:NextPattern( ":" ) then -- Check for the colon
+							-- Color the colon
+							addToken( "operator", ":" )
+							self.tokendata = ""
+						else
+							abort = true
+							break
+						end
+
+						-- Find the type
+						if self:NextPattern( "[a-z][a-zA-Z0-9_]*" ) then
+							if istype( self.tokendata ) or self.tokendata == "void" then -- If it's a type
+								addToken( "typename", self.tokendata )
+							else -- aww
+								addToken( "notfound", self.tokendata )
+							end
+						else
+							abort = true
+							break
+						end
+					else
+						abort = true
+						break
+					end
+
+					local spaces = self:SkipPattern( " *" )
+					if spaces then addToken( "comment", spaces ) end
+
+					-- If we found a comma, skip it
+					if self.character == "," then addToken( "operator", "," ) self:NextCharacter() end
+				end
+			end
+
+			self.tokendata = ""
+			if self:NextPattern( "%) *{?" ) then -- check for ending bracket (and perhaps an ending {?)
+				addToken( "operator", self.tokendata )
+			end
 		end
+
 		while self.character do
 			local tokenname = ""
 			self.tokendata = ""
@@ -3297,6 +3324,10 @@ do -- E2 Syntax highlighting
 						if sstr == "foreach" then highlightmode = 3 end
 					elseif wire_expression2_funclist[sstr] then
 						tokenname = "function"
+
+					elseif self.e2fs_functions[sstr] then
+						tokenname = "e2fs"
+
 					else
 						tokenname = "notfound"
 

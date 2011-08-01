@@ -447,6 +447,272 @@ function Parser:Stmt8()
 end
 
 function Parser:Stmt9()
+
+	//--Function Statment
+	if ( self:AcceptRoamingToken("func") ) then
+
+		local Trace = self:GetTokenTrace()
+
+
+		if self.in_func then self:Error("Functions can not be created from inside other functions") end
+
+
+		local Name,Return,Type
+		local NameToken,ReturnToken,TypeToken
+		local Args,Temp,Arg = {},{},1
+
+
+		-- Errors are handeled after line 49, both 'fun' and 'var' tokens are used for accurate error reports.
+		if self:AcceptRoamingToken("fun") or self:AcceptRoamingToken("var") or self:AcceptRoamingToken("void") then --get the name
+			Name = self:GetTokenData()
+			NameToken = self.token -- Copy the current token for error reporting
+
+			-- We check if the previous token was actualy the return not the name
+			if self:AcceptRoamingToken("fun") or self:AcceptRoamingToken("var") or self:AcceptRoamingToken("void") then
+				Return = Name
+				ReturnToken = NameToken
+
+				Name = self:GetTokenData()
+				NameToken = self.token
+			end
+
+			-- We check if the name token is actualy the type
+			if self:AcceptRoamingToken("col") then
+				if self:AcceptRoamingToken("fun") or self:AcceptRoamingToken("var") then
+					Type = Name
+					TypeToken = NameToken
+
+					Name = self:GetTokenData()
+					NameToken = self.token
+				else
+					self:Error("Function name must appear after colon (:)")
+				end
+			end
+		end
+
+
+		if Return and Return != "void" then -- Check the retun value
+
+			if Return != Return:lower() then
+				self:Error("Function return type must be lowercased",ReturnToken)
+			end
+
+			if Return == "number" then Return = "normal" end
+
+			Return = Return:upper()
+
+			if !wire_expression_types[Return] then
+				self:Error("Invalid return argument '" .. E2Lib.limitString(Return:lower(), 10) .. "'",ReturnToken)
+			end
+
+			Return = wire_expression_types[Return][1]
+
+		else
+			Return = ""
+		end
+
+
+		local Sig = (Name or "") .. "("
+
+
+		if Type then -- check the Type
+
+			if Type != Type:lower() then self:Error("Function object type must be full lowercase",TypeToken) end
+
+			if Type == "number" then Type = "normal" end
+
+			if Type == "normal" then self:Error("Number can not be used as function object type",TypeToken) end
+
+			if Type == "void" then self:Error("Void can not be used as function object type",TypeToken) end
+
+			Type = Type:upper()
+
+			if !wire_expression_types[Type] then
+				self:Error("Invalid data type '" .. E2Lib.limitString(Type:lower(), 10) .. "'",TypeToken)
+			end
+
+			Temp["This"] = true
+
+			Args[1] = {"This",Type}
+
+			Arg = 2
+
+			Type = wire_expression_types[Type][1]
+
+			Sig = Sig .. Type .. ":"
+		else
+			Type = ""
+		end
+
+
+		if !Name then self:Error("Function name must follow function declaration") end
+
+		if Name[1] != Name[1]:lower() then self:Error("Function name must start with a lower case letter",NameToken) end
+
+
+		if !self:AcceptRoamingToken("lpa") then
+			self:Error("Left parenthesis (() must appear affter function name")
+		end
+
+		if self:HasTokens() and !self:AcceptRoamingToken("rpa") then
+			while true do
+
+				if self:AcceptRoamingToken("com") then self:Error("Argument separator (,) must not appear multiple times") end
+
+				local Type,Name = "normal"
+
+				if self:AcceptRoamingToken("var") or self:AcceptRoamingToken("fun") then
+					Name = self:GetTokenData()
+				end
+
+				if !Name then self:Error("Function argument #" .. Arg .. " varible required") end
+
+				if Name[1] != Name[1]:upper() then self:Error("Function argument #" .. Arg .. " varible must start with uppercased letter") end
+
+				if self:AcceptRoamingToken("col") then
+					if self:AcceptRoamingToken("fun") or self:AcceptRoamingToken("var") then
+						Type = self:GetTokenData()
+					else
+						self:Error("Function argument #" .. Arg .. " type must appear after (:)")
+					end
+				end
+
+				if Type != Type:lower() then self:Error("Function argument #" .. Arg .. " type must be lowercased") end
+
+				if Type == "number" then Type = "normal" end
+
+				Type = Type:upper()
+
+				if !wire_expression_types[Type] then
+					self:Error("Function argument #" .. Arg .. " type is invalid")
+				end
+
+
+				Temp[Name] = true
+				Args[Arg] = {Name,Type}
+				Arg = Arg + 1
+
+				Sig = Sig .. wire_expression_types[Type][1]
+
+				if !self:HasTokens() then self:Error("Right parenthesis ()) must appear after function arguments")
+
+				elseif self:AcceptRoamingToken("rpa") then break
+
+				elseif !self:AcceptRoamingToken("com") then self:Error("Function arguments must be separated by comma (,)") end
+
+			end
+		end
+
+
+		Sig = Sig .. ")"
+
+		if wire_expression2_funcs[Sig] then self:Error("Function '" .. Sig .. "' already exists") end
+
+		self.in_func = true
+
+		local Inst = self:Instruction(Trace, "function", Sig, Return, Type, Args, self:Block("function decleration"))
+
+		self.in_func = false
+
+		return Inst
+
+
+	//--GetFunction Statment
+	elseif self:AcceptRoamingToken("getfunc") then
+
+		local Trace = self:GetTokenTrace()
+
+		if !self:AcceptRoamingToken("rpa") then
+			self:Error("Left parenthesis (() must appear affter function")
+		end
+
+		local Name = self:Expr1()
+
+		if !Name then
+			self:Error("Argument 1 of getFunction must be a function name as string")
+		end
+
+		local Arg,Perams = 1,""
+
+		if self:HasTokens() and !self:AcceptRoamingToken("rpa") then
+			while true do
+
+				if self:AcceptRoamingToken("com") then self:Error("Argument separator (,) must not appear multiple times") end
+
+				local Type = "normal"
+
+				if self:AcceptRoamingToken("fun") or self:AcceptRoamingToken("var") then
+					Type = self:GetTokenData()
+				else
+					self:Error("getFunction argument #" .. (Arg + 1) .. " type exspected")
+				end
+
+				if Type != Type:lower() then self:Error("getFunction argument #" .. (Arg + 1) .. " type must be lowercased") end
+
+				if Type == "number" then Type = "normal" end
+
+
+				Type = Type:upper()
+
+				if !wire_expression_types[Type] and Type != "VOID" then
+					self:Error("Function argument #" .. (Arg + 1) .. " type is invalid")
+				end
+
+
+				if self:AcceptRoamingToken("col") and Arg == 1 then
+					if  Type != "VOID" then
+						Perams = Perams .. wire_expression_types[Type][1] .. ":"
+					else
+						Perams = Perams .. wire_expression_types[Type][1]
+					end
+
+				elseif Type == "VOID" then
+					self:Error("Function argument #" .. (Arg + 1) .. " type is invalid")
+				else
+					Perams = Perams .. wire_expression_types[Type][1]
+				end
+
+				Arg = Arg + 1
+
+				if !self:HasTokens() then self:Error("Right parenthesis ()) must appear after function arguments")
+
+				elseif self:AcceptRoamingToken("rpa") then break
+
+				elseif !self:AcceptRoamingToken("com") then self:Error("getFunction arguments must be separated by comma (,)") end
+
+			end
+		end
+
+		return self:Instruction(Trace, "getfunction", Name,Perams)
+
+
+	//--Return Statment
+	elseif self:AcceptRoamingToken("ret") then
+
+		local Trace = self:GetTokenTrace()
+
+		if self.in_func then
+
+			local Ret
+
+			if !self:AcceptRoamingToken("void")then
+				Ret = self:Expr1()
+			end
+
+			return self:Instruction(Trace, "return", Ret)
+
+		else
+			self:Error("Return may not exist outside of a function")
+		end
+
+
+	//--Void Missplacement
+	elseif self:AcceptRoamingToken("void") then
+
+		self:Error("Void may only exist after return")
+
+	end
+
 	return self:Expr1()
 end
 

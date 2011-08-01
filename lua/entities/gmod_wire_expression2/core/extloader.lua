@@ -240,11 +240,11 @@ e2_include("bitwise.lua")
 e2_include("quaternion.lua")
 e2_include("debug.lua")
 e2_include("http.lua")
---e2_include("mtable.lua") <- mtables have replaced tables
 e2_include("compat.lua")
 e2_include("custom.lua")
 e2_include("datasignal.lua")
 e2_include("egpfunctions.lua")
+e2_include("functions.lua")
 
 do
 	local list = file.FindInLua("entities/gmod_wire_expression2/core/custom/*.lua")
