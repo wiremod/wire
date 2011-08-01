@@ -32,6 +32,8 @@ function Compiler:Process(root, inputs, outputs, persist, delta, params)
 	self.dvars = {}
 	self.tvars = {}
 	self.vars = {}
+	self.funcs = {}
+	self.funcs_ret = {}
 
 	for name,v in pairs(inputs) do
 		self.vars[name] = v
@@ -53,7 +55,7 @@ function Compiler:Process(root, inputs, outputs, persist, delta, params)
 	local script = Compiler["Instr" .. string.upper(root[1])](self, root)
 	local ctx = self:PopContext()
 
-	return script, self.dvars, self.tvars
+	return script, self
 end
 
 /******************************************************************************/
@@ -75,6 +77,7 @@ function Compiler:Evaluate(args, index)
 end
 
 local function tps_pretty(tps)
+	if !tps or #tps == 0 then return "void" end
 	local ttt = {}
 	for i=1,#tps do
 		ttt[i] = string.lower(wire_expression_types2[tps[i]][1])
@@ -112,42 +115,72 @@ function Compiler:GetOperator(instr, name, tps)
 	return { a[3], a[2], a[1] }
 end
 
-function Compiler:GetFunction(instr, name, tps)
-	pars = table.concat(tps)
-	local a = wire_expression2_funcs[name .. "(" .. pars .. ")"]
-	if !a then
-		for i = #pars,0,-1 do
-			a = wire_expression2_funcs[name .. "(" .. pars:sub(1,i) .. "...)"]
-			if a then break end
-		end
-	end
-	if !a then
-		self:Error("No such function: " .. name .. "(".. tps_pretty(tps) ..")", instr)
-		return
+
+function Compiler:UDFunction(Sig)
+	if self.funcs_ret and self.funcs_ret[Sig] then
+		return {Sig, self.funcs_ret[Sig],
+			function(self,args)
+				if self.funcs and self.funcs[Sig] then
+					return self.funcs[Sig](self,args)
+				end
+			end,
+		20}
+
 	end
 
-	self.prfcounter = self.prfcounter + (a[4] or 20)
-
-	return { a[3], a[2], a[1] }
 end
 
-function Compiler:GetMethod(instr, name, tp, tps)
-	pars = tp .. ":" .. table.concat(tps)
-	local a = wire_expression2_funcs[name .. "(" .. pars .. ")"]
-	if !a then
-		for i = #pars,#tp+1,-1 do
-			a = wire_expression2_funcs[name .. "(" .. pars:sub(1,i) .. "...)"]
-			if a then break end
+
+function Compiler:GetFunction(instr, Name, Args)
+	Perams = table.concat(Args)
+	local Func = wire_expression2_funcs[Name .. "(" .. Perams .. ")"]
+
+	if !Func then
+		for i = #pars,0,-1 do
+			Func = wire_expression2_funcs[Name .. "(" .. Perams:sub(1,i) .. "...)"]
+			if Func then break end
 		end
 	end
-	if !a then
-		self:Error("No such function: " .. tps_pretty({tp}) .. ":" .. name .. "("..tps_pretty(tps) ..")", instr)
+
+	if !Func then
+		Func = self:UDFunction(Name .. "(" .. Perams .. ")")
+	end
+
+	if !Func then
+		self:Error("No such function: " .. Name .. "(".. tps_pretty(Args) ..")", instr)
 		return
 	end
 
-	self.prfcounter = self.prfcounter + (a[4] or 20)
+	self.prfcounter = self.prfcounter + (Func[4] or 20)
 
-	return { a[3], a[2], a[1] }
+	return { Func[3], Func[2], Func[1] }
+end
+
+
+function Compiler:GetMethod(instr, Name, Meta, Args)
+	Perams = Meta .. ":" .. table.concat(Args)
+
+	local Func = wire_expression2_funcs[Name .. "(" .. Perams .. ")"]
+
+	if !Func then
+		for I = #Perams, #Meta + 1, -1 do
+			Func = wire_expression2_funcs[Name .. "(" .. Perams:sub(1,I) .. "...)"]
+			if Func then break end
+		end
+	end
+
+	if !Func then
+		Func = self:UDFunction(Name .. "(" .. Perams .. ")")
+	end
+
+	if !Func then
+		self:Error("No such function: " .. tps_pretty({Meta}) .. ":" .. Name .. "("..tps_pretty(Args) ..")", instr)
+		return
+	end
+
+	self.prfcounter = self.prfcounter + (Func[4] or 20)
+
+	return { Func[3], Func[2], Func[1] }
 end
 
 function Compiler:PushContext()
@@ -620,4 +653,86 @@ function Compiler:InstrFEA(args)
 	self:SingleContext(cx,args)
 
 	return {op[1],keyvar,valvar,valtype,tableexpr,stmt}
+end
+
+
+function Compiler:InstrFUNCTION(args)
+	self:PushContext()
+
+	local Sig, Return, Type, Args, Block = args[3], args[4], args[5], args[6], args[7]
+	Return = Return or ""
+	Type = Type or ""
+
+	local OldVars = {}
+	local Context = {}
+
+	for K,D in pairs ( Args ) do
+		local Name,Type = D[1],D[2]
+
+		for I = #self.context, 1, -1 do
+			Context[Name] = {}
+			if self.context[I] then
+				Context[Name][I] = self.context[I][Name]
+				self.context[I][Name] = wire_expression_types[Type][1]
+			end
+		end
+
+		OldVars[Name] = self.vars[Name]
+		self.vars[Name] = wire_expression_types[Type][1]
+	end
+
+
+	self.func_ret = Return
+
+	local Stmt = self:EvaluateStatement(args, 5) --Offset of -2
+	local CX = self:PopContext()
+	self:SingleContext(CX, args)
+
+	self.func_ret = nil
+
+	if self.funcs_ret[Sig] and self.funcs_ret[Sig] != Return then
+		local TP = tps_pretty(self.funcs_ret[Sig])
+		self:Error("Function " .. Sig .. " must be given return type " .. TP,args)
+	end
+
+	self.funcs_ret[Sig] = Return
+
+	for K,D in pairs ( Args ) do
+		local Name,Type = D[1],D[2]
+
+		for I = #self.context, 1, -1 do
+			if Context[Name][I] then
+				self.context[I][Name] = Context[Name][I]
+			end
+		end
+
+		self.vars[Name] = OldVars[Name]
+	end
+
+	self.prfcounter = self.prfcounter + 40
+
+	return {self:GetOperator(args, "function", {})[1], Stmt, args}
+
+end
+
+
+
+function Compiler:InstrRETURN(args)
+	self:PushContext()
+	local Value, Type
+	if args[3] then
+		Value, Type = self:Evaluate(args, 1)
+		self:PopContext()
+
+		if !self.func_ret or self.func_ret == "" then
+			self:Error("Return type mismatch: void expected, got " .. tps_pretty(Type),args)
+		elseif self.func_ret != Type then
+			self:Error("Return type mismatch: " .. tps_pretty(self.func_ret) .. " expected, got " .. tps_pretty(Type),args)
+		end
+
+	elseif self.func_ret and self.func_ret != "" then
+		self:Error("Return type mismatch: " .. tps_pretty(self.func_ret) .. " expected, got void",args)
+	end
+
+	return {self:GetOperator(args, "return", {})[1], Value, Type}
 end

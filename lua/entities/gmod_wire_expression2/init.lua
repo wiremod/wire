@@ -199,12 +199,15 @@ function ENT:CompileCode( buffer )
 	local status, tree, dvars = Parser.Execute(tokens)
 	if not status then self:Error(tree) return end
 
-	local status, script, dvars, tvars = Compiler.Execute(tree, self.inports[3], self.outports[3], self.persists[3], dvars)
+	local status, script, inst = Compiler.Execute(tree, self.inports[3], self.outports[3], self.persists[3], dvars)
 	if not status then self:Error(script) return end
-	self.tvars = tvars
 
 	self.script = script
-	self.dvars = dvars
+	self.dvars = inst.dvars
+	self.tvars =  inst.tvars
+	self.funcs = inst.funcs
+	self.funcs_ret = inst.funcs_ret
+
 	self:ResetContext()
 end
 
@@ -213,6 +216,8 @@ function ENT:ResetContext()
 		vars = {},
 		vclk = {},
 		data = {},
+		funcs = {},
+		funcs_ret = {},
 		entity = self,
 		player = self.player,
 		uid = self.uid,
@@ -220,7 +225,11 @@ function ENT:ResetContext()
 		prfcount = 0,
 		prfbench = 0,
 	}
+
 	self._vars = self.context.vars
+
+	self.context.funcs = self.funcs
+	self.context.funcs_ret = self.funcs_ret
 
 	self.Inputs = WireLib.AdjustSpecialInputs(self, self.inports[1], self.inports[2])
 	self.Outputs = WireLib.AdjustSpecialOutputs(self, self.outports[1], self.outports[2])

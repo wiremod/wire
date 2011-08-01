@@ -47,7 +47,9 @@ end
 
 local function SpecialCase( arg )
 	if (type(arg) == "table") then
-		if (seq(arg)) then -- A table with only numerical indexes
+		if (arg.isfunction) then
+			return "function " .. arg[3] .. " = (" .. arg[2] .. ")"
+		elseif (seq(arg)) then -- A table with only numerical indexes
 			local str = "["
 			for k,v in ipairs( arg ) do
 				if (type(v) == "table") then

@@ -141,6 +141,7 @@ function Tokenizer:NextSymbol()
 		end
 
 		tokenname = "num"
+
 	elseif self:NextPattern("^[a-z][a-zA-Z0-9_]*") then
 		-- keywords/functions
 		if self.tokendata == "if" then
@@ -159,6 +160,12 @@ function Tokenizer:NextSymbol()
 			tokenname = "cnt"
 		elseif self.tokendata == "foreach" then
 			tokenname = "fea"
+		elseif self.tokendata == "function" then
+			tokenname = "func"
+		elseif self.tokendata == "return" then
+			tokenname = "ret"
+		elseif self.tokendata == "void" then
+			tokenname = "void"
 		elseif self.tokendata:match("^[ijk]$") and self.character ~= "(" then
 			tokenname, self.tokendata = "num", "1"..self.tokendata
 		else
