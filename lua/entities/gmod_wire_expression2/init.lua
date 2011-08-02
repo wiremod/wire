@@ -1,4 +1,3 @@
--- a variable inside a single if-branch is discarded, even though that type should be forced for any consecutive assignments
 
 AddCSLuaFile('cl_init.lua')
 AddCSLuaFile('shared.lua')
@@ -78,7 +77,6 @@ function ENT:Execute()
 		self.context.vars[k] = copytype(wire_expression_types2[v][2])
 	end
 
-	e2_install_hook_fix()
 	self:PCallHook('preexecute')
 
 	local ok, msg = pcall(self.script[1], self.context, self.script)
@@ -87,7 +85,7 @@ function ENT:Execute()
 		elseif msg == "perf" then
 			self:Error("Expression 2 (" .. self.name .. "): tick quota exceeded", "tick quota exceeded")
 		else
-			self:Error("Expression 2 (" .. self.name .. "): " .. e2_processerror(msg), "script error")
+			self:Error("Expression 2 (" .. self.name .. "): " .. msg, "script error")
 		end
 	end
 
@@ -96,7 +94,6 @@ function ENT:Execute()
 	self.context.triggerinput = nil -- if hooks call execute
 
 	self:PCallHook('postexecute')
-	e2_remove_hook_fix()
 
 	self:TriggerOutputs()
 

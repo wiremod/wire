@@ -5,18 +5,6 @@ AddCSLuaFile("init.lua")
   Andreas "Syranide" Svensson, me@syranide.com
 \******************************************************************************/
 
-// ADD FUNCTIONS FOR COLOR CONVERSION!
-// ADD CONSOLE SUPPORT
-
-/*
-n = numeric
-v = vector
-s = string
-t = table
-e = entity
-x = non-basic extensions prefix
-*/
-
 wire_expression2_delta = 0.0000001000000
 delta = wire_expression2_delta
 
@@ -132,12 +120,10 @@ function wire_expression2_CallHook(hookname, ...)
 	local errors = {}
 	local ok, ret
 	for i,callback in ipairs(wire_expression_callbacks[hookname]) do
-		e2_install_hook_fix()
 		ok, ret = pcall(callback, ...)
-		e2_remove_hook_fix()
 		if not ok then
 			if ret == "cancelhook" then break end
-			table.insert(errors, "\n"..e2_processerror(ret))
+			table.insert(errors, "\n"..ret)
 			ret_array = nil
 		else
 			if ret_array then table.insert(ret_array, ret or false) end
@@ -189,7 +175,6 @@ if not datastream then require( "datastream" ) end
 
 if SERVER then
 
-	e2_processerror = nil
 	local clientside_files = {}
 
 	function AddCSE2File(filename)
