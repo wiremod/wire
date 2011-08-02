@@ -616,76 +616,6 @@ function Parser:Stmt9()
 
 		return Inst
 
-
-	//--GetFunction Statment
-	elseif self:AcceptRoamingToken("getfunc") then
-
-		local Trace = self:GetTokenTrace()
-
-		if !self:AcceptRoamingToken("rpa") then
-			self:Error("Left parenthesis (() must appear affter function")
-		end
-
-		local Name = self:Expr1()
-
-		if !Name then
-			self:Error("Argument 1 of getFunction must be a function name as string")
-		end
-
-		local Arg,Perams = 1,""
-
-		if self:HasTokens() and !self:AcceptRoamingToken("rpa") then
-			while true do
-
-				if self:AcceptRoamingToken("com") then self:Error("Argument separator (,) must not appear multiple times") end
-
-				local Type = "normal"
-
-				if self:AcceptRoamingToken("fun") or self:AcceptRoamingToken("var") then
-					Type = self:GetTokenData()
-				else
-					self:Error("getFunction argument #" .. (Arg + 1) .. " type exspected")
-				end
-
-				if Type != Type:lower() then self:Error("getFunction argument #" .. (Arg + 1) .. " type must be lowercased") end
-
-				if Type == "number" then Type = "normal" end
-
-
-				Type = Type:upper()
-
-				if !wire_expression_types[Type] and Type != "VOID" then
-					self:Error("Function argument #" .. (Arg + 1) .. " type is invalid")
-				end
-
-
-				if self:AcceptRoamingToken("col") and Arg == 1 then
-					if  Type != "VOID" then
-						Perams = Perams .. wire_expression_types[Type][1] .. ":"
-					else
-						Perams = Perams .. wire_expression_types[Type][1]
-					end
-
-				elseif Type == "VOID" then
-					self:Error("Function argument #" .. (Arg + 1) .. " type is invalid")
-				else
-					Perams = Perams .. wire_expression_types[Type][1]
-				end
-
-				Arg = Arg + 1
-
-				if !self:HasTokens() then self:Error("Right parenthesis ()) must appear after function arguments")
-
-				elseif self:AcceptRoamingToken("rpa") then break
-
-				elseif !self:AcceptRoamingToken("com") then self:Error("getFunction arguments must be separated by comma (,)") end
-
-			end
-		end
-
-		return self:Instruction(Trace, "getfunction", Name,Perams)
-
-
 	//--Return Statment
 	elseif self:AcceptRoamingToken("ret") then
 
@@ -693,13 +623,11 @@ function Parser:Stmt9()
 
 		if self.in_func then
 
-			local Ret
-
-			if !self:AcceptRoamingToken("void")then
-				Ret = self:Expr1()
+			if self:AcceptRoamingToken("void")then
+				return self:Instruction(Trace, "returnvoid")
 			end
 
-			return self:Instruction(Trace, "return", Ret)
+			return self:Instruction(Trace, "return", self:Expr1())
 
 		else
 			self:Error("Return may not exist outside of a function")

@@ -37,7 +37,6 @@ local function Function(A,S)
 		self.func_rv = nil
 		local ok, msg = pcall(S[1],self,S)
 
-
 		for K,Data in pairs (A) do
 			local Name,Type = Data[1], Data[2]
 
@@ -59,6 +58,8 @@ local function Function(A,S)
 
 			end
 		end
+
+		if !ok and msg:find( "C stack overflow" ) then error( "tick quota exceeded", -1 ) end -- a "C stack overflow" error will probably just confuse E2 users more than a "tick quota" error.
 
 		if !ok and msg == "return" then return self.func_rv end
 

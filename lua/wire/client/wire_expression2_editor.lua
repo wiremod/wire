@@ -1719,18 +1719,14 @@ end
 local code1 = "@name \n@inputs \n@outputs \n@persist \n@trigger \n\n"
 -- code2 contains the code that is to be marked, so it can simply be overwritten or deleted.
 local code2 = [[#[
+	User defined function support has been added.
+
     The find and replace windows have been combined into
     a single menu, and a go to line function has
     been added. Simply press ctrl+f/g/h to open it.
 
     The options menu has been redesigned - it's much more
     organized now.
-
-    Auto completion has been added!
-    Options for it can be found in the options menu.
-
-    Syntax highlighting color options have been added in the
-    options menu.
 
     Documentation and examples are available at:
     http://wiki.garrysmod.com/?title=Wire_Expression2
