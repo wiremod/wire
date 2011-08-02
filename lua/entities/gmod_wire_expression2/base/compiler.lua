@@ -681,6 +681,12 @@ function Compiler:InstrFUNCTION(args)
 		self.vars[Name] = wire_expression_types[Type][1]
 	end
 
+	if self.funcs_ret[Sig] and self.funcs_ret[Sig] != Return then
+		local TP = tps_pretty(self.funcs_ret[Sig])
+		self:Error("Function " .. Sig .. " must be given return type " .. TP,args)
+	end
+
+	self.funcs_ret[Sig] = Return
 
 	self.func_ret = Return
 
@@ -689,13 +695,6 @@ function Compiler:InstrFUNCTION(args)
 	self:SingleContext(CX, args)
 
 	self.func_ret = nil
-
-	if self.funcs_ret[Sig] and self.funcs_ret[Sig] != Return then
-		local TP = tps_pretty(self.funcs_ret[Sig])
-		self:Error("Function " .. Sig .. " must be given return type " .. TP,args)
-	end
-
-	self.funcs_ret[Sig] = Return
 
 	for K,D in pairs ( Args ) do
 		local Name,Type = D[1],D[2]
@@ -715,23 +714,23 @@ function Compiler:InstrFUNCTION(args)
 
 end
 
-
-
 function Compiler:InstrRETURN(args)
 	self:PushContext()
-	local Value, Type
-	if args[3] then
-		Value, Type = self:Evaluate(args, 1)
-		self:PopContext()
+	local Value, Type = self:Evaluate(args, 1)
+	self:PopContext()
 
-		if !self.func_ret or self.func_ret == "" then
-			self:Error("Return type mismatch: void expected, got " .. tps_pretty(Type),args)
-		elseif self.func_ret != Type then
-			self:Error("Return type mismatch: " .. tps_pretty(self.func_ret) .. " expected, got " .. tps_pretty(Type),args)
-		end
+	if !self.func_ret or self.func_ret == "" then
+		self:Error("Return type mismatch: void expected, got " .. tps_pretty(Type),args)
+	elseif self.func_ret != Type then
+		self:Error("Return type mismatch: " .. tps_pretty(self.func_ret) .. " expected, got " .. tps_pretty(Type),args)
+	end
 
-	elseif self.func_ret and self.func_ret != "" then
-		self:Error("Return type mismatch: " .. tps_pretty(self.func_ret) .. " expected, got void",args)
+	return {self:GetOperator(args, "return", {})[1], Value, Type}
+end
+
+function Compiler:InstrRETURNVOID(args)
+	if self.func_ret and self.func_ret != "" then
+		self:Error("Return type mismatch: " .. tps_pretty(self.func_ret) .. " expected got, void",args)
 	end
 
 	return {self:GetOperator(args, "return", {})[1], Value, Type}

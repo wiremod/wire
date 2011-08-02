@@ -3136,9 +3136,11 @@ do -- E2 Syntax highlighting
 
 			-- parse the rest like regular code
 			cols = {{ self.tokendata, colors.directive }}
+		end
 
-		elseif self:NextPattern("function") then --Thanks to divran!
-			addToken( "keyword", "function" ) -- Add "function"
+		local found = self:SkipPattern( "( *function)" )
+		if found then
+			addToken( "keyword", found ) -- Add "function"
 			self.tokendata = "" -- Reset tokendata
 
 			local spaces = self:SkipPattern( " *" )
@@ -3321,7 +3323,12 @@ do -- E2 Syntax highlighting
 						tokenname = istype(sstr) and "typename" or "notfound"
 					elseif keywords[sstr][keyword] then
 						tokenname = "keyword"
-						if sstr == "foreach" then highlightmode = 3 end
+						if sstr == "foreach" then highlightmode = 3
+						elseif sstr == "return" and self:NextPattern( "void" ) then
+							addToken( "keyword", "return" )
+							tokenname = "typename"
+							self.tokendata = spaces .. "void"
+						end
 					elseif wire_expression2_funclist[sstr] then
 						tokenname = "function"
 
