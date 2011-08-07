@@ -342,7 +342,6 @@ elseif CLIENT then
 		end
 	end
 
-	local already_tried
 	local buffer = ""
 	local buffer_total_count = 0
 	local buffer_current_count = 0
@@ -361,13 +360,7 @@ elseif CLIENT then
 	usermessage.Hook("e2se",function( um )
 		local OK, data = pcall( glon.decode, buffer )
 		if (!OK) then
-			if (already_tried) then
-				ErrorNoHalt( "[E2] Failed to receive extension data. Error message was:\n" .. data )
-			else
-				already_tried = true
-				RunConsoleCommand("wire_expression2_sendfunctions")
-				ErrorNoHalt("[E2] Failed to receive extension data. Trying again. Error message was:\n" .. data)
-			end
+			ErrorNoHalt( "[E2] Failed to receive extension data. Error message was:\n" .. data )
 		else
 			local what = um:ReadBool()
 			if (!what) then
@@ -378,10 +371,6 @@ elseif CLIENT then
 		end
 		buffer = ""
 	end)
-
-	if CanRunConsoleCommand() then
-		RunConsoleCommand("wire_expression2_sendfunctions")
-	end
 end
 
 include("e2doc.lua")

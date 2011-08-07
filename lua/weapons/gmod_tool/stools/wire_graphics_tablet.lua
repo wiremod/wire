@@ -48,6 +48,7 @@ function TOOL:LeftClick( trace )
 	local ply = self:GetOwner()
 	local Ang = trace.HitNormal:Angle()
 	local model = self:GetClientInfo("model")
+	if not util.IsValidModel( model ) or not util.IsValidProp( model ) then return end
 	local gmode = self:GetClientNumber("outmode") ~= 0
 	local CreateFlat = self:GetClientNumber("createflat") ~= 0
 	local draw_background = self:GetClientNumber("draw_background") ~= 0

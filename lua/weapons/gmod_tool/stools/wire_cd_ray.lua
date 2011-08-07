@@ -90,6 +90,8 @@ function TOOL:RightClick(trace)
 	local defZero = (self:GetClientNumber("DefaultZero") ~= 0)
 	local model = self:GetClientInfo("lockmodel")
 
+	if not util.IsValidModel( model ) or not util.IsValidProp( model ) then return end
+
 	local wire_cd_lock = MakeWireCDLock( ply, trace.HitPos, Ang, model )
 
 	local min = wire_cd_lock:OBBMins()

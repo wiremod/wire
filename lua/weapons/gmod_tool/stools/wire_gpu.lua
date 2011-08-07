@@ -82,6 +82,8 @@ if SERVER then
 
     local player = self:GetOwner()
     local model = self:GetClientInfo("model")
+	if not util.IsValidModel( model ) or not util.IsValidProp( model ) then return end
+
     local pos = trace.HitPos
     local ang = trace.HitNormal:Angle()
     ang.pitch = ang.pitch + 90

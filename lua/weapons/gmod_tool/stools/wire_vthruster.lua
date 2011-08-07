@@ -39,6 +39,7 @@ function TOOL:LeftClick( trace )
 	local force_min   = self:GetClientNumber( "force_min" )
 	local force_max   = self:GetClientNumber( "force_max" )
 	local model       = self:GetClientInfo( "model" )
+	if not util.IsValidModel( model ) or not util.IsValidProp( model ) then return end
 	local bidir       = self:GetClientNumber( "bidir" ) ~= 0
 	local nocollide   = self:GetClientNumber( "collision" ) == 0
 	local soundname   = self:GetClientInfo( "soundname" )

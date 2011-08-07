@@ -3328,6 +3328,7 @@ do -- E2 Syntax highlighting
 							addToken( "keyword", "return" )
 							tokenname = "typename"
 							self.tokendata = spaces .. "void"
+							spaces = ""
 						end
 					elseif wire_expression2_funclist[sstr] then
 						tokenname = "function"

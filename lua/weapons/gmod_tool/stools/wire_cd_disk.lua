@@ -46,7 +46,10 @@ function TOOL:LeftClick(trace)
 	local Ang = trace.HitNormal:Angle()
 	Ang.pitch = Ang.pitch + 90
 
-	local wire_cd_disk = MakeWireCDDisk(ply, trace.HitPos, Ang , self:GetClientInfo("model"),tonumber(self:GetClientInfo("skin")))
+	local model = self:GetClientInfo( "model" )
+	if not util.IsValidModel( model ) or not util.IsValidProp( model ) then return end
+	local wire_cd_disk = MakeWireCDDisk(ply, trace.HitPos, Ang , model, tonumber(self:GetClientInfo("skin")))
+
 	wire_cd_disk.Precision = tonumber(self:GetClientInfo("precision"))
 	wire_cd_disk.IRadius = tonumber(self:GetClientInfo("iradius"))
 	wire_cd_disk:Setup()
