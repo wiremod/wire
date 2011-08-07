@@ -3061,7 +3061,7 @@ do -- E2 Syntax highlighting
 		["ppcommand"] = { Color(240,  96, 240), false}, -- purple
 		["typename"]  = { Color(240, 160,  96), false}, -- orange
 		["constant"]  = { Color(240, 160, 240), false}, -- pink
-		["e2fs"]	  = { Color(102, 122, 102), false}, --
+		["userfunction"] = { Color(102, 122, 102), false}, -- dark green
 	}
 
 	function EDITOR:SetSyntaxColors( col )
@@ -3161,7 +3161,7 @@ do -- E2 Syntax highlighting
 					addToken( "notfound", typeindex )
 				end
 				addToken( "operator", ":" )
-				addToken( "e2fs", funcname )
+				addToken( "userfunction", funcname )
 
 				if not wire_expression2_funclist[funcname] then
 					self.e2fs_functions[funcname] = row
@@ -3180,7 +3180,7 @@ do -- E2 Syntax highlighting
 				if istype( funcname ) then -- Hey... this isn't a function name! :O
 					addToken( "typename", funcname )
 				else
-					addToken( "e2fs", funcname )
+					addToken( "userfunction", funcname )
 				end
 
 				if not wire_expression2_funclist[funcname] then
@@ -3197,7 +3197,7 @@ do -- E2 Syntax highlighting
 					addToken( "notfound", typeindex )
 				end
 				addToken( "operator", ":" )
-				addToken( "e2fs", funcname )
+				addToken( "userfunction", funcname )
 
 				if not wire_expression2_funclist[funcname] then
 					self.e2fs_functions[funcname] = row
@@ -3210,7 +3210,7 @@ do -- E2 Syntax highlighting
 				if istype( funcname ) or funcname == "void" then -- Hey... this isn't a function name! :O
 					addToken( "typename", funcname )
 				else
-					addToken( "e2fs", funcname )
+					addToken( "userfunction", funcname )
 
 					if not wire_expression2_funclist[funcname] then
 						self.e2fs_functions[funcname] = row
@@ -3334,7 +3334,7 @@ do -- E2 Syntax highlighting
 						tokenname = "function"
 
 					elseif self.e2fs_functions[sstr] then
-						tokenname = "e2fs"
+						tokenname = "userfunction"
 
 					else
 						tokenname = "notfound"

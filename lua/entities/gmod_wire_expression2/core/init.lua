@@ -283,7 +283,7 @@ if SERVER then
 		concommand.Add("wire_expression2_sendfunctions", wire_expression2_sendfunctions)
 
 		-- send function info once the player first spawns (NOTE: Only in single player)
-		hook.Add("PlayerInitialSpawn", "wire_expression2_sendfunctions", wire_expression2_sendfunctions)
+		if SinglePlayer() then hook.Add("PlayerInitialSpawn", "wire_expression2_sendfunctions", wire_expression2_sendfunctions) end
 	end
 
 elseif CLIENT then
