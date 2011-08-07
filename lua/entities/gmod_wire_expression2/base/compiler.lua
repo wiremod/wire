@@ -132,18 +132,18 @@ end
 
 
 function Compiler:GetFunction(instr, Name, Args)
-	Perams = table.concat(Args)
-	local Func = wire_expression2_funcs[Name .. "(" .. Perams .. ")"]
+	local Params = table.concat(Args)
+	local Func = wire_expression2_funcs[Name .. "(" .. Params .. ")"]
 
 	if !Func then
-		for i = #pars,0,-1 do
-			Func = wire_expression2_funcs[Name .. "(" .. Perams:sub(1,i) .. "...)"]
-			if Func then break end
-		end
+		Func = self:UDFunction(Name .. "(" .. Params .. ")")
 	end
 
 	if !Func then
-		Func = self:UDFunction(Name .. "(" .. Perams .. ")")
+		for I = #Params,0,-1 do
+			Func = wire_expression2_funcs[Name .. "(" .. Params:sub(1,I) .. "...)"]
+			if Func then break end
+		end
 	end
 
 	if !Func then
@@ -158,19 +158,18 @@ end
 
 
 function Compiler:GetMethod(instr, Name, Meta, Args)
-	Perams = Meta .. ":" .. table.concat(Args)
-
-	local Func = wire_expression2_funcs[Name .. "(" .. Perams .. ")"]
+	local Params = Meta .. ":" .. table.concat(Args)
+	local Func = wire_expression2_funcs[Name .. "(" .. Params .. ")"]
 
 	if !Func then
-		for I = #Perams, #Meta + 1, -1 do
-			Func = wire_expression2_funcs[Name .. "(" .. Perams:sub(1,I) .. "...)"]
-			if Func then break end
-		end
+		Func = self:UDFunction(Name .. "(" .. Params .. ")")
 	end
 
 	if !Func then
-		Func = self:UDFunction(Name .. "(" .. Perams .. ")")
+		for I = #Params, #Meta + 1, -1 do
+			Func = wire_expression2_funcs[Name .. "(" .. Params:sub(1,I) .. "...)"]
+			if Func then break end
+		end
 	end
 
 	if !Func then
