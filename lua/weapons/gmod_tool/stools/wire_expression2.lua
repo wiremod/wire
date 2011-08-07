@@ -566,14 +566,19 @@ function TOOL:UpdateGhostWireExpression2( ent, player )
 
 		if model and size then
 			local modelname, modelext = model:match("(.*)(%..*)")
-			if not modelext then return model end
+			if not modelext then
+				if validModelCached( model ) then
+					return model
+				else
+					return "models/beer/wiremod/gate_e2.mdl"
+				end
+			end
 			local newmodel = modelname .. size .. modelext
-			//Msg(newmodel)
-			//if validModelCached(newmodel) then
+			if validModelCached(newmodel) then
 				return Model(newmodel)
-			//else
-			//	return Model(model)
-			//end
+			end
 		end
+
+		return "models/beer/wiremod/gate_e2.mdl"
 	end
 

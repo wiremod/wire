@@ -56,6 +56,7 @@ function TOOL:LeftClick( trace )
 	local defZero = (self:GetClientNumber("DefaultZero") ~= 0)
 	local ignZero = (self:GetClientNumber("IgnoreZero") ~= 0)
 	local model = self:GetClientInfo("Model")
+	if not util.IsValidModel( model ) or not util.IsValidProp( model ) then return end
 
 	local wire_data_transferer = MakeWireTransferer( ply, trace.HitPos, Ang, model, range, defZero, ignZero )
 

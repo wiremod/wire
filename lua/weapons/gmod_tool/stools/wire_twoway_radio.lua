@@ -33,6 +33,7 @@ function TOOL:LeftClick( trace )
 
 	local ply = self:GetOwner()
 	local model = self:GetClientInfo( "model" )
+	if not util.IsValidModel( model ) or not util.IsValidProp( model ) then return end
 
 	if ( trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_twoway_radio" && trace.Entity.pl == ply ) then
 		if (self.FirstPeer) and (self.FirstPeer:IsValid()) then

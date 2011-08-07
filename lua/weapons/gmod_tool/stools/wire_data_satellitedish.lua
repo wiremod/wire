@@ -51,7 +51,9 @@ function TOOL:LeftClick( trace )
 	local Ang = trace.HitNormal:Angle()
 	Ang.pitch = Ang.pitch + 90
 
-	local wire_data_satellitedish = MakeWireSatellitedish( ply, trace.HitPos, Ang, self:GetClientInfo("Model"))
+	local model = self:GetClientInfo("Model")
+	if not util.IsValidModel( model ) or not util.IsValidProp( model ) then return end
+	local wire_data_satellitedish = MakeWireSatellitedish( ply, trace.HitPos, Ang, model)
 
 	local min = wire_data_satellitedish:OBBMins()
 	wire_data_satellitedish:SetPos( trace.HitPos - trace.HitNormal * min.z )

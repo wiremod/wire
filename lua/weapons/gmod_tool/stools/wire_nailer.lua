@@ -36,6 +36,8 @@ function TOOL:LeftClick( trace )
 	local ply = self:GetOwner()
 
 	local model = self:GetClientInfo( "Model" )
+	if not util.IsValidModel( model ) or not util.IsValidProp( model ) then return end
+
 	local flim = self:GetClientNumber( "forcelim" )
 
 	if ( trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_nailer" && trace.Entity.pl == ply ) then

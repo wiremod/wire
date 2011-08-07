@@ -433,6 +433,7 @@ do --wire_turret
 		local numbullets 	= self:GetClientNumber( "numbullets" )
 		local tracernum 	= self:GetClientNumber( "tracernum" )
 		local model 		= self:GetClientInfo( "model" )
+		if not util.IsValidModel( model ) or not util.IsValidProp( model ) then return end
 
 		-- We shot an existing turret - just change its values
 		if trace.Entity:IsValid() and trace.Entity:GetClass() == "gmod_wire_turret" and trace.Entity.pl == ply then

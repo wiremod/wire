@@ -65,6 +65,7 @@ function TOOL:LeftClick( trace )
 	local _poles       = self:GetClientNumber( "poles" )
 	local _throws      = self:GetClientNumber( "throws" )
 	local _model       = self:GetClientInfo( "model" )
+	if not util.IsValidModel( _model ) or not util.IsValidProp( _model ) then return end
 
 	if ( trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_relay" && trace.Entity.pl == ply ) then
 		trace.Entity:Setup( _keygroup1, _keygroup2, _keygroup3, _keygroup4, _keygroup5, _keygroupoff, _toggle, _normclose, _poles, _throws, _nokey )

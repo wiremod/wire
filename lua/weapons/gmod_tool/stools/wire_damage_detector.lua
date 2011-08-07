@@ -34,6 +34,7 @@ function TOOL:LeftClick( trace )
 	self:SetStage(0)
 
 	local model = self:GetClientInfo( "Model" )
+	if not util.IsValidModel( model ) or not util.IsValidProp( model ) then return end
 	local ply = self:GetOwner()
 	local includeconstrained = self:GetClientNumber( "includeconstrained" )
 

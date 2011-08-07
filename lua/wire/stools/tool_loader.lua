@@ -199,26 +199,21 @@ if SERVER then
 	function WireToolObj:CheckMaxLimit()
 		return not self:GetSWEP():CheckLimit(self.MaxLimitName)
 	end
+end
 
-	-- Allow ragdolls to be used?
-	function WireToolObj:CheckValidModel( model )
-		return not util.IsValidModel(model) or not util.IsValidProp(model)
-	end
+-- Allow ragdolls to be used?
+function WireToolObj:CheckValidModel( model )
+	return not util.IsValidModel(model) or not util.IsValidProp(model)
+end
 
-	--
-	function WireToolObj:GetModel()
-		if self.Model then
-			return self.Model
-		elseif not self:CheckValidModel(self:GetClientInfo( "model" )) then --use a valid model or the server crashes :<
-			return self:GetClientInfo( "model" )
-		else
-			return "models/props_c17/oildrum001.mdl" --use some other random, valid prop instead if they fuck up
-		end
-	end
-else
-	--
-	function WireToolObj:GetModel()
-		return self.Model or self:GetClientInfo( "model" ) --meh, they are crash themselves if they want
+--
+function WireToolObj:GetModel()
+	if self.Model then
+		return self.Model
+	elseif not self:CheckValidModel(self:GetClientInfo( "model" )) then --use a valid model or the server crashes :<
+		return self:GetClientInfo( "model" )
+	else
+		return "models/props_c17/oildrum001.mdl" --use some other random, valid prop instead if they fuck up
 	end
 end
 

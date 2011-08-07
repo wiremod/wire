@@ -193,6 +193,7 @@ if SERVER then
       local modelname, modelext = model:match("(.*)(%..*)")
       if not modelext then return model end
       local newmodel = modelname .. modelext
+	  if not util.IsValidModel( newmodel ) or not util.IsValidProp( newmodel ) then return "models/cheeze/wires/cpu.mdl" end
       return Model(newmodel)
     end
   end
