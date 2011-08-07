@@ -623,7 +623,7 @@ function Parser:Stmt9()
 
 		if self.in_func then
 
-			if self:AcceptRoamingToken("void")then
+			if self:AcceptRoamingToken("void") or (self.readtoken[1] and self.readtoken[1] == "rcb") then
 				return self:Instruction(Trace, "returnvoid")
 			end
 

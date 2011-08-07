@@ -73,6 +73,7 @@ local colors = { -- Table copied from TextEditor, used for saving colors to conv
 	["ppcommand"] = Color(240,  96, 240), -- purple
 	["typename"]  = Color(240, 160,  96), -- orange
 	["constant"]  = Color(240, 160, 240), -- pink
+	["userfunction"] = Color(102, 122, 102), -- dark green
 }
 
 local colors_defaults = {}
