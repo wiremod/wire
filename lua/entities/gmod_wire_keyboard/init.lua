@@ -5,306 +5,298 @@ AddCSLuaFile("remap.lua")
 include('shared.lua')
 
 ENT.WireDebugName = "Wired Keyboard"
-ENT.OverlayDelay = 0
 
---Duplicator support to save pod link (modified from TAD2020's work on advpod)
+local All_Enums = {} -- table containing key -> key enum conversion
+
+------------------------------------------------------------------------------------------
+-- Initialize
+------------------------------------------------------------------------------------------
+function ENT:Initialize()
+	self:PhysicsInit( SOLID_VPHYSICS )
+	self:SetMoveType( MOVETYPE_VPHYSICS )
+	self:SetSolid( SOLID_VPHYSICS )
+	self:SetUseType( SIMPLE_USE )
+
+	self.Inputs = WireLib.CreateInputs( self, { "Kick the bastard out of keyboard" } )
+	self.Outputs = WireLib.CreateOutputs( self, { "Memory", "User [ENTITY]", "InUse" } )
+
+	self.ActiveKeyEnums = {} -- table indexed by key enums, value is position in buffer
+	self.ActiveKeys = {} -- table indexed by ascii values, value is the key enum for that key
+	self.Buffer = {} -- array containing all currently active keys, value is ascii
+	self.Buffer[0] = 0
+
+	self:SetOverlayText( "Keyboard - Not in use" )
+	WireLib.TriggerOutput( self, "InUse", 0 )
+end
+
+------------------------------------------------------------------------------------------
+-- TriggerInput
+------------------------------------------------------------------------------------------
+function ENT:TriggerInput( name, value )
+	if name == "Kick the bastard out of keyboard" then
+		self.Locked = (value ~= 0)
+		self:PlayerDetach()
+	end
+end
+
+------------------------------------------------------------------------------------------
+-- ReadCell
+------------------------------------------------------------------------------------------
+function ENT:ReadCell( Address )
+	if Address >= 0 and Address < 32 then
+		return self.Buffer[Address] or 0
+	elseif Address >= 32 and Address < 256 then
+		return self.ActiveKeys[Address-32] and 1 or 0
+	end
+
+	return 0
+end
+
+------------------------------------------------------------------------------------------
+-- WriteCell
+------------------------------------------------------------------------------------------
+function ENT:WriteCell( Address, value )
+	if Address == 0 then
+		return self:Switch( -1, nil )
+	else
+		self:Switch( value, nil )
+	end
+
+	return false
+end
+
+------------------------------------------------------------------------------------------
+-- PlayerAttach
+------------------------------------------------------------------------------------------
+function ENT:PlayerAttach( ply )
+	if not ply or not ply:IsValid() then return end -- Invalid player
+	if self.ply and self.ply:IsValid() then return end -- If the keyboard is already in use, don't attach the player
+
+	if ply.WireKeyboard and ply.WireKeyboard:IsValid() then -- If the player is already using a different keyboard
+		if ply.WireKeyboard == self then return end -- If the keyboard is this keyboard, don't re-attach the player
+		ply.WireKeyboard:PlayerDetach() -- If it's another keyboard, detach the player from that keyboard first
+	end
+
+	-- If the keyboard is locked (Kick input is wired to something other than 0), don't attach the player
+	if self.Locked then return end
+
+	-- Store player
+	self.ply = ply
+
+	-- Update wire outputs
+	WireLib.TriggerOutput( self, "User", ply )
+	WireLib.TriggerOutput( self, "InUse", 1 )
+
+	-- Update status text
+	self:SetOverlayText("Keyboard - In use by " .. ply:Nick())
+
+	-- Block keyboard input
+	umsg.Start( "wire_keyboard_blockinput", ply ) umsg.End()
+
+	-- Check for pod
+	if self.Pod and self.Pod:IsValid() then
+		ply:ChatPrint( "This pod is linked to a keyboard - press ALT to leave." )
+	else
+		ply:ChatPrint( "Keyboard turned on - press ALT to leave." )
+	end
+
+	-- Set the wire keyboard value on the player
+	ply.WireKeyboard = self
+
+	-- Ignore the first key (the "Use" key - default "e" - pressed when entering the keyboard)
+	self.IgnoreFirstKey = true
+
+	-- Reset tables
+	self.ActiveKeyEnums = {}
+	self.ActiveKeys = {}
+	self.Buffer = {}
+	self.Buffer[0] = 0
+end
+
+function ENT:Use( ply )
+	if self.Pod and self.Pod:IsValid() then
+		ply:ChatPrint( "This keyboard is linked to a pod. Please use the pod instead." )
+		return
+	end
+
+	self:PlayerAttach( ply )
+end
+
+function ENT:OnRemove()
+	self:LinkPod( nil, true )
+	self:PlayerDetach()
+end
+
+------------------------------------------------------------------------------------------
+-- PlayerDetach
+------------------------------------------------------------------------------------------
+function ENT:PlayerDetach()
+	if not self.ply or not self.ply:IsValid() then return end -- If the keyboard isn't linked to a player
+
+	-- Clear values
+	self.ply.WireKeyboard = nil
+	self.ply = nil
+
+	-- Clear wire outputs
+	WireLib.TriggerOutput( self, "User", nil )
+	WireLib.TriggerOutput( self, "InUse", 0 )
+
+	-- Update status text
+	self:SetOverlayText("Keyboard - Not in use." )
+
+	-- Kick player out of vehicle, if in one
+	if self.Pod and self.Pod:IsValid() and self.Pod:GetDriver() and self.Pod:GetDriver():IsValid() then
+		self.Pod:GetDriver():ExitVehicle()
+	end
+end
+
+------------------------------------------------------------------------------------------
+-- LinkPod
+------------------------------------------------------------------------------------------
+function ENT:LinkPod( pod, silent )
+	if not pod or not pod:IsValid() then
+		if self.Pod and self.Pod:IsValid() then
+			self.Pod.WireKeyboard = nil
+			self.Pod = nil
+		end
+	else
+		if self.Pod and self.Pod:IsValid() and self.Pod == pod then return end
+
+		pod.WireKeyboard = self
+		self.Pod = pod
+	end
+end
+
+hook.Add( "PlayerEnteredVehicle", "Wire_Keyboard_PlayerEnteredVehicle", function( ply, pod )
+	if pod.WireKeyboard and pod.WireKeyboard:IsValid() then
+		pod.WireKeyboard:PlayerAttach( ply )
+	end
+end)
+
+hook.Add("PlayerLeaveVehicle", "wire_keyboard_PlayerLeaveVehicle", function( ply, pod )
+	if pod.WireKeyboard and pod.WireKeyboard:IsValid() then
+		pod.WireKeyboard:PlayerDetach()
+	end
+end)
+
+------------------------------------------------------------------------------------------
+-- Switch
+------------------------------------------------------------------------------------------
+function ENT:Switch( key, key_enum, on )
+	if not key then return false end -- Invalid key
+	if key and key_enum then All_Enums[key] = key_enum end -- Add to list of keys
+
+	local remove_from_buffer = self.AutoBuffer
+
+	if key == -1 then -- User wants to remove the first key in the buffer
+		key = self.Buffer[1]
+		remove_from_buffer = true
+	end
+
+	if not key_enum then -- User wants to remove the specified key manually
+		key_enum = All_Enums[key]
+		if not key_enum then return false end -- That key is invalid
+		remove_from_buffer = true
+	end
+
+	if on == true then
+		-- Increase buffer count
+		self.Buffer[0] = self.Buffer[0] + 1
+
+		-- Save buffer position for this key
+		local keyenums = self.ActiveKeyEnums[key_enum] or {}
+		keyenums[#keyenums+1] = self.Buffer[0]
+		self.ActiveKeyEnums[key_enum] = keyenums
+
+		-- Save on/off state
+		self.ActiveKeys[key] = true
+
+		-- Save to buffer
+		self.Buffer[self.Buffer[0]] = key
+
+		-- Trigger output
+		WireLib.TriggerOutput( self, "Memory", key )
+	else
+		if remove_from_buffer then
+			if not self.ActiveKeyEnums[key_enum] then return end -- error; this shouldn't happen
+
+			-- Get buffer index from the lookup table
+			local bufferindex = table.remove( self.ActiveKeyEnums[key_enum], 1 )
+			if not bufferindex then return false end -- This key isn't in the buffer
+
+			-- Remove key
+			table.remove( self.Buffer, bufferindex )
+
+			-- Move all remaining keys down one step
+			for _, keyenum in pairs( self.ActiveKeyEnums ) do
+				for k,v in pairs( keyenum ) do
+					if v > bufferindex then
+						keyenum[k] = v - 1
+					end
+				end
+			end
+
+			self.Buffer[0] = self.Buffer[0] - 1
+		else
+			-- Set active state to 'off'
+			self.ActiveKeys[key] = nil
+		end
+
+		WireLib.TriggerOutput( self, "Memory", 0 )
+	end
+end
+
+concommand.Add("wire_keyboard_press", function(ply, cmd, args)
+	if 	not ply.WireKeyboard or not ply.WireKeyboard:IsValid() or -- If the player isn't using a keyboard
+		not ply.WireKeyboard.ply or not ply.WireKeyboard.ply:IsValid() or ply.WireKeyboard.ply ~= ply then -- If the attached player does not match this player
+
+		umsg.Start( "wire_keyboard_releaseinput", ply ) umsg.End() -- Release their input in case they got stuck or something
+		return
+	end
+
+	local keyboard = ply.WireKeyboard
+
+	if keyboard.IgnoreFirstKey then
+		keyboard.IgnoreFirstKey = nil
+		return
+	end
+
+	local ascii = tonumber(args[2])
+	local key_enum = tonumber(args[3])
+
+	if (key_enum == KEY_LALT and args[1] == "p" and not keyboard.ActiveKeys[158]) then
+		keyboard:PlayerDetach()
+		return
+	end
+
+	keyboard:Switch( ascii, key_enum, args[1] == "p" )
+end)
+
+------------------------------------------------------------------------------------------
+-- Duplication support
+------------------------------------------------------------------------------------------
 function ENT:BuildDupeInfo()
 	local info = self.BaseClass.BuildDupeInfo(self) or {}
-	if (self.LinkedPod) and (self.LinkedPod:IsValid()) then
-	    info.pod = self.LinkedPod:EntIndex()
+	if self.Pod and self.Pod:IsValid() then
+	    info.pod = self.Pod:EntIndex()
 	end
+	info.autobuffer = self.AutoBuffer
 	return info
 end
 
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
-	if (info.pod) then
+	if info.pod then
 		local LinkedPod = GetEntByID(info.pod)
-		if (!LinkedPod) then
+		if !LinkedPod then
 			LinkedPod = ents.GetByIndex(info.pod)
 		end
 		self:LinkPod(LinkedPod, true)
 	end
-end
 
-function ENT:Initialize()
-	self:PhysicsInit(SOLID_VPHYSICS)
-	self:SetMoveType(MOVETYPE_VPHYSICS)
-	self:SetSolid(SOLID_VPHYSICS)
-	self:SetUseType(SIMPLE_USE)
-
-	self.On = {}
-	self.Inputs = Wire_CreateInputs(self, { "Kick the bastard out of keyboard" })
-	self.Outputs = WireLib.CreateSpecialOutputs(self, { "Memory", "User", "InUse" }, { "NORMAL", "ENTITY", "NORMAL" })
-
-	for i = 0,223 do
-		self.On[i] = false
-	end
-
-	self.Buffer = {}
-	for i = 0,31 do
-		self.Buffer[i] = 0
-	end
-
-	self.InUse = false
-	self.IgnoredFirstChar = false
-	self:SetOverlayText("Keyboard - not in use")
-	WireLib.TriggerOutput(self, "InUse", 0)
-end
-
-
-function ENT:ReadCell(Address)
-	if (Address >= 0) && (Address < 32) then
-		return self.Buffer[Address]
-	elseif (Address >= 32) && (Address < 256) then
-		if (self.On[Address-32]) then
-			return 1
-		else
-			return 0
-		end
+	if info.autobuffer ~= nil then
+		self.AutoBuffer = info.autobuffer
 	else
-		return nil
+		self.AutoBuffer = true
 	end
-end
-
-function ENT:WriteCell(Address, value)
-	if (Address == 0) then
-		self.Buffer[0] = 0
-		return true
-	elseif (Address > 0) && (Address < 256) then
-		self:Switch(false,value)
-		return true
-	else
-		return false
-	end
-end
-
-function ENT:Use(pl)
-	if self.LinkedPod then pl:PrintMessage(HUD_PRINTTALK, "This keyboard is linked to a pod, please use the pod.") return end
-	self:PlayerAttach(pl)
-end
-
-function ENT:TriggerInput(iname, value)
-	if (iname == "Kick the bastard out of keyboard") then
-		self.lock = value
-		if value ~= 0 and self.InUse and self.InUseBy:IsValid() then
-			self:PlayerDetach(self.InUseBy)
-		end
-	end
-end
-
-//=============================================================================
-// Switch key state to ON/OFF
-//=============================================================================
-
-function ENT:Switch(on, key)
-	if (!self:IsValid()) then return false end
-
-	if (key == -1) then
-		self.Buffer[0] = 0
-		return true
-	end
-
-	self.On[ key ] = on
-
-	if ((key != 21) && (key != 16)) then
-		if (on == true) then
-			if (self.InUse) then
-				self.Buffer[0] = self.Buffer[0] + 1
-				self.Buffer[self.Buffer[0]] = key
-				WireLib.TriggerOutput(self, "Memory", key)
-			end
-		else
-			WireLib.TriggerOutput(self, "Memory", 0)
-			for i = 1,self.Buffer[0] do
-				if (self.Buffer[i] == key) then
-					self.Buffer[0] = self.Buffer[0] - 1
-					for j = i,self.Buffer[0] do
-						self.Buffer[j] = self.Buffer[j+1]
-					end
-					return true
-				end
-			end
-		end
-	end
-
-	return true
-end
-
-//=============================================================================
-// Keyboard turning ON/OFF
-//=============================================================================
-
-local KeyBoardPlayerKeys = {}
-
-hook.Add("EntityRemoved", "wire_keyboard", function(ply)
-	KeyBoardPlayerKeys[ply:EntIndex()] = nil
-end)
-
-local function Wire_KeyOff(pl)
-	local prev_ent = KeyBoardPlayerKeys[pl:EntIndex()]
-	if (prev_ent) && (prev_ent:IsValid()) && (prev_ent.InUse) then
-		WireLib.TriggerOutput(prev_ent, "User", NULL)
-		WireLib.TriggerOutput(prev_ent, "InUse", 0)
-		prev_ent.InUse = false
-		prev_ent:SetOverlayText("Keyboard - not in use")
-
-		for i = 0,223 do
-			prev_ent.On[i] = false
-		end
-
-		for i = 0,31 do
-			prev_ent.Buffer[i] = 0
-		end
-	end
-	KeyBoardPlayerKeys[pl:EntIndex()] = nil
-
-	umsg.Start("wire_keyboard_releaseinput", pl) umsg.End()
-
-	pl:PrintMessage(HUD_PRINTTALK,"Wired keyboard turned off\n")
-end
-
-local function Wire_KeyOn(pl, ent)
-	local prev_ent = KeyBoardPlayerKeys[pl:EntIndex()]
-	if prev_ent and prev_ent.InUse then return end -- If the player is already using the keyboard, don't use another one
-	KeyBoardPlayerKeys[pl:EntIndex()] = ent
-
-	umsg.Start("wire_keyboard_blockinput", pl) umsg.End()
-	if ent.LinkedPod then
-		pl:PrintMessage(HUD_PRINTTALK, "This pod is linked to a keyboard - press ALT to leave\n")
-	else
-		pl:PrintMessage(HUD_PRINTTALK, "Wired keyboard turned on - press ALT to exit the mode\n")
-	end
-end
-
-function ENT:PlayerAttach(pl)
-	if self.InUse then return end -- If the keyboard is already in use, don't attach the player
-	if self.lock == 1 then return end -- If the keyboard is locked, don't attach the player
-	self.InUse = true
-	self.IgnoredFirstChar = false
-	self.InUseBy = pl
-	WireLib.TriggerOutput(self, "User", pl.Entity)
-	WireLib.TriggerOutput(self, "InUse", 1)
-
-	self:SetOverlayText("Keyboard - In use by " .. pl:GetName())
-	Wire_KeyOn(pl, self)
-end
-
-function ENT:PlayerDetach(pl)
-	if not self.InUse then return end
-	if self.HasPodDriver and self.LinkedPod then
-		if self.LinkedPod.GetDriver and self.LinkedPod:GetDriver().ExitVehicle then
-			self.LinkedPod:GetDriver():ExitVehicle()
-		end
-	else
-		Wire_KeyOff(pl)
-	end
-
-end
-
-//=============================================================================
-// Key press/release hook handlers
-//=============================================================================
-
-
-concommand.Add("wire_keyboard_press", function(pl, cmd, args)
-	local ascii = tonumber(args[2])
-	local key_enum = tonumber(args[3])
-
-	--print("Received key: " .. string.char(ascii) .. " - " .. tostring(ascii) .. " - enum: " .. tostring(key_enum) .. " - p/r: " .. tostring(args[1]))
-
-	if (!KeyBoardPlayerKeys[pl:EntIndex()]) then return end
-	local ent = KeyBoardPlayerKeys[pl:EntIndex()]
-	if (!ent) || (!ent:IsValid()) then
-		Wire_KeyOff(pl)
-		return
-	end
-	if (!ent.InUse) then
-		ent:PlayerDetach(pl)
-		return
-	end
-
-	if (ent.IgnoredFirstChar == false) then
-		ent.IgnoredFirstChar = true
-		return
-	end
-
-	if (key_enum == KEY_LALT and args[1] == "p" and !ent.On[158]) then
-		ent:PlayerDetach(pl)
-		return
-	end
-
-	if (args[1] == "p") then
-		if (key_enum == KEY_LCONTROL) || (key_enum == KEY_RCONTROL) then ent:Switch(true,16) end
-		if (key_enum == KEY_LSHIFT) || (key_enum == KEY_RSHIFT) then ent:Switch(true,21) end
-
-		ent:Switch(true,ascii)
-	else
-		if (key_enum == KEY_LCONTROL) || (key_enum == KEY_RCONTROL) then ent:Switch(false,16) end
-		if (key_enum == KEY_LSHIFT) || (key_enum == KEY_RSHIFT) then ent:Switch(false,21) end
-
-		ent:Switch(false,ascii)
-	end
-end)
-
-
--- a table containing the pods and their linked keyboards
-local linked_pods = {}
-
--- place some hooks that allow the keyboard to track the state of its linked pod
-hook.Add("PlayerEnteredVehicle", "wire_keyboard_PlayerEnteredVehicle", function(player, pod, role)
-	if not linked_pods[pod] then return end
-
-	for keyboard,b in pairs(linked_pods[pod]) do
-		if b then
-			keyboard:PlayerEnteredVehicle(player, role)
-		end
-	end
-end)
-
-hook.Add("PlayerLeaveVehicle", "wire_keyboard_PlayerLeaveVehicle", function(player, pod, role)
-	if not linked_pods[pod] then return end
-
-	for keyboard,b in pairs(linked_pods[pod]) do
-		if b then
-			keyboard:PlayerLeaveVehicle(player, role)
-		end
-	end
-end)
-
-function ENT:LinkPod(pod, silent)
-	if (pod and pod:IsValid()) then
-		-- unlink previous pod
-		if self.LinkedPod then self:LinkPod(nil, true) end
-		self.LinkedPod = pod
-
-		if not silent then self:GetPlayer():PrintMessage( HUD_PRINTTALK,"Keyboard linked to Pod" ) end
-		--self:GetPlayer():PrintMessage( HUD_PRINTTALK,"Keyboard "..tostring(self).." linked to Pod "..tostring(pod) )
-		if not linked_pods[pod] then
-			linked_pods[pod] = {}
-		end
-		linked_pods[pod][self] = true
-	elseif self.LinkedPod then
-
-		if not silent then self:GetPlayer():PrintMessage( HUD_PRINTTALK,"Keyboard unlinked" ) end
-		--self:GetPlayer():PrintMessage( HUD_PRINTTALK,"Keyboard "..tostring(self).." unlinked" )
-		if not linked_pods[self.LinkedPod] then return end
-		linked_pods[self.LinkedPod][self] = nil --TODO: optimization: remove sub-table if empty
-		self.LinkedPod = nil
-	end
-end
-function ENT:PlayerEnteredVehicle(player, role)
-	--print("Player "..tostring(player).." entered the vehicle")
-	self.HasPodDriver=true
-	self:PlayerAttach(player)
-end
-
-function ENT:PlayerLeaveVehicle(player, role)
-	--print("Player "..tostring(player).." left the vehicle")
-	self.HasPodDriver=nil
-	self:PlayerDetach(player)
-end
-
-function ENT:OnRemove()
-	self:LinkPod(nil, true)
 end
