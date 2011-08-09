@@ -165,7 +165,7 @@ function ENT:Error(message, overlaytext)
 	self:SetColor(255, 0, 0, a)
 
 	self.error = true
-	ErrorNoHalt(message .. "\n")
+	--ErrorNoHalt(message .. "\n")
 	WireLib.ClientError(message, self.player)
 end
 
