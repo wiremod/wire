@@ -361,6 +361,9 @@ elseif CLIENT then
 		local OK, data = pcall( glon.decode, buffer )
 		if (!OK) then
 			ErrorNoHalt( "[E2] Failed to receive extension data. Error message was:\n" .. data )
+			if wire_expression2_editor and wire_expression2_editor:IsValid() then
+				wire_expression2_editor:SetValidatorStatus( "Failed to receive extension data. Error message was: " .. data )
+			end
 		else
 			local what = um:ReadBool()
 			if (!what) then

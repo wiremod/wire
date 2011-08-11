@@ -569,9 +569,6 @@ function EDITOR:Paint()
 
 	self.Scroll[1] = math_floor(self.ScrollBar:GetScroll() + 1)
 
-	self.blockcomment = nil
-	self.multilinestring = nil
-
 	for i=self.Scroll[1],self.Scroll[1]+self.Size[1]+1 do
 		self:PaintLine(i)
 	end
@@ -936,7 +933,7 @@ function EDITOR:Find( str, looped )
 	-- Check if the match exists anywhere at all
 	local temptext = self:GetValue()
 	if (ignore_case) then
-		temptext = text:lower()
+		temptext = temptext:lower()
 		str = str:lower()
 	end
 	local _start,_stop = temptext:find( str, 1, !use_patterns )
@@ -2950,9 +2947,25 @@ function EDITOR:ResetTokenizer(row)
 	self.character = ""
 	self.tokendata = ""
 
-	for k,v in pairs( self.e2fs_functions ) do
-		if v == row then
-			self.e2fs_functions[k] = nil
+	if self:GetParent().E2 then
+		if row == self.Scroll[1] then
+			local str = string_gsub( table_concat( self.Rows, "\n", 1, self.Scroll[1]-1 ), "\r", "" )
+
+			local _, blockcomment_start_num = string_gsub( str, "#%[", "" )
+			local _, blockcomment_end_num = string_gsub( str, "%]#", "" )
+
+			self.blockcomment = blockcomment_start_num > blockcomment_end_num
+
+			local _, string_num = string_gsub( str, '"', "" )
+
+			self.multilinestring = string_num % 2 ~= 0
+		end
+
+
+		for k,v in pairs( self.e2fs_functions ) do
+			if v == row then
+				self.e2fs_functions[k] = nil
+			end
 		end
 	end
 end
@@ -3081,7 +3094,7 @@ do -- E2 Syntax highlighting
 	local cols = {}
 	local lastcol
 	local function addToken(tokenname, tokendata)
-		color = colors[tokenname]
+		local color = colors[tokenname]
 		if lastcol and color == lastcol[2] then
 			lastcol[1] = lastcol[1] .. tokendata
 		else
