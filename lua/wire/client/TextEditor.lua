@@ -11,6 +11,7 @@ local math_floor = math.floor
 local math_Clamp = math.Clamp
 local math_ceil = math.ceil
 local string_match = string.match
+local string_gmatch = string.gmatch
 local string_gsub = string.gsub
 local string_rep = string.rep
 local string_byte = string.byte
@@ -2949,16 +2950,28 @@ function EDITOR:ResetTokenizer(row)
 
 	if self:GetParent().E2 then
 		if row == self.Scroll[1] then
+
+			-- This code checks if the visible code is inside a string or a block comment
+			self.blockcomment = nil
+			self.multilinestring = nil
+
 			local str = string_gsub( table_concat( self.Rows, "\n", 1, self.Scroll[1]-1 ), "\r", "" )
 
-			local _, blockcomment_start_num = string_gsub( str, "#%[", "" )
-			local _, blockcomment_end_num = string_gsub( str, "%]#", "" )
-
-			self.blockcomment = blockcomment_start_num > blockcomment_end_num
-
-			local _, string_num = string_gsub( str, '"', "" )
-
-			self.multilinestring = string_num % 2 ~= 0
+			for before, char, after in string_gmatch( str, '(.?)([#"])(.?)' ) do
+				before = before or "" -- just in case
+				if not self.blockcomment and not self.multilinestring then
+					after = after or "" -- just in case
+					if char == '"' and before ~= "\\" then
+						self.multilinestring = true
+					elseif char == "#" and after == "[" then
+						self.blockcomment = true
+					end
+				elseif self.multilinestring and char == '"' and before ~= "\\" then
+						self.multilinestring = nil
+				elseif self.blockcomment and char == "#" and before == "]" then
+					self.blockcomment = nil
+				end
+			end
 		end
 
 
