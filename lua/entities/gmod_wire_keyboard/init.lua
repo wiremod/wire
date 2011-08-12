@@ -8,6 +8,17 @@ ENT.WireDebugName = "Wired Keyboard"
 
 local All_Enums = {} -- table containing key -> key enum conversion
 
+-- Add a few common keys
+for i=48,57 do -- 0 -> 9
+	All_Enums[i] = _E["KEY_" .. string.char(i)]
+end
+for i=65,90 do -- A -> Z
+	All_Enums[i] = _E["KEY_" .. string.upper(string.char(i))]
+end
+for i=97,122 do -- a -> z
+	All_Enums[i] = _E["KEY_" .. string.upper(string.char(i))]
+end
+
 ------------------------------------------------------------------------------------------
 -- Initialize
 ------------------------------------------------------------------------------------------
@@ -46,7 +57,10 @@ function ENT:ReadCell( Address )
 	if Address >= 0 and Address < 32 then
 		return self.Buffer[Address] or 0
 	elseif Address >= 32 and Address < 256 then
-		return self.ActiveKeys[Address-32] and 1 or 0
+		local enum = All_Enums[Address - 32]
+		if not enum then return 0 end -- Either this key is invalid, or it has never been pressed
+
+		return self.ActiveKeys[enum] and 1 or 0
 	end
 
 	return 0
@@ -209,7 +223,7 @@ function ENT:Switch( key, key_enum, on )
 		self.ActiveKeyEnums[key_enum] = keyenums
 
 		-- Save on/off state
-		self.ActiveKeys[key] = true
+		self.ActiveKeys[key_enum] = true
 
 		-- Save to buffer
 		self.Buffer[self.Buffer[0]] = key
@@ -237,10 +251,10 @@ function ENT:Switch( key, key_enum, on )
 			end
 
 			self.Buffer[0] = self.Buffer[0] - 1
-		else
-			-- Set active state to 'off'
-			self.ActiveKeys[key] = nil
 		end
+
+		-- Set active state to 'off'
+		self.ActiveKeys[key_enum] = nil
 
 		WireLib.TriggerOutput( self, "Memory", 0 )
 	end
@@ -264,7 +278,7 @@ concommand.Add("wire_keyboard_press", function(ply, cmd, args)
 	local ascii = tonumber(args[2])
 	local key_enum = tonumber(args[3])
 
-	if (key_enum == KEY_LALT and args[1] == "p" and not keyboard.ActiveKeys[158]) then
+	if (key_enum == KEY_LALT and args[1] == "p" and not keyboard.ActiveKeys[KEY_LCONTROL]) then -- if LCONTROL is being pressed, then the player is trying to use the "ALT GR" key which is available for some languages
 		keyboard:PlayerDetach()
 		return
 	end

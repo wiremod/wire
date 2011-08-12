@@ -233,7 +233,7 @@ if SERVER then
 				end
 				return
 			end
-			if (target and type(target) == "Player" and target:IsValid()) then
+			if (target and type(target) == "Player" and target:IsValid() and targets[target] == nil) then
 				targets[target] = { 1, 0 }
 				umsg.Start("e2st",target) umsg.Short( #functiondata_buffer + #functiondata2_buffer ) umsg.End()
 			end
