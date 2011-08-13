@@ -47,6 +47,7 @@ e2function void httpRequest( string url )
 			preq.t_end = CurTime()
 			preq.in_progress = false
 			preq.data = contents or ""
+			preq.data = string.gsub( preq.data, string.char( 13 ) .. string.char( 10 ), "\n" )
 
 			run_on.clk = 1
 
