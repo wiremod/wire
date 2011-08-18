@@ -986,7 +986,6 @@ registerCallback( "postinit", function()
 		registerOperator("idx",	id.."=ts"		, id, function(self,args)
 			local op1, op2 = args[2], args[3]
 			local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-			if (!rv1 or !rv2) then return fixdef(v[2]) end
 			if (!rv1.s[rv2] or rv1.stypes[rv2] != id) then return fixdef(v[2]) end
 			if (v[6] and v[6](rv1.s[rv2])) then return fixdef(v[2]) end -- Type check
 			return rv1.s[rv2]
@@ -995,7 +994,6 @@ registerCallback( "postinit", function()
 		registerOperator("idx",	id.."=tn"		, id, function(self,args)
 			local op1, op2 = args[2], args[3]
 			local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-			if (!rv1 or !rv2) then return fixdef(v[2]) end
 			if (!rv1.n[rv2] or rv1.ntypes[rv2] != id) then return fixdef(v[2]) end
 			if (v[6] and v[6](rv1.n[rv2])) then return fixdef(v[2]) end -- Type check
 			return rv1.n[rv2]
@@ -1005,7 +1003,6 @@ registerCallback( "postinit", function()
 		registerOperator("idx", id.."=ts"..id , id, function( self, args )
 			local op1, op2, op3 = args[2], args[3], args[4]
 			local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
-			if (!rv1 or !rv2 or !rv3) then return fixdef(v[2]) end
 			if (id == "t") then
 				rv3.depth = rv1.depth + 1
 				if (checkdepth( rv3, rv3.depth, true ) > maxdepth()) then -- max depth check
@@ -1028,7 +1025,6 @@ registerCallback( "postinit", function()
 		registerOperator("idx", id.."=tn"..id, id, function(self,args)
 			local op1, op2, op3 = args[2], args[3], args[4]
 			local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
-			if (!rv1 or !rv2 or !rv3) then return fixdef(v[2]) end
 			if (id == "t") then
 				rv3.depth = rv1.depth + 1
 				if (checkdepth( rv3, rv3.depth, true ) > maxdepth()) then -- max depth check
@@ -1125,7 +1121,7 @@ registerCallback( "postinit", function()
 		registerFunction( "insert"..name,"t:n"..id,"",function(self,args)
 			local op1, op2, op3 = args[2], args[3], args[4]
 			local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self,op3)
-			if (!rv1 or !rv2 or !rv3 or rv2 < 0) then return end
+			if (rv2 < 0) then return end
 			if (id == "t") then
 				rv3.depth = rv1.depth + 1
 				if (checkdepth( rv3, rv3.depth, true ) > maxdepth()) then
@@ -1148,7 +1144,6 @@ registerCallback( "postinit", function()
 		registerFunction( "unshift"..name,"t:"..id,"",function(self,args)
 			local op1, op2 = args[2], args[3]
 			local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-			if (!rv1 or !rv2) then return end
 			if (id == "t") then
 				rv2.depth = rv1.depth + 1
 				if (checkdepth( rv2, rv2.depth, true ) > maxdepth()) then

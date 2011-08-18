@@ -15,6 +15,8 @@ local string_gmatch = string.gmatch
 local string_gsub = string.gsub
 local string_rep = string.rep
 local string_byte = string.byte
+local string_format = string.format
+local string_Trim = string.Trim
 local math_min = math.min
 local table_insert = table.insert
 local table_sort = table.sort
@@ -265,6 +267,43 @@ function EDITOR:OnMousePressed(code)
 			end
 		end
 
+		menu:AddSpacer()
+
+		menu:AddOption( "Copy with BBCode colors", function()
+			local str = string_format( "[code][font=%s]", self:GetParent().FontConVar:GetString() )
+
+			local prev_colors
+			local first_loop = true
+
+			for i=1,#self.Rows do
+			local colors = self:SyntaxColorLine(i)
+
+				for k,v in pairs( colors ) do
+					local color = v[2][1]
+
+					if (prev_colors and prev_colors == color) or string_Trim(v[1]) == "" then
+						str = str .. v[1]
+					else
+						prev_colors = color
+
+						if first_loop then
+							str = str .. string_format( '[color="#%x%x%x"]', color.r - 50, color.g - 50, color.b - 50 ) .. v[1]
+							first_loop = false
+						else
+							str = str .. string_format( '[/color][color="#%x%x%x"]', color.r - 50, color.g - 50, color.b - 50 ) .. v[1]
+						end
+					end
+				end
+
+				str = str .. "\r\n"
+
+			end
+
+			str = str .. "[/color][/font][/code]"
+
+			self.clipboard = str
+			SetClipboardText( str )
+		end)
 
 		menu:Open()
 	end
@@ -2962,7 +3001,9 @@ function EDITOR:ResetTokenizer(row)
 				if not self.blockcomment and not self.multilinestring then
 					after = after or "" -- just in case
 					if char == '"' and before ~= "\\" then
-						self.multilinestring = true
+						if after ~= '"' then
+							self.multilinestring = true
+						end
 					elseif char == "#" and after == "[" then
 						self.blockcomment = true
 					end
