@@ -551,7 +551,7 @@ function Parser:Stmt9()
 
 
 		if !self:AcceptRoamingToken("lpa") then
-			self:Error("Left parenthesis (() must appear affter function name")
+			self:Error("Left parenthesis (() must appear after function name")
 		end
 
 		if self:HasTokens() and !self:AcceptRoamingToken("rpa") then
