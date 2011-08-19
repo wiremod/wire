@@ -143,14 +143,25 @@ end
 -----------------------
 
 function EGP:SendMaterial( obj ) -- ALWAYS use this when sending material
-	if (obj.material and obj.material != "") then
-		umsg.PoolString( obj.material )
+	local mat = obj.material
+	if type(mat) == "string" then
+		umsg.PoolString( "0" .. mat )
+		EGP.umsg.String( "0" .. mat ) -- 0 for string
+	elseif type(mat) == "Entity" then
+		EGP.umsg.String( "1" .. mat:EntIndex() ) -- 1 for entity
 	end
-	EGP.umsg.String( obj.material )
 end
 
 function EGP:ReceiveMaterial( tbl, um ) -- ALWAYS use this when receiving material
-	tbl.material = um:ReadString()
+	local temp = um:ReadString()
+	local what, mat = temp:sub(1,1), temp:sub(2)
+	if what == "0" then
+		tbl.material = mat
+	elseif what == "1" then
+		local num = tonumber(mat)
+		if not num then return end
+		tbl.material = Entity(num)
+	end
 end
 
 -----------------------

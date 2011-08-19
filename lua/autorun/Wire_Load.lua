@@ -2,7 +2,7 @@
 -- $LastChangedDate: 2009-09-12 03:34:53 -0700 (Sat, 12 Sep 2009) $
 -- $LastChangedBy: TomyLobo $
 
-if VERSION < 119 then Error("WireMod: Your GMod is years too old. Load aborted.\n") end
+if VERSION < 125 then Error("WireMod: Your GMod is years too old. Load aborted.\n") end
 
 if SERVER then
 	-- this file
@@ -76,10 +76,6 @@ include("wire/GPULib.lua")
 include("wire/CPULib.lua")
 include("wire/welcome_menu.lua")
 
-if CLIENT then
-	include("wire/client/hlzasm/hc_compiler.lua")
-end
-
 -- server includes
 if SERVER then
 	include("wire/server/WireLib.lua")
@@ -103,4 +99,11 @@ if CLIENT then
 	include("wire/client/sound_browser.lua")
 	include("wire/client/welcome_menu_derma.lua")
 	include("wire/client/rendertarget_fix.lua")
+	include("wire/client/hlzasm/hc_compiler.lua")
+end
+
+-- load uwsvn
+if file.FindInLua("wire/uwsvn_load.lua")[1] then
+	if SERVER then AddCSLuaFile( "wire/uwsvn_load.lua" ) end
+	include("wire/uwsvn_load.lua")
 end

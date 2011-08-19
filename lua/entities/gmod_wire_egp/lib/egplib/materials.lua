@@ -51,7 +51,7 @@ function EGP:SetMaterial( Mat )
 		if (!Mat:IsValid() or !Mat.GPU or !Mat.GPU.RT) then return end
 		local OldTex = WireGPU_matScreen:GetMaterialTexture("$basetexture")
 		WireGPU_matScreen:SetMaterialTexture("$basetexture", Mat.GPU.RT)
-		surface.SetTexture(WireGPU_texScreen)
+		surface.SetTexture(surface.GetTextureID( "GPURT" ))
 		return OldTex
  	end
  end

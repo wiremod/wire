@@ -580,7 +580,6 @@ e2function void wirelink:egpMaterial( number index, string material )
 	end
 end
 
---[[ I'm removing this function for now because I've been unable to get it working. If you can fix it, please do.
 e2function void wirelink:egpMaterialFromScreen( number index, entity gpu )
 	if (!EGP:IsAllowed( self, this )) then return end
 	local bool, k, v = EGP:HasObject( this, index )
@@ -588,7 +587,6 @@ e2function void wirelink:egpMaterialFromScreen( number index, entity gpu )
 		if (EGP:EditObject( v, { material = gpu } )) then EGP:DoAction( this, self, "SendObject", v ) Update(self,this) end
 	end
 end
-]]
 
 ----------------------------
 -- Fidelity (number of corners for circles and wedges)
