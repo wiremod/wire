@@ -122,22 +122,49 @@ __e2setcost(5)
 
 -- Clear the non-shared table
 e2function void gRemoveAll()
-	self.prf = self.prf + table.Count(gvars[self.uid]) / 3
 	for k,v in pairs( gvars[self.uid] ) do
-		self.prf = self.prf + table.Count(v) / 3
-		table.Empty( v )
+		self.prf = self.prf + 0.3
+
+		for k2,v2 in pairs( v ) do
+			self.prf = self.prf + 0.3
+			v[k2] = nil
+		end
+
+		gvars[self.uid][k] = nil
 	end
-	table.Empty(gvars[self.uid])
 end
 
 e2function void gtable:clear()
-	self.prf = self.prf + table.Count(this) / 3
-	table.Empty(this)
+	for k,v in pairs( this ) do
+		this[k] = nil
+		self.prf = self.prf + 0.3
+	end
 end
 
 e2function number gtable:count()
 	local ret = table.Count( this )
 	self.prf = self.prf + ret / 3
+	return ret
+end
+
+local string_sub = string.sub
+e2function table gtable:toTable()
+	local ret = {n={},ntypes={},s={},stypes={},size=0,istable=true,depth=0}
+
+	for k,v in pairs( this ) do
+		local typeid, index = string_sub( k, 1,1 ), string_sub( k, 2 )
+		if typeid == "x" then
+			typeid = string_sub( k, 1,3 )
+			index = string_sub( k, 4 )
+		end
+
+		ret.s[index] = v
+		ret.stypes[index] = typeid
+		ret.size = ret.size + 1
+	end
+
+	self.prf = self.prf + ret.size / 3
+
 	return ret
 end
 
