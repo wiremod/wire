@@ -80,8 +80,8 @@ __e2setcost(5)
 
 registerCallback("postinit",function()
 	for k,v in pairs( wire_expression_types ) do
+		local short = v[1]
 		if (!excluded_types[short]) then
-			local short = v[1]
 			registerFunction("ioSetOutput","s"..short,""..short,function(self,args) return setOutput(self,args,k) end)
 			registerFunction("ioGetInput"..upperfirst(k == "NORMAL" and "NUMBER" or k),"s",short,function(self,args) return getInput(self,args,v[2],k) end)
 		end

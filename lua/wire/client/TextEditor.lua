@@ -1104,23 +1104,43 @@ function EDITOR:ReplaceAll( str, replacewith )
 
 	local txt = self:GetValue()
 
-	if (ignore_case) then
-		txt = txt:lower()
-		str = str:lower()
-	end
+	if ignore_case then
+		local txt2 = txt -- Store original cased copy
+		str = str:lower() -- Lowercase everything
+		txt = txt:lower() -- Lowercase everything
 
-	if (whole_word_only) then
-		local pattern = "([^a-zA-Z0-9_])"..str.."([^a-zA-Z0-9_])"
-		txt = " " .. txt
-		txt = txt:gsub( pattern, "%1"..replacewith.."%2" )
-		txt = txt:gsub( pattern, "%1"..replacewith.."%2" )
-		txt = txt:sub(2)
+		local pattern = "()"..str.."()"
+		if whole_word_only then pattern = "[^a-zA-Z0-9_]()"..str.."()[^a-zA-Z0-9_]" end
+
+		local positions = {}
+
+		for startpos, endpos in string_gmatch( txt, pattern ) do
+			positions[#positions+1] = {startpos,endpos}
+		end
+
+		-- Do the replacing backwards, or it won't work
+		for i=#positions,1,-1 do
+			local startpos, endpos = positions[i][1], positions[i][2]
+			txt2 = string_sub(txt2,1,startpos-1) .. replacewith .. string_sub(txt2,endpos)
+		end
+
+		-- Replace everything with the edited copy
+		self:SelectAll()
+		self:SetSelection( txt2 )
 	else
-		txt = txt:gsub( str, replacewith )
-	end
+		if (whole_word_only) then
+			local pattern = "([^a-zA-Z0-9_])"..str.."([^a-zA-Z0-9_])"
+			txt = " " .. txt
+			txt = string_gsub( txt, pattern, "%1"..replacewith.."%2" )
+			txt = string_gsub( txt, pattern, "%1"..replacewith.."%2" )
+			txt = string_sub( txt, 2 )
+		else
+			txt = string_gsub( txt, str, replacewith )
+		end
 
-	self:SelectAll()
-	self:SetSelection( txt )
+		self:SelectAll()
+		self:SetSelection( txt )
+	end
 end
 
 function EDITOR:CountFinds( str )
@@ -2997,18 +3017,14 @@ function EDITOR:ResetTokenizer(row)
 			local str = string_gsub( table_concat( self.Rows, "\n", 1, self.Scroll[1]-1 ), "\r", "" )
 
 			for before, char, after in string_gmatch( str, '(.?)([#"])(.?)' ) do
-				before = before or "" -- just in case
 				if not self.blockcomment and not self.multilinestring then
-					after = after or "" -- just in case
-					if char == '"' and before ~= "\\" then
-						if after ~= '"' then
-							self.multilinestring = true
-						end
+					if char == '"' and after ~= '"' then
+						self.multilinestring = true
 					elseif char == "#" and after == "[" then
 						self.blockcomment = true
 					end
-				elseif self.multilinestring and char == '"' and before ~= "\\" then
-						self.multilinestring = nil
+				elseif self.multilinestring and char == '"' and (before ~= "\\" or after == '"') then
+					self.multilinestring = nil
 				elseif self.blockcomment and char == "#" and before == "]" then
 					self.blockcomment = nil
 				end
