@@ -949,7 +949,56 @@ function Parser:Expr16()
 		if self:AcceptRoamingToken("rpa") then
 			return self:Instruction(trace, "fun", fun, {})
 		else
-			local exprs = {self:Expr1()}
+
+			local exprs = {}
+
+			-- Special case for "table( str=val, str=val, str=val, ... )" (or array)
+			if fun == "table" or fun == "array" then
+				local kvtable = false
+
+				local key = self:Expr1()
+				local token = self:GetToken()
+
+				if self:AcceptRoamingToken( "ass" ) then
+					if self:AcceptRoamingToken( "rpa" ) then
+						self:Error( "Expression expected, got right paranthesis ())", self:GetToken() )
+					end
+
+					exprs[key] = self:Expr1()
+
+					kvtable = true
+				else -- If it isn't a "table( str=val, ...)", then it's a "table( val,val,val,... )"
+					exprs = { key }
+				end
+
+				if kvtable then
+					while self:AcceptRoamingToken( "com" ) do
+						local token = self:GetToken()
+
+						local key = self:Expr1()
+						local token = self:GetToken()
+
+						if self:AcceptRoamingToken( "ass" ) then
+							if self:AcceptRoamingToken( "rpa" ) then
+								self:Error( "Expression expected, got right paranthesis ())", self:GetToken() )
+							end
+
+							exprs[key] = self:Expr1()
+						else
+							self:Error( "Assignment operator (=) missing, to complete expression", token )
+						end
+					end
+
+					if not self:AcceptRoamingToken( "rpa" ) then
+						self:Error("Right parenthesis ()) missing, to close function argument list", self:GetToken())
+					end
+
+					return self:Instruction( trace, "kv" .. fun, exprs )
+				end
+			else
+				exprs = { self:Expr1() }
+			end
+
 			while self:AcceptRoamingToken("com") do
 				exprs[#exprs + 1] = self:Expr1()
 			end

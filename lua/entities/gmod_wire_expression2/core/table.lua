@@ -305,6 +305,53 @@ registerOperator("fea","t","s",function(self,args)
 	end
 end)
 
+registerOperator( "kvtable", "", "t", function( self, args )
+	local ret = table.Copy( DEFAULT )
+
+
+	local types = args[3]
+
+	local s, stypes, n, ntypes = {}, {}, {}, {}
+
+	local size = 0
+	for k,v in pairs( args[2] ) do
+		if not blocked_types[types[k]] then
+			local key = k[1]( self, k )
+
+			if type(key) == "string" then
+				s[key] = v[1]( self, v )
+				stypes[key] = types[k]
+			elseif type(key) == "number" then
+				n[key] = v[1]( self, v )
+				ntypes[key] = types[k]
+			end
+			size = size + 1
+
+			if size > maxsize() then
+				self.prf = self.prf + size * opcost + 500
+				return ret
+			end
+
+			if types[k] == "t" then
+				if checkdepth( s[key], 1 ) > maxdepth() then
+					self.prf = self.prf + size * opcost + 500
+					return ret
+				end
+				s[key].depth = 1
+				s[key].parent = ret
+			end
+		end
+	end
+
+	self.prf = self.prf + size * opcost
+	ret.size = size
+	ret.s = s
+	ret.stypes = stypes
+	ret.n = n
+	ret.ntypes = ntypes
+	return ret
+end)
+
 --------------------------------------------------------------------------------
 -- Common functions
 --------------------------------------------------------------------------------

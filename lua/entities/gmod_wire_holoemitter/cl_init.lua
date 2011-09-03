@@ -14,6 +14,38 @@ function ENT:Initialize()
 	self.RBound = Vector(1024,1024,1024)
 end
 
+function ENT:AddPoint( Pos, Local, Color, DieTime, LineBeam, GroundBeam, Size )
+	local point = {}
+
+	if Local ~= nil and Color ~= nil and DieTime ~= nil and LineBeam ~= nil and GroundBeam ~= nil and Size ~= nil then
+
+		point.Pos = Pos
+		point.Local = Local
+		point.Color = Color
+		point.LineBeam = LineBeam
+		point.GroundBeam = GroundBeam
+		point.Size = Size
+
+		if DieTime ~= 0 then
+			point.DieTime = CurTime() + DieTime
+		else
+			point.DieTime = nil
+		end
+
+		point.SpawnTime = CurTime()
+
+	else
+
+		point = self.Previous
+		point.Pos = Pos
+
+	end
+
+	self.Points[#self.Points+1] = point
+
+	self.Previous = table.Copy( point )
+end
+
 usermessage.Hook("hed",function( um )
 	local ent = um:ReadEntity()
 	if (!ent or !ent:IsValid()) then return end
@@ -22,35 +54,13 @@ usermessage.Hook("hed",function( um )
 	local old = {}
 
 	for i=1,n do
-		local curpos = Vector( um:ReadFloat(), um:ReadFloat(), um:ReadFloat() )
+		local pos = Vector(um:ReadFloat(),um:ReadFloat(),um:ReadFloat())
 		local IsDifferent = um:ReadBool()
-		local t
-		if (IsDifferent) then
-			t = {
-				Pos = curpos,
-				Local = um:ReadBool(),
-				Color = um:ReadVector(),
-				DieTime = math.min(um:ReadShort()/100,cvar:GetFloat()),
-				SpawnTime = CurTime(),
-				LineBeam = um:ReadBool(),
-				GroundBeam = um:ReadBool(),
-				Size = um:ReadShort()/100,
-			}
-			t.Color = Color(t.Color.x,t.Color.y,t.Color.z,255)
+		if IsDifferent then
+			ent:AddPoint( pos, um:ReadBool(), Color(um:ReadChar()+128,um:ReadChar()+128,um:ReadChar()+128), um:ReadShort()/100, um:ReadBool(), um:ReadBool(), um:ReadShort()/100 )
 		else
-			t = old
-			t.Pos = curpos
+			ent:AddPoint( pos )
 		end
-		old = table.Copy(t)
-		if (t.DieTime != 0) then
-			t.DieTime = CurTime() + t.DieTime
-			old.DieTime = t.DieTime
-		else
-			t.DieTime = nil
-			old.DieTime = 0
-		end
-
-		ent.Points[#ent.Points+1] = t
 	end
 end)
 
@@ -72,26 +82,26 @@ function ENT:Think()
 
 	local cvarnum = cvar:GetFloat()
 
-	local removetable = {}
-	for k,v in ipairs( self.Points ) do
-		if (k == #self.Points and keeplatest:GetBool()) then continue end
-		if (v.DieTime and v.DieTime < CurTime()) then
-			removetable[#removetable+1] = k
-			if (self.Points[k-1]) then self.Points[k-1].LineBeam = false end -- Don't draw to this point anymore
-		elseif (cvarnum != 0) then -- If the client changes the max fade time later on
-			if (v.SpawnTime + cvarnum < CurTime()) then
-				removetable[#removetable+1] = k
-				if (self.Points[k-1]) then self.Points[k-1].LineBeam = false end -- Don't draw to this point anymore
-			end
-		end
+	for k=#self.Points,1,-1 do
+		local v = self.Points[k]
+
+		if k == #self.Points and keeplatest:GetBool() then continue end -- Check keep latest convar
+
 		if v.DieTime then
 			v.Color.a = 255-(CurTime()-v.SpawnTime)/(v.DieTime-v.SpawnTime)*255 -- Set alpha
-		elseif cvarnum ~= 0 then
-			v.Color.a = 255-(CurTime()-v.SpawnTime)/((v.SpawnTime + cvarnum)-v.SpawnTime)*255 -- Set alpha
+
+			if v.DieTime < CurTime() then -- If the point's time has passed, remove it
+				table.remove( self.Points, k )
+
+				if self.Points[k-1] then self.Points[k-1].LineBeam = false end -- Don't draw a line to this point anymore
+			end
 		end
-	end
-	for k,v in ipairs( removetable ) do
-		table.remove( self.Points, v )
+
+		if cvarnum ~= 0 and v.SpawnTime + cvarnum < CurTime() then -- If the clientside time limit is shorter than the DieTime
+			table.remove( self.Points, k )
+
+			if self.Points[k-1] then self.Points[k-1].LineBeam = false end -- Don't draw a line to this point anymore
+		end
 	end
 
 	return true
@@ -101,8 +111,18 @@ function ENT:Draw()
 	self:DrawModel()
 	Wire_Render( self )
 
-	local ent = self:GetNWEntity( "Link" )
+	local ent = self:GetNWEntity( "Link", false )
 	if (!ent or !ValidEntity(ent)) then ent = self end
+
+	local forcelocal = false
+	if ent:GetClass() == "gmod_wire_hologrid" then
+		local temp = ent:GetNWEntity( "reference", false )
+		if temp and temp:IsValid() then
+			ent = temp
+			forcelocal = true
+		end
+	end
+
 	local selfpos = ent:GetPos()
 
 	local n = #self.Points
@@ -113,7 +133,7 @@ function ENT:Draw()
 		local v = self.Points[k]
 		local Pos = v.Pos
 
-		if (v.Local) then
+		if (v.Local or forcelocal) then
 			Pos = ent:LocalToWorld( Pos )
 		end
 
@@ -133,7 +153,7 @@ function ENT:Draw()
 
 			local NextPoint = self.Points[k+1]
 			local NextPos = NextPoint.Pos
-			if (NextPoint.Local) then
+			if (NextPoint.Local or forcelocal) then
 				NextPos = ent:LocalToWorld( NextPos )
 			end
 

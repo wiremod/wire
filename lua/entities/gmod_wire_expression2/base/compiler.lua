@@ -734,3 +734,41 @@ function Compiler:InstrRETURNVOID(args)
 
 	return {self:GetOperator(args, "return", {})[1], Value, Type}
 end
+
+function Compiler:InstrKVTABLE( args )
+	local s = {}
+	local stypes = {}
+
+	local exprs = args[3]
+	for k,v in pairs( exprs ) do
+		local key, type = self["Instr" .. string.upper(k[1])](self, k)
+		if type == "s" or type == "n" then
+			local value, type = self["Instr" .. string.upper(v[1])](self, v)
+			s[key] = value
+			stypes[key] = type
+		else
+			self:Error( "String or number expected, got " .. tps_pretty( type ), k )
+		end
+	end
+
+	return {self:GetOperator(args, "kvtable", {})[1], s, stypes}, "t"
+end
+
+function Compiler:InstrKVARRAY( args )
+	local values = {}
+	local types = {}
+
+	local exprs = args[3]
+	for k,v in pairs( exprs ) do
+		local key, type = self["Instr" .. string.upper(k[1])](self, k)
+		if type == "n" then
+			local value, type = self["Instr" .. string.upper(v[1])](self, v)
+			values[key] = value
+			types[key] = type
+		else
+			self:Error( "Number expected, got " .. tps_pretty( type ), k )
+		end
+	end
+
+	return {self:GetOperator(args, "kvarray", {})[1], values, types}, "r"
+end
