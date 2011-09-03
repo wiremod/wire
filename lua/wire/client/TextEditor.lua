@@ -3229,8 +3229,8 @@ do -- E2 Syntax highlighting
 			local spaces = self:SkipPattern( " *" )
 			if spaces then addToken( "comment", spaces ) end
 
-			if self:NextPattern( "[a-z][a-zA-Z0-9]*%s%s*[a-z][a-zA-Z0-9]*:[a-z][a-zA-Z0-9]*" ) then -- Everything specified (returntype typeindex:funcname)
-				local returntype, spaces, typeindex, funcname = self.tokendata:match( "([a-z][a-zA-Z0-9]*)(%s%s*)([a-z][a-zA-Z0-9]*):([a-z][a-zA-Z0-9]*)" )
+			if self:NextPattern( "[a-z][a-zA-Z0-9]*%s%s*[a-z][a-zA-Z0-9]*:[a-z][a-zA-Z0-9_]*" ) then -- Everything specified (returntype typeindex:funcname)
+				local returntype, spaces, typeindex, funcname = self.tokendata:match( "([a-z][a-zA-Z0-9]*)(%s%s*)([a-z][a-zA-Z0-9]*):([a-z][a-zA-Z0-9_]*)" )
 
 				if istype( returntype ) or returntype == "void" then
 					addToken( "typename", returntype )
@@ -3251,8 +3251,8 @@ do -- E2 Syntax highlighting
 				end
 
 				self.tokendata = ""
-			elseif self:NextPattern( "[a-z][a-zA-Z0-9]*%s%s*[a-z][a-zA-Z0-9]*" ) then -- returntype funcname
-				local returntype, spaces, funcname = self.tokendata:match( "([a-z][a-zA-Z0-9]*)(%s%s*)([a-z][a-zA-Z0-9]*)" )
+			elseif self:NextPattern( "[a-z][a-zA-Z0-9]*%s%s*[a-z][a-zA-Z0-9_]*" ) then -- returntype funcname
+				local returntype, spaces, funcname = self.tokendata:match( "([a-z][a-zA-Z0-9]*)(%s%s*)([a-z][a-zA-Z0-9_]*)" )
 
 				if istype( returntype ) or returntype == "void" then
 					addToken( "typename", returntype )
@@ -3271,8 +3271,8 @@ do -- E2 Syntax highlighting
 				end
 
 				self.tokendata = ""
-			elseif self:NextPattern( "[a-z][a-zA-Z0-9]*:[a-z][a-zA-Z0-9]*" ) then -- typeindex:funcname
-				local typeindex, funcname = self.tokendata:match( "([a-z][a-zA-Z0-9]*):([a-z][a-zA-Z0-9]*)" )
+			elseif self:NextPattern( "[a-z][a-zA-Z0-9]*:[a-z][a-zA-Z0-9_]*" ) then -- typeindex:funcname
+				local typeindex, funcname = self.tokendata:match( "([a-z][a-zA-Z0-9]*):([a-z][a-zA-Z0-9_]*)" )
 
 				if istype( typeindex ) then
 					addToken( "typename", typeindex )
@@ -3287,8 +3287,8 @@ do -- E2 Syntax highlighting
 				end
 
 				self.tokendata = ""
-			elseif self:NextPattern( "[a-z][a-zA-Z0-9]*" ) then -- funcname
-				local funcname = self.tokendata:match( "[a-z][a-zA-Z0-9]*" )
+			elseif self:NextPattern( "[a-z][a-zA-Z0-9_]*" ) then -- funcname
+				local funcname = self.tokendata:match( "[a-z][a-zA-Z0-9_]*" )
 
 				if istype( funcname ) or funcname == "void" then -- Hey... this isn't a function name! :O
 					addToken( "typename", funcname )

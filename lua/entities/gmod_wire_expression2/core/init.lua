@@ -331,7 +331,14 @@ elseif CLIENT then
 
 		e2_function_data_received = true
 
-		if wire_expression2_editor then wire_expression2_editor:Validate(false) end
+		if wire_expression2_editor then
+			wire_expression2_editor:Validate(false)
+
+			-- Update highlighting on all tabs
+			for i=1,wire_expression2_editor:GetNumTabs() do
+				wire_expression2_editor:GetEditor( i ).PaintRows = {}
+			end
+		end
 	end
 
 	local function status( count, total_count )

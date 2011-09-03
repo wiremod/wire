@@ -65,6 +65,26 @@ e2function array array(...)
 	return ret
 end
 
+registerOperator( "kvarray", "", "r", function( self, args )
+	local ret = {}
+
+	local values = args[2]
+	local types = args[3]
+
+	for k,v in pairs( values ) do
+		if not blocked_types[types[k]] then
+			local key = k[1]( self, k )
+			local value = v[1]( self, v )
+
+			ret[key] = value
+
+			self.prf = self.prf + 1/3
+		end
+	end
+
+	return ret
+end)
+
 --------------------------------------------------------------------------------
 -- = operator
 --------------------------------------------------------------------------------

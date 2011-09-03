@@ -33,7 +33,7 @@ function ENT:Initialize( )
 	self.Data.LineBeam = false
 	self.Data.GroundBeam = false
 	self.Data.Size = 1
-	self.UmsgSize = 6
+	self.UmsgSize = 3
 	self.Previous = {}
 end
 
@@ -55,9 +55,9 @@ function ENT:AddPoint()
 
 	local IsDifferent = self:CompareData( self.Previous, self.Data )
 	if (IsDifferent) then
-		self.UmsgSize = self.UmsgSize + 26
+		self.UmsgSize = self.UmsgSize + 23
 	else
-		self.UmsgSize = self.UmsgSize + 9
+		self.UmsgSize = self.UmsgSize + 13
 	end
 
 	if (self.UmsgSize >= 250) then return end -- Check umsg size again
@@ -127,7 +127,7 @@ end
 
 function ENT:ReadCell( Address )
 	if (Address == 0) then
-		return (self.UmsgSize <= 255 and 1 or 0)
+		return (self.UmsgSize < 250 and 1 or 0)
 	elseif (Address == 1) then
 		return self.Data.Pos.x
 	elseif (Address == 2) then
@@ -205,35 +205,56 @@ function ENT:WriteCell( Address, value )
 end
 
 function ENT:Link( ent )
+	if ent and ent:IsValid() and ent:GetClass() == "gmod_wire_hologrid" then -- Remove "Local" input if linking to a hologrid
+		WireLib.AdjustInputs( self, { "Pos [VECTOR]", "X" , "Y", "Z", "Color [VECTOR]", "FadeTime", "LineBeam", "GroundBeam", "Size", "Clear", "Active" } )
+	else
+		local old = self:GetNWEntity( "Link" )
+		if old and old:IsValid() and old:GetClass() == "gmod_wire_hologrid" then -- Put the "Local" input back
+			WireLib.AdjustInputs( self, { "Pos [VECTOR]", "X" , "Y", "Z", "Local", "Color [VECTOR]", "FadeTime", "LineBeam", "GroundBeam", "Size", "Clear", "Active" } )
+		end
+	end
+
 	self:SetNWEntity( "Link", ent )
 end
 
 function ENT:UnLink()
-	self:SetNWEntity( "Link", nil )
+	local old = self:GetNWEntity( "Link" )
+	if old and old:IsValid() and old:GetClass() == "gmod_wire_hologrid" then -- Put the "Local" input back
+		WireLib.AdjustInputs( self, { "Pos [VECTOR]", "X" , "Y", "Z", "Local", "Color [VECTOR]", "FadeTime", "LineBeam", "GroundBeam", "Size", "Clear", "Active" } )
+	end
+
+	self:SetNWEntity( "Link", NULL )
 end
 
 function ENT:Think()
 	self:NextThink( CurTime() + cvar:GetFloat() )
 	if (#self.Points == 0) then return true end
 	umsg.Start( "hed" ) -- short for "holo emitter data"
-		umsg.Entity( self )
-		umsg.Char( #self.Points )
+		umsg.Entity( self ) -- 2
+		umsg.Char( #self.Points ) -- 1
 		for k,v in pairs( self.Points ) do
-			umsg.Float( v.Pos.x )
-			umsg.Float( v.Pos.y )
-			umsg.Float( v.Pos.z )
+			umsg.Float( v.Pos.x ) -- 4
+			umsg.Float( v.Pos.y ) -- 4
+			umsg.Float( v.Pos.z ) -- 4
 			if (v.IsDifferentFromPrevious) then
-				umsg.Bool( true ) -- We're sending lots of data
-				umsg.Bool( v.Local )
-				umsg.Vector( v.Color )
-				umsg.Short( math.Clamp(v.FadeTime,0,100)*100 )
-				umsg.Bool( v.LineBeam )
-				umsg.Bool( v.GroundBeam )
-				umsg.Short( math.Clamp(v.Size,0,100)*100 )
+				umsg.Bool( true ) -- We're sending lots of data -- 1
+				umsg.Bool( v.Local ) -- 1
+				umsg.Char( v.Color.x - 128 ) -- 1
+				umsg.Char( v.Color.y - 128 ) -- 1
+				umsg.Char( v.Color.z - 128 ) -- 1
+				--umsg.Vector( v.Color )
+				umsg.Short( math.Clamp(v.FadeTime,0,100)*100 ) -- 2
+				umsg.Bool( v.LineBeam ) -- 1
+				umsg.Bool( v.GroundBeam ) -- 1
+				umsg.Short( math.Clamp(v.Size,0,100)*100 ) -- 2
 			else
-				umsg.Bool( false ) -- We're not sending lots of data, only a position.
+				umsg.Bool( false ) -- We're not sending lots of data, only a position. -- 1
 			end
 		end
+
+		-- Total umsg size (if 1 point is sent): 3 + 11 + 11 + 1 = 27
+		-- Umsg size of "different" part: 12 + 11 = 23
+		-- Umsg size of "same" part: 12 + 1 = 13
 	umsg.End()
 	self.Points = {}
 	self.UmsgSize = 6
