@@ -44,8 +44,11 @@ end
 --------------
 -- Queue
 local QueueIndex = 1
+local timerStarted = false
 
 local function CheckQueue( ent )
+	timerStarted = false
+
 	if (#queue == 0) then return end
 	if (runbydatasignal == 1) then return end
 	runbydatasignal = 1
@@ -68,7 +71,10 @@ local function CheckQueue( ent )
 end
 
 registerCallback("postexecute",function(self)
-	CheckQueue(self.entity)
+	if not timerStarted then
+		timer.Simple( 0, CheckQueue, self.entity )
+		timerStarted = true
+	end
 end)
 
 ------------

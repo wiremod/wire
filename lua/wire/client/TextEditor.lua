@@ -3013,20 +3013,25 @@ function EDITOR:ResetTokenizer(row)
 			-- This code checks if the visible code is inside a string or a block comment
 			self.blockcomment = nil
 			self.multilinestring = nil
+			local singlelinecomment = false
 
 			local str = string_gsub( table_concat( self.Rows, "\n", 1, self.Scroll[1]-1 ), "\r", "" )
 
-			for before, char, after in string_gmatch( str, '(.?)([#"])(.?)' ) do
-				if not self.blockcomment and not self.multilinestring then
+			for before, char, after in string_gmatch( str, '(.?)([#"\n])(.?)' ) do
+				if not self.blockcomment and not self.multilinestring and not singlelinecomment then
 					if char == '"' and after ~= '"' then
 						self.multilinestring = true
 					elseif char == "#" and after == "[" then
 						self.blockcomment = true
+					elseif char == "#" then
+						singlelinecomment = true
 					end
 				elseif self.multilinestring and char == '"' and (before ~= "\\" or after == '"') then
 					self.multilinestring = nil
 				elseif self.blockcomment and char == "#" and before == "]" then
 					self.blockcomment = nil
+				elseif singlelinecomment and char == "\n" then
+					singlelinecomment = false
 				end
 			end
 		end

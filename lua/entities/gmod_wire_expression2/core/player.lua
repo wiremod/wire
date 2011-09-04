@@ -200,6 +200,7 @@ if CPPI and _R.Player.CPPIGetFriends then
 	function Trusts(ply, whom)
 		if ply == whom then return true end
 		local friends = ply:CPPIGetFriends()
+		if type(friends) ~= "table" then return false end
 		for _,friend in pairs(friends) do
 			if whom == friend then return true end
 		end
@@ -211,7 +212,9 @@ if CPPI and _R.Player.CPPIGetFriends then
 		if not this:IsPlayer() then return {} end
 		if not Trusts(this, self.player) then return {} end
 
-		return this:CPPIGetFriends()
+		local ret = this:CPPIGetFriends()
+		if type(ret) ~= "table" then return {} end
+		return ret
 	end
 
 	e2function number entity:trusts(entity whom)
