@@ -283,7 +283,8 @@ GateActions["entity_angvelvec"] = {
 	outputtypes = { "VECTOR" },
 	timed = true,
 	output = function(gate, Ent)
-		local phys = this:GetPhysicsObject()
+		if not Ent:IsValid() then return Vector(0,0,0) end
+		local phys = Ent:GetPhysicsObject()
 		if not phys:IsValid() then return Vector( 0, 0, 0 ) end
 		return phys:GetAngleVelocity()
 	end,
