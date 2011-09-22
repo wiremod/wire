@@ -3017,7 +3017,9 @@ function EDITOR:ResetTokenizer(row)
 
 			local str = string_gsub( table_concat( self.Rows, "\n", 1, self.Scroll[1]-1 ), "\r", "" )
 
-			for before, char, after in string_gmatch( str, '(.?)([#"\n])(.?)' ) do
+			for before, char, after in string_gmatch( str, '()([#"\n])()' ) do
+				local before = string_sub( str, before-1, before-1  )
+				local after = string_sub( str, after, after )
 				if not self.blockcomment and not self.multilinestring and not singlelinecomment then
 					if char == '"' and after ~= '"' then
 						self.multilinestring = true
