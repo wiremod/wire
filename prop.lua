@@ -72,12 +72,9 @@ function PropCore.CreateProp(self,model,pos,angles,freeze)
 		phys:Wake()
 		if(freeze>0)then phys:EnableMotion( false ) end
 	end
-	prop.OnDieFunctions.GetCountUpdate.Function2 = prop.OnDieFunctions.GetCountUpdate.Function
-	prop.OnDieFunctions.GetCountUpdate.Function =  function(self,player,class)
-		if CLIENT then return end
-		E2totalspawnedprops=E2totalspawnedprops-1
-		self.OnDieFunctions.GetCountUpdate.Function2(self,player,class)
-	end
+	prop:CallOnRemove( "wire_expression2_propcore_remove", function( prop )
+		E2totalspawnedprops = E2totalspawnedprops - 1
+	end)
 	E2totalspawnedprops = E2totalspawnedprops+1
 	E2tempSpawnedProps = E2tempSpawnedProps+1
 	return prop
