@@ -3021,7 +3021,7 @@ function EDITOR:ResetTokenizer(row)
 				local before = string_sub( str, before-1, before-1  )
 				local after = string_sub( str, after, after )
 				if not self.blockcomment and not self.multilinestring and not singlelinecomment then
-					if char == '"' and after ~= '"' then
+					if char == '"' then
 						self.multilinestring = true
 					elseif char == "#" and after == "[" then
 						self.blockcomment = true
