@@ -72,7 +72,7 @@ function HCOMP:Resolve(block)
     if self.Settings.SeparateDataSegment == true then
       self.WritePointer = self.WritePointer + block.ZeroPadding
     else
-
+      self.WritePointer = self.WritePointer + block.ZeroPadding
     end
   end
 

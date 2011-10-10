@@ -52,7 +52,7 @@ function ENT:Initialize()
 end
 
 function ENT:GetStructName(name)
-	return "WireFlash\\"..(self.Owner_SteamID or "UNKNOWN").."\\HDD"..self.DriveID.."\\"..name..".txt"
+	return "WireFlash/"..(self.Owner_SteamID or "UNKNOWN").."/HDD"..self.DriveID.."/"..name..".txt"
 end
 
 function ENT:GetCap()

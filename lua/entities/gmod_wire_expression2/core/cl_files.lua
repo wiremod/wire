@@ -68,6 +68,12 @@ local function upload_callback()
 	upload_buffer.chunk = upload_buffer.chunk + 1
 end
 
+usermessage.Hook("wire_expression2_request_file_sp", function(um)
+	local fpath,fname = process_filepath( um:ReadString() )
+	local fullpath = fpath .. fname
+	RunConsoleCommand("wire_expression2_file_singleplayer", fullpath)
+end)
+
 usermessage.Hook( "wire_expression2_request_file", function( um )
 	local fpath,fname = process_filepath( um:ReadString() )
 	local fullpath = fpath .. fname

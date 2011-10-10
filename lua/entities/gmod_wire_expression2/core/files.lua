@@ -42,8 +42,8 @@ local function file_canUpload( ply )
 	local pfile = uploads[ply]
 	local pdel = (delays[ply] or {}).upload
 
-	if (pfile and pfile.uploading) or
-		(pdel and (CurTime() - pdel) < cv_transfer_delay:GetInt()) then return false end
+	if (pfile and (pfile.uploading or pfile.sp_wait)) or
+		(pdel and not ply:IsListenServerHost() and (CurTime() - pdel) < cv_transfer_delay:GetInt()) then return false end
 
 	return true
 end
@@ -57,10 +57,10 @@ local function file_Upload( ply, entity, filename )
 		uploading = false, //don't halt other uploads incase file does not exist
 		uploaded = false,
 		data = "",
-		ent = entity
+		ent = entity,
+		sp_wait = ply:IsListenServerHost()
 	}
-
-	umsg.Start( "wire_expression2_request_file", ply )
+	umsg.Start(uploads[ply].sp_wait and "wire_expression2_request_file_sp" or "wire_expression2_request_file", ply )
 		umsg.String( filename )
 	umsg.End()
 
@@ -420,6 +420,31 @@ concommand.Add( "wire_expression2_file_finish", function( ply, com, args )
 
 	file_execute( pfile.ent, pfile.name, FILE_OK )
 end )
+
+concommand.Add("wire_expression2_file_singleplayer", function(ply, cmd, args)
+	if not ply:IsListenServerHost() then ply:Kick("Do not use wire_expression2_file_singleplayer in multiplayer, unless you're the host!") end
+
+	local path = args[1]
+
+	if not file.Exists(path) then
+		file_execute( pfile.ent, pfile.name, FILE_404 )
+		return
+	end
+
+	local timername = "wire_expression2_file_check_timeout_" .. ply:EntIndex()
+
+	if timer.IsTimer(timername) then timer.Remove(timername) end
+
+	local pfile = uploads[ply]
+
+	pfile.uploading = false
+	pfile.data = file.Read(path)
+	pfile.buffer = ""
+	pfile.uploaded = true
+	pfile.sp_wait = false
+
+	file_execute(pfile.ent, pfile.name, FILE_OK)
+end)
 
 /* Listing */
 
