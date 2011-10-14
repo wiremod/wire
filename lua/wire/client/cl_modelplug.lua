@@ -95,7 +95,7 @@ local wastelandwheels = {
 	"models/props_wasteland/wheel03b.mdl"
 }
 for k,v in pairs(wastelandwheels) do
-	if file.Exists("../"..v) then
+	if file.Exists(v,true) then
 	list.Set( "WheelModels", v, { wheel_rx = 90, wheel_ry = 0, wheel_rz = 90} )
 	end
 end
@@ -127,7 +127,7 @@ local CheezesButtons = {
 	"models/cheeze/buttons/button_stop.mdl",
 }
 for k,v in ipairs(CheezesButtons) do
-	if file.Exists("../"..v) then
+	if file.Exists(v,true) then
 		list.Set( "ButtonModels", v, {} )
 		list.Set( "Wire_button_Models", v, {} )
 	end
@@ -147,7 +147,7 @@ local Buttons = {
 	"models/props_mining/switch_updown01.mdl"
 }
 for k,v in ipairs(Buttons) do
-	if file.Exists("../"..v) then
+	if file.Exists(v,true) then
 		list.Set( "Wire_button_Models", v, {} )
 	end
 end
@@ -187,7 +187,7 @@ local JaanusThrusters = {
 	"models/jaanus/thruster_stun.mdl"
 }
 for k,v in pairs(JaanusThrusters) do
-	if file.Exists("../"..v) then
+	if file.Exists(v,true) then
 		list.Set( "ThrusterModels", v, {} )
 	end
 end

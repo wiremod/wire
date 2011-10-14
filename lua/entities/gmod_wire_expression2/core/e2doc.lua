@@ -4,7 +4,7 @@ local eliminate_varname_conflicts = true
 if not e2_parse_args then include("extpp.lua") end
 
 local readfile = readfile or function(filename)
-	return file.Read("../lua/entities/gmod_wire_expression2/core/"..filename)
+	return file.Read("lua/entities/gmod_wire_expression2/core/"..filename,true)
 end
 local writefile = writefile or function(filename, contents)
 	print("--- Writing to file 'data/e2doc/"..filename.."' ---")
