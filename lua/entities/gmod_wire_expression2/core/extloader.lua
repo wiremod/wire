@@ -58,7 +58,7 @@ local function e2_include(name)
 	end
 
 	local luaname = "entities/gmod_wire_expression2/core/"..name
-	local contents = file.Read("../lua/"..luaname) or ""
+	local contents = file.Read("lua/"..luaname,true) or ""
 	e2_extpp_pass1(contents)
 	table.insert(included_files, {name, luaname, contents})
 end
