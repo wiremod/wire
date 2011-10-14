@@ -21,7 +21,7 @@ function PANEL:FindItemsInTree(pFolders, dir, parent, fileicon, filepart, fileco
 		local AddedItems = {}
 		local Timervalue = -(MaxPerTimerTick - 1)
 
-		if(dir ~= "../sound") then
+		if(dir ~= "sound") then
 			// One Folder Back:
 			local pBackNode = parent:AddNode("..")
 			pBackNode.FileDir = dir
@@ -42,8 +42,8 @@ function PANEL:FindItemsInTree(pFolders, dir, parent, fileicon, filepart, fileco
 						local v = pFolders[index + (MaxElements * filepart)]
 						if (type(v) == "string") then
 							local Filepath = (dir .. "/" .. v)
-							local IsDir = file.IsDir(Filepath)
-							local FileExists = file.Exists(Filepath)
+							local IsDir = file.IsDir(Filepath,true)
+							local FileExists = file.Exists(Filepath,true)
 							local NodeID = ("Node_ID_"..index..tostring(IsDir)..Filepath)
 							if (!string.match(v, "%.%.") and !AddedItems[Filepath]) then // No allow double foders and folder with ".." in thay names to be shown and check if the folder is a real folder, this prevents some errors.
 								if (IsDir) then
@@ -110,15 +110,15 @@ function PANEL:BuildFileTree(dir, parent, filepart) // Build the file tree.
 	if ((!pFolders) or (olddir ~= dir)) then // Find the files only one time when open a folder. It saves performance.
 		self.FilepartNumber = 0
 
-		pFolders = file.FindDir(dir .. "/*") // Find the folders.
+		pFolders = file.FindDir(dir .. "/*",true) // Find the folders.
 		for i = 1, math.Clamp(table.Count(pFolders), 0, MaxElements) do // Make filepath and names lowercase.
 			pFolders[i] = string.lower(pFolders[i])
 		end
 		table.sort(pFolders)
 
 
-		local pFiles1 = file.Find(dir .. "/*.wav") // Find the *.wav-files.
-		local pFiles2 = file.Find(dir .. "/*.mp3") // Find the *.mp3-files.
+		local pFiles1 = file.Find(dir .. "/*.wav",true) // Find the *.wav-files.
+		local pFiles2 = file.Find(dir .. "/*.mp3",true) // Find the *.mp3-files.
 		table.Add(pFiles1, pFiles2) // Put *.wav and *.mp3-files together.
 		for i = 1, math.Clamp(table.Count(pFiles1), 0, MaxElements) do // Make filepath and names lowercase.
 			pFiles1[i] = string.lower(pFiles1[i])
@@ -284,9 +284,9 @@ function PANEL:GetSoundInfors(sound) // Output the infos about the given sound.
 	local SoundInfoString = ""
 	if ((type(sound) == "string") and (sound ~= "")) then
 		local seconds = math.Round(SoundDuration(sound) * 1000) / 1000
-		local sizeB = file.Size("../sound/"..sound) or 0
+		local sizeB = file.Size("sound/"..sound,true) or 0
 		local sizeKB = math.Round((sizeB / 1024) * 1000) / 1000
-		local format = string.lower(string.GetExtensionFromFilename("../sound/"..sound))
+		local format = string.lower(string.GetExtensionFromFilename("sound/"..sound,true))
 		local m, s, ms = seconds / 60, seconds % 60, (seconds % 1) * 1000
 		local length = (string.format("%01d", m)..":"..string.format("%02d", s).."."..string.format("%03d", ms))
 		SoundInfoString = ("Soundfile: "..sound.."\n\rLength: "..length.." ("..seconds.." Seconds)\n\rSize: "..sizeKB.." KB ("..sizeB.." Bytes)\n\rFormat: "..format.."\n\r")
@@ -305,11 +305,11 @@ function PANEL:UpdateFolders(Foldername, Panel, Text, filepart) // Make the file
 		end
 	end
 
-	local Folder = "../sound"
+	local Folder = "sound"
 	if ((type(Foldername) ~= "string") or (Foldername == "")) then
-		Folder = "../sound"
+		Folder = "sound"
 	else
-		Folder = ("../sound/" ..Foldername)
+		Folder = ("sound/" ..Foldername)
 	end
 
 	if (self.FolderTree) then
@@ -325,7 +325,7 @@ function PANEL:UpdateFolders(Foldername, Panel, Text, filepart) // Make the file
 	self:BuildFileTree(Folder, self.FolderTree, filepart or 0)
 	self.FolderTree.DoClick = function(tree, node)
 		if(node.IsFile) then
-			self.SoundPath = string.sub(node.FileDir, 10) // Remove "../sound/" part out of the string.
+			self.SoundPath = string.sub(node.FileDir, 6) // Remove "../sound/" part out of the string.
 			Text:SetText(self:GetSoundInfors(self.SoundPath))
 			if (self.SoundEmitter) then
 				self.EmitterLastSoundPath = self.SoundPath
@@ -342,9 +342,9 @@ function PANEL:UpdateFolders(Foldername, Panel, Text, filepart) // Make the file
 					local dirs = string.Explode("/", bfolder)
 					local backfolder = string.sub(bfolder, 0, -(string.len(dirs[table.Count(dirs)]) + 1))
 
-					self:OpenFolder(string.sub(backfolder, 10))
+					self:OpenFolder(string.sub(backfolder, 6))
 				else
-					self:OpenFolder(string.sub(node.FileDir, 10))
+					self:OpenFolder(string.sub(node.FileDir, 6))
 				end
 			end)
 		end
@@ -354,7 +354,7 @@ function PANEL:UpdateFolders(Foldername, Panel, Text, filepart) // Make the file
 	self.FolderTree.DoRightClick = function(tree, node)
 		self.FolderTree:SetSelectedItem(node)
 		if(node.IsFile) then
-			self.SoundPath = string.sub(node.FileDir, 10) // Remove "../sound/" part out of the string.
+			self.SoundPath = string.sub(node.FileDir, 6) // Remove "../sound/" part out of the string.
 			Text:SetText(self:GetSoundInfors(self.SoundPath))
 			if (self.SoundEmitter) then
 				self.EmitterLastSoundPath = self.SoundPath
@@ -632,7 +632,7 @@ function PANEL:GetValidFolder(Folder) // Filter invalid chars out.
 
 	local Dirs = table.Count(string.Explode("/", ValidFolder))
 	for i = 1, Dirs do
-		if (!file.IsDir("../sound/"..ValidFolder)) then
+		if (!file.IsDir("sound/"..ValidFolder,true)) then
 			ValidFolder = string.GetPathFromFilename(ValidFolder)
 			ValidFolder = string.Trim(ValidFolder, "/")
 		end

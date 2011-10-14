@@ -34,7 +34,7 @@ function EGP:CacheMaterial( Mat )
 	if (!Mat or #Mat == 0) then return end
 	if (!self.Materials[Mat]) then
 		local temp
-		if (#file.Find("../materials/"..Mat..".*") > 0) then
+		if (#file.Find("materials/"..Mat..".*",true) > 0) then
 			 temp = surface.GetTextureID(Mat)
 		end
 		self.Materials[Mat] = temp
