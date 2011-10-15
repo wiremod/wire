@@ -829,8 +829,7 @@ elseif SERVER then
       if compressInfo[k+1] then
         local nextSize = #compressInfo[k+1].Data*compressInfo[k+1].Repeat*compressInfo[k+1].Size
         if nextSize + messageSize > 248 then
-          umsg.Char(240)
-          umsg.Char(SMARKER_DATAEND)
+          umsg.Char(240-128)
           umsg.End()
           messageSize = 4
           umsg.Start("wire_memsync", forcePlayer)
@@ -838,8 +837,7 @@ elseif SERVER then
           compressInfo[k+1].SetOffset = compressInfo[k+1].Offset -- Force set offset
         end
       else
-        umsg.Char(240)
-        umsg.Char(SMARKER_DATAEND)
+        umsg.Char(240-128)
         umsg.End()
       end
     end
