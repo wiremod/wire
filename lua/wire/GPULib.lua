@@ -626,10 +626,10 @@ elseif SERVER then
   function CACHEMGR:WriteNow(Address,Value,forcePlayer)
     umsg.Start("wire_memsync", forcePlayer)
       umsg.Long(self.EntIndex)
-      umsg.Char(195)
+      umsg.Char(195-128)
       umsg.Float(Address)
       umsg.Float(Value)
-      umsg.Char(240)
+      umsg.Char(240-128)
     umsg.End()
   end
 
