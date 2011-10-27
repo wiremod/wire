@@ -3028,7 +3028,7 @@ function EDITOR:ResetTokenizer(row)
 					elseif char == "#" then
 						singlelinecomment = true
 					end
-				elseif self.multilinestring and char == '"' and (before ~= "\\" or after == '"') then
+				elseif self.multilinestring and char == '"' and before ~= "\\" then
 					self.multilinestring = nil
 				elseif self.blockcomment and char == "#" and before == "]" then
 					self.blockcomment = nil

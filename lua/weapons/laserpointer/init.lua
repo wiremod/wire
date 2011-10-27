@@ -40,7 +40,7 @@ end
 function SWEP:SecondaryAttack()
 	local trace = self.Owner:GetEyeTrace()
 
-	if (trace.Entity:GetClass() == "gmod_wire_las_reciever") then
+	if (trace.Entity and trace.Entity:IsValid() and trace.Entity:GetClass() == "gmod_wire_las_reciever") then
 		self.Receiver = trace.Entity
 		self.Owner:PrintMessage( HUD_PRINTTALK, "Linked Sucessfully" )
 		return true
