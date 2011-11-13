@@ -1,34 +1,29 @@
-
 include('shared.lua')
 
-ENT.RenderGroup 		= RENDERGROUP_BOTH
+ENT.RenderGroup = RENDERGROUP_BOTH
 
-local EyePod = {}
-EyePod.enabled = 0
-EyePod.EyeAng = Angle(0,0,0)
-EyePod.PreviousState = 0
-EyePod.Rotate90 = false
+local enabled = false
+local eyeAng = Angle(0,0,0)
+local previousEnabled = false
+local rotate90 = false
 
-local function UpdateEyePodState( UM )
-	if(!UM) then return end
-	EyePod.enabled = UM:ReadShort()
-	EyePod.EyeAng = UM:ReadAngle()
-	EyePod.Rotate90 = UM:ReadBool()
-end
-usermessage.Hook("UpdateEyePodState", UpdateEyePodState)
+usermessage.Hook("UpdateEyePodState", function(um)
+	if not um then return end
+	enabled = um:ReadBool()
+	rotate90 = um:ReadBool()
+	eyeAng = um:ReadAngle()
+end)
 
-local function EyePodEyeControl(UCMD)
-	if(EyePod.enabled == 1) then
-		UCMD:SetViewAngles( EyePod.EyeAng )
-		EyePod.PreviousState = 1
-	elseif(EyePod.enabled == 0 and EyePod.PreviousState == 1) then
-		if(EyePod.Rotate90 == true) then
-			UCMD:SetViewAngles( Angle(0,90,0) )
+hook.Add("CreateMove", "WireEyePodEyeControl", function(ucmd)
+	if enabled then
+		ucmd:SetViewAngles(eyeAng)
+		previousEnabled = true
+	elseif previousEnabled then
+		if rotate90 then
+			ucmd:SetViewAngles(Angle(0,90,0))
 		else
-			UCMD:SetViewAngles( Angle(0,0,0) )
+			ucmd:SetViewAngles(Angle(0,0,0))
 		end
-		EyePod.PreviousState = 0
+		previousEnabled = false
 	end
-end
-hook.Add("CreateMove", "WireEyePodEyeControl", EyePodEyeControl)
-
+end)
