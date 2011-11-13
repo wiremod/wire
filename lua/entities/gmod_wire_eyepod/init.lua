@@ -19,7 +19,7 @@ function ENT:Initialize()
 	self:DrawShadow(false)
 
 	-- Set wire I/O
-	self.Inputs = WireLib.CreateSpecialInputs(self, { "Enable", "SetPitch", "SetYaw", "SetViewAngle" }, { "NORMAL", "NORMAL", "NORMAL", "ANGLE" })
+	self.Inputs = WireLib.CreateSpecialInputs(self, { "Enable", "SetPitch", "SetYaw", "SetViewAngle", "FreezePitch", "FreezeYaw" }, { "NORMAL", "NORMAL", "NORMAL", "ANGLE", "NORMAL", "NORMAL" })
 	self.Outputs = WireLib.CreateSpecialOutputs(self, { "X", "Y", "XY" }, { "NORMAL", "NORMAL", "VECTOR2" })
 
 	-- Initialize values
@@ -41,6 +41,9 @@ function ENT:Initialize()
 	self.ClampYMax = 0
 	self.ClampX = 0
 	self.ClampY = 0
+
+	self.freezePitch = true
+	self.freezeYaw = true
 
 	local phys = self:GetPhysicsObject()
 	if phys:IsValid() then
@@ -104,11 +107,13 @@ function ENT:PodLink(vehicle)
 	return true
 end
 
-local function updateEyePodState(driver, enabled, rotate90, eyeAng)
+function ENT:updateEyePodState(enabled)
 	umsg.Start("UpdateEyePodState", driver)
+		umsg.Angle(self.eyeAng)
 		umsg.Bool(enabled)
-		umsg.Bool(rotate90)
-		umsg.Angle(eyeAng)
+		umsg.Bool(self.rotate90)
+		umsg.Bool(self.freezePitch)
+		umsg.Bool(self.freezeYaw)
 	umsg.End()
 end
 
@@ -118,7 +123,7 @@ function ENT:OnRemove()
 	end
 
 	if IsValid(self.driver) then
-		updateEyePodState(self.driver, false, self.rotate90, self.eyeAng)
+		self:updateEyePodState(false)
 		self.driver = nil
 	end
 end
@@ -133,7 +138,7 @@ function ENT:Think()
 			self.driver = self.pod:GetDriver()
 		else -- else set X and Y to 0
 			if IsValid(self.driver) then
-				updateEyePodState(self.driver, false, self.rotate90, self.eyeAng)
+				self:updateEyePodState(false)
 				self.driver = nil
 			end
 			if self.DefaultToZero == 1 then
@@ -147,7 +152,7 @@ function ENT:Think()
 		end
 	else -- else set X and Y to 0
 		if IsValid(self.driver) then
-			updateEyePodState(self.driver, false, self.rotate90, self.eyeAng)
+			self:updateEyePodState(false)
 			self.driver = nil
 		end
 		if self.DefaultToZero == 1 then
@@ -194,11 +199,7 @@ end
 function ENT:TriggerInput(iname, value)
 	-- Change variables to reflect input
 	if iname == "Enable" then
-		if value ~= 0 then
-			self.enabled = true
-		else
-			self.enabled = false
-		end
+		self.enabled = value ~= 0
 	elseif iname == "SetPitch" then
 		self.eyeAng = Angle(AngNorm90(value), self.eyeAng.y, self.eyeAng.r)
 	elseif iname == "SetYaw" then
@@ -213,6 +214,10 @@ function ENT:TriggerInput(iname, value)
 		else
 			self.eyeAng = Angle(AngNorm90(value.p), AngNorm(value.y), 0)
 		end
+	elseif iname == "FreezePitch" then
+		self.freezePitch = value ~= 0
+	elseif iname == "FreezeYaw" then
+		self.freezeYaw = value ~= 0
 	end
 
 	-- If we're not enabled, set the output to zero and exit
@@ -226,7 +231,7 @@ function ENT:TriggerInput(iname, value)
 			Wire_TriggerOutput(self, "XY", XY_Vec)
 		end
 		if IsValid(self.driver) and IsValid(self.pod) then
-			updateEyePodState(self.driver, self.enabled, self.rotate90, self.eyeAng)
+			self:updateEyePodState(self.enabled)
 		end
 		return
 	end
@@ -234,7 +239,7 @@ function ENT:TriggerInput(iname, value)
 	--Turn on the EyePod Control file
 	self.enabled = true
 	if IsValid(self.driver) and IsValid(self.pod) then
-		updateEyePodState(self.driver, self.enabled, self.rotate90, self.eyeAng)
+		self:updateEyePodState(self.enabled)
 	end
 end
 
@@ -307,9 +312,9 @@ end
 
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
-	if (info.pod) then
+	if info.pod then
 		self.pod = GetEntByID(info.pod)
-		if !self.pod then
+		if not self.pod then
 			self.pod = ents.GetByIndex(info.pod)
 		end
 		if self.pod then
