@@ -108,7 +108,7 @@ function ENT:PodLink(vehicle)
 end
 
 function ENT:updateEyePodState(enabled)
-	umsg.Start("UpdateEyePodState", driver)
+	umsg.Start("UpdateEyePodState", self.driver)
 		umsg.Angle(self.eyeAng)
 		umsg.Bool(enabled)
 		umsg.Bool(self.rotate90)
