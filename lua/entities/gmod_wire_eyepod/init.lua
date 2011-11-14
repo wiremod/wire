@@ -19,7 +19,7 @@ function ENT:Initialize()
 	self:DrawShadow(false)
 
 	-- Set wire I/O
-	self.Inputs = WireLib.CreateSpecialInputs(self, { "Enable", "SetPitch", "SetYaw", "SetViewAngle", "FreezePitch", "FreezeYaw" }, { "NORMAL", "NORMAL", "NORMAL", "ANGLE", "NORMAL", "NORMAL" })
+	self.Inputs = WireLib.CreateSpecialInputs(self, { "Enable", "SetPitch", "SetYaw", "SetViewAngle", "UnfreezePitch", "UnfreezeYaw" }, { "NORMAL", "NORMAL", "NORMAL", "ANGLE", "NORMAL", "NORMAL" })
 	self.Outputs = WireLib.CreateSpecialOutputs(self, { "X", "Y", "XY" }, { "NORMAL", "NORMAL", "VECTOR2" })
 
 	-- Initialize values
@@ -92,18 +92,15 @@ function ENT:PodLink(vehicle)
 
 	self.rotate90 = false
 	self.eyeAng = Angle(0, 0, 0)
-	if IsValid(self.pod) and self.pod:IsVehicle() then
-		if table.HasValue(Rotate90ModelList, string.lower(self.pod:GetModel())) then
+	if IsValid(vehicle) and vehicle:IsVehicle() then
+		if table.HasValue(Rotate90ModelList, string.lower(vehicle:GetModel())) then
 			self.rotate90 = true
 			self.eyeAng = Angle(0, 90, 0)
 		end
 	end
 
 
-	local ttable = {
-		AttachedWireEyePod = self
-	}
-	table.Merge(vehicle:GetTable(), ttable)
+	vehicle.AttachedWireEyePod = self
 	return true
 end
 
@@ -119,7 +116,7 @@ end
 
 function ENT:OnRemove()
 	if IsValid(self.pod) and self.pod:IsVehicle() then
-		self.pod:GetTable().AttachedWireEyePod = nil
+		self.pod.AttachedWireEyePod = nil
 	end
 
 	if IsValid(self.driver) then
@@ -214,10 +211,10 @@ function ENT:TriggerInput(iname, value)
 		else
 			self.eyeAng = Angle(AngNorm90(value.p), AngNorm(value.y), 0)
 		end
-	elseif iname == "FreezePitch" then
-		self.freezePitch = value ~= 0
-	elseif iname == "FreezeYaw" then
-		self.freezeYaw = value ~= 0
+	elseif iname == "UnfreezePitch" then
+		self.freezePitch = value == 0
+	elseif iname == "UnfreezeYaw" then
+		self.freezeYaw = value == 0
 	end
 
 	-- If we're not enabled, set the output to zero and exit

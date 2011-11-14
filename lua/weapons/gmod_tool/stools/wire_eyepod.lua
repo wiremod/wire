@@ -137,20 +137,21 @@ end
 //link the eyepod to the vehicle
 function TOOL:RightClick(trace)
 	if ( CLIENT ) then return true end
-	if self:GetStage() == 0 and trace.Entity:GetClass() == "gmod_wire_eyepod" then
-		self.PodCont = trace.Entity
+	local entity = trace.Entity
+	if self:GetStage() == 0 and entity:GetClass() == "gmod_wire_eyepod" then
+		self.PodCont = entity
 		if self.PodCont.pod and self.PodCont.pod:IsValid() and self.PodCont.pod.AttachedWireEyePod then
 			self.PodCont.pod.AttachedWireEyePod = nil
 			self.PodCont.pod = nil
 		end
 		self:SetStage(1)
 		return true
-	elseif self:GetStage() == 1 and trace.Entity.GetPassenger then
-		if trace.Entity.AttachedWireEyePod then
+	elseif self:GetStage() == 1 and entity.GetPassenger then
+		if entity.AttachedWireEyePod then
 			self:GetOwner():ChatPrint("Pod Already Has An EyePod Linked To It!")
 			return false
 		end
-		local Success = self.PodCont:PodLink(trace.Entity)
+		local Success = self.PodCont:PodLink(entity)
 		if (Success == false) then
 			self:GetOwner():ChatPrint("Error: Cannot Link Eye Pod!")
 			return false
