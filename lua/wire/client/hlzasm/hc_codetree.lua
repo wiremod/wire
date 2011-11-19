@@ -652,6 +652,7 @@ function HCOMP:GenerateMarker(leaf)
     Comment = leaf.Comment,
 
     SetWritePointer = leaf.SetWritePointer,
+    SetPointerOffset = leaf.SetPointerOffset,
     CurrentPosition = leaf.CurrentPosition,
   })
 end

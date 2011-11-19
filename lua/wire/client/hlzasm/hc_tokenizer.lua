@@ -420,7 +420,7 @@ end
 -- reparsing expressions during resolve stage.
 function HCOMP:GetSavedTokens(firstToken)
   local savedTokens = {}
-  for tokenIdx = firstToken or self.SavedToken,self.CurrentToken do -- -1
+  for tokenIdx = firstToken or self.SavedToken,self.CurrentToken-1 do
     table.insert(savedTokens,self.Tokens[tokenIdx])
   end
   savedTokens.TokenList = true

@@ -267,6 +267,9 @@ end
 --------------------------------------------------------------------------------
 -- End the block
 function HCOMP:BlockEnd()
+  -- If required, end the previous block
+  local endPreviousBlock = self.SpecialLeaf[#self.SpecialLeaf].EndPreviousBlock
+
   -- If required, add leaf that jumps back to block start
   if self.SpecialLeaf[#self.SpecialLeaf].JumpBack.Opcode ~= "INVALID" then
     self.SpecialLeaf[#self.SpecialLeaf].JumpBack.CurrentPosition = self:CurrentSourcePosition()
@@ -352,16 +355,20 @@ function HCOMP:BlockEnd()
     -- Disable parent label
     self.CurrentParentLabel = nil
   end
+
+  -- End it, see first line of the function
+  if endPreviousBlock then
+    self:BlockEnd()
+  end
 end
 
 
 --------------------------------------------------------------------------------
 -- Parse ELSE clause
-function HCOMP:ParseElse(blockIF,jumpOverCondLeaf)
+function HCOMP:ParseElse(parentBlockExists)
   -- Add a jump over the else clause
   local jumpLeaf = self:NewLeaf()
   jumpLeaf.Opcode = "jmp"
-  jumpLeaf.Operands[1] = {} -- will fill this later
   self:AddLeafToTail(jumpLeaf)
 
   -- Alter the conditional jump so it goes to else clause
@@ -373,47 +380,37 @@ function HCOMP:ParseElse(blockIF,jumpOverCondLeaf)
   jumpOverLabelLeaf.Label = jumpOverLabel
   self:AddLeafToTail(jumpOverLabelLeaf)
 
-  if blockIF then
-    -- Delete old label from global list and replace it with new one
-    self.SpecialLeaf[#self.SpecialLeaf].ConditionalJumpOver.Operands[1] =
-      { PointerToLabel = jumpOverLabel }
-
-    -- End the block
-    self:BlockEnd()
-  else
-    jumpOverCondLeaf.Operands[1] = { PointerToLabel = jumpOverLabel }
+  if parentBlockExists and self.SpecialLeaf[#self.SpecialLeaf].ConditionalBreak then
+    self:AddLeafToTail(self.SpecialLeaf[#self.SpecialLeaf].ConditionalBreak)
   end
 
   -- Enter the ELSE block
   local needBlock = self:MatchToken(self.TOKEN.LBRACKET)
-  if needBlock then
-    self:BlockStart("ELSE")
-  end
+  self:BlockStart("ELSE")
+
+  -- Update properly the jump leaf
+  jumpLeaf.Operands[1] = { PointerToLabel = self.SpecialLeaf[#self.SpecialLeaf].Break.Label }
 
   if needBlock then
-    -- Alter the jump so it points to exit of the else clause
-    jumpLeaf.Operands[1] = { PointerToLabel = self.SpecialLeaf[#self.SpecialLeaf].Break.Label }
+    -- Special marker that means that ending this block ends previous one too
+    self.SpecialLeaf[#self.SpecialLeaf].EndPreviousBlock = parentBlockExists
   else
     -- Parse next statement if dont need a block
     local previousBlockDepth = #self.BlockType
     self:Statement()
 
-    -- If entered a new block in statement (IF), update jump over leaf to end of it
-    if (#self.BlockType ~= previousBlockDepth) and
-       (self.BlockType[#self.BlockType] == "IF") then
-      jumpLeaf.Operands[1] = { PointerToLabel = self.SpecialLeaf[#self.SpecialLeaf].Break.Label }
-    else
-      -- Generate exit label
-      local exitLabelLeaf = self:NewLeaf()
-      local exitLabel = self:GetTempLabel()
-      exitLabelLeaf.Opcode = "LABEL"
-      exitLabel.Type = "Pointer"
-      exitLabel.Leaf = exitLabelLeaf
-      exitLabelLeaf.Label = exitLabel
+    -- If did not enter any new blocks, it was a plain statement. Pop ELSE block
+    if #self.BlockType == previousBlockDepth then
+      -- End the ELSE block
+      self:BlockEnd()
 
-      -- Add exit label and alter the jump
-      self:AddLeafToTail(exitLabelLeaf)
-      jumpLeaf.Operands[1] = { PointerToLabel = exitLabel }
+      -- End the IF block, if required
+      if parentBlockExists then self:BlockEnd() end
+    else
+      -- Special marker that means that ending this block ends ELSE block early too
+      self.SpecialLeaf[#self.SpecialLeaf].EndPreviousBlock = true
+      -- Special marker that means that ending ELSE block ends previous one too
+      self.SpecialLeaf[#self.SpecialLeaf-1].EndPreviousBlock = parentBlockExists
     end
   end
 end
@@ -541,12 +538,12 @@ function HCOMP:DefineVariable(isFunctionParam,isForwardDecl,isRegisterDecl) loca
           if self:MatchToken(TOKEN.LBRACKET) then -- Array initializer
             if not bytesArraySize then self:Error("Cannot initialize value: not an array") end
 
-            initializerValue = {}
+            initializerValues = {}
             while not self:MatchToken(TOKEN.RBRACKET) do
               local c,v = self:ConstantExpression(true)
               if not c
               then self:Error("Cannot have expressions in global initializers")
-              else table.insert(initializerValue,v)
+              else table.insert(initializerValues,v)
               end
               self:MatchToken(TOKEN.COMMA)
             end
@@ -558,7 +555,7 @@ function HCOMP:DefineVariable(isFunctionParam,isForwardDecl,isRegisterDecl) loca
 --              initializerLeaves = { self:Expression() }
               self:Error("Cannot have expressions in global initializers")
             else
-              initializerValue = { v }
+              initializerValues = { v }
             end
           end
         else -- Local init always an expression
@@ -660,9 +657,9 @@ function HCOMP:DefineVariable(isFunctionParam,isForwardDecl,isRegisterDecl) loca
         label.Leaf = self:NewLeaf()
         label.Leaf.ParentLabel = self.CurrentParentLabel or label
         label.Leaf.Opcode = "DATA"
-        if initializerValue then
-          label.Leaf.Data = initializerValue
-          label.Leaf.ZeroPadding = (bytesArraySize or varSize) - #initializerValue
+        if initializerValues then
+          label.Leaf.Data = initializerValues
+          label.Leaf.ZeroPadding = (bytesArraySize or varSize) - #initializerValues
         else
           label.Leaf.ZeroPadding = bytesArraySize or varSize
         end
@@ -864,6 +861,20 @@ function HCOMP:Statement() local TOKEN = self.TOKEN
     local c,v = self:ConstantExpression(true)
     if c then markerLeaf.SetWritePointer = v
     else self:Error("ORG offset must be constant") end
+
+    self:AddLeafToTail(markerLeaf)
+    return true
+  end
+
+  -- Parse OFFSET macro
+  if self:MatchToken(TOKEN.OFFSET) then
+    -- offset x
+    local markerLeaf = self:NewLeaf()
+    markerLeaf.Opcode = "MARKER"
+
+    local c,v = self:ConstantExpression(true)
+    if c then markerLeaf.SetPointerOffset = v
+    else self:Error("OFFSET offset must be constant") end
 
     self:AddLeafToTail(markerLeaf)
     return true
@@ -1076,14 +1087,12 @@ function HCOMP:Statement() local TOKEN = self.TOKEN
     local firstToken = self.CurrentToken
     self:SaveParserState()
     local conditionLeaf = self:Expression()
-    local conditionText = "if ("..self:PrintTokens(self:GetSavedTokens(firstToken))
+    local conditionText = "if ("..self:PrintTokens(self:GetSavedTokens(firstToken))..")"
     self:ExpectToken(TOKEN.RPAREN)
 
     -- Enter the IF block
     local needBlock = self:MatchToken(TOKEN.LBRACKET)
-    if needBlock then
-      self:BlockStart("IF")
-    end
+    self:BlockStart("IF")
 
     -- Calculate condition
     local cmpLeaf = self:NewLeaf()
@@ -1093,38 +1102,39 @@ function HCOMP:Statement() local TOKEN = self.TOKEN
     cmpLeaf.Comment = conditionText
     self:AddLeafToTail(cmpLeaf)
 
+    -- Create label for conditional break (if condition is false)
+    local conditionalBreakLeaf = self:NewLeaf()
+    local conditionalBreak = self:GetTempLabel()
+    conditionalBreakLeaf.Opcode = "LABEL"
+    conditionalBreak.Type = "Pointer"
+    conditionalBreak.Leaf = conditionalBreakLeaf
+    conditionalBreakLeaf.Label = conditionalBreak
+    self.SpecialLeaf[#self.SpecialLeaf].ConditionalBreak = conditionalBreakLeaf
+--    self:AddLeafToTail(conditionalBreakLeaf)
+
+    -- Generate conditional jump over the block
+    local jumpLeaf = self:NewLeaf()
+    jumpLeaf.Opcode = "jge"
+    jumpLeaf.Operands[1] = { PointerToLabel = conditionalBreakLeaf.Label }
+    self:AddLeafToTail(jumpLeaf)
+
     if not needBlock then
-      -- Generate conditional jump over the block
-      local jumpOverLabelLeaf = self:NewLeaf()
-      local jumpOverLabel = self:GetTempLabel()
-      jumpOverLabelLeaf.Opcode = "LABEL"
-      jumpOverLabel.Type = "Pointer"
-      jumpOverLabel.Leaf = jumpOverLabelLeaf
-      jumpOverLabelLeaf.Label = jumpOverLabel
-
-      local jumpLeaf = self:NewLeaf()
-      jumpLeaf.Opcode = "jge"
-      jumpLeaf.Operands[1] = { PointerToLabel = jumpOverLabel }
-      self:AddLeafToTail(jumpLeaf)
-
       -- Parse next statement if dont need a block
       self:Statement()
 
+      -- End the IF block early
+      self:BlockEnd()
+
       -- Add exit label
-      self:AddLeafToTail(jumpOverLabelLeaf)
+      self:AddLeafToTail(conditionalBreakLeaf)
 
       -- Check for out-of-block ELSE
       if self:MatchToken(TOKEN.ELSE) then
-        self:ParseElse(false,jumpLeaf)
+        self:ParseElse(false)
       end
-    else
-      -- Generate conditional jump over the block
-      local jumpLeaf = self:NewLeaf()
-      jumpLeaf.Opcode = "jge"
-      jumpLeaf.Operands[1] = { PointerToLabel = self.SpecialLeaf[#self.SpecialLeaf].Break.Label }
-      self:AddLeafToTail(jumpLeaf)
-
-      self.SpecialLeaf[#self.SpecialLeaf].ConditionalJumpOver = jumpLeaf
+--    else
+--      self:AddLeafToTail(conditionalBreak)
+--      self.SpecialLeaf[#self.SpecialLeaf].ConditionalBreak = jumpLeaf
     end
 
     return true
@@ -1338,9 +1348,12 @@ function HCOMP:Statement() local TOKEN = self.TOKEN
   if self:MatchToken(TOKEN.RBRACKET) then
     if self.BlockDepth > 0 then
       local blockType = self.BlockType[#self.BlockType]
-      if (blockType == "IF") and self:MatchToken(TOKEN.ELSE) then -- Add ELSE block
+      if (blockType == "IF") and self:MatchToken(TOKEN.ELSE) then -- Add ELSE block, IF remains in stack
         self:ParseElse(true)
       else
+        if blockType == "IF" then -- FIXME: It kind of is redundant
+          self:AddLeafToTail(self.SpecialLeaf[#self.SpecialLeaf].ConditionalBreak)
+        end
         self:BlockEnd()
       end
       return true

@@ -14,6 +14,9 @@ function HCOMP:Resolve(block)
   block.Offset = self.WritePointer
   self:SetLabel("__PTR__",self.WritePointer)
 
+  -- Set pointer offset
+  block.PointerOffset = self.PointerOffset
+
   -- Label precedes the opcode and the data in the leaf
   if block.Label then
     if (self.Settings.SeparateDataSegment == true) and (block.Data) then
@@ -70,7 +73,7 @@ function HCOMP:Resolve(block)
   -- Zero padding after the block
   if block.ZeroPadding then
     if self.Settings.SeparateDataSegment == true then
-      self.WritePointer = self.WritePointer + block.ZeroPadding
+
     else
       self.WritePointer = self.WritePointer + block.ZeroPadding
     end
@@ -79,6 +82,11 @@ function HCOMP:Resolve(block)
   -- Special marker to change write pointer
   if block.SetWritePointer then
     self.WritePointer = block.SetWritePointer
+  end
+
+  -- Special marker to change pointer offset
+  if block.SetPointerOffset then
+    self.PointerOffset = block.SetPointerOffset
   end
 
   -- Output the block if required
@@ -115,11 +123,17 @@ function HCOMP:OutputLibrary(block)
   if block.Opcode then
     for i=1,#block.Operands do
       if block.Operands[i].Constant and (not tonumber(block.Operands[i].Constant)) then
-        block.Operands[i].Constant = self:PrintTokens(block.Operands[i].Constant)
+        if block.PointerOffset ~= 0
+        then block.Operands[i].Constant = self:PrintTokens(block.Operands[i].Constant).."+"..block.PointerOffset
+        else block.Operands[i].Constant = self:PrintTokens(block.Operands[i].Constant)
+        end
       end
 
       if block.Operands[i].MemoryPointer and (not tonumber(block.Operands[i].MemoryPointer)) then
-        block.Operands[i].MemoryPointer = self:PrintTokens(block.Operands[i].MemoryPointer)
+        if block.PointerOffset ~= 0
+        then block.Operands[i].MemoryPointer = self:PrintTokens(block.Operands[i].MemoryPointer).."+"..block.PointerOffset
+        else block.Operands[i].MemoryPointer = self:PrintTokens(block.Operands[i].MemoryPointer)
+        end
       end
     end
   end
@@ -185,7 +199,10 @@ function HCOMP:Output(block)
           end
         end
         -- Set the result
-        block.Operands[i].Constant = v or self.Settings.MagicValue
+        if v
+        then block.Operands[i].Constant = v + block.PointerOffset
+        else block.Operands[i].Constant = self.Settings.MagicValue
+        end
       end
 
       if block.Operands[i].MemoryPointer and (not tonumber(block.Operands[i].MemoryPointer)) then
@@ -206,7 +223,10 @@ function HCOMP:Output(block)
           end
         end
         -- Set the result
-        block.Operands[i].MemoryPointer = v or self.Settings.MagicValue
+        if v
+        then block.Operands[i].MemoryPointer = v + block.PointerOffset
+        else block.Operands[i].MemoryPointer = self.Settings.MagicValue
+        end
       end
     end
   end
@@ -390,9 +410,18 @@ function HCOMP:PrintBlock(block,file,isLibrary)
   -- Parse marker commands
   if block.SetWritePointer then
     if (self.Settings.OutputOffsetsInListing == true) and (not isLibrary) then
-      self:PrintLine(file,string.format("%6d ORG %d",block.Offset,block.SetWritePointer))
+      self:PrintLine(file,string.format("%6d org %d",block.Offset,block.SetWritePointer))
     else
-      self:PrintLine(file,string.format("ORG %d",block.SetWritePointer))
+      self:PrintLine(file,string.format("org %d",block.SetWritePointer))
+    end
+  end
+
+  -- Parse marker commands
+  if block.SetPointerOffset then
+    if (self.Settings.OutputOffsetsInListing == true) and (not isLibrary) then
+      self:PrintLine(file,string.format("%6d offset %d",block.Offset,block.SetPointerOffset))
+    else
+      self:PrintLine(file,string.format("offset %d",block.SetPointerOffset))
     end
   end
 end
