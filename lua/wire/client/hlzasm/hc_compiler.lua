@@ -375,6 +375,7 @@ function HCOMP:UnprotectedCompile()
       self.Stage = 5
 
       -- Set write pointers
+      self.PointerOffset = 0
       self.WritePointer = 0
       self.DataPointer = 0
     end
@@ -400,6 +401,7 @@ function HCOMP:UnprotectedCompile()
         self.Stage = 6
 
         -- Set write pointers
+        self.PointerOffset = 0
         self.WritePointer = 0
         self.DataPointer = 0
       end
