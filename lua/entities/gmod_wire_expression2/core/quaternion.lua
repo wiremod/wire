@@ -607,9 +607,9 @@ end
 --- Returns the rotation vector - rotation axis where magnitude is the angle of rotation in degress (by coder0xff)
 e2function vector rotationVector(quaternion q)
 	local l2 = q[1]*q[1] + q[2]*q[2] + q[3]*q[3] + q[4]*q[4]
-	local m2 = q[2]*q[2] + q[3]*q[3] + q[4]*q[4]
+	local m2 = math.max( q[2]*q[2] + q[3]*q[3] + q[4]*q[4], 0 )
 	if l2 == 0 or m2 == 0 then return { 0, 0, 0 } end
-	local s = 2 * acos(q[1]/sqrt(l2)) * rad2deg
+	local s = 2 * acos( math.Clamp( q[1] / sqrt(l2), -1, 1 ) ) * rad2deg
 	if s > 180 then s = s - 360 end
 	s = s / sqrt(m2)
 	return { q[2] * s, q[3] * s, q[4] * s }
