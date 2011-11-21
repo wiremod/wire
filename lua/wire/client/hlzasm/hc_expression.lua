@@ -138,6 +138,52 @@ function HCOMP:Expression_Level3() local TOKEN = self.TOKEN
       operationLeaf = { Register = register }
     end
   elseif self:MatchToken(TOKEN.IDENT) then
+    -- Check if variable lies inside structure
+    local dotPos = string.find(self.TokenData,"[.]")
+    if dotPos then
+      local structName = string.sub(self.TokenData,1,dotPos-1)
+      local memberName = string.sub(self.TokenData,dotPos+1)
+      local structLabel = self:GetLabel(structName)
+      if structLabel.Struct then -- Fetch structure member
+        local structData = self.Structs[structLabel.Struct]
+
+        -- Some error checks
+        if not structData[memberName] then
+          self:Error("Undefined structure member: "..memberName)
+        end
+
+        -- Generate leaf
+        local addressLeaf = self:NewLeaf()
+        if structLabel.Type == "Stack" then
+          operationLeaf = self:NewLeaf()
+          operationLeaf.Opcode = "add"
+          operationLeaf.Operands[1] = { Register = 7, Segment = 2 } -- EBP:SS
+          operationLeaf.Operands[2] = { Constant = structLabel.StackOffset+structData[memberName].Offset }
+
+          -- FIXME: does not work
+        elseif structLabel.Type == "Variable" then
+          addressLeaf.Opcode = "add"
+          addressLeaf.Operands[1] = { Constant = structData[memberName].Offset }
+          addressLeaf.Operands[2] = { Constant =
+            { { Type = self.TOKEN.AND, Position = self:CurrentSourcePosition() },
+              { Type = self.TOKEN.IDENT, Data = structLabel.Name, Position = self:CurrentSourcePosition() },
+            }
+          }
+          operationLeaf = { MemoryPointer = addressLeaf }
+        elseif structLabel.Type == "Pointer" then
+          addressLeaf.Opcode = "add"
+          addressLeaf.Operands[1] = { Constant = structData[memberName].Offset }
+          addressLeaf.Operands[2] = { Memory = structLabel }
+          operationLeaf = { MemoryPointer = addressLeaf }
+        else
+          self:Error("Internal error 164")
+        end
+
+        return operationLeaf
+      end
+    end
+
+    -- Try to fetch it normal way
     local label = self:GetLabel(self.TokenData)
     local forceType = label.ForceType
 
@@ -558,29 +604,34 @@ function HCOMP:ConstantExpression_Level3()
   elseif self:MatchToken(self.TOKEN.CHAR) then
     return true,true,self.TokenData*constSign
   elseif self:MatchToken(self.TOKEN.STRING) and (not self.IgnoreStringInExpression) then
-    if self.GlobalStringTable[self.TokenData] then
-      if self.GlobalStringTable[self.TokenData].Label.Value then
-        return true,true,self.GlobalStringTable[self.TokenData].Label.Value*constSign
+    local stringData = self.TokenData
+    while self:MatchToken(self.TOKEN.STRING) do
+      stringData = stringData .. self.TokenData
+    end
+
+    if self.GlobalStringTable[stringData] then
+      if self.GlobalStringTable[stringData].Label.Value then
+        return true,true,self.GlobalStringTable[stringData].Label.Value*constSign
       else
         return true,false,self.Settings.MagicValue
       end
     else
       if self.StringsTable then
-        if self.StringsTable[self.TokenData] then
-          if self.StringsTable[self.TokenData].Label.Value then
-            return true,true,self.StringsTable[self.TokenData].Label.Value*constSign
+        if self.StringsTable[stringData] then
+          if self.StringsTable[stringData].Label.Value then
+            return true,true,self.StringsTable[stringData].Label.Value*constSign
           else
             return true,false,self.Settings.MagicValue
           end
         else
-          self.StringsTable[self.TokenData] = self:NewLeaf()
-          self.StringsTable[self.TokenData].Opcode = "DATA"
-          self.StringsTable[self.TokenData].Data = { self.TokenData, 0 }
+          self.StringsTable[stringData] = self:NewLeaf()
+          self.StringsTable[stringData].Opcode = "DATA"
+          self.StringsTable[stringData].Data = { stringData, 0 }
 
           local stringLabel = self:GetTempLabel()
-          stringLabel.Leaf = self.StringsTable[self.TokenData]
-          self.StringsTable[self.TokenData].Label = stringLabel
-          self.GlobalStringTable[self.TokenData] = self.StringsTable[self.TokenData]
+          stringLabel.Leaf = self.StringsTable[stringData]
+          self.StringsTable[stringData].Label = stringLabel
+          self.GlobalStringTable[stringData] = self.StringsTable[stringData]
           return true,false,self.Settings.MagicValue
         end
       else

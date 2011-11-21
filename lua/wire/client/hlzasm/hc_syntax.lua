@@ -434,7 +434,7 @@ end
 
 --------------------------------------------------------------------------------
 -- Compile a variable/function. Returns corresponding labels
-function HCOMP:DefineVariable(isFunctionParam,isForwardDecl,isRegisterDecl) local TOKEN = self.TOKEN
+function HCOMP:DefineVariable(isFunctionParam,isForwardDecl,isRegisterDecl,isStructMember) local TOKEN = self.TOKEN
   -- Get variable type
   self:ExpectToken(TOKEN.TYPE)
   local varType = self.TokenData
@@ -481,193 +481,195 @@ function HCOMP:DefineVariable(isFunctionParam,isForwardDecl,isRegisterDecl) loca
       end
     end
 
-    if self:MatchToken(TOKEN.LPAREN) then -- Define function
-      -- Create function entrypoint
-      local label
-      label = self:DefineLabel(varName)
+    table.insert(labelsList,{ Name = varName, Type = varType, PtrLevel = pointerLevel, Size = bytesArraySize or varSize })
 
-      label.Type = "Pointer"
-      label.Defined = true
+    if not isStructMember then -- Do not define struct members
+      if self:MatchToken(TOKEN.LPAREN) then -- Define function
+        -- Create function entrypoint
+        local label
+        label = self:DefineLabel(varName)
 
-      -- Make all further leaves parented to this label
-      self.CurrentParentLabel = label
-
-      -- Create label leaf
-      label.Leaf = self:NewLeaf()
-      label.Leaf.Opcode = "LABEL"
-      label.Leaf.Label = label
-      self:AddLeafToTail(label.Leaf) --isInlined
-
-      -- Define a function
-      local _,functionVariables = nil,{}
-
-      self:BlockStart()
-      if not self:MatchToken(TOKEN.RPAREN) then
-        _,functionVariables = self:DefineVariable(true)
-        self:ExpectToken(TOKEN.RPAREN)
-
-        -- Add comments about function into assembly listing
-        if self.Settings.GenerateComments then
-          for i=1,#functionVariables do
-            label.Leaf.Comment = (label.Leaf.Comment or "")..(functionVariables[i].Name)
-            if i < #functionVariables then label.Leaf.Comment = label.Leaf.Comment.."," end
-          end
-        end
-      end
-
-      -- Forward declaration, mess up label name
-      if isForwardDecl then
-        local newName = label.Name.."@"
-        for i=1,#functionVariables do
-          newName = newName..functionVariables[i].Name..functionVariables[i].Type
-          if i < #functionVariables then
-            newName = newName.."_"
-          end
-        end
-        self:RedefineLabel(label.Name,newName)
-      end
-
-      if self.Settings.GenerateComments then label.Leaf.Comment = varName.."("..(label.Leaf.Comment or "")..")" end
-      self:ExpectToken(TOKEN.LBRACKET)
-      return true,functionVariables,varName,varType,pointerLevel
-    else -- Define variable
-      -- Check if there's an initializer
-      local initializerLeaves,initializerValues
-      if self:MatchToken(TOKEN.EQUAL) then
-        if not self.LocalLabels then -- Check rules for global init
-          if self:MatchToken(TOKEN.LBRACKET) then -- Array initializer
-            if not bytesArraySize then self:Error("Cannot initialize value: not an array") end
-
-            initializerValues = {}
-            while not self:MatchToken(TOKEN.RBRACKET) do
-              local c,v = self:ConstantExpression(true)
-              if not c
-              then self:Error("Cannot have expressions in global initializers")
-              else table.insert(initializerValues,v)
-              end
-              self:MatchToken(TOKEN.COMMA)
-            end
-          else -- Single initializer
-            if bytesArraySize then self:Error("Cannot initialize value: is an array") end
-
-            local c,v = self:ConstantExpression(true)
-            if not c then
---              initializerLeaves = { self:Expression() }
-              self:Error("Cannot have expressions in global initializers")
-            else
-              initializerValues = { v }
-            end
-          end
-        else -- Local init always an expression
-          if self:MatchToken(TOKEN.LBRACKET) then -- Array initializer
-            if not bytesArraySize then self:Error("Cannot initialize value: not an array") end
-
-            initializerLeaves = {}
-            while not self:MatchToken(TOKEN.RBRACKET) do
-              table.insert(initializerLeaves,self:Expression())
-              self:MatchToken(TOKEN.COMMA)
-            end
-
-            if #initializerLeaves > 256 then
-              self:Error("Too much local variable initializers")
-            end
-          else
-            if bytesArraySize then self:Error("Cannot initialize value: is an array") end
-            initializerLeaves = { self:Expression() }
-          end
-        end
-      end
-
-      -- Define a variable
-      if self.LocalLabels then -- check if var is local
-        local label = self:DefineLabel(varName,true)
-
-        if isRegisterDecl then
-          label.Type = "Register"
-          label.Value = self:DeclareRegisterVariable()
-        else
-          label.Type = "Stack"
-        end
+        label.Type = "Pointer"
         label.Defined = true
-        if varType == 5 then label.ForceType = "vector" end
 
-        -- If label has associated array size, mark it as an array
-        if bytesArraySize then label.Array = bytesArraySize end
+        -- Make all further leaves parented to this label
+        self.CurrentParentLabel = label
 
-        if not isRegisterDecl then
-          if not isFunctionParam then
-            -- Add a new local variable (stack pointer increments)
-            self.StackPointer = self.StackPointer - (bytesArraySize or varSize)
-            label.StackOffset = self.StackPointer
-          else
-            -- Add a new function variable
-            self.ParameterPointer = self.ParameterPointer + (bytesArraySize or varSize)
-            label.StackOffset = self.ParameterPointer
-          end
-        end
-
-        -- Initialize local variable
-        if isRegisterDecl then
-          if initializerLeaves then
-            local movLeaf = self:NewLeaf()
-            movLeaf.Opcode = "mov"
-            movLeaf.Operands[1] = { Register = label.Value }
-            movLeaf.Operands[2] = initializerLeaves[1]
-            movLeaf.ExplictAssign = true
-            self:AddLeafToTail(movLeaf)
-          end
-        else
-          if initializerLeaves then
-            for i=1,#initializerLeaves do -- FIXME: find a nicer way to initialize
-              local movLeaf = self:NewLeaf()
-              movLeaf.Opcode = "mov"
-              movLeaf.Operands[1] = { Stack = label.StackOffset+i-1 }
-              movLeaf.Operands[2] = initializerLeaves[i]
-              movLeaf.ExplictAssign = true
-              self:AddLeafToTail(movLeaf)
-            end
-            for i=#initializerLeaves+1,bytesArraySize or 1 do
-              local movLeaf = self:NewLeaf()
-              movLeaf.Opcode = "mov"
-              movLeaf.Operands[1] = { Stack = label.StackOffset+i-1 }
-              movLeaf.Operands[2] = { Constant = 0 }
-              movLeaf.ExplictAssign = true
-              self:AddLeafToTail(movLeaf)
-            end
-          end
-        end
-
-        table.insert(labelsList,{ Name = varName, Type = varType, PtrLevel = pointerLevel })
-      else
-        -- Define a new global variable
-        local label = self:DefineLabel(varName)
-
-        if isRegisterDecl then
-          label.Type = "Register"
-          label.Value = self:DeclareRegisterVariable()
-        else
-          label.Type = "Variable" --FIXME: "Pointer" for pointer vars
-        end
-        label.Defined = true
-        if varType == 5 then label.ForceType = "vector" end
-
-        -- If label has associated array size, mark it as an array
-        if bytesArraySize then label.Array = bytesArraySize end
-
+        -- Create label leaf
         label.Leaf = self:NewLeaf()
-        label.Leaf.ParentLabel = self.CurrentParentLabel or label
-        label.Leaf.Opcode = "DATA"
-        if initializerValues then
-          label.Leaf.Data = initializerValues
-          label.Leaf.ZeroPadding = (bytesArraySize or varSize) - #initializerValues
-        else
-          label.Leaf.ZeroPadding = bytesArraySize or varSize
-        end
+        label.Leaf.Opcode = "LABEL"
         label.Leaf.Label = label
-        self:AddLeafToTail(label.Leaf)
+        self:AddLeafToTail(label.Leaf) --isInlined
 
-        table.insert(labelsList,{ Name = varName, Type = varType, PtrLevel = pointerLevel })
+        -- Define a function
+        local _,functionVariables = nil,{}
+
+        self:BlockStart()
+        if not self:MatchToken(TOKEN.RPAREN) then
+          _,functionVariables = self:DefineVariable(true)
+          self:ExpectToken(TOKEN.RPAREN)
+
+          -- Add comments about function into assembly listing
+          if self.Settings.GenerateComments then
+            for i=1,#functionVariables do
+              label.Leaf.Comment = (label.Leaf.Comment or "")..(functionVariables[i].Name)
+              if i < #functionVariables then label.Leaf.Comment = label.Leaf.Comment.."," end
+            end
+          end
+        end
+
+        -- Forward declaration, mess up label name
+        if isForwardDecl then
+          local newName = label.Name.."@"
+          for i=1,#functionVariables do
+            newName = newName..functionVariables[i].Name..functionVariables[i].Type
+            if i < #functionVariables then
+              newName = newName.."_"
+            end
+          end
+          self:RedefineLabel(label.Name,newName)
+        end
+
+        if self.Settings.GenerateComments then label.Leaf.Comment = varName.."("..(label.Leaf.Comment or "")..")" end
+        self:ExpectToken(TOKEN.LBRACKET)
+        return true,functionVariables,varName,varType,pointerLevel
+      else -- Define variable
+        -- Check if there's an initializer
+        local initializerLeaves,initializerValues
+        if self:MatchToken(TOKEN.EQUAL) then
+          if not self.LocalLabels then -- Check rules for global init
+            if self:MatchToken(TOKEN.LBRACKET) then -- Array initializer
+              if not bytesArraySize then self:Error("Cannot initialize value: not an array") end
+
+              initializerValues = {}
+              while not self:MatchToken(TOKEN.RBRACKET) do
+                local c,v = self:ConstantExpression(true)
+                if not c
+                then self:Error("Cannot have expressions in global initializers")
+                else table.insert(initializerValues,v)
+                end
+                self:MatchToken(TOKEN.COMMA)
+              end
+            else -- Single initializer
+              if bytesArraySize then self:Error("Cannot initialize value: is an array") end
+
+              local c,v = self:ConstantExpression(true)
+              if not c then
+  --              initializerLeaves = { self:Expression() }
+                self:Error("Cannot have expressions in global initializers")
+              else
+                initializerValues = { v }
+              end
+            end
+          else -- Local init always an expression
+            if self:MatchToken(TOKEN.LBRACKET) then -- Array initializer
+              if not bytesArraySize then self:Error("Cannot initialize value: not an array") end
+
+              initializerLeaves = {}
+              while not self:MatchToken(TOKEN.RBRACKET) do
+                table.insert(initializerLeaves,self:Expression())
+                self:MatchToken(TOKEN.COMMA)
+              end
+
+              if #initializerLeaves > 256 then
+                self:Error("Too much local variable initializers")
+              end
+            else
+              if bytesArraySize then self:Error("Cannot initialize value: is an array") end
+              initializerLeaves = { self:Expression() }
+            end
+          end
+        end
+
+        -- Define a variable
+        if self.LocalLabels then -- check if var is local
+          local label = self:DefineLabel(varName,true)
+
+          if isRegisterDecl then
+            label.Type = "Register"
+            label.Value = self:DeclareRegisterVariable()
+          else
+            label.Type = "Stack"
+          end
+          label.Defined = true
+          if varType == 5 then label.ForceType = "vector" end
+
+          -- If label has associated array size, mark it as an array
+          if bytesArraySize then label.Array = bytesArraySize end
+
+          if not isRegisterDecl then
+            if not isFunctionParam then
+              -- Add a new local variable (stack pointer increments)
+              self.StackPointer = self.StackPointer - (bytesArraySize or varSize)
+              label.StackOffset = self.StackPointer
+            else
+              -- Add a new function variable
+              self.ParameterPointer = self.ParameterPointer + (bytesArraySize or varSize)
+              label.StackOffset = self.ParameterPointer
+            end
+          end
+
+          -- Initialize local variable
+          if isRegisterDecl then
+            if initializerLeaves then
+              local movLeaf = self:NewLeaf()
+              movLeaf.Opcode = "mov"
+              movLeaf.Operands[1] = { Register = label.Value }
+              movLeaf.Operands[2] = initializerLeaves[1]
+              movLeaf.ExplictAssign = true
+              self:AddLeafToTail(movLeaf)
+            end
+          else
+            if initializerLeaves then
+              for i=1,#initializerLeaves do -- FIXME: find a nicer way to initialize
+                local movLeaf = self:NewLeaf()
+                movLeaf.Opcode = "mov"
+                movLeaf.Operands[1] = { Stack = label.StackOffset+i-1 }
+                movLeaf.Operands[2] = initializerLeaves[i]
+                movLeaf.ExplictAssign = true
+                self:AddLeafToTail(movLeaf)
+              end
+              for i=#initializerLeaves+1,bytesArraySize or 1 do
+                local movLeaf = self:NewLeaf()
+                movLeaf.Opcode = "mov"
+                movLeaf.Operands[1] = { Stack = label.StackOffset+i-1 }
+                movLeaf.Operands[2] = { Constant = 0 }
+                movLeaf.ExplictAssign = true
+                self:AddLeafToTail(movLeaf)
+              end
+            end
+          end
+        else
+          -- Define a new global variable
+          local label = self:DefineLabel(varName)
+
+          if isRegisterDecl then
+            label.Type = "Register"
+            label.Value = self:DeclareRegisterVariable()
+          else
+            label.Type = "Variable" --FIXME: "Pointer" for pointer vars
+          end
+          label.Defined = true
+          if varType == 5 then label.ForceType = "vector" end
+
+          -- If label has associated array size, mark it as an array
+          if bytesArraySize then label.Array = bytesArraySize end
+
+          label.Leaf = self:NewLeaf()
+          label.Leaf.ParentLabel = self.CurrentParentLabel or label
+          label.Leaf.Opcode = "DATA"
+          if initializerValues then
+            label.Leaf.Data = initializerValues
+            label.Leaf.ZeroPadding = (bytesArraySize or varSize) - #initializerValues
+          else
+            label.Leaf.ZeroPadding = bytesArraySize or varSize
+          end
+          label.Leaf.Label = label
+          self:AddLeafToTail(label.Leaf)
+        end
       end
+    else -- Struct member
+      -- Do nothing right now
     end
 
     if not self:MatchToken(TOKEN.COMMA) then
@@ -679,6 +681,107 @@ function HCOMP:DefineVariable(isFunctionParam,isForwardDecl,isRegisterDecl) loca
     end
   end
 end
+
+
+--------------------------------------------------------------------------------
+-- Compile a structure defintion
+function HCOMP:DefineStruct(isFunctionParam) local TOKEN = self.TOKEN
+  -- Get structure name, data
+  self:ExpectToken(TOKEN.IDENT)
+  local structName = self.TokenData
+  local structData = self.Structs[structName]
+  local structSize = self.StructSize[structName]
+
+  -- Parse all structs to define
+  while true do
+    -- Get pointer level (0, *, **, ***, etc)
+    local pointerLevel = 0
+    while self:MatchToken(TOKEN.TIMES) do pointerLevel = pointerLevel + 1 end
+
+    -- Get variable name
+    self:ExpectToken(TOKEN.IDENT)
+    local varName = self.TokenData
+
+    -- Try to read information about array size, stuff
+    local arraySize
+    while self:MatchToken(TOKEN.LSUBSCR) do -- varname[<arr size>]
+      if self:MatchToken(TOKEN.RSUBSCR) then -- varname[]
+        if isFunctionParam then -- just a pointer to an array
+          pointerLevel = 1
+        end
+      else
+        local c,v = self:ConstantExpression(true) -- need precise value here, no ptrs allowed
+        if c then
+          if not arraySize then arraySize = {} end
+          arraySize[#arraySize+1] = v
+        else
+          self:Error("Array size must be constant")
+        end
+
+        self:ExpectToken(TOKEN.RSUBSCR)
+      end
+    end
+
+    local bytesArraySize
+    if arraySize then
+      for k,v in pairs(arraySize) do
+        bytesArraySize = (bytesArraySize or 0) + v*structSize
+      end
+    end
+
+    -- Define a variable
+    if self.LocalLabels then -- check if var is local
+      local label = self:DefineLabel(varName,true)
+
+      label.Type = "Stack"
+      label.Defined = true
+      label.Struct = structName
+
+      -- If label has associated array size, mark it as an array
+      if bytesArraySize then label.Array = bytesArraySize end
+
+      if not isFunctionParam then -- FIXME: code all wrong here
+        -- Add a new local variable (stack pointer increments)
+        self.StackPointer = self.StackPointer - (bytesArraySize or structSize)
+        label.StackOffset = self.StackPointer
+      else
+        -- Add a new function variable
+        self.ParameterPointer = self.ParameterPointer + (bytesArraySize or structSize)
+        label.StackOffset = self.ParameterPointer
+      end
+    else
+      -- Define a new global variable
+      local label = self:DefineLabel(varName)
+
+      if pointerLevel == 0
+      then label.Type = "Variable"
+      else label.Type = "Pointer"
+      end
+      label.Struct = structName
+      label.Defined = true
+
+      -- If label has associated array size, mark it as an array
+      if bytesArraySize then label.Array = bytesArraySize end
+
+      label.Leaf = self:NewLeaf()
+      label.Leaf.ParentLabel = self.CurrentParentLabel or label
+      label.Leaf.Opcode = "DATA"
+      if initializerValues then
+        label.Leaf.Data = initializerValues
+        label.Leaf.ZeroPadding = (bytesArraySize or structSize) - #initializerValues
+      else
+        label.Leaf.ZeroPadding = bytesArraySize or structSize
+      end
+      label.Leaf.Label = label
+      self:AddLeafToTail(label.Leaf)
+    end
+
+    if not self:MatchToken(TOKEN.COMMA) then
+      return true,labelsList
+    end
+  end
+end
+
 
 --------------------------------------------------------------------------------
 -- Compile a single statement
@@ -732,6 +835,13 @@ function HCOMP:Statement() local TOKEN = self.TOKEN
     return isDefined
   end
 
+  -- Peek structure definition
+  local nextToken,structName = self:PeekToken(0,true)
+  if (nextToken == TOKEN.IDENT) and (self.Structs[structName]) then
+    self:DefineStruct(structName)
+    return true
+  end
+
   if inlineFunction or exportSymbol or forwardFunction or registerValue then
     self:Error("Function definition or symbol definition expected")
   end
@@ -753,6 +863,29 @@ function HCOMP:Statement() local TOKEN = self.TOKEN
 
   -- Parse assembly instruction
   if self:MatchToken(TOKEN.OPCODE) then return self:Opcode() end
+
+  -- Parse STRUCT macro
+  if self:MatchToken(TOKEN.STRUCT) then
+    self:ExpectToken(TOKEN.IDENT)
+    local structName = self.TokenData
+
+    -- Create structure
+    self.Structs[structName] = {}
+    self.StructSize[structName] = 0
+
+    -- Populate structure
+    self:ExpectToken(TOKEN.LBRACKET)
+    while (not self:MatchToken(TOKEN.RBRACKET)) and (not self:MatchToken(TOKEN.EOF)) do
+      local _,variableList = self:DefineVariable(false,false,false,true)
+      for _,variableData in ipairs(variableList) do
+        variableData.Offset = self.StructSize[structName]
+        self.Structs[structName][variableData.Name] = variableData
+        self.StructSize[structName] = self.StructSize[structName] + variableData.Size
+      end
+      self:ExpectToken(TOKEN.COLON)
+    end
+    return true
+  end
 
   -- Parse VECTOR macro
   if self:MatchToken(TOKEN.VECTOR) then
