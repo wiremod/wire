@@ -11,9 +11,7 @@
 --   hc_compiler: compiler initialization
 --                error reporting
 --                parser functions
--- hc_preprocess: preprocessor
---                macro parser
---                generates line/filename markers for parser
+-- hc_preprocess: preprocessor macro parsing
 --  hc_tokenizer: turns source code into tokens
 --   hc_codetree: unwraps code tree into generated code
 --     hc_output: resolves labels and generates
@@ -181,9 +179,9 @@ function HCOMP:StartCompile(sourceCode,fileName,writeByteCallback,writeByteCalle
   self.FileName = string.sub(fileName,string.find(fileName,"\\$") or 1)
   if string.GetPathFromFilename then
     local filePath = string.GetPathFromFilename(fileName)
-    self.WorkingDir = "\\"..string.sub(filePath,(string.find(filePath,"Chip") or -4)+5)
+    self.WorkingDir = ".\\"..string.sub(filePath,(string.find(filePath,"Chip") or -4)+5)
   else
-    self.WorkingDir = "\\"
+    self.WorkingDir = ".\\"
   end
 
   -- Initialize compiler settings
@@ -215,9 +213,20 @@ function HCOMP:StartCompile(sourceCode,fileName,writeByteCallback,writeByteCalle
   self.Settings.NoUnreferencedLeaves = true -- Dont generate functions, variables that are not referenced
   self.Settings.DataSegmentOffset = 0 -- Data segment offset for separate data segment
 
-  -- Prepare preprocessor
-  self.Stage = 0
-  self:BeginPreprocess(sourceCode)
+  -- Search paths
+  self.SearchPaths = {
+    "lib",
+    "inc"
+  }
+
+  -- Prepare parser
+  self.Stage = 1
+  self.Tokens = {}
+  self.Code = {{ Text = sourceCode, Line = 1, Col = 1, File = self.FileName }}
+
+  -- Structs
+  self.Structs = {}
+  self.StructSize = {}
 
   -- Prepare debug information
   self.DebugInfo = {}
@@ -227,9 +236,17 @@ function HCOMP:StartCompile(sourceCode,fileName,writeByteCallback,writeByteCalle
 
   -- Exported function list (library generation)
   self.ExportedSymbols = {}
+  self.LabelLookup = {}
+  self.LabelLookupCounter = 0
 
   -- All functions defined so far
   self.Functions = {}
+
+  -- All macros defined so far
+  self.Defines = {}
+  self.Defines["__LINE__"] = 0
+  self.Defines["__FILE__"] = ""
+  self.IFDEFLevel = {}
 
   -- Output text
   self.OutputText = {}
@@ -256,29 +273,7 @@ end
 
 -- Unprotected function that does the actual compiling
 function HCOMP:UnprotectedCompile()
-  if self.Stage == 0 then
-    -- Preprocess code stage
-    --
-    -- At this stage code is preprocessed, resolving all macros
-
-    local stageResult = self:Preprocess()
-    if not stageResult then
-      -- Go to parse stage
-      self.Tokens = {}
-      self.Stage = 1
-
-      if #self.Code == 0 then
-        self.Code[1] = { Text = "", Line = 0, TextLength = 0, File = "" }
-      end
-
-      -- If generating library, setup up label name mangler
-      if self.Settings.GenerateLibrary then
-        self.LabelLookup = {}
-        self.LabelLookupCounter = 0
-      end
-    end
-    return true
-  elseif self.Stage == 1 then
+  if self.Stage == 1 then
     -- Tokenize stage
     --
     -- At this stage sourcecode is converted to list of tokens

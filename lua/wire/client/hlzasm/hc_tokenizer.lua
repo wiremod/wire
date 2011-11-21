@@ -1,4 +1,13 @@
 --------------------------------------------------------------------------------
+-- HCOMP / HL-ZASM compiler
+--
+-- Tokenizer
+--------------------------------------------------------------------------------
+
+
+
+
+--------------------------------------------------------------------------------
 -- All symbols (tokens) recognized by parser
 HCOMP.TOKEN_TEXT = {}
 HCOMP.TOKEN_TEXT["IDENT"]     = {{"ZASM","C","HLZASM"},{}} -- ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz _
@@ -58,6 +67,7 @@ HCOMP.TOKEN_TEXT["EXPORT"]    = {{"C","HLZASM"},{"EXPORT"}}
 HCOMP.TOKEN_TEXT["INLINE"]    = {{"C","HLZASM"},{"INLINE"}}
 HCOMP.TOKEN_TEXT["FORWARD"]   = {{"C","HLZASM"},{"FORWARD"}}
 HCOMP.TOKEN_TEXT["LREGISTER"] = {{"C","HLZASM"},{"REGISTER"}}
+HCOMP.TOKEN_TEXT["STRUCT"]    = {{"C","HLZASM"},{"STRUCT"}}
 
 HCOMP.TOKEN_TEXT["DB"]        = {{"ZASM","HLZASM"},{"DB"}}
 HCOMP.TOKEN_TEXT["ALLOC"]     = {{"ZASM","HLZASM"},{"ALLOC"}}
@@ -81,6 +91,10 @@ HCOMP.TOKEN_TEXT["ZAP"]       = {{"HLZASM"},{"ZAP"}}
 HCOMP.TOKEN_TEXT["REGISTER"]  = {{"ZASM","HLZASM"},{"EAX","EBX","ECX","EDX","ESI","EDI","ESP","EBP"}}
 HCOMP.TOKEN_TEXT["SEGMENT"]   = {{"ZASM","HLZASM"},{"CS","SS","DS","ES","GS","FS","KS","LS"}}
 HCOMP.TOKEN_TEXT["OPCODE"]    = {{"ZASM","HLZASM"},{}} -- mov, cmp, etc...
+HCOMP.TOKEN_TEXT["COMMENT1"]  = {{"ZASM","C","HLZASM"},{"//"}} -- comment 1
+HCOMP.TOKEN_TEXT["COMMENT2"]  = {{"ZASM","C","HLZASM"},{"/*"}} -- comment 2
+HCOMP.TOKEN_TEXT["COMMENT3"]  = {{"ZASM","C","HLZASM"},{"*/"}} -- comment 3
+HCOMP.TOKEN_TEXT["MACRO"]     = {{"ZASM","C","HLZASM"},{}} -- preprocessor macro
 HCOMP.TOKEN_TEXT["STRING"]    = {{"ZASM","C","HLZASM"},{}} -- buffer of chars
 HCOMP.TOKEN_TEXT["CHAR"]      = {{"ZASM","C","HLZASM"},{}} -- single character
 HCOMP.TOKEN_TEXT["EOF"]       = {{"ZASM","C","HLZASM"},{}} -- end of file
@@ -112,12 +126,10 @@ for tokenName,tokenData in pairs(HCOMP.TOKEN_TEXT) do
   for k,v in pairs(tokenData[2]) do
     HCOMP.TOKEN_NAME2[IDX][k] = v
   end
---  print(tokenName,IDX)
   IDX = IDX + 1
 end
 
 -- Create lookup tables for faster parsing
-local temp = ""
 HCOMP.PARSER_LOOKUP = {}
 for symID,symList in pairs(HCOMP.TOKEN_TEXT) do
   for _,languageName in pairs(symList[1]) do
@@ -132,7 +144,19 @@ for symID,symList in pairs(HCOMP.TOKEN_TEXT) do
   end
 end
 
-print(temp)
+
+-- Create lookup table for double-character tokens
+HCOMP.PARSER_DBCHAR = {}
+for symID,symList in pairs(HCOMP.TOKEN_TEXT) do
+  local symText = symList[2][1] or ""
+  if #symText == 2 then
+    local char1 = string.sub(symText,1,1)
+    local char2 = string.sub(symText,2,2)
+    HCOMP.PARSER_DBCHAR[char1] = HCOMP.PARSER_DBCHAR[char1] or {}
+    HCOMP.PARSER_DBCHAR[char1][char2] = true
+  end
+end
+
 
 -- Add opcodes to the lookup table
 for _,languageName in pairs(HCOMP.TOKEN_TEXT["OPCODE"][1]) do
@@ -146,19 +170,19 @@ end
 
 
 --------------------------------------------------------------------------------
--- Skip a single line in input
-function HCOMP:nextLine()
- table.remove(self.Code,1)
- if not self.Code[1] then
-   self.Code[1] = { Line = 0, TextLength = 0, Text = "", File = "internal error" }
- end
+-- Skip a single file in input
+function HCOMP:nextFile()
+  table.remove(self.Code,1)
+  if not self.Code[1] then
+    self.Code[1] = { Text = "", Line = 1, Col = 1, File = "internal error" }
+  end
 end
 
 -- Return next character
 function HCOMP:getChar()
   local char = string.sub(self.Code[1].Text,1,1)
   if char == "" then
-    self:nextLine()
+    self:nextFile()
     char = string.sub(self.Code[1].Text,1,1)
   end
   return char
@@ -166,10 +190,18 @@ end
 
 -- Skip current char
 function HCOMP:nextChar()
-  if self.Code[1].Text == "" then
-    self:nextLine()
+  local code = self.Code[1]
+  if code.Text == "" then
+    self:nextFile()
   else
-    self.Code[1].Text = string.sub(self.Code[1].Text,2)
+    local char = string.sub(code.Text,1,1)
+    if char == "\n" then
+      code.Line = code.Line + 1
+      code.Col = 1
+    else
+      code.Col = code.Col + 1
+    end
+    code.Text = string.sub(code.Text,2)
   end
 end
 
@@ -180,14 +212,16 @@ end
 -- Tokenize the code
 function HCOMP:Tokenize() local TOKEN = self.TOKEN
   -- Skip whitespaces
-  while (self:getChar() == " ") or (self:getChar() == "\t") do self:nextChar() end
+  while (self:getChar() ==  " ") or
+        (self:getChar() == "\t") or
+        (self:getChar() == "\n") do self:nextChar() end
 
-  -- Store this line as previous
+  -- Store this line as previous (FIXME: need this?)
   self.PreviousCodeLine = self.Code[1].Text
 
   -- Read token position
   local tokenPosition = { Line = self.Code[1].Line,
-                          Col  = self.Code[1].TextLength - #self.Code[1].Text + 1,
+                          Col  = self.Code[1].Col,
                           File = self.Code[1].File }
 
   -- Check for end of file
@@ -200,7 +234,26 @@ function HCOMP:Tokenize() local TOKEN = self.TOKEN
     return false
   end
 
-  --  Is it a string
+  -- Is it a preprocessor macro
+  if (self.Code[1].Col == 1) and (self:getChar() == "#") then
+    local macroLine = ""
+    while (self:getChar() ~= "") and (self:getChar() ~= "\n") do
+      macroLine = macroLine .. self:getChar()
+      self:nextChar()
+    end
+
+    -- Parse it
+    self:ParsePreprocessMacro(macroLine,tokenPosition)
+    return true
+  end
+
+  -- If still inside IFDEF, do not parse what follows
+  if self.IFDEFLevel[#self.IFDEFLevel] == true then
+    self:nextChar()
+    return true
+  end
+
+  -- Is it a string
   if (self:getChar() == "'") or (self:getChar() == "\"") then
     local stringType = self:getChar()
     self:nextChar() -- Skip leading character
@@ -223,6 +276,9 @@ function HCOMP:Tokenize() local TOKEN = self.TOKEN
         elseif self:getChar() == "0"  then fetchString = fetchString .. "\0"
         end
         self:nextChar()
+      elseif self:getChar() == "\n" then
+        self:Error("Newline in string constant",
+          tokenPosition.Line,tokenPosition.Col,tokenPosition.File)
       else
         fetchString = fetchString .. self:getChar()
         self:nextChar()
@@ -256,25 +312,63 @@ function HCOMP:Tokenize() local TOKEN = self.TOKEN
     self:nextChar()
   end
 
+  -- Check if token was redefined
+  if (token ~= "") and (self.Defines[token]) then
+    if token == "__FILE__" then
+      table.insert(self.Tokens,{
+        Type = TOKEN.STRING,
+        Data = tokenPosition.File,
+        Position = tokenPosition,
+      })
+      return true
+    elseif token == "__LINE__" then
+      table.insert(self.Tokens,{
+        Type = TOKEN.STRING,
+        Data = tostring(tokenPosition.Line),
+        Position = tokenPosition,
+      })
+      return true
+    else
+      token = self.Defines[token]
+    end
+  end
+
+  -- If no alphanumeric token fetched, try to fetch the special-character ones
   if token == "" then
     token = self:getChar()
     self:nextChar()
 
-    if (token == "^") and (self:getChar() == "^") then token = token .. "^" self:nextChar() end
-    if (token == "+") and (self:getChar() == "+") then token = token .. "+" self:nextChar() end
-    if (token == "-") and (self:getChar() == "-") then token = token .. "-" self:nextChar() end
-    if (token == "<") and (self:getChar() == "<") then token = token .. "<" self:nextChar() end
-    if (token == ">") and (self:getChar() == ">") then token = token .. ">" self:nextChar() end
-    if (token == "=") and (self:getChar() == "=") then token = token .. "=" self:nextChar() end
-    if (token == "!") and (self:getChar() == "=") then token = token .. "=" self:nextChar() end
-    if (token == "<") and (self:getChar() == "=") then token = token .. "=" self:nextChar() end
-    if (token == ">") and (self:getChar() == "=") then token = token .. "=" self:nextChar() end
-    if (token == "&") and (self:getChar() == "&") then token = token .. "&" self:nextChar() end
-    if (token == "|") and (self:getChar() == "|") then token = token .. "|" self:nextChar() end
-    if (token == "+") and (self:getChar() == "=") then token = token .. "=" self:nextChar() end
-    if (token == "-") and (self:getChar() == "=") then token = token .. "=" self:nextChar() end
-    if (token == "*") and (self:getChar() == "=") then token = token .. "=" self:nextChar() end
-    if (token == "/") and (self:getChar() == "=") then token = token .. "=" self:nextChar() end
+    if HCOMP.PARSER_DBCHAR[token] then
+      local curChar = self:getChar()
+      if HCOMP.PARSER_DBCHAR[token][curChar] then
+        token = token .. curChar
+        self:nextChar()
+        if token == "//" then -- Line comment
+          while (self:getChar() ~= "") and (self:getChar() ~= "\n") do self:nextChar() end
+          return true
+        elseif token == "/*" then -- Block comment open
+          while self:getChar() ~= "" do
+            local curChar = self:getChar()
+            self:nextChar()
+            if (curChar == "*") and (self:getChar() == "/") then
+              self:nextChar()
+              return true
+            end
+          end
+
+          -- Error in tokenizing
+          self:Error("Comment block not closed (reached end of file)",
+            tokenPosition.Line,tokenPosition.Col,tokenPosition.File)
+          return true
+        elseif token == "*/" then -- Block comment end (returns error token)
+          table.insert(self.Tokens,{
+            Type = TOKEN.COMMENT3,
+            Position = tokenPosition,
+          })
+          return true
+        end
+      end
+    end
   end
 
   -- Determine which token it is
@@ -397,9 +491,14 @@ end
 
 
 -- Returns next token type. Looks forward into stream if offset is specified
-function HCOMP:PeekToken(offset)
+function HCOMP:PeekToken(offset,extended)
   if self.Tokens[self.CurrentToken+(offset or 0)] then
-    return self.Tokens[self.CurrentToken+(offset or 0)].Type
+    if extended then
+      return self.Tokens[self.CurrentToken+(offset or 0)].Type,
+             self.Tokens[self.CurrentToken+(offset or 0)].Data
+    else
+      return self.Tokens[self.CurrentToken+(offset or 0)].Type
+    end
   else
     return self.TOKEN.EOF
   end
