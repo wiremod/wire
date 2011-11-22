@@ -637,7 +637,7 @@ GateActions["entity_aimenormal"] = {
 	outputtypes = { "VECTOR" },
 	timed = true,
 	output = function(gate, Ent)
-		if !Ent:IsValid() then return end
+		if !Ent:IsValid() then return Vector(0,0,0) end
 		if (Ent:IsPlayer()) then
 			return Ent:GetAimVector()
 		else
