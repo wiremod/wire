@@ -462,33 +462,4 @@ GateActions["monostable"] = {
 	end
 }
 
-GateActions["bstimer"] = {
-	name = "BS_Timer",
-	inputs = { "Run", "Reset" },
-	timed = true,
-	output = function(gate, Run, Reset)
-		local DeltaTime = CurTime()-(gate.PrevTime or CurTime())
-		gate.PrevTime = (gate.PrevTime or CurTime())+DeltaTime
-		if ( Reset > 0 ) then
-			gate.Accum = 0
-		elseif ( Run > 0 ) then
-			gate.Accum = gate.Accum+DeltaTime
-		end
-
-		for i = 1,50 do
-			local bs = gate.Entity:GetPos()
-			local bs1 = gate.Entity:GetAngles()
-		end
-
-		return gate.Accum or 0
-	end,
-	reset = function(gate)
-		gate.PrevTime = CurTime()
-		gate.Accum = 0
-	end,
-	label = function(Out, Run, Reset)
-		return "Run:"..Run.." Reset:"..Reset.." = "..Out
-	end
-}
-
 GateActions()
