@@ -58,6 +58,164 @@ end
 
 
 
+-- generate code for function call
+function HCOMP:Expression_FunctionCall(label) local TOKEN = self.TOKEN
+  -- Parse arguments and push them to stack
+  local argumentCount = 0
+  local argumentExpression = {}
+  while not (self:PeekToken() == TOKEN.RPAREN) do
+    -- Parse argument
+    argumentExpression[#argumentExpression+1] = self:Expression()
+
+    -- Go to next one
+    argumentCount = argumentCount + 1
+    self:MatchToken(TOKEN.COMMA)
+  end
+  self:ExpectToken(TOKEN.RPAREN)
+
+  -- Find the function definition
+  local functionEntry = self.Functions[label.Name]
+
+  -- All leaves that must be generated previously to knowing correct result
+  local genLeaves = {}
+
+  -- Push arguments to stack in reverse order
+  for argNo = #argumentExpression,1,-1 do
+    local pushLeaf = self:NewLeaf()
+    pushLeaf.Opcode = "push"
+    pushLeaf.Operands[1] = argumentExpression[argNo]
+    table.insert(genLeaves,pushLeaf)
+
+    if functionEntry then
+      if functionEntry.Parameters[argNo] then
+        pushLeaf.Comment = label.Name.." arg #"..argNo.." ("..
+          string.lower(
+            self.TOKEN_TEXT["TYPE"][2][functionEntry.Parameters[argNo].Type] or
+            functionEntry.Parameters[argNo].Type)..
+          string.rep("*",functionEntry.Parameters[argNo].PtrLevel)..
+          " "..
+          functionEntry.Parameters[argNo].Name..")"
+      else
+        pushLeaf.Comment = label.Name.." arg #"..argNo.." (unknown)"
+      end
+    end
+  end
+
+  -- Call function
+  if functionEntry and functionEntry.InlineCode then
+    for i=1,#functionEntry.InlineCode do
+--          self:AddLeafToTail(functionEntry.InlineCode[i])
+      if functionEntry.InlineCode[i].Opcode ~= "LABEL" then
+        table.insert(genLeaves,functionEntry.InlineCode[i])
+      end
+    end
+  else
+    -- Push argument count to stack
+    local argCountLeaf = self:NewLeaf()
+    argCountLeaf.Opcode = "mov"
+    argCountLeaf.ExplictAssign = true
+    argCountLeaf.Operands[1] = { Register = 3 } -- ECX is the argument count register
+    argCountLeaf.Operands[2] = { Constant = argumentCount }
+    table.insert(genLeaves,argCountLeaf)
+
+    local callLeaf = self:NewLeaf()
+    callLeaf.Opcode = "call"
+    callLeaf.Comment = label.Name.."(...)"
+    if label.Type == "Stack" then
+      callLeaf.Operands[1] = { Stack = label.StackOffset }
+    else --{ PointerToLabel = label }
+      callLeaf.Operands[1] = { UnknownOperationByLabel = label }
+    end
+    table.insert(genLeaves,callLeaf)
+  end
+
+  -- Stack cleanup
+  if argumentCount > 0 then
+    local stackCleanupLeaf = self:NewLeaf()
+    stackCleanupLeaf.Opcode = "add"
+    stackCleanupLeaf.ExplictAssign = true
+    stackCleanupLeaf.Operands[1] = { Register = 7 }
+    stackCleanupLeaf.Operands[2] = { Constant = argumentCount }
+    table.insert(genLeaves,stackCleanupLeaf)
+  end
+
+  -- Create correct leaf tree
+  for i=2,#genLeaves do
+    genLeaves[i].PreviousLeaf = genLeaves[i-1]
+  end
+
+  -- Return EAX as the return value
+  return { Register = 1, ForceTemporary = true, PreviousLeaf = genLeaves[#genLeaves] }
+end
+
+
+
+-- generate code for array access
+function HCOMP:Expression_ArrayAccess(label) local TOKEN = self.TOKEN
+  local operationLeaf
+  local arrayOffsetLeaf = self:Expression()
+  self:ExpectToken(TOKEN.RSUBSCR)
+
+  -- Create leaf for calculating address
+  local addressLeaf = self:NewLeaf()
+
+  if label.Array then -- Parse array access treating label as pointer to array
+    if label.Type == "Stack" then
+      if arrayOffsetLeaf.Constant then
+        addressLeaf = { Constant = label.StackOffset+arrayOffsetLeaf.Constant }
+        operationLeaf = { Stack = label.StackOffset+arrayOffsetLeaf.Constant }
+      else
+        addressLeaf.Opcode = "add"
+        addressLeaf.Operands[1] = { Constant = label.StackOffset }
+        addressLeaf.Operands[2] = arrayOffsetLeaf
+        operationLeaf = { Stack = addressLeaf }
+      end
+    else
+      addressLeaf.Opcode = "add"
+      addressLeaf.Operands[1] = arrayOffsetLeaf
+      addressLeaf.Operands[2] = { PointerToLabel = label }
+      operationLeaf = { MemoryPointer = addressLeaf }
+    end
+  else -- Parse array access treating variable as pointer
+    if label.Type == "Stack" then
+      addressLeaf.Opcode = "add"
+      addressLeaf.Operands[1] = { Stack = label.StackOffset }
+      addressLeaf.Operands[2] = arrayOffsetLeaf
+      operationLeaf = { MemoryPointer = addressLeaf }
+    elseif label.Type == "Variable" then
+      addressLeaf.Opcode = "add"
+      addressLeaf.Operands[1] = arrayOffsetLeaf
+      addressLeaf.Operands[2] = { Memory = label }
+      operationLeaf = { MemoryPointer = addressLeaf }
+    elseif label.Type == "Pointer" then
+      addressLeaf.Opcode = "add"
+      addressLeaf.Operands[1] = arrayOffsetLeaf
+      addressLeaf.Operands[2] = { Constant = {{ Type = TOKEN.IDENT, Data = label.Name, Position = self:CurrentSourcePosition() }} }
+      operationLeaf = { MemoryPointer = addressLeaf }
+    elseif label.Type == "Register" then
+      addressLeaf.Opcode = "add"
+      addressLeaf.Operands[1] = arrayOffsetLeaf
+      addressLeaf.Operands[2] = { Register = label.Value }
+      operationLeaf = { MemoryPointer = addressLeaf }
+    else
+      addressLeaf.Opcode = "add"
+      addressLeaf.Operands[1] = arrayOffsetLeaf
+      addressLeaf.Operands[2] = { UnknownOperationByLabel = label }
+      operationLeaf = { MemoryPointer = addressLeaf }
+    end
+  end
+
+  if self:MatchToken(TOKEN.INC) then -- reg++
+    operationLeaf = self:Expression_ExplictIncDec("inc",operationLeaf)
+  elseif self:MatchToken(TOKEN.DEC) then -- reg--
+    operationLeaf = self:Expression_ExplictIncDec("dec",operationLeaf)
+  end
+
+  return operationLeaf,addressLeaf
+end
+
+
+
 -- level3: (<level0>) or <variable>
 function HCOMP:Expression_Level3() local TOKEN = self.TOKEN
   local negateLeaf,operationLeaf
@@ -78,40 +236,53 @@ function HCOMP:Expression_Level3() local TOKEN = self.TOKEN
   if self:MatchToken(TOKEN.AND) then -- Parse retrieve pointer operation (&var)
     if self:MatchToken(TOKEN.IDENT) then
       local label = self:GetLabel(self.TokenData)
-      if label.Type == "Stack" then
-        if self:MatchToken(TOKEN.LSUBSCR) then -- Pointer to element of an array on stack
-          local arrayOffsetLeaf = self:Expression()
-          self:ExpectToken(TOKEN.RSUBSCR)
 
-          -- Create leaf for calculating address
-          local addressLeaf
-          if arrayOffsetLeaf.Constant then
-            addressLeaf = { Constant = label.StackOffset+arrayOffsetLeaf.Constant }
-          else
-            addressLeaf = self:NewLeaf()
-            addressLeaf.Opcode = "add"
-            addressLeaf.Operands[1] = { Constant = label.StackOffset }
-            addressLeaf.Operands[2] = arrayOffsetLeaf
-          end
-
-          -- Create leaf that returns pointer to stack
+      if self:MatchToken(TOKEN.LSUBSCR) then -- Parse array access
+        local _,addressLeaf = self:Expression_ArrayAccess(label)
+        if label.Type == "Stack" then
           operationLeaf = self:NewLeaf()
           operationLeaf.Opcode = "add"
           operationLeaf.Operands[1] = { Register = 7, Segment = 2 } -- EBP:SS
           operationLeaf.Operands[2] = addressLeaf
-        else -- Pointer to a stack variable
-          -- FIXME: check if var is an array
-
-          -- Create leaf that returns pointer to stack
-          operationLeaf = self:NewLeaf()
-          operationLeaf.Opcode = "add"
-          operationLeaf.Operands[1] = { Register = 7, Segment = 2 } -- EBP:SS
-          operationLeaf.Operands[2] = { Constant = label.StackOffset }
+        else
+          operationLeaf = addressLeaf
         end
       else
-        -- All other pointers must be resolved by constant expression parser
-        -- If they are not, it's a bug
-        self:Error("Internal error 085")
+        if label.Type == "Stack" then
+          if self:MatchToken(TOKEN.LSUBSCR) then -- Pointer to element of an array on stack
+            local arrayOffsetLeaf = self:Expression()
+            self:ExpectToken(TOKEN.RSUBSCR)
+
+            -- Create leaf for calculating address
+            local addressLeaf
+            if arrayOffsetLeaf.Constant then
+              addressLeaf = { Constant = label.StackOffset+arrayOffsetLeaf.Constant }
+            else
+              addressLeaf = self:NewLeaf()
+              addressLeaf.Opcode = "add"
+              addressLeaf.Operands[1] = { Constant = label.StackOffset }
+              addressLeaf.Operands[2] = arrayOffsetLeaf
+            end
+
+            -- Create leaf that returns pointer to stack
+            operationLeaf = self:NewLeaf()
+            operationLeaf.Opcode = "add"
+            operationLeaf.Operands[1] = { Register = 7, Segment = 2 } -- EBP:SS
+            operationLeaf.Operands[2] = addressLeaf
+          else -- Pointer to a stack variable
+            -- FIXME: check if var is an array
+
+            -- Create leaf that returns pointer to stack
+            operationLeaf = self:NewLeaf()
+            operationLeaf.Opcode = "add"
+            operationLeaf.Operands[1] = { Register = 7, Segment = 2 } -- EBP:SS
+            operationLeaf.Operands[2] = { Constant = label.StackOffset }
+          end
+        else
+          -- All other pointers must be resolved by constant expression parser
+          -- If they are not, it's a bug
+          self:Error("Internal error 085")
+        end
       end
     else
       self:Error("Identifier expected")
@@ -155,26 +326,30 @@ function HCOMP:Expression_Level3() local TOKEN = self.TOKEN
         -- Generate leaf
         local addressLeaf = self:NewLeaf()
         if structLabel.Type == "Stack" then
-          operationLeaf = self:NewLeaf()
-          operationLeaf.Opcode = "add"
-          operationLeaf.Operands[1] = { Register = 7, Segment = 2 } -- EBP:SS
-          operationLeaf.Operands[2] = { Constant = structLabel.StackOffset+structData[memberName].Offset }
-
-          -- FIXME: does not work
+          if structLabel.PointerToStruct then
+            addressLeaf.Opcode = "add"
+            addressLeaf.Operands[1] = { Stack = structLabel.StackOffset }
+            addressLeaf.Operands[2] = { Constant = structData[memberName].Offset }
+            operationLeaf = { MemoryPointer = addressLeaf }
+          else
+            operationLeaf = { Stack = structLabel.StackOffset+structData[memberName].Offset }
+          end
         elseif structLabel.Type == "Variable" then
-          addressLeaf.Opcode = "add"
-          addressLeaf.Operands[1] = { Constant = structData[memberName].Offset }
-          addressLeaf.Operands[2] = { Constant =
-            { { Type = self.TOKEN.AND, Position = self:CurrentSourcePosition() },
-              { Type = self.TOKEN.IDENT, Data = structLabel.Name, Position = self:CurrentSourcePosition() },
+          if structLabel.PointerToStruct then
+            addressLeaf.Opcode = "add"
+            addressLeaf.Operands[1] = { Constant = structData[memberName].Offset }
+            addressLeaf.Operands[2] = { Memory = structLabel }
+            operationLeaf = { MemoryPointer = addressLeaf }
+          else
+            addressLeaf.Opcode = "add"
+            addressLeaf.Operands[1] = { Constant = structData[memberName].Offset }
+            addressLeaf.Operands[2] = { Constant =
+              { { Type = self.TOKEN.AND, Position = self:CurrentSourcePosition() },
+                { Type = self.TOKEN.IDENT, Data = structLabel.Name, Position = self:CurrentSourcePosition() },
+              }
             }
-          }
-          operationLeaf = { MemoryPointer = addressLeaf }
-        elseif structLabel.Type == "Pointer" then
-          addressLeaf.Opcode = "add"
-          addressLeaf.Operands[1] = { Constant = structData[memberName].Offset }
-          addressLeaf.Operands[2] = { Memory = structLabel }
-          operationLeaf = { MemoryPointer = addressLeaf }
+            operationLeaf = { MemoryPointer = addressLeaf }
+          end
         else
           self:Error("Internal error 164")
         end
@@ -192,147 +367,9 @@ function HCOMP:Expression_Level3() local TOKEN = self.TOKEN
     elseif self:MatchToken(TOKEN.DEC) then -- Parse var--
       operationLeaf = self:Expression_ExplictIncDec("dec",label)
     elseif self:MatchToken(TOKEN.LPAREN) then -- Parse a function call
-      -- Parse arguments and push them to stack
-      local argumentCount = 0
-      local argumentExpression = {}
-      while not (self:PeekToken() == TOKEN.RPAREN) do
-        -- Parse argument
-        argumentExpression[#argumentExpression+1] = self:Expression()
-
-        -- Go to next one
-        argumentCount = argumentCount + 1
-        self:MatchToken(TOKEN.COMMA)
-      end
-      self:ExpectToken(TOKEN.RPAREN)
-
-      -- Find the function definition
-      local functionEntry = self.Functions[label.Name]
-
-      -- All leaves that must be generated previously to knowing correct result
-      local genLeaves = {}
-
-      -- Push arguments to stack in reverse order
-      for argNo = #argumentExpression,1,-1 do
-        local pushLeaf = self:NewLeaf()
-        pushLeaf.Opcode = "push"
-        pushLeaf.Operands[1] = argumentExpression[argNo]
-        table.insert(genLeaves,pushLeaf)
-
-        if functionEntry then
-          if functionEntry.Parameters[argNo] then
-            pushLeaf.Comment = label.Name.." arg #"..argNo.." ("..
-              string.lower(self.TOKEN_TEXT["TYPE"][2][functionEntry.Parameters[argNo].Type])..
-              string.rep("*",functionEntry.Parameters[argNo].PtrLevel)..
-              " "..
-              functionEntry.Parameters[argNo].Name..")"
-          else
-            pushLeaf.Comment = label.Name.." arg #"..argNo.." (unknown)"
-          end
-        end
-      end
-
-      -- Call function
-      if functionEntry and functionEntry.InlineCode then
-        for i=1,#functionEntry.InlineCode do
---          self:AddLeafToTail(functionEntry.InlineCode[i])
-          if functionEntry.InlineCode[i].Opcode ~= "LABEL" then
-            table.insert(genLeaves,functionEntry.InlineCode[i])
-          end
-        end
-      else
-        -- Push argument count to stack
-        local argCountLeaf = self:NewLeaf()
-        argCountLeaf.Opcode = "mov"
-        argCountLeaf.ExplictAssign = true
-        argCountLeaf.Operands[1] = { Register = 3 } -- ECX is the argument count register
-        argCountLeaf.Operands[2] = { Constant = argumentCount }
-        table.insert(genLeaves,argCountLeaf)
-
-        local callLeaf = self:NewLeaf()
-        callLeaf.Opcode = "call"
-        callLeaf.Comment = label.Name.."(...)"
-        if label.Type == "Stack" then
-          callLeaf.Operands[1] = { Stack = label.StackOffset }
-        else --{ PointerToLabel = label }
-          callLeaf.Operands[1] = { UnknownOperationByLabel = label }
-        end
-        table.insert(genLeaves,callLeaf)
-      end
-
-      -- Stack cleanup
-      if argumentCount > 0 then
-        local stackCleanupLeaf = self:NewLeaf()
-        stackCleanupLeaf.Opcode = "add"
-        stackCleanupLeaf.ExplictAssign = true
-        stackCleanupLeaf.Operands[1] = { Register = 7 }
-        stackCleanupLeaf.Operands[2] = { Constant = argumentCount }
-        table.insert(genLeaves,stackCleanupLeaf)
-      end
-
-      -- Create correct leaf tree
-      for i=2,#genLeaves do
-        genLeaves[i].PreviousLeaf = genLeaves[i-1]
-      end
-
-      -- Return EAX as the return value
-      operationLeaf = { Register = 1, ForceTemporary = true, PreviousLeaf = genLeaves[#genLeaves] } -- EAX is the return value
+      operationLeaf = self:Expression_FunctionCall(label)
     elseif self:MatchToken(TOKEN.LSUBSCR) then -- Parse array access
-      local arrayOffsetLeaf = self:Expression()
-      self:ExpectToken(TOKEN.RSUBSCR)
-
-      -- Create leaf for calculating address
-      local addressLeaf = self:NewLeaf()
-
-      if label.Array then -- Parse array access treating label as pointer to array
-        if label.Type == "Stack" then
-          if arrayOffsetLeaf.Constant then
-            operationLeaf = { Stack = label.StackOffset+arrayOffsetLeaf.Constant }
-          else
-            addressLeaf.Opcode = "add"
-            addressLeaf.Operands[1] = { Constant = label.StackOffset }
-            addressLeaf.Operands[2] = arrayOffsetLeaf
-            operationLeaf = { Stack = addressLeaf }
-          end
-        else
-          addressLeaf.Opcode = "add"
-          addressLeaf.Operands[1] = arrayOffsetLeaf
-          addressLeaf.Operands[2] = { PointerToLabel = label }
-          operationLeaf = { MemoryPointer = addressLeaf }
-        end
-      else -- Parse array access treating variable as pointer
-        if label.Type == "Stack" then
-          addressLeaf.Opcode = "add"
-          addressLeaf.Operands[1] = { Stack = label.StackOffset }
-          addressLeaf.Operands[2] = arrayOffsetLeaf
-          operationLeaf = { MemoryPointer = addressLeaf }
-        elseif label.Type == "Variable" then
-          addressLeaf.Opcode = "add"
-          addressLeaf.Operands[1] = arrayOffsetLeaf
-          addressLeaf.Operands[2] = { Memory = label }
-          operationLeaf = { MemoryPointer = addressLeaf }
-        elseif label.Type == "Pointer" then
-          addressLeaf.Opcode = "add"
-          addressLeaf.Operands[1] = arrayOffsetLeaf
-          addressLeaf.Operands[2] = { Constant = {{ Type = TOKEN.IDENT, Data = label.Name, Position = self:CurrentSourcePosition() }} }
-          operationLeaf = { MemoryPointer = addressLeaf }
-        elseif label.Type == "Register" then
-          addressLeaf.Opcode = "add"
-          addressLeaf.Operands[1] = arrayOffsetLeaf
-          addressLeaf.Operands[2] = { Register = label.Value }
-          operationLeaf = { MemoryPointer = addressLeaf }
-        else
-          addressLeaf.Opcode = "add"
-          addressLeaf.Operands[1] = arrayOffsetLeaf
-          addressLeaf.Operands[2] = { UnknownOperationByLabel = label }
-          operationLeaf = { MemoryPointer = addressLeaf }
-        end
-      end
-
-      if self:MatchToken(TOKEN.INC) then -- reg++
-        operationLeaf = self:Expression_ExplictIncDec("inc",operationLeaf)
-      elseif self:MatchToken(TOKEN.DEC) then -- reg--
-        operationLeaf = self:Expression_ExplictIncDec("dec",operationLeaf)
-      end
+      operationLeaf = self:Expression_ArrayAccess(label)
     else -- Parse variable access
       if label.Type == "Variable" then -- Read from a variable
         -- Array variables are resolved as pointers at constant expression stage
@@ -578,6 +615,11 @@ function HCOMP:ConstantExpression_Level3()
   if self:MatchToken(self.TOKEN.AND) then -- &pointer
     if self:MatchToken(self.TOKEN.IDENT) then
       local label = self:GetLabel(self.TokenData)
+
+      -- Check if it's a pointer of array member (always dynamic)
+      if label.Array and self:MatchToken(self.TOKEN.LSUBSCR) then return false end
+
+      -- Check if it's any of the known types
       if label.Type == "Pointer" then
         self:Error("Ident "..self.TokenData.." is not a variable")
       elseif label.Type == "Variable" then

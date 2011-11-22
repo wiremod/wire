@@ -435,11 +435,18 @@ end
 --------------------------------------------------------------------------------
 -- Compile a variable/function. Returns corresponding labels
 function HCOMP:DefineVariable(isFunctionParam,isForwardDecl,isRegisterDecl,isStructMember) local TOKEN = self.TOKEN
-  -- Get variable type
-  self:ExpectToken(TOKEN.TYPE)
-  local varType = self.TokenData
-  local varSize = 1
-  if varType == 5 then varSize = 4 end
+  local varType,varSize,isStruct
+  if self:MatchToken(TOKEN.IDENT) then -- Define structure
+    local structData = self.Structs[structName]
+    varType = self.TokenData
+    varSize = 0 -- Depends on pointer level
+    isStruct = true
+  else -- Define variable
+    self:ExpectToken(TOKEN.TYPE)
+    varType = self.TokenData
+    varSize = 1
+    if varType == 5 then varSize = 4 end
+  end
 
   -- Variable labels list
   local labelsList = {}
@@ -449,6 +456,14 @@ function HCOMP:DefineVariable(isFunctionParam,isForwardDecl,isRegisterDecl,isStr
     -- Get pointer level (0, *, **, ***, etc)
     local pointerLevel = 0
     while self:MatchToken(TOKEN.TIMES) do pointerLevel = pointerLevel + 1 end
+
+    -- Fix structure size
+    if isStruct then
+      if pointerLevel > 0
+      then varSize = 1
+      else varSize = self.StructSize[varType]
+      end
+    end
 
     -- Get variable name
     self:ExpectToken(TOKEN.IDENT)
@@ -474,6 +489,7 @@ function HCOMP:DefineVariable(isFunctionParam,isForwardDecl,isRegisterDecl,isStr
       end
     end
 
+    -- Calculate size of array
     local bytesArraySize
     if arraySize then
       for k,v in pairs(arraySize) do
@@ -481,6 +497,7 @@ function HCOMP:DefineVariable(isFunctionParam,isForwardDecl,isRegisterDecl,isStr
       end
     end
 
+    -- Add to global list
     table.insert(labelsList,{ Name = varName, Type = varType, PtrLevel = pointerLevel, Size = bytesArraySize or varSize })
 
     if not isStructMember then -- Do not define struct members
@@ -530,6 +547,7 @@ function HCOMP:DefineVariable(isFunctionParam,isForwardDecl,isRegisterDecl,isStr
           self:RedefineLabel(label.Name,newName)
         end
 
+        -- Generate comment if required
         if self.Settings.GenerateComments then label.Leaf.Comment = varName.."("..(label.Leaf.Comment or "")..")" end
         self:ExpectToken(TOKEN.LBRACKET)
         return true,functionVariables,varName,varType,pointerLevel
@@ -588,11 +606,14 @@ function HCOMP:DefineVariable(isFunctionParam,isForwardDecl,isRegisterDecl,isStr
           if isRegisterDecl then
             label.Type = "Register"
             label.Value = self:DeclareRegisterVariable()
+            if isStruct then self:Error("Cannot hold structure variables in registers - yet") end
           else
             label.Type = "Stack"
+            if isStruct and (pointerLevel > 0) then label.PointerToStruct = true end
           end
           label.Defined = true
           if varType == 5 then label.ForceType = "vector" end
+          if isStruct then label.Struct = varType end
 
           -- If label has associated array size, mark it as an array
           if bytesArraySize then label.Array = bytesArraySize end
@@ -647,14 +668,17 @@ function HCOMP:DefineVariable(isFunctionParam,isForwardDecl,isRegisterDecl,isStr
             label.Type = "Register"
             label.Value = self:DeclareRegisterVariable()
           else
-            label.Type = "Variable" --FIXME: "Pointer" for pointer vars
+            label.Type = "Variable"
+            if isStruct and (pointerLevel > 0) then label.PointerToStruct = true end
           end
           label.Defined = true
           if varType == 5 then label.ForceType = "vector" end
+          if isStruct then label.Struct = varType end
 
           -- If label has associated array size, mark it as an array
           if bytesArraySize then label.Array = bytesArraySize end
 
+          -- Create initialization leaf
           label.Leaf = self:NewLeaf()
           label.Leaf.ParentLabel = self.CurrentParentLabel or label
           label.Leaf.Opcode = "DATA"
@@ -678,106 +702,6 @@ function HCOMP:DefineVariable(isFunctionParam,isForwardDecl,isRegisterDecl,isStr
       if self:MatchToken(TOKEN.TYPE) then --int x, char y, float z
         varType = self.TokenData
       end
-    end
-  end
-end
-
-
---------------------------------------------------------------------------------
--- Compile a structure defintion
-function HCOMP:DefineStruct(isFunctionParam) local TOKEN = self.TOKEN
-  -- Get structure name, data
-  self:ExpectToken(TOKEN.IDENT)
-  local structName = self.TokenData
-  local structData = self.Structs[structName]
-  local structSize = self.StructSize[structName]
-
-  -- Parse all structs to define
-  while true do
-    -- Get pointer level (0, *, **, ***, etc)
-    local pointerLevel = 0
-    while self:MatchToken(TOKEN.TIMES) do pointerLevel = pointerLevel + 1 end
-
-    -- Get variable name
-    self:ExpectToken(TOKEN.IDENT)
-    local varName = self.TokenData
-
-    -- Try to read information about array size, stuff
-    local arraySize
-    while self:MatchToken(TOKEN.LSUBSCR) do -- varname[<arr size>]
-      if self:MatchToken(TOKEN.RSUBSCR) then -- varname[]
-        if isFunctionParam then -- just a pointer to an array
-          pointerLevel = 1
-        end
-      else
-        local c,v = self:ConstantExpression(true) -- need precise value here, no ptrs allowed
-        if c then
-          if not arraySize then arraySize = {} end
-          arraySize[#arraySize+1] = v
-        else
-          self:Error("Array size must be constant")
-        end
-
-        self:ExpectToken(TOKEN.RSUBSCR)
-      end
-    end
-
-    local bytesArraySize
-    if arraySize then
-      for k,v in pairs(arraySize) do
-        bytesArraySize = (bytesArraySize or 0) + v*structSize
-      end
-    end
-
-    -- Define a variable
-    if self.LocalLabels then -- check if var is local
-      local label = self:DefineLabel(varName,true)
-
-      label.Type = "Stack"
-      label.Defined = true
-      label.Struct = structName
-
-      -- If label has associated array size, mark it as an array
-      if bytesArraySize then label.Array = bytesArraySize end
-
-      if not isFunctionParam then -- FIXME: code all wrong here
-        -- Add a new local variable (stack pointer increments)
-        self.StackPointer = self.StackPointer - (bytesArraySize or structSize)
-        label.StackOffset = self.StackPointer
-      else
-        -- Add a new function variable
-        self.ParameterPointer = self.ParameterPointer + (bytesArraySize or structSize)
-        label.StackOffset = self.ParameterPointer
-      end
-    else
-      -- Define a new global variable
-      local label = self:DefineLabel(varName)
-
-      if pointerLevel == 0
-      then label.Type = "Variable"
-      else label.Type = "Pointer"
-      end
-      label.Struct = structName
-      label.Defined = true
-
-      -- If label has associated array size, mark it as an array
-      if bytesArraySize then label.Array = bytesArraySize end
-
-      label.Leaf = self:NewLeaf()
-      label.Leaf.ParentLabel = self.CurrentParentLabel or label
-      label.Leaf.Opcode = "DATA"
-      if initializerValues then
-        label.Leaf.Data = initializerValues
-        label.Leaf.ZeroPadding = (bytesArraySize or structSize) - #initializerValues
-      else
-        label.Leaf.ZeroPadding = bytesArraySize or structSize
-      end
-      label.Leaf.Label = label
-      self:AddLeafToTail(label.Leaf)
-    end
-
-    if not self:MatchToken(TOKEN.COMMA) then
-      return true,labelsList
     end
   end
 end
@@ -838,7 +762,7 @@ function HCOMP:Statement() local TOKEN = self.TOKEN
   -- Peek structure definition
   local nextToken,structName = self:PeekToken(0,true)
   if (nextToken == TOKEN.IDENT) and (self.Structs[structName]) then
-    self:DefineStruct(structName)
+    self:DefineVariable()
     return true
   end
 
