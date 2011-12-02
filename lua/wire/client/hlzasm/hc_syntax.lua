@@ -698,9 +698,19 @@ function HCOMP:DefineVariable(isFunctionParam,isForwardDecl,isRegisterDecl,isStr
 
     if not self:MatchToken(TOKEN.COMMA) then
       return true,labelsList
-    else
-      if self:MatchToken(TOKEN.TYPE) then --int x, char y, float z
+    else --int x, char y, float z
+      local nextToken,structName = self:PeekToken(0,true)
+      if (nextToken == TOKEN.IDENT) and (self.Structs[structName]) then
+        self:MatchToken(TOKEN.IDENT)
+        local structData = self.Structs[structName]
         varType = self.TokenData
+        varSize = 0
+        isStruct = true
+      elseif self:MatchToken(TOKEN.TYPE) then
+        varType = self.TokenData
+        varSize = 1
+        if varType == 5 then varSize = 4 end
+        isStruct = false
       end
     end
   end
