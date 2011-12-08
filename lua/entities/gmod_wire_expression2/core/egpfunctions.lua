@@ -619,6 +619,29 @@ e2function void wirelink:egpParent( number index, number parentindex )
 	if (bool) then EGP:DoAction( this, self, "SendObject", v ) Update(self,this) end
 end
 
+-- Entity parenting (only for 3Dtracker - does nothing for any other object)
+e2function void wirelink:egpParent( number index, entity parent )
+	if not parent or not parent:IsValid() then return end
+	if (!EGP:IsAllowed( self, this )) then return end
+
+	local bool, k, v = EGP:HasObject( this, index )
+	if bool and v.Is3DTracker then
+		if v.parententity == parent then return end -- Already parented to that
+		v.parententity = parent
+
+		EGP:DoAction( this, self, "SendObject", v )
+		Update(self,this)
+	end
+end
+
+-- Returns the entity a tracker is parented to
+e2function entity wirelink:egpTrackerParent( number index )
+	local bool, k, v = EGP:HasObject( this, index )
+	if bool and v.Is3DTracker then
+		return (v.parententity and v.parententity:IsValid()) and v.parententity or nil
+	end
+end
+
 e2function void wirelink:egpParentToCursor( number index )
 	if (!EGP:IsAllowed( self, this )) then return end
 	local bool, v = EGP:SetParent( this, index, -1 )
