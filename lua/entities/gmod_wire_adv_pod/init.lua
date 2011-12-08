@@ -48,11 +48,12 @@ function ENT:Initialize()
 		"Entity [ENTITY]",
 	}
 
-	self.Inputs = WireLib.CreateInputs( self, { "Lock", "Terminate", "Strip weapons", "Eject", "Disable", "Crosshairs", "Brake", "Allow Buttons", "Relative", "Damage Health", "Damage Armor", "Hide Player"} )
+	self.Inputs = WireLib.CreateInputs( self, { "Lock", "Terminate", "Strip weapons", "Eject", "Disable", "Crosshairs", "Brake", "Allow Buttons", "Relative", "Damage Health", "Damage Armor", "Hide Player", "Hide HUD"} )
 	self.Outputs = WireLib.CreateOutputs( self, outputs )
 
 	self:SetLocked( false )
 	self:SetHidePlayer( false )
+	self:SetHideHUD( false )
 	self.HidePlayerVal = false
 	self.Crosshairs = false
 	self.Disable = false
@@ -132,6 +133,18 @@ function ENT:SetPly( ply )
 	self.Ply = ply
 	return true
 end
+
+function ENT:SetHideHUD( bool )
+	self.HideHUD = bool
+
+	if self:HasPly() and self:HasPod() then -- If we have a player, we SHOULD always have a pod as well, but just in case.
+		umsg.Start( "wire adv pod hud", self:GetPly() )
+			umsg.Entity( self:GetPod() )
+			umsg.Bool( self.HideHUD )
+		umsg.End()
+	end
+end
+function ENT:GetHideHUD() return self.HideHUD end
 
 -- Clientside binds
 concommand.Add("wire_adv_pod_bind", function( ply,cmd,args )
@@ -245,6 +258,8 @@ function ENT:TriggerInput( name, value )
 	elseif (name == "Hide Player") then
 		self:SetHidePlayer( value != 0 )
 		self.HidePlayerVal = (value != 0)
+	elseif (name == "Hide HUD") then
+		self:SetHideHUD( value ~= 0 )
 	end
 end
 
@@ -347,6 +362,13 @@ function ENT:PlayerEntered( ply, RC )
 
 	if (self.Crosshairs) then
 		ply:CrosshairEnable()
+	end
+
+	if self.HideHUD and self:HasPod() then
+		umsg.Start( "wire adv pod hud", ply )
+			umsg.Entity( self:GetPod() )
+			umsg.Bool( true )
+		umsg.End()
 	end
 
 	if (self.HidePlayerVal) then

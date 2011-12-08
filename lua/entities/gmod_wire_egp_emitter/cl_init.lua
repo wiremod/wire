@@ -9,8 +9,7 @@ end
 function ENT:EGP_Update()
 	self.UpdateConstantly = nil
 	for k,object in pairs(self.RenderTable) do
-		if object.parent == -1 then self.UpdateConstantly = true end -- Check if an object is parented to the cursor
-		if object.Is3DTracker then self.UpdateConstantly = true end -- Check for 3DTracker
+		if object.parent == -1 or object.Is3DTracker then self.UpdateConstantly = true end -- Check if an object is parented to the cursor (or for 3DTrackers)
 
 		if object.parent and object.parent ~= 0 then
 			if not object.IsParented then EGP:SetParent(self, object.index, object.parentindex) end
