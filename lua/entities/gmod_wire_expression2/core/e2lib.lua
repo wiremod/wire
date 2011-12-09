@@ -470,36 +470,64 @@ do
 	end
 
 	concommand.Add("wire_expression2_extension_enable", function(ply, cmd, args)
-		if validEntity(ply) and ply:IsPlayer() and not ply:IsSuperAdmin() and not SinglePlayer() then return end
+		if ply:IsValid() then
+			if not ply:IsSuperAdmin() and not SinglePlayer() then return end
+		end
 
 		if extensions.GetStatus( args[1] ) then
-			ply:PrintMessage( 2, "Extension '" .. args[1] .. "' is already enabled. Did you remember to reload Expression 2 using the console command 'wire_expression2_reload'?" )
+			if ply:IsValid() then
+				ply:PrintMessage( 2, "Extension '" .. args[1] .. "' is already enabled. Did you remember to reload Expression 2 using the console command 'wire_expression2_reload'?" )
+			else
+				print( "Extension '" .. args[1] .. "' is already enabled. Did you remember to reload Expression 2 using the console command 'wire_expression2_reload'?" )
+			end
 			return
 		end
 
 		extensions.SetStatus(args[1], true)
 
 		if extensions.GetStatus( args[1] ) then
-			ply:PrintMessage( 2, "Extension '" .. args[1] .. "' enabled. Now reload Expression 2 using the console command 'wire_expression2_reload'." )
+			if ply:IsValid() then
+				ply:PrintMessage( 2, "Extension '" .. args[1] .. "' enabled. Now reload Expression 2 using the console command 'wire_expression2_reload'." )
+			else
+				print( "Extension '" .. args[1] .. "' enabled. Now reload Expression 2 using the console command 'wire_expression2_reload'." )
+			end
 		else
-			ply:PrintMessage( 2, "Failed to enable extension '" .. args[1] .. "'." )
+			if ply:IsValid() then
+				ply:PrintMessage( 2, "Failed to enable extension '" .. args[1] .. "'." )
+			else
+				print( "Failed to enable extension '" .. args[1] .. "'." )
+			end
 		end
 	end)
 
 	concommand.Add("wire_expression2_extension_disable", function(ply, cmd, args)
-		if validEntity(ply) and ply:IsPlayer() and not ply:IsSuperAdmin() and not SinglePlayer() then return end
+		if ply:IsValid() then
+			if not ply:IsSuperAdmin() and not SinglePlayer() then return end
+		end
 
 		if not extensions.GetStatus( args[1] ) then
-			ply:PrintMessage( 2, "Extension '" .. args[1] .. "' is already disabled. Did you remember to reload Expression 2 using the console command 'wire_expression2_reload'?" )
+			if ply:IsValid() then
+				ply:PrintMessage( 2, "Extension '" .. args[1] .. "' is already disabled. Did you remember to reload Expression 2 using the console command 'wire_expression2_reload'?" )
+			else
+				print( "Extension '" .. args[1] .. "' is already disabled. Did you remember to reload Expression 2 using the console command 'wire_expression2_reload'?" )
+			end
 			return
 		end
 
 		extensions.SetStatus(args[1], false)
 
 		if extensions.GetStatus( args[1] ) then
-			ply:PrintMessage( 2, "Failed to disable extension '" .. args[1] .. "'." )
+			if ply:IsValid() then
+				ply:PrintMessage( 2, "Failed to disable extension '" .. args[1] .. "'." )
+			else
+				print( "Failed to disable extension '" .. args[1] .. "'." )
+			end
 		else
-			ply:PrintMessage( 2, "Extension '" .. args[1] .. "' disabled. Now reload Expression 2 using the console command 'wire_expression2_reload'." )
+			if ply:IsValid() then
+				ply:PrintMessage( 2, "Extension '" .. args[1] .. "' disabled. Now reload Expression 2 using the console command 'wire_expression2_reload'." )
+			else
+				print( "Extension '" .. args[1] .. "' disabled. Now reload Expression 2 using the console command 'wire_expression2_reload'." )
+			end
 		end
 	end)
 end
