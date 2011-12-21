@@ -1473,34 +1473,25 @@ function EDITOR:CreateFindWindow()
 	GoToEntry:SetSize(173,20)
 	GoToEntry:SetText("")
 	GoToEntry:SetNumeric( true )
-	GoToEntry.OnEnter = function(pnl)
-		local val = tonumber(pnl:GetValue())
-		if (val) then
-			val = math_Clamp(val,1,#self.Rows)
-			self.Start[1] = val
-			self.Caret[1] = val
-			self.Start[2] = #self.Rows[val]+1
-			self.Caret[2] = self.Start[2]
-		end
-		self.FindWindow:Close()
-	end
 
 	-- Goto Button
 	local Goto = vgui.Create( "DButton", gototab )
 	Goto:SetText("Go to Line")
 	Goto:SetPos(233,4)
 	Goto:SetSize(70,20)
-	Goto.DoClick = function(pnl)
+
+	-- Action
+	local function GoToAction(panel)
 		local val = tonumber(GoToEntry:GetValue())
 		if (val) then
-			val = math_Clamp(val,1,#self.Rows)
-			self.Start[1] = val
-			self.Caret[1] = val
-			self.Start[2] = #self.Rows[val]+1
-			self.Caret[2] = self.Start[2]
+			val = math_Clamp(val, 1, #self.Rows)
+			self:SetCaret({val, #self.Rows[val] + 1})
 		end
+		GoToEntry:SetText(tostring(val))
 		self.FindWindow:Close()
 	end
+	GoToEntry.OnEnter = GoToAction
+	Goto.DoClick = GoToAction
 
 	pnl.GoToLineTab = pnl.TabHolder:AddSheet( "Go to Line", gototab, "gui/silkicons/page_white_go", false, false )
 	pnl.GoToLineTab.Entry = GoToEntry
