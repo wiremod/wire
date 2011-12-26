@@ -59,10 +59,10 @@ function HCOMP:ParsePreprocessMacro(lineText,macroPosition)
       local crtFilename = "lib\\"..string.lower(pragmaCommand).."\\init.txt"
       local fileText = self:LoadFile(crtFilename)
       if fileText then
-        table.insert(self.SourceCode,{ crtFilename, fileText, 0 })
+        table.insert(self.Code, 1, { Text = fileText, Line = 1, Col = 1, File = crtFilename })
       else
         self:Error("Unable to include CRT library "..pragmaCommand,
-          self.SourceCode[#self.SourceCode][3],1,self.SourceCode[#self.SourceCode][1])
+          macroPosition.Line,macroPosition.Col,macroPosition.File)
       end
 
       self.Defines[string.upper(pragmaCommand)] = ""
