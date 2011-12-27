@@ -16,6 +16,7 @@ function ENT:Initialize()
 
   self.DataRate = 0
   self.DataBytes = 0
+  self.PerformRecursiveScan = 1
   self.ControlDataSize = 32
   self.ControlData = {}
 
@@ -53,6 +54,8 @@ function ENT:ReadCell(Address)
       return self.ControlDataSize
     elseif Address == 18 then
       return self.DataRate
+	elseif Address == 20 then
+	  return self.PerformRecursiveScan
     elseif Address >= 32 then
       return self.ControlData[Address-31] or 0
     end
@@ -83,29 +86,31 @@ function ENT:GetDeviceInfo(deviceEnt)
     if deviceEnt.MySocket.Inputs.Memory.Src then
       self:GetDeviceInfo(deviceEnt.MySocket.Inputs.Memory.Src)
     else
-      table.insert(self.ControlData,0)
+      table.insert(self.ControlData,14)
     end
     return
   elseif deviceEnt.MyPlug then
     if deviceEnt.MyPlug.Inputs.Memory.Src then
       self:GetDeviceInfo(deviceEnt.MyPlug.Inputs.Memory.Src)
     else
-      table.insert(self.ControlData,0)
+      table.insert(self.ControlData,13)
     end
     return
   end
 
   table.insert(self.ControlData,deviceType)
 
-  recursiveCounter = recursiveCounter + 1
-  if recursiveCounter < 256 then
-    if (deviceEnt:GetClass() == "gmod_wire_addressbus") or
-       (deviceEnt:GetClass() == "gmod_wire_extbus") then
-      for i = 1,8 do
-        if deviceEnt.Memory[i] then
-          self:GetDeviceInfo(deviceEnt.Memory[i])
-        else
-          table.insert(self.ControlData,0)
+  if self.PerformRecursiveScan >= 1 then
+    recursiveCounter = recursiveCounter + 1
+    if recursiveCounter < 256 then
+      if (deviceEnt:GetClass() == "gmod_wire_addressbus") or
+         (deviceEnt:GetClass() == "gmod_wire_extbus") then
+        for i = 1,8 do
+          if deviceEnt.Memory[i] then
+            self:GetDeviceInfo(deviceEnt.Memory[i])
+          else
+            table.insert(self.ControlData,0)
+          end
         end
       end
     end
@@ -119,6 +124,7 @@ function ENT:WriteCell(Address, Value)
     -- [17] Write to request device info
     -- [18] Data transfer rate
     -- [19] Override returned device type (0: no override)
+    -- [20] Perform recursive scan
     -- [32..] Device types
     if Address < 16 then
       if Address % 2 == 0 then
@@ -138,6 +144,8 @@ function ENT:WriteCell(Address, Value)
           table.insert(self.ControlData,0)
         end
       end
+    elseif Address == 20 then
+      self.PerformRecursiveScan = Value
     end
     return true
   else
