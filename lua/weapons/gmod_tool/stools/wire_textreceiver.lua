@@ -1,211 +1,133 @@
 
 TOOL.Category		= "Wire - I/O"
-TOOL.Name			= "TextReceiver"
+TOOL.Name			= "Text Receiver"
 TOOL.Command		= nil
 TOOL.ConfigName		= ""
 TOOL.Tab			= "Wire"
 
 if ( CLIENT ) then
-    language.Add( "Tool_wire_textreceiver_name", "TextReceiver Tool (Wire)" )
-    language.Add( "Tool_wire_textreceiver_desc", "Spawns a TextReceiver for use with the wire system." )
-    language.Add( "Tool_wire_textreceiver_0", "Primary: Create/Update TextReceiver	Secondary: Copy Settings" )
-    language.Add( "WiretextreceiverTool_global", "Global" )
-	language.Add("Tool_wire_textreceiver_text1", "Text 1:")
-	language.Add("Tool_wire_textreceiver_text2", "Text 2:")
-	language.Add("Tool_wire_textreceiver_text3", "Text 3:")
-	language.Add("Tool_wire_textreceiver_text4", "Text 4:")
-	language.Add("Tool_wire_textreceiver_text5", "Text 5:")
-	language.Add("Tool_wire_textreceiver_text6", "Text 6:")
-	language.Add("Tool_wire_textreceiver_text7", "Text 7:")
-	language.Add("Tool_wire_textreceiver_text8", "Text 8:")
-	language.Add("Tool_wire_textreceiver_text9", "Text 9:")
-	language.Add("Tool_wire_textreceiver_text10", "Text 10:")
-	language.Add("Tool_wire_textreceiver_text11", "Text 12:")
-	language.Add("Tool_wire_textreceiver_text12", "Text 12:")
-	language.Add("WiretextreceiverTool_trigger","Trigger:")
-	language.Add("Tool_wire_textreceiver_parsetext","Parser Text:")
-	language.Add("WiretextreceiverTool_utrigger","Default:")
-	language.Add("WiretextreceiverTool_hold","Trigger Hold Length:")
-	language.Add("WiretextreceiverTool_outputtext", "Display Output Text")
-	language.Add("WiretextreceiverTool_SELF", "Include Self")
-	language.Add("WiretextreceiverTool_toggle", "Toggle")
-	language.Add("WiretextreceiverTool_sensitivity", "Sensitivity:")
-	language.Add("exact","Exact")
-	language.Add("case_insensitive","Case Insensitive")
-	language.Add("anywhere_exact","Anywhere Exact")
-	language.Add("anywhere_case_insensitive","Anywhere Case Insensitive")
-	language.Add( "sboxlimit_wire_textreceivers", "You've hit TextReceiver limit!" )
-	language.Add( "Undone_TextReceiver", "Undone Wire TextReceiver" )
+	language.Add( "Tool_wire_textreceiver_name", "Text Receiver Tool (Wire)" )
+	language.Add( "Tool_wire_textreceiver_desc", "Spawns a text receiver for use with the wire system." )
+	language.Add( "Tool_wire_textreceiver_0", "Primary: Create/Update text receiver, Secondary: Copy Settings" )
+
+	language.Add( "undone_textreceiver", "Undone Wire Text Receiver" )
+
+	language.Add( "Tool_wire_textreceiver_case_insensitive", "Case insensitive" )
+	language.Add( "Tool_wire_textreceiver_use_lua_patterns", "Use Lua Patterns" )
+	language.Add( "Tool_wire_textreceiver_num_matches", "Number of matches to use" )
+	for i=1,24 do
+		language.Add( "Tool_wire_textreceiver_match" .. i, "Match " .. i .. ":" )
+	end
 end
 
 if (SERVER) then
 	CreateConVar('sbox_maxwire_textreceivers', 10)
 end
 
-TOOL.ClientConVar[ "global" ] = "0"
-TOOL.ClientConVar[ "hold" ] = ".1"
-TOOL.ClientConVar[ "trigger" ] = "1"
-TOOL.ClientConVar[ "secure" ] = "0"
-for i = 1, 12 do
-	TOOL.ClientConVar["text"..i] = ""
+TOOL.ClientConVar["case_insensitive"] = 1
+TOOL.ClientConVar["use_lua_patterns"] = 0
+TOOL.ClientConVar["weld"] = 1
+
+TOOL.ClientConVar["num_matches"] = 1
+TOOL.ClientConVar["match1"] = "Hello World"
+for i=2,24 do
+	TOOL.ClientConVar["match"..i] = ""
 end
-TOOL.ClientConVar[ "outputtext" ] = "1"
-TOOL.ClientConVar["SELF"] = "1"
-TOOL.ClientConVar["sensitivity"] = "1"
-TOOL.ClientConVar["toggle"] = "0"
-TOOL.ClientConVar["utrigger"] = "0"
-TOOL.ClientConVar["parsetext"] = ""
-TOOL.ClientConVar["playerout"] = "0"
 
 TOOL.ClientConVar[ "model" ] = "models/jaanus/wiretool/wiretool_range.mdl"
 
-local MaxTextLength = 500
 
-cleanup.Register( "wire_textreceivers" )
 
 function TOOL:LeftClick( trace )
-	if trace.Entity && trace.Entity:IsPlayer() then return false end
-
-	// If there's no physics object then we can't constraint it!
-	if ( SERVER && !util.IsValidPhysicsObject( trace.Entity, trace.PhysicsBone ) ) then return false end
-
-	if (CLIENT) then return true end
+	if trace.Entity and trace.Entity:IsPlayer() then return false end
+	if CLIENT then return true end
+	if not util.IsValidPhysicsObject( trace.Entity, trace.PhysicsBone ) then return false end
 
 	local ply = self:GetOwner()
+	local UseLuaPatterns = (self:GetClientNumber("use_lua_patterns") ~= 0)
 
-	local global	= (self:GetClientNumber("global") ~= 0)
-	local hold = self:GetClientNumber("hold")
-	local trigger = self:GetClientNumber("trigger")
-	local lines = {}
-	for i = 1,12 do
-		if (self:GetClientInfo("text"..i) != "") then
-			table.insert(lines,self:GetClientInfo("text"..i))
-		end
+	local Matches = {}
+	for i=1,math.Clamp(self:GetClientNumber("num_matches"),0,24) do
+		local match = self:GetClientInfo("match"..i)
+		Matches[i] = match
 	end
-	local outputtext = (self:GetClientNumber("outputtext") ~= 0)
-	local SELF = (self:GetClientNumber("SELF") ~= 0)
-	local sensitivity = self:GetClientNumber("sensitivity")
-	local toggle = (self:GetClientNumber("toggle") ~= 0)
-	local secure = (self:GetClientNumber("secure") ~= 0)
-	local utrigger = self:GetClientNumber("utrigger")
-	local parsetext = self:GetClientInfo("parsetext")
-	local playerout = (self:GetClientNumber("playerout") ~= 0)
 
-	if (parsetext == "") then parsetext = '""' end
+	local CaseInsensitive = (self:GetClientNumber("case_insensitive") ~= 0)
 
-	if (string.len(parsetext) == 1) then parsetext = parsetext .. parsetext end
+	if trace.Entity and trace.Entity:IsValid() and trace.Entity:GetClass() == "gmod_wire_textreceiver" then
+		trace.Entity:Setup( UseLuaPatterns, Matches, CaseInsensitive )
 
-	if (string.len(parsetext) > 2) then WireLib.AddNotify(self:GetOwner(), "Parse text cannot be more than 2 characters!", NOTIFY_GENERIC, 7) return false end
+		ply:ChatPrint( "Text receiver updated." )
 
-	if (table.Count(lines)==0) then return false end
-
-	if (sensitivity <1 || sensitivity > 4) then WireLib.AddNotify(self:GetOwner(), "Invalid Sensitivity!", NOTIFY_GENERIC, 7) return false end
-
-	if ( trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_textreceiver" && trace.Entity.pl == ply ) then
-
-		trace.Entity:Setup( lines,global,outputtext,hold,trigger,SELF,sensitivity,toggle,utrigger,parsetext,secure,playerout)
 		return true
 	end
 
-	if ( !self:GetSWEP():CheckLimit( "wire_textreceivers" ) ) then return false end
+	local ent = MakeWireTextReceiver( ply, trace.HitPos, trace.HitNormal:Angle() + Angle(90,0,0), self:GetModel(), UseLuaPatterns, Matches, CaseInsensitive )
+	if not ent or not ent:IsValid() then return false end
 
-	local Ang = trace.HitNormal:Angle()
-	Ang.pitch = Ang.pitch + 90
+	ent:SetPos( trace.HitPos - trace.HitNormal * ent:OBBMins().z )
 
-	text_receiver = MakeWireReceiver( ply, trace.HitPos, Ang, self:GetModel(), lines, global, outputtext, hold, trigger, SELF, sensitivity, toggle, utrigger, parsetext, secure, playerout)
 
-	local min = text_receiver:OBBMins()
-	text_receiver:SetPos( trace.HitPos - trace.HitNormal * min.z )
+	undo.Create( "TextReceiver" )
+		undo.AddEntity( ent )
 
-	local const = WireLib.Weld(text_receiver, trace.Entity, trace.PhysicsBone, true)
+		if self:GetClientNumber( "weld" ) ~= 0 then
+			local const = WireLib.Weld( ent, trace.Entity, trace.PhysicsBone, true )
+			undo.AddEntity( const )
+		end
 
-	undo.Create("TextReceiver")
-		undo.AddEntity( text_receiver )
-		undo.AddEntity( const )
 		undo.SetPlayer( ply )
 	undo.Finish()
 
 	ply:AddCleanup( "text_receivers", text_receiver )
 	ply:AddCleanup( "text_receivers", const )
-	ply:AddCleanup( "text_receivers", nocollide )
 
 	return true
 end
 
-local function BtoI(bool)
-	if (bool == nil) then return 0 end
-	if (bool == true) then return 1 end
-	if (bool == false) then return 0 end
+if SERVER then
+	function MakeWireTextReceiver( ply, Pos, Ang, model, UseLuaPatterns, Matches, CaseInsensitive )
+		if not ply:CheckLimit( "wire_textreceivers" ) then return false end
+
+		local ent = ents.Create( "gmod_wire_textreceiver" )
+		if not ent or not ent:IsValid() then return false end
+
+		ent:SetAngles( Ang )
+		ent:SetPos( Pos )
+		ent:SetModel( model or "models/jaanus/wiretool/wiretool_range.mdl" )
+		ent:Spawn()
+		ent:Activate()
+
+		ent:Setup( UseLuaPatterns, Matches, CaseInsensitive )
+
+		ply:AddCount( "wire_textreceivers", ent )
+
+		return ent
+	end
+
+	duplicator.RegisterEntityClass("gmod_wire_textreceiver", MakeWireTextReceiver, "Pos", "Ang", "Model", "UseLuaPatterns", "Matches", "CaseInsensitive" )
 end
 
 function TOOL:RightClick( trace )
-	if (!trace.HitPos) then return false end
-	if (trace.Entity:IsPlayer()) then return false end
-	if ( CLIENT ) then return true end
+	if trace.Entity and trace.Entity:IsValid() and trace.Entity:GetClass() == "gmod_wire_textreceiver" then
+		if CLIENT then return true end
 
-	local ply = self:GetOwner()
+		local UseLuaPatterns = trace.Entity.UseLuaPatterns
+		local Matches = trace.Entity.Matches
+		local CaseInsensitive = trace.Entity.CaseInsensitive
 
-	if ( trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_textreceiver" ) then
-		local Receiver = trace.Entity
-		if (Receiver.CLines == nil) then WireLib.AddNotify(self:GetOwner(), "No Lines", NOTIFY_GENERIC, 7) return true end
-		for i = 1,12 do
-			self:GetOwner():ConCommand("wire_textreceiver_text"..i.." "..(Receiver.CLines[i] or '""'))
+		local ply = self:GetOwner()
+		ply:ConCommand( "wire_textreceiver_use_lua_patterns " .. (UseLuaPatterns and 1 or 0))
+		ply:ConCommand( "wire_textreceiver_case_insensitive " .. (CaseInsensitive and 1 or 0))
+		for i=1,24 do
+			local match = Matches[i]
+			ply:ConCommand( "wire_textreceiver_match" .. i .. " " .. match )
 		end
-		self:GetOwner():ConCommand("wire_textreceiver_sensitivity "..(Receiver.Sensitivity or 1))
-		self:GetOwner():ConCommand("wire_textreceiver_SELF "..BtoI(Receiver.Iself))
-		self:GetOwner():ConCommand("wire_textreceiver_toggle "..BtoI(Receiver.Toggle))
-		self:GetOwner():ConCommand("wire_textreceiver_outputtext "..BtoI(Receiver.OutputText))
-		self:GetOwner():ConCommand("wire_textreceiver_global "..BtoI(Receiver.global))
-		self:GetOwner():ConCommand("wire_textreceiver_secure "..BtoI(Receiver.secure))
-		self:GetOwner():ConCommand("wire_textreceiver_parsetext "..'"' .. (Receiver.char1 or "") .. (Receiver.char2 or "") .. '"')
-		self:GetOwner():ConCommand("wire_textreceiver_hold "..(Receiver.Hold or 0.1))
-		self:GetOwner():ConCommand("wire_textreceiver_trigger "..(Receiver.Trig or 1))
-		self:GetOwner():ConCommand("wire_textreceiver_utrigger "..(Receiver.UTrig or 0))
-		self:GetOwner():ConCommand("wire_textreceiver_secure "..(Receiver.secure or 0))
-		self:GetOwner():ConCommand("wire_textreceiver_playerout "..(Receiver.playerout or 0))
-		return true
+
+		ply:ChatPrint( "Text receiver settings copied." )
+	else
+		return false
 	end
-	return false
-end
-
-if (SERVER) then
-
-	function MakeWireReceiver( pl, Pos, Ang, model, liness, globall, outputtextt, holdd, triggerr, SELFF, sensitivityy, togglee, utriggerr, parsetextt, secure, playerout)
-		if ( !pl:CheckLimit( "wire_textreceivers" ) ) then return false end
-
-		local text_receiver = ents.Create( "gmod_wire_textreceiver" )
-		if (!text_receiver:IsValid()) then return false end
-		text_receiver:SetAngles( Ang )
-		text_receiver:SetPos( Pos )
-		text_receiver:SetModel( Model(model or "models/jaanus/wiretool/wiretool_range.mdl") )
-		text_receiver:Spawn()
-
-		text_receiver:Setup(liness, globall,outputtextt,holdd,triggerr,SELFF,sensitivityy,togglee,utriggerr,parsetextt,secure,playerout)
-		text_receiver:SetPlayer( pl )
-
-		local ttable = {
-			pl = pl,
-			liness = liness,
-			globall = globall,
-			outputtextt = outputtextt,
-			holdd = holdd,
-			triggerr = triggerr,
-			SELFF = SELFF,
-			sensitivityy = sensitivityy,
-			togglee = togglee,
-			utriggerr = utriggerr,
-			parsetextt = parsetextt,
-		}
-
-		table.Merge(text_receiver:GetTable(), ttable )
-
-		pl:AddCount( "wire_textreceivers", text_receiver )
-
-		return text_receiver
-	end
-
-	duplicator.RegisterEntityClass("gmod_wire_textreceiver", MakeWireReceiver, "Pos", "Ang", "Model", "liness", "globall", "outputtextt", "holdd", "triggerr", "SELFF", "sensitivityy", "togglee", "utriggerr", "parsetextt", "secure", "playerout")
-
 end
 
 function TOOL:UpdateGhostWireTextReceiver( ent, player )
@@ -244,152 +166,68 @@ function TOOL:Think()
 end
 
 function TOOL:GetModel()
-	local model = "models/jaanus/wiretool/wiretool_range.mdl"
-	local modelcheck = self:GetClientInfo( "model" )
+	local model = self:GetClientInfo( "model" )
 
-	if (util.IsValidModel(modelcheck) and util.IsValidProp(modelcheck)) then
-		model = modelcheck
+	if (util.IsValidModel(model) and util.IsValidProp(model)) then
+		return model
 	end
 
-	return model
+	return "models/jaanus/wiretool/wiretool_range.mdl"
 end
 
-function TOOL.BuildCPanel(panel)
-	panel:AddControl("Header", { Text = "#Tool_wire_textreceiver_name", Description = "#Tool_wire_textreceiver_desc" })
 
-	//preset chooser
-	panel:AddControl("ComboBox", {
-		Label = "#Presets",
-		MenuButton = "1",
-		Folder = "wire_textreceiver",
+if CLIENT then
+	function TOOL.BuildCPanel( panel )
+		local CaseInsensitive = vgui.Create( "DCheckBoxLabel" )
+		CaseInsensitive:SetConVar( "wire_textreceiver_case_insensitive" )
+		CaseInsensitive:SetText( "#Tool_wire_textreceiver_case_insensitive" )
+		panel:AddItem( CaseInsensitive )
 
-		Options = {
-			Default = {
-				wire_textreceiver_model = "models/jaanus/wiretool/wiretool_range.mdl",
-				wire_textreceiver_parsetext = "",
-				wire_textreceiver_utrigger = "0",
-				wire_textreceiver_trigger = "1",
-				wire_textreceiver_hold = "0.1",
-				wire_textreceiver_global = "0",
-				wire_textreceiver_toggle = "0",
-				wire_textreceiver_outputtext = "1",
-				wire_textreceiver_SELF = "1",
-				wire_textreceiver_secure = "0",
-				wire_textreceiver_playerout = "0",
-				wire_textreceiver_sensitivity = "1",
-				wire_textreceiver_text1 = "",
-				wire_textreceiver_text2 = "",
-				wire_textreceiver_text3 = "",
-				wire_textreceiver_text4 = "",
-				wire_textreceiver_text5 = "",
-				wire_textreceiver_text6 = "",
-				wire_textreceiver_text7 = "",
-				wire_textreceiver_text8 = "",
-				wire_textreceiver_text9 = "",
-				wire_textreceiver_text10 = "",
-				wire_textreceiver_text11 = "",
-				wire_textreceiver_text12 = ""
-			}
-		},
+		local UseLuaPatterns = vgui.Create( "DCheckBoxLabel" )
+		UseLuaPatterns:SetConVar( "wire_textreceiver_use_lua_patterns" )
+		UseLuaPatterns:SetText( "#Tool_wire_textreceiver_use_lua_patterns" )
+		panel:AddItem( UseLuaPatterns )
 
-		CVars = {
-			[0] = "wire_textreceiver_model",
-			[1] = "wire_textreceiver_parsetext",
-			[2] = "wire_textreceiver_utrigger",
-			[3] = "wire_textreceiver_trigger",
-			[4] = "wire_textreceiver_hold",
-			[5] = "wire_textreceiver_global",
-			[6] = "wire_textreceiver_toggle",
-			[7] = "wire_textreceiver_outputtext",
-			[8] = "wire_textreceiver_SELF",
-			[9] = "wire_textreceiver_secure",
-			[10] = "wire_textreceiver_playerout",
-			[11] = "wire_textreceiver_sensitivity",
-			[12] = "wire_textreceiver_text1",
-			[13] = "wire_textreceiver_text2",
-			[14] = "wire_textreceiver_text3",
-			[15] = "wire_textreceiver_text4",
-			[16] = "wire_textreceiver_text5",
-			[17] = "wire_textreceiver_text6",
-			[18] = "wire_textreceiver_text7",
-			[19] = "wire_textreceiver_text8",
-			[20] = "wire_textreceiver_text9",
-			[21] = "wire_textreceiver_text10",
-			[22] = "wire_textreceiver_text11",
-			[23] = "wire_textreceiver_text12"
-		}
-	})
+		local NumMatches = vgui.Create( "DNumSlider" )
+		NumMatches:SetMin( 0 )
+		NumMatches:SetMax( 24 )
+		NumMatches:SetDecimals( 0 )
+		NumMatches:SetText( "#Tool_wire_textreceiver_num_matches" )
+		NumMatches:SetConVar( "wire_textreceiver_num_matches" )
 
-	WireDermaExts.ModelSelect(panel, "wire_textreceiver_model", list.Get( "Wire_Misc_Tools_Models" ), 1)
+		local matchlist = vgui.Create( "DPanelList" )
 
-	panel:AddControl("Slider", {
-		Label = "#WiretextreceiverTool_utrigger",
-		Type = "Float",
-		Min = "0",
-		Max = "10",
-		Command = "wire_textreceiver_utrigger"
-	})
+		matchlist:SetTall( 300 )
+		matchlist:EnableVerticalScrollbar( true )
 
-	panel:AddControl("Slider", {
-		Label = "#WiretextreceiverTool_trigger",
-		Type = "Float",
-		Min = "1",
-		Max = "10",
-		Command = "wire_textreceiver_trigger"
-	})
+		local function UpdateMatchList(n)
+			local n = math.Clamp(n or GetConVarNumber( "wire_textreceiver_num_matches" ),0,24)
 
-	panel:AddControl("Slider", {
-		Label = "#WiretextreceiverTool_hold",
-		Type = "Float",
-		Min = "0.1",
-		Max = "10",
-		Command = "wire_textreceiver_hold"
-	})
+			matchlist:Clear()
 
-	panel:AddControl("TextBox", {Label = "#Tool_wire_textreceiver_parsetext", MaxLength = tostring(2), Command = "wire_textreceiver_parsetext"})
+			for i=1,n do
+				local pnl = vgui.Create( "DPanel" )
 
-	panel:AddControl("CheckBox", {
-		Label = "#WiretextreceiverTool_global",
-		Command = "wire_textreceiver_global"
-	})
+				local label = vgui.Create( "DLabel", pnl )
+				label:SetText( "Match " .. i .. ":" )
+				label:SetPos( 2, 2 )
+				label:SizeToContents()
 
-	panel:AddControl("CheckBox", {
-		Label = "#WiretextreceiverTool_toggle",
-		Command = "wire_textreceiver_toggle"
-	})
+				local text = vgui.Create( "DTextEntry", pnl )
+				text:SetText( GetConVarString( "wire_textreceiver_match" .. i ) )
+				text:SetPos( 50, 2 )
+				text:SetWide( 220 )
+				text:SetConVar( "wire_textreceiver_match" .. i )
 
-	panel:AddControl("CheckBox", {
-		Label = "#WiretextreceiverTool_outputtext",
-		Command = "wire_textreceiver_outputtext"
-	})
+				matchlist:AddItem(pnl)
+			end
+		end
 
-	panel:AddControl("CheckBox", {
-		Label = "#WiretextreceiverTool_SELF",
-		Command = "wire_textreceiver_SELF"
-	})
+		function NumMatches:OnValueChanged( value )
+			UpdateMatchList(tonumber(value)) -- what the fuck garry it's a string?!
+		end
 
-	panel:AddControl("CheckBox", {
-		Label = "Secure Args",
-		Command = "wire_textreceiver_secure"
-	})
-
-	panel:AddControl("CheckBox", {
-		Label = "Player Outputs",
-		Command = "wire_textreceiver_playerout"
-	})
-
-	panel:AddControl("ComboBox", {
-		Label = "#WiretextreceiverTool_sensitivity",
-		MenuButton = "0",
-		Options = {
-			["#exact"] = { wire_textreceiver_sensitivity = "1" },
-			["#case_insensitive"] = { wire_textreceiver_sensitivity = "2" },
-			["#anywhere_exact"] = { wire_textreceiver_sensitivity = "3" },
-			["#anywhere_case_insensitive"] = { wire_textreceiver_sensitivity = "4" },
-		}
-	})
-	for i = 1,12 do
-		panel:AddControl("TextBox", {Label = "#Tool_wire_textreceiver_text"..i, MaxLength = tostring(MaxTextLength), Command = "wire_textreceiver_text"..i})
+		panel:AddItem( NumMatches )
+		panel:AddItem( matchlist )
 	end
-
 end
