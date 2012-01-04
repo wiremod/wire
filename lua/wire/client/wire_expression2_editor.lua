@@ -1731,7 +1731,7 @@ local code2 = [[#[
     been added. Simply press ctrl+f/g/h to open it.
 
     Documentation and examples are available at:
-    http://wiki.garrysmod.com/?title=Wire_Expression2
+    http://wiki.wiremod.com/wiki/Expression_2
     The community is available at http://www.wiremod.com
 ]#]]
 local defaultcode = code1 .. code2

@@ -915,6 +915,52 @@ e2function void wirelink:egpDrawTopLeft( number onoff )
 	EGP:DoAction( this, self, "MoveTopLeft", bool )
 end
 
+-- this code has some wtf strange things
+local function ScalePoint( this, x, y )
+	local xMin = this.xScale[1]
+	local xMax = this.xScale[2]
+	local yMin = this.yScale[1]
+	local yMax = this.yScale[2]
+
+	x = ((x - xMin) * 512) / (xMax - xMin) - xMax
+	y = ((y - yMin) * 512) / (yMax - yMin) - yMax
+
+	return x,y
+end
+
+e2function vector wirelink:egpToWorld( vector2 pos )
+	if not EGP:ValidEGP( this ) then return Vector(0,0,0) end
+
+	local class = this:GetClass()
+	if class == "gmod_wire_egp_emitter" then
+		local x,y = pos[1]*0.25,pos[2]*0.25 -- 0.25 because the scale of the 3D2D is 0.25.
+		if this.Scaling then
+			x,y = ScalePoint(this,x,y)
+		end
+		return this:LocalToWorld( Vector(-64,0,135) + Vector(x,0,-y) )
+	elseif class == "gmod_wire_egp" then
+		local monitor = WireGPU_Monitors[this:GetModel()]
+		if not monitor then return Vector(0,0,0) end
+
+		local x,y = pos[1],pos[2]
+
+		if this.Scaling then
+			x,y = ScalePoint( this, x, y )
+		else
+			x,y = x-256,y-256
+		end
+
+		x = x * monitor.RS / monitor.RatioX
+		y = y * monitor.RS
+
+		local vec = Vector(x,-y,0)
+		vec:Rotate(monitor.rot)
+		return this:LocalToWorld(vec+monitor.offset)
+	end
+
+	return Vector(0,0,0)
+end
+
 --------------------------------------------------------
 -- Useful functions
 --------------------------------------------------------
