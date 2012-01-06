@@ -86,7 +86,7 @@ end
 ----------------------------
 function EGP:HasObject( Ent, index )
 	if (!EGP:ValidEGP( Ent )) then return false end
-	index = math.Round(math.Clamp(index or 1, 1, self.ConVars.MaxObjects:GetInt()))
+	if SERVER then index = math.Round(math.Clamp(index or 1, 1, self.ConVars.MaxObjects:GetInt())) end
 	if (!Ent.RenderTable or #Ent.RenderTable == 0) then return false end
 	for k,v in pairs( Ent.RenderTable ) do
 		if (v.index == index) then
@@ -133,7 +133,7 @@ function EGP:CreateObject( Ent, ObjID, Settings )
 		return false
 	end
 
-	Settings.index = math.Round(math.Clamp(Settings.index or 1, 1, self.ConVars.MaxObjects:GetInt()))
+	if SERVER then Settings.index = math.Round(math.Clamp(Settings.index or 1, 1, self.ConVars.MaxObjects:GetInt())) end
 
 	local bool, k, v = self:HasObject( Ent, Settings.index )
 	if (bool) then -- Already exists. Change settings:

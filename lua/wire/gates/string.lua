@@ -119,13 +119,14 @@ GateActions["string_find"] = {
 	name = "Find",
 	inputs = { "A", "B", "StartIndex" },
 	inputtypes = { "STRING", "STRING" },
+	outputtypes = { "NORMAL" },
 	outputs = { "Out" },
 	output = function(gate, A, B, StartIndex)
-		local r = string.find(A,B,StartIndex)
-		if r==nil then r=0 end
-		return r
+		local r,_ = string.find(A,B,StartIndex,true)
+		return r or 0
 	end,
 	label = function(Out, A, B)
+		if type(Out) == "table" then Out = Out.Out end -- this is fucked up. what the shit...
 	    return string.format ("find(%s , %s) = %d", A, B, Out)
 	end
 }

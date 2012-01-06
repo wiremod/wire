@@ -18,7 +18,6 @@ local function LoadTools()
 	end
 
 	-- load tools
-	include("gates.lua")
 	include("detection.lua")
 	include("display.lua")
 	include("io.lua")
