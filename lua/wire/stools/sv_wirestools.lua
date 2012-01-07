@@ -23,7 +23,7 @@ function WireToolMakeGate( self, trace, ply )
 	-- Check common limit
 	if (!ply:CheckLimit( "wire_gates" )) then return false end
 
-	-- Check individual limit (doesn't work for some reason)
+	-- Check individual limit
 	if (!ply:CheckLimit( "wire_gate_" .. string.lower( GateActions[action].group ) .. "s" )) then return false end
 
 	local Ang = self:GetAngle( trace )
