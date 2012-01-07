@@ -7,6 +7,13 @@ TOOL.Command		= nil
 TOOL.ConfigName		= ""
 TOOL.Tab			= "Wire"
 
+if SERVER then
+	ModelPlug_Register("gate") -- dunno what this is, but it looks important
+	CreateConVar("sbox_maxwire_gates",30)
+end
+
+cleanup.Register("wire_gates")
+
 if CLIENT then
 	----------------------------------------------------------------------------------------------------
 	-- Tool Info
@@ -231,20 +238,6 @@ if CLIENT then
 					timer.Simple( 0, self.InvalidateLayout, self )
 				end
 			end
-
-			--[[
-			if searching and anim < 100 then
-				anim = math.min(anim + 5,100)
-				timer.Simple( 0, self.InvalidateLayout, self )
-			elseif not searching and anim > 0 then
-				anim = math.max(anim - 5,0)
-				timer.Simple( 0, self.InvalidateLayout, self )
-			end
-
-			tree:SetWide( w / 100 * (100-anim) )
-			searchlist:SetWide( w / 100 * anim )
-			searchlist:SetPos( 2 + w / 100 * (100-anim),2 )
-			]]
 		end
 
 		local function FillSubTree( tree, node, temp )
