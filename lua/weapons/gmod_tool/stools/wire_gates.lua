@@ -7,9 +7,10 @@ TOOL.Command		= nil
 TOOL.ConfigName		= ""
 TOOL.Tab			= "Wire"
 
+-- The limit convars are in lua/wire/wiregates.lua
+
 if SERVER then
-	ModelPlug_Register("gate") -- dunno what this is, but it looks important
-	CreateConVar("sbox_maxwire_gates",30)
+	ModelPlug_Register("gate")
 end
 
 cleanup.Register("wire_gates")

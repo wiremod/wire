@@ -216,6 +216,14 @@ end
 function MakeWireGate(pl, Pos, Ang, model, action, noclip, frozen, nocollide)
 	if ( !pl:CheckLimit( "wire_gates" ) ) then return nil end
 
+	local gate = GateActions[action]
+	if not gate then return end
+
+	local group = gate.group
+	if not group then return end
+	group = string.lower(group)
+	if not pl:CheckLimit( "wire_gate_" .. group .. "s" ) then return end
+
 	local wire_gate = ents.Create( "gmod_wire_gate" )
 	wire_gate:SetPos( Pos )
 	wire_gate:SetAngles( Ang )
@@ -223,7 +231,7 @@ function MakeWireGate(pl, Pos, Ang, model, action, noclip, frozen, nocollide)
 	wire_gate:Spawn()
 	wire_gate:Activate()
 
-	wire_gate:Setup( GateActions[action], noclip )
+	wire_gate:Setup( gate, noclip )
 	wire_gate:SetPlayer( pl )
 
 	if wire_gate:GetPhysicsObject():IsValid() then
@@ -242,6 +250,7 @@ function MakeWireGate(pl, Pos, Ang, model, action, noclip, frozen, nocollide)
 	table.Merge( wire_gate:GetTable(), ttable )
 
 	pl:AddCount( "wire_gates", wire_gate )
+	pl:AddCount( "wire_gate_" .. group .. "s", wire_gate )
 	pl:AddCleanup( "gmod_wire_gate", wire_gate )
 
 	return wire_gate
