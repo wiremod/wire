@@ -1,0 +1,26 @@
+// So need to make my own blur shader
+
+"Refract"
+{
+ 	"$refractamount" 		"0.0"
+ 	"$bluramount" 		"1"
+	"$REFRACTTINT" 		"{110 110 120}"
+
+	"$scale" 			"[1 1]"
+
+	"$dudvmap" 		"bluredges"
+	"$normalmap" 		"bluredges"
+	
+	"$nocull" 1
+	"$ignorez" 1
+
+	"Refract_DX80"
+	{
+		"$fallbackmaterial" "null"
+	}
+
+	"Refract_DX60"
+	{
+		"$fallbackmaterial" "null"
+	}
+}

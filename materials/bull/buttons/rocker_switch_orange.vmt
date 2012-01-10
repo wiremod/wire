@@ -1,0 +1,7 @@
+"VertexLitGeneric"
+{
+"$basetexture" "bull/buttons/rocker_switch_alpha"
+	$model		1
+	$selfillum 	1
+	$selfillumtint "[1 0.5 0]"
+}

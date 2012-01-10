@@ -1,0 +1,8 @@
+//Added by aVoN
+"UnlitGeneric" 
+{ 
+	"$basetexture"		"vgui/entities/laserPointer" 
+	"$vertexcolor" 		1 
+	"$vertexalpha" 		1 
+	"$nolod" 			1 
+} 

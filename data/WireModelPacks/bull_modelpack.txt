@@ -1,0 +1,168 @@
+"Bull ModelPack"
+{
+
+// Speaker
+
+	"subwoofer"
+	{
+		"categories"	"speaker"
+		"model"		"models/bull/various/subwoofer.mdl"
+	}
+	
+	"speaker"
+	{
+		"categories"	"speaker"
+		"model"		"models/bull/various/speaker.mdl"
+	}
+
+// Normal sized
+
+	"capacitor"
+	{
+		"categories"	"gate,chip"
+		"model"		"models/bull/gates/capacitor.mdl"
+	}
+	
+	"logic"
+	{
+		"categories"	"gate,chip"
+		"model"		"models/bull/gates/logic.mdl"
+	}
+
+	"micro controller 1"
+	{
+		"categories"	"gate,chip"
+		"model"		"models/bull/gates/microcontroller1.mdl"
+	}
+	
+	"micro controller 2"
+	{
+		"categories"	"gate,chip"
+		"model"		"models/bull/gates/microcontroller2.mdl"
+	}
+	
+	"processor"
+	{
+		"categories"	"gate,chip"
+		"model"		"models/bull/gates/processor.mdl"
+	}
+	
+	"resistor"
+	{
+		"categories"	"gate,chip,value"
+		"model"		"models/bull/gates/resistor.mdl"
+	}
+	
+	"transistor 1"
+	{
+		"categories"	"gate,chip"
+		"model"		"models/bull/gates/transistor1.mdl"
+	}
+	
+	"transistor 2"
+	{
+		"categories"	"gate,chip"
+		"model"		"models/bull/gates/transistor2.mdl"
+	}
+
+//  Mini sized
+	
+	"capacitor_mini"
+	{
+		"categories"	"gate,chip"
+		"model"		"models/bull/gates/capacitor_mini.mdl"
+	}
+	
+	"logic_mini"
+	{
+		"categories"	"gate,chip"
+		"model"		"models/bull/gates/logic_mini.mdl"
+	}
+
+	"micro controller 1_mini"
+	{
+		"categories"	"gate,chip"
+		"model"		"models/bull/gates/microcontroller1_mini.mdl"
+	}
+	
+	"micro controller 2_mini"
+	{
+		"categories"	"gate,chip"
+		"model"		"models/bull/gates/microcontroller2_mini.mdl"
+	}
+	
+	"processor_mini"
+	{
+		"categories"	"gate,chip"
+		"model"		"models/bull/gates/processor_mini.mdl"
+	}
+	
+	"resistor_mini"
+	{
+		"categories"	"gate,chip,value"
+		"model"		"models/bull/gates/resistor_mini.mdl"
+	}
+
+	"transistor 1_mini"
+	{
+		"categories"	"gate,chip"
+		"model"		"models/bull/gates/transistor1_mini.mdl"
+	}
+
+	"transistor 2_mini"
+	{
+		"categories"	"gate,chip"
+		"model"		"models/bull/gates/transistor2_mini.mdl"
+	}
+	
+//  NanO sized
+
+	"capacitor_nano"
+	{
+		"categories"	"gate,chip"
+		"model"		"models/bull/gates/capacitor_nano.mdl"
+	}
+	
+	"logic_nano"
+	{
+		"categories"	"gate,chip"
+		"model"		"models/bull/gates/logic_nano.mdl"
+	}
+
+	"micro controller 1_nano"
+	{
+		"categories"	"gate,chip"
+		"model"		"models/bull/gates/microcontroller1_nano.mdl"
+	}
+	
+	"micro controller 2_nano"
+	{
+		"categories"	"gate,chip"
+		"model"		"models/bull/gates/microcontroller2_nano.mdl"
+	}
+	
+	"processor_nano"
+	{
+		"categories"	"gate,chip"
+		"model"		"models/bull/gates/processor_nano.mdl"
+	}
+	
+	"resistor_nano"
+	{
+		"categories"	"gate,chip,value"
+		"model"		"models/bull/gates/resistor_nano.mdl"
+	}
+	
+	"transistor 1_nano"
+	{
+		"categories"	"gate,chip"
+		"model"		"models/bull/gates/transistor1_nano.mdl"
+	}
+	
+	"transistor 2_nano"
+	{
+		"categories"	"gate,chip"
+		"model"		"models/bull/gates/transistor2_nano.mdl"
+	}
+
+}

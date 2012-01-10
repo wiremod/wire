@@ -1,0 +1,24 @@
+"Refract"
+{
+ 	"$refractamount" 		"1"
+ 	"$bluramount" 		"0"
+	"$REFRACTTINT" 		"{255 255 255}"
+
+	"$scale" 			"[1 1]"
+
+	"$dudvmap" 		"sprites/gmdm_pickups/base_r"
+	"$normalmap" 		"sprites/gmdm_pickups/base_r"
+	
+	"$nocull" 1
+	"$ignorez" 1
+
+	"Refract_DX80"
+	{
+		"$fallbackmaterial" "sprites/gmdm_pickups/base"
+	}
+
+	"Refract_DX60"
+	{
+		"$fallbackmaterial" "sprites/gmdm_pickups/base"
+	}
+}

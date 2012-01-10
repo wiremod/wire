@@ -1,0 +1,13 @@
+"UnlitGeneric"
+{
+	"$translucent" 1
+	"$vertexcolor" 1
+	"$vertexalpha" 1
+	"$decal" 1
+	"$basetexture" "decals/edonburn"
+	"$decalscale" 0.9
+	"$decalfadeduration" 	0.5
+	"$decalfadetime" 		0.00
+	"$decalsecondpass" 1
+	"$additive"	1
+}

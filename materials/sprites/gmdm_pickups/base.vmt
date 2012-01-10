@@ -1,0 +1,6 @@
+//"VertexLitGeneric"
+"UnLitGeneric"
+{
+	"$basetexture"		"sprites/gmdm_pickups/base"
+	"$nocull" 1
+}

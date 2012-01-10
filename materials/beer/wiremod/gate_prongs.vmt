@@ -1,0 +1,7 @@
+"VertexLitGeneric"
+{
+	"$translucent" "1"
+	"$basetexture" "beer/wiremod/gate_prongs"
+	"$model" "1"
+	"$nocull" "1"
+}

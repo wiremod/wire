@@ -1,0 +1,8 @@
+"UnlitGeneric"
+{
+        $basetexture "thrusteraddon/Goldstar"
+		"$additive" 0
+		"$vertexcolor" 1
+		"$vertexalpha" 1
+		"$selfillum" 1
+}

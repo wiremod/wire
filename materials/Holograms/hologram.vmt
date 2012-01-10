@@ -1,0 +1,7 @@
+"Vertexlitgeneric"
+{
+	"$basetexture" "Holograms\hologram"
+	"$surfaceprop" "plastic"
+	"$model"	"1"
+
+}

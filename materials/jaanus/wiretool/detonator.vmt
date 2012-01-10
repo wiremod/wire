@@ -1,0 +1,6 @@
+"VertexLitGeneric"
+{
+	"$baseTexture" "jaanus/wiretool/detonator"
+	"$bumpmap" "jaanus/wiretool/detonator_n"
+	"$Model" "1"
+}

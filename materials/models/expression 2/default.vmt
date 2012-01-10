@@ -1,0 +1,5 @@
+"VertexLitGeneric"
+{
+	"$baseTexture" "models/expression 2/default"
+	"$translucent" 1
+}

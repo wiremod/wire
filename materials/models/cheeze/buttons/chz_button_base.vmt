@@ -1,0 +1,5 @@
+"VertexLitGeneric"
+{
+	"$baseTexture" "models\cheeze\buttons/chz_button_base"
+	"$translucent" 1
+}
