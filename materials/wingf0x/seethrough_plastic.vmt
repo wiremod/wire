@@ -1,0 +1,8 @@
+"VertexLitGeneric"
+{
+	"$basetexture" "wingf0x/seethrough_plastic"
+	$translucent 1
+	$halflambert 1
+	"$model" "1"
+
+}

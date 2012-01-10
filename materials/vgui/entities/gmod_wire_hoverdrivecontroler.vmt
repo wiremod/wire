@@ -1,0 +1,7 @@
+"UnlitGeneric" 
+{ 
+	"$basetexture"		"vgui/entities/gmod_wire_hoverdrivecontroler" 
+	"$vertexcolor" 		1 
+	"$vertexalpha" 		1 
+	"$nolod" 			1 
+} 

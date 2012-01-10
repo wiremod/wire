@@ -1,0 +1,9 @@
+"VertexLitGeneric"
+{
+$basetexture	"beer/wiremod/hydraulic2"
+$basealphaenvmapmask "1"
+$envmap			env_cubemap
+"$model" "1"
+
+
+}

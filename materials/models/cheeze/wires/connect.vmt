@@ -1,0 +1,5 @@
+"VertexLitGeneric"
+{
+	"$baseTexture" "models\cheeze\wires/connect"
+	"$translucent" 1
+}

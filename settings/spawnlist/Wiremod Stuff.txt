@@ -1,0 +1,33 @@
+"SpawnMenu"
+{
+	"Information"
+	{
+		"version"	"2"
+		"name"		"Wiremod Stuff"
+	}
+	"Entries"
+	{
+		"1"		"models/cheeze/pcb/pcb0.mdl"
+		"2"		"models/cheeze/pcb/pcb1.mdl"
+		"3"		"models/cheeze/pcb/pcb2.mdl"
+		"4"		"models/cheeze/pcb/pcb3.mdl"
+		"5"		"models/cheeze/pcb/pcb4.mdl"
+		"6"		"models/cheeze/pcb/pcb5.mdl"
+		"7"		"models/cheeze/pcb/pcb6.mdl"
+		"8"		"models/cheeze/pcb/pcb7.mdl"
+		"9"		"models/cheeze/pcb/pcb8.mdl"
+		"10"		"models/cheeze/pcb2/pcb1.mdl"
+		"11"		"models/cheeze/pcb2/pcb2.mdl"
+		"12"		"models/cheeze/pcb2/pcb3.mdl"
+		"13"		"models/cheeze/pcb2/pcb4.mdl"
+		"14"		"models/cheeze/pcb2/pcb5.mdl"
+		"15"		"models/cheeze/pcb2/pcb6.mdl"
+		"16"		"models/cheeze/pcb2/pcb7.mdl"
+		"17"		"models/cheeze/pcb2/pcb8.mdl"
+		"18"		"models/venompapa/wirecd_huge.mdl"
+		"29"		"models/venompapa/wirecd_large.mdl"
+		"20"		"models/venompapa/wirecd_medium.mdl"
+		"21"		"models/venompapa/wirecd_small.mdl"
+		"22"		"models/venompapa/wirecdlock.mdl"
+	}
+}

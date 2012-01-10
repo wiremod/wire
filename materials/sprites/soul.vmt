@@ -1,0 +1,9 @@
+"UnLitGeneric"
+{
+	"$basetexture"		"sprites/soul"
+	"$nocull" 		1
+	"$vertexalpha" 	1
+	"$vertexcolor" 	1
+	"$ignorez"	0
+	"$additive"	1
+}

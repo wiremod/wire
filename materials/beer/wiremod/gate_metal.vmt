@@ -1,0 +1,13 @@
+"VertexLitGeneric"
+{
+	"$basetexture" "beer/wiremod/gate_metal"
+
+	"$surfaceprop" "metal"
+	"$envmap" "env_cubemap"
+	"$envmaptint" "[ .7 .7 .7 ]"
+	"$envmapcontrast" 0.2
+	"$envmapsaturation" 0
+	"$selfillum" 0
+	"$model" 1
+	"$HalfLambert" 1
+}

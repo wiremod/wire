@@ -1,0 +1,6 @@
+"Vertexlitgeneric"
+{
+	"$basetexture" "jaanus/wiretool/inputwre"
+	"$selfillum" "1"
+	"$model"	"1"
+}

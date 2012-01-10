@@ -1,0 +1,5 @@
+"VertexLitGeneric"
+{
+"$basetexture" "bull/gates/gate_logic_nor_aperture"
+"$model" "1"
+}

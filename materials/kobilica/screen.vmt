@@ -1,0 +1,6 @@
+"VertexLitGeneric"
+{
+	"$basetexture" "_rt_Camera"
+	"$model"	"1"
+	//"$additive" "1"
+}

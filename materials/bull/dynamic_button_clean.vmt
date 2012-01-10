@@ -1,0 +1,7 @@
+"Vertexlitgeneric"
+{
+	"$basetexture" "bull/dynamic_button_clean"
+	"$surfaceprop" "plastic"
+	"$model"	"1"
+
+}

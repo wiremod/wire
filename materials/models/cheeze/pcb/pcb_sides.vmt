@@ -1,0 +1,5 @@
+"VertexLitGeneric"
+{
+	"$baseTexture" "models\cheeze\pcb/pcb_sides"
+	"$translucent" 1
+}

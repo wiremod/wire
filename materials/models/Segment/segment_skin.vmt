@@ -1,0 +1,5 @@
+"vertexLitGeneric"
+{
+        $basetexture "models/segment/segment_skin"
+        $model 1
+}

@@ -1,0 +1,5 @@
+"VertexLitGeneric"
+{
+	"$baseTexture" "models\cheeze\wires/speaker_red"
+	"$translucent" 1
+}

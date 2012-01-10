@@ -1,0 +1,5 @@
+"VertexLitGeneric"
+{
+	"$baseTexture" "models\cheeze\wires/gyro_pins"
+	"$translucent" 1
+}
