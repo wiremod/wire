@@ -18,47 +18,49 @@ if (SERVER) then
 	CreateConVar('sbox_maxwire_keyboards', 20)
 end
 
-TOOL.ClientConVar[ "model" ] = "models/jaanus/wiretool/wiretool_input.mdl"
-TOOL.ClientConVar[ "sync" ] = "1"
-TOOL.ClientConVar[ "layout" ] = "American"
+TOOL.ClientConVar = {
+	model = "models/jaanus/wiretool/wiretool_input.mdl",
+	sync = "1",
+	layout = "American",
+	autobuffer = "1",
+}
 
 
 cleanup.Register( "wire_keyboards" )
 
 function TOOL:LeftClick( trace )
-	if (!trace.HitPos) then return false end
-	if (trace.Entity:IsPlayer()) then return false end
-	if ( CLIENT ) then return true end
+	if CLIENT then return true end
 	if not util.IsValidPhysicsObject( trace.Entity, trace.PhysicsBone ) then return false end
 
 	local ply = self:GetOwner()
 
-	if ( trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_keyboard" && trace.Entity.pl == ply ) then
+	if trace.Entity and trace.Entity:IsValid() and trace.Entity:GetClass() == "gmod_wire_keyboard" then
+		trace.Entity.AutoBuffer = (self:GetClientInfo( "autobuffer" ) ~= "0")
 		return true
 	end
 
-	if ( !self:GetSWEP():CheckLimit( "wire_keyboards" ) ) then return false end
+	local ang = trace.HitNormal:Angle()
+	ang.pitch = ang.pitch + 90
 
-	local Ang = trace.HitNormal:Angle()
-	Ang.pitch = Ang.pitch + 90
+	local keyboard = MakeWireKeyboard( ply, trace.HitPos, ang, self:GetModel() )
+	if not keyboard then return false end
 
-	local wire_keyboard = MakeWireKeyboard( ply, trace.HitPos, Ang, self:GetModel() )
+	keyboard.AutoBuffer = (self:GetClientInfo( "autobuffer" ) ~= "0")
 
-	local min = wire_keyboard:OBBMins()
-	wire_keyboard:SetPos( trace.HitPos - trace.HitNormal * min.z )
+	local min = keyboard:OBBMins()
+	keyboard:SetPos( trace.HitPos - trace.HitNormal * min.z )
 
-	local const = WireLib.Weld(wire_keyboard, trace.Entity, trace.PhysicsBone, true)
+	local const = WireLib.Weld(keyboard, trace.Entity, trace.PhysicsBone, true)
 
 	undo.Create("WireKeyboard")
-		undo.AddEntity( wire_keyboard )
+		undo.AddEntity( keyboard )
 		undo.AddEntity( const )
 		undo.SetPlayer( ply )
 	undo.Finish()
 
-	ply:AddCleanup( "wire_keyboards", wire_keyboard )
+	ply:AddCleanup( "wire_keyboards", keyboard )
 
 	return true
-
 end
 
 function TOOL:RightClick( trace )
@@ -175,9 +177,11 @@ function TOOL.BuildCPanel(panel)
 	panel:AddControl("Header", { Text = "#Tool_wire_keyboard_name", Description = "#Tool_wire_keyboard_desc" })
 	ModelPlug_AddToCPanel(panel, "Keyboard", "wire_keyboard", "#ToolWireIndicator_Model")
 
-	panel:AddControl( "CheckBox", { Label = "Synchronous keyboard",
-					 Description = "Pause user input when keyboard is active (clientside)",
-					 Command = "wire_keyboard_sync" } )
+	local sync = vgui.Create( "DCheckBoxLabel" )
+	sync:SetConVar( "wire_keyboard_sync" )
+	sync:SetText( "Synchronous Keyboard" )
+	sync:SetToolTip( "Pause user input when keyboard is active (clientside)" )
+	panel:AddItem( sync )
 
 	local txt = vgui.Create("DLabel")
 	txt:SetText("Keyboard language layout:")
@@ -190,4 +194,10 @@ function TOOL.BuildCPanel(panel)
 		list:SetConVar( "wire_keyboard_layout" )
 	end
 	panel:AddItem(list)
+
+	local autobuffer = vgui.Create( "DCheckBoxLabel" )
+	autobuffer:SetConVar( "wire_keyboard_autobuffer" )
+	autobuffer:SetText( "Automatic buffer handling" )
+	autobuffer:SetToolTip( "When on, automatically removes the key from the buffer when the user releases it.\nWhen off, leaves all keys in the buffer until they are manually removed.\nTo manually remove a key, write any value to cell 0 to remove the first key, or write a specific ascii value to any address other than 0 to remove that specific key." )
+	panel:AddItem( autobuffer )
 end
