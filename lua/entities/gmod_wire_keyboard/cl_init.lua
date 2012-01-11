@@ -61,7 +61,6 @@ concommand.Add("wire_keyboard_blockinput", Wire_BlockInput)
 local function Wire_ReleaseInput()
 	if (BlockFrame) then
 		BlockFrame:SetVisible(false)
-		BlockFrame = nil
 	end
 
 	UseKeyboard = false

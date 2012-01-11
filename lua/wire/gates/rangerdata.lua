@@ -73,14 +73,14 @@ GateActions["rd_hitworld"] = {
 	name = "Hit World",
 	inputs = { "A" },
 	inputtypes = { "RANGER" },
-	outputtypes = { "NUMBER" },
+	outputtypes = { "NORMAL" },
 	timed = true,
 	output = function(gate, A)
 		if !A then return 0 end
 		return A.HitWorld
 	end,
 	label = function(Out, A)
-		return string.format ("hitworld(%s) = %d", A, Out)
+		return string.format ("hitworld(%s) = %d", A, Out and 1 or 0)
 	end
 }
 
@@ -88,14 +88,14 @@ GateActions["rd_hit"] = {
 	name = "Hit",
 	inputs = { "A" },
 	inputtypes = { "RANGER" },
-	outputtypes = { "NUMBER" },
+	outputtypes = { "NORMAL" },
 	timed = true,
 	output = function(gate, A)
 		if !A then return 0 end
 		return A.Hit
 	end,
 	label = function(Out, A)
-		return string.format ("hit(%s) = %d", A, Out)
+		return string.format ("hit(%s) = %d", A, Out and 1 or 0)
 	end
 }
 
@@ -103,7 +103,7 @@ GateActions["rd_distance"] = {
 	name = "Distance",
 	inputs = { "A" },
 	inputtypes = { "RANGER" },
-	outputtypes = { "NUMBER" },
+	outputtypes = { "NORMAL" },
 	timed = true,
 	output = function(gate, A)
 		if !A then return 0 end
