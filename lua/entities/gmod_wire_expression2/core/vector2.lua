@@ -38,6 +38,12 @@ registerFunction("vec2", "nn", "xv2", function(self, args)
 	return { rv1, rv2 }
 end)
 
+registerFunction("vec2", "n", "xv2", function(self, args)
+	local op1 = args[2]
+	local rv1 = op1[1](self, op1)
+	return { rv1, rv1 }
+end)
+
 registerFunction("vec2", "v", "xv2", function(self, args)
 	local op1 = args[2]
 	local rv1 = op1[1](self, op1)
@@ -544,6 +550,12 @@ registerFunction("vec4", "", "xv4", function(self, args)
 end)
 
 __e2setcost(4)
+
+registerFunction("vec4", "n", "xv4", function(self, args)
+	local op1 = args[2]
+	local rv1 = op1[1](self, op1)
+	return { rv1, rv1, rv1, rv1 }
+end)
 
 registerFunction("vec4", "nnnn", "xv4", function(self, args)
 	local op1, op2, op3, op4 = args[2], args[3], args[4], args[5]

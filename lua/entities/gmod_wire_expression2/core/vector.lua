@@ -43,6 +43,12 @@ end)
 
 __e2setcost(3) -- temporary
 
+registerFunction("vec", "n", "v", function(self, args)
+	local op1 = args[2]
+	local rv1 = op1[1](self, op1)
+	return { rv1, rv1, rv1 }
+end)
+
 registerFunction("vec", "nnn", "v", function(self, args)
 	local op1, op2, op3 = args[2], args[3], args[4]
 	local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
