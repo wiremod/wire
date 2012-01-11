@@ -28,6 +28,10 @@ end
 
 __e2setcost(3) -- temporary
 
+e2function angle ang(rv1)
+	return { rv1, rv1, rv1 }
+end
+
 e2function angle ang(rv1, rv2, rv3)
 	return { rv1, rv2, rv3 }
 end

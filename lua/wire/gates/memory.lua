@@ -214,6 +214,47 @@ GateActions["ram64"] = {
 	end
 }
 
+GateActions["ram1k"] = {
+	name = "RAM(1kb)",
+	inputs = { "Clk", "AddrRead", "AddrWrite", "Data", "Reset" },
+	output = function(gate, Clk, AddrRead, AddrWrite, Data, Reset )
+		if (Reset > 0) then
+				gate.LatchStore = {}
+		end
+
+		AddrRead = math.floor(tonumber(AddrRead))
+		AddrWrite = math.floor(tonumber(AddrWrite))
+		if (Clk > 0) then
+			if (AddrWrite < 1024) then
+					gate.LatchStore[AddrWrite] = Data
+			end
+		end
+		return gate.LatchStore[AddrRead] or 0
+	end,
+	reset = function(gate)
+		gate.LatchStore = {}
+	end,
+	label = function(Out, Clk, AddrRead, AddrWrite, Data, Reset )
+		return "WriteAddr:"..AddrWrite.."  Data:"..Data.."  Clock:"..Clk.."  Reset:"..Reset..
+			"\nReadAddr:"..AddrRead.." = "..Out
+	end,
+	ReadCell = function(dummy,gate,Address)
+		if (Address < 0) || (Address >= 1024) then
+			return 0
+		else
+			return gate.LatchStore[Address] or 0
+		end
+	end,
+	WriteCell = function(dummy,gate,Address,value)
+		if (Address < 0) || (Address >= 1024) then
+			return false
+		else
+			gate.LatchStore[Address] = value
+			return true
+		end
+	end
+}
+
 GateActions["ram32k"] = {
 	name = "RAM(32kb)",
 	inputs = { "Clk", "AddrRead", "AddrWrite", "Data", "Reset" },
