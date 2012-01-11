@@ -77,7 +77,7 @@ GateActions["rd_hitworld"] = {
 	timed = true,
 	output = function(gate, A)
 		if !A then return 0 end
-		return A.HitWorld
+		return A.HitWorld and 1 or 0
 	end,
 	label = function(Out, A)
 		return string.format ("hitworld(%s) = %d", A, Out and 1 or 0)
@@ -92,7 +92,7 @@ GateActions["rd_hit"] = {
 	timed = true,
 	output = function(gate, A)
 		if !A then return 0 end
-		return A.Hit
+		return A.Hit and 1 or 0
 	end,
 	label = function(Out, A)
 		return string.format ("hit(%s) = %d", A, Out and 1 or 0)
