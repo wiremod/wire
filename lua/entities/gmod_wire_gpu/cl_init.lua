@@ -306,19 +306,24 @@ function ENT:RenderMisc(pos, ang, resolution, aspect, monitor)
     local dist = trace.Normal:Dot(trace.HitNormal)*trace.Fraction*(-16384)
     dist = math.max(dist, trace.Fraction*16384-self:BoundingRadius())
 
-    if (dist < 64) then
+    if (dist < 256) then
       local pos = WorldToLocal( trace.HitPos, Angle(), pos, ang )
       local x = 0.5+pos.x/(monitor.RS*(512/monitor.RatioX))
       local y = 0.5-pos.y/(monitor.RS*512)
 
-      self.VM:WriteCell(65505,x)
-      self.VM:WriteCell(65504,y)
+      local cursorOffset = 0
+      if self.VM:ReadCell(65532) == 1 then -- Check for vertex mode to counter the faulty offset
+        cursorOffset = 0.5
+      end
+
+	  self.VM:WriteCell(65505,x - cursorOffset)
+      self.VM:WriteCell(65504,y - cursorOffset)
 
       if (self.VM:ReadCell(65503) == 1) then
         surface.SetDrawColor(255,255,255,255)
         surface.SetTexture(surface.GetTextureID("gui/arrow"))
-        x = math.Clamp(x,0,1)
-        y = math.Clamp(y,0,1)
+        x = math.Clamp(x,0 + cursorOffset, 1 + cursorOffset)
+        y = math.Clamp(y,0 + cursorOffset, 1 + cursorOffset)
         surface.DrawTexturedRectRotated(-256*aspect+x*512*aspect+10,-256+y*512+12,32,32,45)
       end
     end
