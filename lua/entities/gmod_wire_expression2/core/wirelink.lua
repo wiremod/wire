@@ -416,10 +416,10 @@ local function conv(vec)
 end
 
 local function WriteString(self, entity, string, X, Y, textcolor, bgcolor, Flash)
+	if not validWirelink(self, entity) or not entity.WriteCell then return end
+
 	if type(textcolor) ~= "number" then textcolor = conv(textcolor) end
 	if type(bgcolor) ~= "number" then bgcolor = conv(bgcolor) end
-
-	if not validWirelink(self, entity) or not entity.WriteCell then return end
 
 	textcolor = Clamp(floor(textcolor), 0, 999)
 	bgcolor = Clamp(floor(bgcolor), 0, 999)
@@ -475,11 +475,11 @@ e2function void wirelink:writeString(string text, x, y, vector textcolor, vector
 e2function void wirelink:writeString(string text, x, y, vector textcolor) = e2function void wirelink:writeString(string text, x, y, textcolor)
 
 -- Unicode strings
-local function WriteUnicodeString(entity, string, X, Y, textcolor, bgcolor, Flash)
+local function WriteUnicodeString(self, entity, string, X, Y, textcolor, bgcolor, Flash)
+	if not validWirelink(self, entity) or not entity.WriteCell then return end
+
 	if type(textcolor) ~= "number" then textcolor = conv(textcolor) end
 	if type(bgcolor) ~= "number" then bgcolor = conv(bgcolor) end
-
-	if not validWirelink(self, entity) or not entity.WriteCell then return end
 
 	textcolor = Clamp(floor(textcolor), 0, 999)
 	bgcolor = Clamp(floor(bgcolor), 0, 999)
@@ -545,21 +545,21 @@ local function WriteUnicodeString(entity, string, X, Y, textcolor, bgcolor, Flas
 end
 
 e2function void wirelink:writeUnicodeString(string text, x, y, textcolor, bgcolor, flash)
-	WriteUnicodeString(this,text,x,y,textcolor,bgcolor,flash)
+	WriteUnicodeString(self,this,text,x,y,textcolor,bgcolor,flash)
 end
 
 
 e2function void wirelink:writeUnicodeString(string text, x, y, textcolor, bgcolor)
-	WriteUnicodeString(this,text,x,y,textcolor,bgcolor,0)
+	WriteUnicodeString(self,this,text,x,y,textcolor,bgcolor,0)
 end
 
 
 e2function void wirelink:writeUnicodeString(string text, x, y, textcolor)
-	WriteUnicodeString(this,text,x,y,textcolor,0,0)
+	WriteUnicodeString(self,this,text,x,y,textcolor,0,0)
 end
 
 e2function void wirelink:writeUnicodeString(string text, x, y)
-	WriteUnicodeString(this,text,x,y,999,0,0)
+	WriteUnicodeString(self,this,text,x,y,999,0,0)
 end
 
 e2function void wirelink:writeUnicodeString(string text, x, y,        textcolor, vector bgcolor, flash) = e2function void wirelink:writeUnicodeString(string text, x, y, textcolor, bgcolor, flash)
