@@ -2,7 +2,10 @@
 -- $LastChangedDate: 2009-09-12 03:34:53 -0700 (Sat, 12 Sep 2009) $
 -- $LastChangedBy: TomyLobo $
 
-if VERSION < 125 then Error("WireMod: Your GMod is years too old. Load aborted.\n") end
+if VERSION < 129 then
+	ErrorNoHalt("WireMod: Your GMod is years too old. Load aborted.\n")
+	return
+end
 
 if SERVER then
 	-- this file
@@ -16,10 +19,12 @@ if SERVER then
 	AddCSLuaFile("wire/WireMonitors.lua")
 	AddCSLuaFile("wire/GPULib.lua")
 	AddCSLuaFile("wire/CPULib.lua")
+	AddCSLuaFile("wire/Timedpairs.lua")
 
 	-- client includes
 	AddCSLuaFile("wire/client/cl_wirelib.lua")
 	AddCSLuaFile("wire/client/cl_modelplug.lua")
+	AddCSLuaFile("wire/client/cl_wire_map_interface.lua")
 	AddCSLuaFile("wire/client/WireDermaExts.lua")
 	AddCSLuaFile("wire/client/WireMenus.lua")
 	AddCSLuaFile("wire/client/TextEditor.lua")
@@ -75,6 +80,7 @@ include("wire/WireMonitors.lua")
 include("wire/GPULib.lua")
 include("wire/CPULib.lua")
 include("wire/welcome_menu.lua")
+include("wire/Timedpairs.lua")
 
 -- server includes
 if SERVER then
@@ -87,6 +93,7 @@ end
 if CLIENT then
 	include("wire/client/cl_wirelib.lua")
 	include("wire/client/cl_modelplug.lua")
+	include("wire/client/cl_wire_map_interface.lua")
 	include("wire/client/WireDermaExts.lua")
 	include("wire/client/WireMenus.lua")
 	include("wire/client/toolscreen.lua")
