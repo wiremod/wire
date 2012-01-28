@@ -1,0 +1,343 @@
+@include "garrysmod.fgd"
+
+@PointClass color(0 120 0) base(Targetname) size(-4 -4 -4, 4 4 4) = info_wiremapinterface
+	: "Creates an interface between the map and Wiremod."
+[
+	wire_entity_name(target_destination) : "Wire Entity" : "" : "The name of an entity or of the entities that will get wire ports."
+	min_trigger_time(float) : "Minimum Trigger Time" : "0.01" : "Set the minimum time in seconds between two in-/output triggers. It's usefull to prevent lags."
+
+	// Wire Inputs
+	input1_name(string) : "Wire Input 1 Name" : "" : "Sets the name of Wire Input 1."
+	input1_type(choices) : "Wire Input 1 Type" : 0 : "Sets the type of Wire Input 1." =
+	[
+		0 : "Normal"
+		1 : "Normal (Toggle)"
+		2 : "String"
+		3 : "2D Vector"
+		4 : "3D Vector"
+		5 : "4D Vector"
+		6 : "Angle"
+		7 : "Entity"
+		8 : "Array"
+	]
+	input1_desc(string) : "Wire Input 1 Description" : "" : "Sets the description of Wire Input 1."
+	input1_lua(string) : "Wire Input 1 Code" : ""														// Hammer doens't support new lines, so I have to use spaces.
+	: "For advanced users! Sets the Lua code that gets called when Wire Input 1 gets triggered. The globals are:                                                 WIRE_NAME = input name,           WIRE_VALUE = input value,           WIRE_WIRED = true if input is wired,             WIRE_CALLER = this entity,            WIRE_ACTIVATOR = the input entity"
+
+
+	input2_name(string) : "Wire Input 2 Name" : "" : "Sets the name of Wire Input 2."
+	input2_type(choices) : "Wire Input 2 Type" : 0 : "Sets the type of Wire Input 2." =
+	[
+		0 : "Normal"
+		1 : "Normal (Toggle)"
+		2 : "String"
+		3 : "2D Vector"
+		4 : "3D Vector"
+		5 : "4D Vector"
+		6 : "Angle"
+		7 : "Entity"
+		8 : "Array"
+	]
+	input2_desc(string) : "Wire Input 2 Description" : "" : "Sets the description of Wire Input 2."
+	input2_lua(string) : "Wire Input 2 Code" : ""														// Hammer doens't support new lines, so I have to use spaces.
+	: "For advanced users! Sets the Lua code that gets called when Wire Input 2 gets triggered. The globals are:                                                 WIRE_NAME = input name,           WIRE_VALUE = input value,           WIRE_WIRED = true if input is wired,             WIRE_CALLER = this entity,            WIRE_ACTIVATOR = the input entity"
+
+
+	input3_name(string) : "Wire Input 3 Name" : "" : "Sets the name of Wire Input 3."
+	input3_type(choices) : "Wire Input 3 Type" : 0 : "Sets the type of Wire Input 3." =
+	[
+		0 : "Normal"
+		1 : "Normal (Toggle)"
+		2 : "String"
+		3 : "2D Vector"
+		4 : "3D Vector"
+		5 : "4D Vector"
+		6 : "Angle"
+		7 : "Entity"
+		8 : "Array"
+	]
+	input3_desc(string) : "Wire Input 3 Description" : "" : "Sets the description of Wire Input 3."
+	input3_lua(string) : "Wire Input 3 Code" : ""														// Hammer doens't support new lines, so I have to use spaces.
+	: "For advanced users! Sets the Lua code that gets called when Wire Input 3 gets triggered. The globals are:                                                 WIRE_NAME = input name,           WIRE_VALUE = input value,           WIRE_WIRED = true if input is wired,             WIRE_CALLER = this entity,            WIRE_ACTIVATOR = the input entity"
+
+
+	input4_name(string) : "Wire Input 4 Name" : "" : "Sets the name of Wire Input 4."
+	input4_type(choices) : "Wire Input 4 Type" : 0 : "Sets the type of Wire Input 4." =
+	[
+		0 : "Normal"
+		1 : "Normal (Toggle)"
+		2 : "String"
+		3 : "2D Vector"
+		4 : "3D Vector"
+		5 : "4D Vector"
+		6 : "Angle"
+		7 : "Entity"
+		8 : "Array"
+	]
+	input4_desc(string) : "Wire Input 4 Description" : "" : "Sets the description of Wire Input 4."
+	input4_lua(string) : "Wire Input 4 Code" : ""														// Hammer doens't support new lines, so I have to use spaces.
+	: "For advanced users! Sets the Lua code that gets called when Wire Input 4 gets triggered. The globals are:                                                 WIRE_NAME = input name,           WIRE_VALUE = input value,           WIRE_WIRED = true if input is wired,             WIRE_CALLER = this entity,            WIRE_ACTIVATOR = the input entity"
+
+
+	input5_name(string) : "Wire Input 5 Name" : "" : "Sets the name of Wire Input 5."
+	input5_type(choices) : "Wire Input 5 Type" : 0 : "Sets the type of Wire Input 5." =
+	[
+		0 : "Normal"
+		1 : "Normal (Toggle)"
+		2 : "String"
+		3 : "2D Vector"
+		4 : "3D Vector"
+		5 : "4D Vector"
+		6 : "Angle"
+		7 : "Entity"
+		8 : "Array"
+	]
+	input5_desc(string) : "Wire Input 5 Description" : "" : "Sets the description of Wire Input 5."
+	input5_lua(string) : "Wire Input 5 Code" : ""														// Hammer doens't support new lines, so I have to use spaces.
+	: "For advanced users! Sets the Lua code that gets called when Wire Input 5 gets triggered. The globals are:                                                 WIRE_NAME = input name,           WIRE_VALUE = input value,           WIRE_WIRED = true if input is wired,             WIRE_CALLER = this entity,            WIRE_ACTIVATOR = the input entity"
+
+
+	input6_name(string) : "Wire Input 6 Name" : "" : "Sets the name of Wire Input 6."
+	input6_type(choices) : "Wire Input 6 Type" : 0 : "Sets the type of Wire Input 6." =
+	[
+		0 : "Normal"
+		1 : "Normal (Toggle)"
+		2 : "String"
+		3 : "2D Vector"
+		4 : "3D Vector"
+		5 : "4D Vector"
+		6 : "Angle"
+		7 : "Entity"
+		8 : "Array"
+	]
+	input6_desc(string) : "Wire Input 6 Description" : "" : "Sets the description of Wire Input 6."
+	input6_lua(string) : "Wire Input 6 Code" : ""														// Hammer doens't support new lines, so I have to use spaces.
+	: "For advanced users! Sets the Lua code that gets called when Wire Input 6 gets triggered. The globals are:                                                 WIRE_NAME = input name,           WIRE_VALUE = input value,           WIRE_WIRED = true if input is wired,             WIRE_CALLER = this entity,            WIRE_ACTIVATOR = the input entity"
+
+
+	input7_name(string) : "Wire Input 7 Name" : "" : "Sets the name of Wire Input 7."
+	input7_type(choices) : "Wire Input 7 Type" : 0 : "Sets the type of Wire Input 7." =
+	[
+		0 : "Normal"
+		1 : "Normal (Toggle)"
+		2 : "String"
+		3 : "2D Vector"
+		4 : "3D Vector"
+		5 : "4D Vector"
+		6 : "Angle"
+		7 : "Entity"
+		8 : "Array"
+	]
+	input7_desc(string) : "Wire Input 7 Description" : "" : "Sets the description of Wire Input 7."
+	input7_lua(string) : "Wire Input 7 Code" : ""														// Hammer doens't support new lines, so I have to use spaces.
+	: "For advanced users! Sets the Lua code that gets called when Wire Input 7 gets triggered. The globals are:                                                 WIRE_NAME = input name,           WIRE_VALUE = input value,           WIRE_WIRED = true if input is wired,             WIRE_CALLER = this entity,            WIRE_ACTIVATOR = the input entity"
+
+
+	input8_name(string) : "Wire Input 8 Name" : "" : "Sets the name of Wire Input 8."
+	input8_type(choices) : "Wire Input 8 Type" : 0 : "Sets the type of Wire Input 8." =
+	[
+		0 : "Normal"
+		1 : "Normal (Toggle)"
+		2 : "String"
+		3 : "2D Vector"
+		4 : "3D Vector"
+		5 : "4D Vector"
+		6 : "Angle"
+		7 : "Entity"
+		8 : "Array"
+	]
+	input8_desc(string) : "Wire Input 8 Description" : "" : "Sets the description of Wire Input 8."
+	input8_lua(string) : "Wire Input 8 Code" : ""														// Hammer doens't support new lines, so I have to use spaces.
+	: "For advanced users! Sets the Lua code that gets called when Wire Input 8 gets triggered. The globals are:                                                 WIRE_NAME = input name,           WIRE_VALUE = input value,           WIRE_WIRED = true if input is wired,             WIRE_CALLER = this entity,            WIRE_ACTIVATOR = the input entity"
+
+
+
+	// Wire Outputs
+	output1_name(string) : "Wire Output 1 Name" : "" : "Sets the name of Wire Output 1."
+	output1_type(choices) : "Wire Output 1 Type" : 0 : "Sets the type of Wire Output 1." =
+	[
+		0 : "Normal"
+		1 : "Normal (Toggle)"
+		2 : "String"
+		3 : "2D Vector"
+		4 : "3D Vector"
+		5 : "4D Vector"
+		6 : "Angle"
+		7 : "Entity"
+		8 : "Array"
+	]
+	output1_desc(string) : "Wire Output 1 Description" : "" : "Sets the description of Wire Output 1."
+
+
+	output2_name(string) : "Wire Output 2 Name" : "" : "Sets the name of Wire Output 2."
+	output2_type(choices) : "Wire Output 2 Type" : 0 : "Sets the type of Wire Output 2." =
+	[
+		0 : "Normal"
+		1 : "Normal (Toggle)"
+		2 : "String"
+		3 : "2D Vector"
+		4 : "3D Vector"
+		5 : "4D Vector"
+		6 : "Angle"
+		7 : "Entity"
+		8 : "Array"
+	]
+	output2_desc(string) : "Wire Output 2 Description" : "" : "Sets the description of Wire Output 2."
+
+
+	output3_name(string) : "Wire Output 3 Name" : "" : "Sets the name of Wire Output 3."
+	output3_type(choices) : "Wire Output 3 Type" : 0 : "Sets the type of Wire Output 3." =
+	[
+		0 : "Normal"
+		1 : "Normal (Toggle)"
+		2 : "String"
+		3 : "2D Vector"
+		4 : "3D Vector"
+		5 : "4D Vector"
+		6 : "Angle"
+		7 : "Entity"
+		8 : "Array"
+	]
+	output3_desc(string) : "Wire Output 3 Description" : "" : "Sets the description of Wire Output 3."
+
+
+	output4_name(string) : "Wire Output 4 Name" : "" : "Sets the name of Wire Output 4."
+	output4_type(choices) : "Wire Output 4 Type" : 0 : "Sets the type of Wire Output 4." =
+	[
+		0 : "Normal"
+		1 : "Normal (Toggle)"
+		2 : "String"
+		3 : "2D Vector"
+		4 : "3D Vector"
+		5 : "4D Vector"
+		6 : "Angle"
+		7 : "Entity"
+		8 : "Array"
+	]
+	output4_desc(string) : "Wire Output 4 Description" : "" : "Sets the description of Wire Output 4."
+
+
+	output5_name(string) : "Wire Output 5 Name" : "" : "Sets the name of Wire Output 5."
+	output5_type(choices) : "Wire Output 5 Type" : 0 : "Sets the type of Wire Output 5." =
+	[
+		0 : "Normal"
+		1 : "Normal (Toggle)"
+		2 : "String"
+		3 : "2D Vector"
+		4 : "3D Vector"
+		5 : "4D Vector"
+		6 : "Angle"
+		7 : "Entity"
+		8 : "Array"
+	]
+	output5_desc(string) : "Wire Output 5 Description" : "" : "Sets the description of Wire Output 5."
+
+
+	output6_name(string) : "Wire Output 6 Name" : "" : "Sets the name of Wire Output 6."
+	output6_type(choices) : "Wire Output 6 Type" : 0 : "Sets the type of Wire Output 6." =
+	[
+		0 : "Normal"
+		1 : "Normal (Toggle)"
+		2 : "String"
+		3 : "2D Vector"
+		4 : "3D Vector"
+		5 : "4D Vector"
+		6 : "Angle"
+		7 : "Entity"
+		8 : "Array"
+	]
+	output6_desc(string) : "Wire Output 6 Description" : "" : "Sets the description of Wire Output 6."
+
+
+	output7_name(string) : "Wire Output 7 Name" : "" : "Sets the name of Wire Output 7."
+	output7_type(choices) : "Wire Output 7 Type" : 0 : "Sets the type of Wire Output 7." =
+	[
+		0 : "Normal"
+		1 : "Normal (Toggle)"
+		2 : "String"
+		3 : "2D Vector"
+		4 : "3D Vector"
+		5 : "4D Vector"
+		6 : "Angle"
+		7 : "Entity"
+		8 : "Array"
+	]
+	output7_desc(string) : "Wire Output 7 Description" : "" : "Sets the description of Wire Output 7."
+
+
+	output8_name(string) : "Wire Output 8 Name" : "" : "Sets the name of Wire Output 8."
+	output8_type(choices) : "Wire Output 8 Type" : 0 : "Sets the type of Wire Output 8." =
+	[
+		0 : "Normal"
+		1 : "Normal (Toggle)"
+		2 : "String"
+		3 : "2D Vector"
+		4 : "3D Vector"
+		5 : "4D Vector"
+		6 : "Angle"
+		7 : "Entity"
+		8 : "Array"
+	]
+	output8_desc(string) : "Wire Output 8 Description" : "" : "Sets the description of Wire Output 8."
+
+
+
+	// Entity Outputs
+	output OnWireInput1(string) : "Fires when Wire Input 1 gets triggered."
+	output OnWireInput2(string) : "Fires when Wire Input 2 gets triggered."
+	output OnWireInput3(string) : "Fires when Wire Input 3 gets triggered."
+	output OnWireInput4(string) : "Fires when Wire Input 4 gets triggered."
+	output OnWireInput5(string) : "Fires when Wire Input 5 gets triggered."
+	output OnWireInput6(string) : "Fires when Wire Input 6 gets triggered."
+	output OnWireInput7(string) : "Fires when Wire Input 7 gets triggered."
+	output OnWireInput8(string) : "Fires when Wire Input 8 gets triggered."
+
+	output OnResetWireInput1(void) : "Fires when Wire Input 1 gets reset."
+	output OnResetWireInput2(void) : "Fires when Wire Input 2 gets reset."
+	output OnResetWireInput3(void) : "Fires when Wire Input 3 gets reset."
+	output OnResetWireInput4(void) : "Fires when Wire Input 4 gets reset."
+	output OnResetWireInput5(void) : "Fires when Wire Input 5 gets reset."
+	output OnResetWireInput6(void) : "Fires when Wire Input 6 gets reset."
+	output OnResetWireInput7(void) : "Fires when Wire Input 7 gets reset."
+	output OnResetWireInput8(void) : "Fires when Wire Input 8 gets reset."
+
+	output OnWireEntsCreated(void) : "Fires when Wire In-/Outputs entities have been created. The entity is ready to use."
+	output OnWireEntsRemoved(void) : "Fires when Wire In-/Outputs entities have been removed. The entity is ready to use."
+	output OnWireEntsReady(void) : "Fires when Wire In-/Outputs entities have been created or removed. The entity is ready to use."
+
+	output OnWireEntsStartChanging(void) : "Fires when the wire map interface entity is adding or removing Wire In-/Outputs entities. The entity can't be used yet."
+
+
+	// Entity Inputs
+	input TriggerWireOutput1(string) : "Sets Wire Output 1 to the given var."
+	input TriggerWireOutput2(string) : "Sets Wire Output 2 to the given var."
+	input TriggerWireOutput3(string) : "Sets Wire Output 3 to the given var."
+	input TriggerWireOutput4(string) : "Sets Wire Output 4 to the given var."
+	input TriggerWireOutput5(string) : "Sets Wire Output 5 to the given var."
+	input TriggerWireOutput6(string) : "Sets Wire Output 6 to the given var."
+	input TriggerWireOutput7(string) : "Sets Wire Output 7 to the given var."
+	input TriggerWireOutput8(string) : "Sets Wire Output 8 to the given var."
+
+	input AddEntity(void) : "Gives the wire ports to calling entity."
+	input RemoveEntity(void) : "Remove the wire ports from the calling entity."
+
+	input AddEntities(target_destination) : "Adds entities by name that will get wire ports."
+	input RemoveEntities(target_destination) : "Remove the wire ports from the named entities."
+	input RemoveAllEntities(void) : "Remove the wire ports from all entities."
+
+	input Activate(void) : "Allow the triggering from wire inputs and the updating of wire outputs."
+	input Deactivate(void) : "Disallow the triggering from wire inputs and the updating of wire outputs."
+	input Toggle(void) : "Toggle the status."
+
+	
+	// Spawnflags
+	spawnflags(flags) =
+	[
+		1 : "Protect in-/output entities from non-wire tools (Useful to allow wire tools on already protected stuff)" : 0
+		2 : "Protect in-/output entities from the physgun" : 0
+		4 : "Remove in-/output entities on remove" : 1
+		8 : "Run given Lua codes (For advanced users!)" : 0
+		16 : "Start Active" : 1
+		32 : "Render Wires" : 1
+	]
+]

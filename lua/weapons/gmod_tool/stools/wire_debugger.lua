@@ -18,16 +18,16 @@ TOOL.ClientConVar[ "orientvertical" ] = "1"
 local Components = {}
 
 local function IsWire(entity) --try to find out if the entity is wire
-	if entity.IsWire == true then return true end --this shold always be true if the ent is wire compatible, but only is if the base of the entity is "base_wire_entity" THIS NEEDS TO BE FIXED
-	if entity.Inputs or entity.Outputs then return true end --this is how the wire STool gun does it
+	if (WireLib.HasPorts(entity)) then return true end
+	--if entity.IsWire == true then return true end --this shold always be true if the ent is wire compatible, but only is if the base of the entity is "base_wire_entity" THIS NEEDS TO BE FIXED <-- CHALLENGE ACCEPTED! -Grocel
+	--if entity.Inputs or entity.Outputs then return true end --this is how the wire STool gun does it
 	return false
 end
 
 function TOOL:LeftClick(trace)
-	if (not trace.Entity:IsValid()) then return end
+	if (!trace.Entity:IsValid()) then return end
+	if (!IsWire(trace.Entity)) then return end
 	if (CLIENT) then return true end
-
-	if(!IsWire(trace.Entity)) then return end
 
 	ply_idx = self:GetOwner()
 	Components[ply_idx] = Components[ply_idx] or {}
@@ -43,10 +43,9 @@ end
 
 
 function TOOL:RightClick(trace)
-	if (not trace.Entity:IsValid()) then return end
+	if (!trace.Entity:IsValid()) then return end
+	if (!IsWire(trace.Entity)) then return end
 	if (CLIENT) then return true end
-
-	if(!IsWire(trace.Entity)) then return end
 
 	ply_idx = self:GetOwner()
 	if not Components[ply_idx] then return end
@@ -322,7 +321,7 @@ if (SERVER) then
 				OrientVertical = ply:GetInfoNum("wire_debugger_orientvertical") ~= 0
 
 				-- TODO: Add EntityRemoved hook to clean up Components array.
-				table.Compact(cmps, function(cmp) return cmp:IsValid() end)
+				table.Compact(cmps, function(cmp) return cmp:IsValid() and IsWire(cmp) end)
 
 				-- TODO: only send in TOOL:*Click/Reload hooks maybe.
 				umsg.Start("WireDbgLineCount", ply)

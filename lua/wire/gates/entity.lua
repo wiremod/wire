@@ -308,7 +308,7 @@ GateActions["entity_wor2loc"] = {
 }
 
 GateActions["entity_loc2wor"] = {
-	name = "Local To World",
+	name = "Local To World (Vector)",
 	inputs = { "Ent" , "Vec" },
 	inputtypes = { "ENTITY" , "VECTOR" },
 	outputtypes = { "VECTOR" },
@@ -317,12 +317,26 @@ GateActions["entity_loc2wor"] = {
 		if Ent:IsValid() and IsVector(Vec) then return Ent:LocalToWorld(Vec) else return Vector(0,0,0) end
 	end,
 	label = function(Out)
-		return string.format ("Local To World = (%f , %f , %f)", Out.x , Out.y , Out.z )
+		return string.format ("Local To World Vector = (%f , %f , %f)", Out.x , Out.y , Out.z )
+	end
+}
+
+GateActions["entity_wor2loc"] = {
+	name = "World To Local (Vector)",
+	inputs = { "Ent" , "Vec" },
+	inputtypes = { "ENTITY" , "VECTOR" },
+	outputtypes = { "VECTOR" },
+	timed = true,
+	output = function(gate, Ent , Vec )
+		if Ent:IsValid() and IsVector(Vec) then return Ent:WorldToLocal(Vec) else return Vector(0,0,0) end
+	end,
+	label = function(Out)
+		return string.format ("World To Local Vector = (%f , %f , %f)", Out.x , Out.y , Out.z )
 	end
 }
 
 GateActions["entity_loc2worang"] = {
-	name = "World To Local (angle)",
+	name = "Local To World (Angle)",
 	inputs = { "Ent" , "Ang" },
 	inputtypes = { "ENTITY" , "ANGLE" },
 	outputtypes = { "ANGLE" },
@@ -331,7 +345,21 @@ GateActions["entity_loc2worang"] = {
 		if Ent:IsValid() and Ang then return Ent:LocalToWorldAngles(Ang) else return Angle(0,0,0) end
 	end,
 	label = function(Out)
-		return string.format ("localToWorld = (%d,%d,%d)", Out.p , Out.y , Out.r )
+		return string.format ("Local To World Angles = (%d,%d,%d)", Out.p , Out.y , Out.r )
+	end
+}
+
+GateActions["entity_wor2locang"] = {
+	name = "World To Local (Angle)",
+	inputs = { "Ent" , "Ang" },
+	inputtypes = { "ENTITY" , "ANGLE" },
+	outputtypes = { "ANGLE" },
+	timed = true,
+	output = function(gate, Ent , Ang )
+		if Ent:IsValid() and Ang then return Ent:WorldToLocalAngles(Ang) else return Angle(0,0,0) end
+	end,
+	label = function(Out)
+		return string.format ("World To Local Angles = (%d,%d,%d)", Out.p , Out.y , Out.r )
 	end
 }
 

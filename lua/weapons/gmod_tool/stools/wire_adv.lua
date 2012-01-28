@@ -95,6 +95,8 @@ if SERVER then
 			local source = Entity(tonumber(entid))
 			if not source:IsValid() then return end
 			if not gamemode.Call("CanTool", self:GetOwner(), WireLib.dummytrace(source), "wire_adv") then return end
+			if not WireLib.HasPorts(self.target) then return end
+			if not self.target.Inputs then return end
 
 			local outputs = source.Outputs
 			local input_type = self.target.Inputs[self.input].Type
@@ -479,7 +481,11 @@ elseif CLIENT then
 	function TOOL:ReloadB(trace)
 		if self:GetStage() == 0 then
 			if not self.ports then return end
-			RunConsoleCommand("wire_adv", "c", trace.Entity:EntIndex(), self.ports[self.port][1])
+
+			local port = self.ports[self.port]
+			if not port then return end
+
+			RunConsoleCommand("wire_adv", "c", trace.Entity:EntIndex(), port[1])
 			return true
 		end
 	end

@@ -4,7 +4,26 @@
 
 WireLib = WireLib or {}
 
+local pairs = pairs
+local setmetatable = setmetatable
+local rawget = rawget
+local next = next
+local IsValid = IsValid
+local LocalPlayer = LocalPlayer
+local Entity = Entity
+
+local string = string
+local hook = hook
+local usermessage = usermessage
+local umsg = umsg
+
+
 -- extra table functions
+
+-- Checks if the table is empty, it's faster than table.Count(Table) > 0
+function table.IsEmpty(Table)
+	return (next(Table) ~= nil)
+end
 
 -- Compacts an array by rejecting entries according to cb.
 function table.Compact(tbl, cb, n)
@@ -97,6 +116,12 @@ function pairs_map(tbl, mapfunction)
 end
 
 -- end extra table functions
+
+local table = table
+local pairs_sortkeys = pairs_sortkeys
+local pairs_sortvalues = pairs_sortvalues
+local ipairs_map = ipairs_map
+local pairs_map = pairs_map
 
 --------------------------------------------------------------------------------
 
@@ -334,19 +359,20 @@ end
 	self:umsg() -- you can pass a Player or a RecipientFilter here to only send to some clients.
 		umsg.Whatever(whatever)
 	umsg.End()
+
+	To unregister: WireLib.umsgUnRegister(self)
 ]]
 if SERVER then
-
 	local registered_ents = {}
 
 	hook.Add("EntityRemoved", "wire_umsg", function(ent)
-		if not ent:IsValid() then return end
+		if not IsValid(ent) then return end
 		if ent:IsPlayer() then
 			for e,_ in pairs(registered_ents) do
 				if e.wire_umsg_rp then e.wire_umsg_rp:RemovePlayer(ent) end
 			end
 		else
-			registered_ents[ent] = nil
+			WireLib.umsgUnRegister(ent)
 		end
 	end)
 
@@ -365,24 +391,27 @@ if SERVER then
 		self.wire_umsg_rp = RecipientFilter()
 	end
 
+	function WireLib.umsgUnRegister(self)
+		registered_ents[self] = nil
+		self.umsg = nil
+		self.wire_umsg_rp = nil
+	end
+
 	concommand.Add("wire_umsg", function(ply, cmd, args)
 		local self = Entity(tonumber(args[1]))
-		if !self:IsValid() or !self.wire_umsg_rp then return end
+		if !IsValid(self) or !self.wire_umsg_rp then return end
 		self.wire_umsg_rp:AddPlayer(ply)
 		self:Retransmit(ply)
 	end)
-
 elseif CLIENT then
-
 	function WireLib.umsgRegister(self)
 		RunConsoleCommand("wire_umsg", self:EntIndex())
 	end
 
 	usermessage.Hook("wire_umsg", function(um)
 		local self = Entity(um:ReadShort())
-		if self:IsValid() and self.Receive then self:Receive(um) end
+		if IsValid(self) and self.Receive then self:Receive(um) end
 	end)
-
 end
 
 --[[ wire_ports: client-side input/output names/types/descs
@@ -399,6 +428,21 @@ end
 				abs(amount)*3 strings describing name, type, desc
 ]]
 
+-- Checks if the entity has wire ports.
+-- Works for every entity that has wire in-/output.
+-- Very important and useful for checks!
+function WireLib.HasPorts(ent)
+	if (ent.IsWire) then return true end
+	if (ent.Base == "base_wire_entity") then return true end
+
+	-- Checks if the entity is in the list, it checks if the entity has self.in-/outputs too.
+	local In, Out = WireLib.GetPorts(ent)
+	if (In and (ent.Inputs or CLIENT)) then return true end
+	if (Out and (ent.Outputs or CLIENT)) then return true end
+
+	return false
+end
+
 if SERVER then
 	local INPUT,OUTPUT = 1,-1
 	local DELETE,PORT,LINK = 1,2,3
@@ -410,24 +454,34 @@ if SERVER then
 	local queue = WireLib.containers.deque:new()
 	local rp = RecipientFilter()
 
-	hook.Add("EntityRemoved", "wire_ports", function(ent)
-		if not ent:IsValid() then return end
-		if ent:IsPlayer() then
-			rp:RemovePlayer(ent)
-		else
-			local eid = ent:EntIndex()
-			local hasinputs, hasoutputs = ents_with_inputs[eid], ents_with_outputs[eid]
-			if hasinputs or hasoutputs then
-				ents_with_inputs[eid] = nil
-				ents_with_outputs[eid] = nil
+	function WireLib.GetPorts(ent)
+		local eid = ent:EntIndex()
+		return ents_with_inputs[eid], ents_with_outputs[eid]
+	end
+
+	function WireLib._RemoveWire(eid, DontSend) -- To remove the inputs without to remove the entity. Very important for IsWire checks!
+		local hasinputs, hasoutputs = ents_with_inputs[eid], ents_with_outputs[eid]
+		if hasinputs or hasoutputs then
+			ents_with_inputs[eid] = nil
+			ents_with_outputs[eid] = nil
+			if not DontSend then
 				umsg.Start("wire_ports", rp)
 					umsg.Char(-3) -- set eid
-					umsg.Short(eid)
-					if hasinputs then umsg.Char(-1) end
-					if hasoutputs then umsg.Char(-2) end
+					umsg.Short(eid) -- entity id
+					if hasinputs then umsg.Char(-1) end -- delete inputs
+					if hasoutputs then umsg.Char(-2) end -- delete outputs
 					umsg.Char(0) -- break
 				umsg.End()
 			end
+		end
+	end
+
+	hook.Add("EntityRemoved", "wire_ports", function(ent)
+		if not IsValid(ent) then return end
+		if ent:IsPlayer() then
+			rp:RemovePlayer(ent)
+		else
+			WireLib._RemoveWire(ent:EntIndex())
 		end
 	end)
 
@@ -644,6 +698,11 @@ elseif CLIENT then
 		return ents_with_inputs[eid], ents_with_outputs[eid]
 	end
 
+	function WireLib._RemoveWire(eid) -- To remove the inputs without to remove the entity.
+		ents_with_inputs[eid] = nil
+		ents_with_outputs[eid] = nil
+	end
+
 	local flag = false
 	function WireLib.TestPorts()
 		flag = not flag
@@ -652,7 +711,7 @@ elseif CLIENT then
 			hook.Add("HUDPaint", "wire_ports_test", function()
 				local ent = LocalPlayer():GetEyeTraceNoCursor().Entity
 				--if not ent:IsValid() then return end
-				local eid = ent:IsValid() and ent:EntIndex() or lasteid
+				local eid = IsValid(ent) and ent:EntIndex() or lasteid
 				lasteid = eid
 
 				local text = "ID "..eid.."\nInputs:\n"

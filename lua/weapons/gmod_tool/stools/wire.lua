@@ -1,4 +1,4 @@
-if VERSION < 94 then -- Gmod version check
+if VERSION < 129 then -- Gmod version check
 	TOOL.Mode			= "wire"
 	TOOL.Category		= "Wire - Tools"
 	TOOL.Name			= "Wire"
@@ -76,7 +76,7 @@ function TOOL:LeftClick( trace )
 			return true
 		end
 
-		if (not trace.Entity.Outputs) then
+		if (!WireLib.HasPorts(trace.Entity) or !trace.Entity.Outputs) then
 			self:SetStage(0)
 
 			Wire_Link_Cancel(self:GetOwner():UniqueID())
@@ -182,7 +182,7 @@ function TOOL:RightClick( trace )
 			if (self.CurrentInput) then self.LastValidInput = self.CurrentInput end
 
 			local txt = ""
-			if (self.CurrentComponent) and (self.CurrentComponent:IsValid()) and (self.CurrentInput)
+			if (IsValid(self.CurrentComponent)) and (WireLib.HasPorts(self.CurrentComponent)) and (self.CurrentInput)
 			  and (self.CurrentComponent.Inputs) and (self.CurrentComponent.Inputs[self.CurrentInput])
 			  and (self.CurrentComponent.Inputs[self.CurrentInput].Src) then
 				txt = "%"..(self.CurrentInput or "")
@@ -199,7 +199,7 @@ function TOOL:RightClick( trace )
 			self:GetWeapon():SetNetworkedString("WireCurrentInput", txt)
 
 
-			if (self.CurrentComponent) and (self.CurrentComponent:IsValid()) then
+			if (IsValid(self.CurrentComponent)) then
 				self.CurrentComponent:SetNetworkedBeamString("BlinkWire", self.CurrentInput)
 			end
 		end
@@ -241,7 +241,7 @@ function TOOL:Reload(trace)
 	if (CLIENT) then return true end
 
 	if (self:GetStage() == 0) then
-		if (not self.CurrentComponent) or (not self.CurrentComponent:IsValid()) then return end
+		if (not IsValid(self.CurrentComponent)) then return end
 		if (not self.CurrentInput) or (self.CurrentInput == "") then return end
 
 		Wire_Link_Clear(self.CurrentComponent, self.CurrentInput)
@@ -353,7 +353,7 @@ function TOOL:SelectComponent(ent)
 
 	if (self.CurrentComponent == ent) then return end
 
-	if (self.CurrentComponent) and (self.CurrentComponent:IsValid()) then
+	if (IsValid(self.CurrentComponent)) then
  	    self.CurrentComponent:SetNetworkedBeamString("BlinkWire", "")
 	end
 
@@ -389,7 +389,7 @@ function TOOL:SelectComponent(ent)
 	if (self.CurrentInput) and (self.CurrentInput ~= "") then self.LastValidInput = self.CurrentInput end
 
 	local txt = ""
-	if (self.CurrentComponent) and (self.CurrentComponent:IsValid()) and (self.CurrentInput)
+	if (IsValid(self.CurrentComponent)) and (WireLib.HasPorts(self.CurrentComponent)) and (self.CurrentInput)
 	  and (self.CurrentComponent.Inputs) and (self.CurrentComponent.Inputs[self.CurrentInput])
 	  and (self.CurrentComponent.Inputs[self.CurrentInput].Src) then
 		txt = "%"..(self.CurrentInput or "")
@@ -405,7 +405,7 @@ function TOOL:SelectComponent(ent)
 	end
 	self:GetWeapon():SetNetworkedString("WireCurrentInput", txt)
 
-	if (self.CurrentComponent) and (self.CurrentComponent:IsValid()) then
+	if (IsValid(self.CurrentComponent)) then
 		self.CurrentComponent:SetNetworkedBeamString("BlinkWire", self.CurrentInput)
 	end
 end
