@@ -22,7 +22,7 @@ local umsg = umsg
 
 -- Checks if the table is empty, it's faster than table.Count(Table) > 0
 function table.IsEmpty(Table)
-	return (next(Table) ~= nil)
+	return (next(Table) == nil)
 end
 
 -- Compacts an array by rejecting entries according to cb.
