@@ -150,6 +150,8 @@ function Tokenizer:NextSymbol()
 			tokenname = "eif"
 		elseif self.tokendata == "else" then
 			tokenname = "els"
+		elseif self.tokendata == "local" then
+			tokenname = "loc"
 		elseif self.tokendata == "while" then
 			tokenname = "whl"
 		elseif self.tokendata == "for" then
@@ -158,6 +160,12 @@ function Tokenizer:NextSymbol()
 			tokenname = "brk"
 		elseif self.tokendata == "continue" then
 			tokenname = "cnt"
+		elseif self.tokendata == "switch" then //Shhh this is a secret. Do not tell anybody about this, Rusketh!
+			tokenname = "swh"
+		elseif self.tokendata == "case" then
+			tokenname = "case"
+		elseif self.tokendata == "default" then
+			tokenname = "default"
 		elseif self.tokendata == "foreach" then
 			tokenname = "fea"
 		elseif self.tokendata == "function" then

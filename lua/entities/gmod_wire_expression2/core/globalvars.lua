@@ -25,9 +25,13 @@ registerType( "gtable", "xgt", {},
 
 __e2setcost(1)
 
-e2function gtable operator=(gtable lhs, gtable rhs)
-	--return rhs
-	local lookup = self.data.lookup
+registerOperator("ass", "xgt", "xgt", function(self, args)
+	local lhs, op2, scope = args[2], args[3], args[4]
+	local      rhs = op2[1](self, op2)
+
+	local Scope = self.Scopes[scope]
+	if !Scope.lookup then Scope.lookup = {} end
+	local lookup = Scope.lookup
 
 	-- remove old lookup entry
 	if lookup[rhs] then lookup[rhs][lhs] = nil end
@@ -40,19 +44,16 @@ e2function gtable operator=(gtable lhs, gtable rhs)
 	end
 	lookup_entry[lhs] = true
 
-	self.vars[lhs] = rhs
+	Scope.vars[lhs] = rhs
 	--self.vclk[lhs] = true
 	return rhs
-end
+end)
 
 registerOperator("fea","xgt","s",function(self,args)
 	local keyname,valname,valtypeid = args[2],args[3],args[4]
 	local tbl = args[5]
 	tbl = tbl[1](self,tbl)
 	local statement = args[6]
-
-	self.vclk[keyname] = true
-	self.vclk[valname] = true
 
 	local len = valtypeid:len()
 
@@ -66,12 +67,16 @@ registerOperator("fea","xgt","s",function(self,args)
 	end
 
 	for i=1,count do
+		self:PushScope()
 		local key = keys[i]
 		if tbl[key] ~= nil then
 			self.prf = self.prf + 3
 
-			self.vars[keyname] = key:sub(len+1)
-			self.vars[valname] = tbl[key]
+			self.Scope.vclk[keyname] = true
+			self.Scope.vclk[valname] = true
+
+			self.Scope[keyname] = key:sub(len+1)
+			self.Scope[valname] = tbl[key]
 
 			local ok, msg = pcall(statement[1], self, statement)
 			if not ok then
@@ -79,6 +84,7 @@ registerOperator("fea","xgt","s",function(self,args)
 				elseif msg ~= "continue" then error(msg, 0) end
 			end
 		end
+		self:PopScope()
 	end
 end)
 

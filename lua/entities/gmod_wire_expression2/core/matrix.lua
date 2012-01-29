@@ -89,10 +89,10 @@ end
 /******************************************************************************/
 
 registerOperator("ass", "xm2", "xm2", function(self, args)
-	local op1, op2 = args[2], args[3]
+	local op1, op2, scope = args[2], args[3], args[4]
 	local      rv2 = op2[1](self, op2)
-	self.vars[op1] = rv2
-	self.vclk[op1] = true
+	self.Scopes[scope][op1] = rv2
+	self.Scopes[scope].vclk[op1] = true
 	return rv2
 end)
 
@@ -127,8 +127,8 @@ end
 // Basic operations
 
 registerOperator("dlt", "xm2", "xm2", function(self, args)
-	local op1 = args[2]
-	local rv1, rv2 = self.vars[op1], self.vars["$" .. op1]
+	local op1, scope = args[2], args[3]
+	local rv1, rv2 = self.Scopes[scope][op1], self.Scopes[scope]["$" .. op1]
 	return { rv1[1] - rv2[1], rv1[2] - rv2[2],
 			 rv1[3] - rv2[3], rv1[4] - rv2[4] }
 end)
@@ -474,10 +474,10 @@ end
 /******************************************************************************/
 
 registerOperator("ass", "m", "m", function(self, args)
-	local op1, op2 = args[2], args[3]
+	local op1, op2, scope = args[2], args[3], args[4]
 	local      rv2 = op2[1](self, op2)
-	self.vars[op1] = rv2
-	self.vclk[op1] = true
+	self.Scopes[scope][op1] = rv2
+	self.Scopes[scope].vclk[op1] = true
 	return rv2
 end)
 
@@ -527,8 +527,8 @@ end
 // Basic operations
 
 registerOperator("dlt", "m", "m", function(self, args)
-	local op1 = args[2]
-	local rv1, rv2 = self.vars[op1], self.vars["$" .. op1]
+	local op1, scope = args[2], args[3]
+	local rv1, rv2 = self.Scopes[scope][op1], self.Scopes[scope]["$" .. op1]
 	return { rv1[1] - rv2[1], rv1[2] - rv2[2], rv1[3] - rv2[3],
 			 rv1[4] - rv2[4], rv1[5] - rv2[5], rv1[6] - rv2[6],
 			 rv1[7] - rv2[7], rv1[8] - rv2[8], rv1[9] - rv2[9]	}
@@ -1018,10 +1018,10 @@ end
 /******************************************************************************/
 
 registerOperator("ass", "xm4", "xm4", function(self, args)
-	local op1, op2 = args[2], args[3]
+	local op1, op2, scope = args[2], args[3], args[4]
 	local      rv2 = op2[1](self, op2)
-	self.vars[op1] = rv2
-	self.vclk[op1] = true
+	self.Scopes[scope][op1] = rv2
+	self.Scopes[scope].vclk[op1] = true
 	return rv2
 end)
 
@@ -1092,8 +1092,8 @@ end
 // Basic operations
 
 registerOperator("dlt", "xm4", "xm4", function(self, args)
-	local op1 = args[2]
-	local rv1, rv2 = self.vars[op1], self.vars["$" .. op1]
+	local op1, scope = args[2], args[3]
+	local rv1, rv2 = self.Scopes[scope][op1], self.Scopes[scope]["$" .. op1]
 	return { rv1[1] - rv2[1],	rv1[2] - rv2[2],	rv1[3] - rv2[3],	rv1[4] - rv2[4],
 			 rv1[5] - rv2[5],	rv1[6] - rv2[6],	rv1[7] - rv2[7],	rv1[8] - rv2[8],
 			 rv1[9] - rv2[9],	rv1[10] - rv2[10],	rv1[11] - rv2[11],	rv1[12] - rv2[12],

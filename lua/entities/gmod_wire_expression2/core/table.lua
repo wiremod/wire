@@ -232,7 +232,10 @@ end
 
 __e2setcost(5)
 
-e2function table operator=(table lhs, table rhs)
+registerOperator("ass", "t", "t", function(self, args)
+	local lhs, op2, scope = args[2], args[3], args[4]
+	local      rhs = op2[1](self, op2)
+
 	if (checkdepth( rhs, 0, false ) > maxdepth()) then
 		self.prf = self.prf + 500
 		return table.Copy(DEFAULT)
@@ -242,21 +245,18 @@ e2function table operator=(table lhs, table rhs)
 		return table.Copy(DEFAULT)
 	end
 
-	local lookup = self.data.lookup
+	local Scope = self.Scopes[scope]
+	if !Scope.lookup then Scope.lookup = {} end
 
-	-- remove old lookup entry
+	local lookup = Scope.lookup
 	if (lookup[rhs]) then lookup[rhs][lhs] = nil end
-
-	-- add new
-	if (!lookup[rhs]) then
-		lookup[rhs] = {}
-	end
+	if (!lookup[rhs]) then lookup[rhs] = {} end
 	lookup[rhs][lhs] = true
 
-	self.vars[lhs] = rhs
-	self.vclk[lhs] = true
+	Scope[lhs] = rhs
+	Scope.vclk[lhs] = true
 	return rhs
-end
+end)
 
 __e2setcost(1)
 
@@ -276,9 +276,6 @@ registerOperator("fea","t","s",function(self,args)
 	tbl = tbl[1](self,tbl)
 	local statement = args[6]
 
-	self.vclk[keyname] = true
-	self.vclk[valname] = true
-
 	local keys = {}
 	local count = 0
 	for key,_ in pairs(tbl.s) do
@@ -289,12 +286,16 @@ registerOperator("fea","t","s",function(self,args)
 	end
 
 	for i=1, count do
+		self:PushScope()
 		local key = keys[i]
 		if tbl.s[key] ~= nil then
 			self.prf = self.prf + 3
 
-			self.vars[keyname] = key
-			self.vars[valname] = tbl.s[key]
+			self.Scope.vclk[keyname] = true
+			self.Scope.vclk[valname] = true
+
+			self.Scope[keyname] = key
+			self.Scope[valname] = tbl.s[key]
 
 			local ok, msg = pcall(statement[1], self, statement)
 			if not ok then
@@ -302,6 +303,7 @@ registerOperator("fea","t","s",function(self,args)
 				elseif msg ~= "continue" then error(msg, 0) end
 			end
 		end
+		self:PopScope()
 	end
 end)
 
@@ -1048,7 +1050,7 @@ registerCallback( "postinit", function()
 
 		-- Setters
 		registerOperator("idx", id.."=ts"..id , id, function( self, args )
-			local op1, op2, op3 = args[2], args[3], args[4]
+			local op1, op2, op3, scope = args[2], args[3], args[4], args[5]
 			local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
 			if (id == "t") then
 				rv3.depth = rv1.depth + 1
@@ -1065,12 +1067,12 @@ registerCallback( "postinit", function()
 			end
 			rv1.s[rv2] = rv3
 			rv1.stypes[rv2] = id
-			self.vclk[rv1] = true
+			self.Scopes[scope].vclk[rv1] = true
 			return rv3
 		end)
 
 		registerOperator("idx", id.."=tn"..id, id, function(self,args)
-			local op1, op2, op3 = args[2], args[3], args[4]
+			local op1, op2, op3, scope = args[2], args[3], args[4], args[5]
 			local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
 			if (id == "t") then
 				rv3.depth = rv1.depth + 1
@@ -1084,7 +1086,7 @@ registerCallback( "postinit", function()
 			if (rv1.size > maxsize()) then return fixdef(v[2]) end
 			rv1.n[rv2] = rv3
 			rv1.ntypes[rv2] = id
-			self.vclk[rv1] = true
+			self.Scopes[scope].vclk[rv1] = true
 			return rv3
 		end)
 
@@ -1222,7 +1224,8 @@ end)
 
 -- these postexecute and construct hooks handle changes to both tables and arrays.
 registerCallback("postexecute", function(self)
-	local vars, vclk, lookup = self.vars, self.vclk, self.data.lookup
+	local Scope = self.GlobalScope
+	local vclk, lookup = Scope.vclk, Scope.lookup
 
 	-- Go through all registered values of the types table and array.
 	for value,varnames in pairs(lookup) do
@@ -1231,7 +1234,7 @@ registerCallback("postexecute", function(self)
 		local still_assigned = false
 		-- For each value, go through the variables they're assigned to and trigger them.
 		for varname,_ in pairs(varnames) do
-			if value == vars[varname] then
+			if value == Scope[varname] then
 				-- The value is still assigned to the variable? => trigger it.
 				if clk then vclk[varname] = true end
 				still_assigned = true
@@ -1256,13 +1259,16 @@ local tbls = {
 }
 
 registerCallback("construct", function(self)
-	self.data.lookup = {}
+	local Scope = self.GlobalScope
+	Scope.lookup = {}
 
-	for k,v in pairs( self.vars ) do
-		local datatype = self.entity.outports[3][k]
-		if (tbls[datatype]) then
-			if (!self.data.lookup[v]) then self.data.lookup[v] = {} end
-			self.data.lookup[v][k] = true
+	for k,v in pairs( Scope ) do
+		if k != "lookup" then
+			local datatype = self.entity.outports[3][k]
+			if (tbls[datatype]) then
+				if (!Scope.lookup[v]) then Scope.lookup[v] = {} end
+				Scope.lookup[v][k] = true
+			end
 		end
 	end
 end)

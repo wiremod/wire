@@ -117,11 +117,13 @@ registerType("wirelink", "xwl", nil,
 
 __e2setcost(2) -- temporary
 
-e2function wirelink operator=(wirelink lhs, wirelink rhs)
-	self.vars[lhs] = rhs
-	self.vclk[lhs] = true
+registerOperator("ass", "xwl", "xwl", function(self, args)
+	local lhs, op2, scope = args[2], args[3], args[4]
+	local      rhs = op2[1](self, op2)
+	self.Scopes[scope][lhs] = rhs
+	self.Scopes[scope].vclk[lhs] = true
 	return rhs
-end
+end)
 
 /******************************************************************************/
 

@@ -27,10 +27,10 @@ registerType("string", "s", "",
 __e2setcost(3) -- temporary
 
 registerOperator("ass", "s", "s", function(self, args)
-	local op1, op2 = args[2], args[3]
+	local op1, op2, scope = args[2], args[3], args[4]
 	local      rv2 = op2[1](self, op2)
-	self.vars[op1] = rv2
-	self.vclk[op1] = true
+	self.Scopes[scope][op1] = rv2
+	self.Scopes[scope].vclk[op1] = true
 	return rv2
 end)
 

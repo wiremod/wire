@@ -59,10 +59,10 @@ end)
 /******************************************************************************/
 
 registerOperator("ass", "xv2", "xv2", function(self, args)
-	local op1, op2 = args[2], args[3]
+	local op1, op2, scope = args[2], args[3], args[4]
 	local      rv2 = op2[1](self, op2)
-	self.vars[op1] = rv2
-	self.vclk[op1] = true
+	self.Scopes[scope][op1] = rv2
+	self.Scopes[scope].vclk[op1] = true
 	return rv2
 end)
 
@@ -95,8 +95,8 @@ end)
 /******************************************************************************/
 
 registerOperator("dlt", "xv2", "xv2", function(self, args)
-	local op1 = args[2]
-	local rv1, rv2 = self.vars[op1], self.vars["$" .. op1]
+	local op1, scope = args[2], args[3]
+	local rv1, rv2 = self.Scopes[scope][op1], self.Scopes[scope]["$" .. op1]
 	return { rv1[1] - rv2[1], rv1[2] - rv2[2] }
 end)
 
@@ -596,10 +596,10 @@ end)
 /******************************************************************************/
 
 registerOperator("ass", "xv4", "xv4", function(self, args)
-	local op1, op2 = args[2], args[3]
+	local op1, op2, scope = args[2], args[3], args[4]
 	local      rv2 = op2[1](self, op2)
-	self.vars[op1] = rv2
-	self.vclk[op1] = true
+	self.Scopes[scope][op1] = rv2
+	self.Scopes[scope].vclk[op1] = true
 	return rv2
 end)
 
@@ -638,8 +638,8 @@ end)
 /******************************************************************************/
 
 registerOperator("dlt", "xv4", "xv4", function(self, args)
-	local op1 = args[2]
-	local rv1, rv2 = self.vars[op1], self.vars["$" .. op1]
+	local op1, scope = args[2], args[3]
+	local rv1, rv2 = self.Scopes[scope][op1], self.Scopes[scope]["$" .. op1]
 	return { rv1[1] - rv2[1], rv1[2] - rv2[2], rv1[3] - rv2[3], rv1[4] - rv2[4] }
 end)
 

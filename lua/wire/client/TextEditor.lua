@@ -3115,6 +3115,7 @@ do -- E2 Syntax highlighting
 		["continue"] = { [true] = true },
 		//["function"] = { [true] = true },
 		["return"] = { [true] = true },
+		["local"]  = { [true] = true },
 	}
 
 	-- fallback for nonexistant entries:
@@ -3305,37 +3306,46 @@ do -- E2 Syntax highlighting
 				-- Color the bracket
 				addToken( "operator", self.tokendata )
 
-				local abort = false
-				while self.character and self.character ~= ")" do -- Loop until ending bracket
+				while self.character and self.character ~= ")" do -- Loop until the ending bracket
 					self.tokendata = ""
 
 					local spaces = self:SkipPattern( " *" )
 					if spaces then addToken( "comment", spaces ) end
 
-					if self:NextPattern( "[A-Z][a-zA-Z0-9_]*" ) then -- If we found a variable
+					if self:NextPattern( "%[" ) then -- Found a [
+						-- Color the bracket
+						addToken( "operator", self.tokendata )
+						self.tokendata = ""
+
+						while self:NextPattern( "[A-Z][a-zA-Z0-9_]*" ) do -- If we found a variable
+							addToken( "variable", self.tokendata )
+							self.tokendata = ""
+
+							local spaces = self:SkipPattern( " *" )
+							if spaces then addToken( "comment", spaces ) end
+						end
+
+						if self:NextPattern( "%]" ) then
+							addToken( "operator", "]" )
+							self.tokendata = ""
+						end
+					elseif self:NextPattern( "[A-Z][a-zA-Z0-9_]*" ) then -- If we found a variable
 						-- Color the variable
 						addToken( "variable", self.tokendata )
 						self.tokendata = ""
+					end
 
-						if self:NextPattern( ":" ) then -- Check for the colon
-							-- Color the colon
-							addToken( "operator", ":" )
-							self.tokendata = ""
-						else
-							abort = true
-							break
-						end
+					if self:NextPattern( ":" ) then -- Check for the colon
+						addToken( "operator", ":" )
+						self.tokendata = ""
+					end
 
-						-- Find the type
-						if self:NextPattern( "[a-z][a-zA-Z0-9_]*" ) then
-							if istype( self.tokendata ) or self.tokendata == "void" then -- If it's a type
-								addToken( "typename", self.tokendata )
-							else -- aww
-								addToken( "notfound", self.tokendata )
-							end
-						else
-							abort = true
-							break
+					-- Find the type
+					if self:NextPattern( "[a-z][a-zA-Z0-9_]*" ) then
+						if istype( self.tokendata ) or self.tokendata == "void" then -- If it's a type
+							addToken( "typename", self.tokendata )
+						else -- aww
+							addToken( "notfound", self.tokendata )
 						end
 					else
 						abort = true
@@ -3348,6 +3358,68 @@ do -- E2 Syntax highlighting
 					-- If we found a comma, skip it
 					if self.character == "," then addToken( "operator", "," ) self:NextCharacter() end
 				end
+
+				--[[
+				-- Color the bracket
+				addToken( "operator", self.tokendata )
+
+				while self.character and self.character ~= ")" do -- Loop until ending bracket
+					self.tokendata = ""
+
+					local spaces = self:SkipPattern( " *" )
+					if spaces then addToken( "comment", spaces ) end
+
+					if self:NextPattern( "%[" ) then -- We found a [
+						-- Color the bracket
+						addToken( "operator", self.tokendata )
+
+						while self.character and (self.character ~= "]" or self.character ~= ")") do
+							self.tokendata = ""
+							if self:NextPattern( "[A-Z][a-zA-Z0-9_]*" ) then -- If we found a variable
+								addToken( "variable", self.tokendata )
+								self.tokendata = ""
+							end
+						end
+					elseif self:NextPattern( "[A-Z][a-zA-Z0-9_]*" ) then -- If we found a variable
+						-- Color the variable
+						addToken( "variable", self.tokendata )
+						self.tokendata = ""
+					else
+						break
+					end
+
+					if self:NextPattern( "%]" ) then
+						addToken( "operator",self.tokendata )
+						self.tokendata = ""
+					end
+
+					if self:NextPattern( ":" ) then -- Check for the colon
+						-- Color the colon
+						addToken( "operator", ":" )
+						self.tokendata = ""
+					else
+						break
+					end
+
+					-- Find the type
+					if self:NextPattern( "[a-z][a-zA-Z0-9_]*" ) then
+						if istype( self.tokendata ) or self.tokendata == "void" then -- If it's a type
+							addToken( "typename", self.tokendata )
+						else -- aww
+							addToken( "notfound", self.tokendata )
+						end
+					else
+						abort = true
+						break
+					end
+
+					local spaces = self:SkipPattern( " *" )
+					if spaces then addToken( "comment", spaces ) end
+
+					-- If we found a comma, skip it
+					if self.character == "," then addToken( "operator", "," ) self:NextCharacter() end
+
+				end]]
 			end
 
 			self.tokendata = ""
