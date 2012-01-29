@@ -53,8 +53,8 @@ local function setOutput( self, args, Type )
 	local op1, op2 = args[2], args[3]
 	local rv1, rv2 = op1[1](self,op1), op2[1](self,op2)
 	if (self.entity.Outputs[rv1] and self.entity.Outputs[rv1].Type == Type) then
-		self.vars[rv1] = rv2
-		self.vclk[rv1] = true
+		self.GlobalScope[rv1] = rv2
+		self.GlobalScope.vclk[rv1] = true
 	end
 end
 
@@ -63,7 +63,7 @@ local function getInput( self, args, default, Type )
 	local rv1 = op1[1](self,op1)
 	if (type(default) == "table") then default = table.Copy(default) end
 	if (self.entity.Inputs[rv1] and self.entity.Inputs[rv1].Type == Type) then
-		return self.vars[rv1] or default
+		return self.GlobalScope[rv1] or default
 	end
 	return default
 end

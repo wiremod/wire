@@ -17,7 +17,9 @@ end)
 __e2setcost(2) -- approximation
 
 registerOperator("var", "", "", function(self, args)
-	return self.vars[args[2]]
+	local op1, scope = args[2], args[3]
+	local val = self.Scopes[scope][op1]
+	return val
 end)
 
 /******************************************************************************/
@@ -49,6 +51,7 @@ registerOperator("whl", "", "", function(self, args)
 
 	self.prf = self.prf + args[4] + 3
 	while op1[1](self, op1) != 0 do
+		self:PushScope()
 		local ok, msg = pcall(op2[1], self, op2)
 		if not ok then
 			if msg == "break" then break
@@ -56,6 +59,7 @@ registerOperator("whl", "", "", function(self, args)
 		end
 
 		self.prf = self.prf + args[4] + 3
+		self:PopScope()
 	end
 end)
 
@@ -67,9 +71,6 @@ registerOperator("for", "", "", function(self, args)
 	rend = op2[1](self, op2)
 	local rdiff = rend - rstart
 	local rdelta = delta
-
-	self.vars[var] = rstart
-	self.vclk[var] = true
 
 	if op3 then
 		rstep = op3[1](self, op3)
@@ -95,8 +96,9 @@ registerOperator("for", "", "", function(self, args)
 
 	self.prf = self.prf + 3
 	for I=rstart,rend+rdelta,rstep do
-		self.vars[var] = I
-		self.vclk[var] = true
+		self:PushScope()
+		self.Scope[var] = I
+		self.Scope.vclk[var] = true
 
 		local ok, msg = pcall(op4[1], self, op4)
 		if not ok then
@@ -105,7 +107,9 @@ registerOperator("for", "", "", function(self, args)
 		end
 
 		self.prf = self.prf + 3
+		self:PopScope()
 	end
+
 end)
 
 registerOperator("fea","r","n",function(self,args)
@@ -113,9 +117,6 @@ registerOperator("fea","r","n",function(self,args)
 	local tbl = args[5]
 	tbl = tbl[1](self,tbl)
 	local statement = args[6]
-
-	self.vclk[keyname] = true
-	self.vclk[valname] = true
 
 	local typechecker = wire_expression_types2[valtypeid][6]
 
@@ -129,12 +130,15 @@ registerOperator("fea","r","n",function(self,args)
 	end
 
 	for i=1,count do
+		self:PushScope()
 		local key = keys[i]
 		if tbl[key] ~= nil then
 			self.prf = self.prf + 3
 
-			self.vars[keyname] = key
-			self.vars[valname] = tbl[key]
+			self.Scope[keyname] = key
+			self.Scope[valname] = tbl[key]
+			self.Scope.vclk[keyname] = true
+			self.Scope.vclk[valname] = true
 
 			local ok, msg = pcall(statement[1], self, statement)
 			if not ok then
@@ -142,6 +146,7 @@ registerOperator("fea","r","n",function(self,args)
 				elseif msg ~= "continue" then error(msg, 0) end
 			end
 		end
+		self:PopScope()
 	end
 end)
 
@@ -162,14 +167,22 @@ __e2setcost(3) -- approximation
 registerOperator("if", "n", "", function(self, args)
 	local op1 = args[3]
 	self.prf = self.prf + args[2]
+
+	local IlikeTrains, result //Yes you do :D
+
 	if op1[1](self, op1) != 0 then
+		self:PushScope()
 		local op2 = args[4]
-		op2[1](self, op2)
-		return
+		IlikeTrains, result = pcall(op2[1],self, op2)
 	else
+		self:PushScope() -- for else statments, elseif staments will run the if opp again
 		local op3 = args[5]
-		op3[1](self, op3)
-		return
+		IlikeTrains, result = pcall(op3[1],self, op3)
+	end
+
+	self:PopScope()
+	if !IlikeTrains then
+		error(result,0)
 	end
 end)
 
@@ -448,4 +461,43 @@ registerCallback("postinit", function()
 			return value
 		end, 5, { "index", "argument1" })
 	end
+end)
+
+/******************************************************************************/
+
+__e2setcost(nil)
+
+registerOperator("switch", "", "", function(self, args)
+
+	local run, cases, cases2, default = false, args[2], {}
+
+	self:PushScope()
+
+	for i=1, #cases do -- We figure out what we can run.
+		local eq, stmts = cases[i][1], cases[i][2]
+		if (eq and eq[1](self, eq) == 1) or run then -- Equals operator
+			cases2[i] = true
+			run = i
+		elseif !eq then -- Default case.
+			default = i
+		end
+	end
+
+	if default and run and default < run then
+		default = nil -- Default is before valid case.
+	end
+
+	for i=1, #cases do -- We run in correct order.
+		local allow, stmts = cases2[i], cases[i][2]
+		if allow or (!run and default and default <= i) or (default and default == i) then
+			local ok, msg = pcall(stmts[1], self, stmts)
+			if not ok then
+				if msg == "break" then break
+				elseif msg ~= "continue" then error(msg, 0) end
+			end
+		end
+	end
+
+	self:PopScope()
+
 end)

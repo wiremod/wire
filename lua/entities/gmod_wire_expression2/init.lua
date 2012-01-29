@@ -52,6 +52,42 @@ function tablevalues(tbl)
 	return l
 end
 
+
+
+local ScopeManager = {}
+ScopeManager.__index = ScopeManager
+
+function ScopeManager:InitScope()
+	self.Scopes = {}
+	self.ScopeID = 0
+	self.Scopes[0] = self.GlobalScope or  {vclk = {}} //for creating new enviroments
+	self.Scope = self.Scopes[0]
+	self.GlobalScope = self.Scope
+end
+
+function ScopeManager:PushScope()
+	self.Scope = {vclk = {}}
+	self.ScopeID = self.ScopeID + 1
+	self.Scopes[self.ScopeID] = self.Scope
+end
+
+function ScopeManager:PopScope()
+	self.ScopeID = self.ScopeID - 1
+	self.Scope = self.Scopes[self.ScopeID]
+	self.Scopes[self.ScopeID] = self.Scope
+	return table.remove(self.Scopes,self.ScopeID + 1)
+end
+
+function ScopeManager:SaveScopes()
+	return {self.Scopes,self.ScopeID,self.Scope}
+end
+
+function ScopeManager:LoadScopes(Scopes)
+	self.Scopes = Scopes[1]
+	self.ScopeID = Scopes[2]
+	self.Scope = Scopes[3]
+end
+
 function ENT:Initialize()
 	self:PhysicsInit(SOLID_VPHYSICS)
 	self:SetMoveType(MOVETYPE_VPHYSICS)
@@ -74,7 +110,7 @@ function ENT:Execute()
 	if self.context.resetting then return end
 
 	for k,v in pairs(self.tvars) do
-		self.context.vars[k] = copytype(wire_expression_types2[v][2])
+		self.GlobalScope[k] = copytype(wire_expression_types2[v][2])
 	end
 
 	self:PCallHook('preexecute')
@@ -98,16 +134,19 @@ function ENT:Execute()
 	self:TriggerOutputs()
 
 	for k,v in pairs(self.inports[3]) do
-		if self.context.vclk[k] then
+		if self.GlobalScope[k] then
 			if wire_expression_types[self.Inputs[k].Type][3] then
-				self.context.vars[k] = wire_expression_types[self.Inputs[k].Type][3](self.context, self.Inputs[k].Value)
+				self.GlobalScope[k] = wire_expression_types[self.Inputs[k].Type][3](self.context, self.Inputs[k].Value)
 			else
-				self.context.vars[k] = self.Inputs[k].Value
+				self.GlobalScope[k] = self.Inputs[k].Value
 			end
 		end
 	end
 
-	self.context.vclk = {}
+	self.GlobalScope.vclk = {}
+	for k,v in pairs(self.globvars) do
+		self.GlobalScope[k] = copytype(wire_expression_types2[v][2])
+	end
 
 	if self.context.prfcount + self.context.prf - e2_softquota > e2_hardquota then
 		self:Error("Expression 2 (" .. self.name .. "): tick quota exceeded", "hard quota exceeded")
@@ -204,17 +243,17 @@ function ENT:CompileCode( buffer )
 	self.tvars =  inst.tvars
 	self.funcs = inst.funcs
 	self.funcs_ret = inst.funcs_ret
+	self.globvars = inst.GlobalScope
 
 	self:ResetContext()
 end
 
 function ENT:ResetContext()
-	self.context = {
-		vars = {},
-		vclk = {},
+	local context = {
 		data = {},
-		funcs = {},
-		funcs_ret = {},
+		vclk = {}, //Used only by arrays and tables!
+		funcs = self.funcs,
+		funcs_ret = self.funcs_ret,
 		entity = self,
 		player = self.player,
 		uid = self.uid,
@@ -223,10 +262,12 @@ function ENT:ResetContext()
 		prfbench = 0,
 	}
 
-	self._vars = self.context.vars
+	setmetatable(context,ScopeManager)
+	context:InitScope()
 
-	self.context.funcs = self.funcs
-	self.context.funcs_ret = self.funcs_ret
+	self.context = context
+	self.GlobalScope = context.GlobalScope
+	self._vars = self.GlobalScope //Dupevars
 
 	self.Inputs = WireLib.AdjustSpecialInputs(self, self.inports[1], self.inports[2])
 	self.Outputs = WireLib.AdjustSpecialOutputs(self, self.outports[1], self.outports[2])
@@ -241,30 +282,37 @@ function ENT:ResetContext()
 	for k,v in pairs(self.inports[3]) do
 		self._inputs[1][#self._inputs[1] + 1] = k
 		self._inputs[2][#self._inputs[2] + 1] = v
-		self.context.vars[k] = copytype(wire_expression_types[v][2])
+		self.GlobalScope[k] = copytype(wire_expression_types[v][2])
+		self.globvars[k] = nil
 	end
 
 	for k,v in pairs(self.outports[3]) do
 		self._outputs[1][#self._outputs[1] + 1] = k
 		self._outputs[2][#self._outputs[2] + 1] = v
-		self.context.vars[k] = copytype(wire_expression_types[v][2])
-		self.context.vclk[k] = true
+		self.GlobalScope[k] = copytype(wire_expression_types[v][2])
+		self.GlobalScope.vclk[k] = true
+		self.globvars[k] = nil
 	end
 
 	for k,v in pairs(self.persists[3]) do
-		self.context.vars[k] = copytype(wire_expression_types[v][2])
+		self.GlobalScope[k] = copytype(wire_expression_types[v][2])
+		self.globvars[k] = nil
+	end
+
+	for k,v in pairs(self.globvars) do
+		self.GlobalScope[k] = copytype(wire_expression_types2[v][2])
 	end
 
 	for k,v in pairs(self.Inputs) do
 		if wire_expression_types[v.Type][3] then
-			self.context.vars[k] = wire_expression_types[v.Type][3](self.context, v.Value)
+			self.GlobalScope[k] = wire_expression_types[v.Type][3](self.context, v.Value)
 		else
-			self.context.vars[k] = v.Value
+			self.GlobalScope[k] = v.Value
 		end
 	end
 
 	for k,v in pairs(self.dvars) do
-		self.context.vars["$" .. k] = self.context.vars[k]
+		self.GlobalScope["$" .. k] = self.GlobalScope[k]
 	end
 
 	self.error = false
@@ -323,11 +371,11 @@ function ENT:TriggerInput(key, value)
 	if key and self.inports[3][key] then
 		t = self.inports[3][key]
 
-		self.context.vars["$" .. key] = self.context.vars[key]
+		self.GlobalScope["$" .. key] = self.GlobalScope[key]
 		if wire_expression_types[t][3] then
-			self.context.vars[key] = wire_expression_types[t][3](self.context, value)
+			self.GlobalScope[key] = wire_expression_types[t][3](self.context, value)
 		else
-			self.context.vars[key] = value
+			self.GlobalScope[key] = value
 		end
 
 		self.context.triggerinput = key
@@ -338,11 +386,11 @@ end
 
 function ENT:TriggerOutputs()
 	for key,t in pairs(self.outports[3]) do
-		if self.context.vclk[key] or self.first then
+		if self.GlobalScope[key] or self.first then
 			if wire_expression_types[t][4] then
-				WireLib.TriggerOutput(self, key, wire_expression_types[t][4](self.context, self.context.vars[key]))
+				WireLib.TriggerOutput(self, key, wire_expression_types[t][4](self.context, self.GlobalScope[key]))
 			else
-				WireLib.TriggerOutput(self, key, self.context.vars[key])
+				WireLib.TriggerOutput(self, key, self.GlobalScope[key])
 			end
 		end
 	end
@@ -353,8 +401,8 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID, GetConstByID)
 
 	if not self.error then
 		for k,v in pairs(self.dupevars) do
-			self.context.vars[k] = v
-		end
+			self.GlobalScope[k] = v
+		end -- Rusketh Broke this :(
 		--table.Merge(self.context.vars, self.dupevars)
 		self.dupevars = nil
 

@@ -111,11 +111,13 @@ e2function number operator_is(bone b)
 end
 
 --- B = B
-e2function bone operator=(bone lhs, bone rhs)
-	self.vars[lhs] = rhs
-	self.vclk[lhs] = true
-	return rhs
-end
+registerOperator("ass", "b", "b", function(self, args)
+	local op1, op2, scope = args[2], args[3], args[4]
+	local      rv2 = op2[1](self, op2)
+	self.Scopes[scope][op1] = rv2
+	self.Scopes[scope].vclk[op1] = true
+	return rv2
+end)
 
 --- B == B
 e2function number operator==(bone lhs, bone rhs)

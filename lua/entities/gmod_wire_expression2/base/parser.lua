@@ -395,13 +395,22 @@ function Parser:Stmt7()
 end
 
 function Parser:Stmt8()
+
+	if self.localized then
+		self:Error("Invalid operator (local) can not be used after varible decleration.")
+	elseif self:AcceptRoamingToken("loc") then
+		self.localized = true
+	end
+
 	if self:AcceptRoamingToken("var") then
 		local tbpos = self.index
 		local trace = self:GetTokenTrace()
 		local var = self:GetTokenData()
 
 		if self:AcceptTailingToken("lsb") then
-			if self:AcceptRoamingToken("rsb") then
+			if self.localized then
+				self:Error("Invalid operator (local).")
+			elseif self:AcceptRoamingToken("rsb") then
 				self:Error("Indexing operator ([]) requires an index [X]")
 			end
 
@@ -436,7 +445,14 @@ function Parser:Stmt8()
 		elseif self:AcceptRoamingToken("lsb") then
 			self:Error("Indexing operator ([]) must not be preceded by whitespace")
 		elseif self:AcceptRoamingToken("ass") then
-			return self:Instruction(trace, "ass", var, self:Stmt8())
+			if self.localized then
+				self.localized = nil
+				return self:Instruction(trace, "assl", var, self:Stmt8())
+			else
+				return self:Instruction(trace, "ass", var, self:Stmt8())
+			end
+		elseif self.localized then
+			self:Error("Invalid operator (local) must be used for variable decleration.")
 		end
 
 		self.index = tbpos - 2
@@ -449,7 +465,7 @@ end
 function Parser:Stmt9()
 
 	//--Function Statment
-	if ( self:AcceptRoamingToken("func") ) then
+	if self:AcceptRoamingToken("func") then
 
 		local Trace = self:GetTokenTrace()
 
@@ -511,10 +527,6 @@ function Parser:Stmt9()
 			Return = ""
 		end
 
-
-		local Sig = (Name or "") .. "("
-
-
 		if Type then -- check the Type
 
 			if Type != Type:lower() then self:Error("Function object type must be full lowercase",TypeToken) end
@@ -534,16 +546,9 @@ function Parser:Stmt9()
 			Temp["This"] = true
 
 			Args[1] = {"This",Type}
-
-			Arg = 2
-
-			Type = wire_expression_types[Type][1]
-
-			Sig = Sig .. Type .. ":"
 		else
 			Type = ""
 		end
-
 
 		if !Name then self:Error("Function name must follow function declaration") end
 
@@ -554,56 +559,16 @@ function Parser:Stmt9()
 			self:Error("Left parenthesis (() must appear after function name")
 		end
 
-		if self:HasTokens() and !self:AcceptRoamingToken("rpa") then
-			while true do
+		self:FunctionArgs(Temp,Args)
 
-				if self:AcceptRoamingToken("com") then self:Error("Argument separator (,) must not appear multiple times") end
-
-				local Type,Name = "normal"
-
-				if self:AcceptRoamingToken("var") or self:AcceptRoamingToken("fun") then
-					Name = self:GetTokenData()
-				end
-
-				if !Name then self:Error("Function argument #" .. Arg .. " varible required") end
-
-				if Name[1] != Name[1]:upper() then self:Error("Function argument #" .. Arg .. " varible must start with uppercased letter") end
-
-				if self:AcceptRoamingToken("col") then
-					if self:AcceptRoamingToken("fun") or self:AcceptRoamingToken("var") then
-						Type = self:GetTokenData()
-					else
-						self:Error("Function argument #" .. Arg .. " type must appear after (:)")
-					end
-				end
-
-				if Type != Type:lower() then self:Error("Function argument #" .. Arg .. " type must be lowercased") end
-
-				if Type == "number" then Type = "normal" end
-
-				Type = Type:upper()
-
-				if !wire_expression_types[Type] then
-					self:Error("Function argument #" .. Arg .. " type is invalid")
-				end
-
-
-				Temp[Name] = true
-				Args[Arg] = {Name,Type}
-				Arg = Arg + 1
-
-				Sig = Sig .. wire_expression_types[Type][1]
-
-				if !self:HasTokens() then self:Error("Right parenthesis ()) must appear after function arguments")
-
-				elseif self:AcceptRoamingToken("rpa") then break
-
-				elseif !self:AcceptRoamingToken("com") then self:Error("Function arguments must be separated by comma (,)") end
-
+		local Sig = Name .. "("
+		for I=1, #Args do
+			local Arg = Args[I]
+			Sig = Sig .. wire_expression_types[ Arg[2] ][1]
+			if I == 1 and Arg[1] == "This" then
+				Sig = Sig .. ":"
 			end
 		end
-
-
 		Sig = Sig .. ")"
 
 		if wire_expression2_funcs[Sig] then self:Error("Function '" .. Sig .. "' already exists") end
@@ -641,9 +606,162 @@ function Parser:Stmt9()
 
 	end
 
-	return self:Expr1()
+	return self:Stmt10()
 end
 
+function Parser:FunctionArgs(Temp,Args)
+	local sig = ""
+
+	if self:HasTokens() and !self:AcceptRoamingToken("rpa") then
+		while true do
+
+			if self:AcceptRoamingToken("com") then self:Error("Argument separator (,) must not appear multiple times") end
+
+			if self:AcceptRoamingToken("var") or self:AcceptRoamingToken("fun") then
+				self:FunctionArg(Temp,Args)
+			elseif self:AcceptRoamingToken("lsb") then
+				self:FunctionArgList(Temp,Args)
+			end
+
+			if self:AcceptRoamingToken("rpa") then
+				break
+
+			elseif not self:AcceptRoamingToken( "com" ) then
+				self:NextToken()
+				self:Error("Right parenthesis ()) expected after function arguments")
+			end
+		end
+	end
+
+end
+
+function Parser:FunctionArg(Temp,Args)
+	local Type = "normal"
+
+	Name = self:GetTokenData()
+
+	if !Name then self:Error("Variable required") end
+
+	if Name[1] != Name[1]:upper() then self:Error("Variable must start with uppercased letter") end
+
+	if Temp[Name] then self:Error("Variable '" .. Name .. "' is already used as an argument,") end
+
+	if self:AcceptRoamingToken("col") then
+		if self:AcceptRoamingToken("fun") or self:AcceptRoamingToken("var") then
+			Type = self:GetTokenData()
+		else
+			self:Error("Type expected after colon (:)")
+		end
+	end
+
+	if Type != Type:lower() then self:Error("Type must be lowercased") end
+
+	if Type == "number" then Type = "normal" end
+
+	Type = Type:upper()
+
+	if !wire_expression_types[Type] then
+		self:Error("Invalid type specified")
+	end
+
+
+	Temp[Name] = true
+	Args[#Args + 1] = {Name,Type}
+
+end
+
+function Parser:FunctionArgList(Temp,Args)
+
+	if self:HasTokens() then
+
+		local Vars = {}
+		while true do
+			if self:AcceptRoamingToken("fun") or self:AcceptRoamingToken("var") then
+				Name = self:GetTokenData()
+
+				if !Name then self:Error("Variable required") end
+
+				if Name[1] != Name[1]:upper() then self:Error("Variable must start with uppercased letter") end
+
+				if Temp[Name] then self:Error("Variable '" .. Name .. "' is already used as an argument") end
+
+				Temp[Name] = true
+				Vars[#Vars + 1] = Name
+			elseif self:AcceptRoamingToken("rsb") then
+				break
+
+			else //if !self:HasTokens() then
+				self:NextToken()
+				self:Error("Right square bracket (]) expected at end of argument list")
+			end
+		end
+
+		if #Vars == 0 then
+			self:TrackBack()
+			self:TrackBack()
+			self:Error("Variables expected in variable list")
+		end
+
+		local Type = "normal"
+
+		if self:AcceptRoamingToken("col") then
+			if self:AcceptRoamingToken("fun") or self:AcceptRoamingToken("var") then
+				Type = self:GetTokenData()
+			else
+				self:Error("Type expected after colon (:)")
+			end
+		end
+
+		if Type != Type:lower() then self:Error("Type must be lowercased") end
+
+		if Type == "number" then Type = "normal" end
+
+		Type = Type:upper()
+
+		if !wire_expression_types[Type] then
+			self:Error("Invalid type specified")
+		end
+
+		for I=1, #Vars do
+			Args[#Args + 1] = {Vars[I],Type}
+		end
+
+	else
+		self:Error("Variable expected after left square bracket ([) in argument list")
+	end
+
+
+end
+
+function Parser:Stmt10()
+
+	//Shhh this is a secret. Do not tell anybody about this, Rusketh!
+	if self:AcceptRoamingToken("swh") then
+		local trace = self:GetTokenTrace()
+
+		if !self:AcceptRoamingToken("lpa") then
+			self:Error("Left parenthesis (() expected before switch condition")
+		end
+
+		local expr = self:Expr1()
+
+		if !self:AcceptRoamingToken("rpa") then
+			self:Error("Right parenthesis ()) expected after switch condition")
+		end
+
+		if !self:AcceptRoamingToken("lcb") then
+			self:Error("Left curly bracket ({) expected after switch condition")
+		end
+
+		loopdepth = loopdepth + 1
+		local cases, default = self:SwitchBlock()
+		loopdepth = loopdepth - 1
+
+		return self:Instruction(trace, "switch", expr, cases, default)
+	end
+
+	return self:Expr1()
+end
 
 function Parser:IfElseIf()
 	if self:AcceptRoamingToken("eif") then
@@ -665,7 +783,7 @@ end
 
 function Parser:Cond()
 	if !self:AcceptRoamingToken("lpa") then
-		self:Error("Left parenthesis (() must appear before condition")
+		self:Error("Left parenthesis (() expected before condition")
 	end
 
 	local expr = self:Expr1()
@@ -683,7 +801,7 @@ function Parser:Block(block_type)
 	local stmts = self:Instruction(trace, "seq")
 
 	if !self:AcceptRoamingToken("lcb") then
-		self:Error("Left curly bracket ({) must appear after "..(block_type or "condition"))
+		self:Error("Left curly bracket ({) expected after "..(block_type or "condition"))
 	end
 
 	local token = self:GetToken()
@@ -716,9 +834,89 @@ function Parser:Block(block_type)
 		end
 	end
 
-	self:Error("Right curly bracket (}) missing, to close statement block", token)
+	self:Error("Right curly bracket (}) missing, to close switch block", token)
 end
 
+function Parser:SwitchBlock() //Shhh this is a secret. Do not tell anybody about this, Rusketh!
+	local cases = {}
+	local default
+
+	if self:HasTokens() and !self:AcceptRoamingToken("rpa") then
+
+		if !self:AcceptRoamingToken("case") and !self:AcceptRoamingToken("default") then
+			self:Error("Case Operator (case) expected in case block.", token)
+		end
+
+		self:TrackBack()
+
+		while true do
+
+			if self:AcceptRoamingToken("case") then
+				local expr = self:Expr1()
+
+				if !self:AcceptRoamingToken("com") then
+					self:Error("Comma (,) expected after case condition")
+				end
+
+				cases[ #cases + 1] = { expr, self:CaseBlock() }
+
+			elseif self:AcceptRoamingToken("default") then
+
+				if default then
+					self:Error("Only one default case (default:) may exist.")
+				end
+
+				if !self:AcceptRoamingToken("com") then
+					self:Error("Comma (,) expected after default case")
+				end
+
+				default = true
+				cases[ #cases + 1] = {nil,self:CaseBlock()}
+
+			else
+				break
+			end
+		end
+	end
+
+	if not self:AcceptRoamingToken("rcb") then
+		self:Error("Right curly bracket (}) missing, to close statement block", token)
+	end
+
+	return cases
+end
+
+function Parser:CaseBlock() //Shhh this is a secret. Do not tell anybody about this, Rusketh!
+	if self:HasTokens() then
+		local stmts = self:Instruction( self:GetTokenTrace(), "seq" )
+
+		if self:HasTokens() then
+			while true do
+
+				if self:AcceptRoamingToken("case") or self:AcceptRoamingToken("default") or self:AcceptRoamingToken("rcb") then
+					self:TrackBack()
+					return stmts
+				elseif self:AcceptRoamingToken("com") then
+					self:Error("Statement separator (,) must not appear multiple times")
+				elseif self:AcceptRoamingToken("rcb") then
+					self:Error("Statement separator (,) must be suceeded by statement")
+				end
+
+				stmts[#stmts + 1] = self:Stmt1()
+
+				if !self:AcceptRoamingToken("com") then
+					if !self:HasTokens() then break end
+
+					if self.readtoken[3] == false then
+						self:Error("Statements must be separated by comma (,) or whitespace")
+					end
+				end
+			end
+		end
+	else
+		self:Error("Case block is missing after case decleration.")
+	end
+end
 
 function Parser:Expr1()
 	self.exprtoken = self:GetToken()
@@ -1191,3 +1389,4 @@ function Parser:ExprError()
 		self:Error("Further input required at end of code, incomplete expression", self.exprtoken)
 	end
 end
+

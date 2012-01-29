@@ -4,60 +4,33 @@
 			Function Creator
 ==============================================================*/
 
-local function Function(A,S)
+local function Function(A,S,Scopes)
 
 	local Func = function(self,args)
 
-		local OldVars = {}
-
+		local Variables = {}
 		for K,Data in pairs (A) do
 			local Name, Type, OP = Data[1], Data[2], args[K + 1]
 			local RV = OP[1](self, OP)
+			Variables[#Variables + 1] = {Name,RV}
+		end
 
+		local OldScopes = self:SaveScopes()
+		self:InitScope() -- Create a new Scope Enviroment
+		self:PushScope()
 
-			if self.vars[Name] then
-
-				OldVars[Name] = {}
-				OldVars[Name][1] = self.vars[Name]
-				OldVars[Name][2] = self.vars["$" .. Name]
-				OldVars[Name][3] = self.vclk[Name]
-
-				//OldVars[Name][4] = self[#self][Name]
-
-			end
-
-			self.vars[Name] = RV
-			self.vars["$" .. Name] = RV
-			self.vclk[Name] = false
-
-			//self[#self][Name] = wire_expression_types[Type][1]
-
+		for I = 1, #Variables do
+			local Var = Variables[I]
+			self.Scope[Var[1]] = Var[2]
+			self.Scope["$" .. Var[1]] = Var[2]
+			self.Scope.vclk[Var[1]] = true
 		end
 
 		self.func_rv = nil
 		local ok, msg = pcall(S[1],self,S)
 
-		for K,Data in pairs (A) do
-			local Name,Type = Data[1], Data[2]
-
-			if OldVars[Name] then
-
-				self.vars[Name] = OldVars[Name][1]
-				self.vars["$" .. Name] = OldVars[Name][2]
-				self.vclk[Name] = OldVars[Name][3]
-
-				//self[#self][Name] = OldVars[Name][4]
-
-			else
-
-				self.vars[Name] = nil
-				self.vars["$" .. Name] = nil
-				self.vclk[Name] = nil
-
-				//self[#self][Name] = nil
-
-			end
-		end
+		self:PopScope()
+		self:LoadScopes(OldScopes)
 
 		if !ok and msg:find( "C stack overflow" ) then error( "tick quota exceeded", -1 ) end -- a "C stack overflow" error will probably just confuse E2 users more than a "tick quota" error.
 
@@ -95,7 +68,6 @@ registerOperator("return", "", "", function(self, args)
 	if args[2] then
 		local op = args[2]
 		local rv = op[1](self, op)
-
 		self.func_rv = rv
 	end
 
@@ -176,7 +148,7 @@ end
 __e2setcost(5)
 
 e2function function operator=(function lhs, function rhs)
-	self.vars[lhs] = rhs
+	self.vars[lhs] = rhs //This would not work with the E2SS update anyway!
 	self.vclk[lhs] = true
 	return rhs
 end
