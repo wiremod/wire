@@ -299,8 +299,8 @@ registerOperator("fea","t","s",function(self,args)
 
 			local ok, msg = pcall(statement[1], self, statement)
 			if not ok then
-				if msg == "break" then break
-				elseif msg ~= "continue" then error(msg, 0) end
+				if msg == "break" then self:PopScope() break
+				elseif msg ~= "continue" then self:PopScope() error(msg, 0) end
 			end
 		end
 		self:PopScope()
