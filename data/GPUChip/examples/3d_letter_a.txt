@@ -32,22 +32,22 @@ void Main()
     glTranslate( 0, -0.1, 0, 0 ); // TRANSLATION X, Y, Z
     glScale( 1, 1, 1, 0 ); // SCALE X, Y, Z
 
+    glEnable( GL_VERTEX_BUFFER ); // Enable vertex buffer 
     glEnable( GL_VERTEX_ZSORT ); // Enable Z sorting
     glEnable( GL_VERTEX_LIGHTING ); // Enable vertex lighting
-    glEnable( GL_VERTEX_BUFFER ); // Enable vertex buffer 
     glEnable( GL_VERTEX_CULLING ); // Enable face culling
     
     // Solid 3D polygon
     glFillMode( GL_FILL_SOLID ); // Set fillmode as solid
     glColor4( 255, 255, 255, 255 ); // Set draw color with alpha
-    glPoly3D( VertexBuffer, 30 ); // Draw 3D polygon 
-    
+    glPoly3D( vertexBuffer, 30 ); // Draw 3D polygon 
     glFlush(); // Flush the vertex buffer to the screen
+    
     glExit(); // Exit
 }
 
 // The vertex data for our model
-VertexBuffer:
+vertexBuffer:
 db 1,1,0; db 0.75,1,0; db 0.25,-1,0;
 db 0.75,1,0; db 0,-1,0; db 0.25,-1,0;
 db -1,1,0; db -0.25,-1,0; db -0.75,1,0;

@@ -32,29 +32,31 @@ void Main()
     glTranslate( 0, 0, 0 ); // TRANSLATION X, Y, Z
     glScale( 1, 1, 1, 0 ); // SCALE X, Y, Z
     
+    glEnable( GL_VERTEX_BUFFER ); // Enable vertex buffer 
     glEnable( GL_VERTEX_ZSORT ); // Enable Z sorting
     glEnable( GL_VERTEX_LIGHTING ); // Enable vertex lighting
-    glEnable( GL_VERTEX_BUFFER ); // Enable vertex buffer 
-    glEnable( GL_VERTEX_CULLING ); // Enable face culling
-    
-    // Wireframe 3D polygon
-    glLineWidth( 2 ); // Set line width of wireframe
-    glFillMode( GL_FILL_WIREFRAME ); // Set fillmode as wireframe
-    glColor4( 255, 255, 255, 255 ); // Set the draw color with alpha
-    glPoly3D( VertexBuffer, 20 ); // Draw 3D polygon
+    //glEnable( GL_VERTEX_CULLING ); // Enable face culling
     
     // Solid 3D polygon
-    glDisable( GL_VERTEX_CULLING ); // Disable face culling
     glFillMode( GL_FILL_SOLID ); // Set fillmode as solid
-    glColor4( 100, 149, 237, 180 );
-    glPoly3D( VertexBuffer, 20 );
-    
+    glColor4( 100, 149, 237, 180 ); // Set the draw color with alpha
+    glPoly3D( vertexBuffer, 20 ); // Draw 3D polygon
     glFlush(); // Flush the vertex buffer to the screen
+    
+    glDisable( GL_VERTEX_LIGHTING ); // Enable vertex lighting
+    
+    // Wireframe 3D polygon
+    glLineWidth( 1 ); // Set line width of wireframe
+    glFillMode( GL_FILL_WIREFRAME ); // Set fillmode as wireframe
+    glColor4( 255, 255, 255, 255 ); // Set the draw color with alpha
+    glPoly3D( vertexBuffer, 20 ); // Draw 3D polygon
+    glFlush(); // Flush the vertex buffer to the screen
+    
     glExit(); // Exit
 }
 
 // The vertex data for our model
-VertexBuffer:
+vertexBuffer:
 db 0,0,1; db 0,0.9,0.5; db 0.9,0.3,0.4;
 db 0,0,1; db -0.9,0.3,0.4; db 0,0.9,0.5;
 db 0,0,1; db -0.5,-0.7,0.4; db -0.9,0.3,0.4;
