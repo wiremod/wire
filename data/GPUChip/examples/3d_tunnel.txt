@@ -5,9 +5,6 @@ Main();
 
 #include <drivers\drv_gl.txt>
 
-float i;
-float zTranslate;
-
 void Main()
 {
     glSleep( 60 ); // Sleep for 60 milliseconds (reduces fps lag)
@@ -40,29 +37,32 @@ void Main()
         glTranslate( 0, 0, zTranslate ); // TRANSLATION X, Y, Z
         glScale( 1.2, 1, 8 ); // SCALE X, Y, Z
     
+        glEnable( GL_VERTEX_BUFFER ); // Enable vertex buffer 
         glEnable( GL_VERTEX_ZSORT ); // Enable Z sorting
         glEnable( GL_VERTEX_LIGHTING ); // Enable vertex lighting
-        glEnable( GL_VERTEX_BUFFER ); // Enable vertex buffer 
         glEnable( GL_VERTEX_CULLING ); // Enable face culling
 
+        // Solid 3D polygon
+        glFillMode( GL_FILL_SOLID ); // Set fillmode as solid
+        glColor4( 255, 255, 255, 150 ); // Set the draw color with alpha
+        glPoly3D( VertexBuffer, 12 ); // Draw 3D polygon
+        glFlush(); // Send our vertex buffer to screen
+        
         // Wireframe 3D polygon
         glLineWidth( 1 ); // Set line width of wireframe
         glFillMode( GL_FILL_WIREFRAME ); // Set fillmode to wireframe
         glColor4( 255, 255, 255, 255 ); // Set the draw color with alpha
-        glPoly3D( VertexBuffer, 8 ); // Draw 3D polygon
-        
-        // Solid 3D polygon
-        glFillMode( GL_FILL_SOLID ); // Set fillmode as solid
-        glColor4( 255, 255, 255, 150 );
-        glPoly3D( VertexBuffer, 8 );
-        
+        glPoly3D( vertexBuffer, 8 ); // Draw 3D polygon
         glFlush(); // Send our vertex buffer to screen
     }
 
     glExit(); // Exit
 }
 
-VertexBuffer:
+float i;
+float zTranslate;
+
+vertexBuffer:
 db 1,1,-1; db -1,1,-1; db 1,1,1;
 db -1,1,-1; db -1,1,1; db 1,1,1;
 db 1,1,-1; db 1,1,1; db 1,-1,-1;

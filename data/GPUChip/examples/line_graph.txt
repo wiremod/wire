@@ -15,19 +15,19 @@ float frameHeight = 300;
 
 void Main()
 {
-    glVertexMode( 1 ); // Set vertex mode to 1
+    glVertexMode( 1 ); // Enable vertex mode
+    glColor( 255, 255, 255 ); // Set draw color
     
     // Set texture as background
-    glSetTexture( "phoenix_storms/fender_wood" );
+    glBindTexture( "phoenix_storms/lag_sign" );
     glClearTexture();
-    glSetTexture( 0 ); // Discard texture
+    glBindTexture( 0 ); // Discard texture
     
     glFont( GL_FONT_AKBAR ); // Set font type
     glFontSize( 36 ); // Set font size
-    glColor( 255, 255, 255 ); // Set draw color
     glWriteString( 2, 2, "LAG-O-METER" ); // Write string to screen
     
-    glOffset( lineWidth, 64 ); // Offset the screen coordinates
+    glOffset( lineWidth, 90 ); // Offset the screen coordinates
     
     glColor4( 0, 0, 0, 160 ); // Set draw color with alpha
     glRectWH( 0, 0, frameWidth, frameHeight ); // Draw rectangle
@@ -56,10 +56,7 @@ void Main()
     }
     
     glOffset( 0, 0 ); // Set screen offset back to 0,0
-    
     glWriteString( 2, 400, "INTENSE LAG DETECTED" );
-    glFontSize( 20 );
-    glWriteString( 2, 460, "(just kidding :P)" );
     
     glExit(); // Exit
 }

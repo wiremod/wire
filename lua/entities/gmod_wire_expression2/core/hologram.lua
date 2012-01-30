@@ -836,6 +836,9 @@ local function Parent_Hologram(holo, ent, bone, attachment)
 
 	holo.ent:SetParent(ent)
 
+	ent.holo_children = ent.holo_children or {} //to be handled on parent remove
+	ent.holo_children[holo] = true
+
 	if bone != nil then
 		holo.ent:SetParentPhysNum(bone)
 	end
@@ -900,6 +903,12 @@ e2function void holoUnparent(index)
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
 
+	local ent = Holo.ent:GetParent()
+
+	if IsValid( ent ) and ent.holo_children then
+		ent.holo_children[Holo] = nil
+	end
+
 	Holo.ent:SetParent(nil)
 	Holo.ent:SetParentPhysNum(0)
 end
@@ -954,26 +963,39 @@ registerCallback("destruct", function(self)
 end)
 
 hook.Add( "EntityRemoved", "clear_holo_on_parent_removal", function( ent )
-	if validEntity( ent ) and ent:GetClass() == "gmod_wire_hologram" and validEntity( ent:GetParent() ) then
-		local ply = ent:GetPlayer()
-		local repo;
-		if (validEntity(ply)) then
-			repo = E2HoloRepo[ply:UniqueID()];
-		end
-		if !repo then return end
+	if !ent or !ent.holo_children then return end
 
-		for k,Holo in pairs( repo ) do
-			if type( k ) == number and ent == Holo.ent then
-				local self = Holo.e2owner
+	for child,_ in pairs( ent.holo_children ) do
+		if !child.e2owner then continue end
 
-				local Holo = CheckIndex(self, k)
-				if not Holo then return end
+		local e2 = child.e2owner
+		local index = nil
 
-				PlayerAmount[self.uid] = PlayerAmount[self.uid] - 1
-				SetIndex(self, k, nil)
-
-				return
+		--Find the hologram index
+		for k,Holo in pairs( e2.data.holos ) do
+			if child == Holo then
+				index = k
+				break
 			end
+		end
+
+		--Check Repo if not found
+		if !index then
+			for k,Holo in pairs( E2HoloRepo[e2.uid] ) do
+				if type( k ) == number and child == Holo then
+					index = -k
+					break
+				end
+			end
+		end
+
+		if !index then continue end
+
+		PlayerAmount[e2.uid] = PlayerAmount[e2.uid] - 1
+		SetIndex( e2, index, nil )
+
+		if validEntity( child.ent ) then
+			child.ent:Remove()
 		end
 	end
 end )
