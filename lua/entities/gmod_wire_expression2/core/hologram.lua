@@ -429,6 +429,18 @@ local function CreateHolo(self, index, pos, scale, ang, color, model)
 		PlayerAmount[self.uid] = PlayerAmount[self.uid]+1
 		Holo.ent = prop
 		Holo.e2owner = self
+
+		prop:CallOnRemove( "holo_on_parent_removal", function( ent, self, index ) --Remove on parent remove
+			local parent = ent:GetParent()
+
+			if !IsValid( parent ) then return end
+
+			local Holo = CheckIndex( self, index )
+			if !Holo then return end
+
+			PlayerAmount[self.uid] = PlayerAmount[self.uid] - 1
+			SetIndex( self, index, nil )
+		end, self, index )
 	end
 
 	if not validEntity(prop) then return nil end
@@ -836,9 +848,6 @@ local function Parent_Hologram(holo, ent, bone, attachment)
 
 	holo.ent:SetParent(ent)
 
-	ent.holo_children = ent.holo_children or {} //to be handled on parent remove
-	ent.holo_children[holo] = true
-
 	if bone != nil then
 		holo.ent:SetParentPhysNum(bone)
 	end
@@ -903,12 +912,6 @@ e2function void holoUnparent(index)
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
 
-	local ent = Holo.ent:GetParent()
-
-	if IsValid( ent ) and ent.holo_children then
-		ent.holo_children[Holo] = nil
-	end
-
 	Holo.ent:SetParent(nil)
 	Holo.ent:SetParentPhysNum(0)
 end
@@ -961,44 +964,6 @@ registerCallback("destruct", function(self)
 
 	clearholos(self)
 end)
-
-hook.Add( "EntityRemoved", "clear_holo_on_parent_removal", function( ent )
-	if !ent or !ent.holo_children then return end
-
-	for child,_ in pairs( ent.holo_children ) do
-		if !child.e2owner then continue end
-
-		local e2 = child.e2owner
-		local index = nil
-
-		--Find the hologram index
-		for k,Holo in pairs( e2.data.holos ) do
-			if child == Holo then
-				index = k
-				break
-			end
-		end
-
-		--Check Repo if not found
-		if !index then
-			for k,Holo in pairs( E2HoloRepo[e2.uid] ) do
-				if type( k ) == number and child == Holo then
-					index = -k
-					break
-				end
-			end
-		end
-
-		if !index then continue end
-
-		PlayerAmount[e2.uid] = PlayerAmount[e2.uid] - 1
-		SetIndex( e2, index, nil )
-
-		if validEntity( child.ent ) then
-			child.ent:Remove()
-		end
-	end
-end )
 
 /******************************************************************************/
 
