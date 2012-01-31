@@ -63,7 +63,7 @@ if SERVER then
 		if !self:GetSWEP():CheckLimit("wire_expressions") then return false end
 
 		local entity = ents.Create("gmod_wire_expression2")
-		if !entity:IsValid() then return false end
+		if not entity or not entity:IsValid() then return false end
 
 		player:AddCount("wire_expressions", entity)
 
@@ -73,9 +73,7 @@ if SERVER then
 		entity:Spawn()
 		entity:SetPlayer(player)
 		entity.player = player
-		entity:SetNWEntity( "player", player )
-
-		if !entity then return false end
+		entity:SetNWEntity( "_player", player )
 
 		entity:SetPos(trace.HitPos - trace.HitNormal * entity:OBBMins().z)
 		local constraint = WireLib.Weld(entity, trace.Entity, trace.PhysicsBone, true)

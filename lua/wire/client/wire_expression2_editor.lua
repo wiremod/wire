@@ -1600,8 +1600,10 @@ Text here]# ]] }
 		local E2s = ents.FindByClass( "gmod_wire_expression2" )
 		dlist2:Clear()
 		for k,v in pairs( E2s ) do
-			local ply = v:GetNWEntity( "player", false )
-			if (ply and (ply == LocalPlayer() or showall)) then
+			local ply = v:GetNWEntity( "_player", false )
+			if (ply and (ply == LocalPlayer()) or showall) then
+				local nick
+				if not ply or not ply:IsValid() then nick = "Unknown" else nick = ply:Nick() end
 				local name = v:GetNWString( "name", "generic" )
 				local panel = vgui.Create( "DPanel" )
 				panel:SetTall( 46 )
@@ -1612,7 +1614,7 @@ Text here]# ]] }
 				dlist2:AddItem( panel )
 
 				local label = vgui.Create( "DLabel", panel )
-				label:SetText( "Name: " .. name .. "\nEntity ID: '" .. v:EntIndex() .. "'" .. ( showall and "\nOwner: " .. ply:Nick() or "" ) )
+				label:SetText( "Name: " .. name .. "\nEntity ID: '" .. v:EntIndex() .. "'" .. ( showall and "\nOwner: " .. nick or "" ) )
 				label:SizeToContents()
 				label:SetWrap(true)
 				label:SetPos( 4, 4 )
@@ -1620,7 +1622,7 @@ Text here]# ]] }
 
 				local btn = vgui.Create( "DButton", panel )
 				btn:SetText( "" )
-				btn:SetSize( 55, 18 )
+				btn:SetSize( 57, 18 )
 				timer.Simple(0,function() btn:SetPos( panel:GetWide()-btn:GetWide()*2-6, 4 ) end)
 				btn.DoClick = function( pnl )
 					RunConsoleCommand( "wire_expression_prepare",v:EntIndex())
@@ -1638,7 +1640,7 @@ Text here]# ]] }
 
 				local btn = vgui.Create( "DButton", panel )
 				btn:SetText( "" )
-				btn:SetSize( 55, 18 )
+				btn:SetSize( 57, 18 )
 				timer.Simple(0,function() btn:SetPos( panel:GetWide()-btn:GetWide()-4, 4 ) end)
 				btn.DoClick = function( pnl )
 					RunConsoleCommand( "wire_expression_requestcode",v:EntIndex())
@@ -1650,7 +1652,7 @@ Text here]# ]] }
 					surface.SetFont("E2SmallFont")
 					surface.SetTextPos( 3, 4 )
 					surface.SetTextColor( 255, 255, 255, 255 )
-					surface.DrawText(" Download")
+					surface.DrawText("  Download")
 				end
 
 				local btn = vgui.Create( "DButton", panel )
@@ -1668,6 +1670,23 @@ Text here]# ]] }
 					surface.SetTextPos( 3, 4 )
 					surface.SetTextColor( 255, 255, 255, 255 )
 					surface.DrawText("  Halt execution")
+				end
+
+				local btn2 = vgui.Create( "DButton", panel )
+				btn2:SetText( "" )
+				btn2:SetSize( 39, 18 )
+				timer.Simple(0,function() btn2:SetPos( panel:GetWide()-btn2:GetWide()-btn:GetWide()-6, 24 ) end)
+				btn2.DoClick = function( pnl )
+					RunConsoleCommand( "wire_expression_reset",v:EntIndex() )
+				end
+				btn2.Paint = function( button )
+					local w,h = button:GetSize()
+					draw.RoundedBox(1, 0, 0, w, h, self.colors.col_FL)
+					if ( button.Hovered ) then draw.RoundedBox(0, 1, 1, w - 2, h - 2, Color(0,0,0,192)) end
+					surface.SetFont("E2SmallFont")
+					surface.SetTextPos( 3, 4 )
+					surface.SetTextColor( 255, 255, 255, 255 )
+					surface.DrawText("  Reset")
 				end
 			end
 		end
