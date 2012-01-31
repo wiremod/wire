@@ -465,39 +465,38 @@ end)
 
 /******************************************************************************/
 
-__e2setcost(nil)
+__e2setcost(3) -- approximation
 
 registerOperator("switch", "", "", function(self, args)
-
-	local run, cases, cases2, default = false, args[2], {}
+	local cases, startcase = args[3]
 
 	self:PushScope()
 
 	for i=1, #cases do -- We figure out what we can run.
-		local eq, stmts = cases[i][1], cases[i][2]
-		if (eq and eq[1](self, eq) == 1) or run then -- Equals operator
-			cases2[i] = true
-			run = i
-		elseif !eq then -- Default case.
-			default = i
+		local case = cases[i]
+		local op1 = case[1]
+
+		self.prf = self.prf + case[3]
+		if self.prf > e2_tickquota then error("perf", 0) end
+
+		if (op1 and op1[1](self, op1) == 1) then -- Equals operator
+			startcase = i
+			break
 		end
 	end
 
-	if default and run and default < run then
-		default = nil -- Default is before valid case.
-	end
+	if startcase then
 
-	for i=1, #cases do -- We run in correct order.
-		local allow, stmts = cases2[i], cases[i][2]
-		if allow or (!run and default and default <= i) or (default and default == i) then
+		for i=startcase, #cases do
+			local stmts = cases[i][2]
 			local ok, msg = pcall(stmts[1], self, stmts)
 			if not ok then
 				if msg == "break" then break
 				elseif msg ~= "continue" then error(msg, 0) end
 			end
 		end
+
 	end
 
 	self:PopScope()
-
 end)

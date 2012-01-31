@@ -355,7 +355,7 @@ function Compiler:InstrDEF(args)
 	local rtdat = self:GetOperator(args, "dat", {})
 
 	if tp1 != tp2 then
-		self:Error("Different types (" .. tps_pretty({tp1}) .. ", " .. tps_pretty({tp2}) .. ") specified returned in default conditional", args)
+		self:Error("Different types (" .. tps_pretty({tp1}) .. ", " .. tps_pretty({tp2}) .. ") returned in default conditional", args)
 	end
 
 	return { rtif[1], { rtis[1], { rtdat[1], nil } }, ex1, ex2, prf_ex2 }, tp1
@@ -490,7 +490,7 @@ function Compiler:InstrSET(args)
 		return {rt[1], {native}, ex1, ex2, ScopeID}, rt[2]
 	else
 		if tp2 != args[6] then
-			self:Error("Indexing type-mismatch, specified [" .. tps_pretty({args[6]}) .. "] but value is [" .. tps_pretty({tp2}) .. "]", args)
+			self:Error("Indexing type mismatch, specified [" .. tps_pretty({args[6]}) .. "] but value is [" .. tps_pretty({tp2}) .. "]", args)
 		end
 
 		local tp,ScopeID = self:GetVariableType(args, op)
@@ -770,37 +770,35 @@ function Compiler:InstrKVARRAY( args )
 end
 
 function Compiler:InstrSWITCH( args ) //Shhh this is a secret. Do not tell anybody about this, Rusketh!
-
-
 	local Case, Cases = args[3], args[4]
+	self:PushPrfCounter()
 	local value, type = Compiler["Instr" .. string.upper(Case[1])](self, Case) -- This is the value we are passing though the switch statment
+	local prf_cond = self:PopPrfCounter()
 
 	self:PushScope()
 
 	local cases = {}
-
 	for i=1, #Cases do
-		local case, block, eq = Cases[i][1], Cases[i][2]
-
+		local case, block, prf_eq, eq = Cases[i][1], Cases[i][2], 0
 		if case then -- The default will not have one
-			//local Scope = self:PopScope() -- For the case statments we pop the scope back
+			self.ScopeID = self.ScopeID - 1 -- For the case statments we pop the scope back
+			self:PushPrfCounter()
 			local ex, tp = Compiler["Instr" .. string.upper(case[1])](self, case) --This is the value we are checking against
-			//self:PushScope(Scope) -- Now we put the scope back to normal
-
+			prf_eq = self:PopPrfCounter() -- We add some pref
+			self.ScopeID = self.ScopeID + 1
 			if tp == "" then -- There is no value
 				self:Error("Function has no return value (void), cannot be part of expression or assigned", args)
 			elseif tp != type then -- Value types do not match.
 				self:Error("Case missmatch can not compare " .. tps_pretty(type) .. " with " .. tps_pretty(tp) , args)
 			end
-
 			eq = {self:GetOperator(args, "eq", {type, tp})[1], value, ex} -- This is the equals operator to check if values match
 		end
-
 		local stmts = Compiler["Instr" .. string.upper(block[1])](self, block) -- This is statments that are run when Values match
-		cases[i] = {eq,stmts}
+		cases[i] = {eq,stmts,prf_eq}
 	end
 
 	self:PopScope()
 
-	return {self:GetOperator(args, "switch", {})[1], cases, default}
+	local rtswitch =  self:GetOperator(args, "switch", {})
+	return { rtswitch[1], prf_cond, cases, default}
 end

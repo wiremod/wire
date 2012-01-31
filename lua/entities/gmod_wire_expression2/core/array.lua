@@ -493,7 +493,7 @@ end
 --------------------------------------------------------------------------------
 __e2setcost(1)
 e2function array array:add( array other )
-	if (!next(this) or !next(other)) then return {} end -- One of them is empty
+	if (!next(this) and !next(other)) then return {} end -- Both of them are empty
 	local ret = {}
 	for i=1,#this do
 		ret[i] = this[i]
@@ -512,7 +512,7 @@ end
 --------------------------------------------------------------------------------
 __e2setcost(1)
 e2function array array:merge( array other )
-	if (!next(this) or !next(other)) then return {} end -- One of them is empty
+	if (!next(this) and !next(other)) then return {} end -- Both of them are empty
 	local ret = {}
 	for i=1,math.max(#this,#other) do
 		ret[i] = other[i] or this[i]
