@@ -6,8 +6,8 @@ TOOL.Tab			= "Wire"
 
 if (CLIENT) then
 	language.Add("Tool_wire_value_name", "Value Tool (Wire)")
-	language.Add("Tool_wire_value_desc", "Spawns a constant value prop for use with the wire system.")
-	language.Add("Tool_wire_value_0", "Primary: Create/Update Value   Secondary: Copy Settings")
+	language.Add("Tool_wire_value_desc", "Spawns a constant value for use with the wire system.")
+	language.Add("Tool_wire_value_0", "Primary: Create/Update Value, Secondary: Copy Settings")
 	language.Add("WireValueTool_value", "Value:")
 	language.Add("WireValueTool_model", "Model:")
 	language.Add("sboxlimit_wire_values", "You've hit values limit!")
@@ -207,11 +207,11 @@ function TOOL.BuildCPanel(CPanel)
 
 	local cVars = {}
 	cVars[0] = "wire_value_numvalues"
-	for i = 1, 12 do
-		cVars[i] = ("wire_value_value"..i)
-		cVars[i] = ("wire_value_valuetype"..i)
+	for i=1,12 do
+		cVars[#cVars+1] = "wire_value_value" .. i
+		cVars[#cVars+1] = "wire_value_valuetype" .. i
 	end
-	cVars[13] = "wire_value_model"
+	cVars[#cVars+1] = "wire_value_model"
 
 	local options = {}
 	options.Default = {}

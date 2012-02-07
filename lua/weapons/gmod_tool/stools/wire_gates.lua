@@ -242,14 +242,14 @@ if CLIENT then
 		end
 
 		local function FillSubTree( tree, node, temp )
-			table.SortByMember( temp, "name", true )
+			node.Icon:SetImage( "gui/silkicons/arrow_refresh" )
 
 			local subtree = {}
 			for k,v in pairs( temp ) do
-				subtree[#subtree+1] = { action = k, gate = v }
+				subtree[#subtree+1] = { action = k, gate = v, name = v.name }
 			end
 
-			local function callback() node.ChildNodes:SortByMember( "name", false ) end
+			table_SortByMember(subtree, "name", true )
 
 			local index = 0
 			local max = #subtree
@@ -257,21 +257,23 @@ if CLIENT then
 			timer.Create( "wire_gates_fillsubtree_delay"..tostring(subtree), 0, 0, function()
 				index = index + 1
 
-				if not node.m_bExpanded then node:InternalDoClick() end -- EXPAND, DAMNIT
+				local action, gate = subtree[index].action, subtree[index].gate
+				local node2 = node:AddNode( gate.name or "No name found :(" )
+				node2.name = gate.name
+				node2.action = action
+				function node2:DoClick()
+					RunConsoleCommand( "wire_gates_Action", self.action )
+				end
+				node2.Icon:SetImage( "gui/silkicons/newspaper" )
+				tree:InvalidateLayout()
 
-				if index <= max then
-					local action, gate = subtree[index].action, subtree[index].gate
-					local node2 = node:AddNode( gate.name or "No name found :(" )
-					node2.name = gate.name
-					node2.action = action
-					function node2:DoClick()
-						RunConsoleCommand( "wire_gates_Action", self.action )
+				if index == max then
+					timer.Remove("wire_gates_fillsubtree_delay" .. tostring(subtree))
+					--timer.Simple(0,tree.InvalidateLayout,tree)
+					if not node.m_bExpanded then
+						node:InternalDoClick()
 					end
-					node2.Icon:SetImage( "gui/silkicons/newspaper" )
-					tree:InvalidateLayout()
-				else
-					timer.Remove( "wire_gates_fillsubtree_delay"..tostring(subtree) )
-					callback()
+					node.Icon:SetImage( "gui/silkicons/folder" )
 				end
 			end )
 		end
@@ -279,7 +281,6 @@ if CLIENT then
 		for gatetype,gatefuncs in pairs( WireGatesSorted ) do
 			local node = tree:AddNode( gatetype .. " Gates" )
 			node.first_time = true
-			node.is_expanded = false
 			function node:DoClick()
 				if self.first_time then
 					FillSubTree( tree, self, gatefuncs )
