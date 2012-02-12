@@ -66,10 +66,10 @@ function EGP:ScaleObject( ent, v )
 			v.y = (v.y - yMin) * yMul
 		end
 		if (v.w) then
-			v.w = v.w * xMul
+			v.w = math.abs(v.w * xMul)
 		end
 		if (v.h) then
-			v.h = v.h * yMul
+			v.h = math.abs(v.h * yMul)
 		end
 	end
 end

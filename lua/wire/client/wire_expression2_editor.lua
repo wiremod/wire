@@ -130,24 +130,18 @@ function Editor:Init()
 
 	// colors
 	self.colors = {}
-	self.colors.col_FL = Color( 65, 105, 225, 255 ) //Royal Blue
-	self.colors.col_FR = Color( 25, 25, 112, 255 ) //Midnight Blue
-	self.colors.tmp_FL = Color( 65, 105, 225, 255 )
-	self.colors.tmp_FR = Color( 25, 25, 112, 255 )
-	self.colors.tmp_Dark = 255
 
 	self.C = {}
 	self.Components = {}
+
+	-- Load border colors, position, & size
+	self:LoadEditorSettings()
 
 	surface.CreateFont( "default", 11, 300, false, false, "E2SmallFont" )
 	self.logo = surface.GetTextureID("vgui/e2logo")
 
 	self:InitComponents()
 	self:LoadSyntaxColors()
-
-	local width, height = math.min(surface.ScreenWidth()-200, 800), math.min(surface.ScreenHeight()-200, 620)
-	self:SetPos((surface.ScreenWidth() - width) / 2, (surface.ScreenHeight() - height) / 2)
-	self:SetSize(width, height)
 
 	//  This turns off the engine drawing
 	self:SetPaintBackgroundEnabled(false)
@@ -156,6 +150,78 @@ function Editor:Init()
 	self:SetV(false)
 
 	self:InitShutdownHook()
+end
+
+local col_FL = CreateClientConVar("wire_expression2_editor_color_fl", "65_105_225", true, false )
+local col_FR = CreateClientConVar("wire_expression2_editor_color_fr", "25_25_112", true, false )
+local Dark = CreateClientConVar("wire_expression2_editor_color_dark", "255", true, false )
+local SimpleGUI = CreateClientConVar("wire_expression2_editor_color_simplegui", "0", true, false )
+
+local size = CreateClientConVar("wire_expression2_editor_size", "800_600", true, false )
+local pos = CreateClientConVar("wire_expression2_editor_pos", "-1_-1", true, false )
+
+function Editor:LoadEditorSettings()
+	-- Colors
+
+	local r,g,b = col_FL:GetString():match( "(%d+)_(%d+)_(%d+)" )
+	self.colors.col_FL = Color(tonumber(r),tonumber(g),tonumber(b),255)
+	self.colors.tmp_FL = Color(tonumber(r),tonumber(g),tonumber(b),255)
+
+	local r,g,b = col_FR:GetString():match( "(%d+)_(%d+)_(%d+)" )
+	self.colors.col_FR = Color(tonumber(r),tonumber(g),tonumber(b),255)
+	self.colors.tmp_FR = Color(tonumber(r),tonumber(g),tonumber(b),255)
+
+	self.colors.tmp_Dark = Dark:GetFloat()
+
+	self.SimpleGUI = SimpleGUI:GetBool()
+
+	-- Position & Size
+	local w,h = size:GetString():match( "(%d+)_(%d+)" )
+	w = tonumber(w)
+	h = tonumber(h)
+
+	self:SetSize( w, h )
+
+	local x,y = pos:GetString():match( "(%-?%d+)_(%-?%d+)" )
+	x = tonumber(x)
+	y = tonumber(y)
+
+	if x == -1 and y == -1 then
+		self:Center()
+
+		local x,y = self:GetPos()
+		RunConsoleCommand( "wire_expression2_editor_pos", x .. "_" .. y )
+	else
+		self:SetPos( x,y )
+	end
+end
+
+function Editor:SaveEditorSettings()
+	-- Colors
+	local r,g,b = self.colors.col_FL.r,self.colors.col_FL.g,self.colors.col_FL.b
+	RunConsoleCommand( "wire_expression2_editor_color_fl", r .. "_" .. g .. "_" .. b )
+	local r,g,b = self.colors.col_FR.r,self.colors.col_FR.g,self.colors.col_FR.b
+	RunConsoleCommand( "wire_expression2_editor_color_fr", r .. "_" .. g .. "_" .. b )
+	RunConsoleCommand( "wire_expression2_editor_color_dark", self.tmp_Dark and "1" or "0" )
+
+	RunConsoleCommand( "wire_expression2_editor_color_simplegui", self.SimpleGUI and "1" or "0" )
+
+	-- Position & Size
+	local w,h = self:GetSize()
+	RunConsoleCommand( "wire_expression2_editor_size", w .. "_" .. h )
+
+	local x,y = self:GetPos()
+	RunConsoleCommand( "wire_expression2_editor_pos", x .. "_" .. y )
+end
+
+function Editor:DefaultEditorColors()
+	self.colors.col_FL = Color( 65, 105, 225, 255 ) //Royal Blue
+	self.colors.col_FR = Color( 25, 25, 112, 255 ) //Midnight Blue
+	self.colors.tmp_FL = Color( 65, 105, 225, 255 )
+	self.colors.tmp_FR = Color( 25, 25, 112, 255 )
+	self.colors.tmp_Dark = 255
+
+	self:SaveEditorSettings()
 end
 
 function Editor:Paint()
@@ -997,20 +1063,20 @@ function Editor:InitControlPanel(frame)
 	frame:AddResizeObject( dlist, 4, 4 )
 	dlist:EnableVerticalScrollbar( true )
 
-	local SimpleColors = vgui.Create( "Label" )
+	local Label = vgui.Create( "DLabel" )
+	dlist:AddItem( Label )
+	Label:SetText( "Window border colors" )
+	Label:SizeToContents()
+
+	local SimpleColors = vgui.Create( "DCheckBoxLabel" )
 	dlist:AddItem( SimpleColors )
 	SimpleColors:SetSize(180,20)
-	SimpleColors:SetText("Simple Colors = off")
-	SimpleColors.OnMousePressed = function(check)
-		if(self.SimpleGUI) then
-			self.SimpleGUI = false
-			check:SetText("Simple Colors = off")
-		else
-			self.SimpleGUI = true
-			check:SetText("Simple Colors = on")
-		end
-		self:InvalidateLayout()
+	SimpleColors:SetText("Simple Colors")
+	SimpleColors:SetConVar( "wire_expression2_editor_color_simplegui" )
+	function SimpleColors.OnChange( pnl, b )
+		self.SimpleGUI = b
 	end
+
 	local temp = vgui.Create( "Panel" )
 	dlist:AddItem( temp )
 	temp:SetTall( 70 )
@@ -1038,6 +1104,14 @@ function Editor:InitControlPanel(frame)
 		return x, 0.5
 	end
 	DarknessColor:SetSlideX(0)
+
+	local defaultbutton = vgui.Create( "DButton" )
+	defaultbutton:SetText( "Default" )
+	defaultbutton:SetToolTip( "Set window border colors to default" )
+	function defaultbutton.DoClick( btn )
+		self:DefaultEditorColors()
+	end
+	dlist:AddItem( defaultbutton )
 
 	-- Other colors
 
@@ -1746,8 +1820,6 @@ local code2 = [[#[
     highlighting has been added (for use on forums).
     Right click anywhere in the editor to use it.
 
-    User defined function support has been added.
-
     Documentation and examples are available at:
     http://wiki.wiremod.com/wiki/Expression_2
     The community is available at http://www.wiremod.com
@@ -2095,6 +2167,8 @@ function Editor:Close()
 	self:ExtractName()
 	self:SetV(false)
 	self.chip = false
+
+	self:SaveEditorSettings()
 end
 
 function Editor:Setup(nTitle, nLocation, nEditorType)
