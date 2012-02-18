@@ -928,6 +928,8 @@ local function ScalePoint( this, x, y )
 	return x,y
 end
 
+
+__e2setcost(20)
 e2function vector wirelink:egpToWorld( vector2 pos )
 	if not EGP:ValidEGP( this ) then return Vector(0,0,0) end
 
@@ -959,6 +961,15 @@ e2function vector wirelink:egpToWorld( vector2 pos )
 	end
 
 	return Vector(0,0,0)
+end
+
+local antispam = {}
+__e2setcost(25)
+e2function void wirelink:egpHudToggle()
+	if not EGP:ValidEGP( this ) then return end
+	if antispam[self.player] and antispam[self.player] > CurTime() then return end
+	antispam[self.player] = CurTime() + 0.1
+	umsg.Start( "EGP_HUD_Use", self.player ) umsg.Entity( this ) umsg.End()
 end
 
 --------------------------------------------------------
