@@ -453,29 +453,33 @@ end
 
 --------------------------------------------------------------------------------
 -- Concat
--- Concatenatest the values of the array
+-- Concatenates the values of the array
 --------------------------------------------------------------------------------
 __e2setcost(1)
+local concat = table.concat
 e2function string array:concat()
-	local out = ""
-
-	self.prf = self.prf + #this
-
-	for _,value in ipairs(this) do
-		out = out .. tostring(value)
-	end
-	return out
+	self.prf = self.prf + #this/3
+	return concat(this)
 end
-
 e2function string array:concat(string delimiter)
-	local out = ""
-
-	self.prf = self.prf + #this
-
-	for _,value in ipairs(this) do
-		out = out .. tostring(value) .. delimiter
-	end
-	return string.Left(out, string.len(out) - string.len(delimiter))
+	self.prf = self.prf + #this/3
+	return concat(this,delimiter)
+end
+e2function string array:concat(string delimiter, startindex)
+	self.prf = self.prf + #this/3
+	return concat(this,delimiter,startindex)
+end
+e2function string array:concat(string delimiter, startindex, endindex)
+	self.prf = self.prf + #this/3
+	return concat(this,delimiter,startindex,endindex)
+end
+e2function string array:concat(startindex)
+	self.prf = self.prf + #this/3
+	return concat(this,"",startindex,endindex)
+end
+e2function string array:concat(startindex,endindex)
+	self.prf = self.prf + #this/3
+	return concat(this,"",startindex,endindex)
 end
 
 --------------------------------------------------------------------------------

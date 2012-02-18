@@ -188,11 +188,16 @@ function Editor:LoadEditorSettings()
 
 	if x == -1 and y == -1 then
 		self:Center()
-
-		local x,y = self:GetPos()
-		RunConsoleCommand( "wire_expression2_editor_pos", x .. "_" .. y )
 	else
 		self:SetPos( x,y )
+	end
+
+	if x < 0 or y < 0 or x + w > ScrW() or x + h > ScrH() then -- If the editor is outside the screen, reset it
+		local width, height = math.min(surface.ScreenWidth()-200, 800), math.min(surface.ScreenHeight()-200, 620)
+		self:SetPos((surface.ScreenWidth() - width) / 2, (surface.ScreenHeight() - height) / 2)
+		self:SetSize(width, height)
+
+		self:SaveEditorSettings()
 	end
 end
 

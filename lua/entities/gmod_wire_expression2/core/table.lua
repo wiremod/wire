@@ -849,24 +849,31 @@ e2function table findToTable()
 	return ret
 end
 
-__e2setcost(5)
-
+__e2setcost(1)
+local concat = table.concat
 e2function string table:concat()
-	self.prf = self.prf + #this.n * opcost
-	local ret = ""
-	for k,v in ipairs( this.n ) do
-		ret = ret .. tostring(v)
-	end
-	return ret
+	self.prf = self.prf + #this * opcost
+	return concat(this.n)
 end
-
-e2function string table:concat( string delimiter )
-	self.prf = self.prf + #this.n * opcost
-	local ret = ""
-	for k,v in ipairs( this.n ) do
-		ret = ret .. tostring(v) .. delimiter
-	end
-	return ret:Left(-#delimiter-1)
+e2function string table:concat(string delimiter)
+	self.prf = self.prf + #this/3
+	return concat(this.n,delimiter)
+end
+e2function string table:concat(string delimiter, startindex)
+	self.prf = self.prf + #this/3
+	return concat(this.n,delimiter,startindex)
+end
+e2function string table:concat(string delimiter, startindex, endindex)
+	self.prf = self.prf + #this/3
+	return concat(this.n,delimiter,startindex,endindex)
+end
+e2function string table:concat(startindex)
+	self.prf = self.prf + #this/3
+	return concat(this.n,"",startindex,endindex)
+end
+e2function string table:concat(startindex,endindex)
+	self.prf = self.prf + #this/3
+	return concat(this.n,"",startindex,endindex)
 end
 
 --------------------------------------------------------------------------------
