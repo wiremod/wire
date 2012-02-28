@@ -160,28 +160,31 @@ function ENT:TriggerInput( iname, value )
 end
 
 function ENT:TriggerOutput()		-- Entity outputs won't trigger again until they change
-			local attacker = self.firsthit_dmginfo[1]
-			if ValidEntity(attacker) then
-				Wire_TriggerOutput( self, "Attacker", attacker )
-			else
-				Wire_TriggerOutput( self, "Attacker", null )
-			end
 
-			local victim = self.firsthit_dmginfo[2]
-			if ValidEntity( ents.GetByIndex(victim) ) then
-				Wire_TriggerOutput( self, "Victim", ents.GetByIndex(victim) )
-			else
-				Wire_TriggerOutput( self, "Victim", null )
-			end
+	timer.Remove( "wire_damage_detector_" .. tostring(self) )
 
-			self.victims.size = table.Count(self.victims.s)
-			Wire_TriggerOutput( self, "Victims", self.victims or table.Copy(DEFAULT) )
-			Wire_TriggerOutput( self, "Position", self.firsthit_dmginfo[3] or Vector(0,0,0) )
-			Wire_TriggerOutput( self, "Force", self.firsthit_dmginfo[4] or Vector(0,0,0) )
-			Wire_TriggerOutput( self, "Type", self.firsthit_dmginfo[5] or "" )
+	local attacker = self.firsthit_dmginfo[1]
+	if ValidEntity(attacker) then
+		WireLib.TriggerOutput( self, "Attacker", attacker )
+	else
+		WireLib.TriggerOutput( self, "Attacker", null )
+	end
 
-			Wire_TriggerOutput( self, "Damage", self.damage or 0 )
-			Wire_TriggerOutput( self, "Damage", 0 )		-- Set damage back to 0 after it's been dealt
+	local victim = self.firsthit_dmginfo[2]
+	if ValidEntity( ents.GetByIndex(victim) ) then
+		WireLib.TriggerOutput( self, "Victim", ents.GetByIndex(victim) )
+	else
+		WireLib.TriggerOutput( self, "Victim", null )
+	end
+
+	self.victims.size = table.Count(self.victims.s)
+	WireLib.TriggerOutput( self, "Victims", self.victims or table.Copy(DEFAULT) )
+	WireLib.TriggerOutput( self, "Position", self.firsthit_dmginfo[3] or Vector(0,0,0) )
+	WireLib.TriggerOutput( self, "Force", self.firsthit_dmginfo[4] or Vector(0,0,0) )
+	WireLib.TriggerOutput( self, "Type", self.firsthit_dmginfo[5] or "" )
+
+	WireLib.TriggerOutput( self, "Damage", self.damage or 0 )
+	timer.Create( "wire_damage_detector_" .. tostring(self), 0, 1, WireLib.TriggerOutput, self, "Damage", 0 )
 end
 
 function ENT:UpdateLinkedEnts()		-- Check to see if prop is registered by the detector

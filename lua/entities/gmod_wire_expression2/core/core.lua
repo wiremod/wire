@@ -76,7 +76,7 @@ registerOperator("for", "", "", function(self, args)
 		rstep = op3[1](self, op3)
 
 		if rdiff > -delta then
-			if rstep < delta then return end
+			if rstep < delta and rstep > -delta then return end
 		elseif rdiff < delta then
 			if rstep > -delta then return end
 		else
