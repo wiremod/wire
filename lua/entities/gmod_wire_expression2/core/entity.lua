@@ -104,7 +104,7 @@ end
 
 e2function string entity:model()
 	if not validEntity(this) then return "" end
-	return this:GetModel()
+	return this:GetModel() or ""
 end
 
 e2function entity entity:owner()
