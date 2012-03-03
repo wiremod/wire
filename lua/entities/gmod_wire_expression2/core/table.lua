@@ -1074,7 +1074,7 @@ registerCallback( "postinit", function()
 			end
 			rv1.s[rv2] = rv3
 			rv1.stypes[rv2] = id
-			self.Scopes[scope].vclk[rv1] = true
+			self.vclk[rv1] = true //self.Scopes[scope].vclk[rv1] = true
 			return rv3
 		end)
 
@@ -1093,7 +1093,7 @@ registerCallback( "postinit", function()
 			if (rv1.size > maxsize()) then return fixdef(v[2]) end
 			rv1.n[rv2] = rv3
 			rv1.ntypes[rv2] = id
-			self.Scopes[scope].vclk[rv1] = true
+			self.vclk[rv1] = true //self.Scopes[scope].vclk[rv1] = true
 			return rv3
 		end)
 
