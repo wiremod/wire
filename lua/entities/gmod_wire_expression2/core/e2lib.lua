@@ -22,7 +22,6 @@ end
 -- This function clamps the position before moving the entity
 local minx, miny, minz = -16384,-16384,-16384
 local maxx, maxy, maxz =  16384, 16384, 16384
-local hasboundary
 local clamp = math.Clamp
 function E2Lib.clampPos( pos )
 	pos.x = clamp( pos.x, minx, maxx )

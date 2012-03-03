@@ -462,6 +462,8 @@ function Compiler:InstrGET(args)
 
 		local rt = self:GetOperator(args, "idx", {tp,tp1})
 		return {rt[1], ex, ex1}, rt[2]
+
+
 	else
 		if !self:HasOperator(args, "idx", {tp2, "=", tp,tp1}) then
 			self:Error("No such operator: get " .. tps_pretty({tp}) .. "[".. tps_pretty({tp1, tp2}) .."]", args)
@@ -473,37 +475,32 @@ function Compiler:InstrGET(args)
 end
 
 function Compiler:InstrSET(args)
-	local op       = args[3]
+	local ex,  tp = self:Evaluate(args, 1)
 	local ex1, tp1 = self:Evaluate(args, 2)
 	local ex2, tp2 = self:Evaluate(args, 3)
 
 	if args[6] == nil then
-		local tp, ScopeID = self:GetVariableType(args, op)
-
 		if !self:HasOperator(args, "idx", {tp,tp1,tp2}) then
 			self:Error("No such operator: set " .. tps_pretty({tp}) .. "[".. tps_pretty({tp1}) .."]=" .. tps_pretty({tp2}), args)
 		end
 
 		local rt = self:GetOperator(args, "idx", {tp,tp1,tp2})
 
-		RunString("native = function(self) return self.Scopes" .. string.format("[%i][%q]", ScopeID,op) .. " end")
-		return {rt[1], {native}, ex1, ex2, ScopeID}, rt[2]
+		return {rt[1], ex, ex1, ex2, ScopeID}, rt[2]
 	else
 		if tp2 != args[6] then
 			self:Error("Indexing type mismatch, specified [" .. tps_pretty({args[6]}) .. "] but value is [" .. tps_pretty({tp2}) .. "]", args)
 		end
-
-		local tp,ScopeID = self:GetVariableType(args, op)
 
 		if !self:HasOperator(args, "idx", {tp2, "=", tp,tp1,tp2}) then
 			self:Error("No such operator: set " .. tps_pretty({tp}) .. "[".. tps_pretty({tp1, tp2}) .."]", args)
 		end
 		local rt = self:GetOperator(args, "idx", {tp2, "=", tp,tp1,tp2})
 
-		RunString("native = function(self) return self.Scopes" .. string.format("[%i][%q]", ScopeID,op) .. " end")
-		return {rt[1], {native}, ex1, ex2, ScopeID}, tp2
+		return {rt[1], ex, ex1, ex2}, tp2
 	end
 end
+
 
 -- generic code for all binary non-boolean operators
 for _,operator in ipairs({"add", "sub", "mul", "div", "mod", "exp", "eq", "neq", "geq", "leq", "gth", "lth", "band", "band", "bor", "bxor", "bshl", "bshr"}) do

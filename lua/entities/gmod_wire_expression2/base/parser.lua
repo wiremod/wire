@@ -394,6 +394,36 @@ function Parser:Stmt7()
 	return self:Stmt8()
 end
 
+function Parser:Index()
+	if self:AcceptTailingToken("lsb") then
+		local trace = self:GetTokenTrace()
+		local exp = self:Expr1()
+
+		if self:AcceptRoamingToken("com") then
+			if !self:AcceptRoamingToken("fun") then
+				self:Error("Indexing operator ([]) requires a lower case type [X,t]")
+			end
+
+			local typename = self:GetTokenData()
+			if typename == "number" then typename = "normal" end
+			local type = wire_expression_types[string.upper(typename)]
+
+			if !self:AcceptRoamingToken("rsb") then
+				self:Error("Right square bracket (]) missing, to close indexing operator [X,t]")
+			end
+
+			if !type then
+				self:Error("Indexing operator ([]) does not support the type [" .. typename .. "]")
+			end
+
+			return {exp, type[1],trace}, self:Index()
+		else
+			self:Error("Indexing operator ([]) must not be preceded by whitespace")
+		end
+	end
+end
+
+
 function Parser:Stmt8()
 
 	if self.localized then
@@ -410,40 +440,27 @@ function Parser:Stmt8()
 		if self:AcceptTailingToken("lsb") then
 			if self.localized then
 				self:Error("Invalid operator (local).")
-			elseif self:AcceptRoamingToken("rsb") then
-				self:Error("Indexing operator ([]) requires an index [X]")
 			end
 
-			local expr = self:Expr1()
-			if self:AcceptRoamingToken("com") then
-				if !self:AcceptRoamingToken("fun") then
-					self:Error("Indexing operator ([]) requires a lower case type [X,t]")
-				end
+			self:TrackBack()
+			local indexs = {self:Index()}
 
-				local longtp = self:GetTokenData()
+			if self:AcceptRoamingToken("ass") then
+				local total = #indexs
+				local inst = self:Instruction(trace, "var", var)
 
-				if !self:AcceptRoamingToken("rsb") then
-					self:Error("Right square bracket (]) missing, to close indexing operator [X,t]")
-				end
-
-				if self:AcceptRoamingToken("ass") then
-					if longtp == "number" then longtp = "normal" end
-					if wire_expression_types[string.upper(longtp)] == nil then
-						self:Error("Indexing operator ([]) does not support the type [" .. longtp .. "]")
+				for i = 1, total do -- Yep, All this took me 2 hours to figure out!
+					local key, type, trace = indexs[i][1], indexs[i][2], indexs[i][3]
+					if i == total then
+						inst = self:Instruction(trace, "set", inst, key, self:Stmt8(), type)
+					else
+						inst = self:Instruction(trace, "get", inst, key, type)
 					end
 
-					local tp = wire_expression_types[string.upper(longtp)][1]
-					return self:Instruction(trace, "set", var, expr, self:Stmt8(), tp)
-				end
-			elseif self:AcceptRoamingToken("rsb") then
-				if self:AcceptRoamingToken("ass") then
-					return self:Instruction(trace, "set", var, expr, self:Stmt8())
-				end
-			else
-				self:Error("Indexing operator ([]) needs to be closed with comma (,) or right square bracket (])")
+				end -- Example Result: set( get( get(Var,1,table) ,1,table) ,3,"hello",string)
+				return inst
 			end
-		elseif self:AcceptRoamingToken("lsb") then
-			self:Error("Indexing operator ([]) must not be preceded by whitespace")
+
 		elseif self:AcceptRoamingToken("ass") then
 			if self.localized then
 				self.localized = nil
@@ -463,9 +480,30 @@ function Parser:Stmt8()
 end
 
 function Parser:Stmt9()
+	if self:AcceptRoamingToken("swh") then
+		local trace = self:GetTokenTrace()
 
-	//--Function Statment
-	if self:AcceptRoamingToken("func") then
+		if !self:AcceptRoamingToken("lpa") then
+			self:Error("Left parenthesis (() expected before switch condition")
+		end
+
+		local expr = self:Expr1()
+
+		if !self:AcceptRoamingToken("rpa") then
+			self:Error("Right parenthesis ()) expected after switch condition")
+		end
+
+		if !self:AcceptRoamingToken("lcb") then
+			self:Error("Left curly bracket ({) expected after switch condition")
+		end
+
+		loopdepth = loopdepth + 1
+		local cases, default = self:SwitchBlock()
+		loopdepth = loopdepth - 1
+
+		return self:Instruction(trace, "switch", expr, cases, default)
+
+	elseif self:AcceptRoamingToken("func") then
 
 		local Trace = self:GetTokenTrace()
 
@@ -606,7 +644,7 @@ function Parser:Stmt9()
 
 	end
 
-	return self:Stmt10()
+	return self:Expr1()
 end
 
 function Parser:FunctionArgs(Temp,Args)
@@ -731,36 +769,6 @@ function Parser:FunctionArgList(Temp,Args)
 	end
 
 
-end
-
-function Parser:Stmt10()
-
-	//Shhh this is a secret. Do not tell anybody about this, Rusketh!
-	if self:AcceptRoamingToken("swh") then
-		local trace = self:GetTokenTrace()
-
-		if !self:AcceptRoamingToken("lpa") then
-			self:Error("Left parenthesis (() expected before switch condition")
-		end
-
-		local expr = self:Expr1()
-
-		if !self:AcceptRoamingToken("rpa") then
-			self:Error("Right parenthesis ()) expected after switch condition")
-		end
-
-		if !self:AcceptRoamingToken("lcb") then
-			self:Error("Left curly bracket ({) expected after switch condition")
-		end
-
-		loopdepth = loopdepth + 1
-		local cases, default = self:SwitchBlock()
-		loopdepth = loopdepth - 1
-
-		return self:Instruction(trace, "switch", expr, cases, default)
-	end
-
-	return self:Expr1()
 end
 
 function Parser:IfElseIf()
