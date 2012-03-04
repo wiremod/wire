@@ -417,6 +417,10 @@ function Parser:Index()
 			end
 
 			return {exp, type[1],trace}, self:Index()
+
+		elseif self:AcceptTailingToken("rsb") then
+			return {exp, nil, trace}
+
 		else
 			self:Error("Indexing operator ([]) must not be preceded by whitespace")
 		end
