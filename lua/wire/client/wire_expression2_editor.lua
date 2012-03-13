@@ -1659,7 +1659,8 @@ Text here]# ]] }
 	local dlist2 = vgui.Create("DPanelList")
 	dlist:AddItem(dlist2)
 	dlist2:EnableVerticalScrollbar( true )
-	dlist2:SetTall( 444 )
+	--frame:AddResizeObject( dlist2, 2,2 )
+	--dlist2:SetTall( 444 )
 	dlist2:SetSpacing( 1 )
 	dlist2.Paint = function() end
 
@@ -1678,6 +1679,7 @@ Text here]# ]] }
 	UpdateList.DoClick = function( pnl, showall )
 		local E2s = ents.FindByClass( "gmod_wire_expression2" )
 		dlist2:Clear()
+		local size = 0
 		for k,v in pairs( E2s ) do
 			local ply = v:GetNWEntity( "_player", false )
 			if (ply and (ply == LocalPlayer()) or showall) then
@@ -1691,6 +1693,7 @@ Text here]# ]] }
 					draw.RoundedBox(1, 0, 0, w, h, Color( 65, 105, 255, 100 ) )
 				end
 				dlist2:AddItem( panel )
+				size = size + panel:GetTall() + 1
 
 				local label = vgui.Create( "DLabel", panel )
 				label:SetText( "Name: " .. name .. "\nEntity ID: '" .. v:EntIndex() .. "'" .. ( showall and "\nOwner: " .. nick or "" ) )
@@ -1705,7 +1708,7 @@ Text here]# ]] }
 				timer.Simple(0,function() btn:SetPos( panel:GetWide()-btn:GetWide()*2-6, 4 ) end)
 				btn.DoClick = function( pnl )
 					RunConsoleCommand( "wire_expression_prepare",v:EntIndex())
-					wire_expression2_upload( self:GetCode() )
+					wire_expression2_upload()
 				end
 				btn.Paint = function( button )
 					local w,h = button:GetSize()
@@ -1769,6 +1772,8 @@ Text here]# ]] }
 				end
 			end
 		end
+		dlist2:SetTall(size+2)
+		dlist:InvalidateLayout()
 	end
 	local UpdateList2 = vgui.Create( "DButton" )
 	UpdateList2:SetText( "" )
