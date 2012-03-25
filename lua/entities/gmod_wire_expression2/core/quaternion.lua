@@ -163,7 +163,7 @@ e2function quaternion quat(vector forward, vector up)
 	local yyaw = Vector(0,1,0)
 	yyaw:Rotate(Angle(0,ang.y,0))
 
-	local roll = acos(y:Dot(yyaw))*rad2deg
+	local roll = acos(math.Clamp(y:Dot(yyaw), -1, 1))*rad2deg
 
 	local dot = y.z
 	if dot < 0 then roll = -roll end
@@ -594,7 +594,7 @@ e2function number rotationAngle(quaternion q)
 	local l2 = q[1]*q[1] + q[2]*q[2] + q[3]*q[3] + q[4]*q[4]
 	if l2 == 0 then return 0 end
 	local l = sqrt(l2)
-	local ang = 2*acos(q[1]/l)*rad2deg  //this returns angle from 0 to 360
+	local ang = 2*acos(math.Clamp(q[1]/l, -1, 1))*rad2deg  //this returns angle from 0 to 360
 	if ang > 180 then ang = ang - 360 end  //make it -180 - 180
 	return ang
 end
@@ -658,7 +658,7 @@ e2function angle quaternion:toAngle()
 	local yyaw = Vector(0,1,0)
 	yyaw:Rotate(Angle(0,ang.y,0))
 
-	local roll = acos(y:Dot(yyaw))*rad2deg
+	local roll = acos(math.Clamp(y:Dot(yyaw), -1, 1))*rad2deg
 
 	local dot = q2*q1 + q3*q4
 	if dot < 0 then roll = -roll end
