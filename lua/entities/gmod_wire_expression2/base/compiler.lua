@@ -107,7 +107,7 @@ end
 function Compiler:SetLocalVariableType(name, type, instance)
 	local typ = self.Scope[name]
 	if typ and typ != type then
-		self:Error("Variable (" .. E2Lib.limitString(name, 10) .. ") of type [" .. tps_pretty(typ) .. "] cannot be assigned value of type [" .. tps_pretty({type}) .. "]", instance)
+		self:Error("Variable (" .. E2Lib.limitString(name, 10) .. ") of type [" .. tps_pretty({typ}) .. "] cannot be assigned value of type [" .. tps_pretty({type}) .. "]", instance)
 	end
 
 	self.Scope[name] = type

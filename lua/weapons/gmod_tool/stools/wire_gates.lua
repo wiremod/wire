@@ -280,6 +280,7 @@ if CLIENT then
 
 		for gatetype,gatefuncs in pairs( WireGatesSorted ) do
 			local node = tree:AddNode( gatetype .. " Gates" )
+			node.Icon:SetImage( "gui/silkicons/folder" )
 			node.first_time = true
 			function node:DoClick()
 				if self.first_time then

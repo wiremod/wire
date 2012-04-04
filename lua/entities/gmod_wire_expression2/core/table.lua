@@ -22,10 +22,6 @@ local blocked_types = {
 	xgt = true,
 }
 
-local _maxdepth = CreateConVar("wire_expression2_table_maxdepth",6,{FCVAR_ARCHIVE,FCVAR_NOTIFY})
-local function maxdepth()
-	return _maxdepth:GetInt()
-end
 local _maxsize = 1024*1024
 local function maxsize()
 	return _maxsize
@@ -43,7 +39,7 @@ end
 -- Type defining
 --------------------------------------------------------------------------------
 
-local DEFAULT = {n={},ntypes={},s={},stypes={},size=0,istable=true,depth=0}
+local DEFAULT = {n={},ntypes={},s={},stypes={},size=0,istable=true}
 
 registerType("table", "t", table.Copy(DEFAULT),
 	function(self, input)
@@ -133,32 +129,6 @@ local function upperfirst( word )
 	return word:Left(1):upper() .. word:Right(-2):lower()
 end
 
--- Sets the depth of all tables in the table, and returns the deepest depth
-local function checkdepth( tbl, depth, setdepth )
-	local deepest = depth or 0
-	for k,v in pairs( tbl.n ) do
-		if (tbl.ntypes[k] == "t") then
-			if (depth + 1 > maxdepth()) then return depth + 1 end
-			if (setdepth != false) then v.depth = depth + 1 end
-			local temp = checkdepth( v, depth + 1, setdepth )
-			if (temp > deepest) then
-				deepest = temp
-			end
-		end
-	end
-	for k,v in pairs( tbl.s ) do
-		if (tbl.stypes[k] == "t") then
-			if (depth + 1 > maxdepth()) then return depth + 1 end
-			if (setdepth != false) then v.depth = depth + 1 end
-			local temp = checkdepth( v, depth + 1, setdepth )
-			if (temp > deepest) then
-				deepest = temp
-			end
-		end
-	end
-	return deepest
-end
-
 local function normal_table_tostring( tbl, indenting, printed, abortafter )
 	ret = ""
 	cost = 0
@@ -236,10 +206,6 @@ registerOperator("ass", "t", "t", function(self, args)
 	local lhs, op2, scope = args[2], args[3], args[4]
 	local      rhs = op2[1](self, op2)
 
-	if (checkdepth( rhs, 0, false ) > maxdepth()) then
-		self.prf = self.prf + 500
-		return table.Copy(DEFAULT)
-	end
 	if (rhs.size > maxsize()) then
 		self.prf = self.prf + 500
 		return table.Copy(DEFAULT)
@@ -333,15 +299,6 @@ registerOperator( "kvtable", "", "t", function( self, args )
 				self.prf = self.prf + size * opcost + 500
 				return ret
 			end
-
-			if types[k] == "t" then
-				if checkdepth( s[key], 1 ) > maxdepth() then
-					self.prf = self.prf + size * opcost + 500
-					return ret
-				end
-				s[key].depth = 1
-				s[key].parent = ret
-			end
 		end
 	end
 
@@ -373,14 +330,6 @@ e2function table table(...)
 				self.prf = self.prf + size * opcost + 500
 				return table.Copy(DEFAULT)
 			end
-			if (typeids[k] == "t") then
-				if (checkdepth( v, 1 )>maxdepth()) then -- Max depth check
-					self.prf = self.prf + size * opcost + 500
-					return table.Copy(DEFAULT)
-				end
-				v.depth = 1
-				v.parent = ret
-			end
 			ret.n[k] = v
 			ret.ntypes[k] = typeids[k]
 		end
@@ -399,7 +348,6 @@ e2function void table:clear()
 	this.ntypes = {}
 	table.Empty( this.s )
 	this.stypes = {}
-	this.parent = nil
 	this.size = 0
 	return this
 end
@@ -411,17 +359,7 @@ e2function number table:count()
 	return this.size
 end
 
--- Returns the depth of the table
-e2function number table:depth()
-	return this.depth
-end
-
 __e2setcost(3)
-
--- Returns the parent of the table
-e2function table table:parent()
-	return this.parent or table.Copy(DEFAULT)
-end
 
 __e2setcost(1)
 -- Returns 1 if any value exists at the specified index, else 0
@@ -614,10 +552,6 @@ e2function table table:add( table rv2 )
 	end
 
 	self.prf = self.prf + cost * opcost
-	if (checkdepth( ret, 0, false ) > maxdepth()) then
-		self.prf = self.prf + 500 -- Punishment
-		return table.Copy(DEFAULT)
-	end
 	ret.size = size
 	return ret
 end
@@ -649,10 +583,6 @@ e2function table table:merge( table rv2 )
 	end
 
 	self.prf = self.prf + cost * opcost
-	if (checkdepth( ret, 0, false ) > maxdepth()) then
-		self.prf = self.prf + 500 -- Punishment
-		return table.Copy(DEFAULT)
-	end
 	ret.size = size
 	return ret
 end
@@ -1059,14 +989,6 @@ registerCallback( "postinit", function()
 		registerOperator("idx", id.."=ts"..id , id, function( self, args )
 			local op1, op2, op3, scope = args[2], args[3], args[4], args[5]
 			local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
-			if (id == "t") then
-				rv3.depth = rv1.depth + 1
-				if (checkdepth( rv3, rv3.depth, true ) > maxdepth()) then -- max depth check
-					self.prf = self.prf + 500
-					return fixdef(v[2])
-				end
-				rv3.parent = rv1
-			end
 			if (!rv1.s[rv2]) then rv1.size = rv1.size + 1 end
 			if (rv1.size > maxsize()) then
 				self.prf = self.prf + 500
@@ -1081,14 +1003,6 @@ registerCallback( "postinit", function()
 		registerOperator("idx", id.."=tn"..id, id, function(self,args)
 			local op1, op2, op3, scope = args[2], args[3], args[4], args[5]
 			local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
-			if (id == "t") then
-				rv3.depth = rv1.depth + 1
-				if (checkdepth( rv3, rv3.depth, true ) > maxdepth()) then -- max depth check
-					self.prf = self.prf + 500
-					return fixdef(v[2])
-				end
-				rv3.parent = rv1
-			end
 			if (!rv1.n[rv2]) then rv1.size = rv1.size + 1 end
 			if (rv1.size > maxsize()) then return fixdef(v[2]) end
 			rv1.n[rv2] = rv3
@@ -1149,14 +1063,6 @@ registerCallback( "postinit", function()
 			local op1, op2 = args[2], args[3]
 			local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
 			local n = #rv1.n+1
-			if (id == "t") then
-				rv2.depth = rv1.depth + 1
-				if (checkdepth( rv2, rv2.depth, true ) > maxdepth()) then
-					self.prf = self.prf + 500
-					return fixdef(v[2])
-				end
-				rv2.parent = rv1
-			end
 			rv1.size = rv1.size + 1
 			if (rv1.size > maxsize()) then
 				self.prf = self.prf + 500
@@ -1178,14 +1084,6 @@ registerCallback( "postinit", function()
 			local op1, op2, op3 = args[2], args[3], args[4]
 			local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self,op3)
 			if (rv2 < 0) then return end
-			if (id == "t") then
-				rv3.depth = rv1.depth + 1
-				if (checkdepth( rv3, rv3.depth, true ) > maxdepth()) then
-					self.prf = self.prf + 500
-					return fixdef(v[2])
-				end
-				rv3.parent = rv1
-			end
 			rv1.size = rv1.size + 1
 			if (rv1.size > maxsize()) then
 				self.prf = self.prf + 500
@@ -1200,14 +1098,6 @@ registerCallback( "postinit", function()
 		registerFunction( "unshift"..name,"t:"..id,"",function(self,args)
 			local op1, op2 = args[2], args[3]
 			local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-			if (id == "t") then
-				rv2.depth = rv1.depth + 1
-				if (checkdepth( rv2, rv2.depth, true ) > maxdepth()) then
-					self.prf = self.prf + 500
-					return fixdef(v[2])
-				end
-				rv2.parent = rv1
-			end
 			rv1.size = rv1.size + 1
 			if (rv1.size > maxsize()) then
 				self.prf = self.prf + 500
