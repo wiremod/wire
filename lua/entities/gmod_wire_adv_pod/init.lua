@@ -90,20 +90,26 @@ function ENT:SetActivated( b )
 	WireLib.TriggerOutput(self, "Active", b and 1 or 0)
 end
 
+function ENT:HidePlayer( b )
+	if not self:HasPly() then return end
+
+	local r,g,_b,a = self:GetPly():GetColor()
+	if (b) then
+		self.OldPlyAlpha = a
+		self:GetPly():SetColor(r,g,_b,0)
+	else
+		self:GetPly():SetColor(r,g,_b,self.OldPlyAlpha or 255)
+		self.OldPlyAlpha = nil
+	end
+end
+
 function ENT:SetHidePlayer( b )
 	if (self.HidePlayer == b) then return end
 
-	self.HidePlayer = b
+	self.HidePlayerVal = b
 
 	if (self:HasPly()) then
-		local r,g,_b,a = self:GetPly():GetColor()
-		if (b) then
-			self.OldPlyAlpha = a
-			self:GetPly():SetColor(r,g,_b,0)
-		else
-			self:GetPly():SetColor(r,g,_b,self.OldPlyAlpha or 255)
-			self.OldPlyAlpha = nil
-		end
+		self:HidePlayer( b )
 	end
 end
 
@@ -257,7 +263,6 @@ function ENT:TriggerInput( name, value )
 		self.Relative = (value != 0)
 	elseif (name == "Hide Player") then
 		self:SetHidePlayer( value != 0 )
-		self.HidePlayerVal = (value != 0)
 	elseif (name == "Hide HUD") then
 		self:SetHideHUD( value ~= 0 )
 	end
@@ -372,7 +377,7 @@ function ENT:PlayerEntered( ply, RC )
 	end
 
 	if (self.HidePlayerVal) then
-		self:SetHidePlayer( true )
+		self:HidePlayer( true )
 	end
 
 	self:SetActivated( true )
@@ -380,9 +385,8 @@ end
 
 function ENT:PlayerExited( ply )
 	if (!self:HasPly()) then return end
-	self:SetPly( nil )
 
-	self:SetHidePlayer( false )
+	self:HidePlayer( false )
 
 	ply:CrosshairEnable()
 
@@ -408,6 +412,8 @@ function ENT:PlayerExited( ply )
 	WireLib.TriggerOutput( self, "Team", 0 )
 	WireLib.TriggerOutput( self, "Health", 0 )
 	WireLib.TriggerOutput( self, "Armor", 0 )
+
+	self:SetPly( nil )
 end
 
 hook.Add( "PlayerEnteredVehicle", "Wire_Adv_Pod_EnterVehicle", function( ply, vehicle )

@@ -278,7 +278,7 @@ GateActions["pow"] = {
 	name = "Exponential Powers",
 	inputs = { "A", "B" },
 	output = function(gate, A, B)
-		return math.pow(A, B)
+		return A ^ B
 	end,
 	label = function(Out, A, B)
 		return "pow("..A..", "..B..") = "..Out
