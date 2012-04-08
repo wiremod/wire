@@ -74,8 +74,10 @@ typeSanitizers = {
 
 				if type(glonOutputObject) ~= "table" then return safeArray end
 
-				for k, v in ipairs(glonOutputObject) do
-					safeArray[k] = v
+				for k, v in pairs(glonOutputObject) do
+					if type (k) == "number" then
+						safeArray[k] = v
+					end
 				end
 
 				return safeArray
@@ -104,12 +106,14 @@ typeSanitizers = {
 				end
 
 				if type(glonOutputObject.n) == "table" and type(glonOutputObject.ntypes) == "table" then
-					for k, v in ipairs(glonOutputObject.s) do
-						local objectType = glonOutputObject.ntypes[k]
-						local safeObject = sanitizeGlonOutput( self, v, objectType, safeGlonObjectMap )
-						if safeObject then
-							safeTable.n[k] = safeObject
-							safeTable.ntypes[k] = objectType
+					for k, v in pairs(glonOutputObject.n) do
+						if type (k) == "number" then
+							local objectType = glonOutputObject.ntypes[k]
+							local safeObject = sanitizeGlonOutput( self, v, objectType, safeGlonObjectMap )
+							if safeObject then
+								safeTable.n[k] = safeObject
+								safeTable.ntypes[k] = objectType
+							end
 						end
 					end
 				end
