@@ -60,15 +60,13 @@ if SERVER then
 	for i=1,32 do
 		resource.AddSingleFile("settings/render_targets/WireGPU_RT_"..i..".txt")
 	end
-	resource.AddSingleFile("materials/expression 2/cog.vtf")
-	resource.AddSingleFile("materials/expression 2/cog.vmt")
-	resource.AddSingleFile("materials/gui/silkicons/page_white_add.vmt")
-	resource.AddSingleFile("materials/gui/silkicons/page_white_add.vtf")
-	resource.AddSingleFile("materials/gui/silkicons/page_white_delete.vmt")
-	resource.AddSingleFile("materials/gui/silkicons/page_white_delete.vtf")
-	resource.AddSingleFile("materials/wirelogo.vmt")
-	resource.AddSingleFile("materials/wirelogo.vtf")
+	resource.AddFile("materials/expression 2/cog.vmt")
+	resource.AddFile("materials/gui/silkicons/page_white_add.vmt")
+	resource.AddFile("materials/gui/silkicons/page_white_delete.vmt")
+	resource.AddFile("materials/wirelogo.vmt")
 	resource.AddSingleFile("materials/expression 2/cog_world.vmt")
+	resource.AddFile( "materials/gui/silkicons/folder.vmt" )
+	resource.AddFile( "materials/gui/silkicons/computer.vmt" )
 end
 
 -- shared includes
