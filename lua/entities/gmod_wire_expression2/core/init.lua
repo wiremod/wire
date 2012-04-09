@@ -191,7 +191,7 @@ if SERVER then
 		if (!glon) then require("glon") end -- Doubt this will be necessary, but still
 
 		local functiondata,functiondata2
-		local functiondata_buffer, functiondata2_buffer = {}, {}
+		local functiondata_buffer, functiondata2_buffer, clientside_files_buffer = {}, {}, {}
 
 		-- prepares a table with information (no, a glon string! - edit by Divran) about E2 types and functions
 		function wire_expression2_prepare_functiondata()
@@ -219,10 +219,22 @@ if SERVER then
 			for i=1,#temp,245 do
 				functiondata2_buffer[#functiondata2_buffer+1] = temp:sub(i,i+244)
 			end
+
+			-- Clientside file buffer (for initial spawn only)
+			local temp = {}
+			for k,v in pairs( clientside_files ) do temp[#temp+1] = k end
+			temp = glon.encode( temp )
+			clientside_files_buffer = {}
+			for i=1,#temp,245 do
+				clientside_files_buffer[#clientside_files_buffer+1] = temp:sub(i,i+244)
+			end
 		end
 
 		wire_expression2_prepare_functiondata()
 
+		local sendClientsideFilesList
+
+		-- Send everything
 		local targets = {}
 		local function sendData( target )
 			if (type(target) == "table") then
@@ -236,6 +248,33 @@ if SERVER then
 			if (target and type(target) == "Player" and target:IsValid() and targets[target] == nil) then
 				targets[target] = { 1, 0 }
 				umsg.Start("e2st",target) umsg.Short( #functiondata_buffer + #functiondata2_buffer ) umsg.End()
+			end
+		end
+
+		-- Send only CL file list
+		function sendClientsideFilesList( target )
+			if type(target) == "table" then
+				for k,v in pairs( target ) do
+					if type(v) == "Player" then
+						sendCLientsideFilesList( v )
+					end
+				end
+				return
+			end
+
+			if target and type(target) == "Player" and target:IsValid() and not timer.IsTimer( "wire_expression2_clientside_files_list_send_" .. target:UniqueID() ) then
+				local i = 0
+				umsg.Start("e2fs",target) umsg.Short( #clientside_files_buffer ) umsg.End()
+				timer.Create( "wire_expression2_clientside_files_list_send_" .. target:UniqueID(), 0, 0,function()
+					i = i + 1
+					umsg.Start( "e2fd", target )
+						umsg.String( clientside_files_buffer[i] )
+					umsg.End()
+					if i == #clientside_files_buffer then
+						umsg.Start( "e2fe", target ) umsg.End()
+						timer.Remove( "wire_expression2_clientside_files_list_send_" .. target:UniqueID() )
+					end
+				end)
 			end
 		end
 
@@ -282,8 +321,18 @@ if SERVER then
 		-- add a console command the user can use to re-request the function info, in case of errors or updates
 		concommand.Add("wire_expression2_sendfunctions", wire_expression2_sendfunctions)
 
+		hook.Add( "PlayerInitialSpawn", "wire_expression2_sendfunctions", function( ply )
+			-- If single player, send everything
+			if SinglePlayer() then
+				sendData( ply )
+				sendClientsideFilesList( ply )
+			else -- else send only files list
+				sendClientsideFilesList( ply )
+			end
+		end)
+
 		-- send function info once the player first spawns (NOTE: Only in single player)
-		if SinglePlayer() then hook.Add("PlayerInitialSpawn", "wire_expression2_sendfunctions", wire_expression2_sendfunctions) end
+		--if SinglePlayer() then hook.Add("PlayerInitialSpawn", "wire_expression2_sendfunctions", wire_expression2_sendfunctions) end
 	end
 
 elseif CLIENT then
@@ -377,6 +426,38 @@ elseif CLIENT then
 				insertData( data )
 			else
 				insertData2( data )
+			end
+		end
+		buffer = ""
+	end)
+
+
+	-- Initial spawn file includes
+	local buffer2 = ""
+	local buffer_total_count2 = 0
+	local buffer_current_count2 = 0
+	usermessage.Hook( "e2fs", function( um )
+		buffer_total_count2 = um:ReadShort()
+		buffer_current_count2 = 0
+		buffer2 = ""
+	end)
+
+	usermessage.Hook( "e2fd", function( um )
+		local str = um:ReadString()
+		buffer2 = buffer2 .. str
+		buffer_current_count2 = buffer_current_count2 + 1
+	end)
+
+	usermessage.Hook( "e2fe", function( um )
+		local OK, data = pcall( glon.decode, buffer2 )
+		if (!OK) then
+			ErrorNoHalt( "[E2] Failed to receive client side file list. Error message was:\n" .. data )
+			if wire_expression2_editor and wire_expression2_editor:IsValid() then
+				wire_expression2_editor:SetValidatorStatus( "Failed to receive client side file list. Error message was: " .. data )
+			end
+		else
+			for _,filename in pairs( data ) do
+				include("entities/gmod_wire_expression2/core/"..filename)
 			end
 		end
 		buffer = ""
