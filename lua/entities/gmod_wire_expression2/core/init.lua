@@ -248,6 +248,7 @@ if SERVER then
 			if (target and type(target) == "Player" and target:IsValid() and targets[target] == nil) then
 				targets[target] = { 1, 0 }
 				umsg.Start("e2st",target) umsg.Short( #functiondata_buffer + #functiondata2_buffer ) umsg.End()
+				timer.Remove( "wire_expression2_clientside_files_list_send_" .. target:UniqueID() )
 			end
 		end
 
@@ -325,7 +326,6 @@ if SERVER then
 			-- If single player, send everything
 			if SinglePlayer() then
 				sendData( ply )
-				sendClientsideFilesList( ply )
 			else -- else send only files list
 				sendClientsideFilesList( ply )
 			end
@@ -434,18 +434,13 @@ elseif CLIENT then
 
 	-- Initial spawn file includes
 	local buffer2 = ""
-	local buffer_total_count2 = 0
-	local buffer_current_count2 = 0
 	usermessage.Hook( "e2fs", function( um )
-		buffer_total_count2 = um:ReadShort()
-		buffer_current_count2 = 0
 		buffer2 = ""
 	end)
 
 	usermessage.Hook( "e2fd", function( um )
 		local str = um:ReadString()
 		buffer2 = buffer2 .. str
-		buffer_current_count2 = buffer_current_count2 + 1
 	end)
 
 	usermessage.Hook( "e2fe", function( um )
@@ -460,7 +455,7 @@ elseif CLIENT then
 				include("entities/gmod_wire_expression2/core/"..filename)
 			end
 		end
-		buffer = ""
+		buffer2 = ""
 	end)
 end
 
