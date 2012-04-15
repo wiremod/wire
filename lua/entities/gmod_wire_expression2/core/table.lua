@@ -871,16 +871,19 @@ local tostring_typeid = {
 e2function table invert(array arr)
 	local ret = table.Copy(DEFAULT)
 	local c = 0
+	local size = 0
 	for i,v in ipairs(arr) do
 		c = c + 1
 		local tostring_this = tostrings[type(v)]
 		if tostring_this then
 			ret.s[tostring_this(v)] = i
 			ret.stypes[tostring_this(v)] = "n"
+			size = size + 1
 		elseif (checkOwner(self)) then
 			self.player:ChatPrint("E2: invert(R): Invalid type ("..type(v)..") in array. Ignored.")
 		end
 	end
+	ret.size = size
 	self.prf = self.prf + c * opcost
 	return ret
 end
@@ -890,6 +893,7 @@ end
 e2function table invert(table tbl)
 	local ret = table.Copy(DEFAULT)
 	local c = 0
+	local size = 0
 	for i,v in pairs(tbl.n) do
 		c = c + 1
 		local typeid = tbl.ntypes[i]
@@ -897,6 +901,7 @@ e2function table invert(table tbl)
 		if tostring_this then
 			ret.s[tostring_this(v)] = i
 			ret.stypes[tostring_this(v)] = "n"
+			size = size + 1
 		elseif (checkOwner(self)) then
 			self.player:ChatPrint("E2: invert(T): Invalid type ("..typeid..") in table. Ignored.")
 		end
@@ -908,11 +913,13 @@ e2function table invert(table tbl)
 		if tostring_this then
 			ret.s[tostring_this(v)] = i
 			ret.stypes[tostring_this(v)] = "s"
+			size = size + 1
 		elseif (checkOwner(self)) then
 			self.player:ChatPrint("E2: invert(T): Invalid type ("..typeid..") in table. Ignored.")
 		end
 	end
 	self.prf = self.prf + c * opcost
+	ret.size = size
 	return ret
 end
 
