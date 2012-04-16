@@ -400,7 +400,7 @@ __e2setcost(30) -- temporary
 local function check( v )
 	return 	-math.huge < v[1] and v[1] < math.huge and
 			-math.huge < v[2] and v[2] < math.huge and
-			-math.huge < v[3] and v[3] < math.huge and
+			-math.huge < v[3] and v[3] < math.huge
 end
 
 
