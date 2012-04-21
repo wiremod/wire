@@ -54,13 +54,13 @@ function E2Lib.getHash(self, data)
 
 		return b << 16 | a
 
-		... but we're going to use Garry's function, since it's most likely done in C++, so it's probably faster
+		... but we're going to use Garry's function, since it's most likely done in C++, so it's probably faster.
 		For some reason, Garry's util.CRC returns a string... but it's always a number, so tonumbering it should work.
-		I'm making it default to "[ERROR]" if it for some reason throws a letter in there, breaking tonumber.
+		I'm making it default to -1 if it for some reason throws a letter in there, breaking tonumber.
 		]]
 
-		self.prf = self.prf + #data / 10
-		return tonumber(util_CRC( data )) or "[ERROR]"
+		if self then self.prf = self.prf + #data / 10 end
+		return tonumber(util_CRC( data )) or -1
 end
 
 

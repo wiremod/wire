@@ -76,13 +76,13 @@ end
 e2function string httpData()
 	local preq = requests[self.player]
 
-	return preq.data or ""
+	return preq and preq.data or ""
 end
 
 e2function string httpRequestUrl()
 	local preq = requests[self.player]
 
-	return preq.url or ""
+	return preq and preq.url or ""
 end
 
 e2function string httpUrlEncode(string data)
