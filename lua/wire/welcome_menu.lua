@@ -73,7 +73,7 @@ if (CLIENT) then
 		function pnl:Paint()
 			draw.RoundedBox( 4, 0,0,self:GetWide(),self:GetTall(), Menu.Colors.BGColor  )
 		end
-		pnl:SetSize( 210, 152 )
+		pnl:SetSize( 219, 152 )
 		pnl:SetPos( 100, ScrH() / 2 - pnl:GetTall() / 2 )
 		pnl:SetDraggable( true )
 		pnl:SetScreenLock( true )
@@ -96,7 +96,7 @@ to enable the cursor.]] )
 		Menu:AddColoring( txt.SetColor, txt )
 
 		local btn = vgui.Create("Wire_WMenu_Button",pnl)
-		btn:SetSize( 100, 20 )
+		btn:SetSize( 104, 20 )
 		btn:SetPos( 4, pnl:GetTall()-24 )
 		btn:SetText("OK")
 		function btn:DoClick()
@@ -104,8 +104,8 @@ to enable the cursor.]] )
 		end
 
 		local btn = vgui.Create("Wire_WMenu_Button",pnl)
-		btn:SetSize( 100, 20 )
-		btn:SetPos( 106, pnl:GetTall()-24 )
+		btn:SetSize( 104, 20 )
+		btn:SetPos( 111, pnl:GetTall()-24 )
 		btn:SetText("What's new?")
 		function btn:DoClick()
 			gui.OpenURL("http://www.wiremod.com/forum/wiremod-svn-log/")

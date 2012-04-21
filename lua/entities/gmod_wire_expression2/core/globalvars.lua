@@ -5,6 +5,7 @@ Made by Divran
 
 local gvars = {}
 gvars.shared = {}
+gvars.safe = {} -- Safe from hacking using gTableSafe
 
 ------------------------------------------------------------------------------------------------
 -- GVARS V2
@@ -120,8 +121,8 @@ e2function gtable gTableSafe( number shared )
 		if not gvars[self.uid][hash] then gvars[self.uid][hash] = {} end
 		return gvars[self.uid][hash]
 	else
-		if not gvars.shared[hash] then gvars.shared[hash] = {} end
-		return gvars.shared[hash]
+		if not gvars.safe[hash] then gvars.safe[hash] = {} end
+		return gvars.safe[hash]
 	end
 end
 
