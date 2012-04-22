@@ -5,8 +5,6 @@
 E2Lib.RegisterExtension("console", true)
 
 local function validConCmd(self, command)
-	if command:find( "%%%s*n" ) then return false end -- Nope.avi
-
 	local ply = self.player
 	if not ply:IsValid() then return false end
 	if ply:GetInfoNum("wire_expression2_concmd") == 0 then return false end
@@ -30,7 +28,7 @@ end
 
 e2function number concmd(string command)
 	if not validConCmd(self, command) then return 0 end
-	self.player:ConCommand(command)
+	self.player:ConCommand(command:gsub("%%", "%%%%"))
 	return 1
 end
 
