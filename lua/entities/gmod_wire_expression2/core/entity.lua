@@ -404,7 +404,7 @@ local function check( v )
 end
 
 local function checkv( v )
-	return 	-math.huge < v.x and v.z < math.huge and
+	return 	-math.huge < v.x and v.x < math.huge and
 			-math.huge < v.y and v.y < math.huge and
 			-math.huge < v.z and v.z < math.huge
 end

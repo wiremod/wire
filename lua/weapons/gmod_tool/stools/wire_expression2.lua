@@ -10,6 +10,7 @@ TOOL.ClientConVar = {
 	size        = "",
 	select      = "",
 	autoindent  = 1,
+	friendwrite = 0,
 }
 
 if CLIENT then
@@ -23,19 +24,6 @@ if CLIENT then
 end
 
 cleanup.Register("wire_expressions")
-
-if CLIENT then
-	if CanRunConsoleCommand() then
-		CreateClientConVar("wire_expression2_friendwrite", 0, false, true)
-	else
-		hook.Add("OnEntityCreated", "wire_expression2_console", function(ent)
-			if not ValidEntity(ent) then return end
-			if ent ~= LocalPlayer() then return end
-
-			CreateClientConVar("wire_expression2_friendwrite", 0, false, true)
-		end)
-	end
-end
 
 if SERVER then
 	CreateConVar('sbox_maxwire_expressions', 20)

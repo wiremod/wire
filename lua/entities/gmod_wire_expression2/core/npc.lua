@@ -136,13 +136,12 @@ e2function number entity:npcRelationshipByOwner(entity rv2, string rv3, rv4)
 	local prior = rv4
 	if disp == 0 then return 0 end
 	local Table = ents.FindByClass("npc_*")
-	if(table.Count(Table)==0) then return 0 end
 
-	for i=1,table.Count(Table) do
+	for i=1,#Table do
 		if(isOwner(self, Table[i])) then entity:AddEntityRelationship( Table[i], disp, prior ) end
 	end
 
-	return table.Count(Table)
+	return #Table
 end
 
 e2function string entity:npcDisp(entity rv2)
