@@ -261,19 +261,23 @@ if SERVER then
 					end
 				end
 				return
-			end
-
-			if target and type(target) == "Player" and target:IsValid() and not timer.IsTimer( "wire_expression2_clientside_files_list_send_" .. target:UniqueID() ) then
+			elseif target and type(target) == "Player" and target:IsValid() and not timer.IsTimer( "wire_expression2_clientside_files_list_send_" .. target:UniqueID() ) then
+				local uid = target:UniqueID()
 				local i = 0
 				umsg.Start("e2fs",target) umsg.Short( #clientside_files_buffer ) umsg.End()
-				timer.Create( "wire_expression2_clientside_files_list_send_" .. target:UniqueID(), 0, 0,function()
+				timer.Create( "wire_expression2_clientside_files_list_send_" .. uid, 0, 0,function()
+					if not target or not target:IsValid() then
+						timer.Remove( "wire_expression2_clientside_files_list_send_" .. uid )
+						return
+					end
+
 					i = i + 1
 					umsg.Start( "e2fd", target )
 						umsg.String( clientside_files_buffer[i] )
 					umsg.End()
 					if i == #clientside_files_buffer then
 						umsg.Start( "e2fe", target ) umsg.End()
-						timer.Remove( "wire_expression2_clientside_files_list_send_" .. target:UniqueID() )
+						timer.Remove( "wire_expression2_clientside_files_list_send_" .. uid )
 					end
 				end)
 			end
