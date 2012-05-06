@@ -62,7 +62,7 @@ hook.Add("Think","WireLib_Timedpairs", function()
 				end
 			else -- Out of keys. Entire table looped
 				if data.endcallback then -- If we had any end callback function
-					local kv = data.lookup[data.currentindex-1] or {} -- get previous key & value
+					local kv = lookup[data.currentindex-1] or {} -- get previous key & value
 					local ok, err = pcall( data.endcallback, kv.key, kv.value, unpack(data.args) )
 
 					if not ok then

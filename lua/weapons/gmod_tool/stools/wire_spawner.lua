@@ -7,6 +7,7 @@ TOOL.Tab			= "Wire"
 TOOL.ClientConVar = {
 	delay = 0,
 	undo_delay = 0,
+	spawn_effect = 0,
 }
 
 if CLIENT then
@@ -33,6 +34,7 @@ function TOOL:LeftClick(trace)
 	local pl			= self:GetOwner()
 	local delay			= self:GetClientNumber("delay", 0)
 	local undo_delay	= self:GetClientNumber("undo_delay", 0)
+	local spawn_effect  = self:GetClientNumber("spawn_effect", 0)
 
 	if ent:GetClass() == "gmod_wire_spawner" && ent.pl == pl then
 		local spawner = ent
@@ -42,7 +44,7 @@ function TOOL:LeftClick(trace)
 			delay = 0.1
 		end
 
-		spawner:Setup(delay, undo_delay)
+		spawner:Setup(delay, undo_delay, spawn_effect)
 		return true
 	end
 
@@ -59,7 +61,7 @@ function TOOL:LeftClick(trace)
 	local r,g,b,a		= ent:GetColor()
 	local skin			= ent:GetSkin() or 0
 
-	local wire_spawner = MakeWireSpawner( pl, Pos, Ang, model, delay, undo_delay, mat, r, g, b, a, skin, frozen )
+	local wire_spawner = MakeWireSpawner( pl, Pos, Ang, model, delay, undo_delay, spawn_effect, mat, r, g, b, a, skin, frozen )
 	if !wire_spawner:IsValid() then return end
 
 	ent:Remove()
@@ -74,7 +76,7 @@ end
 
 if SERVER then
 
-	function MakeWireSpawner( pl, Pos, Ang, model, delay, undo_delay, mat, r, g, b, a, skin, frozen )
+	function MakeWireSpawner( pl, Pos, Ang, model, delay, undo_delay, spawn_effect, mat, r, g, b, a, skin, frozen )
 
 		if !pl:CheckLimit("wire_spawners") then return nil end
 
@@ -100,18 +102,19 @@ if SERVER then
 		end
 
 		spawner:SetPlayer(pl)
-		spawner:Setup(delay, undo_delay)
+		spawner:Setup(delay, undo_delay, spawn_effect)
 
 		local tbl = {
-			pl         = pl,
-			delay      = delay,
-			undo_delay = undo_delay,
-			mat        = mat,
-			skin       = skin,
-			r          = r,
-			g          = g,
-			b          = b,
-			a          = a,
+			pl           = pl,
+			delay        = delay,
+			undo_delay   = undo_delay,
+			spawn_effect = spawn_effect,
+			mat          = mat,
+			skin         = skin,
+			r            = r,
+			g            = g,
+			b            = b,
+			a            = a,
 		}
 		table.Merge(spawner:GetTable(), tbl)
 
@@ -121,7 +124,7 @@ if SERVER then
 		return spawner
 	end
 
-	duplicator.RegisterEntityClass("gmod_wire_spawner", MakeWireSpawner, "Pos", "Ang", "Model", "delay", "undo_delay", "mat", "r", "g", "b", "a", "skin", "frozen")
+	duplicator.RegisterEntityClass("gmod_wire_spawner", MakeWireSpawner, "Pos", "Ang", "Model", "delay", "undo_delay", "spawn_effect", "mat", "r", "g", "b", "a", "skin", "frozen")
 
 end
 
@@ -135,11 +138,13 @@ function TOOL.BuildCPanel( CPanel )
 			default = {
 				wire_spawner_delay	= 0,
 				wire_spawner_undo_delay	= 0,
+				wire_spawner_spawn_effect = 0,
 			}
 		},
 		CVars = {
 			"wire_spawner_delay",
 			"wire_spawner_undo_delay",
+			"wire_spawner_spawn_effect",
 		}
 	}
 	CPanel:AddControl( "ComboBox", params )
@@ -161,5 +166,11 @@ function TOOL.BuildCPanel( CPanel )
 		Command	= "wire_spawner_undo_delay",
 	}
 	CPanel:AddControl( "Slider",  params )
+
+	local params = {
+		Label = "#Prop spawn effect",
+		Command = "wire_spawner_spawn_effect"
+	}
+	CPanel:AddControl( "Checkbox",  params )
 
 end

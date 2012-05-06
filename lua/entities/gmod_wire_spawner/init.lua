@@ -12,6 +12,14 @@ hook.Add("EntityRemoved", "wire_spawner_EntityRemoved", function(ent)
 	GlobalUndoList[ent] = nil
 end)
 
+local function MakePropNoEffect(...)
+	local backup = DoPropSpawnedEffect
+	DoPropSpawnedEffect = function() end
+	local ret = MakeProp(...)
+	DoPropSpawnedEffect = backup
+	return ret
+end
+
 function ENT:Initialize()
 
 	self:SetMoveType( MOVETYPE_NONE )
@@ -33,15 +41,16 @@ function ENT:Initialize()
 	self.CurrentPropCount = 0
 
 	-- Add inputs/outputs (TheApathetic)
-	self.Inputs = WireLib.CreateSpecialInputs(self, { "Spawn", "Undo", "UndoEnt" }, { "NORMAL", "NORMAL", "ENTITY" })
+	self.Inputs = WireLib.CreateSpecialInputs(self, { "Spawn", "Undo", "UndoEnt", "SpawnEffect" }, { "NORMAL", "NORMAL", "ENTITY", "NORMAL" })
 	self.Outputs = WireLib.CreateSpecialOutputs(self, { "Out", "LastSpawned", "Props" }, { "NORMAL", "ENTITY", "ARRAY" })
 
 	Wire_TriggerOutput(self, "Props", self.UndoList)
 end
 
-function ENT:Setup( delay, undo_delay )
+function ENT:Setup( delay, undo_delay, spawn_effect )
 	self.delay = delay
 	self.undo_delay = undo_delay
+	self.spawn_effect = spawn_effect
 	self:ShowOutput()
 end
 
@@ -56,8 +65,14 @@ function ENT:DoSpawn( pl, down )
 	local Pos	= ent:GetPos()
 	local Ang	= ent:GetAngles()
 	local model	= ent:GetModel()
+	local prop  = nil
 
-	local prop = MakeProp( pl, Pos, Ang, model, {}, {} )
+	if self.spawn_effect ~= 0 then
+		prop = MakeProp( pl, Pos, Ang, model, {}, {} )
+	else
+		prop = MakePropNoEffect( pl, Pos, Ang, model, {}, {} )
+	end
+
 	if (not prop or not prop:IsValid()) then return end
 
 	-- apply material and color (TAD2020)
@@ -176,6 +191,8 @@ function ENT:TriggerInput(iname, value)
 		if (UndoThisValue) then self:DoUndo(pl) end
 	elseif (iname == "UndoEnt") then
 		self:DoUndoEnt(pl, value)
+	elseif (iname == "SpawnEffect") then
+		self.spawn_effect = value
 	end
 end
 
