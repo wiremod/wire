@@ -18,7 +18,7 @@ function WireLib.GetWireVersion()
 		version = plainversion .. " (EXPORTED)"
 	end
 
-	return version, tonumber(plainversion), exported
+	return version, plainversion, exported
 end
 
 -- Get online version
