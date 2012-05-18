@@ -121,6 +121,18 @@ typeSanitizers = {
 				safeTable.size = table.Count(safeTable.s) + #safeTable.n
 
 				return safeTable
+			end,
+	["v"] = function ( self, glonOutputObject, safeGlonObjectMap )
+				if not glonOutputObject then return table.Copy(wire_expression_types2["v"][2]) end
+				if type(glonOutputObject) == "Vector" then return { glonOutputObject.x, glonOutputObject.y, glonOutputObject.z } end
+				if type(glonOutputObject) ~= "table" then return table.Copy(wire_expression_types2["v"][2]) end
+
+				local safeValue = {}
+				for i = 1, 3 do
+					safeValue[i] = tonumber(glonOutputObject[i]) or wire_expression_types2["v"][2][i]
+				end
+
+				return safeValue
 			end
 }
 
@@ -131,7 +143,6 @@ local numericArrayDataTypes =
 	["c"]	= 2,
 	["m"]	= 9,
 	["q"]	= 4,
-	["v"]	= 3,
 	["xm2"]	= 4,
 	["xm4"]	= 16,
 	["xv2"]	= 2,
