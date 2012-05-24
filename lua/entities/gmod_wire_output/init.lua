@@ -43,11 +43,8 @@ function ENT:Switch( on, ply )
 end
 
 function ENT:ShowOutput()
-	if (self.key) then
-		if (keylist[self.key + 1]) then
-			self:SetOverlayText("Numpad Output ("..keylist[self.key + 1]..")")
-		end
-	end
+    local keyName = self.key and keylist[self.key + 1] or "Unknown, " .. tostring(self.key)
+    self:SetOverlayText("Numpad Output (" .. keyName .. ")")
 end
 
 function ENT:SetKey( key )

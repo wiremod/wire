@@ -76,7 +76,8 @@ function ENT:Switch( on, mul )
 end
 
 function ENT:ShowOutput(value)
-	self:SetOverlayText( "Numpad Input ("..keylist[self.keygroup + 1]..")\n(" .. self.value_off .. " - " .. self.value_on .. ") = " .. value )
+    local keyName = self.keygroup and keylist[self.keygroup + 1] or "Unknown, " .. tostring(self.keygroup)
+    self:SetOverlayText("Numpad Input (" .. keyName .. ")\n(" .. self.value_off .. " - " .. self.value_on .. ") = " .. value)
 end
 
 local function On( pl, ent, mul )
