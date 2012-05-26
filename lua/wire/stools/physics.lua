@@ -855,7 +855,6 @@ do --wire_thruster
 			["#More Sparks"] = "more_sparks",
 			["#Spark Fountain"] = "spark_fountain",
 			["#Jetflame"] = "jetflame",
-			["#Jetflame Advanced"] = "jetflame_advanced",
 			["#Jetflame Blue"] = "jetflame_blue",
 			["#Jetflame Red"] = "jetflame_red",
 			["#Jetflame Purple"] = "jetflame_purple",

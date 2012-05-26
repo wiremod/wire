@@ -46,19 +46,19 @@ GateActions["entity_applyaf"] = {
 	inputs = { "Ent" , "Ang" },
 	inputtypes = { "ENTITY" , "ANGLE" },
 	timed = true,
-	output = function(gate, Ent , Ang )
+	output = function(gate, Ent , angForce )
 		if !Ent then return end
 		if !Ent:IsValid() or !Ent:GetPhysicsObject():IsValid() then return end
 		if !(E2Lib.getOwner(gate, Ent) == E2Lib.getOwner(gate, gate)) then return end
 
 		if angForce.p == 0 and angForce.y == 0 and angForce.r == 0 then return end
 
-		local phys = this:GetPhysicsObject()
+		local phys = Ent:GetPhysicsObject()
 
 		-- assign vectors
-		local up = this:GetUp()
-		local left = this:GetRight() * -1
-		local forward = this:GetForward()
+		local up = Ent:GetUp()
+		local left = Ent:GetRight() * -1
+		local forward = Ent:GetForward()
 
 		-- apply pitch force
 		if angForce.p ~= 0 then
@@ -89,7 +89,7 @@ GateActions["entity_applyaf"] = {
 
 
 -- Taken from Expression 2
-
+local abs = math.abs
 GateActions["entity_applytorq"] = {
 	name = "Apply Torque",
 	inputs = { "Ent" , "Vec" },
@@ -99,12 +99,11 @@ GateActions["entity_applytorq"] = {
 		if !Ent then return end
 		if not Ent:IsValid() then return end
 		if !(E2Lib.getOwner(gate, Ent) == E2Lib.getOwner(gate, gate)) then return end
-		local phys = Ent:GetPhysicsObject()
-		if not phys:IsValid() then return end
 
 		if Vec.x == 0 and Vec.y == 0 and Vec.z == 0 then return end
 
-		local phys = this:GetPhysicsObject()
+		local phys = Ent:GetPhysicsObject()
+		if not phys:IsValid() then return end
 
 		local tq = Vec
 		local torqueamount = tq:Length()
