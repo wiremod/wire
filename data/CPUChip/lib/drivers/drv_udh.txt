@@ -68,8 +68,8 @@ void udhQueryDevices() {
   //Reconfigure all devices
   //FIXME: only supports single extended bus right now
   for (i = 0; i < 8; i++) {
-    udhBusOffset[i*2+0] = MAX_UDH_ADDRESS_RANGE*i;
-    udhBusOffset[i*2+1] = MAX_UDH_ADDRESS_RANGE*i+(MAX_UDH_ADDRESS_RANGE-1);
+    udhBusOffset[i*2+0] = (4*1024)*i;
+    udhBusOffset[i*2+1] = (4*1024)*i+((4*1024)-1);
   }
 
   //Update all drivers

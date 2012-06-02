@@ -50,7 +50,7 @@ void cscrInitialize(char* screenOffset) {
     cscrOffsets[i] = screenOffset;
   }
 
-  #ifdef UDH_DRIVER
+#ifdef UDH_DRIVER
     if (!screenOffset) {
       udhRegisterDriver(cscrUDHQueryFunction);
       cscrUDHQueryFunction();
