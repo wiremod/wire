@@ -667,7 +667,7 @@ if (SERVER) then
 			end
 		end
 		if (DataToSend and #DataToSend>0) then
-			datastream.StreamToClients( ply, "EGP_Request_Transmit", DataToSend )
+			datastream12.StreamToClients( ply, "EGP_Request_Transmit", DataToSend )
 			return true, #DataToSend
 		end
 		return false, "None of the screens have any objects drawn on them."
@@ -707,6 +707,6 @@ else
 		end
 		LocalPlayer():ChatPrint("[EGP] Received EGP object reload. " .. #decoded .. " screens' objects were reloaded.")
 	end
-	datastream.Hook("EGP_Request_Transmit", function(_,_,_,decoded) EGP:ReceiveDataStream( decoded ) end )
+	datastream12.Hook("EGP_Request_Transmit", function(_,_,_,decoded) EGP:ReceiveDataStream( decoded ) end )
 
 end

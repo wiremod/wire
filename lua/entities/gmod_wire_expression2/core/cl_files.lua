@@ -19,7 +19,7 @@ local allowed_directories = { //prefix with >(allowed directory)/file.txt for fi
 }
 
 for _,dir in pairs( allowed_directories ) do
-	if !file.IsDir( dir ) then file.CreateDir( dir ) end
+	if !file12.IsDir( dir ) then file.CreateDir( dir ) end
 end
 
 local function process_filepath( filepath )

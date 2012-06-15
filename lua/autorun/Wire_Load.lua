@@ -12,6 +12,7 @@ if SERVER then
 	AddCSLuaFile("autorun/Wire_Load.lua")
 
 	-- shared includes
+	AddCSLuaFile("wire/gmod13compat.lua")
 	AddCSLuaFile("wire/WireShared.lua")
 	AddCSLuaFile("wire/UpdateCheck.lua")
 	AddCSLuaFile("wire/Beam_NetVars.lua")
@@ -70,6 +71,7 @@ if SERVER then
 end
 
 -- shared includes
+include("wire/gmod13compat.lua")
 include("wire/WireShared.lua")
 include("wire/UpdateCheck.lua")
 include("wire/Beam_NetVars.lua")
@@ -108,7 +110,7 @@ if CLIENT then
 end
 
 -- load uwsvn
-if file.FindInLua("wire/uwsvn_load.lua")[1] then
+if file12.FindInLua("wire/uwsvn_load.lua")[1] then
 	if SERVER then AddCSLuaFile( "wire/uwsvn_load.lua" ) end
 	include("wire/uwsvn_load.lua")
 end

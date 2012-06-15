@@ -9,11 +9,11 @@ function WireLib.GetWireVersion()
 	local exported = true
 
 	-- Try getting the version using the .svn files:
-	if (file.Exists("lua/wire/client/.svn/entries", true)) then
+	if file12.Exists("lua/wire/client/.svn/entries") then
 		version = string.Explode("\n", file.Read( "lua/wire/client/.svn/entries", true) or "")[4]
 		exported = false
 		plainversion = version
-	elseif (file.Exists("wire_version.txt")) then -- Try getting the version by reading the text file:
+	elseif (file12.Exists("wire_version.txt")) then -- Try getting the version by reading the text file:
 		plainversion = file.Read("wire_version.txt")
 		version = plainversion .. " (EXPORTED)"
 	end

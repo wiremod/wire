@@ -47,3 +47,8 @@ function ENT:Think()
 		Wire_UpdateRenderBounds(self)
 	end
 end
+
+if VERSION >= 150 then
+	-- gmod 13 seems to lack this method. TODO: find a replacement
+	function ENT:DrawEntityOutline() end
+end

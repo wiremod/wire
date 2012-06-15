@@ -74,7 +74,7 @@ function EGP:NewObject( Name )
 end
 
 local folder = "entities/gmod_wire_egp/lib/objects/"
-local files = file.FindInLua(folder.."*.lua")
+local files = file12.FindInLua(folder.."*.lua")
 table.sort( files )
 for _,v in pairs( files ) do
 	include(folder..v)

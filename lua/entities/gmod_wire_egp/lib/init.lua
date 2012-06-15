@@ -6,7 +6,7 @@ EGP = {}
 
 function EGP:Initialize()
 	local Folder = "entities/gmod_wire_egp/lib/egplib/"
-	local entries = file.FindInLua( Folder .. "*.lua" )
+	local entries = file12.FindInLua( Folder .. "*.lua" )
 	for _, entry in ipairs( entries ) do
 		if (SERVER) then
 			AddCSLuaFile( Folder .. entry )
