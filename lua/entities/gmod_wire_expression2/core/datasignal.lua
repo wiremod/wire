@@ -55,13 +55,10 @@ local function IsAllowed( froment, toent, fromscope )
 	local toscope = toent.context.data.datasignal.scope
 
 	if isOwner( froment, toent ) then											-- If you're the owner, it's always ok
-		print("isOwner")
 		return true
 	elseif fromscope == 1 then													-- B
-		print("fromscope is 1; returning",toscope > 0 and isFriend( toent.player, froment.player ))
 		return toscope > 0 and isFriend( toent.player, froment.player )			-- E
 	elseif fromscope == 2 then
-		print("toscope is 1; returning",(toscope == 1 and isFriend( toent.player, froment.player )) or toscope == 2)
 		return (toscope == 1 and isFriend( toent.player, froment.player ))		-- E
 				or toscope == 2													-- F
 	end
