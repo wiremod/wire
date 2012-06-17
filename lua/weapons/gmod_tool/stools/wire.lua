@@ -1,4 +1,4 @@
-if VERSION < 129 then -- Gmod version check
+if VERSION < 131 then -- Gmod version check
 	TOOL.Mode			= "wire"
 	TOOL.Category		= "Wire - Tools"
 	TOOL.Name			= "Wire"
