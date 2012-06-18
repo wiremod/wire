@@ -194,6 +194,8 @@ end
 
 __e2setcost(100)
 
+datastream12.__prepareStream("wire_expression2_printColor")
+
 local printColor_typeids = {
 	n = tostring,
 	s = tostring,
@@ -215,7 +217,7 @@ local function printColorVarArg(chip, ply, typeids, ...)
 	end
 
 	send_array.chip = chip
-	datastream.StreamToClients(ply, "wire_expression2_printColor", send_array)
+	datastream12.StreamToClients(ply, "wire_expression2_printColor", send_array)
 end
 
 local printColor_types = {
@@ -248,7 +250,7 @@ local function printColorArray(chip, ply, arr)
 	end
 
 	send_array.chip = chip
-	datastream.StreamToClients(ply, "wire_expression2_printColor", send_array)
+	datastream12.StreamToClients(ply, "wire_expression2_printColor", send_array)
 end
 
 

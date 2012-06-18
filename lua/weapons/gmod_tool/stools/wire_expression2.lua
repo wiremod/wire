@@ -368,7 +368,7 @@ elseif CLIENT then
 	local CogTexture = surface.GetTextureID("expression 2/cog")
 	if CogTexture == surface.GetTextureID("texturemissing") then CogTexture = nil end
 
-	function TOOL:RenderToolScreen()
+	local function RenderScreen()
 		cam.Start2D()
 
 			surface.SetDrawColor(32, 32, 32, 255)
@@ -410,6 +410,15 @@ elseif CLIENT then
 			end
 
 		cam.End2D()
+	end
+	if VERSION >= 150 then
+		function TOOL:DrawToolScreen(width, height)
+			RenderScreen()
+		end
+	else
+		function TOOL:RenderToolScreen()
+			RenderScreen()
+		end
 	end
 end
 

@@ -586,9 +586,8 @@ else -- SERVER/CLIENT
 
 end
 
-require("datastream")
-
 if (SERVER) then
+	datastream12.__prepareStream("EGP_Request_Transmit")
 
 	EGP.DataStream = {}
 

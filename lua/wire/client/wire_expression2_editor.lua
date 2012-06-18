@@ -767,8 +767,13 @@ function Editor:InitComponents()
 
 	// addComponent( panel, x, y, w, h )
 	// if x, y, w, h is minus, it will stay relative to right or buttom border
-	self.C['Close']     = self:addComponent(vgui.Create( "DSysButton", self )               , -22,   4,  18,  18)   // Close button
-	self.C['Inf']       = self:addComponent(vgui.Create( "DSysButton", self )               , -42,   4,  18,  18)   // Info button
+	if VERSION >= 150 then
+		self.C['Close']     = self:addComponent(vgui.Create( "DButton", self )               , -22,   4,  18,  18)   // Close button
+		self.C['Inf']       = self:addComponent(vgui.Create( "DButton", self )               , -42,   4,  18,  18)   // Info button
+	else
+		self.C['Close']     = self:addComponent(vgui.Create( "DSysButton", self )               , -22,   4,  18,  18)   // Close button
+		self.C['Inf']       = self:addComponent(vgui.Create( "DSysButton", self )               , -42,   4,  18,  18)   // Info button
+	end
 	self.C['Sav']       = self:addComponent(vgui.Create( "Button", self )                   , 191,  30,  20,  20)   // Save button
 	self.C['NewTab']	= self:addComponent(vgui.Create( "Button", self )					, 212,  30,  20,  20)   // New tab button
 	self.C['CloseTab']	= self:addComponent(vgui.Create( "Button", self )					, 233,  30,  20,  20)   // Close tab button
@@ -777,27 +782,47 @@ function Editor:InitComponents()
 	self.C['Browser']   = self:addComponent(vgui.Create( "wire_expression2_browser", self ) ,  10,  30, 157, -10)   // Expression browser
 	self.C['TabHolder'] = self:addComponent(vgui.Create( "DPropertySheet", self )			, 165, 	52,	-5,  -27)	// TabHolder
 	self:CreateTab( "generic" )
-	self.C['Val']       = self:addComponent(vgui.Create( "Label", self )                    , 170, -30, -10,  20)   // Validation line
 	self.C['Btoggle']   = self:addComponent(vgui.Create( "Button", self )                   , 170,  30,  20,  20)   // Toggle Browser being shown
 	self.C['ConBut']    = self:addComponent(vgui.Create( "Button", self )                   , -62,  4,   18,  18)   // Control panel open/close
 	self.C['Control']   = self:addComponent(vgui.Create( "Panel", self )                    ,-350,  52, 342, -32)   // Control Panel
-	self.C['Credit']    = self:addComponent(vgui.Create( "TextEntry", self )                ,-160,  52, 150, 100)   // Credit box
+	if VERSION >= 150 then
+		self.C['Credit']    = self:addComponent(vgui.Create( "DTextEntry", self )                ,-160,  52, 150, 150)   // Credit box
+		self.C['Val']       = self:addComponent(vgui.Create( "DLabel", self )                    , 170, -30, -10,  20)   // Validation line
+	else
+		self.C['Credit']    = self:addComponent(vgui.Create( "TextEntry", self )                ,-160,  52, 150, 150)   // Credit box
+		self.C['Val']       = self:addComponent(vgui.Create( "Label", self )                    , 170, -30, -10,  20)   // Validation line
+	end
 
 	self.C['TabHolder'].panel.Paint = function() end
 
 	// extra component options
-	self.C['Close'].panel:SetType( "close" )
-	self.C['Close'].panel:SetDrawBorder( false )
-	self.C['Close'].panel:SetDrawBackground( false )
-	self.C['Close'].panel.DoClick = function ( button ) self:Close() end
-	self.C['Credit'].panel:SetText("\t\tCREDITS\n\n\tEditor by: \tSyranide and Shandolum\n\n\tTabs (and more) added by Divran.")
+	if VERSION >= 150 then
+		self.C['Close'].panel:SetText("x")
+		self.C['Close'].panel.DoClick = function(btn) self:Close() end
+	else
+		self.C['Close'].panel:SetType( "close" )
+		self.C['Close'].panel:SetDrawBorder( false )
+		self.C['Close'].panel:SetDrawBackground( false )
+		self.C['Close'].panel.DoClick = function ( button ) self:Close() end
+	end
+	if VERSION >= 150 then
+		self.C['Credit'].panel:SetTextColor(Color(0,0,0,255))
+	end
+	self.C['Credit'].panel:SetText("\t\tCREDITS\n\n\tEditor by: \tSyranide and Shandolum\n\n\tTabs (and more) added by Divran.\n\n\tFixed for GMod13 By Ninja101") -- Sure why not ;)
 	self.C['Credit'].panel:SetMultiline(true)
 	self.C['Credit'].panel:SetVisible(false)
-	self.C['Inf'].panel:SetType( "question" )
-	self.C['Inf'].panel:SetDrawBorder( false )
-	self.C['Inf'].panel:SetDrawBackground( false )
-	self.C['Inf'].panel.OnCursorEntered = function() self.C['Credit'].panel:SetVisible(true) end
-	self.C['Inf'].panel.OnCursorExited = function() self.C['Credit'].panel:SetVisible(false) end
+	if VERSION >= 150 then
+		self.C['Inf'].panel:SetText("i")
+		self.C['Inf'].panel.DoClick = function(btn)
+			self.C['Credit'].panel:SetVisible(!self.C['Credit'].panel:IsVisible())
+		end
+	else
+		self.C['Inf'].panel:SetType( "question" )
+		self.C['Inf'].panel:SetDrawBorder( false )
+		self.C['Inf'].panel:SetDrawBackground( false )
+		self.C['Inf'].panel.OnCursorEntered = function() self.C['Credit'].panel:SetVisible(true) end
+		self.C['Inf'].panel.OnCursorExited = function() self.C['Credit'].panel:SetVisible(false) end
+	end
 	self.C['Sav'].panel:SetText("")
 	self.C['Sav'].panel.Icon = surface.GetTextureID( "vgui/spawnmenu/save" )
 	self.C['Sav'].panel.Paint = function(button)
@@ -882,6 +907,9 @@ function Editor:InitComponents()
 			"Cancel"
 		)
 	end )
+	if VERSION >= 150 then
+		self.C['Val'].panel:SetFont("HudHintTextLarge")
+	end
 	self.C['Val'].panel:SetText( "   Click to validate..." )
 	self.C['Val'].panel.OnMousePressed = function(panel,btn)
 		if (btn == MOUSE_RIGHT) then
@@ -1085,21 +1113,23 @@ function Editor:InitControlPanel(frame)
 	local temp = vgui.Create( "Panel" )
 	dlist:AddItem( temp )
 	temp:SetTall( 70 )
+	if VERSION < 150 then
 	local FLColor = vgui.Create( "DColorCircle", temp )
-	FLColor:SetSize(64,64)
-	FLColor.SetFrameColor = function(panel)
-		self.colors.tmp_FL = panel:GetRGB()
-		self:CalculateColor()
+		FLColor:SetSize(64,64)
+		FLColor.SetFrameColor = function(panel)
+			self.colors.tmp_FL = panel:GetRGB()
+			self:CalculateColor()
+		end
+		FLColor.TranslateValues = function(panel, x, y ) return self:TranslateValues(panel, x, y ) end
+		local FRColor = vgui.Create( "DColorCircle", temp )
+		FRColor:SetPos(120,0)
+		FRColor:SetSize(64,64)
+		FRColor.SetFrameColor = function(panel)
+			self.colors.tmp_FR = panel:GetRGB()
+			self:CalculateColor()
+		end
+		FRColor.TranslateValues = function(panel, x, y ) return self:TranslateValues(panel, x, y ) end
 	end
-	FLColor.TranslateValues = function(panel, x, y ) return self:TranslateValues(panel, x, y ) end
-	local FRColor = vgui.Create( "DColorCircle", temp )
-	FRColor:SetPos(120,0)
-	FRColor:SetSize(64,64)
-	FRColor.SetFrameColor = function(panel)
-		self.colors.tmp_FR = panel:GetRGB()
-		self:CalculateColor()
-	end
-	FRColor.TranslateValues = function(panel, x, y ) return self:TranslateValues(panel, x, y ) end
 	local DarknessColor = vgui.Create( "DSlider" )
 	dlist:AddItem( DarknessColor )
 	DarknessColor:SetSize(180,30)
@@ -1140,7 +1170,12 @@ function Editor:InitControlPanel(frame)
     local BBox = vgui.Create( "DNumberWang", temp )
     local ABox = vgui.Create( "DNumberWang", temp )
 	local DefaultButton = vgui.Create( "DButton", temp )
-	local CurrentColorSelect = vgui.Create( "DMultiChoice", temp )
+	local CurrentColorSelect
+	if VERSION >= 150 then
+		CurrentColorSelect = vgui.Create( "DComboBox", temp )
+	else
+		CurrentColorSelect = vgui.Create( "DMultiChoice", temp )
+	end
 
 	-- Add choices
 	local Choices = {
@@ -1163,7 +1198,9 @@ function Editor:InitControlPanel(frame)
 			CurrentColor = value
 		end
 	end
-	CurrentColorSelect:SetEditable( false )
+	if VERSION < 150 then
+		CurrentColorSelect:SetEditable( false )
+	end
 
 	-- Default button
 	DefaultButton.DoClick = function( pnl )
@@ -1182,37 +1219,41 @@ function Editor:InitControlPanel(frame)
 
     ColorMixer.PerformLayout = function( pnl )
 		local w,h = pnl:GetSize()
-		pnl.RGBBar:SetPos( 0, 0 )
-		pnl.RGBBar:SetSize( 20, h )
-		pnl.AlphaBar:SetPos( 22, 0 )
-		pnl.AlphaBar:SetSize( 20, h )
-		pnl.ColorCube:SetPos( 44, 0 )
-		pnl.ColorCube:SetSize( w - 44, h )
+		if VERSION < 150 then
+			pnl.RGBBar:SetPos( 0, 0 )
+			pnl.RGBBar:SetSize( 20, h )
+			pnl.AlphaBar:SetPos( 22, 0 )
+			pnl.AlphaBar:SetSize( 20, h )
+			pnl.ColorCube:SetPos( 44, 0 )
+			pnl.ColorCube:SetSize( w - 44, h )
+		end
     end
 
-	local old = ColorMixer.ColorCube.OnMouseReleased
-	ColorMixer.ColorCube.OnMouseReleased = function( ... )
-		local clr = ColorMixer:GetColor()
-		r, g, b, a = clr.r, clr.g, clr.b, 255-ColorMixer.AlphaBar:GetSlideY()*255
-		SkipUpdate = true
-		RBox:SetValue( r )
-		GBox:SetValue( g )
-		BBox:SetValue( b )
-		ABox:SetValue( a )
-		SkipUpdate = false
-		RunConsoleCommand( Choices[CurrentColor][1], r.."_"..g.."_"..b.."_"..a )
-		old( ... )
-	end
+	if VERSION < 150 then
+		local old = ColorMixer.ColorCube.OnMouseReleased
+		ColorMixer.ColorCube.OnMouseReleased = function( ... )
+			local clr = ColorMixer:GetColor()
+			r, g, b, a = clr.r, clr.g, clr.b, 255-ColorMixer.AlphaBar:GetSlideY()*255
+			SkipUpdate = true
+			RBox:SetValue( r )
+			GBox:SetValue( g )
+			BBox:SetValue( b )
+			ABox:SetValue( a )
+			SkipUpdate = false
+			RunConsoleCommand( Choices[CurrentColor][1], r.."_"..g.."_"..b.."_"..a )
+			old( ... )
+		end
 
-	local old = ColorMixer.RGBBar.OnMouseReleased
-	ColorMixer.RGBBar.OnMouseReleased = function(...)
-		ColorMixer.ColorCube:OnMouseReleased()
-		old(...)
-	end
-	local old = ColorMixer.AlphaBar.OnMouseReleased
-	ColorMixer.AlphaBar.OnMouseReleased = function(...)
-		ColorMixer.ColorCube:OnMouseReleased()
-		old(...)
+		local old = ColorMixer.RGBBar.OnMouseReleased
+		ColorMixer.RGBBar.OnMouseReleased = function(...)
+			ColorMixer.ColorCube:OnMouseReleased()
+			old(...)
+		end
+		local old = ColorMixer.AlphaBar.OnMouseReleased
+		ColorMixer.AlphaBar.OnMouseReleased = function(...)
+			ColorMixer.ColorCube:OnMouseReleased()
+			old(...)
+		end
 	end
 
 	-- Loop this to make it a little neater
@@ -1279,7 +1320,12 @@ function Editor:InitControlPanel(frame)
 	temp:SetTall( 25 )
 	dlist:AddItem( temp )
 
-	local FontSelect = vgui.Create( "DMultiChoice", temp )
+	local FontSelect
+	if VERSION < 150 then
+		FontSelect = vgui.Create( "DMultiChoice", temp )
+	else
+		FontSelect = vgui.Create( "DComboBox", temp )
+	end
 	--dlist:AddItem( FontSelect )
 	FontSelect.OnSelect = function( panel, index, value )
 		if (value == "Custom...") then
@@ -1297,10 +1343,17 @@ function Editor:InitControlPanel(frame)
 		FontSelect:AddChoice( k .. (v != "" and " (" .. v .. ")" or "") )
 	end
 	FontSelect:AddChoice( "Custom..." )
-	FontSelect:SetEditable( false )
+	if VERSION < 150 then
+		FontSelect:SetEditable( false )
+	end
 	FontSelect:SetSize( 240 - 50 - 4, 20 )
-
-	local FontSizeSelect = vgui.Create( "DMultiChoice", temp )
+	
+	local FontSizeSelect
+	if VERSION < 150 then
+		FontSizeSelect = vgui.Create( "DMultiChoice", temp )
+	else
+		FontSizeSelect = vgui.Create( "DComboBox", temp )
+	end
 	FontSizeSelect.OnSelect = function( panel, index, value )
 		value = value:gsub( " %b()", "" )
 		self:ChangeFont( self.FontConVar:GetString(), tonumber(value) )
@@ -1309,7 +1362,9 @@ function Editor:InitControlPanel(frame)
 	for i=11,26 do
 		FontSizeSelect:AddChoice( i .. (i == 16 and " (Default)" or "") )
 	end
-	FontSizeSelect:SetEditable( false )
+	if VERSION < 150 then
+		FontSizeSelect:SetEditable( false )
+	end
 	FontSizeSelect:SetPos( FontSelect:GetWide() + 4, 0 )
 	FontSizeSelect:SetSize( 50, 20 )
 
@@ -1338,7 +1393,7 @@ function Editor:InitControlPanel(frame)
 	label:SetText( "Auto completion control style" )
 	label:SizeToContents()
 
-	local AutoCompleteControlOptions = vgui.Create( "DMultiChoice" )
+	local AutoCompleteControlOptions = (VERSION >= 150 and vgui.Create( "DComboBox" ) or vgui.Create( "DMultiChoice" ))
 	dlist:AddItem( AutoCompleteControlOptions )
 
 	local modes = {}
@@ -1358,7 +1413,9 @@ function Editor:InitControlPanel(frame)
 	modes[2] = modes["Scroller"][2]
 	modes[3] = modes["Scroller w/ Enter"][2]
 	modes[4] = modes["Eclipse Style"][2]
-	AutoCompleteControlOptions:SetEditable( false )
+	if VERSION < 150 then
+		AutoCompleteControlOptions:SetEditable( false )
+	end
 	AutoCompleteControlOptions:SetToolTip( modes[GetConVar("wire_expression2_autocomplete_controlstyle"):GetInt()] )
 
 
@@ -1419,7 +1476,7 @@ function Editor:InitControlPanel(frame)
 	label:SetText( "Browser sorting style" )
 	label:SizeToContents()
 
-	local SortStyle = vgui.Create( "DMultiChoice", temp )
+	local SortStyle = (VERSION >= 150 and vgui.Create( "DComboBox", temp ) or vgui.Create( "DMultiChoice", temp ))
 	dlist:AddItem( SortStyle )
 	SortStyle.OnSelect = function( panel, index, value )
 		value = value:gsub( "(:.+)", "" ) -- Remove description
@@ -1433,7 +1490,9 @@ function Editor:InitControlPanel(frame)
 	SortStyle:AddChoice( "2: Alphabetical - Z -> A" )
 	SortStyle:AddChoice( "3: Age - New -> Old" )
 	SortStyle:AddChoice( "4: Age - Old -> New" )
-	SortStyle:SetEditable( false )
+	if VERSION < 150 then
+		SortStyle:SetEditable( false )
+	end
 
 	--------------------------------------------- EXPRESSION 2 TAB
 	local sheet = self:AddControlPanelTab( "Expression 2", "gui/silkicons/computer", "Options for Expression 2." )
@@ -1484,7 +1543,7 @@ function Editor:InitControlPanel(frame)
 	label:SetText( "Expression 2 block comment style" )
 	label:SizeToContents()
 
-	local BlockCommentStyle = vgui.Create( "DMultiChoice" )
+	local BlockCommentStyle = (VERSION >= 150 and vgui.Create( "DComboBox" ) or vgui.Create( "DMultiChoice" ))
 	dlist:AddItem( BlockCommentStyle )
 
 	local modes = {}
@@ -1507,7 +1566,9 @@ Text here]# ]] }
 	modes[0] = modes["New (alt 1)"][2]
 	modes[1] = modes["New (alt 2)"][2]
 	modes[2] = modes["Old"][2]
-	BlockCommentStyle:SetEditable( false )
+	if VERSION < 150 then
+		BlockCommentStyle:SetEditable( false )
+	end
 	BlockCommentStyle:SetToolTip( modes[self.BlockCommentStyleConVar:GetInt()] )
 
 	BlockCommentStyle.OnSelect = function( panel, index, value )
@@ -1536,7 +1597,7 @@ Text here]# ]] }
     local GBox = vgui.Create( "DNumberWang", temp )
     local BBox = vgui.Create( "DNumberWang", temp )
 	local DefaultButton = vgui.Create( "DButton", temp )
-	local CurrentColorSelect = vgui.Create( "DMultiChoice", temp )
+	local CurrentColorSelect = (VERSION >= 150 and vgui.Create( "DComboBox", temp ) or vgui.Create( "DMultiChoice", temp ))
 
 	-- Add choices
 	for k,v in pairs( colors ) do
@@ -1553,7 +1614,9 @@ Text here]# ]] }
 		GBox:SetValue( g )
 		BBox:SetValue( b )
 	end
-	CurrentColorSelect:SetEditable( false )
+	if VERSION < 150 then
+		CurrentColorSelect:SetEditable( false )
+	end
 
 	-- Default button
 	DefaultButton.DoClick = function( pnl )
@@ -1576,29 +1639,32 @@ Text here]# ]] }
     ColorMixer.AlphaBar:SetVisible( false )
     ColorMixer.PerformLayout = function( pnl )
 		local w,h = pnl:GetSize()
-		pnl.RGBBar:SetPos( 0, 0 )
-		pnl.RGBBar:SetSize( 20, h )
-		pnl.ColorCube:SetPos( 22, 0 )
-		pnl.ColorCube:SetSize( w - 22, h )
+		if VERSION < 150 then
+			pnl.RGBBar:SetPos( 0, 0 )
+			pnl.RGBBar:SetSize( 20, h )
+			pnl.ColorCube:SetPos( 22, 0 )
+			pnl.ColorCube:SetSize( w - 22, h )
+		end
     end
+	if VERSION < 150 then
+		local old = ColorMixer.ColorCube.OnMouseReleased
+		ColorMixer.ColorCube.OnMouseReleased = function( ... )
+			local clr = ColorMixer:GetColor()
+			r, g, b = clr.r, clr.g, clr.b
+			SkipUpdate = true
+			RBox:SetValue( r )
+			GBox:SetValue( g )
+			BBox:SetValue( b )
+			SkipUpdate = false
+			self:SetSyntaxColor( CurrentColor, clr )
+			old( ... )
+		end
 
-	local old = ColorMixer.ColorCube.OnMouseReleased
-	ColorMixer.ColorCube.OnMouseReleased = function( ... )
-		local clr = ColorMixer:GetColor()
-		r, g, b = clr.r, clr.g, clr.b
-		SkipUpdate = true
-		RBox:SetValue( r )
-		GBox:SetValue( g )
-		BBox:SetValue( b )
-		SkipUpdate = false
-		self:SetSyntaxColor( CurrentColor, clr )
-		old( ... )
-	end
-
-	local old = ColorMixer.RGBBar.OnMouseReleased
-	ColorMixer.RGBBar.OnMouseReleased = function(...)
-		ColorMixer.ColorCube:OnMouseReleased()
-		old(...)
+		local old = ColorMixer.RGBBar.OnMouseReleased
+		ColorMixer.RGBBar.OnMouseReleased = function(...)
+			ColorMixer.ColorCube:OnMouseReleased()
+			old(...)
+		end
 	end
 
 	-- Loop this to make it a little neater
@@ -1897,7 +1963,7 @@ end
 local wire_expression2_editor_openoldtabs = CreateClientConVar( "wire_expression2_editor_openoldtabs", "1", true, false )
 
 function Editor:OpenOldTabs()
-	if (!file.Exists( self.Location .. "/_tabs_.txt" )) then return end
+	if (!file12.Exists( self.Location .. "/_tabs_.txt" )) then return end
 
 	-- Read file
 	local tabs = file.Read( self.Location .. "/_tabs_.txt" )
@@ -1913,7 +1979,7 @@ function Editor:OpenOldTabs()
 	local is_first = true
 	for k,v in pairs( tabs ) do
 		if (v and v != "") then
-			if (file.Exists( v )) then
+			if (file12.Exists( v )) then
 				-- Open it in a new tab
 				self:LoadFile( v, true )
 

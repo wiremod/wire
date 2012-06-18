@@ -7,7 +7,7 @@ end)
 local msg1 = "While in somone's seat/car/whatever, printColorDriver can be used to 100% realistically fake people talking, including admins."
 local msg2 = "Don't trust a word you hear while in a seat after seeing this message!"
 
-datastream.Hook("wire_expression2_printColor", function( ply, handle, id, printinfo )
+datastream12.Hook("wire_expression2_printColor", function( ply, handle, id, printinfo )
 	local chip = printinfo.chip
 	if chip and not chips[chip] then
 		chips[chip] = true

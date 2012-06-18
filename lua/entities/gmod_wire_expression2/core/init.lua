@@ -171,9 +171,11 @@ end
 
 /******************************************************************************/
 
-if not datastream then require( "datastream" ) end
-
 if SERVER then
+	if VERSION >= 150 then
+		datastream12.__prepareStream("e2st")
+		datastream12.__prepareStream("e2se")
+	end
 
 	local clientside_files = {}
 
@@ -206,18 +208,20 @@ if SERVER then
 				functiondata2[signature] = { v[4], v.argnames } -- cost, argnames
 			end
 
+			local maxPacketSize =  VERSION < 150 and 245 or 63999
+
 			-- Add functiondata to buffer
 			local temp = glon.encode( functiondata )
 			functiondata_buffer = {}
-			for i=1,#temp,245 do
-				functiondata_buffer[#functiondata_buffer+1] = temp:sub(i,i+244)
+			for i=1,#temp,maxPacketSize do
+				functiondata_buffer[#functiondata_buffer+1] = temp:sub(i,i+maxPacketSize-1)
 			end
 
 			-- Add functiondata2 to buffer
 			local temp = glon.encode( functiondata2 )
 			functiondata2_buffer = {}
-			for i=1,#temp,245 do
-				functiondata2_buffer[#functiondata2_buffer+1] = temp:sub(i,i+244)
+			for i=1,#temp,maxPacketSize do
+				functiondata2_buffer[#functiondata2_buffer+1] = temp:sub(i,i+maxPacketSize-1)
 			end
 
 			-- Clientside file buffer (for initial spawn only)
@@ -225,8 +229,8 @@ if SERVER then
 			for k,v in pairs( clientside_files ) do temp[#temp+1] = k end
 			temp = glon.encode( temp )
 			clientside_files_buffer = {}
-			for i=1,#temp,245 do
-				clientside_files_buffer[#clientside_files_buffer+1] = temp:sub(i,i+244)
+			for i=1,#temp,maxPacketSize do
+				clientside_files_buffer[#clientside_files_buffer+1] = temp:sub(i,i+maxPacketSize-1)
 			end
 		end
 
@@ -247,39 +251,47 @@ if SERVER then
 			end
 			if (target and type(target) == "Player" and target:IsValid() and targets[target] == nil) then
 				targets[target] = { 1, 0 }
-				umsg.Start("e2st",target) umsg.Short( #functiondata_buffer + #functiondata2_buffer ) umsg.End()
-				timer.Remove( "wire_expression2_clientside_files_list_send_" .. target:UniqueID() )
+				if VERSION >= 150 then
+					net.Start("e2st")
+						net.WriteLong( #functiondata_buffer + #functiondata2_buffer )
+					net.Send(target)
+				else
+					umsg.Start("e2st",target) umsg.Short( #functiondata_buffer + #functiondata2_buffer ) umsg.End()
+					timer.Remove( "wire_expression2_clientside_files_list_send_" .. target:UniqueID() )
+				end
 			end
 		end
 
-		-- Send only CL file list
-		function sendClientsideFilesList( target )
-			if type(target) == "table" then
-				for k,v in pairs( target ) do
-					if type(v) == "Player" then
-						sendCLientsideFilesList( v )
+		if VERSION < 150 then
+			-- Send only CL file list
+			function sendClientsideFilesList( target )
+				if type(target) == "table" then
+					for k,v in pairs( target ) do
+						if type(v) == "Player" then
+							sendCLientsideFilesList( v )
+						end
 					end
-				end
-				return
-			elseif target and type(target) == "Player" and target:IsValid() and not timer.IsTimer( "wire_expression2_clientside_files_list_send_" .. target:UniqueID() ) then
-				local uid = target:UniqueID()
-				local i = 0
-				umsg.Start("e2fs",target) umsg.Short( #clientside_files_buffer ) umsg.End()
-				timer.Create( "wire_expression2_clientside_files_list_send_" .. uid, 0, 0,function()
-					if not target or not target:IsValid() then
-						timer.Remove( "wire_expression2_clientside_files_list_send_" .. uid )
-						return
-					end
+					return
+				elseif target and type(target) == "Player" and target:IsValid() and not timer.IsTimer( "wire_expression2_clientside_files_list_send_" .. target:UniqueID() ) then
+					local uid = target:UniqueID()
+					local i = 0
+					umsg.Start("e2fs",target) umsg.Short( #clientside_files_buffer ) umsg.End()
+					timer.Create( "wire_expression2_clientside_files_list_send_" .. uid, 0, 0,function()
+						if not target or not target:IsValid() then
+							timer.Remove( "wire_expression2_clientside_files_list_send_" .. uid )
+							return
+						end
 
-					i = i + 1
-					umsg.Start( "e2fd", target )
-						umsg.String( clientside_files_buffer[i] )
-					umsg.End()
-					if i == #clientside_files_buffer then
-						umsg.Start( "e2fe", target ) umsg.End()
-						timer.Remove( "wire_expression2_clientside_files_list_send_" .. uid )
-					end
-				end)
+						i = i + 1
+						umsg.Start( "e2fd", target )
+							umsg.String( clientside_files_buffer[i] )
+						umsg.End()
+						if i == #clientside_files_buffer then
+							umsg.Start( "e2fe", target ) umsg.End()
+							timer.Remove( "wire_expression2_clientside_files_list_send_" .. uid )
+						end
+					end)
+				end
 			end
 		end
 
@@ -290,19 +302,49 @@ if SERVER then
 					targets[k] = nil
 				elseif (v[1] == 1) then -- functiondata
 					v[2] = v[2] + 1
-					umsg.Start("e2sd",k) umsg.String( functiondata_buffer[v[2]] ) umsg.End()
-					if (v[2] == #functiondata_buffer) then
-						umsg.Start("e2se",k) umsg.Bool(false) umsg.End()
-						v[1] = 2
-						v[2] = 0
+					if VERSION >= 150 then
+						net.Start("e2se")
+							net.WriteString( functiondata_buffer[v[2]] )
+							if (v[2] == #functiondata_buffer) then
+								net.WriteFloat(1) -- Done with functiondata nr 1
+								v[1] = 2
+								v[2] = 0
+							else
+								net.WriteFloat(0) -- We're not done yet
+							end
+						net.Send(k)
+					else
+						umsg.Start("e2sd",k) umsg.String( functiondata_buffer[v[2]] ) umsg.End()
+						if (v[2] == #functiondata_buffer) then
+							umsg.Start("e2se",k) umsg.Bool(false) umsg.End()
+							v[1] = 2
+							v[2] = 0
+						end
 					end
 				elseif (v[1] == 2) then -- functiondata2
 					v[2] = v[2] + 1
-					umsg.Start("e2sd",k) umsg.String( functiondata2_buffer[v[2]] ) umsg.End()
-					if (v[2] == #functiondata2_buffer) then
-						umsg.Start("e2se",k) umsg.Bool(true) umsg.End()
-						v[1] = 3
-						v[2] = 0
+					if VERSION >= 150 then
+						net.Start("e2se")
+							net.WriteString( functiondata2_buffer[v[2]] )
+
+							if (v[2] == #functiondata2_buffer) then
+
+								net.WriteFloat( 2 ) -- Done with functiondata nr 2
+
+								v[1] = 3
+								v[2] = 0
+							else
+								net.WriteFloat( 0 ) -- We're not done yet
+							end
+
+						net.Send(k)
+					else
+						umsg.Start("e2sd",k) umsg.String( functiondata2_buffer[v[2]] ) umsg.End()
+						if (v[2] == #functiondata2_buffer) then
+							umsg.Start("e2se",k) umsg.Bool(true) umsg.End()
+							v[1] = 3
+							v[2] = 0
+						end
 					end
 				end
 			end
@@ -405,62 +447,100 @@ elseif CLIENT then
 	local buffer = ""
 	local buffer_total_count = 0
 	local buffer_current_count = 0
-	usermessage.Hook("e2st",function( um )
-		buffer_total_count = um:ReadShort()
-		draw_progress_bar = true
-		buffer_current_count = 0
-		status( 0, buffer_total_count )
-	end)
-	usermessage.Hook("e2sd",function( um )
-		local str = um:ReadString()
-		buffer = buffer .. str
-		buffer_current_count = buffer_current_count + 1
-		status( buffer_current_count, buffer_total_count )
-	end)
-	usermessage.Hook("e2se",function( um )
-		local OK, data = pcall( glon.decode, buffer )
-		if (!OK) then
-			ErrorNoHalt( "[E2] Failed to receive extension data. Error message was:\n" .. data )
-			if wire_expression2_editor and wire_expression2_editor:IsValid() then
-				wire_expression2_editor:SetValidatorStatus( "Failed to receive extension data. Error message was: " .. data )
+	if VERSION >= 150 then
+
+		net.Receive("e2st",function(len)
+			buffer_total_count = net.ReadLong()
+			draw_progress_bar = true
+			buffer_current_count = 0
+			status( 0, buffer_total_count )
+			buffer = ""
+		end)
+
+		net.Receive("e2se",function( len )
+			local data = net.ReadString()
+			buffer = buffer .. data
+			buffer_current_count = buffer_current_count + 1
+			status( buffer_current_count,buffer_total_count )
+
+			local bit = net.ReadFloat()
+
+			if bit == 1 or bit == 2 then
+				local OK, data = pcall( glon.decode, buffer )
+				if (!OK) then
+					ErrorNoHalt( "[E2] Failed to receive extension data. Error message was:\n" .. data )
+					if wire_expression2_editor and wire_expression2_editor:IsValid() then
+						wire_expression2_editor:SetValidatorStatus( "Failed to receive extension data. Error message was: " .. data )
+					end
+				else
+					if bit == 1 then
+						insertData( data )
+					else
+						insertData2( data )
+					end
+				end
 			end
-		else
-			local what = um:ReadBool()
-			if (!what) then
-				insertData( data )
+		end)
+
+	else
+		usermessage.Hook("e2st",function( um )
+			buffer_total_count = um:ReadShort()
+			draw_progress_bar = true
+			buffer_current_count = 0
+			status( 0, buffer_total_count )
+		end)
+		usermessage.Hook("e2sd",function( um )
+			local str = um:ReadString()
+			buffer = buffer .. str
+			buffer_current_count = buffer_current_count + 1
+			status( buffer_current_count, buffer_total_count )
+		end)
+		usermessage.Hook("e2se",function( um )
+			local OK, data = pcall( glon.decode, buffer )
+			if (!OK) then
+				ErrorNoHalt( "[E2] Failed to receive extension data. Error message was:\n" .. data )
+				if wire_expression2_editor and wire_expression2_editor:IsValid() then
+					wire_expression2_editor:SetValidatorStatus( "Failed to receive extension data. Error message was: " .. data )
+				end
 			else
-				insertData2( data )
+				local what = um:ReadBool()
+				if (!what) then
+					insertData( data )
+				else
+					insertData2( data )
+				end
 			end
-		end
-		buffer = ""
-	end)
+			buffer = ""
+		end)
+	end
 
+	if VERSION < 150 then
+		-- Initial spawn file includes
+		local buffer2 = ""
+		usermessage.Hook( "e2fs", function( um )
+			buffer2 = ""
+		end)
 
-	-- Initial spawn file includes
-	local buffer2 = ""
-	usermessage.Hook( "e2fs", function( um )
-		buffer2 = ""
-	end)
+		usermessage.Hook( "e2fd", function( um )
+			local str = um:ReadString()
+			buffer2 = buffer2 .. str
+		end)
 
-	usermessage.Hook( "e2fd", function( um )
-		local str = um:ReadString()
-		buffer2 = buffer2 .. str
-	end)
-
-	usermessage.Hook( "e2fe", function( um )
-		local OK, data = pcall( glon.decode, buffer2 )
-		if (!OK) then
-			ErrorNoHalt( "[E2] Failed to receive client side file list. Error message was:\n" .. data )
-			if wire_expression2_editor and wire_expression2_editor:IsValid() then
-				wire_expression2_editor:SetValidatorStatus( "Failed to receive client side file list. Error message was: " .. data )
+		usermessage.Hook( "e2fe", function( um )
+			local OK, data = pcall( glon.decode, buffer2 )
+			if (!OK) then
+				ErrorNoHalt( "[E2] Failed to receive client side file list. Error message was:\n" .. data )
+				if wire_expression2_editor and wire_expression2_editor:IsValid() then
+					wire_expression2_editor:SetValidatorStatus( "Failed to receive client side file list. Error message was: " .. data )
+				end
+			else
+				for _,filename in pairs( data ) do
+					include("entities/gmod_wire_expression2/core/"..filename)
+				end
 			end
-		else
-			for _,filename in pairs( data ) do
-				include("entities/gmod_wire_expression2/core/"..filename)
-			end
-		end
-		buffer2 = ""
-	end)
+			buffer2 = ""
+		end)
+	end
 end
 
 include("e2doc.lua")
