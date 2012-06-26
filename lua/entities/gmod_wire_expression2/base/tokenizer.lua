@@ -142,7 +142,7 @@ function Tokenizer:NextSymbol()
 
 		tokenname = "num"
 
-	elseif self:NextPattern("^[a-z][a-zA-Z0-9_]*") then
+	elseif self:NextPattern("^[a-z#][a-zA-Z0-9_]*") then
 		-- keywords/functions
 		if self.tokendata == "if" then
 			tokenname = "if"
@@ -160,7 +160,7 @@ function Tokenizer:NextSymbol()
 			tokenname = "brk"
 		elseif self.tokendata == "continue" then
 			tokenname = "cnt"
-		elseif self.tokendata == "switch" then //Shhh this is a secret. Do not tell anybody about this, Rusketh!
+		elseif self.tokendata == "switch" then
 			tokenname = "swh"
 		elseif self.tokendata == "case" then
 			tokenname = "case"
@@ -174,6 +174,8 @@ function Tokenizer:NextSymbol()
 			tokenname = "ret"
 		elseif self.tokendata == "void" then
 			tokenname = "void"
+		elseif self.tokendata == "#include" then
+			tokenname = "inclu"
 		elseif self.tokendata:match("^[ijk]$") and self.character ~= "(" then
 			tokenname, self.tokendata = "num", "1"..self.tokendata
 		else

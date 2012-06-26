@@ -110,9 +110,14 @@ function PreProcessor:RemoveComments(line)
 					self.blockcomment = true -- We're now inside a block comment
 				elseif (type == "normal") then -- We found a # instead
 					local pos = comments[i].pos
-					ret = ret .. line:sub( lastpos, pos-1 )
+					if line:sub( pos + 1, pos + 7 ) == "include" then
+						ret = ret .. line:sub( lastpos )
+					else
+						ret = ret .. line:sub( lastpos, pos-1 )
+						self:HandlePPCommand(line:sub(pos+1))
+					end
+
 					lastpos = -1
-					self:HandlePPCommand(line:sub(pos+1))
 					break -- Don't care what comes after
 				end
 			end
@@ -150,16 +155,20 @@ function PreProcessor:ParseDirectives(line)
 
 	-- evaluate directive
 	if directive == "name" then
-		if self.directives.name == nil then
-			self.directives.name = value
-		else
-			self:Error("Directive (@name) must not be specified twice")
+		if not self.ignorestuff then
+			if self.directives.name == nil then
+				self.directives.name = value
+			else
+				self:Error("Directive (@name) must not be specified twice")
+			end
 		end
 	elseif directive == "model" then
-		if self.directives.model == nil then
-			self.directives.model = value
-		else
-			self:Error("Directive (@model) must not be specified twice")
+		if not self.ignorestuff then
+			if self.directives.model == nil then
+				self.directives.model = value
+			else
+				self:Error("Directive (@model) must not be specified twice")
+			end
 		end
 	elseif directive == "inputs" then
 		local retval, columns = self:ParsePorts(value,#directive+2)
@@ -237,19 +246,24 @@ function PreProcessor:ParseDirectives(line)
 	return ""
 end
 
-function PreProcessor:Process(buffer, params)
+function PreProcessor:Process(buffer, directives)
 	local lines = string.Explode("\n", buffer)
 
-	self.directives = {
-		name = nil,
-		model = nil,
-		inputs = { {}, {}, {} },
-		outputs = { {}, {}, {} },
-		persist = { {}, {}, {} },
-		delta = { {}, {}, {} },
-		trigger = { nil, {} },
-	}
-
+	if !directives then
+		self.directives = {
+			name = nil,
+			model = nil,
+			inputs = { {}, {}, {} },
+			outputs = { {}, {}, {} },
+			persist = { {}, {}, {} },
+			delta = { {}, {}, {} },
+			trigger = { nil, {} },
+		}
+	else
+		self.directives = directives
+		self.ignorestuff = true
+	end
+	
 	for i,line in ipairs(lines) do
 		self.readline = i
 		line = string.TrimRight(line)

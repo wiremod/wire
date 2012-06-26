@@ -3503,6 +3503,8 @@ do -- E2 Syntax highlighting
 					if PreProcessor["PP_"..self.tokendata:sub(2)] then
 						-- there is a preprocessor command by that name => mark as such
 						tokenname = "ppcommand"
+					elseif self.tokendata == "#include" then
+						tokenname = "keyword"
 					else
 						-- eat the rest and mark as a comment
 						self:NextPattern(".*")

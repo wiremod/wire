@@ -102,7 +102,7 @@ function ENT:Initialize()
 end
 
 function ENT:OnRestore()
-	self:Setup(self.original,nil,true)
+	self:Setup(self.original, self.inc_files, nil, true)
 end
 
 function ENT:Execute()
@@ -114,7 +114,9 @@ function ENT:Execute()
 	end
 
 	self:PCallHook('preexecute')
-
+	
+	 self.context:PushScope()
+	
 	local ok, msg = pcall(self.script[1], self.context, self.script)
 	if not ok then
 		if msg == "exit" then
@@ -124,7 +126,9 @@ function ENT:Execute()
 			self:Error("Expression 2 (" .. self.name .. "): " .. msg, "script error")
 		end
 	end
-
+	
+	 self.context:PopScope()
+	
 	self.first = false -- if hooks call execute
 	self.duped = false -- if hooks call execute
 	self.context.triggerinput = nil -- if hooks call execute
@@ -208,8 +212,9 @@ function ENT:Error(message, overlaytext)
 	WireLib.ClientError(message, self.player)
 end
 
-function ENT:CompileCode( buffer )
+function ENT:CompileCode( buffer, files )
 	self.original = buffer
+
 	local status, directives, buffer = PreProcessor.Execute(buffer)
 	if not status then self:Error(directives) return end
 	self.buffer = buffer
@@ -224,6 +229,7 @@ function ENT:CompileCode( buffer )
 	end
 	self:SetNWString( "name", self.name )
 
+	self.directives = directives
 	self.inports = directives.inputs
 	self.outports = directives.outputs
 	self.persists = directives.persist
@@ -235,7 +241,9 @@ function ENT:CompileCode( buffer )
 	local status, tree, dvars = Parser.Execute(tokens)
 	if not status then self:Error(tree) return end
 
-	local status, script, inst = Compiler.Execute(tree, self.inports[3], self.outports[3], self.persists[3], dvars)
+	if !self:PrepareIncludes(files) then return end
+
+	local status, script, inst = Compiler.Execute(tree, self.inports[3], self.outports[3], self.persists[3], dvars, self.includes)
 	if not status then self:Error(script) return end
 
 	self.script = script
@@ -246,6 +254,41 @@ function ENT:CompileCode( buffer )
 	self.globvars = inst.GlobalScope
 
 	self:ResetContext()
+end
+
+function ENT:GetCode()
+	return self.original, self.originalhash, self.inc_files
+end
+
+function ENT:PrepareIncludes(files)
+
+	self.inc_files = files
+
+	self.includes = {}
+
+	for file, buffer in pairs(files) do
+		local status, directives, buffer = PreProcessor.Execute(buffer, self.directives)
+		if !status then
+			self:Error("(" .. file .. ")" .. directives)
+			return 
+		end
+
+		local status, tokens = Tokenizer.Execute(buffer)
+		if !status then
+			self:Error("(" .. file .. ")" .. tokens)
+			return
+		end
+
+		local status, tree, dvars = Parser.Execute(tokens)
+		if !status then
+			self:Error("(" .. file .. ")" .. tree)
+			return
+		end
+
+		self.includes[file] = {tree}
+	end
+
+	return true
 end
 
 function ENT:ResetContext()
@@ -260,6 +303,7 @@ function ENT:ResetContext()
 		prf = 0,
 		prfcount = 0,
 		prfbench = 0,
+		includes = self.includes
 	}
 
 	setmetatable(context,ScopeManager)
@@ -318,7 +362,7 @@ function ENT:ResetContext()
 	self.error = false
 end
 
-function ENT:Setup(buffer, restore, forcecompile)
+function ENT:Setup(buffer, includes, restore, forcecompile)
 	if self.script then
 		self:PCallHook('destruct')
 	end
@@ -326,7 +370,7 @@ function ENT:Setup(buffer, restore, forcecompile)
 	self.uid = self.player:UniqueID()
 
 	if (self.original != buffer or forcecompile) then
-		self:CompileCode( buffer )
+		self:CompileCode( buffer, includes )
 	else
 		self:ResetContext()
 	end
@@ -363,7 +407,7 @@ function ENT:Reset()
 	self.context.resetting = true
 
 	-- reset the chip in the next tick
-	timer.Simple(0, self.Setup, self, self.original)
+	timer.Simple(0, self.Setup, self, self.original, self.inc_files)
 end
 
 function ENT:TriggerInput(key, value)
@@ -397,7 +441,7 @@ function ENT:TriggerOutputs()
 end
 
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID, GetConstByID)
-	self:Setup(self.buffer, true)
+	self:Setup(self.buffer, self.inc_files, true)
 
 	if not self.error then
 		for k,v in pairs(self.dupevars) do
@@ -415,190 +459,6 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID, GetConstByID)
 end
 
 /********************************** Transfer **********************************/
-
-function ENT:SendCode(ply)
-	if (E2Lib.isFriend(self.player, ply)) then
-		local chunksize = 200
-		if(!self.original || !ply) then return end
-		local code = self.original
-		local chunks = math.ceil(code:len() / chunksize)
-		umsg.Start("wire_expression2_download", ply)
-			umsg.Short(chunks)
-			umsg.String(self.name)
-		umsg.End()
-
-		for i=0,chunks do
-			umsg.Start("wire_expression2_download", ply)
-				umsg.Short(i)
-				umsg.String(code:sub(i * chunksize + 1, (i + 1) * chunksize))
-			umsg.End()
-		end
-	end
-end
-
-local buffer = {}
-
-function ENT:Prepare(player)
-	local ID = player:UserID()
-	buffer[ID] = {}
-	buffer[ID].ent = self
-
-	--if !(E2Lib.isFriend(buffer[ID].ent.player, player)
-	--     && (buffer[ID].ent.player == player || buffer[ID].ent.player:GetInfoNum("wire_expression2_friendwrite") != 0)) then return end
-end
-
-local antispam = {}
--- Returns true if they are spamming, false if they can go ahead and use it
-local function canhas( ply ) -- cheezeburger!
-	if (!antispam[ply]) then antispam[ply] = 0 end
-	if (antispam[ply] < CurTime()) then
-		antispam[ply] = CurTime() + 1
-		return false
-	else
-		WireLib.ClientError( "This command has a 1 second anti spam protection. Try again in " .. math.Round(antispam[ply] - CurTime(),2) .. " seconds.", ply )
-		return true
-	end
-end
-
-concommand.Add("wire_expression_prepare", function(player, command, args) -- this is for the "E2 remote updater"
-	local E2 = tonumber(args[1])
-	if (!E2) then return end
-	E2 = Entity(E2)
-	if (!E2 or !E2:IsValid() or E2:GetClass() != "gmod_wire_expression2") then return end
-	if (canhas( player )) then return end
-	if (E2.player == player or (E2Lib.isFriend(E2.player,player) and E2.player:GetInfoNum("wire_expression2_friendwrite") == 1)) then
-		E2:Prepare( player )
-		WireLib.AddNotify( player, "Uploading code...", NOTIFY_GENERIC, 5, math.random(1,4) )
-		player:PrintMessage( HUD_PRINTCONSOLE, "Uploading code..." )
-		if (E2.player != player) then
-			WireLib.AddNotify(E2.player, player:Nick() .. " is writing to your E2 '" .. E2.name .. "' using remote updater.", NOTIFY_GENERIC, 5, math.random(1,4) )
-			E2.player:PrintMessage( HUD_PRINTCONSOLE, player:Nick() .. " is writing to your E2 '" .. E2.name .. "' using remote updater." )
-		end
-	else
-		WireLib.ClientError( "You do not have premission to write to this E2.", player )
-	end
-end)
-
-concommand.Add("wire_expression_forcehalt", function(player, command, args) -- this is for the "E2 remote updater"
-	local E2 = tonumber(args[1])
-	if (!E2) then return end
-	E2 = Entity(E2)
-	if (!E2 or !E2:IsValid() or E2:GetClass() != "gmod_wire_expression2") then return end
-	if (canhas( player )) then return end
-	if (E2.error) then return end
-	if (E2.player == player or (E2Lib.isFriend(E2.player,player) and E2.player:GetInfoNum("wire_expression2_friendwrite") == 1)) then
-		E2:PCallHook( "destruct" )
-		E2:Error( "Execution halted (Triggered by: " .. player:Nick() .. ")", "Execution halted" )
-		if (E2.player != player) then
-			WireLib.AddNotify( player, "Expression halted.", NOTIFY_GENERIC, 5, math.random(1,5) )
-			player:PrintMessage( HUD_PRINTCONSOLE, "Expression halted." )
-		end
-	else
-		WireLib.ClientError( "You do not have premission to halt this E2.", player )
-	end
-end)
-
-concommand.Add("wire_expression_requestcode", function(player, command, args)  -- this is for the "E2 remote updater"
-	local E2 = tonumber(args[1])
-	if (!E2) then return end
-	E2 = Entity(E2)
-	if (canhas( player )) then return end
-	if (!E2 or !E2:IsValid() or E2:GetClass() != "gmod_wire_expression2") then return end
-	if (E2.player == player or (E2Lib.isFriend(E2.player,player) and E2.player:GetInfoNum("wire_expression2_friendwrite") == 1)) then
-		E2:SendCode( player )
-		E2:Prepare( player )
-		WireLib.AddNotify( player, "Downloading code...", NOTIFY_GENERIC, 5, math.random(1,4) )
-		player:PrintMessage( HUD_PRINTCONSOLE, "Downloading code..." )
-		if (E2.player != player) then
-			WireLib.AddNotify(E2.player, player:Nick() .. " is reading your E2 '" .. E2.name .. "' using remote updater.", NOTIFY_GENERIC, 5, math.random(1,4) )
-			E2.player:PrintMessage( HUD_PRINTCONSOLE, player:Nick() .. " is reading your E2 '" .. E2.name .. "' using remote updater." )
-		end
-	else
-		WireLib.ClientError( "You do not have permission to read this E2.", player )
-	end
-end)
-
-concommand.Add("wire_expression_reset", function(player, command, args) -- this is for the "E2 remote updater"
-	local E2 = tonumber(args[1])
-	if (!E2) then return end
-	E2 = Entity(E2)
-	if (!E2 or !E2:IsValid() or E2:GetClass() != "gmod_wire_expression2") then return end
-	if (canhas( player )) then return end
-	if (E2.player == player or (E2Lib.isFriend(E2.player,player) and E2.player:GetInfoNum("wire_expression2_friendwrite") == 1)) then
-		if E2.context.data.last or E2.first then return end
-
-		E2:Reset()
-
-		WireLib.AddNotify( player, "Expression reset.", NOTIFY_GENERIC, 5, math.random(1,4) )
-		player:PrintMessage( HUD_PRINTCONSOLE, "Expression reset." )
-		if (E2.player != player) then
-			WireLib.AddNotify( E2.player, player:Nick() .. " reset your E2 '" .. E2.name .. "' using remote updater.", NOTIFY_GENERIC, 5, math.random(1,4) )
-			E2.player:PrintMessage( HUD_PRINTCONSOLE, player:Nick() .. " reset your E2 '" .. E2.name .. "' using remote updater." )
-		end
-	else
-		WireLib.ClientError( "You do not have premission to halt this E2.", player )
-	end
-end)
-
-concommand.Add("wire_expression_upload_begin", function(player, command, args)
-	local ID = player:UserID()
-	if !buffer[ID] or (!(E2Lib.isFriend(buffer[ID].ent.player, player)
-	     && (buffer[ID].ent.player == player || buffer[ID].ent.player:GetInfoNum("wire_expression2_friendwrite") != 0))) then return end
-
-	buffer[ID].text = ""
-	buffer[ID].len = tonumber(args[1])
-	buffer[ID].chunk = 0
-	buffer[ID].chunks = tonumber(args[2])
-	buffer[ID].ent:SetOverlayText("Expression 2\n(transferring)")
-	buffer[ID].ent:SetColor(0, 255, 0, 255)
-end)
-
-concommand.Add("wire_expression_upload_data", function(player, command, args)
-	local ID = player:UserID()
-
-	if not buffer[ID] or not buffer[ID].text or not buffer[ID].chunk then
-		--Msg("buffer does not exist! Player="..tostring(player).." chunk="..args[1].."\n")
-		return
-	end
-
-	if !(E2Lib.isFriend(buffer[ID].ent.player, player)
-	     && (buffer[ID].ent.player == player || buffer[ID].ent.player:GetInfoNum("wire_expression2_friendwrite") != 0)) then return end
-
-	buffer[ID].text = buffer[ID].text .. args[1]
-	buffer[ID].chunk = buffer[ID].chunk + 1
-
-	local percent = math.Round((buffer[ID].chunk / buffer[ID].chunks) * 100)
-end)
-
-concommand.Add("wire_expression_upload_end", function(player, command, args)
-	local ID = player:UserID()
-	if !buffer[ID] or (!(E2Lib.isFriend(buffer[ID].ent.player, player)
-	     && (buffer[ID].ent.player == player || buffer[ID].ent.player:GetInfoNum("wire_expression2_friendwrite") != 0))) then return end
-
-	local buf = buffer[ID]
-	buffer[ID] = nil
-
-	local ent = buf.ent
-	if not ValidEntity(ent) then return end
-
-	if not buf.text then
-		-- caused by concurrent download from the same chip
-		ent:SetOverlayText("Expression 2\n(transfer error)")
-		local r,g,b,a = ent:GetColor()
-		ent:SetColor(255, 0, 0, a)
-	end
-
-	local decoded = E2Lib.decode(buf.text or "")
-	if(decoded:len() != buf.len) then
-		ent:SetOverlayText("Expression 2\n(transfer error)")
-		local r,g,b,a = ent:GetColor()
-		ent:SetColor(255, 0, 0, a)
-	else
-		ent:Setup(decoded)
-		--ent.player = player
-	end
-end)
-
 
 --[[
 	Player Disconnection Magic

@@ -1773,8 +1773,7 @@ Text here]# ]] }
 				btn:SetSize( 57, 18 )
 				timer.Simple(0,function() btn:SetPos( panel:GetWide()-btn:GetWide()*2-6, 4 ) end)
 				btn.DoClick = function( pnl )
-					RunConsoleCommand( "wire_expression_prepare",v:EntIndex())
-					wire_expression2_upload()
+					WireLib.Expression2Upload( v )
 				end
 				btn.Paint = function( button )
 					local w,h = button:GetSize()
@@ -2146,7 +2145,7 @@ function Editor:SaveFile(Line, close, SaveAs)
 	self:ExtractName()
 	if(close and self.chip) then
 		if(!self:Validate(true)) then return end
-		wire_expression2_upload()
+		WireLib.Expression2Upload(self.chip, self:GetCode())
 		self:Close()
 		return
 	end

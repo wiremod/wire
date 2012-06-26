@@ -43,8 +43,7 @@ if SERVER then
 			&& (trace.Entity.player == player || trace.Entity.player:GetInfoNum("wire_expression2_friendwrite") != 0)
 			&& E2Lib.isFriend(trace.Entity.player, player)
 		then
-			trace.Entity:Prepare(player)
-			player:SendLua("wire_expression2_upload()")
+			self:Upload( trace.Entity )
 			return true
 		end
 
@@ -74,8 +73,7 @@ if SERVER then
 
 		player:AddCleanup("wire_expressions", entity)
 
-		entity:Prepare(player)
-		player:SendLua("wire_expression2_upload()")
+		self:Upload( entity )
 		return true
 	end
 
@@ -97,7 +95,7 @@ if SERVER then
 		end
 	end
 
-	function MakeWireExpression2(player, Pos, Ang, model, buffer, name, inputs, outputs, vars)
+	function MakeWireExpression2(player, Pos, Ang, model, buffer, name, inputs, outputs, vars, inc_files )
 		if !player:CheckLimit("wire_expressions") then return false end
 
 		local self = ents.Create("gmod_wire_expression2")
@@ -115,6 +113,7 @@ if SERVER then
 
 		self:SetOverlayText("Expression 2\n" .. name)
 		self.buffer = buffer
+		self.inc_files = inc_files
 
 		self.Inputs = WireLib.AdjustSpecialInputs(self, inputs[1], inputs[2])
 		self.Outputs = WireLib.AdjustSpecialOutputs(self, outputs[1], outputs[2])
@@ -126,7 +125,7 @@ if SERVER then
 		return self
 	end
 
-	duplicator.RegisterEntityClass("gmod_wire_expression2", MakeWireExpression2, "Pos", "Ang", "Model", "_original", "_name", "_inputs", "_outputs", "_vars")
+	duplicator.RegisterEntityClass("gmod_wire_expression2", MakeWireExpression2, "Pos", "Ang", "Model", "_original", "_name", "_inputs", "_outputs", "_vars", "inc_files" )
 
 	function TOOL:RightClick(trace)
 		if trace.Entity:IsPlayer() then return false end
@@ -137,69 +136,698 @@ if SERVER then
 		    && trace.Entity:GetClass() == "gmod_wire_expression2"
 			&& E2Lib.isFriend(trace.Entity.player, player)
 		then
-			trace.Entity:SendCode(player)
-			trace.Entity:Prepare(player)
+			self:Download( player, trace.Entity )
 			return true
 		end
 
 		player:SendLua("openE2Editor()")
 		return false
 	end
+	
+	function TOOL:Upload( ent )
+		umsg.Start( "wire_expression2_tool_upload", self:GetOwner() )
+			umsg.Short( ent:EntIndex() )
+		umsg.End()
+	end
+	
+	function TOOL:SetEditorEnt( ent )
+		umsg.Start( "wire_expression2_tool_seteditorent", self:GetOwner() )
+			if ent then umsg.Short( ent:EntIndex() ) else umsg.Short( 0 ) end
+		umsg.End()
+	end
+	
+	function TOOL:Download( ply, ent )
+		if WireLib.Expression2Download( ply, ent ) ~= false then
+			self:SetEditorEnt( ent )
+		else
+			self:SetEditorEnt()
+		end
+	end
+	
+	----------------------------------------------------------------------------------------------------------------------------
+	----------------------------------------------------------------------------------------------------------------------------
+	----------------------------------------------------------------------------------------------------------------------------
+	------------------------------------------------------ UPLOAD/DOWNLOAD -----------------------------------------------------
+	----------------------------------------------------------------------------------------------------------------------------
+	----------------------------------------------------------------------------------------------------------------------------
+	----------------------------------------------------------------------------------------------------------------------------
+	
+	umsg.PoolString( "wire_expression2_upload_confirm" )
+	umsg.PoolString( "wire_expression2_tool_upload" )
+	umsg.PoolString( "wire_expression2_download_begin" )
+	umsg.PoolString( "wire_expression2_download_chunk" )
+	umsg.PoolString( "wire_expression2_download_wantedfiles_list_begin" )
+	umsg.PoolString( "wire_expression2_download_wantedfiles_list_chunk" )
+	umsg.PoolString( "wire_expression2_tool_seteditorent" )
+	
+	--------------------------------------------------------------
+	-- Serverside Send
+	--------------------------------------------------------------
+	
+	local hookon = false
+	local downloads = {}	
+	local function transfer()
+		local unhook = true
+		for ply,download in pairs( downloads ) do
+			if not IsValid( ply ) then
+				downloads[ply] = nil
+			else
+				if download.state == 0 then
+					umsg.Start( "wire_expression2_download_begin", ply )
+						umsg.Entity( download.entity )
+						umsg.Short( #download.data )
+					umsg.End()
+					download.state = 1
+					unhook = false
+				else
+					umsg.Start( "wire_expression2_download_chunk", ply )
+						umsg.String( download.data[download.state] )
+					umsg.End()
+					
+					if download.state >= #download.data then
+						downloads[ply] = nil
+					else
+						download.state = download.state + 1
+						unhook = false
+					end
+				end
+			end
+		end
+	
+		if unhook then
+			hookon = false
+			hook.Remove( "Think", "Expression2Download_Think" )
+		end
+	end
+	
+	
+	function WireLib.Expression2Download( ply, targetEnt, wantedfiles )
+		if not IsValid(targetEnt) or targetEnt:GetClass() ~= "gmod_wire_expression2" then
+			WireLib.AddNotify( ply, "Invalid Expression chip specified.", NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3 )
+			return false
+		end
+		
+		if not IsValid(ply) or not ply:IsPlayer() then -- wtf
+			WireLib.AddNotify( ply, "Invalid player entity (wtf??). This should never happen.", NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3 )
+			return false
+		end
+		
+		if downloads[ply] then
+			WireLib.AddNotify( ply, "You're already downloading. Please wait until your current download is finished.", NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3 )
+			return false
+		end
+		
+		if not E2Lib.isFriend( ply, targetEnt.player ) then
+			WireLib.AddNotify( ply, "You're not allowed to download from this Expression (ent index: " .. targetEnt:EntIndex() .. ").", NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3 )
+			return false
+		end
+		
+		local main, mainhash, includes = targetEnt:GetCode()
+		if not next(includes) then -- There are no includes
+			local datastr = glon.encode({ main })
+			local data = {}
+			for i=1,#datastr,240 do
+				data[#data+1] = datastr:sub(i,i+239)
+			end
+			downloads[ply] = { state = 0, entity = targetEnt, data = data }
+		elseif not wantedfiles then
+			local data = {}
+			for k,v in pairs( includes ) do
+				data[#data+1] = k
+			end
+			
+			local datastr = glon.encode( data )
+			data = {}
+			for i=1,#datastr, 240 do
+				data[#data+1] = datastr:sub(i,i+239)
+			end
+			
+			umsg.Start( "wire_expression2_download_wantedfiles_list_begin", ply )
+				umsg.Entity( targetEnt )
+				umsg.Short( #data )
+			umsg.End()
+			
+			local n = 0
+			timer.Create( "wire_expression2_download_wantedfiles_list_"..ply:UniqueID(), 0, #data, function()
+				if not IsValid( ply ) then
+					timer.Destroy( "wire_expression2_download_wantedfiles_list_"..ply:UniqueID() )
+					return
+				end
+				
+				n = n + 1
+				umsg.Start( "wire_expression2_download_wantedfiles_list_chunk", ply )
+					umsg.String( data[n] )
+				umsg.End()
+			end)
+		else
+			local data = {}
+			if wantedfiles.main then
+				data[1] = main
+				wantedfiles.main = nil
+			end
+			
+			for i=1,#wantedfiles do
+				local path = wantedfiles[i]
+				if includes[path] then
+					data[path] = includes[path]
+				else
+					WireLib.AddNotify( ply, "Nonexistant file requested ('" .. tostring(path) .. "'). File skipped.", NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3 )
+				end
+			end
+			
+			local datastr = glon.encode( data )
+			data = {}
+			for i=1,#datastr, 240 do
+				data[#data+1] = datastr:sub(i,i+239)
+			end
+			
+			downloads[ply] = { state = 0, entity = targetEnt, data = data }
+		end
+		
+		if not hookon and downloads[ply] ~= nil then
+			hookon = true
+			hook.Add( "Think", "Expression2Download_Think", transfer )
+		end
+	end
+	
+	local wantedfiles = {}
+	concommand.Add( "wire_expression2_download_wantedfiles_list_begin", function(ply,cmd,args)
+		if not wantedfiles[ply] then wantedfiles[ply] = {} end
+		wantedfiles[ply].buffer = ""
+		wantedfiles[ply].count = 0
+		wantedfiles[ply].ent = tonumber(args[1])
+		if not wantedfiles[ply].ent then
+			WireLib.AddNotify( ply, "Invalid entity specified to wire_expression2_download_wantedfiles_list_begin. Download aborted.", NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3 )
+			wantedfiles[ply] = nil
+			return
+		end
+		
+		wantedfiles[ply].ent = Entity(tonumber(args[1]))
+		if not IsValid(wantedfiles[ply].ent) then
+			WireLib.AddNotify( ply, "Invalid entity specified to wire_expression2_download_wantedfiles_list_begin. Download aborted.", NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3 )
+			wantedfiles[ply] = nil
+			return
+		end
+		
+		wantedfiles[ply].maxcount = tonumber(args[2])
+		if not wantedfiles[ply].maxcount then
+			WireLib.AddNotify( ply, "Invalid maxcount specified to wire_expression2_download_wantedfiles_list_begin. Download aborted.", NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3 )
+			wantedfiles[ply] = nil
+			return
+		end
+	end)
+	
+	concommand.Add( "wire_expression2_download_wantedfiles_list_chunk", function(ply,cmd,args)
+		if not wantedfiles[ply] then return end
+		
+		wantedfiles[ply].buffer = wantedfiles[ply].buffer .. args[1]
+		wantedfiles[ply].count = wantedfiles[ply].count + 1
+		
+		if wantedfiles[ply].count >= wantedfiles[ply].maxcount then
+			local ok, ret = pcall( glon.decode, wantedfiles[ply].buffer )
+			if not ok then
+				WireLib.AddNotify( ply, "Expression 2 download failed! Error message:\n" .. ret, NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3 )
+				return
+			end
+			
+			WireLib.Expression2Download( ply, wantedfiles[ply].ent, ret )
+		end
+	end)
+	
+	--------------------------------------------------------------
+	-- Serverside Receive
+	--------------------------------------------------------------
+	
+	local uploads = {}
+	concommand.Add( "wire_expression2_upload_begin", function( ply, cmd, args )
+		local id = ply:UniqueID()
+		if not uploads[id] then uploads[id] = {} end
 
+		local upload = {}
+		
+		local to = tonumber(args[1])
+		if not to then return end
+		local toent = Entity(to)
+		if not IsValid(toent) or toent:GetClass() ~= "gmod_wire_expression2" then
+			WireLib.AddNotify( ply, "Invalid Expression chip specified. Upload aborted.", NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3 )
+			umsg.Start( "wire_expression2_upload_confirm", ply ) umsg.Long( to ) umsg.Bool( false ) umsg.End()
+			timer.Destroy( "wire_expression2_upload_timeout"..to )
+			return
+		end
+
+		if not E2Lib.isFriend(ply,toent.player) then
+			WireLib.AddNotify( ply, "You are not allowed to upload to the target Expression chip. Upload aborted.", NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3 )
+			umsg.Start( "wire_expression2_upload_confirm", ply ) umsg.Long( to ) umsg.Bool( false ) umsg.End()
+			timer.Destroy( "wire_expression2_upload_timeout"..to )
+			return
+		end
+		
+		upload.to = toent		
+		
+		upload.chunks = tonumber(args[2])
+		if not upload.chunks then
+			WireLib.AddNotify( ply, "Error: No chunk number specified. Upload aborted.", NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3 )
+			umsg.Start( "wire_expression2_upload_confirm", ply ) umsg.Long( to ) umsg.Bool( false ) umsg.End()
+			timer.Destroy( "wire_expression2_upload_timeout"..to )
+			return
+		end
+		
+		upload.data = {}
+		
+		uploads[id][to] = upload
+		
+		timer.Create( "wire_expression2_upload_timeout"..to, 5, 1, function()
+			if ply and ply:IsValid() then WireLib.AddNotify( ply, "Expression 2 upload timed out!", NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3 ) end
+			uploads[id][to] = nil
+		end)
+		
+		umsg.Start( "wire_expression2_upload_confirm", ply ) umsg.Long( to ) umsg.Bool( true ) umsg.End()
+	end)
+	
+	concommand.Add( "wire_expression2_upload_chunk", function( ply, cmd, args )
+		local id = ply:UniqueID()
+		if not uploads[id] then return end
+	
+		local to = tonumber(args[1])
+		if not to or not uploads[id][to] then return end
+		toent = Entity(to)
+		if not IsValid(toent) or toent:GetClass() ~= "gmod_wire_expression2" then
+			WireLib.AddNotify( ply, "Invalid Expression chip specified. Upload aborted.", NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3 )
+			uploads[id][to] = nil
+			umsg.Start( "wire_expression2_upload_confirm", ply ) umsg.Long( to ) umsg.Bool( false ) umsg.End()
+			timer.Destroy( "wire_expression2_upload_timeout"..to )
+			return
+		end
+		
+		local upload = uploads[id][to]
+		
+		if not IsValid( upload.to ) then
+			WireLib.AddNotify( ply, "Target Expression chip has been removed since the start of the upload. Upload aborted.", NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3 )
+			uploads[id][to] = nil
+			umsg.Start( "wire_expression2_upload_confirm", ply ) umsg.Long( to ) umsg.Bool( false ) umsg.End()
+			timer.Destroy( "wire_expression2_upload_timeout"..to )
+			return
+		end
+		
+		if upload.to ~= toent then
+			WireLib.AddNotify( ply, "Target Expression chips do not match. Upload aborted.", NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3 )
+			uploads[id][to] = nil
+			umsg.Start( "wire_expression2_upload_confirm", ply ) umsg.Long( to ) umsg.Bool( false ) umsg.End()
+			timer.Destroy( "wire_expression2_upload_timeout"..to )
+			return
+		end
+	
+		upload.data[#upload.data+1] = args[2]
+		
+		timer.Start( "wire_expression2_upload_timeout_"..to )
+
+		if #upload.data == upload.chunks then
+			local datastr = table.concat( upload.data, "" )
+			local ok, ret = pcall( glon.decode, datastr )
+			if not ok then
+				WireLib.AddNotify( ply, "Expression 2 upload failed! Error message:\n" .. ret, NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3 )
+				timer.Destroy( "wire_expression2_upload_timeout"..to )
+				return
+			end
+			
+			local code = E2Lib.decode(ret[1])
+		
+			local includes = {}
+			for k,v in pairs( ret[2] ) do
+				includes[E2Lib.decode(k)] = E2Lib.decode(v)
+			end
+			
+			upload.to:Setup( code, includes )
+			
+			timer.Destroy( "wire_expression2_upload_timeout"..to )
+			uploads[id][to] = nil
+		end
+	end)
+	
 elseif CLIENT then
 
-	local dir
-	local lastclick = CurTime()
-	local download = {}
-	local Validation
-	local transfer
+	--------------------------------------------------------------
+	-- Clientside Send
+	--------------------------------------------------------------
 
-	function wire_expression2_upload()
-		if( wire_expression2_editor == nil ) then initE2Editor() end
-
+	local uploads = {}
+	local totalchunks = 0
+	local currentchunk = 0
+	
+	local function transfer()
+		if #uploads == 0 then
+			totalchunks = 0
+			currentchunk = 0
+			Expression2SetProgress()
+			hook.Remove( "Think", "Expression2Upload_Think" )
+			return
+		end
+		
+		
+		local upload = uploads[1]
+		if upload.state > 0 then
+			RunConsoleCommand( "wire_expression2_upload_chunk", upload.to, upload.data[upload.state] )
+			if upload.state >= #upload.data then
+				table.remove( uploads, 1 )
+				return
+			else
+				currentchunk = currentchunk + 1
+				upload.state = upload.state + 1
+			end
+		elseif upload.state == -1 then
+			RunConsoleCommand( "wire_expression2_upload_begin", upload.to, #upload.data )
+			upload.state = 0
+			currentchunk = currentchunk + 1
+			timer.Create("wire_expression2_upload_confirm_timeout_" .. upload.to,5,1,function()
+				WireLib.AddNotify("Upload handshake timeout. Server did not respond. Upload aborted.",NOTIFY_ERROR,7,NOTIFYSOUND_DRIP3)
+				table.remove( uploads, 1 )
+			end)
+		end
+		
+		local current
+		if totalchunks ~= #upload.data then current = math.floor(upload.state/#upload.data*100) end
+		Expression2SetProgress(math.floor(currentchunk/totalchunks*100),current)
+		
+		--[[
+		Infinite simultaneous upload
+		Commented out because the above one-at-a-time queued upload puts less strain on the client and server
+		
+		local totalchunks = 0
+		local chunkssent = 0
+		
+		for i=#uploads,1,-1 do
+			local upload = uploads[i]
+			
+			if upload.state > 0 then
+				RunConsoleCommand( "wire_expression2_upload_chunk", upload.to, upload.data[upload.state] )
+				if upload.state >= #upload.data then
+					table.remove( uploads, i )
+					continue
+				else
+					upload.state = upload.state + 1
+				end
+			elseif upload.state == 0 then
+				RunConsoleCommand( "wire_expression2_upload_begin", upload.to, #upload.data )
+				upload.state = 1
+			end
+			
+			totalchunks = totalchunks + #upload.data
+			chunkssent = chunkssent + upload.state
+		end
+		
+		
+		if #uploads == 0 then
+			Expression2SetProgress(nil)
+		else
+			Expression2SetProgress(chunkssent/totalchunks*100)
+		end
+		]]
+	end
+	
+	usermessage.Hook( "wire_expression2_upload_confirm", function( um )
+		local to = um:ReadLong()
+		local bool = um:ReadBool()
+		for i=1,#uploads do
+			if uploads[i].to == to then
+				
+				if uploads[i].state == 0 then
+					uploads[i].state = 1
+					timer.Remove("wire_expression2_upload_confirm_timeout_" .. uploads[i].to)
+				end
+				
+				if bool == false then
+					table.remove(uploads,i)
+				end
+				
+				return
+			end
+		end
+	end)
+	
+	function WireLib.Expression2Upload( targetEnt, code )
+		targetEnt = targetEnt or LocalPlayer():GetEyeTrace().Entity
+		if type(targetEnt) == "Entity" then
+			if (not IsValid(targetEnt) or targetEnt:GetClass() ~= "gmod_wire_expression2") then
+				WireLib.AddNotify("Invalid Expression entity specified!", NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3)
+				return
+			end
+			targetEnt = targetEnt:EntIndex()
+		end
+		
+		for i=1,#uploads do
+			if uploads[i].to == targetEnt then
+				WireLib.AddNotify("You're already uploading to that Expression chip. Slow down!", NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3)
+				return
+			end
+		end
+		
+		code = code or wire_expression2_editor:GetCode()
+		local err, includes
+		
 		if e2_function_data_received then
-			local result = wire_expression2_validate(wire_expression2_editor:GetCode())
-			if result then
+			err, includes = wire_expression2_validate(code)
+			if err then
 				WireLib.AddNotify(result, NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3)
 				return
 			end
 		else
-			WireLib.AddNotify( "The Expression 2 function data has not been transferred to the client yet; uploading the E2 to the server for validation.", NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3 )
+			WireLib.AddNotify( "The Expression 2 function data has not been transferred to the client yet; uploading the E2 to the server for validation.\nNote that any includes will not be sent. You must wait for the function data to finish transmitting before you are able to use includes.", NOTIFY_ERROR, 14, NOTIFYSOUND_DRIP3 )
+			
+			-- This message is so long, the user might not be able to read it fast enough. Printing it to the console so they can read it there, too.
+			Msg( "The Expression 2 function data has not been transferred to the client yet; uploading the E2 to the server for validation.\nNote that any includes will not be sent. You must wait for the function data to finish transmitting before you are able to use includes.\n" )
 		end
-
-		transfer(wire_expression2_editor:GetCode())
-	end
-
-	function wire_expression2_download(um)
-		if(!um) then return end
-		local chunks = um:ReadShort()
-		if(!download.downloading) then
-			download.downloading = true
-			download.chunks = chunks
-			download.current = -1
-			download.code = ""
-			download.name = um:ReadString()
-			return
-		end
-
-		if( download.current + 1 == chunks ) then
-			download.current = chunks
-			download.code = download.code .. um:ReadString()
+		
+		local upload = {}
+		upload.state = -1
+		upload.to = targetEnt
+		
+		local datastr
+		if includes then
+			local newincludes = {}
+			for k,v in pairs( includes ) do
+				newincludes[E2Lib.encode(k)] = E2Lib.encode(v)
+			end
+			
+			datastr = glon.encode( { E2Lib.encode(code), newincludes } )
 		else
-			download = {}
+			datastr = glon.encode( { E2Lib.encode(code), {} } )
 		end
-
-		if( download.downloading && download.chunks == chunks) then
-			if( wire_expression2_editor == nil ) then initE2Editor() end
-			wire_expression2_editor:Open(download.name, download.code)
-			wire_expression2_editor.chip = true
-			download = {}
-			return
+		
+		local data = {}
+		for i=1,#datastr,460 do
+			data[#data+1] = datastr:sub(i,i+459)
 		end
-
+		upload.data = data	
+		
+		if #uploads == 0 then
+			hook.Add( "Think", "Expression2Upload_Think", transfer )
+		end
+		
+		uploads[#uploads+1] = upload
+		totalchunks = totalchunks + #upload.data
+		
+		Expression2SetProgress(0,0)
 	end
+	
+	usermessage.Hook( "wire_expression2_tool_upload", function( um )
+		WireLib.Expression2Upload( um:ReadShort() )
+	end)
+	
+	--------------------------------------------------------------
+	-- Clientside Receive
+	--------------------------------------------------------------
+	
+	local buffer, count, maxbuf, ent = "", 0, 0
+	usermessage.Hook( "wire_expression2_download_begin", function( um )
+		buffer = ""
+		count = 0
+		ent = um:ReadEntity()
+		maxbuf = um:ReadShort()
+		
+		Expression2SetProgress()
+	end)
+	
+	
+	usermessage.Hook( "wire_expression2_download_chunk", function( um )
+		buffer = buffer .. um:ReadString()
+		count = count + 1
+		
+		Expression2SetProgress(count/maxbuf*100)
+		
+		if count == maxbuf then
+			Expression2SetProgress()
+			
+			local ok, ret = pcall( glon.decode, buffer )
+			if not ok then
+				WireLib.AddNotify( ply, "Expression 2 download failed! Error message:\n" .. ret, NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3 )
+				return
+			end
+			local files = ret
+			
+			local main
+			if files[1] then
+				main = files[1]
+				files[1] = nil
+			end
+			
+			for k,v in pairs( files ) do
+				wire_expression2_editor:Open( k, v )
+			end
+			
+			wire_expression2_editor:Open( nil, main )
+		end
+	end)
+	
+	local buffer2, count2, maxbuf2, ent2 = "", 0, 0
+	usermessage.Hook( "wire_expression2_download_wantedfiles_list_begin", function( um )
+		buffer2 = ""
+		count2 = 0
+		ent2 = um:ReadEntity()
+		maxbuf2 = um:ReadShort()
+	end)
+	
 
-	usermessage.Hook("wire_expression2_download", wire_expression2_download)
+	usermessage.Hook( "wire_expression2_download_wantedfiles_list_chunk", function( um )
+		buffer2 = buffer2 .. um:ReadString()
+		count2 = count2 + 1
+		
+		Expression2SetProgress(count2/maxbuf2*100)
+		
+		if count2 == maxbuf2 then
+			Expression2SetProgress()
+			
+			local ok, ret = pcall( glon.decode, buffer2 )
+			if not ok then
+				WireLib.AddNotify( ply, "Expression 2 file list download failed! Error message:\n" .. ret, NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3 )
+				return
+			end
+			local files = ret
+			local height = 23
+			
+			local pnl = vgui.Create("DFrame")
+			pnl:SetSize( 200, 100 )
+			pnl:Center()
+			pnl:SetTitle( "Select files to download" )
+			
+			local lst = vgui.Create( "DPanelList", pnl )
+			lst.Paint = function() end
+			lst:SetSpacing( 2 )
+			
+			local selectedfiles = { main = true }
+			
+			local checkboxes = {}
+			
+			local check = vgui.Create( "DCheckBoxLabel" )
+			check:SetText( "Main" )
+			check:Toggle()
+			lst:AddItem( check )
+			function check:OnChange( val )
+				if val then
+					selectedfiles.main = true
+				else
+					selectedfiles.main = nil
+				end
+			end
+			checkboxes[#checkboxes+1] = check
+			height = height + check:GetTall() + 2
+			
+			for i=1,#files do
+				local path = files[i]
+				local check = vgui.Create( "DCheckBoxLabel" )
+				check:SetText( path )
+				lst:AddItem( check )
+				function check:OnChange( val )
+					if val then
+						selectedfiles[i] = path
+					else
+						table.remove( selectedfiles, i )
+					end
+				end
+				checkboxes[#checkboxes+1] = check
+				height = height + check:GetTall() + 2
+			end
+			
+			local selectall = vgui.Create( "DButton" )
+			selectall:SetText( "Select all" )
+			lst:AddItem( selectall )
+			function selectall:DoClick()
+				selectedfiles = {}
+				for k,v in pairs( files ) do
+					selectedfiles[#selectedfiles+1] = v
+				end
+				selectedfiles.main = true
+				
+				for i=1,#checkboxes do
+					if not checkboxes[i]:GetChecked() then checkboxes[i]:Toggle() end -- checkboxes[i]:SetChecked( true )
+				end
+			end
+			height = height + selectall:GetTall() + 2
+			
+			local selectnone = vgui.Create( "DButton" )
+			selectnone:SetText( "Select none" )
+			lst:AddItem( selectnone )
+			function selectnone:DoClick()
+				selectedfiles = {}
+				
+				for i=1,#checkboxes do
+					if checkboxes[i]:GetChecked() then checkboxes[i]:Toggle() end -- checkboxes[i]:SetChecked( false )
+				end
+			end
+			height = height + selectnone:GetTall() + 2
+			
+			local ok = vgui.Create( "DButton" )
+			ok:SetText( "Ok" )
+			ok:SetToolTip( "Shortcut for this button: Right click anywhere" )
+			lst:AddItem( ok )
+			function ok:DoClick()
+				local haschoice = false
+				for k,v in pairs( selectedfiles ) do haschoice = true break end
+				if not haschoice then pnl:Close() return end
+				
+				local datastr = glon.encode( selectedfiles )
+				local data = {}
+				for i=1,#datastr,460 do
+					data[#data+1] = datastr:sub(i,i+459)
+				end
+			
+				RunConsoleCommand( "wire_expression2_download_wantedfiles_list_begin", ent2:EntIndex(), #data )
+
+				local n = 0
+				timer.Create( "wire_expression2_download_wantedfiles_list", 0, #data, function()
+					n = n + 1
+					RunConsoleCommand( "wire_expression2_download_wantedfiles_list_chunk", data[n] )
+				end)
+				
+				pnl:Close()
+			end
+			height = height + ok:GetTall()
+			
+			local down = input.IsMouseDown( MOUSE_RIGHT )
+			function pnl:Think()
+				if not down and input.IsMouseDown( MOUSE_RIGHT ) then
+					ok:DoClick()
+				end
+				down = input.IsMouseDown( MOUSE_RIGHT )
+			end
+			
+			pnl:SetTall( math.min(height + 2,ScrH()/2) )
+			lst:EnableVerticalScrollbar( true )
+			lst:StretchToParent( 2, 23, 2, 2 )
+			pnl:MakePopup()
+			pnl:SetVisible( true )			
+		end
+	end)
+	
+	usermessage.Hook( "wire_expression2_tool_seteditorent", function( um )
+		local ent = um:ReadShort()
+		if not ValidEntity(Entity(ent)) then
+			wire_expression2_editor.chip = false
+		else
+			wire_expression2_editor.chip = Entity(ent)
+		end
+	end)
+	
+	--------------------------------------------------------------
 
 	function TOOL.BuildCPanel(panel)
 		panel:ClearControls()
@@ -292,33 +920,6 @@ elseif CLIENT then
 		wire_expression2_editor:Open()
 	end
 
-	function transfer(code)
-		local encoded = E2Lib.encode(code)
-		local length = encoded:len()
-		local chunks = math.ceil(length / 480)
-
-		Expression2SetProgress(0)
-		RunConsoleCommand("wire_expression_upload_begin", code:len(), chunks)
-
-		timer.Create("wire_expression_upload", 1/60, chunks, transfer_callback, { encoded, 1, chunks })
-	end
-
-	function transfer_callback(state)
-		local i = state[2] - 1
-
-		Expression2SetProgress(math.Round((state[2] / state[3]) * 100))
-		RunConsoleCommand("wire_expression_upload_data", state[1]:sub(i * 480 + 1, (i + 1) * 480))
-
-		if state[2] == state[3] then
-			timer.Create("wire_expression_upload_reset", 0.5, 1, function() Expression2SetProgress(nil) end )
-
-			timer.Destroy("wire_expression_upload")
-			RunConsoleCommand("wire_expression_upload_end")
-		end
-
-		state[2] = state[2] + 1
-	end
-
 	/******************************************************************************\
 	  Expression 2 Tool Screen for Garry's Mod
 	  Andreas "Syranide" Svensson, me@syranide.com
@@ -328,6 +929,7 @@ elseif CLIENT then
 	surface.CreateFont("Arial", 30, 1000, true, false, "Expression2ToolScreenSubFont")
 
 	local percent = nil
+	local percent2 = nil
 	local name = "Unnamed"
 
 	function Expression2SetName(n)
@@ -352,8 +954,9 @@ elseif CLIENT then
 		name = string.Trim(name) .. "..."
 	end
 
-	function Expression2SetProgress(p)
+	function Expression2SetProgress(p,p2)
 		percent = p
+		percent2 = p2
 	end
 
 	function DrawTextOutline(text, font, x, y, color, xalign, yalign, bordercolor, border)
@@ -402,8 +1005,14 @@ elseif CLIENT then
 				surface.SetFont("Expression2ToolScreenFont")
 				local w, h = surface.GetTextSize("Uploading")
 				DrawTextOutline("Uploading", "Expression2ToolScreenFont", 128, 128, Color(224, 224, 224, 255), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER, Color(0, 0, 0, 255), 4)
+				
 				draw.RoundedBox(4, 128 - w/2 - 2, 128 + h / 2 - 0, (w*percent)/100 + 4, h2 - 4, Color(0, 0, 0, 255))
 				draw.RoundedBox(2, 128 - w/2 + 2, 128 + h / 2 + 4, (w*percent)/100 - 4, h2 - 12, Color(224, 224, 224, 255))
+				
+				if percent2 then
+					draw.RoundedBox(4, 128 - w/2 - 2, 128 + h / 2 + 24, (w*percent2)/100 + 4, h2 - 4, Color(0, 0, 0, 255))
+					draw.RoundedBox(2, 128 - w/2 + 2, 128 + h / 2 + 28, (w*percent2)/100 - 4, h2 - 12, Color(224, 224, 224, 255))
+				end
 			elseif name then
 				DrawTextOutline("Expression 2", "Expression2ToolScreenFont", 128, 128, Color(224, 224, 224, 255), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER, Color(0, 0, 0, 255), 4)
 				DrawTextOutline(name, "Expression2ToolScreenSubFont", 128, 128 + (h+h2) / 2 - 4, Color(224, 224, 224, 255), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER, Color(0, 0, 0, 255), 4)

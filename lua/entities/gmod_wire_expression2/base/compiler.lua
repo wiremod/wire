@@ -20,42 +20,48 @@ function Compiler:Error(message, instr)
 	error(message .. " at line " .. instr[2][1] .. ", char " .. instr[2][2], 0)
 end
 
-function Compiler:Process(root, inputs, outputs, persist, delta, params)
+function Compiler:Process(root, inputs, outputs, persist, delta, includes) -- Took params out becuase it isnt used. 
 	self.context = {}
 
 	self:InitScope() //Creates global scope!
 
 	self.inputs = inputs
 	self.outputs = outputs
+	self.persist = persist
+	self.includes = includes or {}
 	self.prfcounter = 0
 	self.prfcounters = {}
 	self.tvars = {}
 	self.funcs = {}
 	self.dvars = {}
 	self.funcs_ret = {}
-
+	
 	for name,v in pairs(inputs) do
-		//self.vars[name] = v
 		self:SetGlobalVariableType(name, wire_expression_types[v][1], {nil, {0, 0}})
 	end
+	
 	for name,v in pairs(outputs) do
-		//self.vars[name] = v
 		self:SetGlobalVariableType(name, wire_expression_types[v][1], {nil, {0, 0}})
 	end
+	
 	for name,v in pairs(persist) do
-		//self.vars[name] = v
 		self:SetGlobalVariableType(name, wire_expression_types[v][1], {nil, {0, 0}})
 	end
+	
 	for name,v in pairs(delta) do
 		self.dvars[name] = v
 	end
-
+	
+	self:PushScope()
+	
 	local script = Compiler["Instr" .. string.upper(root[1])](self, root)
-
+	
+	self:PopScope()
+	
 	return script, self
 end
 
-local function tps_pretty(tps)
+function tps_pretty(tps)
 	if !tps or #tps == 0 then return "void" end
 
 	local ttt = {}
@@ -766,8 +772,7 @@ function Compiler:InstrKVARRAY( args )
 	return {self:GetOperator(args, "kvarray", {})[1], values, types}, "r"
 end
 
-function Compiler:InstrSWITCH( args ) //Shhh this is a secret. Do not tell anybody about this, Rusketh!
-	local Case, Cases = args[3], args[4]
+function Compiler:InstrSWITCH( args )
 	self:PushPrfCounter()
 	local value, type = Compiler["Instr" .. string.upper(Case[1])](self, Case) -- This is the value we are passing though the switch statment
 	local prf_cond = self:PopPrfCounter()
@@ -798,4 +803,46 @@ function Compiler:InstrSWITCH( args ) //Shhh this is a secret. Do not tell anybo
 
 	local rtswitch =  self:GetOperator(args, "switch", {})
 	return { rtswitch[1], prf_cond, cases, default}
+end
+
+function Compiler:InstrINCLU( args )
+
+	local file = args[3]
+	local include = self.includes[file]
+	
+	if !include or !include[1] then
+		self:Error("Problem including file '" .. file .. "'", args)
+	end
+	
+	if !include[2] then
+	
+		include[2] = true -- Tempory value to prvent E2 compiling itself when itself. (INFINATE LOOOP!)
+		
+		local OldScopes = self:SaveScopes()
+		self:InitScope() -- Create a new Scope Enviroment
+		self:PushScope()
+
+		local root = include[1]
+		local status, script = pcall( Compiler["Instr" .. string.upper(root[1])], self, root)
+		
+		if !status then
+			if script:find( "C stack overflow" ) then script = "Include depth to deep" end
+			
+			if !self.IncludeError then
+				-- Otherwise Errors messages will be wrapped inside other error messages!
+				self.IncludeError = true
+				self:Error("include '" .. file .. "' -> " .. script, args)
+			else
+				error(script,0)
+			end
+		end
+		
+		include[2] = script
+		
+		self:PopScope()
+		self:LoadScopes(OldScopes) -- Reload the old enviroment
+	end
+	
+	
+	return {self:GetOperator(args, "include", {})[1], file}
 end

@@ -74,15 +74,15 @@ end
 
 function Parser:Process(tokens, params)
 	self.tokens = tokens
-
 	self.index = 0
 	self.count = #tokens
 	self.delta = {}
+	self.includes = {}
 
 	self:NextToken()
 	local tree = self:Root()
 
-	return tree, self.delta
+	return tree, self.delta, self.includes
 end
 
 /******************************************************************************/
@@ -506,8 +506,13 @@ function Parser:Stmt9()
 		loopdepth = loopdepth - 1
 
 		return self:Instruction(trace, "switch", expr, cases, default)
+	end
 
-	elseif self:AcceptRoamingToken("func") then
+	return self:Stmt10()
+end
+
+function Parser:Stmt10()
+	if self:AcceptRoamingToken("func") then
 
 		local Trace = self:GetTokenTrace()
 
@@ -646,6 +651,33 @@ function Parser:Stmt9()
 
 		self:Error("Void may only exist after return")
 
+	end
+
+	return self:Stmt11()
+end
+
+function Parser:Stmt11()
+	if self:AcceptRoamingToken("inclu") then
+
+		local Trace = self:GetTokenTrace()
+
+		-- if not self:AcceptRoamingToken("lpa") then
+			-- self:Error("Left parenthesis (() must appear after include")
+		-- end
+
+		if not self:AcceptRoamingToken("str") then
+			self:Error("include path (string) expected after include")
+		end
+
+		local Path = self:GetTokenData()
+
+		-- if not self:AcceptRoamingToken("rpa") then
+			-- self:Error("Right parenthesis ()) must appear after include path")
+		-- end
+
+		self.includes[ #self.includes + 1 ] = Path
+
+		return self:Instruction(Trace, "inclu", Path)
 	end
 
 	return self:Expr1()
