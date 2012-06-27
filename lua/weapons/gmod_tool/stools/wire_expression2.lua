@@ -150,18 +150,8 @@ if SERVER then
 		umsg.End()
 	end
 	
-	function TOOL:SetEditorEnt( ent )
-		umsg.Start( "wire_expression2_tool_seteditorent", self:GetOwner() )
-			if ent then umsg.Short( ent:EntIndex() ) else umsg.Short( 0 ) end
-		umsg.End()
-	end
-	
 	function TOOL:Download( ply, ent )
-		if WireLib.Expression2Download( ply, ent ) ~= false then
-			self:SetEditorEnt( ent )
-		else
-			self:SetEditorEnt()
-		end
+		WireLib.Expression2Download( ply, ent, nil, true )
 	end
 	
 	----------------------------------------------------------------------------------------------------------------------------
@@ -178,8 +168,7 @@ if SERVER then
 	umsg.PoolString( "wire_expression2_download_chunk" )
 	umsg.PoolString( "wire_expression2_download_wantedfiles_list_begin" )
 	umsg.PoolString( "wire_expression2_download_wantedfiles_list_chunk" )
-	umsg.PoolString( "wire_expression2_tool_seteditorent" )
-	
+
 	--------------------------------------------------------------
 	-- Serverside Send
 	--------------------------------------------------------------
@@ -196,6 +185,7 @@ if SERVER then
 					umsg.Start( "wire_expression2_download_begin", ply )
 						umsg.Entity( download.entity )
 						umsg.Short( #download.data )
+						umsg.Bool( download.uploadandexit )
 					umsg.End()
 					download.state = 1
 					unhook = false
@@ -221,25 +211,25 @@ if SERVER then
 	end
 	
 	
-	function WireLib.Expression2Download( ply, targetEnt, wantedfiles )
+	function WireLib.Expression2Download( ply, targetEnt, wantedfiles, uploadandexit )
 		if not IsValid(targetEnt) or targetEnt:GetClass() ~= "gmod_wire_expression2" then
 			WireLib.AddNotify( ply, "Invalid Expression chip specified.", NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3 )
-			return false
+			return
 		end
 		
 		if not IsValid(ply) or not ply:IsPlayer() then -- wtf
 			WireLib.AddNotify( ply, "Invalid player entity (wtf??). This should never happen.", NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3 )
-			return false
+			return
 		end
 		
 		if downloads[ply] then
 			WireLib.AddNotify( ply, "You're already downloading. Please wait until your current download is finished.", NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3 )
-			return false
+			return
 		end
 		
 		if not E2Lib.isFriend( ply, targetEnt.player ) then
 			WireLib.AddNotify( ply, "You're not allowed to download from this Expression (ent index: " .. targetEnt:EntIndex() .. ").", NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3 )
-			return false
+			return
 		end
 		
 		local main, mainhash, includes = targetEnt:GetCode()
@@ -249,7 +239,7 @@ if SERVER then
 			for i=1,#datastr,240 do
 				data[#data+1] = datastr:sub(i,i+239)
 			end
-			downloads[ply] = { state = 0, entity = targetEnt, data = data }
+			downloads[ply] = { state = 0, entity = targetEnt, data = data, uploadandexit = uploadandexit or false }
 		elseif not wantedfiles then
 			local data = {}
 			for k,v in pairs( includes ) do
@@ -265,6 +255,7 @@ if SERVER then
 			umsg.Start( "wire_expression2_download_wantedfiles_list_begin", ply )
 				umsg.Entity( targetEnt )
 				umsg.Short( #data )
+				umsg.Bool( uploadandexit or false )
 			umsg.End()
 			
 			local n = 0
@@ -301,7 +292,7 @@ if SERVER then
 				data[#data+1] = datastr:sub(i,i+239)
 			end
 			
-			downloads[ply] = { state = 0, entity = targetEnt, data = data }
+			downloads[ply] = { state = 0, entity = targetEnt, data = data, uploadandexit = uploadandexit or false }
 		end
 		
 		if not hookon and downloads[ply] ~= nil then
@@ -335,6 +326,13 @@ if SERVER then
 			wantedfiles[ply] = nil
 			return
 		end
+		
+		wantedfiles[ply].uploadandexit = false
+		
+		local uploadandexit = args[3]
+		if uploadandexit and uploadandexit ~= "" and uploadandexit == "1" then
+			wantedfiles[ply].uploadandexit = true
+		end
 	end)
 	
 	concommand.Add( "wire_expression2_download_wantedfiles_list_chunk", function(ply,cmd,args)
@@ -350,7 +348,7 @@ if SERVER then
 				return
 			end
 			
-			WireLib.Expression2Download( ply, wantedfiles[ply].ent, ret )
+			WireLib.Expression2Download( ply, wantedfiles[ply].ent, ret, wantedfiles[ply].uploadandexit )
 		end
 	end)
 	
@@ -637,12 +635,13 @@ elseif CLIENT then
 	-- Clientside Receive
 	--------------------------------------------------------------
 	
-	local buffer, count, maxbuf, ent = "", 0, 0
+	local buffer, count, maxbuf, ent, uploadandexit = "", 0, 0, nil, false
 	usermessage.Hook( "wire_expression2_download_begin", function( um )
 		buffer = ""
 		count = 0
 		ent = um:ReadEntity()
 		maxbuf = um:ReadShort()
+		uploadandexit = um:ReadBool()
 		
 		Expression2SetProgress()
 	end)
@@ -670,6 +669,10 @@ elseif CLIENT then
 				files[1] = nil
 			end
 			
+			if uploadandexit then
+				wire_expression2_editor.chip = ent
+			end
+			
 			for k,v in pairs( files ) do
 				wire_expression2_editor:Open( k, v )
 			end
@@ -678,12 +681,13 @@ elseif CLIENT then
 		end
 	end)
 	
-	local buffer2, count2, maxbuf2, ent2 = "", 0, 0
+	local buffer2, count2, maxbuf2, ent2, uploadandexit2 = "", 0, 0, nil, false
 	usermessage.Hook( "wire_expression2_download_wantedfiles_list_begin", function( um )
 		buffer2 = ""
 		count2 = 0
 		ent2 = um:ReadEntity()
 		maxbuf2 = um:ReadShort()
+		uploadandexit2 = um:ReadBool()
 	end)
 	
 
@@ -790,7 +794,7 @@ elseif CLIENT then
 					data[#data+1] = datastr:sub(i,i+459)
 				end
 			
-				RunConsoleCommand( "wire_expression2_download_wantedfiles_list_begin", ent2:EntIndex(), #data )
+				RunConsoleCommand( "wire_expression2_download_wantedfiles_list_begin", ent2:EntIndex(), #data, uploadandexit2 and "1" or "0" )
 
 				local n = 0
 				timer.Create( "wire_expression2_download_wantedfiles_list", 0, #data, function()
@@ -815,15 +819,6 @@ elseif CLIENT then
 			lst:StretchToParent( 2, 23, 2, 2 )
 			pnl:MakePopup()
 			pnl:SetVisible( true )			
-		end
-	end)
-	
-	usermessage.Hook( "wire_expression2_tool_seteditorent", function( um )
-		local ent = um:ReadShort()
-		if not ValidEntity(Entity(ent)) then
-			wire_expression2_editor.chip = false
-		else
-			wire_expression2_editor.chip = Entity(ent)
 		end
 	end)
 	
