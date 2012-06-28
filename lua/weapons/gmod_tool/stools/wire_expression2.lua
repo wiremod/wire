@@ -113,7 +113,7 @@ if SERVER then
 
 		self:SetOverlayText("Expression 2\n" .. name)
 		self.buffer = buffer
-		self.inc_files = inc_files
+		self.inc_files = inc_files or {}
 
 		self.Inputs = WireLib.AdjustSpecialInputs(self, inputs[1], inputs[2])
 		self.Outputs = WireLib.AdjustSpecialOutputs(self, outputs[1], outputs[2])
