@@ -257,7 +257,7 @@ function ENT:CompileCode( buffer, files )
 end
 
 function ENT:GetCode()
-	return self.original, self.originalhash, self.inc_files
+	return self.original, self.inc_files
 end
 
 function ENT:PrepareIncludes(files)

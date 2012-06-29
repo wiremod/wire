@@ -178,7 +178,7 @@ if SERVER then
 	local function transfer()
 		local unhook = true
 		for ply,download in pairs( downloads ) do
-			if not IsValid( ply ) then
+			if not IsValid( ply ) or not IsValid( download.entity ) then
 				downloads[ply] = nil
 			else
 				if download.state == 0 then
@@ -232,7 +232,7 @@ if SERVER then
 			return
 		end
 		
-		local main, mainhash, includes = targetEnt:GetCode()
+		local main, includes = targetEnt:GetCode()
 		if not next(includes) then -- There are no includes
 			local datastr = glon.encode({ main })
 			local data = {}
