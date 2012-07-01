@@ -227,7 +227,7 @@ if SERVER then
 			return
 		end
 		
-		if not E2Lib.isFriend( ply, targetEnt.player ) then
+		if not E2Lib.isFriend( targetEnt.player, ply ) then
 			WireLib.AddNotify( ply, "You're not allowed to download from this Expression (ent index: " .. targetEnt:EntIndex() .. ").", NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3 )
 			return
 		end
