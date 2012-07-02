@@ -234,7 +234,7 @@ if SERVER then
 		
 		local main, includes = targetEnt:GetCode()
 		if not next(includes) then -- There are no includes
-			local datastr = glon.encode({ main })
+			local datastr = von.serialize({ main })
 			local data = {}
 			for i=1,#datastr,240 do
 				data[#data+1] = datastr:sub(i,i+239)
@@ -246,7 +246,7 @@ if SERVER then
 				data[#data+1] = k
 			end
 			
-			local datastr = glon.encode( data )
+			local datastr = von.serialize( data )
 			data = {}
 			for i=1,#datastr, 240 do
 				data[#data+1] = datastr:sub(i,i+239)
@@ -286,7 +286,7 @@ if SERVER then
 				end
 			end
 			
-			local datastr = glon.encode( data )
+			local datastr = von.serialize( data )
 			data = {}
 			for i=1,#datastr, 240 do
 				data[#data+1] = datastr:sub(i,i+239)
@@ -342,9 +342,10 @@ if SERVER then
 		wantedfiles[ply].count = wantedfiles[ply].count + 1
 		
 		if wantedfiles[ply].count >= wantedfiles[ply].maxcount then
-			local ok, ret = pcall( glon.decode, wantedfiles[ply].buffer )
+			local ok, ret = pcall( von.deserialize, wantedfiles[ply].buffer )
 			if not ok then
 				WireLib.AddNotify( ply, "Expression 2 download failed! Error message:\n" .. ret, NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3 )
+				print( "Expression 2 download failed! Error message:\n" .. ret )
 				return
 			end
 			
@@ -437,22 +438,24 @@ if SERVER then
 	
 		upload.data[#upload.data+1] = args[2]
 		
-		timer.Start( "wire_expression2_upload_timeout_"..to )
+		timer.Start( "wire_expression2_upload_timeout"..to )
 
 		if #upload.data == upload.chunks then
-			local datastr = table.concat( upload.data, "" )
-			local ok, ret = pcall( glon.decode, datastr )
+			local datastr = E2Lib.decode( table.concat( upload.data, "" ) )
+			local ok, ret = pcall( von.deserialize, datastr )
+			
 			if not ok then
 				WireLib.AddNotify( ply, "Expression 2 upload failed! Error message:\n" .. ret, NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3 )
+				print( "Expression 2 upload failed! Error message:\n" .. ret )
 				timer.Destroy( "wire_expression2_upload_timeout"..to )
 				return
 			end
 			
-			local code = E2Lib.decode(ret[1])
+			local code = ret[1]
 		
 			local includes = {}
 			for k,v in pairs( ret[2] ) do
-				includes[E2Lib.decode(k)] = E2Lib.decode(v)
+				includes[k] = v
 			end
 			
 			upload.to:Setup( code, includes )
@@ -603,12 +606,12 @@ elseif CLIENT then
 		if includes then
 			local newincludes = {}
 			for k,v in pairs( includes ) do
-				newincludes[E2Lib.encode(k)] = E2Lib.encode(v)
+				newincludes[k] = v
 			end
 			
-			datastr = glon.encode( { E2Lib.encode(code), newincludes } )
+			datastr = E2Lib.encode( von.serialize( { code, newincludes } ) )
 		else
-			datastr = glon.encode( { E2Lib.encode(code), {} } )
+			datastr = E2Lib.encode( von.serialize( { code, {} } ) )
 		end
 		
 		local data = {}
@@ -656,7 +659,7 @@ elseif CLIENT then
 		if count == maxbuf then
 			Expression2SetProgress()
 			
-			local ok, ret = pcall( glon.decode, buffer )
+			local ok, ret = pcall( von.deserialize, buffer )
 			if not ok then
 				WireLib.AddNotify( ply, "Expression 2 download failed! Error message:\n" .. ret, NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3 )
 				return
@@ -700,9 +703,10 @@ elseif CLIENT then
 		if count2 == maxbuf2 then
 			Expression2SetProgress()
 			
-			local ok, ret = pcall( glon.decode, buffer2 )
+			local ok, ret = pcall( von.deserialize, buffer2 )
 			if not ok then
 				WireLib.AddNotify( ply, "Expression 2 file list download failed! Error message:\n" .. ret, NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3 )
+				print( "Expression 2 file list download failed! Error message:\n" .. ret )
 				return
 			end
 			local files = ret
@@ -788,7 +792,7 @@ elseif CLIENT then
 				for k,v in pairs( selectedfiles ) do haschoice = true break end
 				if not haschoice then pnl:Close() return end
 				
-				local datastr = glon.encode( selectedfiles )
+				local datastr = von.serialize( selectedfiles )
 				local data = {}
 				for i=1,#datastr,460 do
 					data[#data+1] = datastr:sub(i,i+459)

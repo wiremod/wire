@@ -57,6 +57,8 @@ if SERVER then
 	AddCSLuaFile("wire/zvm/zvm_opcodes.lua")
 	AddCSLuaFile("wire/zvm/zvm_data.lua")
 
+	AddCSLuaFile("von.lua")
+
 	-- resource files
 	for i=1,32 do
 		resource.AddSingleFile("settings/render_targets/WireGPU_RT_"..i..".txt")
@@ -81,6 +83,7 @@ include("wire/GPULib.lua")
 include("wire/CPULib.lua")
 include("wire/welcome_menu.lua")
 include("wire/Timedpairs.lua")
+include("von.lua")
 
 -- server includes
 if SERVER then

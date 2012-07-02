@@ -774,12 +774,13 @@ end
 
 function Compiler:InstrSWITCH( args )
 	self:PushPrfCounter()
-	local value, type = Compiler["Instr" .. string.upper(Case[1])](self, Case) -- This is the value we are passing though the switch statment
+	local value, type = Compiler["Instr" .. string.upper(args[3][1])](self, args[3]) -- This is the value we are passing though the switch statment
 	local prf_cond = self:PopPrfCounter()
 
 	self:PushScope()
 
 	local cases = {}
+	local Cases = args[4]
 	for i=1, #Cases do
 		local case, block, prf_eq, eq = Cases[i][1], Cases[i][2], 0
 		if case then -- The default will not have one
