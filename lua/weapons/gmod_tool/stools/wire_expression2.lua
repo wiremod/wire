@@ -234,7 +234,7 @@ if SERVER then
 		
 		local main, includes = targetEnt:GetCode()
 		if not next(includes) then -- There are no includes
-			local datastr = von.serialize({ main })
+			local datastr = von.serialize({ { targetEnt.name, main } })
 			local data = {}
 			for i=1,#datastr,240 do
 				data[#data+1] = datastr:sub(i,i+239)
@@ -271,16 +271,16 @@ if SERVER then
 				umsg.End()
 			end)
 		else
-			local data = {}
+			local data = { {}, {} }
 			if wantedfiles.main then
-				data[1] = main
+				data[1] = { targetEnt.name, main }
 				wantedfiles.main = nil
 			end
 			
 			for i=1,#wantedfiles do
 				local path = wantedfiles[i]
 				if includes[path] then
-					data[path] = includes[path]
+					data[2][path] = includes[path]
 				else
 					WireLib.AddNotify( ply, "Nonexistant file requested ('" .. tostring(path) .. "'). File skipped.", NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3 )
 				end
@@ -666,21 +666,23 @@ elseif CLIENT then
 			end
 			local files = ret
 			
-			local main
+			local name, main
 			if files[1] then
-				main = files[1]
-				files[1] = nil
+				name = files[1][1]
+				main = files[1][2]
 			end
 			
 			if uploadandexit then
 				wire_expression2_editor.chip = ent
 			end
 			
-			for k,v in pairs( files ) do
-				wire_expression2_editor:Open( k, v )
+			if files[2] and next(files[2]) ~= nil then
+				for k,v in pairs( files[2] ) do
+					wire_expression2_editor:Open( k, v )
+				end
 			end
 			
-			wire_expression2_editor:Open( nil, main )
+			wire_expression2_editor:Open( name, main )
 		end
 	end)
 	
