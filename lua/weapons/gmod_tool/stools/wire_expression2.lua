@@ -342,7 +342,7 @@ if SERVER then
 		wantedfiles[ply].count = wantedfiles[ply].count + 1
 		
 		if wantedfiles[ply].count >= wantedfiles[ply].maxcount then
-			local ok, ret = pcall( von.deserialize, wantedfiles[ply].buffer )
+			local ok, ret = pcall( von.deserialize, E2Lib.decode( wantedfiles[ply].buffer ) )
 			if not ok then
 				WireLib.AddNotify( ply, "Expression 2 download failed! Error message:\n" .. ret, NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3 )
 				print( "Expression 2 download failed! Error message:\n" .. ret )
@@ -794,7 +794,7 @@ elseif CLIENT then
 				for k,v in pairs( selectedfiles ) do haschoice = true break end
 				if not haschoice then pnl:Close() return end
 				
-				local datastr = von.serialize( selectedfiles )
+				local datastr = E2Lib.encode( von.serialize( selectedfiles ) )
 				local data = {}
 				for i=1,#datastr,460 do
 					data[#data+1] = datastr:sub(i,i+459)
