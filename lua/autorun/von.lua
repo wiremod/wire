@@ -19,7 +19,19 @@
 	Thanks to the following people for their contribution:
 		-	Divran						Suggested improvements for making the code quicker.
 										Suggested an excellent new way of deserializing strings.
+										Lead me to finding an extreme flaw in string parsing.
 		-	pennerlord					Provided some performance tests to help me improve the code.
+
+-----------------------------------------------------------------------------------------------------------------------------
+	
+	The value types supported in this release of vON are:
+		-	table
+		-	number
+		-	boolean
+		-	string
+		-	nil
+
+	These are the native Lua types one would normally serialize.
 --]]
 
 local _deserialize, _serialize, _d_meta, _s_meta, d_findVariable, s_anyVariable
@@ -137,6 +149,10 @@ _deserialize = {
 			elseif c == "~" then
 				numeric = false
 
+			elseif c == ";" then
+				--	Lol, nothing!
+				--	Remenant from numbers, for faster parsing.
+
 			--	OK, now, if it's on the numeric component, simply add everything encountered.
 			elseif numeric then
 				--	Find a variable and it's value
@@ -183,37 +199,16 @@ _deserialize = {
 --	The declaration is not very explicit. It'll do it's best to parse the number.
 --	Has various endings: \n, }, ~, : and ;, some of which will force the table deserializer to go one char backwards.
 	["number"] = function(s, i, len)
-		local res, i, c = "", i or 1
-		--	Locals, locals and locals.
+		local i, a = i or 1
+		--	Locals, locals, locals, locals
 
-		--	Keep looping.
-		while true do
-			--	If we meet the end, it's malformed.
-			if i > len then
-				error("vON: Reached end of string, incomplete number definition.")
-			end
+		a = find(s, "[;:}~]", i)
 
-			--	Cache the character.
-			c = sub(s,i,i)
-
-			--	If one of these is met, the number has ended explicitly.
-			if c == ";" or c == "\n" then
-				--	Return the number and the current character.
-				return tonumber(res), i
-
-			--	If one of these is met, the number has ended implicitly.
-			elseif c == "}" or c == ":" or c == "~" then
-				--	Return the number and the last character, so the current one is re-evaluated.
-				return tonumber(res), i - 1
-
-			--	Otherwise just add the encountered character to the result.
-			else
-				res = res .. c
-			end
-
-			--	Forward.
-			i = i + 1
+		if a then
+			return tonumber(sub(s, i, a - 1)), a - 1
 		end
+
+		error("vON: Number definition started... Found no end.")
 	end,
 
 
@@ -241,7 +236,7 @@ _deserialize = {
 --	" simply marks the type of a string.
 --	Then it is parsed until an unescaped " is countered.
 	["string"] = function(s, i, len)
-		local res, escaped, i, c, a = "", false, i or 1
+		local res, i, a = "", i or 1
 		--	Locals, locals, locals, locals
 
 		while true do
@@ -252,7 +247,7 @@ _deserialize = {
 					res = res .. sub(s, i, a - 2) .. "\""
 					i = a + 1
 				else
-					return res .. sub(s, i, a - 1), a
+					return res .. sub(s, i, a - 2), a
 				end
 			else
 				error("vON: String definition started... Found no end.")
@@ -348,7 +343,7 @@ _serialize = {
 
 --	I hope gsub is fast enough.
 	["string"] = function(data, mustInitiate, isNumeric, isKey, isLast)
-		return "\"" .. gsub(data, "\"", "\\\"") .. "\""
+		return "\"" .. gsub(data, "\"", "\\\"") .. "v\""
 	end,
 
 
