@@ -5,22 +5,22 @@ TOOL.ConfigName = ""
 TOOL.Tab			= "Wire"
 
 if ( CLIENT ) then
-	language.Add( "Tool_wire_relay_name",      "Relay" )
-	language.Add( "Tool_wire_relay_desc",      "Spawns a multi pole, multi throw relay switch." )
-	language.Add( "Tool_wire_relay_0",         "Primary: Create/Update Relay" )
-	language.Add( "WireRelayTool_keygroup1",   "Input 1 Key:" )
-	language.Add( "WireRelayTool_keygroup2",   "Input 2 Key:" )
-	language.Add( "WireRelayTool_keygroup3",   "Input 3 Key:" )
-	language.Add( "WireRelayTool_keygroup4",   "Input 4 Key:" )
-	language.Add( "WireRelayTool_keygroup5",   "Input 5 Key:" )
-	language.Add( "WireRelayTool_keygroupoff", "Open (off) Key:" )
-	language.Add( "WireRelayTool_nokey",       "No Key switching" )
-	language.Add( "WireRelayTool_toggle",      "Toggle" )
-	language.Add( "WireRelayTool_normclose",   "Normaly:" )
-	language.Add( "WireRelayTool_poles",       "Number of poles:" )
-	language.Add( "WireRelayTool_throws",      "Number of throws:" )
-	language.Add( "sboxlimit_wire_relays",     "You've hit the wire relays limit!" )
-	language.Add( "undone_wirerelay",          "Undone Wire Relay" )
+	language12.Add( "Tool_wire_relay_name",      "Relay" )
+	language12.Add( "Tool_wire_relay_desc",      "Spawns a multi pole, multi throw relay switch." )
+	language12.Add( "Tool_wire_relay_0",         "Primary: Create/Update Relay" )
+	language12.Add( "WireRelayTool_keygroup1",   "Input 1 Key:" )
+	language12.Add( "WireRelayTool_keygroup2",   "Input 2 Key:" )
+	language12.Add( "WireRelayTool_keygroup3",   "Input 3 Key:" )
+	language12.Add( "WireRelayTool_keygroup4",   "Input 4 Key:" )
+	language12.Add( "WireRelayTool_keygroup5",   "Input 5 Key:" )
+	language12.Add( "WireRelayTool_keygroupoff", "Open (off) Key:" )
+	language12.Add( "WireRelayTool_nokey",       "No Key switching" )
+	language12.Add( "WireRelayTool_toggle",      "Toggle" )
+	language12.Add( "WireRelayTool_normclose",   "Normaly:" )
+	language12.Add( "WireRelayTool_poles",       "Number of poles:" )
+	language12.Add( "WireRelayTool_throws",      "Number of throws:" )
+	language12.Add( "sboxlimit_wire_relays",     "You've hit the wire relays limit!" )
+	language12.Add( "undone_wirerelay",          "Undone Wire Relay" )
 end
 
 if (SERVER) then

@@ -5,12 +5,12 @@ TOOL.ConfigName = ""
 TOOL.Tab        = "Wire"
 
 if CLIENT then
-  language.Add("Tool_wire_cpu_name", "CPU Tool (Wire)")
-  language.Add("Tool_wire_cpu_desc", "Spawns a central processing unit")
-  language.Add("Tool_wire_cpu_0",    "Primary: upload program to hispeed device, Reload: attach debugger, Shift+Reload: clear, Secondary: open editor")
-  language.Add("sboxlimit_wire_cpu", "You've hit ZCPU limit!")
-  language.Add("undone_wire_cpu",    "Undone the ZCPU")
-  language.Add("ToolWirecpu_Model",  "Model:" )
+  language12.Add("Tool_wire_cpu_name", "CPU Tool (Wire)")
+  language12.Add("Tool_wire_cpu_desc", "Spawns a central processing unit")
+  language12.Add("Tool_wire_cpu_0",    "Primary: upload program to hispeed device, Reload: attach debugger, Shift+Reload: clear, Secondary: open editor")
+  language12.Add("sboxlimit_wire_cpu", "You've hit ZCPU limit!")
+  language12.Add("undone_wire_cpu",    "Undone the ZCPU")
+  language12.Add("ToolWirecpu_Model",  "Model:" )
 end
 
 if SERVER then CreateConVar("sbox_maxwire_cpus", 7) end

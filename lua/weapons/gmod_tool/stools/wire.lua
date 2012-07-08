@@ -23,15 +23,15 @@ TOOL.Name			= "Wire"
 TOOL.Tab			= "Wire"
 
 if CLIENT then
-	language.Add( "Tool_wire_name", "Wiring Tool" )
-	language.Add( "Tool_wire_desc", "Used to connect wirable props." )
-	language.Add( "Tool_wire_0", "Primary: Attach to selected input.\nSecondary: Next input.\nReload: Unlink selected input." )
-	language.Add( "Tool_wire_1", "Primary: Attach to output.\nSecondary: Attach but continue.\nReload: Cancel." )
-	language.Add( "Tool_wire_2", "Primary: Confirm attach to output.\nSecondary: Next output.\nReload: Cancel." )
-	language.Add( "WireTool_width", "Width:" )
-	language.Add( "WireTool_material", "Material:" )
-	language.Add( "WireTool_colour", "Material:" )
-	language.Add( "undone_wire", "Undone Wire" )
+	language12.Add( "Tool_wire_name", "Wiring Tool" )
+	language12.Add( "Tool_wire_desc", "Used to connect wirable props." )
+	language12.Add( "Tool_wire_0", "Primary: Attach to selected input.\nSecondary: Next input.\nReload: Unlink selected input." )
+	language12.Add( "Tool_wire_1", "Primary: Attach to output.\nSecondary: Attach but continue.\nReload: Cancel." )
+	language12.Add( "Tool_wire_2", "Primary: Confirm attach to output.\nSecondary: Next output.\nReload: Cancel." )
+	language12.Add( "WireTool_width", "Width:" )
+	language12.Add( "WireTool_material", "Material:" )
+	language12.Add( "WireTool_colour", "Material:" )
+	language12.Add( "undone_wire", "Undone Wire" )
 end
 
 TOOL.ClientConVar = {

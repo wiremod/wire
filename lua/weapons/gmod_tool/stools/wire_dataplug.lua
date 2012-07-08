@@ -5,14 +5,14 @@ TOOL.ConfigName		= ""
 TOOL.Tab			= "Wire"
 
 if ( CLIENT ) then
-    language.Add( "Tool_wire_dataplug_name", "Data Plug Tool (Wire)" )
-    language.Add( "Tool_wire_dataplug_desc", "Spawns plugs and sockets for use with the hi-speed wire system." )
-    language.Add( "Tool_wire_dataplug_0", "Primary: Create/Update Socket    Secondary: Create/Update Plug" )
-    language.Add( "WirePlugTool_colour", "Colour:" )
-	language.Add( "sboxlimit_wire_dataplugs", "You've hit plugs limit!" )
-	language.Add( "sboxlimit_wire_datasockets", "You've hit sockets limit!" )
-	language.Add( "undone_wiredataplug", "Undone Wire Data Plug" )
-	language.Add( "undone_wiredatasocket", "Undone Wire Data Socket" )
+    language12.Add( "Tool_wire_dataplug_name", "Data Plug Tool (Wire)" )
+    language12.Add( "Tool_wire_dataplug_desc", "Spawns plugs and sockets for use with the hi-speed wire system." )
+    language12.Add( "Tool_wire_dataplug_0", "Primary: Create/Update Socket    Secondary: Create/Update Plug" )
+    language12.Add( "WirePlugTool_colour", "Colour:" )
+	language12.Add( "sboxlimit_wire_dataplugs", "You've hit plugs limit!" )
+	language12.Add( "sboxlimit_wire_datasockets", "You've hit sockets limit!" )
+	language12.Add( "undone_wiredataplug", "Undone Wire Data Plug" )
+	language12.Add( "undone_wiredatasocket", "Undone Wire Data Socket" )
 end
 
 if (SERVER) then

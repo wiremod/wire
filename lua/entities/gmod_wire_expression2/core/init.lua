@@ -173,8 +173,8 @@ end
 
 if SERVER then
 	if VERSION >= 150 then
-		datastream12.__prepareStream("e2st")
-		datastream12.__prepareStream("e2se")
+		util.AddNetworkString("e2st")
+		util.AddNetworkString("e2se")
 	end
 
 	local clientside_files = {}
@@ -253,7 +253,7 @@ if SERVER then
 				targets[target] = { 1, 0 }
 				if VERSION >= 150 then
 					net.Start("e2st")
-						net.WriteLong( #functiondata_buffer + #functiondata2_buffer )
+						net.WriteUInt( #functiondata_buffer + #functiondata2_buffer, 64 )
 					net.Send(target)
 				else
 					umsg.Start("e2st",target) umsg.Short( #functiondata_buffer + #functiondata2_buffer ) umsg.End()
@@ -450,7 +450,7 @@ elseif CLIENT then
 	if VERSION >= 150 then
 
 		net.Receive("e2st",function(len)
-			buffer_total_count = net.ReadLong()
+			buffer_total_count = net.ReadUInt(64)
 			draw_progress_bar = true
 			buffer_current_count = 0
 			status( 0, buffer_total_count )

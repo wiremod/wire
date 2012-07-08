@@ -8,13 +8,13 @@ TOOL.ConfigName		= ""
 TOOL.Tab			= "Wire"
 
 if ( CLIENT ) then
-    language.Add( "Tool_wire_adv_emarker_name", "Adv Entity Marker Tool (Wire)" )
-    language.Add( "Tool_wire_adv_emarker_desc", "Spawns an Adv Entity Marker for use with the wire system." )
-    language.Add( "Tool_wire_adv_emarker_0", "Primary: Create Entity Marker, Secondary: Add a link, Reload: Remove a link" )
-	language.Add( "Tool_wire_adv_emarker_1", "Now select the entity to link to (Tip: Hold down shift to link to more entities).")
-	language.Add( "Tool_wire_adv_emarker_2", "Now select the entity to unlink (Tip: Hold down shift to unlink from more entities). Click Reload on the same entity marker again to clear all linked entities." )
-	language.Add( "sboxlimit_wire_adv_emarker", "You've hit adv entity marker limit!" )
-	language.Add( "undone_wire_adv_emarker", "Undone Adv Wire Entity Marker" )
+    language12.Add( "Tool_wire_adv_emarker_name", "Adv Entity Marker Tool (Wire)" )
+    language12.Add( "Tool_wire_adv_emarker_desc", "Spawns an Adv Entity Marker for use with the wire system." )
+    language12.Add( "Tool_wire_adv_emarker_0", "Primary: Create Entity Marker, Secondary: Add a link, Reload: Remove a link" )
+	language12.Add( "Tool_wire_adv_emarker_1", "Now select the entity to link to (Tip: Hold down shift to link to more entities).")
+	language12.Add( "Tool_wire_adv_emarker_2", "Now select the entity to unlink (Tip: Hold down shift to unlink from more entities). Click Reload on the same entity marker again to clear all linked entities." )
+	language12.Add( "sboxlimit_wire_adv_emarker", "You've hit adv entity marker limit!" )
+	language12.Add( "undone_wire_adv_emarker", "Undone Adv Wire Entity Marker" )
 elseif ( SERVER ) then
     CreateConVar('sbox_maxwire_adv_emarkers',3)
 end

@@ -5,13 +5,13 @@ TOOL.ConfigName		= ""
 TOOL.Tab			= "Wire"
 
 if ( CLIENT ) then
-	language.Add( "Tool_wire_twoway_radio_name", "Two-Way Radio Tool (Wire)" )
-	language.Add( "Tool_wire_twoway_radio_desc", "Spawns a two-way radio for use with the wire system." )
-	language.Add( "Tool_wire_twoway_radio_0", "Primary: Create/Update Two-way Radio\nSecondary: Select a two-way radio to pair up with another two-way radio." )
-	language.Add( "Tool_wire_twoway_radio_1", "Select the second two-way radio." );
-	language.Add( "WireRadioTwoWayTool_model", "Model:" );
-	language.Add( "sboxlimit_wire_twoway_radios", "You've hit the two-way radio limit!" )
-	language.Add( "undone_wiretwowayradio", "Undone Wire Two-way Radio" )
+	language12.Add( "Tool_wire_twoway_radio_name", "Two-Way Radio Tool (Wire)" )
+	language12.Add( "Tool_wire_twoway_radio_desc", "Spawns a two-way radio for use with the wire system." )
+	language12.Add( "Tool_wire_twoway_radio_0", "Primary: Create/Update Two-way Radio\nSecondary: Select a two-way radio to pair up with another two-way radio." )
+	language12.Add( "Tool_wire_twoway_radio_1", "Select the second two-way radio." );
+	language12.Add( "WireRadioTwoWayTool_model", "Model:" );
+	language12.Add( "sboxlimit_wire_twoway_radios", "You've hit the two-way radio limit!" )
+	language12.Add( "undone_wiretwowayradio", "Undone Wire Two-way Radio" )
 end
 
 if (SERVER) then

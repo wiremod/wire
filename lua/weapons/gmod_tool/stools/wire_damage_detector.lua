@@ -5,13 +5,13 @@ TOOL.ConfigName		= ""
 TOOL.Tab			= "Wire"
 
 if CLIENT then
-    language.Add( "Tool_wire_damage_detector_name", "Damage Detector Tool (Wire)" )
-    language.Add( "Tool_wire_damage_detector_desc", "Spawns a damage detector for use with the wire system" )
-    language.Add( "Tool_wire_damage_detector_0", "Primary: Create/Update Detector, Secondary: Link Detector to an entity, Reload: Unlink Detector" )
-	language.Add( "Tool_wire_damage_detector_1", "Now select the entity to link to." )
-    language.Add( "WireDamageDetectorTool_includeconstrained", "Include Constrained Props" )
-	language.Add( "sboxlimit_wire_damage_detectors", "You've hit damage detectors limit!" )
-	language.Add( "undone_Wire Damage Detector", "Undone Wire Damage Detector" )
+    language12.Add( "Tool_wire_damage_detector_name", "Damage Detector Tool (Wire)" )
+    language12.Add( "Tool_wire_damage_detector_desc", "Spawns a damage detector for use with the wire system" )
+    language12.Add( "Tool_wire_damage_detector_0", "Primary: Create/Update Detector, Secondary: Link Detector to an entity, Reload: Unlink Detector" )
+	language12.Add( "Tool_wire_damage_detector_1", "Now select the entity to link to." )
+    language12.Add( "WireDamageDetectorTool_includeconstrained", "Include Constrained Props" )
+	language12.Add( "sboxlimit_wire_damage_detectors", "You've hit damage detectors limit!" )
+	language12.Add( "undone_Wire Damage Detector", "Undone Wire Damage Detector" )
 end
 
 if SERVER then

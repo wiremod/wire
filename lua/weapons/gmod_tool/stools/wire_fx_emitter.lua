@@ -18,13 +18,13 @@ cleanup.Register( "wire_fx_emitter" )
 // Add Default Language translation (saves adding it to the txt files)
 if ( CLIENT ) then
 
-	language.Add( "Tool_wire_fx_emitter_name", "Wire FX Emitter" )
-	language.Add( "Tool_wire_fx_emitter_desc", "Wire FX Emitter Emits effects eh?" )
-	language.Add( "Tool_wire_fx_emitter_0", "Click somewhere to spawn a wire fx emitter. Click on an existing wire fx emitter to update it." )
+	language12.Add( "Tool_wire_fx_emitter_name", "Wire FX Emitter" )
+	language12.Add( "Tool_wire_fx_emitter_desc", "Wire FX Emitter Emits effects eh?" )
+	language12.Add( "Tool_wire_fx_emitter_0", "Click somewhere to spawn a wire fx emitter. Click on an existing wire fx emitter to update it." )
 
-	language.Add( "Undone_wire_fx_emitter", "Undone Wire FX Emitter" )
-	language.Add( "Cleanup_wire_fx_emitter", "Wire FX Emitter" )
-	language.Add( "Cleaned_wire_fx_emitter", "Cleaned up all Wire FX Emitters" )
+	language12.Add( "Undone_wire_fx_emitter", "Undone Wire FX Emitter" )
+	language12.Add( "Cleanup_wire_fx_emitter", "Wire FX Emitter" )
+	language12.Add( "Cleaned_wire_fx_emitter", "Cleaned up all Wire FX Emitters" )
 
 end
 

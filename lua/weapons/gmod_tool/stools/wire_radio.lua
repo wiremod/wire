@@ -5,15 +5,15 @@ TOOL.ConfigName = ""
 TOOL.Tab			= "Wire"
 
 if ( CLIENT ) then
-	language.Add( "Tool_wire_radio_name", "Radio Tool (Wire)" )
-	language.Add( "Tool_wire_radio_desc", "Spawns a radio for use with the wire system." )
-	language.Add( "Tool_wire_radio_0", "Primary: Create/Update Radio" )
-	language.Add( "WireRadioTool_channel", "Channel:" )
-	language.Add( "WireRadioTool_model", "Model:" );
-	language.Add( "WireRadioTool_values", "Values:" );
-	language.Add( "WireRadioTool_secure", "Secure" );
-	language.Add( "sboxlimit_wire_radios", "You've hit the radio limit!" )
-	language.Add( "undone_wireradio", "Undone Wire Radio" )
+	language12.Add( "Tool_wire_radio_name", "Radio Tool (Wire)" )
+	language12.Add( "Tool_wire_radio_desc", "Spawns a radio for use with the wire system." )
+	language12.Add( "Tool_wire_radio_0", "Primary: Create/Update Radio" )
+	language12.Add( "WireRadioTool_channel", "Channel:" )
+	language12.Add( "WireRadioTool_model", "Model:" );
+	language12.Add( "WireRadioTool_values", "Values:" );
+	language12.Add( "WireRadioTool_secure", "Secure" );
+	language12.Add( "sboxlimit_wire_radios", "You've hit the radio limit!" )
+	language12.Add( "undone_wireradio", "Undone Wire Radio" )
 end
 
 if (SERVER) then

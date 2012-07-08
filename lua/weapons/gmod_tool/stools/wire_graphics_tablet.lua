@@ -11,14 +11,14 @@ TOOL.ConfigName		= ""
 TOOL.Tab			= "Wire"
 
 if ( CLIENT ) then
-    language.Add( "Tool_wire_graphics_tablet_name", "Graphics Tablet Tool (Wire)" )
-    language.Add( "Tool_wire_graphics_tablet_desc", "Spawns a graphics tablet, which outputs cursor coordinates" )
-    language.Add( "Tool_wire_graphics_tablet_0", "Primary: Create/Update graphics tablet" )
-	language.Add( "sboxlimit_wire_graphics_tablets", "You've hit graphics tablets limit!" )
-	language.Add( "undone_wire_graphics_tablet", "Undone Wire Graphics Tablet" )
-	language.Add( "Tool_wire_graphics_tablet_mode", "Output mode: -1 to 1 (ticked), 0 to 1 (unticked)" )
-	language.Add( "Tool_wire_graphics_tablet_draw_background", "Draw background" )
-	language.Add( "Tool_wire_graphics_tablet_createflat", "Create flat to surface" )
+    language12.Add( "Tool_wire_graphics_tablet_name", "Graphics Tablet Tool (Wire)" )
+    language12.Add( "Tool_wire_graphics_tablet_desc", "Spawns a graphics tablet, which outputs cursor coordinates" )
+    language12.Add( "Tool_wire_graphics_tablet_0", "Primary: Create/Update graphics tablet" )
+	language12.Add( "sboxlimit_wire_graphics_tablets", "You've hit graphics tablets limit!" )
+	language12.Add( "undone_wire_graphics_tablet", "Undone Wire Graphics Tablet" )
+	language12.Add( "Tool_wire_graphics_tablet_mode", "Output mode: -1 to 1 (ticked), 0 to 1 (unticked)" )
+	language12.Add( "Tool_wire_graphics_tablet_draw_background", "Draw background" )
+	language12.Add( "Tool_wire_graphics_tablet_createflat", "Create flat to surface" )
 end
 
 if (SERVER) then

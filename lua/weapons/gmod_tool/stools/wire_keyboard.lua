@@ -5,12 +5,12 @@ TOOL.ConfigName		= ""
 TOOL.Tab			= "Wire"
 
 if ( CLIENT ) then
-    language.Add( "Tool_wire_keyboard_name", "Wired Keyboard Tool (Wire)" )
-    language.Add( "Tool_wire_keyboard_desc", "Spawns a keyboard input for use with the hi-speed wire system." )
-    language.Add( "Tool_wire_keyboard_0", "Primary: Create/Update Keyboard, Secondary: Link Keyboard to pod, Reload: Unlink" )
-	language.Add( "Tool_wire_keyboard_1", "Now select the pod to link to.")
-	language.Add( "sboxlimit_wire_keyboard", "You've hit wired keyboards limit!" )
-	language.Add( "undone_wirekeyboard", "Undone Wire Keyboard" )
+    language12.Add( "Tool_wire_keyboard_name", "Wired Keyboard Tool (Wire)" )
+    language12.Add( "Tool_wire_keyboard_desc", "Spawns a keyboard input for use with the hi-speed wire system." )
+    language12.Add( "Tool_wire_keyboard_0", "Primary: Create/Update Keyboard, Secondary: Link Keyboard to pod, Reload: Unlink" )
+	language12.Add( "Tool_wire_keyboard_1", "Now select the pod to link to.")
+	language12.Add( "sboxlimit_wire_keyboard", "You've hit wired keyboards limit!" )
+	language12.Add( "undone_wirekeyboard", "Undone Wire Keyboard" )
 end
 
 if (SERVER) then

@@ -5,15 +5,15 @@ TOOL.ConfigName		= ""
 TOOL.Tab			= "Wire"
 
 if CLIENT then
-    language.Add( "Tool_wire_colorer_name", "Colorer Tool (Wire)" )
-    language.Add( "Tool_wire_colorer_desc", "Spawns a constant colorer prop for use with the wire system." )
-    language.Add( "Tool_wire_colorer_0", "Primary: Create/Update Colorer" )
-    language.Add( "WireColorerTool_colorer", "Colorer:" )
-    language.Add( "WireColorerTool_outColor", "Output Color" )
-    language.Add( "WireColorerTool_Range", "Max Range:" )
-    language.Add( "WireColorerTool_Model", "Choose a Model:")
-	language.Add( "sboxlimit_wire_colorers", "You've hit Colorers limit!" )
-	language.Add( "undone_Wire Colorer", "Undone Wire Colorer" )
+    language12.Add( "Tool_wire_colorer_name", "Colorer Tool (Wire)" )
+    language12.Add( "Tool_wire_colorer_desc", "Spawns a constant colorer prop for use with the wire system." )
+    language12.Add( "Tool_wire_colorer_0", "Primary: Create/Update Colorer" )
+    language12.Add( "WireColorerTool_colorer", "Colorer:" )
+    language12.Add( "WireColorerTool_outColor", "Output Color" )
+    language12.Add( "WireColorerTool_Range", "Max Range:" )
+    language12.Add( "WireColorerTool_Model", "Choose a Model:")
+	language12.Add( "sboxlimit_wire_colorers", "You've hit Colorers limit!" )
+	language12.Add( "undone_Wire Colorer", "Undone Wire Colorer" )
 end
 
 if SERVER then
