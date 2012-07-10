@@ -213,6 +213,7 @@ registerCallback("postinit",function()
 				local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
 				if (type(rv2) == "number") then rv2 = tostring(rv2) end
 				rv1[v[1]..rv2] = rv3
+				return rv3
 			end
 
 			registerOperator("idx", v[1].."=xgts", v[1], getf) -- G[S,type]

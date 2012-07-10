@@ -233,7 +233,7 @@ if SERVER then
 		end
 		
 		local main, includes = targetEnt:GetCode()
-		if not next(includes) then -- There are no includes
+		if not includes or not next(includes) then -- There are no includes
 			local datastr = von.serialize({ { targetEnt.name, main } })
 			local data = {}
 			for i=1,#datastr,240 do
@@ -470,12 +470,18 @@ elseif CLIENT then
 	--------------------------------------------------------------
 	-- Clientside Send
 	--------------------------------------------------------------
+	
+	local transferrate = CreateClientConVar( "wire_expression2_upload_sleep_time", 0, true, false )
+	local prev = 0
 
 	local uploads = {}
 	local totalchunks = 0
 	local currentchunk = 0
 	
 	local function transfer()
+		if prev > CurTime() then return end
+		prev = CurTime() + transferrate:GetFloat()
+	
 		if #uploads == 0 then
 			totalchunks = 0
 			currentchunk = 0
