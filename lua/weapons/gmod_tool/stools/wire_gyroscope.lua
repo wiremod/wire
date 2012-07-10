@@ -5,12 +5,12 @@ TOOL.ConfigName		= ""
 TOOL.Tab			= "Wire"
 
 if ( CLIENT ) then
-    language.Add( "Tool_wire_gyroscope_name", "Gyroscope Tool (Wire)" )
-    language.Add( "Tool_wire_gyroscope_desc", "Spawns a gyroscope for use with the wire system." )
-    language.Add( "Tool_wire_gyroscope_0", "Primary: Create/Update Gyroscope" )
-    language.Add( "Tool_wire_gyroscope_out180", "Output -180 to 180 instead of 0 to 360" )
-	language.Add( "sboxlimit_wire_gyroscopes", "You've hit gyroscopes limit!" )
-	language.Add( "undone_wiregyroscope", "Undone Wire Gyroscope" )
+    language12.Add( "Tool_wire_gyroscope_name", "Gyroscope Tool (Wire)" )
+    language12.Add( "Tool_wire_gyroscope_desc", "Spawns a gyroscope for use with the wire system." )
+    language12.Add( "Tool_wire_gyroscope_0", "Primary: Create/Update Gyroscope" )
+    language12.Add( "Tool_wire_gyroscope_out180", "Output -180 to 180 instead of 0 to 360" )
+	language12.Add( "sboxlimit_wire_gyroscopes", "You've hit gyroscopes limit!" )
+	language12.Add( "undone_wiregyroscope", "Undone Wire Gyroscope" )
 end
 
 

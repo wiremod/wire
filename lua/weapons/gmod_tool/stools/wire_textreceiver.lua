@@ -6,17 +6,17 @@ TOOL.ConfigName		= ""
 TOOL.Tab			= "Wire"
 
 if ( CLIENT ) then
-	language.Add( "Tool_wire_textreceiver_name", "Text Receiver Tool (Wire)" )
-	language.Add( "Tool_wire_textreceiver_desc", "Spawns a text receiver for use with the wire system." )
-	language.Add( "Tool_wire_textreceiver_0", "Primary: Create/Update text receiver, Secondary: Copy Settings" )
+	language12.Add( "Tool_wire_textreceiver_name", "Text Receiver Tool (Wire)" )
+	language12.Add( "Tool_wire_textreceiver_desc", "Spawns a text receiver for use with the wire system." )
+	language12.Add( "Tool_wire_textreceiver_0", "Primary: Create/Update text receiver, Secondary: Copy Settings" )
 
-	language.Add( "undone_textreceiver", "Undone Wire Text Receiver" )
+	language12.Add( "undone_textreceiver", "Undone Wire Text Receiver" )
 
-	language.Add( "Tool_wire_textreceiver_case_insensitive", "Case insensitive" )
-	language.Add( "Tool_wire_textreceiver_use_lua_patterns", "Use Lua Patterns" )
-	language.Add( "Tool_wire_textreceiver_num_matches", "Number of matches to use" )
+	language12.Add( "Tool_wire_textreceiver_case_insensitive", "Case insensitive" )
+	language12.Add( "Tool_wire_textreceiver_use_lua_patterns", "Use Lua Patterns" )
+	language12.Add( "Tool_wire_textreceiver_num_matches", "Number of matches to use" )
 	for i=1,24 do
-		language.Add( "Tool_wire_textreceiver_match" .. i, "Match " .. i .. ":" )
+		language12.Add( "Tool_wire_textreceiver_match" .. i, "Match " .. i .. ":" )
 	end
 end
 

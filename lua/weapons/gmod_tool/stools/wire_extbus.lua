@@ -5,11 +5,11 @@ TOOL.ConfigName     = ""
 TOOL.Tab            = "Wire"
 
 if ( CLIENT ) then
-	language.Add( "Tool_wire_extbus_name", "Extended bus tool (Wire)" )
-	language.Add( "Tool_wire_extbus_desc", "Spawns an extended bus (programmable address bus)" )
-	language.Add( "Tool_wire_extbus_0", "Primary: Create/Update extended bus" )
-	language.Add( "sboxlimit_wire_extbuss", "You've hit extended buses limit!" )
-	language.Add( "undone_wiredatarate", "Undone Extended Bus" )
+	language12.Add( "Tool_wire_extbus_name", "Extended bus tool (Wire)" )
+	language12.Add( "Tool_wire_extbus_desc", "Spawns an extended bus (programmable address bus)" )
+	language12.Add( "Tool_wire_extbus_0", "Primary: Create/Update extended bus" )
+	language12.Add( "sboxlimit_wire_extbuss", "You've hit extended buses limit!" )
+	language12.Add( "undone_wiredatarate", "Undone Extended Bus" )
 end
 
 if (SERVER) then

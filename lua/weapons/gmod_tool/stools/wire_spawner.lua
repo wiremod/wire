@@ -11,12 +11,12 @@ TOOL.ClientConVar = {
 }
 
 if CLIENT then
-	language.Add( "Tool_wire_spawner_name", "Prop Spawner (Wire)" )
-	language.Add( "Tool_wire_spawner_desc", "Spawns a prop at a pre-defined location" )
-	language.Add( "Tool_wire_spawner_0", "Click a prop to turn it into a prop spawner." )
-	language.Add( "Undone_gmod_wire_spawner", "Undone Wire Spawner" )
-	language.Add( "Cleanup_gmod_wire_spawner", "Wire Spawners" )
-	language.Add( "Cleaned_gmod_wire_spawner", "Cleaned up Wire Spawners" )
+	language12.Add( "Tool_wire_spawner_name", "Prop Spawner (Wire)" )
+	language12.Add( "Tool_wire_spawner_desc", "Spawns a prop at a pre-defined location" )
+	language12.Add( "Tool_wire_spawner_0", "Click a prop to turn it into a prop spawner." )
+	language12.Add( "Undone_gmod_wire_spawner", "Undone Wire Spawner" )
+	language12.Add( "Cleanup_gmod_wire_spawner", "Wire Spawners" )
+	language12.Add( "Cleaned_gmod_wire_spawner", "Cleaned up Wire Spawners" )
 end
 
 if SERVER then

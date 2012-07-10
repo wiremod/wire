@@ -5,14 +5,14 @@ TOOL.ConfigName		= ""
 TOOL.Tab			= "Wire"
 
 if ( CLIENT ) then
-	language.Add( "Tool_wire_user_name", "User Tool (Wire)" )
-	language.Add( "Tool_wire_user_desc", "Spawns a constant user prop for use with the wire system." )
-	language.Add( "Tool_wire_user_0", "Primary: Create/Update User" )
-	language.Add( "WireUserTool_user", "User:" )
-	language.Add( "WireUserTool_Range", "Max Range:" )
-	language.Add( "WireUserTool_Model", "Choose a Model:")
-	language.Add( "sboxlimit_wire_users", "You've hit Users limit!" )
-	language.Add( "undone_Wire User", "Undone Wire User" )
+	language12.Add( "Tool_wire_user_name", "User Tool (Wire)" )
+	language12.Add( "Tool_wire_user_desc", "Spawns a constant user prop for use with the wire system." )
+	language12.Add( "Tool_wire_user_0", "Primary: Create/Update User" )
+	language12.Add( "WireUserTool_user", "User:" )
+	language12.Add( "WireUserTool_Range", "Max Range:" )
+	language12.Add( "WireUserTool_Model", "Choose a Model:")
+	language12.Add( "sboxlimit_wire_users", "You've hit Users limit!" )
+	language12.Add( "undone_Wire User", "Undone Wire User" )
 end
 
 if (SERVER) then

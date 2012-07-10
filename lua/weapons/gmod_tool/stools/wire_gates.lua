@@ -20,11 +20,11 @@ if CLIENT then
 	-- Tool Info
 	----------------------------------------------------------------------------------------------------
 
-	language.Add( "Tool_wire_gates_name", "Gates Tool (Wire)" )
-	language.Add( "Tool_wire_gates_desc", "Spawns gates for use with the wire system." )
-	language.Add( "Tool_wire_gates_0", "Primary: Create/Update Gate, Secondary: Copy Gate, Reload: Increase angle offset by 45 degrees, Shift+Reload: Unparent gate (If parented)." )
+	language12.Add( "Tool_wire_gates_name", "Gates Tool (Wire)" )
+	language12.Add( "Tool_wire_gates_desc", "Spawns gates for use with the wire system." )
+	language12.Add( "Tool_wire_gates_0", "Primary: Create/Update Gate, Secondary: Copy Gate, Reload: Increase angle offset by 45 degrees, Shift+Reload: Unparent gate (If parented)." )
 
-	language.Add( "Tool_wire_gates_searchresultnum", "Number of search results:" )
+	language12.Add( "Tool_wire_gates_searchresultnum", "Number of search results:" )
 
 	TOOL.ClientConVar["model"] = "models/jaanus/wiretool/wiretool_gate.mdl"
 	TOOL.ClientConVar["weld"] = 1
@@ -34,15 +34,15 @@ if CLIENT then
 	TOOL.ClientConVar["action"] = "+"
 	TOOL.ClientConVar["searchresultnum"] = 28
 
-	language.Add( "WireGatesTool_action", "Gate action" )
-	language.Add( "WireGatesTool_noclip", "NoCollide" )
-	language.Add( "WireGatesTool_weld", "Weld" )
-	language.Add( "WireGatesTool_parent", "Parent" )
-	language.Add( "WireGatesTool_angleoffset", "Spawn angle offset" )
-	language.Add( "sboxlimit_wire_gates", "You've hit your gates limit!" )
-	language.Add( "undone_gmod_wire_gate", "Undone wire gate" )
-	language.Add( "Cleanup_gmod_wire_gate", "Wire Gates" )
-	language.Add( "Cleaned_gmod_wire_gate", "Cleaned up wire gates" )
+	language12.Add( "WireGatesTool_action", "Gate action" )
+	language12.Add( "WireGatesTool_noclip", "NoCollide" )
+	language12.Add( "WireGatesTool_weld", "Weld" )
+	language12.Add( "WireGatesTool_parent", "Parent" )
+	language12.Add( "WireGatesTool_angleoffset", "Spawn angle offset" )
+	language12.Add( "sboxlimit_wire_gates", "You've hit your gates limit!" )
+	language12.Add( "undone_gmod_wire_gate", "Undone wire gate" )
+	language12.Add( "Cleanup_gmod_wire_gate", "Wire Gates" )
+	language12.Add( "Cleaned_gmod_wire_gate", "Cleaned up wire gates" )
 
 	----------------------------------------------------------------------------------------------------
 	-- BuildCPanel

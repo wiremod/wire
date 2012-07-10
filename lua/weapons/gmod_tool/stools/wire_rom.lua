@@ -14,16 +14,16 @@ else
 	-- Tool Info
 	----------------------------------------------------------------------------------------------------
 
-	language.Add( "Tool_wire_rom_name", "ROM Tool (Wire)" )
-	language.Add( "Tool_wire_rom_desc", "Spawns a ROM chip" )
-	language.Add( "Tool_wire_rom_0", "Primary: Create ROM." )
-	language.Add( "sboxlimit_wire_roms", "You've hit the Wire ROM limit!" )
-	language.Add( "undone_wirerom", "Undone Wire ROM" )
+	language12.Add( "Tool_wire_rom_name", "ROM Tool (Wire)" )
+	language12.Add( "Tool_wire_rom_desc", "Spawns a ROM chip" )
+	language12.Add( "Tool_wire_rom_0", "Primary: Create ROM." )
+	language12.Add( "sboxlimit_wire_roms", "You've hit the Wire ROM limit!" )
+	language12.Add( "undone_wirerom", "Undone Wire ROM" )
 
-	language.Add( "Tool_wire_rom_weld", "Weld the ROM." )
-	language.Add( "Tool_wire_rom_weldtoworld", "Weld the ROM to the world." )
-	language.Add( "Tool_wire_rom_freeze", "Freeze the ROM." )
-	language.Add( "Tool_wire_rom_note", "ROM size will depend on written data.\nThe maximum size is 256 KB." )
+	language12.Add( "Tool_wire_rom_weld", "Weld the ROM." )
+	language12.Add( "Tool_wire_rom_weldtoworld", "Weld the ROM to the world." )
+	language12.Add( "Tool_wire_rom_freeze", "Freeze the ROM." )
+	language12.Add( "Tool_wire_rom_note", "ROM size will depend on written data.\nThe maximum size is 256 KB." )
 
 	TOOL.ClientConVar["model"] = "models/jaanus/wiretool/wiretool_gate.mdl"
 	TOOL.ClientConVar["weld"] = 1

@@ -5,11 +5,11 @@ TOOL.ConfigName		= ""
 TOOL.Tab			= "Wire"
 
 if ( CLIENT ) then
-	language.Add( "Tool_wire_hdd_name", "Flash (EEPROM) tool (Wire)" )
-	language.Add( "Tool_wire_hdd_desc", "Spawns flash memory. It is used for permanent storage of data (carried over sessions)" )
-	language.Add( "Tool_wire_hdd_0", "Primary: Create/Update flash memory" )
-	language.Add( "sboxlimit_wire_hdds", "You've hit flash memory limit!" )
-	language.Add( "undone_wiredigitalscreen", "Undone Flash (EEPROM)" )
+	language12.Add( "Tool_wire_hdd_name", "Flash (EEPROM) tool (Wire)" )
+	language12.Add( "Tool_wire_hdd_desc", "Spawns flash memory. It is used for permanent storage of data (carried over sessions)" )
+	language12.Add( "Tool_wire_hdd_0", "Primary: Create/Update flash memory" )
+	language12.Add( "sboxlimit_wire_hdds", "You've hit flash memory limit!" )
+	language12.Add( "undone_wiredigitalscreen", "Undone Flash (EEPROM)" )
 end
 
 if (SERVER) then

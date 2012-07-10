@@ -7,12 +7,12 @@ TOOL.Tab			= "Wire"
 TOOL.ClientConVar[ "model" ] = "models/jaanus/wiretool/wiretool_siren.mdl"
 
 if CLIENT then
-    language.Add( "Tool_wire_latch_name", "Latch Tool (Wire)" )
-    language.Add( "Tool_wire_latch_desc", "Makes a controllable latch" )
-    language.Add( "Tool_wire_latch_0", "Primary: Click on first entity to be latched" )
-    language.Add( "Tool_wire_latch_1", "Left click on the second entity" )
-    language.Add( "Tool_wire_latch_2", "Left click to place the controller" )
-	language.Add( "undone_wirelatch", "Undone Wire Latch" )
+    language12.Add( "Tool_wire_latch_name", "Latch Tool (Wire)" )
+    language12.Add( "Tool_wire_latch_desc", "Makes a controllable latch" )
+    language12.Add( "Tool_wire_latch_0", "Primary: Click on first entity to be latched" )
+    language12.Add( "Tool_wire_latch_1", "Left click on the second entity" )
+    language12.Add( "Tool_wire_latch_2", "Left click to place the controller" )
+	language12.Add( "undone_wirelatch", "Undone Wire Latch" )
 end
 
 function TOOL:LeftClick( trace )

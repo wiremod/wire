@@ -5,16 +5,16 @@ TOOL.ConfigName		= ""
 TOOL.Tab			= "Wire"
 
 if ( CLIENT ) then
-    language.Add( "Tool_wire_data_transferer_name", "Data Transferer Tool (Wire)" )
-    language.Add( "Tool_wire_data_transferer_desc", "Spawns a data transferer." )
-    language.Add( "Tool_wire_data_transferer_0", "Primary: Create/Update data transferer" )
-    language.Add( "WireDataTransfererTool_data_transferer", "Data Transferer:" )
-    language.Add( "WireDataTransfererTool_Range", "Max Range:" )
-    language.Add( "WireDataTransfererTool_DefaultZero","Default To Zero")
-    language.Add( "WireDataTransfererTool_IgnoreZero","Ignore Zero")
-    language.Add( "WireDataTransfererTool_Model", "Choose a Model:")
-	language.Add( "sboxlimit_wire_data_transferers", "You've hit the data transferers limit!" )
-	language.Add( "undone_Wire Data Transferer", "Undone Wire data transferer" )
+    language12.Add( "Tool_wire_data_transferer_name", "Data Transferer Tool (Wire)" )
+    language12.Add( "Tool_wire_data_transferer_desc", "Spawns a data transferer." )
+    language12.Add( "Tool_wire_data_transferer_0", "Primary: Create/Update data transferer" )
+    language12.Add( "WireDataTransfererTool_data_transferer", "Data Transferer:" )
+    language12.Add( "WireDataTransfererTool_Range", "Max Range:" )
+    language12.Add( "WireDataTransfererTool_DefaultZero","Default To Zero")
+    language12.Add( "WireDataTransfererTool_IgnoreZero","Ignore Zero")
+    language12.Add( "WireDataTransfererTool_Model", "Choose a Model:")
+	language12.Add( "sboxlimit_wire_data_transferers", "You've hit the data transferers limit!" )
+	language12.Add( "undone_Wire Data Transferer", "Undone Wire data transferer" )
 end
 
 if (SERVER) then

@@ -5,11 +5,11 @@ TOOL.ConfigName		= ""
 TOOL.Tab			= "Wire"
 
 if ( CLIENT ) then
-    language.Add( "Tool_wire_locator_name", "Locator Beacon Tool (Wire)" )
-    language.Add( "Tool_wire_locator_desc", "Spawns a locator beacon for use with the wire system." )
-    language.Add( "Tool_wire_locator_0", "Primary: Create/Update Locator Beacon" )
-	language.Add( "sboxlimit_wire_locators", "You've hit locator beacons limit!" )
-	language.Add( "undone_wirelocator", "Undone Wire Locator Beacon" )
+    language12.Add( "Tool_wire_locator_name", "Locator Beacon Tool (Wire)" )
+    language12.Add( "Tool_wire_locator_desc", "Spawns a locator beacon for use with the wire system." )
+    language12.Add( "Tool_wire_locator_0", "Primary: Create/Update Locator Beacon" )
+	language12.Add( "sboxlimit_wire_locators", "You've hit locator beacons limit!" )
+	language12.Add( "undone_wirelocator", "Undone Wire Locator Beacon" )
 end
 
 if (SERVER) then

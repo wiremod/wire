@@ -5,13 +5,13 @@ TOOL.ConfigName		= ""
 TOOL.Tab			= "Wire"
 
 if (CLIENT) then
-	language.Add("Tool_wire_value_name", "Value Tool (Wire)")
-	language.Add("Tool_wire_value_desc", "Spawns a constant value for use with the wire system.")
-	language.Add("Tool_wire_value_0", "Primary: Create/Update Value, Secondary: Copy Settings")
-	language.Add("WireValueTool_value", "Value:")
-	language.Add("WireValueTool_model", "Model:")
-	language.Add("sboxlimit_wire_values", "You've hit values limit!")
-	language.Add("undone_wirevalue", "Undone Wire Value")
+	language12.Add("Tool_wire_value_name", "Value Tool (Wire)")
+	language12.Add("Tool_wire_value_desc", "Spawns a constant value for use with the wire system.")
+	language12.Add("Tool_wire_value_0", "Primary: Create/Update Value, Secondary: Copy Settings")
+	language12.Add("WireValueTool_value", "Value:")
+	language12.Add("WireValueTool_model", "Model:")
+	language12.Add("sboxlimit_wire_values", "You've hit values limit!")
+	language12.Add("undone_wirevalue", "Undone Wire Value")
 end
 
 if (SERVER) then
