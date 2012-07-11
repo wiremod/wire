@@ -167,7 +167,9 @@ local PANEL = {}
 
 function PANEL:Init()
     self:SetSize( 16, 16 )
-    self:SetType("none")
+	if VERSION < 150 then
+		self:SetType("none")
+	end
     self.Partners = {}
 end
 
