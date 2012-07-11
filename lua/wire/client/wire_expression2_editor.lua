@@ -1222,47 +1222,67 @@ function Editor:InitControlPanel(frame)
 		if VERSION < 150 then
 			pnl.RGBBar:SetPos( 0, 0 )
 			pnl.RGBBar:SetSize( 20, h )
+			pnl.ColorCube:SetPos( 44, 0 )
+			pnl.ColorCube:SetSize( w - 44, h )
 		else
 			pnl.RGB:SetPos( 0, 0 )
 			pnl.RGB:SetSize( 20, h )
+			pnl.Palette:SetPos( 44, 0 )
+			pnl.Palette:SetSize( w - 44, h )
 		end
 		pnl.AlphaBar:SetPos( 22, 0 )
 		pnl.AlphaBar:SetSize( 20, h )
-		pnl.ColorCube:SetPos( 44, 0 )
-		pnl.ColorCube:SetSize( w - 44, h )
     end
-
-	local old = ColorMixer.ColorCube.OnMouseReleased
-	ColorMixer.ColorCube.OnMouseReleased = function( ... )
-		local clr = ColorMixer:GetColor()
-		r, g, b, a = clr.r, clr.g, clr.b, 255-ColorMixer.AlphaBar:GetSlideY()*255
-		SkipUpdate = true
-		RBox:SetValue( r )
-		GBox:SetValue( g )
-		BBox:SetValue( b )
-		ABox:SetValue( a )
-		SkipUpdate = false
-		RunConsoleCommand( Choices[CurrentColor][1], r.."_"..g.."_"..b.."_"..a )
-		old( ... )
-	end
-
+	
 	if VERSION < 150 then
+		local old = ColorMixer.ColorCube.OnMouseReleased
+		ColorMixer.ColorCube.OnMouseReleased = function( ... )
+			local clr = ColorMixer:GetColor()
+			r, g, b, a = clr.r, clr.g, clr.b, 255-ColorMixer.AlphaBar:GetSlideY()*255
+			SkipUpdate = true
+			RBox:SetValue( r )
+			GBox:SetValue( g )
+			BBox:SetValue( b )
+			ABox:SetValue( a )
+			SkipUpdate = false
+			RunConsoleCommand( Choices[CurrentColor][1], r.."_"..g.."_"..b.."_"..a )
+			old( ... )
+		end
+	
 		local old = ColorMixer.RGBBar.OnMouseReleased
 		ColorMixer.RGBBar.OnMouseReleased = function(...)
 			ColorMixer.ColorCube:OnMouseReleased()
 			old(...)
 		end
 	else
+		local old = ColorMixer.Palette.OnMouseReleased
+		ColorMixer.Palette.OnMouseReleased = function( ... )
+			local clr = ColorMixer:GetColor()
+			r, g, b, a = clr.r, clr.g, clr.b, 255-ColorMixer.AlphaBar:GetSlideY()*255
+			SkipUpdate = true
+			RBox:SetValue( r )
+			GBox:SetValue( g )
+			BBox:SetValue( b )
+			ABox:SetValue( a )
+			SkipUpdate = false
+			RunConsoleCommand( Choices[CurrentColor][1], r.."_"..g.."_"..b.."_"..a )
+			old( ... )
+		end
+		
 		local old = ColorMixer.RGB.OnMouseReleased
 		ColorMixer.RGB.OnMouseReleased = function(...)
-			ColorMixer.ColorCube:OnMouseReleased()
+			ColorMixer.Palette:OnMouseReleased()
 			old(...)
 		end
 	end
 	
 	local old = ColorMixer.AlphaBar.OnMouseReleased
 	ColorMixer.AlphaBar.OnMouseReleased = function(...)
-		ColorMixer.ColorCube:OnMouseReleased()
+		if VERSION < 150 then
+			ColorMixer.ColorCube:OnMouseReleased()
+		else
+			ColorMixer.Palette:OnMouseReleased()
+		end
 		old(...)
 	end
 
@@ -1652,33 +1672,49 @@ Text here]# ]] }
 		if VERSION < 150 then
 			pnl.RGBBar:SetPos( 0, 0 )
 			pnl.RGBBar:SetSize( 20, h )
+			pnl.ColorCube:SetPos( 22, 0 )
+			pnl.ColorCube:SetSize( w - 22, h )
 		else
 			pnl.RGB:SetPos( 0, 0 )
 			pnl.RGB:SetSize( 20, h )
+			pnl.Palette:SetPos( 22, 0 )
+			pnl.Palette:SetSize( w - 22, h )
 		end
-		pnl.ColorCube:SetPos( 22, 0 )
-		pnl.ColorCube:SetSize( w - 22, h )
     end
 	
-	local old = ColorMixer.ColorCube.OnMouseReleased
-	ColorMixer.ColorCube.OnMouseReleased = function( ... )
-		local clr = ColorMixer:GetColor()
-		r, g, b = clr.r, clr.g, clr.b
-		SkipUpdate = true
-		RBox:SetValue( r )
-		GBox:SetValue( g )
-		BBox:SetValue( b )
-		SkipUpdate = false
-		self:SetSyntaxColor( CurrentColor, clr )
-		old( ... )
-	end
 	if VERSION < 150 then
+		local old = ColorMixer.ColorCube.OnMouseReleased
+		ColorMixer.ColorCube.OnMouseReleased = function( ... )
+			local clr = ColorMixer:GetColor()
+			r, g, b = clr.r, clr.g, clr.b
+			SkipUpdate = true
+			RBox:SetValue( r )
+			GBox:SetValue( g )
+			BBox:SetValue( b )
+			SkipUpdate = false
+			self:SetSyntaxColor( CurrentColor, clr )
+			old( ... )
+		end
+		
 		local old = ColorMixer.RGBBar.OnMouseReleased
 		ColorMixer.RGBBar.OnMouseReleased = function(...)
 			ColorMixer.ColorCube:OnMouseReleased()
 			old(...)
 		end
 	else
+		local old = ColorMixer.Palette.OnMouseReleased
+		ColorMixer.Palette.OnMouseReleased = function( ... )
+			local clr = ColorMixer:GetColor()
+			r, g, b = clr.r, clr.g, clr.b
+			SkipUpdate = true
+			RBox:SetValue( r )
+			GBox:SetValue( g )
+			BBox:SetValue( b )
+			SkipUpdate = false
+			self:SetSyntaxColor( CurrentColor, clr )
+			old( ... )
+		end
+		
 		local old = ColorMixer.RGB.OnMouseReleased
 		ColorMixer.RGB.OnMouseReleased = function(...)
 			ColorMixer.ColorCube:OnMouseReleased()
