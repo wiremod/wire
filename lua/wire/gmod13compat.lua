@@ -5,7 +5,7 @@ local libs = {
 }
 
 function _R.Entity.SetColor12(self,r,g,b,a)
-	if VERSION > 150 then
+	if VERSION >= 150 then
 		return self:SetColor(Color(r,g,b,a or 255))
 	else
 		return self:SetColor(r,g,b,a)
@@ -13,7 +13,7 @@ function _R.Entity.SetColor12(self,r,g,b,a)
 end
 
 function _R.Entity.GetColor12(self)
-	if VERSION > 150 then
+	if VERSION >= 150 then
 		local clr = self:GetColor()
 		return clr.r,clr.g,clr.b,clr.a
 	else
