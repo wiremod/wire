@@ -373,7 +373,9 @@ if SERVER then
 			if SinglePlayer() then
 				sendData( ply )
 			else -- else send only files list
-				sendClientsideFilesList( ply )
+				if VERSION < 150 then
+					sendClientsideFilesList( ply )
+				end
 			end
 		end)
 
