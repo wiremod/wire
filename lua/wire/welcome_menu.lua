@@ -727,15 +727,30 @@ Installation problems:                            Tutorials:                    
 			c.b = c2.b
 			self._RadioBtn:SetText( self._RadioBtn._Color .. string.format(" - [%d,%d,%d,%d]", c.r, c.g, c.b, c.a ) )
 		end
-		local oldfunc = clr.RGBBar.OnColorChange
-		function clr.RGBBar.OnColorChange( ctrl, color )
-			oldfunc(ctrl,color)
-			local c = clr._RadioBtn._CurrentColor
-			local c2 = clr:GetColor()
-			c.r = c2.r
-			c.g = c2.g
-			c.b = c2.b
-			clr._RadioBtn:SetText( clr._RadioBtn._Color .. string.format(" - [%d,%d,%d,%d]", c.r, c.g, c.b, c.a ) )
+		local oldfunc
+		if VERSION >= 150 then
+			oldfunc = clr.RGB.OnChange
+			function clr.RGB.OnChange( ctrl, color )
+				oldfunc(ctrl,color)
+				local c = clr._RadioBtn._CurrentColor
+				local c2 = clr:GetColor()
+				c.r = c2.r
+				c.g = c2.g
+				c.b = c2.b
+				clr._RadioBtn:SetText( clr._RadioBtn._Color .. string.format(" - [%d,%d,%d,%d]", c.r, c.g, c.b, c.a ) )
+			end
+		else
+			oldfunc = clr.RGBBar.OnColorChange
+			
+			function clr.RGBBar.OnColorChange( ctrl, color )
+				oldfunc(ctrl,color)
+				local c = clr._RadioBtn._CurrentColor
+				local c2 = clr:GetColor()
+				c.r = c2.r
+				c.g = c2.g
+				c.b = c2.b
+				clr._RadioBtn:SetText( clr._RadioBtn._Color .. string.format(" - [%d,%d,%d,%d]", c.r, c.g, c.b, c.a ) )
+			end
 		end
 		clr.AlphaBar.OnChange = function( ctrl, alpha )
 			clr._RadioBtn._CurrentColor.a = alpha
