@@ -178,11 +178,15 @@ function PANEL:Toggle()
         for k,v in pairs( self.Partners ) do
             if (v == true) then
                 k:SetValue(false)
-                k:SetType("none")
+				if VERSION < 150 then
+					k:SetType("none")
+				end
             end
         end
         self:SetValue(true)
-        self:SetType("none")
+		if VERSION < 150 then
+			self:SetType("none")
+		end
     end
 end
 
