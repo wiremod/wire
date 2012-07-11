@@ -39,7 +39,7 @@ function ENT:DrawTranslucent()
 	local Distance = ViewNormal:Length()
 	ViewNormal:Normalize()
 	local ViewDot = ViewNormal:Dot( LightNrm )
-	local r, g, b, a = self:GetColor()
+	local r, g, b, a = self:GetColor12()
 	local LightPos = self:GetPos() + LightNrm * -6
 
 	// glow sprite

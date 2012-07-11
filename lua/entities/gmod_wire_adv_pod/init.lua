@@ -63,8 +63,8 @@ function ENT:Initialize()
 
 	self:SetActivated( false )
 
-	local r,g,b,a = self:GetColor()
-	self:SetColor( 255,0,0, a )
+	local r,g,b,a = self:GetColor12()
+	self:SetColor12( 255,0,0, a )
 	self:SetOverlayText( "Adv. Pod Controller" )
 end
 
@@ -79,11 +79,11 @@ end
 function ENT:SetActivated( b )
 	if (self.Activated == b) then return end
 
-	local _,_,_,a = self:GetColor()
+	local _,_,_,a = self:GetColor12()
 	if (b) then
-		self:SetColor( 0,255,0,a )
+		self:SetColor12( 0,255,0,a )
 	else
-		self:SetColor( 255,0,0,a )
+		self:SetColor12( 255,0,0,a )
 	end
 
 	self.Activated = b
@@ -93,12 +93,12 @@ end
 function ENT:HidePlayer( b )
 	if not self:HasPly() then return end
 
-	local r,g,_b,a = self:GetPly():GetColor()
+	local r,g,_b,a = self:GetPly():GetColor12()
 	if (b) then
 		self.OldPlyAlpha = a
-		self:GetPly():SetColor(r,g,_b,0)
+		self:GetPly():SetColor12(r,g,_b,0)
 	else
-		self:GetPly():SetColor(r,g,_b,self.OldPlyAlpha or 255)
+		self:GetPly():SetColor12(r,g,_b,self.OldPlyAlpha or 255)
 		self.OldPlyAlpha = nil
 	end
 end

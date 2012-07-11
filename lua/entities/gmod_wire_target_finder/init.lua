@@ -180,7 +180,7 @@ end
 
 function ENT:FindColor(contact)
 	if (not self.ColorCheck) then return true end
-	local col = Color(contact:GetColor())
+	local col = Color(contact:GetColor12())
 	if (col.r == self.PcolR) and (col.g == self.PcolG) and (col.b == self.PcolB) and (col.a == self.PcolA) then
 		return self.ColorTarget
 	else
@@ -354,12 +354,12 @@ function ENT:TargetPainter( tt, targeted )
 		tt.Entity:EntIndex() != 0	-- And isn't worldspawn
 	then
 		if (targeted) then
-			self.OldColor = { tt.Entity:GetColor() }
-			tt.Entity:SetColor(255, 0, 0, 255)
+			self.OldColor = { tt.Entity:GetColor12() }
+			tt.Entity:SetColor12(255, 0, 0, 255)
 		else
 			if not self.OldColor then self.OldColor = { 255, 255, 255, 255 } end
 
-			local r,g,b,a = tt.Entity:GetColor()
+			local r,g,b,a = tt.Entity:GetColor12()
 
 			-- do not change color back if the target color changed in the meantime
 			if r != 255 or g != 0 or b != 0 then self.OldColor = { r, g, b, self.OldColor[4] } end
@@ -367,7 +367,7 @@ function ENT:TargetPainter( tt, targeted )
 			-- do not change alpha back if the target color changed in the meantime
 			if a != 255 then self.OldColor[4] = a end
 
-			tt.Entity:SetColor(unpack(self.OldColor))
+			tt.Entity:SetColor12(unpack(self.OldColor))
 		end
 	end
 end

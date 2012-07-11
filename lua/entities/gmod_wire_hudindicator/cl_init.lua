@@ -65,7 +65,7 @@ local function DrawHUDIndicators()
 					if (indinfo.Style == 0) then // Basic
 						draw.WordBox(8, hudx, currenty, txt, "Default", Color(50, 50, 75, 192), Color(255, 255, 255, 255))
 					elseif (indinfo.Style == 1) then // Gradient
-						/*local r, g, b, a = ent:GetColor()
+						/*local r, g, b, a = ent:GetColor12()
 						local textcolor = Color(255, 255, 255, 255)
 						if (r >= 192 && g >= 192 && b >= 192) then
 							// Draw dark text for very bright Indicator colors
@@ -159,7 +159,7 @@ local function HUDFormatDescription( eindex )
 	if (indinfo.Style == 1) then // Gradient
 		local ent = ents.GetByIndex(eindex)
 		if (ent && ent:IsValid()) then
-			local r, g, b, _ = ent:GetColor()
+			local r, g, b, _ = ent:GetColor12()
 			hudindicators[eindex].DisplayColor = Color(r, g, b, 160)
 
 			local textcolor = Color(255, 255, 255, 255)

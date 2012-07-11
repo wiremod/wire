@@ -29,7 +29,7 @@ function ENT:DrawTranslucent()
 
 	local LightNrm = self:GetAngles():Up()*(-1)
 	local ViewDot = EyeVector():Dot( LightNrm )
-	local r, g, b, a = self:GetColor()
+	local r, g, b, a = self:GetColor12()
 	local LightPos = self:GetPos() + LightNrm * -10
 
 	// glow sprite
@@ -64,11 +64,11 @@ function ENT:Think()
 
 		local dlight = DynamicLight( self:EntIndex() )
 		if ( dlight ) then
-			--local r, g, b, a = self:GetColor()
+			--local r, g, b, a = self:GetColor12()
 			local LightNrm = self:GetAngles():Up()*(-1)
 
 			dlight.Pos = self:GetPos() + LightNrm * -10
-			dlight.r,dlight.g,dlight.b = self:GetColor()
+			dlight.r,dlight.g,dlight.b = self:GetColor12()
 			dlight.Brightness = self:GetBrightness()
 			dlight.Decay = self:GetDecay()
 			dlight.Size = self:GetSize()

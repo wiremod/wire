@@ -27,8 +27,8 @@ function ENT:Think()
 	if self.phys:GetVelocity() ~= self.IdealVel then
 		self.phys:SetVelocity(self.IdealVel)
 	end
-	if self:GetColor() ~= Color(0, 0, 0, 0) then
-		self:SetColor(0, 0, 0, 0)
+	if self:GetColor12() ~= Color(0, 0, 0, 0) then
+		self:SetColor12(0, 0, 0, 0)
 	end
 	self:NextThink(CurTime()+0.1)
 end

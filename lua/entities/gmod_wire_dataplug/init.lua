@@ -58,7 +58,7 @@ function ENT:Setup(a,ar,ag,ab,aa)
 	self.AG = ag or 0
 	self.AB = ab or 0
 	self.AA = aa or 255
-	self:SetColor(ar, ag, ab, aa)
+	self:SetColor12(ar, ag, ab, aa)
 end
 
 function ENT:TriggerInput(iname, value, iter)

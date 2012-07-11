@@ -11,7 +11,7 @@ function ENT:Initialize()
 	self:SetSolid( SOLID_VPHYSICS )
 
 	self.R, self.G, self.B = 0, 0, 0
-	self:SetColor( 0, 0, 0, 255 )
+	self:SetColor12( 0, 0, 0, 255 )
 
 	self.Inputs = WireLib.CreateInputs(self, {"Red", "Green", "Blue", "RGB [VECTOR]"})
 end
@@ -171,7 +171,7 @@ function ENT:ShowOutput( R, G, B )
 				if (!self.RadiantState) then
 					self:RadiantOn()
 				end
-				self.RadiantComponent:SetColor( R, G, B, 255 )
+				self.RadiantComponent:SetColor12( R, G, B, 255 )
 			end
 		else
 			self:DirectionalOff()
@@ -179,8 +179,8 @@ function ENT:ShowOutput( R, G, B )
 		end
 		self:SetOverlayText( "Light: Red=" .. R .. " Green:" .. G .. " Blue:" .. B )
 		self.R, self.G, self.B = R, G, B
-		local _,_,_,A = self:GetColor()
-		self:SetColor( R, G, B, A )
+		local _,_,_,A = self:GetColor12()
+		self:SetColor12( R, G, B, A )
 	end
 end
 

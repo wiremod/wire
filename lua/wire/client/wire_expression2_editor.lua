@@ -1606,7 +1606,7 @@ Text here]# ]] }
 	-- Manage choices
 	CurrentColorSelect.OnSelect = function( panel, index, value )
 		CurrentColor = value
-		ColorMixer:SetColor( colors[value] )
+		ColorMixer:SetColor12( colors[value] )
 		r = colors[value].r
 		g = colors[value].g
 		b = colors[value].b

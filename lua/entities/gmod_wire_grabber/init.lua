@@ -67,8 +67,8 @@ function ENT:ResetGrab()
 	self.WeldEntity = nil
 	self.ExtraPropWeld = nil
 
-	local r,g,b,a = self:GetColor()
-	self:SetColor(255, 255, 255, a)
+	local r,g,b,a = self:GetColor12()
+	self:SetColor12(255, 255, 255, a)
 	Wire_TriggerOutput(self,"Holding",0)
 	Wire_TriggerOutput(self, "Grabbed Entity", self.WeldEntity)
 end
@@ -117,8 +117,8 @@ function ENT:TriggerInput(iname, value)
 			self.Weld = const
 			self.ExtraPropWeld = const2
 
-			local r,g,b,a = self:GetColor()
-			self:SetColor(255, 0, 0, a)
+			local r,g,b,a = self:GetColor12()
+			self:SetColor12(255, 0, 0, a)
 			Wire_TriggerOutput(self, "Holding", 1)
 			Wire_TriggerOutput(self, "Grabbed Entity", self.WeldEntity)
 		elseif value == 0 then
@@ -187,8 +187,8 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 			self.WeldEntity:GetPhysicsObject():EnableGravity(false)
 		end
 
-		local r,g,b,a = self:GetColor()
-		self:SetColor(255, 0, 0, a)
+		local r,g,b,a = self:GetColor12()
+		self:SetColor12(255, 0, 0, a)
 		Wire_TriggerOutput(self, "Holding", 1)
 		Wire_TriggerOutput(self, "Grabbed Entity", self.WeldEntity)
 	end

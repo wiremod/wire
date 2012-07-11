@@ -210,7 +210,7 @@ function ENT:EffectDraw_color_diy()
 
 	local vOffset = self:LocalToWorld( self:GetOffset() )
 	local vNormal = (vOffset - self:GetPos()):GetNormalized()
-	local r,g,b,a = self:GetColor();
+	local r,g,b,a = self:GetColor12();
 
 	local scroll = CurTime() * -10
 
@@ -441,7 +441,7 @@ function ENT:EffectThink_smoke_random()
 end
 
 function ENT:EffectThink_smoke_diy()
-local r,g,b,a = self:GetColor();
+local r,g,b,a = self:GetColor12();
 	self.SmokeTimer = self.SmokeTimer or 0
 	if ( self.SmokeTimer > CurTime() ) then return end
 
@@ -1025,7 +1025,7 @@ function ENT:EffectThink_balls_random()
 end
 
 function ENT:EffectThink_balls()
-local r,g,b,a = self:GetColor();
+local r,g,b,a = self:GetColor12();
 	self.SmokeTimer = self.SmokeTimer or 0
 	if ( self.SmokeTimer > CurTime() ) then return end
 
@@ -1126,7 +1126,7 @@ function ENT:EffectThink_magic()
 end
 
 function ENT:EffectThink_magic_diy()
-local r,g,b,a = self:GetColor();
+local r,g,b,a = self:GetColor12();
 	self.SmokeTimer = self.SmokeTimer or 0
 	if ( self.SmokeTimer > CurTime() ) then return end
 

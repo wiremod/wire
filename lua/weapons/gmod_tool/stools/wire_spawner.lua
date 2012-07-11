@@ -58,7 +58,7 @@ function TOOL:LeftClick(trace)
 	local Pos			= ent:GetPos()
 	local Ang			= ent:GetAngles()
 	local mat			= ent:GetMaterial()
-	local r,g,b,a		= ent:GetColor()
+	local r,g,b,a		= ent:GetColor12()
 	local skin			= ent:GetSkin() or 0
 
 	local wire_spawner = MakeWireSpawner( pl, Pos, Ang, model, delay, undo_delay, spawn_effect, mat, r, g, b, a, skin, frozen )
@@ -88,7 +88,7 @@ if SERVER then
 			spawner:SetRenderMode(3)
 			spawner:SetMaterial(mat or "")
 			spawner:SetSkin(skin or 0)
-			spawner:SetColor((r or 255),(g or 255),(b or 255),100)
+			spawner:SetColor12((r or 255),(g or 255),(b or 255),100)
 		spawner:Spawn()
 
 		if spawner:GetPhysicsObject():IsValid() then

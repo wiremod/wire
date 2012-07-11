@@ -92,7 +92,7 @@ function ENT:Setup( damage, delaytime, removeafter, doblastdamage, radius, affec
 	//self.reloading = false
 	//self.count = 0
 	//self:Extinguish()
-	//if (self.ColorEffect) then self:SetColor(255, 255, 255, 255) end
+	//if (self.ColorEffect) then self:SetColor12(255, 255, 255, 255) end
 
 	self.NormInfo = "Explosive"
 	if (self.DoBlastDamage) then self.NormInfo = self.NormInfo.." (Damage: "..self.Damage..")" end
@@ -114,7 +114,7 @@ function ENT:ResetHealth( )
 	self.count = 0
 	self:Extinguish()
 
-	if (self.ColorEffect) then self:SetColor(255, 255, 255, 255) end
+	if (self.ColorEffect) then self:SetColor12(255, 255, 255, 255) end
 
 	self:SetNoDraw( false )
 
@@ -151,7 +151,7 @@ function ENT:OnTakeDamage( dmginfo )
 		self:ShowOutput()
 		if (self.ColorEffect) then
 			if (h == 0) then c = 0 else c = 255 * (h / self:GetMaxHealth()) end
-			self:SetColor(255, c, c, 255)
+			self:SetColor12(255, c, c, 255)
 		end
 		if (h == 0) then
 			if (self.ExplodeAtZero) then self:Trigger() end //oh shi--
@@ -245,7 +245,7 @@ function ENT:Explode( )
 	if (self.InvisibleAtZero) then
 		ply:SetCollisionGroup(COLLISION_GROUP_DEBRIS)
 		ply:SetNoDraw( true )
-		ply:SetColor(255, 255, 255, 0)
+		ply:SetColor12(255, 255, 255, 0)
 	end
 
 	if ( self.DoBlastDamage ) then
@@ -310,12 +310,12 @@ function ENT:ShowOutput( )
 		txt = "Rearming... "..self.count
 		if (self.ColorEffect && !self.InvisibleAtZero) then
 			if (self.count == 0) then c = 255 else c = 255 * ((self.Delayreloadtime - self.count) / self.Delayreloadtime) end
-			self:SetColor(255, c, c, 255)
+			self:SetColor12(255, c, c, 255)
 		end
 		if (self.InvisibleAtZero) then
 			ply:SetNoDraw( false )
 			if (self.count == 0) then c = 255 else c = 255 * ((self.Delayreloadtime - self.count) / self.Delayreloadtime) end
-			self:SetColor(255, 255, 255, c)
+			self:SetColor12(255, 255, 255, c)
 		end
 	elseif (self.exploding) then
 		txt = "Triggered... "..self.count

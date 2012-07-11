@@ -287,7 +287,7 @@ function Wire_DrawTracerBeam( ent, beam_num, hilight, beam_length )
 		trace = util.TraceLine(trace)
 
 		render.SetMaterial(beam_mat)
-		render.DrawBeam(start, trace.HitPos, 6, 0, 10, Color(ent:GetColor()))
+		render.DrawBeam(start, trace.HitPos, 6, 0, 10, Color(ent:GetColor12()))
 		if (hilight) then
 			render.SetMaterial(beamhi_mat)
 			render.DrawBeam(start, trace.HitPos, 6, 0, 10, Color(255,255,255,255))

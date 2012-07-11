@@ -152,7 +152,7 @@ function ENT:Think()
 
 			vel = ent:GetVelocity()
 			ang = ent:GetAngles()
-			col = Color(ent:GetColor())
+			col = Color(ent:GetColor12())
 
 			if (self.out_sid or self.out_uid) and (ent:IsPlayer()) then
 				sid = ent:SteamID() or ""

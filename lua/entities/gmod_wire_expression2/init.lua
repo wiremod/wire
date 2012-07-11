@@ -97,8 +97,8 @@ function ENT:Initialize()
 	self.Outputs = WireLib.CreateOutputs(self, {})
 
 	self:SetOverlayText("Expression 2\n(none)")
-	local r,g,b,a = self:GetColor()
-	self:SetColor(255, 0, 0, a)
+	local r,g,b,a = self:GetColor12()
+	self:SetColor12(255, 0, 0, a)
 end
 
 function ENT:OnRestore()
@@ -204,8 +204,8 @@ end
 
 function ENT:Error(message, overlaytext)
 	self:SetOverlayText("Expression 2\n" .. self.name .. "\n("..(overlaytext or "script error")..")")
-	local r,g,b,a = self:GetColor()
-	self:SetColor(255, 0, 0, a)
+	local r,g,b,a = self:GetColor12()
+	self:SetColor12(255, 0, 0, a)
 
 	self.error = true
 	--ErrorNoHalt(message .. "\n")
@@ -376,8 +376,8 @@ function ENT:Setup(buffer, includes, restore, forcecompile)
 	end
 
 	self:SetOverlayText("Expression 2\n" .. self.name)
-	local r,g,b,a = self:GetColor()
-	self:SetColor(255, 255, 255, a)
+	local r,g,b,a = self:GetColor12()
+	self:SetColor12(255, 255, 255, a)
 
 	local ok, msg = pcall(self.CallHook, self, 'construct')
 	if not ok then
@@ -481,8 +481,8 @@ hook.Add("EntityRemoved","Wire_Expression2_Player_Disconnected",function(ent)
 	for k,v in ipairs( ents.FindByClass("gmod_wire_expression2") ) do
 		if (v.player == ent) then
 			v:SetOverlayText("Expression 2\n" .. v.name .. "\n(Owner disconnected.)")
-			local r,g,b,a = v:GetColor()
-			v:SetColor(255, 0, 0, a)
+			local r,g,b,a = v:GetColor12()
+			v:SetColor12(255, 0, 0, a)
 			v.disconnectPaused = {r,g,b,a};
 			v.error = true
 		end
@@ -498,7 +498,7 @@ hook.Add("PlayerAuthed", "Wire_Expression2_Player_Authed", function(ply, sid, ui
 			ent:SetNWEntity( "player", ply )
 			if (ent.disconnectPaused) then
 				c = ent.disconnectPaused;
-				ent:SetColor(c[1],c[2],c[3],c[4]);
+				ent:SetColor12(c[1],c[2],c[3],c[4]);
 				ent.error = false;
 				ent.disconnectPaused = false;
 				ent:SetOverlayText("Expression 2\n" .. ent.name);

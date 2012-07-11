@@ -152,17 +152,17 @@ function ENT:Think()
 
 	if ((self.Command[0] ~= 0) or (self.Command[1] ~= 0)) then
 		if (self.Command[0] == 1) then //write ray (blue)
-			if (Color(self:GetColor()) != Color(0,0,255,255)) then
-				self:SetColor(0, 0, 255, 255)
+			if (Color(self:GetColor12()) != Color(0,0,255,255)) then
+				self:SetColor12(0, 0, 255, 255)
 			end
 		else //read ray (red)
-			if (Color(self:GetColor()) != Color(255,0,0,255)) then
-				self:SetColor(255, 0, 0, 255)
+			if (Color(self:GetColor12()) != Color(255,0,0,255)) then
+				self:SetColor12(255, 0, 0, 255)
 			end
 		end
 	else
-		if (Color(self:GetColor()) != Color(255,255,255,255)) then
-			self:SetColor(255, 255, 255, 255)
+		if (Color(self:GetColor12()) != Color(255,255,255,255)) then
+			self:SetColor12(255, 255, 255, 255)
 		end
 	end
 

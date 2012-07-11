@@ -769,7 +769,7 @@ GateActions["entity_setcol"] = {
 		if !Ent:IsValid() then return end
 		if !(E2Lib.getOwner(gate, gate) == E2Lib.getOwner(gate, Ent)) then return end
 		if !IsVector(Col) then Col = Vector(255,255,255) end
-		Ent:SetColor(Col.x,Col.y,Col.z,255)
+		Ent:SetColor12(Col.x,Col.y,Col.z,255)
 	end,
 	label = function(Out, Ent , Col)
 		if !IsVector(Col) then Col = Vector(0,0,0) end
@@ -803,7 +803,7 @@ GateActions["entity_clr"] = {
 	timed = true,
 	output = function(gate, Ent)
 		if !Ent:IsValid() then return Vector(0,0,0) end
-		local r,g,b = Ent:GetColor()
+		local r,g,b = Ent:GetColor12()
 		if !Vector(r,g,b) then return Vector(0,0,0) end
 		return Vector(r,g,b)
 	end,

@@ -86,14 +86,14 @@ function ENT:Think()
 	(trace.Entity:GetClass() == "gmod_wire_data_transferer" ||
 	 trace.Entity:GetClass() == "gmod_wire_data_satellitedish" ||
 	  trace.Entity:GetClass() == "gmod_wire_data_store" ))then
-		if(Color(self:GetColor()) != Color(255,255,255,255))then
-			self:SetColor(255, 255, 255, 255)
+		if(Color(self:GetColor12()) != Color(255,255,255,255))then
+			self:SetColor12(255, 255, 255, 255)
 		end
 	return false
 	end
 
-	if(Color(self:GetColor()) != Color(0,255,0,255))then
-		self:SetColor(0, 255, 0, 255)
+	if(Color(self:GetColor12()) != Color(0,255,0,255))then
+		self:SetColor12(0, 255, 0, 255)
 	end
 
 	if(trace.Entity:GetClass() == "gmod_wire_data_transferer")then
@@ -116,7 +116,7 @@ function ENT:Think()
 			ent.Transmitter:RecieveValue("G",self.Values.G)
 			ent.Transmitter:RecieveValue("H",self.Values.H)
 		else
-			self:SetColor(255, 0, 0, 255)
+			self:SetColor12(255, 0, 0, 255)
 		end
 	elseif(trace.Entity:GetClass() == "gmod_wire_data_store")then
 		Wire_TriggerOutput(self,"A",ent.Values.A)

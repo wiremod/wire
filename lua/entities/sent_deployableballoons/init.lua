@@ -119,7 +119,7 @@ function ENT:DeployBalloons()
 	end
 	balloon:Spawn()
 	balloon:SetRenderMode( RENDERMODE_TRANSALPHA )
-	balloon:SetColor(math.random(0,255), math.random(0,255), math.random(0,255), 255 )
+	balloon:SetColor12(math.random(0,255), math.random(0,255), math.random(0,255), 255 )
 	balloon:SetForce(self.force)
 	balloon:SetMaterial("models/balloon/balloon")
 	balloon:SetPlayer(self:GetPlayer())
@@ -160,7 +160,7 @@ function ENT:RetractBalloons()
 	if self.Balloon:IsValid() then
 		local effectdata = EffectData()
 			effectdata:SetOrigin( self.Balloon:GetPos() )
-			effectdata:SetStart( Vector(self.Balloon:GetColor()) )
+			effectdata:SetStart( Vector(self.Balloon:GetColor12()) )
 		util.Effect( "balloon_pop", effectdata )
 		self.Balloon:Remove()
 	else
