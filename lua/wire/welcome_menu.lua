@@ -698,6 +698,7 @@ Installation problems:                            Tutorials:                    
 		for k,v in pairs( self.Colors ) do
 			opt = vgui.Create("DRadioButtonLabel",pnl)
 			opt:SetText( k .. string.format(" - [%d,%d,%d,%d]", v.r, v.g, v.b, v.a ) )
+			opt:SetTextColor(Color(0,0,0,255))
 			opt._Color = k
 			opt._CurrentColor = Color(v.r,v.g,v.b,v.a)
 			local n = #tbl

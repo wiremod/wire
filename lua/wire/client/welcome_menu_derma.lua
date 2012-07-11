@@ -78,6 +78,10 @@ derma.DefineControl( "Wire_WMenu_Copypasta", "WMenu Copy Pasta", PANEL, "DPanel"
 
 local PANEL = {}
 
+function PANEL:Init()
+	self:SetTextColor(Color(255,255,255))
+end
+
 function PANEL:OnCursorEntered(...)
 	self.Hovering = true
 end
@@ -291,6 +295,13 @@ function PANEL:SetText( Text )
 
     self.Label:SetText( Text )
     self:InvalidateLayout()
+end
+
+function PANEL:SetTextColor( clr )
+	if (!self.Label) then
+		return
+	end
+	self.Label:SetTextColor(clr)
 end
 
 function PANEL:SetValue( val )
