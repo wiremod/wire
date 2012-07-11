@@ -23,9 +23,9 @@ end
 
 -- Get online version
 function WireLib.GetOnlineWireVersion( callback )
-	http.Get("http://wiremod.svn.sourceforge.net/svnroot/wiremod/trunk/","",function(contents,size)
+	http.Fetch("http://wiremod.svn.sourceforge.net/svnroot/wiremod/trunk/",function(code,contents,header),
 		local rev = tonumber(string.match( contents, "Revision ([0-9]+)" ))
-		callback(rev,contents,size)
+		callback(rev,contents)
 	end)
 end
 
