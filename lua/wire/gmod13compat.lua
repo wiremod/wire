@@ -51,6 +51,11 @@ end
 utilx = util or {}
 
 if SERVER then
+	resource.AddFile("materials/gui/silkicons/emoticon_smile.vtf")
+	resource.AddFile("materials/gui/silkicons/newspaper.vtf")
+	resource.AddFile("materials/gui/silkicons/wrench.vtf")
+	resource.AddFile("materials/vgui/spawnmenu/save.vtf")
+	
 	function datastream12.__prepareStream(streamID)
 		util.AddNetworkString("ds12_"..streamID)
 	end
