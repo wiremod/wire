@@ -69,7 +69,7 @@ end
 utilx = util or {}
 
 function http12.Get(url, headers, callback)
-	http.Fetch(url, callback, nil)
+	http.Fetch(url, callback, function() print("Err - http.Fetch") end)
 end
 
 if SERVER then
