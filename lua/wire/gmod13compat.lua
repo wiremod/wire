@@ -1,7 +1,8 @@
 local libs = {
 	"file",
 	"datastream",
-	"language"
+	"language",
+	"http"
 }
 
 function _R.Entity.SetColor12(self,r,g,b,a)
@@ -66,6 +67,10 @@ function file12.IsDir(path, useBaseDir)
 end
 
 utilx = util or {}
+
+function http12.Get(url, headers, callback)
+	http.Fetch(url, callback, nil)
+end
 
 if SERVER then
 	resource.AddFile("materials/gui/silkicons/emoticon_smile.vtf")

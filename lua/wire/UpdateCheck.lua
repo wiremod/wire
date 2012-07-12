@@ -7,25 +7,37 @@ function WireLib.GetWireVersion()
 	local version = "2288 (OLD VERSION)"
 	local plainversion = 2288
 	local exported = true
+	local git = false
 
 	-- Try getting the version using the .svn files:
 	if file12.Exists("lua/wire/client/.svn/entries") then
 		version = string.Explode("\n", file.Read( "lua/wire/client/.svn/entries", true) or "")[4]
 		exported = false
 		plainversion = version
-	elseif (file12.Exists("wire_version.txt")) then -- Try getting the version by reading the text file:
+	elseif file12.Exists("wire_version.txt") then -- Try getting the version by reading the text file:
 		plainversion = file.Read("wire_version.txt")
-		version = plainversion .. " (EXPORTED)"
+		if plainversion == "git" then
+			git = true
+			exported = false
+		end
+		version = plainversion .. (!git and " (EXPORTED)")
 	end
 
-	return version, plainversion, exported
+	return version, plainversion, exported, git
 end
 
 -- Get online version
 function WireLib.GetOnlineWireVersion( callback )
-	http.Fetch("http://wiremod.svn.sourceforge.net/svnroot/wiremod/trunk/",function(code,contents,header)
+	http12.Get("http://wiremod.svn.sourceforge.net/svnroot/wiremod/trunk/", "", function(contents,size)
 		local rev = tonumber(string.match( contents, "Revision ([0-9]+)" ))
-		callback(rev,contents)
+		callback(rev,contents,size)
+	end)
+end
+
+function WireLib.GetOnlineGitVersion( callback )
+	http12.Get("https://api.github.com/repos/wiremod/wire/git/refs/heads", "", function(contents,size)
+		local sha = string.match( contents, "\"sha\":\"(.+)\"" )
+		callback(sha:sub(1,10),contents,size)
 	end)
 end
 
@@ -91,8 +103,8 @@ if (SERVER) then
 	timer.Create("Wire_Tags",1,0,function()
 		local tags = cvar:GetString()
 		if (!tags:find( "wire" )) then
-			local version, plainversion, exported = WireLib.GetWireVersion()
-			local tag = "wire" .. ( exported and "exported" or "svn" ) .. plainversion
+			local version, plainversion, exported, git = WireLib.GetWireVersion()
+			local tag = "wire" .. ( exported and "exported" or (git and "git" or "svn") ) .. plainversion
 			RunConsoleCommand( "sv_tags", tags .. "," .. tag )
 		end
 	end)
