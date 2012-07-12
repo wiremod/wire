@@ -34,10 +34,16 @@ function WireLib.GetOnlineWireVersion( callback )
 	end)
 end
 
-function WireLib.GetOnlineGitVersion( callback )
+function WireLib.CompareGitVersion( callback )
+	if not file12.Exists("prevhash.txt") then return false end
+	local prev = file.Read("prevhash.txt"):sub(1,10)
 	http12.Get("https://api.github.com/repos/wiremod/wire/git/refs/heads", "", function(contents,size)
 		local sha = string.match( contents, "\"sha\":\"(.+)\"" )
-		callback(sha:sub(1,10),contents,size)
+		http12.Get("https://api.github.com/repos/wiremod/wire/compare/"..prev.."..."..sha:sub(1,10), "", function(contents,size)
+			local howold = tonumber(string.match( contents, "\"behind-by\": ([0-9]+)" ) )
+			local corrent = howold and howold == 1
+			callback(correct)
+		end)
 	end)
 end
 
