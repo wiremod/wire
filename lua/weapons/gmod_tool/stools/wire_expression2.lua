@@ -1102,7 +1102,7 @@ elseif CLIENT then
 			local BonePos, BoneAng = ply:GetBonePosition( BoneIndx )
 			local particle = emitter:Add("expression 2/cog_world", BonePos+Vector(0,0,16))
 			if particle then
-				particle:SetColor12(150,34,34,255)
+				particle:SetColor(150,34,34)
 				particle:SetVelocity(Vector(0,0,17))
 
 				particle:SetDieTime(3)
