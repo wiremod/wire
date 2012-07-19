@@ -4,6 +4,18 @@
 
 GateActions("Entity")
 
+local function checkv( v )
+	return 	-math.huge < v.x and v.x < math.huge and
+			-math.huge < v.y and v.y < math.huge and
+			-math.huge < v.z and v.z < math.huge
+end
+
+local function checka( v )
+	return 	-math.huge < v.p and v.p < math.huge and
+			-math.huge < v.y and v.y < math.huge and
+			-math.huge < v.r and v.r < math.huge
+end
+
 GateActions["entity_applyf"] = {
 	name = "Apply Force",
 	inputs = { "Ent" , "Vec" },
@@ -14,7 +26,9 @@ GateActions["entity_applyf"] = {
 		if !Ent:IsValid() or !Ent:GetPhysicsObject():IsValid() then return end
 		if !(E2Lib.getOwner(gate, Ent) == E2Lib.getOwner(gate, gate)) then return end
 		if !IsVector(Vec) then Vec = Vector(0, 0, 0) end
-		Ent:GetPhysicsObject():ApplyForceCenter(Vec)
+		if checkv(Vec) then
+			Ent:GetPhysicsObject():ApplyForceCenter(Vec)
+		end
 	end,
 	label = function()
 		return ""
@@ -32,7 +46,9 @@ GateActions["entity_applyof"] = {
 		if !(E2Lib.getOwner(gate, Ent) == E2Lib.getOwner(gate, gate)) then return end
 		if !IsVector(Vec) then Vec = Vector (0, 0, 0) end
 		if !IsVector(Offset) then Offset = Vector (0, 0, 0) end
-		Ent:GetPhysicsObject():ApplyForceOffset(Vec, Offset)
+		if checkv(Vec) and checkv(Offset) then
+			Ent:GetPhysicsObject():ApplyForceOffset(Vec, Offset)
+		end
 	end,
 	label = function()
 		return ""
@@ -52,6 +68,7 @@ GateActions["entity_applyaf"] = {
 		if !(E2Lib.getOwner(gate, Ent) == E2Lib.getOwner(gate, gate)) then return end
 
 		if angForce.p == 0 and angForce.y == 0 and angForce.r == 0 then return end
+		if not checka(angForce) then return end
 
 		local phys = Ent:GetPhysicsObject()
 
@@ -101,6 +118,7 @@ GateActions["entity_applytorq"] = {
 		if !(E2Lib.getOwner(gate, Ent) == E2Lib.getOwner(gate, gate)) then return end
 
 		if Vec.x == 0 and Vec.y == 0 and Vec.z == 0 then return end
+		if not checkv(Vec) then return end
 
 		local phys = Ent:GetPhysicsObject()
 		if not phys:IsValid() then return end
@@ -122,6 +140,7 @@ GateActions["entity_applytorq"] = {
 
 		local dir = ( tq:Cross(off) ):GetNormal()
 
+		if not checkv( dir ) or not checkv( off ) then return end
 		phys:ApplyForceOffset( dir, off )
 		phys:ApplyForceOffset( dir * -1, off * -1 )
 	end,
