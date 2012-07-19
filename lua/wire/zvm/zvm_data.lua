@@ -53,7 +53,7 @@ ZVM.InternalRegister[40] = "RQCAP"
 ZVM.InternalRegister[41] = "PPAGE"               ZVM.ReadOnlyRegister[41] = true
 ZVM.InternalRegister[42] = "MEMRQ"
 ----------------------------------
-ZVM.InternalRegister[43] = "RAMSize"
+ZVM.InternalRegister[43] = "RAMSize"             ZVM.ReadOnlyRegister[43] = true
 ZVM.InternalRegister[44] = "External"
 ZVM.InternalRegister[45] = "BusLock"
 ZVM.InternalRegister[46] = "Idle"
