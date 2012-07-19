@@ -493,8 +493,10 @@ function ZVM:GetPageByIndex(index)
       end
 
       -- Read page entry
+      self.PCAP = 0 -- Stop infinite recursive page table lookup
       local pagePermissionMask = self:ReadCell(pageEntryOffset+0)
       local pageMappedTo = self:ReadCell(pageEntryOffset+1)
+      self.PCAP = 1
 
       if (not pagePermissionMask) or (not pageMappedTo) then
         self:Interrupt(13,8)
@@ -528,8 +530,10 @@ function ZVM:SetPageByIndex(index)
 
       -- Write page entry
       local pagePermissionMask,pageMappedTo = self:GetPagePermissions(index)
+      self.PCAP = 0 -- Stop possible infinite recursive page redirection
       self:WriteCell(pageEntryOffset+0,pagePermissionMask)
       self:WriteCell(pageEntryOffset+1,pageMappedTo)
+      self.PCAP = 1
     end
   end
 end
