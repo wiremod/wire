@@ -71,7 +71,13 @@ end
 
 -- Sound
 function ENT:SetSound( str )
-	self.Sound = str
+	-- Preventing client crashes
+	local BlockedChars = '["?]'
+	if ( string.find(str, BlockedChars) ) then
+		self.Sound = ""
+	else
+		self.Sound = str
+	end
 end
 function ENT:GetSound()
 	return self.Sound

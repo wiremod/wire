@@ -118,6 +118,13 @@ function ENT:Setup(force, force_min, force_max, oweffect, uweffect, owater, uwat
 	self.UWater = uwater
 
 	if (!soundname) then soundname = "" end
+	
+	-- Preventing client crashes
+	local BlockedChars = '["?]'
+	if ( string.find(soundname, BlockedChars) ) then
+		self:StopSound( self.SoundName )
+		soundname = ""
+	end
 
 	if (soundname == "") then
 		self:StopSound( self.SoundName )
