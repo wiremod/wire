@@ -94,6 +94,7 @@ function ZVM:Reset()
   self.TimerRate = 0      -- Seconds or ticks
   self.TimerPrevTime = 0  -- Previous fire time
   self.TimerAddress  = 32 -- Interrupt number to call (modes 1,2)
+  self.TimerModePrev = 0  -- Previous timer mode
 
   -- Internal operation registers
   self.MEMRQ = 0           -- Handling a memory request (1: delayed request, 2: read request, 3: write request)
@@ -806,6 +807,35 @@ function ZVM:Interrupt(interruptNo,interruptParameter,isExternal,cascadeInterrup
   self.BusLock = 0
 end
 
+
+
+
+--------------------------------------------------------------------------------
+-- Timer firing checks
+function ZVM:TimerCheck()
+  if self.TimerMode ~= self.TimerModePrev then
+    if self.TimerMode == 1 then
+      self.TimerPrevTime = self.TIMER
+    elseif self.TimerMode == 2 then
+      self.TimerPrevTime = self.TMR
+    end
+    self.TimerModePrev = self.TimerMode
+  end
+
+  if self.TimerMode ~= 0 then
+    if self.TimerMode == 1 then
+      if (self.TIMER - self.TimerPrevTime) >= self.TimerRate then
+        self:ExternalInterrupt(math.floor(self.TimerAddress))
+        self.TimerPrevTime = self.TIMER
+      end
+    elseif self.TimerMode == 2 then
+      if (self.TMR - self.TimerPrevTime) >= self.TimerRate then
+        self:ExternalInterrupt(math.floor(self.TimerAddress))
+        self.TimerPrevTime = self.TMR
+      end
+    end
+  end
+end
 
 
 
