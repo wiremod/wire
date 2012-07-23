@@ -456,7 +456,7 @@ end
 ZVM.OpcodeTable[70] = function(self)  --EXTINT
   self:Dyn_EmitState()
   self:Dyn_Emit("VM:ExternalInterrupt(math.floor($1))")
-  self:Dyn_EmitBreak(true)
+  self:Dyn_EmitBreak()
   self.PrecompileBreak = true
 end
 ZVM.OpcodeTable[71] = function(self)  --CNE
