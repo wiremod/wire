@@ -636,6 +636,9 @@ function ZVM:Step(overrideSteps,extraEmitFunction)
     -- Step clock forward (account for precompiling)
     self.TMR = self.TMR + 24*8000--instruction*9000
   end
+  
+  -- Trigger timers
+  self:TimerLogic()
 
   -- Set this page as previous (if it is executable)
   self.XEIP = self.IP + self.CS
