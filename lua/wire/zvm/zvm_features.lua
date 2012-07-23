@@ -94,6 +94,7 @@ function ZVM:Reset()
   self.TimerRate = 0      -- Seconds or ticks
   self.TimerPrevTime = 0  -- Previous fire time
   self.TimerAddress  = 32 -- Interrupt number to call (modes 1,2)
+  self.TimerPrevMode = 0  -- Previous timer mode
 
   -- Internal operation registers
   self.MEMRQ = 0           -- Handling a memory request (1: delayed request, 2: read request, 3: write request)
@@ -493,8 +494,10 @@ function ZVM:GetPageByIndex(index)
       end
 
       -- Read page entry
+      self.PCAP = 0 -- Stop infinite recursive page table lookup
       local pagePermissionMask = self:ReadCell(pageEntryOffset+0)
       local pageMappedTo = self:ReadCell(pageEntryOffset+1)
+      self.PCAP = 1
 
       if (not pagePermissionMask) or (not pageMappedTo) then
         self:Interrupt(13,8)
@@ -528,8 +531,10 @@ function ZVM:SetPageByIndex(index)
 
       -- Write page entry
       local pagePermissionMask,pageMappedTo = self:GetPagePermissions(index)
+      self.PCAP = 0 -- Stop possible infinite recursive page redirection
       self:WriteCell(pageEntryOffset+0,pagePermissionMask)
       self:WriteCell(pageEntryOffset+1,pageMappedTo)
+      self.PCAP = 1
     end
   end
 end
@@ -802,6 +807,35 @@ function ZVM:Interrupt(interruptNo,interruptParameter,isExternal,cascadeInterrup
   self.BusLock = 0
 end
 
+
+
+
+--------------------------------------------------------------------------------
+-- Timer firing checks
+function ZVM:TimerLogic()
+  if self.TimerMode ~= self.TimerPrevMode then
+    if self.TimerMode == 1 then
+      self.TimerPrevTime = self.TIMER
+    elseif self.TimerMode == 2 then
+      self.TimerPrevTime = self.TMR
+    end
+    self.TimerPrevMode = self.TimerMode
+  end
+
+  if self.TimerMode ~= 0 then
+    if self.TimerMode == 1 then
+      if (self.TIMER - self.TimerPrevTime) >= self.TimerRate then
+        self:ExternalInterrupt(math.floor(self.TimerAddress))
+        self.TimerPrevTime = self.TIMER
+      end
+    elseif self.TimerMode == 2 then
+      if (self.TMR - self.TimerPrevTime) >= self.TimerRate then
+        self:ExternalInterrupt(math.floor(self.TimerAddress))
+        self.TimerPrevTime = self.TMR
+      end
+    end
+  end
+end
 
 
 

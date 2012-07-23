@@ -53,7 +53,7 @@ ZVM.InternalRegister[40] = "RQCAP"
 ZVM.InternalRegister[41] = "PPAGE"               ZVM.ReadOnlyRegister[41] = true
 ZVM.InternalRegister[42] = "MEMRQ"
 ----------------------------------
-ZVM.InternalRegister[43] = "RAMSize"
+ZVM.InternalRegister[43] = "RAMSize"             ZVM.ReadOnlyRegister[43] = true
 ZVM.InternalRegister[44] = "External"
 ZVM.InternalRegister[45] = "BusLock"
 ZVM.InternalRegister[46] = "Idle"
@@ -80,6 +80,7 @@ ZVM.InternalRegister[64] = "TimerMode"
 ZVM.InternalRegister[65] = "TimerRate"
 ZVM.InternalRegister[66] = "TimerPrevTime"
 ZVM.InternalRegister[67] = "TimerAddress"
+ZVM.InternalRegister[68] = "TimerPrevMode"
 ----------------------------------
 for reg=0,31 do ZVM.InternalRegister[96+reg] = "R"..reg end
 
