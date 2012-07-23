@@ -80,7 +80,7 @@ ZVM.InternalRegister[64] = "TimerMode"
 ZVM.InternalRegister[65] = "TimerRate"
 ZVM.InternalRegister[66] = "TimerPrevTime"
 ZVM.InternalRegister[67] = "TimerAddress"
-ZVM.InternalRegister[68] = "TimerModePrev"
+ZVM.InternalRegister[68] = "TimerPrevMode"
 ----------------------------------
 for reg=0,31 do ZVM.InternalRegister[96+reg] = "R"..reg end
 

@@ -638,7 +638,7 @@ function ZVM:Step(overrideSteps,extraEmitFunction)
   end
   
   -- Trigger timers
-  self:TimerCheck()
+  self:TimerLogic()
 
   -- Set this page as previous (if it is executable)
   self.XEIP = self.IP + self.CS
