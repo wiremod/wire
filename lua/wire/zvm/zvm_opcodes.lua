@@ -455,6 +455,8 @@ end
 --------------------------------------------------------------------------------
 ZVM.OpcodeTable[70] = function(self)  --EXTINT
   self:Dyn_EmitState()
+  self:Emit("VM.IP = "..(self.PrecompileIP or 0))
+  self:Emit("VM.XEIP = "..(self.PrecompileTrueXEIP or 0))
   self:Dyn_Emit("VM:ExternalInterrupt(math.floor($1))")
   self:Dyn_EmitBreak()
   self.PrecompileBreak = true
