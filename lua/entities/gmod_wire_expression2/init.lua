@@ -225,6 +225,7 @@ function ENT:CompileCode( buffer, file_buffers )
 	if not status then self:Error(includes) end
 
 	self.buffer = buffer
+	self.include_buffers = includes
 	self.error = false
 
 	-- directives stuff
@@ -252,7 +253,7 @@ function ENT:CompileCode( buffer, file_buffers )
 	if not status then self:Error(tree) return end
 
 	-- invoke compiler
-	local status, script, inst = Compiler.Execute(tree, self.inports[3], self.outports[3], self.persists[3], dvars, self.includes)
+	local status, script, inst = Compiler.Execute(tree, self.inports[3], self.outports[3], self.persists[3], dvars)
 	if not status then self:Error(script) return end
 
 	self.script = script
