@@ -203,7 +203,7 @@ function ENT:PCallHook(...)
 end
 
 function ENT:Error(message, overlaytext)
-	self:SetOverlayText("Expression 2\n" .. self.name .. "\n("..(overlaytext or "script error")..")")
+	self:SetOverlayText("Expression 2\n" .. (self.name or "").. "\n("..(overlaytext or "script error")..")")
 	local r,g,b,a = self:GetColor12()
 	self:SetColor12(255, 0, 0, a)
 
