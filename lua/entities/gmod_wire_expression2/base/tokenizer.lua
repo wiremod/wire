@@ -243,6 +243,32 @@ function Tokenizer:NextSymbol()
 		self:NextPattern("^[A-Z0-9_]*")
 
 		local value = wire_expression2_constants[self.tokendata]
+
+		-- Special constants
+		if not value then
+			if self.tokendata == "__LINE__" then
+				value = tonumber(self.tokenline)
+
+			elseif self.tokendata == "__FILE__" then
+				value = tostring(self.filename)
+
+			elseif self.tokendata == "__INCLUDE_LEVEL__" then
+				value = #self.stack
+
+			elseif self.tokendata == "__DATE__" then
+				value = os.date("%b %d %Y") -- Mmm dd yyyy
+
+			elseif self.tokendata == "__TIME__" then
+				value = os.date("%X") -- hh:mm:ss
+
+			elseif self.tokendata == "__VERSION__" then
+				value = WireLib.Version and tostring(WireLib.Version) or "Unknown"
+
+			elseif self.tokendata == "__ENGINE__" then
+				value = VERSION and tonumber(VERSION)
+			end
+		end
+
 		local tp = type(value)
 
 		if tp == "number" then

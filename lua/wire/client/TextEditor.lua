@@ -2290,6 +2290,7 @@ local function GetTableForConstant( str )
 			data = { str } }
 end
 
+local special_constants = {["__LINE__"] = true, ["__FILE__"] = true, ["__INCLUDE_LEVEL__"] = true, ["__DATE__"] = true, ["__TIME__"] = true, ["__VERSION__"] = true, ["__ENGINE__"] = true} 
 local function FindConstants( self, word )
 	local len = #word
 	local wordu = word:upper()
@@ -2298,6 +2299,13 @@ local function FindConstants( self, word )
 	local suggestions = {}
 
 	for name,value in pairs( wire_expression2_constants ) do
+		if (name:sub(1,len) == wordu) then
+			count = count + 1
+			suggestions[count] = GetTableForConstant( name )
+		end
+	end
+
+	for name,value in pairs( special_constants ) do
 		if (name:sub(1,len) == wordu) then
 			count = count + 1
 			suggestions[count] = GetTableForConstant( name )
@@ -3409,11 +3417,20 @@ do -- E2 Syntax highlighting
 			if !self.character then break end
 
 			-- eat next token
-			if self:NextPattern("^_[A-Z][A-Z_0-9]*") then
+			if self:NextPattern("^_+[A-Z][A-Z_0-9]*") then
 				local word = self.tokendata
 				for k,_ in pairs( wire_expression2_constants ) do
 					if (k == word) then
 						tokenname = "constant"
+						break
+					end
+				end
+				if tokenname == "" then
+					for k,_ in pairs( special_constants ) do
+						if (k == word) then
+							tokenname = "constant"
+							break
+						end
 					end
 				end
 				if (tokenname == "") then tokenname = "notfound" end
