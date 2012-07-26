@@ -17,43 +17,96 @@ function Tokenizer.Execute(...)
 end
 
 function Tokenizer:Error(message, offset)
-	error(message .. " at line " .. self.tokenline .. ", char " .. (self.tokenchar+(offset or 0)), 0)
+	error(message .. " at line " .. self.filename .. ":" .. self.tokenline .. ", char " .. (self.tokenchar+(offset or 0)), 0)
 end
 
-function Tokenizer:Process(buffer, params)
+function Tokenizer:Process(buffer, includes)
 	self.buffer = buffer
+	self.includes = includes
+	self.stack = {}
+
+	self.filename = "generic"
 	self.length = buffer:len()
 	self.position = 0
 
 	self:SkipCharacter()
 
 	local tokens = {}
-	local tokenname, tokendata, tokenspace
+	local tokenname, tokendata, tokenspace, includespace
 	self.tokendata = ""
 
-	while self.character do
-		tokenspace = self:NextPattern("%s+") and true or false
+	while true do
+		while self.character do
+			-- Localize stuff because it will be changed after
+			local prevline = self.readline
+			local includes = self.includes
 
-		if !self.character then break end
+			-- Skip spaces and take into account space in token after inclusion
+			tokenspace = self:NextPattern("%s+") and true or false or includespace
+			includespace = false
 
-		self.tokenline = self.readline
-		self.tokenchar = self.readchar
-		self.tokendata = ""
+			-- Process includes
+			for line=self.readline, prevline, -1 do
+				-- This line contains include
+				if includes[line] then
+					self:PushFile(unpack(includes[line]))
+					includespace = true
+				end
+			end
 
-		tokenname, tokendata = self:NextSymbol()
+			-- There were no includes in previous lines, so continue working on this
+			if includes == self.includes then
+				if !self.character then break end
+				self.tokenline = self.readline
+				self.tokenchar = self.readchar
+				self.tokendata = ""
 
-		if tokenname == nil then
-			tokenname, tokendata = self:NextOperator()
+				tokenname, tokendata = self:NextSymbol()
 
-			if tokenname == nil then
-				self:Error("Unknown character found (" .. self.character .. ")")
+				if tokenname == nil then
+					tokenname, tokendata = self:NextOperator()
+
+					if tokenname == nil then
+						self:Error("Unknown character found (" .. self.character .. ")")
+					end
+				end
+
+				tokens[#tokens + 1] = { tokenname, tokendata, tokenspace, self.filename, self.tokenline, self.tokenchar }
 			end
 		end
 
-		tokens[#tokens + 1] = { tokenname, tokendata, tokenspace, self.tokenline, self.tokenchar }
+		-- Pop file
+		if #self.stack > 0 then 
+			self:PopFile()
+			includespace = true
+
+			self.includes[self.readline] = nil -- To prevent infinite loop in case "#include" is not everything this line has
+		else break end
 	end
 
 	return tokens
+end
+
+function Tokenizer:PushFile(filename, buffer, includes)
+	-- Put in stack
+	self.stack[#self.stack+1] = {
+		self.filename, self.buffer, self.length, 
+		self.readline, self.readchar, self.position, self.character,
+		self.includes
+	}
+
+	-- Set current
+	self.filename, self.buffer, self.length, self.position, self.includes = filename, buffer, buffer:len(), 0, includes
+
+	self:SkipCharacter()
+end
+
+function Tokenizer:PopFile()
+	-- Set current
+	self.filename, self.buffer, self.length, self.readline, self.readchar, self.position, self.character, self.includes = unpack(self.stack[#self.stack])
+	
+	-- Remove the latest
+	self.stack[#self.stack] = nil
 end
 
 /******************************************************************************/
@@ -142,7 +195,7 @@ function Tokenizer:NextSymbol()
 
 		tokenname = "num"
 
-	elseif self:NextPattern("^[a-z#][a-zA-Z0-9_]*") then
+	elseif self:NextPattern("^[a-z][a-zA-Z0-9_]*") then
 		-- keywords/functions
 		if self.tokendata == "if" then
 			tokenname = "if"
@@ -174,8 +227,6 @@ function Tokenizer:NextSymbol()
 			tokenname = "ret"
 		elseif self.tokendata == "void" then
 			tokenname = "void"
-		elseif self.tokendata == "#include" then
-			tokenname = "inclu"
 		elseif self.tokendata:match("^[ijk]$") and self.character ~= "(" then
 			tokenname, self.tokendata = "num", "1"..self.tokendata
 		else

@@ -17,10 +17,10 @@ function Compiler.Execute(...)
 end
 
 function Compiler:Error(message, instr)
-	error(message .. " at line " .. instr[2][1] .. ", char " .. instr[2][2], 0)
+	error(message .. " at line " .. instr[2][1] .. ":" .. instr[2][2] .. ", char " .. instr[2][3], 0)
 end
 
-function Compiler:Process(root, inputs, outputs, persist, delta, includes) -- Took params out becuase it isnt used. 
+function Compiler:Process(root, inputs, outputs, persist, delta) -- Took params out because it isnt used. 
 	self.context = {}
 
 	self:InitScope() //Creates global scope!
@@ -28,7 +28,6 @@ function Compiler:Process(root, inputs, outputs, persist, delta, includes) -- To
 	self.inputs = inputs
 	self.outputs = outputs
 	self.persist = persist
-	self.includes = includes or {}
 	self.prfcounter = 0
 	self.prfcounters = {}
 	self.tvars = {}
@@ -37,15 +36,15 @@ function Compiler:Process(root, inputs, outputs, persist, delta, includes) -- To
 	self.funcs_ret = {}
 	
 	for name,v in pairs(inputs) do
-		self:SetGlobalVariableType(name, wire_expression_types[v][1], {nil, {0, 0}})
+		self:SetGlobalVariableType(name, wire_expression_types[v][1], {nil, {"generic", 0, 0}})
 	end
 	
 	for name,v in pairs(outputs) do
-		self:SetGlobalVariableType(name, wire_expression_types[v][1], {nil, {0, 0}})
+		self:SetGlobalVariableType(name, wire_expression_types[v][1], {nil, {"generic", 0, 0}})
 	end
 	
 	for name,v in pairs(persist) do
-		self:SetGlobalVariableType(name, wire_expression_types[v][1], {nil, {0, 0}})
+		self:SetGlobalVariableType(name, wire_expression_types[v][1], {nil, {"generic", 0, 0}})
 	end
 	
 	for name,v in pairs(delta) do
@@ -804,46 +803,4 @@ function Compiler:InstrSWITCH( args )
 
 	local rtswitch =  self:GetOperator(args, "switch", {})
 	return { rtswitch[1], prf_cond, cases, default}
-end
-
-function Compiler:InstrINCLU( args )
-
-	local file = args[3]
-	local include = self.includes[file]
-	
-	if !include or !include[1] then
-		self:Error("Problem including file '" .. file .. "'", args)
-	end
-	
-	if !include[2] then
-	
-		include[2] = true -- Tempory value to prvent E2 compiling itself when itself. (INFINATE LOOOP!)
-		
-		local OldScopes = self:SaveScopes()
-		self:InitScope() -- Create a new Scope Enviroment
-		self:PushScope()
-
-		local root = include[1]
-		local status, script = pcall( Compiler["Instr" .. string.upper(root[1])], self, root)
-		
-		if !status then
-			if script:find( "C stack overflow" ) then script = "Include depth to deep" end
-			
-			if !self.IncludeError then
-				-- Otherwise Errors messages will be wrapped inside other error messages!
-				self.IncludeError = true
-				self:Error("include '" .. file .. "' -> " .. script, args)
-			else
-				error(script,0)
-			end
-		end
-		
-		include[2] = script
-		
-		self:PopScope()
-		self:LoadScopes(OldScopes) -- Reload the old enviroment
-	end
-	
-	
-	return {self:GetOperator(args, "include", {})[1], file}
 end

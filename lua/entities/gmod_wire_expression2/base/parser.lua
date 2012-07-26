@@ -66,23 +66,22 @@ end
 
 function Parser:Error(message, token)
 	if token then
-		error(message .. " at line " .. token[4] .. ", char " .. token[5], 0)
+		error(message .. " at line " .. token[4] .. ":" .. token[5] .. ", char " .. token[6], 0)
 	else
-		error(message .. " at line " .. self.token[4] .. ", char " .. self.token[5], 0)
+		error(message .. " at line " .. self.token[4] .. ":" .. self.token[5] .. ", char " .. self.token[6], 0)
 	end
 end
 
-function Parser:Process(tokens, params)
+function Parser:Process(tokens)
 	self.tokens = tokens
 	self.index = 0
 	self.count = #tokens
 	self.delta = {}
-	self.includes = {}
 
 	self:NextToken()
 	local tree = self:Root()
-
-	return tree, self.delta, self.includes
+	
+	return tree, self.delta
 end
 
 /******************************************************************************/
@@ -96,7 +95,7 @@ function Parser:GetTokenData()
 end
 
 function Parser:GetTokenTrace()
-	return {self.token[4], self.token[5]}
+	return {self.token[4], self.token[5], self.token[6]}
 end
 
 
@@ -114,7 +113,7 @@ function Parser:NextToken()
 		if self.index > 0 then
 			self.token = self.readtoken
 		else
-			self.token = {"", "", false, 1, 1}
+			self.token = {"", "", false, "generic", 1, 1}
 		end
 
 		self.index = self.index + 1
@@ -653,33 +652,6 @@ function Parser:Stmt10()
 
 	end
 
-	return self:Stmt11()
-end
-
-function Parser:Stmt11()
-	if self:AcceptRoamingToken("inclu") then
-
-		local Trace = self:GetTokenTrace()
-
-		-- if not self:AcceptRoamingToken("lpa") then
-			-- self:Error("Left parenthesis (() must appear after include")
-		-- end
-
-		if not self:AcceptRoamingToken("str") then
-			self:Error("include path (string) expected after include")
-		end
-
-		local Path = self:GetTokenData()
-
-		-- if not self:AcceptRoamingToken("rpa") then
-			-- self:Error("Right parenthesis ()) must appear after include path")
-		-- end
-
-		self.includes[ #self.includes + 1 ] = Path
-
-		return self:Instruction(Trace, "inclu", Path)
-	end
-
 	return self:Expr1()
 end
 
@@ -878,7 +850,7 @@ function Parser:Block(block_type)
 		end
 	end
 
-	self:Error("Right curly bracket (}) missing, to close switch block", token)
+	self:Error("Right curly bracket (}) missing, to close "..(block_type or "condition").." block", token)
 end
 
 function Parser:SwitchBlock() //Shhh this is a secret. Do not tell anybody about this, Rusketh!

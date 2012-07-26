@@ -212,14 +212,22 @@ function ENT:Error(message, overlaytext)
 	WireLib.ClientError(message, self.player)
 end
 
-function ENT:CompileCode( buffer, files )
+function ENT:CompileCode( buffer, file_buffers )
 	self.original = buffer
+	self.inc_files = file_buffers
 
-	local status, directives, buffer = PreProcessor.Execute(buffer)
-	if not status then self:Error(directives) return end
+	-- invoke preprocessor
+	local status, buffer, directives, include_lines  = PreProcessor.Execute(buffer)
+	if not status then self:Error(buffer) return end
+
+	-- load includes from root file
+	local status, includes, _ = wire_expression2_load_includes(include_lines, directives, file_buffers)
+	if not status then self:Error(includes) end
+
 	self.buffer = buffer
 	self.error = false
 
+	-- directives stuff
 	self.name = directives.name
 	if directives.name == "" then
 		self.name = "generic"
@@ -235,14 +243,15 @@ function ENT:CompileCode( buffer, files )
 	self.persists = directives.persist
 	self.trigger = directives.trigger
 
-	local status, tokens = Tokenizer.Execute(self.buffer)
+	-- invoke tokenizer (=lexer)
+	local status, tokens = Tokenizer.Execute(self.buffer, includes)
 	if not status then self:Error(tokens) return end
 
+	-- invoke parser
 	local status, tree, dvars = Parser.Execute(tokens)
 	if not status then self:Error(tree) return end
 
-	if !self:PrepareIncludes(files) then return end
-
+	-- invoke compiler
 	local status, script, inst = Compiler.Execute(tree, self.inports[3], self.outports[3], self.persists[3], dvars, self.includes)
 	if not status then self:Error(script) return end
 
@@ -260,37 +269,6 @@ function ENT:GetCode()
 	return self.original, self.inc_files
 end
 
-function ENT:PrepareIncludes(files)
-
-	self.inc_files = files
-
-	self.includes = {}
-
-	for file, buffer in pairs(files) do
-		local status, directives, buffer = PreProcessor.Execute(buffer, self.directives)
-		if !status then
-			self:Error("(" .. file .. ")" .. directives)
-			return 
-		end
-
-		local status, tokens = Tokenizer.Execute(buffer)
-		if !status then
-			self:Error("(" .. file .. ")" .. tokens)
-			return
-		end
-
-		local status, tree, dvars = Parser.Execute(tokens)
-		if !status then
-			self:Error("(" .. file .. ")" .. tree)
-			return
-		end
-
-		self.includes[file] = {tree}
-	end
-
-	return true
-end
-
 function ENT:ResetContext()
 	local context = {
 		data = {},
@@ -303,7 +281,6 @@ function ENT:ResetContext()
 		prf = 0,
 		prfcount = 0,
 		prfbench = 0,
-		includes = self.includes
 	}
 
 	setmetatable(context,ScopeManager)

@@ -85,6 +85,53 @@ end
 
 /******************************************************************************/
 
+local function load_includes(curfile, include_lines, directives, file_buffers, level)
+	if level > 32 then error("Include depth is too deep", 0) end
+	local ret = {}
+
+	for line, filename in pairs(include_lines) do
+		-- process filename
+		local chL, chR = filename:sub(1, 1), filename:sub(-1, -1)
+		if chL == "<" and chR == ">" then
+			filename = "lib/" .. filename:sub(2, -2)
+		elseif chL == "\"" and chR == "\"" then
+			filename = filename:sub(2, -2)
+		else error("Invalid syntax for #include at line " .. curfile .. ":" .. line, 0) end
+
+		-- try to read
+		local buffer = file_buffers[filename]
+
+		if not buffer then
+			if CLIENT then buffer = file.Read("Expression2/" .. filename .. ".txt") end
+			if not buffer then error("Could not include file '".. filename .. ".txt' at line " .. curfile .. ":" .. line, 0) end
+
+			file_buffers[filename] = buffer
+		end
+
+		-- invoke preprocessor
+		local status, buffer, directives, subincludes = PreProcessor.Execute(buffer, directives, filename)
+		if not status then error(buffer, 0) end
+
+		-- load subincludes
+		subincludes = load_includes(filename, subincludes, directives, file_buffers, level+1)
+
+		-- add this file
+		ret[line] = {filename, buffer, subincludes}
+	end
+
+	return ret, file_buffers
+end
+
+function wire_expression2_load_includes(include_lines, directives, file_buffers)
+	if CLIENT then
+		file_buffers = file_buffers or {}
+	end
+
+	return pcall(load_includes, "generic", include_lines, directives, file_buffers, 0)
+end
+
+/******************************************************************************/
+
 function wire_expression2_reset_extensions()
 	wire_expression_callbacks = {
 		construct = {},

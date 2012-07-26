@@ -500,20 +500,3 @@ registerOperator("switch", "", "", function(self, args)
 
 	self:PopScope()
 end)
-
-registerOperator("include", "", "", function(self, args)
-	local Include = self.includes[ args[2] ]
-	
-	if Include and Include[2] then
-		local Script = Include[2]
-		
-		local OldScopes = self:SaveScopes()
-		self:InitScope() -- Create a new Scope Enviroment
-		self:PushScope()
-		
-		Script[1](self, Script)
-		
-		self:PopScope()
-		self:LoadScopes(OldScopes)
-	end
-end)
