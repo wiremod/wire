@@ -66,8 +66,6 @@ function EDITOR:Init()
 	self.TextEntry.Parent = self
 
 	self.LastClick = 0
-
-	self.e2fs_functions = {}
 end
 
 function EDITOR:GetParent()
@@ -331,6 +329,9 @@ function EDITOR:SetText(text)
 	self.Undo = {}
 	self.Redo = {}
 	self.PaintRows = {}
+
+	self.e2_functions = {}
+	self:PreCompile()
 	self:AC_Reset()
 
 	self.ScrollBar:SetUp(self.Size[1], #self.Rows - 1)
@@ -2161,6 +2162,45 @@ function EDITOR:_OnKeyCodeTyped(code)
 	self:AC_Check()
 end
 
+
+-- Executes PreProcessor and Tokenizer and stores returned information (function names, etc).
+-- Does nothing if there is error.
+function EDITOR:PreCompile()
+	local buffer = self:GetValue()
+
+	local status, buffer, directives, include_lines = PreProcessor.Execute(buffer)
+	if not status then return end
+
+	local status, includes, _ = wire_expression2_load_includes(include_lines, directives)
+	if not status then return end
+
+	self.AC_Directives = directives
+
+	local status, tokens = Tokenizer.Execute(buffer, includes)
+	if not status then return end
+
+	self.e2_functions = {}
+	for i=1, #tokens do
+		if tokens[i][1] == "func" then
+			-- Search for "fun" token nearby (up to 4 tokens) which is function name
+			for j=i, math.Min(#tokens, i+4) do
+				if tokens[j][1] == "fun" then
+					local name = tokens[j][2]
+					local nameu = name:upper()
+
+					if not wire_expression_types[nameu] and nameu ~= "NUMBER" and nameu ~= "VOID" then
+						if not wire_expression2_funclist[name] then
+							self.e2_functions[name] = -1
+						end
+						break
+					end
+				end
+			end
+		end
+	end
+end
+
+
 ---------------------------------------------------------------------------------------------------------
 -- Auto Completion
 -- By Divran
@@ -2368,13 +2408,7 @@ end
 -----------------------------------------------------------
 
 function EDITOR:AC_SaveVariables()
-	local OK, directives,_ = PreProcessor.Execute( self:GetValue() )
-
-	if (!OK or !directives) then
-		return
-	end
-
-	self.AC_Directives = directives
+	self:PreCompile()
 end
 
 -----------------------------------------------------------
@@ -3029,10 +3063,9 @@ function EDITOR:ResetTokenizer(row)
 			end
 		end
 
-
-		for k,v in pairs( self.e2fs_functions ) do
+		for k,v in pairs(self.e2_functions) do
 			if v == row then
-				self.e2fs_functions[k] = nil
+				self.e2_functions[k] = nil
 			end
 		end
 	end
@@ -3246,7 +3279,7 @@ do -- E2 Syntax highlighting
 				addToken( "userfunction", funcname )
 
 				if not wire_expression2_funclist[funcname] then
-					self.e2fs_functions[funcname] = row
+					self.e2_functions[funcname] = row
 				end
 
 				self.tokendata = ""
@@ -3266,7 +3299,7 @@ do -- E2 Syntax highlighting
 				end
 
 				if not wire_expression2_funclist[funcname] then
-					self.e2fs_functions[funcname] = row
+					self.e2_functions[funcname] = row
 				end
 
 				self.tokendata = ""
@@ -3282,7 +3315,7 @@ do -- E2 Syntax highlighting
 				addToken( "userfunction", funcname )
 
 				if not wire_expression2_funclist[funcname] then
-					self.e2fs_functions[funcname] = row
+					self.e2_functions[funcname] = row
 				end
 
 				self.tokendata = ""
@@ -3295,7 +3328,7 @@ do -- E2 Syntax highlighting
 					addToken( "userfunction", funcname )
 
 					if not wire_expression2_funclist[funcname] then
-						self.e2fs_functions[funcname] = row
+						self.e2_functions[funcname] = row
 					end
 				end
 
@@ -3424,7 +3457,7 @@ do -- E2 Syntax highlighting
 					elseif wire_expression2_funclist[sstr] then
 						tokenname = "function"
 
-					elseif self.e2fs_functions[sstr] then
+					elseif self.e2_functions[sstr] then
 						tokenname = "userfunction"
 
 					else
@@ -3503,8 +3536,33 @@ do -- E2 Syntax highlighting
 					if PreProcessor["PP_"..self.tokendata:sub(2)] then
 						-- there is a preprocessor command by that name => mark as such
 						tokenname = "ppcommand"
-					elseif self.tokendata == "#include" then
-						tokenname = "keyword"
+
+						-- Special case for include
+						if self.tokendata == "#include" then
+							addToken(tokenname, self.tokendata)
+
+							local spaces = self:SkipPattern(" *")
+							if spaces then addToken("comment", spaces) end
+
+							tokenname = "notfound"
+							self.tokendata = ""
+
+							-- Read whole line and check file for existing
+							if self:NextPattern(".*$") then
+								local chL, chR, filename = self.tokendata:sub(1, 1), self.tokendata:sub(-1, -1), self.tokendata:sub(2, -2)
+
+								if chL == "<" and chR == ">" then
+									filename = "lib/"..filename
+								elseif chL ~= "\"" or chR ~= "\"" then filename = nil end
+
+								if filename and file.Exists("Expression2/" .. filename .. ".txt") then
+									tokenname = "string"
+								end
+							end
+
+							-- Update everything
+							self:PreCompile()
+						end
 					else
 						-- eat the rest and mark as a comment
 						self:NextPattern(".*")
