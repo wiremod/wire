@@ -326,22 +326,38 @@ function TOOL.BuildCPanel(CPanel)
 			ValueBox:SetWide(Wide-44)
 			ValueBox:SetTall(20)
 			ValueBox:SetMultiline(false)
+			if VERSION > 150 then
+				Derma_Install_Convar_Functions(ValueBox)
+				ValueBox.Think = function()
+					ValueBox:ConVarStringThink()
+				end
+			end
 			ValueBox:SetConVar(CommandString)
 			ValueBox:SetVisible(true)
 
 			// Type Dropbox.
 			local oldv = nil
-			local ValueType = vgui.Create("DMultiChoice", ValuePanel)
+			local ValueType
+			ValueType = vgui.Create("DComboBox", ValuePanel)
 			ValueType:SetPos(40, 50)
 			ValueType:SetWide(Wide-44)
 			ValueType:SetTall(20)
-			ValueType:SetEditable(false)
 			for k, v in SortedPairs(DataTypes) do
 				if ((k ~= "") and (v ~= "")) then
 					ValueType:AddChoice(v)
 				end
 			end
+			if VERSION > 150 then
+				Derma_Install_Convar_Functions(ValueType)
+				ValueType.Think = function()
+					ValueType:ConVarStringThink()
+				end
+				ValueType.OnSelect = function(index, value, data) // Updating the ConVar
+					RunConsoleCommand(CommandString2, data)
+				end
+			end
 			ValueType:SetConVar(CommandString2)
+			
 			ValueType:SetVisible(true)
 
 			// Add Control Panel to List.
