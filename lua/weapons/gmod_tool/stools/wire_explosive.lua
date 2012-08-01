@@ -137,7 +137,7 @@ function TOOL:LeftClick( trace )
 		end
 	end
 
-	if (_weight <= 0) then _weight = 1 end
+	_weight = math.Clamp(_weight,1,50000)
 	explosive.Entity:GetPhysicsObject():SetMass(_weight)
 	// Make sure the weight is duplicated as well (TheApathetic)
 	duplicator.StoreEntityModifier( explosive, "MassMod", {Mass = _weight} )

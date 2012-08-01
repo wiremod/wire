@@ -1,6 +1,5 @@
 -- Author: Divran
 local Obj = EGP:NewObject( "Circle" )
-Obj.material = ""
 Obj.angle = 0
 Obj.fidelity = 180
 local cos, sin, rad, floor = math.cos, math.sin, math.rad, math.floor

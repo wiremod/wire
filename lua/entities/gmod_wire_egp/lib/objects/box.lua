@@ -1,6 +1,5 @@
 -- Author: Divran
 local Obj = EGP:NewObject( "Box" )
-Obj.material = ""
 Obj.angle = 0
 Obj.CanTopLeft = true
 Obj.Draw = function( self )

@@ -4,7 +4,6 @@ Obj.x2 = 0
 Obj.y2 = 0
 Obj.x3 = 0
 Obj.y3 = 0
-Obj.material = ""
 Obj.verticesindex = { { "x", "y" }, { "x2", "y2" }, { "x3", "y3" } }
 Obj.size = 1
 Obj.Draw = function( self )

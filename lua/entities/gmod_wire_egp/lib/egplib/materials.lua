@@ -26,63 +26,29 @@ if (CLIENT) then
 	for k,v in ipairs( new ) do
 		table.insert( EGP.ValidFonts, v )
 	end
-end
 
-EGP.Materials = {}
+	local type = type
+	local SetMaterial = surface.SetMaterial
+	local SetTexture = surface.SetTexture
+	local GetTextureID = surface.GetTextureID
+	local NoTexture = draw.NoTexture
 
-function EGP:CacheMaterial( Mat )
-	if (!Mat or #Mat == 0) then return end
-	if (!self.Materials[Mat]) then
-		local temp
-		if (#file.Find("materials/"..Mat..".*",true) > 0) then
-			 temp = surface.GetTextureID(Mat)
+	function EGP:SetMaterial( Mat )
+		if type(Mat) == "IMaterial" then
+			SetMaterial( Mat )
+		elseif type(Mat) == "Entity" then
+			if (!Mat:IsValid() or !Mat.GPU or !Mat.GPU.RT) then NoTexture() return end
+			local OldTex = WireGPU_matScreen:GetMaterialTexture("$basetexture")
+			WireGPU_matScreen:SetMaterialTexture("$basetexture", Mat.GPU.RT)
+			SetTexture(GetTextureID( "GPURT" ))
+			return OldTex
+		else
+			NoTexture()
 		end
-		self.Materials[Mat] = temp
 	end
-	return self.Materials[Mat]
+	
+	function EGP:FixMaterial( OldTex )
+		if (!OldTex) then return end
+		WireGPU_matScreen:SetMaterialTexture("$basetexture", OldTex)
+	end
 end
-
-function EGP:SetMaterial( Mat )
-	if (!Mat) then
-		surface.SetTexture()
-	elseif (type(Mat) == "string") then
-		surface.SetTexture( self:CacheMaterial( Mat ) )
- 	elseif (type(Mat) == "Entity") then
-		if (!Mat:IsValid() or !Mat.GPU or !Mat.GPU.RT) then return end
-		local OldTex = WireGPU_matScreen:GetMaterialTexture("$basetexture")
-		WireGPU_matScreen:SetMaterialTexture("$basetexture", Mat.GPU.RT)
-		surface.SetTexture(surface.GetTextureID( "GPURT" ))
-		return OldTex
- 	end
- end
-
-function EGP:FixMaterial( OldTex )
-	if (!OldTex) then return end
-	WireGPU_matScreen:SetMaterialTexture("$basetexture", OldTex)
-end
-
---[[
-if (CLIENT) then
-	EGP.FakeMat = Material("egp_ignore_this_error")
-	EGP.FakeTex = surface.GetTextureID("egp_ignore_this_error")
-end
-
-function EGP:SetMaterial( Mat )
-	if (!Mat) then
-		surface.SetTexture()
-	elseif (type(Mat) == "string") then
-		surface.SetTexture( self:CacheMaterial( Mat ) )
- 	elseif (type(Mat) == "Entity") then
-		if (!Mat:IsValid() or !Mat.GPU or !Mat.GPU.RT) then return end
-		local OldTex = EGP.FakeMat:GetMaterialTexture("$basetexture")
-		EGP.FakeMat:SetMaterialTexture("$basetexture", Mat.GPU.RT)
-		surface.SetTexture(EGP.FakeTex)
-		return OldTex
- 	end
- end
-
-function EGP:FixMaterial( OldTex )
-	if (!OldTex) then return end
-	EGP.FakeMat:SetMaterialTexture("$basetexture", OldTex)
-end
-]]
