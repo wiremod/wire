@@ -157,14 +157,14 @@ function EGP:ReceiveMaterial( tbl, um ) -- ALWAYS use this when receiving materi
 	local what, mat = temp:sub(1,1), temp:sub(2)
 	if what == "0" then
 		if mat == "" then
-			tbl.material = true -- true means no material
+			tbl.material = false
 		else
 			tbl.material = Material(mat)
 		end
 	elseif what == "1" then
 		local num = tonumber(mat)
 		if not num or not ValidEntity(Entity(num)) then
-			tbl.material = true
+			tbl.material = false
 		else
 			tbl.material = Entity(num)
 		end
