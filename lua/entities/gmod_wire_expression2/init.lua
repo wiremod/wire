@@ -362,6 +362,24 @@ function ENT:ResetContext()
 	self.error = false
 end
 
+function ENT:IsCodeDifferent( buffer, includes )
+	-- First check the main file
+	if self.original ~= buffer then return true end
+
+	-- First compare one way
+	for k,v in pairs( self.inc_files ) do
+		if includes[k] ~= v then return true end
+	end
+
+	-- Then compare the other way, too
+	for k,v in pairs( includes ) do
+		if self.inc_files[k] ~= v then return true end
+	end
+
+	-- All code is identical.
+	return false
+end
+
 function ENT:Setup(buffer, includes, restore, forcecompile)
 	if self.script then
 		self:PCallHook('destruct')
@@ -369,7 +387,7 @@ function ENT:Setup(buffer, includes, restore, forcecompile)
 
 	self.uid = self.player:UniqueID()
 
-	if (self.original != buffer or forcecompile) then
+	if forcecompile or self:IsCodeDifferent( buffer, includes ) then
 		self:CompileCode( buffer, includes )
 	else
 		self:ResetContext()
