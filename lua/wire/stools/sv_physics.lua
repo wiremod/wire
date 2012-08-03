@@ -51,6 +51,7 @@ function WireToolMakeExplosivesSimple( self, trace, ply )
 		explosive:GetPhysicsObject():Sleep() --will freeze the explosive till something touches it
 	end
 
+	_weight = math.Clamp(_weight,1,50000)
 	explosive.Entity:GetPhysicsObject():SetMass(_weight)
 	-- Make sure the weight is duplicated as well (TheApathetic)
 	duplicator.StoreEntityModifier( explosive, "MassMod", {Mass = _weight} )

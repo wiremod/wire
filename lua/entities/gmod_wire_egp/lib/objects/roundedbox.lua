@@ -1,6 +1,5 @@
 -- Author: sk8 (& Divran)
 local Obj = EGP:NewObject( "RoundedBox" )
-Obj.material = ""
 Obj.angle = 0
 Obj.radius = 16
 Obj.CanTopLeft = true

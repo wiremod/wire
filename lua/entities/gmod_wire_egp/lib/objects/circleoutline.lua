@@ -1,6 +1,5 @@
 -- Author: Divran
 local Obj = EGP:NewObject( "CircleOutline" )
-Obj.material = ""
 Obj.angle = 0
 Obj.size = 1
 Obj.fidelity = 180
