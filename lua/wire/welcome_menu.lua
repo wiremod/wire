@@ -14,7 +14,7 @@ if (SERVER) then
 
 	-- Open the menu on spawn
 	hook.Add("PlayerInitialSpawn","Wire_Welcome_Popup",function(ply)
-		timer.Simple(5,function(ply)
+		timer12.Simple(5,function(ply)
 			if (ply and ply:IsValid()) then -- Sometimes the player crashes
 				ply:ConCommand("Wire_Welcome_Menu 1337") -- "1337" is to let the client know that the server is the one requesting it, and not the player.
 			end

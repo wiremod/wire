@@ -205,7 +205,7 @@ function ENT:TriggerInput( iname, value )
 			local Delay = numconstraints / maxrate
 
 			self.ClutchDelay = true
-			timer.Create( "wire_clutch_delay_" .. tostring(self:EntIndex()), Delay, 0, ClutchDelayEnd, self )
+			timer12.Create( "wire_clutch_delay_" .. tostring(self:EntIndex()), Delay, 0, ClutchDelayEnd, self )
 
 		else
 			// This should only happen if an error prevents the ClutchDelayEnd function from being called

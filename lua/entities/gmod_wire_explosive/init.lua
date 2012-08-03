@@ -169,7 +169,7 @@ function ENT:Trigger()
 		//self.exploding = true
 		self.ExplodeTime = CurTime() + self.Delaytime
 		if (self.FireEffect) then self:Ignite((self.Delaytime + 3),0) end
-/*		timer.Simple( self.Delaytime, self.Explode, self )
+/*		timer12.Simple( self.Delaytime, self.Explode, self )
 		//self.count = self.Delaytime
 		//self:Countdown()
 	//else
@@ -272,12 +272,12 @@ function ENT:Explode( )
 	/*if ( self.Delayreloadtime > 0 ) then
 		//t = self.Delayreloadtime + 1
 		self.reloading = true
-		//timer.Simple( self.Delayreloadtime, self.Reloaded, self )
+		//timer12.Simple( self.Delayreloadtime, self.Reloaded, self )
 		//self.count = self.Delayreloadtime
 		//self:Countdown()
 	else //keep it from going off again for at least another second
 		self.reloading = true
-		timer.Simple( 1, self.Reloaded, self )
+		timer12.Simple( 1, self.Reloaded, self )
 		self:ShowOutput(0)
 	end*/
 
@@ -293,9 +293,9 @@ function ENT:Countdown( )
 	self:ShowOutput()
 	self.count = self.count - 1
 	if ( self.count > 0 ) then //theres still time left
-		timer.Simple( 1, self.Countdown, self )
+		timer12.Simple( 1, self.Countdown, self )
 	else //will be done after this second
-		timer.Simple( 1, self.ShowOutput, self )
+		timer12.Simple( 1, self.ShowOutput, self )
 	end
 end
 */

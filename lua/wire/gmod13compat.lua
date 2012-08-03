@@ -2,7 +2,8 @@ local libs = {
 	"file",
 	"datastream",
 	"language",
-	"http"
+	"http",
+	"timer"
 }
 
 function _R.Entity.SetColor12(self,r,g,b,a)
@@ -113,4 +114,33 @@ else
 	cam.StartMaterialOverride = render.MaterialOverride
 	SetMaterialOverride = render.MaterialOverride
 	surface.CreateFont("defaultbold", 12, 700, true, false, "DefaultBold")
+end
+
+local function GetTimer12CallbackFunction(func, ...)
+	local callback
+	if VERSION >= 150 then
+		local varargTable = {...}
+		return
+			function()
+				func(unpack(varargTable))
+			end
+	else
+		return func
+	end
+end
+
+function timer12.Simple(delay, func, ...)
+	callback = GetTimer12CallbackFunction(func, ...)
+	-- Even in GMod 13 we can pass the varargs, they won't do anything bad
+	timer.Simple(delay, callback, ...)
+end
+
+function timer12.Create(name, delay, reps, func, ...)
+	callback = GetTimer12CallbackFunction(func, ...)
+	timer.Simple(name, delay, reps, callback, ...)
+end
+
+function timer12.Adjust(name, delay, reps, func, ...)
+	callback = GetTimer12CallbackFunction(func, ...)
+	timer12.Adjust(name, delay, reps, callback, ...)
 end

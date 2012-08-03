@@ -135,7 +135,7 @@ function EGP:StartQueueTimer( ply )
 	local TimerName = "EGP_Queue_"..ply:UniqueID()
 	if (!timer.IsTimer(TimerName)) then
 		self.Queue.Timers[#self.Queue.Timers+1] = { ply, ply:UniqueID() } -- Fix for players who leave while their queue is sending
-		timer.Create( TimerName, 1, 0, function( ply )
+		timer12.Create( TimerName, 1, 0, function( ply )
 			self:SendQueueItem( ply )
 		end, ply)
 	end

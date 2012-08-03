@@ -1058,10 +1058,10 @@ function Editor:InitControlPanel(frame)
 		end
 		n=n+1
 		if (n<=#t) then
-			timer.Simple(0,callNext,t,n)
+			timer12.Simple(0,callNext,t,n)
 		end
 	end
-	function frame:ResizeAll() timer.Simple(0,callNext,self.ResizeObjects,1) end
+	function frame:ResizeAll() timer12.Simple(0,callNext,self.ResizeObjects,1) end
 
 	-- Resize them at the right times
 	local old = frame.SetSize
@@ -1514,7 +1514,7 @@ function Editor:InitControlPanel(frame)
 		if (!value) then return end -- If it isn't a valid number, exit
 		value = value - 1 -- Subtract one (to make it 0-3 instead of 1-4)
 		RunConsoleCommand( "wire_expression2_browser_sort_style", value )
-		timer.Simple( 0.1, self.C["Browser"].panel.UpdateFolders, self.C["Browser"].panel )
+		timer12.Simple( 0.1, self.C["Browser"].panel.UpdateFolders, self.C["Browser"].panel )
 	end
 	SortStyle:AddChoice( "1: Alphabetical - A -> Z" )
 	SortStyle:AddChoice( "2: Alphabetical - Z -> A" )
@@ -2239,7 +2239,7 @@ function Editor:SaveFile(Line, close, SaveAs)
 	file12.Write(Line, self:GetCode())
 
 	local panel = self.C['Val'].panel
-	timer.Simple(0,panel.SetText, panel, "   Saved as "..Line)
+	timer12.Simple(0,panel.SetText, panel, "   Saved as "..Line)
 	surface.PlaySound("ambient/water/drip3.wav")
 
 	if(!self.chip) then self:ChosenFile(Line) end

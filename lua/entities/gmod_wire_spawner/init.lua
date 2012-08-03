@@ -114,7 +114,7 @@ function ENT:DoSpawn( pl, down )
 
 	if (self.undo_delay == 0) then return end
 
-	timer.Simple( self.undo_delay, function( ent ) if ent:IsValid() then ent:Remove() end end, prop )
+	timer12.Simple( self.undo_delay, function( ent ) if ent:IsValid() then ent:Remove() end end, prop )
 
 end
 
@@ -180,7 +180,7 @@ function ENT:TriggerInput(iname, value)
 				ent:DoSpawn( pl )
 			end
 
-			timer.Simple( self.delay, TimedSpawn, self, pl )
+			timer12.Simple( self.delay, TimedSpawn, self, pl )
 		end
 	elseif (iname == "Undo") then
 		-- Same here
