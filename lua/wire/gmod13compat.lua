@@ -137,10 +137,10 @@ end
 
 function timer12.Create(name, delay, reps, func, ...)
 	callback = GetTimer12CallbackFunction(func, ...)
-	timer.Simple(name, delay, reps, callback, ...)
+	timer.Create(name, delay, reps, callback, ...)
 end
 
 function timer12.Adjust(name, delay, reps, func, ...)
 	callback = GetTimer12CallbackFunction(func, ...)
-	timer12.Adjust(name, delay, reps, callback, ...)
+	timer.Adjust(name, delay, reps, callback, ...)
 end
