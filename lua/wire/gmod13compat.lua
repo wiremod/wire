@@ -131,16 +131,27 @@ end
 
 function timer12.Simple(delay, func, ...)
 	local callback = GetTimer12CallbackFunction(func, ...)
-	-- Even in GMod 13 we can pass the varargs, they won't do anything bad
-	timer.Simple(delay, callback, ...)
+	if VERSION >= 150 then
+		timer.Simple(delay, callback)
+	else
+		timer.Simple(delay, callback, ...)
+	end
 end
 
 function timer12.Create(name, delay, reps, func, ...)
 	local callback = GetTimer12CallbackFunction(func, ...)
-	timer.Create(name, delay, reps, callback, ...)
+	if VERSION >= 150 then
+		timer.Create(name, delay, reps, callback)
+	else
+		timer.Create(name, delay, reps, callback, ...)
+	end
 end
 
 function timer12.Adjust(name, delay, reps, func, ...)
 	local callback = GetTimer12CallbackFunction(func, ...)
-	timer.Adjust(name, delay, reps, callback, ...)
+	if VERSION >= 150 then
+		timer.Adjust(name, delay, reps, callback)
+	else
+		timer.Adjust(name, delay, reps, callback, ...)
+	end
 end
