@@ -155,3 +155,11 @@ function timer12.Adjust(name, delay, reps, func, ...)
 		timer.Adjust(name, delay, reps, callback, ...)
 	end
 end
+
+function timer12.IsTimer(name)
+	if VERSION >= 150 then
+		return timer.Exists(name)
+	else
+		return timer.IsTimer(name)
+	end
+end

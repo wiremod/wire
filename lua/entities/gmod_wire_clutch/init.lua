@@ -209,7 +209,7 @@ function ENT:TriggerInput( iname, value )
 
 		else
 			// This should only happen if an error prevents the ClutchDelayEnd function from being called
-			if !timer.IsTimer( "wire_clutch_delay_" .. tostring(self:EntIndex())) then
+			if !timer12.IsTimer( "wire_clutch_delay_" .. tostring(self:EntIndex())) then
 				self.ClutchDelay = false
 			end
 

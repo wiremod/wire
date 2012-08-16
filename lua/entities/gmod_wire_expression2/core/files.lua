@@ -385,7 +385,7 @@ concommand.Add( "wire_expression2_file_chunk", function( ply, com, args )
 
 	local timername = "wire_expression2_file_check_timeout_" .. ply:EntIndex()
 
-	if timer.IsTimer( timername ) then
+	if timer12.IsTimer( timername ) then
 		timer.Remove( timername )
 		timer12.Create( timername, 5, 1, timeout_callback, ply )
 	end
@@ -394,7 +394,7 @@ end )
 concommand.Add( "wire_expression2_file_finish", function( ply, com, args )
 	local timername = "wire_expression2_file_check_timeout_" .. ply:EntIndex()
 
-	if timer.IsTimer( timername ) then
+	if timer12.IsTimer( timername ) then
 		timer.Remove( timername )
 	end
 
@@ -433,7 +433,7 @@ concommand.Add("wire_expression2_file_singleplayer", function(ply, cmd, args)
 
 	local timername = "wire_expression2_file_check_timeout_" .. ply:EntIndex()
 
-	if timer.IsTimer(timername) then timer.Remove(timername) end
+	if timer12.IsTimer(timername) then timer.Remove(timername) end
 
 	local pfile = uploads[ply]
 
@@ -465,7 +465,7 @@ concommand.Add( "wire_expression2_file_list", function( ply, com, args )
 
 	local timername = "wire_expression2_filelist_check_timeout_" .. ply:EntIndex()
 
-	if timer.IsTimer( timername ) then
+	if timer12.IsTimer( timername ) then
 		timer.Remove( timername )
 	end
 

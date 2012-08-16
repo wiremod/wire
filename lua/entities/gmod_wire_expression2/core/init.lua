@@ -272,7 +272,7 @@ if SERVER then
 						end
 					end
 					return
-				elseif target and type(target) == "Player" and target:IsValid() and not timer.IsTimer( "wire_expression2_clientside_files_list_send_" .. target:UniqueID() ) then
+				elseif target and type(target) == "Player" and target:IsValid() and not timer12.IsTimer( "wire_expression2_clientside_files_list_send_" .. target:UniqueID() ) then
 					local uid = target:UniqueID()
 					local i = 0
 					umsg.Start("e2fs",target) umsg.Short( #clientside_files_buffer ) umsg.End()
