@@ -146,7 +146,9 @@ local function flush_scale_queue(queue, recipient)
 				bytes = 4+14 -- Header(2)+Short(2)+Vector(12)+Short(2)
 			end
 			umsg.Short(Holo.ent:EntIndex())
-			umsg.Vector(scale)
+			umsg.Float(scale.x)
+			umsg.Float(scale.y)
+			umsg.Float(scale.z)
 		end
 		umsg.Short(0)
 	umsg.End()
@@ -182,8 +184,8 @@ local function flush_clip_queue(queue, recipient)
 					bytes = bytes + 27
 
 					umsg.Bool(false)
-					umsg.Vector(clip.origin)
-					umsg.Vector(clip.normal)
+					umsg.Float(clip.origin.x) umsg.Float(clip.origin.y) umsg.Float(clip.origin.z)
+					umsg.Float(clip.normal.x) umsg.Float(clip.normal.y) umsg.Float(clip.normal.z)
 					umsg.Short(clip.isglobal)
 				end
 			end
