@@ -20,7 +20,7 @@ function WireLib.GetWireVersion()
 			git = true
 			exported = false
 		end
-		version = plainversion .. (!git and " (EXPORTED)")
+		version = plainversion .. (!git and " (EXPORTED)" or "")
 	end
 
 	return version, plainversion, exported, git
