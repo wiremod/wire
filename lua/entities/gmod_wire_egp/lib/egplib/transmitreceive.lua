@@ -673,14 +673,14 @@ if (SERVER) then
 	end
 
 	local function initspawn(ply)
-		timer.Simple(10,function(ply)
+		timer.Simple(10,function()
 			if (ply and ply:IsValid()) then
 				local bool, msg = EGP:SendDataStream( ply )
 				if (bool == true) then
 					ply:ChatPrint("[EGP] " .. tostring(msg) .. " EGP Screens found on the server. Sending objects now...")
 				end
 			end
-		end,ply)
+		end)
 	end
 
 	hook.Add("PlayerInitialSpawn","EGP_SpawnFunc",initspawn)

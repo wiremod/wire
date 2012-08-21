@@ -42,8 +42,22 @@ function Editor:ChangeFont( FontName, Size )
 
 	-- If font is not already created, create it.
 	if (!self.CreatedFonts[FontName .. "_" .. Size]) then
-		surface.CreateFont( FontName, Size, 400, false, false, "Expression2_" .. FontName .. "_" .. Size )
-		surface.CreateFont( FontName, Size, 700, false, false, "Expression2_" .. FontName .. "_" .. Size .. "_Bold" )
+		if VERSION >= 150 then
+			local fontTable = 
+			{
+				font = FontName,
+				size = Size,
+				weight = 400,
+				antialias = false,
+				additive = false,
+			}
+			surface.CreateFont("Expression2_" .. FontName .. "_" .. Size,fontTable)
+			fontTable.weight = 700
+			surface.CreateFont("Expression2_" .. FontName .. "_" .. Size .. "_Bold", fontTable)
+		else
+			surface.CreateFont( FontName, Size, 400, false, false, "Expression2_" .. FontName .. "_" .. Size )
+			surface.CreateFont( FontName, Size, 700, false, false, "Expression2_" .. FontName .. "_" .. Size .. "_Bold" )
+		end
 		self.CreatedFonts[FontName .. "_" .. Size] = true
 	end
 
@@ -136,8 +150,19 @@ function Editor:Init()
 
 	-- Load border colors, position, & size
 	self:LoadEditorSettings()
-
-	surface.CreateFont( "default", 11, 300, false, false, "E2SmallFont" )
+	
+	if VERSION > 150 then
+		local fontTable = {
+			font = "default",
+			size = 11,
+			weight = 300,
+			antialias = false,
+			additive = false,
+		}
+		surface.CreateFont( "E2SmallFont", fontTable )
+	else	
+		surface.CreateFont( "default", 11, 300, false, false, "E2SmallFont" )
+	end
 	self.logo = surface.GetTextureID("vgui/e2logo")
 
 	self:InitComponents()
@@ -1058,10 +1083,15 @@ function Editor:InitControlPanel(frame)
 		end
 		n=n+1
 		if (n<=#t) then
-			timer.Simple(0,callNext,t,n)
+			timer.Simple(0, function() callNext(t,n) end )
 		end
 	end
-	function frame:ResizeAll() timer.Simple(0,callNext,self.ResizeObjects,1) end
+
+	function frame:ResizeAll() 
+		timer.Simple(0, function() 
+			callNext(self.ResizeObjects,1) 
+		end)
+	end
 
 	-- Resize them at the right times
 	local old = frame.SetSize
@@ -1514,7 +1544,9 @@ function Editor:InitControlPanel(frame)
 		if (!value) then return end -- If it isn't a valid number, exit
 		value = value - 1 -- Subtract one (to make it 0-3 instead of 1-4)
 		RunConsoleCommand( "wire_expression2_browser_sort_style", value )
-		timer.Simple( 0.1, self.C["Browser"].panel.UpdateFolders, self.C["Browser"].panel )
+		timer.Simple( 0.1, function()
+			self.C["Browser"].panel.UpdateFolders( self.C["Browser"].panel )
+		end)
 	end
 	SortStyle:AddChoice( "1: Alphabetical - A -> Z" )
 	SortStyle:AddChoice( "2: Alphabetical - Z -> A" )
@@ -2239,7 +2271,7 @@ function Editor:SaveFile(Line, close, SaveAs)
 	file12.Write(Line, self:GetCode())
 
 	local panel = self.C['Val'].panel
-	timer.Simple(0,panel.SetText, panel, "   Saved as "..Line)
+	timer.Simple(0,function() panel.SetText( panel, "   Saved as " .. Line) end )
 	surface.PlaySound("ambient/water/drip3.wav")
 
 	if(!self.chip) then self:ChosenFile(Line) end
