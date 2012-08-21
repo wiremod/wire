@@ -919,15 +919,30 @@ elseif CLIENT then
 		panel:AddControl("Header", { Text = "#Tool_wire_expression2_name", Description = "#Tool_wire_expression2_desc" })
 
 		//ModelPlug_AddToCPanel(panel, "expr2", "wire_expression2", nil, nil, nil, 2)
-
-		panel:AddControl("ComboBox", {
-			MenuButton = "0",
-			Options = {
-				["Normal"] = { wire_expression2_size = "" },
-				["Mini"] = { wire_expression2_size = "_mini" },
-				["Nano"] = { wire_expression2_size = "_nano" },
-			}
-		})
+		if VERSION >= 151 then
+			local SizeControl = vgui.Create( "DComboBox", panel )
+			SizeControl.OnSelect = function ( index, value, data )
+				if( value == "Normal" ) then
+					wire_expression2_size = ""
+				elseif( value == "Mini" ) then
+					wire_expression2_size = "_mini"
+				elseif( value == "Nano" ) then
+					wire_expression2_size = "_nano"
+				end
+			end
+			SizeControl:AddChoice( "Normal" ) 
+			SizeControl:AddChoice( "Mini" ) 
+			SizeControl:AddChoice( "Nano" )
+		else
+			panel:AddControl("DComboBox", {
+				MenuButton = "0",
+				Options = {
+					["Normal"] = { wire_expression2_size = "" },
+					["Mini"] = { wire_expression2_size = "_mini" },
+					["Nano"] = { wire_expression2_size = "_nano" },
+				}
+			})
+		end
 
 		panel:AddControl("MaterialGallery", {
 			Height = "100",
@@ -1009,10 +1024,22 @@ elseif CLIENT then
 	  Expression 2 Tool Screen for Garry's Mod
 	  Andreas "Syranide" Svensson, me@syranide.com
 	\******************************************************************************/
-
-	surface.CreateFont("Arial", 40, 1000, true, false, "Expression2ToolScreenFont")
-	surface.CreateFont("Arial", 30, 1000, true, false, "Expression2ToolScreenSubFont")
-
+	if VERSION >= 151 then
+		local fontTable = 
+		{
+			font = "Arial",
+			size = 40,
+			weight = 1000,
+			antialias = true,
+			additive = false,
+		}
+		surface.CreateFont( "Expression2ToolScreenFont", fontTable )
+		fontTable.size = 30
+		surface.CreateFont( "Expression2ToolScreenSubFont", fontTable )
+	else
+		surface.CreateFont("Arial", 40, 1000, true, false, "Expression2ToolScreenFont")
+		surface.CreateFont("Arial", 30, 1000, true, false, "Expression2ToolScreenSubFont")
+	end
 	local percent = nil
 	local percent2 = nil
 	local name = "Unnamed"
@@ -1204,8 +1231,14 @@ function TOOL:UpdateGhostWireExpression2( ent, player )
 
 		if ( !ent ) then return end
 		if ( !ent:IsValid() ) then return end
-
-		local tr 	= utilx.GetPlayerTrace( player, player:GetCursorAimVector() )
+		
+		local tr = nil
+		if VERSION >= 151 then
+			tr = util.GetPlayerTrace( player )
+		else
+			tr = utilx.GetPlayerTrace( player, player:GetCursorAimVector() )
+		end
+		
 		local trace 	= util.TraceLine( tr )
 		if (!trace.Hit) then return end
 
