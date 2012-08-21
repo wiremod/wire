@@ -61,7 +61,7 @@ if (SERVER) then
 	-- Send the version to the client
 	------------------------------------------------------------------
 	local function recheck( ply, tries )
-		timer.Simple(5,function(ply)
+		timer.Simple(5,function()
 			if (ply and ply:IsValid()) then -- Success!
 				umsg.Start("wire_rev",ply)
 					umsg.String( WireLib.Version )

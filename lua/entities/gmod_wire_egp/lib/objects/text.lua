@@ -47,7 +47,19 @@ Obj.Draw = function( self )
 		if (!EGP.ValidFonts[self.fontid]) then self.fontid = 1 end
 		local font = "WireEGP_" .. self.size .. "_" .. self.fontid
 		if (!EGP.ValidFonts_Lookup[font]) then
-			surface_CreateFont( EGP.ValidFonts[self.fontid], self.size, 800, true, false, font )
+			if VERSION >= 151 then
+				local fontTable =
+				{
+					font=EGP.ValidFonts[self.fontid],
+					size = self.size,
+					weight = 800,
+					antialias = true,
+					additive = false
+				}
+				surface_CreateFont( font, fontTable )
+			else
+				surface_CreateFont( EGP.ValidFonts[self.fontid], self.size, 800, true, false, font )
+			end
 			EGP.ValidFonts[#EGP.ValidFonts+1]= font
 			EGP.ValidFonts_Lookup[font] = true
 		end

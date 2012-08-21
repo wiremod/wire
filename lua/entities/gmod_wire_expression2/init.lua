@@ -425,7 +425,7 @@ function ENT:Reset()
 	self.context.resetting = true
 
 	-- reset the chip in the next tick
-	timer.Simple(0, self.Setup, self, self.original, self.inc_files)
+	timer.Simple(0, function() self.Setup( self, self.original, self.inc_files) end )
 end
 
 function ENT:TriggerInput(key, value)
