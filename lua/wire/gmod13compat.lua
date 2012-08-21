@@ -68,10 +68,18 @@ end
 
 utilx = util or {}
 
+if VERSION >= 151 then
+	timer.IsTimer = timer.Exists
+end
+
 function http12.Get(url, headers, callback)
 	http.Fetch(url, callback, function() print("Err - http.Fetch") end)
 end
-
+if CLIENT then
+	if VERSION >= 151 then
+		_R.Panel.AddHeader = function() end
+	end
+end
 if SERVER then
 	resource.AddFile("materials/gui/silkicons/emoticon_smile.vtf")
 	resource.AddFile("materials/gui/silkicons/newspaper.vtf")
@@ -112,5 +120,13 @@ else
 	end
 	cam.StartMaterialOverride = render.MaterialOverride
 	SetMaterialOverride = render.MaterialOverride
-	surface.CreateFont("defaultbold", 12, 700, true, false, "DefaultBold")
+	local fontTable = 
+	{
+		font = "defaultbold",
+		size = 12,
+		weight = 700,
+		antialias = true,
+		additive = false,
+	}
+	surface.CreateFont("DefaultBold", fontTable)
 end
