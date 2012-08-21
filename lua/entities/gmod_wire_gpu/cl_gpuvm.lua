@@ -1271,7 +1271,7 @@ end
 --------------------------------------------------------------------------------
 -- Set current color
 --------------------------------------------------------------------------------
-function VM:SetColor12(color)
+function VM:SetColor(color)
   if self.VertexBufEnabled == 1 then
     if #self.VertexBuffer > 0 then
       self.VertexBuffer[#self.VertexBuffer].color = self:ColorTransform(color)
@@ -1523,14 +1523,14 @@ VM.OpcodeTable[213] = function(self)  --DDISABLE
 end
 VM.OpcodeTable[214] = function(self)  --DCLRSCR
   self:Dyn_Emit("if VM.RenderEnable == 1 then")
-    self:Dyn_Emit("VM:SetColor12(VM:ReadVector4f($1))")
+    self:Dyn_Emit("VM:SetColor(VM:ReadVector4f($1))")
     self:Dyn_Emit("VM:BindState()")
     self:Dyn_Emit("surface.SetTexture(0)")
     self:Dyn_Emit("surface.DrawRect(0,0,VM.ScreenWidth,VM.ScreenHeight)")
   self:Dyn_Emit("end")
 end
 VM.OpcodeTable[215] = function(self)  --DCOLOR
-  self:Dyn_Emit("VM:SetColor12(VM:ReadVector4f($1))")
+  self:Dyn_Emit("VM:SetColor(VM:ReadVector4f($1))")
   self:Dyn_EmitInterruptCheck()
 end
 VM.OpcodeTable[216] = function(self)  --DTEXTURE
@@ -2106,7 +2106,7 @@ VM.OpcodeTable[276] = function(self)  --DSHADE
   self:Dyn_Emit("VM.Color.x = VM.Color.x*SHADE")
   self:Dyn_Emit("VM.Color.y = VM.Color.y*SHADE")
   self:Dyn_Emit("VM.Color.z = VM.Color.z*SHADE")
-  self:Dyn_Emit("VM:SetColor12(VM.Color)")
+  self:Dyn_Emit("VM:SetColor(VM.Color)")
 end
 VM.OpcodeTable[277] = function(self)  --DSETWIDTH
   self:Dyn_Emit("VM:WriteCell(65476,$1)")
@@ -2121,7 +2121,7 @@ VM.OpcodeTable[279] = function(self)  --DSHADENORM
   self:Dyn_Emit("VM.Color.x = math.Clamp(VM.Color.x*SHADE,0,255)")
   self:Dyn_Emit("VM.Color.y = math.Clamp(VM.Color.y*SHADE,0,255)")
   self:Dyn_Emit("VM.Color.z = math.Clamp(VM.Color.z*SHADE,0,255)")
-  self:Dyn_Emit("VM:SetColor12(VM.Color)")
+  self:Dyn_Emit("VM:SetColor(VM.Color)")
 end
 --------------------------------------------------------------------------------
 VM.OpcodeTable[280] = function(self)  --DDFRAME
@@ -2195,11 +2195,11 @@ VM.OpcodeTable[280] = function(self)  --DDFRAME
   self:Dyn_Emit("VM:ComputeTextureUV(VD3[3],1,1)")
   self:Dyn_Emit("VM:ComputeTextureUV(VD3[4],0,1)")
 
-  self:Dyn_Emit("VM:SetColor12(CSHADOW)")
+  self:Dyn_Emit("VM:SetColor(CSHADOW)")
   self:Dyn_Emit("VM:DrawToBuffer(VD1)")
-  self:Dyn_Emit("VM:SetColor12(CHIGHLIGHT)")
+  self:Dyn_Emit("VM:SetColor(CHIGHLIGHT)")
   self:Dyn_Emit("VM:DrawToBuffer(VD2)")
-  self:Dyn_Emit("VM:SetColor12(CFACE)")
+  self:Dyn_Emit("VM:SetColor(CFACE)")
   self:Dyn_Emit("VM:DrawToBuffer(VD3)")
 end
 VM.OpcodeTable[283] = function(self)  --DRASTER
