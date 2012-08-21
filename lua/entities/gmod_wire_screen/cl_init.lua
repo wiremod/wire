@@ -93,7 +93,7 @@ end
 if VERSION >= 151 then
 	local fontData = 
 	{
-		font = "coolvertica",
+		font = "coolvetica",
 		size = 64,
 		weight = 400,
 		antialias = false,
