@@ -14,13 +14,13 @@ TOOL.ClientConVar = {
 }
 
 if CLIENT then
-	language12.Add("Tool_wire_expression2_name", "Expression 2 Tool (Wire)")
-	language12.Add("Tool_wire_expression2_desc", "Spawns an Expression 2 chip for use with the wire system.")
-	language12.Add("Tool_wire_expression2_0",    "Primary: Create/Update Expression, Secondary: Open Expression in Editor")
-	language12.Add("sboxlimit_wire_expression",  "You've hit the Expression limit!")
-	language12.Add("Undone_wire_expression2",    "Undone Expression 2")
-	language12.Add("Cleanup_wire_expressions",   "Expression 1+2" )
-	language12.Add("Cleaned_wire_expressions",   "Cleaned up all Wire Expressions" )
+	language.Add("Tool.wire_expression2.name", "Expression 2 Tool (Wire)")
+	language.Add("Tool.wire_expression2.desc", "Spawns an Expression 2 chip for use with the wire system.")
+	language.Add("Tool.wire_expression2.0",    "Primary: Create/Update Expression, Secondary: Open Expression in Editor")
+	language.Add("sboxlimit_wire_expression",  "You've hit the Expression limit!")
+	language.Add("Undone_wire_expression2",    "Undone Expression 2")
+	language.Add("Cleanup_wire_expressions",   "Expression 1+2" )
+	language.Add("Cleaned_wire_expressions",   "Cleaned up all Wire Expressions" )
 end
 
 cleanup.Register("wire_expressions")

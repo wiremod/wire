@@ -5,25 +5,18 @@ TOOL.ConfigName		= ""
 TOOL.Tab			= "Wire"
 
 if (CLIENT) then
-	language12.Add("Tool_wire_value_name", "Value Tool (Wire)")
-	language12.Add("Tool_wire_value_desc", "Spawns a constant value for use with the wire system.")
-	language12.Add("Tool_wire_value_0", "Primary: Create/Update Value, Secondary: Copy Settings")
-	language12.Add("WireValueTool_value", "Value:")
-	language12.Add("WireValueTool_model", "Model:")
-	language12.Add("sboxlimit_wire_values", "You've hit values limit!")
-	language12.Add("undone_wirevalue", "Undone Wire Value")
+	language.Add("Tool.wire_value.name", "Value Tool (Wire)")
+	language.Add("Tool.wire_value.desc", "Spawns a constant value for use with the wire system.")
+	language.Add("Tool.wire_value.0", "Primary: Create/Update Value, Secondary: Copy Settings")
+	language.Add("WireValueTool_value", "Value:")
+	language.Add("WireValueTool_model", "Model:")
+	language.Add("sboxlimit_wire_values", "You've hit values limit!")
+	language.Add("undone_wirevalue", "Undone Wire Value")
 end
 
-
-
-TOOL.ClientConVar["model"] = "models/kobilica/value.mdl"
-TOOL.ClientConVar["numvalues"] = "1"
-for i = 1, 12 do
-	TOOL.ClientConVar["value" .. i] = "0"
-	TOOL.ClientConVar["valuetype" .. i] = "Number"
-end
 
 // Supported Data Types.
+// Should be requested by client and only kept serverside.
 local DataTypes = {
 // typedata | Shown In The Menu/Console.
 ["normal"]	= "Number",
@@ -48,73 +41,70 @@ if (SERVER) then
 		PrintTable( playerValues[ply] )
 		print("DONE.")
 	end)
+	
+	local function MakeWireValue( ply, Pos, Ang )
+		if (!ply:CheckLimit("wire_values")) then return false end
+
+		local wire_value = ents.Create("gmod_wire_value")
+		if (!wire_value:IsValid()) then return false end
+		
+		undo.Create("wirevalue")
+			undo.AddEntity( wire_value )
+			undo.SetPlayer( ply )
+		undo.Finish()
+		
+		wire_value:SetAngles(Ang)
+		wire_value:SetPos(Pos)
+		wire_value:SetModel("models/kobilica/value.mdl")
+		wire_value:Spawn()
+
+		wire_value:Setup(playerValues[ply])
+		wire_value:SetPlayer(ply)
+		
+
+
+		ply:AddCount("wire_values", wire_value)
+
+		return wire_value
+	end
 
 	function TOOL:LeftClick(trace)
 		if (!trace.HitPos) then return false end
 		if (trace.Entity:IsPlayer()) then return false end
 		if not util.IsValidPhysicsObject( trace.Entity, trace.PhysicsBone ) then return false end
-
-		local ply = self:GetOwner()
-		local tbl = playerValues[ply]
-		if tbl != nil then
-			Msg("Got table!\n")
-			PrintTable( tbl )
-			return true
+		
+		if trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_value" then
+			trace.Entity:Setup( playerValues[ply] )
 		else
-			return false
+			local ply = self:GetOwner()
+			local tbl = playerValues[ply]
+			if tbl != nil then
+				Msg("Got table!\n")
+				PrintTable( tbl )
+				local ang = trace.HitNormal:Angle()
+				ang.pitch = ang.pitch + 90
+				MakeWireValue(ply, trace.HitPos, ang )
+				return true
+			else
+				return false
+			end
 		end
-		return true
+		return false
 	end
 end
+
+
 if CLIENT then
 	function TOOL:LeftClick( trace )
 		return true
 	end
 end
-
-function TOOL:RightClick(trace)
-	if (!trace.HitPos) then return false end
-	if (trace.Entity:IsPlayer()) then return false end
-	if (CLIENT) then return true end
-
-	local ply = self:GetOwner()
-
-	if (trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_value") then
-		local Values = 0
-		for k1, v1 in pairs(trace.Entity.value) do
-			local Valuetype = string.Explode(":", v1)[1]
-			local Value = ""
-
-			local Type = "Number"
-			for k2, v2 in pairs(DataTypes) do
-				if (string.lower(Valuetype) == k2) then
-					if ((Valuetype ~= "") or (k2 ~= "")) then
-						Value = string.gsub(v1, (Valuetype..":"), "")
-						Type = v2 or "Number"
-						break
-					else
-						Value = string.gsub(v1, ("normal:"), "")
-						Type = "Number"
-						break
-					end
-				else
-					Value = string.gsub(v1, ("normal:"), "")
-					Type = "Number"
-				end
-			end
-
-			ply:ConCommand("wire_value_valuetype"..k1.." "..Type)
-			ply:ConCommand("wire_value_value"..k1.." "..Value)
-			Values = Values + 1
-		end
-		ply:ConCommand("wire_value_numvalues "..Values)
-		return true
+if SERVER then
+	function TOOL:RightClick(trace)
+		return false
 	end
-end
 
-if (SERVER) then
-
-	function MakeWireValue(ply, Pos, Ang, model, value)
+	local function MakeWireValue( ply, Pos, Ang )
 		if (!ply:CheckLimit("wire_values")) then return false end
 
 		local wire_value = ents.Create("gmod_wire_value")
@@ -125,7 +115,7 @@ if (SERVER) then
 		wire_value:SetModel(model)
 		wire_value:Spawn()
 
-		wire_value:Setup(value)
+		wire_value:Setup(playerValues)
 		wire_value:SetPlayer(ply)
 
 		ply:AddCount("wire_values", wire_value)
@@ -134,7 +124,6 @@ if (SERVER) then
 	end
 
 	duplicator.RegisterEntityClass("gmod_wire_value", MakeWireValue, "Pos", "Ang", "Model", "value")
-
 end
 
 function TOOL:UpdateGhostWireValue(ent, player)
@@ -190,7 +179,7 @@ if CLIENT then
 		local w,_ = panel:GetSize()
 		selectedValues[id] = {
 			DataType = "Number",
-			Value = ""
+			Value = 0
 		}
 		local control = vgui.Create( "DCollapsibleCategory", panel )
 		control:SetSize( w-6, 100 )
