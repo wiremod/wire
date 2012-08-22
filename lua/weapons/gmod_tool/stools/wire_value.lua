@@ -17,17 +17,22 @@ end
 
 // Supported Data Types.
 // Should be requested by client and only kept serverside.
-local DataTypes = {
-// typedata | Shown In The Menu/Console.
-["normal"]	= "Number",
-[""]		= "Number", // Same as normal/number, but for old dupes. ;)
-["string"]	= "String",
-["vector2"] = "2D Vector",
-["vector"]	= "3D Vector",
-["vector4"] = "4D Vector",
-["angle"]	= "Angle"}
+local DataTypes = 
+{
+	["NORMAL"] = "Number",
+	["STRING"]	= "String",
+	["VECTOR"] = "Vector",
+	["ANGLE"]	= "Angle"
+}
 
 cleanup.Register("wire_values")
+
+if CLIENT then
+	function TOOL:LeftClick( trace )
+		return true
+	end
+end
+
 
 if (SERVER) then
 	local playerValues = {}
@@ -36,10 +41,7 @@ if (SERVER) then
 	util.AddNetworkString( "wire_value_values" )
 	
 	net.Receive( "wire_value_values", function( length, ply )
-		print("BEGIN")
 		playerValues[ply] = net.ReadTable()
-		PrintTable( playerValues[ply] )
-		print("DONE.")
 	end)
 	
 	local function MakeWireValue( ply, Pos, Ang )
@@ -67,13 +69,16 @@ if (SERVER) then
 
 		return wire_value
 	end
-
+	
+	duplicator.RegisterEntityClass("gmod_wire_value", MakeWireValue, "Pos", "Ang", "Model", "value")
+	
 	function TOOL:LeftClick(trace)
 		if (!trace.HitPos) then return false end
 		if (trace.Entity:IsPlayer()) then return false end
 		if not util.IsValidPhysicsObject( trace.Entity, trace.PhysicsBone ) then return false end
 		
 		if trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_value" then
+			local ply = self:GetOwner()
 			trace.Entity:Setup( playerValues[ply] )
 		else
 			local ply = self:GetOwner()
@@ -91,46 +96,17 @@ if (SERVER) then
 		end
 		return false
 	end
-end
 
-
-if CLIENT then
-	function TOOL:LeftClick( trace )
-		return true
-	end
-end
-if SERVER then
 	function TOOL:RightClick(trace)
 		return false
 	end
-
-	local function MakeWireValue( ply, Pos, Ang )
-		if (!ply:CheckLimit("wire_values")) then return false end
-
-		local wire_value = ents.Create("gmod_wire_value")
-		if (!wire_value:IsValid()) then return false end
-
-		wire_value:SetAngles(Ang)
-		wire_value:SetPos(Pos)
-		wire_value:SetModel(model)
-		wire_value:Spawn()
-
-		wire_value:Setup(playerValues)
-		wire_value:SetPlayer(ply)
-
-		ply:AddCount("wire_values", wire_value)
-
-		return wire_value
-	end
-
-	duplicator.RegisterEntityClass("gmod_wire_value", MakeWireValue, "Pos", "Ang", "Model", "value")
 end
 
 function TOOL:UpdateGhostWireValue(ent, player)
 	if (!ent || !ent:IsValid()) then return end
 
-	local tr 	= util.GetPlayerTrace( player )
-	local trace 	= util.TraceLine(tr)
+	local tr = util.GetPlayerTrace( player )
+	local trace = util.TraceLine(tr)
 
 	if (!trace.Hit || trace.Entity:IsPlayer() || trace.Entity:GetClass() == "gmod_wire_value") then
 		ent:SetNoDraw(true)
@@ -159,11 +135,12 @@ end
 
 function TOOL:GetModel()
 	local model = "models/kobilica/value.mdl"
-	local modelcheck = self:GetClientInfo("model")
+	-- TODO model validation function, In wirelib.
+	--[[local modelcheck = self:GetClientInfo("model")
 
 	if (util.IsValidModel(modelcheck) and util.IsValidProp(modelcheck)) then
 		model = modelcheck
-	end
+	end]]
 
 	return model
 end
@@ -173,7 +150,6 @@ if CLIENT then
 		net.Start("wire_value_values")
 		net.WriteTable(selectedValues)
 		net.SendToServer()
-		print("Data Sent!")
 	end
 	local function AddValue( panel, id )
 		local w,_ = panel:GetSize()
@@ -194,7 +170,7 @@ if CLIENT then
 		
 		local typeSelection = vgui.Create( "DComboBox", controlPanel )
 		local _, controlW = control:GetSize()
-		typeSelection:SetText( DataTypes[""] )
+		typeSelection:SetText( DataTypes["NORMAL"] )
 		typeSelection:SetSize( controlW , 25 )
 		typeSelection:DockMargin( 5,5,5,5)
 		typeSelection:Dock( TOP )
@@ -204,17 +180,17 @@ if CLIENT then
 		end
 
 		for k,v in pairs( DataTypes ) do
-			if k != "" then
-				typeSelection:AddChoice(v)
-			end
+			typeSelection:AddChoice(v)
 		end
 		
 		local valueEntry = vgui.Create( "DTextEntry", controlPanel )
 		valueEntry:SetSize( controlW, 25 )
 		valueEntry:DockMargin( 5,5,5,5 )
+		valueEntry:SetText("0")
 		valueEntry:Dock( TOP )
 		valueEntry.OnEnter = function ( panel )
 			if panel:GetValue() != nil then
+				local value = panel:GetValue()
 				selectedValues[id].Value = panel:GetValue()
 				SendUpdate()
 			end
