@@ -14,7 +14,7 @@ if (CLIENT) then
 	language.Add("undone_wirevalue", "Undone Wire Value")
 end
 
-
+TOOL.ClientConVar["model"] = "models/kobilica/value.mdl"
 // Supported Data Types.
 // Should be requested by client and only kept serverside.
 local DataTypes = 
@@ -44,7 +44,7 @@ if (SERVER) then
 		playerValues[ply] = net.ReadTable()
 	end)
 	
-	local function MakeWireValue( ply, Pos, Ang )
+	local function MakeWireValue( ply, Pos, Ang, model )
 		if (!ply:CheckLimit("wire_values")) then return false end
 
 		local wire_value = ents.Create("gmod_wire_value")
@@ -57,13 +57,11 @@ if (SERVER) then
 		
 		wire_value:SetAngles(Ang)
 		wire_value:SetPos(Pos)
-		wire_value:SetModel("models/kobilica/value.mdl")
+		wire_value:SetModel(model)
 		wire_value:Spawn()
 
 		wire_value:Setup(playerValues[ply])
 		wire_value:SetPlayer(ply)
-		
-
 
 		ply:AddCount("wire_values", wire_value)
 
@@ -84,11 +82,10 @@ if (SERVER) then
 			local ply = self:GetOwner()
 			local tbl = playerValues[ply]
 			if tbl != nil then
-				Msg("Got table!\n")
-				PrintTable( tbl )
 				local ang = trace.HitNormal:Angle()
 				ang.pitch = ang.pitch + 90
-				MakeWireValue(ply, trace.HitPos, ang )
+				local ent = MakeWireValue(ply, trace.HitPos, ang, self:GetModel() )
+				local weld = constraint.Weld( ent, trace.Entity, trace.PhysicsBone,0,0, true )
 				return true
 			else
 				return false
@@ -135,12 +132,11 @@ end
 
 function TOOL:GetModel()
 	local model = "models/kobilica/value.mdl"
-	-- TODO model validation function, In wirelib.
-	--[[local modelcheck = self:GetClientInfo("model")
+	local modelcheck = self:GetClientInfo("model")
 
 	if (util.IsValidModel(modelcheck) and util.IsValidProp(modelcheck)) then
 		model = modelcheck
-	end]]
+	end
 
 	return model
 end
@@ -187,14 +183,15 @@ if CLIENT then
 		valueEntry:SetSize( controlW, 25 )
 		valueEntry:DockMargin( 5,5,5,5 )
 		valueEntry:SetText("0")
-		valueEntry:Dock( TOP )
-		valueEntry.OnEnter = function ( panel )
+		valueEntry:Dock( TOP )		
+		valueEntry.OnLoseFocus = function( panel )
 			if panel:GetValue() != nil then
 				local value = panel:GetValue()
 				selectedValues[id].Value = panel:GetValue()
 				SendUpdate()
 			end
 		end
+		
 
 		return control 
 	end
@@ -221,7 +218,6 @@ if CLIENT then
 		valueSlider:SetMin(1)
 		valueSlider:SetMax(20)
 		valueSlider:SetDecimals( 0 )
-		--valueSlider:SetConVar("numvalues")
 		valueSlider:DockMargin( 5, 5, 5, 5 )
 		valueSlider:Dock( TOP )
 		
@@ -247,17 +243,12 @@ if CLIENT then
 						valuePanel:SetSize(w, h-120 )
 					end
 				else
-					Msg("Error.\n")
+					Msg("Error Incorrect value exists?!?!.\n")
 				end
 				LastValueAmount = value
 				SendUpdate()
 			end
 		end
-		
 		valueSlider.OnValueChanged( valuePanel, 1 )
-		
-		
-		
 	end
-
 end
