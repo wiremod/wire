@@ -329,8 +329,8 @@ if CLIENT then
 
 		local monitor, pos, ang = self:GetInfo()
 
-		local OldTex = WireGPU_matScreen:GetMaterialTexture("$basetexture")
-		WireGPU_matScreen:SetMaterialTexture("$basetexture", self.RT)
+		local OldTex = WireGPU_matScreen:GetTexture("$basetexture")
+		WireGPU_matScreen:SetTexture("$basetexture", self.RT)
 
 		local res = monitor.RS
 		cam.Start3D2D(pos, ang, res)
@@ -352,7 +352,7 @@ if CLIENT then
 			end)
 		cam.End3D2D()
 
-		WireGPU_matScreen:SetMaterialTexture("$basetexture", OldTex)
+		WireGPU_matScreen:SetTexture("$basetexture", OldTex)
 	end
 
 	-- compatibility

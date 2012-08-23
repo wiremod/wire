@@ -974,7 +974,7 @@ function VM:FlushBuffer()
       }
       local resultMaterial = vertexData.material
       if vertexData.rt then
-        WireGPU_matBuffer:SetMaterialTexture("$basetexture", vertexData.rt)
+        WireGPU_matBuffer:SetTexture("$basetexture", vertexData.rt)
         resultMaterial = WireGPU_matBuffer
       end
 
@@ -1314,14 +1314,14 @@ function VM:BindState()
   surface.SetDrawColor(self.Color.x,self.Color.y,self.Color.z,self.Color.w)
   if self.VertexTexturing == 1 then
     if self.Memory[65517] == 1 then
-      --[@entities\gmod_wire_gpu\cl_gpuvm.lua:1276] bad argument #2 to 'SetMaterialTexture' (ITexture expected, got nil)
+      --[@entities\gmod_wire_gpu\cl_gpuvm.lua:1276] bad argument #2 to 'SetTexture' (ITexture expected, got nil)
       self.Entity:AssertSpriteBufferExists()
       if self.Entity.SpriteGPU.RT then
-        WireGPU_matBuffer:SetMaterialTexture("$basetexture", self.Entity.SpriteGPU.RT)
+        WireGPU_matBuffer:SetTexture("$basetexture", self.Entity.SpriteGPU.RT)
       end
     else
       if self.Entity.GPU.RT then
-        WireGPU_matBuffer:SetMaterialTexture("$basetexture", self.Entity.GPU.RT)
+        WireGPU_matBuffer:SetTexture("$basetexture", self.Entity.GPU.RT)
       end
     end
     surface.SetMaterial(WireGPU_matBuffer)
