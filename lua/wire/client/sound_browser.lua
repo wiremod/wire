@@ -110,15 +110,15 @@ function PANEL:BuildFileTree(dir, parent, filepart) // Build the file tree.
 	if ((!pFolders) or (olddir ~= dir)) then // Find the files only one time when open a folder. It saves performance.
 		self.FilepartNumber = 0
 
-		pFolders = file.FindDir(dir .. "/*",true) // Find the folders.
+		pFolders = file.FindDir(dir .. "/*","GAME") // Find the folders.
 		for i = 1, math.Clamp(table.Count(pFolders), 0, MaxElements) do // Make filepath and names lowercase.
 			pFolders[i] = string.lower(pFolders[i])
 		end
 		table.sort(pFolders)
 
 
-		local pFiles1 = file.Find(dir .. "/*.wav",true) // Find the *.wav-files.
-		local pFiles2 = file.Find(dir .. "/*.mp3",true) // Find the *.mp3-files.
+		local pFiles1 = file.Find(dir .. "/*.wav","GAME") // Find the *.wav-files.
+		local pFiles2 = file.Find(dir .. "/*.mp3","GAME") // Find the *.mp3-files.
 		table.Add(pFiles1, pFiles2) // Put *.wav and *.mp3-files together.
 		for i = 1, math.Clamp(table.Count(pFiles1), 0, MaxElements) do // Make filepath and names lowercase.
 			pFiles1[i] = string.lower(pFiles1[i])
@@ -284,7 +284,7 @@ function PANEL:GetSoundInfors(sound) // Output the infos about the given sound.
 	local SoundInfoString = ""
 	if ((type(sound) == "string") and (sound ~= "")) then
 		local seconds = math.Round(SoundDuration(sound) * 1000) / 1000
-		local sizeB = file.Size("sound/"..sound,true) or 0
+		local sizeB = file.Size("sound/"..sound,"GAME") or 0
 		local sizeKB = math.Round((sizeB / 1024) * 1000) / 1000
 		local format = string.lower(string.GetExtensionFromFilename("sound/"..sound,true))
 		local m, s, ms = seconds / 60, seconds % 60, (seconds % 1) * 1000
