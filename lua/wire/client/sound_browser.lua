@@ -42,8 +42,8 @@ function PANEL:FindItemsInTree(pFolders, dir, parent, fileicon, filepart, fileco
 						local v = pFolders[index + (MaxElements * filepart)]
 						if (type(v) == "string") then
 							local Filepath = (dir .. "/" .. v)
-							local IsDir = file.IsDir(Filepath,true)
-							local FileExists = file.Exists(Filepath,true)
+							local IsDir = file.IsDir(Filepath,"GAME")
+							local FileExists = file12.Exists(Filepath,"GAME")
 							local NodeID = ("Node_ID_"..index..tostring(IsDir)..Filepath)
 							if (!string.match(v, "%.%.") and !AddedItems[Filepath]) then // No allow double foders and folder with ".." in thay names to be shown and check if the folder is a real folder, this prevents some errors.
 								if (IsDir) then
@@ -632,7 +632,7 @@ function PANEL:GetValidFolder(Folder) // Filter invalid chars out.
 
 	local Dirs = table.Count(string.Explode("/", ValidFolder))
 	for i = 1, Dirs do
-		if (!file.IsDir("sound/"..ValidFolder,true)) then
+		if (!file.IsDir("sound/"..ValidFolder,"GAME")) then
 			ValidFolder = string.GetPathFromFilename(ValidFolder)
 			ValidFolder = string.Trim(ValidFolder, "/")
 		end

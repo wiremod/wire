@@ -1,37 +1,18 @@
-if VERSION < 131 then -- Gmod version check
-	TOOL.Mode			= "wire"
-	TOOL.Category		= "Wire - Tools"
-	TOOL.Name			= "Wire"
-	TOOL.Tab			= "Wire"
-	function TOOL.BuildCPanel(panel)
-		panel:AddControl( "Label", { Text = "Your GMod is years too old. Loading of the wire tools aborted.\n" })
-	end
-	return
-end
-
-TOOL = nil
-
--- Load our other stools first
--- This is a hack to load tools outside of the stools folder and in a many-in-one-file method
-include( "wire/stools/tool_loader.lua" )
-
--- wire stool
-TOOL				= ToolObj:Create()
 TOOL.Mode			= "wire"
 TOOL.Category		= "Wire - Tools"
 TOOL.Name			= "Wire"
 TOOL.Tab			= "Wire"
 
 if CLIENT then
-	language12.Add( "Tool_wire_name", "Wiring Tool" )
-	language12.Add( "Tool_wire_desc", "Used to connect wirable props." )
-	language12.Add( "Tool_wire_0", "Primary: Attach to selected input.\nSecondary: Next input.\nReload: Unlink selected input." )
-	language12.Add( "Tool_wire_1", "Primary: Attach to output.\nSecondary: Attach but continue.\nReload: Cancel." )
-	language12.Add( "Tool_wire_2", "Primary: Confirm attach to output.\nSecondary: Next output.\nReload: Cancel." )
-	language12.Add( "WireTool_width", "Width:" )
-	language12.Add( "WireTool_material", "Material:" )
-	language12.Add( "WireTool_colour", "Material:" )
-	language12.Add( "undone_wire", "Undone Wire" )
+	language.Add( "Tool.wire.name", "Wiring Tool" )
+	language.Add( "Tool.wire.desc", "Used to connect wirable props." )
+	language.Add( "Tool.wire.0", "Primary: Attach to selected input.\nSecondary: Next input.\nReload: Unlink selected input." )
+	language.Add( "Tool.wire.1", "Primary: Attach to output.\nSecondary: Attach but continue.\nReload: Cancel." )
+	language.Add( "Tool.wire.2", "Primary: Confirm attach to output.\nSecondary: Next output.\nReload: Cancel." )
+	language.Add( "WireTool_width", "Width:" )
+	language.Add( "WireTool_material", "Material:" )
+	language.Add( "WireTool_colour", "Material:" )
+	language.Add( "undone_wire", "Undone Wire" )
 end
 
 TOOL.ClientConVar = {
