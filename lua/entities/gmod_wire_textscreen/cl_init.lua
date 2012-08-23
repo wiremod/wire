@@ -189,19 +189,15 @@ if not wire_textscreen_FontsCreated then
 
 	local fontSize = 380
 	for i = 1,15 do
-		if VERSION >= 151 then
-			local fontData = 
-			{
-				font = "coolvertica",
-				size = fontSize / i,
-				weight = 400,
-				antialias = true,
-				additive = false,
-				
-			}
-			surface.CreateFont( "textScreenfont" .. i, fontData)
-		else
-			surface.CreateFont( "coolvetica", fontSize / i, 400, true, false, "textScreenfont"..i )
-		end
+		local fontData = 
+		{
+			font = "coolvertica",
+			size = fontSize / i,
+			weight = 400,
+			antialias = true,
+			additive = false,
+			
+		}
+		surface.CreateFont( "textScreenfont" .. i, fontData)
 	end
 end

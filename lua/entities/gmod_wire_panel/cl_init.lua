@@ -7,19 +7,15 @@ function ENT:Initialize()
 	self.disp1 = 0
 
 	local font = "panel_font"
-	if VERSION >= 151 then
-		local fontTable =
-		{
-			font="Coolvetica",
-			size = 80,
-			weight = 400,
-			antialias = false,
-			additive = false
-		}
-		surface.CreateFont( font, fontTable )
-	else
-		surface.CreateFont("Coolvetica", 80, 400, false, false, font)
-	end
+	local fontTable =
+	{
+		font="Coolvetica",
+		size = 80,
+		weight = 400,
+		antialias = false,
+		additive = false
+	}
+	surface.CreateFont( font, fontTable )
 
 	self.GPU = WireGPU(self, true)
 	self.workingDistance = 64

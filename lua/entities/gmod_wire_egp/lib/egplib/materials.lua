@@ -19,20 +19,15 @@ if (CLIENT) then
 	local new = {}
 	for k,v in ipairs( EGP.ValidFonts ) do
 		local font = "WireEGP_18_"..k
-		
-		if VERSION >= 151 then
-			local fontTable =
-			{
-				font=v,
-				size = 18,
-				weight = 800,
-				antialias = true,
-				additive = false
-			}
-			surface.CreateFont( font, fontTable )
-		else
-			surface.CreateFont( EGP.ValidFonts[self.fontid], self.size, 800, true, false, font )
-		end
+		local fontTable =
+		{
+			font=v,
+			size = 18,
+			weight = 800,
+			antialias = true,
+			additive = false
+		}
+		surface.CreateFont( font, fontTable )
 		
 		EGP.ValidFonts_Lookup[font] = true
 		table.insert( new, font )

@@ -133,19 +133,15 @@ if CLIENT then
 	//
 	// Create basic fonts
 	//
-	if VERSION >= 151 then
-		local fontData = 
-		{
-			font="lucida console",
-			size=20,
-			weight=800,
-			antialias= true,
-			additive = false,
-		}
-		surface.CreateFont("WireGPU_ConsoleFont", fontData)
-	else
-		surface.CreateFont("lucida console", 20, 800, true, false, "WireGPU_ConsoleFont")
-	end
+	local fontData = 
+	{
+		font="lucida console",
+		size=20,
+		weight=800,
+		antialias= true,
+		additive = false,
+	}
+	surface.CreateFont("WireGPU_ConsoleFont", fontData)
 	//
 	// Create screen textures and materials
 	//

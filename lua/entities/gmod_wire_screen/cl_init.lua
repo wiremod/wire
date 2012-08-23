@@ -90,25 +90,18 @@ function ENT:IsTranslucent()
 	return true
 end
 
-if VERSION >= 151 then
-	local fontData = 
-	{
-		font = "coolvetica",
-		size = 64,
-		weight = 400,
-		antialias = false,
-		additive = false,
 
-	}
-	surface.CreateFont("screen_font", fontData )
-	fontData.size = 128
-	surface.CreateFont("screen_font_single", fontData )
-	fontData.size = 36
-	surface.CreateFont("Trebuchet36", fontData )
-else
-	surface.CreateFont( "coolvetica", 64, 400, false, false, "screen_font" )
-	// Create new fonts here for Single Value screens
-	// According to the wiki, the font size is capped at 128 (TheApathetic)
-	surface.CreateFont("coolvetica", 128, 400, false, false, "screen_font_single")
-	surface.CreateFont("Trebuchet", 36, 400, false, false, "Trebuchet36")
-end
+local fontData = 
+{
+	font = "coolvetica",
+	size = 64,
+	weight = 400,
+	antialias = false,
+	additive = false,
+
+}
+surface.CreateFont("screen_font", fontData )
+fontData.size = 128
+surface.CreateFont("screen_font_single", fontData )
+fontData.size = 36
+surface.CreateFont("Trebuchet36", fontData )

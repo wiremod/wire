@@ -55,19 +55,15 @@ function ENT:OverrideVM()
           surface.DrawRect(0,0,self.ScreenWidth,self.ScreenHeight)
 
           local font = "WireGPU_ErrorFont"
-          if VERSION >= 151 then
-            local fontTable =
-            {
-              font="Coolvetica",
-              size = 26,
-              weight = 200,
-              antialias = true,
-              additive = false
-            }
-            surface.CreateFont( font, fontTable )
-          else
-            surface.CreateFont("Coolvetica", 26, 200, true, false, font)
-          end
+          local fontTable =
+          {
+            font="Coolvetica",
+            size = 26,
+            weight = 200,
+            antialias = true,
+            additive = false
+          }
+          surface.CreateFont( font, fontTable )
           draw.DrawText("Error in the instruction stream","WireGPU_ErrorFont",48,16,Color(255,255,255,255))
           draw.DrawText((self.ErrorText[interruptNo] or "Unknown error").." (#"..interruptNo..")","WireGPU_ErrorFont",16,16+32*2,Color(255,255,255,255))
           draw.DrawText("Parameter: "..interruptParameter,"WireGPU_ErrorFont",16,16+32*3,Color(255,255,255,255))
@@ -842,19 +838,15 @@ end
 --------------------------------------------------------------------------------
 function VM:TextSize(text)
   local font = "WireGPU_"..self.FontName[self.Font]..self.FontSize
-  if VERSION >= 151 then
-    local fontTable = 
-    {
-      font=self.FontName[self.Font],
-      size = self.FontSize,
-      weight = 800,
-      antialias = true,
-      additive = false
-    }
-    surface.CreateFont( font, fontTable )
-  else
-    surface.CreateFont(self.FontName[self.Font], self.FontSize, 800, true, false, font)
-  end
+  local fontTable = 
+  {
+    font=self.FontName[self.Font],
+    size = self.FontSize,
+    weight = 800,
+    antialias = true,
+    additive = false
+  }
+  surface.CreateFont( font, fontTable )
 
   surface.SetFont("WireGPU_"..self.FontName[self.Font]..self.FontSize)
 
@@ -879,8 +871,16 @@ function VM:FontWrite(posaddr,text)
   vertex = self:VertexTransform(vertex)
 
   -- Create font
-  surface.CreateFont(self.FontName[self.Font], self.FontSize, 800, true, false,
-         "WireGPU_"..self.FontName[self.Font]..self.FontSize)
+  local font = "WireGPU_"..self.FontName[self.Font]..self.FontSize
+  local fontTable =
+  {
+    font=self.FontName[self.Font],
+    size = self.FontSize,
+    weight = 800,
+    antialias = true,
+    additive = false
+  }
+  surface_CreateFont( font, fontTable )
 
   -- Draw text
   if self.RenderEnable == 1 then
