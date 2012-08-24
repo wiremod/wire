@@ -14,13 +14,13 @@ TOOL.ClientConVar = {
 }
 
 if CLIENT then
-	language12.Add("Tool_wire_expression2_name", "Expression 2 Tool (Wire)")
-	language12.Add("Tool_wire_expression2_desc", "Spawns an Expression 2 chip for use with the wire system.")
-	language12.Add("Tool_wire_expression2_0",    "Primary: Create/Update Expression, Secondary: Open Expression in Editor")
-	language12.Add("sboxlimit_wire_expression",  "You've hit the Expression limit!")
-	language12.Add("Undone_wire_expression2",    "Undone Expression 2")
-	language12.Add("Cleanup_wire_expressions",   "Expression 1+2" )
-	language12.Add("Cleaned_wire_expressions",   "Cleaned up all Wire Expressions" )
+	language.Add("Tool.wire_expression2.name", "Expression 2 Tool (Wire)")
+	language.Add("Tool.wire_expression2.desc", "Spawns an Expression 2 chip for use with the wire system.")
+	language.Add("Tool.wire_expression2.0",    "Primary: Create/Update Expression, Secondary: Open Expression in Editor")
+	language.Add("sboxlimit_wire_expression",  "You've hit the Expression limit!")
+	language.Add("Undone_wire_expression2",    "Undone Expression 2")
+	language.Add("Cleanup_wire_expressions",   "Expression 1+2" )
+	language.Add("Cleaned_wire_expressions",   "Cleaned up all Wire Expressions" )
 end
 
 cleanup.Register("wire_expressions")
@@ -676,7 +676,7 @@ elseif CLIENT then
 				return
 			end
 		else
-			WireLib.AddNotify( "The Expression 2 function data has not been transferred to the client yet; uploading the E2 to the server for validation.\nNote that any includes will not be sent. You must wait for the function data to finish transmitting before you are able to use includes.", NOTIFY_ERROR, 14, NOTIFYSOUND_DRIP3 )
+			WireLib.AddNotify( "The Expression 2 function data has not been transferred to the client yet;\n uploading the E2 to the server for validation.\nNote that any includes will not be sent. You must wait for the function data to finish\n transmitting before you are able to use includes.", NOTIFY_ERROR, 14, NOTIFYSOUND_DRIP3 )
 			
 			-- This message is so long, the user might not be able to read it fast enough. Printing it to the console so they can read it there, too.
 			Msg( "The Expression 2 function data has not been transferred to the client yet; uploading the E2 to the server for validation.\nNote that any includes will not be sent. You must wait for the function data to finish transmitting before you are able to use includes.\n" )
@@ -915,35 +915,34 @@ elseif CLIENT then
 	--------------------------------------------------------------
 
 	function TOOL.BuildCPanel(panel)
-		panel:ClearControls()
-		panel:AddControl("Header", { Text = "#Tool_wire_expression2_name", Description = "#Tool_wire_expression2_desc" })
-
-		//ModelPlug_AddToCPanel(panel, "expr2", "wire_expression2", nil, nil, nil, 2)
-		if VERSION >= 151 then
-			local SizeControl = vgui.Create( "DComboBox", panel )
-			SizeControl.OnSelect = function ( index, value, data )
-				if( value == "Normal" ) then
-					wire_expression2_size = ""
-				elseif( value == "Mini" ) then
-					wire_expression2_size = "_mini"
-				elseif( value == "Nano" ) then
-					wire_expression2_size = "_nano"
-				end
+		local w,h = panel:GetSize()
+		
+		local SizeControl = vgui.Create( "DComboBox", panel )
+		SizeControl.OnSelect = function ( index, value, data )
+			if( value == "Normal" ) then
+				wire_expression2_size = ""
+			elseif( value == "Mini" ) then
+				wire_expression2_size = "_mini"
+			elseif( value == "Nano" ) then
+				wire_expression2_size = "_nano"
 			end
-			SizeControl:AddChoice( "Normal" ) 
-			SizeControl:AddChoice( "Mini" ) 
-			SizeControl:AddChoice( "Nano" )
-		else
-			panel:AddControl("DComboBox", {
-				MenuButton = "0",
-				Options = {
-					["Normal"] = { wire_expression2_size = "" },
-					["Mini"] = { wire_expression2_size = "_mini" },
-					["Nano"] = { wire_expression2_size = "_nano" },
-				}
-			})
 		end
-
+		SizeControl:SetSize(w,30)
+		SizeControl:SetValue("Normal")
+		SizeControl:AddChoice( "Normal" ) 
+		SizeControl:AddChoice( "Mini" ) 
+		SizeControl:AddChoice( "Nano" )
+		SizeControl:DockMargin(5,5,5,5)
+		SizeControl:Dock( TOP )
+		--[[
+		local ParentPanel = vgui.Create( "DPanel", panel )
+		ParentPanel:SetSize(w,h-40)
+		ParentPanel:Dock(TOP)
+		]]
+		--[[local MaterialGallery = vgui.Create( "DCollapsibleCategory", ParentPanel )
+		MaterialGallery:SetSize(w,100)
+		]]
+		-- lazy.. lazy.. lazy.. deprecated..
 		panel:AddControl("MaterialGallery", {
 			Height = "100",
 			Width = "100",
@@ -965,7 +964,10 @@ elseif CLIENT then
 		local FileBrowser = vgui.Create("wire_expression2_browser" , panel)
 		panel:AddPanel(FileBrowser)
 		FileBrowser:Setup("Expression2")
-		FileBrowser:SetSize(235,400)
+		FileBrowser:SetSize(w,300)
+		FileBrowser:DockMargin(5,5,5,5)
+		FileBrowser:DockPadding(5,5,5,5)
+		FileBrowser:Dock(TOP)
 		function FileBrowser:OnFileClick()
 			if( wire_expression2_editor == nil ) then initE2Editor() end
 
@@ -975,34 +977,24 @@ elseif CLIENT then
 				lastclick = CurTime()
 				dir = self.File.FileDir
 				wire_expression2_editor:LoadFile(dir)
-				Validation:Validate()
 			end
 		end
 
-		Validation = vgui.Create("Label" , panel)
-		panel:AddPanel(Validation)
-		Validation.OnMousePressed = function(panel) panel:Validate() end
-		Validation.Validate = function(panel)
-			local errors = wire_expression2_validate(wire_expression2_editor:GetCode())
-			if(!errors) then
-				panel:SetText("Validation Successful")
-			else
-				panel:SetText("Error in file")
-			end
-		end
-		Validation:SetText("Click to validate...")
+
 		local OpenEditor = vgui.Create("DButton" , panel)
 		panel:AddPanel(OpenEditor)
-		OpenEditor:SetTall(30)
+		OpenEditor:SetSize(w,30)
 		OpenEditor:SetText("Open Editor")
+		OpenEditor:Dock(TOP)
 		OpenEditor.DoClick = function(button)
 			wire_expression2_editor:Open()
 		end
 
 		local NewExpression = vgui.Create("DButton" , panel)
 		panel:AddPanel(NewExpression)
-		NewExpression:SetTall(30)
+		NewExpression:SetSize(w,30)
 		NewExpression:SetText("New Expression")
+		NewExpression:Dock(TOP)
 		NewExpression.DoClick = function(button)
 			wire_expression2_editor:Open()
 			wire_expression2_editor:NewScript()
@@ -1024,22 +1016,19 @@ elseif CLIENT then
 	  Expression 2 Tool Screen for Garry's Mod
 	  Andreas "Syranide" Svensson, me@syranide.com
 	\******************************************************************************/
-	if VERSION >= 151 then
-		local fontTable = 
-		{
-			font = "Arial",
-			size = 40,
-			weight = 1000,
-			antialias = true,
-			additive = false,
-		}
-		surface.CreateFont( "Expression2ToolScreenFont", fontTable )
-		fontTable.size = 30
-		surface.CreateFont( "Expression2ToolScreenSubFont", fontTable )
-	else
-		surface.CreateFont("Arial", 40, 1000, true, false, "Expression2ToolScreenFont")
-		surface.CreateFont("Arial", 30, 1000, true, false, "Expression2ToolScreenSubFont")
-	end
+
+	local fontTable = 
+	{
+		font = "Arial",
+		size = 40,
+		weight = 1000,
+		antialias = true,
+		additive = false,
+	}
+	surface.CreateFont( "Expression2ToolScreenFont", fontTable )
+	fontTable.size = 30
+	surface.CreateFont( "Expression2ToolScreenSubFont", fontTable )
+
 	local percent = nil
 	local percent2 = nil
 	local name = "Unnamed"
@@ -1083,7 +1072,7 @@ elseif CLIENT then
 	local CogTexture = surface.GetTextureID("expression 2/cog")
 	if CogTexture == surface.GetTextureID("texturemissing") then CogTexture = nil end
 
-	local function RenderScreen()
+	function TOOL:DrawToolScreen(width, height)
 		cam.Start2D()
 
 			surface.SetDrawColor(32, 32, 32, 255)
@@ -1131,15 +1120,6 @@ elseif CLIENT then
 			end
 
 		cam.End2D()
-	end
-	if VERSION >= 150 then
-		function TOOL:DrawToolScreen(width, height)
-			RenderScreen()
-		end
-	else
-		function TOOL:RenderToolScreen()
-			RenderScreen()
-		end
 	end
 end
 
@@ -1228,18 +1208,14 @@ end
 
 
 function TOOL:UpdateGhostWireExpression2( ent, player )
-
 		if ( !ent ) then return end
 		if ( !ent:IsValid() ) then return end
 		
 		local tr = nil
-		if VERSION >= 151 then
-			tr = util.GetPlayerTrace( player )
-		else
-			tr = utilx.GetPlayerTrace( player, player:GetCursorAimVector() )
-		end
+
+		tr = util.GetPlayerTrace( player )
 		
-		local trace 	= util.TraceLine( tr )
+		local trace = util.TraceLine( tr )
 		if (!trace.Hit) then return end
 
 		if (trace.Entity && trace.Entity:GetClass() == "gmod_wire_expression2" || trace.Entity:IsPlayer()) then
