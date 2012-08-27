@@ -2,7 +2,8 @@ local libs = {
 	"file",
 	"datastream",
 	"language",
-	"http"
+	"http",
+	"timer"
 }
 
 function _R.Entity.SetColor12(self,r,g,b,a)
@@ -113,4 +114,52 @@ else
 	cam.StartMaterialOverride = render.MaterialOverride
 	SetMaterialOverride = render.MaterialOverride
 	surface.CreateFont("defaultbold", 12, 700, true, false, "DefaultBold")
+end
+
+local function GetTimer12CallbackFunction(func, ...)
+	local callback
+	if VERSION >= 150 then
+		local varargTable = {...}
+		return
+			function()
+				func(unpack(varargTable))
+			end
+	else
+		return func
+	end
+end
+
+function timer12.Simple(delay, func, ...)
+	local callback = GetTimer12CallbackFunction(func, ...)
+	if VERSION >= 150 then
+		timer.Simple(delay, callback)
+	else
+		timer.Simple(delay, callback, ...)
+	end
+end
+
+function timer12.Create(name, delay, reps, func, ...)
+	local callback = GetTimer12CallbackFunction(func, ...)
+	if VERSION >= 150 then
+		timer.Create(name, delay, reps, callback)
+	else
+		timer.Create(name, delay, reps, callback, ...)
+	end
+end
+
+function timer12.Adjust(name, delay, reps, func, ...)
+	local callback = GetTimer12CallbackFunction(func, ...)
+	if VERSION >= 150 then
+		timer.Adjust(name, delay, reps, callback)
+	else
+		timer.Adjust(name, delay, reps, callback, ...)
+	end
+end
+
+function timer12.IsTimer(name)
+	if VERSION >= 150 then
+		return timer.Exists(name)
+	else
+		return timer.IsTimer(name)
+	end
 end

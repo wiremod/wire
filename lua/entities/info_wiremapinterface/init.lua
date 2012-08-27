@@ -35,7 +35,7 @@ hook.Add("PlayerInitialSpawn", "WireMapInterface_PlayerInitialSpawn", function(p
 	for Ent, time in ipairs(Ents) do
 		if (!IsValid(Ent)) then break end
 
-		timer.Simple(time + 0.1, function(Ent, ply)
+		timer12.Simple(time + 0.1, function(Ent, ply)
 			if (!IsValid(ply)) then return end
 			if (!IsValid(Ent)) then return end
 			if (!Ent.GiveWireInterfeceClient) then return end
@@ -243,7 +243,7 @@ function ENT:AcceptInput(name, activator, caller, data)
 		local Ent, Func = self:AddSingleEntity(caller)
 
 		if (!IsValid(Ent) or !Func) then return false end
-		timer.Simple(0.02, Func, self, Ent, nil, true)
+		timer12.Simple(0.02, Func, self, Ent, nil, true)
 
 		self:TriggerOutput("onwireentscreated", self)
 		self:TriggerOutput("onwireentsready", self)
@@ -374,7 +374,7 @@ function ENT:Initialize()
 	if (self.WireEntName == "") then
 		self.WirePortsChanged = true
 	else
-		timer.Simple(time, function(self)
+		timer12.Simple(time, function(self)
 			if (!IsValid(self)) then return end
 			self.WirePortsChanged = true
 

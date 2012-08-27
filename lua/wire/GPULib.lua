@@ -442,7 +442,7 @@ if CLIENT then
 		end
 
 		local timerid = "wire_gpulib_updatebounds"..screen:EntIndex()
-		timer.Create(timerid, 5, 0, setbounds, timerid)
+		timer12.Create(timerid, 5, 0, setbounds, timerid)
 
 		setbounds()
 	end) -- usermessage.Hook

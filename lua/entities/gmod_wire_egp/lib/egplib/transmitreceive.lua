@@ -673,7 +673,7 @@ if (SERVER) then
 	end
 
 	local function initspawn(ply)
-		timer.Simple(10,function(ply)
+		timer12.Simple(10,function(ply)
 			if (ply and ply:IsValid()) then
 				local bool, msg = EGP:SendDataStream( ply )
 				if (bool == true) then
