@@ -66,6 +66,10 @@ function file12.IsDir(path, useBaseDir)
 	return file.IsDir(path, useBaseDir and "GAME" or "DATA")
 end
 
+function file12.Size(path, useBaseDir)
+	return file.Size(path, useBaseDir and "GAME" or "DATA")
+end
+
 utilx = util or {}
 
 function http12.Get(url, headers, callback)
