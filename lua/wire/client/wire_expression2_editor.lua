@@ -2051,19 +2051,24 @@ end
 
 function Editor:Validate(gotoerror)
 	if self.EditorType == "E2" then
-		local errors = wire_expression2_validate(self:GetCode())
+		local errors, file_buffers = wire_expression2_validate(self:GetCode())
 		if not errors then
 			self.C['Val'].panel:SetBGColor(0, 128, 0, 180)
 			self.C['Val'].panel:SetFGColor(255, 255, 255, 128)
-			self.C['Val'].panel:SetText( "   Validation successful" )
+			self.C['Val'].panel:SetText( "   Validation successful - Total " ..(1 + table.Count(file_buffers)).. " file(s)" )
 			return true
 		end
 		if gotoerror then
-			local row, col = errors:match("at line ([0-9]+), char ([0-9]+)$")
+			local filename, row, col = errors:match("at line ([^:]*):([0-9]+), char ([0-9]+)$")
 			if not row then
-				row, col = errors:match("at line ([0-9]+)$"), 1
+				filename, row = errors:match("at line ([^:]*):([0-9]+)$")
+				col = 1
 			end
-			if row then self:GetCurrentEditor():SetCaret({ tonumber(row), tonumber(col) }) end
+			
+			if row then 
+				if filename and filename ~= "generic" then self:Open("Expression2/" .. filename .. ".txt") end
+				self:GetCurrentEditor():SetCaret({ tonumber(row), tonumber(col) }) 
+			end
 		end
 		self.C['Val'].panel:SetBGColor(128, 0, 0, 180)
 		self.C['Val'].panel:SetFGColor(255, 255, 255, 128)

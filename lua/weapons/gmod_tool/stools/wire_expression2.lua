@@ -672,7 +672,7 @@ elseif CLIENT then
 		if e2_function_data_received then
 			err, includes = wire_expression2_validate(code)
 			if err then
-				WireLib.AddNotify(result, NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3)
+				WireLib.AddNotify(err, NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3)
 				return
 			end
 		else

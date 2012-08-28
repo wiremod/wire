@@ -17,7 +17,7 @@ function PreProcessor.Execute(...)
 end
 
 function PreProcessor:Error(message, column)
-	error(message .. " at line " .. self.readline .. ", char " .. (column or 1), 0)
+	error(message .. " at line " .. self.filename .. ":" .. self.readline .. ", char " .. (column or 1), 0)
 end
 
 local type_map = {
@@ -110,12 +110,9 @@ function PreProcessor:RemoveComments(line)
 					self.blockcomment = true -- We're now inside a block comment
 				elseif (type == "normal") then -- We found a # instead
 					local pos = comments[i].pos
-					if line:sub( pos + 1, pos + 7 ) == "include" then
-						ret = ret .. line:sub( lastpos )
-					else
-						ret = ret .. line:sub( lastpos, pos-1 )
-						self:HandlePPCommand(line:sub(pos+1))
-					end
+
+					ret = ret .. line:sub( lastpos, pos-1 )
+					self:HandlePPCommand(line:sub(pos+1))
 
 					lastpos = -1
 					break -- Don't care what comes after
@@ -155,7 +152,7 @@ function PreProcessor:ParseDirectives(line)
 
 	-- evaluate directive
 	if directive == "name" then
-		if not self.ignorestuff then
+		if not self.included then
 			if self.directives.name == nil then
 				self.directives.name = value
 			else
@@ -163,7 +160,7 @@ function PreProcessor:ParseDirectives(line)
 			end
 		end
 	elseif directive == "model" then
-		if not self.ignorestuff then
+		if not self.included then
 			if self.directives.model == nil then
 				self.directives.model = value
 			else
@@ -246,10 +243,16 @@ function PreProcessor:ParseDirectives(line)
 	return ""
 end
 
-function PreProcessor:Process(buffer, directives)
+function PreProcessor:Process(buffer, prevDirectives, filename)
 	local lines = string.Explode("\n", buffer)
 
-	if !directives then
+	if prevDirectives then
+		-- This isn't main file so take previous directives table and mark it
+		self.directives = prevDirectives
+		self.included = true
+
+	else
+		-- Template for directives
 		self.directives = {
 			name = nil,
 			model = nil,
@@ -259,11 +262,13 @@ function PreProcessor:Process(buffer, directives)
 			delta = { {}, {}, {} },
 			trigger = { nil, {} },
 		}
-	else
-		self.directives = directives
-		self.ignorestuff = true
 	end
-	
+
+	self.filename = filename or "generic"
+
+	-- In format self.includes[LINE] = FILENAME
+	self.includes = {}
+
 	for i,line in ipairs(lines) do
 		self.readline = i
 		line = string.TrimRight(line)
@@ -277,7 +282,7 @@ function PreProcessor:Process(buffer, directives)
 	if self.directives.trigger[1] == nil then self.directives.trigger[1] = true end
 	if !self.directives.name then self.directives.name = "" end
 
-	return self.directives, string.Implode("\n", lines)
+	return string.Implode("\n", lines), self.directives, self.includes
 end
 
 function PreProcessor:ParsePorts(ports, startoffset)
@@ -391,4 +396,11 @@ function PreProcessor:PP_endif(args)
 	if self.disabled == nil then self:Error("Found #endif outside #ifdef block") end
 	if args:Trim() ~= "" then self:Error("Must not pass an argument to #endif") end
 	self.disabled = nil
+end
+
+function PreProcessor:PP_include(args)
+	if not args or #args == 0 then self:Error("Malformed #include argument")
+	elseif string.find(args, "..", 1, true) then self:Error("Must not use \"..\" in filename ("..E2Lib.limitString(args, 20)..")") end
+
+	self.includes[self.readline] = args
 end

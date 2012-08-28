@@ -206,11 +206,27 @@ __e2setcost( 5 )
 
 local getHash = E2Lib.getHash
 e2function number hash()
-	return getHash( self, self.entity.original )
+	local includes_str = ""
+
+	for filename, content in pairs(self.entity.inc_files) do
+		includes_str = includes_str..filename.."\n"..content.."\n"
+	end
+
+	return getHash( self, self.entity.original.."\n"..includes_str )
 end
 
 e2function number hashNoComments()
-	return getHash( self, self.entity.buffer )
+	local includes_str = ""
+
+	local function concat_includes(includes)
+		for line, data in pairs(includes) do
+			includes_str = includes_str..data[1].."\n"..data[2].."\n"
+			concat_includes(data[3])
+		end
+	end
+	concat_includes(self.entity.include_buffers)
+
+	return getHash( self, self.entity.buffer.."\n"..includes_str )
 end
 
 e2function number hash( string str )
