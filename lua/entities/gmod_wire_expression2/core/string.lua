@@ -361,21 +361,6 @@ e2function string string:replaceRE(string pattern, string new)
 	end
 end
 
-local specialchars = {
-	["%"] = true,
-	["^"] = true,
-	["$"] = true,
-	["("] = true,
-	[")"] = true,
-	["."] = true,
-	["["] = true,
-	["]"] = true,
-	["*"] = true,
-	["+"] = true,
-	["-"] = true,
-	["?"] = true
-}
-
 __e2setcost(5)
 
 --- Splits the string into an array, along the boundaries formed by the string <pattern>. See also [[string.Explode]]

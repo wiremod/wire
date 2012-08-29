@@ -57,7 +57,7 @@ function TOOL:RightClick(trace)
 		end
 	end
 	if not next(Components[ply_idx]) then
-		umsg.Start("WireDbgLineCount", ply)
+		umsg.Start("WireDbgLineCount", self:GetOwner())
 			umsg.Short(0)
 		umsg.End()
 		Components[ply_idx] = nil
@@ -138,7 +138,7 @@ end
 
 function TOOL:Reload(trace)
 	if (CLIENT) then return end
-	umsg.Start("WireDbgLineCount", ply)
+	umsg.Start("WireDbgLineCount", self:GetOwner())
 		umsg.Short(0)
 	umsg.End()
 	Components[self:GetOwner()] = nil
