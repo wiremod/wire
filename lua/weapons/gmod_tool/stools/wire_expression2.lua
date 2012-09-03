@@ -1232,14 +1232,8 @@ function TOOL:UpdateGhostWireExpression2( ent, player )
 		if ( !ent ) then return end
 		if ( !ent:IsValid() ) then return end
 		
-		local tr = nil
-		if VERSION >= 151 then
-			tr = util.GetPlayerTrace( player )
-		else
-			tr = utilx.GetPlayerTrace( player, player:GetCursorAimVector() )
-		end
-		
-		local trace 	= util.TraceLine( tr )
+		local tr = util.GetPlayerTrace( player )
+		local trace = util.TraceLine( tr )
 		if (!trace.Hit) then return end
 
 		if (trace.Entity && trace.Entity:GetClass() == "gmod_wire_expression2" || trace.Entity:IsPlayer()) then

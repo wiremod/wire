@@ -163,8 +163,8 @@ end
 function TOOL:UpdateGhostWireValue(ent, player)
 	if (!ent || !ent:IsValid()) then return end
 
-	local tr 	= util.GetPlayerTrace(player, player:GetCursorAimVector())
-	local trace 	= util.TraceLine(tr)
+	local tr = util.GetPlayerTrace(player)
+	local trace = util.TraceLine(tr)
 
 	if (!trace.Hit || trace.Entity:IsPlayer() || trace.Entity:GetClass() == "gmod_wire_value") then
 		ent:SetNoDraw(true)

@@ -146,7 +146,7 @@ if SERVER then
     if not ent then return end
     if not ent:IsValid() then return end
 
-    local tr = utilx.GetPlayerTrace(player, player:GetCursorAimVector())
+    local tr = util.GetPlayerTrace(player)
     local trace = util.TraceLine(tr)
     if not trace.Hit then return end
 

@@ -66,8 +66,6 @@ function file12.IsDir(path, useBaseDir)
 	return file.IsDir(path, useBaseDir and "GAME" or "DATA")
 end
 
-utilx = util or {}
-
 if VERSION >= 151 then
 	timer.IsTimer = timer.Exists
 end
