@@ -1,7 +1,3 @@
--- $Rev: 1753 $
--- $LastChangedDate: 2009-09-29 18:34:43 -0700 (Tue, 29 Sep 2009) $
--- $LastChangedBy: TomyLobo $
-
 -- Compatibility Global
 
 if (!WireLib) then return end

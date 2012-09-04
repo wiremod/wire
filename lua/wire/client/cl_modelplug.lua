@@ -1,7 +1,3 @@
--- $Rev: 1504 $
--- $LastChangedDate: 2009-08-10 07:26:51 -0700 (Mon, 10 Aug 2009) $
--- $LastChangedBy: TomyLobo $
-
 --Msg("=== Loading Wire Model Packs ===\n")
 
 CreateConVar("cl_showmodeltextbox", "0")

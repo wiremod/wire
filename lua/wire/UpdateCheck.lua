@@ -1,7 +1,3 @@
--- $Rev: 2289 $
--- $LastChangedDate: 2010-11-13 01:20am +0100 (Sat, 13 Nov 2010) $
--- $LastChangedBy: Divran $
-
 -- Get version
 function WireLib.GetWireVersion()
 	local version = "2288 (OLD VERSION)"

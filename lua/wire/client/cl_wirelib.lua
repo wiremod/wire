@@ -1,7 +1,3 @@
--- $Rev: 1662 $
--- $LastChangedDate: 2009-09-11 19:28:17 -0700 (Fri, 11 Sep 2009) $
--- $LastChangedBy: TomyLobo $
-
 local WIRE_SCROLL_SPEED = 0.5
 local WIRE_BLINKS_PER_SECOND = 2
 local CurPathEnt = {}

@@ -1,7 +1,3 @@
--- $Rev: 1303 $
--- $LastChangedDate: 2009-07-08 19:10:33 -0700 (Wed, 08 Jul 2009) $
--- $LastChangedBy: tad2020 $
-
 ModelPlugInfo = {}
 
 --uncomment line 15 and line 26-34 to enable sending model packs to clients

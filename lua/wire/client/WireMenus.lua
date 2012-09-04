@@ -1,7 +1,3 @@
--- $Rev: 1366 $
--- $LastChangedDate: 2009-07-20 00:09:28 -0700 (Mon, 20 Jul 2009) $
--- $LastChangedBy: tad2020 $
-
 local Wire_Categories = {
 	"Wire - Advanced",
 	"Wire - Beacon",

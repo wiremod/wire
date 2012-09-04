@@ -1,7 +1,3 @@
--- $Rev: 1453 $
--- $LastChangedDate: 2009-08-01 18:42:53 -0700 (Sat, 01 Aug 2009) $
--- $LastChangedBy: TomyLobo $
-
 WireDermaExts = {}
 
 -- Shortcut functions for Wire tools to make their model select controls

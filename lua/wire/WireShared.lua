@@ -1,7 +1,3 @@
--- $Rev: 1781 $
--- $LastChangedDate: 2009-10-05 04:19:53 -0700 (Mon, 05 Oct 2009) $
--- $LastChangedBy: TomyLobo $
-
 WireLib = WireLib or {}
 
 local pairs = pairs

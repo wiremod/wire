@@ -1,7 +1,3 @@
--- $Rev: 1734 $
--- $LastChangedDate: 2009-09-26 16:31:08 -0700 (Sat, 26 Sep 2009) $
--- $LastChangedBy: tad2020 $
-
 AddCSLuaFile( "display.lua" )
 WireToolSetup.setCategory( "Display" )
 
