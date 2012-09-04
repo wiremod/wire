@@ -111,9 +111,3 @@ if CLIENT then
 	include("wire/client/rendertarget_fix.lua")
 	include("wire/client/hlzasm/hc_compiler.lua")
 end
-
--- load uwsvn
-if file12.FindInLua("wire/uwsvn_load.lua")[1] then
-	if SERVER then AddCSLuaFile( "wire/uwsvn_load.lua" ) end
-	include("wire/uwsvn_load.lua")
-end
