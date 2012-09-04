@@ -1,4 +1,4 @@
-if VERSION < 131 then
+if VERSION < 151 then
 	ErrorNoHalt("WireMod: Your GMod is years too old. Load aborted.\n")
 	return
 end

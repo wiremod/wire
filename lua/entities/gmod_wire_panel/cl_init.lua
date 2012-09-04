@@ -6,7 +6,16 @@ function ENT:Initialize()
 	self.chan = 1
 	self.disp1 = 0
 
-	surface.CreateFont( "coolvetica", 80, 400, false, false, "panel_font" )
+	local font = "panel_font"
+	local fontTable =
+	{
+		font="Coolvetica",
+		size = 80,
+		weight = 400,
+		antialias = false,
+		additive = false
+	}
+	surface.CreateFont( font, fontTable )
 
 	self.GPU = WireGPU(self, true)
 	self.workingDistance = 64

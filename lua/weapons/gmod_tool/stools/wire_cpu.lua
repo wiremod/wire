@@ -333,22 +333,18 @@ if CLIENT then
   ------------------------------------------------------------------------------
   -- Tool screen
   ------------------------------------------------------------------------------
-  if VERSION >= 151 then
-    local fontData = 
-	{
-		font = "Lucida Console",
-		size = 30,
-		weight = 1000,
-		antialias = true,
-		additive = false
-	}
-	surface.CreateFont( "ZCPUToolScreenFont", fontData )
-	fontData.size = 26
-	surface.CreateFont( "ZCPUToolScreenFontSmall", fontData ) 
-  else
-	surface.CreateFont("Lucida Console", 30, 1000, true, false, "ZCPUToolScreenFont")
-	surface.CreateFont("Lucida Console", 26, 1000, true, false, "ZCPUToolScreenFontSmall")
-  end
+  local fontData = 
+  {
+    font = "Lucida Console",
+    size = 30,
+    weight = 1000,
+    antialias = true,
+    additive = false
+  }
+  surface.CreateFont( "ZCPUToolScreenFont", fontData )
+  fontData.size = 26
+  surface.CreateFont( "ZCPUToolScreenFontSmall", fontData ) 
+
   local function outc(text,y,color) draw.DrawText(text,"ZCPUToolScreenFont",2,32*y,color,0) end
   local prevStateTime = RealTime()
   local prevState = nil

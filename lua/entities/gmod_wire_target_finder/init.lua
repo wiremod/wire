@@ -44,8 +44,8 @@ function ENT:Setup(maxrange, players, npcs, npcname, beacons, hoverballs, thrust
 	self.CheckBuddyList      = checkbuddylist
 	self.OnBuddyList         = onbuddylist
 	self.PaintTarget         = painttarget
-	self.MaxTargets          = math.floor(math.Clamp((maxtargets or 1), 1, server_settings.Int("wire_target_finders_maxtargets", 10)))
-	self.MaxBogeys           = math.floor(math.Clamp((maxbogeys or 1), self.MaxTargets , server_settings.Int("wire_target_finders_maxbogeys", 30)))
+	self.MaxTargets          = math.floor(math.Clamp((maxtargets or 1), 1, cvars.Number("wire_target_finders_maxtargets", 10)))
+	self.MaxBogeys           = math.floor(math.Clamp((maxbogeys or 1), self.MaxTargets , cvars.Number("wire_target_finders_maxbogeys", 30)))
 
 	if (self.SelectedTargets) then --unpaint before clearing
 		for _,ent in pairs(self.SelectedTargets) do

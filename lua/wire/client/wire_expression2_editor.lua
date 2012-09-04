@@ -42,22 +42,17 @@ function Editor:ChangeFont( FontName, Size )
 
 	-- If font is not already created, create it.
 	if (!self.CreatedFonts[FontName .. "_" .. Size]) then
-		if VERSION >= 150 then
-			local fontTable = 
-			{
-				font = FontName,
-				size = Size,
-				weight = 400,
-				antialias = false,
-				additive = false,
-			}
-			surface.CreateFont("Expression2_" .. FontName .. "_" .. Size,fontTable)
-			fontTable.weight = 700
-			surface.CreateFont("Expression2_" .. FontName .. "_" .. Size .. "_Bold", fontTable)
-		else
-			surface.CreateFont( FontName, Size, 400, false, false, "Expression2_" .. FontName .. "_" .. Size )
-			surface.CreateFont( FontName, Size, 700, false, false, "Expression2_" .. FontName .. "_" .. Size .. "_Bold" )
-		end
+		local fontTable = 
+		{
+			font = FontName,
+			size = Size,
+			weight = 400,
+			antialias = false,
+			additive = false,
+		}
+		surface.CreateFont("Expression2_" .. FontName .. "_" .. Size,fontTable)
+		fontTable.weight = 700
+		surface.CreateFont("Expression2_" .. FontName .. "_" .. Size .. "_Bold", fontTable)
 		self.CreatedFonts[FontName .. "_" .. Size] = true
 	end
 
@@ -151,18 +146,14 @@ function Editor:Init()
 	-- Load border colors, position, & size
 	self:LoadEditorSettings()
 	
-	if VERSION > 150 then
-		local fontTable = {
-			font = "default",
-			size = 11,
-			weight = 300,
-			antialias = false,
-			additive = false,
-		}
-		surface.CreateFont( "E2SmallFont", fontTable )
-	else	
-		surface.CreateFont( "default", 11, 300, false, false, "E2SmallFont" )
-	end
+	local fontTable = {
+		font = "default",
+		size = 11,
+		weight = 300,
+		antialias = false,
+		additive = false,
+	}
+	surface.CreateFont( "E2SmallFont", fontTable )
 	self.logo = surface.GetTextureID("vgui/e2logo")
 
 	self:InitComponents()
