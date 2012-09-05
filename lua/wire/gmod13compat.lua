@@ -66,10 +66,6 @@ function file12.IsDir(path, useBaseDir)
 	return file.IsDir(path, useBaseDir and "GAME" or "DATA")
 end
 
-if VERSION >= 151 then
-	timer.IsTimer = timer.Exists
-end
-
 function http12.Get(url, headers, callback)
 	http.Fetch(url, callback, function() print("Err - http.Fetch") end)
 end

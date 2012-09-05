@@ -261,7 +261,7 @@ if SERVER then
 			local n = 0
 			timer.Create( "wire_expression2_download_wantedfiles_list_"..ply:UniqueID(), 0, #data, function()
 				if not IsValid( ply ) then
-					timer.Destroy( "wire_expression2_download_wantedfiles_list_"..ply:UniqueID() )
+					timer.Remove( "wire_expression2_download_wantedfiles_list_"..ply:UniqueID() )
 					return
 				end
 				
@@ -370,14 +370,14 @@ if SERVER then
 		if not IsValid(toent) or toent:GetClass() ~= "gmod_wire_expression2" then
 			WireLib.AddNotify( ply, "Invalid Expression chip specified. Upload aborted.", NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3 )
 			umsg.Start( "wire_expression2_upload_confirm", ply ) umsg.Long( to ) umsg.Bool( false ) umsg.End()
-			timer.Destroy( "wire_expression2_upload_timeout"..to )
+			timer.Remove( "wire_expression2_upload_timeout"..to )
 			return
 		end
 
 		if not E2Lib.isFriend(ply,toent.player) then
 			WireLib.AddNotify( ply, "You are not allowed to upload to the target Expression chip. Upload aborted.", NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3 )
 			umsg.Start( "wire_expression2_upload_confirm", ply ) umsg.Long( to ) umsg.Bool( false ) umsg.End()
-			timer.Destroy( "wire_expression2_upload_timeout"..to )
+			timer.Remove( "wire_expression2_upload_timeout"..to )
 			return
 		end
 		
@@ -387,7 +387,7 @@ if SERVER then
 		if not upload.chunks then
 			WireLib.AddNotify( ply, "Error: No chunk number specified. Upload aborted.", NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3 )
 			umsg.Start( "wire_expression2_upload_confirm", ply ) umsg.Long( to ) umsg.Bool( false ) umsg.End()
-			timer.Destroy( "wire_expression2_upload_timeout"..to )
+			timer.Remove( "wire_expression2_upload_timeout"..to )
 			return
 		end
 		
@@ -414,7 +414,7 @@ if SERVER then
 			WireLib.AddNotify( ply, "Invalid Expression chip specified. Upload aborted.", NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3 )
 			uploads[id][to] = nil
 			umsg.Start( "wire_expression2_upload_confirm", ply ) umsg.Long( to ) umsg.Bool( false ) umsg.End()
-			timer.Destroy( "wire_expression2_upload_timeout"..to )
+			timer.Remove( "wire_expression2_upload_timeout"..to )
 			return
 		end
 		
@@ -424,7 +424,7 @@ if SERVER then
 			WireLib.AddNotify( ply, "Target Expression chip has been removed since the start of the upload. Upload aborted.", NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3 )
 			uploads[id][to] = nil
 			umsg.Start( "wire_expression2_upload_confirm", ply ) umsg.Long( to ) umsg.Bool( false ) umsg.End()
-			timer.Destroy( "wire_expression2_upload_timeout"..to )
+			timer.Remove( "wire_expression2_upload_timeout"..to )
 			return
 		end
 		
@@ -432,7 +432,7 @@ if SERVER then
 			WireLib.AddNotify( ply, "Target Expression chips do not match. Upload aborted.", NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3 )
 			uploads[id][to] = nil
 			umsg.Start( "wire_expression2_upload_confirm", ply ) umsg.Long( to ) umsg.Bool( false ) umsg.End()
-			timer.Destroy( "wire_expression2_upload_timeout"..to )
+			timer.Remove( "wire_expression2_upload_timeout"..to )
 			return
 		end
 	
@@ -447,7 +447,7 @@ if SERVER then
 			if not ok then
 				WireLib.AddNotify( ply, "Expression 2 upload failed! Error message:\n" .. ret, NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3 )
 				print( "Expression 2 upload failed! Error message:\n" .. ret )
-				timer.Destroy( "wire_expression2_upload_timeout"..to )
+				timer.Remove( "wire_expression2_upload_timeout"..to )
 				return
 			end
 			
@@ -460,7 +460,7 @@ if SERVER then
 			
 			upload.to:Setup( code, includes )
 			
-			timer.Destroy( "wire_expression2_upload_timeout"..to )
+			timer.Remove( "wire_expression2_upload_timeout"..to )
 			uploads[id][to] = nil
 		end
 	end)

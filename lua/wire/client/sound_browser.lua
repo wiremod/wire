@@ -15,7 +15,7 @@ function PANEL:GetFileName(filepath) // Return the filename of the given filepat
 end
 
 function PANEL:FindItemsInTree(pFolders, dir, parent, fileicon, filepart, filecount, MaxFileParts) // Build the folders and files to the tree.
-	if !timer.IsTimer(timername) then
+	if !timer.Exists(timername) then
 		local TCount = math.Clamp(filecount, 0, MaxElements)
 		local TableCount = TCount/MaxPerTimerTick
 		local AddedItems = {}
@@ -70,8 +70,8 @@ function PANEL:FindItemsInTree(pFolders, dir, parent, fileicon, filepart, fileco
 								AddedItems[Filepath] = true // A list of shown files to prevent showing files that are shown already.
 							end
 							if (index == TCount) then
-								if timer.IsTimer(timername) then
-									timer.Destroy(timername)
+								if timer.Exists(timername) then
+									timer.Remove(timername)
 								end
 							end
 							if (filepart == MaxFileParts) then
@@ -82,8 +82,8 @@ function PANEL:FindItemsInTree(pFolders, dir, parent, fileicon, filepart, fileco
 						end
 					end
 				else
-					if timer.IsTimer(timername) then
-						timer.Destroy(timername)
+					if timer.Exists(timername) then
+						timer.Remove(timername)
 					end
 				end
 			end)
@@ -101,8 +101,8 @@ function PANEL:BuildFileTree(dir, parent, filepart) // Build the file tree.
 	parent:Clear()
 	parent.ChildNodes = nil
 
-	if timer.IsTimer(timername) then
-		timer.Destroy(timername)
+	if timer.Exists(timername) then
+		timer.Remove(timername)
 	end
 
 	local pFolders = self.pFoldersT
@@ -525,8 +525,8 @@ function PANEL:CreateSoundBrowser(path) // Make the sound browser panel.
 	self.StopLoadingButton:SetSize(20, 20)
 	self.StopLoadingButton:SetVisible(false)
 	self.StopLoadingButton.DoClick = function()
-		if timer.IsTimer(timername) then
-			timer.Destroy(timername)
+		if timer.Exists(timername) then
+			timer.Remove(timername)
 		end
 		local filecount = table.Count(self.pFoldersT)
 		local MaxFileParts = math.floor(filecount / MaxElements)

@@ -64,7 +64,7 @@ local function setTree(dir, parent)
 	sort( pFiles, dir )
 	table.Add(files, pFiles)
 
-	if !timer.IsTimer(timername) then
+	if !timer.Exists(timername) then
 		local TCount = table.Count(files)
 		local TableCount = TCount/MaxPerTimerTick
 		local AddedItems = {}
@@ -82,8 +82,8 @@ local function setTree(dir, parent)
 			end
 			timer.Create(timername, 0.01, TableCount, function() // The timer is VERY important to prevent the "Infinite Loop Detected!" error on folders with many folders inseide!
 				if (type(dir) ~= "string") or !IsValid(parent) then
-					if timer.IsTimer(timername) then
-						timer.Destroy(timername)
+					if timer.Exists(timername) then
+						timer.Remove(timername)
 					end
 					return
 				end
@@ -136,8 +136,8 @@ local function setTree(dir, parent)
 										parent:SetExpanded(true)
 									end
 								end
-								if timer.IsTimer(timername) then
-									timer.Destroy(timername)
+								if timer.Exists(timername) then
+									timer.Remove(timername)
 								end
 							end
 						end
@@ -153,8 +153,8 @@ local function setTree(dir, parent)
 							parent:SetExpanded(true)
 						end
 					end
-					if timer.IsTimer(timername) then
-						timer.Destroy(timername)
+					if timer.Exists(timername) then
+						timer.Remove(timername)
 					end
 				end
 			end)

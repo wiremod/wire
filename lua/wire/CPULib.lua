@@ -44,8 +44,8 @@ if CLIENT then
   -- Request compiling specific sourcecode
   function CPULib.Compile(source,fileName,successCallback,errorCallback,targetPlatform)
     -- Stop any compile/upload process that is running right now
-    timer.Destroy("cpulib_compile")
-    timer.Destroy("cpulib_upload")
+    timer.Remove("cpulib_compile")
+    timer.Remove("cpulib_upload")
     CPULib.Uploading = false
 
     -- See if compiled source is available
@@ -145,7 +145,7 @@ if CLIENT then
       if not status then
         print("==================================================")
         if CPULib.ErrorCallback then CPULib.ErrorCallback(HCOMP.ErrorMessage or ("Internal error: "..result),HCOMP.ErrorPosition) end
-        timer.Destroy("cpulib_compile")
+        timer.Remove("cpulib_compile")
         CPULib.Compiling = false
 
         return
@@ -161,7 +161,7 @@ if CLIENT then
 
           CPULib.SuccessCallback()
         end
-        timer.Destroy("cpulib_compile")
+        timer.Remove("cpulib_compile")
         CPULib.Compiling = false
 
         return
@@ -181,7 +181,7 @@ if CLIENT then
     for iteration=1,upload_speed do
       local index,value = next(CPULib.RemainingData)
       if not index then
-        timer.Destroy("cpulib_upload")
+        timer.Remove("cpulib_upload")
         RunConsoleCommand("wire_cpulib_bufferend")
         CPULib.Uploading = false
         return
@@ -197,7 +197,7 @@ if CLIENT then
   -- Start upload
   function CPULib.Upload(customBuffer)
     -- Stop any upload in the progress
-    timer.Destroy("cpulib_upload")
+    timer.Remove("cpulib_upload")
 
     -- Send the buffer over to server
     RunConsoleCommand("wire_cpulib_bufferstart")

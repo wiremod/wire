@@ -258,7 +258,7 @@ if SERVER then
 
 		-- Download code
 		downloadPointer[player:UserID()] = 0
-		timer.Destroy("flash_download"..player:UserID())
+		timer.Remove("flash_download"..player:UserID())
 		timer.Create("flash_download"..player:UserID(),1/60,0,function()
 			local umsgrp = RecipientFilter()
 			umsgrp:AddPlayer(player)
@@ -276,7 +276,7 @@ if SERVER then
 
 			downloadPointer[player:UserID()] = downloadPointer[player:UserID()] + 1
 			if downloadPointer[player:UserID()] >= driveCap*1024/blockSize then
-				timer.Destroy("flash_download"..player:UserID())
+				timer.Remove("flash_download"..player:UserID())
 			end
 		end)
 	end)
@@ -343,7 +343,7 @@ else
 
 		-- Upload code
 		uploadPointer = 0
-		timer.Destroy("flash_upload")
+		timer.Remove("flash_upload")
 		timer.Create("flash_upload",1/10,0,function()
 			if file.Exists(GetStructName("SINGLEPLAYER",HDDID,uploadPointer)) then
 				local dataTable = GetFloatTable(file.Read(GetStructName("SINGLEPLAYER",HDDID,uploadPointer)))
