@@ -247,10 +247,10 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 		Ent1 = GetEntByID(v.Ent1) or ents.GetByIndex( v.Ent1 )
 
 		if v.Ent2 == 0 then
-			Ent2 = GetWorldEntity()
+			Ent2 = game.GetWorld()
 		else
 			Ent2 = GetEntByID(v.Ent2) or ents.GetByIndex( v.Ent2 )
-			if !IsValid( Ent2 ) then Ent2 = GetWorldEntity() end
+			if !IsValid( Ent2 ) then Ent2 = game.GetWorld() end
 		end
 
 		if IsValid(Ent1) and Ent1 ~= Ent2 then
