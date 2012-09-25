@@ -163,7 +163,7 @@ function EGP:ReceiveMaterial( tbl, um ) -- ALWAYS use this when receiving materi
 		end
 	elseif what == "1" then
 		local num = tonumber(mat)
-		if not num or not ValidEntity(Entity(num)) then
+		if not num or not IsValid(Entity(num)) then
 			tbl.material = false
 		else
 			tbl.material = Entity(num)
@@ -206,7 +206,7 @@ end
 -- Other
 --------------------------------------------------------
 function EGP:ValidEGP( Ent )
-	return (Ent and ValidEntity( Ent ) and (Ent:GetClass() == "gmod_wire_egp" or Ent:GetClass() == "gmod_wire_egp_hud" or Ent:GetClass() == "gmod_wire_egp_emitter"))
+	return (Ent and IsValid( Ent ) and (Ent:GetClass() == "gmod_wire_egp" or Ent:GetClass() == "gmod_wire_egp_hud" or Ent:GetClass() == "gmod_wire_egp_emitter"))
 end
 
 

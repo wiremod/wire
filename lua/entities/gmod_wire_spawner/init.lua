@@ -148,7 +148,7 @@ function ENT:CheckEnts(removed_entity)
 	-- Purge list of no longer existing props
 	for i = #self.UndoList,1,-1 do
 		local ent = self.UndoList[i]
-		if not ValidEntity(ent) or ent == removed_entity then
+		if not IsValid(ent) or ent == removed_entity then
 			table.remove(self.UndoList, i)
 		end
 	end
@@ -176,11 +176,11 @@ function ENT:TriggerInput(iname, value)
 			if (self.delay == 0) then self:DoSpawn( pl ) return end
 
 			local TimedSpawn = 	function ( ent, pl )
-				if not ValidEntity(ent) then return end
+				if not IsValid(ent) then return end
 				ent:DoSpawn( pl )
 			end
 
-			timer.Simple( self.delay, TimedSpawn, self, pl )
+			timer.Simple( self.delay, function() TimedSpawn(self, pl) end )
 		end
 	elseif (iname == "Undo") then
 		-- Same here

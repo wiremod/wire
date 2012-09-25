@@ -302,7 +302,7 @@ end)
 if not CanRunConsoleCommand then
 	function CanRunConsoleCommand() return false end
 	hook.Add("OnEntityCreated", "CanRunConsoleCommand", function(ent)
-		if not ValidEntity(ent) then return end
+		if not IsValid(ent) then return end
 		if ent ~= LocalPlayer() then return end
 
 		function CanRunConsoleCommand() return true end

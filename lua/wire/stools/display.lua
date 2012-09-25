@@ -763,7 +763,7 @@ do -- wire_soundemitter
 		SoundNameText:SetMultiline(false)
 		SoundNameText:SetConVar("wire_soundemitter_sound")
 		SoundNameText:SetVisible(true)
-		panel:AddItem(SoundNameText)
+		panel:Add(SoundNameText)
 
 		local SoundBrowserButton = vgui.Create("DButton")
 		SoundBrowserButton:SetText("Open Sound Browser")
@@ -773,7 +773,7 @@ do -- wire_soundemitter
 		SoundBrowserButton.DoClick = function()
 			RunConsoleCommand("wire_sound_browser_open",SoundNameText:GetValue())
 		end
-		panel:AddItem(SoundBrowserButton)
+		panel:Add(SoundBrowserButton)
 
 		local SoundPre = vgui.Create("DPanel")
 		SoundPre:SetWide(wide)
@@ -801,7 +801,7 @@ do -- wire_soundemitter
 		SoundPreStop.DoClick = function()
 			RunConsoleCommand("play", "common/NULL.WAV") //Playing a silent sound will mute the preview but not the sound emitters.
 		end
-		panel:AddItem(SoundPre)
+		panel:Add(SoundPre)
 		SoundPre:InvalidateLayout(true)
 		SoundPre.PerformLayout = function()
 			local SoundPreWide = SoundPre:GetWide()

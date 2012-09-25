@@ -470,7 +470,7 @@ do
 
 	concommand.Add("wire_expression2_extension_enable", function(ply, cmd, args)
 		if ply:IsValid() then
-			if not ply:IsSuperAdmin() and not SinglePlayer() then return end
+			if not ply:IsSuperAdmin() and not game.SinglePlayer() then return end
 		end
 
 		if extensions.GetStatus( args[1] ) then
@@ -501,7 +501,7 @@ do
 
 	concommand.Add("wire_expression2_extension_disable", function(ply, cmd, args)
 		if ply:IsValid() then
-			if not ply:IsSuperAdmin() and not SinglePlayer() then return end
+			if not ply:IsSuperAdmin() and not game.SinglePlayer() then return end
 		end
 
 		if not extensions.GetStatus( args[1] ) then

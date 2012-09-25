@@ -254,7 +254,7 @@ end
 
 -- Same as ranger(distance) but for another entity
 e2function ranger entity:ranger(distance)
-	if not ValidEntity( this ) then return nil end
+	if not IsValid( this ) then return nil end
 	if (!self.data.rangerfilter_lookup[this]) then
 		self.data.rangerfilter[#self.data.rangerfilter+1] = this
 		self.data.rangerfilter_lookup[this] = true

@@ -181,12 +181,12 @@ if CLIENT then
 		local CaseInsensitive = vgui.Create( "DCheckBoxLabel" )
 		CaseInsensitive:SetConVar( "wire_textreceiver_case_insensitive" )
 		CaseInsensitive:SetText( "#Tool_wire_textreceiver_case_insensitive" )
-		panel:AddItem( CaseInsensitive )
+		panel:Add( CaseInsensitive )
 
 		local UseLuaPatterns = vgui.Create( "DCheckBoxLabel" )
 		UseLuaPatterns:SetConVar( "wire_textreceiver_use_lua_patterns" )
 		UseLuaPatterns:SetText( "#Tool_wire_textreceiver_use_lua_patterns" )
-		panel:AddItem( UseLuaPatterns )
+		panel:Add( UseLuaPatterns )
 
 		local NumMatches = vgui.Create( "DNumSlider" )
 		NumMatches:SetMin( 0 )
@@ -219,7 +219,7 @@ if CLIENT then
 				text:SetWide( 220 )
 				text:SetConVar( "wire_textreceiver_match" .. i )
 
-				matchlist:AddItem(pnl)
+				matchlist:Add(pnl)
 			end
 		end
 
@@ -227,7 +227,7 @@ if CLIENT then
 			UpdateMatchList(tonumber(value)) -- what the fuck garry it's a string?!
 		end
 
-		panel:AddItem( NumMatches )
-		panel:AddItem( matchlist )
+		panel:Add( NumMatches )
+		panel:Add( matchlist )
 	end
 end

@@ -237,7 +237,7 @@ registerOperator("owc","","n",function(self,args)
 	local op1 = args[2]
 	local tbl = self.entity.Outputs[op1].Connected
 	local ret = #tbl
-	for i=1,ret do if (!ValidEntity(tbl[i].Entity)) then ret = ret - 1 end end
+	for i=1,ret do if (!IsValid(tbl[i].Entity)) then ret = ret - 1 end end
 	return ret
 end)
 

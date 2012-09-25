@@ -232,7 +232,7 @@ function EGP:SetParent( Ent, index, parentindex )
 		else
 			local bool2, k2, v2 = self:HasObject( Ent, parentindex )
 			if (bool2) then
-				if (CLIENT or SinglePlayer()) then
+				if (CLIENT or game.SinglePlayer()) then
 					self:AddParentIndexes( v )
 				end
 

@@ -26,7 +26,7 @@ end
 -- Inputs
 function ENT:TriggerInput(iname, value)
 	-- ake sure we have a valid vehicle
-	if not ValidEntity(self.Vehicle) then return end
+	if not IsValid(self.Vehicle) then return end
 
 	if (iname == "Throttle") then
 		self.Vehicle:Fire("throttle", tostring(value), 0)
@@ -57,7 +57,7 @@ function ENT:OnRestore()
 end
 
 function ENT:Think()
-	if not ValidEntity(self.Vehicle) then return end
+	if not IsValid(self.Vehicle) then return end
 	self.Vehicle:Fire("steer", tostring(self.Steering), 0)
 	self:NextThink(CurTime())
 end

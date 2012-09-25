@@ -246,7 +246,7 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 		end
 	end
 	if info.cam then
-		if ValidEntity(self.CamEnt) then
+		if IsValid(self.CamEnt) then
 			self.CamEnt:RemoveCallOnRemove("wire_cam_restore")
 			self.CamEnt:Remove()
 		end

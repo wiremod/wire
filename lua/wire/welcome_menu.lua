@@ -33,14 +33,14 @@ if (CLIENT) then
 		lbl:SetText([[You can also open the menu using the console command:
 'Wire_Welcome_Menu']])
 		lbl:SizeToContents()
-		Panel:AddItem( lbl )
+		Panel:Add( lbl )
 
 		local btn = vgui.Create("DButton")
 		btn:SetText("Open Welcome Menu")
 		function btn:DoClick()
 			Menu:OpenMenu()
 		end
-		Panel:AddItem( btn )
+		Panel:Add( btn )
 	end
 
 	hook.Add("PopulateToolMenu","WireLib_WMenu_PopulateToolMenu",function()

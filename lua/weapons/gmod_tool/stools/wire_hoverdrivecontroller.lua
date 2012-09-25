@@ -121,7 +121,7 @@ function TOOL:Reload( trace )
 	if (!trace) then return end
 	if (!trace.Hit) then return end
 	if (trace.Entity) then
-		if SinglePlayer() then
+		if game.SinglePlayer() then
 			self:GetOwner():ConCommand("wire_hoverdrivecontroller_model " .. trace.Entity:GetModel())
 			self:GetOwner():ChatPrint("Hoverdrive Controller model set to: " .. trace.Entity:GetModel())
 		else

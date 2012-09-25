@@ -27,7 +27,7 @@ function ENT:SetOverlayText(txt)
 		else
 			self:SetNetworkedBeamString("GModOverlayText",txt)
 			self.NextOverlayText = nil
-			if not self.OverlayDelay or self.OverlayDelay > 0 or Wire_SlowerOverlayTextUpdate or not SinglePlayer() or Wire_ForceDelayOverlayTextUpdate then
+			if not self.OverlayDelay or self.OverlayDelay > 0 or Wire_SlowerOverlayTextUpdate or not game.SinglePlayer() or Wire_ForceDelayOverlayTextUpdate then
 				self.NextOverlayTextTime = CurTime() + (self.OverlayDelay or 0.6) + math.random()*(self.OverlayRandom or 0.2)
 			end
 		end

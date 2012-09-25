@@ -77,7 +77,7 @@ function AddWireAdminMaxDevice(pluralname, dev)
 	devs["Max Wiremod "..pluralname] = dev
 end
 
-if SinglePlayer() then
+if game.SinglePlayer() then
 	local function BuildAdminControlPanel(Panel)
 		for name,dev in pairs(devs) do
 			local slider = Panel:NumSlider(name, "sbox_maxwire_"..dev, 0, 999, 0)

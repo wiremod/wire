@@ -164,7 +164,9 @@ concommand.Add("wire_adv_pod_bind", function( ply,cmd,args )
 	for _, pod in pairs( ents.FindByClass( "gmod_wire_adv_pod" ) ) do
 		if (ply:GetVehicle() == pod.Pod) then
 			WireLib.TriggerOutput( pod, bind, 1 )
-			timer.Simple( 0.03, WireLib.TriggerOutput, pod, bind, 0 )
+			timer.Simple( 0.03, function()
+				WireLib.TriggerOutput( pod, bind, 0 )
+			end )
 		end
 	end
 end)

@@ -138,7 +138,7 @@ if CLIENT then
   -- Compiler timer
   function CPULib.OnCompileTimer()
     local compile_speed = wire_cpu_compile_speed:GetFloat()
-    if SinglePlayer() then compile_speed = 256 end
+    if game.SinglePlayer() then compile_speed = 256 end
 
     for iteration=1,compile_speed do
       local status,result = pcall(HCOMP.Compile,HCOMP)
@@ -176,7 +176,7 @@ if CLIENT then
     if not CPULib.RemainingData then return end
 
     local upload_speed = wire_cpu_upload_speed:GetFloat()
-    if SinglePlayer() then upload_speed = 128 end
+    if game.SinglePlayer() then upload_speed = 128 end
 
     for iteration=1,upload_speed do
       local index,value = next(CPULib.RemainingData)
@@ -442,7 +442,7 @@ if SERVER then
   concommand.Add("wire_cpulib_bufferstart", function(player, command, args)
     local Buffer = CPULib.DataBuffer[player:UserID()]
     if (not Buffer) or (Buffer.Player ~= player) then return end
-    if not ValidEntity(Buffer.Entity) then return end
+    if not IsValid(Buffer.Entity) then return end
     if not Buffer.Entity then return end
 
     player:SendLua("CPULib.ServerUploading = true")
@@ -463,7 +463,7 @@ if SERVER then
   concommand.Add("wire_cpulib_buffername", function(player, command, args)
     local Buffer = CPULib.DataBuffer[player:UserID()]
     if (not Buffer) or (Buffer.Player ~= player) then return end
-    if not ValidEntity(Buffer.Entity) then return end
+    if not IsValid(Buffer.Entity) then return end
     if not Buffer.Entity then return end
 
     if Buffer.Entity:GetClass() == "gmod_wire_cpu" then
@@ -475,7 +475,7 @@ if SERVER then
   concommand.Add("wire_cpulib_bufferend", function(player, command, args)
     local Buffer = CPULib.DataBuffer[player:UserID()]
     if (not Buffer) or (Buffer.Player ~= player) then return end
-    if not ValidEntity(Buffer.Entity) then return end
+    if not IsValid(Buffer.Entity) then return end
     if not Buffer.Entity then return end
 
     CPULib.DataBuffer[player:UserID()] = nil
@@ -626,7 +626,7 @@ if SERVER then
   concommand.Add("wire_cpulib_debugstep", function(player, command, args)
     local Data = CPULib.DebuggerData[player:UserID()]
     if (not Data) or (Data.Player ~= player) then return end
-    if not ValidEntity(Data.Entity) then return end
+    if not IsValid(Data.Entity) then return end
 
     if not args[1] then -- Step forward
       Data.Entity.VM:Step(1)
@@ -649,7 +649,7 @@ if SERVER then
   concommand.Add("wire_cpulib_debugrun", function(player, command, args)
     local Data = CPULib.DebuggerData[player:UserID()]
     if (not Data) or (Data.Player ~= player) then return end
-    if not ValidEntity(Data.Entity) then return end
+    if not IsValid(Data.Entity) then return end
 
     -- Send a fake update that messes up line pointer
     local tempIP = Data.Entity.VM.IP
@@ -665,7 +665,7 @@ if SERVER then
   concommand.Add("wire_cpulib_debugreset", function(player, command, args)
     local Data = CPULib.DebuggerData[player:UserID()]
     if (not Data) or (Data.Player ~= player) then return end
-    if not ValidEntity(Data.Entity) then return end
+    if not IsValid(Data.Entity) then return end
 
     Data.Entity.VM:Reset()
     CPULib.SendDebugData(Data.Entity.VM,Data.MemPointers,Data.Player)
@@ -675,7 +675,7 @@ if SERVER then
   concommand.Add("wire_cpulib_debugvar", function(player, command, args)
     local Data = CPULib.DebuggerData[player:UserID()]
     if (not Data) or (Data.Player ~= player) then return end
-    if not ValidEntity(Data.Entity) then return end
+    if not IsValid(Data.Entity) then return end
 
     Data.MemPointers[tonumber(args[1]) or 0] = tonumber(args[2])
     CPULib.SendDebugData(Data.Entity.VM,Data.MemPointers,Data.Player,true)
@@ -685,7 +685,7 @@ if SERVER then
   concommand.Add("wire_cpulib_debugbreakpoint", function(player, command, args)
     local Data = CPULib.DebuggerData[player:UserID()]
     if (not Data) or (Data.Player ~= player) then return end
-    if not ValidEntity(Data.Entity) then return end
+    if not IsValid(Data.Entity) then return end
 
     if tonumber(args[2]) == 0 then
       Data.Entity.BreakpointInstructions[tonumber(args[1]) or 0] = nil

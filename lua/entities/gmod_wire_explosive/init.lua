@@ -166,16 +166,8 @@ end
 ---------------------------------------------------------*/
 function ENT:Trigger()
 	if ( self.Delaytime > 0 ) then
-		//self.exploding = true
 		self.ExplodeTime = CurTime() + self.Delaytime
 		if (self.FireEffect) then self:Ignite((self.Delaytime + 3),0) end
-/*		timer.Simple( self.Delaytime, self.Explode, self )
-		//self.count = self.Delaytime
-		//self:Countdown()
-	//else
-		//self.exploding = true
-		//self:Explode()
-*/
 	end
 	self.exploding = true
 	// Force reset of counter
@@ -240,7 +232,7 @@ function ENT:Explode( )
 	if (!self.exploding) then return end //why are we exploding if we shouldn't be
 
 	ply = self:GetPlayer() or self
-	if(not ValidEntity(ply)) then ply = self end;
+	if(not IsValid(ply)) then ply = self end;
 
 	if (self.InvisibleAtZero) then
 		ply:SetCollisionGroup(COLLISION_GROUP_DEBRIS)
@@ -268,37 +260,7 @@ function ENT:Explode( )
 	// Force reset of counter
 	self.CountTime = 0
 	self:ShowOutput()
-
-	/*if ( self.Delayreloadtime > 0 ) then
-		//t = self.Delayreloadtime + 1
-		self.reloading = true
-		//timer.Simple( self.Delayreloadtime, self.Reloaded, self )
-		//self.count = self.Delayreloadtime
-		//self:Countdown()
-	else //keep it from going off again for at least another second
-		self.reloading = true
-		timer.Simple( 1, self.Reloaded, self )
-		self:ShowOutput(0)
-	end*/
-
 end
-
-/* Don't need these anymore
-function ENT:Reloaded( )
-	self.reloading = false
-	if (self.ResetAtExplode) then self:ResetHealth() end
-end
-
-function ENT:Countdown( )
-	self:ShowOutput()
-	self.count = self.count - 1
-	if ( self.count > 0 ) then //theres still time left
-		timer.Simple( 1, self.Countdown, self )
-	else //will be done after this second
-		timer.Simple( 1, self.ShowOutput, self )
-	end
-end
-*/
 
 /*---------------------------------------------------------
    Name: ShowOutput

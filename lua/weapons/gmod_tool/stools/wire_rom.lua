@@ -40,30 +40,30 @@ else
 		local mdl = vgui.Create("DWireModelSelect",CPanel)
 		mdl:SetModelList( list.Get( "Wire_gate_Models" ), "wire_rom_model" )
 		mdl:SetHeight( 4 )
-		CPanel:AddItem( mdl )
+		CPanel:Add( mdl )
 
 		local weld = vgui.Create("DCheckBoxLabel",CPanel)
 		weld:SetText( "#Tool_wire_rom_weld" )
 		weld:SizeToContents()
 		weld:SetConVar( "wire_rom_weld" )
-		CPanel:AddItem( weld )
+		CPanel:Add( weld )
 
 		local toworld = vgui.Create("DCheckBoxLabel",CPanel)
 		toworld:SetText( "#Tool_wire_rom_weldtoworld" )
 		toworld:SizeToContents()
 		toworld:SetConVar( "wire_rom_weldtoworld" )
-		CPanel:AddItem( toworld )
+		CPanel:Add( toworld )
 
 		local freeze = vgui.Create("DCheckBoxLabel",CPanel)
 		freeze:SetText( "#Tool_wire_rom_freeze" )
 		freeze:SizeToContents()
 		freeze:SetConVar( "wire_rom_freeze" )
-		CPanel:AddItem( freeze )
+		CPanel:Add( freeze )
 
 		local label = vgui.Create("DLabel",CPanel)
 		label:SetText( "#Tool_wire_rom_note" )
 		label:SizeToContents()
-		CPanel:AddItem( label )
+		CPanel:Add( label )
 	end
 
 end
@@ -125,7 +125,7 @@ end
 -- GHOST
 ----------------------------------------------------------------------------------------------------
 
-if ((SinglePlayer() and SERVER) or (!SinglePlayer() and CLIENT)) then
+if ((game.SinglePlayer() and SERVER) or (!game.SinglePlayer() and CLIENT)) then
 	function TOOL:DrawGhost()
 		local ent, ply = self.GhostEntity, self:GetOwner()
 		if (!ent or !ent:IsValid()) then return end

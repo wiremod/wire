@@ -406,7 +406,7 @@ if (SERVER) then
 							end
 
 							dbg_line_cache[ply][l] = dbginfo
-							if (SinglePlayer()) then
+							if (game.SinglePlayer()) then
 								dbg_line_time[ply][l] = CurTime() + 0.05
 							else
 								dbg_line_time[ply][l] = CurTime() + 0.2
@@ -522,7 +522,7 @@ if (CLIENT) then
 		--move the box down if the active weapon is the tool gun
 		local MoveBox = 0
 		if(LocalPlayer():IsValid() and LocalPlayer():IsPlayer()) then
-			if ValidEntity(LocalPlayer():GetActiveWeapon()) and LocalPlayer():GetActiveWeapon():GetClass() == "gmod_tool" then
+			if IsValid(LocalPlayer():GetActiveWeapon()) and LocalPlayer():GetActiveWeapon():GetClass() == "gmod_tool" then
 				MoveBox = 1
 			end
 		else --return if the player is dead or non-existant

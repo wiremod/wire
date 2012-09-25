@@ -85,7 +85,7 @@ if CLIENT then
 		searchresultnum:SetMin( 1 )
 		searchresultnum:SetMax( 100 )
 		searchresultnum:SetDecimals( 0 )
-		panel:AddItem( searchresultnum )
+		panel:Add( searchresultnum )
 
 		-- Create panels
 		local searchbox = vgui.Create( "DTextEntry" )
@@ -198,7 +198,7 @@ if CLIENT then
 			RunConsoleCommand( "wire_gates_action", line.action )
 		end
 
-		panel:AddItem( searchbox )
+		panel:Add( searchbox )
 
 		-- Set sizes & other settings
 		searchlist:SetPos( 500,2 )
@@ -236,7 +236,7 @@ if CLIENT then
 						searchlist:SetPos( 2 + w * animpercentinv, 2 )
 					end
 
-					timer.Simple( 0, self.InvalidateLayout, self )
+					timer.Simple( 0, function() self:InvalidateLayout() end )
 				end
 			end
 		end
@@ -269,7 +269,7 @@ if CLIENT then
 
 				if index == max then
 					timer.Remove("wire_gates_fillsubtree_delay" .. tostring(subtree))
-					--timer.Simple(0,tree.InvalidateLayout,tree)
+					--timer.Simple(0, function() tree:InvalidateLayout() end)
 					if not node.m_bExpanded then
 						node:InternalDoClick()
 					end
@@ -291,7 +291,7 @@ if CLIENT then
 		end
 
 		-- add it all to the main panel
-		panel:AddItem( holder )
+		panel:Add( holder )
 	end
 end
 
@@ -392,7 +392,7 @@ function TOOL:Reload( trace )
 		end
 		return false
 	else
-		if SinglePlayer() and SERVER then
+		if game.SinglePlayer() and SERVER then
 			self:GetOwner():ConCommand( "wire_gates_angleoffset " .. (self:GetClientNumber( "angleoffset" ) + 45) % 360 )
 		elseif CLIENT then
 			RunConsoleCommand( "wire_gates_angleoffset", (self:GetClientNumber( "angleoffset" ) + 45) % 360 )
@@ -423,7 +423,7 @@ end
 ----------------------------------------------------------------------------------------------------
 -- GHOST
 ----------------------------------------------------------------------------------------------------
-if ((SinglePlayer() and SERVER) or (!SinglePlayer() and CLIENT)) then
+if ((game.SinglePlayer() and SERVER) or (!game.SinglePlayer() and CLIENT)) then
 	function TOOL:DrawGhost()
 		local ent, ply = self.GhostEntity, self:GetOwner()
 		if (!ent or !ent:IsValid()) then return end

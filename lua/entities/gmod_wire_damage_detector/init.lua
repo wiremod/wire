@@ -31,7 +31,7 @@ local function CheckWireDamageDetectors( ent, inflictor, attacker, amount, dmgin
 		local entID = ent:EntIndex()
 		for k,_ in pairs(Wire_Damage_Detectors) do
 			local detector = ents.GetByIndex(k)
-			if ValidEntity(detector) and detector.on then
+			if IsValid(detector) and detector.on then
 				if !detector.updated then
 					detector:UpdateLinkedEnts()
 					detector.updated = true
@@ -146,7 +146,7 @@ function ENT:TriggerInput( iname, value )
 		if value then
 			self.linked_entities = {}
 			for _,v in pairs(value) do
-				if ValidEntity(v) then
+				if IsValid(v) then
 					table.insert(self.linked_entities, v:EntIndex())
 				end
 			end
@@ -154,7 +154,7 @@ function ENT:TriggerInput( iname, value )
 	elseif (iname == "Entity") then
 		if value then
 			self.linked_entities = {}
-			if ValidEntity(value) then
+			if IsValid(value) then
 				self.linked_entities[1] = value:EntIndex()
 			end
 		end
@@ -164,14 +164,14 @@ end
 function ENT:TriggerOutput()		-- Entity outputs won't trigger again until they change
 
 	local attacker = self.firsthit_dmginfo[1]
-	if ValidEntity(attacker) then
+	if IsValid(attacker) then
 		WireLib.TriggerOutput( self, "Attacker", attacker )
 	else
 		WireLib.TriggerOutput( self, "Attacker", null )
 	end
 
 	local victim = self.firsthit_dmginfo[2]
-	if ValidEntity( ents.GetByIndex(victim) ) then
+	if IsValid( ents.GetByIndex(victim) ) then
 		WireLib.TriggerOutput( self, "Victim", ents.GetByIndex(victim) )
 	else
 		WireLib.TriggerOutput( self, "Victim", null )
@@ -197,7 +197,7 @@ function ENT:UpdateLinkedEnts()		-- Check to see if prop is registered by the de
 	end
 
 	for _,v in pairs (self.linked_entities) do		-- include linked_entities
-		if ValidEntity( ents.GetByIndex(v) ) then
+		if IsValid( ents.GetByIndex(v) ) then
 			self.key_ents[v] = true
 		end
 	end
@@ -206,9 +206,9 @@ end
 function ENT:UpdateConstrainedEnts()		-- Finds all entities constrained to linked_entities
 	for _,v in pairs (self.linked_entities) do
 		local ent = ents.GetByIndex(v)
-		if ValidEntity(ent) and constraint.HasConstraints(ent) and !self.key_ents[v] then
+		if IsValid(ent) and constraint.HasConstraints(ent) and !self.key_ents[v] then
 			for _,w in pairs( constraint.GetAllConstrainedEntities(ent) ) do
-				if ValidEntity(w) then
+				if IsValid(w) then
 					self.key_ents[w:EntIndex()] = true
 				end
 			end
@@ -273,7 +273,7 @@ end
 
 function ENT:BuildDupeInfo()
 	local info = self.BaseClass.BuildDupeInfo(self) or {}
-	if ValidEntity( ents.GetByIndex(self.linked_entities[0]) ) then
+	if IsValid( ents.GetByIndex(self.linked_entities[0]) ) then
 	    info.linked_entities = self.linked_entities[0]
 	end
 	return info
@@ -282,10 +282,10 @@ end
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
 
-	if ValidEntity( GetEntByID(info.linked_entities) ) then
+	if IsValid( GetEntByID(info.linked_entities) ) then
 		self.linked_entities = {}
 		self.linked_entities[0] = GetEntByID(info.linked_entities):EntIndex()
-	elseif ValidEntity( ents.GetByIndex(info.linked_entities) ) then
+	elseif IsValid( ents.GetByIndex(info.linked_entities) ) then
 		self.linked_entities = {}
 		self.linked_entities[0] = info.linked_entities
 	end

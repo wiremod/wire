@@ -74,7 +74,7 @@ function TOOL:RightClick( trace )
 	if trace.Entity:IsPlayer() then return false end
 	if CLIENT then return true end
 
-	if ValidEntity(trace.Entity) then
+	if IsValid(trace.Entity) then
 		if self:GetStage() == 0 and trace.Entity:GetClass() == "gmod_wire_damage_detector" then
 			self.detector = trace.Entity
 			self:SetStage(1)

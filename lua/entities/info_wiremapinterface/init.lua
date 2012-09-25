@@ -243,7 +243,7 @@ function ENT:AcceptInput(name, activator, caller, data)
 		local Ent, Func = self:AddSingleEntity(caller)
 
 		if (!IsValid(Ent) or !Func) then return false end
-		timer.Simple(0.02, Func, self, Ent, nil, true)
+		timer.Simple(0.02, function() Func( self, Ent, nil, true) end)
 
 		self:TriggerOutput("onwireentscreated", self)
 		self:TriggerOutput("onwireentsready", self)

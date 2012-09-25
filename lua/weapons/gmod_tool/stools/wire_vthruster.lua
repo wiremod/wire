@@ -363,7 +363,7 @@ function TOOL.BuildCPanel(panel)
 
 		CateGoryOW:SetContents( ctrl )
 
-		panel:AddItem(CateGoryOW)
+		panel:Add(CateGoryOW)
 
 		Effects["#Same as over water"] = "same"
 
@@ -382,7 +382,7 @@ function TOOL.BuildCPanel(panel)
 
 		CateGoryUW:SetContents( ctrlUW )
 
-		panel:AddItem(CateGoryUW)
+		panel:Add(CateGoryUW)
 
 	local lst = {}
 	for k,v in pairs( list.Get("ThrusterSounds") ) do

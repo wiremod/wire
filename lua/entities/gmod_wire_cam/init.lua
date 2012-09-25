@@ -17,7 +17,7 @@ end
 
 --[[
 function ENT:Think()
-	--if ValidEntity(self:GetParent()) then return end
+	--if IsValid(self:GetParent()) then return end
 	if self:GetPos() ~= self.IdealPos then
 		self:SetPos(self.IdealPos)
 	end
@@ -69,7 +69,7 @@ function ENT:ReceiveInfo(iname, value)
 		self.IdealVel = value
 		self.phys:SetVelocity(self.IdealVel)
 	elseif iname == "Parent" then
-		if ValidEntity(value) then
+		if IsValid(value) then
 			self:SetParent(value)
 		else
 			self:SetParent(nil)

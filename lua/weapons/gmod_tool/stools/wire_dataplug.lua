@@ -289,7 +289,7 @@ function TOOL.BuildCPanel(panel)
 	local mdl = vgui.Create("DWireModelSelect",CPanel)
 	mdl:SetModelList( list.Get( "wire_socket_models" ), "wire_dataplug_model" )
 	mdl:SetHeight( 2 )
-	panel:AddItem( mdl )
+	panel:Add( mdl )
 
 	panel:AddControl("ComboBox", {
 		Label = "#Presets",

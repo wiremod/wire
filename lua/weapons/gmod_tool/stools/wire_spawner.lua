@@ -40,7 +40,7 @@ function TOOL:LeftClick(trace)
 		local spawner = ent
 
 		// In multiplayer we clamp the delay to help prevent people being idiots
-		if !SinglePlayer() and delay < 0.1 then
+		if !game.SinglePlayer() and delay < 0.1 then
 			delay = 0.1
 		end
 
@@ -97,7 +97,7 @@ if SERVER then
 		end
 
 		// In multiplayer we clamp the delay to help prevent people being idiots
-		if not SinglePlayer() and delay < 0.1 then
+		if not game.SinglePlayer() and delay < 0.1 then
 			delay = 0.1
 		end
 
