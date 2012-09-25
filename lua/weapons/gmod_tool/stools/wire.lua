@@ -1,3 +1,10 @@
+
+-- Load wiremod tools in /lua/wire/stools/
+local OLD_TOOL = TOOL
+TOOL = nil
+include( "wire/stools/tool_loader.lua" )
+TOOL = OLD_TOOL
+
 TOOL.Mode			= "wire"
 TOOL.Category		= "Wire - Tools"
 TOOL.Name			= "Wire"

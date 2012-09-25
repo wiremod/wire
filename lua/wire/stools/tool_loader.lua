@@ -1,4 +1,3 @@
---MsgN("Loading Wire Tools")
 
 AddCSLuaFile( "tool_loader.lua" )
 
