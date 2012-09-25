@@ -1251,15 +1251,15 @@ function Editor:InitControlPanel(frame)
 			pnl.Palette:SetPos( 44, 0 )
 			pnl.Palette:SetSize( w - 44, h )
 		end
-		pnl.AlphaBar:SetPos( 22, 0 )
-		pnl.AlphaBar:SetSize( 20, h )
+		pnl.Alpha:SetPos( 22, 0 )
+		pnl.Alpha:SetSize( 20, h )
     end
 	
 	if VERSION < 150 then
 		local old = ColorMixer.ColorCube.OnMouseReleased
 		ColorMixer.ColorCube.OnMouseReleased = function( ... )
 			local clr = ColorMixer:GetColor()
-			r, g, b, a = clr.r, clr.g, clr.b, 255-ColorMixer.AlphaBar:GetSlideY()*255
+			r, g, b, a = clr.r, clr.g, clr.b, 255-ColorMixer.Alpha:GetValue()*255
 			SkipUpdate = true
 			RBox:SetValue( r )
 			GBox:SetValue( g )
@@ -1279,7 +1279,7 @@ function Editor:InitControlPanel(frame)
 		local old = ColorMixer.Palette.OnMouseReleased
 		ColorMixer.Palette.OnMouseReleased = function( ... )
 			local clr = ColorMixer:GetColor()
-			r, g, b, a = clr.r, clr.g, clr.b, 255-ColorMixer.AlphaBar:GetSlideY()*255
+			r, g, b, a = clr.r, clr.g, clr.b, 255-ColorMixer.Alpha:GetValue()*255
 			SkipUpdate = true
 			RBox:SetValue( r )
 			GBox:SetValue( g )
@@ -1297,8 +1297,8 @@ function Editor:InitControlPanel(frame)
 		end
 	end
 	
-	local old = ColorMixer.AlphaBar.OnMouseReleased
-	ColorMixer.AlphaBar.OnMouseReleased = function(...)
+	local old = ColorMixer.Alpha.OnMouseReleased
+	ColorMixer.Alpha.OnMouseReleased = function(...)
 		if VERSION < 150 then
 			ColorMixer.ColorCube:OnMouseReleased()
 		else
@@ -1689,7 +1689,7 @@ Text here]# ]] }
 	--ColorMixer:SetPos( 170, 205 )
 
 	-- Remove alpha bar
-    ColorMixer.AlphaBar:SetVisible( false )
+    ColorMixer.Alpha:SetVisible( false )
     ColorMixer.PerformLayout = function( pnl )
 		local w,h = pnl:GetSize()
 		if VERSION < 150 then

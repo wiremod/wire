@@ -753,7 +753,8 @@ Installation problems:                            Tutorials:                    
 				clr._RadioBtn:SetText( clr._RadioBtn._Color .. string.format(" - [%d,%d,%d,%d]", c.r, c.g, c.b, c.a ) )
 			end
 		end
-		clr.AlphaBar.OnChange = function( ctrl, alpha )
+		clr.Alpha.OnChange = function( ctrl, alpha )
+			alpha = alpha*255
 			clr._RadioBtn._CurrentColor.a = alpha
 			local c = clr._RadioBtn._CurrentColor
 			clr._RadioBtn:SetText( clr._RadioBtn._Color .. string.format(" - [%d,%d,%d,%d]", c.r, c.g, c.b, alpha ) )
