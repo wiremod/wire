@@ -7,7 +7,6 @@ local function LoadTools()
 	if SERVER then
 		include( "sv_wirestools.lua" )
 		include( "sv_detection.lua" )
-		include( "sv_display.lua" )
 		include( "sv_io.lua" )
 		include( "sv_physics.lua" )
 	end
