@@ -115,7 +115,7 @@ function ENT:Execute()
 
 	self:PCallHook('preexecute')
 	
-	 self.context:PushScope()
+	self.context:PushScope()
 	
 	local ok, msg = pcall(self.script[1], self.context, self.script)
 	if not ok then
@@ -127,7 +127,7 @@ function ENT:Execute()
 		end
 	end
 	
-	 self.context:PopScope()
+	self.context:PopScope()
 	
 	self.first = false -- if hooks call execute
 	self.duped = false -- if hooks call execute

@@ -94,7 +94,11 @@ local function checkQueue()
 end
 
 registerCallback("postexecute",function(self)
-	timer.Simple( 0, checkQueue )
+	if self.entity.removing then
+		checkQueue()
+	else
+		timer.Simple( 0, checkQueue )
+	end
 end)
 
 ---------------------------------------------

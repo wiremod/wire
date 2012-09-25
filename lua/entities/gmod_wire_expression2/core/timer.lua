@@ -87,6 +87,24 @@ e2function number clk(string rv1)
 	   then return 1 else return 0 end
 end
 
+e2function array getTimers()
+	local ret = {}
+	local i = 0
+	for name,_ in pairs( self.data.timer.timers ) do
+		i = i + 1
+		ret[i] = name
+	end
+	self.prf = self.prf + i * 5
+	return ret
+end
+
+e2function void stopAllTimers()
+	for name,_ in pairs(self.data.timer.timers) do
+		self.prf = self.prf + 5
+		RemoveTimer(self,name)
+	end
+end
+
 /******************************************************************************/
 
 e2function number curtime()

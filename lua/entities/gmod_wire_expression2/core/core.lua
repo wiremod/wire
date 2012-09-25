@@ -354,6 +354,10 @@ e2function void exit()
 	error("exit", 0)
 end
 
+e2function void error( string reason )
+	error(reason, 1)
+end
+
 /******************************************************************************/
 
 __e2setcost(100) -- approximation

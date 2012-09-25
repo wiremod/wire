@@ -39,11 +39,11 @@ end
 -- Type defining
 --------------------------------------------------------------------------------
 
-local DEFAULT = {n={},ntypes={},s={},stypes={},size=0,istable=true}
+local DEFAULT = {n={},ntypes={},s={},stypes={},size=0}
 
 registerType("table", "t", table.Copy(DEFAULT),
 	function(self, input)
-		if (IsEmpty(input) or !input.istable) then
+		if (IsEmpty(input)) then
 			return table.Copy(DEFAULT)
 		end
 		return input
@@ -98,7 +98,9 @@ local function temp( ret, tbl, k, v, orientvertical, isnum )
 
 	return ret
 end
+
 WireLib.registerDebuggerFormat( "table", function( value, orientvertical )
+	if not value.n or not value.s then return "{}" end
 	local ret = ""
 	local n = 0
 	for k2,v2 in pairs( value.n ) do
