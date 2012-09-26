@@ -247,7 +247,7 @@ function ENT:BuildDupeInfo()
 end
 
 local function FindConstraint( ent, plug )
-	timer.Simple(0.5,function( ent, plug )
+	SimpleTimerParams(0.5,function( ent, plug )
 		if (ent and ent:IsValid() and plug and plug:IsValid()) then
 			local welds = constraint.FindConstraints( ent, "Weld" )
 			for k,v in pairs( welds ) do
@@ -303,7 +303,7 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID, GetConstByID)
 		ent:SetUp() -- default values
 
 		-- Attempt to find connected plug
-		timer.Simple(0.5,function(ent)
+		SimpleTimerParams(0.5,function(ent)
 			local welds = constraint.FindConstraints( ent, "Weld" )
 			for k,v in pairs( welds ) do
 				if (v.Ent2:GetClass() == "gmod_wire_plug") then

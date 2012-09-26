@@ -65,11 +65,11 @@ function ENT:PlayerSpoke( ply, text )
 	WireLib.TriggerOutput( self, "Player", ply )
 
 	WireLib.TriggerOutput( self, "Clk", 1 )
-	timer.Simple( 0, function()
+	SimpleTimerParams( 0, function(self)
 		if self and self:IsValid() then
 			WireLib.TriggerOutput( self, "Clk", 0 )
 		end
-	end	)
+	end, self )
 
 	if self.CaseInsensitive then text = string_lower(text) end
 

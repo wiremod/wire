@@ -2484,7 +2484,7 @@ end
 function EDITOR:AC_Check( notimer )
 
 	if (!notimer) then
-		timer.Simple(0,function() self.AC_Check(self,true) end )
+		SimpleTimerParams(0, self.AC_Check, self, true)
 		return
 	end
 

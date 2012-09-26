@@ -57,7 +57,7 @@ if (SERVER) then
 	-- Send the version to the client
 	------------------------------------------------------------------
 	local function recheck( ply, tries )
-		timer.Simple(5,function()
+		SimpleTimerParams(5,function(ply)
 			if (ply and ply:IsValid()) then -- Success!
 				umsg.Start("wire_rev",ply)
 					umsg.String( WireLib.Version )
@@ -66,7 +66,7 @@ if (SERVER) then
 				if (tries and tries > 3) then return end -- several failures.. stop trying
 				recheck(ply, (tries or 0) + 1) -- Try again
 			end
-		end)
+		end, ply)
 	end
 	hook.Add("PlayerInitialSpawn","WirePlayerInitSpawn",recheck)
 

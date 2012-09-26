@@ -164,9 +164,7 @@ concommand.Add("wire_adv_pod_bind", function( ply,cmd,args )
 	for _, pod in pairs( ents.FindByClass( "gmod_wire_adv_pod" ) ) do
 		if (ply:GetVehicle() == pod.Pod) then
 			WireLib.TriggerOutput( pod, bind, 1 )
-			timer.Simple( 0.03, function()
-				WireLib.TriggerOutput( pod, bind, 0 )
-			end )
+			SimpleTimerParams( 0.03, WireLib.TriggerOutput, pod, bind, 0 )
 		end
 	end
 end)
@@ -457,7 +455,7 @@ end
 function ENT:Use( User, caller )
 	if User ~= self:GetPlayer() then return end
 	User:PrintMessage(HUD_PRINTTALK, "Hold down your use key for 2 seconds to get and link a Remote Controller.")
-	timer.Create("adv_pod_use_"..self:EntIndex(), 2, 1, function(self, User)
+	CreateTimerParams("adv_pod_use_"..self:EntIndex(), 2, 1, function(self, User)
 		if not User then return end
 		if not User:IsValid() then return end
 		if not User:IsPlayer() then return end
