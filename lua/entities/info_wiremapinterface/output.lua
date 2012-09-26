@@ -40,7 +40,7 @@ local function FireSingleOutput(output, this, activator, value, delayoffset)
 			if (delay == 0) then
 				ent:Input(output.input, activator, this, value or output.param)
 			else
-				timer.Simple(delay, function(ent)
+				SimpleTimerParams(delay, function(ent)
 					if (IsValid(ent)) then
 						ent:Input(output.input, activator, this, value or output.param)
 					end

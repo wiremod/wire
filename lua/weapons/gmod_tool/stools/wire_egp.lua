@@ -43,7 +43,7 @@ if (SERVER) then
 		local ent = SpawnEnt( ply, Pos, Ang, model, "gmod_wire_egp" )
 		if (ent and ent:IsValid()) then
 			ent.EGP_Duplicated = true
-			timer.Simple(0.5,function() ent.EGP_Duplicated = nil end)
+			SimpleTimerParams(0.5,function(ent) ent.EGP_Duplicated = nil end, ent)
 		end
 		return ent
 	end
@@ -56,7 +56,7 @@ if (SERVER) then
 		local ent = SpawnEnt( ply, Pos, Ang, "models/bull/dynamicbutton.mdl", "gmod_wire_egp_hud" )
 		if (ent and ent:IsValid()) then
 			ent.EGP_Duplicated = true
-			timer.Simple(0.5,function() ent.EGP_Duplicated = nil end)
+			SimpleTimerParams(0.5,function(ent) ent.EGP_Duplicated = nil end, ent)
 		end
 		return ent
 	end
@@ -69,7 +69,7 @@ if (SERVER) then
 		local ent = SpawnEnt( ply, Pos, Ang, "models/bull/dynamicbutton.mdl", "gmod_wire_egp_emitter" )
 		if (ent and ent:IsValid()) then
 			ent.EGP_Duplicated = true
-			timer.Simple(0.5,function() ent.EGP_Duplicated = nil end)
+			SimpleTimerParams(0.5,function(ent) ent.EGP_Duplicated = nil end, ent)
 		end
 		return ent
 	end

@@ -40,8 +40,6 @@ local function Expression2TickClock()
 	tickrun = 0
 end
 hook.Add("Think", "Expression2TickClock", Expression2TickClock)
-timer.Create("Expression2TickClock", 5, 0, function()
-	hook.Add("Think", "Expression2TickClock", Expression2TickClock)
-end)
+CreateTimerParams("Expression2TickClock", 5, 0, hook.Add, "Think", "Expression2TickClock", Expression2TickClock)
 
 __e2setcost(nil)

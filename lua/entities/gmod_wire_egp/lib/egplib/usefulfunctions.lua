@@ -217,11 +217,11 @@ if (CLIENT) then
 	end)
 else
 	hook.Add("PlayerInitialSpawn","EGP_ScrHW_Request",function(ply)
-		timer.Simple(1,function()
+		SimpleTimerParams(1,function(ply)
 			if (ply and ply:IsValid() and ply:IsPlayer()) then
 				umsg.Start("EGP_ScrWH_Request",ply) umsg.End()
 			end
-		end)
+		end, ply)
 	end)
 
 	EGP.ScrHW = {}

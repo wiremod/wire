@@ -120,12 +120,12 @@ function ENT:TriggerInput(iname, value)
 	elseif (iname == "Constant") then
 		self.current_constant = math.max(value,1)
 		self.constraint:Fire("SetSpringConstant",self.current_constant)
-		timer.Simple( 0.1, function(a) if (a and a:IsValid()) then a:UpdateOutputs() end end, self ) -- Needs to be delayed because ent:Fire doesn't update that fast.
+		SimpleTimerParams( 0.1, function(a) if (a and a:IsValid()) then a:UpdateOutputs() end end, self ) -- Needs to be delayed because ent:Fire doesn't update that fast.
 
 	elseif (iname == "Damping") then
 		self.current_damping = math.max(value,1)
 		self.constraint:Fire("SetSpringDamping",self.current_damping)
-		timer.Simple( 0.1, function(a) if (a and a:IsValid()) then a:UpdateOutputs() end end, self )
+		SimpleTimerParams( 0.1, function(a) if (a and a:IsValid()) then a:UpdateOutputs() end end, self )
 	end
 
 	self:SetOverlayText( "Hydraulic Length : " .. self.current_length .. "\nConstant: " .. (self.current_constant or "-") .. "\nDamping: " .. (self.current_damping or "-") )

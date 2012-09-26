@@ -727,3 +727,19 @@ elseif CLIENT then
 		end
 	end
 end
+
+
+-- wrapper function for timer.Simple to restore pre beta 34 behavior (accept parameters)
+SimpleTimerParams = function(delay, timer_func, ...)
+	timer.Simple(delay, function() timer_func(unpack(arg)) end )
+	end
+	
+-- wrapper function for timer.Create to restore pre beta 34 behavior (accept parameters)	
+CreateTimerParams = function(name, delay, repeats, timer_func, ...)
+	timer.Create(name, delay, repeats, function() timer_func(unpack(arg)) end)
+	end
+	
+-- wrapper function for timer.Adjust to restore pre beta 34 behavior (accept parameters)	
+AdjustTimerParams = function(name, delay, repeats, timer_func, ...)
+	timer.Adjust(name, delay, repeats, function() timer_func(unpack(arg)) end)
+	end

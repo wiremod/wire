@@ -236,7 +236,7 @@ if CLIENT then
 						searchlist:SetPos( 2 + w * animpercentinv, 2 )
 					end
 
-					timer.Simple( 0, function() self:InvalidateLayout() end )
+					SimpleTimerParams( 0, self.InvalidateLayout, self)
 				end
 			end
 		end
@@ -269,7 +269,7 @@ if CLIENT then
 
 				if index == max then
 					timer.Remove("wire_gates_fillsubtree_delay" .. tostring(subtree))
-					--timer.Simple(0, function() tree:InvalidateLayout() end)
+					--SimpleTimerParams(0, tree.InvalidateLayout, tree)
 					if not node.m_bExpanded then
 						node:InternalDoClick()
 					end
