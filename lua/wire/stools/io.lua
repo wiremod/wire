@@ -171,8 +171,7 @@ do --wire_button
 			{	button = "Normal",
 				button_small = "Small"
 			},
-			"wire_button",
-			"#Button_Model", nil, "#Button_Model", 6
+			"wire_button", "#Button_Model", 6
 		)
 		panel:CheckBox("#WireButtonTool_toggle", "wire_button_toggle")
 		panel:CheckBox("#WireButtonTool_entityout", "wire_button_entityout")
@@ -226,8 +225,7 @@ do --wire_dynamic_button
 			{	dynamic_button = "Normal",
 				dynamic_button_small = "Small"
 			},
-			"wire_dynamic_button",
-			"#Dynamic_Button_Model", nil, "#Dynamic_Button_Model", 1.1
+			"wire_dynamic_button", "#Dynamic_Button_Model", 1.1
 		)
 
 		panel:NumSlider("#WireDynamicButtonTool_value_on", "wire_dynamic_button_value_on", -10, 10, 1)

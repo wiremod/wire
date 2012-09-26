@@ -247,7 +247,7 @@ if CLIENT then
 	local function GetTOOL(mode)
 		for _,wep in ipairs(LocalPlayer():GetWeapons()) do
 			if wep:GetClass() == "gmod_tool" then
-				wep:GetToolObject(mode)
+				return wep:GetToolObject(mode)
 			end
 		end
 	end
