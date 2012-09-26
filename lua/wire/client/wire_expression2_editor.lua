@@ -1080,7 +1080,6 @@ function Editor:InitControlPanel(frame)
 
 	function frame:ResizeAll() 
 		SimpleTimerParams(0, callNext, self.ResizeObjects, 1 )
-		end)
 	end
 
 	-- Resize them at the right times
@@ -1535,7 +1534,7 @@ function Editor:InitControlPanel(frame)
 		value = value - 1 -- Subtract one (to make it 0-3 instead of 1-4)
 		RunConsoleCommand( "wire_expression2_browser_sort_style", value )
 		SimpleTimerParams( 0.1, self.C["Browser"].panel.UpdateFolders, self.C["Browser"].panel )
-	end
+	end  
 	SortStyle:AddChoice( "1: Alphabetical - A -> Z" )
 	SortStyle:AddChoice( "2: Alphabetical - Z -> A" )
 	SortStyle:AddChoice( "3: Age - New -> Old" )
