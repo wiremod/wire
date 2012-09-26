@@ -1052,7 +1052,7 @@ function WireLib.PostDupe(entid, func)
 
 	-- Wait until the selected entity has been spawned...
 	local unique = {}
-	timer.Create(unique, 1, 240, function(CreatedEntities, entid, unique, func)
+	timer.Create(unique, 1, 240, function()
 		local ent = CreatedEntities[entid]
 		if ent then
 			timer.Remove(unique)
@@ -1060,7 +1060,7 @@ function WireLib.PostDupe(entid, func)
 			-- and call the callback
 			func(ent)
 		end
-	end, CreatedEntities, entid, unique, func)
+	end)
 end
 
 function WireLib.dummytrace(ent)

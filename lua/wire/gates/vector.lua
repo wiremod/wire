@@ -244,7 +244,8 @@ GateActions["vector_rand"] = {
 	timed = true,
 	output = function(gate)
 		local vec = Vector (math.random (), math.random (), math.random ())
-		return vec:Normalize ()
+		vec:Normalize()
+		return vec
 	end,
 	label = function(Out)
 		return "Random Vector"
@@ -292,15 +293,15 @@ GateActions["vector_cint"] = {
 		-- Lifted (kinda) from wiregates.lua to prevent massive values
 		local TempInt = gate.Integral:Length ()
 		if (TempInt > 100000) then
-			gate.Integral = gate.Integral:Normalize () * 100000
+			gate.Integral = gate.Integral:GetNormalized() * 100000
 		end
 		if (TempInt < -100000) then
-			gate.Integral = gate.Integral:Normalize () * -100000
+			gate.Integral = gate.Integral:GetNormalized() * -100000
 		end
 		return gate.Integral
 	end,
 	reset = function(gate)
-		gate.Integral, gate.LastT = Vector (0, 0, 0), CurTime ()
+		gate.Integral, gate.LastT = Vector (0, 0, 0), CurTime()
 	end,
 	label = function(Out, A)
 		return string.format ("int(%s) = (%d,%d,%d)", A, Out.x, Out.y, Out.z)

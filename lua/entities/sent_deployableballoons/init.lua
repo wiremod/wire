@@ -125,7 +125,7 @@ function ENT:DeployBalloons()
 	balloon:SetPlayer(self:GetPlayer())
 	duplicator.DoGeneric(balloon,{Pos = self:GetPos() + (self:GetUp()*25)})
 	duplicator.DoGenericPhysics(balloon,pl,{Pos = Pos})
-	local spawnervec = (self:GetPos()-balloon:GetPos()):Normalize()*250 --just to be sure
+	local spawnervec = (self:GetPos()-balloon:GetPos()):GetNormalized()*250 --just to be sure
 	local trace = util.QuickTrace(balloon:GetPos(),spawnervec,balloon)
 	local Pos = self:GetPos()+(self:GetUp()*25)
 	local attachpoint = Pos + Vector(0,0,-10)

@@ -125,7 +125,8 @@ function ENT:Jump( withangles )
 		-- Effect out
 		local effectdata = EffectData()
 		effectdata:SetEntity( self )
-		local Dir = (self.TargetPos - self:GetPos()):Normalize()
+		local Dir = (self.TargetPos - self:GetPos())
+		Dir:Normalize()
 		effectdata:SetOrigin( self:GetPos() + Dir * math.Clamp( self:BoundingRadius() * 5, 180, 4092 ) )
 		util.Effect( "jump_out", effectdata, true, true )
 
@@ -199,7 +200,7 @@ function ENT:Jump_Part2( withangles )
 
 	if self.UseSounds then self:EmitSound("npc/turret_floor/die.wav", 450, 70) end -- Sound
 
-	local Dir = (OldPos - self:GetPos()):Normalize()
+	local Dir = (OldPos - self:GetPos()):GetNormalized()
 	if self.UseEffects then
 		-- Effect
 		effectdata = EffectData()
@@ -282,12 +283,11 @@ function ENT:Jump_Part2( withangles )
 		"teleporter_"..self:EntIndex(), -- name
 		GetConVar( "wire_hoverdrive_cooldown" ):GetFloat(), -- delay
 		1, -- nr of runs
-		function( e ) -- function
-			if e and e:IsValid() then
-				e.Jumping = false
+		function() -- function
+			if self:IsValid() then
+				self.Jumping = false
 			end
-		end,
-		self -- args
+		end
 	)
 end
 

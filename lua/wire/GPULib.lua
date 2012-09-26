@@ -411,8 +411,9 @@ if CLIENT then
 		}
 
 		local mins, maxs = screen:OBBMins(), screen:OBBMaxs()
-
-		local function setbounds(timerid)
+		
+		local timerid = "wire_gpulib_updatebounds"..screen:EntIndex()
+		local function setbounds()
 			if not screen:IsValid() then
 				timer.Remove(timerid)
 				return
@@ -448,8 +449,7 @@ if CLIENT then
 			Wire_UpdateRenderBounds(screen)
 		end
 
-		local timerid = "wire_gpulib_updatebounds"..screen:EntIndex()
-		timer.Create(timerid, 5, 0, setbounds, timerid)
+		timer.Create(timerid, 5, 0, setbounds)
 
 		setbounds()
 	end) -- usermessage.Hook
