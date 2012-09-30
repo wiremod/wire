@@ -1118,12 +1118,12 @@ function Editor:InitControlPanel(frame)
 	dlist:EnableVerticalScrollbar( true )
 
 	local Label = vgui.Create( "DLabel" )
-	dlist:Add( Label )
+	dlist:AddItem( Label )
 	Label:SetText( "Window border colors" )
 	Label:SizeToContents()
 
 	local SimpleColors = vgui.Create( "DCheckBoxLabel" )
-	dlist:Add( SimpleColors )
+	dlist:AddItem( SimpleColors )
 	SimpleColors:SetSize(180,20)
 	SimpleColors:SetText("Simple Colors")
 	SimpleColors:SetConVar( "wire_expression2_editor_color_simplegui" )
@@ -1132,7 +1132,7 @@ function Editor:InitControlPanel(frame)
 	end
 
 	local temp = vgui.Create( "Panel" )
-	dlist:Add( temp )
+	dlist:AddItem( temp )
 	temp:SetTall( 70 )
 	if VERSION < 150 then
 	local FLColor = vgui.Create( "DColorCircle", temp )
@@ -1152,7 +1152,7 @@ function Editor:InitControlPanel(frame)
 		FRColor.TranslateValues = function(panel, x, y ) return self:TranslateValues(panel, x, y ) end
 	end
 	local DarknessColor = vgui.Create( "DSlider" )
-	dlist:Add( DarknessColor )
+	dlist:AddItem( DarknessColor )
 	DarknessColor:SetSize(180,30)
 	DarknessColor.TranslateValues = function(panel, x, y )
 		self.colors.tmp_Dark = 255-math.floor(x*255)
@@ -1167,12 +1167,12 @@ function Editor:InitControlPanel(frame)
 	function defaultbutton.DoClick( btn )
 		self:DefaultEditorColors()
 	end
-	dlist:Add( defaultbutton )
+	dlist:AddItem( defaultbutton )
 
 	-- Other colors
 
 	local Label = vgui.Create( "DLabel" )
-	dlist:Add( Label )
+	dlist:AddItem( Label )
 	Label:SetText( "Other color options" )
 	Label:SizeToContents()
 
@@ -1181,7 +1181,7 @@ function Editor:InitControlPanel(frame)
 	local r, g, b, a = 255,255,255,255
 
 	local temp = vgui.Create("Panel")
-	dlist:Add( temp )
+	dlist:AddItem( temp )
 	temp:SetTall( 132 )
 
 	-- Create color mixer, number wangs, default button, and drop down menu
@@ -1362,14 +1362,14 @@ function Editor:InitControlPanel(frame)
 	---- FONTS
 
 	local FontLabel = vgui.Create( "DLabel" )
-	dlist:Add( FontLabel )
+	dlist:AddItem( FontLabel )
 	FontLabel:SetText( "Font:                                   Font Size:" )
 	FontLabel:SizeToContents()
 	FontLabel:SetPos( 10, 0 )
 
 	local temp = vgui.Create("Panel")
 	temp:SetTall( 25 )
-	dlist:Add( temp )
+	dlist:AddItem( temp )
 
 	local FontSelect
 	if VERSION < 150 then
@@ -1377,7 +1377,7 @@ function Editor:InitControlPanel(frame)
 	else
 		FontSelect = vgui.Create( "DComboBox", temp )
 	end
-	--dlist:Add( FontSelect )
+	--dlist:AddItem( FontSelect )
 	FontSelect.OnSelect = function( panel, index, value )
 		if (value == "Custom...") then
 			Derma_StringRequestNoBlur( "Enter custom font:", "", "", function( value )
@@ -1421,31 +1421,31 @@ function Editor:InitControlPanel(frame)
 
 
 	local label = vgui.Create("DLabel")
-	dlist:Add( label )
+	dlist:AddItem( label )
 	label:SetText( "Auto completion options" )
 	label:SizeToContents()
 
 	local AutoComplete = vgui.Create( "DCheckBoxLabel" )
-	dlist:Add( AutoComplete )
+	dlist:AddItem( AutoComplete )
 	AutoComplete:SetConVar( "wire_expression2_autocomplete" )
 	AutoComplete:SetText( "Auto Completion" )
 	AutoComplete:SizeToContents()
 	AutoComplete:SetTooltip( "Enable/disable auto completion in the E2 editor." )
 
 	local AutoCompleteExtra = vgui.Create( "DCheckBoxLabel" )
-	dlist:Add( AutoCompleteExtra )
+	dlist:AddItem( AutoCompleteExtra )
 	AutoCompleteExtra:SetConVar( "wire_expression2_autocomplete_moreinfo" )
 	AutoCompleteExtra:SetText( "More Info (for AC)" )
 	AutoCompleteExtra:SizeToContents()
 	AutoCompleteExtra:SetTooltip( "Enable/disable additional information for auto completion." )
 
 	local label = vgui.Create("DLabel")
-	dlist:Add( label )
+	dlist:AddItem( label )
 	label:SetText( "Auto completion control style" )
 	label:SizeToContents()
 
 	local AutoCompleteControlOptions = (VERSION >= 150 and vgui.Create( "DComboBox" ) or vgui.Create( "DMultiChoice" ))
-	dlist:Add( AutoCompleteControlOptions )
+	dlist:AddItem( AutoCompleteControlOptions )
 
 	local modes = {}
 	modes["Default"] 					= { 0, "Current mode:\nTab/CTRL+Tab to choose item;\nEnter/Space to use;\nArrow keys to abort." }
@@ -1476,59 +1476,59 @@ function Editor:InitControlPanel(frame)
 	end
 
 	local HighightOnUse = vgui.Create( "DCheckBoxLabel" )
-	dlist:Add( HighightOnUse )
+	dlist:AddItem( HighightOnUse )
 	HighightOnUse:SetConVar( "wire_expression2_autocomplete_highlight_after_use" )
 	HighightOnUse:SetText( "Highlight word after AC use." )
 	HighightOnUse:SizeToContents()
 	HighightOnUse:SetTooltip( "Enable/Disable highlighting of the entire word after using auto completion.\nIn E2, this is only for variables/constants, not functions." )
 
 	local label = vgui.Create("DLabel")
-	dlist:Add( label )
+	dlist:AddItem( label )
 	label:SetText( "Other options" )
 	label:SizeToContents()
 
 	local NewTabOnOpen = vgui.Create( "DCheckBoxLabel" )
-	dlist:Add( NewTabOnOpen )
+	dlist:AddItem( NewTabOnOpen )
 	NewTabOnOpen:SetConVar( "wire_expression2_new_tab_on_open" )
 	NewTabOnOpen:SetText( "New tab on open" )
 	NewTabOnOpen:SizeToContents()
 	NewTabOnOpen:SetTooltip( "Enable/disable loaded files opening in a new tab.\nIf disabled, loaded files will be opened in the current tab." )
 
 	local SaveTabsOnClose = vgui.Create( "DCheckBoxLabel" )
-	dlist:Add( SaveTabsOnClose )
+	dlist:AddItem( SaveTabsOnClose )
 	SaveTabsOnClose:SetConVar( "wire_expression2_editor_savetabs" )
 	SaveTabsOnClose:SetText( "Save tabs on close" )
 	SaveTabsOnClose:SizeToContents()
 	SaveTabsOnClose:SetTooltip( "Save the currently opened tab file paths on shutdown.\nOnly saves tabs whose files are saved." )
 
 	local OpenOldTabs = vgui.Create( "DCheckBoxLabel" )
-	dlist:Add( OpenOldTabs )
+	dlist:AddItem( OpenOldTabs )
 	OpenOldTabs:SetConVar( "wire_expression2_editor_openoldtabs" )
 	OpenOldTabs:SetText( "Open old tabs on load" )
 	OpenOldTabs:SizeToContents()
 	OpenOldTabs:SetTooltip( "Open the tabs from the last session on load.\nOnly tabs whose files were saved before disconnecting from the server are stored." )
 
 	local DisplayCaretPos = vgui.Create( "DCheckBoxLabel" )
-	dlist:Add( DisplayCaretPos )
+	dlist:AddItem( DisplayCaretPos )
 	DisplayCaretPos:SetConVar( "wire_expression2_editor_display_caret_pos" )
 	DisplayCaretPos:SetText( "Show Caret Position" )
 	DisplayCaretPos:SizeToContents()
 	DisplayCaretPos:SetTooltip( "Shows the position of the caret." )
 
 	local HighlightOnDoubleClick = vgui.Create( "DCheckBoxLabel" )
-	dlist:Add( HighlightOnDoubleClick )
+	dlist:AddItem( HighlightOnDoubleClick )
 	HighlightOnDoubleClick:SetConVar( "wire_expression2_editor_highlight_on_double_click" )
 	HighlightOnDoubleClick:SetText( "Highlight copies of selected word" )
 	HighlightOnDoubleClick:SizeToContents()
 	HighlightOnDoubleClick:SetTooltip( "Find all identical words and highlight them after a double-click." )
 
 	local label = vgui.Create("DLabel")
-	dlist:Add( label )
+	dlist:AddItem( label )
 	label:SetText( "Browser sorting style" )
 	label:SizeToContents()
 
 	local SortStyle = (VERSION >= 150 and vgui.Create( "DComboBox", temp ) or vgui.Create( "DMultiChoice", temp ))
-	dlist:Add( SortStyle )
+	dlist:AddItem( SortStyle )
 	SortStyle.OnSelect = function( panel, index, value )
 		value = value:gsub( "(:.+)", "" ) -- Remove description
 		value = tonumber(value) -- Convert to number
@@ -1556,48 +1556,48 @@ function Editor:InitControlPanel(frame)
 	dlist:EnableVerticalScrollbar( true )
 
 	local label = vgui.Create("DLabel")
-	dlist:Add( label )
+	dlist:AddItem( label )
 	label:SetText( "Clientside expression 2 options" )
 	label:SizeToContents()
 
 	local AutoIndent = vgui.Create( "DCheckBoxLabel" )
-	dlist:Add( AutoIndent )
+	dlist:AddItem( AutoIndent )
 	AutoIndent:SetConVar( "wire_expression2_autoindent" )
 	AutoIndent:SetText( "Auto indenting" )
 	AutoIndent:SizeToContents()
 	AutoIndent:SetTooltip( "Enable/disable auto indenting." )
 
 	local Concmd = vgui.Create( "DCheckBoxLabel" )
-	dlist:Add( Concmd )
+	dlist:AddItem( Concmd )
 	Concmd:SetConVar( "wire_expression2_concmd" )
 	Concmd:SetText( "concmd" )
 	Concmd:SizeToContents()
 	Concmd:SetTooltip( "Allow/disallow the E2 from running console commands on you." )
 
 	local label = vgui.Create("DLabel")
-	dlist:Add( label )
+	dlist:AddItem( label )
 	label:SetText( "Concmd whitelist" )
 	label:SizeToContents()
 
 	local ConcmdWhitelist = vgui.Create( "DTextEntry" )
-	dlist:Add( ConcmdWhitelist )
+	dlist:AddItem( ConcmdWhitelist )
 	ConcmdWhitelist:SetConVar( "wire_expression2_concmd_whitelist" )
 	ConcmdWhitelist:SetToolTip( "Separate the commands with commas." )
 
 	local FriendWrite = vgui.Create( "DCheckBoxLabel" )
-	dlist:Add( FriendWrite )
+	dlist:AddItem( FriendWrite )
 	FriendWrite:SetConVar( "wire_expression2_friendwrite" )
 	FriendWrite:SetText( "Friend Write" )
 	FriendWrite:SizeToContents()
 	FriendWrite:SetTooltip( "Allow/disallow people in your prop protection friends list from reading and writing to your E2s." )
 
 	local label = vgui.Create("DLabel")
-	dlist:Add( label )
+	dlist:AddItem( label )
 	label:SetText( "Expression 2 block comment style" )
 	label:SizeToContents()
 
 	local BlockCommentStyle = (VERSION >= 150 and vgui.Create( "DComboBox" ) or vgui.Create( "DMultiChoice" ))
-	dlist:Add( BlockCommentStyle )
+	dlist:AddItem( BlockCommentStyle )
 
 	local modes = {}
 	modes["New (alt 1)"] = { 0, [[Current mode:
@@ -1632,7 +1632,7 @@ Text here]# ]] }
 	-- SYNTAX HIGHLIGHT COLORS
 
 	local Label = vgui.Create( "DLabel" )
-	dlist:Add( Label )
+	dlist:AddItem( Label )
 	Label:SetText( "Expression 2 syntax highlighting colors" )
 	Label:SizeToContents()
 
@@ -1641,7 +1641,7 @@ Text here]# ]] }
 	local r, g, b = 255,255,255
 
 	local temp = vgui.Create("Panel")
-	dlist:Add( temp )
+	dlist:AddItem( temp )
 	temp:SetTall( 132 )
 
 	-- Create color mixer, number wangs, default button, and drop down menu
@@ -1801,7 +1801,7 @@ Text here]# ]] }
 	dlist:SetSpacing( 2 )
 
 	local dlist2 = vgui.Create("DPanelList")
-	dlist:Add(dlist2)
+	dlist:AddItem(dlist2)
 	dlist2:EnableVerticalScrollbar( true )
 	--frame:AddResizeObject( dlist2, 2,2 )
 	--dlist2:SetTall( 444 )
@@ -1810,7 +1810,7 @@ Text here]# ]] }
 
 	local UpdateList = vgui.Create( "DButton" )
 	UpdateList:SetText( "" )
-	dlist:Add( UpdateList )
+	dlist:AddItem( UpdateList )
 	UpdateList.Paint = function( button )
 		local w,h = button:GetSize()
 		draw.RoundedBox(1, 0, 0, w, h, self.colors.col_FL)
@@ -1836,7 +1836,7 @@ Text here]# ]] }
 					local w,h = panel:GetSize()
 					draw.RoundedBox(1, 0, 0, w, h, Color( 65, 105, 255, 100 ) )
 				end
-				dlist2:Add( panel )
+				dlist2:AddItem( panel )
 				size = size + panel:GetTall() + 1
 
 				local label = vgui.Create( "DLabel", panel )
@@ -1920,7 +1920,7 @@ Text here]# ]] }
 	end
 	local UpdateList2 = vgui.Create( "DButton" )
 	UpdateList2:SetText( "" )
-	dlist:Add( UpdateList2 )
+	dlist:AddItem( UpdateList2 )
 	UpdateList2.Paint = function( button )
 		local w,h = button:GetSize()
 		draw.RoundedBox(1, 0, 0, w, h, self.colors.col_FL)

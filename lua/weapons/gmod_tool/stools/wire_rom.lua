@@ -40,30 +40,30 @@ else
 		local mdl = vgui.Create("DWireModelSelect",CPanel)
 		mdl:SetModelList( list.Get( "Wire_gate_Models" ), "wire_rom_model" )
 		mdl:SetHeight( 4 )
-		CPanel:Add( mdl )
+		CPanel:AddItem( mdl )
 
 		local weld = vgui.Create("DCheckBoxLabel",CPanel)
 		weld:SetText( "#Tool_wire_rom_weld" )
 		weld:SizeToContents()
 		weld:SetConVar( "wire_rom_weld" )
-		CPanel:Add( weld )
+		CPanel:AddItem( weld )
 
 		local toworld = vgui.Create("DCheckBoxLabel",CPanel)
 		toworld:SetText( "#Tool_wire_rom_weldtoworld" )
 		toworld:SizeToContents()
 		toworld:SetConVar( "wire_rom_weldtoworld" )
-		CPanel:Add( toworld )
+		CPanel:AddItem( toworld )
 
 		local freeze = vgui.Create("DCheckBoxLabel",CPanel)
 		freeze:SetText( "#Tool_wire_rom_freeze" )
 		freeze:SizeToContents()
 		freeze:SetConVar( "wire_rom_freeze" )
-		CPanel:Add( freeze )
+		CPanel:AddItem( freeze )
 
 		local label = vgui.Create("DLabel",CPanel)
 		label:SetText( "#Tool_wire_rom_note" )
 		label:SizeToContents()
-		CPanel:Add( label )
+		CPanel:AddItem( label )
 	end
 
 end

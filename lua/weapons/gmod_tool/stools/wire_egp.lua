@@ -369,7 +369,7 @@ if (CLIENT) then
 		slider:SetMin( 0 )
 		slider:SetMax( 5000 )
 		slider:SetDecimals( 0 )
-		panel:Add(slider)
+		panel:AddItem(slider)
 	end
 end
 

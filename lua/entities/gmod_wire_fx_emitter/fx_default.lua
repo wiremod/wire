@@ -32,7 +32,7 @@ local function FX( pos, angle )
 
 	local effectdata = EffectData()
 		effectdata:SetOrigin( pos + angle:Forward() * 5 )
-		effectdata:SetAngle( angle )
+		effectdata:SetAngles( angle )
 		effectdata:SetScale( 1 )
 	util.Effect( "MuzzleEffect", effectdata )
 
@@ -44,7 +44,7 @@ local function FX( pos, angle )
 
 	local effectdata = EffectData()
 		effectdata:SetOrigin( pos + angle:Forward() * 5 )
-		effectdata:SetAngle( angle )
+		effectdata:SetAngles( angle )
 		effectdata:SetScale( 2 )
 	util.Effect( "MuzzleEffect", effectdata )
 
@@ -66,7 +66,7 @@ local function FX( pos, angle )
 
 	local effectdata = EffectData()
 		effectdata:SetOrigin( pos )
-		effectdata:SetAngle( angle )
+		effectdata:SetAngles( angle )
 		effectdata:SetNormal( angle:Forward() * 2 )
 		effectdata:SetMagnitude( 1 )
 		effectdata:SetScale( 1 )
@@ -81,7 +81,7 @@ local function FX( pos, angle )
 
 	local effectdata = EffectData()
 		effectdata:SetOrigin( pos )
-		effectdata:SetAngle( angle )
+		effectdata:SetAngles( angle )
 	util.Effect( "ShotgunShellEject", effectdata )
 
 end
@@ -92,7 +92,7 @@ local function FX( pos, angle )
 
 	local effectdata = EffectData()
 		effectdata:SetOrigin( pos )
-		effectdata:SetAngle( angle )
+		effectdata:SetAngles( angle )
 	util.Effect( "RifleShellEject", effectdata )
 
 end
@@ -103,7 +103,7 @@ local function FX( pos, angle )
 
 	local effectdata = EffectData()
 		effectdata:SetOrigin( pos )
-		effectdata:SetAngle( angle )
+		effectdata:SetAngles( angle )
 	util.Effect( "ShellEject", effectdata )
 
 end
@@ -114,7 +114,7 @@ local function FX( pos, angle )
 
 	local effectdata = EffectData()
 		effectdata:SetOrigin( pos )
-		effectdata:SetAngle( angle )
+		effectdata:SetAngles( angle )
 		effectdata:SetNormal( angle:Forward() )
 	util.Effect( "MetalSpark", effectdata )
 
@@ -126,7 +126,7 @@ local function FX( pos, angle )
 
 	local effectdata = EffectData()
 		effectdata:SetOrigin( pos )
-		effectdata:SetAngle( angle )
+		effectdata:SetAngles( angle )
 	util.Effect( "GlassImpact", effectdata )
 
 end

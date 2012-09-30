@@ -85,7 +85,7 @@ if CLIENT then
 		searchresultnum:SetMin( 1 )
 		searchresultnum:SetMax( 100 )
 		searchresultnum:SetDecimals( 0 )
-		panel:Add( searchresultnum )
+		panel:AddItem( searchresultnum )
 
 		-- Create panels
 		local searchbox = vgui.Create( "DTextEntry" )
@@ -198,7 +198,7 @@ if CLIENT then
 			RunConsoleCommand( "wire_gates_action", line.action )
 		end
 
-		panel:Add( searchbox )
+		panel:AddItem( searchbox )
 
 		-- Set sizes & other settings
 		searchlist:SetPos( 500,2 )
@@ -291,7 +291,7 @@ if CLIENT then
 		end
 
 		-- add it all to the main panel
-		panel:Add( holder )
+		panel:AddItem( holder )
 	end
 end
 

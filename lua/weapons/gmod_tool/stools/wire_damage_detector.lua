@@ -159,10 +159,10 @@ if SERVER then
 
 	// Unlink if linked prop removed
 	local function linkRemoved( ent )
-		if self.linked_entities then
-			if IsValid(ents.GetByIndex(self.linked_entities[0])) then
-				self.linked_entities = {}
-				self:ShowOutput()
+		if ent.linked_entities then
+			if IsValid(ents.GetByIndex(ent.linked_entities[0])) then
+				ent.linked_entities = {}
+				ent:ShowOutput()
 			end
 		end
 	end

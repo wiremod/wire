@@ -366,7 +366,7 @@ function TOOL.BuildCPanel(panel)
 	local mdl = vgui.Create("DWireModelSelect")
 	mdl:SetModelList( list.Get("Wire_gate_Models"), "wire_hdd_model" )
 	mdl:SetHeight( 5 )
-	panel:Add( mdl )
+	panel:AddItem( mdl )
 
 	panel:AddControl("Slider", {
 		Label = "Drive ID",
