@@ -886,7 +886,7 @@ do --wire_thruster
 
 		CateGoryOW:SetContents( ctrl )
 
-		panel:Add(CateGoryOW)
+		panel:AddItem(CateGoryOW)
 
 		Effects["#Same as over water"] = "same"
 
@@ -905,7 +905,7 @@ do --wire_thruster
 
 		CateGoryUW:SetContents( ctrlUW )
 
-		panel:Add(CateGoryUW)
+		panel:AddItem(CateGoryUW)
 
 
 		local lst = {}

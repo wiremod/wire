@@ -2754,7 +2754,7 @@ function EDITOR:AC_FillInfoList( suggestion )
 	infolist:Clear()
 
 	local desc_label = vgui.Create("DLabel")
-	infolist:Add( desc_label )
+	infolist:AddItem( desc_label )
 
 	local desc = suggestion:description( self )
 
@@ -2789,7 +2789,7 @@ function EDITOR:AC_FillInfoList( suggestion )
 				surface_DrawText( nice_name )
 			end
 
-			infolist:Add( label )
+			infolist:AddItem( label )
 
 			if (namew + 15 > maxw) then maxw = namew + 15 end
 			maxh = maxh + 20
@@ -2886,7 +2886,7 @@ function EDITOR:AC_FillList()
 			self:AC_FillInfoList( pnl.suggestion )
 		end
 
-		panel.list:Add( txt )
+		panel.list:AddItem( txt )
 
 		-- get the width of the widest suggestion
 		local w,_ = surface_GetTextSize( nice_name )

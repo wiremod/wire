@@ -50,7 +50,7 @@ function file12.Exists(path, useBaseDir)
 end
 
 function file12.FindInLua(path)
-	return file.Find(path, LUA_PATH)
+	return file.Find(path, "lsv")
 end
 
 function file12.Find(path, useBaseDir)

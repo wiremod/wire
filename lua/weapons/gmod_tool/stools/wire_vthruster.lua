@@ -217,7 +217,7 @@ function TOOL:Think()
 			local Ang = Norm2:Angle()
 			Ang.pitch = Ang.pitch + 90
 			Ang:RotateAroundAxis(Norm2, ra)
-			Phys2:SetAngle( Ang )
+			Phys2:SetAngles( Ang )
 			Phys2:Wake()
 		end
 	else
@@ -363,7 +363,7 @@ function TOOL.BuildCPanel(panel)
 
 		CateGoryOW:SetContents( ctrl )
 
-		panel:Add(CateGoryOW)
+		panel:AddItem(CateGoryOW)
 
 		Effects["#Same as over water"] = "same"
 
@@ -382,7 +382,7 @@ function TOOL.BuildCPanel(panel)
 
 		CateGoryUW:SetContents( ctrlUW )
 
-		panel:Add(CateGoryUW)
+		panel:AddItem(CateGoryUW)
 
 	local lst = {}
 	for k,v in pairs( list.Get("ThrusterSounds") ) do

@@ -146,7 +146,7 @@ function ENT:FireShot()
 	-- Make a muzzle flash
 	local effectdata = EffectData()
 		effectdata:SetOrigin( shootOrigin )
-		effectdata:SetAngle( shootAngles )
+		effectdata:SetAngles( shootAngles )
 		effectdata:SetScale( 1 )
 	util.Effect( "MuzzleEffect", effectdata )
 
