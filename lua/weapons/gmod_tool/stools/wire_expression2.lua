@@ -109,7 +109,7 @@ if SERVER then
 		self.player = player
 		self:SetNWEntity( "player", player )
 
-		buffer = string.Replace(string.Replace(buffer,"£","\""),"€","\n")
+		buffer = string.Replace(string.Replace(buffer,string.char(163),"\""),string.char(128),"\n")
 
 		self:SetOverlayText("Expression 2\n" .. name)
 		self.buffer = buffer
@@ -165,8 +165,13 @@ if SERVER then
 	umsg.PoolString( "wire_expression2_tool_upload" )
 	util.AddNetworkString( "wire_expression2_download" )
 	util.AddNetworkString( "wire_expression2_download_wantedfiles" )
+	util.AddNetworkString( "wire_expression2_download_wantedfiles_list" )
 	util.AddNetworkString( "wire_expression2_upload" )
-
+	util.AddNetworkString( "wire_expression2_progress" )
+	
+	function Expression2SetProgressServer(ply,progress)
+		net.Start("wire_expression2_progress") net.WriteInt(progress or -1,16) net.Send(ply)
+	end
 	--------------------------------------------------------------
 	-- Serverside Send
 	--------------------------------------------------------------
@@ -189,12 +194,17 @@ if SERVER then
 		
 		local main, includes = targetEnt:GetCode()
 		if not includes or not next(includes) then -- There are no includes
+			Expression2SetProgressServer(ply,10)
 			local datastr = von.serialize({ { targetEnt.name, main } })
-			net.Start("wire_expression2_download")
-				net.WriteEntity(targetEnt)
-				net.WriteBit(uploadandexit or false)
-				net.WriteString(datastr)
-			net.Send(ply)
+			local numpackets = math.ceil(#datastr / 64000)
+			for i=1,#datastr, 64000 do
+				net.Start("wire_expression2_download")
+					net.WriteEntity(targetEnt)
+					net.WriteBit(uploadandexit or false)
+					net.WriteUInt(numpackets,16)
+					net.WriteString(datastr:sub(i,i+63999))
+				net.Send(ply)
+			end
 		elseif not wantedfiles then
 			local data = {}
 			for k,v in pairs( includes ) do
@@ -202,7 +212,7 @@ if SERVER then
 			end
 			
 			local datastr = von.serialize( data )
-			net.Start("wire_expression2_download_wantedfiles")
+			net.Start("wire_expression2_download_wantedfiles_list")
 				net.WriteEntity(targetEnt)
 				net.WriteBit(uploadandexit or false)
 				net.WriteString(datastr)
@@ -223,20 +233,55 @@ if SERVER then
 				end
 			end
 			
+			Expression2SetProgressServer(ply,10)
 			local datastr = von.serialize( data )
-			net.Start("wire_expression2_download")
-				net.WriteEntity(targetEnt)
-				net.WriteBit(uploadandexit or false)
-				net.WriteString(datastr)
-			net.Send(ply)
+			local numpackets = math.ceil(#datastr / 64000)
+			for i=1,#datastr, 64000 do
+				net.Start("wire_expression2_download")
+					net.WriteEntity(targetEnt)
+					net.WriteBit(uploadandexit or false)
+					net.WriteUInt(numpackets,16)
+					net.WriteString(datastr:sub(i,i+63999))
+				net.Send(ply)
+			end
 		end
 	end
+	
+	local wantedfiles = {}
+	net.Receive("wire_expression2_download_wantedfiles",function(len, ply)
+		local toent = net.ReadEntity()
+		local uploadandexit = net.ReadBit() != 0
+		local numpackets = net.ReadUInt(16)
+	
+		if not IsValid(toent) or toent:GetClass() ~= "gmod_wire_expression2" then
+			WireLib.AddNotify( ply, "Invalid entity specified to wire_expression2_download_wantedfiles. Download aborted.", NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3 )
+			return
+		end
+		
+		if not wantedfiles[ply] then wantedfiles[ply] = {} end
+		table.insert(wantedfiles[ply],net.ReadString())
+		Expression2SetProgressServer(ply,#wantedfiles[ply]/numpackets*100)
+		if numpackets <= #wantedfiles[ply] then
+			local ok, ret = pcall( von.deserialize, E2Lib.decode( table.concat(wantedfiles[ply]) ) )
+			wantedfiles[ply] = nil
+			if not ok then
+				WireLib.AddNotify( ply, "Expression 2 download failed! Error message:\n" .. ret, NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3 )
+				print( "Expression 2 download failed! Error message:\n" .. ret )
+				return
+			end
+			
+			WireLib.Expression2Download( ply, toent, ret, uploadandexit )
+			timer.Create("wire_expression2_resetprogress_"..ply:UniqueID(),0.75,1,function() Expression2SetProgressServer(ply) end)
+		end
+	end)
 	
 	--------------------------------------------------------------
 	-- Serverside Receive
 	--------------------------------------------------------------
+	local uploads = {}
 	net.Receive("wire_expression2_upload",function(len, ply)
 		local toent = net.ReadEntity()
+		local numpackets = net.ReadUInt(16)
 	
 		if not IsValid(toent) or toent:GetClass() ~= "gmod_wire_expression2" then
 			WireLib.AddNotify( ply, "Invalid Expression chip specified. Upload aborted.", NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3 )
@@ -248,42 +293,30 @@ if SERVER then
 			return
 		end
 		
-		local datastr = E2Lib.decode( net.ReadString() )
-		local ok, ret = pcall( von.deserialize, datastr )
-		
-		if not ok then
-			WireLib.AddNotify( ply, "Expression 2 upload failed! Error message:\n" .. ret, NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3 )
-			print( "Expression 2 upload failed! Error message:\n" .. ret )
-			return
+		if not uploads[ply] then uploads[ply] = {} end
+		table.insert(uploads[ply],net.ReadString())
+		Expression2SetProgressServer(ply,#uploads[ply]/numpackets*100)
+		if numpackets <= #uploads[ply] then
+			local datastr = E2Lib.decode( table.concat(uploads[ply]) )
+			uploads[ply] = nil
+			local ok, ret = pcall( von.deserialize, datastr )
+			
+			if not ok then
+				WireLib.AddNotify( ply, "Expression 2 upload failed! Error message:\n" .. ret, NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3 )
+				print( "Expression 2 upload failed! Error message:\n" .. ret )
+				return
+			end
+			
+			local code = ret[1]
+			
+			local includes = {}
+			for k,v in pairs( ret[2] ) do
+				includes[k] = v
+			end
+			
+			toent:Setup( code, includes )
+			timer.Create("wire_expression2_resetprogress_"..ply:UniqueID(),0.75,1,function() Expression2SetProgressServer(ply) end) 
 		end
-		
-		local code = ret[1]
-		
-		local includes = {}
-		for k,v in pairs( ret[2] ) do
-			includes[k] = v
-		end
-		
-		toent:Setup( code, includes )
-	end)
-	
-	net.Receive("wire_expression2_download_wantedfiles",function(len, ply)
-		local toent = net.ReadEntity()
-		local uploadandexit = net.ReadBit() != 0
-	
-		if not IsValid(toent) or toent:GetClass() ~= "gmod_wire_expression2" then
-			WireLib.AddNotify( ply, "Invalid entity specified to wire_expression2_download_wantedfiles. Download aborted.", NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3 )
-			return
-		end
-		
-		local ok, ret = pcall( von.deserialize, E2Lib.decode( net.ReadString() ) )
-		if not ok then
-			WireLib.AddNotify( ply, "Expression 2 download failed! Error message:\n" .. ret, NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3 )
-			print( "Expression 2 download failed! Error message:\n" .. ret )
-			return
-		end
-		
-		WireLib.Expression2Download( ply, toent, ret, uploadandexit )
 	end)
 	
 	--------------------------------------------------------------
@@ -406,10 +439,16 @@ elseif CLIENT then
 			datastr = E2Lib.encode( von.serialize( { code, {} } ) )
 		end
 		
-		net.Start("wire_expression2_upload")
-			net.WriteEntity(targetEnt)
-			net.WriteString(datastr)
-		net.SendToServer()
+		Expression2SetProgress(10)
+		
+		local numpackets = math.ceil(#datastr / 64000)
+		for i=1,#datastr, 64000 do
+			net.Start("wire_expression2_upload")
+				net.WriteEntity(targetEnt)
+				net.WriteUInt(numpackets,16)
+				net.WriteString(datastr:sub(i,i+63999))
+			net.SendToServer()
+		end
 	end
 	
 	usermessage.Hook( "wire_expression2_tool_upload", function( um )
@@ -427,38 +466,47 @@ elseif CLIENT then
 	--------------------------------------------------------------
 	-- Clientside Receive
 	--------------------------------------------------------------
-	
+	local buffer, count = "",0
 	net.Receive("wire_expression2_download",function(len)
 		local ent = net.ReadEntity()
 		local uploadandexit = net.ReadBit() != 0
-		local buffer = net.ReadString()
-		local ok, ret = pcall( von.deserialize, buffer )
-		if not ok then
-			WireLib.AddNotify( ply, "Expression 2 download failed! Error message:\n" .. ret, NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3 )
-			return
-		end
-		local files = ret
+		local numpackets = net.ReadUInt(16)
 		
-		local name, main
-		if files[1] then
-			name = files[1][1]
-			main = files[1][2]
-		end
+		buffer = buffer .. net.ReadString()
+		count = count + 1
 		
-		if uploadandexit then
-			wire_expression2_editor.chip = ent
-		end
-		
-		if files[2] and next(files[2]) then
-			for k,v in pairs( files[2] ) do
-				wire_expression2_editor:Open( k, v )
+		Expression2SetProgress(count/numpackets*100)
+		if numpackets <= count then
+			local ok, ret = pcall( von.deserialize, buffer )
+			buffer,count = "",0
+			if not ok then
+				WireLib.AddNotify( ply, "Expression 2 download failed! Error message:\n" .. ret, NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3 )
+				return
 			end
+			local files = ret
+			
+			local name, main
+			if files[1] then
+				name = files[1][1]
+				main = files[1][2]
+			end
+			
+			if uploadandexit then
+				wire_expression2_editor.chip = ent
+			end 
+			
+			if files[2] and next(files[2]) then
+				for k,v in pairs( files[2] ) do
+					wire_expression2_editor:Open( k, v )
+				end
+			end 
+			
+			wire_expression2_editor:Open( name, main )
+			timer.Create("wire_expression2_reset_progress",0.75,1,Expression2SetProgress)
 		end
-		
-		wire_expression2_editor:Open( name, main )
 	end)
 	
-	net.Receive("wire_expression2_download_wantedfiles",function(len)
+	net.Receive("wire_expression2_download_wantedfiles_list",function(len)
 		local ent = net.ReadEntity()
 		local uploadandexit = net.ReadBit() != 0
 		local buffer = net.ReadString()
@@ -469,113 +517,124 @@ elseif CLIENT then
 			print( "Expression 2 file list download failed! Error message:\n" .. ret )
 			return
 		end
-		local files = ret
-		local height = 23
 		
-		local pnl = vgui.Create("DFrame")
-		pnl:SetSize( 200, 100 )
-		pnl:Center()
-		pnl:SetTitle( "Select files to download" )
-		
-		local lst = vgui.Create( "DPanelList", pnl )
-		lst.Paint = function() end
-		lst:SetSpacing( 2 )
-		
-		local selectedfiles = { main = true }
-		
-		local checkboxes = {}
-		
-		local check = vgui.Create( "DCheckBoxLabel" )
-		check:SetText( "Main" )
-		check:Toggle()
-		lst:Add( check )
-		function check:OnChange( val )
-			if val then
-				selectedfiles.main = true
-			else
-				selectedfiles.main = nil
-			end
-		end
-		checkboxes[#checkboxes+1] = check
-		height = height + check:GetTall() + 2
-		
-		for i=1,#files do
-			local path = files[i]
+			local files = ret
+			local height = 23
+			
+			local pnl = vgui.Create("DFrame")
+			pnl:SetSize( 200, 100 )
+			pnl:Center()
+			pnl:SetTitle( "Select files to download" )
+			
+			local lst = vgui.Create( "DPanelList", pnl )
+			lst.Paint = function() end
+			lst:SetSpacing( 2 )
+			
+			local selectedfiles = { main = true }
+			
+			local checkboxes = {}
+			
 			local check = vgui.Create( "DCheckBoxLabel" )
-			check:SetText( path )
+			check:SetText( "Main" )
+			check:Toggle()
 			lst:Add( check )
 			function check:OnChange( val )
 				if val then
-					selectedfiles[i] = path
+					selectedfiles.main = true
 				else
-					table.remove( selectedfiles, i )
+					selectedfiles.main = nil
 				end
 			end
 			checkboxes[#checkboxes+1] = check
 			height = height + check:GetTall() + 2
-		end
-		
-		local selectall = vgui.Create( "DButton" )
-		selectall:SetText( "Select all" )
-		lst:Add( selectall )
-		function selectall:DoClick()
-			selectedfiles = {}
-			for k,v in pairs( files ) do
-				selectedfiles[#selectedfiles+1] = v
-			end
-			selectedfiles.main = true
 			
-			for i=1,#checkboxes do
-				if not checkboxes[i]:GetChecked() then checkboxes[i]:Toggle() end -- checkboxes[i]:SetChecked( true )
+			for i=1,#files do
+				local path = files[i]
+				local check = vgui.Create( "DCheckBoxLabel" )
+				check:SetText( path )
+				lst:Add( check )
+				function check:OnChange( val )
+					if val then
+						selectedfiles[i] = path
+					else
+						table.remove( selectedfiles, i )
+					end
+				end
+				checkboxes[#checkboxes+1] = check
+				height = height + check:GetTall() + 2
 			end
-		end
-		height = height + selectall:GetTall() + 2
-		
-		local selectnone = vgui.Create( "DButton" )
-		selectnone:SetText( "Select none" )
-		lst:Add( selectnone )
-		function selectnone:DoClick()
-			selectedfiles = {}
 			
-			for i=1,#checkboxes do
-				if checkboxes[i]:GetChecked() then checkboxes[i]:Toggle() end -- checkboxes[i]:SetChecked( false )
+			local selectall = vgui.Create( "DButton" )
+			selectall:SetText( "Select all" )
+			lst:Add( selectall )
+			function selectall:DoClick()
+				selectedfiles = {}
+				for k,v in pairs( files ) do
+					selectedfiles[#selectedfiles+1] = v
+				end
+				selectedfiles.main = true
+				
+				for i=1,#checkboxes do
+					if not checkboxes[i]:GetChecked() then checkboxes[i]:Toggle() end -- checkboxes[i]:SetChecked( true )
+				end
 			end
-		end
-		height = height + selectnone:GetTall() + 2
-		
-		local ok = vgui.Create( "DButton" )
-		ok:SetText( "Ok" )
-		ok:SetToolTip( "Shortcut for this button: Right click anywhere" )
-		lst:Add( ok )
-		function ok:DoClick()
-			local haschoice = false
-			for k,v in pairs( selectedfiles ) do haschoice = true break end
-			if not haschoice then pnl:Close() return end
+			height = height + selectall:GetTall() + 2
 			
-			local datastr = E2Lib.encode( von.serialize( selectedfiles ) )
-			net.Start("wire_expression2_download_wantedfiles")
-				net.WriteEntity(ent)
-				net.WriteBit(uploadandexit)
-				net.WriteString(datastr)
-			net.SendToServer()
-			
-			pnl:Close()
-		end
-		height = height + ok:GetTall()
-		
-		local down = input.IsMouseDown( MOUSE_RIGHT )
-		function pnl:Think()
-			if not down and input.IsMouseDown( MOUSE_RIGHT ) then
-				ok:DoClick()
+			local selectnone = vgui.Create( "DButton" )
+			selectnone:SetText( "Select none" )
+			lst:Add( selectnone )
+			function selectnone:DoClick()
+				selectedfiles = {}
+				
+				for i=1,#checkboxes do
+					if checkboxes[i]:GetChecked() then checkboxes[i]:Toggle() end -- checkboxes[i]:SetChecked( false )
+				end
 			end
-			down = input.IsMouseDown( MOUSE_RIGHT )
-		end
-		
-		pnl:SetTall( math.min(height + 2,ScrH()/2) )
-		lst:EnableVerticalScrollbar( true )
-		lst:StretchToParent( 2, 23, 2, 2 )
-		pnl:MakePopup()
-		pnl:SetVisible( true )
+			height = height + selectnone:GetTall() + 2
+			
+			local ok = vgui.Create( "DButton" )
+			ok:SetText( "Ok" )
+			ok:SetToolTip( "Shortcut for this button: Right click anywhere" )
+			lst:Add( ok )
+			function ok:DoClick()
+				local haschoice = false
+				for k,v in pairs( selectedfiles ) do haschoice = true break end
+				if not haschoice then pnl:Close() return end
+				
+				local datastr = E2Lib.encode( von.serialize( selectedfiles ) )
+				local numpackets = math.ceil(#datastr / 64000)
+				for i=1,#datastr, 64000 do
+					net.Start("wire_expression2_download_wantedfiles")
+						net.WriteEntity(ent)
+						net.WriteBit(uploadandexit)
+						net.WriteUInt(numpackets,16)
+						net.WriteString(datastr:sub(i,i+63999))
+					net.SendToServer()
+				end
+				
+				pnl:Close()
+			end
+			height = height + ok:GetTall()
+			
+			local down = input.IsMouseDown( MOUSE_RIGHT )
+			function pnl:Think()
+				if not down and input.IsMouseDown( MOUSE_RIGHT ) then
+					ok:DoClick()
+				end
+				down = input.IsMouseDown( MOUSE_RIGHT )
+			end
+			
+			pnl:SetTall( math.min(height + 2,ScrH()/2) )
+			lst:EnableVerticalScrollbar( true )
+			lst:StretchToParent( 2, 23, 2, 2 )
+			pnl:MakePopup()
+			pnl:SetVisible( true )
+	end)
+	
+	net.Receive("wire_expression2_progress", function(len)
+		local progress = net.ReadInt(16)
+		if progress < 0 then progress = nil end
+		Expression2SetProgress(progress)
 	end)
 	
 	--------------------------------------------------------------
@@ -634,6 +693,7 @@ elseif CLIENT then
 		FileBrowser:DockMargin(5,5,5,5)
 		FileBrowser:DockPadding(5,5,5,5)
 		FileBrowser:Dock(TOP)
+		local lastclick
 		function FileBrowser:OnFileClick(dir)
 			if( wire_expression2_editor == nil ) then initE2Editor() end
 
@@ -873,71 +933,71 @@ end
 
 
 function TOOL:UpdateGhostWireExpression2( ent, player )
-	if ( !ent ) then return end
-	if ( !ent:IsValid() ) then return end
-	
-	local tr = util.GetPlayerTrace( player )
-	local trace = util.TraceLine( tr )
-	if (!trace.Hit) then return end
+		if ( !ent ) then return end
+		if ( !ent:IsValid() ) then return end
+		
+		local tr = util.GetPlayerTrace( player )
+		local trace = util.TraceLine( tr )
+		if (!trace.Hit) then return end
 
-	if (IsValid(trace.Entity) && (trace.Entity:GetClass() == "gmod_wire_expression2" || trace.Entity:IsPlayer())) then
-		ent:SetNoDraw( true )
-		return
+		if (IsValid(trace.Entity) && (trace.Entity:GetClass() == "gmod_wire_expression2" || trace.Entity:IsPlayer())) then
+			ent:SetNoDraw( true )
+			return
+		end
+
+		local Ang = trace.HitNormal:Angle()
+		Ang.pitch = Ang.pitch + 90
+
+		local min = ent:OBBMins()
+		ent:SetPos( trace.HitPos - trace.HitNormal * min.z )
+		ent:SetAngles( Ang )
+
+		ent:SetNoDraw( false )
+
 	end
 
-	local Ang = trace.HitNormal:Angle()
-	Ang.pitch = Ang.pitch + 90
+	function TOOL:Think()
+		local model = self:GetModel()
 
-	local min = ent:OBBMins()
-	ent:SetPos( trace.HitPos - trace.HitNormal * min.z )
-	ent:SetAngles( Ang )
+		if (!IsValid(self.GhostEntity) || (not self.GhostEntity:GetModel()) || self.GhostEntity:GetModel() != model) then
+			self:MakeGhostEntity( model, Vector(0,0,0), Angle(0,0,0) )
+		end
 
-	ent:SetNoDraw( false )
-
-end
-
-function TOOL:Think()
-	local model = self:GetModel()
-
-	if (!IsValid(self.GhostEntity) || (not self.GhostEntity:GetModel()) || self.GhostEntity:GetModel() != model) then
-		self:MakeGhostEntity( model, Vector(0,0,0), Angle(0,0,0) )
+		self:UpdateGhostWireExpression2( self.GhostEntity, self:GetOwner() )
 	end
 
-	self:UpdateGhostWireExpression2( self.GhostEntity, self:GetOwner() )
-end
 
 
-
-local prevmodel,prevvalid
-function validModelCached(model)
-	if model ~= prevmodel then
-		prevmodel = model
-		prevvalid = util.IsValidModel(model)
+	local prevmodel,prevvalid
+	function validModelCached(model)
+		if model ~= prevmodel then
+			prevmodel = model
+			prevvalid = util.IsValidModel(model)
+		end
+		return prevvalid
 	end
-	return prevvalid
-end
 
-function TOOL:GetModel()
-	local scriptmodel = self:GetClientInfo("scriptmodel")
-	if scriptmodel and scriptmodel ~= "" and validModelCached(scriptmodel) then return Model(scriptmodel) end
+	function TOOL:GetModel()
+		local scriptmodel = self:GetClientInfo("scriptmodel")
+		if scriptmodel and scriptmodel ~= "" and validModelCached(scriptmodel) then return Model(scriptmodel) end
 
-	local model = self:GetClientInfo("model")
-	local size = self:GetClientInfo("size")
+		local model = self:GetClientInfo("model")
+		local size = self:GetClientInfo("size")
 
-	if model and size then
-		local modelname, modelext = model:match("(.*)(%..*)")
-		if not modelext then
-			if validModelCached( model ) then
-				return model
-			else
-				return "models/beer/wiremod/gate_e2.mdl"
+		if model and size then
+			local modelname, modelext = model:match("(.*)(%..*)")
+			if not modelext then
+				if validModelCached( model ) then
+					return model
+				else
+					return "models/beer/wiremod/gate_e2.mdl"
+				end
+			end
+			local newmodel = modelname .. size .. modelext
+			if validModelCached(newmodel) then
+				return Model(newmodel)
 			end
 		end
-		local newmodel = modelname .. size .. modelext
-		if validModelCached(newmodel) then
-			return Model(newmodel)
-		end
-	end
 
-	return "models/beer/wiremod/gate_e2.mdl"
-end
+		return "models/beer/wiremod/gate_e2.mdl"
+	end
