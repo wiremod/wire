@@ -1,4 +1,3 @@
-
 AddCSLuaFile('cl_init.lua')
 AddCSLuaFile('shared.lua')
 include('shared.lua')
@@ -315,8 +314,7 @@ function ENT:ResetContext()
 
 	self.Inputs = WireLib.AdjustSpecialInputs(self, self.inports[1], self.inports[2])
 	self.Outputs = WireLib.AdjustSpecialOutputs(self, self.outports[1], self.outports[2])
-
-	self._original = string.Replace(string.Replace(self.original,"\"","£"),"\n","€")
+	self._original = string.Replace(string.Replace(self.original,"\"",string.char(163)),"\n",string.char(128))
 	self._buffer = self.original -- TODO: is that really intended?
 
 	self._name = self.name
