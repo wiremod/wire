@@ -181,23 +181,23 @@ function TOOL.BuildCPanel(panel)
 	sync:SetConVar( "wire_keyboard_sync" )
 	sync:SetText( "Synchronous Keyboard" )
 	sync:SetToolTip( "Pause user input when keyboard is active (clientside)" )
-	panel:Add( sync )
+	panel:AddItem( sync )
 
 	local txt = vgui.Create("DLabel")
 	txt:SetText("Keyboard language layout:")
 	txt:SetToolTip("If you would like to contribute your keyboard layout, so that it may be added, go post on the wiremod forums.")
-	panel:Add(txt)
+	panel:AddItem(txt)
 
 	local list = vgui.Create("DMultiChoice")
 	for k,v in pairs( Wire_Keyboard_Remap ) do
 		list:AddChoice( k )
 		list:SetConVar( "wire_keyboard_layout" )
 	end
-	panel:Add(list)
+	panel:AddItem(list)
 
 	local autobuffer = vgui.Create( "DCheckBoxLabel" )
 	autobuffer:SetConVar( "wire_keyboard_autobuffer" )
 	autobuffer:SetText( "Automatic buffer handling" )
 	autobuffer:SetToolTip( "When on, automatically removes the key from the buffer when the user releases it.\nWhen off, leaves all keys in the buffer until they are manually removed.\nTo manually remove a key, write any value to cell 0 to remove the first key, or write a specific ascii value to any address other than 0 to remove that specific key." )
-	panel:Add( autobuffer )
+	panel:AddItem( autobuffer )
 end

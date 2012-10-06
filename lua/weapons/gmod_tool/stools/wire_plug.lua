@@ -66,31 +66,31 @@ else
 		local mdl = vgui.Create("DWireModelSelect",CPanel)
 		mdl:SetModelList( list.Get( "wire_socket_models" ), "wire_plug_model" )
 		mdl:SetHeight( 2 )
-		CPanel:Add( mdl )
+		CPanel:AddItem( mdl )
 
 		local weld = vgui.Create("DCheckBoxLabel",CPanel)
 		weld:SetText( "#Tool_wire_plug_weld" )
 		weld:SizeToContents()
 		weld:SetConVar( "wire_plug_weld" )
-		CPanel:Add( weld )
+		CPanel:AddItem( weld )
 
 		local toworld = vgui.Create("DCheckBoxLabel",CPanel)
 		toworld:SetText( "#Tool_wire_plug_weldtoworld" )
 		toworld:SizeToContents()
 		toworld:SetConVar( "wire_plug_weldtoworld" )
-		CPanel:Add( toworld )
+		CPanel:AddItem( toworld )
 
 		local freeze = vgui.Create("DCheckBoxLabel",CPanel)
 		freeze:SetText( "#Tool_wire_plug_freeze" )
 		freeze:SizeToContents()
 		freeze:SetConVar( "wire_plug_freeze" )
-		CPanel:Add( freeze )
+		CPanel:AddItem( freeze )
 
 		local array = vgui.Create("DCheckBoxLabel",CPanel)
 		array:SetText( "#Tool_wire_plug_array" )
 		array:SizeToContents()
 		array:SetConVar( "wire_plug_array" )
-		CPanel:Add( array )
+		CPanel:AddItem( array )
 
 		local weldforce = vgui.Create("DNumSlider",CPanel)
 		weldforce:SetText( "#Tool_wire_plug_weldforce" )
@@ -98,7 +98,7 @@ else
 		weldforce:SetMin( 0 )
 		weldforce:SetMax( 100000 )
 		weldforce:SetToolTip( "Default: 5000" )
-		CPanel:Add( weldforce )
+		CPanel:AddItem( weldforce )
 
 		local attachrange = vgui.Create("DNumSlider",CPanel)
 		attachrange:SetText( "#Tool_wire_plug_attachrange" )
@@ -106,14 +106,14 @@ else
 		attachrange:SetMin( 1 )
 		attachrange:SetMax( 100 )
 		attachrange:SetToolTip( "Default: 5" )
-		CPanel:Add( attachrange )
+		CPanel:AddItem( attachrange )
 
 		local drawoutline = vgui.Create("DCheckBoxLabel",CPanel)
 		drawoutline:SetText( "#Tool_wire_plug_drawoutline" )
 		drawoutline:SetToolTip( "#Tool_wire_plug_drawoutline_tooltip" )
 		drawoutline:SizeToContents()
 		drawoutline:SetConVar( "wire_plug_drawoutline" )
-		CPanel:Add( drawoutline )
+		CPanel:AddItem( drawoutline )
 	end
 
 end

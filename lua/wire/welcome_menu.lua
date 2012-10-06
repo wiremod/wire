@@ -33,14 +33,14 @@ if (CLIENT) then
 		lbl:SetText([[You can also open the menu using the console command:
 'Wire_Welcome_Menu']])
 		lbl:SizeToContents()
-		Panel:Add( lbl )
+		Panel:AddItem( lbl )
 
 		local btn = vgui.Create("DButton")
 		btn:SetText("Open Welcome Menu")
 		function btn:DoClick()
 			Menu:OpenMenu()
 		end
-		Panel:Add( btn )
+		Panel:AddItem( btn )
 	end
 
 	hook.Add("PopulateToolMenu","WireLib_WMenu_PopulateToolMenu",function()
@@ -56,7 +56,7 @@ if (CLIENT) then
 
 	Menu.ConVars = {}
 	Menu.ConVars.Blocked = CreateClientConVar("Wire_Welcome_Menu_Blocked","0",true,false)
-	Menu.ConVars.UpdateNotificationBlocked = CreateClientConVar("Wire_Welcome_Menu_HideUpdateNotification","0",true,false)
+	Menu.ConVars.UpdateNotificationBlocked = CreateClientConVar("Wire_Welcome_Menu_HideUpdateNotification","1",true,false) --quick fix because the update notification is not closeable
 	Menu.Menu = {}
 
 	------------------------------------------------------------------------------------------------

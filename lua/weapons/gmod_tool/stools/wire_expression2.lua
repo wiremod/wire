@@ -536,7 +536,7 @@ elseif CLIENT then
 			local check = vgui.Create( "DCheckBoxLabel" )
 			check:SetText( "Main" )
 			check:Toggle()
-			lst:Add( check )
+			lst:AddItem( check )
 			function check:OnChange( val )
 				if val then
 					selectedfiles.main = true
@@ -551,7 +551,7 @@ elseif CLIENT then
 				local path = files[i]
 				local check = vgui.Create( "DCheckBoxLabel" )
 				check:SetText( path )
-				lst:Add( check )
+				lst:AddItem( check )
 				function check:OnChange( val )
 					if val then
 						selectedfiles[i] = path
@@ -565,7 +565,7 @@ elseif CLIENT then
 			
 			local selectall = vgui.Create( "DButton" )
 			selectall:SetText( "Select all" )
-			lst:Add( selectall )
+			lst:AddItem( selectall )
 			function selectall:DoClick()
 				selectedfiles = {}
 				for k,v in pairs( files ) do
@@ -581,7 +581,7 @@ elseif CLIENT then
 			
 			local selectnone = vgui.Create( "DButton" )
 			selectnone:SetText( "Select none" )
-			lst:Add( selectnone )
+			lst:AddItem( selectnone )
 			function selectnone:DoClick()
 				selectedfiles = {}
 				
@@ -594,7 +594,7 @@ elseif CLIENT then
 			local ok = vgui.Create( "DButton" )
 			ok:SetText( "Ok" )
 			ok:SetToolTip( "Shortcut for this button: Right click anywhere" )
-			lst:Add( ok )
+			lst:AddItem( ok )
 			function ok:DoClick()
 				local haschoice = false
 				for k,v in pairs( selectedfiles ) do haschoice = true break end
