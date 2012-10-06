@@ -1,6 +1,4 @@
 local libs = {
-	"datastream",
-	"language",
 	"http"
 }
 
@@ -41,30 +39,6 @@ if SERVER then
 	resource.AddFile("materials/gui/silkicons/wrench.vtf")
 	resource.AddFile("materials/vgui/spawnmenu/save.vtf")
 	
-	function datastream12.__prepareStream(streamID)
-		util.AddNetworkString("ds12_"..streamID)
-	end
-
-	function datastream12.Hook(streamID, callback)
-		net.Receive("ds12_" .. streamID, function(len, ply)
-			local tbl = net.ReadTable()
-			callback(ply, streamID, "", glon.encode(tbl), tbl)
-		end)
-	end
-	function datastream12.StreamToClients(player, streamID, data)
-		net.Start("ds12_"..streamID)
-			net.WriteTable(data)
-		net.Send(player)
-	end
-else
-	function datastream12.StreamToServer(streamID, data)
-		net.Start("ds12_" .. streamID)
-			net.WriteTable(data)
-		net.SendToServer()
-	end
-	function datastream12.Hook(streamID, callback)
-		net.Receive("ds12_"..streamID, function(len) callback( streamID, id, nil, net.ReadTable() ) end )
-	end
 	cam.StartMaterialOverride = render.MaterialOverride
 	SetMaterialOverride = render.MaterialOverride
 	local fontTable = 

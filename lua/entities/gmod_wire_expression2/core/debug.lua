@@ -194,7 +194,7 @@ end
 
 __e2setcost(100)
 
-datastream12.__prepareStream("wire_expression2_printColor")
+util.AddNetworkString("wire_expression2_printColor")
 
 local printColor_typeids = {
 	n = tostring,
@@ -216,8 +216,10 @@ local function printColorVarArg(chip, ply, typeids, ...)
 		end
 	end
 
-	send_array.chip = chip
-	datastream12.StreamToClients(ply, "wire_expression2_printColor", send_array)
+	net.Start("wire_expression2_printColor")
+		net.WriteEntity(chip)
+		net.WriteTable(send_array)
+	net.Send(ply)
 end
 
 local printColor_types = {
@@ -249,8 +251,10 @@ local function printColorArray(chip, ply, arr)
 		end
 	end
 
-	send_array.chip = chip
-	datastream12.StreamToClients(ply, "wire_expression2_printColor", send_array)
+	net.Start("wire_expression2_printColor")
+		net.WriteEntity(chip)
+		net.WriteTable(send_array)
+	net.Send(ply)
 end
 
 
