@@ -145,9 +145,9 @@ if SERVER then
 	end
 	
 	function TOOL:Upload( ent )
-		umsg.Start( "wire_expression2_tool_upload", self:GetOwner() )
-			umsg.Short( ent:EntIndex() )
-		umsg.End()
+		net.Start("wire_expression2_tool_upload")
+			net.WriteInt(ent:EntIndex(), 32)
+		net.Send(self:GetOwner())
 	end
 	
 	function TOOL:Download( ply, ent )
@@ -161,8 +161,8 @@ if SERVER then
 	----------------------------------------------------------------------------------------------------------------------------
 	----------------------------------------------------------------------------------------------------------------------------
 	----------------------------------------------------------------------------------------------------------------------------
-	umsg.PoolString( "wire_expression2_editor_status" )
-	umsg.PoolString( "wire_expression2_tool_upload" )
+	util.AddNetworkString( "wire_expression2_tool_upload" )
+	util.AddNetworkString( "wire_expression2_editor_status" )
 	util.AddNetworkString( "wire_expression2_download" )
 	util.AddNetworkString( "wire_expression2_download_wantedfiles" )
 	util.AddNetworkString( "wire_expression2_download_wantedfiles_list" )
@@ -183,8 +183,7 @@ if SERVER then
 		end
 		
 		if not IsValid(ply) or not ply:IsPlayer() then -- wtf
-			WireLib.AddNotify( ply, "Invalid player entity (wtf??). This should never happen.", NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3 )
-			return
+			error("Invalid player entity (wtf??). This should never happen. "..tostring(ply),0)
 		end
 		
 		if not E2Lib.isFriend( targetEnt.player, ply ) then
@@ -451,8 +450,8 @@ elseif CLIENT then
 		end
 	end
 	
-	usermessage.Hook( "wire_expression2_tool_upload", function( um )
-		local entid = um:ReadShort()
+	net.Receive( "wire_expression2_tool_upload", function(len, ply)
+		local entid = net.ReadInt(32)
 		timer.Create("wire_expression2_tool_upload_delay",0.03,30,function() -- The new net library is so fast sometimes the chip gets fully uploaded before the entity even exists.
 			if IsValid(Entity(entid)) then
 				WireLib.Expression2Upload( entid )
@@ -867,23 +866,17 @@ if SERVER then
 	-- actual editor open/close handlers
 
 	function wire_expression2_event.editor_open(ply, args)
-		local rp = RecipientFilter()
-		rp:AddAllPlayers()
-
-		umsg.Start("wire_expression2_editor_status", rp)
-			umsg.Entity(ply)
-			umsg.Bool(true)
-		umsg.End()
+		net.Start("wire_expression2_editor_status")
+			net.WriteEntity(ply)
+			net.WriteBit(true)
+		net.Broadcast()
 	end
 
 	function wire_expression2_event.editor_close(ply, args)
-		local rp = RecipientFilter()
-		rp:AddAllPlayers()
-
-		umsg.Start("wire_expression2_editor_status", rp)
-			umsg.Entity(ply)
-			umsg.Bool(false)
-		umsg.End()
+		net.Start("wire_expression2_editor_status")
+			net.WriteEntity(ply)
+			net.WriteBit(false)
+		net.Broadcast()
 	end
 
 elseif CLIENT then
@@ -895,10 +888,9 @@ elseif CLIENT then
 
 	local emitter = ParticleEmitter(vector_origin)
 
-	usermessage.Hook("wire_expression2_editor_status", function(um)
-		local ply = um:ReadEntity()
-		local status = um:ReadBool()
-
+	net.Receive("wire_expression2_editor_status", function(len)
+		local ply = net.ReadEntity()
+		local status = net.ReadBit()
 		if not ply:IsValid() or ply == LocalPlayer() then return end
 
 		busy_players[ply] = status or nil
