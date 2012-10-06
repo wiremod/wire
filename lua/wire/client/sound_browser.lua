@@ -43,7 +43,7 @@ function PANEL:FindItemsInTree(pFolders, dir, parent, fileicon, filepart, fileco
 						if (type(v) == "string") then
 							local Filepath = (dir .. "/" .. v)
 							local IsDir = file.IsDir(Filepath,"GAME")
-							local FileExists = file12.Exists(Filepath,"GAME")
+							local FileExists = file.Exists(Filepath,"GAME")
 							local NodeID = ("Node_ID_"..index..tostring(IsDir)..Filepath)
 							if (!string.match(v, "%.%.") and !AddedItems[Filepath]) then // No allow double foders and folder with ".." in thay names to be shown and check if the folder is a real folder, this prevents some errors.
 								if (IsDir) then

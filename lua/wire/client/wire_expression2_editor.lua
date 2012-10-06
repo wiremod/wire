@@ -1005,7 +1005,7 @@ function Editor:AutoSave()
 	local buffer = self:GetCode()
 	if self.savebuffer == buffer then return end
 	self.savebuffer = buffer
-	file12.Write(self.Location .. "/_autosave_.txt", buffer)
+	file.Write(self.Location .. "/_autosave_.txt", buffer)
 end
 
 function Editor:AddControlPanelTab( label, icon, tooltip )
@@ -2015,7 +2015,7 @@ function Editor:InitShutdownHook()
 		--if wire_expression2_editor == nil then return end
 		local buffer = self:GetCode()
 		if buffer == defaultcode then return end
-		file12.Write(self.Location .. "/_shutdown_.txt", buffer)
+		file.Write(self.Location .. "/_shutdown_.txt", buffer)
 
 		if (wire_expression2_editor_savetabs:GetBool()) then
 			self:SaveTabs()
@@ -2034,16 +2034,16 @@ function Editor:SaveTabs()
 
 	strtabs = strtabs:sub(1,-2)
 
-	file12.Write( self.Location .. "/_tabs_.txt", strtabs )
+	file.Write( self.Location .. "/_tabs_.txt", strtabs )
 end
 
 local wire_expression2_editor_openoldtabs = CreateClientConVar( "wire_expression2_editor_openoldtabs", "1", true, false )
 
 function Editor:OpenOldTabs()
-	if (!file12.Exists( self.Location .. "/_tabs_.txt" )) then return end
+	if (!file.Exists( self.Location .. "/_tabs_.txt", "DATA" )) then return end
 
 	-- Read file
-	local tabs = file12.Read( self.Location .. "/_tabs_.txt" )
+	local tabs = file.Read( self.Location .. "/_tabs_.txt" )
 	if (!tabs or tabs == "") then return end
 
 	-- Explode around ;
@@ -2056,7 +2056,7 @@ function Editor:OpenOldTabs()
 	local is_first = true
 	for k,v in pairs( tabs ) do
 		if (v and v != "") then
-			if (file12.Exists( v )) then
+			if (file.Exists( v, "DATA" )) then
 				-- Open it in a new tab
 				self:LoadFile( v, true )
 
@@ -2259,7 +2259,7 @@ function Editor:SaveFile(Line, close, SaveAs)
 		return
 	end
 
-	file12.Write(Line, self:GetCode())
+	file.Write(Line, self:GetCode())
 
 	local panel = self.C['Val'].panel
 	timer.Simple(0,function() panel.SetText( panel, "   Saved as " .. Line) end )
@@ -2277,8 +2277,8 @@ function Editor:SaveFile(Line, close, SaveAs)
 end
 
 function Editor:LoadFile( Line, forcenewtab )
-	if(!Line or file12.IsDir( Line )) then return end
-	local str = file12.Read(Line)
+	if(!Line or file.IsDir( Line, "DATA" )) then return end
+	local str = file.Read(Line)
 	if str == nil then
 		--Error("ERROR LOADING FILE!")
 	else

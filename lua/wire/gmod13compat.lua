@@ -1,5 +1,4 @@
 local libs = {
-	"file",
 	"datastream",
 	"language",
 	"http"
@@ -26,27 +25,6 @@ for _,libName in pairs(libs) do
 	local lib = _G[libName]
 	-- make copies of everything and override some of them
 	_G[lib12Name] = lib and table.Copy(lib) or {}
-end
-
-function file12.Exists(path, useBaseDir)
-	return file.Exists(path, useBaseDir and "GAME" or "DATA")
-end
-
-function file12.FindInLua(path)
-	return file.Find(path, "LUA")
-end
-
-function file12.Find(path, useBaseDir)
-	return file.Find(path, useBaseDir and "GAME" or "DATA")
-end
-
-function file12.FindDir(path, useBaseDir)
-	local files,folders = file12.Find(path, useBaseDir and "GAME" or "DATA")
-	return folders
-end
-
-function file12.IsDir(path, useBaseDir)
-	return file.IsDir(path, useBaseDir and "GAME" or "DATA")
 end
 
 function http12.Get(url, headers, callback)

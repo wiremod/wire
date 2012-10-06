@@ -6,7 +6,7 @@ function ModelPlug_Register(category)
 	if (not ModelPlugInfo[category]) then
 		local catinfo = {}
 
-	    local packs = file12.Find("WireModelPacks/*.txt")
+	    local packs = file.Find("WireModelPacks/*.txt", "DATA")
 	    for _,filename in pairs(packs) do
         	--resource.AddFile("data/WireModelPacks/" .. filename)
 

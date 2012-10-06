@@ -6,11 +6,11 @@ function WireLib.GetWireVersion()
 	local git = false
 
 	-- Try getting the version using the .svn files:
-	if file12.Exists("lua/wire/client/.svn/entries") then
+	if file.Exists("lua/wire/client/.svn/entries", "DATA") then
 		version = string.Explode("\n", file.Read( "lua/wire/client/.svn/entries", true) or "")[4]
 		exported = false
 		plainversion = version
-	elseif file12.Exists("wire_version.txt") then -- Try getting the version by reading the text file:
+	elseif file.Exists("wire_version.txt", "DATA") then -- Try getting the version by reading the text file:
 		plainversion = file.Read("wire_version.txt")
 		if plainversion == "git" then
 			git = true
@@ -31,7 +31,7 @@ function WireLib.GetOnlineWireVersion( callback )
 end
 
 function WireLib.CompareGitVersion( callback )
-	if not file12.Exists("prevhash.txt") then return false end
+	if not file.Exists("prevhash.txt","DATA") then return false end
 	local prev = file.Read("prevhash.txt"):sub(1,10)
 	http12.Get("https://api.github.com/repos/wiremod/wire/git/refs/heads", "", function(contents,size)
 		local sha = string.match( contents, "\"sha\":\"(.+)\"" )
