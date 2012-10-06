@@ -110,7 +110,7 @@ function PANEL:BuildFileTree(dir, parent, filepart) // Build the file tree.
 	if ((!pFolders) or (olddir ~= dir)) then // Find the files only one time when open a folder. It saves performance.
 		self.FilepartNumber = 0
 
-		pFolders = file.FindDir(dir .. "/*","GAME") // Find the folders.
+		_,pFolders = file.Find(dir .. "/*","GAME") // Find the folders.
 		for i = 1, math.Clamp(table.Count(pFolders), 0, MaxElements) do // Make filepath and names lowercase.
 			pFolders[i] = string.lower(pFolders[i])
 		end

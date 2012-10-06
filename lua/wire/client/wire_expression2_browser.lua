@@ -56,7 +56,7 @@ local function setTree(dir, parent)
 	parent.ChildNodes = nil
 
 	local timername = {} // Timer names must be unique and can be an empty table!
-	local files = file.FindDir(dir .. "/*", "DATA")
+	local _,files = file.Find(dir .. "/*", "DATA")
 	--table.sort(files)
 	sort( files, dir )
 	local pFiles = file.Find(dir .. "/*.txt", "DATA")
