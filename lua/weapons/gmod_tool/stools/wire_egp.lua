@@ -19,7 +19,7 @@ if (SERVER) then
 	CreateConVar('sbox_maxwire_egps', 5)
 
 	local function SpawnEnt( ply, Pos, Ang, model, class)
-		if (!ply:CheckLimit("wire_egps")) then return false end
+		if (ply!=nil) then if (pl!=nil) then if (!ply:CheckLimit("wire_egps")) then return false end end end
 		local ent = ents.Create(class)
 		if (model) then ent:SetModel(model) end
 		ent:SetAngles(Ang)
@@ -30,7 +30,7 @@ if (SERVER) then
 		ent:SetPlayer(ply)
 		ent:SetEGPOwner( ply )
 
-		ply:AddCount( "wire_egps", ent )
+		if (ply!=nil) then ply:AddCount( "wire_egps", ent ) end
 
 		return ent
 	end
@@ -78,7 +78,7 @@ if (SERVER) then
 	function TOOL:LeftClick( trace )
 		if not util.IsValidPhysicsObject( trace.Entity, trace.PhysicsBone ) then return false end
 		local ply = self:GetOwner()
-		if (!ply:CheckLimit( "wire_egps" )) then return false end
+		if (ply!=nil) then if (pl!=nil) then if (!ply:CheckLimit( "wire_egps" )) then return false end end end
 
 		local ent
 		local Type = self:GetClientNumber("type")
@@ -369,7 +369,7 @@ if (CLIENT) then
 		slider:SetMin( 0 )
 		slider:SetMax( 5000 )
 		slider:SetDecimals( 0 )
-		panel:Add(slider)
+		panel:AddPanel(slider)
 	end
 end
 

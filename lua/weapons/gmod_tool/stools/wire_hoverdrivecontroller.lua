@@ -31,7 +31,7 @@ end
 
 if (SERVER) then
 	function TOOL:CreateTeleporter( ply, trace, Model )
-		if (!ply:CheckLimit("wire_hoverdrives")) then return end
+		if (ply!=nil) then if (pl!=nil) then if (!ply:CheckLimit("wire_hoverdrives")) then return end end end
 		local ent = ents.Create( "gmod_wire_hoverdrivecontroler" )
 		if (!ent:IsValid()) then return end
 
@@ -46,7 +46,7 @@ if (SERVER) then
 		ent.UseEffects = (self:GetClientNumber( "effects" ) == 1)
 		ent.UseSounds = (self:GetClientNumber( "sounds" ) == 1)
 
-		ply:AddCount( "wire_hoverdrives", ent )
+		if (ply!=nil) then ply:AddCount( "wire_hoverdrives", ent ) end
 
 		ent:ShowOutput()
 
@@ -73,7 +73,7 @@ if (SERVER) then
 			undo.SetPlayer( ply )
 		undo.Finish()
 
-		ply:AddCleanup( "wire_hoverdrivecontrollers", ent )
+		if (ply!=nil) then ply:AddCleanup( "wire_hoverdrivecontrollers", ent ) end
 
 		return true
 	end

@@ -43,7 +43,7 @@ function TOOL:LeftClick( trace )
 	if (CLIENT) then return true end
 	if not util.IsValidPhysicsObject( trace.Entity, trace.PhysicsBone ) then return false end
 
-	if ( !self:GetSWEP():CheckLimit( "wire_eyepods" ) ) then return false end
+	if (pl!=nil) then if ( !self:GetSWEP():CheckLimit( "wire_eyepods" ) ) then return false end end
 
 	/* Setup all of our local variables */
 	local ply = self:GetOwner()
@@ -129,7 +129,7 @@ function TOOL:LeftClick( trace )
 		undo.SetPlayer(ply)
 	undo.Finish()
 
-	ply:AddCleanup( "wire_eyepods", ent )
+	if (ply!=nil) then ply:AddCleanup( "wire_eyepods", ent ) end
 
 	return true
 end
@@ -184,7 +184,7 @@ end
 if (SERVER) then
 	/* Makes an EyePod */
 	function MakeWireEyePod(pl, Pos, Ang, model, DefaultToZero, ShowRateOfChange, ClampXMin, ClampXMax, ClampYMin, ClampYMax, ClampX, ClampY)
-		if !pl:CheckLimit( "wire_eyepods" ) then return false end
+		if (pl!=nil) then if !pl:CheckLimit( "wire_eyepods" ) then return false end end
 		local ent = ents.Create("gmod_wire_eyepod")
 		if !ent:IsValid() then return false end
 		ent:SetAngles(Ang)
@@ -209,7 +209,7 @@ if (SERVER) then
 		}
 		table.Merge(ent:GetTable(), ttable )
 
-		pl:AddCount( "wire_eyepods", ent )
+		if (pl!=nil) then pl:AddCount( "wire_eyepods", ent ) end
 
 		return ent
 	end

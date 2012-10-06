@@ -84,7 +84,7 @@ numpad.Register( "WireDualInput_Off", Off )
 
 
 function MakeWireDualInput( pl, Pos, Ang, model, keygroup, keygroup2, toggle, value_off, value_on, value_on2, frozen )
-	if ( !pl:CheckLimit( "wire_dual_inputs" ) ) then return false end
+	if (pl!=nil) then if ( !pl:CheckLimit( "wire_dual_inputs" ) ) then return false end end
 
 	local wire_dual_input = ents.Create( "gmod_wire_dual_input" )
 	if (!wire_dual_input:IsValid()) then return false end
@@ -108,7 +108,7 @@ function MakeWireDualInput( pl, Pos, Ang, model, keygroup, keygroup2, toggle, va
 	numpad.OnDown( pl, keygroup2, "WireDualInput_On", wire_dual_input, -1 )
 	numpad.OnUp( pl, keygroup2, "WireDualInput_Off", wire_dual_input, -1 )
 
-	pl:AddCount( "wire_dual_inputs", wire_dual_input )
+	if (pl!=nil) then pl:AddCount( "wire_dual_inputs", wire_dual_input ) end
 
 	return wire_dual_input
 end

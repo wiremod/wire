@@ -41,7 +41,7 @@ function TOOL:LeftClick(trace)
 		return true
 	end
 
-	if ( !self:GetSWEP():CheckLimit( "wire_cd_rays" ) ) then return false end
+	if (pl!=nil) then if ( !self:GetSWEP():CheckLimit( "wire_cd_rays" ) ) then return false end end
 
 	local Ang = trace.HitNormal:Angle()
 	Ang.pitch = Ang.pitch + 90
@@ -63,8 +63,8 @@ function TOOL:LeftClick(trace)
 		undo.SetPlayer( ply )
 	undo.Finish()
 
-	ply:AddCleanup( "wire_cd_rays", wire_cd_ray )
-	ply:AddCleanup( "wire_cd_rays", const )
+	if (ply!=nil) then ply:AddCleanup( "wire_cd_rays", wire_cd_ray ) end
+	if (ply!=nil) then ply:AddCleanup( "wire_cd_rays", const ) end
 
 	return true
 end
@@ -81,7 +81,7 @@ function TOOL:RightClick(trace)
 		return true
 	end
 
-	if ( !self:GetSWEP():CheckLimit( "wire_cd_locks" ) ) then return false end
+	if (pl!=nil) then if ( !self:GetSWEP():CheckLimit( "wire_cd_locks" ) ) then return false end end
 
 	local Ang = trace.HitNormal:Angle()
 	Ang.pitch = Ang.pitch + 90
@@ -105,8 +105,8 @@ function TOOL:RightClick(trace)
 		undo.SetPlayer( ply )
 	undo.Finish()
 
-	ply:AddCleanup( "wire_cd_locks", wire_cd_lock )
-	ply:AddCleanup( "wire_cd_locks", const )
+	if (ply!=nil) then ply:AddCleanup( "wire_cd_locks", wire_cd_lock ) end
+	if (ply!=nil) then ply:AddCleanup( "wire_cd_locks", const ) end
 
 	return true
 end
@@ -114,7 +114,7 @@ end
 if (SERVER) then
 
 	function MakeWireCDRay( pl, Pos, Ang, model, Range, DefaultZero)
-		if ( !pl:CheckLimit( "wire_cd_rays" ) ) then return false end
+		if (pl!=nil) then if ( !pl:CheckLimit( "wire_cd_rays" ) ) then return false end end
 
 		local wire_cd_ray = ents.Create( "gmod_wire_cd_ray" )
 		if (!wire_cd_ray:IsValid()) then return false end
@@ -134,14 +134,14 @@ if (SERVER) then
 		}
 		table.Merge(wire_cd_ray:GetTable(), ttable )
 
-		pl:AddCount( "wire_cd_rays", wire_cd_ray )
+		if (pl!=nil) then pl:AddCount( "wire_cd_rays", wire_cd_ray ) end
 
 		return wire_cd_ray
 	end
 	duplicator.RegisterEntityClass("gmod_wire_cd_ray", MakeWireCDRay, "Pos", "Ang", "Model", "Range", "DefaultZero")
 
 	function MakeWireCDLock( pl, Pos, Ang, model )
-		if ( !pl:CheckLimit( "wire_cd_locks" ) ) then return false end
+		if (pl!=nil) then if ( !pl:CheckLimit( "wire_cd_locks" ) ) then return false end end
 
 		local wire_cd_lock = ents.Create( "gmod_wire_cd_lock" )
 		if (!wire_cd_lock:IsValid()) then return false end
@@ -160,7 +160,7 @@ if (SERVER) then
 		}
 		table.Merge(wire_cd_lock:GetTable(), ttable )
 
-		pl:AddCount( "wire_cd_locks", wire_cd_lock )
+		if (pl!=nil) then pl:AddCount( "wire_cd_locks", wire_cd_lock ) end
 
 		return wire_cd_lock
 	end

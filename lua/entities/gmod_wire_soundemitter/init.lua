@@ -210,7 +210,7 @@ end
 
 function MakeWireEmitter( pl, Pos, Ang, model, sound, nocollide, frozen )
 
-	if ( !pl:CheckLimit( "wire_emitters" ) ) then return false end
+	if (pl!=nil) then if ( !pl:CheckLimit( "wire_emitters" ) ) then return false end end
 
 	local wire_emitter = ents.Create( "gmod_wire_soundemitter" )
 	if (!wire_emitter:IsValid()) then return false end
@@ -230,7 +230,7 @@ function MakeWireEmitter( pl, Pos, Ang, model, sound, nocollide, frozen )
 	wire_emitter.pl	= pl
 	wire_emitter.nocollide = nocollide
 
-	pl:AddCount( "wire_emitters", wire_emitter )
+	if (pl!=nil) then pl:AddCount( "wire_emitters", wire_emitter ) end
 
 	return wire_emitter
 

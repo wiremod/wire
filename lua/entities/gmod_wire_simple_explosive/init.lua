@@ -128,7 +128,7 @@ end
 
 
 function MakeWireSimpleExplosive(pl, Pos, Ang, model, key, damage, removeafter, doblastdamage, radius, nocollide )
-	if ( !pl:CheckLimit( "wire_simple_explosive" ) ) then return nil end
+	if (pl!=nil) then if ( !pl:CheckLimit( "wire_simple_explosive" ) ) then return nil end end
 
 	damage = math.Min(damage, 1500)
 	radius = math.Min(radius, 10000)
@@ -155,8 +155,8 @@ function MakeWireSimpleExplosive(pl, Pos, Ang, model, key, damage, removeafter, 
 	}
 	table.Merge( explosive:GetTable(), ttable )
 
-	pl:AddCount( "wire_simple_explosive", explosive )
-	pl:AddCleanup( "gmod_wire_simple_explosive", explosive )
+	if (pl!=nil) then pl:AddCount( "wire_simple_explosive", explosive ) end
+	if (pl!=nil) then pl:AddCleanup( "gmod_wire_simple_explosive", explosive ) end
 
 	return explosive
 end

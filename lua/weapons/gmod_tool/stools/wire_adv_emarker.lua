@@ -54,7 +54,7 @@ hook.Add("EntityRemoved","AdvEntityMarkerEntRemoved",CheckRemovedEnt)
 
 if (SERVER) then
 	function TOOL:CreateMarker( ply, trace, Model )
-		if (!ply:CheckLimit("wire_adv_emarkers")) then return end
+		if (ply!=nil) then if (pl!=nil) then if (!ply:CheckLimit("wire_adv_emarkers")) then return end end end
 		if (!trace or !trace.Hit or trace.Entity:IsPlayer()) then return end
 		local ent = ents.Create( "gmod_wire_adv_emarker" )
 		if (!ent:IsValid()) then return end
@@ -69,7 +69,7 @@ if (SERVER) then
 		ent:Spawn()
 		ent:Activate()
 
-		ply:AddCount( "wire_adv_emarkers", ent )
+		if (ply!=nil) then ply:AddCount( "wire_adv_emarkers", ent ) end
 
 		return ent
 	end
@@ -87,7 +87,7 @@ if (SERVER) then
 			undo.SetPlayer( ply )
 		undo.Finish()
 
-		ply:AddCleanup( "wire_adv_emarkers", ent )
+		if (ply!=nil) then ply:AddCleanup( "wire_adv_emarkers", ent ) end
 
 		return true
 	end

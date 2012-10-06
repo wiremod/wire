@@ -42,7 +42,7 @@ function TOOL:LeftClick( trace )
 		return true
 	end
 
-	if ( !self:GetSWEP():CheckLimit( "wire_outputs" ) ) then return false end
+	if (pl!=nil) then if ( !self:GetSWEP():CheckLimit( "wire_outputs" ) ) then return false end end
 
 	if ( !util.IsValidModel( ModelInfo[3] ) ) then return false end
 	if ( !util.IsValidProp( ModelInfo[3] ) ) then return false end
@@ -63,7 +63,7 @@ function TOOL:LeftClick( trace )
 		undo.SetPlayer( ply )
 	undo.Finish()
 
-	ply:AddCleanup( "wire_outputs", wire_output )
+	if (ply!=nil) then ply:AddCleanup( "wire_outputs", wire_output ) end
 
 	return true
 end
@@ -73,7 +73,7 @@ if (SERVER) then
 	function MakeWireOutput( pl, Pos, Ang, model, key )
 		if (numpad.GetModifiedKey) then key = numpad.GetModifiedKey(pl, key) end
 
-		if ( !pl:CheckLimit( "wire_outputs" ) ) then return false end
+		if (pl!=nil) then if ( !pl:CheckLimit( "wire_outputs" ) ) then return false end end
 
 		local wire_output = ents.Create( "gmod_wire_output" )
 		if (!wire_output:IsValid()) then return false end
@@ -97,7 +97,7 @@ if (SERVER) then
 		table.Merge(wire_output:GetTable(), ttable )
 
 		wire_output:ShowOutput()
-		pl:AddCount( "wire_outputs", wire_output )
+		if (pl!=nil) then pl:AddCount( "wire_outputs", wire_output ) end
 
 		return wire_output
 	end

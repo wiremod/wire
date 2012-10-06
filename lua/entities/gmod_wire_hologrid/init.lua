@@ -57,7 +57,7 @@ end
 
 function MakeWireHologrid( pl, Pos, Ang, model, usegps, frozen )
 	-- check the players limit
-	if( !pl:CheckLimit( "wire_hologrids" ) ) then return end
+	if (pl!=nil) then if( !pl:CheckLimit( "wire_hologrids" ) ) then return end end
 
 	-- create the grid
 	local grid = ents.Create( "gmod_wire_hologrid" )
@@ -80,7 +80,7 @@ function MakeWireHologrid( pl, Pos, Ang, model, usegps, frozen )
 	grid:SetPlayer(pl)
 
 	-- add to the players count
-	pl:AddCount( "wire_hologrids", grid )
+	if (pl!=nil) then pl:AddCount( "wire_hologrids", grid ) end
 
 	return grid;
 end

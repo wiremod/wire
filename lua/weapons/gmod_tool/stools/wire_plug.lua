@@ -66,31 +66,31 @@ else
 		local mdl = vgui.Create("DWireModelSelect",CPanel)
 		mdl:SetModelList( list.Get( "wire_socket_models" ), "wire_plug_model" )
 		mdl:SetHeight( 2 )
-		CPanel:Add( mdl )
+		CPanel:AddPanel( mdl )
 
 		local weld = vgui.Create("DCheckBoxLabel",CPanel)
 		weld:SetText( "#Tool_wire_plug_weld" )
 		weld:SizeToContents()
 		weld:SetConVar( "wire_plug_weld" )
-		CPanel:Add( weld )
+		CPanel:AddPanel( weld )
 
 		local toworld = vgui.Create("DCheckBoxLabel",CPanel)
 		toworld:SetText( "#Tool_wire_plug_weldtoworld" )
 		toworld:SizeToContents()
 		toworld:SetConVar( "wire_plug_weldtoworld" )
-		CPanel:Add( toworld )
+		CPanel:AddPanel( toworld )
 
 		local freeze = vgui.Create("DCheckBoxLabel",CPanel)
 		freeze:SetText( "#Tool_wire_plug_freeze" )
 		freeze:SizeToContents()
 		freeze:SetConVar( "wire_plug_freeze" )
-		CPanel:Add( freeze )
+		CPanel:AddPanel( freeze )
 
 		local array = vgui.Create("DCheckBoxLabel",CPanel)
 		array:SetText( "#Tool_wire_plug_array" )
 		array:SizeToContents()
 		array:SetConVar( "wire_plug_array" )
-		CPanel:Add( array )
+		CPanel:AddPanel( array )
 
 		local weldforce = vgui.Create("DNumSlider",CPanel)
 		weldforce:SetText( "#Tool_wire_plug_weldforce" )
@@ -98,7 +98,7 @@ else
 		weldforce:SetMin( 0 )
 		weldforce:SetMax( 100000 )
 		weldforce:SetToolTip( "Default: 5000" )
-		CPanel:Add( weldforce )
+		CPanel:AddPanel( weldforce )
 
 		local attachrange = vgui.Create("DNumSlider",CPanel)
 		attachrange:SetText( "#Tool_wire_plug_attachrange" )
@@ -106,14 +106,14 @@ else
 		attachrange:SetMin( 1 )
 		attachrange:SetMax( 100 )
 		attachrange:SetToolTip( "Default: 5" )
-		CPanel:Add( attachrange )
+		CPanel:AddPanel( attachrange )
 
 		local drawoutline = vgui.Create("DCheckBoxLabel",CPanel)
 		drawoutline:SetText( "#Tool_wire_plug_drawoutline" )
 		drawoutline:SetToolTip( "#Tool_wire_plug_drawoutline_tooltip" )
 		drawoutline:SizeToContents()
 		drawoutline:SetConVar( "wire_plug_drawoutline" )
-		CPanel:Add( drawoutline )
+		CPanel:AddPanel( drawoutline )
 	end
 
 end
@@ -201,7 +201,7 @@ function TOOL:LeftClick( trace )
 		undo.SetPlayer( ply )
 	undo.Finish()
 
-	ply:AddCleanup( "wire_sockets", socket )
+	if (ply!=nil) then ply:AddCleanup( "wire_sockets", socket ) end
 
 	return true
 end
@@ -213,7 +213,7 @@ end
 --------------------
 if (SERVER) then
 	function MakeWireSocket( ply, Pos, Ang, model, ArrayInput, WeldForce, AttachRange, ArrayHiSpeed )
-		if (!ply:CheckLimit( "wire_sockets" )) then return false end
+		if (ply!=nil) then if (pl!=nil) then if (!ply:CheckLimit( "wire_sockets" )) then return false end end end
 
 		local socket = ents.Create( "gmod_wire_socket" )
 		if (!socket:IsValid()) then return false end
@@ -226,7 +226,7 @@ if (SERVER) then
 		socket:SetUp( ArrayInput, WeldForce, AttachRange, ArrayHiSpeed )
 		socket:Activate()
 
-		ply:AddCount( "wire_socket", socket )
+		if (ply!=nil) then ply:AddCount( "wire_socket", socket ) end
 
 		return socket
 	end
@@ -268,7 +268,7 @@ function TOOL:RightClick( trace )
 		undo.SetPlayer( ply )
 	undo.Finish()
 
-	ply:AddCleanup( "wire_plugs", plug )
+	if (ply!=nil) then ply:AddCleanup( "wire_plugs", plug ) end
 
 	return true
 end
@@ -280,7 +280,7 @@ end
 --------------------
 if (SERVER) then
 	function MakeWirePlug( ply, Pos, Ang, model, ArrayInput, ArrayHiSpeed )
-		if (!ply:CheckLimit( "wire_plugs" )) then return false end
+		if (ply!=nil) then if (pl!=nil) then if (!ply:CheckLimit( "wire_plugs" )) then return false end end end
 
 		local plug = ents.Create( "gmod_wire_plug" )
 		if (!plug:IsValid()) then return false end
@@ -294,7 +294,7 @@ if (SERVER) then
 		plug:Activate()
 
 
-		ply:AddCount( "wire_plug", plug )
+		if (ply!=nil) then ply:AddCount( "wire_plug", plug ) end
 
 		return plug
 	end

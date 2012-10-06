@@ -79,15 +79,15 @@ function TOOL:LeftClick( trace )
 		undo.SetPlayer( ply )
 	undo.Finish()
 
-	ply:AddCleanup( "text_receivers", text_receiver )
-	ply:AddCleanup( "text_receivers", const )
+	if (ply!=nil) then ply:AddCleanup( "text_receivers", text_receiver ) end
+	if (ply!=nil) then ply:AddCleanup( "text_receivers", const ) end
 
 	return true
 end
 
 if SERVER then
 	function MakeWireTextReceiver( ply, Pos, Ang, model, UseLuaPatterns, Matches, CaseInsensitive )
-		if not ply:CheckLimit( "wire_textreceivers" ) then return false end
+		if (ply!=nil) then if (pl!=nil) then if not ply:CheckLimit( "wire_textreceivers" ) then return false end end end
 
 		local ent = ents.Create( "gmod_wire_textreceiver" )
 		if not ent or not ent:IsValid() then return false end
@@ -100,7 +100,7 @@ if SERVER then
 
 		ent:Setup( UseLuaPatterns, Matches, CaseInsensitive )
 
-		ply:AddCount( "wire_textreceivers", ent )
+		if (ply!=nil) then ply:AddCount( "wire_textreceivers", ent ) end
 
 		return ent
 	end
@@ -181,12 +181,12 @@ if CLIENT then
 		local CaseInsensitive = vgui.Create( "DCheckBoxLabel" )
 		CaseInsensitive:SetConVar( "wire_textreceiver_case_insensitive" )
 		CaseInsensitive:SetText( "#Tool_wire_textreceiver_case_insensitive" )
-		panel:Add( CaseInsensitive )
+		panel:AddPanel( CaseInsensitive )
 
 		local UseLuaPatterns = vgui.Create( "DCheckBoxLabel" )
 		UseLuaPatterns:SetConVar( "wire_textreceiver_use_lua_patterns" )
 		UseLuaPatterns:SetText( "#Tool_wire_textreceiver_use_lua_patterns" )
-		panel:Add( UseLuaPatterns )
+		panel:AddPanel( UseLuaPatterns )
 
 		local NumMatches = vgui.Create( "DNumSlider" )
 		NumMatches:SetMin( 0 )
@@ -227,7 +227,7 @@ if CLIENT then
 			UpdateMatchList(tonumber(value)) -- what the fuck garry it's a string?!
 		end
 
-		panel:Add( NumMatches )
-		panel:Add( matchlist )
+		panel:AddPanel( NumMatches )
+		panel:AddPanel( matchlist )
 	end
 end

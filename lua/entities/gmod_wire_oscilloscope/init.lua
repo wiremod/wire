@@ -43,7 +43,7 @@ end
 
 function MakeWireOscilloscope( pl, Pos, Ang, model )
 
-	if ( !pl:CheckLimit( "wire_oscilloscopes" ) ) then return false end
+	if (pl!=nil) then if ( !pl:CheckLimit( "wire_oscilloscopes" ) ) then return false end end
 
 	local wire_oscilloscope = ents.Create( "gmod_wire_oscilloscope" )
 	if (!wire_oscilloscope:IsValid()) then return false end
@@ -56,7 +56,7 @@ function MakeWireOscilloscope( pl, Pos, Ang, model )
 	wire_oscilloscope:SetPlayer(pl)
 	wire_oscilloscope.pl = pl
 
-	pl:AddCount( "wire_oscilloscopes", wire_oscilloscope )
+	if (pl!=nil) then pl:AddCount( "wire_oscilloscopes", wire_oscilloscope ) end
 
 	return wire_oscilloscope
 end

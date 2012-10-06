@@ -33,7 +33,7 @@ function TOOL:LeftClick( trace )
 		return true
 	end
 
-	if ( !self:GetSWEP():CheckLimit( "wire_data_stores" ) ) then return false end
+	if (pl!=nil) then if ( !self:GetSWEP():CheckLimit( "wire_data_stores" ) ) then return false end end
 
 	local Ang = trace.HitNormal:Angle()
 	Ang.pitch = Ang.pitch + 90
@@ -51,8 +51,8 @@ function TOOL:LeftClick( trace )
 		undo.SetPlayer( ply )
 	undo.Finish()
 
-	ply:AddCleanup( "wire_data_stores", wire_data_store )
-	ply:AddCleanup( "wire_data_stores", const )
+	if (ply!=nil) then ply:AddCleanup( "wire_data_stores", wire_data_store ) end
+	if (ply!=nil) then ply:AddCleanup( "wire_data_stores", const ) end
 
 	return true
 end
@@ -60,7 +60,7 @@ end
 if (SERVER) then
 
 	function MakeWireStore( pl, Pos, Ang, model )
-		if ( !pl:CheckLimit( "wire_data_stores" ) ) then return false end
+		if (pl!=nil) then if ( !pl:CheckLimit( "wire_data_stores" ) ) then return false end end
 
 		local wire_data_store = ents.Create( "gmod_wire_data_store" )
 		if (!wire_data_store:IsValid()) then return false end
@@ -73,7 +73,7 @@ if (SERVER) then
 		wire_data_store:SetPlayer( pl )
 		wire_data_store.pl = pl
 
-		pl:AddCount( "wire_data_stores", wire_data_store )
+		if (pl!=nil) then pl:AddCount( "wire_data_stores", wire_data_store ) end
 
 		return wire_data_store
 	end

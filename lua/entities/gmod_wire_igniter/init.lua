@@ -70,7 +70,7 @@ end
 
 
 function MakeWireIgniter( pl, Pos, Ang, model, TargetPlayers, Range )
-	if not pl:CheckLimit( "wire_igniters" ) then return false end
+	if (pl!=nil) then if not pl:CheckLimit( "wire_igniters" ) then return false end end
 
 	local wire_igniter = ents.Create( "gmod_wire_igniter" )
 	if not wire_igniter:IsValid() then return false end
@@ -90,7 +90,7 @@ function MakeWireIgniter( pl, Pos, Ang, model, TargetPlayers, Range )
 	}
 	table.Merge(wire_igniter:GetTable(), ttable )
 
-	pl:AddCount( "wire_igniters", wire_igniter )
+	if (pl!=nil) then pl:AddCount( "wire_igniters", wire_igniter ) end
 
 	return wire_igniter
 end

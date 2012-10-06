@@ -814,7 +814,11 @@ function WireLib.ApplyDupeInfo( ply, ent, info, GetEntByID )
 	if (info.Wires) then
 		for k,input in pairs(info.Wires) do
 
-			Wire_Link_Start(ply:UniqueID(), ent, input.StartPos, k, input.Material, input.Color, input.Width)
+			if (ply!=nil) then
+				Wire_Link_Start(ply:UniqueID(), ent, input.StartPos, k, input.Material, input.Color, input.Width)
+			else
+				Wire_Link_Start(1, ent, input.StartPos, k, input.Material, input.Color, input.Width)
+			end
 
 			if (input.Path) then
 				for _,v in ipairs(input.Path) do
@@ -842,7 +846,11 @@ function WireLib.ApplyDupeInfo( ply, ent, info, GetEntByID )
 				end
 			end
 			if (IsValid(ent2)) then
-				Wire_Link_End(ply:UniqueID(), ent2, input.SrcPos, input.SrcId)
+				if (ply!=nil) then
+					Wire_Link_End(ply:UniqueID(), ent2, input.SrcPos, input.SrcId)
+				else
+					Wire_Link_End(1, ent2, input.SrcPos, input.SrcId)
+				end
 			else
 				Msg("ApplyDupeInfo: Error, Could not find the output entity\n")
 			end

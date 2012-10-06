@@ -485,7 +485,7 @@ local function VerifyWireGateExpression(player, lines, inputs, outputs)
 end
 
 local function MakeWireGateExpression(player, Pos, Ang, model, name, lines, inputs, outputs)
-	if !player:CheckLimit("wire_expressions") then return false end
+	if (player!=nil) then if (pl!=nil) then if !player:CheckLimit("wire_expressions") then return false end end end
 
 	local parser = VerifyWireGateExpression(player, lines, inputs, outputs)
 	if !parser then return false end
@@ -502,7 +502,7 @@ local function MakeWireGateExpression(player, Pos, Ang, model, name, lines, inpu
 	SetupWireGateExpression(entity, parser, name, lines, inputs, outputs)
 
 	table.Merge(entity:GetTable(), { player = player })
-	player:AddCount("wire_expressions", entity)
+	if (player!=nil) then player:AddCount("wire_expressions", entity) end
 	return entity
 end
 

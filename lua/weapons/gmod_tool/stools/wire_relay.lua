@@ -72,7 +72,7 @@ function TOOL:LeftClick( trace )
 		return true
 	end
 
-	if ( !self:GetSWEP():CheckLimit( "wire_relays" ) ) then return false end
+	if (pl!=nil) then if ( !self:GetSWEP():CheckLimit( "wire_relays" ) ) then return false end end
 
 	local Ang = trace.HitNormal:Angle()
 	Ang.pitch = Ang.pitch + 90
@@ -90,7 +90,7 @@ function TOOL:LeftClick( trace )
 		undo.SetPlayer( ply )
 	undo.Finish()
 
-	ply:AddCleanup( "wire_relays", wire_relay )
+	if (ply!=nil) then ply:AddCleanup( "wire_relays", wire_relay ) end
 
 	return true
 end
@@ -99,7 +99,7 @@ if (SERVER) then
 
 	function MakeWireRelay( pl, Pos, Ang, model, keygroup1, keygroup2, keygroup3, keygroup4, keygroup5, keygroupoff, toggle, normclose, poles, throws, nokey)
 		--print(model)
-		if ( !pl:CheckLimit( "wire_relays" ) ) then return false end
+		if (pl!=nil) then if ( !pl:CheckLimit( "wire_relays" ) ) then return false end end
 
 		local wire_relay = ents.Create( "gmod_wire_relay" )
 		if (!wire_relay:IsValid()) then return false end
@@ -155,7 +155,7 @@ if (SERVER) then
 		}
 		table.Merge(wire_relay, ttable )
 
-		pl:AddCount( "wire_relays", wire_relay )
+		if (pl!=nil) then pl:AddCount( "wire_relays", wire_relay ) end
 
 		return wire_relay
 	end

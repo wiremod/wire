@@ -81,7 +81,7 @@ function TOOL:LeftClick( trace )
 
 	local ply = self:GetOwner()
 
-	if ( !self:GetSWEP():CheckLimit( "wire_explosive" ) ) then return false end
+	if (pl!=nil) then if ( !self:GetSWEP():CheckLimit( "wire_explosive" ) ) then return false end end
 
 	// Get client's CVars
 	local _tirgger			= self:GetClientNumber( "tirgger" )
@@ -148,8 +148,8 @@ function TOOL:LeftClick( trace )
 		undo.SetPlayer( ply )
 	undo.Finish()
 
-	ply:AddCleanup( "wire_explosive", explosive )
-	ply:AddCleanup( "wire_explosive", const )
+	if (ply!=nil) then ply:AddCleanup( "wire_explosive", explosive ) end
+	if (ply!=nil) then ply:AddCleanup( "wire_explosive", const ) end
 
 	return true
 
@@ -300,7 +300,7 @@ if SERVER then
 
 	function MakeWireExplosive(pl, Pos, Ang, model, trigger, damage, removeafter, delaytime, doblastdamage, radius, affectother, notaffected, delayreloadtime, maxhealth, bulletproof, explosionproof, fallproof, explodeatzero, resetatexplode, fireeffect, coloreffect, invisibleatzero, nocollide )
 
-		if ( !pl:CheckLimit( "wire_explosive" ) ) then return nil end
+		if (pl!=nil) then if ( !pl:CheckLimit( "wire_explosive" ) ) then return nil end end
 
 		local explosive = ents.Create( "gmod_wire_explosive" )
 
@@ -315,7 +315,7 @@ if SERVER then
 
 		UpdateWireExplosive( explosive, trigger, damage, delaytime, removeafter, doblastdamage, radius, affectother, notaffected, delayreloadtime, maxhealth, bulletproof, explosionproof, fallproof, explodeatzero, resetatexplode, fireeffect, coloreffect, invisibleatzero, nocollide )
 
-		pl:AddCount( "wire_explosive", explosive )
+		if (pl!=nil) then pl:AddCount( "wire_explosive", explosive ) end
 
 		return explosive
 

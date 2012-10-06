@@ -30,7 +30,7 @@ function TOOL:LeftClick( trace )
 		return true
 	end
 
-	if ( !self:GetSWEP():CheckLimit( "wire_extbuss" ) ) then return false end
+	if (pl!=nil) then if ( !self:GetSWEP():CheckLimit( "wire_extbuss" ) ) then return false end end
 
 	if (not util.IsValidModel(self:GetClientInfo( "model" ))) then return false end
 	if (not util.IsValidProp(self:GetClientInfo( "model" ))) then return false end
@@ -51,7 +51,7 @@ function TOOL:LeftClick( trace )
 		undo.SetPlayer( ply )
 	undo.Finish()
 
-	ply:AddCleanup( "wire_extbuss", wire_extbus )
+	if (ply!=nil) then ply:AddCleanup( "wire_extbuss", wire_extbus ) end
 
 	return true
 end
@@ -60,7 +60,7 @@ if (SERVER) then
 
 	function MakeWireExtBus( ply, Pos, Ang, model, Mem1st, Mem2st, Mem3st, Mem4st, Mem1sz, Mem2sz, Mem3sz, Mem4sz )
 
-		if ( !ply:CheckLimit( "wire_extbuss" ) ) then return false end
+		if (ply!=nil) then if (pl!=nil) then if ( !ply:CheckLimit( "wire_extbuss" ) ) then return false end end end
 
 		local wire_extbus = ents.Create( "gmod_wire_extbus" )
 		if (!wire_extbus:IsValid()) then return false end
@@ -76,7 +76,7 @@ if (SERVER) then
 		}
 		table.Merge(wire_extbus:GetTable(), ttable )
 
-		ply:AddCount( "wire_extbuss", wire_extbus )
+		if (ply!=nil) then ply:AddCount( "wire_extbuss", wire_extbus ) end
 
 		return wire_extbus
 

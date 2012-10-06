@@ -64,7 +64,7 @@ end
 
 
 function MakeWireSpeedometer( pl, Pos, Ang, model, xyz_mode, AngVel, nocollide, frozen )
-	if !pl:CheckLimit( "wire_speedometers" ) then return false end
+	if (pl!=nil) then if !pl:CheckLimit( "wire_speedometers" ) then return false end end
 
 	local wire_speedometer = ents.Create("gmod_wire_speedometer")
 	if !wire_speedometer:IsValid() then return false end
@@ -82,8 +82,8 @@ function MakeWireSpeedometer( pl, Pos, Ang, model, xyz_mode, AngVel, nocollide, 
 		if nocollide == true then wire_speedometer:GetPhysicsObject():EnableCollisions(false) end
 	end
 
-	pl:AddCount( "wire_speedometers", wire_speedometer )
-	pl:AddCleanup( "gmod_wire_speedometer", wire_speedometer )
+	if (pl!=nil) then pl:AddCount( "wire_speedometers", wire_speedometer ) end
+	if (pl!=nil) then pl:AddCleanup( "gmod_wire_speedometer", wire_speedometer ) end
 
 	return wire_speedometer
 end

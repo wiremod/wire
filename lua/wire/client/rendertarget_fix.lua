@@ -61,7 +61,7 @@ You can also use the console command
 "wire_rt_fix", which does the same thing
 as pressing the "All" button.]])
 	lbl:SizeToContents()
-	Panel:Add( lbl )
+	Panel:AddPanel( lbl )
 
 	local btn = vgui.Create("DButton")
 	btn:SetText("All")
@@ -69,7 +69,7 @@ as pressing the "All" button.]])
 		RTFix:ReloadAll()
 	end
 	btn:SetToolTip( "Fix all RTs on the map." )
-	Panel:Add( btn )
+	Panel:AddPanel( btn )
 
 	for k,v in pairs( RTFix.List ) do
 		local btn = vgui.Create("DButton")
@@ -78,7 +78,7 @@ as pressing the "All" button.]])
 		function btn:DoClick()
 			RTFix:Reload( k )
 		end
-		Panel:Add( btn )
+		Panel:AddPanel( btn )
 	end
 end
 

@@ -33,7 +33,7 @@ function TOOL:LeftClick( trace )
 		return true
 	end
 
-	if ( !self:GetSWEP():CheckLimit( "wire_las_receivers" ) ) then return false end
+	if (pl!=nil) then if ( !self:GetSWEP():CheckLimit( "wire_las_receivers" ) ) then return false end end
 
 	local Ang = trace.HitNormal:Angle()
 	Ang.pitch = Ang.pitch + 90
@@ -51,7 +51,7 @@ function TOOL:LeftClick( trace )
 		undo.SetPlayer( ply )
 	undo.Finish()
 
-	ply:AddCleanup( "wire_las_receivers", wire_las_reciever )
+	if (ply!=nil) then ply:AddCleanup( "wire_las_receivers", wire_las_reciever ) end
 
 	return true
 end
@@ -59,7 +59,7 @@ end
 if (SERVER) then
 
 	function MakeWireLaserReciever( pl, Pos, Ang, model )
-		if ( !pl:CheckLimit( "wire_las_receivers" ) ) then return false end
+		if (pl!=nil) then if ( !pl:CheckLimit( "wire_las_receivers" ) ) then return false end end
 
 		local wire_las_reciever = ents.Create( "gmod_wire_las_reciever" )
 		if (!wire_las_reciever:IsValid()) then return false end
@@ -72,7 +72,7 @@ if (SERVER) then
 		wire_las_reciever:SetPlayer( pl )
 		wire_las_reciever.pl = pl
 
-		pl:AddCount( "wire_las_receivers", wire_las_reciever )
+		if (pl!=nil) then pl:AddCount( "wire_las_receivers", wire_las_reciever ) end
 
 		return wire_las_reciever
 	end

@@ -61,7 +61,7 @@ function TOOL:LeftClick( trace )
 		end
 	end
 
-	if ( !self:GetSWEP():CheckLimit( "wire_twoway_radioes" ) ) then return false end
+	if (pl!=nil) then if ( !self:GetSWEP():CheckLimit( "wire_twoway_radioes" ) ) then return false end end
 
 	local Ang = trace.HitNormal:Angle()
 	Ang.pitch = Ang.pitch + 90
@@ -79,7 +79,7 @@ function TOOL:LeftClick( trace )
 		undo.AddEntity( const )
 	undo.Finish()
 
-	ply:AddCleanup( "wire_twoway_radioes", wire_twoway_radio )
+	if (ply!=nil) then ply:AddCleanup( "wire_twoway_radioes", wire_twoway_radio ) end
 
 	return true
 
@@ -107,7 +107,7 @@ if SERVER then
 	// by trying to reference a two-way radio that didn't exist yet
 	// Build/ApplyDupeInfo now handle this (TheApathetic)
 	function MakeWireTwoWay_Radio(pl, Pos, Ang, model)
-		if ( !pl:CheckLimit( "wire_twoway_radioes" ) ) then return nil end
+		if (pl!=nil) then if ( !pl:CheckLimit( "wire_twoway_radioes" ) ) then return nil end end
 
 		local wire_twoway_radio = ents.Create( "gmod_wire_twoway_radio" )
 		wire_twoway_radio:SetPos( Pos )
@@ -127,7 +127,7 @@ if SERVER then
 
 		table.Merge( wire_twoway_radio:GetTable(), ttable )
 
-		pl:AddCount( "wire_twoway_radioes", wire_twoway_radio )
+		if (pl!=nil) then pl:AddCount( "wire_twoway_radioes", wire_twoway_radio ) end
 
 		return wire_twoway_radio
 	end

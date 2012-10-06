@@ -110,7 +110,7 @@ if SERVER then
 			undo.SetPlayer( self:GetOwner() )
 		undo.Finish()
 
-		ply:AddCleanup( self.WireClass, ent )
+		if (ply!=nil) then ply:AddCleanup( self.WireClass, ent ) end
 
 		return true
 	end
@@ -190,7 +190,7 @@ if SERVER then
 
 	--
 	function WireToolObj:CheckMaxLimit()
-		return not self:GetSWEP():CheckLimit(self.MaxLimitName)
+if (pl!=nil) then 		return not self:GetSWEP():CheckLimit(self.MaxLimitName) end
 	end
 end
 

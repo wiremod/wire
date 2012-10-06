@@ -213,7 +213,7 @@ end
 
 function MakeWireDigitalScreen( pl, Pos, Ang, model, ScreenWidth, ScreenHeight )
 
-	if ( !pl:CheckLimit( "wire_digitalscreens" ) ) then return false end
+	if (pl!=nil) then if ( !pl:CheckLimit( "wire_digitalscreens" ) ) then return false end end
 
 	local wire_digitalscreen = ents.Create( "gmod_wire_digitalscreen" )
 	if (!wire_digitalscreen:IsValid()) then return false end
@@ -229,7 +229,7 @@ function MakeWireDigitalScreen( pl, Pos, Ang, model, ScreenWidth, ScreenHeight )
 
 	wire_digitalscreen:SetPlayer(pl)
 
-	pl:AddCount( "wire_digitalscreens", wire_digitalscreen )
+	if (pl!=nil) then pl:AddCount( "wire_digitalscreens", wire_digitalscreen ) end
 
 	return wire_digitalscreen
 end

@@ -1,5 +1,5 @@
 include('shared.lua')
-include("HUDDraw.lua")
+include("huddraw.lua")
 
 ENT.gmod_wire_egp_hud = true
 

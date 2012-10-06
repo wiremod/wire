@@ -31,7 +31,7 @@ function TOOL:LeftClick( trace )
 		return true
 	end
 
-	if ( !self:GetSWEP():CheckLimit( "wire_datarates" ) ) then return false end
+	if (pl!=nil) then if ( !self:GetSWEP():CheckLimit( "wire_datarates" ) ) then return false end end
 
 	if (not util.IsValidModel(self:GetClientInfo( "model" ))) then return false end
 	if (not util.IsValidProp(self:GetClientInfo( "model" ))) then return false end
@@ -52,7 +52,7 @@ function TOOL:LeftClick( trace )
 		undo.SetPlayer( ply )
 	undo.Finish()
 
-	ply:AddCleanup( "wire_datarates", wire_datarate )
+	if (ply!=nil) then ply:AddCleanup( "wire_datarates", wire_datarate ) end
 
 	return true
 end
@@ -61,7 +61,7 @@ if (SERVER) then
 
 	function MakeWiredatarate( pl, Pos, Ang, model )
 
-		if ( !pl:CheckLimit( "wire_datarates" ) ) then return false end
+		if (pl!=nil) then if ( !pl:CheckLimit( "wire_datarates" ) ) then return false end end
 
 		local wire_datarate = ents.Create( "gmod_wire_datarate" )
 		if (!wire_datarate:IsValid()) then return false end
@@ -78,7 +78,7 @@ if (SERVER) then
 		}
 		table.Merge(wire_datarate:GetTable(), ttable ) -- TODO: remove?
 
-		pl:AddCount( "wire_datarates", wire_datarate )
+		if (pl!=nil) then pl:AddCount( "wire_datarates", wire_datarate ) end
 
 		return wire_datarate
 

@@ -95,7 +95,7 @@ numpad.Register( "WireInput_On", On )
 numpad.Register( "WireInput_Off", Off )
 
 function MakeWireInput( pl, Pos, Ang, model, keygroup, toggle, value_off, value_on, frozen )
-	if ( !pl:CheckLimit( "wire_inputs" ) ) then return false end
+	if (pl!=nil) then if ( !pl:CheckLimit( "wire_inputs" ) ) then return false end end
 
 	local wire_input = ents.Create( "gmod_wire_input" )
 	if (!wire_input:IsValid()) then return false end
@@ -113,8 +113,8 @@ function MakeWireInput( pl, Pos, Ang, model, keygroup, toggle, value_off, value_
 	wire_input:Setup( keygroup, toggle, value_off, value_on )
 	wire_input.pl = pl
 
-	pl:AddCount( "wire_inputs", wire_input )
-	pl:AddCleanup( "gmod_wire_input", wire_input )
+	if (pl!=nil) then pl:AddCount( "wire_inputs", wire_input ) end
+	if (pl!=nil) then pl:AddCleanup( "gmod_wire_input", wire_input ) end
 
 	return wire_input
 end

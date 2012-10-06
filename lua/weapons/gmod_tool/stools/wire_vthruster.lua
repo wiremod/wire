@@ -83,7 +83,7 @@ function TOOL:LeftClick( trace )
 			return true
 		end
 
-		if ( !self:GetSWEP():CheckLimit( "wire_thrusters" ) ) then return false end
+		if (pl!=nil) then if ( !self:GetSWEP():CheckLimit( "wire_thrusters" ) ) then return false end end
 
 		local ang = trace.HitNormal:Angle()
 		ang.pitch = ang.pitch + 90
@@ -128,8 +128,8 @@ function TOOL:LeftClick( trace )
 			undo.SetPlayer( ply )
 		undo.Finish()
 
-		ply:AddCleanup( "wire_thrusters", wire_thruster )
-		ply:AddCleanup( "wire_thrusters", const )
+		if (ply!=nil) then ply:AddCleanup( "wire_thrusters", wire_thruster ) end
+		if (ply!=nil) then ply:AddCleanup( "wire_thrusters", const ) end
 
 		self:ClearObjects()
 	end
@@ -140,7 +140,7 @@ end
 if (SERVER) then
 
 	function MakeWireVectorThruster( pl, Pos, Ang, model, force, force_min, force_max, oweffect, uweffect, owater, uwater, bidir, soundname, nocollide, mode, angleinputs)
-		if ( !pl:CheckLimit( "wire_thrusters" ) ) then return false end
+		if (pl!=nil) then if ( !pl:CheckLimit( "wire_thrusters" ) ) then return false end end
 		mode = mode or 0
 
 		local wire_thruster = ents.Create( "gmod_wire_vectorthruster" )
@@ -173,7 +173,7 @@ if (SERVER) then
 		}
 		table.Merge(wire_thruster:GetTable(), ttable )
 
-		pl:AddCount( "wire_thrusters", wire_thruster )
+		if (pl!=nil) then pl:AddCount( "wire_thrusters", wire_thruster ) end
 
 		return wire_thruster
 	end
@@ -363,7 +363,7 @@ function TOOL.BuildCPanel(panel)
 
 		CateGoryOW:SetContents( ctrl )
 
-		panel:Add(CateGoryOW)
+		panel:AddPanel(CateGoryOW)
 
 		Effects["#Same as over water"] = "same"
 
@@ -382,7 +382,7 @@ function TOOL.BuildCPanel(panel)
 
 		CateGoryUW:SetContents( ctrlUW )
 
-		panel:Add(CateGoryUW)
+		panel:AddPanel(CateGoryUW)
 
 	local lst = {}
 	for k,v in pairs( list.Get("ThrusterSounds") ) do

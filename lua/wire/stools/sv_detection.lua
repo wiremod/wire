@@ -9,7 +9,7 @@ function WireToolMakeSpeedometer( self, trace, ply )
 		return true
 	end
 
-	if not self:GetSWEP():CheckLimit("wire_speedometers") then return false end
+	if (pl!=nil) then if not self:GetSWEP():CheckLimit("wire_speedometers") then return false end end
 
 	local Ang = trace.HitNormal:Angle()
 	Ang.pitch = Ang.pitch + 90

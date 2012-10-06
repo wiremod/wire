@@ -25,7 +25,7 @@ function TOOL:LeftClick( trace )
 	if (CLIENT) then return true end
 	if not util.IsValidPhysicsObject( trace.Entity, trace.PhysicsBone ) then return false end
 
-	if ( !self:GetSWEP():CheckLimit( "wire_dataports" ) ) then return false end
+	if (pl!=nil) then if ( !self:GetSWEP():CheckLimit( "wire_dataports" ) ) then return false end end
 
 	if (not util.IsValidModel(self:GetClientInfo( "model" ))) then return false end
 	if (not util.IsValidProp(self:GetClientInfo( "model" ))) then return false end
@@ -46,7 +46,7 @@ function TOOL:LeftClick( trace )
 		undo.SetPlayer( ply )
 	undo.Finish()
 
-	ply:AddCleanup( "wire_dataports", wire_dataport )
+	if (ply!=nil) then ply:AddCleanup( "wire_dataports", wire_dataport ) end
 
 	return true
 end
@@ -55,7 +55,7 @@ if (SERVER) then
 
 	function MakeWireDataPort( pl, Pos, Ang, model )
 
-		if ( !pl:CheckLimit( "wire_dataports" ) ) then return false end
+		if (pl!=nil) then if ( !pl:CheckLimit( "wire_dataports" ) ) then return false end end
 
 		local wire_dataport = ents.Create( "gmod_wire_dataport" )
 		if (!wire_dataport:IsValid()) then return false end
@@ -72,7 +72,7 @@ if (SERVER) then
 		}
 		table.Merge(wire_dataport:GetTable(), ttable ) -- TODO: remove?
 
-		pl:AddCount( "wire_dataports", wire_dataport )
+		if (pl!=nil) then pl:AddCount( "wire_dataports", wire_dataport ) end
 
 		return wire_dataport
 

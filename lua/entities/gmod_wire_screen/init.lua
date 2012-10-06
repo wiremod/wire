@@ -66,7 +66,7 @@ end
 
 function MakeWireScreen( pl, Pos, Ang, model, SingleValue, SingleBigFont, TextA, TextB, LeftAlign, Floor, frozen )
 
-	if ( !pl:CheckLimit( "wire_screens" ) ) then return false end
+	if (pl!=nil) then if ( !pl:CheckLimit( "wire_screens" ) ) then return false end end
 
 	local wire_screen = ents.Create( "gmod_wire_screen" )
 	if (!wire_screen:IsValid()) then return false end
@@ -85,7 +85,7 @@ function MakeWireScreen( pl, Pos, Ang, model, SingleValue, SingleBigFont, TextA,
 	wire_screen:SetPlayer(pl)
 	wire_screen.pl = pl
 
-	pl:AddCount( "wire_screens", wire_screen )
+	if (pl!=nil) then pl:AddCount( "wire_screens", wire_screen ) end
 
 	return wire_screen
 

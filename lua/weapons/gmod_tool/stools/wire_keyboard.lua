@@ -58,7 +58,7 @@ function TOOL:LeftClick( trace )
 		undo.SetPlayer( ply )
 	undo.Finish()
 
-	ply:AddCleanup( "wire_keyboards", keyboard )
+	if (ply!=nil) then ply:AddCleanup( "wire_keyboards", keyboard ) end
 
 	return true
 end
@@ -108,7 +108,7 @@ end
 if (SERVER) then
 
 	function MakeWireKeyboard( pl, Pos, Ang, model )
-		if ( !pl:CheckLimit( "wire_keyboards" ) ) then return false end
+		if (pl!=nil) then if ( !pl:CheckLimit( "wire_keyboards" ) ) then return false end end
 
 		local wire_keyboard = ents.Create( "gmod_wire_keyboard" )
 		if (!wire_keyboard:IsValid()) then return false end
@@ -121,7 +121,7 @@ if (SERVER) then
 		wire_keyboard:SetPlayer( pl )
 		wire_keyboard.pl = pl
 
-		pl:AddCount( "wire_keyboards", wire_keyboard )
+		if (pl!=nil) then pl:AddCount( "wire_keyboards", wire_keyboard ) end
 
 		return wire_keyboard
 	end
@@ -181,23 +181,23 @@ function TOOL.BuildCPanel(panel)
 	sync:SetConVar( "wire_keyboard_sync" )
 	sync:SetText( "Synchronous Keyboard" )
 	sync:SetToolTip( "Pause user input when keyboard is active (clientside)" )
-	panel:Add( sync )
+	panel:AddPanel( sync )
 
 	local txt = vgui.Create("DLabel")
 	txt:SetText("Keyboard language layout:")
 	txt:SetToolTip("If you would like to contribute your keyboard layout, so that it may be added, go post on the wiremod forums.")
-	panel:Add(txt)
+	panel:AddPanel(txt)
 
-	local list = vgui.Create("DMultiChoice")
+	local list = vgui.Create("DComboBox")
 	for k,v in pairs( Wire_Keyboard_Remap ) do
 		list:AddChoice( k )
 		list:SetConVar( "wire_keyboard_layout" )
 	end
-	panel:Add(list)
+	panel:AddPanel(list)
 
 	local autobuffer = vgui.Create( "DCheckBoxLabel" )
 	autobuffer:SetConVar( "wire_keyboard_autobuffer" )
 	autobuffer:SetText( "Automatic buffer handling" )
 	autobuffer:SetToolTip( "When on, automatically removes the key from the buffer when the user releases it.\nWhen off, leaves all keys in the buffer until they are manually removed.\nTo manually remove a key, write any value to cell 0 to remove the first key, or write a specific ascii value to any address other than 0 to remove that specific key." )
-	panel:Add( autobuffer )
+	panel:AddPanel( autobuffer )
 end

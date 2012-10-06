@@ -126,7 +126,7 @@ end
 
 
 function MakeWireForcer( pl, Pos, Ang, model, Force, Length, ShowBeam, Reaction )
-	if not pl:CheckLimit( "wire_forcers" ) then return false end
+	if (pl!=nil) then if not pl:CheckLimit( "wire_forcers" ) then return false end end
 
 	local wire_forcer = ents.Create( "gmod_wire_forcer" )
 	if not wire_forcer:IsValid() then return false end
@@ -140,7 +140,7 @@ function MakeWireForcer( pl, Pos, Ang, model, Force, Length, ShowBeam, Reaction 
 	wire_forcer:SetPlayer( pl )
 	wire_forcer.pl = pl
 
-	pl:AddCount( "wire_forcers", wire_forcer )
+	if (pl!=nil) then pl:AddCount( "wire_forcers", wire_forcer ) end
 
 	return wire_forcer
 end

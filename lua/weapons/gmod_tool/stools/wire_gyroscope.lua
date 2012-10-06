@@ -44,7 +44,7 @@ function TOOL:LeftClick( trace )
 		return true
 	end
 
-	if ( !self:GetSWEP():CheckLimit( "wire_gyroscopes" ) ) then return false end
+	if (pl!=nil) then if ( !self:GetSWEP():CheckLimit( "wire_gyroscopes" ) ) then return false end end
 
 	local Ang = trace.HitNormal:Angle()
 	Ang.pitch = Ang.pitch + 90
@@ -62,7 +62,7 @@ function TOOL:LeftClick( trace )
 		undo.SetPlayer( ply )
 	undo.Finish()
 
-	ply:AddCleanup( "wire_gyroscopes", wire_gyroscope )
+	if (ply!=nil) then ply:AddCleanup( "wire_gyroscopes", wire_gyroscope ) end
 
 	return true
 end
@@ -70,7 +70,7 @@ end
 if (SERVER) then
 
 	function MakeWireGyroscope( pl, Pos, Ang, model, out180, nocollide, Vel, aVel, frozen )
-		if ( !pl:CheckLimit( "wire_gyroscopes" ) ) then return false end
+		if (pl!=nil) then if ( !pl:CheckLimit( "wire_gyroscopes" ) ) then return false end end
 
 		local wire_gyroscope = ents.Create( "gmod_wire_gyroscope" )
 		if (!wire_gyroscope:IsValid()) then return false end
@@ -91,7 +91,7 @@ if (SERVER) then
 		}
 		table.Merge(wire_gyroscope:GetTable(), ttable )
 
-		pl:AddCount( "wire_gyroscopes", wire_gyroscope )
+		if (pl!=nil) then pl:AddCount( "wire_gyroscopes", wire_gyroscope ) end
 
 		return wire_gyroscope
 	end

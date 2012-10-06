@@ -85,7 +85,7 @@ if CLIENT then
 		searchresultnum:SetMin( 1 )
 		searchresultnum:SetMax( 100 )
 		searchresultnum:SetDecimals( 0 )
-		panel:Add( searchresultnum )
+		panel:AddPanel( searchresultnum )
 
 		-- Create panels
 		local searchbox = vgui.Create( "DTextEntry" )
@@ -198,7 +198,7 @@ if CLIENT then
 			RunConsoleCommand( "wire_gates_action", line.action )
 		end
 
-		panel:Add( searchbox )
+		panel:AddPanel( searchbox )
 
 		-- Set sizes & other settings
 		searchlist:SetPos( 500,2 )
@@ -291,7 +291,7 @@ if CLIENT then
 		end
 
 		-- add it all to the main panel
-		panel:Add( holder )
+		panel:AddPanel( holder )
 	end
 end
 
@@ -337,7 +337,7 @@ function TOOL:LeftClick( trace )
 		undo.SetPlayer( ply )
 	undo.Finish()
 
-	ply:AddCleanup( "gmod_wire_gate", ent )
+	if (ply!=nil) then ply:AddCleanup( "gmod_wire_gate", ent ) end
 
 	return true
 end

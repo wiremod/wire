@@ -203,7 +203,7 @@ function TOOL:LeftClick( trace )
 		return true
 	end
 
-	if !self:GetSWEP():CheckLimit( "wire_clutches" ) then return end
+	if (pl!=nil) then if !self:GetSWEP():CheckLimit( "wire_clutches" ) then return end end
 
 	// Get vars for placing a new controller
 	local ply = self:GetOwner()
@@ -221,7 +221,7 @@ function TOOL:LeftClick( trace )
 		undo.SetPlayer( ply )
 	undo.Finish()
 
-	ply:AddCleanup( "wire_clutch", controller )
+	if (ply!=nil) then ply:AddCleanup( "wire_clutch", controller ) end
 
 	self:SelectController( controller )
 

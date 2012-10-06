@@ -46,7 +46,7 @@ function TOOL:LeftClick( trace )
 		end
 	end
 
-	if ( !self:GetSWEP():CheckLimit( "wire_data_satellitedishs" ) ) then return false end
+	if (pl!=nil) then if ( !self:GetSWEP():CheckLimit( "wire_data_satellitedishs" ) ) then return false end end
 
 	local Ang = trace.HitNormal:Angle()
 	Ang.pitch = Ang.pitch + 90
@@ -66,8 +66,8 @@ function TOOL:LeftClick( trace )
 		undo.SetPlayer( ply )
 	undo.Finish()
 
-	ply:AddCleanup( "wire_data_satellitedishs", wire_data_satellitedish )
-	ply:AddCleanup( "wire_data_satellitedishs", const )
+	if (ply!=nil) then ply:AddCleanup( "wire_data_satellitedishs", wire_data_satellitedish ) end
+	if (ply!=nil) then ply:AddCleanup( "wire_data_satellitedishs", const ) end
 
 	return true
 end
@@ -144,7 +144,7 @@ end
 if (SERVER) then
 
 	function MakeWireSatellitedish( pl, Pos, Ang, model )
-		if ( !pl:CheckLimit( "wire_data_satellitedishs" ) ) then return false end
+		if (pl!=nil) then if ( !pl:CheckLimit( "wire_data_satellitedishs" ) ) then return false end end
 
 		local wire_data_satellitedish = ents.Create( "gmod_wire_data_satellitedish" )
 		if (!wire_data_satellitedish:IsValid()) then return false end
@@ -157,7 +157,7 @@ if (SERVER) then
 		wire_data_satellitedish:SetPlayer( pl )
 		wire_data_satellitedish.pl = pl
 
-		pl:AddCount( "wire_data_satellitedishs", wire_data_satellitedish )
+		if (pl!=nil) then pl:AddCount( "wire_data_satellitedishs", wire_data_satellitedish ) end
 
 		return wire_data_satellitedish
 	end

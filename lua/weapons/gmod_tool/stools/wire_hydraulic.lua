@@ -84,8 +84,8 @@ function TOOL:LeftClick( trace )
 			undo.SetPlayer( ply )
 		undo.Finish()
 
-		ply:AddCleanup( "ropeconstraints", controller )
-		ply:AddCleanup( "ropeconstraints", const2 )
+		if (ply!=nil) then ply:AddCleanup( "ropeconstraints", controller ) end
+		if (ply!=nil) then ply:AddCleanup( "ropeconstraints", const2 ) end
 
 		if const then controller:DeleteOnRemove( const ) end
 		if rope then controller:DeleteOnRemove( rope ) end

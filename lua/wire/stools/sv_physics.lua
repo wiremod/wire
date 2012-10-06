@@ -7,7 +7,7 @@ function WireToolMakeWeight( self, trace, ply )
 
 	local model = self:GetModel()
 
-	if not self:GetSWEP():CheckLimit( "wire_weights" ) then return false end
+	if (pl!=nil) then if not self:GetSWEP():CheckLimit( "wire_weights" ) then return false end end
 
 	local Ang = trace.HitNormal:Angle()
 	Ang.pitch = Ang.pitch + 90
@@ -22,7 +22,7 @@ end
 
 
 function WireToolMakeExplosivesSimple( self, trace, ply )
-	if not self:GetSWEP():CheckLimit( "wire_simple_explosive" ) then return false end
+	if (pl!=nil) then if not self:GetSWEP():CheckLimit( "wire_simple_explosive" ) then return false end end
 
 	local _trigger			= self:GetClientNumber( "tirgger" )
 	local _damage 			= math.Clamp( self:GetClientNumber( "damage" ), 0, 1500 )
@@ -82,7 +82,7 @@ function WireToolMakeWheel( self, trace, ply )
 	if SERVER and not util.IsValidPhysicsObject( trace.Entity, trace.PhysicsBone ) then return false end
 	if CLIENT then return true end
 
-	if not self:GetSWEP():CheckLimit( "wire_wheels" ) then return false end
+	if (pl!=nil) then if not self:GetSWEP():CheckLimit( "wire_wheels" ) then return false end end
 
 	local targetPhys = trace.Entity:GetPhysicsObjectNum( trace.PhysicsBone )
 
@@ -134,9 +134,9 @@ function WireToolMakeWheel( self, trace, ply )
 		undo.SetPlayer( ply )
 	undo.Finish()
 
-	ply:AddCleanup( "wire_wheels", axis )
-	ply:AddCleanup( "wire_wheels", constraint )
-	ply:AddCleanup( "wire_wheels", wheelEnt )
+	if (ply!=nil) then ply:AddCleanup( "wire_wheels", axis ) end
+	if (ply!=nil) then ply:AddCleanup( "wire_wheels", constraint ) end
+	if (ply!=nil) then ply:AddCleanup( "wire_wheels", wheelEnt ) end
 
 	--BUGFIX:WIREMOD-11:Deleting prop did not deleting wheels
 	wheelEnt:SetWheelBase(trace.Entity)
@@ -165,7 +165,7 @@ function WireToolMakeForcer( self, trace, ply )
 		return true
 	end
 
-	if not self:GetSWEP():CheckLimit( "wire_forcers" ) then return false end
+	if (pl!=nil) then if not self:GetSWEP():CheckLimit( "wire_forcers" ) then return false end end
 	if not util.IsValidModel( model ) or not util.IsValidProp( model ) then return false end
 
 	local Ang = trace.HitNormal:Angle()
@@ -195,7 +195,7 @@ function WireToolMakeDetonator( self, trace, ply )
 		return true
 	end
 
-	if not self:GetSWEP():CheckLimit( "wire_detonators" ) then return false end
+	if (pl!=nil) then if not self:GetSWEP():CheckLimit( "wire_detonators" ) then return false end end
 	if not util.IsValidModel( model ) or not util.IsValidProp( model ) then return false end
 
 	local Ang = trace.HitNormal:Angle()
@@ -222,7 +222,7 @@ function WireToolMakeGrabber( self, trace, ply )
 		return true
 	end
 
-	if not self:GetSWEP():CheckLimit( "wire_grabbers" ) then return false end
+	if (pl!=nil) then if not self:GetSWEP():CheckLimit( "wire_grabbers" ) then return false end end
 	if not util.IsValidModel( model ) or not util.IsValidProp( model ) then return false end
 
 	local Ang = trace.HitNormal:Angle()
@@ -267,7 +267,7 @@ function WireToolMakeHoverball( self, trace, ply )
 		return true
 	end
 
-	if not self:GetSWEP():CheckLimit( "wire_hoverballs" ) then return false end
+	if (pl!=nil) then if not self:GetSWEP():CheckLimit( "wire_hoverballs" ) then return false end end
 
 	-- If we hit the world then offset the spawn position
 	if trace.Entity:IsWorld() then
@@ -293,7 +293,7 @@ function WireToolMakeIgniter( self, trace, ply )
 		return true
 	end
 
-	if not self:GetSWEP():CheckLimit( "wire_igniters" ) then return false end
+	if (pl!=nil) then if not self:GetSWEP():CheckLimit( "wire_igniters" ) then return false end end
 	if not util.IsValidModel( model ) or not util.IsValidProp( model ) then return false end
 
 	local Ang = trace.HitNormal:Angle()
@@ -318,7 +318,7 @@ function WireToolMakeTrail( self, trace, ply )
 		return true
 	end
 
-	if not self:GetSWEP():CheckLimit( "wire_trails" ) then return false end
+	if (pl!=nil) then if not self:GetSWEP():CheckLimit( "wire_trails" ) then return false end end
 
 	local Ang = trace.HitNormal:Angle()
 	Ang.pitch = Ang.pitch + 90
@@ -373,7 +373,7 @@ function WireToolMakeThruster( self, trace, ply )
 		return true
 	end
 
-	if not self:GetSWEP():CheckLimit( "wire_thrusters" ) then return false end
+	if (pl!=nil) then if not self:GetSWEP():CheckLimit( "wire_thrusters" ) then return false end end
 	if not util.IsValidModel( model ) or not util.IsValidProp( model ) then return false end
 
 	local Ang = trace.HitNormal:Angle()

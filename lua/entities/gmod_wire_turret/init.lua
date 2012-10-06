@@ -182,7 +182,7 @@ end
 
 function MakeWireTurret( ply, Pos, Ang, model, delay, damage, force, sound, numbullets, spread, tracer, tracernum, nocollide )
 
-	if not ply:CheckLimit( "wire_turrets" ) then return nil end
+	if (ply!=nil) then if (pl!=nil) then if not ply:CheckLimit( "wire_turrets" ) then return nil end end end
 
 	local turret = ents.Create( "gmod_wire_turret" )
 	if not turret:IsValid() then return false end
@@ -251,8 +251,8 @@ function MakeWireTurret( ply, Pos, Ang, model, delay, damage, force, sound, numb
 	}
 	table.Merge( turret:GetTable(), ttable )
 
-	ply:AddCount( "wire_turrets", turret )
-	ply:AddCleanup( "wire_turrets", turret )
+	if (ply!=nil) then ply:AddCount( "wire_turrets", turret ) end
+	if (ply!=nil) then ply:AddCleanup( "wire_turrets", turret ) end
 
 	return turret
 end

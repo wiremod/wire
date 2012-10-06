@@ -90,7 +90,7 @@ function TOOL:LeftClick(trace)
 		return true
 	end
 
-	if ( !self:GetSWEP():CheckLimit( "wire_sensors" ) ) then return false end
+	if (pl!=nil) then if ( !self:GetSWEP():CheckLimit( "wire_sensors" ) ) then return false end end
 
 	local Ang = trace.HitNormal:Angle()
 	Ang.pitch = Ang.pitch + 90
@@ -108,7 +108,7 @@ function TOOL:LeftClick(trace)
 		undo.SetPlayer( ply )
 	undo.Finish()
 
-	ply:AddCleanup( "wire_sensors", wire_sensor )
+	if (ply!=nil) then ply:AddCleanup( "wire_sensors", wire_sensor ) end
 
 	return true
 end
@@ -126,7 +126,7 @@ end
 if SERVER then
 
 	function MakeWireSensor(pl, Pos, Ang, model, xyz_mode, outdist, outbrng, gpscord, swapyz, direction_vector, direction_normalized, target_velocity, velocity_normalized, vector_in)
-		if ( !pl:CheckLimit( "wire_sensors" ) ) then return nil end
+		if (pl!=nil) then if ( !pl:CheckLimit( "wire_sensors" ) ) then return nil end end
 
 		local wire_sensor = ents.Create( "gmod_wire_sensor" )
 		wire_sensor:SetPos( Pos )
@@ -153,7 +153,7 @@ if SERVER then
 		}
 		table.Merge( wire_sensor:GetTable(), ttable )
 
-		pl:AddCount( "wire_sensors", wire_sensor )
+		if (pl!=nil) then pl:AddCount( "wire_sensors", wire_sensor ) end
 
 		return wire_sensor
 	end

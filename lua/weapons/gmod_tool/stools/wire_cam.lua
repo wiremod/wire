@@ -37,7 +37,7 @@ function TOOL:LeftClick( trace )
 		return true
 	end
 
-	if ( !self:GetSWEP():CheckLimit( "wire_cams" ) ) then return false end
+	if (pl!=nil) then if ( !self:GetSWEP():CheckLimit( "wire_cams" ) ) then return false end end
 
 	local Ang = trace.HitNormal:Angle()
 	Ang.pitch = Ang.pitch + 90
@@ -60,7 +60,7 @@ function TOOL:LeftClick( trace )
 		undo.SetPlayer( ply )
 	undo.Finish()
 
-	ply:AddCleanup( "wire_cams", wire_cam )
+	if (ply!=nil) then ply:AddCleanup( "wire_cams", wire_cam ) end
 
 	return true
 end
@@ -100,7 +100,7 @@ end
 if (SERVER) then
 
 	function MakeWireCam( pl, Pos, Ang, model, Static )
-		if ( !pl:CheckLimit( "wire_cams" ) ) then return false end
+		if (pl!=nil) then if ( !pl:CheckLimit( "wire_cams" ) ) then return false end end
 
 		local wire_cam = ents.Create( "gmod_wire_cameracontroller" )
 		if (!wire_cam:IsValid()) then return false end
@@ -119,7 +119,7 @@ if (SERVER) then
 		}
 		table.Merge(wire_cam:GetTable(), ttable )
 
-		pl:AddCount( "wire_cams", wire_cam )
+		if (pl!=nil) then pl:AddCount( "wire_cams", wire_cam ) end
 
 		return wire_cam
 	end

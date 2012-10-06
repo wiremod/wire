@@ -95,7 +95,7 @@ function TOOL:LeftClick( trace )
 		return true
 	end
 
-	if ( !self:GetSWEP():CheckLimit( "wire_datasockets" ) ) then return false end
+	if (pl!=nil) then if ( !self:GetSWEP():CheckLimit( "wire_datasockets" ) ) then return false end end
 
 	local socketmodel, plugmodel = self:GetModel()
 	local Pos, Ang = trace.HitPos, trace.HitNormal:Angle() + (AngleOffset[plugmodel] or Angle())
@@ -110,8 +110,8 @@ function TOOL:LeftClick( trace )
 		undo.SetPlayer( ply )
 	undo.Finish()
 
-	ply:AddCleanup( "wire_datasockets", wire_datasocket )
-	ply:AddCleanup( "wire_datasockets", const )
+	if (ply!=nil) then ply:AddCleanup( "wire_datasockets", wire_datasocket ) end
+	if (ply!=nil) then ply:AddCleanup( "wire_datasockets", const ) end
 
 	return true
 end
@@ -145,7 +145,7 @@ function TOOL:RightClick( trace )
 		return true
 	end
 
-	if ( !self:GetSWEP():CheckLimit( "wire_dataplugs" ) ) then return false end
+	if (pl!=nil) then if ( !self:GetSWEP():CheckLimit( "wire_dataplugs" ) ) then return false end end
 
 	local socketmodel, plugmodel = self:GetModel()
 	local Pos, Ang = trace.HitPos, trace.HitNormal:Angle() + (AngleOffset[plugmodel] or Angle(0,0,0))
@@ -160,7 +160,7 @@ function TOOL:RightClick( trace )
 		undo.SetPlayer( ply )
 	undo.Finish()
 
-	ply:AddCleanup( "wire_dataplugs", wire_dataplug )
+	if (ply!=nil) then ply:AddCleanup( "wire_dataplugs", wire_dataplug ) end
 
 	return true
 end
@@ -168,7 +168,7 @@ end
 if (SERVER) then
 
 	function MakeWireDataPlug( pl, Pos, Ang, model, a, ar, ag, ab, aa )
-		if ( !pl:CheckLimit( "wire_dataplugs" ) ) then return false end
+		if (pl!=nil) then if ( !pl:CheckLimit( "wire_dataplugs" ) ) then return false end end
 
 		local wire_dataplug = ents.Create( "gmod_wire_dataplug" )
 		if (!wire_dataplug:IsValid()) then return false end
@@ -192,7 +192,7 @@ if (SERVER) then
 		}
 		table.Merge(wire_dataplug:GetTable(), ttable )
 
-		pl:AddCount( "wire_dataplug", wire_dataplug )
+		if (pl!=nil) then pl:AddCount( "wire_dataplug", wire_dataplug ) end
 
 		return wire_dataplug
 	end
@@ -201,7 +201,7 @@ if (SERVER) then
 
 
 	function MakeWireDataSocket( pl, Pos, Ang, model, a, ar, ag, ab, aa )
-		if ( !pl:CheckLimit( "wire_datasockets" ) ) then return false end
+		if (pl!=nil) then if ( !pl:CheckLimit( "wire_datasockets" ) ) then return false end end
 
 		local wire_datasocket = ents.Create( "gmod_wire_datasocket" )
 		if (!wire_datasocket:IsValid()) then return false end
@@ -225,7 +225,7 @@ if (SERVER) then
 		}
 		table.Merge(wire_datasocket:GetTable(), ttable )
 
-		pl:AddCount( "wire_datasocket", wire_datasocket )
+		if (pl!=nil) then pl:AddCount( "wire_datasocket", wire_datasocket ) end
 
 		return wire_datasocket
 	end
@@ -289,7 +289,7 @@ function TOOL.BuildCPanel(panel)
 	local mdl = vgui.Create("DWireModelSelect",CPanel)
 	mdl:SetModelList( list.Get( "wire_socket_models" ), "wire_dataplug_model" )
 	mdl:SetHeight( 2 )
-	panel:Add( mdl )
+	panel:AddPanel( mdl )
 
 	panel:AddControl("ComboBox", {
 		Label = "#Presets",

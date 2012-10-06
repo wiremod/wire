@@ -83,7 +83,7 @@ function TOOL:LeftClick( trace )
 		return true
 	end
 
-	if ( !self:GetSWEP():CheckLimit( "wire_rangers" ) ) then return false end
+	if (pl!=nil) then if ( !self:GetSWEP():CheckLimit( "wire_rangers" ) ) then return false end end
 
 	local Ang = trace.HitNormal:Angle()
 	Ang.pitch = Ang.pitch + 90
@@ -101,7 +101,7 @@ function TOOL:LeftClick( trace )
 		undo.SetPlayer( ply )
 	undo.Finish()
 
-	ply:AddCleanup( "wire_rangers", wire_ranger )
+	if (ply!=nil) then ply:AddCleanup( "wire_rangers", wire_ranger ) end
 
 	return true
 end
@@ -109,7 +109,7 @@ end
 if (SERVER) then
 
 	function MakeWireRanger( pl, Pos, Ang, model, range, default_zero, show_beam, ignore_world, trace_water, out_dist, out_pos, out_vel, out_ang, out_col, out_val, out_sid, out_uid, out_eid, out_hnrm, hires, nocollide )
-		if ( !pl:CheckLimit( "wire_rangers" ) ) then return false end
+		if (pl!=nil) then if ( !pl:CheckLimit( "wire_rangers" ) ) then return false end end
 
 		local wire_ranger = ents.Create( "gmod_wire_ranger" )
 		if (!wire_ranger:IsValid()) then return false end
@@ -127,7 +127,7 @@ if (SERVER) then
 		wire_ranger.pl	= pl
 		wire_ranger.nocollide = nocollide
 
-		pl:AddCount( "wire_rangers", wire_ranger )
+		if (pl!=nil) then pl:AddCount( "wire_rangers", wire_ranger ) end
 
 		return wire_ranger
 	end

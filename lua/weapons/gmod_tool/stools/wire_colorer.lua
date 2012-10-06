@@ -45,7 +45,7 @@ function TOOL:LeftClick( trace )
 		return true
 	end
 
-	if !self:GetSWEP():CheckLimit( "wire_colorers" ) then return false end
+	if (pl!=nil) then if !self:GetSWEP():CheckLimit( "wire_colorers" ) then return false end end
 
 	local Ang = trace.HitNormal:Angle()
 	Ang.pitch = Ang.pitch + 90
@@ -68,8 +68,8 @@ function TOOL:LeftClick( trace )
 		undo.SetPlayer( ply )
 	undo.Finish()
 
-	ply:AddCleanup( "wire_colorers", wire_colorer )
-	ply:AddCleanup( "wire_colorers", const )
+	if (ply!=nil) then ply:AddCleanup( "wire_colorers", wire_colorer ) end
+	if (ply!=nil) then ply:AddCleanup( "wire_colorers", const ) end
 
 	return true
 end
@@ -77,7 +77,7 @@ end
 if SERVER then
 
 	function MakeWireColorer( pl, Pos, Ang, model, outColor, Range )
-		if !pl:CheckLimit( "wire_colorers" ) then return false end
+		if (pl!=nil) then if !pl:CheckLimit( "wire_colorers" ) then return false end end
 
 		local wire_colorer = ents.Create( "gmod_wire_colorer" )
 		if !IsValid(wire_colorer) then return false end
@@ -97,7 +97,7 @@ if SERVER then
 		}
 		table.Merge( wire_colorer:GetTable(), ttable )
 
-		pl:AddCount( "wire_colorers", wire_colorer )
+		if (pl!=nil) then pl:AddCount( "wire_colorers", wire_colorer ) end
 
 		return wire_colorer
 	end

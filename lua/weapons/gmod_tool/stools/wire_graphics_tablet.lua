@@ -40,7 +40,7 @@ function TOOL:LeftClick( trace )
 	if (CLIENT) then return true end
 	if not util.IsValidPhysicsObject( trace.Entity, trace.PhysicsBone ) then return false end
 
-	if ( !self:GetSWEP():CheckLimit( "wire_graphics_tablets" ) ) then return false end
+	if (pl!=nil) then if ( !self:GetSWEP():CheckLimit( "wire_graphics_tablets" ) ) then return false end end
 
 	if (not util.IsValidModel(self:GetClientInfo( "model" ))) then return false end
 	if (not util.IsValidProp(self:GetClientInfo( "model" ))) then return false end
@@ -73,14 +73,14 @@ function TOOL:LeftClick( trace )
 		undo.SetPlayer( ply )
 	undo.Finish()
 
-	ply:AddCleanup( "wire_graphics_tablets", wire_graphics_tablet )
+	if (ply!=nil) then ply:AddCleanup( "wire_graphics_tablets", wire_graphics_tablet ) end
 
 	return true
 end
 
 if (SERVER) then
 	function MakeWireGraphicsTablet( pl, Pos, Ang, model, gmode, draw_background )
-		if ( !pl:CheckLimit( "wire_graphics_tablets" ) ) then return false end
+		if (pl!=nil) then if ( !pl:CheckLimit( "wire_graphics_tablets" ) ) then return false end end
 
 		local wire_graphics_tablet = ents.Create( "gmod_wire_graphics_tablet" )
 		if (!wire_graphics_tablet:IsValid()) then return false end
@@ -98,7 +98,7 @@ if (SERVER) then
 			gmode = gmode
 		}
 		table.Merge(wire_graphics_tablet:GetTable(), ttable )
-		pl:AddCount( "wire_graphics_tablets", wire_graphics_tablet )
+		if (pl!=nil) then pl:AddCount( "wire_graphics_tablets", wire_graphics_tablet ) end
 		return wire_graphics_tablet
 	end
 	duplicator.RegisterEntityClass("gmod_wire_graphics_tablet", MakeWireGraphicsTablet, "Pos", "Ang", "Model", "gmode", "draw_background")

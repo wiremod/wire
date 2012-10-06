@@ -165,7 +165,7 @@ function TOOL:LeftClick(trace)
 		return true
 	end
 
-	if ( !self:GetSWEP():CheckLimit( "wire_target_finders" ) ) then return false end
+	if (pl!=nil) then if ( !self:GetSWEP():CheckLimit( "wire_target_finders" ) ) then return false end end
 
 	if ( !util.IsValidModel( ModelInfo[3] ) ) then return false end
 	if ( !util.IsValidProp( ModelInfo[3] ) ) then return false end
@@ -187,7 +187,7 @@ function TOOL:LeftClick(trace)
 		undo.SetPlayer( ply )
 	undo.Finish()
 
-	ply:AddCleanup( "wire_target_finders", wire_target_finder )
+	if (ply!=nil) then ply:AddCleanup( "wire_target_finders", wire_target_finder ) end
 
 	return true
 
@@ -210,7 +210,7 @@ end
 if SERVER then
 
 	function MakeWireTargetFinder(pl, Pos, Ang, model, range, players, npcs, npcname, beacons, hoverballs, thrusters, props, propmodel,  vehicles, playername, casesen, rpgs, painttarget, minrange, maxtargets, maxbogeys, notargetowner, entity, notownersstuff, steamname, colorcheck, colortarget, pcolR, pcolG, pcolB, pcolA, checkbuddylist, onbuddylist)
-		if (!pl:CheckLimit("wire_target_finders")) then return end
+		if (pl!=nil) then if (!pl:CheckLimit("wire_target_finders")) then return end end
 
 		local wire_target_finder = ents.Create("gmod_wire_target_finder")
 		wire_target_finder:SetPos(Pos)
@@ -259,7 +259,7 @@ if SERVER then
 
 		table.Merge( wire_target_finder:GetTable(), ttable )
 
-		pl:AddCount( "wire_target_finders", wire_target_finder )
+		if (pl!=nil) then pl:AddCount( "wire_target_finders", wire_target_finder ) end
 
 		return wire_target_finder
 	end

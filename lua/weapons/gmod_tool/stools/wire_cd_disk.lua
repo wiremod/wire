@@ -41,7 +41,7 @@ function TOOL:LeftClick(trace)
 		return true
 	end
 
-	if (!self:GetSWEP():CheckLimit("wire_cd_disks")) then return false end
+	if (pl!=nil) then if (!self:GetSWEP():CheckLimit("wire_cd_disks")) then return false end end
 
 	local Ang = trace.HitNormal:Angle()
 	Ang.pitch = Ang.pitch + 90
@@ -65,8 +65,8 @@ function TOOL:LeftClick(trace)
 		undo.SetPlayer(ply)
 	undo.Finish()
 
-	ply:AddCleanup("wire_cd_disks", wire_cd_disk)
-	ply:AddCleanup("wire_cd_disks", const)
+	if (ply!=nil) then ply:AddCleanup("wire_cd_disks", wire_cd_disk) end
+	if (ply!=nil) then ply:AddCleanup("wire_cd_disks", const) end
 
 	return true
 end
@@ -87,7 +87,7 @@ end
 if (SERVER) then
 
 	function MakeWireCDDisk(pl, Pos, Ang, model, skin)
-		if (!pl:CheckLimit("wire_cd_disks")) then return false end
+		if (pl!=nil) then if (!pl:CheckLimit("wire_cd_disks")) then return false end end
 
 		local wire_cd_disk = ents.Create("gmod_wire_cd_disk")
 		if (!wire_cd_disk:IsValid()) then return false end
@@ -101,7 +101,7 @@ if (SERVER) then
 		wire_cd_disk:SetPlayer(pl)
 		wire_cd_disk.pl = pl
 
-		pl:AddCount("wire_cd_disks", wire_cd_disk)
+		if (pl!=nil) then pl:AddCount("wire_cd_disks", wire_cd_disk) end
 
 		return wire_cd_disk
 	end

@@ -21,10 +21,10 @@ function WireToolMakeGate( self, trace, ply )
 	if not util.IsValidModel(model) and not util.IsValidProp(model) then return false end
 
 	-- Check common limit
-	if (!ply:CheckLimit( "wire_gates" )) then return false end
+	if (ply!=nil) then if (pl!=nil) then if (!ply:CheckLimit( "wire_gates" )) then return false end end end
 
 	-- Check individual limit
-	if (!ply:CheckLimit( "wire_gate_" .. string.lower( GateActions[action].group ) .. "s" )) then return false end
+	if (ply!=nil) then if (pl!=nil) then if (!ply:CheckLimit( "wire_gate_" .. string.lower( GateActions[action].group ) .. "s" )) then return false end end end
 
 	local Ang = self:GetAngle( trace )
 

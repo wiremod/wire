@@ -47,12 +47,12 @@ if SERVER then
 			return true
 		end
 
-		if !self:GetSWEP():CheckLimit("wire_expressions") then return false end
+		if (pl!=nil) then if !self:GetSWEP():CheckLimit("wire_expressions") then return false end end
 
 		local entity = ents.Create("gmod_wire_expression2")
 		if not entity or not entity:IsValid() then return false end
 
-		player:AddCount("wire_expressions", entity)
+		if (player!=nil) then player:AddCount("wire_expressions", entity) end
 
 		entity:SetModel(model)
 		entity:SetAngles(ang)
@@ -71,7 +71,7 @@ if SERVER then
 			undo.AddEntity(constraint)
 		undo.Finish()
 
-		player:AddCleanup("wire_expressions", entity)
+		if (player!=nil) then player:AddCleanup("wire_expressions", entity) end
 
 		self:Upload( entity )
 		return true
@@ -96,7 +96,7 @@ if SERVER then
 	end
 
 	function MakeWireExpression2(player, Pos, Ang, model, buffer, name, inputs, outputs, vars, inc_files )
-		if !player:CheckLimit("wire_expressions") then return false end
+		if (player!=nil) then if (pl!=nil) then if !player:CheckLimit("wire_expressions") then return false end end end
 
 		local self = ents.Create("gmod_wire_expression2")
 		if !self:IsValid() then return false end
@@ -120,8 +120,8 @@ if SERVER then
 
 		self.dupevars = vars
 
-		player:AddCount("wire_expressions", self)
-		player:AddCleanup("wire_expressions", self)
+		if (player!=nil) then player:AddCount("wire_expressions", self) end
+		if (player!=nil) then player:AddCleanup("wire_expressions", self) end
 		return self
 	end
 

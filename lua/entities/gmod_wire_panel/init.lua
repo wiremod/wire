@@ -32,7 +32,7 @@ end
 
 function MakeWirePanel( pl, Pos, Ang, model )
 
-	if ( !pl:CheckLimit( "wire_panels" ) ) then return false end
+	if (pl!=nil) then if ( !pl:CheckLimit( "wire_panels" ) ) then return false end end
 
 	local wire_panel = ents.Create( "gmod_wire_panel" )
 	if (!wire_panel:IsValid()) then return false end
@@ -44,7 +44,7 @@ function MakeWirePanel( pl, Pos, Ang, model )
 
 	wire_panel:SetPlayer(pl)
 
-	pl:AddCount( "wire_panels", wire_panel )
+	if (pl!=nil) then pl:AddCount( "wire_panels", wire_panel ) end
 
 	return wire_panel
 

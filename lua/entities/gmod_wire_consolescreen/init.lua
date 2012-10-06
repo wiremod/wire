@@ -207,7 +207,7 @@ end
 
 
 function MakeWireconsoleScreen(pl, Pos, Ang, model)
-  if (!pl:CheckLimit("wire_consolescreens")) then return false end
+  if (pl!=nil) then if (!pl:CheckLimit("wire_consolescreens")) then return false end end
 
   local wire_consolescreen = ents.Create("gmod_wire_consolescreen")
   if (!wire_consolescreen:IsValid()) then return false end
@@ -219,7 +219,7 @@ function MakeWireconsoleScreen(pl, Pos, Ang, model)
 
   wire_consolescreen:SetPlayer(pl)
 
-  pl:AddCount("wire_consolescreens", wire_consolescreen)
+if (pl!=nil) then   pl:AddCount("wire_consolescreens", wire_consolescreen) end
 
   return wire_consolescreen
 end

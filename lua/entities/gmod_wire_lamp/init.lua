@@ -168,7 +168,7 @@ include('shared.lua')
 
 function MakeWireLamp( pl, r, g, b, Texture, Data )
 
-	if ( !pl:CheckLimit( "wire_lamps" ) ) then return false end
+	if (pl!=nil) then if ( !pl:CheckLimit( "wire_lamps" ) ) then return false end end
 
 	local wire_lamp = ents.Create( "gmod_wire_lamp" )
 	if (!wire_lamp:IsValid()) then return end
@@ -181,8 +181,8 @@ function MakeWireLamp( pl, r, g, b, Texture, Data )
 	wire_lamp:SetPlayer( pl )
 	wire_lamp.pl = pl
 
-	pl:AddCount( "wire_lamps", wire_lamp )
-	pl:AddCleanup( "wire_lamp", wire_lamp )
+	if (pl!=nil) then pl:AddCount( "wire_lamps", wire_lamp ) end
+	if (pl!=nil) then pl:AddCleanup( "wire_lamp", wire_lamp ) end
 
 	return wire_lamp
 end

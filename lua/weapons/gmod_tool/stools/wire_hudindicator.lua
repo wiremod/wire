@@ -141,7 +141,7 @@ function TOOL:LeftClick( trace )
 		return true
 	end
 
-	if ( !self:GetSWEP():CheckLimit( "wire_indicators" ) ) then return false end
+	if (pl!=nil) then if ( !self:GetSWEP():CheckLimit( "wire_indicators" ) ) then return false end end
 
 	if (not util.IsValidModel(model)) then return false end
 	if (not util.IsValidProp(model)) then return false end		// Allow ragdolls to be used?
@@ -163,7 +163,7 @@ function TOOL:LeftClick( trace )
 		undo.SetPlayer( ply )
 	undo.Finish()
 
-	ply:AddCleanup( "wire_indicators", wire_indicator )
+	if (ply!=nil) then ply:AddCleanup( "wire_indicators", wire_indicator ) end
 
 	return true
 end
@@ -248,7 +248,7 @@ end
 if (SERVER) then
 
 	function MakeWireHudIndicator( pl, Pos, Ang, model, a, ar, ag, ab, aa, b, br, bg, bb, ba, material, showinhud, huddesc, hudaddname, hudshowvalue, hudstyle, allowhook, fullcircleangle, nocollide, Vel, aVel, frozen )
-		if ( !pl:CheckLimit( "wire_indicators" ) ) then return false end
+		if (pl!=nil) then if ( !pl:CheckLimit( "wire_indicators" ) ) then return false end end
 
 		local wire_indicator = ents.Create( "gmod_wire_hudindicator" )
 		if (!wire_indicator:IsValid()) then return false end
@@ -293,7 +293,7 @@ if (SERVER) then
 		}
 		table.Merge(wire_indicator:GetTable(), ttable )
 
-		pl:AddCount( "wire_indicators", wire_indicator )
+		if (pl!=nil) then pl:AddCount( "wire_indicators", wire_indicator ) end
 
 		return wire_indicator
 	end

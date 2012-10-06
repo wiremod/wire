@@ -64,7 +64,7 @@ end
 
 
 function MakeWireIndicator( pl, Pos, Ang, model, a, ar, ag, ab, aa, b, br, bg, bb, ba, material, nocollide, frozen )
-	if not pl:CheckLimit( "wire_indicators" ) then return false end
+	if (pl!=nil) then if not pl:CheckLimit( "wire_indicators" ) then return false end end
 
 	local wire_indicator = ents.Create( "gmod_wire_indicator" )
 	if not wire_indicator:IsValid() then return false end
@@ -91,7 +91,7 @@ function MakeWireIndicator( pl, Pos, Ang, model, a, ar, ag, ab, aa, b, br, bg, b
 	}
 	table.Merge(wire_indicator:GetTable(), ttable )
 
-	pl:AddCount( "wire_indicators", wire_indicator )
+	if (pl!=nil) then pl:AddCount( "wire_indicators", wire_indicator ) end
 
 	return wire_indicator
 end
@@ -100,7 +100,7 @@ duplicator.RegisterEntityClass("gmod_wire_indicator", MakeWireIndicator, "Pos", 
 
 function MakeWire7Seg( pl, Pos, Ang, Model, a, ar, ag, ab, aa, b, br, bg, bb, ba, nocollide, Vel, aVel, frozen  )
 
-	if not pl:CheckLimit( "wire_indicators" ) then return false end
+	if (pl!=nil) then if not pl:CheckLimit( "wire_indicators" ) then return false end end
 
 	local wire_indicators = {}
 
@@ -116,7 +116,7 @@ function MakeWire7Seg( pl, Pos, Ang, Model, a, ar, ag, ab, aa, b, br, bg, bb, ba
 	wire_indicators[1]:Setup(a, ar, ag, ab, aa, b, br, bg, bb, ba)
 	wire_indicators[1]:SetPlayer(pl)
 	wire_indicators[1]:SetNetworkedString("WireName", "G")
-	pl:AddCount( "wire_indicators", wire_indicators[1] )
+	if (pl!=nil) then pl:AddCount( "wire_indicators", wire_indicators[1] ) end
 	local min = wire_indicators[1]:OBBMins(wire_indicators[1])
 	//Pos = Pos - Ang:Up() * min.x --correct Pos for thichness of segment
 	wire_indicators[1]:SetPos( Pos + Ang:Up() )
@@ -157,7 +157,7 @@ function MakeWire7Seg( pl, Pos, Ang, Model, a, ar, ag, ab, aa, b, br, bg, bb, ba
 			wire_indicators[x]:SetCollisionGroup(COLLISION_GROUP_WORLD)
 		end
 		table.Merge(wire_indicators[x]:GetTable(), ttable )
-		pl:AddCount( "wire_indicators", wire_indicators[x] )
+		if (pl!=nil) then pl:AddCount( "wire_indicators", wire_indicators[x] ) end
 
 		--weld this segment to eveyone before it
 		for y=1,x do

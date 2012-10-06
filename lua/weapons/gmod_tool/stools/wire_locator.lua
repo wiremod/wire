@@ -33,7 +33,7 @@ function TOOL:LeftClick(trace)
 		return true
 	end
 
-	if ( !self:GetSWEP():CheckLimit( "wire_locators" ) ) then return false end
+	if (pl!=nil) then if ( !self:GetSWEP():CheckLimit( "wire_locators" ) ) then return false end end
 
 	local Ang = trace.HitNormal:Angle()
 
@@ -47,7 +47,7 @@ function TOOL:LeftClick(trace)
 		undo.SetPlayer( ply )
 	undo.Finish()
 
-	ply:AddCleanup( "wire_locators", wire_locator )
+	if (ply!=nil) then ply:AddCleanup( "wire_locators", wire_locator ) end
 
 	return true
 
@@ -56,7 +56,7 @@ end
 if SERVER then
 
 	function MakeWireLocator(pl, Pos, Ang, model, nocollide )
-		if (!pl:CheckLimit("wire_locators")) then return end
+		if (pl!=nil) then if (!pl:CheckLimit("wire_locators")) then return end end
 
 		local wire_locator = ents.Create("gmod_wire_locator")
 		wire_locator:SetPos(Pos)
@@ -76,7 +76,7 @@ if SERVER then
 		}
 		table.Merge( wire_locator:GetTable(), ttable )
 
-		pl:AddCount( "wire_locators", wire_locator )
+		if (pl!=nil) then pl:AddCount( "wire_locators", wire_locator ) end
 
 		return wire_locator
 	end

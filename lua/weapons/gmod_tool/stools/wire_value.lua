@@ -45,7 +45,7 @@ if (SERVER) then
 	end)
 	
 	local function MakeWireValue( ply, Pos, Ang, model )
-		if (!ply:CheckLimit("wire_values")) then return false end
+		if (ply!=nil) then if (pl!=nil) then if (!ply:CheckLimit("wire_values")) then return false end end end
 
 		local wire_value = ents.Create("gmod_wire_value")
 		if (!wire_value:IsValid()) then return false end
@@ -63,7 +63,7 @@ if (SERVER) then
 		wire_value:Setup(playerValues[ply])
 		wire_value:SetPlayer(ply)
 
-		ply:AddCount("wire_values", wire_value)
+		if (ply!=nil) then ply:AddCount("wire_values", wire_value) end
 
 		return wire_value
 	end

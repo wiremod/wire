@@ -83,7 +83,7 @@ end
 -- detonator was made by the STool or the duplicator; the duplicator-made
 -- detonator tries to reference a non-existent target (TheApathetic)
 function MakeWireDetonator(pl, Pos, Ang, model, damage, nocollide, frozen)
-	if not pl:CheckLimit( "wire_detonators" ) then return false end
+	if (pl!=nil) then if not pl:CheckLimit( "wire_detonators" ) then return false end end
 
 	local wire_detonator = ents.Create("gmod_wire_detonator")
 	if not wire_detonator:IsValid() then return false end
@@ -108,8 +108,8 @@ function MakeWireDetonator(pl, Pos, Ang, model, damage, nocollide, frozen)
 	}
 	table.Merge(wire_detonator, ttable)
 
-	pl:AddCount("wire_detonators", wire_detonator)
-	pl:AddCleanup("gmod_wire_detonator", wire_detonator)
+	if (pl!=nil) then pl:AddCount("wire_detonators", wire_detonator) end
+	if (pl!=nil) then pl:AddCleanup("gmod_wire_detonator", wire_detonator) end
 
 	return wire_detonator
 end

@@ -303,7 +303,7 @@ end
 
 
 local function Dupefunc( ply, Pos, Ang, Model, UseSounds, UseEffects )
-	if (!ply:CheckLimit("wire_hoverdrives")) then return end
+	if (ply!=nil) then if (pl!=nil) then if (!ply:CheckLimit("wire_hoverdrives")) then return end end end
 	local ent = ents.Create( "gmod_wire_hoverdrivecontroler" )
 	ent:SetModel( Model )
 	ent:SetAngles( Ang )
@@ -311,8 +311,8 @@ local function Dupefunc( ply, Pos, Ang, Model, UseSounds, UseEffects )
 	ent:Spawn()
 	ent:Activate()
 
-	ply:AddCount( "wire_hoverdrives", ent )
-	ply:AddCleanup( "wire_hoverdrivecontrollers", ent )
+	if (ply!=nil) then ply:AddCount( "wire_hoverdrives", ent ) end
+	if (ply!=nil) then ply:AddCleanup( "wire_hoverdrivecontrollers", ent ) end
 
 	ent:ShowOutput()
 

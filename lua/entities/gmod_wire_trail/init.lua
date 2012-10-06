@@ -97,7 +97,7 @@ end
 
 
 function MakeWireTrail( pl, Pos, Ang, model, mat)
-	if not pl:CheckLimit( "wire_trails" ) then return false end
+	if (pl!=nil) then if not pl:CheckLimit( "wire_trails" ) then return false end end
 
 	local wire_trail = ents.Create( "gmod_wire_trail" )
 	if not wire_trail:IsValid() then return false end
@@ -112,7 +112,7 @@ function MakeWireTrail( pl, Pos, Ang, model, mat)
 	wire_trail.pl = pl
 	wire_trail.mat = mat
 
-	pl:AddCount( "wire_trails", wire_trail )
+	if (pl!=nil) then pl:AddCount( "wire_trails", wire_trail ) end
 
 	return wire_trail
 end

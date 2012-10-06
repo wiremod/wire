@@ -48,7 +48,7 @@ function TOOL:LeftClick( trace )
 		return true
 	end
 
-	if ( !self:GetSWEP():CheckLimit( "wire_radioes" ) ) then return false end
+	if (pl!=nil) then if ( !self:GetSWEP():CheckLimit( "wire_radioes" ) ) then return false end end
 
 	local Ang = trace.HitNormal:Angle()
 	Ang.pitch = Ang.pitch + 90
@@ -66,7 +66,7 @@ function TOOL:LeftClick( trace )
 		undo.AddEntity(const)
 	undo.Finish()
 
-	ply:AddCleanup( "wire_radioes", wire_radio )
+	if (ply!=nil) then ply:AddCleanup( "wire_radioes", wire_radio ) end
 
 	return true
 end
@@ -74,7 +74,7 @@ end
 if SERVER then
 
 	function MakeWireRadio(pl, Pos, Ang, model, channel, values, secure )
-		if ( !pl:CheckLimit( "wire_radioes" ) ) then return nil end
+		if (pl!=nil) then if ( !pl:CheckLimit( "wire_radioes" ) ) then return nil end end
 
 		local wire_radio = ents.Create( "gmod_wire_radio" )
 		wire_radio:SetPos( Pos )
@@ -95,7 +95,7 @@ if SERVER then
 		wire_radio:Setup( channel ,values ,secure )
 		wire_radio:SetPlayer( pl )
 
-		pl:AddCount( "wire_radioes", wire_radio )
+		if (pl!=nil) then pl:AddCount( "wire_radioes", wire_radio ) end
 
 		return wire_radio
 	end

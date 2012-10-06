@@ -50,7 +50,7 @@ function TOOL:LeftClick( trace )
 		return true
 	end
 
-	if ( !self:GetSWEP():CheckLimit( "wire_numpads" ) ) then return false end
+	if (pl!=nil) then if ( !self:GetSWEP():CheckLimit( "wire_numpads" ) ) then return false end end
 
 	if ( !util.IsValidModel( ModelInfo[3] ) ) then return false end
 	if ( !util.IsValidProp( ModelInfo[3] ) ) then return false end
@@ -71,7 +71,7 @@ function TOOL:LeftClick( trace )
 		undo.SetPlayer( ply )
 	undo.Finish()
 
-	ply:AddCleanup( "wire_numpads", wire_numpad )
+	if (ply!=nil) then ply:AddCleanup( "wire_numpads", wire_numpad ) end
 
 	return true
 
@@ -80,7 +80,7 @@ end
 if (SERVER) then
 
 	function MakeWireNumpad( pl, Pos, Ang, model, toggle, value_off, value_on )
-		if ( !pl:CheckLimit( "wire_numpads" ) ) then return false end
+		if (pl!=nil) then if ( !pl:CheckLimit( "wire_numpads" ) ) then return false end end
 
 		local wire_numpad = ents.Create( "gmod_wire_numpad" )
 		if (!wire_numpad:IsValid()) then return false end
@@ -111,7 +111,7 @@ if (SERVER) then
 		}
 		table.Merge(wire_numpad, ttable )
 
-		pl:AddCount( "wire_numpads", wire_numpad )
+		if (pl!=nil) then pl:AddCount( "wire_numpads", wire_numpad ) end
 
 		return wire_numpad
 	end

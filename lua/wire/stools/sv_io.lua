@@ -14,7 +14,7 @@ function WireToolMakeAdvInput( self, trace, ply )
 		return true
 	end
 
-	if not self:GetSWEP():CheckLimit( "wire_adv_inputs" ) then return false end
+	if (pl!=nil) then if not self:GetSWEP():CheckLimit( "wire_adv_inputs" ) then return false end end
 
 	if not util.IsValidModel(self.ModelInfo[3]) or not util.IsValidProp(self.ModelInfo[3]) then return false end
 
@@ -32,7 +32,7 @@ end
 
 function WireToolMakeAdvPod( self, trace, ply )
 
-	if not self:GetSWEP():CheckLimit("wire_pods") then return false end
+	if (pl!=nil) then if not self:GetSWEP():CheckLimit("wire_pods") then return false end end
 
 	local model = self:GetModel()
 	local Ang = trace.HitNormal:Angle()
@@ -60,7 +60,7 @@ function WireToolMakeButton( self, trace, ply )
 		return true
 	end
 
-	if not self:GetSWEP():CheckLimit( "wire_buttons" ) then return false end
+	if (pl!=nil) then if not self:GetSWEP():CheckLimit( "wire_buttons" ) then return false end end
 
 	local Ang = trace.HitNormal:Angle()
 	Ang.pitch = Ang.pitch + 90
@@ -95,7 +95,7 @@ function WireToolMakeDynamicButton( self, trace, ply )
 		return true
 	end
 
-	if not self:GetSWEP():CheckLimit( "wire_dynamic_buttons" ) then return false end
+	if (pl!=nil) then if not self:GetSWEP():CheckLimit( "wire_dynamic_buttons" ) then return false end end
 
 	local Ang = trace.HitNormal:Angle()
 	Ang.pitch = Ang.pitch + 90
@@ -122,7 +122,7 @@ function WireToolMakeDualInput( self, trace, ply )
 		return true
 	end
 
-	if not self:GetSWEP():CheckLimit( "wire_dual_inputs" ) then return false end
+	if (pl!=nil) then if not self:GetSWEP():CheckLimit( "wire_dual_inputs" ) then return false end end
 
 	if not util.IsValidModel(self.ModelInfo[3]) or not util.IsValidProp(self.ModelInfo[3]) then return false end
 
@@ -150,7 +150,7 @@ function WireToolMakeInput( self, trace, ply )
 		return true
 	end
 
-	if not self:GetSWEP():CheckLimit( "wire_inputs" ) then return false end
+	if (pl!=nil) then if not self:GetSWEP():CheckLimit( "wire_inputs" ) then return false end end
 
 	if not util.IsValidModel(self.ModelInfo[3]) or not util.IsValidProp(self.ModelInfo[3]) then return false end
 

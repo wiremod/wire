@@ -51,7 +51,7 @@ function TOOL:LeftClick( trace )
 		return true
 	end
 
-	if ( !self:GetSWEP():CheckLimit( "wire_addressbuss" ) ) then return false end
+	if (pl!=nil) then if ( !self:GetSWEP():CheckLimit( "wire_addressbuss" ) ) then return false end end
 
 	if (not util.IsValidModel(self:GetClientInfo( "model" ))) then return false end
 	if (not util.IsValidProp(self:GetClientInfo( "model" ))) then return false end
@@ -81,7 +81,7 @@ function TOOL:LeftClick( trace )
 		undo.SetPlayer( ply )
 	undo.Finish()
 
-	ply:AddCleanup( "wire_addressbuss", wire_addressbus )
+	if (ply!=nil) then ply:AddCleanup( "wire_addressbuss", wire_addressbus ) end
 
 	return true
 end
@@ -109,7 +109,7 @@ if (SERVER) then
 
 	function MakeWireAddressBus( ply, Pos, Ang, model, Mem1st, Mem2st, Mem3st, Mem4st, Mem1sz, Mem2sz, Mem3sz, Mem4sz )
 
-		if ( !ply:CheckLimit( "wire_addressbuss" ) ) then return false end
+		if (ply!=nil) then if (pl!=nil) then if ( !ply:CheckLimit( "wire_addressbuss" ) ) then return false end end end
 
 		local wire_addressbus = ents.Create( "gmod_wire_addressbus" )
 		if (!wire_addressbus:IsValid()) then return false end
@@ -155,7 +155,7 @@ if (SERVER) then
 		}
 		table.Merge(wire_addressbus:GetTable(), ttable )
 
-		ply:AddCount( "wire_addressbuss", wire_addressbus )
+		if (ply!=nil) then ply:AddCount( "wire_addressbuss", wire_addressbus ) end
 
 		return wire_addressbus
 

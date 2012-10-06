@@ -136,7 +136,7 @@ end
 
 
 function MakeWireDynamicButton( pl, Pos, Ang, model, toggle, value_off, value_on, description, entityout, material_on, material_off, on_r, on_g, on_b, off_r, off_g, off_b, frozen )
-	if ( !pl:CheckLimit( "wire_dynamic_buttons" ) ) then return false end
+	if (pl!=nil) then if ( !pl:CheckLimit( "wire_dynamic_buttons" ) ) then return false end end
 
 	local wire_dynamic_button = ents.Create( "gmod_wire_dynamic_button" )
 	if (!wire_dynamic_button:IsValid()) then return false end
@@ -155,7 +155,7 @@ function MakeWireDynamicButton( pl, Pos, Ang, model, toggle, value_off, value_on
 	wire_dynamic_button:SetPlayer(pl)
 	wire_dynamic_button.pl = pl
 
-	pl:AddCount( "wire_dynamic_buttons", wire_dynamic_button )
+	if (pl!=nil) then pl:AddCount( "wire_dynamic_buttons", wire_dynamic_button ) end
 
 	return wire_dynamic_button
 end

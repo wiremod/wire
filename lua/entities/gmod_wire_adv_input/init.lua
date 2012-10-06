@@ -96,7 +96,7 @@ numpad.Register( "WireAdvInput_Off",Off)
 
 
 function MakeWireAdvInput( pl, Pos, Ang, model, keymore, keyless, toggle, value_min, value_max, value_start, speed, frozen )
-	if ( !pl:CheckLimit( "wire_adv_inputs" ) ) then return false end
+	if (pl!=nil) then if ( !pl:CheckLimit( "wire_adv_inputs" ) ) then return false end end
 
 	local wire_adv_input = ents.Create( "gmod_wire_adv_input" )
 	if (!wire_adv_input:IsValid()) then return false end
@@ -121,7 +121,7 @@ function MakeWireAdvInput( pl, Pos, Ang, model, keymore, keyless, toggle, value_
 	numpad.OnDown( pl, keyless, "WireAdvInput_On", wire_adv_input, -1 )
 	numpad.OnUp( pl, keyless, "WireAdvInput_Off", wire_adv_input, -1 )
 
-	pl:AddCount( "wire_adv_inputs", wire_adv_input )
+	if (pl!=nil) then pl:AddCount( "wire_adv_inputs", wire_adv_input ) end
 
 	return wire_adv_input
 end

@@ -638,7 +638,7 @@ local function SetTrails(Player, Entity, Data)
 	) //strTexture
 
 	Entity.SToolTrail = trail_entity
-	Player:AddCleanup( "trails", trail_entity )
+	if (Player!=nil) then Player:AddCleanup( "trails", trail_entity ) end
 
 	duplicator.StoreEntityModifier( Entity, "trail", Data )
 

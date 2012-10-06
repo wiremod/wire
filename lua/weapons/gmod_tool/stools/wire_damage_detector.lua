@@ -46,7 +46,7 @@ function TOOL:LeftClick( trace )
 		return true
 	end
 
-	if !self:GetSWEP():CheckLimit( "wire_damage_detectors" ) then return false end
+	if (pl!=nil) then if !self:GetSWEP():CheckLimit( "wire_damage_detectors" ) then return false end end
 
 	local Ang = trace.HitNormal:Angle()
 	Ang.pitch = Ang.pitch + 90
@@ -64,7 +64,7 @@ function TOOL:LeftClick( trace )
 		undo.SetPlayer( ply )
 	undo.Finish()
 
-	ply:AddCleanup( "wire_damage_detectors", wire_damage_detector )
+	if (ply!=nil) then ply:AddCleanup( "wire_damage_detectors", wire_damage_detector ) end
 
 	return true
 end
@@ -127,7 +127,7 @@ end
 if SERVER then
 
 	function MakeWireDamageDetector( pl, Pos, Ang, model, includeconstrained )
-		if !pl:CheckLimit( "wire_damage_detectors" ) then return false end
+		if (pl!=nil) then if !pl:CheckLimit( "wire_damage_detectors" ) then return false end end
 
 		local wire_damage_detector = ents.Create( "gmod_wire_damage_detector" )
 		if !IsValid(wire_damage_detector) then return false end
@@ -148,7 +148,7 @@ if SERVER then
 		}
 		table.Merge(wire_damage_detector:GetTable(), ttable )
 
-		pl:AddCount( "wire_damage_detectors", wire_damage_detector )
+		if (pl!=nil) then pl:AddCount( "wire_damage_detectors", wire_damage_detector ) end
 
 		return wire_damage_detector
 	end

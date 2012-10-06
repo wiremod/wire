@@ -263,7 +263,7 @@ function ENT:Think()
 end
 
 function MakeWireHoloemitter( ply, Pos, Ang, model, frozen )
-	if (!ply:CheckLimit( "wire_holoemitters" )) then return end
+	if (ply!=nil) then if (pl!=nil) then if (!ply:CheckLimit( "wire_holoemitters" )) then return end end end
 
 	local emitter = ents.Create( "gmod_wire_holoemitter" )
 	emitter:SetPos( Pos )
@@ -279,7 +279,7 @@ function MakeWireHoloemitter( ply, Pos, Ang, model, frozen )
 
 	emitter:SetPlayer( ply )
 
-	ply:AddCount( "wire_holoemitters", emitter )
+	if (ply!=nil) then ply:AddCount( "wire_holoemitters", emitter ) end
 
 	return emitter
 end

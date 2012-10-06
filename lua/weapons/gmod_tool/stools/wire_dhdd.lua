@@ -40,30 +40,30 @@ else
 		local mdl = vgui.Create("DWireModelSelect",CPanel)
 		mdl:SetModelList( list.Get( "Wire_gate_Models" ), "wire_dhdd_model" )
 		mdl:SetHeight( 4 )
-		CPanel:Add( mdl )
+		CPanel:AddPanel( mdl )
 
 		local weld = vgui.Create("DCheckBoxLabel",CPanel)
 		weld:SetText( "#Tool_wire_dhdd_weld" )
 		weld:SizeToContents()
 		weld:SetConVar( "wire_dhdd_weld" )
-		CPanel:Add( weld )
+		CPanel:AddPanel( weld )
 
 		local toworld = vgui.Create("DCheckBoxLabel",CPanel)
 		toworld:SetText( "#Tool_wire_dhdd_weldtoworld" )
 		toworld:SizeToContents()
 		toworld:SetConVar( "wire_dhdd_weldtoworld" )
-		CPanel:Add( toworld )
+		CPanel:AddPanel( toworld )
 
 		local freeze = vgui.Create("DCheckBoxLabel",CPanel)
 		freeze:SetText( "#Tool_wire_dhdd_freeze" )
 		freeze:SizeToContents()
 		freeze:SetConVar( "wire_dhdd_freeze" )
-		CPanel:Add( freeze )
+		CPanel:AddPanel( freeze )
 
 		local label = vgui.Create("DLabel",CPanel)
 		label:SetText( "#Tool_wire_dhdd_note" )
 		label:SizeToContents()
-		CPanel:Add( label )
+		CPanel:AddPanel( label )
 	end
 
 end
@@ -114,7 +114,7 @@ function TOOL:LeftClick( trace )
 		undo.SetPlayer( ply )
 	undo.Finish()
 
-	ply:AddCleanup( "wire_dhdds", dhdd )
+	if (ply!=nil) then ply:AddCleanup( "wire_dhdds", dhdd ) end
 
 	return true
 end
@@ -126,7 +126,7 @@ end
 --------------------
 if (SERVER) then
 	function MakeWireDHDD( ply, Pos, Ang, model )
-		if (!ply:CheckLimit( "wire_dhdds" )) then return false end
+		if (ply!=nil) then if (pl!=nil) then if (!ply:CheckLimit( "wire_dhdds" )) then return false end end end
 
 		local dhdd = ents.Create( "gmod_wire_dhdd" )
 		if (!dhdd:IsValid()) then return false end
@@ -138,7 +138,7 @@ if (SERVER) then
 		dhdd:Spawn()
 		dhdd:Activate()
 
-		ply:AddCount( "wire_dhdds", dhdd )
+		if (ply!=nil) then ply:AddCount( "wire_dhdds", dhdd ) end
 
 		return dhdd
 	end

@@ -9,7 +9,7 @@ local material 	= "cable/rope"
 
 CreateConVar('sbox_maxwire_deployers', 2)
 local function MakeBalloonSpawner(pl, Data)
-	if not pl:CheckLimit("wire_deployers") then return nil end
+	if (pl!=nil) then if not pl:CheckLimit("wire_deployers") then return nil end end
 
 	local ent = ents.Create("sent_deployableballoons")
 	if not ent:IsValid() then return end
@@ -20,8 +20,8 @@ local function MakeBalloonSpawner(pl, Data)
 
 	duplicator.DoGenericPhysics(ent, pl, Data)
 
-	pl:AddCount("wire_deployers", ent)
-	pl:AddCleanup("wire_deployers", ent)
+	if (pl!=nil) then pl:AddCount("wire_deployers", ent) end
+	if (pl!=nil) then pl:AddCleanup("wire_deployers", ent) end
 	return ent
 end
 

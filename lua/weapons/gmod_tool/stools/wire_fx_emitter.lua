@@ -37,7 +37,7 @@ function TOOL:LeftClick( trace )
 
 	if (CLIENT) then return true end
 
-	if !self:GetSWEP():CheckLimit( "wire_fx_emitter" ) then return false end
+	if (pl!=nil) then if !self:GetSWEP():CheckLimit( "wire_fx_emitter" ) then return false end end
 
 	// If there's no physics object then we can't constraint it!
 	if ( SERVER && !util.IsValidPhysicsObject( trace.Entity, trace.PhysicsBone ) ) then return false end
@@ -63,7 +63,7 @@ function TOOL:LeftClick( trace )
 
 	end
 
-	if ( !self:GetSWEP():CheckLimit( "emitters" ) ) then return false end
+	if (pl!=nil) then if ( !self:GetSWEP():CheckLimit( "emitters" ) ) then return false end end
 
 	if ( trace.Entity != NULL && (!trace.Entity:IsWorld() || worldweld) ) then
 
@@ -111,7 +111,7 @@ if (SERVER) then
 
 	function MakeWireFXEmitter( ply, Pos, Ang, model, delay, effect, nocollide )
 
-		if ( !ply:CheckLimit( "wire_fx_emitter" ) ) then return nil end
+		if (ply!=nil) then if (pl!=nil) then if ( !ply:CheckLimit( "wire_fx_emitter" ) ) then return nil end end end
 
 		local wire_fx_emitter = ents.Create( "gmod_wire_fx_emitter" )
 		if (!wire_fx_emitter:IsValid()) then return false end
@@ -134,8 +134,8 @@ if (SERVER) then
 
 		table.Merge( wire_fx_emitter:GetTable(), ttable )
 
-		ply:AddCount( "wire_fx_emitters", wire_fx_emitter )
-		ply:AddCleanup( "wire_fx_emitter", wire_fx_emitter )
+		if (ply!=nil) then ply:AddCount( "wire_fx_emitters", wire_fx_emitter ) end
+		if (ply!=nil) then ply:AddCleanup( "wire_fx_emitter", wire_fx_emitter ) end
 
 		return wire_fx_emitter
 

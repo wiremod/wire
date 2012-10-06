@@ -80,7 +80,7 @@ end
 */
 
 function MakeGPULibController( pl, Pos, Ang, model, screen )
-	--if ( !pl:CheckLimit( "wire_cams" ) ) then return false end
+	if (pl!=nil) then if ( !pl:CheckLimit( "wire_cams" ) ) then return false end end
 
 	local controller = ents.Create( "gmod_wire_gpulib_controller" )
 	if (!controller:IsValid()) then return false end
@@ -98,7 +98,7 @@ function MakeGPULibController( pl, Pos, Ang, model, screen )
 	}
 	table.Merge(controller:GetTable(), ttable )
 
-	--pl:AddCount( "wire_gpulib_switchers", controller )
+	if (pl!=nil) then pl:AddCount( "wire_gpulib_switchers", controller ) end
 
 	return controller
 end

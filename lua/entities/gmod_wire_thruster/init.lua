@@ -260,7 +260,7 @@ end
 
 
 function MakeWireThruster( pl, Pos, Ang, model, force, force_min, force_max, oweffect, uweffect, owater, uwater, bidir, soundname, nocollide )
-	if not pl:CheckLimit( "wire_thrusters" ) then return false end
+	if (pl!=nil) then if not pl:CheckLimit( "wire_thrusters" ) then return false end end
 
 	local wire_thruster = ents.Create( "gmod_wire_thruster" )
 	if not wire_thruster:IsValid() then return false end
@@ -290,7 +290,7 @@ function MakeWireThruster( pl, Pos, Ang, model, force, force_min, force_max, owe
 	}
 	table.Merge(wire_thruster:GetTable(), ttable )
 
-	pl:AddCount( "wire_thrusters", wire_thruster )
+	if (pl!=nil) then pl:AddCount( "wire_thrusters", wire_thruster ) end
 
 	return wire_thruster
 end

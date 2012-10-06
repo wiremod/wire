@@ -100,8 +100,8 @@ function ENT:DoSpawn( pl, down )
 		undo.SetPlayer( pl )
 	undo.Finish()
 
-	pl:AddCleanup( "props", prop )
-	pl:AddCleanup( "props", nocollide )
+	if (pl!=nil) then pl:AddCleanup( "props", prop ) end
+	if (pl!=nil) then pl:AddCleanup( "props", nocollide ) end
 
 	table.insert( self.UndoList, 1, prop )
 	GlobalUndoList[prop] = self

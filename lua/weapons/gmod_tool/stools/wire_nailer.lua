@@ -46,7 +46,7 @@ function TOOL:LeftClick( trace )
 		return true
 	end
 
-	if ( !self:GetSWEP():CheckLimit( "wire_nailers" ) ) then return false end
+	if (pl!=nil) then if ( !self:GetSWEP():CheckLimit( "wire_nailers" ) ) then return false end end
 
 	local Ang = trace.HitNormal:Angle()
 	Ang.pitch = Ang.pitch + 90
@@ -64,7 +64,7 @@ function TOOL:LeftClick( trace )
 		undo.SetPlayer( ply )
 	undo.Finish()
 
-	ply:AddCleanup( "wire_nailers", wire_nailer )
+	if (ply!=nil) then ply:AddCleanup( "wire_nailers", wire_nailer ) end
 
 	return true
 end
@@ -72,7 +72,7 @@ end
 if (SERVER) then
 
 	function MakeWireNailer( pl, Pos, Ang, model, flim )
-		if ( !pl:CheckLimit( "wire_nailers" ) ) then return false end
+		if (pl!=nil) then if ( !pl:CheckLimit( "wire_nailers" ) ) then return false end end
 
 		local wire_nailer = ents.Create( "gmod_wire_nailer" )
 		if (!wire_nailer:IsValid()) then return false end
@@ -91,7 +91,7 @@ if (SERVER) then
 		}
 		table.Merge(wire_nailer:GetTable(), ttable )
 
-		pl:AddCount( "wire_nailers", wire_nailer )
+		if (pl!=nil) then pl:AddCount( "wire_nailers", wire_nailer ) end
 
 		return wire_nailer
 	end

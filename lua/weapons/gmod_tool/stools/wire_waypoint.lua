@@ -57,7 +57,7 @@ function TOOL:LeftClick(trace)
 		return true
 	end
 
-	if ( !self:GetSWEP():CheckLimit( "wire_waypoints" ) ) then return false end
+	if (pl!=nil) then if ( !self:GetSWEP():CheckLimit( "wire_waypoints" ) ) then return false end end
 
 	local Ang = trace.HitNormal:Angle()
 
@@ -78,7 +78,7 @@ function TOOL:LeftClick(trace)
 		undo.SetPlayer( ply )
 	undo.Finish()
 
-	ply:AddCleanup( "wire_waypoints", wire_waypoint )
+	if (ply!=nil) then ply:AddCleanup( "wire_waypoints", wire_waypoint ) end
 
 	return true
 end
@@ -107,7 +107,7 @@ end
 if SERVER then
 
 	function MakeWireWaypoint(pl, Pos, Ang, model, range )
-		if (!pl:CheckLimit("wire_waypoints")) then return end
+		if (pl!=nil) then if (!pl:CheckLimit("wire_waypoints")) then return end end
 
 		local wire_waypoint = ents.Create("gmod_wire_waypoint")
 		wire_waypoint:SetPos(Pos)
@@ -126,7 +126,7 @@ if SERVER then
 		}
 		table.Merge( wire_waypoint:GetTable(), ttable )
 
-		pl:AddCount( "wire_waypoints", wire_waypoint )
+		if (pl!=nil) then pl:AddCount( "wire_waypoints", wire_waypoint ) end
 
 		return wire_waypoint
 	end

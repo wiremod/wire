@@ -48,7 +48,7 @@ function TOOL:LeftClick(trace)
 		return true
 	end
 
-	if !self:GetSWEP():CheckLimit("wire_spawners") then return false end
+	if (pl!=nil) then if !self:GetSWEP():CheckLimit("wire_spawners") then return false end end
 
 	local phys			= ent:GetPhysicsObject()
 	if !phys:IsValid() then return false end
@@ -78,7 +78,7 @@ if SERVER then
 
 	function MakeWireSpawner( pl, Pos, Ang, model, delay, undo_delay, spawn_effect, mat, r, g, b, a, skin, frozen )
 
-		if !pl:CheckLimit("wire_spawners") then return nil end
+		if (pl!=nil) then if !pl:CheckLimit("wire_spawners") then return nil end end
 
 		local spawner = ents.Create("gmod_wire_spawner")
 			if !spawner:IsValid() then return end
@@ -118,8 +118,8 @@ if SERVER then
 		}
 		table.Merge(spawner:GetTable(), tbl)
 
-		pl:AddCount("wire_spawners", spawner)
-		pl:AddCleanup("gmod_wire_spawner", spawner)
+		if (pl!=nil) then pl:AddCount("wire_spawners", spawner) end
+		if (pl!=nil) then pl:AddCleanup("gmod_wire_spawner", spawner) end
 
 		return spawner
 	end

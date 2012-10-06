@@ -256,7 +256,7 @@ end
 
 
 function MakeWireGrabber( pl, Pos, Ang, model, Range, Gravity )
-	if not pl:CheckLimit( "wire_grabbers" ) then return false end
+	if (pl!=nil) then if not pl:CheckLimit( "wire_grabbers" ) then return false end end
 
 	local wire_grabber = ents.Create( "gmod_wire_grabber" )
 	if not wire_grabber:IsValid() then return false end
@@ -270,7 +270,7 @@ function MakeWireGrabber( pl, Pos, Ang, model, Range, Gravity )
 	wire_grabber:SetPlayer( pl )
 	wire_grabber.pl = pl
 
-	pl:AddCount( "wire_grabbers", wire_grabber )
+	if (pl!=nil) then pl:AddCount( "wire_grabbers", wire_grabber ) end
 
 	return wire_grabber
 end

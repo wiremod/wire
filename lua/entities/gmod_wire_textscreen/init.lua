@@ -82,7 +82,7 @@ function ENT:Retransmit(ply)
 end
 
 function MakeWireTextScreen( pl, Pos, Ang, model, text, chrPerLine, textJust, valign, fgcolor, bgcolor, frozen)
-	if ( !pl:CheckLimit( "wire_textscreens" ) ) then return false end
+	if (pl!=nil) then if ( !pl:CheckLimit( "wire_textscreens" ) ) then return false end end
 
 	-- Prevents unnecessary breakage by old text screen dupes
 	if !fgcolor or !fgcolor.r or !bgcolor or !bgcolor.r or !valign or !textJust or !chrPerLine or !text then
@@ -106,7 +106,7 @@ function MakeWireTextScreen( pl, Pos, Ang, model, text, chrPerLine, textJust, va
 	wire_textscreen:SetPlayer(pl)
 	wire_textscreen.pl = pl
 
-	pl:AddCount( "wire_textscreens", wire_textscreen )
+	if (pl!=nil) then pl:AddCount( "wire_textscreens", wire_textscreen ) end
 	return wire_textscreen
 end
 duplicator.RegisterEntityClass("gmod_wire_textscreen", MakeWireTextScreen, "Pos", "Ang", "Model", "text", "chrPerLine", "textJust", "valign", "fgcolor", "bgcolor", "frozen")

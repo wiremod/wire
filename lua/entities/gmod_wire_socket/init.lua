@@ -268,11 +268,11 @@ local function FindConstraint( ent, plug )
 end
 
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID, GetConstByID)
-	if (!ply:CheckLimit("wire_sockets")) then
+	if (ply!=nil) then if (pl!=nil) then if (!ply:CheckLimit("wire_sockets")) then end end
 		ent:Remove()
 		return
 	end
-	ply:AddCount( "wire_sockets", ent )
+	if (ply!=nil) then ply:AddCount( "wire_sockets", ent ) end
 
 	if (info.Socket) then
 		ent:SetUp( info.Socket.ArrayInput, info.Socket.WeldForce, info.Socket.AttachRange )

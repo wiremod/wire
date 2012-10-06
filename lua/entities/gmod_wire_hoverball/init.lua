@@ -242,7 +242,7 @@ end
 
 
 function MakeWireHoverBall( pl, Pos, Ang, model, speed, resistance, strength, nocollide )
-	if not pl:CheckLimit( "wire_hoverballs" ) then return nil end
+	if (pl!=nil) then if not pl:CheckLimit( "wire_hoverballs" ) then return nil end end
 
 	local wire_ball = ents.Create( "gmod_wire_hoverball" )
 	if not wire_ball:IsValid() then return false end
@@ -265,7 +265,7 @@ function MakeWireHoverBall( pl, Pos, Ang, model, speed, resistance, strength, no
 	}
 	table.Merge( wire_ball:GetTable(), ttable )
 
-	pl:AddCount( "wire_hoverballs", wire_ball )
+	if (pl!=nil) then pl:AddCount( "wire_hoverballs", wire_ball ) end
 
 	return wire_ball
 end

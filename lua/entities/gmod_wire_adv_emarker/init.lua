@@ -134,11 +134,11 @@ function ENT:BuildDupeInfo()
 end
 
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
-	if (!ply:CheckLimit("wire_adv_emarkers")) then
+	if (ply!=nil) then if (pl!=nil) then if (!ply:CheckLimit("wire_adv_emarkers")) then end end
 		ent:Remove()
 		return
 	end
-	ply:AddCount( "wire_adv_emarkers", ent )
+	if (ply!=nil) then ply:AddCount( "wire_adv_emarkers", ent ) end
 
 	if (info.marks) then
 		local tbl = info.marks

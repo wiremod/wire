@@ -1,7 +1,7 @@
 -- Get version
 function WireLib.GetWireVersion()
-	local version = "2288 (OLD VERSION)"
-	local plainversion = 2288
+	local version = "3003 (GMOD13 VERSION)"
+	local plainversion = 3003
 	local exported = true
 	local git = false
 

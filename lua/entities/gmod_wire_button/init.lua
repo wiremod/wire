@@ -142,7 +142,7 @@ end
 
 
 function MakeWireButton( pl, Pos, Ang, model, toggle, value_off, value_on, description, entityout, frozen )
-	if ( !pl:CheckLimit( "wire_buttons" ) ) then return false end
+	if (pl!=nil) then if ( !pl:CheckLimit( "wire_buttons" ) ) then return false end end
 
 	local wire_button = ents.Create( "gmod_wire_button" )
 	if (!wire_button:IsValid()) then return false end
@@ -161,7 +161,7 @@ function MakeWireButton( pl, Pos, Ang, model, toggle, value_off, value_on, descr
 	wire_button:SetPlayer(pl)
 	wire_button.pl = pl
 
-	pl:AddCount( "wire_buttons", wire_button )
+	if (pl!=nil) then pl:AddCount( "wire_buttons", wire_button ) end
 
 	return wire_button
 end

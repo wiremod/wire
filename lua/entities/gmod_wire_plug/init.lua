@@ -186,11 +186,11 @@ function ENT:BuildDupeInfo()
 end
 
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
-	if (!ply:CheckLimit("wire_plugs")) then
+	if (ply!=nil) then if (pl!=nil) then if (!ply:CheckLimit("wire_plugs")) then end end
 		ent:Remove()
 		return
 	end
-	ply:AddCount( "wire_plugs", ent )
+	if (ply!=nil) then ply:AddCount( "wire_plugs", ent ) end
 
 	if (info.Plug) then
 		ent:SetUp( info.Plug.ArrayInput )

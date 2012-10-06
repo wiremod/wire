@@ -36,7 +36,7 @@ function TOOL:LeftClick( trace )
 		return true
 	end
 
-	if ( !self:GetSWEP():CheckLimit( "wire_watersensors" ) ) then return false end
+	if (pl!=nil) then if ( !self:GetSWEP():CheckLimit( "wire_watersensors" ) ) then return false end end
 
 	if ( !util.IsValidModel( ModelInfo[3] ) ) then return false end
 	if ( !util.IsValidProp( ModelInfo[3] ) ) then return false end
@@ -57,7 +57,7 @@ function TOOL:LeftClick( trace )
 		undo.SetPlayer( ply )
 	undo.Finish()
 
-	ply:AddCleanup( "wire_watersensors", wire_watersensor )
+	if (ply!=nil) then ply:AddCleanup( "wire_watersensors", wire_watersensor ) end
 
 	return true
 end
@@ -65,7 +65,7 @@ end
 if (SERVER) then
 
 	function MakeWireWatersensor( pl, Pos, Ang, model )
-		if ( !pl:CheckLimit( "wire_watersensors" ) ) then return false end
+		if (pl!=nil) then if ( !pl:CheckLimit( "wire_watersensors" ) ) then return false end end
 
 		local wire_watersensor = ents.Create( "gmod_wire_watersensor" )
 		if (!wire_watersensor:IsValid()) then return false end
@@ -82,7 +82,7 @@ if (SERVER) then
 		wire_watersensor:SetPlayer( pl )
 		wire_watersensor.pl = pl
 
-		pl:AddCount( "wire_watersensors", wire_watersensor )
+		if (pl!=nil) then pl:AddCount( "wire_watersensors", wire_watersensor ) end
 
 		return wire_watersensor
 	end

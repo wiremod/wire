@@ -34,7 +34,7 @@ function TOOL:LeftClick(trace)
 		return true
 	end
 
-	if not self:GetSWEP():CheckLimit("wire_vehicles") then return false end
+	if (pl!=nil) then if not self:GetSWEP():CheckLimit("wire_vehicles") then return false end end
 
 	local Ang = trace.HitNormal:Angle()
 	Ang.pitch = Ang.pitch + 90
@@ -51,7 +51,7 @@ function TOOL:LeftClick(trace)
 		undo.SetPlayer(ply)
 	undo.Finish()
 
-	ply:AddCleanup("wire_vehicles", wire_vehicle)
+	if (ply!=nil) then ply:AddCleanup("wire_vehicles", wire_vehicle) end
 
 	return true
 end
@@ -79,7 +79,7 @@ end
 if SERVER then
 
 	function MakeWireVehicle(pl, Pos, Ang, model)
-		if not pl:CheckLimit("wire_vehicles") then return false end
+		if (pl!=nil) then if not pl:CheckLimit("wire_vehicles") then return false end end
 
 		local wire_vehicle = ents.Create("gmod_wire_vehicle")
 		if not wire_vehicle:IsValid() then return false end
@@ -91,7 +91,7 @@ if SERVER then
 		wire_vehicle:SetPlayer(pl)
 		wire_vehicle.pl = pl
 
-		pl:AddCount("wire_vehicles", wire_vehicle)
+		if (pl!=nil) then pl:AddCount("wire_vehicles", wire_vehicle) end
 
 		return wire_vehicle
 	end

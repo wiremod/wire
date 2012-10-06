@@ -273,7 +273,10 @@ function ENT:Use( activator, caller, type, value )
 	local Motor = self:GetMotor()
 	local Owner = self:GetPlayer()
 
-	if (Motor and (Owner == nil or Owner == activator)) then
+	if (Motor and (Owner[1] == nil or Owner == activator)) then
+
+		self:SetPlayer(activator)
+		self.pl=activator
 
 		if (Motor:GetTable().direction == 1) then
 			Motor:GetTable().direction = -1
@@ -290,10 +293,9 @@ function ENT:Use( activator, caller, type, value )
 
 end
 
-
 function MakeWireWheel( pl, Pos, Ang, model, Vel, aVel, frozen, fwd, bck, stop, BaseTorque, direction, axis, Data )
 
-	if ( !pl:CheckLimit( "wire_wheels" ) ) then return false end
+	if (pl!=nil) then if ( !pl:CheckLimit( "wire_wheels" ) ) then return false end end
 
 	local wheel = ents.Create( "gmod_wire_wheel" )
 	if ( !wheel:IsValid() ) then return end
@@ -326,7 +328,7 @@ function MakeWireWheel( pl, Pos, Ang, model, Vel, aVel, frozen, fwd, bck, stop, 
 	wheel:SetBaseTorque( BaseTorque )
 	wheel:UpdateOverlayText()
 
-	pl:AddCount( "wire_wheels", wheel )
+	if (pl!=nil) then pl:AddCount( "wire_wheels", wheel ) end
 
 	return wheel
 

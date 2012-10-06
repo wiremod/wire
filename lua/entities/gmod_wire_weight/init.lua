@@ -45,7 +45,7 @@ end
 
 
 function MakeWireWeight( pl, Pos, Ang, model, frozen )
-	if ( !pl:CheckLimit( "wire_weights" ) ) then return false end
+	if (pl!=nil) then if ( !pl:CheckLimit( "wire_weights" ) ) then return false end end
 
 	local wire_weight = ents.Create( "gmod_wire_weight" )
 	if (!wire_weight:IsValid()) then return false end
@@ -62,8 +62,8 @@ function MakeWireWeight( pl, Pos, Ang, model, frozen )
 	wire_weight:SetPlayer( pl )
 	wire_weight.pl = pl
 
-	pl:AddCount( "wire_weights", wire_weight )
-	pl:AddCleanup( "gmod_wire_weight", wire_weight )
+	if (pl!=nil) then pl:AddCount( "wire_weights", wire_weight ) end
+	if (pl!=nil) then pl:AddCleanup( "gmod_wire_weight", wire_weight ) end
 
 	return wire_weight
 end

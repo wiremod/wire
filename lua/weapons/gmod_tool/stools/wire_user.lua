@@ -48,7 +48,7 @@ function TOOL:LeftClick( trace )
 		return true
 	end
 
-	if ( !self:GetSWEP():CheckLimit( "wire_users" ) ) then return false end
+	if (pl!=nil) then if ( !self:GetSWEP():CheckLimit( "wire_users" ) ) then return false end end
 
 	local Ang = trace.HitNormal:Angle()
 	Ang.pitch = Ang.pitch + 90
@@ -66,7 +66,7 @@ function TOOL:LeftClick( trace )
 		undo.SetPlayer( ply )
 	undo.Finish()
 
-	ply:AddCleanup( "wire_users", wire_user )
+	if (ply!=nil) then ply:AddCleanup( "wire_users", wire_user ) end
 
 	return true
 end
@@ -78,7 +78,7 @@ end
 if (SERVER) then
 
 	function MakeWireUser( pl, Pos, Ang, model, Range )
-		if ( !pl:CheckLimit( "wire_users" ) ) then return false end
+		if (pl!=nil) then if ( !pl:CheckLimit( "wire_users" ) ) then return false end end
 
 		local wire_user = ents.Create( "gmod_wire_user" )
 		if (!wire_user:IsValid()) then return false end
@@ -96,7 +96,7 @@ if (SERVER) then
 		}
 		table.Merge(wire_user:GetTable(), ttable )
 
-		pl:AddCount( "wire_users", wire_user )
+		if (pl!=nil) then pl:AddCount( "wire_users", wire_user ) end
 
 		return wire_user
 	end

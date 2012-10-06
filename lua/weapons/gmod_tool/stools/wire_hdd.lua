@@ -46,7 +46,7 @@ function TOOL:LeftClick( trace )
 		return true
 	end
 
-	if ( !self:GetSWEP():CheckLimit( "wire_hdds" ) ) then return false end
+	if (pl!=nil) then if ( !self:GetSWEP():CheckLimit( "wire_hdds" ) ) then return false end end
 
 	if (not util.IsValidModel(self:GetClientInfo( "model" ))) then return false end
 	if (not util.IsValidProp(self:GetClientInfo( "model" ))) then return false end
@@ -70,7 +70,7 @@ function TOOL:LeftClick( trace )
 		undo.SetPlayer( ply )
 	undo.Finish()
 
-	ply:AddCleanup( "wire_hdds", wire_hdd )
+	if (ply!=nil) then ply:AddCleanup( "wire_hdds", wire_hdd ) end
 
 	return true
 end
@@ -79,7 +79,7 @@ if (SERVER) then
 
 	function MakeWirehdd( pl, Pos, Ang, model, DriveID, DriveCap)
 
-		if ( !pl:CheckLimit( "wire_hdds" ) ) then return false end
+		if (pl!=nil) then if ( !pl:CheckLimit( "wire_hdds" ) ) then return false end end
 
 		local wire_hdd = ents.Create( "gmod_wire_hdd" )
 		if (!wire_hdd:IsValid()) then return false end
@@ -100,7 +100,7 @@ if (SERVER) then
 
 		table.Merge(wire_hdd:GetTable(), ttable )
 
-		pl:AddCount( "wire_hdds", wire_hdd )
+		if (pl!=nil) then pl:AddCount( "wire_hdds", wire_hdd ) end
 
 		return wire_hdd
 
@@ -366,7 +366,7 @@ function TOOL.BuildCPanel(panel)
 	local mdl = vgui.Create("DWireModelSelect")
 	mdl:SetModelList( list.Get("Wire_gate_Models"), "wire_hdd_model" )
 	mdl:SetHeight( 5 )
-	panel:Add( mdl )
+	panel:AddPanel( mdl )
 
 	panel:AddControl("Slider", {
 		Label = "Drive ID",

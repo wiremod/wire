@@ -448,7 +448,7 @@ do --wire_turret
 			return true
 		end
 
-		if not self:GetSWEP():CheckLimit( "wire_turrets" ) then return false end
+		if (pl!=nil) then if not self:GetSWEP():CheckLimit( "wire_turrets" ) then return false end end
 
 		trace.HitPos = trace.HitPos + trace.HitNormal * 2
 
@@ -886,7 +886,7 @@ do --wire_thruster
 
 		CateGoryOW:SetContents( ctrl )
 
-		panel:Add(CateGoryOW)
+		panel:AddPanel(CateGoryOW)
 
 		Effects["#Same as over water"] = "same"
 
@@ -905,7 +905,7 @@ do --wire_thruster
 
 		CateGoryUW:SetContents( ctrlUW )
 
-		panel:Add(CateGoryUW)
+		panel:AddPanel(CateGoryUW)
 
 
 		local lst = {}

@@ -57,7 +57,7 @@ end
 
 
 function MakeWirePixel( pl, Pos, Ang, model, nocollide)
-	if ( !pl:CheckLimit( "wire_pixels" ) ) then return false end
+	if (pl!=nil) then if ( !pl:CheckLimit( "wire_pixels" ) ) then return false end end
 
 	local wire_pixel = ents.Create( "gmod_wire_pixel" )
 	if (!wire_pixel:IsValid()) then return false end
@@ -78,7 +78,7 @@ function MakeWirePixel( pl, Pos, Ang, model, nocollide)
 	}
 	table.Merge(wire_pixel:GetTable(), ttable )
 
-	pl:AddCount( "wire_pixels", wire_pixel )
+	if (pl!=nil) then pl:AddCount( "wire_pixels", wire_pixel ) end
 
 	return wire_pixel
 end

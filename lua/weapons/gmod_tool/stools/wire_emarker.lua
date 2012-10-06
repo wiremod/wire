@@ -61,7 +61,7 @@ function TOOL:LeftClick(trace)
 		self:GetWeapon():SetNetworkedEntity( "WireEntityMarker", self.marker )
 		return true
 	else
-		if ( !self:GetSWEP():CheckLimit( "wire_emarkers" ) ) then return false end
+		if (pl!=nil) then if ( !self:GetSWEP():CheckLimit( "wire_emarkers" ) ) then return false end end
 		local Ang = trace.HitNormal:Angle()
 		Ang.pitch = Ang.pitch + 90
 
@@ -77,7 +77,7 @@ function TOOL:LeftClick(trace)
 			undo.SetPlayer( ply )
 		undo.Finish()
 
-		ply:AddCleanup( "wire_emarkers", wire_emarker )
+		if (ply!=nil) then ply:AddCleanup( "wire_emarkers", wire_emarker ) end
 
 		return true
 	end
@@ -139,7 +139,7 @@ end
 if SERVER then
 
 	function MakeWireEmarker( pl, Pos, Ang, model, nocollide )
-		if (!pl:CheckLimit("wire_emarkers")) then return false end
+		if (pl!=nil) then if (!pl:CheckLimit("wire_emarkers")) then return false end end
 
 		local wire_emarker = ents.Create("gmod_wire_emarker")
 		wire_emarker:SetPos(Pos)
@@ -158,7 +158,7 @@ if SERVER then
 		}
 		table.Merge( wire_emarker:GetTable(), ttable )
 
-		pl:AddCount( "wire_emarkers", wire_emarker )
+		if (pl!=nil) then pl:AddCount( "wire_emarkers", wire_emarker ) end
 
 		return wire_emarker
 	end

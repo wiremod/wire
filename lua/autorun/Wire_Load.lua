@@ -3,6 +3,8 @@ if VERSION < 151 then
 	return
 end
 
+LUA_PATH="LUA"
+
 if SERVER then
 	-- this file
 	AddCSLuaFile("autorun/Wire_Load.lua")

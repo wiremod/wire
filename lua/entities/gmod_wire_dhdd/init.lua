@@ -77,11 +77,11 @@ function ENT:BuildDupeInfo()
 end
 
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
-	if (!ply:CheckLimit("wire_dhdds")) then
+	if (ply!=nil) then if (pl!=nil) then if (!ply:CheckLimit("wire_dhdds")) then end end
 		ent:Remove()
 		return
 	end
-	ply:AddCount( "wire_dhdds", ent )
+	if (ply!=nil) then ply:AddCount( "wire_dhdds", ent ) end
 
 	if (info.DHDD) then
 		ent.Memory = (info.DHDD.Memory or {})

@@ -74,7 +74,7 @@ function TOOL:LeftClick(trace)
 		return true
 	end
 
-	if not self:GetSWEP():CheckLimit("wire_pods") then return false end
+	if (pl!=nil) then if not self:GetSWEP():CheckLimit("wire_pods") then return false end end
 
 	local Ang = trace.HitNormal:Angle()
 	Ang.pitch = Ang.pitch + 90
@@ -91,7 +91,7 @@ function TOOL:LeftClick(trace)
 		undo.SetPlayer(ply)
 	undo.Finish()
 
-	ply:AddCleanup("wire_pods", wire_pod)
+	if (ply!=nil) then ply:AddCleanup("wire_pods", wire_pod) end
 
 	return true
 end
@@ -119,7 +119,7 @@ end
 if SERVER then
 
 	function MakeWirePod(pl, Pos, Ang, model, Keys)
-		if not pl:CheckLimit("wire_pods") then return false end
+		if (pl!=nil) then if not pl:CheckLimit("wire_pods") then return false end end
 
 		local wire_pod = ents.Create("gmod_wire_pod")
 		if not wire_pod:IsValid() then return false end
@@ -131,7 +131,7 @@ if SERVER then
 		wire_pod:SetPlayer(pl)
 		wire_pod.pl = pl
 
-		pl:AddCount("wire_pods", wire_pod)
+		if (pl!=nil) then pl:AddCount("wire_pods", wire_pod) end
 
 		if Keys then
 			wire_pod:SetKeys(Keys)

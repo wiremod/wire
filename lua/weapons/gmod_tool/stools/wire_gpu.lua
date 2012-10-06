@@ -39,7 +39,7 @@ if SERVER then
   -- ZGPU entity factory
   ------------------------------------------------------------------------------
   local function MakeWireGPU(player, Pos, Ang, model)
-    if !player:CheckLimit("wire_gpus") then return false end
+if (player!=nil) then     if (pl!=nil) then if !player:CheckLimit("wire_gpus") then return false end end end
 
     local self = ents.Create("gmod_wire_gpu")
     if !self:IsValid() then return false end
@@ -51,8 +51,8 @@ if SERVER then
     self:SetPlayer(player)
     self.player = player
 
-    player:AddCount("wire_gpus", self)
-    player:AddCleanup("wire_gpus", self)
+if (player!=nil) then     player:AddCount("wire_gpus", self) end
+if (player!=nil) then     player:AddCleanup("wire_gpus", self) end
     return self
   end
   duplicator.RegisterEntityClass("gmod_wire_gpu", MakeWireGPU, "Pos", "Ang", "Model")
@@ -98,12 +98,12 @@ if SERVER then
       return true
     end
 
-    if !self:GetSWEP():CheckLimit("wire_gpus") then return false end
+    if (pl!=nil) then if !self:GetSWEP():CheckLimit("wire_gpus") then return false end end
 
     local entity = ents.Create("gmod_wire_gpu")
     if !entity:IsValid() then return false end
 
-    player:AddCount("wire_gpus", entity)
+if (player!=nil) then     player:AddCount("wire_gpus", entity) end
 
     entity:SetModel(model)
     entity:SetAngles(ang)
@@ -123,7 +123,7 @@ if SERVER then
 
     entity:SetMemoryModel(self:GetClientInfo("memorymodel"))
 
-    player:AddCleanup("wire_gpus", entity)
+if (player!=nil) then     player:AddCleanup("wire_gpus", entity) end
     CPULib.SetUploadTarget(entity,player)
     player:SendLua("ZGPU_RequestCode()")
     return true

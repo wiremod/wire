@@ -204,8 +204,8 @@ do -- wire_7seg
 				local const = WireLib.Weld(wire_indicators[x], trace.Entity, trace.PhysicsBone, true, false, worldweld)
 				undo.AddEntity( wire_indicators[x] )
 				undo.AddEntity( const )
-				ply:AddCleanup( "wire_indicators", wire_indicators[x] )
-				ply:AddCleanup( "wire_indicators", const)
+				if (ply!=nil) then ply:AddCleanup( "wire_indicators", wire_indicators[x] ) end
+				if (ply!=nil) then ply:AddCleanup( "wire_indicators", const) end
 			end
 			undo.SetPlayer( ply )
 		undo.Finish()
@@ -408,7 +408,7 @@ do -- wire_lamp
 				undo.Finish()
 			end
 
-			ply:AddCleanup( self.WireClass, ent )
+			if (ply!=nil) then ply:AddCleanup( self.WireClass, ent ) end
 
 			return true
 		end
@@ -454,7 +454,7 @@ do -- wire_lamp
 			undo.SetPlayer( ply )
 		undo.Finish()
 
-		ply:AddCleanup( self.WireClass, ent )
+		if (ply!=nil) then ply:AddCleanup( self.WireClass, ent ) end
 
 		return true
 	end
@@ -763,7 +763,7 @@ do -- wire_soundemitter
 		SoundNameText:SetMultiline(false)
 		SoundNameText:SetConVar("wire_soundemitter_sound")
 		SoundNameText:SetVisible(true)
-		panel:Add(SoundNameText)
+		panel:AddPanel(SoundNameText)
 
 		local SoundBrowserButton = vgui.Create("DButton")
 		SoundBrowserButton:SetText("Open Sound Browser")
@@ -773,7 +773,7 @@ do -- wire_soundemitter
 		SoundBrowserButton.DoClick = function()
 			RunConsoleCommand("wire_sound_browser_open",SoundNameText:GetValue())
 		end
-		panel:Add(SoundBrowserButton)
+		panel:AddPanel(SoundBrowserButton)
 
 		local SoundPre = vgui.Create("DPanel")
 		SoundPre:SetWide(wide)
@@ -801,7 +801,7 @@ do -- wire_soundemitter
 		SoundPreStop.DoClick = function()
 			RunConsoleCommand("play", "common/NULL.WAV") //Playing a silent sound will mute the preview but not the sound emitters.
 		end
-		panel:Add(SoundPre)
+		panel:AddPanel(SoundPre)
 		SoundPre:InvalidateLayout(true)
 		SoundPre.PerformLayout = function()
 			local SoundPreWide = SoundPre:GetWide()

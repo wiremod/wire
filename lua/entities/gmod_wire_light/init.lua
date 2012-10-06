@@ -185,7 +185,7 @@ function ENT:ShowOutput( R, G, B )
 end
 
 function MakeWireLight( pl, Pos, Ang, model, directional, radiant, glow, nocollide, frozen)
-	if ( !pl:CheckLimit( "wire_lights" ) ) then return false end
+	if (pl!=nil) then if ( !pl:CheckLimit( "wire_lights" ) ) then return false end end
 
 	local wire_light = ents.Create( "gmod_wire_light" )
 	if (!wire_light:IsValid()) then return false end
@@ -212,7 +212,7 @@ function MakeWireLight( pl, Pos, Ang, model, directional, radiant, glow, nocolli
 	}
 	table.Merge(wire_light:GetTable(), ttable )
 
-	pl:AddCount( "wire_lights", wire_light )
+	if (pl!=nil) then pl:AddCount( "wire_lights", wire_light ) end
 
 	return wire_light
 end
