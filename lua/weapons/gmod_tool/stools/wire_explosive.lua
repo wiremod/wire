@@ -240,7 +240,7 @@ function TOOL:RightClick( trace )
 		duplicator.StoreEntityModifier( trace.Entity, "MassMod", {Mass = weight} )
 
 		//reset color in case we turned the color effect off and it's still red
-		trace.Entity:SetColor12(255, 255, 255, 255)
+		trace.Entity:SetColor(Color(255, 255, 255, 255))
 
 		return true
 	end

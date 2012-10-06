@@ -59,9 +59,9 @@ function ENT:TriggerInput(iname, value)
 
 			if !CheckPP( self.pl, trace.Entity ) then return end
 			if trace.Entity:IsPlayer() then
-				trace.Entity:SetColor12( self.InColor.r, self.InColor.g, self.InColor.b, 255 )
+				trace.Entity:SetColor(Color(self.InColor.r, self.InColor.g, self.InColor.b, 255))
 			else
-				trace.Entity:SetColor12( self.InColor.r, self.InColor.g, self.InColor.b, self.InColor.a )
+				trace.Entity:SetColor(Color(self.InColor.r, self.InColor.g, self.InColor.b, self.InColor.a))
 			end
 		end
 	elseif iname == "R" then
@@ -106,12 +106,12 @@ function ENT:Think()
 		local trace = util.TraceLine( trace )
 
 		if !IsValid( trace.Entity ) then return end
-		local r,g,b,a = trace.Entity:GetColor12()
+		local c = trace.Entity:GetColor()
 
-		Wire_TriggerOutput(self,"R", r)
-		Wire_TriggerOutput(self,"G", g)
-		Wire_TriggerOutput(self,"B", b)
-		Wire_TriggerOutput(self,"A", a)
+		Wire_TriggerOutput(self,"R", c.r)
+		Wire_TriggerOutput(self,"G", c.g)
+		Wire_TriggerOutput(self,"B", c.b)
+		Wire_TriggerOutput(self,"A", c.a)
 
 		self:ShowOutput()
 	end

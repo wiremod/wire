@@ -77,7 +77,7 @@ function ENT:DoSpawn( pl, down )
 
 	-- apply material and color (TAD2020)
 	prop:SetMaterial( ent:GetMaterial() )
-	prop:SetColor12( self.r, self.g, self.b, self.a )
+	prop:SetColor(Color(self.r, self.g, self.b, self.a))
 
 	-- set the skin {Jeremydeath}
 	prop:SetSkin( ent:GetSkin() or 0 )

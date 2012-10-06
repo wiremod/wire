@@ -5,23 +5,6 @@ local libs = {
 	"http"
 }
 
-function _R.Entity.SetColor12(self,r,g,b,a)
-	if VERSION >= 150 then
-		return self:SetColor(Color(r,g,b,a or 255))
-	else
-		return self:SetColor(r,g,b,a)
-	end
-end
-
-function _R.Entity.GetColor12(self)
-	if VERSION >= 150 then
-		local clr = self:GetColor()
-		return clr.r,clr.g,clr.b,clr.a
-	else
-		return self:GetColor()
-	end
-end
-
 if VERSION < 150 then
 	if not datastream then require("datastream") end
 	function datastream.__prepareStream(streamID) end

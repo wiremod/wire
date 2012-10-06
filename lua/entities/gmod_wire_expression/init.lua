@@ -401,13 +401,13 @@ ENT._vecrotate_4 =    function (self, v, p, y, r) if self:IsVector(v) then local
 
 -- EXTERNAL INPUT EXTENSION
 
-ENT._extcolor_3 =   function (self, r, g, b)    self:SetColor12(math.Clamp(r, 0, 255), math.Clamp(g, 0, 255), math.Clamp(b, 0, 255), 255)                   return 0 end
-ENT._extcolor_4 =   function (self, r, g, b, a) self:SetColor12(math.Clamp(r, 0, 255), math.Clamp(g, 0, 255), math.Clamp(b, 0, 255), math.Clamp(a, 0, 255)) return 0 end
+ENT._extcolor_3 =   function (self, r, g, b)    self:SetColor(Color(math.Clamp(r, 0, 255), math.Clamp(g, 0, 255), math.Clamp(b, 0, 255), 255))                   return 0 end
+ENT._extcolor_4 =   function (self, r, g, b, a) self:SetColor(Color(math.Clamp(r, 0, 255), math.Clamp(g, 0, 255), math.Clamp(b, 0, 255), math.Clamp(a, 0, 255))) return 0 end
 
-ENT._extcolorr_0 =  function (self) local tbl = { self:GetColor12() } return tbl[0] end
-ENT._extcolorg_0 =  function (self) local tbl = { self:GetColor12() } return tbl[1] end
-ENT._extcolorb_0 =  function (self) local tbl = { self:GetColor12() } return tbl[2] end
-ENT._extcolora_0 =  function (self) local tbl = { self:GetColor12() } return tbl[3] end
+ENT._extcolorr_0 =  function (self) return self:GetColor().r end
+ENT._extcolorg_0 =  function (self) return self:GetColor().g end
+ENT._extcolorb_0 =  function (self) return self:GetColor().b end
+ENT._extcolora_0 =  function (self) return self:GetColor().a end
 
 ENT._extdirfwx_0 =   function (self) return self:GetForward().x end
 ENT._extdirfwy_0 =   function (self) return self:GetForward().y end

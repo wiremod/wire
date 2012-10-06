@@ -83,16 +83,17 @@ function ENT:Setup( damage, delaytime, removeafter, doblastdamage, radius, affec
 	self:SetMaxHealth(maxhealth)
 	self:ResetHealth()
 
+	--[[
+	self:SetHealth(maxhealth)
+	Wire_TriggerOutput(self, "Health", maxhealth)
 
-	//self:SetHealth(maxhealth)
-	//Wire_TriggerOutput(self, "Health", maxhealth)
-
-	//reset everthing back and try to stop exploding
-	//self.exploding = false
-	//self.reloading = false
-	//self.count = 0
-	//self:Extinguish()
-	//if (self.ColorEffect) then self:SetColor12(255, 255, 255, 255) end
+	reset everthing back and try to stop exploding
+	self.exploding = false
+	self.reloading = false
+	self.count = 0
+	self:Extinguish()
+	if (self.ColorEffect) then self:SetColor(Color(255, 255, 255, 255)) end
+	]]
 
 	self.NormInfo = "Explosive"
 	if (self.DoBlastDamage) then self.NormInfo = self.NormInfo.." (Damage: "..self.Damage..")" end
@@ -108,13 +109,13 @@ function ENT:ResetHealth( )
 	self:SetHealth( self:GetMaxHealth() )
 	Wire_TriggerOutput(self, "Health", self:GetMaxHealth())
 
-	//put the fires out and try to stop exploding
+	-- put the fires out and try to stop exploding
 	self.exploding = false
 	self.reloading = false
 	self.count = 0
 	self:Extinguish()
 
-	if (self.ColorEffect) then self:SetColor12(255, 255, 255, 255) end
+	if (self.ColorEffect) then self:SetColor(Color(255, 255, 255, 255)) end
 
 	self:SetNoDraw( false )
 
@@ -150,11 +151,11 @@ function ENT:OnTakeDamage( dmginfo )
 		Wire_TriggerOutput(self, "Health", h)
 		self:ShowOutput()
 		if (self.ColorEffect) then
-			if (h == 0) then c = 0 else c = 255 * (h / self:GetMaxHealth()) end
-			self:SetColor12(255, c, c, 255)
+			local c = h == 0 and 0 or 255 * (h / self:GetMaxHealth())
+			self:SetColor(Color(255, c, c, 255))
 		end
 		if (h == 0) then
-			if (self.ExplodeAtZero) then self:Trigger() end //oh shi--
+			if (self.ExplodeAtZero) then self:Trigger() end
 		end
 	end
 
@@ -237,7 +238,7 @@ function ENT:Explode( )
 	if (self.InvisibleAtZero) then
 		ply:SetCollisionGroup(COLLISION_GROUP_DEBRIS)
 		ply:SetNoDraw( true )
-		ply:SetColor12(255, 255, 255, 0)
+		ply:SetColor(Color(255, 255, 255, 0))
 	end
 
 	if ( self.DoBlastDamage ) then
@@ -271,13 +272,12 @@ function ENT:ShowOutput( )
 	if (self.reloading && self.Delayreloadtime > 0) then
 		txt = "Rearming... "..self.count
 		if (self.ColorEffect && !self.InvisibleAtZero) then
-			if (self.count == 0) then c = 255 else c = 255 * ((self.Delayreloadtime - self.count) / self.Delayreloadtime) end
-			self:SetColor12(255, c, c, 255)
+			local c = 255 * ((self.Delayreloadtime - self.count) / self.Delayreloadtime)
+			self:SetColor(Color(255, c, c, 255))
 		end
 		if (self.InvisibleAtZero) then
 			ply:SetNoDraw( false )
-			if (self.count == 0) then c = 255 else c = 255 * ((self.Delayreloadtime - self.count) / self.Delayreloadtime) end
-			self:SetColor12(255, 255, 255, c)
+			self:SetColor(Color(255, 255, 255, 255 * ((self.Delayreloadtime - self.count) / self.Delayreloadtime)))
 		end
 	elseif (self.exploding) then
 		txt = "Triggered... "..self.count
