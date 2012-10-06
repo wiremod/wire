@@ -3,11 +3,11 @@ TOOL.Name			= "Wire Advanced"
 TOOL.Tab      = "Wire"
 
 if CLIENT then
-	language12.Add( "Tool_wire_adv_name", "Advanced Wiring Tool" )
-	language12.Add( "Tool_wire_adv_desc", "Used to connect wirable props." )
-	language12.Add( "Tool_wire_adv_0", "Primary: Attach to selected input, Secondary: Next input, Reload: Unlink selected input, Wheel: Select input." )
-	language12.Add( "Tool_wire_adv_1", "Primary: Attach to output, Secondary: Attach but continue, Reload: Cancel." )
-	language12.Add( "Tool_wire_adv_2", "Primary: Confirm attach to output, Secondary: Next output, Reload: Cancel, Wheel: Select output." )
+	language.Add( "Tool.wire_adv.name", "Advanced Wiring Tool" )
+	language.Add( "Tool.wire_adv.desc", "Used to connect wirable props." )
+	language.Add( "Tool.wire_adv.0", "Primary: Attach to selected input, Secondary: Next input, Reload: Unlink selected input, Wheel: Select input." )
+	language.Add( "Tool.wire_adv.1", "Primary: Attach to output, Secondary: Attach but continue, Reload: Cancel." )
+	language.Add( "Tool.wire_adv.2", "Primary: Confirm attach to output, Secondary: Next output, Reload: Cancel, Wheel: Select output." )
 end
 
 TOOL.ClientConVar = {

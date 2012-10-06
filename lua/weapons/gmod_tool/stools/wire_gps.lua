@@ -5,11 +5,11 @@ TOOL.ConfigName		= ""
 TOOL.Tab			= "Wire"
 
 if ( CLIENT ) then
-    language12.Add( "Tool_wire_gps_name", "GPS Tool (Wire)" )
-    language12.Add( "Tool_wire_gps_desc", "Spawns a gps for use with the wire system." )
-    language12.Add( "Tool_wire_gps_0", "Primary: Create/Update GPS" )
-	language12.Add( "sboxlimit_wire_gpss", "You've hit GPS limit!" )
-	language12.Add( "undone_wiregps", "Undone Wire GPS" )
+    language.Add( "Tool.wire_gps.name", "GPS Tool (Wire)" )
+    language.Add( "Tool.wire_gps.desc", "Spawns a gps for use with the wire system." )
+    language.Add( "Tool.wire_gps.0", "Primary: Create/Update GPS" )
+	language.Add( "sboxlimit_wire_gpss", "You've hit GPS limit!" )
+	language.Add( "undone_wiregps", "Undone Wire GPS" )
 end
 
 if (SERVER) then

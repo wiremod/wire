@@ -5,12 +5,12 @@ TOOL.ConfigName		= ""
 TOOL.Tab			= "Wire"
 
 if (CLIENT) then
-    language12.Add("Tool_wire_cd_disk_name", "CD Disk Tool (Wire)")
-    language12.Add("Tool_wire_cd_disk_desc", "Spawns a CD Disk.")
-    language12.Add("Tool_wire_cd_disk_0", "Primary: Create/Update CD Disk, Secondary: Change model")
-    language12.Add("WireDataTransfererTool_cd_disk", "CD Disk:")
-	language12.Add("sboxlimit_wire_cd_disks", "You've hit CD Disks limit!")
-	language12.Add("undone_Wire CD Disk", "Undone Wire CD Disk")
+    language.Add("Tool.wire_cd_disk.name", "CD Disk Tool (Wire)")
+    language.Add("Tool.wire_cd_disk.desc", "Spawns a CD Disk.")
+    language.Add("Tool.wire_cd_disk.0", "Primary: Create/Update CD Disk, Secondary: Change model")
+    language.Add("WireDataTransfererTool_cd_disk", "CD Disk:")
+	language.Add("sboxlimit_wire_cd_disks", "You've hit CD Disks limit!")
+	language.Add("undone_Wire CD Disk", "Undone Wire CD Disk")
 end
 
 if (SERVER) then

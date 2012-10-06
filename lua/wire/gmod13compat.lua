@@ -57,14 +57,6 @@ if SERVER then
 		net.Send(player)
 	end
 else
-	language12.OAdd = language12.Add
-	function language12.Add(phrase, text)
-		if phrase:find("^Tool_") then
-			local alsoadd = phrase:gsub("^Tool_(.*)_(.*)$", "tool.%1.%2")
-			language12.OAdd(alsoadd, text)
-		end
-		return language12.OAdd(phrase, text)
-	end
 	function datastream12.StreamToServer(streamID, data)
 		net.Start("ds12_" .. streamID)
 			net.WriteTable(data)

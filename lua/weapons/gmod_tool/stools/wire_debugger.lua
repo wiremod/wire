@@ -5,11 +5,11 @@ TOOL.ConfigName		= ""
 TOOL.Tab			= "Wire"
 
 if ( CLIENT ) then
-	language12.Add( "Tool_wire_debugger_name", "Debugging Tool" )
-	language12.Add( "Tool_wire_debugger_desc", "Shows selected components info on the HUD." )
-	language12.Add( "Tool_wire_debugger_0", "Primary: Add component to HUD, Secondary: Remove component from HUD, Reload: Clear HUD" )
-	language12.Add( "Tool_wire_debugger_showports", "Show overlay of ports in HUD" )
-	language12.Add( "Tool_wire_debugger_orientvertical", "Orient the Inputs/Outputs Vertically" )
+	language.Add( "Tool.wire_debugger.name", "Debugging Tool" )
+	language.Add( "Tool.wire_debugger.desc", "Shows selected components info on the HUD." )
+	language.Add( "Tool.wire_debugger.0", "Primary: Add component to HUD, Secondary: Remove component from HUD, Reload: Clear HUD" )
+	language.Add( "Tool_wire_debugger_showports", "Show overlay of ports in HUD" )
+	language.Add( "Tool_wire_debugger_orientvertical", "Orient the Inputs/Outputs Vertically" )
 end
 
 TOOL.ClientConVar[ "showports" ] = "1"

@@ -5,13 +5,13 @@ TOOL.ConfigName		= ""
 TOOL.Tab			= "Wire"
 
 if ( CLIENT ) then
-	language12.Add( "Tool_wire_nailer_name", "Nailer Tool (Wire)" )
-	language12.Add( "Tool_wire_nailer_desc", "Spawns a constant nailer prop for use with the wire system." )
-	language12.Add( "Tool_wire_nailer_0", "Primary: Create/Update Nailer" )
-	language12.Add( "WireNailerTool_nailer", "Nailer:" )
-	language12.Add( "WireNailerTool_Model", "Choose a Model:")
-	language12.Add( "sboxlimit_wire_nailers", "You've hit nailers limit!" )
-	language12.Add( "undone_wirenailer", "Undone Wire Nailer" )
+	language.Add( "Tool.wire_nailer.name", "Nailer Tool (Wire)" )
+	language.Add( "Tool.wire_nailer.desc", "Spawns a constant nailer prop for use with the wire system." )
+	language.Add( "Tool.wire_nailer.0", "Primary: Create/Update Nailer" )
+	language.Add( "WireNailerTool_nailer", "Nailer:" )
+	language.Add( "WireNailerTool_Model", "Choose a Model:")
+	language.Add( "sboxlimit_wire_nailers", "You've hit nailers limit!" )
+	language.Add( "undone_wirenailer", "Undone Wire Nailer" )
 end
 
 if (SERVER) then

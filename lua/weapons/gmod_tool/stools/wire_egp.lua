@@ -173,18 +173,18 @@ if (SERVER) then
 	end
 end
 if (CLIENT) then
-	language12.Add( "Tool_wire_egp_name", "E2 Graphics Processor" )
-    language12.Add( "Tool_wire_egp_desc", "EGP Tool" )
-    language12.Add( "Tool_wire_egp_0", "Primary: Create EGP Screen/HUD/Emitter, Secondary: Link EGP HUD to vehicle, Reload: Open the Reload Menu for several lag fixing options." )
-	language12.Add( "Tool_wire_egp_1", "Now right click a vehicle, or right click the same EGP HUD again to unlink it." )
-	language12.Add( "sboxlimit_wire_egps", "You've hit the EGP limit!" )
-	language12.Add( "Undone_wire_egp", "Undone EGP" )
-	language12.Add( "Tool_wire_egp_createflat", "Create flat to surface" )
-	language12.Add( "Tool_wire_egp_weld", "Weld" )
-	language12.Add( "Tool_wire_egp_weldworld", "Weld to world" )
-	language12.Add( "Tool_wire_egp_freeze", "Freeze" )
-	language12.Add( "Tool_wire_egp_drawemitters", "Draw emitters (Clientside)" )
-	language12.Add( "Tool_wire_egp_emitter_drawdist", "Additional emitter draw distance (Clientside)" )
+	language.Add( "Tool.wire_egp.name", "E2 Graphics Processor" )
+    language.Add( "Tool.wire_egp.desc", "EGP Tool" )
+    language.Add( "Tool.wire_egp.0", "Primary: Create EGP Screen/HUD/Emitter, Secondary: Link EGP HUD to vehicle, Reload: Open the Reload Menu for several lag fixing options." )
+	language.Add( "Tool.wire_egp.1", "Now right click a vehicle, or right click the same EGP HUD again to unlink it." )
+	language.Add( "sboxlimit_wire_egps", "You've hit the EGP limit!" )
+	language.Add( "Undone_wire_egp", "Undone EGP" )
+	language.Add( "Tool_wire_egp_createflat", "Create flat to surface" )
+	language.Add( "Tool_wire_egp_weld", "Weld" )
+	language.Add( "Tool_wire_egp_weldworld", "Weld to world" )
+	language.Add( "Tool_wire_egp_freeze", "Freeze" )
+	language.Add( "Tool_wire_egp_drawemitters", "Draw emitters (Clientside)" )
+	language.Add( "Tool_wire_egp_emitter_drawdist", "Additional emitter draw distance (Clientside)" )
 
 	local Menu = {}
 	local CurEnt

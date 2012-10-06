@@ -5,12 +5,12 @@ TOOL.ConfigName		= ""
 TOOL.Tab			= "Wire"
 
 if ( CLIENT ) then
-    language12.Add( "Tool_wire_las_reciever_name", "Laser Receiver Tool (Wire)" )
-    language12.Add( "Tool_wire_las_reciever_desc", "Spawns a constant laser receiver prop for use with the wire system." )
-    language12.Add( "Tool_wire_las_reciever_0", "Primary: Create/Update Laser Receiver" )
-    language12.Add( "WireILaserRecieverTool_ilas_reciever", "Laser Receiver:" )
-	language12.Add( "sboxlimit_wire_las_recievers", "You've hit laser receivers limit!" )
-	language12.Add( "undone_wireigniter", "Undone Wire Laser Receiver" )
+    language.Add( "Tool.wire_las_reciever.name", "Laser Receiver Tool (Wire)" )
+    language.Add( "Tool.wire_las_reciever.desc", "Spawns a constant laser receiver prop for use with the wire system." )
+    language.Add( "Tool.wire_las_reciever.0", "Primary: Create/Update Laser Receiver" )
+    language.Add( "WireILaserRecieverTool_ilas_reciever", "Laser Receiver:" )
+	language.Add( "sboxlimit_wire_las_recievers", "You've hit laser receivers limit!" )
+	language.Add( "undone_wireigniter", "Undone Wire Laser Receiver" )
 end
 
 if (SERVER) then

@@ -5,14 +5,14 @@ TOOL.ConfigName		= ""
 TOOL.Tab			= "Wire"
 
 if ( CLIENT ) then
-    language12.Add( "Tool_wire_numpad_name", "Wired Numpad Tool (Wire)" )
-    language12.Add( "Tool_wire_numpad_desc", "Spawns a numpad input for use with the wire system." )
-    language12.Add( "Tool_wire_numpad_0", "Primary: Create/Update Numpad" )
-    language12.Add( "WireNumpadTool_toggle", "Toggle" )
-    language12.Add( "WireNumpadTool_value_on", "Value On:" )
-    language12.Add( "WireNumpadTool_value_off", "Value Off:" )
-	language12.Add( "sboxlimit_wire_numpad", "You've hit wired numpads limit!" )
-	language12.Add( "undone_wirenumpad", "Undone Wire Numpad" )
+    language.Add( "Tool.wire_numpad.name", "Wired Numpad Tool (Wire)" )
+    language.Add( "Tool.wire_numpad.desc", "Spawns a numpad input for use with the wire system." )
+    language.Add( "Tool.wire_numpad.0", "Primary: Create/Update Numpad" )
+    language.Add( "WireNumpadTool_toggle", "Toggle" )
+    language.Add( "WireNumpadTool_value_on", "Value On:" )
+    language.Add( "WireNumpadTool_value_off", "Value Off:" )
+	language.Add( "sboxlimit_wire_numpad", "You've hit wired numpads limit!" )
+	language.Add( "undone_wirenumpad", "Undone Wire Numpad" )
 end
 
 if (SERVER) then

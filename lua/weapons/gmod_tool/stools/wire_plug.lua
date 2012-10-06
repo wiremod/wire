@@ -21,22 +21,22 @@ else
 	-- Tool Info
 	----------------------------------------------------------------------------------------------------
 
-	language12.Add( "Tool_wire_plug_name", "Plug & Socket Tool (Wire)" )
-	language12.Add( "Tool_wire_plug_desc", "Spawns plugs and sockets for use with the wire system." )
-	language12.Add( "Tool_wire_plug_0", "Primary: Create/Update Socket, Secondary: Create/Update Plug" )
-	language12.Add( "sboxlimit_wire_plugs", "You've hit the Wire Plugs limit!" )
-	language12.Add( "sboxlimit_wire_sockets", "You've hit the Wire Sockets limit!" )
-	language12.Add( "undone_wireplug", "Undone Wire Plug" )
-	language12.Add( "undone_wiresocket", "Undone Wire Socket" )
+	language.Add( "Tool.wire_plug.name", "Plug & Socket Tool (Wire)" )
+	language.Add( "Tool.wire_plug.desc", "Spawns plugs and sockets for use with the wire system." )
+	language.Add( "Tool.wire_plug.0", "Primary: Create/Update Socket, Secondary: Create/Update Plug" )
+	language.Add( "sboxlimit_wire_plugs", "You've hit the Wire Plugs limit!" )
+	language.Add( "sboxlimit_wire_sockets", "You've hit the Wire Sockets limit!" )
+	language.Add( "undone_wireplug", "Undone Wire Plug" )
+	language.Add( "undone_wiresocket", "Undone Wire Socket" )
 
-	language12.Add( "Tool_wire_plug_weld", "Weld the socket." )
-	language12.Add( "Tool_wire_plug_weldtoworld", "Weld the socket to the world." )
-	language12.Add( "Tool_wire_plug_freeze", "Freeze the socket." )
-	language12.Add( "Tool_wire_plug_array", "Use array inputs/outputs instead." )
-	language12.Add( "Tool_wire_plug_weldforce", "Plug weld force:" )
-	language12.Add( "Tool_wire_plug_attachrange", "Plug attachment detection range:" )
-	language12.Add( "Tool_wire_plug_drawoutline", "Draw the white outline on plugs and sockets." )
-	language12.Add( "Tool_wire_plug_drawoutline_tooltip", "Disabling this helps you see inside the USB plug model when you set its material to wireframe." )
+	language.Add( "Tool_wire_plug_weld", "Weld the socket." )
+	language.Add( "Tool_wire_plug_weldtoworld", "Weld the socket to the world." )
+	language.Add( "Tool_wire_plug_freeze", "Freeze the socket." )
+	language.Add( "Tool_wire_plug_array", "Use array inputs/outputs instead." )
+	language.Add( "Tool_wire_plug_weldforce", "Plug weld force:" )
+	language.Add( "Tool_wire_plug_attachrange", "Plug attachment detection range:" )
+	language.Add( "Tool_wire_plug_drawoutline", "Draw the white outline on plugs and sockets." )
+	language.Add( "Tool_wire_plug_drawoutline_tooltip", "Disabling this helps you see inside the USB plug model when you set its material to wireframe." )
 
 
 	TOOL.ClientConVar["model"] = "models/props_lab/tpplugholder_single.mdl"
