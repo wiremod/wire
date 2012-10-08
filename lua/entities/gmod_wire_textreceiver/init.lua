@@ -57,12 +57,6 @@ function ENT:OnRemove()
 	RemoveReceiver( self )
 end
 
-local function nextTick( self )
-	if self and self:IsValid() then
-		WireLib.TriggerOutput( self, "Clk", 0 )
-	end
-end
-
 local string_find = string.find
 local string_lower = string.lower
 
@@ -71,7 +65,11 @@ function ENT:PlayerSpoke( ply, text )
 	WireLib.TriggerOutput( self, "Player", ply )
 
 	WireLib.TriggerOutput( self, "Clk", 1 )
-	timer.Simple( 0, nextTick, self )
+	timer.Simple( 0, function()
+		if self and self:IsValid() then
+			WireLib.TriggerOutput( self, "Clk", 0 )
+		end
+	end	)
 
 	if self.CaseInsensitive then text = string_lower(text) end
 

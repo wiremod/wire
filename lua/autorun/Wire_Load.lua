@@ -1,8 +1,4 @@
--- $Rev: 1663 $
--- $LastChangedDate: 2009-09-12 03:34:53 -0700 (Sat, 12 Sep 2009) $
--- $LastChangedBy: TomyLobo $
-
-if VERSION < 131 then
+if VERSION < 151 then
 	ErrorNoHalt("WireMod: Your GMod is years too old. Load aborted.\n")
 	return
 end
@@ -110,10 +106,4 @@ if CLIENT then
 	include("wire/client/welcome_menu_derma.lua")
 	include("wire/client/rendertarget_fix.lua")
 	include("wire/client/hlzasm/hc_compiler.lua")
-end
-
--- load uwsvn
-if file12.FindInLua("wire/uwsvn_load.lua")[1] then
-	if SERVER then AddCSLuaFile( "wire/uwsvn_load.lua" ) end
-	include("wire/uwsvn_load.lua")
 end

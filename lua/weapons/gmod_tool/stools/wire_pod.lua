@@ -5,14 +5,14 @@ TOOL.ConfigName = ""
 TOOL.Tab			= "Wire"
 
 if CLIENT then
-	language12.Add("Tool_wire_pod_name", "Pod Controller Tool (Wire)")
-	language12.Add("Tool_wire_pod_desc", "Spawn/link a Wire Pod controller.")
-	language12.Add("Tool_wire_pod_0", "Primary: Create Pod controller. Secondary: Link controller.")
-	language12.Add("Tool_wire_pod_1", "Now select the pod to link to.")
-	language12.Add("WirePodTool_pod", "Pod:")
-	language12.Add("WirePodTool_Keys", "Outputs:")
-	language12.Add("sboxlimit_wire_pods", "You've hit your Pod Controller limit!")
-	language12.Add("Undone_Wire Pod", "Undone Wire Pod Controller")
+	language.Add("Tool.wire_pod.name", "Pod Controller Tool (Wire)")
+	language.Add("Tool.wire_pod.desc", "Spawn/link a Wire Pod controller.")
+	language.Add("Tool.wire_pod.0", "Primary: Create Pod controller. Secondary: Link controller.")
+	language.Add("Tool.wire_pod.1", "Now select the pod to link to.")
+	language.Add("WirePodTool_pod", "Pod:")
+	language.Add("WirePodTool_Keys", "Outputs:")
+	language.Add("sboxlimit_wire_pods", "You've hit your Pod Controller limit!")
+	language.Add("Undone_Wire Pod", "Undone Wire Pod Controller")
 end
 
 if SERVER then

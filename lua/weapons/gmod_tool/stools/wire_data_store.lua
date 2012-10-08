@@ -5,12 +5,12 @@ TOOL.ConfigName		= ""
 TOOL.Tab			= "Wire"
 
 if ( CLIENT ) then
-    language12.Add( "Tool_wire_data_store_name", "Data Store Tool (Wire)" )
-    language12.Add( "Tool_wire_data_store_desc", "Spawns a data store." )
-    language12.Add( "Tool_wire_data_store_0", "Primary: Create/Update data store" )
-    language12.Add( "WireDataStoreTool_data_store", "Data Store:" )
-	language12.Add( "sboxlimit_wire_data_stores", "You've hit data stores limit!" )
-	language12.Add( "undone_Wire Data Store", "Undone Wire data store" )
+    language.Add( "Tool.wire_data_store.name", "Data Store Tool (Wire)" )
+    language.Add( "Tool.wire_data_store.desc", "Spawns a data store." )
+    language.Add( "Tool.wire_data_store.0", "Primary: Create/Update data store" )
+    language.Add( "WireDataStoreTool_data_store", "Data Store:" )
+	language.Add( "sboxlimit_wire_data_stores", "You've hit data stores limit!" )
+	language.Add( "undone_Wire Data Store", "Undone Wire data store" )
 end
 
 if (SERVER) then

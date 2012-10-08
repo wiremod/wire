@@ -5,13 +5,13 @@ TOOL.ConfigName = ""
 TOOL.Tab        = "Wire"
 
 if ( CLIENT ) then
-	language12.Add( "Tool_wire_vthruster_name", "Vector Thruster Tool (Wire)" )
-	language12.Add( "Tool_wire_vthruster_desc", "Spawns a vector thruster for use with the wire system." )
-	language12.Add( "Tool_wire_vthruster_0", "Primary: Create/Update Vector Thruster" )
-	language12.Add( "Tool_wire_vthruster_1", "Primary: Finish" )
-	language12.Add( "WireVThrusterTool_Mode", "Mode:" )
-	language12.Add( "WireVThrusterTool_Angle", "Use Yaw/Pitch Inputs Instead" )
-	language12.Add( "undone_wirevthruster", "Undone Wire Vector Thruster" )
+	language.Add( "Tool.wire_vthruster.name", "Vector Thruster Tool (Wire)" )
+	language.Add( "Tool.wire_vthruster.desc", "Spawns a vector thruster for use with the wire system." )
+	language.Add( "Tool.wire_vthruster.0", "Primary: Create/Update Vector Thruster" )
+	language.Add( "Tool.wire_vthruster.1", "Primary: Finish" )
+	language.Add( "WireVThrusterTool_Mode", "Mode:" )
+	language.Add( "WireVThrusterTool_Angle", "Use Yaw/Pitch Inputs Instead" )
+	language.Add( "undone_wirevthruster", "Undone Wire Vector Thruster" )
 end
 
 TOOL.ClientConVar[ "force" ] = "1500"
@@ -217,7 +217,7 @@ function TOOL:Think()
 			local Ang = Norm2:Angle()
 			Ang.pitch = Ang.pitch + 90
 			Ang:RotateAroundAxis(Norm2, ra)
-			Phys2:SetAngle( Ang )
+			Phys2:SetAngles( Ang )
 			Phys2:Wake()
 		end
 	else

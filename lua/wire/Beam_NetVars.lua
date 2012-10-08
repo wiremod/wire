@@ -1,7 +1,3 @@
--- $Rev: 1303 $
--- $LastChangedDate: 2009-07-08 19:10:33 -0700 (Wed, 08 Jul 2009) $
--- $LastChangedBy: tad2020 $
-
 -- this is all crap D:
 
 ///////////////////////////////////////////////
@@ -385,7 +381,7 @@ local function FullUpdateEntityNetworkVars( ply )
 end
 local function DelayedFullUpdateEntityNetworkVars( ply )
 	--Msg("==starting timer for sending var data too "..tostring(ply).."\n")
-	timer.Simple(4, FullUpdateEntityNetworkVars, ply)
+	timer.Simple(4, function() FullUpdateEntityNetworkVars(ply) end )
 end
 hook.Add( "PlayerInitialSpawn", "FullUpdateEntityNetworkBeamVars", DelayedFullUpdateEntityNetworkVars )
 concommand.Add( "networkbeamvars_SendAll", DelayedFullUpdateEntityNetworkVars )

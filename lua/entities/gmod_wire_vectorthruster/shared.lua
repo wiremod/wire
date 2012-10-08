@@ -102,7 +102,7 @@ function ENT:GetOverlayText()
 		txt = txt .. "XY Local, Z World"
 	end
 
-	if (not SinglePlayer()) then
+	if (not game.SinglePlayer()) then
 		local PlayerName = self:GetPlayerName()
 		txt = txt .. "\n(" .. PlayerName .. ")"
 	end

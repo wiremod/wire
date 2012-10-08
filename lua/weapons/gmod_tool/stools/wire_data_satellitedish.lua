@@ -5,13 +5,13 @@ TOOL.ConfigName		= ""
 TOOL.Tab			= "Wire"
 
 if ( CLIENT ) then
-    language12.Add( "Tool_wire_data_satellitedish_name", "Satellite Dish Tool (Wire)" )
-    language12.Add( "Tool_wire_data_satellitedish_desc", "Spawns a Satellite Dish." )
-    language12.Add( "Tool_wire_data_satellitedish_0", "Primary: Create Satellite Dish/Display Link Info, Secondary: Link/Unlink Satellite Dish, Reload: Change model" )
-	language12.Add( "Tool_wire_data_satellitedish_1", "Now select the transmitter to link to" )
-    language12.Add( "WireDataTransfererTool_data_satellitedish", "Satellite Dish:" )
-	language12.Add( "sboxlimit_wire_data_satellitedishs", "You've hit Satellite Dishs limit!" )
-	language12.Add( "undone_Wire Data Satellite Dish", "Undone Wire Satellite Dish" )
+    language.Add( "Tool.wire_data_satellitedish.name", "Satellite Dish Tool (Wire)" )
+    language.Add( "Tool.wire_data_satellitedish.desc", "Spawns a Satellite Dish." )
+    language.Add( "Tool.wire_data_satellitedish.0", "Primary: Create Satellite Dish/Display Link Info, Secondary: Link/Unlink Satellite Dish, Reload: Change model" )
+	language.Add( "Tool.wire_data_satellitedish.1", "Now select the transmitter to link to" )
+    language.Add( "WireDataTransfererTool_data_satellitedish", "Satellite Dish:" )
+	language.Add( "sboxlimit_wire_data_satellitedishs", "You've hit Satellite Dishs limit!" )
+	language.Add( "undone_Wire Data Satellite Dish", "Undone Wire Satellite Dish" )
 end
 
 if (SERVER) then

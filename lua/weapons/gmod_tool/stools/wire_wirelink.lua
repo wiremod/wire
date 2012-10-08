@@ -5,9 +5,9 @@ TOOL.ConfigName		= ""
 TOOL.Tab			= "Wire"
 
 if CLIENT then
-    language12.Add( "Tool_wire_wirelink_name", "Expression 2 Wirelink Tool (Wire)" )
-    language12.Add( "Tool_wire_wirelink_desc", "Adds a wirelink output to any wire compatible device, for use with Expression 2" )
-    language12.Add( "Tool_wire_wirelink_0", "Primary: Add wirelink, Secondary: Remove wirelink" )
+    language.Add( "Tool.wire_wirelink.name", "Expression 2 Wirelink Tool (Wire)" )
+    language.Add( "Tool.wire_wirelink.desc", "Adds a wirelink output to any wire compatible device, for use with Expression 2" )
+    language.Add( "Tool.wire_wirelink.0", "Primary: Add wirelink, Secondary: Remove wirelink" )
 end
 
 if SERVER then

@@ -1,7 +1,7 @@
 "AddonInfo"
 {
 	"name"        "Wiremod"
-	"version"     "Github"
+	"version"     "git"
 	"author_name" "Wire Team"
 	"author_url"  "http://www.wiremod.com/"
 	"info"        "A set of SEnts and STools that communicate through wires."

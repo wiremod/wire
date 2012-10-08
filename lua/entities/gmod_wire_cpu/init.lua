@@ -269,7 +269,7 @@ function ENT:TriggerInput(iname, value)
     self.Clk = value
     if self.Clk >= 1.0 then self.Entity:NextThink(CurTime()) end
   elseif iname == "Frequency" then
-    if (not SinglePlayer()) and (value > 1400000) then self.Frequency = 1400000 return end
+    if (not game.SinglePlayer()) and (value > 1400000) then self.Frequency = 1400000 return end
     if value > 0 then self.Frequency = math.floor(value) end
   elseif iname == "Reset" then   --VM may be nil
     if self.VM.HWDEBUG ~= 0 then

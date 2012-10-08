@@ -3,11 +3,11 @@ TOOL.Name			= "Wire Advanced"
 TOOL.Tab      = "Wire"
 
 if CLIENT then
-	language12.Add( "Tool_wire_adv_name", "Advanced Wiring Tool" )
-	language12.Add( "Tool_wire_adv_desc", "Used to connect wirable props." )
-	language12.Add( "Tool_wire_adv_0", "Primary: Attach to selected input, Secondary: Next input, Reload: Unlink selected input, Wheel: Select input." )
-	language12.Add( "Tool_wire_adv_1", "Primary: Attach to output, Secondary: Attach but continue, Reload: Cancel." )
-	language12.Add( "Tool_wire_adv_2", "Primary: Confirm attach to output, Secondary: Next output, Reload: Cancel, Wheel: Select output." )
+	language.Add( "Tool.wire_adv.name", "Advanced Wiring Tool" )
+	language.Add( "Tool.wire_adv.desc", "Used to connect wirable props." )
+	language.Add( "Tool.wire_adv.0", "Primary: Attach to selected input, Secondary: Next input, Reload: Unlink selected input, Wheel: Select input." )
+	language.Add( "Tool.wire_adv.1", "Primary: Attach to output, Secondary: Attach but continue, Reload: Cancel." )
+	language.Add( "Tool.wire_adv.2", "Primary: Confirm attach to output, Secondary: Next output, Reload: Cancel, Wheel: Select output." )
 end
 
 TOOL.ClientConVar = {
@@ -23,7 +23,7 @@ util.PrecacheSound("weapons/pistol/pistol_empty.wav")
 local function get_tool(ply, tool)
 	-- find toolgun
 	local gmod_tool = ply:GetWeapon("gmod_tool")
-	if not ValidEntity(gmod_tool) then return end
+	if not IsValid(gmod_tool) then return end
 
 	-- find tool
 	local tool = gmod_tool:GetToolObject(tool)
@@ -34,7 +34,7 @@ end
 local function get_active_tool(ply, tool)
 	-- find toolgun
 	local activeWep = ply:GetActiveWeapon()
-	if not ValidEntity(activeWep) then return end
+	if not IsValid(activeWep) then return end
 
 	-- checks...
 	if activeWep:GetClass() ~= "gmod_tool" then return end
@@ -448,7 +448,7 @@ elseif CLIENT then
 			if not self.selinput then return end
 
 			self.target = trace.Entity
-			if not ValidEntity(self.target) then return end
+			if not IsValid(self.target) then return end
 
 			local lpos = self.target:WorldToLocal(trace.HitPos)
 			RunConsoleCommand("wire_adv", "i", self.target:EntIndex(), self.selinput[1], lpos.x, lpos.y, lpos.z)
@@ -458,7 +458,7 @@ elseif CLIENT then
 		elseif stage == 1 then
 			if not self.ports and self.iswire then return end
 			self.source = trace.Entity
-			if not ValidEntity(self.source) then return end
+			if not IsValid(self.source) then return end
 
 			local lpos = self.source:WorldToLocal(trace.HitPos)
 			RunConsoleCommand("wire_adv", "s", self.source:EntIndex(), 0, lpos.x, lpos.y, lpos.z)

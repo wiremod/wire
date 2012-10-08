@@ -38,7 +38,7 @@ e2function array ioOutputEntities( string output )
 	local ret = {}
 	if (self.entity.Outputs[output]) then
 		local tbl = self.entity.Outputs[output].Connected
-		for i=1,#tbl do if (ValidEntity(tbl[i].Entity)) then ret[#ret+1] = tbl[i].Entity end end
+		for i=1,#tbl do if (IsValid(tbl[i].Entity)) then ret[#ret+1] = tbl[i].Entity end end
 		self.prf = self.prf + #ret
 	end
 	return ret
@@ -46,7 +46,7 @@ end
 
 -- Returns the entity the input is wired to
 e2function entity ioInputEntity( string input )
-	if (self.entity.Inputs[input] and self.entity.Inputs[input].Src and ValidEntity(self.entity.Inputs[input].Src)) then return self.entity.Inputs[input].Src end
+	if (self.entity.Inputs[input] and self.entity.Inputs[input].Src and IsValid(self.entity.Inputs[input].Src)) then return self.entity.Inputs[input].Src end
 end
 
 local function setOutput( self, args, Type )

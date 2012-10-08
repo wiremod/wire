@@ -11,12 +11,12 @@ TOOL.ClientConVar = {
 }
 
 if CLIENT then
-	language12.Add( "Tool_wire_spawner_name", "Prop Spawner (Wire)" )
-	language12.Add( "Tool_wire_spawner_desc", "Spawns a prop at a pre-defined location" )
-	language12.Add( "Tool_wire_spawner_0", "Click a prop to turn it into a prop spawner." )
-	language12.Add( "Undone_gmod_wire_spawner", "Undone Wire Spawner" )
-	language12.Add( "Cleanup_gmod_wire_spawner", "Wire Spawners" )
-	language12.Add( "Cleaned_gmod_wire_spawner", "Cleaned up Wire Spawners" )
+	language.Add( "Tool.wire_spawner.name", "Prop Spawner (Wire)" )
+	language.Add( "Tool.wire_spawner.desc", "Spawns a prop at a pre-defined location" )
+	language.Add( "Tool.wire_spawner.0", "Click a prop to turn it into a prop spawner." )
+	language.Add( "Undone_gmod_wire_spawner", "Undone Wire Spawner" )
+	language.Add( "Cleanup_gmod_wire_spawner", "Wire Spawners" )
+	language.Add( "Cleaned_gmod_wire_spawner", "Cleaned up Wire Spawners" )
 end
 
 if SERVER then
@@ -40,7 +40,7 @@ function TOOL:LeftClick(trace)
 		local spawner = ent
 
 		// In multiplayer we clamp the delay to help prevent people being idiots
-		if !SinglePlayer() and delay < 0.1 then
+		if !game.SinglePlayer() and delay < 0.1 then
 			delay = 0.1
 		end
 
@@ -58,10 +58,10 @@ function TOOL:LeftClick(trace)
 	local Pos			= ent:GetPos()
 	local Ang			= ent:GetAngles()
 	local mat			= ent:GetMaterial()
-	local r,g,b,a		= ent:GetColor12()
+	local c		        = ent:GetColor()
 	local skin			= ent:GetSkin() or 0
 
-	local wire_spawner = MakeWireSpawner( pl, Pos, Ang, model, delay, undo_delay, spawn_effect, mat, r, g, b, a, skin, frozen )
+	local wire_spawner = MakeWireSpawner( pl, Pos, Ang, model, delay, undo_delay, spawn_effect, mat, c.r, c.g, c.b, c.a, skin, frozen )
 	if !wire_spawner:IsValid() then return end
 
 	ent:Remove()
@@ -88,7 +88,7 @@ if SERVER then
 			spawner:SetRenderMode(3)
 			spawner:SetMaterial(mat or "")
 			spawner:SetSkin(skin or 0)
-			spawner:SetColor12((r or 255),(g or 255),(b or 255),100)
+			spawner:SetColor(Color(r or 255, g or 255, b or 255, 100))
 		spawner:Spawn()
 
 		if spawner:GetPhysicsObject():IsValid() then
@@ -97,7 +97,7 @@ if SERVER then
 		end
 
 		// In multiplayer we clamp the delay to help prevent people being idiots
-		if not SinglePlayer() and delay < 0.1 then
+		if not game.SinglePlayer() and delay < 0.1 then
 			delay = 0.1
 		end
 

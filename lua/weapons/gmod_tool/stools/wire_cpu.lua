@@ -5,12 +5,12 @@ TOOL.ConfigName = ""
 TOOL.Tab        = "Wire"
 
 if CLIENT then
-  language12.Add("Tool_wire_cpu_name", "CPU Tool (Wire)")
-  language12.Add("Tool_wire_cpu_desc", "Spawns a central processing unit")
-  language12.Add("Tool_wire_cpu_0",    "Primary: upload program to hispeed device, Reload: attach debugger, Shift+Reload: clear, Secondary: open editor")
-  language12.Add("sboxlimit_wire_cpu", "You've hit ZCPU limit!")
-  language12.Add("undone_wire_cpu",    "Undone the ZCPU")
-  language12.Add("ToolWirecpu_Model",  "Model:" )
+	language.Add("Tool.wire_cpu.name", "CPU Tool (Wire)")
+	language.Add("Tool.wire_cpu.desc", "Spawns a central processing unit")
+	language.Add("Tool.wire_cpu.0",    "Primary: upload program to hispeed device, Reload: attach debugger, Shift+Reload: clear, Secondary: open editor")
+	language.Add("sboxlimit_wire_cpu", "You've hit ZCPU limit!")
+	language.Add("undone_wire_cpu",    "Undone the ZCPU")
+	language.Add("ToolWirecpu_Model",  "Model:" )
 end
 
 if SERVER then CreateConVar("sbox_maxwire_cpus", 7) end
@@ -167,7 +167,7 @@ if SERVER then
     if not ent then return end
     if not ent:IsValid() then return end
 
-    local tr = utilx.GetPlayerTrace(player, player:GetCursorAimVector())
+    local tr = util.GetPlayerTrace(player)
     local trace = util.TraceLine(tr)
     if not trace.Hit then return end
 
@@ -333,8 +333,17 @@ if CLIENT then
   ------------------------------------------------------------------------------
   -- Tool screen
   ------------------------------------------------------------------------------
-  surface.CreateFont("Lucida Console", 30, 1000, true, false, "ZCPUToolScreenFont")
-  surface.CreateFont("Lucida Console", 26, 1000, true, false, "ZCPUToolScreenFontSmall")
+  local fontData = 
+  {
+    font = "Lucida Console",
+    size = 30,
+    weight = 1000,
+    antialias = true,
+    additive = false
+  }
+  surface.CreateFont( "ZCPUToolScreenFont", fontData )
+  fontData.size = 26
+  surface.CreateFont( "ZCPUToolScreenFontSmall", fontData ) 
 
   local function outc(text,y,color) draw.DrawText(text,"ZCPUToolScreenFont",2,32*y,color,0) end
   local prevStateTime = RealTime()

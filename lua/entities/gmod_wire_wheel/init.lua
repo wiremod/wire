@@ -341,7 +341,7 @@ end
 
 function ENT:BuildDupeInfo()
 	local info = self.BaseClass.BuildDupeInfo(self) or {}
-	if ValidEntity(self.Base) then
+	if IsValid(self.Base) then
 		info.Base = self.Base:EntIndex()
 	end
 	return info
@@ -356,7 +356,7 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 			local Base = ents.GetByIndex(info.Base)
 		end
 	end
-	if ValidEntity(Base) then
+	if IsValid(Base) then
 		self:SetWheelBase(Base)
 	end
 end

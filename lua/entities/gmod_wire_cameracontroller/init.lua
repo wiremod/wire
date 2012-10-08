@@ -34,7 +34,7 @@ function ENT:MakeDynamicCam(oldcam)
 		cam:SetPos( self:GetPos() )
 	end
 	cam:SetModel( Model("models/props_junk/PopCan01a.mdl") )
-	cam:SetColor12(0, 0, 0, 0)
+	cam:SetColor(Color(0, 0, 0, 0))
 	cam:Spawn()
 
 	cam:CallOnRemove("wire_cam_restore", function(oldcam) self:MakeDynamicCam(oldcam) end)
@@ -246,7 +246,7 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 		end
 	end
 	if info.cam then
-		if ValidEntity(self.CamEnt) then
+		if IsValid(self.CamEnt) then
 			self.CamEnt:RemoveCallOnRemove("wire_cam_restore")
 			self.CamEnt:Remove()
 		end

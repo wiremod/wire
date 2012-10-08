@@ -1,8 +1,3 @@
--- $Rev: 1731 $
--- $LastChangedDate: 2009-09-24 15:06:08 -0700 (Thu, 24 Sep 2009) $
--- $LastChangedBy: tad2020 $
-
---MsgN("Loading Wire Tools")
 
 AddCSLuaFile( "tool_loader.lua" )
 
@@ -12,7 +7,6 @@ local function LoadTools()
 	if SERVER then
 		include( "sv_wirestools.lua" )
 		include( "sv_detection.lua" )
-		include( "sv_display.lua" )
 		include( "sv_io.lua" )
 		include( "sv_physics.lua" )
 	end
@@ -253,7 +247,7 @@ if CLIENT then
 	local function GetTOOL(mode)
 		for _,wep in ipairs(LocalPlayer():GetWeapons()) do
 			if wep:GetClass() == "gmod_tool" then
-				wep:GetToolObject(mode)
+				return wep:GetToolObject(mode)
 			end
 		end
 	end

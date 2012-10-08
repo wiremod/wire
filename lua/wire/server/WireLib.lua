@@ -1,7 +1,3 @@
--- $Rev: 1753 $
--- $LastChangedDate: 2009-09-29 18:34:43 -0700 (Tue, 29 Sep 2009) $
--- $LastChangedBy: TomyLobo $
-
 -- Compatibility Global
 
 if (!WireLib) then return end
@@ -196,7 +192,7 @@ function WireLib.AdjustSpecialInputs(ent, names, types, descs)
 
 		if (ent_ports[name]) then
 			if tp ~= ent_ports[name].Type then
-				timer.Simple(0, Wire_Link_Clear, ent, name)
+				timer.Simple(0, function() Wire_Link_Clear(ent, name) end)
 				ent_ports[name].Value = WireLib.DT[tp].Zero
 				ent_ports[name].Type = tp
 			end
@@ -1056,7 +1052,7 @@ function WireLib.PostDupe(entid, func)
 
 	-- Wait until the selected entity has been spawned...
 	local unique = {}
-	timer.Create(unique, 1, 240, function(CreatedEntities, entid, unique, func)
+	timer.Create(unique, 1, 240, function()
 		local ent = CreatedEntities[entid]
 		if ent then
 			timer.Remove(unique)
@@ -1064,7 +1060,7 @@ function WireLib.PostDupe(entid, func)
 			-- and call the callback
 			func(ent)
 		end
-	end, CreatedEntities, entid, unique, func)
+	end)
 end
 
 function WireLib.dummytrace(ent)

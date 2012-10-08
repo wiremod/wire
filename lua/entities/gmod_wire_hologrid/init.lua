@@ -41,7 +41,7 @@ function ENT:TriggerInput( inputname, value )
 	if inputname == "UseGPS" then
 		self:UpdateGPS(value ~= 0)
 	elseif inputname == "Reference" then
-		if ValidEntity(value) then
+		if IsValid(value) then
 			self.reference = value
 		else
 			self.reference = self
@@ -93,7 +93,7 @@ function ENT:BuildDupeInfo()
 
 	info.hologrid_usegps = self.usesgps and 1 or 0
 
-	if ValidEntity(self.reference) then
+	if IsValid(self.reference) then
 		info.reference = self.reference:EntIndex()
 	else
 		info.reference = nil

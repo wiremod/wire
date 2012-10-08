@@ -19,7 +19,16 @@ if (CLIENT) then
 	local new = {}
 	for k,v in ipairs( EGP.ValidFonts ) do
 		local font = "WireEGP_18_"..k
-		surface.CreateFont(v,18,800,true,false,font)
+		local fontTable =
+		{
+			font=v,
+			size = 18,
+			weight = 800,
+			antialias = true,
+			additive = false
+		}
+		surface.CreateFont( font, fontTable )
+		
 		EGP.ValidFonts_Lookup[font] = true
 		table.insert( new, font )
 	end
@@ -38,8 +47,8 @@ if (CLIENT) then
 			SetMaterial( Mat )
 		elseif type(Mat) == "Entity" then
 			if (!Mat:IsValid() or !Mat.GPU or !Mat.GPU.RT) then NoTexture() return end
-			local OldTex = WireGPU_matScreen:GetMaterialTexture("$basetexture")
-			WireGPU_matScreen:SetMaterialTexture("$basetexture", Mat.GPU.RT)
+			local OldTex = WireGPU_matScreen:GetTexture("$basetexture")
+			WireGPU_matScreen:SetTexture("$basetexture", Mat.GPU.RT)
 			SetTexture(GetTextureID( "GPURT" ))
 			return OldTex
 		else
@@ -49,6 +58,6 @@ if (CLIENT) then
 	
 	function EGP:FixMaterial( OldTex )
 		if (!OldTex) then return end
-		WireGPU_matScreen:SetMaterialTexture("$basetexture", OldTex)
+		WireGPU_matScreen:SetTexture("$basetexture", OldTex)
 	end
 end

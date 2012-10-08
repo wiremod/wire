@@ -9,17 +9,17 @@ TOOL.ClientConVar[ "model" ] = "models/jaanus/wiretool/wiretool_siren.mdl"
 /* If we're running on the client, setup the description strings */
 if ( CLIENT ) then
 	//tool hud lang
-    language12.Add( "Tool_wire_eyepod_name", "Eye Pod Tool (Wire)" )
-    language12.Add( "Tool_wire_eyepod_desc", "Spawns an Eye Pod Mouse Controller." )
-    language12.Add( "Tool_wire_eyepod_0", "Primary: Create/Update Controller  Secondary: Link controller  Reload: Unlink EyePod/Cancel Current Link" )
-	language12.Add("Tool_wire_eyepod_1", "Now select the pod to link to.")
+    language.Add( "Tool.wire_eyepod.name", "Eye Pod Tool (Wire)" )
+    language.Add( "Tool.wire_eyepod.desc", "Spawns an Eye Pod Mouse Controller." )
+    language.Add( "Tool.wire_eyepod.0", "Primary: Create/Update Controller  Secondary: Link controller  Reload: Unlink EyePod/Cancel Current Link" )
+	language.Add("Tool_wire_eyepod_1", "Now select the pod to link to.")
 
 	//panel control lang
-	language12.Add( "WireEyePod_DefaultToZero", "Default Outputs To Zero When Inactive" )
-	language12.Add( "WireEyePod_CumulativeOutput", "Output Cumulative Mouse Position" )
+	language.Add( "WireEyePod_DefaultToZero", "Default Outputs To Zero When Inactive" )
+	language.Add( "WireEyePod_CumulativeOutput", "Output Cumulative Mouse Position" )
 
 	//management lang
-    language12.Add( "undone_Wire Eye Pod", "Undone Wire Eye Pod" )
+    language.Add( "undone_Wire Eye Pod", "Undone Wire Eye Pod" )
 elseif (SERVER) then
 	CreateConVar('sbox_maxwire_eyepods', 15)
 end

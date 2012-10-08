@@ -42,8 +42,17 @@ function Editor:ChangeFont( FontName, Size )
 
 	-- If font is not already created, create it.
 	if (!self.CreatedFonts[FontName .. "_" .. Size]) then
-		surface.CreateFont( FontName, Size, 400, false, false, "Expression2_" .. FontName .. "_" .. Size )
-		surface.CreateFont( FontName, Size, 700, false, false, "Expression2_" .. FontName .. "_" .. Size .. "_Bold" )
+		local fontTable = 
+		{
+			font = FontName,
+			size = Size,
+			weight = 400,
+			antialias = false,
+			additive = false,
+		}
+		surface.CreateFont("Expression2_" .. FontName .. "_" .. Size,fontTable)
+		fontTable.weight = 700
+		surface.CreateFont("Expression2_" .. FontName .. "_" .. Size .. "_Bold", fontTable)
 		self.CreatedFonts[FontName .. "_" .. Size] = true
 	end
 
@@ -136,8 +145,15 @@ function Editor:Init()
 
 	-- Load border colors, position, & size
 	self:LoadEditorSettings()
-
-	surface.CreateFont( "default", 11, 300, false, false, "E2SmallFont" )
+	
+	local fontTable = {
+		font = "default",
+		size = 11,
+		weight = 300,
+		antialias = false,
+		additive = false,
+	}
+	surface.CreateFont( "E2SmallFont", fontTable )
 	self.logo = surface.GetTextureID("vgui/e2logo")
 
 	self:InitComponents()
@@ -989,7 +1005,7 @@ function Editor:AutoSave()
 	local buffer = self:GetCode()
 	if self.savebuffer == buffer then return end
 	self.savebuffer = buffer
-	file12.Write(self.Location .. "/_autosave_.txt", buffer)
+	file.Write(self.Location .. "/_autosave_.txt", buffer)
 end
 
 function Editor:AddControlPanelTab( label, icon, tooltip )
@@ -1058,10 +1074,15 @@ function Editor:InitControlPanel(frame)
 		end
 		n=n+1
 		if (n<=#t) then
-			timer.Simple(0,callNext,t,n)
+			timer.Simple(0, function() callNext(t,n) end )
 		end
 	end
-	function frame:ResizeAll() timer.Simple(0,callNext,self.ResizeObjects,1) end
+
+	function frame:ResizeAll() 
+		timer.Simple(0, function() 
+			callNext(self.ResizeObjects,1) 
+		end)
+	end
 
 	-- Resize them at the right times
 	local old = frame.SetSize
@@ -1230,15 +1251,15 @@ function Editor:InitControlPanel(frame)
 			pnl.Palette:SetPos( 44, 0 )
 			pnl.Palette:SetSize( w - 44, h )
 		end
-		pnl.AlphaBar:SetPos( 22, 0 )
-		pnl.AlphaBar:SetSize( 20, h )
+		pnl.Alpha:SetPos( 22, 0 )
+		pnl.Alpha:SetSize( 20, h )
     end
 	
 	if VERSION < 150 then
 		local old = ColorMixer.ColorCube.OnMouseReleased
 		ColorMixer.ColorCube.OnMouseReleased = function( ... )
 			local clr = ColorMixer:GetColor()
-			r, g, b, a = clr.r, clr.g, clr.b, 255-ColorMixer.AlphaBar:GetSlideY()*255
+			r, g, b, a = clr.r, clr.g, clr.b, 255-ColorMixer.Alpha:GetValue()*255
 			SkipUpdate = true
 			RBox:SetValue( r )
 			GBox:SetValue( g )
@@ -1258,7 +1279,7 @@ function Editor:InitControlPanel(frame)
 		local old = ColorMixer.Palette.OnMouseReleased
 		ColorMixer.Palette.OnMouseReleased = function( ... )
 			local clr = ColorMixer:GetColor()
-			r, g, b, a = clr.r, clr.g, clr.b, 255-ColorMixer.AlphaBar:GetSlideY()*255
+			r, g, b, a = clr.r, clr.g, clr.b, 255-ColorMixer.Alpha:GetValue()*255
 			SkipUpdate = true
 			RBox:SetValue( r )
 			GBox:SetValue( g )
@@ -1276,8 +1297,8 @@ function Editor:InitControlPanel(frame)
 		end
 	end
 	
-	local old = ColorMixer.AlphaBar.OnMouseReleased
-	ColorMixer.AlphaBar.OnMouseReleased = function(...)
+	local old = ColorMixer.Alpha.OnMouseReleased
+	ColorMixer.Alpha.OnMouseReleased = function(...)
 		if VERSION < 150 then
 			ColorMixer.ColorCube:OnMouseReleased()
 		else
@@ -1514,7 +1535,9 @@ function Editor:InitControlPanel(frame)
 		if (!value) then return end -- If it isn't a valid number, exit
 		value = value - 1 -- Subtract one (to make it 0-3 instead of 1-4)
 		RunConsoleCommand( "wire_expression2_browser_sort_style", value )
-		timer.Simple( 0.1, self.C["Browser"].panel.UpdateFolders, self.C["Browser"].panel )
+		timer.Simple( 0.1, function()
+			self.C["Browser"].panel.UpdateFolders( self.C["Browser"].panel )
+		end)
 	end
 	SortStyle:AddChoice( "1: Alphabetical - A -> Z" )
 	SortStyle:AddChoice( "2: Alphabetical - Z -> A" )
@@ -1636,7 +1659,7 @@ Text here]# ]] }
 	-- Manage choices
 	CurrentColorSelect.OnSelect = function( panel, index, value )
 		CurrentColor = value
-		ColorMixer:SetColor12( colors[value] )
+		ColorMixer:SetColor( colors[value] )
 		r = colors[value].r
 		g = colors[value].g
 		b = colors[value].b
@@ -1666,7 +1689,7 @@ Text here]# ]] }
 	--ColorMixer:SetPos( 170, 205 )
 
 	-- Remove alpha bar
-    ColorMixer.AlphaBar:SetVisible( false )
+    ColorMixer.Alpha:SetVisible( false )
     ColorMixer.PerformLayout = function( pnl )
 		local w,h = pnl:GetSize()
 		if VERSION < 150 then
@@ -1992,7 +2015,7 @@ function Editor:InitShutdownHook()
 		--if wire_expression2_editor == nil then return end
 		local buffer = self:GetCode()
 		if buffer == defaultcode then return end
-		file12.Write(self.Location .. "/_shutdown_.txt", buffer)
+		file.Write(self.Location .. "/_shutdown_.txt", buffer)
 
 		if (wire_expression2_editor_savetabs:GetBool()) then
 			self:SaveTabs()
@@ -2011,16 +2034,16 @@ function Editor:SaveTabs()
 
 	strtabs = strtabs:sub(1,-2)
 
-	file12.Write( self.Location .. "/_tabs_.txt", strtabs )
+	file.Write( self.Location .. "/_tabs_.txt", strtabs )
 end
 
 local wire_expression2_editor_openoldtabs = CreateClientConVar( "wire_expression2_editor_openoldtabs", "1", true, false )
 
 function Editor:OpenOldTabs()
-	if (!file12.Exists( self.Location .. "/_tabs_.txt" )) then return end
+	if (!file.Exists( self.Location .. "/_tabs_.txt", "DATA" )) then return end
 
 	-- Read file
-	local tabs = file12.Read( self.Location .. "/_tabs_.txt" )
+	local tabs = file.Read( self.Location .. "/_tabs_.txt" )
 	if (!tabs or tabs == "") then return end
 
 	-- Explode around ;
@@ -2033,7 +2056,7 @@ function Editor:OpenOldTabs()
 	local is_first = true
 	for k,v in pairs( tabs ) do
 		if (v and v != "") then
-			if (file12.Exists( v )) then
+			if (file.Exists( v, "DATA" )) then
 				-- Open it in a new tab
 				self:LoadFile( v, true )
 
@@ -2236,10 +2259,10 @@ function Editor:SaveFile(Line, close, SaveAs)
 		return
 	end
 
-	file12.Write(Line, self:GetCode())
+	file.Write(Line, self:GetCode())
 
 	local panel = self.C['Val'].panel
-	timer.Simple(0,panel.SetText, panel, "   Saved as "..Line)
+	timer.Simple(0,function() panel.SetText( panel, "   Saved as " .. Line) end )
 	surface.PlaySound("ambient/water/drip3.wav")
 
 	if(!self.chip) then self:ChosenFile(Line) end
@@ -2254,8 +2277,8 @@ function Editor:SaveFile(Line, close, SaveAs)
 end
 
 function Editor:LoadFile( Line, forcenewtab )
-	if(!Line or file12.IsDir( Line )) then return end
-	local str = file12.Read(Line)
+	if(!Line or file.IsDir( Line, "DATA" )) then return end
+	local str = file.Read(Line)
 	if str == nil then
 		--Error("ERROR LOADING FILE!")
 	else

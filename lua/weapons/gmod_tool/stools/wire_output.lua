@@ -5,12 +5,12 @@ TOOL.ConfigName		= ""
 TOOL.Tab			= "Wire"
 
 if ( CLIENT ) then
-	language12.Add( "Tool_wire_output_name", "Output Tool (Wire)" )
-	language12.Add( "Tool_wire_output_desc", "Spawns an output for use with the wire system." )
-	language12.Add( "Tool_wire_output_0", "Primary: Create/Update Output" )
-	language12.Add( "WireOutput_keygroup", "Key:" )
-	language12.Add( "sboxlimit_wire_outputs", "You've hit outputs limit!" )
-	language12.Add( "undone_wireoutput", "Undone Wire Output" )
+	language.Add( "Tool.wire_output.name", "Output Tool (Wire)" )
+	language.Add( "Tool.wire_output.desc", "Spawns an output for use with the wire system." )
+	language.Add( "Tool.wire_output.0", "Primary: Create/Update Output" )
+	language.Add( "WireOutput_keygroup", "Key:" )
+	language.Add( "sboxlimit_wire_outputs", "You've hit outputs limit!" )
+	language.Add( "undone_wireoutput", "Undone Wire Output" )
 end
 
 if (SERVER) then
