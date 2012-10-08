@@ -9,9 +9,6 @@ WireLib.WelcomeMenu = {}
 local Menu = WireLib.WelcomeMenu
 
 if (SERVER) then
-
-	resource.AddFile("materials/gui/silkicons/help.vmt")
-
 	-- Open the menu on spawn
 	hook.Add("PlayerInitialSpawn","Wire_Welcome_Popup",function(ply)
 		timer.Simple(5,function()

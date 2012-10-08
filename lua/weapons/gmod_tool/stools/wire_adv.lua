@@ -209,7 +209,7 @@ elseif CLIENT then
 	end
 
 	local function fitfont(...)
-		local fontnames = { "Trebuchet24", "Trebuchet22", "Trebuchet20", "Trebuchet19", "CloseCaption_Bold", "HudHintTextLarge", "DefaultBold", "HudSelectionText", "ConsoleText" }
+		local fontnames = { "Trebuchet24", "Trebuchet22", "Trebuchet20", "Trebuchet19", "CloseCaption_Bold", "HudHintTextLarge", "HudSelectionText", "ConsoleText" }
 		local fontheights = {}
 
 		for i,fontname in ipairs(fontnames) do
