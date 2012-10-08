@@ -28,19 +28,13 @@ end
 function http12.Get(url, headers, callback)
 	http.Fetch(url, callback, function() print("Err - http.Fetch") end)
 end
-if CLIENT then
-	if VERSION >= 151 then
-		_R.Panel.AddHeader = function() end
-	end
-end
+
 if SERVER then
 	resource.AddFile("materials/gui/silkicons/emoticon_smile.vtf")
 	resource.AddFile("materials/gui/silkicons/newspaper.vtf")
 	resource.AddFile("materials/gui/silkicons/wrench.vtf")
 	resource.AddFile("materials/vgui/spawnmenu/save.vtf")
 	
-	cam.StartMaterialOverride = render.MaterialOverride
-	SetMaterialOverride = render.MaterialOverride
 	local fontTable = 
 	{
 		font = "defaultbold",

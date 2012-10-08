@@ -27,7 +27,6 @@ if (CLIENT) then
 
 	local function CreateCPanel( Panel )
 		Panel:ClearControls()
-		Panel:AddHeader()
 
 		local lbl =  vgui.Create("DLabel")
 		lbl:SetText([[You can also open the menu using the console command:
