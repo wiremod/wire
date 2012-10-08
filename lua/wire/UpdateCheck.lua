@@ -24,7 +24,7 @@ end
 
 -- Get online version
 function WireLib.GetOnlineWireVersion( callback )
-	http12.Get("http://wiremod.svn.sourceforge.net/svnroot/wiremod/trunk/", "", function(contents,size)
+	http.Fetch("http://wiremod.svn.sourceforge.net/svnroot/wiremod/trunk/", function(contents, size, header, code)
 		local rev = tonumber(string.match( contents, "Revision ([0-9]+)" ))
 		callback(rev,contents,size)
 	end)
@@ -33,9 +33,9 @@ end
 function WireLib.CompareGitVersion( callback )
 	if not file.Exists("prevhash.txt","DATA") then return false end
 	local prev = file.Read("prevhash.txt"):sub(1,10)
-	http12.Get("https://api.github.com/repos/wiremod/wire/git/refs/heads", "", function(contents,size)
+	http.Fetch("https://api.github.com/repos/wiremod/wire/git/refs/heads", function(contents, size, header, code)
 		local sha = string.match( contents, "\"sha\":\"(.+)\"" )
-		http12.Get("https://api.github.com/repos/wiremod/wire/compare/"..prev.."..."..sha:sub(1,10), "", function(contents,size)
+		http.Fetch("https://api.github.com/repos/wiremod/wire/compare/"..prev.."..."..sha:sub(1,10), function(contents, size, header, code)
 			local howold = tonumber(string.match( contents, "\"behind-by\": ([0-9]+)" ) )
 			local corrent = howold and howold == 1
 			callback(correct)
