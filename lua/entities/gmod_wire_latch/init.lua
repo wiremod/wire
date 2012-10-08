@@ -191,9 +191,9 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 	-- Default to world entity
 	if self.Ent1 or self.Ent2 then
 		if self.Ent1 then
-			self.Ent2 = self.Ent2 or GetWorldEntity()
+			self.Ent2 = self.Ent2 or game.GetWorld()
 		else
-			self.Ent1 = self.Ent1 or GetWorldEntity()
+			self.Ent1 = self.Ent1 or game.GetWorld()
 		end
 	end
 
