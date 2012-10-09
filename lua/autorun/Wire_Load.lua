@@ -8,7 +8,6 @@ if SERVER then
 	AddCSLuaFile("autorun/Wire_Load.lua")
 
 	-- shared includes
-	AddCSLuaFile("wire/gmod13compat.lua")
 	AddCSLuaFile("wire/WireShared.lua")
 	AddCSLuaFile("wire/UpdateCheck.lua")
 	AddCSLuaFile("wire/Beam_NetVars.lua")
@@ -66,10 +65,14 @@ if SERVER then
 	resource.AddSingleFile("materials/expression 2/cog_world.vmt")
 	resource.AddFile( "materials/gui/silkicons/folder.vmt" )
 	resource.AddFile( "materials/gui/silkicons/computer.vmt" )
+	resource.AddFile("materials/gui/silkicons/wrench.vtf")
+	resource.AddFile("materials/vgui/spawnmenu/save.vtf")
+	resource.AddFile("materials/gui/silkicons/help.vmt")
+	resource.AddFile("materials/gui/silkicons/emoticon_smile.vtf")
+	resource.AddFile("materials/gui/silkicons/newspaper.vtf")
 end
 
 -- shared includes
-include("wire/gmod13compat.lua")
 include("wire/WireShared.lua")
 include("wire/UpdateCheck.lua")
 include("wire/Beam_NetVars.lua")

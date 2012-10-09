@@ -9,9 +9,6 @@ WireLib.WelcomeMenu = {}
 local Menu = WireLib.WelcomeMenu
 
 if (SERVER) then
-
-	resource.AddFile("materials/gui/silkicons/help.vmt")
-
 	-- Open the menu on spawn
 	hook.Add("PlayerInitialSpawn","Wire_Welcome_Popup",function(ply)
 		timer.Simple(5,function()
@@ -27,7 +24,6 @@ if (CLIENT) then
 
 	local function CreateCPanel( Panel )
 		Panel:ClearControls()
-		Panel:AddHeader()
 
 		local lbl =  vgui.Create("DLabel")
 		lbl:SetText([[You can also open the menu using the console command:

@@ -23,32 +23,32 @@ local function flir_start()
 	if (flir_enabled) then return end
 	flir_enabled = true
 	hook.Add("PrePlayerDraw","flir_PrePlayerDraw",function()
-		SetMaterialOverride(living);
+		render.MaterialOverride(living);
 	end);
 	hook.Add("PostPlayerDraw","flir_PostPlayerDraw",function()
-		--SetMaterialOverride(nil);
-		SetMaterialOverride(normal);
+		--render.MaterialOverride(nil);
+		render.MaterialOverride(normal);
 	end);
 
 	hook.Add("PreDrawOpaqueRenderables","flir_PreDrawOpaqueRenderables",function()
-		SetMaterialOverride(normal);
+		render.MaterialOverride(normal);
 	end);
 	hook.Add("PostDrawOpaqueRenderables","flir_PostDrawOpaqueRenderables",function()
-		SetMaterialOverride(nil);
+		render.MaterialOverride(nil);
 	end);
 
 	hook.Add("PreDrawTranslucentRenderables","flir_PreDrawTranslucentRenderables",function()
-		SetMaterialOverride(normal);
+		render.MaterialOverride(normal);
 	end);
 	hook.Add("PostDrawTranslucentRenderables","flir_PostDrawTranslucentRenderables",function()
-		SetMaterialOverride(nil);
+		render.MaterialOverride(nil);
 	end);
 
 	hook.Add("PreDrawSkybox","flir_PreDrawSkybox",function()
-		SetMaterialOverride(normal);
+		render.MaterialOverride(normal);
 	end);
 	hook.Add("PostDrawSkybox","flir_PostDrawSkybox",function()
-		SetMaterialOverride(nil);
+		render.MaterialOverride(nil);
 	end);
 
 	hook.Add("RenderScreenspaceEffects","flir_RenderScreenspaceEffects",function()
@@ -61,7 +61,7 @@ end
 local function flir_end()
 	if (!flir_enabled) then return end
 	flir_enabled = false
-	SetMaterialOverride(nil);
+	render.MaterialOverride(nil);
 	hook.Remove("PrePlayerDraw","flir_PrePlayerDraw");
 	hook.Remove("PostPlayerDraw","flir_PostPlayerDraw");
 

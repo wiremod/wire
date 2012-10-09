@@ -13,7 +13,6 @@ local hook = hook
 local usermessage = usermessage
 local umsg = umsg
 
-
 -- extra table functions
 
 -- Checks if the table is empty, it's faster than table.Count(Table) > 0

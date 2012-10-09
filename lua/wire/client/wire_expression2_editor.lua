@@ -23,6 +23,13 @@ Editor.Fonts["Lucida Console"]			= ""
 -- Mac
 Editor.Fonts["Monaco"] 					= "Mac standard font"
 
+surface.CreateFont("DefaultBold", {
+	font = "defaultbold",
+	size = 12,
+	weight = 700,
+	antialias = true,
+	additive = false,
+})
 
 Editor.CreatedFonts = {}
 
