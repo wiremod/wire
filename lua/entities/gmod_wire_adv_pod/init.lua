@@ -456,7 +456,7 @@ end
 function ENT:Use( User, caller )
 	if User ~= self:GetPlayer() then return end
 	User:PrintMessage(HUD_PRINTTALK, "Hold down your use key for 2 seconds to get and link a Remote Controller.")
-	timer.Create("adv_pod_use_"..self:EntIndex(), 2, 1, function(self, User)
+	timer.Create("adv_pod_use_"..self:EntIndex(), 2, 1, function()
 		if not User then return end
 		if not User:IsValid() then return end
 		if not User:IsPlayer() then return end
@@ -470,7 +470,7 @@ function ENT:Use( User, caller )
 		User:GetWeapon("RemoteController").Linked = self
 		User:PrintMessage(HUD_PRINTTALK, "You are now linked!")
 		User:SelectWeapon("RemoteController")
-	end, self, User)
+	end)
 end
 
 
