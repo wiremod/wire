@@ -51,7 +51,7 @@ function ENT:TriggerInput(iname, value)
 		local g = math.Clamp((self.bg-self.ag)*factor+self.ag, 0, 255)
 		local b = math.Clamp((self.bb-self.ab)*factor+self.ab, 0, 255)
 		local a = math.Clamp((self.ba-self.aa)*factor+self.aa, 0, 255)
-		self:SetColor12(r, g, b, a)
+		self:SetColor(Color(r, g, b, a))
 	end
 end
 

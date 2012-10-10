@@ -5,166 +5,105 @@ TOOL.ConfigName		= ""
 TOOL.Tab			= "Wire"
 
 if (CLIENT) then
-	language12.Add("Tool_wire_value_name", "Value Tool (Wire)")
-	language12.Add("Tool_wire_value_desc", "Spawns a constant value for use with the wire system.")
-	language12.Add("Tool_wire_value_0", "Primary: Create/Update Value, Secondary: Copy Settings")
-	language12.Add("WireValueTool_value", "Value:")
-	language12.Add("WireValueTool_model", "Model:")
-	language12.Add("sboxlimit_wire_values", "You've hit values limit!")
-	language12.Add("undone_wirevalue", "Undone Wire Value")
-end
-
-if (SERVER) then
-	CreateConVar('sbox_maxwire_values', 20)
-	ModelPlug_Register("value")
+	language.Add("Tool.wire_value.name", "Value Tool (Wire)")
+	language.Add("Tool.wire_value.desc", "Spawns a constant value for use with the wire system.")
+	language.Add("Tool.wire_value.0", "Primary: Create/Update Value, Secondary: Copy Settings")
+	language.Add("WireValueTool_value", "Value:")
+	language.Add("WireValueTool_model", "Model:")
+	language.Add("sboxlimit_wire_values", "You've hit values limit!")
+	language.Add("undone_wirevalue", "Undone Wire Value")
 end
 
 TOOL.ClientConVar["model"] = "models/kobilica/value.mdl"
-TOOL.ClientConVar["numvalues"] = "1"
-for i = 1, 12 do
-	TOOL.ClientConVar["value"..i] = "0"
-	TOOL.ClientConVar["valuetype"..i] = "Number"
-end
-
 // Supported Data Types.
-local DataTypes = {
-// typedata | Shown In The Menu/Console.
-["normal"]	= "Number",
-[""]		= "Number", // Same as normal/number, but for old dupes. ;)
-["string"]	= "String",
-["vector2"] = "2D Vector",
-["vector"]	= "3D Vector",
-["vector4"] = "4D Vector",
-["angle"]	= "Angle"}
+// Should be requested by client and only kept serverside.
+local DataTypes = 
+{
+	["NORMAL"] = "Number",
+	["STRING"]	= "String",
+	["VECTOR"] = "Vector",
+	["ANGLE"]	= "Angle"
+}
 
 cleanup.Register("wire_values")
 
-function TOOL:LeftClick(trace)
-	if (!trace.HitPos) then return false end
-	if (trace.Entity:IsPlayer()) then return false end
-	if (CLIENT) then return true end
-	if not util.IsValidPhysicsObject( trace.Entity, trace.PhysicsBone ) then return false end
-
-	local ply = self:GetOwner()
-
-	local numvalues = self:GetClientNumber("numvalues")
-	numvalues = math.Clamp(numvalues, 1, 12)
-
-	//value is a table of strings so we can save a step later in adjusting the outputs
-	local value = {}
-
-	for i = 1, numvalues do
-		local Value = self:GetClientInfo("value"..i)
-		local TypeIndex = self:GetClientInfo("valuetype"..i)
-		local Type = "string"
-		for k, v in pairs(DataTypes) do
-			if (TypeIndex == v) then
-				Type = k or "string"
-				break
-			end
-		end
-		value[i] = (Type..":"..Value)
-	end
-
-	if (trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_value" && trace.Entity:GetPlayer() == ply) then
-		trace.Entity:Setup(value)
-		trace.Entity.value = value
-		return true
-	end
-
-	if (!self:GetSWEP():CheckLimit("wire_values")) then return false end
-
-	local Ang = trace.HitNormal:Angle()
-	Ang.pitch = Ang.pitch + 90
-
-	local wire_value = MakeWireValue(ply, trace.HitPos, Ang, self:GetModel(), value)
-
-	local min = wire_value:OBBMins()
-	wire_value:SetPos(trace.HitPos - trace.HitNormal * min.z)
-
-	local const = WireLib.Weld(wire_value, trace.Entity, trace.PhysicsBone, true)
-
-	undo.Create("WireValue")
-		undo.AddEntity(wire_value)
-		undo.AddEntity(const)
-		undo.SetPlayer(ply)
-	undo.Finish()
-
-	ply:AddCleanup("wire_values", wire_value)
-
-	return true
-end
-
-function TOOL:RightClick(trace)
-	if (!trace.HitPos) then return false end
-	if (trace.Entity:IsPlayer()) then return false end
-	if (CLIENT) then return true end
-
-	local ply = self:GetOwner()
-
-	if (trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_value") then
-		local Values = 0
-		for k1, v1 in pairs(trace.Entity.value) do
-			local Valuetype = string.Explode(":", v1)[1]
-			local Value = ""
-
-			local Type = "Number"
-			for k2, v2 in pairs(DataTypes) do
-				if (string.lower(Valuetype) == k2) then
-					if ((Valuetype ~= "") or (k2 ~= "")) then
-						Value = string.gsub(v1, (Valuetype..":"), "")
-						Type = v2 or "Number"
-						break
-					else
-						Value = string.gsub(v1, ("normal:"), "")
-						Type = "Number"
-						break
-					end
-				else
-					Value = string.gsub(v1, ("normal:"), "")
-					Type = "Number"
-				end
-			end
-
-			ply:ConCommand("wire_value_valuetype"..k1.." "..Type)
-			ply:ConCommand("wire_value_value"..k1.." "..Value)
-			Values = Values + 1
-		end
-		ply:ConCommand("wire_value_numvalues "..Values)
+if CLIENT then
+	function TOOL:LeftClick( trace )
 		return true
 	end
 end
+
 
 if (SERVER) then
-
-	function MakeWireValue(ply, Pos, Ang, model, value)
+	local playerValues = {}
+	CreateConVar('sbox_maxwire_values', 20)
+	ModelPlug_Register("value")
+	util.AddNetworkString( "wire_value_values" )
+	
+	net.Receive( "wire_value_values", function( length, ply )
+		playerValues[ply] = net.ReadTable()
+	end)
+	
+	local function MakeWireValue( ply, Pos, Ang, model )
 		if (!ply:CheckLimit("wire_values")) then return false end
 
 		local wire_value = ents.Create("gmod_wire_value")
 		if (!wire_value:IsValid()) then return false end
-
+		
+		undo.Create("wirevalue")
+			undo.AddEntity( wire_value )
+			undo.SetPlayer( ply )
+		undo.Finish()
+		
 		wire_value:SetAngles(Ang)
 		wire_value:SetPos(Pos)
 		wire_value:SetModel(model)
 		wire_value:Spawn()
 
-		wire_value:Setup(value)
+		wire_value:Setup(playerValues[ply])
 		wire_value:SetPlayer(ply)
 
 		ply:AddCount("wire_values", wire_value)
 
 		return wire_value
 	end
-
+	
 	duplicator.RegisterEntityClass("gmod_wire_value", MakeWireValue, "Pos", "Ang", "Model", "value")
+	
+	function TOOL:LeftClick(trace)
+		if (!trace.HitPos) then return false end
+		if (trace.Entity:IsPlayer()) then return false end
+		if not util.IsValidPhysicsObject( trace.Entity, trace.PhysicsBone ) then return false end
+		
+		if trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_value" then
+			local ply = self:GetOwner()
+			trace.Entity:Setup( playerValues[ply] )
+		else
+			local ply = self:GetOwner()
+			local tbl = playerValues[ply]
+			if tbl != nil then
+				local ang = trace.HitNormal:Angle()
+				ang.pitch = ang.pitch + 90
+				local ent = MakeWireValue(ply, trace.HitPos, ang, self:GetModel() )
+				local weld = constraint.Weld( ent, trace.Entity, trace.PhysicsBone,0,0, true )
+				return true
+			else
+				return false
+			end
+		end
+		return false
+	end
 
+	function TOOL:RightClick(trace)
+		return false
+	end
 end
 
 function TOOL:UpdateGhostWireValue(ent, player)
 	if (!ent || !ent:IsValid()) then return end
 
-	local tr 	= util.GetPlayerTrace(player, player:GetCursorAimVector())
-	local trace 	= util.TraceLine(tr)
+	local tr = util.GetPlayerTrace(player)
+	local trace = util.TraceLine(tr)
 
 	if (!trace.Hit || trace.Entity:IsPlayer() || trace.Entity:GetClass() == "gmod_wire_value") then
 		ent:SetNoDraw(true)
@@ -201,175 +140,115 @@ function TOOL:GetModel()
 
 	return model
 end
-
-function TOOL.BuildCPanel(CPanel)
-	CPanel:AddControl("Header", { Text = "#Tool_wire_value_name", Description = "#Tool_wire_value_desc" })
-
-	local cVars = {}
-	cVars[0] = "wire_value_numvalues"
-	for i=1,12 do
-		cVars[#cVars+1] = "wire_value_value" .. i
-		cVars[#cVars+1] = "wire_value_valuetype" .. i
+if CLIENT then
+	local selectedValues = {}
+	local function SendUpdate()
+		net.Start("wire_value_values")
+		net.WriteTable(selectedValues)
+		net.SendToServer()
 	end
-	cVars[#cVars+1] = "wire_value_model"
+	local function AddValue( panel, id )
+		local w,_ = panel:GetSize()
+		selectedValues[id] = {
+			DataType = "Number",
+			Value = 0
+		}
+		local control = vgui.Create( "DCollapsibleCategory", panel )
+		control:SetSize( w-6, 100 )
+		control:SetText( "Value: " .. id )
+		control:SetLabel( "Value " .. id )
+		control:DockMargin( 5,5,5,5 )
+		control:Dock(TOP)
+		
+		local controlPanel = vgui.Create( "DPanel", control )
+		controlPanel:SetSize( w-6, 100 )
+		controlPanel:Dock(TOP)
+		
+		local typeSelection = vgui.Create( "DComboBox", controlPanel )
+		local _, controlW = control:GetSize()
+		typeSelection:SetText( DataTypes["NORMAL"] )
+		typeSelection:SetSize( controlW , 25 )
+		typeSelection:DockMargin( 5,5,5,5)
+		typeSelection:Dock( TOP )
+		typeSelection.OnSelect = function( panel, index, value )
+			selectedValues[id].DataType = value
+			SendUpdate()
+		end
 
-	local options = {}
-	options.Default = {}
-	options.Default["wire_value_numvalues"] = "1"
-	options.Default["wire_value_model"] = "models/kobilica/value.mdl"
-	for i = 1, 12 do
-		options.Default["wire_value_value"..i] = "0"
-		options.Default["wire_value_valuetype"..i] = "Number"
+		for k,v in pairs( DataTypes ) do
+			typeSelection:AddChoice(v)
+		end
+		
+		local valueEntry = vgui.Create( "DTextEntry", controlPanel )
+		valueEntry:SetSize( controlW, 25 )
+		valueEntry:DockMargin( 5,5,5,5 )
+		valueEntry:SetText("0")
+		valueEntry:Dock( TOP )		
+		valueEntry.OnLoseFocus = function( panel )
+			if panel:GetValue() != nil then
+				local value = panel:GetValue()
+				selectedValues[id].Value = panel:GetValue()
+				SendUpdate()
+			end
+		end
+		
+
+		return control 
 	end
-
-	CPanel:AddControl("ComboBox", {
-		Label = "#Presets",
-		MenuButton = "1",
-		Folder = "wire_value",
-		Options = options,
-		CVars = cVars,
-	})
-
-	CPanel:AddControl("Button", {
-		Text = "Reset values to zero",
-		Name = "Reset",
-		Command = [[wire_value_value1 0;
-			wire_value_value2 0;
-			wire_value_value3 0;
-			wire_value_value4 0;
-			wire_value_value5 0;
-			wire_value_value6 0;
-			wire_value_value7 0;
-			wire_value_value8 0;
-			wire_value_value9 0;
-			wire_value_value10 0;
-			wire_value_value11 0;
-			wire_value_value12 0;
-			wire_value_valuetype1 Number;
-			wire_value_valuetype2 Number;
-			wire_value_valuetype3 Number;
-			wire_value_valuetype4 Number;
-			wire_value_valuetype5 Number;
-			wire_value_valuetype6 Number;
-			wire_value_valuetype7 Number;
-			wire_value_valuetype8 Number;
-			wire_value_valuetype9 Number;
-			wire_value_valuetype10 Number;
-			wire_value_valuetype11 Number;
-			wire_value_valuetype12 Number;]],
-	})
-
-	CPanel:AddControl("Slider", {
-		Label = "Number of Values",
-		Type = "Integer",
-		Min = "1",
-		Max = "12",
-		Command = "wire_value_numvalues",
-	})
-
-
 	local ValuePanels = {}
+	function TOOL.BuildCPanel( panel )
+		local LastValueAmount = 0
+		
+		local valuePanel = vgui.Create("DPanel", panel)
 
-	// List of Control Panels.
-	local ValueList = vgui.Create("DPanelList")
-	ValueList:SetHeight(300)
-	ValueList:SetAutoSize(false)
-	ValueList:SetSpacing(1)
-	ValueList:EnableHorizontal(false)
-	ValueList:EnableVerticalScrollbar(true)
-	ValueList:SetVisible(true)
-
-	local function BuildControlPanels(new, old)
-		for i = 1, new do
-			j = i + old
-			if(ValuePanels[j] and ValuePanels[j]:IsValid()) then return end
-
-			local CommandString = ("wire_value_value"..j)
-			local CommandString2 = ("wire_value_valuetype"..j)
-
-			// Control Panel.
-			ValuePanels[j] = vgui.Create("DPanel")
-			local ValuePanel = ValuePanels[j]
-			if((!ValuePanel) or (!ValuePanel:IsValid())) then return end
-
-			ValuePanel:SetWide(ValueList:GetWide()-24)
-			ValuePanel:SetTall(74)
-			ValuePanel:SetVisible(true)
-			local Wide = ValuePanel:GetWide()
-
-			// Top Label.
-			local ValueLabel1 = vgui.Create("DLabel", ValuePanel)
-			ValueLabel1:SetText("Value "..j..":")
-			ValueLabel1:SetPos(4, 4)
-			ValueLabel1:SizeToContents()
-			ValueLabel1:CenterHorizontal()
-			ValueLabel1:SetVisible(true)
-
-			// Value Label.
-			local ValueLabel2 = vgui.Create("DLabel", ValuePanel)
-			ValueLabel2:SetPos(4, 25)
-			ValueLabel2:SetText("Value:")
-			ValueLabel2:SizeToContents()
-			ValueLabel2:SetVisible(true)
-
-			// Type Label.
-			local ValueLabel3 = vgui.Create("DLabel", ValuePanel)
-			ValueLabel3:SetPos(4, 50)
-			ValueLabel3:SetText("Type:")
-			ValueLabel3:SizeToContents()
-			ValueLabel3:SetVisible(true)
-
-			// Value Textfield.
-			local ValueBox = vgui.Create("DTextEntry", ValuePanel)
-			ValueBox:SetPos(40, 25)
-			ValueBox:SetText("0")
-			ValueBox:SetWide(Wide-44)
-			ValueBox:SetTall(20)
-			ValueBox:SetMultiline(false)
-			ValueBox:SetConVar(CommandString)
-			ValueBox:SetVisible(true)
-
-			// Type Dropbox.
-			local oldv = nil
-			local ValueType = vgui.Create("DMultiChoice", ValuePanel)
-			ValueType:SetPos(40, 50)
-			ValueType:SetWide(Wide-44)
-			ValueType:SetTall(20)
-			ValueType:SetEditable(false)
-			for k, v in SortedPairs(DataTypes) do
-				if ((k ~= "") and (v ~= "")) then
-					ValueType:AddChoice(v)
-				end
-			end
-			ValueType:SetConVar(CommandString2)
-			ValueType:SetVisible(true)
-
-			// Add Control Panel to List.
-			ValueList:AddItem(ValuePanel)
-		end
-	end
-
-	local oldnumvalues = 0
-	ValueList.Think = function()
-		newnumvalues = math.Clamp(GetConVarNumber("wire_value_numvalues"), 1, 12)
-		if (newnumvalues ~= oldnumvalues) then
-			if (newnumvalues < oldnumvalues) then
-				for i = 1, (12 - newnumvalues) do
-					local Panel = ValuePanels[i + newnumvalues]
-					if(Panel and Panel:IsValid()) then
-						Panel:Remove()
+		valuePanel:SetSize(w, 500 )
+		valuePanel:Dock( TOP )
+		
+		-- WIP.
+		local reset = vgui.Create( "DButton", valuePanel )
+		local w,_ = panel:GetSize()
+		reset:SetSize(w, 25)
+		reset:SetText("Reset Values.")
+		reset:DockMargin( 5, 5, 5, 5 )
+		reset:Dock( TOP )
+		
+		local valueSlider = vgui.Create( "DNumSlider", valuePanel )
+		valueSlider:SetSize(w, 25 )
+		valueSlider:SetText( "Amount:" )
+		valueSlider:SetMin(1)
+		valueSlider:SetMax(20)
+		valueSlider:SetDecimals( 0 )
+		valueSlider:DockMargin( 5, 5, 5, 5 )
+		valueSlider:Dock( TOP )
+		
+		
+		
+		valueSlider.OnValueChanged = function( panel, value )
+			local value = tonumber(value) -- Silly Garry, giving me strings.
+			if value != LastValueAmount then
+				
+				if value > LastValueAmount then
+					for i = LastValueAmount + 1, value, 1 do
+						ValuePanels[i] = AddValue( valuePanel, i )
+						
+						local _,h = valuePanel:GetSize()
+						valuePanel:SetSize(w, h+120 )
 					end
+				elseif value < LastValueAmount then
+					for i = value + 1, LastValueAmount, 1 do
+						selectedValues[i] = nil
+						ValuePanels[i]:Remove()
+						ValuePanels[i] = nil
+						local _,h = valuePanel:GetSize()
+						valuePanel:SetSize(w, h-120 )
+					end
+				else
+					Msg("Error Incorrect value exists?!?!.\n")
 				end
-			elseif (newnumvalues > oldnumvalues) then
-				BuildControlPanels(newnumvalues - oldnumvalues, oldnumvalues)
+				LastValueAmount = value
+				SendUpdate()
 			end
-			oldnumvalues = newnumvalues
-			ValueList:InvalidateLayout(true)
 		end
+		valueSlider.OnValueChanged( valuePanel, 1 )
 	end
-
-	// Add List of Control Panels to Toolgun Panel.
-	CPanel:AddItem(ValueList)
-
-	ModelPlug_AddToCPanel(CPanel, "value", "wire_value", "#WireValueTool_model", nil, "#WireValueTool_model")
 end

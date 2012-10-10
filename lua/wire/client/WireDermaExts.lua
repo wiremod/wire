@@ -1,7 +1,3 @@
--- $Rev: 1453 $
--- $LastChangedDate: 2009-08-01 18:42:53 -0700 (Sat, 01 Aug 2009) $
--- $LastChangedBy: TomyLobo $
-
 WireDermaExts = {}
 
 -- Shortcut functions for Wire tools to make their model select controls
@@ -19,7 +15,7 @@ function ModelPlug_AddToCPanel(panel, category, toolname, _, _, textbox_label, h
 	end
 end
 
-function ModelPlug_AddToCPanel_Multi(panel, categories, toolname, _, _, textbox_label, height)
+function ModelPlug_AddToCPanel_Multi(panel, categories, toolname, textbox_label, height)
 	local ModelSelect = vgui.Create("DWireModelSelectMulti", panel)
 		ModelSelect:SetHeight(height)
 	panel:AddPanel(ModelSelect)

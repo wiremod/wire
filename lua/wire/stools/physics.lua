@@ -5,9 +5,9 @@ do --wire_weight
 	WireToolSetup.open( "weight", "Weight", "gmod_wire_weight", WireToolMakeWeight )
 
 	if CLIENT then
-		language.Add( "Tool_wire_weight_name", "Weight Tool (Wire)" )
-		language.Add( "Tool_wire_weight_desc", "Spawns a weight." )
-		language.Add( "Tool_wire_weight_0", "Primary: Create/Update weight, Reload: Copy model" )
+		language.Add( "tool.wire_weight.name", "Weight Tool (Wire)" )
+		language.Add( "tool.wire_weight.desc", "Spawns a weight." )
+		language.Add( "tool.wire_weight.0", "Primary: Create/Update weight, Reload: Copy model" )
 		language.Add( "WireDataWeightTool_weight", "Weight:" )
 		language.Add( "sboxlimit_wire_weights", "You've hit weights limit!" )
 	end
@@ -47,9 +47,9 @@ do --wire_simple_explosive
 	TOOL.ConfigName = nil -- eeeeeewwwwwwwwwwwwww D:
 
 	if CLIENT then
-		language.Add( "Tool_wire_simple_explosive_name", "Simple Wired Explosives Tool" )
-		language.Add( "Tool_wire_simple_explosive_desc", "Creates a simple explosives for wire system." )
-		language.Add( "Tool_wire_simple_explosive_0", "Left click to place the bomb. Right click update." )
+		language.Add( "tool.wire_simple_explosive.name", "Simple Wired Explosives Tool" )
+		language.Add( "tool.wire_simple_explosive.desc", "Creates a simple explosives for wire system." )
+		language.Add( "tool.wire_simple_explosive.0", "Left click to place the bomb. Right click update." )
 		language.Add( "WireSimpleExplosiveTool_Model", "Model:" )
 		language.Add( "WireSimpleExplosiveTool_modelman", "Manual model selection:" )
 		language.Add( "WireSimpleExplosiveTool_usemodelman", "Use manual model selection:" )
@@ -186,9 +186,9 @@ do --wire_wheel
 	WireToolSetup.open( "wheel", "Wheel", "gmod_wire_wheel", WireToolMakeWheel )
 
 	if CLIENT then
-		language.Add( "Tool_wire_wheel_name", "Wheel Tool (wire)" )
-		language.Add( "Tool_wire_wheel_desc", "Attaches a wheel to something." )
-		language.Add( "Tool_wire_wheel_0", "Click on a prop to attach a wheel." )
+		language.Add( "tool.wire_wheel.name", "Wheel Tool (wire)" )
+		language.Add( "tool.wire_wheel.desc", "Attaches a wheel to something." )
+		language.Add( "tool.wire_wheel.0", "Click on a prop to attach a wheel." )
 
 		language.Add( "WireWheelTool_group", "Input value to go forward:" )
 		language.Add( "WireWheelTool_group_reverse", "Input value to go in reverse:" )
@@ -287,7 +287,7 @@ do --wire_wheel
 
 	function TOOL.BuildCPanel( panel )
 		-- HEADER
-		panel:AddControl( "Header", { Text = "#Tool_wire_wheel_name", Description	= "#Tool_wire_wheel_desc" }  )
+		panel:AddControl( "Header", { Text = "#tool.wire_wheel.name", Description	= "#tool.wire_wheel.desc" }  )
 
 		local Options = { Default = {	wire_wheel_torque		= "3000",
 										wire_wheel_friction		= "0",
@@ -382,9 +382,9 @@ do --wire_turret
 
 	-- Add Default Language translation (saves adding it to the txt files)
 	if CLIENT then
-		language.Add( "Tool_wire_turret_name", "Turret" )
-		language.Add( "Tool_wire_turret_desc", "Throws bullets at things" )
-		language.Add( "Tool_wire_turret_0", "Click somewhere to spawn an turret. Click on an existing turret to change it." )
+		language.Add( "tool.wire_turret.name", "Turret" )
+		language.Add( "tool.wire_turret.desc", "Throws bullets at things" )
+		language.Add( "tool.wire_turret.0", "Click somewhere to spawn an turret. Click on an existing turret to change it." )
 
 		language.Add( "Tool_wire_turret_spread", "Bullet Spread" )
 		language.Add( "Tool_wire_turret_numbullets", "Bullets per Shot" )
@@ -516,7 +516,7 @@ do --wire_turret
 		CPanel:AddControl("ComboBox", TracerType )
 
 		-- Various controls that you should play with!
-		if SinglePlayer() then
+		if game.SinglePlayer() then
 			CPanel:NumSlider("#Tool_wire_turret_numbullets", "wire_turret_numbullets", 1, 10, 0)
 		end
 		CPanel:NumSlider("#Damage", "wire_turret_damage", 0, 100, 0)
@@ -524,7 +524,7 @@ do --wire_turret
 		CPanel:NumSlider("#Tool_wire_turret_force", "wire_turret_force", 0, 500, 1)
 
 		-- The delay between shots.
-		if SinglePlayer() then
+		if game.SinglePlayer() then
 			CPanel:NumSlider("#Delay", "wire_turret_delay", 0.01, 1.0, 2)
 			CPanel:NumSlider("#Tool_wire_turret_tracernum", "wire_turret_tracernum", 0, 15, 0)
 		else
@@ -540,9 +540,9 @@ do --wire_forcer
 	WireToolSetup.open( "forcer", "Forcer", "gmod_wire_forcer", WireToolMakeForcer )
 
 	if CLIENT then
-		language.Add( "Tool_wire_forcer_name", "Forcer Tool (Wire)" )
-		language.Add( "Tool_wire_forcer_desc", "Spawns a forcer prop for use with the wire system." )
-		language.Add( "Tool_wire_forcer_0", "Primary: Create/Update Forcer" )
+		language.Add( "tool.wire_forcer.name", "Forcer Tool (Wire)" )
+		language.Add( "tool.wire_forcer.desc", "Spawns a forcer prop for use with the wire system." )
+		language.Add( "tool.wire_forcer.0", "Primary: Create/Update Forcer" )
 		language.Add( "sboxlimit_wire_forcers", "You've hit forcers limit!" )
 	end
 	WireToolSetup.BaseLang("Forcers")
@@ -579,9 +579,9 @@ do --wire_detonator
 	WireToolSetup.open( "detonator", "Detonator", "gmod_wire_detonator", WireToolMakeDetonator )
 
 	if CLIENT then
-		language.Add( "Tool_wire_detonator_name", "Detonator Tool (Wire)" )
-		language.Add( "Tool_wire_detonator_desc", "Spawns a Detonator for use with the wire system." )
-		language.Add( "Tool_wire_detonator_0", "Primary: Create/Update Detonator" )
+		language.Add( "tool.wire_detonator.name", "Detonator Tool (Wire)" )
+		language.Add( "tool.wire_detonator.desc", "Spawns a Detonator for use with the wire system." )
+		language.Add( "tool.wire_detonator.0", "Primary: Create/Update Detonator" )
 		language.Add( "sboxlimit_wire_detonators", "You've hit Detonators limit!" )
 	end
 	WireToolSetup.BaseLang("Detonators")
@@ -608,9 +608,9 @@ do --wire_grabber
 	WireToolSetup.open( "grabber", "Grabber", "gmod_wire_grabber", WireToolMakeGrabber )
 
 	if CLIENT then
-		language.Add( "Tool_wire_grabber_name", "Grabber Tool (Wire)" )
-		language.Add( "Tool_wire_grabber_desc", "Spawns a constant grabber prop for use with the wire system." )
-		language.Add( "Tool_wire_grabber_0", "Primary: Create/Update Grabber Secondary: link the grabber to its extra prop that is attached for stabilty" )
+		language.Add( "tool.wire_grabber.name", "Grabber Tool (Wire)" )
+		language.Add( "tool.wire_grabber.desc", "Spawns a constant grabber prop for use with the wire system." )
+		language.Add( "tool.wire_grabber.0", "Primary: Create/Update Grabber Secondary: link the grabber to its extra prop that is attached for stabilty" )
 		language.Add( "WireGrabberTool_Range", "Max Range:" )
 		language.Add( "WireGrabberTool_Gravity", "Disable Gravity" )
 		language.Add( "sboxlimit_wire_grabbers", "You've hit grabbers limit!" )
@@ -669,9 +669,9 @@ do --wire_hoverball
 	WireToolSetup.open( "hoverball", "Hoverball", "gmod_wire_hoverball", WireToolMakeHoverball )
 
 	if CLIENT then
-		language.Add( "Tool_wire_hoverball_name", "Wired Hoverball Tool" )
-		language.Add( "Tool_wire_hoverball_desc", "Spawns a hoverball for use with the wire system." )
-		language.Add( "Tool_wire_hoverball_0", "Primary: Create/Update Hoverball" )
+		language.Add( "tool.wire_hoverball.name", "Wired Hoverball Tool" )
+		language.Add( "tool.wire_hoverball.desc", "Spawns a hoverball for use with the wire system." )
+		language.Add( "tool.wire_hoverball.0", "Primary: Create/Update Hoverball" )
 		language.Add( "WireHoverballTool_starton", "Create with hover mode on" )
 		language.Add( "sboxlimit_wire_hoverballs", "You've hit wired hover balls limit!" )
 	end
@@ -711,9 +711,9 @@ do --wire_igniter
 	WireToolSetup.open( "igniter", "Igniter", "gmod_wire_igniter", WireToolMakeIgniter )
 
 	if CLIENT then
-		language.Add( "Tool_wire_igniter_name", "Igniter Tool (Wire)" )
-		language.Add( "Tool_wire_igniter_desc", "Spawns a constant igniter prop for use with the wire system." )
-		language.Add( "Tool_wire_igniter_0", "Primary: Create/Update Igniter" )
+		language.Add( "tool.wire_igniter.name", "Igniter Tool (Wire)" )
+		language.Add( "tool.wire_igniter.desc", "Spawns a constant igniter prop for use with the wire system." )
+		language.Add( "tool.wire_igniter.0", "Primary: Create/Update Igniter" )
 		language.Add( "WireIgniterTool_trgply", "Allow Player Igniting" )
 		language.Add( "WireIgniterTool_Range", "Max Range:" )
 		language.Add( "sboxlimit_wire_igniters", "You've hit igniters limit!" )
@@ -750,9 +750,9 @@ do --wire_trail
 	WireToolSetup.open( "trail", "Trail", "gmod_wire_trail", WireToolMakeTrail )
 
 	if CLIENT then
-		language.Add( "Tool_wire_trail_name", "Trail Tool (Wire)" )
-		language.Add( "Tool_wire_trail_desc", "Spawns a wired trail." )
-		language.Add( "Tool_wire_trail_0", "Primary: Create/Update trail" )
+		language.Add( "tool.wire_trail.name", "Trail Tool (Wire)" )
+		language.Add( "tool.wire_trail.desc", "Spawns a wired trail." )
+		language.Add( "tool.wire_trail.0", "Primary: Create/Update trail" )
 		language.Add( "WireTrailTool_trail", "Trail:" )
 		language.Add( "WireTrailTool_mat", "Material:" )
 		language.Add( "sboxlimit_wire_trails", "You've hit trails limit!" )
@@ -780,9 +780,9 @@ do --wire_thruster
 	WireToolSetup.open( "thruster", "Thruster", "gmod_wire_thruster", WireToolMakeThruster )
 
 	if CLIENT then
-		language.Add( "Tool_wire_thruster_name", "Thruster Tool (Wire)" )
-		language.Add( "Tool_wire_thruster_desc", "Spawns a thruster for use with the wire system." )
-		language.Add( "Tool_wire_thruster_0", "Primary: Create/Update Thruster" )
+		language.Add( "tool.wire_thruster.name", "Thruster Tool (Wire)" )
+		language.Add( "tool.wire_thruster.desc", "Spawns a thruster for use with the wire system." )
+		language.Add( "tool.wire_thruster.0", "Primary: Create/Update Thruster" )
 		language.Add( "WireThrusterTool_Model", "Model:" )
 		language.Add( "WireThrusterTool_force", "Force multiplier:" )
 		language.Add( "WireThrusterTool_force_min", "Force minimum:" )

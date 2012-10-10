@@ -85,14 +85,14 @@ function ENT:GetCap()
 	end
 
 	--Can't have cap bigger than 256 in MP
-	if (not SinglePlayer()) and (self.DriveCap > 256) then
+	if (not game.SinglePlayer()) and (self.DriveCap > 256) then
 		self.DriveCap = 256
 	end
 end
 
 function ENT:UpdateCap()
 	--Can't have cap bigger than 256 in MP
-	if (not SinglePlayer()) and (self.DriveCap > 256) then
+	if (not game.SinglePlayer()) and (self.DriveCap > 256) then
 		self.DriveCap = 256
 	end
 	if self.FlashType == 0 then
@@ -133,7 +133,7 @@ end
 
 function ENT:ReadCell(Address)
 	--DriveID should be > 0, and less than  4 in MP
-	if ((self.DriveID < 0) || (!SinglePlayer() && (self.DriveID >= 4))) then
+	if ((self.DriveID < 0) || (!game.SinglePlayer() && (self.DriveID >= 4))) then
 		return nil
 	end
 
@@ -191,7 +191,7 @@ end
 
 function ENT:WriteCell(Address, value)
 	--DriveID should be > 0, and less than  4 in MP
-	if ((self.DriveID < 0) || (!SinglePlayer() && (self.DriveID >= 4))) then
+	if ((self.DriveID < 0) || (!game.SinglePlayer() && (self.DriveID >= 4))) then
 		return false
 	end
 

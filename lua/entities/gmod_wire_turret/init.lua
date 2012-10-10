@@ -146,7 +146,7 @@ function ENT:FireShot()
 	-- Make a muzzle flash
 	local effectdata = EffectData()
 		effectdata:SetOrigin( shootOrigin )
-		effectdata:SetAngle( shootAngles )
+		effectdata:SetAngles( shootAngles )
 		effectdata:SetScale( 1 )
 	util.Effect( "MuzzleEffect", effectdata )
 
@@ -214,7 +214,7 @@ function MakeWireTurret( ply, Pos, Ang, model, delay, damage, force, sound, numb
 	turret:Spawn()
 
 	-- Clamp stuff in multiplayer.. because people are idiots
-	if not SinglePlayer() then
+	if not game.SinglePlayer() then
 		delay		= math.Clamp( delay, 0.05, 3600 )
 		numbullets	= 1
 		force		= math.Clamp( force, 0.01, 100 )

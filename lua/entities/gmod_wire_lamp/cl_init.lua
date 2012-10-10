@@ -39,21 +39,10 @@ function ENT:DrawTranslucent()
 	local Distance = ViewNormal:Length()
 	ViewNormal:Normalize()
 	local ViewDot = ViewNormal:Dot( LightNrm )
-	local r, g, b, a = self:GetColor12()
+	local c = self:GetColor()
 	local LightPos = self:GetPos() + LightNrm * -6
 
 	// glow sprite
-	/*
-	render.SetMaterial( matBeam )
-
-	local BeamDot = BeamDot = 0.25
-
-	render.StartBeam( 3 )
-		render.AddBeam( LightPos + LightNrm * 1, 128, 0.0, Color( r, g, b, 255 * BeamDot) )
-		render.AddBeam( LightPos - LightNrm * 100, 128, 0.5, Color( r, g, b, 64 * BeamDot) )
-		render.AddBeam( LightPos - LightNrm * 200, 128, 1, Color( r, g, b, 0) )
-	render.EndBeam()
-	*/
 
 	if ( ViewDot >= 0 ) then
 
@@ -66,9 +55,9 @@ function ENT:DrawTranslucent()
 
 		Distance = math.Clamp( Distance, 32, 800 )
 		local Alpha = math.Clamp( (1000 - Distance) * Visibile * ViewDot, 0, 100 )
-		local Col = Color( r, g, b, Alpha )
+		c.a = Alpha
 
-		render.DrawSprite( LightPos, Size, Size, Col, Visibile * ViewDot )
+		render.DrawSprite( LightPos, Size, Size, c, Visibile * ViewDot )
 		render.DrawSprite( LightPos, Size*0.4, Size*0.4, Color(255, 255, 255, Alpha), Visibile * ViewDot )
 
 	end

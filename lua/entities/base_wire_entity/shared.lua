@@ -16,7 +16,7 @@ function ENT:GetOverlayText()
 	local name = self:GetNetworkedString("WireName")
 	//local txt = self.BaseClass.BaseClass.GetOverlayText(self) or ""
 	local txt = self:GetNetworkedBeamString("GModOverlayText") or ""
-	if (not SinglePlayer()) then
+	if (not game.SinglePlayer()) then
 		local PlayerName = self:GetPlayerName()
 		txt = txt .. "\n(" .. PlayerName .. ")"
 	end

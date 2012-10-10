@@ -272,7 +272,7 @@ if SERVER then
 						end
 					end
 					return
-				elseif target and type(target) == "Player" and target:IsValid() and not timer.IsTimer( "wire_expression2_clientside_files_list_send_" .. target:UniqueID() ) then
+				elseif target and type(target) == "Player" and target:IsValid() and not timer.Exists( "wire_expression2_clientside_files_list_send_" .. target:UniqueID() ) then
 					local uid = target:UniqueID()
 					local i = 0
 					umsg.Start("e2fs",target) umsg.Short( #clientside_files_buffer ) umsg.End()
@@ -306,11 +306,11 @@ if SERVER then
 						net.Start("e2se")
 							net.WriteString( functiondata_buffer[v[2]] )
 							if (v[2] == #functiondata_buffer) then
-								net.WriteFloat(1) -- Done with functiondata nr 1
+								net.WriteInt(1,8) -- Done with functiondata nr 1
 								v[1] = 2
 								v[2] = 0
 							else
-								net.WriteFloat(0) -- We're not done yet
+								net.WriteInt(0,8) -- We're not done yet
 							end
 						net.Send(k)
 					else
@@ -329,12 +329,12 @@ if SERVER then
 
 							if (v[2] == #functiondata2_buffer) then
 
-								net.WriteFloat( 2 ) -- Done with functiondata nr 2
+								net.WriteInt(2,8) -- Done with functiondata nr 2
 
 								v[1] = 3
 								v[2] = 0
 							else
-								net.WriteFloat( 0 ) -- We're not done yet
+								net.WriteInt(0,8) -- We're not done yet
 							end
 
 						net.Send(k)
@@ -370,7 +370,7 @@ if SERVER then
 
 		hook.Add( "PlayerInitialSpawn", "wire_expression2_sendfunctions", function( ply )
 			-- If single player, send everything
-			if SinglePlayer() then
+			if game.SinglePlayer() then
 				sendData( ply )
 			else -- else send only files list
 				if VERSION < 150 then
@@ -380,7 +380,7 @@ if SERVER then
 		end)
 
 		-- send function info once the player first spawns (NOTE: Only in single player)
-		--if SinglePlayer() then hook.Add("PlayerInitialSpawn", "wire_expression2_sendfunctions", wire_expression2_sendfunctions) end
+		--if game.SinglePlayer() then hook.Add("PlayerInitialSpawn", "wire_expression2_sendfunctions", wire_expression2_sendfunctions) end
 	end
 
 elseif CLIENT then
@@ -465,7 +465,7 @@ elseif CLIENT then
 			buffer_current_count = buffer_current_count + 1
 			status( buffer_current_count,buffer_total_count )
 
-			local bit = net.ReadFloat()
+			local bit = net.ReadInt(8)
 
 			if bit == 1 or bit == 2 then
 				local OK, data = pcall( glon.decode, buffer )

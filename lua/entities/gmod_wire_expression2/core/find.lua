@@ -376,7 +376,7 @@ e2function number findInCone(vector position, vector direction, length, degrees)
 	if query_blocked(self, 4) then return 0 end
 
 	position = Vector(position[1], position[2], position[3])
-	direction = Vector(direction[1], direction[2], direction[3]):Normalize()
+	direction = Vector(direction[1], direction[2], direction[3]):GetNormalized()
 
 	local findlist = ents.FindInSphere(position, length)
 
@@ -388,7 +388,7 @@ e2function number findInCone(vector position, vector direction, length, degrees)
 	filterList(findlist, filter_and(
 		self.data.findfilter,
 		function(ent)
-			return Dot(direction, (ent:GetPos() - position):Normalize()) > cosDegrees
+			return Dot(direction, (ent:GetPos() - position):GetNormalized()) > cosDegrees
 		end
 	))
 

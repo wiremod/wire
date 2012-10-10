@@ -5,12 +5,12 @@ TOOL.ConfigName = ""
 TOOL.Tab        = "Wire"
 
 if CLIENT then
-  language12.Add("Tool_wire_spu_name", "SPU Tool (Wire)")
-  language12.Add("Tool_wire_spu_desc", "Spawns a sound processing unit")
-  language12.Add("Tool_wire_spu_0",    "Primary: create/reflash ZSPU, Secondary: open editor")
-  language12.Add("sboxlimit_wire_spu", "You've hit ZSPU limit!")
-  language12.Add("undone_wire_spu",    "Undone the ZSPU")
-  language12.Add("ToolWirespu_Model",  "Model:" )
+  language.Add("Tool.wire_spu.name", "SPU Tool (Wire)")
+  language.Add("Tool.wire_spu.desc", "Spawns a sound processing unit")
+  language.Add("Tool.wire_spu.0",    "Primary: create/reflash ZSPU, Secondary: open editor")
+  language.Add("sboxlimit_wire_spu", "You've hit ZSPU limit!")
+  language.Add("undone_wire_spu",    "Undone the ZSPU")
+  language.Add("ToolWirespu_Model",  "Model:" )
 end
 
 if SERVER then CreateConVar("sbox_maxwire_spus", 7) end
@@ -143,7 +143,7 @@ if SERVER then
     if not ent then return end
     if not ent:IsValid() then return end
 
-    local tr = utilx.GetPlayerTrace(player, player:GetCursorAimVector())
+    local tr = util.GetPlayerTrace(player)
     local trace = util.TraceLine(tr)
     if not trace.Hit then return end
 

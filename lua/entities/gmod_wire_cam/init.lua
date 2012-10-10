@@ -17,19 +17,11 @@ end
 
 --[[
 function ENT:Think()
-	--if ValidEntity(self:GetParent()) then return end
-	if self:GetPos() ~= self.IdealPos then
-		self:SetPos(self.IdealPos)
-	end
-	if self:GetAngles() ~= self.IdealAng then
-		self:SetAngles(self.IdealAng)
-	end
-	if self.phys:GetVelocity() ~= self.IdealVel then
-		self.phys:SetVelocity(self.IdealVel)
-	end
-	if self:GetColor12() ~= Color(0, 0, 0, 0) then
-		self:SetColor12(0, 0, 0, 0)
-	end
+	--if IsValid(self:GetParent()) then return end
+	self:SetPos(self.IdealPos)
+	self:SetAngles(self.IdealAng)
+	self.phys:SetVelocity(self.IdealVel)
+	self:SetColor(Color(0,0,0,0))
 	self:NextThink(CurTime()+0.1)
 end
 ]]
@@ -69,7 +61,7 @@ function ENT:ReceiveInfo(iname, value)
 		self.IdealVel = value
 		self.phys:SetVelocity(self.IdealVel)
 	elseif iname == "Parent" then
-		if ValidEntity(value) then
+		if IsValid(value) then
 			self:SetParent(value)
 		else
 			self:SetParent(nil)

@@ -56,15 +56,15 @@ local function setTree(dir, parent)
 	parent.ChildNodes = nil
 
 	local timername = {} // Timer names must be unique and can be an empty table!
-	local files = file12.FindDir(dir .. "/*")
+	local _,files = file.Find(dir .. "/*", "DATA")
 	--table.sort(files)
 	sort( files, dir )
-	local pFiles = file12.Find(dir .. "/*.txt")
+	local pFiles = file.Find(dir .. "/*.txt", "DATA")
 	--table.sort(pFiles)
 	sort( pFiles, dir )
 	table.Add(files, pFiles)
 
-	if !timer.IsTimer(timername) then
+	if !timer.Exists(timername) then
 		local TCount = table.Count(files)
 		local TableCount = TCount/MaxPerTimerTick
 		local AddedItems = {}
@@ -82,8 +82,8 @@ local function setTree(dir, parent)
 			end
 			timer.Create(timername, 0.01, TableCount, function() // The timer is VERY important to prevent the "Infinite Loop Detected!" error on folders with many folders inseide!
 				if (type(dir) ~= "string") or !IsValid(parent) then
-					if timer.IsTimer(timername) then
-						timer.Destroy(timername)
+					if timer.Exists(timername) then
+						timer.Remove(timername)
 					end
 					return
 				end
@@ -96,8 +96,8 @@ local function setTree(dir, parent)
 
 						if (type(v) == "string") then
 							local Filepath = (dir .. "/" .. v)
-							local IsFile = !file12.IsDir(Filepath)
-							local FileExists = file12.Exists(Filepath)
+							local IsFile = not file.IsDir(Filepath, "DATA")
+							local FileExists = file.Exists(Filepath, "DATA")
 
 							if (!string.match(v, "%.%.") and !AddedItems[Filepath]) then // No allow double foders and folder with ".." in thay names to be shown and check if the folder is a real folder, this prevents some errors.
 								if (!IsFile) then
@@ -136,8 +136,8 @@ local function setTree(dir, parent)
 										parent:SetExpanded(true)
 									end
 								end
-								if timer.IsTimer(timername) then
-									timer.Destroy(timername)
+								if timer.Exists(timername) then
+									timer.Remove(timername)
 								end
 							end
 						end
@@ -153,8 +153,8 @@ local function setTree(dir, parent)
 							parent:SetExpanded(true)
 						end
 					end
-					if timer.IsTimer(timername) then
-						timer.Destroy(timername)
+					if timer.Exists(timername) then
+						timer.Remove(timername)
 					end
 				end
 			end)
@@ -232,7 +232,7 @@ function PANEL:Init()
 		Derma_Query(
 			"Delete this file?", "Delete",
 			"Delete", function()
-				if(file12.Exists(self.File.FileDir)) then
+				if(file.Exists(self.File.FileDir, "DATA")) then
 					file.Delete(self.File.FileDir)
 					self:UpdateFolders()
 				end

@@ -48,7 +48,6 @@ end)
 
 local function CreateCPanel( Panel )
 	Panel:ClearControls()
-	Panel:AddHeader()
 
 	local lbl =  vgui.Create("DLabel")
 	lbl:SetText([[Here you can fix screens that use

@@ -1,7 +1,3 @@
--- $Rev: 1734 $
--- $LastChangedDate: 2009-09-26 16:31:08 -0700 (Sat, 26 Sep 2009) $
--- $LastChangedBy: tad2020 $
-
 AddCSLuaFile( "display.lua" )
 WireToolSetup.setCategory( "Display" )
 
@@ -18,9 +14,9 @@ do -- wire_indicator
 	WireToolSetup.open( "indicator", "Indicator", "gmod_wire_indicator", nil, "Indicators" )
 
 	if CLIENT then
-		language.Add( "Tool_wire_indicator_name", "Indicator Tool (Wire)" )
-		language.Add( "Tool_wire_indicator_desc", "Spawns a indicator for use with the wire system." )
-		language.Add( "Tool_wire_indicator_0", "Primary: Create/Update Indicator" )
+		language.Add( "tool.wire_indicator.name", "Indicator Tool (Wire)" )
+		language.Add( "tool.wire_indicator.desc", "Spawns a indicator for use with the wire system." )
+		language.Add( "tool.wire_indicator.0", "Primary: Create/Update Indicator" )
 		language.Add( "ToolWireIndicator_Model", "Model:" )
 		language.Add( "ToolWireIndicator_a_value", "A Value:" )
 		language.Add( "ToolWireIndicator_a_colour", "A Colour:" )
@@ -153,9 +149,9 @@ do -- wire_7seg
 	TOOL.GhostMin = "x"
 
 	if CLIENT then
-		language.Add( "Tool_wire_7seg_name", "7-Segment Display Tool" )
-		language.Add( "Tool_wire_7seg_desc", "Spawns 7 indicators for numeric display with the wire system." )
-		language.Add( "Tool_wire_7seg_0", "Primary: Create display/Update Indicator" )
+		language.Add( "tool.wire_7seg.name", "7-Segment Display Tool" )
+		language.Add( "tool.wire_7seg.desc", "Spawns 7 indicators for numeric display with the wire system." )
+		language.Add( "tool.wire_7seg.0", "Primary: Create display/Update Indicator" )
 		language.Add( "ToolWire7Seg_a_colour", "Off Colour:" )
 		language.Add( "ToolWire7Seg_b_colour", "On Colour:" )
 		language.Add( "ToolWire7SegTool_worldweld", "Allow weld to world" )
@@ -262,9 +258,9 @@ do -- wire_consolescreen
 	WireToolSetup.open( "consolescreen", "Console Screen", "gmod_wire_consolescreen", nil,  "Screens" )
 
 	if CLIENT then
-		language.Add( "Tool_wire_consolescreen_name", "Console Screen Tool (Wire)" )
-		language.Add( "Tool_wire_consolescreen_desc", "Spawns a console screen" )
-		language.Add( "Tool_wire_consolescreen_0", "Primary: Create/Update screen" )
+		language.Add( "tool.wire_consolescreen.name", "Console Screen Tool (Wire)" )
+		language.Add( "tool.wire_consolescreen.desc", "Spawns a console screen" )
+		language.Add( "tool.wire_consolescreen.0", "Primary: Create/Update screen" )
 	end
 	WireToolSetup.BaseLang()
 
@@ -299,9 +295,9 @@ do -- wire_digitalscreen
 	WireToolSetup.open( "digitalscreen", "Digital Screen", "gmod_wire_digitalscreen", nil, "Digital Screens" )
 
 	if CLIENT then
-		language.Add( "Tool_wire_digitalscreen_name", "Digital Screen Tool (Wire)" )
-		language.Add( "Tool_wire_digitalscreen_desc", "Spawns a digital screen, which can be used to draw pixel by pixel." )
-		language.Add( "Tool_wire_digitalscreen_0", "Primary: Create/Update screen" )
+		language.Add( "tool.wire_digitalscreen.name", "Digital Screen Tool (Wire)" )
+		language.Add( "tool.wire_digitalscreen.desc", "Spawns a digital screen, which can be used to draw pixel by pixel." )
+		language.Add( "tool.wire_digitalscreen.0", "Primary: Create/Update screen" )
 	end
 	WireToolSetup.BaseLang()
 
@@ -342,9 +338,9 @@ do -- wire_lamp
 	WireToolSetup.open( "lamp", "Lamp", "gmod_wire_lamp", nil, "Lamps" )
 
 	if CLIENT then
-		language.Add( "Tool_wire_lamp_name", "Wire Lamps" )
-		language.Add( "Tool_wire_lamp_desc", "Spawns a lamp for use with the wire system." )
-		language.Add( "Tool_wire_lamp_0", "Primary: Create hanging lamp Secondary: Create unattached lamp" )
+		language.Add( "tool.wire_lamp.name", "Wire Lamps" )
+		language.Add( "tool.wire_lamp.desc", "Spawns a lamp for use with the wire system." )
+		language.Add( "tool.wire_lamp.0", "Primary: Create hanging lamp Secondary: Create unattached lamp" )
 		language.Add( "WireLampTool_RopeLength", "Rope Length:")
 		language.Add( "WireLampTool_Color", "Color:" )
 		language.Add( "WireLampTool_Const", "Constraint:" )
@@ -501,9 +497,9 @@ do -- wire_light
 	WireToolSetup.open( "light", "Light", "gmod_wire_light", nil, "Lights" )
 
 	if CLIENT then
-		language.Add( "Tool_wire_light_name", "Light Tool (Wire)" )
-		language.Add( "Tool_wire_light_desc", "Spawns a Light for use with the wire system." )
-		language.Add( "Tool_wire_light_0", "Primary: Create Light" )
+		language.Add( "tool.wire_light.name", "Light Tool (Wire)" )
+		language.Add( "tool.wire_light.desc", "Spawns a Light for use with the wire system." )
+		language.Add( "tool.wire_light.0", "Primary: Create Light" )
 		language.Add( "WireLightTool_directional", "Directional Component" )
 		language.Add( "WireLightTool_radiant", "Radiant Component" )
 		language.Add( "WireLightTool_glow", "Glow Component" )
@@ -548,9 +544,9 @@ do -- wire_oscilloscope
 	WireToolSetup.open( "oscilloscope", "Oscilloscope", "gmod_wire_oscilloscope", nil, "Oscilloscopes" )
 
 	if CLIENT then
-		language.Add( "Tool_wire_oscilloscope_name", "Oscilloscope Tool (Wire)" )
-		language.Add( "Tool_wire_oscilloscope_desc", "Spawns a oscilloscope what display line graphs." )
-		language.Add( "Tool_wire_oscilloscope_0", "Primary: Create/Update oscilloscope" )
+		language.Add( "tool.wire_oscilloscope.name", "Oscilloscope Tool (Wire)" )
+		language.Add( "tool.wire_oscilloscope.desc", "Spawns a oscilloscope what display line graphs." )
+		language.Add( "tool.wire_oscilloscope.0", "Primary: Create/Update oscilloscope" )
 	end
 	WireToolSetup.BaseLang()
 
@@ -586,9 +582,9 @@ do -- wire_panel
 	WireToolSetup.open( "panel", "Control Panel", "gmod_wire_panel", nil, "Control Panels" )
 
 	if CLIENT then
-		language.Add( "Tool_wire_panel_name", "Control Panel Tool (Wire)" )
-		language.Add( "Tool_wire_panel_desc", "Spawns a panel what display values." )
-		language.Add( "Tool_wire_panel_0", "Primary: Create/Update panel" )
+		language.Add( "tool.wire_panel.name", "Control Panel Tool (Wire)" )
+		language.Add( "tool.wire_panel.desc", "Spawns a panel what display values." )
+		language.Add( "tool.wire_panel.0", "Primary: Create/Update panel" )
 		language.Add( "Tool_wire_panel_createflat", "Create flat to surface" )
 	end
 	WireToolSetup.BaseLang()
@@ -624,9 +620,9 @@ do -- wire_pixel
 	WireToolSetup.open( "pixel", "Pixel", "gmod_wire_pixel", nil, "Pixels" )
 
 	if CLIENT then
-		language.Add( "Tool_wire_pixel_name", "Pixel Tool (Wire)" )
-		language.Add( "Tool_wire_pixel_desc", "Spawns a Pixel for use with the wire system." )
-		language.Add( "Tool_wire_pixel_0", "Primary: Create Pixel" )
+		language.Add( "tool.wire_pixel.name", "Pixel Tool (Wire)" )
+		language.Add( "tool.wire_pixel.desc", "Spawns a Pixel for use with the wire system." )
+		language.Add( "tool.wire_pixel.0", "Primary: Create Pixel" )
 	end
 	WireToolSetup.BaseLang()
 
@@ -664,9 +660,9 @@ do -- wire_screen
 	WireToolSetup.open( "screen", "Screen", "gmod_wire_screen", nil, "Screens" )
 
 	if CLIENT then
-		language.Add( "Tool_wire_screen_name", "Screen Tool (Wire)" )
-		language.Add( "Tool_wire_screen_desc", "Spawns a screen that display values." )
-		language.Add( "Tool_wire_screen_0", "Primary: Create/Update screen" )
+		language.Add( "tool.wire_screen.name", "Screen Tool (Wire)" )
+		language.Add( "tool.wire_screen.desc", "Spawns a screen that display values." )
+		language.Add( "tool.wire_screen.0", "Primary: Create/Update screen" )
 		language.Add("Tool_wire_screen_singlevalue", "Only one value")
 		language.Add("Tool_wire_screen_singlebigfont", "Use bigger font for single-value screen")
 		language.Add("Tool_wire_screen_texta", "Text A:")
@@ -729,9 +725,9 @@ do -- wire_soundemitter
 	WireToolSetup.open( "soundemitter", "Sound Emitter", "gmod_wire_soundemitter", nil, "Sound Emitters" )
 
 	if CLIENT then
-		language.Add( "Tool_wire_soundemitter_name", "Sound Emitter Tool (Wire)" )
-		language.Add( "Tool_wire_soundemitter_desc", "Spawns a sound emitter for use with the wire system." )
-		language.Add( "Tool_wire_soundemitter_0", "Primary: Create/Update Sound Emitter" )
+		language.Add( "tool.wire_soundemitter.name", "Sound Emitter Tool (Wire)" )
+		language.Add( "tool.wire_soundemitter.desc", "Spawns a sound emitter for use with the wire system." )
+		language.Add( "tool.wire_soundemitter.0", "Primary: Create/Update Sound Emitter" )
 		language.Add( "WireEmitterTool_sound", "Sound:" )
 		language.Add( "WireEmitterTool_collision", "Collision" )
 	end
@@ -829,9 +825,9 @@ do -- wire_textscreen
 	WireToolSetup.open( "textscreen", "Text Screen", "gmod_wire_textscreen", nil, "Text Screens" )
 
 	if CLIENT then
-		language.Add("Tool_wire_textscreen_name", "Text Screen Tool (Wire)" )
-		language.Add("Tool_wire_textscreen_desc", "Spawns a screen that displays text." )
-		language.Add("Tool_wire_textscreen_0", "Primary: Create/Update text screen, Secondary: Copy settings" )
+		language.Add("tool.wire_textscreen.name", "Text Screen Tool (Wire)" )
+		language.Add("tool.wire_textscreen.desc", "Spawns a screen that displays text." )
+		language.Add("tool.wire_textscreen.0", "Primary: Create/Update text screen, Secondary: Copy settings" )
 
 		language.Add("Tool_wire_textscreen_tsize", "Text size:")
 		language.Add("Tool_wire_textscreen_tjust", "Horizontal alignment:")
@@ -956,10 +952,10 @@ do -- Holography--
 		end
 
 		if CLIENT then
-			language.Add( "Tool_wire_holoemitter_name", "Holographic Emitter Tool (Wire)" )
-			language.Add( "Tool_wire_holoemitter_desc", "The emitter required for holographic projections" )
-			language.Add( "Tool_wire_holoemitter_0", "Primary: Create emitter, Secondary: Link emitter to any entity (makes it draw local to that entity instead)" )
-			language.Add( "Tool_wire_holoemitter_1", "Secondary: Link to entity (click the same holoemitter again to unlink it)" )
+			language.Add( "tool.wire_holoemitter.name", "Holographic Emitter Tool (Wire)" )
+			language.Add( "tool.wire_holoemitter.desc", "The emitter required for holographic projections" )
+			language.Add( "tool.wire_holoemitter.0", "Primary: Create emitter, Secondary: Link emitter to any entity (makes it draw local to that entity instead)" )
+			language.Add( "tool.wire_holoemitter.1", "Secondary: Link to entity (click the same holoemitter again to unlink it)" )
 			language.Add( "Tool_wire_holoemitter_fadetime", "Client side max fade time (set to 0 to never fade)." )
 			language.Add( "Tool_wire_holoemitter_keeplatestdot", "Keep latest dot indefinitely (prevent fading)." )
 		end
@@ -1000,11 +996,11 @@ do -- Holography--
 			local stage1 = "Select the HoloGrid to link to."
 			local stage2 = "Select the Holo Emitter or reference entity to link to."
 
-			language.Add( "Tool_wire_hologrid_name", "Holographic Grid Tool (Wire)" )
-			language.Add( "Tool_wire_hologrid_desc", "The grid to aid in holographic projections" )
-			language.Add( "Tool_wire_hologrid_0", "Primary: Create grid, "..stage0 )
-			language.Add( "Tool_wire_hologrid_1", stage1 )
-			language.Add( "Tool_wire_hologrid_2", stage2 )
+			language.Add( "tool.wire_hologrid.name", "Holographic Grid Tool (Wire)" )
+			language.Add( "tool.wire_hologrid.desc", "The grid to aid in holographic projections" )
+			language.Add( "tool.wire_hologrid.0", "Primary: Create grid, "..stage0 )
+			language.Add( "tool.wire_hologrid.1", stage1 )
+			language.Add( "tool.wire_hologrid.2", stage2 )
 			language.Add( "Tool_wire_hologrid_usegps", "Use GPS coordinates" )
 		end
 		WireToolSetup.BaseLang()

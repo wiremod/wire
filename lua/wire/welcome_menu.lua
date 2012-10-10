@@ -9,16 +9,13 @@ WireLib.WelcomeMenu = {}
 local Menu = WireLib.WelcomeMenu
 
 if (SERVER) then
-
-	resource.AddFile("materials/gui/silkicons/help.vmt")
-
 	-- Open the menu on spawn
 	hook.Add("PlayerInitialSpawn","Wire_Welcome_Popup",function(ply)
-		timer.Simple(5,function(ply)
+		timer.Simple(5,function()
 			if (ply and ply:IsValid()) then -- Sometimes the player crashes
 				ply:ConCommand("Wire_Welcome_Menu 1337") -- "1337" is to let the client know that the server is the one requesting it, and not the player.
 			end
-		end,ply)
+		end)
 	end)
 
 end
@@ -27,7 +24,6 @@ if (CLIENT) then
 
 	local function CreateCPanel( Panel )
 		Panel:ClearControls()
-		Panel:AddHeader()
 
 		local lbl =  vgui.Create("DLabel")
 		lbl:SetText([[You can also open the menu using the console command:
@@ -56,7 +52,7 @@ if (CLIENT) then
 
 	Menu.ConVars = {}
 	Menu.ConVars.Blocked = CreateClientConVar("Wire_Welcome_Menu_Blocked","0",true,false)
-	Menu.ConVars.UpdateNotificationBlocked = CreateClientConVar("Wire_Welcome_Menu_HideUpdateNotification","0",true,false)
+	Menu.ConVars.UpdateNotificationBlocked = CreateClientConVar("Wire_Welcome_Menu_HideUpdateNotification","1",true,false) --quick fix because the update notification is not closeable
 	Menu.Menu = {}
 
 	------------------------------------------------------------------------------------------------
@@ -634,7 +630,7 @@ Installation problems:                            Tutorials:                    
 					end
 
 					lbl:SetText("Online wire version found: " .. onlineversion .. "\n"..add)
-					lbl:SetColor12( Color(0,0,0,255) )
+					lbl:SetColor( Color(0,0,0,255) )
 					if (serverversion == 0) then serverversion = "Failed to get server's version." end
 					if (localversion == 0) then localversion = "Failed to get client's version." end
 					lbl2:SetText("Your Wiremod version is: " .. (WireLib.LocalVersion or localversion) .. "\n" ..
@@ -647,7 +643,7 @@ Installation problems:                            Tutorials:                    
 
 		function btn:DoClick()
 			lbl:SetText("Checking...")
-			lbl:SetColor12( nil )
+			lbl:SetColor( Color() )
 			lbl:SetBGColor( Color(75,75,185,255) )
 			if (!WireLib.Version or WireLib.Version == "-unknown-") then RunConsoleCommand("Wire_RequestVersion") end
 			WireLib.GetOnlineWireVersion(versioncheck)
@@ -753,7 +749,8 @@ Installation problems:                            Tutorials:                    
 				clr._RadioBtn:SetText( clr._RadioBtn._Color .. string.format(" - [%d,%d,%d,%d]", c.r, c.g, c.b, c.a ) )
 			end
 		end
-		clr.AlphaBar.OnChange = function( ctrl, alpha )
+		clr.Alpha.OnChange = function( ctrl, alpha )
+			alpha = alpha*255
 			clr._RadioBtn._CurrentColor.a = alpha
 			local c = clr._RadioBtn._CurrentColor
 			clr._RadioBtn:SetText( clr._RadioBtn._Color .. string.format(" - [%d,%d,%d,%d]", c.r, c.g, c.b, alpha ) )

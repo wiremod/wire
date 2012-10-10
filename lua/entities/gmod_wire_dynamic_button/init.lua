@@ -83,7 +83,7 @@ function ENT:Setup(toggle, value_off, value_on, entityout, material_on, material
 	Wire_TriggerOutput(self, "Out", self.value_off)
 
     self:SetMaterial(self.material_off)
-    self:SetColor12( self.off_r, self.off_g, self.off_b, 255)
+    self:SetColor(Color(self.off_r, self.off_g, self.off_b, 255))
 
 	if entityout then
 		WireLib.AdjustSpecialOutputs(self, { "Out", "EntID" , "Entity" }, { "NORMAL", "NORMAL" , "ENTITY" })
@@ -111,13 +111,13 @@ function ENT:Switch(on)
 		self:ShowOutput(self.value_on)
 		self.Value = self.value_on
         self:SetMaterial(self.material_on)
-		self:SetColor12( self.on_r, self.on_g, self.on_b, 255)
+		self:SetColor(Color(self.on_r, self.on_g, self.on_b, 255))
 
 	else
 		self:ShowOutput(self.value_off)
 		self.Value = self.value_off
 		self:SetMaterial(self.material_off)
-        self:SetColor12( self.off_r, self.off_g, self.off_b, 255)
+        self:SetColor(Color(self.off_r, self.off_g, self.off_b, 255))
 
 		if self.OutputEntID then self.EntToOutput = NULL end
 	end

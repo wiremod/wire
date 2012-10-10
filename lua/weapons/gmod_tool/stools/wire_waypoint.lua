@@ -5,14 +5,14 @@ TOOL.ConfigName		= ""
 TOOL.Tab			= "Wire"
 
 if ( CLIENT ) then
-    language12.Add( "Tool_wire_waypoint_name", "Waypoint Beacon Tool (Wire)" )
-    language12.Add( "Tool_wire_waypoint_desc", "Spawns a waypoint beacon for use with the wire system." )
-    language12.Add( "Tool_wire_waypoint_0", "Primary: Create/Update Waypoint Beacon, Secondary: Link to next waypoint, Reload: Remove link to next waypoint" )
-    language12.Add( "Tool_wire_waypoint_1", "Primary: Select waypoint to go to after this one" )
-    language12.Add( "WireWaypointTool_range", "Range:" )
-	language12.Add( "WireWaypointTool_alink", "Auto-link previous" )
-	language12.Add( "sboxlimit_wire_waypoints", "You've hit waypoint beacons limit!" )
-	language12.Add( "undone_wirewaypoint", "Undone Wire Waypoint Beacon" )
+    language.Add( "Tool.wire_waypoint.name", "Waypoint Beacon Tool (Wire)" )
+    language.Add( "Tool.wire_waypoint.desc", "Spawns a waypoint beacon for use with the wire system." )
+    language.Add( "Tool.wire_waypoint.0", "Primary: Create/Update Waypoint Beacon, Secondary: Link to next waypoint, Reload: Remove link to next waypoint" )
+    language.Add( "Tool.wire_waypoint.1", "Primary: Select waypoint to go to after this one" )
+    language.Add( "WireWaypointTool_range", "Range:" )
+	language.Add( "WireWaypointTool_alink", "Auto-link previous" )
+	language.Add( "sboxlimit_wire_waypoints", "You've hit waypoint beacons limit!" )
+	language.Add( "undone_wirewaypoint", "Undone Wire Waypoint Beacon" )
 end
 
 if (SERVER) then

@@ -5,22 +5,22 @@ TOOL.ConfigName		= ""
 TOOL.Tab			= "Wire"
 
 if ( CLIENT ) then
-	language12.Add( "Tool_wire_sensor_name", "Beacon Sensor Tool (Wire)" )
-	language12.Add( "Tool_wire_sensor_desc", "Returns distance and/or bearing to a beacon" )
-	language12.Add( "Tool_wire_sensor_0", "Primary: Create Sensor    Secondary: Link Sensor" )
-	language12.Add( "Tool_wire_sensor_1", "Click on the beacon to link to." )
-	language12.Add( "WireSensorTool_xyz_mode", "Split X,Y,Z" )
-	language12.Add( "WireSensorTool_outdist", "Output distance" )
-	language12.Add( "WireSensorTool_outbrng", "Output bearing" )
-	language12.Add( "WireSensorTool_gpscord", "Output world position (gps cords)" )
-	language12.Add( "WireSensorTool_direction_vector", "Output direction Vector" )
-	language12.Add( "WireSensorTool_direction_normalized", "Normalize direction Vector" )
-	language12.Add( "WireSensorTool_target_velocity", "Output target's velocity" )
-	language12.Add( "WireSensorTool_velocity_normalized", "Normalize velocity" )
-	language12.Add( "WireSensorTool_vector_in", "Vector Input Instead" )
-	--language12.Add( "WireSensorTool_swapyz", "Swap Y and Z cords:" )
-	language12.Add( "sboxlimit_wire_sensors", "You've hit sensors limit!" )
-	language12.Add( "undone_wiresensor", "Undone Wire Sensor" )
+	language.Add( "Tool.wire_sensor.name", "Beacon Sensor Tool (Wire)" )
+	language.Add( "Tool.wire_sensor.desc", "Returns distance and/or bearing to a beacon" )
+	language.Add( "Tool.wire_sensor.0", "Primary: Create Sensor    Secondary: Link Sensor" )
+	language.Add( "Tool.wire_sensor.1", "Click on the beacon to link to." )
+	language.Add( "WireSensorTool_xyz_mode", "Split X,Y,Z" )
+	language.Add( "WireSensorTool_outdist", "Output distance" )
+	language.Add( "WireSensorTool_outbrng", "Output bearing" )
+	language.Add( "WireSensorTool_gpscord", "Output world position (gps cords)" )
+	language.Add( "WireSensorTool_direction_vector", "Output direction Vector" )
+	language.Add( "WireSensorTool_direction_normalized", "Normalize direction Vector" )
+	language.Add( "WireSensorTool_target_velocity", "Output target's velocity" )
+	language.Add( "WireSensorTool_velocity_normalized", "Normalize velocity" )
+	language.Add( "WireSensorTool_vector_in", "Vector Input Instead" )
+	--language.Add( "WireSensorTool_swapyz", "Swap Y and Z cords:" )
+	language.Add( "sboxlimit_wire_sensors", "You've hit sensors limit!" )
+	language.Add( "undone_wiresensor", "Undone Wire Sensor" )
 end
 
 if (SERVER) then

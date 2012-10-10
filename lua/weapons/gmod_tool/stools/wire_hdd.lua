@@ -5,11 +5,11 @@ TOOL.ConfigName		= ""
 TOOL.Tab			= "Wire"
 
 if ( CLIENT ) then
-	language12.Add( "Tool_wire_hdd_name", "Flash (EEPROM) tool (Wire)" )
-	language12.Add( "Tool_wire_hdd_desc", "Spawns flash memory. It is used for permanent storage of data (carried over sessions)" )
-	language12.Add( "Tool_wire_hdd_0", "Primary: Create/Update flash memory" )
-	language12.Add( "sboxlimit_wire_hdds", "You've hit flash memory limit!" )
-	language12.Add( "undone_wiredigitalscreen", "Undone Flash (EEPROM)" )
+	language.Add( "Tool.wire_hdd.name", "Flash (EEPROM) tool (Wire)" )
+	language.Add( "Tool.wire_hdd.desc", "Spawns flash memory. It is used for permanent storage of data (carried over sessions)" )
+	language.Add( "Tool.wire_hdd.0", "Primary: Create/Update flash memory" )
+	language.Add( "sboxlimit_wire_hdds", "You've hit flash memory limit!" )
+	language.Add( "undone_wiredigitalscreen", "Undone Flash (EEPROM)" )
 end
 
 if (SERVER) then
@@ -258,7 +258,7 @@ if SERVER then
 
 		-- Download code
 		downloadPointer[player:UserID()] = 0
-		timer.Destroy("flash_download"..player:UserID())
+		timer.Remove("flash_download"..player:UserID())
 		timer.Create("flash_download"..player:UserID(),1/60,0,function()
 			local umsgrp = RecipientFilter()
 			umsgrp:AddPlayer(player)
@@ -276,7 +276,7 @@ if SERVER then
 
 			downloadPointer[player:UserID()] = downloadPointer[player:UserID()] + 1
 			if downloadPointer[player:UserID()] >= driveCap*1024/blockSize then
-				timer.Destroy("flash_download"..player:UserID())
+				timer.Remove("flash_download"..player:UserID())
 			end
 		end)
 	end)
@@ -343,7 +343,7 @@ else
 
 		-- Upload code
 		uploadPointer = 0
-		timer.Destroy("flash_upload")
+		timer.Remove("flash_upload")
 		timer.Create("flash_upload",1/10,0,function()
 			if file.Exists(GetStructName("SINGLEPLAYER",HDDID,uploadPointer)) then
 				local dataTable = GetFloatTable(file.Read(GetStructName("SINGLEPLAYER",HDDID,uploadPointer)))

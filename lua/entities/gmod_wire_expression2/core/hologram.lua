@@ -446,7 +446,7 @@ local function CreateHolo(self, index, pos, scale, ang, color, model)
 	end
 
 	if not validEntity(prop) then return nil end
-	if color then prop:SetColor12(color[1],color[2],color[3],255) end
+	if color then prop:SetColor(Color(color[1],color[2],color[3],255)) end
 
 	rescale(Holo, scale)
 
@@ -599,7 +599,7 @@ e2function void holoReset(index, string model, vector scale, vector color, strin
 	if not Holo then return end
 
 	Holo.ent:SetModel(Model("models/Holograms/"..model..".mdl"))
-	Holo.ent:SetColor12(color[1],color[2],color[3],255)
+	Holo.ent:SetColor(Color(color[1],color[2],color[3],255))
 	Holo.ent:SetMaterial(color)
 
 	rescale(Holo, scale)
@@ -731,30 +731,30 @@ e2function void holoColor(index, vector color)
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
 
-	local _,_,_,alpha = Holo.ent:GetColor12()
-	Holo.ent:SetColor12(color[1],color[2],color[3],alpha)
+	Holo.ent:SetColor(Color(color[1],color[2],color[3],Holo.ent:GetColor().a))
 end
 
 e2function void holoColor(index, vector4 color)
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
 
-	Holo.ent:SetColor12(color[1],color[2],color[3],color[4])
+	Holo.ent:SetColor(Color(color[1],color[2],color[3],color[4]))
 end
 
 e2function void holoColor(index, vector color, alpha)
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
 
-	Holo.ent:SetColor12(color[1],color[2],color[3],alpha)
+	Holo.ent:SetColor(Color(color[1],color[2],color[3],alpha))
 end
 
 e2function void holoAlpha(index, alpha)
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
 
-	local r,g,b = Holo.ent:GetColor12()
-	Holo.ent:SetColor12(r,g,b,alpha)
+	local c = Holo.ent:GetColor()
+	c.a = alpha
+	Holo.ent:SetColor(c)
 end
 
 e2function void holoShadow(index, has_shadow)

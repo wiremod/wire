@@ -5,11 +5,11 @@ TOOL.ConfigName		= ""
 TOOL.Tab			= "Wire"
 
 if ( CLIENT ) then
-	language12.Add( "Tool_wire_datarate_name", "Data transfer bus tool (Wire)" )
-	language12.Add( "Tool_wire_datarate_desc", "Spawns a data transferrer. Data transferrer acts like identity gate for hi-speed and regular links" )
-	language12.Add( "Tool_wire_datarate_0", "Primary: Create/Update data trasnferrer" )
-	language12.Add( "sboxlimit_wire_datarates", "You've hit data trasnferrers limit!" )
-	language12.Add( "undone_wiredatarate", "Undone Data Transferrer" )
+	language.Add( "Tool.wire_datarate.name", "Data transfer bus tool (Wire)" )
+	language.Add( "Tool.wire_datarate.desc", "Spawns a data transferrer. Data transferrer acts like identity gate for hi-speed and regular links" )
+	language.Add( "Tool.wire_datarate.0", "Primary: Create/Update data trasnferrer" )
+	language.Add( "sboxlimit_wire_datarates", "You've hit data trasnferrers limit!" )
+	language.Add( "undone_wiredatarate", "Undone Data Transferrer" )
 end
 
 if (SERVER) then

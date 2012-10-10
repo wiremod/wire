@@ -14,16 +14,16 @@ else
 	-- Tool Info
 	----------------------------------------------------------------------------------------------------
 
-	language12.Add( "Tool_wire_dhdd_name", "DHDD Tool (Wire)" )
-	language12.Add( "Tool_wire_dhdd_desc", "Spawns a dupeable hard drive gate for use with the wire system." )
-	language12.Add( "Tool_wire_dhdd_0", "Primary: Create DHDD." )
-	language12.Add( "sboxlimit_wire_dhdds", "You've hit the Wire DHDD limit!" )
-	language12.Add( "undone_wiredhdd", "Undone Wire DHDD" )
+	language.Add( "Tool.wire_dhdd.name", "DHDD Tool (Wire)" )
+	language.Add( "Tool.wire_dhdd.desc", "Spawns a dupeable hard drive gate for use with the wire system." )
+	language.Add( "Tool.wire_dhdd.0", "Primary: Create DHDD." )
+	language.Add( "sboxlimit_wire_dhdds", "You've hit the Wire DHDD limit!" )
+	language.Add( "undone_wiredhdd", "Undone Wire DHDD" )
 
-	language12.Add( "Tool_wire_dhdd_weld", "Weld the DHDD." )
-	language12.Add( "Tool_wire_dhdd_weldtoworld", "Weld the DHDD to the world." )
-	language12.Add( "Tool_wire_dhdd_freeze", "Freeze the DHDD." )
-	language12.Add( "Tool_wire_dhdd_note", "NOTE: The DHDD only saves the first\n512^2 values to prevent\nmassive dupe files and lag." )
+	language.Add( "Tool_wire_dhdd_weld", "Weld the DHDD." )
+	language.Add( "Tool_wire_dhdd_weldtoworld", "Weld the DHDD to the world." )
+	language.Add( "Tool_wire_dhdd_freeze", "Freeze the DHDD." )
+	language.Add( "Tool_wire_dhdd_note", "NOTE: The DHDD only saves the first\n512^2 values to prevent\nmassive dupe files and lag." )
 
 	TOOL.ClientConVar["model"] = "models/jaanus/wiretool/wiretool_gate.mdl"
 	TOOL.ClientConVar["weld"] = 1
@@ -149,7 +149,7 @@ end
 -- GHOST
 ----------------------------------------------------------------------------------------------------
 
-if ((SinglePlayer() and SERVER) or (!SinglePlayer() and CLIENT)) then
+if ((game.SinglePlayer() and SERVER) or (!game.SinglePlayer() and CLIENT)) then
 	function TOOL:DrawGhost()
 		local ent, ply = self.GhostEntity, self:GetOwner()
 		if (!ent or !ent:IsValid()) then return end

@@ -6,8 +6,12 @@ local Clamp = math.Clamp
 local floor = math.floor
 local abs = math.abs
 
-local function ColorClamp(col1, col2, col3, col4)
-	return Clamp(col1, 0, 255), Clamp(col2, 0, 255), Clamp(col3, 0, 255), Clamp(col4, 0, 255)
+local function ColorClamp(c)
+	c.r = Clamp(c.r,0,255)
+	c.g = Clamp(c.g,0,255)
+	c.b = Clamp(c.b,0,255)
+	c.a = Clamp(c.a,0,255)
+	return c
 end
 
 /******************************************************************************/
@@ -15,79 +19,64 @@ end
 e2function vector entity:getColor()
 	if !validEntity(this) then return {0,0,0} end
 
-	local r,g,b = this:GetColor12()
-	return { r, g, b }
+	local c = this:GetColor()
+	return { c.r, c.g, c.b }
 end
 
 e2function vector4 entity:getColor4()
-	if !validEntity(this) then return {0,0,0,0} end
-
-	return { this:GetColor12() }
+	if not validEntity(this) then return {0,0,0,0} end
+	local c = this:GetColor()
+	return {c.r,c.g,c.b,c.a}
 end
 
 e2function number entity:getAlpha()
-	if !validEntity(this) then return 0 end
-
-	local _,_,_,alpha = this:GetColor12()
-	return alpha
+	return validEntity(this) and this:GetColor().a or 0
 end
 
-e2function void entity:setColor(rv2, rv3, rv4)
+e2function void entity:setColor(r,g,b)
 	if !validEntity(this) then return end
 	if !isOwner(self, this) then return end
 
-	local _,_,_,alpha = this:GetColor12()
-	this:SetColor12(ColorClamp(rv2, rv3, rv4, alpha))
+	this:SetColor(ColorClamp(Color(r,g,b,this:GetColor().a)))
 end
 
-e2function void entity:setColor(rv2, rv3, rv4, rv5)
+e2function void entity:setColor(r,g,b,a)
 	if !validEntity(this) then return end
 	if !isOwner(self, this) then return end
 
-	if this:IsPlayer() --[[or this:IsWeapon()]] then rv5 = 255 end
-
-	this:SetColor12(ColorClamp(rv2, rv3, rv4, rv5))
+	this:SetColor(ColorClamp(Color(r, g, b, this:IsPlayer() and this:GetColor().a or a)))
 end
 
-e2function void entity:setColor(vector rv2)
+e2function void entity:setColor(vector c)
 	if !validEntity(this) then return end
 	if !isOwner(self, this) then return end
 
-	local _,_,_,alpha = this:GetColor12()
-	this:SetColor12(ColorClamp(rv2[1], rv2[2], rv2[3], alpha))
+	this:SetColor(ColorClamp(Color(c[1],c[2],c[3],this:GetColor().a)))
 end
 
-e2function void entity:setColor(vector rv2, rv3)
+e2function void entity:setColor(vector c, a)
 	if !validEntity(this) then return end
 	if !isOwner(self, this) then return end
 
-	if this:IsPlayer() --[[or this:IsWeapon()]] then rv3 = 255 end
-
-	this:SetColor12(ColorClamp(rv2[1], rv2[2], rv2[3], rv3))
+	this:SetColor(ColorClamp(Color(c[1],c[2],c[3], this:IsPlayer() and this:GetColor().a or a)))
 end
 
-e2function void entity:setColor(vector4 rv2)
+e2function void entity:setColor(vector4 c)
 	if !validEntity(this) then return end
 	if !isOwner(self, this) then return end
 
-	local alpha
-	if this:IsPlayer() --[[or this:IsWeapon()]] then
-		alpha = 255
-	else
-		alpha = rv2[4]
-	end
-
-	this:SetColor12(ColorClamp(rv2[1], rv2[2], rv2[3], alpha))
+	this:SetColor(ColorClamp(Color(c[1],c[2],c[3], this:IsPlayer() and this:GetColor().a or c[4])))
 end
 
-e2function void entity:setAlpha(rv2)
+e2function void entity:setAlpha(a)
 	if !validEntity(this) then return end
 	if !isOwner(self, this) then return end
 
-	if this:IsPlayer() --[[or this:IsWeapon()]] then return end
-
-	local r,g,b = this:GetColor12()
-	this:SetColor12(r, g, b, Clamp(rv2, 0, 255))
+	if this:IsPlayer() then return end
+	
+	local c = this:GetColor()
+	c.a = Clamp(a, 0, 255)
+	this:SetColor(c)
 end
 
 --- Converts <hsv> from the [http://en.wikipedia.org/wiki/HSV_color_space HSV color space] to the [http://en.wikipedia.org/wiki/RGB_color_space RGB color space]

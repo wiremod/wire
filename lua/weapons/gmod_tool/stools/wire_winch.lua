@@ -13,15 +13,15 @@ TOOL.ClientConVar = {
 }
 
 if CLIENT then
-	language12.Add( "Tool_wire_winch_name", "Winch Tool (Wire)" )
-	language12.Add( "Tool_wire_winch_desc", "Makes a controllable winch" )
-	language12.Add( "Tool_wire_winch_0", "Primary: Place winch\nSecondary: Place winch along the hit normal" )
-	language12.Add( "Tool_wire_winch_1", "Left click on the second point" )
-	language12.Add( "Tool_wire_winch_2", "Left click to place the controller" )
-	language12.Add( "WireWinchTool_width", "Width:" )
-	language12.Add( "WireWinchTool_material", "Material:" )
-	language12.Add( "WireWinchTool_fixed", "Fixed" )
-	language12.Add( "undone_wirewinch", "Undone Wire Winch" )
+	language.Add( "Tool.wire_winch.name", "Winch Tool (Wire)" )
+	language.Add( "Tool.wire_winch.desc", "Makes a controllable winch" )
+	language.Add( "Tool.wire_winch.0", "Primary: Place winch\nSecondary: Place winch along the hit normal" )
+	language.Add( "Tool.wire_winch.1", "Left click on the second point" )
+	language.Add( "Tool.wire_winch.2", "Left click to place the controller" )
+	language.Add( "WireWinchTool_width", "Width:" )
+	language.Add( "WireWinchTool_material", "Material:" )
+	language.Add( "WireWinchTool_fixed", "Fixed" )
+	language.Add( "undone_wirewinch", "Undone Wire Winch" )
 end
 
 

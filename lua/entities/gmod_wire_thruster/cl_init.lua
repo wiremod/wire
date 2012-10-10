@@ -210,7 +210,7 @@ function ENT:EffectDraw_color_diy()
 
 	local vOffset = self:LocalToWorld( self:GetOffset() )
 	local vNormal = (vOffset - self:GetPos()):GetNormalized()
-	local r,g,b,a = self:GetColor12();
+	local c = self:GetColor()
 
 	local scroll = CurTime() * -10
 
@@ -219,8 +219,8 @@ function ENT:EffectDraw_color_diy()
 
 	render.StartBeam( 3 )
 		render.AddBeam( vOffset, 8, scroll, Color( 255, 0, 0, 128) )
-		render.AddBeam( vOffset + vNormal * 60, 32, scroll + 1, Color( r, g, g, 128) )
-		render.AddBeam( vOffset + vNormal * 148, 32, scroll + 3, Color( r, g, b, 0) )
+		render.AddBeam( vOffset + vNormal * 60, 32, scroll + 1, Color( c.r, c.g, c.g, 128) )
+		render.AddBeam( vOffset + vNormal * 148, 32, scroll + 3, Color( c.r, c.g, c.b, 0) )
 	render.EndBeam()
 
 	scroll = scroll * 0.5
@@ -229,7 +229,7 @@ function ENT:EffectDraw_color_diy()
 	render.SetMaterial( matColor )
 	render.StartBeam( 3 )
 		render.AddBeam( vOffset, 8, scroll, Color( 0, 255, 0, 128) )
-		render.AddBeam( vOffset + vNormal * 32, 32, scroll + 2, Color( r, g, g, 255) )
+		render.AddBeam( vOffset + vNormal * 32, 32, scroll + 2, Color( c.r, c.g, c.g, 255) )
 		render.AddBeam( vOffset + vNormal * 128, 48, scroll + 5, Color( 0, 0, 0, 0) )
 	render.EndBeam()
 
@@ -238,7 +238,7 @@ function ENT:EffectDraw_color_diy()
 	render.SetMaterial( matColor )
 	render.StartBeam( 3 )
 		render.AddBeam( vOffset, 8, scroll, Color( 0, 0, 255, 128) )
-		render.AddBeam( vOffset + vNormal * 60, 16, scroll + 1, Color( r, g, g, 128) )
+		render.AddBeam( vOffset + vNormal * 60, 16, scroll + 1, Color( c.r, c.g, c.g, 128) )
 		render.AddBeam( vOffset + vNormal * 148, 16, scroll + 3, Color( 255, 255, 255, 0) )
 	render.EndBeam()
 
@@ -441,7 +441,6 @@ function ENT:EffectThink_smoke_random()
 end
 
 function ENT:EffectThink_smoke_diy()
-local r,g,b,a = self:GetColor12();
 	self.SmokeTimer = self.SmokeTimer or 0
 	if ( self.SmokeTimer > CurTime() ) then return end
 
@@ -457,7 +456,7 @@ local r,g,b,a = self:GetColor12();
 			particle:SetStartSize( math.Rand( 16, 32 ) )
 			particle:SetEndSize( math.Rand( 64, 128 ) )
 			particle:SetRoll( math.Rand( -0.2, 0.2 ) )
-			particle:SetColor( r,g,b)
+			particle:SetColor(self:GetColor())
 
 	emitter:Finish()
 
@@ -1025,7 +1024,6 @@ function ENT:EffectThink_balls_random()
 end
 
 function ENT:EffectThink_balls()
-local r,g,b,a = self:GetColor12();
 	self.SmokeTimer = self.SmokeTimer or 0
 	if ( self.SmokeTimer > CurTime() ) then return end
 
@@ -1040,7 +1038,7 @@ local r,g,b,a = self:GetColor12();
 			particle:SetDieTime( 1 )
 			particle:SetStartAlpha( 255 )
 			particle:SetEndAlpha( 255 )
-			particle:SetColor(r,g,b)
+			particle:SetColor(self:GetColor())
 			particle:SetStartSize( 4 )
 			particle:SetEndSize( 0 )
 			particle:SetRoll( 0 )
@@ -1126,7 +1124,6 @@ function ENT:EffectThink_magic()
 end
 
 function ENT:EffectThink_magic_diy()
-local r,g,b,a = self:GetColor12();
 	self.SmokeTimer = self.SmokeTimer or 0
 	if ( self.SmokeTimer > CurTime() ) then return end
 
@@ -1142,7 +1139,7 @@ local r,g,b,a = self:GetColor12();
 			particle:SetDieTime( 1 )
 			particle:SetStartAlpha( 255 )
 			particle:SetEndAlpha( 255 )
-			particle:SetColor(r,g,b)
+			particle:SetColor(self:GetColor())
 			particle:SetStartSize( math.Rand( 1, 3 ) )
 			particle:SetEndSize( 0 )
 			particle:SetRoll( math.Rand( -0.2, 0.2 ) )

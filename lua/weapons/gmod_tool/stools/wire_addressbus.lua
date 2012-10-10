@@ -5,11 +5,11 @@ TOOL.ConfigName     = ""
 TOOL.Tab            = "Wire"
 
 if ( CLIENT ) then
-	language12.Add( "Tool_wire_addressbus_name", "Address bus tool (Wire)" )
-	language12.Add( "Tool_wire_addressbus_desc", "Spawns an address bus. Address spaces may overlap!" )
-	language12.Add( "Tool_wire_addressbus_0", "Primary: Create/Update address bus" )
-	language12.Add( "sboxlimit_wire_addressbuss", "You've hit address buses limit!" )
-	language12.Add( "undone_wiredatarate", "Undone Address Bus" )
+	language.Add( "Tool.wire_addressbus.name", "Address bus tool (Wire)" )
+	language.Add( "Tool.wire_addressbus.desc", "Spawns an address bus. Address spaces may overlap!" )
+	language.Add( "Tool.wire_addressbus.0", "Primary: Create/Update address bus" )
+	language.Add( "sboxlimit_wire_addressbuss", "You've hit address buses limit!" )
+	language.Add( "undone_wiredatarate", "Undone Address Bus" )
 end
 
 if (SERVER) then

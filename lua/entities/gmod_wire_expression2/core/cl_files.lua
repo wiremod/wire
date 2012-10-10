@@ -19,7 +19,7 @@ local allowed_directories = { //prefix with >(allowed directory)/file.txt for fi
 }
 
 for _,dir in pairs( allowed_directories ) do
-	if !file12.IsDir( dir ) then file.CreateDir( dir ) end
+	if not file.IsDir( dir, "DATA" ) then file.CreateDir( dir ) end
 end
 
 local function process_filepath( filepath )
@@ -78,7 +78,7 @@ usermessage.Hook( "wire_expression2_request_file", function( um )
 	local fpath,fname = process_filepath( um:ReadString() )
 	local fullpath = fpath .. fname
 
-	if file.Exists( fullpath ) and file.Size( fullpath ) <= (cv_max_transfer_size:GetInt() * 1024) then
+	if file.Exists( fullpath ) and file.Size( fullpath, "DATA" ) <= (cv_max_transfer_size:GetInt() * 1024) then
 		local filedata = file.Read( fullpath ) or ""
 
 		local encoded = E2Lib.encode( filedata )
@@ -130,7 +130,7 @@ end )
 usermessage.Hook( "wire_expression2_request_list", function( um )
 	local dir = process_filepath( um:ReadString() or "" )
 
-	for _,fop in pairs( file.Find( dir .. "*" ) ) do
+	for _,fop in pairs( file.Find( dir .. "*" ), "DATA" ) do
 		local ext = string.GetExtensionFromFilename( fop )
 
 		if (!ext or ext == "txt") and string.len( fop ) < 250 then

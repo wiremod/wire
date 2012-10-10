@@ -15,7 +15,7 @@ local function Execute(self, name)
 	end
 
 	if !self.data['timer'].timers[name] then
-		timer.Destroy("e2_" .. self.data['timer'].timerid .. "_" .. name)
+		timer.Remove("e2_" .. self.data['timer'].timerid .. "_" .. name)
 	end
 
 	runner = nil
@@ -40,7 +40,7 @@ end
 
 local function RemoveTimer(self, name)
 	if self.data['timer'].timers[name] then
-		timer.Destroy("e2_" .. self.data['timer'].timerid .. "_" .. name)
+		timer.Remove("e2_" .. self.data['timer'].timerid .. "_" .. name)
 		self.data['timer'].timers[name] = nil
 	end
 end

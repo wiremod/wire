@@ -5,9 +5,9 @@ do -- wire_speedometer
 	WireToolSetup.open( "speedometer", "Speedometer", "gmod_wire_speedometer", WireToolMakeSpeedometer )
 
 	if CLIENT then
-		language.Add( "Tool_wire_speedometer_name", "Speedometer Tool (Wire)" )
-		language.Add( "Tool_wire_speedometer_desc", "Spawns a speedometer for use with the wire system." )
-		language.Add( "Tool_wire_speedometer_0", "Primary: Create/Update Speedometer" )
+		language.Add( "tool.wire_speedometer.name", "Speedometer Tool (Wire)" )
+		language.Add( "tool.wire_speedometer.desc", "Spawns a speedometer for use with the wire system." )
+		language.Add( "tool.wire_speedometer.0", "Primary: Create/Update Speedometer" )
 		language.Add( "Tool_wire_speedometer_xyz_mode", "Split Outputs to X,Y,Z" )
 		language.Add( "Tool_wire_speedometer_angvel", "Add Angular Velocity Outputs" )
 		language.Add( "sboxlimit_wire_speedometers", "You've hit speedometers limit!" )

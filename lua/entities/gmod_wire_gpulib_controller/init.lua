@@ -22,17 +22,17 @@ end
 
 function ENT:Think()
 	local target = self.screen.GPUEntity
-	if not ValidEntity(self.target) or target ~= self.target then
+	if not IsValid(self.target) or target ~= self.target then
 		self:UpdateTarget()
 	end
 end
 
 function ENT:UpdateTarget()
 	local target = self.screen.GPUEntity
-	if not ValidEntity(target) then target = self.screen end
+	if not IsValid(target) then target = self.screen end
 	self.target = target
 
-	if ValidEntity(target) then
+	if IsValid(target) then
 		WireLib.TriggerOutput(self, "Target", target)
 		local monitor, pos, ang = GPULib.GPU.GetInfo({ Entity = target }) -- TODO: think of a cleaner way
 		WireLib.TriggerOutput(self, "LocalPosition", monitor.offset)
@@ -48,7 +48,7 @@ end
 
 function ENT:TriggerInput(iname, value)
 	if iname == "Target" then
-		if not ValidEntity(value) then value = self.screen end
+		if not IsValid(value) then value = self.screen end
 		GPULib.switchscreen(self.screen, value)
 		self:UpdateTarget()
 	end

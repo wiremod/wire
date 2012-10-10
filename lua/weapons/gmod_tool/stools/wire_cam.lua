@@ -5,14 +5,14 @@ TOOL.ConfigName		= ""
 TOOL.Tab			= "Wire"
 
 if ( CLIENT ) then
-	language12.Add( "Tool_wire_cam_name", "Cam Controller Tool (Wire)" )
-	language12.Add( "Tool_wire_cam_desc", "Spawns a constant Cam Controller prop for use with the wire system." )
-	language12.Add( "Tool_wire_cam_0", "Primary: Create/Update Cam Controller Secondary: Link a cam controller to a Pod." )
-	language12.Add( "Tool_wire_cam_1", "Now click a pod to link to." )
-	language12.Add( "WirecamTool_cam", "Camera Controller:" )
-	language12.Add( "WirecamTool_Static","Static")
-	language12.Add( "sboxlimit_wire_cams", "You've hit Cam Controller limit!" )
-	language12.Add( "undone_Wire cam", "Undone Wire Cam Controller" )
+	language.Add( "Tool.wire_cam.name", "Cam Controller Tool (Wire)" )
+	language.Add( "Tool.wire_cam.desc", "Spawns a constant Cam Controller prop for use with the wire system." )
+	language.Add( "Tool.wire_cam.0", "Primary: Create/Update Cam Controller Secondary: Link a cam controller to a Pod." )
+	language.Add( "Tool.wire_cam.1", "Now click a pod to link to." )
+	language.Add( "WirecamTool_cam", "Camera Controller:" )
+	language.Add( "WirecamTool_Static","Static")
+	language.Add( "sboxlimit_wire_cams", "You've hit Cam Controller limit!" )
+	language.Add( "undone_Wire cam", "Undone Wire Cam Controller" )
 end
 
 if (SERVER) then

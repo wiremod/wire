@@ -15,15 +15,15 @@ if SERVER then
 end
 
 if CLIENT then
-	language12.Add( "Tool_wire_hydraulic_name", "Hydraulic Tool (Wire)" )
-	language12.Add( "Tool_wire_hydraulic_desc", "Makes a controllable hydraulic" )
-	language12.Add( "Tool_wire_hydraulic_0", "Primary: Place hydraulic\nSecondary: Place hydraulic along the hit normal" )
-	language12.Add( "Tool_wire_hydraulic_1", "Left click on the second point" )
-	language12.Add( "Tool_wire_hydraulic_2", "Left click to place the controller" )
-	language12.Add( "WireHydraulicTool_width", "Width:" )
-	language12.Add( "WireHydraulicTool_material", "Material:" )
-	language12.Add( "WireHydraulicTool_fixed", "Fixed" )
-	language12.Add( "undone_wirehydraulic", "Undone Wire Hydraulic" )
+	language.Add( "Tool.wire_hydraulic.name", "Hydraulic Tool (Wire)" )
+	language.Add( "Tool.wire_hydraulic.desc", "Makes a controllable hydraulic" )
+	language.Add( "Tool.wire_hydraulic.0", "Primary: Place hydraulic\nSecondary: Place hydraulic along the hit normal" )
+	language.Add( "Tool.wire_hydraulic.1", "Left click on the second point" )
+	language.Add( "Tool.wire_hydraulic.2", "Left click to place the controller" )
+	language.Add( "WireHydraulicTool_width", "Width:" )
+	language.Add( "WireHydraulicTool_material", "Material:" )
+	language.Add( "WireHydraulicTool_fixed", "Fixed" )
+	language.Add( "undone_wirehydraulic", "Undone Wire Hydraulic" )
 end
 
 function TOOL:LeftClick( trace )

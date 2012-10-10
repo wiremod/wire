@@ -5,11 +5,11 @@ TOOL.ConfigName		= ""
 TOOL.Tab			= "Wire"
 
 if ( CLIENT ) then
-	language12.Add( "Tool_wire_debugger_name", "Debugging Tool" )
-	language12.Add( "Tool_wire_debugger_desc", "Shows selected components info on the HUD." )
-	language12.Add( "Tool_wire_debugger_0", "Primary: Add component to HUD, Secondary: Remove component from HUD, Reload: Clear HUD" )
-	language12.Add( "Tool_wire_debugger_showports", "Show overlay of ports in HUD" )
-	language12.Add( "Tool_wire_debugger_orientvertical", "Orient the Inputs/Outputs Vertically" )
+	language.Add( "Tool.wire_debugger.name", "Debugging Tool" )
+	language.Add( "Tool.wire_debugger.desc", "Shows selected components info on the HUD." )
+	language.Add( "Tool.wire_debugger.0", "Primary: Add component to HUD, Secondary: Remove component from HUD, Reload: Clear HUD" )
+	language.Add( "Tool_wire_debugger_showports", "Show overlay of ports in HUD" )
+	language.Add( "Tool_wire_debugger_orientvertical", "Orient the Inputs/Outputs Vertically" )
 end
 
 TOOL.ClientConVar[ "showports" ] = "1"
@@ -406,7 +406,7 @@ if (SERVER) then
 							end
 
 							dbg_line_cache[ply][l] = dbginfo
-							if (SinglePlayer()) then
+							if (game.SinglePlayer()) then
 								dbg_line_time[ply][l] = CurTime() + 0.05
 							else
 								dbg_line_time[ply][l] = CurTime() + 0.2
@@ -522,7 +522,7 @@ if (CLIENT) then
 		--move the box down if the active weapon is the tool gun
 		local MoveBox = 0
 		if(LocalPlayer():IsValid() and LocalPlayer():IsPlayer()) then
-			if ValidEntity(LocalPlayer():GetActiveWeapon()) and LocalPlayer():GetActiveWeapon():GetClass() == "gmod_tool" then
+			if IsValid(LocalPlayer():GetActiveWeapon()) and LocalPlayer():GetActiveWeapon():GetClass() == "gmod_tool" then
 				MoveBox = 1
 			end
 		else --return if the player is dead or non-existant

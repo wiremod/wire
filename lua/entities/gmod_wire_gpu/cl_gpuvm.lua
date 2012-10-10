@@ -54,7 +54,16 @@ function ENT:OverrideVM()
           surface.SetDrawColor(0,0,0,120)
           surface.DrawRect(0,0,self.ScreenWidth,self.ScreenHeight)
 
-          surface.CreateFont("Coolvetica", 26, 200, true, false,"WireGPU_ErrorFont")
+          local font = "WireGPU_ErrorFont"
+          local fontTable =
+          {
+            font="Coolvetica",
+            size = 26,
+            weight = 200,
+            antialias = true,
+            additive = false
+          }
+          surface.CreateFont( font, fontTable )
           draw.DrawText("Error in the instruction stream","WireGPU_ErrorFont",48,16,Color(255,255,255,255))
           draw.DrawText((self.ErrorText[interruptNo] or "Unknown error").." (#"..interruptNo..")","WireGPU_ErrorFont",16,16+32*2,Color(255,255,255,255))
           draw.DrawText("Parameter: "..interruptParameter,"WireGPU_ErrorFont",16,16+32*3,Color(255,255,255,255))
@@ -828,8 +837,17 @@ end
 -- Get text size (by sk89q)
 --------------------------------------------------------------------------------
 function VM:TextSize(text)
-  surface.CreateFont(self.FontName[self.Font], self.FontSize, 800, true, false,
-                  "WireGPU_"..self.FontName[self.Font]..self.FontSize)
+  local font = "WireGPU_"..self.FontName[self.Font]..self.FontSize
+  local fontTable = 
+  {
+    font=self.FontName[self.Font],
+    size = self.FontSize,
+    weight = 800,
+    antialias = true,
+    additive = false
+  }
+  surface.CreateFont( font, fontTable )
+
   surface.SetFont("WireGPU_"..self.FontName[self.Font]..self.FontSize)
 
   if self.WordWrapMode == 1 then
@@ -853,8 +871,16 @@ function VM:FontWrite(posaddr,text)
   vertex = self:VertexTransform(vertex)
 
   -- Create font
-  surface.CreateFont(self.FontName[self.Font], self.FontSize, 800, true, false,
-         "WireGPU_"..self.FontName[self.Font]..self.FontSize)
+  local font = "WireGPU_"..self.FontName[self.Font]..self.FontSize
+  local fontTable =
+  {
+    font=self.FontName[self.Font],
+    size = self.FontSize,
+    weight = 800,
+    antialias = true,
+    additive = false
+  }
+  surface.CreateFont( font, fontTable )
 
   -- Draw text
   if self.RenderEnable == 1 then
@@ -974,7 +1000,7 @@ function VM:FlushBuffer()
       }
       local resultMaterial = vertexData.material
       if vertexData.rt then
-        WireGPU_matBuffer:SetMaterialTexture("$basetexture", vertexData.rt)
+        WireGPU_matBuffer:SetTexture("$basetexture", vertexData.rt)
         resultMaterial = WireGPU_matBuffer
       end
 
@@ -1271,7 +1297,7 @@ end
 --------------------------------------------------------------------------------
 -- Set current color
 --------------------------------------------------------------------------------
-function VM:SetColor12(color)
+function VM:SetColor(color)
   if self.VertexBufEnabled == 1 then
     if #self.VertexBuffer > 0 then
       self.VertexBuffer[#self.VertexBuffer].color = self:ColorTransform(color)
@@ -1314,14 +1340,14 @@ function VM:BindState()
   surface.SetDrawColor(self.Color.x,self.Color.y,self.Color.z,self.Color.w)
   if self.VertexTexturing == 1 then
     if self.Memory[65517] == 1 then
-      --[@entities\gmod_wire_gpu\cl_gpuvm.lua:1276] bad argument #2 to 'SetMaterialTexture' (ITexture expected, got nil)
+      --[@entities\gmod_wire_gpu\cl_gpuvm.lua:1276] bad argument #2 to 'SetTexture' (ITexture expected, got nil)
       self.Entity:AssertSpriteBufferExists()
       if self.Entity.SpriteGPU.RT then
-        WireGPU_matBuffer:SetMaterialTexture("$basetexture", self.Entity.SpriteGPU.RT)
+        WireGPU_matBuffer:SetTexture("$basetexture", self.Entity.SpriteGPU.RT)
       end
     else
       if self.Entity.GPU.RT then
-        WireGPU_matBuffer:SetMaterialTexture("$basetexture", self.Entity.GPU.RT)
+        WireGPU_matBuffer:SetTexture("$basetexture", self.Entity.GPU.RT)
       end
     end
     surface.SetMaterial(WireGPU_matBuffer)
@@ -1523,14 +1549,14 @@ VM.OpcodeTable[213] = function(self)  --DDISABLE
 end
 VM.OpcodeTable[214] = function(self)  --DCLRSCR
   self:Dyn_Emit("if VM.RenderEnable == 1 then")
-    self:Dyn_Emit("VM:SetColor12(VM:ReadVector4f($1))")
+    self:Dyn_Emit("VM:SetColor(VM:ReadVector4f($1))")
     self:Dyn_Emit("VM:BindState()")
     self:Dyn_Emit("surface.SetTexture(0)")
     self:Dyn_Emit("surface.DrawRect(0,0,VM.ScreenWidth,VM.ScreenHeight)")
   self:Dyn_Emit("end")
 end
 VM.OpcodeTable[215] = function(self)  --DCOLOR
-  self:Dyn_Emit("VM:SetColor12(VM:ReadVector4f($1))")
+  self:Dyn_Emit("VM:SetColor(VM:ReadVector4f($1))")
   self:Dyn_EmitInterruptCheck()
 end
 VM.OpcodeTable[216] = function(self)  --DTEXTURE
@@ -2106,7 +2132,7 @@ VM.OpcodeTable[276] = function(self)  --DSHADE
   self:Dyn_Emit("VM.Color.x = VM.Color.x*SHADE")
   self:Dyn_Emit("VM.Color.y = VM.Color.y*SHADE")
   self:Dyn_Emit("VM.Color.z = VM.Color.z*SHADE")
-  self:Dyn_Emit("VM:SetColor12(VM.Color)")
+  self:Dyn_Emit("VM:SetColor(VM.Color)")
 end
 VM.OpcodeTable[277] = function(self)  --DSETWIDTH
   self:Dyn_Emit("VM:WriteCell(65476,$1)")
@@ -2121,7 +2147,7 @@ VM.OpcodeTable[279] = function(self)  --DSHADENORM
   self:Dyn_Emit("VM.Color.x = math.Clamp(VM.Color.x*SHADE,0,255)")
   self:Dyn_Emit("VM.Color.y = math.Clamp(VM.Color.y*SHADE,0,255)")
   self:Dyn_Emit("VM.Color.z = math.Clamp(VM.Color.z*SHADE,0,255)")
-  self:Dyn_Emit("VM:SetColor12(VM.Color)")
+  self:Dyn_Emit("VM:SetColor(VM.Color)")
 end
 --------------------------------------------------------------------------------
 VM.OpcodeTable[280] = function(self)  --DDFRAME
@@ -2195,11 +2221,11 @@ VM.OpcodeTable[280] = function(self)  --DDFRAME
   self:Dyn_Emit("VM:ComputeTextureUV(VD3[3],1,1)")
   self:Dyn_Emit("VM:ComputeTextureUV(VD3[4],0,1)")
 
-  self:Dyn_Emit("VM:SetColor12(CSHADOW)")
+  self:Dyn_Emit("VM:SetColor(CSHADOW)")
   self:Dyn_Emit("VM:DrawToBuffer(VD1)")
-  self:Dyn_Emit("VM:SetColor12(CHIGHLIGHT)")
+  self:Dyn_Emit("VM:SetColor(CHIGHLIGHT)")
   self:Dyn_Emit("VM:DrawToBuffer(VD2)")
-  self:Dyn_Emit("VM:SetColor12(CFACE)")
+  self:Dyn_Emit("VM:SetColor(CFACE)")
   self:Dyn_Emit("VM:DrawToBuffer(VD3)")
 end
 VM.OpcodeTable[283] = function(self)  --DRASTER

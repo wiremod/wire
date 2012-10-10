@@ -5,13 +5,13 @@ TOOL.ConfigName = ""
 TOOL.Tab			= "Wire"
 
 if CLIENT then
-	language12.Add("Tool_wire_vehicle_name", "Vehicle Controller Tool (Wire)")
-	language12.Add("Tool_wire_vehicle_desc", "Spawn/link a Wire Vehicle controller.")
-	language12.Add("Tool_wire_vehicle_0", "Primary: Create Vehicle controller. Secondary: Link controller.")
-	language12.Add("Tool_wire_vehicle_1", "Now select the Vehicle to link to.")
-	language12.Add("WireVehicleTool_Vehicle", "Vehicle:")
-	language12.Add("sboxlimit_wire_vehicles", "You've hit your Vehicle Controller limit!")
-	language12.Add("Undone_Wire Vehicle", "Undone Wire Vehicle Controller")
+	language.Add("Tool.wire_vehicle.name", "Vehicle Controller Tool (Wire)")
+	language.Add("Tool.wire_vehicle.desc", "Spawn/link a Wire Vehicle controller.")
+	language.Add("Tool.wire_vehicle.0", "Primary: Create Vehicle controller. Secondary: Link controller.")
+	language.Add("Tool.wire_vehicle.1", "Now select the Vehicle to link to.")
+	language.Add("WireVehicleTool_Vehicle", "Vehicle:")
+	language.Add("sboxlimit_wire_vehicles", "You've hit your Vehicle Controller limit!")
+	language.Add("Undone_Wire Vehicle", "Undone Wire Vehicle Controller")
 end
 
 if SERVER then

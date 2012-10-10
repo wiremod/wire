@@ -5,12 +5,12 @@ TOOL.ConfigName		= ""
 TOOL.Tab			= "Wire"
 
 if ( CLIENT ) then
-    language12.Add( "Tool_wire_watersensor_name", "Water Sensor Tool (Wire)" )
-    language12.Add( "Tool_wire_watersensor_desc", "Spawns a constant Water Sensor prop for use with the wire system." )
-    language12.Add( "Tool_wire_watersensor_0", "Primary: Create/Update Water Sensor" )
-    language12.Add( "WireWatersensorTool_watersensor", "Water Sensor:" )
-	language12.Add( "sboxlimit_wire_watersensors", "You've hit Water Sensors limit!" )
-	language12.Add( "undone_Wire Water Sensor", "Undone Wire Water Sensor" )
+    language.Add( "Tool.wire_watersensor.name", "Water Sensor Tool (Wire)" )
+    language.Add( "Tool.wire_watersensor.desc", "Spawns a constant Water Sensor prop for use with the wire system." )
+    language.Add( "Tool.wire_watersensor.0", "Primary: Create/Update Water Sensor" )
+    language.Add( "WireWatersensorTool_watersensor", "Water Sensor:" )
+	language.Add( "sboxlimit_wire_watersensors", "You've hit Water Sensors limit!" )
+	language.Add( "undone_Wire Water Sensor", "Undone Wire Water Sensor" )
 end
 
 if (SERVER) then

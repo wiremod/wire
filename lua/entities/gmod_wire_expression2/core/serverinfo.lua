@@ -21,7 +21,7 @@ e2function string gamemode()
 end
 
 e2function number isSinglePlayer()
-	return SinglePlayer() and 1 or 0
+	return game.SinglePlayer() and 1 or 0
 end
 
 e2function number isDedicated()
