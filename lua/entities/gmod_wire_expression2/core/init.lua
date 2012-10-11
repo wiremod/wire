@@ -360,7 +360,7 @@ if SERVER then
 				end
 				antispam[ply] = CurTime() + 60
 				sendData( ply )
-			elseif (SinglePlayer()) then
+			elseif (game.SinglePlayer()) then
 				sendData( ply )
 			end
 		end
