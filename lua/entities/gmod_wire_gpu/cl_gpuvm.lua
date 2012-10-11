@@ -880,7 +880,7 @@ function VM:FontWrite(posaddr,text)
     antialias = true,
     additive = false
   }
-  surface_CreateFont( font, fontTable )
+  surface.CreateFont( font, fontTable )
 
   -- Draw text
   if self.RenderEnable == 1 then
