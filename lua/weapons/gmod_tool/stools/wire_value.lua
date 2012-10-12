@@ -20,9 +20,9 @@ TOOL.ClientConVar["model"] = "models/kobilica/value.mdl"
 local DataTypes = 
 {
 	["NORMAL"] = "Number",
-	["STRING"]	= "String",
+	["STRING"] = "String",
 	["VECTOR"] = "Vector",
-	["ANGLE"]	= "Angle"
+	["ANGLE"] = "Angle"
 }
 
 cleanup.Register("wire_values")
@@ -44,7 +44,7 @@ if (SERVER) then
 		playerValues[ply] = net.ReadTable()
 	end)
 	
-	local function MakeWireValue( ply, Pos, Ang, model )
+    local function MakeWireValue( ply, Pos, Ang, model, values )
 		if (!ply:CheckLimit("wire_values")) then return false end
 
 		local wire_value = ents.Create("gmod_wire_value")
@@ -60,7 +60,8 @@ if (SERVER) then
 		wire_value:SetModel(model)
 		wire_value:Spawn()
 
-		wire_value:Setup(playerValues[ply])
+		wire_value:Setup(values)
+
 		wire_value:SetPlayer(ply)
 
 		ply:AddCount("wire_values", wire_value)
@@ -84,7 +85,7 @@ if (SERVER) then
 			if tbl != nil then
 				local ang = trace.HitNormal:Angle()
 				ang.pitch = ang.pitch + 90
-				local ent = MakeWireValue(ply, trace.HitPos, ang, self:GetModel() )
+				local ent = MakeWireValue(ply, trace.HitPos, ang, self:GetModel(), playerValues[ply] )
 				local weld = constraint.Weld( ent, trace.Entity, trace.PhysicsBone,0,0, true )
 				return true
 			else
@@ -182,15 +183,15 @@ if CLIENT then
 		valueEntry:DockMargin( 5,2,5,2 )
 		valueEntry:DockPadding(5,5,5,5)
 		valueEntry:SetValue(0)
+		local oldLoseFocus = valueEntry.OnLoseFocus() -- Spawnmenu Q Fix thank you Nebual :) <3
 		valueEntry.OnLoseFocus = function( panel )
 			if panel:GetValue() != nil then
 				local value = panel:GetValue()
 				selectedValues[id].Value = panel:GetValue()
 				SendUpdate()
 			end
+			oldLoseFocus()
 		end
-		
-
 		return control 
 	end
 	
