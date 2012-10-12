@@ -44,7 +44,7 @@ if (SERVER) then
 		playerValues[ply] = net.ReadTable()
 	end)
 	
-	local function MakeWireValue( ply, Pos, Ang, model )
+	local function MakeWireValue( ply, Pos, Ang, model, value )
 		if (!ply:CheckLimit("wire_values")) then return false end
 
 		local wire_value = ents.Create("gmod_wire_value")
@@ -60,7 +60,7 @@ if (SERVER) then
 		wire_value:SetModel(model)
 		wire_value:Spawn()
 
-		wire_value:Setup(playerValues[ply])
+		wire_value:Setup(value)
 		wire_value:SetPlayer(ply)
 
 		ply:AddCount("wire_values", wire_value)
@@ -84,7 +84,7 @@ if (SERVER) then
 			if tbl != nil then
 				local ang = trace.HitNormal:Angle()
 				ang.pitch = ang.pitch + 90
-				local ent = MakeWireValue(ply, trace.HitPos, ang, self:GetModel() )
+				local ent = MakeWireValue(ply, trace.HitPos, ang, self:GetModel(), playerValues[ply] )
 				local weld = constraint.Weld( ent, trace.Entity, trace.PhysicsBone,0,0, true )
 				return true
 			else
@@ -183,13 +183,15 @@ if CLIENT then
 		valueEntry:SetSize( controlW, 25 )
 		valueEntry:DockMargin( 5,5,5,5 )
 		valueEntry:SetText("0")
-		valueEntry:Dock( TOP )		
+		valueEntry:Dock( TOP )
+		local oldLoseFocus = valueEntry.OnLoseFocus
 		valueEntry.OnLoseFocus = function( panel )
 			if panel:GetValue() != nil then
 				local value = panel:GetValue()
 				selectedValues[id].Value = panel:GetValue()
 				SendUpdate()
 			end
+			oldLoseFocus(panel) -- Otherwise we can't close the spawnmenu!
 		end
 		
 
