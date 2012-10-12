@@ -215,7 +215,7 @@ if CLIENT then
 		valueSlider:SetSize(w, 25 )
 		valueSlider:SetText( "Amount:" )
 		valueSlider:SetMin(1)
-		valueSlider:SetMax(20)
+		valueSlider:SetMax(8)
 		valueSlider:SetDecimals( 0 )
 		valueSlider:DockMargin( 5, 5, 5, 5 )
 		valueSlider:Dock( TOP )
