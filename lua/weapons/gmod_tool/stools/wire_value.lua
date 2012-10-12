@@ -183,14 +183,14 @@ if CLIENT then
 		valueEntry:DockMargin( 5,2,5,2 )
 		valueEntry:DockPadding(5,5,5,5)
 		valueEntry:SetValue(0)
-		local oldLoseFocus = valueEntry.OnLoseFocus() -- Spawnmenu Q Fix thank you Nebual :) <3
+		local oldLoseFocus = valueEntry.OnLoseFocus -- Spawnmenu Q Fix thank you Nebual :) <3
 		valueEntry.OnLoseFocus = function( panel )
 			if panel:GetValue() != nil then
 				local value = panel:GetValue()
 				selectedValues[id].Value = panel:GetValue()
 				SendUpdate()
 			end
-			oldLoseFocus()
+			oldLoseFocus(panel)
 		end
 		return control 
 	end
