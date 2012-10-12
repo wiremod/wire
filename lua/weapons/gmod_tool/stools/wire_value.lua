@@ -35,13 +35,14 @@ end
 
 
 if (SERVER) then
-	local playerValues = {}
+	local ConstantValues = {}
+	
 	CreateConVar('sbox_maxwire_values', 20)
 	ModelPlug_Register("value")
 	util.AddNetworkString( "wire_value_values" )
 	
 	net.Receive( "wire_value_values", function( length, ply )
-		playerValues[ply] = net.ReadTable()
+		ConstantValues = net.ReadTable()
 	end)
 	
     local function MakeWireValue( ply, Pos, Ang, model, values )
@@ -49,7 +50,6 @@ if (SERVER) then
 
 		local wire_value = ents.Create("gmod_wire_value")
 		if (!wire_value:IsValid()) then return false end
-		
 		undo.Create("wirevalue")
 			undo.AddEntity( wire_value )
 			undo.SetPlayer( ply )
@@ -59,10 +59,19 @@ if (SERVER) then
 		wire_value:SetPos(Pos)
 		wire_value:SetModel(model)
 		wire_value:Spawn()
-
-		wire_value:Setup(values)
-
-		wire_value:SetPlayer(ply)
+		
+		-- This sets up the entity but checks if its an old entity from gmod 12 and converts it :)
+		-- yay GM12 -> GM13 dupe support.
+		if values != nil then
+			local _,val = next(values)
+			if type(val) == "table" then
+				wire_value:Setup(values)
+			else
+				local convertedValues = wire_value:OldSetup(values)
+				wire_value:Setup( convertedValues )
+			end
+		end
+		wire_value:SetPlayer( ply )
 
 		ply:AddCount("wire_values", wire_value)
 
@@ -78,14 +87,14 @@ if (SERVER) then
 		
 		if trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_value" then
 			local ply = self:GetOwner()
-			trace.Entity:Setup( playerValues[ply] )
+			trace.Entity:Setup( ConstantValues )
 		else
 			local ply = self:GetOwner()
-			local tbl = playerValues[ply]
+			local tbl = ConstantValues
 			if tbl != nil then
 				local ang = trace.HitNormal:Angle()
 				ang.pitch = ang.pitch + 90
-				local ent = MakeWireValue(ply, trace.HitPos, ang, self:GetModel(), playerValues[ply] )
+				local ent = MakeWireValue(ply, trace.HitPos, ang, self:GetModel(), ConstantValues )
 				local weld = constraint.Weld( ent, trace.Entity, trace.PhysicsBone,0,0, true )
 				return true
 			else
