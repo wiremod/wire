@@ -419,7 +419,7 @@ if (SERVER) then
 
 		end
 	end
-	hook.Add("Think", "Wire_DebuggerThink", function() PCallError(Wire_DebuggerThink) end)
+	hook.Add("Think", "Wire_DebuggerThink", function() pcall(Wire_DebuggerThink) end)
 
 end
 
