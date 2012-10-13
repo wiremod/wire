@@ -59,8 +59,35 @@ if (SERVER) then
 		wire_value:SetPos(Pos)
 		wire_value:SetModel(model)
 		wire_value:Spawn()
-
-		wire_value:Setup(value)
+		if value then
+			local _,val = next(value)
+			if type(val) == "table" then
+				-- The new Gmod13 format, good
+				wire_value:Setup(value)
+			else
+				-- The old Gmod12 dupe format, lets convert it
+				local convertedValues = {}
+				local convtbl = {
+					["NORMAL"] = "Number",
+					["ANGLE"] = "Angle",
+					["VECTOR"] = "Vector",
+					["VECTOR2"] = "Vector",
+					["VECTOR4"] = "Vector",
+					["STRING"] = "String",
+				}
+				for k,v in pairs(value) do
+					local theType,theValue = string.match (v, "^ *([^: ]+) *:(.*)$")
+					theType = string.upper(theType)
+					
+					if not convtbl[theType] then
+						theType = "NORMAL"
+					end
+					
+					table.insert(convertedValues, { DataType=convtbl[theType], Value=theValue } )
+				end
+				wire_value:Setup( convertedValues )
+			end
+		end
 		wire_value:SetPlayer(ply)
 
 		ply:AddCount("wire_values", wire_value)
