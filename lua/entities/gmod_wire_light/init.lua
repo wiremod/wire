@@ -156,6 +156,7 @@ function ENT:Setup(directional, radiant, glow)
 			self:GlowOff()
 		end
 	end
+	self:ShowOutput( 0,0,0 )
 end
 
 function ENT:ShowOutput( R, G, B )

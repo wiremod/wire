@@ -16,8 +16,8 @@ util.AddNetworkString("WireOverlay")
 local function overlayUpdate()
 	for _, ply in ipairs(player.GetAll()) do
 		local ent = ply:GetEyeTrace().Entity
-		if ent:IsValid() == false then return end
-		if ent.OverlayText == nil then ent.OverlayText = "" end
+		if IsValid(ent) == false then return end
+		if ent.OverlayText == nil then return end
 		-- send update.
 		net.Start("WireOverlay")
 		net.WriteEntity( ent )

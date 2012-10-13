@@ -16,9 +16,8 @@ end
    Name: Draw
 ---------------------------------------------------------*/
 function ENT:Draw()
-
 	self.BaseClass.Draw( self )
-
+	Wire_Render(self)
 end
 
 /*---------------------------------------------------------
