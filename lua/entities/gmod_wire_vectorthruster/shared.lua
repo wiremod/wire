@@ -26,15 +26,6 @@ function ENT:IsOn()
 	return self:GetNetworkedBool( "vecon" )
 end
 
-
-/*function ENT:SetToWorld( b )
-	self:SetNetworkedBool( "vecworld", b, true )
-end
-function ENT:IsToWorld()
-	return self:GetNetworkedBool( "vecworld" )
-end*/
-
-
 function ENT:SetMode( v )
 	self:SetNetworkedInt( "vecmode", v, true )
 end
@@ -83,29 +74,10 @@ end
 
 
 function ENT:GetOverlayText()
-
-	local txt = "Thrust = "
-	local force = self:NetGetForce()
-	if (self:IsOn()) then
-		txt = txt .. ( force * self:NetGetMul() )
-	else
-		txt = txt .. "off"
-	end
-	txt = txt .. "\nMul: " .. force .. "\nMode: "
-
 	local mode = self:GetMode()
-	if (self.Mode == 0) then
-		txt = txt .. "XYZ Local"
-	elseif (self.Mode == 1) then
-		txt = txt .. "XYZ World"
-	elseif (self.Mode == 2) then
-		txt = txt .. "XY Local, Z World"
-	end
-
-	if (not game.SinglePlayer()) then
-		local PlayerName = self:GetPlayerName()
-		txt = txt .. "\n(" .. PlayerName .. ")"
-	end
-
-	return txt
+	return string.format("Thrust: %s\nMul: %f\nMode: %s",
+		self:IsOn() and tostring(self:NetGetForce()*self:NetGetMul()) or "off",
+		self:NetGetMul(),
+		(mode == 0 and "XYZ Local") or (mode == 1 and "XYZ World") or (mode == 2 and "XY Local, Z World")
+	)
 end
