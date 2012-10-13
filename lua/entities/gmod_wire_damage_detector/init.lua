@@ -44,8 +44,8 @@ local function CheckWireDamageDetectors( ent, inflictor, attacker, amount, dmgin
 		end
 	end
 end
-hook.Add("EntityTakeDamage", "CheckWireDamageDetectors", function( ent, inflictor, attacker, amount, dmginfo )
-	local r, e = pcall( CheckWireDamageDetectors, ent, inflictor, attacker, amount, dmginfo )
+hook.Add("EntityTakeDamage", "CheckWireDamageDetectors", function( ent, dmginfo )
+	local r, e = pcall( CheckWireDamageDetectors, ent, dmginfo:GetInflictor(), dmginfo:GetAttacker(), dmginfo:GetDamage(), dmginfo )
 	if !r then print( "Wire damage detector error: " .. e ) end
 end)
 

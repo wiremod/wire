@@ -1961,7 +1961,7 @@ function Editor:TranslateValues(panel, x, y )
 	length = math.Clamp( length, 0, 0.5 )
 	x = 0.5 + math.sin( angle ) * length
 	y = 0.5 + math.cos( angle ) * length
-	panel:SetHue( math.Rad2Deg( angle ) + 270 )
+	panel:SetHue( math.deg( angle ) + 270 )
 	panel:SetSaturation( length * 2 )
 	panel:SetRGB( HSVToColor( panel:GetHue(), panel:GetSaturation(), 1 ) )
 	panel:SetFrameColor()

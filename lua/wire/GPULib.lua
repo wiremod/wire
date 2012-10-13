@@ -290,7 +290,8 @@ if CLIENT then
 		render.SetRenderTarget(NewRT)
 		render.SetViewPort(0, 0, 512, 512)
 		cam.Start2D()
-			PCallError(renderfunction)
+		local success, errmsg = pcall(renderfunction)
+		if ( !success ) then ErrorNoHalt( errmsg ) end
 		cam.End2D()
 		render.SetViewPort(0, 0, oldw, oldh)
 		render.SetRenderTarget(OldRT)
@@ -316,7 +317,7 @@ if CLIENT then
 
 		local res = monitor.RS*512/h
 		cam.Start3D2D(pos, ang, res)
-			PCallError(renderfunction, x, y, w, h, monitor, pos, ang, res)
+			renderfunction(x, y, w, h, monitor, pos, ang, res)
 		cam.End3D2D()
 	end
 
@@ -330,22 +331,20 @@ if CLIENT then
 
 		local res = monitor.RS
 		cam.Start3D2D(pos, ang, res)
-			PCallError(function()
-				local aspect = 1/monitor.RatioX
-				local w = (width  or 512)*aspect
-				local h = (height or 512)
-				local x = -w/2
-				local y = -h/2
+			local aspect = 1/monitor.RatioX
+			local w = (width  or 512)*aspect
+			local h = (height or 512)
+			local x = -w/2
+			local y = -h/2
 
-				surface.SetDrawColor(0,0,0,255)
-				surface.DrawRect(-256*aspect,-256,512*aspect,512)
+			surface.SetDrawColor(0,0,0,255)
+			surface.DrawRect(-256*aspect,-256,512*aspect,512)
 
-				surface.SetDrawColor(255,255,255,255)
-				surface.SetMaterial(WireGPU_matScreen)
-				self.DrawScreen(x, y, w, h, rotation or 0, scale or 0)
+			surface.SetDrawColor(255,255,255,255)
+			surface.SetMaterial(WireGPU_matScreen)
+			self.DrawScreen(x, y, w, h, rotation or 0, scale or 0)
 
-				if postrenderfunction then postrenderfunction(pos, ang, res, aspect, monitor) end
-			end)
+			if postrenderfunction then postrenderfunction(pos, ang, res, aspect, monitor) end
 		cam.End3D2D()
 
 		WireGPU_matScreen:SetTexture("$basetexture", OldTex)

@@ -11,6 +11,10 @@ if ( CLIENT ) then
 	language.Add( "Tool_wire_debugger_showports", "Show overlay of ports in HUD" )
 	language.Add( "Tool_wire_debugger_orientvertical", "Orient the Inputs/Outputs Vertically" )
 end
+if SERVER then
+	util.AddNetworkString("WireDbgCount")
+	util.AddNetworkString("WireDbg")
+end
 
 TOOL.ClientConVar[ "showports" ] = "1"
 TOOL.ClientConVar[ "orientvertical" ] = "1"
@@ -57,9 +61,9 @@ function TOOL:RightClick(trace)
 		end
 	end
 	if not next(Components[ply_idx]) then
-		umsg.Start("WireDbgLineCount", self:GetOwner())
-			umsg.Short(0)
-		umsg.End()
+		net.Start("WireDbgCount")
+			net.WriteUInt(0,16)
+		net.Send(ply_idx)
 		Components[ply_idx] = nil
 	end
 end
@@ -138,9 +142,9 @@ end
 
 function TOOL:Reload(trace)
 	if (CLIENT) then return end
-	umsg.Start("WireDbgLineCount", self:GetOwner())
-		umsg.Short(0)
-	umsg.End()
+	net.Start("WireDbgCount")
+		net.WriteUInt(0,16)
+	net.Send(self:GetOwner())
 	Components[self:GetOwner()] = nil
 end
 
@@ -324,9 +328,9 @@ if (SERVER) then
 				table.Compact(cmps, function(cmp) return cmp:IsValid() and IsWire(cmp) end)
 
 				-- TODO: only send in TOOL:*Click/Reload hooks maybe.
-				umsg.Start("WireDbgLineCount", ply)
-					umsg.Short(#cmps)
-				umsg.End()
+				net.Start("WireDbgCount")
+					net.WriteUInt(#cmps,16)
+				net.Send(ply)
 
 				if #cmps == 0 then Components[ply] = nil end
 
@@ -389,21 +393,11 @@ if (SERVER) then
 					if (dbg_line_cache[ply][l] ~= dbginfo) then
 						if (not dbg_line_time[ply][l]) or (CurTime() > dbg_line_time[ply][l]) then
 							--split the message up into managable chuncks and send them
-							local NumOfUMSG = 1
-							if(string.len(dbginfo)>200) then
-								NumOfUMSG = math.ceil(string.len(dbginfo)/200)
-							end
-
-							for i=1, NumOfUMSG do
-								local MsgPart = string.sub(dbginfo,(i-1)*200+1, i*200)
-								umsg.Start("WireDbgLine", ply)
-									umsg.Short(l)
-									umsg.Short(NumOfUMSG)
-									umsg.Short(i)
-									umsg.Bool(OrientVertical)
-									umsg.String(MsgPart)
-								umsg.End()
-							end
+							net.Start("WireDbg")
+								net.WriteBit(OrientVertical)
+								net.WriteUInt(l,16)
+								net.WriteString(dbginfo)
+							net.Send(ply)
 
 							dbg_line_cache[ply][l] = dbginfo
 							if (game.SinglePlayer()) then
@@ -428,7 +422,6 @@ if (CLIENT) then
 
 	local dbg_line_count = 0
 	local dbg_lines = {}
-	local UMSG_Buffer = {}
 	local dgb_orient_vert = false
 	local BoxWidth = 300
 	local LastBoxUpdate = CurTime()-5
@@ -550,29 +543,15 @@ if (CLIENT) then
 	end
 	hook.Add("HUDPaint", "DebuggerDrawHUD", DebuggerDrawHUD)
 
-	local function Debugger_Msg_LineCount(um)
-		dbg_line_count = um:ReadShort()
-	end
-	usermessage.Hook("WireDbgLineCount", Debugger_Msg_LineCount)
-
-	local function Debugger_Msg_Line(um)
-		local i = um:ReadShort()
-		local NumOfUMSG = um:ReadShort()
-		local UMSGCount = um:ReadShort()
-		dgb_orient_vert = um:ReadBool()
-		if(!UMSG_Buffer[i]) then
-			UMSG_Buffer[i] = ""
-		end
-		UMSG_Buffer[i] = UMSG_Buffer[i]..(um:ReadString() or "")
-		if(NumOfUMSG == UMSGCount) then
-			dbg_lines[i] = UMSG_Buffer[i]
-			UMSG_Buffer[i] = ""
-		end
-	end
-	usermessage.Hook("WireDbgLine", Debugger_Msg_Line)
-
+	net.Receive("WireDbgCount", function(len)
+		dbg_line_count = net.ReadUInt(16)
+	end)
+	net.Receive("WireDbg", function(len)
+		dgb_orient_vert = net.ReadBit() != 0
+		dbg_lines[net.ReadUInt(16)] = net.ReadString()
+	end)
+	
 end
-
 
 function TOOL.BuildCPanel(panel)
 	panel:AddControl("Header", { Text = "#Tool_wire_debugger_name", Description = "#Tool_wire_debugger_desc" })
