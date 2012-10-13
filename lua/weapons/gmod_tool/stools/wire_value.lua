@@ -44,12 +44,37 @@ if (SERVER) then
 		playerValues[ply] = net.ReadTable()
 	end)
 	
+	local function ConvertValues( values )
+		local newValues = {}
+		local convtbl =
+		{
+			["NORMAL"] = "Number",
+			["ANGLE"] = "Angle",
+			["VECTOR"] = "Vector",
+			["VECTOR2"] = "Vector",
+			["VECTOR4"] = "Vector",
+			["STRING"] = "String",
+		}
+		for k,v in pairs(values) do
+			local theType,theValue = string.match (v, "^ *([^: ]+) *:(.*)$")
+			theType = string.upper(theType)
+
+			if convtbl[theType] == nil then
+				theType = "Number"
+			end
+
+			table.insert(newValues, { DataType=convtbl[theType], Value=theValue } )
+		end
+
+		return newValues
+		
+	end
+	
 	local function MakeWireValue( ply, Pos, Ang, model )
 		if (!ply:CheckLimit("wire_values")) then return false end
 
 		local wire_value = ents.Create("gmod_wire_value")
 		if (!wire_value:IsValid()) then return false end
-		
 		undo.Create("wirevalue")
 			undo.AddEntity( wire_value )
 			undo.SetPlayer( ply )
@@ -59,9 +84,19 @@ if (SERVER) then
 		wire_value:SetPos(Pos)
 		wire_value:SetModel(model)
 		wire_value:Spawn()
-
-		wire_value:Setup(playerValues[ply])
-		wire_value:SetPlayer(ply)
+		
+		-- This sets up the entity but checks if its an old entity from gmod 12 and converts it :)
+		-- yay GM12 -> GM13 dupe support.
+		if values != nil then
+			local _,val = next(values)
+			if type(val) == "table" then
+				wire_value:Setup(values)
+			else
+				local convertedValues = ConvertValues(values)
+				wire_value:Setup( convertedValues )
+			end
+		end
+		wire_value:SetPlayer( ply )
 
 		ply:AddCount("wire_values", wire_value)
 
