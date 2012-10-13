@@ -13,6 +13,23 @@ local hook = hook
 local usermessage = usermessage
 local umsg = umsg
 
+
+-- PCallFunction
+-- Taken from the old garrysmod wiki
+function PCallError( ... )
+ 
+	local errored, retval = pcall( unpack( arg ) )
+ 
+	if ( !errored ) then
+		ErrorNoHalt( retval )
+		return false, retval
+	end
+ 
+	return true, retval
+ 
+end
+
+
 -- extra table functions
 
 -- Checks if the table is empty, it's faster than table.Count(Table) > 0

@@ -22,10 +22,10 @@ local function ReturnType( DataType )
 		["NORMAL"] = "Number",
 		["STRING"]	= "String",
 		["VECTOR"] = "Vector",
-		["ANGLE"]	= "Angle"
+		["ANGLE"]	= "Angle",
 	}
 	for k,v in pairs(DataTypes) do
-		if(v == DataType) then
+		if(v:lower() == DataType:lower()) then
 			return k
 		end
 	end
@@ -80,9 +80,33 @@ local function TranslateType( Value, DataType )
     end
     return 0
 end
+function ENT:OldSetup( values )
+	local newValues = {}
+	local convtbl =
+	{
+		["NORMAL"] = "Number",
+		["ANGLE"] = "Angle",
+		["VECTOR"] = "Vector",
+		["VECTOR2"] = "Vector",
+		["VECTOR4"] = "Vector",
+		["STRING"] = "String",
+	}
+	for k,v in pairs(values) do
+		local theType,theValue = string.match (v, "^ *([^: ]+) *:(.*)$")
+		theType = string.upper(theType)
+		
+		if convtbl[theType] == nil then
+			theType = "Number"
+		end
+		
+		table.insert(newValues, { DataType=convtbl[theType], Value=theValue } )
+	end
+	
+	return newValues
+end
 
 function ENT:Setup(values)
-	self.value = values -- Wirelink/Duplicator Info 
+	self.value = (values) -- Wirelink/Duplicator Info 
 	
 	local outputs = 
 	{
@@ -90,20 +114,22 @@ function ENT:Setup(values)
 		types = {},
 		values = {}
 	}
+	
 	for k,v in pairs(values) do
 		outputs.names[k] = tostring( k )
 		outputs.values[k] = TranslateType(v.Value, ReturnType(v.DataType))
 		outputs.types[k] = ReturnType(v.DataType)
 	end
-
+	
 	// this is where storing the values as strings comes in: they are the descriptions for the inputs.
 	WireLib.AdjustSpecialOutputs(self, outputs.names, outputs.types )
 
 	local txt = ""
 
 	for k,v in pairs(values) do
-		txt = txt .. k .. ": [" .. tostring(v.DataType) .. "]" .. tostring(v.Value) .. "\n"
-		Wire_TriggerOutput( self, tostring(k), TranslateType(v.Value, ReturnType(v.DataType)) )
+		local theVal = TranslateType(v.Value, ReturnType(v.DataType))
+		txt = txt .. k .. ": [" .. tostring(v.DataType) .. "] " .. tostring(theVal) .. "\n"
+		Wire_TriggerOutput( self, tostring(k), theVal )
 	end
 
 	self:SetOverlayText(txt)
