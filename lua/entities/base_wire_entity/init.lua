@@ -2,31 +2,25 @@ AddCSLuaFile("cl_init.lua")
 AddCSLuaFile("shared.lua")
 include("shared.lua")
 
+util.AddNetworkString("WireOverlay")
+
 ENT.WireDebugName = "No Name"
+
 function ENT:Think()
 end
 
-function ENT:SetOverlayText( txt )
-	self.OverlayText = txt
-end
-
-util.AddNetworkString("WireOverlay")
-
-
-local function overlayUpdate()
+timer.Create("OverlayUpdate", 0.25, 0, function()
 	for _, ply in ipairs(player.GetAll()) do
 		local ent = ply:GetEyeTrace().Entity
-		if IsValid(ent) == false then return end
-		if ent.OverlayText == nil then return end
-		-- send update.
+		if not IsValid(ent) then return end
+		
 		net.Start("WireOverlay")
-		net.WriteEntity( ent )
-		net.WriteString( ent.OverlayText )
-		net.Send( ply )
+			net.WriteEntity(ent)
+			net.WriteString(ent.OverlayText)
+			net.WriteString(ent:GetPlayer():GetName())
+		net.Send(ply)
 	end
-end
-
-timer.Create("OverlayUpdate", 0.25, 0, overlayUpdate )
+end)
 
 function ENT:OnRemove()
 	Wire_Remove(self)

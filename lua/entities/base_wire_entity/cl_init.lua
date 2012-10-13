@@ -26,15 +26,17 @@ function ENT:DoNormalDraw(nohalo, notip)
 		end
 		self:DrawModel()
 	end
-	if !notip and looked_at then
+	if not notip and looked_at then
 		self:DrawTip()
 	end
 end
 
 function ENT:DrawTip(text)
 	text = text or self:GetOverlayText()
-	if text == "" then return end
+	local name = self:GetNetworkedString("WireName")
+	local plyname = self.OverlayPly
 	
+	text = string.format("- %s -\n%s\n(%s)", name ~= "" and name or self.PrintName, text, plyname)
 	AddWorldTip(nil,text,nil,self:GetPos(),nil)
 end
 
@@ -60,12 +62,8 @@ hook.Add("PreDrawHalos", "Wiremod_overlay_halos", function()
 	halos_inv = {}
 end)
 
-net.Receive( "WireOverlay", function( length )
+net.Receive( "WireOverlay", function(length)
 	local ent = net.ReadEntity()
-	ent.OverlayText = net.ReadString()
-end )
-
-function ENT:SetOverlayText( text )
-	self.OverlayText = text
-end
-
+	ent.OverlayText = net.ReadString()-- string.format("%s\n(%s)", net.ReadString(), net.ReadString())
+	ent.OverlayPly = net.ReadString()
+end)
