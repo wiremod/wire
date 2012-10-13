@@ -11,7 +11,7 @@ end
 
 function ENT:DoNormalDraw(nohalo, notip)
 	local trace = LocalPlayer():GetEyeTrace()
-	local looked_at = trace.Entity == self and trace.Fraction*16384 < 256
+	local looked_at = trace.Entity == self and trace.Fraction * 16384 < 256
 	if not nohalo and wire_drawoutline:GetBool() and looked_at then
 		if self.RenderGroup == RENDERGROUP_OPAQUE then
 			self.OldRenderGroup = self.RenderGroup
@@ -26,7 +26,7 @@ function ENT:DoNormalDraw(nohalo, notip)
 		end
 		self:DrawModel()
 	end
-	if not notip and looked_at then
+	if !notip and looked_at then
 		self:DrawTip()
 	end
 end
@@ -45,19 +45,27 @@ function ENT:Think()
 	end
 end
 
-if VERSION >= 150 then
-	local halos = {}
-	local halos_inv = {}
-	
-	function ENT:DrawEntityOutline()
-		if halos_inv[self] then return end
-		halos[#halos+1] = self
-		halos_inv[self] = true
-	end
-	
-	hook.Add("PreDrawHalos", "Wiremod_overlay_halos", function()
-		halo.Add(halos, Color(100,100,255), 3, 3, 1, true, true)
-		halos = {}
-		halos_inv = {}
-	end)
+local halos = {}
+local halos_inv = {}
+
+function ENT:DrawEntityOutline()
+	if halos_inv[self] then return end
+	halos[#halos+1] = self
+	halos_inv[self] = true
 end
+
+hook.Add("PreDrawHalos", "Wiremod_overlay_halos", function()
+	halo.Add(halos, Color(100,100,255), 3, 3, 1, true, true)
+	halos = {}
+	halos_inv = {}
+end)
+
+net.Receive( "WireOverlay", function( length )
+	local ent = net.ReadEntity()
+	ent.OverlayText = net.ReadString()
+end )
+
+function ENT:SetOverlayText( text )
+	self.OverlayText = text
+end
+
