@@ -35,13 +35,13 @@ end
 
 
 if (SERVER) then
-	local playerValues = {}
+	local ConstantValues = {}
 	CreateConVar('sbox_maxwire_values', 20)
 	ModelPlug_Register("value")
 	util.AddNetworkString( "wire_value_values" )
 	
 	net.Receive( "wire_value_values", function( length, ply )
-		playerValues[ply] = net.ReadTable()
+		ConstantValues = net.ReadTable()
 	end)
 	
 	local function ConvertValues( values )
@@ -70,7 +70,7 @@ if (SERVER) then
 		
 	end
 	
-	local function MakeWireValue( ply, Pos, Ang, model )
+	local function MakeWireValue( ply, Pos, Ang, model, values )
 		if (!ply:CheckLimit("wire_values")) then return false end
 
 		local wire_value = ents.Create("gmod_wire_value")
@@ -92,8 +92,7 @@ if (SERVER) then
 			if type(val) == "table" then
 				wire_value:Setup(values)
 			else
-				local convertedValues = ConvertValues(values)
-				wire_value:Setup( convertedValues )
+				wire_value:Setup( ConvertValues(values) )
 			end
 		end
 		wire_value:SetPlayer( ply )
@@ -112,14 +111,14 @@ if (SERVER) then
 		
 		if trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_value" then
 			local ply = self:GetOwner()
-			trace.Entity:Setup( playerValues[ply] )
+			trace.Entity:Setup( ConstantValues )
 		else
 			local ply = self:GetOwner()
-			local tbl = playerValues[ply]
+			local tbl = ConstantValues
 			if tbl != nil then
 				local ang = trace.HitNormal:Angle()
 				ang.pitch = ang.pitch + 90
-				local ent = MakeWireValue(ply, trace.HitPos, ang, self:GetModel() )
+				local ent = MakeWireValue(ply, trace.HitPos, ang, self:GetModel(), ConstantValues )
 				local weld = constraint.Weld( ent, trace.Entity, trace.PhysicsBone,0,0, true )
 				return true
 			else
