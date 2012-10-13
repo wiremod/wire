@@ -118,10 +118,6 @@ function ENT:ShowOutput()
 	self:SetOverlayText(text)
 end
 
-function ENT:SetOverlayText(txt)
-	self:SetNetworkedBeamString("GModOverlayText", txt)
-end
-
 function ENT:Setup( includeconstrained )
 	self.includeconstrained = includeconstrained
 	self:ShowOutput()
