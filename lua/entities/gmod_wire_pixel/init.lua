@@ -49,9 +49,8 @@ end
 
 function ENT:ShowOutput( R, G, B )
 	if ( R ~= self.R or G ~= self.G or B ~= self.B ) then
-		--self:SetOverlayText( "Pixel: Red=" .. R .. " Green:" .. G .. " Blue:" .. B )
 		self.R, self.G, self.B = R, G, B
-		self:SetColor12( R, G, B, 255 )
+		self:SetColor(Color(R, G, B, 255))
 	end
 end
 

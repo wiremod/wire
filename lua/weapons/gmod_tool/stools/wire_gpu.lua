@@ -5,12 +5,12 @@ TOOL.ConfigName = ""
 TOOL.Tab        = "Wire"
 
 if CLIENT then
-  language12.Add("Tool_wire_gpu_name", "GPU Tool (Wire)")
-  language12.Add("Tool_wire_gpu_desc", "Spawns a central processing unit")
-  language12.Add("Tool_wire_gpu_0",    "Primary: create/reflash ZGPU or other hispeed device, Secondary: open editor and/or attach debugger to the ZGPU")
-  language12.Add("sboxlimit_wire_gpu", "You've hit ZGPU limit!")
-  language12.Add("undone_wire_gpu",    "Undone the ZGPU")
-  language12.Add("ToolWiregpu_Model",  "Model:" )
+  language.Add("Tool.wire_gpu.name", "GPU Tool (Wire)")
+  language.Add("Tool.wire_gpu.desc", "Spawns a central processing unit")
+  language.Add("Tool.wire_gpu.0",    "Primary: create/reflash ZGPU or other hispeed device, Secondary: open editor and/or attach debugger to the ZGPU")
+  language.Add("sboxlimit_wire_gpu", "You've hit ZGPU limit!")
+  language.Add("undone_wire_gpu",    "Undone the ZGPU")
+  language.Add("ToolWiregpu_Model",  "Model:" )
 end
 
 if SERVER then CreateConVar("sbox_maxwire_gpus", 7) end
@@ -146,7 +146,7 @@ if SERVER then
     if not ent then return end
     if not ent:IsValid() then return end
 
-    local tr = utilx.GetPlayerTrace(player, player:GetCursorAimVector())
+    local tr = util.GetPlayerTrace(player)
     local trace = util.TraceLine(tr)
     if not trace.Hit then return end
 

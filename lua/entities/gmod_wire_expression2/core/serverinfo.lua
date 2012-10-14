@@ -21,11 +21,11 @@ e2function string gamemode()
 end
 
 e2function number isSinglePlayer()
-	return SinglePlayer() and 1 or 0
+	return game.SinglePlayer() and 1 or 0
 end
 
 e2function number isDedicated()
-	return isDedicatedServer() and 1 or 0
+	return game.IsDedicated() and 1 or 0
 end
 
 e2function number numPlayers()
@@ -33,7 +33,7 @@ e2function number numPlayers()
 end
 
 e2function number maxPlayers()
-	return MaxPlayers()
+	return game.MaxPlayers()
 end
 
 local sv_gravity = GetConVar("sv_gravity")

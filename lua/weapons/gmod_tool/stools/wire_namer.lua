@@ -5,10 +5,10 @@ TOOL.ConfigName		= ""
 TOOL.Tab			= "Wire"
 
 if ( CLIENT ) then
-    language12.Add( "Tool_wire_namer_name", "Naming Tool" )
-    language12.Add( "Tool_wire_namer_desc", "Names components." )
-    language12.Add( "Tool_wire_namer_0", "Primary: Set name\nSecondary: Get name" )
-    language12.Add( "WireNamerTool_name", "Name:" )
+    language.Add( "Tool.wire_namer.name", "Naming Tool" )
+    language.Add( "Tool.wire_namer.desc", "Names components." )
+    language.Add( "Tool.wire_namer.0", "Primary: Set name\nSecondary: Get name" )
+    language.Add( "WireNamerTool_name", "Name:" )
 end
 
 TOOL.ClientConVar[ "name" ] = ""

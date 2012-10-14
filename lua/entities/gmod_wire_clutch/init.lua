@@ -205,11 +205,11 @@ function ENT:TriggerInput( iname, value )
 			local Delay = numconstraints / maxrate
 
 			self.ClutchDelay = true
-			timer.Create( "wire_clutch_delay_" .. tostring(self:EntIndex()), Delay, 0, ClutchDelayEnd, self )
+			timer.Create( "wire_clutch_delay_" .. tostring(self:EntIndex()), Delay, 0, function() ClutchDelayEnd(self) end )
 
 		else
 			// This should only happen if an error prevents the ClutchDelayEnd function from being called
-			if !timer.IsTimer( "wire_clutch_delay_" .. tostring(self:EntIndex())) then
+			if !timer.Exists( "wire_clutch_delay_" .. tostring(self:EntIndex())) then
 				self.ClutchDelay = false
 			end
 
@@ -247,10 +247,10 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 		Ent1 = GetEntByID(v.Ent1) or ents.GetByIndex( v.Ent1 )
 
 		if v.Ent2 == 0 then
-			Ent2 = GetWorldEntity()
+			Ent2 = game.GetWorld()
 		else
 			Ent2 = GetEntByID(v.Ent2) or ents.GetByIndex( v.Ent2 )
-			if !IsValid( Ent2 ) then Ent2 = GetWorldEntity() end
+			if !IsValid( Ent2 ) then Ent2 = game.GetWorld() end
 		end
 
 		if IsValid(Ent1) and Ent1 ~= Ent2 then

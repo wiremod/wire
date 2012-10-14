@@ -50,7 +50,7 @@ end
 usermessage.Hook("hispeed_digiscreen", function(um)
 	local ent = ents.GetByIndex(um:ReadShort())
 
-	if ValidEntity(ent) and ent.Memory1 and ent.Memory2 then
+	if IsValid(ent) and ent.Memory1 and ent.Memory2 then
 		while true do
 			local datasize = um:ReadChar()
 			if datasize < 0 then

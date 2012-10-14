@@ -6,7 +6,7 @@
 if ENT then
 	local wire_expression2_ENT = ENT
 	function wire_expression2_reload(ply, cmd, args)
-		if validEntity(ply) and ply:IsPlayer() and not ply:IsSuperAdmin() and not SinglePlayer() then return end
+		if validEntity(ply) and ply:IsPlayer() and not ply:IsSuperAdmin() and not game.SinglePlayer() then return end
 
 		Msg("Calling destructors for all Expression2 chips.\n")
 		local chips = ents.FindByClass("gmod_wire_expression2")
@@ -42,7 +42,7 @@ wire_expression2_reset_extensions()
 include("extpp.lua")
 
 local function luaExists(luaname)
-	return #file12.FindInLua(luaname) ~= 0
+	return #file.Find(luaname, "LUA") ~= 0
 end
 
 local included_files = {}
@@ -134,7 +134,7 @@ e2_include("egpfunctions.lua")
 e2_include("functions.lua")
 
 do
-	local list = file12.FindInLua("entities/gmod_wire_expression2/core/custom/*.lua")
+	local list = file.Find("entities/gmod_wire_expression2/core/custom/*.lua", "LUA")
 	for _,filename in pairs(list) do
 		if filename:sub(1,3) == "cl_" then
 			-- If the is prefixed with "cl_", send it to the client and load it there.

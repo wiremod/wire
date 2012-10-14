@@ -1,64 +1,81 @@
--- $Rev: 1504 $
--- $LastChangedDate: 2009-08-10 07:26:51 -0700 (Mon, 10 Aug 2009) $
--- $LastChangedBy: TomyLobo $
-
 --Msg("=== Loading Wire Model Packs ===\n")
 
 CreateConVar("cl_showmodeltextbox", "0")
 
-ModelPlugInfo = {}
+ModelPlugInfo = true
 
-for _,filename in ipairs( file12.Find("WireModelPacks/*.txt") ) do
-	local packtbl = util.KeyValuesToTable(file.Read("WireModelPacks/" .. filename) or {})
-	for name,entry in pairs(packtbl) do
-		local categorytable = string.Explode(",", entry.categories or "none") or { "none" }
-		for _,cat in pairs(categorytable) do
-			list.Set( "Wire_"..cat.."_Models", entry.model, {} )
+--[[
+-- Loads and converts model lists from the old WireModelPacks format
+do
+	local converted = {}
+	
+
+	MsgN("WM: Loading models...")
+	for _,filename in ipairs( file.Find("WireModelPacks/*", "DATA") ) do
+	--for _,filename in ipairs{"bull_buttons.txt","bull_modelpack.txt","cheeze_buttons2.txt","default.txt","expression2.txt","wire_model_pack_1.txt","wire_model_pack_1plus.txt"} do
+		filename = "WireModelPacks/"..filename
+		print("Loading from WireModelPacks/"..filename)
+		local f = file.Read(filename, "DATA")
+		if f then
+			converted[#converted+1] = "-- Converted from "..filename
+			local packtbl = util.KeyValuesToTable(f)
+			for name,entry in pairs(packtbl) do
+				print(string.format("\tLoaded model %s => %s", name, entry.model))
+				local categorytable = string.Explode(",", entry.categories or "none") or { "none" }
+				for _,cat in pairs(categorytable) do
+					list.Set( "Wire_"..cat.."_Models", entry.model, true )
+					converted[#converted+1] = string.format('list.Set("Wire_%s_Models", "%s", true)', cat, entry.model)
+				end
+			end
+			converted[#converted+1] = ""
+		else
+			print("Error opening "..filename)
 		end
 	end
-	--MsgN("\tLoaded: "..filename)
+	MsgN("End loading models")
+	
+	file.Write("converted.txt", table.concat(converted, "\n"))
 end
-
-
+]]
 
 --
 --	Add some more options to the stools
 --
 
 --screens with a GPULib setup
-list.Set( "WireScreenModels", "models/props_lab/monitor01b.mdl", {} )
-list.Set( "WireScreenModels", "models/props/cs_office/tv_plasma.mdl", {} )
-list.Set( "WireScreenModels", "models/blacknecro/tv_plasma_4_3.mdl", {} )
-list.Set( "WireScreenModels", "models/props/cs_office/computer_monitor.mdl", {} )
-list.Set( "WireScreenModels", "models/kobilica/wiremonitorbig.mdl", {} )
-list.Set( "WireScreenModels", "models/kobilica/wiremonitorsmall.mdl", {} )
-list.Set( "WireScreenModels", "models/props/cs_assault/Billboard.mdl", {} )
-list.Set( "WireScreenModels", "models/cheeze/pcb/pcb4.mdl", {} )
-list.Set( "WireScreenModels", "models/cheeze/pcb/pcb6.mdl", {} )
-list.Set( "WireScreenModels", "models/cheeze/pcb/pcb5.mdl", {} )
-list.Set( "WireScreenModels", "models/cheeze/pcb/pcb7.mdl", {} )
-list.Set( "WireScreenModels", "models/cheeze/pcb/pcb8.mdl", {} )
-list.Set( "WireScreenModels", "models/cheeze/pcb2/pcb8.mdl", {} )
---list.Set( "WireScreenModels", "models/blacknecro/ledboard60.mdl", {} ) --broken
+list.Set( "WireScreenModels", "models/props_lab/monitor01b.mdl", true )
+list.Set( "WireScreenModels", "models/props/cs_office/tv_plasma.mdl", true )
+list.Set( "WireScreenModels", "models/blacknecro/tv_plasma_4_3.mdl", true )
+list.Set( "WireScreenModels", "models/props/cs_office/computer_monitor.mdl", true )
+list.Set( "WireScreenModels", "models/kobilica/wiremonitorbig.mdl", true )
+list.Set( "WireScreenModels", "models/kobilica/wiremonitorsmall.mdl", true )
+list.Set( "WireScreenModels", "models/props/cs_assault/Billboard.mdl", true )
+list.Set( "WireScreenModels", "models/cheeze/pcb/pcb4.mdl", true )
+list.Set( "WireScreenModels", "models/cheeze/pcb/pcb6.mdl", true )
+list.Set( "WireScreenModels", "models/cheeze/pcb/pcb5.mdl", true )
+list.Set( "WireScreenModels", "models/cheeze/pcb/pcb7.mdl", true )
+list.Set( "WireScreenModels", "models/cheeze/pcb/pcb8.mdl", true )
+list.Set( "WireScreenModels", "models/cheeze/pcb2/pcb8.mdl", true )
+--list.Set( "WireScreenModels", "models/blacknecro/ledboard60.mdl", true ) --broken
 
 --TF2 Billboards
-list.Set( "WireScreenModels", "models/props_mining/billboard001.mdl", {} )
-list.Set( "WireScreenModels", "models/props_mining/billboard002.mdl", {} )
+list.Set( "WireScreenModels", "models/props_mining/billboard001.mdl", true )
+list.Set( "WireScreenModels", "models/props_mining/billboard002.mdl", true )
 
 --PHX3
-list.Set( "WireScreenModels", "models/hunter/blocks/cube1x1x1.mdl", {} )
-list.Set( "WireScreenModels", "models/hunter/plates/plate1x1.mdl", {} )
-list.Set( "WireScreenModels", "models/hunter/plates/plate2x2.mdl", {} )
-list.Set( "WireScreenModels", "models/hunter/plates/plate4x4.mdl", {} )
-list.Set( "WireScreenModels", "models/hunter/plates/plate8x8.mdl", {} )
-list.Set( "WireScreenModels", "models/hunter/plates/plate05x05.mdl", {} )
+list.Set( "WireScreenModels", "models/hunter/blocks/cube1x1x1.mdl", true )
+list.Set( "WireScreenModels", "models/hunter/plates/plate1x1.mdl", true )
+list.Set( "WireScreenModels", "models/hunter/plates/plate2x2.mdl", true )
+list.Set( "WireScreenModels", "models/hunter/plates/plate4x4.mdl", true )
+list.Set( "WireScreenModels", "models/hunter/plates/plate8x8.mdl", true )
+list.Set( "WireScreenModels", "models/hunter/plates/plate05x05.mdl", true )
 
 --screens with out a GPULib setup (for the tools wire_panel and wire_screen)
-list.Set( "WireNoGPULibScreenModels", "models/props_lab/monitor01b.mdl", {} )
-list.Set( "WireNoGPULibScreenModels", "models/props/cs_office/tv_plasma.mdl", {} )
-list.Set( "WireNoGPULibScreenModels", "models/props/cs_office/computer_monitor.mdl", {} )
-list.Set( "WireNoGPULibScreenModels", "models/kobilica/wiremonitorbig.mdl", {} )
-list.Set( "WireNoGPULibScreenModels", "models/kobilica/wiremonitorsmall.mdl", {} )
+list.Set( "WireNoGPULibScreenModels", "models/props_lab/monitor01b.mdl", true )
+list.Set( "WireNoGPULibScreenModels", "models/props/cs_office/tv_plasma.mdl", true )
+list.Set( "WireNoGPULibScreenModels", "models/props/cs_office/computer_monitor.mdl", true )
+list.Set( "WireNoGPULibScreenModels", "models/kobilica/wiremonitorbig.mdl", true )
+list.Set( "WireNoGPULibScreenModels", "models/kobilica/wiremonitorsmall.mdl", true )
 
 --sounds
 local WireSounds = {
@@ -95,7 +112,7 @@ local wastelandwheels = {
 	"models/props_wasteland/wheel03b.mdl"
 }
 for k,v in pairs(wastelandwheels) do
-	if file12.Exists(v,true) then
+	if file.Exists(v,"GAME") then
 	list.Set( "WheelModels", v, { wheel_rx = 90, wheel_ry = 0, wheel_rz = 90} )
 	end
 end
@@ -127,9 +144,9 @@ local CheezesButtons = {
 	"models/cheeze/buttons/button_stop.mdl",
 }
 for k,v in ipairs(CheezesButtons) do
-	if file12.Exists(v,true) then
-		list.Set( "ButtonModels", v, {} )
-		list.Set( "Wire_button_Models", v, {} )
+	if file.Exists(v,"GAME") then
+		list.Set( "ButtonModels", v, true )
+		list.Set( "Wire_button_Models", v, true )
 	end
 end
 
@@ -147,8 +164,8 @@ local Buttons = {
 	"models/props_mining/switch_updown01.mdl"
 }
 for k,v in ipairs(Buttons) do
-	if file12.Exists(v,true) then
-		list.Set( "Wire_button_Models", v, {} )
+	if file.Exists(v,"GAME") then
+		list.Set( "Wire_button_Models", v, true )
 	end
 end
 
@@ -187,8 +204,8 @@ local JaanusThrusters = {
 	"models/jaanus/thruster_stun.mdl"
 }
 for k,v in pairs(JaanusThrusters) do
-	if file12.Exists(v,true) then
-		list.Set( "ThrusterModels", v, {} )
+	if file.Exists(v,"GAME") then
+		list.Set( "ThrusterModels", v, true )
 	end
 end
 
@@ -196,32 +213,320 @@ end
 --MsgN("\tBeer's Model pack")
 
 --Keyboard
-list.Set( "Wire_Keyboard_Models", "models/beer/wiremod/keyboard.mdl", {} )
-list.Set( "Wire_Keyboard_Models", "models/jaanus/wiretool/wiretool_input.mdl", {} )
-list.Set( "Wire_Keyboard_Models", "models/props/kb_mouse/keyboard.mdl", {} )
-list.Set( "Wire_Keyboard_Models", "models/props_c17/computer01_keyboard.mdl", {} )
+list.Set( "Wire_Keyboard_Models", "models/beer/wiremod/keyboard.mdl", true )
+list.Set( "Wire_Keyboard_Models", "models/jaanus/wiretool/wiretool_input.mdl", true )
+list.Set( "Wire_Keyboard_Models", "models/props/kb_mouse/keyboard.mdl", true )
+list.Set( "Wire_Keyboard_Models", "models/props_c17/computer01_keyboard.mdl", true )
 
 --Hydraulic
-list.Set( "Wire_Hydraulic_Models", "models/beer/wiremod/hydraulic.mdl", {} )
-list.Set( "Wire_Hydraulic_Models", "models/jaanus/wiretool/wiretool_siren.mdl", {} )
+list.Set( "Wire_Hydraulic_Models", "models/beer/wiremod/hydraulic.mdl", true )
+list.Set( "Wire_Hydraulic_Models", "models/jaanus/wiretool/wiretool_siren.mdl", true )
 
 --GPS
-list.Set( "Wire_GPS_Models", "models/beer/wiremod/gps.mdl", {} )
-list.Set( "Wire_GPS_Models", "models/jaanus/wiretool/wiretool_speed.mdl", {} )
+list.Set( "Wire_GPS_Models", "models/beer/wiremod/gps.mdl", true )
+list.Set( "Wire_GPS_Models", "models/jaanus/wiretool/wiretool_speed.mdl", true )
 
 --Numpad
-list.Set( "Wire_Numpad_Models", "models/beer/wiremod/numpad.mdl", {} )
-list.Set( "Wire_Numpad_Models", "models/jaanus/wiretool/wiretool_input.mdl", {} )
-list.Set( "Wire_Numpad_Models", "models/jaanus/wiretool/wiretool_output.mdl", {} )
+list.Set( "Wire_Numpad_Models", "models/beer/wiremod/numpad.mdl", true )
+list.Set( "Wire_Numpad_Models", "models/jaanus/wiretool/wiretool_input.mdl", true )
+list.Set( "Wire_Numpad_Models", "models/jaanus/wiretool/wiretool_output.mdl", true )
 
 --Water Sensor
-list.Set( "Wire_WaterSensor_Models", "models/beer/wiremod/watersensor.mdl", {} )
-list.Set( "Wire_WaterSensor_Models", "models/jaanus/wiretool/wiretool_range.mdl", {} )
+list.Set( "Wire_WaterSensor_Models", "models/beer/wiremod/watersensor.mdl", true )
+list.Set( "Wire_WaterSensor_Models", "models/jaanus/wiretool/wiretool_range.mdl", true )
 
 --Target Finder
-list.Set( "Wire_TargetFinder_Models", "models/beer/wiremod/targetfinder.mdl", {} )
-list.Set( "Wire_TargetFinder_Models", "models/props_lab/powerbox02d.mdl", {} )
+list.Set( "Wire_TargetFinder_Models", "models/beer/wiremod/targetfinder.mdl", true )
+list.Set( "Wire_TargetFinder_Models", "models/props_lab/powerbox02d.mdl", true )
 
 --Misc Tools (Entity Marker, Eye Pod, GpuLib Switcher, ect...)
-list.Set( "Wire_Misc_Tools_Models", "models/jaanus/wiretool/wiretool_range.mdl", {} )
-list.Set( "Wire_Misc_Tools_Models", "models/jaanus/wiretool/wiretool_siren.mdl", {} )
+list.Set( "Wire_Misc_Tools_Models", "models/jaanus/wiretool/wiretool_range.mdl", true )
+list.Set( "Wire_Misc_Tools_Models", "models/jaanus/wiretool/wiretool_siren.mdl", true )
+
+-- Converted from WireModelPacks/wire_model_pack_1plus.txt
+list.Set("Wire_radio_Models", "models/props_lab/reciever01b.mdl", true)
+list.Set("Wire_radio2_Models", "models/props_lab/reciever01b.mdl", true)
+list.Set("Wire_pixel_Models", "models/jaanus/wiretool/wiretool_pixel_med.mdl", true)
+list.Set("Wire_indicator_Models", "models/jaanus/wiretool/wiretool_pixel_med.mdl", true)
+list.Set("Wire_waypoint_Models", "models/jaanus/wiretool/wiretool_waypoint.mdl", true)
+list.Set("Wire_pixel_Models", "models/jaanus/wiretool/wiretool_pixel_sml.mdl", true)
+list.Set("Wire_indicator_Models", "models/jaanus/wiretool/wiretool_pixel_sml.mdl", true)
+list.Set("Wire_radio_Models", "models/props_lab/reciever01a.mdl", true)
+list.Set("Wire_radio2_Models", "models/props_lab/reciever01a.mdl", true)
+list.Set("Wire_gate_Models", "models/jaanus/wiretool/wiretool_controlchip.mdl", true)
+list.Set("Wire_chip_Models", "models/jaanus/wiretool/wiretool_controlchip.mdl", true)
+list.Set("Wire_control_Models", "models/jaanus/wiretool/wiretool_controlchip.mdl", true)
+list.Set("Wire_detonator_Models", "models/jaanus/wiretool/wiretool_detonator.mdl", true)
+list.Set("Wire_beamcasting_Models", "models/jaanus/wiretool/wiretool_beamcaster.mdl", true)
+list.Set("Wire_radio_Models", "models/props_lab/reciever01c.mdl", true)
+list.Set("Wire_radio2_Models", "models/props_lab/reciever01c.mdl", true)
+list.Set("Wire_pixel_Models", "models/jaanus/wiretool/wiretool_pixel_lrg.mdl", true)
+list.Set("Wire_indicator_Models", "models/jaanus/wiretool/wiretool_pixel_lrg.mdl", true)
+
+-- Converted from WireModelPacks/wire_model_pack_1.txt
+list.Set("Wire_gate_Models", "models/cheeze/wires/amd_test.mdl", true)
+list.Set("Wire_chip_Models", "models/cheeze/wires/amd_test.mdl", true)
+list.Set("Wire_value_Models", "models/cheeze/wires/amd_test.mdl", true)
+list.Set("Wire_gate_Models", "models/cheeze/wires/mini_cpu.mdl", true)
+list.Set("Wire_chip_Models", "models/cheeze/wires/mini_cpu.mdl", true)
+list.Set("Wire_value_Models", "models/cheeze/wires/mini_cpu.mdl", true)
+list.Set("Wire_gate_Models", "models/cheeze/wires/ram.mdl", true)
+list.Set("Wire_chip_Models", "models/cheeze/wires/ram.mdl", true)
+list.Set("Wire_value_Models", "models/cheeze/wires/ram.mdl", true)
+list.Set("Wire_gate_Models", "models/cheeze/wires/nano_logic.mdl", true)
+list.Set("Wire_chip_Models", "models/cheeze/wires/nano_logic.mdl", true)
+list.Set("Wire_gate_Models", "models/kobilica/transistorsmall.mdl", true)
+list.Set("Wire_chip_Models", "models/kobilica/transistorsmall.mdl", true)
+list.Set("Wire_gate_Models", "models/kobilica/transistor.mdl", true)
+list.Set("Wire_chip_Models", "models/kobilica/transistor.mdl", true)
+list.Set("Wire_radio_Models", "models/cheeze/wires/wireless_card.mdl", true)
+list.Set("Wire_radio2_Models", "models/cheeze/wires/wireless_card.mdl", true)
+list.Set("Wire_gate_Models", "models/cyborgmatt/capacitor_large.mdl", true)
+list.Set("Wire_chip_Models", "models/cyborgmatt/capacitor_large.mdl", true)
+list.Set("Wire_gate_Models", "models/cheeze/wires/nano_memory.mdl", true)
+list.Set("Wire_chip_Models", "models/cheeze/wires/nano_memory.mdl", true)
+list.Set("Wire_gate_Models", "models/cheeze/wires/nano_trig.mdl", true)
+list.Set("Wire_chip_Models", "models/cheeze/wires/nano_trig.mdl", true)
+list.Set("Wire_gate_Models", "models/cheeze/wires/nano_chip.mdl", true)
+list.Set("Wire_chip_Models", "models/cheeze/wires/nano_chip.mdl", true)
+list.Set("Wire_value_Models", "models/cheeze/wires/nano_chip.mdl", true)
+list.Set("Wire_gate_Models", "models/cheeze/wires/cpu2.mdl", true)
+list.Set("Wire_chip_Models", "models/cheeze/wires/cpu2.mdl", true)
+list.Set("Wire_gate_Models", "models/cheeze/wires/nano_math.mdl", true)
+list.Set("Wire_chip_Models", "models/cheeze/wires/nano_math.mdl", true)
+list.Set("Wire_radio_Models", "models/cheeze/wires/router.mdl", true)
+list.Set("Wire_radio2_Models", "models/cheeze/wires/router.mdl", true)
+list.Set("Wire_gate_Models", "models/cheeze/wires/nano_select.mdl", true)
+list.Set("Wire_chip_Models", "models/cheeze/wires/nano_select.mdl", true)
+list.Set("Wire_gate_Models", "models/cyborgmatt/capacitor_medium.mdl", true)
+list.Set("Wire_chip_Models", "models/cyborgmatt/capacitor_medium.mdl", true)
+list.Set("Wire_gate_Models", "models/cyborgmatt/capacitor_small.mdl", true)
+list.Set("Wire_chip_Models", "models/cyborgmatt/capacitor_small.mdl", true)
+list.Set("Wire_speaker_Models", "models/killa-x/speakers/speaker_small.mdl", true)
+list.Set("Wire_gate_Models", "models/cheeze/wires/nano_compare.mdl", true)
+list.Set("Wire_chip_Models", "models/cheeze/wires/nano_compare.mdl", true)
+list.Set("Wire_speaker_Models", "models/killa-x/speakers/speaker_medium.mdl", true)
+list.Set("Wire_speaker_Models", "models/props_junk/garbage_metalcan002a.mdl", true)
+list.Set("Wire_gate_Models", "models/kobilica/capacatitor.mdl", true)
+list.Set("Wire_chip_Models", "models/kobilica/capacatitor.mdl", true)
+list.Set("Wire_gate_Models", "models/cheeze/wires/cpu.mdl", true)
+list.Set("Wire_chip_Models", "models/cheeze/wires/cpu.mdl", true)
+list.Set("Wire_value_Models", "models/cheeze/wires/cpu.mdl", true)
+list.Set("Wire_gate_Models", "models/cheeze/wires/mini_chip.mdl", true)
+list.Set("Wire_chip_Models", "models/cheeze/wires/mini_chip.mdl", true)
+list.Set("Wire_value_Models", "models/cheeze/wires/mini_chip.mdl", true)
+list.Set("Wire_gate_Models", "models/kobilica/lowpolygate.mdl", true)
+list.Set("Wire_chip_Models", "models/kobilica/lowpolygate.mdl", true)
+list.Set("Wire_value_Models", "models/kobilica/lowpolygate.mdl", true)
+list.Set("Wire_gate_Models", "models/cheeze/wires/nano_timer.mdl", true)
+list.Set("Wire_chip_Models", "models/cheeze/wires/nano_timer.mdl", true)
+list.Set("Wire_value_Models", "models/cheeze/wires/nano_value.mdl", true)
+
+-- Converted from WireModelPacks/expression2.txt
+list.Set("Wire_expr2_Models", "models/expression 2/cpu_controller.mdl", true)
+list.Set("Wire_expr2_Models", "models/expression 2/cpu_microchip.mdl", true)
+list.Set("Wire_expr2_Models", "models/expression 2/cpu_expression.mdl", true)
+
+-- Converted from WireModelPacks/default.txt
+list.Set("Wire_pixel_Models", "models/segment2.mdl", true)
+list.Set("Wire_indicator_Models", "models/segment2.mdl", true)
+list.Set("Wire_indicator_Models", "models/props_trainstation/trainstation_clock001.mdl", true)
+list.Set("Wire_pixel_Models", "models/segment.mdl", true)
+list.Set("Wire_indicator_Models", "models/segment.mdl", true)
+list.Set("Wire_gyroscope_Models", "models/bull/various/gyroscope.mdl", true)
+list.Set("Wire_weight_Models", "models/props_interiors/pot01a.mdl", true)
+list.Set("Wire_button_Models", "models/dav0r/buttons/switch.mdl", true)
+list.Set("Wire_button_Models", "models/dav0r/buttons/button.mdl", true)
+list.Set("Wire_pixel_Models", "models/jaanus/wiretool/wiretool_siren.mdl", true)
+list.Set("Wire_indicator_Models", "models/jaanus/wiretool/wiretool_siren.mdl", true)
+list.Set("Wire_podctrlr_Models", "models/jaanus/wiretool/wiretool_siren.mdl", true)
+list.Set("Wire_ranger_Models", "models/jaanus/wiretool/wiretool_siren.mdl", true)
+list.Set("Wire_indicator_Models", "models/props_borealis/bluebarrel001.mdl", true)
+list.Set("Wire_indicator_Models", "models/props_junk/TrafficCone001a.mdl", true)
+list.Set("Wire_speaker_Models", "models/props_junk/garbage_metalcan002a.mdl", true)
+list.Set("Wire_pixel_Models", "models/led2.mdl", true)
+list.Set("Wire_indicator_Models", "models/led2.mdl", true)
+list.Set("Wire_weight_Models", "models/props_lab/huladoll.mdl", true)
+list.Set("Wire_radio_Models", "models/props_lab/binderblue.mdl", true)
+list.Set("Wire_pixel_Models", "models/led.mdl", true)
+list.Set("Wire_indicator_Models", "models/led.mdl", true)
+list.Set("Wire_gyroscope_Models", "models/cheeze/wires/gyroscope.mdl", true)
+list.Set("Wire_pixel_Models", "models/jaanus/wiretool/wiretool_range.mdl", true)
+list.Set("Wire_indicator_Models", "models/jaanus/wiretool/wiretool_range.mdl", true)
+list.Set("Wire_podctrlr_Models", "models/jaanus/wiretool/wiretool_range.mdl", true)
+list.Set("Wire_ranger_Models", "models/jaanus/wiretool/wiretool_range.mdl", true)
+list.Set("Wire_pixel_Models", "models/props_junk/PopCan01a.mdl", true)
+list.Set("Wire_indicator_Models", "models/props_junk/PopCan01a.mdl", true)
+list.Set("Wire_gate_Models", "models/jaanus/wiretool/wiretool_gate.mdl", true)
+list.Set("Wire_chip_Models", "models/jaanus/wiretool/wiretool_gate.mdl", true)
+list.Set("Wire_detonator_Models", "models/props_combine/breenclock.mdl", true)
+list.Set("Wire_speaker_Models", "models/cheeze/wires/speaker.mdl", true)
+list.Set("Wire_value_Models", "models/kobilica/value.mdl", true)
+list.Set("Wire_radio2_Models", "models/props_lab/bindergreen.mdl", true)
+list.Set("Wire_button_Models", "models/props_c17/clock01.mdl", true)
+list.Set("Wire_indicator_Models", "models/props_c17/clock01.mdl", true)
+list.Set("Wire_indicator_Models", "models/props_c17/gravestone004a.mdl", true)
+
+-- Converted from WireModelPacks/cheeze_buttons2.txt
+list.Set("Wire_button_Models", "models/cheeze/buttons2/air.mdl", true)
+list.Set("Wire_button_Models", "models/cheeze/buttons2/go.mdl", true)
+list.Set("Wire_button_small_Models", "models/cheeze/buttons2/compile_small.mdl", true)
+list.Set("Wire_button_Models", "models/cheeze/buttons2/3.mdl", true)
+list.Set("Wire_button_small_Models", "models/cheeze/buttons2/arm_small.mdl", true)
+list.Set("Wire_button_Models", "models/cheeze/buttons2/right.mdl", true)
+list.Set("Wire_button_Models", "models/cheeze/buttons2/alert.mdl", true)
+list.Set("Wire_button_Models", "models/cheeze/buttons2/plus.mdl", true)
+list.Set("Wire_button_Models", "models/cheeze/buttons2/activate.mdl", true)
+list.Set("Wire_button_Models", "models/cheeze/buttons2/coolant.mdl", true)
+list.Set("Wire_button_Models", "models/cheeze/buttons2/pwr_blue.mdl", true)
+list.Set("Wire_button_Models", "models/cheeze/buttons2/6.mdl", true)
+list.Set("Wire_button_Models", "models/cheeze/buttons2/easy.mdl", true)
+list.Set("Wire_button_small_Models", "models/cheeze/buttons2/fire_small.mdl", true)
+list.Set("Wire_button_Models", "models/cheeze/buttons2/muffin.mdl", true)
+list.Set("Wire_button_Models", "models/cheeze/buttons2/pwr_red.mdl", true)
+list.Set("Wire_button_Models", "models/cheeze/buttons2/1.mdl", true)
+list.Set("Wire_button_Models", "models/cheeze/buttons2/8.mdl", true)
+list.Set("Wire_button_Models", "models/cheeze/buttons2/aim.mdl", true)
+list.Set("Wire_button_small_Models", "models/cheeze/buttons2/left_small.mdl", true)
+list.Set("Wire_button_Models", "models/cheeze/buttons2/compile.mdl", true)
+list.Set("Wire_button_Models", "models/cheeze/buttons2/set.mdl", true)
+list.Set("Wire_button_small_Models", "models/cheeze/buttons2/clear_small.mdl", true)
+list.Set("Wire_button_Models", "models/cheeze/buttons2/0.mdl", true)
+list.Set("Wire_button_small_Models", "models/cheeze/buttons2/aim_small.mdl", true)
+list.Set("Wire_button_Models", "models/cheeze/buttons2/arm.mdl", true)
+list.Set("Wire_button_Models", "models/cheeze/buttons2/test.mdl", true)
+list.Set("Wire_button_small_Models", "models/cheeze/buttons2/1_small.mdl", true)
+list.Set("Wire_button_small_Models", "models/cheeze/buttons2/up_small.mdl", true)
+list.Set("Wire_button_small_Models", "models/cheeze/buttons2/plus_small.mdl", true)
+list.Set("Wire_button_Models", "models/cheeze/buttons2/left.mdl", true)
+list.Set("Wire_button_small_Models", "models/cheeze/buttons2/stop_small.mdl", true)
+list.Set("Wire_button_small_Models", "models/cheeze/buttons2/minus_small.mdl", true)
+list.Set("Wire_button_small_Models", "models/cheeze/buttons2/6_small.mdl", true)
+list.Set("Wire_button_small_Models", "models/cheeze/buttons2/coolant_small.mdl", true)
+list.Set("Wire_button_small_Models", "models/cheeze/buttons2/power_small.mdl", true)
+list.Set("Wire_button_Models", "models/cheeze/buttons2/pwr_green.mdl", true)
+list.Set("Wire_button_small_Models", "models/cheeze/buttons2/toggle_small.mdl", true)
+list.Set("Wire_button_Models", "models/cheeze/buttons2/clock.mdl", true)
+list.Set("Wire_button_small_Models", "models/cheeze/buttons2/activate_small.mdl", true)
+list.Set("Wire_button_Models", "models/cheeze/buttons2/divide.mdl", true)
+list.Set("Wire_button_Models", "models/cheeze/buttons2/fire.mdl", true)
+list.Set("Wire_button_small_Models", "models/cheeze/buttons2/overide_small.mdl", true)
+list.Set("Wire_button_small_Models", "models/cheeze/buttons2/pwr_red_small.mdl", true)
+list.Set("Wire_button_small_Models", "models/cheeze/buttons2/go_small.mdl", true)
+list.Set("Wire_button_Models", "models/cheeze/buttons2/cake.mdl", true)
+list.Set("Wire_button_small_Models", "models/cheeze/buttons2/pwr_blue_small.mdl", true)
+list.Set("Wire_button_Models", "models/cheeze/buttons2/clear.mdl", true)
+list.Set("Wire_button_small_Models", "models/cheeze/buttons2/test_small.mdl", true)
+list.Set("Wire_button_Models", "models/cheeze/buttons2/4.mdl", true)
+list.Set("Wire_button_small_Models", "models/cheeze/buttons2/equals_small.mdl", true)
+list.Set("Wire_button_small_Models", "models/cheeze/buttons2/energy_small.mdl", true)
+list.Set("Wire_button_small_Models", "models/cheeze/buttons2/divide_small.mdl", true)
+list.Set("Wire_button_Models", "models/cheeze/buttons2/power.mdl", true)
+list.Set("Wire_button_Models", "models/cheeze/buttons2/5.mdl", true)
+list.Set("Wire_button_small_Models", "models/cheeze/buttons2/clock_small.mdl", true)
+list.Set("Wire_button_small_Models", "models/cheeze/buttons2/charge_small.mdl", true)
+list.Set("Wire_button_Models", "models/cheeze/buttons2/deactivate.mdl", true)
+list.Set("Wire_button_small_Models", "models/cheeze/buttons2/alert_small.mdl", true)
+list.Set("Wire_button_Models", "models/cheeze/buttons2/down.mdl", true)
+list.Set("Wire_button_Models", "models/cheeze/buttons2/minus.mdl", true)
+list.Set("Wire_button_small_Models", "models/cheeze/buttons2/enter_small.mdl", true)
+list.Set("Wire_button_small_Models", "models/cheeze/buttons2/5_small.mdl", true)
+list.Set("Wire_button_Models", "models/cheeze/buttons2/stop.mdl", true)
+list.Set("Wire_button_small_Models", "models/cheeze/buttons2/2_small.mdl", true)
+list.Set("Wire_button_small_Models", "models/cheeze/buttons2/deactivate_small.mdl", true)
+list.Set("Wire_button_Models", "models/cheeze/buttons2/energy.mdl", true)
+list.Set("Wire_button_Models", "models/cheeze/buttons2/charge.mdl", true)
+list.Set("Wire_button_small_Models", "models/cheeze/buttons2/7_small.mdl", true)
+list.Set("Wire_button_small_Models", "models/cheeze/buttons2/0_small.mdl", true)
+list.Set("Wire_button_Models", "models/cheeze/buttons2/overide.mdl", true)
+list.Set("Wire_button_small_Models", "models/cheeze/buttons2/cake_small.mdl", true)
+list.Set("Wire_button_Models", "models/cheeze/buttons2/equals.mdl", true)
+list.Set("Wire_button_Models", "models/cheeze/buttons2/up.mdl", true)
+list.Set("Wire_button_small_Models", "models/cheeze/buttons2/reset_small.mdl", true)
+list.Set("Wire_button_small_Models", "models/cheeze/buttons2/multiply_small.mdl", true)
+list.Set("Wire_button_small_Models", "models/cheeze/buttons2/down_small.mdl", true)
+list.Set("Wire_button_Models", "models/cheeze/buttons2/toggle.mdl", true)
+list.Set("Wire_button_small_Models", "models/cheeze/buttons2/pwr_green_small.mdl", true)
+list.Set("Wire_button_small_Models", "models/cheeze/buttons2/3_small.mdl", true)
+list.Set("Wire_button_small_Models", "models/cheeze/buttons2/4_small.mdl", true)
+list.Set("Wire_button_Models", "models/cheeze/buttons2/reset.mdl", true)
+list.Set("Wire_button_small_Models", "models/cheeze/buttons2/set_small.mdl", true)
+list.Set("Wire_button_Models", "models/cheeze/buttons2/enter.mdl", true)
+list.Set("Wire_button_Models", "models/cheeze/buttons2/2.mdl", true)
+list.Set("Wire_button_small_Models", "models/cheeze/buttons2/start_small.mdl", true)
+list.Set("Wire_button_Models", "models/cheeze/buttons2/start.mdl", true)
+list.Set("Wire_button_Models", "models/cheeze/buttons2/multiply.mdl", true)
+list.Set("Wire_button_small_Models", "models/cheeze/buttons2/right_small.mdl", true)
+list.Set("Wire_button_small_Models", "models/cheeze/buttons2/easy_small.mdl", true)
+list.Set("Wire_button_small_Models", "models/cheeze/buttons2/8_small.mdl", true)
+list.Set("Wire_button_small_Models", "models/cheeze/buttons2/muffin_small.mdl", true)
+list.Set("Wire_button_Models", "models/cheeze/buttons2/7.mdl", true)
+list.Set("Wire_button_Models", "models/cheeze/buttons2/9.mdl", true)
+list.Set("Wire_button_small_Models", "models/cheeze/buttons2/air_small.mdl", true)
+list.Set("Wire_button_small_Models", "models/cheeze/buttons2/9_small.mdl", true)
+
+-- Converted from WireModelPacks/bull_modelpack.txt
+list.Set("Wire_gate_Models", "models/bull/gates/processor.mdl", true)
+list.Set("Wire_chip_Models", "models/bull/gates/processor.mdl", true)
+list.Set("Wire_gate_Models", "models/bull/gates/resistor_mini.mdl", true)
+list.Set("Wire_chip_Models", "models/bull/gates/resistor_mini.mdl", true)
+list.Set("Wire_value_Models", "models/bull/gates/resistor_mini.mdl", true)
+list.Set("Wire_gate_Models", "models/bull/gates/microcontroller2_nano.mdl", true)
+list.Set("Wire_chip_Models", "models/bull/gates/microcontroller2_nano.mdl", true)
+list.Set("Wire_gate_Models", "models/bull/gates/transistor2_nano.mdl", true)
+list.Set("Wire_chip_Models", "models/bull/gates/transistor2_nano.mdl", true)
+list.Set("Wire_gate_Models", "models/bull/gates/transistor1.mdl", true)
+list.Set("Wire_chip_Models", "models/bull/gates/transistor1.mdl", true)
+list.Set("Wire_gate_Models", "models/bull/gates/logic_nano.mdl", true)
+list.Set("Wire_chip_Models", "models/bull/gates/logic_nano.mdl", true)
+list.Set("Wire_gate_Models", "models/bull/gates/resistor_nano.mdl", true)
+list.Set("Wire_chip_Models", "models/bull/gates/resistor_nano.mdl", true)
+list.Set("Wire_value_Models", "models/bull/gates/resistor_nano.mdl", true)
+list.Set("Wire_gate_Models", "models/bull/gates/microcontroller2.mdl", true)
+list.Set("Wire_chip_Models", "models/bull/gates/microcontroller2.mdl", true)
+list.Set("Wire_gate_Models", "models/bull/gates/logic.mdl", true)
+list.Set("Wire_chip_Models", "models/bull/gates/logic.mdl", true)
+list.Set("Wire_gate_Models", "models/bull/gates/processor_nano.mdl", true)
+list.Set("Wire_chip_Models", "models/bull/gates/processor_nano.mdl", true)
+list.Set("Wire_gate_Models", "models/bull/gates/microcontroller1_nano.mdl", true)
+list.Set("Wire_chip_Models", "models/bull/gates/microcontroller1_nano.mdl", true)
+list.Set("Wire_gate_Models", "models/bull/gates/capacitor_mini.mdl", true)
+list.Set("Wire_chip_Models", "models/bull/gates/capacitor_mini.mdl", true)
+list.Set("Wire_gate_Models", "models/bull/gates/capacitor_nano.mdl", true)
+list.Set("Wire_chip_Models", "models/bull/gates/capacitor_nano.mdl", true)
+list.Set("Wire_gate_Models", "models/bull/gates/transistor1_nano.mdl", true)
+list.Set("Wire_chip_Models", "models/bull/gates/transistor1_nano.mdl", true)
+list.Set("Wire_gate_Models", "models/bull/gates/microcontroller2_mini.mdl", true)
+list.Set("Wire_chip_Models", "models/bull/gates/microcontroller2_mini.mdl", true)
+list.Set("Wire_gate_Models", "models/bull/gates/microcontroller1_mini.mdl", true)
+list.Set("Wire_chip_Models", "models/bull/gates/microcontroller1_mini.mdl", true)
+list.Set("Wire_gate_Models", "models/bull/gates/resistor.mdl", true)
+list.Set("Wire_chip_Models", "models/bull/gates/resistor.mdl", true)
+list.Set("Wire_value_Models", "models/bull/gates/resistor.mdl", true)
+list.Set("Wire_gate_Models", "models/bull/gates/transistor2.mdl", true)
+list.Set("Wire_chip_Models", "models/bull/gates/transistor2.mdl", true)
+list.Set("Wire_gate_Models", "models/bull/gates/capacitor.mdl", true)
+list.Set("Wire_chip_Models", "models/bull/gates/capacitor.mdl", true)
+list.Set("Wire_gate_Models", "models/bull/gates/transistor1_mini.mdl", true)
+list.Set("Wire_chip_Models", "models/bull/gates/transistor1_mini.mdl", true)
+list.Set("Wire_gate_Models", "models/bull/gates/microcontroller1.mdl", true)
+list.Set("Wire_chip_Models", "models/bull/gates/microcontroller1.mdl", true)
+list.Set("Wire_speaker_Models", "models/bull/various/speaker.mdl", true)
+list.Set("Wire_gate_Models", "models/bull/gates/logic_mini.mdl", true)
+list.Set("Wire_chip_Models", "models/bull/gates/logic_mini.mdl", true)
+list.Set("Wire_gate_Models", "models/bull/gates/processor_mini.mdl", true)
+list.Set("Wire_chip_Models", "models/bull/gates/processor_mini.mdl", true)
+list.Set("Wire_gate_Models", "models/bull/gates/transistor2_mini.mdl", true)
+list.Set("Wire_chip_Models", "models/bull/gates/transistor2_mini.mdl", true)
+list.Set("Wire_speaker_Models", "models/bull/various/subwoofer.mdl", true)
+
+-- Converted from WireModelPacks/bull_buttons.txt
+list.Set("Wire_dynamic_button_Models", "models/bull/dynamicbuttonflat.mdl", true)
+list.Set("Wire_dynamic_button_Models", "models/bull/dynamicbutton.mdl", true)
+list.Set("Wire_dynamic_button_small_Models", "models/bull/dynamicbuttonmedium_small.mdl", true)
+list.Set("Wire_dynamic_button_small_Models", "models/bull/dynamicbutton_small.mdl", true)
+list.Set("Wire_dynamic_button_small_Models", "models/bull/dynamicbuttonflat_small.mdl", true)
+list.Set("Wire_button_Models", "models/bull/buttons/toggle_switch.mdl", true)
+list.Set("Wire_button_Models", "models/bull/buttons/rocker_switch.mdl", true)
+list.Set("Wire_dynamic_button_Models", "models/bull/dynamicbuttonmedium.mdl", true)
+list.Set("Wire_button_Models", "models/bull/buttons/key_switch.mdl", true)

@@ -55,7 +55,7 @@ end
 ---------------------------------------------------------*/
 function ENT:SetFXDir( dir )
 	if dir ~= self.datanstuff.dir then
-		self:SetNWVector( "FXDir", dir:Normalize() )
+		self:SetNWVector( "FXDir", dir:GetNormalized() )
 		self.datanstuff.dir = dir
 	end
 end

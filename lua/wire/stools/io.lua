@@ -5,9 +5,9 @@ do -- wire_adv_input
 	WireToolSetup.open( "adv_input", "Adv. Input", "gmod_wire_adv_input", WireToolMakeAdvInput )
 
 	if CLIENT then
-		language.Add( "Tool_wire_adv_input_name", "Adv. Input Tool (Wire)" )
-		language.Add( "Tool_wire_adv_input_desc", "Spawns a adv. input for use with the wire system." )
-		language.Add( "Tool_wire_adv_input_0", "Primary: Create/Update Adv. Input" )
+		language.Add( "tool.wire_adv_input.name", "Adv. Input Tool (Wire)" )
+		language.Add( "tool.wire_adv_input.desc", "Spawns a adv. input for use with the wire system." )
+		language.Add( "tool.wire_adv_input.0", "Primary: Create/Update Adv. Input" )
 		language.Add( "WireAdvInputTool_keymore", "Increase:" )
 		language.Add( "WireAdvInputTool_keyless", "Decrease:" )
 		language.Add( "WireAdvInputTool_toggle", "Toggle" )
@@ -84,10 +84,10 @@ do -- wire_adv_pod
 	WireToolSetup.open( "adv_pod", "Advanced Pod Controller", "gmod_wire_adv_pod", WireToolMakeAdvPod )
 
 	if CLIENT then
-		language.Add("Tool_wire_adv_pod_name", "Advanced Pod Controller Tool (Wire)")
-		language.Add("Tool_wire_adv_pod_desc", "Spawn/link a Wire Advanced Pod controller.")
-		language.Add("Tool_wire_adv_pod_0", "Primary: Create Advanced Pod controller. Secondary: Link Advanced controller.")
-		language.Add("Tool_wire_adv_pod_1", "Now select the pod to link to.")
+		language.Add("tool.wire_adv_pod.name", "Advanced Pod Controller Tool (Wire)")
+		language.Add("tool.wire_adv_pod.desc", "Spawn/link a Wire Advanced Pod controller.")
+		language.Add("tool.wire_adv_pod.0", "Primary: Create Advanced Pod controller. Secondary: Link Advanced controller.")
+		language.Add("tool.wire_adv_pod.1", "Now select the pod to link to.")
 	end
 	WireToolSetup.BaseLang("Adv. Pod Controllers")
 
@@ -137,9 +137,9 @@ do --wire_button
 	WireToolSetup.open( "button", "Button", "gmod_wire_button", WireToolMakeButton )
 
 	if CLIENT then
-		language.Add( "Tool_wire_button_name", "Button Tool (Wire)" )
-		language.Add( "Tool_wire_button_desc", "Spawns a button for use with the wire system." )
-		language.Add( "Tool_wire_button_0", "Primary: Create/Update Button" )
+		language.Add( "tool.wire_button.name", "Button Tool (Wire)" )
+		language.Add( "tool.wire_button.desc", "Spawns a button for use with the wire system." )
+		language.Add( "tool.wire_button.0", "Primary: Create/Update Button" )
 		language.Add( "WireButtonTool_toggle", "Toggle" )
 		language.Add( "WireButtonTool_entityout", "Output Entity" )
 		language.Add( "WireButtonTool_value_on", "Value On:" )
@@ -171,8 +171,7 @@ do --wire_button
 			{	button = "Normal",
 				button_small = "Small"
 			},
-			"wire_button",
-			"#Button_Model", nil, "#Button_Model", 6
+			"wire_button", "#Button_Model", 6
 		)
 		panel:CheckBox("#WireButtonTool_toggle", "wire_button_toggle")
 		panel:CheckBox("#WireButtonTool_entityout", "wire_button_entityout")
@@ -185,9 +184,9 @@ do --wire_dynamic_button
 	WireToolSetup.open( "dynamic_button", "Dynamic Button", "gmod_wire_dynamic_button", WireToolMakeDynamicButton )
 
 	if CLIENT then
-		language.Add( "Tool_wire_dynamic_button_name", "Dynamic Button Tool (Wire)" )
-		language.Add( "Tool_wire_dynamic_button_desc", "Spawns a dynamic button for use with the wire system." )
-		language.Add( "Tool_wire_dynamic_button_0", "Primary: Create/Update Dynamic Button" )
+		language.Add( "tool.wire_dynamic_button.name", "Dynamic Button Tool (Wire)" )
+		language.Add( "tool.wire_dynamic_button.desc", "Spawns a dynamic button for use with the wire system." )
+		language.Add( "tool.wire_dynamic_button.0", "Primary: Create/Update Dynamic Button" )
 		language.Add( "WireDynamicButtonTool_toggle", "Toggle" )
 		language.Add( "WireDynamicButtonTool_entityout", "Output Entity" )
 		language.Add( "WireDynamicButtonTool_value_on", "Value On:" )
@@ -226,8 +225,7 @@ do --wire_dynamic_button
 			{	dynamic_button = "Normal",
 				dynamic_button_small = "Small"
 			},
-			"wire_dynamic_button",
-			"#Dynamic_Button_Model", nil, "#Dynamic_Button_Model", 1.1
+			"wire_dynamic_button", "#Dynamic_Button_Model", 1.1
 		)
 
 		panel:NumSlider("#WireDynamicButtonTool_value_on", "wire_dynamic_button_value_on", -10, 10, 1)
@@ -277,9 +275,9 @@ do -- wire_dual_input
 	WireToolSetup.open( "dual_input", "Dual Input", "gmod_wire_dual_input", WireToolMakeDualInput )
 
 	if CLIENT then
-		language.Add( "Tool_wire_dual_input_name", "Dual Input Tool (Wire)" )
-		language.Add( "Tool_wire_dual_input_desc", "Spawns a daul input for use with the wire system." )
-		language.Add( "Tool_wire_dual_input_0", "Primary: Create/Update Input" )
+		language.Add( "tool.wire_dual_input.name", "Dual Input Tool (Wire)" )
+		language.Add( "tool.wire_dual_input.desc", "Spawns a daul input for use with the wire system." )
+		language.Add( "tool.wire_dual_input.0", "Primary: Create/Update Input" )
 		language.Add( "WireDualInputTool_keygroup", "Key 1:" )
 		language.Add( "WireDualInputTool_keygroup2", "Key 2:" )
 		language.Add( "WireDualInputTool_toggle", "Toggle" )
@@ -368,9 +366,9 @@ do -- wire_input
 	WireToolSetup.open( "input", "Numpad Input", "gmod_wire_input", WireToolMakeInput )
 
 	if CLIENT then
-		language.Add( "Tool_wire_input_name", "Input Tool (Wire)" )
-		language.Add( "Tool_wire_input_desc", "Spawns a input for use with the wire system." )
-		language.Add( "Tool_wire_input_0", "Primary: Create/Update Input" )
+		language.Add( "tool.wire_input.name", "Input Tool (Wire)" )
+		language.Add( "tool.wire_input.desc", "Spawns a input for use with the wire system." )
+		language.Add( "tool.wire_input.0", "Primary: Create/Update Input" )
 		language.Add( "WireInputTool_keygroup", "Key:" )
 		language.Add( "WireInputTool_toggle", "Toggle" )
 		language.Add( "WireInputTool_value_on", "Value On:" )

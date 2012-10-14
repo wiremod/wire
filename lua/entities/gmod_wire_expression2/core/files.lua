@@ -338,17 +338,6 @@ local function file_execute( ent, filename, status )
 	run_on.file.status = FILE_UNKNOWN
 end
 
-local function timeout_callback( ply )
-	local pfile = uploads[ply]
-
-	if !pfile then return end
-
-	pfile.uploading = false
-	pfile.uploaded = false
-
-	file_execute( pfile.ent, pfile.name, FILE_TIMEOUT )
-end
-
 concommand.Add( "wire_expression2_file_begin", function( ply, com, args )
 	local pfile = uploads[ply]
 
@@ -371,7 +360,13 @@ concommand.Add( "wire_expression2_file_begin", function( ply, com, args )
 	pfile.uploading = true
 	pfile.uploaded = false
 
-	timer.Create( "wire_expression2_file_check_timeout_" .. ply:EntIndex(), 5, 1, timeout_callback, ply )
+	timer.Create( "wire_expression2_file_check_timeout_" .. ply:EntIndex(), 5, 1, function()
+		local pfile = uploads[ply]
+		if !pfile then return end
+		pfile.uploading = false
+		pfile.uploaded = false
+		file_execute( pfile.ent, pfile.name, FILE_TIMEOUT )
+	end)
 end )
 
 concommand.Add( "wire_expression2_file_chunk", function( ply, com, args )
@@ -385,16 +380,22 @@ concommand.Add( "wire_expression2_file_chunk", function( ply, com, args )
 
 	local timername = "wire_expression2_file_check_timeout_" .. ply:EntIndex()
 
-	if timer.IsTimer( timername ) then
+	if timer.Exists( timername ) then
 		timer.Remove( timername )
-		timer.Create( timername, 5, 1, timeout_callback, ply )
+		timer.Create( timername, 5, 1, function()
+			local pfile = uploads[ply]
+			if !pfile then return end
+			pfile.uploading = false
+			pfile.uploaded = false
+			file_execute( pfile.ent, pfile.name, FILE_TIMEOUT )
+		end)
 	end
 end )
 
 concommand.Add( "wire_expression2_file_finish", function( ply, com, args )
 	local timername = "wire_expression2_file_check_timeout_" .. ply:EntIndex()
 
-	if timer.IsTimer( timername ) then
+	if timer.Exists( timername ) then
 		timer.Remove( timername )
 	end
 
@@ -433,7 +434,7 @@ concommand.Add("wire_expression2_file_singleplayer", function(ply, cmd, args)
 
 	local timername = "wire_expression2_file_check_timeout_" .. ply:EntIndex()
 
-	if timer.IsTimer(timername) then timer.Remove(timername) end
+	if timer.Exists(timername) then timer.Remove(timername) end
 
 	local pfile = uploads[ply]
 
@@ -448,29 +449,23 @@ end)
 
 /* Listing */
 
-local function list_timeout_callback( ply )
-	local plist = lists[ply]
-
-	if !plist then return end
-
-	plist.uploading = false
-	plist.uploaded = false
-
-	//No status for fileList so no real point in calling an execution here...
-end
-
 concommand.Add( "wire_expression2_file_list", function( ply, com, args )
 	local plist = lists[ply]
 	if !plist then return end
 
 	local timername = "wire_expression2_filelist_check_timeout_" .. ply:EntIndex()
 
-	if timer.IsTimer( timername ) then
+	if timer.Exists( timername ) then
 		timer.Remove( timername )
 	end
 
 	if args[1] == "1" then
-		timer.Create( timername, 5, 1, list_timeout_callback, ply )
+		timer.Create( timername, 5, 1, function()
+			local plist = lists[ply]
+			if !plist then return end
+			plist.uploading = false
+			plist.uploaded = false
+		end)
 
 		local data = E2Lib.decode( args[2] )
 

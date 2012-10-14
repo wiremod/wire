@@ -1,7 +1,3 @@
--- $Rev: 1303 $
--- $LastChangedDate: 2009-07-08 19:10:33 -0700 (Wed, 08 Jul 2009) $
--- $LastChangedBy: tad2020 $
-
 ModelPlugInfo = {}
 
 --uncomment line 15 and line 26-34 to enable sending model packs to clients
@@ -10,7 +6,7 @@ function ModelPlug_Register(category)
 	if (not ModelPlugInfo[category]) then
 		local catinfo = {}
 
-	    local packs = file12.Find("WireModelPacks/*.txt")
+	    local packs = file.Find("WireModelPacks/*.txt", "DATA")
 	    for _,filename in pairs(packs) do
         	--resource.AddFile("data/WireModelPacks/" .. filename)
 

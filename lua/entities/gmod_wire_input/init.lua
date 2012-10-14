@@ -7,7 +7,9 @@ include('shared.lua')
 ENT.WireDebugName = "Input"
 ENT.OverlayDelay = 0
 
-local keylist = {"0","1","2","3","4","5","6","7","8","9",".","Enter","+","-","*","/"}
+local function keyname(keygroup)
+	return tostring(keygroup) -- TODO figure out how to get the name of a key (the old way wasn't working)
+end
 
 function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )
@@ -76,7 +78,7 @@ function ENT:Switch( on, mul )
 end
 
 function ENT:ShowOutput(value)
-	self:SetOverlayText( "Numpad Input ("..keylist[self.keygroup + 1]..")\n(" .. self.value_off .. " - " .. self.value_on .. ") = " .. value )
+	self:SetOverlayText( "Numpad Input ("..keyname(self.keygroup)..")\n(" .. tostring(self.value_off) .. " - " .. tostring(self.value_on) .. ") = " .. tostring(value) )
 end
 
 local function On( pl, ent, mul )

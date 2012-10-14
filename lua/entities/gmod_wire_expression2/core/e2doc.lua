@@ -136,7 +136,7 @@ elseif CLIENT then
 		function (commandName,args) -- autocomplete function
 			args = string.match(args,"^%s*(.-)%s*$")
 			local path = string.match(args,"^%s*(.+/)") or ""
-			local files = file.FindInLua("entities/gmod_wire_expression2/core/"..args.."*")
+			local files = file.Find("entities/gmod_wire_expression2/core/"..args.."*", LUA_PATH)
 			local ret = {}
 			for _,v in ipairs(files) do
 				if string.sub(v,1,1) ~= "." then

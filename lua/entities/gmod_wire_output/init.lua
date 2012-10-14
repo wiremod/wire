@@ -30,13 +30,12 @@ end
 function ENT:Switch( on, ply )
 	local plyindex 	= self:GetPlayerIndex()
 	local key 		= self:GetKey()
-
 	if (not key) then return end
 
 	if (on) then
-		numpad.Activate( ply, _, {key}, plyindex )
+		numpad.Activate( ply, key )
 	else
-		numpad.Deactivate( ply, _, {key}, plyindex )
+		numpad.Deactivate( ply, key )
 	end
 
 	self:SetOn(on)

@@ -587,7 +587,7 @@ else -- SERVER/CLIENT
 end
 
 if (SERVER) then
-	datastream12.__prepareStream("EGP_Request_Transmit")
+	util.AddNetworkString("EGP_Request_Transmit")
 
 	EGP.DataStream = {}
 
@@ -666,21 +666,23 @@ if (SERVER) then
 			end
 		end
 		if (DataToSend and #DataToSend>0) then
-			datastream12.StreamToClients( ply, "EGP_Request_Transmit", DataToSend )
+			net.Start("EGP_Request_Transmit")
+				net.WriteTable(DataToSend)
+			net.Send(ply)
 			return true, #DataToSend
 		end
 		return false, "None of the screens have any objects drawn on them."
 	end
 
 	local function initspawn(ply)
-		timer.Simple(10,function(ply)
+		timer.Simple(10,function()
 			if (ply and ply:IsValid()) then
 				local bool, msg = EGP:SendDataStream( ply )
 				if (bool == true) then
 					ply:ChatPrint("[EGP] " .. tostring(msg) .. " EGP Screens found on the server. Sending objects now...")
 				end
 			end
-		end,ply)
+		end)
 	end
 
 	hook.Add("PlayerInitialSpawn","EGP_SpawnFunc",initspawn)
@@ -706,6 +708,7 @@ else
 		end
 		LocalPlayer():ChatPrint("[EGP] Received EGP object reload. " .. #decoded .. " screens' objects were reloaded.")
 	end
-	datastream12.Hook("EGP_Request_Transmit", function(_,_,_,decoded) EGP:ReceiveDataStream( decoded ) end )
-
+	net.Receive("EGP_Request_Transmit", function(len,ply)
+		EGP:ReceiveDataStream(net.ReadTable())
+	end)
 end

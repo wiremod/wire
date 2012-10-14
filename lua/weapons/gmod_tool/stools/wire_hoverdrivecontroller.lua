@@ -5,13 +5,13 @@ TOOL.ConfigName		= ""
 TOOL.Tab			= "Wire"
 
 if ( CLIENT ) then
-    language12.Add( "Tool_wire_hoverdrivecontroller_name", "Hoverdrive Controller Tool" )
-    language12.Add( "Tool_wire_hoverdrivecontroller_desc", "Spawns a Hoverdrive Controller." )
-    language12.Add( "Tool_wire_hoverdrivecontroller_0", "Primary: Create Hoverdrive Controller, Reload: Change Hoverdrive Controller Model" )
-	language12.Add( "sboxlimit_wire_hoverdrives", "You've hit the Hoverdrive Controller limit!" )
-	language12.Add( "undone_wire_hoverdrive", "Undone Hoverdrive Controller" )
-	language12.Add( "Tool_wire_hoverdrivecontroller_effects", "Toggle effects" )
-	language12.Add( "Tool_wire_hoverdrivecontroller_sounds", "Toggle sounds (Also has an input)" )
+    language.Add( "Tool.wire_hoverdrivecontroller.name", "Hoverdrive Controller Tool" )
+    language.Add( "Tool.wire_hoverdrivecontroller.desc", "Spawns a Hoverdrive Controller." )
+    language.Add( "Tool.wire_hoverdrivecontroller.0", "Primary: Create Hoverdrive Controller, Reload: Change Hoverdrive Controller Model" )
+	language.Add( "sboxlimit_wire_hoverdrives", "You've hit the Hoverdrive Controller limit!" )
+	language.Add( "undone_wire_hoverdrive", "Undone Hoverdrive Controller" )
+	language.Add( "Tool_wire_hoverdrivecontroller_effects", "Toggle effects" )
+	language.Add( "Tool_wire_hoverdrivecontroller_sounds", "Toggle sounds (Also has an input)" )
 elseif ( SERVER ) then
     CreateConVar('sbox_maxwire_hoverdrives',2)
 	CreateConVar("wire_hoverdrive_cooldown","2",{FCVAR_ARCHIVE,FCVAR_NOTIFY})
@@ -121,7 +121,7 @@ function TOOL:Reload( trace )
 	if (!trace) then return end
 	if (!trace.Hit) then return end
 	if (trace.Entity) then
-		if SinglePlayer() then
+		if game.SinglePlayer() then
 			self:GetOwner():ConCommand("wire_hoverdrivecontroller_model " .. trace.Entity:GetModel())
 			self:GetOwner():ChatPrint("Hoverdrive Controller model set to: " .. trace.Entity:GetModel())
 		else

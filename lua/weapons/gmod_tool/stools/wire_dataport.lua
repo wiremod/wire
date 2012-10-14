@@ -5,11 +5,11 @@ TOOL.ConfigName		= ""
 TOOL.Tab			= "Wire"
 
 if ( CLIENT ) then
-	language12.Add( "Tool_wire_dataport_name", "Data port tool (Wire)" )
-	language12.Add( "Tool_wire_dataport_desc", "Spawns data port consisting of 8 ports" )
-	language12.Add( "Tool_wire_dataport_0", "Primary: Create/Update data ports unit" )
-	language12.Add( "sboxlimit_wire_dataports", "You've hit data ports limit!" )
-	language12.Add( "undone_wire_dataport", "Undone Data Port" )
+	language.Add( "Tool.wire_dataport.name", "Data port tool (Wire)" )
+	language.Add( "Tool.wire_dataport.desc", "Spawns data port consisting of 8 ports" )
+	language.Add( "Tool.wire_dataport.0", "Primary: Create/Update data ports unit" )
+	language.Add( "sboxlimit_wire_dataports", "You've hit data ports limit!" )
+	language.Add( "undone_wire_dataport", "Undone Data Port" )
 end
 
 if (SERVER) then

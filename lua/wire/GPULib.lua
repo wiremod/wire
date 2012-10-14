@@ -133,8 +133,15 @@ if CLIENT then
 	//
 	// Create basic fonts
 	//
-	surface.CreateFont("lucida console", 20, 800, true, false, "WireGPU_ConsoleFont")
-
+	local fontData = 
+	{
+		font="lucida console",
+		size=20,
+		weight=800,
+		antialias= true,
+		additive = false,
+	}
+	surface.CreateFont("WireGPU_ConsoleFont", fontData)
 	//
 	// Create screen textures and materials
 	//
@@ -186,7 +193,7 @@ if CLIENT then
 	function GPU:Finalize()
 		if not self.RT then return end
 		timer.Simple(0,function() -- This is to test if the entity has truly been removed. If you really know you need to remove the RT, call FreeRT()
-			if ValidEntity(self.Entity) then
+			if IsValid(self.Entity) then
 				--MsgN(self,"Entity still exists, exiting.")
 				return
 			end
@@ -283,7 +290,8 @@ if CLIENT then
 		render.SetRenderTarget(NewRT)
 		render.SetViewPort(0, 0, 512, 512)
 		cam.Start2D()
-			PCallError(renderfunction)
+			local ok, err = pcall(renderfunction)
+			if not ok then ErrorNoHalt(err) end
 		cam.End2D()
 		render.SetViewPort(0, 0, oldw, oldh)
 		render.SetRenderTarget(OldRT)
@@ -309,7 +317,8 @@ if CLIENT then
 
 		local res = monitor.RS*512/h
 		cam.Start3D2D(pos, ang, res)
-			PCallError(renderfunction, x, y, w, h, monitor, pos, ang, res)
+			local ok, err = pcall(renderfunction, x, y, w, h, monitor, pos, ang, res)
+			if not ok then ErrorNoHalt(err) end
 		cam.End3D2D()
 	end
 
@@ -318,12 +327,12 @@ if CLIENT then
 
 		local monitor, pos, ang = self:GetInfo()
 
-		local OldTex = WireGPU_matScreen:GetMaterialTexture("$basetexture")
-		WireGPU_matScreen:SetMaterialTexture("$basetexture", self.RT)
+		local OldTex = WireGPU_matScreen:GetTexture("$basetexture")
+		WireGPU_matScreen:SetTexture("$basetexture", self.RT)
 
 		local res = monitor.RS
 		cam.Start3D2D(pos, ang, res)
-			PCallError(function()
+			local ok, err = pcall(function()
 				local aspect = 1/monitor.RatioX
 				local w = (width  or 512)*aspect
 				local h = (height or 512)
@@ -339,9 +348,10 @@ if CLIENT then
 
 				if postrenderfunction then postrenderfunction(pos, ang, res, aspect, monitor) end
 			end)
+			if not ok then ErrorNoHalt(err) end
 		cam.End3D2D()
 
-		WireGPU_matScreen:SetMaterialTexture("$basetexture", OldTex)
+		WireGPU_matScreen:SetTexture("$basetexture", OldTex)
 	end
 
 	-- compatibility
@@ -404,8 +414,9 @@ if CLIENT then
 		}
 
 		local mins, maxs = screen:OBBMins(), screen:OBBMaxs()
-
-		local function setbounds(timerid)
+		
+		local timerid = "wire_gpulib_updatebounds"..screen:EntIndex()
+		local function setbounds()
 			if not screen:IsValid() then
 				timer.Remove(timerid)
 				return
@@ -441,8 +452,7 @@ if CLIENT then
 			Wire_UpdateRenderBounds(screen)
 		end
 
-		local timerid = "wire_gpulib_updatebounds"..screen:EntIndex()
-		timer.Create(timerid, 5, 0, setbounds, timerid)
+		timer.Create(timerid, 5, 0, setbounds)
 
 		setbounds()
 	end) -- usermessage.Hook

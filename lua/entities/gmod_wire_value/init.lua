@@ -1,56 +1,3 @@
-
-ParseType = {}
-
-function ParseType.NORMAL(v)
-	return tonumber(v) or 0
-end
-
-function ParseType.STRING(v)
-	return v
-end
-
-local pat = {}
-
-do
-	local patstart = "^ *[([]? *"
-	local patelement = "([^()[%],; /]+)"
-	local patsep = " *[,; /] *"
-	local patend = " *[)%]]? *$"
-
-	local cur = patelement
-	pat[1] = patstart..cur..patend
-	for i=2,16 do
-		cur = cur..patsep..patelement
-		pat[i] = patstart..cur..patend
-	end
-end
-
-function ParseType.VECTOR2(v)
-	local x,y = string.match(v, pat[2])
-	if not x then return { 0, 0 } end
-	return { tonumber(x) or 0, tonumber(y) or 0}
-end
-
-function ParseType.VECTOR(v)
-	local x,y,z = string.match(v, pat[3])
-	if not x then return Vector(0, 0, 0) end
-	return Vector(tonumber(x) or 0, tonumber(y) or 0, tonumber(z) or 0)
-end
-
-function ParseType.VECTOR4(v)
-	local x,y,z,w = string.match(v, pat[4])
-	if not x then return { 0, 0, 0, 0 } end
-	return { tonumber(x) or 0, tonumber(y) or 0, tonumber(z) or 0, tonumber(w) or 0 }
-end
-
-function ParseType.ANGLE(v)
-	local p,y,r = string.match(v, pat[3])
-	if not p then return Angle(0, 0, 0) end
-	return Angle(tonumber(p) or 0, tonumber(y) or 0, tonumber(r) or 0)
-end
-
-
-
 AddCSLuaFile( "cl_init.lua" )
 AddCSLuaFile( "shared.lua" )
 
@@ -67,48 +14,97 @@ function ENT:Initialize()
 	self.Outputs = Wire_CreateOutputs(self, { "Out" })
 end
 
-function ENT:Setup(values)
-	self.value = values -- for advdupe
-	values = table.Copy(values)
-
-	local adjoutputs, adjtypes = {}, {}
-	for k,v in pairs(values) do
-		local tp,value = string.match(v, "^ *([^: ]+) *:(.*)$")
-
-		if tp then
-			tp = tp:upper()
-			v = value
-			if not ParseType[tp] then
-				tp = "STRING"
-				v = "Invalid type \""..tp.."\"."
-			end
-		else
-			tp = "NORMAL"
+local function ReturnType( DataType )
+	// Supported Data Types.
+	// Should be requested by client and only kept serverside.
+	local DataTypes = 
+	{
+		["NORMAL"] = "Number",
+		["STRING"] = "String",
+		["VECTOR"] = "Vector",
+		["ANGLE"]  = "Angle"
+	}
+	for k,v in pairs(DataTypes) do
+		if(v:lower() == DataType:lower()) then
+			return k
 		end
-		--print(k,v,tp)
+	end
+	return nil
+end
 
-		values[k] = v
-		adjoutputs[k] = "Value"..tostring(k)
-		adjtypes[k] = tp
+local function StringToNumber( str )
+	local val = tonumber(str) or 0
+	return val
+end
+
+local function StringToVector( str )
+	if str != nil and str != "" then
+		local tbl = string.Split(str, ",")
+		if #tbl >= 2 and #tbl <=3 then
+			local vec = Vector(0,0,0)
+			vec.x = StringToNumber(tbl[1])
+			vec.y = StringToNumber(tbl[2])
+			if #tbl == 3 then
+				vec.z = StringToNumber(tbl[3])
+			end
+			return vec
+		end
+	end
+	return Vector(0,0,0)
+end
+
+local function StringToAngle( str )
+	if str != nil and str != "" then
+		local tbl = string.Split(str, ",")
+		if #tbl == 3 then
+			local ang = Angle(0,0,0)
+			ang.p = StringToNumber(tbl[1])
+			ang.y = StringToNumber(tbl[2])
+			ang.r = StringToNumber(tbl[3])
+			return ang
+		end
+	end
+	return Angle(0,0,0)
+end
+
+local tbl = {
+	["NORMAL"] = StringToNumber,
+	["STRING"] = tostring,
+	["VECTOR"] = StringToVector,
+	["ANGLE"] = StringToAngle,
+}
+
+local function TranslateType( Value, DataType )
+    if tbl[DataType] then
+        return tbl[DataType]( Value )
+    end
+    return 0
+end
+
+function ENT:Setup(values)
+	self.value = values -- Wirelink/Duplicator Info 
+	
+	local outputs = 
+	{
+		names = {},
+		types = {},
+		values = {}
+	}
+	for k,v in pairs(values) do
+		outputs.names[k] = tostring( k )
+		outputs.values[k] = TranslateType(v.Value, ReturnType(v.DataType))
+		outputs.types[k] = ReturnType(v.DataType)
 	end
 
 	// this is where storing the values as strings comes in: they are the descriptions for the inputs.
-	WireLib.AdjustSpecialOutputs(self, adjoutputs, adjtypes, values)
+	WireLib.AdjustSpecialOutputs(self, outputs.names, outputs.types )
 
 	local txt = ""
-	self.Memory = {}
 
 	for k,v in pairs(values) do
-		//line break after 4 values
-		//if (k == 5) or (k == 9) then txt = txt.."\n" end
-		txt = txt .. k .. ": " .. v
-		if (k < #values) then txt = txt .. "\n" end
-
-		local tp = adjtypes[k]
-		v = ParseType[tp](v)
-
-		if tp == "NORMAL" then self.Memory[k] = v end
-		Wire_TriggerOutput(self, adjoutputs[k], v)
+		local theVal = TranslateType(v.Value, ReturnType(v.DataType))
+		txt = txt .. k .. ": [" .. tostring(v.DataType) .. "] " .. tostring(theVal) .. "\n"
+		Wire_TriggerOutput( self, tostring(k), theVal )
 	end
 
 	self:SetOverlayText(txt)

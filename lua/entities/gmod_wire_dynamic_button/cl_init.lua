@@ -5,23 +5,24 @@ ENT.Spawnable			= false
 ENT.AdminSpawnable		= false
 ENT.RenderGroup 		= RENDERGROUP_OPAQUE
 
-/*---------------------------------------------------------
-   Name: DrawTranslucent
-   Desc: Draw translucent
----------------------------------------------------------*/
-function ENT:DrawTranslucent()
+local halo_ent, halo_blur
 
-	if ( LocalPlayer():GetEyeTrace().Entity == self && EyePos():Distance( self:GetPos() ) < 512 ) then
-
-		if ( self:IsOn() ) then
-			self:DrawEntityOutline( 1.05 + math.sin( CurTime() * 60 ) * 0.05 )
+function ENT:Draw()
+	self:DoNormalDraw(true,false)
+	if LocalPlayer():GetEyeTrace().Entity == self and EyePos():Distance( self:GetPos() ) < 512 then
+		if self:IsOn() then
+			halo_ent = self
+			halo_blur = 4 + math.sin(CurTime()*20)*2
 		else
-			self:DrawEntityOutline( 1.0 )
+			self:DrawEntityOutline()
 		end
-
 	end
-
-	self:Draw()
-
+	Wire_Render(self)
 end
 
+hook.Add("PreDrawHalos", "Wiremod_dynbutton_overlay_halos", function()
+	if halo_ent then
+		halo.Add({halo_ent}, Color(255,100,100), halo_blur, halo_blur, 1, true, true)
+		halo_ent = nil
+	end
+end)

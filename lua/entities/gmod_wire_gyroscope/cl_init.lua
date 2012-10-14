@@ -14,8 +14,8 @@ function ENT:Think()
 
         local lineOfNodes = self:WorldToLocal( ( Vector(0,0,1):Cross( self:GetUp() ) ):GetNormal( ) + self:GetPos() )
 
-		self:SetPoseParameter( "rot_yaw"  ,  math.Rad2Deg( math.atan2( lineOfNodes[2] , lineOfNodes[1] ) ) )
-		self:SetPoseParameter( "rot_roll" , -math.Rad2Deg( math.acos( self:GetUp():DotProduct( Vector(0,0,1) ) )  or 0 ) )
+		self:SetPoseParameter( "rot_yaw"  ,  math.deg( math.atan2( lineOfNodes[2] , lineOfNodes[1] ) ) )
+		self:SetPoseParameter( "rot_roll" , -math.deg( math.acos( self:GetUp():DotProduct( Vector(0,0,1) ) )  or 0 ) )
 	end
 
     local ang = self:GetAngles()
@@ -30,9 +30,5 @@ function ENT:Think()
 end
 
 function ENT:ShowOutput(p, y, r)
-	--self:SetNetworkedString( "GModOverlayText", "Angles = " .. math.Round(p*1000)/1000 .. "," .. math.Round(y*1000)/1000 .. "," .. math.Round(r*1000)/1000 )
-	self:SetNetworkedBeamString( "GModOverlayText", "Angles = " .. math.Round(p*1000)/1000 .. "," .. math.Round(y*1000)/1000 .. "," .. math.Round(r*1000)/1000 )
-	//self.BaseClass.BaseClass.SetOverlayText(self, "Angles = " .. math.Round(p*1000)/1000 .. "," .. math.Round(y*1000)/1000 .. "," .. math.Round(r*1000)/1000 )
-	--self:SetOverlayText(self, "Angles = " .. math.Round(p*1000)/1000 .. "," .. math.Round(y*1000)/1000 .. "," .. math.Round(r*1000)/1000 )
-	--self.Txt = "Angles = " .. math.Round(p*1000)/1000 .. "," .. math.Round(y*1000)/1000 .. "," .. math.Round(r*1000)/1000
+	self:SetOverlayText( "Angles = " .. math.Round(p*1000)/1000 .. "," .. math.Round(y*1000)/1000 .. "," .. math.Round(r*1000)/1000 )
 end

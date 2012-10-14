@@ -112,7 +112,7 @@ function ENT:Draw()
 	Wire_Render( self )
 
 	local ent = self:GetNWEntity( "Link", false )
-	if (!ent or !ValidEntity(ent)) then ent = self end
+	if (!ent or !IsValid(ent)) then ent = self end
 
 	local forcelocal = false
 	if ent:GetClass() == "gmod_wire_hologrid" then

@@ -6,7 +6,7 @@ EGP = {}
 
 function EGP:Initialize()
 	local Folder = "entities/gmod_wire_egp/lib/egplib/"
-	local entries = file12.FindInLua( Folder .. "*.lua" )
+	local entries = file.Find( Folder .. "*.lua", "LUA")
 	for _, entry in ipairs( entries ) do
 		if (SERVER) then
 			AddCSLuaFile( Folder .. entry )
@@ -21,7 +21,7 @@ local EGP = EGP
 
 EGP.ConVars = {}
 EGP.ConVars.MaxObjects = CreateConVar( "wire_egp_max_objects", 300, { FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE, FCVAR_ARCHIVE } )
-EGP.ConVars.MaxPerSec = CreateConVar( "wire_egp_max_umsg_per_sec", 10, { FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE, FCVAR_ARCHIVE }  )
+EGP.ConVars.MaxPerSec = CreateConVar( "wire_egp_max_umsg_per_sec", 100, { FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE, FCVAR_ARCHIVE }  )
 
 EGP.ConVars.MaxVertices = CreateConVar( "wire_egp_max_poly_vertices", 1024, { FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE, FCVAR_ARCHIVE } )
 

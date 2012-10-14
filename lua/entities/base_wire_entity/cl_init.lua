@@ -3,24 +3,16 @@ include("shared.lua")
 ENT.RenderGroup = RENDERGROUP_OPAQUE//RENDERGROUP_TRANSLUCENT//RENDERGROUP_BOTH
 
 local wire_drawoutline = CreateClientConVar("wire_drawoutline", 1, true, false)
-local wire_drawoutline_bool = wire_drawoutline:GetBool()
-
-cvars.AddChangeCallback("wire_drawoutline", function(...) return wire_changey(...) end)
-
-function wire_changey(cvar, prev, new)
-	if prev == new then return end
-	wire_drawoutline_bool = wire_drawoutline:GetBool()
-end
 
 function ENT:Draw()
 	self:DoNormalDraw()
 	Wire_Render(self)
 end
 
-function ENT:DoNormalDraw()
+function ENT:DoNormalDraw(nohalo, notip)
 	local trace = LocalPlayer():GetEyeTrace()
-	local looked_at = trace.Entity == self and trace.Fraction*16384 < 256
-	if wire_drawoutline_bool and looked_at then
+	local looked_at = trace.Entity == self and trace.Fraction * 16384 < 256
+	if not nohalo and wire_drawoutline:GetBool() and looked_at then
 		if self.RenderGroup == RENDERGROUP_OPAQUE then
 			self.OldRenderGroup = self.RenderGroup
 			self.RenderGroup = RENDERGROUP_TRANSLUCENT
@@ -34,11 +26,18 @@ function ENT:DoNormalDraw()
 		end
 		self:DrawModel()
 	end
-	if looked_at then
-		if self:GetOverlayText() ~= "" then
-			AddWorldTip(self:EntIndex(),self:GetOverlayText(),0.5,self:GetPos(),e)
-		end
+	if not notip and looked_at then
+		self:DrawTip()
 	end
+end
+
+function ENT:DrawTip(text)
+	text = text or self:GetOverlayText()
+	local name = self:GetNetworkedString("WireName")
+	local plyname = self.OverlayPly
+	
+	text = string.format("- %s -\n%s\n(%s)", name ~= "" and name or self.PrintName, text, plyname)
+	AddWorldTip(nil,text,nil,self:GetPos(),nil)
 end
 
 function ENT:Think()
@@ -48,7 +47,23 @@ function ENT:Think()
 	end
 end
 
-if VERSION >= 150 then
-	-- gmod 13 seems to lack this method. TODO: find a replacement
-	function ENT:DrawEntityOutline() end
+local halos = {}
+local halos_inv = {}
+
+function ENT:DrawEntityOutline()
+	if halos_inv[self] then return end
+	halos[#halos+1] = self
+	halos_inv[self] = true
 end
+
+hook.Add("PreDrawHalos", "Wiremod_overlay_halos", function()
+	halo.Add(halos, Color(100,100,255), 3, 3, 1, true, true)
+	halos = {}
+	halos_inv = {}
+end)
+
+net.Receive( "WireOverlay", function(length)
+	local ent = net.ReadEntity()
+	ent.OverlayText = net.ReadString()-- string.format("%s\n(%s)", net.ReadString(), net.ReadString())
+	ent.OverlayPly = net.ReadString()
+end)

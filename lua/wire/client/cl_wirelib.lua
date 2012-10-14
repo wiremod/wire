@@ -1,7 +1,3 @@
--- $Rev: 1662 $
--- $LastChangedDate: 2009-09-11 19:28:17 -0700 (Fri, 11 Sep 2009) $
--- $LastChangedBy: TomyLobo $
-
 local WIRE_SCROLL_SPEED = 0.5
 local WIRE_BLINKS_PER_SECOND = 2
 local CurPathEnt = {}
@@ -287,7 +283,7 @@ function Wire_DrawTracerBeam( ent, beam_num, hilight, beam_length )
 		trace = util.TraceLine(trace)
 
 		render.SetMaterial(beam_mat)
-		render.DrawBeam(start, trace.HitPos, 6, 0, 10, Color(ent:GetColor12()))
+		render.DrawBeam(start, trace.HitPos, 6, 0, 10, ent:GetColor())
 		if (hilight) then
 			render.SetMaterial(beamhi_mat)
 			render.DrawBeam(start, trace.HitPos, 6, 0, 10, Color(255,255,255,255))
@@ -306,7 +302,7 @@ end)
 if not CanRunConsoleCommand then
 	function CanRunConsoleCommand() return false end
 	hook.Add("OnEntityCreated", "CanRunConsoleCommand", function(ent)
-		if not ValidEntity(ent) then return end
+		if not IsValid(ent) then return end
 		if ent ~= LocalPlayer() then return end
 
 		function CanRunConsoleCommand() return true end

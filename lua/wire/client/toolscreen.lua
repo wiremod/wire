@@ -26,7 +26,7 @@ hook.Add("InitPostEntity", "RenderToolScreenInitialize", function()
 		local oldH = ScrH()
 		local ToolGunRT = render.GetRenderTarget()
 
-		ToolGunMaterial:SetMaterialTexture("$basetexture", NewRT)
+		ToolGunMaterial:SetTexture("$basetexture", NewRT)
 
 		render.SetRenderTarget(NewRT)
 		render.SetViewPort(0, 0, 256, 256)

@@ -119,13 +119,13 @@ function ENT:DeployBalloons()
 	end
 	balloon:Spawn()
 	balloon:SetRenderMode( RENDERMODE_TRANSALPHA )
-	balloon:SetColor12(math.random(0,255), math.random(0,255), math.random(0,255), 255 )
+	balloon:SetColor(Color(math.random(0,255), math.random(0,255), math.random(0,255), 255))
 	balloon:SetForce(self.force)
 	balloon:SetMaterial("models/balloon/balloon")
 	balloon:SetPlayer(self:GetPlayer())
 	duplicator.DoGeneric(balloon,{Pos = self:GetPos() + (self:GetUp()*25)})
 	duplicator.DoGenericPhysics(balloon,pl,{Pos = Pos})
-	local spawnervec = (self:GetPos()-balloon:GetPos()):Normalize()*250 --just to be sure
+	local spawnervec = (self:GetPos()-balloon:GetPos()):GetNormalized()*250 --just to be sure
 	local trace = util.QuickTrace(balloon:GetPos(),spawnervec,balloon)
 	local Pos = self:GetPos()+(self:GetUp()*25)
 	local attachpoint = Pos + Vector(0,0,-10)
@@ -158,9 +158,10 @@ end
 
 function ENT:RetractBalloons()
 	if self.Balloon:IsValid() then
+		local c = self.Balloon:GetColor()
 		local effectdata = EffectData()
-			effectdata:SetOrigin( self.Balloon:GetPos() )
-			effectdata:SetStart( Vector(self.Balloon:GetColor12()) )
+		effectdata:SetOrigin( self.Balloon:GetPos() )
+		effectdata:SetStart( Vector(c.r,c.g,c.b) )
 		util.Effect( "balloon_pop", effectdata )
 		self.Balloon:Remove()
 	else

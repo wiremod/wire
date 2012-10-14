@@ -66,23 +66,8 @@ end
 
 
 function ENT:GetOverlayText()
-	local force = self:NetGetForce()
-	local txt = "Thrust = "
-	if (self:IsOn()) then
-		txt = txt .. ( force * self:NetGetMul() )
-	else
-		txt = txt .. "off"
-	end
-	txt = txt .. "\nMul: " ..force
-	local PlayerName = self:GetPlayerName()
-	if (not SinglePlayer()) then
-		txt = txt .. "\n(" .. PlayerName .. ")"
-	end
-	if(PlayerName and PlayerName ~= "") then
-		if (txt == "") then
-			return "- "..PlayerName.." -"
-		end
-		return "- "..PlayerName.." -\n"..txt
-	end
-	return txt
+	return string.format("Thrust: %s\nMul: %f",
+		self:IsOn() and tostring(self:NetGetForce()*self:NetGetMul()) or "off",
+		self:NetGetMul()
+	)
 end

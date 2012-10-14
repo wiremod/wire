@@ -5,12 +5,12 @@ TOOL.ConfigName		= ""
 TOOL.Tab			= "Wire"
 
 if ( CLIENT ) then
-    language12.Add( "Tool_wire_cd_ray_name", "CD Ray Tool (Wire)" )
-    language12.Add( "Tool_wire_cd_ray_desc", "Spawns a CD Ray." )
-    language12.Add( "Tool_wire_cd_ray_0", "Primary: Create/Update CD Ray Secondary: Create CD lock (to keep CD in same spot)" )
-    language12.Add( "WireCDRayTool_cd_ray", "CD Ray:" )
-	language12.Add( "sboxlimit_wire_cd_rays", "You've hit CD Rays limit!" )
-	language12.Add( "undone_Wire CDRay", "Undone Wire CD Ray" )
+    language.Add( "Tool.wire_cd_ray.name", "CD Ray Tool (Wire)" )
+    language.Add( "Tool.wire_cd_ray.desc", "Spawns a CD Ray." )
+    language.Add( "Tool.wire_cd_ray.0", "Primary: Create/Update CD Ray Secondary: Create CD lock (to keep CD in same spot)" )
+    language.Add( "WireCDRayTool_cd_ray", "CD Ray:" )
+	language.Add( "sboxlimit_wire_cd_rays", "You've hit CD Rays limit!" )
+	language.Add( "undone_Wire CDRay", "Undone Wire CD Ray" )
 end
 
 if (SERVER) then

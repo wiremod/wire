@@ -1,4 +1,3 @@
-
 AddCSLuaFile('cl_init.lua')
 AddCSLuaFile('shared.lua')
 include('shared.lua')
@@ -97,8 +96,7 @@ function ENT:Initialize()
 	self.Outputs = WireLib.CreateOutputs(self, {})
 
 	self:SetOverlayText("Expression 2\n(none)")
-	local r,g,b,a = self:GetColor12()
-	self:SetColor12(255, 0, 0, a)
+	self:SetColor(Color(255, 0, 0, self:GetColor().a))
 end
 
 function ENT:OnRestore()
@@ -204,8 +202,7 @@ end
 
 function ENT:Error(message, overlaytext)
 	self:SetOverlayText("Expression 2\n" .. self.name .. "\n("..(overlaytext or "script error")..")")
-	local r,g,b,a = self:GetColor12()
-	self:SetColor12(255, 0, 0, a)
+	self:SetColor(Color(255, 0, 0, self:GetColor().a))
 
 	self.error = true
 	--ErrorNoHalt(message .. "\n")
@@ -315,8 +312,7 @@ function ENT:ResetContext()
 
 	self.Inputs = WireLib.AdjustSpecialInputs(self, self.inports[1], self.inports[2])
 	self.Outputs = WireLib.AdjustSpecialOutputs(self, self.outports[1], self.outports[2])
-
-	self._original = string.Replace(string.Replace(self.original,"\"","£"),"\n","€")
+	self._original = string.Replace(string.Replace(self.original,"\"",string.char(163)),"\n",string.char(128))
 	self._buffer = self.original -- TODO: is that really intended?
 
 	self._name = self.name
@@ -394,8 +390,7 @@ function ENT:Setup(buffer, includes, restore, forcecompile)
 	end
 
 	self:SetOverlayText("Expression 2\n" .. self.name)
-	local r,g,b,a = self:GetColor12()
-	self:SetColor12(255, 255, 255, a)
+	self:SetColor(255, 255, 255, self:GetColor().a)
 
 	local ok, msg = pcall(self.CallHook, self, 'construct')
 	if not ok then
@@ -425,7 +420,7 @@ function ENT:Reset()
 	self.context.resetting = true
 
 	-- reset the chip in the next tick
-	timer.Simple(0, self.Setup, self, self.original, self.inc_files)
+	timer.Simple(0, function() self.Setup( self, self.original, self.inc_files) end )
 end
 
 function ENT:TriggerInput(key, value)
@@ -481,46 +476,45 @@ end
 --[[
 	Player Disconnection Magic
 --]]
-local cvar = CreateConVar("wire_expression2_pause_on_disconnect", 0, 0, "Decides if chips should pause execution on their owner's disconnect.\n0 = no, 1 = yes, 2 = non-admins only.");
+local cvar = CreateConVar("wire_expression2_pause_on_disconnect", 0, 0, "Decides if chips should pause execution on their owner's disconnect.\n0 = no, 1 = yes, 2 = non-admins only.")
 -- This is a global function so it can be overwritten for greater control over whose chips are frozenated
 function wire_expression2_ShouldFreezeChip(ply)
-	return not ply:IsAdmin();
+	return not ply:IsAdmin()
 end
 
 -- It uses EntityRemoved because PlayerDisconnected doesn't catch all disconnects.
 hook.Add("EntityRemoved","Wire_Expression2_Player_Disconnected",function(ent)
 	if (not (ent and ent:IsPlayer())) then
-		return;
+		return
 	end
-	local ret = cvar:GetInt();
+	local ret = cvar:GetInt()
 	if (ret == 0 or (ret == 2 and not wire_expression2_ShouldFreezeChip(ent))) then
-		return;
+		return
 	end
 	for k,v in ipairs( ents.FindByClass("gmod_wire_expression2") ) do
 		if (v.player == ent) then
 			v:SetOverlayText("Expression 2\n" .. v.name .. "\n(Owner disconnected.)")
-			local r,g,b,a = v:GetColor12()
-			v:SetColor12(255, 0, 0, a)
-			v.disconnectPaused = {r,g,b,a};
+			v:SetColor(Color(255, 0, 0, v:GetColor().a))
+			v.disconnectPaused = {r,g,b,a}
 			v.error = true
 		end
 	end
 end)
 
 hook.Add("PlayerAuthed", "Wire_Expression2_Player_Authed", function(ply, sid, uid)
-	local c;
-	for _,ent in pairs(ents.FindByClass("gmod_wire_expression2")) do
+	local c
+	for _,ent in ipairs(ents.FindByClass("gmod_wire_expression2")) do
 		if (ent.uid == uid) then
-			ent.context.player = ply;
-			ent.player = ply;
+			ent.context.player = ply
+			ent.player = ply
 			ent:SetNWEntity( "player", ply )
 			if (ent.disconnectPaused) then
-				c = ent.disconnectPaused;
-				ent:SetColor12(c[1],c[2],c[3],c[4]);
-				ent.error = false;
-				ent.disconnectPaused = false;
-				ent:SetOverlayText("Expression 2\n" .. ent.name);
+				c = ent.disconnectPaused
+				ent:SetColor(Color(c[1],c[2],c[3],c[4]))
+				ent.error = false
+				ent.disconnectPaused = false
+				ent:SetOverlayText("Expression 2\n" .. ent.name)
 			end
 		end
 	end
-end);
+end)

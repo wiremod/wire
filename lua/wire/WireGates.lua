@@ -28,7 +28,7 @@ gamt = {
 function LoadWireGates()
 	GateActions = {}
 	setmetatable(GateActions,gamt)
-	local entries = file12.FindInLua( "wire/gates/*.lua" )
+	local entries = file.Find( "wire/gates/*.lua", "LUA" )
 	for _,v in pairs(entries) do
 		include("gates/"..v)
 		if (SERVER) then AddCSLuaFile("gates/"..v) end

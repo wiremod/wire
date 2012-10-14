@@ -5,12 +5,12 @@ TOOL.ConfigName		= ""
 TOOL.Tab			= "Wire"
 
 if ( CLIENT ) then
-    language12.Add( "Tool_wire_emarker_name", "Entity Marker Tool (Wire)" )
-    language12.Add( "Tool_wire_emarker_desc", "Spawns an Entity Marker for use with the wire system." )
-    language12.Add( "Tool_wire_emarker_0", "Primary: Create Entity Marker/Display Link Info, Secondary: Link Entity Marker, Reload: Unlink Entity Marker" )
-	language12.Add( "Tool_wire_emarker_1", "Now select the entity to link to.")
-	language12.Add( "sboxlimit_wire_emarker", "You've hit entity marker limit!" )
-	language12.Add( "undone_wireemarker", "Undone Wire Entity Marker" )
+    language.Add( "Tool.wire_emarker.name", "Entity Marker Tool (Wire)" )
+    language.Add( "Tool.wire_emarker.desc", "Spawns an Entity Marker for use with the wire system." )
+    language.Add( "Tool.wire_emarker.0", "Primary: Create Entity Marker/Display Link Info, Secondary: Link Entity Marker, Reload: Unlink Entity Marker" )
+	language.Add( "Tool.wire_emarker.1", "Now select the entity to link to.")
+	language.Add( "sboxlimit_wire_emarker", "You've hit entity marker limit!" )
+	language.Add( "undone_wireemarker", "Undone Wire Entity Marker" )
 elseif ( SERVER ) then
     CreateConVar('sbox_maxwire_emarkers',30)
 end

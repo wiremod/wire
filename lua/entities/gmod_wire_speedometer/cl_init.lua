@@ -24,7 +24,7 @@ function ENT:Think()
 		txt = txt .. "\nAngVel = P " .. math.Round((ang.y or 0)*1000)/1000 .. ", Y " .. math.Round((ang.z or 0)*1000) /1000 .. ", R " .. math.Round((ang.x or 0)*1000)/1000
 	end*/
 
-	self:SetNetworkedBeamString( "GModOverlayText", txt )
+	self:SetOverlayText( txt )
 
 	self:NextThink(CurTime()+0.04)
 	return true
