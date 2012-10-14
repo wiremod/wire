@@ -20,9 +20,9 @@ TOOL.ClientConVar["model"] = "models/kobilica/value.mdl"
 local DataTypes = 
 {
 	["NORMAL"] = "Number",
-	["STRING"]	= "String",
+	["STRING"] = "String",
 	["VECTOR"] = "Vector",
-	["ANGLE"]	= "Angle"
+	["ANGLE"]  = "Angle"
 }
 
 cleanup.Register("wire_values")
@@ -44,7 +44,7 @@ if (SERVER) then
 		playerValues[ply] = net.ReadTable()
 	end)
 	
-	local function MakeWireValue( ply, Pos, Ang, model )
+	local function MakeWireValue( ply, Pos, Ang, model, value )
 		if (!ply:CheckLimit("wire_values")) then return false end
 
 		local wire_value = ents.Create("gmod_wire_value")
@@ -59,8 +59,35 @@ if (SERVER) then
 		wire_value:SetPos(Pos)
 		wire_value:SetModel(model)
 		wire_value:Spawn()
-
-		wire_value:Setup(playerValues[ply])
+		if value then
+			local _,val = next(value)
+			if type(val) == "table" then
+				-- The new Gmod13 format, good
+				wire_value:Setup(value)
+			else
+				-- The old Gmod12 dupe format, lets convert it
+				local convertedValues = {}
+				local convtbl = {
+					["NORMAL"] = "Number",
+					["ANGLE"] = "Angle",
+					["VECTOR"] = "Vector",
+					["VECTOR2"] = "Vector",
+					["VECTOR4"] = "Vector",
+					["STRING"] = "String",
+				}
+				for k,v in pairs(value) do
+					local theType,theValue = string.match (v, "^ *([^: ]+) *:(.*)$")
+					theType = string.upper(theType)
+					
+					if not convtbl[theType] then
+						theType = "NORMAL"
+					end
+					
+					table.insert(convertedValues, { DataType=convtbl[theType], Value=theValue } )
+				end
+				wire_value:Setup( convertedValues )
+			end
+		end
 		wire_value:SetPlayer(ply)
 
 		ply:AddCount("wire_values", wire_value)
@@ -84,7 +111,7 @@ if (SERVER) then
 			if tbl != nil then
 				local ang = trace.HitNormal:Angle()
 				ang.pitch = ang.pitch + 90
-				local ent = MakeWireValue(ply, trace.HitPos, ang, self:GetModel() )
+				local ent = MakeWireValue(ply, trace.HitPos, ang, self:GetModel(), playerValues[ply] )
 				local weld = constraint.Weld( ent, trace.Entity, trace.PhysicsBone,0,0, true )
 				return true
 			else
@@ -141,6 +168,7 @@ function TOOL:GetModel()
 	return model
 end
 if CLIENT then
+	local ValuePanels = {}
 	local selectedValues = {}
 	local function SendUpdate()
 		net.Start("wire_value_values")
@@ -154,21 +182,16 @@ if CLIENT then
 			Value = 0
 		}
 		local control = vgui.Create( "DCollapsibleCategory", panel )
-		control:SetSize( w-6, 100 )
+		control:SetSize( w, 100 )
 		control:SetText( "Value: " .. id )
 		control:SetLabel( "Value " .. id )
-		control:DockMargin( 5,5,5,5 )
 		control:Dock(TOP)
 		
-		local controlPanel = vgui.Create( "DPanel", control )
-		controlPanel:SetSize( w-6, 100 )
-		controlPanel:Dock(TOP)
-		
-		local typeSelection = vgui.Create( "DComboBox", controlPanel )
+		local typeSelection = vgui.Create( "DComboBox", control )
 		local _, controlW = control:GetSize()
 		typeSelection:SetText( DataTypes["NORMAL"] )
 		typeSelection:SetSize( controlW , 25 )
-		typeSelection:DockMargin( 5,5,5,5)
+		typeSelection:DockMargin( 5,2,5,2 )
 		typeSelection:Dock( TOP )
 		typeSelection.OnSelect = function( panel, index, value )
 			selectedValues[id].DataType = value
@@ -179,17 +202,20 @@ if CLIENT then
 			typeSelection:AddChoice(v)
 		end
 		
-		local valueEntry = vgui.Create( "DTextEntry", controlPanel )
-		valueEntry:SetSize( controlW, 25 )
-		valueEntry:DockMargin( 5,5,5,5 )
-		valueEntry:SetText("0")
-		valueEntry:Dock( TOP )		
+		local valueEntry = vgui.Create( "DTextEntry",control )
+		valueEntry:Dock( TOP )
+		valueEntry:DockMargin( 5,2,5,2 )
+		valueEntry:DockPadding(5,5,5,5)
+		valueEntry:SetValue(0)
+		
+		local oldLoseFocus = valueEntry.OnLoseFocus
 		valueEntry.OnLoseFocus = function( panel )
 			if panel:GetValue() != nil then
 				local value = panel:GetValue()
 				selectedValues[id].Value = panel:GetValue()
 				SendUpdate()
 			end
+			oldLoseFocus(panel) -- Otherwise we can't close the spawnmenu!
 		end
 		
 
@@ -199,20 +225,15 @@ if CLIENT then
 	function TOOL.BuildCPanel( panel )
 		local LastValueAmount = 0
 		
-		local valuePanel = vgui.Create("DPanel", panel)
-
-		valuePanel:SetSize(w, 500 )
-		valuePanel:Dock( TOP )
-		
 		-- WIP.
-		local reset = vgui.Create( "DButton", valuePanel )
+		local reset = vgui.Create( "DButton", panel )
 		local w,_ = panel:GetSize()
 		reset:SetSize(w, 25)
 		reset:SetText("Reset Values.")
 		reset:DockMargin( 5, 5, 5, 5 )
 		reset:Dock( TOP )
 		
-		local valueSlider = vgui.Create( "DNumSlider", valuePanel )
+		local valueSlider = vgui.Create( "DNumSlider", panel )
 		valueSlider:SetSize(w, 25 )
 		valueSlider:SetText( "Amount:" )
 		valueSlider:SetMin(1)
@@ -221,26 +242,40 @@ if CLIENT then
 		valueSlider:DockMargin( 5, 5, 5, 5 )
 		valueSlider:Dock( TOP )
 		
+		reset.DoClick = function( panel )
+			valueSlider:SetValue(1)
+			for k,v in pairs(ValuePanels) do
+				v:Remove()
+				v = nil
+			end
+			
+			for k,v in pairs( selectedValues ) do
+				v = nil
+			end
+
+			LastValueAmount = 0
+			
+			valueSlider.OnValueChanged( panel, 1 )
+		end
 		
-		
-		valueSlider.OnValueChanged = function( panel, value )
+		valueSlider.OnValueChanged = function( valueSlider, value )
 			local value = tonumber(value) -- Silly Garry, giving me strings.
 			if value != LastValueAmount then
 				
 				if value > LastValueAmount then
 					for i = LastValueAmount + 1, value, 1 do
-						ValuePanels[i] = AddValue( valuePanel, i )
+						ValuePanels[i] = AddValue( panel, i )
 						
-						local _,h = valuePanel:GetSize()
-						valuePanel:SetSize(w, h+120 )
+						local _,h = panel:GetSize()
+						panel:SetSize(w, h+120 )
 					end
 				elseif value < LastValueAmount then
 					for i = value + 1, LastValueAmount, 1 do
 						selectedValues[i] = nil
 						ValuePanels[i]:Remove()
 						ValuePanels[i] = nil
-						local _,h = valuePanel:GetSize()
-						valuePanel:SetSize(w, h-120 )
+						local _,h = panel:GetSize()
+						panel:SetSize(w, h-120 )
 					end
 				else
 					Msg("Error Incorrect value exists?!?!.\n")
@@ -249,6 +284,6 @@ if CLIENT then
 				SendUpdate()
 			end
 		end
-		valueSlider.OnValueChanged( valuePanel, 1 )
+		valueSlider:OnValueChanged( 1 )
 	end
 end

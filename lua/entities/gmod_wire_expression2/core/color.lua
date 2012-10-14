@@ -45,6 +45,7 @@ e2function void entity:setColor(r,g,b,a)
 	if !isOwner(self, this) then return end
 
 	this:SetColor(ColorClamp(Color(r, g, b, this:IsPlayer() and this:GetColor().a or a)))
+	this:SetRenderMode(this:GetColor().a == 255 and 0 or 1)
 end
 
 e2function void entity:setColor(vector c)
@@ -59,6 +60,7 @@ e2function void entity:setColor(vector c, a)
 	if !isOwner(self, this) then return end
 
 	this:SetColor(ColorClamp(Color(c[1],c[2],c[3], this:IsPlayer() and this:GetColor().a or a)))
+	this:SetRenderMode(this:GetColor().a == 255 and 0 or 1)
 end
 
 e2function void entity:setColor(vector4 c)
@@ -66,6 +68,7 @@ e2function void entity:setColor(vector4 c)
 	if !isOwner(self, this) then return end
 
 	this:SetColor(ColorClamp(Color(c[1],c[2],c[3], this:IsPlayer() and this:GetColor().a or c[4])))
+	this:SetRenderMode(this:GetColor().a == 255 and 0 or 1)
 end
 
 e2function void entity:setAlpha(a)
@@ -77,6 +80,7 @@ e2function void entity:setAlpha(a)
 	local c = this:GetColor()
 	c.a = Clamp(a, 0, 255)
 	this:SetColor(c)
+	this:SetRenderMode(c.a == 255 and 0 or 1)
 end
 
 --- Converts <hsv> from the [http://en.wikipedia.org/wiki/HSV_color_space HSV color space] to the [http://en.wikipedia.org/wiki/RGB_color_space RGB color space]
