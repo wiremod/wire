@@ -194,7 +194,7 @@ end
 -- Switches to a font, creating it if it does not exist
 --------------------------------------------------------------------------------
 local fontcache = {}
-local function VM:SetFont()
+function VM:SetFont()
 	local name, size = self.FontName[self.Font], self.FontSize
 	if not fontcache[name] or not fontcache[name][size] then
 		if not fontcache[name] then fontcache[name] = {} end
