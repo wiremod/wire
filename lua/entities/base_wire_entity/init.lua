@@ -12,7 +12,7 @@ end
 timer.Create("OverlayUpdate", 0.25, 0, function()
 	for _, ply in ipairs(player.GetAll()) do
 		local ent = ply:GetEyeTrace().Entity
-		if not IsValid(ent) then return end
+		if not IsValid(ent) or not ent.IsWire then return end
 		
 		net.Start("WireOverlay")
 			net.WriteEntity(ent)

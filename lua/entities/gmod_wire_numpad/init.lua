@@ -49,9 +49,9 @@ end
 
 function ENT:TriggerInput(key, value)
 	if value ~= 0 then
-		numpad.Activate( self:GetPlayer(), nil, {key}, self:GetPlayerIndex() )
+		numpad.Activate( self:GetPlayer(), key )
 	else
-		numpad.Deactivate( self:GetPlayer(), nil, {key}, self:GetPlayerIndex() )
+		numpad.Deactivate( self:GetPlayer(), key )
 	end
 end
 
