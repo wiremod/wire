@@ -14,6 +14,9 @@ timer.Create("OverlayUpdate", 0.25, 0, function()
 		local ent = ply:GetEyeTrace().Entity
 		if not IsValid(ent) then return end
 		
+		-- Stops normal gmod entities being effected.
+		if ent.OverlayText == "" or ent.OverlayText == nil then return end
+		
 		net.Start("WireOverlay")
 			net.WriteEntity(ent)
 			net.WriteString(ent.OverlayText)
