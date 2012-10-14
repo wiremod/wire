@@ -102,8 +102,9 @@ function ENT:Setup(values)
 	local txt = ""
 
 	for k,v in pairs(values) do
-		txt = txt .. k .. ": [" .. tostring(v.DataType) .. "] " .. tostring(v.Value) .. "\n"
-		Wire_TriggerOutput( self, tostring(k), TranslateType(v.Value, ReturnType(v.DataType)) )
+		local theVal = TranslateType(v.Value, ReturnType(v.DataType))
+		txt = txt .. k .. ": [" .. tostring(v.DataType) .. "] " .. tostring(theVal) .. "\n"
+		Wire_TriggerOutput( self, tostring(k), theVal )
 	end
 
 	self:SetOverlayText(txt)
