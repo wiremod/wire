@@ -20,9 +20,9 @@ TOOL.ClientConVar["model"] = "models/kobilica/value.mdl"
 local DataTypes = 
 {
 	["NORMAL"] = "Number",
-	["STRING"] = "String",
+	["STRING"]	= "String",
 	["VECTOR"] = "Vector",
-	["ANGLE"]  = "Angle"
+	["ANGLE"]	= "Angle"
 }
 
 cleanup.Register("wire_values")
@@ -35,21 +35,46 @@ end
 
 
 if (SERVER) then
-	local playerValues = {}
+	local ConstantValues = {}
 	CreateConVar('sbox_maxwire_values', 20)
 	ModelPlug_Register("value")
 	util.AddNetworkString( "wire_value_values" )
 	
 	net.Receive( "wire_value_values", function( length, ply )
-		playerValues[ply] = net.ReadTable()
+		ConstantValues = net.ReadTable()
 	end)
 	
-	local function MakeWireValue( ply, Pos, Ang, model, value )
+	local function ConvertValues( values )
+		local newValues = {}
+		local convtbl =
+		{
+			["NORMAL"] = "Number",
+			["ANGLE"] = "Angle",
+			["VECTOR"] = "Vector",
+			["VECTOR2"] = "Vector",
+			["VECTOR4"] = "Vector",
+			["STRING"] = "String",
+		}
+		for k,v in pairs(values) do
+			local theType,theValue = string.match (v, "^ *([^: ]+) *:(.*)$")
+			theType = string.upper(theType)
+
+			if convtbl[theType] == nil then
+				theType = "Number"
+			end
+
+			table.insert(newValues, { DataType=convtbl[theType], Value=theValue } )
+		end
+
+		return newValues
+		
+	end
+	
+	local function MakeWireValue( ply, Pos, Ang, model, values )
 		if (!ply:CheckLimit("wire_values")) then return false end
 
 		local wire_value = ents.Create("gmod_wire_value")
 		if (!wire_value:IsValid()) then return false end
-		
 		undo.Create("wirevalue")
 			undo.AddEntity( wire_value )
 			undo.SetPlayer( ply )
@@ -59,36 +84,18 @@ if (SERVER) then
 		wire_value:SetPos(Pos)
 		wire_value:SetModel(model)
 		wire_value:Spawn()
-		if value then
-			local _,val = next(value)
+		
+		-- This sets up the entity but checks if its an old entity from gmod 12 and converts it :)
+		-- yay GM12 -> GM13 dupe support.
+		if values != nil then
+			local _,val = next(values)
 			if type(val) == "table" then
-				-- The new Gmod13 format, good
-				wire_value:Setup(value)
+				wire_value:Setup(values)
 			else
-				-- The old Gmod12 dupe format, lets convert it
-				local convertedValues = {}
-				local convtbl = {
-					["NORMAL"] = "Number",
-					["ANGLE"] = "Angle",
-					["VECTOR"] = "Vector",
-					["VECTOR2"] = "Vector",
-					["VECTOR4"] = "Vector",
-					["STRING"] = "String",
-				}
-				for k,v in pairs(value) do
-					local theType,theValue = string.match (v, "^ *([^: ]+) *:(.*)$")
-					theType = string.upper(theType)
-					
-					if not convtbl[theType] then
-						theType = "NORMAL"
-					end
-					
-					table.insert(convertedValues, { DataType=convtbl[theType], Value=theValue } )
-				end
-				wire_value:Setup( convertedValues )
+				wire_value:Setup( ConvertValues(values) )
 			end
 		end
-		wire_value:SetPlayer(ply)
+		wire_value:SetPlayer( ply )
 
 		ply:AddCount("wire_values", wire_value)
 
@@ -104,14 +111,14 @@ if (SERVER) then
 		
 		if trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_value" then
 			local ply = self:GetOwner()
-			trace.Entity:Setup( playerValues[ply] )
+			trace.Entity:Setup( ConstantValues )
 		else
 			local ply = self:GetOwner()
-			local tbl = playerValues[ply]
+			local tbl = ConstantValues
 			if tbl != nil then
 				local ang = trace.HitNormal:Angle()
 				ang.pitch = ang.pitch + 90
-				local ent = MakeWireValue(ply, trace.HitPos, ang, self:GetModel(), playerValues[ply] )
+				local ent = MakeWireValue(ply, trace.HitPos, ang, self:GetModel(), ConstantValues )
 				local weld = constraint.Weld( ent, trace.Entity, trace.PhysicsBone,0,0, true )
 				return true
 			else
@@ -168,13 +175,15 @@ function TOOL:GetModel()
 	return model
 end
 if CLIENT then
-	local ValuePanels = {}
 	local selectedValues = {}
+	local ValuePanels = {}
+	
 	local function SendUpdate()
 		net.Start("wire_value_values")
 		net.WriteTable(selectedValues)
 		net.SendToServer()
 	end
+
 	local function AddValue( panel, id )
 		local w,_ = panel:GetSize()
 		selectedValues[id] = {
@@ -190,9 +199,9 @@ if CLIENT then
 		local typeSelection = vgui.Create( "DComboBox", control )
 		local _, controlW = control:GetSize()
 		typeSelection:SetText( DataTypes["NORMAL"] )
-		typeSelection:SetSize( controlW , 25 )
-		typeSelection:DockMargin( 5,2,5,2 )
+		
 		typeSelection:Dock( TOP )
+		typeSelection:DockMargin( 5,2,5,2 )
 		typeSelection.OnSelect = function( panel, index, value )
 			selectedValues[id].DataType = value
 			SendUpdate()
@@ -207,42 +216,40 @@ if CLIENT then
 		valueEntry:DockMargin( 5,2,5,2 )
 		valueEntry:DockPadding(5,5,5,5)
 		valueEntry:SetValue(0)
-		
-		local oldLoseFocus = valueEntry.OnLoseFocus
+		local oldLoseFocus = valueEntry.OnLoseFocus -- Spawnmenu Q Fix thank you Nebual :) <3
 		valueEntry.OnLoseFocus = function( panel )
 			if panel:GetValue() != nil then
 				local value = panel:GetValue()
 				selectedValues[id].Value = panel:GetValue()
 				SendUpdate()
 			end
-			oldLoseFocus(panel) -- Otherwise we can't close the spawnmenu!
+			oldLoseFocus(panel)
 		end
-		
-
-		return control 
+		return control
 	end
-	local ValuePanels = {}
+
+	
 	function TOOL.BuildCPanel( panel )
 		local LastValueAmount = 0
 		
-		-- WIP.
 		local reset = vgui.Create( "DButton", panel )
 		local w,_ = panel:GetSize()
 		reset:SetSize(w, 25)
 		reset:SetText("Reset Values.")
 		reset:DockMargin( 5, 5, 5, 5 )
 		reset:Dock( TOP )
+
 		
 		local valueSlider = vgui.Create( "DNumSlider", panel )
 		valueSlider:SetSize(w, 25 )
 		valueSlider:SetText( "Amount:" )
 		valueSlider:SetMin(1)
-		valueSlider:SetMax(20)
+		valueSlider:SetMax(8)
 		valueSlider:SetDecimals( 0 )
 		valueSlider:DockMargin( 5, 5, 5, 5 )
 		valueSlider:Dock( TOP )
 		
-		reset.DoClick = function( panel )
+		reset.DoClick = function( thePanel )
 			valueSlider:SetValue(1)
 			for k,v in pairs(ValuePanels) do
 				v:Remove()
@@ -258,7 +265,7 @@ if CLIENT then
 			valueSlider.OnValueChanged( panel, 1 )
 		end
 		
-		valueSlider.OnValueChanged = function( valueSlider, value )
+		valueSlider.OnValueChanged = function( thepanel, value )
 			local value = tonumber(value) -- Silly Garry, giving me strings.
 			if value != LastValueAmount then
 				
@@ -284,6 +291,6 @@ if CLIENT then
 				SendUpdate()
 			end
 		end
-		valueSlider:OnValueChanged( 1 )
+		valueSlider.OnValueChanged( panel, 1 )
 	end
 end
