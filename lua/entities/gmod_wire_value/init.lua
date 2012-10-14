@@ -19,13 +19,13 @@ local function ReturnType( DataType )
 	// Should be requested by client and only kept serverside.
 	local DataTypes = 
 	{
-		["NORMAL"] = "number",
-		["STRING"] = "string",
-		["VECTOR"] = "vector",
-		["ANGLE"]  = "angle"
+		["NORMAL"] = "Number",
+		["STRING"] = "String",
+		["VECTOR"] = "Vector",
+		["ANGLE"]  = "Angle"
 	}
 	for k,v in pairs(DataTypes) do
-		if(v == DataType:lower()) then
+		if(v:lower() == DataType:lower()) then
 			return k
 		end
 	end
