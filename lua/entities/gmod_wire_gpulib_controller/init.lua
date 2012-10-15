@@ -10,8 +10,6 @@ function ENT:Initialize()
 
 	WireLib.CreateInputs(self, { "Target [ENTITY]" })
 	WireLib.CreateOutputs(self, { "Screen [ENTITY]", "Target [ENTITY]", "LocalPosition [VECTOR]", "LocalAngle [ANGLE]", "Resolution" })
-
-	self:ShowOutput()
 end
 
 function ENT:Setup(screen)
@@ -52,11 +50,6 @@ function ENT:TriggerInput(iname, value)
 		GPULib.switchscreen(self.screen, value)
 		self:UpdateTarget()
 	end
-end
-
-function ENT:ShowOutput()
-	local text = "GPULib controller"
-	self:SetOverlayText( text )
 end
 
 /*

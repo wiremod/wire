@@ -7,7 +7,6 @@ AddCSLuaFile( "shared.lua" )
 include('shared.lua')
 
 ENT.WireDebugName = "Adv EMarker"
-ENT.OverlayDelay = 0
 
 function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )

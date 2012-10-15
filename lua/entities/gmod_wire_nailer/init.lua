@@ -65,8 +65,7 @@ function ENT:TriggerInput(iname, value)
 end
 
 function ENT:ShowOutput()
-	self:SetOverlayText( "Nailer\n" ..
-						 "Force Limit: " .. self.Flim )
+	self:SetOverlayText("Force Limit: " .. self.Flim )
 end
 
 function ENT:OnRestore()

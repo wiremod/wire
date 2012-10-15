@@ -5,7 +5,6 @@ AddCSLuaFile( "shared.lua" )
 include('shared.lua')
 
 ENT.WireDebugName = "Simple Explosive"
-ENT.OverlayDelay = 0.5
 
 --[[---------------------------------------------------------
    Name: Initialize

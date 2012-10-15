@@ -14,7 +14,6 @@ function ENT:Initialize()
 	self:SetSolid( SOLID_VPHYSICS )
 	-- Create outputs
 	self.Inputs = Wire_CreateInputs( self, { "Throttle", "Steering", "Handbrake", "Engine", "Lock" } )
-	self:SetOverlayText( "Vehicle Controller" )
 	self.Steering = 0
 end
 
@@ -42,13 +41,6 @@ function ENT:TriggerInput(iname, value)
 	elseif (iname == "Lock") then
 		if value > 0 then self.Vehicle:Fire("lock", 1, 0)
 		else self.Vehicle:Fire("unlock", 1, 0) end
-	end
-end
-
-function ENT:ShowOutput(value)
-	if (value ~= self.PrevOutput) then
-		self:SetOverlayText( "Vehicle Controller" )
-		self.PrevOutput = value
 	end
 end
 

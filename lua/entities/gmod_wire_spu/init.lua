@@ -15,7 +15,6 @@ function ENT:Initialize()
   self:PhysicsInit(SOLID_VPHYSICS)
   self:SetMoveType(MOVETYPE_VPHYSICS)
   self:SetSolid(SOLID_VPHYSICS)
-  self:SetOverlayText("ZSPU")
 
   -- Inputs/outputs
   self.Inputs = Wire_CreateInputs(self, { "Clk", "Reset", "IOBus", "SoundOut" })

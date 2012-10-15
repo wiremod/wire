@@ -4,7 +4,6 @@ AddCSLuaFile( "shared.lua" )
 include('shared.lua')
 
 ENT.WireDebugName = "Value"
-ENT.OverlayDelay = 0
 
 function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )
@@ -107,7 +106,7 @@ function ENT:Setup(values)
 		Wire_TriggerOutput( self, tostring(k), theVal )
 	end
 
-	self:SetOverlayText(txt)
+	self:SetOverlayText(string.Left(txt,#txt-1)) -- Cut off the last \n
 
 end
 

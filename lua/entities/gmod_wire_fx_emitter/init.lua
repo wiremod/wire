@@ -6,7 +6,6 @@ include('shared.lua')
 
 // wire debug and overlay crap.
 ENT.WireDebugName = "Wire FX Emitter"
-ENT.OverlayDelay  = 0
 ENT.LastClear     = 0
 
 /*---------------------------------------------------------
@@ -27,7 +26,6 @@ function ENT:Initialize()
 		phys:Wake()
 	end
 	self.Inputs = WireLib.CreateSpecialInputs( self, { "On", "Effect", "Delay", "Direction" }, { "NORMAL", "NORMAL", "NORMAL", "VECTOR" } )
-	self:SetOverlayText( "Wire FX Emitter" )
 
 	self.datanstuff = {
 		pos = Vector(0,0,0),

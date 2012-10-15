@@ -5,7 +5,6 @@ AddCSLuaFile( "shared.lua" )
 include('shared.lua')
 
 ENT.WireDebugName = "Locator"
-ENT.OverlayDelay = 0
 
 local MODEL = Model( "models/props_lab/powerbox02d.mdl" )
 

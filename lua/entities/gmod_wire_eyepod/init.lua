@@ -4,7 +4,6 @@ AddCSLuaFile("shared.lua")
 include('shared.lua')
 
 ENT.WireDebugName = "Eye Pod"
-ENT.OverlayDelay = 0
 
 function ENT:Initialize()
 	-- Make Physics work
@@ -164,7 +163,7 @@ function ENT:Think()
 	end
 
 	-- update the overlay with the user's name
-	local Txt = "Eye Pod Control"
+	local Txt = ""
 	if self.enabled and IsValid(self.driver) and self.driver:IsPlayer() then
 		Txt = Txt.." - In use by "..self.driver:Name()
 	else

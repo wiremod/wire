@@ -3,7 +3,6 @@ AddCSLuaFile( "shared.lua" )
 include('shared.lua')
 
 ENT.WireDebugName = "Forcer"
-ENT.OverlayDelay = 0
 
 function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )
@@ -94,8 +93,7 @@ end
 
 function ENT:ShowOutput()
 	self:SetOverlayText(
-		"Forcer"..
-		"\nCenter Force = "..math.Round(self.ForceMul * self.Force)..
+		"Center Force = "..math.Round(self.ForceMul * self.Force)..
 		"\nOffset Force = "..math.Round(self.ForceMul * self.OffsetForce)..
 		"\nVelocity = "..math.Round(self.Velocity)..
 		"\nLength = " .. math.Round(self.Length)

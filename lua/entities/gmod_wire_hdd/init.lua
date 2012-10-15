@@ -4,7 +4,6 @@ AddCSLuaFile("shared.lua")
 include('shared.lua')
 
 ENT.WireDebugName = "WireHDD"
-ENT.OverlayDelay = 0
 
 function ENT:OnRemove()
 	for k,v in pairs(self.CacheUpdated) do
@@ -48,7 +47,6 @@ function ENT:Initialize()
 	-- Owners STEAMID
 	self.Owner_SteamID = "SINGLEPLAYER"
 	self.Entity:NextThink(CurTime()+1.0)
-	self:SetOverlayText("Flash memory")
 end
 
 function ENT:GetStructName(name)
@@ -311,6 +309,5 @@ function ENT:TriggerInput(iname, value)
 		end
 	end
 
-	self:SetOverlayText("Flash memory  - "..self.DriveCap.."kb".."\nWriteAddr:"..self.AWrite.."  Data:"..self.Data.."  Clock:"..self.Clk..
-        	                                                     "\nReadAddr:"..self.ARead.." = ".. self.Out)
+	self:SetOverlayText(self.DriveCap.."kb".."\nWriteAddr:"..self.AWrite.."  Data:"..self.Data.."  Clock:"..self.Clk.."\nReadAddr:"..self.ARead.." = ".. self.Out)
 end

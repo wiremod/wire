@@ -139,13 +139,13 @@ function ENT:UpdateOverlay()
 	local desc = self.nocollide_description[self.nocollide_status]
 	if not desc then
 		if IsValid( self.Constraint ) then
-			self:SetOverlayText( "Weld Latch - Welded" )
+			self:SetOverlayText( "Welded" )
 		else
-			self:SetOverlayText( "Weld Latch - Deactivated" )
+			self:SetOverlayText( "Deactivated" )
 		end
 		return
 	end
-	local text = self.Constraint and "Weld Latch - Welded and " or "Weld Latch - Not welded but "
+	local text = self.Constraint and "Welded and " or "Not welded but "
 	text = text .. desc
 	self:SetOverlayText( text )
 end

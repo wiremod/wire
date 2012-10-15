@@ -4,7 +4,6 @@ AddCSLuaFile("shared.lua")
 include("shared.lua")
 
 ENT.WireDebugName = "ExtBus"
-ENT.OverlayDelay = 0
 
 function ENT:Initialize()
   self:PhysicsInit( SOLID_VPHYSICS)
@@ -28,7 +27,7 @@ function ENT:Initialize()
     self.MemStart[i] = 0
     self.MemEnd[i] = 0
   end
-  self:SetOverlayText("Extended bus\nData rate: 0 bps")
+  self:SetOverlayText("Data rate: 0 bps")
 end
 
 function ENT:Think()
@@ -38,7 +37,7 @@ function ENT:Think()
   self.DataBytes = 0
 
   Wire_TriggerOutput(self, "Memory", self.DataRate)
-  self:SetOverlayText("Extended bus\nData rate: "..math.floor(self.DataRate*2).." bps")
+  self:SetOverlayText("Data rate: "..math.floor(self.DataRate*2).." bps")
   self:NextThink(CurTime()+0.5)
 end
 

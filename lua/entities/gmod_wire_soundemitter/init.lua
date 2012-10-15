@@ -5,7 +5,6 @@ AddCSLuaFile( "shared.lua" )
 include('shared.lua')
 
 ENT.WireDebugName = "Sound"
-ENT.OverlayDelay = 0
 
 function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )
@@ -161,7 +160,7 @@ function ENT:SetSound(sound)
 
 	self.SampleTable[0] = parsedsound
 	self.SND = CreateSound(self, Sound(self.SampleTable[0]))
-	self:SetOverlayText( "Sound: " .. parsedsound:gsub("[/\\]+","/") )
+	self:SetOverlayText( parsedsound:gsub("[/\\]+","/") )
 end
 
 function ENT:SetSample(sample)

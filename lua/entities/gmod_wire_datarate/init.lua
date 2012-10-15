@@ -4,7 +4,6 @@ AddCSLuaFile( "shared.lua" )
 include('shared.lua')
 
 ENT.WireDebugName = "DataTransfer"
-ENT.OverlayDelay = 0
 
 function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )
@@ -23,7 +22,7 @@ function ENT:Initialize()
 	self.HDataRate = 0
 	self.HDataBytes = 0
 
-	self:SetOverlayText("Data transferrer\nHi-Speed data rate: 0 bps\nWire data rate: 0 bps")
+	self:SetOverlayText("Hi-Speed data rate: 0 bps\nWire data rate: 0 bps")
 end
 
 function ENT:Think()
@@ -38,7 +37,7 @@ function ENT:Think()
 	Wire_TriggerOutput(self, "HiSpeed_DataRate", self.HDataRate)
 	Wire_TriggerOutput(self, "Wire_DataRate", self.WDataRate)
 
-	self:SetOverlayText("Data transferrer\nHi-Speed data rate: "..math.floor(self.HDataRate).." bps\nWire data rate: "..math.floor(self.WDataRate).." bps")
+	self:SetOverlayText("Hi-Speed data rate: "..math.floor(self.HDataRate).." bps\nWire data rate: "..math.floor(self.WDataRate).." bps")
 	self:NextThink(CurTime()+self.Interval)
 
 	return true

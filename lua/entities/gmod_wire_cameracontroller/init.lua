@@ -19,7 +19,6 @@ function ENT:Initialize()
 	self.Static = 0
 	self.FLIREnabled = false
 	self.FLIR = 0
-	self:SetOverlayText( "Camera Controller" )
 end
 
 function ENT:MakeDynamicCam(oldcam)
@@ -175,11 +174,6 @@ function ENT:TriggerInput( name, value )
 			self.CamEnt:ReceiveInfo(name, value)
 		end
 	end
-end
-
-function ENT:ShowOutput()
-	local text = "Wired Camera"
-	self:SetOverlayText( text )
 end
 
 function ENT:OnRestore()

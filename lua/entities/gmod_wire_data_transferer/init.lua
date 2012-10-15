@@ -29,7 +29,6 @@ function ENT:Initialize()
 	self.Values["H"] = 0
 
 	self:SetBeamRange(25000)
-	self:ShowOutput()
 end
 
 function ENT:Setup(Range,DefaultZero,IgnoreZero)
@@ -136,10 +135,6 @@ function ENT:Think()
 		end
 	end
 	self:NextThink(CurTime()+0.125)
-end
-
-function ENT:ShowOutput()
-	self:SetOverlayText( "Data Transferer" )
 end
 
 function ENT:OnRestore()

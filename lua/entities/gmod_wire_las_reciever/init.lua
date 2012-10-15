@@ -26,13 +26,6 @@ function ENT:GetBeaconPos(sensor)
 	return self.VPos
 end
 
-function ENT:ShowOutput(value)
-	if (value ~= self.PrevOutput) then
-		self:SetOverlayText( "Laser Receiver" )
-		self.PrevOutput = value
-	end
-end
-
 function ENT:OnRestore()
 	Wire_Restored(self)
 end
