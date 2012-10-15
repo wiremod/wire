@@ -176,10 +176,7 @@ function ENT:Think()
 		Txt = Txt.."\nNot Linked"
 	end
 
-	if Txt ~= self.LastOverlay then
-		self:SetNetworkedBeamString("GModOverlayText", Txt)
-		self.LastOverlay = Txt
-	end
+	self:SetOverlayText(Txt)
 
 	self:NextThink(CurTime() + 0.1)
 
