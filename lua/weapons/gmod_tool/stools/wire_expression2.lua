@@ -692,7 +692,7 @@ elseif CLIENT then
 		FileBrowser:DockMargin(5,5,5,5)
 		FileBrowser:DockPadding(5,5,5,5)
 		FileBrowser:Dock(TOP)
-		local lastclick
+		local lastclick = 0
 		function FileBrowser:OnFileClick(dir)
 			if( wire_expression2_editor == nil ) then initE2Editor() end
 
@@ -890,7 +890,7 @@ elseif CLIENT then
 
 	net.Receive("wire_expression2_editor_status", function(len)
 		local ply = net.ReadEntity()
-		local status = net.ReadBit()
+		local status = net.ReadBit() != 0 -- net.ReadBit returns 0 or 1, despite net.WriteBit taking a boolean
 		if not ply:IsValid() or ply == LocalPlayer() then return end
 
 		busy_players[ply] = status or nil
