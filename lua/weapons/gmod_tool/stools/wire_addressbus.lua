@@ -233,7 +233,7 @@ function TOOL.BuildCPanel(panel)
         local modelPanel = WireDermaExts.ModelSelect(panel, "wire_addressbus_model", list.Get("Wire_gate_Models"), 2)
 
 	panel:AddControl("Slider", {
-		Label = "Address space 1 offset",
+		Label = "1 offset",
 		Type = "Integer",
 		Min = "0",
 		Max = "16777216",
@@ -241,7 +241,7 @@ function TOOL.BuildCPanel(panel)
 	})
 
 	panel:AddControl("Slider", {
-		Label = "Address space 1 size",
+		Label = "1 size",
 		Type = "Integer",
 		Min = "0",
 		Max = "16777216",
@@ -249,7 +249,7 @@ function TOOL.BuildCPanel(panel)
 	})
 
 	panel:AddControl("Slider", {
-		Label = "Address space 2 offset",
+		Label = "2 offset",
 		Type = "Integer",
 		Min = "0",
 		Max = "16777216",
@@ -257,7 +257,7 @@ function TOOL.BuildCPanel(panel)
 	})
 
 	panel:AddControl("Slider", {
-		Label = "Address space 2 size",
+		Label = "2 size",
 		Type = "Integer",
 		Min = "0",
 		Max = "16777216",
@@ -265,7 +265,7 @@ function TOOL.BuildCPanel(panel)
 	})
 
 	panel:AddControl("Slider", {
-		Label = "Address space 3 offset",
+		Label = "3 offset",
 		Type = "Integer",
 		Min = "0",
 		Max = "16777216",
@@ -273,7 +273,7 @@ function TOOL.BuildCPanel(panel)
 	})
 
 	panel:AddControl("Slider", {
-		Label = "Address space 3 size",
+		Label = "3 size",
 		Type = "Integer",
 		Min = "0",
 		Max = "16777216",
@@ -281,7 +281,7 @@ function TOOL.BuildCPanel(panel)
 	})
 
 	panel:AddControl("Slider", {
-		Label = "Address space 4 offset",
+		Label = "4 offset",
 		Type = "Integer",
 		Min = "0",
 		Max = "16777216",
@@ -289,7 +289,7 @@ function TOOL.BuildCPanel(panel)
 	})
 
 	panel:AddControl("Slider", {
-		Label = "Address space 4 size",
+		Label = "4 size",
 		Type = "Integer",
 		Min = "0",
 		Max = "16777216",
