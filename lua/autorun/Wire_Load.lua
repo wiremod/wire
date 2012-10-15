@@ -9,7 +9,6 @@ if SERVER then
 
 	-- shared includes
 	AddCSLuaFile("wire/WireShared.lua")
-	AddCSLuaFile("wire/UpdateCheck.lua")
 	AddCSLuaFile("wire/Beam_NetVars.lua")
 	AddCSLuaFile("wire/WireGates.lua")
 	AddCSLuaFile("wire/WireMonitors.lua")
@@ -31,8 +30,6 @@ if SERVER then
 	AddCSLuaFile("wire/client/e2descriptions.lua")
 	AddCSLuaFile("wire/client/gmod_tool_auto.lua")
 	AddCSLuaFile("wire/client/sound_browser.lua")
-	AddCSLuaFile("wire/welcome_menu.lua")
-	AddCSLuaFile("wire/client/welcome_menu_derma.lua")
 	AddCSLuaFile("wire/client/rendertarget_fix.lua")
 
 	-- HL-ZASM
@@ -74,13 +71,11 @@ end
 
 -- shared includes
 include("wire/WireShared.lua")
-include("wire/UpdateCheck.lua")
 include("wire/Beam_NetVars.lua")
 include("wire/WireGates.lua")
 include("wire/WireMonitors.lua")
 include("wire/GPULib.lua")
 include("wire/CPULib.lua")
-include("wire/welcome_menu.lua")
 include("wire/Timedpairs.lua")
 include("von.lua")
 
@@ -106,7 +101,6 @@ if CLIENT then
 	include("wire/client/e2descriptions.lua")
 	include("wire/client/gmod_tool_auto.lua")
 	include("wire/client/sound_browser.lua")
-	include("wire/client/welcome_menu_derma.lua")
 	include("wire/client/rendertarget_fix.lua")
 	include("wire/client/hlzasm/hc_compiler.lua")
 end
