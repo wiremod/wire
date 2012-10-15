@@ -141,20 +141,14 @@ function ENT:DoScale()
 
 	local scale = scale_buffer[eidx] or Vector(1,1,1)
 
-	self:SetModelScale( scale )
-
-	local propmax = self:OBBMaxs()
-	local propmin = self:OBBMins()
-
-	propmax.x = scale.x * propmax.x
-	propmax.y = scale.y * propmax.y
-	propmax.z = scale.z * propmax.z
-	propmin.x = scale.x * propmin.x
-	propmin.y = scale.y * propmin.y
-	propmin.z = scale.z * propmin.z
-
-	self:SetRenderBounds( propmax, propmin )
-
+	if self.EnableMatrix then
+		local mat = Matrix()
+		mat:Scale(scale)
+		self:EnableMatrix("RenderMultiply", mat)
+	else
+		-- Some entities, like ragdolls, cannot be resized with EnableMatrix, so lets average the three components to get a float
+		self:SetModelScale((scale.x+scale.y+scale.z)/3)
+	end
 	scale_buffer[eidx] = nil
 end
 
