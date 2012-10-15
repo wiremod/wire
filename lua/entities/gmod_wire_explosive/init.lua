@@ -5,7 +5,6 @@ AddCSLuaFile( "shared.lua" )
 include('shared.lua')
 
 ENT.WireDebugName = "Explosive"
-ENT.OverlayDelay = 0
 
 /*---------------------------------------------------------
    Name: Initialize
@@ -95,8 +94,8 @@ function ENT:Setup( damage, delaytime, removeafter, doblastdamage, radius, affec
 	if (self.ColorEffect) then self:SetColor(Color(255, 255, 255, 255)) end
 	]]
 
-	self.NormInfo = "Explosive"
-	if (self.DoBlastDamage) then self.NormInfo = self.NormInfo.." (Damage: "..self.Damage..")" end
+	self.NormInfo = ""
+	if (self.DoBlastDamage) then self.NormInfo = self.NormInfo.."Damage: "..self.Damage end
 	if (self.Radius > 0 || self.Delaytime > 0) then self.NormInfo = self.NormInfo.."\n" end
 	if (self.Radius > 0 ) then self.NormInfo = self.NormInfo.." Rad: "..self.Radius end
 	if (self.Delaytime > 0) then self.NormInfo = self.NormInfo.." Delay: "..self.Delaytime end

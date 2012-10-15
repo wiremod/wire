@@ -21,7 +21,6 @@ end
 
 function ENT:Setup(Range)
 	self:SetBeamLength(Range)
-	self:ShowOutput()
 end
 
 function ENT:TriggerInput(iname, value)
@@ -47,11 +46,6 @@ function ENT:TriggerInput(iname, value)
 			end
 		end
 	end
-end
-
-function ENT:ShowOutput()
-	local text = "User"
-	self:SetOverlayText( text )
 end
 
 function ENT:OnRestore()

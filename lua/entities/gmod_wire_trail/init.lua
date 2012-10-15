@@ -86,11 +86,6 @@ function ENT:TriggerInput(iname, value)
 	end
 end
 
-function ENT:ShowOutput()
-	local text = "Trail"
-	self:SetOverlayText( text )
-end
-
 function ENT:OnRestore()
 	Wire_Restored(self)
 end

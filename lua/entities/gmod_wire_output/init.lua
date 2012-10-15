@@ -42,9 +42,9 @@ function ENT:Switch( on, ply )
 end
 
 function ENT:ShowOutput()
-	if (self.key) then
-		if (keylist[self.key + 1]) then
-			self:SetOverlayText("Numpad Output ("..keylist[self.key + 1]..")")
+	if (self.Key) then
+		if (keylist[self.Key + 1]) then
+			self:SetOverlayText(keylist[self.Key + 1])
 		end
 	end
 end

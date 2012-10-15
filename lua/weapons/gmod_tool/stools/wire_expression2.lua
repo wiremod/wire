@@ -111,7 +111,7 @@ if SERVER then
 
 		buffer = string.Replace(string.Replace(buffer,string.char(163),"\""),string.char(128),"\n")
 
-		self:SetOverlayText("Expression 2\n" .. name)
+		self:SetOverlayText(name)
 		self.buffer = buffer
 		self.inc_files = inc_files or {}
 

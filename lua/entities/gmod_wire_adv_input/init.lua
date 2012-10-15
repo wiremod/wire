@@ -3,8 +3,6 @@ AddCSLuaFile("shared.lua")
 include("shared.lua")
 
 ENT.WireDebugName = "Adv. Input"
-ENT.OverlayDelay = 0.1
-ENT.OverlayRandom = 0.025
 
 function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )

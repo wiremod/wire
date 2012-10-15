@@ -20,9 +20,9 @@ end
 
 function ENT:ShowOutput()
 	if IsValid(self.Transmitter) then
-		self:SetOverlayText( "Satellite Dish: Linked" )
+		self:SetOverlayText( "Linked" )
 	else
-		self:SetOverlayText( "Satellite Dish: Unlinked" )
+		self:SetOverlayText( "Unlinked" )
 	end
 end
 

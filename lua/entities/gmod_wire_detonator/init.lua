@@ -28,7 +28,7 @@ end
 
 function ENT:ShowOutput( Trigger )
 	if Trigger ~= self.Trigger then
-		self:SetOverlayText( "Detonator " .. self.damage .. " = " .. Trigger )
+		self:SetOverlayText( self.damage .. " = " .. Trigger )
 		self.Trigger = Trigger
 		if Trigger > 0 then
 			self:DoDamage()

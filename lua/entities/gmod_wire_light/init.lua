@@ -178,7 +178,7 @@ function ENT:ShowOutput( R, G, B )
 			self:DirectionalOff()
 			self:RadiantOff()
 		end
-		self:SetOverlayText( "Light: Red=" .. R .. " Green:" .. G .. " Blue:" .. B )
+		self:SetOverlayText( "Red=" .. R .. " Green:" .. G .. " Blue:" .. B )
 		self.R, self.G, self.B = R, G, B
 		self:SetColor(Color(R, G, B, self:GetColor().a))
 	end

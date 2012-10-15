@@ -65,7 +65,6 @@ if SERVER then
 		wire_locator:Spawn()
 		wire_locator:Activate()
 
-		wire_locator:SetOverlayText("Locator Beacon")
 		wire_locator:SetPlayer(pl)
 
 		if ( nocollide == true ) then wire_light:GetPhysicsObject():EnableCollisions( false ) end

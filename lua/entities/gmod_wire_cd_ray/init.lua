@@ -49,7 +49,6 @@ function ENT:Initialize()
 	self.PrevDiskEnt = nil
 
 	self:SetBeamRange(64)
-	self:ShowOutput()
 end
 
 function ENT:ReadCell(Address)
@@ -265,10 +264,6 @@ function ENT:Think()
 
 	self:NextThink(CurTime()+0.01)
 	return true
-end
-
-function ENT:ShowOutput()
-	self:SetOverlayText("CD Ray")
 end
 
 function ENT:OnRestore()

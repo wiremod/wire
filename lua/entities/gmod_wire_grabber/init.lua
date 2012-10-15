@@ -28,8 +28,6 @@ function ENT:Initialize()
 	else
 		self.OnlyGrabOwners = false
 	end
-
-	self:ShowOutput()
 end
 
 function ENT:OnRemove()
@@ -127,10 +125,6 @@ function ENT:TriggerInput(iname, value)
 	elseif iname == "Strength" then
 		self.WeldStrength = math.max(value,0)
 	end
-end
-
-function ENT:ShowOutput()
-	self:SetOverlayText( "Grabber" )
 end
 
 function ENT:OnRestore()

@@ -24,7 +24,6 @@ timer.Create("e2quota", 1, 0, function()
 	end
 end)
 
-ENT.OverlayDelay = 0
 ENT.WireDebugName = "Expression 2"
 
 local function copytype(var)
@@ -95,7 +94,7 @@ function ENT:Initialize()
 	self.Inputs = WireLib.CreateInputs(self, {})
 	self.Outputs = WireLib.CreateOutputs(self, {})
 
-	self:SetOverlayText("Expression 2\n(none)")
+	self:SetOverlayText("(none)")
 	self:SetColor(Color(255, 0, 0, self:GetColor().a))
 end
 
@@ -169,9 +168,9 @@ function ENT:Think()
 		self.context.prf = 0
 
 		if self.context.prfcount / e2_hardquota > 0.33 then
-			self:SetOverlayText("Expression 2\n" .. self.name .. "\n" .. tostring(math.Round(self.context.prfbench)) .. " ops, " .. tostring(math.Round(self.context.prfbench / e2_softquota * 100)) .. "% (+" .. tostring(math.Round(self.context.prfcount / e2_hardquota * 100)) .. "%)")
+			self:SetOverlayText(self.name .. "\n" .. tostring(math.Round(self.context.prfbench)) .. " ops, " .. tostring(math.Round(self.context.prfbench / e2_softquota * 100)) .. "% (+" .. tostring(math.Round(self.context.prfcount / e2_hardquota * 100)) .. "%)")
 		else
-			self:SetOverlayText("Expression 2\n" .. self.name .. "\n" .. tostring(math.Round(self.context.prfbench)) .. " ops, " .. tostring(math.Round(self.context.prfbench / e2_softquota * 100)) .. "%")
+			self:SetOverlayText(self.name .. "\n" .. tostring(math.Round(self.context.prfbench)) .. " ops, " .. tostring(math.Round(self.context.prfbench / e2_softquota * 100)) .. "%")
 		end
 	end
 
@@ -201,7 +200,7 @@ function ENT:PCallHook(...)
 end
 
 function ENT:Error(message, overlaytext)
-	self:SetOverlayText("Expression 2\n" .. self.name .. "\n("..(overlaytext or "script error")..")")
+	self:SetOverlayText(self.name .. "\n("..(overlaytext or "script error")..")")
 	self:SetColor(Color(255, 0, 0, self:GetColor().a))
 
 	self.error = true
@@ -389,7 +388,7 @@ function ENT:Setup(buffer, includes, restore, forcecompile)
 		self:ResetContext()
 	end
 
-	self:SetOverlayText("Expression 2\n" .. self.name)
+	self:SetOverlayText(self.name)
 	self:SetColor(Color(255, 255, 255, self:GetColor().a))
 
 	local ok, msg = pcall(self.CallHook, self, 'construct')
@@ -493,7 +492,7 @@ hook.Add("EntityRemoved","Wire_Expression2_Player_Disconnected",function(ent)
 	end
 	for k,v in ipairs( ents.FindByClass("gmod_wire_expression2") ) do
 		if (v.player == ent) then
-			v:SetOverlayText("Expression 2\n" .. v.name .. "\n(Owner disconnected.)")
+			v:SetOverlayText(v.name .. "\n(Owner disconnected.)")
 			v:SetColor(Color(255, 0, 0, v:GetColor().a))
 			v.disconnectPaused = {r,g,b,a}
 			v.error = true
@@ -513,7 +512,7 @@ hook.Add("PlayerAuthed", "Wire_Expression2_Player_Authed", function(ply, sid, ui
 				ent:SetColor(Color(c[1],c[2],c[3],c[4]))
 				ent.error = false
 				ent.disconnectPaused = false
-				ent:SetOverlayText("Expression 2\n" .. ent.name)
+				ent:SetOverlayText(ent.name)
 			end
 		end
 	end

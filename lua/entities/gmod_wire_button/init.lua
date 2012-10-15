@@ -4,7 +4,6 @@ AddCSLuaFile( "shared.lua" )
 include('shared.lua')
 
 ENT.WireDebugName = "Button"
-ENT.OverlayDelay = 0
 ENT.OutputEntID = false
 ENT.EntToOutput = NULL
 

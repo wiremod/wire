@@ -33,7 +33,6 @@ function ENT:Initialize()
 
 	self.Inputs = Wire_CreateInputs(self, { "Memory" })
 	self.Outputs = Wire_CreateOutputs(self, { "Memory" })
-	self:SetOverlayText( "Data socket" )
 	Wire_TriggerOutput(self, "Memory", 0)
 end
 

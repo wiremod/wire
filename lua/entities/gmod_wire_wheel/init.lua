@@ -5,7 +5,6 @@ AddCSLuaFile( "shared.lua" )
 include('shared.lua')
 
 ENT.WireDebugName = "Wheel"
-ENT.OverlayDelay = 0
 
 --[[---------------------------------------------------------
    Name: Initialize
@@ -47,8 +46,7 @@ end
 ---------------------------------------------------------]]
 function ENT:UpdateOverlayText()
 
-	txt = "Torque: " .. math.floor( self.TorqueScale * self.BaseTorque ) .. "\nSpeed: 0\nBreak: " .. self.Breaking .. "\nSpeedMod: " .. math.floor( self.SpeedMod * 100 ) .. "%"
-	self:SetOverlayText( txt )
+	self:SetOverlayText( "Torque: " .. math.floor( self.TorqueScale * self.BaseTorque ) .. "\nSpeed: 0\nBreak: " .. self.Breaking .. "\nSpeedMod: " .. math.floor( self.SpeedMod * 100 ) .. "%" )
 
 end
 
@@ -244,9 +242,7 @@ function ENT:SetTorque( torque )
 	if (!Motor || !Motor:IsValid()) then return end
 	Motor:Fire( "Scale", Motor:GetTable().direction * Motor:GetTable().forcescale * self.TorqueScale , 0 )
 
-	txt = "Torque: " .. math.floor( self.TorqueScale * self.BaseTorque )
-	--self.BaseClass.BaseClass.SetOverlayText(self, txt)
-	self:SetOverlayText(txt)
+	self:UpdateOverlayText()
 end
 
 --[[---------------------------------------------------------

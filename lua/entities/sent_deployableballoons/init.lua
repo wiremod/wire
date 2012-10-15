@@ -170,5 +170,5 @@ function ENT:RetractBalloons()
 end
 
 function ENT:UpdateOverlay()
-	self:SetOverlayText( "Balloon Deployer\nDeployed = " .. ((self.Deployed ~= 0) and "yes" or "no") )
+	self:SetOverlayText( "Deployed = " .. ((self.Deployed ~= 0) and "yes" or "no") )
 end

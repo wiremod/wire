@@ -16,7 +16,6 @@ function ENT:Initialize()
 
 	self.Inputs = Wire_CreateInputs(self, { "Memory" })
 	self.Outputs = Wire_CreateOutputs(self, { "Connected" })
-	self:SetOverlayText( "Data plug" )
 	Wire_TriggerOutput(self, "Connected", 0)
 end
 

@@ -34,7 +34,7 @@ end
 function ENT:DrawTip(text)
 	text = text or self:GetOverlayText()
 	local name = self:GetNetworkedString("WireName")
-	local plyname = self.OverlayPly
+	local plyname = self:GetNetworkedString("FounderName")
 	
 	text = string.format("- %s -\n%s\n(%s)", name ~= "" and name or self.PrintName, text, plyname)
 	AddWorldTip(nil,text,nil,self:GetPos(),nil)
@@ -64,6 +64,5 @@ end)
 
 net.Receive( "WireOverlay", function(length)
 	local ent = net.ReadEntity()
-	ent.OverlayText = net.ReadString()-- string.format("%s\n(%s)", net.ReadString(), net.ReadString())
-	ent.OverlayPly = net.ReadString()
+	ent.OverlayText = net.ReadString()
 end)

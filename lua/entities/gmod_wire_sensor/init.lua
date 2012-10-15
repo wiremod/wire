@@ -118,7 +118,7 @@ end
 
 
 function ENT:ShowOutput()
-	local txt = "Beacon Sensor"
+	local txt = ""
 	if (self.OutDist) then
 		txt = txt .. "\nDistance = " .. math.Round(self.Outputs.Distance.Value*1000)/1000
 	end
@@ -138,7 +138,7 @@ function ENT:ShowOutput()
 		txt = txt .. "\nTargetVelocity = " .. math.Round(self.Outputs.Velocity_X.Value*1000)/1000 .. "," .. math.Round(self.Outputs.Velocity_Y.Value*1000)/1000 .. "," .. math.Round(self.Outputs.Velocity_Z.Value*1000)/1000
 	end
 
-	self:SetOverlayText(txt)
+	self:SetOverlayText(string.Right(txt,#txt-1)) -- Cut off the first \n
 end
 
 

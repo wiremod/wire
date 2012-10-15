@@ -42,9 +42,12 @@ end
 function ENT:Setup( UseLuaPatterns, Matches, CaseInsensitive )
 	local outputs = { "Message [STRING]", "Player [ENTITY]", "Clk" }
 	if #Matches > 0 then
+		local txt = "Matches:"
 		for i=1,#Matches do
 			outputs[#outputs+1] = "Match " .. i
+			txt = txt .. "\n" .. Matches[i]
 		end
+		self:SetOverlayText(txt)
 	end
 	self.Outputs = WireLib.AdjustOutputs( self, outputs )
 

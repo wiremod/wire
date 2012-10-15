@@ -78,9 +78,9 @@ function ENT:TriggerInput(iname, value)
 end
 
 function ENT:ShowOutput()
-	local text = "Colorer"
+	local text
 	if self.Outputs["R"] then
-		text = text .. "\nColor = "
+		text = "Color = "
 		.. math.Round(self.Outputs["R"].Value*1000)/1000 .. ", "
 		.. math.Round(self.Outputs["G"].Value*1000)/1000 .. ", "
 		.. math.Round(self.Outputs["B"].Value*1000)/1000 .. ", "

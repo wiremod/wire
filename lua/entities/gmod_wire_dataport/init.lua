@@ -20,7 +20,6 @@ function ENT:Initialize()
 		self.Ports[i] = 0
 	end
 	self.OutPorts = {}
-	self:SetOverlayText("Data port")
 
 	self.Entity:NextThink(CurTime())
 end

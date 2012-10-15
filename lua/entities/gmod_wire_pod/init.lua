@@ -40,7 +40,6 @@ function ENT:Initialize()
 	-- Create outputs
 	self.Outputs = Wire_CreateOutputs( self, outputs )
 	self.Inputs = Wire_CreateInputs( self, { "Lock", "Eject", "Crosshair", "Open" } )
-	self:SetOverlayText( "Pod Controller" )
 end
 
 function ENT:SetKeys(keys)
@@ -56,13 +55,6 @@ end
 -- Link to pod
 function ENT:Setup(pod)
 	self.Pod = pod
-end
-
-function ENT:ShowOutput(value)
-	if value ~= self.PrevOutput then
-		self:SetOverlayText( "Pod Controller" )
-		self.PrevOutput = value
-	end
 end
 
 function ENT:OnRestore()
