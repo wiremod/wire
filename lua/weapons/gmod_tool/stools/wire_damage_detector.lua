@@ -154,20 +154,6 @@ if SERVER then
 	end
 
 	duplicator.RegisterEntityClass("gmod_wire_damage_detector", MakeWireDamageDetector, "Pos", "Ang", "Model", "includeconstrained")
-
-	local Wire_Damage_Detectors
-
-	// Unlink if linked prop removed
-	local function linkRemoved( ent )
-		if ent.linked_entities then
-			if IsValid(ents.GetByIndex(ent.linked_entities[0])) then
-				ent.linked_entities = {}
-				ent:ShowOutput()
-			end
-		end
-	end
-	hook.Add("EntityRemoved", "DamageDetector_LinkRemoved", linkRemoved)
-
 end
 
 function TOOL:UpdateGhostWireDamageDetector( ent, player )
