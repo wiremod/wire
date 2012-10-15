@@ -207,9 +207,15 @@ elseif CLIENT then
 		end
 
 	end
+	
+	local fontData = {font = "Trebuchet24"} -- 24 and 18 are stock
+	for _,size in pairs({22,20,16,14}) do
+		fontData.size = size
+		surface.CreateFont("Trebuchet"..size, fontData)
+	end
 
 	local function fitfont(...)
-		local fontnames = { "Trebuchet24", "Trebuchet22", "Trebuchet20", "Trebuchet19", "CloseCaption_Bold", "HudHintTextLarge", "HudSelectionText", "ConsoleText" }
+		local fontnames = { "Trebuchet24", "Trebuchet22", "Trebuchet20", "Trebuchet18", "Trebuchet16", "Trebuchet14" }
 		local fontheights = {}
 
 		for i,fontname in ipairs(fontnames) do
