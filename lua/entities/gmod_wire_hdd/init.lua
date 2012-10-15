@@ -57,9 +57,9 @@ end
 
 function ENT:GetCap()
 	-- If hard drive exists
-	if file.Exists(self:GetStructName("drive")) then
+	if file.Exists(self:GetStructName("drive"),"DATA") then
 		-- Read format data
-		local formatData = file.Read(self:GetStructName("drive"))
+		local formatData = file.Read(self:GetStructName("drive"),"DATA")
 
 		if tonumber(formatData) then
 			self.DriveCap = tonumber(formatData)
@@ -165,7 +165,7 @@ function ENT:ReadCell(Address)
 			end
 
 			-- If sector isn't created yet, return 0
-			if not file.Exists(self:GetStructName(block)) then
+			if not file.Exists(self:GetStructName(block),"DATA") then
 				self.Cache[block] = {}
 				self.CacheUpdated[block] = true
 				for i=0,self.BlockSize-1 do
@@ -228,7 +228,7 @@ function ENT:WriteCell(Address, value)
 			end
 
 			-- If sector isn't created yet, cache it
-			if not file.Exists(self:GetStructName(block)) then
+			if not file.Exists(self:GetStructName(block),"DATA") then
 				self.Cache[block] = {}
 				self.CacheUpdated[block] = true
 				for i=0,self.BlockSize-1 do
