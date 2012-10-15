@@ -42,6 +42,7 @@ if (SERVER) then
 
 		ent:Spawn()
 		ent:Activate()
+		ent:SetPlayer(ply)
 
 		ent.UseEffects = (self:GetClientNumber( "effects" ) == 1)
 		ent.UseSounds = (self:GetClientNumber( "sounds" ) == 1)

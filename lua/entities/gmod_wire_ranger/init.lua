@@ -14,7 +14,7 @@ function ENT:Initialize()
 	self:SetSolid( SOLID_VPHYSICS )
 	self:StartMotionController()
 
-	self.Inputs = Wire_CreateInputs(self, { "X", "Y", "SelectValue"})
+	self.Inputs = Wire_CreateInputs(self, { "X", "Y", "SelectValue","Length"})
 	self.Outputs = Wire_CreateOutputs(self, { "Dist" })
 	self.hires = false
 end
@@ -109,6 +109,9 @@ function ENT:TriggerInput(iname, value)
 		self:SetSkewX(value)
 	elseif (iname == "Y") then
 		self:SetSkewY(value)
+	elseif (iname == "Length") then
+		self.range = value
+		self:SetBeamLength(self.show_beam and math.min(value, 2000) or 0)
 	end
 end
 

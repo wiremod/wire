@@ -15,7 +15,7 @@ function ENT:Think()
 		txt =  "Velocity = " .. math.Round((-vel.y or 0)*1000)/1000 .. "," .. math.Round((vel.x or 0)*1000)/1000 .. "," .. math.Round((vel.z or 0)*1000)/1000
 	else
 	    local vel = self:GetVelocity():Length()
-		txt =  "Speed = " .. math.Round((x or 0)*1000)/1000
+		txt =  "Speed = " .. math.Round((vel or 0)*1000)/1000
 	end
 
 	--sadly self:GetPhysicsObject():GetAngleVelocity() does work client side, so read out is unlikely

@@ -21,12 +21,12 @@ function ENT:TriggerInput(iname, value)
 end
 
 function ENT:ShowOutput()
-	local text = "Water Sensor"
+	local text
 	if(self.Outputs["Out"])then
 	   if(self.Outputs["Out"].Value>0)then
-		   text = text .. "\nSubmerged!"
+		   text = "Submerged!"
 	   else
-		   text = text.. "\nAbove Water"
+		   text = "Above Water"
 	   end
 	end
 	self:SetOverlayText( text )

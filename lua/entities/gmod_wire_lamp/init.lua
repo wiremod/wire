@@ -61,7 +61,7 @@ function ENT:SetLightColor( r, g, b )
 		self.flashlight:SetKeyValue( "lightcolor", self.m_strLightColor )
 	end
 
-	self:SetOverlayText( "Red:" .. r .. " Green:" .. g .. " Blue" .. b )
+	self:SetOverlayText( "Red: " .. r .. " Green: " .. g .. " Blue: " .. b )
 end
 
 function ENT:Setup( r, g, b )

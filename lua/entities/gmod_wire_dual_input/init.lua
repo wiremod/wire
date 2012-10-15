@@ -5,7 +5,6 @@ AddCSLuaFile( "shared.lua" )
 include('shared.lua')
 
 ENT.WireDebugName = "DualInput"
-ENT.OverlayDelay = 0
 
 function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )

@@ -5,7 +5,6 @@ AddCSLuaFile( "shared.lua" )
 include('shared.lua')
 
 ENT.WireDebugName = "Input"
-ENT.OverlayDelay = 0
 
 local function keyname(keygroup)
 	return tostring(keygroup) -- TODO figure out how to get the name of a key (the old way wasn't working)
@@ -78,7 +77,7 @@ function ENT:Switch( on, mul )
 end
 
 function ENT:ShowOutput(value)
-	self:SetOverlayText( "Numpad Input ("..keyname(self.keygroup)..")\n(" .. tostring(self.value_off) .. " - " .. tostring(self.value_on) .. ") = " .. tostring(value) )
+	self:SetOverlayText( "("..keyname(self.keygroup)..")\n(" .. tostring(self.value_off) .. " - " .. tostring(self.value_on) .. ") = " .. tostring(value) )
 end
 
 local function On( pl, ent, mul )

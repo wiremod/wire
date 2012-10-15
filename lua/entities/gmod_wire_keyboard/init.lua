@@ -36,7 +36,7 @@ function ENT:Initialize()
 	self.Buffer = {} -- array containing all currently active keys, value is ascii
 	self.Buffer[0] = 0
 
-	self:SetOverlayText( "Keyboard - Not in use" )
+	self:SetOverlayText( "Not in use" )
 	WireLib.TriggerOutput( self, "InUse", 0 )
 end
 
@@ -102,7 +102,7 @@ function ENT:PlayerAttach( ply )
 	WireLib.TriggerOutput( self, "InUse", 1 )
 
 	-- Update status text
-	self:SetOverlayText("Keyboard - In use by " .. ply:Nick())
+	self:SetOverlayText("In use by " .. ply:Nick())
 
 	-- Block keyboard input
 	umsg.Start( "wire_keyboard_blockinput", ply ) umsg.End()
@@ -156,7 +156,7 @@ function ENT:PlayerDetach()
 	WireLib.TriggerOutput( self, "InUse", 0 )
 
 	-- Update status text
-	self:SetOverlayText("Keyboard - Not in use." )
+	self:SetOverlayText("Not in use." )
 
 	-- Kick player out of vehicle, if in one
 	if self.Pod and self.Pod:IsValid() and self.Pod:GetDriver() and self.Pod:GetDriver():IsValid() then

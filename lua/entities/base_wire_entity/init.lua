@@ -6,19 +6,19 @@ util.AddNetworkString("WireOverlay")
 
 ENT.WireDebugName = "No Name"
 
-function ENT:Think()
-end
-
-timer.Create("OverlayUpdate", 0.25, 0, function()
+local playerOverlays = {}
+timer.Create("WireOverlayUpdate", 0.1, 0, function()
 	for _, ply in ipairs(player.GetAll()) do
 		local ent = ply:GetEyeTrace().Entity
-		if not IsValid(ent) or not ent.IsWire then return end
-		
-		net.Start("WireOverlay")
-			net.WriteEntity(ent)
-			net.WriteString(ent.OverlayText)
-			net.WriteString(ent:GetPlayer():GetName())
-		net.Send(ply)
+		if not IsValid(ent) or not ent.IsWire then continue end
+		playerOverlays[ply] = playerOverlays[ply] or {}
+		if playerOverlays[ply][ent] != ent.OverlayText then
+			playerOverlays[ply][ent] = ent.OverlayText
+			net.Start("WireOverlay")
+				net.WriteEntity(ent)
+				net.WriteString(ent.OverlayText)
+			net.Send(ply)
+		end
 	end
 end)
 

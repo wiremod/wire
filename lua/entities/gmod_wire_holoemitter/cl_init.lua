@@ -108,8 +108,7 @@ function ENT:Think()
 end
 
 function ENT:Draw()
-	self:DrawModel()
-	Wire_Render( self )
+	self.BaseClass.Draw(self)
 
 	local ent = self:GetNWEntity( "Link", false )
 	if (!ent or !IsValid(ent)) then ent = self end

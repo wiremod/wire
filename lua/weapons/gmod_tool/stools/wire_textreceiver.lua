@@ -97,6 +97,7 @@ if SERVER then
 		ent:SetModel( model or "models/jaanus/wiretool/wiretool_range.mdl" )
 		ent:Spawn()
 		ent:Activate()
+		ent:SetPlayer(ply)
 
 		ent:Setup( UseLuaPatterns, Matches, CaseInsensitive )
 

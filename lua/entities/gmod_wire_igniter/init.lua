@@ -14,7 +14,6 @@ function ENT:Initialize()
 	self.IgniteLength = 10
 	self.TargetPlayers = false
 	self:SetBeamLength(2048)
-	self:ShowOutput()
 end
 
 function ENT:OnRemove()
@@ -58,10 +57,6 @@ function ENT:TriggerInput(iname, value)
 			self.IgniteLength = math.min(value,GetConVarNumber("sbox_wire_igniters_maxlen"))
 		end
 	end
-end
-
-function ENT:ShowOutput()
-	self:SetOverlayText( "Igniter" )
 end
 
 function ENT:OnRestore()

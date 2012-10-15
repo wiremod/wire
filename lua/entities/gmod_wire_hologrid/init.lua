@@ -4,7 +4,6 @@ include( "shared.lua" );
 
 -- wire debug and overlay crap.
 ENT.WireDebugName	= "Holographic Grid";
-ENT.OverlayDelay 	= 0;
 
 -- init.
 function ENT:Initialize( )
@@ -27,11 +26,11 @@ function ENT:UpdateGPS(UseGPS)
 	if UseGPS then
 		self.usesgps = true
 		self:SetNetworkedEntity( "reference", ents.GetByIndex(-1) )
-		self:SetOverlayText( "Holo Grid\n(GPS)" )
+		self:SetOverlayText( "(GPS)" )
 	else
 		self.usesgps = false
 		self:SetNetworkedEntity( "reference", self.reference )
-		self:SetOverlayText( "Holo Grid\n(Local)" )
+		self:SetOverlayText( "(Local)" )
 	end
 end
 

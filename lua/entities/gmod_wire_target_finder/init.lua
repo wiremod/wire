@@ -5,7 +5,6 @@ AddCSLuaFile( "shared.lua" )
 include('shared.lua')
 
 ENT.WireDebugName = "Targetter"
-ENT.OverlayDelay = 0
 
 function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )
@@ -373,11 +372,11 @@ end
 
 
 function ENT:ShowOutput(value)
-	local txt = "Target Finder - "
+	local txt
 	if (value) then
-		txt = txt .. "Target Acquired"
+		txt = "Target Acquired"
 	else
-		txt = txt .. "No Target"
+		txt = "No Target"
 	end
 
 	if (self.Inputs.Hold) and (self.Inputs.Hold.Value > 0) then txt = txt .. " - Locked" end

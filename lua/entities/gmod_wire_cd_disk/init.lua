@@ -102,6 +102,6 @@ function ENT:Setup()
 end
 
 function ENT:ShowOutput()
-	self:SetOverlayText("CD disk\nEffective size (per stack): "..self.DiskSize.." bytes ("..math.floor(self.DiskSize/1024).." kb)\n"..
+	self:SetOverlayText("Effective size (per stack): "..self.DiskSize.." bytes ("..math.floor(self.DiskSize/1024).." kb)\n"..
 			    "Tracks: "..self.DiskTracks.."\nSectors: "..self.DiskSectors.."\nStacks: "..self.DiskStacks)
 end

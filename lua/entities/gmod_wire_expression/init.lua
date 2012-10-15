@@ -8,7 +8,6 @@ include('shared.lua')
 include('parser.lua')
 
 ENT.Delta = 0.001
-ENT.OverlayDelay = 0
 ENT.WireDebugName = "Expression"
 
 if !WireModPacket then

@@ -5,7 +5,6 @@ AddCSLuaFile( "shared.lua" )
 include('shared.lua')
 
 ENT.WireDebugName = "Numpad"
-ENT.OverlayDelay = 0
 
 local keynames = {"0","1","2","3","4","5","6","7","8","9",".","enter","+","-","*","/"}
 local lookupkeynames = {}
@@ -102,7 +101,7 @@ function ENT:Switch( on, key )
 end
 
 function ENT:ShowOutput()
-	txt = "Numpad"
+	local txt = ""
 	for k = 0, #keynames-1 do
 		if (self.On[k]) then
 			txt = txt..", "..lookupkeynames[k]

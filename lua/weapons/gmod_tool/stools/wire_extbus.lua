@@ -35,7 +35,6 @@ function TOOL:LeftClick( trace )
 	if (not util.IsValidModel(self:GetClientInfo( "model" ))) then return false end
 	if (not util.IsValidProp(self:GetClientInfo( "model" ))) then return false end
 
-	local ply = self:GetOwner()
 	local Ang = trace.HitNormal:Angle()
 	local model = self:GetClientInfo( "model" )
 	Ang.pitch = Ang.pitch + 90
@@ -69,6 +68,7 @@ if (SERVER) then
 		wire_extbus:SetAngles( Ang )
 		wire_extbus:SetPos( Pos )
 		wire_extbus:Spawn()
+		wire_extbus:SetPlayer(ply)
 
 		local ttable = {
 			ply = ply,

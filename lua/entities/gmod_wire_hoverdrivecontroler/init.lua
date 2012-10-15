@@ -54,7 +54,7 @@ function ENT:TriggerInput(iname, value)
 end
 
 function ENT:ShowOutput()
-	self:SetOverlayText( "Hoverdrive Controller\nTarget Position = " .. tostring(self.TargetPos) .. "\nTarget Angle = " .. tostring(self.TargetAng) .. "\nSounds = " .. (self.UseSounds and "Yes" or "No") .. "\nEffects = " .. (self.UseEffects and "Yes" or "No") )
+	self:SetOverlayText( "Target Position = " .. tostring(self.TargetPos) .. "\nTarget Angle = " .. tostring(self.TargetAng) .. "\nSounds = " .. (self.UseSounds and "Yes" or "No") .. "\nEffects = " .. (self.UseEffects and "Yes" or "No") )
 end
 
 function ENT:Jump( withangles )

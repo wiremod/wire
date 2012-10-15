@@ -21,7 +21,6 @@ function ENT:Initialize()
 
 	self.Inputs = Wire_CreateInputs(self, { "Disable" })
 	self.Outputs = Wire_CreateOutputs(self, { "Locked" })
-	self:SetOverlayText("CD lock")
 
 	self:NextThink(CurTime() + 0.25)
 end

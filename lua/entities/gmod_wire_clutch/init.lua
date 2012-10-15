@@ -21,8 +21,7 @@ end
 
 
 function ENT:UpdateOverlay()
-	local text = "Clutch Controller\n"
-	text = text .. "Friction: " .. tostring( self.clutch_friction ) .. "\n"
+	local text = "Friction: " .. tostring( self.clutch_friction ) .. "\n"
 
 	local num_constraints = table.Count( self.clutch_ballsockets )
 	if num_constraints > 0 then

@@ -159,18 +159,6 @@ function ENT:Run()
   self.VM.INTR = 0
 end
 
-
-
-
---------------------------------------------------------------------------------
--- Entity drawing function
-function ENT:Draw()
-  self:DrawModel()
-  Wire_Render(self)
-end
-
-
-
 --------------------------------------------------------------------------------
 -- Think function
 function ENT:Think()

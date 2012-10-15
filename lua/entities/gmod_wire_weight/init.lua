@@ -5,7 +5,6 @@ AddCSLuaFile( "shared.lua" )
 include('shared.lua')
 
 ENT.WireDebugName = "Weight"
-ENT.OverlayDelay = 0.1
 
 local MODEL = Model("models/props_interiors/pot01a.mdl")
 

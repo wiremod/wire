@@ -5,7 +5,6 @@ AddCSLuaFile( "shared.lua" )
 include('shared.lua')
 
 ENT.WireDebugName = "Relay"
-ENT.OverlayDelay = 0
 
 function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )
@@ -83,7 +82,7 @@ end
 
 
 function ENT:ShowOutput()
-	txt = self.Poles .. "P" .. self.Throws .. "T "
+	local txt = self.Poles .. "P" .. self.Throws .. "T "
 	if (self.SelInput == 0) then
 		txt = txt .. "Sel: off"
 	else

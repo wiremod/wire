@@ -4,7 +4,6 @@ AddCSLuaFile("shared.lua")
 include('shared.lua')
 
 ENT.WireDebugName = "WireHDD"
-ENT.OverlayDelay = 0
 
 function ENT:OnRemove()
 	for k,v in pairs(self.CacheUpdated) do
@@ -48,7 +47,6 @@ function ENT:Initialize()
 	-- Owners STEAMID
 	self.Owner_SteamID = "SINGLEPLAYER"
 	self.Entity:NextThink(CurTime()+1.0)
-	self:SetOverlayText("Flash memory")
 end
 
 function ENT:GetStructName(name)
@@ -57,9 +55,9 @@ end
 
 function ENT:GetCap()
 	-- If hard drive exists
-	if file.Exists(self:GetStructName("drive")) then
+	if file.Exists(self:GetStructName("drive"),"DATA") then
 		-- Read format data
-		local formatData = file.Read(self:GetStructName("drive"))
+		local formatData = file.Read(self:GetStructName("drive"),"DATA")
 
 		if tonumber(formatData) then
 			self.DriveCap = tonumber(formatData)
@@ -165,7 +163,7 @@ function ENT:ReadCell(Address)
 			end
 
 			-- If sector isn't created yet, return 0
-			if not file.Exists(self:GetStructName(block)) then
+			if not file.Exists(self:GetStructName(block),"DATA") then
 				self.Cache[block] = {}
 				self.CacheUpdated[block] = true
 				for i=0,self.BlockSize-1 do
@@ -228,7 +226,7 @@ function ENT:WriteCell(Address, value)
 			end
 
 			-- If sector isn't created yet, cache it
-			if not file.Exists(self:GetStructName(block)) then
+			if not file.Exists(self:GetStructName(block),"DATA") then
 				self.Cache[block] = {}
 				self.CacheUpdated[block] = true
 				for i=0,self.BlockSize-1 do
@@ -311,6 +309,5 @@ function ENT:TriggerInput(iname, value)
 		end
 	end
 
-	self:SetOverlayText("Flash memory  - "..self.DriveCap.."kb".."\nWriteAddr:"..self.AWrite.."  Data:"..self.Data.."  Clock:"..self.Clk..
-        	                                                     "\nReadAddr:"..self.ARead.." = ".. self.Out)
+	self:SetOverlayText(self.DriveCap.."kb".."\nWriteAddr:"..self.AWrite.."  Data:"..self.Data.."  Clock:"..self.Clk.."\nReadAddr:"..self.ARead.." = ".. self.Out)
 end

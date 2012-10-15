@@ -93,11 +93,9 @@ end
 function ENT:ShowOutput()
 	local text
 	if self.includeconstrained == 0 then
-		text = ( "Damage Detector\n" ..
-				 "(Individual Props)\n" )
+		text = "(Individual Props)\n"
 	else
-		text = ( "Damage Detector\n" ..
-				 "(Constrained Props)\n" )
+		text = "(Constrained Props)\n"
 	end
 
 	local linkedent
