@@ -131,7 +131,7 @@ function TOOL:Think()
 end
 
 function TOOL.BuildCPanel(panel)
-	panel:AddControl("Header", { Text = "#Tool_wire_watersensor_name", Description = "#Tool_wire_watersensor_desc" })
+	panel:AddControl("Header", { Text = "#Tool.wire_watersensor.name", Description = "#Tool.wire_watersensor.desc" })
 	panel:AddControl("Label", {Text = "Model Size (if available)"})
 	panel:AddControl("ComboBox", {
 		Label = "Model Size",

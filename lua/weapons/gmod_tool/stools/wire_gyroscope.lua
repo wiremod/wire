@@ -144,7 +144,7 @@ function TOOL:GetModel()
 end
 
 function TOOL.BuildCPanel(panel)
-	panel:AddControl("Header", { Text = "#Tool_wire_gyroscope_name", Description = "#Tool_wire_gyroscope_desc" })
+	panel:AddControl("Header", { Text = "#Tool.wire_gyroscope.name", Description = "#Tool.wire_gyroscope.desc" })
 	ModelPlug_AddToCPanel(panel, "gyroscope", "wire_gyroscope", "#ToolWireGyroscope_Model")
 	panel:AddControl( "Checkbox", { Label = "#Tool_wire_gyroscope_out180", Command = "wire_gyroscope_out180" } )
 end

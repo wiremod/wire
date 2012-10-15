@@ -284,7 +284,7 @@ list.Set( "wire_socket_models", "models/wingf0x/ethernetsocket.mdl", {} )
 list.Set( "wire_socket_models", "models/wingf0x/hdmisocket.mdl", {} )
 
 function TOOL.BuildCPanel(panel)
-	panel:AddControl("Header", { Text = "#Tool_wire_dataplug_name", Description = "#Tool_wire_dataplug_desc" })
+	panel:AddControl("Header", { Text = "#Tool.wire_dataplug.name", Description = "#Tool.wire_dataplug.desc" })
 
 	local mdl = vgui.Create("DWireModelSelect",CPanel)
 	mdl:SetModelList( list.Get( "wire_socket_models" ), "wire_dataplug_model" )

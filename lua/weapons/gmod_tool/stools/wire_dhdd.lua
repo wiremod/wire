@@ -35,7 +35,7 @@ else
 	----------------------------------------------------------------------------------------------------
 
 	function TOOL.BuildCPanel( CPanel )
-		CPanel:AddControl("Header", { Text = "#Tool_wire_dhdd_name", Description = "#Tool_wire_dhdd_desc" })
+		CPanel:AddControl("Header", { Text = "#Tool.wire_dhdd.name", Description = "#Tool.wire_dhdd.desc" })
 
 		local mdl = vgui.Create("DWireModelSelect",CPanel)
 		mdl:SetModelList( list.Get( "Wire_gate_Models" ), "wire_dhdd_model" )

@@ -151,7 +151,7 @@ else
 	function TOOL:Reload( trace ) return !trace.Entity:IsPlayer() end
 
 	function TOOL.BuildCPanel(panel)
-		panel:AddControl("Header", { Text = "#Tool_wire_adv_emarker_name", Description = "#Tool_wire_adv_emarker_desc" })
+		panel:AddControl("Header", { Text = "#Tool.wire_adv_emarker.name", Description = "#Tool.wire_adv_emarker.desc" })
 		WireDermaExts.ModelSelect(panel, "wire_adv_emarker_model", list.Get( "Wire_Misc_Tools_Models" ), 8)
 	end
 

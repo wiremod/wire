@@ -181,7 +181,7 @@ function TOOL:GetModel()
 end
 
 function TOOL.BuildCPanel(panel)
-	panel:AddControl("Header", { Text = "#Tool_wire_ranger_name", Description = "#Tool_wire_ranger_desc" })
+	panel:AddControl("Header", { Text = "#Tool.wire_ranger.name", Description = "#Tool.wire_ranger.desc" })
 
 	panel:AddControl("ComboBox", {
 		Label = "#Presets",

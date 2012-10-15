@@ -181,7 +181,7 @@ end
 
 function TOOL.BuildCPanel( CPanel )
 	// HEADER
-	CPanel:AddControl( "Header", { Text = "#Tool_wire_fx_emitter_name", Description	= "#Tool_wire_fx_emitter_desc" }  )
+	CPanel:AddControl( "Header", { Text = "#Tool.wire_fx_emitter.name", Description	= "#Tool.wire_fx_emitter.desc" }  )
 
 	// EMITTERS
 	local params = { Label = "#Effect", Height = "250", MenuButton="0", Options = {} }

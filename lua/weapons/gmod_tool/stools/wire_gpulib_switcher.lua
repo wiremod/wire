@@ -13,7 +13,7 @@ if (CLIENT) then
 	language.Add("Tool.wire_gpulib_switcher.1", "Primary: Link selected GPULib Screen to this prop/entity, Secondary: Place GPULib controller for the selected screen, Reload: Cancel")
 
 	function TOOL.BuildCPanel(panel)
-		panel:AddControl("Header", { Text = "#Tool_wire_gpulib_switcher_name", Description = "#Tool_wire_gpulib_switcher_desc" })
+		panel:AddControl("Header", { Text = "#Tool.wire_gpulib_switcher.name", Description = "#Tool.wire_gpulib_switcher.desc" })
 		WireDermaExts.ModelSelect(panel, "wire_gpulib_switcher_model", list.Get( "Wire_Misc_Tools_Models" ), 1)
 	end
 

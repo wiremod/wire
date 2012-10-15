@@ -116,6 +116,6 @@ function TOOL:Think()
 end
 
 function TOOL.BuildCPanel(panel)
-	panel:AddControl("Header", { Text = "#Tool_wire_locator_name", Description = "#Tool_wire_locator_desc" })
+	panel:AddControl("Header", { Text = "#Tool.wire_locator.name", Description = "#Tool.wire_locator.desc" })
 end
 

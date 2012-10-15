@@ -197,7 +197,7 @@ function TOOL:Think()
 end
 
 function TOOL.BuildCPanel(panel)
-	panel:AddControl("Header", { Text = "#Tool_wire_cd_ray_name", Description = "#Tool_wire_cd_ray_desc" })
+	panel:AddControl("Header", { Text = "#Tool.wire_cd_ray.name", Description = "#Tool.wire_cd_ray.desc" })
 
 
 	panel:AddControl( "PropSelect", { Label = "#WireCDRayTool_Model",

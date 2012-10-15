@@ -199,7 +199,7 @@ function TOOL:Think()
 end
 
 function TOOL.BuildCPanel(panel)
-	panel:AddControl("Header", { Text = "#Tool_wire_damage_detector_name", Description = "#Tool_wire_damage_detector_desc" })
+	panel:AddControl("Header", { Text = "#Tool.wire_damage_detector.name", Description = "#Tool.wire_damage_detector.desc" })
 
 	panel:AddControl("CheckBox", {
 		Label = "#WireDamageDetectorTool_includeconstrained",

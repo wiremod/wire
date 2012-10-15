@@ -129,7 +129,7 @@ function TOOL:Think()
 end
 
 function TOOL.BuildCPanel(panel)
-	panel:AddControl("Header", { Text = "#Tool_wire_nailer_name", Description = "#Tool_wire_nailer_desc" })
+	panel:AddControl("Header", { Text = "#Tool.wire_nailer.name", Description = "#Tool.wire_nailer.desc" })
 
 	panel:AddControl("ComboBox", {
 		Label = "#Presets",

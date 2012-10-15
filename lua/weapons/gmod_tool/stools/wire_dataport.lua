@@ -115,6 +115,6 @@ function TOOL:Think()
 end
 
 function TOOL.BuildCPanel(panel)
-	panel:AddControl("Header", { Text = "#Tool_wire_dataport_name", Description = "#Tool_wire_dataport_desc" })
+	panel:AddControl("Header", { Text = "#Tool.wire_dataport.name", Description = "#Tool.wire_dataport.desc" })
 end
 

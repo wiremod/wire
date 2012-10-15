@@ -6,7 +6,7 @@ TOOL.Tab			= "Wire"
 
 if ( CLIENT ) then
     language.Add( "Tool.wire_gps.name", "GPS Tool (Wire)" )
-    language.Add( "Tool.wire_gps.desc", "Spawns a gps for use with the wire system." )
+    language.Add( "Tool.wire_gps.desc", "Spawns a GPS for use with the wire system." )
     language.Add( "Tool.wire_gps.0", "Primary: Create/Update GPS" )
 	language.Add( "sboxlimit_wire_gpss", "You've hit GPS limit!" )
 	language.Add( "undone_wiregps", "Undone Wire GPS" )
@@ -136,7 +136,7 @@ function TOOL:Think()
 end
 
 function TOOL.BuildCPanel(panel)
-	panel:AddControl("Header", { Text = "#Tool_wire_gps_name", Description = "#Tool_wire_gps_desc" })
+	panel:AddControl("Header", { Text = "#Tool.wire_gps.name", Description = "#Tool.wire_gps.desc" })
 	panel:AddControl("Label", {Text = "Model Size (if available)"})
 	panel:AddControl("ComboBox", {
 		Label = "Model Size",

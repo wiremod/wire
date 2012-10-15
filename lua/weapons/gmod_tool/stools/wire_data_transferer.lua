@@ -139,7 +139,7 @@ function TOOL:Think()
 end
 
 function TOOL.BuildCPanel(panel)
-	panel:AddControl("Header", { Text = "#Tool_wire_data_transferer_name", Description = "#Tool_wire_data_transferer_desc" })
+	panel:AddControl("Header", { Text = "#Tool.wire_data_transferer.name", Description = "#Tool.wire_data_transferer.desc" })
 
 	panel:AddControl("ComboBox", {
 		Label = "#Presets",

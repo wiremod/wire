@@ -167,7 +167,7 @@ function TOOL:Think()
 end
 
 function TOOL.BuildCPanel(panel)
-	panel:AddControl("Header", { Text = "#Tool_wire_waypoint_name", Description = "#Tool_wire_waypoint_desc" })
+	panel:AddControl("Header", { Text = "#Tool.wire_waypoint.name", Description = "#Tool.wire_waypoint.desc" })
 
 	panel:AddControl("Slider", {
 		Label = "#WireWaypointTool_range",

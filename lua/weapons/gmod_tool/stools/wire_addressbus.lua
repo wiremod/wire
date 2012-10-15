@@ -198,7 +198,7 @@ function TOOL:Think()
 end
 
 function TOOL.BuildCPanel(panel)
-	panel:AddControl("Header", { Text = "#Tool_wire_addressbus_name", Description = "#Tool_wire_addressbus_desc" })
+	panel:AddControl("Header", { Text = "#Tool.wire_addressbus.name", Description = "#Tool.wire_addressbus.desc" })
 
 	panel:AddControl("ComboBox", {
 		Label = "#Presets",

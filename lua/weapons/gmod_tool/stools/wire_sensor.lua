@@ -195,7 +195,7 @@ function TOOL:Think()
 end
 
 function TOOL.BuildCPanel( panel )
-	panel:AddControl( "Header", { Text = "#Tool_wire_sensor_name", Description	= "#Tool_wire_sensor_desc" }  )
+	panel:AddControl( "Header", { Text = "#Tool.wire_sensor.name", Description	= "#Tool.wire_sensor.desc" }  )
 
 	panel:AddControl("CheckBox", {
 		Label = "#WireSensorTool_xyz_mode",

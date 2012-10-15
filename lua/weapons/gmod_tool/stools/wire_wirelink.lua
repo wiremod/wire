@@ -146,5 +146,5 @@ function TOOL:RightClick(trace)
 end
 
 function TOOL.BuildCPanel(panel)
-	panel:AddControl("Header", { Text = "#Tool_wire_wirelink_name", Description = "#Tool_wire_wirelink_desc" })
+	panel:AddControl("Header", { Text = "#Tool.wire_wirelink.name", Description = "#Tool.wire_wirelink.desc" })
 end

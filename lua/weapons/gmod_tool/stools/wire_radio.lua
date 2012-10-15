@@ -148,7 +148,7 @@ function TOOL:GetModel()
 end
 
 function TOOL.BuildCPanel(panel)
-	panel:AddControl("Header", { Text = "#Tool_wire_radio_name", Description = "#Tool_wire_radio_desc" })
+	panel:AddControl("Header", { Text = "#Tool.wire_radio.name", Description = "#Tool.wire_radio.desc" })
 
 	panel:AddControl("ComboBox", {
 		Label = "#Presets",

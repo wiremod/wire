@@ -271,8 +271,8 @@ if (CLIENT) then
 		panel:ClearControls()
 
 		panel:AddControl("Header", {
-			Text = "#Tool_wire_eyepod_name",
-			Description = "#Tool_wire_eyepod_desc"
+			Text = "#Tool.wire_eyepod.name",
+			Description = "#Tool.wire_eyepod.desc"
 		})
 
 		//preset chooser

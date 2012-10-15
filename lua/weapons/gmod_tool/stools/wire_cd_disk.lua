@@ -139,7 +139,7 @@ function TOOL:Think()
 end
 
 function TOOL.BuildCPanel(panel)
-	panel:AddControl("Header", { Text = "#Tool_wire_cd_disk_name", Description = "#Tool_wire_cd_disk_desc" })
+	panel:AddControl("Header", { Text = "#Tool.wire_cd_disk.name", Description = "#Tool.wire_cd_disk.desc" })
 
 	panel:AddControl("Slider", {
 		Label = "Disk density (inches per block, ipb)",

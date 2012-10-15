@@ -197,7 +197,7 @@ function TOOL:Think()
 end
 
 function TOOL.BuildCPanel(panel)
-	panel:AddControl("Header", { Text = "#Tool_wire_relay_name", Description = "#Tool_wire_relay_desc" })
+	panel:AddControl("Header", { Text = "#Tool.wire_relay.name", Description = "#Tool.wire_relay.desc" })
 
 	panel:AddControl("ComboBox", {
 		Label = "#Presets",

@@ -174,7 +174,7 @@ function TOOL:GetModel()
 end
 
 function TOOL.BuildCPanel(panel)
-	panel:AddControl("Header", { Text = "#Tool_wire_keyboard_name", Description = "#Tool_wire_keyboard_desc" })
+	panel:AddControl("Header", { Text = "#Tool.wire_keyboard.name", Description = "#Tool.wire_keyboard.desc" })
 	ModelPlug_AddToCPanel(panel, "Keyboard", "wire_keyboard", "#ToolWireIndicator_Model")
 
 	local sync = vgui.Create( "DCheckBoxLabel" )

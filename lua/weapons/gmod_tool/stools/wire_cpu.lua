@@ -253,7 +253,7 @@ if CLIENT then
   -- Build tool control panel
   ------------------------------------------------------------------------------
   function TOOL.BuildCPanel(panel)
-    panel:AddControl("Header", { Text = "#Tool_wire_cpu_name", Description = "#Tool_wire_cpu_desc" })
+    panel:AddControl("Header", { Text = "#Tool.wire_cpu.name", Description = "#Tool.wire_cpu.desc" })
 
 
     ----------------------------------------------------------------------------

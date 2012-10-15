@@ -254,7 +254,7 @@ function TOOL:Holster()
 end
 
 function TOOL.BuildCPanel(panel)
-	panel:AddControl("Header", { Text = "#Tool_wire_vthruster_name", Description = "#Tool_wire_vthruster_desc" })
+	panel:AddControl("Header", { Text = "#Tool.wire_vthruster.name", Description = "#Tool.wire_vthruster.desc" })
 
 	panel:AddControl("ComboBox", {
 		Label = "#Presets",

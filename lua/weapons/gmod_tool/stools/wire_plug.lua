@@ -61,7 +61,7 @@ else
 	list.Set( "wire_socket_models", "models/wingf0x/hdmisocket.mdl", {} )
 
 	function TOOL.BuildCPanel( CPanel )
-		CPanel:AddControl("Header", { Text = "#Tool_wire_plug_name", Description = "#Tool_wire_plug_desc" })
+		CPanel:AddControl("Header", { Text = "#Tool.wire_plug.name", Description = "#Tool.wire_plug.desc" })
 
 		local mdl = vgui.Create("DWireModelSelect",CPanel)
 		mdl:SetModelList( list.Get( "wire_socket_models" ), "wire_plug_model" )

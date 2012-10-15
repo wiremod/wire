@@ -554,7 +554,7 @@ if (CLIENT) then
 end
 
 function TOOL.BuildCPanel(panel)
-	panel:AddControl("Header", { Text = "#Tool_wire_debugger_name", Description = "#Tool_wire_debugger_desc" })
+	panel:AddControl("Header", { Text = "#Tool.wire_debugger.name", Description = "#Tool.wire_debugger.desc" })
 
 	panel:AddControl("CheckBox", {
 			Label = "#Tool_wire_debugger_showports",

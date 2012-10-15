@@ -121,6 +121,6 @@ function TOOL:Think()
 end
 
 function TOOL.BuildCPanel(panel)
-	panel:AddControl("Header", { Text = "#Tool_wire_datarate_name", Description = "#Tool_wire_datarate_desc" })
+	panel:AddControl("Header", { Text = "#Tool.wire_datarate.name", Description = "#Tool.wire_datarate.desc" })
 end
 

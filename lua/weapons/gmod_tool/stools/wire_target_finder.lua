@@ -310,7 +310,7 @@ function TOOL:Think()
 end
 
 function TOOL.BuildCPanel(panel)
-	panel:AddControl("Header", { Text = "#Tool_wire_target_finder_name", Description = "#Tool_wire_target_finder_desc" })
+	panel:AddControl("Header", { Text = "#Tool.wire_target_finder.name", Description = "#Tool.wire_target_finder.desc" })
 
 	panel:AddControl("Label", {Text = "Model Size (if available)"})
 	panel:AddControl("ComboBox", {

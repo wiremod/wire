@@ -233,7 +233,7 @@ if CLIENT then
   -- Build tool control panel
   ------------------------------------------------------------------------------
   function TOOL.BuildCPanel(panel)
-    panel:AddControl("Header", { Text = "#Tool_wire_gpu_name", Description = "#Tool_wire_gpu_desc" })
+    panel:AddControl("Header", { Text = "#Tool.wire_gpu.name", Description = "#Tool.wire_gpu.desc" })
 
 
     ----------------------------------------------------------------------------

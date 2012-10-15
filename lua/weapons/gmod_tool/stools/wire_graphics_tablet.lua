@@ -134,7 +134,7 @@ function TOOL:Think()
 end
 
 function TOOL.BuildCPanel(panel)
-	panel:AddControl("Header", { Text = "#Tool_wire_graphics_tablet_name", Description = "#Tool_wire_graphics_tablet_desc" })
+	panel:AddControl("Header", { Text = "#Tool.wire_graphics_tablet.name", Description = "#Tool.wire_graphics_tablet.desc" })
 
 	WireDermaExts.ModelSelect(panel, "wire_graphics_tablet_model", list.Get( "WireScreenModels" ), 2) -- screen with out a GPUlip setup
 	panel:AddControl("CheckBox", {

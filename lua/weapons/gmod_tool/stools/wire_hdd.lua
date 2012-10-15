@@ -361,7 +361,7 @@ else
 end
 ]]--
 function TOOL.BuildCPanel(panel)
-	panel:AddControl("Header", { Text = "#Tool_wire_hdd_name", Description = "#Tool_wire_hdd_desc" })
+	panel:AddControl("Header", { Text = "#Tool.wire_hdd.name", Description = "#Tool.wire_hdd.desc" })
 
 	local mdl = vgui.Create("DWireModelSelect")
 	mdl:SetModelList( list.Get("Wire_gate_Models"), "wire_hdd_model" )

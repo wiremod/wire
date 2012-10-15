@@ -167,7 +167,7 @@ function TOOL:Think()
 end
 
 function TOOL.BuildCPanel(panel)
-	panel:AddControl("Header", { Text = "#Tool_wire_twoway_radio_name", Description = "#Tool_wire_twoway_radio_desc" })
+	panel:AddControl("Header", { Text = "#Tool.wire_twoway_radio.name", Description = "#Tool.wire_twoway_radio.desc" })
 
 	ModelPlug_AddToCPanel(panel, "radio2", "wire_twoway_radio", "#WireRadioTwoWayTool_model", nil, "#WireRadioTwoWayTool_model")
 end

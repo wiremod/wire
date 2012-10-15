@@ -123,7 +123,7 @@ function TOOL:GetModel()
 end
 
 function TOOL.BuildCPanel(panel)
-	panel:AddControl("Header", { Text = "#Tool_wire_las_reciever_name", Description = "#Tool_wire_las_reciever_desc" })
+	panel:AddControl("Header", { Text = "#Tool.wire_las_reciever.name", Description = "#Tool.wire_las_reciever.desc" })
 
 	panel:AddControl("ComboBox", {
 		Label = "#Presets",

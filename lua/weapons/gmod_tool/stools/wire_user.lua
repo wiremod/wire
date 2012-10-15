@@ -134,7 +134,7 @@ function TOOL:Think()
 end
 
 function TOOL.BuildCPanel(panel)
-	panel:AddControl("Header", { Text = "#Tool_wire_user_name", Description = "#Tool_wire_user_desc" })
+	panel:AddControl("Header", { Text = "#Tool.wire_user.name", Description = "#Tool.wire_user.desc" })
 
 	panel:AddControl( "PropSelect", { Label = "#WireUserTool_Model",
 									 ConVar = "wire_user_Model",

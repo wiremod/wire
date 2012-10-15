@@ -49,7 +49,7 @@ end
 
 
 function TOOL.BuildCPanel(panel)
-	panel:AddControl("Header", { Text = "#Tool_wire_namer_name", Description = "#Tool_wire_namer_desc" })
+	panel:AddControl("Header", { Text = "#Tool.wire_namer.name", Description = "#Tool.wire_namer.desc" })
 
 	panel:AddControl("TextBox", {
 		Label = "#WireNamerTool_name",

@@ -345,7 +345,7 @@ if (CLIENT) then
 
 		panel:AddControl( "Label", { Text = "EGP v3 by Divran" }  )
 
-		panel:AddControl("Header", { Text = "#Tool_wire_egp_name", Description = "#Tool_wire_egp_desc" })
+		panel:AddControl("Header", { Text = "#Tool.wire_egp.name", Description = "#Tool.wire_egp.desc" })
 		WireDermaExts.ModelSelect(panel, "wire_egp_model", list.Get( "WireScreenModels" ), 5)
 
 		local cbox = {}

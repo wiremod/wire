@@ -135,7 +135,7 @@ function TOOL:Think()
 end
 
 function TOOL.BuildCPanel(panel)
-	panel:AddControl("Header", { Text = "#Tool_wire_colorer_name", Description = "#Tool_wire_colorer_desc" })
+	panel:AddControl("Header", { Text = "#Tool.wire_colorer.name", Description = "#Tool.wire_colorer.desc" })
 
 	panel:AddControl("ComboBox", {
 		Label = "#Presets",

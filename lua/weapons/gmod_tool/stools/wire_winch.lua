@@ -348,7 +348,7 @@ function TOOL:GetModel()
 end
 
 function TOOL.BuildCPanel(panel)
-	panel:AddControl("Header", { Text = "#Tool_wire_winch_name", Description = "#Tool_wire_winch_desc" })
+	panel:AddControl("Header", { Text = "#Tool.wire_winch.name", Description = "#Tool.wire_winch.desc" })
 	WireDermaExts.ModelSelect(panel, "wire_winch_model", list.Get( "Wire_Misc_Tools_Models" ), 1)
 
 	panel:AddControl("CheckBox", {

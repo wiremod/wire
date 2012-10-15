@@ -397,7 +397,7 @@ function TOOL:Holster()
 end
 
 function TOOL.BuildCPanel(panel)
-	panel:AddControl("Header", { Text = "#Tool_wire_hudindicator_name", Description = "#Tool_wire_hudindicator_desc" })
+	panel:AddControl("Header", { Text = "#Tool.wire_hudindicator.name", Description = "#Tool.wire_hudindicator.desc" })
 
 	panel:AddControl("ComboBox", {
 		Label = "#Presets",

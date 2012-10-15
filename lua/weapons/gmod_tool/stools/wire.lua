@@ -279,7 +279,7 @@ end
 
 
 function TOOL.BuildCPanel(panel)
-	panel:AddControl("Header", { Text = "#Tool_wire_name", Description = "#Tool_wire_desc" })
+	panel:AddControl("Header", { Text = "#Tool.wire.name", Description = "#Tool.wire.desc" })
 
 	panel:AddControl("ComboBox", {
 		Label = "#Presets",

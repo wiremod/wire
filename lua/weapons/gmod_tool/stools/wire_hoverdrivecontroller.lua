@@ -100,7 +100,7 @@ else
 						 ["models/props_wasteland/laundry_washer003.mdl"] = {} }
 
 	function TOOL.BuildCPanel(panel)
-		panel:AddControl("Header", { Text = "#Tool_wire_hoverdrivecontroller_name", Description = "#Tool_wire_hoverdrivecontroller_desc" })
+		panel:AddControl("Header", { Text = "#Tool.wire_hoverdrivecontroller.name", Description = "#Tool.wire_hoverdrivecontroller.desc" })
 		panel:AddControl( "PropSelect", {
 			Label = "#Models (Or click Reload to select a model)",
 			ConVar = "wire_hoverdrivecontroller_model",
