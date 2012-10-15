@@ -13,17 +13,6 @@ function ENT:Initialize()
 end
 
 /*---------------------------------------------------------
-   Name: Draw
----------------------------------------------------------*/
-function ENT:Draw()
-
-	self.BaseClass.Draw( self )
-
-	Wire_Render(self)
-
-end
-
-/*---------------------------------------------------------
    Name: DrawTranslucent
    Desc: Draw translucent
 ---------------------------------------------------------*/

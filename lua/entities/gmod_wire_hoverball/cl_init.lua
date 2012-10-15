@@ -27,8 +27,6 @@ function ENT:Draw()
 	if ( self.ShouldDraw == 0 ) then return end
 	self.BaseClass.Draw( self )
 
-	Wire_Render(self)
-
 end
 
 /*---------------------------------------------------------
