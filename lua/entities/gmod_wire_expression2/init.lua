@@ -390,7 +390,7 @@ function ENT:Setup(buffer, includes, restore, forcecompile)
 	end
 
 	self:SetOverlayText("Expression 2\n" .. self.name)
-	self:SetColor(255, 255, 255, self:GetColor().a)
+	self:SetColor(Color(255, 255, 255, self:GetColor().a))
 
 	local ok, msg = pcall(self.CallHook, self, 'construct')
 	if not ok then
