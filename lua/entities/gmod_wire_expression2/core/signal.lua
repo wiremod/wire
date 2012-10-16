@@ -22,7 +22,7 @@ local currentSignal = nil
 -- executes a chip's code
 local function triggerSignal(receiverid, signaldata)
 	local receiver = Entity(receiverid)
-	if not validEntity(receiver) or not receiver.Execute then return end
+	if not IsValid(receiver) or not receiver.Execute then return end
 	currentSignal = signaldata
 	receiver:Execute()
 	if (signaldata.sender and signaldata.sender:IsValid()) then signaldata.sender.context.prf = signaldata.sender.context.prf + 80 end
@@ -210,7 +210,7 @@ __e2setcost(10)
 
 --- Sends signal S to the given chip. Multiple calls for different chips do not overwrite each other.
 e2function void signalSendDirect(string name, entity receiver)
-	if not validEntity(receiver) then return end
+	if not IsValid(receiver) then return end
 
 	local receiverid = receiver:EntIndex()
 
@@ -233,7 +233,7 @@ __e2setcost(20)
 
 --- sends signal S to chips owned by the given player, multiple calls for different players do not overwrite each other
 e2function void signalSendToPlayer(string name, entity player)
-	if not validEntity(player) then return end
+	if not IsValid(player) then return end
 	broadcastSignal(self.data.signalgroup, name, 1, self.entity, player)
 end
 

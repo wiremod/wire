@@ -31,7 +31,7 @@ end
 --------------------------------------------------------------------------------
 
 local function checkOwner(self)
-	return E2Lib.validEntity(self.player);
+	return E2Lib.IsValid(self.player);
 end
 
 

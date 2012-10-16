@@ -138,11 +138,11 @@ function E2Lib.replace_function(funcname, func)
 	wire_expression2_CallHook("e2lib_replace_function", funcname, func, oldfunc)
 end
 
-E2Lib.validEntity = _R.Entity.IsValid -- this covers all cases the old validEntity covered, and more (strings, PhysObjs, etc.). it's also significantly faster.
-local validEntity = E2Lib.validEntity
+E2Lib.IsValid = IsValid
+local IsValid = E2Lib.IsValid
 
 function E2Lib.validPhysics(entity)
-	if validEntity(entity) then
+	if IsValid(entity) then
 		if entity:IsWorld() then return false end
 		if entity:GetMoveType() ~= MOVETYPE_VPHYSICS then return false end
 		return entity:GetPhysicsObject():IsValid()
@@ -155,7 +155,7 @@ function E2Lib.getOwner(self, entity)
 	if entity == self.entity or entity == self.player then return self.player end
 	if entity.GetPlayer then
 		local ply = entity:GetPlayer()
-		if validEntity(ply) then return ply end
+		if IsValid(ply) then return ply end
 	end
 
 	local OnDieFunctions = entity.OnDieFunctions
@@ -174,7 +174,7 @@ function E2Lib.getOwner(self, entity)
 
 	if entity.GetOwner then
 		local ply = entity:GetOwner()
-		if validEntity(ply) then return ply end
+		if IsValid(ply) then return ply end
 	end
 
 	return nil
@@ -192,15 +192,15 @@ end
 function E2Lib.isOwner(self, entity)
 	local player = self.player
 	local owner = getOwner(self, entity)
-	if not validEntity(owner) then return false end
+	if not IsValid(owner) then return false end
 
 	return E2Lib.isFriend(owner, player)
 end
 local isOwner = E2Lib.isOwner
 
--- This function is only here for compatibility. Use validEntity() in new code.
+-- This function is only here for compatibility. Use IsValid() in new code.
 function E2Lib.checkEntity(entity)
-	if validEntity(entity) then return entity end
+	if IsValid(entity) then return entity end
 	return nil
 end
 
@@ -208,11 +208,11 @@ end
 function E2Lib.canModifyPlayer(self, ply)
 	if ply == self.player then return true end
 
-	if not validEntity(ply) then return false end
+	if not IsValid(ply) then return false end
 	if not ply:IsPlayer() then return false end
 
 	local vehicle = ply:GetVehicle()
-	if not validEntity(vehicle) then return false end
+	if not IsValid(vehicle) then return false end
 	return isOwner(self, vehicle)
 end
 
@@ -233,7 +233,7 @@ local table_length_lookup = {
 }
 
 function E2Lib.guess_type(value)
-	if validEntity(value) then return "e" end
+	if IsValid(value) then return "e" end
 	if value.EntIndex then return "e" end
 	local vtype = type(v)
 	if type_lookup[vtype] then return type_lookup[vtype] end
@@ -535,7 +535,7 @@ end
 
 -- Some functions need to be global for backwards-compatibility.
 local makeglobal = {
-	["validEntity"] = true,
+	["IsValid"] = true,
 	["validPhysics"] = true,
 	["getOwner"] = true,
 	["isOwner"] = true,
@@ -553,7 +553,7 @@ hook.Add("InitPostEntity", "e2lib", function()
 		if makeglobal[funcname] then
 			_G[funcname] = func
 		end
-		if funcname == "validEntity" then validEntity = func
+		if funcname == "IsValid" then IsValid = func
 		elseif funcname == "isOwner" then isOwner = func
 		end
 	end)
@@ -582,7 +582,7 @@ hook.Add("InitPostEntity", "e2lib", function()
 				if entity == self.entity or entity == self.player then return self.player end
 
 				local owner = entity:CPPIGetOwner()
-				if validEntity(owner) then return owner end
+				if IsValid(owner) then return owner end
 
 				return _getOwner(self, entity)
 			end)

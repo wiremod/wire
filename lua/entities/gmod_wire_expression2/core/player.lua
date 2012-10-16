@@ -2,13 +2,13 @@
   Player-Entity support
 \******************************************************************************/
 
-local validEntity = E2Lib.validEntity
+local IsValid = E2Lib.IsValid
 local isOwner = E2Lib.isOwner
 registerCallback("e2lib_replace_function", function(funcname, func, oldfunc)
 	if funcname == "isOwner" then
 		isOwner = func
-	elseif funcname == "validEntity" then
-		validEntity = func
+	elseif funcname == "IsValid" then
+		IsValid = func
 	end
 end)
 
@@ -17,13 +17,13 @@ end)
 __e2setcost(5) -- temporary
 
 e2function number entity:isAdmin()
-	if not validEntity(this) then return 0 end
+	if not IsValid(this) then return 0 end
 	if not this:IsPlayer() then return 0 end
 	if this:IsAdmin() then return 1 else return 0 end
 end
 
 e2function number entity:isSuperAdmin()
-	if not validEntity(this) then return 0 end
+	if not IsValid(this) then return 0 end
 	if not this:IsPlayer() then return 0 end
 	if this:IsSuperAdmin() then return 1 else return 0 end
 end
@@ -33,14 +33,14 @@ end
 __e2setcost(8)
 
 e2function vector entity:shootPos()
-	if(!validEntity(this)) then return {0,0,0} end
+	if(!IsValid(this)) then return {0,0,0} end
 	if(this:IsPlayer() or this:IsNPC()) then
 		return this:GetShootPos()
 	else return {0,0,0} end
 end
 
 e2function vector entity:eye()
-	if (!validEntity(this)) then return {0,0,0} end
+	if (!IsValid(this)) then return {0,0,0} end
 	if (this:IsPlayer()) then
 		return this:GetAimVector()
 	else
@@ -50,7 +50,7 @@ end
 
 --- Returns a local angle describing player <this>'s view angles.
 e2function angle entity:eyeAngles()
-	if not validEntity(this) then return { 0, 0, 0} end
+	if not IsValid(this) then return { 0, 0, 0} end
 	local ang = this:EyeAngles()
 	return { ang.p, ang.y, ang.r }
 end
@@ -60,19 +60,19 @@ end
 __e2setcost(5)
 
 e2function string entity:name()
-	if(!validEntity(this)) then return "" end
+	if(!IsValid(this)) then return "" end
 	if(!this:IsPlayer()) then return "" end
 	return this:Name()
 end
 
 e2function string entity:steamID()
-	if(!validEntity(this)) then return "" end
+	if(!IsValid(this)) then return "" end
 	if(!this:IsPlayer()) then return "" end
 	return this:SteamID()
 end
 
 e2function number entity:armor()
-	if(!validEntity(this)) then return 0 end
+	if(!IsValid(this)) then return 0 end
 	if(this:IsPlayer() or this:IsNPC()) then return this:Armor() else return 0 end
 end
 
@@ -81,12 +81,12 @@ end
 __e2setcost(5)
 
 e2function number entity:isCrouch()
-	if(!validEntity(this)) then return 0 end
+	if(!IsValid(this)) then return 0 end
 	if(this:IsPlayer() and this:Crouching()) then return 1 else return 0 end
 end
 
 e2function number entity:isAlive()
-	if(!validEntity(this)) then return 0 end
+	if(!IsValid(this)) then return 0 end
 	if(this:IsPlayer() and this:Alive()) then return 1 end
 	if(this:IsNPC() and this:Health() > 0) then return 1 end
 	return 0
@@ -95,7 +95,7 @@ end
 /******************************************************************************/
 
 e2function number entity:frags()
-	if(!validEntity(this)) then return 0 end
+	if(!IsValid(this)) then return 0 end
 	if(this:IsPlayer()) then return this:Frags() else return 0 end
 end
 
@@ -107,7 +107,7 @@ end
 /******************************************************************************/
 
 e2function number entity:team()
-	if(!validEntity(this)) then return 0 end
+	if(!IsValid(this)) then return 0 end
 	if(this:IsPlayer()) then return this:Team() else return 0 end
 end
 
@@ -152,31 +152,31 @@ end
 /******************************************************************************/
 
 e2function number entity:keyAttack1()
-	if not validEntity(this) then return 0 end
+	if not IsValid(this) then return 0 end
 	if this:IsPlayer() and this:KeyDown(1) then return 1 end -- IN_ATTACK
 	return 0
 end
 
 e2function number entity:keyAttack2()
-	if not validEntity(this) then return 0 end
+	if not IsValid(this) then return 0 end
 	if this:IsPlayer() and this:KeyDown(2048) then return 1 end -- IN_ATTACK2
 	return 0
 end
 
 e2function number entity:keyUse()
-	if not validEntity(this) then return 0 end
+	if not IsValid(this) then return 0 end
 	if this:IsPlayer() and this:KeyDown(32) then return 1 end -- IN_USE
 	return 0
 end
 
 e2function number entity:keyReload()
-    if not validEntity(this) then return 0 end
+    if not IsValid(this) then return 0 end
     if this:IsPlayer() and this:KeyDown( IN_RELOAD ) then return 1 end
     return 0
 end
 
 e2function number entity:keyZoom()
-    if not validEntity(this) then return 0 end
+    if not IsValid(this) then return 0 end
     if this:IsPlayer() and this:KeyDown( IN_ZOOM ) then return 1 end
     return 0
 end
@@ -208,7 +208,7 @@ if CPPI and _R.Player.CPPIGetFriends then
 	end
 
 	e2function array entity:friends()
-		if not validEntity(this) then return {} end
+		if not IsValid(this) then return {} end
 		if not this:IsPlayer() then return {} end
 		if not Trusts(this, self.player) then return {} end
 
@@ -218,7 +218,7 @@ if CPPI and _R.Player.CPPIGetFriends then
 	end
 
 	e2function number entity:trusts(entity whom)
-		if not validEntity(this) then return 0 end
+		if not IsValid(this) then return 0 end
 		if not this:IsPlayer() then return 0 end
 		if not Trusts(this, self.player) then return 0 end
 
@@ -264,7 +264,7 @@ __e2setcost(15)
 
 --- Returns an array containing <this>'s steam friends currently on the server
 e2function array entity:steamFriends()
-	if not validEntity(this) then return {} end
+	if not IsValid(this) then return {} end
 	if not this:IsPlayer() then return {} end
 	if not Trusts(this, self.player) then return {} end
 
@@ -273,7 +273,7 @@ end
 
 --- Returns 1 if <this> and <friend> are steam friends, 0 otherwise.
 e2function number entity:isSteamFriend(entity friend)
-	if not validEntity(this) then return 0 end
+	if not IsValid(this) then return 0 end
 	if not this:IsPlayer() then return 0 end
 	if not Trusts(this, self.player) then return 0 end
 
@@ -288,23 +288,23 @@ end
 __e2setcost(5)
 
 e2function number entity:ping()
-	if not validEntity(this) then return 0 end
+	if not IsValid(this) then return 0 end
 	if(this:IsPlayer()) then return this:Ping() else return 0 end
 end
 
 e2function number entity:timeConnected()
-	if not validEntity(this) then return 0 end
+	if not IsValid(this) then return 0 end
 	if(this:IsPlayer()) then return this:TimeConnected() else return 0 end
 end
 
 e2function entity entity:vehicle()
-	if not validEntity(this) then return nil end
+	if not IsValid(this) then return nil end
 	if not this:IsPlayer() then return nil end
 	return this:GetVehicle()
 end
 
 e2function number entity:inVehicle()
-	if not validEntity(this) then return 0 end
+	if not IsValid(this) then return 0 end
 	if(this:IsPlayer() and this:InVehicle()) then return 1 else return 0 end
 end
 
@@ -347,7 +347,7 @@ end
 /******************************************************************************/
 
 e2function entity entity:aimEntity()
-	if not validEntity(this) then return nil end
+	if not IsValid(this) then return nil end
 	if not this:IsPlayer() then return nil end
 
 	local ent = this:GetEyeTraceNoCursor().Entity
@@ -356,14 +356,14 @@ e2function entity entity:aimEntity()
 end
 
 e2function vector entity:aimPos()
-	if not validEntity(this) then return {0,0,0} end
+	if not IsValid(this) then return {0,0,0} end
 	if not this:IsPlayer() then return {0,0,0} end
 
 	return this:GetEyeTraceNoCursor().HitPos
 end
 
 e2function vector entity:aimNormal()
-	if not validEntity(this) then return {0,0,0} end
+	if not IsValid(this) then return {0,0,0} end
 	if not this:IsPlayer() then return {0,0,0} end
 
 	return this:GetEyeTraceNoCursor().HitNormal
@@ -371,18 +371,18 @@ end
 
 --- Returns the bone the player is currently aiming at.
 e2function bone entity:aimBone()
-	if not validEntity(this) then return nil end
+	if not IsValid(this) then return nil end
 	if not this:IsPlayer() then return nil end
 
 	local trace = this:GetEyeTraceNoCursor()
 	local ent = trace.Entity
-	if not validEntity(ent) then return nil end
+	if not IsValid(ent) then return nil end
 	return getBone(ent, trace.PhysicsBone)
 end
 
 --- Equivalent to rangerOffset(16384, <this>:shootPos(), <this>:eye()), but faster (causing less lag)
 e2function ranger entity:eyeTrace()
-	if not validEntity(this) then return nil end
+	if not IsValid(this) then return nil end
 	if not this:IsPlayer() then return nil end
 	local ret = this:GetEyeTraceNoCursor()
 	ret.RealStartPos = this:GetShootPos()

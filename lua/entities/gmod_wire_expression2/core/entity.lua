@@ -6,19 +6,19 @@ registerType("entity", "e", nil,
 	nil,
 	function(self,output) return output or NULL end,
 	function(retval)
-		if validEntity(retval) then return end
+		if IsValid(retval) then return end
 		if retval == nil then return end
 		if not retval.EntIndex then error("Return value is neither nil nor an Entity, but a "..type(retval).."!",0) end
 	end,
 	function(v)
-		return not validEntity(v)
+		return not IsValid(v)
 	end
 )
 
 /******************************************************************************/
 
 -- import some e2lib functions
-local validEntity  = E2Lib.validEntity
+local IsValid  = E2Lib.IsValid
 local validPhysics = E2Lib.validPhysics
 local getOwner     = E2Lib.getOwner
 local isOwner      = E2Lib.isOwner
@@ -28,8 +28,8 @@ registerCallback("e2lib_replace_function", function(funcname, func, oldfunc)
 		isOwner = func
 	elseif funcname == "getOwner" then
 		getOwner = func
-	elseif funcname == "validEntity" then
-		validEntity = func
+	elseif funcname == "IsValid" then
+		IsValid = func
 	elseif funcname == "validPhysics" then
 		validPhysics = func
 	end
@@ -47,7 +47,7 @@ local rad2deg = 180 / math.pi
 /******************************************************************************/
 
 local function checkOwner(self)
-	return validEntity(self.player);
+	return IsValid(self.player);
 end
 
 /******************************************************************************/
@@ -66,7 +66,7 @@ end)
 /******************************************************************************/
 
 e2function number operator_is(entity ent)
-	if validEntity(ent) then return 1 else return 0 end
+	if IsValid(ent) then return 1 else return 0 end
 end
 
 e2function number operator==(entity lhs, entity rhs)
@@ -81,12 +81,12 @@ end
 
 e2function entity entity(id)
 	local ent = ents.GetByIndex(id)
-	if not validEntity(ent) then return nil end
+	if not IsValid(ent) then return nil end
 	return ent
 end
 
 e2function number entity:id()
-	if not validEntity(this) then return 0 end
+	if not IsValid(this) then return 0 end
 	return this:EntIndex()
 end
 
@@ -98,49 +98,49 @@ e2function entity noentity()
 end
 
 e2function string entity:type()
-	if not validEntity(this) then return "" end
+	if not IsValid(this) then return "" end
 	return this:GetClass()
 end
 
 e2function string entity:model()
-	if not validEntity(this) then return "" end
+	if not IsValid(this) then return "" end
 	return this:GetModel() or ""
 end
 
 e2function entity entity:owner()
-	if not validEntity(this) then return nil end
+	if not IsValid(this) then return nil end
 	return getOwner(self, this)
 end
 
 /******************************************************************************/
 // Functions getting vector
 e2function vector entity:pos()
-	if not validEntity(this) then return {0,0,0} end
+	if not IsValid(this) then return {0,0,0} end
 	return this:GetPos()
 end
 
 e2function vector entity:forward()
-	if not validEntity(this) then return {0,0,0} end
+	if not IsValid(this) then return {0,0,0} end
 	return this:GetForward()
 end
 
 e2function vector entity:right()
-	if not validEntity(this) then return {0,0,0} end
+	if not IsValid(this) then return {0,0,0} end
 	return this:GetRight()
 end
 
 e2function vector entity:up()
-	if not validEntity(this) then return {0,0,0} end
+	if not IsValid(this) then return {0,0,0} end
 	return this:GetUp()
 end
 
 e2function vector entity:vel()
-	if not validEntity(this) then return {0,0,0} end
+	if not IsValid(this) then return {0,0,0} end
 	return this:GetVelocity()
 end
 
 e2function vector entity:velL()
-	if not validEntity(this) then return {0,0,0} end
+	if not IsValid(this) then return {0,0,0} end
 	return this:WorldToLocal(this:GetVelocity() + this:GetPos())
 end
 
@@ -164,35 +164,35 @@ end
 __e2setcost(15)
 
 e2function vector entity:toWorld(vector localPosition)
-	if not validEntity(this) then return {0,0,0} end
+	if not IsValid(this) then return {0,0,0} end
 	return this:LocalToWorld(Vector(localPosition[1],localPosition[2],localPosition[3]))
 end
 
 e2function vector entity:toLocal(vector worldPosition)
-	if not validEntity(this) then return {0,0,0} end
+	if not IsValid(this) then return {0,0,0} end
 	return this:WorldToLocal(Vector(worldPosition[1],worldPosition[2],worldPosition[3]))
 end
 
 e2function vector entity:toWorldAxis(vector localAxis)
-	if not validEntity(this) then return {0,0,0} end
+	if not IsValid(this) then return {0,0,0} end
 	return this:LocalToWorld(Vector(localAxis[1],localAxis[2],localAxis[3]))-this:GetPos()
 end
 
 e2function vector entity:toLocalAxis(vector worldAxis)
-	if not validEntity(this) then return {0,0,0} end
+	if not IsValid(this) then return {0,0,0} end
 	return this:WorldToLocal(Vector(worldAxis[1],worldAxis[2],worldAxis[3])+this:GetPos())
 end
 
 --- Transforms from an angle local to <this> to a world angle.
 e2function angle entity:toWorld(angle localAngle)
-	if not validEntity(this) then return { 0, 0, 0 } end
+	if not IsValid(this) then return { 0, 0, 0 } end
 	local worldAngle = this:LocalToWorldAngles(Angle(localAngle[1],localAngle[2],localAngle[3]))
 	return { worldAngle.p, worldAngle.y, worldAngle.r }
 end
 
 --- Transforms from a world angle to an angle local to <this>.
 e2function angle entity:toLocal(angle worldAngle)
-	if not validEntity(this) then return { 0, 0, 0 } end
+	if not IsValid(this) then return { 0, 0, 0 } end
 	local localAngle = this:WorldToLocalAngles(Angle(worldAngle[1],worldAngle[2],worldAngle[3]))
 	return { localAngle.p, localAngle.y, localAngle.r }
 end
@@ -203,12 +203,12 @@ end
 __e2setcost(5)
 
 e2function number entity:health()
-	if not validEntity(this) then return 0 end
+	if not IsValid(this) then return 0 end
 	return this:Health()
 end
 
 e2function number entity:radius()
-	if not validEntity(this) then return 0 end
+	if not IsValid(this) then return 0 end
 	return this:BoundingRadius()
 end
 
@@ -218,7 +218,7 @@ end
 __e2setcost(15)
 
 e2function number entity:bearing(vector pos)
-	if not validEntity(this) then return 0 end
+	if not IsValid(this) then return 0 end
 
 	pos = this:WorldToLocal(Vector(pos[1],pos[2],pos[3]))
 
@@ -227,7 +227,7 @@ end
 
 --- Returns the elevation (pitch) from <this> to <pos>
 e2function number entity:elevation(vector pos)
-	if not validEntity(this) then return 0 end
+	if not IsValid(this) then return 0 end
 
 	pos = this:WorldToLocal(Vector(pos[1],pos[2],pos[3]))
 
@@ -238,7 +238,7 @@ end
 
 --- Returns the elevation (pitch) and bearing (yaw) from <this> to <pos>
 e2function angle entity:heading(vector pos)
-	if not validEntity(this) then return { 0, 0, 0 } end
+	if not IsValid(this) then return { 0, 0, 0 } end
 
 	pos = this:WorldToLocal(Vector(pos[1],pos[2],pos[3]))
 
@@ -298,44 +298,44 @@ end
 /******************************************************************************/
 // Functions getting boolean/number
 e2function number entity:isPlayer()
-	if not validEntity(this) then return 0 end
+	if not IsValid(this) then return 0 end
 	if this:IsPlayer() then return 1 else return 0 end
 end
 
 e2function number entity:isNPC()
-	if not validEntity(this) then return 0 end
+	if not IsValid(this) then return 0 end
 	if this:IsNPC() then return 1 else return 0 end
 end
 
 e2function number entity:isVehicle()
-	if not validEntity(this) then return 0 end
+	if not IsValid(this) then return 0 end
 	if this:IsVehicle() then return 1 else return 0 end
 end
 
 e2function number entity:isWorld()
-	if not validEntity(this) then return 0 end
+	if not IsValid(this) then return 0 end
 	if this:IsWorld() then return 1 else return 0 end
 end
 
 e2function number entity:isOnGround()
-	if not validEntity(this) then return 0 end
+	if not IsValid(this) then return 0 end
 	if this:IsOnGround() then return 1 else return 0 end
 end
 
 e2function number entity:isUnderWater()
-	if not validEntity(this) then return 0 end
+	if not IsValid(this) then return 0 end
 	if this:WaterLevel() > 0 then return 1 else return 0 end
 end
 
 e2function number entity:isValid()
-	return validEntity(this) and 1 or 0
+	return IsValid(this) and 1 or 0
 end
 
 /******************************************************************************/
 // Functions getting angles
 
 e2function angle entity:angles()
-	if not validEntity(this) then return {0,0,0} end
+	if not IsValid(this) then return {0,0,0} end
 	local ang = this:GetAngles()
 	return {ang.p,ang.y,ang.r}
 end
@@ -343,47 +343,47 @@ end
 /******************************************************************************/
 
 e2function string entity:getMaterial()
-	if not validEntity(this) then return "" end
+	if not IsValid(this) then return "" end
 	return this:GetMaterial() or ""
 end
 
 e2function void entity:setMaterial(string material)
-	if not validEntity(this) then return end
+	if not IsValid(this) then return end
 	if not isOwner(self, this) then return end
 	this:SetMaterial(material)
 end
 
 --- Gets <this>'s current skin number.
 e2function number entity:getSkin()
-	if validEntity(this) then return this:GetSkin() end
+	if IsValid(this) then return this:GetSkin() end
 	return 0
 end
 
 --- Sets <this>'s skin number.
 e2function void entity:setSkin(skin)
-	if validEntity(this) then this:SetSkin(skin) end
+	if IsValid(this) then this:SetSkin(skin) end
 end
 
 --- Gets <this>'s number of skins.
 e2function number entity:getSkinCount()
-	if validEntity(this) then return this:SkinCount() end
+	if IsValid(this) then return this:SkinCount() end
 	return 0
 end
 
 /******************************************************************************/
 
 e2function number entity:isPlayerHolding()
-	if not validEntity(this) then return 0 end
+	if not IsValid(this) then return 0 end
 	if this:IsPlayerHolding() then return 1 else return 0 end
 end
 
 e2function number entity:isOnFire()
-	if not validEntity(this) then return 0 end
+	if not IsValid(this) then return 0 end
 	if this:IsOnFire() then return 1 else return 0 end
 end
 
 e2function number entity:isWeapon()
-	if not validEntity(this) then return 0 end
+	if not IsValid(this) then return 0 end
 	if this:IsWeapon() then return 1 else return 0 end
 end
 
@@ -468,7 +468,7 @@ end
 
 --- Applies torque according to a local torque vector, with magnitude and sense given by the vector's direction, magnitude and orientation.
 e2function void entity:applyTorque(vector torque)
-	if not validEntity(this) then return end
+	if not IsValid(this) then return end
 	if not isOwner(self, this) then return end
 
 	if torque[1] == 0 and torque[2] == 0 and torque[3] == 0 then return end
@@ -509,7 +509,7 @@ end
 __e2setcost(10) -- temporary
 
 e2function void entity:lockPod(lock)
-	if not validEntity(this) or not this:IsVehicle() then return end
+	if not IsValid(this) or not this:IsVehicle() then return end
 	if not isOwner(self, this) then return end
 	if(lock ~= 0) then
 		this:Fire("Lock", "", 0)
@@ -519,14 +519,14 @@ e2function void entity:lockPod(lock)
 end
 
 e2function void entity:killPod()
-	if not validEntity(this) or not this:IsVehicle() then return end
+	if not IsValid(this) or not this:IsVehicle() then return end
 	if not isOwner(self, this) then return end
 	local ply = this:GetDriver()
 	if(ply:IsValid()) then ply:Kill() end
 end
 
 e2function void entity:ejectPod()
-	if not validEntity(this) or not this:IsVehicle() then return end
+	if not IsValid(this) or not this:IsVehicle() then return end
 	if not isOwner(self, this) then return end
 	local ply = this:GetDriver()
 	if(ply:IsValid()) then ply:ExitVehicle() end
@@ -537,28 +537,28 @@ end
 __e2setcost(10)
 
 e2function vector entity:boxSize()
-	if not validEntity(this) then return {0,0,0} end
+	if not IsValid(this) then return {0,0,0} end
 	return this:OBBMaxs() - this:OBBMins()
 end
 
 e2function vector entity:boxCenter()
-	if not validEntity(this) then return {0,0,0} end
+	if not IsValid(this) then return {0,0,0} end
 	return this:OBBCenter()
 end
 
 -- Same as using E:toWorld(E:boxCenter()) in E2, but since Lua runs faster, this is more efficient.
 e2function vector entity:boxCenterW()
-	if not validEntity(this) then return {0,0,0} end
+	if not IsValid(this) then return {0,0,0} end
 	return this:LocalToWorld(this:OBBCenter())
 end
 
 e2function vector entity:boxMax()
-	if not validEntity(this) then return {0,0,0} end
+	if not IsValid(this) then return {0,0,0} end
 	return this:OBBMaxs()
 end
 
 e2function vector entity:boxMin()
-	if not validEntity(this) then return {0,0,0} end
+	if not IsValid(this) then return {0,0,0} end
 	return this:OBBMins()
 end
 
@@ -591,18 +591,18 @@ end
 __e2setcost(5)
 
 e2function entity entity:driver()
-	if not validEntity(this) or not this:IsVehicle() then return nil end
+	if not IsValid(this) or not this:IsVehicle() then return nil end
 	return this:GetDriver()
 end
 
 e2function entity entity:passenger()
-	if not validEntity(this) or not this:IsVehicle() then return nil end
+	if not IsValid(this) or not this:IsVehicle() then return nil end
 	return this:GetPassenger()
 end
 
 --- Returns <ent> formatted as a string. Returns "<code>(null)</code>" for invalid entities.
 e2function string toString(entity ent)
-	if not validEntity(ent) then return "(null)" end
+	if not IsValid(ent) then return "(null)" end
 	return tostring(ent)
 end
 
@@ -652,7 +652,7 @@ end)
 --- Removes the trail from <this>.
 e2function void entity:removeTrails()
 	if (not checkOwner(self)) then return; end
-	if not validEntity(this) then return end
+	if not IsValid(this) then return end
 	if not isOwner(self, this) then return end
 
 	SetTrails(self.player, this, nil)
@@ -675,7 +675,7 @@ end
 --- Adds a trail to <this> with the specified attributes.
 e2function void entity:setTrails(startSize, endSize, length, string material, vector color, alpha)
 	if (not checkOwner(self)) then return; end
-	if not validEntity(this) then return end
+	if not IsValid(this) then return end
 	if not isOwner(self, this) then return end
 
 	local Data = composedata(startSize, endSize, length, material, color, alpha)
@@ -690,7 +690,7 @@ __e2setcost(30)
 --- Adds a trail to <this> with the specified attributes.
 e2function void entity:setTrails(startSize, endSize, length, string material, vector color, alpha, attachmentID, additive)
 	if (not checkOwner(self)) then return; end
-	if not validEntity(this) then return end
+	if not IsValid(this) then return end
 	if not isOwner(self, this) then return end
 
 	local Data = composedata(startSize, endSize, length, material, color, alpha)
@@ -708,13 +708,13 @@ __e2setcost( 15 )
 
 --- Returns <this>'s attachment ID associated with <attachmentName>
 e2function number entity:lookupAttachment(string attachmentName)
-	if not validEntity(this) then return 0 end
+	if not IsValid(this) then return 0 end
 	return this:LookupAttachment(attachmentName)
 end
 
 --- Returns <this>'s attachment position associated with <attachmentID>
 e2function vector entity:attachmentPos(attachmentID)
-	if not validEntity(this) then return { 0, 0, 0 } end
+	if not IsValid(this) then return { 0, 0, 0 } end
 	local attachment = this:GetAttachment(attachmentID)
 	if not attachment then return { 0, 0, 0 } end
 	return attachment.Pos
@@ -722,7 +722,7 @@ end
 
 --- Returns <this>'s attachment angle associated with <attachmentID>
 e2function angle entity:attachmentAng(attachmentID)
-	if not validEntity(this) then return { 0, 0, 0 } end
+	if not IsValid(this) then return { 0, 0, 0 } end
 	local attachment = this:GetAttachment(attachmentID)
 	if not attachment then return { 0, 0, 0 } end
 	local ang = attachment.Ang
@@ -731,7 +731,7 @@ end
 
 --- Same as <this>:attachmentPos(entity:lookupAttachment(<attachmentName>))
 e2function vector entity:attachmentPos(string attachmentName)
-	if not validEntity(this) then return { 0, 0, 0 } end
+	if not IsValid(this) then return { 0, 0, 0 } end
 	local attachment = this:GetAttachment(this:LookupAttachment(attachmentName))
 	if not attachment then return { 0, 0, 0 } end
 	return attachment.Pos
@@ -739,7 +739,7 @@ end
 
 --- Same as <this>:attachmentAng(entity:lookupAttachment(<attachmentName>))
 e2function angle entity:attachmentAng(string attachmentName)
-	if not validEntity(this) then return { 0, 0, 0 } end
+	if not IsValid(this) then return { 0, 0, 0 } end
 	local attachment = this:GetAttachment(this:LookupAttachment(attachmentName))
 	if not attachment then return { 0, 0, 0 } end
 	local ang = attachment.Ang
@@ -751,7 +751,7 @@ end
 __e2setcost(15)
 
 e2function vector entity:nearestPoint( vector point )
-	if (!validEntity(this)) then return {0,0,0} end
+	if (!IsValid(this)) then return {0,0,0} end
 	return this:NearestPoint( Vector(point[1],point[2],point[3]) )
 end
 

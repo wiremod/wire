@@ -230,7 +230,7 @@ end)
 
 registerOperator("iwc", "", "n", function(self, args)
 	local op1 = args[2]
-	return validEntity(self.entity.Inputs[op1].Src) and 1 or 0
+	return IsValid(self.entity.Inputs[op1].Src) and 1 or 0
 end)
 
 registerOperator("owc","","n",function(self,args)

@@ -40,7 +40,7 @@ e2function void httpRequest( string url )
 		function( args, contents, size )
 			local ply = args[1]
 
-			if !validEntity( ply ) or !ply:IsPlayer() or !requests[ply] then return end
+			if !IsValid( ply ) or !ply:IsPlayer() or !requests[ply] then return end
 
 			local preq = requests[ply]
 
@@ -52,7 +52,7 @@ e2function void httpRequest( string url )
 			run_on.clk = 1
 
 			for ent,eply in pairs( run_on.ents ) do
-				if validEntity( ent ) and ent.Execute and eply == ply then
+				if IsValid( ent ) and ent.Execute and eply == ply then
 					ent:Execute()
 				end
 			end

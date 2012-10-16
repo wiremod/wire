@@ -1,7 +1,7 @@
 //Original author: ZeikJT
 //Modified by Gwahir and TomyLobo
 
-local validEntity = validEntity
+local IsValid = IsValid
 
 local TextList = {
 	last = { "", 0, nil }
@@ -25,7 +25,7 @@ hook.Add("PlayerSay","Exp2TextReceiving", function(ply, text, toall)
 	chipHideChat = false
 	local hideCurrent = false
 	for e,_ in pairs(ChatAlert) do
-		if validEntity(e) then
+		if IsValid(e) then
 			chipHideChat = nil
 			e:Execute()
 			--if chipHideChat ~= nil and ply == e.player then
@@ -63,7 +63,7 @@ end
 
 --- Returns 1 if the chip is being executed because of a chat event by player <ply>. Returns 0 otherwise.
 e2function number chatClk(entity ply)
-	if not validEntity(ply) then return 0 end
+	if not IsValid(ply) then return 0 end
 	if ply ~= TextList.last[3] then return 0 end
 	return runByChat
 end
@@ -81,7 +81,7 @@ e2function entity lastSpoke()
 	if not entry then return nil end
 
 	local ply = entry[3]
-	if not validEntity(ply) then return nil end
+	if not IsValid(ply) then return nil end
 	if not ply:IsPlayer() then return nil end
 
 	return ply
@@ -113,7 +113,7 @@ end
 
 --- Returns what the player <this> last said.
 e2function string entity:lastSaid()
-	if not validEntity(this) then return "" end
+	if not IsValid(this) then return "" end
 	if not this:IsPlayer() then return "" end
 
 	local entry = TextList[this:EntIndex()]
@@ -124,7 +124,7 @@ end
 
 --- Returns when the given player last said something.
 e2function number entity:lastSaidWhen()
-	if not validEntity(this) then return 0 end
+	if not IsValid(this) then return 0 end
 	if not this:IsPlayer() then return 0 end
 
 	local entry = TextList[this:EntIndex()]
@@ -135,7 +135,7 @@ end
 
 --- Returns 1 if the last message was sent in the team chat, 0 otherwise.
 e2function number entity:lastSaidTeam()
-	if not validEntity(this) then return 0 end
+	if not IsValid(this) then return 0 end
 	if not this:IsPlayer() then return 0 end
 
 	local entry = TextList[this:EntIndex()]

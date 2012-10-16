@@ -1,10 +1,10 @@
 local isOwner = E2Lib.isOwner
-local validEntity = E2Lib.validEntity
+local IsValid = E2Lib.IsValid
 registerCallback("e2lib_replace_function", function(funcname, func, oldfunc)
 	if funcname == "isOwner" then
 		isOwner = func
-	elseif funcname == "validEntity" then
-		validEntity = func
+	elseif funcname == "IsValid" then
+		IsValid = func
 	end
 end)
 
@@ -54,10 +54,9 @@ end
 
 -- checks whether the bone is valid. if yes, returns the bone's entity; otherwise, returns nil.
 local function isValidBone(b)
-	if not b then return nil end
-	if not b:IsValid() then return nil end
+	if not IsValid(b) then return nil end
 	local ent = bone2entity[b]
-	if not validEntity(ent) then
+	if not IsValid(ent) then
 		removeBone(b)
 		return nil
 	end
@@ -67,10 +66,9 @@ E2Lib.isValidBone = isValidBone
 
 -- Same as isValidBone, except that it returns the bone index as well.
 local function isValidBone2(b)
-	if not b then return nil end
-	if not b:IsValid() then return nil end
+	if IsValid(b) then return nil end
 	local ent = bone2entity[b]
-	if not validEntity(ent) then
+	if not IsValid(ent) then
 		removeBone(b)
 		return nil, 0
 	end
@@ -80,9 +78,8 @@ E2Lib.isValidBone2 = isValidBone2
 
 -- checks whether the bone is valid. if yes, returns false; otherwise, returns true.
 local function isInvalidBone(b)
-	if not b then return true end
-	if not b:IsValid() then return true end
-	if not validEntity(bone2entity[b]) then
+	if not IsValid(b) then return nil end
+	if not IsValid(bone2entity[b]) then
 		removeBone(b)
 		return true
 	end
@@ -133,7 +130,7 @@ end
 
 --- Returns <this>'s <index>th bone.
 e2function bone entity:bone(index)
-	if not validEntity(this) then return nil end
+	if not IsValid(this) then return nil end
 	if index < 0 then return nil end
 	if index >= this:GetPhysicsObjectCount() then return nil end
 	return getBone(this, index)
@@ -141,7 +138,7 @@ end
 
 --- Returns an array containing all of <this>'s bones. This array's first element has the index 0!
 e2function array entity:bones()
-	if not validEntity(this) then return {} end
+	if not IsValid(this) then return {} end
 	local ret = {}
 	local maxn = this:GetPhysicsObjectCount()-1
 	for i = 0,maxn do
@@ -152,7 +149,7 @@ end
 
 --- Returns <this>'s number of bones.
 e2function number entity:boneCount()
-	if not validEntity(this) then return 0 end
+	if not IsValid(this) then return 0 end
 	return this:GetPhysicsObjectCount()
 end
 
@@ -170,7 +167,7 @@ end
 e2function number bone:index()
 	if isInvalidBone(this) then return -1 end
 	--[[local ent = this:GetEntity()
-	if not validEntity(ent) then return -1 end
+	if not IsValid(ent) then return -1 end
 	local maxn = ent:GetPhysicsObjectCount()-1
 	for i = 0,maxn do
 		if this == ent:GetPhysicsObjectNum(i) then return i end

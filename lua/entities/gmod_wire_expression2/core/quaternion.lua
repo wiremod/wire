@@ -180,7 +180,7 @@ end
 
 --- Converts angle of <ent> to a quaternion
 e2function quaternion quat(entity ent)
-	if(!validEntity(ent)) then
+	if(!IsValid(ent)) then
 		return { 0, 0, 0, 0 }
 	end
 	local ang = ent:GetAngles()

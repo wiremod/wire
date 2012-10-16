@@ -173,7 +173,7 @@ if (SERVER) then
 	end
 
 	formatPort.ENTITY = function(ent)
-		if not validEntity(ent) then return "(null)" end -- this uses validEntity from E2, which is faster, but maybe we shouldn't use it.
+		if not IsValid(ent) then return "(null)" end -- this uses IsValid from E2, which is faster, but maybe we shouldn't use it.
 		return tostring(ent)
 	end
 	formatPort.BONE = e2_tostring_bone

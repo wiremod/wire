@@ -1,5 +1,5 @@
 -- import some e2lib and math functions
-local validEntity  = E2Lib.validEntity
+local IsValid  = E2Lib.IsValid
 local isOwner      = E2Lib.isOwner
 local Clamp        = math.Clamp
 local seq = table.IsSequential
@@ -7,7 +7,7 @@ local seq = table.IsSequential
 /******************************************************************************/
 
 local function checkOwner(self)
-	return validEntity(self.player);
+	return IsValid(self.player);
 end
 
 /******************************************************************************/
@@ -95,13 +95,13 @@ end
 
 --- Posts a string to the chat of <this>'s driver. Returns 1 if the text was printed, 0 if not.
 e2function number entity:printDriver(string text)
-	if not validEntity(this) then return 0 end
+	if not IsValid(this) then return 0 end
 	if not this:IsVehicle() then return 0 end
 	if not isOwner(self, this) then return 0 end
 	if text:find('"', 1, true) then return 0 end
 
 	local driver = this:GetDriver()
-	if not validEntity(driver) then return 0 end
+	if not IsValid(driver) then return 0 end
 
 	if (!check_delay( self.player )) then return 0 end
 
@@ -113,18 +113,18 @@ end
 
 --- Displays a hint popup with message <text> for <duration> seconds (<duration> being clamped between 0.7 and 7).
 e2function void hint(string text, duration)
-	if not validEntity(self.player) then return end
+	if not IsValid(self.player) then return end
 	WireLib.AddNotify(self.player, text, NOTIFY_GENERIC, Clamp(duration,0.7,7))
 end
 
 --- Displays a hint popup to the driver of vehicle E, with message <text> for <duration> seconds (<duration> being clamped between 0.7 and 7). Same return value as printDriver.
 e2function number entity:hintDriver(string text, duration)
-	if not validEntity(this) then return 0 end
+	if not IsValid(this) then return 0 end
 	if not this:IsVehicle() then return 0 end
 	if not isOwner(self, this) then return 0 end
 
 	local driver = this:GetDriver()
-	if not validEntity(driver) then return 0 end
+	if not IsValid(driver) then return 0 end
 
 	if (!check_delay( self.player )) then return 0 end
 
@@ -151,14 +151,14 @@ end
 
 --- Same as <this>E:printDriver(<text>), but can make the text show up in different places. <print_type> can be one of the following: _HUD_PRINTCENTER, _HUD_PRINTCONSOLE, _HUD_PRINTNOTIFY, _HUD_PRINTTALK.
 e2function number entity:printDriver(print_type, string text)
-	if not validEntity(this) then return 0 end
+	if not IsValid(this) then return 0 end
 	if not this:IsVehicle() then return 0 end
 	if not isOwner(self, this) then return 0 end
 	if not valid_print_types[print_type] then return 0 end
 	if text:find('"', 1, true) then return 0 end
 
 	local driver = this:GetDriver()
-	if not validEntity(driver) then return 0 end
+	if not IsValid(driver) then return 0 end
 
 	if (!check_delay( self.player )) then return 0 end
 
@@ -201,11 +201,11 @@ local printColor_typeids = {
 	s = tostring,
 	v = function(v) return Color(v[1],v[2],v[3]) end,
 	xv4 = function(v) return Color(v[1],v[2],v[3],v[4]) end,
-	e = function(e) return validEntity(e) and e:IsPlayer() and e or "" end,
+	e = function(e) return IsValid(e) and e:IsPlayer() and e or "" end,
 }
 
 local function printColorVarArg(chip, ply, typeids, ...)
-	if (not validEntity(ply)) then return; end
+	if (not IsValid(ply)) then return; end
 	local send_array = { ... }
 
 	for i,tp in ipairs(typeids) do
@@ -234,11 +234,11 @@ local printColor_types = {
 		end
 		return Color(tbl[1] or 0, tbl[2] or 0,tbl[3] or 0,tbl[4])
 	end,
-	Player = function(e) return validEntity(e) and e:IsPlayer() and e or "" end,
+	Player = function(e) return IsValid(e) and e:IsPlayer() and e or "" end,
 }
 
 local function printColorArray(chip, ply, arr)
-	if (not validEntity(ply)) then return; end
+	if (not IsValid(ply)) then return; end
 	if (!check_delay( ply )) then return end
 
 	local send_array = {}
@@ -270,12 +270,12 @@ end
 
 --- Like printColor(...), except printing in <this>'s driver's chat area instead of yours.
 e2function void entity:printColorDriver(...)
-	if not validEntity(this) then return end
+	if not IsValid(this) then return end
 	if not this:IsVehicle() then return end
 	if not isOwner(self, this) then return end
 
 	local driver = this:GetDriver()
-	if not validEntity(driver) then return end
+	if not IsValid(driver) then return end
 
 	if (!check_delay( self.player )) then return 0 end
 
@@ -284,12 +284,12 @@ end
 
 --- Like printColor(R), except printing in <this>'s driver's chat area instead of yours.
 e2function void entity:printColorDriver(array arr)
-	if not validEntity(this) then return end
+	if not IsValid(this) then return end
 	if not this:IsVehicle() then return end
 	if not isOwner(self, this) then return end
 
 	local driver = this:GetDriver()
-	if not validEntity(driver) then return end
+	if not IsValid(driver) then return end
 
 	if (!check_delay( self.player )) then return 0 end
 

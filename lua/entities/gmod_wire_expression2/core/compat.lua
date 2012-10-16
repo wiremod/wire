@@ -101,7 +101,7 @@ __e2setcost(10)
 
 e2function number entity:height()
 	--[[	Old code (UGLYYYY)
-	if(!validEntity(this)) then return 0 end
+	if(!IsValid(this)) then return 0 end
 	if(this:IsPlayer() or this:IsNPC()) then
 		local pos = this:GetPos()
 		local up = this:GetUp()
@@ -110,6 +110,6 @@ e2function number entity:height()
 	]]
 
 	-- New code (Same as E:boxSize():z())
-	if(!validEntity(this)) then return 0 end
+	if(!IsValid(this)) then return 0 end
 	return (this:OBBMaxs() - this:OBBMins()).z
 end

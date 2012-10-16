@@ -3,7 +3,7 @@ E2Lib.RegisterExtension( "holo", true )
 /******************************************************************************/
 
 local function checkOwner(self)
-	return E2Lib.validEntity(self.player);
+	return E2Lib.IsValid(self.player);
 end
 
 /******************************************************************************/
@@ -322,7 +322,7 @@ hook.Add( "PlayerInitialSpawn", "wire_holograms_set_vars", function(ply)
 
 	for pl_uid,rep in pairs( E2HoloRepo ) do
 		for k,Holo in pairs( rep ) do
-			if Holo and validEntity(Holo.ent) then
+			if Holo and IsValid(Holo.ent) then
 				table.insert(queue, { Holo, Holo.scale })
 
 				local clips = Holo.clips
@@ -382,7 +382,7 @@ local function CheckIndex(self, index)
 	else
 		Holo = self.data.holos[index]
 	end
-	if not Holo or not validEntity(Holo.ent) then return nil end
+	if not Holo or not IsValid(Holo.ent) then return nil end
 	return Holo
 end
 
@@ -417,7 +417,7 @@ local function CreateHolo(self, index, pos, scale, ang, color, model)
 
 	local prop
 
-	if validEntity(Holo.ent) then
+	if IsValid(Holo.ent) then
 		prop = Holo.ent
 		prop:SetPos( pos )
 		prop:SetAngles( ang )
@@ -445,7 +445,7 @@ local function CreateHolo(self, index, pos, scale, ang, color, model)
 		end, self, index )
 	end
 
-	if not validEntity(prop) then return nil end
+	if not IsValid(prop) then return nil end
 	if color then prop:SetColor(Color(color[1],color[2],color[3],255)) end
 
 	rescale(Holo, scale)
@@ -488,7 +488,7 @@ local function removeholo(self, index)
 	PlayerAmount[self.uid] = PlayerAmount[self.uid] - 1
 	SetIndex(self, index, nil)
 
-	if validEntity(Holo.ent) then
+	if IsValid(Holo.ent) then
 		Holo.ent:Remove()
 	end
 end
@@ -525,7 +525,7 @@ e2function entity holoCreate(index, vector position, vector scale, angle ang, ve
 	position = Vector(position[1], position[2], position[3])
 	ang = Angle(ang[1], ang[2], ang[3])
 	local ret = CreateHolo(self, index, position, scale, ang, color, model)
-	if validEntity(ret) then return ret end
+	if IsValid(ret) then return ret end
 end
 
 e2function entity holoCreate(index, vector position, vector scale, angle ang, vector color)
@@ -537,7 +537,7 @@ e2function entity holoCreate(index, vector position, vector scale, angle ang, ve
 	position = Vector(position[1], position[2], position[3])
 	ang = Angle(ang[1], ang[2], ang[3])
 	local ret = CreateHolo(self, index, position, scale, ang, color)
-	if validEntity(ret) then return ret end
+	if IsValid(ret) then return ret end
 end
 
 e2function entity holoCreate(index, vector position, vector scale, angle ang)
@@ -549,7 +549,7 @@ e2function entity holoCreate(index, vector position, vector scale, angle ang)
 	position = Vector(position[1], position[2], position[3])
 	ang = Angle(ang[1], ang[2], ang[3])
 	local ret = CreateHolo(self, index, position, scale, ang)
-	if validEntity(ret) then return ret end
+	if IsValid(ret) then return ret end
 end
 
 e2function entity holoCreate(index, vector position, vector scale)
@@ -560,7 +560,7 @@ e2function entity holoCreate(index, vector position, vector scale)
 
 	position = Vector(position[1],position[2],position[3])
 	local ret = CreateHolo(self, index, position, scale)
-	if validEntity(ret) then return ret end
+	if IsValid(ret) then return ret end
 end
 
 e2function entity holoCreate(index, vector position)
@@ -571,7 +571,7 @@ e2function entity holoCreate(index, vector position)
 
 	position = Vector(position[1],position[2],position[3])
 	local ret = CreateHolo(self, index, position)
-	if validEntity(ret) then return ret end
+	if IsValid(ret) then return ret end
 end
 
 e2function entity holoCreate(index)
@@ -581,7 +581,7 @@ e2function entity holoCreate(index)
 	if not Holo and PlayerAmount[self.uid] >= GetConVar("wire_holograms_max"):GetInt() then return end
 
 	local ret = CreateHolo(self, index)
-	if validEntity(ret) then return ret end
+	if IsValid(ret) then return ret end
 end
 
 e2function void holoDelete(index)
@@ -883,7 +883,7 @@ e2function void holoParent(index, otherindex)
 end
 
 e2function void holoParent(index, entity ent)
-	if not validEntity(ent) then return end
+	if not IsValid(ent) then return end
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
 
@@ -903,7 +903,7 @@ e2function void holoParent(index, bone b)
 end
 
 e2function void holoParentAttachment(index, entity ent, string attachmentName)
-	if not validEntity(ent) then return end
+	if not IsValid(ent) then return end
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
 
@@ -922,13 +922,13 @@ end
 
 e2function entity holoEntity(index)
 	local Holo = CheckIndex(self, index)
-	if Holo and validEntity(Holo.ent) then return Holo.ent end
+	if Holo and IsValid(Holo.ent) then return Holo.ent end
 end
 
 __e2setcost(30)
 --- Gets the hologram index of the given entity, if any. Returns 0 on failure.
 e2function number holoIndex(entity ent)
-	if not validEntity(ent) then return 0 end
+	if not IsValid(ent) then return 0 end
 	if ent:GetClass() ~= "gmod_wire_hologram" then return 0 end
 
 	-- check local holos
@@ -962,7 +962,7 @@ registerCallback("construct", function(self)
 end)
 
 registerCallback("destruct", function(self)
-	if not self or not validEntity(self.entity) then return end -- TODO: evaluate necessity
+	if not self or not IsValid(self.entity) then return end -- TODO: evaluate necessity
 
 	clearholos(self)
 end)
@@ -982,7 +982,7 @@ concommand.Add( "wire_holograms_remove_all", function( ply, com, args )
 
 	for pl_uid,rep in pairs( E2HoloRepo ) do
 		for k,Holo in pairs( rep ) do
-			if Holo and validEntity(Holo.ent) then
+			if Holo and IsValid(Holo.ent) then
 				Holo.ent:Remove()
 				PlayerAmount[pl_uid] = PlayerAmount[pl_uid] - 1
 			end
@@ -1011,7 +1011,7 @@ concommand.Add( "wire_holograms_block", function( ply, com, args )
 			local uid = v:UniqueID();
 			if E2HoloRepo[uid] then
 				for k2,v2 in pairs( E2HoloRepo[uid] ) do
-					if v2 and validEntity(v2.ent) then
+					if v2 and IsValid(v2.ent) then
 						v2.ent:Remove()
 						PlayerAmount[uid] = PlayerAmount[uid] - 1
 					end
@@ -1082,7 +1082,7 @@ concommand.Add( "wire_holograms_block_id", function( ply, com, args )
 				uid = v:UniqueID();
 				if (E2HoloRepo[uid]) then
 					for k2,v2 in pairs( E2HoloRepo[uid] ) do
-						if v2 and validEntity(v2.ent) then
+						if v2 and IsValid(v2.ent) then
 							v2.ent:Remove()
 							PlayerAmount[uid] = PlayerAmount[uid] - 1
 						end

@@ -7,7 +7,7 @@ E2Lib.RegisterExtension("npc", true)
 __e2setcost(5) -- temporary
 
 function validNPC(entity)
-	return validEntity(entity) && entity:IsNPC()
+	return IsValid(entity) && entity:IsNPC()
 end
 
 e2function void entity:npcGoWalk(vector rv2)
@@ -75,7 +75,7 @@ e2function entity entity:npcGetTarget()
 end
 
 e2function void entity:npcSetTarget(entity ent)
-	if !(validEntity(ent) and (ent:IsNPC() or ent:IsPlayer())) or !validNPC(this) or !isOwner(self, this) then return end
+	if !(IsValid(ent) and (ent:IsNPC() or ent:IsPlayer())) or !validNPC(this) or !isOwner(self, this) then return end
 	this:SetEnemy(ent)
 end
 
@@ -108,7 +108,7 @@ local function NpcDispString(string)
 end
 
 e2function void entity:npcRelationship(entity rv2, string rv3, rv4)
-	if !validNPC(this) || !validEntity(rv2) || !isOwner(self,this) then return end
+	if !validNPC(this) || !IsValid(rv2) || !isOwner(self,this) then return end
 	local entity = this
 	local target = rv2
 	local disp = NpcDisp(rv3)
@@ -129,7 +129,7 @@ e2function void entity:npcRelationship(string rv2, string rv3, rv4)
 end
 
 e2function number entity:npcRelationshipByOwner(entity rv2, string rv3, rv4)
-	if !validNPC(this) || !validEntity(rv2) || !isOwner(self,this) then return 0 end
+	if !validNPC(this) || !IsValid(rv2) || !isOwner(self,this) then return 0 end
 	local entity = this
 	local owner = rv2
 	local disp = NpcDisp(rv3)
@@ -145,7 +145,7 @@ e2function number entity:npcRelationshipByOwner(entity rv2, string rv3, rv4)
 end
 
 e2function string entity:npcDisp(entity rv2)
-	if !validNPC(this) || !validEntity(rv2) || !isOwner(self,this) then return "" end
+	if !validNPC(this) || !IsValid(rv2) || !isOwner(self,this) then return "" end
 	local entity = this
 	local target = rv2
 	local disp = entity:Disposition( target )

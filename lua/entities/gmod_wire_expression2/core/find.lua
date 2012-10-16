@@ -440,10 +440,10 @@ end
 --- Exclude all entities from <arr> from future finds
 e2function void findExcludeEntities(array arr)
 	local bl_entity = self.data.find.bl_entity
-	local validEntity = validEntity
+	local IsValid = IsValid
 
 	for _,ent in ipairs(arr) do
-		if not validEntity(ent) then return end
+		if not IsValid(ent) then return end
 		bl_entity[ent] = true
 	end
 	invalidate_filters(self)
@@ -451,7 +451,7 @@ end
 
 --- Exclude <ent> from future finds
 e2function void findExcludeEntity(entity ent)
-	if not validEntity(ent) then return end
+	if not IsValid(ent) then return end
 	self.data.find.bl_entity[ent] = true
 	invalidate_filters(self)
 end
@@ -469,7 +469,7 @@ end
 
 --- Exclude entities owned by this player from future finds
 e2function void findExcludePlayerProps(entity ply)
-	if not validEntity(ply) then return end
+	if not IsValid(ply) then return end
 	self.data.find.bl_owner[ply] = true
 	invalidate_filters(self)
 end
@@ -498,10 +498,10 @@ end
 --- Remove all entities from <arr> from the blacklist
 e2function void findAllowEntities(array arr)
 	local bl_entity = self.data.find.bl_entity
-	local validEntity = validEntity
+	local IsValid = IsValid
 
 	for _,ent in ipairs(arr) do
-		if not validEntity(ent) then return end
+		if not IsValid(ent) then return end
 		bl_entity[ent] = nil
 	end
 	invalidate_filters(self)
@@ -509,7 +509,7 @@ end
 
 --- Remove <ent> from the blacklist
 e2function void findAllowEntity(entity ent)
-	if not validEntity(ent) then return end
+	if not IsValid(ent) then return end
 	self.data.find.bl_entity[ent] = nil
 	invalidate_filters(self)
 end
@@ -527,7 +527,7 @@ end
 
 --- Remove entities owned by this player from the blacklist
 e2function void findAllowPlayerProps(entity ply)
-	if not validEntity(ply) then return end
+	if not IsValid(ply) then return end
 	self.data.find.bl_owner[ply] = nil
 	invalidate_filters(self)
 end
@@ -556,10 +556,10 @@ end
 --- Include all entities from <arr> in future finds, and remove others not in the whitelist
 e2function void findIncludeEntities(array arr)
 	local wl_entity = self.data.find.wl_entity
-	local validEntity = validEntity
+	local IsValid = IsValid
 
 	for _,ent in ipairs(arr) do
-		if not validEntity(ent) then return end
+		if not IsValid(ent) then return end
 		wl_entity[ent] = true
 	end
 	invalidate_filters(self)
@@ -567,7 +567,7 @@ end
 
 --- Include <ent> in future finds, and remove others not in the whitelist
 e2function void findIncludeEntity(entity ent)
-	if not validEntity(ent) then return end
+	if not IsValid(ent) then return end
 	self.data.find.wl_entity[ent] = true
 	invalidate_filters(self)
 end
@@ -585,7 +585,7 @@ end
 
 --- Include entities owned by this player from future finds, and remove others not in the whitelist
 e2function void findIncludePlayerProps(entity ply)
-	if not validEntity(ply) then return end
+	if not IsValid(ply) then return end
 	self.data.find.wl_owner[ply] = true
 	invalidate_filters(self)
 end
@@ -614,10 +614,10 @@ end
 --- Remove all entities from <arr> from the whitelist
 e2function void findDisallowEntities(array arr)
 	local wl_entity = self.data.find.wl_entity
-	local validEntity = validEntity
+	local IsValid = IsValid
 
 	for _,ent in ipairs(arr) do
-		if not validEntity(ent) then return end
+		if not IsValid(ent) then return end
 		wl_entity[ent] = nil
 	end
 	invalidate_filters(self)
@@ -625,7 +625,7 @@ end
 
 --- Remove <ent> from the whitelist
 e2function void findDisallowEntity(entity ent)
-	if not validEntity(ent) then return end
+	if not IsValid(ent) then return end
 	self.data.find.wl_entity[ent] = nil
 	invalidate_filters(self)
 end
@@ -643,7 +643,7 @@ end
 
 --- Remove entities owned by this player from the whitelist
 e2function void findDisallowPlayerProps(entity ply)
-	if not validEntity(ply) then return end
+	if not IsValid(ply) then return end
 	self.data.find.wl_owner[ply] = nil
 	invalidate_filters(self)
 end
@@ -751,7 +751,7 @@ e2function entity findClosest(vector position)
 	local closest = nil
 	local dist = math.huge
 	for _,ent in pairs(self.data.findlist) do
-		if validEntity(ent) then
+		if IsValid(ent) then
 			local pos = ent:GetPos()
 			local xd, yd, zd = pos.x-position[1], pos.y-position[2], pos.z-position[3]
 			local curdist = xd*xd + yd*yd + zd*zd
@@ -784,11 +784,11 @@ end
 e2function number findSortByDistance(vector position)
 	position = Vector(position[1], position[2], position[3])
 	local Distance = position.Distance
-	local validEntity = validEntity
+	local IsValid = IsValid
 	local findlist = self.data.findlist
 	table.sort(findlist, function(a, b)
-		if not validEntity(a) then return false end -- !(invalid < b) <=> (b <= invalid)
-		if not validEntity(b) then return true end -- (valid < invalid)
+		if not IsValid(a) then return false end -- !(invalid < b) <=> (b <= invalid)
+		if not IsValid(b) then return true end -- (valid < invalid)
 
 		return Distance(position, a:GetPos()) < Distance(position, b:GetPos())
 	end)
@@ -809,7 +809,7 @@ end
 e2function number findClipToClass(string class)
 	class = string.lower(class)
 	return applyClip(self, function(ent)
-		if !validEntity(ent) then return false end
+		if !IsValid(ent) then return false end
 		return string.match(string.lower(ent:GetClass()), class)
 	end)
 end
@@ -817,7 +817,7 @@ end
 --- Filters the list of entities by removing all entities that are of this class
 e2function number findClipFromClass(string class)
 	return applyClip(self, function(ent)
-		if !validEntity(ent) then return false end
+		if !IsValid(ent) then return false end
 		return not string.match(string.lower(ent:GetClass()), class)
 	end)
 end
@@ -825,7 +825,7 @@ end
 --- Filters the list of entities by removing all entities that do NOT have this model
 e2function number findClipToModel(string model)
 	return applyClip(self, function(ent)
-		if !validEntity(ent) then return false end
+		if !IsValid(ent) then return false end
 		return string.match(string.lower(ent:GetModel() or ""), model)
 	end)
 end
@@ -833,7 +833,7 @@ end
 --- Filters the list of entities by removing all entities that do have this model
 e2function number findClipFromModel(string model)
 	return applyClip(self, function(ent)
-		if !validEntity(ent) then return false end
+		if !IsValid(ent) then return false end
 		return not string.match(string.lower(ent:GetModel() or ""), model)
 	end)
 end
@@ -841,7 +841,7 @@ end
 --- Filters the list of entities by removing all entities that do NOT have this name
 e2function number findClipToName(string name)
 	return applyClip(self, function(ent)
-		if !validEntity(ent) then return false end
+		if !IsValid(ent) then return false end
 		return string.match(string.lower(ent:GetName()), name)
 	end)
 end
@@ -849,7 +849,7 @@ end
 --- Filters the list of entities by removing all entities that do have this name
 e2function number findClipFromName(string name)
 	return applyClip(self, function(ent)
-		if !validEntity(ent) then return false end
+		if !IsValid(ent) then return false end
 		return not string.match(string.lower(ent:GetName()), name)
 	end)
 end
@@ -858,7 +858,7 @@ end
 e2function number findClipToSphere(vector center, radius)
 	center = Vector(center[1], center[2], center[3])
 	return applyClip(self, function(ent)
-		if !validEntity(ent) then return false end
+		if !IsValid(ent) then return false end
 		return center:Distance(ent:GetPos()) <= radius
 	end)
 end
@@ -867,7 +867,7 @@ end
 e2function number findClipFromSphere(vector center, radius)
 	center = Vector(center[1], center[2], center[3])
 	return applyClip(self, function(ent)
-		if !validEntity(ent) then return false end
+		if !IsValid(ent) then return false end
 		return center:Distance(ent:GetPos()) > radius
 	end)
 end
@@ -880,7 +880,7 @@ e2function number findClipToRegion(vector origin, vector perpendicular)
 	local perpdot = perpendicular:Dot(origin)
 
 	return applyClip(self, function(ent)
-		if !validEntity(ent) then return false end
+		if !IsValid(ent) then return false end
 		return perpdot < perpendicular:Dot(ent:GetPos())
 	end)
 end
@@ -938,9 +938,9 @@ end
 
 -- Filters the list of entities by removing all entities equal to this entity
 e2function number findClipFromEntity( entity ent )
-	if !validEntity( ent ) then return -1 end
+	if !IsValid( ent ) then return -1 end
 	return applyClip( self, function( ent2 )
-		if !validEntity(ent2) then return false end
+		if !IsValid(ent2) then return false end
 		return ent != ent2
 	end)
 end
@@ -951,16 +951,16 @@ e2function number findClipFromEntities( array entities )
 	self.prf = self.prf + #entities / 3
 	for k,v in ipairs( entities ) do lookup[v] = true end
 	return applyClip( self, function( ent )
-		if !validEntity(ent) then return false end
+		if !IsValid(ent) then return false end
 		return !lookup[ent]
 	end)
 end
 
 -- Filters the list of entities by removing all entities not equal to this entity
 e2function number findClipToEntity( entity ent )
-	if !validEntity( ent ) then return -1 end
+	if !IsValid( ent ) then return -1 end
 	return applyClip( self, function( ent2 )
-		if !validEntity(ent2) then return false end
+		if !IsValid(ent2) then return false end
 		return ent == ent2
 	end)
 end
@@ -971,7 +971,7 @@ e2function number findClipToEntities( array entities )
 	self.prf = self.prf + #entities / 3
 	for k,v in ipairs( entities ) do lookup[v] = true end
 	return applyClip( self, function( ent )
-		if !validEntity(ent) then return false end
+		if !IsValid(ent) then return false end
 		return lookup[ent]
 	end)
 end

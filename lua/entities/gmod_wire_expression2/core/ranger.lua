@@ -211,7 +211,7 @@ __e2setcost(10)
 
 --- Feed entities you don't want the trace to hit
 e2function void rangerFilter(entity ent)
-	if validEntity(ent) and !self.data.rangerfilter_lookup[ent] then
+	if IsValid(ent) and !self.data.rangerfilter_lookup[ent] then
 		local n = #self.data.rangerfilter+1
 		self.data.rangerfilter[n] = ent
 		self.data.rangerfilter_lookup[ent] = true
@@ -225,7 +225,7 @@ e2function void rangerFilter(array filter)
 	local rangerfilter = self.data.rangerfilter
 	local n = #rangerfilter
 	for _,ent in ipairs(filter) do
-		if validEntity(ent) and !self.data.rangerfilter_lookup[ent] then
+		if IsValid(ent) and !self.data.rangerfilter_lookup[ent] then
 			n = n + 1
 			rangerfilter[n] = ent
 			self.data.rangerfilter_lookup[ent] = true
@@ -321,7 +321,7 @@ e2function bone ranger:bone()
 	if not this then return nil end
 
 	local ent = this.Entity
-	if not validEntity(ent) then return nil end
+	if not IsValid(ent) then return nil end
 	return getBone(ent, this.PhysicsBone)
 end
 

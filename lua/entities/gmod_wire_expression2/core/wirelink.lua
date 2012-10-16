@@ -27,7 +27,7 @@ local function TriggerInput(self,ent, portname, value, typename)
 end
 
 local function validWirelink(self, ent)
-	if not validEntity(ent) then return false end
+	if not IsValid(ent) then return false end
 	if not ent.extended then return false end
 	local player = E2Lib.getOwner(self, ent)
 	if player == nil then return false end
@@ -104,12 +104,12 @@ registerType("wirelink", "xwl", nil,
 	nil,
 	nil,
 	function(retval)
-		if validEntity(retval) then return end
+		if IsValid(retval) then return end
 		if retval == nil then return end
 		if not retval.EntIndex then error("Return value is neither nil nor an Entity (and thus not a wirelink), but a "..type(retval).."!",0) end
 	end,
 	function(v)
-		return not validEntity(v)
+		return not IsValid(v)
 	end
 )
 

@@ -852,7 +852,7 @@ end
 // Extra functions
 
 e2function matrix matrix(entity rv1)
-	if(!validEntity(rv1)) then
+	if(!IsValid(rv1)) then
 		return { 0, 0, 0,
 				 0, 0, 0,
 				 0, 0, 0 }
@@ -1491,7 +1491,7 @@ end
 // Extra functions
 
 e2function matrix4 matrix4(entity rv1)
-	if(!validEntity(rv1)) then
+	if(!IsValid(rv1)) then
 		return { 0, 0, 0, 0,
 				 0, 0, 0, 0,
 				 0, 0, 0, 0,

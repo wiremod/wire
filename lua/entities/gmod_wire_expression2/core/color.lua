@@ -17,31 +17,31 @@ end
 /******************************************************************************/
 
 e2function vector entity:getColor()
-	if !validEntity(this) then return {0,0,0} end
+	if !IsValid(this) then return {0,0,0} end
 
 	local c = this:GetColor()
 	return { c.r, c.g, c.b }
 end
 
 e2function vector4 entity:getColor4()
-	if not validEntity(this) then return {0,0,0,0} end
+	if not IsValid(this) then return {0,0,0,0} end
 	local c = this:GetColor()
 	return {c.r,c.g,c.b,c.a}
 end
 
 e2function number entity:getAlpha()
-	return validEntity(this) and this:GetColor().a or 0
+	return IsValid(this) and this:GetColor().a or 0
 end
 
 e2function void entity:setColor(r,g,b)
-	if !validEntity(this) then return end
+	if !IsValid(this) then return end
 	if !isOwner(self, this) then return end
 
 	this:SetColor(ColorClamp(Color(r,g,b,this:GetColor().a)))
 end
 
 e2function void entity:setColor(r,g,b,a)
-	if !validEntity(this) then return end
+	if !IsValid(this) then return end
 	if !isOwner(self, this) then return end
 
 	this:SetColor(ColorClamp(Color(r, g, b, this:IsPlayer() and this:GetColor().a or a)))
@@ -49,14 +49,14 @@ e2function void entity:setColor(r,g,b,a)
 end
 
 e2function void entity:setColor(vector c)
-	if !validEntity(this) then return end
+	if !IsValid(this) then return end
 	if !isOwner(self, this) then return end
 
 	this:SetColor(ColorClamp(Color(c[1],c[2],c[3],this:GetColor().a)))
 end
 
 e2function void entity:setColor(vector c, a)
-	if !validEntity(this) then return end
+	if !IsValid(this) then return end
 	if !isOwner(self, this) then return end
 
 	this:SetColor(ColorClamp(Color(c[1],c[2],c[3], this:IsPlayer() and this:GetColor().a or a)))
@@ -64,7 +64,7 @@ e2function void entity:setColor(vector c, a)
 end
 
 e2function void entity:setColor(vector4 c)
-	if !validEntity(this) then return end
+	if !IsValid(this) then return end
 	if !isOwner(self, this) then return end
 
 	this:SetColor(ColorClamp(Color(c[1],c[2],c[3], this:IsPlayer() and this:GetColor().a or c[4])))
@@ -72,7 +72,7 @@ e2function void entity:setColor(vector4 c)
 end
 
 e2function void entity:setAlpha(a)
-	if !validEntity(this) then return end
+	if !IsValid(this) then return end
 	if !isOwner(self, this) then return end
 
 	if this:IsPlayer() then return end
