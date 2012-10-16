@@ -678,7 +678,7 @@ local function generateContents( n )
 	local ret = {}
 
 	for i = 0,30 do
-		if n & (2^i) ~= 0 then
+		if bit.band(n, (2^i)) ~= 0 then
 			local name = contents[2^i]
 			lookup_table[name] = true
 			parts_array[#parts_array+1] = name

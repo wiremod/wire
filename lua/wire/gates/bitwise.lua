@@ -8,7 +8,7 @@ GateActions["bnot"] = {
 	name = "Not",
 	inputs = { "A" },
 	output = function(gate, A)
-		return (-1)-A
+		return bit.bnot(A)
 	end,
 	label = function(Out, A)
 		return "not "..A.." = "..Out
@@ -19,7 +19,7 @@ GateActions["bor"] = {
 	name = "Or",
 	inputs = { "A", "B" },
 	output = function(gate, A, B)
-		return (A | B)
+		return bit.bor(A, B)
 	end,
 	label = function(Out, A, B)
 		return A.." or "..B.." = "..Out
@@ -30,7 +30,7 @@ GateActions["band"] = {
 	name = "And",
 	inputs = { "A", "B" },
 	output = function(gate, A, B)
-		return (A & B)
+		return bit.band(A, B)
 	end,
 	label = function(Out, A, B)
 		return A.." and "..B.." = "..Out
@@ -41,7 +41,7 @@ GateActions["bxor"] = {
 	name = "Xor",
 	inputs = { "A", "B" },
 	output = function(gate, A, B)
-		return (A | B) & (-1-(A & B))
+		return bit.bxor(A, B)
 	end,
 	label = function(Out, A, B)
 		return A.." xor "..B.." = "..Out
@@ -52,7 +52,7 @@ GateActions["bshr"] = {
 	name = "Bit shift right",
 	inputs = { "A", "B" },
 	output = function(gate, A, B)
-		return A >> B
+		return bit.rshift(A, B)
 	end,
 	label = function(Out, A, B)
 		return A.." >> "..B.." = "..Out
@@ -63,7 +63,7 @@ GateActions["bshl"] = {
 	name = "Bit shift left",
 	inputs = { "A", "B" },
 	output = function(gate, A, B)
-		return A << B
+		return bit.lshift(A, B)
 	end,
 	label = function(Out, A, B)
 		return A.." << "..B.." = "..Out

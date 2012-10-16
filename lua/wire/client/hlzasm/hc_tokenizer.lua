@@ -267,7 +267,7 @@ function HCOMP:Tokenize() local TOKEN = self.TOKEN
         elseif self:getChar() == "\"" then fetchString = fetchString .. "\""
         elseif self:getChar() == "a"  then fetchString = fetchString .. "\a"
         elseif self:getChar() == "b"  then fetchString = fetchString .. "\b"
-        elseif self:getChar() == "c"  then fetchString = fetchString .. "\c"
+--        elseif self:getChar() == "c"  then fetchString = fetchString .. "\c"
         elseif self:getChar() == "f"  then fetchString = fetchString .. "\f"
         elseif self:getChar() == "r"  then fetchString = fetchString .. "\r"
         elseif self:getChar() == "n"  then fetchString = fetchString .. "\n"

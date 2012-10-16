@@ -42,7 +42,7 @@ local function ranger(self, rangertype, range, p1, p2, hulltype, mins, maxs )
 			ignoreworld = false
 		else
 			--w
-			tracedata.mask = MASK_WATER | CONTENTS_SOLID
+			tracedata.mask = bit.bor(MASK_WATER, CONTENTS_SOLID)
 		end
 	elseif not entities then
 		if ignoreworld then

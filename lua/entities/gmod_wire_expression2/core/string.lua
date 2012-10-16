@@ -156,11 +156,11 @@ registerFunction("toUnicodeChar", "n", "s", function(self, args)
 	elseif rv1 <= 127 then
 		utf8 = string_char (rv1)
 	elseif rv1 < 2048 then
-		utf8 = ("%c%c"):format( 192 + math_floor (rv1 / 64), 128 + (rv1 & 63))
+		utf8 = ("%c%c"):format( 192 + math_floor (rv1 / 64), 128 + (rv1 % 64))
 	elseif rv1 < 65536 then
-		utf8 = ("%c%c%c"):format( 224 + math_floor (rv1 / 4096), 128 + (math_floor (rv1 / 64) & 63), 128 + (rv1 & 63))
+		utf8 = ("%c%c%c"):format( 224 + math_floor (rv1 / 4096), 128 + (math_floor (rv1 / 64) % 64), 128 + (rv1 % 64))
 	elseif rv1 < 2097152 then
-		utf8 = ("%c%c%c%c"):format( 240 + math_floor (rv1 / 262144), 128 + (math_floor(rv1 / 4096) & 63), 128 + (math_floor (rv1 / 64) & 63), 128 + (rv1 & 63))
+		utf8 = ("%c%c%c%c"):format( 240 + math_floor (rv1 / 262144), 128 + (math_floor(rv1 / 4096) % 64), 128 + (math_floor (rv1 / 64) % 64), 128 + (rv1 % 64))
 	end
 	return utf8
 end)
@@ -176,25 +176,25 @@ registerFunction("toUnicodeByte", "s", "n", function(self, args)
 			if string_len (rv1) < 4 then
 				return -1
 			end
-			byte = (byte & 7) * 262144
-			byte = byte + (string_byte (rv1, 2) & 63) * 4096
-			byte = byte + (string_byte (rv1, 3) & 63) * 64
-			byte = byte + (string_byte (rv1, 4) & 63)
+			byte = (byte % 8) * 262144
+			byte = byte + (string_byte (rv1, 2) % 64) * 4096
+			byte = byte + (string_byte (rv1, 3) % 64) * 64
+			byte = byte + (string_byte (rv1, 4) % 64)
 		elseif byte >= 224 then
 			-- 3 byte sequence
 			if string_len (rv1) < 3 then
 				return -1
 			end
-			byte = (byte & 15) * 4096
-			byte = byte + (string_byte (rv1, 2) & 63) * 64
-			byte = byte + (string_byte (rv1, 3) & 63)
+			byte = (byte % 16) * 4096
+			byte = byte + (string_byte (rv1, 2) % 64) * 64
+			byte = byte + (string_byte (rv1, 3) % 64)
 		elseif byte >= 192 then
 			-- 2 byte sequence
 			if string_len (rv1) < 2 then
 				return -1
 			end
-			byte = (byte & 31) * 64
-			byte = byte + (string_byte (rv1, 2) & 63)
+			byte = (byte % 32) * 64
+			byte = byte + (string_byte (rv1, 2) % 64)
 		else
 			-- invalid sequence
 			byte = -1

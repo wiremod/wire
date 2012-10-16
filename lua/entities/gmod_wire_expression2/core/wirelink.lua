@@ -502,10 +502,10 @@ local function WriteUnicodeString(self, entity, string, X, Y, textcolor, bgcolor
 					if i + 3 > #string then
 						Byte = 0
 					else
-						Byte = (Byte & 7) * 262144
-						Byte = Byte + (string.byte (string, i + 1) & 63) * 4096
-						Byte = Byte + (string.byte (string, i + 2) & 63) * 64
-						Byte = Byte + (string.byte (string, i + 3) & 63)
+						Byte = (Byte % 8) * 262144
+						Byte = Byte + (string.byte (string, i + 1) % 64) * 4096
+						Byte = Byte + (string.byte (string, i + 2) % 64) * 64
+						Byte = Byte + (string.byte (string, i + 3) % 64)
 					end
 					i = i + 3
 				elseif Byte >= 224 then
@@ -513,9 +513,9 @@ local function WriteUnicodeString(self, entity, string, X, Y, textcolor, bgcolor
 					if i + 2 > #string then
 						Byte = 0
 					else
-						Byte = (Byte & 15) * 4096
-						Byte = Byte + (string.byte (string, i + 1) & 63) * 64
-						Byte = Byte + (string.byte (string, i + 2) & 63)
+						Byte = (Byte % 16) * 4096
+						Byte = Byte + (string.byte (string, i + 1) % 64) * 64
+						Byte = Byte + (string.byte (string, i + 2) % 64)
 					end
 					i = i + 2
 				elseif Byte >= 192 then
@@ -523,8 +523,8 @@ local function WriteUnicodeString(self, entity, string, X, Y, textcolor, bgcolor
 					if i + 1 > #string then
 						Byte = 0
 					else
-						Byte = (Byte & 31) * 64
-						Byte = Byte + (string.byte (string, i + 1) & 63)
+						Byte = (Byte % 32) * 64
+						Byte = Byte + (string.byte (string, i + 1) % 64)
 					end
 					i = i + 1
 				else
