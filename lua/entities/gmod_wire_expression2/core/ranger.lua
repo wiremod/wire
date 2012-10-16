@@ -380,7 +380,7 @@ end
 
 local mat_enums = {}
 local hitgroup_enums = {}
-for k,v in pairs( _E ) do
+for k,v in pairs( _G ) do
 	if (k:sub(1,4) == "MAT_") then
 		mat_enums[v] = k:sub(5):lower()
 	elseif (k:sub(1,9) == "HITGROUP_") then

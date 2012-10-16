@@ -195,7 +195,7 @@ end
 
 local Trusts
 
-if CPPI and _R.Player.CPPIGetFriends then
+if CPPI and debug.getregistry().Player.CPPIGetFriends then
 
 	function Trusts(ply, whom)
 		if ply == whom then return true end

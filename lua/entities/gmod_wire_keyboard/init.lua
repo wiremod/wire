@@ -10,13 +10,13 @@ local All_Enums = {} -- table containing key -> key enum conversion
 
 -- Add a few common keys
 for i=48,57 do -- 0 -> 9
-	All_Enums[i] = _E["KEY_" .. string.char(i)]
+	All_Enums[i] = _G["KEY_" .. string.char(i)]
 end
 for i=65,90 do -- A -> Z
-	All_Enums[i] = _E["KEY_" .. string.upper(string.char(i))]
+	All_Enums[i] = _G["KEY_" .. string.upper(string.char(i))]
 end
 for i=97,122 do -- a -> z
-	All_Enums[i] = _E["KEY_" .. string.upper(string.char(i))]
+	All_Enums[i] = _G["KEY_" .. string.upper(string.char(i))]
 end
 
 ------------------------------------------------------------------------------------------

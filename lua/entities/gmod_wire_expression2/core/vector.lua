@@ -661,7 +661,7 @@ end)
 /******************************************************************************/
 
 local contents = {}
-for k,v in pairs(_E) do
+for k,v in pairs(_G) do
 	if (k:sub(1,9) == "CONTENTS_") then
 		contents[v] = k:sub(10):lower()
 	end

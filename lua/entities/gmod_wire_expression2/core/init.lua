@@ -187,8 +187,6 @@ if SERVER then
 
 	-- -- Transfer E2 function info to the client for validation and syntax highlighting purposes -- --
 
-	function _R.CRecipientFilter.IsValid() return true end -- workaround for this bug: http://www.facepunch.com/showpost.php?p=15117600 - thanks Lexi
-
 	do
 		if (!glon) then require("glon") end -- Doubt this will be necessary, but still
 

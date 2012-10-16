@@ -560,7 +560,7 @@ hook.Add("InitPostEntity", "e2lib", function()
 
 	-- check for a CPPI compliant plugin
 	if SERVER and CPPI then
-		if _R.Player.CPPIGetFriends then
+		if debug.getregistry().Player.CPPIGetFriends then
 			E2Lib.replace_function("isFriend", function(owner, player)
 				if owner == nil then return false end
 				if owner == player then return true end
@@ -576,7 +576,7 @@ hook.Add("InitPostEntity", "e2lib", function()
 			end)
 		end
 
-		if _R.Entity.CPPIGetOwner then
+		if debug.getregistry().Entity.CPPIGetOwner then
 			local _getOwner = E2Lib.getOwner
 			E2Lib.replace_function("getOwner", function(self, entity)
 				if entity == self.entity or entity == self.player then return self.player end
