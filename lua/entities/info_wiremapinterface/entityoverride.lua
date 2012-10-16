@@ -61,7 +61,7 @@ local function FireSingleOutput(output, this, activator)
 					if (IsValid(ent)) then
 						ent:Input(output.input, activator, this, output.param)
 					end
-				 end, ent)
+				 end)
 			end
 		end
 	end
