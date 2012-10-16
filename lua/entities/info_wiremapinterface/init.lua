@@ -355,7 +355,7 @@ function ENT:Initialize()
 	self.WireEntName = self.WireEntName or ""
 
 	self:UpdateData()
-	self.Active = ((self.flags & 16) > 0) -- Start Active
+	self.Active = (bit.band(self.flags, 16) > 0) -- Start Active
 	self.oldActive = self.Active
 	self.old_ALLOW_INTERFACE_bool = ALLOW_INTERFACE:GetBool()
 
@@ -423,7 +423,7 @@ end
 
 function ENT:UpdateData()
 	self.flags = self:GetSpawnFlags()
-	self.RunLuaCode = ((self.flags & 8) > 0) -- Run given Lua codes
+	self.RunLuaCode = (bit.band(self.flags, 8) > 0) -- Run given Lua codes
 
 	self.Inames, self.Itypes, self.Idescs, self.Ins = SplitTable(self.Ins, self)
 	self.Onames, self.Otypes, self.Odescs, self.Outs = SplitTable(self.Outs, self)
@@ -451,7 +451,7 @@ function ENT:OnRemove()
 
 	self.flags = self:GetSpawnFlags()
 
-	if ((self.flags & 4) > 0) then -- Remove in-/output entities on remove
+	if (bit.band(self.flags, 4) > 0) then -- Remove in-/output entities on remove
 		for obj1, obj2 in pairs(self.WireEnts or {}) do
 			local Entity = (IsEntity(obj1) and obj1) or (IsEntity(obj2) and obj2)
 

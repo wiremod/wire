@@ -137,12 +137,12 @@ function ENT:OverrideEnt(Entity)
 
 	Entity._Settings_WireMapInterfaceEnt = Entity._Settings_WireMapInterfaceEnt or {}
 
-	if ((self.flags & 1) > 0) then -- Protect in-/output entities from non-wire tools
+	if (bit.band(self.flags, 1) > 0) then -- Protect in-/output entities from non-wire tools
 		Entity._Settings_WireMapInterfaceEnt.m_tblToolsAllowed = Entity.m_tblToolsAllowed or false
 		Entity.m_tblToolsAllowed = {"wire", "wire_adv", "wire_debugger", "wire_wirelink", "gui_wiring", "multi_wire"}
 	end
 
-	if ((self.flags & 2) > 0) then -- Protect in-/output entities from the physgun
+	if (bit.band(self.flags, 2) > 0) then -- Protect in-/output entities from the physgun
 		Entity._Settings_WireMapInterfaceEnt.PhysgunDisabled = Entity.PhysgunDisabled or false
 		Entity.PhysgunDisabled = true
 	end

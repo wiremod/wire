@@ -39,18 +39,18 @@ usermessage.Hook("WireMapInterfaceEnt", function(data)
 
 	Entity._Settings_WireMapInterfaceEnt = {}
 
-	if ((Flags & 1) > 0) then -- Protect in-/output entities from non-wire tools
+	if (bit.band(Flags, 1) > 0) then -- Protect in-/output entities from non-wire tools
 		Entity._Settings_WireMapInterfaceEnt.m_tblToolsAllowed = Entity.m_tblToolsAllowed or false
 		Entity.m_tblToolsAllowed = {"wire", "wire_adv", "wire_debugger", "wire_wirelink", "gui_wiring", "multi_wire"}
 	end
 
-	if ((Flags & 2) > 0) then -- Protect in-/output entities from the physgun
+	if (bit.band(Flags, 2) > 0) then -- Protect in-/output entities from the physgun
 		Entity._Settings_WireMapInterfaceEnt.PhysgunDisabled = Entity.PhysgunDisabled or false
 		Entity.PhysgunDisabled = true
 	end
 
 	local ID = Entity:EntIndex()
-	if ((Flags & 32) > 0) then -- Render Wires
+	if (bit.band(Flags, 32) > 0) then -- Render Wires
 		OverRiddenEnts[ID] = true
 	else
 		OverRiddenEnts[ID] = nil

@@ -135,7 +135,7 @@ local function AddSingleEntityCL(self, Entity, ply, SendToAll)
 		umsg.Start("WireMapInterfaceEnt", ply)
 	end
 		umsg.Entity(Entity)
-		umsg.Char((self.flags & 1) + (self.flags & 2) + (self.flags & 4) + (self.flags & 8) + (self.flags & 16) + (self.flags & 32) + (self.flags & 64))
+		umsg.Char(self.flags % 64)
 		-- Allow valid spawnflags only.
 	umsg.End()
 end
