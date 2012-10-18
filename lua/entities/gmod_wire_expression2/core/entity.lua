@@ -660,7 +660,7 @@ end
 
 local function composedata(startSize, endSize, length, material, color, alpha)
 	if string.find(material, '"', 1, true) then return nil end
-	if not file.Exists("../materials/"..material..".vmt") then return nil end -- check for non-existant materials.
+	if not file.Exists("materials/"..material..".vmt","GAME") then return nil end -- check for non-existant materials.
 
 	return {
 		Color = Color( color[1], color[2], color[3], alpha ),

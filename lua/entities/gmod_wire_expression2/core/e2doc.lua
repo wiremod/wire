@@ -4,7 +4,7 @@ local eliminate_varname_conflicts = true
 if not e2_parse_args then include("extpp.lua") end
 
 local readfile = readfile or function(filename)
-	return file.Read("lua/entities/gmod_wire_expression2/core/"..filename,true)
+	return file.Read("entities/gmod_wire_expression2/core/"..filename,"LUA")
 end
 local writefile = writefile or function(filename, contents)
 	print("--- Writing to file 'data/e2doc/"..filename.."' ---")
@@ -124,11 +124,11 @@ if SERVER then
 elseif CLIENT then
 	concommand.Add("e2doc",
 		function(player, command, args)
-			if not file.IsDir("e2doc") then file.CreateDir("e2doc") end
-			if not file.IsDir("e2doc/custom") then file.CreateDir("e2doc/custom") end
+			if not file.IsDir("e2doc","DATA") then file.CreateDir("e2doc") end
+			if not file.IsDir("e2doc/custom","DATA") then file.CreateDir("e2doc/custom") end
 
 			local path = string.match(args[2] or args[1],"^%s*(.+)/")
-			if path and not file.IsDir("e2doc/"..path) then file.CreateDir("e2doc/"..path) end
+			if path and not file.IsDir("e2doc/"..path,"DATA") then file.CreateDir("e2doc/"..path) end
 
 			e2doc(args[1], args[2])
 		end
@@ -136,11 +136,11 @@ elseif CLIENT then
 		function (commandName,args) -- autocomplete function
 			args = string.match(args,"^%s*(.-)%s*$")
 			local path = string.match(args,"^%s*(.+/)") or ""
-			local files = file.Find("entities/gmod_wire_expression2/core/"..args.."*", LUA_PATH)
+			local files = file.Find("entities/gmod_wire_expression2/core/"..args.."*", "LUA")
 			local ret = {}
 			for _,v in ipairs(files) do
 				if string.sub(v,1,1) ~= "." then
-					if file.IsDir('../lua/entities/gmod_wire_expression2/core/'..path..v) then
+					if file.IsDir('entities/gmod_wire_expression2/core/'..path..v,"LUA") then
 						table.insert(ret, "e2doc "..path..v.."/")
 					else
 						table.insert(ret, "e2doc "..path..v)

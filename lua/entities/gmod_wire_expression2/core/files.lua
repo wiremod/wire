@@ -427,7 +427,7 @@ concommand.Add("wire_expression2_file_singleplayer", function(ply, cmd, args)
 
 	local path = args[1]
 
-	if not file.Exists(path) then
+	if not file.Exists(path, "DATA") then
 		file_execute( pfile.ent, pfile.name, FILE_404 )
 		return
 	end
