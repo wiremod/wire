@@ -51,7 +51,7 @@ end
 function ENT:SetForce( force, mul )
 	if (force) then
 		self.force = force
-		self:NetSetForce( force )
+		self:ShowOutput()
 	end
 	mul = mul or 1
 
@@ -185,8 +185,8 @@ function ENT:Switch( on, mul )
 			self:StopSound( self.SoundName )
 			self:EmitSound( self.SoundName )
 		end
-
-		self:NetSetMul( mul )
+		
+		self.mul = mul
 
 		/*if (mul ~= self.PrevOutput) then
 			self:SetOverlayText( "Thrust = " .. math.Round(self.force*mul*1000)/1000 .. "\nMul: " .. math.Round(self.force*1000)/1000 )
@@ -198,12 +198,15 @@ function ENT:Switch( on, mul )
 		if (self.SoundName and self.SoundName != "") then
 			self:StopSound( self.SoundName )
 		end
+		
+		self.mul = 0
 
 		/*if (self.PrevOutput) then
 			self:SetOverlayText( "Thrust = Off".."\nMul: "..math.Round(self.force*1000)/1000 )
 			self.PrevOutput = nil
 		end*/
 	end
+	self:ShowOutput()
 
 	local phys = self:GetPhysicsObject()
 	if (phys:IsValid()) then
@@ -211,6 +214,13 @@ function ENT:Switch( on, mul )
 	end
 
 	return true
+end
+
+function ENT:ShowOutput()
+	self:SetOverlayText(string.format("Thrust: %s\nMul: %.2f",
+		self:IsOn() and tostring(math.Round(self.force*self.mul,2)) or "off",
+		self.mul or 0
+	))
 end
 
 function ENT:OnRestore()
