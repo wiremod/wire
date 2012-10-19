@@ -607,7 +607,7 @@ end
 
 // Concommand to unregister HUD Indicator through control panel
 local function HUDIndicator_RemoteUnRegister(ply, cmd, arg)
-	local eindex = ply:GetInfoNum("wire_hudindicator_registerdelete")
+	local eindex = ply:GetInfoNum("wire_hudindicator_registerdelete", 0)
 	if (eindex == 0) then return end
 	local ent = ents.GetByIndex(eindex)
 	if (ent && ent:IsValid()) then

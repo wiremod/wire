@@ -40,7 +40,7 @@ if SERVER then
 
 		if  trace.Entity:IsValid()
 		    && trace.Entity:GetClass() == "gmod_wire_expression2"
-			&& (trace.Entity.player == player || trace.Entity.player:GetInfoNum("wire_expression2_friendwrite") != 0)
+			&& (trace.Entity.player == player || trace.Entity.player:GetInfoNum("wire_expression2_friendwrite", 0) != 0)
 			&& E2Lib.isFriend(trace.Entity.player, player)
 		then
 			self:Upload( trace.Entity )
@@ -85,7 +85,7 @@ if SERVER then
 
 		if  trace.Entity:IsValid()
 		    && trace.Entity:GetClass() == "gmod_wire_expression2"
-			&& (trace.Entity.player == player || trace.Entity.player:GetInfoNum("wire_expression2_friendwrite") != 0)
+			&& (trace.Entity.player == player || trace.Entity.player:GetInfoNum("wire_expression2_friendwrite", 0) != 0)
 			&& E2Lib.isFriend(trace.Entity.player, player)
 		then
 			trace.Entity:Reset()
@@ -342,7 +342,7 @@ if SERVER then
 		if (!E2 or !E2:IsValid() or E2:GetClass() != "gmod_wire_expression2") then return end
 		if (canhas( player )) then return end
 		if (E2.error) then return end
-		if (E2.player == player or (E2Lib.isFriend(E2.player,player) and E2.player:GetInfoNum("wire_expression2_friendwrite") == 1)) then
+		if (E2.player == player or (E2Lib.isFriend(E2.player,player) and E2.player:GetInfoNum("wire_expression2_friendwrite", 0) == 1)) then
 			E2:PCallHook( "destruct" )
 			E2:Error( "Execution halted (Triggered by: " .. player:Nick() .. ")", "Execution halted" )
 			if (E2.player != player) then
@@ -360,7 +360,7 @@ if SERVER then
 		E2 = Entity(E2)
 		if (canhas( player )) then return end
 		if (!E2 or !E2:IsValid() or E2:GetClass() != "gmod_wire_expression2") then return end
-		if (E2.player == player or (E2Lib.isFriend(E2.player,player) and E2.player:GetInfoNum("wire_expression2_friendwrite") == 1)) then
+		if (E2.player == player or (E2Lib.isFriend(E2.player,player) and E2.player:GetInfoNum("wire_expression2_friendwrite", 0) == 1)) then
 			WireLib.Expression2Download( player, E2 )
 			WireLib.AddNotify( player, "Downloading code...", NOTIFY_GENERIC, 5, math.random(1,4) )
 			player:PrintMessage( HUD_PRINTCONSOLE, "Downloading code..." )
@@ -379,7 +379,7 @@ if SERVER then
 		E2 = Entity(E2)
 		if (!E2 or !E2:IsValid() or E2:GetClass() != "gmod_wire_expression2") then return end
 		if (canhas( player )) then return end
-		if (E2.player == player or (E2Lib.isFriend(E2.player,player) and E2.player:GetInfoNum("wire_expression2_friendwrite") == 1)) then
+		if (E2.player == player or (E2Lib.isFriend(E2.player,player) and E2.player:GetInfoNum("wire_expression2_friendwrite", 0) == 1)) then
 			if E2.context.data.last or E2.first then return end
 
 			E2:Reset()
