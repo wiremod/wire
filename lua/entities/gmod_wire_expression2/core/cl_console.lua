@@ -19,5 +19,6 @@ else
 		if ent ~= LocalPlayer() then return end
 
 		CreateCVars()
+		hook.Remove("OnEntityCreated", "wire_expression2_console")
 	end)
 end

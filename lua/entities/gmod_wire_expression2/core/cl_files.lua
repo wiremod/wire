@@ -78,8 +78,8 @@ usermessage.Hook( "wire_expression2_request_file", function( um )
 	local fpath,fname = process_filepath( um:ReadString() )
 	local fullpath = fpath .. fname
 
-	if file.Exists( fullpath ) and file.Size( fullpath, "DATA" ) <= (cv_max_transfer_size:GetInt() * 1024) then
-		local filedata = file.Read( fullpath ) or ""
+	if file.Exists( fullpath,"DATA" ) and file.Size( fullpath, "DATA" ) <= (cv_max_transfer_size:GetInt() * 1024) then
+		local filedata = file.Read( fullpath,"DATA" ) or ""
 
 		local encoded = E2Lib.encode( filedata )
 
@@ -118,8 +118,8 @@ usermessage.Hook( "wire_expresison2_file_download_finish", function( um )
 
 	local ofile = ""
 
-	if um:ReadBool() and file.Exists( download_buffer.name ) then
-		ofile = file.Read( download_buffer.name )
+	if um:ReadBool() and file.Exists( download_buffer.name,"DATA" ) then
+		ofile = file.Read( download_buffer.name,"DATA" )
 	end
 
 	file.Write( (download_buffer.name or "e2files/noname.txt"), ofile .. download_buffer.data )
@@ -130,7 +130,7 @@ end )
 usermessage.Hook( "wire_expression2_request_list", function( um )
 	local dir = process_filepath( um:ReadString() or "" )
 
-	for _,fop in pairs( file.Find( dir .. "*" ), "DATA" ) do
+	for _,fop in pairs( file.Find( dir .. "*","DATA" )) do
 		local ext = string.GetExtensionFromFilename( fop )
 
 		if (!ext or ext == "txt") and string.len( fop ) < 250 then

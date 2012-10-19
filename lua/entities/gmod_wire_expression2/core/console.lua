@@ -7,7 +7,7 @@ E2Lib.RegisterExtension("console", true)
 local function validConCmd(self, command)
 	local ply = self.player
 	if not ply:IsValid() then return false end
-	if ply:GetInfoNum("wire_expression2_concmd") == 0 then return false end
+	if ply:GetInfoNum("wire_expression2_concmd", 0) == 0 then return false end
 
 	local whitelist = (ply:GetInfo("wire_expression2_concmd_whitelist") or ""):Trim()
 	if whitelist == "" then return true end
@@ -41,7 +41,7 @@ end
 
 e2function number convarnum(string cvar)
 	if not validConCmd(self, cvar) then return 0 end
-	local ret = self.player:GetInfoNum(cvar)
+	local ret = self.player:GetInfoNum(cvar, 0)
 	if not ret then return 0 end
 	return ret
 end

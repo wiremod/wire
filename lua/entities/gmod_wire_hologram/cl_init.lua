@@ -147,7 +147,7 @@ function ENT:DoScale()
 		self:EnableMatrix("RenderMultiply", mat)
 	else
 		-- Some entities, like ragdolls, cannot be resized with EnableMatrix, so lets average the three components to get a float
-		self:SetModelScale((scale.x+scale.y+scale.z)/3)
+		self:SetModelScale((scale.x+scale.y+scale.z)/3,0)
 	end
 	scale_buffer[eidx] = nil
 end

@@ -322,7 +322,7 @@ if (SERVER) then
 
 			else
 
-				OrientVertical = ply:GetInfoNum("wire_debugger_orientvertical") ~= 0
+				OrientVertical = ply:GetInfoNum("wire_debugger_orientvertical", 0) ~= 0
 
 				-- TODO: Add EntityRemoved hook to clean up Components array.
 				table.Compact(cmps, function(cmp) return cmp:IsValid() and IsWire(cmp) end)
