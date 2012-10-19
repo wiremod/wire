@@ -57,7 +57,7 @@ local function SPU_SoundSources(um)
   for i=0,WireSPU_MaxChannels-1 do
     SPU.SoundSources[i] = ents.GetByIndex(um:ReadLong())
     SPU.SoundSources[i]:SetNoDraw(true)
-    SPU.SoundSources[i]:SetModelScale(Vector(0))
+    SPU.SoundSources[i]:SetModelScale(Vector(0),0)
   end
 
   -- Reset VM
