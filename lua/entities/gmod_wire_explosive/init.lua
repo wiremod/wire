@@ -277,6 +277,7 @@ function ENT:ShowOutput( )
 		if (self.InvisibleAtZero) then
 			ply:SetNoDraw( false )
 			self:SetColor(Color(255, 255, 255, 255 * ((self.Delayreloadtime - self.count) / self.Delayreloadtime)))
+			self:SetRenderMode(RENDERMODE_TRANSALPHA)
 		end
 	elseif (self.exploding) then
 		txt = "Triggered... "..self.count

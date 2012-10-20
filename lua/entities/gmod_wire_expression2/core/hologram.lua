@@ -114,7 +114,7 @@ local added = {}
 for _,v in pairs( ModelList ) do
 	if !added[v] then
 		util.PrecacheModel( "models/Holograms/" .. v .. ".mdl" )
-		resource.AddSingleFile( "models/Holograms/" .. v .. ".mdl" )
+		//resource.AddSingleFile( "models/Holograms/" .. v .. ".mdl" )
 
 		added[v] = true
 	end
@@ -739,6 +739,7 @@ e2function void holoColor(index, vector4 color)
 	if not Holo then return end
 
 	Holo.ent:SetColor(Color(color[1],color[2],color[3],color[4]))
+	Holo.ent:SetRenderMode(Holo.ent:GetColor().a == 255 and RENDERMODE_NORMAL or RENDERMODE_TRANSALPHA)
 end
 
 e2function void holoColor(index, vector color, alpha)
@@ -746,6 +747,7 @@ e2function void holoColor(index, vector color, alpha)
 	if not Holo then return end
 
 	Holo.ent:SetColor(Color(color[1],color[2],color[3],alpha))
+	Holo.ent:SetRenderMode(Holo.ent:GetColor().a == 255 and RENDERMODE_NORMAL or RENDERMODE_TRANSALPHA)
 end
 
 e2function void holoAlpha(index, alpha)
@@ -755,6 +757,7 @@ e2function void holoAlpha(index, alpha)
 	local c = Holo.ent:GetColor()
 	c.a = alpha
 	Holo.ent:SetColor(c)
+	Holo.ent:SetRenderMode(Holo.ent:GetColor().a == 255 and RENDERMODE_NORMAL or RENDERMODE_TRANSALPHA)
 end
 
 e2function void holoShadow(index, has_shadow)
