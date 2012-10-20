@@ -662,12 +662,6 @@ E2Helper.Descriptions["signalGroup()"] = "Returns the group name of the received
 E2Helper.Descriptions["signalSender()"] = "Returns the entity of the chip that sent the signal."
 E2Helper.Descriptions["signalSenderId()"] = "Returns the entity ID of the chip that sent the signal. Useful if the entity doesn't exist anymore."
 
--- Glon
-E2Helper.Descriptions["glonEncode(r)"] = "Encodes R into a string, using GLON."
-E2Helper.Descriptions["glonEncode(t)"] = "Encodes T into a string, using GLON."
-E2Helper.Descriptions["glonDecode(s)"] = "Decodes S into an array, using GLON."
-E2Helper.Descriptions["glonDecodeTable(s)"] = "Decodes S into a table, using GLON."
-
 -- Holograms
 E2Helper.Descriptions["holoEntity(n)"] = "Returns the entity corresponding to the hologram given by the specified index."
 E2Helper.Descriptions["holoIndex(e)"] = "Returns the index of the given hologram entity."
