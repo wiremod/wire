@@ -289,7 +289,7 @@ VM.OpcodeTable[333] = function(self)  --CHVOLUME
 
   self:Dyn_Emit("if (CHAN >= 0) and (CHAN < WireSPU_MaxChannels) then")
     self:Dyn_Emit("if VM.Channel[CHAN] then")
-      self:Dyn_Emit("VM.Channel[CHAN].Sound:ChangeVolume(math.Clamp(X,0,1))")
+      self:Dyn_Emit("VM.Channel[CHAN].Sound:ChangeVolume(math.Clamp(X,0,1),0)")
       self:Dyn_Emit("VM.Channel[CHAN].Volume = math.Clamp(X,0,1)")
     self:Dyn_Emit("end")
   self:Dyn_Emit("end")
@@ -300,7 +300,7 @@ VM.OpcodeTable[334] = function(self)  --CHPITCH
 
   self:Dyn_Emit("if (CHAN >= 0) and (CHAN < WireSPU_MaxChannels) then")
     self:Dyn_Emit("if VM.Channel[CHAN] then")
-      self:Dyn_Emit("VM.Channel[CHAN].Sound:ChangePitch(math.Clamp(X*100,0,255))")
+      self:Dyn_Emit("VM.Channel[CHAN].Sound:ChangePitch(math.Clamp(X*100,0,255),0)")
       self:Dyn_Emit("VM.Channel[CHAN].Pitch = math.Clamp(X*100,0,255)")
     self:Dyn_Emit("end")
   self:Dyn_Emit("end")
