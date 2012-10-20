@@ -206,7 +206,7 @@ if SERVER then
 		-- Send everything
 		local targets = {}
 		local function sendData( target )
-			if IsValid(target) and target:IsPlayer() and targets[target] == nil) then
+			if IsValid(target) and target:IsPlayer() and targets[target] == nil then
 				targets[target] = "start"
 				net.Start("e2_functiondata_start")
 					net.WriteTable(miscdata[1])
