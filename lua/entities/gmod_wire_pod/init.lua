@@ -65,7 +65,7 @@ end
 function ENT:Think()
 	-- Check that we have a pod
 	if self.Pod and self.Pod:IsValid() then
-		self.Ply = self.Pod:GetPassenger()
+		self.Ply = self.Pod:GetPassenger(0)
 
 		if self.Ply and self.Ply:IsValid() and self.Keys then
 			-- Loop through all the self.Keys, and check if they was pressed last frame
