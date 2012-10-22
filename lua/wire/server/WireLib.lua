@@ -1051,7 +1051,7 @@ function WireLib.PostDupe(entid, func)
 	if not CreatedEntities then return end
 
 	-- Wait until the selected entity has been spawned...
-	local unique = {}
+	local unique = "WireLib_PostDupe_"..tostring({})
 	timer.Create(unique, 1, 240, function()
 		local ent = CreatedEntities[entid]
 		if ent then

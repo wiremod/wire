@@ -90,8 +90,8 @@ function ENT:TriggerInput(iname, value)
 		self.Active = active
 		if (active) then
 			self:StartSounds()
-			self.SND:ChangeVolume(self.Volume)
-			self.SND:ChangePitch(self.Pitch)
+			self.SND:ChangeVolume(self.Volume,0)
+			self.SND:ChangePitch(self.Pitch,0)
 		else
 			self:StopSounds()
 		end
@@ -102,8 +102,8 @@ function ENT:TriggerInput(iname, value)
 		end
 		if (self.Active) then
 			self:StartSounds()
-			self.SND:ChangeVolume(self.Volume)
-			self.SND:ChangePitch(self.Pitch)
+			self.SND:ChangeVolume(self.Volume,0)
+			self.SND:ChangePitch(self.Pitch,0)
 		else
 			self:StopSounds()
 		end
@@ -111,14 +111,14 @@ function ENT:TriggerInput(iname, value)
 		local volume = math.Clamp(math.floor(value*100),0,100)
 		self.Volume = volume
 
-		self.SND:ChangeVolume(volume)
+		self.SND:ChangeVolume(volume, 0)
 	elseif (iname == "Play") then
 		local active = value >= 1
 		if (active) then
 			self.Active = true
 			self:StartSounds()
-			self.SND:ChangeVolume(self.Volume)
-			self.SND:ChangePitch(self.Pitch)
+			self.SND:ChangeVolume(self.Volume,0)
+			self.SND:ChangePitch(self.Pitch,0)
 		end
 	elseif (iname == "Stop") then
 		local active = value >= 1
@@ -129,7 +129,7 @@ function ENT:TriggerInput(iname, value)
 	elseif (iname == "PitchRelative") then
 		local relpitch = math.Clamp(math.floor(value*100),0,255)
 		if (self.Active) then
-			self.SND:ChangePitch(relpitch)
+			self.SND:ChangePitch(relpitch,0)
 		end
 		self.Pitch = relpitch
 	elseif (iname == "LFOType") then
@@ -192,8 +192,8 @@ function ENT:Think()
 			self.LFOValue = math.random()*2-1
 
 			if (self.Active) then
-				self.SND:ChangePitch(self.Pitch + 100*self.LFOValue*self.LFOModPitch)
-				self.SND:ChangeVolume(self.Volume + 5*self.LFOValue*self.LFOModVolume)
+				self.SND:ChangePitch(self.Pitch + 100*self.LFOValue*self.LFOModPitch,0)
+				self.SND:ChangeVolume(self.Volume + 5*self.LFOValue*self.LFOModVolume,0)
 			end
 		end
 	end

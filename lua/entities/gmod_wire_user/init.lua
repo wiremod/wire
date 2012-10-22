@@ -40,7 +40,7 @@ function ENT:TriggerInput(iname, value)
 				if (trace.Entity:IsWorld()) then return false end
 
 			if trace.Entity.Use and trace.Entity.GetPlayer then
-				trace.Entity:Use(trace.Entity:GetPlayer())
+				trace.Entity:Use(trace.Entity:GetPlayer(),trace.Entity:GetPlayer(),USE_ON,0)
 			else
 				trace.Entity:Fire("use","1",0)
 			end

@@ -77,13 +77,13 @@ if (SERVER) then
 				}
 				for k,v in pairs(value) do
 					local theType,theValue = string.match (v, "^ *([^: ]+) *:(.*)$")
-					theType = string.upper(theType)
+					theType = string.upper(theType or "NORMAL")
 					
 					if not convtbl[theType] then
 						theType = "NORMAL"
 					end
 					
-					table.insert(convertedValues, { DataType=convtbl[theType], Value=theValue } )
+					table.insert(convertedValues, { DataType=convtbl[theType], Value=theValue or v } )
 				end
 				wire_value:Setup( convertedValues )
 			end

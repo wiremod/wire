@@ -33,7 +33,7 @@ function ENT:MakeDynamicCam(oldcam)
 		cam:SetPos( self:GetPos() )
 	end
 	cam:SetModel( Model("models/props_junk/PopCan01a.mdl") )
-	cam:SetColor(Color(0, 0, 0, 0))
+	cam:SetNoDraw(true)
 	cam:Spawn()
 
 	cam:CallOnRemove("wire_cam_restore", function(oldcam) self:MakeDynamicCam(oldcam) end)

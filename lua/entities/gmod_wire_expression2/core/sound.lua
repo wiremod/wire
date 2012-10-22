@@ -19,6 +19,7 @@ local function soundCreate(self, entity, index, time, path, fade)
 	local data = self.data['currentsound']
 	if table.Count(data)>wire_expression2_maxsounds:GetFloat() then return end
 	path = path:Trim()
+	path = string.gsub(path, "\\", "/")
 	local sound = CreateSound(entity, path)
 	if type(index)=="number" then index = index - index % 1 end
 	if data[index] then data[index]:Stop() end
@@ -121,7 +122,7 @@ e2function void soundVolume(rv1, rv2)
 	if data[rv1] then
 		local sound = data[rv1]
 		rv2 = math.Clamp(rv2,0,1)
-		sound:ChangeVolume(rv2)
+		sound:ChangeVolume(rv2,0)
 	end
 end
 
@@ -130,7 +131,7 @@ e2function void soundVolume(string rv1, rv2)
 	if data[rv1] then
 		local sound = data[rv1]
 		rv2 = math.Clamp(rv2,0,1)
-		sound:ChangeVolume(rv2)
+		sound:ChangeVolume(rv2,0)
 	end
 end
 
@@ -140,7 +141,7 @@ e2function void soundPitch(rv1, rv2)
 	if data[rv1] then
 		local sound = data[rv1]
 		rv2 = math.Clamp(rv2,0,255)
-		sound:ChangePitch(rv2)
+		sound:ChangePitch(rv2,0)
 	end
 end
 
@@ -149,7 +150,7 @@ e2function void soundPitch(string rv1, rv2)
 	if data[rv1] then
 		local sound = data[rv1]
 		rv2 = math.Clamp(rv2,0,255)
-		sound:ChangePitch(rv2)
+		sound:ChangePitch(rv2,0)
 	end
 end
 

@@ -510,6 +510,7 @@ hook.Add("PlayerAuthed", "Wire_Expression2_Player_Authed", function(ply, sid, ui
 			if (ent.disconnectPaused) then
 				c = ent.disconnectPaused
 				ent:SetColor(Color(c[1],c[2],c[3],c[4]))
+				ent:SetRenderMode(ent:GetColor().a == 255 and RENDERMODE_NORMAL or RENDERMODE_TRANSALPHA)
 				ent.error = false
 				ent.disconnectPaused = false
 				ent:SetOverlayText(ent.name)
