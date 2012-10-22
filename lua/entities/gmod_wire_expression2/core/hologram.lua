@@ -14,6 +14,9 @@ CreateConVar( "wire_holograms_burst_amount", "30" )
 CreateConVar( "wire_holograms_burst_delay", "10" )
 CreateConVar( "wire_holograms_max_clips", "5" )
 local wire_holograms_size_max = CreateConVar( "wire_holograms_size_max", "50" )
+umsg.PoolString("wire_holograms_set_visible")
+umsg.PoolString("wire_holograms_clip")
+umsg.PoolString("wire_holograms_set_scale")
 
 
 -- context = chip.context = self
