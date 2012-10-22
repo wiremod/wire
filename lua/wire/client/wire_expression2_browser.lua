@@ -55,7 +55,7 @@ local function setTree(dir, parent)
 	parent:Clear(true)
 	parent.ChildNodes = nil
 
-	local timername = {} // Timer names must be unique and can be an empty table!
+	local timername = "E2_SetTree_"..tostring({})
 	local _,files = file.Find(dir .. "/*", "DATA")
 	--table.sort(files)
 	sort( files, dir )

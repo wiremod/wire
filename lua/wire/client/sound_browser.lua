@@ -6,7 +6,7 @@ local PANEL = {}
 local MaxElements = 1800 // If you try to show more then 2000 files at once then the tree will disappear and you cant reopen it, so leave the value at 1800 or below to be safe.
 local MaxPerTimerTick = 15 // Set Max count of elements to in to the tree per timertick. If the value is to high it will cause the "Infinite Loop Detected!" Error.
 
-local timername = {} // Timer names must be unique and can be an empty table!
+local timername = "SoundBrowser_FindItemsInTree_"..tostring({})
 local lastselected = ""
 
 function PANEL:GetFileName(filepath) // Return the filename of the given filepath without "/" or "\" at the beginning.

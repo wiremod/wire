@@ -597,7 +597,7 @@ end
 
 e2function entity entity:passenger()
 	if not IsValid(this) or not this:IsVehicle() then return nil end
-	return this:GetPassenger()
+	return this:GetPassenger(0)
 end
 
 --- Returns <ent> formatted as a string. Returns "<code>(null)</code>" for invalid entities.

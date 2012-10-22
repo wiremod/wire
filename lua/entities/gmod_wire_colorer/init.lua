@@ -62,6 +62,7 @@ function ENT:TriggerInput(iname, value)
 				trace.Entity:SetColor(Color(self.InColor.r, self.InColor.g, self.InColor.b, 255))
 			else
 				trace.Entity:SetColor(Color(self.InColor.r, self.InColor.g, self.InColor.b, self.InColor.a))
+				trace.Entity:SetRenderMode(self.InColor.a == 255 and RENDERMODE_NORMAL or RENDERMODE_TRANSALPHA )
 			end
 		end
 	elseif iname == "R" then
