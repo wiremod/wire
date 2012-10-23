@@ -59,7 +59,7 @@ function TOOL:LeftClick( trace )
 		if (CLIENT) then return true end
 
 		// If we shot a wire_thruster change its force
-		if ( trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_vectorthruster" && trace.Entity.pl == ply ) then
+		if ( trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_vectorthruster" ) then
 
 			trace.Entity:SetForce( force )
 			trace.Entity:SetEffect( effect )

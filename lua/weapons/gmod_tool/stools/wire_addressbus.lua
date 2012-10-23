@@ -35,7 +35,7 @@ function TOOL:LeftClick( trace )
 
 	local ply = self:GetOwner()
 
-	if ( trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_addressbus" && trace.Entity.ply == ply ) then
+	if ( trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_addressbus" ) then
 		trace.Entity.MemStart[1] = self:GetClientNumber( "addrspace1st" )
 		trace.Entity.MemStart[2] = self:GetClientNumber( "addrspace2st" )
 		trace.Entity.MemStart[3] = self:GetClientNumber( "addrspace3st" )
@@ -92,7 +92,7 @@ function TOOL:RightClick( trace )
 
 	local ply = self:GetOwner()
 
-	if ( trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_addressbus" && trace.Entity.ply == ply ) then
+	if ( trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_addressbus" ) then
 		ply:ConCommand("wire_addressbus_addrspace1sz "..(trace.Entity.MemEnd[1]-trace.Entity.MemStart[1]+1))
 		ply:ConCommand("wire_addressbus_addrspace1st "..(trace.Entity.MemStart[1]))
 		ply:ConCommand("wire_addressbus_addrspace2sz "..(trace.Entity.MemEnd[2]-trace.Entity.MemStart[2]+1))

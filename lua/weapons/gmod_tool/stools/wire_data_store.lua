@@ -29,7 +29,7 @@ function TOOL:LeftClick( trace )
 
 	local ply = self:GetOwner()
 
-	if ( trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_data_store" && trace.Entity.pl == ply ) then
+	if ( trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_data_store" ) then
 		return true
 	end
 

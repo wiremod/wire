@@ -1,7 +1,7 @@
 
 function WireToolMakeWeight( self, trace, ply )
 
-	if trace.Entity:IsValid() and trace.Entity:GetClass() == "gmod_wire_weight" and trace.Entity.pl == ply then
+	if trace.Entity:IsValid() and trace.Entity:GetClass() == "gmod_wire_weight" then
 		return true
 	end
 
@@ -160,7 +160,7 @@ function WireToolMakeForcer( self, trace, ply )
 	local length		= self:GetClientNumber( "length" )
 	local model			= self:GetModel()
 
-	if trace.Entity:IsValid() and trace.Entity:GetClass() == "gmod_wire_forcer" and trace.Entity.pl == ply then
+	if trace.Entity:IsValid() and trace.Entity:GetClass() == "gmod_wire_forcer" then
 		trace.Entity:Setup(multiplier, length, showbeam, reaction)
 		return true
 	end
@@ -189,7 +189,7 @@ function WireToolMakeDetonator( self, trace, ply )
 	local damage = self:GetClientNumber("damage")
 	local model = self:GetModel()
 
-	if trace.Entity:IsValid() and trace.Entity:GetClass() == "gmod_wire_detonator" and trace.Entity.pl == ply then
+	if trace.Entity:IsValid() and trace.Entity:GetClass() == "gmod_wire_detonator" then
 		trace.Entity:Setup(damage)
 		trace.Entity.damage = damage
 		return true
@@ -217,7 +217,7 @@ function WireToolMakeGrabber( self, trace, ply )
 	local Gravity	= self:GetClientNumber("Gravity") ~= 0
 	local model		= self:GetModel()
 
-	if trace.Entity:IsValid() and trace.Entity:GetClass() == "gmod_wire_grabber" and trace.Entity.pl == ply then
+	if trace.Entity:IsValid() and trace.Entity:GetClass() == "gmod_wire_grabber" then
 		trace.Entity:Setup(Range, Gravity)
 		return true
 	end
@@ -252,7 +252,7 @@ function WireToolMakeHoverball( self, trace, ply )
 	strength	= math.Clamp( strength, 0.1, 20 )
 
 	-- We shot an existing hoverball - just change its values
-	if trace.Entity:IsValid() and trace.Entity:GetClass() == "gmod_wire_hoverball" and trace.Entity.pl == ply then
+	if trace.Entity:IsValid() and trace.Entity:GetClass() == "gmod_wire_hoverball" then
 
 		trace.Entity:SetSpeed( speed )
 		trace.Entity:SetAirResistance( resistance )
@@ -288,7 +288,7 @@ function WireToolMakeIgniter( self, trace, ply )
 	local Range		= self:GetClientNumber("Range")
 	local model		= self:GetModel()
 
-	if trace.Entity:IsValid() and trace.Entity:GetClass() == "gmod_wire_igniter" and trace.Entity.pl == ply then
+	if trace.Entity:IsValid() and trace.Entity:GetClass() == "gmod_wire_igniter" then
 		trace.Entity:Setup(trgply, Range)
 		return true
 	end
@@ -312,7 +312,7 @@ function WireToolMakeTrail( self, trace, ply )
 
 	local mat = self:GetClientInfo("material")
 
-	if trace.Entity:IsValid() and trace.Entity:GetClass() == "gmod_wire_trail" and trace.Entity.pl == ply then
+	if trace.Entity:IsValid() and trace.Entity:GetClass() == "gmod_wire_trail" then
 	    trace.Entity.mat = mat
 	    trace.Entity:Setup(mat)
 		return true
@@ -349,7 +349,7 @@ function WireToolMakeThruster( self, trace, ply )
 	if not trace.Entity:IsValid() then nocollide = false end
 
 	-- If we shot a wire_thruster change its force
-	if trace.Entity:IsValid() and trace.Entity:GetClass() == "gmod_wire_thruster" and trace.Entity.pl == ply then
+	if trace.Entity:IsValid() and trace.Entity:GetClass() == "gmod_wire_thruster" then
 		trace.Entity:SetForce( force )
 
 		trace.Entity:SetDatEffect(uwater, owater, uweffect, oweffect)

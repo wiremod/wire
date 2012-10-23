@@ -42,7 +42,7 @@ function TOOL:LeftClick( trace )
 	local values		= self:GetClientNumber("values")
 	local secure		= (self:GetClientNumber("secure") ~= 0)
 
-	if ( trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_radio" && trace.Entity.pl == ply ) then
+	if ( trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_radio" ) then
 		trace.Entity:Setup( _channel,values,secure)
 		trace.Entity.channel = _channel
 		return true

@@ -53,7 +53,7 @@ function TOOL:LeftClick( trace )
 	local CreateFlat = self:GetClientNumber("createflat") ~= 0
 	local draw_background = self:GetClientNumber("draw_background") ~= 0
 
-	if (trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_graphics_tablet" && trace.Entity.pl == ply) then
+	if (trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_graphics_tablet") then
 		trace.Entity:Setup(gmode, draw_background)
 		return true
 	end

@@ -38,7 +38,7 @@ function TOOL:LeftClick( trace )
 	local _out180 = self:GetClientNumber( "out180" ) == 1
 
 	// If we shot a wire_gyroscope change its "Use +/-180?" property (TheApathetic)
-	if ( trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_gyroscope" && trace.Entity.pl == ply ) then
+	if ( trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_gyroscope" ) then
 		trace.Entity:Setup( _out180 )
 		trace.Entity.out180 = _out180
 		return true

@@ -40,7 +40,7 @@ function TOOL:LeftClick( trace )
 
 	local ply = self:GetOwner()
 
-	if IsValid(trace.Entity) and trace.Entity:GetClass() == "gmod_wire_colorer" and trace.Entity.pl == ply then
+	if IsValid(trace.Entity) and trace.Entity:GetClass() == "gmod_wire_colorer" then
 		trace.Entity:SetBeamLength( self:GetClientNumber( "Range" ) )
 		return true
 	end

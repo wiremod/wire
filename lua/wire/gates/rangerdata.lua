@@ -65,7 +65,7 @@ GateActions["rd_entity"] = {
 		return A.Entity
 	end,
 	label = function(Out, A)
-		return string.format ("hitentity(%s) = %s", A, Out)
+		return string.format ("hitentity(%s) = %s", A, tostring(Out))
 	end
 }
 

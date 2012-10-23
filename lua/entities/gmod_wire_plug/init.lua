@@ -29,9 +29,9 @@ function ENT:Initialize()
 end
 
 ------------------------------------------------------------
--- SetUp
+-- Setup
 ------------------------------------------------------------
-function ENT:SetUp( ArrayInput )
+function ENT:Setup( ArrayInput )
 	self.ArrayInput = ArrayInput or false
 
 	if (!self.Inputs or !self.Outputs or self.ArrayInput != old) then
@@ -193,9 +193,9 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 	ply:AddCount( "wire_plugs", ent )
 
 	if (info.Plug) then
-		ent:SetUp( info.Plug.ArrayInput )
+		ent:Setup( info.Plug.ArrayInput )
 	else
-		ent:SetUp() -- default values
+		ent:Setup() -- default values
 	end
 
 	ent:SetPlayer( ply )

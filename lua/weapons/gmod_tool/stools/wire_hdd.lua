@@ -39,7 +39,7 @@ function TOOL:LeftClick( trace )
 
 	local ply = self:GetOwner()
 
-	if ( trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_hdd" && trace.Entity.pl == ply ) then
+	if ( trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_hdd" ) then
 		trace.Entity.DriveID = tonumber(self:GetClientInfo( "driveid" ))
 		trace.Entity.DriveCap = tonumber(self:GetClientInfo( "drivecap" ))
 		trace.Entity:UpdateCap()
@@ -399,7 +399,7 @@ function TOOL.BuildCPanel(panel)
 		Label = "Client drive ID",
 		Type = "Integer",
 		Min = "0",
-		Max = "3",
+		Max = "99",
 		Command = "wire_hdd_client_driveid"
 	})
 

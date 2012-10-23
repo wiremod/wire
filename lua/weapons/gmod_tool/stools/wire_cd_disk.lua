@@ -34,7 +34,7 @@ function TOOL:LeftClick(trace)
 
 	local ply = self:GetOwner()
 
-	if (trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_cd_disk" && trace.Entity.pl == ply) then
+	if (trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_cd_disk") then
 		trace.Entity.Precision = tonumber(self:GetClientInfo("precision"))
 		trace.Entity.IRadius = tonumber(self:GetClientInfo("iradius"))
 		trace.Entity:Setup()
