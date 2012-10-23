@@ -111,7 +111,7 @@ function TOOL:LeftClick( trace )
 	local fullcircleangle = self:GetClientNumber( "fullcircleangle" )
 
 	// If we shot a wire_indicator change its force
-	if ( trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_hudindicator" && trace.Entity.pl == ply ) then
+	if ( trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_hudindicator" ) then
 
 		trace.Entity:Setup(a, ar, ag, ab, aa, b, br, bg, bb, ba)
 		trace.Entity:SetMaterial( material )

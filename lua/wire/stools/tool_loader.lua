@@ -185,7 +185,7 @@ end
 if SERVER then
 	--
 	function WireToolObj:CheckHitOwnClass( trace )
-		return trace.Entity:IsValid() and trace.Entity:GetClass() == self.WireClass and trace.Entity.pl == self:GetOwner()
+		return trace.Entity:IsValid() and trace.Entity:GetClass() == self.WireClass
 	end
 
 	--

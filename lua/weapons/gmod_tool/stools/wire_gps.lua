@@ -31,7 +31,7 @@ function TOOL:LeftClick( trace )
 	local ply = self:GetOwner()
 
 	// If we shot a wire_gps do nothing
-	if ( trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_gps" && trace.Entity.pl == ply ) then
+	if ( trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_gps" ) then
 		trace.Entity:Setup()
 		return true
 	end

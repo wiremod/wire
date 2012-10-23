@@ -9,7 +9,7 @@ function WireToolMakeAdvInput( self, trace, ply )
 	local _value_start		= self:GetClientNumber( "value_start" )
 	local _speed			= self:GetClientNumber( "speed" )
 
-	if trace.Entity:IsValid() and trace.Entity:GetClass() == "gmod_wire_adv_input" and trace.Entity.pl == ply then
+	if trace.Entity:IsValid() and trace.Entity:GetClass() == "gmod_wire_adv_input" then
 		trace.Entity:Setup( _keymore, _keyless, _toggle, _value_min, _value_max, _value_start, _speed )
 		return true
 	end
@@ -55,7 +55,7 @@ function WireToolMakeButton( self, trace, ply )
 	local _description		= self:GetClientInfo( "description" )
 	local _entityout		= (self:GetClientNumber( "entityout" ) ~= 0)
 
-	if trace.Entity:IsValid() and trace.Entity:GetClass() == "gmod_wire_button" and trace.Entity.pl == ply then
+	if trace.Entity:IsValid() and trace.Entity:GetClass() == "gmod_wire_button" then
 		trace.Entity:Setup(_toggle, _value_off, _value_on, _entityout)
 		return true
 	end
@@ -90,7 +90,7 @@ function WireToolMakeDynamicButton( self, trace, ply )
 	local _off_g		    = self:GetClientNumber( "off_g" )
 	local _off_b			= self:GetClientNumber( "off_b" )
 
-	if trace.Entity:IsValid() and trace.Entity:GetClass() == "gmod_wire_dynamic_button" and trace.Entity.pl == ply then
+	if trace.Entity:IsValid() and trace.Entity:GetClass() == "gmod_wire_dynamic_button" then
 		trace.Entity:Setup(_toggle, _value_off, _value_on, _entityout, _material_on, _material_off, _on_r, _on_g, _on_b, _off_r, _off_g, _off_b  )
 		return true
 	end
@@ -117,7 +117,7 @@ function WireToolMakeDualInput( self, trace, ply )
 	local _value_on			= self:GetClientNumber( "value_on" )
 	local _value_on2		= self:GetClientNumber( "value_on2" )
 
-	if trace.Entity:IsValid() and trace.Entity:GetClass() == "gmod_wire_dual_input" and trace.Entity.pl == ply then
+	if trace.Entity:IsValid() and trace.Entity:GetClass() == "gmod_wire_dual_input" then
 		trace.Entity:Setup( _keygroup, _keygroup2, _toggle, _value_off, _value_on, _value_on2 )
 		return true
 	end
@@ -145,7 +145,7 @@ function WireToolMakeInput( self, trace, ply )
 	local value_off	= self:GetClientNumber( "value_off" )
 	local value_on	= self:GetClientNumber( "value_on" )
 
-	if trace.Entity:IsValid() and trace.Entity:GetClass() == "gmod_wire_input" and trace.Entity.pl == ply then
+	if trace.Entity:IsValid() and trace.Entity:GetClass() == "gmod_wire_input" then
 		trace.Entity:Setup( keygroup, toggle, value_off, value_on )
 		return true
 	end

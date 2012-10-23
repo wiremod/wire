@@ -100,7 +100,7 @@ function TOOL:LeftClick( trace )
 
 
 	//update the eyepod
-	if (trace.Entity:IsValid() and trace.Entity:GetClass() == "gmod_wire_eyepod" and trace.Entity.pl == ply) then
+	if (trace.Entity:IsValid() and trace.Entity:GetClass() == "gmod_wire_eyepod") then
 		trace.Entity:Setup(DefaultToZero,ShowRateOfChange, ClampXMin, ClampXMax, ClampYMin, ClampYMax, ClampX, ClampY)
 		return true
 	end

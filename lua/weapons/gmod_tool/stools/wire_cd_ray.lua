@@ -37,7 +37,7 @@ function TOOL:LeftClick(trace)
 
 	local ply = self:GetOwner()
 
-	if ( trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_cd_ray" && trace.Entity.pl == ply ) then
+	if ( trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_cd_ray" ) then
 		return true
 	end
 
@@ -77,7 +77,7 @@ function TOOL:RightClick(trace)
 
 	local ply = self:GetOwner()
 
-	if ( trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_cd_lock" && trace.Entity.pl == ply ) then
+	if ( trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_cd_lock" ) then
 		return true
 	end
 

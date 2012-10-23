@@ -75,7 +75,7 @@ function TOOL:LeftClick(trace)
 	end
 
 	-- Update a beacon
-	if (trace.Entity:IsValid() and trace.Entity:GetClass() == "gmod_wire_sensor" and trace.Entity.pl == ply ) then
+	if (trace.Entity:IsValid() and trace.Entity:GetClass() == "gmod_wire_sensor" ) then
 		trace.Entity.xyz_mode				= xyz_mode
 		trace.Entity.outdist				= outdist
 		trace.Entity.outbrng				= outbrng

@@ -35,7 +35,7 @@ function TOOL:LeftClick( trace )
 	local key 				= self:GetClientNumber( "keygroup" )
 
 	// If we shot a wire_output do nothing
-	if ( trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_output" && trace.Entity.pl == ply ) then
+	if ( trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_output" ) then
 		trace.Entity.key = key
 		if (numpad.GetModifiedKey) then key = numpad.GetModifiedKey(ply, key) end
 		trace.Entity:SetKey(key)

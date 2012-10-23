@@ -4,7 +4,7 @@ function WireToolMakeSpeedometer( self, trace, ply )
 	local xyz_mode = util.tobool(self:GetClientNumber("xyz_mode"))
 	local AngVel = util.tobool(self:GetClientNumber("angvel"))
 
-	if trace.Entity:IsValid() and trace.Entity:GetClass() == "gmod_wire_speedometer" and trace.Entity.pl == ply then
+	if trace.Entity:IsValid() and trace.Entity:GetClass() == "gmod_wire_speedometer" then
 		trace.Entity:Setup(xyz_mode, AngVel)
 		return true
 	end

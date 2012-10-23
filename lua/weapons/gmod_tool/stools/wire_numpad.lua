@@ -42,7 +42,7 @@ function TOOL:LeftClick( trace )
 	local _value_off		= self:GetClientNumber( "value_off" )
 	local _value_on			= self:GetClientNumber( "value_on" )
 
-	if ( trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_numpad" && trace.Entity.pl == ply ) then
+	if ( trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_numpad" ) then
 		trace.Entity:Setup( _toggle, _value_off, _value_on )
 		trace.Entity.toggle = _toggle
 		trace.Entity.value_off = _value_off
