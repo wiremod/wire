@@ -9,11 +9,11 @@ if (SERVER) then
 	CreateConVar("sbox_maxwire_plugs",20)
 	CreateConVar("sbox_maxwire_sockets",20)
 
-	resource.AddFile("models/bull/various/usb_socket.mdl")
-	resource.AddFile("materials/bull/various/usb_socket.vtf")
+	//resource.AddFile("models/bull/various/usb_socket.mdl")
+	//resource.AddFile("materials/bull/various/usb_socket.vtf")
 
-	resource.AddFile("models/bull/various/usb_stick.mdl")
-	resource.AddFile("materials/bull/various/usb_stick.vtf")
+	//resource.AddFile("models/bull/various/usb_stick.mdl")
+	//resource.AddFile("materials/bull/various/usb_stick.vtf")
 
 else
 
@@ -169,7 +169,7 @@ function TOOL:LeftClick( trace )
 		if (trace.Entity:IsPlayer()) then return false end
 		if (trace.Entity:GetClass() == "gmod_wire_socket") then
 			if (CLIENT) then return true end
-			trace.Entity:SetUp( self:GetClientNumber( "array" ) != 0, self:GetClientNumber( "weldforce" ), math.Clamp( self:GetClientNumber( "attachrange" ), 1, 100 ) )
+			trace.Entity:Setup( self:GetClientNumber( "array" ) != 0, self:GetClientNumber( "weldforce" ), math.Clamp( self:GetClientNumber( "attachrange" ), 1, 100 ) )
 			return true
 		end
 	end
@@ -223,7 +223,7 @@ if (SERVER) then
 		socket:SetModel( model )
 		socket:SetPlayer( ply )
 		socket:Spawn()
-		socket:SetUp( ArrayInput, WeldForce, AttachRange, ArrayHiSpeed )
+		socket:Setup( ArrayInput, WeldForce, AttachRange, ArrayHiSpeed )
 		socket:Activate()
 
 		ply:AddCount( "wire_socket", socket )
@@ -246,7 +246,7 @@ function TOOL:RightClick( trace )
 		if (trace.Entity:IsPlayer()) then return false end
 		if (trace.Entity:GetClass() == "gmod_wire_plug") then
 			if (CLIENT) then return true end
-			trace.Entity:SetUp( self:GetClientNumber( "array" ) != 0 )
+			trace.Entity:Setup( self:GetClientNumber( "array" ) != 0 )
 			return true
 		end
 	end
@@ -290,7 +290,7 @@ if (SERVER) then
 		plug:SetModel( model )
 		plug:SetPlayer( ply )
 		plug:Spawn()
-		plug:SetUp( ArrayInput, ArrayHiSpeed )
+		plug:Setup( ArrayInput, ArrayHiSpeed )
 		plug:Activate()
 
 
