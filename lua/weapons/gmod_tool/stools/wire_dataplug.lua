@@ -83,7 +83,7 @@ function TOOL:LeftClick( trace )
 
 	local ply = self:GetOwner()
 
-	if ( trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_datasocket" && trace.Entity.pl == ply ) then
+	if ( trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_datasocket" ) then
 		trace.Entity:Setup(a,ar,ag,ab,aa)
 
 		trace.Entity.a = a
@@ -134,7 +134,7 @@ function TOOL:RightClick( trace )
 
 	local ply = self:GetOwner()
 
-	if ( trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_dataplug" && trace.Entity.pl == ply ) then
+	if ( trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_dataplug" ) then
 		trace.Entity:Setup(a,ar,ag,ab,aa)
 
 		trace.Entity.a = a

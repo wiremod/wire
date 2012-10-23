@@ -128,7 +128,7 @@ function TOOL:LeftClick(trace)
 	local checkbuddylist = (self:GetClientNumber("checkbuddylist") != 0)
 	local onbuddylist	= (self:GetClientNumber("onbuddylist") != 0)
 
-	if ( trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_target_finder" && trace.Entity.pl == ply ) then
+	if ( trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_target_finder" ) then
 		//trace.Entity:Setup(range, players, npcs, npcname, beacons, hoverballs, thrusters, rpgs, painttarget)
 		trace.Entity:Setup(range, players, npcs, npcname, beacons, hoverballs, thrusters, props, propmodel,  vehicles, playername, casesen, rpgs, painttarget, minrange, maxtargets, maxbogeys, notargetowner, entity, notownersstuff, steamname, colorcheck, colortarget, pcolR, pcolG, pcolB, pcolA, checkbuddylist, onbuddylist)
 

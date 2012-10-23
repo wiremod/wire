@@ -78,7 +78,7 @@ function TOOL:LeftClick( trace )
 	local out_hnrm     = (self:GetClientNumber("out_hnrm") ~= 0)
 	local hires        = (self:GetClientNumber("hires") ~= 0)
 
-	if ( trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_ranger" && trace.Entity.pl == ply ) then
+	if ( trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_ranger" ) then
 		trace.Entity:Setup( range, default_zero, show_beam, ignore_world, trace_water, out_dist, out_pos, out_vel, out_ang, out_col, out_val, out_sid, out_uid, out_eid, out_hnrm, hires )
 		return true
 	end

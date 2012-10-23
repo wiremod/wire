@@ -31,9 +31,9 @@ function ENT:Initialize()
 end
 
 ------------------------------------------------------------
--- SetUp
+-- Setup
 ------------------------------------------------------------
-function ENT:SetUp( ArrayInput, WeldForce, AttachRange )
+function ENT:Setup( ArrayInput, WeldForce, AttachRange )
 	local old = self.ArrayInput
 	self.ArrayInput = ArrayInput or false
 
@@ -275,7 +275,7 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID, GetConstByID)
 	ply:AddCount( "wire_sockets", ent )
 
 	if (info.Socket) then
-		ent:SetUp( info.Socket.ArrayInput, info.Socket.WeldForce, info.Socket.AttachRange )
+		ent:Setup( info.Socket.ArrayInput, info.Socket.WeldForce, info.Socket.AttachRange )
 		if (info.Socket.Plug) then
 			local plug = GetEntByID( info.Socket.Plug )
 			if (plug and plug:IsValid()) then
@@ -300,7 +300,7 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID, GetConstByID)
 			end
 		end
 	else -- OLD DUPES COMPATIBILITY
-		ent:SetUp() -- default values
+		ent:Setup() -- default values
 
 		-- Attempt to find connected plug
 		timer.Simple(0.5,function(ent)

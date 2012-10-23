@@ -38,7 +38,7 @@ function TOOL:LeftClick( trace )
 	local ply = self:GetOwner()
 	local includeconstrained = self:GetClientNumber( "includeconstrained" )
 
-	if IsValid(trace.Entity) and trace.Entity:GetClass() == "gmod_wire_damage_detector" and trace.Entity.pl == ply then
+	if IsValid(trace.Entity) and trace.Entity:GetClass() == "gmod_wire_damage_detector" then
 		-- Update the detector's settings
 		trace.Entity:Setup( includeconstrained )
 		self:GetWeapon():SetNetworkedEntity( "WireDamageDetectorLink", ents.GetByIndex(trace.Entity.linked_entities[0]) )

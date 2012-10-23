@@ -35,7 +35,7 @@ function TOOL:LeftClick( trace )
 	local model = self:GetClientInfo( "model" )
 	if not util.IsValidModel( model ) or not util.IsValidProp( model ) then return end
 
-	if ( trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_twoway_radio" && trace.Entity.pl == ply ) then
+	if ( trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_twoway_radio" ) then
 		if (self.FirstPeer) and (self.FirstPeer:IsValid()) then
 			local first = self.FirstPeer
 			local second = trace.Entity
@@ -94,7 +94,7 @@ function TOOL:RightClick( trace )
 
 	local ply = self:GetOwner()
 
-	if ( trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_twoway_radio" && trace.Entity.pl == ply ) then
+	if ( trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_twoway_radio" ) then
 		self.FirstPeer = trace.Entity
 
 		return true

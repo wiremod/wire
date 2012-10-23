@@ -205,7 +205,7 @@ function TOOL:RightClick( trace )
 
 	local ply = self:GetOwner()
 	//shot an explosive, update it
-	if ( trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_explosive" && trace.Entity.pl == ply ) then
+	if ( trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_explosive" ) then
 		//double you code double your fun (copy from above)
 		// Get client's CVars
 		local tirgger			= self:GetClientNumber( "tirgger" )

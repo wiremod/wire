@@ -87,6 +87,10 @@ e2function number clk(string rv1)
 	   then return 1 else return 0 end
 end
 
+e2function string clkName() 
+	return runner or "" 
+end
+
 e2function array getTimers()
 	local ret = {}
 	local i = 0

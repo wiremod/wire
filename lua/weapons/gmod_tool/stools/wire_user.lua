@@ -42,7 +42,7 @@ function TOOL:LeftClick( trace )
 	local model = self:GetClientInfo("Model")
 	if not util.IsValidModel( model ) or not util.IsValidProp( model ) then return end
 
-	if ( trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_user" && trace.Entity.pl == ply ) then
+	if ( trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_user" ) then
 		trace.Entity:Setup(range)
 		trace.Entity.Range = range
 		return true

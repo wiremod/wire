@@ -55,7 +55,7 @@ function TOOL:LeftClick( trace )
 	delay = math.Clamp( delay, 0.05, 20 )
 
 	// We shot an existing emitter - just change its values
-	if ( trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_fx_emitter" && trace.Entity.pl == ply ) then
+	if ( trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_fx_emitter" ) then
 
 		if !trace.Entity.Inputs.Delay.Src then trace.Entity:SetDelay( delay ) end
 		if !trace.Entity.Inputs.On.Src then trace.Entity:SetEffect( effect ) end

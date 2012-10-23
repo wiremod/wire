@@ -28,7 +28,7 @@ function TOOL:LeftClick(trace)
 
 	local ply = self:GetOwner()
 
-	if ( trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_locator" && trace.Entity.pl == ply ) then
+	if ( trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_locator" ) then
 		trace.Entity:Setup()
 		return true
 	end

@@ -131,7 +131,7 @@ do --wire_simple_explosive
 	function TOOL:RightClick( trace )
 		local ply = self:GetOwner()
 		--shot an explosive, update it instead
-		if ( trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_simple_explosive" && trace.Entity.pl == ply ) then
+		if ( trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_simple_explosive" ) then
 			local _trigger			= self:GetClientNumber( "tirgger" )
 			local _damage 			= math.Clamp( self:GetClientNumber( "damage" ), 0, 1500 )
 			local _removeafter		= self:GetClientNumber( "removeafter" ) == 1
@@ -436,7 +436,7 @@ do --wire_turret
 		if not util.IsValidModel( model ) or not util.IsValidProp( model ) then return end
 
 		-- We shot an existing turret - just change its values
-		if trace.Entity:IsValid() and trace.Entity:GetClass() == "gmod_wire_turret" and trace.Entity.pl == ply then
+		if trace.Entity:IsValid() and trace.Entity:GetClass() == "gmod_wire_turret" then
 			trace.Entity:SetDamage( damage )
 			trace.Entity:SetDelay( delay )
 			trace.Entity:SetNumBullets( numbullets )
