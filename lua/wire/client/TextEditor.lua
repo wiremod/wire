@@ -2842,34 +2842,19 @@ function EDITOR:AC_FillList()
 		txt.suggestion = suggestion
 
 		-- Override paint to give it the "E2 theme" and to make it highlight when selected
-		if VERSION >= 151 then
-			txt.Paint = function( pnl, w, h )
-				draw_RoundedBox( 1, 1, 1, w-2, h-2, Color( 65, 105, 225, 255 ) )
-				if (panel.Selected == pnl.count) then
-					draw_RoundedBox( 0, 2, 2, w - 4 , h - 4, Color(0,0,0,192) )
-				end
-				-- I honestly dont have a fucking clue.
-				-- h2, was being cleaned up instantly for no reason.
-				surface.SetFont( "E2SmallFont" )
-				local _, h2 = surface.GetTextSize( nice_name )
+		txt.Paint = function( pnl, w, h )
+			draw_RoundedBox( 1, 1, 1, w-2, h-2, Color( 65, 105, 225, 255 ) )
+			if (panel.Selected == pnl.count) then
+				draw_RoundedBox( 0, 2, 2, w - 4 , h - 4, Color(0,0,0,192) )
+			end
+			-- I honestly dont have a fucking clue.
+			-- h2, was being cleaned up instantly for no reason.
+			surface.SetFont( "E2SmallFont" )
+			local _, h2 = surface.GetTextSize( nice_name )
 
-				surface.SetTextPos( 6, (h / 2) - (h2 / 2) )
-				surface.SetTextColor( 255,255,255,255 )
-				surface.DrawText( nice_name )
-			end
-		else
-			txt.Paint = function( pnl )
-				local w, h = pnl:GetSize()
-				draw_RoundedBox( 1, 1, 1, w-2, h-2, Color( 65, 105, 225, 255 ) )
-				if (panel.Selected == pnl.count) then
-					draw_RoundedBox( 0, 2, 2, w - 4 , h - 4, Color(0,0,0,192) )
-				end
-				surface_SetFont( "E2SmallFont" )
-				local _, h2 = surface_GetTextSize( nice_name )
-				surface_SetTextPos( 6, h/2-h2/2 )
-				surface_SetTextColor( 255,255,255,255 )
-				surface_DrawText( nice_name )
-			end
+			surface.SetTextPos( 6, (h / 2) - (h2 / 2) )
+			surface.SetTextColor( 255,255,255,255 )
+			surface.DrawText( nice_name )
 		end
 
 		-- Enable mouse presses
