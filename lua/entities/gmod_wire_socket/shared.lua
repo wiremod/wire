@@ -10,15 +10,13 @@ ENT.Instructions    = "Move a plug close to a plug to link them, and data will b
 ENT.Spawnable       = false
 ENT.AdminSpawnable  = false
 
-	list.Set( "wire_socket_models", "models/props_lab/tpplugholder_single.mdl", {} )
-	list.Set( "wire_socket_models", "models/bull/various/usb_socket.mdl", {} )
-	list.Set( "wire_socket_models", "models/hammy/pci_slot.mdl", {} )
-	list.Set( "wire_socket_models", "models/wingf0x/isasocket.mdl", {} )
-	list.Set( "wire_socket_models", "models/wingf0x/altisasocket.mdl", {} )
-	list.Set( "wire_socket_models", "models/wingf0x/ethernetsocket.mdl", {} )
-	list.Set( "wire_socket_models", "models/wingf0x/hdmisocket.mdl", {} )
-
-
+list.Set( "wire_socket_models", "models/props_lab/tpplugholder_single.mdl", {} )
+list.Set( "wire_socket_models", "models/bull/various/usb_socket.mdl", {} )
+list.Set( "wire_socket_models", "models/hammy/pci_slot.mdl", {} )
+list.Set( "wire_socket_models", "models/wingf0x/isasocket.mdl", {} )
+list.Set( "wire_socket_models", "models/wingf0x/altisasocket.mdl", {} )
+list.Set( "wire_socket_models", "models/wingf0x/ethernetsocket.mdl", {} )
+list.Set( "wire_socket_models", "models/wingf0x/hdmisocket.mdl", {} )
 
 local PositionOffsets = {
 	["models/wingf0x/isasocket.mdl"] = Vector(0,0,0),
@@ -52,7 +50,7 @@ local SocketModels = {
 }
 
 function ENT:GetLinkPos()
-	return self:LocalToWorld(PositionOffsets[self:GetModel()]), self:LocalToWorldAngles(AngleOffsets[self:GetModel()])
+	return self:LocalToWorld(PositionOffsets[self:GetModel()] or Vector(0,0,0)), self:LocalToWorldAngles(AngleOffsets[self:GetModel()] or Angle(0,0,0))
 end
 
 function ENT:CanLink( Target )

@@ -53,7 +53,7 @@ if CLIENT then
 	function GPULib.Material(name)
 		if not materialCache[name] then
 			local protoMaterial = Material(name)
-			local textureName = protoMaterial:GetMaterialString("$basetexture")
+			local textureName = protoMaterial:GetString("$basetexture")
 			local imageName = protoMaterial:GetName()
 			local materialParameters = {
 				["$basetexture"] = textureName,
