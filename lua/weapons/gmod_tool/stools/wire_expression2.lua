@@ -900,7 +900,7 @@ elseif CLIENT then
 	timer.Create("wire_expression2_editor_status", 1, 0, function()
 		rolldelta = -rolldelta
 		for ply,_ in pairs(busy_players) do
-			local BoneIndx = ply:LookupBone("ValveBiped.Bip01_Head1")
+			local BoneIndx = ply:LookupBone("ValveBiped.Bip01_Head1") or ply:LookupBone("ValveBiped.HC_Head_Bone")
 			local BonePos, BoneAng = ply:GetBonePosition( BoneIndx )
 			local particle = emitter:Add("expression 2/cog_world", BonePos+Vector(0,0,16))
 			if particle then

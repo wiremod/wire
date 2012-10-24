@@ -310,6 +310,7 @@ do
 
 		function WireLib.AddNotify(ply, Message, Type, Duration, Sound)
 			if type(ply) == "string" then ply, Message, Type, Duration, Sound = nil, ply, Message, Type, Duration end
+			if ply && !ply:IsValid() then return end
 			umsg.Start("wire_addnotify", ply)
 				umsg.String(Message)
 				umsg.Char(Type)

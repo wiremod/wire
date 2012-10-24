@@ -1,5 +1,5 @@
-if VERSION < 151 then
-	ErrorNoHalt("WireMod: Your GMod is years too old. Load aborted.\n")
+if VERSION < 143 then
+	ErrorNoHalt("WireMod: This branch of wiremod only supports Gmod13+.\n")
 	return
 end
 
