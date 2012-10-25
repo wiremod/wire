@@ -1,4 +1,3 @@
-
 AddCSLuaFile( "cl_init.lua" )
 AddCSLuaFile( "shared.lua" )
 
@@ -38,7 +37,9 @@ function ENT:ReceiveInfo(iname, value)
 		self.IdealPos.z = value
 		self:SetPos(self.IdealPos)
 	elseif iname == "Position" then
-		self.IdealPos = value
+		self.IdealPos.x = value.x
+		self.IdealPos.y = value.y
+		self.IdealPos.z = value.z
 		self:SetPos(self.IdealPos)
 
 	elseif iname == "Pitch" then
