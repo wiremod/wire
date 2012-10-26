@@ -355,7 +355,7 @@ e2function void exit()
 end
 
 e2function void error( string reason )
-	error(reason, 1)
+	error(reason, 2)
 end
 
 /******************************************************************************/
