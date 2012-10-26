@@ -191,7 +191,7 @@ if not wire_textscreen_FontsCreated then
 	for i = 1,15 do
 		local fontData = 
 		{
-			font = "coolvertica",
+			font = "Helvetica",
 			size = fontSize / i,
 			weight = 400,
 			antialias = true,
