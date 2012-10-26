@@ -998,6 +998,7 @@ registerCallback( "postinit", function()
 		registerOperator("idx", id.."=ts"..id , id, function( self, args )
 			local op1, op2, op3, scope = args[2], args[3], args[4], args[5]
 			local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
+			if rv3 == nil then return end
 			if (!rv1.s[rv2]) then rv1.size = rv1.size + 1 end
 			if (rv1.size > maxsize()) then
 				self.prf = self.prf + 500
@@ -1012,6 +1013,7 @@ registerCallback( "postinit", function()
 		registerOperator("idx", id.."=tn"..id, id, function(self,args)
 			local op1, op2, op3, scope = args[2], args[3], args[4], args[5]
 			local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
+			if rv3 == nil then return end
 			if (!rv1.n[rv2]) then rv1.size = rv1.size + 1 end
 			if (rv1.size > maxsize()) then return fixdef(v[2]) end
 			rv1.n[rv2] = rv3
@@ -1071,6 +1073,7 @@ registerCallback( "postinit", function()
 		registerFunction( "push"..name,"t:"..id,"",function(self,args)
 			local op1, op2 = args[2], args[3]
 			local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+			if rv2 == nil then return end
 			local n = #rv1.n+1
 			rv1.size = rv1.size + 1
 			if (rv1.size > maxsize()) then
@@ -1092,6 +1095,7 @@ registerCallback( "postinit", function()
 		registerFunction( "insert"..name,"t:n"..id,"",function(self,args)
 			local op1, op2, op3 = args[2], args[3], args[4]
 			local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self,op3)
+			if rv3 == nil then return end
 			if (rv2 < 0) then return end
 			rv1.size = rv1.size + 1
 			if (rv1.size > maxsize()) then
@@ -1107,6 +1111,7 @@ registerCallback( "postinit", function()
 		registerFunction( "unshift"..name,"t:"..id,"",function(self,args)
 			local op1, op2 = args[2], args[3]
 			local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
+			if rv2 == nil then return end
 			rv1.size = rv1.size + 1
 			if (rv1.size > maxsize()) then
 				self.prf = self.prf + 500
