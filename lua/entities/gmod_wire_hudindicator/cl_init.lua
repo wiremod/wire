@@ -55,9 +55,9 @@ local function DrawHUDIndicators()
 	// Now draw HUD Indicators
 	for _, index in ipairs(table.MakeSortedKeys(hudindicators)) do
 		if (hudindicators[index]) then // Is this necessary?
-			local ent = ents.GetByIndex(index)
+			local ent = Entity(index)
 
-			if (ent && ent:IsValid()) then
+			if IsValid(ent) then
 				local indinfo = hudindicators[index]
 				if (!indinfo.HideHUD && indinfo.Ready) then
 					local txt = indinfo.FullText or ""
@@ -157,7 +157,7 @@ local function HUDFormatDescription( eindex )
 			hudindicators[eindex].DisplayColor = c
 
 			local textcolor = Color(255, 255, 255, 255)
-			if (r >= 192 && g >= 192 && b >= 192) then
+			if (c.r >= 192 && c.g >= 192 && c.b >= 192) then
 				// Draw dark text for very bright Indicator colors
 				textcolor = Color(32, 32, 32, 255)
 			end

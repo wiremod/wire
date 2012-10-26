@@ -340,10 +340,7 @@ end
 
 concommand.Add( "wire_expression2_file_begin", function( ply, com, args )
 	local pfile = uploads[ply]
-
-	if !pfile then
-		file_execute( pfile.ent, pfile.name, FILE_TRANSFER_ERROR )
-	end
+	if !pfile then return end
 
 	if args[1] == "0" then //file not found
 		file_execute( pfile.ent, pfile.name, FILE_404 )
@@ -371,8 +368,8 @@ end )
 
 concommand.Add( "wire_expression2_file_chunk", function( ply, com, args )
 	local pfile = uploads[ply]
-
-	if !pfile or !pfile.uploading then
+	if !pfile then return end
+	if !pfile.uploading then
 		file_execute( pfile.ent, pfile.name, FILE_TRANSFER_ERROR )
 	end
 
@@ -400,10 +397,7 @@ concommand.Add( "wire_expression2_file_finish", function( ply, com, args )
 	end
 
 	local pfile = uploads[ply]
-
-	if !pfile then
-		file_execute( pfile.ent, pfile.name, FILE_TRANSFER_ERROR )
-	end
+	if !pfile then return end
 
 	pfile.uploading = false
 	pfile.data = E2Lib.decode( pfile.buffer )
@@ -424,9 +418,10 @@ end )
 
 concommand.Add("wire_expression2_file_singleplayer", function(ply, cmd, args)
 	if not ply:IsListenServerHost() then ply:Kick("Do not use wire_expression2_file_singleplayer in multiplayer, unless you're the host!") end
-
+	local pfile = uploads[ply]
+	if !pfile then return end
+	
 	local path = args[1]
-
 	if not file.Exists(path, "DATA") then
 		file_execute( pfile.ent, pfile.name, FILE_404 )
 		return
@@ -436,7 +431,6 @@ concommand.Add("wire_expression2_file_singleplayer", function(ply, cmd, args)
 
 	if timer.Exists(timername) then timer.Remove(timername) end
 
-	local pfile = uploads[ply]
 
 	pfile.uploading = false
 	pfile.data = file.Read(path)
