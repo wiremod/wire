@@ -704,7 +704,9 @@ elseif CLIENT then
 				wire_expression2_editor:LoadFile(dir)
 			end
 		end
-
+		function FileBrowser:OnFileOpen(filepath, newtab)
+			wire_expression2_editor:Open(filepath, nil, newtab)
+		end
 
 		local OpenEditor = vgui.Create("DButton" , panel)
 		panel:AddPanel(OpenEditor)

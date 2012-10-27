@@ -903,6 +903,9 @@ function Editor:InitComponents()
 			"Cancel"
 		)
 	end )
+	self.C['Browser'].OnFileOpen = function(panel, filepath, newtab)
+		self:Open(filepath, nil, newtab)
+	end
 	self.C['Val'].panel:SetFont("HudHintTextLarge")
 	self.C['Val'].panel:SetText( "   Click to validate..." )
 	self.C['Val'].panel.OnMousePressed = function(panel,btn)
@@ -1427,23 +1430,6 @@ function Editor:InitControlPanel(frame)
 	dlist:AddItem( label )
 	label:SetText( "Browser sorting style" )
 	label:SizeToContents()
-
-	local SortStyle = vgui.Create( "DComboBox", temp )
-	dlist:AddItem( SortStyle )
-	SortStyle.OnSelect = function( panel, index, value )
-		value = value:gsub( "(:.+)", "" ) -- Remove description
-		value = tonumber(value) -- Convert to number
-		if (!value) then return end -- If it isn't a valid number, exit
-		value = value - 1 -- Subtract one (to make it 0-3 instead of 1-4)
-		RunConsoleCommand( "wire_expression2_browser_sort_style", value )
-		timer.Simple( 0.1, function()
-			self.C["Browser"].panel.UpdateFolders( self.C["Browser"].panel )
-		end)
-	end
-	SortStyle:AddChoice( "1: Alphabetical - A -> Z" )
-	SortStyle:AddChoice( "2: Alphabetical - Z -> A" )
-	SortStyle:AddChoice( "3: Age - New -> Old" )
-	SortStyle:AddChoice( "4: Age - Old -> New" )
 
 	--------------------------------------------- EXPRESSION 2 TAB
 	local sheet = self:AddControlPanelTab( "Expression 2", "gui/silkicons/computer", "Options for Expression 2." )

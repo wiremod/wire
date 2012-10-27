@@ -284,6 +284,9 @@ if CLIENT then
         ZCPU_Editor:LoadFile(currentDirectory)
       end
     end
+    function FileBrowser:OnFileOpen(filepath, newtab)
+      ZCPU_Editor:Open(filepath, nil, newtab)
+    end
 
 
     ----------------------------------------------------------------------------
