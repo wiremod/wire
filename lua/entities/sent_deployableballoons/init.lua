@@ -54,7 +54,7 @@ function ENT:Initialize()
 	self.Constraints = {}
 	self.force = 500
 	self.weld = false
-	self.popable = false
+	self.popable = true
 	self.rl = 64
 	if WireAddon then
 		self.Inputs = Wire_CreateInputs(self,{ "Force", "Length", "Weld?", "Popable?", "Deploy" })
@@ -95,7 +95,7 @@ function ENT:TriggerInput(key,value)
 	elseif (key == "Weld?") then
 		self.weld = value ~= 0
 	elseif (key == "Popable?") then
-		self.popable = value ~= 0
+		//self.popable = value ~= 0 -- Invinsible balloons don't seem to exist anymore
 	end
 	self:UpdateOverlay()
 end
@@ -117,6 +117,7 @@ function ENT:DeployBalloons()
 	else
 		balloon = ents.Create("gmod_iballoon") --invincible balloon
 	end
+	balloon:SetModel("models/MaxOfS2D/balloon_classic.mdl")
 	balloon:Spawn()
 	balloon:SetRenderMode( RENDERMODE_TRANSALPHA )
 	balloon:SetColor(Color(math.random(0,255), math.random(0,255), math.random(0,255), 255))
@@ -128,8 +129,7 @@ function ENT:DeployBalloons()
 	local spawnervec = (self:GetPos()-balloon:GetPos()):GetNormalized()*250 --just to be sure
 	local trace = util.QuickTrace(balloon:GetPos(),spawnervec,balloon)
 	local Pos = self:GetPos()+(self:GetUp()*25)
-	local attachpoint = Pos + Vector(0,0,-10)
-	local LPos1 = balloon:WorldToLocal(attachpoint)
+	local LPos1 = balloon:WorldToLocal(Pos)
 	local LPos2 = trace.Entity:WorldToLocal(trace.HitPos)
 	local phys = trace.Entity:GetPhysicsObjectNum(trace.PhysicsBone)
 	if phys and phys:IsValid() then
@@ -140,8 +140,10 @@ function ENT:DeployBalloons()
 		balloon:DeleteOnRemove(constraint)
 	else
 		local constraint, rope = constraint.Rope(balloon,trace.Entity,0,trace.PhysicsBone,LPos1,LPos2,0,self.rl,0,1.5,material,nil)
-		balloon:DeleteOnRemove(constraint)
-		balloon:DeleteOnRemove(rope)
+		if constraint then
+			balloon:DeleteOnRemove(constraint)
+			balloon:DeleteOnRemove(rope)
+		end
 	end
 	self:DeleteOnRemove(balloon)
 	self.Balloon = balloon

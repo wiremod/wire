@@ -449,13 +449,6 @@ do
 	function extensions.GetStatus(name, default)
 		local value = sql.QueryValue(string.format("SELECT enabled FROM wire_expression2_extensions WHERE (name = %s)", sql.SQLStr(name)))
 		value = value and value ~= "0" or default
-		if default and not value then
-			local tags = string.Explode(",", GetConVarString("sv_tags") or "")
-			table.insert(tags, "e2_restricted")
-			E2Lib.filterList(tags, function() return tag ~= "e2_restricted" end)
-			table.sort(tags)
-			RunConsoleCommand("sv_tags", table.concat(tags, ","))
-		end
 		return value
 	end
 

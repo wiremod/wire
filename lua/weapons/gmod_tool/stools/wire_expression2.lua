@@ -287,7 +287,7 @@ if SERVER then
 			return
 		end
 
-		if not E2Lib.isFriend(ply,toent.player) then
+		if not E2Lib.isFriend(toent.player,ply) then
 			WireLib.AddNotify( ply, "You are not allowed to upload to the target Expression chip. Upload aborted.", NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3 )
 			return
 		end
