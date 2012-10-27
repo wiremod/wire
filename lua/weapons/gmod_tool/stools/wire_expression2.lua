@@ -692,18 +692,6 @@ elseif CLIENT then
 		FileBrowser:DockMargin(5,5,5,5)
 		FileBrowser:DockPadding(5,5,5,5)
 		FileBrowser:Dock(TOP)
-		local lastclick = 0
-		function FileBrowser:OnFileClick(dir)
-			if( wire_expression2_editor == nil ) then initE2Editor() end
-
-			if(dir == self.File.FileDir and CurTime() - lastclick < 1) then
-				wire_expression2_editor:Open(dir)
-			else
-				lastclick = CurTime()
-				dir = self.File.FileDir
-				wire_expression2_editor:LoadFile(dir)
-			end
-		end
 		function FileBrowser:OnFileOpen(filepath, newtab)
 			wire_expression2_editor:Open(filepath, nil, newtab)
 		end

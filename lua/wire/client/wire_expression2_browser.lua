@@ -47,6 +47,7 @@ function PANEL:Init()
 	self.panelmenu = {}
 	self.filemenu = {}
 	self.foldermenu = {}
+	self.lastClick = -math.huge
 
 	self:AddRightClick(self.filemenu,nil,"Open",function()
 		self:OnFileOpen(self.File:GetFileName())
@@ -134,16 +135,8 @@ function PANEL:Init()
 	end)
 end
 
-function PANEL:OnFileClick(Dir)
-	-- Override this.
-end
-
-function PANEL:OnFolderClick(Dir)
-	-- Override this.
-end
-
 function PANEL:OnFileOpen(filepath, newtab)
-	-- Override this
+	error("Please override wire_expression2_browser:OnFileOpen(filepath, newtab)",0)
 end
 
 function PANEL:UpdateFolders()
@@ -158,12 +151,11 @@ function PANEL:UpdateFolders()
 	self.Folders:SetSize(self:GetWide(),self:GetTall()-20)
 	self.Folders:Root():AddFolder(self.startfolder, self.startfolder, "data", true):SetExpanded(true)
 	self.Folders.DoClick = function(tree, node)
-		self.File = node
-		if node:GetFileName() then
-			self:OnFileClick(node:GetFileName())
-		else
-			self:OnFolderClick(node:GetFolder())
+		if self.File == node and CurTime() <= self.lastClick + 0.5 then
+			self:OnFileOpen(node:GetFileName())
 		end
+		self.File = node
+		self.lastClick = CurTime()
 		return true
 	end
 	self.Folders.DoRightClick = function(tree, node)
@@ -175,7 +167,6 @@ function PANEL:UpdateFolders()
 		end
 		return true
 	end
-	--self.Folders:Root():SetExpanded(true)
 end
 
 function PANEL:PerformLayout()

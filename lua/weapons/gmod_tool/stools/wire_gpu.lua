@@ -249,22 +249,11 @@ if CLIENT then
     panel:AddPanel(FileBrowser)
     FileBrowser:Setup("GPUChip")
     FileBrowser:SetSize(235,400)
-    function FileBrowser:OnFileClick()
-      local lastClickTime = CurTime()
+    function FileBrowser:OnFileOpen(filepath, newtab)
       if not ZGPU_Editor then
         ZGPU_Editor = vgui.Create("Expression2EditorFrame")
         ZGPU_Editor:Setup("ZGPU Editor", "GPUChip", "GPU")
       end
-
-      if (currentDirectory == self.File.FileDir) and (CurTime() - lastClickTime < 1) then
-        ZGPU_Editor:Open(currentDirectory)
-      else
-        lastClickTime = CurTime()
-        currentDirectory = self.File.FileDir
-        ZGPU_Editor:LoadFile(currentDirectory)
-      end
-    end
-    function FileBrowser:OnFileOpen(filepath, newtab)
       ZCPU_Editor:Open(filepath, nil, newtab)
     end
 

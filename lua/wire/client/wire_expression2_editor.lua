@@ -886,14 +886,6 @@ function Editor:InitComponents()
 	end
 	self.C['SavAs'].panel.DoClick = function( button ) self:SaveFile( self:GetChosenFile(), false, true ) end
 
-	self.C['Browser'].panel.OnFileClick = function(panel)
-		if(panel.sDir and panel.sDir == panel.File.FileDir and CurTime()-LastClick < 1) then
-			self:LoadFile(panel.sDir)
-		else
-			panel.sDir = panel.File.FileDir
-			LastClick = CurTime()
-		end
-	end
 	self.C['Browser'].panel:AddRightClick( self.C['Browser'].panel.filemenu,4, "Save to" , function()
 		Derma_Query(
 			"Overwrite this file?", "Save To",
@@ -903,9 +895,10 @@ function Editor:InitComponents()
 			"Cancel"
 		)
 	end )
-	self.C['Browser'].OnFileOpen = function(panel, filepath, newtab)
-		self:Open(filepath, nil, newtab)
+	self.C['Browser'].panel.OnFileOpen = function(_, filepath, newtab)
+		self:Open(filepath, nil, true)
 	end
+
 	self.C['Val'].panel:SetFont("HudHintTextLarge")
 	self.C['Val'].panel:SetText( "   Click to validate..." )
 	self.C['Val'].panel.OnMousePressed = function(panel,btn)
@@ -2124,7 +2117,7 @@ function Editor:LoadFile( Line, forcenewtab )
 	if(!Line or file.IsDir( Line, "DATA" )) then return end
 	local str = file.Read(Line)
 	if str == nil then
-		--Error("ERROR LOADING FILE!")
+		ErrorNoHalt("Erroring opening file: "..Line)
 	else
 		self:AutoSave()
 		if (!forcenewtab) then

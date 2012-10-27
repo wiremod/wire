@@ -269,22 +269,11 @@ if CLIENT then
     panel:AddPanel(FileBrowser)
     FileBrowser:Setup("CPUChip")
     FileBrowser:SetSize(235,400)
-    function FileBrowser:OnFileClick()
-      local lastClickTime = CurTime()
+    function FileBrowser:OnFileOpen(filepath, newtab)
       if not ZCPU_Editor then
         ZCPU_Editor = vgui.Create("Expression2EditorFrame")
         ZCPU_Editor:Setup("ZCPU Editor", "CPUChip", "CPU")
       end
-
-      if (currentDirectory == self.File.FileDir) and (CurTime() - lastClickTime < 1) then
-        ZCPU_Editor:Open(currentDirectory)
-      else
-        lastClickTime = CurTime()
-        currentDirectory = self.File.FileDir
-        ZCPU_Editor:LoadFile(currentDirectory)
-      end
-    end
-    function FileBrowser:OnFileOpen(filepath, newtab)
       ZCPU_Editor:Open(filepath, nil, newtab)
     end
 
