@@ -34,11 +34,10 @@ e2function void httpRequest( string url )
 		url = url
 	}
 
-	http.Get(
+	http.Fetch(
 		url,
-		"",
-		function( args, contents, size )
-			local ply = args[1]
+		function( body, length, headers, code )
+			local ply = self.player
 
 			if !IsValid( ply ) or !ply:IsPlayer() or !requests[ply] then return end
 
@@ -46,7 +45,7 @@ e2function void httpRequest( string url )
 
 			preq.t_end = CurTime()
 			preq.in_progress = false
-			preq.data = contents or ""
+			preq.data = body or ""
 			preq.data = string.gsub( preq.data, string.char( 13 ) .. string.char( 10 ), "\n" )
 
 			run_on.clk = 1
@@ -58,8 +57,7 @@ e2function void httpRequest( string url )
 			end
 
 			run_on.clk = 0
-		end,
-		self.player
+		end
 	)
 end
 
