@@ -33,37 +33,9 @@ function ENT:Initialize( )
 	self.Data.LineBeam = false
 	self.Data.GroundBeam = false
 	self.Data.Size = 1
-	self.UmsgSize = 3
-	self.Previous = {}
-end
-
-function ENT:CompareData( data1, data2 ) -- Returns true if the two data tables are different, false if they are the same
-	if (!data1.Local or !data1.Color or !data1.FadeTime or !data1.GroundBeam or !data1.Size or
-		!data2.Local or !data2.Color or !data2.FadeTime or !data2.GroundBeam or !data2.Size) then return true end
-	if (data1.Local != data2.Local or
-		data1.Color.x != data2.Color.x or data1.Color.y != data2.Color.y or data1.Color.z != data2.Color.z or
-		data1.FadeTime != data2.FadeTime or
-		data1.GroundBeam != data2.GroundBeam or
-		data1.Size != data2.Size) then
-		return true
-	end
-	return false
 end
 
 function ENT:AddPoint()
-	if (self.UmsgSize >= 250) then return end -- Check umsg size
-
-	local IsDifferent = self:CompareData( self.Previous, self.Data )
-	if (IsDifferent) then
-		self.UmsgSize = self.UmsgSize + 23
-	else
-		self.UmsgSize = self.UmsgSize + 13
-	end
-
-	if (self.UmsgSize >= 250) then return end -- Check umsg size again
-
-	self.Previous = table.Copy( self.Data )
-
 	self.Points[#self.Points+1] = {
 		Pos = Vector(self.Data.Pos.x,self.Data.Pos.y,self.Data.Pos.z),
 		Local = self.Data.Local,
@@ -72,7 +44,6 @@ function ENT:AddPoint()
 		LineBeam = self.Data.LineBeam,
 		GroundBeam = self.Data.GroundBeam,
 		Size = self.Data.Size,
-		IsDifferentFromPrevious = IsDifferent,
 	}
 end
 
@@ -127,7 +98,7 @@ end
 
 function ENT:ReadCell( Address )
 	if (Address == 0) then
-		return (self.UmsgSize < 250 and 1 or 0)
+		return 1
 	elseif (Address == 1) then
 		return self.Data.Pos.x
 	elseif (Address == 2) then
@@ -171,7 +142,7 @@ function ENT:WriteCell( Address, value )
 		self.Data.Pos.z = value
 		return true
 	elseif (Address == 4) then
-		self.Data.Local = !(value == 0 and true) or false
+		self.Data.Local = value ~= 0
 		return true
 	elseif (Address == 5) then
 		self.Data.Color.x = value
@@ -226,18 +197,35 @@ function ENT:UnLink()
 	self:SetNWEntity( "Link", NULL )
 end
 
+util.AddNetworkString("WireHoloEmitterData")
 function ENT:Think()
 	self:NextThink( CurTime() + cvar:GetFloat() )
-	if (#self.Points == 0) then return true end
-	umsg.Start( "hed" ) -- short for "holo emitter data"
+	if not next(self.Points) then return true end
+	net.Start("WireHoloEmitterData")
+		net.WriteEntity(self)
+		net.WriteUInt(#self.Points, 16)
+		for _,v in pairs( self.Points ) do
+			net.WriteVector(v.Pos)
+			net.WriteBit(v.Local)
+			net.WriteUInt(v.Color.x,8)
+			net.WriteUInt(v.Color.y,8)
+			net.WriteUInt(v.Color.z,8)
+			net.WriteUInt(math.Clamp(v.FadeTime,0,100)*100,16)
+			net.WriteBit(v.LineBeam)
+			net.WriteBit(v.GroundBeam)
+			net.WriteUInt(math.Clamp(v.Size,0,100)*100, 16)
+		end
+	net.Broadcast()
+	
+	/*umsg.Start( "hed" ) -- short for "holo emitter data"
 		umsg.Entity( self ) -- 2
 		umsg.Char( #self.Points ) -- 1
 		for k,v in pairs( self.Points ) do
 			umsg.Float( v.Pos.x ) -- 4
 			umsg.Float( v.Pos.y ) -- 4
 			umsg.Float( v.Pos.z ) -- 4
-			if (v.IsDifferentFromPrevious) then
-				umsg.Bool( true ) -- We're sending lots of data -- 1
+	//		if (v.IsDifferentFromPrevious) then
+	//			umsg.Bool( true ) -- We're sending lots of data -- 1
 				umsg.Bool( v.Local ) -- 1
 				umsg.Char( v.Color.x - 128 ) -- 1
 				umsg.Char( v.Color.y - 128 ) -- 1
@@ -247,18 +235,16 @@ function ENT:Think()
 				umsg.Bool( v.LineBeam ) -- 1
 				umsg.Bool( v.GroundBeam ) -- 1
 				umsg.Short( math.Clamp(v.Size,0,100)*100 ) -- 2
-			else
-				umsg.Bool( false ) -- We're not sending lots of data, only a position. -- 1
-			end
+	//		else
+	//			umsg.Bool( false ) -- We're not sending lots of data, only a position. -- 1
+	//		end
 		end
 
 		-- Total umsg size (if 1 point is sent): 3 + 11 + 11 + 1 = 27
 		-- Umsg size of "different" part: 12 + 11 = 23
 		-- Umsg size of "same" part: 12 + 1 = 13
-	umsg.End()
+	umsg.End()*/
 	self.Points = {}
-	self.UmsgSize = 6
-	self.Previous = {}
 	return true
 end
 

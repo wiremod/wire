@@ -108,19 +108,18 @@ local function SetClip(eidx, cidx, origin, norm, isglobal)
 	clip.isglobal = isglobal
 end
 
-usermessage.Hook("wire_holograms_clip", function( um )
-	local eidx = um:ReadShort()
+net.Receive("wire_holograms_clip", function( netlen )
+	local entid = net.ReadUInt(16)
 
-	while eidx != 0 do
-		local cidx = um:ReadShort()
-
-		if um:ReadBool() then
-			SetClipEnabled(eidx, cidx, um:ReadBool())
+	while entid ~= 0 do
+		local clipid = net.ReadUInt(16)
+		
+		if net.ReadBit() ~= 0 then
+			SetClipEnabled(entid, clipid, net.ReadBit())
 		else
-			SetClip(eidx, cidx, Vector(um:ReadFloat(),um:ReadFloat(),um:ReadFloat()), Vector(um:ReadFloat(),um:ReadFloat(),um:ReadFloat()), um:ReadShort() ~= 0)
+			SetClip(entid, clipid, net.ReadVector(), net.ReadVector(), net.ReadBit() ~= 0)
 		end
-
-		eidx = um:ReadShort()
+		entid = net.ReadUInt(16)
 	end
 end)
 
@@ -152,37 +151,27 @@ function ENT:DoScale()
 	scale_buffer[eidx] = nil
 end
 
-usermessage.Hook("wire_holograms_set_scale", function( um )
-	local index = um:ReadShort()
+net.Receive("wire_holograms_set_scale", function( netlen )
+	local index = net.ReadUInt(16)
 
 	while index ~= 0 do
-		local scale = Vector(um:ReadFloat(),um:ReadFloat(),um:ReadFloat())
-
-		SetScale(index, scale)
-		index = um:ReadShort()
+		SetScale(index, net.ReadVector())
+		index = net.ReadUInt(16)
 	end
 end)
 
 /******************************************************************************/
 
-usermessage.Hook( "wire_holograms_set_visible", function( um )
-	local index = um:ReadShort()
+net.Receive("wire_holograms_set_visible", function( netlen )
+	local index = net.ReadUInt(16)
 
 	while index ~= 0 do
-		vis_buffer[index] = um:ReadBool()
-
-		index = um:ReadShort()
+		vis_buffer[index] = net.ReadBit() ~= 0
+		index = net.ReadUInt(16)
 	end
 end )
 
 /******************************************************************************/
-
-/*
-hook.Add( "EntityRemoved", "gmod_wire_hologram", function(ent)
-	scales[ent:EntIndex()] = nil
-	clip_buffer[ent:EntIndex()] = nil
-	vis_buffer[ent:EntIndex()] = nil
-end )*/
 
 concommand.Add("wire_holograms_block_client",
 	function(ply, command, args)

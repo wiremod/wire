@@ -35,6 +35,9 @@ end
 
 
 if SERVER then
+  util.AddNetworkString("ZCPU_RequestCode")
+  util.AddNetworkString("ZCPU_OpenEditor")
+  util.AddNetworkString("CPULib.InvalidateDebugger")
   ------------------------------------------------------------------------------
   -- ZCPU entity factory
   ------------------------------------------------------------------------------
@@ -71,7 +74,7 @@ if SERVER then
          (trace.Entity.player == player) then
         trace.Entity:SetMemoryModel(self:GetClientInfo("memorymodel"))
         trace.Entity:FlashData({})
-        player:SendLua("CPULib.InvalidateDebugger()")
+        net.Start("CPULib.InvalidateDebugger") net.WriteUInt(0,2) net.Send(player)
       end
     else
       if (not trace.Entity:IsPlayer()) and
@@ -80,14 +83,10 @@ if SERVER then
          (trace.Entity.player == player) then
         CPULib.AttachDebugger(trace.Entity,player)
         CPULib.SendDebugData(trace.Entity.VM,nil,player)
-        player:SendLua("CPULib.DebuggerAttached = true")
-        player:SendLua("CPULib.InvalidateDebugger()")
-        player:SendLua("GAMEMODE:AddNotify(\"CPU debugger has been attached!\",NOTIFY_GENERIC,7)")
+        net.Start("CPULib.InvalidateDebugger") net.WriteUInt(2,2) net.Send(player)
       else
         CPULib.AttachDebugger(nil,player)
-        player:SendLua("CPULib.DebuggerAttached = false")
-        player:SendLua("CPULib.InvalidateDebugger()")
-        player:SendLua("GAMEMODE:AddNotify(\"CPU debugger deattached!\",NOTIFY_GENERIC,7)")
+        net.Start("CPULib.InvalidateDebugger") net.WriteUInt(1,2) net.Send(player)
       end
     end
     return true
@@ -113,8 +112,8 @@ if SERVER then
         (trace.Entity.WriteCell)) and
        (trace.Entity:GetPlayer() == player) then
       CPULib.SetUploadTarget(trace.Entity,player)
-      player:SendLua("ZCPU_RequestCode()")
-      player:SendLua("CPULib.InvalidateDebugger()")
+      net.Start("ZCPU_RequestCode") net.Send(player)
+      net.Start("CPULib.InvalidateDebugger") net.WriteUInt(0,2) net.Send(player)
       return true
     end
 
@@ -145,7 +144,7 @@ if SERVER then
 
     player:AddCleanup("wire_cpus", entity)
     CPULib.SetUploadTarget(entity,player)
-    player:SendLua("ZCPU_RequestCode()")
+    net.Start("ZCPU_RequestCode") net.Send(player)
     return true
   end
 
@@ -154,8 +153,7 @@ if SERVER then
   -- Right click: open editor
   ------------------------------------------------------------------------------
   function TOOL:RightClick(trace)
-    local player = self:GetOwner()
-    player:SendLua("ZCPU_OpenEditor()")
+    net.Start("ZCPU_OpenEditor") net.Send(self:GetOwner())
     return true
   end
 
@@ -235,7 +233,7 @@ if CLIENT then
       CPULib.Compile(ZCPU_Editor:GetCode(),ZCPU_Editor:GetChosenFile(),compile_success,compile_error)
     end
   end
-
+  net.Receive("ZCPU_RequestCode", ZCPU_RequestCode)
 
   ------------------------------------------------------------------------------
   -- Open ZCPU editor
@@ -247,7 +245,7 @@ if CLIENT then
     end
     ZCPU_Editor:Open()
   end
-
+  net.Receive("ZCPU_OpenEditor", ZCPU_OpenEditor)
 
   ------------------------------------------------------------------------------
   -- Build tool control panel
@@ -325,6 +323,10 @@ if CLIENT then
   ------------------------------------------------------------------------------
   -- Tool screen
   ------------------------------------------------------------------------------
+  net.Receive("CPULib.ServerUploading", function(netlen)
+    CPULib.ServerUploading = net.ReadBit() ~= 0
+  end)
+    
   local fontData = 
   {
     font = "Lucida Console",

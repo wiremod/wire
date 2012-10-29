@@ -298,6 +298,18 @@ if CLIENT then
     CPULib.Debugger.FirstFile = nil
     CPULib.DebugUpdateHighlights()
   end
+  
+  net.Receive("CPULib.InvalidateDebugger", function(netlen)
+    local state = net.ReadUInt(2) -- 0: No change just invalidate, 1: detach, 2: attach
+    if state == 1 then
+      CPULib.DebuggerAttached = false
+      GAMEMODE:AddNotify("CPU debugger detached!",NOTIFY_GENERIC,7)
+    elseif state == 2 then
+      CPULib.DebuggerAttached = true
+      GAMEMODE:AddNotify("CPU debugger has been attached!",NOTIFY_GENERIC,7)
+    end
+    CPULib.InvalidateDebugger()
+  end)
 
   -- Get breakpoint at line
   function CPULib.GetDebugBreakpoint(fileName,caretPos)
@@ -424,6 +436,7 @@ end
 
 
 if SERVER then
+  util.AddNetworkString("CPULib.ServerUploading")
   ------------------------------------------------------------------------------
   -- Data received from server
   CPULib.DataBuffer = {}
@@ -445,7 +458,7 @@ if SERVER then
     if not IsValid(Buffer.Entity) then return end
     if not Buffer.Entity then return end
 
-    player:SendLua("CPULib.ServerUploading = true")
+    net.Start("CPULib.ServerUploading") net.WriteBit(true) net.Send(player)
   end)
 
   -- Concommand to send a single stream of bytes
@@ -479,7 +492,7 @@ if SERVER then
     if not Buffer.Entity then return end
 
     CPULib.DataBuffer[player:UserID()] = nil
-    player:SendLua("CPULib.ServerUploading = false")
+    net.Start("CPULib.ServerUploading") net.WriteBit(false) net.Send(player)
 
     if Buffer.Entity:GetClass() == "gmod_wire_cpu" then
       Buffer.Entity:FlashData(Buffer.Data)
