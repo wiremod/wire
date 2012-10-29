@@ -476,8 +476,6 @@ local function VerifyWireGateExpression(player, lines, inputs, outputs)
 	if !parser:GetError() then
 		return parser
 	else
-		player:SendLua('wire_gate_expression_status = "' .. parser:GetError() .. '"')
-		player:SendLua('WireGateExpressionRebuildCPanel()')
 		WireLib.AddNotify(player, '"' .. parser:GetError() .. '"', NOTIFY_ERROR, 7)
 		return
 	end

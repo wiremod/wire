@@ -127,6 +127,7 @@ if SERVER then
 
 	duplicator.RegisterEntityClass("gmod_wire_expression2", MakeWireExpression2, "Pos", "Ang", "Model", "_original", "_name", "_inputs", "_outputs", "_vars", "inc_files" )
 
+	util.AddNetworkString( "WireExpression2_OpenEditor" )
 	function TOOL:RightClick(trace)
 		if trace.Entity:IsPlayer() then return false end
 
@@ -140,7 +141,7 @@ if SERVER then
 			return true
 		end
 
-		player:SendLua("openE2Editor()")
+		net.Start("WireExpression2_OpenEditor") net.Send(player)
 		return false
 	end
 	
@@ -726,6 +727,7 @@ elseif CLIENT then
 		if( wire_expression2_editor == nil ) then initE2Editor() end
 		wire_expression2_editor:Open()
 	end
+	net.Receive("WireExpression2_OpenEditor", openE2Editor)
 
 	/******************************************************************************\
 	  Expression 2 Tool Screen for Garry's Mod
