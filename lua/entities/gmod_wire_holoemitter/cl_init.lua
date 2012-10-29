@@ -15,10 +15,9 @@ function ENT:Initialize()
 end
 
 function ENT:AddPoint( Pos, Local, Color, DieTime, LineBeam, GroundBeam, Size )
-	local point = {}
-
 	if Local ~= nil and Color ~= nil and DieTime ~= nil and LineBeam ~= nil and GroundBeam ~= nil and Size ~= nil then
 
+		local point = {}
 		point.Pos = Pos
 		point.Local = Local
 		point.Color = Color
@@ -28,39 +27,19 @@ function ENT:AddPoint( Pos, Local, Color, DieTime, LineBeam, GroundBeam, Size )
 
 		if DieTime ~= 0 then
 			point.DieTime = CurTime() + DieTime
-		else
-			point.DieTime = nil
 		end
 
 		point.SpawnTime = CurTime()
-
-	else
-
-		point = self.Previous
-		point.Pos = Pos
-
+		self.Points[#self.Points+1] = point
 	end
-
-	self.Points[#self.Points+1] = point
-
-	self.Previous = table.Copy( point )
 end
 
-usermessage.Hook("hed",function( um )
-	local ent = um:ReadEntity()
-	if (!ent or !ent:IsValid()) then return end
-	local n = um:ReadChar()
-
-	local old = {}
-
-	for i=1,n do
-		local pos = Vector(um:ReadFloat(),um:ReadFloat(),um:ReadFloat())
-		local IsDifferent = um:ReadBool()
-		if IsDifferent then
-			ent:AddPoint( pos, um:ReadBool(), Color(um:ReadChar()+128,um:ReadChar()+128,um:ReadChar()+128), um:ReadShort()/100, um:ReadBool(), um:ReadBool(), um:ReadShort()/100 )
-		else
-			ent:AddPoint( pos )
-		end
+net.Receive("WireHoloEmitterData", function(netlen)
+	local ent = net.ReadEntity()
+	if not IsValid(ent) then return end
+	for i=1, net.ReadUInt(16) do
+		local pos = net.ReadVector()
+		ent:AddPoint(pos, net.ReadBit() ~= 0, Color(net.ReadUInt(8),net.ReadUInt(8),net.ReadUInt(8)), net.ReadUInt(16)/100, net.ReadBit() ~= 0, net.ReadBit() ~= 0, net.ReadUInt(16)/100)
 	end
 end)
 
