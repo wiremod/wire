@@ -14,9 +14,9 @@ CreateConVar( "wire_holograms_burst_amount", "30" )
 CreateConVar( "wire_holograms_burst_delay", "10" )
 CreateConVar( "wire_holograms_max_clips", "5" )
 local wire_holograms_size_max = CreateConVar( "wire_holograms_size_max", "50" )
-umsg.PoolString("wire_holograms_set_visible")
-umsg.PoolString("wire_holograms_clip")
-umsg.PoolString("wire_holograms_set_scale")
+util.AddNetworkString("wire_holograms_set_visible")
+util.AddNetworkString("wire_holograms_clip")
+util.AddNetworkString("wire_holograms_set_scale")
 
 
 -- context = chip.context = self
@@ -136,92 +136,53 @@ end
 -- If no recipient is given, the umsg is sent to everyone (umsg.Start does that)
 local function flush_scale_queue(queue, recipient)
 	if not queue then queue = scale_queue end
-	if #queue == 0 then return end
-
-	local bytes = 4 -- Header(2)+Short(2)
-	umsg.Start("wire_holograms_set_scale", recipient)
+	if not next(queue) then return end
+	
+	net.Start("wire_holograms_set_scale")
 		for _,Holo,scale in ipairs_map(queue, unpack) do
-			bytes = bytes + 14 -- Vector(12)+Short(2)
-			if bytes > 255 then
-				umsg.Short(0) -- terminate list
-				umsg.End() -- end message
-				umsg.Start("wire_holograms_set_scale", recipient) -- make a new one
-				bytes = 4+14 -- Header(2)+Short(2)+Vector(12)+Short(2)
-			end
-			umsg.Short(Holo.ent:EntIndex())
-			umsg.Float(scale.x)
-			umsg.Float(scale.y)
-			umsg.Float(scale.z)
+			net.WriteUInt(Holo.ent:EntIndex(), 16)
+			net.WriteVector(scale) -- These are more efficient than 3 floats
 		end
-		umsg.Short(0)
-	umsg.End()
+		net.WriteUInt(0, 16)
+	if recipient then net.Send(recipient) else net.Broadcast() end
 end
 
 local function flush_clip_queue(queue, recipient)
-	if !queue then queue = clip_queue end
-	if #queue == 0 then return end
+	if not queue then queue = clip_queue end
+	if not next(queue) then return end
 
-	local bytes = 4
-	umsg.Start("wire_holograms_clip", recipient)
+	net.Start("wire_holograms_clip")
 		for _,Holo,clip in ipairs_map(queue, unpack) do
-			if bytes > 255 then
-				umsg.Short(0)
-				umsg.End()
-				umsg.Start("wire_holograms_clip", recipient)
-
-				bytes = 4
-			end
-
 			if clip and clip.index then
-				bytes = bytes + 4
-
-				umsg.Short(Holo.ent:EntIndex())
-				umsg.Short(clip.index)
-
+				net.WriteUInt(Holo.ent:EntIndex(), 16)
+				net.WriteUInt(clip.index, 16)
 				if clip.enabled != nil then
-					bytes = bytes + 2
-
-					umsg.Bool(true)
-					umsg.Bool(clip.enabled)
+					net.WriteBit(true)
+					net.WriteBit(clip.enabled)
 				elseif clip.origin and clip.normal and clip.isglobal then
-					bytes = bytes + 27
-
-					umsg.Bool(false)
-					umsg.Float(clip.origin.x) umsg.Float(clip.origin.y) umsg.Float(clip.origin.z)
-					umsg.Float(clip.normal.x) umsg.Float(clip.normal.y) umsg.Float(clip.normal.z)
-					umsg.Short(clip.isglobal)
+					net.WriteBit(false)
+					net.WriteVector(clip.origin)
+					net.WriteVector(clip.normal)
+					net.WriteBit(clip.isglobal ~= 0)
 				end
 			end
 		end
-		umsg.Short(0) //stop list
-	umsg.End()
+		net.WriteUInt(0, 16)
+	if recipient then net.Send(recipient) else net.Broadcast() end
 end
 
-local function flush_vis_queue(queue, recipient)
-	if !queue then queue = vis_queue end
-	if table.Count( queue ) == 0 then return end
+local function flush_vis_queue()
+	if not next(vis_queue) then return end
 
-	for ply,tbl in pairs( queue ) do
+	for ply,tbl in pairs( vis_queue ) do
 		if IsValid( ply ) and #tbl > 0 then
-			local bytes = 4
-			umsg.Start( "wire_holograms_set_visible", ply )
-				for _,Holo,visible in ipairs_map(tbl, unpack) do
-					if IsValid( Holo.ent ) then
-						bytes = bytes + 3
-						if bytes > 255 then
-							umsg.Short( 0 )
-							umsg.End()
-							umsg.Start( "wire_holograms_set_visible", ply )
-							bytes = 4 + 3
-						end
-
-						umsg.Short( Holo.ent:EntIndex() )
-						umsg.Bool( visible )
-					end
+			net.Start("wire_holograms_set_visible")
+				for _,Holo,scale in ipairs_map(tbl, unpack) do
+					net.WriteUInt(Holo.ent:EntIndex(), 16)
+					net.WriteBit(visible)
 				end
-
-				umsg.Short( 0 )
-			umsg.End()
+				net.WriteUInt(0, 16)
+			net.Send(ply)
 		end
 	end
 end

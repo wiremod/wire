@@ -34,6 +34,8 @@ end
 
 
 if SERVER then
+  util.AddNetworkString("ZSPU_RequestCode")
+  util.AddNetworkString("ZSPU_OpenEditor")
   ------------------------------------------------------------------------------
   -- ZSPU entity factory
   ------------------------------------------------------------------------------
@@ -91,7 +93,7 @@ if SERVER then
         (trace.Entity.WriteCell)) and
        (trace.Entity.player == player) then
       CPULib.SetUploadTarget(trace.Entity,player)
-      player:SendLua("ZSPU_RequestCode()")
+      net.Start("ZSPU_RequestCode") net.Send(player)
       return true
     end
 
@@ -122,7 +124,7 @@ if SERVER then
 
     player:AddCleanup("wire_spus", entity)
     CPULib.SetUploadTarget(entity,player)
-    player:SendLua("ZSPU_RequestCode()")
+    net.Start("ZSPU_RequestCode") net.Send(player)
     return true
   end
 
@@ -131,7 +133,7 @@ if SERVER then
   -- Right click: open editor
   ------------------------------------------------------------------------------
   function TOOL:RightClick(trace)
-    self:GetOwner():SendLua("ZSPU_OpenEditor()")
+    net.Start("ZSPU_OpenEditor") net.Send(self:GetOwner())
     return true
   end
 
@@ -227,7 +229,7 @@ if CLIENT then
       CPULib.Compile(ZSPU_Editor:GetCode(),ZSPU_Editor:GetChosenFile(),compile_success,compile_error)
     end
   end
-
+  net.Receive("ZSPU_RequestCode", ZSPU_RequestCode)
 
   ------------------------------------------------------------------------------
   -- Open ZSPU editor
@@ -239,7 +241,7 @@ if CLIENT then
     end
     ZSPU_Editor:Open()
   end
-
+  net.Receive("ZSPU_OpenEditor", ZSPU_OpenEditor)
 
   ------------------------------------------------------------------------------
   -- Build tool control panel

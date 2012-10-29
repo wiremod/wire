@@ -326,8 +326,8 @@ end -- wire_addnotify
 	Usage: WireLib.ClientError("Hello", ply)
 ]]
 if CLIENT then
-	usermessage.Hook("wire_clienterror", function(um)
-		local message = um:ReadString()
+	net.Receive("wire_clienterror", function(netlen)
+		local message = net.ReadString()
 		print("sv: "..message)
 		local lines = string.Explode("\n", message)
 		for i,line in ipairs(lines) do
@@ -339,10 +339,11 @@ if CLIENT then
 		end
 	end)
 elseif SERVER then
-	function WireLib.ClientError(message, player)
-		umsg.Start("wire_clienterror", player)
-			umsg.String(message)
-		umsg.End()
+	util.AddNetworkString("wire_clienterror")
+	function WireLib.ClientError(message, ply)
+		net.Start("wire_clienterror")
+			net.WriteString(message)
+		net.Send(ply)
 	end
 end
 

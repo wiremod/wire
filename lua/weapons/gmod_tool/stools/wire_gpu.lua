@@ -35,6 +35,8 @@ end
 
 
 if SERVER then
+  util.AddNetworkString("ZGPU_RequestCode")
+  util.AddNetworkString("ZGPU_OpenEditor")
   ------------------------------------------------------------------------------
   -- ZGPU entity factory
   ------------------------------------------------------------------------------
@@ -94,7 +96,7 @@ if SERVER then
         (trace.Entity.WriteCell)) and
        (trace.Entity.player == player) then
       CPULib.SetUploadTarget(trace.Entity,player)
-      player:SendLua("ZGPU_RequestCode()")
+      net.Start("ZGPU_RequestCode") net.Send(player)
       return true
     end
 
@@ -125,7 +127,7 @@ if SERVER then
 
     player:AddCleanup("wire_gpus", entity)
     CPULib.SetUploadTarget(entity,player)
-    player:SendLua("ZGPU_RequestCode()")
+    net.Start("ZGPU_RequestCode") net.Send(player)
     return true
   end
 
@@ -134,7 +136,7 @@ if SERVER then
   -- Right click: open editor
   ------------------------------------------------------------------------------
   function TOOL:RightClick(trace)
-    self:GetOwner():SendLua("ZGPU_OpenEditor()")
+    net.Start("ZGPU_OpenEditor") net.Send(self:GetOwner())
     return true
   end
 
@@ -215,7 +217,7 @@ if CLIENT then
       CPULib.Compile(ZGPU_Editor:GetCode(),ZGPU_Editor:GetChosenFile(),compile_success,compile_error,"GPU")
     end
   end
-
+  net.Receive("ZGPU_RequestCode", ZGPU_RequestCode)
 
   ------------------------------------------------------------------------------
   -- Open ZGPU editor
@@ -227,7 +229,7 @@ if CLIENT then
     end
     ZGPU_Editor:Open()
   end
-
+  net.Receive("ZGPU_OpenEditor", ZGPU_OpenEditor)
 
   ------------------------------------------------------------------------------
   -- Build tool control panel
