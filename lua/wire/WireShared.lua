@@ -282,7 +282,7 @@ do
 		}
 
 		function WireLib.AddNotify(ply, Message, Type, Duration, Sound)
-			if type(ply) == "string" then
+			if isstring(ply) then
 				Message, Type, Duration, Sound = ply, Message, Type, Duration
 			elseif ply ~= LocalPlayer() then
 				return
@@ -291,11 +291,11 @@ do
 			if Sound and sounds[Sound] then surface.PlaySound(sounds[Sound]) end
 		end
 
-		usermessage.Hook("wire_addnotify", function(um)
-			local Message = um:ReadString()
-			local Type = um:ReadChar()
-			local Duration = um:ReadFloat()
-			local Sound = um:ReadChar()
+		net.Receive("wire_addnotify", function(netlen)
+			local Message = net.ReadString()
+			local Type = net.ReadUInt(8)
+			local Duration = net.ReadFloat()
+			local Sound = net.ReadUInt(8)
 
 			WireLib.AddNotify(LocalPlayer(), Message, Type, Duration, Sound)
 		end)
@@ -307,16 +307,17 @@ do
 		NOTIFY_UNDO = 2
 		NOTIFY_HINT = 3
 		NOTIFY_CLEANUP = 4
-
+		
+		util.AddNetworkString("wire_addnotify")
 		function WireLib.AddNotify(ply, Message, Type, Duration, Sound)
-			if type(ply) == "string" then ply, Message, Type, Duration, Sound = nil, ply, Message, Type, Duration end
+			if isstring(ply) then ply, Message, Type, Duration, Sound = nil, ply, Message, Type, Duration end
 			if ply && !ply:IsValid() then return end
-			umsg.Start("wire_addnotify", ply)
-				umsg.String(Message)
-				umsg.Char(Type)
-				umsg.Float(Duration)
-				umsg.Char(Sound or 0)
-			umsg.End()
+			net.Start("wire_addnotify")
+				net.WriteString(Message)
+				net.WriteUInt(Type or 0,8)
+				net.WriteFloat(Duration)
+				net.WriteUInt(Sound or 0,8)
+			if ply then net.Send(ply) else net.Broadcast() end
 		end
 
 	end
