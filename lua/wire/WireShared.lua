@@ -282,7 +282,7 @@ do
 		}
 
 		function WireLib.AddNotify(ply, Message, Type, Duration, Sound)
-			if type(ply) == "string" then
+			if isstring(ply) then
 				Message, Type, Duration, Sound = ply, Message, Type, Duration
 			elseif ply ~= LocalPlayer() then
 				return
@@ -291,11 +291,11 @@ do
 			if Sound and sounds[Sound] then surface.PlaySound(sounds[Sound]) end
 		end
 
-		usermessage.Hook("wire_addnotify", function(um)
-			local Message = um:ReadString()
-			local Type = um:ReadChar()
-			local Duration = um:ReadFloat()
-			local Sound = um:ReadChar()
+		net.Receive("wire_addnotify", function(netlen)
+			local Message = net.ReadString()
+			local Type = net.ReadUInt(8)
+			local Duration = net.ReadFloat()
+			local Sound = net.ReadUInt(8)
 
 			WireLib.AddNotify(LocalPlayer(), Message, Type, Duration, Sound)
 		end)
@@ -307,16 +307,17 @@ do
 		NOTIFY_UNDO = 2
 		NOTIFY_HINT = 3
 		NOTIFY_CLEANUP = 4
-
+		
+		util.AddNetworkString("wire_addnotify")
 		function WireLib.AddNotify(ply, Message, Type, Duration, Sound)
-			if type(ply) == "string" then ply, Message, Type, Duration, Sound = nil, ply, Message, Type, Duration end
+			if isstring(ply) then ply, Message, Type, Duration, Sound = nil, ply, Message, Type, Duration end
 			if ply && !ply:IsValid() then return end
-			umsg.Start("wire_addnotify", ply)
-				umsg.String(Message)
-				umsg.Char(Type)
-				umsg.Float(Duration)
-				umsg.Char(Sound or 0)
-			umsg.End()
+			net.Start("wire_addnotify")
+				net.WriteString(Message)
+				net.WriteUInt(Type or 0,8)
+				net.WriteFloat(Duration)
+				net.WriteUInt(Sound or 0,8)
+			if ply then net.Send(ply) else net.Broadcast() end
 		end
 
 	end
@@ -447,9 +448,14 @@ if SERVER then
 	local ents_with_inputs = {}
 	local ents_with_outputs = {}
 	--local IOlookup = { [INPUT] = ents_with_inputs, [OUTPUT] = ents_with_outputs }
-
-	local queue = WireLib.containers.deque:new()
-	local rp = RecipientFilter()
+	
+	util.AddNetworkString("wire_ports")
+	timer.Create("Debugger.PoolTypeStrings",1,1,function()
+		if WireLib.Debugger and WireLib.Debugger.formatPort then
+			for typename,_ in pairs(WireLib.Debugger.formatPort) do util.AddNetworkString(typename) end -- Reduce bandwidth
+		end
+	end)
+	local queue = {}
 
 	function WireLib.GetPorts(ent)
 		local eid = ent:EntIndex()
@@ -462,22 +468,20 @@ if SERVER then
 			ents_with_inputs[eid] = nil
 			ents_with_outputs[eid] = nil
 			if not DontSend then
-				umsg.Start("wire_ports", rp)
-					umsg.Char(-3) -- set eid
-					umsg.Short(eid) -- entity id
-					if hasinputs then umsg.Char(-1) end -- delete inputs
-					if hasoutputs then umsg.Char(-2) end -- delete outputs
-					umsg.Char(0) -- break
-				umsg.End()
+				net.Start("wire_ports")
+					net.WriteInt(-3, 8) -- set eid
+					net.WriteUInt(eid, 16) -- entity id
+					if hasinputs then net.WriteInt(-1, 8) end -- delete inputs
+					if hasoutputs then net.WriteInt(-2, 8) end -- delete outputs
+					net.WriteInt(0, 8) -- break
+				net.Broadcast()
 			end
 		end
 	end
 
 	hook.Add("EntityRemoved", "wire_ports", function(ent)
 		if not IsValid(ent) then return end
-		if ent:IsPlayer() then
-			rp:RemovePlayer(ent)
-		else
+		if not ent:IsPlayer() then
 			WireLib._RemoveWire(ent:EntIndex())
 		end
 	end)
@@ -486,12 +490,12 @@ if SERVER then
 		local queue = lqueue or queue
 		local eid = ent:EntIndex()
 
-		queue:push({ eid, DELETE, INPUT })
+		queue[#queue+1] = { eid, DELETE, INPUT }
 
 		for Name, CurPort in pairs_sortvalues(ent.Inputs, WireLib.PortComparator) do
 			local entry = { Name, CurPort.Type, CurPort.Desc or "" }
 			ents_with_inputs[eid] = entry
-			queue:push({ eid, PORT, INPUT, entry, CurPort.Num })
+			queue[#queue+1] = { eid, PORT, INPUT, entry, CurPort.Num }
 		end
 		for Name, CurPort in pairs_sortvalues(ent.Inputs, WireLib.PortComparator) do
 			WireLib._SetLink(CurPort, lqueue)
@@ -502,12 +506,12 @@ if SERVER then
 		local queue = lqueue or queue
 		local eid = ent:EntIndex()
 
-		queue:push({ eid, DELETE, OUTPUT })
+		queue[#queue+1] = { eid, DELETE, OUTPUT }
 
 		for Name, CurPort in pairs_sortvalues(ent.Outputs, WireLib.PortComparator) do
 			local entry = { Name, CurPort.Type, CurPort.Desc or "" }
 			ents_with_outputs[eid] = entry
-			queue:push({ eid, PORT, OUTPUT, entry, CurPort.Num })
+			queue[#queue+1] = { eid, PORT, OUTPUT, entry, CurPort.Num }
 		end
 	end
 
@@ -519,93 +523,83 @@ if SERVER then
 		local queue = lqueue or queue
 		local eid = ent:EntIndex()
 
-		queue:push({eid, LINK, num, state})
+		queue[#queue+1] = {eid, LINK, num, state}
+	end
+	
+	local eid = 0
+	local numports, firstportnum, portstrings = {}, {}, {}
+	local function writeCurrentStrings()
+		-- Write the current (input or output) string information
+		for IO=OUTPUT,INPUT,2 do -- so, k= -1 and k= 1
+			if numports[IO] then
+				net.WriteInt(firstportnum[IO], 8)	-- Control code for inputs/outputs is also the offset (the first port number we're writing over)
+				net.WriteUInt(numports[IO], 8)		-- Send number of ports
+				net.WriteBit(IO==OUTPUT)
+				for i=1,numports[IO]*3 do net.WriteString(portstrings[IO][i] or "") end
+				numports[IO] = nil
+			end
+		end
+	end
+	local function writemsg(msg)
+		-- First write a signed int for the command code
+		-- Then sometimes write extra data specific to the command (type varies)
+		
+		if msg[1] ~= eid then
+			eid = msg[1]
+			writeCurrentStrings() -- We're switching to talking about a different entity, lets send port information
+			net.WriteInt(-3,8)
+			net.WriteUInt(eid,16)
+		end
+
+		local msgtype = msg[2]
+
+		if msgtype == DELETE then
+			numports[msg[3]] = nil
+			net.WriteInt(msg[3] == INPUT and -1 or -2, 8)
+		elseif msgtype == PORT then
+			local _,_,IO,entry,num = unpack(msg)
+
+			if not numports[IO] then
+				firstportnum[IO] = num
+				numports[IO] = 0
+				portstrings[IO] = {}
+			end
+			local i = numports[IO]*3
+			portstrings[IO][i+1] = entry[1]
+			portstrings[IO][i+2] = entry[2]
+			portstrings[IO][i+3] = entry[3]
+			numports[IO] = numports[IO]+1
+		elseif msgtype == LINK then
+			local _,_,num,state = unpack(msg)
+			net.WriteInt(-4, 8)
+			net.WriteUInt(num, 8)
+			net.WriteBit(state)
+		end
 	end
 
 	local function FlushQueue(lqueue, ply)
 		ply = ply or rp
-		local eid = 0
-		local ports_msg = nil
-		local function parsemsg(msg)
-			local same_eid = msg[1] == eid
-			local bytes, ret
-			if same_eid then
-				bytes = 0
-				ret = {}
-			else
-				eid = msg[1]
-				bytes = 3
-				ret = { { umsg.Char, -3 }, { umsg.Short, eid } }
-				ports_msg = nil
-			end
+		// Zero these two for the writemsg function
+		eid = 0
+		numports = {}
 
-			local msgtype = msg[2]
-
-			if msgtype == DELETE then
-				ports_msg = nil
-				bytes = bytes + 1
-				table.insert(ret, { umsg.Char, msg[3] == INPUT and -1 or -2 })
-
-			elseif msgtype == PORT then
-				local _,_,IO,entry,num = unpack(msg)
-
-				if not ports_msg then
-					bytes = bytes + 2
-					table.insert(ret, { umsg.Char, num })
-					ports_msg = { umsg.Char, 0 }
-					table.insert(ret, ports_msg)
-				end
-
-				ports_msg[2] = ports_msg[2]+IO
-
-				bytes = bytes + #entry[1] + #entry[2] + #entry[3]+3
-				table.insert(ret, { umsg.String, entry[1] })
-				table.insert(ret, { umsg.String, entry[2] })
-				table.insert(ret, { umsg.String, entry[3] })
-
-			elseif msgtype == LINK then
-				local _,_,num,state = unpack(msg)
-				bytes = bytes + 3
-				table.insert(ret, { umsg.Char, -4 })
-				table.insert(ret, { umsg.Char, num })
-				table.insert(ret, { umsg.Bool, state })
-			end
-			return bytes, ret
+		net.Start("wire_ports")
+		for i=1,#lqueue do
+			writemsg(lqueue[i])
 		end
-
-		umsg.Start("wire_ports", ply or rp)
-		local maxsize = 240
-		local bytes = 0
-		local msgs = {}
-		while lqueue:size()>0 do
-			local msg = lqueue:bottom()
-			local size,contents = parsemsg(msg)
-			bytes = bytes+size
-			if bytes>maxsize then break end
-
-			table.insert(msgs, contents)
-			lqueue:shift()
-		end
-		for _,contents in ipairs(msgs) do
-			for _,func,value in ipairs_map(contents,unpack) do
-				func(value)
-			end
-		end
-		umsg.Char(0)
-		umsg.End()
-
-		if lqueue:size() == 0 then return end
-		return FlushQueue(lqueue, ply)
+		writeCurrentStrings()
+		net.WriteInt(0,8)
+		if ply then net.Send(ply) else net.Broadcast() end
 	end
 
 	hook.Add("Think", "wire_ports", function()
-		if queue:size() == 0 then return end
-		return FlushQueue(queue)
+		if not next(queue) then return end
+		FlushQueue(queue)
+		queue = {}
 	end)
 
 	hook.Add("PlayerInitialSpawn", "wire_ports", function(ply)
-		rp:AddPlayer(ply)
-		local lqueue = WireLib.containers.deque:new()
+		local lqueue = {}
 		for eid, entry in pairs(ents_with_inputs) do
 			WireLib._SetInputs(Entity(eid), lqueue)
 		end
@@ -619,48 +613,27 @@ elseif CLIENT then
 	local ents_with_inputs = {}
 	local ents_with_outputs = {}
 
-	usermessage.Hook("wire_ports", function(um)
+	net.Receive("wire_ports", function(netlen)
 		local eid = 0
-
-		while not (function()
-			local start = um:ReadChar()
-			if start == 0 then
-				-- break
-				return true
-			elseif start == -1 then
-				-- delete input entry
+		local connections = {} -- In case any cmd -4's come in before link strings
+		while true do
+			local cmd = net.ReadInt(8)
+			if cmd == 0 then
+				break
+			elseif cmd == -1 then
 				ents_with_inputs[eid] = nil
-				return false
-			elseif start == -2 then
-				-- delete output entry
+			elseif cmd == -2 then
 				ents_with_outputs[eid] = nil
-				return false
-			elseif start == -3 then
-				-- set eid
-				eid = um:ReadShort()
-				return false
-			elseif start == -4 then
-				-- connection state
-				local num = um:ReadChar()
-				local state = um:ReadBool()
-
-				local entry = ents_with_inputs[eid]
-				if not entry then
-					entry = {}
-					ents_with_inputs[eid] = entry
-				end
-
-				if not entry[num] then return false end
-				entry[num][4] = state
-
-				return false
-			elseif start > 0 then
+			elseif cmd == -3 then
+				eid = net.ReadUInt(16)
+			elseif cmd == -4 then
+				connections[#connections+1] = {eid, net.ReadUInt(8), net.ReadBit() ~= 0} -- Delay this process till after the loop
+			elseif cmd > 0 then
 				local entry
 
-				local amount = um:ReadChar()
-				if amount < 0 then
+				local amount = net.ReadUInt(8)
+				if net.ReadBit() ~= 0 then
 					-- outputs
-					amount = -amount
 					entry = ents_with_outputs[eid]
 					if not entry then
 						entry = {}
@@ -675,19 +648,22 @@ elseif CLIENT then
 					end
 				end
 
-				local endindex = start+amount-1
-				for i = start,endindex do
-					local name = um:ReadString()
-					local tp = um:ReadString()
-					local desc = um:ReadString()
-
-					entry[i] = { name, tp, desc }
+				local endindex = cmd+amount-1
+				for i = cmd,endindex do
+					entry[i] = {net.ReadString(), net.ReadString(), net.ReadString()}
 				end
-
-				return false
 			end
-
-		end)() do end
+		end
+		for i=1, #connections do
+			local eid, num, state = unpack(connections[i])
+			local entry = ents_with_inputs[eid]
+			if not entry then
+				entry = {}
+				ents_with_inputs[eid] = entry
+			elseif entry[num] then
+				entry[num][4] = state
+			end
+		end
 	end)
 
 	function WireLib.GetPorts(ent)
