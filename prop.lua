@@ -84,7 +84,7 @@ function PropCore.PhysManipulate(this, pos, rot, freeze, gravity, notsolid)
 	if(notsolid!=nil) then this:SetNotSolid(notsolid ~= 0) end
 	local phys = this:GetPhysicsObject()
 	if(pos!=nil) then E2Lib.setPos( phys, Vector(pos[1],pos[2],pos[3]) ) end
-	if(rot!=nil) then phys:SetAngles(Angle(rot[1],rot[2],rot[3])) end
+	if(rot!=nil) then phys:SetAngle(Angle(rot[1],rot[2],rot[3])) end
 	if(freeze!=nil) then phys:EnableMotion(freeze == 0) end
 	if(gravity!=nil) then phys:EnableGravity(gravity~=0) end
 	phys:Wake()
