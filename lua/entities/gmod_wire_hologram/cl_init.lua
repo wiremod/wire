@@ -155,7 +155,7 @@ net.Receive("wire_holograms_set_scale", function( netlen )
 	local index = net.ReadUInt(16)
 
 	while index ~= 0 do
-		SetScale(index, net.ReadVector())
+		SetScale(index, Vector(net.ReadFloat(),net.ReadFloat(),net.ReadFloat()))
 		index = net.ReadUInt(16)
 	end
 end)

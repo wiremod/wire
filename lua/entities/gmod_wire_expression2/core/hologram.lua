@@ -141,7 +141,9 @@ local function flush_scale_queue(queue, recipient)
 	net.Start("wire_holograms_set_scale")
 		for _,Holo,scale in ipairs_map(queue, unpack) do
 			net.WriteUInt(Holo.ent:EntIndex(), 16)
-			net.WriteVector(scale) -- These are more efficient than 3 floats
+			net.WriteFloat(scale.x)
+			net.WriteFloat(scale.y)
+			net.WriteFloat(scale.z)
 		end
 		net.WriteUInt(0, 16)
 	if recipient then net.Send(recipient) else net.Broadcast() end
