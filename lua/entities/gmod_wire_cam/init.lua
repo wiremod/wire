@@ -38,25 +38,32 @@ function ENT:ReceiveInfo(iname, value)
 		self.IdealPos.z = value
 		self:SetPos(self.IdealPos)
 	elseif iname == "Position" then
+		if not isvector(value) then
+			if istable(value) and #value == 3 then
+				value = Vector(unpack(value))
+			else
+				return
+			end
+		end
 		self.IdealPos = value
 		self:SetPos(self.IdealPos)
-
 	elseif iname == "Pitch" then
 		self.IdealAng.p = value
-		--self:SetAngles(self.IdealAng)
 	elseif iname == "Yaw" then
 		self.IdealAng.y = value
-		--self:SetAngles(self.IdealAng)
 	elseif iname == "Roll" then
 		self.IdealAng.r = value
-		--self:SetAngles(self.IdealAng)
 	elseif iname == "Angle" then
 		self.IdealAng = value
-		--self:SetAngles(self.IdealAng)
-
 	elseif iname == "Direction" then
+		if not isvector(value) then
+			if istable(value) and #value == 3 then
+				value = Vector(unpack(value))
+			else
+				return
+			end
+		end
 		self.IdealAng = value:Angle()
-		--self:SetAngles(self.IdealAng)
 	elseif iname == "Velocity" then
 		self.IdealVel = value
 		self.phys:SetVelocity(self.IdealVel)
