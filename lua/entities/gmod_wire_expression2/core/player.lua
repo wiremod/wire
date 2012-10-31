@@ -151,34 +151,52 @@ end
 
 /******************************************************************************/
 
+e2function number entity:keyForward()
+	return (IsValid(this) and this:IsPlayer() and this:KeyDown(IN_FORWARD)) and 1 or 0
+end
+
+e2function number entity:keyLeft()
+	return (IsValid(this) and this:IsPlayer() and this:KeyDown(IN_MOVELEFT)) and 1 or 0
+end
+
+e2function number entity:keyBack()
+	return (IsValid(this) and this:IsPlayer() and this:KeyDown(IN_BACK)) and 1 or 0
+end
+
+e2function number entity:keyRight()
+	return (IsValid(this) and this:IsPlayer() and this:KeyDown(IN_MOVERIGHT)) and 1 or 0
+end
+
+e2function number entity:keyJump()
+	return (IsValid(this) and this:IsPlayer() and this:KeyDown(IN_JUMP)) and 1 or 0
+end
+
 e2function number entity:keyAttack1()
-	if not IsValid(this) then return 0 end
-	if this:IsPlayer() and this:KeyDown(1) then return 1 end -- IN_ATTACK
-	return 0
+	return (IsValid(this) and this:IsPlayer() and this:KeyDown(IN_ATTACK)) and 1 or 0
 end
 
 e2function number entity:keyAttack2()
-	if not IsValid(this) then return 0 end
-	if this:IsPlayer() and this:KeyDown(2048) then return 1 end -- IN_ATTACK2
-	return 0
+	return (IsValid(this) and this:IsPlayer() and this:KeyDown(IN_ATTACK2)) and 1 or 0
 end
 
 e2function number entity:keyUse()
-	if not IsValid(this) then return 0 end
-	if this:IsPlayer() and this:KeyDown(32) then return 1 end -- IN_USE
-	return 0
+	return (IsValid(this) and this:IsPlayer() and this:KeyDown(IN_USE)) and 1 or 0
 end
 
 e2function number entity:keyReload()
-    if not IsValid(this) then return 0 end
-    if this:IsPlayer() and this:KeyDown( IN_RELOAD ) then return 1 end
-    return 0
+    return (IsValid(this) and this:IsPlayer() and this:KeyDown(IN_RELOAD)) and 1 or 0
 end
 
 e2function number entity:keyZoom()
-    if not IsValid(this) then return 0 end
-    if this:IsPlayer() and this:KeyDown( IN_ZOOM ) then return 1 end
-    return 0
+    return (IsValid(this) and this:IsPlayer() and this:KeyDown(IN_ZOOM)) and 1 or 0
+end
+
+e2function number entity:keyWalk()
+	return (IsValid(this) and this:IsPlayer() and this:KeyDown(IN_WALK)) and 1 or 0
+end
+
+e2function number entity:keySprint()
+	return (IsValid(this) and this:IsPlayer() and this:KeyDown(IN_SPEED)) and 1 or 0
 end
 
 -- isTyping
