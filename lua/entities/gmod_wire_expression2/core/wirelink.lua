@@ -29,14 +29,7 @@ end
 local function validWirelink(self, ent)
 	if not IsValid(ent) then return false end
 	if not ent.extended then return false end
-	local player = E2Lib.getOwner(self, ent)
-	if player == nil then return false end
-	if not player:IsValid() then return false end
-	if player != self.player then
-	--	E2Lib.abuse(self.player)
-		return false
-	end
-
+	if not isOwner(self, ent) then return false end
 	return true
 end
 

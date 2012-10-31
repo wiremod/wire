@@ -24,7 +24,7 @@ GateActions["entity_applyf"] = {
 	output = function(gate, Ent , Vec )
 		if !Ent then return end
 		if !Ent:IsValid() or !Ent:GetPhysicsObject():IsValid() then return end
-		if !(E2Lib.getOwner(gate, Ent) == E2Lib.getOwner(gate, gate)) then return end
+		if not E2Lib.isOwner(gate, Ent) then return end
 		if !IsVector(Vec) then Vec = Vector(0, 0, 0) end
 		if checkv(Vec) then
 			Ent:GetPhysicsObject():ApplyForceCenter(Vec)
@@ -43,7 +43,7 @@ GateActions["entity_applyof"] = {
 	output = function(gate, Ent , Vec , Offset )
 		if !Ent then return end
 		if !Ent:IsValid() or !Ent:GetPhysicsObject():IsValid() then return end
-		if !(E2Lib.getOwner(gate, Ent) == E2Lib.getOwner(gate, gate)) then return end
+		if not E2Lib.isOwner(gate, Ent) then return end
 		if !IsVector(Vec) then Vec = Vector (0, 0, 0) end
 		if !IsVector(Offset) then Offset = Vector (0, 0, 0) end
 		if checkv(Vec) and checkv(Offset) then
@@ -65,7 +65,7 @@ GateActions["entity_applyaf"] = {
 	output = function(gate, Ent , angForce )
 		if !Ent then return end
 		if !Ent:IsValid() or !Ent:GetPhysicsObject():IsValid() then return end
-		if !(E2Lib.getOwner(gate, Ent) == E2Lib.getOwner(gate, gate)) then return end
+		if not E2Lib.isOwner(gate, Ent) then return end
 
 		if angForce.p == 0 and angForce.y == 0 and angForce.r == 0 then return end
 		if not checka(angForce) then return end
@@ -115,7 +115,7 @@ GateActions["entity_applytorq"] = {
 	output = function(gate, Ent , Vec )
 		if !Ent then return end
 		if not Ent:IsValid() then return end
-		if !(E2Lib.getOwner(gate, Ent) == E2Lib.getOwner(gate, gate)) then return end
+		if not E2Lib.isOwner(gate, Ent) then return end
 
 		if Vec.x == 0 and Vec.y == 0 and Vec.z == 0 then return end
 		if not checkv(Vec) then return end
