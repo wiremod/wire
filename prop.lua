@@ -37,7 +37,7 @@ function PropCore.ValidAction(self, entity, cmd)
 	if(!validPhysics(entity)) then return false end
 	if(!isOwner(self, entity)) then return false end
 	if entity:IsPlayer() then return false end
-	if(!validEntity(entity)) then return false end
+	if(!IsValid(entity)) then return false end
 	return sbox_E2_PropCore:GetInt()==2 or (sbox_E2_PropCore:GetInt()==1 and ply:IsAdmin())
 end
 
@@ -55,12 +55,14 @@ function PropCore.CreateProp(self,model,pos,angles,freeze)
 	end
 	pos = E2Lib.clampPos( pos )
 	local prop
+	
 	if self.data.propSpawnEffect then
 		prop = MakeProp( self.player, pos, angles, model, {}, {} )
 	else
 		prop = MakePropNoEffect( self.player, pos, angles, model, {}, {} )
 	end
 	if not prop then return end
+	
 	prop:Activate()
 	self.player:AddCleanup( "props", prop )
 	undo.Create("e2_spawned_prop")
@@ -69,8 +71,9 @@ function PropCore.CreateProp(self,model,pos,angles,freeze)
 	undo.Finish()
 	local phys = prop:GetPhysicsObject()
 	if (phys:IsValid()) then
+		if(angles!=nil) then phys:SetAngles( angles ) end
 		phys:Wake()
-		if(freeze>0)then phys:EnableMotion( false ) end
+		if(freeze>0) then phys:EnableMotion( false ) end
 	end
 	prop:CallOnRemove( "wire_expression2_propcore_remove", function( prop )
 		E2totalspawnedprops = E2totalspawnedprops - 1
@@ -84,7 +87,7 @@ function PropCore.PhysManipulate(this, pos, rot, freeze, gravity, notsolid)
 	if(notsolid!=nil) then this:SetNotSolid(notsolid ~= 0) end
 	local phys = this:GetPhysicsObject()
 	if(pos!=nil) then E2Lib.setPos( phys, Vector(pos[1],pos[2],pos[3]) ) end
-	if(rot!=nil) then phys:SetAngle(Angle(rot[1],rot[2],rot[3])) end
+	if(rot!=nil) then phys:SetAngles(Angle(rot[1],rot[2],rot[3])) end
 	if(freeze!=nil) then phys:EnableMotion(freeze == 0) end
 	if(gravity!=nil) then phys:EnableGravity(gravity~=0) end
 	phys:Wake()
@@ -102,7 +105,7 @@ end
 
 e2function entity propSpawn(entity template, number frozen)
 	if not PropCore.ValidAction(self, nil, "spawn") then return nil end
-	if not validEntity(template) then return nil end
+	if not IsValid(template) then return nil end
 	return PropCore.CreateProp(self,template:GetModel(),self.entity:GetPos()+self.entity:GetUp()*25,self.entity:GetAngles(),frozen)
 end
 
@@ -113,7 +116,7 @@ end
 
 e2function entity propSpawn(entity template, vector pos, number frozen)
 	if not PropCore.ValidAction(self, nil, "spawn") then return nil end
-	if not validEntity(template) then return nil end
+	if not IsValid(template) then return nil end
 	return PropCore.CreateProp(self,template:GetModel(),Vector(pos[1],pos[2],pos[3]),self.entity:GetAngles(),frozen)
 end
 
@@ -124,7 +127,7 @@ end
 
 e2function entity propSpawn(entity template, angle rot, number frozen)
 	if not PropCore.ValidAction(self, nil, "spawn") then return nil end
-	if not validEntity(template) then return nil end
+	if not IsValid(template) then return nil end
 	return PropCore.CreateProp(self,template:GetModel(),self.entity:GetPos()+self.entity:GetUp()*25,Angle(rot[1],rot[2],rot[3]),frozen)
 end
 
@@ -135,7 +138,7 @@ end
 
 e2function entity propSpawn(entity template, vector pos, angle rot, number frozen)
 	if not PropCore.ValidAction(self, nil, "spawn") then return nil end
-	if not validEntity(template) then return nil end
+	if not IsValid(template) then return nil end
 	return PropCore.CreateProp(self,template:GetModel(),Vector(pos[1],pos[2],pos[3]),Angle(rot[1],rot[2],rot[3]),frozen)
 end
 
@@ -153,7 +156,7 @@ end
 local function removeAllIn( self, tbl )
 	local count = 0
 	for k,v in pairs( tbl ) do
-		if (validEntity(v) and isOwner(self,v) and !v:IsPlayer()) then
+		if (IsValid(v) and isOwner(self,v) and !v:IsPlayer()) then
 			count = count + 1
 			v:Remove()
 		end
@@ -232,7 +235,7 @@ end
 
 e2function void entity:parentTo(entity target)
 	if not PropCore.ValidAction(self, this, "parent") then return end
-	if not validEntity(target) then return nil end
+	if not IsValid(target) then return nil end
 	if(!isOwner(self, target)) then return end
 	if this == target then return end
 	if (!parent_check( this, target )) then return end
