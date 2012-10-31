@@ -20,6 +20,8 @@ TOOL.ClientConVar[ "showports" ] = "1"
 TOOL.ClientConVar[ "orientvertical" ] = "1"
 
 local Components = {}
+local UpdateLineCount
+local dbg_line_cache
 
 local function IsWire(entity) --try to find out if the entity is wire
 	if (WireLib.HasPorts(entity)) then return true end
@@ -33,16 +35,26 @@ function TOOL:LeftClick(trace)
 	if (!IsWire(trace.Entity)) then return end
 	if (CLIENT) then return true end
 
-	ply_idx = self:GetOwner()
-	Components[ply_idx] = Components[ply_idx] or {}
+	local ply = self:GetOwner()
+	Components[ply] = Components[ply] or {}
 
-	for k,cmp in ipairs(Components[ply_idx]) do
+	for k,cmp in ipairs(Components[ply]) do
 		if (cmp == trace.Entity) then return end
 	end
 
-	table.insert(Components[ply_idx], trace.Entity)
+	table.insert(Components[ply], trace.Entity)
 
 	return true
+end
+
+if SERVER then
+	local dbg_linecount_cache = {}
+	function UpdateLineCount(ply, count)
+		if dbg_linecount_cache[ply] != count then
+			dbg_linecount_cache[ply] = count
+			net.Start("WireDbgCount") net.WriteUInt(count,16) net.Send(ply)
+		end
+	end
 end
 
 
@@ -51,20 +63,19 @@ function TOOL:RightClick(trace)
 	if (!IsWire(trace.Entity)) then return end
 	if (CLIENT) then return true end
 
-	ply_idx = self:GetOwner()
-	if not Components[ply_idx] then return end
+	local ply = self:GetOwner()
+	if not Components[ply] then return end
 
-	for k,cmp in ipairs(Components[ply_idx]) do
+	for k,cmp in ipairs(Components[ply]) do
 		if (cmp == trace.Entity) then
-			table.remove(Components[ply_idx], k)
+			table.remove(Components[ply], k)
+			dbg_line_cache[ply] = nil
 			return true
 		end
 	end
-	if not next(Components[ply_idx]) then
-		net.Start("WireDbgCount")
-			net.WriteUInt(0,16)
-		net.Send(ply_idx)
-		Components[ply_idx] = nil
+	if not next(Components[ply]) then
+		UpdateLineCount(ply, 0)
+		Components[ply] = nil
 	end
 end
 
@@ -142,17 +153,15 @@ end
 
 function TOOL:Reload(trace)
 	if (CLIENT) then return end
-	net.Start("WireDbgCount")
-		net.WriteUInt(0,16)
-	net.Send(self:GetOwner())
+	UpdateLineCount(self:GetOwner(), 0)
 	Components[self:GetOwner()] = nil
+	dbg_line_cache[self:GetOwner()] = nil
 end
 
 
 if (SERVER) then
 
-	local dbg_line_cache = {}
-	local dbg_line_time = {}
+	dbg_line_cache = {}
 
 	local formatPort = {}
 	WireLib.Debugger = { formatPort = formatPort } -- Make it global
@@ -173,7 +182,7 @@ if (SERVER) then
 	end
 
 	formatPort.ENTITY = function(ent)
-		if not IsValid(ent) then return "(null)" end -- this uses IsValid from E2, which is faster, but maybe we shouldn't use it.
+		if not IsValid(ent) then return "(null)" end
 		return tostring(ent)
 	end
 	formatPort.BONE = e2_tostring_bone
@@ -327,12 +336,9 @@ if (SERVER) then
 				-- TODO: Add EntityRemoved hook to clean up Components array.
 				table.Compact(cmps, function(cmp) return cmp:IsValid() and IsWire(cmp) end)
 
-				-- TODO: only send in TOOL:*Click/Reload hooks maybe.
-				net.Start("WireDbgCount")
-					net.WriteUInt(#cmps,16)
-				net.Send(ply)
+				UpdateLineCount(ply, #cmps)
 
-				if #cmps == 0 then Components[ply] = nil end
+				if #cmps == 0 then Components[ply] = nil continue end
 
 				for l,cmp in ipairs(cmps) do
 					local dbginfo = cmp.WireDebugName
@@ -389,112 +395,98 @@ if (SERVER) then
 					end
 
 					dbg_line_cache[ply] = dbg_line_cache[ply] or {}
-					dbg_line_time[ply] = dbg_line_time[ply] or {}
 					if (dbg_line_cache[ply][l] ~= dbginfo) then
-						if (not dbg_line_time[ply][l]) or (CurTime() > dbg_line_time[ply][l]) then
-							--split the message up into managable chuncks and send them
-							net.Start("WireDbg")
-								net.WriteBit(OrientVertical)
-								net.WriteUInt(l,16)
-								net.WriteString(dbginfo)
-							net.Send(ply)
+						--split the message up into managable chuncks and send them
+						net.Start("WireDbg")
+							net.WriteBit(OrientVertical)
+							net.WriteUInt(l,16)
+							net.WriteString(dbginfo)
+						net.Send(ply)
 
-							dbg_line_cache[ply][l] = dbginfo
-							if (game.SinglePlayer()) then
-								dbg_line_time[ply][l] = CurTime() + 0.05
-							else
-								dbg_line_time[ply][l] = CurTime() + 0.2
-							end
-						end
+						dbg_line_cache[ply][l] = dbginfo
 					end
 				end
-
 			end
-
 		end
 	end
-	hook.Add("Think", "Wire_DebuggerThink", Wire_DebuggerThink)
+	timer.Create("Wire_DebuggerThink", game.SinglePlayer() and 0.05 or 0.1, 0, Wire_DebuggerThink)
+	//hook.Add("Think", "Wire_DebuggerThink", Wire_DebuggerThink)
 
 end
 
 
 if (CLIENT) then
 
-	local dbg_line_count = 0
 	local dbg_lines = {}
 	local dgb_orient_vert = false
 	local BoxWidth = 300
-	local LastBoxUpdate = CurTime()-5
+	local LastBoxUpdate = 0
 
 	local function DebuggerDrawHUD()
 		local dbginfo = ""
-		if (dbg_line_count <= 0) then return end
+		if not next(dbg_lines) then return end
 
 		--setup the font
 		surface.SetFont("Default")
 
 		--buid the table of entries
-		local Entry_Count = dbg_line_count
 		local Line_Count = 0
 		local ColorType = 0
 		local Entries = {}
-		for i = 1,dbg_line_count do
-			local Line = dbg_lines[i]
-			if(Line) then
-				local CurEntry = {}
-				CurEntry.Lines = {}
+		for _, Line in pairs(dbg_lines) do
+			local CurEntry = {}
+			CurEntry.Lines = {}
 
-				local ExplodeLines = string.Explode("\n", Line)
+			local ExplodeLines = string.Explode("\n", Line)
 
-				for Index, ExplodeLine in ipairs(ExplodeLines) do --break it into multible lines for 1 entry
-					if(string.Trim(ExplodeLine) != "") then
+			for Index, ExplodeLine in ipairs(ExplodeLines) do --break it into multible lines for 1 entry
+				if(string.Trim(ExplodeLine) != "") then
 
-						local XPos = 0
-						if(Index > 1) then
-							if dgb_orient_vert then --if the string is not the first and it is vertical, line it up acordingly
-								if(string.Trim(ExplodeLine) == "OUT:" or string.Trim(ExplodeLine) == "IN:") then
-									XPos = 17
-								else
-									XPos = 42
-								end
-							else --if the string is not the first and it is not vertical, line it up with the IN on the first line
-								if(CurEntry.Lines[1].LineText and string.find(CurEntry.Lines[1].LineText,"IN:")) then
-									local TextPos = string.find(CurEntry.Lines[1].LineText,"IN:")-1
-									XPos = surface.GetTextSize( string.Left(CurEntry.Lines[1].LineText, TextPos) )
-								end
+					local XPos = 0
+					if(Index > 1) then
+						if dgb_orient_vert then --if the string is not the first and it is vertical, line it up acordingly
+							if(string.Trim(ExplodeLine) == "OUT:" or string.Trim(ExplodeLine) == "IN:") then
+								XPos = 17
+							else
+								XPos = 42
 							end
-
+						else --if the string is not the first and it is not vertical, line it up with the IN on the first line
+							if(CurEntry.Lines[1].LineText and string.find(CurEntry.Lines[1].LineText,"IN:")) then
+								local TextPos = string.find(CurEntry.Lines[1].LineText,"IN:")-1
+								XPos = surface.GetTextSize( string.Left(CurEntry.Lines[1].LineText, TextPos) )
+							end
 						end
 
-						local TrimLine = {
-							LineText = string.Trim(ExplodeLine),
-							OffsetPos = { XPos, Line_Count*14 } --move the next text down some for each line
-						}
-						table.insert(CurEntry.Lines, TrimLine )
-						Line_Count = Line_Count+1
-
 					end
+
+					local TrimLine = {
+						LineText = string.Trim(ExplodeLine),
+						OffsetPos = { XPos, Line_Count*14 } --move the next text down some for each line
+					}
+					table.insert(CurEntry.Lines, TrimLine )
+					Line_Count = Line_Count+1
+
 				end
-
-				--set the color
-				if(ColorType == 0) then
-					CurEntry.TextColor = Color(255,255,255)
-				else
-					CurEntry.TextColor = Color(130,255,158)
-				end
-
-				--put it in the table
-				table.insert(Entries, CurEntry)
-
-				--switch the color
-				ColorType = 1-ColorType
 			end
+
+			--set the color
+			if(ColorType == 0) then
+				CurEntry.TextColor = Color(255,255,255)
+			else
+				CurEntry.TextColor = Color(130,255,158)
+			end
+
+			--put it in the table
+			table.insert(Entries, CurEntry)
+
+			--switch the color
+			ColorType = 1-ColorType
 		end
 
 
 
 		--determine the box width every second
-		if(LastBoxUpdate < CurTime()-1) then
+		if(LastBoxUpdate < CurTime()) then
 			local LongestWidth = 0
 			local TextWidth, TextHeight
 			for EntryIndex, Entry in ipairs(Entries) do
@@ -508,7 +500,7 @@ if (CLIENT) then
 				end
 			end
 			BoxWidth = LongestWidth+16
-			LastBoxUpdate = CurTime()
+			LastBoxUpdate = CurTime()+1
 		end
 
 
@@ -543,10 +535,12 @@ if (CLIENT) then
 	end
 	hook.Add("HUDPaint", "DebuggerDrawHUD", DebuggerDrawHUD)
 
-	net.Receive("WireDbgCount", function(len)
-		dbg_line_count = net.ReadUInt(16)
+	net.Receive("WireDbgCount", function(netlen)
+		for k=net.ReadUInt(16)+1, #dbg_lines do
+			dbg_lines[k] = nil
+		end
 	end)
-	net.Receive("WireDbg", function(len)
+	net.Receive("WireDbg", function(netlen)
 		dgb_orient_vert = net.ReadBit() != 0
 		dbg_lines[net.ReadUInt(16)] = net.ReadString()
 	end)
