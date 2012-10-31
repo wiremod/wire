@@ -9,16 +9,19 @@ local LASER = Material('cable/redlaser')
 
 function SWEP:SetVM(ply)
 	if ply.GetViewModel and ply:GetViewModel():IsValid() then
-		self.VM = ply:GetViewModel()
-		local attachmentIndex = self.VM:LookupAttachment("muzzle")
-		if attachmentIndex == 0 then attachmentIndex = self.VM:LookupAttachment("1") end
-		self.Attach = attachmentIndex
+		local attachmentIndex = ply:GetViewModel():LookupAttachment("muzzle")
+		if attachmentIndex == 0 then attachmentIndex = ply:GetViewModel():LookupAttachment("1") end
+		if LocalPlayer():GetAttachment(attachmentIndex) then
+			self.VM = ply:GetViewModel()
+			self.Attach = attachmentIndex
+		end
 	end
 	if ply:IsValid() then
 		local attachmentIndex = ply:LookupAttachment("anim_attachment_RH")
-		if attachmentIndex == 0 then return end
-		self.WM = ply
-		self.WAttach = attachmentIndex
+		if ply:GetAttachment(attachmentIndex) then
+			self.WM = ply
+			self.WAttach = attachmentIndex
+		end
 	end
 end
 function SWEP:Initialize()
