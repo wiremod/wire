@@ -78,7 +78,7 @@ E2Lib.isValidBone2 = isValidBone2
 
 -- checks whether the bone is valid. if yes, returns false; otherwise, returns true.
 local function isInvalidBone(b)
-	if not IsValid(b) then return nil end
+	if not IsValid(b) then return true end
 	if not IsValid(bone2entity[b]) then
 		removeBone(b)
 		return true
