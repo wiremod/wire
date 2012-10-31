@@ -37,7 +37,7 @@ function PropCore.ValidAction(self, entity, cmd)
 	if(!validPhysics(entity)) then return false end
 	if(!isOwner(self, entity)) then return false end
 	if entity:IsPlayer() then return false end
-	--if(!IsValid(entity)) then return false end
+	if(!validEntity(entity)) then return false end
 	return sbox_E2_PropCore:GetInt()==2 or (sbox_E2_PropCore:GetInt()==1 and ply:IsAdmin())
 end
 
@@ -102,7 +102,7 @@ end
 
 e2function entity propSpawn(entity template, number frozen)
 	if not PropCore.ValidAction(self, nil, "spawn") then return nil end
-	if not IsValid(template) then return nil end
+	if not validEntity(template) then return nil end
 	return PropCore.CreateProp(self,template:GetModel(),self.entity:GetPos()+self.entity:GetUp()*25,self.entity:GetAngles(),frozen)
 end
 
@@ -113,7 +113,7 @@ end
 
 e2function entity propSpawn(entity template, vector pos, number frozen)
 	if not PropCore.ValidAction(self, nil, "spawn") then return nil end
-	if not IsValid(template) then return nil end
+	if not validEntity(template) then return nil end
 	return PropCore.CreateProp(self,template:GetModel(),Vector(pos[1],pos[2],pos[3]),self.entity:GetAngles(),frozen)
 end
 
@@ -124,7 +124,7 @@ end
 
 e2function entity propSpawn(entity template, angle rot, number frozen)
 	if not PropCore.ValidAction(self, nil, "spawn") then return nil end
-	if not IsValid(template) then return nil end
+	if not validEntity(template) then return nil end
 	return PropCore.CreateProp(self,template:GetModel(),self.entity:GetPos()+self.entity:GetUp()*25,Angle(rot[1],rot[2],rot[3]),frozen)
 end
 
@@ -135,7 +135,7 @@ end
 
 e2function entity propSpawn(entity template, vector pos, angle rot, number frozen)
 	if not PropCore.ValidAction(self, nil, "spawn") then return nil end
-	if not IsValid(template) then return nil end
+	if not validEntity(template) then return nil end
 	return PropCore.CreateProp(self,template:GetModel(),Vector(pos[1],pos[2],pos[3]),Angle(rot[1],rot[2],rot[3]),frozen)
 end
 
@@ -153,7 +153,7 @@ end
 local function removeAllIn( self, tbl )
 	local count = 0
 	for k,v in pairs( tbl ) do
-		if (IsValid(v) and isOwner(self,v) and !v:IsPlayer()) then
+		if (validEntity(v) and isOwner(self,v) and !v:IsPlayer()) then
 			count = count + 1
 			v:Remove()
 		end
@@ -232,7 +232,7 @@ end
 
 e2function void entity:parentTo(entity target)
 	if not PropCore.ValidAction(self, this, "parent") then return end
-	if not IsValid(target) then return nil end
+	if not validEntity(target) then return nil end
 	if(!isOwner(self, target)) then return end
 	if this == target then return end
 	if (!parent_check( this, target )) then return end
