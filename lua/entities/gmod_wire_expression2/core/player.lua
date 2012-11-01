@@ -159,12 +159,20 @@ e2function number entity:keyLeft()
 	return (IsValid(this) and this:IsPlayer() and this:KeyDown(IN_MOVELEFT)) and 1 or 0
 end
 
+e2function number entity:keyTurnLeft()
+	return (IsValid(this) and this:IsPlayer() and this:KeyDown(IN_LEFT)) and 1 or 0
+end
+
 e2function number entity:keyBack()
 	return (IsValid(this) and this:IsPlayer() and this:KeyDown(IN_BACK)) and 1 or 0
 end
 
 e2function number entity:keyRight()
 	return (IsValid(this) and this:IsPlayer() and this:KeyDown(IN_MOVERIGHT)) and 1 or 0
+end
+
+e2function number entity:keyTurnRight()
+	return (IsValid(this) and this:IsPlayer() and this:KeyDown(IN_RIGHT)) and 1 or 0
 end
 
 e2function number entity:keyJump()
@@ -183,6 +191,10 @@ e2function number entity:keyUse()
 	return (IsValid(this) and this:IsPlayer() and this:KeyDown(IN_USE)) and 1 or 0
 end
 
+e2function number entity:keyCancel()
+	return (IsValid(this) and this:IsPlayer() and this:KeyDown(IN_CANCEL)) and 1 or 0
+end
+
 e2function number entity:keyReload()
     return (IsValid(this) and this:IsPlayer() and this:KeyDown(IN_RELOAD)) and 1 or 0
 end
@@ -197,6 +209,10 @@ end
 
 e2function number entity:keySprint()
 	return (IsValid(this) and this:IsPlayer() and this:KeyDown(IN_SPEED)) and 1 or 0
+end
+
+e2function number entity:keyDuck()
+	return (IsValid(this) and this:IsPlayer() and this:KeyDown(IN_DUCK)) and 1 or 0
 end
 
 -- isTyping
