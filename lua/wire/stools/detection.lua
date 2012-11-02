@@ -90,3 +90,41 @@ do -- wire_gps
 		ModelPlug_AddToCPanel(panel, "GPS", "wire_gps", "#ToolWireIndicator_Model")
 	end
 end -- wire_gps
+
+do -- wire_gyroscope
+	WireToolSetup.open( "gyroscope", "Gyroscope", "gmod_wire_gyroscope", nil, "Gyroscopes" )
+
+	if CLIENT then
+		language.Add( "Tool.wire_gyroscope.name", "Gyroscope Tool (Wire)" )
+		language.Add( "Tool.wire_gyroscope.desc", "Spawns a gyroscope for use with the wire system." )
+		language.Add( "Tool.wire_gyroscope.0", "Primary: Create/Update Gyroscope" )
+		language.Add( "Tool.wire_gyroscope.out180", "Output -180 to 180 instead of 0 to 360" )
+		language.Add( "sboxlimit_wire_gyroscopes", "You've hit gyroscopes limit!" )
+	end
+	WireToolSetup.BaseLang()
+
+	if SERVER then
+		CreateConVar('sbox_maxwire_gyroscopes', 10)
+		ModelPlug_Register("GPS")
+		
+		function TOOL:GetConVars() 
+			return tobool(self:GetClientNumber("out180"))
+		end
+
+		function TOOL:MakeEnt( ply, model, Ang, trace )
+			return MakeWireGyroscope( ply, trace.HitPos, Ang, model, self:GetConVars() )
+		end
+	end
+
+	TOOL.ClientConVar = {
+		model = "models/bull/various/gyroscope.mdl",
+		out180 = 0,
+	}
+
+	function TOOL.BuildCPanel(panel)
+		panel:Help("#Tool.wire_gyroscope.desc")
+		ModelPlug_AddToCPanel(panel, "gyroscope", "wire_gyroscope", "#ToolWireGyroscope_Model")
+		panel:CheckBox("#Tool.wire_gyroscope.out180","wire_gyroscope_out180")
+	end
+end -- wire_gyroscope
+
