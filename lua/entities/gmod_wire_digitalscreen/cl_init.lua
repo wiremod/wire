@@ -47,19 +47,17 @@ function ENT:OnRemove()
 	self.NeedRefresh = true
 end
 
-usermessage.Hook("hispeed_digiscreen", function(um)
-	local ent = ents.GetByIndex(um:ReadShort())
-
+local pixelbits = {20, 8, 24, 30}
+net.Receive("wire_digitalscreen", function(netlen)
+	local ent = Entity(net.ReadUInt(16))
+	local pixelbit = pixelbits[net.ReadUInt(2)+1]
 	if IsValid(ent) and ent.Memory1 and ent.Memory2 then
 		while true do
-			local datasize = um:ReadChar()
-			if datasize < 0 then
-				break
-			end
-			local address = um:ReadLong()
-			for j = 1,datasize do
-				local value = um:ReadLong()
-				ent:WriteCell(address,value)
+			local length = net.ReadUInt(20)
+			if length == 0 then break end
+			local address = net.ReadUInt(20)
+			for i=1, length do
+				ent:WriteCell(address, net.ReadUInt(pixelbit))
 				address = address + 1
 			end
 		end

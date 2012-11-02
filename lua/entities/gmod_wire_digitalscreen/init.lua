@@ -4,8 +4,6 @@ include('shared.lua')
 
 ENT.WireDebugName = "DigitalScreen"
 
-local max_umsgs_per_tick = 8
-
 function ENT:Initialize()
 
 	self:PhysicsInit(SOLID_VPHYSICS)
@@ -51,11 +49,6 @@ function ENT:ReadCell(Address)
 	return self.Memory[Address] or 0
 end
 
-local per_tick = max_umsgs_per_tick
-hook.Add("Think", "resetdigitickrate", function()
-	per_tick = math.min(per_tick+2,max_umsgs_per_tick)
-end)
-
 function ENT:MarkCellChanged(Address)
 	local lastrange = self.ChangedCellRanges[#self.ChangedCellRanges]
 	if lastrange then
@@ -80,35 +73,24 @@ function ENT:MarkCellChanged(Address)
 	end
 end
 
+util.AddNetworkString("wire_digitalscreen")
+local pixelbits = {20, 8, 24, 30}
 function ENT:FlushCache()
-	while per_tick > 0 and
-		  #self.ChangedCellRanges > 0 do
-		per_tick = per_tick - 1
-
-		local bytesleft = 249
-		umsg.Start("hispeed_digiscreen")
-			umsg.Short(self:EntIndex())
-			while #self.ChangedCellRanges > 0 do
-				local range = self.ChangedCellRanges[1]
-				local datasize = math.min(range.length, math.floor((bytesleft - 5) * 0.25))
-				if datasize < 1 then
-					break
-				end
-				umsg.Char(datasize)
-				umsg.Long(range.start)
-				bytesleft = bytesleft - 5 - datasize * 4
-				for i = range.start,range.start + datasize - 1 do
-					umsg.Long(self.Memory[i])
-				end
-				range.start = range.start + datasize
-				range.length = range.length - datasize
-				if range.length == 0 then
-					table.remove(self.ChangedCellRanges, 1)
-				end
+	net.Start("wire_digitalscreen")
+		net.WriteUInt(self:EntIndex(),16)
+		net.WriteUInt(self.Memory[1048569] or 0, 2) -- Super important the client knows what colormode we're using since that determines pixelbit
+		local pixelbit = pixelbits[(self.Memory[1048569] or 0)+1]
+		for i=1, #self.ChangedCellRanges do
+			local range = self.ChangedCellRanges[i]
+			net.WriteUInt(range.length,20)
+			net.WriteUInt(range.start,20)
+			for i = range.start,range.start + range.length - 1 do
+				net.WriteUInt(self.Memory[i],pixelbit)
 			end
-			umsg.Char(-1)
-		umsg.End()
-	end
+		end
+		net.WriteUInt(0,20)
+	net.Broadcast()
+	self.ChangedCellRanges = {}
 end
 
 function ENT:ClearPixel(i)
@@ -142,7 +124,7 @@ function ENT:WriteCell(Address, value)
 		end
 	else
 		if Address == 1048569 then -- Color mode (0: RGBXXX; 1: R G B; 2: 24 bit RGB; 3: RRRGGGBBB)
-			-- not needed (yet)
+			value = math.Clamp(math.floor(value or 0), 0, 3)
 		elseif Address == 1048570 then -- Clear row
 			local row = math.Clamp(math.floor(value), 0, self.ScreenHeight-1)
 			if self.Memory[1048569] == 1 then
