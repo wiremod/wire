@@ -25,40 +25,36 @@ end
 __e2setcost( 20 )
 
 e2function void httpRequest( string url )
-	if !player_can_request( self.player ) or url == "" then return end
+	local ply = self.player
+	if !player_can_request( ply ) or url == "" then return end
 
-	requests[self.player] = {
+	requests[ply] = {
 		in_progress = true,
 		t_start = CurTime(),
 		t_end = 0,
 		url = url
 	}
 
-	http.Fetch(
-		url,
-		function( body, length, headers, code )
-			local ply = self.player
+	http.Fetch(url, function( contents, size, headers, code )
+		if !IsValid( ply ) or !ply:IsPlayer() or !requests[ply] then return end
 
-			if !IsValid( ply ) or !ply:IsPlayer() or !requests[ply] then return end
+		local preq = requests[ply]
 
-			local preq = requests[ply]
+		preq.t_end = CurTime()
+		preq.in_progress = false
+		preq.data = contents or ""
+		preq.data = string.gsub( preq.data, string.char( 13 ) .. string.char( 10 ), "\n" )
 
-			preq.t_end = CurTime()
-			preq.in_progress = false
-			preq.data = body or ""
-			preq.data = string.gsub( preq.data, string.char( 13 ) .. string.char( 10 ), "\n" )
+		run_on.clk = 1
 
-			run_on.clk = 1
-
-			for ent,eply in pairs( run_on.ents ) do
-				if IsValid( ent ) and ent.Execute and eply == ply then
-					ent:Execute()
-				end
+		for ent,eply in pairs( run_on.ents ) do
+			if IsValid( ent ) and ent.Execute and eply == ply then
+				ent:Execute()
 			end
-
-			run_on.clk = 0
 		end
-	)
+
+		run_on.clk = 0
+	end)
 end
 
 __e2setcost( 5 )
