@@ -199,6 +199,19 @@ e2function number entity:keySprint()
 	return (IsValid(this) and this:IsPlayer() and this:KeyDown(IN_SPEED)) and 1 or 0
 end
 
+e2function number entity:keyDuck()
+	if not IsValid(this) or not this:IsPlayer() then return 0 end
+	return this:KeyDown(IN_DUCK) and 1 or this:GetInfoNum("gmod_vehicle_viewmode", 0)
+end
+
+e2function number entity:keyLeftTurn()
+	return (IsValid(this) and this:IsPlayer() and this:KeyDown(IN_LEFT)) and 1 or 0
+end
+
+e2function number entity:keyRightTurn()
+	return (IsValid(this) and this:IsPlayer() and this:KeyDown(IN_RIGHT)) and 1 or 0
+end
+
 -- isTyping
 local plys = {}
 concommand.Add("E2_StartChat",function(ply,cmd,args) plys[ply] = true end)

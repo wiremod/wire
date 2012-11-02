@@ -20,10 +20,12 @@ delta = wire_expression2_delta
 
 local wire_expression2_debug = CreateConVar("wire_expression2_debug", 0, 0)
 
-cvars.AddChangeCallback("wire_expression2_debug", function(CVar, PreviousValue, NewValue)
-	if (PreviousValue) == NewValue then return end
-	wire_expression2_reload()
-end)
+if SERVER then
+	cvars.AddChangeCallback("wire_expression2_debug", function(CVar, PreviousValue, NewValue)
+		if (PreviousValue) == NewValue then return end
+		wire_expression2_reload()
+	end)
+end
 
 -- Removes a typecheck from a function identified by the given signature.
 local function removecheck(signature)
