@@ -65,6 +65,12 @@ end)
 
 local toolbuttons = {}
 hook.Add("PostReloadToolsMenu", "toolcpanel_ListTools",function()
+	if !g_SpawnMenu or !g_SpawnMenu:GetToolMenu() or !g_SpawnMenu:GetToolMenu():GetToolPanel(toolpanelid) or !g_SpawnMenu:GetToolMenu():GetToolPanel(toolpanelid).List 
+		or !g_SpawnMenu:GetToolMenu():GetToolPanel(toolpanelid).List:GetChildren() or !g_SpawnMenu:GetToolMenu():GetToolPanel(toolpanelid).List:GetChildren()[1]
+			or !g_SpawnMenu:GetToolMenu():GetToolPanel(toolpanelid).List:GetChildren()[1]:GetChildren() then
+				print("gmod_tool_auto: Failed to generate list of stool cpanels! The spawnmenu's code probably updated")
+				return
+	end
 	for toolpanelid=1,4 do
 		for sectionid,section in pairs(g_SpawnMenu:GetToolMenu():GetToolPanel(toolpanelid).List:GetChildren()[1]:GetChildren()) do
 			for buttonid,button in pairs(section:GetChildren()) do
