@@ -212,7 +212,12 @@ end
 
 --
 function WireToolObj:GetAngle( trace )
-	local Ang = trace.HitNormal:Angle()
+	local Ang
+	if math.abs(trace.HitNormal.x) < 0.001 and math.abs(trace.HitNormal.y) < 0.001 then 
+		Ang = Vector(0,0,trace.HitNormal.z):Angle()
+	else
+		Ang = trace.HitNormal:Angle()
+	end
 	if self.GetGhostAngle then -- the tool as a function for getting the proper angle for the ghost
 		Ang = self:GetGhostAngle( trace )
 	elseif self.GhostAngle then -- the tool gives a fixed angle to add
