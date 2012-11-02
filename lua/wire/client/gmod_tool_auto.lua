@@ -60,7 +60,22 @@ concommand.Add("gmod_tool_auto", function(ply, command, args)
 	end
 
 	RunConsoleCommand( "gmod_tool", toolmode )
-	RunConsoleCommand( "tool_" .. toolmode )
+	RunConsoleCommand( "toolcpanel", toolmode )
+end)
+
+local toolbuttons = {}
+hook.Add("PostReloadToolsMenu", "toolcpanel_ListTools",function()
+	for toolpanelid=1,4 do
+		for sectionid,section in pairs(g_SpawnMenu:GetToolMenu():GetToolPanel(toolpanelid).List:GetChildren()[1]:GetChildren()) do
+			for buttonid,button in pairs(section:GetChildren()) do
+				if tobool(button.Command) then toolbuttons[button.Command] = button end
+			end
+		end
+	end
+end)
+concommand.Add("toolcpanel", function(ply,cmd,args)
+	local panel = toolbuttons["gmod_tool "..args[1]]
+	if panel then panel:DoClick() end
 end)
 
 -- extension interface:
