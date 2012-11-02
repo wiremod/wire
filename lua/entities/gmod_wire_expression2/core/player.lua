@@ -215,6 +215,14 @@ e2function number entity:keyDuck()
 	return (IsValid(this) and this:IsPlayer() and this:KeyDown(IN_DUCK)) and 1 or 0
 end
 
+e2function number entity:keyAlt1()
+	return (IsValid(this) and this:IsPlayer() and this:KeyDown(IN_ALT1)) and 1 or 0
+end
+
+e2function number entity:keyAlt2()
+	return (IsValid(this) and this:IsPlayer() and this:KeyDown(IN_ALT2)) and 1 or 0
+end
+
 -- isTyping
 local plys = {}
 concommand.Add("E2_StartChat",function(ply,cmd,args) plys[ply] = true end)
