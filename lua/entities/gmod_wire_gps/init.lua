@@ -91,3 +91,32 @@ function ENT:TriggerInput(iname, value)
 		end
 	end
 end
+
+function MakeWireGPS( pl, Pos, Ang, model, nocollide )
+	if ( !pl:CheckLimit( "wire_gpss" ) ) then return false end
+
+	local wire_gps = ents.Create( "gmod_wire_gps" )
+	if (!wire_gps:IsValid()) then return false end
+
+	wire_gps:SetAngles( Ang )
+	wire_gps:SetPos( Pos )
+	if(!model) then
+		wire_gps:SetModel( Model("models/jaanus/wiretool/wiretool_speed.mdl") )
+	else
+		wire_gps:SetModel( Model(model) )
+	end
+	wire_gps:Spawn()
+
+	wire_gps:Setup()
+	wire_gps:SetPlayer(pl)
+	wire_gps.pl = pl
+	wire_gps.nocollide = nocollide
+	
+	if ( nocollide == true ) then wire_gps:GetPhysicsObject():EnableCollisions( false ) end
+
+	pl:AddCount( "wire_gpss", wire_gps )
+
+	return wire_gps
+end
+
+duplicator.RegisterEntityClass("gmod_wire_gps", MakeWireGPS, "Pos", "Ang", "Model", "nocollide")

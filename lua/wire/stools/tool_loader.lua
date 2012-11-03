@@ -6,7 +6,6 @@ local function LoadTools()
 	-- load server side code for tools
 	if SERVER then
 		include( "sv_wirestools.lua" )
-		include( "sv_detection.lua" )
 		include( "sv_io.lua" )
 		include( "sv_physics.lua" )
 	end
@@ -196,15 +195,19 @@ end
 
 -- Allow ragdolls to be used?
 function WireToolObj:CheckValidModel( model )
-	return not util.IsValidModel(model) or not util.IsValidProp(model)
+	return not model or not util.IsValidModel(model) or not util.IsValidProp(model)
 end
 
 --
 function WireToolObj:GetModel()
-	if self.Model then
-		return self.Model
-	elseif not self:CheckValidModel(self:GetClientInfo( "model" )) then --use a valid model or the server crashes :<
+	if self.ClientConVar.modelsize then
+		local model = string.sub(self:GetClientInfo( "model" ), 1, -5) .. self:GetClientInfo( "modelsize" ) .. string.sub(self:GetClientInfo( "model" ), -4)
+		if not self:CheckValidModel(model) then return model end
+	end
+	if not self:CheckValidModel(self:GetClientInfo( "model" )) then --use a valid model or the server crashes :<
 		return self:GetClientInfo( "model" )
+	elseif self.Model then
+		return self.Model
 	else
 		return "models/props_c17/oildrum001.mdl" --use some other random, valid prop instead if they fuck up
 	end
@@ -212,7 +215,12 @@ end
 
 --
 function WireToolObj:GetAngle( trace )
-	local Ang = trace.HitNormal:Angle()
+	local Ang
+	if math.abs(trace.HitNormal.x) < 0.001 and math.abs(trace.HitNormal.y) < 0.001 then 
+		Ang = Vector(0,0,trace.HitNormal.z):Angle()
+	else
+		Ang = trace.HitNormal:Angle()
+	end
 	if self.GetGhostAngle then -- the tool as a function for getting the proper angle for the ghost
 		Ang = self:GetGhostAngle( trace )
 	elseif self.GhostAngle then -- the tool gives a fixed angle to add
