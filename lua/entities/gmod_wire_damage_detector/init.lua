@@ -1,7 +1,5 @@
-
 AddCSLuaFile( "cl_init.lua" )
 AddCSLuaFile( "shared.lua" )
-
 include( 'shared.lua' )
 
 ENT.WireDebugName = "Damage Detector"
@@ -10,20 +8,6 @@ local DEFAULT = {n={},ntypes={},s={},stypes={},size=0,istable=true}
 
 // Global table to keep track of all detectors
 local Wire_Damage_Detectors = {}
-
-// Unlink if linked prop removed
-local function linkRemoved( ent )
-	local entID = ent:EntIndex()
-	for k, v in pairs( Wire_Damage_Detectors ) do
-		local detector = ents.GetByIndex(k)
-		if detector.linked_entities then
-			if entID == detector.linked_entities[0] then
-				detector:Unlink()
-			end
-		end
-	end
-end
-hook.Add("EntityRemoved", "DamageDetector_LinkRemoved", linkRemoved)
 
 // Damage detection function
 local function CheckWireDamageDetectors( ent, inflictor, attacker, amount, dmginfo )
@@ -45,14 +29,13 @@ local function CheckWireDamageDetectors( ent, inflictor, attacker, amount, dmgin
 	end
 end
 hook.Add("EntityTakeDamage", "CheckWireDamageDetectors", function( ent, dmginfo )
+	if not next(Wire_Damage_Detectors) then return end
 	local r, e = pcall( CheckWireDamageDetectors, ent, dmginfo:GetInflictor(), dmginfo:GetAttacker(), dmginfo:GetDamage(), dmginfo )
 	if !r then print( "Wire damage detector error: " .. e ) end
 end)
 
 
 function ENT:Initialize()
-	local self = self
-
 	self:PhysicsInit( SOLID_VPHYSICS )
 	self:SetMoveType( MOVETYPE_VPHYSICS )
 	self:SetSolid( SOLID_VPHYSICS )
@@ -124,6 +107,9 @@ end
 function ENT:LinkEntity( ent )
 	self.linked_entities = {}
 	self.linked_entities[0] = ent:EntIndex()		-- [0] is used to store single links (e.g. manual links)
+	ent:CallOnRemove("DDetector.UnLink", function(ent)
+		if IsValid(self) and self.linked_entities and self.linked_entities[0] == ent then self:Unlink() end
+	end)
 	self:ShowOutput()
 end
 
@@ -263,7 +249,28 @@ function ENT:Think()
 	return true
 end
 
-// Advanced Duplicator Support
+function MakeWireDamageDetector( pl, Pos, Ang, model, includeconstrained )
+	if !pl:CheckLimit( "wire_damage_detectors" ) then return false end
+
+	local wire_damage_detector = ents.Create( "gmod_wire_damage_detector" )
+	if !IsValid(wire_damage_detector) then return false end
+
+	wire_damage_detector:SetAngles( Ang )
+	wire_damage_detector:SetPos( Pos )
+	wire_damage_detector:SetModel( model )
+	wire_damage_detector:Spawn()
+
+	wire_damage_detector:Setup( includeconstrained )
+	wire_damage_detector:LinkEntity( wire_damage_detector )	-- Link the detector to itself by default
+
+	wire_damage_detector:SetPlayer( pl )
+	wire_damage_detector.pl = pl
+
+	pl:AddCount( "wire_damage_detectors", wire_damage_detector )
+
+	return wire_damage_detector
+end
+duplicator.RegisterEntityClass("gmod_wire_damage_detector", MakeWireDamageDetector, "Pos", "Ang", "Model", "includeconstrained")
 
 function ENT:BuildDupeInfo()
 	local info = self.BaseClass.BuildDupeInfo(self) or {}

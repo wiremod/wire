@@ -118,19 +118,8 @@ for k,v in pairs(wastelandwheels) do
 end
 
 
---Cheeze's Buttons Pack or Wire Model Pack 1
---MsgN("\tAdding Cheeze's Buttons Pack")
+--Cheeze's Buttons Pack
 local CheezesButtons = {
-	"models/cheeze/buttons/button_0.mdl",
-	"models/cheeze/buttons/button_1.mdl",
-	"models/cheeze/buttons/button_2.mdl",
-	"models/cheeze/buttons/button_3.mdl",
-	"models/cheeze/buttons/button_4.mdl",
-	"models/cheeze/buttons/button_5.mdl",
-	"models/cheeze/buttons/button_6.mdl",
-	"models/cheeze/buttons/button_7.mdl",
-	"models/cheeze/buttons/button_8.mdl",
-	"models/cheeze/buttons/button_9.mdl",
 	"models/cheeze/buttons/button_arm.mdl",
 	"models/cheeze/buttons/button_clear.mdl",
 	"models/cheeze/buttons/button_enter.mdl",
@@ -149,10 +138,78 @@ for k,v in ipairs(CheezesButtons) do
 		list.Set( "Wire_button_Models", v, true )
 	end
 end
+local CheezesSmallButtons = {
+	"models/cheeze/buttons/button_0.mdl",
+	"models/cheeze/buttons/button_1.mdl",
+	"models/cheeze/buttons/button_2.mdl",
+	"models/cheeze/buttons/button_3.mdl",
+	"models/cheeze/buttons/button_4.mdl",
+	"models/cheeze/buttons/button_5.mdl",
+	"models/cheeze/buttons/button_6.mdl",
+	"models/cheeze/buttons/button_7.mdl",
+	"models/cheeze/buttons/button_8.mdl",
+	"models/cheeze/buttons/button_9.mdl",
+}
+for k,v in ipairs(CheezesSmallButtons) do
+	if file.Exists(v,"GAME") then
+		list.Set( "ButtonModels", v, true )
+		list.Set( "Wire_button_small_Models", v, true )
+	end
+end
 
---MsgN("\tAdding various Buttons from HL2 and Portal")
 local Buttons = {
 	"models/props_citizen_tech/Firetrap_button01a.mdl",
+	"models/props_c17/clock01.mdl",
+	"models/dav0r/buttons/switch.mdl",
+	"models/dav0r/buttons/button.mdl",
+	"models/cheeze/buttons2/air.mdl",
+	"models/cheeze/buttons2/go.mdl",
+	"models/cheeze/buttons2/3.mdl",
+	"models/cheeze/buttons2/right.mdl",
+	"models/cheeze/buttons2/alert.mdl",
+	"models/cheeze/buttons2/plus.mdl",
+	"models/cheeze/buttons2/activate.mdl",
+	"models/cheeze/buttons2/coolant.mdl",
+	"models/cheeze/buttons2/pwr_blue.mdl",
+	"models/cheeze/buttons2/6.mdl",
+	"models/cheeze/buttons2/easy.mdl",
+	"models/cheeze/buttons2/muffin.mdl",
+	"models/cheeze/buttons2/pwr_red.mdl",
+	"models/cheeze/buttons2/1.mdl",
+	"models/cheeze/buttons2/8.mdl",
+	"models/cheeze/buttons2/aim.mdl",
+	"models/cheeze/buttons2/compile.mdl",
+	"models/cheeze/buttons2/set.mdl",
+	"models/cheeze/buttons2/0.mdl",
+	"models/cheeze/buttons2/arm.mdl",
+	"models/cheeze/buttons2/test.mdl",
+	"models/cheeze/buttons2/left.mdl",
+	"models/cheeze/buttons2/pwr_green.mdl",
+	"models/cheeze/buttons2/clock.mdl",
+	"models/cheeze/buttons2/divide.mdl",
+	"models/cheeze/buttons2/fire.mdl",
+	"models/cheeze/buttons2/cake.mdl",
+	"models/cheeze/buttons2/clear.mdl",
+	"models/cheeze/buttons2/4.mdl",
+	"models/cheeze/buttons2/power.mdl",
+	"models/cheeze/buttons2/5.mdl",
+	"models/cheeze/buttons2/deactivate.mdl",
+	"models/cheeze/buttons2/down.mdl",
+	"models/cheeze/buttons2/minus.mdl",
+	"models/cheeze/buttons2/stop.mdl",
+	"models/cheeze/buttons2/energy.mdl",
+	"models/cheeze/buttons2/charge.mdl",
+	"models/cheeze/buttons2/overide.mdl",
+	"models/cheeze/buttons2/equals.mdl",
+	"models/cheeze/buttons2/up.mdl",
+	"models/cheeze/buttons2/toggle.mdl",
+	"models/cheeze/buttons2/reset.mdl",
+	"models/cheeze/buttons2/enter.mdl",
+	"models/cheeze/buttons2/2.mdl",
+	"models/cheeze/buttons2/start.mdl",
+	"models/cheeze/buttons2/multiply.mdl",
+	"models/cheeze/buttons2/7.mdl",
+	"models/cheeze/buttons2/9.mdl",
 	--animated buttons from here
 	"models/props_lab/freightelevatorbutton.mdl",
 	"models/props/switch001.mdl",
@@ -161,7 +218,14 @@ local Buttons = {
 	"models/props_mining/freightelevatorbutton01.mdl",
 	"models/props_mining/freightelevatorbutton02.mdl",
 	"models/props_mining/switch01.mdl",
-	"models/props_mining/switch_updown01.mdl"
+	"models/props_mining/switch_updown01.mdl",
+	"models/maxofs2d/button_01.mdl",
+	"models/maxofs2d/button_02.mdl",
+	"models/maxofs2d/button_03.mdl",
+	"models/maxofs2d/button_04.mdl",
+	"models/bull/buttons/toggle_switch.mdl",
+	"models/bull/buttons/rocker_switch.mdl",
+	"models/bull/buttons/key_switch.mdl",
 }
 for k,v in ipairs(Buttons) do
 	if file.Exists(v,"GAME") then
@@ -335,8 +399,6 @@ list.Set("Wire_pixel_Models", "models/segment.mdl", true)
 list.Set("Wire_indicator_Models", "models/segment.mdl", true)
 list.Set("Wire_gyroscope_Models", "models/bull/various/gyroscope.mdl", true)
 list.Set("Wire_weight_Models", "models/props_interiors/pot01a.mdl", true)
-list.Set("Wire_button_Models", "models/dav0r/buttons/switch.mdl", true)
-list.Set("Wire_button_Models", "models/dav0r/buttons/button.mdl", true)
 list.Set("Wire_pixel_Models", "models/jaanus/wiretool/wiretool_siren.mdl", true)
 list.Set("Wire_indicator_Models", "models/jaanus/wiretool/wiretool_siren.mdl", true)
 list.Set("Wire_podctrlr_Models", "models/jaanus/wiretool/wiretool_siren.mdl", true)
@@ -363,105 +425,56 @@ list.Set("Wire_detonator_Models", "models/props_combine/breenclock.mdl", true)
 list.Set("Wire_speaker_Models", "models/cheeze/wires/speaker.mdl", true)
 list.Set("Wire_value_Models", "models/kobilica/value.mdl", true)
 list.Set("Wire_radio2_Models", "models/props_lab/bindergreen.mdl", true)
-list.Set("Wire_button_Models", "models/props_c17/clock01.mdl", true)
 list.Set("Wire_indicator_Models", "models/props_c17/clock01.mdl", true)
 list.Set("Wire_indicator_Models", "models/props_c17/gravestone004a.mdl", true)
 
 -- Converted from WireModelPacks/cheeze_buttons2.txt
-list.Set("Wire_button_Models", "models/cheeze/buttons2/air.mdl", true)
-list.Set("Wire_button_Models", "models/cheeze/buttons2/go.mdl", true)
 list.Set("Wire_button_small_Models", "models/cheeze/buttons2/compile_small.mdl", true)
-list.Set("Wire_button_Models", "models/cheeze/buttons2/3.mdl", true)
 list.Set("Wire_button_small_Models", "models/cheeze/buttons2/arm_small.mdl", true)
-list.Set("Wire_button_Models", "models/cheeze/buttons2/right.mdl", true)
-list.Set("Wire_button_Models", "models/cheeze/buttons2/alert.mdl", true)
-list.Set("Wire_button_Models", "models/cheeze/buttons2/plus.mdl", true)
-list.Set("Wire_button_Models", "models/cheeze/buttons2/activate.mdl", true)
-list.Set("Wire_button_Models", "models/cheeze/buttons2/coolant.mdl", true)
-list.Set("Wire_button_Models", "models/cheeze/buttons2/pwr_blue.mdl", true)
-list.Set("Wire_button_Models", "models/cheeze/buttons2/6.mdl", true)
-list.Set("Wire_button_Models", "models/cheeze/buttons2/easy.mdl", true)
 list.Set("Wire_button_small_Models", "models/cheeze/buttons2/fire_small.mdl", true)
-list.Set("Wire_button_Models", "models/cheeze/buttons2/muffin.mdl", true)
-list.Set("Wire_button_Models", "models/cheeze/buttons2/pwr_red.mdl", true)
-list.Set("Wire_button_Models", "models/cheeze/buttons2/1.mdl", true)
-list.Set("Wire_button_Models", "models/cheeze/buttons2/8.mdl", true)
-list.Set("Wire_button_Models", "models/cheeze/buttons2/aim.mdl", true)
 list.Set("Wire_button_small_Models", "models/cheeze/buttons2/left_small.mdl", true)
-list.Set("Wire_button_Models", "models/cheeze/buttons2/compile.mdl", true)
-list.Set("Wire_button_Models", "models/cheeze/buttons2/set.mdl", true)
 list.Set("Wire_button_small_Models", "models/cheeze/buttons2/clear_small.mdl", true)
-list.Set("Wire_button_Models", "models/cheeze/buttons2/0.mdl", true)
 list.Set("Wire_button_small_Models", "models/cheeze/buttons2/aim_small.mdl", true)
-list.Set("Wire_button_Models", "models/cheeze/buttons2/arm.mdl", true)
-list.Set("Wire_button_Models", "models/cheeze/buttons2/test.mdl", true)
 list.Set("Wire_button_small_Models", "models/cheeze/buttons2/1_small.mdl", true)
 list.Set("Wire_button_small_Models", "models/cheeze/buttons2/up_small.mdl", true)
 list.Set("Wire_button_small_Models", "models/cheeze/buttons2/plus_small.mdl", true)
-list.Set("Wire_button_Models", "models/cheeze/buttons2/left.mdl", true)
 list.Set("Wire_button_small_Models", "models/cheeze/buttons2/stop_small.mdl", true)
 list.Set("Wire_button_small_Models", "models/cheeze/buttons2/minus_small.mdl", true)
 list.Set("Wire_button_small_Models", "models/cheeze/buttons2/6_small.mdl", true)
 list.Set("Wire_button_small_Models", "models/cheeze/buttons2/coolant_small.mdl", true)
 list.Set("Wire_button_small_Models", "models/cheeze/buttons2/power_small.mdl", true)
-list.Set("Wire_button_Models", "models/cheeze/buttons2/pwr_green.mdl", true)
 list.Set("Wire_button_small_Models", "models/cheeze/buttons2/toggle_small.mdl", true)
-list.Set("Wire_button_Models", "models/cheeze/buttons2/clock.mdl", true)
 list.Set("Wire_button_small_Models", "models/cheeze/buttons2/activate_small.mdl", true)
-list.Set("Wire_button_Models", "models/cheeze/buttons2/divide.mdl", true)
-list.Set("Wire_button_Models", "models/cheeze/buttons2/fire.mdl", true)
 list.Set("Wire_button_small_Models", "models/cheeze/buttons2/overide_small.mdl", true)
 list.Set("Wire_button_small_Models", "models/cheeze/buttons2/pwr_red_small.mdl", true)
 list.Set("Wire_button_small_Models", "models/cheeze/buttons2/go_small.mdl", true)
-list.Set("Wire_button_Models", "models/cheeze/buttons2/cake.mdl", true)
 list.Set("Wire_button_small_Models", "models/cheeze/buttons2/pwr_blue_small.mdl", true)
-list.Set("Wire_button_Models", "models/cheeze/buttons2/clear.mdl", true)
 list.Set("Wire_button_small_Models", "models/cheeze/buttons2/test_small.mdl", true)
-list.Set("Wire_button_Models", "models/cheeze/buttons2/4.mdl", true)
 list.Set("Wire_button_small_Models", "models/cheeze/buttons2/equals_small.mdl", true)
 list.Set("Wire_button_small_Models", "models/cheeze/buttons2/energy_small.mdl", true)
 list.Set("Wire_button_small_Models", "models/cheeze/buttons2/divide_small.mdl", true)
-list.Set("Wire_button_Models", "models/cheeze/buttons2/power.mdl", true)
-list.Set("Wire_button_Models", "models/cheeze/buttons2/5.mdl", true)
 list.Set("Wire_button_small_Models", "models/cheeze/buttons2/clock_small.mdl", true)
 list.Set("Wire_button_small_Models", "models/cheeze/buttons2/charge_small.mdl", true)
-list.Set("Wire_button_Models", "models/cheeze/buttons2/deactivate.mdl", true)
 list.Set("Wire_button_small_Models", "models/cheeze/buttons2/alert_small.mdl", true)
-list.Set("Wire_button_Models", "models/cheeze/buttons2/down.mdl", true)
-list.Set("Wire_button_Models", "models/cheeze/buttons2/minus.mdl", true)
 list.Set("Wire_button_small_Models", "models/cheeze/buttons2/enter_small.mdl", true)
 list.Set("Wire_button_small_Models", "models/cheeze/buttons2/5_small.mdl", true)
-list.Set("Wire_button_Models", "models/cheeze/buttons2/stop.mdl", true)
 list.Set("Wire_button_small_Models", "models/cheeze/buttons2/2_small.mdl", true)
 list.Set("Wire_button_small_Models", "models/cheeze/buttons2/deactivate_small.mdl", true)
-list.Set("Wire_button_Models", "models/cheeze/buttons2/energy.mdl", true)
-list.Set("Wire_button_Models", "models/cheeze/buttons2/charge.mdl", true)
 list.Set("Wire_button_small_Models", "models/cheeze/buttons2/7_small.mdl", true)
 list.Set("Wire_button_small_Models", "models/cheeze/buttons2/0_small.mdl", true)
-list.Set("Wire_button_Models", "models/cheeze/buttons2/overide.mdl", true)
 list.Set("Wire_button_small_Models", "models/cheeze/buttons2/cake_small.mdl", true)
-list.Set("Wire_button_Models", "models/cheeze/buttons2/equals.mdl", true)
-list.Set("Wire_button_Models", "models/cheeze/buttons2/up.mdl", true)
 list.Set("Wire_button_small_Models", "models/cheeze/buttons2/reset_small.mdl", true)
 list.Set("Wire_button_small_Models", "models/cheeze/buttons2/multiply_small.mdl", true)
 list.Set("Wire_button_small_Models", "models/cheeze/buttons2/down_small.mdl", true)
-list.Set("Wire_button_Models", "models/cheeze/buttons2/toggle.mdl", true)
 list.Set("Wire_button_small_Models", "models/cheeze/buttons2/pwr_green_small.mdl", true)
 list.Set("Wire_button_small_Models", "models/cheeze/buttons2/3_small.mdl", true)
 list.Set("Wire_button_small_Models", "models/cheeze/buttons2/4_small.mdl", true)
-list.Set("Wire_button_Models", "models/cheeze/buttons2/reset.mdl", true)
 list.Set("Wire_button_small_Models", "models/cheeze/buttons2/set_small.mdl", true)
-list.Set("Wire_button_Models", "models/cheeze/buttons2/enter.mdl", true)
-list.Set("Wire_button_Models", "models/cheeze/buttons2/2.mdl", true)
 list.Set("Wire_button_small_Models", "models/cheeze/buttons2/start_small.mdl", true)
-list.Set("Wire_button_Models", "models/cheeze/buttons2/start.mdl", true)
-list.Set("Wire_button_Models", "models/cheeze/buttons2/multiply.mdl", true)
 list.Set("Wire_button_small_Models", "models/cheeze/buttons2/right_small.mdl", true)
 list.Set("Wire_button_small_Models", "models/cheeze/buttons2/easy_small.mdl", true)
 list.Set("Wire_button_small_Models", "models/cheeze/buttons2/8_small.mdl", true)
 list.Set("Wire_button_small_Models", "models/cheeze/buttons2/muffin_small.mdl", true)
-list.Set("Wire_button_Models", "models/cheeze/buttons2/7.mdl", true)
-list.Set("Wire_button_Models", "models/cheeze/buttons2/9.mdl", true)
 list.Set("Wire_button_small_Models", "models/cheeze/buttons2/air_small.mdl", true)
 list.Set("Wire_button_small_Models", "models/cheeze/buttons2/9_small.mdl", true)
 
@@ -526,7 +539,4 @@ list.Set("Wire_dynamic_button_Models", "models/bull/dynamicbutton.mdl", true)
 list.Set("Wire_dynamic_button_small_Models", "models/bull/dynamicbuttonmedium_small.mdl", true)
 list.Set("Wire_dynamic_button_small_Models", "models/bull/dynamicbutton_small.mdl", true)
 list.Set("Wire_dynamic_button_small_Models", "models/bull/dynamicbuttonflat_small.mdl", true)
-list.Set("Wire_button_Models", "models/bull/buttons/toggle_switch.mdl", true)
-list.Set("Wire_button_Models", "models/bull/buttons/rocker_switch.mdl", true)
 list.Set("Wire_dynamic_button_Models", "models/bull/dynamicbuttonmedium.mdl", true)
-list.Set("Wire_button_Models", "models/bull/buttons/key_switch.mdl", true)

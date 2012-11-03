@@ -49,3 +49,30 @@ end
 function ENT:ShowOutput(p, y, r)
 	self:SetOverlayText( "Angles = " .. math.Round(p*1000)/1000 .. "," .. math.Round(y*1000)/1000 .. "," .. math.Round(r*1000)/1000 )
 end
+
+function MakeWireGyroscope( pl, Pos, Ang, model, out180, nocollide, Vel, aVel, frozen )
+	if ( !pl:CheckLimit( "wire_gyroscopes" ) ) then return false end
+
+	local wire_gyroscope = ents.Create( "gmod_wire_gyroscope" )
+	if (!wire_gyroscope:IsValid()) then return false end
+
+	wire_gyroscope:SetAngles(Ang)
+	wire_gyroscope:SetPos(Pos)
+	wire_gyroscope:SetModel( Model(model or "models/bull/various/gyroscope.mdl") )
+	wire_gyroscope:Spawn()
+
+	wire_gyroscope:Setup( out180 )
+	wire_gyroscope:SetPlayer(pl)
+
+	if ( nocollide == true ) then wire_gyroscope:GetPhysicsObject():EnableCollisions( false ) end
+
+	local ttable = {
+		pl = pl,
+		out180 = out180,
+	}
+	table.Merge(wire_gyroscope:GetTable(), ttable )
+
+	pl:AddCount( "wire_gyroscopes", wire_gyroscope )
+
+	return wire_gyroscope
+end

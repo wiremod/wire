@@ -27,8 +27,8 @@ function ENT:Initialize()
 
 	self:SetForce( 2000 )
 
-	self.OWEffect = "fire"
-	self.UWEffect = "same"
+	self.oweffect = "fire"
+	self.uweffect = "same"
 
 	self:SetOffset( self.ThrustOffset )
 	self:StartMotionController()
@@ -37,14 +37,14 @@ function ENT:Initialize()
 
 	self.Inputs = Wire_CreateInputs(self, { "A" })
 
-	self.SoundName = Sound( "PhysicsCannister.ThrusterLoop" )
+	self.soundname = Sound( "PhysicsCannister.ThrusterLoop" )
 end
 
 function ENT:OnRemove()
 	self.BaseClass.OnRemove(self)
 
-	if (self.SoundName and self.SoundName != "") then
-		self:StopSound(self.SoundName)
+	if (self.soundname and self.soundname != "") then
+		self:StopSound(self.soundname)
 	end
 end
 
@@ -109,13 +109,13 @@ function ENT:Setup(force, force_min, force_max, oweffect, uweffect, owater, uwat
 
 	self:SetDatEffect(uwater, owater, uweffect, oweffect)
 
-	self.OWEffect = oweffect
-	self.UWEffect = uweffect
-	self.ForceMin = force_min
-	self.ForceMax = force_max
-	self.BiDir = bidir
-	self.OWater = owater
-	self.UWater = uwater
+	self.oweffect = oweffect
+	self.uweffect = uweffect
+	self.force_min = force_min
+	self.force_max = force_max
+	self.bidir = bidir
+	self.owater = owater
+	self.uwater = uwater
 
 	if (!soundname) then soundname = "" end
 	
@@ -127,18 +127,18 @@ function ENT:Setup(force, force_min, force_max, oweffect, uweffect, owater, uwat
 	end
 
 	if (soundname == "") then
-		self:StopSound( self.SoundName )
+		self:StopSound( self.soundname )
 	end
 
-	self.SoundName = Sound( soundname )
+	self.soundname = Sound( soundname )
 
 	--self:SetOverlayText( "Thrust = " .. 0 .. "\nMul: " .. math.Round(force*1000)/1000 )
 end
 
 function ENT:TriggerInput(iname, value)
 	if (iname == "A") then
-		if ( (self.BiDir) and (math.abs(value) > 0.01) and (math.abs(value) > self.ForceMin) ) or ( (value > 0.01) and (value > self.ForceMin) ) then
-			self:Switch(true, math.min(value, self.ForceMax))
+		if ( (self.bidir) and (math.abs(value) > 0.01) and (math.abs(value) > self.force_min) ) or ( (value > 0.01) and (value > self.force_min) ) then
+			self:Switch(true, math.min(value, self.force_max))
 		else
 			self:Switch(false, 0)
 		end
@@ -149,23 +149,23 @@ function ENT:PhysicsSimulate( phys, deltatime )
 	if (!self:IsOn()) then return SIM_NOTHING end
 
 	if (self:WaterLevel() > 0) then
-		if (not self.UWater) then
+		if (not self.uwater) then
 			self:SetEffect("none")
 			return SIM_NOTHING
 		end
 
-		if (self.UWEffect == "same") then
-			self:SetEffect(self.OWEffect)
+		if (self.uweffect == "same") then
+			self:SetEffect(self.oweffect)
 		else
-			self:SetEffect(self.UWEffect)
+			self:SetEffect(self.uweffect)
 		end
 	else
-		if (not self.OWater) then
+		if (not self.owater) then
 			self:SetEffect("none")
 			return SIM_NOTHING
 		end
 
-		self:SetEffect(self.OWEffect)
+		self:SetEffect(self.oweffect)
 	end
 
 	local ForceAngle, ForceLinear = self.ForceAngle, self.ForceLinear
@@ -181,30 +181,20 @@ function ENT:Switch( on, mul )
 
 
 	if (on) then
-		if (changed) and (self.SoundName and self.SoundName != "") then
-			self:StopSound( self.SoundName )
-			self:EmitSound( self.SoundName )
+		if (changed) and (self.soundname and self.soundname != "") then
+			self:StopSound( self.soundname )
+			self:EmitSound( self.soundname )
 		end
 		
 		self.mul = mul
 
-		/*if (mul ~= self.PrevOutput) then
-			self:SetOverlayText( "Thrust = " .. math.Round(self.force*mul*1000)/1000 .. "\nMul: " .. math.Round(self.force*1000)/1000 )
-			self.PrevOutput = mul
-		end*/
-
 		self:SetForce( nil, mul )
 	else
-		if (self.SoundName and self.SoundName != "") then
-			self:StopSound( self.SoundName )
+		if (self.soundname and self.soundname != "") then
+			self:StopSound( self.soundname )
 		end
 		
 		self.mul = 0
-
-		/*if (self.PrevOutput) then
-			self:SetOverlayText( "Thrust = Off".."\nMul: "..math.Round(self.force*1000)/1000 )
-			self.PrevOutput = nil
-		end*/
 	end
 	self:ShowOutput()
 
@@ -282,23 +272,10 @@ function MakeWireThruster( pl, Pos, Ang, model, force, force_min, force_max, owe
 
 	wire_thruster:Setup(force, force_min, force_max, oweffect, uweffect, owater, uwater, bidir, soundname)
 	wire_thruster:SetPlayer( pl )
+	wire_thruster.pl = pl
+	wire_thruster.nocollide = nocollide
 
 	if nocollide == true then wire_thruster:GetPhysicsObject():EnableCollisions( false ) end
-
-	local ttable = {
-		force		= force,
-		force_min	= force_min,
-		force_max	= force_max,
-		bidir       = bidir,
-		soundname   = soundname,
-		pl			= pl,
-		oweffect	= oweffect,
-		uweffect	= uweffect,
-		owater		= owater,
-		uwater		= uwater,
-		nocollide	= nocollide
-	}
-	table.Merge(wire_thruster:GetTable(), ttable )
 
 	pl:AddCount( "wire_thrusters", wire_thruster )
 
