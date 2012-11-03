@@ -196,15 +196,19 @@ end
 
 -- Allow ragdolls to be used?
 function WireToolObj:CheckValidModel( model )
-	return not util.IsValidModel(model) or not util.IsValidProp(model)
+	return not model or not util.IsValidModel(model) or not util.IsValidProp(model)
 end
 
 --
 function WireToolObj:GetModel()
-	if self.Model then
-		return self.Model
-	elseif not self:CheckValidModel(self:GetClientInfo( "model" )) then --use a valid model or the server crashes :<
+	if self.ClientConVar.modelsize then
+		local model = string.sub(self:GetClientInfo( "model" ), 1, -5) .. self:GetClientInfo( "modelsize" ) .. string.sub(self:GetClientInfo( "model" ), -4)
+		if not self:CheckValidModel(model) then return model end
+	end
+	if not self:CheckValidModel(self:GetClientInfo( "model" )) then --use a valid model or the server crashes :<
 		return self:GetClientInfo( "model" )
+	elseif self.Model then
+		return self.Model
 	else
 		return "models/props_c17/oildrum001.mdl" --use some other random, valid prop instead if they fuck up
 	end
