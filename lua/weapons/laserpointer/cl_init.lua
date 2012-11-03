@@ -7,7 +7,7 @@ SWEP.DrawCrosshair = true
 
 local LASER = Material('cable/redlaser')
 
-function SWEP:SetVM(ply)
+function SWEP:Setup(ply)
 	if ply.GetViewModel and ply:GetViewModel():IsValid() then
 		local attachmentIndex = ply:GetViewModel():LookupAttachment("muzzle")
 		if attachmentIndex == 0 then attachmentIndex = ply:GetViewModel():LookupAttachment("1") end
@@ -25,10 +25,10 @@ function SWEP:SetVM(ply)
 	end
 end
 function SWEP:Initialize()
-	self:SetVM(self:GetOwner())
+	self:Setup(self:GetOwner())
 end
-function SWEP:Equip(ply)
-	self:SetVM(ply)
+function SWEP:Deploy(ply)
+	self:Setup(self:GetOwner())
 end
 
 function SWEP:ViewModelDrawn()
