@@ -25,25 +25,15 @@ local function get_tool(ply, tool)
 	local gmod_tool = ply:GetWeapon("gmod_tool")
 	if not IsValid(gmod_tool) then return end
 
-	-- find tool
-	local tool = gmod_tool:GetToolObject(tool)
-
-	return tool
+	return gmod_tool:GetToolObject(tool)
 end
 
 local function get_active_tool(ply, tool)
 	-- find toolgun
 	local activeWep = ply:GetActiveWeapon()
-	if not IsValid(activeWep) then return end
+	if not IsValid(activeWep) or activeWep:GetClass() ~= "gmod_tool" or activeWep.Mode ~= tool then return end
 
-	-- checks...
-	if activeWep:GetClass() ~= "gmod_tool" then return end
-	if activeWep:GetMode() ~= tool then return end
-
-	-- find tool
-	local tool = activeWep:GetToolObject(tool)
-
-	return tool
+	return activeWep:GetToolObject(tool)
 end
 
 if SERVER then
