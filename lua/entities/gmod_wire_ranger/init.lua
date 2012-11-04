@@ -1,5 +1,8 @@
 AddCSLuaFile( "cl_init.lua" )
+
 AddCSLuaFile( "shared.lua" )
+
+
 include('shared.lua')
 
 
@@ -332,27 +335,3 @@ function ENT:TriggerOutput(dist, pos, vel, ang, col, val, sid, uid, ent, hnrm, t
 	Wire_TriggerOutput(self, "RangerData", trace)
 
 end
-
-function MakeWireRanger( pl, Pos, Ang, model, range, default_zero, show_beam, ignore_world, trace_water, out_dist, out_pos, out_vel, out_ang, out_col, out_val, out_sid, out_uid, out_eid, out_hnrm, hires, nocollide )
-	if ( !pl:CheckLimit( "wire_rangers" ) ) then return false end
-
-	local wire_ranger = ents.Create( "gmod_wire_ranger" )
-	if (!wire_ranger:IsValid()) then return false end
-
-	wire_ranger:SetAngles( Ang )
-	wire_ranger:SetPos( Pos )
-	wire_ranger:SetModel( Model(model or "models/jaanus/wiretool/wiretool_range.mdl") )
-	wire_ranger:Spawn()
-
-	wire_ranger:Setup( range, default_zero, show_beam, ignore_world, trace_water, out_dist, out_pos, out_vel, out_ang, out_col, out_val, out_sid, out_uid, out_eid, out_hnrm, hires )
-	wire_ranger:SetPlayer( pl )
-	wire_ranger.pl	= pl
-
-	if ( nocollide == true ) then wire_ranger:GetPhysicsObject():EnableCollisions( false ) end
-	wire_ranger.nocollide = nocollide
-
-	pl:AddCount( "wire_rangers", wire_ranger )
-
-	return wire_ranger
-end
-duplicator.RegisterEntityClass("gmod_wire_ranger", MakeWireRanger, "Pos", "Ang", "Model", "range", "default_zero", "show_beam", "ignore_world", "trace_water", "out_dist", "out_pos", "out_vel", "out_ang", "out_col", "out_val", "out_sid", "out_uid", "out_eid", "out_hnrm", "hires", "nocollide")
