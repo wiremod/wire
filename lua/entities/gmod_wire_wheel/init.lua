@@ -1,25 +1,14 @@
-
 AddCSLuaFile( "cl_init.lua" )
 AddCSLuaFile( "shared.lua" )
-
 include('shared.lua')
 
 ENT.WireDebugName = "Wheel"
-
---[[---------------------------------------------------------
-   Name: Initialize
-   Desc: First function called. Use to set up your entity
----------------------------------------------------------]]
 function ENT:Initialize()
-
 	self:PhysicsInit( SOLID_VPHYSICS )
 	self:SetMoveType( MOVETYPE_VPHYSICS )
 	self:SetSolid( SOLID_VPHYSICS )
 	self:SetUseType( SIMPLE_USE )
 
-	self:SetToggle( false )
-
-	self.ToggleState = false
 	self.BaseTorque = 1
 	self.TorqueScale = 1
 	self.Breaking = 0
@@ -27,126 +16,57 @@ function ENT:Initialize()
 	self.Go = 0
 
 	self.Inputs = Wire_CreateInputs(self, { "A: Go", "B: Break", "C: SpeedMod" })
-
 end
 
---[[---------------------------------------------------------
-   Sets the base torque
----------------------------------------------------------]]
-function ENT:SetBaseTorque( base )
-
-	self.BaseTorque = base
-	if ( self.BaseTorque == 0 ) then self.BaseTorque = 1 end
+function ENT:Setup(fwd, bck, stop, torque, direction)
+	self.fwd = fwd
+	self.bck = bck
+	self.stop = stop
+	if self.BaseTorque == 1 then self.BaseTorque = math.max(1, torque)
+	else self:SetTorque(torque)
+	end
+	if direction then wheel:SetDirection( direction ) end
+	
 	self:UpdateOverlayText()
-
 end
 
 --[[---------------------------------------------------------
    Sets the base torque
 ---------------------------------------------------------]]
 function ENT:UpdateOverlayText()
-
 	self:SetOverlayText( "Torque: " .. math.floor( self.TorqueScale * self.BaseTorque ) .. "\nSpeed: 0\nBreak: " .. self.Breaking .. "\nSpeedMod: " .. math.floor( self.SpeedMod * 100 ) .. "%" )
-
 end
 
 --[[---------------------------------------------------------
    Sets the axis (world space)
 ---------------------------------------------------------]]
 function ENT:SetAxis( vec )
-
 	self.Axis = self:GetPos() + vec * 512
 	self.Axis = self:NearestPoint( self.Axis )
 	self.Axis = self:WorldToLocal( self.Axis )
-
 end
 
-
---[[---------------------------------------------------------
-   Name: PhysicsCollide
-   Desc: Called when physics collides. The table contains
-			data on the collision
----------------------------------------------------------]]
-function ENT:PhysicsCollide( data, physobj )
-end
-
-
---[[---------------------------------------------------------
-   Name: PhysicsUpdate
-   Desc: Called to update the physics .. or something.
----------------------------------------------------------]]
-function ENT:PhysicsUpdate( physobj )
-end
-
-
---[[---------------------------------------------------------
-   Name: KeyValue
-   Desc: Called when a keyvalue is added to us (usually from the map)
----------------------------------------------------------]]
-function ENT:KeyValue( key, value )
-end
-
-
---[[---------------------------------------------------------
-   Name: Think
-   Desc: Entity's think function.
----------------------------------------------------------]]
-function ENT:Think()
-end
-
-
---[[---------------------------------------------------------
-   Name: OnTakeDamage
-   Desc: Entity takes damage
----------------------------------------------------------]]
 function ENT:OnTakeDamage( dmginfo )
-
 	self:TakePhysicsDamage( dmginfo )
-
 end
-
 
 function ENT:SetMotor( Motor )
 	self.Motor = Motor
 end
 
 function ENT:GetMotor()
-
 	if (!self.Motor) then
 		self.Motor = constraint.FindConstraintEntity( self, "Motor" )
 		if (!self.Motor or !self.Motor:IsValid()) then
 			self.Motor = nil
 		end
 	end
-
 	return self.Motor
 end
-
 
 function ENT:SetDirection( dir )
 	self:SetNetworkedInt( 1, dir )
 	self.Direction = dir
-end
-
-function ENT:SetToggle( bool )
-	self.Toggle = bool
-end
-
-function ENT:GetToggle()
-	return self.Toggle
-end
-
-
-function ENT:SetFwd( fwd )
-	self.Fwd = fwd
-end
-
-function ENT:SetBck( bck )
-	self.Bck = bck
-end
-
-function ENT:SetStop( stop )
-	self.Stop = stop
 end
 
 
@@ -154,8 +74,6 @@ end
    Forward
 ---------------------------------------------------------]]
 function ENT:Forward( mul )
-
-	-- Is this key invalid now? If so return false to remove it
 	if ( !self:IsValid() ) then return false end
 	local Motor = self:GetMotor()
 	if ( Motor and !Motor:IsValid() ) then
@@ -177,16 +95,7 @@ function ENT:Forward( mul )
 	Motor:Fire( "Activate", "" , 0 )
 
 	return true
-
 end
-
---[[---------------------------------------------------------
-   Reverse
----------------------------------------------------------]]
-function ENT:Reverse( )
-	return self:Forward( -1 )
-end
-
 
 --[[---------------------------------------------------------
    Name: TriggerInput
@@ -194,9 +103,9 @@ end
 ---------------------------------------------------------]]
 function ENT:TriggerInput(iname, value)
 	if (iname == "A: Go") then
-		if ( value == self.Fwd ) then self.Go = 1
-		elseif ( value == self.Bck ) then self.Go = -1
-		elseif ( value == self.Stop ) then self.Go =0 end
+		if ( value == self.fwd ) then self.Go = 1
+		elseif ( value == self.bck ) then self.Go = -1
+		elseif ( value == self.stop ) then self.Go =0 end
 	elseif (iname == "B: Break") then
 		self.Breaking = value
 	elseif (iname == "C: SpeedMod") then
@@ -204,7 +113,6 @@ function ENT:TriggerInput(iname, value)
 	end
 	self:Forward( self.Go )
 end
-
 
 
 --[[---------------------------------------------------------
@@ -222,6 +130,8 @@ function ENT:PhysicsUpdate( physobj )
 			vel.x = vel.x * ((100.0 - self.Breaking)/100.0)
 			vel.y = vel.y * ((100.0 - self.Breaking)/100.0)
 		end
+	else
+		return -- physobj:SetVelocity(physobj:GetVelocity()) will create constant acceleration
 	end
 
 	physobj:SetVelocity(vel)
@@ -233,13 +143,10 @@ end
    Todo? Scale Motor:GetTable().direction?
 ---------------------------------------------------------]]
 function ENT:SetTorque( torque )
-
-	if ( self.BaseTorque == 0 ) then self.BaseTorque = 1 end
-
 	self.TorqueScale = torque / self.BaseTorque
 
 	local Motor = self:GetMotor()
-	if (!Motor || !Motor:IsValid()) then return end
+	if not IsValid(Motor) then return end
 	Motor:Fire( "Scale", Motor:GetTable().direction * Motor:GetTable().forcescale * self.TorqueScale , 0 )
 
 	self:UpdateOverlayText()
@@ -249,28 +156,24 @@ end
    Creates the direction arrows on the wheel
 ---------------------------------------------------------]]
 function ENT:DoDirectionEffect()
-
 	local Motor = self:GetMotor()
-	if (!Motor || !Motor:IsValid()) then return end
+	if not IsValid(Motor) then return end
 
 	local effectdata = EffectData()
 		effectdata:SetOrigin( self.Axis )
 		effectdata:SetEntity( self )
 		effectdata:SetScale( Motor.direction )
 	util.Effect( "wheel_indicator", effectdata, true, true )
-
 end
 
 --[[---------------------------------------------------------
    Reverse the wheel direction when a player uses the wheel
 ---------------------------------------------------------]]
 function ENT:Use( activator, caller, type, value )
-
 	local Motor = self:GetMotor()
 	local Owner = self:GetPlayer()
 
 	if (Motor and (Owner == nil or Owner == activator)) then
-
 		if (Motor:GetTable().direction == 1) then
 			Motor:GetTable().direction = -1
 		else
@@ -281,14 +184,10 @@ function ENT:Use( activator, caller, type, value )
 		self:SetDirection( Motor:GetTable().direction )
 
 		self:DoDirectionEffect()
-
 	end
-
 end
 
-
 function MakeWireWheel( pl, Pos, Ang, model, Vel, aVel, frozen, fwd, bck, stop, BaseTorque, direction, axis, Data )
-
 	if ( !pl:CheckLimit( "wire_wheels" ) ) then return false end
 
 	local wheel = ents.Create( "gmod_wire_wheel" )
@@ -298,36 +197,21 @@ function MakeWireWheel( pl, Pos, Ang, model, Vel, aVel, frozen, fwd, bck, stop, 
 	wheel:SetPos( Pos )
 	wheel:SetAngles( Ang )
 	wheel:Spawn()
-
 	wheel:SetPlayer( pl )
+	wheel.pl = pl
 
 	duplicator.DoGenericPhysics( wheel, pl, Data )
-
-	wheel.fwd = fwd
-	wheel.bck = bck
-	wheel.stop = stop
-
-	wheel:SetFwd( fwd )
-	wheel:SetBck( bck )
-	wheel:SetStop( stop )
 
 	if ( axis ) then
 		wheel.Axis = axis
 	end
-
-	if ( direction ) then
-		wheel:SetDirection( direction )
-	end
-
-	wheel:SetBaseTorque( BaseTorque )
-	wheel:UpdateOverlayText()
+	
+	wheel:Setup(fwd,bck,stop, BaseTorque, direction)
 
 	pl:AddCount( "wire_wheels", wheel )
 
 	return wheel
-
 end
-
 duplicator.RegisterEntityClass( "gmod_wire_wheel", MakeWireWheel, "Pos", "Ang", "Model", "Vel", "aVel", "frozen", "fwd", "bck", "stop", "BaseTorque", "direction", "Axis", "Data" )
 
 function ENT:SetWheelBase(Base)

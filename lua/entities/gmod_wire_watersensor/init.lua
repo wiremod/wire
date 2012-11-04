@@ -46,3 +46,28 @@ function ENT:Think()
 	self:ShowOutput()
 	self:NextThink(CurTime()+0.125)
 end
+
+function MakeWireWaterSensor( pl, Pos, Ang, model )
+	if ( !pl:CheckLimit( "wire_watersensors" ) ) then return false end
+
+	local wire_watersensor = ents.Create( "gmod_wire_watersensor" )
+	if (!wire_watersensor:IsValid()) then return false end
+
+	wire_watersensor:SetAngles( Ang )
+	wire_watersensor:SetPos( Pos )
+	if(!model) then
+		wire_watersensor:SetModel( Model("models/jaanus/wiretool/wiretool_range.mdl") )
+	else
+		wire_watersensor:SetModel( Model(model) )
+	end
+	wire_watersensor:Spawn()
+
+	wire_watersensor:SetPlayer( pl )
+	wire_watersensor.pl = pl
+
+	pl:AddCount( "wire_watersensors", wire_watersensor )
+
+	return wire_watersensor
+end
+
+duplicator.RegisterEntityClass("gmod_wire_watersensor", MakeWireWaterSensor, "Pos", "Ang", "Model")

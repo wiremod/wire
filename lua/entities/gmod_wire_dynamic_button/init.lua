@@ -62,7 +62,7 @@ function ENT:Think()
 	end
 end
 
-function ENT:Setup(toggle, value_off, value_on, entityout, material_on, material_off, on_r, on_g, on_b, off_r, off_g, off_b )
+function ENT:Setup(toggle, value_off, value_on, description, entityout, material_on, material_off, on_r, on_g, on_b, off_r, off_g, off_b )
 	self.toggle = toggle
 	self.value_off = value_off
 	self.value_on = value_on
@@ -150,7 +150,7 @@ function MakeWireDynamicButton( pl, Pos, Ang, model, toggle, value_off, value_on
 		Phys:EnableMotion(!frozen)
 	end
 
-	wire_dynamic_button:Setup(toggle, value_off, value_on, entityout, material_on, material_off, on_r, on_g, on_b, off_r, off_g, off_b )
+	wire_dynamic_button:Setup(toggle, value_off, value_on, description, entityout, material_on, material_off, on_r, on_g, on_b, off_r, off_g, off_b )
 	wire_dynamic_button:SetPlayer(pl)
 	wire_dynamic_button.pl = pl
 

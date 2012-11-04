@@ -273,6 +273,51 @@ for k,v in pairs(JaanusThrusters) do
 	end
 end
 
+local explosivemodels = {
+	"models/dav0r/tnt/tnt.mdl",
+	"models/Combine_Helicopter/helicopter_bomb01.mdl",
+	"models/jaanus/thruster_flat.mdl",
+	"models/props_c17/oildrum001.mdl",
+	"models/props_c17/oildrum001_explosive.mdl",
+	"models/props_phx/cannonball.mdl",
+	"models/props_phx/facepunch_barrel.mdl",
+	"models/props_phx/oildrum001.mdl",
+	"models/props_phx/oildrum001_explosive.mdl",
+	"models/props_phx/amraam.mdl",
+	"models/props_phx/mk-82.mdl",
+	"models/props_phx/rocket1.mdl",
+	"models/props_phx/torpedo.mdl",
+	"models/props_phx/ww2bomb.mdl",
+	"models/props_junk/plasticbucket001a.mdl",
+	"models/props_junk/PropaneCanister001a.mdl",
+	"models/props_junk/propane_tank001a.mdl",
+	"models/props_junk/PopCan01a.mdl",
+	"models/props_lab/jar01a.mdl",
+	"models/props_c17/canister_propane01a.mdl",
+	"models/props_c17/canister01a.mdl",
+	"models/props_c17/canister02a.mdl",
+	"models/props_wasteland/gaspump001a.mdl",
+	"models/props_junk/cardboard_box001a.mdl",
+	"models/props_junk/cardboard_box001b.mdl",
+	"models/props_junk/cardboard_box002a.mdl",
+	"models/props_junk/cardboard_box002b.mdl",
+	"models/props_junk/cardboard_box003a.mdl",
+	"models/props_junk/cardboard_box003b.mdl",
+	"models/props_junk/cardboard_box004a.mdl",
+	"models/props_junk/CinderBlock01a.mdl",
+	"models/props_junk/gascan001a.mdl",
+	"models/props_junk/TrafficCone001a.mdl",
+	"models/props_junk/metalgascan.mdl",
+	"models/props_junk/metal_paintcan001a.mdl",
+	"models/props_junk/wood_crate001a.mdl",
+	"models/props_junk/wood_crate002a.mdl",
+	"models/props_junk/wood_pallet001a.mdl",
+}
+for k,v in pairs(explosivemodels) do
+	if file.Exists(v,"GAME") then list.Set( "Wire_Explosive_Models", v, true ) end
+end
+
+
 --Beer's models
 --MsgN("\tBeer's Model pack")
 
@@ -306,6 +351,11 @@ list.Set( "Wire_TargetFinder_Models", "models/props_lab/powerbox02d.mdl", true )
 --Misc Tools (Entity Marker, Eye Pod, GpuLib Switcher, ect...)
 list.Set( "Wire_Misc_Tools_Models", "models/jaanus/wiretool/wiretool_range.mdl", true )
 list.Set( "Wire_Misc_Tools_Models", "models/jaanus/wiretool/wiretool_siren.mdl", true )
+
+--Laser Tools (Ranger, User, etc)
+list.Set( "Wire_Laser_Tools_Models", "models/jaanus/wiretool/wiretool_range.mdl", true )
+list.Set( "Wire_Laser_Tools_Models", "models/jaanus/wiretool/wiretool_siren.mdl", true )
+list.Set( "Wire_Laser_Tools_Models", "models/jaanus/wiretool/wiretool_beamcaster.mdl", true )
 
 -- Converted from WireModelPacks/wire_model_pack_1plus.txt
 list.Set("Wire_radio_Models", "models/props_lab/reciever01b.mdl", true)
@@ -402,7 +452,6 @@ list.Set("Wire_weight_Models", "models/props_interiors/pot01a.mdl", true)
 list.Set("Wire_pixel_Models", "models/jaanus/wiretool/wiretool_siren.mdl", true)
 list.Set("Wire_indicator_Models", "models/jaanus/wiretool/wiretool_siren.mdl", true)
 list.Set("Wire_podctrlr_Models", "models/jaanus/wiretool/wiretool_siren.mdl", true)
-list.Set("Wire_ranger_Models", "models/jaanus/wiretool/wiretool_siren.mdl", true)
 list.Set("Wire_indicator_Models", "models/props_borealis/bluebarrel001.mdl", true)
 list.Set("Wire_indicator_Models", "models/props_junk/TrafficCone001a.mdl", true)
 list.Set("Wire_speaker_Models", "models/props_junk/garbage_metalcan002a.mdl", true)
@@ -416,7 +465,6 @@ list.Set("Wire_gyroscope_Models", "models/cheeze/wires/gyroscope.mdl", true)
 list.Set("Wire_pixel_Models", "models/jaanus/wiretool/wiretool_range.mdl", true)
 list.Set("Wire_indicator_Models", "models/jaanus/wiretool/wiretool_range.mdl", true)
 list.Set("Wire_podctrlr_Models", "models/jaanus/wiretool/wiretool_range.mdl", true)
-list.Set("Wire_ranger_Models", "models/jaanus/wiretool/wiretool_range.mdl", true)
 list.Set("Wire_pixel_Models", "models/props_junk/PopCan01a.mdl", true)
 list.Set("Wire_indicator_Models", "models/props_junk/PopCan01a.mdl", true)
 list.Set("Wire_gate_Models", "models/jaanus/wiretool/wiretool_gate.mdl", true)
