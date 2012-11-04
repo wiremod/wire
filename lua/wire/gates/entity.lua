@@ -25,7 +25,7 @@ GateActions["entity_applyf"] = {
 		if !Ent then return end
 		if !Ent:IsValid() or !Ent:GetPhysicsObject():IsValid() then return end
 		if not E2Lib.isOwner(gate, Ent) then return end
-		if !IsVector(Vec) then Vec = Vector(0, 0, 0) end
+		if !isvector(Vec) then Vec = Vector(0, 0, 0) end
 		if checkv(Vec) then
 			Ent:GetPhysicsObject():ApplyForceCenter(Vec)
 		end
@@ -44,8 +44,8 @@ GateActions["entity_applyof"] = {
 		if !Ent then return end
 		if !Ent:IsValid() or !Ent:GetPhysicsObject():IsValid() then return end
 		if not E2Lib.isOwner(gate, Ent) then return end
-		if !IsVector(Vec) then Vec = Vector (0, 0, 0) end
-		if !IsVector(Offset) then Offset = Vector (0, 0, 0) end
+		if !isvector(Vec) then Vec = Vector (0, 0, 0) end
+		if !isvector(Offset) then Offset = Vector (0, 0, 0) end
 		if checkv(Vec) and checkv(Offset) then
 			Ent:GetPhysicsObject():ApplyForceOffset(Vec, Offset)
 		end
@@ -331,7 +331,7 @@ GateActions["entity_wor2loc"] = {
 	outputtypes = { "VECTOR" },
 	timed = true,
 	output = function(gate, Ent , Vec )
-		if Ent:IsValid() and IsVector(Vec) then return Ent:WorldToLocal(Vec) else return Vector(0,0,0) end
+		if Ent:IsValid() and isvector(Vec) then return Ent:WorldToLocal(Vec) else return Vector(0,0,0) end
 	end,
 	label = function(Out)
 		return string.format ("World To Local = (%f , %f , %f)", Out.x , Out.y , Out.z )
@@ -345,7 +345,7 @@ GateActions["entity_loc2wor"] = {
 	outputtypes = { "VECTOR" },
 	timed = true,
 	output = function(gate, Ent , Vec )
-		if Ent:IsValid() and IsVector(Vec) then return Ent:LocalToWorld(Vec) else return Vector(0,0,0) end
+		if Ent:IsValid() and isvector(Vec) then return Ent:LocalToWorld(Vec) else return Vector(0,0,0) end
 	end,
 	label = function(Out)
 		return string.format ("Local To World Vector = (%f , %f , %f)", Out.x , Out.y , Out.z )
@@ -359,7 +359,7 @@ GateActions["entity_wor2loc"] = {
 	outputtypes = { "VECTOR" },
 	timed = true,
 	output = function(gate, Ent , Vec )
-		if Ent:IsValid() and IsVector(Vec) then return Ent:WorldToLocal(Vec) else return Vector(0,0,0) end
+		if Ent:IsValid() and isvector(Vec) then return Ent:WorldToLocal(Vec) else return Vector(0,0,0) end
 	end,
 	label = function(Out)
 		return string.format ("World To Local Vector = (%f , %f , %f)", Out.x , Out.y , Out.z )
@@ -787,11 +787,11 @@ GateActions["entity_setcol"] = {
 	output = function(gate, Ent, Col )
 		if !Ent:IsValid() then return end
 		if !(E2Lib.getOwner(gate, gate) == E2Lib.getOwner(gate, Ent)) then return end
-		if !IsVector(Col) then Col = Vector(255,255,255) end
+		if !isvector(Col) then Col = Vector(255,255,255) end
 		Ent:SetColor(Color(Col.x,Col.y,Col.z,255))
 	end,
 	label = function(Out, Ent , Col)
-		if !IsVector(Col) then Col = Vector(0,0,0) end
+		if !isvector(Col) then Col = Vector(0,0,0) end
 		return string.format ("setColor(%s ,(%d,%d,%d) )", Ent , Col.x, Col.y, Col.z)
 	end
 }
