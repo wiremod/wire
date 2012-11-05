@@ -661,10 +661,13 @@ function ZVM:Interrupt(interruptNo,interruptParameter,isExternal,cascadeInterrup
 
       self.IF = 0
       self.INTR = 0
+      local prevPCAP = self.PCAP
+      self.PCAP = 0 -- Use absolute addressing
       local IP     =                      self:ReadCell(interruptOffset+0)
       local CS     =                      self:ReadCell(interruptOffset+1)
       local NewPTB =                      self:ReadCell(interruptOffset+2)
       local FLAGS  = self:IntegerToBinary(self:ReadCell(interruptOffset+3))
+      self.PCAP = prevPCAP
       self.IF = 1
       if self.INTR == 1 then
         if not cascadeInterrupt then self:Interrupt(13,2,false,true) end
