@@ -661,10 +661,10 @@ function ZVM:Interrupt(interruptNo,interruptParameter,isExternal,cascadeInterrup
 
       self.IF = 0
       self.INTR = 0
-      local IP    =                      self:ReadCell(interruptOffset+0)
-      local CS    =                      self:ReadCell(interruptOffset+1)
-      local _     =                      self:ReadCell(interruptOffset+2)
-      local FLAGS = self:IntegerToBinary(self:ReadCell(interruptOffset+3))
+      local IP     =                      self:ReadCell(interruptOffset+0)
+      local CS     =                      self:ReadCell(interruptOffset+1)
+      local NewPTB =                      self:ReadCell(interruptOffset+2)
+      local FLAGS  = self:IntegerToBinary(self:ReadCell(interruptOffset+3))
       self.IF = 1
       if self.INTR == 1 then
         if not cascadeInterrupt then self:Interrupt(13,2,false,true) end
@@ -683,6 +683,8 @@ function ZVM:Interrupt(interruptNo,interruptParameter,isExternal,cascadeInterrup
       --4  [16] = Interrupt does not set CS
       --5  [32] = Interrupt enabled
       --6  [64] = NMI interrupt
+      --7  [128] = Replace PTBL with NewPTE (overrides #8)
+      --8  [256] = Replace PTBE with NewPTE
 
       if isExternal and (FLAGS[6] ~= 1) then
         if not cascadeInterrupt then self:Interrupt(13,4,false,true) end
@@ -735,6 +737,13 @@ function ZVM:Interrupt(interruptNo,interruptParameter,isExternal,cascadeInterrup
           self.CMPR = 1
         end
       end
+
+      if FLAGS[7] == 1 then
+        self.PTBL = NewPTE
+      elseif FLAGS[8] == 1 then
+        self.PTBE == 1
+      end
+      
     elseif self.PF == 1 then -- Compatibility extended mode
       -- Boundary check
       if (interruptNo < 0) or (interruptNo > 255) then
