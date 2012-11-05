@@ -744,7 +744,7 @@ function ZVM:Interrupt(interruptNo,interruptParameter,isExternal,cascadeInterrup
       if FLAGS[7] == 1 then
         self.PTBL = NewPTE
       elseif FLAGS[8] == 1 then
-        self.PTBE == 1
+        self.PTBE = 1
       end
       
     elseif self.PF == 1 then -- Compatibility extended mode
