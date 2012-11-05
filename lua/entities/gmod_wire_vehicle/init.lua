@@ -35,26 +35,26 @@ function ENT:TriggerInput(iname, value)
 	elseif (iname == "Handbrake") then
 		if value > 0 then
 			self.Vehicle:Fire("handbrakeon", 1, 0)
-			self.Vehicle:Fire("handbrakeon", 0, 0.1)
+			self.Vehicle:Fire("handbrakeon", 0, 0.01)
 		else
 			self.Vehicle:Fire("handbrakeoff", 1, 0)
-			self.Vehicle:Fire("handbrakeoff", 0, 0.1)
+			self.Vehicle:Fire("handbrakeoff", 0, 0.01)
 		end
 	elseif (iname == "Engine") then
 		if value > 0 then
 			self.Vehicle:Fire("turnon", 1, 0)
-			self.Vehicle:Fire("turnon", 0, 0.1)
+			self.Vehicle:Fire("turnon", 0, 0.01)
 		else
 			self.Vehicle:Fire("turnoff", 1, 0)
-			self.Vehicle:Fire("turnoff", 0, 0.1)
+			self.Vehicle:Fire("turnoff", 0, 0.01)
 		end
 	elseif (iname == "Lock") then
 		if value > 0 then
 			self.Vehicle:Fire("lock", 1, 0)
-			self.Vehicle:Fire("lock", 0, 0.1)
+			self.Vehicle:Fire("lock", 0, 0.01)
 		else
 			self.Vehicle:Fire("unlock", 1, 0)
-			self.Vehicle:Fire("unlock", 0, 0.1)
+			self.Vehicle:Fire("unlock", 0, 0.01)
 		end
 	end
 end
