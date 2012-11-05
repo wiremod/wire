@@ -196,7 +196,7 @@ do -- wire_7seg
 	function TOOL:PostMake_SetPos() end
 
 	function TOOL:LeftClick_PostMake( wire_indicators, ply, trace )
-		if not wire_indicators then return end
+		if not istable(wire_indicators) then return end
 		local worldweld = self:GetClientNumber("worldweld") == 1
 		undo.Create("Wire7Seg")
 			for x=1, 7 do
