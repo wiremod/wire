@@ -1,20 +1,15 @@
 AddCSLuaFile( "cl_init.lua" )
 AddCSLuaFile( "shared.lua" )
-
 include('shared.lua')
 
 ENT.WireDebugName = "Vehicle Controller"
-
--- Number of Vehicles (Used for creating an uniqe name)
--- wire_Vehicle_count = 0
 
 function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )
 	self:SetMoveType( MOVETYPE_VPHYSICS )
 	self:SetSolid( SOLID_VPHYSICS )
-	-- Create outputs
+	
 	self.Inputs = Wire_CreateInputs( self, { "Throttle", "Steering", "Handbrake", "Engine", "Lock" } )
-	self.Steering = 0
 end
 
 -- Link to Vehicle
@@ -22,40 +17,32 @@ function ENT:Setup( Vehicle )
 	self.Vehicle = Vehicle
 end
 
--- Inputs
 function ENT:TriggerInput(iname, value)
-	-- ake sure we have a valid vehicle
 	if not IsValid(self.Vehicle) then return end
-
 	if (iname == "Throttle") then
-		self.Vehicle:Fire("throttle", tostring(value), 0)
+		self.Throttle = value
 	elseif (iname == "Steering") then
 		self.Steering = value
-		self.Vehicle:Fire("steer", tostring(self.Steering), 0)
 	elseif (iname == "Handbrake") then
-		if value > 0 then self.Vehicle:Fire("handbrakeon", 1, 0)
-		else self.Vehicle:Fire("handbrakeoff", 1, 0) end
+		self.Vehicle:Fire("handbrake"..(value~=0 and "on" or "off"), 1, 0)
 	elseif (iname == "Engine") then
-		if value > 0 then self.Vehicle:Fire("turnon", 1, 0)
-		else self.Vehicle:Fire("turnoff", 1, 0) end
+		self.Vehicle:Fire("turn"..(value~=0 and "on" or "off"), 1, 0)
+		if value~=0 then self.Vehicle:Fire("handbrakeoff", 1, 0) end
 	elseif (iname == "Lock") then
-		if value > 0 then self.Vehicle:Fire("lock", 1, 0)
-		else self.Vehicle:Fire("unlock", 1, 0) end
+		self.Vehicle:Fire((value~=0 and "" or "un").."lock", 1, 0)
 	end
 end
 
-function ENT:OnRestore()
-    self.BaseClass.OnRestore(self)
-end
-
 function ENT:Think()
-	if not IsValid(self.Vehicle) then return end
-	self.Vehicle:Fire("steer", tostring(self.Steering), 0)
+	if IsValid(self.Vehicle) then
+		local delta = CurTime()%1/1000 -- A miniscule constant change
+		if self.Steering then self.Vehicle:Fire("steer",   self.Steering+delta, 0) end
+		if self.Throttle then self.Vehicle:Fire("throttle",self.Throttle+delta, 0) end
+	end
 	self:NextThink(CurTime())
+	return true
 end
 
-
-//Duplicator support to save Vehicle link (TAD2020)
 function ENT:BuildDupeInfo()
 	local info = self.BaseClass.BuildDupeInfo(self) or {}
 
