@@ -1,17 +1,5 @@
-TOOL.Category		= "Wire - Control"
-TOOL.Name			= "Chip - Expression 2"
-TOOL.Command 		= nil
-TOOL.ConfigName 	= ""
-TOOL.Tab			= "Wire"
-
-TOOL.ClientConVar = {
-	model       = "models/beer/wiremod/gate_e2.mdl",
-	scriptmodel = "",
-	size        = "",
-	select      = "",
-	autoindent  = 1,
-	friendwrite = 0,
-}
+WireToolSetup.setCategory( "Control" )
+WireToolSetup.open( "expression2", "Chip - Expression 2", "gmod_wire_expression2", nil, "Expression2s" )
 
 if CLIENT then
 	language.Add("Tool.wire_expression2.name", "Expression 2 Tool (Wire)")
@@ -22,6 +10,16 @@ if CLIENT then
 	language.Add("Cleanup_wire_expressions",   "Expression 1+2" )
 	language.Add("Cleaned_wire_expressions",   "Cleaned up all Wire Expressions" )
 end
+
+TOOL.Model = "models/beer/wiremod/gate_e2.mdl"
+TOOL.ClientConVar = {
+	model       = TOOL.Model,
+	modelsize	= "",
+	scriptmodel = "",
+	select      = "",
+	autoindent  = 1,
+	friendwrite = 0,
+}
 
 cleanup.Register("wire_expressions")
 
@@ -642,23 +640,7 @@ elseif CLIENT then
 	function TOOL.BuildCPanel(panel)
 		local w,h = panel:GetSize()
 		
-		local SizeControl = vgui.Create( "DComboBox", panel )
-		SizeControl.OnSelect = function ( index, value, data )
-			if( value == "Normal" ) then
-				wire_expression2_size = ""
-			elseif( value == "Mini" ) then
-				wire_expression2_size = "_mini"
-			elseif( value == "Nano" ) then
-				wire_expression2_size = "_nano"
-			end
-		end
-		SizeControl:SetSize(w,30)
-		SizeControl:SetValue("Normal")
-		SizeControl:AddChoice( "Normal" ) 
-		SizeControl:AddChoice( "Mini" ) 
-		SizeControl:AddChoice( "Nano" )
-		SizeControl:DockMargin(5,5,5,5)
-		SizeControl:Dock( TOP )
+		WireToolHelpers.MakeModelSizer(panel, "wire_expression2_modelsize")
 		--[[
 		local ParentPanel = vgui.Create( "DPanel", panel )
 		ParentPanel:SetSize(w,h-40)
@@ -697,25 +679,16 @@ elseif CLIENT then
 			wire_expression2_editor:Open(filepath, nil, newtab)
 		end
 
-		local OpenEditor = vgui.Create("DButton" , panel)
-		panel:AddPanel(OpenEditor)
-		OpenEditor:SetSize(w,30)
-		OpenEditor:SetText("Open Editor")
-		OpenEditor:Dock(TOP)
+		local OpenEditor = panel:Button("Open Editor")
 		OpenEditor.DoClick = function(button)
 			wire_expression2_editor:Open()
 		end
 
-		local NewExpression = vgui.Create("DButton" , panel)
-		panel:AddPanel(NewExpression)
-		NewExpression:SetSize(w,30)
-		NewExpression:SetText("New Expression")
-		NewExpression:Dock(TOP)
+		local NewExpression = panel:Button("New Expression")
 		NewExpression.DoClick = function(button)
 			wire_expression2_editor:Open()
 			wire_expression2_editor:NewScript()
 		end
-
 	end
 
 	function initE2Editor()
@@ -734,8 +707,7 @@ elseif CLIENT then
 	  Andreas "Syranide" Svensson, me@syranide.com
 	\******************************************************************************/
 
-	local fontTable = 
-	{
+	local fontTable = {
 		font = "Arial",
 		size = 40,
 		weight = 1000,
@@ -912,76 +884,20 @@ elseif CLIENT then
 			end
 		end
 	end)
-
 end
 
-
-function TOOL:UpdateGhostWireExpression2( ent, player )
-		if ( !ent ) then return end
-		if ( !ent:IsValid() ) then return end
-		
-		local tr = util.GetPlayerTrace( player )
-		local trace = util.TraceLine( tr )
-		if (!trace.Hit) then return end
-
-		if (IsValid(trace.Entity) && (trace.Entity:GetClass() == "gmod_wire_expression2" || trace.Entity:IsPlayer())) then
-			ent:SetNoDraw( true )
-			return
-		end
-
-		local Ang = trace.HitNormal:Angle()
-		Ang.pitch = Ang.pitch + 90
-
-		local min = ent:OBBMins()
-		ent:SetPos( trace.HitPos - trace.HitNormal * min.z )
-		ent:SetAngles( Ang )
-
-		ent:SetNoDraw( false )
-
+local prevmodel,prevvalid
+function validModelCached(model)
+	if model ~= prevmodel then
+		prevmodel = model
+		prevvalid = util.IsValidModel(model)
 	end
+	return prevvalid
+end
 
-	function TOOL:Think()
-		local model = self:GetModel()
-
-		if (!IsValid(self.GhostEntity) || (not self.GhostEntity:GetModel()) || self.GhostEntity:GetModel() != model) then
-			self:MakeGhostEntity( model, Vector(0,0,0), Angle(0,0,0) )
-		end
-
-		self:UpdateGhostWireExpression2( self.GhostEntity, self:GetOwner() )
-	end
-
-
-
-	local prevmodel,prevvalid
-	function validModelCached(model)
-		if model ~= prevmodel then
-			prevmodel = model
-			prevvalid = util.IsValidModel(model)
-		end
-		return prevvalid
-	end
-
-	function TOOL:GetModel()
-		local scriptmodel = self:GetClientInfo("scriptmodel")
-		if scriptmodel and scriptmodel ~= "" and validModelCached(scriptmodel) then return Model(scriptmodel) end
-
-		local model = self:GetClientInfo("model")
-		local size = self:GetClientInfo("size")
-
-		if model and size then
-			local modelname, modelext = model:match("(.*)(%..*)")
-			if not modelext then
-				if validModelCached( model ) then
-					return model
-				else
-					return "models/beer/wiremod/gate_e2.mdl"
-				end
-			end
-			local newmodel = modelname .. size .. modelext
-			if validModelCached(newmodel) then
-				return Model(newmodel)
-			end
-		end
-
-		return "models/beer/wiremod/gate_e2.mdl"
-	end
+TOOL.Model = "models/beer/wiremod/gate_e2.mdl"
+function TOOL:GetModel()
+	local scriptmodel = self:GetClientInfo("scriptmodel")
+	if scriptmodel and scriptmodel ~= "" and validModelCached(scriptmodel) then return Model(scriptmodel) end
+	return WireToolObj.GetModel(self)
+end

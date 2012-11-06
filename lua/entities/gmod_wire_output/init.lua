@@ -17,7 +17,6 @@ function ENT:Initialize()
 	self.Inputs = Wire_CreateInputs(self, { "A" })
 end
 
-
 function ENT:TriggerInput(iname, value)
 	if (iname == "A") then
 		if ((value > 0) ~= self:IsOn()) then
@@ -25,7 +24,6 @@ function ENT:TriggerInput(iname, value)
 		end
 	end
 end
-
 
 function ENT:Switch( on, ply )
 	local plyindex 	= self:GetPlayerIndex()
@@ -42,20 +40,21 @@ function ENT:Switch( on, ply )
 end
 
 function ENT:ShowOutput()
-	if (self.Key) then
-		if (keylist[self.Key + 1]) then
-			self:SetOverlayText(keylist[self.Key + 1])
+	if (self.key) then
+		if (keylist[self.key + 1]) then
+			self:SetOverlayText(keylist[self.key + 1])
 		end
 	end
 end
 
-function ENT:SetKey( key )
-	self.Key = key
+function ENT:Setup( key )
+	if (numpad.GetModifiedKey) then key = numpad.GetModifiedKey(self:GetOwner(), key) end
+	self.key = key
 	self:ShowOutput()
 end
 
 function ENT:GetKey()
-	return self.Key
+	return self.key
 end
 
 function ENT:SetOn( on )
@@ -65,3 +64,27 @@ end
 function ENT:IsOn()
 	return self.On
 end
+
+function MakeWireOutput( pl, Pos, Ang, model, key )
+	if (numpad.GetModifiedKey) then key = numpad.GetModifiedKey(pl, key) end
+
+	if ( !pl:CheckLimit( "wire_outputs" ) ) then return false end
+
+	local wire_output = ents.Create( "gmod_wire_output" )
+	if (!wire_output:IsValid()) then return false end
+
+	wire_output:SetAngles( Ang )
+	wire_output:SetPos( Pos )
+	wire_output:SetModel( Model(model or "models/jaanus/wiretool/wiretool_output.mdl") )
+	wire_output:Spawn()
+
+	wire_output:SetPlayer(pl)
+	wire_output.pl = pl
+	wire_output:Setup(key)
+
+	wire_output:ShowOutput()
+	pl:AddCount( "wire_outputs", wire_output )
+
+	return wire_output
+end
+duplicator.RegisterEntityClass("gmod_wire_output", MakeWireOutput, "Pos", "Ang", "Model", "key")
