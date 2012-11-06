@@ -9,7 +9,6 @@ if ( CLIENT ) then
 	language.Add( "Tool.wire_radio.desc", "Spawns a radio for use with the wire system." )
 	language.Add( "Tool.wire_radio.0", "Primary: Create/Update Radio" )
 	language.Add( "WireRadioTool_channel", "Channel:" )
-	language.Add( "WireRadioTool_model", "Model:" );
 	language.Add( "WireRadioTool_values", "Values:" );
 	language.Add( "WireRadioTool_secure", "Secure" );
 	language.Add( "sboxlimit_wire_radios", "You've hit the radio limit!" )
@@ -180,7 +179,7 @@ function TOOL.BuildCPanel(panel)
 		Command = "wire_radio_channel"
 	})
 
-	ModelPlug_AddToCPanel(panel, "radio", "wire_radio", "#WireRadioTool_model", nil, "#WireRadioTool_model")
+	ModelPlug_AddToCPanel(panel, "radio", "wire_radio", true)
 
 	panel:AddControl("Slider", {
 		Label = "#WireRadioTool_values",

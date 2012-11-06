@@ -1,5 +1,5 @@
 WireToolSetup.setCategory( "Physics" )
-WireToolSetup.open( "igniter", "Igniter", "gmod_wire_igniter", WireToolMakeIgniter )
+WireToolSetup.open( "igniter", "Igniter", "gmod_wire_igniter", WireToolMakeIgniter, "Igniters" )
 
 if CLIENT then
 	language.Add( "tool.wire_igniter.name", "Igniter Tool (Wire)" )
@@ -7,12 +7,11 @@ if CLIENT then
 	language.Add( "tool.wire_igniter.0", "Primary: Create/Update Igniter" )
 	language.Add( "WireIgniterTool_trgply", "Allow Player Igniting" )
 	language.Add( "WireIgniterTool_Range", "Max Range:" )
-	language.Add( "sboxlimit_wire_igniters", "You've hit igniters limit!" )
 end
 WireToolSetup.BaseLang("Igniters")
+WireToolSetup.SetupMax( 20, TOOL.Mode.."s" , "You've hit the Wire "..TOOL.PluralName.." limit!" )
 
 if SERVER then
-	CreateConVar('sbox_maxwire_igniters', 20)
 	CreateConVar('sbox_wire_igniters_maxlen', 30)
 	CreateConVar('sbox_wire_igniters_allowtrgply',1)
 end

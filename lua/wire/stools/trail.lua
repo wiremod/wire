@@ -1,5 +1,5 @@
 WireToolSetup.setCategory( "Physics" )
-WireToolSetup.open( "trail", "Trail", "gmod_wire_trail", WireToolMakeTrail )
+WireToolSetup.open( "trail", "Trail", "gmod_wire_trail", WireToolMakeTrail, "Trails" )
 
 if CLIENT then
 	language.Add( "tool.wire_trail.name", "Trail Tool (Wire)" )
@@ -7,13 +7,9 @@ if CLIENT then
 	language.Add( "tool.wire_trail.0", "Primary: Create/Update trail" )
 	language.Add( "WireTrailTool_trail", "Trail:" )
 	language.Add( "WireTrailTool_mat", "Material:" )
-	language.Add( "sboxlimit_wire_trails", "You've hit trails limit!" )
 end
 WireToolSetup.BaseLang("Trails")
-
-if SERVER then
-	CreateConVar('sbox_maxwire_trails', 20)
-end
+WireToolSetup.SetupMax( 20, TOOL.Mode.."s" , "You've hit the Wire "..TOOL.PluralName.." limit!" )
 
 TOOL.ClientConVar = {
 	material = ""

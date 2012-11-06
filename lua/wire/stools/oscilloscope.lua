@@ -19,7 +19,6 @@ if SERVER then
 end
 
 TOOL.NoLeftOnClass = true -- no update ent function needed
-TOOL.GetAngle = CreateFlatGetAngle
 TOOL.ClientConVar = {
 	model      = "models/props_lab/monitor01b.mdl",
 	createflat = 0,

@@ -9,7 +9,6 @@ if ( CLIENT ) then
 	language.Add( "Tool.wire_twoway_radio.desc", "Spawns a two-way radio for use with the wire system." )
 	language.Add( "Tool.wire_twoway_radio.0", "Primary: Create/Update Two-way Radio\nSecondary: Select a two-way radio to pair up with another two-way radio." )
 	language.Add( "Tool.wire_twoway_radio.1", "Select the second two-way radio." );
-	language.Add( "WireRadioTwoWayTool_model", "Model:" );
 	language.Add( "sboxlimit_wire_twoway_radios", "You've hit the two-way radio limit!" )
 	language.Add( "undone_wiretwowayradio", "Undone Wire Two-way Radio" )
 end
@@ -169,5 +168,5 @@ end
 function TOOL.BuildCPanel(panel)
 	panel:AddControl("Header", { Text = "#Tool.wire_twoway_radio.name", Description = "#Tool.wire_twoway_radio.desc" })
 
-	ModelPlug_AddToCPanel(panel, "radio2", "wire_twoway_radio", "#WireRadioTwoWayTool_model", nil, "#WireRadioTwoWayTool_model")
+	ModelPlug_AddToCPanel(panel, "radio2", "wire_twoway_radio", true)
 end

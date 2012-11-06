@@ -7,7 +7,6 @@ if CLIENT then
 	language.Add( "tool.wire_digitalscreen.0", "Primary: Create/Update screen" )
 end
 WireToolSetup.BaseLang()
-
 WireToolSetup.SetupMax( 20, "wire_digitalscreens", "You've hit digital screens limit!" )
 
 if SERVER then
@@ -20,8 +19,6 @@ if SERVER then
 	end
 end
 
-TOOL.NoLeftOnClass = true -- no update ent function needed
-TOOL.GetAngle = CreateFlatGetAngle
 TOOL.ClientConVar = {
 	model      = "models/props_lab/monitor01b.mdl",
 	width      = 32,

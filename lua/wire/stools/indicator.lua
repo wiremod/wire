@@ -5,7 +5,6 @@ if CLIENT then
 	language.Add( "tool.wire_indicator.name", "Indicator Tool (Wire)" )
 	language.Add( "tool.wire_indicator.desc", "Spawns a indicator for use with the wire system." )
 	language.Add( "tool.wire_indicator.0", "Primary: Create/Update Indicator" )
-	language.Add( "ToolWireIndicator_Model", "Model:" )
 	language.Add( "ToolWireIndicator_a_value", "A Value:" )
 	language.Add( "ToolWireIndicator_a_colour", "A Colour:" )
 	language.Add( "ToolWireIndicator_b_value", "B Value:" )
@@ -111,7 +110,7 @@ function TOOL.BuildCPanel(panel)
 		Multiplier = "255"
 	})
 
-	ModelPlug_AddToCPanel(panel, "indicator", "wire_indicator", "#ToolWireIndicator_Model", nil, "#ToolWireIndicator_Model")
+	ModelPlug_AddToCPanel(panel, "indicator", "wire_indicator", true)
 
 	panel:AddControl("ComboBox", {
 		Label = "#ToolWireIndicator_Material",

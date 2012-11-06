@@ -1,5 +1,5 @@
 WireToolSetup.setCategory( "Physics" )
-WireToolSetup.open( "grabber", "Grabber", "gmod_wire_grabber", WireToolMakeGrabber )
+WireToolSetup.open( "grabber", "Grabber", "gmod_wire_grabber", WireToolMakeGrabber, "Grabbers" )
 
 if CLIENT then
 	language.Add( "tool.wire_grabber.name", "Grabber Tool (Wire)" )
@@ -7,12 +7,11 @@ if CLIENT then
 	language.Add( "tool.wire_grabber.0", "Primary: Create/Update Grabber Secondary: link the grabber to its extra prop that is attached for stabilty" )
 	language.Add( "WireGrabberTool_Range", "Max Range:" )
 	language.Add( "WireGrabberTool_Gravity", "Disable Gravity" )
-	language.Add( "sboxlimit_wire_grabbers", "You've hit grabbers limit!" )
 end
 WireToolSetup.BaseLang("Grabbers")
+WireToolSetup.SetupMax( 20, TOOL.Mode.."s" , "You've hit the Wire "..TOOL.PluralName.." limit!" )
 
 if SERVER then
-	CreateConVar('sbox_maxwire_grabbers', 20)
 	CreateConVar('sbox_wire_grabbers_onlyOwnersProps', 1)
 end
 

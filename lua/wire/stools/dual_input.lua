@@ -28,9 +28,8 @@ if SERVER then
 	end
 end
 
-TOOL.Model = "models/beer/wiremod/numpad.mdl"
 TOOL.ClientConVar = {
-	model = TOOL.Model,
+	model = "models/beer/wiremod/numpad.mdl",
 	modelsize = "",
 	keygroup = 7,
 	keygroup2 = 4,
@@ -43,7 +42,7 @@ TOOL.ClientConVar = {
 function TOOL.BuildCPanel(panel)
 	WireToolHelpers.MakePresetControl(panel, "wire_dual_input")
 	WireToolHelpers.MakeModelSizer(panel, "wire_dual_input_modelsize")
-	ModelPlug_AddToCPanel(panel, "Numpad", "wire_dual_input", "#ToolWireIndicator_Model")
+	ModelPlug_AddToCPanel(panel, "Numpad", "wire_dual_input", true)
 
 	panel:AddControl("Numpad", {
 		Label = "#WireDualInputTool_keygroup",

@@ -40,7 +40,6 @@ if SERVER then
 	end
 end
 
-TOOL.GetAngle = CreateFlatGetAngle
 TOOL.ClientConVar = {
 	model       = "models/kobilica/wiremonitorbig.mdl",
 	tsize       = 10,

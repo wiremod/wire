@@ -12,7 +12,6 @@ if CLIENT then
 	language.Add( "WireAdvInputTool_value_max", "Maximum:" )
 	language.Add( "WireAdvInputTool_value_start", "Start at:" )
 	language.Add( "WireAdvInputTool_speed", "Change per second:" )
-	language.Add( "sboxlimit_wire_adv_inputs", "You've hit wired adv input limit!" )
 end
 WireToolSetup.BaseLang("Adv. Inputs")
 WireToolSetup.SetupMax( 20, TOOL.Mode.."s" , "You've hit the Wire "..TOOL.PluralName.." limit!" )
@@ -31,9 +30,8 @@ if SERVER then
 	end
 end
 
-TOOL.Model = "models/beer/wiremod/numpad.mdl"
 TOOL.ClientConVar = {
-	model = TOOL.Model,
+	model = "models/beer/wiremod/numpad.mdl",
 	modelsize = "",
 	keymore = "3",
 	keyless = "1",
@@ -44,14 +42,14 @@ TOOL.ClientConVar = {
 	speed = "1",
 }
 
-function TOOL.BuildCPanel( CPanel )
+function TOOL.BuildCPanel( panel )
 	WireToolHelpers.MakeModelSizer(panel, "wire_adv_input_modelsize")
-	ModelPlug_AddToCPanel(CPanel, "Numpad", "wire_adv_input", "#ToolWireIndicator_Model")
-	CPanel:AddControl( "Numpad", {Label = "#WireAdvInputTool_keymore", Command = "wire_adv_input_keymore"})
-	CPanel:AddControl( "Numpad", {Label = "#WireAdvInputTool_keyless", Command = "wire_adv_input_keyless"})
-	CPanel:CheckBox("#WireAdvInputTool_toggle", "wire_adv_input_toggle")
-	CPanel:NumSlider("#WireAdvInputTool_value_min", "wire_adv_input_value_min", -50, 50, 0)
-	CPanel:NumSlider("#WireAdvInputTool_value_max", "wire_adv_input_value_max", -50, 50, 0)
-	CPanel:NumSlider("#WireAdvInputTool_value_start", "wire_adv_input_value_start", -50, 50, 0)
-	CPanel:NumSlider("#WireAdvInputTool_speed", "wire_adv_input_speed", 0.1, 50, 1)
+	ModelPlug_AddToCPanel(panel, "Numpad", "wire_adv_input", true)
+	panel:AddControl( "Numpad", {Label = "#WireAdvInputTool_keymore", Command = "wire_adv_input_keymore"})
+	panel:AddControl( "Numpad", {Label = "#WireAdvInputTool_keyless", Command = "wire_adv_input_keyless"})
+	panel:CheckBox("#WireAdvInputTool_toggle", "wire_adv_input_toggle")
+	panel:NumSlider("#WireAdvInputTool_value_min", "wire_adv_input_value_min", -50, 50, 0)
+	panel:NumSlider("#WireAdvInputTool_value_max", "wire_adv_input_value_max", -50, 50, 0)
+	panel:NumSlider("#WireAdvInputTool_value_start", "wire_adv_input_value_start", -50, 50, 0)
+	panel:NumSlider("#WireAdvInputTool_speed", "wire_adv_input_speed", 0.1, 50, 1)
 end

@@ -1,5 +1,5 @@
 WireToolSetup.setCategory( "Physics" )
-WireToolSetup.open( "turret", "Turret", "gmod_wire_turret", nil )
+WireToolSetup.open( "turret", "Turret", "gmod_wire_turret", nil, "Turrets" )
 
 -- Precache these sounds..
 Sound( "ambient.electrical_zap_3" )
@@ -16,10 +16,9 @@ if CLIENT then
 	language.Add( "Tool_wire_turret_force", "Bullet Force" )
 	language.Add( "Tool_wire_turret_sound", "Shoot Sound" )
 	language.Add( "Tool_wire_turret_tracernum", "Tracer Every x Bullets:" )
-
-	language.Add( "SBoxLimit_wire_turrets", "You've reached the Turret limit!" )
 end
-WireToolSetup.BaseLang("Turrets")
+WireToolSetup.BaseLang()
+WireToolSetup.SetupMax( 20, TOOL.Mode.."s" , "You've hit the Wire "..TOOL.PluralName.." limit!" )
 
 TOOL.ClientConVar = {
 	delay 		= 0.05,
@@ -37,15 +36,9 @@ TOOL.ClientConVar = {
 TOOL.GhostAngle = Angle(-90,0,0)
 TOOL.GetGhostMin = function() return -2 end
 
-if SERVER then
-	CreateConVar('sbox_maxwire_turrets', 30)
-end
-
 function TOOL:LeftClick( trace, worldweld )
 	if trace.Entity and trace.Entity:IsPlayer() then return false end
 	if CLIENT then return true end
-
-	worldweld = worldweld or false
 
 	local ply = self:GetOwner()
 
@@ -83,7 +76,7 @@ function TOOL:LeftClick( trace, worldweld )
 
 	turret:SetAngles( trace.HitNormal:Angle() )
 
-	local weld = WireLib.Weld(turret, trace.Entity, trace.PhysicsBone, true, false, worldweld)
+	local weld = WireLib.Weld(turret, trace.Entity, trace.PhysicsBone, true, false, worldweld or false)
 
 	undo.Create("WireTurret")
 		undo.AddEntity( turret )

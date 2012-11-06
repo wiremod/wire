@@ -88,6 +88,6 @@ function TOOL.BuildCPanel(panel)
 	end
 
 	panel:CheckBox("#WireEmitterTool_collision", "wire_soundemitter_collision")
-	ModelPlug_AddToCPanel(panel, "speaker", "wire_soundemitter", nil, nil, true)
+	ModelPlug_AddToCPanel(panel, "speaker", "wire_soundemitter", true)
 	panel:CheckBox("Weld", "wire_soundemitter_weld")
 end

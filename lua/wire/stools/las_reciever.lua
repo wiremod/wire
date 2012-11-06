@@ -18,9 +18,8 @@ if SERVER then
 	end
 end
 
-TOOL.Model =  "models/jaanus/wiretool/wiretool_range.mdl"
 TOOL.ClientConVar = {
-	model = TOOL.Model,
+	model = "models/jaanus/wiretool/wiretool_range.mdl",
 }
 
 function TOOL.BuildCPanel(panel)

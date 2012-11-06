@@ -34,7 +34,6 @@ if SERVER then
 	end
 end
 
-TOOL.GetAngle = CreateFlatGetAngle
 TOOL.ClientConVar = {
 	model         = "models/props_lab/monitor01b.mdl",
 	singlevalue   = 0,

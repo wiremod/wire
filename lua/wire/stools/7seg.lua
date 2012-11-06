@@ -1,5 +1,5 @@
 WireToolSetup.setCategory( "Display" )
-WireToolSetup.open( "7seg", "7 Segment Display", "gmod_wire_indicator" )
+WireToolSetup.open( "7seg", "7 Segment Display", "gmod_wire_indicator", nil, "7 Segment Displays" )
 
 TOOL.GhostAngle = Angle(90, 0, 0)
 TOOL.GhostMin = "x"
@@ -96,7 +96,7 @@ function TOOL.BuildCPanel(panel)
 	})
 
 	panel:AddControl("ComboBox", {
-		Label = "#ToolWireIndicator_Model",
+		Label = "#wire_model",
 		Options = {
 			["Huge 7-seg bar"]	= { wire_7seg_model = "models/segment2.mdl" },
 			["Normal 7-seg bar"]		= { wire_7seg_model = "models/segment.mdl" },

@@ -25,9 +25,8 @@ if SERVER then
 	end
 end
 
-TOOL.Model = "models/kobilica/value.mdl"
 TOOL.ClientConVar = {
-	model = TOOL.Model,
+	model = "models/kobilica/value.mdl",
 	modelsize = "",
 }
 
@@ -94,7 +93,7 @@ if CLIENT then
 	local ValuePanels = {}
 	function TOOL.BuildCPanel( panel )
 		WireToolHelpers.MakeModelSizer(panel, "wire_value_modelsize")
-		ModelPlug_AddToCPanel(panel, "Value", "wire_value", "#ToolWireIndicator_Model")
+		ModelPlug_AddToCPanel(panel, "Value", "wire_value", true)
 		
 		local reset = panel:Button("Reset Values")
 		

@@ -487,7 +487,7 @@ function TOOL.BuildCPanel(panel)
 		Multiplier = "255"
 	})
 
-	ModelPlug_AddToCPanel(panel, "indicator", "wire_hudindicator", "#ToolWireIndicator_Model", nil, "#ToolWireIndicator_Model")
+	ModelPlug_AddToCPanel(panel, "indicator", "wire_hudindicator", true)
 
 	panel:AddControl("ComboBox", {
 		Label = "#ToolWireIndicator_Material",

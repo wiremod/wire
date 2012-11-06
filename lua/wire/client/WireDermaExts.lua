@@ -1,8 +1,9 @@
 WireDermaExts = {}
+language.Add("wire_model", "Model:")
 
 -- Shortcut functions for Wire tools to make their model select controls
 -- TODO: redo category system
-function ModelPlug_AddToCPanel(panel, category, toolname, _, _, textbox_label, height)
+function ModelPlug_AddToCPanel(panel, category, toolname, textbox_label, height)
 	local list = list.Get("Wire_"..category.."_Models")
 	if table.Count(list) > 1 then
 		local ModelSelect = vgui.Create("DWireModelSelect", self)
@@ -11,7 +12,7 @@ function ModelPlug_AddToCPanel(panel, category, toolname, _, _, textbox_label, h
 		panel:AddPanel(ModelSelect)
 	end
 	if textbox_label and GetConVarNumber("cl_showmodeltextbox") > 0 then
-		panel:TextEntry(textbox_label, toolname .. "_model")
+		panel:TextEntry("#wire_model", toolname .. "_model")
 	end
 end
 
@@ -39,7 +40,7 @@ function WireDermaExts.ModelSelect(panel, convar, list, height, show_textbox)
 		ModelSelect:SetHeight(height)
 		panel:AddPanel(ModelSelect)
 		if show_textbox and GetConVarNumber("cl_showmodeltextbox") > 0 then
-			panel:TextEntry("Model:", convar)
+			panel:TextEntry("#wire_model", convar)
 		end
 		return ModelSelect
 	end

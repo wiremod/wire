@@ -345,7 +345,7 @@ end
 
 function TOOL.BuildCPanel(panel)
 	WireToolHelpers.MakeModelSizer(panel, "wire_hydraulic_modelsize")
-	ModelPlug_AddToCPanel(panel, "Hydraulic", "wire_hydraulic", "#ToolWireIndicator_Model")
+	ModelPlug_AddToCPanel(panel, "Hydraulic", "wire_hydraulic", true)
 	panel:AddControl("CheckBox", {
 		Label = "#WireHydraulicTool_fixed",
 		Command = "wire_hydraulic_fixed"
