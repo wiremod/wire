@@ -53,18 +53,7 @@ function TOOL:LeftClick( trace )
 			return
 		end
 
-		local model = self:GetClientInfo( "model" )
-		local modelsize = self:GetClientInfo( "modelsize" )
-
-		if (modelsize!="") then
-			local test = string.sub(model, 1, -5) .. modelsize .. string.sub(model, -4)
-			if ( util.IsValidModel( test ) || util.IsValidProp( test ) ) then
-				model = test
-			end
-		end
-
-		if ( !util.IsValidModel( model ) ) then return false end
-		if ( !util.IsValidProp( model ) ) then return false end
+		local model = WireToolObj.GetModel(self)
 
 		// Attach our Controller to the Elastic constraint
 		local Ang = trace.HitNormal:Angle()
@@ -355,16 +344,7 @@ function TOOL:Reload( trace )
 end
 
 function TOOL.BuildCPanel(panel)
-	panel:AddControl("Label", {Text = "Model Size (if available)"})
-	panel:AddControl("ComboBox", {
-		Label = "Model Size",
-		MenuButton = 0,
-		Options = {
-				["normal"] = { wire_hydraulic_modelsize = "" },
-				["mini"] = { wire_hydraulic_modelsize = "_mini" },
-				["nano"] = { wire_hydraulic_modelsize = "_nano" }
-			}
-	})
+	WireToolHelpers.MakeModelSizer(panel, "wire_hydraulic_modelsize")
 	ModelPlug_AddToCPanel(panel, "Hydraulic", "wire_hydraulic", "#ToolWireIndicator_Model")
 	panel:AddControl("CheckBox", {
 		Label = "#WireHydraulicTool_fixed",
