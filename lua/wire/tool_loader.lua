@@ -202,12 +202,15 @@ end
 
 --
 function WireToolObj:GetModel()
+	local model_convar = self:GetClientInfo( "model" )
 	if self.ClientConVar.modelsize then
-		local model = string.sub(self:GetClientInfo( "model" ), 1, -5) .. self:GetClientInfo( "modelsize" ) .. string.sub(self:GetClientInfo( "model" ), -4)
+		local model = string.sub(model_convar, 1, -5) .."_".. self:GetClientInfo( "modelsize" ) .. string.sub(model_convar, -4)
+		if not self:CheckValidModel(model) then return model end
+		model = string.GetPathFromFilename(model_convar) .. self:GetClientInfo( "modelsize" ) .."_".. string.GetFileFromFilename(model_convar)
 		if not self:CheckValidModel(model) then return model end
 	end
-	if not self:CheckValidModel(self:GetClientInfo( "model" )) then --use a valid model or the server crashes :<
-		return self:GetClientInfo( "model" )
+	if not self:CheckValidModel(model_convar) then --use a valid model or the server crashes :<
+		return model_convar
 	elseif self.Model then
 		return self.Model
 	else
@@ -281,6 +284,17 @@ if CLIENT then
 			ctrl:AddOption("#Default", options)
 		end
 		panel:AddPanel( ctrl )
+	end
+	
+	function WireToolHelpers.MakeModelSizer(panel, convar)
+		return panel:AddControl("ListBox", {
+			Label = "Model Size",
+			Options = {
+				["normal"] = { [convar] = "" },
+				["mini"] = { [convar] = "mini" },
+				["nano"] = { [convar] = "nano" }
+			}
+		})
 	end
 
 	-- adds the neato model select control

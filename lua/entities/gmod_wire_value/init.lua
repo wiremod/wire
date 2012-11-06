@@ -16,8 +16,7 @@ end
 local function ReturnType( DataType )
 	// Supported Data Types.
 	// Should be requested by client and only kept serverside.
-	local DataTypes = 
-	{
+	local DataTypes = {
 		["NORMAL"] = "number",
 		["STRING"] = "string",
 		["VECTOR"] = "vector",
@@ -107,10 +106,55 @@ function ENT:Setup(values)
 	end
 
 	self:SetOverlayText(string.Left(txt,#txt-1)) -- Cut off the last \n
-
 end
-
 
 function ENT:ReadCell( Address )
 	return self.value[Address+1]
 end
+
+function MakeWireValue( ply, Pos, Ang, model, value )
+	if (!ply:CheckLimit("wire_values")) then return false end
+
+	local wire_value = ents.Create("gmod_wire_value")
+	if (!wire_value:IsValid()) then return false end
+	
+	wire_value:SetAngles(Ang)
+	wire_value:SetPos(Pos)
+	wire_value:SetModel(model)
+	wire_value:Spawn()
+	if value then
+		local _,val = next(value)
+		if type(val) == "table" then
+			-- The new Gmod13 format, good
+			wire_value:Setup(value)
+		else
+			-- The old Gmod12 dupe format, lets convert it
+			local convertedValues = {}
+			local convtbl = {
+				["NORMAL"] = "Number",
+				["ANGLE"] = "Angle",
+				["VECTOR"] = "Vector",
+				["VECTOR2"] = "Vector",
+				["VECTOR4"] = "Vector",
+				["STRING"] = "String",
+			}
+			for k,v in pairs(value) do
+				local theType,theValue = string.match (v, "^ *([^: ]+) *:(.*)$")
+				theType = string.upper(theType or "NORMAL")
+				
+				if not convtbl[theType] then
+					theType = "NORMAL"
+				end
+				
+				table.insert(convertedValues, { DataType=convtbl[theType], Value=theValue or v } )
+			end
+			wire_value:Setup( convertedValues )
+		end
+	end
+	wire_value:SetPlayer(ply)
+
+	ply:AddCount("wire_values", wire_value)
+
+	return wire_value
+end
+duplicator.RegisterEntityClass("gmod_wire_value", MakeWireValue, "Pos", "Ang", "Model", "value")

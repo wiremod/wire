@@ -28,13 +28,6 @@ TOOL.ClientConVar = {
 
 function TOOL.BuildCPanel(panel)
 	panel:Help("#Tool.wire_watersensor.desc")
-	panel:AddControl("ListBox", {
-		Label = "Model Size",
-		Options = {
-				["normal"] = { wire_watersensor_modelsize = "" },
-				["mini"] = { wire_watersensor_modelsize = "_mini" },
-				["nano"] = { wire_watersensor_modelsize = "_nano" }
-			}
-	})
+	WireToolHelpers.MakeModelSizer(panel, "wire_watersensor_modelsize")
 	ModelPlug_AddToCPanel(panel, "WaterSensor", "wire_watersensor")
 end
