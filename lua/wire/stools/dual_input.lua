@@ -42,15 +42,7 @@ TOOL.ClientConVar = {
 
 function TOOL.BuildCPanel(panel)
 	WireToolHelpers.MakePresetControl(panel, "wire_dual_input")
-
-	panel:AddControl("ListBox", {
-		Label = "Model Size",
-		Options = {
-				["normal"] = { wire_dual_input_modelsize = "" },
-				["mini"] = { wire_dual_input_modelsize = "_mini" },
-				["nano"] = { wire_dual_input_modelsize = "_nano" }
-			}
-	})
+	WireToolHelpers.MakeModelSizer(panel, "wire_dual_input_modelsize")
 	ModelPlug_AddToCPanel(panel, "Numpad", "wire_dual_input", "#ToolWireIndicator_Model")
 
 	panel:AddControl("Numpad", {
