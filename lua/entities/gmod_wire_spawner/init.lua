@@ -73,13 +73,10 @@ function ENT:DoSpawn( pl, down )
 		prop = MakePropNoEffect( pl, Pos, Ang, model, {}, {} )
 	end
 
-	if (not prop or not prop:IsValid()) then return end
+	if not IsValid(prop) then return end
 
-	-- apply material and color (TAD2020)
 	prop:SetMaterial( ent:GetMaterial() )
 	prop:SetColor(Color(self.r, self.g, self.b, self.a))
-
-	-- set the skin {Jeremydeath}
 	prop:SetSkin( ent:GetSkin() or 0 )
 
 	-- apply the physic's objects properties
@@ -119,29 +116,25 @@ function ENT:DoSpawn( pl, down )
 end
 
 function ENT:DoUndo( pl )
+	if not next(self.UndoList) then return end
 
-	if #self.UndoList == 0 then return end
+	local ent = table.remove(self.UndoList, #self.UndoList)
 
-	local ent = self.UndoList[	#self.UndoList ]
-	self.UndoList[	#self.UndoList ] = nil
-
-	if (not ent or not ent:IsValid()) then
+	if not IsValid(ent) then
 		return self:DoUndo(pl)
 	end
 
 	ent:Remove()
 	WireLib.AddNotify(pl, "Undone Prop", NOTIFY_UNDO, 2 )
-
 end
 
 function ENT:DoUndoEnt( pl, ent )
-	if (not ent or not ent:IsValid()) then return end
+	if not IsValid(ent) then return end
 
 	if GlobalUndoList[ent] ~= self then return end
 
 	ent:Remove()
 	WireLib.AddNotify(pl, "Undone Prop", NOTIFY_UNDO, 2 )
-
 end
 
 function ENT:CheckEnts(removed_entity)
@@ -206,3 +199,49 @@ function ENT:OnRemove()
 		GlobalUndoList[ent] = nil
 	end
 end
+
+function MakeWireSpawner( pl, Pos, Ang, model, delay, undo_delay, spawn_effect, mat, r, g, b, a, skin, frozen )
+	if !pl:CheckLimit("wire_spawners") then return nil end
+
+	local spawner = ents.Create("gmod_wire_spawner")
+		if !spawner:IsValid() then return end
+		spawner:SetPos(Pos)
+		spawner:SetAngles(Ang)
+		spawner:SetModel(model)
+		spawner:SetRenderMode(3)
+		spawner:SetMaterial(mat or "")
+		spawner:SetSkin(skin or 0)
+		spawner:SetColor(Color(r or 255, g or 255, b or 255, 100))
+	spawner:Spawn()
+
+	if spawner:GetPhysicsObject():IsValid() then
+		local Phys = spawner:GetPhysicsObject()
+		Phys:EnableMotion(!frozen)
+	end
+
+	// In multiplayer we clamp the delay to help prevent people being idiots
+	if not game.SinglePlayer() and delay < 0.1 then
+		delay = 0.1
+	end
+
+	spawner:SetPlayer(pl)
+	spawner:Setup(delay, undo_delay, spawn_effect)
+
+	local tbl = {
+		pl           = pl,
+		mat          = mat,
+		skin         = skin,
+		r            = r,
+		g            = g,
+		b            = b,
+		a            = a,
+	}
+	table.Merge(spawner:GetTable(), tbl)
+
+	pl:AddCount("wire_spawners", spawner)
+	pl:AddCleanup("gmod_wire_spawner", spawner)
+
+	return spawner
+end
+duplicator.RegisterEntityClass("gmod_wire_spawner", MakeWireSpawner, "Pos", "Ang", "Model", "delay", "undo_delay", "spawn_effect", "mat", "r", "g", "b", "a", "skin", "frozen")
+

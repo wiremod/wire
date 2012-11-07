@@ -78,7 +78,7 @@ function ENT:Think()
 	end
 end
 
-function ENT:Setup(toggle, value_off, value_on, entityout)
+function ENT:Setup(toggle, value_off, value_on, description, entityout)
 	self.toggle = toggle
 	self.value_off = value_off
 	self.value_on = value_on
@@ -156,7 +156,7 @@ function MakeWireButton( pl, Pos, Ang, model, toggle, value_off, value_on, descr
 		Phys:EnableMotion(!frozen)
 	end
 
-	wire_button:Setup(toggle, value_off, value_on, entityout )
+	wire_button:Setup(toggle, value_off, value_on, description, entityout )
 	wire_button:SetPlayer(pl)
 	wire_button.pl = pl
 

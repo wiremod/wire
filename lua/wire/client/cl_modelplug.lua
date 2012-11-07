@@ -273,6 +273,64 @@ for k,v in pairs(JaanusThrusters) do
 	end
 end
 
+local explosivemodels = {
+	"models/dav0r/tnt/tnt.mdl",
+	"models/Combine_Helicopter/helicopter_bomb01.mdl",
+	"models/jaanus/thruster_flat.mdl",
+	"models/props_c17/oildrum001.mdl",
+	"models/props_c17/oildrum001_explosive.mdl",
+	"models/props_phx/cannonball.mdl",
+	"models/props_phx/facepunch_barrel.mdl",
+	"models/props_phx/oildrum001.mdl",
+	"models/props_phx/oildrum001_explosive.mdl",
+	"models/props_phx/amraam.mdl",
+	"models/props_phx/mk-82.mdl",
+	"models/props_phx/rocket1.mdl",
+	"models/props_phx/torpedo.mdl",
+	"models/props_phx/ww2bomb.mdl",
+	"models/props_junk/plasticbucket001a.mdl",
+	"models/props_junk/PropaneCanister001a.mdl",
+	"models/props_junk/propane_tank001a.mdl",
+	"models/props_junk/PopCan01a.mdl",
+	"models/props_lab/jar01a.mdl",
+	"models/props_c17/canister_propane01a.mdl",
+	"models/props_c17/canister01a.mdl",
+	"models/props_c17/canister02a.mdl",
+	"models/props_wasteland/gaspump001a.mdl",
+	"models/props_junk/cardboard_box001a.mdl",
+	"models/props_junk/cardboard_box001b.mdl",
+	"models/props_junk/cardboard_box002a.mdl",
+	"models/props_junk/cardboard_box002b.mdl",
+	"models/props_junk/cardboard_box003a.mdl",
+	"models/props_junk/cardboard_box003b.mdl",
+	"models/props_junk/cardboard_box004a.mdl",
+	"models/props_junk/CinderBlock01a.mdl",
+	"models/props_junk/gascan001a.mdl",
+	"models/props_junk/TrafficCone001a.mdl",
+	"models/props_junk/metalgascan.mdl",
+	"models/props_junk/metal_paintcan001a.mdl",
+	"models/props_junk/wood_crate001a.mdl",
+	"models/props_junk/wood_crate002a.mdl",
+	"models/props_junk/wood_pallet001a.mdl",
+}
+for k,v in pairs(explosivemodels) do
+	if file.Exists(v,"GAME") then list.Set( "Wire_Explosive_Models", v, true ) end
+end
+
+local valuemodels = {
+	"models/kobilica/value.mdl",
+	"models/bull/gates/resistor.mdl",
+	"models/bull/gates/transistor1.mdl",
+	"models/bull/gates/transistor2.mdl",
+	"models/cheeze/wires/cpu.mdl",
+	"models/cheeze/wires/chip.mdl",
+	"models/cheeze/wires/ram.mdl",
+	"models/cheeze/wires/nano_value.mdl", -- This guy doesn't have a normal sized one in that folder
+}
+for k,v in pairs(valuemodels) do
+	if file.Exists(v,"GAME") then list.Set( "Wire_Value_Models", v, true ) end
+end
+
 --Beer's models
 --MsgN("\tBeer's Model pack")
 
@@ -303,9 +361,17 @@ list.Set( "Wire_WaterSensor_Models", "models/jaanus/wiretool/wiretool_range.mdl"
 list.Set( "Wire_TargetFinder_Models", "models/beer/wiremod/targetfinder.mdl", true )
 list.Set( "Wire_TargetFinder_Models", "models/props_lab/powerbox02d.mdl", true )
 
+list.Set( "Wire_Forcer_Models", "models/jaanus/wiretool/wiretool_grabber_forcer.mdl", true )
+list.Set( "Wire_Forcer_Models", "models/jaanus/wiretool/wiretool_siren.mdl", true )
+
 --Misc Tools (Entity Marker, Eye Pod, GpuLib Switcher, ect...)
 list.Set( "Wire_Misc_Tools_Models", "models/jaanus/wiretool/wiretool_range.mdl", true )
 list.Set( "Wire_Misc_Tools_Models", "models/jaanus/wiretool/wiretool_siren.mdl", true )
+
+--Laser Tools (Ranger, User, etc)
+list.Set( "Wire_Laser_Tools_Models", "models/jaanus/wiretool/wiretool_range.mdl", true )
+list.Set( "Wire_Laser_Tools_Models", "models/jaanus/wiretool/wiretool_siren.mdl", true )
+list.Set( "Wire_Laser_Tools_Models", "models/jaanus/wiretool/wiretool_beamcaster.mdl", true )
 
 -- Converted from WireModelPacks/wire_model_pack_1plus.txt
 list.Set("Wire_radio_Models", "models/props_lab/reciever01b.mdl", true)
@@ -330,13 +396,10 @@ list.Set("Wire_indicator_Models", "models/jaanus/wiretool/wiretool_pixel_lrg.mdl
 -- Converted from WireModelPacks/wire_model_pack_1.txt
 list.Set("Wire_gate_Models", "models/cheeze/wires/amd_test.mdl", true)
 list.Set("Wire_chip_Models", "models/cheeze/wires/amd_test.mdl", true)
-list.Set("Wire_value_Models", "models/cheeze/wires/amd_test.mdl", true)
 list.Set("Wire_gate_Models", "models/cheeze/wires/mini_cpu.mdl", true)
 list.Set("Wire_chip_Models", "models/cheeze/wires/mini_cpu.mdl", true)
-list.Set("Wire_value_Models", "models/cheeze/wires/mini_cpu.mdl", true)
 list.Set("Wire_gate_Models", "models/cheeze/wires/ram.mdl", true)
 list.Set("Wire_chip_Models", "models/cheeze/wires/ram.mdl", true)
-list.Set("Wire_value_Models", "models/cheeze/wires/ram.mdl", true)
 list.Set("Wire_gate_Models", "models/cheeze/wires/nano_logic.mdl", true)
 list.Set("Wire_chip_Models", "models/cheeze/wires/nano_logic.mdl", true)
 list.Set("Wire_gate_Models", "models/kobilica/transistorsmall.mdl", true)
@@ -353,7 +416,6 @@ list.Set("Wire_gate_Models", "models/cheeze/wires/nano_trig.mdl", true)
 list.Set("Wire_chip_Models", "models/cheeze/wires/nano_trig.mdl", true)
 list.Set("Wire_gate_Models", "models/cheeze/wires/nano_chip.mdl", true)
 list.Set("Wire_chip_Models", "models/cheeze/wires/nano_chip.mdl", true)
-list.Set("Wire_value_Models", "models/cheeze/wires/nano_chip.mdl", true)
 list.Set("Wire_gate_Models", "models/cheeze/wires/cpu2.mdl", true)
 list.Set("Wire_chip_Models", "models/cheeze/wires/cpu2.mdl", true)
 list.Set("Wire_gate_Models", "models/cheeze/wires/nano_math.mdl", true)
@@ -375,16 +437,12 @@ list.Set("Wire_gate_Models", "models/kobilica/capacatitor.mdl", true)
 list.Set("Wire_chip_Models", "models/kobilica/capacatitor.mdl", true)
 list.Set("Wire_gate_Models", "models/cheeze/wires/cpu.mdl", true)
 list.Set("Wire_chip_Models", "models/cheeze/wires/cpu.mdl", true)
-list.Set("Wire_value_Models", "models/cheeze/wires/cpu.mdl", true)
 list.Set("Wire_gate_Models", "models/cheeze/wires/mini_chip.mdl", true)
 list.Set("Wire_chip_Models", "models/cheeze/wires/mini_chip.mdl", true)
-list.Set("Wire_value_Models", "models/cheeze/wires/mini_chip.mdl", true)
 list.Set("Wire_gate_Models", "models/kobilica/lowpolygate.mdl", true)
 list.Set("Wire_chip_Models", "models/kobilica/lowpolygate.mdl", true)
-list.Set("Wire_value_Models", "models/kobilica/lowpolygate.mdl", true)
 list.Set("Wire_gate_Models", "models/cheeze/wires/nano_timer.mdl", true)
 list.Set("Wire_chip_Models", "models/cheeze/wires/nano_timer.mdl", true)
-list.Set("Wire_value_Models", "models/cheeze/wires/nano_value.mdl", true)
 
 -- Converted from WireModelPacks/expression2.txt
 list.Set("Wire_expr2_Models", "models/expression 2/cpu_controller.mdl", true)
@@ -402,7 +460,6 @@ list.Set("Wire_weight_Models", "models/props_interiors/pot01a.mdl", true)
 list.Set("Wire_pixel_Models", "models/jaanus/wiretool/wiretool_siren.mdl", true)
 list.Set("Wire_indicator_Models", "models/jaanus/wiretool/wiretool_siren.mdl", true)
 list.Set("Wire_podctrlr_Models", "models/jaanus/wiretool/wiretool_siren.mdl", true)
-list.Set("Wire_ranger_Models", "models/jaanus/wiretool/wiretool_siren.mdl", true)
 list.Set("Wire_indicator_Models", "models/props_borealis/bluebarrel001.mdl", true)
 list.Set("Wire_indicator_Models", "models/props_junk/TrafficCone001a.mdl", true)
 list.Set("Wire_speaker_Models", "models/props_junk/garbage_metalcan002a.mdl", true)
@@ -416,14 +473,12 @@ list.Set("Wire_gyroscope_Models", "models/cheeze/wires/gyroscope.mdl", true)
 list.Set("Wire_pixel_Models", "models/jaanus/wiretool/wiretool_range.mdl", true)
 list.Set("Wire_indicator_Models", "models/jaanus/wiretool/wiretool_range.mdl", true)
 list.Set("Wire_podctrlr_Models", "models/jaanus/wiretool/wiretool_range.mdl", true)
-list.Set("Wire_ranger_Models", "models/jaanus/wiretool/wiretool_range.mdl", true)
 list.Set("Wire_pixel_Models", "models/props_junk/PopCan01a.mdl", true)
 list.Set("Wire_indicator_Models", "models/props_junk/PopCan01a.mdl", true)
 list.Set("Wire_gate_Models", "models/jaanus/wiretool/wiretool_gate.mdl", true)
 list.Set("Wire_chip_Models", "models/jaanus/wiretool/wiretool_gate.mdl", true)
 list.Set("Wire_detonator_Models", "models/props_combine/breenclock.mdl", true)
 list.Set("Wire_speaker_Models", "models/cheeze/wires/speaker.mdl", true)
-list.Set("Wire_value_Models", "models/kobilica/value.mdl", true)
 list.Set("Wire_radio2_Models", "models/props_lab/bindergreen.mdl", true)
 list.Set("Wire_indicator_Models", "models/props_c17/clock01.mdl", true)
 list.Set("Wire_indicator_Models", "models/props_c17/gravestone004a.mdl", true)
@@ -483,7 +538,6 @@ list.Set("Wire_gate_Models", "models/bull/gates/processor.mdl", true)
 list.Set("Wire_chip_Models", "models/bull/gates/processor.mdl", true)
 list.Set("Wire_gate_Models", "models/bull/gates/resistor_mini.mdl", true)
 list.Set("Wire_chip_Models", "models/bull/gates/resistor_mini.mdl", true)
-list.Set("Wire_value_Models", "models/bull/gates/resistor_mini.mdl", true)
 list.Set("Wire_gate_Models", "models/bull/gates/microcontroller2_nano.mdl", true)
 list.Set("Wire_chip_Models", "models/bull/gates/microcontroller2_nano.mdl", true)
 list.Set("Wire_gate_Models", "models/bull/gates/transistor2_nano.mdl", true)
@@ -494,7 +548,6 @@ list.Set("Wire_gate_Models", "models/bull/gates/logic_nano.mdl", true)
 list.Set("Wire_chip_Models", "models/bull/gates/logic_nano.mdl", true)
 list.Set("Wire_gate_Models", "models/bull/gates/resistor_nano.mdl", true)
 list.Set("Wire_chip_Models", "models/bull/gates/resistor_nano.mdl", true)
-list.Set("Wire_value_Models", "models/bull/gates/resistor_nano.mdl", true)
 list.Set("Wire_gate_Models", "models/bull/gates/microcontroller2.mdl", true)
 list.Set("Wire_chip_Models", "models/bull/gates/microcontroller2.mdl", true)
 list.Set("Wire_gate_Models", "models/bull/gates/logic.mdl", true)
@@ -515,7 +568,6 @@ list.Set("Wire_gate_Models", "models/bull/gates/microcontroller1_mini.mdl", true
 list.Set("Wire_chip_Models", "models/bull/gates/microcontroller1_mini.mdl", true)
 list.Set("Wire_gate_Models", "models/bull/gates/resistor.mdl", true)
 list.Set("Wire_chip_Models", "models/bull/gates/resistor.mdl", true)
-list.Set("Wire_value_Models", "models/bull/gates/resistor.mdl", true)
 list.Set("Wire_gate_Models", "models/bull/gates/transistor2.mdl", true)
 list.Set("Wire_chip_Models", "models/bull/gates/transistor2.mdl", true)
 list.Set("Wire_gate_Models", "models/bull/gates/capacitor.mdl", true)

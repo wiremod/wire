@@ -1,7 +1,5 @@
-
 AddCSLuaFile( "cl_init.lua" )
 AddCSLuaFile( "shared.lua" )
-
 include('shared.lua')
 
 ENT.WireDebugName = "User"
@@ -12,15 +10,12 @@ function ENT:Initialize()
 	self:SetSolid( SOLID_VPHYSICS )
 	self.Inputs = Wire_CreateInputs(self, { "Fire"})
 	self.Outputs = Wire_CreateOutputs(self, {})
-	self:SetBeamLength(2048)
-end
-
-function ENT:OnRemove()
-	Wire_Remove(self)
+	self:Setup(2048)
 end
 
 function ENT:Setup(Range)
 	self:SetBeamLength(Range)
+	self.Range = Range
 end
 
 function ENT:TriggerInput(iname, value)
@@ -48,6 +43,22 @@ function ENT:TriggerInput(iname, value)
 	end
 end
 
-function ENT:OnRestore()
-	Wire_Restored(self)
+function MakeWireUser( pl, Pos, Ang, model, Range )
+	if ( !pl:CheckLimit( "wire_users" ) ) then return false end
+
+	local wire_user = ents.Create( "gmod_wire_user" )
+	if (!wire_user:IsValid()) then return false end
+
+	wire_user:SetAngles( Ang )
+	wire_user:SetPos( Pos )
+	wire_user:SetModel( Model(model) )
+	wire_user:Spawn()
+	wire_user:Setup(Range)
+	wire_user:SetPlayer( pl )
+	wire_user.pl = pl
+
+	pl:AddCount( "wire_users", wire_user )
+
+	return wire_user
 end
+duplicator.RegisterEntityClass("gmod_wire_user", MakeWireUser, "Pos", "Ang", "Model", "Range")

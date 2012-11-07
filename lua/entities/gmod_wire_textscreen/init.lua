@@ -16,7 +16,7 @@ end
 function ENT:Setup(DefaultText, chrPerLine, textJust, valign, fgcolor, bgcolor)
 	self.fgcolor = fgcolor
 	self.bgcolor = bgcolor
-	self.chrPerLine = chrPerLine
+	self.chrPerLine = math.Clamp(math.ceil(chrPerLine or 10), 1, 15)
 	self.textJust = textJust
 	self.valign = valign
 	self:SendConfig()
@@ -26,12 +26,10 @@ end
 
 function ENT:TriggerInput(iname, value)
 	if iname == "String" then
-		self:SetText(value)
-
+		self:SetText(tostring(value))
 	elseif iname == "FGColor" then
 		self.fgcolor = Color(value.x, value.y, value.z)
 		self.doSendConfig = true
-
 	elseif iname == "BGColor" then
 		self.bgcolor = Color(value.x, value.y, value.z)
 		self.doSendConfig = true

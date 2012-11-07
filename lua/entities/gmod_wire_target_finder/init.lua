@@ -15,7 +15,42 @@ function ENT:Initialize()
 	self.Outputs = WireLib.CreateSpecialOutputs( self, { "Out" }, { "ENTITY" } )
 end
 
-function ENT:Setup(maxrange, players, npcs, npcname, beacons, hoverballs, thrusters, props, propmodel, vehicles, playername, casesen, rpgs, painttarget, minrange, maxtargets, maxbogeys, notargetowner, entity, notownersstuff, steamname, colorcheck, colortarget, pcolR, pcolG, pcolB, pcolA, checkbuddylist, onbuddylist )
+function ENT:Setup(maxrange, players, npcs, npcname, beacons, hoverballs, thrusters, props, propmodel, vehicles, playername, casesen, rpgs, painttarget, minrange, maxtargets, maxbogeys, notargetowner, entity, notownersstuff, steamname, colorcheck, colortarget, pcolR, pcolG, pcolB, pcolA, checkbuddylist, onbuddylist )	
+	local ttable = { -- For dupe support
+		range		= range,
+		players		= players,
+		npcs		= npcs,
+		npcname		= npcname,
+		beacons		= beacons,
+		hoverballs	= hoverballs,
+		thrusters	= thrusters,
+		props		= props,
+		propmodel	= propmodel,
+		vehicles	= vehicles,
+		playername	= playername,
+		steamname	= steamname,
+		colorcheck	= colorcheck,
+		colortarget = colortarget,
+		pcolR		= pcolR,
+		pcolG		= pcolG,
+		pcolB		= pcolB,
+		pcolA		= pcolA,
+		casesen		= casesen,
+		rpgs		= rpgs,
+		painttarget = painttarget,
+		nocollide	= nocollide,
+		description	= description,
+		minrange	= minrange,
+		maxtargets	= maxtargets,
+		maxbogeys	= maxbogeys,
+		notargetowner 	= notargetowner,
+		notownersstuff	= notownersstuff,
+		checkbuddylist 	= checkbuddylist,
+		onbuddylist		= onbuddylist,
+		entity 			= entity,
+	}
+	table.Merge( self:GetTable(), ttable )
+	
 	self.MaxRange            = maxrange
 	self.MinRange            = minrange or 1
 	self.TargetPlayer        = players
@@ -43,8 +78,8 @@ function ENT:Setup(maxrange, players, npcs, npcname, beacons, hoverballs, thrust
 	self.CheckBuddyList      = checkbuddylist
 	self.OnBuddyList         = onbuddylist
 	self.PaintTarget         = painttarget
-	self.MaxTargets          = math.floor(math.Clamp((maxtargets or 1), 1, cvars.Number("wire_target_finders_maxtargets", 10)))
-	self.MaxBogeys           = math.floor(math.Clamp((maxbogeys or 1), self.MaxTargets , cvars.Number("wire_target_finders_maxbogeys", 30)))
+	self.MaxTargets          = math.floor(math.Clamp((maxtargets or 1), 1, GetConVarNumber("wire_target_finders_maxtargets", 10)))
+	self.MaxBogeys           = math.floor(math.Clamp((maxbogeys or 1), self.MaxTargets, GetConVarNumber("wire_target_finders_maxbogeys", 30)))
 
 	if (self.SelectedTargets) then --unpaint before clearing
 		for _,ent in pairs(self.SelectedTargets) do
@@ -83,7 +118,6 @@ function ENT:Setup(maxrange, players, npcs, npcname, beacons, hoverballs, thrust
 	end
 	table.insert(AdjInputs, "Hold")
 	Wire_AdjustInputs(self, AdjInputs)
-
 
 	self:ShowOutput(false)
 end
@@ -467,3 +501,23 @@ function ENT:checkOwnership( ent )
 	updateOwnership( self:GetPlayer(), ent )	-- Make sure server and the client are current
 	return ent.WireTargetFinder[ self:GetPlayer() ]
 end
+
+function MakeWireTargetFinder(pl, Pos, Ang, model, range, players, npcs, npcname, beacons, hoverballs, thrusters, props, propmodel, vehicles, playername, casesen, rpgs, painttarget, minrange, maxtargets, maxbogeys, notargetowner, entity, notownersstuff, steamname, colorcheck, colortarget, pcolR, pcolG, pcolB, pcolA, checkbuddylist, onbuddylist)
+	if (!pl:CheckLimit("wire_target_finders")) then return end
+
+	local wire_target_finder = ents.Create("gmod_wire_target_finder")
+	wire_target_finder:SetPos(Pos)
+	wire_target_finder:SetAngles(Ang)
+	wire_target_finder:SetModel( Model(model or "models/props_lab/powerbox02d.mdl") )
+	wire_target_finder:Spawn()
+	wire_target_finder:Activate()
+
+	wire_target_finder:Setup(range, players, npcs, npcname, beacons, hoverballs, thrusters, props, propmodel, vehicles, playername, casesen, rpgs, painttarget, minrange, maxtargets, maxbogeys, notargetowner, entity, notownersstuff, steamname, colorcheck, colortarget, pcolR, pcolG, pcolB, pcolA, checkbuddylist, onbuddylist)
+	wire_target_finder:SetPlayer(pl)
+	wire_target_finder.pl = pl
+
+	pl:AddCount( "wire_target_finders", wire_target_finder )
+
+	return wire_target_finder
+end
+duplicator.RegisterEntityClass("gmod_wire_target_finder", MakeWireTargetFinder, "Pos", "Ang", "Model", "range", "players", "npcs", "npcname", "beacons", "hoverballs", "thrusters", "props", "propmodel", "vehicles", "playername", "casesen", "rpgs", "painttarget", "minrange", "maxtargets", "maxbogeys", "notargetowner", "entity", "notownersstuff", "steamname", "colorcheck", "colortarget", "pcolR", "pcolG", "pcolB", "pcolA", "checkbuddylist", "onbuddylist")

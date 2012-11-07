@@ -92,6 +92,13 @@ e2function number entity:isAlive()
 	return 0
 end
 
+-- returns 1 if players has flashlight on or 0 if not
+e2function number entity:isFlashlightOn()
+	if not IsValid(this) then return 0 end
+	if not this:IsPlayer() then return 0 end
+	if this:FlashlightIsOn() then return 1 else return 0 end
+end
+
 /******************************************************************************/
 
 e2function number entity:frags()
