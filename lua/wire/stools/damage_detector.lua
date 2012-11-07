@@ -11,9 +11,8 @@ end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 10, TOOL.Mode.."s" , "You've hit the Wire "..TOOL.PluralName.." limit!" )
 
-TOOL.Model =  "models/jaanus/wiretool/wiretool_siren.mdl"
 TOOL.ClientConVar = {
-	model = TOOL.Model,
+	model = "models/jaanus/wiretool/wiretool_siren.mdl",
 	includeconstrained = 0
 }
 

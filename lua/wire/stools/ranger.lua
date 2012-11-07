@@ -38,9 +38,8 @@ if SERVER then
 	end
 end
 
-TOOL.Model = "models/jaanus/wiretool/wiretool_range.mdl"
 TOOL.ClientConVar = {
-	model = TOOL.Model,
+	model = "models/jaanus/wiretool/wiretool_range.mdl",
 	range = 1500,
 	default_zero = 1,
 	show_beam = 1,

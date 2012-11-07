@@ -20,9 +20,8 @@ if SERVER then
 	end
 end
 
-TOOL.Model = "models/beer/wiremod/watersensor.mdl"
 TOOL.ClientConVar = {
-	model = TOOL.Model,
+	model = "models/beer/wiremod/watersensor.mdl",
 	modelsize = "",
 }
 

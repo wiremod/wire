@@ -19,9 +19,8 @@ if SERVER then
 	end
 end
 
-TOOL.Model = "models/beer/wiremod/gps.mdl"
 TOOL.ClientConVar = {
-	model = TOOL.Model,
+	model = "models/beer/wiremod/gps.mdl",
 	modelsize = "",
 }
 

@@ -11,9 +11,8 @@ if CLIENT then
 	language.Add("Cleaned_wire_expressions",   "Cleaned up all Wire Expressions" )
 end
 
-TOOL.Model = "models/beer/wiremod/gate_e2.mdl"
 TOOL.ClientConVar = {
-	model       = TOOL.Model,
+	model       = "models/beer/wiremod/gate_e2.mdl",
 	modelsize	= "",
 	scriptmodel = "",
 	select      = "",
@@ -33,8 +32,7 @@ if SERVER then
 
 		local model = self:GetModel()
 		local pos = trace.HitPos
-		local ang = trace.HitNormal:Angle()
-		ang.pitch = ang.pitch + 90
+		local ang = self:GetAngle(trace)
 
 		if  trace.Entity:IsValid()
 		    && trace.Entity:GetClass() == "gmod_wire_expression2"

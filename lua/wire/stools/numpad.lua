@@ -23,9 +23,8 @@ if SERVER then
 	end
 end
 
-TOOL.Model = "models/beer/wiremod/numpad.mdl"
 TOOL.ClientConVar = {
-	model = TOOL.Model,
+	model = "models/beer/wiremod/numpad.mdl",
 	modelsize = "",
 	toggle = 0,
 	value_off = 0,
@@ -35,7 +34,7 @@ TOOL.ClientConVar = {
 function TOOL.BuildCPanel(panel)
 	WireToolHelpers.MakePresetControl(panel, "wire_numpad")
 	WireToolHelpers.MakeModelSizer(panel, "wire_numpad_modelsize")
-	ModelPlug_AddToCPanel(panel, "Numpad", "wire_numpad", "#ToolWireIndicator_Model")
+	ModelPlug_AddToCPanel(panel, "Numpad", "wire_numpad", true)
 	panel:CheckBox("#WireNumpadTool_toggle","wire_numpad_toggle")
 	panel:NumSlider("#WireNumpadTool_value_on","wire_numpad_value_on",-10,10,0)
 	panel:NumSlider("#WireNumpadTool_value_off","wire_numpad_value_off",-10,10,0)

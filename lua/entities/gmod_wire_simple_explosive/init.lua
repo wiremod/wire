@@ -90,7 +90,7 @@ function ENT:ShowOutput( )
 end
 
 function MakeWireSimpleExplosive(pl, Pos, Ang, model, key, damage, removeafter, radius, nocollide )
-	if ( !pl:CheckLimit( "wire_simple_explosive" ) ) then return nil end
+	if ( !pl:CheckLimit( "wire_simple_explosives" ) ) then return nil end
 	local explosive = ents.Create( "gmod_wire_simple_explosive" )
 
 	explosive:SetModel( model )

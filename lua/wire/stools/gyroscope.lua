@@ -22,9 +22,8 @@ if SERVER then
 	end
 end
 
-TOOL.Model = "models/bull/various/gyroscope.mdl"
 TOOL.ClientConVar = {
-	model = TOOL.Model,
+	model = "models/bull/various/gyroscope.mdl",
 	out180 = 0,
 }
 
