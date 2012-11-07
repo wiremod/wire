@@ -89,48 +89,6 @@ function WireToolMakeGrabber( self, trace, ply )
 	return wire_grabber
 end
 
-
-function WireToolMakeHoverball( self, trace, ply )
-
-	local speed 		= self:GetClientNumber( "speed" )
-	local resistance 	= self:GetClientNumber( "resistance" )
-	local strength	 	= self:GetClientNumber( "strength" )
-	local starton	 	= self:GetClientNumber( "starton" ) == 1
-
-	resistance 	= math.Clamp( resistance, 0, 20 )
-	strength	= math.Clamp( strength, 0.1, 20 )
-
-	-- We shot an existing hoverball - just change its values
-	if trace.Entity:IsValid() and trace.Entity:GetClass() == "gmod_wire_hoverball" then
-
-		trace.Entity:SetSpeed( speed )
-		trace.Entity:SetAirResistance( resistance )
-		trace.Entity:SetStrength( strength )
-
-		trace.Entity.speed		= speed
-		trace.Entity.strength	= strength
-		trace.Entity.resistance	= resistance
-
-		if not starton then trace.Entity:DisableHover() else trace.Entity:EnableHover() end
-
-		return true
-	end
-
-	if not self:GetSWEP():CheckLimit( "wire_hoverballs" ) then return false end
-
-	-- If we hit the world then offset the spawn position
-	if trace.Entity:IsWorld() then
-		trace.HitPos = trace.HitPos + trace.HitNormal * 8
-	end
-
-	local wire_ball = MakeWireHoverBall( ply, trace.HitPos, Angle(0,0,0), self.Model, speed, resistance, strength )
-
-	if not starton then wire_ball:DisableHover() end
-
-	return wire_ball
-end
-
-
 function WireToolMakeIgniter( self, trace, ply )
 
 	local trgply	= self:GetClientNumber( "trgply" ) ~= 0
