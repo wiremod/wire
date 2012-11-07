@@ -66,7 +66,7 @@ end
 
 function ENT:SetDirection( dir )
 	self:SetNetworkedInt( 1, dir )
-	self.Direction = dir
+	self.direction = dir
 end
 
 

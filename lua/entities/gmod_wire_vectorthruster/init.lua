@@ -22,7 +22,7 @@ function ENT:Initialize()
 	self.X = 0
 	self.Y = 0
 	self.Z = 0
-	self.Mode = 0
+	self.mode = 0
 	self.yaw = 0
 	self.pitch = 0
 	self.mul = 0
@@ -32,8 +32,8 @@ function ENT:Initialize()
 
 	self:SetForce( 2000 )
 
-	self.OWEffect = "fire"
-	self.UWEffect = "same"
+	self.oweffect = "fire"
+	self.uweffect = "same"
 
 	self:SetOffset( self.ThrustOffset )
 	self:StartMotionController()
@@ -42,14 +42,14 @@ function ENT:Initialize()
 
 	self.Inputs = Wire_CreateInputs(self, { "Mul" })
 
-	self.SoundName = Sound( "PhysicsCannister.ThrusterLoop" )
+	self.soundname = Sound( "PhysicsCannister.ThrusterLoop" )
 end
 
 function ENT:OnRemove()
 	self.BaseClass.OnRemove(self)
 
-	if (self.SoundName) then
-		self:StopSound(self.SoundName)
+	if (self.soundname) then
+		self:StopSound(self.soundname)
 	end
 end
 
@@ -68,14 +68,14 @@ function ENT:SetForce( force, mul )
 
 	local ThrusterWorldPos
 	local ThrusterWorldForce
-	if (self.Mode == 1) then
+	if (self.mode == 1) then
 		ThrusterWorldPos = self:GetPos() + self.ThrustOffset
 		ThrusterWorldForce = self.ThrustOffset * -1
 	else
 		ThrusterWorldPos = phys:LocalToWorld( self.ThrustOffset )
 		ThrusterWorldForce = phys:LocalToWorldVector( self.ThrustOffset * -1 )
 	end
-	if (self.Mode == 2) then
+	if (self.mode == 2) then
 		ThrusterWorldPos.z = ThrusterWorldPos.z + self.Z
 		ThrusterWorldForce.z = ThrusterWorldForce.z - self.Z
 	end
@@ -87,80 +87,48 @@ function ENT:SetForce( force, mul )
 	self.ForceLinear = phys:WorldToLocalVector( self.ForceLinear )
 end
 
-/*function ENT:Think()
-	self.BaseClass.Think(self)
-
-	if (self.Mode > 0 and self:IsOn()) then
-		self:Switch( self:IsOn(), self.mul )
-
-		local phys = self:GetPhysicsObject()
-		if (!phys:IsValid()) then return end
-
-		local ThrusterWorldPos
-		local ThrusterWorldForce
-		if (self.Mode == 1) then
-			ThrusterWorldPos = self:GetPos() + self.ThrustOffset
-			ThrusterWorldForce = (self.ThrustOffset * -1)
-		elseif (self.Mode == 2) then
-			ThrusterWorldPos = phys:LocalToWorld( self.ThrustOffset )
-			ThrusterWorldForce = phys:LocalToWorldVector( self.ThrustOffset * -1 )
-			ThrusterWorldPos.z = ThrusterWorldPos.z + self.Z
-			ThrusterWorldForce.z = ThrusterWorldForce.z - self.Z
-		end
-
-		ThrusterWorldForce = ThrusterWorldForce * self.force * mul * 10
-		self.ForceLinear, self.ForceAngle = phys:CalculateVelocityOffset( ThrusterWorldForce, ThrusterWorldPos );
-		self.ForceLinear = phys:WorldToLocalVector( self.ForceLinear )
-
-		self:NextThink(CurTime()+0.04)
-		return true
-	end
-end*/
-
 function ENT:Setup(force, force_min, force_max, oweffect, uweffect, owater, uwater, bidir, soundname, mode, angleinputs)
 	self:SetForce(force)
 
-	self.OWEffect = oweffect
-	self.UWEffect = uweffect
-	self.ForceMin = force_min
-	self.ForceMax = force_max
-	self.BiDir = bidir
-	self.OWater = owater
-	self.UWater = uwater
+	self.oweffect = oweffect
+	self.uweffect = uweffect
+	self.force_min = force_min
+	self.force_max = force_max
+	self.bidir = bidir
+	self.owater = owater
+	self.uwater = uwater
+	self.angleinputs = angleinputs
 	
 	-- Preventing client crashes
 	local BlockedChars = '["?]'
 	if ( string.find(soundname, BlockedChars) ) then
-		self:StopSound( self.SoundName )
 		soundname = ""
 	end
 
-	if (soundname and soundname == "" and self.SoundName and self.SoundName != "") then
-		self:StopSound(self.SoundName)
+	if (soundname and soundname == "" and self.soundname and self.soundname != "") then
+		self:StopSound(self.soundname)
 	end
 
 	if (soundname) then
-		self.SoundName = Sound(soundname)
+		self.soundname = Sound(soundname)
 	end
 
-	self.Mode = mode
-	self:SetMode( self.Mode )
+	self.mode = mode
+	self:SetMode( self.mode )
 
 	if (angleinputs) then
 		WireLib.AdjustInputs(self, {"Mul", "Pitch", "Yaw"})
 	else
 		WireLib.AdjustSpecialInputs(self, {"Mul", "X", "Y", "Z", "Vector"}, { "NORMAL", "NORMAL", "NORMAL", "NORMAL", "VECTOR"})
 	end
-
-	--self:ShowOutput( self.mul )
 end
 
 function ENT:TriggerInput(iname, value)
 	if (iname == "Mul") then
 		if (value == 0) or (self.ThrustOffset == Vector(0,0,0)) then
-			self:Switch(false, math.min(value, self.ForceMax))
-		elseif ( (self.BiDir) and (math.abs(value) > 0.01) and (math.abs(value) > self.ForceMin) ) or ( (value > 0.01) and (value > self.ForceMin) ) then
-			self:Switch(true, math.Clamp(value, -self.ForceMax, self.ForceMax))
+			self:Switch(false, math.min(value, self.force_max))
+		elseif ( (self.bidir) and (math.abs(value) > 0.01) and (math.abs(value) > self.force_min) ) or ( (value > 0.01) and (value > self.force_min) ) then
+			self:Switch(true, math.Clamp(value, -self.force_max, self.force_max))
 		else
 			self:Switch(false, 0)
 		end
@@ -185,7 +153,7 @@ function ENT:TriggerInput(iname, value)
 
 	self.ThrustOffset = Vector( self.X, self.Y, self.Z ):GetNormalized()
 	self:SetOffset( self.ThrustOffset )
-	if (self.Mode == 2) then
+	if (self.mode == 2) then
 		self.ThrustOffset = Vector( self.X, self.Y, 0 ):GetNormalized()
 	end
 
@@ -198,26 +166,26 @@ function ENT:PhysicsSimulate( phys, deltatime )
 	if (self:IsPlayerHolding()) then return SIM_NOTHING end
 
 	if (self:WaterLevel() > 0) then
-		if (not self.UWater) then
+		if (not self.uwater) then
 			self:SetEffect("none")
 			return SIM_NOTHING
 		end
 
-		if (self.UWEffect == "same") then
-			self:SetEffect(self.OWEffect)
+		if (self.uweffect == "same") then
+			self:SetEffect(self.oweffect)
 		else
-			self:SetEffect(self.UWEffect)
+			self:SetEffect(self.uweffect)
 		end
 	else
-		if (not self.OWater) then
+		if (not self.owater) then
 			self:SetEffect("none")
 			return SIM_NOTHING
 		end
 
-		self:SetEffect(self.OWEffect)
+		self:SetEffect(self.oweffect)
 	end
 
-	if (self.Mode > 0 and self:IsOn()) then
+	if (self.mode > 0 and self:IsOn()) then
 		self:Switch( self:IsOn(), self.mul )
 	end
 
@@ -234,9 +202,9 @@ function ENT:Switch( on, mul )
 	self:SetOn( on )
 
 	if (on) then
-		if (changed) and (self.SoundName and self.SoundName != "") then
-			self:StopSound( self.SoundName )
-			self:EmitSound( self.SoundName )
+		if (changed) and (self.soundname and self.soundname != "") then
+			self:StopSound( self.soundname )
+			self:EmitSound( self.soundname )
 		end
 
 		self:NetSetMul( mul )
@@ -249,8 +217,8 @@ function ENT:Switch( on, mul )
 
 		self:SetForce( nil, mul )
 	else
-		if (self.SoundName and self.SoundName != "") then
-			self:StopSound( self.SoundName )
+		if (self.soundname and self.soundname != "") then
+			self:StopSound( self.soundname )
 		end
 
 		if (self.PrevOutput) then
@@ -270,9 +238,9 @@ end
 
 function ENT:ShowOutput( on )
 	local mode = "XYZ Local"
-	if (self.Mode == 1) then
+	if (self.mode == 1) then
 		mode = "XYZ World"
-	elseif (self.Mode == 2) then
+	elseif (self.mode == 2) then
 		mode = "XY Local, Z World"
 	end
 	if ( on ) then
@@ -281,6 +249,29 @@ function ENT:ShowOutput( on )
 		self:SetOverlayText( "Thrust = Off".."\nMul: "..math.Round(self.force*1000)/1000 .. "\nMode: "..mode )
 	end
 end
+
+function MakeWireVectorThruster( pl, Pos, Ang, model, force, force_min, force_max, oweffect, uweffect, owater, uwater, bidir, soundname, nocollide, mode, angleinputs)
+	if ( !pl:CheckLimit( "wire_thrusters" ) ) then return false end
+	mode = mode or 0
+
+	local wire_thruster = ents.Create( "gmod_wire_vectorthruster" )
+	if (!wire_thruster:IsValid()) then return false end
+	wire_thruster:SetModel( model )
+
+	wire_thruster:SetAngles( Ang )
+	wire_thruster:SetPos( Pos )
+	wire_thruster:Spawn()
+
+	wire_thruster:Setup(force, force_min, force_max, oweffect, uweffect, owater, uwater, bidir, soundname, mode, angleinputs)
+	wire_thruster:SetPlayer( pl )
+
+	if ( nocollide == true ) then wire_thruster:GetPhysicsObject():EnableCollisions( false ) end
+
+	pl:AddCount( "wire_thrusters", wire_thruster )
+
+	return wire_thruster
+end
+duplicator.RegisterEntityClass("gmod_wire_vectorthruster", MakeWireVectorThruster, "Pos", "Ang", "Model", "force", "force_min", "force_max", "oweffect", "uweffect", "owater", "uwater", "bidir", "soundname", "nocollide", "mode", "angleinputs")
 
 function ENT:OnRestore()
 	local phys = self:GetPhysicsObject()

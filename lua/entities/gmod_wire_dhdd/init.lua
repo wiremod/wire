@@ -92,3 +92,23 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 	ent:SetPlayer( ply )
 	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
 end
+
+
+function MakeWireDHDD( ply, Pos, Ang, model )
+	if (!ply:CheckLimit( "wire_dhdds" )) then return false end
+
+	local dhdd = ents.Create( "gmod_wire_dhdd" )
+	if (!dhdd:IsValid()) then return false end
+
+	dhdd:SetAngles( Ang )
+	dhdd:SetPos( Pos )
+	dhdd:SetModel( model )
+	dhdd:SetPlayer( ply )
+	dhdd:Spawn()
+	dhdd:Activate()
+
+	ply:AddCount( "wire_dhdds", dhdd )
+
+	return dhdd
+end
+duplicator.RegisterEntityClass( "gmod_wire_dhdd", MakeWireDHDD, "Pos", "Ang", "model" )

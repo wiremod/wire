@@ -19,7 +19,7 @@ TOOL.ClientConVar = {
 
 function TOOL.BuildCPanel(panel)
 	WireToolHelpers.MakePresetControl(panel, "wire_forcer")
-	ModelPlug_AddToCPanel(panel, "Forcer", TOOL.Mode, true, 1)
+	ModelPlug_AddToCPanel(panel, "Forcer", "wire_forcer", true, 1)
 	panel:NumSlider("Force multiplier", "wire_forcer_multiplier", 1, 10000, 0)
 	panel:NumSlider("Force distance", "wire_forcer_length", 1, 10000, 0)
 	panel:CheckBox("Show beam", "wire_forcer_beam")
