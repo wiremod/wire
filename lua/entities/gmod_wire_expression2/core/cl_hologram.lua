@@ -14,7 +14,7 @@ hook.Add( "HUDPaint", "wire_holograms_showowners", function()
 			if ply:UserID() == id then
 				local vec = ent:GetPos():ToScreen()
 
-				draw.DrawText( ply:Name() .. "\n" .. ply:SteamID(), "ScoreboardText", vec.x, vec.y, Color(255,0,0,255), 1 )
+				draw.DrawText( ply:Name() .. "\n" .. ply:SteamID(), "DermaDefault", vec.x, vec.y, Color(255,0,0,255), 1 )
 				break
 			end
 		end
