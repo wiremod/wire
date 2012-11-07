@@ -26,9 +26,8 @@ if SERVER then
 	end
 end
 
-TOOL.Model = "models/props_c17/clock01.mdl"
 TOOL.ClientConVar = {
-	model = TOOL.Model,
+	model = "models/props_c17/clock01.mdl",
 	model_category = "button",
 	toggle = "0",
 	value_off = "0",

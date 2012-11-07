@@ -213,6 +213,8 @@ function WireToolObj:GetModel()
 		return model_convar
 	elseif self.Model then
 		return self.Model
+	elseif self.ClientConVar.model then
+		return self.ClientConVar.model -- The default model
 	else
 		return "models/props_c17/oildrum001.mdl" --use some other random, valid prop instead if they fuck up
 	end
@@ -231,7 +233,9 @@ function WireToolObj:GetAngle( trace )
 	elseif self.GhostAngle then -- the tool gives a fixed angle to add
 		Ang = Ang + self.GhostAngle
 	end
-	Ang.pitch = Ang.pitch + 90
+	if not self.ClientConVar.createflat or self:GetClientNumber("createflat") == 0 then
+		Ang.pitch = Ang.pitch + 90
+	end
 	return Ang
 end
 
@@ -301,7 +305,7 @@ if CLIENT then
 	function WireToolHelpers.MakeModelSel(panel, mode)
 		local TOOL = GetTOOL(mode)
 		if not TOOL then return end
-		ModelPlug_AddToCPanel(panel, TOOL.short_name, TOOL.Mode, "#ToolWireIndicator_Model")
+		ModelPlug_AddToCPanel(panel, TOOL.short_name, TOOL.Mode, true)
 	end
 end
 

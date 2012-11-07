@@ -18,12 +18,11 @@ if SERVER then
 	end
 end
 
-TOOL.Model = "models/props_interiors/pot01a.mdl"
 TOOL.ClientConVar = {
-	model = TOOL.Model,
+	model = "models/props_interiors/pot01a.mdl",
 }
 TOOL.ReloadSetsModel = true
 
 function TOOL.BuildCPanel(panel)
-	ModelPlug_AddToCPanel(panel, "weight", "wire_weight")
+	ModelPlug_AddToCPanel(panel, "weight", "wire_weight", true)
 end

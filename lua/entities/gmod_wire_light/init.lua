@@ -112,7 +112,6 @@ function ENT:TriggerInput(iname, value)
 		B = value
 	elseif (iname == "RGB") then
 		R,G,B = value[1], value[2], value[3]
-
 	elseif (iname == "GlowBrightness") then
 		self:SetBrightness(value)
 	elseif (iname == "GlowDecay") then
@@ -178,7 +177,7 @@ function ENT:ShowOutput( R, G, B )
 			self:DirectionalOff()
 			self:RadiantOff()
 		end
-		self:SetOverlayText( "Red=" .. R .. " Green:" .. G .. " Blue:" .. B )
+		self:SetOverlayText( "Red:" .. R .. " Green:" .. G .. " Blue:" .. B )
 		self.R, self.G, self.B = R, G, B
 		self:SetColor(Color(R, G, B, self:GetColor().a))
 	end
@@ -216,5 +215,4 @@ function MakeWireLight( pl, Pos, Ang, model, directional, radiant, glow, nocolli
 
 	return wire_light
 end
-
 duplicator.RegisterEntityClass("gmod_wire_light", MakeWireLight, "Pos", "Ang", "Model", "directional", "radiant", "glow", "nocollide", "frozen")

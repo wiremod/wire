@@ -60,9 +60,8 @@ if SERVER then
 	end
 end
 
-TOOL.Model = "models/beer/wiremod/targetfinder.mdl"
 TOOL.ClientConVar = {
-	model = TOOL.Model,
+	model = "models/beer/wiremod/targetfinder.mdl",
 	modelsize = "",
 	minrange = 1,
 	maxrange = 1000,
@@ -107,7 +106,7 @@ end
 function TOOL.BuildCPanel(panel)
 	WireToolHelpers.MakePresetControl(panel, "wire_target_finder")
 	WireToolHelpers.MakeModelSizer(panel, "wire_target_finder_modelsize")
-	ModelPlug_AddToCPanel(panel, "TargetFinder", "wire_target_finder", "#ToolWireIndicator_Model")
+	ModelPlug_AddToCPanel(panel, "TargetFinder", "wire_target_finder", true)
 	panel:NumSlider("#WireTargetFinderTool_minrange","wire_target_finder_minrange",1,10000,0)
 	panel:NumSlider("#WireTargetFinderTool_maxrange","wire_target_finder_maxrange",1,10000,0)
 	panel:NumSlider("#WireTargetFinderTool_maxtargets","wire_target_finder_maxtargets",1,10,0)

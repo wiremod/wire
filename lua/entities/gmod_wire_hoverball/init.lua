@@ -10,11 +10,7 @@ ENT.OnState = 0
    Name: Initialize
 ---------------------------------------------------------*/
 function ENT:Initialize()
-
-	self:SetModel( "models/dav0r/hoverball.mdl" )
-
 	// Don't use the model's physics object, create a perfect sphere
-
 	self:PhysicsInitSphere( 8, "metal_bouncy" )
 
 	// Wake up our physics object so we don't start asleep
@@ -240,8 +236,18 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 	end
 end
 
+function ENT:Setup(speed, resistance, strength, starton)
+	self:SetSpeed( speed )
+	self:SetAirResistance( resistance )
+	self:SetStrength( strength )
+	if not starton then self:DisableHover() else self:EnableHover() end
+	self.speed = speed
+	self.resistance = resistance
+	self.strength = strength
+	self.starton = starton
+end
 
-function MakeWireHoverBall( pl, Pos, Ang, model, speed, resistance, strength, nocollide )
+function MakeWireHoverBall( pl, Pos, Ang, model, speed, resistance, strength, starton, nocollide )
 	if not pl:CheckLimit( "wire_hoverballs" ) then return nil end
 
 	local wire_ball = ents.Create( "gmod_wire_hoverball" )
@@ -251,24 +257,14 @@ function MakeWireHoverBall( pl, Pos, Ang, model, speed, resistance, strength, no
 	wire_ball:SetAngles( Ang )
 	wire_ball:SetModel( model )
 	wire_ball:Spawn()
-	wire_ball:SetSpeed( speed )
 	wire_ball:SetPlayer( pl )
-	wire_ball:SetAirResistance( resistance )
-	wire_ball:SetStrength( strength )
-
-	local ttable = {
-		pl = pl,
-		nocollide = nocollide,
-		speed = speed,
-		strength = strength,
-		resistance = resistance
-	}
-	table.Merge( wire_ball:GetTable(), ttable )
+	wire_ball.pl = pl
+	wire_ball.nocollide = nocollide
+	
+	wire_ball:Setup(speed, resistance, strength, starton)
 
 	pl:AddCount( "wire_hoverballs", wire_ball )
 
 	return wire_ball
 end
-
-duplicator.RegisterEntityClass("gmod_wire_hoverball", MakeWireHoverBall, "Pos", "Ang", "Model", "speed", "resistance", "strength", "nocollide")
-
+duplicator.RegisterEntityClass("gmod_wire_hoverball", MakeWireHoverBall, "Pos", "Ang", "Model", "speed", "resistance", "strength", "starton", "nocollide")

@@ -21,9 +21,8 @@ if SERVER then
 end
 
 TOOL.NoLeftOnClass = true
-TOOL.Model = "models/jaanus/wiretool/wiretool_siren.mdl"
 TOOL.ClientConVar = {
-	model = TOOL.Model
+	model = "models/jaanus/wiretool/wiretool_siren.mdl"
 }
 
 function TOOL:RightClick(trace)
@@ -53,5 +52,5 @@ function TOOL:Reload(trace)
 end
 
 function TOOL.BuildCPanel(panel)
-	ModelPlug_AddToCPanel(panel, "podctrlr", "wire_adv_pod", nil, nil, nil, 1)
+	ModelPlug_AddToCPanel(panel, "podctrlr", "wire_adv_pod", nil, 1)
 end

@@ -26,9 +26,8 @@ if SERVER then
 	end
 end
 
-TOOL.Model = "models/props_c17/oildrum001_explosive.mdl"
 TOOL.ClientConVar = {
-	model = TOOL.Model,
+	model = "models/props_c17/oildrum001_explosive.mdl",
 	modelman = "",
 	trigger = 1,		-- Wire input value to cause the explosion
 	damage = 200,		-- Damage to inflict

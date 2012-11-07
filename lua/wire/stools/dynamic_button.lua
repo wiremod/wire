@@ -26,9 +26,8 @@ if SERVER then
 	end
 end
 
-TOOL.Model = "models/bull/ranger.mdl"
 TOOL.ClientConVar = {
-	model = TOOL.Model,
+	model = "models/bull/ranger.mdl",
 	model_category = "dynamic_button",
 	toggle = "0",
 	value_off = "0",
