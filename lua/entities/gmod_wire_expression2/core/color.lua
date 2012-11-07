@@ -1,10 +1,13 @@
 /******************************************************************************\
-  Colour support
+  Color support
 \******************************************************************************/
 
 local Clamp = math.Clamp
 local floor = math.floor
-local abs = math.abs
+
+local function RGBClamp(r,g,b)
+	return Clamp(r,0,255),Clamp(g,0,255),Clamp(b,0,255)
+end
 
 local function ColorClamp(c)
 	c.r = Clamp(c.r,0,255)
@@ -83,6 +86,8 @@ e2function void entity:setAlpha(a)
 	this:SetRenderMode(c.a == 255 and RENDERMODE_NORMAL or RENDERMODE_TRANSALPHA)
 end
 
+--- HSV
+
 --- Converts <hsv> from the [http://en.wikipedia.org/wiki/HSV_color_space HSV color space] to the [http://en.wikipedia.org/wiki/RGB_color_space RGB color space]
 e2function vector hsv2rgb(vector hsv)
 	local col = HSVToColor(hsv[1], hsv[2], hsv[3])
@@ -99,85 +104,95 @@ e2function vector rgb2hsv(vector rgb)
 	return { ColorToHSV(Color(rgb[1], rgb[2], rgb[3])) }
 end
 
-e2function vector hsl2rgb(hue, saturation, lightness)
-	local chroma = (1 - abs(2*lightness - 1)) * saturation * 255
-	local m = lightness*255 - chroma * 0.5
-	local hue_quadrant = hue/60
-	local x_m = chroma * (1 - abs(hue_quadrant % 2 - 1)) + m
-
-	if hue_quadrant < 3 then
-		-- hue_quadrant < 3
-		if hue_quadrant < 2 then
-			-- hue_quadrant < 2
-			if hue_quadrant < 1 then
-				-- hue_quadrant < 1
-				return { chroma + m, x_m, m }
-			else
-				-- 1 <= hue_quadrant < 2
-				return { x_m, chroma + m, m }
-			end
-		else
-			-- 2 <= hue_quadrant < 3
-			return { m, chroma + m, x_m }
-		end
-	else
-		-- 3 <= hue_quadrant
-		if 4 <= hue_quadrant then
-			-- 4 <= hue_quadrant
-			if 5 <= hue_quadrant then
-				-- 5 <= hue_quadrant
-				return { chroma + m, m, x_m }
-			else
-				-- 4 <= hue_quadrant < 5
-				return { x_m, m, chroma + m }
-			end
-		else
-			-- 3 <= hue_quadrant < 4
-			return { m, x_m, chroma + m }
-		end
-	end
+e2function vector rgb2hsv(r, g, b)
+	return { ColorToHSV(Color(r, g, b)) }
 end
 
+--- HSL
+
+local function Convert_hue2rgb(p, q, t)
+	if t < 0 then t = t + 1 end
+	if t > 1 then t = t - 1 end
+	if t < 1/6 then return p + (q - p) * 6 * t end
+	if t < 1/2 then return q end
+	if t < 2/3 then return p + (q - p) * (2/3 - t) * 6 end
+	return p
+end
+
+local function Convert_hsl2rgb(h, s, l)
+	local r = 0
+	local g = 0
+	local b = 0
+
+	if s == 0 then
+		r = l
+		g = l
+		b = l
+	else
+		local q = l + s - l * s
+		if l < 0.5 then q = l * (1 + s) end
+		local p = 2 * l - q
+		r = Convert_hue2rgb(p, q, h + 1/3)
+		g = Convert_hue2rgb(p, q, h)
+		b = Convert_hue2rgb(p, q, h - 1/3)
+	end
+
+	return floor(r * 255), floor(g * 255), floor(b * 255)
+end
+
+local function Convert_rgb2hsl(r, g, b)
+  	r = r / 255
+  	g = g / 255
+  	b = b / 255
+	local max = math.max(r, g, b)
+	local min = math.min(r, g, b)
+	local h = (max + min) / 2
+	local s = h
+	local l = h
+
+	if max == min then
+		h = 0
+		s = 0
+	else
+		local d = max - min
+		s =  d / (max + min)
+		if l > 0.5 then s = d / (2 - max - min) end
+		if max == r then
+			if g < b then
+				h = (g - b) / d + 6
+			else
+				h = (g - b) / d + 0
+			end
+		elseif max == g then
+			h = (b - r) / d + 2
+		elseif max == b then
+			h = (r - g) / d + 4
+		end
+		h = h / 6
+	end
+
+	return h, s, l
+end
+
+--- Converts <hsl> HSL color space to RGB color space - takes 0-1 parameters
 e2function vector hsl2rgb(vector hsl)
-	local hue, saturation, lightness = hsl[1], hsl[2], hsl[3]
-
-	local chroma = (1 - abs(2*lightness - 1)) * saturation * 255
-	local m = lightness*255 - chroma * 0.5
-	local hue_quadrant = hue/60
-	local x_m = chroma * (1 - abs(hue_quadrant % 2 - 1)) + m
-
-	if hue_quadrant < 3 then
-		-- hue_quadrant < 3
-		if hue_quadrant < 2 then
-			-- hue_quadrant < 2
-			if hue_quadrant < 1 then
-				-- hue_quadrant < 1
-				return { chroma + m, x_m, m }
-			else
-				-- 1 <= hue_quadrant < 2
-				return { x_m, chroma + m, m }
-			end
-		else
-			-- 2 <= hue_quadrant < 3
-			return { m, chroma + m, x_m }
-		end
-	else
-		-- 3 <= hue_quadrant
-		if 4 <= hue_quadrant then
-			-- 4 <= hue_quadrant
-			if 5 <= hue_quadrant then
-				-- 5 <= hue_quadrant
-				return { chroma + m, m, x_m }
-			else
-				-- 4 <= hue_quadrant < 5
-				return { x_m, m, chroma + m }
-			end
-		else
-			-- 3 <= hue_quadrant < 4
-			return { m, x_m, chroma + m }
-		end
-	end
+	return { RGBClamp(Convert_hsl2rgb(hsl[1], hsl[2], hsl[3])) }
 end
+
+e2function vector hsl2rgb(h, s, l)
+	return { RGBClamp(Convert_hsl2rgb(h, s, l)) }
+end
+
+--- Converts <rgb> RGB color space to HSL color space - returns values in 0-1
+e2function vector rgb2hsl(vector rgb)
+	return { Convert_rgb2hsl(RGBClamp(rgb[1], rgb[2], rgb[3])) }
+end
+
+e2function vector rgb2hsl(r, g, b)
+	return { Convert_rgb2hsl(RGBClamp(r, g, b)) }
+end
+
+--- DIGI
 
 local converters = {}
 converters[0] = function(r, g, b)
