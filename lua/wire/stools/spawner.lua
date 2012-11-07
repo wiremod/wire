@@ -1,8 +1,5 @@
-TOOL.Category		= "Wire - Physics"
-TOOL.Name			= "Prop Spawner"
-TOOL.Command		= nil
-TOOL.ConfigName		= ""
-TOOL.Tab			= "Wire"
+WireToolSetup.setCategory( "Physics" )
+WireToolSetup.open( "spawner", "Prop Spawner", "gmod_wire_spawner", nil, "Prop Spawners" )
 
 TOOL.ClientConVar = {
 	delay = 0,

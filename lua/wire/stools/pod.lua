@@ -1,8 +1,5 @@
-TOOL.Category = "Wire - I/O"
-TOOL.Name = "Pod Controller"
-TOOL.Command = nil -- What is this for?
-TOOL.ConfigName = ""
-TOOL.Tab			= "Wire"
+WireToolSetup.setCategory( "I/O" )
+WireToolSetup.open( "pod", "Pod Controller", "gmod_wire_pod", nil, "Pod Controllers" )
 
 if CLIENT then
 	language.Add("Tool.wire_pod.name", "Pod Controller Tool (Wire)")

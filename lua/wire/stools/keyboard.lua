@@ -1,8 +1,5 @@
-TOOL.Category		= "Wire - I/O"
-TOOL.Name			= "Wired Keyboard"
-TOOL.Command		= nil
-TOOL.ConfigName		= ""
-TOOL.Tab			= "Wire"
+WireToolSetup.setCategory( "I/O" )
+WireToolSetup.open( "keyboard", "Keyboard", "gmod_wire_keyboard", nil, "Keyboards" )
 
 if ( CLIENT ) then
     language.Add( "Tool.wire_keyboard.name", "Wired Keyboard Tool (Wire)" )

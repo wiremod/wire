@@ -1,8 +1,5 @@
-TOOL.Category		= "Wire - Advanced"
-TOOL.Name			= "Data - Port"
-TOOL.Command		= nil
-TOOL.ConfigName		= ""
-TOOL.Tab			= "Wire"
+WireToolSetup.setCategory( "Advanced" )
+WireToolSetup.open( "dataport", "Data - Port", "gmod_wire_dataport", nil, "Data Ports" )
 
 if ( CLIENT ) then
 	language.Add( "Tool.wire_dataport.name", "Data port tool (Wire)" )

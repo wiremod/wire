@@ -1,8 +1,5 @@
-TOOL.Category		= "Wire - Beacon"
-TOOL.Name			= "Waypoint"
-TOOL.Command		= nil
-TOOL.ConfigName		= ""
-TOOL.Tab			= "Wire"
+WireToolSetup.setCategory( "Beacon" )
+WireToolSetup.open( "waypoint", "Waypoint", "gmod_wire_waypoint", nil, "Waypoints" )
 
 if ( CLIENT ) then
     language.Add( "Tool.wire_waypoint.name", "Waypoint Beacon Tool (Wire)" )

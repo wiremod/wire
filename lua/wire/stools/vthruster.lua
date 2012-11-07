@@ -1,8 +1,5 @@
-TOOL.Category   = "Wire - Physics"
-TOOL.Name       = "Vector Thruster"
-TOOL.Command    = nil
-TOOL.ConfigName = ""
-TOOL.Tab        = "Wire"
+WireToolSetup.setCategory( "Physics" )
+WireToolSetup.open( "vthruster", "Vector Thruster", "gmod_wire_vectorthruster", nil, "Vector Thrusters" )
 
 if ( CLIENT ) then
 	language.Add( "Tool.wire_vthruster.name", "Vector Thruster Tool (Wire)" )

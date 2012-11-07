@@ -1,8 +1,5 @@
-TOOL.Category		= "Wire - Physics"
-TOOL.Name			= "Hydraulic"
-TOOL.Command		= nil
-TOOL.ConfigName		= ""
-TOOL.Tab			= "Wire"
+WireToolSetup.setCategory( "Physics" )
+WireToolSetup.open( "hydraulic", "Hydraulic", "gmod_wire_hydraulic", nil, "Hydraulics" )
 
 TOOL.ClientConVar[ "material" ] = "cable/rope"
 TOOL.ClientConVar[ "width" ] = "3"
@@ -53,7 +50,7 @@ function TOOL:LeftClick( trace )
 			return
 		end
 
-		local model = WireToolObj.GetModel(self)
+		local model = self:GetModel()
 
 		// Attach our Controller to the Elastic constraint
 		local Ang = trace.HitNormal:Angle()

@@ -1,8 +1,5 @@
-TOOL.Category		= "Wire - Advanced"
-TOOL.Name			= "Data - Plug/Socket"
-TOOL.Command		= nil
-TOOL.ConfigName		= ""
-TOOL.Tab			= "Wire"
+WireToolSetup.setCategory( "Advanced" )
+WireToolSetup.open( "dataplug", "Data - Plug/Socket", "gmod_wire_plug", nil, "Plugs and Sockets" )
 
 if ( CLIENT ) then
     language.Add( "Tool.wire_dataplug.name", "Data Plug Tool (Wire)" )

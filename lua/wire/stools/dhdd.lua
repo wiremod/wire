@@ -1,8 +1,5 @@
-TOOL.Category		= "Wire - Data"
-TOOL.Name			= "DHDD"
-TOOL.Command		= nil
-TOOL.ConfigName		= ""
-TOOL.Tab			= "Wire"
+WireToolSetup.setCategory( "Data" )
+WireToolSetup.open( "dhdd", "DHDD", "gmod_wire_dhdd", nil, "DHDDs" )
 
 if (SERVER) then
 
@@ -69,16 +66,6 @@ else
 end
 
 cleanup.Register( "wire_dhdds" )
-
-----------------------------------------------------------------------------------------------------
--- GetMode
-----------------------------------------------------------------------------------------------------
-
-function TOOL:GetModel()
-	local model = self:GetClientInfo( "model" )
-	if (!util.IsValidModel( model ) or !util.IsValidProp( model )) then return "models/jaanus/wiretool/wiretool_gate.mdl" end
-	return model
-end
 --------------------
 -- LeftClick
 -- Create DHDD

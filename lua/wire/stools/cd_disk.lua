@@ -1,8 +1,5 @@
-TOOL.Category		= "Wire - Data"
-TOOL.Name			= "CD Disk"
-TOOL.Command		= nil
-TOOL.ConfigName		= ""
-TOOL.Tab			= "Wire"
+WireToolSetup.setCategory( "Data" )
+WireToolSetup.open( "cd_disk", "CD Disk", "gmod_wire_cd_disk", nil, "CD Disks" )
 
 if (CLIENT) then
     language.Add("Tool.wire_cd_disk.name", "CD Disk Tool (Wire)")

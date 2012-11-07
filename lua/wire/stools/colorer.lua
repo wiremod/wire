@@ -1,8 +1,5 @@
-TOOL.Category		= "Wire - Render"
-TOOL.Name			= "Colorer"
-TOOL.Command		= nil
-TOOL.ConfigName		= ""
-TOOL.Tab			= "Wire"
+WireToolSetup.setCategory( "Render" )
+WireToolSetup.open( "colorer", "Colorer", "gmod_wire_colorer", nil, "Colorers" )
 
 if CLIENT then
     language.Add( "Tool.wire_colorer.name", "Colorer Tool (Wire)" )

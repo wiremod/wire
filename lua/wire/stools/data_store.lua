@@ -1,8 +1,5 @@
-TOOL.Category		= "Wire - Data"
-TOOL.Name			= "Store"
-TOOL.Command		= nil
-TOOL.ConfigName		= ""
-TOOL.Tab			= "Wire"
+WireToolSetup.setCategory( "Data" )
+WireToolSetup.open( "data_store", "Store", "gmod_wire_data_store", nil, "Data Stores" )
 
 if ( CLIENT ) then
     language.Add( "Tool.wire_data_store.name", "Data Store Tool (Wire)" )

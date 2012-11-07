@@ -1,8 +1,5 @@
-TOOL.Category   = "Wire - Advanced"
-TOOL.Name       = "Chip - SPU"
-TOOL.Command    = nil
-TOOL.ConfigName = ""
-TOOL.Tab        = "Wire"
+WireToolSetup.setCategory( "Advanced" )
+WireToolSetup.open( "spu", "Chip - SPU", "gmod_wire_spu", nil, "SPUs" )
 
 if CLIENT then
   language.Add("Tool.wire_spu.name", "SPU Tool (Wire)")

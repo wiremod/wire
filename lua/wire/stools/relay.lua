@@ -1,8 +1,5 @@
-TOOL.Category   = "Wire - I/O"
-TOOL.Name       = "Relay"
-TOOL.Command    = nil
-TOOL.ConfigName = ""
-TOOL.Tab			= "Wire"
+WireToolSetup.setCategory( "I/O" )
+WireToolSetup.open( "relay", "Relay", "gmod_wire_relay", nil, "Relays" )
 
 if ( CLIENT ) then
 	language.Add( "Tool.wire_relay.name",      "Relay" )

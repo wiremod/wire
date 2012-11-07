@@ -1,8 +1,5 @@
-TOOL.Category		= "Wire - Physics"
-TOOL.Name			= "Hoverdrive Controller"
-TOOL.Command		= nil
-TOOL.ConfigName		= ""
-TOOL.Tab			= "Wire"
+WireToolSetup.setCategory( "Physics" )
+WireToolSetup.open( "hoverdrivecontroller", "Hoverdrive Controller", "gmod_wire_hoverdrivecontroler", nil, "Hoverdrive Controllers" )
 
 if ( CLIENT ) then
     language.Add( "Tool.wire_hoverdrivecontroller.name", "Hoverdrive Controller Tool" )

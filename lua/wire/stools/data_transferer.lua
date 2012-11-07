@@ -1,8 +1,5 @@
-TOOL.Category		= "Wire - Data"
-TOOL.Name			= "Transferer"
-TOOL.Command		= nil
-TOOL.ConfigName		= ""
-TOOL.Tab			= "Wire"
+WireToolSetup.setCategory( "Data" )
+WireToolSetup.open( "data_transferer", "Transferer", "gmod_wire_data_transferer", nil, "Transferers" )
 
 if ( CLIENT ) then
     language.Add( "Tool.wire_data_transferer.name", "Data Transferer Tool (Wire)" )

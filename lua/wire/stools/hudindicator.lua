@@ -1,26 +1,13 @@
 // Created by TheApathetic, so you know who to
 // blame if something goes wrong (someone else :P)
-TOOL.Category		= "Wire - Display"
-TOOL.Name			= "Hud Indicator"
-TOOL.Command		= nil
-TOOL.ConfigName		= ""
-TOOL.Tab			= "Wire"
+WireToolSetup.setCategory( "Display" )
+WireToolSetup.open( "hudindicator", "Hud Indicator", "gmod_wire_hudindicator", nil, "Hud Indicators" )
 
 if ( CLIENT ) then
     language.Add( "Tool.wire_hudindicator.name", "Hud Indicator Tool (Wire)" )
     language.Add( "Tool.wire_hudindicator.desc", "Spawns a Hud Indicator for use with the wire system." )
     language.Add( "Tool.wire_hudindicator.0", "Primary: Create/Update Hud Indicator Secondary: Hook/Unhook someone else's Hud Indicator Reload: Link Hud Indicator to vehicle" )
 	language.Add( "Tool.wire_hudindicator.1", "Now use Reload on a vehicle to link this Hud Indicator to it, or on the same Hud Indicator to unlink it" )
-    /* Don't need this stuff
-	language.Add( "ToolWireIndicator_Model", "Model:" )
-	language.Add( "ToolWireIndicator_a_value", "A Value:" )
-	language.Add( "ToolWireIndicator_a_colour", "A Colour:" )
-	language.Add( "ToolWireIndicator_b_value", "B Value:" )
-	language.Add( "ToolWireIndicator_b_colour", "B Colour:" )
-	language.Add( "ToolWireIndicator_Material", "Material:" )
-	language.Add( "ToolWireIndicator_90", "Rotate segment 90" )
-	language.Add( "sboxlimit_wire_indicators", "You've hit indicators limit!" )
-	*/
 	language.Add( "undone_wirehudindicator", "Undone Wire Hud Indicator" )
 
 	// HUD Indicator stuff

@@ -1,11 +1,6 @@
--- Gates tool
 -- Made by Divran 06/01/2012
-
-TOOL.Category		= "Wire - Control"
-TOOL.Name			= "Gates"
-TOOL.Command		= nil
-TOOL.ConfigName		= ""
-TOOL.Tab			= "Wire"
+WireToolSetup.setCategory( "Control" )
+WireToolSetup.open( "gates", "Gates", "gmod_wire_gate", nil, "Gates" )
 
 -- The limit convars are in lua/wire/wiregates.lua
 

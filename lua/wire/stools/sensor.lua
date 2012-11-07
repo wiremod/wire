@@ -1,8 +1,5 @@
-TOOL.Category		= "Wire - Beacon"
-TOOL.Name			= "Beacon Sensor"
-TOOL.Command		= nil
-TOOL.ConfigName		= ""
-TOOL.Tab			= "Wire"
+WireToolSetup.setCategory( "Beacon" )
+WireToolSetup.open( "sensor", "Beacon Sensor", "gmod_wire_sensor", nil, "Beacon Sensors" )
 
 if ( CLIENT ) then
 	language.Add( "Tool.wire_sensor.name", "Beacon Sensor Tool (Wire)" )

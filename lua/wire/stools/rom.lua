@@ -1,8 +1,5 @@
-TOOL.Category		= "Wire - Advanced"
-TOOL.Name			= "Memory - ROM"
-TOOL.Command		= nil
-TOOL.ConfigName		= ""
-TOOL.Tab			= "Wire"
+WireToolSetup.setCategory( "Advanced" )
+WireToolSetup.open( "rom", "Memory - ROM", "gmod_wire_rom", nil, "Memory ROMs" )
 
 if (SERVER) then
 

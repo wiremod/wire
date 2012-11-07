@@ -1,9 +1,5 @@
-TOOL.Category		= "Wire - Physics"
-TOOL.Name			= "Clutch"
-TOOL.Command		= nil
-TOOL.ConfigName		= ""
-TOOL.Tab			= "Wire"
-
+WireToolSetup.setCategory( "Physics" )
+WireToolSetup.open( "clutch", "Clutch", "gmod_wire_clutch", nil, "Clutchs" )
 
 if CLIENT then
     language.Add( "Tool.wire_clutch.name", "Clutch Tool (Wire)" )

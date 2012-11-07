@@ -1,8 +1,5 @@
-TOOL.Category		= "Wire - Physics"
-TOOL.Name			= "Explosives"
-TOOL.Command		= nil
-TOOL.ConfigName		= nil
-TOOL.Tab			= "Wire"
+WireToolSetup.setCategory( "Physics" )
+WireToolSetup.open( "explosive", "Explosive", "gmod_wire_explosive", nil, "Explosives" )
 
 TOOL.ClientConVar[ "model" ] = "models/props_c17/oildrum001_explosive.mdl"
 TOOL.ClientConVar[ "modelman" ] = ""

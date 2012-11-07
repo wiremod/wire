@@ -1,8 +1,5 @@
-TOOL.Category       = "Wire - Advanced"
-TOOL.Name           = "Data - Extended Bus"
-TOOL.Command        = nil
-TOOL.ConfigName     = ""
-TOOL.Tab            = "Wire"
+WireToolSetup.setCategory( "Advanced" )
+WireToolSetup.open( "extbus", "Data - Extended Bus", "gmod_wire_extbus", nil, "Extended Buss" )
 
 if ( CLIENT ) then
 	language.Add( "Tool.wire_extbus.name", "Extended bus tool (Wire)" )

@@ -1,9 +1,5 @@
-
-TOOL.Category   = "Wire - Render"
-TOOL.Name       = "Wire FX Emitter"
-TOOL.Command    = nil
-TOOL.ConfigName = ""
-TOOL.Tab			= "Wire"
+WireToolSetup.setCategory( "Render" )
+WireToolSetup.open( "fx_emitter", "FX Emitter", "gmod_wire_fx_emitter", nil, "FX Emitters" )
 
 TOOL.ClientConVar[ "Effect" ]    = "sparks"
 TOOL.ClientConVar[ "Delay" ]     = "0.07"

@@ -1,8 +1,5 @@
-TOOL.Category		= "Wire - Physics"
-TOOL.Name			= "Cam Controller"
-TOOL.Command		= nil
-TOOL.ConfigName		= ""
-TOOL.Tab			= "Wire"
+WireToolSetup.setCategory( "Physics" )
+WireToolSetup.open( "cam", "Cam Controller", "gmod_wire_cameracontroller", nil, "Cam Controllers" )
 
 if ( CLIENT ) then
 	language.Add( "Tool.wire_cam.name", "Cam Controller Tool (Wire)" )

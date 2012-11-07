@@ -1,8 +1,5 @@
-TOOL.Category		= "Wire - Data"
-TOOL.Name		= "CD Ray"
-TOOL.Command		= nil
-TOOL.ConfigName		= ""
-TOOL.Tab			= "Wire"
+WireToolSetup.setCategory( "Data" )
+WireToolSetup.open( "cd_ray", "CD Ray", "gmod_wire_cd_ray", nil, "CD Rays" )
 
 if ( CLIENT ) then
     language.Add( "Tool.wire_cd_ray.name", "CD Ray Tool (Wire)" )

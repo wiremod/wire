@@ -1,8 +1,5 @@
-TOOL.Category		= "Wire - I/O"
-TOOL.Name			= "Plug"
-TOOL.Command		= nil
-TOOL.ConfigName		= ""
-TOOL.Tab			= "Wire"
+WireToolSetup.setCategory( "I/O" )
+WireToolSetup.open( "plug", "Plug", "gmod_wire_plug", nil, "Plugs" )
 
 if (SERVER) then
 

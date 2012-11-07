@@ -1,8 +1,5 @@
-TOOL.Category = "Wire - I/O"
-TOOL.Name = "Vehicle Controller"
-TOOL.Command = nil -- What is this for?
-TOOL.ConfigName = ""
-TOOL.Tab			= "Wire"
+WireToolSetup.setCategory( "I/O" )
+WireToolSetup.open( "vehicle", "Vehicle Controller", "gmod_wire_vehicle", nil, "Vehicle Controllers" )
 
 if CLIENT then
 	language.Add("Tool.wire_vehicle.name", "Vehicle Controller Tool (Wire)")

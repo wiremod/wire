@@ -1,8 +1,5 @@
-TOOL.Category       = "Wire - Advanced"
-TOOL.Name           = "Data - Address Bus"
-TOOL.Command        = nil
-TOOL.ConfigName     = ""
-TOOL.Tab            = "Wire"
+WireToolSetup.setCategory( "Advanced" )
+WireToolSetup.open( "addressbus", "Data - Address Bus", "gmod_wire_addressbus", nil, "Address Buses" )
 
 if ( CLIENT ) then
 	language.Add( "Tool.wire_addressbus.name", "Address bus tool (Wire)" )

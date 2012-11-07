@@ -1,8 +1,5 @@
-TOOL.Category   = "Wire - I/O"
-TOOL.Name       = "Radio"
-TOOL.Command    = nil
-TOOL.ConfigName = ""
-TOOL.Tab			= "Wire"
+WireToolSetup.setCategory( "I/O" )
+WireToolSetup.open( "radio", "Radio", "gmod_wire_radio", nil, "Radios" )
 
 if ( CLIENT ) then
 	language.Add( "Tool.wire_radio.name", "Radio Tool (Wire)" )

@@ -1,8 +1,5 @@
-TOOL.Category		= "Wire - Physics"
-TOOL.Name			= "Winch"
-TOOL.Command		= nil
-TOOL.ConfigName		= ""
-TOOL.Tab			= "Wire"
+WireToolSetup.setCategory( "Physics" )
+WireToolSetup.open( "winch", "Winch", "gmod_wire_winch_controller", nil, "Winchs" )
 
 TOOL.ClientConVar = {
 	material = "cable/rope",

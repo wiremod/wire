@@ -1,8 +1,5 @@
-TOOL.Category		= "Wire - Data"
-TOOL.Name			= "Satellite Dish"
-TOOL.Command		= nil
-TOOL.ConfigName		= ""
-TOOL.Tab			= "Wire"
+WireToolSetup.setCategory( "Data" )
+WireToolSetup.open( "data_satellitedish", "Satellite Dish", "gmod_wire_data_satellitedish", nil, "Satellite Dishs" )
 
 if ( CLIENT ) then
     language.Add( "Tool.wire_data_satellitedish.name", "Satellite Dish Tool (Wire)" )

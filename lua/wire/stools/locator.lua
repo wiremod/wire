@@ -1,8 +1,5 @@
-TOOL.Category		= "Wire - Beacon"
-TOOL.Name			= "Locator"
-TOOL.Command		= nil
-TOOL.ConfigName		= ""
-TOOL.Tab			= "Wire"
+WireToolSetup.setCategory( "Beacon" )
+WireToolSetup.open( "locator", "Locator", "gmod_wire_locator", nil, "Locators" )
 
 if ( CLIENT ) then
     language.Add( "Tool.wire_locator.name", "Locator Beacon Tool (Wire)" )

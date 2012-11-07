@@ -1,8 +1,5 @@
-TOOL.Category		= "Wire - Advanced"
-TOOL.Name			= "Memory - Flash EEPROM"
-TOOL.Command		= nil
-TOOL.ConfigName		= ""
-TOOL.Tab			= "Wire"
+WireToolSetup.setCategory( "Advanced" )
+WireToolSetup.open( "hdd", "Memory - Flash EEPROM", "gmod_wire_hdd", nil, "Flash EEPROMs" )
 
 if ( CLIENT ) then
 	language.Add( "Tool.wire_hdd.name", "Flash (EEPROM) tool (Wire)" )

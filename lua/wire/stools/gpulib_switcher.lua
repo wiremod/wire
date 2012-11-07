@@ -1,8 +1,5 @@
-TOOL.Category   = "Wire - Display"
-TOOL.Name       = "GPULib Switcher"
-TOOL.Command    = nil
-TOOL.ConfigName = ""
-TOOL.Tab        = "Wire"
+WireToolSetup.setCategory( "Display" )
+WireToolSetup.open( "gpulib_switcher", "GPULib Switcher", "gmod_wire_gpulib_controller" )
 
 TOOL.ClientConVar[ "model" ] = "models/jaanus/wiretool/wiretool_siren.mdl"
 

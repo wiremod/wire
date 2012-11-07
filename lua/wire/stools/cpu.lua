@@ -1,8 +1,5 @@
-TOOL.Category   = "Wire - Control"
-TOOL.Name       = "Chip - CPU"
-TOOL.Command    = nil
-TOOL.ConfigName = ""
-TOOL.Tab        = "Wire"
+WireToolSetup.setCategory( "Control" )
+WireToolSetup.open( "cpu", "Chip - CPU", "gmod_wire_cpu", nil, "CPUs" )
 
 if CLIENT then
 	language.Add("Tool.wire_cpu.name", "CPU Tool (Wire)")

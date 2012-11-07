@@ -1,8 +1,5 @@
-TOOL.Category		= "Wire - Advanced"
-TOOL.Name			= "Data - Transfer Bus"
-TOOL.Command		= nil
-TOOL.ConfigName		= ""
-TOOL.Tab			= "Wire"
+WireToolSetup.setCategory( "Advanced" )
+WireToolSetup.open( "datarate", "Data - Transfer Bus", "gmod_wire_datarate", nil, "Transfer Buses" )
 
 if ( CLIENT ) then
 	language.Add( "Tool.wire_datarate.name", "Data transfer bus tool (Wire)" )

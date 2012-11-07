@@ -1,9 +1,5 @@
-
-TOOL.Category		= "Wire - I/O"
-TOOL.Name			= "Text Receiver"
-TOOL.Command		= nil
-TOOL.ConfigName		= ""
-TOOL.Tab			= "Wire"
+WireToolSetup.setCategory( "I/O" )
+WireToolSetup.open( "textreceiver", "Text Receiver", "gmod_wire_pod", nil, "Text Receivers" )
 
 if ( CLIENT ) then
 	language.Add( "Tool.wire_textreceiver.name", "Text Receiver Tool (Wire)" )
