@@ -127,52 +127,6 @@ function TOOL:RightClick( trace )
 	end
 end
 
-function TOOL:UpdateGhostWireTextReceiver( ent, player )
-	if ( !ent ) then return end
-	if ( !ent:IsValid() ) then return end
-
-	local trace = player:GetEyeTrace()
-	if (!trace.Hit) then return end
-
-	if (trace.Entity && trace.Entity:GetClass() == "gmod_wire_textreceiver" || trace.Entity:IsPlayer()) then
-
-		ent:SetNoDraw( true )
-		return
-
-	end
-
-	local Ang = trace.HitNormal:Angle()
-	Ang.pitch = Ang.pitch + 90
-
-	local min = ent:OBBMins()
-	ent:SetPos( trace.HitPos - trace.HitNormal * min.z )
-	ent:SetAngles( Ang )
-
-	ent:SetNoDraw( false )
-end
-
-
-function TOOL:Think()
-	local model = self:GetModel()
-
-	if (!self.GhostEntity || !self.GhostEntity:IsValid() || self.GhostEntity:GetModel() != model ) then
-		self:MakeGhostEntity( Model(model), Vector(0,0,0), Angle(0,0,0) )
-	end
-
-	self:UpdateGhostWireTextReceiver( self.GhostEntity, self:GetOwner() )
-end
-
-function TOOL:GetModel()
-	local model = self:GetClientInfo( "model" )
-
-	if (util.IsValidModel(model) and util.IsValidProp(model)) then
-		return model
-	end
-
-	return "models/jaanus/wiretool/wiretool_range.mdl"
-end
-
-
 if CLIENT then
 	function TOOL.BuildCPanel( panel )
 		local CaseInsensitive = vgui.Create( "DCheckBoxLabel" )

@@ -127,40 +127,7 @@ if SERVER then
 
 		return wire_waypoint
 	end
-
 	duplicator.RegisterEntityClass("gmod_wire_waypoint", MakeWireWaypoint, "Pos", "Ang", "Model", "range")
-
-end
-
-function TOOL:UpdateGhostWireWaypoint( ent, player )
-
-	if ( !ent || !ent:IsValid() ) then return end
-
-	local trace = player:GetEyeTrace()
-
-	if (!trace.Hit || trace.Entity:IsPlayer() || trace.Entity:GetClass() == "gmod_wire_waypoint" ) then
-		ent:SetNoDraw( true )
-		return
-	end
-
-	local Ang = trace.HitNormal:Angle()
-
-	local min = ent:OBBMins()
-	ent:SetPos( trace.HitPos - trace.HitNormal * min.z )
-	ent:SetAngles( Ang )
-
-	ent:SetNoDraw( false )
-
-end
-
-function TOOL:Think()
-
-	if (!self.GhostEntity || !self.GhostEntity:IsValid() || self.GhostEntity:GetModel() != self.Model ) then
-		self:MakeGhostEntity( self.Model, Vector(0,0,0), Angle(0,0,0) )
-	end
-
-	self:UpdateGhostWireWaypoint( self.GhostEntity, self:GetOwner() )
-
 end
 
 function TOOL.BuildCPanel(panel)

@@ -136,53 +136,6 @@ if SERVER then
     net.Start("ZGPU_OpenEditor") net.Send(self:GetOwner())
     return true
   end
-
-
-  ------------------------------------------------------------------------------
-  -- Update ghost entity
-  ------------------------------------------------------------------------------
-  function TOOL:UpdateGhostWireGPU(ent, player)
-    if not ent then return end
-    if not ent:IsValid() then return end
-
-    local tr = util.GetPlayerTrace(player)
-    local trace = util.TraceLine(tr)
-    if not trace.Hit then return end
-
-    if  (trace.Entity) and
-       ((trace.Entity:GetClass() == "gmod_wire_gpu") or
-        (trace.Entity:IsPlayer()) or
-        (trace.Entity.WriteCell)) then
-      ent:SetNoDraw(true)
-      return
-    end
-
-    local Ang = trace.HitNormal:Angle()
-    Ang.pitch = Ang.pitch + 90
-
-    local min = ent:OBBMins()
-    ent:SetPos(trace.HitPos - trace.HitNormal * min.z)
-    ent:SetAngles(Ang)
-
-    ent:SetNoDraw(false)
-  end
-
-
-  ------------------------------------------------------------------------------
-  -- Think loop
-  ------------------------------------------------------------------------------
-  function TOOL:Think()
-    local model = Model(self:GetClientInfo("model"))
-
-    if (not self.GhostEntity) or
-       (not self.GhostEntity:IsValid()) or
-       (self.GhostEntity:GetModel() ~= model) or
-       (not self.GhostEntity:GetModel()) then
-      self:MakeGhostEntity(model, Vector(0,0,0), Angle(0,0,0))
-    end
-
-    self:UpdateGhostWireGPU(self.GhostEntity, self:GetOwner())
-  end
 end
 
 

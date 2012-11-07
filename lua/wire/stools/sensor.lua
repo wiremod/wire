@@ -154,41 +154,7 @@ if SERVER then
 
 		return wire_sensor
 	end
-
 	duplicator.RegisterEntityClass("gmod_wire_sensor", MakeWireSensor, "Pos", "Ang", "Model", "xyz_mode", "outdist", "outbrng", "gpscord", "swapyz", "direction_vector", "direction_normalized", "target_velocity", "velocity_normalized", "vector_in")
-
-end
-
-function TOOL:UpdateGhostWireSensor( ent, player )
-
-	if ( !ent || !ent:IsValid() ) then return end
-
-	local trace = player:GetEyeTrace()
-
-	if (!trace.Hit || trace.Entity:IsPlayer() || trace.Entity:GetClass() == "gmod_wire_sensor" || trace.Entity:GetClass() == "gmod_wire_beacon" ) then
-		ent:SetNoDraw( true )
-		return
-	end
-
-	local Ang = trace.HitNormal:Angle()
-	Ang.pitch = Ang.pitch + 90
-
-	local min = ent:OBBMins()
-	ent:SetPos( trace.HitPos - trace.HitNormal * min.z )
-	ent:SetAngles( Ang )
-
-	ent:SetNoDraw( false )
-
-end
-
-function TOOL:Think()
-
-	if (!self.GhostEntity || !self.GhostEntity:IsValid() || self.GhostEntity:GetModel() != self.Model ) then
-		self:MakeGhostEntity( self.Model, Vector(0,0,0), Angle(0,0,0) )
-	end
-
-	self:UpdateGhostWireSensor( self.GhostEntity, self:GetOwner() )
-
 end
 
 function TOOL.BuildCPanel( panel )

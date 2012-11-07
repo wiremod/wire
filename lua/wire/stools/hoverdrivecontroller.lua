@@ -19,13 +19,6 @@ TOOL.ClientConVar[ "effects" ] = 1
 TOOL.ClientConVar[ "sounds" ] = 1
 cleanup.Register( "wire_hoverdrivecontrollers" )
 
-
-function TOOL:GetModel()
-	local mdl = self:GetClientInfo("model")
-	if (!util.IsValidModel(mdl) or !util.IsValidProp(mdl)) then return "models/props_c17/utilityconducter001.mdl" end
-	return mdl
-end
-
 if (SERVER) then
 	function TOOL:CreateTeleporter( ply, trace, Model )
 		if (!ply:CheckLimit("wire_hoverdrives")) then return end
@@ -131,31 +124,4 @@ function TOOL:Reload( trace )
 		end
 	end
 	return true
-end
-
-function TOOL:UpdateGhostTeleporter( ent, ply )
-	if (!ent or !ent:IsValid()) then return end
-	local trace = ply:GetEyeTrace()
-	if (!trace.Hit or trace.Entity:IsPlayer() or trace.Entity:GetClass() == "gmod_wire_hoverdrivecontroler") then
-		ent:SetNoDraw( true )
-		return
-	end
-
-	local Ang = trace.HitNormal:Angle() + Angle(90,0,0)
-	ent:SetAngles(Ang)
-
-	local Pos = trace.HitPos - trace.HitNormal * ent:OBBMins().z
-	ent:SetPos( Pos )
-
-	ent:SetNoDraw( false )
-end
-
-function TOOL:Think()
-	local model = self:GetModel()
-
-	if (!self.GhostEntity or !self.GhostEntity:IsValid() or self.GhostEntity:GetModel() != model ) then
-		self:MakeGhostEntity( Model(model), Vector(0,0,0), Angle(0,0,0) )
-	end
-
-	self:UpdateGhostTeleporter( self.GhostEntity, self:GetOwner() )
 end

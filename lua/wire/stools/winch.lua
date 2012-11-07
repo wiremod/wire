@@ -333,17 +333,6 @@ function TOOL:Reload( trace )
 
 end
 
-function TOOL:GetModel()
-	local model = "models/jaanus/wiretool/wiretool_siren.mdl"
-	local modelcheck = self:GetClientInfo( "model" )
-
-	if (util.IsValidModel(modelcheck) and util.IsValidProp(modelcheck)) then
-		model = modelcheck
-	end
-
-	return model
-end
-
 function TOOL.BuildCPanel(panel)
 	panel:AddControl("Header", { Text = "#Tool.wire_winch.name", Description = "#Tool.wire_winch.desc" })
 	WireDermaExts.ModelSelect(panel, "wire_winch_model", list.Get( "Wire_Misc_Tools_Models" ), 1)

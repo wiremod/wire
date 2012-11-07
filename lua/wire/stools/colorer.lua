@@ -98,37 +98,8 @@ if SERVER then
 
 		return wire_colorer
 	end
-
 	duplicator.RegisterEntityClass("gmod_wire_colorer", MakeWireColorer, "Pos", "Ang", "Model", "outColor", "Range")
 
-end
-
-function TOOL:UpdateGhostWireColorer( ent, player )
-	if !IsValid(ent) then return end
-
-	local trace = player:GetEyeTrace()
-
-	if !trace.Hit or trace.Entity:IsPlayer() or trace.Entity:GetClass() == "gmod_wire_colorer" then
-		ent:SetNoDraw( true )
-		return
-	end
-
-	local Ang = trace.HitNormal:Angle()
-	Ang.pitch = Ang.pitch + 90
-
-	local min = ent:OBBMins()
-	ent:SetPos( trace.HitPos - trace.HitNormal * min.z )
-	ent:SetAngles( Ang )
-
-	ent:SetNoDraw( false )
-end
-
-function TOOL:Think()
-	if !self.GhostEntity or !self.GhostEntity:IsValid() or self.GhostEntity:GetModel() ~= self:GetClientInfo("Model") then
-		self:MakeGhostEntity( self:GetClientInfo("Model"), Vector(0,0,0), Angle(0,0,0) )
-	end
-
-	self:UpdateGhostWireColorer( self.GhostEntity, self:GetOwner() )
 end
 
 function TOOL.BuildCPanel(panel)

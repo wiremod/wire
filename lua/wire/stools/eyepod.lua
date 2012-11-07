@@ -210,53 +210,7 @@ if (SERVER) then
 
 		return ent
 	end
-
-	/* Register us for duplicator compatibility */
 	duplicator.RegisterEntityClass("gmod_wire_eyepod", MakeWireEyePod, "Pos", "Ang", "Model", "DefaultToZero", "ShowRateOfChange" , "ClampXMin" , "ClampXMax" , "ClampYMin" , "ClampYMax" , "ClampX", "ClampY")
-end
-
-function TOOL:UpdateGhostWireEyePod( ent, player )
-	if ( !ent ) then return end
-	if ( !ent:IsValid() ) then return end
-
-	local trace = player:GetEyeTrace()
-	if (!trace.Hit) then return end
-
-	if (trace.Entity && trace.Entity:GetClass() == "gmod_wire_eyepod" || trace.Entity:IsPlayer()) then
-		ent:SetNoDraw( true )
-		return
-	end
-
-	local Ang = trace.HitNormal:Angle()
-	Ang.pitch = Ang.pitch + 90
-
-	local min = ent:OBBMins()
-	ent:SetPos( trace.HitPos - trace.HitNormal * min.z )
-	ent:SetAngles( Ang )
-
-	ent:SetNoDraw( false )
-end
-
-
-function TOOL:Think()
-	local model = self:GetModel()
-
-	if (!self.GhostEntity || !self.GhostEntity:IsValid() || self.GhostEntity:GetModel() != model ) then
-		self:MakeGhostEntity( Model(model), Vector(0,0,0), Angle(0,0,0) )
-	end
-
-	self:UpdateGhostWireEyePod( self.GhostEntity, self:GetOwner() )
-end
-
-function TOOL:GetModel()
-	local model = "models/jaanus/wiretool/wiretool_siren.mdl"
-	local modelcheck = self:GetClientInfo( "model" )
-
-	if (util.IsValidModel(modelcheck) and util.IsValidProp(modelcheck)) then
-		model = modelcheck
-	end
-
-	return model
 end
 
 -------------------------------------- TOOL Menu ---------------------------------------------------

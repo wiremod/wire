@@ -340,6 +340,8 @@ function TOOL:Reload( trace )
 
 end
 
+function TOOL:Think() end -- Disable ghost
+
 function TOOL.BuildCPanel(panel)
 	WireToolHelpers.MakeModelSizer(panel, "wire_hydraulic_modelsize")
 	ModelPlug_AddToCPanel(panel, "Hydraulic", "wire_hydraulic", true)

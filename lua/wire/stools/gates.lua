@@ -407,15 +407,6 @@ function TOOL:GetAngle( trace )
 end
 
 ----------------------------------------------------------------------------------------------------
--- GetModel
-----------------------------------------------------------------------------------------------------
-function TOOL:GetModel()
-	local model = self:GetClientInfo( "model" )
-	if (!util.IsValidModel( model ) or !util.IsValidProp( model )) then return "models/jaanus/wiretool/wiretool_gate.mdl" end
-	return model
-end
-
-----------------------------------------------------------------------------------------------------
 -- GHOST
 ----------------------------------------------------------------------------------------------------
 if ((game.SinglePlayer() and SERVER) or (!game.SinglePlayer() and CLIENT)) then

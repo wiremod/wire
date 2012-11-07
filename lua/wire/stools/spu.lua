@@ -133,69 +133,6 @@ if SERVER then
     net.Start("ZSPU_OpenEditor") net.Send(self:GetOwner())
     return true
   end
-
-
-  ------------------------------------------------------------------------------
-  -- Update ghost entity
-  ------------------------------------------------------------------------------
-  function TOOL:UpdateGhostWireSPU(ent, player)
-    if not ent then return end
-    if not ent:IsValid() then return end
-
-    local tr = util.GetPlayerTrace(player)
-    local trace = util.TraceLine(tr)
-    if not trace.Hit then return end
-
-    if  (trace.Entity) and
-       ((trace.Entity:GetClass() == "gmod_wire_spu") or
-        (trace.Entity:IsPlayer()) or
-        (trace.Entity.WriteCell)) then
-      ent:SetNoDraw(true)
-      return
-    end
-
-    local Ang = trace.HitNormal:Angle()
-    Ang.pitch = Ang.pitch + 90
-
-    local min = ent:OBBMins()
-    ent:SetPos(trace.HitPos - trace.HitNormal * min.z)
-    ent:SetAngles(Ang)
-
-    ent:SetNoDraw(false)
-  end
-
-
-  ------------------------------------------------------------------------------
-  -- Think loop
-  ------------------------------------------------------------------------------
-  function TOOL:Think()
-    local model = self:GetModel()
-
-    if (not self.GhostEntity) or
-       (not self.GhostEntity:IsValid()) or
-       (self.GhostEntity:GetModel() ~= model) or
-       (not self.GhostEntity:GetModel()) then
-      self:MakeGhostEntity(model, Vector(0,0,0), Angle(0,0,0))
-    end
-
-    self:UpdateGhostWireSPU(self.GhostEntity, self:GetOwner())
-  end
-
-
-  ------------------------------------------------------------------------------
-  -- Get currently selected model
-  ------------------------------------------------------------------------------
-  function TOOL:GetModel()
-    local model = self:GetClientInfo("model")
-
-    if model then
-      local modelname, modelext = model:match("(.*)(%..*)")
-      if not modelext then return model end
-      local newmodel = modelname .. modelext
-	  if not util.IsValidModel( newmodel ) or not util.IsValidProp( newmodel ) then return "models/cheeze/wires/cpu.mdl" end
-      return Model(newmodel)
-    end
-  end
 end
 
 

@@ -163,34 +163,6 @@ if (SERVER) then
 
 end
 
-function TOOL:UpdateGhostWireSatellitedish( ent, player )
-	if ( !ent or !ent:IsValid() ) then return end
-
-	local trace = player:GetEyeTrace()
-
-	if (!trace.Hit or trace.Entity:IsPlayer() or trace.Entity:GetClass() == "gmod_wire_data_satellitedish" ) then
-		ent:SetNoDraw( true )
-		return
-	end
-
-	local Ang = trace.HitNormal:Angle()
-	Ang.pitch = Ang.pitch + 90
-
-	local min = ent:OBBMins()
-	ent:SetPos( trace.HitPos - trace.HitNormal * min.z )
-	ent:SetAngles( Ang )
-
-	ent:SetNoDraw( false )
-end
-
-function TOOL:Think()
-	if (!self.GhostEntity or !self.GhostEntity:IsValid() or self.GhostEntity:GetModel() != self:GetClientInfo("Model") ) then
-		self:MakeGhostEntity( self:GetClientInfo("Model"), Vector(0,0,0), Angle(0,0,0) )
-	end
-
-	self:UpdateGhostWireSatellitedish( self.GhostEntity, self:GetOwner() )
-end
-
 function TOOL.BuildCPanel(panel)
 	panel:AddControl("Header", { Text = "#Tool.wire_data_satellitedish.name", Description = "#Tool.wire_data_satellitedish.desc" })
 end

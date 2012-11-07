@@ -1,5 +1,5 @@
 WireToolSetup.setCategory( "Advanced" )
-WireToolSetup.open( "rom", "Memory - ROM", "gmod_wire_rom", nil, "Memory ROMs" )
+WireToolSetup.open( "rom", "Memory - ROM", "gmod_wire_dhdd", nil, "Memory ROMs" )
 
 if (SERVER) then
 
@@ -67,15 +67,6 @@ end
 
 cleanup.Register( "wire_roms" )
 
-----------------------------------------------------------------------------------------------------
--- GetMode
-----------------------------------------------------------------------------------------------------
-
-function TOOL:GetModel()
-	local model = self:GetClientInfo( "model" )
-	if (!util.IsValidModel( model ) or !util.IsValidProp( model )) then return "models/jaanus/wiretool/wiretool_gate.mdl" end
-	return model
-end
 --------------------
 -- LeftClick
 -- Create ROM
@@ -116,36 +107,4 @@ function TOOL:LeftClick( trace )
 	ply:AddCleanup( "wire_roms", rom )
 
 	return true
-end
-
-----------------------------------------------------------------------------------------------------
--- GHOST
-----------------------------------------------------------------------------------------------------
-
-if ((game.SinglePlayer() and SERVER) or (!game.SinglePlayer() and CLIENT)) then
-	function TOOL:DrawGhost()
-		local ent, ply = self.GhostEntity, self:GetOwner()
-		if (!ent or !ent:IsValid()) then return end
-		local trace = ply:GetEyeTrace()
-
-		if (!trace.Hit or trace.Entity:IsPlayer()) then
-			ent:SetNoDraw( true )
-			return
-		end
-
-		local Pos, Ang = trace.HitPos, trace.HitNormal:Angle() + Angle(90,0,0)
-		ent:SetPos( Pos )
-		ent:SetAngles( Ang )
-
-		ent:SetNoDraw( false )
-	end
-
-	function TOOL:Think()
-		local model = self:GetModel()
-		if (!self.GhostEntity or !self.GhostEntity:IsValid() or self.GhostEntity:GetModel() != model) then
-			self:MakeGhostEntity( model, Vector(), Angle() )
-		end
-
-		self:DrawGhost()
-	end
 end

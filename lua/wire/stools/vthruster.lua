@@ -35,8 +35,7 @@ function TOOL:LeftClick( trace )
 	local force       = self:GetClientNumber( "force" )
 	local force_min   = self:GetClientNumber( "force_min" )
 	local force_max   = self:GetClientNumber( "force_max" )
-	local model       = self:GetClientInfo( "model" )
-	if not util.IsValidModel( model ) or not util.IsValidProp( model ) then return end
+	local model       = self:GetModel()
 	local bidir       = self:GetClientNumber( "bidir" ) ~= 0
 	local nocollide   = self:GetClientNumber( "collision" ) == 0
 	local soundname   = self:GetClientInfo( "soundname" )
@@ -182,18 +181,6 @@ function TOOL:Think()
 
 		self:UpdateGhostWireThruster( self.GhostEntity, self:GetOwner() )
 	end
-
-end
-
-function TOOL:GetModel()
-	local model = "models/jaanus/wiretool/wiretool_speed.mdl"
-	local modelcheck = self:GetClientInfo( "model" )
-
-	if (util.IsValidModel(modelcheck) and util.IsValidProp(modelcheck)) then
-		model = modelcheck
-	end
-
-	return model
 end
 
 if (CLIENT) then

@@ -127,39 +127,7 @@ if SERVER then
 
 		return wire_twoway_radio
 	end
-
 	duplicator.RegisterEntityClass("gmod_wire_twoway_radio", MakeWireTwoWay_Radio, "Pos", "Ang", "Model")
-
-end
-
-function TOOL:UpdateGhostWireTwoWay_Radio( ent, player )
-
-	if ( !ent || !ent:IsValid() ) then return end
-
-	local trace = player:GetEyeTrace()
-
-	if (!trace.Hit || trace.Entity:IsPlayer() || trace.Entity:GetClass() == "gmod_wire_twoway_radio" ) then
-		ent:SetNoDraw( true )
-		return
-	end
-
-	local Ang = trace.HitNormal:Angle()
-	Ang.pitch = Ang.pitch + 90
-	ent:SetAngles( Ang )
-
-	local min = ent:OBBMins()
-	ent:SetPos( trace.HitPos - trace.HitNormal * min.z )
-
-	ent:SetNoDraw( false )
-
-end
-
-function TOOL:Think()
-	if (!self.GhostEntity || !self.GhostEntity:IsValid() || self.GhostEntity:GetModel() != self:GetClientInfo( "model" )) then
-		self:MakeGhostEntity( self:GetClientInfo( "model" ), Vector(0,0,0), Angle(0,0,0) )
-	end
-
-	self:UpdateGhostWireTwoWay_Radio( self.GhostEntity, self:GetOwner() )
 end
 
 function TOOL.BuildCPanel(panel)

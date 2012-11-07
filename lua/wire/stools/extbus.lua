@@ -83,41 +83,8 @@ if (SERVER) then
 
 end
 
-function TOOL:UpdateGhostWireExtBus( ent, player )
-
-	if ( !ent ) then return end
-	if ( !ent:IsValid() ) then return end
-
-	local trace = player:GetEyeTrace()
-	if (!trace.Hit) then return end
-
-	if (trace.Entity && trace.Entity:GetClass() == "gmod_wire_extbus" || trace.Entity:IsPlayer()) then
-		ent:SetNoDraw( true )
-		return
-	end
-
-	local Ang = trace.HitNormal:Angle()
-	Ang.pitch = Ang.pitch + 90
-
-	local min = ent:OBBMins()
-	ent:SetPos( trace.HitPos - trace.HitNormal * min.z )
-	ent:SetAngles( Ang )
-
-	ent:SetNoDraw( false )
-
-end
-
-function TOOL:Think()
-	if (!self.GhostEntity || !self.GhostEntity:IsValid() || self.GhostEntity:GetModel() != self:GetClientInfo( "model" ) || (not self.GhostEntity:GetModel()) ) then
-		self:MakeGhostEntity( self:GetClientInfo( "model" ), Vector(0,0,0), Angle(0,0,0) )
-	end
-
-	self:UpdateGhostWireExtBus( self.GhostEntity, self:GetOwner() )
-end
-
 function TOOL.BuildCPanel(panel)
 	panel:AddControl("Header", { Text = "#Tool.wire_extbus.name", Description = "#Tool.wire_extbus.desc" })
-
-        local modelPanel = WireDermaExts.ModelSelect(panel, "wire_extbus_model", list.Get("Wire_gate_Models"), 2)
+	WireDermaExts.ModelSelect(panel, "wire_extbus_model", list.Get("Wire_gate_Models"), 2)
 end
 

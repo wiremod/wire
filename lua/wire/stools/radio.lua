@@ -95,52 +95,7 @@ if SERVER then
 
 		return wire_radio
 	end
-
 	duplicator.RegisterEntityClass("gmod_wire_radio", MakeWireRadio, "Pos", "Ang", "Model", "channel", "values", "secure")
-
-end
-
-function TOOL:UpdateGhostWireRadio( ent, player )
-
-	if ( !ent || !ent:IsValid() ) then return end
-
-	local trace = player:GetEyeTrace()
-
-	if (!trace.Hit || trace.Entity:IsPlayer() || trace.Entity:GetClass() == "gmod_wire_radio" ) then
-		ent:SetNoDraw( true )
-		return
-	end
-
-	local Ang = trace.HitNormal:Angle()
-	Ang.pitch = Ang.pitch + 90
-	ent:SetAngles( Ang )
-
-	local min = ent:OBBMins()
-	ent:SetPos( trace.HitPos - trace.HitNormal * min.z )
-
-	ent:SetNoDraw( false )
-
-end
-
-function TOOL:Think()
-	local model = self:GetModel()
-
-	if (!self.GhostEntity || !self.GhostEntity:IsValid() || self.GhostEntity:GetModel() != model ) then
-		self:MakeGhostEntity( Model(model), Vector(0,0,0), Angle(0,0,0) )
-	end
-
-	self:UpdateGhostWireRadio( self.GhostEntity, self:GetOwner() )
-end
-
-function TOOL:GetModel()
-	local model = "models/props_lab/binderblue.mdl"
-	local modelcheck = self:GetClientInfo( "model" )
-
-	if (util.IsValidModel(modelcheck) and util.IsValidProp(modelcheck)) then
-		model = modelcheck
-	end
-
-	return model
 end
 
 function TOOL.BuildCPanel(panel)

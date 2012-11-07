@@ -157,41 +157,8 @@ if (SERVER) then
 		return wire_addressbus
 
 	end
-
 	duplicator.RegisterEntityClass("gmod_wire_addressbus", MakeWireAddressBus, "Pos", "Ang", "Model", "Mem1st", "Mem2st", "Mem3st", "Mem4st", "Mem1sz", "Mem2sz", "Mem3sz", "Mem4sz")
 
-end
-
-function TOOL:UpdateGhostWireAddressBus( ent, player )
-
-	if ( !ent ) then return end
-	if ( !ent:IsValid() ) then return end
-
-	local trace = player:GetEyeTrace()
-	if (!trace.Hit) then return end
-
-	if (trace.Entity && trace.Entity:GetClass() == "gmod_wire_addressbus" || trace.Entity:IsPlayer()) then
-		ent:SetNoDraw( true )
-		return
-	end
-
-	local Ang = trace.HitNormal:Angle()
-	Ang.pitch = Ang.pitch + 90
-
-	local min = ent:OBBMins()
-	ent:SetPos( trace.HitPos - trace.HitNormal * min.z )
-	ent:SetAngles( Ang )
-
-	ent:SetNoDraw( false )
-
-end
-
-function TOOL:Think()
-	if (!self.GhostEntity || !self.GhostEntity:IsValid() || self.GhostEntity:GetModel() != self:GetClientInfo( "model" ) || (not self.GhostEntity:GetModel()) ) then
-		self:MakeGhostEntity( self:GetClientInfo( "model" ), Vector(0,0,0), Angle(0,0,0) )
-	end
-
-	self:UpdateGhostWireAddressBus( self.GhostEntity, self:GetOwner() )
 end
 
 function TOOL.BuildCPanel(panel)

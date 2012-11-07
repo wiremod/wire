@@ -136,48 +136,7 @@ if SERVER then
 
 		return wire_pod
 	end
-
 	duplicator.RegisterEntityClass("gmod_wire_pod", MakeWirePod, "Pos", "Ang", "Model", "Keys")
-end
-
-function TOOL:UpdateGhostWirePod(ent, player)
-	if  not ent or not ent:IsValid() then return end
-
-	local trace = player:GetEyeTrace()
-
-	if not trace.Hit or trace.Entity:IsPlayer() or trace.Entity:GetClass() == "gmod_wire_pod" then
-		ent:SetNoDraw(true)
-		return
-	end
-
-	local Ang = trace.HitNormal:Angle()
-	Ang.pitch = Ang.pitch + 90
-
-	ent:SetPos(trace.HitPos - trace.HitNormal * ent:OBBMins().z)
-	ent:SetAngles(Ang)
-
-	ent:SetNoDraw(false)
-end
-
-function TOOL:Think()
-	local model = self:GetModel()
-
-	if (!self.GhostEntity || !self.GhostEntity:IsValid() || self.GhostEntity:GetModel() != model ) then
-		self:MakeGhostEntity( Model(model), Vector(0,0,0), Angle(0,0,0) )
-	end
-
-	self:UpdateGhostWirePod(self.GhostEntity, self:GetOwner())
-end
-
-function TOOL:GetModel()
-	local model = "models/jaanus/wiretool/wiretool_siren.mdl"
-	local modelcheck = self:GetClientInfo( "model" )
-
-	if (util.IsValidModel(modelcheck) and util.IsValidProp(modelcheck)) then
-		model = modelcheck
-	end
-
-	return model
 end
 
 function TOOL.BuildCPanel(panel)

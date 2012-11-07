@@ -317,43 +317,5 @@ if SERVER then
 		return explosive
 
 	end
-
 	duplicator.RegisterEntityClass( "gmod_wire_explosive", MakeWireExplosive, "Pos", "Ang", "Model", "key", "damage", "removeafter", "delaytime", "doblastdamage", "radius", "affectother", "notaffected", "delayreloadtime", "maxhealth", "bulletproof", "explosionproof", "fallproof", "explodeatzero", "resetatexplode", "fireeffect", "coloreffect", "invisibleatzero", "nocollide" )
-
-end
-
-function TOOL:UpdateGhostWireExplosive( ent, player )
-
-	if ( !ent || !ent:IsValid() ) then return end
-
-	local trace = player:GetEyeTrace()
-
-	if (!trace.Hit || trace.Entity:IsPlayer() ) then -- || trace.Entity:GetClass() == "gmod_wire_explosive"
-		ent:SetNoDraw( true )
-		return
-	end
-
-	local Ang = trace.HitNormal:Angle()
-	Ang.pitch = Ang.pitch + 90
-
-	local min = ent:OBBMins()
-	ent:SetPos( trace.HitPos - trace.HitNormal * min.z )
-	ent:SetAngles( Ang )
-
-	ent:SetNoDraw( false )
-
-end
-
-function TOOL:Think()
-
-	if (!self.GhostEntity || !self.GhostEntity:IsValid() || self.GhostEntity:GetModel() != self:GetSelModel()) then
-
-		local _model = self:GetSelModel()
-		if (!_model) then return end
-
-		self:MakeGhostEntity( _model, Vector(0,0,0), Angle(0,0,0) )
-	end
-
-	self:UpdateGhostWireExplosive( self.GhostEntity, self:GetOwner() )
-
 end

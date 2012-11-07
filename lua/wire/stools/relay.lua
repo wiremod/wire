@@ -156,41 +156,7 @@ if (SERVER) then
 
 		return wire_relay
 	end
-
 	duplicator.RegisterEntityClass("gmod_wire_relay", MakeWireRelay, "Pos", "Ang", "Model", "keygroup1", "keygroup2", "keygroup3", "keygroup4", "keygroup5", "keygroupoff", "toggle", "normclose", "poles", "throws", "nokey")
-
-end
-
-function TOOL:UpdateGhost( ent, player )
-
-	if ( !ent || !ent:IsValid() ) then return end
-
-	local trace = player:GetEyeTrace()
-
-	if (!trace.Hit || trace.Entity:IsPlayer() || trace.Entity:GetClass() == "gmod_wire_relay" ) then
-		ent:SetNoDraw( true )
-		return
-	end
-
-	local Ang = trace.HitNormal:Angle()
-	Ang.pitch = Ang.pitch + 90
-
-	local min = ent:OBBMins()
-	ent:SetPos( trace.HitPos - trace.HitNormal * min.z )
-	ent:SetAngles( Ang )
-
-	ent:SetNoDraw( false )
-
-end
-
-function TOOL:Think()
-	local model = self:GetClientInfo("model")
-	if (!self.GhostEntity || !self.GhostEntity:IsValid() || self.GhostEntity:GetModel() != model ) then
-		self:MakeGhostEntity( model, Vector(0,0,0), Angle(0,0,0) )
-	end
-
-	self:UpdateGhost( self.GhostEntity, self:GetOwner() )
-
 end
 
 function TOOL.BuildCPanel(panel)

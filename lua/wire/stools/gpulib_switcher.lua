@@ -87,12 +87,4 @@ elseif SERVER then
 		end
 	end
 
-	function TOOL:GetModel()
-		local model = self:GetClientInfo("model")
-
-		if util.IsValidModel(model) then return model end
-
-		return "models/jaanus/wiretool/wiretool_siren.mdl"
-	end
-
 end -- if SERVER

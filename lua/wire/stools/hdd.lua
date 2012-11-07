@@ -23,12 +23,6 @@ TOOL.ClientConVar[ "packet_rate" ] = 0.4
 
 cleanup.Register( "wire_hdds" )
 
-function TOOL:GetModel()
-	local model = self:GetClientInfo( "model" )
-	if (!util.IsValidModel( model ) or !util.IsValidProp( model )) then return "models/jaanus/wiretool/wiretool_gate.mdl" end
-	return model
-end
-
 function TOOL:LeftClick( trace )
 	if trace.Entity:IsPlayer() then return false end
 	if (CLIENT) then return true end
@@ -102,41 +96,7 @@ if (SERVER) then
 		return wire_hdd
 
 	end
-
 	duplicator.RegisterEntityClass("gmod_wire_hdd", MakeWirehdd, "Pos", "Ang", "Model", "DriveID", "DriveCap")
-
-end
-
-function TOOL:UpdateGhostWirehdd( ent, player )
-
-	if ( !ent ) then return end
-	if ( !ent:IsValid() ) then return end
-
-	local trace = player:GetEyeTrace()
-	if (!trace.Hit) then return end
-
-	if (trace.Entity && trace.Entity:GetClass() == "gmod_wire_hdd" || trace.Entity:IsPlayer()) then
-		ent:SetNoDraw( true )
-		return
-	end
-
-	local Ang = trace.HitNormal:Angle()
-	Ang.pitch = Ang.pitch + 90
-
-	local min = ent:OBBMins()
-	ent:SetPos( trace.HitPos - trace.HitNormal * min.z )
-	ent:SetAngles( Ang )
-
-	ent:SetNoDraw( false )
-
-end
-
-function TOOL:Think()
-	if (!self.GhostEntity || !self.GhostEntity:IsValid() || self.GhostEntity:GetModel() != self:GetModel() || (not self.GhostEntity:GetModel()) ) then
-		self:MakeGhostEntity( self:GetModel(), Vector(0,0,0), Angle(0,0,0) )
-	end
-
-	self:UpdateGhostWirehdd( self.GhostEntity, self:GetOwner() )
 end
 
 local function GetStructName(steamID,HDD,name)
