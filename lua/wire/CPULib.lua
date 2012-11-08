@@ -441,7 +441,7 @@ if CLIENT then
   	browser:SetPos(10, 25)
   	browser:SetSize(w - 20, h - 35)
   
-  	browser:OpenURL("http://brain.wireos.com/wiremod/zcpudoc.html")
+  	browser:OpenURL("http://wiki.wiremod.com/wiki/Category:ZCPU_Handbook")
   end
 end
 
