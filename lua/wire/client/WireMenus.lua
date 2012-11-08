@@ -9,7 +9,6 @@ local Wire_Categories = {
 	"Wire - I/O",
 	"Wire - Physics",
 	"Wire - Tools",
-	"Administration",
 }
 
 local function WireTab()
@@ -36,7 +35,6 @@ end
 local function BuildAdminControlPanel(Panel)
 	for name,dev in pairs(devs) do
 		local slider = Panel:NumSlider(name, "sbox_max"..dev, 0, 999, 0)
-		slider:SetDecimals(false)
 	end
 end
 
