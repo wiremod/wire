@@ -423,9 +423,25 @@ if CLIENT then
   ------------------------------------------------------------------------------
   -- Show ZCPU/ZGPU documentation
   CPULib.HandbookWindow = nil
-
+  
   function CPULib.ShowDocumentation(platform)
-    gui.OpenURL("http://brain.wireos.com/wiremod/zcpudoc.html")
+    local w = ScrW() * 2/3
+  	local h = ScrH() * 2/3
+    local browserWindow = vgui.Create("DFrame")
+    browserWindow:SetTitle("Documentation")
+  	browserWindow:SetPos((ScrW() - w)/2, (ScrH() - h)/2)
+  	browserWindow:SetSize(w,h)
+  	browserWindow.OnClose = function()
+  		browser = nil
+  		browserWindow = nil
+	  end
+    browserWindow:MakePopup()
+	
+  	local browser = vgui.Create("DHTML",browserWindow)
+  	browser:SetPos(10, 25)
+  	browser:SetSize(w - 20, h - 35)
+  
+  	browser:OpenURL("http://brain.wireos.com/wiremod/zcpudoc.html")
   end
 end
 
