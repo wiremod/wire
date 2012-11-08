@@ -15,12 +15,8 @@ function SWEP:Initialize()
 	self.Pointing = false
 end
 
-function SWEP:Reload()
-
-end
-
 function SWEP:Equip( newOwner )
-	if(newOwner.LasReceiver && newOwner.LasReceiver:IsValid())then
+	if IsValid(newOwner.LasReceiver) then
 		self.Receiver = newOwner.LasReceiver
 		newOwner.LasReceiver = nil
 		newOwner:PrintMessage( HUD_PRINTTALK, "Relinked Sucessfully" )
@@ -30,7 +26,7 @@ end
 function SWEP:PrimaryAttack()
 	self.Pointing = !self.Pointing
 	self.Weapon:SetNWBool("Active", self.Pointing)
-	if(self.Pointing && self.Receiver && self.Receiver:IsValid())then
+	if self.Pointing and IsValid(self.Receiver) then
 		Wire_TriggerOutput(self.Receiver,"Active",1)
 	else
 		Wire_TriggerOutput(self.Receiver,"Active",0)
@@ -40,7 +36,7 @@ end
 function SWEP:SecondaryAttack()
 	local trace = self.Owner:GetEyeTrace()
 
-	if (trace.Entity and trace.Entity:IsValid() and trace.Entity:GetClass() == "gmod_wire_las_reciever") then
+	if IsValid(trace.Entity) trace.Entity:GetClass() == "gmod_wire_las_receiver" then
 		self.Receiver = trace.Entity
 		self.Owner:PrintMessage( HUD_PRINTTALK, "Linked Sucessfully" )
 		return true
