@@ -1,5 +1,5 @@
 TOOL.Category		= "Wire - Tools"
-TOOL.Name			= "Expression 2 - Wirelink"
+TOOL.Name			= "Wirelink (Deprecated)"
 TOOL.Command		= nil
 TOOL.ConfigName		= ""
 TOOL.Tab			= "Wire"
@@ -22,6 +22,8 @@ function TOOL:LeftClick(trace)
 
 		ent.extended = true
 		RefreshSpecialOutputs(ent)
+		
+		WireLib.AddNotify(ply, "Deprecation Warning: Use Wire Advanced", NOTIFY_GENERIC, 4)
 
 		return true
 	end
@@ -50,4 +52,5 @@ end
 
 function TOOL.BuildCPanel(panel)
 	panel:AddControl("Header", { Text = "#Tool.wire_wirelink.name", Description = "#Tool.wire_wirelink.desc" })
+	panel:Help("This tool is deprecated as its functionality is contained within Wire Advanced, and will be removed soon.")
 end
