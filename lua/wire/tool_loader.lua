@@ -62,7 +62,7 @@ if SERVER then
 
 		local ent = self:MakeEnt( ply, model, Ang, trace )
 
-		self:PostMake_SetPos( ent, trace )
+		if IsValid(ent) then self:PostMake_SetPos( ent, trace ) end
 
 		return ent
 	end
