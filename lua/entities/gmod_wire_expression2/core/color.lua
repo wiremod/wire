@@ -174,22 +174,24 @@ local function Convert_rgb2hsl(r, g, b)
 	return h, s, l
 end
 
---- Converts <hsl> HSL color space to RGB color space - takes 0-1 parameters
+--- Converts <hsl> HSL color space to RGB color space
 e2function vector hsl2rgb(vector hsl)
-	return { RGBClamp(Convert_hsl2rgb(hsl[1], hsl[2], hsl[3])) }
+	return { RGBClamp(Convert_hsl2rgb(hsl[1] / 360, hsl[2], hsl[3])) }
 end
 
 e2function vector hsl2rgb(h, s, l)
-	return { RGBClamp(Convert_hsl2rgb(h, s, l)) }
+	return { RGBClamp(Convert_hsl2rgb(h / 360, s, l)) }
 end
 
---- Converts <rgb> RGB color space to HSL color space - returns values in 0-1
+--- Converts <rgb> RGB color space to HSL color space
 e2function vector rgb2hsl(vector rgb)
-	return { Convert_rgb2hsl(RGBClamp(rgb[1], rgb[2], rgb[3])) }
+	local h,s,l = Convert_rgb2hsl(RGBClamp(rgb[1], rgb[2], rgb[3]))
+	return { floor(h * 360), s, l }
 end
 
 e2function vector rgb2hsl(r, g, b)
-	return { Convert_rgb2hsl(RGBClamp(r, g, b)) }
+	local h,s,l = Convert_rgb2hsl(RGBClamp(r, g, b))
+	return { floor(h * 360), s, l }
 end
 
 --- DIGI
