@@ -15,12 +15,9 @@ end
 
 function ENT:Setup( out180 )
 
-	self.Out180 = out180 --wft is this used for
+	self.out180 = out180 --wft is this used for
 	self:SetOut180(out180)
-	self.Value = 0
-	self.PrevOutput = nil
 
-	--self:ShowOutput(0, 0, 0)
 	Wire_TriggerOutput(self, "Pitch", 0)
 	Wire_TriggerOutput(self, "Yaw", 0)
 	Wire_TriggerOutput(self, "Roll", 0)
@@ -31,10 +28,10 @@ function ENT:Think()
 	self.BaseClass.Think(self)
 
     local ang = self:GetAngles()
-	if (ang.p < 0 && !self.Out180) then ang.p = ang.p + 360 end
-	if (ang.y < 0 && !self.Out180) then ang.y = ang.y + 360 end
-	if (ang.r < 0 && !self.Out180) then ang.r = ang.r + 360
-	elseif (ang.r > 180 && self.Out180) then ang.r = ang.r - 360 end
+	if (ang.p < 0 && !self.out180) then ang.p = ang.p + 360 end
+	if (ang.y < 0 && !self.out180) then ang.y = ang.y + 360 end
+	if (ang.r < 0 && !self.out180) then ang.r = ang.r + 360
+	elseif (ang.r > 180 && self.out180) then ang.r = ang.r - 360 end
 	Wire_TriggerOutput(self, "Pitch", ang.p)
 	Wire_TriggerOutput(self, "Yaw", ang.y)
 	Wire_TriggerOutput(self, "Roll", ang.r)
@@ -44,10 +41,6 @@ function ENT:Think()
 
 	self:NextThink(CurTime()+0.04)
 	return true
-end
-
-function ENT:ShowOutput(p, y, r)
-	self:SetOverlayText( "Angles = " .. math.Round(p*1000)/1000 .. "," .. math.Round(y*1000)/1000 .. "," .. math.Round(r*1000)/1000 )
 end
 
 function MakeWireGyroscope( pl, Pos, Ang, model, out180, nocollide, Vel, aVel, frozen )
@@ -63,16 +56,12 @@ function MakeWireGyroscope( pl, Pos, Ang, model, out180, nocollide, Vel, aVel, f
 
 	wire_gyroscope:Setup( out180 )
 	wire_gyroscope:SetPlayer(pl)
+	wire_gyroscope.pl = pl
 
 	if ( nocollide == true ) then wire_gyroscope:GetPhysicsObject():EnableCollisions( false ) end
-
-	local ttable = {
-		pl = pl,
-		out180 = out180,
-	}
-	table.Merge(wire_gyroscope:GetTable(), ttable )
 
 	pl:AddCount( "wire_gyroscopes", wire_gyroscope )
 
 	return wire_gyroscope
 end
+duplicator.RegisterEntityClass("gmod_wire_gyroscope", MakeWireGyroscope, "Pos", "Ang", "Model", "out180")
