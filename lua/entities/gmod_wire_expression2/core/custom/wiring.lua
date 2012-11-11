@@ -1,5 +1,7 @@
--- Originally by Jeremydeath, updated by Nebual
+-- Originally by Jeremydeath, updated by Nebual + Natrim's wirelink
 E2Lib.RegisterExtension("wiring", false)
+
+__e2setcost(5) -- temporary
 
 --- Creates an invisible wire between the input <inputname> of <this> and the output <outputname> of <ent2> 
 e2function number entity:createWire(entity ent2, string inputname, string outputname)
@@ -91,3 +93,30 @@ e2function array entity:getWireOutputs()
 	end
 	return ret
 end
+
+/***************************************************************************/
+
+--- Returns <this>'s entity wirelink
+e2function wirelink entity:wirelink()
+	if not IsValid(this) then return nil end
+	if not isOwner(self, this) then return nil end
+	if not this.IsWire and this.IsWire == true then return nil end -- dont do it on non-wire
+	if !this.extended then
+		this.extended = true
+		RefreshSpecialOutputs(this)
+	end
+	return this
+end
+
+--- Removes <this>'s entity wirelink
+e2function number entity:removeWirelink()
+	if not IsValid(this) then return 0 end
+	if not isOwner(self, this) then return 0 end
+	if not this.IsWire and this.IsWire == true then return 0 end -- dont do it on non-wire
+	if !this.extended then return 0 end
+	this.extended = false
+	RefreshSpecialOutputs(this)
+	return 1
+end
+
+__e2setcost(nil) -- temporary
