@@ -151,8 +151,8 @@ function ENT:TriggerInput( name, value )
 			self:ToggleCam( false )
 			self:ToggleFLIR( false )
 		else
-			if self.CamPod then
-				if self.CamPod:GetDriver() and self.CamPod:GetDriver():IsValid() then
+			if IsValid(self.CamPod) then
+				if self.CamPod.GetDriver and self.CamPod:GetDriver() and self.CamPod:GetDriver():IsValid() then
 					self.CamPlayer = self.CamPod:GetDriver()
 				else
 					self.CamPlayer = self.OriginalOwner
