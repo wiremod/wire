@@ -1,7 +1,7 @@
 -- Originally by Jeremydeath, updated by Nebual + Natrim's wirelink
 E2Lib.RegisterExtension("wiring", false)
 
-__e2setcost(5) -- temporary
+__e2setcost(30)
 
 --- Creates an invisible wire between the input <inputname> of <this> and the output <outputname> of <ent2> 
 e2function number entity:createWire(entity ent2, string inputname, string outputname)
@@ -70,6 +70,7 @@ e2function number entity:deleteWire(string inputname)
 	return 1
 end
 
+__e2setcost(10)
 --- Returns an array of <this>'s wire input names
 e2function array entity:getWireInputs()
 	if not IsValid(this) or not isOwner(self, this) or not this.Inputs then return {} end
@@ -94,13 +95,13 @@ e2function array entity:getWireOutputs()
 	return ret
 end
 
-/***************************************************************************/
+__e2setcost(25)
 
 --- Returns <this>'s entity wirelink
 e2function wirelink entity:wirelink()
 	if not IsValid(this) then return nil end
 	if not isOwner(self, this) then return nil end
-	if not this.IsWire and this.IsWire == true then return nil end -- dont do it on non-wire
+	if not this.IsWire then return nil end -- dont do it on non-wire
 	if !this.extended then
 		this.extended = true
 		RefreshSpecialOutputs(this)
@@ -112,7 +113,7 @@ end
 e2function number entity:removeWirelink()
 	if not IsValid(this) then return 0 end
 	if not isOwner(self, this) then return 0 end
-	if not this.IsWire and this.IsWire == true then return 0 end -- dont do it on non-wire
+	if not this.IsWire then return 0 end -- dont do it on non-wire
 	if !this.extended then return 0 end
 	this.extended = false
 	RefreshSpecialOutputs(this)
