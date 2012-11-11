@@ -126,7 +126,7 @@ if CLIENT then
 		end
 		
 		valueSlider.OnValueChanged = function( valueSlider, value )
-			local value = tonumber(value) -- Silly Garry, giving me strings.
+			local value = math.ceil(tonumber(value)) -- Silly Garry, giving me strings.
 			if value != LastValueAmount then
 				
 				if value > LastValueAmount then
@@ -139,7 +139,7 @@ if CLIENT then
 				elseif value < LastValueAmount then
 					for i = value + 1, LastValueAmount, 1 do
 						selectedValues[i] = nil
-						ValuePanels[i]:Remove()
+						if IsValid(ValuePanels[i]) then ValuePanels[i]:Remove() end
 						ValuePanels[i] = nil
 						local _,h = panel:GetSize()
 						panel:SetSize(w, h-120 )
