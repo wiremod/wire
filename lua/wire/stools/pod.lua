@@ -148,4 +148,5 @@ function TOOL.BuildCPanel(panel)
 		Command = "wire_pod_Keys",
 		Disabled = "true" -- Does this work?
 	})
+	panel:Help("This tool is deprecated as its functionality is contained within Advanced Pod Controller, and will be removed soon.")
 end
