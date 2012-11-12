@@ -10,8 +10,6 @@ WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20, TOOL.Mode.."s" , "You've hit the Wire "..TOOL.PluralName.." limit!" )
 
 if SERVER then
-	ModelPlug_Register("Numpad")
-	
 	local playerValues = {}
 	util.AddNetworkString( "wire_value_values" )
 	net.Receive( "wire_value_values", function( length, ply )
@@ -23,6 +21,14 @@ if SERVER then
 	function TOOL:MakeEnt( ply, model, Ang, trace )
 		return MakeWireValue( ply, trace.HitPos, Ang, model, self:GetConVars() )
 	end
+
+	function TOOL:RightClick(trace)
+		if not IsValid(trace.Entity) or trace.Entity:GetClass() != "gmod_wire_value" then return false end
+		playerValues[self:GetOwner()] = trace.Entity.value
+		net.Start("wire_value_values")
+			net.WriteTable(trace.Entity.value)
+		net.Send(self:GetOwner())
+	end
 end
 
 TOOL.ClientConVar = {
@@ -31,8 +37,13 @@ TOOL.ClientConVar = {
 }
 
 if CLIENT then
+	function TOOL:RightClick(trace)
+		return IsValid(trace.Entity) and trace.Entity:GetClass() == "gmod_wire_value"
+	end
+
 	local ValuePanels = {}
 	local selectedValues = {}
+	
 	local function SendUpdate()
 		net.Start("wire_value_values")
 			net.WriteTable(selectedValues)
@@ -58,6 +69,7 @@ if CLIENT then
 		control:Dock(TOP)
 		
 		local typeSelection = vgui.Create( "DComboBox", control )
+		control.typeSelection = typeSelection
 		local _, controlW = control:GetSize()
 		typeSelection:SetText( DataTypes["NORMAL"] )
 		typeSelection:SetSize( controlW , 25 )
@@ -73,6 +85,7 @@ if CLIENT then
 		end
 		
 		local valueEntry = vgui.Create( "DTextEntry",control )
+		control.valueEntry = valueEntry
 		valueEntry:Dock( TOP )
 		valueEntry:DockMargin( 5,2,5,2 )
 		valueEntry:DockPadding(5,5,5,5)
@@ -80,17 +93,33 @@ if CLIENT then
 		
 		local oldLoseFocus = valueEntry.OnLoseFocus
 		valueEntry.OnLoseFocus = function( panel )
-			if panel:GetValue() != nil then
-				local value = panel:GetValue()
-				selectedValues[id].Value = panel:GetValue()
-				SendUpdate()
-			end
+			selectedValues[id].Value = panel:GetValue() or 0
+			SendUpdate()
 			oldLoseFocus(panel) -- Otherwise we can't close the spawnmenu!
 		end
 
 		return control 
 	end
 	local ValuePanels = {}
+	local valueSlider
+	
+	net.Receive( "wire_value_values", function( length )
+		if not IsValid(valueSlider) then return end -- How'd they right click without opening the cpanel?
+		local oldSendUpdate = SendUpdate
+		SendUpdate = function() end -- Lets not bother the server with 20 updates it already knows about
+		
+		local tab = net.ReadTable()
+		//valueSlider:OnValueChanged(#tab)
+		valueSlider:SetValue(#tab)
+		for id,v in pairs(tab) do
+			ValuePanels[id].typeSelection:SetText( v.DataType )
+			ValuePanels[id].typeSelection:OnSelect( _, v.DataType )
+			ValuePanels[id].valueEntry:SetValue(v.Value)
+		end
+		
+		SendUpdate = oldSendUpdate
+	end)
+	
 	function TOOL.BuildCPanel( panel )
 		WireToolHelpers.MakeModelSizer(panel, "wire_value_modelsize")
 		ModelPlug_AddToCPanel(panel, "Value", "wire_value", true)
@@ -98,7 +127,7 @@ if CLIENT then
 		local reset = panel:Button("Reset Values")
 		
 		local w,_ = panel:GetSize()
-		local valueSlider = vgui.Create( "DNumSlider", panel )
+		valueSlider = vgui.Create( "DNumSlider", panel )
 		valueSlider:SetSize(w, 25 )
 		valueSlider:SetText( "Amount:" )
 		valueSlider:SetDark( true )
@@ -151,6 +180,6 @@ if CLIENT then
 				SendUpdate()
 			end
 		end
-		valueSlider:OnValueChanged( 1 )
+		valueSlider:SetValue( 1 )
 	end
 end
