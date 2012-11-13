@@ -1040,6 +1040,8 @@ CPU(132, "GMAP",          2,   8.00,    R0,        "X",     "PAGE",  "Read what 
 CPU(133, "RSTACK",        2,   9.00,    0,         "X",     "IDX",   "Read value from stack at offset IDX (from address SS+IDX)")
 CPU(134, "SSTACK",        2,   9.00,    0,         "IDX",   "Y",     "Write value to stack at offset IDX (to address SS+IDX)")
 CPU(135, "ENTER",         1,  10.00,    0,         "SIZE",  "",      "Enter stack frame and allocate SIZE bytes on stack for local variables")
+CPU(136, "IRETP",         1,   2.00,    R0,        "PTBL",  "",      "Set PTBL, then return from an interrupt")
+CPU(137, "EXTRETP",       1,  10.00,    R0,        "PTBL",  "",      "Set PTBL, then return from an external interrupt")
 ---- Dec 14 -- UNDEFINED ------------------------------------------------------------------------------------------------------------------------
 ---- Dec 15 -- UNDEFINED ------------------------------------------------------------------------------------------------------------------------
 ---- Dec 16 -- UNDEFINED ------------------------------------------------------------------------------------------------------------------------
