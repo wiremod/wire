@@ -102,28 +102,28 @@ Obj.Draw = function( self )
 	end
 end
 Obj.Transmit = function( self, Ent, ply )
-	EGP.umsg.Short( self.x )
-	EGP.umsg.Short( self.y )
+	net.WriteInt( self.x, 16 )
+	net.WriteInt( self.y, 16 )
 	EGP:InsertQueue( Ent, ply, EGP._SetText, "SetText", self.index, self.text )
-	EGP.umsg.Char( self.fontid-128 )
-	EGP.umsg.Char( math.Clamp(self.size,0,128)-128 )
-	EGP.umsg.Char( math.Clamp(self.valign,0,2) )
-	EGP.umsg.Char( math.Clamp(self.halign,0,2) )
-	EGP.umsg.Short( self.parent )
+	net.WriteUInt(self.fontid, 8)
+	net.WriteUInt(math.Clamp(self.size,0,256), 8)
+	net.WriteUInt(math.Clamp(self.valign,0,2), 2)
+	net.WriteUInt(math.Clamp(self.halign,0,2), 2)
+	net.WriteInt( self.parent, 16 )
 	EGP:SendColor( self )
-	EGP.umsg.Short((self.angle%360)*20)
+	net.WriteInt((self.angle%360)*20, 16)
 end
-Obj.Receive = function( self, um )
+Obj.Receive = function( self )
 	local tbl = {}
-	tbl.x = um:ReadShort()
-	tbl.y = um:ReadShort()
-	tbl.fontid = um:ReadChar()+128
-	tbl.size = um:ReadChar()+128
-	tbl.valign = um:ReadChar()
-	tbl.halign = um:ReadChar()
-	tbl.parent = um:ReadShort()
-	EGP:ReceiveColor( tbl, self, um )
-	tbl.angle = um:ReadShort()/20
+	tbl.x = net.ReadInt(16)
+	tbl.y = net.ReadInt(16)
+	tbl.fontid = net.ReadUInt(8)
+	tbl.size = net.ReadUInt(8)
+	tbl.valign = net.ReadUInt(2)
+	tbl.halign = net.ReadUInt(2)
+	tbl.parent = net.ReadInt(16)
+	EGP:ReceiveColor( tbl, self )
+	tbl.angle = net.ReadInt(16)/20
 	return tbl
 end
 Obj.DataStreamInfo = function( self )

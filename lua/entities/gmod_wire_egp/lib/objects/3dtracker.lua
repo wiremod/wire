@@ -71,21 +71,21 @@ function Obj:Draw(egp)
 end
 
 function Obj:Transmit()
-	EGP.umsg.Float( self.target_x )
-	EGP.umsg.Float( self.target_y )
-	EGP.umsg.Float( self.target_z )
-	EGP.umsg.Entity( self.parententity )
-	EGP.umsg.Short((self.angle%360)*64)
+	net.WriteFloat( self.target_x )
+	net.WriteFloat( self.target_y )
+	net.WriteFloat( self.target_z )
+	net.WriteEntity( self.parententity )
+	net.WriteInt((self.angle%360)*64, 16)
 end
 
-function Obj:Receive( um )
+function Obj:Receive()
 	local tbl = {}
-	tbl.target_x = um:ReadFloat()
-	tbl.target_y = um:ReadFloat()
-	tbl.target_z = um:ReadFloat()
-	local parententity = um:ReadEntity()
+	tbl.target_x = net.ReadFloat()
+	tbl.target_y = net.ReadFloat()
+	tbl.target_z = net.ReadFloat()
+	local parententity = net.ReadEntity()
 	if parententity and parententity:IsValid() then tbl.parententity = parententity end
-	tbl.angle = um:ReadShort()/64
+	tbl.angle = net.ReadInt(16)/64
 	return tbl
 end
 
