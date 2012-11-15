@@ -56,7 +56,7 @@ function EGP:ScaleObject( ent, v )
 			r[i+1] = (r[i+1]- yMin) * yMul
 		end
 		local settings = {}
-		if (type(v.verticesindex) == "string") then settings = { [v.verticesindex] = makeTable( v, r ) } else settings = makeTable( v, r ) end
+		if isstring(v.verticesindex) then settings = { [v.verticesindex] = makeTable( v, r ) } else settings = makeTable( v, r ) end
 		self:EditObject( v, settings )
 	else
 		if (v.x) then
@@ -145,15 +145,15 @@ end
 function EGP:SendMaterial( obj ) -- ALWAYS use this when sending material
 	local mat = obj.material
 	if type(mat) == "string" then
-		umsg.PoolString( "0" .. mat )
-		EGP.umsg.String( "0" .. mat ) -- 0 for string
+		util.AddNetworkString( "0" .. mat )
+		net.WriteString( "0" .. mat ) -- 0 for string
 	elseif type(mat) == "Entity" then
-		EGP.umsg.String( "1" .. mat:EntIndex() ) -- 1 for entity
+		net.WriteString( "1" .. mat:EntIndex() ) -- 1 for entity
 	end
 end
 
-function EGP:ReceiveMaterial( tbl, um ) -- ALWAYS use this when receiving material
-	local temp = um:ReadString()
+function EGP:ReceiveMaterial( tbl ) -- ALWAYS use this when receiving material
+	local temp = net.ReadString()
 	local what, mat = temp:sub(1,1), temp:sub(2)
 	if what == "0" then
 		if mat == "" then
@@ -175,38 +175,38 @@ end
 -- Other
 -----------------------
 function EGP:SendPosSize( obj )
-	EGP.umsg.Short( obj.w )
-	EGP.umsg.Short( obj.h )
-	EGP.umsg.Short( obj.x )
-	EGP.umsg.Short( obj.y )
+	net.WriteInt( obj.w, 16 )
+	net.WriteInt( obj.h, 16 )
+	net.WriteInt( obj.x, 16 )
+	net.WriteInt( obj.y, 16 )
 end
 
 function EGP:SendColor( obj )
-	EGP.umsg.Char( obj.r - 128 )
-	EGP.umsg.Char( obj.g - 128 )
-	EGP.umsg.Char( obj.b - 128 )
-	if (obj.a) then EGP.umsg.Char( obj.a - 128 ) end
+	net.WriteUInt(obj.r, 8)
+	net.WriteUInt(obj.g, 8)
+	net.WriteUInt(obj.b, 8)
+	if (obj.a) then net.WriteUInt(obj.a, 8) end
 end
 
-function EGP:ReceivePosSize( tbl, um ) -- Used with SendPosSize
-	tbl.w = um:ReadShort()
-	tbl.h = um:ReadShort()
-	tbl.x = um:ReadShort()
-	tbl.y = um:ReadShort()
+function EGP:ReceivePosSize( tbl ) -- Used with SendPosSize
+	tbl.w = net.ReadInt(16)
+	tbl.h = net.ReadInt(16)
+	tbl.x = net.ReadInt(16)
+	tbl.y = net.ReadInt(16)
 end
 
-function EGP:ReceiveColor( tbl, obj, um ) -- Used with SendColor
-	tbl.r = um:ReadChar() + 128
-	tbl.g = um:ReadChar() + 128
-	tbl.b = um:ReadChar() + 128
-	if (obj.a) then tbl.a = um:ReadChar() + 128 end
+function EGP:ReceiveColor( tbl, obj ) -- Used with SendColor
+	tbl.r = net.ReadUInt(8)
+	tbl.g = net.ReadUInt(8)
+	tbl.b = net.ReadUInt(8)
+	if (obj.a) then tbl.a = net.ReadUInt(8) end
 end
 
 --------------------------------------------------------
 -- Other
 --------------------------------------------------------
 function EGP:ValidEGP( Ent )
-	return (Ent and IsValid( Ent ) and (Ent:GetClass() == "gmod_wire_egp" or Ent:GetClass() == "gmod_wire_egp_hud" or Ent:GetClass() == "gmod_wire_egp_emitter"))
+	return (IsValid( Ent ) and (Ent:GetClass() == "gmod_wire_egp" or Ent:GetClass() == "gmod_wire_egp_hud" or Ent:GetClass() == "gmod_wire_egp_emitter"))
 end
 
 
