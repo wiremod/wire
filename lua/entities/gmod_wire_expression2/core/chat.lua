@@ -16,8 +16,8 @@ registerCallback("destruct",function(self)
 	ChatAlert[self.entity] = nil
 end)
 
-hook.Add("PlayerSay","Exp2TextReceiving", function(ply, text, toall)
-	local entry = { text, CurTime(), ply, toall }
+hook.Add("PlayerSay","Exp2TextReceiving", function(ply, text, teamchat)
+	local entry = { text, CurTime(), ply, teamchat }
 	TextList[ply:EntIndex()] = entry
 	TextList.last = entry
 
@@ -108,7 +108,7 @@ e2function number lastSaidTeam()
 	local entry = TextList.last
 	if not entry then return 0 end
 
-	return entry[4] and 0 or 1
+	return entry[4] and 1 or 0
 end
 
 --- Returns what the player <this> last said.
@@ -141,5 +141,5 @@ e2function number entity:lastSaidTeam()
 	local entry = TextList[this:EntIndex()]
 	if not entry then return 0 end
 
-	return entry[4] and 0 or 1
+	return entry[4] and 1 or 0
 end
