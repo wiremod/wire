@@ -17,10 +17,10 @@ registerType( "gtable", "xgt", {},
 	function(self) self.entity:Error("You may not input a gtable.") end,
 	function(self) self.entity:Error("You may not output a gtable.") end,
 	function(retval)
-		if type(retval) ~= "table" then error("Return value is not a gtable, but a "..type(retval).."!",0) end
+		if !istable(retval) then error("Return value is not a gtable, but a "..type(retval).."!",0) end
 	end,
 	function(v)
-		return type(v) ~= "table"
+		return !istable(v)
 	end
 )
 
@@ -91,7 +91,7 @@ registerOperator("fea","xgt","s",function(self,args)
 end)
 
 e2function number operator_is( gtable tbl )
-	return (type(tbl) == "table")
+	return istable(tbl)
 end
 
 ------------------------------------------------
@@ -199,19 +199,19 @@ registerCallback("postinit",function()
 			local function getf( self, args )
 				local op1, op2 = args[2], args[3]
 				local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-				if (type(rv2) == "number") then rv2 = tostring(rv2) end
+				if isnumber(rv2) then rv2 = tostring(rv2) end
 				local val = rv1[v[1]..rv2]
 				if (val) then -- If the var exists
 					return val -- return it
 				end
 				local default = v[2]
-				if (type(default) == "table") then default = table.Copy(default) end
+				if istable(default) then default = table.Copy(default) end
 				return default
 			end
 			local function setf( self, args )
 				local op1, op2, op3 = args[2], args[3], args[4]
 				local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
-				if (type(rv2) == "number") then rv2 = tostring(rv2) end
+				if isnumber(rv2) then rv2 = tostring(rv2) end
 				rv1[v[1]..rv2] = rv3
 				return rv3
 			end
@@ -232,7 +232,7 @@ registerCallback("postinit",function()
 					return val
 				end
 				local default = v[2]
-				if (type(default) == "table") then default = table.Copy(default) end
+				if istable(default) then default = table.Copy(default) end
 				return default
 			end)
 
@@ -344,13 +344,13 @@ registerCallback("postinit",function()
 				local ret = GetVar(self.data.gvars.group,gvars.shared,rv1,v[1])
 				if (ret) then return ret end
 				local default = v[2][2]
-				if (type(default) == "table") then default = table.Copy(default) end
+				if istable(default) then default = table.Copy(default) end
 				return default
 			else
 				local ret = GetVar(self.data.gvars.group,gvars[self.uid],rv1,v[1])
 				if (ret) then return ret end
 				local default = v[2][2]
-				if (type(default) == "table") then default = table.Copy(default) end
+				if istable(default) then default = table.Copy(default) end
 				return default
 			end
 		end)
@@ -376,13 +376,13 @@ registerCallback("postinit",function()
 				local ret = GetVar(self.data.gvars.group,gvars.shared,rv1,v[1])
 				if (ret) then return ret end
 				local default = v[2][2]
-				if (type(default) == "table") then default = table.Copy(default) end
+				if istable(default) then default = table.Copy(default) end
 				return default
 			else
 				local ret = GetVar(self.data.gvars.group,gvars[self.uid],rv1,v[1])
 				if (ret) then return ret end
 				local default = v[2][2]
-				if (type(default) == "table") then default = table.Copy(default) end
+				if istable(default) then default = table.Copy(default) end
 				return default
 			end
 		end)
@@ -409,7 +409,7 @@ registerCallback("postinit",function()
 				end
 			end
 			local default = v[2][2]
-			if (type(default) == "table") then default = table.Copy(default) end
+			if istable(default) then default = table.Copy(default) end
 			return default
 		end)
 
@@ -435,7 +435,7 @@ registerCallback("postinit",function()
 				end
 			end
 			local default = v[2][2]
-			if (type(default) == "table") then default = table.Copy(default) end
+			if istable(default) then default = table.Copy(default) end
 			return default
 		end)
 

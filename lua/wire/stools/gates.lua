@@ -302,7 +302,7 @@ function TOOL:LeftClick( trace )
 	local ply = self:GetOwner()
 
 	local ent = WireToolMakeGate( self, trace, ply )
-	if type(ent) ~= "Entity" then return true end -- WireToolMakeGate returns a boolean if the player shoots a gate (to update it)
+	if !isentity(ent) then return true end -- WireToolMakeGate returns a boolean if the player shoots a gate (to update it)
 
 	-- Parenting
 	local nocollide

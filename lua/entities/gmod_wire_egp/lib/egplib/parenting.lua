@@ -17,7 +17,7 @@ EGP.ParentingFuncs.addUV = addUV
 
 local function makeArray( v, fakepos )
 	local ret = {}
-	if (type(v.verticesindex) == "string") then
+	if isstring(v.verticesindex) then
 		if (!fakepos) then
 			if (!v["_"..v.verticesindex]) then EGP:AddParentIndexes( v ) end
 			for k,v in ipairs( v["_"..v.verticesindex] ) do
@@ -49,7 +49,7 @@ EGP.ParentingFuncs.makeArray = makeArray
 
 local function makeTable( v, data )
 	local ret = {}
-	if (type(v.verticesindex) == "string") then
+	if isstring(v.verticesindex) then
 		for i=1,#data,2 do
 			ret[#ret+1] = { x = data[i], y = data[i+1] }
 		end
@@ -97,7 +97,7 @@ function EGP:GetGlobalPos( Ent, index )
 						r[i+1] = vec.y
 					end
 					local ret = {}
-					if (type(v.verticesindex) == "string") then
+					if isstring(v.verticesindex) then
 						local temp = makeTable( v, r )
 						addUV( v, temp )
 						ret = { [v.verticesindex] = temp }
@@ -114,7 +114,7 @@ function EGP:GetGlobalPos( Ent, index )
 							temp[i+1] = centery + temp[i+1]
 						end
 						local ret = {}
-						if (type(v.verticesindex) == "string") then ret = { [v.verticesindex] = makeTable( v, temp ) } else ret = makeTable( v, temp ) end
+						if isstring(v.verticesindex) then ret = { [v.verticesindex] = makeTable( v, temp ) } else ret = makeTable( v, temp ) end
 						return true, ret
 					else -- obj has vertices, parent does not
 						local x, y, ang = data.x, data.y, data.angle
@@ -127,7 +127,7 @@ function EGP:GetGlobalPos( Ent, index )
 							r[i+1] = vec.y
 						end
 						local ret = {}
-						if (type(v.verticesindex) == "string") then
+						if isstring(v.verticesindex) then
 							local temp = makeTable( v, r )
 							addUV( v, temp )
 							ret = { [v.verticesindex] = temp }
@@ -136,11 +136,11 @@ function EGP:GetGlobalPos( Ent, index )
 					end
 				end
 				local ret = {}
-				if (type(v.verticesindex) == "string") then ret = { [v.verticesindex] = makeTable( v, makeArray( v ) ) } else ret = makeTable( v, makeArray( v ) ) end
+				if isstring(v.verticesindex) then ret = { [v.verticesindex] = makeTable( v, makeArray( v ) ) } else ret = makeTable( v, makeArray( v ) ) end
 				return true, ret
 			end
 			local ret = {}
-			if (type(v.verticesindex) == "string") then ret = { [v.verticesindex] = makeTable( v, makeArray( v ) ) }	else ret = makeTable( v, makeArray( v ) ) end
+			if isstring(v.verticesindex) then ret = { [v.verticesindex] = makeTable( v, makeArray( v ) ) }	else ret = makeTable( v, makeArray( v ) ) end
 			return true, ret
 		else -- Object does not have vertices, parent does not
 			if (v.parent and v.parent != 0) then -- Object is parented
@@ -180,7 +180,7 @@ end
 function EGP:AddParentIndexes( v )
 	if (v.verticesindex) then
 		-- Copy original positions
-		if (type(v.verticesindex) == "string") then
+		if isstring(v.verticesindex) then
 			v["_"..v.verticesindex] = table.Copy( v[v.verticesindex] )
 		else
 			for k,v2 in ipairs( v.verticesindex ) do
@@ -254,7 +254,7 @@ end
 function EGP:RemoveParentIndexes( v, hasVertices )
 	if (hasVertices) then
 		-- Remove original positions
-		if (type(v.verticesindex) == "string") then
+		if isstring(v.verticesindex) then
 			v["_"..v.verticesindex] = nil
 		else
 			for k,v2 in ipairs( v.verticesindex ) do
@@ -272,9 +272,9 @@ end
 
 function EGP:UnParent( Ent, index )
 	local bool, k, v = false
-	if (type(index) == "number") then
+	if isnumber(index) then
 		bool, k, v = self:HasObject( Ent, index )
-	elseif (type(index) == "table") then
+	elseif istable(index) then
 		bool = true
 		v = index
 		index = v.index

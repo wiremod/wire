@@ -92,7 +92,7 @@ local function RunLua(I, name, value, wired, self, Ent)
 
 	local func = CompileString(lua, self.ErrorName.." (Input "..I..")", false)
 	local Err
-	if (type(func) == "function") then
+	if isfunction(func) then
 		-- Globals
 		WIRE_NAME = name -- Input name
 		WIRE_VALUE = value -- Input value

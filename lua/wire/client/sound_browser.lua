@@ -40,7 +40,7 @@ function PANEL:FindItemsInTree(pFolders, dir, parent, fileicon, filepart, fileco
 					for i = 1, MaxPerTimerTick do
 						local index = (Timervalue + i) - 1
 						local v = pFolders[index + (MaxElements * filepart)]
-						if (type(v) == "string") then
+						if (isstring(v)) then
 							local Filepath = (dir .. "/" .. v)
 							local IsDir = file.IsDir(Filepath,"GAME")
 							local FileExists = file.Exists(Filepath,"GAME")
@@ -96,7 +96,7 @@ end
 local olddir = ""
 
 function PANEL:BuildFileTree(dir, parent, filepart) // Build the file tree.
-	if(type(dir) ~= "string" or !IsValid(parent)) then return end
+	if(!isstring(dir) or !IsValid(parent)) then return end
 
 	parent:Clear()
 	parent.ChildNodes = nil
@@ -182,10 +182,10 @@ function PANEL:SetStatusBar(fullvalue, value, IsDir, filepart, filecount, MaxFil
 	local w = self.SoundBrowserPanel:GetWide()
 	local stop = false
 
-	if ((type(fullvalue) == "number") and (fullvalue ~= 0)) then
+	if ((isnumber(fullvalue)) and (fullvalue ~= 0)) then
 		local SValue = math.Clamp(value, 0, fullvalue)
 		self.StatusValue = SValue / fullvalue
-	elseif (type(fullvalue) == "boolean") then
+	elseif (isbool(fullvalue)) then
 		stop = fullvalue
 		self.StatusValue = 1
 	else
@@ -229,7 +229,7 @@ function PANEL:SetStatusBar(fullvalue, value, IsDir, filepart, filecount, MaxFil
 end
 
 function PANEL:Sendmenu(sound) // Open a sending and setup menu on right click on a sound file or on pressing the "Sent To" button.
-	if ((type(sound) == "string") and (sound ~= "")) then
+	if isstring(sound) and sound ~= "" then
 		MenuButtonOptions = DermaMenu()
 		if (self.SoundEmitter) then
 			MenuButtonOptions:AddOption("Setup Soundemitter", function()
@@ -273,7 +273,7 @@ function PANEL:Sendmenu(sound) // Open a sending and setup menu on right click o
 end
 
 function PANEL:PlaySound(sound) // Play the given sound, if no sound given then mute a playing sound.
-	if ((type(sound) == "string") and (sound ~= "")) then
+	if isstring(sound) and sound ~= "" then
 		RunConsoleCommand("play", sound)
 	else
 		RunConsoleCommand("play", "common/NULL.WAV") // You can do the same with the concommand "stopsounds", but playing a silent sound will not mute the sound emitters.
@@ -282,7 +282,7 @@ end
 
 function PANEL:GetSoundInfors(sound) // Output the infos about the given sound.
 	local SoundInfoString = ""
-	if ((type(sound) == "string") and (sound ~= "")) then
+	if isstring(sound) and sound ~= "" then
 		local seconds = math.Round(SoundDuration(sound) * 1000) / 1000
 		local sizeB = file.Size("sound/"..sound,"GAME") or 0
 		local sizeKB = math.Round((sizeB / 1024) * 1000) / 1000
@@ -306,7 +306,7 @@ function PANEL:UpdateFolders(Foldername, Panel, Text, filepart) // Make the file
 	end
 
 	local Folder = "sound"
-	if ((type(Foldername) ~= "string") or (Foldername == "")) then
+	if !isstring(Foldername) and Foldername == "" then
 		Folder = "sound"
 	else
 		Folder = ("sound/" ..Foldername)
@@ -597,7 +597,7 @@ function PANEL:CreateSoundBrowser(path) // Make the sound browser panel.
 end
 
 function PANEL:GetValidFolder(Folder) // Filter invalid chars out.
-	if (type(Folder) ~= "string" or Folder == "") then return end
+	if (!isstring(Folder) or Folder == "") then return end
 
 	local ValidFolder = string.lower(Folder)
 	local invalid_chars = {

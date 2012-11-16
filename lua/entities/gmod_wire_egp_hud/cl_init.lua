@@ -47,7 +47,7 @@ function ENT:ScaleObject( bool, v )
 			r[i+1] = (r[i+1]- yMin) * yMul
 		end
 		local settings = {}
-		if (type(v.verticesindex) == "string") then settings = { [v.verticesindex] = makeTable( v, r ) } else settings = makeTable( v, r ) end
+		if isstring(v.verticesindex) then settings = { [v.verticesindex] = makeTable( v, r ) } else settings = makeTable( v, r ) end
 		EGP:EditObject( v, settings )
 	else
 		if (v.x) then

@@ -176,7 +176,7 @@ registerCallback("postinit", function()
 		local setter = "set"..fname:sub(1,1):upper()..fname:sub(2):lower()
 
 		if input_serializer then
-			if type(zero) == "table" and not next(zero) then
+			if istable(zero) and not next(zero) then
 				-- table/array
 				function getf(self, args)
 					local this, portname = args[2], args[3]
@@ -413,8 +413,8 @@ end
 local function WriteString(self, entity, string, X, Y, textcolor, bgcolor, Flash)
 	if not validWirelink(self, entity) or not entity.WriteCell then return end
 
-	if type(textcolor) ~= "number" then textcolor = conv(textcolor) end
-	if type(bgcolor) ~= "number" then bgcolor = conv(bgcolor) end
+	if !isnumber(textcolor)then textcolor = conv(textcolor) end
+	if !isnumber(bgcolor) then bgcolor = conv(bgcolor) end
 
 	textcolor = Clamp(floor(textcolor), 0, 999)
 	bgcolor = Clamp(floor(bgcolor), 0, 999)
@@ -473,8 +473,8 @@ e2function void wirelink:writeString(string text, x, y, vector textcolor) = e2fu
 local function WriteUnicodeString(self, entity, string, X, Y, textcolor, bgcolor, Flash)
 	if not validWirelink(self, entity) or not entity.WriteCell then return end
 
-	if type(textcolor) ~= "number" then textcolor = conv(textcolor) end
-	if type(bgcolor) ~= "number" then bgcolor = conv(bgcolor) end
+	if !isnumber(textcolor)then textcolor = conv(textcolor) end
+	if !isnumber(bgcolor) then bgcolor = conv(bgcolor) end
 
 	textcolor = Clamp(floor(textcolor), 0, 999)
 	bgcolor = Clamp(floor(bgcolor), 0, 999)

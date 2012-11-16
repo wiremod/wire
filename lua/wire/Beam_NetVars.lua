@@ -85,7 +85,7 @@ local function CleaupNetworkVars()
 	if ( NextCleanup > CurTime() ) then return end
 	NextCleanup	= CurTime() + 30
 	for k, v in pairs( NetworkVars ) do
-		if ( type( k ) != "number" && type( k ) != "string" ) then
+		if !isnumber( k ) and !isstring( k ) then
 			if ( !k:IsValid() ) then
 				NetworkVars[ k ] = nil
 			end
@@ -101,7 +101,7 @@ local function GetNetworkTable( ent, name )
 		NetworkVars[ ent ] = {}
 		// This is the first time this entity has been created.
 		// Check whether we previously had an entindex based table
-		if ( CLIENT && type( ent ) != "number" && type( ent ) != "string" ) then
+		if ( CLIENT && !isnumber( ent ) && !isstring( ent ) ) then
 			AttemptToSwitchTables( ent, ent:EntIndex() )
 		end
 	end
@@ -369,7 +369,7 @@ local function FullUpdateEntityNetworkVars( ply )
 		for Type, TypeTable in pairs(EntTable) do
 			for Key, Value in pairs(TypeTable) do
 				local Index = Ent
-				if ( type(Ent) != "string" ) then
+				if !isstring(Ent) then
 					Index = Ent:EntIndex()
 				end
 				--SendNetworkUpdate( Type, Index , Key, Value, ply )

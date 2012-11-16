@@ -124,7 +124,7 @@ function MakeWireValue( ply, Pos, Ang, model, value )
 	wire_value:Spawn()
 	if value then
 		local _,val = next(value)
-		if type(val) == "table" then
+		if istable(val) then
 			-- The new Gmod13 format, good
 			wire_value:Setup(value)
 		else

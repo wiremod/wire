@@ -483,7 +483,7 @@ function Editor:SetActiveTab( val )
 		return
 	end
 	self:SetLastTab( self:GetActiveTab() )
-	if (type(val) == "number") then
+	if isnumber(val) then
 		self.C['TabHolder'].panel:SetActiveTab( self.C['TabHolder'].panel.Items[val].Tab )
 		self:GetCurrentEditor():RequestFocus()
 	elseif (val and val:IsValid()) then
@@ -690,7 +690,7 @@ end
 function Editor:CloseTab( _tab )
 	local activetab, sheetindex
 	if (_tab) then
-		if (type(_tab) == "number") then
+		if isnumber(_tab) then
 			local temp = self.C['TabHolder'].panel.Items[_tab]
 			if (temp) then
 				activetab = temp.Tab

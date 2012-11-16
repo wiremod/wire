@@ -14,19 +14,18 @@ local function pattern_mappings(ent, class, ntapped)
 	local function maprep(replacement, result, ...)
 		if not result then return end
 
-		local tp = type(replacement)
 		if replacement == true then
 			return result
-		elseif tp == "string" then
+		elseif isstring(replacement) then
 			return replacement
-		elseif tp == "table" then
+		elseif istable(replacement) then
 			local narray = #replacement
 			if narray == 0 then
 				return maprep(replacement[result], result, ...)
 			else
 				return maprep(replacement[((ntapped-1) % narray)+1], result, ...)
 			end
-		elseif tp == "function" then
+		elseif isfunction(replacement) then
 			return maprep(replacement(ent, ntapped, result, ...), result, ...)
 		end
 	end

@@ -124,10 +124,10 @@ registerType("ranger", "xrd", nil,
 	nil,
 	function(retval)
 		if retval == nil then return end
-		if type(retval) ~= "table" then error("Return value is neither nil nor a table, but a "..type(retval).."!",0) end
+		if !istable(retval) then error("Return value is neither nil nor a table, but a "..type(retval).."!",0) end
 	end,
 	function(v)
-		return type(v) ~= "table" or not v.HitPos
+		return !istable(v) or not v.HitPos
 	end
 )
 
@@ -442,7 +442,7 @@ e2function table ranger:toTable()
 	local size = 0
 	for k,v in pairs( this ) do
 		if (ids[k]) then
-			if (type(v) == "boolean") then v = v and 1 or 0 end
+			if isbool(v) then v = v and 1 or 0 end
 			ret.s[k] = v
 			ret.stypes[k] = ids[k]
 			size = size + 1

@@ -232,7 +232,7 @@ end
 local non_allowed_types = { xgt = true } -- If anyone can think of any other types that should never be allowed, enter them here.
 
 local function fixdefault( var )
-	return (type(var) == "table") and copy(var) or var
+	return istable(var) and copy(var) or var
 end
 
 registerCallback("postinit",function()

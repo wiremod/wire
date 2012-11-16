@@ -23,11 +23,11 @@ registerType("quaternion", "q", { 0, 0, 0, 0 },
 	nil,
 	nil,
 	function(retval)
-		if type(retval) ~= "table" then error("Return value is not a table, but a "..type(retval).."!",0) end
+		if !istable(retval) then error("Return value is not a table, but a "..type(retval).."!",0) end
 		if #retval ~= 4 then error("Return value does not have exactly 4 entries!",0) end
 	end,
 	function(v)
-		return type(v) ~= "table" or #v ~= 4
+		return !istable(v) or #v ~= 4
 	end
 )
 

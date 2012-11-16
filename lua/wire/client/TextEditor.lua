@@ -946,14 +946,14 @@ local wire_expression2_editor_find_dir = CreateClientConVar( "wire_expression2_e
 
 function EDITOR:HighlightFoundWord( caretstart, start, stop )
 	local caretstart = caretstart or self:CopyPosition( self.Start )
-	if (type( start ) == "table") then
+	if istable( start ) then
 		self.Start = self:CopyPosition( start )
-	elseif (type( start ) == "number") then
+	elseif isnumber( start ) then
 		self.Start = self:MovePosition( caretstart, start )
 	end
-	if (type( stop ) == "table") then
+	if istable( stop ) then
 		self.Caret = { stop[1], stop[2] + 1 }
-	elseif (type( stop ) == "number") then
+	elseif isnumber( stop ) then
 		self.Caret = self:MovePosition( caretstart, stop+1 )
 	end
 	self:ScrollCaret()

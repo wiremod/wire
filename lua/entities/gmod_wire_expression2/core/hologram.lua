@@ -133,7 +133,6 @@ local function add_scale_queue( Holo, scale ) -- Add an item to the scale queue 
 	scale_queue[#scale_queue+1] = { Holo, scale }
 end
 
--- If no recipient is given, the umsg is sent to everyone (umsg.Start does that)
 local function flush_scale_queue(queue, recipient)
 	if not queue then queue = scale_queue end
 	if not next(queue) then return end
@@ -907,7 +906,7 @@ e2function number holoIndex(entity ent)
 
 	-- check global holos
 	for k,Holo in pairs(E2HoloRepo[self.uid]) do
-		if type(k) == number and ent == Holo.ent then return -k end
+		if isnumber(k) and ent == Holo.ent then return -k end
 	end
 	return 0
 end

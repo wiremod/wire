@@ -408,7 +408,7 @@ end
 -- Print a string of tokens as an expression
 function HCOMP:PrintTokens(tokenList)
   local text = ""
-  if type(tokenList) ~= "table" then error("[global 1:1] Internal error 516 ("..tokenList..")") end
+  if !istable(tokenList) then error("[global 1:1] Internal error 516 ("..tokenList..")") end
 
   for _,token in ipairs(tokenList) do
     if (token.Type == self.TOKEN.NUMBER) or

@@ -56,7 +56,7 @@ function ENT:SetValue( name, value )
 		else -- Target has array, this does not
 			for i=1,#LETTERS do
 				local val = (value or {})[i]
-				if (val != nil and type(val) == "number") then
+				if isnumber(val) then
 					WireLib.TriggerOutput( self, LETTERS[i], val )
 				end
 			end

@@ -103,7 +103,7 @@ end
 local function maxIndex( tbl )
 	local max
 	for k,v in pairs( tbl ) do
-		if (k and type(k) == "number") then
+		if isnumber(k) then
 			max = k
 		end
 	end
