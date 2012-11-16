@@ -93,10 +93,6 @@ function ENT:Setup(Range,DefaultZero)
 	self:SetBeamRange(Range)
 end
 
-function ENT:OnRemove()
-	Wire_Remove(self)
-end
-
 function ENT:TriggerInput(iname, value)
 	if (iname == "Write") then
 		self.Command[0] = value
@@ -264,8 +260,4 @@ function ENT:Think()
 
 	self:NextThink(CurTime()+0.01)
 	return true
-end
-
-function ENT:OnRestore()
-	Wire_Restored(self)
 end

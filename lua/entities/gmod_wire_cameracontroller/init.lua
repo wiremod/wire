@@ -176,10 +176,6 @@ function ENT:TriggerInput( name, value )
 	end
 end
 
-function ENT:OnRestore()
-	Wire_Restored(self)
-end
-
 -- Detect players exiting the pod
 hook.Add("PlayerLeaveVehicle","Wire_CamController_PlayerEnteredVehicle",function( ply, vehicle )
 	for k,v in pairs( ents.FindByClass( "gmod_wire_cameracontroller" ) ) do

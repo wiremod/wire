@@ -13,10 +13,6 @@ function ENT:Initialize()
 	self.Outputs = Wire_CreateOutputs(self, {"Out"})
 end
 
-function ENT:OnRemove()
-	Wire_Remove(self)
-end
-
 function ENT:TriggerInput(iname, value)
 end
 
@@ -30,10 +26,6 @@ function ENT:ShowOutput()
 	   end
 	end
 	self:SetOverlayText( text )
-end
-
-function ENT:OnRestore()
-	Wire_Restored(self)
 end
 
 function ENT:Think()

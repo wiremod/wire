@@ -127,10 +127,6 @@ function ENT:TriggerInput(iname, value)
 	end
 end
 
-function ENT:OnRestore()
-	Wire_Restored(self)
-end
-
 --duplicator support (TAD2020)
 function ENT:BuildDupeInfo()
 	local info = self.BaseClass.BuildDupeInfo(self) or {}
@@ -265,6 +261,4 @@ function MakeWireGrabber( pl, Pos, Ang, model, Range, Gravity )
 
 	return wire_grabber
 end
-
 duplicator.RegisterEntityClass("gmod_wire_grabber", MakeWireGrabber, "Pos", "Ang", "Model", "Range", "Gravity")
-

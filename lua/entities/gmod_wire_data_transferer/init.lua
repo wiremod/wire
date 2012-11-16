@@ -37,10 +37,6 @@ function ENT:Setup(Range,DefaultZero,IgnoreZero)
 	self:SetBeamRange(Range)
 end
 
-function ENT:OnRemove()
-	Wire_Remove(self)
-end
-
 function ENT:TriggerInput(iname, value)
 	if(iname == "Send")then
 		if(value > 0)then
@@ -135,10 +131,6 @@ function ENT:Think()
 		end
 	end
 	self:NextThink(CurTime()+0.125)
-end
-
-function ENT:OnRestore()
-	Wire_Restored(self)
 end
 
 function ENT:RecieveValue(output,value)

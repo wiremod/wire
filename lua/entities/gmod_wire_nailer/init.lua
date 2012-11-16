@@ -13,10 +13,6 @@ function ENT:Initialize()
 	self.Inputs = Wire_CreateInputs(self, { "A" })
 end
 
-function ENT:OnRemove()
-	Wire_Remove(self)
-end
-
 function ENT:Setup(flim)
 	self:TriggerInput("A", 0)
 	self.Flim = math.Clamp(flim, 0, 10000)
@@ -66,10 +62,6 @@ end
 
 function ENT:ShowOutput()
 	self:SetOverlayText("Force Limit: " .. self.Flim )
-end
-
-function ENT:OnRestore()
-	Wire_Restored(self)
 end
 
 -- Free Fall's Owner Check Code

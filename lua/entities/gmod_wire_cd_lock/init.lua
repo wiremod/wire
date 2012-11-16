@@ -25,10 +25,6 @@ function ENT:Initialize()
 	self:NextThink(CurTime() + 0.25)
 end
 
-function ENT:OnRemove()
-	Wire_Remove(self)
-end
-
 function ENT:TriggerInput(iname, value)
 	if (iname == "Disable") then
 		self.DisableLinking = value
@@ -113,8 +109,3 @@ function ENT:AttachDisk(disk)
 	self.Disk = disk
 	Wire_TriggerOutput(self, "Locked", 1)
 end
-
-function ENT:OnRestore()
-	Wire_Restored(self)
-end
-

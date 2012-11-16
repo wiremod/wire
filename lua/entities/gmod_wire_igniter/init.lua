@@ -16,10 +16,6 @@ function ENT:Initialize()
 	self:SetBeamLength(2048)
 end
 
-function ENT:OnRemove()
-	Wire_Remove(self)
-end
-
 function ENT:Setup(trgply,Range)
 	self.TargetPlayers = trgply
 	self:SetBeamLength(Range)
@@ -59,11 +55,6 @@ function ENT:TriggerInput(iname, value)
 	end
 end
 
-function ENT:OnRestore()
-	Wire_Restored(self)
-end
-
-
 function MakeWireIgniter( pl, Pos, Ang, model, TargetPlayers, Range )
 	if not pl:CheckLimit( "wire_igniters" ) then return false end
 
@@ -89,5 +80,4 @@ function MakeWireIgniter( pl, Pos, Ang, model, TargetPlayers, Range )
 
 	return wire_igniter
 end
-
 duplicator.RegisterEntityClass("gmod_wire_igniter", MakeWireIgniter, "Pos", "Ang", "Model", "TargetPlayers", "Range")

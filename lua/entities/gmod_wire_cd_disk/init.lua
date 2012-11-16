@@ -23,10 +23,6 @@ function ENT:Initialize()
 	self:Setup()
 end
 
-function ENT:OnRemove()
-	Wire_Remove(self)
-end
-
 function ENT:BuildDupeInfo()
 	local info = self.BaseClass.BuildDupeInfo(self) or {}
 

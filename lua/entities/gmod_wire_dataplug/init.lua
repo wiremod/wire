@@ -44,7 +44,7 @@ function ENT:WriteCell( Address, value )
 end
 
 function ENT:OnRemove()
-	self.BaseClass.Think(self)
+	self.BaseClass.Remove(self)
 
 	if (self.MySocket) and (self.MySocket:IsValid()) then
 		self.MySocket.MyPlug = nil

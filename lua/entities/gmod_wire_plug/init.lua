@@ -15,9 +15,6 @@ for k,v in pairs( LETTERS ) do
 	LETTERS_INV[v] = k
 end
 
-------------------------------------------------------------
--- Initialize
-------------------------------------------------------------
 function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )
 	self:SetMoveType( MOVETYPE_VPHYSICS )
@@ -28,9 +25,6 @@ function ENT:Initialize()
 	self.Memory = {}
 end
 
-------------------------------------------------------------
--- Setup
-------------------------------------------------------------
 function ENT:Setup( ArrayInput )
 	self.ArrayInput = ArrayInput or false
 
@@ -47,9 +41,6 @@ function ENT:Setup( ArrayInput )
 	self:ShowOutput()
 end
 
-------------------------------------------------------------
--- TriggerInput
-------------------------------------------------------------
 function ENT:TriggerInput( name, value )
 	if (self.Socket and self.Socket:IsValid()) then
 		self.Socket:SetValue( name, value )
@@ -57,10 +48,6 @@ function ENT:TriggerInput( name, value )
 	self:ShowOutput()
 end
 
-------------------------------------------------------------
--- SetValue
--- Recieve data from the socket
-------------------------------------------------------------
 function ENT:SetValue( name, value )
 	if (!self.Socket or !self.Socket:IsValid()) then return end
 	if (name == "In") then
@@ -116,19 +103,11 @@ function ENT:ReadCell( Address )
 	return self.Memory[Address or 1] or 0
 end
 
-------------------------------------------------------------
--- Think
--- Set PlayerHolding
-------------------------------------------------------------
 function ENT:Think()
 	self.BaseClass.Think( self )
 	self:SetNWBool( "PlayerHolding", self:IsPlayerHolding() )
 end
 
-------------------------------------------------------------
--- ResetValues
--- Resets all values
-------------------------------------------------------------
 function ENT:ResetValues()
 	if (self.ArrayInput) then
 		WireLib.TriggerOutput( self, "Out", {} )
@@ -156,10 +135,6 @@ function ENT:ResendValues()
 	end
 end
 
-------------------------------------------------------------
--- ShowOutput
--- Show all out and inputs
-------------------------------------------------------------
 function ENT:ShowOutput()
 	local OutText = "Plug [" .. self:EntIndex() .. "]\n"
 	if (self.ArrayInput) then
@@ -173,9 +148,6 @@ function ENT:ShowOutput()
 	self:SetOverlayText(OutText)
 end
 
-------------------------------------------------------------
--- Adv Duplicator Support
-------------------------------------------------------------
 function ENT:BuildDupeInfo()
 	local info = self.BaseClass.BuildDupeInfo(self) or {}
 
@@ -200,9 +172,4 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 
 	ent:SetPlayer( ply )
 	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
-end
-
--- OnRestore
-function ENT:OnRestore()
-    self.BaseClass.OnRestore(self)
 end

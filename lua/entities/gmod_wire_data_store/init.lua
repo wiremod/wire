@@ -6,7 +6,6 @@ include('shared.lua')
 
 ENT.WireDebugName = "Data Store"
 
-
 function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )
 	self:SetMoveType( MOVETYPE_VPHYSICS )
@@ -21,18 +20,3 @@ function ENT:Initialize()
 	self.Values["G"] = 0
 	self.Values["H"] = 0
 end
-
-function ENT:OnRemove()
-	Wire_Remove(self)
-end
-
-function ENT:Think()
-end
-
-function ENT:Setup()
-end
-
-function ENT:OnRestore()
-    Wire_Restored(self)
-end
-

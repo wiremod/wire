@@ -12,9 +12,6 @@ AccessorFunc( ENT, "Texture", "FlashlightTexture" )
 
 ENT:SetFlashlightTexture( "effects/flashlight001" )
 
-/*---------------------------------------------------------
-   Name: Initialize
----------------------------------------------------------*/
 function ENT:Initialize()
 
 	self:SetModel( MODEL )
@@ -36,9 +33,6 @@ function ENT:Initialize()
 	self:TurnOn()
 end
 
-/*---------------------------------------------------------
-   Name: Sets the color of the light
----------------------------------------------------------*/
 function ENT:SetLightColor( r, g, b )
 	-- for dupe
 	self.r = r
@@ -68,9 +62,6 @@ function ENT:Setup( r, g, b )
 	self:SetLightColor( r, g, b )
 end
 
-/*---------------------------------------------------------
-   Name: Sets the texture
----------------------------------------------------------*/
 function ENT:SetFlashlightTexture( tex )
 	-- for dupe
 	self.Texture = tex
@@ -81,17 +72,10 @@ function ENT:SetFlashlightTexture( tex )
 
 end
 
-/*---------------------------------------------------------
-   Name: OnTakeDamage
----------------------------------------------------------*/
 function ENT:OnTakeDamage( dmginfo )
 	self:TakePhysicsDamage( dmginfo )
 end
 
-/*---------------------------------------------------------
-   Name: TriggerInput
-   Desc: the inputs
----------------------------------------------------------*/
 function ENT:TriggerInput(iname, value)
 	if (iname == "Red") then
 		self:SetLightColor( value, self.lightg, self.lightb )
@@ -110,8 +94,6 @@ function ENT:TriggerInput(iname, value)
 	elseif (iname == "Texture") then
 		self:SetFlashlightTexture(value)
 	end
-
-
 end
 
 function ENT:TurnOn()
@@ -147,14 +129,6 @@ function ENT:TurnOff()
 	self:SetOn(false)
 	SafeRemoveEntity( self.flashlight )
 	self.flashlight = nil
-end
-
-function ENT:OnRemove()
-	Wire_Remove(self)
-end
-
-function ENT:OnRestore()
-	Wire_Restored(self)
 end
 
 function ENT:Setup( r, g, b, Texture )

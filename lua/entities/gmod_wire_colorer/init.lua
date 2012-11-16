@@ -17,10 +17,6 @@ function ENT:Initialize()
 	self:SetBeamLength(2048)
 end
 
-function ENT:OnRemove()
-	Wire_Remove(self)
-end
-
 function ENT:Setup(outColor,Range)
 	--Msg("setup\n")
 	if(outColor)then
@@ -88,10 +84,6 @@ function ENT:ShowOutput()
 		.. math.Round(self.Outputs["A"].Value*1000)/1000
 	end
 	self:SetOverlayText( text )
-end
-
-function ENT:OnRestore()
-	Wire_Restored(self)
 end
 
 function ENT:Think()
