@@ -18,32 +18,26 @@ Obj.Draw = function( self )
 	end
 end
 Obj.Transmit = function( self, Ent, ply )
-	if (#self.vertices <= 56) then
-		EGP.umsg.Char(#self.vertices)
-		for i=1,#self.vertices do
-			EGP.umsg.Short( self.vertices[i].x )
-			EGP.umsg.Short( self.vertices[i].y )
-		end
-	else
-		EGP.umsg.Char(-1)
-		EGP:InsertQueue( Ent, ply, EGP._SetVertex, "SetVertex", self.index, self.vertices )
+	net.WriteUInt( #self.vertices, 8 )
+	for i=1,#self.vertices do
+		net.WriteInt( self.vertices[i].x, 16 )
+		net.WriteInt( self.vertices[i].y, 16 )
 	end
-	EGP.umsg.Short( self.parent )
-	EGP.umsg.Short( self.size )
+	net.WriteInt(self.parent, 16)
+	net.WriteInt(self.size, 16)
 	EGP:SendMaterial( self )
 	EGP:SendColor( self )
 end
-Obj.Receive = function( self, um )
+Obj.Receive = function( self )
 	local tbl = {}
-	local nr = um:ReadChar()
 	tbl.vertices = {}
-	for i=1,nr do
-		tbl.vertices[ #tbl.vertices+1 ] = { x = um:ReadShort(), y = um:ReadShort() }
+	for i=1,net.ReadUInt(8) do
+		tbl.vertices[ #tbl.vertices+1 ] = { x = net.ReadInt(16), y = net.ReadInt(16) }
 	end
-	tbl.parent = um:ReadShort()
-	tbl.size = um:ReadShort()
-	EGP:ReceiveMaterial( tbl, um )
-	EGP:ReceiveColor( tbl, self, um )
+	tbl.parent = net.ReadInt(16)
+	tbl.size = net.ReadInt(16)
+	EGP:ReceiveMaterial( tbl )
+	EGP:ReceiveColor( tbl, self )
 	return tbl
 end
 Obj.DataStreamInfo = function( self )

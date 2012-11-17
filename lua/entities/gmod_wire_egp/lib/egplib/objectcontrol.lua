@@ -25,14 +25,14 @@ EGP.Objects.Base.Transmit = function( self )
 	EGP:SendPosSize( self )
 	EGP:SendColor( self )
 	EGP:SendMaterial( self )
-	EGP.umsg.Short( self.parent )
+	net.WriteInt( self.parent, 16 )
 end
-EGP.Objects.Base.Receive = function( self, um )
+EGP.Objects.Base.Receive = function( self )
 	local tbl = {}
-	EGP:ReceivePosSize( tbl, um )
-	EGP:ReceiveColor( tbl, self, um )
-	EGP:ReceiveMaterial( tbl, um )
-	tbl.parent = um:ReadShort()
+	EGP:ReceivePosSize( tbl )
+	EGP:ReceiveColor( tbl, self )
+	EGP:ReceiveMaterial( tbl )
+	tbl.parent = net.ReadInt(16)
 	return tbl
 end
 EGP.Objects.Base.DataStreamInfo = function( self )
