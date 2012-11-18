@@ -36,17 +36,17 @@ Obj.Draw = function( self )
     end
 end
 Obj.Transmit = function( self )
-	EGP.umsg.Short((self.angle%360)*20)
-	EGP.umsg.Short(self.radius)
-	EGP.umsg.Short(self.size)
+	net.WriteInt((self.angle%360)*20, 16)
+	net.WriteInt(self.radius, 16)
+	net.WriteInt(self.size, 16)
 	self.BaseClass.Transmit( self )
 end
-Obj.Receive = function( self, um )
+Obj.Receive = function( self )
 	local tbl = {}
-	tbl.angle = um:ReadShort()/20
-	tbl.radius = um:ReadShort()
-	tbl.size = um:ReadShort()
-	table.Merge( tbl, self.BaseClass.Receive( self, um ) )
+	tbl.angle = net.ReadInt(16)/20
+	tbl.radius = net.ReadInt(16)
+	tbl.size = net.ReadInt(16)
+	table.Merge( tbl, self.BaseClass.Receive( self ) )
 	return tbl
 end
 Obj.DataStreamInfo = function( self )

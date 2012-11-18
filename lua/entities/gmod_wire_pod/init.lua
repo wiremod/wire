@@ -57,10 +57,6 @@ function ENT:Setup(pod)
 	self.Pod = pod
 end
 
-function ENT:OnRestore()
-	self.BaseClass.OnRestore(self)
-end
-
 -- Called every 0.01 seconds, check for key down
 function ENT:Think()
 	-- Check that we have a pod

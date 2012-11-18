@@ -22,7 +22,7 @@ local blocked_types = {
 
 -- Fix return values
 local function fixdef( val )
-	return (type(val) == "table") and table.Copy(val) or val
+	return istable(val) and table.Copy(val) or val
 end
 
 -- Uppercases the first letter
@@ -43,10 +43,10 @@ registerType("array", "r", {},
 	end,
 	nil,
 	function(retval)
-		if type(retval) ~= "table" then error("Return value is not a table, but a "..type(retval).."!",0) end
+		if !istable(retval) then error("Return value is not a table, but a "..type(retval).."!",0) end
 	end,
 	function(v)
-		return type(v) ~= "table"
+		return !istable(v)
 	end
 )
 
@@ -116,7 +116,7 @@ end)
 -- IS operator
 --------------------------------------------------------------------------------
 e2function number operator_is(array arr)
-	return type(arr) == "table" and 1 or 0
+	return istable(arr) and 1 or 0
 end
 
 --------------------------------------------------------------------------------

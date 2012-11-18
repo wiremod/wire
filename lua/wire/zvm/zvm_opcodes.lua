@@ -1158,6 +1158,14 @@ ZVM.OpcodeTable[135] = function(self)  --ENTER
   self:Dyn_Emit("EBP = VM.ESP+1")
   self:Dyn_Emit("VM.ESP = VM.ESP-$1")
 end
+ZVM.OpcodeTable[136] = function(self)  --IRETP
+  self:Dyn_Emit("VM.PTBL = $1")
+  ZVM.OpcodeTable[41](self) -- as IRET
+end
+ZVM.OpcodeTable[137] = function(self)  --EXTRETP
+  self:Dyn_Emit("VM.PTBL = $1")
+  ZVM.OpcodeTable[110](self) -- as EXTRET
+end
 ZVM.OpcodeTable[139] = function(self)  --CLD
 --  self:Dyn_Emit("VM.Debug = false")
 end

@@ -1,7 +1,5 @@
-
 AddCSLuaFile( "cl_init.lua" )
 AddCSLuaFile( "shared.lua" )
-
 include('shared.lua')
 
 ENT.WireDebugName = "Explosive"
@@ -56,12 +54,12 @@ end
    Name: Setup
    Desc: does a whole lot of setting up
 ---------------------------------------------------------*/
-function ENT:Setup( damage, delaytime, removeafter, doblastdamage, radius, affectother, notaffected, delayreloadtime, maxhealth, bulletproof, explosionproof, fallproof, explodeatzero, resetatexplode, fireeffect, coloreffect, invisibleatzero, nocollide )
-
+function ENT:Setup( key, damage, delaytime, removeafter, radius, affectother, notaffected, delayreloadtime, maxhealth, bulletproof, explosionproof, fallproof, explodeatzero, resetatexplode, fireeffect, coloreffect, invisibleatzero, nocollide )
+	
+	self.key = key
 	self.Damage = math.Clamp( damage, 0, 1500 )
 	self.Delaytime = delaytime
 	self.Removeafter = removeafter
-	self.DoBlastDamage = doblastdamage
 	self.Radius = math.min(512,math.max(radius, 1))
 	self.Affectother = affectother
 	self.Notaffected = notaffected
@@ -95,13 +93,34 @@ function ENT:Setup( damage, delaytime, removeafter, doblastdamage, radius, affec
 	]]
 
 	self.NormInfo = ""
-	if (self.DoBlastDamage) then self.NormInfo = self.NormInfo.."Damage: "..self.Damage end
+	if (self.Damage > 0) then self.NormInfo = self.NormInfo.."Damage: "..self.Damage end
 	if (self.Radius > 0 || self.Delaytime > 0) then self.NormInfo = self.NormInfo.."\n" end
 	if (self.Radius > 0 ) then self.NormInfo = self.NormInfo.." Rad: "..self.Radius end
 	if (self.Delaytime > 0) then self.NormInfo = self.NormInfo.." Delay: "..self.Delaytime end
 
 	self:ShowOutput()
-
+	
+	local ttable = {
+		key = key,
+		nocollide = nocollide,
+		damage = damage,
+		removeafter = removeafter,
+		delaytime = delaytime,
+		radius = radius,
+		affectother = affectother,
+		notaffected = notaffected,
+		delayreloadtime = delayreloadtime,
+		maxhealth = maxhealth,
+		bulletproof = bulletproof,
+		explosionproof = explosionproof,
+		fallproof = fallproof,
+		explodeatzero = explodeatzero,
+		resetatexplode = resetatexplode,
+		fireeffect = fireeffect,
+		coloreffect = coloreffect,
+		invisibleatzero = invisibleatzero
+	}
+	table.Merge( self:GetTable(), ttable )
 end
 
 function ENT:ResetHealth( )
@@ -240,7 +259,7 @@ function ENT:Explode( )
 		ply:SetColor(Color(255, 255, 255, 0))
 	end
 
-	if ( self.DoBlastDamage ) then
+	if ( self.Damage > 0 ) then
 		util.BlastDamage( self, ply, self:GetPos(), self.Radius, self.Damage )
 	end
 
@@ -286,3 +305,24 @@ function ENT:ShowOutput( )
 	end
 	self:SetOverlayText(txt)
 end
+
+function MakeWireExplosive(pl, Pos, Ang, model, trigger, damage, delaytime, removeafter, radius, affectother, notaffected, delayreloadtime, maxhealth, bulletproof, explosionproof, fallproof, explodeatzero, resetatexplode, fireeffect, coloreffect, invisibleatzero, nocollide )
+	if ( !pl:CheckLimit( "wire_explosives" ) ) then return nil end
+
+	local explosive = ents.Create( "gmod_wire_explosive" )
+
+	explosive:SetModel( model )
+	explosive:SetPos( Pos )
+	explosive:SetAngles( Ang )
+	explosive:Spawn()
+	explosive:Activate()
+
+	explosive:SetPlayer( pl )
+	explosive.pl = pl
+
+	explosive:Setup( trigger, damage, delaytime, removeafter, radius, affectother, notaffected, delayreloadtime, maxhealth, bulletproof, explosionproof, fallproof, explodeatzero, resetatexplode, fireeffect, coloreffect, invisibleatzero, nocollide )
+	pl:AddCount( "wire_explosives", explosive )
+
+	return explosive
+end
+duplicator.RegisterEntityClass( "gmod_wire_explosive", MakeWireExplosive, "Pos", "Ang", "Model", "key", "damage", "delaytime", "removeafter", "radius", "affectother", "notaffected", "delayreloadtime", "maxhealth", "bulletproof", "explosionproof", "fallproof", "explodeatzero", "resetatexplode", "fireeffect", "coloreffect", "invisibleatzero", "nocollide" )

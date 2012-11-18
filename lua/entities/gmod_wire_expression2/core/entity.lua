@@ -762,7 +762,7 @@ local function upperfirst( word )
 end
 
 local function fixdef( def )
-	if (type(def) == "table") then return table.Copy(def) else return def end
+	return istable(def) and table.Copy(def) or def
 end
 
 local non_allowed_types = {

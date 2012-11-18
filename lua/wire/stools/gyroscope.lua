@@ -14,7 +14,7 @@ if SERVER then
 	ModelPlug_Register("GPS")
 	
 	function TOOL:GetConVars() 
-		return tobool(self:GetClientNumber("out180"))
+		return self:GetClientNumber("out180")~=0
 	end
 
 	function TOOL:MakeEnt( ply, model, Ang, trace )

@@ -231,7 +231,7 @@ function PreProcessor:ParseDirectives(line)
 			local retval, columns = self:ParsePorts(value,#directive+2)
 
 			for i,key in ipairs(retval[1]) do
-				if self.directives.trigger[key] then
+				if self.directives.trigger[2][key] then
 					self:Error("Directive (@trigger) contains multiple definitions of the same variable", columns[i])
 				else
 					self.directives.trigger[2][key] = true

@@ -148,7 +148,7 @@ local function handleop(name)
 		local op_type = OPTYPE_NORMAL
 
 		-- special treatment is needed for some operators.
-		if type(operator) == "table" then operator, op_type = unpack(operator) end
+		if istable(operator) then operator, op_type = unpack(operator) end
 
 		-- return everything.
 		return operator, "registerOperator", op_type

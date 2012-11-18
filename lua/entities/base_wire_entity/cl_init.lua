@@ -57,6 +57,7 @@ function ENT:DrawEntityOutline()
 end
 
 hook.Add("PreDrawHalos", "Wiremod_overlay_halos", function()
+	if #halos == 0 then return end
 	halo.Add(halos, Color(100,100,255), 3, 3, 1, true, true)
 	halos = {}
 	halos_inv = {}

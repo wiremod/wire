@@ -126,7 +126,7 @@ GateActions["string_find"] = {
 		return r or 0
 	end,
 	label = function(Out, A, B)
-		if type(Out) == "table" then Out = Out.Out end -- this is fucked up. what the shit...
+		if istable(Out) then Out = Out.Out end
 	    return string.format ("find(%s , %s) = %d", A, B, Out)
 	end
 }

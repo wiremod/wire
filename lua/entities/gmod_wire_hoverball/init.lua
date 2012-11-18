@@ -6,9 +6,6 @@ include('shared.lua')
 ENT.WireDebugName = "Hoverball"
 ENT.OnState = 0
 
-/*---------------------------------------------------------
-   Name: Initialize
----------------------------------------------------------*/
 function ENT:Initialize()
 	// Don't use the model's physics object, create a perfect sphere
 	self:PhysicsInitSphere( 8, "metal_bouncy" )
@@ -38,7 +35,6 @@ function ENT:Initialize()
 
 end
 
-
 function ENT:TriggerInput(iname, value)
 	if (iname == "A: ZVelocity") then
 		self:SetZVelocity( value )
@@ -52,7 +48,6 @@ function ENT:TriggerInput(iname, value)
 		self:SetTargetZ(value)
 	end
 end
-
 
 function ENT:EnableHover()
 	self.OnState = 1
@@ -76,23 +71,12 @@ function ENT:DisableHover()
 	end
 end
 
-
 function ENT:OnRestore()
 	self.ZVelocity = 0
 
 	self.BaseClass.OnRestore(self)
 end
 
-/*---------------------------------------------------------
-   Name: OnTakeDamage
----------------------------------------------------------*/
-function ENT:OnTakeDamage( dmginfo )
-	//self:TakePhysicsDamage( dmginfo )
-end
-
-/*---------------------------------------------------------
-   Name: Think
----------------------------------------------------------*/
 function ENT:Think()
 
 	self.BaseClass.Think( self )
@@ -105,9 +89,6 @@ function ENT:Think()
 
 end
 
-/*---------------------------------------------------------
-   Name: Simulate
----------------------------------------------------------*/
 function ENT:PhysicsSimulate( phys, deltatime )
 
 	local Pos = phys:GetPos()
@@ -188,24 +169,14 @@ function ENT:SetZVelocity( z )
 	self.ZVelocity = z * FrameTime() * 5000
 end
 
-/*---------------------------------------------------------
-   GetAirFriction
----------------------------------------------------------*/
 function ENT:GetAirResistance( )
 	return self:GetVar( "AirResistance", 0 )
 end
 
-
-/*---------------------------------------------------------
-   SetAirFriction
----------------------------------------------------------*/
 function ENT:SetAirResistance( num )
 	self:SetVar( "AirResistance", num )
 end
 
-/*---------------------------------------------------------
-   SetStrength
----------------------------------------------------------*/
 function ENT:SetStrength( strength )
 
 	local phys = self:GetPhysicsObject()
@@ -214,9 +185,6 @@ function ENT:SetStrength( strength )
 	end
 end
 
-/*---------------------------------------------------------
---Duplicator support
----------------------------------------------------------*/
 function ENT:BuildDupeInfo()
 	local info = self.BaseClass.BuildDupeInfo(self) or {}
 	info.OnState = self.OnState

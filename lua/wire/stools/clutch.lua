@@ -177,7 +177,7 @@ function TOOL:SelectController( controller )
 		constrained_pairs = controller:GetConstrainedPairs()
 	end
 
-	Send_Links( ply, constrained_pairs )
+	Send_Links( self:GetOwner(), constrained_pairs )
 end
 
 

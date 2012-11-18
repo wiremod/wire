@@ -16,23 +16,16 @@ for k,v in pairs( LETTERS ) do
 	LETTERS_INV[v] = k
 end
 
-------------------------------------------------------------
--- Initialize
-------------------------------------------------------------
 function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )
 	self:SetMoveType( MOVETYPE_VPHYSICS )
 	self:SetSolid( SOLID_VPHYSICS )
-
 
 	self:SetNWBool( "Linked", false )
 
 	self.Memory = {}
 end
 
-------------------------------------------------------------
--- Setup
-------------------------------------------------------------
 function ENT:Setup( ArrayInput, WeldForce, AttachRange )
 	local old = self.ArrayInput
 	self.ArrayInput = ArrayInput or false
@@ -54,9 +47,6 @@ function ENT:Setup( ArrayInput, WeldForce, AttachRange )
 	self:ShowOutput()
 end
 
-------------------------------------------------------------
--- TriggerInput
-------------------------------------------------------------
 function ENT:TriggerInput( name, value )
 	if (self.Plug and self.Plug:IsValid()) then
 		self.Plug:SetValue( name, value )
@@ -64,10 +54,6 @@ function ENT:TriggerInput( name, value )
 	self:ShowOutput()
 end
 
-------------------------------------------------------------
--- SetValue
--- Recieve data from the plug
-------------------------------------------------------------
 function ENT:SetValue( name, value )
 	if (!self.Plug or !self.Plug:IsValid()) then return end
 	if (name == "In") then
@@ -76,7 +62,7 @@ function ENT:SetValue( name, value )
 		else -- Target has array, this does not
 			for i=1,#LETTERS do
 				local val = (value or {})[i]
-				if (val != nil and type(val) == "number") then
+				if isnumber(val) then
 					WireLib.TriggerOutput( self, LETTERS[i], val )
 				end
 			end
@@ -123,10 +109,6 @@ function ENT:ReadCell( Address )
 	return self.Memory[Address or 1] or 0
 end
 
-------------------------------------------------------------
--- ResetValues
--- Resets all values
-------------------------------------------------------------
 function ENT:ResetValues()
 	if (self.ArrayInput) then
 		WireLib.TriggerOutput( self, "Out", {} )
@@ -213,10 +195,6 @@ function ENT:Think()
 	end
 end
 
-------------------------------------------------------------
--- ShowOutput
--- Show all out and inputs
-------------------------------------------------------------
 function ENT:ShowOutput()
 	local OutText = "Socket [" .. self:EntIndex() .. "]\n"
 	if (self.ArrayInput) then
@@ -319,9 +297,4 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID, GetConstByID)
 
 	ent:SetPlayer( ply )
 	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
-end
-
--- OnRestore
-function ENT:OnRestore()
-	self.BaseClass.OnRestore(self)
 end

@@ -14,9 +14,6 @@ function ENT:Initialize()
 	self:ShowOutput()
 end
 
-function ENT:OnRemove()
-	Wire_Remove(self)
-end
 
 function ENT:ShowOutput()
 	if IsValid(self.Transmitter) then
@@ -25,12 +22,6 @@ function ENT:ShowOutput()
 		self:SetOverlayText( "Unlinked" )
 	end
 end
-
-function ENT:OnRestore()
-    Wire_Restored(self)
-end
-
-// Advanced Duplicator Support
 
 function ENT:BuildDupeInfo()
 	local info = self.BaseClass.BuildDupeInfo(self) or {}

@@ -35,7 +35,7 @@ WireToolObj.Tab			= "Wire"
 -- optional LeftClick tool function for basic tools that just place/weld a device [default]
 function WireToolObj:LeftClick( trace )
 	if not trace.HitPos or trace.Entity:IsPlayer() or trace.Entity:IsNPC() or (SERVER and not util.IsValidPhysicsObject( trace.Entity, trace.PhysicsBone )) then return false end
-	if self.NoLeftOnClass and trace.HitNonWorld and (trace.Entity:GetClass() == self.WireClass or NoGhostOn(self, trace)) or (SERVER and trace.Entity:GetClass() == self.WireClass and trace.Entity.pl ~= self:GetOwner()) then return false end
+	if self.NoLeftOnClass and trace.HitNonWorld and (trace.Entity:GetClass() == self.WireClass or NoGhostOn(self, trace)) then return false end
 
 	if CLIENT then return true end
 
@@ -62,7 +62,7 @@ if SERVER then
 
 		local ent = self:MakeEnt( ply, model, Ang, trace )
 
-		self:PostMake_SetPos( ent, trace )
+		if IsValid(ent) then self:PostMake_SetPos( ent, trace ) end
 
 		return ent
 	end
@@ -147,21 +147,18 @@ end
 
 -- basic UpdateGhost function that should cover most of wire's ghost updating needs [default]
 function WireToolObj:UpdateGhost( ent )
-	if not ent or not ent:IsValid() then return end
+	if not IsValid(ent) then return end
 
 	local trace = self:GetOwner():GetEyeTrace()
 	if not trace.Hit then return end
 
 	-- don't draw the ghost if we hit nothing, a player, an npc, the type of device this tool makes, or any class this tool says not to
-	if not trace.Hit or trace.Entity:IsPlayer() or trace.Entity:IsNPC() or trace.Entity:GetClass() == self.WireClass or NoGhostOn(self, trace) then
+	if not trace.HitWorld and (trace.Entity:IsPlayer() or trace.Entity:IsNPC() or trace.Entity:GetClass() == self.WireClass or NoGhostOn(self, trace)) then
 		ent:SetNoDraw( true )
 		return
 	end
 
-	-- modify the ghosts angle
-	local Ang = self:GetAngle( trace )
-	ent:SetAngles( Ang )
-
+	ent:SetAngles( self:GetAngle( trace ) )
 	self:SetPos( ent, trace )
 
 	--show the ghost

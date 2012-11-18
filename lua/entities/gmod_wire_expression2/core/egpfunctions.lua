@@ -259,7 +259,7 @@ e2function void wirelink:egpPoly( number index, array args )
 	-- Each arg must be a vec2 or vec4
 	local vertices = {}
 	for k,v in ipairs( args ) do
-		if (type(v) == "table" and (#v == 2 or #v == 4)) then
+		if istable(v) and (#v == 2 or #v == 4) then
 			n = #vertices
 			if (n > max) then break end
 			vertices[n+1] = { x = v[1], y = v[2] }
@@ -314,7 +314,7 @@ e2function void wirelink:egpPolyOutline( number index, array args )
 	-- Each arg must be a vec2 or vec4
 	local vertices = {}
 	for k,v in ipairs( args ) do
-		if (type(v) == "table" and (#v == 2 or #v == 4)) then
+		if istable(v) and (#v == 2 or #v == 4) then
 			n = #vertices
 			if (n > max) then break end
 			vertices[n+1] = { x = v[1], y = v[2] }
@@ -342,7 +342,7 @@ e2function void wirelink:egpAddVertices( number index, array args )
 		-- Each arg must be a vec2 or vec4
 		local vertices = {}
 		for k,v in ipairs( args ) do
-			if (type(v) == "table" and (#v == 2 or #v == 4)) then
+			if istable(v) and (#v == 2 or #v == 4) then
 				n = #vertices
 				if (n > max) then break end
 				vertices[n+1] = { x = v[1], y = v[2] }

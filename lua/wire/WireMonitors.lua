@@ -3,7 +3,7 @@ WireGPU_Monitors = {}
 function WireGPU_AddMonitor(name,model,tof,tou,tor,trs,x1,x2,y1,y2,rot)
 	if not rot then
 		rot = Angle(0,90,90)
-	elseif type(rot) ~= "Angle" then
+	elseif !isangle(rot) then
 		rot = Angle(0,90,0)
 	end
 	local RatioX = (y2-y1)/(x2-x1)
@@ -132,7 +132,7 @@ function WireGPU_FromBox_Helper(name, model, boxmin, boxmax, rot)
 end
 
 function WireGPU_FromRotatedBox(name, model, box1, box2, box3, box4, rot)
-	if type(rot) == "Vector" then
+	if isvector(rot) then
 		rot = Vector:Angle()
 	end
 

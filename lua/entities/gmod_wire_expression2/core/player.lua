@@ -238,7 +238,7 @@ if CPPI and debug.getregistry().Player.CPPIGetFriends then
 	function Trusts(ply, whom)
 		if ply == whom then return true end
 		local friends = ply:CPPIGetFriends()
-		if type(friends) ~= "table" then return false end
+		if !istable(friends) then return false end
 		for _,friend in pairs(friends) do
 			if whom == friend then return true end
 		end
@@ -251,7 +251,7 @@ if CPPI and debug.getregistry().Player.CPPIGetFriends then
 		if not Trusts(this, self.player) then return {} end
 
 		local ret = this:CPPIGetFriends()
-		if type(ret) ~= "table" then return {} end
+		if !istable(ret) then return {} end
 		return ret
 	end
 

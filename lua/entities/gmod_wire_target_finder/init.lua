@@ -201,7 +201,7 @@ end
 //function ENT:SelectorPrev(ch) end --TODO if needed
 
 function ENT:FindInValue(haystack,needle,case_sensitive)
-	if(type(haystack) ~= "string" or type(needle) ~= "string") then return false end;
+	if !isstring(haystack) or !isstring(needle) then return false end;
 	if(needle == "") then return true end;
 	if(case_sensitive) then
 		if(haystack:find(needle)) then return true end;
@@ -448,7 +448,7 @@ local function init()
 		end
 	end
 
-	hasPropProtection = type( fn ) == "function"
+	hasPropProtection = isfunction( fn )
 
 	if hasPropProtection then
 		-- We're going to get the function we need now. It's local so this is a bit dirty
@@ -462,8 +462,8 @@ local function init()
 		end
 	end
 
-	hasPropSecure = type( PropSecure ) == "table"
-	hasProtector = type( Protector ) == "table"
+	hasPropSecure = istable( PropSecure )
+	hasProtector = istable( Protector )
 
 	if not hasPropProtection and not hasPropSecure and not hasProtector then
 		noProtection = true

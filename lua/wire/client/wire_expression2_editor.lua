@@ -483,7 +483,7 @@ function Editor:SetActiveTab( val )
 		return
 	end
 	self:SetLastTab( self:GetActiveTab() )
-	if (type(val) == "number") then
+	if isnumber(val) then
 		self.C['TabHolder'].panel:SetActiveTab( self.C['TabHolder'].panel.Items[val].Tab )
 		self:GetCurrentEditor():RequestFocus()
 	elseif (val and val:IsValid()) then
@@ -690,7 +690,7 @@ end
 function Editor:CloseTab( _tab )
 	local activetab, sheetindex
 	if (_tab) then
-		if (type(_tab) == "number") then
+		if isnumber(_tab) then
 			local temp = self.C['TabHolder'].panel.Items[_tab]
 			if (temp) then
 				activetab = temp.Tab
@@ -804,7 +804,7 @@ function Editor:InitComponents()
 	self.C['ConBut']    = self:addComponent(vgui.Create( "Button", self )                   , -62,  4,   18,  18)   // Control panel open/close
 	self.C['Control']   = self:addComponent(vgui.Create( "Panel", self )                    ,-350,  52, 342, -32)   // Control Panel
 	self.C['Credit']    = self:addComponent(vgui.Create( "DTextEntry", self )                ,-160,  52, 150, 150)   // Credit box
-	self.C['Val']       = self:addComponent(vgui.Create( "DLabel", self )                    , 170, -30, -10,  20)   // Validation line
+	self.C['Val']       = self:addComponent(vgui.Create( "Button", self )                    , 170, -30, -10,  20)   // Validation line
 
 	self.C['TabHolder'].panel.Paint = function() end
 
@@ -899,8 +899,19 @@ function Editor:InitComponents()
 		self:Open(filepath, nil, true)
 	end
 
-	self.C['Val'].panel:SetFont("HudHintTextLarge")
-	self.C['Val'].panel:SetText( "   Click to validate..." )
+	self.C['Val'].panel:SetText("   Click to validate...")
+	self.C['Val'].panel.UpdateColours = function(button, skin )
+		return button:SetTextStyleColor( skin.Colours.Button.Down )
+	end
+	self.C['Val'].panel.SetBGColor = function(button, r,g,b,a)
+		self.C['Val'].panel.bgcolor = Color(r,g,b,a)
+	end
+	self.C['Val'].panel.bgcolor = self.colors.col_FL
+	self.C['Val'].panel.Paint = function(button)
+		local w,h = button:GetSize()
+		draw.RoundedBox(1, 0, 0, w, h, button.bgcolor)
+		if ( button.Hovered ) then draw.RoundedBox(0, 1, 1, w - 2, h - 2, Color(0,0,0,128)) end
+	end
 	self.C['Val'].panel.OnMousePressed = function(panel,btn)
 		if (btn == MOUSE_RIGHT) then
 			local menu = DermaMenu()
@@ -1914,7 +1925,6 @@ function Editor:Validate(gotoerror)
 		local errors = wire_expression2_validate(self:GetCode())
 		if not errors then
 			self.C['Val'].panel:SetBGColor(0, 128, 0, 180)
-			self.C['Val'].panel:SetFGColor(255, 255, 255, 128)
 			self.C['Val'].panel:SetText( "   Validation successful" )
 			return true
 		end
@@ -1926,11 +1936,9 @@ function Editor:Validate(gotoerror)
 			if row then self:GetCurrentEditor():SetCaret({ tonumber(row), tonumber(col) }) end
 		end
 		self.C['Val'].panel:SetBGColor(128, 0, 0, 180)
-		self.C['Val'].panel:SetFGColor(255, 255, 255, 128)
 		self.C['Val'].panel:SetText( "   " .. errors )
 	elseif (self.EditorType == "CPU") or (self.EditorType == "GPU") or (self.EditorType == "SPU") then
 		self.C['Val'].panel:SetBGColor(64, 64, 64, 180)
-		self.C['Val'].panel:SetFGColor(255, 255, 255, 128)
 		self.C['Val'].panel:SetText( "   Recompiling..." )
 		CPULib.Validate(self,self:GetCode(),self:GetChosenFile())
 	end

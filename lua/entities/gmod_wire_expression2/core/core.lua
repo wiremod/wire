@@ -7,11 +7,7 @@ local delta = wire_expression2_delta
 __e2setcost(1) -- approximation
 
 registerOperator("dat", "", "", function(self, args)
-	if type(args[2]) == "table" then
-		return table.Copy(args[2])
-	else
-		return args[2]
-	end
+	return istable(args[2]) and table.Copy(args[2]) or args[2]
 end)
 
 __e2setcost(2) -- approximation
@@ -323,7 +319,7 @@ local DupeFinished = 0
 local function dupefinished( TimedPasteData, TimedPasteDataCurrent )
 	DupeFinished = 1
 	for k,v in pairs( TimedPasteData[TimedPasteDataCurrent].CreatedEntities ) do
-		if (type(v) == "Entity" and v:IsValid() and v:GetClass() == "gmod_wire_expression2") then
+		if (isentity(v) and v:IsValid() and v:GetClass() == "gmod_wire_expression2") then
 			v:Execute()
 		end
 	end

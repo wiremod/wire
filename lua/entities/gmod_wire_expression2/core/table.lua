@@ -50,10 +50,10 @@ registerType("table", "t", table.Copy(DEFAULT),
 	end,
 	nil,
 	function(retval)
-		if type(retval) ~= "table" then error("Return value is not a table, but a "..type(retval).."!",0) end
+		if !istable(retval) then error("Return value is not a table, but a "..type(retval).."!",0) end
 	end,
 	function(v)
-		return type(v) ~= "table"
+		return !istable(v)
 	end
 )
 
@@ -123,7 +123,7 @@ end)
 
 -- Fix default values
 local function fixdef( def )
-	if (type(def) == "table") then return table.Copy(def) else return def end
+	return istable(def) and table.Copy(def) or def
 end
 
 -- Uppercases the first letter
@@ -135,7 +135,7 @@ local function normal_table_tostring( tbl, indenting, printed, abortafter )
 	ret = ""
 	cost = 0
 	for k,v in pairs( tbl ) do
-		if (type(v) == "table" and !printed[v]) then
+		if (istable(v) and !printed[v]) then
 			printed[v] = true
 			ret = ret .. rep("\t",indenting) .. k .. ":\n"
 			local ret2, cost2 = normal_table_tostring( tbl, indenting + 2, printed, abortafter )
@@ -162,7 +162,7 @@ local function table_tostring( tbl, indenting, printed, abortafter )
 			local ret2, cost2 = table_tostring( v, indenting + 2, printed, abortafter )
 			ret = ret .. ret2
 			cost = cost + cost2 + 2
-		elseif (type(v) == "table" and !printed[v]) then -- If it's another kind of table
+		elseif (istable(v) and !printed[v]) then -- If it's another kind of table
 			printed[v] = true
 			ret = ret .. rep("\t",indenting) .. k .. ":\n"
 			local ret2, cost2 = normal_table_tostring( v, indenting + 2, printed, abortafter )
@@ -182,7 +182,7 @@ local function table_tostring( tbl, indenting, printed, abortafter )
 			local ret2, cost2 = table_tostring( v, indenting + 2, printed, abortafter )
 			ret = ret .. ret2
 			cost = cost + cost2 + 2
-		elseif (type(v) == "table" and !printed[v]) then -- If it's another kind of table
+		elseif (istable(v) and !printed[v]) then -- If it's another kind of table
 			printed[v] = true
 			ret = ret .. rep("\t",indenting) .. k .. ":\n"
 			local ret2, cost2 = normal_table_tostring( v, indenting + 2, printed, abortafter )
@@ -288,10 +288,10 @@ registerOperator( "kvtable", "", "t", function( self, args )
 		if not blocked_types[types[k]] then
 			local key = k[1]( self, k )
 
-			if type(key) == "string" then
+			if isstring(key) then
 				s[key] = v[1]( self, v )
 				stypes[key] = types[k]
-			elseif type(key) == "number" then
+			elseif isnumber(key) then
 				n[key] = v[1]( self, v )
 				ntypes[key] = types[k]
 			end
@@ -451,7 +451,7 @@ e2function table table:clipToTypeid( string typeid )
 	for k,v in pairs( this.n ) do
 		if (this.ntypes[k] == typeid) then
 			local n = #ret.n+1
-			if (type(v) == "table") then
+			if istable(v) then
 				ret.n[n] = table.Copy(v)
 			else
 				ret.n[n] = v
@@ -461,7 +461,7 @@ e2function table table:clipToTypeid( string typeid )
 	end
 	for k,v in pairs( this.s ) do
 		if (this.stypes[k] == typeid) then
-			if (type(v) == "table") then
+			if istable(v) then
 				ret.s[k] = table.Copy(v)
 			else
 				ret.s[k] = v
@@ -478,7 +478,7 @@ e2function table table:clipFromTypeid( string typeid )
 	local ret = table.Copy(DEFAULT)
 	for k,v in pairs( this.n ) do
 		if (this.ntypes[k] != typeid) then
-			if (type(v) == "table") then
+			if istable(v) then
 				ret.n[k] = table.Copy(v)
 			else
 				ret.n[k] = v
@@ -488,7 +488,7 @@ e2function table table:clipFromTypeid( string typeid )
 	end
 	for k,v in pairs( this.s ) do
 		if (this.stypes[k] != typeid) then
-			if (type(v) == "table") then
+			if istable(v) then
 				ret.s[k] = table.Copy(v)
 			else
 				ret.s[k] = v

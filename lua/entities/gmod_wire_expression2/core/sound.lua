@@ -21,7 +21,7 @@ local function soundCreate(self, entity, index, time, path, fade)
 	path = path:Trim()
 	path = string.gsub(path, "\\", "/")
 	local sound = CreateSound(entity, path)
-	if type(index)=="number" then index = index - index % 1 end
+	if isnumber(index) then index = index - index % 1 end
 	if data[index] then data[index]:Stop() end
 	data[index] = sound
 	sound:Play()

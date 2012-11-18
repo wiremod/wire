@@ -3,7 +3,6 @@ include("remap.lua")
 
 local Wire_Keyboard_Remap = Wire_Keyboard_Remap
 
-
 local KeyEvents = {}
 
 local function GetRemappedKey( key )
@@ -26,7 +25,7 @@ local function GetRemappedKey( key )
 		ret = current.normal[key]
 	end
 
-	if (type(ret) == "string") then ret = string.byte(ret) end
+	if isstring(ret) then ret = string.byte(ret) end
 	return ret
 end
 

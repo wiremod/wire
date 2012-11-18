@@ -133,7 +133,7 @@ function E2Lib.replace_function(funcname, func)
 	checkargtype(2,func,"function")
 
 	local oldfunc = E2Lib[funcname]
-	if type(oldfunc) ~= "function" then error("No E2Lib function by the name "..funcname.." found.",2) end
+	if !isfunction(oldfunc) then error("No E2Lib function by the name "..funcname.." found.",2) end
 	E2Lib[funcname] = func
 	wire_expression2_CallHook("e2lib_replace_function", funcname, func, oldfunc)
 end
@@ -559,7 +559,7 @@ hook.Add("InitPostEntity", "e2lib", function()
 				if owner == player then return true end
 
 				local friends = owner:CPPIGetFriends()
-				if type( friends ) != "table" then return end
+				if !istable( friends ) then return end
 
 				for _,friend in pairs(friends) do
 					if player == friend then return true end

@@ -13,10 +13,6 @@ function ENT:Initialize()
 	self.Inputs = Wire_CreateInputs(self, { "A" })
 end
 
-function ENT:OnRemove()
-	Wire_Remove(self)
-end
-
 function ENT:Setup(flim)
 	self:TriggerInput("A", 0)
 	self.Flim = math.Clamp(flim, 0, 10000)
@@ -68,25 +64,21 @@ function ENT:ShowOutput()
 	self:SetOverlayText("Force Limit: " .. self.Flim )
 end
 
-function ENT:OnRestore()
-	Wire_Restored(self)
-end
-
 -- Free Fall's Owner Check Code
 function ENT:CheckOwner(ent)
 	ply = self.pl
 
-	hasCPPI = (type( CPPI ) == "table")
-	hasEPS = type( eps ) == "table"
-	hasPropSecure = type( PropSecure ) == "table"
-	hasProtector = type( Protector ) == "table"
+	hasCPPI = istable( CPPI )
+	hasEPS = istable( eps )
+	hasPropSecure = istable( PropSecure )
+	hasProtector = istable( Protector )
 
 	if not hasCPPI and not hasPropProtection and not hasSPropProtection and not hasEPS and not hasPropSecure and not hasProtector then return true end
 
 	local t = hook.GetTable()
 
 	local fn = t.CanTool.PropProtection
-	hasPropProtection = type( fn ) == "function"
+	hasPropProtection = isfunction( fn )
 	if hasPropProtection then
 		-- We're going to get the function we need now. It's local so this is a bit dirty
 		local gi = debug.getinfo( fn )
@@ -99,7 +91,7 @@ function ENT:CheckOwner(ent)
 	end
 
 	local fn = t.CanTool[ "SPropProtection.EntityRemoved" ]
-	hasSPropProtection = type( fn ) == "function"
+	hasSPropProtection = isfunction( fn )
 	if hasSPropProtection then
 		local gi = debug.getinfo( fn )
 		for i=1, gi.nups do

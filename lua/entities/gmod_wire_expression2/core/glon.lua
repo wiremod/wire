@@ -72,7 +72,7 @@ typeSanitizers = {
 				if not glonOutputObject then return safeArray end
 				safeGlonObjectMap["r"][glonOutputObject] = safeArray
 
-				if type(glonOutputObject) ~= "table" then return safeArray end
+				if !istable(glonOutputObject) then return safeArray end
 
 				for k, v in pairs(glonOutputObject) do
 					if type (k) == "number" then
@@ -91,9 +91,9 @@ typeSanitizers = {
 				if not glonOutputObject then return safeTable end
 				safeGlonObjectMap["t"][glonOutputObject] = safeTable
 
-				if type(glonOutputObject) ~= "table" then return safeTable end
+				if !istable(glonOutputObject) then return safeTable end
 
-				if type(glonOutputObject.s) == "table" and type(glonOutputObject.stypes) == "table" then
+				if istable(glonOutputObject.s) and istable(glonOutputObject.stypes) then
 					for k, v in pairs(glonOutputObject.s) do
 						local objectType = glonOutputObject.stypes[k]
 						local safeObject = sanitizeGlonOutput( self, v, objectType, safeGlonObjectMap )
@@ -104,9 +104,9 @@ typeSanitizers = {
 					end
 				end
 
-				if type(glonOutputObject.n) == "table" and type(glonOutputObject.ntypes) == "table" then
+				if istable(glonOutputObject.n) and istable(glonOutputObject.ntypes) then
 					for k, v in pairs(glonOutputObject.n) do
-						if type (k) == "number" then
+						if isnumber(k) then
 							local objectType = glonOutputObject.ntypes[k]
 							local safeObject = sanitizeGlonOutput( self, v, objectType, safeGlonObjectMap )
 							if safeObject then
@@ -123,8 +123,8 @@ typeSanitizers = {
 			end,
 	["v"] = function ( self, glonOutputObject, safeGlonObjectMap )
 				if not glonOutputObject then return table.Copy(wire_expression_types2["v"][2]) end
-				if type(glonOutputObject) == "Vector" then return { glonOutputObject.x, glonOutputObject.y, glonOutputObject.z } end
-				if type(glonOutputObject) ~= "table" then return table.Copy(wire_expression_types2["v"][2]) end
+				if isvector(glonOutputObject) then return { glonOutputObject.x, glonOutputObject.y, glonOutputObject.z } end
+				if !istable(glonOutputObject) then return table.Copy(wire_expression_types2["v"][2]) end
 
 				local safeValue = {}
 				for i = 1, 3 do
@@ -150,8 +150,7 @@ local numericArrayDataTypes =
 
 for objectType, arrayLength in pairs(numericArrayDataTypes) do
 	typeSanitizers[objectType] = function ( self, glonOutputObject, sanitizedGlonObjectMap )
-		if not glonOutputObject then return table.Copy(wire_expression_types2[objectType][2]) end
-		if type(glonOutputObject) ~= "table" then return table.Copy(wire_expression_types2[objectType][2]) end
+		if !istable(glonOutputObject) then return table.Copy(wire_expression_types2[objectType][2]) end
 
 		local safeValue = {}
 		for i = 1, arrayLength do

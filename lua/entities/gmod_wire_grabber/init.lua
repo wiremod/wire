@@ -127,10 +127,6 @@ function ENT:TriggerInput(iname, value)
 	end
 end
 
-function ENT:OnRestore()
-	Wire_Restored(self)
-end
-
 --duplicator support (TAD2020)
 function ENT:BuildDupeInfo()
 	local info = self.BaseClass.BuildDupeInfo(self) or {}
@@ -189,17 +185,17 @@ end
 function ENT:CheckOwner(ent)
 	ply = self.pl
 
-	hasCPPI = (type( CPPI ) == "table")
-	hasEPS = type( eps ) == "table"
-	hasPropSecure = type( PropSecure ) == "table"
-	hasProtector = type( Protector ) == "table"
+	hasCPPI = istable( CPPI )
+	hasEPS = istable( eps )
+	hasPropSecure = istable( PropSecure )
+	hasProtector = istable( Protector )
 
 	if not hasCPPI and not hasPropProtection and not hasSPropProtection and not hasEPS and not hasPropSecure and not hasProtector then return true end
 
 	local t = hook.GetTable()
 
 	local fn = t.CanTool.PropProtection
-	hasPropProtection = type( fn ) == "function"
+	hasPropProtection = isfunction( fn )
 	if hasPropProtection then
 		-- We're going to get the function we need now. It's local so this is a bit dirty
 		local gi = debug.getinfo( fn )
@@ -212,7 +208,7 @@ function ENT:CheckOwner(ent)
 	end
 
 	local fn = t.CanTool[ "SPropProtection.EntityRemoved" ]
-	hasSPropProtection = type( fn ) == "function"
+	hasSPropProtection = isfunction( fn )
 	if hasSPropProtection then
 		local gi = debug.getinfo( fn )
 		for i=1, gi.nups do
@@ -265,6 +261,4 @@ function MakeWireGrabber( pl, Pos, Ang, model, Range, Gravity )
 
 	return wire_grabber
 end
-
 duplicator.RegisterEntityClass("gmod_wire_grabber", MakeWireGrabber, "Pos", "Ang", "Model", "Range", "Gravity")
-

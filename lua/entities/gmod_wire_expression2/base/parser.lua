@@ -1260,7 +1260,7 @@ function Parser:Expr17()
 	if self:AcceptRoamingToken("num") then
 		local trace = self:GetTokenTrace()
 		local tokendata = self:GetTokenData()
-		if type(tokendata) == "number" then
+		if isnumber(tokendata) then
 			return self:Instruction(trace, "num", tokendata)
 		end
 		local num,tp = tokendata:match("^([-+e0-9.]*)(.*)$")

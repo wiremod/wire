@@ -474,7 +474,7 @@ end
 
 
 function MakeWireAdvPod(pl, Pos, Ang, model, frozen)
-	if not pl:CheckLimit("wire_pods") then return false end
+	if not pl:CheckLimit("wire_adv_pods") then return false end
 
 	local wire_pod = ents.Create("gmod_wire_adv_pod")
 	if not wire_pod:IsValid() then return false end

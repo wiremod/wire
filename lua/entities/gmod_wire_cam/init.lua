@@ -81,11 +81,3 @@ function ENT:ReceiveInfo(iname, value)
 		self:SetParent(parent)
 	end
 end
-
-function ENT:OnRemove()
-	Wire_Remove(self)
-end
-
-function ENT:OnRestore()
-	Wire_Restored(self)
-end

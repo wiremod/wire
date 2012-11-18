@@ -279,7 +279,7 @@ function HCOMP:GenerateLeaf(leaf,needResult)
   -- Do not generate invalid tree leaves
   if not leaf.Opcode then
     if not leaf.PreviousLeaf then --not leaf.Register then
-      if type(leaf.Constant) == "table" then
+      if istable(leaf.Constant) then
         self:Warning("Trying to generate invalid code ("..self:PrintTokens(leaf.Constant)..")",leaf)
       elseif not leaf.ForceTemporary then
         self:Warning("Trying to generate invalid code",leaf)
@@ -324,7 +324,7 @@ function HCOMP:GenerateLeaf(leaf,needResult)
       end
     end
     if leaf.Operands[i].MemoryPointer and
-       (type(leaf.Operands[i].MemoryPointer) == "table") and
+       istable(leaf.Operands[i].MemoryPointer) and
        leaf.Operands[i].MemoryPointer.UnknownOperationByLabel then
 --      self:TurnUnknownLabelIntoKnown(leaf.Operands[i].MemoryPointer)
       local label = leaf.Operands[i].MemoryPointer.UnknownOperationByLabel
@@ -372,10 +372,7 @@ function HCOMP:GenerateLeaf(leaf,needResult)
       end
 
       -- Need a real explict value if its a non-constant address to memory
-      if       genOperands[i].MemoryPointer and
-         (type(genOperands[i].MemoryPointer) == "table") and
-         (not genOperands[i].MemoryPointer.TokenList) then
-
+      if istable(genOperands[i].MemoryPointer) and not genOperands[i].MemoryPointer.TokenList then
         self:ReadOperandFromMemory(genOperands,i)
       end
 

@@ -27,11 +27,7 @@ end)
 ENT.WireDebugName = "Expression 2"
 
 local function copytype(var)
-	if type(var) == "table" then
-		return table.Copy(var)
-	else
-		return var
-	end
+	return istable(var) and table.Copy(var) or var
 end
 
 function tablekeys(tbl)

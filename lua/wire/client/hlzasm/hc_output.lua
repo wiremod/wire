@@ -49,9 +49,9 @@ function HCOMP:Resolve(block)
   if block.Data then
     if self.Settings.SeparateDataSegment == true then
       for index,value in ipairs(block.Data) do
-        if type(value) == "number" then -- Data is a number
+        if isnumber(value)then -- Data is a number
           self.DataPointer = self.DataPointer + 1
-        elseif type(value) == "table" then -- Data is a constant expression
+        elseif istable(value)then -- Data is a constant expression
           self.WritePointer = self.DataPointer + 1
         else -- Data is a string
           self.DataPointer = self.DataPointer + #value
@@ -59,9 +59,9 @@ function HCOMP:Resolve(block)
       end
     else
       for index,value in ipairs(block.Data) do
-        if type(value) == "number" then -- Data is a number
+        if isnumber(value)then -- Data is a number
           self.WritePointer = self.WritePointer + 1
-        elseif type(value) == "table" then -- Data is a constant expression
+        elseif istable(value)then -- Data is a constant expression
           self.WritePointer = self.WritePointer + 1
         else -- Data is a string
           self.WritePointer = self.WritePointer + #value
@@ -141,7 +141,7 @@ function HCOMP:OutputLibrary(block)
   -- Resolve constant values in data
   if block.Data then
     for index,value in ipairs(block.Data) do
-      if type(value) == "table" then -- Data is a constant expression
+      if istable(value)then -- Data is a constant expression
         block.Data[index] = self:PrintTokens(value)
         block.Data[index] = v or self.Settings.MagicValue
       end
@@ -234,7 +234,7 @@ function HCOMP:Output(block)
   -- Resolve constant values in data
   if block.Data then
     for index,value in ipairs(block.Data) do
-      if type(value) == "table" then -- Data is a constant expression
+      if istable(value)then -- Data is a constant expression
         -- Prepare expression to parse
         self:RestoreParserState(value)
         -- Try to parse the expression
@@ -342,19 +342,19 @@ function HCOMP:PrintBlock(block,file,isLibrary)
       end
 
       if block.Operands[i].Constant then
-        if type(block.Operands[i].Constant) == "table" then
+        if istable(block.Operands[i].Constant) then
           printText = printText .. self:PrintTokens(block.Operands[i].Constant)
         else
           printText = printText .. block.Operands[i].Constant
         end
       elseif block.Operands[i].MemoryPointer then
-        if type(block.Operands[i].MemoryPointer) == "table" then
+        if istable(block.Operands[i].MemoryPointer) then
           printText = printText .. "#" .. self:PrintTokens(block.Operands[i].MemoryPointer)
         else
           printText = printText .. "#" .. block.Operands[i].MemoryPointer
         end
       elseif block.Operands[i].Memory then
-        if type(block.Operands[i].Memory) == "table" then
+        if istable(block.Operands[i].Memory) then
           if block.Operands[i].Memory.Value
           then printText = printText .. "#" .. block.Operands[i].Memory.Value
           else printText = printText .. "#" .. block.Operands[i].Memory.Name
@@ -384,9 +384,9 @@ function HCOMP:PrintBlock(block,file,isLibrary)
     end
 
     for index,value in ipairs(block.Data) do
-      if type(value) == "number" then -- Data is a number
+      if isnumber(value)then -- Data is a number
         printText = printText .. value
-      elseif type(value) == "table" then -- Data is an expression
+      elseif istable(value)then -- Data is an expression
         printText = printText .. self:PrintTokens(value)
       else -- Data is a string
         printText = printText .. "\"" .. value .. "\""
@@ -436,7 +436,7 @@ function HCOMP:PrintLeaf(leaf,level)
   if not level then level = 0 end
   local pad = string.rep("  ",level)
 
-  if type(leaf) == "table" then
+  if istable(leaf) then
     if leaf.PreviousLeaf then
 --      self:PrintLine("ctree",pad.."previous leaf:")
       self:PrintLeaf(leaf.PreviousLeaf,level)
@@ -458,7 +458,7 @@ function HCOMP:PrintLeaf(leaf,level)
       end
     else
       if leaf.Constant then
-        if type(leaf.Constant) == "table" then
+        if istable(leaf.Constant) then
           self:PrintLine("ctree",pad..self:PrintTokens(leaf.Constant))
         else
           self:PrintLine("ctree",pad..leaf.Constant)
@@ -470,7 +470,7 @@ function HCOMP:PrintLeaf(leaf,level)
       elseif leaf.MemoryRegister then
         self:PrintLine("ctree",pad.."#"..RegisterName[leaf.MemoryRegister])
       elseif leaf.MemoryPointer then
-        if type(leaf.MemoryPointer) == "table" then
+        if istable(leaf.MemoryPointer) then
           if leaf.MemoryPointer.Opcode then
             self:PrintLine("ctree",pad.."#[")
             self:PrintLeaf(leaf.MemoryPointer,level+1)
@@ -482,7 +482,7 @@ function HCOMP:PrintLeaf(leaf,level)
           self:PrintLine("ctree",pad.."#"..leaf.MemoryPointer)
         end
       elseif leaf.Stack then
-        if type(leaf.Stack) == "table" then
+        if istable(leaf.Stack) then
           self:PrintLine("ctree",pad.."stack[")
           self:PrintLeaf(leaf.Stack,level+1)
           self:PrintLine("ctree",pad.."     ]")
@@ -520,7 +520,7 @@ function HCOMP:OperandRM(operand,block)
       return 50
     end
   elseif operand.Memory then
-    if type(operand.Memory) == "table" then -- label
+    if istable(operand.Memory) then -- label
       operand.Value = operand.Memory.Value
     else -- constant
       operand.Value = operand.Memory
@@ -616,7 +616,7 @@ function HCOMP:WriteBlock(block)
   -- Write the data
   if block.Data then
     for index,value in ipairs(block.Data) do
-      if type(value) == "number" then -- Data is a number
+      if isnumber(value) then -- Data is a number
         self:WriteByte(value,block)
       else -- Data is a string
         for charIdx=1,#value do

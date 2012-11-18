@@ -25,7 +25,7 @@ function ENT:Setup(fwd, bck, stop, torque, direction)
 	if self.BaseTorque == 1 then self.BaseTorque = math.max(1, torque)
 	else self:SetTorque(torque)
 	end
-	if direction then wheel:SetDirection( direction ) end
+	if direction then self:SetDirection( direction ) end
 	
 	self:UpdateOverlayText()
 end

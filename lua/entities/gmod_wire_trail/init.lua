@@ -22,10 +22,6 @@ function ENT:Initialize()
 	self.Material = ""
 end
 
-function ENT:OnRemove()
-	Wire_Remove(self)
-end
-
 function ENT:Setup(Material)
 	self.Material = Material
 end
@@ -86,11 +82,6 @@ function ENT:TriggerInput(iname, value)
 	end
 end
 
-function ENT:OnRestore()
-	Wire_Restored(self)
-end
-
-
 function MakeWireTrail( pl, Pos, Ang, model, mat)
 	if not pl:CheckLimit( "wire_trails" ) then return false end
 
@@ -111,6 +102,4 @@ function MakeWireTrail( pl, Pos, Ang, model, mat)
 
 	return wire_trail
 end
-
 duplicator.RegisterEntityClass("gmod_wire_trail", MakeWireTrail, "Pos", "Ang", "Model", "mat")
-

@@ -25,9 +25,6 @@ function ENT:Initialize()
 	self.lastClick = 0
 end
 
-function ENT:OnRemove()
-end
-
 function ENT:Setup(gmode, draw_background)
 	self.outputMode = gmode
 	self.draw_background = draw_background

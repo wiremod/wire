@@ -399,7 +399,7 @@ elseif CLIENT then
 	--------------------------------------------------------------
 
 	function WireLib.Expression2Upload( targetEnt, code )
-		if type(targetEnt) == "number" then targetEnt = Entity(targetEnt) end
+		if isnumber(targetEnt) then targetEnt = Entity(targetEnt) end
 		targetEnt = targetEnt or LocalPlayer():GetEyeTrace().Entity
 		
 		if (not IsValid(targetEnt) or targetEnt:GetClass() ~= "gmod_wire_expression2") then
@@ -667,6 +667,7 @@ elseif CLIENT then
 		if( wire_expression2_editor == nil ) then initE2Editor() end
 
 		local FileBrowser = vgui.Create("wire_expression2_browser" , panel)
+		FileBrowser.OpenOnSingleClick = wire_expression2_editor
 		panel:AddPanel(FileBrowser)
 		FileBrowser:Setup("Expression2")
 		FileBrowser:SetSize(w,300)

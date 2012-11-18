@@ -40,6 +40,7 @@ TOOL.ReloadSetsModel = true
 function TOOL.BuildCPanel(panel)
 	panel:Help("#Tool.wire_simple_explosive.desc")
 	ModelPlug_AddToCPanel(panel, "Explosive", "wire_simple_explosive")
+	panel:Help("This tool is deprecated as its functionality is contained within Wire Explosive, and will be removed soon.")
 	panel:NumSlider("#Tool.simple_explosive.trigger", "wire_simple_explosive_trigger", -10, 10, 0 )
 	panel:NumSlider("#Tool.simple_explosive.damage", "wire_simple_explosive_damage", 0, 500, 0 )
 	panel:NumSlider("#Tool.simple_explosive.radius", "wire_simple_explosive_radius", 1, 1500, 0 )

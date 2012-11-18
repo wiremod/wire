@@ -1,321 +1,87 @@
 WireToolSetup.setCategory( "Physics" )
 WireToolSetup.open( "explosive", "Explosive", "gmod_wire_explosive", nil, "Explosives" )
 
-TOOL.ClientConVar[ "model" ] = "models/props_c17/oildrum001_explosive.mdl"
-TOOL.ClientConVar[ "modelman" ] = ""
-TOOL.ClientConVar[ "usemodelman" ] = 0
-TOOL.ClientConVar[ "effect" ] = "Explosion"
-TOOL.ClientConVar[ "tirgger" ] = 1		// Current tirgger
-TOOL.ClientConVar[ "damage" ] = 200		// Damage to inflict
-TOOL.ClientConVar[ "doblastdamage" ] = 1
-TOOL.ClientConVar[ "radius" ] = 300
-TOOL.ClientConVar[ "removeafter" ] = 0
-TOOL.ClientConVar[ "affectother" ] = 0
-TOOL.ClientConVar[ "notaffected" ] = 0
-TOOL.ClientConVar[ "delaytime" ] = 0
-TOOL.ClientConVar[ "delayreloadtime" ] = 0
-TOOL.ClientConVar[ "freeze" ] = 0
-TOOL.ClientConVar[ "weld" ] = 1
-TOOL.ClientConVar[ "maxhealth" ] = 100
-TOOL.ClientConVar[ "bulletproof" ] = 0
-TOOL.ClientConVar[ "explosionproof" ] = 0
-TOOL.ClientConVar[ "weight" ] = 400
-TOOL.ClientConVar[ "explodeatzero" ] = 1
-TOOL.ClientConVar[ "resetatexplode" ] = 1
-TOOL.ClientConVar[ "fireeffect" ] = 1
-TOOL.ClientConVar[ "coloreffect" ] = 1
-TOOL.ClientConVar[ "nocollide" ] = 0
-TOOL.ClientConVar[ "noparentremove" ] = 0
-TOOL.ClientConVar[ "invisibleatzero" ] = 0
-
-cleanup.Register( "wire_explosive" )
+TOOL.ClientConVar = {
+	model = "models/props_c17/oildrum001_explosive.mdl",
+	effect = "Explosion",
+	trigger = 1,		-- Wire input value to cause the explosion
+	damage = 200,		-- Damage to inflict
+	radius = 300,
+	removeafter = 0,
+	affectother = 0,
+	notaffected = 0,
+	delaytime = 0,
+	delayreloadtime = 0,
+	weld = 1,
+	maxhealth = 100,
+	bulletproof = 0,
+	explosionproof = 0,
+	explodeatzero = 1,
+	resetatexplode = 1,
+	fireeffect = 1,
+	coloreffect = 1,
+	invisibleatzero = 0,
+}
+TOOL.ReloadSetsModel = true
 
 if ( CLIENT ) then
 	language.Add( "Tool.wire_explosive.name", "Wired Explosives Tool" )
 	language.Add( "Tool.wire_explosive.desc", "Creates a variety of different explosives for wire system." )
 	language.Add( "Tool.wire_explosive.0", "Left click to place the bomb. Right click update." )
-	language.Add( "WireExplosiveTool_Model", "Model:" )
-	language.Add( "WireExplosiveTool_modelman", "Manual model selection:" )
-	--language.Add( "WireExplosiveTool_usemodelman", "Use manual model selection:" )
-	language.Add( "WireExplosiveTool_Effects", "Effect:" )
-	language.Add( "WireExplosiveTool_tirgger", "Trigger value:" )
-	language.Add( "WireExplosiveTool_damage", "Damage:" )
-	language.Add( "WireExplosiveTool_delay", "On fire time (delay after triggered before explosion):" )
-	language.Add( "WireExplosiveTool_delayreload", "Delay after explosion before it can be triggered again:" )
-	language.Add( "WireExplosiveTool_remove", "Remove on explosion" )
-	language.Add( "WireExplosiveTool_doblastdamage", "Do blast damage" )
-	language.Add( "WireExplosiveTool_affectother", "Damaged/moved by other wired explosives" )
-	language.Add( "WireExplosiveTool_notaffected", "Not moved by any phyiscal damage" )
-	language.Add( "WireExplosiveTool_radius", "Blast radius:" )
-	language.Add( "WireExplosiveTool_freeze", "Freeze" )
-	language.Add( "WireExplosiveTool_weld", "Weld" )
-	language.Add( "WireExplosiveTool_noparentremove", "Don't remove on parent remove" )
-	language.Add( "WireExplosiveTool_nocollide", "No collide all but world" )
-	language.Add( "WireExplosiveTool_maxhealth", "Max health:" )
-	language.Add( "WireExplosiveTool_weight", "Weight:" )
-	language.Add( "WireExplosiveTool_bulletproof", "Bullet proof" )
-	language.Add( "WireExplosiveTool_explosionproof", "Explosion proof" )
-	--language.Add( "WireExplosiveTool_fallproof", "Fall proof" )
-	language.Add( "WireExplosiveTool_explodeatzero", "Explode when health = zero" )
-	language.Add( "WireExplosiveTool_resetatexplode", "Reset health then" )
-	language.Add( "WireExplosiveTool_fireeffect", "Enable fire effect on triggered" )
-	language.Add( "WireExplosiveTool_coloreffect", "Enable color change effect on damage" )
-	language.Add( "WireExplosiveTool_invisibleatzero", "Become invisible when health reaches 0" )
-	language.Add( "Undone_WireExplosive", "Wired Explosive undone" )
-	language.Add( "sbox_maxwire_explosive", "You've hit wired explosives limit!" )
+	language.Add( "Tool.wire_explosive.trigger", "Trigger value:" )
+	language.Add( "Tool.wire_explosive.damage", "Damage:" )
+	language.Add( "Tool.wire_explosive.radius", "Blast radius:" )
+	language.Add( "Tool.wire_explosive.delaytime", "On fire time (delay after triggered before explosion):" )
+	language.Add( "Tool.wire_explosive.delayreloadtime", "Delay after explosion before it can be triggered again:" )
+	language.Add( "Tool.wire_explosive.removeafter", "Remove on explosion" )
+	language.Add( "Tool.wire_explosive.affectother", "Damaged/moved by other wired explosives" )
+	language.Add( "Tool.wire_explosive.notaffected", "Not moved by any phyiscal damage" )
+	language.Add( "Tool.wire_explosive.weld", "Weld" )
+	language.Add( "Tool.wire_explosive.maxhealth", "Max health:" )
+	language.Add( "Tool.wire_explosive.bulletproof", "Bullet proof" )
+	language.Add( "Tool.wire_explosive.explosionproof", "Explosion proof" )
+	language.Add( "Tool.wire_explosive.explodeatzero", "Explode when health = zero" )
+	language.Add( "Tool.wire_explosive.resetatexplode", "Reset health then" )
+	language.Add( "Tool.wire_explosive.fireeffect", "Enable fire effect on triggered" )
+	language.Add( "Tool.wire_explosive.coloreffect", "Enable color change effect on damage" )
+	language.Add( "Tool.wire_explosive.invisibleatzero", "Become invisible when health reaches 0" )
 end
-
-if (SERVER) then
-	CreateConVar('sbox_maxwire_explosive', 30)
-end
-
-
-function TOOL:LeftClick( trace )
-
-	if (!trace.HitPos) then return false end
-	if (trace.Entity:IsPlayer()) then return false end
-	if ( CLIENT ) then return true end
-
-	local ply = self:GetOwner()
-
-	if ( !self:GetSWEP():CheckLimit( "wire_explosive" ) ) then return false end
-
-	// Get client's CVars
-	local _tirgger			= self:GetClientNumber( "tirgger" )
-	local _damage 			= math.Clamp( self:GetClientNumber( "damage" ), 0, 1500 )
-	local _removeafter		= self:GetClientNumber( "removeafter" ) == 1
-	local _delaytime		= self:GetClientNumber( "delaytime" )
-	local _delayreloadtime	= self:GetClientNumber( "delayreloadtime" )
-	local _doblastdamage	= self:GetClientNumber( "doblastdamage" ) == 1
-	local _radius			= self:GetClientNumber( "radius" )
-	local _affectother		= self:GetClientNumber( "affectother" ) == 1
-	local _notaffected		= self:GetClientNumber( "notaffected" ) == 1
-	local _freeze			= self:GetClientNumber( "freeze" ) == 1
-	local _weld				= self:GetClientNumber( "weld" ) == 1
-	local _maxhealth		= self:GetClientNumber( "maxhealth" )
-	local _bulletproof		= self:GetClientNumber( "bulletproof" ) == 1
-	local _explosionproof	= self:GetClientNumber( "explosionproof" ) == 1
-	local _fallproof		= self:GetClientNumber( "fallproof" ) == 1
-	local _explodeatzero	= self:GetClientNumber( "explodeatzero" ) == 1
-	local _resetatexplode	= self:GetClientNumber( "resetatexplode" ) == 1
-	local _fireeffect		= self:GetClientNumber( "fireeffect" ) == 1
-	local _coloreffect		= self:GetClientNumber( "coloreffect" ) == 1
-	local _noparentremove	= self:GetClientNumber( "noparentremove" ) == 1
-	local _nocollide		= self:GetClientNumber( "nocollide" ) == 1
-	local _weight			= self:GetClientNumber( "weight" )
-	local _invisibleatzero	= self:GetClientNumber( "invisibleatzero" ) == 1
-
-	//Check Radius
-	if (_radius > 10000) then return false end
-
-	//get & check selected model
-	_model = self:GetSelModel( true )
-	if (!_model) then return false end
-
-	local Ang = trace.HitNormal:Angle()
-	Ang.pitch = Ang.pitch + 90
-
-	local explosive = MakeWireExplosive( ply, trace.HitPos, Ang, _model, _tirgger, _damage, _removeafter, _delaytime, _doblastdamage, _radius, _affectother, _notaffected, _delayreloadtime, _maxhealth, _bulletproof, _explosionproof, _fallproof, _explodeatzero, _resetatexplode, _fireeffect, _coloreffect, _invisibleatzero, _nocollide )
-
-	local min = explosive:OBBMins()
-	explosive:SetPos( trace.HitPos - trace.HitNormal * min.z )
-
-	if ( _freeze ) then
-		explosive:GetPhysicsObject():Sleep() //will freeze the explosive till something touches it
-	end
-
-	// Don't weld to world
-	local const, nocollid
-	if ( trace.Entity:IsValid() && _weld ) then
-		if (_noparentremove) then
-			const, nocollide = constraint.Weld( explosive, trace.Entity, 0, trace.PhysicsBone, 0, collision == 0 )
-		else
-			const, nocollide = constraint.Weld( explosive, trace.Entity, 0, trace.PhysicsBone, 0, collision == 0, true )
-		end
-	end
-
-	_weight = math.Clamp(_weight,1,50000)
-	explosive.Entity:GetPhysicsObject():SetMass(_weight)
-	// Make sure the weight is duplicated as well (TheApathetic)
-	duplicator.StoreEntityModifier( explosive, "MassMod", {Mass = _weight} )
-
-	undo.Create("WireExplosive")
-		undo.AddEntity( explosive )
-		undo.AddEntity( const )
-		undo.SetPlayer( ply )
-	undo.Finish()
-
-	ply:AddCleanup( "wire_explosive", explosive )
-	ply:AddCleanup( "wire_explosive", const )
-
-	return true
-
-end
-
-
-function TOOL:GetSelModel( showerr )
-
-	local model		= self:GetClientInfo( "model" )
-
-	if (model == "usemanmodel") then
-		local _modelman = self:GetClientInfo( "modelman" )
-		if (_modelman && string.len(_modelman) > 0) then
-			model = _modelman
-		else
-			local message = "You need to define a model."
-			if (showerr) then
-				self:GetOwner():PrintMessage(3, message)
-				self:GetOwner():PrintMessage(2, message)
-			end
-			return false
-		end
-	elseif (model == "usereloadmodel") then
-		if (self.reloadmodel && string.len(self.reloadmodel) > 0) then
-			model = self.reloadmodel
-		else
-			local message = "You need to select a model model."
-			if (showerr) then
-				self:GetOwner():PrintMessage(3, message)
-				self:GetOwner():PrintMessage(2, message)
-			end
-			return false
-		end
-	end
-
-	if (not util.IsValidModel(model)) then
-		//something fucked up, notify user of that
-		local message = "This is not a valid model."..model
-		if (showerr) then
-			self:GetOwner():PrintMessage(3, message)
-			self:GetOwner():PrintMessage(2, message)
-		end
-		return false
-	end
-	if (not util.IsValidProp(model)) then return false end
-
-	return model
-end
-
-
-function TOOL:RightClick( trace )
-	if (CLIENT) then return true end
-
-	local ply = self:GetOwner()
-	//shot an explosive, update it
-	if ( trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_explosive" ) then
-		//double you code double your fun (copy from above)
-		// Get client's CVars
-		local tirgger			= self:GetClientNumber( "tirgger" )
-		local damage 			= math.Clamp( self:GetClientNumber( "damage" ), 0, 1500 )
-		local removeafter		= self:GetClientNumber( "removeafter" ) == 1
-		local delaytime			= self:GetClientNumber( "delaytime" )
-		local delayreloadtime	= self:GetClientNumber( "delayreloadtime" )
-		local doblastdamage		= self:GetClientNumber( "doblastdamage" ) == 1
-		local radius			= self:GetClientNumber( "radius" )
-		local affectother		= self:GetClientNumber( "affectother" ) == 1
-		local notaffected		= self:GetClientNumber( "notaffected" ) == 1
-		local freeze			= self:GetClientNumber( "freeze" ) == 1
-		local weld				= self:GetClientNumber( "weld" ) == 1
-		local maxhealth			= self:GetClientNumber( "maxhealth" )
-		local bulletproof		= self:GetClientNumber( "bulletproof" ) == 1
-		local explosionproof	= self:GetClientNumber( "explosionproof" ) == 1
-		local fallproof			= self:GetClientNumber( "fallproof" ) == 1
-		local explodeatzero		= self:GetClientNumber( "explodeatzero" ) == 1
-		local resetatexplode	= self:GetClientNumber( "resetatexplode" ) == 1
-		local fireeffect		= self:GetClientNumber( "fireeffect" ) == 1
-		local coloreffect		= self:GetClientNumber( "coloreffect" ) == 1
-		local noparentremove	= self:GetClientNumber( "noparentremove" ) == 1
-		local nocollide			= self:GetClientNumber( "nocollide" ) == 1
-		local weight			= self:GetClientNumber( "weight" )
-		local invisibleatzero	= self:GetClientNumber( "invisibleatzero" ) == 1
-
-		UpdateWireExplosive(trace.Entity, tirgger, damage, delaytime, removeafter, doblastdamage, radius, affectother, notaffected, delayreloadtime, maxhealth, bulletproof, explosionproof, fallproof, explodeatzero, resetatexplode, fireeffect, coloreffect, invisibleatzero, nocollide )
-
-		if (weight <= 0) then weight = 1 end
-		trace.Entity:GetPhysicsObject():SetMass(_weight)
-		// Make sure the weight is duplicated as well (TheApathetic)
-		duplicator.StoreEntityModifier( trace.Entity, "MassMod", {Mass = weight} )
-
-		//reset color in case we turned the color effect off and it's still red
-		trace.Entity:SetColor(Color(255, 255, 255, 255))
-
-		return true
-	end
-
-end
-
-function TOOL:Reload( trace )
-	//get the model of what was shot and set our reloadmodel to that
-	//model info getting code mostly copied from OverloadUT's What Is That? STool
-	if !trace.Entity then return false end
-	local ent = trace.Entity
-	local ply = self:GetOwner()
-	local class = ent:GetClass()
-	if class == "worldspawn" then
-		return false
-	else
-		local model = ent:GetModel()
-		local message = "Model selected: "..model
-		self.reloadmodel = model
-		ply:PrintMessage(3, message)
-		ply:PrintMessage(2, message)
-	end
-	return true
-end
+WireToolSetup.BaseLang()
+WireToolSetup.SetupMax( 10, TOOL.Mode.."s" , "You've hit the Wire "..TOOL.PluralName.." limit!" )
 
 if SERVER then
-
-	function UpdateWireExplosive(explosive, trigger, damage, delaytime, removeafter, doblastdamage, radius, affectother, notaffected, delayreloadtime, maxhealth, bulletproof, explosionproof, fallproof, explodeatzero, resetatexplode, fireeffect, coloreffect, invisibleatzero, nocollide )
-
-		explosive:Setup( damage, delaytime, removeafter, doblastdamage, radius, affectother, notaffected, delayreloadtime, maxhealth, bulletproof, explosionproof, fallproof, explodeatzero, resetatexplode, fireeffect, coloreffect, invisibleatzero, nocollide )
-
-		local ttable = {
-			key = trigger,
-			nocollide = nocollide,
-			damage = damage,
-			removeafter = removeafter,
-			delaytime = delaytime,
-			doblastdamage = doblastdamage,
-			radius = radius,
-			affectother = affectother,
-			notaffected = notaffected,
-			delayreloadtime = delayreloadtime,
-			maxhealth = maxhealth,
-			bulletproof = bulletproof,
-			explosionproof = explosionproof,
-			fallproof = fallproof,
-			explodeatzero = explodeatzero,
-			resetatexplode = resetatexplode,
-			fireeffect = fireeffect,
-			coloreffect = coloreffect,
-			invisibleatzero = invisibleatzero
-		}
-		table.Merge( explosive:GetTable(), ttable )
-
+	function TOOL:GetConVars() 
+		return self:GetClientNumber("trigger"), self:GetClientNumber("damage"), self:GetClientNumber("delaytime"), self:GetClientNumber("removeafter")~=0,
+			self:GetClientNumber("radius"), self:GetClientNumber("affectother")~=0, self:GetClientNumber("notaffected")~=0, self:GetClientNumber("delayreloadtime"),
+			self:GetClientNumber("maxhealth"), self:GetClientNumber("bulletproof")~=0, self:GetClientNumber("explosionproof")~=0, self:GetClientNumber("fallproof")~=0,
+			self:GetClientNumber("explodeatzero")~=0, self:GetClientNumber("resetatexplode")~=0, self:GetClientNumber("fireeffect")~=0, self:GetClientNumber("coloreffect")~=0,
+			self:GetClientNumber("invisibleatzero")~=0, self:GetClientNumber("nocollide")~=0
 	end
 
-
-	function MakeWireExplosive(pl, Pos, Ang, model, trigger, damage, removeafter, delaytime, doblastdamage, radius, affectother, notaffected, delayreloadtime, maxhealth, bulletproof, explosionproof, fallproof, explodeatzero, resetatexplode, fireeffect, coloreffect, invisibleatzero, nocollide )
-
-		if ( !pl:CheckLimit( "wire_explosive" ) ) then return nil end
-
-		local explosive = ents.Create( "gmod_wire_explosive" )
-
-		explosive:SetModel( model )
-		explosive:SetPos( Pos )
-		explosive:SetAngles( Ang )
-		explosive:Spawn()
-		explosive:Activate()
-
-		explosive:SetPlayer( pl )
-		explosive.pl = pl
-
-		UpdateWireExplosive( explosive, trigger, damage, delaytime, removeafter, doblastdamage, radius, affectother, notaffected, delayreloadtime, maxhealth, bulletproof, explosionproof, fallproof, explodeatzero, resetatexplode, fireeffect, coloreffect, invisibleatzero, nocollide )
-
-		pl:AddCount( "wire_explosive", explosive )
-
-		return explosive
-
+	function TOOL:MakeEnt( ply, model, Ang, trace )
+		return MakeWireExplosive( ply, trace.HitPos, Ang, model, self:GetConVars() )
 	end
-	duplicator.RegisterEntityClass( "gmod_wire_explosive", MakeWireExplosive, "Pos", "Ang", "Model", "key", "damage", "removeafter", "delaytime", "doblastdamage", "radius", "affectother", "notaffected", "delayreloadtime", "maxhealth", "bulletproof", "explosionproof", "fallproof", "explodeatzero", "resetatexplode", "fireeffect", "coloreffect", "invisibleatzero", "nocollide" )
+end
+
+function TOOL.BuildCPanel(panel)
+	panel:Help("#Tool.wire_explosive.desc")
+	WireToolHelpers.MakePresetControl(panel, "wire_explosive")
+	ModelPlug_AddToCPanel(panel, "Explosive", "wire_explosive")
+	panel:NumSlider("#Tool.wire_explosive.trigger", "wire_explosive_trigger", -10, 10, 0 )
+	panel:NumSlider("#Tool.wire_explosive.damage", "wire_explosive_damage", 0, 500, 0 )
+	panel:NumSlider("#Tool.wire_explosive.radius", "wire_explosive_radius", 1, 1500, 0 )
+	panel:NumSlider("#Tool.wire_explosive.delaytime", "wire_explosive_delaytime", 0, 60, 2 )
+	panel:NumSlider("#Tool.wire_explosive.delayreloadtime", "wire_explosive_delayreloadtime", 0, 60, 2 )
+	panel:CheckBox("#Tool.wire_explosive.removeafter","wire_explosive_removeafter")
+	panel:CheckBox("#Tool.wire_explosive.affectother","wire_explosive_affectother")
+	panel:CheckBox("#Tool.wire_explosive.notaffected","wire_explosive_notaffected")
+	panel:CheckBox("#Tool.wire_explosive.weld","wire_explosive_weld")
+	panel:NumSlider("#Tool.wire_explosive.maxhealth", "wire_explosive_maxhealth", 0, 500, 0 )
+	panel:CheckBox("#Tool.wire_explosive.bulletproof","wire_explosive_bulletproof")
+	panel:CheckBox("#Tool.wire_explosive.explosionproof","wire_explosive_explosionproof")
+	panel:CheckBox("#Tool.wire_explosive.explodeatzero","wire_explosive_explodeatzero")
+	panel:CheckBox("#Tool.wire_explosive.resetatexplode","wire_explosive_resetatexplode")
+	panel:CheckBox("#Tool.wire_explosive.fireeffect","wire_explosive_fireeffect")
+	panel:CheckBox("#Tool.wire_explosive.coloreffect","wire_explosive_coloreffect")
+	panel:CheckBox("#Tool.wire_explosive.invisibleatzero","wire_explosive_invisibleatzero")
 end

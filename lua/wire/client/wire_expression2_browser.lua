@@ -153,6 +153,8 @@ function PANEL:UpdateFolders()
 	self.Folders.DoClick = function(tree, node)
 		if self.File == node and CurTime() <= self.lastClick + 0.5 then
 			self:OnFileOpen(node:GetFileName())
+		elseif self.OpenOnSingleClick then
+			self.OpenOnSingleClick:LoadFile(node:GetFileName())
 		end
 		self.File = node
 		self.lastClick = CurTime()

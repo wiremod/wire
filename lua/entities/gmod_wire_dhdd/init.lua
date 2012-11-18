@@ -23,7 +23,7 @@ end
 -- Read cell
 function ENT:ReadCell( Address )
 	local data = self.Memory[Address or 0] or 0
-	return (type(data) == "number") and data or 0
+	return isnumber(data) and data or 0
 end
 
 -- Write cell

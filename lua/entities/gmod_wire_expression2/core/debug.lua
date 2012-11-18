@@ -46,13 +46,13 @@ end
 /******************************************************************************/
 
 local function SpecialCase( arg )
-	if (type(arg) == "table") then
+	if istable(arg) then
 		if (arg.isfunction) then
 			return "function " .. arg[3] .. " = (" .. arg[2] .. ")"
 		elseif (seq(arg)) then -- A table with only numerical indexes
 			local str = "["
 			for k,v in ipairs( arg ) do
-				if (type(v) == "table") then
+				if istable(v) then
 					if (k != #arg) then
 						str = str .. SpecialCase( v ) .. ","
 					else
@@ -228,8 +228,8 @@ local printColor_types = {
 	Vector = function(v) return Color(v[1],v[2],v[3]) end,
 	table = function(tbl)
 		for i,v in pairs(tbl) do
-			if type(i) ~= "number" then return "" end
-			if type(v) ~= "number" then return "" end
+			if !isnumber(i) then return "" end
+			if !isnumber(v) then return "" end
 			if i < 1 or i > 4 then return "" end
 		end
 		return Color(tbl[1] or 0, tbl[2] or 0,tbl[3] or 0,tbl[4])
