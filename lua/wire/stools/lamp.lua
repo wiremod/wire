@@ -104,7 +104,7 @@ TOOL.ClientConVar = {
 	texture      = "effects/flashlight001",
 	fov 		 = 90,
 	distance 	 = 1024,
-	brightness 	 = 10
+	brightness 	 = 8
 }
 
 -- Spawn a lamp without constraints (just frozen)
