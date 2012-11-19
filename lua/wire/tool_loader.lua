@@ -169,7 +169,7 @@ end
 -- option tool Think function for updating the pos of the ghost and making one when needed [default]
 function WireToolObj:Think()
 	local model = self:GetModel()
-	if not self.GhostEntity or not self.GhostEntity:IsValid() or self.GhostEntity:GetModel() ~= model then
+	if not IsValid(self.GhostEntity) or self.GhostEntity:GetModel() ~= model then
 		if self.GetGhostAngle then -- the tool as a function for getting the proper angle for the ghost
 			self:MakeGhostEntity( model, Vector(0,0,0), self:GetGhostAngle(self:GetOwner():GetEyeTrace()) )
 		else -- the tool gives a fixed angle to add else use a zero'd angle
@@ -181,12 +181,10 @@ end
 
 
 if SERVER then
-	--
 	function WireToolObj:CheckHitOwnClass( trace )
 		return trace.Entity:IsValid() and trace.Entity:GetClass() == self.WireClass
 	end
 
-	--
 	function WireToolObj:CheckMaxLimit()
 		return not self:GetSWEP():CheckLimit(self.MaxLimitName or (self.Mode.."s"))
 	end
@@ -197,27 +195,23 @@ function WireToolObj:CheckValidModel( model )
 	return not model or not util.IsValidModel(model) or not util.IsValidProp(model)
 end
 
---
 function WireToolObj:GetModel()
 	local model_convar = self:GetClientInfo( "model" )
 	if self.ClientConVar.modelsize then
-		local model = string.sub(model_convar, 1, -5) .."_".. self:GetClientInfo( "modelsize" ) .. string.sub(model_convar, -4)
-		if not self:CheckValidModel(model) then return model end
-		model = string.GetPathFromFilename(model_convar) .. self:GetClientInfo( "modelsize" ) .."_".. string.GetFileFromFilename(model_convar)
-		if not self:CheckValidModel(model) then return model end
+		local modelsize = self:GetClientInfo( "modelsize" )
+		if modelsize != "" then
+			local model = string.sub(model_convar, 1, -5) .."_".. modelsize .. string.sub(model_convar, -4)
+			if not self:CheckValidModel(model) then return model end
+			model = string.GetPathFromFilename(model_convar) .. modelsize .."_".. string.GetFileFromFilename(model_convar)
+			if not self:CheckValidModel(model) then return model end
+		end
 	end
 	if not self:CheckValidModel(model_convar) then --use a valid model or the server crashes :<
 		return model_convar
-	elseif self.Model then
-		return self.Model
-	elseif self.ClientConVar.model then
-		return self.ClientConVar.model -- The default model
-	else
-		return "models/props_c17/oildrum001.mdl" --use some other random, valid prop instead if they fuck up
 	end
+	return self.Model or self.ClientConVar.model or "models/props_c17/oildrum001.mdl"
 end
 
---
 function WireToolObj:GetAngle( trace )
 	local Ang
 	if math.abs(trace.HitNormal.x) < 0.001 and math.abs(trace.HitNormal.y) < 0.001 then 
@@ -236,7 +230,6 @@ function WireToolObj:GetAngle( trace )
 	return Ang
 end
 
---
 function WireToolObj:SetPos( ent, trace )
 	-- move the ghost to aline properly to where the device will be made
 	local min = ent:OBBMins()
