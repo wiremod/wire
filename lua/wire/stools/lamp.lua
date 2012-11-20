@@ -22,9 +22,9 @@ if SERVER then
 		math.Clamp( self:GetClientNumber( "g" ), 0, 255 ),
 		math.Clamp( self:GetClientNumber( "b" ), 0, 255 ),
 		self:GetClientInfo( "texture" ),
-		math.Clamp( self:GetClientNumber( "fov" ), 10, 170 ),
-		math.Clamp( self:GetClientNumber( "distance" ), 64, 2048 ),
-		math.Clamp( self:GetClientNumber( "brightness" ), 0, 8 )
+		self:GetClientNumber( "fov" ),
+		self:GetClientNumber( "distance" ),
+		self:GetClientNumber( "brightness" )
 	end
 
 	function TOOL:MakeEnt( ply, model, Ang, trace )
@@ -50,7 +50,7 @@ if SERVER then
 			local length   = self:GetClientNumber( "ropelength" )
 			local material = self:GetClientInfo( "ropematerial" )
 
-			local LPos1 = Vector( 0, 0, 5 )
+			local LPos1 = Vector( -15, 0, 0 )
 			local LPos2 = trace.Entity:WorldToLocal( trace.HitPos )
 
 			if trace.Entity:IsValid() then
@@ -85,7 +85,7 @@ if SERVER then
 end
 
 function TOOL:GetAngle( trace )
-	return trace.HitNormal:Angle() - Angle( 90, 0, 0 )
+	return trace.HitNormal:Angle()
 end
 
 function TOOL:SetPos( ent, trace )

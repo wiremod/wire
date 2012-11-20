@@ -120,8 +120,6 @@ function ENT:Setup( r, g, b, Texture, fov, dist, brightness )
 	self.FOV = fov
 	self.Dist = dist
 	self.Brightness = brightness
-	
-	self:UpdateLight()
 end
 
 include('shared.lua')
@@ -133,11 +131,9 @@ function MakeWireLamp( pl, r, g, b, Texture, fov, dist, brightness, Data )
 	local wire_lamp = ents.Create( "gmod_wire_lamp" )
 	if (!wire_lamp:IsValid()) then return end
 		duplicator.DoGeneric( wire_lamp, Data )
-		wire_lamp:Setup( r, g, b, Texture, fov, dist, brightness )
+		wire_lamp:Setup( r or 255, g or 255, b or 255, Texture or "effects/flashlight001", fov or 90, dist or 1024, brightness or 8 )
 	wire_lamp:Spawn()
-	
-	wire_lamp:SetOverlayText( "Red: " .. r .. " Green: " .. g .. " Blue: " .. b .. "\n" ..
-						 "FoV: " .. fov .. " Distance: " .. dist .. " Brightness: " .. brightness)
+	wire_lamp:UpdateLight()
 	
 	duplicator.DoGenericPhysics( wire_lamp, pl, Data )
 
