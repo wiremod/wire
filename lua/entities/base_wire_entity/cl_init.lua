@@ -17,7 +17,7 @@ function ENT:DoNormalDraw(nohalo, notip)
 			self.OldRenderGroup = self.RenderGroup
 			self.RenderGroup = RENDERGROUP_TRANSLUCENT
 		end
-		self:DrawEntityOutline(1.0)
+		self:DrawEntityOutline()
 		self:DrawModel()
 	else
 		if self.OldRenderGroup then

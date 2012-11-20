@@ -79,32 +79,27 @@ local function TranslateType( Value, DataType )
     return 0
 end
 
-function ENT:Setup(values)
-	self.value = values -- Wirelink/Duplicator Info 
+function ENT:Setup(valuesin)
+	self.value = valuesin -- Wirelink/Duplicator Info 
 	
-	local outputs = 
-	{
-		names = {},
-		types = {},
-		values = {}
-	}
-	for k,v in pairs(values) do
-		outputs.names[k] = tostring( k )
-		outputs.values[k] = TranslateType(v.Value, ReturnType(v.DataType))
-		outputs.types[k] = ReturnType(v.DataType)
+	local names = {}
+	local types = {}
+	local values = {}
+	
+	for k,v in pairs(valuesin) do
+		names[k] = tostring( k )
+		values[k] = TranslateType(v.Value, ReturnType(v.DataType))
+		types[k] = ReturnType(v.DataType)
 	end
 
 	// this is where storing the values as strings comes in: they are the descriptions for the inputs.
-	WireLib.AdjustSpecialOutputs(self, outputs.names, outputs.types )
+	WireLib.AdjustSpecialOutputs(self, names, types, values )
 
 	local txt = ""
-
-	for k,v in pairs(values) do
-		local theVal = TranslateType(v.Value, ReturnType(v.DataType))
-		txt = txt .. k .. ": [" .. tostring(v.DataType) .. "] " .. tostring(theVal) .. "\n"
-		Wire_TriggerOutput( self, tostring(k), theVal )
+	for k,v in pairs(valuesin) do
+		txt = txt .. names[k] .. " [" .. tostring(v.DataType) .. "]: " .. tostring(values[k]) .. "\n"
+		Wire_TriggerOutput( self, names[k], values[k] )
 	end
-
 	self:SetOverlayText(string.Left(txt,#txt-1)) -- Cut off the last \n
 end
 
