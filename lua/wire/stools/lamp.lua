@@ -6,8 +6,11 @@ if CLIENT then
 	language.Add( "tool.wire_lamp.desc", "Spawns a lamp for use with the wire system." )
 	language.Add( "tool.wire_lamp.0", "Primary: Create hanging lamp Secondary: Create unattached lamp" )
 	language.Add( "WireLampTool_RopeLength", "Rope Length:")
-	language.Add( "WireLampTool_Color", "Color:" )
+	language.Add( "WireLampTool_FOV", "FOV:")
+	language.Add( "WireLampTool_Dist", "Distance:")
+	language.Add( "WireLampTool_Bright", "Brightness:")
 	language.Add( "WireLampTool_Const", "Constraint:" )
+	language.Add( "WireLampTool_Color", "Color:" )
 end
 WireToolSetup.BaseLang()
 
@@ -18,12 +21,15 @@ if SERVER then
 		return math.Clamp( self:GetClientNumber( "r" ), 0, 255 ),
 		math.Clamp( self:GetClientNumber( "g" ), 0, 255 ),
 		math.Clamp( self:GetClientNumber( "b" ), 0, 255 ),
-		self:GetClientInfo( "texture" )
+		self:GetClientInfo( "texture" ),
+		self:GetClientNumber( "fov" ),
+		self:GetClientNumber( "distance" ),
+		self:GetClientNumber( "brightness" )
 	end
 
 	function TOOL:MakeEnt( ply, model, Ang, trace )
-		local r, g, b, Texture = self:GetConVars()
-		return MakeWireLamp( ply, r, g, b, Texture, { Pos = trace.HitPos, Angle = Ang } )
+		local r, g, b, Texture, fov, dist, brightness = self:GetConVars()
+		return MakeWireLamp( ply, r, g, b, Texture, fov, dist, brightness, { Pos = trace.HitPos, Angle = Ang } )
 	end
 
 	function TOOL:LeftClick_PostMake( ent, ply, trace )
@@ -44,7 +50,7 @@ if SERVER then
 			local length   = self:GetClientNumber( "ropelength" )
 			local material = self:GetClientInfo( "ropematerial" )
 
-			local LPos1 = Vector( 0, 0, 5 )
+			local LPos1 = Vector( -15, 0, 0 )
 			local LPos2 = trace.Entity:WorldToLocal( trace.HitPos )
 
 			if trace.Entity:IsValid() then
@@ -79,7 +85,7 @@ if SERVER then
 end
 
 function TOOL:GetAngle( trace )
-	return trace.HitNormal:Angle() - Angle( 90, 0, 0 )
+	return trace.HitNormal:Angle()
 end
 
 function TOOL:SetPos( ent, trace )
@@ -87,7 +93,7 @@ function TOOL:SetPos( ent, trace )
 end
 
 --TOOL.GhostAngle = Angle(180, 0, 0)
-TOOL.Model = "models/props_wasteland/prison_lamp001c.mdl"
+TOOL.Model = "models/MaxOfS2D/lamp_flashlight.mdl"
 TOOL.ClientConVar = {
 	ropelength   = 64,
 	ropematerial = "cable/rope",
@@ -96,6 +102,9 @@ TOOL.ClientConVar = {
 	b            = 255,
 	const        = "rope",
 	texture      = "effects/flashlight001",
+	fov 		 = 90,
+	distance 	 = 1024,
+	brightness 	 = 8
 }
 
 -- Spawn a lamp without constraints (just frozen)
@@ -125,9 +134,21 @@ end
 
 function TOOL.BuildCPanel(panel)
 	WireToolHelpers.MakePresetControl(panel, "wire_lamp")
-
+		
 	panel:NumSlider("#WireLampTool_RopeLength", "wire_lamp_ropelength", 4, 400, 0)
-
+	panel:NumSlider("#WireLampTool_FOV", "wire_lamp_fov", 10, 170, 2)
+	panel:NumSlider("#WireLampTool_Dist", "wire_lamp_distance", 64, 2048, 0)
+	panel:NumSlider("#WireLampTool_Bright", "wire_lamp_brightness", 0, 8, 2)
+	
+	panel:AddControl("ComboBox", {
+		Label = "#WireLampTool_Const",
+		Options = {
+			["Rope"] = { wire_lamp_const = "rope" },
+			["Weld"] = { wire_lamp_const = "weld" },
+			["None"] = { wire_lamp_const = "none" },
+		}
+	})
+	
 	panel:AddControl("Color", {
 		Label = "#WireLampTool_Color",
 		Red	= "wire_lamp_r",
@@ -137,15 +158,6 @@ function TOOL.BuildCPanel(panel)
 		ShowHSV = "1",
 		ShowRGB = "1",
 		Multiplier = "255"
-	})
-
-	panel:AddControl("ComboBox", {
-		Label = "#WireLampTool_Const",
-		Options = {
-			["Rope"] = { wire_lamp_const = "rope" },
-			["Weld"] = { wire_lamp_const = "weld" },
-			["None"] = { wire_lamp_const = "none" },
-		}
 	})
 
 	local MatSelect = panel:MatSelect( "wire_lamp_texture", nil, true, 0.33, 0.33 )
