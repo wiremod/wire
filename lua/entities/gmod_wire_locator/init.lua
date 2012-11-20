@@ -18,7 +18,6 @@ end
 function ENT:GetBeaconPos(sensor)
 	return self:GetPos()
 end
-
-function ENT:Setup()
-
+function ENT:GetBeaconVelocity(sensor)
+	return self:GetVelocity()
 end

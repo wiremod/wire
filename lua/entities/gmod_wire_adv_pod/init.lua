@@ -435,6 +435,9 @@ end)
 function ENT:GetBeaconPos(sensor)
 	return self.VPos
 end
+function ENT:GetBeaconVelocity(sensor)
+	return self:HasPod() and self:GetPod():GetVelocity() or self:GetVelocity()
+end
 
 --Duplicator support to save pod link (TAD2020)
 function ENT:BuildDupeInfo()

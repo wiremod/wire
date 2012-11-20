@@ -33,6 +33,9 @@ function ENT:GetBeaconPos(sensor)
 
 	return self:GetPos()
 end
+function ENT:GetBeaconVelocity(sensor)
+	return self:GetVelocity()
+end
 
 function ENT:SetNextWaypoint(wp)
 	local SavedNextWaypoint = self:GetNextWaypoint()
