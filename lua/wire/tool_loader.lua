@@ -56,7 +56,7 @@ if SERVER then
 		end
 
 		local model = self:GetModel()
-		if self:CheckMaxLimit() or self:CheckValidModel(model) then return false end
+		if not self:CheckMaxLimit() or not self:CheckValidModel(model) then return false end
 
 		local Ang = self:GetAngle( trace )
 
@@ -186,13 +186,13 @@ if SERVER then
 	end
 
 	function WireToolObj:CheckMaxLimit()
-		return not self:GetSWEP():CheckLimit(self.MaxLimitName or (self.Mode.."s"))
+		return self:GetSWEP():CheckLimit(self.MaxLimitName or (self.Mode.."s"))
 	end
 end
 
 -- Allow ragdolls to be used?
 function WireToolObj:CheckValidModel( model )
-	return not model or not util.IsValidModel(model) or not util.IsValidProp(model)
+	return model and util.IsValidModel(model) and util.IsValidProp(model)
 end
 
 function WireToolObj:GetModel()
@@ -201,12 +201,12 @@ function WireToolObj:GetModel()
 		local modelsize = self:GetClientInfo( "modelsize" )
 		if modelsize != "" then
 			local model = string.sub(model_convar, 1, -5) .."_".. modelsize .. string.sub(model_convar, -4)
-			if not self:CheckValidModel(model) then return model end
+			if self:CheckValidModel(model) then return model end
 			model = string.GetPathFromFilename(model_convar) .. modelsize .."_".. string.GetFileFromFilename(model_convar)
-			if not self:CheckValidModel(model) then return model end
+			if self:CheckValidModel(model) then return model end
 		end
 	end
-	if not self:CheckValidModel(model_convar) then --use a valid model or the server crashes :<
+	if self:CheckValidModel(model_convar) then --use a valid model or the server crashes :<
 		return model_convar
 	end
 	return self.Model or self.ClientConVar.model or "models/props_c17/oildrum001.mdl"

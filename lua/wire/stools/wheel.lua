@@ -88,7 +88,7 @@ end
 
 function TOOL:GetModel()
 	local ply = self:GetOwner()
-	if not self:CheckValidModel(ply:GetInfo("wheel_model")) then --use a valid model or the server crashes :<
+	if self:CheckValidModel(ply:GetInfo("wheel_model")) then --use a valid model or the server crashes :<
 		return ply:GetInfo("wheel_model")
 	else
 		return "models/props_c17/oildrum001.mdl" --use some other random, valid prop instead
