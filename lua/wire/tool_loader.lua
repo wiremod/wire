@@ -191,8 +191,16 @@ if SERVER then
 end
 
 -- Allow ragdolls to be used?
+local ValidModelCache = {[""] = false}
 function WireToolObj:CheckValidModel( model )
-	return model and util.IsValidModel(model) and util.IsValidProp(model)
+	local val = ValidModelCache[model or ""]
+	if val~=nil then return val end
+	if SERVER then
+		ValidModelCache[model] = util.IsValidModel(model) and util.IsValidProp(model)
+	else
+		ValidModelCache[model] = file.Exists(model,"GAME") -- util.IsValidModel doesn't work clientside until after the server runs util.PrecacheModel
+	end
+	return ValidModelCache[model]
 end
 
 function WireToolObj:GetModel()
