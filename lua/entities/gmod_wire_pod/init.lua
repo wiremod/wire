@@ -74,7 +74,7 @@ function ENT:Think()
 			end
 			local trace = util.GetPlayerTrace(self.Ply)
 			trace.filter = self.Pod
-			self.VPos = util.TraceLine(trace).HitPos
+			self.VPos = util.TraceLine(trace).HitPos or self.VPos
 			Wire_TriggerOutput(self, "Active", 1)
 		else
 			Wire_TriggerOutput(self, "Active", 0)
