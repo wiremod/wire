@@ -175,6 +175,7 @@ function WireToolObj:Think()
 		else -- the tool gives a fixed angle to add else use a zero'd angle
 			self:MakeGhostEntity( model, Vector(0,0,0), self.GhostAngle or Angle(0,0,0) )
 		end
+		if IsValid(self.GhostEntity) and CLIENT then self.GhostEntity:SetPredictable(true) end
 	end
 	self:UpdateGhost( self.GhostEntity )
 end
