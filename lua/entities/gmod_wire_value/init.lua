@@ -79,7 +79,7 @@ local function TranslateType( Value, DataType )
     return 0
 end
 
-function ENT:Setup(valuesin)
+function ENT:Setup(valuesin, legacynames)
 	self.value = valuesin -- Wirelink/Duplicator Info 
 	
 	local names = {}
@@ -90,6 +90,13 @@ function ENT:Setup(valuesin)
 		names[k] = tostring( k )
 		values[k] = TranslateType(v.Value, ReturnType(v.DataType))
 		types[k] = ReturnType(v.DataType)
+	end
+	if legacynames then
+		-- Gmod12 Constant Values will have outputs like Value1, Value2... 
+		-- To avoid breaking old dupes, we'll use those names if we're created from an old dupe
+		for k,v in pairs(names) do
+			names[k] = "Value"..v
+		end
 	end
 
 	// this is where storing the values as strings comes in: they are the descriptions for the inputs.
@@ -143,7 +150,7 @@ function MakeWireValue( ply, Pos, Ang, model, value )
 				
 				table.insert(convertedValues, { DataType=convtbl[theType], Value=theValue or v } )
 			end
-			wire_value:Setup( convertedValues )
+			wire_value:Setup( convertedValues, true )
 		end
 	end
 	wire_value:SetPlayer(ply)
