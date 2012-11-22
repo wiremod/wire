@@ -178,7 +178,7 @@ local function flush_vis_queue()
 	for ply,tbl in pairs( vis_queue ) do
 		if IsValid( ply ) and #tbl > 0 then
 			net.Start("wire_holograms_set_visible")
-				for _,Holo,scale in ipairs_map(tbl, unpack) do
+				for _,Holo,visible in ipairs_map(tbl, unpack) do
 					net.WriteUInt(Holo.ent:EntIndex(), 16)
 					net.WriteBit(visible)
 				end
