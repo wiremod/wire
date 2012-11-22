@@ -85,11 +85,13 @@ function ENT:Setup(valuesin, legacynames)
 	local names = {}
 	local types = {}
 	local values = {}
+	local descs = {}
 	
 	for k,v in pairs(valuesin) do
 		names[k] = tostring( k )
-		values[k] = TranslateType(v.Value, ReturnType(v.DataType))
 		types[k] = ReturnType(v.DataType)
+		values[k] = TranslateType(v.Value, ReturnType(v.DataType))
+		descs[k] = v.Value
 	end
 	if legacynames then
 		-- Gmod12 Constant Values will have outputs like Value1, Value2... 
@@ -100,11 +102,11 @@ function ENT:Setup(valuesin, legacynames)
 	end
 
 	// this is where storing the values as strings comes in: they are the descriptions for the inputs.
-	WireLib.AdjustSpecialOutputs(self, names, types, values )
+	WireLib.AdjustSpecialOutputs(self, names, types, descs )
 
 	local txt = ""
 	for k,v in pairs(valuesin) do
-		txt = txt .. names[k] .. " [" .. tostring(v.DataType) .. "]: " .. tostring(values[k]) .. "\n"
+		txt = txt .. names[k] .. " [" .. tostring(v.DataType) .. "]: " .. descs[k] .. "\n"
 		Wire_TriggerOutput( self, names[k], values[k] )
 	end
 	self:SetOverlayText(string.Left(txt,#txt-1)) -- Cut off the last \n
