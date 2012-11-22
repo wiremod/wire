@@ -15,7 +15,6 @@ function ENT:Initialize()
 	self.Outputs = Wire_CreateOutputs(self, { "Out" })
 end
 
-local ENT = ENT
 function ENT:Setup( action, noclip )
 	if (action) then
 		self.WireDebugName = action.name
@@ -77,14 +76,12 @@ function ENT:OnOutputWireLink(oname, otype, dst, iname, itype)
 	end
 end
 
-
 function ENT:TriggerInput(iname, value, iter)
 	if (self.Action) and (not self.Action.timed) then
 		self:CalcOutput(iter)
 		self:ShowOutput()
 	end
 end
-
 
 function ENT:Think()
 	self.BaseClass.Think(self)
@@ -142,14 +139,15 @@ function ENT:GetActionInputs(as_names)
 	local Args = {}
 
 	if (self.Action.compact_inputs) then
+		-- If a gate has compact inputs (like Arithmetic - Add), nil inputs are truncated so {0, nil, nil, 5, nil, 1} becomes {0, 5, 1}
 		for k,v in ipairs(self.Action.inputs) do
 		    local input = self.Inputs[v]
 			if (not input) then
-				Msg("Missing input! ("..v..")")
+				ErrorNoHalt("Wire Gate ("..self.action..") error: Missing input! ("..k..","..v..")")
 				return {}
 			end
 
-			if (input.Src) and (input.Src:IsValid()) then
+			if IsValid(input.Src) then
 				if (as_names) then
 					table.insert(Args, input.Src.WireName or input.Src.WireDebugName or v)
 				else
@@ -170,31 +168,20 @@ function ENT:GetActionInputs(as_names)
 		for k,v in ipairs(self.Action.inputs) do
 		    local input = self.Inputs[v]
 			if (not input) then
-				Msg("Missing input! ("..v..")")
+				ErrorNoHalt("Wire Gate ("..self.action..") error: Missing input! ("..k..","..v..")")
 				return {}
 			end
 
 			if (as_names) then
-				if (input.Src) and (input.Src:IsValid()) then
-					Args[k] = input.Src.WireName or input.Src.WireDebugName or v
-				else
-					Args[k] = v
-				end
+				Args[k] = IsValid(input.Src) and (input.Src.WireName or input.Src.WireDebugName) or v
 			else
-				if (input.Src) and (input.Src:IsValid()) then
-					//Args[k] = ( input.Value or WireLib.DT[ (self.Action.inputtypes[k] or "NORMAL") ].Zero )
-					Args[k] = ( input.Value or WireLib.DT[ self.Inputs[v].Type ].Zero )
-				else
-					//Args[k] = WireLib.DT[ (self.Action.inputtypes[k] or "NORMAL") ].Zero
-					Args[k] = WireLib.DT[ self.Inputs[v].Type ].Zero
-				end
+				Args[k] = IsValid(input.Src) and input.Value or WireLib.DT[ self.Inputs[v].Type ].Zero
 			end
 		end
 	end
 
 	return Args
 end
-
 
 function ENT:GetActionOutputs()
 	if (self.Action.outputs) then
@@ -208,9 +195,6 @@ function ENT:GetActionOutputs()
 
 	return self.Outputs.Out.Value or 0
 end
-
-
-
 
 function MakeWireGate(pl, Pos, Ang, model, action, noclip, frozen, nocollide)
 	if ( !pl:CheckLimit( "wire_gates" ) ) then return nil end

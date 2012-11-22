@@ -316,9 +316,11 @@ GateActions["vector_mux"] = {
 	compact_inputs = 3,
 	outputtypes = { "VECTOR" },
 	output = function(gate, Sel, ...)
-		Sel = math.floor(Sel)
-		if (Sel > 0 && Sel <= 8) then
-			return ({...})[Sel]
+		if isnumber(Sel) then -- If Sel is unwired, because of compact_inputs 3, it will become the first vector input, so just return Vector(0,0,0)
+			Sel = math.floor(Sel)
+			if Sel > 0 and Sel <= 8 then
+				return ({...})[Sel]
+			end
 		end
 		return Vector (0, 0, 0)
 	end,
