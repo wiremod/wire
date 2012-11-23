@@ -74,7 +74,7 @@ function ENT:Think()
 			end
 			local trace = util.GetPlayerTrace(self.Ply)
 			trace.filter = self.Pod
-			self.VPos = util.TraceLine(trace).HitPos
+			self.VPos = util.TraceLine(trace).HitPos or self.VPos
 			Wire_TriggerOutput(self, "Active", 1)
 		else
 			Wire_TriggerOutput(self, "Active", 0)
@@ -113,6 +113,9 @@ end
 
 function ENT:GetBeaconPos(sensor)
 	return self.VPos
+end
+function ENT:GetBeaconVelocity(sensor)
+	return IsValid(self.Pod) and self.Pod:GetVelocity() or Vector()
 end
 
 -- Duplicator support to save pod link (TAD2020)

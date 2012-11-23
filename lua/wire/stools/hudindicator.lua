@@ -76,7 +76,7 @@ function TOOL:LeftClick( trace )
 
 	local ply = self:GetOwner()
 
-	local model			= self:GetClientInfo( "model" )
+	local model			= self:GetModel()
 	local a				= self:GetClientNumber("a")
 	local ar			= math.min(self:GetClientNumber("ar"), 255)
 	local ag			= math.min(self:GetClientNumber("ag"), 255)
@@ -134,8 +134,7 @@ function TOOL:LeftClick( trace )
 	if (not util.IsValidProp(model)) then return false end		// Allow ragdolls to be used?
 
 	//local Ang = trace.HitNormal:Angle()
-	local Ang = self:GetSelectedAngle(trace.HitNormal:Angle())
-	Ang.pitch = Ang.pitch + 90
+	local Ang = self:GetAngle(trace)
 
 	wire_indicator = MakeWireHudIndicator( ply, trace.HitPos, Ang, model, a, ar, ag, ab, aa, b, br, bg, bb, ba, material, showinhud, huddesc, hudaddname, hudshowvalue, hudstyle, allowhook, fullcircleangle )
 
@@ -290,44 +289,21 @@ if (SERVER) then
 
 end
 
-function TOOL:UpdateGhostWireHudIndicator( ent, player )
-
-	if ( !ent ) then return end
-	if ( !ent:IsValid() ) then return end
-
-	local trace = player:GetEyeTrace()
-	if (!trace.Hit) then return end
-
-	if (trace.Entity && trace.Entity:GetClass() == "gmod_wire_hudindicator" || trace.Entity:IsPlayer()) then
-		ent:SetNoDraw( true )
-		return
-	end
-
-	local Ang = self:GetSelectedAngle(trace.HitNormal:Angle())
-	Ang.pitch = Ang.pitch + 90
-
-	local min = ent:OBBMins()
-	ent:SetPos( trace.HitPos - trace.HitNormal * self:GetSelectedMin(min) )
-	ent:SetAngles( Ang )
-
-	ent:SetNoDraw( false )
-
-end
-
-function TOOL:GetSelectedAngle( Ang )
-	local Model = self:GetClientInfo( "model" )
+function TOOL:GetAngle( trace )
+	local Ang = trace.HitNormal:Angle()
+	local Model = self:GetModel()
 	//these models get mounted differently
 	if (Model == "models/props_borealis/bluebarrel001.mdl" || Model == "models/props_junk/PopCan01a.mdl") then
-		return Ang + Angle(180, 0, 0)
+		return Ang + Angle(270, 0, 0)
 	elseif (Model == "models/props_trainstation/trainstation_clock001.mdl" || Model == "models/segment.mdl" || Model == "models/segment2.mdl") then
-		return Ang + Angle(-90, 0, (self:GetClientNumber("rotate90") * 90))
+		return Ang + Angle(0, 0, (self:GetClientNumber("rotate90") * 90))
 	else
-		return Ang
+		return Ang + Angle(90,0,0)
 	end
 end
 
 function TOOL:GetSelectedMin( min )
-	local Model = self:GetClientInfo( "model" )
+	local Model = self:GetModel()
 	//these models are different
 	if (Model == "models/props_trainstation/trainstation_clock001.mdl" || Model == "models/segment.mdl" || Model == "models/segment2.mdl") then
 		return min.x
@@ -337,11 +313,12 @@ function TOOL:GetSelectedMin( min )
 end
 
 function TOOL:Think()
-	if (!self.GhostEntity || !self.GhostEntity:IsValid() || self.GhostEntity:GetModel() != self:GetClientInfo( "model" )) then
-		self:MakeGhostEntity( self:GetClientInfo( "model" ), Vector(0,0,0), self:GetSelectedAngle(Angle(0,0,0)) )
+	local model = self:GetModel()
+	if not IsValid(self.GhostEntity) or self.GhostEntity:GetModel() ~= model then
+		self:MakeGhostEntity( model, Vector(0,0,0), Angle(0,0,0) )
 	end
 
-	self:UpdateGhostWireHudIndicator( self.GhostEntity, self:GetOwner() )
+	self:UpdateGhost( self.GhostEntity )
 
 	if (SERVER) then
 		// Add check to see if player is registered with

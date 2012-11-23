@@ -62,7 +62,8 @@ function ENT:Explode( )
 	if ( !self:IsValid() ) then return end
 	if (self.Exploded) then return end
 
-	ply = self:GetPlayer() or self
+	local ply = self:GetPlayer()
+	if not IsValid(ply) then ply = self end
 
 	if ( self.damage > 0 ) then
 		util.BlastDamage( self, ply, self:GetPos(), self.radius, self.damage )

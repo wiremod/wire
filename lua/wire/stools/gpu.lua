@@ -206,7 +206,7 @@ if CLIENT then
         ZGPU_Editor = vgui.Create("Expression2EditorFrame")
         ZGPU_Editor:Setup("ZGPU Editor", "GPUChip", "GPU")
       end
-      ZCPU_Editor:Open(filepath, nil, newtab)
+      ZGPU_Editor:Open(filepath, nil, newtab)
     end
 
 
