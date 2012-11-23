@@ -407,6 +407,7 @@ elseif CLIENT then
 			return
 		end
 		
+		if not code and not wire_expression2_editor then return end -- If the player leftclicks without opening the editor or cpanel (first spawn)
 		code = code or wire_expression2_editor:GetCode()
 		local err, includes
 		
