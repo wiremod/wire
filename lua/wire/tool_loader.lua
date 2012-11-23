@@ -153,7 +153,7 @@ function WireToolObj:UpdateGhost( ent )
 	if not trace.Hit then return end
 
 	-- don't draw the ghost if we hit nothing, a player, an npc, the type of device this tool makes, or any class this tool says not to
-	if not trace.HitWorld and (trace.Entity:IsPlayer() or trace.Entity:IsNPC() or trace.Entity:GetClass() == self.WireClass or NoGhostOn(self, trace)) then
+	if IsValid(trace.Entity) and (trace.Entity:IsPlayer() or trace.Entity:IsNPC() or trace.Entity:GetClass() == self.WireClass or NoGhostOn(self, trace)) then
 		ent:SetNoDraw( true )
 		return
 	end
