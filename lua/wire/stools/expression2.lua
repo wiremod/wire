@@ -143,7 +143,7 @@ if SERVER then
 	
 	function TOOL:Upload( ent )
 		net.Start("wire_expression2_tool_upload")
-			net.WriteInt(ent:EntIndex(), 32)
+			net.WriteUInt(ent:EntIndex(), 16)
 		net.Send(self:GetOwner())
 	end
 	
@@ -276,7 +276,7 @@ if SERVER then
 	--------------------------------------------------------------
 	local uploads = {}
 	net.Receive("wire_expression2_upload",function(len, ply)
-		local toent = net.ReadEntity()
+		local toent = Entity(net.ReadUInt(16))
 		local numpackets = net.ReadUInt(16)
 	
 		if not IsValid(toent) or toent:GetClass() ~= "gmod_wire_expression2" then
@@ -399,12 +399,10 @@ elseif CLIENT then
 	--------------------------------------------------------------
 
 	function WireLib.Expression2Upload( targetEnt, code )
-		if isnumber(targetEnt) then targetEnt = Entity(targetEnt) end
-		targetEnt = targetEnt or LocalPlayer():GetEyeTrace().Entity
-		
-		if (not IsValid(targetEnt) or targetEnt:GetClass() ~= "gmod_wire_expression2") then
-			WireLib.AddNotify("Invalid Expression entity specified!", NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3)
-			return
+		if not targetEnt then targetEnt = LocalPlayer():GetEyeTrace().Entity or NULL end
+		if isentity(targetEnt) then 
+			if not IsValid(targetEnt) then return end -- We don't know what entity its going to
+			targetEnt = targetEnt:EntIndex()
 		end
 		
 		if not code and not wire_expression2_editor then return end -- If the player leftclicks without opening the editor or cpanel (first spawn)
@@ -441,7 +439,7 @@ elseif CLIENT then
 		local numpackets = math.ceil(#datastr / 64000)
 		for i=1,#datastr, 64000 do
 			net.Start("wire_expression2_upload")
-				net.WriteEntity(targetEnt)
+				net.WriteUInt(targetEnt,16)
 				net.WriteUInt(numpackets,16)
 				net.WriteString(datastr:sub(i,i+63999))
 			net.SendToServer()
@@ -449,15 +447,7 @@ elseif CLIENT then
 	end
 	
 	net.Receive( "wire_expression2_tool_upload", function(len, ply)
-		local entid = net.ReadInt(32)
-		timer.Create("wire_expression2_tool_upload_delay",0.03,30,function() -- The new net library is so fast sometimes the chip gets fully uploaded before the entity even exists.
-			if IsValid(Entity(entid)) then
-				WireLib.Expression2Upload( entid )
-				timer.Remove("wire_expression2_tool_upload_delay")
-				timer.Remove("wire_expression2_tool_upload_delay_error")
-			end
-		end)
-		timer.Create("wire_expression2_tool_upload_delay_error",0.03*31,1,function() WireLib.AddNotify("Invalid Expression entity specified!", NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3) end)
+		WireLib.Expression2Upload( net.ReadUInt(16) )
 	end)
 	
 	--------------------------------------------------------------
