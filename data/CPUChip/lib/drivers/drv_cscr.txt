@@ -33,6 +33,7 @@ float cscrDevices[MAX_CONSOLE_SCREENS];
 char* cscrCharacterPointer[MAX_CONSOLE_SCREENS];
 float cscrSelectedScreen;
 
+#ifdef UDH_DRIVER
 //Update console screen offsets
 void cscrUDHQueryFunction() {
   float i,n;
@@ -41,6 +42,7 @@ void cscrUDHQueryFunction() {
     cscrOffsets[i] = udhGetDeviceOffset(cscrDevices[i]);
   }
 }
+#endif
 
 //Initialize console screen driver. screenOffset may be 0 if using UDH
 void cscrInitialize(char* screenOffset) {
@@ -55,7 +57,7 @@ void cscrInitialize(char* screenOffset) {
       udhRegisterDriver(cscrUDHQueryFunction);
       cscrUDHQueryFunction();
     }
-  #endif
+#endif
   cscrSelectedScreen = 0;
 }
 
