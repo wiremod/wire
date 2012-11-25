@@ -1,11 +1,10 @@
-
-AddCSLuaFile( "cl_init.lua" )
-AddCSLuaFile( "shared.lua" )
-
-include('shared.lua')
-
+AddCSLuaFile()
+DEFINE_BASECLASS( "base_wire_entity" )
+ENT.PrintName		= "Wire Data Satellite Dish"
+ENT.RenderGroup		= RENDERGROUP_BOTH
 ENT.WireDebugName = "Satellite Dish"
 
+if CLIENT then return end -- No more client
 
 function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )
@@ -14,18 +13,13 @@ function ENT:Initialize()
 	self:ShowOutput()
 end
 
-
 function ENT:ShowOutput()
-	if IsValid(self.Transmitter) then
-		self:SetOverlayText( "Linked" )
-	else
-		self:SetOverlayText( "Unlinked" )
-	end
+	self:SetOverlayText( IsValid(self.Transmitter) and "Linked" or "Unlinked" )
 end
 
 function ENT:BuildDupeInfo()
 	local info = self.BaseClass.BuildDupeInfo(self) or {}
-	if ( self.Transmitter ) and ( self.Transmitter:IsValid() ) then
+	if IsValid( self.Transmitter ) then
 	    info.Transmitter = self.Transmitter:EntIndex()
 	end
 	return info

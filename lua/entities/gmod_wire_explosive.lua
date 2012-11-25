@@ -1,13 +1,11 @@
-AddCSLuaFile( "cl_init.lua" )
-AddCSLuaFile( "shared.lua" )
-include('shared.lua')
+AddCSLuaFile()
+DEFINE_BASECLASS( "base_wire_entity" )
+ENT.PrintName		= "Wire Explosive"
+ENT.WireDebugName 	= "Explosive"
+ENT.RenderGroup		= RENDERGROUP_BOTH
 
-ENT.WireDebugName = "Explosive"
+if CLIENT then return end -- No more client
 
-/*---------------------------------------------------------
-   Name: Initialize
-   Desc: First function called. Use to set up your entity
----------------------------------------------------------*/
 function ENT:Initialize()
 
 	self:PhysicsInit( SOLID_VPHYSICS )
@@ -34,10 +32,6 @@ function ENT:Initialize()
 	self.Outputs = Wire_CreateOutputs(self, { "Health" })
 end
 
-/*---------------------------------------------------------
-   Name: TriggerInput
-   Desc: the inputs
----------------------------------------------------------*/
 function ENT:TriggerInput(iname, value)
 	if (iname == "Detonate") then
 		if ( !self.exploding && !self.reloading ) then
@@ -50,10 +44,6 @@ function ENT:TriggerInput(iname, value)
 	end
 end
 
-/*---------------------------------------------------------
-   Name: Setup
-   Desc: does a whole lot of setting up
----------------------------------------------------------*/
 function ENT:Setup( key, damage, delaytime, removeafter, radius, affectother, notaffected, delayreloadtime, maxhealth, bulletproof, explosionproof, fallproof, explodeatzero, resetatexplode, fireeffect, coloreffect, invisibleatzero, nocollide )
 	
 	self.key = key
@@ -146,11 +136,6 @@ function ENT:ResetHealth( )
 	self:ShowOutput()
 end
 
-
-/*---------------------------------------------------------
-   Name: OnTakeDamage
-   Desc: Entity takes damage
----------------------------------------------------------*/
 function ENT:OnTakeDamage( dmginfo )
 
 	if ( dmginfo:GetInflictor():GetClass() == "gmod_wire_explosive"  && !self.Affectother ) then return end
@@ -179,10 +164,7 @@ function ENT:OnTakeDamage( dmginfo )
 
 end
 
-/*---------------------------------------------------------
-   Name: Trigger
-   Desc: Start exploding
----------------------------------------------------------*/
+-- Start exploding
 function ENT:Trigger()
 	if ( self.Delaytime > 0 ) then
 		self.ExplodeTime = CurTime() + self.Delaytime
@@ -193,10 +175,6 @@ function ENT:Trigger()
 	self.CountTime = 0
 end
 
-/*---------------------------------------------------------
-   Name: Think
-   Desc: Thinks :P
----------------------------------------------------------*/
 function ENT:Think()
 	self.BaseClass.Think(self)
 
@@ -238,10 +216,6 @@ function ENT:Think()
 	return true
 end
 
-/*---------------------------------------------------------
-   Name: Explode
-   Desc: is one needed?
----------------------------------------------------------*/
 function ENT:Explode( )
 
 	if ( !self:IsValid() ) then return end
@@ -281,10 +255,7 @@ function ENT:Explode( )
 	self:ShowOutput()
 end
 
-/*---------------------------------------------------------
-   Name: ShowOutput
-   Desc: don't foreget to call this when changes happen
----------------------------------------------------------*/
+-- don't foreget to call this when changes happen
 function ENT:ShowOutput( )
 	local txt = ""
 	if (self.reloading && self.Delayreloadtime > 0) then

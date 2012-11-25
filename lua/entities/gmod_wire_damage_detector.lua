@@ -1,8 +1,11 @@
-AddCSLuaFile( "cl_init.lua" )
-AddCSLuaFile( "shared.lua" )
-include( 'shared.lua' )
-
+AddCSLuaFile()
+DEFINE_BASECLASS( "base_wire_entity" )
+ENT.PrintName		= "Wire Damage Detector"
+ENT.Author          = "Jimlad"
+ENT.RenderGroup		= RENDERGROUP_BOTH
 ENT.WireDebugName = "Damage Detector"
+
+if CLIENT then return end -- No more client
 
 local DEFAULT = {n={},ntypes={},s={},stypes={},size=0,istable=true}
 

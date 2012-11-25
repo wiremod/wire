@@ -1,10 +1,10 @@
+AddCSLuaFile()
+DEFINE_BASECLASS( "base_wire_entity" )
+ENT.PrintName		= "Wire Weight"
+ENT.WireDebugName 	= "Weight"
+ENT.RenderGroup		= RENDERGROUP_BOTH
 
-AddCSLuaFile( "cl_init.lua" )
-AddCSLuaFile( "shared.lua" )
-
-include('shared.lua')
-
-ENT.WireDebugName = "Weight"
+if CLIENT then return end -- No more client
 
 local MODEL = Model("models/props_interiors/pot01a.mdl")
 

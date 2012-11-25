@@ -1,10 +1,10 @@
-
-AddCSLuaFile( "cl_init.lua" )
-AddCSLuaFile( "shared.lua" )
-
-include('shared.lua')
-
+AddCSLuaFile()
+DEFINE_BASECLASS( "base_wire_entity" )
+ENT.PrintName		= "Wire Camera"
+ENT.RenderGroup		= RENDERGROUP_BOTH
 ENT.WireDebugName = "Camera"
+
+if CLIENT then return end -- No more client
 
 function ENT:Initialize()
 	self.phys = self:GetPhysicsObject()
@@ -14,17 +14,6 @@ function ENT:Initialize()
 	self.IdealAng = self:GetAngles()
 	self.IdealVel = self.phys:GetVelocity()
 end
-
---[[
-function ENT:Think()
-	--if IsValid(self:GetParent()) then return end
-	self:SetPos(self.IdealPos)
-	self:SetAngles(self.IdealAng)
-	self.phys:SetVelocity(self.IdealVel)
-	self:SetColor(Color(0,0,0,0))
-	self:NextThink(CurTime()+0.1)
-end
-]]
 
 function ENT:ReceiveInfo(iname, value)
 	self.IdealAng = self:GetAngles()

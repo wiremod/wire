@@ -1,10 +1,10 @@
-
-AddCSLuaFile( "cl_init.lua" )
-AddCSLuaFile( "shared.lua" )
-
-include('shared.lua')
-
+AddCSLuaFile()
+DEFINE_BASECLASS( "base_wire_entity" )
+ENT.PrintName		= "Wire Data Socket"
+ENT.RenderGroup		= RENDERGROUP_BOTH
 ENT.WireDebugName = "Socket"
+
+if CLIENT then return end -- No more client
 
 //Time after loosing one plug to search for another
 local NEW_PLUG_WAIT_TIME = 2
@@ -20,6 +20,18 @@ local SocketModels = {
 	["models/wingf0x/ethernetsocket.mdl"] = "models/wingf0x/ethernetplug.mdl",
 	["models/wingf0x/hdmisocket.mdl"] = "models/wingf0x/hdmiplug.mdl",
 }
+
+function ENT:GetOffset( vec )
+	local offset = vec
+
+	local ang = self:GetAngles()
+	local stackdir = ang:Up()
+	offset = ang:Up() * offset.X + ang:Forward() * -1 * offset.Z + ang:Right() * offset.Y
+
+	return self:GetPos() + stackdir * 2 + offset
+end
+
+if CLIENT then return end -- No more client
 
 function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )

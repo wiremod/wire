@@ -1,11 +1,7 @@
 AddCSLuaFile()
 DEFINE_BASECLASS( "base_wire_entity" )
-
 ENT.PrintName       = "Wire Laser Pointer Receiver"
-ENT.WireDebugName = "Laser Receiver"
-
-ENT.Spawnable       = false
-ENT.AdminSpawnable  = false
+ENT.WireDebugName 	= "Laser Receiver"
 
 if CLIENT then return end
 

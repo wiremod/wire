@@ -1,9 +1,11 @@
-AddCSLuaFile("cl_init.lua")
-AddCSLuaFile("shared.lua")
+AddCSLuaFile()
+DEFINE_BASECLASS( "base_wire_entity" )
+ENT.PrintName		= "Wire Dupeable Hard Drive"
+ENT.Author      	= "Divran"
+ENT.RenderGroup		= RENDERGROUP_BOTH
+ENT.WireDebugName 	= "Dupeable HDD"
 
-include('shared.lua')
-
-ENT.WireDebugName = "Dupeable HDD"
+if CLIENT then return end -- No more client
 
 function ENT:Initialize()
 	self:PhysicsInit(SOLID_VPHYSICS)

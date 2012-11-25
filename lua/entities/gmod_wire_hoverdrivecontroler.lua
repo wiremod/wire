@@ -1,8 +1,17 @@
-AddCSLuaFile( "cl_init.lua" )
-AddCSLuaFile( "shared.lua" )
-include('shared.lua')
+AddCSLuaFile()
+DEFINE_BASECLASS( "base_wire_entity" )
+ENT.PrintName		= "Wire Teleporter"
+ENT.WireDebugName 	= "Hoverdrive Controller"
+ENT.Author			= "Divran"
+ENT.RenderGroup		= RENDERGROUP_BOTH
 
-ENT.WireDebugName = "Hoverdrive Controller"
+if CLIENT then 
+	language.Add( "Cleanup_hoverdrivecontrolers", "Hoverdrive Controllers" )
+	language.Add( "Cleaned_hoverdrivecontrolers", "Cleaned up Hoverdrive Controllers" )
+	language.Add( "SBoxLimit_wire_hoverdrives", "You have hit the Hoverdrive Controllers limit!" )
+
+	return -- No more client
+end
 
 function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )

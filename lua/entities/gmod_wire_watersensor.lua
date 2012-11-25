@@ -1,10 +1,10 @@
+AddCSLuaFile()
+DEFINE_BASECLASS( "base_wire_entity" )
+ENT.PrintName		= "Wire Water Sensor"
+ENT.WireDebugName 	= "Water Sensor"
+ENT.RenderGroup		= RENDERGROUP_BOTH
 
-AddCSLuaFile( "cl_init.lua" )
-AddCSLuaFile( "shared.lua" )
-
-include('shared.lua')
-
-ENT.WireDebugName = "Water_Sensor"
+if CLIENT then return end -- No more client
 
 function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )
@@ -13,19 +13,8 @@ function ENT:Initialize()
 	self.Outputs = Wire_CreateOutputs(self, {"Out"})
 end
 
-function ENT:TriggerInput(iname, value)
-end
-
 function ENT:ShowOutput()
-	local text
-	if(self.Outputs["Out"])then
-	   if(self.Outputs["Out"].Value>0)then
-		   text = "Submerged!"
-	   else
-		   text = "Above Water"
-	   end
-	end
-	self:SetOverlayText( text )
+	self:SetOverlayText( (self:WaterLevel()>0) and "Submerged" or "Above Water" )
 end
 
 function ENT:Think()
@@ -47,11 +36,7 @@ function MakeWireWaterSensor( pl, Pos, Ang, model )
 
 	wire_watersensor:SetAngles( Ang )
 	wire_watersensor:SetPos( Pos )
-	if(!model) then
-		wire_watersensor:SetModel( Model("models/jaanus/wiretool/wiretool_range.mdl") )
-	else
-		wire_watersensor:SetModel( Model(model) )
-	end
+	wire_watersensor:SetModel( Model(model or "models/jaanus/wiretool/wiretool_range.mdl") )
 	wire_watersensor:Spawn()
 
 	wire_watersensor:SetPlayer( pl )
@@ -61,5 +46,4 @@ function MakeWireWaterSensor( pl, Pos, Ang, model )
 
 	return wire_watersensor
 end
-
 duplicator.RegisterEntityClass("gmod_wire_watersensor", MakeWireWaterSensor, "Pos", "Ang", "Model")

@@ -1,9 +1,25 @@
-AddCSLuaFile("cl_init.lua")
-AddCSLuaFile("shared.lua")
+AddCSLuaFile()
+DEFINE_BASECLASS( "base_wire_entity" )
+ENT.PrintName       = "Wire Balloon Deployer"
+ENT.Author          = "LuaPinapple"
+ENT.Contact         = "evilpineapple@cox.net"
+ENT.Purpose         = "It Deploys Balloons."
+ENT.Instructions    = "Use wire."
+ENT.Category		= "Wiremod"
 
-include("shared.lua")
+ENT.Spawnable       = true
+ENT.AdminSpawnable  = true
 
+ENT.RenderGroup		= RENDERGROUP_BOTH
 ENT.WireDebugName = "Balloon Deployer"
+cleanup.Register("wire_deployers")
+
+if CLIENT then
+	language.Add( "Cleanup_wire_deployers", "Balloon Deployers" )
+	language.Add( "Cleaned_wire_deployers", "Cleaned up Balloon Deployers" )
+	language.Add( "SBoxLimit_wire_deployers", "You have hit the Balloon Deployers limit!" )
+	return -- No more client
+end
 
 local material 	= "cable/rope"
 

@@ -1,9 +1,8 @@
-AddCSLuaFile("cl_init.lua")
-AddCSLuaFile("shared.lua")
-
-include('shared.lua')
-
-ENT.WireDebugName = "WireHDD"
+AddCSLuaFile()
+DEFINE_BASECLASS( "base_wire_entity" )
+ENT.PrintName		= "Wire Flash EEPROM"
+ENT.RenderGroup		= RENDERGROUP_BOTH
+ENT.WireDebugName 	= "WireHDD"
 
 function ENT:OnRemove()
 	for k,v in pairs(self.CacheUpdated) do

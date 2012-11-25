@@ -1,10 +1,10 @@
+AddCSLuaFile()
+DEFINE_BASECLASS( "base_wire_entity" )
+ENT.PrintName		= "Wire Winch Controller"
+ENT.WireDebugName 	= "Winch"
+ENT.RenderGroup		= RENDERGROUP_BOTH
 
-AddCSLuaFile( "cl_init.lua" )
-AddCSLuaFile( "shared.lua" )
-
-ENT.WireDebugName = "Winch"
-
-include('shared.lua')
+if CLIENT then return end -- No more client
 
 DIR_BACKWARD 	= -1
 DIR_NONE 		= 0

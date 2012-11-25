@@ -1,10 +1,10 @@
-
-AddCSLuaFile( "cl_init.lua" )
-AddCSLuaFile( "shared.lua" )
-
-include('shared.lua')
-
+AddCSLuaFile()
+DEFINE_BASECLASS( "base_wire_entity" )
+ENT.PrintName		= "Wire Plug"
+ENT.RenderGroup		= RENDERGROUP_BOTH
 ENT.WireDebugName = "DataPlug"
+
+if CLIENT then return end -- No more client
 
 function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )
@@ -20,33 +20,23 @@ function ENT:Initialize()
 end
 
 function ENT:ReadCell( Address )
-        if (self.MySocket) and (self.MySocket:IsValid()) and (self.MySocket.OwnMemory) then
-		if (self.MySocket.OwnMemory.ReadCell) then
-			return self.MySocket.OwnMemory:ReadCell( Address )
-		else
-			return nil
-		end
-	else
-		return nil
+    if IsValid(self.MySocket) and self.MySocket.OwnMemory and self.MySocket.OwnMemory.ReadCell then
+		return self.MySocket.OwnMemory:ReadCell( Address )
 	end
+	return nil
 end
 
 function ENT:WriteCell( Address, value )
-        if (self.MySocket) and (self.MySocket:IsValid()) and (self.MySocket.OwnMemory) then
-		if (self.MySocket.OwnMemory.WriteCell) then
-			return self.MySocket.OwnMemory:WriteCell( Address, value )
-		else
-			return false
-		end
-	else
-		return false
+	if IsValid(self.MySocket) and self.MySocket.OwnMemory and self.MySocket.OwnMemory.WriteCell then
+		return self.MySocket.OwnMemory:WriteCell( Address, value )
 	end
+	return false
 end
 
 function ENT:OnRemove()
-	self.BaseClass.Remove(self)
+	self.BaseClass.OnRemove(self)
 
-	if (self.MySocket) and (self.MySocket:IsValid()) then
+	if IsValid(self.MySocket) then
 		self.MySocket.MyPlug = nil
 	end
 end
@@ -90,5 +80,5 @@ function ENT:OnRestore()
 	self.AB = self.AB or 0
 	self.AA = self.AA or 255
 
-    	self.BaseClass.OnRestore(self)
+    self.BaseClass.OnRestore(self)
 end

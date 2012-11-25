@@ -1,11 +1,12 @@
-AddCSLuaFile("cl_init.lua")
-AddCSLuaFile("shared.lua")
-
-include('shared.lua')
-
+AddCSLuaFile()
+DEFINE_BASECLASS( "base_wire_entity" )
+ENT.PrintName		= "Wire CD Lock"
+ENT.RenderGroup		= RENDERGROUP_BOTH
 ENT.WireDebugName = "CD Lock"
 
-//Time after loosing one disk to search for another
+if CLIENT then return end -- No more client
+
+//Time after losing one disk to search for another
 local NEW_DISK_WAIT_TIME = 2
 local DISK_IN_SOCKET_CONSTRAINT_POWER = 5000
 local DISK_IN_ATTACH_RANGE = 16

@@ -1,14 +1,12 @@
-AddCSLuaFile("cl_init.lua")
-AddCSLuaFile("shared.lua")
-
-include('shared.lua')
-
+AddCSLuaFile()
+DEFINE_BASECLASS( "base_wire_entity" )
+ENT.PrintName		= "Wire CD Disk"
+ENT.RenderGroup		= RENDERGROUP_BOTH
 ENT.WireDebugName = "CD"
 
-local MODEL = Model("models/jaanus/wiretool/wiretool_range.mdl")
+if CLIENT then return end -- No more client
 
 function ENT:Initialize()
-//	self:SetModel(MODEL)
 	self:PhysicsInit(SOLID_VPHYSICS)
 	self:SetMoveType(MOVETYPE_VPHYSICS)
 	self:SetSolid(SOLID_VPHYSICS)

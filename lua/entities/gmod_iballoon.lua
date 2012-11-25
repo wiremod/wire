@@ -1,7 +1,9 @@
-AddCSLuaFile("cl_init.lua")
-AddCSLuaFile("shared.lua")
-include("shared.lua")
---same as normal balloon but invincible
+AddCSLuaFile()
+DEFINE_BASECLASS( "base_gmodentity" )
+ENT.PrintName       = "Indestructible Balloon"
+
+if CLIENT then return end -- No more client
+
 local MODEL = Model("models/dav0r/balloon/balloon.mdl")
 
 function ENT:Initialize()

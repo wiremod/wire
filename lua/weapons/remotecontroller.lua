@@ -1,4 +1,4 @@
-AddCSLuaFile("shared.lua")
+AddCSLuaFile()
 
 SWEP.Author = "Divran" -- Originally by ShaRose, rewritten by Divran at 2011-04-03
 SWEP.Contact = ""
@@ -82,4 +82,3 @@ end
 function SWEP:Deploy()
 	return true
 end
-

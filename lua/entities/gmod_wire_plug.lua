@@ -1,10 +1,41 @@
-
-AddCSLuaFile( "cl_init.lua" )
-AddCSLuaFile( "shared.lua" )
-
-include('shared.lua')
-
+AddCSLuaFile()
+DEFINE_BASECLASS( "base_wire_entity" )
+ENT.PrintName       = "Wire Plug"
+ENT.Author          = "Divran"
+ENT.Purpose         = "Links with a socket"
+ENT.Instructions    = "Move a plug close to a socket to link them, and data will be transferred through the link."
 ENT.WireDebugName = "Plug"
+
+if CLIENT then return end -- No more client
+
+function ENT:GetClosestSocket()
+	local sockets = ents.FindInSphere( self:GetPos(), 100 )
+
+	local ClosestDist
+	local Closest
+
+	for k,v in pairs( sockets ) do
+		if (v:GetClass() == "gmod_wire_socket" and !v:GetNWBool( "Linked", false )) then
+			local pos, _ = v:GetLinkPos()
+			local Dist = self:GetPos():Distance( pos )
+			if (ClosestDist == nil or ClosestDist > Dist) then
+				ClosestDist = Dist
+				Closest = v
+			end
+		end
+	end
+
+	return Closest
+end
+
+if CLIENT then
+	function ENT:DrawEntityOutline()
+		if (GetConVar("wire_plug_drawoutline"):GetBool()) then
+			self.BaseClass.DrawEntityOutline( self )
+		end
+	end
+	return -- No more client
+end
 
 ------------------------------------------------------------
 -- Helper functions & variables

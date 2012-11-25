@@ -1,10 +1,10 @@
-AddCSLuaFile( "cl_init.lua" )
-AddCSLuaFile( "shared.lua" )
-
-include('shared.lua')
-
+AddCSLuaFile()
+DEFINE_BASECLASS( "base_wire_entity" )
+ENT.PrintName		= "Wire Data Port"
+ENT.RenderGroup		= RENDERGROUP_BOTH
 ENT.WireDebugName = "DataPort"
-ENT.OverlayDelay = 0
+
+if CLIENT then return end -- No more client
 
 function ENT:Initialize()
 	self:PhysicsInit(SOLID_VPHYSICS)
