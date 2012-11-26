@@ -1,5 +1,0 @@
-N@Color Fade
-O@NULL
-interval(1000/60)
-Color += 12
-extcolor(abs(Color % 510 - 255), 0, 0, 255)

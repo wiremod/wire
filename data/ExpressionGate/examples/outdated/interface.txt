@@ -1,4 +1,0 @@
-N@Interface
-I@Speed Reset Distance
-# Example use of the gate to prettify a module
-Speed /= 60
