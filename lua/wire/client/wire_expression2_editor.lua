@@ -786,27 +786,31 @@ function Editor:OnTabClosed( sheet ) end -- This function is made to be overwrit
 
 // initialization commands
 
+local wire_expression2_editor_browserwidth = CreateClientConVar( "wire_expression2_editor_browserwidth", "200", true, false )
+
 function Editor:InitComponents()
 	self.Components = {}
 	self.C = {}
+	
+	local bw = wire_expression2_editor_browserwidth:GetInt()
 
 	// addComponent( panel, x, y, w, h )
 	// if x, y, w, h is minus, it will stay relative to right or buttom border
-	self.C['Close']     = self:addComponent(vgui.Create( "DButton", self )               , -22,   4,  18,  18)   // Close button
-	self.C['Inf']       = self:addComponent(vgui.Create( "DButton", self )               , -42,   4,  18,  18)   // Info button
-	self.C['Sav']       = self:addComponent(vgui.Create( "Button", self )                   , 191,  30,  20,  20)   // Save button
-	self.C['NewTab']	= self:addComponent(vgui.Create( "Button", self )					, 212,  30,  20,  20)   // New tab button
-	self.C['CloseTab']	= self:addComponent(vgui.Create( "Button", self )					, 233,  30,  20,  20)   // Close tab button
+	self.C['Close']     = self:addComponent(vgui.Create( "DButton", self )					, -22,   4,  18,  18)   // Close button
+	self.C['Inf']       = self:addComponent(vgui.Create( "DButton", self )					, -42,   4,  18,  18)   // Info button
+	self.C['Sav']       = self:addComponent(vgui.Create( "Button", self )					,bw+41,  30,  20,  20)   // Save button
+	self.C['NewTab']	= self:addComponent(vgui.Create( "Button", self )					,bw+62,  30,  20,  20)   // New tab button
+	self.C['CloseTab']	= self:addComponent(vgui.Create( "Button", self )					,bw+83,  30,  20,  20)   // Close tab button
 	self.C['SaE']       = self:addComponent(vgui.Create( "Button", self )                   , -70,  30, -10,  20)   // Save & Exit button
 	self.C['SavAs']     = self:addComponent(vgui.Create( "Button", self )                   , -123, 30, -72,  20)   // Save As button
-	self.C['Browser']   = self:addComponent(vgui.Create( "wire_expression2_browser", self ) ,  10,  30, 157, -10)   // Expression browser
-	self.C['TabHolder'] = self:addComponent(vgui.Create( "DPropertySheet", self )			, 165, 	52,	-5,  -27)	// TabHolder
+	self.C['Browser']   = self:addComponent(vgui.Create( "wire_expression2_browser", self ) ,  10,  30,bw+7, -10)   // Expression browser
+	self.C['TabHolder'] = self:addComponent(vgui.Create( "DPropertySheet", self )			,bw+15,	52,	 -5,  -27)	// TabHolder
 	self:CreateTab( "generic" )
-	self.C['Btoggle']   = self:addComponent(vgui.Create( "Button", self )                   , 170,  30,  20,  20)   // Toggle Browser being shown
-	self.C['ConBut']    = self:addComponent(vgui.Create( "Button", self )                   , -62,  4,   18,  18)   // Control panel open/close
-	self.C['Control']   = self:addComponent(vgui.Create( "Panel", self )                    ,-350,  52, 342, -32)   // Control Panel
-	self.C['Credit']    = self:addComponent(vgui.Create( "DTextEntry", self )                ,-160,  52, 150, 150)   // Credit box
-	self.C['Val']       = self:addComponent(vgui.Create( "Button", self )                    , 170, -30, -10,  20)   // Validation line
+	self.C['Btoggle']   = self:addComponent(vgui.Create( "Button", self )					,bw+20,  30,  20,  20)   // Toggle Browser being shown
+	self.C['ConBut']    = self:addComponent(vgui.Create( "Button", self )					, -62,  4,   18,  18)   // Control panel open/close
+	self.C['Control']   = self:addComponent(vgui.Create( "Panel", self )					,-350,  52, 342, -32)   // Control Panel
+	self.C['Credit']    = self:addComponent(vgui.Create( "DTextEntry", self )				,-160,  52, 150, 150)   // Credit box
+	self.C['Val']       = self:addComponent(vgui.Create( "Button", self )					,bw+20, -30, -10,  20)   // Validation line
 
 	self.C['TabHolder'].panel.Paint = function() end
 
@@ -944,6 +948,7 @@ function Editor:InitComponents()
 	self.C['Btoggle'].panel.anispeed = 10
 	self.C['Btoggle'].panel.Think = function(button)
 		if(!button.toggle) then return end
+		local bw = wire_expression2_editor_browserwidth:GetInt()
 		if(button.hide and self.C['Btoggle'].x > 10) then
 			self.C['Btoggle'].x 	= self.C['Btoggle'].x-button.anispeed
 			self.C['Sav'].x 		= self.C['Sav'].x-button.anispeed
@@ -952,7 +957,7 @@ function Editor:InitComponents()
 			self.C['TabHolder'].x 	= self.C['TabHolder'].x-button.anispeed
 			self.C['Val'].x 		= self.C['Val'].x-button.anispeed
 			self.C['Browser'].w 	= self.C['Browser'].w-button.anispeed
-		elseif(!button.hide and self.C['Btoggle'].x < 170) then
+		elseif(!button.hide and self.C['Btoggle'].x < bw+20) then
 			self.C['Btoggle'].x 	= self.C['Btoggle'].x+button.anispeed
 			self.C['Sav'].x 		= self.C['Sav'].x+button.anispeed
 			self.C['NewTab'].x 		= self.C['NewTab'].x+button.anispeed
@@ -966,10 +971,10 @@ function Editor:InitComponents()
 		elseif(!self.C['Browser'].panel:IsVisible() and self.C['Browser'].w > 0) then self.C['Browser'].panel:SetVisible(true) end
 		self:InvalidateLayout()
 		if(button.hide) then
-			if(self.C['Btoggle'].x > 10 or self.C['Sav'].x > 30 or self.C['Val'].x < 170 or self.C['Browser'].w > 0) then return end
+			if(self.C['Btoggle'].x > 10 or self.C['Sav'].x > 30 or self.C['Val'].x < bw+20 or self.C['Browser'].w > 0) then return end
 			button.toggle = false
 		else
-			if(self.C['Btoggle'].x < 170 or self.C['Sav'].x < 190 or self.C['Val'].x < 170 or self.C['Browser'].w < 150) then return end
+			if(self.C['Btoggle'].x < bw+20 or self.C['Sav'].x < bw+40 or self.C['Val'].x < bw+20 or self.C['Browser'].w < bw) then return end
 			button.toggle = false
 		end
 
@@ -1431,11 +1436,27 @@ function Editor:InitControlPanel(frame)
 	HighlightOnDoubleClick:SetText( "Highlight copies of selected word" )
 	HighlightOnDoubleClick:SizeToContents()
 	HighlightOnDoubleClick:SetTooltip( "Find all identical words and highlight them after a double-click." )
-
-	local label = vgui.Create("DLabel")
-	dlist:AddItem( label )
-	label:SetText( "Browser sorting style" )
-	label:SizeToContents()
+	
+	-- Browser width
+	local BrowserWidthSlider = vgui.Create( "DNumSlider" )
+	dlist:AddItem(BrowserWidthSlider)
+	BrowserWidthSlider:SetText( "Browser Width" )
+	BrowserWidthSlider:SetMinMax( 150, 325 )
+	BrowserWidthSlider:SetDecimals( 0 )
+	BrowserWidthSlider:SetDark(false)
+	BrowserWidthSlider:SetConVar( "wire_expression2_editor_browserwidth" )
+	local btoggle  = self.C['Btoggle'].panel
+	function BrowserWidthSlider.OnValueChanged( pnl, bw )
+		if bw == wire_expression2_editor_browserwidth:GetInt() then return end
+		btoggle.hide = self.C['Browser'].w > bw
+		btoggle.toggle = true
+		timer.Create("Expression2_ChangeBrowserWidth", 0, 30, function()
+			if btoggle.hide and self.C['Browser'].w < (bw+10) then
+				btoggle.hide = false
+				timer.Remove("Expression2_ChangeBrowserWidth")
+			end
+		end)
+	end
 
 	--------------------------------------------- EXPRESSION 2 TAB
 	local sheet = self:AddControlPanelTab( "Expression 2", "gui/silkicons/computer", "Options for Expression 2." )
