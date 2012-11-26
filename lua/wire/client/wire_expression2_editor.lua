@@ -988,7 +988,7 @@ end
 
 function Editor:AutoSave()
 	local buffer = self:GetCode()
-	if self.savebuffer == buffer then return end
+	if self.savebuffer == buffer or buffer == defaultcode or buffer == "" then return end
 	self.savebuffer = buffer
 	file.Write(self.Location .. "/_autosave_.txt", buffer)
 end
@@ -1825,7 +1825,7 @@ local code2 = [[#[
     http://wiki.wiremod.com/wiki/Expression_2
     The community is available at http://www.wiremod.com
 ]#]]
-local defaultcode = code1 .. code2
+local defaultcode = code1 .. code2 .. "\n"
 
 function Editor:NewScript( incurrent )
 	if (!incurrent and self.NewTabOnOpen:GetBool()) then
