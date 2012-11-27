@@ -1122,19 +1122,18 @@ function Editor:InitControlPanel(frame)
 	function SimpleColors.OnChange( pnl, b )
 		self.SimpleGUI = b
 	end
-
-	local temp = vgui.Create( "Panel" )
-	dlist:AddItem( temp )
-	temp:SetTall( 70 )
-	local DarknessColor = vgui.Create( "DSlider" )
-	dlist:AddItem( DarknessColor )
-	DarknessColor:SetSize(180,30)
-	DarknessColor.TranslateValues = function(panel, x, y )
-		self.colors.tmp_Dark = 255-math.floor(x*255)
+	
+	local DarknessColor = vgui.Create( "DNumSlider" )
+	dlist:AddItem(DarknessColor)
+	DarknessColor:SetText( "Darkness" )
+	DarknessColor:SetMinMax( 0, 255 )
+	DarknessColor:SetDecimals( 0 )
+	DarknessColor:SetDark(false)
+	function DarknessColor.OnValueChanged( pnl, val )
+		self.colors.tmp_Dark = val
 		self:CalculateColor()
-		return x, 0.5
 	end
-	DarknessColor:SetSlideX(0)
+	DarknessColor:SetValue(255)
 
 	local defaultbutton = vgui.Create( "DButton" )
 	defaultbutton:SetText( "Default" )
@@ -1456,6 +1455,15 @@ function Editor:InitControlPanel(frame)
 				timer.Remove("Expression2_ChangeBrowserWidth")
 			end
 		end)
+	end
+	
+	local WorldClicker = vgui.Create( "DCheckBoxLabel" )
+	dlist:AddItem( WorldClicker )
+	WorldClicker:SetConVar( "wire_expression2_editor_worldclicker" )
+	WorldClicker:SetText( "Enable Clicking Outside Editor" )
+	WorldClicker:SizeToContents()
+	function WorldClicker.OnChange(pnl, bVal)
+		self:GetParent():SetWorldClicker(bVal)
 	end
 
 	--------------------------------------------- EXPRESSION 2 TAB
@@ -1978,17 +1986,16 @@ function Editor:SubTitle(sub)
 	else self.subTitle = " - " .. sub end
 end
 
+local wire_expression2_editor_worldclicker = CreateClientConVar( "wire_expression2_editor_worldclicker", "0", true, false )
 function Editor:SetV(bool)
 	if(bool) then
 		self:MakePopup()
-		self:SetVisible(true)
 		self:InvalidateLayout(true)
-		self:SetKeyBoardInputEnabled(true)
 		if self.E2 then self:Validate() end
-	else
-		self:SetVisible(false)
-		self:SetKeyBoardInputEnabled()
 	end
+	self:SetVisible(bool)
+	self:SetKeyBoardInputEnabled(bool)
+	self:GetParent():SetWorldClicker(wire_expression2_editor_worldclicker:GetBool() and bool) -- Enable this on the background so we can update E2's without closing the editor
 	if CanRunConsoleCommand() then
 		RunConsoleCommand("wire_expression2_event", bool and "editor_open" or "editor_close")
 		if not e2_function_data_received and bool then -- Request the E2 functions
