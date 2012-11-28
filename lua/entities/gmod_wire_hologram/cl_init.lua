@@ -148,6 +148,11 @@ function ENT:DoScale()
 		-- Some entities, like ragdolls, cannot be resized with EnableMatrix, so lets average the three components to get a float
 		self:SetModelScale((scale.x+scale.y+scale.z)/3,0)
 	end
+	
+	local propmax = self:OBBMaxs()
+	local propmin = self:OBBMins()
+	self:SetRenderBounds( Vector(scale.x*propmax.x, scale.y*propmax.y, scale.z*propmax.z), Vector(scale.x*propmin.x, scale.y*propmin.y, scale.z*propmin.z) )
+	
 	scale_buffer[eidx] = nil
 end
 
