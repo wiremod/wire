@@ -2,25 +2,20 @@ AddCSLuaFile('cl_init.lua')
 AddCSLuaFile('shared.lua')
 include('shared.lua')
 
-CreateConVar("wire_expression2_unlimited", "0")
-CreateConVar("wire_expression2_quotasoft", "5000")
-CreateConVar("wire_expression2_quotahard", "100000")
-CreateConVar("wire_expression2_quotatick", "25000")
+local wire_expression2_unlimited = CreateConVar("wire_expression2_unlimited", "0")
+local wire_expression2_quotasoft = CreateConVar("wire_expression2_quotasoft", "5000")
+local wire_expression2_quotahard = CreateConVar("wire_expression2_quotahard", "100000")
+local wire_expression2_quotatick = CreateConVar("wire_expression2_quotatick", "25000")
 
 timer.Create("e2quota", 1, 0, function()
-	local unlimited = GetConVar("wire_expression2_unlimited"):GetInt()
-	e2_softquota = GetConVar("wire_expression2_quotasoft"):GetInt()
-	e2_hardquota = GetConVar("wire_expression2_quotahard"):GetInt()
-	e2_tickquota = GetConVar("wire_expression2_quotatick"):GetInt()
-
-	if unlimited == 0 then
-		if e2_softquota < 5000   then e2_softquota = 5000 end
-		if e2_hardquota < 100000 then e2_hardquota = 100000 end
-		if e2_tickquota < 25000  then e2_tickquota = 25000 end
-	else
+	if wire_expression2_unlimited:GetBool() then
 		e2_softquota = 1000000
 		e2_hardquota = 1000000
 		e2_tickquota = 100000
+	else
+		e2_softquota = wire_expression2_quotasoft:GetInt()
+		e2_hardquota = wire_expression2_quotahard:GetInt()
+		e2_tickquota = wire_expression2_quotatick:GetInt()
 	end
 end)
 
