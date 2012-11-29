@@ -83,7 +83,7 @@ e2function void print(...)
 			text = text .. (SpecialCase( v ) or tostring(v)) .. "\t"
 		end
 		if (text and #text>0) then
-			self.player:ChatPrint(text)
+			self.player:ChatPrint(string.Left(text,249)) -- Should we switch to net messages? We probably don't want to print more than 249 chars at once anyway
 		end
 	end
 end
