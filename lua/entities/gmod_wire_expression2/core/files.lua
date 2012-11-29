@@ -4,7 +4,9 @@
 ]]--
 
 local cv_transfer_delay    = CreateConVar( "wire_expression2_file_delay", "5", { FCVAR_ARCHIVE } )
-local cv_max_transfer_size = CreateConVar( "wire_expression2_file_max_size", "100", { FCVAR_REPLICATED, FCVAR_ARCHIVE } ) //in kb
+local cv_max_transfer_size = CreateConVar( "wire_expression2_file_max_size", "300", { FCVAR_REPLICATED, FCVAR_ARCHIVE } ) //in kb
+
+local download_chunk_size = 20000 //Our overhead is pretty small so lets send it in moderate sized pieces, no need to max out the buffer
 
 E2Lib.RegisterExtension( "file", true )
 
@@ -48,9 +50,10 @@ local function file_canUpload( ply )
 	return true
 end
 
+util.AddNetworkString("wire_expression2_request_file_sp")
+util.AddNetworkString("wire_expression2_request_file")
 local function file_Upload( ply, entity, filename )
 	if !file_canUpload( ply ) or !IsValid( entity ) or !IsValid( ply ) or !ply:IsPlayer() or string.Right( filename, 4 ) != ".txt" then return false end
-	if string.len( filename ) > 250 then return false end
 
 	uploads[ply] = {
 		name = filename,
@@ -60,9 +63,9 @@ local function file_Upload( ply, entity, filename )
 		ent = entity,
 		sp_wait = ply:IsListenServerHost()
 	}
-	umsg.Start(uploads[ply].sp_wait and "wire_expression2_request_file_sp" or "wire_expression2_request_file", ply )
-		umsg.String( filename )
-	umsg.End()
+	net.Start(uploads[ply].sp_wait and "wire_expression2_request_file_sp" or "wire_expression2_request_file")
+		net.WriteString( filename )
+	net.Send(ply)
 
 	delays[ply].upload = CurTime()
 end
@@ -103,9 +106,9 @@ local function file_canList( ply )
 	return true
 end
 
+util.AddNetworkString("wire_expression2_request_list")
 local function file_List( ply, entity, dir )
 	if !file_canList( ply ) or !IsValid( ply ) or !ply:IsPlayer() then return false end
-	if string.len( dir ) > 250 then return false end
 
 	lists[ply] = {
 		dir = dir,
@@ -114,10 +117,9 @@ local function file_List( ply, entity, dir )
 		uploaded = false,
 		ent = entity
 	}
-
-	umsg.Start( "wire_expression2_request_list", ply )
-		umsg.String( dir )
-	umsg.End()
+	net.Start("wire_expression2_request_list")
+		net.WriteString( dir or "" )
+	net.Send(ply)
 
 	delays[ply].list = CurTime()
 end
@@ -279,48 +281,40 @@ registerCallback( "construct", function( self )
 end )
 
 /* Downloading */
+util.AddNetworkString("wire_expression2_file_download_begin")
+util.AddNetworkString("wire_expression2_file_download_chunk")
+util.AddNetworkString("wire_expresison2_file_download_finish")
+timer.Create("wire_expression2_flush_file_buffer", 0.2, 0, function()
+	for ply,fdata in pairs( downloads ) do
+		if IsValid( ply ) and ply:IsPlayer() and fdata.downloading then
+			if !fdata.started then
+				net.Start("wire_expression2_file_download_begin")
+					net.WriteString(fdata.name or "")
+				net.Send(ply)
 
-timer.Create(
-	"wire_expression2_flush_file_buffer",
-	1/60,
-	0,
-	function()
-		for ply,fdata in pairs( downloads ) do
-			if IsValid( ply ) and ply:IsPlayer() and fdata.downloading then
-				local chunks = 5
+				fdata.started = true
+			end
 
-				if !fdata.started then
-					umsg.Start( "wire_expression2_file_download_begin", ply )
-						umsg.String( fdata.name or "" )
-					umsg.End()
+			local strlen = math.Clamp( string.len( fdata.data ), 0, download_chunk_size )
+			if strlen < 1 then continue end
 
-					fdata.started = true
-				end
+			net.Start("wire_expression2_file_download_chunk")
+				net.WriteString(string.sub( fdata.data, 1, strlen ))
+			net.Send(ply)
 
-				for chunk = 1, chunks do
-					local strlen = math.Clamp( string.len( fdata.data ), 0, 100 )
+			fdata.data = string.sub( fdata.data, strlen + 1, string.len( fdata.data ) )
 
-					if strlen < 1 then break end
+			if string.len( fdata.data ) < 1 then
+				net.Start("wire_expresison2_file_download_finish")
+					net.WriteBit(fdata.append or false)
+				net.Send(ply)
 
-					umsg.Start( "wire_expression2_file_download_chunk", ply )
-						umsg.String( string.sub( fdata.data, 1, strlen ) )
-					umsg.End()
-
-					fdata.data = string.sub( fdata.data, strlen + 1, string.len( fdata.data ) )
-				end
-
-				if string.len( fdata.data ) < 1 then
-					umsg.Start( "wire_expresison2_file_download_finish", ply )
-						umsg.Bool( fdata.append or false )
-					umsg.End()
-
-					fdata.downloaded = true
-					fdata.downloading = false
-				end
+				fdata.downloaded = true
+				fdata.downloading = false
 			end
 		end
 	end
-)
+end)
 
 /* Uploading */
 
@@ -338,18 +332,17 @@ local function file_execute( ent, filename, status )
 	run_on.file.status = FILE_UNKNOWN
 end
 
-concommand.Add( "wire_expression2_file_begin", function( ply, com, args )
+util.AddNetworkString("wire_expression2_file_begin")
+net.Receive("wire_expression2_file_begin", function(netlen, ply)
 	local pfile = uploads[ply]
 	if !pfile then return end
+	
+	local len = net.ReadUInt(32)
 
-	if args[1] == "0" then //file not found
+	if len == 0 then //file not found
 		file_execute( pfile.ent, pfile.name, FILE_404 )
-
 		return
 	end
-
-	local len = tonumber( args[2] ) or 0
-
 	if (len / 1024) > cv_max_transfer_size:GetInt() then return end
 
 	pfile.buffer = ""
@@ -366,19 +359,18 @@ concommand.Add( "wire_expression2_file_begin", function( ply, com, args )
 	end)
 end )
 
-concommand.Add( "wire_expression2_file_chunk", function( ply, com, args )
+util.AddNetworkString("wire_expression2_file_chunk")
+net.Receive("wire_expression2_file_chunk", function(netlen, ply)
 	local pfile = uploads[ply]
 	if !pfile then return end
 	if !pfile.uploading then
 		file_execute( pfile.ent, pfile.name, FILE_TRANSFER_ERROR )
 	end
 
-	pfile.buffer = pfile.buffer .. args[1]
+	pfile.buffer = pfile.buffer .. net.ReadString()
 
 	local timername = "wire_expression2_file_check_timeout_" .. ply:EntIndex()
-
 	if timer.Exists( timername ) then
-		timer.Remove( timername )
 		timer.Create( timername, 5, 1, function()
 			local pfile = uploads[ply]
 			if !pfile then return end
@@ -389,7 +381,8 @@ concommand.Add( "wire_expression2_file_chunk", function( ply, com, args )
 	end
 end )
 
-concommand.Add( "wire_expression2_file_finish", function( ply, com, args )
+util.AddNetworkString("wire_expression2_file_finish")
+net.Receive("wire_expression2_file_finish", function(netlen, ply)
 	local timername = "wire_expression2_file_check_timeout_" .. ply:EntIndex()
 
 	if timer.Exists( timername ) then
@@ -405,12 +398,9 @@ concommand.Add( "wire_expression2_file_finish", function( ply, com, args )
 
 	if string.len( pfile.data ) != pfile.len then //transfer error
 		pfile.data = ""
-
 		file_execute( pfile.ent, pfile.name, FILE_TRANSFER_ERROR )
-
 		return
 	end
-
 	pfile.uploaded = true
 
 	file_execute( pfile.ent, pfile.name, FILE_OK )
@@ -442,30 +432,16 @@ concommand.Add("wire_expression2_file_singleplayer", function(ply, cmd, args)
 end)
 
 /* Listing */
-
-concommand.Add( "wire_expression2_file_list", function( ply, com, args )
+util.AddNetworkString("wire_expression2_file_list")
+net.Receive("wire_expression2_file_list", function(netlen, ply)
 	local plist = lists[ply]
 	if !plist then return end
 
 	local timername = "wire_expression2_filelist_check_timeout_" .. ply:EntIndex()
+	if timer.Exists( timername ) then timer.Remove( timername ) end
 
-	if timer.Exists( timername ) then
-		timer.Remove( timername )
-	end
-
-	if args[1] == "1" then
-		timer.Create( timername, 5, 1, function()
-			local plist = lists[ply]
-			if !plist then return end
-			plist.uploading = false
-			plist.uploaded = false
-		end)
-
-		local data = E2Lib.decode( args[2] )
-
-		table.insert( plist.data, data )
-
-		return
+	for i=1, net.ReadUInt(16) do
+		table.insert(plist.data, E2Lib.decode(net.ReadString()))
 	end
 
 	plist.uploaded = true

@@ -8,7 +8,7 @@ local cv_max_transfer_size = CreateConVar( "wire_expression2_file_max_size", "10
 local upload_buffer = {}
 local download_buffer = {}
 
-local upload_chunk_size = 229
+local upload_chunk_size = 20000 //Our overhead is pretty small so lets send it in moderate sized pieces, no need to max out the buffer
 
 local allowed_directories = { //prefix with >(allowed directory)/file.txt for files outside of e2files/ directory
 	["e1shared"] = "ExpressionGate/e2shared",
@@ -54,28 +54,27 @@ local function upload_callback()
 
 	local chunk_size = math.Clamp( string.len( upload_buffer.data ), 0, upload_chunk_size )
 
-	RunConsoleCommand( "wire_expression2_file_chunk", string.Left( upload_buffer.data, chunk_size ) )
+	net.Start("wire_expression2_file_chunk")
+		net.WriteString(string.Left( upload_buffer.data, chunk_size ))
+	net.SendToServer()
 	upload_buffer.data = string.sub( upload_buffer.data, chunk_size + 1, string.len( upload_buffer.data ) )
 
 	if upload_buffer.chunk >= upload_buffer.chunks then
-		RunConsoleCommand( "wire_expression2_file_finish" )
-
+		net.Start("wire_expression2_file_finish") net.SendToServer()
 		timer.Remove( "wire_expression2_file_upload" )
-
 		return
 	end
 
 	upload_buffer.chunk = upload_buffer.chunk + 1
 end
 
-usermessage.Hook("wire_expression2_request_file_sp", function(um)
-	local fpath,fname = process_filepath( um:ReadString() )
-	local fullpath = fpath .. fname
-	RunConsoleCommand("wire_expression2_file_singleplayer", fullpath)
+net.Receive("wire_expression2_request_file_sp", function(netlen)
+	local fpath,fname = process_filepath(net.ReadString())
+	RunConsoleCommand("wire_expression2_file_singleplayer", fpath .. fname)
 end)
 
-usermessage.Hook( "wire_expression2_request_file", function( um )
-	local fpath,fname = process_filepath( um:ReadString() )
+net.Receive("wire_expression2_request_file", function(netlen)
+	local fpath,fname = process_filepath(net.ReadString())
 	local fullpath = fpath .. fname
 
 	if file.Exists( fullpath,"DATA" ) and file.Size( fullpath, "DATA" ) <= (cv_max_transfer_size:GetInt() * 1024) then
@@ -89,54 +88,61 @@ usermessage.Hook( "wire_expression2_request_file", function( um )
 			data = encoded
 		}
 
-		RunConsoleCommand( "wire_expression2_file_begin", "1", string.len( filedata ) )
+		net.Start("wire_expression2_file_begin")
+			net.WriteUInt(string.len(filedata), 32)
+		net.SendToServer()
 
 		timer.Create( "wire_expression2_file_upload", 1/60, upload_buffer.chunks, upload_callback )
 	else
-		RunConsoleCommand( "wire_expression2_file_begin", "0" )
+		net.Start("wire_expression2_file_begin")
+			net.WriteUInt(0, 32) // 404 file not found, send len of 0
+		net.SendToServer()
 	end
 end )
 
 /* --- File Write --- */
-
-usermessage.Hook( "wire_expression2_file_download_begin", function( um )
-	local fpath,fname = process_filepath( um:ReadString() )
-	local fullpath = fpath .. fname
-
+net.Receive("wire_expression2_file_download_begin", function( netlen )
+	local fpath,fname = process_filepath( net.ReadString() )
+	if string.GetExtensionFromFilename( string.lower(fname) ) != "txt" then return end
 	download_buffer = {
-		name = fullpath,
+		name = fpath .. fname,
 		data = ""
 	}
 end )
 
-usermessage.Hook( "wire_expression2_file_download_chunk", function( um )
-	download_buffer.data = (download_buffer.data or "") .. um:ReadString()
+net.Receive("wire_expression2_file_download_chunk", function( netlen )
+	if not download_buffer.name then return end
+	download_buffer.data = (download_buffer.data or "") .. net.ReadString()
 end )
 
-usermessage.Hook( "wire_expresison2_file_download_finish", function( um )
-	if !download_buffer.name or string.Right( download_buffer.name, 4 ) != ".txt" then return end
+net.Receive("wire_expresison2_file_download_finish", function( netlen )
+	if not download_buffer.name then return end
 
 	local ofile = ""
 
-	if um:ReadBool() and file.Exists( download_buffer.name,"DATA" ) then
+	-- append mode
+	if net.ReadBit ~= 0 and file.Exists( download_buffer.name,"DATA" ) then
 		ofile = file.Read( download_buffer.name,"DATA" )
 	end
 
-	file.Write( (download_buffer.name or "e2files/noname.txt"), ofile .. download_buffer.data )
+	file.Write( download_buffer.name, ofile .. download_buffer.data )
 end )
 
 /* --- File List --- */
 
-usermessage.Hook( "wire_expression2_request_list", function( um )
-	local dir = process_filepath( um:ReadString() or "" )
+net.Receive( "wire_expression2_request_list", function( netlen )
+	local dir = process_filepath(net.ReadString())
 
-	for _,fop in pairs( file.Find( dir .. "*","DATA" )) do
-		local ext = string.GetExtensionFromFilename( fop )
-
-		if (!ext or ext == "txt") and string.len( fop ) < 250 then
-			RunConsoleCommand( "wire_expression2_file_list", "1", E2Lib.encode( fop .. ((!ext) and "/" or "") ) )
+	net.Start("wire_expression2_file_list")
+		local files, folders = file.Find( dir .. "*","DATA" )
+		net.WriteUInt(#files + #folders, 16)
+		for _,fop in pairs(files) do
+			if string.GetExtensionFromFilename( fop ) == "txt" then
+				net.WriteString(E2Lib.encode( fop ))
+			end
 		end
-	end
-
-	RunConsoleCommand( "wire_expression2_file_list", "0" )
+		for _,fop in pairs(folders) do
+			net.WriteString(E2Lib.encode( fop.."/" ))
+		end
+	net.SendToServer()
 end )
