@@ -1,5 +1,6 @@
 
 -- Load wiremod tools in /lua/wire/stools/
+-- Note: If this tool is ever removed, be sure to put this in another stool!
 local OLD_TOOL = TOOL
 TOOL = nil
 include( "wire/tool_loader.lua" )
@@ -7,7 +8,7 @@ TOOL = OLD_TOOL
 
 TOOL.Mode			= "wire"
 TOOL.Category		= "Wire - Tools"
-TOOL.Name			= "Wire"
+TOOL.Name			= "Wire (Legacy)"
 TOOL.Tab			= "Wire"
 
 if CLIENT then
