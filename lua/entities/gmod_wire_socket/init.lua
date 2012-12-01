@@ -225,8 +225,8 @@ function ENT:BuildDupeInfo()
 end
 
 local function FindConstraint( ent, plug )
-	timer.Simple(0.5,function( ent, plug )
-		if (ent and ent:IsValid() and plug and plug:IsValid()) then
+	timer.Simple(0.5,function()
+		if IsValid(ent) and IsValid(plug) then
 			local welds = constraint.FindConstraints( ent, "Weld" )
 			for k,v in pairs( welds ) do
 				if (v.Ent2 == plug) then
@@ -242,7 +242,7 @@ local function FindConstraint( ent, plug )
 				end
 			end
 		end
-	end, ent, plug )
+	end)
 end
 
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID, GetConstByID)
@@ -281,7 +281,7 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID, GetConstByID)
 		ent:Setup() -- default values
 
 		-- Attempt to find connected plug
-		timer.Simple(0.5,function(ent)
+		timer.Simple(0.5,function()
 			local welds = constraint.FindConstraints( ent, "Weld" )
 			for k,v in pairs( welds ) do
 				if (v.Ent2:GetClass() == "gmod_wire_plug") then
@@ -292,7 +292,7 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID, GetConstByID)
 					ent:SetNWBool( "Linked", true )
 				end
 			end
-		end,ent)
+		end)
 	end -- /OLD DUPES COMPATIBILITY
 
 	ent:SetPlayer( ply )
