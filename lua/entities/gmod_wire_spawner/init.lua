@@ -1,4 +1,3 @@
-
 AddCSLuaFile( "cl_init.lua" )
 AddCSLuaFile( "shared.lua" )
 
@@ -96,9 +95,12 @@ function ENT:DoSpawn( pl, down )
 		undo.AddEntity( nocollide )
 		undo.SetPlayer( pl )
 	undo.Finish()
-
+	
+	-- Check if the player is NULL (ab0mbs)
+	if IsValid(pl) then
 	pl:AddCleanup( "props", prop )
 	pl:AddCleanup( "props", nocollide )
+	end
 
 	table.insert( self.UndoList, 1, prop )
 	GlobalUndoList[prop] = self
