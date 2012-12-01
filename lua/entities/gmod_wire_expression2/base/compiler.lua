@@ -406,6 +406,29 @@ function Compiler:InstrFUN(args)
 	return exprs, rt[2]
 end
 
+function Compiler:InstrSFUN(args)
+	local exprs = {false}
+
+	local fexp, ftp = self:Evaluate(args, 1)
+	
+	if ftp ~= "s" then
+		self:Error("User function is not string-type", args)
+	end
+	
+	local tps = {}
+	for i=1,#args[4] do
+		local ex, tp = self:Evaluate(args[4], i - 2)
+		tps[#tps + 1] = tp
+		exprs[#exprs + 1] = ex
+	end
+	
+	local rtsfun = self:GetOperator(args, "sfun", {})[1]
+	
+	local typeids_str = table.concat(tps,"")
+	
+	return {rtsfun, fexp, exprs, tps, typeids_str, args[5]}, args[5]
+end
+
 function Compiler:InstrMTO(args)
 	local exprs = {false}
 

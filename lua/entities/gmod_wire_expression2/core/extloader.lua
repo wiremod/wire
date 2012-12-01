@@ -132,6 +132,7 @@ e2_include("custom.lua")
 e2_include("datasignal.lua")
 e2_include("egpfunctions.lua")
 e2_include("functions.lua")
+e2_include("strfunc.lua")
 
 do
 	local list = file.Find("entities/gmod_wire_expression2/core/custom/*.lua", "LUA")

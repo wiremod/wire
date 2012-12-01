@@ -1153,6 +1153,48 @@ function Parser:Expr15()
 			end
 		elseif self:AcceptRoamingToken("lsb") then
 			self:Error("Indexing operator ([]) must not be preceded by whitespace")
+		elseif self:AcceptTailingToken("lpa") then
+			local trace = self:GetTokenTrace()
+
+			local token = self:GetToken()
+			local exprs
+			
+			if self:AcceptRoamingToken("rpa") then
+				exprs = {}
+			else
+				exprs = { self:Expr1() }
+
+				while self:AcceptRoamingToken("com") do
+					exprs[#exprs + 1] = self:Expr1()
+				end
+
+				if !self:AcceptRoamingToken("rpa") then
+					self:Error("Right parenthesis ()) missing, to close function argument list", token)
+				end
+			end
+			
+			if self:AcceptRoamingToken("lsb") then
+				if !self:AcceptRoamingToken("fun") then
+					self:Error("Return type operator ([]) requires a lower case type [type]")
+				end
+				
+				local longtp = self:GetTokenData()
+				
+				if !self:AcceptRoamingToken("rsb") then
+					self:Error("Right square bracket (]) missing, to close return type operator [type]")
+				end
+				
+				if longtp == "number" then longtp = "normal" end
+				if wire_expression_types[string.upper(longtp)] == nil then
+					self:Error("Return type operator ([]) does not support the type [" .. longtp .. "]")
+				end
+				
+				local stype = wire_expression_types[string.upper(longtp)][1]
+				
+				expr = self:Instruction(trace, "sfun", expr, exprs, stype)
+			else
+				expr = self:Instruction(trace, "sfun", expr, exprs, "")
+			end
 		else
 			break
 		end

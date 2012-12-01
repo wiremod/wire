@@ -166,7 +166,7 @@ __e2setcost(10)
 --- Encodes <data> into a string, using [[GLON]].
 e2function string glonEncode(array data)
 	if not glon then
-		error( "Glon is not installed on this server. Please use von instead.", 3 )
+		error( "Glon is not installed on this server. Please use von instead.", 0 )
 	end
 
 	local ok, ret = pcall(glon.encode, data)
@@ -186,7 +186,7 @@ end
 --- Decodes <data> into an array, using [[GLON]].
 e2function array glonDecode(string data)
 	if not glon then
-		error( "Glon is not installed on this server. Please use von instead.", 3 )
+		error( "Glon is not installed on this server. Please use von instead.", 0 )
 	end
 
 	if not data then return {} end
@@ -208,7 +208,7 @@ end
 
 e2function string glonError()
 	if not glon then
-		error( "Glon is not installed on this server. Please use von instead.", 3 )
+		error( "Glon is not installed on this server. Please use von instead.", 0 )
 	end
 
 	return last_glon_error
@@ -243,7 +243,7 @@ __e2setcost(25)
 -- decodes a glon string and returns an table
 e2function table glonDecodeTable(string data)
 	if not glon then
-		error( "Glon is not installed on this server. Please use von instead.", 3 )
+		error( "Glon is not installed on this server. Please use von instead.", 0 )
 	end
 
 	if not data then return table.Copy(DEFAULT) end
