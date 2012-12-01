@@ -1,4 +1,3 @@
-
 AddCSLuaFile( "cl_init.lua" )
 AddCSLuaFile( "shared.lua" )
 
@@ -110,8 +109,9 @@ function ENT:DoSpawn( pl, down )
 	self:ShowOutput()
 
 	if (self.undo_delay == 0) then return end
-
-	timer.Simple( self.undo_delay, function( ent ) if ent:IsValid() then ent:Remove() end end, prop )
+	
+	-- Fixed timer not removing props after specified undo delay (ab0mbs)
+	timer.Simple( self.undo_delay, function() if prop:IsValid() then prop:Remove() end end)
 
 end
 
