@@ -4,6 +4,8 @@ ENT.PrintName		= "Wire Flash EEPROM"
 ENT.RenderGroup		= RENDERGROUP_BOTH
 ENT.WireDebugName 	= "WireHDD"
 
+if CLIENT then return end -- No more client
+
 function ENT:OnRemove()
 	for k,v in pairs(self.CacheUpdated) do
 		file.Write(self:GetStructName(k),self:MakeFloatTable(self.Cache[k]))
@@ -259,10 +261,10 @@ function ENT:WriteCell(Address, value)
 end
 
 function ENT:Think()
-	local cachedBlockIndex = next(self.CacheUpdated)
+	local cachedBlockIndex, cachedBlockValue = next(self.CacheUpdated)
 	if cachedBlockIndex then
 		self.CacheUpdated[cachedBlockIndex] = nil
-		file.Write(self:GetStructName(cachedBlockIndex),self:MakeFloatTable(self.Cache[cachedBlockIndex]))
+		file.Write(self:GetStructName(cachedBlockIndex),self:MakeFloatTable(cachedBlockValue))
 		self:UpdateCap()
 	end
 	self.Entity:NextThink(CurTime()+0.25)
