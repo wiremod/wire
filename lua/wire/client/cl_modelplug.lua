@@ -2,8 +2,6 @@
 
 CreateConVar("cl_showmodeltextbox", "0")
 
-ModelPlugInfo = true
-
 --[[
 -- Loads and converts model lists from the old WireModelPacks format
 do
@@ -223,6 +221,8 @@ local Buttons = {
 	"models/maxofs2d/button_02.mdl",
 	"models/maxofs2d/button_03.mdl",
 	"models/maxofs2d/button_04.mdl",
+	"models/maxofs2d/button_05.mdl",
+	"models/maxofs2d/button_06.mdl",
 	"models/bull/buttons/toggle_switch.mdl",
 	"models/bull/buttons/rocker_switch.mdl",
 	"models/bull/buttons/key_switch.mdl",
