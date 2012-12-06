@@ -5,7 +5,6 @@ local function LoadTools()
 		-- load server side code for tools
 		-- These are being phased out
 		include( "sv_wirestools.lua" )
-		include( "sv_physics.lua" )
 	end
 
 	-- load tools

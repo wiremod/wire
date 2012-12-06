@@ -13,6 +13,7 @@ function ENT:Initialize()
 
 	self.Inputs = Wire_CreateInputs( self, { "Trigger" } )
 	self.Trigger = 0
+	self.damage = 0
 end
 
 function ENT:TriggerInput(iname, value)
@@ -22,7 +23,7 @@ function ENT:TriggerInput(iname, value)
 end
 
 function ENT:Setup(damage)
-	self.Damage = damage
+	self.damage = damage
 	self:ShowOutput( 0 )
 end
 
@@ -38,12 +39,12 @@ end
 
 function ENT:DoDamage()
 	if self.target and self.target:IsValid() and self.target:Health() > 0 then
-		if self.target:Health() <= self.Damage then
+		if self.target:Health() <= self.damage then
 			self.target:SetHealth(0)
 			self.target:Fire( "break", "", 0 )
 			self.target:Fire( "kill", "", 0.2 )
 		else
-			self.target:SetHealth( self.target:Health() - self.Damage )
+			self.target:SetHealth( self.target:Health() - self.damage )
 		end
 	end
 
@@ -103,7 +104,6 @@ function MakeWireDetonator(pl, Pos, Ang, model, damage, nocollide, frozen)
 
 	local ttable = {
 		pl	= pl,
-		damage = damage,
 		nocollide = nocollide
 	}
 	table.Merge(wire_detonator, ttable)

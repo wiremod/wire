@@ -1,5 +1,5 @@
 WireToolSetup.setCategory( "Physics" )
-WireToolSetup.open( "trail", "Trail", "gmod_wire_trail", WireToolMakeTrail, "Trails" )
+WireToolSetup.open( "trail", "Trail", "gmod_wire_trail", nil, "Trails" )
 
 if CLIENT then
 	language.Add( "tool.wire_trail.name", "Trail Tool (Wire)" )
@@ -8,14 +8,21 @@ if CLIENT then
 	language.Add( "WireTrailTool_trail", "Trail:" )
 	language.Add( "WireTrailTool_mat", "Material:" )
 end
-WireToolSetup.BaseLang("Trails")
+WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20, TOOL.Mode.."s" , "You've hit the Wire "..TOOL.PluralName.." limit!" )
 
 TOOL.ClientConVar = {
 	material = ""
 }
-
 TOOL.Model = "models/jaanus/wiretool/wiretool_range.mdl"
+
+if SERVER then
+	function TOOL:GetConVars() return self:GetClientNumber("material") end
+
+	function TOOL:MakeEnt( ply, model, Ang, trace )
+		return MakeWireTrail( ply, trace.HitPos, Ang, model, self:GetConVars() )
+	end
+end
 
 function TOOL.BuildCPanel(panel)
 	WireToolHelpers.MakePresetControl(panel, "wire_trail")

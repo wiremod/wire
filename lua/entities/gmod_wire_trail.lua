@@ -24,15 +24,13 @@ end
 
 function ENT:Setup(Material)
 	self.Material = Material
+	self.mat = Material
 end
 
 function ENT:SetTrails( Player, Entity, Data )
 
 	if ( Entity.SToolTrail ) then
-
 		Entity.SToolTrail:Remove()
-		Entity.SToolTrail = nil
-
 	end
 
 	if ( Data.StartSize == 0 ) then
@@ -96,7 +94,6 @@ function MakeWireTrail( pl, Pos, Ang, model, mat)
 
 	wire_trail:SetPlayer( pl )
 	wire_trail.pl = pl
-	wire_trail.mat = mat
 
 	pl:AddCount( "wire_trails", wire_trail )
 

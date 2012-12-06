@@ -1,12 +1,12 @@
 WireToolSetup.setCategory( "Physics" )
-WireToolSetup.open( "forcer", "Forcer", "gmod_wire_forcer", WireToolMakeForcer, "Forcers" )
+WireToolSetup.open( "forcer", "Forcer", "gmod_wire_forcer", nil, "Forcers" )
 
 if CLIENT then
 	language.Add( "tool.wire_forcer.name", "Forcer Tool (Wire)" )
 	language.Add( "tool.wire_forcer.desc", "Spawns a forcer prop for use with the wire system." )
 	language.Add( "tool.wire_forcer.0", "Primary: Create/Update Forcer" )
 end
-WireToolSetup.BaseLang("Forcers")
+WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20, TOOL.Mode.."s" , "You've hit the Wire "..TOOL.PluralName.." limit!" )
 
 TOOL.ClientConVar = {
@@ -16,6 +16,24 @@ TOOL.ClientConVar = {
 	reaction	= 0,
 	model		= "models/jaanus/wiretool/wiretool_siren.mdl"
 }
+
+if SERVER then
+	function TOOL:GetConVars() 
+		return self:GetClientNumber( "multiplier" ), self:GetClientNumber( "length" ), self:GetClientNumber( "beam" )==1, self:GetClientNumber( "reaction" )==1
+	end
+
+	function TOOL:MakeEnt( ply, model, Ang, trace )
+		return MakeWireForcer( ply, trace.HitPos, Ang, model, self:GetConVars() )
+	end
+end
+
+function TOOL:GetGhostMin( min, trace )
+	if self:GetModel() == "models/jaanus/wiretool/wiretool_grabber_forcer.mdl" then
+		return min.z + 20
+	else
+		return min.z
+	end
+end
 
 function TOOL.BuildCPanel(panel)
 	WireToolHelpers.MakePresetControl(panel, "wire_forcer")

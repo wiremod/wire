@@ -1,5 +1,5 @@
 WireToolSetup.setCategory( "Physics" )
-WireToolSetup.open( "thruster", "Thruster", "gmod_wire_thruster", WireToolMakeThruster, "Thrusters" )
+WireToolSetup.open( "thruster", "Thruster", "gmod_wire_thruster", nil, "Thrusters" )
 
 if CLIENT then
 	language.Add( "tool.wire_thruster.name", "Thruster Tool (Wire)" )
@@ -15,7 +15,7 @@ if CLIENT then
 	language.Add( "WireThrusterTool_owater", "Works out of water" )
 	language.Add( "WireThrusterTool_uwater", "Works under water" )
 end
-WireToolSetup.BaseLang("Thrusters")
+WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 10, TOOL.Mode.."s" , "You've hit the Wire "..TOOL.PluralName.." limit!" )
 
 TOOL.ClientConVar = {
@@ -31,6 +31,18 @@ TOOL.ClientConVar = {
 	owater		= 1,
 	uwater		= 1,
 }
+
+if SERVER then
+	function TOOL:GetConVars() 
+		return self:GetClientNumber( "force" ), self:GetClientNumber( "force_min" ), self:GetClientNumber( "force_max" ), self:GetClientInfo( "oweffect" ), 
+			self:GetClientInfo( "uweffect" ), self:GetClientNumber( "owater" ) ~= 0, self:GetClientNumber( "uwater" ) ~= 0, self:GetClientNumber( "bidir" ) ~= 0, 
+			self:GetClientInfo( "soundname" ), self:GetClientNumber( "collision" ) == 0
+	end
+
+	function TOOL:MakeEnt( ply, model, Ang, trace )
+		return MakeWireThruster( ply, trace.HitPos, Ang, model, self:GetConVars() )
+	end
+end
 
 function TOOL.BuildCPanel(panel)
 	WireToolHelpers.MakePresetControl(panel, "wire_thruster")
