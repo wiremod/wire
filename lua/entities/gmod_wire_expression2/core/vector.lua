@@ -658,6 +658,13 @@ registerFunction("toAngle", "v:", "a", function(self, args)
 	return { angle.p, angle.y, angle.r }
 end)
 
+registerFunction("toAngle", "v:v", "a", function(self, args)
+	local op1, op2 = args[2], args[3]
+	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)	
+	local angle = Vector(rv1[1], rv1[2], rv1[3]):AngleEx(Vector(rv2[1], rv2[2], rv2[3]))
+	return { angle.p, angle.y, angle.r }
+end)
+
 /******************************************************************************/
 
 local contents = {}
