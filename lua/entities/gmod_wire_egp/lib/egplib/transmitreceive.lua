@@ -15,29 +15,15 @@ if (SERVER) then
 	hook.Add("PlayerDisconnect","EGP_PlayerDisconnect",function( ply ) EGP:PlayerDisconnect( ply ) end)
 
 
-	function EGP:CheckInterval( ply, bool )
-		if (!self.IntervalCheck[ply]) then self.IntervalCheck[ply] = { umsgs = 0, time = 0 } end
+	function EGP:CheckInterval( ply )
+		if (!self.IntervalCheck[ply]) then self.IntervalCheck[ply] = { bytes = 0, time = 0 } end
 
 		local maxcount = self.ConVars.MaxPerSec:GetInt()
 
 		local tbl = self.IntervalCheck[ply]
-
-		if (bool==true) then
-			return (tbl.umsgs <= maxcount or tbl.time < CurTime())
-		else
-			if (tbl.time < CurTime()) then
-				tbl.umsgs = 1
-				tbl.time = CurTime() + 1
-			else
-				tbl.umsgs = tbl.umsgs + 1
-				if (tbl.umsgs > maxcount) then
-					return false
-				end
-			end
-
-		end
-
-		return true
+		tbl.bytes = math.max(0, tbl.bytes - (CurTime() - tbl.time) * maxcount)
+		tbl.time = CurTime()
+		return tbl.bytes < maxcount
 	end
 
 	----------------------------
@@ -52,7 +38,7 @@ if (SERVER) then
 			return
 		end
 
-		if (!EGP.umsg.Start( "EGP_Transmit_Data" )) then return end
+		if (!EGP.umsg.Start( "EGP_Transmit_Data", ply )) then return end
 			net.WriteEntity( Ent )
 			net.WriteString( "ClearScreen" )
 		EGP.umsg.End()
@@ -69,7 +55,7 @@ if (SERVER) then
 		end
 
 		util.AddNetworkString( FrameName )
-		if (!EGP.umsg.Start( "EGP_Transmit_Data" )) then return end
+		if (!EGP.umsg.Start( "EGP_Transmit_Data", ply )) then return end
 			net.WriteEntity( Ent )
 			net.WriteString( "SaveFrame" )
 			net.WriteEntity( ply )
@@ -90,7 +76,7 @@ if (SERVER) then
 		local bool, _ = EGP:LoadFrame( ply, Ent, FrameName )
 		if (!bool) then return end
 
-		if (!EGP.umsg.Start( "EGP_Transmit_Data" )) then return end
+		if (!EGP.umsg.Start( "EGP_Transmit_Data", ply )) then return end
 			net.WriteEntity( Ent )
 			net.WriteString( "LoadFrame" )
 			net.WriteEntity( ply )
@@ -111,7 +97,7 @@ if (SERVER) then
 
 		local bool, k, v = EGP:HasObject( Ent, index )
 		if (bool) then
-			if (!EGP.umsg.Start("EGP_Transmit_Data")) then return end
+			if (!EGP.umsg.Start("EGP_Transmit_Data", ply)) then return end
 				net.WriteEntity( Ent )
 				net.WriteString( "AddVertex" )
 				net.WriteInt( index, 16 )
@@ -143,7 +129,7 @@ if (SERVER) then
 
 		local bool, k, v = EGP:HasObject( Ent, index )
 		if (bool) then
-			if (!EGP.umsg.Start("EGP_Transmit_Data")) then return end
+			if (!EGP.umsg.Start("EGP_Transmit_Data", ply)) then return end
 				net.WriteEntity( Ent )
 				net.WriteString( "SetVertex" )
 				net.WriteInt( index, 16 )
@@ -174,7 +160,7 @@ if (SERVER) then
 
 		local bool, k, v = EGP:HasObject( Ent, index )
 		if (bool) then
-			if (!EGP.umsg.Start("EGP_Transmit_Data")) then return end
+			if (!EGP.umsg.Start("EGP_Transmit_Data", ply)) then return end
 				net.WriteEntity( Ent )
 				net.WriteString( "AddText" )
 				net.WriteInt( index, 16 )
@@ -196,7 +182,7 @@ if (SERVER) then
 
 		local bool, k, v = EGP:HasObject( Ent, index )
 		if (bool) then
-			if (!EGP.umsg.Start("EGP_Transmit_Data")) then return end
+			if (!EGP.umsg.Start("EGP_Transmit_Data", ply)) then return end
 				net.WriteEntity( Ent )
 				net.WriteString( "SetText" )
 				net.WriteInt( index, 16 )
@@ -234,7 +220,7 @@ if (SERVER) then
 			return
 		end
 
-		if (!EGP.umsg.Start( "EGP_Transmit_Data" )) then return end
+		if (!EGP.umsg.Start( "EGP_Transmit_Data", ply )) then return end
 			net.WriteEntity( Ent )
 			net.WriteString( "ReceiveObjects" )
 
