@@ -46,13 +46,11 @@ if (SERVER) then
 
 	util.AddNetworkString( "ClearScreen" )
 	local function ClearScreen( Ent, ply )
-		-- Check interval
-		if (ply and ply:IsValid() and ply:IsPlayer()) then
-			if (EGP:CheckInterval( ply ) == false) then
-				EGP:InsertQueue( Ent, ply, ClearScreen, "ClearScreen" )
-				return
-			end
-		else return end
+		if not IsValid(ply) or not ply:IsPlayer() then return end
+		if (EGP:CheckInterval( ply ) == false) then
+			EGP:InsertQueue( Ent, ply, ClearScreen, "ClearScreen" )
+			return
+		end
 
 		if (!EGP.umsg.Start( "EGP_Transmit_Data" )) then return end
 			net.WriteEntity( Ent )
@@ -64,13 +62,11 @@ if (SERVER) then
 
 	util.AddNetworkString( "SaveFrame" )
 	local function SaveFrame( Ent, ply, FrameName )
-		-- Check interval
-		if (ply and ply:IsValid() and ply:IsPlayer()) then
-			if (EGP:CheckInterval( ply ) == false) then
-				EGP:InsertQueue( Ent, ply, SaveFrame, "SaveFrame", FrameName )
-				return
-			end
-		else return end
+		if not IsValid(ply) or not ply:IsPlayer() then return end
+		if (EGP:CheckInterval( ply ) == false) then
+			EGP:InsertQueue( Ent, ply, SaveFrame, "SaveFrame", FrameName )
+			return
+		end
 
 		util.AddNetworkString( FrameName )
 		if (!EGP.umsg.Start( "EGP_Transmit_Data" )) then return end
@@ -85,13 +81,11 @@ if (SERVER) then
 
 	util.AddNetworkString( "LoadFrame" )
 	local function LoadFrame( Ent, ply, FrameName )
-		-- Check interval
-		if (ply and ply:IsValid() and ply:IsPlayer()) then
-			if (EGP:CheckInterval( ply ) == false) then
-				EGP:InsertQueue( Ent, ply, LoadFrame, "LoadFrame", FrameName )
-				return
-			end
-		else return end
+		if not IsValid(ply) or not ply:IsPlayer() then return end
+		if (EGP:CheckInterval( ply ) == false) then
+			EGP:InsertQueue( Ent, ply, LoadFrame, "LoadFrame", FrameName )
+			return
+		end
 
 		local bool, _ = EGP:LoadFrame( ply, Ent, FrameName )
 		if (!bool) then return end
@@ -109,13 +103,11 @@ if (SERVER) then
 	-- Extra Add Poly queue item, used by poly objects with a lot of vertices in them
 	util.AddNetworkString( "AddVertex" )
 	local function AddVertex( Ent, ply, index, vertices )
-		-- Check interval
-		if (ply and ply:IsValid() and ply:IsPlayer()) then
-			if (EGP:CheckInterval( ply ) == false) then
-				EGP:InsertQueue( Ent, ply, AddVertex, "AddVertex", index, vertices )
-				return
-			end
-		else return end
+		if not IsValid(ply) or not ply:IsPlayer() then return end
+		if (EGP:CheckInterval( ply ) == false) then
+			EGP:InsertQueue( Ent, ply, AddVertex, "AddVertex", index, vertices )
+			return
+		end
 
 		local bool, k, v = EGP:HasObject( Ent, index )
 		if (bool) then
@@ -142,13 +134,12 @@ if (SERVER) then
 	-- Extra Set Poly queue item, used by poly objects with a lot of vertices in them
 	util.AddNetworkString( "SetVertex" )
 	function EGP._SetVertex( Ent, ply, index, vertices, skiptoadd )
-		-- Check interval
-		if (ply and ply:IsValid() and ply:IsPlayer()) then
-			if (EGP:CheckInterval( ply ) == false) then
-				EGP:InsertQueue( Ent, ply, EGP._SetVertex, "SetVertex", index, vertices, skiptoadd )
-				return
-			end
-		else return end
+		
+		if not IsValid(ply) or not ply:IsPlayer() then return end
+		if (EGP:CheckInterval( ply ) == false) then
+			EGP:InsertQueue( Ent, ply, EGP._SetVertex, "SetVertex", index, vertices, skiptoadd )
+			return
+		end
 
 		local bool, k, v = EGP:HasObject( Ent, index )
 		if (bool) then
@@ -175,13 +166,11 @@ if (SERVER) then
 	-- Extra Add Text queue item, used by text objects with a lot of text in them
 	util.AddNetworkString( "AddText" )
 	local function AddText( Ent, ply, index, text )
-		-- Check interval
-		if (ply and ply:IsValid() and ply:IsPlayer()) then
-			if (EGP:CheckInterval( ply ) == false) then
-				EGP:InsertQueue( Ent, ply, AddText, "AddText", index, text )
-				return
-			end
-		else return end
+		if not IsValid(ply) or not ply:IsPlayer() then return end
+		if (EGP:CheckInterval( ply ) == false) then
+			EGP:InsertQueue( Ent, ply, AddText, "AddText", index, text )
+			return
+		end
 
 		local bool, k, v = EGP:HasObject( Ent, index )
 		if (bool) then
@@ -199,13 +188,11 @@ if (SERVER) then
 	-- Extra Set Text queue item, used by text objects with a lot of text in them
 	util.AddNetworkString( "SetText" )
 	function EGP._SetText( Ent, ply, index, text )
-		-- Check interval
-		if (ply and ply:IsValid() and ply:IsPlayer()) then
-			if (EGP:CheckInterval( ply ) == false) then
-				EGP:InsertQueue( Ent, ply, EGP._SetText, "SetText", index, text )
-				return
-			end
-		else return end
+		if not IsValid(ply) or not ply:IsPlayer() then return end
+		if (EGP:CheckInterval( ply ) == false) then
+			EGP:InsertQueue( Ent, ply, EGP._SetText, "SetText", index, text )
+			return
+		end
 
 		local bool, k, v = EGP:HasObject( Ent, index )
 		if (bool) then
@@ -241,12 +228,11 @@ if (SERVER) then
 		end
 
 		-- Check interval
-		if (ply:IsValid() and ply:IsPlayer()) then
-			if (EGP:CheckInterval( ply ) == false) then
-				EGP:InsertQueueObjects( Ent, ply, SendObjects, DataToSend )
-				return
-			end
-		else return end
+		if not IsValid(ply) or not ply:IsPlayer() then return end
+		if (EGP:CheckInterval( ply ) == false) then
+			EGP:InsertQueueObjects( Ent, ply, SendObjects, DataToSend )
+			return
+		end
 
 		if (!EGP.umsg.Start( "EGP_Transmit_Data" )) then return end
 			net.WriteEntity( Ent )
