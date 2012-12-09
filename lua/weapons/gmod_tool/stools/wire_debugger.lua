@@ -517,7 +517,7 @@ if (CLIENT) then
 
 		-- TODO: account for larger usage info boxes.
 		--draw the box
-		draw.RoundedBox(8, 2, 2+143*MoveBox, BoxWidth, Line_Count*14+16, Color(50, 50, 50, 128))
+		draw.RoundedBox(8, 2, 2+178*MoveBox, BoxWidth, Line_Count*14+16, Color(50, 50, 50, 128))
 
 		--step through all of the entries and their text to print them
 		for EntryIndex, Entry in ipairs(Entries) do
@@ -525,7 +525,7 @@ if (CLIENT) then
 				draw.Text({
 					text = string.Trim(Line.LineText) or "",
 					font = "Default",
-					pos = { Line.OffsetPos[1]+10, 143*MoveBox+10+Line.OffsetPos[2] },
+					pos = { Line.OffsetPos[1]+10, 178*MoveBox+10+Line.OffsetPos[2] },
 					color = Entry.TextColor
 					})
 
