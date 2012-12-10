@@ -53,6 +53,7 @@ end
 
 function SWEP:On()
 	self.Active = true
+	self.OldMoveType = self.Owner:GetMoveType()
 	self.Owner:SetMoveType(MOVETYPE_NONE)
 	self.Owner:DrawViewModel(false)
 	if (self.Linked and self.Linked:IsValid()) then
@@ -61,7 +62,12 @@ function SWEP:On()
 end
 function SWEP:Off()
 	self.Active = nil
-	self.Owner:SetMoveType(MOVETYPE_WALK)
+	if (self.OldMoveType) then
+	    self.Owner:SetMoveType(self.OldMoveType)
+	else
+	    self.Owner:SetMoveType(MOVETYPE_WALK)
+	end
+	self.OldMoveType = nil
 	self.Owner:DrawViewModel(true)
 	if (self.Linked and self.Linked:IsValid()) then
 		self.Linked:PlayerExited( self.Owner )
