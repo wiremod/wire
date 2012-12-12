@@ -61,12 +61,14 @@ function SWEP:On()
 	end
 end
 function SWEP:Off()
-	self.Active = nil
-	if (self.OldMoveType) then
-	    self.Owner:SetMoveType(self.OldMoveType)
-	else
-	    self.Owner:SetMoveType(MOVETYPE_WALK)
+	if self.Active then
+		if (self.OldMoveType) then
+	    		self.Owner:SetMoveType(self.OldMoveType)
+		else
+	    		self.Owner:SetMoveType(MOVETYPE_WALK)
+		end
 	end
+	self.Active = nil
 	self.OldMoveType = nil
 	self.Owner:DrawViewModel(true)
 	if (self.Linked and self.Linked:IsValid()) then
