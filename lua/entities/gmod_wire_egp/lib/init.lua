@@ -21,7 +21,7 @@ local EGP = EGP
 
 EGP.ConVars = {}
 EGP.ConVars.MaxObjects = CreateConVar( "wire_egp_max_objects", 300, { FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE, FCVAR_ARCHIVE } )
-EGP.ConVars.MaxPerSec = CreateConVar( "wire_egp_max_umsg_per_sec", 100, { FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE, FCVAR_ARCHIVE }  )
+EGP.ConVars.MaxPerSec = CreateConVar( "wire_egp_max_bytes_per_sec", 10000, { FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE, FCVAR_ARCHIVE }  ) -- Keep between 2500-40000
 
 EGP.ConVars.MaxVertices = CreateConVar( "wire_egp_max_poly_vertices", 1024, { FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE, FCVAR_ARCHIVE } )
 
