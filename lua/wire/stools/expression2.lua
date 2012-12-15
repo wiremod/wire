@@ -478,6 +478,8 @@ elseif CLIENT then
 				main = files[1][2]
 			end
 			
+			if not wire_expression2_editor then initE2Editor() end
+			
 			if uploadandexit then
 				wire_expression2_editor.chip = ent
 			end 
