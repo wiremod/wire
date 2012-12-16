@@ -101,7 +101,7 @@ __e2setcost(25)
 e2function wirelink entity:wirelink()
 	if not IsValid(this) then return nil end
 	if not isOwner(self, this) then return nil end
-	if not this.IsWire then return nil end -- dont do it on non-wire
+	if not this.Inputs and not this.Outputs then return nil end
 	if !this.extended then
 		this.extended = true
 		RefreshSpecialOutputs(this)
@@ -113,11 +113,11 @@ end
 e2function number entity:removeWirelink()
 	if not IsValid(this) then return 0 end
 	if not isOwner(self, this) then return 0 end
-	if not this.IsWire then return 0 end -- dont do it on non-wire
+	if not this.Inputs and not this.Outputs then return 0 end
 	if !this.extended then return 0 end
 	this.extended = false
 	RefreshSpecialOutputs(this)
 	return 1
 end
 
-__e2setcost(nil) -- temporary
+__e2setcost(nil)
