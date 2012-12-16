@@ -6,8 +6,6 @@ ENT.Purpose         = "Links with a socket"
 ENT.Instructions    = "Move a plug close to a socket to link them, and data will be transferred through the link."
 ENT.WireDebugName = "Plug"
 
-if CLIENT then return end -- No more client
-
 function ENT:GetClosestSocket()
 	local sockets = ents.FindInSphere( self:GetPos(), 100 )
 
