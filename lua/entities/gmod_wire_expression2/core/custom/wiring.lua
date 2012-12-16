@@ -113,7 +113,6 @@ end
 e2function number entity:removeWirelink()
 	if not IsValid(this) then return 0 end
 	if not isOwner(self, this) then return 0 end
-	if not this.Inputs and not this.Outputs then return 0 end
 	if !this.extended then return 0 end
 	this.extended = false
 	RefreshSpecialOutputs(this)
