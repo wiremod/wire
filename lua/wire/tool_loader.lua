@@ -66,6 +66,8 @@ if SERVER then
 		return ent
 	end
 
+	function WireToolObj:GetConVars() return end
+	
 	--
 	-- to prevent update, set TOOL.NoLeftOnClass = true
 	function WireToolObj:LeftClick_Update( trace )
@@ -95,7 +97,7 @@ if SERVER then
 		-- Welding
 		local const
 		if not self.ClientConVar.weld or self:GetClientNumber( "weld" ) == 1 then
-			const = WireLib.Weld( ent, trace.Entity, trace.PhysicsBone, true )
+			const = WireLib.Weld( ent, trace.Entity, trace.PhysicsBone, true, false, self:GetClientNumber( "weldtoworld", 0 ) != 0 )
 		end
 
 

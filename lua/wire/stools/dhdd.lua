@@ -1,107 +1,32 @@
 WireToolSetup.setCategory( "Data" )
 WireToolSetup.open( "dhdd", "DHDD", "gmod_wire_dhdd", nil, "DHDDs" )
 
-if (SERVER) then
-
-	CreateConVar("sbox_maxwire_dhdds",20)
-
-else
-
-	----------------------------------------------------------------------------------------------------
-	-- Tool Info
-	----------------------------------------------------------------------------------------------------
-
+if CLIENT then
 	language.Add( "Tool.wire_dhdd.name", "DHDD Tool (Wire)" )
 	language.Add( "Tool.wire_dhdd.desc", "Spawns a dupeable hard drive gate for use with the wire system." )
 	language.Add( "Tool.wire_dhdd.0", "Primary: Create DHDD." )
-	language.Add( "sboxlimit_wire_dhdds", "You've hit the Wire DHDD limit!" )
-	language.Add( "undone_wiredhdd", "Undone Wire DHDD" )
 
-	language.Add( "Tool_wire_dhdd_weld", "Weld the DHDD." )
-	language.Add( "Tool_wire_dhdd_weldtoworld", "Weld the DHDD to the world." )
-	language.Add( "Tool_wire_dhdd_freeze", "Freeze the DHDD." )
-	language.Add( "Tool_wire_dhdd_note", "NOTE: The DHDD only saves the first\n512^2 values to prevent\nmassive dupe files and lag." )
+	language.Add( "Tool.wire_dhdd.weld", "Weld the DHDD." )
+	language.Add( "Tool.wire_dhdd.weldtoworld", "Weld the DHDD to the world." )
+	language.Add( "Tool.wire_dhdd.note", "NOTE: The DHDD only saves the first\n512^2 values to prevent\nmassive dupe files and lag." )
 
 	TOOL.ClientConVar["model"] = "models/jaanus/wiretool/wiretool_gate.mdl"
 	TOOL.ClientConVar["weld"] = 1
 	TOOL.ClientConVar["weldtoworld"] = 0
-	TOOL.ClientConVar["freeze"] = 1
-
-	----------------------------------------------------------------------------------------------------
-	-- BuildCPanel
-	----------------------------------------------------------------------------------------------------
-
-	function TOOL.BuildCPanel( CPanel )
-		CPanel:AddControl("Header", { Text = "#Tool.wire_dhdd.name", Description = "#Tool.wire_dhdd.desc" })
-
-		local mdl = vgui.Create("DWireModelSelect",CPanel)
-		mdl:SetModelList( list.Get( "Wire_gate_Models" ), "wire_dhdd_model" )
-		mdl:SetHeight( 4 )
-		CPanel:AddItem( mdl )
-
-		local weld = vgui.Create("DCheckBoxLabel",CPanel)
-		weld:SetText( "#Tool_wire_dhdd_weld" )
-		weld:SizeToContents()
-		weld:SetConVar( "wire_dhdd_weld" )
-		CPanel:AddItem( weld )
-
-		local toworld = vgui.Create("DCheckBoxLabel",CPanel)
-		toworld:SetText( "#Tool_wire_dhdd_weldtoworld" )
-		toworld:SizeToContents()
-		toworld:SetConVar( "wire_dhdd_weldtoworld" )
-		CPanel:AddItem( toworld )
-
-		local freeze = vgui.Create("DCheckBoxLabel",CPanel)
-		freeze:SetText( "#Tool_wire_dhdd_freeze" )
-		freeze:SizeToContents()
-		freeze:SetConVar( "wire_dhdd_freeze" )
-		CPanel:AddItem( freeze )
-
-		local label = vgui.Create("DLabel",CPanel)
-		label:SetText( "#Tool_wire_dhdd_note" )
-		label:SizeToContents()
-		CPanel:AddItem( label )
+	
+	function TOOL.BuildCPanel( panel )
+		ModelPlug_AddToCPanel(panel, "gate", "wire_dhdd", nil, 4)
+		
+		panel:CheckBox("#Tool.wire_dhdd.weld", "wire_dhdd_weld")
+		panel:CheckBox("#Tool.wire_dhdd.weldtoworld", "wire_dhdd_weldtoworld")
+		panel:Help("#Tool.wire_dhdd.note")
 	end
-
 end
+WireToolSetup.BaseLang()
+WireToolSetup.SetupMax( 20, TOOL.Mode.."s" , "You've hit the Wire "..TOOL.PluralName.." limit!" )
 
-cleanup.Register( "wire_dhdds" )
---------------------
--- LeftClick
--- Create DHDD
---------------------
-function TOOL:LeftClick( trace )
-	if (!trace) then return false end
-	if (trace.Entity) then
-		if (trace.Entity:IsPlayer()) then return false end
+if SERVER then
+	function TOOL:MakeEnt( ply, model, Ang, trace )
+		return MakeWireDHDD( ply, trace.HitPos, Ang, model, self:GetConVars() )
 	end
-	if (CLIENT) then return true end
-	if not util.IsValidPhysicsObject( trace.Entity, trace.PhysicsBone ) then return false end
-
-	local ply = self:GetOwner()
-	local model = self:GetModel()
-	local Pos, Ang = trace.HitPos, trace.HitNormal:Angle() + Angle(90,0,0)
-
-	local dhdd = MakeWireDHDD( ply, Pos, Ang, model )
-
-	if (!dhdd or !dhdd:IsValid()) then return false end
-
-	local weld
-	if (self:GetClientNumber( "weld" ) != 0) then
-		weld = WireLib.Weld( dhdd, trace.Entity, trace.PhysicsBone, true, false, self:GetClientNumber( "weldtoworld" ) != 0 )
-	end
-
-	if (self:GetClientNumber( "freeze") != 0) then
-		dhdd:GetPhysicsObject():EnableMotion( false )
-	end
-
-	undo.Create("wiresocket")
-		undo.AddEntity( dhdd )
-		if (weld) then undo.AddEntity( weld ) end
-		undo.SetPlayer( ply )
-	undo.Finish()
-
-	ply:AddCleanup( "wire_dhdds", dhdd )
-
-	return true
 end
