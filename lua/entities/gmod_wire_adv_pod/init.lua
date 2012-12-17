@@ -493,7 +493,7 @@ function MakeWireAdvPod(pl, Pos, Ang, model, frozen)
 	wire_pod:SetPlayer(pl)
 	wire_pod.pl = pl
 
-	pl:AddCount("wire_pods", wire_pod)
+	pl:AddCount("wire_adv_pods", wire_pod)
 	pl:AddCleanup( "gmod_wire_adv_pod", wire_pod )
 
 	return wire_pod

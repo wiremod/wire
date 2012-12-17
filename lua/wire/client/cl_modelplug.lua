@@ -373,6 +373,14 @@ list.Set( "Wire_Laser_Tools_Models", "models/jaanus/wiretool/wiretool_range.mdl"
 list.Set( "Wire_Laser_Tools_Models", "models/jaanus/wiretool/wiretool_siren.mdl", true )
 list.Set( "Wire_Laser_Tools_Models", "models/jaanus/wiretool/wiretool_beamcaster.mdl", true )
 
+list.Set( "Wire_Socket_Models", "models/props_lab/tpplugholder_single.mdl", true )
+list.Set( "Wire_Socket_Models", "models/bull/various/usb_socket.mdl", true )
+list.Set( "Wire_Socket_Models", "models/hammy/pci_slot.mdl", true )
+list.Set( "Wire_Socket_Models", "models/wingf0x/isasocket.mdl", true )
+list.Set( "Wire_Socket_Models", "models/wingf0x/altisasocket.mdl", true )
+list.Set( "Wire_Socket_Models", "models/wingf0x/ethernetsocket.mdl", true )
+list.Set( "Wire_Socket_Models", "models/wingf0x/hdmisocket.mdl", true )
+
 -- Converted from WireModelPacks/wire_model_pack_1plus.txt
 list.Set("Wire_radio_Models", "models/props_lab/reciever01b.mdl", true)
 list.Set("Wire_radio2_Models", "models/props_lab/reciever01b.mdl", true)

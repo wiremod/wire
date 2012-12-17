@@ -1,5 +1,5 @@
 WireToolSetup.setCategory( "Advanced" )
-WireToolSetup.open( "dataplug", "Data - Plug/Socket", "gmod_wire_plug", nil, "Plugs and Sockets" )
+WireToolSetup.open( "dataplug", "Data - Plug/Socket", "gmod_wire_datasocket", nil, "Plugs and Sockets" )
 
 if ( CLIENT ) then
     language.Add( "Tool.wire_dataplug.name", "Data Plug Tool (Wire)" )
@@ -22,7 +22,6 @@ TOOL.ClientConVar["ar"] = "255"
 TOOL.ClientConVar["ag"] = "255"
 TOOL.ClientConVar["ab"] = "255"
 TOOL.ClientConVar["aa"] = "255"
-
 TOOL.ClientConVar["model"] = "models/hammy/pci_slot.mdl"
 
 local SocketModels = {
@@ -189,11 +188,10 @@ if (SERVER) then
 		}
 		table.Merge(wire_dataplug:GetTable(), ttable )
 
-		pl:AddCount( "wire_dataplug", wire_dataplug )
+		pl:AddCount( "wire_dataplugs", wire_dataplug )
 
 		return wire_dataplug
 	end
-
 	duplicator.RegisterEntityClass("gmod_wire_dataplug", MakeWireDataPlug, "Pos", "Ang", "Model", "a", "ar", "ag", "ab", "aa")
 
 
@@ -222,95 +220,21 @@ if (SERVER) then
 		}
 		table.Merge(wire_datasocket:GetTable(), ttable )
 
-		pl:AddCount( "wire_datasocket", wire_datasocket )
+		pl:AddCount( "wire_datasockets", wire_datasocket )
 
 		return wire_datasocket
 	end
-
 	duplicator.RegisterEntityClass("gmod_wire_datasocket", MakeWireDataSocket, "Pos", "Ang", "Model", "a", "ar", "ag", "ab", "aa")
-
 end
 
-function TOOL:UpdateGhostWireDataSocket( ent, player )
-	if ( !ent || !ent:IsValid() ) then return end
-
-	local trace = player:GetEyeTrace()
-
-	if (!trace.Hit || trace.Entity:IsPlayer() || trace.Entity:GetClass() == "gmod_wire_datasocket" ) then
-		ent:SetNoDraw( true )
-		return
-	end
-
-	local Ang = trace.HitNormal:Angle()
-
-	local Pos = trace.HitPos
-
-	local socketmodel = ent:GetModel()
-	Ang = Ang + ( AngleOffset[socketmodel] or Angle(0,0,0))
-
-	ent:SetPos( Pos )
-	ent:SetAngles( Ang )
-
-	ent:SetNoDraw( false )
+function TOOL:GetGhostAngle(trace)
+	local socketmodel = self:GetModel()
+	return trace.HitNormal:Angle() + (AngleOffset[socketmodel] or Angle(0,0,0)) - Angle(90,0,0)
 end
-
-function TOOL:Offset( ang, offsetvec )
-	local offset = offsetvec
-	local stackdir = ang:Up()
-
-	offset = ang:Up() * offset.X + ang:Forward() * -1 * offset.Z + ang:Right() * offset.Y
-
-	return stackdir * 2 + offset
-end
-
-function TOOL:Think()
-	local model, _ = self:GetModel()
-	if (!self.GhostEntity || !self.GhostEntity:IsValid() || self.GhostEntity:GetModel() != model ) then
-		self:MakeGhostEntity( model, Vector(0,0,0), Angle(0,0,0) )
-	end
-
-	self:UpdateGhostWireDataSocket( self.GhostEntity, self:GetOwner() )
-end
-
-list.Set( "wire_socket_models", "models/props_lab/tpplugholder_single.mdl", {} )
-list.Set( "wire_socket_models", "models/bull/various/usb_socket.mdl", {} )
-list.Set( "wire_socket_models", "models/hammy/pci_slot.mdl", {} )
-list.Set( "wire_socket_models", "models/wingf0x/isasocket.mdl", {} )
-list.Set( "wire_socket_models", "models/wingf0x/altisasocket.mdl", {} )
-list.Set( "wire_socket_models", "models/wingf0x/ethernetsocket.mdl", {} )
-list.Set( "wire_socket_models", "models/wingf0x/hdmisocket.mdl", {} )
 
 function TOOL.BuildCPanel(panel)
-	panel:AddControl("Header", { Text = "#Tool.wire_dataplug.name", Description = "#Tool.wire_dataplug.desc" })
-
-	local mdl = vgui.Create("DWireModelSelect",CPanel)
-	mdl:SetModelList( list.Get( "wire_socket_models" ), "wire_dataplug_model" )
-	mdl:SetHeight( 2 )
-	panel:AddItem( mdl )
-
-	panel:AddControl("ComboBox", {
-		Label = "#Presets",
-		MenuButton = "1",
-		Folder = "wire_dataplug",
-
-		Options = {
-			["#Default"] = {
-				wire_dataplug_a = "0",
-				wire_dataplug_ar = "255",
-				wire_dataplug_ag = "0",
-				wire_dataplug_ab = "0",
-				wire_dataplug_aa = "255",
-			}
-		},
-
-		CVars = {
-			[0] = "wire_dataplug_a",
-			[1] = "wire_dataplug_ar",
-			[2] = "wire_dataplug_ag",
-			[3] = "wire_dataplug_ab",
-			[4] = "wire_dataplug_aa",
-		}
-	})
+	WireToolHelpers.MakePresetControl(panel, "wire_dataplug")
+	ModelPlug_AddToCPanel(panel, "Socket", "wire_dataplug")
 
 	panel:AddControl("Color", {
 		Label = "#WirePlugTool_colour",
