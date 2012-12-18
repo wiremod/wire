@@ -8,11 +8,12 @@ if CLIENT then
     language.Add( "Tool.wire_clutch.1", "Right click on the second entity you want the clutch to apply to" )
 	language.Add( "undone_wireclutch", "Undone Wire Clutch" )
 end
+WireToolSetup.BaseLang()
+WireToolSetup.SetupMax( 8, TOOL.Mode.."s" , "You've hit the Wire "..TOOL.PluralName.." limit!" )
 
 if SERVER then
 	CreateConVar( "wire_clutch_maxlinks", 10 )	-- how many constraints can be added per controller
 	CreateConVar( "wire_clutch_maxrate", 40 )	-- how many constraints/sec may be changed per controller
-	CreateConVar( 'sbox_maxwire_clutches', 8 )	-- maximum number of clutch controllers per player (shouldn't need to be set very high)
 end
 
 TOOL.ClientConVar[ "model" ] = "models/jaanus/wiretool/wiretool_siren.mdl"
@@ -45,10 +46,10 @@ end
    -- Client Usermessages --
    Receive entity tables for the DrawHUD display
 ---------------------------------------------------------*/
-local Linked_Ents = {}		-- Table of constrained ents, with Ent1 as k and Ent2 as v
-local Unique_Ents = {}		-- Table of entities as keys
-
 if CLIENT then
+	local Linked_Ents = {}		-- Table of constrained ents, with Ent1 as k and Ent2 as v
+	local Unique_Ents = {}		-- Table of entities as keys
+	
 	// Receive stage 0 info
 	local function Receive_links( um )
 		table.Empty( Linked_Ents )
@@ -67,98 +68,96 @@ if CLIENT then
 	end
 
 	usermessage.Hook( "wire_clutch_links", Receive_links )
-end
 
-
-/*---------------------------------------------------------
-   -- DrawHUD --
-   Display clutch constraints associated with a controller
----------------------------------------------------------*/
-local function InView( pos2D )
-	if pos2D.x > 0 and pos2D.y > 0 and pos2D.x < ScrW() and pos2D.y < ScrH() then
-		return true
+	/*---------------------------------------------------------
+	   -- DrawHUD --
+	   Display clutch constraints associated with a controller
+	---------------------------------------------------------*/
+	local function InView( pos2D )
+		if pos2D.x > 0 and pos2D.y > 0 and pos2D.x < ScrW() and pos2D.y < ScrH() then
+			return true
+		end
+		return false
 	end
-	return false
-end
 
 
-// Client function for drawing a line to represent constraint to world
-local function DrawBaseLine( pos, viewpos )
-	local dist = math.Clamp( viewpos:Distance( pos ), 50, 5000 )
-	local linelength = 3000 / dist
+	// Client function for drawing a line to represent constraint to world
+	local function DrawBaseLine( pos, viewpos )
+		local dist = math.Clamp( viewpos:Distance( pos ), 50, 5000 )
+		local linelength = 3000 / dist
 
-	local pos2D = pos:ToScreen()
-	local pos1 = { x = pos2D.x + linelength, y = pos2D.y }
-	local pos2 = { x = pos2D.x - linelength, y = pos2D.y }
+		local pos2D = pos:ToScreen()
+		local pos1 = { x = pos2D.x + linelength, y = pos2D.y }
+		local pos2 = { x = pos2D.x - linelength, y = pos2D.y }
 
-	surface.DrawLine( pos1.x, pos1.y, pos2.x, pos2.y )
-end
-
-
-// Client function for drawing a circle around the currently selected controller
-local function DrawSelectCircle( pos, viewpos )
-	local pos2D = pos:ToScreen()
-
-	if InView( pos2D ) then
-		surface.DrawCircle( pos2D.x, pos2D.y, 7, Color(255, 100, 100, 255 ) )
+		surface.DrawLine( pos1.x, pos1.y, pos2.x, pos2.y )
 	end
-end
 
 
-function TOOL:DrawHUD()
-	local DrawnEnts = {}	-- Used to keep track of which ents already have a circle
+	// Client function for drawing a circle around the currently selected controller
+	local function DrawSelectCircle( pos, viewpos )
+		local pos2D = pos:ToScreen()
 
-	local controller = self:GetWeapon():GetNetworkedEntity( "WireClutchController" )
-	if !IsValid( controller ) then return end
+		if InView( pos2D ) then
+			surface.DrawCircle( pos2D.x, pos2D.y, 7, Color(255, 100, 100, 255 ) )
+		end
+	end
 
-	// Draw circle around the controller
-	local viewpos = LocalPlayer():GetViewModel():GetPos()
-	local controllerpos = controller:LocalToWorld( controller:OBBCenter() )
-	DrawSelectCircle( controllerpos, viewpos )
+	function TOOL:DrawHUD()
+		local DrawnEnts = {}	-- Used to keep track of which ents already have a circle
 
-	local numconstraints_0 = #Linked_Ents
-	if numconstraints_0 ~= 0 then
-		// Draw lines between each pair of constrained ents
-		surface.SetDrawColor( 100, 255, 100, 255 )
+		local controller = self:GetWeapon():GetNetworkedEntity( "WireClutchController" )
+		if !IsValid( controller ) then return end
+
+		// Draw circle around the controller
+		local viewpos = LocalPlayer():GetViewModel():GetPos()
+		local controllerpos = controller:LocalToWorld( controller:OBBCenter() )
+		DrawSelectCircle( controllerpos, viewpos )
+
+		local numconstraints_0 = #Linked_Ents
+		if numconstraints_0 ~= 0 then
+			// Draw lines between each pair of constrained ents
+			surface.SetDrawColor( 100, 255, 100, 255 )
 
 
-		// Check whether each entity/position can be drawn
-		for k, v in pairs( Linked_Ents ) do
-			local basepos
-			local pos1, pos2
+			// Check whether each entity/position can be drawn
+			for k, v in pairs( Linked_Ents ) do
+				local basepos
+				local pos1, pos2
 
-			local IsValid1 = IsValid( v.Ent1 )
-			local IsValid2 = IsValid( v.Ent2 )
+				local IsValid1 = IsValid( v.Ent1 )
+				local IsValid2 = IsValid( v.Ent2 )
 
-			if IsValid1 then pos1 = v.Ent1:GetPos():ToScreen() end
-			if IsValid2 then pos2 = v.Ent2:GetPos():ToScreen() end
+				if IsValid1 then pos1 = v.Ent1:GetPos():ToScreen() end
+				if IsValid2 then pos2 = v.Ent2:GetPos():ToScreen() end
 
-			if !IsValid1 and !IsValid2 then
-				table.remove( Linked_Ents, k )
-			elseif v.Ent1:IsWorld() then
-				basepos = v.Ent2:GetPos() + Vector(0, 0, -30)
-				pos1 = basepos:ToScreen()
-			elseif v.Ent2:IsWorld() then
-				basepos = v.Ent1:GetPos() + Vector(0, 0, -30)
-				pos2 = basepos:ToScreen()
-			end
+				if !IsValid1 and !IsValid2 then
+					table.remove( Linked_Ents, k )
+				elseif v.Ent1:IsWorld() then
+					basepos = v.Ent2:GetPos() + Vector(0, 0, -30)
+					pos1 = basepos:ToScreen()
+				elseif v.Ent2:IsWorld() then
+					basepos = v.Ent1:GetPos() + Vector(0, 0, -30)
+					pos2 = basepos:ToScreen()
+				end
 
-			if pos1 and pos2 then
-				if InView( pos1 ) and InView( pos2 ) then
-					surface.DrawLine( pos1.x, pos1.y, pos2.x, pos2.y )
+				if pos1 and pos2 then
+					if InView( pos1 ) and InView( pos2 ) then
+						surface.DrawLine( pos1.x, pos1.y, pos2.x, pos2.y )
 
-					if !DrawnEnts[v.Ent1] and IsValid1 then
-						surface.DrawCircle( pos1.x, pos1.y, 5, Color(100, 255, 100, 255 ) )
-						DrawnEnts[v.Ent1] = true
-					end
+						if !DrawnEnts[v.Ent1] and IsValid1 then
+							surface.DrawCircle( pos1.x, pos1.y, 5, Color(100, 255, 100, 255 ) )
+							DrawnEnts[v.Ent1] = true
+						end
 
-					if !DrawnEnts[v.Ent2] and IsValid2 then
-						surface.DrawCircle( pos2.x, pos2.y, 5, Color(100, 255, 100, 255 ) )
-						DrawnEnts[v.Ent2] = true
-					end
+						if !DrawnEnts[v.Ent2] and IsValid2 then
+							surface.DrawCircle( pos2.x, pos2.y, 5, Color(100, 255, 100, 255 ) )
+							DrawnEnts[v.Ent2] = true
+						end
 
-					if basepos then
-						DrawBaseLine( basepos, viewpos )
+						if basepos then
+							DrawBaseLine( basepos, viewpos )
+						end
 					end
 				end
 			end
@@ -167,63 +166,30 @@ function TOOL:DrawHUD()
 end
 
 
-function TOOL:SelectController( controller )
-	self.controller = controller
-	self:GetWeapon():SetNetworkedEntity( "WireClutchController", controller or Entity(0) ) -- Must use null entity since nil won't send
+if SERVER then
+	function TOOL:SelectController( controller )
+		self.controller = controller
+		self:GetWeapon():SetNetworkedEntity( "WireClutchController", controller or Entity(0) ) -- Must use null entity since nil won't send
 
-	// Send constraint from the controller to the client
-	local constrained_pairs = {}
-	if IsValid( controller ) then
-		constrained_pairs = controller:GetConstrainedPairs()
+		// Send constraint from the controller to the client
+		local constrained_pairs = {}
+		if IsValid( controller ) then
+			constrained_pairs = controller:GetConstrainedPairs()
+		end
+
+		Send_Links( self:GetOwner(), constrained_pairs )
 	end
 
-	Send_Links( self:GetOwner(), constrained_pairs )
-end
-
-
-/*---------------------------------------------------------
-   -- Left click --
-   Creates/selects a clutch controller
----------------------------------------------------------*/
-function TOOL:LeftClick( trace )
-	self:ClearObjects()
-	self:SetStage(0)
-
-	if trace.Entity:IsValid() and trace.Entity:IsPlayer() then return end
-	if CLIENT then return true end
-	if not util.IsValidPhysicsObject( trace.Entity, trace.PhysicsBone ) then return false end
-
-	// Select an existing controller
-	if IsValid( trace.Entity ) and trace.Entity:GetClass() == "gmod_wire_clutch" then
-		self:SelectController( trace.Entity )
-		return true
+	function TOOL:MakeEnt( ply, model, Ang, trace )
+		local ent = MakeClutchController( ply, trace.HitPos, Ang, model, self:GetConVars() )
+		self:SelectController( ent )
+		return ent
 	end
-
-	if !self:GetSWEP():CheckLimit( "wire_clutches" ) then return end
-
-	// Get vars for placing a new controller
-	local ply = self:GetOwner()
-	local Pos = trace.HitPos
-	local Ang = trace.HitNormal:Angle()
-		Ang.pitch = Ang.pitch + 90
-
-	// Spawn a new clutch controller
-	local controller = MakeClutchController( ply, Pos, Ang, self:GetModel() )
-	local const = WireLib.Weld( controller, trace.Entity, trace.PhysicsBone, true )
-
-	undo.Create("Wire Clutch")
-		undo.AddEntity( controller )
-		undo.AddEntity( const )
-		undo.SetPlayer( ply )
-	undo.Finish()
-
-	ply:AddCleanup( "wire_clutch", controller )
-
-	self:SelectController( controller )
-
-	return true
+	
+	function TOOL:LeftClick_Update( trace )
+		self:SelectController(trace.Entity)
+	end
 end
-
 
 /*---------------------------------------------------------
    -- Right click --
@@ -330,80 +296,11 @@ function TOOL:Reload( trace )
 	return true
 end
 
-
 function TOOL:Holster()
 	self:ClearObjects()
 	self:SetStage(0)
 	self:ReleaseGhostEntity()
 end
-
-
-/*---------------------------------------------------------
-   -- Misc tool functions --
----------------------------------------------------------*/
-
-function TOOL:GetModel()
-	local model = "models/jaanus/wiretool/wiretool_siren.mdl"
-	local modelcheck = self:GetClientInfo( "model" )
-
-	if util.IsValidModel(modelcheck) and util.IsValidProp(modelcheck) then
-		model = modelcheck
-	end
-
-	return model
-end
-
-
-if SERVER then
-	function MakeClutchController( ply, Pos, Ang, model )
-		local controller = ents.Create("gmod_wire_clutch")
-
-		controller:SetPlayer( ply )
-		controller:SetModel( Model( model or "models/jaanus/wiretool/wiretool_siren.mdl" ) )
-		controller:SetPos( Pos - Ang:Up() * controller:OBBMins().z )
-		controller:SetAngles( Ang )
-
-		controller:Spawn()
-
-		return controller
-	end
-	duplicator.RegisterEntityClass("gmod_wire_clutch", MakeClutchController, "Pos", "Ang", "Model")
-end
-
-
-function TOOL:UpdateGhostWireClutch( ent, ply )
-	if !IsValid( ent ) then return end
-	if IsValid( self:GetWeapon():GetNetworkedEntity( "WireClutchController" ) ) then
-		ent:SetNoDraw( true )
-		return
-	end
-
-	local trace = ply:GetEyeTrace()
-
-	if !trace.Hit or trace.Entity:IsPlayer() or trace.Entity:GetClass() == "gmod_wire_clutch" then
-		ent:SetNoDraw( true )
-		return
-	end
-
-	local Ang = trace.HitNormal:Angle()
-	Ang.pitch = Ang.pitch + 90
-
-	local minZ = ent:OBBMins().z
-	ent:SetPos( trace.HitPos - trace.HitNormal * minZ )
-	ent:SetAngles( Ang )
-
-	ent:SetNoDraw( false )
-end
-
-
-function TOOL:Think()
-	if !IsValid(self.GhostEntity) or self.GhostEntity:GetModel() != self:GetModel() then
-		self:MakeGhostEntity( self:GetModel(), Vector(0,0,0), Angle(0,0,0) )
-	end
-
-	self:UpdateGhostWireClutch( self.GhostEntity, self:GetOwner() )
-end
-
 
 function TOOL.BuildCPanel( panel )
 	panel:AddControl( "Header", { Text = "#Tool.wire_clutch.name", Description = "#Tool.wire_clutch.desc" } )
