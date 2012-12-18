@@ -207,6 +207,8 @@ if (SERVER) then
 			  RetText = RetText..",41="..value[13]..",42="..value[14]..",43="..value[15]..",44="..value[16].."]"
 		return RetText
 	end
+	
+	function formatPort.RANGER(value) return "ranger" end
 
 	function formatPort.ARRAY(value, OrientVertical)
 		local RetText = ""
