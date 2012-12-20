@@ -141,9 +141,9 @@ function ENT:ReadCell(Address)
 		local steamid = player:SteamID()
 		steamid = string.gsub(steamid, ":", "_")
 		if (steamid ~= "UNKNOWN") then
-			self.owner_steamid = steamid
+			self.Owner_SteamID = steamid
 		else
-			self.owner_steamid = "SINGLEPLAYER"
+			self.Owner_SteamID = "SINGLEPLAYER"
 		end
 
 		-- If drive has changed, change cap
@@ -199,9 +199,9 @@ function ENT:WriteCell(Address, value)
 		local steamid = player:SteamID()
 		steamid = string.gsub(steamid, ":", "_")
 		if (steamid ~= "UNKNOWN") then
-			self.owner_steamid = steamid
+			self.Owner_SteamID = steamid
 		else
-			self.owner_steamid = "SINGLEPLAYER"
+			self.Owner_SteamID = "SINGLEPLAYER"
 		end
 
 		-- If drive has changed, change cap
@@ -261,10 +261,11 @@ function ENT:WriteCell(Address, value)
 end
 
 function ENT:Think()
-	local cachedBlockIndex, cachedBlockValue = next(self.CacheUpdated)
+	local cachedBlockIndex = next(self.CacheUpdated)
 	if cachedBlockIndex then
 		self.CacheUpdated[cachedBlockIndex] = nil
-		file.Write(self:GetStructName(cachedBlockIndex),self:MakeFloatTable(cachedBlockValue))
+		file.CreateDir(string.GetPathFromFilename(self:GetStructName(cachedBlockIndex)))
+		file.Write(self:GetStructName(cachedBlockIndex),self:MakeFloatTable(self.Cache[cachedBlockIndex]))
 		self:UpdateCap()
 	end
 	self.Entity:NextThink(CurTime()+0.25)
