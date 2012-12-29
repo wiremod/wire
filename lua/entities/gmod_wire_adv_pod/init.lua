@@ -99,6 +99,7 @@ function ENT:HidePlayer( b )
 		self.OldPlyAlpha = nil
 	end
 	self:GetPly():SetColor(c)
+	self:GetPly():SetRenderMode(c.a ~= 255 and RENDERMODE_TRANSALPHA or RENDERMODE_NORMAL)
 end
 
 function ENT:SetHidePlayer( b )
