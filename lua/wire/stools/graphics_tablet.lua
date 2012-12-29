@@ -5,7 +5,7 @@
 --Credit to whoever created the first wire screen, from which all others seem to use the lagacy clientside drawing code (this one included)
 
 WireToolSetup.setCategory( "I/O" )
-WireToolSetup.open( "graphics_tablet", "Graphics Tabletr", "gmod_wire_graphics_tablet", nil, "Graphics Tablet" )
+WireToolSetup.open( "graphics_tablet", "Graphics Tablet", "gmod_wire_graphics_tablet", nil, "Graphics Tablet" )
 
 if ( CLIENT ) then
     language.Add( "Tool.wire_graphics_tablet.name", "Graphics Tablet Tool (Wire)" )
