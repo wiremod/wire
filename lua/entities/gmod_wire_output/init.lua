@@ -30,9 +30,9 @@ function ENT:Switch( on, ply )
 	if (not key) then return end
 
 	if (on) then
-		numpad.Activate( ply, key )
+		numpad.Activate( ply, key, true )
 	else
-		numpad.Deactivate( ply, key )
+		numpad.Deactivate( ply, key, true )
 	end
 
 	self:SetOn(on)

@@ -4,32 +4,29 @@ include('shared.lua')
 
 ENT.WireDebugName = "Numpad"
 
-local keynames = {"0","1","2","3","4","5","6","7","8","9",".","enter","+","-","*","/"}
-local lookupkeynames = {}
-for k,v in ipairs(keynames) do
-	lookupkeynames[v] = k
-	lookupkeynames[k] = v
-end
+local keynames = {"0","1","2","3","4","5","6","7","8","9",".","enter","+","-","*","/"} -- Names as we will display them and for inputs/outputs
+local keyenums = {37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 52, 51, 50, 49, 48, 47} -- Same indexes as keynames, values are the corresponding KEY_* enums
+local nametoenum = {}
+for k,v in ipairs(keynames) do nametoenum[v] = keyenums[k] end  -- Indexes are string input/output names, values are the corresponding KEY_* enums
+
 function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )
 	self:SetMoveType( MOVETYPE_VPHYSICS )
 	self:SetSolid( SOLID_VPHYSICS )
 
-	self.On = {}
-
 	self.Inputs = Wire_CreateInputs(self, keynames)
 	self.Outputs = Wire_CreateOutputs(self, keynames)
 
 	self.Buffer = {}
-	for i = 0,#keynames-1 do
+	for i = 1, #keynames do
 		self.Buffer[i] = 0
 	end
 end
 
-
+-- These two high speed functions want to access a zero indexed array of what keys are pressed (0-15), our buffer is 1-16
 function ENT:ReadCell( Address )
 	if (Address >= 0) && (Address < #keynames) then
-		return self.Buffer[Address]
+		return self.Buffer[Address+1]
 	else
 		return nil
 	end
@@ -37,7 +34,7 @@ end
 
 function ENT:WriteCell( Address, value )
 	if (Address >= 0) && (Address < #keynames) then
-		self:TriggerInput(lookupkeynames[Address], value)
+		self:TriggerInput(keynames[Address+1], value)
 		return true
 	else
 		return false
@@ -46,9 +43,9 @@ end
 
 function ENT:TriggerInput(key, value)
 	if value ~= 0 then
-		numpad.Activate( self:GetPlayer(), key )
+		numpad.Activate( self:GetPlayer(), nametoenum[key], true )
 	else
-		numpad.Deactivate( self:GetPlayer(), key )
+		numpad.Deactivate( self:GetPlayer(), nametoenum[key], true )
 	end
 end
 
@@ -62,7 +59,7 @@ end
 
 function ENT:NumpadActivate( key )
 	if ( self.toggle ) then
-		return self:Switch( !self.On[ key ], key )
+		return self:Switch( self.Buffer[ key ] == 0, key )
 	end
 
 	return self:Switch( true, key )
@@ -77,32 +74,21 @@ end
 function ENT:Switch( on, key )
 	if (!self:IsValid()) then return false end
 
-	self.On[ key ] = on
+	self.Buffer[key] = on and 1 or 0
+	
+	self:ShowOutput()
+	self.Value = on and self.value_on or self.value_off
 
-	if (on) then
-		self:ShowOutput()
-		self.Value = self.value_on
-	else
-		self:ShowOutput()
-		self.Value = self.value_off
-	end
-
-	Wire_TriggerOutput(self, lookupkeynames[key], self.Value)
-
-	if ( on ) then
-		self.Buffer[key] = 1
-	else
-		self.Buffer[key] = 0
-	end
+	Wire_TriggerOutput(self, keynames[key], self.Value)
 
 	return true
 end
 
 function ENT:ShowOutput()
 	local txt = ""
-	for k = 0, #keynames-1 do
-		if (self.On[k]) then
-			txt = txt..", "..lookupkeynames[k]
+	for k,keyname in ipairs(keynames) do
+		if (self.Buffer[k] ~= 0) then
+			txt = txt..", "..keyname
 		end
 	end
 
@@ -118,12 +104,11 @@ end
 local function On( pl, ent, key )
 	return ent:NumpadActivate( key )
 end
+numpad.Register( "WireNumpad_On", On )
 
 local function Off( pl, ent, key )
 	return ent:NumpadDeactivate( key )
 end
-
-numpad.Register( "WireNumpad_On", On )
 numpad.Register( "WireNumpad_Off", Off )
 
 function MakeWireNumpad( pl, Pos, Ang, model, toggle, value_off, value_on )
@@ -142,9 +127,9 @@ function MakeWireNumpad( pl, Pos, Ang, model, toggle, value_off, value_on )
 	wire_numpad.pl = pl
 
 	wire_numpad.impulses = {}
-	for k = 0, 16 do
-		table.insert(wire_numpad.impulses, numpad.OnDown( pl, k, "WireNumpad_On", wire_numpad, k ))
-		table.insert(wire_numpad.impulses, numpad.OnUp( pl, k, "WireNumpad_Off", wire_numpad, k ))
+	for k,keyenum in ipairs(keyenums) do
+		table.insert(wire_numpad.impulses, numpad.OnDown( pl, keyenum, "WireNumpad_On", wire_numpad, k ))
+		table.insert(wire_numpad.impulses, numpad.OnUp( pl, keyenum, "WireNumpad_Off", wire_numpad, k ))
 	end
 
 	pl:AddCount( "wire_numpads", wire_numpad )
