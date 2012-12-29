@@ -7,8 +7,8 @@ ENT.WireDebugName = "Numpad"
 local keynames = {"0","1","2","3","4","5","6","7","8","9",".","enter","+","-","*","/"}
 local lookupkeynames = {}
 for k,v in ipairs(keynames) do
-	lookupkeynames[v] = k-1
-	lookupkeynames[k-1] = v
+	lookupkeynames[v] = k
+	lookupkeynames[k] = v
 end
 function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )
@@ -106,7 +106,7 @@ function ENT:ShowOutput()
 		end
 	end
 
-	self:SetOverlayText( txt )
+	self:SetOverlayText( string.sub(txt,2) )
 end
 
 function ENT:OnRemove()

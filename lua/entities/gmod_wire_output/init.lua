@@ -1,11 +1,10 @@
-
 AddCSLuaFile( "cl_init.lua" )
 AddCSLuaFile( "shared.lua" )
 include('shared.lua')
 
 ENT.WireDebugName = "Output"
 
-local keylist = {"0","1","2","3","4","5","6","7","8","9",".","Enter","+","-","*","/"}
+local keylist = {"0","1","2","3","4","5","6","7","8","9","a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z","KP_INS","KP_END","KP_DOWNARROW","KP_PGDN","KP_LEFTARROW","KP_5","KP_RIGHTARROW","KP_HOME","KP_UPARROW","KP_PGUP","KP_SLASH","KP_MULTIPLY","KP_MINUS","KP_PLUS","KP_ENTER","KP_DEL","[","]","SEMICOLON","'","`",",",".","/","\\","-","=","ENTER","SPACE","BACKSPACE","TAB","CAPSLOCK","NUMLOCK","ESCAPE","SCROLLLOCK","INS","DEL","HOME","END","PGUP","PGDN","PAUSE","SHIFT","RSHIFT","ALT","RALT","CTRL","RCTRL","LWIN","RWIN","APP","UPARROW","LEFTARROW","DOWNARROW","RIGHTARROW","F1","F2","F3","F4","F5","F6","F7","F8","F9","F10","F11","F12","CAPSLOCKTOGGLE","NUMLOCKTOGGLE","SCROLLLOCKTOGGLE"}
 
 function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )
@@ -41,9 +40,7 @@ end
 
 function ENT:ShowOutput()
 	if (self.key) then
-		if (keylist[self.key + 1]) then
-			self:SetOverlayText(keylist[self.key + 1])
-		end
+		self:SetOverlayText(keylist[self.key] or "")
 	end
 end
 
