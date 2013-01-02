@@ -442,7 +442,7 @@ do
 	local extensions = {}
 
 	if not sql.TableExists("wire_expression2_extensions") then
-		sql.Query("CREATE TABLE wire_expression2_extensions (name varchar(255), enabled tinyint)")
+		sql.Query("CREATE TABLE IF NOT EXISTS wire_expression2_extensions (name varchar(255), enabled tinyint)")
 		sql.Query("CREATE UNIQUE INDEX name ON wire_expression2_extensions(name)")
 	end
 
