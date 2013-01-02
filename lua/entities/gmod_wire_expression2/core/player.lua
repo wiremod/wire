@@ -427,6 +427,13 @@ e2function ranger entity:eyeTrace()
 	return ret
 end
 
+e2function ranger entity:eyeTraceCursor()
+	if not IsValid(this) or not this:IsPlayer() then return nil end
+	local ret = this:GetEyeTrace()
+	ret.RealStartPos = this:GetShootPos()
+	return ret
+end
+
 /******************************************************************************/
 
 __e2setcost(nil) -- temporary
