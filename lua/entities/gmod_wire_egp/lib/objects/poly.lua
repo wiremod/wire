@@ -19,8 +19,8 @@ Obj.Transmit = function( self, Ent, ply )
 		for i=1,#self.vertices do
 			net.WriteInt( self.vertices[i].x, 16 )
 			net.WriteInt( self.vertices[i].y, 16 )
-			net.WriteInt( (self.vertices[i].u or 0) * 100, 16 )
-			net.WriteInt( (self.vertices[i].v or 0) * 100, 16 )
+			net.WriteFloat( self.vertices[i].u or 0 )
+			net.WriteFloat( self.vertices[i].v or 0 )
 		end
 	else
 		net.WriteUInt( 0, 8 )
@@ -34,7 +34,7 @@ Obj.Receive = function( self )
 	local tbl = {}
 	tbl.vertices = {}
 	for i=1,net.ReadUInt(8) do
-		tbl.vertices[ #tbl.vertices+1 ] = { x = net.ReadInt(16), y = net.ReadInt(16), u = net.ReadInt(16) / 100, v = net.ReadInt(16) / 100 }
+		tbl.vertices[ #tbl.vertices+1 ] = { x = net.ReadInt(16), y = net.ReadInt(16), u = net.ReadFloat(), v = net.ReadFloat() }
 	end
 	tbl.parent = net.ReadInt(16)
 	EGP:ReceiveMaterial( tbl )

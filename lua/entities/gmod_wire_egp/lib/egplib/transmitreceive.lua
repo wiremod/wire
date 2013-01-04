@@ -107,8 +107,8 @@ if (SERVER) then
 					net.WriteInt( vert.x, 16 )
 					net.WriteInt( vert.y, 16 )
 					if (v.HasUV) then
-						net.WriteInt( (vert.u or 0) * 100, 16 )
-						net.WriteInt( (vert.v or 0) * 100, 16 )
+						net.WriteFloat( vert.u or 0 )
+						net.WriteFloat( vert.v or 0 )
 					end
 				end
 			EGP.umsg.End()
@@ -139,8 +139,8 @@ if (SERVER) then
 					net.WriteInt( vert.x, 16 )
 					net.WriteInt( vert.y, 16 )
 					if (v.HasUV) then
-						net.WriteInt( (vert.u or 0) * 100, 16 )
-						net.WriteInt( (vert.v or 0) * 100, 16 )
+						net.WriteFloat( vert.u or 0 )
+						net.WriteFloat( vert.v or 0 )
 					end
 				end
 			EGP.umsg.End()
@@ -388,7 +388,7 @@ else -- SERVER/CLIENT
 				if (v.HasUV) then
 					local n = 0
 					for i=1,net.ReadUInt(8) do
-						local x, y, u, _v = net.ReadInt(16), net.ReadInt(16), net.ReadInt(16) / 100, net.ReadInt(16) / 100
+						local x, y, u, _v = net.ReadInt(16), net.ReadInt(16), net.ReadFloat(), net.ReadFloat()
 						vertices[i] = { x=x, y=y, u=u, v=_v }
 					end
 				else
@@ -410,7 +410,7 @@ else -- SERVER/CLIENT
 				if (v.HasUV) then
 					local n = 0
 					for i=1,net.ReadUInt(8) do
-						local x, y, u, _v = net.ReadInt(16), net.ReadInt(16), net.ReadInt(16) / 100, net.ReadInt(16) / 100
+						local x, y, u, _v = net.ReadInt(16), net.ReadInt(16), net.ReadFloat(), net.ReadFloat()
 						vertices[#vertices+1] = { x=x, y=y, u=u, v=_v }
 					end
 				else
