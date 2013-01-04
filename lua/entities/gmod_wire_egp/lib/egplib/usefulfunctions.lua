@@ -30,9 +30,11 @@ end
 
 local makeArray
 local makeTable
+local addUV
 hook.Add("Initialize","EGP_WaitForParentingFile",function()
 	makeArray = EGP.ParentingFuncs.makeArray
 	makeTable = EGP.ParentingFuncs.makeTable
+	addUV	  = EGP.ParentingFuncs.addUV
 end)
 
 function EGP:ScaleObject( ent, v )
@@ -55,8 +57,9 @@ function EGP:ScaleObject( ent, v )
 			r[i] = (r[i] - xMin) * xMul
 			r[i+1] = (r[i+1]- yMin) * yMul
 		end
-		local settings = {}
-		if isstring(v.verticesindex) then settings = { [v.verticesindex] = makeTable( v, r ) } else settings = makeTable( v, r ) end
+		local settings = makeTable(v, r)
+		addUV(v, settings)
+		if isstring(v.verticesindex) then settings = { [v.verticesindex] = settings } end
 		self:EditObject( v, settings )
 	else
 		if (v.x) then
