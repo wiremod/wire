@@ -36,7 +36,7 @@ if CLIENT then
   CPULib.Debugger.Breakpoint = {}
 
   -- Convars to control CPULib
-  local wire_cpu_upload_speed = CreateClientConVar("wire_cpu_upload_speed",8,false,false)
+  local wire_cpu_upload_speed = CreateClientConVar("wire_cpu_upload_speed",1000,false,false)
   local wire_cpu_compile_speed = CreateClientConVar("wire_cpu_compile_speed",128,false,false)
   local wire_cpu_show_all_registers = CreateClientConVar("wire_cpu_show_all_registers",0,false,false)
 
@@ -175,22 +175,27 @@ if CLIENT then
   function CPULib.OnUploadTimer()
     if not CPULib.RemainingData then return end
 
-    local upload_speed = wire_cpu_upload_speed:GetFloat()
-    if game.SinglePlayer() then upload_speed = 128 end
+    local upload_speed = wire_cpu_upload_speed:GetFloat() -- Number of index/value pairs to send (11 bytes each)
+    if game.SinglePlayer() then upload_speed = 6000 end
 
-    for iteration=1,upload_speed do
+    local iters = math.min(upload_speed, CPULib.RemainingUploadData)
+    net.Start("wire_cpulib_buffer")
+    net.WriteUInt(iters, 16)
+    for iteration=1,iters do
       local index,value = next(CPULib.RemainingData)
-      if not index then
-        timer.Remove("cpulib_upload")
-        RunConsoleCommand("wire_cpulib_bufferend")
-        CPULib.Uploading = false
-        return
-      end
-
       CPULib.RemainingUploadData = CPULib.RemainingUploadData - 1
-      RunConsoleCommand("wire_cpulib_buffer",index,(value or 0))
+      net.WriteUInt(index, 24)
+      net.WriteDouble(value or 0) -- 64bits, Can this be a smaller datatype?
       CPULib.RemainingData[index] = nil
     end
+    if CPULib.RemainingUploadData <= 0 then
+      timer.Remove("cpulib_upload")
+      net.WriteBit(true) -- End
+      CPULib.Uploading = false
+    else
+      net.WriteBit(false) -- Keep going
+    end
+    net.SendToServer()
   end
 
   ------------------------------------------------------------------------------
@@ -200,8 +205,7 @@ if CLIENT then
     timer.Remove("cpulib_upload")
 
     -- Send the buffer over to server
-    RunConsoleCommand("wire_cpulib_bufferstart")
-    RunConsoleCommand("wire_cpulib_buffername",CPULib.CPUName)
+    net.Start("wire_cpulib_bufferstart") net.WriteString(CPULib.CPUName or "") net.SendToServer()
 
     CPULib.TotalUploadData = 0
     CPULib.RemainingData = {}
@@ -218,7 +222,7 @@ if CLIENT then
     end
 
     CPULib.RemainingUploadData = CPULib.TotalUploadData
-    timer.Create("cpulib_upload",1/60,0,CPULib.OnUploadTimer)
+    timer.Create("cpulib_upload",0.5,0,CPULib.OnUploadTimer)
     CPULib.Uploading = true
   end
 
@@ -467,74 +471,59 @@ if SERVER then
     }
   end
 
-  -- Concommand to initiate transfer
-  concommand.Add("wire_cpulib_bufferstart", function(player, command, args)
+  util.AddNetworkString("wire_cpulib_bufferstart")
+  net.Receive("wire_cpulib_bufferstart", function(netlen, player)
     local Buffer = CPULib.DataBuffer[player:UserID()]
     if (not Buffer) or (Buffer.Player ~= player) then return end
     if not IsValid(Buffer.Entity) then return end
-    if not Buffer.Entity then return end
 
     net.Start("CPULib.ServerUploading") net.WriteBit(true) net.Send(player)
-  end)
-
-  -- Concommand to send a single stream of bytes
-  concommand.Add("wire_cpulib_buffer", function(player, command, args)
-    local Buffer = CPULib.DataBuffer[player:UserID()]
-    if (not Buffer) or (Buffer.Player ~= player) then return end
-    if not Buffer.Entity then return end
-
-    if tonumber(args[1]) then
-      Buffer.Data[tonumber(args[1])] = tonumber(args[2])
+    if Buffer.Entity:GetClass() == "gmod_wire_cpu" then
+      Buffer.Entity:SetCPUName(net.ReadString())
     end
   end)
 
-  -- Concommand to send CPU name
-  concommand.Add("wire_cpulib_buffername", function(player, command, args)
+  -- Concommand to send a single stream of bytes 
+  util.AddNetworkString("wire_cpulib_buffer")
+  net.Receive("wire_cpulib_buffer", function(netlen, player)
     local Buffer = CPULib.DataBuffer[player:UserID()]
     if (not Buffer) or (Buffer.Player ~= player) then return end
-    if not IsValid(Buffer.Entity) then return end
     if not Buffer.Entity then return end
-
-    if Buffer.Entity:GetClass() == "gmod_wire_cpu" then
-      Buffer.Entity:SetCPUName(args[1])
+    
+    for iteration=1, net.ReadUInt(16) do
+      Buffer.Data[net.ReadUInt(24)] = net.ReadDouble()
     end
-  end)
+    
+    if net.ReadBit() ~= 0 then -- We're done!
+      CPULib.DataBuffer[player:UserID()] = nil
+      net.Start("CPULib.ServerUploading") net.WriteBit(false) net.Send(player)
 
-  -- Concommand to end sending data
-  concommand.Add("wire_cpulib_bufferend", function(player, command, args)
-    local Buffer = CPULib.DataBuffer[player:UserID()]
-    if (not Buffer) or (Buffer.Player ~= player) then return end
-    if not IsValid(Buffer.Entity) then return end
-    if not Buffer.Entity then return end
-
-    CPULib.DataBuffer[player:UserID()] = nil
-    net.Start("CPULib.ServerUploading") net.WriteBit(false) net.Send(player)
-
-    if Buffer.Entity:GetClass() == "gmod_wire_cpu" then
-      Buffer.Entity:FlashData(Buffer.Data)
-    elseif Buffer.Entity:GetClass() == "gmod_wire_dhdd" then
-      for k,v in pairs(Buffer.Data) do
-        Buffer.Entity.Memory[k] = v
-      end
-      Buffer.Entity:ShowOutputs()
-    elseif Buffer.Entity:GetClass() == "gmod_wire_gpu" then
-      Buffer.Entity:WriteCell(65535,0)
-      if Buffer.Entity.WriteCell then
+      if Buffer.Entity:GetClass() == "gmod_wire_cpu" then
+        Buffer.Entity:FlashData(Buffer.Data)
+      elseif Buffer.Entity:GetClass() == "gmod_wire_dhdd" then
         for k,v in pairs(Buffer.Data) do
-          Buffer.Entity:WriteCell(k,v)
+          Buffer.Entity.Memory[k] = v
         end
-      end
-      Buffer.Entity:WriteCell(65535,Buffer.Entity.Clk)
-      Buffer.Entity:WriteCell(65534,1)
-    else
-      if Buffer.Entity.WriteCell then
-        for k,v in pairs(Buffer.Data) do
-          Buffer.Entity:WriteCell(k,v)
+        Buffer.Entity:ShowOutputs()
+      elseif Buffer.Entity:GetClass() == "gmod_wire_gpu" then
+        Buffer.Entity:WriteCell(65535,0)
+        if Buffer.Entity.WriteCell then
+          for k,v in pairs(Buffer.Data) do
+            Buffer.Entity:WriteCell(k,v)
+          end
+        end
+        Buffer.Entity:WriteCell(65535,Buffer.Entity.Clk)
+        Buffer.Entity:WriteCell(65534,1)
+      else
+        if Buffer.Entity.WriteCell then
+          for k,v in pairs(Buffer.Data) do
+            Buffer.Entity:WriteCell(k,v)
+          end
         end
       end
     end
   end)
-
+  
   ------------------------------------------------------------------------------
   -- Players and corresponding entities (for the debugger)
   CPULib.DebuggerData = {}
