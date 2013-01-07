@@ -26,7 +26,6 @@ end
 
 function ENT:Think()
 	self.BaseClass.Think(self)
-	self.Entity:NextThink(CurTime())
 
 	for i = 0,7 do
 		if self.OutPorts[i] then
@@ -34,6 +33,8 @@ function ENT:Think()
 			self.OutPorts[i] = nil
 		end
 	end
+	self.Entity:NextThink(CurTime())
+	return true -- for NextThink
 end
 
 function ENT:ReadCell(Address)
@@ -60,3 +61,21 @@ function ENT:TriggerInput(iname, value)
 		end
 	end
 end
+
+function MakeWireDataPort( pl, Pos, Ang, model )
+	if ( !pl:CheckLimit( "wire_dataports" ) ) then return false end
+
+	local wire_dataport = ents.Create( "gmod_wire_dataport" )
+	if (!wire_dataport:IsValid()) then return false end
+	wire_dataport:SetModel(model)
+
+	wire_dataport:SetAngles( Ang )
+	wire_dataport:SetPos( Pos )
+	wire_dataport:Spawn()
+	wire_dataport:SetPlayer(pl)
+
+	pl:AddCount( "wire_dataports", wire_dataport )
+
+	return wire_dataport
+end
+duplicator.RegisterEntityClass("gmod_wire_dataport", MakeWireDataPort, "Pos", "Ang", "Model")
