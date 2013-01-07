@@ -102,3 +102,24 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 
 	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
 end
+
+function MakeWireTextReceiver( ply, Pos, Ang, model, UseLuaPatterns, Matches, CaseInsensitive )
+	if not ply:CheckLimit( "wire_textreceivers" ) then return false end
+
+	local ent = ents.Create( "gmod_wire_textreceiver" )
+	if not ent or not ent:IsValid() then return false end
+
+	ent:SetAngles( Ang )
+	ent:SetPos( Pos )
+	ent:SetModel( model or "models/jaanus/wiretool/wiretool_range.mdl" )
+	ent:Spawn()
+	ent:Activate()
+	ent:SetPlayer(ply)
+
+	ent:Setup( UseLuaPatterns, Matches, CaseInsensitive )
+
+	ply:AddCount( "wire_textreceivers", ent )
+
+	return ent
+end
+duplicator.RegisterEntityClass("gmod_wire_textreceiver", MakeWireTextReceiver, "Pos", "Ang", "Model", "UseLuaPatterns", "Matches", "CaseInsensitive" )
