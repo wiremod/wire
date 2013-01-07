@@ -14,9 +14,9 @@ ENT.AdminSpawnable = false
    Effect
 ---------------------------------------------------------*/
 function ENT:SetEffect( value )
-	if value ~= self.datanstuff.effect then
+	if value ~= self.effect then
 		self:SetNWInt( "Effect", value )
-		self.datanstuff.effect = value
+		self.effect = value
 	end
 end
 function ENT:GetEffect()
@@ -27,9 +27,9 @@ end
    Delay
 ---------------------------------------------------------*/
 function ENT:SetDelay( f )
-	if f ~= self.datanstuff.delay then
+	if f ~= self.delay then
 		self:SetNWFloat( "Delay", f )
-		self.datanstuff.delay=f
+		self.delay=f
 	end
 end
 function ENT:GetDelay()
