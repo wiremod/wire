@@ -8,7 +8,7 @@ ENT.Instructions    = "Use wire."
 ENT.Category		= "Wiremod"
 
 ENT.Spawnable       = true
-ENT.AdminSpawnable  = true
+ENT.AdminOnly 		= false
 
 ENT.RenderGroup		= RENDERGROUP_BOTH
 ENT.WireDebugName = "Balloon Deployer"

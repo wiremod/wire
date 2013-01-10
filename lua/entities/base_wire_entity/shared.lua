@@ -8,7 +8,7 @@ ENT.Purpose = "Base for all wired SEnts"
 ENT.Instructions = ""
 
 ENT.Spawnable = false
-ENT.AdminSpawnable = false
+ENT.AdminOnly = false
 
 ENT.IsWire = true
 ENT.OverlayText = ""

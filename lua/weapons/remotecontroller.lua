@@ -13,7 +13,7 @@ SWEP.DrawAmmo = false
 
 SWEP.Weight = 1
 SWEP.Spawnable = true
-SWEP.AdminSpawnable = true
+SWEP.AdminOnly = false
 
 SWEP.Primary.ClipSize = -1
 SWEP.Primary.DefaultClip = -1

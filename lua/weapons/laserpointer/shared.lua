@@ -5,7 +5,7 @@ SWEP.Instructions = "Left Click to designate targets. Right click to select lase
 SWEP.Category = "Wiremod"
 
 SWEP.Spawnable = true;
-SWEP.AdminSpawnable = true;
+SWEP.AdminOnly = false
 
 SWEP.viewModel = "models/weapons/v_pistol.mdl";
 SWEP.worldModel = "models/weapons/w_pistol.mdl";
