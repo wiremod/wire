@@ -11,8 +11,8 @@ function ENT:Initialize()
 	self:SetMoveType( MOVETYPE_VPHYSICS )
 	self:SetSolid( SOLID_VPHYSICS )
 
-	self.Inputs = Wire_CreateInputs(self, { "A" })
-	self.Outputs = Wire_CreateOutputs(self, { "Out" })
+	self.Inputs = {}
+	self.Outputs = {}
 end
 
 function ENT:Setup( action, noclip )
