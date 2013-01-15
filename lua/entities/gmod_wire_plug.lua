@@ -177,6 +177,27 @@ function ENT:ShowOutput()
 	self:SetOverlayText(OutText)
 end
 
+
+function MakeWirePlug( ply, Pos, Ang, model, ArrayInput, ArrayHiSpeed )
+	if (!ply:CheckLimit( "wire_plugs" )) then return false end
+
+	local plug = ents.Create( "gmod_wire_plug" )
+	if (!plug:IsValid()) then return false end
+
+	plug:SetAngles( Ang )
+	plug:SetPos( Pos )
+	plug:SetModel( model )
+	plug:SetPlayer( ply )
+	plug:Spawn()
+	plug:Setup( ArrayInput, ArrayHiSpeed )
+	plug:Activate()
+
+	ply:AddCount( "wire_plug", plug )
+
+	return plug
+end
+duplicator.RegisterEntityClass( "gmod_wire_plug", MakeWirePlug, "Pos", "Ang", "model", "ArrayInput" )
+
 function ENT:BuildDupeInfo()
 	local info = self.BaseClass.BuildDupeInfo(self) or {}
 
