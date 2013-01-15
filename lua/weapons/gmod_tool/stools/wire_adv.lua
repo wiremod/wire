@@ -351,7 +351,7 @@ elseif CLIENT then
 			self.laststage = stage
 
 			-- trigger a "newent" event
-			newent = nil
+			newent = true
 		end
 
 		if newent and (stage ~= 2 or newstage) then
