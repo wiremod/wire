@@ -158,6 +158,7 @@ if SERVER then
 elseif CLIENT then
 
 	function TOOL:Holster()
+		if IsValid(self.lastent) then self.lastent:SetNetworkedBeamString("BlinkWire", "") end
 		self.lastent = nil
 		self.lastinput = {}
 		self.lastoutput = {}
@@ -343,17 +344,18 @@ elseif CLIENT then
 	function TOOL:DrawHUD()
 		local stage = self:GetStage()
 		local newstage = self.laststage ~= stage
+		local ent = LocalPlayer():GetEyeTraceNoCursor().Entity
+		local newent = ent:IsValid() and ent ~= self.lastent
 		if newstage then
 			self:NewStage(stage, self.laststage)
 			self.laststage = stage
 
 			-- trigger a "newent" event
-			self.lastent = nil
+			newent = nil
 		end
 
-		local ent = LocalPlayer():GetEyeTraceNoCursor().Entity
-		local newent = ent:IsValid() and ent ~= self.lastent
 		if newent and (stage ~= 2 or newstage) then
+			if self.lastent then self.lastent:SetNetworkedBeamString("BlinkWire", "") end
 			self.lastent = ent
 
 			local inputs, outputs = WireLib.GetPorts(ent)
@@ -506,6 +508,7 @@ elseif CLIENT then
 				self.port = self.port-1
 				if self.port < 1 then self.port = #self.ports end
 			end
+			self.lastent:SetNetworkedBeamString("BlinkWire", self.ports[self.port][1])
 		end
 
 		self:GetOwner():EmitSound("weapons/pistol/pistol_empty.wav")
@@ -532,6 +535,7 @@ elseif CLIENT then
 				self.port = self.port+1
 				if self.port > #self.ports then self.port = 1 end
 			end
+			self.lastent:SetNetworkedBeamString("BlinkWire", self.ports[self.port][1])
 		end
 
 		self:GetOwner():EmitSound("weapons/pistol/pistol_empty.wav")
@@ -599,40 +603,9 @@ elseif CLIENT then
 	-- CLIENT --
 	function TOOL.BuildCPanel(panel)
 		panel:AddControl("Header", { Text = "#Tool.wire.name", Description = "#Tool.wire.desc" })
+		WireToolHelpers.MakePresetControl(panel, "wire_adv")
 
-		panel:AddControl("ComboBox", {
-			Label = "#Presets",
-			MenuButton = "1",
-			Folder = "wire_adv",
-
-			Options = {
-				Default = {
-					wire_adv_material = "cable/rope",
-					wire_adv_width = "3",
-					wire_adv_r = "255",
-					wire_adv_g = "255",
-					wire_adv_b = "255"
-
-				}
-			},
-
-			CVars = {
-				[0] = "wire_adv_width",
-				[1] = "wire_adv_material",
-				[2] = "wire_adv_r",
-				[3] = "wire_adv_g",
-				[4] = "wire_adv_b",
-			}
-		})
-
-		panel:AddControl("Slider", {
-			Label = "#WireTool_width",
-			Type = "Float",
-			Min = "0",
-			Max = "5",
-			Command = "wire_adv_width"
-		})
-
+		panel:NumSlider("#WireTool_width", "wire_adv_width", 0, 5, 2)
 		panel:AddControl("MaterialGallery", {
 			Label = "#WireTool_material",
 			Height = "64",
@@ -663,11 +636,7 @@ elseif CLIENT then
 			Label = "#WireTool_colour",
 			Red = "wire_adv_r",
 			Green = "wire_adv_g",
-			Blue = "wire_adv_b",
-			ShowAlpha = "0",
-			ShowHSV = "1",
-			ShowRGB = "1",
-			Multiplier = "255"
+			Blue = "wire_adv_b"
 		})
 	end
 
