@@ -52,9 +52,6 @@ if SERVER then
 	AddCSLuaFile("von.lua")
 
 	-- resource files
-	for i=1,32 do
-		resource.AddSingleFile("settings/render_targets/WireGPU_RT_"..i..".txt")
-	end
 	resource.AddFile("materials/expression 2/cog.vmt")
 	resource.AddFile("materials/gui/silkicons/page_white_add.vmt")
 	resource.AddFile("materials/gui/silkicons/page_white_delete.vmt")

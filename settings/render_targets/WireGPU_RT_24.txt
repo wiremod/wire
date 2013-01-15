@@ -1,6 +1,0 @@
-"WireGPU_RT_24"
-{
-	"Name"		"WireGPU_RT_24"
-	"Width"		"512"
-	"Height"	"512"
-}
