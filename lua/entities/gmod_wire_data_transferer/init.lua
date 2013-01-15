@@ -34,22 +34,20 @@ end
 function ENT:Setup(Range,DefaultZero,IgnoreZero)
 	self.IgnoreZero = IgnoreZero
 	self.DefaultZero = DefaultZero
+	self.Range = Range
 	self:SetBeamRange(Range)
 end
 
 function ENT:TriggerInput(iname, value)
 	if(iname == "Send")then
-		if(value > 0)then
-			self.Sending = true
-		else
-			self.Sending = false
-		end
+		self.Sending = value > 0
 	else
 		self.Values[iname] = value
 	end
 end
 
 function ENT:Think()
+	self:NextThink(CurTime()+0.125)
 	if(self.Activated == false && self.DefaultZero)then
 		Wire_TriggerOutput(self,"A",0)
 		Wire_TriggerOutput(self,"B",0)
@@ -77,18 +75,14 @@ function ENT:Think()
 
 	local ent = trace.Entity
 
-	if not ent and ent:IsValid() and (
-		trace.Entity:GetClass() == "gmod_wire_data_transferer" or
-		trace.Entity:GetClass() == "gmod_wire_data_satellitedish" or
-		trace.Entity:GetClass() == "gmod_wire_data_store" ) then
-		
+	if not IsValid(ent) then
 		self:SetColor(Color(255, 255, 255, 255))
-		return false
+		return true
 	end
 
 	self:SetColor(Color(0, 255, 0, 255))
 
-	if(trace.Entity:GetClass() == "gmod_wire_data_transferer")then
+	if ent:GetClass() == "gmod_wire_data_transferer" then
 		ent:RecieveValue("A",self.Values.A)
 		ent:RecieveValue("B",self.Values.B)
 		ent:RecieveValue("C",self.Values.C)
@@ -97,8 +91,8 @@ function ENT:Think()
 		ent:RecieveValue("F",self.Values.F)
 		ent:RecieveValue("G",self.Values.G)
 		ent:RecieveValue("H",self.Values.H)
-	elseif(trace.Entity:GetClass() == "gmod_wire_data_satellitedish")then
-		if(ent.Transmitter && ent.Transmitter:IsValid())then
+	elseif ent:GetClass() == "gmod_wire_data_satellitedish" then
+		if IsValid(ent.Transmitter) then
 			ent.Transmitter:RecieveValue("A",self.Values.A)
 			ent.Transmitter:RecieveValue("B",self.Values.B)
 			ent.Transmitter:RecieveValue("C",self.Values.C)
@@ -110,7 +104,7 @@ function ENT:Think()
 		else
 			self:SetColor(Color(255, 0, 0, 255))
 		end
-	elseif(trace.Entity:GetClass() == "gmod_wire_data_store")then
+	elseif ent:GetClass() == "gmod_wire_data_store" then
 		Wire_TriggerOutput(self,"A",ent.Values.A)
 		Wire_TriggerOutput(self,"B",ent.Values.B)
 		Wire_TriggerOutput(self,"C",ent.Values.C)
@@ -129,8 +123,10 @@ function ENT:Think()
 			ent.Values.G = self.Inputs["G"].Value
 			ent.Values.H = self.Inputs["H"].Value
 		end
+	else
+		self:SetColor(Color(255, 255, 255, 255))
 	end
-	self:NextThink(CurTime()+0.125)
+	return true
 end
 
 function ENT:RecieveValue(output,value)
@@ -140,3 +136,22 @@ function ENT:RecieveValue(output,value)
 		Wire_TriggerOutput(self,output,value)
 	end
 end
+
+function MakeWireTransferer( pl, Pos, Ang, model, Range, DefaultZero, IgnoreZero )
+	if ( !pl:CheckLimit( "wire_data_transferers" ) ) then return false end
+
+	local wire_data_transferer = ents.Create( "gmod_wire_data_transferer" )
+	if (!wire_data_transferer:IsValid()) then return false end
+
+	wire_data_transferer:SetAngles( Ang )
+	wire_data_transferer:SetPos( Pos )
+	wire_data_transferer:SetModel( model )
+	wire_data_transferer:Spawn()
+	wire_data_transferer:Setup(Range,DefaultZero,IgnoreZero)
+	wire_data_transferer:SetPlayer( pl )
+
+	pl:AddCount( "wire_data_transferers", wire_data_transferer )
+
+	return wire_data_transferer
+end
+duplicator.RegisterEntityClass("gmod_wire_data_transferer", MakeWireTransferer, "Pos", "Ang", "Model", "Range", "DefaultZero", "IgnoreZero")
