@@ -118,14 +118,11 @@ end )
 net.Receive("wire_expresison2_file_download_finish", function( netlen )
 	if not download_buffer.name then return end
 
-	local ofile = ""
-
-	-- append mode
-	if net.ReadBit ~= 0 and file.Exists( download_buffer.name,"DATA" ) then
-		ofile = file.Read( download_buffer.name,"DATA" )
+	if net.ReadBit() ~= 0 then
+		file.Append( download_buffer.name, download_buffer.data )
+	else
+		file.Write( download_buffer.name, download_buffer.data )
 	end
-
-	file.Write( download_buffer.name, ofile .. download_buffer.data )
 end )
 
 /* --- File List --- */
