@@ -14,7 +14,6 @@ function ENT:Initialize( )
 	self.blocked = blocked[ownerid] or false
 
 	self.clips = {}
-	self.visible = true
 end
 
 function ENT:SetupClipping()
@@ -26,11 +25,7 @@ function ENT:SetupClipping()
 		clip_buffer[eidx] = nil
 	end
 
-	local nclips = 0
-
-	if self.clips then nclips = table.Count( self.clips ) end
-
-	if nclips > 0 then
+	if next(self.clips) then
 		render.EnableClipping( true )
 
 		for _,clip in pairs( self.clips ) do
@@ -50,12 +45,8 @@ function ENT:SetupClipping()
 end
 
 function ENT:FinishClipping()
-	local nclips = 0
-
-	if self.clips then nclips = table.Count( self.clips ) end
-
-	if nclips > 0 then
-		for i = 1, nclips do
+	if next(self.clips) then
+		for _, clip in pairs( self.clips ) do
 			render.PopCustomClipPlane()
 		end
 
@@ -64,23 +55,21 @@ function ENT:FinishClipping()
 end
 
 function ENT:Draw()
-	local eidx = self:EntIndex()
-
-	if self.visible != vis_buffer[eidx] then
-		self.visible = vis_buffer[eidx]
+	if self.visible != vis_buffer[self:EntIndex()] then
+		self.visible = vis_buffer[self:EntIndex()]
 	end
 
-	if self.blocked or self.visible == false then return end
+	if self.blocked or self.visible == false then return end //self.visible and vis_buffer[] is nil by default, but nil != false
 
 	self:SetupClipping()
 
 	if self:GetNWBool( "disable_shading" ) then
 		render.SuppressEngineLighting( true )
+		self:DrawModel()
+		render.SuppressEngineLighting( false )
+	else
+		self:DrawModel()
 	end
-
-	self:DrawModel()
-
-	render.SuppressEngineLighting( false )
 
 	self:FinishClipping()
 end
