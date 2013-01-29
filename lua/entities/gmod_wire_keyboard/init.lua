@@ -3,6 +3,7 @@ AddCSLuaFile("shared.lua")
 AddCSLuaFile("remap.lua")
 
 include('shared.lua')
+include('remap.lua')
 
 ENT.WireDebugName = "Wired Keyboard"
 
@@ -67,6 +68,7 @@ function ENT:WriteCell( Address, value )
 	return false
 end
 
+util.AddNetworkString("wire_keyboard_blockinput")
 function ENT:PlayerAttach( ply )
 	if not IsValid(ply) or IsValid(self.ply) then return end -- If the keyboard is already in use, don't attach the player
 
@@ -80,13 +82,12 @@ function ENT:PlayerAttach( ply )
 
 	-- Store player
 	self.ply = ply
-
 	WireLib.TriggerOutput( self, "User", ply )
 	WireLib.TriggerOutput( self, "InUse", 1 )
 	self:SetOverlayText("In use by " .. ply:Nick())
 
 	-- Block keyboard input
-	umsg.Start( "wire_keyboard_blockinput", ply ) umsg.End()
+	if ply:GetInfoNum("wire_keyboard_sync", 1) == 1 then net.Start( "wire_keyboard_blockinput" ) net.WriteBit(true) net.Send(ply) end
 
 	if IsValid(self.Pod) then
 		ply:ChatPrint( "This pod is linked to a keyboard - press ALT to leave." )
@@ -123,20 +124,21 @@ function ENT:OnRemove()
 end
 
 function ENT:PlayerDetach()
-	if not IsValid(self.ply) then return end -- If the keyboard isn't linked to a player
-
-	self.ply.WireKeyboard = nil
-	self.ply = nil
-
 	WireLib.TriggerOutput( self, "User", nil )
 	WireLib.TriggerOutput( self, "InUse", 0 )
 
 	self:SetOverlayText("Not in use")
 
 	-- Kick player out of vehicle, if in one
-	if IsValid(self.Pod) and IsValid(self.Pod:GetDriver()) then
+	if IsValid(self.Pod) and IsValid(self.Pod:GetDriver()) and self.Pod:GetDriver() == self.ply then
 		self.Pod:GetDriver():ExitVehicle()
 	end
+	
+	if IsValid(self.ply) then 
+		net.Start( "wire_keyboard_blockinput" ) net.WriteBit(false) net.Send(self.ply)
+		self.ply.WireKeyboard = nil 
+	end
+	self.ply = nil
 end
 
 function ENT:LinkPod( pod, silent )
@@ -164,6 +166,28 @@ hook.Add("PlayerLeaveVehicle", "wire_keyboard_PlayerLeaveVehicle", function( ply
 		pod.WireKeyboard:PlayerDetach()
 	end
 end)
+
+//local Wire_Keyboard_Remap = Wire_Keyboard_Remap // Defined in remap.lua
+function ENT:GetRemappedKey( key )
+	if (!key or key == 0) then return 0 end
+
+	local layout = "American"
+	if IsValid(self.ply) then layout = self.ply:GetInfo("wire_keyboard_layout", "American") end
+	local current = Wire_Keyboard_Remap[layout]
+	if (!current) then return "" end
+
+	local ret = current.normal[key]
+
+	-- Check if a special key is being held down (such as SHIFT)
+	for k,v in pairs( self.ActiveKeys ) do
+		if (v == true and current[k] and current[k][key]) then
+			ret = current[k][key]
+		end
+	end
+
+	if isstring(ret) then ret = string.byte(ret) end
+	return ret
+end
 
 function ENT:Switch( key, key_enum, on )
 	if not key then return false end -- Invalid key
@@ -229,29 +253,33 @@ function ENT:Switch( key, key_enum, on )
 	end
 end
 
-concommand.Add("wire_keyboard_press", function(ply, cmd, args)
-	if not IsValid(ply.WireKeyboard) or not IsValid(ply.WireKeyboard.ply) or ply.WireKeyboard.ply ~= ply then -- If the attachedplayer isn't using a keyboard or does not match this player
-		umsg.Start( "wire_keyboard_releaseinput", ply ) umsg.End() -- Release their input in case they got stuck or something
-		return
+function ENT:Think()
+	if not IsValid(self.ply) then
+		self:NextThink( CurTime() + 0.3 ) -- Don't need to update as often
+	else
+		if self.IgnoreFirstKey then
+			if not self.ply.keystate[KEY_E] then self.IgnoreFirstKey = nil end -- Don't start listening to keys until Use is released
+		else
+			-- Remove lifted up keys from our ActiveKeys
+			for key_enum, bool in pairs(self.ActiveKeys) do
+				if not self.ply.keystate[key_enum] then 
+					self:Switch( self:GetRemappedKey(key_enum), key_enum, false )
+				end
+			end
+			-- Check for newly pressed keys and add them to our ActiveKeys
+			for key_enum, bool in pairs(self.ply.keystate) do
+				if (key_enum == KEY_LALT and not self.ActiveKeys[KEY_LCONTROL]) then -- if LCONTROL is being pressed, then the player is trying to use the "ALT GR" key which is available for some languages
+					self:PlayerDetach() -- Pressing LALT quits the keyboard
+					continue
+				end
+
+				if not self.ActiveKeys[key_enum] then self:Switch( self:GetRemappedKey(key_enum), key_enum, true ) end
+			end
+		end
+		self:NextThink( CurTime() )
 	end
-
-	local keyboard = ply.WireKeyboard
-
-	if keyboard.IgnoreFirstKey then
-		keyboard.IgnoreFirstKey = nil
-		return
-	end
-
-	local ascii = tonumber(args[2])
-	local key_enum = tonumber(args[3])
-
-	if (key_enum == KEY_LALT and args[1] == "p" and not keyboard.ActiveKeys[KEY_LCONTROL]) then -- if LCONTROL is being pressed, then the player is trying to use the "ALT GR" key which is available for some languages
-		keyboard:PlayerDetach()
-		return
-	end
-
-	keyboard:Switch( ascii, key_enum, args[1] == "p" )
-end)
+	return true
+end
 
 function ENT:Setup(autobuffer)
 	self.AutoBuffer = autobuffer
