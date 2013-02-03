@@ -1,12 +1,4 @@
-local display_owners = false
-
-concommand.Add( "wire_holograms_display_owners", function()
-	display_owners = !display_owners
-end )
-
-hook.Add( "HUDPaint", "wire_holograms_showowners", function()
-	if !display_owners then return end
-
+local function WireHologramsShowOwners()
 	for _,ent in pairs( ents.FindByClass( "gmod_wire_hologram" ) ) do
 		local id = ent:GetNWInt( "ownerid" )
 
@@ -18,5 +10,15 @@ hook.Add( "HUDPaint", "wire_holograms_showowners", function()
 				break
 			end
 		end
+	end
+end
+
+local display_owners = false
+concommand.Add( "wire_holograms_display_owners", function()
+	display_owners = !display_owners
+	if display_owners then 
+		hook.Add( "HUDPaint", "wire_holograms_showowners", WireHologramsShowOwners)
+	else
+		hook.Remove("HUDPaint", "wire_holograms_showowners")
 	end
 end )
