@@ -131,7 +131,7 @@ function ENT:DoScale()
 
 	if self.EnableMatrix then
 		local mat = Matrix()
-		mat:Scale(scale) -- Note: We're swapping X and Y because RenderMultiply isn't consistant with the rest of source
+		mat:Scale(Vector(scale.y,scale.x,scale.z)) -- Note: We're swapping X and Y because RenderMultiply isn't consistant with the rest of source
 		self:EnableMatrix("RenderMultiply", mat)
 	else
 		-- Some entities, like ragdolls, cannot be resized with EnableMatrix, so lets average the three components to get a float
@@ -149,8 +149,7 @@ net.Receive("wire_holograms_set_scale", function( netlen )
 	local index = net.ReadUInt(16)
 
 	while index ~= 0 do
-		local x,y,z = net.ReadFloat(),net.ReadFloat(),net.ReadFloat()
-		SetScale(index, Vector(y,x,z)) -- Note: We're swapping X and Y because RenderMultiply isn't consistant with the rest of source
+		SetScale(index, Vector(net.ReadFloat(),net.ReadFloat(),net.ReadFloat()))
 		index = net.ReadUInt(16)
 	end
 end)
