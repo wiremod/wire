@@ -282,20 +282,21 @@ local function set_visible(Holo, players, visible)
 end
 
 hook.Add( "PlayerInitialSpawn", "wire_holograms_set_vars", function(ply)
-	local queue = {}
+	local s_queue = {}
 	local c_queue = {}
 
 	for pl_uid,rep in pairs( E2HoloRepo ) do
 		for k,Holo in pairs( rep ) do
 			if Holo and IsValid(Holo.ent) then
-				table.insert(queue, { Holo, Holo.scale })
-
 				local clips = Holo.clips
+				local scale = Holo.scale
+
+				table.insert(s_queue, { Holo, scale })
 
 				if clips and table.Count(clips) > 0 then
 					for cidx,clip in pairs(clips) do
 						if clip.enabled then
-							table.insert(clip_queue, {
+							table.insert(c_queue, {
 								Holo,
 								{
 									index = cidx,
@@ -305,7 +306,7 @@ hook.Add( "PlayerInitialSpawn", "wire_holograms_set_vars", function(ply)
 						end
 
 						if clip.origin and clip.normal and clip.isglobal != nil then
-							table.insert(clip_queue, {
+							table.insert(c_queue, {
 								Holo,
 								{
 									index = cidx,
@@ -321,7 +322,7 @@ hook.Add( "PlayerInitialSpawn", "wire_holograms_set_vars", function(ply)
 		end
 	end
 
-	flush_scale_queue(queue, ply)
+	flush_scale_queue(s_queue, ply)
 	flush_clip_queue(c_queue, ply)
 end)
 
