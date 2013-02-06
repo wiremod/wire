@@ -247,12 +247,7 @@ end*/
 function ENT:Think()
 	self.BaseClass.Think(self)
 
-	if (self.Inputs.Hold) and (self.Inputs.Hold.Value > 0) then
-		//do nothing for now
-	else
-		if (self.NextTargetTime) and (CurTime() < self.NextTargetTime) then return end
-		self.NextTargetTime = CurTime()+1
-
+	if not (self.Inputs.Hold and self.Inputs.Hold.Value > 0) then
 		// Find targets that meet requirements
 		local mypos = self:GetPos()
 		local bogeys,dists = {},{}
@@ -330,6 +325,8 @@ function ENT:Think()
 	else
 		self:ShowOutput(false)
 	end
+	self:NextThink(CurTime() + 1)
+	return true
 end
 
 function ENT:IsTargeted(bogey, bogeynum)
