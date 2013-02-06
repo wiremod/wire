@@ -7,7 +7,7 @@ E2Lib.RegisterExtension("propcore", false)
 PropCore = {}
 local sbox_E2_maxProps = CreateConVar( "sbox_E2_maxProps", "-1", FCVAR_ARCHIVE )
 local sbox_E2_maxPropsPerSecond = CreateConVar( "sbox_E2_maxPropsPerSecond", "4", FCVAR_ARCHIVE )
-local sbox_E2_PropCore = CreateConVar( "sbox_E2_PropCore", "2", FCVAR_ARCHIVE )
+local sbox_E2_PropCore = CreateConVar( "sbox_E2_PropCore", "2", FCVAR_ARCHIVE ) -- 2: Players can affect their own props, 1: Only admins, 0: Disabled
 
 local E2totalspawnedprops = 0
 local E2tempSpawnedProps = 0
@@ -71,7 +71,7 @@ function PropCore.CreateProp(self,model,pos,angles,freeze)
 	undo.Finish()
 	local phys = prop:GetPhysicsObject()
 	if (phys:IsValid()) then
-		if(angles!=nil) then phys:SetAngles( angles ) end
+		if(angles!=nil) then E2Lib.setAng( phys, angles ) end
 		phys:Wake()
 		if(freeze>0) then phys:EnableMotion( false ) end
 	end
@@ -87,7 +87,7 @@ function PropCore.PhysManipulate(this, pos, rot, freeze, gravity, notsolid)
 	if(notsolid!=nil) then this:SetNotSolid(notsolid ~= 0) end
 	local phys = this:GetPhysicsObject()
 	if(pos!=nil) then E2Lib.setPos( phys, Vector(pos[1],pos[2],pos[3]) ) end
-	if(rot!=nil) then phys:SetAngles(Angle(rot[1],rot[2],rot[3])) end
+	if(rot!=nil) then E2Lib.setAng( phys,  Angle(rot[1],rot[2],rot[3]) ) end
 	if(freeze!=nil) then phys:EnableMotion(freeze == 0) end
 	if(gravity!=nil) then phys:EnableGravity(gravity~=0) end
 	phys:Wake()

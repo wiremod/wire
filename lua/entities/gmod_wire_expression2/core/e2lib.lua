@@ -33,6 +33,12 @@ function E2Lib.setPos( ent, pos )
 	return ent:SetPos( E2Lib.clampPos( pos ) )
 end
 
+local huge,abs = math.huge, math.abs
+function E2Lib.setAng( ent, ang )
+	if abs(ang.pitch)==huge or abs(ang.yaw)==huge or abs(ang.roll)==huge then return false end -- SetAngles'ing inf crashes the server
+	return ent:SetAngles( ang )
+end
+
 -- getHash
 -- Returns a hash for the given string
 
