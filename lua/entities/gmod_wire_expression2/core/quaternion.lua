@@ -465,6 +465,7 @@ end
 --- Returns the inverse of <q>
 e2function quaternion inv(quaternion q)
 	local l = q[1]*q[1] + q[2]*q[2] + q[3]*q[3] + q[4]*q[4]
+	if l == 0 then return {0,0,0,0} end
 	return { q[1]/l, -q[2]/l, -q[3]/l, -q[4]/l }
 end
 
@@ -641,6 +642,7 @@ end
 --- Returns angle represented by <this>
 e2function angle quaternion:toAngle()
 	local l = sqrt(this[1]*this[1]+this[2]*this[2]+this[3]*this[3]+this[4]*this[4])
+	if l == 0 then return {0,0,0} end
 	local q1, q2, q3, q4 = this[1]/l, this[2]/l, this[3]/l, this[4]/l
 
 	local x = Vector(q1*q1 + q2*q2 - q3*q3 - q4*q4,
