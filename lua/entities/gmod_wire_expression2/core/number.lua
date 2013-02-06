@@ -390,11 +390,11 @@ registerFunction("ln", "n", "n", function(self, args)
 	return log(rv1)
 end)
 
-local const_invlog2 = 1 / log(2)
+local const_log2 = log(2)
 registerFunction("log2", "n", "n", function(self, args)
 	local op1 = args[2]
 	local rv1 = op1[1](self, op1)
-	return log(rv1) * const_invlog2
+	return log(rv1) / const_log2
 end)
 
 registerFunction("log10", "n", "n", function(self, args)
