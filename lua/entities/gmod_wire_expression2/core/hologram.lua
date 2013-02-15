@@ -558,7 +558,7 @@ e2function void holoDeleteAll()
 	clearholos(self)
 end
 
-e2function void holoReset(index, string model, vector scale, vector color, string color)
+e2function void holoReset(index, string model, vector scale, vector color, string material)
 	if !ModelList[model] then return end
 	model = ModelList[model]
 	local Holo = CheckIndex(self, index)
@@ -566,7 +566,7 @@ e2function void holoReset(index, string model, vector scale, vector color, strin
 
 	Holo.ent:SetModel(Model("models/Holograms/"..model..".mdl"))
 	Holo.ent:SetColor(Color(color[1],color[2],color[3],255))
-	Holo.ent:SetMaterial(color)
+	Holo.ent:SetMaterial(material)
 
 	rescale(Holo, scale)
 end
