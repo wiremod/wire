@@ -1,5 +1,7 @@
 E2Lib.RegisterExtension("remoteupload", false)
 
+local antispam = {}
+
 local function check(ply)
 	if antispam[ply] and antispam[ply] > CurTime() then
 		return false
