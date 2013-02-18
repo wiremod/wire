@@ -8,3 +8,14 @@ net.Receive("wire_keyboard_blockinput", function(netlen)
 		hook.Remove("PlayerBindPress", "wire_keyboard_blockinput")
 	end
 end)
+
+net.Receive("wire_keyboard_activatemessage", function(netlen)
+	local pod = net.ReadBit() ~= 0
+	local keyName = string.upper(input.GetKeyName(net.ReadUInt(16)))
+
+	if pod then
+		chat.AddText( "This pod is linked to a keyboard - press " .. keyName .. " to leave." )
+	else
+		chat.AddText( "Keyboard turned on - press " .. keyName .. " to leave." )
+	end
+end)

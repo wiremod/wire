@@ -6,6 +6,7 @@ if ( CLIENT ) then
     language.Add( "Tool.wire_keyboard.desc", "Spawns a keyboard input for use with the hi-speed wire system." )
     language.Add( "Tool.wire_keyboard.0", "Primary: Create/Update Keyboard, Secondary: Link Keyboard to pod, Reload: Unlink" )
 	language.Add( "Tool.wire_keyboard.1", "Now select the pod to link to.")
+	language.Add( "Tool.wire_keyboard.leavekey", "Leave Key" )
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20, TOOL.Mode.."s" , "You've hit the Wire "..TOOL.PluralName.." limit!" )
@@ -27,6 +28,7 @@ TOOL.ClientConVar = {
 	sync = "1",
 	layout = "American",
 	autobuffer = "1",
+	leavekey = KEY_LALT
 }
 
 function TOOL:RightClick( trace )
@@ -86,4 +88,9 @@ function TOOL.BuildCPanel(panel)
 	
 	panel:Help("When on, automatically removes the key from the buffer when the user releases it.\nWhen off, leaves all keys in the buffer until they are manually removed.\nTo manually remove a key, write any value to cell 0 to remove the first key, or write a specific ascii value to any address other than 0 to remove that specific key.")
 	panel:CheckBox("Automatic buffer clear", "wire_keyboard_autobuffer")
+
+	panel:AddControl("Numpad", {
+		Label = "#Tool.wire_keyboard.leavekey",
+		Command = "wire_keyboard_leavekey",
+	})
 end
