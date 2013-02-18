@@ -69,6 +69,7 @@ function ENT:WriteCell( Address, value )
 end
 
 util.AddNetworkString("wire_keyboard_blockinput")
+util.AddNetworkString("wire_keyboard_activatemessage")
 function ENT:PlayerAttach( ply )
 	if not IsValid(ply) or IsValid(self.ply) then return end -- If the keyboard is already in use, don't attach the player
 
@@ -88,12 +89,12 @@ function ENT:PlayerAttach( ply )
 
 	-- Block keyboard input
 	if ply:GetInfoNum("wire_keyboard_sync", 1) == 1 then net.Start( "wire_keyboard_blockinput" ) net.WriteBit(true) net.Send(ply) end
+	local leavekey = ply:GetInfoNum("wire_keyboard_leavekey", KEY_LALT)
 
-	if IsValid(self.Pod) then
-		ply:ChatPrint( "This pod is linked to a keyboard - press ALT to leave." )
-	else
-		ply:ChatPrint( "Keyboard turned on - press ALT to leave." )
-	end
+	net.Start("wire_keyboard_activatemessage")
+		net.WriteBit(IsValid(self.Pod))
+		net.WriteUInt(leavekey, 16)
+	net.Send(ply)
 
 	-- Set the wire keyboard value on the player
 	ply.WireKeyboard = self
@@ -260,17 +261,24 @@ function ENT:Think()
 		if self.IgnoreFirstKey then
 			if not self.ply.keystate[KEY_E] then self.IgnoreFirstKey = nil end -- Don't start listening to keys until Use is released
 		else
+			local leavekey = self.ply:GetInfoNum("wire_keyboard_leavekey", KEY_LALT)
+
 			-- Remove lifted up keys from our ActiveKeys
 			for key_enum, bool in pairs(self.ActiveKeys) do
 				if not self.ply.keystate[key_enum] then 
 					self:Switch( self:GetRemappedKey(key_enum), key_enum, false )
 				end
 			end
+
 			-- Check for newly pressed keys and add them to our ActiveKeys
 			for key_enum, bool in pairs(self.ply.keystate) do
-				if (key_enum == KEY_LALT and not self.ActiveKeys[KEY_LCONTROL]) then -- if LCONTROL is being pressed, then the player is trying to use the "ALT GR" key which is available for some languages
-					self:PlayerDetach() -- Pressing LALT quits the keyboard
-					continue
+				if (key_enum == leavekey) then
+					local detach = true
+					if (leavekey == KEY_ALT and self.self.ActiveKeys[KEY_LCONTROL]) then detach = nil end -- if LCONTROL and LALT are being pressed, then the player is trying to use the "ALT GR" key which is available for some languages
+					if (detach) then
+						self:PlayerDetach() -- Pressing the leave key quits the keyboard
+						continue
+					end
 				end
 
 				if not self.ActiveKeys[key_enum] then self:Switch( self:GetRemappedKey(key_enum), key_enum, true ) end
