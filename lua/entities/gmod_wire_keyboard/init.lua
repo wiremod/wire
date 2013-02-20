@@ -129,17 +129,19 @@ function ENT:PlayerDetach()
 	WireLib.TriggerOutput( self, "InUse", 0 )
 
 	self:SetOverlayText("Not in use")
+	
+	local ply = self.ply
+	self.ply = nil
 
 	-- Kick player out of vehicle, if in one
-	if IsValid(self.Pod) and IsValid(self.Pod:GetDriver()) and self.Pod:GetDriver() == self.ply then
+	if IsValid(self.Pod) and IsValid(self.Pod:GetDriver()) and self.Pod:GetDriver() == ply then
 		self.Pod:GetDriver():ExitVehicle()
 	end
 	
-	if IsValid(self.ply) then 
-		net.Start( "wire_keyboard_blockinput" ) net.WriteBit(false) net.Send(self.ply)
-		self.ply.WireKeyboard = nil 
+	if IsValid(ply) then 
+		net.Start( "wire_keyboard_blockinput" ) net.WriteBit(false) net.Send(ply)
+		ply.WireKeyboard = nil 
 	end
-	self.ply = nil
 end
 
 function ENT:LinkPod( pod, silent )
@@ -163,7 +165,7 @@ hook.Add( "PlayerEnteredVehicle", "Wire_Keyboard_PlayerEnteredVehicle", function
 end)
 
 hook.Add("PlayerLeaveVehicle", "wire_keyboard_PlayerLeaveVehicle", function( ply, pod )
-	if IsValid(pod.WireKeyboard) then
+	if IsValid(pod.WireKeyboard) and pod.WireKeyboard.ply == ply then
 		pod.WireKeyboard:PlayerDetach()
 	end
 end)
