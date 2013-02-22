@@ -3,7 +3,7 @@ WireToolSetup.open( "gpu", "Display - GPU", "gmod_wire_cpu", nil, "GPUs" )
 
 if CLIENT then
   language.Add("Tool.wire_gpu.name", "GPU Tool (Wire)")
-  language.Add("Tool.wire_gpu.desc", "Spawns a central processing unit")
+  language.Add("Tool.wire_gpu.desc", "Spawns a graphics processing unit")
   language.Add("Tool.wire_gpu.0",    "Primary: create/reflash ZGPU or other hispeed device, Secondary: open editor and/or attach debugger to the ZGPU")
   language.Add("sboxlimit_wire_gpu", "You've hit ZGPU limit!")
   language.Add("undone_wire_gpu",    "Undone the ZGPU")
@@ -185,10 +185,6 @@ if CLIENT then
   -- Build tool control panel
   ------------------------------------------------------------------------------
   function TOOL.BuildCPanel(panel)
-    panel:AddControl("Header", { Text = "#Tool.wire_gpu.name", Description = "#Tool.wire_gpu.desc" })
-
-
-    ----------------------------------------------------------------------------
     local Button = vgui.Create("DButton" , panel)
     panel:AddPanel(Button)
     Button:SetText("Online ZGPU documentation")
@@ -229,7 +225,7 @@ if CLIENT then
 
 
     ----------------------------------------------------------------------------
-    local modelPanel = WireDermaExts.ModelSelect(panel, "wire_gpu_model", list.Get("WireScreenModels"), 2)
+    local modelPanel = WireDermaExts.ModelSelect(panel, "wire_gpu_model", list.Get("WireScreenModels"), 3)
     modelPanel:SetModelList(list.Get("Wire_gate_Models"),"wire_gpu_model")
     panel:AddControl("Label", {Text = ""})
 

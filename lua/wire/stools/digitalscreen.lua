@@ -28,7 +28,7 @@ TOOL.ClientConVar = {
 }
 
 function TOOL.BuildCPanel(panel)
-	WireDermaExts.ModelSelect(panel, "wire_digitalscreen_model", list.Get( "WireScreenModels" ), 2)
+	WireDermaExts.ModelSelect(panel, "wire_digitalscreen_model", list.Get( "WireScreenModels" ), 5)
 	panel:NumSlider("Width", "wire_digitalscreen_width", 1, 512, 0)
 	panel:NumSlider("Height", "wire_digitalscreen_height", 1, 512, 0)
 	panel:CheckBox("#Create Flat to Surface", "wire_digitalscreen_createflat")

@@ -109,27 +109,14 @@ function TOOL.BuildCPanel( CPanel )
 
 	CPanel:AddControl("ComboBox", weaponSounds )
 
+	WireDermaExts.ModelSelect(CPanel, "wire_turret_model", list.Get( "WireTurretModels" ), 2)
+	
 	-- Tracer
 	local TracerType = {Label = "#Tracer", MenuButton = 0, Options={}, CVars = {}}
 		TracerType["Options"]["#Default"]			= { wire_turret_tracer = "Tracer" }
 		TracerType["Options"]["#AR2 Tracer"]		= { wire_turret_tracer = "AR2Tracer" }
 		TracerType["Options"]["#Airboat Tracer"]	= { wire_turret_tracer = "AirboatGunHeavyTracer" }
 		TracerType["Options"]["#Laser"]				= { wire_turret_tracer = "LaserTracer" }
-
-	--Turret Models
-	local TurretModels = {
-	["models/weapons/w_smg1.mdl"] = {},
-	["models/weapons/w_smg_mp5.mdl"] = {},
-	["models/weapons/w_smg_mac10.mdl"] = {},
-	["models/weapons/w_rif_m4a1.mdl"] = {},
-	["models/weapons/w_357.mdl"] = {},
-	["models/weapons/w_shot_m3super90.mdl"] = {}
-	}
-
-	CPanel:AddControl( "PropSelect", { Label = "#Select Model",
-									 ConVar = "wire_turret_model",
-									 Category = "Wire Turrets",
-									 Models = TurretModels } )
 
 	CPanel:AddControl("ComboBox", TracerType )
 

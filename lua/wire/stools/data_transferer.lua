@@ -32,7 +32,6 @@ TOOL.ClientConVar = {
 }
 
 function TOOL.BuildCPanel(panel)
-	panel:Help("#Tool.wire_data_transferer.desc")
 	WireToolHelpers.MakePresetControl(panel, "wire_data_transferer")
 	ModelPlug_AddToCPanel(panel, "Misc_Tools", "wire_data_store")
 

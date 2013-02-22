@@ -194,43 +194,7 @@ function TOOL:Holster()
 end
 
 function TOOL.BuildCPanel(panel)
-	panel:Help("#Tool.wire_vthruster.desc")
-	panel:AddControl("ComboBox", {
-		Label = "#Presets",
-		MenuButton = "1",
-		Folder = "wire_vthruster",
-		Options = {
-			Default = {
-				wire_vthruster_model = "models/jaanus/wiretool/wiretool_speed.mdl",
-				wire_vthruster_force = "1500",
-				wire_vthruster_force_min = "0",
-				wire_vthruster_force_max = "10000",
-				wire_vthruster_bidir = "1",
-				wire_vthruster_soundname = "",
-				wire_vthruster_oweffect = "fire",
-				wire_vthruster_uweffect = "same",
-				wire_vthruster_owater = "1",
-				wire_vthruster_uwater = "1",
-				wire_vthruster_mode = "0",
-				wire_vthruster_angleinputs = "0"
-			}
-		},
-		CVars = {
-			[0] = "wire_vthruster_model",
-			[1] = "wire_vthruster_force",
-			[2] = "wire_vthruster_force_min",
-			[3] = "wire_vthruster_force_max",
-			[4] = "wire_vthruster_bidir",
-			[5] = "wire_vthruster_soundname",
-			[6] = "wire_vthruster_oweffect",
-			[7] = "wire_vthruster_uweffect",
-			[8] = "wire_vthruster_owater",
-			[9] = "wire_vthruster_uwater",
-			[10] = "wire_vthruster_mode",
-			[11] = "wire_vthruster_angleinputs"
-		}
-	})
-
+	WireToolHelpers.MakePresetControl(panel, "wire_vthruster")
 	WireDermaExts.ModelSelect(panel, "wire_vthruster_model", list.Get( "ThrusterModels" ), 4, true)
 
 		local Effects = {

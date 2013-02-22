@@ -26,7 +26,7 @@ TOOL.ClientConVar = {
 }
 
 function TOOL.BuildCPanel(panel)
-	WireDermaExts.ModelSelect(panel, "wire_consolescreen_model", list.Get( "WireScreenModels" ), 2)
+	WireDermaExts.ModelSelect(panel, "wire_consolescreen_model", list.Get( "WireScreenModels" ), 5)
 	panel:CheckBox("#Create Flat to Surface", "wire_consolescreen_createflat")
 	panel:CheckBox("Weld", "wire_consolescreen_weld")
 end

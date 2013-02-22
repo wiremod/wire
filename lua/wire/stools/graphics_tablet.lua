@@ -133,22 +133,9 @@ end
 function TOOL.BuildCPanel(panel)
 	panel:AddControl("Header", { Text = "#Tool.wire_graphics_tablet.name", Description = "#Tool.wire_graphics_tablet.desc" })
 
-	WireDermaExts.ModelSelect(panel, "wire_graphics_tablet_model", list.Get( "WireScreenModels" ), 2) -- screen with out a GPUlip setup
-	panel:AddControl("CheckBox", {
-		Label = "#Tool_wire_graphics_tablet_mode",
-		Command = "wire_graphics_tablet_outmode"
-	})
-	panel:AddControl("CheckBox", {
-		Label = "#Tool_wire_graphics_tablet_draw_background",
-		Command = "wire_graphics_tablet_draw_background"
-	})
-	panel:AddControl("Checkbox", {
-		Label = "#Tool_wire_graphics_tablet_createflat",
-		Command = "wire_graphics_tablet_createflat"
-	})
-
-	panel:AddControl("Checkbox", {
-		Label = "#Tool_wire_graphics_tablet_drawoutline",
-		Command = "wire_graphics_tablet_drawoutline"
-	})
+	WireDermaExts.ModelSelect(panel, "wire_graphics_tablet_model", list.Get( "WireScreenModels" ), 5) -- screen with out a GPUlip setup
+	panel:CheckBox("#Tool_wire_graphics_tablet_mode", "wire_graphics_tablet_outmode")
+	panel:CheckBox("#Tool_wire_graphics_tablet_draw_background", "wire_graphics_tablet_draw_background")
+	panel:CheckBox("#Tool_wire_graphics_tablet_createflat", "wire_graphics_tablet_createflat")
+	panel:CheckBox("#Tool_wire_graphics_tablet_drawoutline", "wire_graphics_tablet_drawoutline")
 end

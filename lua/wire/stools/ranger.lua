@@ -59,7 +59,6 @@ TOOL.ClientConVar = {
 }
 
 function TOOL.BuildCPanel(panel)
-	panel:Help("#Tool.wire_ranger.desc")
 	ModelPlug_AddToCPanel(panel, "Laser_Tools", "wire_ranger")
 	panel:NumSlider("#Tool.wire_ranger.range", "wire_ranger_range", 1, 1000, 2 )
 	panel:CheckBox("#Tool.wire_ranger.default_zero","wire_ranger_default_zero")

@@ -7,6 +7,7 @@ TOOL.ClientConVar = {
 	fwd_speed = "8",
 	bwd_speed = "8",
 	model = "models/jaanus/wiretool/wiretool_siren.mdl",
+	modelsize = "",
 }
 
 if CLIENT then
@@ -334,22 +335,10 @@ function TOOL:Reload( trace )
 end
 
 function TOOL.BuildCPanel(panel)
-	panel:AddControl("Header", { Text = "#Tool.wire_winch.name", Description = "#Tool.wire_winch.desc" })
-	WireDermaExts.ModelSelect(panel, "wire_winch_model", list.Get( "Wire_Misc_Tools_Models" ), 1)
-
-	panel:AddControl("CheckBox", {
-		Label = "#WireWinchTool_fixed",
-		Command = "wire_winch_fixed"
-	})
-
-	panel:AddControl("Slider", {
-		Label = "#WireWinchTool_width",
-		Type = "Float",
-		Min = "1",
-		Max = "20",
-		Command = "wire_winch_width"
-	})
-
+	WireToolHelpers.MakeModelSizer(panel, "wire_winch_modelsize")
+	WireDermaExts.ModelSelect(panel, "wire_winch_model", list.Get( "Wire_Hydraulic_Models" ), 1, true)
+	panel:CheckBox("#WireWinchTool_fixed","wire_winch_fixed")
+	panel:NumSlider("#WireWinchTool_width","wire_winch_width",1,20,2)
 	panel:AddControl("MaterialGallery", {
 		Label = "#WireWinchTool_material",
 		Height = "64",

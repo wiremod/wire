@@ -344,20 +344,9 @@ function TOOL:Think() end -- Disable ghost
 
 function TOOL.BuildCPanel(panel)
 	WireToolHelpers.MakeModelSizer(panel, "wire_hydraulic_modelsize")
-	ModelPlug_AddToCPanel(panel, "Hydraulic", "wire_hydraulic", true)
-	panel:AddControl("CheckBox", {
-		Label = "#WireHydraulicTool_fixed",
-		Command = "wire_hydraulic_fixed"
-	})
-
-	panel:AddControl("Slider", {
-		Label = "#WireHydraulicTool_width",
-		Type = "Float",
-		Min = "1",
-		Max = "20",
-		Command = "wire_hydraulic_width"
-	})
-
+	WireDermaExts.ModelSelect(panel, "wire_hydraulic_model", list.Get( "Wire_Hydraulic_Models" ), 1, true)
+	panel:CheckBox("#WireHydraulicTool_fixed","wire_hydraulic_fixed")
+	panel:NumSlider("#WireHydraulicTool_width","wire_hydraulic_width",1,20,2)
 	panel:AddControl("MaterialGallery", {
 		Label = "#WireHydraulicTool_material",
 		Height = "64",

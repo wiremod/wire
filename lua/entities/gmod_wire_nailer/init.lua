@@ -66,7 +66,7 @@ end
 
 -- Free Fall's Owner Check Code
 function ENT:CheckOwner(ent)
-	ply = self.pl
+	ply = self:GetPlayer()
 
 	hasCPPI = istable( CPPI )
 	hasEPS = istable( eps )
@@ -137,7 +137,6 @@ function MakeWireNailer( pl, Pos, Ang, model, flim )
 
 	wire_nailer:Setup( flim )
 	wire_nailer:SetPlayer( pl )
-	wire_nailer.pl = pl
 
 	pl:AddCount( "wire_nailers", wire_nailer )
 

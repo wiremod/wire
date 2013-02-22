@@ -99,51 +99,10 @@ if SERVER then
 end
 
 function TOOL.BuildCPanel(panel)
-	panel:AddControl("Header", { Text = "#Tool.wire_radio.name", Description = "#Tool.wire_radio.desc" })
-
-	panel:AddControl("ComboBox", {
-		Label = "#Presets",
-		MenuButton = "1",
-		Folder = "wire_radio",
-
-		Options = {
-			Default = {
-				wire_radio_channel = "1",
-				wire_radio_values = "4",
-				wire_radio_secure = "0",
-				wire_radio_model = "models/props_lab/binderblue.mdl"
-			}
-		},
-
-		CVars = {
-			[0] = "wire_radio_channel",
-			[1] = "wire_radio_values",
-			[2] = "wire_radio_secure",
-			[3] = "wire_radio_model"
-		}
-	})
-
-	panel:AddControl("Slider", {
-		Label = "#WireRadioTool_channel",
-		Type = "Integer",
-		Min = "1",
-		Max = "30",
-		Command = "wire_radio_channel"
-	})
-
-	ModelPlug_AddToCPanel(panel, "radio", "wire_radio", true)
-
-	panel:AddControl("Slider", {
-		Label = "#WireRadioTool_values",
-		Type = "Integer",
-		Min = "1",
-		Max = "20",
-		Command = "wire_radio_values"
-	})
-
-	panel:AddControl("CheckBox", {
-		Label = "#WireRadioTool_secure",
-		Command = "wire_radio_secure"
-	})
-
+	WireToolHelpers.MakePresetControl(panel, "wire_radio")
+	WireDermaExts.ModelSelect(panel, "wire_radio_model", list.Get( "Wire_radio_Models" ), 2, true)
+	
+	panel:NumSlider("#WireRadioTool_channel","wire_radio_channel",1,30,0)
+	panel:NumSlider("#WireRadioTool_values","wire_radio_values",1,20,0)
+	panel:CheckBox("#WireRadioTool_secure","wire_radio_secure")
 end

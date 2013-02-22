@@ -108,29 +108,7 @@ if (SERVER) then
 end
 
 function TOOL.BuildCPanel(panel)
-	panel:AddControl("Header", { Text = "#Tool.wire_cd_disk.name", Description = "#Tool.wire_cd_disk.desc" })
-
-	panel:AddControl("Slider", {
-		Label = "Disk density (inches per block, ipb)",
-		Type = "Integer",
-		Min = "1",
-		Max = "16",
-		Command = "wire_cd_disk_precision"
-	})
-
-	panel:AddControl("Slider", {
-		Label = "Inner radius (disk hole radius)",
-		Type = "Integer",
-		Min = "1",
-		Max = "48",
-		Command = "wire_cd_disk_iradius"
-	})
-
-	panel:AddControl("Slider", {
-		Label = "Disk skin (0..8, standard disks only)",
-		Type = "Integer",
-		Min = "0",
-		Max = "8",
-		Command = "wire_cd_disk_skin"
-	})
+	panel:NumSlider("Disk density (inches per block, ipb)","wire_cd_disk_precision",1,16,0)
+	panel:NumSlider("Inner radius (disk hole radius)","wire_cd_disk_iradius",1,48,0)
+	panel:NumSlider("Disk skin (0..8, standard disks only)","wire_cd_disk_skin",0,8,0)
 end

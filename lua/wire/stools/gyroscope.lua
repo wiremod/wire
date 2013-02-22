@@ -28,7 +28,6 @@ TOOL.ClientConVar = {
 }
 
 function TOOL.BuildCPanel(panel)
-	panel:Help("#Tool.wire_gyroscope.desc")
 	ModelPlug_AddToCPanel(panel, "gyroscope", "wire_gyroscope")
 	panel:CheckBox("#Tool.wire_gyroscope.out180","wire_gyroscope_out180")
 end

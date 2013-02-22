@@ -331,6 +331,39 @@ for k,v in pairs(valuemodels) do
 	if file.Exists(v,"GAME") then list.Set( "Wire_Value_Models", v, true ) end
 end
 
+local hoverdrivemodels = {
+	"models/props_c17/utilityconducter001.mdl",
+	"models/Combine_Helicopter/helicopter_bomb01.mdl",
+	"models/props_combine/combine_interface001.mdl",
+	"models/props_combine/combine_interface002.mdl",
+	"models/props_combine/combine_interface003.mdl",
+	"models/props_combine/combine_emitter01.mdl",
+	"models/props_junk/sawblade001a.mdl",
+	"models/props_combine/health_charger001.mdl",
+	"models/props_combine/suit_charger001.mdl",
+	"models/props_lab/reciever_cart.mdl",
+	"models/props_lab/reciever01a.mdl",
+	"models/props_lab/reciever01b.mdl",
+	"models/props_lab/reciever01d.mdl",
+	"models/props_c17/pottery03a.mdl",
+	"models/props_wasteland/laundry_washer003.mdl"
+}
+for k,v in pairs(hoverdrivemodels) do
+	if file.Exists(v,"GAME") then list.Set( "WireHoverdriveModels", v, true ) end
+end
+
+local turretmodels = {
+	"models/weapons/w_smg1.mdl",
+	"models/weapons/w_smg_mp5.mdl",
+	"models/weapons/w_smg_mac10.mdl",
+	"models/weapons/w_rif_m4a1.mdl",
+	"models/weapons/w_357.mdl",
+	"models/weapons/w_shot_m3super90.mdl"
+}
+for k,v in pairs(turretmodels) do
+	if file.Exists(v,"GAME") then list.Set( "WireTurretModels", v, true ) end
+end
+
 --Beer's models
 --MsgN("\tBeer's Model pack")
 
@@ -383,21 +416,18 @@ list.Set( "Wire_Socket_Models", "models/wingf0x/hdmisocket.mdl", true )
 
 -- Converted from WireModelPacks/wire_model_pack_1plus.txt
 list.Set("Wire_radio_Models", "models/props_lab/reciever01b.mdl", true)
-list.Set("Wire_radio2_Models", "models/props_lab/reciever01b.mdl", true)
 list.Set("Wire_pixel_Models", "models/jaanus/wiretool/wiretool_pixel_med.mdl", true)
 list.Set("Wire_indicator_Models", "models/jaanus/wiretool/wiretool_pixel_med.mdl", true)
 list.Set("Wire_waypoint_Models", "models/jaanus/wiretool/wiretool_waypoint.mdl", true)
 list.Set("Wire_pixel_Models", "models/jaanus/wiretool/wiretool_pixel_sml.mdl", true)
 list.Set("Wire_indicator_Models", "models/jaanus/wiretool/wiretool_pixel_sml.mdl", true)
 list.Set("Wire_radio_Models", "models/props_lab/reciever01a.mdl", true)
-list.Set("Wire_radio2_Models", "models/props_lab/reciever01a.mdl", true)
 list.Set("Wire_gate_Models", "models/jaanus/wiretool/wiretool_controlchip.mdl", true)
 list.Set("Wire_chip_Models", "models/jaanus/wiretool/wiretool_controlchip.mdl", true)
 list.Set("Wire_control_Models", "models/jaanus/wiretool/wiretool_controlchip.mdl", true)
 list.Set("Wire_detonator_Models", "models/jaanus/wiretool/wiretool_detonator.mdl", true)
 list.Set("Wire_beamcasting_Models", "models/jaanus/wiretool/wiretool_beamcaster.mdl", true)
 list.Set("Wire_radio_Models", "models/props_lab/reciever01c.mdl", true)
-list.Set("Wire_radio2_Models", "models/props_lab/reciever01c.mdl", true)
 list.Set("Wire_pixel_Models", "models/jaanus/wiretool/wiretool_pixel_lrg.mdl", true)
 list.Set("Wire_indicator_Models", "models/jaanus/wiretool/wiretool_pixel_lrg.mdl", true)
 
@@ -415,7 +445,6 @@ list.Set("Wire_chip_Models", "models/kobilica/transistorsmall.mdl", true)
 list.Set("Wire_gate_Models", "models/kobilica/transistor.mdl", true)
 list.Set("Wire_chip_Models", "models/kobilica/transistor.mdl", true)
 list.Set("Wire_radio_Models", "models/cheeze/wires/wireless_card.mdl", true)
-list.Set("Wire_radio2_Models", "models/cheeze/wires/wireless_card.mdl", true)
 list.Set("Wire_gate_Models", "models/cyborgmatt/capacitor_large.mdl", true)
 list.Set("Wire_chip_Models", "models/cyborgmatt/capacitor_large.mdl", true)
 list.Set("Wire_gate_Models", "models/cheeze/wires/nano_memory.mdl", true)
@@ -429,7 +458,6 @@ list.Set("Wire_chip_Models", "models/cheeze/wires/cpu2.mdl", true)
 list.Set("Wire_gate_Models", "models/cheeze/wires/nano_math.mdl", true)
 list.Set("Wire_chip_Models", "models/cheeze/wires/nano_math.mdl", true)
 list.Set("Wire_radio_Models", "models/cheeze/wires/router.mdl", true)
-list.Set("Wire_radio2_Models", "models/cheeze/wires/router.mdl", true)
 list.Set("Wire_gate_Models", "models/cheeze/wires/nano_select.mdl", true)
 list.Set("Wire_chip_Models", "models/cheeze/wires/nano_select.mdl", true)
 list.Set("Wire_gate_Models", "models/cyborgmatt/capacitor_medium.mdl", true)
@@ -487,7 +515,6 @@ list.Set("Wire_gate_Models", "models/jaanus/wiretool/wiretool_gate.mdl", true)
 list.Set("Wire_chip_Models", "models/jaanus/wiretool/wiretool_gate.mdl", true)
 list.Set("Wire_detonator_Models", "models/props_combine/breenclock.mdl", true)
 list.Set("Wire_speaker_Models", "models/cheeze/wires/speaker.mdl", true)
-list.Set("Wire_radio2_Models", "models/props_lab/bindergreen.mdl", true)
 list.Set("Wire_indicator_Models", "models/props_c17/clock01.mdl", true)
 list.Set("Wire_indicator_Models", "models/props_c17/gravestone004a.mdl", true)
 

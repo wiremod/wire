@@ -361,57 +361,7 @@ function TOOL:Holster()
 end
 
 function TOOL.BuildCPanel(panel)
-	panel:AddControl("Header", { Text = "#Tool.wire_hudindicator.name", Description = "#Tool.wire_hudindicator.desc" })
-
-	panel:AddControl("ComboBox", {
-		Label = "#Presets",
-		MenuButton = "1",
-		Folder = "wire_hudindicator",
-
-		Options = {
-			["#Default"] = {
-				wire_hudindicator_a = "0",
-				wire_hudindicator_ar = "255",
-				wire_hudindicator_ag = "0",
-				wire_hudindicator_ab = "0",
-				wire_hudindicator_aa = "255",
-				wire_hudindicator_b = "1",
-				wire_hudindicator_br = "0",
-				wire_hudindicator_bg = "255",
-				wire_hudindicator_bb = "0",
-				wire_hudindicator_ba = "255",
-				wire_hudindicator_model = "models/jaanus/wiretool/wiretool_siren.mdl",
-				wire_hudindicator_material = "models/debug/debugwhite",
-				wire_hudindicator_rotate90 = "0",
-				wire_hudindicator_showinhud = "0",
-				wire_hudindicator_huddesc = "",
-				wire_hudindicator_hudaddname = "0",
-				wire_hudindicator_hudshowvalue = "0",
-				wire_hudindicator_hudstyle = "0"
-			}
-		},
-
-		CVars = {
-			[0] = "wire_hudindicator_a",
-			[1] = "wire_hudindicator_ar",
-			[2] = "wire_hudindicator_ag",
-			[3] = "wire_hudindicator_ab",
-			[4] = "wire_hudindicator_aa",
-			[5] = "wire_hudindicator_b",
-			[6] = "wire_hudindicator_br",
-			[7] = "wire_hudindicator_bg",
-			[8] = "wire_hudindicator_bb",
-			[9] = "wire_hudindicator_ba",
-			[10] = "wire_hudindicator_model",
-			[11] = "wire_hudindicator_material",
-			[12] = "wire_hudindicator_rotate90",
-			[13] = "wire_hudindicator_showinhud",
-			[14] = "wire_hudindicator_huddesc",
-			[15] = "wire_hudindicator_hudaddname",
-			[16] = "wire_hudindicator_hudshowvalue",
-			[17] = "wire_hudindicator_hudstyle"
-		}
-	})
+	WireToolHelpers.MakePresetControl(panel, "wire_hudindicator")
 
 	panel:AddControl("Slider", {
 		Label = "#ToolWireIndicator_a_value",

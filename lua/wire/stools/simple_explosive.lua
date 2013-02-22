@@ -38,7 +38,6 @@ TOOL.ClientConVar = {
 TOOL.ReloadSetsModel = true
 
 function TOOL.BuildCPanel(panel)
-	panel:Help("#Tool.wire_simple_explosive.desc")
 	ModelPlug_AddToCPanel(panel, "Explosive", "wire_simple_explosive")
 	panel:Help("This tool is deprecated as its functionality is contained within Wire Explosive, and will be removed soon.")
 	panel:NumSlider("#Tool.simple_explosive.trigger", "wire_simple_explosive_trigger", -10, 10, 0 )

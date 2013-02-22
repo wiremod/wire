@@ -96,15 +96,15 @@ function TOOL:GetModel()
 end
 
 function TOOL.BuildCPanel( panel )
-	panel:Help("#tool.wire_wheel.desc")
 	WireToolHelpers.MakePresetControl(panel, "wire_wheel")
 	panel:NumSlider("#tool.wire_wheel.group", "wire_wheel_fwd", -10, 10, 0)
 	panel:NumSlider("#tool.wire_wheel.group_stop", "wire_wheel_stop", -10, 10, 0)
 	panel:NumSlider("#tool.wire_wheel.group_reverse", "wire_wheel_bck", -10, 10, 0)
 	//WireDermaExts.ModelSelect(panel, "wheel_model", list.Get( "WheelModels" ), 3, true) -- This doesn't seem to set the wheel_rx convars right
-	panel:AddControl( "PropSelect", { Label = "#WheelTool_model",
+	panel:AddControl( "PropSelect", { Label = "#tool.wheel.model",
 									 ConVar = "wheel_model",
 									 Category = "Wheels",
+									 height = 5,
 									 Models = list.Get( "WheelModels" ) } )
 	panel:NumSlider("#tool.wheel.torque", "wire_wheel_torque", 10, 10000, 0)
 	panel:NumSlider("#tool.wheel.forcelimit", "wire_wheel_forcelimit", 0, 50000, 0)

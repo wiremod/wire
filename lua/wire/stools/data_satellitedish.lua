@@ -164,5 +164,4 @@ if (SERVER) then
 end
 
 function TOOL.BuildCPanel(panel)
-	panel:AddControl("Header", { Text = "#Tool.wire_data_satellitedish.name", Description = "#Tool.wire_data_satellitedish.desc" })
 end

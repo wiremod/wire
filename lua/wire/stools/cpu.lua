@@ -201,10 +201,6 @@ if CLIENT then
   -- Build tool control panel
   ------------------------------------------------------------------------------
   function TOOL.BuildCPanel(panel)
-    panel:AddControl("Header", { Text = "#Tool.wire_cpu.name", Description = "#Tool.wire_cpu.desc" })
-
-
-    ----------------------------------------------------------------------------
     local Button = vgui.Create("DButton" , panel)
     panel:AddPanel(Button)
     Button:SetText("Online ZCPU documentation")

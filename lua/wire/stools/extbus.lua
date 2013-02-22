@@ -84,7 +84,6 @@ if (SERVER) then
 end
 
 function TOOL.BuildCPanel(panel)
-	panel:AddControl("Header", { Text = "#Tool.wire_extbus.name", Description = "#Tool.wire_extbus.desc" })
-	WireDermaExts.ModelSelect(panel, "wire_extbus_model", list.Get("Wire_gate_Models"), 2)
+	WireDermaExts.ModelSelect(panel, "wire_extbus_model", list.Get("Wire_gate_Models"), 5)
 end
 

@@ -131,7 +131,5 @@ if SERVER then
 end
 
 function TOOL.BuildCPanel(panel)
-	panel:AddControl("Header", { Text = "#Tool.wire_twoway_radio.name", Description = "#Tool.wire_twoway_radio.desc" })
-
-	ModelPlug_AddToCPanel(panel, "radio2", "wire_twoway_radio", true)
+	WireDermaExts.ModelSelect(panel, "wire_twoway_radio", list.Get( "Wire_radio_Models" ), 2, true)
 end

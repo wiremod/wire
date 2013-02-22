@@ -338,10 +338,7 @@ if (CLIENT) then
 		if !(EGP) then return end
 		panel:SetSpacing( 10 )
 		panel:SetName( "E2 Graphics Processor" )
-
-		panel:AddControl( "Label", { Text = "EGP v3 by Divran" }  )
-
-		panel:AddControl("Header", { Text = "#Tool.wire_egp.name", Description = "#Tool.wire_egp.desc" })
+		
 		WireDermaExts.ModelSelect(panel, "wire_egp_model", list.Get( "WireScreenModels" ), 5)
 
 		local cbox = {}

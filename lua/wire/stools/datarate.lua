@@ -18,7 +18,7 @@ if SERVER then
 end
 
 function TOOL.BuildCPanel(panel)
-	ModelPlug_AddToCPanel(panel, "gate", "wire_datarate")
+	ModelPlug_AddToCPanel(panel, "gate", "wire_datarate", nil, 4)
 end
 
 

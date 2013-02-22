@@ -64,9 +64,8 @@ if SERVER then
 end
 
 function TOOL.BuildCPanel(panel)
-	panel:Help("#Tool.wire_explosive.desc")
 	WireToolHelpers.MakePresetControl(panel, "wire_explosive")
-	ModelPlug_AddToCPanel(panel, "Explosive", "wire_explosive")
+	ModelPlug_AddToCPanel(panel, "Explosive", "wire_explosive", nil, 3)
 	panel:NumSlider("#Tool.wire_explosive.trigger", "wire_explosive_trigger", -10, 10, 0 )
 	panel:NumSlider("#Tool.wire_explosive.damage", "wire_explosive_damage", 0, 500, 0 )
 	panel:NumSlider("#Tool.wire_explosive.radius", "wire_explosive_radius", 1, 1500, 0 )

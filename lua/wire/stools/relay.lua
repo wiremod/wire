@@ -161,42 +161,7 @@ end
 
 function TOOL.BuildCPanel(panel)
 	panel:AddControl("Header", { Text = "#Tool.wire_relay.name", Description = "#Tool.wire_relay.desc" })
-
-	panel:AddControl("ComboBox", {
-		Label = "#Presets",
-		MenuButton = "1",
-		Folder = "wire_relay",
-
-		Options = {
-			Default = {
-				wire_relay_keygroup1 = "1",
-				wire_relay_keygroup2 = "2",
-				wire_relay_keygroup3 = "3",
-				wire_relay_keygroup4 = "4",
-				wire_relay_keygroup5 = "5",
-				wire_relay_keygroupoff = "0",
-				wire_relay_toggle = "0",
-				wire_relay_nromclose = "0",
-				wire_relay_poles = "1",
-				wire_relay_throws = "2"
-			}
-		},
-
-		CVars = {
-			[0] = "wire_relay_keygroup1",
-			[1] = "wire_relay_keygroup2",
-			[2] = "wire_relay_keygroup3",
-			[3] = "wire_relay_keygroup4",
-			[4] = "wire_relay_keygroup5",
-			[5] = "wire_relay_keygroupoff",
-			[6] = "wire_relay_toggle",
-			[7] = "wire_relay_close",
-			[8] = "wire_relay_poles",
-			[9] = "wire_relay_throws"
-		}
-	})
-
-
+	WireToolHelpers.MakePresetControl(panel, "wire_radio")
 
 	panel:AddControl("Slider", {
 		Label = "#WireRelayTool_poles",

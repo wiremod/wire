@@ -140,7 +140,6 @@ if SERVER then
 end
 
 function TOOL.BuildCPanel(panel)
-	panel:AddControl("Header", { Text = "#Tool.wire_pod.name", Description = "#Tool.wire_pod.desc" })
 	ModelPlug_AddToCPanel(panel, "podctrlr", "wire_pod", nil, 1)
 
 	panel:AddControl("TextBox", {

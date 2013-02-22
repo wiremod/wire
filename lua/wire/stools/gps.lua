@@ -25,7 +25,6 @@ TOOL.ClientConVar = {
 }
 
 function TOOL.BuildCPanel(panel)
-	panel:Help("#Tool.wire_gps.desc")
 	WireToolHelpers.MakeModelSizer(panel, "wire_gps_modelsize")
 	ModelPlug_AddToCPanel(panel, "GPS", "wire_gps")
 end

@@ -96,6 +96,5 @@ if SERVER then
 end
 
 function TOOL.BuildCPanel(panel)
-	panel:AddControl("Header", { Text = "#Tool.wire_vehicle.name", Description = "#Tool.wire_vehicle.desc" })
 	WireDermaExts.ModelSelect(panel, "wire_vehicle_model", list.Get( "Wire_Misc_Tools_Models" ), 1)
 end

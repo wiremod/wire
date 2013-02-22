@@ -20,10 +20,6 @@ TOOL.ClientConVar[ "lockmodel" ] = "models/venompapa/wirecdlock.mdl"
 TOOL.ClientConVar[ "Range" ] = "64"
 TOOL.ClientConVar[ "DefaultZero" ] = "0"
 
-local transmodels = {
-    ["models/jaanus/wiretool/wiretool_siren.mdl"] = {},
-    ["models/jaanus/wiretool/wiretool_beamcaster.mdl"] = {}};
-
 cleanup.Register("wire_cd_rays")
 
 function TOOL:LeftClick(trace)
@@ -166,20 +162,6 @@ if (SERVER) then
 end
 
 function TOOL.BuildCPanel(panel)
-	panel:AddControl("Header", { Text = "#Tool.wire_cd_ray.name", Description = "#Tool.wire_cd_ray.desc" })
-
-
-	panel:AddControl( "PropSelect", { Label = "#WireCDRayTool_Model",
-									 ConVar = "wire_cd_ray_Model",
-									 Category = "Wire Data CD Ray",
-									 Models = transmodels } )
-
-	panel:AddControl("Slider", {
-		Label = "CD Ray range",
-		Type = "Float",
-		Min = "1",
-		Max = "512",
-		Command = "wire_cd_ray_Range"
-	})
+	WireDermaExts.ModelSelect(panel, "wire_cd_ray_Model", list.Get( "Wire_Laser_Tools_Models" ), 1)
+	panel:NumSlider("Range","wire_cd_ray_Range",1,512,2)
 end
-

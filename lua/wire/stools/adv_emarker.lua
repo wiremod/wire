@@ -105,7 +105,6 @@ if CLIENT then
 	end)
 
 	function TOOL.BuildCPanel(panel)
-		panel:Help("#Tool.wire_adv_emarker.desc")
 		ModelPlug_AddToCPanel(panel, "Misc_Tools", "wire_adv_emarker")
 	end
 end

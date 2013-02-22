@@ -131,18 +131,7 @@ if SERVER then
 end
 
 function TOOL.BuildCPanel(panel)
-	panel:AddControl("Header", { Text = "#Tool.wire_waypoint.name", Description = "#Tool.wire_waypoint.desc" })
-
-	panel:AddControl("Slider", {
-		Label = "#WireWaypointTool_range",
-		Type = "Float",
-		Min = "1",
-		Max = "1000",
-		Command = "wire_waypoint_range"
-	})
-		panel:AddControl("Checkbox", {
-		Label = "#WireWaypointTool_alink",
-		Command = "wire_waypoint_alink"
-	})
+	panel:NumSlider("#WireWaypointTool_range","wire_waypoint_range",1,2000,2)
+	panel:CheckBox("#WireWaypointTool_alink","wire_waypoint_alink")
 end
 

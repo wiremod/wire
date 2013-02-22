@@ -22,6 +22,5 @@ TOOL.ClientConVar = {
 }
 
 function TOOL.BuildCPanel(panel)
-	panel:Help("#Tool.wire_las_receiver.desc")
 	ModelPlug_AddToCPanel(panel, "Misc_Tools", "wire_las_receiver")
 end

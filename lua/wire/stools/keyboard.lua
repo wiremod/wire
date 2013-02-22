@@ -70,7 +70,6 @@ function TOOL:Reload(trace)
 end
 
 function TOOL.BuildCPanel(panel)
-	panel:Help("#Tool.wire_keyboard.desc")
 	ModelPlug_AddToCPanel(panel, "Keyboard", "wire_keyboard", true)
 
 	panel:Help("Lock player controls when keyboard is active")

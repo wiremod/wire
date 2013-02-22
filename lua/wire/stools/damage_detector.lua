@@ -97,7 +97,6 @@ function TOOL:DrawHUD()
 end
 
 function TOOL.BuildCPanel(panel)
-	panel:Help("#Tool.wire_damage_detector.desc")
 	ModelPlug_AddToCPanel(panel, "Misc_Tools", "wire_damage_detector")
 	panel:CheckBox("#Tool.wire_damage_detector.includeconstrained","wire_damage_detector_includeconstrained")
 end

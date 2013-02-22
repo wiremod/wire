@@ -181,10 +181,6 @@ if CLIENT then
   -- Build tool control panel
   ------------------------------------------------------------------------------
   function TOOL.BuildCPanel(panel)
-    panel:AddControl("Header", { Text = "#Tool.wire_spu.name", Description = "#Tool.wire_spu.desc" })
-
-
-    ----------------------------------------------------------------------------
     local Button = vgui.Create("DButton" , panel)
     panel:AddPanel(Button)
     Button:SetText("Online ZSPU documentation")

@@ -48,7 +48,7 @@ TOOL.ClientConVar = {
 
 function TOOL.BuildCPanel(panel)
 	WireToolHelpers.MakePresetControl(panel, "wire_screen")
-	WireDermaExts.ModelSelect(panel, "wire_screen_model", list.Get( "WireScreenModels" ), 2) -- screen with GPULib setup
+	WireDermaExts.ModelSelect(panel, "wire_screen_model", list.Get( "WireScreenModels" ), 5) -- screen with GPULib setup
 	panel:CheckBox("#Tool_wire_screen_singlevalue", "wire_screen_singlevalue")
 	panel:CheckBox("#Tool_wire_screen_singlebigfont", "wire_screen_singlebigfont")
 	panel:CheckBox("#Tool_wire_screen_leftalign", "wire_screen_leftalign")

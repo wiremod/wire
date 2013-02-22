@@ -24,7 +24,6 @@ TOOL.ClientConVar = {
 }
 
 function TOOL.BuildCPanel(panel)
-	panel:Help("#Tool.wire_nailer.desc")
 	WireToolHelpers.MakePresetControl(panel, "wire_nailer")
 	ModelPlug_AddToCPanel(panel, "Laser_Tools", "wire_nailer", true)
 	panel:NumSlider("#Force Limit", "wire_nailer_forcelim", 0, 10000, 0)

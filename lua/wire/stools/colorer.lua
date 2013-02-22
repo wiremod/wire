@@ -21,12 +21,6 @@ TOOL.ClientConVar[ "Model" ] = "models/jaanus/wiretool/wiretool_siren.mdl"
 TOOL.ClientConVar[ "outColor" ] = "0"
 TOOL.ClientConVar[ "Range" ] = "2000"
 
-local colormodels = {
-    ["models/jaanus/wiretool/wiretool_siren.mdl"] = {},
-    ["models/jaanus/wiretool/wiretool_beamcaster.mdl"] = {},
-	["models/jaanus/wiretool/wiretool_range.mdl"] = {}
-}
-
 cleanup.Register( "wire_colorers" )
 
 function TOOL:LeftClick( trace )
@@ -103,39 +97,9 @@ if SERVER then
 end
 
 function TOOL.BuildCPanel(panel)
-	panel:AddControl("Header", { Text = "#Tool.wire_colorer.name", Description = "#Tool.wire_colorer.desc" })
-
-	panel:AddControl("ComboBox", {
-		Label = "#Presets",
-		MenuButton = "1",
-		Folder = "wire_colorer",
-
-		Options = {
-			Default = {
-				wire_colorer_outColor = "0",
-			}
-		},
-		CVars = {
-		  [0] = "wire_colorer_outColor"
-		}
-	})
-
-	panel:AddControl( "PropSelect", { Label = "#WireColorerTool_Model",
-									 ConVar = "wire_colorer_Model",
-									 Category = "Wire Colorers",
-									 Models = colormodels } )
-
-	panel:AddControl("CheckBox", {
-		Label = "#WireColorerTool_outColor",
-		Command = "wire_colorer_outColor"
-	})
-
-	panel:AddControl("Slider", {
-		Label = "#WireColorerTool_Range",
-		Type = "Float",
-		Min = "1",
-		Max = "10000",
-		Command = "wire_colorer_Range"
-	})
+	WireToolHelpers.MakePresetControl(panel, "wire_colorer")
+	WireDermaExts.ModelSelect(panel, "wire_colorer_model", list.Get( "Wire_Laser_Tools_Models" ), 1, true)
+	panel:CheckBox("#WireColorerTool_outColor", "wire_colorer_outColor")
+	panel:NumSlider("#WireColorerTool_Range", "wire_colorer_Range", 1, 10000, 2)
 end
 

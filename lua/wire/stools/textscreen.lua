@@ -84,7 +84,7 @@ function TOOL.BuildCPanel(panel)
 		ShowRGB = "1",
 		Multiplier = "255"
 	})
-	WireDermaExts.ModelSelect(panel, "wire_textscreen_model", list.Get( "WireScreenModels" ), 2)
+	WireDermaExts.ModelSelect(panel, "wire_textscreen_model", list.Get( "WireScreenModels" ), 5)
 	panel:CheckBox("#Tool_wire_textscreen_createflat", "wire_textscreen_createflat")
 	panel:TextEntry("#Tool_wire_textscreen_text", "wire_textscreen_text")
 

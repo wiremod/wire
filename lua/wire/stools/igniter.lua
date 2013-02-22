@@ -32,7 +32,7 @@ TOOL.ClientConVar = {
 
 function TOOL.BuildCPanel(panel)
 	WireToolHelpers.MakePresetControl(panel, "wire_igniter")
-	ModelPlug_AddToCPanel(panel, "Laser_Tools", "wire_igniter", true)
+	WireDermaExts.ModelSelect(panel, "wire_igniter_Model", list.Get( "Wire_Laser_Tools_Models" ), 1, true)
 	panel:CheckBox("#WireIgniterTool_trgply", "wire_igniter_trgply")
 	panel:NumSlider("#WireIgniterTool_Range", "wire_igniter_range", 1, 10000, 0)
 end

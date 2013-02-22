@@ -73,38 +73,10 @@ if (SERVER) then
 else
 	function TOOL:LeftClick( trace ) return !trace.Entity:IsPlayer() end
 
-	local TeleModels = { ["models/props_c17/utilityconducter001.mdl"] = {},
-						 ["models/Combine_Helicopter/helicopter_bomb01.mdl"] = {},
-						 ["models/props_combine/combine_interface001.mdl"] = {},
-						 ["models/props_combine/combine_interface002.mdl"] = {},
-						 ["models/props_combine/combine_interface003.mdl"] = {},
-						 ["models/props_combine/combine_emitter01.mdl"] = {},
-						 ["models/props_junk/sawblade001a.mdl"] = {},
-						 ["models/props_combine/health_charger001.mdl"] = {},
-						 ["models/props_combine/suit_charger001.mdl"] = {},
-						 ["models/props_lab/reciever_cart.mdl"] = {},
-						 ["models/props_lab/reciever01a.mdl"] = {},
-						 ["models/props_lab/reciever01b.mdl"] = {},
-						 ["models/props_lab/reciever01d.mdl"] = {},
-						 ["models/props_c17/pottery03a.mdl"] = {},
-						 ["models/props_wasteland/laundry_washer003.mdl"] = {} }
-
 	function TOOL.BuildCPanel(panel)
-		panel:AddControl("Header", { Text = "#Tool.wire_hoverdrivecontroller.name", Description = "#Tool.wire_hoverdrivecontroller.desc" })
-		panel:AddControl( "PropSelect", {
-			Label = "#Models (Or click Reload to select a model)",
-			ConVar = "wire_hoverdrivecontroller_model",
-			Category = "Hoverdrive Controller",
-			Models = TeleModels
-		})
-		panel:AddControl( "Checkbox", {
-			Label = "#Tool_wire_hoverdrivecontroller_effects",
-			Command = "wire_hoverdrivecontroller_effects",
-		})
-		panel:AddControl( "Checkbox", {
-			Label = "#Tool_wire_hoverdrivecontroller_sounds",
-			Command = "wire_hoverdrivecontroller_sounds",
-		})
+		WireDermaExts.ModelSelect(panel, "wire_hoverdrivecontroller_model", list.Get( "WireHoverdriveModels" ), 4)
+		panel:CheckBox("#Tool_wire_hoverdrivecontroller_effects","wire_hoverdrivecontroller_effects")
+		panel:CheckBox("#Tool_wire_hoverdrivecontroller_sounds","wire_hoverdrivecontroller_sounds")
 	end
 end
 
