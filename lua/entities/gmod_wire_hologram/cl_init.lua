@@ -55,8 +55,11 @@ function ENT:FinishClipping()
 end
 
 function ENT:Draw()
-	if self.visible != vis_buffer[self:EntIndex()] then
-		self.visible = vis_buffer[self:EntIndex()]
+	local eidx = self:EntIndex()
+
+	if vis_buffer[eidx] != nil then
+		self.visible = vis_buffer[eidx]
+		vis_buffer[eidx] = nil
 	end
 
 	if self.blocked or self.visible == false then return end //self.visible and vis_buffer[] is nil by default, but nil != false
@@ -127,7 +130,12 @@ end
 function ENT:DoScale()
 	local eidx = self:EntIndex()
 
-	local scale = scale_buffer[eidx] or Vector(1,1,1)
+	if(scale_buffer[eidx] != nil) then
+		self.scale = scale_buffer[eidx]
+		scale_buffer[eidx] = nil
+	end
+
+	local scale = self.scale or Vector(1,1,1)
 
 	local count = self:GetBoneCount() or -1
 	if count > 1 then
@@ -146,8 +154,6 @@ function ENT:DoScale()
 	local propmax = self:OBBMaxs()
 	local propmin = self:OBBMins()
 	self:SetRenderBounds( Vector(scale.x*propmax.x, scale.y*propmax.y, scale.z*propmax.z), Vector(scale.x*propmin.x, scale.y*propmin.y, scale.z*propmin.z) )
-	
-	scale_buffer[eidx] = nil
 end
 
 net.Receive("wire_holograms_set_scale", function( netlen )
