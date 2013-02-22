@@ -339,25 +339,5 @@ function TOOL.BuildCPanel(panel)
 	WireDermaExts.ModelSelect(panel, "wire_winch_model", list.Get( "Wire_Hydraulic_Models" ), 1, true)
 	panel:CheckBox("#WireWinchTool_fixed","wire_winch_fixed")
 	panel:NumSlider("#WireWinchTool_width","wire_winch_width",1,20,2)
-	panel:AddControl("MaterialGallery", {
-		Label = "#WireWinchTool_material",
-		Height = "64",
-		Width = "28",
-		Rows = "1",
-		Stretch = "1",
-
-		Options = {
-			["Wire"] = { Material = "cable/rope_icon", wire_winch_material = "cable/rope" },
-			["Cable 2"] = { Material = "cable/cable_icon", wire_winch_material = "cable/cable2" },
-			["XBeam"] = { Material = "cable/xbeam", wire_winch_material = "cable/xbeam" },
-			["Red Laser"] = { Material = "cable/redlaser", wire_winch_material = "cable/redlaser" },
-			["Blue Electric"] = { Material = "cable/blue_elec", wire_winch_material = "cable/blue_elec" },
-			["Physics Beam"] = { Material = "cable/physbeam", wire_winch_material = "cable/physbeam" },
-			["Hydra"] = { Material = "cable/hydra", wire_winch_material = "cable/hydra" },
-		},
-
-		CVars = {
-			[0] = "wire_winch_material"
-		}
-	})
+	panel:AddControl( "RopeMaterial", { Label = "#WireWinchTool_material", convar = "wire_winch_material" } )
 end

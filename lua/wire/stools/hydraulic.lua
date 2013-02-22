@@ -347,25 +347,5 @@ function TOOL.BuildCPanel(panel)
 	WireDermaExts.ModelSelect(panel, "wire_hydraulic_model", list.Get( "Wire_Hydraulic_Models" ), 1, true)
 	panel:CheckBox("#WireHydraulicTool_fixed","wire_hydraulic_fixed")
 	panel:NumSlider("#WireHydraulicTool_width","wire_hydraulic_width",1,20,2)
-	panel:AddControl("MaterialGallery", {
-		Label = "#WireHydraulicTool_material",
-		Height = "64",
-		Width = "28",
-		Rows = "1",
-		Stretch = "1",
-
-		Options = {
-			["Wire"] = { Material = "cable/rope_icon", wire_hydraulic_material = "cable/rope" },
-			["Cable 2"] = { Material = "cable/cable_icon", wire_hydraulic_material = "cable/cable2" },
-			["XBeam"] = { Material = "cable/xbeam", wire_hydraulic_material = "cable/xbeam" },
-			["Red Laser"] = { Material = "cable/redlaser", wire_hydraulic_material = "cable/redlaser" },
-			["Blue Electric"] = { Material = "cable/blue_elec", wire_hydraulic_material = "cable/blue_elec" },
-			["Physics Beam"] = { Material = "cable/physbeam", wire_hydraulic_material = "cable/physbeam" },
-			["Hydra"] = { Material = "cable/hydra", wire_hydraulic_material = "cable/hydra" },
-		},
-
-		CVars = {
-			[0] = "wire_hydraulic_material"
-		}
-	})
+	panel:AddControl( "RopeMaterial", { Label = "#WireHydraulicTool_material", convar = "wire_hydraulic_material" } )
 end

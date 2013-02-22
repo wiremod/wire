@@ -314,15 +314,10 @@ function TOOL.BuildCPanel(panel)
 		Max = "5",
 		Command = "wire_width"
 	})
-
-	panel:AddControl( "MatSelect", {
-			Height = "1",
-			Label = "#WireTool_material",
-			ItemWidth = 24,
-			ItemHeight = 64,
-			ConVar = "wire_material",
-			Options = list.Get( "WireMaterials" )
-		} )
+	
+	local matselect = panel:AddControl( "RopeMaterial", { Label = "#WireTool_material", convar = "wire_material" } )
+	matselect:AddMaterial("Arrowire", "arrowire/arrowire")
+	matselect:AddMaterial("Arrowire2", "arrowire/arrowire2")
 
 	panel:AddControl("Color", {
 		Label = "#WireTool_colour",

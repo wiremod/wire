@@ -606,31 +606,9 @@ elseif CLIENT then
 		WireToolHelpers.MakePresetControl(panel, "wire_adv")
 
 		panel:NumSlider("#WireTool_width", "wire_adv_width", 0, 5, 2)
-		panel:AddControl("MaterialGallery", {
-			Label = "#WireTool_material",
-			Height = "64",
-			Width = "24",
-			Rows = "1",
-			Stretch = "1",
-
-			Options = {
-				["Wire"] = { Material = "cable/rope_icon", wire_adv_material = "cable/rope" },
-				["Cable 2"] = { Material = "cable/cable_icon", wire_adv_material = "cable/cable2" },
-				["XBeam"] = { Material = "cable/xbeam", wire_adv_material = "cable/xbeam" },
-				["Red Laser"] = { Material = "cable/redlaser", wire_adv_material = "cable/redlaser" },
-				["Blue Electric"] = { Material = "cable/blue_elec", wire_adv_material = "cable/blue_elec" },
-				["Physics Beam"] = { Material = "cable/physbeam", wire_adv_material = "cable/physbeam" },
-				["Hydra"] = { Material = "cable/hydra", wire_adv_material = "cable/hydra" },
-
-			--new wire materials by Acegikmo
-				["Arrowire"] = { Material = "arrowire/arrowire", wire_adv_material = "arrowire/arrowire" },
-				["Arrowire2"] = { Material = "arrowire/arrowire2", wire_adv_material = "arrowire/arrowire2" },
-			},
-
-			CVars = {
-				[0] = "wire_adv_material"
-			}
-		})
+		local matselect = panel:AddControl( "RopeMaterial", { Label = "#WireTool_material", convar = "wire_adv_material" } )
+		matselect:AddMaterial("Arrowire", "arrowire/arrowire")
+		matselect:AddMaterial("Arrowire2", "arrowire/arrowire2")
 
 		panel:AddControl("Color", {
 			Label = "#WireTool_colour",
