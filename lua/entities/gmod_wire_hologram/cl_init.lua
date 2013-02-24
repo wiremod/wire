@@ -8,13 +8,20 @@ local clip_buffer = {}
 local vis_buffer = {}
 
 function ENT:Initialize( )
-	self:DoScale()
-
 	local ownerid = self:GetNetworkedInt("ownerid")
 	self.blocked = blocked[ownerid] or false
 
 	self.clips = {}
 end
+
+hook.Add( "PlayerBindPress", "wire_hologram_scale_setup", function() -- For initial spawn
+	for _,ent in pairs(ents.FindByClass("gmod_wire_hologram")) do
+		if ent:IsValid() and ent.DoScale then
+			ent:DoScale()
+		end
+	end
+	hook.Remove("PlayerBindPress", "wire_hologram_scale_setup")
+end )
 
 function ENT:SetupClipping()
 	local eidx = self:EntIndex()
