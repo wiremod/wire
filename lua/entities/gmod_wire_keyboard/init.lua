@@ -247,10 +247,12 @@ function ENT:Switch( key, key_enum, on )
 			end
 
 			self.Buffer[0] = self.Buffer[0] - 1
+			
+			if self.Autobuffer then
+				-- Set active state to 'off'
+				self.ActiveKeys[key_enum] = nil
+			end
 		end
-
-		-- Set active state to 'off'
-		self.ActiveKeys[key_enum] = nil
 
 		WireLib.TriggerOutput( self, "Memory", 0 )
 	end
@@ -269,6 +271,7 @@ function ENT:Think()
 			for key_enum, bool in pairs(self.ActiveKeys) do
 				if not self.ply.keystate[key_enum] then 
 					self:Switch( self:GetRemappedKey(key_enum), key_enum, false )
+					self.ActiveKeys[key_enum] = nil
 				end
 			end
 
