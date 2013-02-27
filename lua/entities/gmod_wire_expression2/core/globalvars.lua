@@ -91,7 +91,7 @@ registerOperator("fea","xgt","s",function(self,args)
 end)
 
 e2function number operator_is( gtable tbl )
-	return istable(tbl)
+	return istable(tbl) and 1 or 0
 end
 
 ------------------------------------------------
