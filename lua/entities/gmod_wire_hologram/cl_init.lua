@@ -8,6 +8,7 @@ local clip_buffer = {}
 local vis_buffer = {}
 
 function ENT:Initialize( )
+	self:DoScale()
 	local ownerid = self:GetNetworkedInt("ownerid")
 	self.blocked = blocked[ownerid] or false
 
