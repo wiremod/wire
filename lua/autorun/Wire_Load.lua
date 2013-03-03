@@ -104,3 +104,9 @@ if CLIENT then
 	-- Temporary workaround while OnEntityCreated isn't working...
 	timer.Create("OnEntityCreatedWorkaround", 10, 1, function() hook.Call("OnEntityCreated",GAMEMODE,LocalPlayer()) end)
 end
+
+-- Load UWSVN, done here so its definitely after Wire is loaded.
+if file.Find("wire/uwsvn_load.lua","LUA")[1] then
+	if SERVER then AddCSLuaFile( "wire/uwsvn_load.lua" ) end
+	include("wire/uwsvn_load.lua")
+end
