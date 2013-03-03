@@ -252,7 +252,7 @@ e2function void propSpawnEffect(number on)
 end
 
 e2function number propCanCreate()
-	if ValidSpawn() then return 1 end
+	if PropCore.ValidSpawn() then return 1 end
 	return 0
 end
 
