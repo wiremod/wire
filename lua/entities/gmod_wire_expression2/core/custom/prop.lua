@@ -251,6 +251,11 @@ e2function void propSpawnEffect(number on)
 	self.data.propSpawnEffect = on ~= 0
 end
 
+e2function number propCanCreate()
+	if ValidSpawn() then return 1 end
+	return 0
+end
+
 registerCallback("construct", function(self)
 	self.data.propSpawnEffect = true
 end)
