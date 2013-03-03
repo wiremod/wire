@@ -611,7 +611,7 @@ e2function string entity:toString() = e2function string toString(entity ent)
 /******************************************************************************/
 
 local function SetTrails(Player, Entity, Data)
-	if Entity.SToolTrail then
+	if IsValid(Entity.SToolTrail) then
 		Entity.SToolTrail:Remove()
 		Entity.SToolTrail = nil
 	end
