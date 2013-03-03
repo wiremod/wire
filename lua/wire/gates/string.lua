@@ -49,7 +49,7 @@ GateActions["string_length"] = {
 	inputtypes = { "STRING" },
 	output = function(gate, A)
 		if !A then A = "" end
-		if string.len(A) then return string.len(A) else return 0 end
+		return #A
 	end,
 	label = function(Out, A)
 		return string.format ("length(%s) = %d", A, Out)
@@ -280,8 +280,7 @@ GateActions["string_select"] = {
 	inputtypes = { "NORMAL", "STRING", "STRING", "STRING", "STRING", "STRING", "STRING", "STRING", "STRING" },
 	outputtypes = { "STRING" },
 	output = function(gate, Choice, ...)
-		math.Clamp(Choice,1,8)
-		return ({...})[Choice]
+		return ({...})[math.Clamp(Choice,1,8)]
 	end,
 	label = function(Out, Choice)
 	    return string.format ("select(%s) = %s", Choice, Out)
