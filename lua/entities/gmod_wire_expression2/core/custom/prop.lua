@@ -193,30 +193,30 @@ end
 
 e2function void entity:propFreeze(number freeze)
 	if not PropCore.ValidAction(self, this, "freeze") then return end
-	PropCore.PhysManipulate(this, pos, rot, freeze, gravity, notsolid)
+	PropCore.PhysManipulate(this, nil, nil, freeze, nil, nil)
 end
 
 e2function void entity:propNotSolid(number notsolid)
 	if not PropCore.ValidAction(self, this, "solid") then return end
-	PropCore.PhysManipulate(this, pos, rot, freeze, gravity, notsolid)
+	PropCore.PhysManipulate(this, nil, nil, nil, nil, notsolid)
 end
 
 e2function void entity:propGravity(number gravity)
 	if not PropCore.ValidAction(self, this, "gravity") then return end
-	PropCore.PhysManipulate(this, pos, rot, freeze, gravity, notsolid)
+	PropCore.PhysManipulate(this, nil, nil, nil, gravity, nil)
 end
 --------------------------------------------------------------------------------
 
 e2function void entity:setPos(vector pos)
 	if not PropCore.ValidAction(self, this, "pos") then return end
-	PropCore.PhysManipulate(this, pos, rot, freeze, gravity, notsolid)
+	PropCore.PhysManipulate(this, pos, nil, nil, nil, nil)
 end
 
 e2function void entity:reposition(vector pos) = e2function void entity:setPos(vector pos)
 
 e2function void entity:setAng(angle rot)
 	if not PropCore.ValidAction(self, this, "ang") then return end
-	PropCore.PhysManipulate(this, pos, rot, freeze, gravity, notsolid)
+	PropCore.PhysManipulate(this, nil, rot, nil, nil, nil)
 end
 
 e2function void entity:rerotate(angle rot) = e2function void entity:setAng(angle rot)
