@@ -163,7 +163,7 @@ local function flush_clip_queue(queue, recipient)
 				elseif clip.origin and clip.normal and clip.isglobal then
 					net.WriteBit(false)
 					net.WriteVector(clip.origin)
-					net.WriteVector(clip.normal)
+					net.WriteFloat(clip.normal.x) net.WriteFloat(clip.normal.y) net.WriteFloat(clip.normal.z)
 					net.WriteBit(clip.isglobal ~= 0)
 				end
 			end
