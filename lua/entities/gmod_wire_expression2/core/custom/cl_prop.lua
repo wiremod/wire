@@ -12,3 +12,4 @@ E2Helper.Descriptions["rerotate"] = "Deprecated. Kept for backwards-compatibilit
 E2Helper.Descriptions["parentTo"] = "Parents one entity to another."
 E2Helper.Descriptions["deparent"] = "Unparents an entity, so it moves freely again."
 E2Helper.Descriptions["propBreak"] = "Breaks/Explodes breakable/explodable props (Usefull for Mines)."
+E2Helper.Descriptions["propCanCreate"] = "Returns 1 when propSpawn() will successfully spawn a prop until the limit is reached."
