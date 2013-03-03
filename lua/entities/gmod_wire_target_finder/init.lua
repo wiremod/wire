@@ -17,7 +17,7 @@ end
 
 function ENT:Setup(maxrange, players, npcs, npcname, beacons, hoverballs, thrusters, props, propmodel, vehicles, playername, casesen, rpgs, painttarget, minrange, maxtargets, maxbogeys, notargetowner, entity, notownersstuff, steamname, colorcheck, colortarget, pcolR, pcolG, pcolB, pcolA, checkbuddylist, onbuddylist )	
 	local ttable = { -- For dupe support
-		range		= range,
+		range		= maxrange,
 		players		= players,
 		npcs		= npcs,
 		npcname		= npcname,
@@ -38,8 +38,6 @@ function ENT:Setup(maxrange, players, npcs, npcname, beacons, hoverballs, thrust
 		casesen		= casesen,
 		rpgs		= rpgs,
 		painttarget = painttarget,
-		nocollide	= nocollide,
-		description	= description,
 		minrange	= minrange,
 		maxtargets	= maxtargets,
 		maxbogeys	= maxbogeys,
