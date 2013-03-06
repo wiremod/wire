@@ -18,7 +18,7 @@ local function ResetRanger(self)
 	data.rangerfilter_lookup = { [self.entity] = true }
 end
 
-local function ranger(self, rangertype, range, p1, p2, hulltype, mins, maxs )
+local function ranger(self, rangertype, range, p1, p2, hulltype, mins, maxs, traceEntity )
 	local data = self.data
 	local chip = self.entity
 
@@ -85,7 +85,9 @@ local function ranger(self, rangertype, range, p1, p2, hulltype, mins, maxs )
 
 	---------------------------------------------------------------------------------------
 	local trace
-	if (hulltype) then
+	if IsValid(traceEntity) then
+		trace = util.TraceEntity( tracedata, traceEntity )
+	elseif (hulltype) then
 		if (hulltype == 1) then
 			local s = Vector(mins[1], mins[2], mins[3])
 			tracedata.mins = s/2*-1
@@ -253,13 +255,13 @@ e2function ranger ranger(distance, xskew, yskew)
 end
 
 -- Same as ranger(distance) but for another entity
-e2function ranger entity:ranger(distance)
-	if not IsValid( this ) then return nil end
-	if (!self.data.rangerfilter_lookup[this]) then
-		self.data.rangerfilter[#self.data.rangerfilter+1] = this
-		self.data.rangerfilter_lookup[this] = true
+e2function ranger ranger(entity ent, distance)
+	if not IsValid( ent ) then return nil end
+	if (!self.data.rangerfilter_lookup[ent]) then
+		self.data.rangerfilter[#self.data.rangerfilter+1] = ent
+		self.data.rangerfilter_lookup[ent] = true
 	end
-	return ranger(self,3,distance,this:GetPos(),this:GetUp())
+	return ranger(self,3,distance,ent:GetPos(),ent:GetUp())
 end
 
 --- You input the distance, x-angle and y-angle (both in degrees) it returns ranger data
@@ -475,6 +477,15 @@ end
 -- distance, xskew, yskew, mins, maxs
 e2function ranger rangerHull(distance, xskew, yskew, vector mins, vector maxs)
 	return ranger(self, 0, distance, xskew, yskew, 2, mins, maxs)
+end
+
+-- Use util.TraceEntity for collison box trace
+e2function ranger rangerHull(entity ent, vector from, vector to)
+	if IsValid(ent) and !ent:IsWorld() then
+		return ranger(self, 2, 0, from, to, 0, 0, 0, ent)
+	else
+		return nil
+	end
 end
 
 -- distance, xangle, yangle, size
