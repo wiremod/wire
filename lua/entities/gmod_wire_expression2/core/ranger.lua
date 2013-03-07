@@ -479,15 +479,6 @@ e2function ranger rangerHull(distance, xskew, yskew, vector mins, vector maxs)
 	return ranger(self, 0, distance, xskew, yskew, 2, mins, maxs)
 end
 
--- Use util.TraceEntity for collison box trace
-e2function ranger rangerHull(entity ent, vector from, vector to)
-	if IsValid(ent) and !ent:IsWorld() then
-		return ranger(self, 2, 0, from, to, 0, 0, 0, ent)
-	else
-		return nil
-	end
-end
-
 -- distance, xangle, yangle, size
 e2function ranger rangerAngleHull(distance, xangle, yangle, vector size)
 	return ranger(self, 1, distance, xangle, yangle, 1, size)
@@ -516,6 +507,15 @@ end
 -- distance, startpos, direction mins, maxs
 e2function ranger rangerOffsetHull( number distance, vector startpos, vector direction, vector mins, vector maxs )
 	return ranger( self, 3, distance, startpos, direction, 2, mins, maxs )
+end
+
+-- Use util.TraceEntity for collison box trace
+e2function ranger rangerOffsetHull(entity ent, vector from, vector to)
+	if IsValid(ent) and !ent:IsWorld() then
+		return ranger(self, 2, 0, from, to, 0, 0, 0, ent)
+	else
+		return nil
+	end
 end
 
 /******************************************************************************/
