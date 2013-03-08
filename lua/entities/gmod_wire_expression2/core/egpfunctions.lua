@@ -360,6 +360,61 @@ e2function void wirelink:egpAddVertices( number index, array args )
 	end
 end
 
+--------------------------------------------------------
+-- egpLineStrip (PolyOutline without the final connecting line)
+--------------------------------------------------------
+
+e2function void wirelink:egpLineStrip( number index, ... )
+	if (!EGP:IsAllowed( self, this )) then return end
+	if (!EGP:ValidEGP( this )) then return end
+	local args = {...}
+	if (#args<3) then return end -- No less than 3
+
+	local max = maxvertices()
+
+	-- Each arg must be a vec2 or vec4
+	local vertices = {}
+	for k,v in ipairs( args ) do
+		if (typeids[k] == "xv2" or typeids[k] == "xv4") then
+			n = #vertices
+			if (n > max) then break end
+			vertices[n+1] = { x = v[1], y = v[2] }
+			if (typeids[k] == "xv4") then
+				vertices[n+1].u = v[3]
+				vertices[n+1].v = v[4]
+			end
+		end
+	end
+
+	local bool, obj = EGP:CreateObject( this, EGP.Objects.Names["LineStrip"], { index = index, vertices = vertices }, self.player )
+	if (bool) then EGP:DoAction( this, self, "SendObject", obj ) Update(self,this) end
+end
+
+e2function void wirelink:egpLineStrip( number index, array args )
+	if (!EGP:IsAllowed( self, this )) then return end
+	if (!EGP:ValidEGP( this )) then return end
+	if (#args<3) then return end -- No less than 3
+
+	local max = maxvertices()
+
+	-- Each arg must be a vec2 or vec4
+	local vertices = {}
+	for k,v in ipairs( args ) do
+		if istable(v) and (#v == 2 or #v == 4) then
+			n = #vertices
+			if (n > max) then break end
+			vertices[n+1] = { x = v[1], y = v[2] }
+			if (#v == 4) then
+				vertices[n+1].u = v[3]
+				vertices[n+1].v = v[4]
+			end
+		end
+	end
+
+	local bool, obj = EGP:CreateObject( this, EGP.Objects.Names["LineStrip"], { index = index, vertices = vertices }, self.player )
+	if (bool) then EGP:DoAction( this, self, "SendObject", obj ) Update(self,this) end
+end
+
 __e2setcost(15)
 
 --------------------------------------------------------
