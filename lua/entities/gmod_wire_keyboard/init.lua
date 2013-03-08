@@ -191,11 +191,14 @@ end
 
 function ENT:KeyPressed( key_enum )
 	local key = self:GetRemappedKey(key_enum)
+	if key == nil then
+		ErrorNoHalt("Wire Keyboard in use by ["..tostring(self.ply).."]: Unknown key_enum["..tostring(key_enum).."] pressed!")
+		return
+	end
 
 	if not All_Enums[key] then All_Enums[key] = key_enum end
 	
 	self.ActiveKeys[key_enum] = true
-
 	self:PushBuffer( key, key_enum )
 	
 	WireLib.TriggerOutput( self, "Memory", key )
@@ -203,6 +206,10 @@ end
 
 function ENT:KeyReleased( key_enum )
 	local key = self:GetRemappedKey(key_enum)
+	if key == nil then
+		ErrorNoHalt("Wire Keyboard in use by ["..tostring(self.ply).."]: Unknown key_enum["..tostring(key_enum).."] released!")
+		return
+	end
 
 	self.ActiveKeys[key_enum] = nil
 
