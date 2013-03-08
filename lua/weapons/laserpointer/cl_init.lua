@@ -44,6 +44,7 @@ function SWEP:DrawWorldModel()
         //Draw the laser beam.
         render.SetMaterial( LASER )
 		local posang = self.WM:GetAttachment(self.WAttach)
+		if not posang then self.WM = nil ErrorNoHalt("Laserpointer CL: Attachment lost, did they change model or something?\n") return end
 		render.DrawBeam(posang.Pos + posang.Ang:Forward()*10 + posang.Ang:Up()*4.4 + posang.Ang:Right(), self.Owner:GetEyeTrace().HitPos, 2, 0, 12.5, Color(255, 0, 0, 255))
     end
 end
