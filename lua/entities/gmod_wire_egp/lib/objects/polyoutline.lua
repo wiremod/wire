@@ -18,7 +18,7 @@ Obj.Draw = function( self )
 	end
 end
 Obj.Transmit = function( self, Ent, ply )
-	net.WriteUInt( #self.vertices, 8 )
+	net.WriteUInt( #self.vertices, 16 )
 	for i=1,#self.vertices do
 		net.WriteInt( self.vertices[i].x, 16 )
 		net.WriteInt( self.vertices[i].y, 16 )
@@ -31,7 +31,7 @@ end
 Obj.Receive = function( self )
 	local tbl = {}
 	tbl.vertices = {}
-	for i=1,net.ReadUInt(8) do
+	for i=1,net.ReadUInt(16) do
 		tbl.vertices[ #tbl.vertices+1 ] = { x = net.ReadInt(16), y = net.ReadInt(16) }
 	end
 	tbl.parent = net.ReadInt(16)
