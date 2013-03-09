@@ -169,7 +169,7 @@ end)
 
 //local Wire_Keyboard_Remap = Wire_Keyboard_Remap // Defined in remap.lua
 function ENT:GetRemappedKey( key_enum )
-	if not key_enum or key_enum == 0 then return 0 end
+	if not key_enum or key_enum == 0 or key_enum > KEY_LAST then return 0 end -- Above KEY_LAST are joystick and mouse enums
 
 	local layout = "American"
 	if IsValid(self.ply) then layout = self.ply:GetInfo("wire_keyboard_layout", "American") end
@@ -191,10 +191,7 @@ end
 
 function ENT:KeyPressed( key_enum )
 	local key = self:GetRemappedKey(key_enum)
-	if key == nil then
-		ErrorNoHalt("Wire Keyboard in use by ["..tostring(self.ply).."]: Unknown key_enum["..tostring(key_enum).."] pressed!")
-		return
-	end
+	if key == nil or key == 0 then return end
 
 	if not All_Enums[key] then All_Enums[key] = key_enum end
 	
@@ -206,10 +203,7 @@ end
 
 function ENT:KeyReleased( key_enum )
 	local key = self:GetRemappedKey(key_enum)
-	if key == nil then
-		ErrorNoHalt("Wire Keyboard in use by ["..tostring(self.ply).."]: Unknown key_enum["..tostring(key_enum).."] released!")
-		return
-	end
+	if key == nil or key == 0 then return end
 
 	self.ActiveKeys[key_enum] = nil
 
