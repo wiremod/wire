@@ -8,11 +8,11 @@ end
 
 /******************************************************************************/
 
-CreateConVar( "wire_holograms_max", "128" )
-CreateConVar( "wire_holograms_spawn_amount", "10" )
-CreateConVar( "wire_holograms_burst_amount", "30" )
+CreateConVar( "wire_holograms_max", "250" )
+CreateConVar( "wire_holograms_spawn_amount", "15" ) -- This limit resets once a second
+CreateConVar( "wire_holograms_burst_amount", "80" ) -- This limit goes down first; resets every burst_delay
 CreateConVar( "wire_holograms_burst_delay", "10" )
-CreateConVar( "wire_holograms_max_clips", "5" )
+CreateConVar( "wire_holograms_max_clips", "5" ) -- Don't set higher than 16 without editing net.Start("wire_holograms_clip")
 local wire_holograms_size_max = CreateConVar( "wire_holograms_size_max", "50" )
 util.AddNetworkString("wire_holograms_set_visible")
 util.AddNetworkString("wire_holograms_clip")
@@ -156,7 +156,7 @@ local function flush_clip_queue(queue, recipient)
 		for _,Holo,clip in ipairs_map(queue, unpack) do
 			if clip and clip.index then
 				net.WriteUInt(Holo.ent:EntIndex(), 16)
-				net.WriteUInt(clip.index, 16)
+				net.WriteUInt(clip.index, 4) -- 4: absolute highest wire_holograms_max_clips is thus 16
 				if clip.enabled != nil then
 					net.WriteBit(true)
 					net.WriteBit(clip.enabled)

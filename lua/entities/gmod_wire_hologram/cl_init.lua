@@ -112,7 +112,7 @@ net.Receive("wire_holograms_clip", function( netlen )
 	local entid = net.ReadUInt(16)
 
 	while entid ~= 0 do
-		local clipid = net.ReadUInt(16)
+		local clipid = net.ReadUInt(4)
 		
 		if net.ReadBit() ~= 0 then
 			SetClipEnabled(entid, clipid, net.ReadBit())
