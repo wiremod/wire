@@ -441,7 +441,7 @@ net.Receive("wire_expression2_file_list", function(netlen, ply)
 	if timer.Exists( timername ) then timer.Remove( timername ) end
 
 	for i=1, net.ReadUInt(16) do
-		table.insert(plist.data, E2Lib.decode(net.ReadString()))
+		table.insert( plist.data, ( E2Lib.decode( net.ReadString() ) ) )
 	end
 
 	plist.uploaded = true
