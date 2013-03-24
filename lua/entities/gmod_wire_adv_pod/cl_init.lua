@@ -10,8 +10,6 @@ hook.Add("PlayerBindPress", "wire_adv_pod", function(ply, bind, pressed)
 			bind = "1"
 		elseif (bind == "invnext") then
 			bind = "2"
-		elseif (bind == "impulse 100") then
-			bind = "3"
 		else return end
 		RunConsoleCommand("wire_adv_pod_bind", bind )
 	end

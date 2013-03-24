@@ -158,7 +158,7 @@ concommand.Add("wire_adv_pod_bind", function( ply,cmd,args )
 
 	if (bind == "1") then bind = "PrevWeapon"
 	elseif (bind == "2") then bind = "NextWeapon"
-	elseif (bind == "3") then bind = "Light" end
+	end
 
 	for _, pod in pairs( ents.FindByClass( "gmod_wire_adv_pod" ) ) do
 		if (ply:GetVehicle() == pod.Pod) then
@@ -354,6 +354,8 @@ function ENT:Think()
 		WireLib.TriggerOutput(self, "Health", ply:Health())
 		WireLib.TriggerOutput(self, "Armor", ply:Armor())
 		WireLib.TriggerOutput(self, "ThirdPerson", ply:GetInfoNum("gmod_vehicle_viewmode", 0))
+		
+		WireLib.TriggerOutput(self, "Light", ply.keystate[KEY_F] and 1 or 0)
 	end
 
 	self:NextThink( CurTime() )
