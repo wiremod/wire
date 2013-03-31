@@ -94,7 +94,7 @@ end
 // Functions getting string
 
 e2function entity noentity()
-	return nil
+	return NULL
 end
 
 e2function string entity:type()
