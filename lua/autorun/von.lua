@@ -1,5 +1,5 @@
 --[[
-	Copyright 2012 Alexandru-Mihai Maftei
+	Copyright 2012-2013 Alexandru-Mihai Maftei
 					aka Vercas
 
 	You may use this for any purpose as long as:
@@ -10,7 +10,10 @@
 	If you modify the code for any purpose, the above obligations still apply.
 
 	Instead of copying this code over for sharing, rather use the link:
-		https://dl.dropbox.com/u/1217587/GMod/Lua/von.lua
+		https://dl.dropbox.com/u/1217587/GMod/Lua/von%20for%20GMOD.lua
+
+	The author may not be held responsible for any damage or losses directly or indirectly caused by
+	the use of vON.
 
 	If you disagree with the above, don't use the code.
 
@@ -30,12 +33,27 @@
 		-	boolean
 		-	string
 		-	nil
+		-	Entity
+		-	Player
+		-	Vector
+		-	Angle
 
 	These are the native Lua types one would normally serialize.
+	+ Some very common GMod Lua types.
+
+-----------------------------------------------------------------------------------------------------------------------------
+	
+	New in this version:
+		-	Fixed errors on vector and angle deserializing.
+		-	Added Player datatype.
+			It's saved just like an entity, by it's ID, except it's prefixed with "p" instead of "e"
+		-	Added errors on (de)serialization when passwing the wrong data type.
+		-	Removed two redundant arguments in the serialization functable.
+		-	Fixed distribution link pointing to the pure Lua version.
 --]]
 
 local _deserialize, _serialize, _d_meta, _s_meta, d_findVariable, s_anyVariable
-local sub, gsub, find, insert, concat, error, tonumber, tostring, type, next = string.sub, string.gsub, string.find, table.insert, table.concat, error, tonumber, tostring, type, next
+local sub, gsub, find, insert, concat, error, tonumber, tostring, type, next, getEnt, getPly = string.sub, string.gsub, string.find, table.insert, table.concat, error, tonumber, tostring, type, next, Entity, player.GetByID
 
 --	This is kept away from the table for speed.
 function d_findVariable(s, i, len, lastType)
@@ -80,6 +98,26 @@ function d_findVariable(s, i, len, lastType)
 		--	{ means the start of a table!
 		elseif c == "{" then
 			lastType = "table"
+			typeRead = true
+
+		--	n means a number will follow. Base 10... :C
+		elseif c == "e" then
+			lastType = "Entity"
+			typeRead = true
+
+		--	n means a number will follow. Base 10... :C
+		elseif c == "p" then
+			lastType = "Player"
+			typeRead = true
+
+		--	n means a number will follow. Base 10... :C
+		elseif c == "v" then
+			lastType = "Vector"
+			typeRead = true
+
+		--	n means a number will follow. Base 10... :C
+		elseif c == "a" then
+			lastType = "Angle"
 			typeRead = true
 
 		--	If no type has been found, attempt to deserialize the last type read.
@@ -253,6 +291,103 @@ _deserialize = {
 				error("vON: String definition started... Found no end.")
 			end
 		end
+	end,
+
+
+--	Entities are stored simply by the ID. They're meant to be transfered, not stored anyway.
+--	Exactly like a number definition, except it begins with "e".
+	["Entity"] = function(s, i, len)
+		local i, a = i or 1
+		--	Locals, locals, locals, locals
+
+		a = find(s, "[;:}~]", i)
+
+		if a then
+			return getEnt(tonumber(sub(s, i, a - 1))), a - 1
+		end
+
+		error("vON: Entity ID definition started... Found no end.")
+	end,
+
+
+--	Exactly like a entity definition, except it begins with "p".
+	["Player"] = function(s, i, len)
+		local i, a = i or 1
+		--	Locals, locals, locals, locals
+
+		a = find(s, "[;:}~]", i)
+
+		if a then
+			return getEnt(tonumber(sub(s, i, a - 1))), a - 1
+		end
+
+		error("vON: Player ID definition started... Found no end.")
+	end,
+
+
+--	A pair of 3 numbers separated by a comma (,).
+	["Vector"] = function(s, i, len)
+		local i, a, x, y, z = i or 1
+		--	Locals, locals, locals, locals
+
+		a = find(s, ",", i)
+
+		if a then
+			x = tonumber(sub(s, i, a - 1))
+			i = a + 1
+		end
+
+		a = find(s, ",", i)
+
+		if a then
+			y = tonumber(sub(s, i, a - 1))
+			i = a + 1
+		end
+
+		a = find(s, "[;:}~]", i)
+
+		if a then
+			z = tonumber(sub(s, i, a - 1))
+		end
+
+		if x and y and z then
+			return Vector(x, y, z), a - 1
+		end
+
+		error("vON: Vector definition started... Found no end.")
+	end,
+
+
+--	A pair of 3 numbers separated by a comma (,).
+	["Angle"] = function(s, i, len)
+		local i, a, p, y, r = i or 1
+		--	Locals, locals, locals, locals
+
+		a = find(s, ",", i)
+
+		if a then
+			p = tonumber(sub(s, i, a - 1))
+			i = a + 1
+		end
+
+		a = find(s, ",", i)
+
+		if a then
+			y = tonumber(sub(s, i, a - 1))
+			i = a + 1
+		end
+
+		a = find(s, "[;:}~]", i)
+
+		if a then
+			r = tonumber(sub(s, i, a - 1))
+		end
+
+		if p and y and r then
+			return Angle(p, y, r), a - 1
+		end
+
+		error("vON: Angle definition started... Found no end.")
 	end
 }
 
@@ -369,6 +504,82 @@ _serialize = {
 --	Fastest.
 	["nil"] = function(data, mustInitiate, isNumeric, isKey, isLast)
 		return "@"
+	end,
+
+
+--	Same as numbers, except they start with "e" instead of "n".
+	["Entity"] = function(data, mustInitiate, isNumeric, isKey, isLast)
+		data = data:EntIndex()
+
+		if mustInitiate then
+			if isKey or isLast then
+				return "e"..data
+			else
+				return "e"..data..";"
+			end
+		end
+
+		if isKey or isLast then
+			return "e"..data
+		else
+			return "e"..data..";"
+		end
+	end,
+
+
+--	Same as entities, except they start with "e" instead of "n".
+	["Player"] = function(data, mustInitiate, isNumeric, isKey, isLast)
+		data = data:EntIndex()
+
+		if mustInitiate then
+			if isKey or isLast then
+				return "p"..data
+			else
+				return "p"..data..";"
+			end
+		end
+
+		if isKey or isLast then
+			return "p"..data
+		else
+			return "p"..data..";"
+		end
+	end,
+
+
+--	3 numbers separated by a comma.
+	["Vector"] = function(data, mustInitiate, isNumeric, isKey, isLast)
+		if mustInitiate then
+			if isKey or isLast then
+				return "v"..data.x..","..data.y..","..data.z
+			else
+				return "v"..data.x..","..data.y..","..data.z..";"
+			end
+		end
+
+		if isKey or isLast then
+			return "v"..data.x..","..data.y..","..data.z
+		else
+			return "v"..data.x..","..data.y..","..data.z..";"
+		end
+	end,
+
+
+--	3 numbers separated by a comma.
+	["Angle"] = function(data, mustInitiate, isNumeric, isKey, isLast)
+		if mustInitiate then
+			if isKey or isLast then
+				return "a"..data.p..","..data.y..","..data.r
+			else
+				return "a"..data.p..","..data.y..","..data.r..";"
+			end
+		end
+
+		if isKey or isLast then
+			return "a"..data.p..","..data.y..","..data.r
+		else
+			return "a"..data.p..","..data.y..","..data.r..";"
+		end
 	end
 }
 
@@ -377,12 +588,18 @@ local _d_table = _deserialize.table
 
 _d_meta = {
 	__call = function(self, str)
-		return _d_table(str, nil, #str, true)
+		if type(str) == "string" then
+			return _d_table(str, nil, #str, true)
+		end
+		error("vON: You must deserialize a string, not a "..type(str))
 	end
 }
 _s_meta = {
-	__call = function(self, data, nice, indent)
-		return _s_table(data, nil, nil, nil, nil, true)
+	__call = function(self, data)
+		if type(data) == "table" then
+			return _s_table(data, nil, nil, nil, nil, true)
+		end
+		error("vON: You must serialize a table, not a "..type(data))
 	end
 }
 
