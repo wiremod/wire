@@ -36,18 +36,25 @@ local function fileName(filepath)
 end
 
 function PANEL:Init()
+	self:SetDrawBackground(false)
+
 	self.Update = vgui.Create("DButton", self)
-	self.Update:SetSize(self:GetWide(), 20)
-	self.Update:SetPos(0,self:GetTall()-20)
+	self.Update:SetTall(20)
+	self.Update:Dock(BOTTOM)
+	self.Update:DockMargin(0, 0, 0, 0)
 	self.Update:SetText("Update")
 	self.Update.DoClick = function(button)
 		self:UpdateFolders()
 	end
 
+	self.Folders = vgui.Create("DTree", self)
+	self.Folders:Dock(FILL)
+	self.Folders:DockMargin(0, 0, 0, 0)
+
 	self.panelmenu = {}
 	self.filemenu = {}
 	self.foldermenu = {}
-	self.lastClick = -math.huge
+	self.lastClick = CurTime()
 
 	self:AddRightClick(self.filemenu,nil,"Open",function()
 		self:OnFileOpen(self.File:GetFileName())
@@ -140,16 +147,13 @@ function PANEL:OnFileOpen(filepath, newtab)
 end
 
 function PANEL:UpdateFolders()
-	if IsValid(self.Folders) then
-		self.Folders:Remove()
-		self.Folders = nil
+	self.Folders:Clear(true)
+	if (IsValid(self.Root)) then
+		self.Root:Remove()
 	end
+	self.Root = self.Folders.RootNode:AddFolder(self.startfolder, self.startfolder, "DATA", true)
+	self.Root:SetExpanded(true)
 
-	self.Folders = vgui.Create("DTree", self)
-	self.Folders:SetPadding(5)
-	self.Folders:SetPos(0,0)
-	self.Folders:SetSize(self:GetWide(),self:GetTall()-20)
-	self.Folders:Root():AddFolder(self.startfolder, self.startfolder, "data", true):SetExpanded(true)
 	self.Folders.DoClick = function(tree, node)
 		if self.File == node and CurTime() <= self.lastClick + 0.5 then
 			self:OnFileOpen(node:GetFileName())
@@ -169,19 +173,23 @@ function PANEL:UpdateFolders()
 		end
 		return true
 	end
+
+	self:OnFolderUpdate(self.startfolder)
 end
 
-function PANEL:PerformLayout()
-	if !IsValid(self.Update) or !IsValid(self.Folders) then return end
-	local w,h = self:GetSize()
-	self.Update:SetPos(0, h-20)
-	self.Update:SetSize(w, 20)
-	self.Folders:SetSize(w, h-20)
+function PANEL:GetFileName()
+	if !IsValid(self.File) then return end
+
+	return self.File:GetFileName()
+end
+function PANEL:GetFileNode()
+	return self.File
 end
 
 function PANEL:OpenMenu(menu)
 	if !menu or !IsValid(self.Folders) then return end
-	if(table.Count(menu)<1) then return end
+	if(#menu < 1) then return end
+
 	self.Menu = vgui.Create("DMenu", self.Folders)
 	for k, v in pairs(menu) do
 		local name, option = v[1], v[2]
@@ -197,16 +205,34 @@ end
 function PANEL:AddRightClick(menu, pos, name, option)
 	if(!menu) then menu = {} end
 	if (!pos) then pos = #menu + 1 end
+
 	if(menu[pos]) then
 		table.insert(menu,pos,{name,option})
 		return
 	end
+
 	menu[pos] = {name,option}
 end
+
+function PANEL:RemoveRightClick(name)
+	for k, v in pairs(self.filemenu) do
+		if (v[1] == name) then
+			self.filemenu[k] = nil
+			break
+		end
+	end
+end
+
 
 function PANEL:Setup(folder)
 	self.startfolder = folder
 	self:UpdateFolders()
 end
+
+function PANEL:OnFolderUpdate(folder)
+	//override
+end
+
+PANEL.Refresh = PANEL.UpdateFolders //self:Refresh() is common
 
 vgui.Register("wire_expression2_browser", PANEL, "DPanel")
