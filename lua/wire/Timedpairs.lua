@@ -39,7 +39,7 @@ local function copy( t ) -- custom table copy function to convert to numerically
 	return ret
 end
 
-hook.Add("Think","WireLib_Timedpairs", function()
+local function Timedpairs()
 	if not next(functions) then return end
 
 	local toremove = {}
@@ -78,8 +78,18 @@ hook.Add("Think","WireLib_Timedpairs", function()
 	for i=1,#toremove do -- Remove all that were flagged for removal
 		functions[toremove[i]] = nil
 	end
-end)
+end
+if (CLIENT) then
+	hook.Add("PostRenderVGUI", "WireLib_Timedpairs", Timedpairs) // Doesn't get paused in single player. Can be important for vguis.
+else
+	hook.Add("Think", "WireLib_Timedpairs", Timedpairs) // Servers still uses Think.
+end
 
 function WireLib.Timedpairs(name,tab,step,callback,endcallback,...)
 	functions[name] = { lookup = copy(tab), step = step, currentindex = 0, callback = callback, endcallback = endcallback, args = {...} }
+end
+
+function WireLib.Timedcall(callback,...) // calls the given function like simple timer, but isn't affected by game pausing.
+	local dummytab = {true}
+	WireLib.Timedpairs("Timedcall_"..tostring(dummytab),dummytab,1,function(k, v, ...) callback(...) end,nil,...)
 end
