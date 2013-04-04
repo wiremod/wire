@@ -32,6 +32,7 @@ local BlockList = {}
 
 local ModelList = {
 	["cone"]              = "cone",
+	["cplane"]			  = "cplane",
 	["cube"]              = "cube",
 	["cylinder"]          = "cylinder",
 	["hq_cone"]           = "hq_cone",
@@ -66,6 +67,9 @@ local ModelList = {
 	["torus2"]            = "torus2",
 	["torus3"]            = "torus3",
 
+	["rcube"]             = "rcube",
+	["rcube_thick"]       = "rcube_thick",
+	["rcube_thin"]     	  = "rcube_thin",
 	["hq_rcube"]          = "hq_rcube",
 	["hq_rcube_thick"]    = "hq_rcube_thick",
 	["hq_rcube_thin"]     = "hq_rcube_thin",
@@ -795,6 +799,20 @@ e2function void holoRenderFX(index, effect)
 
 	effect = effect - effect % 1
 	Holo.ent:SetKeyValue("renderfx",effect)
+end
+
+e2function void holoBodygroup(index, bgrp_id, bgrp_subid)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return end
+
+	Holo.ent:SetBodygroup(bgrp_id, bgrp_subid)
+end
+
+e2function number holoBodygroups(index, bgrp_id)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return end
+
+	return Holo.ent:GetBodygroupCount(bgrp_id)
 end
 
 /******************************************************************************/

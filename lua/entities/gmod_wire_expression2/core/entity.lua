@@ -370,6 +370,19 @@ e2function number entity:getSkinCount()
 	return 0
 end
 
+--- Sets <this>'s bodygroup.
+e2function void entity:setBodygroup(bgrp_id, bgrp_subid)
+	if not IsValid(this) then return end
+	if not isOwner(self, this) then return end
+	this:SetBodygroup(bgrp_id, bgrp_subid)
+end
+
+--- Gets <this>'s bodygroup count.
+e2function number entity:getBodygroups(bgrp_id)
+	if IsValid(this) then return this:GetBodygroupCount(bgrp_id) end
+	return 0
+end
+
 /******************************************************************************/
 
 e2function number entity:isPlayerHolding()
