@@ -675,6 +675,8 @@ E2Helper.Descriptions["holoCreate(nv)"] = "Index, Position\nCreates a new hologr
 E2Helper.Descriptions["holoCreate(n)"] = "Index\nCreates a new hologram entity"
 E2Helper.Descriptions["holoScale(n)"] = "Index\nReturns the scale of the given hologram"
 E2Helper.Descriptions["holoScaleUnits(n)"] = "Index\nReturns the scale of the given hologram"
+E2Helper.Descriptions["holoBodygroup(nnn)"] = "Index, Group ID, Group SubID\nSets the bodygroups of the given hologram."
+E2Helper.Descriptions["holoBodygroups(nn)"] = "Index, Group ID\nReturns the number of bodygroups in the Group ID of the given hologram."
 
 -- File
 E2Helper.Descriptions["fileLoaded(s)"] = "Returns whether or not the file has been loaded onto the server."
