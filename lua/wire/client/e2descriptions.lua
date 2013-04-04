@@ -583,6 +583,8 @@ E2Helper.Descriptions["lastSaidWhen(e:)"] = "Returns when the given player last 
 E2Helper.Descriptions["lastSaidTeam(e:)"] = "Returns 1 if the last message was sent in the team chat, 0 otherwise."
 
 -- Color
+E2Helper.Descriptions["setBodygroup(e:nn)"] = "Group ID, Group SubID\nSets the bodygroups of the given entity."
+E2Helper.Descriptions["getBodygroups(e:n)"] = "Group ID\nReturns the number of bodygroups in the Group ID of the given entity."
 E2Helper.Descriptions["getColor(e:)"] = "Returns the color of an entity as a vector (R,G,B)"
 E2Helper.Descriptions["getColor4(e:)"] = "Returns the color of an entity as a 4D vector (R,G,B,A)"
 E2Helper.Descriptions["getAlpha(e:)"] = "Returns the alpha of an entity"
@@ -675,6 +677,8 @@ E2Helper.Descriptions["holoCreate(nv)"] = "Index, Position\nCreates a new hologr
 E2Helper.Descriptions["holoCreate(n)"] = "Index\nCreates a new hologram entity"
 E2Helper.Descriptions["holoScale(n)"] = "Index\nReturns the scale of the given hologram"
 E2Helper.Descriptions["holoScaleUnits(n)"] = "Index\nReturns the scale of the given hologram"
+E2Helper.Descriptions["holoBodygroup(nnn)"] = "Index, Group ID, Group SubID\nSets the bodygroups of the given hologram."
+E2Helper.Descriptions["holoBodygroups(nn)"] = "Index, Group ID\nReturns the number of bodygroups in the Group ID of the given hologram."
 
 -- File
 E2Helper.Descriptions["fileLoaded(s)"] = "Returns whether or not the file has been loaded onto the server."
