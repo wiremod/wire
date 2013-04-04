@@ -583,6 +583,8 @@ E2Helper.Descriptions["lastSaidWhen(e:)"] = "Returns when the given player last 
 E2Helper.Descriptions["lastSaidTeam(e:)"] = "Returns 1 if the last message was sent in the team chat, 0 otherwise."
 
 -- Color
+E2Helper.Descriptions["setBodygroup(e:nn)"] = "Group ID, Group SubID\nSets the bodygroups of the given entity."
+E2Helper.Descriptions["getBodygroups(e:n)"] = "Group ID\nReturns the number of bodygroups in the Group ID of the given entity."
 E2Helper.Descriptions["getColor(e:)"] = "Returns the color of an entity as a vector (R,G,B)"
 E2Helper.Descriptions["getColor4(e:)"] = "Returns the color of an entity as a 4D vector (R,G,B,A)"
 E2Helper.Descriptions["getAlpha(e:)"] = "Returns the alpha of an entity"
