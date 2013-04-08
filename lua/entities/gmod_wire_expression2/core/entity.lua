@@ -350,6 +350,7 @@ end
 e2function void entity:setMaterial(string material)
 	if not IsValid(this) then return end
 	if not isOwner(self, this) then return end
+	if string.lower(material) == "pp/copy" then return end
 	this:SetMaterial(material)
 end
 
