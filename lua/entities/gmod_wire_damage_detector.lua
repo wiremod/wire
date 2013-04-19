@@ -44,14 +44,13 @@ function ENT:Initialize()
 	self:SetSolid( SOLID_VPHYSICS )
 
 	self.Outputs = WireLib.CreateSpecialOutputs(self, { "Clk", "Damage", "Attacker", "Victim", "Victims", "Position", "Force", "Type" } , { "NORMAL", "NORMAL", "ENTITY", "ENTITY", "TABLE", "VECTOR", "VECTOR", "STRING" } )
-	self.Inputs = WireLib.CreateSpecialInputs(self, { "On", "Entity", "Entities" }, { "NORMAL", "ENTITY", "ARRAY" } )
+	self.Inputs = WireLib.CreateSpecialInputs(self, { "On", "Entity", "Entities", "Reset" }, { "NORMAL", "ENTITY", "ARRAY", "NORMAL" } )
 
 	self.on = 0
 	self.updated = false		-- Tracks whether constraints were updated that tick
 	self.hit = false			-- Tracks whether detector registered any damage that tick
 
 	self.firsthit_dmginfo = {}		-- Stores damage info representing damage during an interval
-	self.output_dmginfo = {}		-- Stores the current damage info outputs
 	self.linked_entities = {}
 
 	self.count = 0
@@ -140,6 +139,12 @@ function ENT:TriggerInput( iname, value )
 			if IsValid(value) then
 				self.linked_entities[1] = value:EntIndex()
 			end
+		end
+	elseif (iname == "Reset") then
+		if value then
+            self.count = 0
+            self.firsthit_dmginfo = {}
+            self.victims = table.Copy(DEFAULT)
 		end
 	end
 end
