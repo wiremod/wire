@@ -152,18 +152,10 @@ end
 function ENT:TriggerOutput()		-- Entity outputs won't trigger again until they change
 
 	local attacker = self.firsthit_dmginfo[1]
-	if IsValid(attacker) then
-		WireLib.TriggerOutput( self, "Attacker", attacker )
-	else
-		WireLib.TriggerOutput( self, "Attacker", null )
-	end
+	WireLib.TriggerOutput( self, "Attacker", IsValid(attacker) and attacker or NULL)
 
 	local victim = self.firsthit_dmginfo[2]
-	if IsValid( ents.GetByIndex(victim) ) then
-		WireLib.TriggerOutput( self, "Victim", ents.GetByIndex(victim) )
-	else
-		WireLib.TriggerOutput( self, "Victim", null )
-	end
+	WireLib.TriggerOutput( self, "Victim", IsValid(victim) and victim or NULL)
 
 	self.victims.size = table.Count(self.victims.s)
 	WireLib.TriggerOutput( self, "Victims", self.victims or table.Copy(DEFAULT) )
@@ -210,7 +202,7 @@ function ENT:UpdateDamage( dmginfo, entID )		-- Update damage table
 	if !self.hit then		-- Only register the first target's damage info
 		self.firsthit_dmginfo = {
 			dmginfo:GetAttacker(),
-			entID,
+			ents.GetByIndex(entID),
 			dmginfo:GetDamagePosition(),
 			dmginfo:GetDamageForce()
 		}
@@ -233,7 +225,7 @@ function ENT:UpdateDamage( dmginfo, entID )		-- Update damage table
 	if self.dmgtype == "Explosive" then		-- Explosives will output the entity that receives the most damage
 		if self.damage < damage then
 			self.damage = damage
-			self.firsthit_dmginfo[2] = entID
+			self.firsthit_dmginfo[2] = ents.GetByIndex(entID)
 		end
 	else
 		self.damage = self.damage + damage
