@@ -230,8 +230,8 @@ else
 	EGP.ScrHW = {}
 
 	concommand.Add("EGP_ScrWH",function(ply,cmd,args)
-		if (args and args[1] and args[2]) then
-			EGP.ScrHW[ply] = { args[1], args[2] }
+		if (args and tonumber(args[1]) and tonumber(args[2])) then
+			EGP.ScrHW[ply] = { tonumber(args[1]), tonumber(args[2]) }
 		end
 	end)
 end
