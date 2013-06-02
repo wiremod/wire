@@ -26,7 +26,6 @@ TOOL.ClientConVar = {
 }
 
 function TOOL.BuildCPanel(panel)
-	panel:Help("#Tool.wire_watersensor.desc")
 	WireToolHelpers.MakeModelSizer(panel, "wire_watersensor_modelsize")
 	ModelPlug_AddToCPanel(panel, "WaterSensor", "wire_watersensor")
 end

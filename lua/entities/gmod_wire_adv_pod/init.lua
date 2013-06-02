@@ -353,7 +353,7 @@ function ENT:Think()
 		WireLib.TriggerOutput(self, "Team", ply:Team())
 		WireLib.TriggerOutput(self, "Health", ply:Health())
 		WireLib.TriggerOutput(self, "Armor", ply:Armor())
-		WireLib.TriggerOutput(self, "ThirdPerson", ply:GetInfoNum("gmod_vehicle_viewmode", 0))
+		WireLib.TriggerOutput(self, "ThirdPerson", pod:GetThirdPersonMode() and 1 or 0)
 		
 		WireLib.TriggerOutput(self, "Light", ply.keystate[KEY_F] and 1 or 0)
 	end
