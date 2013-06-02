@@ -258,11 +258,15 @@ if CLIENT then
         ["128 bytes RAM/ROM"]   = {wire_cpu_memorymodel = "128"},
         ["64KB RAM/ROM"]        = {wire_cpu_memorymodel = "64krom"},
         ["64KB RAM only"]       = {wire_cpu_memorymodel = "64k"},
+        ["32KB RAM/ROM"]        = {wire_cpu_memorymodel = "32krom"},
+        ["32KB RAM only"]       = {wire_cpu_memorymodel = "32k"},
+        ["8KB RAM/ROM"]         = {wire_cpu_memorymodel = "8krom"},
+        ["8KB RAM only"]        = {wire_cpu_memorymodel = "8k"},
         ["128KB RAM/ROM"]       = {wire_cpu_memorymodel = "128krom"},
         ["No internal RAM/ROM"] = {wire_cpu_memorymodel = "flat"},
       }
     })
-    panel:AddControl("Label", {Text = "Sets the processor memory model (determines iteraction with the external devices)"})
+    panel:AddControl("Label", {Text = "Sets the processor memory model (determines interaction with the external devices)"})
   end
 
 
