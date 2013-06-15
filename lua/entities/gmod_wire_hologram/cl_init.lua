@@ -32,9 +32,10 @@ function ENT:SetupClipping()
 
 		clip_buffer[eidx] = nil
 	end
+	
 
 	if next(self.clips) then
-		render.EnableClipping( true )
+		self.oldClipState = render.EnableClipping( true )
 
 		for _,clip in pairs( self.clips ) do
 			if clip.enabled and clip.normal and clip.origin then
@@ -58,7 +59,7 @@ function ENT:FinishClipping()
 			render.PopCustomClipPlane()
 		end
 
-		render.EnableClipping( false )
+		render.EnableClipping( self.oldClipState )
 	end
 end
 
