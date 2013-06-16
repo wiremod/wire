@@ -1,4 +1,5 @@
-if VERSION < 143 then
+if VERSION < 143 and VERSION > 5 then
+	-- VERSION > 5 check added June 2013, to address issues regarding the Steampipe update sometimes setting VERSION to 1.
 	ErrorNoHalt("WireMod: This branch of wiremod only supports Gmod13+.\n")
 	return
 end
