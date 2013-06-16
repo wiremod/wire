@@ -59,7 +59,7 @@ function WireLib.TriggerInput(ent, name, value, ...)
 	ent.Inputs[name].Value = value
 
 	if (!ent.TriggerInput) then return end
-	local ok, ret = pcall(ent.TriggerInput, ent, name, value, ...)
+	local ok, ret = xpcall(ent.TriggerInput, debug.traceback, ent, name, value, ...)
 	if not ok then
 		local message = string.format("Wire error (%s): %s", tostring(ent), ret)
 		ErrorNoHalt(message .. "\n")

@@ -290,7 +290,7 @@ if CLIENT then
 		render.SetRenderTarget(NewRT)
 		render.SetViewPort(0, 0, 512, 512)
 		cam.Start2D()
-			local ok, err = pcall(renderfunction)
+			local ok, err = xpcall(renderfunction, debug.traceback)
 			if not ok then ErrorNoHalt(err) end
 		cam.End2D()
 		render.SetViewPort(0, 0, oldw, oldh)
@@ -317,7 +317,7 @@ if CLIENT then
 
 		local res = monitor.RS*512/h
 		cam.Start3D2D(pos, ang, res)
-			local ok, err = pcall(renderfunction, x, y, w, h, monitor, pos, ang, res)
+			local ok, err = xpcall(renderfunction, debug.traceback, x, y, w, h, monitor, pos, ang, res)
 			if not ok then ErrorNoHalt(err) end
 		cam.End3D2D()
 	end
@@ -332,7 +332,7 @@ if CLIENT then
 
 		local res = monitor.RS
 		cam.Start3D2D(pos, ang, res)
-			local ok, err = pcall(function()
+			local ok, err = xpcall(function()
 				local aspect = 1/monitor.RatioX
 				local w = (width  or 512)*aspect
 				local h = (height or 512)
@@ -347,7 +347,7 @@ if CLIENT then
 				self.DrawScreen(x, y, w, h, rotation or 0, scale or 0)
 
 				if postrenderfunction then postrenderfunction(pos, ang, res, aspect, monitor) end
-			end)
+			end, debug.traceback)
 			if not ok then ErrorNoHalt(err) end
 		cam.End3D2D()
 

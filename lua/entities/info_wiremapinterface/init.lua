@@ -100,7 +100,7 @@ local function RunLua(I, name, value, wired, self, Ent)
 		WIRE_CALLER = self -- This entity
 		WIRE_ACTIVATOR = Ent -- The entity that has the input
 
-		local status, err = pcall(func)
+		local status, err = xpcall(func, debug.traceback)
 		if (!status) then
 			Err = err or ""
 		end

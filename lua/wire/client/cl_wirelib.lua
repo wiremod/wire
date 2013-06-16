@@ -326,7 +326,7 @@ function Derma_StringRequestNoBlur(...)
 
 		return ret
 	end
-	local ok, ret = pcall(Derma_StringRequest, ...)
+	local ok, ret = xpcall(Derma_StringRequest, debug.traceback, ...)
 	math.max = f
 
 	if not ok then error(ret, 0) end

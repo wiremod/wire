@@ -417,10 +417,10 @@ function ENT:Draw()
       self.VertexCamSettings = { pos, ang, res }
       cam.Start3D2D(pos, ang, res)
       self.In3D2D = true
-        local ok, err = pcall(function()
+        local ok, err = xpcall(function()
           self:RenderVertex(512,512*monitor.RatioX)
           self:RenderMisc(pos, ang, res, 1/monitor.RatioX, monitor)
-          end)
+          end, debug.traceback)
 		if not ok then ErrorNoHalt(err) end
       if self.In3D2D then self.In3D2D = false cam.End3D2D() end
       self.VertexCamSettings = nil
