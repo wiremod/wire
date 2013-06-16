@@ -11,7 +11,7 @@ if (SERVER) then
 	----------------------------
 	EGP.IntervalCheck = {}
 
-	function EGP:PlayerDisconnect( ply ) EGP.IntervalCheck[ply] = nil EGP.Queue[ply] = nil EGP:StopQueueTimer( ply ) end
+	function EGP:PlayerDisconnect( ply ) EGP.IntervalCheck[ply] = nil EGP.Queue[ply] = nil end
 	hook.Add("PlayerDisconnected","EGP_PlayerDisconnect",function( ply ) EGP:PlayerDisconnect( ply ) end)
 
 

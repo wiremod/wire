@@ -1071,7 +1071,6 @@ end
 e2function number egpClearQueue()
 	if (EGP.Queue[self.player]) then
 		EGP.Queue[self.player] = {}
-		EGP:StopQueueTimer( self.player )
 		return 1
 	end
 	return 0
@@ -1180,15 +1179,10 @@ __e2setcost(nil)
 
 registerCallback("postexecute",function(self)
 	for k,v in pairs( self.data.EGP.UpdatesNeeded ) do
-		if (k and k:IsValid()) then
-			if (v == true) then
-				EGP:SendQueueItem( self.player )
-				EGP:StartQueueTimer( self.player )
-				self.data.EGP.UpdatesNeeded[k] = nil
-			end
-		else
-			self.data.EGP.UpdatesNeeded[k] = nil
+		if IsValid(k) then
+			EGP:SendQueueItem( self.player )
 		end
+		self.data.EGP.UpdatesNeeded[k] = nil
 	end
 end)
 
