@@ -198,6 +198,8 @@ function Compiler:UDFunction(Sig)
 			function(self,args)
 				if self.funcs and self.funcs[Sig] then
 					return self.funcs[Sig](self,args)
+				elseif self.funcs_ret and self.funcs_ret[Sig] then
+					return wire_expression_types2[self.funcs_ret[Sig]][2]
 				end
 			end,
 		20}
