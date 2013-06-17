@@ -199,7 +199,11 @@ function Compiler:UDFunction(Sig)
 				if self.funcs and self.funcs[Sig] then
 					return self.funcs[Sig](self,args)
 				elseif self.funcs_ret and self.funcs_ret[Sig] then
-					return wire_expression_types2[self.funcs_ret[Sig]][2]
+					-- This only occurs if a function's definition isn't executed before the function is called
+					-- Would probably only accidentally come about when pasting an E2 that has function definitions in
+					-- if(first()) instead of if(first() || duped())
+					error("UDFunction: " .. Sig .. " undefined at runtime!", -1)
+					//return wire_expression_types2[self.funcs_ret[Sig]][2] -- This would return the default value for the type, probably better to error though
 				end
 			end,
 		20}
