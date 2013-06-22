@@ -23,7 +23,7 @@ end
 
 local function AddTimer(self, name, delay)
 	if delay < 10 then delay = 10 end
-	
+
 	if runner == name then
 		timer.Adjust("e2_" .. self.data['timer'].timerid .. "_" .. name, delay/1000, 1, function()
 			Execute(self, name)
@@ -87,8 +87,8 @@ e2function number clk(string rv1)
 	   then return 1 else return 0 end
 end
 
-e2function string clkName() 
-	return runner or "" 
+e2function string clkName()
+	return runner or ""
 end
 
 e2function array getTimers()
