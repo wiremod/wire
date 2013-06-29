@@ -89,7 +89,7 @@ Obj.Draw = function( self )
 
 			-- Thanks to Wizard for the base to this rotateable text code. I edited it a bit to properly support alignment
 			matAng.y = self.angle
-			mat:SetAngle(matAng)
+			mat:SetAngles(matAng)
 			matTrans.x = x
 			matTrans.y = y
 			matTrans:Rotate(matAng)
