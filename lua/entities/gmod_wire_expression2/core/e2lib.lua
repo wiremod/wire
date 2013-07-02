@@ -30,6 +30,10 @@ function E2Lib.clampPos( pos )
 	return pos
 end
 function E2Lib.setPos( ent, pos )
+	local function isrealnumber( number )
+		return ( number < 0 ) != ( number > 0 )
+	end
+	if not isrealnumber( pos[ 1 ] ) or not isrealnumber( pos[ 2 ] ) or not isrealnumber( pos[ 3 ] )  then return end
 	return ent:SetPos( E2Lib.clampPos( pos ) )
 end
 
