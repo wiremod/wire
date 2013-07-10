@@ -1,0 +1,21 @@
+{
+	"title"		:	"Wiremod",
+	"type"		:	"tool",
+	"tags"		:	[ "build", "fun" ],
+	"description":	"A collection of entities connectable by data wires, which allows for the creation of advanced contraptions.",
+	"ignore"	:
+	[
+		"*.psd",
+		"*.vcproj",
+		"*.svn*",
+		"*.txt",
+		".git*",
+		".gitignore",
+		"git-hooks-pre-commit",
+		"gitrid.sh",
+		"LICENSE",
+		"README.md",
+		"wiremod.fgd",
+		"wiremod.jpg"
+	]
+}
