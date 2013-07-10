@@ -16,6 +16,7 @@ if SERVER then
 	AddCSLuaFile("wire/GPULib.lua")
 	AddCSLuaFile("wire/CPULib.lua")
 	AddCSLuaFile("wire/Timedpairs.lua")
+	AddCSLuaFile("wire/default_data_decompressor.lua")
 
 	-- client includes
 	AddCSLuaFile("wire/client/cl_wirelib.lua")
@@ -77,6 +78,7 @@ include("wire/WireMonitors.lua")
 include("wire/GPULib.lua")
 include("wire/CPULib.lua")
 include("wire/Timedpairs.lua")
+include("wire/default_data_decompressor.lua")
 include("von.lua")
 
 -- server includes
