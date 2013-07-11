@@ -470,7 +470,7 @@ do
 
 	function E2Lib.RegisterExtension(name, default)
 		local status = extensions.GetStatus(name, default)
-		if not status then Error("Skipping disabled E2 extension '"..name.."', to enable run 'wire_expression2_extension_enable "..name.."'\n") end
+		if not status then Error("Skipping disabled E2 extension '"..name.."'. To enable, run 'wire_expression2_extension_enable "..name.."'\n") end
 	end
 
 	concommand.Add("wire_expression2_extension_enable", function(ply, cmd, args)
