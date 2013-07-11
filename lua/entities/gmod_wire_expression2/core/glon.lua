@@ -1,3 +1,5 @@
+E2Lib.RegisterExtension("glon", true)
+
 if not glon then pcall(require,"glon") end
 
 local last_glon_error = ""
