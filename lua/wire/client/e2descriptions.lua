@@ -182,6 +182,7 @@ E2Helper.Descriptions["trusts(e:e2)"] = "Is E2 on the prop protection friends li
 E2Helper.Descriptions["keyAttack1(e:)"] = "Is the player pressing their primary fire key?"
 E2Helper.Descriptions["keyAttack2(e:)"] = "Is the player pressing their secondary fire key?"
 E2Helper.Descriptions["keyUse(e:)"] = "Is the player pressing their use key?"
+E2Helper.Descriptions["keyPressed(e:s)"] = "Is the player pressing the KEY_ enumeration [S]? For example, 'W', 'K', '4', 'COMMA'"
 E2Helper.Descriptions["driver(e:)"] = "Returns the driver of the vehicle if there is one, nil otherwise"
 E2Helper.Descriptions["passenger(e:)"] = "Returns the passenger of the vehicle if there is one, in single seat pods this will return the driver."
 E2Helper.Descriptions["vehicle(e:)"] = "Returns the entity of the vehicle that the specified player is in"

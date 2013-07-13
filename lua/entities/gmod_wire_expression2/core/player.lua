@@ -219,6 +219,10 @@ e2function number entity:keyRightTurn()
 	return (IsValid(this) and this:IsPlayer() and this:KeyDown(IN_RIGHT)) and 1 or 0
 end
 
+e2function number entity:keyPressed(string char)
+	return (IsValid(this) and this:IsPlayer() and this.keystate and this.keystate[_G["KEY_" .. string.upper(char)] or "no_key"]) and 1 or 0
+end
+
 -- isTyping
 local plys = {}
 concommand.Add("E2_StartChat",function(ply,cmd,args) plys[ply] = true end)
