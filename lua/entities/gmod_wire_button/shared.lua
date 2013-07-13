@@ -10,10 +10,8 @@ ENT.Instructions    = ""
 ENT.Spawnable       = false
 ENT.AdminSpawnable  = false
 
+ENT.Editable = true
 
-function ENT:SetOn( bOn )
-	self:SetNetworkedBool( "OnOff", bOn, true )
-end
-function ENT:GetOn()
-	return self:GetNetworkedBool( "OnOff" )
+function ENT:SetupDataTables()
+	self:NetworkVar( "Bool", 0, "On", { KeyName = "on", Edit = { type = "Bool" } } )
 end
