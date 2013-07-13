@@ -156,7 +156,7 @@ function Wire_Render(ent)
 		local blink = f < 0.5
 		local blinkname = ent:GetNetworkedBeamString("BlinkWire")
 		for _,k in ipairs(p.paths) do
-			if not (blink and blinkname == k.path_name) then
+			if not (blink and blinkname == k.path_name) and k.material then
 				k.scroll = CurTime()*WIRE_SCROLL_SPEED
 				k.start = ent:LocalToWorld(k.startx)
 				render.SetMaterial(k.material)
