@@ -251,7 +251,10 @@ function EGP:DrawLine( x, y, x2, y2, size )
 
 		-- Calculate angle (Thanks to Fizyk)
 		local angle = math.deg(math.atan2(y-y2,x2-x))
-
+		
+		-- if the rectangle's less than a pixel wide, nothing will get drawn.
+		if w < 1 then w = 1 end
+		
 		surface.DrawTexturedRectRotated( x3, y3, w, size, angle )
 	end
 end
