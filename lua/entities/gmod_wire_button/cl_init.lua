@@ -11,8 +11,11 @@ function ENT:Initialize()
 	self.PosePosition = 0.0
 end
 
-function ENT:Draw()
+function ENT:Think()
 	baseclass.Get("gmod_button").UpdateLever(self)
+end
+
+function ENT:Draw()
 	self:DoNormalDraw(true,false)
 	if LocalPlayer():GetEyeTrace().Entity == self and EyePos():Distance( self:GetPos() ) < 512 then
 		if self:GetOn() then
