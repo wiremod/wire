@@ -5,7 +5,17 @@ local Editor = {}
 -- Fonts
 ------------------------------------------------------------------------
 
-Editor.FontConVar = CreateClientConVar( "wire_expression2_editor_font", "Courier New", true, false )
+local defaultFont
+
+if system.IsWindows() then
+	defaultFont = "Courier New"
+elseif system.IsOSX() then
+	defaultFont = "Monaco"
+else
+	defaultFont = "DejaVu Sans Mono"
+end
+
+Editor.FontConVar = CreateClientConVar( "wire_expression2_editor_font", defaultFont, true, false )
 Editor.FontSizeConVar = CreateClientConVar( "wire_expression2_editor_font_size", 16, true, false )
 Editor.BlockCommentStyleConVar = CreateClientConVar( "wire_expression2_editor_block_comment_style", 1, true, false )
 Editor.NewTabOnOpen = CreateClientConVar( "wire_expression2_new_tab_on_open", "1", true, false )
@@ -14,7 +24,7 @@ Editor.Fonts = {}
 -- 				Font					Description
 
 -- Windows
-Editor.Fonts["Courier New"] 			= "Default font"
+Editor.Fonts["Courier New"] 			= "Windows standard font"
 Editor.Fonts["DejaVu Sans Mono"] 		= ""
 Editor.Fonts["Consolas"] 				= ""
 Editor.Fonts["Fixedsys"] 				= ""
