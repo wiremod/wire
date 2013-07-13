@@ -7,10 +7,15 @@ ENT.RenderGroup 		= RENDERGROUP_OPAQUE
 
 local halo_ent, halo_blur
 
+function ENT:Initialize()
+	self.PosePosition = 0.0
+end
+
 function ENT:Draw()
+	baseclass.Get("gmod_button").UpdateLever(self)
 	self:DoNormalDraw(true,false)
 	if LocalPlayer():GetEyeTrace().Entity == self and EyePos():Distance( self:GetPos() ) < 512 then
-		if self:IsOn() then
+		if self:GetOn() then
 			halo_ent = self
 			halo_blur = 4 + math.sin(CurTime()*20)*2
 		else

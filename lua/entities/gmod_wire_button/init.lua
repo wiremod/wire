@@ -47,7 +47,7 @@ function ENT:Use(ply)
 	if self.OutputEntID then
 		self.EntToOutput = ply
 	end
-	if (self:IsOn()) then
+	if (self:GetOn()) then
 		if (self.toggle) then self:Switch(false) end
 
 		return
@@ -60,7 +60,7 @@ end
 function ENT:Think()
 	self.BaseClass.Think(self)
 
-	if ( self:IsOn() ) then
+	if ( self:GetOn() ) then
 		if (not self.PrevUser)
 		or (not self.PrevUser:IsValid())
 		or (not self.podpress and not self.PrevUser:KeyDown(IN_USE))
