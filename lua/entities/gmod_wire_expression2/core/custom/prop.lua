@@ -32,12 +32,12 @@ function PropCore.ValidSpawn()
 end
 
 function PropCore.ValidAction(self, entity, cmd)
-	local ply = self.player
 	if(cmd=="spawn" or cmd=="Tdelete") then return true end
+	if(!IsValid(entity)) then return false end
 	if(!validPhysics(entity)) then return false end
 	if(!isOwner(self, entity)) then return false end
 	if entity:IsPlayer() then return false end
-	if(!IsValid(entity)) then return false end
+	local ply = self.player
 	return sbox_E2_PropCore:GetInt()==2 or (sbox_E2_PropCore:GetInt()==1 and ply:IsAdmin())
 end
 
