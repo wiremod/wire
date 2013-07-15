@@ -311,7 +311,18 @@ if (SERVER) then
 			if (E2 and E2.entity and E2.entity:IsValid()) then
 				E2.prf = E2.prf + 100
 			end
-
+			
+			// Remove all queued actions for this screen
+			local queue = self.Queue[E2.player] or {}
+			local i = 1
+			while i<=#queue do
+				if queue[i].Ent == Ent then
+					table.remove(queue, i)
+				else
+					i = i + 1
+				end
+			end
+			
 			Ent.RenderTable = {}
 
 			self:AddQueue( Ent, E2.player, ClearScreen, "ClearScreen" )
