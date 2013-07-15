@@ -314,21 +314,19 @@ end
 -- dupefinished()
 -- Made by Divran
 
-local DupeFinished = 0
-
 local function dupefinished( TimedPasteData, TimedPasteDataCurrent )
-	DupeFinished = 1
 	for k,v in pairs( TimedPasteData[TimedPasteDataCurrent].CreatedEntities ) do
 		if (isentity(v) and v:IsValid() and v:GetClass() == "gmod_wire_expression2") then
+			v.dupefinished = true
 			v:Execute()
+			v.dupefinished = nil
 		end
 	end
-	DupeFinished = 0
 end
 hook.Add("AdvDupe_FinishPasting", "E2_dupefinished", dupefinished )
 
 e2function number dupefinished()
-	return DupeFinished
+	return self.entity.dupefinished and 1 or 0
 end
 
 --- Returns 1 if this is the last() execution and caused by the entity being removed.
