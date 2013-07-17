@@ -624,44 +624,7 @@ e2function string entity:toString() = e2function string toString(entity ent)
 
 /******************************************************************************/
 
-local function SetTrails(Player, Entity, Data)
-	if IsValid(Entity.SToolTrail) then
-		Entity.SToolTrail:Remove()
-		Entity.SToolTrail = nil
-	end
-
-	if not Data then
-		duplicator.ClearEntityModifier(Entity, "trail")
-		return
-	end
-
-	// Only set max value - negative values have their uses!
-	Data.StartSize = math.Min( Data.StartSize, 500 )
-	Data.EndSize = math.Min( Data.EndSize, 500 )
-
-	local trail_entity = util.SpriteTrail(
-		Entity,  //Entity
-		Data.AttachmentID or 0,  //iAttachmentID
-		Data.Color,  //Color
-		Data.Additive or false, // bAdditive
-		Data.StartSize, //fStartWidth
-		Data.EndSize, //fEndWidth
-		Data.Length, //fLifetime
-		2 / (Data.StartSize+Data.EndSize), //fTextureRes
-		Data.Material .. ".vmt"
-	) //strTexture
-
-	Entity.SToolTrail = trail_entity
-	Player:AddCleanup( "trails", trail_entity )
-
-	duplicator.StoreEntityModifier( Entity, "trail", Data )
-
-	return trail_entity
-end
-
-hook.Add("InitPostEntity", "trails", function()
-	duplicator.RegisterEntityModifier( "trail", SetTrails )
-end)
+local SetTrails = duplicator.EntityModifiers.trail
 
 --- Removes the trail from <this>.
 e2function void entity:removeTrails()
