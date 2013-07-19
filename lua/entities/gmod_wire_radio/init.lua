@@ -16,8 +16,8 @@ function ENT:Initialize()
 	self.Inputs = Wire_CreateInputs(self, { "Channel"})
 	self.Outputs = Wire_CreateOutputs(self, { "ERRORS!!!" })
 
-	self.Channel = 0
-	self.Values = 4
+	self.channel = 0
+	self.values = 4
 	self.RecievedData = {}
 	for i=0,31 do
 		self.RecievedData[i] = {}
@@ -35,7 +35,7 @@ end
 
 function ENT:Setup(channel,values,secure)
 	channel = math.floor(tonumber(channel) or 0)
-	self.Secure = secure
+	self.secure = secure
 	self.Old = false
 	if (tonumber(values) == nil) then
 		values = 4
@@ -44,10 +44,10 @@ function ENT:Setup(channel,values,secure)
 		values = math.Clamp(math.floor(values),1,32)
 	end
 
-	self.Values = values
+	self.values = values
 	local onames = {}
 	if (self.Old == false) then
-		for i = 1,self.Values do
+		for i = 1,self.values do
 			onames[i] = tostring(i) //without tostring() you kill the debugger.
 		end
 	else
@@ -58,25 +58,25 @@ function ENT:Setup(channel,values,secure)
 	table.insert(onames,"Channel")
 	Wire_AdjustInputs(self,onames)
 
-	self.Channel = channel
+	self.channel = channel
 	Radio_ChangeChannel(self)
 end
 
 function ENT:TriggerInput(iname, value)
 	if (iname == "Channel") then
-			self.Channel = math.floor(value)
+		self.channel = math.floor(value)
 		Radio_ChangeChannel(self)
 
 	elseif (iname != nil && value != nil) then
 		if (self.Old == true) then
 			if (iname == "A") then
-				Radio_SendData(self,self.Channel,0,value)
+				Radio_SendData(self,self.channel,0,value)
 			elseif (iname == "B") then
-				Radio_SendData(self,self.Channel,1,value)
+				Radio_SendData(self,self.channel,1,value)
 			elseif (iname == "C") then
-				Radio_SendData(self,self.Channel,2,value)
+				Radio_SendData(self,self.channel,2,value)
 			elseif (iname == "D") then
-				Radio_SendData(self,self.Channel,3,value)
+				Radio_SendData(self,self.channel,3,value)
 			end
 		else
 			Radio_SendData(self,tonumber(iname)-1,value)
@@ -90,7 +90,7 @@ function ENT:NotifyDataRecieved(subch)
 end
 
 function ENT:ReadCell(Address)
-	if (Address >= 0) && (Address < self.Values) then
+	if (Address >= 0) && (Address < self.values) then
 		return self.RecievedData[Address].Data
 	else
 		return nil
@@ -98,7 +98,7 @@ function ENT:ReadCell(Address)
 end
 
 function ENT:WriteCell(Address, value)
-	if (Address >= 0) && (Address < self.Values) then
+	if (Address >= 0) && (Address < self.values) then
 		Radio_SendData(self,Address,value)
 		return true
 	else
@@ -108,19 +108,19 @@ end
 
 function ENT:ShowOutput()
 	if (self.Old == true) then
-		self:SetOverlayText( "(Channel " .. self.Channel .. ") Transmit A: " .. (self.Inputs.A.Value or 0) .. " B: " .. (self.Inputs.B.Value or 0) ..  " C: " .. (self.Inputs.C.Value or 0) ..  " D: " .. (self.Inputs.D.Value or 0) .. "\nReceive A: " .. (self.Outputs.A.Value or 0) .. " B: " .. (self.Outputs.B.Value or 0) ..  " C: " .. (self.Outputs.C.Value or 0) ..  " D: " .. (self.Outputs.D.Value or 0) )
+		self:SetOverlayText( "(Channel " .. self.channel .. ") Transmit A: " .. (self.Inputs.A.Value or 0) .. " B: " .. (self.Inputs.B.Value or 0) ..  " C: " .. (self.Inputs.C.Value or 0) ..  " D: " .. (self.Inputs.D.Value or 0) .. "\nReceive A: " .. (self.Outputs.A.Value or 0) .. " B: " .. (self.Outputs.B.Value or 0) ..  " C: " .. (self.Outputs.C.Value or 0) ..  " D: " .. (self.Outputs.D.Value or 0) )
 	else
-		local overlay = "(Channel " .. self.Channel .. ") Transmit"
-		for i=1,self.Values do
+		local overlay = "(Channel " .. self.channel .. ") Transmit"
+		for i=1,self.values do
 			overlay = overlay .. " " .. i .. ":" ..
 				math.Round((self.SentData[i-1])*1000)/1000
 		end
 		overlay = overlay .. "\nReceive"
-		for i=1,self.Values do
+		for i=1,self.values do
 			overlay = overlay .. " " .. i .. ":" ..
 				math.Round((self.RecievedData[i-1].Data)*1000)/1000
 		end
-		if (self.Secure == true) then overlay = overlay .. "\nSecured" end
+		if (self.secure == true) then overlay = overlay .. "\nSecured" end
 		self:SetOverlayText(overlay)
 	end
 end
@@ -131,6 +131,6 @@ function ENT:OnRestore()
 end
 
 function ENT:OnRemove()
-	if (!self.Channel) then return end
+	if (!self.channel) then return end
 	Radio_Unregister(self)
 end

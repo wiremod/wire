@@ -40,7 +40,6 @@ function TOOL:LeftClick( trace )
 
 	if ( trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_radio" ) then
 		trace.Entity:Setup( _channel,values,secure)
-		trace.Entity.channel = _channel
 		return true
 	end
 
@@ -78,15 +77,6 @@ if SERVER then
 		wire_radio:SetModel(model)
 		wire_radio:Spawn()
 		wire_radio:Activate()
-
-		local ttable = {
-			channel   = channel,
-			values    = values,
-			secure    = secure,
-			pl        = pl,
-			nocollide = nocollide,
-		}
-		table.Merge( wire_radio:GetTable(), ttable )
 
 		wire_radio:Setup( channel ,values ,secure )
 		wire_radio:SetPlayer( pl )
