@@ -13,8 +13,8 @@
 		".gitignore",
 		"git-hooks-pre-commit",
 		"gitrid.sh",
-		"LICENSE",
-		"README.md",
+		"license",
+		"readme.md",
 		"wiremod.fgd",
 		"wiremod.jpg"
 	]
