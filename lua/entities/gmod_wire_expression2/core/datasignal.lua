@@ -396,8 +396,6 @@ e2function array dsProbe( string groupname, number scope )
 	return probeGroup( self.entity, groupname, c(f(scope),0,2) )
 end
 
-__e2setcost(nil)
-
 
 ---------------------------------------------
 -- Construct & Destruct

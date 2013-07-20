@@ -122,5 +122,3 @@ end
 e2function number systime()
 	return SysTime()
 end
-
-__e2setcost(nil)

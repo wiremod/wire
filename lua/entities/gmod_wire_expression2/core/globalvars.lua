@@ -465,5 +465,3 @@ registerCallback("construct",function(self)
 	self.data.gvars.shared = 0
 	if (!gvars[self.uid]) then gvars[self.uid] = {} end
 end)
-
-__e2setcost(nil)

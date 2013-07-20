@@ -933,8 +933,6 @@ e2function number holoIndex(entity ent)
 	return 0
 end
 
-__e2setcost(nil) -- temporary
-
 /******************************************************************************/
 
 registerCallback("construct", function(self)

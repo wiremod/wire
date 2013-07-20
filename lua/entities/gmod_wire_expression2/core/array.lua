@@ -524,5 +524,3 @@ e2function array array:merge( array other )
 	end
 	return ret
 end
-
-__e2setcost(nil)

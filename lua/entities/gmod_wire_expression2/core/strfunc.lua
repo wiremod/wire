@@ -94,5 +94,3 @@ registerOperator( "sfun", "", "", function(self, args)
 		func( self, funcargs )
 	end
 end)
-
-__e2setcost(nil)

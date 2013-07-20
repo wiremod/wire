@@ -131,5 +131,3 @@ e2function number convertUnit(string rv1, string rv2, rv3)
 
 	return -1
 end
-
-__e2setcost(nil)

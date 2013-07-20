@@ -366,5 +366,3 @@ e2function string toString(angle a)
 end
 
 e2function string angle:toString() = e2function string toString(angle a)
-
-__e2setcost(nil)

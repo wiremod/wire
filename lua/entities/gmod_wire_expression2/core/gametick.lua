@@ -43,5 +43,3 @@ hook.Add("Think", "Expression2TickClock", Expression2TickClock)
 timer.Create("Expression2TickClock", 5, 0, function()
 	hook.Add("Think", "Expression2TickClock", Expression2TickClock)
 end)
-
-__e2setcost(nil)

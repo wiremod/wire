@@ -45,5 +45,3 @@ end
 e2function number operator_bshl( a, b )
 	return bit.lshift(a, b)
 end
-
-__e2setcost(nil)

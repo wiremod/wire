@@ -457,5 +457,3 @@ end
 e2function string complex:toString()
 	return format(this)
 end
-
-__e2setcost(nil)

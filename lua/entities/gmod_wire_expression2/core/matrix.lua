@@ -1551,5 +1551,3 @@ e2function matrix4 matrix4(angle ang, vector pos)
 		0, 0, 0, 1
 	}
 end
-
-__e2setcost(nil)

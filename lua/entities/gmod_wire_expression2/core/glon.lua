@@ -331,5 +331,3 @@ e2function table vonDecodeTable(string data)
 	local safeTable = sanitizeGlonOutput( self, ret, "t" )
 	return safeTable or table.Copy(DEFAULT)
 end
-
-__e2setcost(nil)

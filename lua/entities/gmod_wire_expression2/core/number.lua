@@ -661,5 +661,3 @@ end
 e2function string number:toString(number base)
     return tobase(this, base, self)
 end
-
-__e2setcost(nil)

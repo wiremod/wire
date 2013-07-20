@@ -1175,8 +1175,6 @@ end
 -- Callbacks
 --------------------------------------------------------
 
-__e2setcost(nil)
-
 registerCallback("postexecute",function(self)
 	for k,v in pairs( self.data.EGP.UpdatesNeeded ) do
 		if IsValid(k) then

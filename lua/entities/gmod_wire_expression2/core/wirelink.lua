@@ -599,5 +599,3 @@ e2function number wirelink:writeTable(address, table data )
 	wa_lookup = nil
 	return ret
 end
-
-__e2setcost(nil) -- temporary

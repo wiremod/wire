@@ -529,5 +529,3 @@ registerCallback("preexecute", function(self)
 		ResetRanger(self)
 	end
 end)
-
-__e2setcost(nil) -- temporary

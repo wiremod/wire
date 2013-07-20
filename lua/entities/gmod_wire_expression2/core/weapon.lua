@@ -65,6 +65,3 @@ e2function string entity:tool()
 
 	return weapon.Mode
 end
-
-__e2setcost(nil) -- temporary
-

@@ -1127,5 +1127,3 @@ e2function string vector4:toString() = e2function string toString(vector4 v)
 WireLib.registerDebuggerFormat("VECTOR4", function(value)
 	return "(" .. math.Round(value[1]*10)/10 .. "," .. math.Round(value[2]*10)/10 .. "," .. math.Round(value[3]*10)/10 .. "," .. math.Round(value[4]*10)/10 .. ")"
 end)
-
-__e2setcost(nil)

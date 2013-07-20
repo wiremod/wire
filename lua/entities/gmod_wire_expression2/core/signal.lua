@@ -237,8 +237,6 @@ e2function void signalSendToPlayer(string name, entity player)
 	broadcastSignal(self.data.signalgroup, name, 1, self.entity, player)
 end
 
-__e2setcost(nil)
-
 --[[************************************************************************]]--
 
 registerCallback("construct",function(self)

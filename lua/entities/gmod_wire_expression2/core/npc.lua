@@ -152,5 +152,3 @@ e2function string entity:npcDisp(entity rv2)
 	if disp == 0 then return "" end
 	return DispToString(disp)
 end
-
-__e2setcost(nil) -- temporary

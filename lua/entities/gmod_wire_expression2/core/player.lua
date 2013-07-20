@@ -437,7 +437,3 @@ e2function ranger entity:eyeTraceCursor()
 	ret.RealStartPos = this:GetShootPos()
 	return ret
 end
-
-/******************************************************************************/
-
-__e2setcost(nil) -- temporary

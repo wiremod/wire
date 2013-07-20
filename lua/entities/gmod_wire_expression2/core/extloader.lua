@@ -77,6 +77,7 @@ local function e2_include_pass2(name, luaname, contents)
 	end
 	-- file needed preprocessing => Run the processed file
 	RunStringEx(ret,luaname)
+	__e2setcost(nil) -- Reset ops cost at the end of each file
 end
 
 local function e2_include_finalize()

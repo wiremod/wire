@@ -782,5 +782,3 @@ registerCallback("postinit",function()
 		end -- allowed check
 	end -- loop
 end) -- postinit
-
-__e2setcost(nil)

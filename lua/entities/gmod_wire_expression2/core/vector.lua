@@ -836,5 +836,3 @@ end
 
 --- Gets the vector nicely formatted as a string "[X,Y,Z]"
 e2function string vector:toString() = e2function string toString(vector v)
-
-__e2setcost(nil)

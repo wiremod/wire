@@ -497,5 +497,3 @@ e2function string string:matchFirst(string pattern, position)
 		return Ret or ""
 	end
 end
-
-__e2setcost(nil)

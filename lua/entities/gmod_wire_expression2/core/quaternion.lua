@@ -677,5 +677,3 @@ end
 e2function string quaternion:toString()
 	return format(this)
 end
-
-__e2setcost(nil)

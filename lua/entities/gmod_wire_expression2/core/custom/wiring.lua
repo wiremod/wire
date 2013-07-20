@@ -118,5 +118,3 @@ e2function number entity:removeWirelink()
 	RefreshSpecialOutputs(this)
 	return 1
 end
-
-__e2setcost(nil)
