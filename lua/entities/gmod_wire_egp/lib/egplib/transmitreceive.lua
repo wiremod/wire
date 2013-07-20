@@ -293,7 +293,7 @@ if (SERVER) then
 			local Data = {...}
 			if (!Data[1]) then return end
 
-			if (E1 and E2.entity and E2.entity:IsValid()) then
+			if (E2 and E2.entity and E2.entity:IsValid()) then
 				E2.prf = E2.prf + 100
 			end
 
@@ -302,7 +302,7 @@ if (SERVER) then
 			local Data = {...}
 			if (!Data[1]) then return end
 
-			if (E1 and E2.entity and E2.entity:IsValid()) then
+			if (E2 and E2.entity and E2.entity:IsValid()) then
 				E2.prf = E2.prf + 100
 			end
 
