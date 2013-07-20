@@ -227,7 +227,7 @@ function e2_extpp_pass2(contents)
 			-- check for some obvious errors
 			if thistype~="" and colon=="" then error("PP syntax error: Function names may not start with a number.",0) end
 			if thistype=="" and colon~="" then error("PP syntax error: No type for 'this' given.",0) end
-			if thistype:sub(1,1):find("[0-9]") then error("PP syntax error: Type names may not start with a number.",0) end
+			if thistype:match("^[0-9]") then error("PP syntax error: Type names may not start with a number.",0) end
 
 			-- append everything since the last function to the output.
 			table.insert(output, contents:sub(lastpos,h_begin-1))
@@ -348,13 +348,13 @@ function e2_extpp_pass2(contents)
 				-- if the function has arguments, insert argument fetch code
 				if #argtable.argnames ~= 0 then
 					local argfetch, opfetch_l, opfetch_r = '', '', ''
-					for i,n in ipairs(argtable.argnames) do
+					for i,name in ipairs(argtable.argnames) do
 						if not argtable.no_opfetch[i] then
 							-- generate opfetch code if not flagged as "no opfetch"
-							opfetch_l = opfetch_l..n..', '
-							opfetch_r = opfetch_r..string.format('%s[1](self, %s), ',n,n)
+							opfetch_l = string.format('%s%s, ', opfetch_l, name)
+							opfetch_r = string.format('%s%s[1](self, %s), ', opfetch_r, name, name)
 						end
-						argfetch = argfetch..string.format('args[%d], ',i+1,i+1)
+						argfetch = string.format('%sargs[%d], ', argfetch, i + 1)
 					end
 
 					-- remove the trailing commas
@@ -362,11 +362,13 @@ function e2_extpp_pass2(contents)
 					opfetch_l = opfetch_l:sub(1,-3)
 					opfetch_r = opfetch_r:sub(1,-3)
 
-					-- fetch the ops from the args
-					table.insert(output, ' local ' .. table.concat(argtable.argnames, ', ') .. ' = ' .. argfetch)
-
-					-- fetch the rvs from the ops
-					table.insert(output, ' ' .. opfetch_l .. ' = ' .. opfetch_r)
+					-- fetch the rvs from the args
+					table.insert(output, string.format(' local %s = %s %s = %s',
+						table.concat(argtable.argnames, ', '),
+						argfetch,
+						opfetch_l,
+						opfetch_r
+					))
 				end -- if #argtable.argnames ~= 0
 			end -- if aliasflag
 			table.insert(output, whitespace)
