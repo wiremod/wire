@@ -54,6 +54,8 @@ end
 
 /*************************************************************/
 
+__e2setcost(25)
+
 e2function void soundPlay(rv1, rv2, string rv3)
 	soundCreate(self,self.entity,rv1,rv2,rv3,0)
 end
@@ -97,6 +99,8 @@ e2function void entity:soundPlay(string rv2, rv3, string rv4, rv5)
 	if !isOwner(self, entity) then return end
 	soundCreate(self,entity,rv2,rv3,rv4,rv5)
 end
+
+__e2setcost(5)
 
 e2function void soundStop(rv1)
 	rv1 = rv1 - rv1 % 1

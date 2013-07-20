@@ -19,6 +19,8 @@ end
 
 /******************************************************************************/
 
+__e2setcost(2)
+
 e2function vector entity:getColor()
 	if !IsValid(this) then return {0,0,0} end
 

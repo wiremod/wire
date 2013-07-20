@@ -27,6 +27,9 @@ end
 
 /******************************************************************************/
 
+
+__e2setcost(20)
+
 --- Returns an '''array''' containing all entities directly or indirectly constrained to <this>, except <this> itself.
 e2function array entity:getConstraints()
 	if not IsValid(this) then return {} end
@@ -42,6 +45,8 @@ e2function array entity:getConstraints()
 	end
 	return array
 end
+
+__e2setcost(5)
 
 --- Returns the number of constraints on <this>.
 e2function number entity:hasConstraints()

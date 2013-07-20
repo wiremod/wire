@@ -102,6 +102,8 @@ registerType("bone", "b", nil,
 
 --[[************************************************************************]]--
 
+__e2setcost(1)
+
 --- if (B)
 e2function number operator_is(bone b)
 	if isInvalidBone(b) then return 0 else return 1 end
@@ -127,6 +129,7 @@ e2function number operator!=(bone lhs, bone rhs)
 end
 
 --[[************************************************************************]]--
+__e2setcost(3)
 
 --- Returns <this>'s <index>th bone.
 e2function bone entity:bone(index)
@@ -152,6 +155,8 @@ e2function number entity:boneCount()
 	if not IsValid(this) then return 0 end
 	return this:GetPhysicsObjectCount()
 end
+
+__e2setcost(1)
 
 --- Returns an invalid bone.
 e2function bone nobone()
@@ -322,6 +327,7 @@ e2function vector bone:inertia()
 end
 
 --[[************************************************************************]]--
+__e2setcost(30)
 
 --- Applies force to <this> according to <force>'s direction and magnitude
 e2function void bone:applyForce(vector force)
@@ -406,7 +412,7 @@ e2function void bone:applyTorque(vector torque)
 end
 
 --[[************************************************************************]]--
-
+__e2setcost(2)
 --- Returns 1 if <this> is frozen, 0 otherwise
 e2function number bone:isFrozen()
 	if isInvalidBone(this) then return end

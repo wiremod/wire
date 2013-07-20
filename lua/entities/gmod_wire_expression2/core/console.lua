@@ -26,6 +26,9 @@ local function validConCmd(self, command)
 	return true
 end
 
+
+__e2setcost(5)
+
 e2function number concmd(string command)
 	if not validConCmd(self, command) then return 0 end
 	self.player:ConCommand(command:gsub("%%", "%%%%"))

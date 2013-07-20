@@ -334,6 +334,8 @@ local function addcount()
 end
 hook.Add("Think","Wire_Expression2_Find_AddCount",addcount)
 
+__e2setcost(2)
+
 --- Returns the minimum delay between entity find events on a chip
 e2function number findUpdateRate()
 	return findrate()
@@ -362,6 +364,7 @@ e2function number findCanQuery()
 end
 
 --[[************************************************************************]]--
+__e2setcost(30)
 
 --- Finds entities in a sphere around V with a radius of N, returns the number found after filtering
 e2function number findInSphere(vector center, radius)
@@ -436,6 +439,7 @@ e2function entity findPlayerByName(string name)
 end
 
 --[[************************************************************************]]--
+__e2setcost(10)
 
 --- Exclude all entities from <arr> from future finds
 e2function void findExcludeEntities(array arr)
@@ -740,11 +744,14 @@ e2function void findClearWhiteClassList()
 end
 
 --[[************************************************************************]]--
+__e2setcost(2)
 
 --- Returns the indexed entity from the previous find event (valid parameters are 1 to the number of entities found)
 e2function entity findResult(index)
 	return self.data.findlist[index]
 end
+
+__e2setcost(20)
 
 --- Returns the closest entity to the given point from the previous find event
 e2function entity findClosest(vector position)
@@ -773,12 +780,15 @@ e2function array findToArray()
 	return tmp
 end
 
+__e2setcost(2)
+
 --- Equivalent to findResult(1)
 e2function entity find()
 	return self.data.findlist[1]
 end
 
 --[[************************************************************************]]--
+__e2setcost(30)
 
 --- Sorts the entities from the last find event, index 1 is the closest to point V, returns the number of entities in the list
 e2function number findSortByDistance(vector position)
@@ -796,6 +806,7 @@ e2function number findSortByDistance(vector position)
 end
 
 --[[************************************************************************]]--
+__e2setcost(20)
 
 local function applyClip(self, filter)
 	local findlist = self.data.findlist
