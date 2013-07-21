@@ -87,14 +87,14 @@ e2function number vector:operator_is()
 	   then return 1 else return 0 end
 end
 
-e2function number vector:operator==(other)
+e2function number vector:operator==( vector other )
 	if this[1] - other[1] <= delta && other[1] - this[1] <= delta &&
 	   this[2] - other[2] <= delta && other[2] - this[2] <= delta &&
 	   this[3] - other[3] <= delta && other[3] - this[3] <= delta
 	   then return 1 else return 0 end
 end
 
-e2function number vector:operator!=(other)
+e2function number vector:operator!=( vector other )
 	if this[1] - other[1] > delta || other[1] - this[1] > delta ||
 	   this[2] - other[2] > delta || other[2] - this[2] > delta ||
 	   this[3] - other[3] > delta || other[3] - this[3] > delta
