@@ -109,55 +109,55 @@ registerOperator("dlt", "v", "v", function(self, args)
 	return { rv1[1] - rv2[1], rv1[2] - rv2[2], rv1[3] - rv2[3] }
 end)
 
-e2function number vector:operator_neg()
+e2function vector vector:operator_neg()
 	return { -this[1], -this[2], -this[3] }
 end
 
-e2function number operator+(lhs, vector rhs)
+e2function vector operator+(lhs, vector rhs)
 	return { lhs + rhs[1], lhs + rhs[2], lhs + rhs[3] }
 end
 
-e2function number operator+(vector lhs, rhs)
+e2function vector operator+(vector lhs, rhs)
 	return { lhs[1] + rhs, lhs[2] + rhs, lhs[3] + rhs }
 end
 
-e2function number operator+(vector lhs, vector rhs)
+e2function vector operator+(vector lhs, vector rhs)
 	return { lhs[1] + rhs[1], lhs[2] + rhs[2], lhs[3] + rhs[3] }
 end
 
-e2function number operator-(lhs, vector rhs)
+e2function vector operator-(lhs, vector rhs)
 	return { lhs - rhs[1], lhs - rhs[2], lhs - rhs[3] }
 end
 
-e2function number operator-(vector lhs, rhs)
+e2function vector operator-(vector lhs, rhs)
 	return { lhs[1] - rhs, lhs[2] - rhs, lhs[3] - rhs }
 end
 
-e2function number operator-(vector lhs, vector rhs)
+e2function vector operator-(vector lhs, vector rhs)
 	return { lhs[1] - rhs[1], lhs[2] - rhs[2], lhs[3] - rhs[3] }
 end
 
-e2function number operator*(lhs, vector rhs)
+e2function vector operator*(lhs, vector rhs)
 	return { lhs * rhs[1], lhs * rhs[2], lhs * rhs[3] }
 end
 
-e2function number operator*(vector lhs, rhs)
+e2function vector operator*(vector lhs, rhs)
 	return { lhs[1] * rhs, lhs[2] * rhs, lhs[3] * rhs }
 end
 
-e2function number operator*(vector lhs, vector rhs)
+e2function vector operator*(vector lhs, vector rhs)
 	return { lhs[1] * rhs[1], lhs[2] * rhs[2], lhs[3] * rhs[3] }
 end
 
-e2function number operator/(lhs, vector rhs)
+e2function vector operator/(lhs, vector rhs)
 	return { lhs / rhs[1], lhs / rhs[2], lhs / rhs[3] }
 end
 
-e2function number operator/(vector lhs, rhs)
+e2function vector operator/(vector lhs, rhs)
 	return { lhs[1] / rhs, lhs[2] / rhs, lhs[3] / rhs }
 end
 
-e2function number operator/(vector lhs, vector rhs)
+e2function vector operator/(vector lhs, vector rhs)
 	return { lhs[1] / rhs[1], lhs[2] / rhs[2], lhs[3] / rhs[3] }
 end
 
