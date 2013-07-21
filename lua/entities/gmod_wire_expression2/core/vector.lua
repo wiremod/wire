@@ -109,55 +109,55 @@ registerOperator("dlt", "v", "v", function(self, args)
 	return { rv1[1] - rv2[1], rv1[2] - rv2[2], rv1[3] - rv2[3] }
 end)
 
-e2function number vector:operator_neg()
+e2function vector vector:operator_neg()
 	return { -this[1], -this[2], -this[3] }
 end
 
-e2function number operator+(lhs, vector rhs)
+e2function vector operator+(lhs, vector rhs)
 	return { lhs + rhs[1], lhs + rhs[2], lhs + rhs[3] }
 end
 
-e2function number operator+(vector lhs, rhs)
+e2function vector operator+(vector lhs, rhs)
 	return { lhs[1] + rhs, lhs[2] + rhs, lhs[3] + rhs }
 end
 
-e2function number operator+(vector lhs, vector rhs)
+e2function vector operator+(vector lhs, vector rhs)
 	return { lhs[1] + rhs[1], lhs[2] + rhs[2], lhs[3] + rhs[3] }
 end
 
-e2function number operator-(lhs, vector rhs)
+e2function vector operator-(lhs, vector rhs)
 	return { lhs - rhs[1], lhs - rhs[2], lhs - rhs[3] }
 end
 
-e2function number operator-(vector lhs, rhs)
+e2function vector operator-(vector lhs, rhs)
 	return { lhs[1] - rhs, lhs[2] - rhs, lhs[3] - rhs }
 end
 
-e2function number operator-(vector lhs, vector rhs)
+e2function vector operator-(vector lhs, vector rhs)
 	return { lhs[1] - rhs[1], lhs[2] - rhs[2], lhs[3] - rhs[3] }
 end
 
-e2function number operator*(lhs, vector rhs)
+e2function vector operator*(lhs, vector rhs)
 	return { lhs * rhs[1], lhs * rhs[2], lhs * rhs[3] }
 end
 
-e2function number operator*(vector lhs, rhs)
+e2function vector operator*(vector lhs, rhs)
 	return { lhs[1] * rhs, lhs[2] * rhs, lhs[3] * rhs }
 end
 
-e2function number operator*(vector lhs, vector rhs)
+e2function vector operator*(vector lhs, vector rhs)
 	return { lhs[1] * rhs[1], lhs[2] * rhs[2], lhs[3] * rhs[3] }
 end
 
-e2function number operator/(lhs, vector rhs)
+e2function vector operator/(lhs, vector rhs)
 	return { lhs / rhs[1], lhs / rhs[2], lhs / rhs[3] }
 end
 
-e2function number operator/(vector lhs, rhs)
+e2function vector operator/(vector lhs, rhs)
 	return { lhs[1] / rhs, lhs[2] / rhs, lhs[3] / rhs }
 end
 
-e2function number operator/(vector lhs, vector rhs)
+e2function vector operator/(vector lhs, vector rhs)
 	return { lhs[1] / rhs[1], lhs[2] / rhs[2], lhs[3] / rhs[3] }
 end
 
@@ -210,7 +210,7 @@ end
 __e2setcost(5)
 
 --- Returns a random vector with its components between <min> and <max>
-e2function vector randvec(min, max)
+e2function vector randvec( normal min, normal max)
 	local range = max-min
 	return Vector(min+random()*range, min+random()*range, min+random()*range)
 end
@@ -238,7 +238,7 @@ e2function number vector:distance(vector other)
 	return (dx * dx + dy * dy + dz * dz) ^ 0.5
 end
 
-e2function number vector:distance2(v)
+e2function number vector:distance2( vector v)
 	local dx, dy, dz = this[1] - other[1], this[2] - other[2], this[3] - other[3]
 	return dx * dx + dy * dy + dz * dz
 end
@@ -252,11 +252,11 @@ e2function vector vector:normalized()
 	end
 end
 
-e2function number vector:dot(v)
+e2function number vector:dot( vector v)
 	return this[1] * other[1] + this[2] * other[2] + this[3] * other[3]
 end
 
-e2function vector vector:cross(v)
+e2function vector vector:cross( vector v)
 	return {
 		this[2] * other[3] - this[3] * other[2],
 		this[3] * other[1] - this[1] * other[3],
@@ -267,7 +267,7 @@ end
 __e2setcost(10)
 
 --- returns the outer product (tensor product) of two vectors
-e2function matrix vector:outerProduct(v)
+e2function matrix vector:outerProduct( vector v )
 	return {
 		this[1] * this[1], this[1] * other[2], this[1] * other[3],
 		this[2] * this[1], this[2] * other[2], this[2] * other[3],
@@ -283,7 +283,7 @@ e2function vector vector:rotate(angle ang)
 	return v
 end
 
-e2function vector vector:rotate(pitch, yaw, roll)
+e2function vector vector:rotate( normal pitch, normal yaw, normal roll)
 	local v = Vector(this[1], this[2], this[3])
 	v:Rotate(Angle(pitch, yaw, roll))
 	return v
