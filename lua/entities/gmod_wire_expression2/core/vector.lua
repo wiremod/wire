@@ -238,7 +238,7 @@ e2function number vector:distance(vector other)
 	return (dx * dx + dy * dy + dz * dz) ^ 0.5
 end
 
-e2function number vector:distance2( vector v)
+e2function number vector:distance2( vector other )
 	local dx, dy, dz = this[1] - other[1], this[2] - other[2], this[3] - other[3]
 	return dx * dx + dy * dy + dz * dz
 end
@@ -252,11 +252,11 @@ e2function vector vector:normalized()
 	end
 end
 
-e2function number vector:dot( vector v)
+e2function number vector:dot( vector other )
 	return this[1] * other[1] + this[2] * other[2] + this[3] * other[3]
 end
 
-e2function vector vector:cross( vector v)
+e2function vector vector:cross( vector other )
 	return {
 		this[2] * other[3] - this[3] * other[2],
 		this[3] * other[1] - this[1] * other[3],
@@ -267,7 +267,7 @@ end
 __e2setcost(10)
 
 --- returns the outer product (tensor product) of two vectors
-e2function matrix vector:outerProduct( vector v )
+e2function matrix vector:outerProduct( vector other )
 	return {
 		this[1] * this[1], this[1] * other[2], this[1] * other[3],
 		this[2] * this[1], this[2] * other[2], this[2] * other[3],
@@ -277,13 +277,13 @@ end
 
 __e2setcost(5)
 
-e2function vector vector:rotate(angle ang)
+e2function vector vector:rotate( angle ang )
 	local v = Vector(this[1], this[2], this[3])
 	v:Rotate(Angle(ang[1], ang[2], ang[3]))
 	return v
 end
 
-e2function vector vector:rotate( normal pitch, normal yaw, normal roll)
+e2function vector vector:rotate( normal pitch, normal yaw, normal roll )
 	local v = Vector(this[1], this[2], this[3])
 	v:Rotate(Angle(pitch, yaw, roll))
 	return v
@@ -378,7 +378,7 @@ e2function vector round(vector rv1)
 	}
 end
 
-e2function vector round(vector rv1, decimals)
+e2function vector round(vector rv1, decimals )
 	local shf = 10 ^ decimals
 	local x,y,z = rv1[1], rv1[2], rv1[3]
 
@@ -389,7 +389,7 @@ e2function vector round(vector rv1, decimals)
 	}
 end
 
-e2function vector ceil(vector rv1)
+e2function vector ceil( vector rv1 )
 	return {
 		rv1[1] - rv1[1] % -1,
 		rv1[2] - rv1[2] % -1,
