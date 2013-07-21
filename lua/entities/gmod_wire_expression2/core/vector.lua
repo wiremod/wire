@@ -295,7 +295,7 @@ e2function vector2 vector:dehomogenized()
 	return { this[1]/w, this[2]/w }
 end
 
-e2function vector(vector rv1)
+e2function vector vector(vector rv1)
 	return {
 		rv1[1] >= 0 and rv1[1] or -rv1[1],
 		rv1[2] >= 0 and rv1[2] or -rv1[2],
@@ -495,8 +495,8 @@ end
 --- Mix two vectors by a given proportion (between 0 and 1)
 e2function vector mix(vector vec1, vector vec2, ratio)
 	return {
-		vec1[1] * ratio + vec2[1] * (1-ratio)
-		vec1[2] * ratio + vec2[2] * (1-ratio)
+		vec1[1] * ratio + vec2[1] * (1-ratio),
+		vec1[2] * ratio + vec2[2] * (1-ratio),
 		vec1[3] * ratio + vec2[3] * (1-ratio)
 	}
 end
