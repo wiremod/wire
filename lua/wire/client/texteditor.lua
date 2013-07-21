@@ -983,6 +983,7 @@ function EDITOR:Find( str, looped )
 		local line = self.Rows[self.Start[1]]
 		local text = line:sub(self.Start[2]) .. "\n"
 		text = text .. table_concat( self.Rows, "\n", self.Start[1]+1 )
+		if (ignore_case) then text = text:lower() end
 
 		local offset = 2
 		for loop = 1, 100 do
