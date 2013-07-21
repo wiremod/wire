@@ -74,11 +74,11 @@ function ENT:MarkCellChanged(Address)
 end
 
 util.AddNetworkString("wire_digitalscreen")
-local pixelbits = {20, 8, 24, 30}
+local pixelbits = {20, 8, 24, 30, 8}
 function ENT:FlushCache()
 	net.Start("wire_digitalscreen")
 		net.WriteUInt(self:EntIndex(),16)
-		net.WriteUInt(self.Memory[1048569] or 0, 2) -- Super important the client knows what colormode we're using since that determines pixelbit
+		net.WriteUInt(self.Memory[1048569] or 0, 4) -- Super important the client knows what colormode we're using since that determines pixelbit
 		local pixelbit = pixelbits[(self.Memory[1048569] or 0)+1]
 		for i=1, #self.ChangedCellRanges do
 			local range = self.ChangedCellRanges[i]
@@ -123,8 +123,8 @@ function ENT:WriteCell(Address, value)
 			return true
 		end
 	else
-		if Address == 1048569 then -- Color mode (0: RGBXXX; 1: R G B; 2: 24 bit RGB; 3: RRRGGGBBB)
-			value = math.Clamp(math.floor(value or 0), 0, 3)
+		if Address == 1048569 then -- Color mode (0: RGBXXX; 1: R G B; 2: 24 bit RGB; 3: RRRGGGBBB; 4: XXX)
+			value = math.Clamp(math.floor(value or 0), 0, 4)
 		elseif Address == 1048570 then -- Clear row
 			local row = math.Clamp(math.floor(value), 0, self.ScreenHeight-1)
 			if self.Memory[1048569] == 1 then

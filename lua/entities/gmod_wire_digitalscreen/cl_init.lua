@@ -47,10 +47,10 @@ function ENT:OnRemove()
 	self.NeedRefresh = true
 end
 
-local pixelbits = {20, 8, 24, 30}
+local pixelbits = {20, 8, 24, 30, 8}
 net.Receive("wire_digitalscreen", function(netlen)
 	local ent = Entity(net.ReadUInt(16))
-	local pixelbit = pixelbits[net.ReadUInt(2)+1]
+	local pixelbit = pixelbits[net.ReadUInt(4)+1]
 	if IsValid(ent) and ent.Memory1 and ent.Memory2 then
 		while true do
 			local length = net.ReadUInt(20)
@@ -160,6 +160,9 @@ transformcolor[3] = function(c) -- RRRGGGBBB
 	cr = math.fmod(math.floor(c / 1e6), 1000)
 
 	return cr, cg, cb
+end
+transformcolor[4] = function(c) -- XXX
+	return c, c, c
 end
 
 local floor = math.floor
