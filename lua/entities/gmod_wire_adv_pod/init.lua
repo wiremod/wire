@@ -469,7 +469,8 @@ function ENT:Use( User, caller )
 		if not User:GetEyeTrace().Entity or User:GetEyeTrace().Entity ~= self then return end
 
 		if not User:GetWeapon("RemoteController"):IsValid()  then
-			User:Give("RemoteController")
+			-- So if people want to restrict remotecontrollers, they can.
+			hook.Call( "PlayerGiveSWEP", User, "RemoteController" )
 		end
 
 		User:GetWeapon("RemoteController").Linked = self
