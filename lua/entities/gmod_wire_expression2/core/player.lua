@@ -352,7 +352,7 @@ end
 
 --- Returns 1 if the player <this> is in noclip mode, 0 if not.
 e2function number entity:inNoclip()
-	if not this or this:GetMoveType() ~= MOVETYPE_NOCLIP then return 0 end
+	if not IsValid(this) or this:GetMoveType() ~= MOVETYPE_NOCLIP then return 0 end
 	return 1
 end
 
