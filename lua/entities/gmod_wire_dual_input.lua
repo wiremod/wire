@@ -1,10 +1,10 @@
+AddCSLuaFile()
+DEFINE_BASECLASS( "base_wire_entity" )
+ENT.PrintName       = "Wire Dual Input"
+ENT.RenderGroup		= RENDERGROUP_OPAQUE
+ENT.WireDebugName = "Dual Input"
 
-AddCSLuaFile( "cl_init.lua" )
-AddCSLuaFile( "shared.lua" )
-
-include('shared.lua')
-
-ENT.WireDebugName = "DualInput"
+if CLIENT then return end -- No more client
 
 function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )

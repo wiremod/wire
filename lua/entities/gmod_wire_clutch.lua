@@ -1,9 +1,11 @@
-AddCSLuaFile( "cl_init.lua" )
-AddCSLuaFile( "shared.lua" )
+AddCSLuaFile()
+DEFINE_BASECLASS( "base_wire_entity" )
+ENT.PrintName       = "Wire Clutch"
+ENT.RenderGroup		= RENDERGROUP_BOTH
+ENT.Purpose         = "Allows rotational friction to be varied dynamically"
+ENT.WireDebugName = "Clutch"
 
-ENT.WireDebugName = "clutch"
-
-include('shared.lua')
+if CLIENT then return end -- No more client
 
 function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )

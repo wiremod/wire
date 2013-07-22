@@ -1,10 +1,10 @@
-
-AddCSLuaFile( "cl_init.lua" )
-AddCSLuaFile( "shared.lua" )
-
-include('shared.lua')
-
+AddCSLuaFile()
+DEFINE_BASECLASS( "base_wire_entity" )
+ENT.PrintName       = "Wire Radio"
+ENT.RenderGroup		= RENDERGROUP_BOTH
 ENT.WireDebugName = "Radio"
+
+if CLIENT then return end -- No more client
 
 local MODEL = Model( "models/props_lab/binderblue.mdl" )
 

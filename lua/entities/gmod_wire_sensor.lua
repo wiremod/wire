@@ -1,10 +1,10 @@
+AddCSLuaFile()
+DEFINE_BASECLASS( "base_wire_entity" )
+ENT.PrintName       = "Wire Beacon Sensor"
+ENT.RenderGroup		= RENDERGROUP_BOTH
+ENT.WireDebugName = "Beacon Sensor"
 
-AddCSLuaFile( "cl_init.lua" )
-AddCSLuaFile( "shared.lua" )
-
-include('shared.lua')
-
-ENT.WireDebugName = "Distance"
+if CLIENT then return end -- No more client
 
 local MODEL = Model( "models/props_lab/huladoll.mdl" )
 

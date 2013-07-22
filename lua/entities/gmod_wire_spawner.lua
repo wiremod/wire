@@ -1,7 +1,10 @@
-AddCSLuaFile( "cl_init.lua" )
-AddCSLuaFile( "shared.lua" )
+AddCSLuaFile()
+DEFINE_BASECLASS( "base_wire_entity" )
+ENT.PrintName       = "Wire Prop Spawner"
+ENT.RenderGroup		= RENDERGROUP_BOTH
+ENT.WireDebugName = "Prop Spawner"
 
-include('shared.lua')
+if CLIENT then return end -- No more client
 
 local GlobalUndoList = {}
 

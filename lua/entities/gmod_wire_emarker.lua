@@ -1,8 +1,10 @@
-AddCSLuaFile( "cl_init.lua" )
-AddCSLuaFile( "shared.lua" )
-include('shared.lua')
-
+AddCSLuaFile()
+DEFINE_BASECLASS( "base_wire_entity" )
+ENT.PrintName       = "Wire Entity Marker"
+ENT.RenderGroup		= RENDERGROUP_OPAQUE
 ENT.WireDebugName = "EMarker"
+
+if CLIENT then return end -- No more client
 
 function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )

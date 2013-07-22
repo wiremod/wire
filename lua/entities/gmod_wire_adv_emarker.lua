@@ -1,11 +1,11 @@
--- Wire Advanced Entity Marker
--- Made by Divran
-
-AddCSLuaFile( "cl_init.lua" )
-AddCSLuaFile( "shared.lua" )
-include('shared.lua')
-
+AddCSLuaFile()
+DEFINE_BASECLASS( "base_wire_entity" )
+ENT.PrintName       = "Adv Wire Entity Marker"
+ENT.Author      = "Divran"
+ENT.RenderGroup		= RENDERGROUP_OPAQUE
 ENT.WireDebugName = "Adv EMarker"
+
+if CLIENT then return end -- No more client
 
 function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )

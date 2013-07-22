@@ -1,9 +1,10 @@
-AddCSLuaFile( "cl_init.lua" )
-AddCSLuaFile( "shared.lua" )
+AddCSLuaFile()
+DEFINE_BASECLASS( "base_wire_entity" )
+ENT.PrintName       = "Wire Text Receiver"
+ENT.RenderGroup		= RENDERGROUP_BOTH
+ENT.WireDebugName = "Text Receiver"
 
-include('shared.lua')
-
-ENT.WireDebugName = "TextReceiver"
+if CLIENT then return end -- No more client
 
 local receivers = {}
 

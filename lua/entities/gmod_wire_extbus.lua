@@ -1,9 +1,10 @@
-AddCSLuaFile("cl_init.lua")
-AddCSLuaFile("shared.lua")
+AddCSLuaFile()
+DEFINE_BASECLASS( "base_wire_entity" )
+ENT.PrintName       = "Wire Extended Bus"
+ENT.RenderGroup		= RENDERGROUP_BOTH
+ENT.WireDebugName = "Extended Bus"
 
-include("shared.lua")
-
-ENT.WireDebugName = "ExtBus"
+if CLIENT then return end -- No more client
 
 function ENT:Initialize()
   self:PhysicsInit( SOLID_VPHYSICS)

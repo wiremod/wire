@@ -1,8 +1,10 @@
-AddCSLuaFile( "cl_init.lua" )
-AddCSLuaFile( "shared.lua" )
-include('shared.lua')
-
+AddCSLuaFile()
+DEFINE_BASECLASS( "base_wire_entity" )
+ENT.PrintName       = "Wire Numpad"
+ENT.RenderGroup		= RENDERGROUP_OPAQUE
 ENT.WireDebugName = "Numpad"
+
+if CLIENT then return end -- No more client
 
 local keynames = {"0","1","2","3","4","5","6","7","8","9",".","enter","+","-","*","/"} -- Names as we will display them and for inputs/outputs
 local keyenums = {37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 52, 51, 50, 49, 48, 47} -- Same indexes as keynames, values are the corresponding KEY_* enums

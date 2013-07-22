@@ -1,10 +1,11 @@
-AddCSLuaFile( "cl_init.lua" )
-AddCSLuaFile( "shared.lua" )
-
+AddCSLuaFile()
+DEFINE_BASECLASS( "base_wire_entity" )
+ENT.PrintName		= "Wire Constraint Latch"
+ENT.RenderGroup		= RENDERGROUP_BOTH
+ENT.Purpose         = "Controllable weld and nocollide between two selected entities"
 ENT.WireDebugName = "Latch"
 
-include('shared.lua')
-
+if CLIENT then return end -- No more client
 
 function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )

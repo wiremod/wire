@@ -1,10 +1,10 @@
+AddCSLuaFile()
+DEFINE_BASECLASS( "base_wire_entity" )
+ENT.PrintName       = "Wire Target Finder"
+ENT.RenderGroup		= RENDERGROUP_BOTH
+ENT.WireDebugName = "Target Finder"
 
-AddCSLuaFile( "cl_init.lua" )
-AddCSLuaFile( "shared.lua" )
-
-include('shared.lua')
-
-ENT.WireDebugName = "Targetter"
+if CLIENT then return end -- No more client
 
 function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )

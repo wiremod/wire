@@ -1,8 +1,10 @@
-AddCSLuaFile( "cl_init.lua" )
-AddCSLuaFile( "shared.lua" )
-include('shared.lua')
-
+AddCSLuaFile()
+DEFINE_BASECLASS( "base_wire_entity" )
+ENT.PrintName       = "Wire Vehicle Controller"
+ENT.RenderGroup		= RENDERGROUP_BOTH
 ENT.WireDebugName = "Vehicle Controller"
+
+if CLIENT then return end -- No more client
 
 function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )

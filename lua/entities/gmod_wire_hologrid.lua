@@ -1,20 +1,18 @@
-AddCSLuaFile( "cl_init.lua" );
-AddCSLuaFile( "shared.lua" );
-include( "shared.lua" );
+AddCSLuaFile()
+DEFINE_BASECLASS( "base_wire_entity" )
+ENT.PrintName       = "Wire Holo Grid"
+ENT.RenderGroup		= RENDERGROUP_BOTH
+ENT.Author          = "Chad 'Jinto'"
+ENT.WireDebugName = "Holo Grid"
 
--- wire debug and overlay crap.
-ENT.WireDebugName	= "Holographic Grid";
+if CLIENT then return end -- No more client
 
--- init.
 function ENT:Initialize( )
-
-	-- setup physics
 	self:PhysicsInit( SOLID_VPHYSICS );
 	self:SetMoveType( MOVETYPE_VPHYSICS );
 	self:SetSolid( SOLID_VPHYSICS );
 	self:SetUseType(SIMPLE_USE)
 
-	-- vars
 	self:UpdateGPS(false)
 
 	-- create inputs.
@@ -34,7 +32,6 @@ function ENT:UpdateGPS(UseGPS)
 	end
 end
 
--- trigger input
 function ENT:TriggerInput( inputname, value )
 	-- store values.
 	if inputname == "UseGPS" then
@@ -83,7 +80,6 @@ function MakeWireHologrid( pl, Pos, Ang, model, usegps, frozen )
 
 	return grid;
 end
-
 duplicator.RegisterEntityClass("gmod_wire_hologrid", MakeWireHologrid, "Pos", "Ang", "Model", "usegps", "frozen")
 
 
