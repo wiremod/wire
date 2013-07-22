@@ -48,7 +48,7 @@ function HUDIndicator_GetCurrentRegistered()
 end
 
 local function DrawHUDIndicators()
-	if (!LocalPlayer():Alive()) then return end
+	if !IsValid(LocalPlayer()) or !LocalPlayer():Alive() then return end
 
 	local currenty = hudy
 
