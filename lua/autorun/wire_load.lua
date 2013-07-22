@@ -103,6 +103,7 @@ if SERVER then
 	include("wire/server/wirelib.lua")
 	include("wire/server/modelplug.lua")
 	include("wire/server/radiolib.lua")
+	include("wire/server/debuggerlib.lua")
 end
 
 -- client includes
