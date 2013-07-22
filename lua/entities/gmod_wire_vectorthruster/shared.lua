@@ -75,9 +75,10 @@ end
 
 function ENT:GetOverlayText()
 	local mode = self:GetMode()
-	return string.format("Thrust: %s\nMul: %f\nMode: %s",
-		self:IsOn() and tostring(self:NetGetForce()*self:NetGetMul()) or "off",
+	return string.format("Force Mul: %.2f\nInput: %.2f\nForce Applied: %.2f\nMode: %s",
+		self:NetGetForce(),
 		self:NetGetMul(),
+		self:NetGetForce() * self:NetGetMul(),
 		(mode == 0 and "XYZ Local") or (mode == 1 and "XYZ World") or (mode == 2 and "XY Local, Z World")
 	)
 end

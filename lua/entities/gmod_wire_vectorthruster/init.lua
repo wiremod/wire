@@ -210,8 +210,6 @@ function ENT:Switch( on, mul )
 		self:NetSetMul( mul )
 
 		if (mul ~= self.PrevOutput) then
-			--self:SetOverlayText( "Thrust = " .. math.Round(self.force*mul*1000)/1000 .. "\nMul: " .. math.Round(self.force*1000)/1000 )
-			--self:ShowOutput( true )
 			self.PrevOutput = mul
 		end
 
@@ -222,8 +220,6 @@ function ENT:Switch( on, mul )
 		end
 
 		if (self.PrevOutput) then
-			--self:SetOverlayText( "Thrust = Off".."\nMul: "..math.Round(self.force*1000)/1000 )
-			--self:ShowOutput( false )
 			self.PrevOutput = nil
 		end
 	end
@@ -234,20 +230,6 @@ function ENT:Switch( on, mul )
 	end
 
 	return true
-end
-
-function ENT:ShowOutput( on )
-	local mode = "XYZ Local"
-	if (self.mode == 1) then
-		mode = "XYZ World"
-	elseif (self.mode == 2) then
-		mode = "XY Local, Z World"
-	end
-	if ( on ) then
-		self:SetOverlayText( "Thrust = " .. math.Round(self.force*self.mul*1000)/1000 .. "\nMul: " .. math.Round(self.force*1000)/1000 .. "\nMode: "..mode )
-	else
-		self:SetOverlayText( "Thrust = Off".."\nMul: "..math.Round(self.force*1000)/1000 .. "\nMode: "..mode )
-	end
 end
 
 function MakeWireVectorThruster( pl, Pos, Ang, model, force, force_min, force_max, oweffect, uweffect, owater, uwater, bidir, soundname, nocollide, mode, angleinputs)
