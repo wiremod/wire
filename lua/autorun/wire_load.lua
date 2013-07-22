@@ -23,25 +23,25 @@ end
 
 if SERVER then
 	-- this file
-	AddCSLuaFile("autorun/Wire_Load.lua")
+	AddCSLuaFile("autorun/wire_load.lua")
 
 	-- shared includes
-	AddCSLuaFile("wire/WireShared.lua")
-	AddCSLuaFile("wire/Beam_NetVars.lua")
-	AddCSLuaFile("wire/WireGates.lua")
-	AddCSLuaFile("wire/WireMonitors.lua")
-	AddCSLuaFile("wire/GPULib.lua")
-	AddCSLuaFile("wire/CPULib.lua")
-	AddCSLuaFile("wire/Timedpairs.lua")
+	AddCSLuaFile("wire/wireshared.lua")
+	AddCSLuaFile("wire/beam_netvars.lua")
+	AddCSLuaFile("wire/wiregates.lua")
+	AddCSLuaFile("wire/wiremonitors.lua")
+	AddCSLuaFile("wire/gpulib.lua")
+	AddCSLuaFile("wire/cpulib.lua")
+	AddCSLuaFile("wire/timedpairs.lua")
 	AddCSLuaFile("wire/default_data_decompressor.lua")
 
 	-- client includes
 	AddCSLuaFile("wire/client/cl_wirelib.lua")
 	AddCSLuaFile("wire/client/cl_modelplug.lua")
 	AddCSLuaFile("wire/client/cl_wire_map_interface.lua")
-	AddCSLuaFile("wire/client/WireDermaExts.lua")
-	AddCSLuaFile("wire/client/WireMenus.lua")
-	AddCSLuaFile("wire/client/TextEditor.lua")
+	AddCSLuaFile("wire/client/wiredermaexts.lua")
+	AddCSLuaFile("wire/client/wiremenus.lua")
+	AddCSLuaFile("wire/client/texteditor.lua")
 	AddCSLuaFile("wire/client/toolscreen.lua")
 	AddCSLuaFile("wire/client/wire_expression2_browser.lua")
 	AddCSLuaFile("wire/client/wire_expression2_editor.lua")
@@ -88,20 +88,20 @@ if SERVER then
 end
 
 -- shared includes
-include("wire/WireShared.lua")
-include("wire/Beam_NetVars.lua")
-include("wire/WireGates.lua")
-include("wire/WireMonitors.lua")
-include("wire/GPULib.lua")
-include("wire/CPULib.lua")
-include("wire/Timedpairs.lua")
+include("wire/wireshared.lua")
+include("wire/beam_netvars.lua")
+include("wire/wiregates.lua")
+include("wire/wiremonitors.lua")
+include("wire/gpulib.lua")
+include("wire/cpulib.lua")
+include("wire/timedpairs.lua")
 include("wire/default_data_decompressor.lua")
 include("von.lua")
 
 -- server includes
 if SERVER then
-	include("wire/server/WireLib.lua")
-	include("wire/server/ModelPlug.lua")
+	include("wire/server/wirelib.lua")
+	include("wire/server/modelplug.lua")
 	include("wire/server/radiolib.lua")
 end
 
@@ -110,10 +110,10 @@ if CLIENT then
 	include("wire/client/cl_wirelib.lua")
 	include("wire/client/cl_modelplug.lua")
 	include("wire/client/cl_wire_map_interface.lua")
-	include("wire/client/WireDermaExts.lua")
-	include("wire/client/WireMenus.lua")
+	include("wire/client/wiredermaexts.lua")
+	include("wire/client/wiremenus.lua")
 	include("wire/client/toolscreen.lua")
-	include("wire/client/TextEditor.lua")
+	include("wire/client/texteditor.lua")
 	include("wire/client/wire_expression2_browser.lua")
 	include("wire/client/wire_expression2_editor.lua")
 	include("wire/client/wire_filebrowser.lua")
