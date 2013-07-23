@@ -822,10 +822,12 @@ function WireLib.ApplyDupeInfo( ply, ent, info, GetEntByID )
 		ent.extended = true
 		RefreshSpecialOutputs(ent)
 	end
+	local idx = 0
+	if IsValid(ply) then idx = ply:UniqueID() end -- Map Save loading does not have a ply
 	if (info.Wires) then
 		for k,input in pairs(info.Wires) do
 
-			Wire_Link_Start(ply:UniqueID(), ent, input.StartPos, k, input.Material, input.Color, input.Width)
+			Wire_Link_Start(idx, ent, input.StartPos, k, input.Material, input.Color, input.Width)
 
 			if (input.Path) then
 				for _,v in ipairs(input.Path) do
@@ -838,7 +840,7 @@ function WireLib.ApplyDupeInfo( ply, ent, info, GetEntByID )
 						end
 					end
 					if (IsValid(ent2)) then
-						Wire_Link_Node(ply:UniqueID(), ent2, v.Pos)
+						Wire_Link_Node(idx, ent2, v.Pos)
 					else
 						Msg("ApplyDupeInfo: Error, Could not find the entity for wire path\n")
 					end
@@ -853,7 +855,7 @@ function WireLib.ApplyDupeInfo( ply, ent, info, GetEntByID )
 				end
 			end
 			if (IsValid(ent2)) then
-				Wire_Link_End(ply:UniqueID(), ent2, input.SrcPos, input.SrcId)
+				Wire_Link_End(idx, ent2, input.SrcPos, input.SrcId)
 			else
 				Msg("ApplyDupeInfo: Error, Could not find the output entity\n")
 			end
