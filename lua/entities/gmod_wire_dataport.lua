@@ -21,7 +21,7 @@ function ENT:Initialize()
 	end
 	self.OutPorts = {}
 
-	self.Entity:NextThink(CurTime())
+	self:NextThink(CurTime())
 end
 
 function ENT:Think()
@@ -33,7 +33,7 @@ function ENT:Think()
 			self.OutPorts[i] = nil
 		end
 	end
-	self.Entity:NextThink(CurTime())
+	self:NextThink(CurTime())
 	return true -- for NextThink
 end
 

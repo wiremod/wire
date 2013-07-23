@@ -70,7 +70,7 @@ function ENT:TurnOn()
 	
 	self.flashlight = ents.Create( "env_projectedtexture" )
 	
-		self.flashlight:SetParent( self.Entity )
+		self.flashlight:SetParent( self )
 		
 		-- The local positions are the offsets from parent..
 		self.flashlight:SetLocalPos( Vector( 0, 0, 0 ) )

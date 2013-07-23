@@ -22,13 +22,13 @@ local anims = {
 }
 
 function ENT:Initialize()
-	self.Entity:PhysicsInit( SOLID_VPHYSICS )
-	self.Entity:SetMoveType( MOVETYPE_VPHYSICS )
-	self.Entity:SetSolid( SOLID_VPHYSICS )
-	self.Entity:SetUseType( SIMPLE_USE )
+	self:PhysicsInit( SOLID_VPHYSICS )
+	self:SetMoveType( MOVETYPE_VPHYSICS )
+	self:SetSolid( SOLID_VPHYSICS )
+	self:SetUseType( SIMPLE_USE )
 
-	self.Outputs = Wire_CreateOutputs(self.Entity, { "Out" })
-	self.Inputs = Wire_CreateInputs(self.Entity, { "Set" })
+	self.Outputs = Wire_CreateOutputs(self, { "Out" })
+	self.Inputs = Wire_CreateInputs(self, { "Set" })
 	local anim = anims[self:GetModel()]
 	if anim then self:SetSequence(anim[2]) end
 end
@@ -73,7 +73,7 @@ function ENT:Think()
 			self.podpress = nil
 		end
 
-		self.Entity:NextThink(CurTime()+0.05)
+		self:NextThink(CurTime()+0.05)
 		return true
 	end
 end
@@ -87,27 +87,27 @@ function ENT:Setup(toggle, value_off, value_on, description, entityout)
 	self:SetOn( false )
 
 	self:ShowOutput(self.value_off)
-	Wire_TriggerOutput(self.Entity, "Out", self.value_off)
+	Wire_TriggerOutput(self, "Out", self.value_off)
 
 	if entityout then
-		WireLib.AdjustSpecialOutputs(self.Entity, { "Out", "EntID" , "Entity" }, { "NORMAL", "NORMAL" , "ENTITY" })
-		Wire_TriggerOutput(self.Entity, "EntID", 0)
-		Wire_TriggerOutput(self.Entity, "Entity", nil)
+		WireLib.AdjustSpecialOutputs(self, { "Out", "EntID" , "Entity" }, { "NORMAL", "NORMAL" , "ENTITY" })
+		Wire_TriggerOutput(self, "EntID", 0)
+		Wire_TriggerOutput(self, "Entity", nil)
 		self.OutputEntID=true
 	else
-		Wire_AdjustOutputs(self.Entity, { "Out" })
+		Wire_AdjustOutputs(self, { "Out" })
 		self.OutputEntID=false
 	end
 
 	if toggle then
-		Wire_AdjustInputs(self.Entity, { "Set" })
+		Wire_AdjustInputs(self, { "Set" })
 	else
-		Wire_AdjustInputs(self.Entity, {})
+		Wire_AdjustInputs(self, {})
 	end
 end
 
 function ENT:Switch(on)
-	if (not self.Entity:IsValid()) then return end
+	if (not self:IsValid()) then return end
 
 	self:SetOn( on )
 
@@ -127,10 +127,10 @@ function ENT:Switch(on)
 		if self.OutputEntID then self.EntToOutput = NULL end
 	end
 
-	Wire_TriggerOutput(self.Entity, "Out", self.Value)
+	Wire_TriggerOutput(self, "Out", self.Value)
 	if self.OutputEntID then
-		Wire_TriggerOutput(self.Entity, "EntID", self.EntToOutput:EntIndex())
-		Wire_TriggerOutput(self.Entity, "Entity", self.EntToOutput)
+		Wire_TriggerOutput(self, "EntID", self.EntToOutput:EntIndex())
+		Wire_TriggerOutput(self, "Entity", self.EntToOutput)
 	end
 	return true
 end

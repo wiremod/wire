@@ -47,7 +47,7 @@ function ENT:Initialize()
 
 	-- Owners STEAMID
 	self.Owner_SteamID = "SINGLEPLAYER"
-	self.Entity:NextThink(CurTime()+1.0)
+	self:NextThink(CurTime()+1.0)
 end
 
 function ENT:GetStructName(name)
@@ -268,7 +268,7 @@ function ENT:Think()
 		file.Write(self:GetStructName(cachedBlockIndex),self:MakeFloatTable(self.Cache[cachedBlockIndex]))
 		self:UpdateCap()
 	end
-	self.Entity:NextThink(CurTime()+0.25)
+	self:NextThink(CurTime()+0.25)
 	return true
 end
 

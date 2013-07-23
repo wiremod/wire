@@ -14,8 +14,8 @@ function ENT:Initialize()
   self:SetSolid(SOLID_VPHYSICS)
 
   -- Inputs/outputs
-  self.Inputs = Wire_CreateInputs(self.Entity, { "MemBus", "IOBus", "Frequency", "Clk", "Reset", "Interrupt"})
-  self.Outputs = Wire_CreateOutputs(self.Entity, { "Error" })
+  self.Inputs = Wire_CreateInputs(self, { "MemBus", "IOBus", "Frequency", "Clk", "Reset", "Interrupt"})
+  self.Outputs = Wire_CreateOutputs(self, { "Error" })
 
   -- CPU platform settings
   self.Clk = 0
@@ -185,7 +185,7 @@ end
 --------------------------------------------------------------------------------
 function ENT:Think()
   self:Run()
-  if self.Clk >= 1.0 then self.Entity:NextThink(CurTime()) end
+  if self.Clk >= 1.0 then self:NextThink(CurTime()) end
   return true
 end
 
@@ -271,7 +271,7 @@ end
 function ENT:TriggerInput(iname, value)
       if iname == "Clk" then
     self.Clk = value
-    if self.Clk >= 1.0 then self.Entity:NextThink(CurTime()) end
+    if self.Clk >= 1.0 then self:NextThink(CurTime()) end
   elseif iname == "Frequency" then
     if (not game.SinglePlayer()) and (value > 1400000) then self.Frequency = 1400000 return end
     if value > 0 then self.Frequency = math.floor(value) end
