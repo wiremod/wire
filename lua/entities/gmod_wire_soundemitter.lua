@@ -27,7 +27,7 @@ function ENT:Initialize()
 	self.SampleTable[4] = "synth/sine.wav"
 
 	//LFO:
-	// 0 - none
+	// 0 - none 
 	// 1 - square
 	// 2 - tri
 	// 3 - saw
@@ -144,14 +144,14 @@ function ENT:TriggerInput(iname, value)
 	elseif (iname == "Sample") then
 		self:SetSample(value)
 	elseif(iname == "SoundPath") then
-	 self:SetSound(value)  //live sound update, useful if you're using Expression 2 and it saves a lot of space in your contraption ;)
-	if(active) then //checking if A input is set to 1(Boolean variable "active")
-		self.Pitch = relpitch
-		self.SND:Play()//if so restart emitter with new sound set
-		self.SND:ChangePitch(relpitch,0) //keep pitch
+	 self:SetSound(value)
+	if(active) then
+		relpitch = self.Pitch 
+		self.SND:ChangePitch(relpitch,0)
+		self.SND:Play()
 		
 	else
-		self.SND:Stop()//else shut it down
+		self.SND:Stop()
 	end
 	end
 
