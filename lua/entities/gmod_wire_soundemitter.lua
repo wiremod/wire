@@ -5,14 +5,14 @@ ENT.RenderGroup		= RENDERGROUP_BOTH
 ENT.WireDebugName = "Sound Emitter"
 
 if CLIENT then return end -- No more client
-
+local path = nil
 function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )
 	self:SetMoveType( MOVETYPE_VPHYSICS )
 	self:SetSolid( SOLID_VPHYSICS )
 
-	self.Inputs = Wire_CreateInputs(self, { "A", "Toggle", "Volume", "Play", "Stop",
-		"PitchRelative", "LFOType", "LFORate", "LFOModPitch", "LFOModVolume", "Sample" })
+	self.Inputs = WireLib.CreateSpecialInputs(self, { "A", "Toggle", "Volume", "Play", "Stop",
+		"PitchRelative", "LFOType", "LFORate", "LFOModPitch", "LFOModVolume", "Sample","SoundPath" },{"NORMAL", "NORMAL", "NORMAL", "NORMAL", "NORMAL","NORMAL", "NORMAL", "NORMAL", "NORMAL", "NORMAL", "NORMAL","STRING"}) 
 	self.Outputs = Wire_CreateOutputs(self, { "Memory" })
 
 	self.Active = 0
@@ -20,7 +20,7 @@ function ENT:Initialize()
 	self.Pitch = 100
 
 	self.SampleTable = {}
-	self.SampleTable[0] = "synth/square.wav"
+	self.SampleTable[0] = parsedsound
 	self.SampleTable[1] = "synth/square.wav"
 	self.SampleTable[2] = "synth/saw.wav"
 	self.SampleTable[3] = "synth/tri.wav"
@@ -143,6 +143,16 @@ function ENT:TriggerInput(iname, value)
 		self.LFOModVolume = value
 	elseif (iname == "Sample") then
 		self:SetSample(value)
+	elseif(iname == "SoundPath") then
+	 self:SetSound(value)  //live sound update, useful if you're using Expression 2 and it saves a lot of space in your contraption ;)
+	if(active) then //checking if A input is set to 1(Boolean variable "active")
+		self.Pitch = relpitch
+		self.SND:Play()//if so restart emitter with new sound set
+		self.SND:ChangePitch(relpitch,0) //keep pitch
+		
+	else
+		self.SND:Stop()//else shut it down
+	end
 	end
 
 //		"Toggle", "Volume", "Play", "Stop",
