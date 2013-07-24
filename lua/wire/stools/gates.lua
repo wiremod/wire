@@ -237,7 +237,7 @@ if CLIENT then
 		end
 
 		local function FillSubTree( tree, node, temp )
-			node.Icon:SetImage( "gui/silkicons/arrow_refresh" )
+			node.Icon:SetImage( "icon16/arrow_refresh.png" )
 
 			local subtree = {}
 			for k,v in pairs( temp ) do
@@ -259,7 +259,7 @@ if CLIENT then
 				function node2:DoClick()
 					RunConsoleCommand( "wire_gates_Action", self.action )
 				end
-				node2.Icon:SetImage( "gui/silkicons/newspaper" )
+				node2.Icon:SetImage( "icon16/newspaper.png" )
 				tree:InvalidateLayout()
 
 				if index == max then
@@ -268,14 +268,14 @@ if CLIENT then
 					if not node.m_bExpanded then
 						node:InternalDoClick()
 					end
-					node.Icon:SetImage( "gui/silkicons/folder" )
+					node.Icon:SetImage( "icon16/folder.png" )
 				end
 			end )
 		end
 
 		for gatetype,gatefuncs in pairs( WireGatesSorted ) do
 			local node = tree:AddNode( gatetype .. " Gates" )
-			node.Icon:SetImage( "gui/silkicons/folder" )
+			node.Icon:SetImage( "icon16/folder.png" )
 			node.first_time = true
 			function node:DoClick()
 				if self.first_time then

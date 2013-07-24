@@ -74,17 +74,8 @@ if SERVER then
 
 	-- resource files
 	resource.AddFile("materials/expression 2/cog.vmt")
-	resource.AddFile("materials/gui/silkicons/page_white_add.vmt")
-	resource.AddFile("materials/gui/silkicons/page_white_delete.vmt")
 	resource.AddFile("materials/wirelogo.vmt")
 	resource.AddSingleFile("materials/expression 2/cog_world.vmt")
-	resource.AddFile( "materials/gui/silkicons/folder.vmt" )
-	resource.AddFile( "materials/gui/silkicons/computer.vmt" )
-	resource.AddFile("materials/gui/silkicons/wrench.vtf")
-	resource.AddFile("materials/vgui/spawnmenu/save.vtf")
-	resource.AddFile("materials/gui/silkicons/help.vmt")
-	resource.AddFile("materials/gui/silkicons/emoticon_smile.vtf")
-	resource.AddFile("materials/gui/silkicons/newspaper.vtf")
 end
 
 -- shared includes

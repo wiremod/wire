@@ -1,7 +1,0 @@
-"UnlitGeneric"
-{
-	"$basetexture"		"vgui/spawnmenu/folder"
-	"$vertexcolor" 		1
-	"$vertexalpha" 		1
-	"$nolod" 			1
-}

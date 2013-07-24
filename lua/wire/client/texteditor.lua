@@ -1365,7 +1365,7 @@ function EDITOR:CreateFindWindow()
 		self.FindWindow:Close()
 	end
 
-	pnl.FindTab = pnl.TabHolder:AddSheet( "Find", findtab, "gui/silkicons/page_white_find", false, false )
+	pnl.FindTab = pnl.TabHolder:AddSheet( "Find", findtab, "icon16/page_white_find.png", false, false )
 	pnl.FindTab.Entry = FindEntry
 
 
@@ -1456,7 +1456,7 @@ function EDITOR:CreateFindWindow()
 		self.FindWindow:Close()
 	end
 
-	pnl.ReplaceTab = pnl.TabHolder:AddSheet( "Replace", replacetab, "gui/silkicons/page_white_wrench", false, false )
+	pnl.ReplaceTab = pnl.TabHolder:AddSheet( "Replace", replacetab, "icon16/page_white_wrench.png", false, false )
 	pnl.ReplaceTab.Entry = FindEntry
 
 	-- Go to line tab
@@ -1494,7 +1494,7 @@ function EDITOR:CreateFindWindow()
 	GoToEntry.OnEnter = GoToAction
 	Goto.DoClick = GoToAction
 
-	pnl.GoToLineTab = pnl.TabHolder:AddSheet( "Go to Line", gototab, "gui/silkicons/page_white_go", false, false )
+	pnl.GoToLineTab = pnl.TabHolder:AddSheet( "Go to Line", gototab, "icon16/page_white_go.png", false, false )
 	pnl.GoToLineTab.Entry = GoToEntry
 
 	-- Tab buttons

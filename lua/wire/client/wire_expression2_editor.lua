@@ -836,7 +836,7 @@ function Editor:InitComponents()
 		self.C['Credit'].panel:SetVisible(!self.C['Credit'].panel:IsVisible())
 	end
 	self.C['Sav'].panel:SetText("")
-	self.C['Sav'].panel.Icon = surface.GetTextureID( "vgui/spawnmenu/save" )
+	self.C['Sav'].panel:SetImage("icon16/disk.png")
 	self.C['Sav'].panel.Paint = function(button)
 		local w,h = button:GetSize()
 		draw.RoundedBox(1, 0, 0, w, h, self.colors.col_FL)
@@ -848,28 +848,22 @@ function Editor:InitComponents()
 	self.C['Sav'].panel.DoClick = function( button ) self:SaveFile( self:GetChosenFile() ) end
 
 	self.C['NewTab'].panel:SetText("")
-	self.C['NewTab'].panel.Icon = surface.GetTextureID( "gui/silkicons/page_white_add" )
+	self.C['NewTab'].panel:SetImage("icon16/page_white_add.png")
 	self.C['NewTab'].panel.Paint = function(button)
 		local w,h = button:GetSize()
 		draw.RoundedBox(1, 0, 0, w, h, self.colors.col_FL)
 		if ( button.Hovered ) then draw.RoundedBox(0, 1, 1, w - 2, h - 2, Color(0,0,0,192)) end
-		surface.SetTexture(button.Icon)
-		surface.SetDrawColor( 255, 255, 255, 255 )
-		surface.DrawTexturedRect( 2, 2, w-4, h-4)
 	end
 	self.C['NewTab'].panel.DoClick = function( button )
 		self:NewTab()
 	end
 
 	self.C['CloseTab'].panel:SetText("")
-	self.C['CloseTab'].panel.Icon = surface.GetTextureID( "gui/silkicons/page_white_delete" )
+	self.C['CloseTab'].panel:SetImage("icon16/page_white_delete.png")
 	self.C['CloseTab'].panel.Paint = function(button)
 		local w,h = button:GetSize()
 		draw.RoundedBox(1, 0, 0, w, h, self.colors.col_FL)
 		if ( button.Hovered ) then draw.RoundedBox(0, 1, 1, w - 2, h - 2, Color(0,0,0,192)) end
-		surface.SetTexture(button.Icon)
-		surface.SetDrawColor( 255, 255, 255, 255 )
-		surface.DrawTexturedRect( 2, 2, w-4, h-4)
 	end
 	self.C['CloseTab'].panel.DoClick = function( button )
 		self:CloseTab()
@@ -989,14 +983,9 @@ function Editor:InitComponents()
 		end
 
 	end
-	self.C['ConBut'].panel.Icon = surface.GetTextureID( "gui/silkicons/wrench" )
+	self.C['ConBut'].panel:SetImage("icon16/wrench.png")
 	self.C['ConBut'].panel:SetText("")
-	self.C['ConBut'].panel.Paint = function(button)
-		local w,h = button:GetSize()
-		surface.SetTexture(button.Icon)
-		surface.SetDrawColor( 255, 255, 255, 255 )
-		surface.DrawTexturedRect( 2, 2, w-4, h-4)
-	end
+	self.C['ConBut'].panel.Paint = function(button)	end
 	self.C['ConBut'].panel.DoClick = function() self.C['Control'].panel:SetVisible(!self.C['Control'].panel:IsVisible()) end
 	self:InitControlPanel(self.C['Control'].panel)	//making it seperate for better overview
 	self.C['Control'].panel:SetVisible(false)
@@ -1110,7 +1099,7 @@ function Editor:InitControlPanel(frame)
 	tabholder.Paint = function() end
 
 	--------------------------------------------- EDITOR TAB
-	local sheet = self:AddControlPanelTab( "Editor", "gui/silkicons/wrench", "Options for the editor itself." )
+	local sheet = self:AddControlPanelTab( "Editor", "icon16/wrench.png", "Options for the editor itself." )
 
 	-- WINDOW BORDER COLORS
 
@@ -1477,7 +1466,7 @@ function Editor:InitControlPanel(frame)
 	end
 
 	--------------------------------------------- EXPRESSION 2 TAB
-	local sheet = self:AddControlPanelTab( "Expression 2", "gui/silkicons/computer", "Options for Expression 2." )
+	local sheet = self:AddControlPanelTab( "Expression 2", "icon16/computer.png", "Options for Expression 2." )
 
 	local dlist = vgui.Create("DPanelList",sheet.Panel)
 	dlist.Paint = function() end
@@ -1681,7 +1670,7 @@ Text here]# ]] }
 
 
 	--------------------------------------------- REMOTE UPDATER TAB
-	local sheet = self:AddControlPanelTab( "Remote Updater", "gui/silkicons/world", "Update your Expressions/GPUs/CPUs from far away.\nNote: Does not work for CPU/GPU yet." )
+	local sheet = self:AddControlPanelTab( "Remote Updater", "icon16/world.png", "Update your Expressions/GPUs/CPUs from far away.\nNote: Does not work for CPU/GPU yet." )
 
 	local dlist = vgui.Create("DPanelList",sheet.Panel)
 	dlist.Paint = function() end
