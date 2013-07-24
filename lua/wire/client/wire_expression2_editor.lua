@@ -841,9 +841,6 @@ function Editor:InitComponents()
 		local w,h = button:GetSize()
 		draw.RoundedBox(1, 0, 0, w, h, self.colors.col_FL)
 		if ( button.Hovered ) then draw.RoundedBox(0, 1, 1, w - 2, h - 2, Color(0,0,0,192)) end
-		surface.SetTexture(button.Icon)
-		surface.SetDrawColor( 255, 255, 255, 255 )
-		surface.DrawTexturedRect( 2, 2, w-4, h-4)
 	end
 	self.C['Sav'].panel.DoClick = function( button ) self:SaveFile( self:GetChosenFile() ) end
 
