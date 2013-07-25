@@ -57,7 +57,7 @@ function SWEP:On()
 	self:GetOwner():SetMoveType(MOVETYPE_NONE)
 	self:GetOwner():DrawViewModel(false)
 	if (self.Linked and self.Linked:IsValid()) then
-		self.Linked:PlayerEntered( self.Owner, self )
+		self.Linked:PlayerEntered( self:GetOwner(), self )
 	end
 end
 function SWEP:Off()
