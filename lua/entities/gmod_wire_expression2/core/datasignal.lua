@@ -386,12 +386,12 @@ end
 
 __e2setcost(20)
 
--- Get all E2s which would have recieved a signal if you had sent it to this group and the E2s scope
+-- Get all E2s which would have received a signal if you had sent it to this group and the E2s scope
 e2function array dsProbe( string groupname )
 	return probeGroup( self.entity, self.data.datasignal.scope, groupname )
 end
 
--- Get all E2s which would have recieved a signal if you had sent it to this group and scope
+-- Get all E2s which would have received a signal if you had sent it to this group and scope
 e2function array dsProbe( string groupname, number scope )
 	return probeGroup( self.entity, groupname, c(f(scope),0,2) )
 end
