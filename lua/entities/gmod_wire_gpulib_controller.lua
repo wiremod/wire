@@ -1,7 +1,21 @@
-AddCSLuaFile( "cl_init.lua" )
-include('cl_init.lua')
+
+AddCSLuaFile()
+DEFINE_BASECLASS( "base_wire_entity" )
+
+ENT.PrintName		= "Wire GPULib Controller"
+ENT.Author			= ""
+ENT.Contact			= ""
+ENT.Purpose			= ""
+ENT.Instructions	= ""
+ENT.RenderGroup 	= RENDERGROUP_BOTH
+
+ENT.Spawnable			= false
+ENT.AdminSpawnable		= false
 
 ENT.WireDebugName = "GPULib Controller"
+
+if CLIENT then return end
+
 
 function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )
@@ -51,26 +65,6 @@ function ENT:TriggerInput(iname, value)
 		self:UpdateTarget()
 	end
 end
-
-/*
-function ENT:BuildDupeInfo()
-	local info = self.BaseClass.BuildDupeInfo(self) or {}
-	if self.CamPod and self.CamPod:IsValid() then
-		info.pod = self.CamPod:EntIndex()
-	end
-	return info
-end
-
-function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
-	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
-	if info.pod then
-		self.CamPod = GetEntByID(info.pod)
-		if not self.CamPod then
-			self.CamPod = ents.GetByIndex(info.pod)
-		end
-	end
-end
-*/
 
 function MakeGPULibController( pl, Pos, Ang, model, screen )
 	--if ( !pl:CheckLimit( "wire_cams" ) ) then return false end
