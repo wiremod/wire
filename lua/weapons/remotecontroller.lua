@@ -30,10 +30,10 @@ SWEP.worldModel = "models/weapons/w_pistol.mdl"
 if CLIENT then return end
 
 function SWEP:PrimaryAttack()
-	local trace = self.Owner:GetEyeTrace()
+	local trace = self:GetOwner():GetEyeTrace()
 	if (trace.Entity and trace.Entity:IsValid() and trace.Entity:GetClass() == "gmod_wire_adv_pod") then
 		self.Linked = trace.Entity
-		self.Owner:ChatPrint("Remote Controller linked.")
+		self:GetOwner():ChatPrint("Remote Controller linked.")
 	end
 end
 
@@ -53,32 +53,28 @@ end
 
 function SWEP:On()
 	self.Active = true
-	self.OldMoveType = self.Owner:GetMoveType()
-	self.Owner:SetMoveType(MOVETYPE_NONE)
-	self.Owner:DrawViewModel(false)
+	self.OldMoveType = self:GetOwner():GetMoveType()
+	self:GetOwner():SetMoveType(MOVETYPE_NONE)
+	self:GetOwner():DrawViewModel(false)
 	if (self.Linked and self.Linked:IsValid()) then
 		self.Linked:PlayerEntered( self.Owner, self )
 	end
 end
 function SWEP:Off()
 	if self.Active then
-		if (self.OldMoveType) then
-	    		self.Owner:SetMoveType(self.OldMoveType)
-		else
-	    		self.Owner:SetMoveType(MOVETYPE_WALK)
-		end
+		self:GetOwner():SetMoveType(self.OldMoveType or MOVETYPE_WALK)
 	end
 	self.Active = nil
 	self.OldMoveType = nil
-	self.Owner:DrawViewModel(true)
+	self:GetOwner():DrawViewModel(true)
 	if (self.Linked and self.Linked:IsValid()) then
-		self.Linked:PlayerExited( self.Owner )
+		self.Linked:PlayerExited( self:GetOwner() )
 	end
 end
 
 function SWEP:Think()
 	if (!self.Linked) then return end
-	if (self.Owner:KeyPressed( IN_USE )) then
+	if (self:GetOwner():KeyPressed( IN_USE )) then
 		if (!self.Active) then
 			self:On()
 		else
