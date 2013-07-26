@@ -83,24 +83,24 @@ function ENT:Think()
 	self:SetColor(Color(0, 255, 0, 255))
 
 	if ent:GetClass() == "gmod_wire_data_transferer" then
-		ent:RecieveValue("A",self.Values.A)
-		ent:RecieveValue("B",self.Values.B)
-		ent:RecieveValue("C",self.Values.C)
-		ent:RecieveValue("D",self.Values.D)
-		ent:RecieveValue("E",self.Values.E)
-		ent:RecieveValue("F",self.Values.F)
-		ent:RecieveValue("G",self.Values.G)
-		ent:RecieveValue("H",self.Values.H)
+		ent:ReceiveValue("A",self.Values.A)
+		ent:ReceiveValue("B",self.Values.B)
+		ent:ReceiveValue("C",self.Values.C)
+		ent:ReceiveValue("D",self.Values.D)
+		ent:ReceiveValue("E",self.Values.E)
+		ent:ReceiveValue("F",self.Values.F)
+		ent:ReceiveValue("G",self.Values.G)
+		ent:ReceiveValue("H",self.Values.H)
 	elseif ent:GetClass() == "gmod_wire_data_satellitedish" then
 		if IsValid(ent.Transmitter) then
-			ent.Transmitter:RecieveValue("A",self.Values.A)
-			ent.Transmitter:RecieveValue("B",self.Values.B)
-			ent.Transmitter:RecieveValue("C",self.Values.C)
-			ent.Transmitter:RecieveValue("D",self.Values.D)
-			ent.Transmitter:RecieveValue("E",self.Values.E)
-			ent.Transmitter:RecieveValue("F",self.Values.F)
-			ent.Transmitter:RecieveValue("G",self.Values.G)
-			ent.Transmitter:RecieveValue("H",self.Values.H)
+			ent.Transmitter:ReceiveValue("A",self.Values.A)
+			ent.Transmitter:ReceiveValue("B",self.Values.B)
+			ent.Transmitter:ReceiveValue("C",self.Values.C)
+			ent.Transmitter:ReceiveValue("D",self.Values.D)
+			ent.Transmitter:ReceiveValue("E",self.Values.E)
+			ent.Transmitter:ReceiveValue("F",self.Values.F)
+			ent.Transmitter:ReceiveValue("G",self.Values.G)
+			ent.Transmitter:ReceiveValue("H",self.Values.H)
 		else
 			self:SetColor(Color(255, 0, 0, 255))
 		end
@@ -129,7 +129,7 @@ function ENT:Think()
 	return true
 end
 
-function ENT:RecieveValue(output,value)
+function ENT:ReceiveValue(output,value)
 	self.Activated = true
 	self.ActivateTime = CurTime()
 	if value ~= 0 or not self.IgnoreZero then

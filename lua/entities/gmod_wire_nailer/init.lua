@@ -43,7 +43,7 @@ function ENT:TriggerInput(iname, value)
 			local trTwo = util.TraceLine( tr )
 
 			if trTwo.Hit and not trTwo.Entity:IsPlayer() then
-				if (trace.Entity.Owner ~= self.Owner and not self:CheckOwner(trace.Entity)) or (trTwo.Entity.Owner ~= self.Owner and not self:CheckOwner(trTwo.Entity)) then return end
+				if (trace.Entity:GetOwner() ~= self:GetOwner() and not self:CheckOwner(trace.Entity)) or (trTwo.Entity:GetOwner() ~= self:GetOwner() and not self:CheckOwner(trTwo.Entity)) then return end
 				-- Weld them!
 				local constraint = constraint.Weld( trace.Entity, trTwo.Entity, trace.PhysicsBone, trTwo.PhysicsBone, self.Flim )
 
