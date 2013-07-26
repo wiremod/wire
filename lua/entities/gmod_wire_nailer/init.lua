@@ -11,6 +11,7 @@ function ENT:Initialize()
 	self:SetMoveType( MOVETYPE_VPHYSICS )
 	self:SetSolid( SOLID_VPHYSICS )
 	self.Inputs = Wire_CreateInputs(self, { "A" })
+	self:SetBeamLength(2048)
 end
 
 function ENT:Setup(flim)
@@ -27,7 +28,7 @@ function ENT:TriggerInput(iname, value)
 
 			 local trace = {}
 				 trace.start = vStart
-				 trace.endpos = vStart + (vForward * 2048)
+				 trace.endpos = vStart + (vForward * self:GetBeamLength())
 				 trace.filter = { self }
 			 local trace = util.TraceLine( trace )
 

@@ -48,7 +48,7 @@ function ENT:Initialize()
 	self.WriteBuffer = {}
 	self.PrevDiskEnt = nil
 
-	self:SetBeamRange(64)
+	self:SetBeamLength(64)
 end
 
 function ENT:ReadCell(Address)
@@ -90,7 +90,7 @@ end
 
 function ENT:Setup(Range,DefaultZero)
 	self.DefaultZero = DefaultZero
-	self:SetBeamRange(Range)
+	self:SetBeamLength(Range)
 end
 
 function ENT:TriggerInput(iname, value)
@@ -141,7 +141,7 @@ function ENT:Think()
 
 		local trace = {}
 		trace.start = vStart
-		trace.endpos = vStart + (vForward * self:GetBeamRange())
+		trace.endpos = vStart + (vForward * self:GetBeamLength())
 		trace.filter = { self }
 	local trace = util.TraceLine( trace )
 

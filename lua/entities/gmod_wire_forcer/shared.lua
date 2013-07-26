@@ -3,12 +3,12 @@ ENT.Base        = "base_wire_entity"
 
 ENT.PrintName   = "Wire Forcer"
 
-function ENT:SetForceBeam(on)
-    self:SetNetworkedBool("ForceBeam",on,true)
+function ENT:SetBeamHighlight(on)
+    self:SetNetworkedBool("BeamHighlight",on,true)
 end
 
-function ENT:GetForceBeam()
-    return self:GetNetworkedBool("ForceBeam")
+function ENT:GetBeamHighlight()
+    return self:GetNetworkedBool("BeamHighlight")
 end
 
 function ENT:SetBeamLength(length)

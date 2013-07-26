@@ -28,14 +28,14 @@ function ENT:Initialize()
 	self.Values["G"] = 0
 	self.Values["H"] = 0
 
-	self:SetBeamRange(25000)
+	self:SetBeamLength(25000)
 end
 
 function ENT:Setup(Range,DefaultZero,IgnoreZero)
 	self.IgnoreZero = IgnoreZero
 	self.DefaultZero = DefaultZero
 	self.Range = Range
-	self:SetBeamRange(Range)
+	self:SetBeamLength(Range)
 end
 
 function ENT:TriggerInput(iname, value)
@@ -69,7 +69,7 @@ function ENT:Think()
 
 	local trace = {}
 	   trace.start = vStart
-	   trace.endpos = vStart + (vForward * self:GetBeamRange())
+	   trace.endpos = vStart + (vForward * self:GetBeamLength())
 	   trace.filter = { self }
 	local trace = util.TraceLine( trace )
 

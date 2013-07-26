@@ -36,12 +36,8 @@ function ENT:GetOffset( name )
 	return self:GetNetworkedVector( "Offset" )
 end
 
-function ENT:SetBeamRange(length)
+function ENT:SetBeamLength(length)
 	self:SetNetworkedFloat("BeamLength", length)
-end
-
-function ENT:GetBeamRange()
-	return self:GetNetworkedFloat("BeamLength") or 0
 end
 
 function ENT:GetBeamLength()

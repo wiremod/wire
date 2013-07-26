@@ -4,9 +4,14 @@ ENT.RenderGroup = RENDERGROUP_OPAQUE//RENDERGROUP_TRANSLUCENT//RENDERGROUP_BOTH
 
 local wire_drawoutline = CreateClientConVar("wire_drawoutline", 1, true, false)
 
+function ENT:Initialize()
+	self.NextRBUpdate = CurTime() + 0.25
+end
+
 function ENT:Draw()
 	self:DoNormalDraw()
 	Wire_Render(self)
+	if self.GetBeamLength then Wire_DrawTracerBeam( self, 1, self.GetBeamHighlight and self:GetBeamHighlight() or false ) end
 end
 
 function ENT:DoNormalDraw(nohalo, notip)

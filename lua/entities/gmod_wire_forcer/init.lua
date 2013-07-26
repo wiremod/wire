@@ -15,12 +15,9 @@ function ENT:Initialize()
 	self.Velocity = 0
 	self.Length = 100
 	self.Reaction = false
-	self.ShowBeam = true
 
 	self.Inputs = WireLib.CreateInputs( self, { "Force", "OffsetForce", "Velocity", "Length" } )
 
-	self:SetNWBool("ShowBeam",false)
-	self:SetNWBool("ShowForceBeam",false)
 	self:SetBeamLength(100)
 	self:ShowOutput()
 end
@@ -29,24 +26,24 @@ function ENT:Setup( Force, Length, ShowBeam, Reaction )
 	self.ForceMul = Force or 1
 	self.Length = math.max(Length or 100,1)
 	self.Reaction = Reaction or false
-	self:SetNWBool("ShowBeam",ShowBeam)
-	self.ShowBeam = ShowBeam or true
 	self:SetBeamLength(math.Round(Length or 100))
+	self.ShowBeam = ShowBeam
+	if not self.ShowBeam then self:SetBeamLength(0) end
 	self:ShowOutput()
 end
 
 function ENT:TriggerInput( name, value )
 	if (name == "Force") then
 		self.Force = value
-		self:SetForceBeam(value != 0)
+		self:SetBeamHighlight(value != 0)
 		self:ShowOutput()
 	elseif (name == "OffsetForce") then
 		self.OffsetForce = value
-		self:SetForceBeam(value != 0)
+		self:SetBeamHighlight(value != 0)
 		self:ShowOutput()
 	elseif (name == "Velocity") then
 		self.Velocity = math.Clamp(value,-100000,100000)
-		self:SetForceBeam(value != 0)
+		self:SetBeamHighlight(value != 0)
 		self:ShowOutput()
 	elseif (name == "Length") then
 		self.Length = value
