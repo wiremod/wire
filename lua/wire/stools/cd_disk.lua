@@ -81,32 +81,6 @@ function TOOL:RightClick(trace)
 	return true
 end
 
-if (SERVER) then
-
-	function MakeWireCDDisk(pl, Pos, Ang, model, skin)
-		if (!pl:CheckLimit("wire_cd_disks")) then return false end
-
-		local wire_cd_disk = ents.Create("gmod_wire_cd_disk")
-		if (!wire_cd_disk:IsValid()) then return false end
-
-		wire_cd_disk:SetAngles(Ang)
-		wire_cd_disk:SetPos(Pos)
-		wire_cd_disk:SetSkin(skin)
-		wire_cd_disk:SetModel(model)
-		wire_cd_disk:Spawn()
-
-		wire_cd_disk:SetPlayer(pl)
-		wire_cd_disk.pl = pl
-
-		pl:AddCount("wire_cd_disks", wire_cd_disk)
-
-		return wire_cd_disk
-	end
-
-	duplicator.RegisterEntityClass("gmod_wire_cd_disk", MakeWireCDDisk, "Pos", "Ang", "Model", "skin")
-
-end
-
 function TOOL.BuildCPanel(panel)
 	panel:NumSlider("Disk density (inches per block, ipb)","wire_cd_disk_precision",1,16,0)
 	panel:NumSlider("Inner radius (disk hole radius)","wire_cd_disk_iradius",1,48,0)
