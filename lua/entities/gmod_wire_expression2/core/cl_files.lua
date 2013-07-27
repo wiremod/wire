@@ -11,10 +11,9 @@ local download_buffer = {}
 local upload_chunk_size = 20000 //Our overhead is pretty small so lets send it in moderate sized pieces, no need to max out the buffer
 
 local allowed_directories = { //prefix with >(allowed directory)/file.txt for files outside of e2files/ directory
-	["e1shared"] = "ExpressionGate/e2shared",
-	["e2shared"] = "Expression2/e2shared",
-	["cpushared"] = "CPUChip/e2shared",
-	["gpushared"] = "GPUChip/e2shared",
+	["e2shared"] = "expression2/e2shared",
+	["cpushared"] = "cpuchip/e2shared",
+	["gpushared"] = "gpuchip/e2shared",
 	["dupeshared"] = "adv_duplicator/e2shared"
 }
 
