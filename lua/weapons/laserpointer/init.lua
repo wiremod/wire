@@ -34,18 +34,18 @@ function SWEP:PrimaryAttack()
 end
 
 function SWEP:SecondaryAttack()
-	local trace = self.Owner:GetEyeTrace()
+	local trace = self:GetOwner():GetEyeTrace()
 
 	if IsValid(trace.Entity) and trace.Entity:GetClass() == "gmod_wire_las_receiver" then
 		self.Receiver = trace.Entity
-		self.Owner:PrintMessage( HUD_PRINTTALK, "Linked Sucessfully" )
+		self:GetOwner():PrintMessage( HUD_PRINTTALK, "Linked Sucessfully" )
 		return true
 	end
 end
 
 function SWEP:Think()
 	if(self.Pointing && self.Receiver && self.Receiver:IsValid())then
-		local trace = self.Owner:GetEyeTrace()
+		local trace = self:GetOwner():GetEyeTrace()
 		local point = trace.HitPos
 		if (COLOSSAL_SANDBOX) then point = point * 6.25 end
 		Wire_TriggerOutput(self.Receiver, "X", point.x)

@@ -87,7 +87,7 @@ function ENT:TriggerInput(iname, value)
 			-- If there's no physics object then we can't constraint it!
 			if not util.IsValidPhysicsObject( trace.Entity, trace.PhysicsBone ) then return end
 
-			if self.OnlyGrabOwners and (trace.Entity.Owner ~= self.Owner and not self:CheckOwner(trace.Entity)) then return end
+			if self.OnlyGrabOwners and (trace.Entity:GetOwner() ~= self:GetOwner() and not self:CheckOwner(trace.Entity)) then return end
 
 			-- Weld them!
 			local const = constraint.Weld(self, trace.Entity, 0, 0, self.WeldStrength)
