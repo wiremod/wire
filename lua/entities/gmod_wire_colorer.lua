@@ -7,12 +7,8 @@ ENT.WireDebugName	= "Colorer"
 
 -- Shared
 
-function ENT:SetBeamLength(length)
-	self:SetNetworkedFloat("BeamLength", length)
-end
-
-function ENT:GetBeamLength()
-	return self:GetNetworkedFloat("BeamLength") or 0
+function ENT:SetupDataTables()
+	self:NetworkVar( "Float", 0, "BeamLength" )
 end
 
 if CLIENT then return end -- No more client
@@ -28,8 +24,8 @@ function ENT:Initialize()
 end
 
 function ENT:Setup(outColor,Range)
-	--Msg("setup\n")
 	if(outColor)then
+		self.outColor = outColor
 		local onames = {}
 		table.insert(onames, "R")
 		table.insert(onames, "G")
@@ -37,7 +33,7 @@ function ENT:Setup(outColor,Range)
 		table.insert(onames, "A")
 		Wire_AdjustOutputs(self, onames)
 	end
-	self:SetBeamLength(Range)
+	if Range then self:SetBeamLength(Range) end
 	self:ShowOutput()
 end
 
@@ -121,3 +117,23 @@ function ENT:Think()
 	self:NextThink(CurTime() + 0.05)
 	return true
 end
+
+function MakeWireColorer( pl, Pos, Ang, model, outColor, Range )
+	if !pl:CheckLimit( "wire_colorers" ) then return false end
+
+	local wire_colorer = ents.Create( "gmod_wire_colorer" )
+	if !IsValid(wire_colorer) then return false end
+
+	wire_colorer:SetAngles( Ang )
+	wire_colorer:SetPos( Pos )
+	wire_colorer:SetModel( model )
+	wire_colorer:Spawn()
+	wire_colorer:Setup( outColor, Range )
+
+	wire_colorer:SetPlayer( pl )
+
+	pl:AddCount( "wire_colorers", wire_colorer )
+
+	return wire_colorer
+end
+duplicator.RegisterEntityClass("gmod_wire_colorer", MakeWireColorer, "Pos", "Ang", "Model", "outColor", "Range")

@@ -7,13 +7,8 @@ ENT.WireDebugName	= "Igniter"
 
 -- Shared
 
-function ENT:SetBeamLength(length)
-	self:SetNetworkedFloat("BeamLength", length)
-	self.Range = length
-end
-
-function ENT:GetBeamLength()
-	return self:GetNetworkedFloat("BeamLength") or 0
+function ENT:SetupDataTables()
+	self:NetworkVar( "Float", 0, "BeamLength" )
 end
 
 if CLIENT then return end -- No more client
@@ -29,7 +24,7 @@ end
 
 function ENT:Setup(trgply,Range)
 	self.TargetPlayers = trgply
-	self:SetBeamLength(Range)
+	if Range then self:SetBeamLength(Range) end
 end
 
 function ENT:TriggerInput(iname, value)

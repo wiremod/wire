@@ -7,12 +7,9 @@ ENT.WireDebugName	= "Nailer"
 
 -- Shared
 
-function ENT:SetBeamLength(length)
-	self:SetNetworkedFloat("BeamLength", length)
-end
-
-function ENT:GetBeamLength()
-	return self:GetNetworkedFloat("BeamLength") or 0
+function ENT:SetupDataTables()
+	self:NetworkVar( "Float", 0, "BeamLength" )
+	self:NetworkVar( "Bool",  0, "ShowBeam" )
 end
 
 if CLIENT then return end -- No more client
@@ -25,9 +22,10 @@ function ENT:Initialize()
 	self:SetBeamLength(2048)
 end
 
-function ENT:Setup(flim)
-	self:TriggerInput("A", 0)
+function ENT:Setup(flim, Range, ShowBeam)
 	self.Flim = math.Clamp(flim, 0, 10000)
+	if Range then self:SetBeamLength(Range) end
+	if ShowBeam ~= nil then self:SetShowBeam(ShowBeam) end
 	self:ShowOutput()
 end
 
@@ -136,7 +134,7 @@ function ENT:CheckOwner(ent)
 	return owns
 end
 
-function MakeWireNailer( pl, Pos, Ang, model, flim )
+function MakeWireNailer( pl, Pos, Ang, model, flim, Range, ShowBeam )
 	if ( !pl:CheckLimit( "wire_nailers" ) ) then return false end
 
 	local wire_nailer = ents.Create( "gmod_wire_nailer" )
@@ -147,7 +145,7 @@ function MakeWireNailer( pl, Pos, Ang, model, flim )
 	wire_nailer:SetModel( model )
 	wire_nailer:Spawn()
 
-	wire_nailer:Setup( flim )
+	wire_nailer:Setup( flim, Range, ShowBeam )
 	wire_nailer:SetPlayer( pl )
 
 	pl:AddCount( "wire_nailers", wire_nailer )

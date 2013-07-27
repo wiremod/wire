@@ -7,12 +7,8 @@ ENT.WireDebugName	= "Data Transferer"
 
 -- Shared
 
-function ENT:SetBeamLength(length)
-	self:SetNetworkedFloat("BeamLength", length)
-end
-
-function ENT:GetBeamLength()
-	return self:GetNetworkedFloat("BeamLength") or 0
+function ENT:SetupDataTables()
+	self:NetworkVar( "Float", 0, "BeamLength" )
 end
 
 if CLIENT then return end -- No more client
@@ -44,8 +40,7 @@ end
 function ENT:Setup(Range,DefaultZero,IgnoreZero)
 	self.IgnoreZero = IgnoreZero
 	self.DefaultZero = DefaultZero
-	self.Range = Range
-	self:SetBeamLength(Range)
+	if Range then self:SetBeamLength(Range) end
 end
 
 function ENT:TriggerInput(iname, value)

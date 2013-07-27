@@ -7,21 +7,10 @@ ENT.WireDebugName	= "Forcer"
 
 -- Shared
 
-function ENT:SetBeamHighlight(on)
-    self:SetNetworkedBool("BeamHighlight",on,true)
-end
-
-function ENT:GetBeamHighlight()
-    return self:GetNetworkedBool("BeamHighlight")
-end
-
-function ENT:SetBeamLength(length)
-	self:SetNetworkedFloat("BeamLength", length)
-	self.Length = length
-end
-
-function ENT:GetBeamLength()
-	return self:GetNetworkedFloat("BeamLength") or 0
+function ENT:SetupDataTables()
+	self:NetworkVar( "Float", 0, "BeamLength" )
+	self:NetworkVar( "Bool",  0, "ShowBeam" )
+	self:NetworkVar( "Bool",  1, "BeamHighlight" )
 end
 
 if CLIENT then return end -- No more client
@@ -38,15 +27,13 @@ function ENT:Initialize()
 	self.Inputs = WireLib.CreateInputs( self, { "Force", "OffsetForce", "Velocity", "Length" } )
 
 	self:Setup(0, 100, true, false)
-	self:ShowOutput()
 end
 
 function ENT:Setup( Force, Length, ShowBeam, Reaction )
 	self.ForceMul = Force or 1
 	self.Reaction = Reaction or false
-	self:SetBeamLength(math.Round(Length or 100))
-	self.ShowBeam = ShowBeam
-	if not self.ShowBeam then self:SetBeamLength(0) end
+	if Length then self:SetBeamLength(Length) end
+	if ShowBeam ~= nil then self:SetShowBeam(ShowBeam) end
 	self:ShowOutput()
 end
 
@@ -64,7 +51,6 @@ function ENT:TriggerInput( name, value )
 		self:SetBeamHighlight(value != 0)
 		self:ShowOutput()
 	elseif (name == "Length") then
-		self.Length = value
 		self:SetBeamLength(math.Round(value))
 		self:ShowOutput()
 	end
@@ -77,7 +63,7 @@ function ENT:Think()
 
 		local tr = {}
 		tr.start = StartPos
-		tr.endpos = StartPos + self.Length * Forward
+		tr.endpos = StartPos + self:GetBeamLength() * Forward
 		tr.filter = self
 		local trace = util.TraceLine( tr )
 		if (trace) then
@@ -111,16 +97,14 @@ function ENT:ShowOutput()
 		"Center Force = "..math.Round(self.ForceMul * self.Force)..
 		"\nOffset Force = "..math.Round(self.ForceMul * self.OffsetForce)..
 		"\nVelocity = "..math.Round(self.Velocity)..
-		"\nLength = " .. math.Round(self.Length)
+		"\nLength = " .. math.Round(self:GetBeamLength())
 	)
 end
 
 function ENT:BuildDupeInfo()
 	local info = self.BaseClass.BuildDupeInfo(self) or {}
 	info.ForceMul = self.ForceMul
-	info.ShowBeam = self.ShowBeam
 	info.Reaction = self.Reaction
-	info.Length = self.Length
 	return info
 end
 

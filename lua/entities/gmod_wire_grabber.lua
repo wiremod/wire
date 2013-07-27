@@ -7,13 +7,8 @@ ENT.WireDebugName	= "Grabber"
 
 -- Shared
 
-function ENT:SetBeamLength(length)
-	self:SetNetworkedFloat("BeamLength", length)
-	self.Range = Range
-end
-
-function ENT:GetBeamLength()
-	return self:GetNetworkedFloat("BeamLength") or 0
+function ENT:SetupDataTables()
+	self:NetworkVar( "Float", 0, "BeamLength" )
 end
 
 if CLIENT then return end -- No more client
@@ -44,7 +39,7 @@ function ENT:OnRemove()
 end
 
 function ENT:Setup(Range, Gravity)
-	self:SetBeamLength(Range)
+	if Range then self:SetBeamLength(Range) end
 	self.Gravity = Gravity
 end
 
@@ -80,7 +75,7 @@ function ENT:TriggerInput(iname, value)
 
 			local trace = {}
 				trace.start = vStart
-				trace.endpos = vStart + (vForward * self.Range)
+				trace.endpos = vStart + (vForward * self:GetBeamLength())
 				trace.filter = { self }
 			local trace = util.TraceLine( trace )
 

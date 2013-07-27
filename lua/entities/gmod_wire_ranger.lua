@@ -7,28 +7,11 @@ ENT.WireDebugName	= "Ranger"
 
 -- Shared
 
-function ENT:SetSkewX(value)
-	self:SetNetworkedFloat("SkewX", math.max(-1, math.min(value, 1)))
-end
-
-function ENT:SetSkewY(value)
-	self:SetNetworkedFloat("SkewY", math.max(-1, math.min(value, 1)))
-end
-
-function ENT:GetSkewX()
-	return self:GetNetworkedFloat("SkewX") or 0
-end
-
-function ENT:GetSkewY()
-	return self:GetNetworkedFloat("SkewY") or 0
-end
-
-function ENT:SetBeamLength(length)
-	self:SetNetworkedFloat("BeamLength", length)
-end
-
-function ENT:GetBeamLength()
-	return self:GetNetworkedFloat("BeamLength") or 0
+function ENT:SetupDataTables()
+	self:NetworkVar( "Float", 0, "BeamLength" )
+	self:NetworkVar( "Bool",  0, "ShowBeam" )
+	self:NetworkVar( "Float", 1, "SkewX" )
+	self:NetworkVar( "Float", 2, "SkewY" )
 end
 
 if CLIENT then return end -- No more client
@@ -46,7 +29,6 @@ end
 
 function ENT:Setup( range, default_zero, show_beam, ignore_world, trace_water, out_dist, out_pos, out_vel, out_ang, out_col, out_val, out_sid, out_uid, out_eid, out_hnrm, hiRes )
 	--for duplication
-	self.range          = range
 	self.default_zero   = default_zero
 	self.show_beam      = show_beam
 	self.ignore_world   = ignore_world
@@ -65,11 +47,8 @@ function ENT:Setup( range, default_zero, show_beam, ignore_world, trace_water, o
 
 	self.PrevOutput = nil
 
-	if (show_beam) then
-		self:SetBeamLength(math.min(self.range, 2000))
-	else
-		self:SetBeamLength(0)
-	end
+	if range then self:SetBeamLength(math.min(range, 2000)) end
+	if show_beam ~= nil then self:SetShowBeam(show_beam) end
 
 	self:SetNetworkedBool("TraceWater", trace_water)
 
@@ -135,7 +114,6 @@ function ENT:TriggerInput(iname, value)
 	elseif (iname == "Y") then
 		self:SetSkewY(value)
 	elseif (iname == "Length") then
-		self.range = value
 		self:SetBeamLength(self.show_beam and math.min(value, 2000) or 0)
 	end
 end
@@ -146,10 +124,10 @@ function ENT:Think()
 	local trace = {}
 	trace.start = self:GetPos()
 	if (self.Inputs.X.Value == 0 and self.Inputs.Y.Value == 0) then
-		trace.endpos = trace.start + self:GetUp()*self.range
+		trace.endpos = trace.start + self:GetUp() * self:GetBeamLength()
 	else
 		local skew = Vector(self.Inputs.X.Value, self.Inputs.Y.Value, 1)
-		skew = skew*(self.range/skew:Length())
+		skew = skew*(self:GetBeamLength()/skew:Length())
 		local beam_x = self:GetRight()*skew.x
 		local beam_y = self:GetForward()*skew.y
 		local beam_z = self:GetUp()*skew.z
@@ -171,7 +149,7 @@ function ENT:Think()
 	local hnrm = Vector(0,0,0)
 
 	if (trace.Hit) then
-		dist = trace.Fraction*self.range
+		dist = trace.Fraction * self:GetBeamLength()
 		pos = trace.HitPos
 		hnrm = trace.HitNormal
 		ent = trace.Entity
@@ -202,7 +180,7 @@ function ENT:Think()
 				if (self.default_zero) then
 					dist = 0
 				else
-					dist = self.range
+					dist = self:GetBeamLength()
 				end
 				pos = Vector(0,0,0)
 			end
@@ -210,7 +188,7 @@ function ENT:Think()
 
 	else
 		if (not self.default_zero) then
-			dist = self.range
+			dist = self:GetBeamLength()
 		end
 	end
 
@@ -234,7 +212,7 @@ end
 
 function ENT:ShowOutput() --this function is evil (very), should be done clientside
 
-	local txt = "Max Range: " .. self.range
+	local txt = "Max Range: " .. self:GetBeamLength()
 
 	if (self.out_dist) then
 		txt = txt .. "\nRange = " .. math.Round(self.Outputs["Dist"].Value*1000)/1000
