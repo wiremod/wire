@@ -1,9 +1,10 @@
-AddCSLuaFile( "cl_init.lua" )
-AddCSLuaFile( "shared.lua" )
+AddCSLuaFile()
+DEFINE_BASECLASS( "base_wire_entity" )
+ENT.PrintName       = "Wire Pod Controller"
+ENT.RenderGroup		= RENDERGROUP_OPAQUE
+ENT.WireDebugName	= "Pod Controller"
 
-include('shared.lua')
-
-ENT.WireDebugName = "Pod Controller"
+if CLIENT then return end -- No more client
 
 function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )

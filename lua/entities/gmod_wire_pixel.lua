@@ -1,10 +1,16 @@
+AddCSLuaFile()
+DEFINE_BASECLASS( "base_wire_entity" )
+ENT.PrintName       = "Wire Pixel"
+ENT.RenderGroup		= RENDERGROUP_BOTH
+ENT.WireDebugName	= "Pixel"
 
-AddCSLuaFile( "cl_init.lua" )
-AddCSLuaFile( "shared.lua" )
-
-include('shared.lua')
-
-ENT.WireDebugName = "Pixel"
+if CLIENT then 
+	function ENT:Draw( )
+		self:DrawModel( )
+	end
+	
+	return  -- No more client
+end
 
 function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )
@@ -13,9 +19,6 @@ function ENT:Initialize()
 
 	self.R, self.G, self.B = 0, 0, 0
 	self.Inputs = Wire_CreateInputs( self, { "Red", "Green", "Blue", "PackedRGB", "RGB" } )
-end
-
-function ENT:Think( )
 end
 
 function ENT:TriggerInput(iname, value)

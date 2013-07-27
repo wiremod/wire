@@ -1,10 +1,10 @@
+AddCSLuaFile()
+DEFINE_BASECLASS( "base_wire_entity" )
+ENT.PrintName       = "Wire Indicator"
+ENT.RenderGroup		= RENDERGROUP_BOTH
+ENT.WireDebugName	= "Indicator"
 
-AddCSLuaFile( "cl_init.lua" )
-AddCSLuaFile( "shared.lua" )
-
-include('shared.lua')
-
-ENT.WireDebugName = "Indicator"
+if CLIENT then return end -- No more client
 
 function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )
@@ -95,7 +95,6 @@ function MakeWireIndicator( pl, Pos, Ang, model, a, ar, ag, ab, aa, b, br, bg, b
 
 	return wire_indicator
 end
-
 duplicator.RegisterEntityClass("gmod_wire_indicator", MakeWireIndicator, "Pos", "Ang", "Model", "a", "ar", "ag", "ab", "aa", "b", "br", "bg", "bb", "ba", "material", "nocollide", "frozen")
 
 function MakeWire7Seg( pl, Pos, Ang, Model, a, ar, ag, ab, aa, b, br, bg, bb, ba, nocollide, Vel, aVel, frozen  )
@@ -169,4 +168,3 @@ function MakeWire7Seg( pl, Pos, Ang, Model, a, ar, ag, ab, aa, b, br, bg, bb, ba
 
 	return wire_indicators
 end
-

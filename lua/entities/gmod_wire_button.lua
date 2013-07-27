@@ -1,9 +1,51 @@
-AddCSLuaFile( "cl_init.lua" )
-AddCSLuaFile( "shared.lua" )
+AddCSLuaFile()
+DEFINE_BASECLASS( "base_wire_entity" )
+ENT.PrintName       = "Wire Button"
+ENT.RenderGroup		= RENDERGROUP_OPAQUE
+ENT.WireDebugName	= "Button"
 
-include('shared.lua')
 
-ENT.WireDebugName = "Button"
+-- Shared
+
+function ENT:SetupDataTables()
+	self:NetworkVar( "Bool", 0, "On" )
+end
+
+
+if CLIENT then 
+	local halo_ent, halo_blur
+
+	function ENT:Initialize()
+		self.PosePosition = 0.0
+	end
+
+	function ENT:Think()
+		baseclass.Get("gmod_button").UpdateLever(self)
+	end
+
+	function ENT:Draw()
+		self:DoNormalDraw(true,false)
+		if LocalPlayer():GetEyeTrace().Entity == self and EyePos():Distance( self:GetPos() ) < 512 then
+			if self:GetOn() then
+				halo_ent = self
+				halo_blur = 4 + math.sin(CurTime()*20)*2
+			else
+				self:DrawEntityOutline()
+			end
+		end
+		Wire_Render(self)
+	end
+
+	hook.Add("PreDrawHalos", "Wiremod_button_overlay_halos", function()
+		if halo_ent then
+			halo.Add({halo_ent}, Color(255,100,100), halo_blur, halo_blur, 1, true, true)
+			halo_ent = nil
+		end
+	end)
+	
+	return  -- No more client
+end
+
 ENT.OutputEntID = false
 ENT.EntToOutput = NULL
 

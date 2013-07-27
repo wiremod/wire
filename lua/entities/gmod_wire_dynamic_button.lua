@@ -1,9 +1,43 @@
-AddCSLuaFile( "cl_init.lua" )
-AddCSLuaFile( "shared.lua" )
+AddCSLuaFile()
+DEFINE_BASECLASS( "base_wire_entity" )
+ENT.PrintName       = "Wire Dynamic Button"
+ENT.RenderGroup		= RENDERGROUP_OPAQUE
+ENT.WireDebugName	= "Dynamic Button"
 
-include('shared.lua')
 
-ENT.WireDebugName = "Dynamic Button"
+-- Shared
+
+function ENT:SetupDataTables()
+	self:NetworkVar( "Bool", 0, "On" )
+end
+
+
+if CLIENT then 
+	local halo_ent, halo_blur
+
+	function ENT:Draw()
+		self:DoNormalDraw(true,false)
+		if LocalPlayer():GetEyeTrace().Entity == self and EyePos():Distance( self:GetPos() ) < 512 then
+			if self:GetOn() then
+				halo_ent = self
+				halo_blur = 4 + math.sin(CurTime()*20)*2
+			else
+				self:DrawEntityOutline()
+			end
+		end
+		Wire_Render(self)
+	end
+
+	hook.Add("PreDrawHalos", "Wiremod_dynbutton_overlay_halos", function()
+		if halo_ent then
+			halo.Add({halo_ent}, Color(255,100,100), halo_blur, halo_blur, 1, true, true)
+			halo_ent = nil
+		end
+	end)
+	
+	return  -- No more client
+end
+
 ENT.OutputEntID = false
 ENT.EntToOutput = NULL
 
@@ -31,7 +65,7 @@ function ENT:Use(ply)
 	if self.OutputEntID then
 		self.EntToOutput = ply
 	end
-	if (self:IsOn()) then
+	if (self:GetOn()) then
 		if (self.toggle) then self:Switch(false) end
 
 		return
@@ -44,7 +78,7 @@ end
 function ENT:Think()
 	self.BaseClass.Think(self)
 
-	if ( self:IsOn() ) then
+	if self:GetOn() then
 		if (not self.PrevUser)
 		or (not self.PrevUser:IsValid())
 		or (not self.podpress and not self.PrevUser:KeyDown(IN_USE))

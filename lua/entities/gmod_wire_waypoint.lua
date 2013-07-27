@@ -1,10 +1,34 @@
+AddCSLuaFile()
+DEFINE_BASECLASS( "base_wire_entity" )
+ENT.PrintName       = "Wire Waypoint Beacon"
+ENT.RenderGroup		= RENDERGROUP_OPAQUE
+ENT.WireDebugName	= "Waypoint"
 
-AddCSLuaFile( "cl_init.lua" )
-AddCSLuaFile( "shared.lua" )
 
-include('shared.lua')
+-- Shared
 
-ENT.WireDebugName = "Locator"
+function ENT:GetNextWaypoint()
+	return self:GetNetworkedEntity("NextWaypoint")
+end
+
+if CLIENT then
+	local physBeamMat = Material("cable/physbeam")
+	function ENT:Draw()
+		self.BaseClass.Draw(self)
+
+		local nextWP = self:GetNextWaypoint()
+		if IsValid(nextWP) and (LocalPlayer():GetEyeTrace().Entity == self) and (EyePos():Distance(self:GetPos()) < 4096) then
+			local start = self:GetPos()
+			local endpos = nextWP:GetPos()
+			local scroll = -3*CurTime()
+
+			render.SetMaterial(physBeamMat)
+			render.DrawBeam(start, endpos, 8, scroll, (endpos-start):Length()/10+scroll, Color(255, 255, 255, 192))
+		end
+	end
+
+	return -- No more client
+end
 
 local MODEL = Model( "models/props_lab/powerbox02d.mdl" )
 
