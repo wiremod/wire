@@ -1,9 +1,37 @@
-AddCSLuaFile( "cl_init.lua" )
-AddCSLuaFile( "shared.lua" )
-include('shared.lua')
+AddCSLuaFile()
+DEFINE_BASECLASS( "base_wire_entity" )
+ENT.PrintName       = "Wire Ranger"
+ENT.RenderGroup		= RENDERGROUP_BOTH
+ENT.WireDebugName	= "Ranger"
 
 
-ENT.WireDebugName = "Ranger"
+-- Shared
+
+function ENT:SetSkewX(value)
+	self:SetNetworkedFloat("SkewX", math.max(-1, math.min(value, 1)))
+end
+
+function ENT:SetSkewY(value)
+	self:SetNetworkedFloat("SkewY", math.max(-1, math.min(value, 1)))
+end
+
+function ENT:GetSkewX()
+	return self:GetNetworkedFloat("SkewX") or 0
+end
+
+function ENT:GetSkewY()
+	return self:GetNetworkedFloat("SkewY") or 0
+end
+
+function ENT:SetBeamLength(length)
+	self:SetNetworkedFloat("BeamLength", length)
+end
+
+function ENT:GetBeamLength()
+	return self:GetNetworkedFloat("BeamLength") or 0
+end
+
+if CLIENT then return end -- No more client
 
 function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )

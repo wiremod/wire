@@ -1,11 +1,22 @@
+AddCSLuaFile()
+DEFINE_BASECLASS( "base_wire_entity" )
+ENT.PrintName       = "Wire Grabber"
+ENT.RenderGroup		= RENDERGROUP_BOTH
+ENT.WireDebugName	= "Grabber"
 
-AddCSLuaFile( "cl_init.lua" )
-AddCSLuaFile( "shared.lua" )
 
-include('shared.lua')
+-- Shared
 
-ENT.WireDebugName = "Grabber"
+function ENT:SetBeamLength(length)
+	self:SetNetworkedFloat("BeamLength", length)
+	self.Range = Range
+end
 
+function ENT:GetBeamLength()
+	return self:GetNetworkedFloat("BeamLength") or 0
+end
+
+if CLIENT then return end -- No more client
 
 function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )
@@ -18,16 +29,11 @@ function ENT:Initialize()
 	self.WeldEntity = nil
 	self.ExtraProp = nil
 	self.ExtraPropWeld = nil
-	self.Gravity = true
 	self:GetPhysicsObject():SetMass(10)
 
-	self:SetBeamLength(100)
+	self:Setup(100, true)
 
-	if GetConVarNumber('sbox_wire_grabbers_onlyOwnersProps') > 0 then
-		self.OnlyGrabOwners = true
-	else
-		self.OnlyGrabOwners = false
-	end
+	self.OnlyGrabOwners = GetConVarNumber('sbox_wire_grabbers_onlyOwnersProps') > 0
 end
 
 function ENT:OnRemove()
@@ -39,15 +45,12 @@ end
 
 function ENT:Setup(Range, Gravity)
 	self:SetBeamLength(Range)
-	self.Range = Range
 	self.Gravity = Gravity
-	--Msg("Setup:\n\tRange:"..tostring(Range).."\n\tGravity:"..tostring(Gravity).."\n")
 end
 
 function ENT:ResetGrab()
 	if self.Weld and self.Weld:IsValid() then
 		self.Weld:Remove()
-		--Msg("-Weld1\n")
 		if self.WeldEntity then
 			if self.WeldEntity:IsValid() then
 				if self.Gravity then
@@ -58,7 +61,6 @@ function ENT:ResetGrab()
 	end
 	if self.ExtraPropWeld and self.ExtraPropWeld:IsValid() then
 		self.ExtraPropWeld:Remove()
-		--Msg("-Weld2\n")
 	end
 
 	self.Weld = nil

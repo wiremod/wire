@@ -1,8 +1,21 @@
-AddCSLuaFile( "cl_init.lua" )
-AddCSLuaFile( "shared.lua" )
-include('shared.lua')
+AddCSLuaFile()
+DEFINE_BASECLASS( "base_wire_entity" )
+ENT.PrintName       = "Wire User"
+ENT.RenderGroup		= RENDERGROUP_BOTH
+ENT.WireDebugName	= "User"
 
-ENT.WireDebugName = "User"
+
+-- Shared
+
+function ENT:SetBeamLength(length)
+	self:SetNetworkedFloat("BeamLength", length)
+end
+
+function ENT:GetBeamLength()
+	return self:GetNetworkedFloat("BeamLength") or 0
+end
+
+if CLIENT then return end -- No more client
 
 function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )

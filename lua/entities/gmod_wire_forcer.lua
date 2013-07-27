@@ -1,30 +1,48 @@
-AddCSLuaFile( "cl_init.lua" )
-AddCSLuaFile( "shared.lua" )
-include('shared.lua')
+AddCSLuaFile()
+DEFINE_BASECLASS( "base_wire_entity" )
+ENT.PrintName       = "Wire Forcer"
+ENT.RenderGroup		= RENDERGROUP_BOTH
+ENT.WireDebugName	= "Forcer"
 
-ENT.WireDebugName = "Forcer"
+
+-- Shared
+
+function ENT:SetBeamHighlight(on)
+    self:SetNetworkedBool("BeamHighlight",on,true)
+end
+
+function ENT:GetBeamHighlight()
+    return self:GetNetworkedBool("BeamHighlight")
+end
+
+function ENT:SetBeamLength(length)
+	self:SetNetworkedFloat("BeamLength", length)
+	self.Length = length
+end
+
+function ENT:GetBeamLength()
+	return self:GetNetworkedFloat("BeamLength") or 0
+end
+
+if CLIENT then return end -- No more client
 
 function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )
 	self:SetMoveType( MOVETYPE_VPHYSICS )
 	self:SetSolid( SOLID_VPHYSICS )
 
-	self.ForceMul = 0
 	self.Force = 0
 	self.OffsetForce = 0
 	self.Velocity = 0
-	self.Length = 100
-	self.Reaction = false
 
 	self.Inputs = WireLib.CreateInputs( self, { "Force", "OffsetForce", "Velocity", "Length" } )
 
-	self:SetBeamLength(100)
+	self:Setup(0, 100, true, false)
 	self:ShowOutput()
 end
 
 function ENT:Setup( Force, Length, ShowBeam, Reaction )
 	self.ForceMul = Force or 1
-	self.Length = math.max(Length or 100,1)
 	self.Reaction = Reaction or false
 	self:SetBeamLength(math.Round(Length or 100))
 	self.ShowBeam = ShowBeam

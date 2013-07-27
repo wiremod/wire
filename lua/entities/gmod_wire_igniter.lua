@@ -1,10 +1,22 @@
+AddCSLuaFile()
+DEFINE_BASECLASS( "base_wire_entity" )
+ENT.PrintName       = "Wire Igniter"
+ENT.RenderGroup		= RENDERGROUP_BOTH
+ENT.WireDebugName	= "Igniter"
 
-AddCSLuaFile( "cl_init.lua" )
-AddCSLuaFile( "shared.lua" )
 
-include('shared.lua')
+-- Shared
 
-ENT.WireDebugName = "Igniter"
+function ENT:SetBeamLength(length)
+	self:SetNetworkedFloat("BeamLength", length)
+	self.Range = length
+end
+
+function ENT:GetBeamLength()
+	return self:GetNetworkedFloat("BeamLength") or 0
+end
+
+if CLIENT then return end -- No more client
 
 function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )
@@ -12,8 +24,7 @@ function ENT:Initialize()
 	self:SetSolid( SOLID_VPHYSICS )
 	self.Inputs = Wire_CreateInputs(self, { "A", "Length" })
 	self.IgniteLength = 10
-	self.TargetPlayers = false
-	self:SetBeamLength(2048)
+	self:Setup(false, 2048)
 end
 
 function ENT:Setup(trgply,Range)
@@ -33,18 +44,12 @@ function ENT:TriggerInput(iname, value)
 				trace.filter = { self }
 			local trace = util.TraceLine( trace )
 
-			local svarTargetPlayers = false
-			if(GetConVarNumber('sbox_wire_igniters_allowtrgply') > 0)then
-				svarTargetPlayers = true
-			else
-				svarTargetPlayers = false
-			end
+			local svarTargetPlayers = GetConVarNumber('sbox_wire_igniters_allowtrgply') > 0
 
-			if (!trace.Entity) then return false end
-			if (!trace.Entity:IsValid() ) then return false end
+			if not IsValid(trace.Entity) then return false end
 			if (trace.Entity:IsPlayer() && (!self.TargetPlayers || !svarTargetPlayers)) then return false end
 			if (trace.Entity:IsWorld()) then return false end
-			if ( CLIENT ) then return true end
+			
 			trace.Entity:Extinguish()
 			trace.Entity:Ignite( self.IgniteLength, 0 )
 		end
@@ -68,13 +73,6 @@ function MakeWireIgniter( pl, Pos, Ang, model, TargetPlayers, Range )
 	wire_igniter:Setup(TargetPlayers,Range)
 
 	wire_igniter:SetPlayer( pl )
-
-	local ttable = {
-		TargetPlayers = TargetPlayers,
-		Range = Range,
-		pl = pl
-	}
-	table.Merge(wire_igniter:GetTable(), ttable )
 
 	pl:AddCount( "wire_igniters", wire_igniter )
 
