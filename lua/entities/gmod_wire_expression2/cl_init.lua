@@ -10,7 +10,7 @@ local function Include(e2, directives, includes, scripts)
 	local code
 	
 	if CLIENT then
-		code = file.Read("Expression2/" .. e2 .. ".txt")
+		code = file.Read("expression2/" .. e2 .. ".txt")
 	end
 	
 	if !code then

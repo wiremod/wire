@@ -662,7 +662,7 @@ elseif CLIENT then
 		local FileBrowser = vgui.Create("wire_expression2_browser" , panel)
 		FileBrowser.OpenOnSingleClick = wire_expression2_editor
 		panel:AddPanel(FileBrowser)
-		FileBrowser:Setup("Expression2")
+		FileBrowser:Setup("expression2")
 		FileBrowser:SetSize(w,300)
 		FileBrowser:DockMargin(5,5,5,5)
 		FileBrowser:DockPadding(5,5,5,5)
@@ -685,7 +685,7 @@ elseif CLIENT then
 
 	function initE2Editor()
 		wire_expression2_editor = vgui.Create( "Expression2EditorFrame")
-		wire_expression2_editor:Setup("Expression 2 Editor","Expression2","E2")
+		wire_expression2_editor:Setup("Expression 2 Editor","expression2","E2")
 	end
 
 	function openE2Editor()
