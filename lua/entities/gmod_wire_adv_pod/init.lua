@@ -468,13 +468,13 @@ function ENT:Use( User, caller )
 		if not User:KeyDown(IN_USE) then return end
 		if not User:GetEyeTrace().Entity or User:GetEyeTrace().Entity ~= self then return end
 
-		if not User:GetWeapon("RemoteController"):IsValid()  then
-			User:Give("RemoteController")
+		if not User:GetWeapon("remotecontroller"):IsValid()  then
+			User:Give("remotecontroller")
 		end
 
-		User:GetWeapon("RemoteController").Linked = self
+		User:GetWeapon("remotecontroller").Linked = self
 		User:PrintMessage(HUD_PRINTTALK, "You are now linked!")
-		User:SelectWeapon("RemoteController")
+		User:SelectWeapon("remotecontroller")
 	end)
 end
 
