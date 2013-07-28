@@ -15,7 +15,6 @@ local function ResetRanger(self)
 	data.rangerwater = false
 	data.rangerentities = true
 	data.rangerfilter = { self.entity }
-	data.rangerfilter_lookup = { [self.entity] = true }
 end
 
 local function ranger(self, rangertype, range, p1, p2, hulltype, mins, maxs, traceEntity )
@@ -213,10 +212,9 @@ __e2setcost(10)
 
 --- Feed entities you don't want the trace to hit
 e2function void rangerFilter(entity ent)
-	if IsValid(ent) and !self.data.rangerfilter_lookup[ent] then
+	if IsValid(ent) and not table.HasValue(self.data.rangerfilter, ent) then
 		local n = #self.data.rangerfilter+1
 		self.data.rangerfilter[n] = ent
-		self.data.rangerfilter_lookup[ent] = true
 	end
 end
 
@@ -227,10 +225,9 @@ e2function void rangerFilter(array filter)
 	local rangerfilter = self.data.rangerfilter
 	local n = #rangerfilter
 	for _,ent in ipairs(filter) do
-		if IsValid(ent) and !self.data.rangerfilter_lookup[ent] then
+		if IsValid(ent) and not table.HasValue(self.data.rangerfilter, ent) then
 			n = n + 1
 			rangerfilter[n] = ent
-			self.data.rangerfilter_lookup[ent] = true
 		end
 	end
 	self.prf = self.prf + #filter * 10
@@ -257,9 +254,8 @@ end
 -- Same as ranger(distance) but for another entity
 e2function ranger ranger(entity ent, distance)
 	if not IsValid( ent ) then return nil end
-	if (!self.data.rangerfilter_lookup[ent]) then
+	if not table.HasValue(self.data.rangerfilter, ent) then
 		self.data.rangerfilter[#self.data.rangerfilter+1] = ent
-		self.data.rangerfilter_lookup[ent] = true
 	end
 	return ranger(self,3,distance,ent:GetPos(),ent:GetUp())
 end
