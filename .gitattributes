@@ -1,0 +1,17 @@
+*.fgd	text
+*.json	text
+*.lua	text
+*.md	text
+*.sh	text
+*.txt	text
+*.vmt	text
+
+*.jpg	binary
+*.mdl	binary
+*.phy	binary
+*.vtf	binary
+*.vtx	binary
+*.vvd	binary
+*.wav	binary
+
+* text=auto
