@@ -469,7 +469,8 @@ function ENT:Use( User, caller )
 		if not User:GetEyeTrace().Entity or User:GetEyeTrace().Entity ~= self then return end
 
 		if not User:GetWeapon("RemoteController"):IsValid()  then
-			User:Give("RemoteController")
+			if not hook.Call( "PlayerGiveSWEP", User, "RemoteController" ) then return end 
+			User:Give( "RemoteController" ) 
 		end
 
 		User:GetWeapon("RemoteController").Linked = self
