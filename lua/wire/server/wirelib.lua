@@ -1116,3 +1116,17 @@ function WireLib.dummytrace(ent)
 		WorldToLocal      = Vector(0,0,0),
 	}
 end
+
+function MakeWireEnt( pl, Data, ... )
+	if IsValid(pl) and not pl:CheckLimit( Data.Class ) then return false end
+	
+	local ent = duplicator.GenericDuplicatorFunction( pl, Data )
+	if not IsValid(ent) then return false end
+
+	if ent.Setup then ent:Setup(...) end
+	ent:SetPlayer(pl)
+
+	if IsValid(pl) then pl:AddCount( Data.Class, ent ) end
+
+	return ent
+end

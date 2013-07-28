@@ -12,10 +12,8 @@ WireToolSetup.SetupMax( 20, TOOL.Mode.."s" , "You've hit the Wire "..TOOL.Plural
 if SERVER then
 	ModelPlug_Register("weight")
 	function TOOL:GetConVars() end
-
-	function TOOL:MakeEnt( ply, model, Ang, trace )
-		return MakeWireWeight( ply, trace.HitPos, Ang, model, self:GetConVars() )
-	end
+	
+	-- Uses default WireToolObj:MakeEnt's MakeWireEnt function
 end
 
 TOOL.ClientConVar = {
