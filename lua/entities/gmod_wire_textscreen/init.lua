@@ -14,14 +14,14 @@ function ENT:Initialize()
 end
 
 function ENT:Setup(DefaultText, chrPerLine, textJust, valign, fgcolor, bgcolor)
-	self.fgcolor = fgcolor
-	self.bgcolor = bgcolor
+	self.fgcolor = fgcolor or Color(255,255,255)
+	self.bgcolor = bgcolor or Color(0,0,0)
 	self.chrPerLine = math.Clamp(math.ceil(chrPerLine or 10), 1, 15)
-	self.textJust = textJust
-	self.valign = valign
+	self.textJust = textJust or 1
+	self.valign = valign or 0
 	self:SendConfig()
 
-	self:TriggerInput("String", DefaultText)
+	self:TriggerInput("String", DefaultText or "")
 end
 
 function ENT:TriggerInput(iname, value)
@@ -81,11 +81,6 @@ end
 
 function MakeWireTextScreen( pl, Pos, Ang, model, text, chrPerLine, textJust, valign, fgcolor, bgcolor, frozen)
 	if ( !pl:CheckLimit( "wire_textscreens" ) ) then return false end
-
-	-- Prevents unnecessary breakage by old text screen dupes
-	if !fgcolor or !fgcolor.r or !bgcolor or !bgcolor.r or !valign or !textJust or !chrPerLine or !text then
-		return false
-	end
 
 	local wire_textscreen = ents.Create( "gmod_wire_textscreen" )
 	if (!wire_textscreen:IsValid()) then return false end
