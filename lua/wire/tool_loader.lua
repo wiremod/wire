@@ -71,7 +71,7 @@ if SERVER then
 	--
 	-- to prevent update, set TOOL.NoLeftOnClass = true
 	function WireToolObj:LeftClick_Update( trace )
-		trace.Entity:Setup(self:GetConVars())
+		if trace.Entity.Setup then trace.Entity:Setup(self:GetConVars()) end
 	end
 
 	--
