@@ -15,6 +15,12 @@ local umsg = umsg
 
 -- extra table functions
 
+-- Returns a noniterable version of tbl. So indexing still works, but pairs(tbl) won't find anything
+-- Useful for hiding entity lookup tables, since Garrydupe uses util.TableToJSON, which crashes on tables with entity keys
+function table.MakeNonIterable(tbl)
+    return setmetatable({}, { __index = tbl, __setindex = tbl})
+end
+
 -- Checks if the table is empty, it's faster than table.Count(Table) > 0
 function table.IsEmpty(Table)
 	return (next(Table) == nil)
