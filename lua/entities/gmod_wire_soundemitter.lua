@@ -26,14 +26,6 @@ function ENT:Initialize()
 	self.SampleTable[3] = "synth/tri.wav"
 	self.SampleTable[4] = "synth/sine.wav"
 
-	//LFO:
-	// 0 - none 
-	// 1 - square
-	// 2 - tri
-	// 3 - saw
-	// 4 - sine
-	// 5 - random noise
-
 	self.LFOType = 0
 	self.LFORate = 0
 	self.LFOModPitch = 0
@@ -43,8 +35,6 @@ function ENT:Initialize()
 	self.LFOValue = 0
 	self.LFONoiseTime = 0
 
-//	note = 69+12 * log2(f/440)
-//	f = (2^((note - 69) / 12))*440
 end
 
 function ENT:OnRemove()
@@ -155,10 +145,6 @@ function ENT:TriggerInput(iname, value)
 	end
 	end
 
-//		"Toggle", "Volume", "Play", "Stop",
-//		"PitchFreq", "PitchNote", "PitchRelative", "PitchStart",
-//		"SpinUpTime", "SpinDownTime", "FadeInStartVolume", "FadeInTime", "FadeOutTime",
-//		"LFOType", "LFORate", "LFOModPitch", "LFOModVolume",
 end
 
 function ENT:SetSound(sound)
