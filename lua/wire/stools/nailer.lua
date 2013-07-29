@@ -11,7 +11,7 @@ WireToolSetup.SetupMax( 20, TOOL.Mode.."s" , "You've hit the Wire "..TOOL.Plural
 
 if (SERVER) then
 	function TOOL:GetConVars() 
-		return self:GetClientNumber( "forcelim" )
+		return self:GetClientNumber( "forcelim" ), self:GetClientNumber( "range" ), self:GetClientNumber( "beam" )==1
 	end	
 	function TOOL:MakeEnt( ply, model, Ang, trace )
 		return MakeWireNailer( ply, trace.HitPos, Ang, model, self:GetConVars() )
@@ -20,11 +20,15 @@ end
 
 TOOL.ClientConVar = {
 	model = "models/jaanus/wiretool/wiretool_siren.mdl",
-	forcelim = "0"
+	forcelim = "0",
+	range = 100,
+	beam = 1,
 }
 
 function TOOL.BuildCPanel(panel)
 	WireToolHelpers.MakePresetControl(panel, "wire_nailer")
 	ModelPlug_AddToCPanel(panel, "Laser_Tools", "wire_nailer", true)
 	panel:NumSlider("#Force Limit", "wire_nailer_forcelim", 0, 10000, 0)
+	panel:NumSlider("Range", "wire_nailer_range", 1, 2048, 0)
+	panel:CheckBox("Show Beam", "wire_nailer_beam")
 end

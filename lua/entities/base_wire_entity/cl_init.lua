@@ -4,9 +4,17 @@ ENT.RenderGroup = RENDERGROUP_OPAQUE//RENDERGROUP_TRANSLUCENT//RENDERGROUP_BOTH
 
 local wire_drawoutline = CreateClientConVar("wire_drawoutline", 1, true, false)
 
+function ENT:Initialize()
+	self.NextRBUpdate = CurTime() + 0.25
+end
+
 function ENT:Draw()
 	self:DoNormalDraw()
 	Wire_Render(self)
+	if self.GetBeamLength and (not self.GetShowBeam or self:GetShowBeam()) then 
+		-- Every SENT that has GetBeamLength should draw a tracer. Some of them have the GetShowBeam boolean
+		Wire_DrawTracerBeam( self, 1, self.GetBeamHighlight and self:GetBeamHighlight() or false ) 
+	end
 end
 
 function ENT:DoNormalDraw(nohalo, notip)
