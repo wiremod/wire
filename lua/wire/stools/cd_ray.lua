@@ -120,13 +120,6 @@ if (SERVER) then
 
 		wire_cd_ray:SetPlayer( pl )
 
-		local ttable = {
-		    Range = Range,
-		    DefaultZero = DefaultZero,
-			pl = pl
-		}
-		table.Merge(wire_cd_ray:GetTable(), ttable )
-
 		pl:AddCount( "wire_cd_rays", wire_cd_ray )
 
 		return wire_cd_ray
@@ -145,13 +138,6 @@ if (SERVER) then
 		wire_cd_lock:Spawn()
 
 		wire_cd_lock:SetPlayer( pl )
-
-		local ttable = {
-		    Range = Range,
-		    DefaultZero = DefaultZero,
-			pl = pl
-		}
-		table.Merge(wire_cd_lock:GetTable(), ttable )
 
 		pl:AddCount( "wire_cd_locks", wire_cd_lock )
 

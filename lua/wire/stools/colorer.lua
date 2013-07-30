@@ -65,41 +65,9 @@ function TOOL:LeftClick( trace )
 	return true
 end
 
-if SERVER then
-
-	function MakeWireColorer( pl, Pos, Ang, model, outColor, Range )
-		if !pl:CheckLimit( "wire_colorers" ) then return false end
-
-		local wire_colorer = ents.Create( "gmod_wire_colorer" )
-		if !IsValid(wire_colorer) then return false end
-
-		wire_colorer:SetAngles( Ang )
-		wire_colorer:SetPos( Pos )
-		wire_colorer:SetModel( model )
-		wire_colorer:Spawn()
-		wire_colorer:Setup( outColor, Range )
-
-		wire_colorer:SetPlayer( pl )
-
-		local ttable = {
-		    outColor = outColor,
-		    Range = Range,
-			pl = pl
-		}
-		table.Merge( wire_colorer:GetTable(), ttable )
-
-		pl:AddCount( "wire_colorers", wire_colorer )
-
-		return wire_colorer
-	end
-	duplicator.RegisterEntityClass("gmod_wire_colorer", MakeWireColorer, "Pos", "Ang", "Model", "outColor", "Range")
-
-end
-
 function TOOL.BuildCPanel(panel)
 	WireToolHelpers.MakePresetControl(panel, "wire_colorer")
 	WireDermaExts.ModelSelect(panel, "wire_colorer_model", list.Get( "Wire_Laser_Tools_Models" ), 1, true)
 	panel:CheckBox("#WireColorerTool_outColor", "wire_colorer_outColor")
 	panel:NumSlider("#WireColorerTool_Range", "wire_colorer_Range", 1, 10000, 2)
 end
-
