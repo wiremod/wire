@@ -1123,8 +1123,8 @@ function MakeWireEnt( pl, Data, ... )
 	local ent = duplicator.GenericDuplicatorFunction( pl, Data )
 	if not IsValid(ent) then return false end
 
-	if ent.Setup then ent:Setup(...) end
 	ent:SetPlayer(pl)
+	if ent.Setup then ent:Setup(...) end
 
 	if IsValid(pl) then pl:AddCount( Data.Class, ent ) end
 

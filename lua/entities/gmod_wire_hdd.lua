@@ -50,6 +50,12 @@ function ENT:Initialize()
 	self:NextThink(CurTime()+1.0)
 end
 
+function ENT:Setup(DriveID, DriveCap)
+	self.DriveID = DriveID
+	self.DriveCap = DriveCap
+	self:UpdateCap()
+end
+
 function ENT:GetStructName(name)
 	return "WireFlash/"..(self.Owner_SteamID or "UNKNOWN").."/HDD"..self.DriveID.."/"..name..".txt"
 end

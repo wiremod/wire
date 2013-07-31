@@ -52,6 +52,7 @@ function ENT:Initialize()
 
 	self.firsthit_dmginfo = {}		-- Stores damage info representing damage during an interval
 	self.linked_entities = {}
+	self.linked_entities[0] = self:EntIndex()
 
 	self.count = 0
 
@@ -261,7 +262,6 @@ function MakeWireDamageDetector( pl, Pos, Ang, model, includeconstrained )
 	wire_damage_detector:Spawn()
 
 	wire_damage_detector:Setup( includeconstrained )
-	wire_damage_detector:LinkEntity( wire_damage_detector )	-- Link the detector to itself by default
 
 	wire_damage_detector:SetPlayer( pl )
 	wire_damage_detector.pl = pl

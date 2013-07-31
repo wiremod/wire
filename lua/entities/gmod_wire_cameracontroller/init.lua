@@ -46,10 +46,10 @@ function ENT:MakeDynamicCam(oldcam)
 	return cam
 end
 
-function ENT:Setup(Player, Static)
-	if Player and Player:IsValid() and Player:IsPlayer() then
-		self.CamPlayer = Player
-		self.OriginalOwner = Player
+function ENT:Setup(Static)
+	if IsValid(self:GetPlayer()) then
+		self.CamPlayer = self:GetPlayer()
+		self.OriginalOwner = self:GetPlayer()
 		self.OriginalFOV = self.CamPlayer:GetFOV()
 	end
 

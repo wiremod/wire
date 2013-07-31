@@ -62,12 +62,13 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 	self:Setup()
 end
 
-function ENT:Setup()
+function ENT:Setup(precision, iradius, skin)
 	local min = self:OBBMins()
 	local max = self:OBBMaxs()
 
-	self.Precision = math.floor(math.Clamp(self.Precision,1,64))
-	self.IRadius = math.max(self.IRadius,0)
+	if precision then self.Precision = math.floor(math.Clamp(precision,1,64)) end
+	if iradius then self.IRadius = math.max(iradius,0) end
+	if skin then self.Skin = skin self:SetSkin(skin) end
 
 	self.StackStartHeight = -min.z
 

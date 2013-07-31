@@ -79,47 +79,6 @@ if (SERVER) then
 
 end
 
-function TOOL:UpdateGhostWireStore( ent, player )
-	if ( !ent || !ent:IsValid() ) then return end
-
-	local trace = player:GetEyeTrace()
-
-	if (!trace.Hit || trace.Entity:IsPlayer() || trace.Entity:GetClass() == "gmod_wire_data_store" ) then
-		ent:SetNoDraw( true )
-		return
-	end
-
-	local Ang = trace.HitNormal:Angle()
-	Ang.pitch = Ang.pitch + 90
-
-	local min = ent:OBBMins()
-	ent:SetPos( trace.HitPos - trace.HitNormal * min.z )
-	ent:SetAngles( Ang )
-
-	ent:SetNoDraw( false )
-end
-
-function TOOL:Think()
-	local model = self:GetModel()
-
-	if (!self.GhostEntity || !self.GhostEntity:IsValid() || self.GhostEntity:GetModel() != model ) then
-		self:MakeGhostEntity( Model(model), Vector(0,0,0), Angle(0,0,0) )
-	end
-
-	self:UpdateGhostWireStore( self.GhostEntity, self:GetOwner() )
-end
-
-function TOOL:GetModel()
-	local model = "models/jaanus/wiretool/wiretool_range.mdl"
-	local modelcheck = self:GetClientInfo( "model" )
-
-	if (util.IsValidModel(modelcheck) and util.IsValidProp(modelcheck)) then
-		model = modelcheck
-	end
-
-	return model
-end
-
 function TOOL.BuildCPanel(panel)
 	WireDermaExts.ModelSelect(panel, "wire_data_store_model", list.Get( "Wire_Misc_Tools_Models" ), 1)
 end

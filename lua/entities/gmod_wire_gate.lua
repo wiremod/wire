@@ -16,45 +16,49 @@ function ENT:Initialize()
 end
 
 function ENT:Setup( action, noclip )
-	if (action) then
-		self.WireDebugName = action.name
+	local gate = GateActions[action]
+	if not gate then return end
+	
+	self.action = action
 
-		WireLib.AdjustSpecialInputs(self, action.inputs, action.inputtypes )
-		if (action.outputs) then
-			WireLib.AdjustSpecialOutputs(self, action.outputs, action.outputtypes)
-		else
-			//Wire_AdjustOutputs(self, { "Out" })
-			WireLib.AdjustSpecialOutputs(self, { "Out" }, action.outputtypes)
-		end
+	self.WireDebugName = gate.name
 
-		if (action.reset) then
-			action.reset(self)
-		end
+	WireLib.AdjustSpecialInputs(self, gate.inputs, gate.inputtypes )
+	if (gate.outputs) then
+		WireLib.AdjustSpecialOutputs(self, gate.outputs, gate.outputtypes)
+	else
+		//Wire_AdjustOutputs(self, { "Out" })
+		WireLib.AdjustSpecialOutputs(self, { "Out" }, gate.outputtypes)
+	end
 
-		local ReadCell = action.ReadCell
-		if ReadCell then
-			function self:ReadCell(Address)
-				return ReadCell(action,self,Address)
-			end
-		else
-			self.ReadCell = nil
-		end
+	if (gate.reset) then
+		gate.reset(self)
+	end
 
-		local WriteCell = action.WriteCell
-		if WriteCell then
-			function self:WriteCell(Address,value)
-				return WriteCell(action,self,Address,value)
-			end
-		else
-			self.WriteCell = nil
+	local ReadCell = gate.ReadCell
+	if ReadCell then
+		function self:ReadCell(Address)
+			return ReadCell(gate,self,Address)
 		end
+	else
+		self.ReadCell = nil
+	end
+
+	local WriteCell = gate.WriteCell
+	if WriteCell then
+		function self:WriteCell(Address,value)
+			return WriteCell(gate,self,Address,value)
+		end
+	else
+		self.WriteCell = nil
 	end
 
 	if (noclip) then
 		self:SetCollisionGroup( COLLISION_GROUP_WORLD )
 	end
+	self.noclip = noclip
 
-	self.Action = action
+	self.Action = gate
 	self.PrevValue = nil
 
 	//self.Action.inputtypes = self.Action.inputtypes or {}
@@ -214,7 +218,7 @@ function MakeWireGate(pl, Pos, Ang, model, action, noclip, frozen, nocollide)
 	wire_gate:Spawn()
 	wire_gate:Activate()
 
-	wire_gate:Setup( gate, noclip )
+	wire_gate:Setup( action, noclip )
 	wire_gate:SetPlayer( pl )
 
 	if wire_gate:GetPhysicsObject():IsValid() then
@@ -223,15 +227,7 @@ function MakeWireGate(pl, Pos, Ang, model, action, noclip, frozen, nocollide)
 	if nocollide == true or noclip == true then
 		wire_gate:SetCollisionGroup(COLLISION_GROUP_WORLD)
 	end
-
-	local ttable = {
-		pl        = pl,
-		action    = action,
-		noclip    = noclip,
-		nocollide = nocollide
-	}
-	table.Merge( wire_gate:GetTable(), ttable )
-
+ 
 	pl:AddCount( "wire_gates", wire_gate )
 	pl:AddCount( "wire_gate_" .. group .. "s", wire_gate )
 	pl:AddCleanup( "gmod_wire_gate", wire_gate )
