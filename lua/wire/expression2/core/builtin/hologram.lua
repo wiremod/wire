@@ -143,7 +143,7 @@ end
 local function flush_scale_queue(queue, recipient)
 	if not queue then queue = scale_queue end
 	if not next(queue) then return end
-	
+
 	net.Start("wire_holograms_set_scale")
 		for _,Holo,scale in ipairs_map(queue, unpack) do
 			net.WriteUInt(Holo.ent:EntIndex(), 16)
@@ -687,7 +687,7 @@ end
 e2function void holoPos(index, vector position)
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
-	
+
 	E2Lib.setPos(Holo.ent, Vector(position[1],position[2],position[3]))
 end
 

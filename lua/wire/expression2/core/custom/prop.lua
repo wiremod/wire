@@ -55,14 +55,14 @@ function PropCore.CreateProp(self,model,pos,angles,freeze)
 	end
 	pos = E2Lib.clampPos( pos )
 	local prop
-	
+
 	if self.data.propSpawnEffect then
 		prop = MakeProp( self.player, pos, angles, model, {}, {} )
 	else
 		prop = MakePropNoEffect( self.player, pos, angles, model, {}, {} )
 	end
 	if not prop then return end
-	
+
 	prop:Activate()
 	self.player:AddCleanup( "props", prop )
 	undo.Create("e2_spawned_prop")
