@@ -91,38 +91,6 @@ if SERVER then
         end
     end
 
-    function MakeWireExpression2(player, Pos, Ang, model, buffer, name, inputs, outputs, vars, inc_files)
-        if not player:CheckLimit("wire_expressions") then return false end
-
-        local self = ents.Create("gmod_wire_expression2")
-        if not self:IsValid() then return false end
-
-        self:SetModel(model)
-        self:SetAngles(Ang)
-        self:SetPos(Pos)
-        self:Spawn()
-        self:SetPlayer(player)
-        self.player = player
-        self:SetNWEntity("player", player)
-
-        buffer = string.Replace(string.Replace(buffer, string.char(163), "\""), string.char(128), "\n")
-
-        self:SetOverlayText(name)
-        self.buffer = buffer
-        self.inc_files = inc_files or {}
-
-        self.Inputs = WireLib.AdjustSpecialInputs(self, inputs[1], inputs[2])
-        self.Outputs = WireLib.AdjustSpecialOutputs(self, outputs[1], outputs[2])
-
-        self.dupevars = vars
-
-        player:AddCount("wire_expressions", self)
-        player:AddCleanup("wire_expressions", self)
-        return self
-    end
-
-    duplicator.RegisterEntityClass("gmod_wire_expression2", MakeWireExpression2, "Pos", "Ang", "Model", "_original", "_name", "_inputs", "_outputs", "_vars", "inc_files")
-
     util.AddNetworkString("WireExpression2_OpenEditor")
     function TOOL:RightClick(trace)
         if trace.Entity:IsPlayer() then return false end
@@ -151,13 +119,13 @@ if SERVER then
         WireLib.Expression2Download(ply, ent, nil, true)
     end
 
-    ----------------------------------------------------------------------------------------------------------------------------
-    ----------------------------------------------------------------------------------------------------------------------------
-    ----------------------------------------------------------------------------------------------------------------------------
-    ------------------------------------------------------ UPLOAD/DOWNLOAD -----------------------------------------------------
-    ----------------------------------------------------------------------------------------------------------------------------
-    ----------------------------------------------------------------------------------------------------------------------------
-    ----------------------------------------------------------------------------------------------------------------------------
+    -- --------------------------------------------------------------------------------------------------------------------------
+    -- --------------------------------------------------------------------------------------------------------------------------
+    -- --------------------------------------------------------------------------------------------------------------------------
+    -- ---------------------------------------------------- UPLOAD/DOWNLOAD -----------------------------------------------------
+    -- --------------------------------------------------------------------------------------------------------------------------
+    -- --------------------------------------------------------------------------------------------------------------------------
+    -- --------------------------------------------------------------------------------------------------------------------------
     util.AddNetworkString("wire_expression2_tool_upload")
     util.AddNetworkString("wire_expression2_editor_status")
     util.AddNetworkString("wire_expression2_download")
@@ -170,9 +138,9 @@ if SERVER then
         net.Start("wire_expression2_progress") net.WriteInt(progress or -1, 16) net.Send(ply)
     end
 
-    --------------------------------------------------------------
+    -- ------------------------------------------------------------
     -- Serverside Send
-    --------------------------------------------------------------
+    -- ------------------------------------------------------------
     function WireLib.Expression2Download(ply, targetEnt, wantedfiles, uploadandexit)
         if not IsValid(targetEnt) or targetEnt:GetClass() ~= "gmod_wire_expression2" then
             WireLib.AddNotify(ply, "Invalid Expression chip specified.", NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3)
@@ -271,9 +239,9 @@ if SERVER then
         end
     end)
 
-    --------------------------------------------------------------
+    -- ------------------------------------------------------------
     -- Serverside Receive
-    --------------------------------------------------------------
+    -- ------------------------------------------------------------
     local uploads = {}
     net.Receive("wire_expression2_upload", function(len, ply)
         local toent = Entity(net.ReadUInt(16))
@@ -315,9 +283,9 @@ if SERVER then
         end
     end)
 
-    --------------------------------------------------------------
+    -- ------------------------------------------------------------
     -- Stuff for the remote updater
-    --------------------------------------------------------------
+    -- ------------------------------------------------------------
 
     local antispam = {}
     -- Returns true if they are spamming, false if they can go ahead and use it
@@ -641,7 +609,8 @@ elseif CLIENT then
         ParentPanel:SetSize(w,h-40)
         ParentPanel:Dock(TOP)
         ]]
-        --[[local MaterialGallery = vgui.Create( "DCollapsibleCategory", ParentPanel )
+        --[[
+        local MaterialGallery = vgui.Create( "DCollapsibleCategory", ParentPanel )
         MaterialGallery:SetSize(w,100)
         ]]
         -- lazy.. lazy.. lazy.. deprecated..

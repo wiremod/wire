@@ -132,14 +132,12 @@ function tablekeys(tbl)
 end
 
 function tablevalues(tbl)
-    l = {}
+    local l = {}
     for k, v in pairs(tbl) do
         l[#l + 1] = v
     end
     return l
 end
-
-
 
 local ScopeManager = {}
 ScopeManager.__index = ScopeManager
@@ -548,7 +546,7 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID, GetConstByID)
         for k, v in pairs(self.dupevars) do
             self.GlobalScope[k] = v
         end -- Rusketh Broke this :(
-        --table.Merge(self.context.vars, self.dupevars)
+        -- table.Merge(self.context.vars, self.dupevars)
         self.dupevars = nil
 
         self.duped = true
@@ -607,3 +605,35 @@ hook.Add("PlayerAuthed", "Wire_Expression2_Player_Authed", function(ply, sid, ui
         end
     end
 end)
+
+function MakeWireExpression2(player, Pos, Ang, model, buffer, name, inputs, outputs, vars, inc_files)
+    if not player:CheckLimit("wire_expressions") then return false end
+
+    local self = ents.Create("gmod_wire_expression2")
+    if not self:IsValid() then return false end
+
+    self:SetModel(model)
+    self:SetAngles(Ang)
+    self:SetPos(Pos)
+    self:Spawn()
+    self:SetPlayer(player)
+    self.player = player
+    self:SetNWEntity("player", player)
+
+    buffer = string.Replace(string.Replace(buffer, string.char(163), "\""), string.char(128), "\n")
+
+    self:SetOverlayText(name)
+    self.buffer = buffer
+    self.inc_files = inc_files or {}
+
+    self.Inputs = WireLib.AdjustSpecialInputs(self, inputs[1], inputs[2])
+    self.Outputs = WireLib.AdjustSpecialOutputs(self, outputs[1], outputs[2])
+
+    self.dupevars = vars
+
+    player:AddCount("wire_expressions", self)
+    player:AddCleanup("wire_expressions", self)
+    return self
+end
+
+duplicator.RegisterEntityClass("gmod_wire_expression2", MakeWireExpression2, "Pos", "Ang", "Model", "_original", "_name", "_inputs", "_outputs", "_vars", "inc_files")
