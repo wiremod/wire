@@ -9,12 +9,12 @@ ENT.WireDebugName = "Expression 2"
 
 ENT.RenderGroup = RENDERGROUP_OPAQUE
 
-include("wire/expression2/core/e2lib.lua")
+include("wire/expression2/e2lib.lua")
 include("wire/expression2/base/preprocessor.lua")
 include("wire/expression2/base/tokenizer.lua")
 include("wire/expression2/base/parser.lua")
 include("wire/expression2/base/compiler.lua")
-include("wire/expression2/core/init.lua")
+include("wire/expression2/init.lua")
 
 local function Include(e2, directives, includes, scripts)
     if scripts[e2] then

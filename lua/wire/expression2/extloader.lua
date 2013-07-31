@@ -20,7 +20,7 @@ if ENT then
 
         ENT = wire_expression2_ENT
         wire_expression2_is_reload = true
-        include("wire/expression2/core/extloader.lua")
+        include("wire/expression2/extloader.lua")
         wire_expression2_is_reload = nil
         ENT = nil
 
@@ -53,12 +53,12 @@ local function e2_include(name)
     local path, filename = string.match(name, "^(.-/?)([^/]*)$")
 
     local cl_name = path .. "cl_" .. filename
-    if luaExists("wire/expression2/core/" .. cl_name) then
+    if luaExists("wire/expression2/" .. cl_name) then
         -- If a file of the same name prefixed with cl_ exists, send it to the client and load it there.
         AddCSE2File(cl_name)
     end
 
-    local luaname = "wire/expression2/core/" .. name
+    local luaname = "wire/expression2/" .. name
     local contents = file.Read(luaname, "LUA") or ""
     e2_extpp_pass1(contents)
     table.insert(included_files, { name, luaname, contents })
@@ -137,7 +137,7 @@ e2_include("builtin/functions.lua")
 e2_include("builtin/strfunc.lua")
 
 do
-    local list = file.Find("wire/expression2/core/custom/*.lua", "LUA")
+    local list = file.Find("wire/expression2/custom/*.lua", "LUA")
     for _, filename in pairs(list) do
         if filename:sub(1, 3) == "cl_" then
             -- If the is prefixed with "cl_", send it to the client and load it there.

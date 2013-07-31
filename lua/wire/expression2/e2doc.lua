@@ -3,7 +3,7 @@ local eliminate_varname_conflicts = true
 if not e2_parse_args then include("extpp.lua") end
 
 local readfile = readfile or function(filename)
-    return file.Read("wire/expression2/core/" .. filename, "LUA")
+    return file.Read("wire/expression2/" .. filename, "LUA")
 end
 local writefile = writefile or function(filename, contents)
     print("--- Writing to file 'data/e2doc/" .. filename .. "' ---")
@@ -135,11 +135,11 @@ elseif CLIENT then
         function(commandName, args) -- autocomplete function
             args = string.match(args, "^%s*(.-)%s*$")
             local path = string.match(args, "^%s*(.+/)") or ""
-            local files = file.Find("wire/expression2/core/" .. args .. "*", "LUA")
+            local files = file.Find("wire/expression2/" .. args .. "*", "LUA")
             local ret = {}
             for _, v in ipairs(files) do
                 if string.sub(v, 1, 1) ~= "." then
-                    if file.IsDir('wire/expression2/core/' .. path .. v, "LUA") then
+                    if file.IsDir('wire/expression2/' .. path .. v, "LUA") then
                         table.insert(ret, "e2doc " .. path .. v .. "/")
                     else
                         table.insert(ret, "e2doc " .. path .. v)

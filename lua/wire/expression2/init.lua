@@ -303,7 +303,7 @@ elseif CLIENT then
 
         -- includes
         for filename, _ in pairs(includes) do
-            include("wire/expression2/core/" .. filename)
+            include("wire/expression2/" .. filename)
         end
 
         -- constants
