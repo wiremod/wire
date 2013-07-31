@@ -29,7 +29,7 @@ __e2setcost(250)
 e2function void entity:remoteSetCode( string code )
 	if not this or not this:IsValid() or this:GetClass() ~= "gmod_wire_expression2" then return end
 	if not E2Lib.isOwner( self, this ) then return end
-	
+
 	this:Setup( code, {} )
 end
 
@@ -38,7 +38,7 @@ e2function void entity:remoteSetCode( string main, table includes )
 	if not E2Lib.isOwner( self, this ) then return end
 
 	local luatable = {}
-	
+
 	for k,v in pairs( includes.s ) do
 		self.prf = self.prf + 0.3
 		if includes.stypes[k] == "s" then
@@ -47,7 +47,7 @@ e2function void entity:remoteSetCode( string main, table includes )
 			error( "Non-string value given to remoteSetCode", 2 )
 		end
 	end
-	
+
 	this:Setup( main, luatable )
 end
 
@@ -62,15 +62,15 @@ e2function table getCodeIncludes()
 	local _, includes = self.entity:GetCode()
 	local e2table = {n={},ntypes={},s={},stypes={},size=0}
 	local size = 0
-	
+
 	for k,v in pairs( includes ) do
 		size = size + 1
 		e2table.s[k] = v
 		e2table.stypes[k] = "s"
 	end
-	
+
 	self.prf = self.prf + size * 0.3
 	e2table.size = size
-	
+
 	return e2table
 end

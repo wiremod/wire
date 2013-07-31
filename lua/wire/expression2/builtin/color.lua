@@ -81,7 +81,7 @@ e2function void entity:setAlpha(a)
 	if !isOwner(self, this) then return end
 
 	if this:IsPlayer() then return end
-	
+
 	local c = this:GetColor()
 	c.a = Clamp(a, 0, 255)
 	this:SetColor(c)
