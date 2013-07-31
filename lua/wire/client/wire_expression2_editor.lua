@@ -2104,7 +2104,7 @@ function Editor:SaveFile(Line, close, SaveAs)
 			str = self.C['Browser'].panel.File.FileDir -- Get FileDir
 			if (str and str != "") then -- Check if not nil
 
-				-- Remove "Expression2/" or "CPU/" etc
+				-- Remove "expression2/" or "cpuchip/" etc
 				local n, _ = str:find( "/", 1, true )
 				str = str:sub( n+1, -1 )
 
