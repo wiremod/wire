@@ -17,12 +17,8 @@ if SERVER then
 		return self:GetClientNumber( "static" )
 	end
 	
-	function TOOL:MakeEnt( ply, model, Ang, trace )
-		return MakeWireCam( ply, trace.HitPos, Ang, model, self:GetConVars() )
-	end
-	
 	function TOOL:LeftClick_PostMake( ent, ply, trace )
-		if IsValid(ent) then return false end
+		if not IsValid(ent) then return false end
 
 		-- Welding
 		local const
@@ -76,37 +72,6 @@ function TOOL:Reload( trace )
 	if not trace.Entity:IsValid() then return false end
 
 	self.trace.Entity.CamPod = nil;
-end
-
-if (SERVER) then
-
-	function MakeWireCam( pl, Pos, Ang, model, Static )
-		if ( !pl:CheckLimit( "wire_cams" ) ) then return false end
-
-		local wire_cam = ents.Create( "gmod_wire_cameracontroller" )
-		if (!wire_cam:IsValid()) then return false end
-
-		wire_cam:SetAngles( Ang )
-		wire_cam:SetPos( Pos )
-		wire_cam:SetModel( Model(model or "models/jaanus/wiretool/wiretool_siren.mdl") )
-		wire_cam:Spawn()
-		wire_cam:Setup(pl,Static)
-
-		wire_cam:SetPlayer( pl )
-
-		local ttable = {
-			pl = pl,
-			Static=Static
-		}
-		table.Merge(wire_cam:GetTable(), ttable )
-
-		pl:AddCount( "wire_cams", wire_cam )
-
-		return wire_cam
-	end
-
-	duplicator.RegisterEntityClass("gmod_wire_cameracontroller", MakeWireCam, "Pos", "Ang", "Model", "Static")
-
 end
 
 function TOOL.BuildCPanel(panel)

@@ -17,6 +17,8 @@ function ENT:ShowOutput()
 	self:SetOverlayText( IsValid(self.Transmitter) and "Linked" or "Unlinked" )
 end
 
+duplicator.RegisterEntityClass("gmod_wire_data_satellitedish", MakeWireEnt, "Data")
+
 function ENT:BuildDupeInfo()
 	local info = self.BaseClass.BuildDupeInfo(self) or {}
 	if IsValid( self.Transmitter ) then

@@ -7,31 +7,21 @@ if ( CLIENT ) then
     language.Add( "Tool.wire_data_satellitedish.0", "Primary: Create Satellite Dish/Display Link Info, Secondary: Link/Unlink Satellite Dish, Reload: Change model" )
 	language.Add( "Tool.wire_data_satellitedish.1", "Now select the transmitter to link to" )
     language.Add( "WireDataTransfererTool_data_satellitedish", "Satellite Dish:" )
-	language.Add( "sboxlimit_wire_data_satellitedishs", "You've hit Satellite Dishs limit!" )
-	language.Add( "undone_Wire Data Satellite Dish", "Undone Wire Satellite Dish" )
 end
-
-if (SERVER) then
-	CreateConVar('sbox_maxwire_data_satellitedishs', 20)
-end
+WireToolSetup.BaseLang()
+WireToolSetup.SetupMax( 20, TOOL.Mode.."s" , "You've hit the Wire "..TOOL.PluralName.." limit!" )
 
 TOOL.ClientConVar["Model"] = "models/kobilica/wiremonitorrtbig.mdl"
 
-TOOL.FirstSelected = nil
-
-cleanup.Register( "wire_data_satellitedishs" )
-
-function TOOL:LeftClick( trace )
-	if (!trace.HitPos) then return false end
-	if (trace.Entity:IsPlayer()) then return false end
+function TOOL:LeftClick(trace)
+	if not trace.HitPos or trace.Entity:IsPlayer() then return false end
 	if ( CLIENT ) then return true end
 	if not util.IsValidPhysicsObject( trace.Entity, trace.PhysicsBone ) then return false end
 
+	self:SetStage(0)
 	local ply = self:GetOwner()
 
-	self:SetStage(0)
-
-	if ( trace.Entity:IsValid() and trace.Entity:GetClass() == "gmod_wire_data_satellitedish" ) then
+	if ( trace.Entity:GetClass() == "gmod_wire_data_satellitedish" ) then
 		local satellite_dish = trace.Entity
 		if IsValid(satellite_dish.Transmitter) then
 			self:GetWeapon():SetNetworkedEntity( "WireSatelliteDishTransmitter", satellite_dish.Transmitter )
@@ -41,31 +31,10 @@ function TOOL:LeftClick( trace )
 			ply:PrintMessage( HUD_PRINTTALK, "Satellite Dish not linked" )
 			return false
 		end
+	else
+		local ent = self:LeftClick_Make( trace, ply )
+		return self:LeftClick_PostMake( ent, ply, trace )
 	end
-
-	if ( !self:GetSWEP():CheckLimit( "wire_data_satellitedishs" ) ) then return false end
-
-	local Ang = trace.HitNormal:Angle()
-	Ang.pitch = Ang.pitch + 90
-
-	local model = self:GetClientInfo("Model")
-	if not util.IsValidModel( model ) or not util.IsValidProp( model ) then return end
-	local wire_data_satellitedish = MakeWireSatellitedish( ply, trace.HitPos, Ang, model)
-
-	local min = wire_data_satellitedish:OBBMins()
-	wire_data_satellitedish:SetPos( trace.HitPos - trace.HitNormal * min.z )
-
-	local const = WireLib.Weld(wire_data_satellitedish, trace.Entity, trace.PhysicsBone, true)
-
-	undo.Create("Wire Data Satellite Dish")
-		undo.AddEntity( wire_data_satellitedish )
-		undo.AddEntity( const )
-		undo.SetPlayer( ply )
-	undo.Finish()
-
-	ply:AddCleanup( "wire_data_satellitedishs", wire_data_satellitedish )
-	ply:AddCleanup( "wire_data_satellitedishs", const )
-
 	return true
 end
 
@@ -136,31 +105,6 @@ function TOOL:DrawHUD()
 		surface.SetDrawColor( 255, 255, 100, 255 )
 		surface.DrawLine(selected_dish_pos.x, selected_dish_pos.y, transmitter_pos.x, transmitter_pos.y)
 	end
-end
-
-if (SERVER) then
-
-	function MakeWireSatellitedish( pl, Pos, Ang, model )
-		if ( !pl:CheckLimit( "wire_data_satellitedishs" ) ) then return false end
-
-		local wire_data_satellitedish = ents.Create( "gmod_wire_data_satellitedish" )
-		if (!wire_data_satellitedish:IsValid()) then return false end
-
-		wire_data_satellitedish:SetAngles( Ang )
-		wire_data_satellitedish:SetPos( Pos )
-		wire_data_satellitedish:SetModel( model )
-		wire_data_satellitedish:Spawn()
-
-		wire_data_satellitedish:SetPlayer( pl )
-		wire_data_satellitedish.pl = pl
-
-		pl:AddCount( "wire_data_satellitedishs", wire_data_satellitedish )
-
-		return wire_data_satellitedish
-	end
-
-	duplicator.RegisterEntityClass("gmod_wire_data_satellitedish", MakeWireSatellitedish, "Pos", "Ang", "Model")
-
 end
 
 function TOOL.BuildCPanel(panel)

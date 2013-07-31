@@ -77,42 +77,4 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 	end
 end
 
-
--- "target" is now handled by TOOL:LeftClick() for STool-spawned
--- detonators and ENT:Build/ApplyDupeInfo() for duplicated ones
--- It's done this way because MakeWireDetonator() cannot distinguish whether
--- detonator was made by the STool or the duplicator; the duplicator-made
--- detonator tries to reference a non-existent target (TheApathetic)
-function MakeWireDetonator(pl, Pos, Ang, model, damage, nocollide, frozen)
-	if not pl:CheckLimit( "wire_detonators" ) then return false end
-
-	local wire_detonator = ents.Create("gmod_wire_detonator")
-	if not wire_detonator:IsValid() then return false end
-		wire_detonator:SetAngles(Ang)
-		wire_detonator:SetPos(Pos)
-		wire_detonator:SetModel(model)
-	wire_detonator:Spawn()
-
-	wire_detonator:Setup(damage)
-	wire_detonator:SetPlayer(pl)
-
-	if nocollide == true then wire_detonator:GetPhysicsObject():EnableCollisions(false) end
-	if wire_detonator:GetPhysicsObject():IsValid() then
-		local Phys = wire_detonator:GetPhysicsObject()
-		Phys:EnableMotion(!frozen)
-	end
-
-	local ttable = {
-		pl	= pl,
-		nocollide = nocollide
-	}
-	table.Merge(wire_detonator, ttable)
-
-	pl:AddCount("wire_detonators", wire_detonator)
-	pl:AddCleanup("gmod_wire_detonator", wire_detonator)
-
-	return wire_detonator
-end
-
-duplicator.RegisterEntityClass("gmod_wire_detonator", MakeWireDetonator, "Pos", "Ang", "Model", "damage", "nocollide", "frozen")
-
+duplicator.RegisterEntityClass("gmod_wire_detonator", MakeWireEnt, "Data", "damage")

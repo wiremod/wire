@@ -166,7 +166,6 @@ function ENT:WriteCell(Address, Value)
   end
 end
 
-
 function ENT:TriggerInput(iname, value)
   for i = 1,8 do
     if iname == "Memory"..i then
@@ -174,3 +173,5 @@ function ENT:TriggerInput(iname, value)
     end
   end
 end
+
+duplicator.RegisterEntityClass("gmod_wire_extbus", MakeWireEnt, "Data")

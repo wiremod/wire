@@ -250,27 +250,7 @@ function ENT:Think()
 	return true
 end
 
-function MakeWireDamageDetector( pl, Pos, Ang, model, includeconstrained )
-	if !pl:CheckLimit( "wire_damage_detectors" ) then return false end
-
-	local wire_damage_detector = ents.Create( "gmod_wire_damage_detector" )
-	if !IsValid(wire_damage_detector) then return false end
-
-	wire_damage_detector:SetAngles( Ang )
-	wire_damage_detector:SetPos( Pos )
-	wire_damage_detector:SetModel( model )
-	wire_damage_detector:Spawn()
-
-	wire_damage_detector:Setup( includeconstrained )
-
-	wire_damage_detector:SetPlayer( pl )
-	wire_damage_detector.pl = pl
-
-	pl:AddCount( "wire_damage_detectors", wire_damage_detector )
-
-	return wire_damage_detector
-end
-duplicator.RegisterEntityClass("gmod_wire_damage_detector", MakeWireDamageDetector, "Pos", "Ang", "Model", "includeconstrained")
+duplicator.RegisterEntityClass("gmod_wire_damage_detector", MakeWireEnt, "Data", "includeconstrained")
 
 function ENT:BuildDupeInfo()
 	local info = self.BaseClass.BuildDupeInfo(self) or {}

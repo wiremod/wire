@@ -118,22 +118,4 @@ function ENT:Think()
 	return true
 end
 
-function MakeWireColorer( pl, Pos, Ang, model, outColor, Range )
-	if !pl:CheckLimit( "wire_colorers" ) then return false end
-
-	local wire_colorer = ents.Create( "gmod_wire_colorer" )
-	if !IsValid(wire_colorer) then return false end
-
-	wire_colorer:SetAngles( Ang )
-	wire_colorer:SetPos( Pos )
-	wire_colorer:SetModel( model )
-	wire_colorer:Spawn()
-	wire_colorer:Setup( outColor, Range )
-
-	wire_colorer:SetPlayer( pl )
-
-	pl:AddCount( "wire_colorers", wire_colorer )
-
-	return wire_colorer
-end
-duplicator.RegisterEntityClass("gmod_wire_colorer", MakeWireColorer, "Pos", "Ang", "Model", "outColor", "Range")
+duplicator.RegisterEntityClass("gmod_wire_colorer", MakeWireEnt, "Data", "outColor", "Range")

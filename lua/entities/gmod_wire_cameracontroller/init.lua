@@ -246,3 +246,5 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 		end
 	end
 end
+
+duplicator.RegisterEntityClass("gmod_wire_cameracontroller", MakeWireEnt, "Data", "Static")

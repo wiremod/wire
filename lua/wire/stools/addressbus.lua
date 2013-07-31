@@ -25,9 +25,7 @@ if SERVER then
 			   self:GetClientNumber( "addrspace1sz" ), self:GetClientNumber( "addrspace2sz" ), self:GetClientNumber( "addrspace3sz" ), self:GetClientNumber( "addrspace4sz" )
 	end
 
-	function TOOL:MakeEnt( ply, model, Ang, trace )
-		return MakeWireAddressBus( ply, trace.HitPos, Ang, model, self:GetConVars() )
-	end
+	-- Uses default WireToolObj:MakeEnt's MakeWireEnt function
 end
 
 function TOOL:RightClick( trace )

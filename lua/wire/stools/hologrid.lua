@@ -17,9 +17,7 @@ if SERVER then
 		return self:GetClientNumber( "usegps" )~=0
 	end
 
-	function TOOL:MakeEnt( ply, model, Ang, trace )
-		return MakeWireHologrid( ply, trace.HitPos, Ang, model, self:GetConVars() )
-	end
+	-- Uses default WireToolObj:MakeEnt's MakeWireEnt function
 end
 
 TOOL.ClientConVar = {

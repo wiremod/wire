@@ -319,3 +319,5 @@ function ENT:TriggerInput(iname, value)
 
 	self:SetOverlayText(self.DriveCap.."kb".."\nWriteAddr:"..self.AWrite.."  Data:"..self.Data.."  Clock:"..self.Clk.."\nReadAddr:"..self.ARead.." = ".. self.Out)
 end
+
+duplicator.RegisterEntityClass("gmod_wire_hdd", MakeWireEnt, "Data", "DriveID", "DriveCap")

@@ -267,3 +267,5 @@ function ENT:Think()
 	self:NextThink(CurTime()+0.01)
 	return true
 end
+
+duplicator.RegisterEntityClass("gmod_wire_cd_ray", MakeWireEnt, "Data", "Range", "DefaultZero")

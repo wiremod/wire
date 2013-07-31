@@ -201,37 +201,19 @@ function ENT:GetActionOutputs()
 end
 
 function MakeWireGate(pl, Pos, Ang, model, action, noclip, frozen, nocollide)
-	if ( !pl:CheckLimit( "wire_gates" ) ) then return nil end
-
 	local gate = GateActions[action]
 	if not gate then return end
 
 	local group = gate.group
 	if not group then return end
 	group = string.lower(group)
-	if not pl:CheckLimit( "wire_gate_" .. group .. "s" ) then return end
+	if IsValid(pl) and not pl:CheckLimit( "wire_gate_" .. group .. "s" ) then return end
 
-	local wire_gate = ents.Create( "gmod_wire_gate" )
-	wire_gate:SetPos( Pos )
-	wire_gate:SetAngles( Ang )
-	wire_gate:SetModel( model )
-	wire_gate:Spawn()
-	wire_gate:Activate()
+	local wire_gate =  MakeWireEnt( pl, {Class = "gmod_wire_gate", Pos=Pos, Angle=Ang, Model=model}, action, noclip )
+	if !IsValid(wire_gate) then return false end
 
-	wire_gate:Setup( action, noclip )
-	wire_gate:SetPlayer( pl )
-
-	if wire_gate:GetPhysicsObject():IsValid() then
-		wire_gate:GetPhysicsObject():EnableMotion(!frozen)
-	end
-	if nocollide == true or noclip == true then
-		wire_gate:SetCollisionGroup(COLLISION_GROUP_WORLD)
-	end
- 
-	pl:AddCount( "wire_gates", wire_gate )
 	pl:AddCount( "wire_gate_" .. group .. "s", wire_gate )
-	pl:AddCleanup( "gmod_wire_gate", wire_gate )
 
 	return wire_gate
 end
-duplicator.RegisterEntityClass("gmod_wire_gate", MakeWireGate, "Pos", "Ang", "Model", "action", "noclip", "frozen", "nocollide")
+duplicator.RegisterEntityClass("gmod_wire_gate", MakeWireGate, "Pos", "Ang", "Model", "action", "noclip")
