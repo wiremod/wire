@@ -10,12 +10,6 @@ function ENT:Initialize()
 	self:SetRenderBounds(mn + Vector(0,0,128), mx, 0)
 end
 
-function ENT:Draw()
-	self.BaseClass.Draw(self)
-	
-	self:DrawTranslucent()
-end
-
 function ENT:DrawTranslucent()
 	if self.ShouldDraw == 0 or not self:IsOn() then return end
 
