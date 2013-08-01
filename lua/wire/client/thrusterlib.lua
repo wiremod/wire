@@ -16,8 +16,8 @@ end
 
 WireLib.ThrusterEffectDraw.fire = function(self)
 
-	local vOffset = self:CalcOffset()
-	local vNormal = (vOffset - self:GetPos()):GetNormalized()
+	local vOffset = self:LocalToWorld(self:GetOffset())
+	local vNormal = self:CalcNormal()
 
 	local scroll = CurTime() * -10
 
@@ -52,8 +52,8 @@ end
 
 WireLib.ThrusterEffectDraw.heatwave = function(self)
 
-	local vOffset = self:CalcOffset()
-	local vNormal = (vOffset - self:GetPos()):GetNormalized()
+	local vOffset = self:LocalToWorld(self:GetOffset())
+	local vNormal = self:CalcNormal()
 
 	local scroll = CurTime() * -10
 
@@ -88,8 +88,8 @@ end
 
 WireLib.ThrusterEffectDraw.color = function(self)
 
-	local vOffset = self:CalcOffset()
-	local vNormal = (vOffset - self:GetPos()):GetNormalized()
+	local vOffset = self:LocalToWorld(self:GetOffset())
+	local vNormal = self:CalcNormal()
 
 	local scroll = CurTime() * -10
 
@@ -124,8 +124,8 @@ end
 
 WireLib.ThrusterEffectDraw.color_random = function(self)
 
-	local vOffset = self:CalcOffset()
-	local vNormal = (vOffset - self:GetPos()):GetNormalized()
+	local vOffset = self:LocalToWorld(self:GetOffset())
+	local vNormal = self:CalcNormal()
 
 	local scroll = CurTime() * -10
 
@@ -160,8 +160,8 @@ end
 
 WireLib.ThrusterEffectDraw.color_diy = function(self)
 
-	local vOffset = self:CalcOffset()
-	local vNormal = (vOffset - self:GetPos()):GetNormalized()
+	local vOffset = self:LocalToWorld(self:GetOffset())
+	local vNormal = self:CalcNormal()
 	local c = self:GetColor()
 
 	local scroll = CurTime() * -10
@@ -198,8 +198,8 @@ end
 
 WireLib.ThrusterEffectDraw.plasma = function(self)
 
-	local vOffset = self:CalcOffset()
-	local vNormal = (vOffset - self:GetPos()):GetNormalized()
+	local vOffset = self:LocalToWorld(self:GetOffset())
+	local vNormal = self:CalcNormal()
 
 	local scroll = CurTime() * -20
 
@@ -233,8 +233,8 @@ end
 
 WireLib.ThrusterEffectDraw.fire_smoke = function(self)
 
-	local vOffset = self:CalcOffset()
-	local vNormal = (vOffset - self:GetPos()):GetNormalized()
+	local vOffset = self:LocalToWorld(self:GetOffset())
+	local vNormal = self:CalcNormal()
 
 	local scroll = CurTime() * -10
 
@@ -270,8 +270,8 @@ WireLib.ThrusterEffectDraw.fire_smoke = function(self)
 
 	self.SmokeTimer = CurTime() + 0.015
 
-	vOffset = self:CalcOffset() + Vector( math.Rand( -3, 3 ), math.Rand( -3, 3 ), math.Rand( -3, 3 ) )
-	vNormal = (vOffset - self:GetPos()):GetNormalized()
+	vOffset = self:LocalToWorld(self:GetOffset()) + Vector( math.Rand( -3, 3 ), math.Rand( -3, 3 ), math.Rand( -3, 3 ) )
+	vNormal = self:CalcNormal()
 
 		local particle = emitter:Add( "particles/smokey", vOffset )
 			particle:SetVelocity( vNormal * math.Rand( 10, 30 ) )
@@ -292,8 +292,8 @@ WireLib.ThrusterEffectDraw.fire_smoke_big = function(self)
 	if ( self.RingTimer > CurTime() ) then return end
 	self.RingTimer = CurTime() + 0.005
 
-	local vOffset = self:CalcOffset()
-	local vNormal = (vOffset - self:GetPos()):GetNormalized()
+	local vOffset = self:LocalToWorld(self:GetOffset())
+	local vNormal = self:CalcNormal()
 
 	local effectdata = EffectData()
 		effectdata:SetOrigin( vOffset )
@@ -302,8 +302,8 @@ WireLib.ThrusterEffectDraw.fire_smoke_big = function(self)
 		effectdata:SetScale( 3 )
 	util.Effect( "HelicopterMegaBomb", effectdata )
 
-	vOffset = self:CalcOffset() + Vector( math.Rand( -3, 3 ), math.Rand( -3, 3 ), math.Rand( -3, 3 ) )
-	vNormal = (vOffset - self:GetPos()):GetNormalized()
+	vOffset = self:LocalToWorld(self:GetOffset()) + Vector( math.Rand( -3, 3 ), math.Rand( -3, 3 ), math.Rand( -3, 3 ) )
+	vNormal = self:CalcNormal()
 
 		local particle = emitter:Add( "particles/smokey", vOffset )
 			particle:SetVelocity( vNormal * math.Rand( 10, 20 ) )
@@ -330,8 +330,8 @@ WireLib.ThrusterEffectThink.smoke = function(self)
 
 	self.SmokeTimer = CurTime() + 0.015
 
-	local vOffset = self:CalcOffset() + Vector( math.Rand( -3, 3 ), math.Rand( -3, 3 ), math.Rand( -3, 3 ) )
-	local vNormal = (vOffset - self:GetPos()):GetNormalized()
+	local vOffset = self:LocalToWorld(self:GetOffset()) + Vector( math.Rand( -3, 3 ), math.Rand( -3, 3 ), math.Rand( -3, 3 ) )
+	local vNormal = self:CalcNormal()
 
 		local particle = emitter:Add( "particles/smokey", vOffset )
 			particle:SetVelocity( vNormal * math.Rand( 10, 30 ) )
@@ -353,8 +353,8 @@ WireLib.ThrusterEffectThink.smoke_firecolors = function(self)
 
 	self.SmokeTimer = CurTime() + 0.015
 
-	local vOffset = self:CalcOffset() + Vector( math.Rand( -3, 3 ), math.Rand( -3, 3 ), math.Rand( -3, 3 ) )
-	local vNormal = (vOffset - self:GetPos()):GetNormalized()
+	local vOffset = self:LocalToWorld(self:GetOffset()) + Vector( math.Rand( -3, 3 ), math.Rand( -3, 3 ), math.Rand( -3, 3 ) )
+	local vNormal = self:CalcNormal()
 
 		local particle = emitter:Add( "particles/smokey", vOffset )
 			particle:SetVelocity( vNormal * math.Rand( 10, 30 ) )
@@ -376,8 +376,8 @@ WireLib.ThrusterEffectThink.smoke_random = function(self)
 
 	self.SmokeTimer = CurTime() + 0.015
 
-	local vOffset = self:CalcOffset() + Vector( math.Rand( -3, 3 ), math.Rand( -3, 3 ), math.Rand( -3, 3 ) )
-	local vNormal = (vOffset - self:GetPos()):GetNormalized()
+	local vOffset = self:LocalToWorld(self:GetOffset()) + Vector( math.Rand( -3, 3 ), math.Rand( -3, 3 ), math.Rand( -3, 3 ) )
+	local vNormal = self:CalcNormal()
 
 		local particle = emitter:Add( "particles/smokey", vOffset )
 			particle:SetVelocity( vNormal * math.Rand( 10, 30 ) )
@@ -398,8 +398,8 @@ WireLib.ThrusterEffectThink.smoke_diy = function(self)
 
 	self.SmokeTimer = CurTime() + 0.015
 
-	local vOffset = self:CalcOffset() + Vector( math.Rand( -3, 3 ), math.Rand( -3, 3 ), math.Rand( -3, 3 ) )
-	local vNormal = (vOffset - self:GetPos()):GetNormalized()
+	local vOffset = self:LocalToWorld(self:GetOffset()) + Vector( math.Rand( -3, 3 ), math.Rand( -3, 3 ), math.Rand( -3, 3 ) )
+	local vNormal = self:CalcNormal()
 
 		local particle = emitter:Add( "particles/smokey", vOffset )
 			particle:SetVelocity( vNormal * math.Rand( 10, 30 ) )
@@ -416,8 +416,8 @@ end
 
 WireLib.ThrusterEffectDraw.color_magic = function(self)
 
-	local vOffset = self:CalcOffset()
-	local vNormal = (vOffset - self:GetPos()):GetNormalized()
+	local vOffset = self:LocalToWorld(self:GetOffset())
+	local vNormal = self:CalcNormal()
 
 	local scroll = CurTime() * -10
 
@@ -453,8 +453,8 @@ WireLib.ThrusterEffectDraw.color_magic = function(self)
 
 	self.SmokeTimer = CurTime() + 0.00005
 
-	vOffset = self:CalcOffset()
-	vNormal = (vOffset - self:GetPos()):GetNormalized()
+	vOffset = self:LocalToWorld(self:GetOffset())
+	vNormal = self:CalcNormal()
 
 	vOffset = vOffset + VectorRand() * 5
 
@@ -478,8 +478,8 @@ WireLib.ThrusterEffectThink.money = function(self)
 
 	self.SmokeTimer = CurTime() + math.random(0.005,0.00005)
 
-	local vOffset = self:CalcOffset()
-	local vNormal = (vOffset - self:GetPos()):GetNormalized()
+	local vOffset = self:LocalToWorld(self:GetOffset())
+	local vNormal = self:CalcNormal()
 
 	vOffset = vOffset + VectorRand() * 20
 
@@ -503,8 +503,8 @@ WireLib.ThrusterEffectThink.debug_10 = function(self)
 
 	self.SmokeTimer = CurTime() + 0.05
 
-	local vOffset = self:CalcOffset()
-	local vNormal = (vOffset - self:GetPos()):GetNormalized()
+	local vOffset = self:LocalToWorld(self:GetOffset())
+	local vNormal = self:CalcNormal()
 
 		local particle = emitter:Add( "decals/cross", vOffset )
 			particle:SetVelocity( vNormal * 0 )
@@ -527,8 +527,8 @@ WireLib.ThrusterEffectThink.debug_30 = function(self)
 
 	self.SmokeTimer = CurTime() + 0.05
 
-	local vOffset = self:CalcOffset()
-	local vNormal = (vOffset - self:GetPos()):GetNormalized()
+	local vOffset = self:LocalToWorld(self:GetOffset())
+	local vNormal = self:CalcNormal()
 
 		local particle = emitter:Add( "decals/cross", vOffset )
 			particle:SetVelocity( vNormal * 0 )
@@ -551,8 +551,8 @@ WireLib.ThrusterEffectThink.debug_60 = function(self)
 
 	self.SmokeTimer = CurTime() + 0.05
 
-	local vOffset = self:CalcOffset()
-	local vNormal = (vOffset - self:GetPos()):GetNormalized()
+	local vOffset = self:LocalToWorld(self:GetOffset())
+	local vNormal = self:CalcNormal()
 
 		local particle = emitter:Add( "decals/cross", vOffset )
 			particle:SetVelocity( vNormal * 0 )
@@ -575,8 +575,8 @@ WireLib.ThrusterEffectThink.souls = function(self)
 
 	self.SmokeTimer = CurTime() + 0.05
 
-	local vOffset = self:CalcOffset()
-	local vNormal = (vOffset - self:GetPos()):GetNormalized()
+	local vOffset = self:LocalToWorld(self:GetOffset())
+	local vNormal = self:CalcNormal()
 
 	vOffset = vOffset + VectorRand() * 20
 
@@ -601,8 +601,8 @@ WireLib.ThrusterEffectThink.sperm = function(self)
 
 	self.SmokeTimer = CurTime() + math.random(0.005,0.00005)
 
-	local vOffset = self:CalcOffset()
-	local vNormal = (vOffset - self:GetPos()):GetNormalized()
+	local vOffset = self:LocalToWorld(self:GetOffset())
+	local vNormal = self:CalcNormal()
 
 	vOffset = vOffset + VectorRand() * 5
 
@@ -646,8 +646,8 @@ WireLib.ThrusterEffectThink.feather = function(self)
 
 	self.SmokeTimer = CurTime() + math.random(0.005,0.00005)
 
-	local vOffset = self:CalcOffset()
-	local vNormal = (vOffset - self:GetPos()):GetNormalized()
+	local vOffset = self:LocalToWorld(self:GetOffset())
+	local vNormal = self:CalcNormal()
 
 	vOffset = vOffset + VectorRand() * 30
 
@@ -671,8 +671,8 @@ WireLib.ThrusterEffectThink.goldstar = function(self)
 
 	self.SmokeTimer = CurTime() + math.random(0.005,0.00005)
 
-	local vOffset = self:CalcOffset()
-	local vNormal = (vOffset - self:GetPos()):GetNormalized()
+	local vOffset = self:LocalToWorld(self:GetOffset())
+	local vNormal = self:CalcNormal()
 
 	vOffset = vOffset + VectorRand() * 10
 
@@ -696,8 +696,8 @@ WireLib.ThrusterEffectThink.candy_cane = function(self)
 
 	self.SmokeTimer = CurTime() + math.random(0.005,0.00005)
 
-	local vOffset = self:CalcOffset()
-	local vNormal = (vOffset - self:GetPos()):GetNormalized()
+	local vOffset = self:LocalToWorld(self:GetOffset())
+	local vNormal = self:CalcNormal()
 
 	vOffset = vOffset + VectorRand() * 5
 
@@ -721,8 +721,8 @@ WireLib.ThrusterEffectThink.jetflame = function(self)
 
 	self.SmokeTimer = CurTime() + 0.0000005
 
-	local vOffset = self:CalcOffset()
-	local vNormal = (vOffset - self:GetPos()):GetNormalized()
+	local vOffset = self:LocalToWorld(self:GetOffset())
+	local vNormal = self:CalcNormal()
 
 	//vOffset = vOffset + VectorRand() * 5
 
@@ -749,7 +749,7 @@ WireLib.ThrusterEffectThink.jetflame = function(self)
 			particle3:SetColor( 255,255,255 )
 			particle3:SetRoll( roll )
 
-			vOffset = self:CalcOffset()
+			vOffset = self:LocalToWorld(self:GetOffset())
 
 		local particle2 = emitter:Add( "particle/fire", vOffset )
 			particle2:SetVelocity( vNormal * speed )
@@ -775,8 +775,8 @@ WireLib.ThrusterEffectThink.jetflame_purple = function(self)
 
 	self.SmokeTimer = CurTime() + 0.0000005
 
-	local vOffset = self:CalcOffset()
-	local vNormal = (vOffset - self:GetPos()):GetNormalized()
+	local vOffset = self:LocalToWorld(self:GetOffset())
+	local vNormal = self:CalcNormal()
 
 	//vOffset = vOffset + VectorRand() * 5
 
@@ -803,7 +803,7 @@ WireLib.ThrusterEffectThink.jetflame_purple = function(self)
 			particle3:SetColor( 255,255,255 )
 			particle3:SetRoll( roll )
 
-			vOffset = self:CalcOffset()
+			vOffset = self:LocalToWorld(self:GetOffset())
 
 		local particle2 = emitter:Add( "particle/fire", vOffset )
 			particle2:SetVelocity( vNormal * speed )
@@ -829,8 +829,8 @@ WireLib.ThrusterEffectThink.jetflame_red = function(self)
 
 	self.SmokeTimer = CurTime() + 0.0000005
 
-	local vOffset = self:CalcOffset()
-	local vNormal = (vOffset - self:GetPos()):GetNormalized()
+	local vOffset = self:LocalToWorld(self:GetOffset())
+	local vNormal = self:CalcNormal()
 
 	//vOffset = vOffset + VectorRand() * 5
 
@@ -857,7 +857,7 @@ WireLib.ThrusterEffectThink.jetflame_red = function(self)
 			particle3:SetColor( 255,255,255 )
 			particle3:SetRoll( roll )
 
-			vOffset = self:CalcOffset()
+			vOffset = self:LocalToWorld(self:GetOffset())
 
 		local particle2 = emitter:Add( "particle/fire", vOffset )
 			particle2:SetVelocity( vNormal * speed )
@@ -881,8 +881,8 @@ WireLib.ThrusterEffectThink.jetflame_blue = function(self)
 
 	self.SmokeTimer = CurTime() + 0.0000005
 
-	local vOffset = self:CalcOffset()
-	local vNormal = (vOffset - self:GetPos()):GetNormalized()
+	local vOffset = self:LocalToWorld(self:GetOffset())
+	local vNormal = self:CalcNormal()
 
 	//vOffset = vOffset + VectorRand() * 5
 
@@ -909,7 +909,7 @@ WireLib.ThrusterEffectThink.jetflame_blue = function(self)
 			particle3:SetColor( 255,255,255 )
 			particle3:SetRoll( roll )
 
-			vOffset = self:CalcOffset()
+			vOffset = self:LocalToWorld(self:GetOffset())
 
 		local particle2 = emitter:Add( "particle/fire", vOffset )
 			particle2:SetVelocity( vNormal * speed )
@@ -933,8 +933,8 @@ WireLib.ThrusterEffectThink.balls_firecolors = function(self)
 
 	self.SmokeTimer = CurTime() + 0.025
 
-	local vOffset = self:CalcOffset()
-	local vNormal = (vOffset - self:GetPos()):GetNormalized()
+	local vOffset = self:LocalToWorld(self:GetOffset())
+	local vNormal = self:CalcNormal()
 	vOffset = vOffset + VectorRand() * 2
 
 		local particle = emitter:Add( "sprites/sent_ball", vOffset )
@@ -957,8 +957,8 @@ WireLib.ThrusterEffectThink.balls_random = function(self)
 
 	self.SmokeTimer = CurTime() + 0.025
 
-	local vOffset = self:CalcOffset()
-	local vNormal = (vOffset - self:GetPos()):GetNormalized()
+	local vOffset = self:LocalToWorld(self:GetOffset())
+	local vNormal = self:CalcNormal()
 	vOffset = vOffset + VectorRand() * 2
 
 		local particle = emitter:Add( "sprites/sent_ball", vOffset )
@@ -981,8 +981,8 @@ WireLib.ThrusterEffectThink.balls = function(self)
 
 	self.SmokeTimer = CurTime() + 0.025
 
-	local vOffset = self:CalcOffset()
-	local vNormal = (vOffset - self:GetPos()):GetNormalized()
+	local vOffset = self:LocalToWorld(self:GetOffset())
+	local vNormal = self:CalcNormal()
 	vOffset = vOffset + VectorRand() * 2
 
 		local particle = emitter:Add( "sprites/sent_ball", vOffset )
@@ -1006,8 +1006,8 @@ WireLib.ThrusterEffectThink.plasma_rings = function(self)
 
 	self.SmokeTimer = CurTime() + 0.00005
 
-	local vOffset = self:CalcOffset()
-	local vNormal = (vOffset - self:GetPos()):GetNormalized()
+	local vOffset = self:LocalToWorld(self:GetOffset())
+	local vNormal = self:CalcNormal()
 
 	vOffset = vOffset + VectorRand() * 5
 
@@ -1031,8 +1031,8 @@ WireLib.ThrusterEffectThink.magic_firecolors = function(self)
 
 	self.SmokeTimer = CurTime() + 0.00005
 
-	local vOffset = self:CalcOffset()
-	local vNormal = (vOffset - self:GetPos()):GetNormalized()
+	local vOffset = self:LocalToWorld(self:GetOffset())
+	local vNormal = self:CalcNormal()
 
 	vOffset = vOffset + VectorRand() * 5
 
@@ -1057,8 +1057,8 @@ WireLib.ThrusterEffectThink.magic = function(self)
 
 	self.SmokeTimer = CurTime() + 0.00005
 
-	local vOffset = self:CalcOffset()
-	local vNormal = (vOffset - self:GetPos()):GetNormalized()
+	local vOffset = self:LocalToWorld(self:GetOffset())
+	local vNormal = self:CalcNormal()
 
 	vOffset = vOffset + VectorRand() * 5
 
@@ -1081,8 +1081,8 @@ WireLib.ThrusterEffectThink.magic_diy = function(self)
 
 	self.SmokeTimer = CurTime() + 0.00005
 
-	local vOffset = self:CalcOffset()
-	local vNormal = (vOffset - self:GetPos()):GetNormalized()
+	local vOffset = self:LocalToWorld(self:GetOffset())
+	local vNormal = self:CalcNormal()
 
 	vOffset = vOffset + VectorRand() * 5
 
@@ -1107,8 +1107,8 @@ WireLib.ThrusterEffectThink.magic_color = function(self)
 
 	self.SmokeTimer = CurTime() + 0.00005
 
-	local vOffset = self:CalcOffset()
-	local vNormal = (vOffset - self:GetPos()):GetNormalized()
+	local vOffset = self:LocalToWorld(self:GetOffset())
+	local vNormal = self:CalcNormal()
 
 	vOffset = vOffset + VectorRand() * 5
 
@@ -1132,8 +1132,8 @@ WireLib.ThrusterEffectDraw.rings = function(self)
 	if ( self.RingTimer > CurTime() ) then return end
 	self.RingTimer = CurTime() + 0.00005
 
-	local vOffset = self:CalcOffset()
-	local vNormal = (vOffset - self:GetPos()):GetNormalized()
+	local vOffset = self:LocalToWorld(self:GetOffset())
+	local vNormal = self:CalcNormal()
 
 	local effectdata = EffectData()
 		effectdata:SetOrigin( vOffset )
@@ -1148,8 +1148,8 @@ WireLib.ThrusterEffectDraw.tesla = function(self)
 	if ( self.RingTimer > CurTime() ) then return end
 	self.RingTimer = CurTime() + 0.00005
 
-	local vOffset = self:CalcOffset()
-	local vNormal = (vOffset - self:GetPos()):GetNormalized()
+	local vOffset = self:LocalToWorld(self:GetOffset())
+	local vNormal = self:CalcNormal()
 
 	local effectdata = EffectData()
 		effectdata:SetOrigin( vOffset )
@@ -1166,8 +1166,8 @@ WireLib.ThrusterEffectDraw.blood = function(self)
 	if ( self.RingTimer > CurTime() ) then return end
 	self.RingTimer = CurTime() + 0.00005
 
-	local vOffset = self:CalcOffset()
-	local vNormal = (vOffset - self:GetPos()):GetNormalized()
+	local vOffset = self:LocalToWorld(self:GetOffset())
+	local vNormal = self:CalcNormal()
 
 	local effectdata = EffectData()
 		effectdata:SetOrigin( vOffset )
@@ -1184,8 +1184,8 @@ WireLib.ThrusterEffectDraw.some_sparks = function(self)
 	if ( self.RingTimer > CurTime() ) then return end
 	self.RingTimer = CurTime() + 0.00005
 
-	local vOffset = self:CalcOffset()
-	local vNormal = (vOffset - self:GetPos()):GetNormalized()
+	local vOffset = self:LocalToWorld(self:GetOffset())
+	local vNormal = self:CalcNormal()
 
 	local effectdata = EffectData()
 		effectdata:SetOrigin( vOffset )
@@ -1202,8 +1202,8 @@ WireLib.ThrusterEffectDraw.spark_fountain = function(self)
 	if ( self.RingTimer > CurTime() ) then return end
 	self.RingTimer = CurTime() + 0.00005
 
-	local vOffset = self:CalcOffset()
-	local vNormal = (vOffset - self:GetPos()):GetNormalized()
+	local vOffset = self:LocalToWorld(self:GetOffset())
+	local vNormal = self:CalcNormal()
 
 	local effectdata = EffectData()
 		effectdata:SetOrigin( vOffset )
@@ -1220,8 +1220,8 @@ WireLib.ThrusterEffectDraw.more_sparks = function(self)
 	if ( self.RingTimer > CurTime() ) then return end
 	self.RingTimer = CurTime() + 0.00005
 
-	local vOffset = self:CalcOffset()
-	local vNormal = (vOffset - self:GetPos()):GetNormalized()
+	local vOffset = self:LocalToWorld(self:GetOffset())
+	local vNormal = self:CalcNormal()
 
 	local effectdata = EffectData()
 		effectdata:SetOrigin( vOffset )
@@ -1238,8 +1238,8 @@ WireLib.ThrusterEffectDraw.water_small = function(self)
 	if ( self.RingTimer > CurTime() ) then return end
 	self.RingTimer = CurTime() + 0.05
 
-	local vOffset = self:CalcOffset()
-	local vNormal = (vOffset - self:GetPos()):GetNormalized()
+	local vOffset = self:LocalToWorld(self:GetOffset())
+	local vNormal = self:CalcNormal()
 
 	local effectdata = EffectData()
 		effectdata:SetOrigin( vOffset )
@@ -1256,8 +1256,8 @@ WireLib.ThrusterEffectDraw.water_medium = function(self)
 	if ( self.RingTimer > CurTime() ) then return end
 	self.RingTimer = CurTime() + 0.05
 
-	local vOffset = self:CalcOffset()
-	local vNormal = (vOffset - self:GetPos()):GetNormalized()
+	local vOffset = self:LocalToWorld(self:GetOffset())
+	local vNormal = self:CalcNormal()
 
 	local effectdata = EffectData()
 		effectdata:SetOrigin( vOffset )
@@ -1275,8 +1275,8 @@ WireLib.ThrusterEffectDraw.water_big = function(self)
 	if ( self.RingTimer > CurTime() ) then return end
 	self.RingTimer = CurTime() + 0.05
 
-	local vOffset = self:CalcOffset()
-	local vNormal = (vOffset - self:GetPos()):GetNormalized()
+	local vOffset = self:LocalToWorld(self:GetOffset())
+	local vNormal = self:CalcNormal()
 
 	local effectdata = EffectData()
 		effectdata:SetOrigin( vOffset )
@@ -1293,8 +1293,8 @@ WireLib.ThrusterEffectDraw.water_huge = function(self)
 	if ( self.RingTimer > CurTime() ) then return end
 	self.RingTimer = CurTime() + 0.05
 
-	local vOffset = self:CalcOffset()
-	local vNormal = (vOffset - self:GetPos()):GetNormalized()
+	local vOffset = self:LocalToWorld(self:GetOffset())
+	local vNormal = self:CalcNormal()
 
 	local effectdata = EffectData()
 		effectdata:SetOrigin( vOffset )
@@ -1311,8 +1311,8 @@ WireLib.ThrusterEffectDraw.striderblood_small = function(self)
 	if ( self.RingTimer > CurTime() ) then return end
 	self.RingTimer = CurTime() + 0.05
 
-	local vOffset = self:CalcOffset()
-	local vNormal = (vOffset - self:GetPos()):GetNormalized()
+	local vOffset = self:LocalToWorld(self:GetOffset())
+	local vNormal = self:CalcNormal()
 
 	local effectdata = EffectData()
 		effectdata:SetOrigin( vOffset )
@@ -1329,8 +1329,8 @@ WireLib.ThrusterEffectDraw.striderblood_medium = function(self)
 	if ( self.RingTimer > CurTime() ) then return end
 	self.RingTimer = CurTime() + 0.05
 
-	local vOffset = self:CalcOffset()
-	local vNormal = (vOffset - self:GetPos()):GetNormalized()
+	local vOffset = self:LocalToWorld(self:GetOffset())
+	local vNormal = self:CalcNormal()
 
 	local effectdata = EffectData()
 		effectdata:SetOrigin( vOffset )
@@ -1348,8 +1348,8 @@ WireLib.ThrusterEffectDraw.striderblood_big = function(self)
 	if ( self.RingTimer > CurTime() ) then return end
 	self.RingTimer = CurTime() + 0.05
 
-	local vOffset = self:CalcOffset()
-	local vNormal = (vOffset - self:GetPos()):GetNormalized()
+	local vOffset = self:LocalToWorld(self:GetOffset())
+	local vNormal = self:CalcNormal()
 
 	local effectdata = EffectData()
 		effectdata:SetOrigin( vOffset )
@@ -1366,8 +1366,8 @@ WireLib.ThrusterEffectDraw.striderblood_huge = function(self)
 	if ( self.RingTimer > CurTime() ) then return end
 	self.RingTimer = CurTime() + 0.05
 
-	local vOffset = self:CalcOffset()
-	local vNormal = (vOffset - self:GetPos()):GetNormalized()
+	local vOffset = self:LocalToWorld(self:GetOffset())
+	local vNormal = self:CalcNormal()
 
 	local effectdata = EffectData()
 		effectdata:SetOrigin( vOffset )
@@ -1384,8 +1384,8 @@ WireLib.ThrusterEffectDraw.rings_grow = function(self)
 	if ( self.RingTimer > CurTime() ) then return end
 	self.RingTimer = CurTime() + 0.00005
 
-	local vOffset = self:CalcOffset()
-	local vNormal = (vOffset - self:GetPos()):GetNormalized()
+	local vOffset = self:LocalToWorld(self:GetOffset())
+	local vNormal = self:CalcNormal()
 
 	local effectdata = EffectData()
 		effectdata:SetOrigin( vOffset )
@@ -1400,8 +1400,8 @@ WireLib.ThrusterEffectDraw.rings_grow_rings = function(self)
 	if ( self.RingTimer > CurTime() ) then return end
 	self.RingTimer = CurTime() + 0.00005
 
-	local vOffset = self:CalcOffset()
-	local vNormal = (vOffset - self:GetPos()):GetNormalized()
+	local vOffset = self:LocalToWorld(self:GetOffset())
+	local vNormal = self:CalcNormal()
 
 	local effectdata = EffectData()
 		effectdata:SetOrigin( vOffset )
@@ -1420,8 +1420,8 @@ WireLib.ThrusterEffectDraw.rings_shrink = function(self)
 	if ( self.RingTimer > CurTime() ) then return end
 	self.RingTimer = CurTime() + 0.00005
 
-	local vOffset = self:CalcOffset()
-	local vNormal = (vOffset - self:GetPos()):GetNormalized()
+	local vOffset = self:LocalToWorld(self:GetOffset())
+	local vNormal = self:CalcNormal()
 
 	local effectdata = EffectData()
 		effectdata:SetOrigin( vOffset )
@@ -1436,8 +1436,8 @@ WireLib.ThrusterEffectThink.bubble = function(self)
 
 	self.SmokeTimer = CurTime() + 0.005
 
-	local vOffset = self:CalcOffset()
-	local vNormal = (vOffset - self:GetPos()):GetNormalized()
+	local vOffset = self:LocalToWorld(self:GetOffset())
+	local vNormal = self:CalcNormal()
 	vOffset = vOffset + VectorRand() * 5
 
 	local particle = emitter:Add( "effects/bubble", vOffset )

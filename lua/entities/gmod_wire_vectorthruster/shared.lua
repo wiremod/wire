@@ -33,15 +33,19 @@ function ENT:GetMode()
 	return self:GetNetworkedInt( "vecmode" )
 end
 
-
 function ENT:SetOffset( v )
-	--self:SetNetworkedBeamVector( "Offset", v, true )
+	self:SetNetworkedVector( "Offset", v, true )
+end
+function ENT:GetOffset( name )
+	return self:GetNetworkedVector( "Offset" )
+end
+
+function ENT:SetNormal( v )
 	self:SetNetworkedInt( "vecx", v.x * 100, true )
 	self:SetNetworkedInt( "vecy", v.y * 100, true )
 	self:SetNetworkedInt( "vecz", v.z * 100, true )
 end
-function ENT:GetOffset()
-	--return self:GetNetworkedBeamVector( "Offset" )
+function ENT:GetNormal()
 	return Vector(
 				self:GetNetworkedInt( "vecx" ) / 100,
 				self:GetNetworkedInt( "vecy" ) / 100,

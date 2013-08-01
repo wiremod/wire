@@ -34,6 +34,6 @@ function ENT:Think()
 	if EffectThink then EffectThink(self) end
 end
 
-function ENT:CalcOffset()
-	return self:LocalToWorld(self:GetOffset())
+function ENT:CalcNormal()
+	return (self:LocalToWorld(self:GetOffset()) - self:GetPos()):GetNormalized()
 end

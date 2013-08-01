@@ -34,18 +34,17 @@ function ENT:Think()
 	if EffectThink then EffectThink(self) end
 end
 
-function ENT:CalcOffset()
+function ENT:CalcNormal()
 	local mode = self:GetMode()
 	if mode == 1 then
-		return self:GetPos() + self:GetOffset()
+		return self:GetNormal()
 	elseif mode == 2 then
-		local v = self:GetOffset()
+		local v = self:GetNormal()
 		local z = v.z
-		v.z = 0
-		v = self:LocalToWorld(v)
+		v = self:LocalToWorld(Vector(v.x,v.y,0))
 		v.z = v.z + z
-		return v
+		return (v - self:GetPos()):GetNormalized()
 	else
-		return self:LocalToWorld(self:GetOffset())
+		return (self:LocalToWorld(self:GetNormal()) - self:GetPos()):GetNormalized()
 	end
 end
