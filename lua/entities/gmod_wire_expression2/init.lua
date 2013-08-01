@@ -19,23 +19,21 @@ timer.Create("e2quota", 1, 0, function()
 	end
 end)
 
-ENT.WireDebugName = "Expression 2"
-
 local function copytype(var)
 	return istable(var) and table.Copy(var) or var
 end
 
 function tablekeys(tbl)
-	l = {}
-	for k,v in pairs(tbl) do
+	local l = {}
+	for k, v in pairs(tbl) do
 		l[#l + 1] = k
 	end
 	return l
 end
 
 function tablevalues(tbl)
-	l = {}
-	for k,v in pairs(tbl) do
+	local l = {}
+	for k, v in pairs(tbl) do
 		l[#l + 1] = v
 	end
 	return l
@@ -49,13 +47,13 @@ ScopeManager.__index = ScopeManager
 function ScopeManager:InitScope()
 	self.Scopes = {}
 	self.ScopeID = 0
-	self.Scopes[0] = self.GlobalScope or  {vclk = {}} //for creating new enviroments
+	self.Scopes[0] = self.GlobalScope or { vclk = {} } -- for creating new enviroments
 	self.Scope = self.Scopes[0]
 	self.GlobalScope = self.Scope
 end
 
 function ScopeManager:PushScope()
-	self.Scope = {vclk = {}}
+	self.Scope = { vclk = {} }
 	self.ScopeID = self.ScopeID + 1
 	self.Scopes[self.ScopeID] = self.Scope
 end
@@ -64,11 +62,11 @@ function ScopeManager:PopScope()
 	self.ScopeID = self.ScopeID - 1
 	self.Scope = self.Scopes[self.ScopeID]
 	self.Scopes[self.ScopeID] = self.Scope
-	return table.remove(self.Scopes,self.ScopeID + 1)
+	return table.remove(self.Scopes, self.ScopeID + 1)
 end
 
 function ScopeManager:SaveScopes()
-	return {self.Scopes,self.ScopeID,self.Scope}
+	return { self.Scopes, self.ScopeID, self.Scope }
 end
 
 function ScopeManager:LoadScopes(Scopes)
@@ -97,14 +95,14 @@ function ENT:Execute()
 	if self.error then return end
 	if self.context.resetting then return end
 
-	for k,v in pairs(self.tvars) do
+	for k, v in pairs(self.tvars) do
 		self.GlobalScope[k] = copytype(wire_expression_types2[v][2])
 	end
 
 	self:PCallHook('preexecute')
-	
+
 	self.context:PushScope()
-	
+
 	local ok, msg = pcall(self.script[1], self.context, self.script)
 	if not ok then
 		if msg == "exit" then
@@ -114,9 +112,9 @@ function ENT:Execute()
 			self:Error("Expression 2 (" .. self.name .. "): " .. msg, "script error")
 		end
 	end
-	
+
 	self.context:PopScope()
-	
+
 	self.first = false -- if hooks call execute
 	self.duped = false -- if hooks call execute
 	self.context.triggerinput = nil -- if hooks call execute
@@ -125,7 +123,7 @@ function ENT:Execute()
 
 	self:TriggerOutputs()
 
-	for k,v in pairs(self.inports[3]) do
+	for k, v in pairs(self.inports[3]) do
 		if self.GlobalScope[k] then
 			if wire_expression_types[self.Inputs[k].Type][3] then
 				self.GlobalScope[k] = wire_expression_types[self.Inputs[k].Type][3](self.context, self.Inputs[k].Value)
@@ -136,7 +134,7 @@ function ENT:Execute()
 	end
 
 	self.GlobalScope.vclk = {}
-	for k,v in pairs(self.globvars) do
+	for k, v in pairs(self.globvars) do
 		self.GlobalScope[k] = copytype(wire_expression_types2[v][2])
 	end
 
@@ -174,7 +172,7 @@ function ENT:CallHook(hookname, ...)
 	return CallHook(hookname, self.context, ...)
 end
 
-function ENT:OnRemove( )
+function ENT:OnRemove()
 	if not self.error and not self.removing then -- make sure destruct hooks aren't called twice (once on error, once on remove)
 		self.removing = true
 		self:PCallHook('destruct')
@@ -186,20 +184,20 @@ function ENT:PCallHook(...)
 	if ok then
 		return ret
 	else
-		self:Error("Expression 2 (" .. self.name .. "): "..ret)
+		self:Error("Expression 2 (" .. self.name .. "): " .. ret)
 	end
 end
 
 function ENT:Error(message, overlaytext)
-	self:SetOverlayText(self.name .. "\n("..(overlaytext or "script error")..")")
+	self:SetOverlayText(self.name .. "\n(" .. (overlaytext or "script error") .. ")")
 	self:SetColor(Color(255, 0, 0, self:GetColor().a))
 
 	self.error = true
-	--ErrorNoHalt(message .. "\n")
+	-- ErrorNoHalt(message .. "\n")
 	WireLib.ClientError(message, self.player)
 end
 
-function ENT:CompileCode( buffer, files )
+function ENT:CompileCode(buffer, files)
 	self.original = buffer
 
 	local status, directives, buffer = PreProcessor.Execute(buffer)
@@ -214,7 +212,7 @@ function ENT:CompileCode( buffer, files )
 	else
 		self.WireDebugName = "E2 - " .. self.name
 	end
-	self:SetNWString( "name", self.name )
+	self:SetNWString("name", self.name)
 
 	self.directives = directives
 	self.inports = directives.inputs
@@ -228,14 +226,14 @@ function ENT:CompileCode( buffer, files )
 	local status, tree, dvars = Parser.Execute(tokens)
 	if not status then self:Error(tree) return end
 
-	if !self:PrepareIncludes(files) then return end
+	if not self:PrepareIncludes(files) then return end
 
 	local status, script, inst = Compiler.Execute(tree, self.inports[3], self.outports[3], self.persists[3], dvars, self.includes)
 	if not status then self:Error(script) return end
 
 	self.script = script
 	self.dvars = inst.dvars
-	self.tvars =  inst.tvars
+	self.tvars = inst.tvars
 	self.funcs = inst.funcs
 	self.funcs_ret = inst.funcs_ret
 	self.globvars = inst.GlobalScope
@@ -255,24 +253,24 @@ function ENT:PrepareIncludes(files)
 
 	for file, buffer in pairs(files) do
 		local status, directives, buffer = PreProcessor.Execute(buffer, self.directives)
-		if !status then
+		if not status then
 			self:Error("(" .. file .. ")" .. directives)
-			return 
+			return
 		end
 
 		local status, tokens = Tokenizer.Execute(buffer)
-		if !status then
+		if not status then
 			self:Error("(" .. file .. ")" .. tokens)
 			return
 		end
 
 		local status, tree, dvars = Parser.Execute(tokens)
-		if !status then
+		if not status then
 			self:Error("(" .. file .. ")" .. tree)
 			return
 		end
 
-		self.includes[file] = {tree}
+		self.includes[file] = { tree }
 	end
 
 	return true
@@ -281,7 +279,7 @@ end
 function ENT:ResetContext()
 	local context = {
 		data = {},
-		vclk = {}, //Used only by arrays and tables!
+		vclk = {}, -- Used only by arrays and tables!
 		funcs = self.funcs,
 		funcs_ret = self.funcs_ret,
 		entity = self,
@@ -293,30 +291,30 @@ function ENT:ResetContext()
 		includes = self.includes
 	}
 
-	setmetatable(context,ScopeManager)
+	setmetatable(context, ScopeManager)
 	context:InitScope()
 
 	self.context = context
 	self.GlobalScope = context.GlobalScope
-	self._vars = self.GlobalScope //Dupevars
+	self._vars = self.GlobalScope -- Dupevars
 
 	self.Inputs = WireLib.AdjustSpecialInputs(self, self.inports[1], self.inports[2])
 	self.Outputs = WireLib.AdjustSpecialOutputs(self, self.outports[1], self.outports[2])
-	self._original = string.Replace(string.Replace(self.original,"\"",string.char(163)),"\n",string.char(128))
+	self._original = string.Replace(string.Replace(self.original, "\"", string.char(163)), "\n", string.char(128))
 	self._buffer = self.original -- TODO: is that really intended?
 
 	self._name = self.name
 	self._inputs = { {}, {} }
 	self._outputs = { {}, {} }
 
-	for k,v in pairs(self.inports[3]) do
+	for k, v in pairs(self.inports[3]) do
 		self._inputs[1][#self._inputs[1] + 1] = k
 		self._inputs[2][#self._inputs[2] + 1] = v
 		self.GlobalScope[k] = copytype(wire_expression_types[v][2])
 		self.globvars[k] = nil
 	end
 
-	for k,v in pairs(self.outports[3]) do
+	for k, v in pairs(self.outports[3]) do
 		self._outputs[1][#self._outputs[1] + 1] = k
 		self._outputs[2][#self._outputs[2] + 1] = v
 		self.GlobalScope[k] = copytype(wire_expression_types[v][2])
@@ -324,16 +322,16 @@ function ENT:ResetContext()
 		self.globvars[k] = nil
 	end
 
-	for k,v in pairs(self.persists[3]) do
+	for k, v in pairs(self.persists[3]) do
 		self.GlobalScope[k] = copytype(wire_expression_types[v][2])
 		self.globvars[k] = nil
 	end
 
-	for k,v in pairs(self.globvars) do
+	for k, v in pairs(self.globvars) do
 		self.GlobalScope[k] = copytype(wire_expression_types2[v][2])
 	end
 
-	for k,v in pairs(self.Inputs) do
+	for k, v in pairs(self.Inputs) do
 		if wire_expression_types[v.Type][3] then
 			self.GlobalScope[k] = wire_expression_types[v.Type][3](self.context, v.Value)
 		else
@@ -341,24 +339,24 @@ function ENT:ResetContext()
 		end
 	end
 
-	for k,v in pairs(self.dvars) do
+	for k, v in pairs(self.dvars) do
 		self.GlobalScope["$" .. k] = self.GlobalScope[k]
 	end
 
 	self.error = false
 end
 
-function ENT:IsCodeDifferent( buffer, includes )
+function ENT:IsCodeDifferent(buffer, includes)
 	-- First check the main file
 	if self.original ~= buffer then return true end
 
 	-- First compare one way
-	for k,v in pairs( self.inc_files ) do
+	for k, v in pairs(self.inc_files) do
 		if includes[k] ~= v then return true end
 	end
 
 	-- Then compare the other way, too
-	for k,v in pairs( includes ) do
+	for k, v in pairs(includes) do
 		if self.inc_files[k] ~= v then return true end
 	end
 
@@ -373,8 +371,8 @@ function ENT:Setup(buffer, includes, restore, forcecompile)
 
 	self.uid = self.player:UniqueID()
 
-	if forcecompile or self:IsCodeDifferent( buffer, includes ) then
-		self:CompileCode( buffer, includes )
+	if forcecompile or self:IsCodeDifferent(buffer, includes) then
+		self:CompileCode(buffer, includes)
 	else
 		self:ResetContext()
 	end
@@ -387,16 +385,16 @@ function ENT:Setup(buffer, includes, restore, forcecompile)
 		Msg("Construct hook(s) failed, executing destruct hooks...\n")
 		local ok2, msg2 = pcall(self.CallHook, self, 'destruct')
 		if ok2 then
-			self:Error(msg.."\nDestruct hooks succeeded.")
+			self:Error(msg .. "\nDestruct hooks succeeded.")
 		else
-			self:Error(msg.."\n"..msg2)
+			self:Error(msg .. "\n" .. msg2)
 		end
 		return
 	end
 
 	self.duped = false
 
-	if !restore then
+	if not restore then
 		self.first = true
 		self:Execute()
 	end
@@ -410,13 +408,13 @@ function ENT:Reset()
 	self.context.resetting = true
 
 	-- reset the chip in the next tick
-	timer.Simple(0, function() self.Setup( self, self.original, self.inc_files) end )
+	timer.Simple(0, function() self.Setup(self, self.original, self.inc_files) end)
 end
 
 function ENT:TriggerInput(key, value)
 	if self.error then return end
 	if key and self.inports[3][key] then
-		t = self.inports[3][key]
+		local t = self.inports[3][key]
 
 		self.GlobalScope["$" .. key] = self.GlobalScope[key]
 		if wire_expression_types[t][3] then
@@ -426,13 +424,13 @@ function ENT:TriggerInput(key, value)
 		end
 
 		self.context.triggerinput = key
-		if self.trigger[1] || self.trigger[2][key] then self:Execute() end
+		if self.trigger[1] or self.trigger[2][key] then self:Execute() end
 		self.context.triggerinput = nil
 	end
 end
 
 function ENT:TriggerOutputs()
-	for key,t in pairs(self.outports[3]) do
+	for key, t in pairs(self.outports[3]) do
 		if self.GlobalScope.vclk[key] or self.first then
 			if wire_expression_types[t][4] then
 				WireLib.TriggerOutput(self, key, wire_expression_types[t][4](self.context, self.GlobalScope[key]))
@@ -447,10 +445,10 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID, GetConstByID)
 	self:Setup(self.buffer, self.inc_files, true)
 
 	if not self.error then
-		for k,v in pairs(self.dupevars) do
+		for k, v in pairs(self.dupevars) do
 			self.GlobalScope[k] = v
 		end -- Rusketh Broke this :(
-		--table.Merge(self.context.vars, self.dupevars)
+		-- table.Merge(self.context.vars, self.dupevars)
 		self.dupevars = nil
 
 		self.duped = true
@@ -461,7 +459,7 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID, GetConstByID)
 	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID, GetConstByID)
 end
 
-/********************************** Transfer **********************************/
+-- -------------------------------- Transfer ----------------------------------
 
 --[[
 	Player Disconnection Magic
@@ -473,7 +471,7 @@ function wire_expression2_ShouldFreezeChip(ply)
 end
 
 -- It uses EntityRemoved because PlayerDisconnected doesn't catch all disconnects.
-hook.Add("EntityRemoved","Wire_Expression2_Player_Disconnected",function(ent)
+hook.Add("EntityRemoved", "Wire_Expression2_Player_Disconnected", function(ent)
 	if (not (ent and ent:IsPlayer())) then
 		return
 	end
@@ -481,11 +479,11 @@ hook.Add("EntityRemoved","Wire_Expression2_Player_Disconnected",function(ent)
 	if (ret == 0 or (ret == 2 and not wire_expression2_ShouldFreezeChip(ent))) then
 		return
 	end
-	for k,v in ipairs( ents.FindByClass("gmod_wire_expression2") ) do
+	for k, v in ipairs(ents.FindByClass("gmod_wire_expression2")) do
 		if (v.player == ent) then
 			v:SetOverlayText(v.name .. "\n(Owner disconnected.)")
 			v:SetColor(Color(255, 0, 0, v:GetColor().a))
-			v.disconnectPaused = {r,g,b,a}
+			v.disconnectPaused = { r, g, b, a }
 			v.error = true
 		end
 	end
@@ -493,14 +491,14 @@ end)
 
 hook.Add("PlayerAuthed", "Wire_Expression2_Player_Authed", function(ply, sid, uid)
 	local c
-	for _,ent in ipairs(ents.FindByClass("gmod_wire_expression2")) do
+	for _, ent in ipairs(ents.FindByClass("gmod_wire_expression2")) do
 		if (ent.uid == uid) then
 			ent.context.player = ply
 			ent.player = ply
-			ent:SetNWEntity( "player", ply )
+			ent:SetNWEntity("player", ply)
 			if (ent.disconnectPaused) then
 				c = ent.disconnectPaused
-				ent:SetColor(Color(c[1],c[2],c[3],c[4]))
+				ent:SetColor(Color(c[1], c[2], c[3], c[4]))
 				ent:SetRenderMode(ent:GetColor().a == 255 and RENDERMODE_NORMAL or RENDERMODE_TRANSALPHA)
 				ent.error = false
 				ent.disconnectPaused = false

@@ -1,5 +1,5 @@
-// Made by Shandolum - Shandolum@gmail.com
-// Overhauled by Grocel on request from Divran
+-- Made by Shandolum - Shandolum@gmail.com
+-- Overhauled by Grocel on request from Divran
 
 local PANEL = {}
 
@@ -27,8 +27,8 @@ end
 
 local function InternalDoRightClick(self)
 	self:GetRoot():SetSelectedItem(self)
-	if(self:DoRightClick()) then return end
-	if(self:GetRoot():DoRightClick(self)) then return end
+	if (self:DoRightClick()) then return end
+	if (self:GetRoot():DoRightClick(self)) then return end
 end
 
 local function fileName(filepath)
@@ -56,99 +56,97 @@ function PANEL:Init()
 	self.foldermenu = {}
 	self.lastClick = CurTime()
 
-	self:AddRightClick(self.filemenu,nil,"Open",function()
+	self:AddRightClick(self.filemenu, nil, "Open", function()
 		self:OnFileOpen(self.File:GetFileName())
 	end)
-	self:AddRightClick(self.filemenu,nil,"Open in New Tab",function()
+	self:AddRightClick(self.filemenu, nil, "Open in New Tab", function()
 		self:OnFileOpen(self.File:GetFileName(), true)
 	end)
-	self:AddRightClick(self.filemenu,nil,"*SPACER*")
-	self:AddRightClick(self.filemenu,nil,"Rename to..", function()
+	self:AddRightClick(self.filemenu, nil, "*SPACER*")
+	self:AddRightClick(self.filemenu, nil, "Rename to..", function()
 		local fname = fileName(self.File:GetFileName())
 		Derma_StringRequestNoBlur("Rename File \"" .. fname .. "\"", "Rename file " .. fname, fname,
- 		function(strTextOut)
-			// Renaming starts in the garrysmod folder now, in comparison to other commands that start in the data folder.
-			strTextOut = string.gsub(strTextOut, ".", invalid_filename_chars)
+			function(strTextOut)
+			-- Renaming starts in the garrysmod folder now, in comparison to other commands that start in the data folder.
+				strTextOut = string.gsub(strTextOut, ".", invalid_filename_chars)
 
-			local contents = file.Read(self.File:GetFileName())
-			file.Delete(self.File:GetFileName())
-			file.Write(string.GetPathFromFilename(self.File:GetFileName()) .. "/" .. strTextOut .. ".txt", contents)
+				local contents = file.Read(self.File:GetFileName())
+				file.Delete(self.File:GetFileName())
+				file.Write(string.GetPathFromFilename(self.File:GetFileName()) .. "/" .. strTextOut .. ".txt", contents)
 
-			self:UpdateFolders()
-		end)
+				self:UpdateFolders()
+			end)
 	end)
-	self:AddRightClick(self.filemenu,nil,"Copy to..", function()
+	self:AddRightClick(self.filemenu, nil, "Copy to..", function()
 		local fname = fileName(self.File:GetFileName())
 		Derma_StringRequestNoBlur("Copy File \"" .. fname .. "\"", "Copy File to...", fname,
- 		function(strTextOut)
-			strTextOut = string.gsub(strTextOut, ".", invalid_filename_chars)
-			file.Write(string.GetPathFromFilename(self.File:GetFileName()) .. "/" .. strTextOut .. ".txt", file.Read(self.File:GetFileName()))
-			self:UpdateFolders()
-		end)
+			function(strTextOut)
+				strTextOut = string.gsub(strTextOut, ".", invalid_filename_chars)
+				file.Write(string.GetPathFromFilename(self.File:GetFileName()) .. "/" .. strTextOut .. ".txt", file.Read(self.File:GetFileName()))
+				self:UpdateFolders()
+			end)
 	end)
-	self:AddRightClick(self.filemenu,nil,"*SPACER*")
-	self:AddRightClick(self.filemenu,nil,"New File", function()
+	self:AddRightClick(self.filemenu, nil, "*SPACER*")
+	self:AddRightClick(self.filemenu, nil, "New File", function()
 		Derma_StringRequestNoBlur("New File in \"" .. string.GetPathFromFilename(self.File:GetFileName()) .. "\"", "Create new file", "",
-		function(strTextOut)
-			strTextOut = string.gsub(strTextOut, ".", invalid_filename_chars)
-			file.Write(string.GetPathFromFilename(self.File:GetFileName()) .. "/" .. strTextOut .. ".txt", "")
-			self:UpdateFolders()
-		end)
+			function(strTextOut)
+				strTextOut = string.gsub(strTextOut, ".", invalid_filename_chars)
+				file.Write(string.GetPathFromFilename(self.File:GetFileName()) .. "/" .. strTextOut .. ".txt", "")
+				self:UpdateFolders()
+			end)
 	end)
-	self:AddRightClick(self.filemenu,nil,"Delete", function()
-		Derma_Query(
-			"Delete this file?", "Delete",
+	self:AddRightClick(self.filemenu, nil, "Delete", function()
+		Derma_Query("Delete this file?", "Delete",
 			"Delete", function()
-				if(file.Exists(self.File:GetFileName(), "DATA")) then
+				if (file.Exists(self.File:GetFileName(), "DATA")) then
 					file.Delete(self.File:GetFileName())
 					self:UpdateFolders()
 				end
 			end,
-			"Cancel"
-		)
+			"Cancel")
 	end)
 
-	self:AddRightClick(self.foldermenu,nil, "New File..", function()
+	self:AddRightClick(self.foldermenu, nil, "New File..", function()
 		Derma_StringRequestNoBlur("New File in \"" .. self.File:GetFolder() .. "\"", "Create new file", "",
- 		function(strTextOut)
-			strTextOut = string.gsub(strTextOut, ".", invalid_filename_chars)
-			file.Write(self.File:GetFolder() .. "/" .. strTextOut .. ".txt", "")
-			self:UpdateFolders()
-		end)
+			function(strTextOut)
+				strTextOut = string.gsub(strTextOut, ".", invalid_filename_chars)
+				file.Write(self.File:GetFolder() .. "/" .. strTextOut .. ".txt", "")
+				self:UpdateFolders()
+			end)
 	end)
-	self:AddRightClick(self.foldermenu,nil,"New Folder..",function()
+	self:AddRightClick(self.foldermenu, nil, "New Folder..", function()
 		Derma_StringRequestNoBlur("new folder in \"" .. self.File:GetFolder() .. "\"", "Create new folder", "",
-		function(strTextOut)
-			strTextOut = string.gsub(strTextOut, ".", invalid_filename_chars )
-			file.CreateDir( self.File:GetFolder() .. "/" .. strTextOut )
-			self:UpdateFolders()
-		end)
+			function(strTextOut)
+				strTextOut = string.gsub(strTextOut, ".", invalid_filename_chars)
+				file.CreateDir(self.File:GetFolder() .. "/" .. strTextOut)
+				self:UpdateFolders()
+			end)
 	end)
-	self:AddRightClick(self.panelmenu,nil, "New File..", function()
+	self:AddRightClick(self.panelmenu, nil, "New File..", function()
 		Derma_StringRequestNoBlur("New File in \"" .. self.File:GetFolder() .. "\"", "Create new file", "",
- 		function(strTextOut)
-			strTextOut = string.gsub(strTextOut, ".", invalid_filename_chars)
-			file.Write(self.File:GetFolder() .. "/" .. strTextOut .. ".txt", "")
-			self:UpdateFolders()
-		end)
+			function(strTextOut)
+				strTextOut = string.gsub(strTextOut, ".", invalid_filename_chars)
+				file.Write(self.File:GetFolder() .. "/" .. strTextOut .. ".txt", "")
+				self:UpdateFolders()
+			end)
 	end)
-	self:AddRightClick(self.panelmenu,nil,"New Folder..",function()
+	self:AddRightClick(self.panelmenu, nil, "New Folder..", function()
 		Derma_StringRequestNoBlur("new folder in \"" .. self.File:GetFolder() .. "\"", "Create new folder", "",
-		function(strTextOut)
-			strTextOut = string.gsub(strTextOut, ".", invalid_filename_chars )
-			file.CreateDir( self.File:GetFolder() .. "/" .. strTextOut )
-			self:UpdateFolders()
-		end)
+			function(strTextOut)
+				strTextOut = string.gsub(strTextOut, ".", invalid_filename_chars)
+				file.CreateDir(self.File:GetFolder() .. "/" .. strTextOut)
+				self:UpdateFolders()
+			end)
 	end)
 end
 
 function PANEL:OnFileOpen(filepath, newtab)
-	error("Please override wire_expression2_browser:OnFileOpen(filepath, newtab)",0)
+	error("Please override wire_expression2_browser:OnFileOpen(filepath, newtab)", 0)
 end
 
 function PANEL:UpdateFolders()
 	self.Folders:Clear(true)
-	if (IsValid(self.Root)) then
+	if IsValid(self.Root) then
 		self.Root:Remove()
 	end
 	self.Root = self.Folders.RootNode:AddFolder(self.startfolder, self.startfolder, "DATA", true)
@@ -178,17 +176,18 @@ function PANEL:UpdateFolders()
 end
 
 function PANEL:GetFileName()
-	if !IsValid(self.File) then return end
+	if not IsValid(self.File) then return end
 
 	return self.File:GetFileName()
 end
+
 function PANEL:GetFileNode()
 	return self.File
 end
 
 function PANEL:OpenMenu(menu)
-	if !menu or !IsValid(self.Folders) then return end
-	if(#menu < 1) then return end
+	if not menu or not IsValid(self.Folders) then return end
+	if #menu < 1 then return end
 
 	self.Menu = vgui.Create("DMenu", self.Folders)
 	for k, v in pairs(menu) do
@@ -196,22 +195,22 @@ function PANEL:OpenMenu(menu)
 		if (name == "*SPACER*") then
 			self.Menu:AddSpacer()
 		else
-			self.Menu:AddOption(name,option)
+			self.Menu:AddOption(name, option)
 		end
 	end
 	self.Menu:Open()
 end
 
 function PANEL:AddRightClick(menu, pos, name, option)
-	if(!menu) then menu = {} end
-	if (!pos) then pos = #menu + 1 end
+	if not menu then menu = {} end
+	if not pos then pos = #menu + 1 end
 
-	if(menu[pos]) then
-		table.insert(menu,pos,{name,option})
+	if menu[pos] then
+		table.insert(menu, pos, { name, option })
 		return
 	end
 
-	menu[pos] = {name,option}
+	menu[pos] = { name, option }
 end
 
 function PANEL:RemoveRightClick(name)
@@ -230,9 +229,9 @@ function PANEL:Setup(folder)
 end
 
 function PANEL:OnFolderUpdate(folder)
-	//override
+	-- override
 end
 
-PANEL.Refresh = PANEL.UpdateFolders //self:Refresh() is common
+PANEL.Refresh = PANEL.UpdateFolders -- self:Refresh() is common
 
 vgui.Register("wire_expression2_browser", PANEL, "DPanel")
