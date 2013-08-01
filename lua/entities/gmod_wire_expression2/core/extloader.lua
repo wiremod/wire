@@ -1,6 +1,6 @@
-/******************************************************************************\
+--[[
   Loading extensions
-\******************************************************************************/
+]]
 
 -- Save E2's metatable for wire_expression2_reload
 if ENT then
@@ -10,7 +10,7 @@ if ENT then
 
 		Msg("Calling destructors for all Expression2 chips.\n")
 		local chips = ents.FindByClass("gmod_wire_expression2")
-		for _,chip in ipairs(chips) do
+		for _, chip in ipairs(chips) do
 			if not chip.error then
 				chip:PCallHook('destruct')
 			end
@@ -29,11 +29,12 @@ if ENT then
 		if not args or args[1] ~= "nosend" then
 			wire_expression2_sendfunctions(player.GetAll())
 		end
-		for _,chip in ipairs(chips) do
+		for _, chip in ipairs(chips) do
 			pcall(chip.OnRestore, chip)
 		end
 		Msg("Done reloading Expression2 extensions.\n")
 	end
+
 	concommand.Add("wire_expression2_reload", wire_expression2_reload)
 end
 
@@ -49,25 +50,25 @@ local included_files = {}
 
 -- parses typename/typeid associations from a file and stores info about the file for later use by e2_include_finalize/e2_include_pass2
 local function e2_include(name)
-	local path,filename = string.match(name, "^(.-/?)([^/]*)$")
+	local path, filename = string.match(name, "^(.-/?)([^/]*)$")
 
-	local cl_name = path.."cl_"..filename
-	if luaExists("entities/gmod_wire_expression2/core/"..cl_name) then
+	local cl_name = path .. "cl_" .. filename
+	if luaExists("entities/gmod_wire_expression2/core/" .. cl_name) then
 		-- If a file of the same name prefixed with cl_ exists, send it to the client and load it there.
 		AddCSE2File(cl_name)
 	end
 
-	local luaname = "entities/gmod_wire_expression2/core/"..name
-	local contents = file.Read(luaname,"LUA") or ""
+	local luaname = "entities/gmod_wire_expression2/core/" .. name
+	local contents = file.Read(luaname, "LUA") or ""
 	e2_extpp_pass1(contents)
-	table.insert(included_files, {name, luaname, contents})
+	table.insert(included_files, { name, luaname, contents })
 end
 
 -- parses and executes an extension
 local function e2_include_pass2(name, luaname, contents)
-	local ok,ret= pcall(e2_extpp_pass2, contents)
+	local ok, ret = pcall(e2_extpp_pass2, contents)
 	if not ok then
-		ErrorNoHalt(luaname..ret.."\n")
+		ErrorNoHalt(luaname .. ret .. "\n")
 		return
 	end
 
@@ -76,12 +77,12 @@ local function e2_include_pass2(name, luaname, contents)
 		return include(name)
 	end
 	-- file needed preprocessing => Run the processed file
-	RunStringEx(ret,luaname)
+	RunStringEx(ret, luaname)
 	__e2setcost(nil) -- Reset ops cost at the end of each file
 end
 
 local function e2_include_finalize()
-	for _,info in ipairs(included_files) do
+	for _, info in ipairs(included_files) do
 		e2_include_pass2(unpack(info))
 	end
 	included_files = nil
@@ -137,8 +138,8 @@ e2_include("strfunc.lua")
 
 do
 	local list = file.Find("entities/gmod_wire_expression2/core/custom/*.lua", "LUA")
-	for _,filename in pairs(list) do
-		if filename:sub(1,3) == "cl_" then
+	for _, filename in pairs(list) do
+		if filename:sub(1, 3) == "cl_" then
 			-- If the is prefixed with "cl_", send it to the client and load it there.
 			AddCSE2File("custom/" .. filename)
 		else

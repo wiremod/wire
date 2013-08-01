@@ -1,15 +1,14 @@
-ENT.Type            = "anim"
-ENT.Base            = "base_wire_entity"
+DEFINE_BASECLASS("base_wire_entity")
 
-ENT.PrintName       = "Wire Expression 2"
-ENT.Author          = "Syranide"
-ENT.Contact         = "me@syranide.com"
-ENT.Purpose         = ""
-ENT.Instructions    = ""
+ENT.PrintName = "Wire Expression 2"
+ENT.Author = "Syranide"
+ENT.Contact = "me@syranide.com"
+ENT.Purpose = ""
+ENT.Instructions = ""
 
-ENT.Spawnable       = false
-ENT.AdminSpawnable  = false
+ENT.WireDebugName = "Expression 2"
 
+ENT.RenderGroup = RENDERGROUP_OPAQUE
 
 include("core/e2lib.lua")
 include("base/preprocessor.lua")
