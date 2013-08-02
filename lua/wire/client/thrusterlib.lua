@@ -11,9 +11,6 @@ local emitter = ParticleEmitter(Vector(0,0,0))
 WireLib.ThrusterEffectThink = {}
 WireLib.ThrusterEffectDraw = {}
 
-WireLib.ThrusterEffectThink.fire = function(self)
-end
-
 WireLib.ThrusterEffectDraw.fire = function(self)
 
 	local vOffset = self:LocalToWorld(self:GetOffset())
