@@ -11,6 +11,8 @@ function ENT:Initialize()
 	self:SetMoveType( MOVETYPE_VPHYSICS )
 	self:SetSolid( SOLID_VPHYSICS )
 
+	self:DrawShadow( false )
+
 	local phys = self:GetPhysicsObject()
 	if (phys:IsValid()) then
 		phys:Wake()
@@ -27,15 +29,18 @@ function ENT:Initialize()
 	self.pitch = 0
 	self.mul = 0
 
-	self.ThrustOffset 	= Vector( 0, 0, 0 )
-	self.ForceAngle		= self.ThrustOffset:GetNormalized() * -1
+	self.ThrustNormal	= Vector()
+	self.ThrustOffset 	= Vector( 0, 0, max.z )
+	self.ForceAngle		= Vector()
 
 	self:SetForce( 2000 )
 
 	self.oweffect = "fire"
 	self.uweffect = "same"
 
-	self:SetOffset( self.ThrustOffset )
+	self:SetOffset(self.ThrustOffset)
+	self:SetNormal(self.ThrustNormal)
+	
 	self:StartMotionController()
 
 	self:Switch( false )
@@ -125,7 +130,7 @@ end
 
 function ENT:TriggerInput(iname, value)
 	if (iname == "Mul") then
-		if (value == 0) or (self.ThrustOffset == Vector(0,0,0)) then
+		if (value == 0) or (self:GetNormal() == Vector(0,0,0)) then
 			self:Switch(false, math.min(value, self.force_max))
 		elseif ( (self.bidir) and (math.abs(value) > 0.01) and (math.abs(value) > self.force_min) ) or ( (value > 0.01) and (value > self.force_min) ) then
 			self:Switch(true, math.Clamp(value, -self.force_max, self.force_max))
@@ -151,13 +156,14 @@ function ENT:TriggerInput(iname, value)
 		self.Z = math.cos(self.pitch) * math.sin(self.yaw)
 	end
 
-	self.ThrustOffset = Vector( self.X, self.Y, self.Z ):GetNormalized()
-	self:SetOffset( self.ThrustOffset )
-	if (self.mode == 2) then
-		self.ThrustOffset = Vector( self.X, self.Y, 0 ):GetNormalized()
+	self.ThrustNormal = Vector( self.X, self.Y, self.Z ):GetNormalized()
+	self:SetNormal( self.ThrustNormal ) -- Tell the client the unadulterated vector
+	
+	if self.mode == 2 then
+		self.ThrustNormal = Vector( self.X, self.Y, 0 ):GetNormalized()
 	end
-
-	if (self.ThrustOffset == Vector(0,0,0)) then self:SetOn( false ) elseif (self.mul != 0) then self:SetOn( true ) end
+	self.ThrustOffset = self.ThrustNormal + self:GetOffset()
+	if (self.ThrustNormal == Vector(0,0,0)) then self:SetOn( false ) elseif (self.mul != 0) then self:SetOn( true ) end
 	self:Switch( self:IsOn(), self.mul )
 end
 
@@ -265,10 +271,13 @@ function ENT:OnRestore()
 	local max = self:OBBMaxs()
 	local min = self:OBBMins()
 
-	self.ThrustOffset 	= Vector( 0, 0, 1)
-	self.ForceAngle		= self.ThrustOffset:GetNormalized() * -1
+	self.ThrustNormal	= Vector()
+	self.ThrustOffset 	= Vector(0, 0, max.z)
+	self.ForceAngle		= Vector()
 
-	self:SetOffset( self.ThrustOffset )
+	self:SetOffset(self.ThrustOffset)
+	self:SetNormal(self.ThrustNormal)
+
 	self:StartMotionController()
 
 	if (self.PrevOutput) then
