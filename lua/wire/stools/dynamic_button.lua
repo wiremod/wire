@@ -21,9 +21,7 @@ if SERVER then
 			self:GetClientNumber( "off_r" ), self:GetClientNumber( "off_g" ), self:GetClientNumber( "off_b" )
 	end
 
-	function TOOL:MakeEnt( ply, model, Ang, trace )
-		return MakeWireDynamicButton( ply, trace.HitPos, Ang, model, self:GetConVars() )
-	end
+	-- Uses default WireToolObj:MakeEnt's MakeWireEnt function
 end
 
 TOOL.ClientConVar = {

@@ -50,6 +50,12 @@ function ENT:Initialize()
 	self:NextThink(CurTime()+1.0)
 end
 
+function ENT:Setup(DriveID, DriveCap)
+	self.DriveID = DriveID
+	self.DriveCap = DriveCap
+	self:UpdateCap()
+end
+
 function ENT:GetStructName(name)
 	return "WireFlash/"..(self.Owner_SteamID or "UNKNOWN").."/HDD"..self.DriveID.."/"..name..".txt"
 end
@@ -313,3 +319,5 @@ function ENT:TriggerInput(iname, value)
 
 	self:SetOverlayText(self.DriveCap.."kb".."\nWriteAddr:"..self.AWrite.."  Data:"..self.Data.."  Clock:"..self.Clk.."\nReadAddr:"..self.ARead.." = ".. self.Out)
 end
+
+duplicator.RegisterEntityClass("gmod_wire_hdd", MakeWireEnt, "Data", "DriveID", "DriveCap")

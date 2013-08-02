@@ -65,6 +65,11 @@ if SERVER then
 
 		return ent
 	end
+	
+	-- Default MakeEnt function, override to use a different MakeWire* function
+	function WireToolObj:MakeEnt( ply, model, Ang, trace )
+		return MakeWireEnt( ply, {Class = self.WireClass, Pos=trace.HitPos, Angle=Ang, Model=model}, self:GetConVars() )
+	end
 
 	function WireToolObj:GetConVars() return end
 	

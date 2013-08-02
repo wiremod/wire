@@ -277,23 +277,4 @@ function ENT:ShowOutput( )
 	self:SetOverlayText(txt)
 end
 
-function MakeWireExplosive(pl, Pos, Ang, model, trigger, damage, delaytime, removeafter, radius, affectother, notaffected, delayreloadtime, maxhealth, bulletproof, explosionproof, fallproof, explodeatzero, resetatexplode, fireeffect, coloreffect, invisibleatzero, nocollide )
-	if ( !pl:CheckLimit( "wire_explosives" ) ) then return nil end
-
-	local explosive = ents.Create( "gmod_wire_explosive" )
-
-	explosive:SetModel( model )
-	explosive:SetPos( Pos )
-	explosive:SetAngles( Ang )
-	explosive:Spawn()
-	explosive:Activate()
-
-	explosive:SetPlayer( pl )
-	explosive.pl = pl
-
-	explosive:Setup( trigger, damage, delaytime, removeafter, radius, affectother, notaffected, delayreloadtime, maxhealth, bulletproof, explosionproof, fallproof, explodeatzero, resetatexplode, fireeffect, coloreffect, invisibleatzero, nocollide )
-	pl:AddCount( "wire_explosives", explosive )
-
-	return explosive
-end
-duplicator.RegisterEntityClass( "gmod_wire_explosive", MakeWireExplosive, "Pos", "Ang", "Model", "key", "damage", "delaytime", "removeafter", "radius", "affectother", "notaffected", "delayreloadtime", "maxhealth", "bulletproof", "explosionproof", "fallproof", "explodeatzero", "resetatexplode", "fireeffect", "coloreffect", "invisibleatzero", "nocollide" )
+duplicator.RegisterEntityClass( "gmod_wire_explosive", MakeWireEnt, "Data", "key", "damage", "delaytime", "removeafter", "radius", "affectother", "notaffected", "delayreloadtime", "maxhealth", "bulletproof", "explosionproof", "fallproof", "explodeatzero", "resetatexplode", "fireeffect", "coloreffect", "invisibleatzero" )

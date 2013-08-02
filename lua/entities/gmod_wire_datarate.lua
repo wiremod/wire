@@ -86,20 +86,4 @@ function ENT:TriggerInput(iname, value)
 	end
 end
 
-function MakeWireDataRate( pl, Pos, Ang, model )
-	if ( !pl:CheckLimit( "wire_datarates" ) ) then return false end
-
-	local wire_datarate = ents.Create( "gmod_wire_datarate" )
-	if (!wire_datarate:IsValid()) then return false end
-	wire_datarate:SetModel(model)
-
-	wire_datarate:SetAngles( Ang )
-	wire_datarate:SetPos( Pos )
-	wire_datarate:Spawn()
-	wire_datarate:SetPlayer(pl)
-
-	pl:AddCount( "wire_datarates", wire_datarate )
-
-	return wire_datarate
-end
-duplicator.RegisterEntityClass("gmod_wire_datarate", MakeWireDataRate, "Pos", "Ang", "Model")
+duplicator.RegisterEntityClass("gmod_wire_datarate", MakeWireEnt, "Data")

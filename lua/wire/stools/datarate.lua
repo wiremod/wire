@@ -12,9 +12,7 @@ WireToolSetup.SetupMax( 20, TOOL.Mode.."s" , "You've hit the Wire "..TOOL.Plural
 TOOL.ClientConVar[ "model" ] = "models/jaanus/wiretool/wiretool_gate.mdl"
 
 if SERVER then
-	function TOOL:MakeEnt( ply, model, Ang, trace )
-		return MakeWireDataRate( ply, trace.HitPos, Ang, model, self:GetConVars() )
-	end
+	-- Uses default WireToolObj:MakeEnt's MakeWireEnt function
 end
 
 function TOOL.BuildCPanel(panel)

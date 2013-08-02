@@ -35,9 +35,7 @@ if SERVER then
 			Color(0,0,0)
 	end
 
-	function TOOL:MakeEnt( ply, model, Ang, trace )
-		return MakeWireTextScreen( ply, trace.HitPos, Ang, model, self:GetConVars() )
-	end
+	-- Uses default WireToolObj:MakeEnt's MakeWireEnt function
 end
 
 TOOL.ClientConVar = {

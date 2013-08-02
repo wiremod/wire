@@ -26,7 +26,5 @@ WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20, TOOL.Mode.."s" , "You've hit the Wire "..TOOL.PluralName.." limit!" )
 
 if SERVER then
-	function TOOL:MakeEnt( ply, model, Ang, trace )
-		return MakeWireDHDD( ply, trace.HitPos, Ang, model, self:GetConVars() )
-	end
+	-- Uses default WireToolObj:MakeEnt's MakeWireEnt function
 end
