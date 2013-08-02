@@ -20,3 +20,5 @@ function ENT:Initialize()
 	self.Values["G"] = 0
 	self.Values["H"] = 0
 end
+
+duplicator.RegisterEntityClass("gmod_wire_data_store", MakeWireEnt, "Data")

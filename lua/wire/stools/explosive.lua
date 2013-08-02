@@ -57,10 +57,8 @@ if SERVER then
 			self:GetClientNumber("explodeatzero")~=0, self:GetClientNumber("resetatexplode")~=0, self:GetClientNumber("fireeffect")~=0, self:GetClientNumber("coloreffect")~=0,
 			self:GetClientNumber("invisibleatzero")~=0, self:GetClientNumber("nocollide")~=0
 	end
-
-	function TOOL:MakeEnt( ply, model, Ang, trace )
-		return MakeWireExplosive( ply, trace.HitPos, Ang, model, self:GetConVars() )
-	end
+	
+	-- Uses default WireToolObj:MakeEnt's MakeWireEnt function
 end
 
 function TOOL.BuildCPanel(panel)

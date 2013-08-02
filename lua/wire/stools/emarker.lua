@@ -15,11 +15,7 @@ TOOL.ClientConVar = {
 }
 
 if SERVER then
-	function TOOL:GetConVars() end
-
-	function TOOL:MakeEnt( ply, model, Ang, trace )
-		return MakeWireEmarker( ply, trace.HitPos, Ang, model, self:GetConVars() )
-	end
+	-- Uses default WireToolObj:MakeEnt's MakeWireEnt function
 end
 	
 function TOOL:LeftClick(trace)

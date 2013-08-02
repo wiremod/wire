@@ -31,27 +31,7 @@ function ENT:UnLinkEMarker()
 	self:SetOverlayText( "No Mark selected" )
 end
 
-function MakeWireEmarker( pl, Pos, Ang, model, nocollide )
-	if (!pl:CheckLimit("wire_emarkers")) then return false end
-
-	local wire_emarker = ents.Create("gmod_wire_emarker")
-	wire_emarker:SetPos(Pos)
-	wire_emarker:SetAngles(Ang)
-	wire_emarker:SetModel( Model(model or "models/jaanus/wiretool/wiretool_siren.mdl") )
-	wire_emarker:Spawn()
-	wire_emarker:Activate()
-
-	wire_emarker:SetPlayer(pl)
-	wire_emarker.pl = pl
-	wire_emarker.nocollide = nocollide
-
-	if ( nocollide == true ) then wire_emarker:GetPhysicsObject():EnableCollisions( false ) end
-
-	pl:AddCount( "wire_emarkers", wire_emarker )
-
-	return wire_emarker
-end
-duplicator.RegisterEntityClass( "gmod_wire_emarker", MakeWireEmarker, "Pos", "Ang", "Model", "nocollide" )
+duplicator.RegisterEntityClass( "gmod_wire_emarker", MakeWireEnt, "Data" )
 	
 
 function ENT:BuildDupeInfo()

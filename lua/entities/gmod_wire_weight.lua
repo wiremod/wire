@@ -42,28 +42,4 @@ function ENT:ShowOutput(value)
 	self:SetOverlayText( "Weight: "..tostring(value) )
 end
 
-
-function MakeWireWeight( pl, Pos, Ang, model, frozen )
-	if ( !pl:CheckLimit( "wire_weights" ) ) then return false end
-
-	local wire_weight = ents.Create( "gmod_wire_weight" )
-	if (!wire_weight:IsValid()) then return false end
-
-	wire_weight:SetAngles( Ang )
-	wire_weight:SetPos( Pos )
-	wire_weight:SetModel( Model(model or MODEL) )
-	wire_weight:Spawn()
-
-	if wire_weight:GetPhysicsObject():IsValid() then
-		wire_weight:GetPhysicsObject():EnableMotion(!frozen)
-	end
-
-	wire_weight:SetPlayer( pl )
-	wire_weight.pl = pl
-
-	pl:AddCount( "wire_weights", wire_weight )
-	pl:AddCleanup( "gmod_wire_weight", wire_weight )
-
-	return wire_weight
-end
-duplicator.RegisterEntityClass("gmod_wire_weight", MakeWireWeight, "Pos", "Ang", "Model", "frozen")
+duplicator.RegisterEntityClass("gmod_wire_weight", MakeWireEnt, "Data")

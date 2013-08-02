@@ -23,9 +23,7 @@ if SERVER then
 			self:GetClientNumber( "value_off" ), self:GetClientNumber( "value_on" ), self:GetClientNumber( "value_on2" )
 	end
 
-	function TOOL:MakeEnt( ply, model, Ang, trace )
-		return MakeWireDualInput( ply, trace.HitPos, Ang, model, self:GetConVars() )
-	end
+	-- Uses default WireToolObj:MakeEnt's MakeWireEnt function
 end
 
 TOOL.ClientConVar = {

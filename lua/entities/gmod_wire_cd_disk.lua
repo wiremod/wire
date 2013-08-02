@@ -62,12 +62,13 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 	self:Setup()
 end
 
-function ENT:Setup()
+function ENT:Setup(precision, iradius, skin)
 	local min = self:OBBMins()
 	local max = self:OBBMaxs()
 
-	self.Precision = math.floor(math.Clamp(self.Precision,1,64))
-	self.IRadius = math.max(self.IRadius,0)
+	if precision then self.Precision = math.floor(math.Clamp(precision,1,64)) end
+	if iradius then self.IRadius = math.max(iradius,0) end
+	if skin then self.Skin = skin self:SetSkin(skin) end
 
 	self.StackStartHeight = -min.z
 
@@ -102,22 +103,4 @@ function ENT:ShowOutput()
 			    "Tracks: "..self.DiskTracks.."\nSectors: "..self.DiskSectors.."\nStacks: "..self.DiskStacks)
 end
 
-function MakeWireCDDisk(pl, Pos, Ang, model)
-	if (!pl:CheckLimit("wire_cd_disks")) then return false end
-
-	local wire_cd_disk = ents.Create("gmod_wire_cd_disk")
-	if (!wire_cd_disk:IsValid()) then return false end
-
-	wire_cd_disk:SetAngles(Ang)
-	wire_cd_disk:SetPos(Pos)
-	wire_cd_disk:SetModel(model)
-	wire_cd_disk:Spawn()
-
-	wire_cd_disk:SetPlayer(pl)
-	wire_cd_disk.pl = pl
-
-	pl:AddCount("wire_cd_disks", wire_cd_disk)
-
-	return wire_cd_disk
-end
-duplicator.RegisterEntityClass("gmod_wire_cd_disk", MakeWireCDDisk, "Pos", "Ang", "Model")
+duplicator.RegisterEntityClass("gmod_wire_cd_disk", MakeWireEnt, "Data", "Precision", "IRadius", "Skin")

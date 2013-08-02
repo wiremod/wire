@@ -18,9 +18,7 @@ if SERVER then
 		return self:GetClientNumber("Range"), self:GetClientNumber("Gravity")~=0
 	end
 
-	function TOOL:MakeEnt( ply, model, Ang, trace )
-		return MakeWireGrabber( ply, trace.HitPos, Ang, model, self:GetConVars() )
-	end
+	-- Uses default WireToolObj:MakeEnt's MakeWireEnt function
 end
 
 TOOL.ClientConVar = {

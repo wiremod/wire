@@ -113,27 +113,7 @@ function ENT:ClearEntities()
 	self:UpdateOutputs()
 end
 
-function MakeWireAdvEMarker( pl, Pos, Ang, model, nocollide )
-	if (!pl:CheckLimit("wire_adv_emarkers")) then return false end
-
-	local ent = ents.Create("gmod_wire_adv_emarker")
-	ent:SetPos(Pos)
-	ent:SetAngles(Ang)
-	ent:SetModel(model)
-	ent:Spawn()
-	ent:Activate()
-
-	ent:SetPlayer(pl)
-	ent.pl = pl
-	ent.nocollide = nocollide
-
-	if ( nocollide == true ) then ent:GetPhysicsObject():EnableCollisions( false ) end
-
-	pl:AddCount( "wire_adv_emarkers", ent )
-
-	return ent
-end
-duplicator.RegisterEntityClass( "gmod_wire_adv_emarker", MakeWireAdvEMarker, "Pos", "Ang", "Model", "nocollide" )
+duplicator.RegisterEntityClass( "gmod_wire_adv_emarker", MakeWireEnt, "Data" )
 
 function ENT:BuildDupeInfo()
 	local info = self.BaseClass.BuildDupeInfo(self) or {}

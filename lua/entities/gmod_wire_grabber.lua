@@ -238,24 +238,4 @@ function ENT:CheckOwner(ent)
 	return owns
 end
 
-
-function MakeWireGrabber( pl, Pos, Ang, model, Range, Gravity )
-	if not pl:CheckLimit( "wire_grabbers" ) then return false end
-
-	local wire_grabber = ents.Create( "gmod_wire_grabber" )
-	if not wire_grabber:IsValid() then return false end
-
-	wire_grabber:SetAngles( Ang )
-	wire_grabber:SetPos( Pos )
-	wire_grabber:SetModel( model )
-	wire_grabber:Spawn()
-	wire_grabber:Setup(Range, Gravity)
-
-	wire_grabber:SetPlayer( pl )
-	wire_grabber.pl = pl
-
-	pl:AddCount( "wire_grabbers", wire_grabber )
-
-	return wire_grabber
-end
-duplicator.RegisterEntityClass("gmod_wire_grabber", MakeWireGrabber, "Pos", "Ang", "Model", "Range", "Gravity")
+duplicator.RegisterEntityClass("gmod_wire_grabber", MakeWireEnt, "Data", "Range", "Gravity")

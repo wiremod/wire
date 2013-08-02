@@ -14,9 +14,11 @@ if SERVER then
 	function TOOL:GetConVars() 
 		return self:GetClientNumber( "damage" )
 	end
-
-	function TOOL:MakeEnt( ply, model, Ang, trace )
-		return MakeWireDetonator( ply, trace.HitPos, Ang, model, self:GetConVars() )
+	
+	function TOOL:MakeEnt(ply, model, Ang, trace)
+		local ent = WireToolObj.MakeEnt(self, ply, model, Ang, trace )
+		ent.target = trace.Entity
+		return ent
 	end
 end
 
