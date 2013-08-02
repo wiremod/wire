@@ -5,14 +5,14 @@ ENT.RenderGroup		= RENDERGROUP_BOTH
 ENT.WireDebugName = "Sound Emitter"
 
 if CLIENT then return end -- No more client
-
+local path = nil
 function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )
 	self:SetMoveType( MOVETYPE_VPHYSICS )
 	self:SetSolid( SOLID_VPHYSICS )
 
-	self.Inputs = Wire_CreateInputs(self, { "A", "Toggle", "Volume", "Play", "Stop",
-		"PitchRelative", "LFOType", "LFORate", "LFOModPitch", "LFOModVolume", "Sample" })
+	self.Inputs = WireLib.CreateSpecialInputs(self, { "A", "Toggle", "Volume", "Play", "Stop",
+		"PitchRelative", "LFOType", "LFORate", "LFOModPitch", "LFOModVolume", "Sample","SoundPath" },{"NORMAL", "NORMAL", "NORMAL", "NORMAL", "NORMAL","NORMAL", "NORMAL", "NORMAL", "NORMAL", "NORMAL", "NORMAL","STRING"}) 
 	self.Outputs = Wire_CreateOutputs(self, { "Memory" })
 
 	self.Active = 0
@@ -20,19 +20,11 @@ function ENT:Initialize()
 	self.Pitch = 100
 
 	self.SampleTable = {}
-	self.SampleTable[0] = "synth/square.wav"
+	self.SampleTable[0] = parsedsound
 	self.SampleTable[1] = "synth/square.wav"
 	self.SampleTable[2] = "synth/saw.wav"
 	self.SampleTable[3] = "synth/tri.wav"
 	self.SampleTable[4] = "synth/sine.wav"
-
-	//LFO:
-	// 0 - none
-	// 1 - square
-	// 2 - tri
-	// 3 - saw
-	// 4 - sine
-	// 5 - random noise
 
 	self.LFOType = 0
 	self.LFORate = 0
@@ -43,8 +35,6 @@ function ENT:Initialize()
 	self.LFOValue = 0
 	self.LFONoiseTime = 0
 
-//	note = 69+12 * log2(f/440)
-//	f = (2^((note - 69) / 12))*440
 end
 
 function ENT:OnRemove()
@@ -143,12 +133,18 @@ function ENT:TriggerInput(iname, value)
 		self.LFOModVolume = value
 	elseif (iname == "Sample") then
 		self:SetSample(value)
+	elseif(iname == "SoundPath") then
+	 self:SetSound(value)
+	if(active) then
+		relpitch = self.Pitch 
+		self.SND:ChangePitch(relpitch,0)
+		self.SND:Play()
+		
+	else
+		self.SND:Stop()
+	end
 	end
 
-//		"Toggle", "Volume", "Play", "Stop",
-//		"PitchFreq", "PitchNote", "PitchRelative", "PitchStart",
-//		"SpinUpTime", "SpinDownTime", "FadeInStartVolume", "FadeInTime", "FadeOutTime",
-//		"LFOType", "LFORate", "LFOModPitch", "LFOModVolume",
 end
 
 function ENT:SetSound(sound)
