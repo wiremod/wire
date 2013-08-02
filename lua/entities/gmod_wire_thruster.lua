@@ -1,10 +1,69 @@
+AddCSLuaFile()
+DEFINE_BASECLASS( "base_wire_entity" )
+ENT.PrintName       = "Wire Thruster"
+// Thrusters only really need to be twopass (Both) when they're active.. something to think about..
+ENT.RenderGroup 		= RENDERGROUP_BOTH
+ENT.WireDebugName	= "Thruster"
 
-AddCSLuaFile( "cl_init.lua" )
-AddCSLuaFile( "shared.lua" )
 
-include('shared.lua')
+-- Shared
 
-ENT.WireDebugName = "Thruster"
+function ENT:SetEffect( name )
+	self:SetNetworkedString( "Effect", name )
+end
+function ENT:GetEffect( name )
+	return self:GetNetworkedString( "Effect" )
+end
+
+function ENT:SetOn( boolon )
+	self:SetNetworkedBool( "On", boolon, true )
+end
+function ENT:IsOn( name )
+	return self:GetNetworkedBool( "On" )
+end
+
+function ENT:SetOffset( v )
+	self:SetNetworkedVector( "Offset", v, true )
+end
+function ENT:GetOffset( name )
+	return self:GetNetworkedVector( "Offset" )
+end
+
+
+if CLIENT then 
+	function ENT:Initialize()
+		self.ShouldDraw = 1
+
+		local mx, mn = self:GetRenderBounds()
+		self:SetRenderBounds(mn + Vector(0,0,128), mx, 0)
+	end
+
+	function ENT:DrawTranslucent()
+		if self.ShouldDraw == 0 or not self:IsOn() then return end
+
+		local EffectDraw = WireLib.ThrusterEffectDraw[self:GetEffect()]
+		if EffectDraw then EffectDraw(self) end
+	end
+
+	function ENT:Think()
+		self.BaseClass.Think(self)
+
+		self.ShouldDraw = GetConVarNumber("cl_drawthrusterseffects")
+
+		if self.ShouldDraw == 0 or not self:IsOn() then return end
+
+		local EffectThink = WireLib.ThrusterEffectThink[self:GetEffect()]
+		if EffectThink then EffectThink(self) end
+	end
+
+	function ENT:CalcNormal()
+		return (self:LocalToWorld(self:GetOffset()) - self:GetPos()):GetNormalized()
+	end
+	
+	return  -- No more client
+end
+
+-- Server
 
 function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )
