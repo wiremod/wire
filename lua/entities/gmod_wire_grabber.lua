@@ -180,7 +180,7 @@ end
 
 -- Free Fall's Owner Check Code
 function ENT:CheckOwner(ent)
-	ply = self.pl
+	ply = self:GetPlayer()
 
 	hasCPPI = istable( CPPI )
 	hasEPS = istable( eps )

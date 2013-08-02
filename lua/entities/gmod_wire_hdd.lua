@@ -136,7 +136,7 @@ function ENT:ReadCell(Address)
 		return nil
 	end
 
-	local player = self.pl
+	local player = self:GetPlayer()
 	if player:IsValid() then
 		local steamid = player:SteamID()
 		steamid = string.gsub(steamid, ":", "_")
@@ -194,7 +194,7 @@ function ENT:WriteCell(Address, value)
 		return false
 	end
 
-	local player = self.pl
+	local player = self:GetPlayer()
 	if (player:IsValid()) then
 		local steamid = player:SteamID()
 		steamid = string.gsub(steamid, ":", "_")

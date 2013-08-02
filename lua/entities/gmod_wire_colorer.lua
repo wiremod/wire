@@ -59,7 +59,7 @@ function ENT:TriggerInput(iname, value)
 				trace.filter = { self }
 			local trace = util.TraceLine( trace )
 
-			if !CheckPP( self.pl, trace.Entity ) then return end
+			if !CheckPP( self:GetPlayer(), trace.Entity ) then return end
 			if trace.Entity:IsPlayer() then
 				trace.Entity:SetColor(Color(self.InColor.r, self.InColor.g, self.InColor.b, 255))
 			else
