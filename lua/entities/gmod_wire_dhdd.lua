@@ -2,7 +2,7 @@ AddCSLuaFile()
 DEFINE_BASECLASS( "base_wire_entity" )
 ENT.PrintName		= "Wire Dupeable Hard Drive"
 ENT.Author      	= "Divran"
-ENT.RenderGroup		= RENDERGROUP_BOTH
+ENT.RenderGroup		= RENDERGROUP_OPAQUE
 ENT.WireDebugName 	= "Dupeable HDD"
 
 if CLIENT then return end -- No more client

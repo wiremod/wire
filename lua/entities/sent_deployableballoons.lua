@@ -10,7 +10,7 @@ ENT.Category		= "Wiremod"
 ENT.Spawnable       = true
 ENT.AdminOnly 		= false
 
-ENT.RenderGroup		= RENDERGROUP_BOTH
+ENT.RenderGroup		= RENDERGROUP_OPAQUE
 ENT.WireDebugName = "Balloon Deployer"
 cleanup.Register("wire_deployers")
 

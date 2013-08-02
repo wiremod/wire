@@ -2,7 +2,7 @@ AddCSLuaFile()
 DEFINE_BASECLASS( "base_wire_entity" )
 ENT.PrintName       = "Wire Eye Pod"
 ENT.Purpose         = "To control the player's view in a pod and output their mouse movements"
-ENT.RenderGroup		= RENDERGROUP_BOTH
+ENT.RenderGroup		= RENDERGROUP_OPAQUE
 ENT.WireDebugName	= "Eye Pod"
 
 if CLIENT then 
