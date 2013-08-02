@@ -1,14 +1,103 @@
+AddCSLuaFile()
+DEFINE_BASECLASS( "base_wire_entity" )
+ENT.PrintName       = "Wire Socket"
+ENT.Purpose         = "Links with a plug"
+ENT.Instructions    = "Move a plug close to a plug to link them, and data will be transferred through the link."
+ENT.RenderGroup		= RENDERGROUP_OPAQUE
+ENT.WireDebugName	= "Socket"
 
-AddCSLuaFile( "cl_init.lua" )
-AddCSLuaFile( "shared.lua" )
 
-include('shared.lua')
+-- Shared
 
-ENT.WireDebugName = "Socket"
+local PositionOffsets = {
+	["models/wingf0x/isasocket.mdl"] = Vector(0,0,0),
+	["models/wingf0x/altisasocket.mdl"] = Vector(0,0,2.6),
+	["models/wingf0x/ethernetsocket.mdl"] = Vector(0,0,0),
+	["models/wingf0x/hdmisocket.mdl"] = Vector(0,0,0),
+	["models/props_lab/tpplugholder_single.mdl"] = Vector(5, 13, 10),
+	["models/bull/various/usb_socket.mdl"] = Vector(8,0,0),
+	["models/hammy/pci_slot.mdl"] = Vector(0,0,0),
+	["models//hammy/pci_slot.mdl"] = Vector(0,0,0), -- For some reason, GetModel on this model has two / on the client... Bug?
+}
+local AngleOffsets = {
+	["models/wingf0x/isasocket.mdl"] = Angle(0,0,0),
+	["models/wingf0x/altisasocket.mdl"] = Angle(0,0,0),
+	["models/wingf0x/ethernetsocket.mdl"] = Angle(0,0,0),
+	["models/wingf0x/hdmisocket.mdl"] = Angle(0,0,0),
+	["models/props_lab/tpplugholder_single.mdl"] = Angle(0,0,0),
+	["models/bull/various/usb_socket.mdl"] = Angle(0,0,0),
+	["models/hammy/pci_slot.mdl"] = Angle(0,0,0),
+	["models//hammy/pci_slot.mdl"] = Angle(0,0,0), -- For some reason, GetModel on this model has two / on the client... Bug?
+}
+local SocketModels = {
+	["models/wingf0x/isasocket.mdl"] = "models/wingf0x/isaplug.mdl",
+	["models/wingf0x/altisasocket.mdl"] = "models/wingf0x/isaplug.mdl",
+	["models/wingf0x/ethernetsocket.mdl"] = "models/wingf0x/ethernetplug.mdl",
+	["models/wingf0x/hdmisocket.mdl"] = "models/wingf0x/hdmiplug.mdl",
+	["models/props_lab/tpplugholder_single.mdl"] = "models/props_lab/tpplug.mdl",
+	["models/bull/various/usb_socket.mdl"] = "models/bull/various/usb_stick.mdl",
+	["models/hammy/pci_slot.mdl"] = "models/hammy/pci_card.mdl",
+	["models//hammy/pci_slot.mdl"] = "models//hammy/pci_card.mdl", -- For some reason, GetModel on this model has two / on the client... Bug?
+}
 
-------------------------------------------------------------
--- Helper functions & variables
-------------------------------------------------------------
+function ENT:GetLinkPos()
+	return self:LocalToWorld(PositionOffsets[self:GetModel()] or Vector(0,0,0)), self:LocalToWorldAngles(AngleOffsets[self:GetModel()] or Angle(0,0,0))
+end
+
+function ENT:CanLink( Target )
+	if (Target.Socket and Target.Socket:IsValid()) then return false end
+	if (SocketModels[self:GetModel()] != Target:GetModel()) then return false end
+	return true
+end
+
+function ENT:GetClosestPlug()
+	local Pos, _ = self:GetLinkPos()
+
+	local plugs = ents.FindInSphere( Pos, (CLIENT and self:GetNWInt( "AttachRange", 5 ) or self.AttachRange) )
+
+	local ClosestDist
+	local Closest
+
+	for k,v in pairs( plugs ) do
+		if (v:GetClass() == "gmod_wire_plug" and !v:GetNWBool( "Linked", false )) then
+			local Dist = v:GetPos():Distance( Pos )
+			if (ClosestDist == nil or ClosestDist > Dist) then
+				ClosestDist = Dist
+				Closest = v
+			end
+		end
+	end
+
+	return Closest
+end
+
+if CLIENT then 
+	function ENT:DrawEntityOutline()
+		if (GetConVar("wire_plug_drawoutline"):GetBool()) then
+			self.BaseClass.DrawEntityOutline( self )
+		end
+	end
+
+	hook.Add("HUDPaint","Wire_Socket_DrawLinkHelperLine",function()
+		local sockets = ents.FindByClass("gmod_wire_socket")
+		for k,self in pairs( sockets ) do
+			local Pos, _ = self:GetLinkPos()
+
+			local Closest = self:GetClosestPlug()
+
+			if IsValid(Closest) and self:CanLink(Closest) and Closest:GetNWBool( "PlayerHolding", false ) and Closest:GetClosestSocket() == self then
+				local plugpos = Closest:GetPos():ToScreen()
+				local socketpos = Pos:ToScreen()
+				surface.SetDrawColor(255,255,100,255)
+				surface.DrawLine(plugpos.x, plugpos.y, socketpos.x, socketpos.y)
+			end
+		end
+	end)
+	
+	return  -- No more client
+end
+
+
 local NEW_PLUG_WAIT_TIME = 2
 local LETTERS = { "A", "B", "C", "D", "E", "F", "G", "H" }
 local LETTERS_INV = {}

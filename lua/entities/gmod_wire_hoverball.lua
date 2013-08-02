@@ -1,9 +1,99 @@
+AddCSLuaFile()
+DEFINE_BASECLASS( "base_wire_entity" )
+ENT.PrintName       = "Wire Hoverball"
+ENT.RenderGroup		= RENDERGROUP_BOTH
+ENT.WireDebugName	= "Hoverball"
 
-AddCSLuaFile( "cl_init.lua" )
-AddCSLuaFile( "shared.lua" )
-include('shared.lua')
 
-ENT.WireDebugName = "Hoverball"
+-- Shared
+
+function ENT:GetTargetZ()
+	return self:GetNetworkedInt( 0 )
+end
+function ENT:SetTargetZ( z )
+	return self:SetNetworkedInt( 0, z )
+end
+
+function ENT:GetSpeed()
+	if (!game.SinglePlayer()) then
+		return math.Clamp( self:GetNetworkedFloat( 1 ), 0.0, 10.0 )
+	end
+
+	return self:GetNetworkedFloat( 1 )
+end
+function ENT:SetSpeed( s )
+	self:SetNetworkedFloat( 1, s )
+end
+
+function ENT:GetHoverMode()
+	return self:GetNetworkedBool( 2 )
+end
+function ENT:SetHoverMode( h )
+	return self:SetNetworkedBool( 2, h )
+end
+
+if CLIENT then 
+	CreateConVar( "cl_drawhoverballs", "1" )
+	local glowmat = Material( "sprites/light_glow02_add" )
+
+	function ENT:Initialize()
+		self.ShouldDraw = 1
+	end
+
+	function ENT:Draw()
+		if self.ShouldDraw == 0 then return end
+		self.BaseClass.Draw( self )
+	end
+
+	function ENT:DrawTranslucent()
+		if self.ShouldDraw == 0 then return end
+
+		if self:GetHoverMode() then
+			local vOffset = self:GetPos()
+			local vPlayerEyes = LocalPlayer():EyePos()
+			local vDiff = (vOffset - vPlayerEyes):GetNormalized()
+
+			render.SetMaterial( self.Glow )
+			local color = Color( 40, 50, 200, 255 ) //70,180,255,255
+			render.DrawSprite( vOffset - vDiff * 2, 22, 22, color )
+
+			local Distance = math.abs( (self:GetTargetZ() - self:GetPos().z) * math.sin( CurTime() * 20 )  ) * 0.05
+			color.r = color.r * math.Clamp( Distance, 0, 1 )
+			color.b = color.b * math.Clamp( Distance, 0, 1 )
+			color.g = color.g * math.Clamp( Distance, 0, 1 )
+
+			render.DrawSprite( vOffset + vDiff * 4, 48, 48, color )
+			render.DrawSprite( vOffset + vDiff * 4, 52, 52, color )
+		else
+			local vOffset = self:GetPos()
+			local vPlayerEyes = LocalPlayer():EyePos()
+			local vDiff = (vOffset - vPlayerEyes):GetNormalized()
+
+			render.SetMaterial( self.Glow )
+			local color = Color( 255, 50, 60, 255 ) //70,180,255,255
+			render.DrawSprite( vOffset - vDiff * 2, 22, 22, color )
+
+			local Pulse = math.sin( CurTime() * 20 ) * 0.05
+			color.r = color.r * math.Clamp( Pulse, 0, 1 )
+			color.b = color.b * math.Clamp( Pulse, 0, 1 )
+			color.g = color.g * math.Clamp( Pulse, 0, 1 )
+
+			render.DrawSprite( vOffset + vDiff * 4, 48, 48, color )
+			render.DrawSprite( vOffset + vDiff * 4, 52, 52, color )
+		end
+	end
+
+	function ENT:Think()
+		self.BaseClass.Think(self)
+
+		self.ShouldDraw = GetConVarNumber( "cl_drawhoverballs" )
+	end
+	
+	return  -- No more client
+end
+
+-- Server
+
 ENT.OnState = 0
 
 function ENT:Initialize()

@@ -1,20 +1,65 @@
-AddCSLuaFile("cl_init.lua")
-AddCSLuaFile("shared.lua")
+AddCSLuaFile()
+DEFINE_BASECLASS( "base_wire_entity" )
+ENT.PrintName       = "Wire Eye Pod"
+ENT.Purpose         = "To control the player's view in a pod and output their mouse movements"
+ENT.RenderGroup		= RENDERGROUP_BOTH
+ENT.WireDebugName	= "Eye Pod"
 
-include('shared.lua')
+if CLIENT then 
+	local enabled = false
+	local rotate90 = false
+	local freezePitch = true
+	local freezeYaw = true
 
-ENT.WireDebugName = "Eye Pod"
+	local previousEnabled = false
+
+	usermessage.Hook("UpdateEyePodState", function(um)
+		if not um then return end
+
+		local eyeAng = um:ReadAngle()
+		enabled = um:ReadBool()
+		rotate90 = um:ReadBool()
+		freezePitch = um:ReadBool() and eyeAng.p
+		freezeYaw = um:ReadBool() and eyeAng.y
+	end)
+
+	hook.Add("CreateMove", "WireEyePodEyeControl", function(ucmd)
+		if enabled then
+			currentAng = ucmd:GetViewAngles()
+
+			if freezePitch then
+				currentAng.p = freezePitch
+			end
+
+			if freezeYaw then
+				currentAng.y = freezeYaw
+			end
+
+			currentAng.r = 0
+
+			ucmd:SetViewAngles(currentAng)
+			previousEnabled = true
+		elseif previousEnabled then
+			if rotate90 then
+				ucmd:SetViewAngles(Angle(0,90,0))
+			else
+				ucmd:SetViewAngles(Angle(0,0,0))
+			end
+			previousEnabled = false
+		end
+	end)
+	
+	return  -- No more client
+end
+
+-- Server
 
 function ENT:Initialize()
-	-- Make Physics work
 	self:PhysicsInit(SOLID_VPHYSICS)
 	self:SetMoveType(MOVETYPE_VPHYSICS)
 	self:SetSolid(SOLID_VPHYSICS)
 
-	-- set it so we don't colide
 	self:SetCollisionGroup(COLLISION_GROUP_WORLD)
-
-	-- turn off shadow
 	self:DrawShadow(false)
 
 	-- Set wire I/O

@@ -1,9 +1,90 @@
-AddCSLuaFile( "cl_init.lua" )
-AddCSLuaFile( "shared.lua" )
+AddCSLuaFile()
+DEFINE_BASECLASS( "base_wire_entity" )
+ENT.PrintName       = "Wire Light"
+ENT.RenderGroup		= RENDERGROUP_BOTH
+ENT.WireDebugName	= "Light"
 
-include('shared.lua')
 
-ENT.WireDebugName = "Light"
+-- Shared
+
+function ENT:SetGlow(val)
+	self:SetNetworkedBool("LightGlow",val)
+end
+
+function ENT:GetGlow()
+	return self:GetNetworkedBool("LightGlow")
+end
+
+local nwvars = {
+	Brightness = 1,
+	Decay = 500,
+	Size = 100,
+}
+
+for varname,default in pairs(nwvars) do
+	ENT["Set"..varname] = function(self, val)
+		self:SetNetworkedFloat("Light"..varname,val)
+	end
+
+	ENT["Get"..varname] = function(self)
+		return self:GetNetworkedFloat("Light"..varname, default)
+	end
+end
+
+if CLIENT then 
+	local matLight 		= Material( "sprites/light_ignorez" )
+	local matBeam		= Material( "effects/lamp_beam" )
+
+	function ENT:Initialize()
+		self.PixVis = util.GetPixelVisibleHandle()
+	end
+
+	function ENT:DrawTranslucent()
+		local LightNrm = self:GetAngles():Up()*(-1)
+		local ViewDot = EyeVector():Dot( LightNrm )
+		local LightPos = self:GetPos() + LightNrm * -10
+
+		// glow sprite
+
+		if ( ViewDot < 0 ) then return end
+
+		render.SetMaterial( matLight )
+		local Visible	= util.PixelVisible( LightPos, 16, self.PixVis )
+		local Size = math.Clamp( 512 * (1 - Visible*ViewDot),128, 512 )
+		
+		local c = self:GetColor()
+		c.a = 200*Visible*ViewDot
+
+		render.DrawSprite( LightPos, Size, Size, c, Visible * ViewDot )
+	end
+
+	local wire_light_block = CreateClientConVar("wire_light_block", 0, false, false)
+
+	function ENT:Think()
+		if self:GetGlow() and not wire_light_block:GetBool() then
+			local dlight = DynamicLight(self:EntIndex())
+			if dlight then
+				local LightNrm = self:GetAngles():Up()*(-1)
+
+				dlight.Pos = self:GetPos() + LightNrm * -10
+				
+				local c = self:GetColor()
+				dlight.r = c.r
+				dlight.g = c.g
+				dlight.b = c.b
+				
+				dlight.Brightness = self:GetBrightness()
+				dlight.Decay = self:GetDecay()
+				dlight.Size = self:GetSize()
+				dlight.DieTime = CurTime() + 1
+			end
+		end
+	end
+	
+	return  -- No more client
+end
+
+-- Server
 
 function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )

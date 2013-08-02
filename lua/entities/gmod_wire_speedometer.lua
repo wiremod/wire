@@ -1,9 +1,52 @@
-AddCSLuaFile( "cl_init.lua" )
-AddCSLuaFile( "shared.lua" )
+AddCSLuaFile()
+DEFINE_BASECLASS( "base_wire_entity" )
+ENT.PrintName       = "Wire Speedometer"
+ENT.RenderGroup		= RENDERGROUP_OPAQUE
+ENT.WireDebugName	= "Speedo"
 
-include('shared.lua')
 
-ENT.WireDebugName = "Speedo"
+-- Shared
+
+function ENT:GetXYZMode()
+	return self:GetNetworkedBool( 0 )
+end
+
+function ENT:GetAngVel()
+	return self:GetNetworkedBool( 1 )
+end
+
+function ENT:SetModes( XYZMode, AngVel )
+	self:SetNetworkedBool( 0, XYZMode )
+	self:SetNetworkedBool( 1, AngVel )
+end
+
+if CLIENT then 
+	function ENT:Think()
+		self.BaseClass.Think(self)
+
+		local txt
+		if (self:GetXYZMode()) then
+			local vel = self:WorldToLocal(self:GetVelocity()+self:GetPos())
+			txt =  "Velocity = " .. math.Round((-vel.y or 0)*1000)/1000 .. "," .. math.Round((vel.x or 0)*1000)/1000 .. "," .. math.Round((vel.z or 0)*1000)/1000
+		else
+			local vel = self:GetVelocity():Length()
+			txt =  "Speed = " .. math.Round((vel or 0)*1000)/1000
+		end
+
+		--sadly self:GetPhysicsObject():GetAngleVelocity() does work client side, so read out is unlikely
+		/*if (self:GetAngVel()) then
+			local ang = self:GetPhysicsObject():GetAngleVelocity()
+			txt = txt .. "\nAngVel = P " .. math.Round((ang.y or 0)*1000)/1000 .. ", Y " .. math.Round((ang.z or 0)*1000) /1000 .. ", R " .. math.Round((ang.x or 0)*1000)/1000
+		end*/
+
+		self:SetOverlayText( txt )
+
+		self:NextThink(CurTime()+0.04)
+		return true
+	end
+	
+	return  -- No more client
+end
 
 local MODEL = Model("models/jaanus/wiretool/wiretool_speed.mdl")
 
