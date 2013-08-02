@@ -4,15 +4,7 @@ include('shared.lua')
 ENT.RenderGroup 	= RENDERGROUP_OPAQUE
 ENT.Delay = 0.05
 
-local matLight 		= Material( "sprites/light_ignorez" )
-local matBeam		= Material( "effects/lamp_beam" )
-
-/*---------------------------------------------------------
-   Name: Draw
----------------------------------------------------------*/
-
 function ENT:Draw()
-
 	// Don't draw if we are in camera mode
 	local ply = LocalPlayer()
 	local wep = ply:GetActiveWeapon()
@@ -22,15 +14,10 @@ function ENT:Draw()
 	end
 
 	self.BaseClass.Draw( self )
-
 end
 
-/*---------------------------------------------------------
-   Name: Think
----------------------------------------------------------*/
 function ENT:Think()
-
-	if ( !(self:GetOn()~=0) ) then return end
+	if not self:GetOn() then return end
 
 	if ( self.Delay > CurTime() ) then return end
 	self.Delay = CurTime() + self:GetDelay()
@@ -43,16 +30,14 @@ function ENT:Think()
 	local Angle = self:GetAngles()
 
 	local FXDir = self:GetFXDir()
-	if(FXDir && FXDir!=Vector(0,0,0))then Angle = FXDir:Angle() else self:GetUp():Angle() end
+	if FXDir and not FXDir:IsZero() then Angle = FXDir:Angle() else self:GetUp():Angle() end
 
 	local FXPos = self:GetFXPos()
-	if (!FXPos || FXPos==Vector(0,0,0)) then FXPos=self:GetPos() + Angle:Forward() * 12 end
+	if not FXPos or FXDir:IsZero() then FXPos=self:GetPos() + Angle:Forward() * 12 end
 
 	local b, e = pcall( self.Effects[Effect], FXPos, Angle )
 
-	// If there are errors..
 	if (!b) then
-
 		// Report the error
 		Print(self.Effects)
 		Print(FXPos)
@@ -61,7 +46,5 @@ function ENT:Think()
 
 		// Remove the naughty function
 		self.Effects[ Effect ] = nil
-
 	end
-
 end

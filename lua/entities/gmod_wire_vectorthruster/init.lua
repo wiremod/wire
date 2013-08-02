@@ -4,7 +4,7 @@ AddCSLuaFile( "shared.lua" )
 
 include('shared.lua')
 
-ENT.WireDebugName = "Thruster"
+ENT.WireDebugName = "Vector Thruster"
 
 function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )
@@ -117,13 +117,13 @@ function ENT:Setup(force, force_min, force_max, oweffect, uweffect, owater, uwat
 		self.soundname = Sound(soundname)
 	end
 
-	self.mode = mode
+	self.mode = mode or 0
 	self:SetMode( self.mode )
 
 	if (angleinputs) then
 		WireLib.AdjustInputs(self, {"Mul", "Pitch", "Yaw"})
 	else
-		WireLib.AdjustSpecialInputs(self, {"Mul", "X", "Y", "Z", "Vector"}, { "NORMAL", "NORMAL", "NORMAL", "NORMAL", "VECTOR"})
+		WireLib.AdjustInputs(self, {"Mul", "X", "Y", "Z", "Vector [VECTOR]"})
 	end
 end
 
@@ -243,28 +243,7 @@ function ENT:Switch( on, mul )
 	return true
 end
 
-function MakeWireVectorThruster( pl, Pos, Ang, model, force, force_min, force_max, oweffect, uweffect, owater, uwater, bidir, soundname, nocollide, mode, angleinputs)
-	if ( !pl:CheckLimit( "wire_thrusters" ) ) then return false end
-	mode = mode or 0
-
-	local wire_thruster = ents.Create( "gmod_wire_vectorthruster" )
-	if (!wire_thruster:IsValid()) then return false end
-	wire_thruster:SetModel( model )
-
-	wire_thruster:SetAngles( Ang )
-	wire_thruster:SetPos( Pos )
-	wire_thruster:Spawn()
-
-	wire_thruster:Setup(force, force_min, force_max, oweffect, uweffect, owater, uwater, bidir, soundname, mode, angleinputs)
-	wire_thruster:SetPlayer( pl )
-
-	if ( nocollide == true ) then wire_thruster:GetPhysicsObject():EnableCollisions( false ) end
-
-	pl:AddCount( "wire_thrusters", wire_thruster )
-
-	return wire_thruster
-end
-duplicator.RegisterEntityClass("gmod_wire_vectorthruster", MakeWireVectorThruster, "Pos", "Ang", "Model", "force", "force_min", "force_max", "oweffect", "uweffect", "owater", "uwater", "bidir", "soundname", "nocollide", "mode", "angleinputs")
+duplicator.RegisterEntityClass("gmod_wire_vectorthruster", MakeWireEnt, "Data", "force", "force_min", "force_max", "oweffect", "uweffect", "owater", "uwater", "bidir", "soundname", "mode", "angleinputs")
 
 function ENT:OnRestore()
 	local phys = self:GetPhysicsObject()

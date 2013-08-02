@@ -4,15 +4,9 @@ AddCSLuaFile( "shared.lua" )
 
 include('shared.lua')
 
-// wire debug and overlay crap.
 ENT.WireDebugName = "Wire FX Emitter"
-ENT.LastClear     = 0
 
-/*---------------------------------------------------------
-   Name: Initialize
----------------------------------------------------------*/
 function ENT:Initialize()
-
 	self:SetModel( "models/props_lab/tpplug.mdl" )
 	self:PhysicsInit( SOLID_VPHYSICS )
 	self:SetMoveType( MOVETYPE_VPHYSICS )
@@ -22,54 +16,26 @@ function ENT:Initialize()
 	self:SetCollisionGroup( COLLISION_GROUP_WEAPON )
 
 	local phys = self:GetPhysicsObject()
-	if (phys:IsValid()) then
+	if phys:IsValid() then
 		phys:Wake()
 	end
-	self.Inputs = WireLib.CreateSpecialInputs( self, { "On", "Effect", "Delay", "Direction" }, { "NORMAL", "NORMAL", "NORMAL", "VECTOR" } )
-
-	self.datanstuff = {
-		pos = Vector(0,0,0),
-		dir = Vector(0,0,0),
-		on = 0
-	}
+	self.Inputs = WireLib.CreateInputs(self, {"On", "Effect", "Delay", "Direction [VECTOR]"})
 end
 
 function ENT:Setup(delay, effect)
-	self:SetDelay( delay )
-	self:SetEffect( effect )
+	if delay then self:SetDelay(delay) end
+	if effect then self:SetEffect(effect) end
 end
 
 function ENT:TriggerInput( inputname, value, iter )
-	if(not value) then
-		if ( inputname == "On" ) then
-			self:SetOn(0)
-		end
-		return
-	end
-	if (inputname == "Direction") then
-		value = value:GetNormal()
-		self:SetFXDir(value)
-	elseif (inputname == "Effect")  then
-		value = value - value % 1
-		if (value < 1) then
-			value = 1
-		elseif (value > self.fxcount) then
-			value=self.fxcount
-		end
-		self:SetEffect( value )
-	elseif ( inputname == "On" ) then
-		if value ~= 0 then
-			self:SetOn(1)
-		else
-			self:SetOn(0)
-		end
-	elseif ( inputname == "Delay" ) then
-		if (value < 0.05) then
-			value=0.05
-		elseif (value > 20) then
-			value=20
-		end
-		self:SetDelay(value)
+	if inputname == "Direction" then
+		self:SetFXDir(value:GetNormal())
+	elseif inputname == "Effect" then
+		self:SetEffect(math.Clamp(value - value % 1, 1, self.fxcount))
+	elseif inputname == "On" then
+		self:SetOn(value ~= 0)
+	elseif inputname == "Delay" then
+		self:SetDelay(math.Clamp(value, 0.05, 20))
 	--elseif (inputname == "Position") then -- removed for excessive mingability
 	--	self:SetFXPos(value)
 	end
@@ -82,23 +48,5 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 	if info.Delay then self:SetDelay(info.Delay) end
 end
 
-function MakeWireFXEmitter( ply, Pos, Ang, model, delay, effect )
-	if ( !ply:CheckLimit( "wire_fx_emitters" ) ) then return nil end
-
-	local wire_fx_emitter = ents.Create( "gmod_wire_fx_emitter" )
-	if (!wire_fx_emitter:IsValid()) then return false end
-
-	wire_fx_emitter:SetAngles( Ang )
-	wire_fx_emitter:SetPos( Pos )
-	wire_fx_emitter:SetModel(model or "models/props_lab/tpplug.mdl")
-	wire_fx_emitter:Spawn()
-
-	wire_fx_emitter:Setup( delay, effect )
-	wire_fx_emitter:SetPlayer( ply )
-
-	ply:AddCount( "wire_fx_emitters", wire_fx_emitter )
-	ply:AddCleanup( "wire_fx_emitters", wire_fx_emitter )
-
-	return wire_fx_emitter
-end
-duplicator.RegisterEntityClass( "gmod_wire_fx_emitter", MakeWireFXEmitter, "Pos", "Ang", "Model", "delay", "effect" )
+duplicator.RegisterEntityClass("gmod_wire_fx_emitter", MakeWireEnt, "Data", "delay", "effect" )
+-- Note: delay and effect are here for backwards compatibility, they're now stored in the DataTable

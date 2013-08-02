@@ -5,11 +5,12 @@ if ( CLIENT ) then
 	language.Add( "Tool.wire_vthruster.name", "Vector Thruster Tool (Wire)" )
 	language.Add( "Tool.wire_vthruster.desc", "Spawns a vector thruster for use with the wire system." )
 	language.Add( "Tool.wire_vthruster.0", "Primary: Create/Update Vector Thruster" )
-	language.Add( "Tool.wire_vthruster.1", "Primary: Finish" )
+	language.Add( "Tool.wire_vthruster.1", "Primary: Set the Angle, hold Shift to lock to 45 degrees" )
 	language.Add( "WireVThrusterTool_Mode", "Mode:" )
 	language.Add( "WireVThrusterTool_Angle", "Use Yaw/Pitch Inputs Instead" )
-	language.Add( "undone_wirevthruster", "Undone Wire Vector Thruster" )
 end
+WireToolSetup.BaseLang()
+WireToolSetup.SetupMax( 10, TOOL.Mode.."s" , "You've hit the Wire "..TOOL.PluralName.." limit!" )
 
 TOOL.ClientConVar[ "force" ] = "1500"
 TOOL.ClientConVar[ "force_min" ] = "0"
@@ -25,87 +26,35 @@ TOOL.ClientConVar[ "uwater" ] = "1"
 TOOL.ClientConVar[ "mode" ] = "0"
 TOOL.ClientConVar[ "angleinputs" ] = "0"
 
-local degrees = 0
+if SERVER then
+	function TOOL:GetConVars() 
+		return self:GetClientNumber( "force" ), self:GetClientNumber( "force_min" ), self:GetClientNumber( "force_max" ), self:GetClientInfo( "oweffect" ), 
+			self:GetClientInfo( "uweffect" ), self:GetClientNumber( "owater" ) ~= 0, self:GetClientNumber( "uwater" ) ~= 0, self:GetClientNumber( "bidir" ) ~= 0, 
+			self:GetClientInfo( "soundname" ), self:GetClientNumber( "mode" ), self:GetClientNumber( "angleinputs" ) ~= 0
+	end
+end
 
 function TOOL:LeftClick( trace )
 	local numobj = self:NumObjects()
 
 	local ply = self:GetOwner()
 
-	local force       = self:GetClientNumber( "force" )
-	local force_min   = self:GetClientNumber( "force_min" )
-	local force_max   = self:GetClientNumber( "force_max" )
-	local model       = self:GetModel()
-	local bidir       = self:GetClientNumber( "bidir" ) ~= 0
-	local nocollide   = self:GetClientNumber( "collision" ) == 0
-	local soundname   = self:GetClientInfo( "soundname" )
-	local oweffect    = self:GetClientInfo( "oweffect" )
-	local uweffect    = self:GetClientInfo( "uweffect" )
-	local owater      = self:GetClientNumber( "owater" ) ~= 0
-	local uwater      = self:GetClientNumber( "uwater" ) ~= 0
-	local mode        = self:GetClientNumber( "mode" )
-	local angleinputs = self:GetClientNumber( "angleinputs" ) ~= 0
-
 	if (numobj == 0) then
-		if trace.Entity && trace.Entity:IsPlayer() then return false end
+		if IsValid(trace.Entity) and trace.Entity:IsPlayer() then return false end
 
 		// If there's no physics object then we can't constraint it!
 		if ( SERVER && !util.IsValidPhysicsObject( trace.Entity, trace.PhysicsBone ) ) then return false end
-
 		if (CLIENT) then return true end
 
-		// If we shot a wire_thruster change its force
-		if ( trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_vectorthruster" ) then
+		local ent = WireToolObj.LeftClick_Make(self, trace, ply )
+		if ent != true and IsValid(ent) then
+			ent:GetPhysicsObject():EnableMotion( false )
+			self:ReleaseGhostEntity()
 
-			trace.Entity:SetForce( force )
-			trace.Entity:SetEffect( effect )
-			trace.Entity:Setup(force, force_min, force_max, oweffect, uweffect, owater, uwater, bidir, soundname, mode, angleinputs)
-
-			trace.Entity.force       = force
-			trace.Entity.force_min   = force_min
-			trace.Entity.force_max   = force_max
-			trace.Entity.bidir       = bidir
-			trace.Entity.soundname   = soundname
-			trace.Entity.oweffect    = oweffect
-			trace.Entity.uweffect    = uweffect
-			trace.Entity.owater      = owater
-			trace.Entity.uwater      = uwater
-			trace.Entity.nocollide   = nocollide
-			trace.Entity.mode        = mode
-			trace.Entity.angleinputs = angleinputs
-
-			if ( nocollide == true ) then trace.Entity:GetPhysicsObject():EnableCollisions( false ) end
-
-			return true
+			self:SetObject(1, trace.Entity, trace.HitPos, trace.Entity:GetPhysicsObjectNum(trace.PhysicsBone), trace.PhysicsBone, trace.HitNormal)
+			self:SetObject(2, ent, trace.HitPos, Phys, 0, trace.HitNormal)
+			self:SetStage(1)
 		end
-
-		if ( !self:GetSWEP():CheckLimit( "wire_thrusters" ) ) then return false end
-
-		local ang = trace.HitNormal:Angle()
-		ang.pitch = ang.pitch + 90
-
-		local wire_thruster = MakeWireVectorThruster( ply, trace.HitPos, ang, self:GetModel(), force, force_min, force_max, oweffect, uweffect, owater, uwater, bidir, soundname, nocollide, mode, angleinputs )
-
-		local min = wire_thruster:OBBMins()
-		wire_thruster:SetPos( trace.HitPos - trace.HitNormal * min.z )
-
-		undo.Create("WireVThruster")
-			undo.AddEntity( wire_thruster )
-			undo.SetPlayer( ply )
-		undo.Finish()
-
-		local Phys = wire_thruster:GetPhysicsObject()
-		Phys:EnableMotion( false )
-		Phys:Wake()
-
-		if ( !trace.Entity:IsValid() ) then return true end
-
-		self:ReleaseGhostEntity()
-
-		self:SetObject(1, trace.Entity, trace.HitPos, trace.Entity:GetPhysicsObjectNum(trace.PhysicsBone), trace.PhysicsBone, trace.HitNormal)
-		self:SetObject(2, wire_thruster, trace.HitPos, Phys, 0, trace.HitNormal)
-		self:SetStage(1)
-
 	else
 		if (CLIENT) then return true end
 
@@ -113,7 +62,7 @@ function TOOL:LeftClick( trace )
 		local anchorbone = self:GetBone(1)
 		local normal = self:GetNormal(1)
 
-		local const = WireLib.Weld(wire_thruster, anchor, trace.PhysicsBone, true, nocollide)
+		local const = WireLib.Weld(wire_thruster, anchor, trace.PhysicsBone, true, self:GetClientNumber( "collision" ) ~= 0)
 
 		local Phys = wire_thruster:GetPhysicsObject()
 		Phys:EnableMotion( true )
@@ -124,8 +73,8 @@ function TOOL:LeftClick( trace )
 			undo.SetPlayer( ply )
 		undo.Finish()
 
-		ply:AddCleanup( "wire_thrusters", wire_thruster )
-		ply:AddCleanup( "wire_thrusters", const )
+		ply:AddCleanup( "wire_vthrusters", wire_thruster )
+		ply:AddCleanup( "wire_vthrusters", const )
 
 		self:ClearObjects()
 	end
@@ -133,31 +82,9 @@ function TOOL:LeftClick( trace )
 	return true
 end
 
-function TOOL:UpdateGhostWireThruster( ent, player )
-	if ( !ent ) then return end
-	if ( !ent:IsValid() ) then return end
-
-	local trace = player:GetEyeTrace()
-	if (!trace.Hit) then return end
-
-	if (trace.Entity && trace.Entity:GetClass() == "gmod_wire_thruster" || trace.Entity:IsPlayer()) then
-		ent:SetNoDraw( true )
-		return
-	end
-
-	local Ang = trace.HitNormal:Angle()
-	Ang.pitch = Ang.pitch + 90
-
-	local min = ent:OBBMins()
-	 ent:SetPos( trace.HitPos - trace.HitNormal * min.z )
-	ent:SetAngles( Ang )
-
-	ent:SetNoDraw( false )
-end
-
+local degrees = 0
 
 function TOOL:Think()
-
 	if (self:NumObjects() > 0) then
 		if ( SERVER ) then
 			local Phys2 = self:GetPhys(2)
@@ -173,13 +100,7 @@ function TOOL:Think()
 			Phys2:Wake()
 		end
 	else
-		local model = self:GetModel()
-
-		if (!self.GhostEntity || !self.GhostEntity:IsValid() || self.GhostEntity:GetModel() != model ) then
-			self:MakeGhostEntity( Model(model), Vector(0,0,0), Angle(0,0,0) )
-		end
-
-		self:UpdateGhostWireThruster( self.GhostEntity, self:GetOwner() )
+		WireToolObj.Think(self) -- Basic ghost
 	end
 end
 
@@ -190,6 +111,9 @@ if (CLIENT) then
 end
 
 function TOOL:Holster()
+	if self:NumObjects() > 0 and IsValid(self:GetEnt(2)) then
+		self:GetEnt(2):Remove()
+	end
 	self:ClearObjects()
 end
 

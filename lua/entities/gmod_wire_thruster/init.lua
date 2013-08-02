@@ -260,29 +260,4 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 
 end
 
-
-function MakeWireThruster( pl, Pos, Ang, model, force, force_min, force_max, oweffect, uweffect, owater, uwater, bidir, soundname, nocollide )
-	if not pl:CheckLimit( "wire_thrusters" ) then return false end
-
-	local wire_thruster = ents.Create( "gmod_wire_thruster" )
-	if not wire_thruster:IsValid() then return false end
-	wire_thruster:SetModel( model )
-
-	wire_thruster:SetAngles( Ang )
-	wire_thruster:SetPos( Pos )
-	wire_thruster:Spawn()
-
-	wire_thruster:Setup(force, force_min, force_max, oweffect, uweffect, owater, uwater, bidir, soundname)
-	wire_thruster:SetPlayer( pl )
-	wire_thruster.pl = pl
-	wire_thruster.nocollide = nocollide
-
-	if nocollide == true then wire_thruster:GetPhysicsObject():EnableCollisions( false ) end
-
-	pl:AddCount( "wire_thrusters", wire_thruster )
-
-	return wire_thruster
-end
-
-duplicator.RegisterEntityClass("gmod_wire_thruster", MakeWireThruster, "Pos", "Ang", "Model", "force", "force_min", "force_max", "oweffect", "uweffect", "owater", "uwater", "bidir", "soundname", "nocollide")
-
+duplicator.RegisterEntityClass("gmod_wire_thruster", MakeWireEnt, "Data", "force", "force_min", "force_max", "oweffect", "uweffect", "owater", "uwater", "bidir", "soundname")
