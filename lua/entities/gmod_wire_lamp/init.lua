@@ -5,11 +5,7 @@ include('shared.lua')
 
 ENT.WireDebugName = "Lamp"
 
-local MODEL = Model( "models/maxofs2d/lamp_flashlight.mdl" )
-
 function ENT:Initialize()
-	
-	self:SetModel( MODEL )
 	self:PhysicsInit( SOLID_VPHYSICS )
 	self:SetMoveType( MOVETYPE_VPHYSICS )
 	self:SetSolid( SOLID_VPHYSICS )
@@ -124,7 +120,7 @@ end
 
 include('shared.lua')
 
-function MakeWireLamp( pl, r, g, b, Texture, fov, dist, brightness, Data )
+function MakeWireLamp( pl, r, g, b, Texture, fov, dist, brightness, model, Data )
 
 	if ( !pl:CheckLimit( "wire_lamps" ) ) then return false end
 
@@ -132,6 +128,7 @@ function MakeWireLamp( pl, r, g, b, Texture, fov, dist, brightness, Data )
 	if (!wire_lamp:IsValid()) then return end
 		duplicator.DoGeneric( wire_lamp, Data )
 		wire_lamp:Setup( r or 255, g or 255, b or 255, Texture or "effects/flashlight001", fov or 90, dist or 1024, brightness or 8 )
+	wire_lamp:SetModel( model or "models/MaxOfS2D/lamp_projector.mdl" )
 	wire_lamp:Spawn()
 	wire_lamp:UpdateLight()
 	
@@ -146,4 +143,4 @@ function MakeWireLamp( pl, r, g, b, Texture, fov, dist, brightness, Data )
 	return wire_lamp
 end
 
-duplicator.RegisterEntityClass( "gmod_wire_lamp", MakeWireLamp, "r", "g", "b", "Texture", "FOV", "Dist", "Brightness", "Data" )
+duplicator.RegisterEntityClass( "gmod_wire_lamp", MakeWireLamp, "r", "g", "b", "Texture", "FOV", "Dist", "Brightness", "model", "Data" )
