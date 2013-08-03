@@ -18,22 +18,31 @@ end
 ---------------------------------------------------------*/
 function ENT:DrawTranslucent()
 
-	local LightNrm = self:GetAngles():Up()*(-1)
-	local ViewDot = EyeVector():Dot( LightNrm )
-	local LightPos = self:GetPos() + LightNrm * -10
-
-	// glow sprite
-
-	if ( ViewDot < 0 ) then return end
-
-	render.SetMaterial( matLight )
-	local Visible	= util.PixelVisible( LightPos, 16, self.PixVis )
-	local Size = math.Clamp( 512 * (1 - Visible*ViewDot),128, 512 )
+	local up = self:GetAngles():Up()
 	
-	local c = self:GetColor()
-	c.a = 200*Visible*ViewDot
+	local LightPos = self:GetPos()
+	render.SetMaterial( matLight )
+	
+	local ViewNormal = self:GetPos() - EyePos()
+	local Distance = ViewNormal:Length()
+	ViewNormal:Normalize()
+		
+	local Visibile	= util.PixelVisible( LightPos, 4, self.PixVis )	
+	
+	if ( !Visibile || Visibile < 0.1 ) then return end
 
-	render.DrawSprite( LightPos, Size, Size, c, Visible * ViewDot )
+	local c = self:GetColor()
+	c.a = 255 * Visibile
+	
+	if self:GetModel() == "models/maxofs2d/light_tubular.mdl" then
+		render.DrawSprite( LightPos - up * 2, 8, 8, c, Visibile )
+		render.DrawSprite( LightPos - up * 4, 8, 8, c, Visibile )
+		render.DrawSprite( LightPos - up * 6, 8, 8, c, Visibile )
+		render.DrawSprite( LightPos - up * 5, 64, 64, c, Visibile )
+	else
+		if self:GetModel() == "models/jaanus/wiretool/wiretool_siren.mdl" then c.a = 255 * -Visibile end
+		render.DrawSprite( LightPos + up * ( self:OBBMaxs() - self:OBBMins() ) / 2, 128, 128, c, Visibile )
+	end
 
 end
 
@@ -44,9 +53,7 @@ function ENT:Think()
 
 		local dlight = DynamicLight( self:EntIndex() )
 		if ( dlight ) then
-			local LightNrm = self:GetAngles():Up()*(-1)
-
-			dlight.Pos = self:GetPos() + LightNrm * -10
+			dlight.Pos = self:GetPos()
 			
 			local c = self:GetColor()
 			dlight.r = c.r
