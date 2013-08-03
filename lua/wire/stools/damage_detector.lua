@@ -9,7 +9,7 @@ if CLIENT then
 	language.Add( "Tool.wire_damage_detector.includeconstrained", "Include Constrained Props" )
 end
 WireToolSetup.BaseLang()
-WireToolSetup.SetupMax( 10, TOOL.Mode.."s" , "You've hit the Wire "..TOOL.PluralName.." limit!" )
+WireToolSetup.SetupMax( 10 )
 
 TOOL.ClientConVar = {
 	model = "models/jaanus/wiretool/wiretool_siren.mdl",

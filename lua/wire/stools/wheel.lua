@@ -12,7 +12,7 @@ if CLIENT then
 	language.Add( "tool.wire_wheel.group_desc", "All these values need to be different." )
 end
 WireToolSetup.BaseLang()
-WireToolSetup.SetupMax( 30, TOOL.Mode.."s" , "You've hit the Wire "..TOOL.PluralName.." limit!" )
+WireToolSetup.SetupMax( 30 )
 
 TOOL.ClientConVar = {
 	torque 		= 3000,

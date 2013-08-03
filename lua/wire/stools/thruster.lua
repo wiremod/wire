@@ -16,7 +16,7 @@ if CLIENT then
 	language.Add( "WireThrusterTool_uwater", "Works under water" )
 end
 WireToolSetup.BaseLang()
-WireToolSetup.SetupMax( 10, TOOL.Mode.."s" , "You've hit the Wire "..TOOL.PluralName.." limit!" )
+WireToolSetup.SetupMax( 10 )
 
 TOOL.ClientConVar = {
 	force		= 1500,

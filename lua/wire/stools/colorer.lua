@@ -11,7 +11,7 @@ if CLIENT then
     language.Add( "WireColorerTool_Model", "Choose a Model:")
 end
 WireToolSetup.BaseLang()
-WireToolSetup.SetupMax( 20, TOOL.Mode.."s" , "You've hit the Wire "..TOOL.PluralName.." limit!" )
+WireToolSetup.SetupMax( 20 )
 
 if SERVER then
 	function TOOL:GetConVars() 

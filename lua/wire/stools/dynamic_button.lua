@@ -11,7 +11,7 @@ if CLIENT then
 	language.Add( "WireDynamicButtonTool_value_off", "Value Off:" )
 end
 WireToolSetup.BaseLang("Dynamic Buttons")
-WireToolSetup.SetupMax( 20, TOOL.Mode.."s" , "You've hit the Wire "..TOOL.PluralName.." limit!" )
+WireToolSetup.SetupMax( 20 )
 
 if SERVER then
 	function TOOL:GetConVars() 

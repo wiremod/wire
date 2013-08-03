@@ -14,7 +14,7 @@ if CLIENT then
 	language.Add( "WireAdvInputTool_speed", "Change per second:" )
 end
 WireToolSetup.BaseLang("Adv. Inputs")
-WireToolSetup.SetupMax( 20, TOOL.Mode.."s" , "You've hit the Wire "..TOOL.PluralName.." limit!" )
+WireToolSetup.SetupMax( 20 )
 
 if SERVER then
 	ModelPlug_Register("Numpad")

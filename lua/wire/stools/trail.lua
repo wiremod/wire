@@ -9,7 +9,7 @@ if CLIENT then
 	language.Add( "WireTrailTool_mat", "Material:" )
 end
 WireToolSetup.BaseLang()
-WireToolSetup.SetupMax( 20, TOOL.Mode.."s" , "You've hit the Wire "..TOOL.PluralName.." limit!" )
+WireToolSetup.SetupMax( 20 )
 
 TOOL.ClientConVar = {
 	material = ""

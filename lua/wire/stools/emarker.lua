@@ -8,7 +8,7 @@ if CLIENT then
 	language.Add( "Tool.wire_emarker.1", "Now select the entity to link to.")
 end
 WireToolSetup.BaseLang()
-WireToolSetup.SetupMax( 30, TOOL.Mode.."s" , "You've hit the Wire "..TOOL.PluralName.." limit!" )
+WireToolSetup.SetupMax( 30 )
 
 TOOL.ClientConVar = {
 	model = "models/jaanus/wiretool/wiretool_siren.mdl",

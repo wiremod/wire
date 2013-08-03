@@ -9,7 +9,7 @@ if CLIENT then
 	language.Add( "undone_wireclutch", "Undone Wire Clutch" )
 end
 WireToolSetup.BaseLang()
-WireToolSetup.SetupMax( 8, TOOL.Mode.."s" , "You've hit the Wire "..TOOL.PluralName.." limit!" )
+WireToolSetup.SetupMax( 8 )
 
 if SERVER then
 	CreateConVar( "wire_clutch_maxlinks", 10 )	-- how many constraints can be added per controller

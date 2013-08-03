@@ -372,7 +372,8 @@ end
 
 --
 function WireToolSetup.SetupMax( i_limit, s_maxlimitname , s_warning )
-	TOOL.MaxLimitName = s_maxlimitname
+	TOOL.MaxLimitName = s_maxlimitname or TOOL.WireClass
+	s_warning = s_warning or "You've hit the Wire "..TOOL.PluralName.." limit!"
 	if CLIENT then
 		language.Add("SBoxLimit_"..TOOL.MaxLimitName, s_warning)
 		AddWireAdminMaxDevice(TOOL.PluralName, TOOL.MaxLimitName)

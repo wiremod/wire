@@ -8,7 +8,7 @@ if CLIENT then
 	language.Add( "Tool.wire_output.keygroup", "Key:" )
 end
 WireToolSetup.BaseLang()
-WireToolSetup.SetupMax( 10, TOOL.Mode.."s" , "You've hit the Wire "..TOOL.PluralName.." limit!" )
+WireToolSetup.SetupMax( 10 )
 
 if SERVER then
 	ModelPlug_Register("Numpad")

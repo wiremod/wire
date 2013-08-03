@@ -7,7 +7,7 @@ if ( CLIENT ) then
 	language.Add( "Tool.wire_addressbus.0", "Primary: Create/Update address bus" )
 end
 WireToolSetup.BaseLang()
-WireToolSetup.SetupMax( 20, TOOL.Mode.."s" , "You've hit the Wire "..TOOL.PluralName.." limit!" )
+WireToolSetup.SetupMax( 20 )
 
 TOOL.ClientConVar[ "model" ] = "models/jaanus/wiretool/wiretool_gate.mdl"
 TOOL.ClientConVar[ "addrspace1sz" ] = 0

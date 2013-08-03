@@ -8,7 +8,7 @@ if CLIENT then
 	language.Add( "tool.wire_hoverball.starton", "Create with hover mode on" )
 end
 WireToolSetup.BaseLang("Hoverballs")
-WireToolSetup.SetupMax( 30, TOOL.Mode.."s" , "You've hit the Wire "..TOOL.PluralName.." limit!" )
+WireToolSetup.SetupMax( 30 )
 
 TOOL.ClientConVar = {
 	model		= "models/dav0r/hoverball.mdl",

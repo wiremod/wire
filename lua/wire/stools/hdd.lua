@@ -7,7 +7,7 @@ if ( CLIENT ) then
 	language.Add( "Tool.wire_hdd.0", "Primary: Create/Update flash memory" )
 end
 WireToolSetup.BaseLang()
-WireToolSetup.SetupMax( 20, TOOL.Mode.."s" , "You've hit the Wire "..TOOL.PluralName.." limit!" )
+WireToolSetup.SetupMax( 20 )
 
 if (SERVER) then
 	function TOOL:GetConVars() 

@@ -7,7 +7,7 @@ if CLIENT then
 	language.Add( "tool.wire_forcer.0", "Primary: Create/Update Forcer" )
 end
 WireToolSetup.BaseLang()
-WireToolSetup.SetupMax( 20, TOOL.Mode.."s" , "You've hit the Wire "..TOOL.PluralName.." limit!" )
+WireToolSetup.SetupMax( 20 )
 
 TOOL.ClientConVar = {
 	multiplier	= 1,

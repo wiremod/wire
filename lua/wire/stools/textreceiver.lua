@@ -14,7 +14,7 @@ if ( CLIENT ) then
 	end
 end
 WireToolSetup.BaseLang()
-WireToolSetup.SetupMax( 10, TOOL.Mode.."s" , "You've hit the Wire "..TOOL.PluralName.." limit!" )
+WireToolSetup.SetupMax( 10 )
 
 TOOL.ClientConVar["case_insensitive"] = 1
 TOOL.ClientConVar["use_lua_patterns"] = 0

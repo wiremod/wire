@@ -39,7 +39,7 @@ if CLIENT then
 	language.Add( "WireTargetFinderTool_onbuddylist", "Target Only Buddys (EXPERIMENTAL!)" )
 end
 WireToolSetup.BaseLang()
-WireToolSetup.SetupMax( 20, TOOL.Mode.."s" , "You've hit the Wire "..TOOL.PluralName.." limit!" )
+WireToolSetup.SetupMax( 20 )
 
 if SERVER then
 	ModelPlug_Register("Numpad")

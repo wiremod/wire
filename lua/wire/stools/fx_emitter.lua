@@ -8,7 +8,7 @@ if ( CLIENT ) then
 	language.Add( "Tool.wire_fx_emitter.delay", "Delay between effect pulses" )
 end
 WireToolSetup.BaseLang()
-WireToolSetup.SetupMax( 20, TOOL.Mode.."s" , "You've hit the Wire "..TOOL.PluralName.." limit!" )
+WireToolSetup.SetupMax( 20 )
 
 TOOL.ClientConVar = {
 	model = "models/props_lab/tpplug.mdl",
