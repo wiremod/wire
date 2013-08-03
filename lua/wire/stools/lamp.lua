@@ -24,12 +24,13 @@ if SERVER then
 		self:GetClientInfo( "texture" ),
 		self:GetClientNumber( "fov" ),
 		self:GetClientNumber( "distance" ),
-		self:GetClientNumber( "brightness" )
+		self:GetClientNumber( "brightness" ),
+		self:GetClientInfo( "model" )
 	end
 
 	function TOOL:MakeEnt( ply, model, Ang, trace )
-		local r, g, b, Texture, fov, dist, brightness = self:GetConVars()
-		return MakeWireLamp( ply, r, g, b, Texture, fov, dist, brightness, { Pos = trace.HitPos, Angle = Ang } )
+		local r, g, b, Texture, fov, dist, brightness, model = self:GetConVars()
+		return MakeWireLamp( ply, r, g, b, Texture, fov, dist, brightness, model, { Pos = trace.HitPos, Angle = Ang } )
 	end
 
 	function TOOL:LeftClick_PostMake( ent, ply, trace )
@@ -92,8 +93,6 @@ function TOOL:SetPos( ent, trace )
 	ent:SetPos(trace.HitPos + trace.HitNormal * 10)
 end
 
---TOOL.GhostAngle = Angle(180, 0, 0)
-TOOL.Model = "models/MaxOfS2D/lamp_flashlight.mdl"
 TOOL.ClientConVar = {
 	ropelength   = 64,
 	ropematerial = "cable/rope",
@@ -104,7 +103,8 @@ TOOL.ClientConVar = {
 	texture      = "effects/flashlight001",
 	fov 		 = 90,
 	distance 	 = 1024,
-	brightness 	 = 8
+	brightness 	 = 8,
+	model		 = "models/lamps/torch.mdl"
 }
 
 -- Spawn a lamp without constraints (just frozen)
@@ -134,7 +134,8 @@ end
 
 function TOOL.BuildCPanel(panel)
 	WireToolHelpers.MakePresetControl(panel, "wire_lamp")
-		
+	
+	WireDermaExts.ModelSelect(panel, "wire_lamp_model", list.Get( "LampModels" ), 1)
 	panel:NumSlider("#WireLampTool_RopeLength", "wire_lamp_ropelength", 4, 400, 0)
 	panel:NumSlider("#WireLampTool_FOV", "wire_lamp_fov", 10, 170, 2)
 	panel:NumSlider("#WireLampTool_Dist", "wire_lamp_distance", 64, 2048, 0)
