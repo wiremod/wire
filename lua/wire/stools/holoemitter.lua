@@ -10,7 +10,7 @@ if CLIENT then
 	language.Add( "Tool_wire_holoemitter_keeplatestdot", "Keep latest dot indefinitely (prevent fading)." )
 end
 WireToolSetup.BaseLang()
-WireToolSetup.SetupMax( 10, "wire_holoemitters", "You've hit the holoemitters limit!" )
+WireToolSetup.SetupMax( 10 )
 
 if SERVER then
 	function TOOL:MakeEnt( ply, model, Ang, trace )

@@ -1,5 +1,5 @@
 WireToolSetup.setCategory( "I/O" )
-WireToolSetup.open( "textreceiver", "Text Receiver", "gmod_wire_pod", nil, "Text Receivers" )
+WireToolSetup.open( "textreceiver", "Text Receiver", "gmod_wire_textreceiver", nil, "Text Receivers" )
 
 if ( CLIENT ) then
 	language.Add( "Tool.wire_textreceiver.name", "Text Receiver Tool (Wire)" )

@@ -7,7 +7,7 @@ if CLIENT then
 	language.Add( "tool.wire_digitalscreen.0", "Primary: Create/Update screen" )
 end
 WireToolSetup.BaseLang()
-WireToolSetup.SetupMax( 20, "wire_digitalscreens", "You've hit digital screens limit!" )
+WireToolSetup.SetupMax( 20 )
 
 if SERVER then
 	function TOOL:GetConVars()

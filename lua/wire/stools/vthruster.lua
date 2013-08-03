@@ -10,7 +10,7 @@ if ( CLIENT ) then
 	language.Add( "WireVThrusterTool_Angle", "Use Yaw/Pitch Inputs Instead" )
 end
 WireToolSetup.BaseLang()
-WireToolSetup.SetupMax( 10, TOOL.Mode.."s" , "You've hit the Wire "..TOOL.PluralName.." limit!" )
+WireToolSetup.SetupMax( 10 )
 
 TOOL.ClientConVar[ "force" ] = "1500"
 TOOL.ClientConVar[ "force_min" ] = "0"
