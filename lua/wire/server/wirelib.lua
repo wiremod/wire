@@ -1118,7 +1118,7 @@ function WireLib.dummytrace(ent)
 end
 
 function MakeWireEnt( pl, Data, ... )
-	if IsValid(pl) and not pl:CheckLimit( Data.Class ) then return false end
+	if IsValid(pl) and not pl:CheckLimit(Data.Class:sub(6).."s") then return false end
 	
 	local ent = duplicator.GenericDuplicatorFunction( pl, Data )
 	if not IsValid(ent) then return false end
@@ -1126,7 +1126,7 @@ function MakeWireEnt( pl, Data, ... )
 	ent:SetPlayer(pl)
 	if ent.Setup then ent:Setup(...) end
 
-	if IsValid(pl) then pl:AddCount( Data.Class, ent ) end
+	if IsValid(pl) then pl:AddCount( Data.Class:sub(6).."s", ent ) end
 
 	return ent
 end
