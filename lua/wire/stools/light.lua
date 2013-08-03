@@ -13,11 +13,10 @@ if CLIENT then
 	language.Add( "WireLightTool_radiant", "Radiant Component" )
 	language.Add( "WireLightTool_glow", "Glow Component" )
 	language.Add( "WireLightTool_const", "Constraint:" )
-	language.Add( "WireLightTool_color", "Color:" )
+	language.Add( "WireLightTool_color", "Initial Color:" )
 end
 WireToolSetup.BaseLang()
-
-WireToolSetup.SetupMax( 8, "wire_lights", "You've hit lights limit!" )
+WireToolSetup.SetupMax(8)
 
 if SERVER then
 	function TOOL:GetConVars()
@@ -31,10 +30,6 @@ if SERVER then
 			self:GetClientNumber("r"),
 			self:GetClientNumber("g"),
 			self:GetClientNumber("b")
-	end
-
-	function TOOL:MakeEnt( ply, model, Ang, trace )
-		return MakeWireLight( ply, trace.HitPos, Ang, model, self:GetConVars() )
 	end
 	
 	function TOOL:LeftClick_PostMake( ent, ply, trace )
@@ -68,6 +63,8 @@ if SERVER then
 			end
 
 			local constraint, rope = constraint.Rope( ent, trace.Entity, 0, trace.PhysicsBone, LPos1, LPos2, 0, length, 0, 1.5, material, nil )
+			
+			ent:GetPhysicsObject():Wake()
 
 			undo.Create( self.WireClass )
 				undo.AddEntity( ent )

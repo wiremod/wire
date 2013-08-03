@@ -105,8 +105,7 @@ function ENT:Initialize()
 end
 
 function ENT:OnRemove()
-	if (!self.RadiantComponent) then return end
-	if not self.RadiantComponent:IsValid() then return end
+	if not IsValid(self.RadiantComponent) then return end
 	self.RadiantComponent:SetParent() //Bugfix by aVoN
 	self.RadiantComponent:Fire("TurnOff","",0)
 	self.RadiantComponent:Fire("kill","",1)
@@ -210,10 +209,12 @@ function ENT:TriggerInput(iname, value)
 	elseif (iname == "GlowSize") then
 		self:SetSize(value)
 	end
-	self:ShowOutput( R, G, B )
+	if ( R ~= self.R or G ~= self.G or B ~= self.B ) then
+		self:SetRGB( R, G, B )
+	end
 end
 
-function ENT:Setup(directional, radiant, glow)
+function ENT:Setup(directional, radiant, glow, brightness, size, decay, r, g, b)
 	self.directional = directional
 	self.radiant = radiant
 	self.glow = glow
@@ -246,71 +247,34 @@ function ENT:Setup(directional, radiant, glow)
 			self:GlowOff()
 		end
 	end
-end
-
-function ENT:ShowOutput( R, G, B )
-	if ( R ~= self.R or G ~= self.G or B ~= self.B ) then
-		if (((R + G) + B) != 0) then
-			if (self.directional) then
-				if (!self.DirectionalComponent) then
-					self:DirectionalOn()
-				end
-				self.DirectionalComponent:SetKeyValue( "lightcolor", Format( "%i %i %i", R, G, B ) )
-			end
-			if (self.radiant) then
-				if (!self.RadiantState) then
-					self:RadiantOn()
-				end
-				self.RadiantComponent:SetColor(Color(R, G, B, 255))
-			end
-		else
-			self:DirectionalOff()
-			self:RadiantOff()
-		end
-		self:SetOverlayText( "Red:" .. R .. " Green:" .. G .. " Blue:" .. B )
-		self.R, self.G, self.B = R, G, B
-		self:SetColor(Color(R, G, B, self:GetColor().a))
-	end
-end
-
-function MakeWireLight( pl, Pos, Ang, model, directional, radiant, glow, brightness, size, decay, r, g, b, nocollide, frozen )
-	if ( !pl:CheckLimit( "wire_lights" ) ) then return false end
-
-	local wire_light = ents.Create( "gmod_wire_light" )
-	if (!wire_light:IsValid()) then return false end
-
-	wire_light:SetAngles( Ang )
-	wire_light:SetPos( Pos )
-	wire_light:SetModel( model )
-	wire_light:Spawn()
-
-	r, g, b = r or 0, g or 0, b or 0
-	wire_light:ShowOutput( r, g, b )
 	
-	wire_light:SetColor( Color( r, g, b ) )
-	wire_light:SetBrightness( brightness or 2 )
-	wire_light:SetDecay( decay or 1280 )
-	wire_light:SetSize( size or 256 )
-
-	wire_light:Setup(directional, radiant, glow)
-	wire_light:SetPlayer(pl)
-
-	if wire_light:GetPhysicsObject():IsValid() then
-		local Phys = wire_light:GetPhysicsObject()
-		if nocollide == true then
-			Phys:EnableCollisions(false)
-		end
-		Phys:EnableMotion(!frozen)
-	end
-
-	local ttable = {
-		pl	= pl,
-		nocollide = nocollide
-	}
-	table.Merge(wire_light:GetTable(), ttable )
-
-	pl:AddCount( "wire_lights", wire_light )
-
-	return wire_light
+	self:SetBrightness( brightness or 2 )
+	self:SetSize( size or 256 )
+	self:SetDecay( decay or 1280 )
+	self:SetRGB( r or 0, g or 0, b or 0 )
 end
-duplicator.RegisterEntityClass("gmod_wire_light", MakeWireLight, "Pos", "Ang", "Model", "directional", "radiant", "glow", "brightness", "size", "decay", "R", "G", "B", "nocollide", "frozen")
+
+function ENT:SetRGB( R, G, B )
+	if (((R + G) + B) != 0) then
+		if (self.directional) then
+			if (!self.DirectionalComponent) then
+				self:DirectionalOn()
+			end
+			self.DirectionalComponent:SetKeyValue( "lightcolor", Format( "%i %i %i", R, G, B ) )
+		end
+		if (self.radiant) then
+			if (!self.RadiantState) then
+				self:RadiantOn()
+			end
+			self.RadiantComponent:SetColor(Color(R, G, B, 255))
+		end
+	else
+		self:DirectionalOff()
+		self:RadiantOff()
+	end
+	self:SetOverlayText( "Red:" .. R .. " Green:" .. G .. " Blue:" .. B )
+	self.R, self.G, self.B = R, G, B
+	self:SetColor(Color(R, G, B, self:GetColor().a))
+end
+
+duplicator.RegisterEntityClass("gmod_wire_light", MakeWireEnt, "Data", "directional", "radiant", "glow", "brightness", "size", "decay", "R", "G", "B")
