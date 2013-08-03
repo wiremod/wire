@@ -80,12 +80,6 @@ if CLIENT then
 end
 
 -- Server
-
-AddCSLuaFile( "cl_init.lua" )
-AddCSLuaFile( "shared.lua" )
-include('shared.lua')
-
-ENT.WireDebugName = "Graphics Tablet"
 ENT.outputMode = false
 
 function ENT:Initialize()
