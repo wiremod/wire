@@ -31,9 +31,16 @@ function ENT:Initialize()
 	self.Volume = 5
 	self.Pitch = 100
 	self.Sample = self.Samples[1]
+
+	self.NeedsRefresh = true
+
+	hook.Add("PlayerConnect", self:GetClass() .. self:EntIndex(), function()
+		self.NeedsRefresh = true
+	end)
 end
 
 function ENT:OnRemove()
+	hook.Remove("PlayerConnect", self:GetClass() .. self:EntIndex())
 	self:StopSounds()
 	self.BaseClass.OnRemove(self)
 end
@@ -90,7 +97,8 @@ function ENT:TriggerInput(iname, value)
 end
 
 function ENT:UpdateSound()
-	if self.Sample ~= self.ActiveSample then
+	if self.NeedsRefresh or self.Sample ~= self.ActiveSample then
+		self.NeedsRefresh = nil
 		self.Sound = CreateSound(self, Sound(self.Sample))
 		self.ActiveSample = self.Sample
 		if self.Active then self:StartSounds() end
@@ -111,6 +119,9 @@ function ENT:SetSound(soundName)
 end
 
 function ENT:StartSounds()
+	if self.NeedsRefresh then
+		self:UpdateSound()
+	end
 	if self.Sound then
 		self.Sound:Play()
 	end
