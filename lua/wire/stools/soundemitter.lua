@@ -23,6 +23,8 @@ end
 TOOL.ClientConVar = {
 	model     = "models/cheeze/wires/speaker.mdl",
 	sound     = "synth/square.wav",
+	collision = 0,
+	weld      = 1
 }
 function TOOL.BuildCPanel(panel)
 
