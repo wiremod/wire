@@ -6,7 +6,7 @@ ENT.WireDebugName = "No Name"
 
 local BaseClass = baseclass.Get("base_gmodentity")
 
--- We want more fine-grained control over the networking of the oerlay text,
+-- We want more fine-grained control over the networking of the overlay text,
 -- so we don't just immediately send it like base_gmodentity does.
 function ENT:SetOverlayText( txt )
 	self.OverlayText = txt
