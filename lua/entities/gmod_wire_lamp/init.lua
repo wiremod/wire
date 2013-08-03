@@ -17,7 +17,6 @@ function ENT:Initialize()
 	end
 
 	self.Inputs = WireLib.CreateSpecialInputs(self, {"Red", "Green", "Blue", "RGB", "FOV", "Distance", "Brightness", "On", "Texture"}, {"NORMAL", "NORMAL", "NORMAL", "VECTOR", "NORMAL", "NORMAL", "NORMAL", "NORMAL", "STRING"})
-	self:TurnOn()
 end
 
 function ENT:SetLightColor( r, g, b )
@@ -110,37 +109,14 @@ function ENT:UpdateLight()
 end
 
 function ENT:Setup( r, g, b, Texture, fov, dist, brightness )
-	self:SetLightColor( r, g, b )
+	self:SetLightColor( r or 255, g or 255, b or 255 )
 	
-	self.Texture = Texture
-	self.FOV = fov
-	self.Dist = dist
-	self.Brightness = brightness
+	self.Texture = Texture or "effects/flashlight001"
+	self.FOV = fov or 90
+	self.Dist = dist or 1024
+	self.Brightness = brightness or 8
+	self:UpdateLight()
+	self:TurnOn()
 end
 
-include('shared.lua')
-
-function MakeWireLamp( pl, r, g, b, Texture, fov, dist, brightness, model, Data )
-
-	if ( !pl:CheckLimit( "wire_lamps" ) ) then return false end
-
-	local wire_lamp = ents.Create( "gmod_wire_lamp" )
-	if (!wire_lamp:IsValid()) then return end
-		duplicator.DoGeneric( wire_lamp, Data )
-		wire_lamp:Setup( r or 255, g or 255, b or 255, Texture or "effects/flashlight001", fov or 90, dist or 1024, brightness or 8 )
-	wire_lamp:SetModel( model or "models/MaxOfS2D/lamp_projector.mdl" )
-	wire_lamp:Spawn()
-	wire_lamp:UpdateLight()
-	
-	duplicator.DoGenericPhysics( wire_lamp, pl, Data )
-
-	wire_lamp:SetPlayer( pl )
-	wire_lamp.pl = pl
-
-	pl:AddCount( "wire_lamps", wire_lamp )
-	pl:AddCleanup( "wire_lamp", wire_lamp )
-
-	return wire_lamp
-end
-
-duplicator.RegisterEntityClass( "gmod_wire_lamp", MakeWireLamp, "r", "g", "b", "Texture", "FOV", "Dist", "Brightness", "model", "Data" )
+duplicator.RegisterEntityClass( "gmod_wire_lamp", MakeWireEnt, "Data", "r", "g", "b", "Texture", "FOV", "Dist", "Brightness" )

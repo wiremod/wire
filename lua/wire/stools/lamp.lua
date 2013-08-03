@@ -13,8 +13,7 @@ if CLIENT then
 	language.Add( "WireLampTool_Color", "Color:" )
 end
 WireToolSetup.BaseLang()
-
-WireToolSetup.SetupMax( 10, "wire_lamps", "You've hit lamps limit!" )
+WireToolSetup.SetupMax( 10 )
 
 if SERVER then
 	function TOOL:GetConVars()
@@ -24,13 +23,7 @@ if SERVER then
 		self:GetClientInfo( "texture" ),
 		self:GetClientNumber( "fov" ),
 		self:GetClientNumber( "distance" ),
-		self:GetClientNumber( "brightness" ),
-		self:GetClientInfo( "model" )
-	end
-
-	function TOOL:MakeEnt( ply, model, Ang, trace )
-		local r, g, b, Texture, fov, dist, brightness, model = self:GetConVars()
-		return MakeWireLamp( ply, r, g, b, Texture, fov, dist, brightness, model, { Pos = trace.HitPos, Angle = Ang } )
+		self:GetClientNumber( "brightness" )
 	end
 
 	function TOOL:LeftClick_PostMake( ent, ply, trace )
