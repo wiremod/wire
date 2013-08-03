@@ -1,16 +1,7 @@
-
 AddCSLuaFile()
 DEFINE_BASECLASS( "base_wire_entity" )
-
 ENT.PrintName		= "Wire GPULib Controller"
-ENT.Author			= ""
-ENT.Contact			= ""
-ENT.Purpose			= ""
-ENT.Instructions	= ""
-ENT.RenderGroup 	= RENDERGROUP_BOTH
-
-ENT.Spawnable			= false
-ENT.AdminSpawnable		= false
+ENT.RenderGroup 	= RENDERGROUP_OPAQUE
 
 ENT.WireDebugName = "GPULib Controller"
 
