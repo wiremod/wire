@@ -61,7 +61,6 @@ end
 function ENT:SetForce( force, mul )
 	if (force) then
 		self.force = force
-		self:NetSetForce( force )
 	end
 	mul = mul or 1
 
@@ -202,7 +201,7 @@ end
 
 function ENT:Switch( on, mul )
 	if (!self:IsValid()) then return false end
-	self.mul = mul
+	self.mul = mul or 0
 
 	local changed = (self:IsOn() ~= on)
 	self:SetOn( on )
@@ -212,8 +211,6 @@ function ENT:Switch( on, mul )
 			self:StopSound( self.soundname )
 			self:EmitSound( self.soundname )
 		end
-
-		self:NetSetMul( mul )
 
 		if (mul ~= self.PrevOutput) then
 			self.PrevOutput = mul
@@ -234,6 +231,14 @@ function ENT:Switch( on, mul )
 	if (phys:IsValid()) then
 		phys:Wake()
 	end
+
+	local mode = self:GetMode()
+	self:SetOverlayText(string.format("Force Mul: %.2f\nInput: %.2f\nForce Applied: %.2f\nMode: %s",
+		self.force,
+		self.mul,
+		self.force * self.mul,
+		(mode == 0 and "XYZ Local") or (mode == 1 and "XYZ World") or (mode == 2 and "XY Local, Z World")
+	))
 
 	return true
 end

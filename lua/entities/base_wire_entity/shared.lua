@@ -1,5 +1,6 @@
+DEFINE_BASECLASS("base_gmodentity")
+
 ENT.Type = "anim"
-ENT.Base = "base_gmodentity"
 
 ENT.PrintName = "Wire Entity"
 ENT.Author = "Erkle"
@@ -12,11 +13,3 @@ ENT.AdminOnly = false
 
 ENT.IsWire = true
 ENT.OverlayText = ""
-
-function ENT:GetOverlayText()
-	return self.OverlayText
-end
-
-function ENT:SetOverlayText( txt )
-	self.OverlayText = txt
-end

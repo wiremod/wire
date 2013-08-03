@@ -1,6 +1,6 @@
 include("shared.lua")
 
-ENT.RenderGroup = RENDERGROUP_OPAQUE//RENDERGROUP_TRANSLUCENT//RENDERGROUP_BOTH
+ENT.RenderGroup = RENDERGROUP_OPAQUE
 
 local wire_drawoutline = CreateClientConVar("wire_drawoutline", 1, true, false)
 
@@ -18,8 +18,7 @@ function ENT:Draw()
 end
 
 function ENT:DoNormalDraw(nohalo, notip)
-	local trace = LocalPlayer():GetEyeTrace()
-	local looked_at = trace.Entity == self and trace.Fraction * 16384 < 256
+	local looked_at = self:BeingLookedAtByLocalPlayer()
 	if not nohalo and wire_drawoutline:GetBool() and looked_at then
 		if self.RenderGroup == RENDERGROUP_OPAQUE then
 			self.OldRenderGroup = self.RenderGroup
@@ -35,17 +34,8 @@ function ENT:DoNormalDraw(nohalo, notip)
 		self:DrawModel()
 	end
 	if not notip and looked_at then
-		self:DrawTip()
+		AddWorldTip(self:EntIndex(), self:GetOverlayText(), 0.5, self:GetPos(), self)
 	end
-end
-
-function ENT:DrawTip(text)
-	text = text or self:GetOverlayText()
-	local name = self:GetNetworkedString("WireName")
-	local plyname = self:GetNetworkedString("FounderName")
-	
-	text = string.format("- %s -\n%s\n(%s)", name ~= "" and name or self.PrintName, text, plyname)
-	AddWorldTip(nil,text,nil,self:GetPos(),nil)
 end
 
 function ENT:Think()
@@ -71,7 +61,8 @@ hook.Add("PreDrawHalos", "Wiremod_overlay_halos", function()
 	halos_inv = {}
 end)
 
-net.Receive( "WireOverlay", function(length)
-	local ent = net.ReadEntity()
-	ent.OverlayText = net.ReadString()
-end)
+function ENT:GetOverlayText()
+	local name = self:GetNetworkedString("WireName")
+	if name == "" then name = self.PrintName end
+	return "- " .. name .. " -\n" .. baseclass.Get("base_gmodentity").GetOverlayText(self)
+end

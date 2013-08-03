@@ -52,37 +52,3 @@ function ENT:GetNormal()
 				self:GetNetworkedInt( "vecz" ) / 100
 			)
 end
-
-
-function ENT:NetSetForce( force )
-	self:SetNetworkedInt("vecforce", math.floor(force*100))
-end
-function ENT:NetGetForce()
-	return self:GetNetworkedInt("vecforce")/100
-end
-
-
-local Limit = .1
-local LastTime = 0
-function ENT:NetSetMul( mul )
-	--self:SetNetworkedBeamInt("vecmul", math.floor(mul*100))
-	if (CurTime() > LastTime + Limit) then
-		self:SetNetworkedInt("vecmul", math.floor((mul or 0)*100))
-		LastTime = CurTime()
-	end
-end
-function ENT:NetGetMul()
-	--return self:GetNetworkedBeamInt(5)/100
-	return self:GetNetworkedInt("vecmul")/100
-end
-
-
-function ENT:GetOverlayText()
-	local mode = self:GetMode()
-	return string.format("Force Mul: %.2f\nInput: %.2f\nForce Applied: %.2f\nMode: %s",
-		self:NetGetForce(),
-		self:NetGetMul(),
-		self:NetGetForce() * self:NetGetMul(),
-		(mode == 0 and "XYZ Local") or (mode == 1 and "XYZ World") or (mode == 2 and "XY Local, Z World")
-	)
-end
