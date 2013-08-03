@@ -3,7 +3,7 @@ DEFINE_BASECLASS( "base_wire_entity" )
 ENT.PrintName		= "Wire Teleporter"
 ENT.WireDebugName 	= "Hoverdrive Controller"
 ENT.Author			= "Divran"
-ENT.RenderGroup		= RENDERGROUP_BOTH
+ENT.RenderGroup		= RENDERGROUP_OPAQUE
 
 if CLIENT then 
 	language.Add( "Cleanup_hoverdrivecontrolers", "Hoverdrive Controllers" )

@@ -2,7 +2,7 @@ if (not EmuFox) then
 	include('shared.lua')
 end
 
-ENT.RenderGroup    = RENDERGROUP_BOTH
+ENT.RenderGroup    = RENDERGROUP_OPAQUE
 
 
 function ENT:Initialize()

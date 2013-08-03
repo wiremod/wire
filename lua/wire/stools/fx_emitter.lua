@@ -23,10 +23,6 @@ if SERVER then
 	function TOOL:GetConVars() 
 		return math.Clamp(self:GetClientNumber( "Delay" ), 0.05, 20), ComboBox_Wire_FX_Emitter_Options[self:GetClientInfo( "Effect" )]
 	end
-
-	function TOOL:MakeEnt( ply, model, Ang, trace )
-		return MakeWireFXEmitter( ply, trace.HitPos, Ang, model, self:GetConVars() )
-	end
 end
 
 function TOOL.BuildCPanel( CPanel )

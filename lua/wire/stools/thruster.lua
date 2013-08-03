@@ -38,10 +38,6 @@ if SERVER then
 			self:GetClientInfo( "uweffect" ), self:GetClientNumber( "owater" ) ~= 0, self:GetClientNumber( "uwater" ) ~= 0, self:GetClientNumber( "bidir" ) ~= 0, 
 			self:GetClientInfo( "soundname" ), self:GetClientNumber( "collision" ) == 0
 	end
-
-	function TOOL:MakeEnt( ply, model, Ang, trace )
-		return MakeWireThruster( ply, trace.HitPos, Ang, model, self:GetConVars() )
-	end
 end
 
 function TOOL.BuildCPanel(panel)
