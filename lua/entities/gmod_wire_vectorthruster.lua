@@ -208,6 +208,7 @@ function ENT:Setup(force, force_min, force_max, oweffect, uweffect, owater, uwat
 
 	self.mode = mode or 0
 	self:SetMode( self.mode )
+	self:ShowOutput()
 
 	if (angleinputs) then
 		WireLib.AdjustInputs(self, {"Mul", "Pitch", "Yaw"})
@@ -321,6 +322,12 @@ function ENT:Switch( on, mul )
 		phys:Wake()
 	end
 
+	self:ShowOutput()
+
+	return true
+end
+
+function ENT:ShowOutput()
 	local mode = self:GetMode()
 	self:SetOverlayText(string.format("Force Mul: %.2f\nInput: %.2f\nForce Applied: %.2f\nMode: %s",
 		self.force,
@@ -328,8 +335,6 @@ function ENT:Switch( on, mul )
 		self.force * self.mul,
 		(mode == 0 and "XYZ Local") or (mode == 1 and "XYZ World") or (mode == 2 and "XY Local, Z World")
 	))
-
-	return true
 end
 
 duplicator.RegisterEntityClass("gmod_wire_vectorthruster", MakeWireEnt, "Data", "force", "force_min", "force_max", "oweffect", "uweffect", "owater", "uwater", "bidir", "soundname", "mode", "angleinputs")
