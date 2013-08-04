@@ -53,7 +53,7 @@ if CLIENT then
 			local vPlayerEyes = LocalPlayer():EyePos()
 			local vDiff = (vOffset - vPlayerEyes):GetNormalized()
 
-			render.SetMaterial( self.Glow )
+			render.SetMaterial( glowmat )
 			local color = Color( 40, 50, 200, 255 ) //70,180,255,255
 			render.DrawSprite( vOffset - vDiff * 2, 22, 22, color )
 
@@ -69,7 +69,7 @@ if CLIENT then
 			local vPlayerEyes = LocalPlayer():EyePos()
 			local vDiff = (vOffset - vPlayerEyes):GetNormalized()
 
-			render.SetMaterial( self.Glow )
+			render.SetMaterial( glowmat )
 			local color = Color( 255, 50, 60, 255 ) //70,180,255,255
 			render.DrawSprite( vOffset - vDiff * 2, 22, 22, color )
 
