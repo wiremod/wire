@@ -263,6 +263,6 @@ end
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
 
-	self.linked_entities = { GetEntById(info.linked_entities):EntIndex() }
+	self.linked_entities = { GetEntByID(info.linked_entities):EntIndex() }
 	self:ShowOutput()
 end
