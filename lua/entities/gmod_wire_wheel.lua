@@ -232,13 +232,8 @@ end
 
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
-	local Base
-	if info.Base then
-		Base = GetEntByID(info.Base)
-		if not Base then
-			local Base = ents.GetByIndex(info.Base)
-		end
-	end
+
+	local Base = GetEntByID(info.Base)
 	if IsValid(Base) then
 		self:SetWheelBase(Base)
 	end

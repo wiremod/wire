@@ -68,13 +68,7 @@ end
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
 
-	if info.target then
-		local target = GetEntByID(info.target)
-		if not target then
-			target = ents.GetByIndex(info.target)
-		end
-		self.target = target
-	end
+	self.target = GetEntByID(info.target)
 end
 
 duplicator.RegisterEntityClass("gmod_wire_detonator", MakeWireEnt, "Data", "damage")

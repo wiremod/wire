@@ -58,10 +58,5 @@ end
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
 
-	if (info.Vehicle) then
-		self.Vehicle = GetEntByID(info.Vehicle)
-		if (!self.Vehicle) then
-			self.Vehicle = ents.GetByIndex(info.Vehicle)
-		end
-	end
+	self.Vehicle = GetEntByID(info.Vehicle)
 end

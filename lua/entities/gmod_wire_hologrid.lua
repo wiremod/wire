@@ -70,18 +70,6 @@ end
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
 
-	local reference
-	if info.reference then
-		reference = GetEntByID(info.reference)
-		if not reference then
-			reference = ents.GetByIndex(info.reference)
-		end
-	end
-	if reference then
-		self.reference = reference
-	else
-		self.reference = self
-	end
-
+	self.reference = GetEntByID(info.reference, self)
 	self:Setup(info.hologrid_usegps ~= 0)
 end

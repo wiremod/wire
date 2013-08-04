@@ -350,13 +350,6 @@ end
 
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
-	if info.pod then
-		self.pod = GetEntByID(info.pod)
-		if not self.pod then
-			self.pod = ents.GetByIndex(info.pod)
-		end
-		if self.pod then
-			self:PodLink(self.pod)
-		end
-	end
+
+	self:PodLink(GetEntByID(info.pod))
 end

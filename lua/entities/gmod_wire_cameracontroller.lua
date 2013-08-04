@@ -304,10 +304,10 @@ end)
 
 function ENT:BuildDupeInfo()
 	local info = self.BaseClass.BuildDupeInfo(self) or {}
-	if self.CamPod and self.CamPod:IsValid() then
+	if IsValid(self.CamPod) then
 		info.pod = self.CamPod:EntIndex()
 	end
-	if self.CamEnt and self.CamEnt:IsValid() and self.Static ~= 0 then
+	if IsValid(self.CamEnt) and self.Static ~= 0 then
 		info.cam = self.CamEnt:EntIndex()
 	end
 	return info
@@ -315,22 +315,15 @@ end
 
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
-	if info.pod then
-		self.CamPod = GetEntByID(info.pod)
-		if not self.CamPod then
-			self.CamPod = ents.GetByIndex(info.pod)
-		end
+
+	self.CamPod = GetEntByID(info.pod)
+
+	if IsValid(self.CamEnt) then
+		self.CamEnt:RemoveCallOnRemove("wire_cam_restore")
+		self.CamEnt:Remove()
 	end
-	if info.cam then
-		if IsValid(self.CamEnt) then
-			self.CamEnt:RemoveCallOnRemove("wire_cam_restore")
-			self.CamEnt:Remove()
-		end
-		self.CamEnt = GetEntByID(info.cam)
-		if not self.CamEnt then
-			self.CamEnt = ents.GetByIndex(info.cam)
-		end
-	end
+
+	self.CamEnt = GetEntByID(info.cam)
 end
 
 duplicator.RegisterEntityClass("gmod_wire_cameracontroller", MakeWireEnt, "Data", "Static")

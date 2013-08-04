@@ -68,11 +68,8 @@ end
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
 
-	local vehicle = info.egp_hud_vehicle
-	if (vehicle) then
-		vehicle = GetEntByID( vehicle )
-		if (vehicle and vehicle:IsValid()) then
-			EGP:LinkHUDToVehicle( self, vehicle )
-		end
+	local vehicle = GetEntByID( info.egp_hud_vehicle )
+	if IsValid(vehicle) then
+		EGP:LinkHUDToVehicle( self, vehicle )
 	end
 end

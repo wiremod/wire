@@ -173,29 +173,14 @@ end
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
 
-	if info.Ent1 then
-		self.Ent1 = GetEntByID(info.Ent1)
+	self.Ent1 = GetEntByID(info.Ent1, game.GetWorld())
+	if IsValid(self.Ent1) then
 		self.Bone1 = info.Bone1
-		if !self.Ent1 then
-			self.Ent1 = ents.GetByIndex(info.Ent1)
-		end
 	end
 
-	if info.Ent2 then
-		self.Ent2 = GetEntByID(info.Ent2)
+	self.Ent2 = GetEntByID(info.Ent2, game.GetWorld())
+	if IsValid(self.Ent2) then
 		self.Bone2 = info.Bone2
-		if !self.Ent2 then
-			self.Ent2 = ents.GetByIndex(info.Ent2)
-		end
-	end
-
-	-- Default to world entity
-	if self.Ent1 or self.Ent2 then
-		if self.Ent1 then
-			self.Ent2 = self.Ent2 or game.GetWorld()
-		else
-			self.Ent1 = self.Ent1 or game.GetWorld()
-		end
 	end
 
 	self:TriggerInput("Strength", info.weld_strength or 0)

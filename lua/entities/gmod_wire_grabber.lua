@@ -142,19 +142,9 @@ end
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
 
-	if info.WeldEntity then
-		self.WeldEntity = GetEntByID(info.WeldEntity)
-		if not self.WeldEntity then
-			self.WeldEntity = ents.GetByIndex(info.WeldEntity)
-		end
-	end
+	self.WeldEntity = GetEntByID(info.WeldEntity)
 
-	if info.ExtraProp then
-		self.ExtraProp = GetEntByID(info.ExtraProp)
-		if not self.ExtraProp then
-			self.ExtraProp = ents.GetByIndex(info.ExtraProp)
-		end
-	end
+	self.ExtraProp = GetEntByID(info.ExtraProp)
 
 	if self.WeldEntity and self.Inputs.Grab.Value ~= 0 then
 
@@ -163,7 +153,7 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 			self.Weld.Type = "" --prevents the duplicator from making this weld
 		end
 
-		if self.ExtraProp then
+		if IsValid(self.ExtraProp) then
 			self.ExtraPropWeld = constraint.Weld(self.ExtraProp, self.WeldEntity, 0, 0, self.WeldStrength)
 			self.ExtraPropWeld.Type = "" --prevents the duplicator from making this weld
 		end

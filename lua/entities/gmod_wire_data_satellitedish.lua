@@ -30,11 +30,6 @@ end
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
 
-	if (info.Transmitter) then
-		self.Transmitter = GetEntByID(info.Transmitter)
-		if (!self.Transmitter) then
-			self.Transmitter = ents.GetByIndex(info.Transmitter)
-		end
-	end
+	self.Transmitter = GetEntByID(info.Transmitter)
 	self:ShowOutput()
 end

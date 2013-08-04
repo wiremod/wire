@@ -131,6 +131,8 @@ function ENT:BuildDupeInfo()
 end
 
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
+	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
+
 	if (!ply:CheckLimit("wire_adv_emarkers")) then
 		ent:Remove()
 		return
@@ -138,16 +140,13 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 	ply:AddCount( "wire_adv_emarkers", ent )
 
 	if (info.marks) then
-		local tbl = info.marks
+		self.Marks = self.Marks or {}
 
-		if (!self.Marks) then self.Marks = {} end
-
-		for index, entindex in pairs( tbl ) do
-			self.Marks[index] = GetEntByID(entindex) or ents.GetByIndex(entindex)
+		for index, entindex in pairs(info.marks) do
+			self.Marks[index] = GetEntByID(entindex)
 		end
 		self:UpdateOutputs()
 	end
 
 	ent:SetPlayer( ply )
-	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
 end

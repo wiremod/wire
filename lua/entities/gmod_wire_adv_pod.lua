@@ -502,9 +502,8 @@ end
 
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
-	if (info.pod) then
-		self:SetPod( GetEntByID( info.pod ) or ents.GetByIndex( info.pod ) )
-	end
+
+	self:SetPod( GetEntByID( info.pod ) )
 end
 
 function ENT:Use( User, caller )

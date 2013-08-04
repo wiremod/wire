@@ -119,11 +119,20 @@ function ENT:PreEntityCopy()
 	duplicator.StoreEntityModifier(self, "WireDupeInfo", self:BuildDupeInfo())
 end
 
+local function EntityLookup(CreatedEntities)
+	return function(id, default)
+		if id == nil then return default end
+		if id == 0 then return game.GetWorld() end
+		local ent = CreatedEntities[id] or (isnumber(id) and ents.GetByIndex(id))
+		if IsValid(ent) then return ent else return default end
+	end
+end
+
 function ENT:PostEntityPaste(Player,Ent,CreatedEntities)
 	-- We manually apply the entity mod here rather than using a
 	-- duplicator.RegisterEntityModifier because we need access to the
 	-- CreatedEntities table.
 	if Ent.EntityMods and Ent.EntityMods.WireDupeInfo then
-		Ent:ApplyDupeInfo(Player, Ent, Ent.EntityMods.WireDupeInfo, function(id) return CreatedEntities[id] end)
+		Ent:ApplyDupeInfo(Player, Ent, Ent.EntityMods.WireDupeInfo, EntityLookup(CreatedEntities))
 	end
 end

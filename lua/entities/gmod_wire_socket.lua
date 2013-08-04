@@ -355,32 +355,22 @@ local function FindConstraint( ent, plug )
 end
 
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID, GetConstByID)
-	if (!ply:CheckLimit("wire_sockets")) then
-		ent:Remove()
-		return
-	end
-	ply:AddCount( "wire_sockets", ent )
+	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
 
 	if (info.Socket) then
 		ent:Setup( info.Socket.ArrayInput, info.Socket.WeldForce, info.Socket.AttachRange )
-		if (info.Socket.Plug) then
-			local plug = GetEntByID( info.Socket.Plug )
-			if (plug and plug:IsValid()) then
-				ent.Plug = plug
-				plug.Socket = ent
-				ent.Weld = { ["IsValid"] = function() return true end }
+		local plug = GetEntByID( info.Socket.Plug )
+		if IsValid(plug) then
+			ent.Plug = plug
+			plug.Socket = ent
+			ent.Weld = { ["IsValid"] = function() return true end }
 
+			plug:SetNWBool( "Linked", true )
+			ent:SetNWBool( "Linked", true )
 
-				plug:SetNWBool( "Linked", true )
-				ent:SetNWBool( "Linked", true )
-
-				if (GetConstByID) then
-					if (info.Socket.Weld) then
-						local weld = GetConstByID( info.Socket.Weld )
-						if (weld and weld:IsValid()) then
-							ent.Weld = weld
-						end
-					end
+			if GetConstByID then
+				if info.Socket.Weld then
+					ent.Weld = GetConstByID( info.Socket.Weld )
 				else
 					FindConstraint( ent, plug )
 				end
@@ -405,5 +395,4 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID, GetConstByID)
 	end -- /OLD DUPES COMPATIBILITY
 
 	ent:SetPlayer( ply )
-	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
 end
