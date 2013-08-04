@@ -73,10 +73,9 @@ if SERVER then
 
 	AddCSLuaFile("von.lua")
 
-	-- resource files
-	resource.AddFile("materials/expression 2/cog.vmt")
-	resource.AddFile("materials/wirelogo.vmt")
-	resource.AddSingleFile("materials/expression 2/cog_world.vmt")
+	if CreateConVar("wire_force_workshop", 1, {FCVAR_ARCHIVE}, "Should Wire force all clients to download the Workshop edition of Wire, for models? (requires restart to disable)"):GetBool() then
+		resource.AddWorkshop("160250458")
+	end
 end
 
 -- shared includes
