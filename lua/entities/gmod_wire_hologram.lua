@@ -89,6 +89,12 @@ if CLIENT then
 
 		if self.blocked or self.visible == false then return end //self.visible and vis_buffer[] is nil by default, but nil != false
 
+		if self:GetColor().a ~= 255 then
+			self.RenderGroup = RENDERGROUP_BOTH
+		else
+			self.RenderGroup = RENDERGROUP_OPAQUE
+		end
+
 		self:SetupClipping()
 
 		if self:GetNWBool( "disable_shading" ) then
