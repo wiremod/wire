@@ -400,6 +400,7 @@ list.Set( "Wire_Forcer_Models", "models/jaanus/wiretool/wiretool_siren.mdl", tru
 --Misc Tools (Entity Marker, Eye Pod, GpuLib Switcher, ect...)
 list.Set( "Wire_Misc_Tools_Models", "models/jaanus/wiretool/wiretool_range.mdl", true )
 list.Set( "Wire_Misc_Tools_Models", "models/jaanus/wiretool/wiretool_siren.mdl", true )
+list.Set( "Wire_Misc_Tools_Models", "models/props_lab/powerbox02d.mdl", true )
 
 --Laser Tools (Ranger, User, etc)
 list.Set( "Wire_Laser_Tools_Models", "models/jaanus/wiretool/wiretool_range.mdl", true )

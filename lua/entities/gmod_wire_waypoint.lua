@@ -30,10 +30,7 @@ if CLIENT then
 	return -- No more client
 end
 
-local MODEL = Model( "models/props_lab/powerbox02d.mdl" )
-
 function ENT:Initialize()
-	self:SetModel( MODEL )
 	self:PhysicsInit( SOLID_VPHYSICS )
 	self:SetMoveType( MOVETYPE_VPHYSICS )
 	self:SetSolid( SOLID_VPHYSICS )
@@ -44,14 +41,12 @@ function ENT:Initialize()
 	Wire_TriggerOutput(self, "Waypoints", self.waypoints)
 end
 
-
 function ENT:Setup(range)
-	self.Range = range
+	self.range = range
 end
 
-
 function ENT:GetBeaconPos(sensor)
-	if ((sensor:GetPos()-self:GetPos()):Length() < self.Range) then
+	if ((sensor:GetPos()-self:GetPos()):Length() < self.range) then
 		sensor:SetBeacon(self:GetNextWaypoint())
 	end
 
@@ -106,3 +101,5 @@ function ENT:OnRemove()
 		end
 	end
 end
+
+duplicator.RegisterEntityClass("gmod_wire_waypoint", MakeWireEnt, "Data", "range")
