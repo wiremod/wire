@@ -19,12 +19,6 @@ if CLIENT then
 		self.GPU:Finalize()
 	end
 
-	function ENT:DrawEntityOutline()
-		if (GetConVar("wire_graphics_tablet_drawoutline"):GetBool()) then
-			self.BaseClass.DrawEntityOutline( self )
-		end
-	end
-
 	local function cut_rect(x1,y1,w1,h1,x2,y2,w2,h2)
 		local x,y = x1>x2 and x1 or x2, y1>y2 and y1 or y2
 		local right1,bottom1,right2,bottom2 = x1+w1,y1+h1, x2+w2,y2+h2
@@ -100,6 +94,7 @@ function ENT:Initialize()
 end
 
 function ENT:Setup(gmode, draw_background)
+	self.gmode = gmode
 	self.outputMode = gmode
 	self.draw_background = draw_background
 	self:SetNetworkedBeamBool("draw_background", draw_background, true)
@@ -178,3 +173,5 @@ function ENT:OnRestore()
 	self.BaseClass.OnRestore(self)
 	Wire_AdjustOutputs(self, { "X", "Y", "Use", "OnScreen" })
 end
+
+duplicator.RegisterEntityClass("gmod_wire_graphics_tablet", MakeWireEnt, "Data", "gmode", "draw_background")
