@@ -85,6 +85,8 @@ end
 
 -- Server
 
+ENT.Spawnable = true -- Needed serverside for duplicator.GenericDuplicatorFunction to work
+
 -- We want more fine-grained control over the networking of the overlay text,
 -- so we don't just immediately send it like base_gmodentity does.
 function ENT:SetOverlayText( txt )
