@@ -26,7 +26,7 @@ TOOL.MaxLimitName = "wire_dhdds"
 
 if SERVER then
 	function TOOL:MakeEnt( ply, model, Ang, trace )
-		local rom = MakeWireDHDD( ply, trace.HitPos, Ang, model, self:GetConVars() )
+		local rom = MakeWireEnt(ply, {Class = "gmod_wire_dhdd", Pos=trace.HitPos, Angle=Ang, Model=model}, self:GetConVars())
 		if IsValid(rom) then
 			rom.ROM = true
 			rom:SetOverlayText("ROM")
