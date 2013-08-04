@@ -116,7 +116,10 @@ end
 
 function ENT:PreEntityCopy()
 	-- build the DupeInfo table and save it as an entity mod
-	duplicator.StoreEntityModifier(self, "WireDupeInfo", self:BuildDupeInfo())
+	local DupeInfo = self:BuildDupeInfo()
+	if DupeInfo then
+		duplicator.StoreEntityModifier(self, "WireDupeInfo", DupeInfo)
+	end
 end
 
 local function EntityLookup(CreatedEntities)
