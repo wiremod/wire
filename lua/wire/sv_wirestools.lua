@@ -30,6 +30,8 @@ function WireToolMakeGate( self, trace, ply )
 
 	local wire_gate = MakeWireGate( ply, trace.HitPos, Ang, model, action, noclip )
 
+	if not IsValid(wire_gate) then return false end
+
 	local min = wire_gate:OBBMins()
 	wire_gate:SetPos( trace.HitPos - trace.HitNormal * min.z )
 
