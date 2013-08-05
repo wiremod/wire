@@ -1,9 +1,9 @@
-/******************************************************************************\
+--[[
   Expression 2 Tokenizer for Garry's Mod
   Andreas "Syranide" Svensson, me@syranide.com
-\******************************************************************************/
+]]
 
-AddCSLuaFile("tokenizer.lua")
+AddCSLuaFile()
 
 Tokenizer = {}
 Tokenizer.__index = Tokenizer
@@ -17,7 +17,7 @@ function Tokenizer.Execute(...)
 end
 
 function Tokenizer:Error(message, offset)
-	error(message .. " at line " .. self.tokenline .. ", char " .. (self.tokenchar+(offset or 0)), 0)
+	error(message .. " at line " .. self.tokenline .. ", char " .. (self.tokenchar + (offset or 0)), 0)
 end
 
 function Tokenizer:Process(buffer, params)
@@ -34,7 +34,7 @@ function Tokenizer:Process(buffer, params)
 	while self.character do
 		tokenspace = self:NextPattern("%s+") and true or false
 
-		if !self.character then break end
+		if not self.character then break end
 
 		self.tokenline = self.readline
 		self.tokenchar = self.readchar
@@ -56,7 +56,7 @@ function Tokenizer:Process(buffer, params)
 	return tokens
 end
 
-/******************************************************************************/
+-- ---------------------------------------------------------------------------------------
 
 function Tokenizer:SkipCharacter()
 	if self.position < self.length then
@@ -87,7 +87,7 @@ end
 -- Returns true on success, nothing if it fails.
 function Tokenizer:NextPattern(pattern)
 	if not self.character then return false end
-	local startpos,endpos,text = self.buffer:find(pattern, self.position)
+	local startpos, endpos, text = self.buffer:find(pattern, self.position)
 
 	if startpos ~= self.position then return false end
 	local buf = self.buffer:sub(startpos, endpos)
@@ -105,8 +105,8 @@ function Tokenizer:NextPattern(pattern)
 
 	buf = string.Explode("\n", buf)
 	if #buf > 1 then
-		self.readline = self.readline+#buf-1
-		self.readchar = #buf[#buf]+1
+		self.readline = self.readline + #buf - 1
+		self.readchar = #buf[#buf] + 1
 	else
 		self.readchar = self.readchar + #buf[#buf]
 	end
@@ -137,7 +137,7 @@ function Tokenizer:NextSymbol()
 		end
 
 		if errorpos then
-			self:Error("Invalid number format (" .. E2Lib.limitString(self.tokendata, 10) .. ")", errorpos-1)
+			self:Error("Invalid number format (" .. E2Lib.limitString(self.tokendata, 10) .. ")", errorpos - 1)
 		end
 
 		tokenname = "num"
@@ -177,7 +177,7 @@ function Tokenizer:NextSymbol()
 		elseif self.tokendata == "#include" then
 			tokenname = "inclu"
 		elseif self.tokendata:match("^[ijk]$") and self.character ~= "(" then
-			tokenname, self.tokendata = "num", "1"..self.tokendata
+			tokenname, self.tokendata = "num", "1" .. self.tokendata
 		else
 			tokenname = "fun"
 		end
@@ -200,7 +200,7 @@ function Tokenizer:NextSymbol()
 			tokenname = "str"
 			self.tokendata = value
 		else
-			self:Error("Constant ("..self.tokendata..") has invalid data type ("..type(value)..")")
+			self:Error("Constant (" .. self.tokendata .. ") has invalid data type (" .. type(value) .. ")")
 		end
 
 	elseif self.character == "\"" then
@@ -210,10 +210,10 @@ function Tokenizer:NextSymbol()
 		self:SkipCharacter()
 
 		-- loop until the closing quotation mark
-		while self.character != "\"" do
+		while self.character ~= "\"" do
 			-- check for line/file endings
-			if !self.character then
-				self:Error("Unterminated string (\"" .. E2Lib.limitString(self.tokendata, 10):gsub( "\n", "" ) .. ")")
+			if not self.character then
+				self:Error("Unterminated string (\"" .. E2Lib.limitString(self.tokendata, 10):gsub("\n", "") .. ")")
 			end
 
 			if self.character == "\\" then
