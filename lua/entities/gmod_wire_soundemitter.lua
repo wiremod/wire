@@ -11,6 +11,14 @@ ENT.WireDebugName = "Sound Emitter"
 
 if CLIENT then return end
 
+local DefaultSamples = {
+	"synth/square.wav",
+	"synth/saw.wav",
+	"synth/tri.wav",
+	"synth/sine.wav"
+}
+for _, str in pairs(DefaultSamples) do util.PrecacheSound(str) end
+
 function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )
 	self:SetMoveType( MOVETYPE_VPHYSICS )
@@ -20,17 +28,13 @@ function ENT:Initialize()
 		"PitchRelative", "Sample", "SampleName [STRING]" })
 	self.Outputs = Wire_CreateOutputs(self, { "Memory" })
 
-	self.Samples = {
-		[1] = "synth/square.wav",
-		[2] = "synth/saw.wav",
-		[3] = "synth/tri.wav",
-		[4] = "synth/sine.wav"
-	}
+	self.Samples = table.Copy(DefaultSamples)
 
 	self.Active = false
 	self.Volume = 5
 	self.Pitch = 100
-	self.Sample = self.Samples[1]
+	self.sound = self.Samples[1]
+	-- self.sound is a string, self.SoundObj is a CSoundPatch
 
 	self.NeedsRefresh = true
 
@@ -97,14 +101,14 @@ function ENT:TriggerInput(iname, value)
 end
 
 function ENT:UpdateSound()
-	if self.NeedsRefresh or self.Sample ~= self.ActiveSample then
+	if self.NeedsRefresh or self.sound ~= self.ActiveSample then
 		self.NeedsRefresh = nil
-		self.Sound = CreateSound(self, Sound(self.Sample))
-		self.ActiveSample = self.Sample
+		self.SoundObj = CreateSound(self, self.sound)
+		self.ActiveSample = self.sound
 		if self.Active then self:StartSounds() end
 	end
-	self.Sound:ChangePitch(self.Pitch, 0)
-	self.Sound:ChangeVolume(self.Volume, 0)
+	self.SoundObj:ChangePitch(self.Pitch, 0)
+	self.SoundObj:ChangeVolume(self.Volume, 0)
 end
 
 function ENT:SetSound(soundName)
@@ -114,7 +118,7 @@ function ENT:SetSound(soundName)
 	parsedsound = soundName:Trim()
 	util.PrecacheSound(parsedsound)
 
-	self.Sample = parsedsound
+	self.sound = parsedsound
 	self:SetOverlayText( parsedsound:gsub("[/\\]+","/") )
 end
 
@@ -122,19 +126,19 @@ function ENT:StartSounds()
 	if self.NeedsRefresh then
 		self:UpdateSound()
 	end
-	if self.Sound then
-		self.Sound:Play()
+	if self.SoundObj then
+		self.SoundObj:Play()
 	end
 end
 
 function ENT:StopSounds()
-	if self.Sound then
-		self.Sound:Stop()
+	if self.SoundObj then
+		self.SoundObj:Stop()
 	end
 end
 
 function ENT:Setup(sample)
-	self.Sample = sample
+	self:SetSound(sample)
 end
 
-duplicator.RegisterEntityClass("gmod_wire_soundemitter", MakeWireEnt, "Data", "Sample")
+duplicator.RegisterEntityClass("gmod_wire_soundemitter", MakeWireEnt, "Data", "sound")
