@@ -25,6 +25,10 @@ if SERVER then
 	end
 end
 
+function TOOL:GetAngle(trace)
+	return Angle(0, 0, 0)
+end
+
 function TOOL:GetGhostMin( min, trace )
 	if trace.Entity:IsWorld() then
 		return -8
