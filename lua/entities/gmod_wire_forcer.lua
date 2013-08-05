@@ -121,4 +121,4 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
 end
 
-duplicator.RegisterEntityClass("gmod_wire_forcer", MakeWireEnt, "Data", "Force", "Length", "ShowBeam", "Reaction")
+duplicator.RegisterEntityClass("gmod_wire_forcer", WireLib.MakeWireEnt, "Data", "Force", "Length", "ShowBeam", "Reaction")

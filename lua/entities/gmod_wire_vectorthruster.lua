@@ -337,7 +337,7 @@ function ENT:ShowOutput()
 	))
 end
 
-duplicator.RegisterEntityClass("gmod_wire_vectorthruster", MakeWireEnt, "Data", "force", "force_min", "force_max", "oweffect", "uweffect", "owater", "uwater", "bidir", "soundname", "mode", "angleinputs")
+duplicator.RegisterEntityClass("gmod_wire_vectorthruster", WireLib.MakeWireEnt, "Data", "force", "force_min", "force_max", "oweffect", "uweffect", "owater", "uwater", "bidir", "soundname", "mode", "angleinputs")
 
 function ENT:OnRestore()
 	local phys = self:GetPhysicsObject()

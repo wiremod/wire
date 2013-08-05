@@ -118,4 +118,4 @@ function ENT:Think()
 	return true
 end
 
-duplicator.RegisterEntityClass("gmod_wire_colorer", MakeWireEnt, "Data", "outColor", "Range")
+duplicator.RegisterEntityClass("gmod_wire_colorer", WireLib.MakeWireEnt, "Data", "outColor", "Range")

@@ -18,7 +18,7 @@ if SERVER then
 		return self:GetClientNumber("Range"), self:GetClientNumber("Gravity")~=0
 	end
 
-	-- Uses default WireToolObj:MakeEnt's MakeWireEnt function
+	-- Uses default WireToolObj:MakeEnt's WireLib.MakeWireEnt function
 end
 
 TOOL.ClientConVar = {

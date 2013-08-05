@@ -113,7 +113,7 @@ function ENT:ClearEntities()
 	self:UpdateOutputs()
 end
 
-duplicator.RegisterEntityClass( "gmod_wire_adv_emarker", MakeWireEnt, "Data" )
+duplicator.RegisterEntityClass( "gmod_wire_adv_emarker", WireLib.MakeWireEnt, "Data" )
 
 function ENT:BuildDupeInfo()
 	local info = self.BaseClass.BuildDupeInfo(self) or {}

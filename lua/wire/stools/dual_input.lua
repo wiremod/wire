@@ -23,7 +23,7 @@ if SERVER then
 			self:GetClientNumber( "value_off" ), self:GetClientNumber( "value_on" ), self:GetClientNumber( "value_on2" )
 	end
 
-	-- Uses default WireToolObj:MakeEnt's MakeWireEnt function
+	-- Uses default WireToolObj:MakeEnt's WireLib.MakeWireEnt function
 end
 
 TOOL.ClientConVar = {

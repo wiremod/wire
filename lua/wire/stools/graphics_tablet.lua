@@ -23,7 +23,7 @@ if SERVER then
 		return self:GetClientNumber("outmode") ~= 0, self:GetClientNumber("draw_background") ~= 0
 	end
 
-	-- Uses default WireToolObj:MakeEnt's MakeWireEnt function
+	-- Uses default WireToolObj:MakeEnt's WireLib.MakeWireEnt function
 end
 
 TOOL.ClientConVar = {

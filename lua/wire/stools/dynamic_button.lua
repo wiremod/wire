@@ -21,7 +21,7 @@ if SERVER then
 			self:GetClientNumber( "off_r" ), self:GetClientNumber( "off_g" ), self:GetClientNumber( "off_b" )
 	end
 
-	-- Uses default WireToolObj:MakeEnt's MakeWireEnt function
+	-- Uses default WireToolObj:MakeEnt's WireLib.MakeWireEnt function
 end
 
 TOOL.ClientConVar = {

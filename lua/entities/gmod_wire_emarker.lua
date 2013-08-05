@@ -31,7 +31,7 @@ function ENT:UnLinkEMarker()
 	self:SetOverlayText( "No Mark selected" )
 end
 
-duplicator.RegisterEntityClass( "gmod_wire_emarker", MakeWireEnt, "Data" )
+duplicator.RegisterEntityClass( "gmod_wire_emarker", WireLib.MakeWireEnt, "Data" )
 
 function ENT:BuildDupeInfo()
 	local info = self.BaseClass.BuildDupeInfo(self) or {}

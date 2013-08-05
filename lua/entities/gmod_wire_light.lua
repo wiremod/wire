@@ -277,4 +277,4 @@ function ENT:SetRGB( R, G, B )
 	self:SetColor(Color(R, G, B, self:GetColor().a))
 end
 
-duplicator.RegisterEntityClass("gmod_wire_light", MakeWireEnt, "Data", "directional", "radiant", "glow", "brightness", "size", "decay", "R", "G", "B")
+duplicator.RegisterEntityClass("gmod_wire_light", WireLib.MakeWireEnt, "Data", "directional", "radiant", "glow", "brightness", "size", "decay", "R", "G", "B")

@@ -21,4 +21,4 @@ function ENT:Initialize()
 	self.Values["H"] = 0
 end
 
-duplicator.RegisterEntityClass("gmod_wire_data_store", MakeWireEnt, "Data")
+duplicator.RegisterEntityClass("gmod_wire_data_store", WireLib.MakeWireEnt, "Data")

@@ -268,4 +268,4 @@ function ENT:Think()
 	return true
 end
 
-duplicator.RegisterEntityClass("gmod_wire_cd_ray", MakeWireEnt, "Data", "Range", "DefaultZero")
+duplicator.RegisterEntityClass("gmod_wire_cd_ray", WireLib.MakeWireEnt, "Data", "Range", "DefaultZero")

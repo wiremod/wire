@@ -16,7 +16,7 @@ TOOL.ClientConVar = {
 }
 
 if SERVER then
-	-- Uses default WireToolObj:MakeEnt's MakeWireEnt function
+	-- Uses default WireToolObj:MakeEnt's WireLib.MakeWireEnt function
 end
 
 function TOOL:RightClick(trace)

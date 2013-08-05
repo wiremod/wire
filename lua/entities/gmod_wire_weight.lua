@@ -42,4 +42,4 @@ function ENT:ShowOutput(value)
 	self:SetOverlayText( "Weight: "..tostring(value) )
 end
 
-duplicator.RegisterEntityClass("gmod_wire_weight", MakeWireEnt, "Data")
+duplicator.RegisterEntityClass("gmod_wire_weight", WireLib.MakeWireEnt, "Data")

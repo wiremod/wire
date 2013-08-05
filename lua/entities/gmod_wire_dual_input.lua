@@ -87,4 +87,4 @@ end
 numpad.Register( "WireDualInput_On", On )
 numpad.Register( "WireDualInput_Off", Off )
 
-duplicator.RegisterEntityClass("gmod_wire_dual_input", MakeWireEnt, "Data", "keygroup", "keygroup2", "toggle", "value_off", "value_on", "value_on2", "frozen")
+duplicator.RegisterEntityClass("gmod_wire_dual_input", WireLib.MakeWireEnt, "Data", "keygroup", "keygroup2", "toggle", "value_off", "value_on", "value_on2", "frozen")
