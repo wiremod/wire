@@ -526,27 +526,4 @@ function ENT:Use( User, caller )
 	end)
 end
 
-
-function MakeWireAdvPod(pl, Pos, Ang, model, frozen)
-	if not pl:CheckLimit("wire_adv_pods") then return false end
-
-	local wire_pod = ents.Create("gmod_wire_adv_pod")
-	if not wire_pod:IsValid() then return false end
-	wire_pod:SetModel( model or MODEL )
-	wire_pod:SetAngles(Ang)
-	wire_pod:SetPos(Pos)
-	wire_pod:Spawn()
-
-	if wire_pod:GetPhysicsObject():IsValid() then
-		wire_pod:GetPhysicsObject():EnableMotion(!frozen)
-	end
-
-	wire_pod:SetPlayer(pl)
-	wire_pod.pl = pl
-
-	pl:AddCount("wire_adv_pods", wire_pod)
-	pl:AddCleanup( "gmod_wire_adv_pod", wire_pod )
-
-	return wire_pod
-end
-duplicator.RegisterEntityClass("gmod_wire_adv_pod", MakeWireAdvPod, "Pos", "Ang", "Model", "frozen")
+duplicator.RegisterEntityClass("gmod_wire_adv_pod", WireLib.MakeWireEnt, "Data")

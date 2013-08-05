@@ -258,18 +258,4 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 	end
 end
 
-
-function MakeClutchController( ply, Pos, Ang, model )
-	local controller = ents.Create("gmod_wire_clutch")
-
-	controller:SetPlayer( ply )
-	controller:SetModel( Model( model or "models/jaanus/wiretool/wiretool_siren.mdl" ) )
-	controller:SetPos( Pos - Ang:Up() * controller:OBBMins().z )
-	controller:SetAngles( Ang )
-
-	controller:Spawn()
-	ply:AddCount( "wire_clutchs", controller )
-
-	return controller
-end
-duplicator.RegisterEntityClass("gmod_wire_clutch", MakeClutchController, "Pos", "Ang", "Model")
+duplicator.RegisterEntityClass("gmod_wire_clutch", WireLib.MakeWireEnt, "Data")

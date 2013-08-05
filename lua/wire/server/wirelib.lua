@@ -1116,5 +1116,11 @@ function WireLib.MakeWireEnt( pl, Data, ... )
 
 	if IsValid(pl) then pl:AddCount( Data.Class:sub(6).."s", ent ) end
 
+	local phys = ent:GetPhysicsObject()
+	if IsValid(phys) then
+		if Data.frozen then phys:EnableMotion(false) end
+		if Data.nocollide then phys:EnableCollisions(false) end
+	end
+
 	return ent
 end

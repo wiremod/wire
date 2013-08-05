@@ -375,28 +375,7 @@ function ENT:Think()
 	return true
 end
 
-function MakeWireHoloemitter( ply, Pos, Ang, model, frozen )
-	if (!ply:CheckLimit( "wire_holoemitters" )) then return end
-
-	local emitter = ents.Create( "gmod_wire_holoemitter" )
-	emitter:SetPos( Pos )
-	emitter:SetAngles( Ang )
-	emitter:SetModel( model )
-	emitter:Spawn()
-	emitter:Activate()
-
-	local phys = emitter:GetPhysicsObject()
-	if (phys) then
-		phys:EnableMotion(!frozen)
-	end
-
-	emitter:SetPlayer( ply )
-
-	ply:AddCount( "wire_holoemitters", emitter )
-
-	return emitter
-end
-duplicator.RegisterEntityClass("gmod_wire_holoemitter", MakeWireHoloemitter, "Pos", "Ang", "Model", "frozen")
+duplicator.RegisterEntityClass("gmod_wire_holoemitter", WireLib.MakeWireEnt, "Data")
 
 function ENT:UpdateTransmitState()
     return TRANSMIT_ALWAYS

@@ -11,12 +11,6 @@ WireToolSetup.SetupMax( 10 )
 
 if SERVER then
 	ModelPlug_Register("GPS")
-	
-	function TOOL:GetConVars() end
-
-	function TOOL:MakeEnt( ply, model, Ang, trace )
-		return MakeWireGPS( ply, trace.HitPos, Ang, model, self:GetConVars() )
-	end
 end
 
 TOOL.ClientConVar = {

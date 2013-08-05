@@ -23,10 +23,6 @@ if SERVER then
 		return self:GetClientNumber( "speed" ), math.Clamp(self:GetClientNumber( "resistance" ), 0, 20), 
 			math.Clamp(self:GetClientNumber( "strength" ), 0.1, 20), self:GetClientNumber( "starton" ) == 1
 	end
-
-	function TOOL:MakeEnt( ply, model, Ang, trace )
-		return MakeWireHoverBall( ply, trace.HitPos, Ang, model, self:GetConVars() )
-	end
 end
 
 function TOOL:GetGhostMin( min, trace )

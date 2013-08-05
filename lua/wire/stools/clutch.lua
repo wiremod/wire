@@ -180,14 +180,12 @@ if SERVER then
 		Send_Links( self:GetOwner(), constrained_pairs )
 	end
 
-	function TOOL:MakeEnt( ply, model, Ang, trace )
-		local ent = MakeClutchController( ply, trace.HitPos, Ang, model, self:GetConVars() )
-		self:SelectController( ent )
-		return ent
+	function TOOL:PostMake(ent)
+		self:SelectController(ent)
 	end
-	
+
 	function TOOL:LeftClick_Update( trace )
-		self:SelectController(trace.Entity)
+		self:PostMake(trace.Entity)
 	end
 end
 

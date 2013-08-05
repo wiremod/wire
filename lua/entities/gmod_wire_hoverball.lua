@@ -305,24 +305,4 @@ function ENT:Setup(speed, resistance, strength, starton)
 	self.starton = starton
 end
 
-function MakeWireHoverBall( pl, Pos, Ang, model, speed, resistance, strength, starton, nocollide )
-	if not pl:CheckLimit( "wire_hoverballs" ) then return nil end
-
-	local wire_ball = ents.Create( "gmod_wire_hoverball" )
-	if not wire_ball:IsValid() then return false end
-
-	wire_ball:SetPos( Pos )
-	wire_ball:SetAngles( Ang )
-	wire_ball:SetModel( model )
-	wire_ball:Spawn()
-	wire_ball:SetPlayer( pl )
-	wire_ball.pl = pl
-	wire_ball.nocollide = nocollide
-	
-	wire_ball:Setup(speed, resistance, strength, starton)
-
-	pl:AddCount( "wire_hoverballs", wire_ball )
-
-	return wire_ball
-end
-duplicator.RegisterEntityClass("gmod_wire_hoverball", MakeWireHoverBall, "Pos", "Ang", "Model", "speed", "resistance", "strength", "starton", "nocollide")
+duplicator.RegisterEntityClass("gmod_wire_hoverball", WireLib.MakeWireEnt, "Data", "speed", "resistance", "strength", "starton")

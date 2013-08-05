@@ -16,10 +16,6 @@ if SERVER then
 	function TOOL:GetConVars() 
 		return self:GetClientNumber("out180")~=0
 	end
-
-	function TOOL:MakeEnt( ply, model, Ang, trace )
-		return MakeWireGyroscope( ply, trace.HitPos, Ang, model, self:GetConVars() )
-	end
 end
 
 TOOL.ClientConVar = {
