@@ -13,7 +13,7 @@ if CLIENT then
 	language.Add( "WireDualInputTool_value_off", "Value Off:" )
 end
 WireToolSetup.BaseLang("Dual Inputs")
-WireToolSetup.SetupMax( 20, TOOL.Mode.."s" , "You've hit the Wire "..TOOL.PluralName.." limit!" )
+WireToolSetup.SetupMax( 20 )
 
 if SERVER then
 	ModelPlug_Register("Numpad")
@@ -23,9 +23,7 @@ if SERVER then
 			self:GetClientNumber( "value_off" ), self:GetClientNumber( "value_on" ), self:GetClientNumber( "value_on2" )
 	end
 
-	function TOOL:MakeEnt( ply, model, Ang, trace )
-		return MakeWireDualInput( ply, trace.HitPos, Ang, model, self:GetConVars() )
-	end
+	-- Uses default WireToolObj:MakeEnt's MakeWireEnt function
 end
 
 TOOL.ClientConVar = {

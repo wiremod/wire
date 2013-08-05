@@ -9,61 +9,19 @@ if CLIENT then
     language.Add( "WireColorerTool_outColor", "Output Color" )
     language.Add( "WireColorerTool_Range", "Max Range:" )
     language.Add( "WireColorerTool_Model", "Choose a Model:")
-	language.Add( "sboxlimit_wire_colorers", "You've hit Colorers limit!" )
-	language.Add( "undone_Wire Colorer", "Undone Wire Colorer" )
 end
+WireToolSetup.BaseLang()
+WireToolSetup.SetupMax( 20 )
 
 if SERVER then
-	CreateConVar('sbox_maxwire_colorers', 20)
+	function TOOL:GetConVars() 
+		return self:GetClientNumber( "outColor" ) ~= 0, self:GetClientNumber( "range" )
+	end
 end
 
 TOOL.ClientConVar[ "Model" ] = "models/jaanus/wiretool/wiretool_siren.mdl"
 TOOL.ClientConVar[ "outColor" ] = "0"
-TOOL.ClientConVar[ "Range" ] = "2000"
-
-cleanup.Register( "wire_colorers" )
-
-function TOOL:LeftClick( trace )
-	if !trace.HitPos then return false end
-	if trace.Entity:IsPlayer() then return false end
-	if CLIENT then return true end
-	if not util.IsValidPhysicsObject( trace.Entity, trace.PhysicsBone ) then return false end
-
-	local ply = self:GetOwner()
-
-	if IsValid(trace.Entity) and trace.Entity:GetClass() == "gmod_wire_colorer" then
-		trace.Entity:SetBeamLength( self:GetClientNumber( "Range" ) )
-		return true
-	end
-
-	if !self:GetSWEP():CheckLimit( "wire_colorers" ) then return false end
-
-	local Ang = trace.HitNormal:Angle()
-	Ang.pitch = Ang.pitch + 90
-
-    local outColor = (self:GetClientNumber( "outColor" ) ~= 0)
-    local range = self:GetClientNumber( "Range" )
-    local model = self:GetClientInfo( "Model" )
-
-	if not util.IsValidModel( model ) or not util.IsValidProp( model ) then return end
-	local wire_colorer = MakeWireColorer( ply, trace.HitPos, Ang, model, outColor, range )
-
-	local min = wire_colorer:OBBMins()
-	wire_colorer:SetPos( trace.HitPos - trace.HitNormal * min.z )
-
-	local const = WireLib.Weld( wire_colorer, trace.Entity, trace.PhysicsBone, true )
-
-	undo.Create( "Wire Colorer" )
-		undo.AddEntity( wire_colorer )
-		undo.AddEntity( const )
-		undo.SetPlayer( ply )
-	undo.Finish()
-
-	ply:AddCleanup( "wire_colorers", wire_colorer )
-	ply:AddCleanup( "wire_colorers", const )
-
-	return true
-end
+TOOL.ClientConVar[ "range" ] = "2000"
 
 function TOOL.BuildCPanel(panel)
 	WireToolHelpers.MakePresetControl(panel, "wire_colorer")

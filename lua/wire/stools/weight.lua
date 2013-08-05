@@ -7,15 +7,13 @@ if CLIENT then
 	language.Add( "tool.wire_weight.0", "Primary: Create/Update weight, Reload: Copy model" )
 end
 WireToolSetup.BaseLang()
-WireToolSetup.SetupMax( 20, TOOL.Mode.."s" , "You've hit the Wire "..TOOL.PluralName.." limit!" )
+WireToolSetup.SetupMax( 20 )
 
 if SERVER then
 	ModelPlug_Register("weight")
 	function TOOL:GetConVars() end
-
-	function TOOL:MakeEnt( ply, model, Ang, trace )
-		return MakeWireWeight( ply, trace.HitPos, Ang, model, self:GetConVars() )
-	end
+	
+	-- Uses default WireToolObj:MakeEnt's MakeWireEnt function
 end
 
 TOOL.ClientConVar = {

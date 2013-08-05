@@ -8,7 +8,7 @@ if CLIENT then
 end
 WireToolSetup.BaseLang()
 
-WireToolSetup.SetupMax( 20, "wire_pixels", "You've hit pixels limit!" )
+WireToolSetup.SetupMax( 20 )
 
 if SERVER then
 	ModelPlug_Register("pixel")

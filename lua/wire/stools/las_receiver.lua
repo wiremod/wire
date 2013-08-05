@@ -7,7 +7,7 @@ if CLIENT then
 	language.Add( "Tool.wire_las_receiver.0", "Primary: Create/Update Laser Receiver" )
 end
 WireToolSetup.BaseLang()
-WireToolSetup.SetupMax( 20, TOOL.Mode.."s" , "You've hit the Wire "..TOOL.PluralName.." limit!" )
+WireToolSetup.SetupMax( 20 )
 
 if SERVER then
 	function TOOL:GetConVars() end

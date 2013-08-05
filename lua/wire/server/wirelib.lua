@@ -829,17 +829,11 @@ function WireLib.ApplyDupeInfo( ply, ent, info, GetEntByID )
 
 			Wire_Link_Start(idx, ent, input.StartPos, k, input.Material, input.Color, input.Width)
 
-			if (input.Path) then
+			if input.Path then
 				for _,v in ipairs(input.Path) do
 
-					local ent2 = GetEntByID(v.Entity)
-					if (!IsValid(ent2)) then
-						local EntityList = GetEntByID("EntityList")
-						if (!EntityList) or (!EntityList[v.Entity]) then
-							ent2 = ents.GetByIndex(v.Entity)
-						end
-					end
-					if (IsValid(ent2)) then
+				local ent2 = GetEntByID(v.Entity)
+					if IsValid(ent2) then
 						Wire_Link_Node(idx, ent2, v.Pos)
 					else
 						Msg("ApplyDupeInfo: Error, Could not find the entity for wire path\n")
@@ -848,13 +842,7 @@ function WireLib.ApplyDupeInfo( ply, ent, info, GetEntByID )
 			end
 
 			local ent2 = GetEntByID(input.Src)
-			if (!IsValid(ent2)) then
-				local EntityList = GetEntByID("EntityList")
-				if (!EntityList) or (!EntityList[input.Src]) then
-					ent2 = ents.GetByIndex(input.Src)
-				end
-			end
-			if (IsValid(ent2)) then
+			if IsValid(ent2) then
 				Wire_Link_End(idx, ent2, input.SrcPos, input.SrcId)
 			else
 				Msg("ApplyDupeInfo: Error, Could not find the output entity\n")
@@ -1115,4 +1103,18 @@ function WireLib.dummytrace(ent)
 		PhysicsBone       = 0,
 		WorldToLocal      = Vector(0,0,0),
 	}
+end
+
+function MakeWireEnt( pl, Data, ... )
+	if IsValid(pl) and not pl:CheckLimit(Data.Class:sub(6).."s") then return false end
+	
+	local ent = duplicator.GenericDuplicatorFunction( pl, Data )
+	if not IsValid(ent) then return false end
+
+	ent:SetPlayer(pl)
+	if ent.Setup then ent:Setup(...) end
+
+	if IsValid(pl) then pl:AddCount( Data.Class:sub(6).."s", ent ) end
+
+	return ent
 end

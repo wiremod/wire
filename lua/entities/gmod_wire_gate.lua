@@ -1,7 +1,7 @@
 AddCSLuaFile()
 DEFINE_BASECLASS( "base_wire_entity" )
 ENT.PrintName       = "Wire Gate"
-ENT.RenderGroup		= RENDERGROUP_BOTH
+ENT.RenderGroup		= RENDERGROUP_OPAQUE
 ENT.WireDebugName = "Gate"
 
 if CLIENT then return end -- No more client
@@ -16,45 +16,49 @@ function ENT:Initialize()
 end
 
 function ENT:Setup( action, noclip )
-	if (action) then
-		self.WireDebugName = action.name
+	local gate = GateActions[action]
+	if not gate then return end
+	
+	self.action = action
 
-		WireLib.AdjustSpecialInputs(self, action.inputs, action.inputtypes )
-		if (action.outputs) then
-			WireLib.AdjustSpecialOutputs(self, action.outputs, action.outputtypes)
-		else
-			//Wire_AdjustOutputs(self, { "Out" })
-			WireLib.AdjustSpecialOutputs(self, { "Out" }, action.outputtypes)
-		end
+	self.WireDebugName = gate.name
 
-		if (action.reset) then
-			action.reset(self)
-		end
+	WireLib.AdjustSpecialInputs(self, gate.inputs, gate.inputtypes )
+	if (gate.outputs) then
+		WireLib.AdjustSpecialOutputs(self, gate.outputs, gate.outputtypes)
+	else
+		//Wire_AdjustOutputs(self, { "Out" })
+		WireLib.AdjustSpecialOutputs(self, { "Out" }, gate.outputtypes)
+	end
 
-		local ReadCell = action.ReadCell
-		if ReadCell then
-			function self:ReadCell(Address)
-				return ReadCell(action,self,Address)
-			end
-		else
-			self.ReadCell = nil
-		end
+	if (gate.reset) then
+		gate.reset(self)
+	end
 
-		local WriteCell = action.WriteCell
-		if WriteCell then
-			function self:WriteCell(Address,value)
-				return WriteCell(action,self,Address,value)
-			end
-		else
-			self.WriteCell = nil
+	local ReadCell = gate.ReadCell
+	if ReadCell then
+		function self:ReadCell(Address)
+			return ReadCell(gate,self,Address)
 		end
+	else
+		self.ReadCell = nil
+	end
+
+	local WriteCell = gate.WriteCell
+	if WriteCell then
+		function self:WriteCell(Address,value)
+			return WriteCell(gate,self,Address,value)
+		end
+	else
+		self.WriteCell = nil
 	end
 
 	if (noclip) then
 		self:SetCollisionGroup( COLLISION_GROUP_WORLD )
 	end
+	self.noclip = noclip
 
-	self.Action = action
+	self.Action = gate
 	self.PrevValue = nil
 
 	//self.Action.inputtypes = self.Action.inputtypes or {}
@@ -197,45 +201,19 @@ function ENT:GetActionOutputs()
 end
 
 function MakeWireGate(pl, Pos, Ang, model, action, noclip, frozen, nocollide)
-	if ( !pl:CheckLimit( "wire_gates" ) ) then return nil end
-
 	local gate = GateActions[action]
 	if not gate then return end
 
 	local group = gate.group
 	if not group then return end
 	group = string.lower(group)
-	if not pl:CheckLimit( "wire_gate_" .. group .. "s" ) then return end
+	if IsValid(pl) and not pl:CheckLimit( "wire_gate_" .. group .. "s" ) then return end
 
-	local wire_gate = ents.Create( "gmod_wire_gate" )
-	wire_gate:SetPos( Pos )
-	wire_gate:SetAngles( Ang )
-	wire_gate:SetModel( model )
-	wire_gate:Spawn()
-	wire_gate:Activate()
+	local wire_gate =  MakeWireEnt( pl, {Class = "gmod_wire_gate", Pos=Pos, Angle=Ang, Model=model}, action, noclip )
+	if not IsValid(wire_gate) then return end
 
-	wire_gate:Setup( gate, noclip )
-	wire_gate:SetPlayer( pl )
-
-	if wire_gate:GetPhysicsObject():IsValid() then
-		wire_gate:GetPhysicsObject():EnableMotion(!frozen)
-	end
-	if nocollide == true or noclip == true then
-		wire_gate:SetCollisionGroup(COLLISION_GROUP_WORLD)
-	end
-
-	local ttable = {
-		pl        = pl,
-		action    = action,
-		noclip    = noclip,
-		nocollide = nocollide
-	}
-	table.Merge( wire_gate:GetTable(), ttable )
-
-	pl:AddCount( "wire_gates", wire_gate )
 	pl:AddCount( "wire_gate_" .. group .. "s", wire_gate )
-	pl:AddCleanup( "gmod_wire_gate", wire_gate )
 
 	return wire_gate
 end
-duplicator.RegisterEntityClass("gmod_wire_gate", MakeWireGate, "Pos", "Ang", "Model", "action", "noclip", "frozen", "nocollide")
+duplicator.RegisterEntityClass("gmod_wire_gate", MakeWireGate, "Pos", "Ang", "Model", "action", "noclip")

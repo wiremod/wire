@@ -142,21 +142,4 @@ function ENT:ReceiveValue(output,value)
 	end
 end
 
-function MakeWireTransferer( pl, Pos, Ang, model, Range, DefaultZero, IgnoreZero )
-	if ( !pl:CheckLimit( "wire_data_transferers" ) ) then return false end
-
-	local wire_data_transferer = ents.Create( "gmod_wire_data_transferer" )
-	if (!wire_data_transferer:IsValid()) then return false end
-
-	wire_data_transferer:SetAngles( Ang )
-	wire_data_transferer:SetPos( Pos )
-	wire_data_transferer:SetModel( model )
-	wire_data_transferer:Spawn()
-	wire_data_transferer:Setup(Range,DefaultZero,IgnoreZero)
-	wire_data_transferer:SetPlayer( pl )
-
-	pl:AddCount( "wire_data_transferers", wire_data_transferer )
-
-	return wire_data_transferer
-end
-duplicator.RegisterEntityClass("gmod_wire_data_transferer", MakeWireTransferer, "Pos", "Ang", "Model", "Range", "DefaultZero", "IgnoreZero")
+duplicator.RegisterEntityClass("gmod_wire_data_transferer", MakeWireEnt, "Data", "Range", "DefaultZero", "IgnoreZero")

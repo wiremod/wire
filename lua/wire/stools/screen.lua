@@ -15,7 +15,7 @@ if CLIENT then
 end
 WireToolSetup.BaseLang()
 
-WireToolSetup.SetupMax( 20, "wire_screens", "You've hit screens limit!" )
+WireToolSetup.SetupMax( 20 )
 
 if SERVER then
 	ModelPlug_Register("pixel")

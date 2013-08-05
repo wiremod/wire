@@ -7,14 +7,12 @@ if ( CLIENT ) then
 	language.Add( "Tool.wire_dataport.0", "Primary: Create/Update data ports unit" )
 end
 WireToolSetup.BaseLang()
-WireToolSetup.SetupMax( 20, TOOL.Mode.."s" , "You've hit the Wire "..TOOL.PluralName.." limit!" )
+WireToolSetup.SetupMax( 20 )
 
 TOOL.ClientConVar[ "model" ] = "models/jaanus/wiretool/wiretool_gate.mdl"
 
 if SERVER then
-	function TOOL:MakeEnt( ply, model, Ang, trace )
-		return MakeWireDataPort( ply, trace.HitPos, Ang, model, self:GetConVars() )
-	end
+	-- Uses default WireToolObj:MakeEnt's MakeWireEnt function
 end
 
 function TOOL.BuildCPanel(panel)

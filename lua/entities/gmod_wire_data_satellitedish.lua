@@ -1,7 +1,7 @@
 AddCSLuaFile()
 DEFINE_BASECLASS( "base_wire_entity" )
 ENT.PrintName		= "Wire Data Satellite Dish"
-ENT.RenderGroup		= RENDERGROUP_BOTH
+ENT.RenderGroup		= RENDERGROUP_OPAQUE
 ENT.WireDebugName = "Satellite Dish"
 
 if CLIENT then return end -- No more client
@@ -17,6 +17,8 @@ function ENT:ShowOutput()
 	self:SetOverlayText( IsValid(self.Transmitter) and "Linked" or "Unlinked" )
 end
 
+duplicator.RegisterEntityClass("gmod_wire_data_satellitedish", MakeWireEnt, "Data")
+
 function ENT:BuildDupeInfo()
 	local info = self.BaseClass.BuildDupeInfo(self) or {}
 	if IsValid( self.Transmitter ) then
@@ -28,11 +30,6 @@ end
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
 
-	if (info.Transmitter) then
-		self.Transmitter = GetEntByID(info.Transmitter)
-		if (!self.Transmitter) then
-			self.Transmitter = ents.GetByIndex(info.Transmitter)
-		end
-	end
+	self.Transmitter = GetEntByID(info.Transmitter)
 	self:ShowOutput()
 end

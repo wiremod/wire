@@ -1,15 +1,12 @@
 include("cl_gpuvm.lua")
 include("shared.lua")
 
+ENT.RenderGroup		= RENDERGROUP_OPAQUE
 
 
---------------------------------------------------------------------------------
 local Monitors = {}
 local MonitorLookup = {}
 local HUDLookup = {}
-
-
-
 
 --------------------------------------------------------------------------------
 -- Update monitors certain GPU is linked to
@@ -48,8 +45,6 @@ end
 usermessage.Hook("wire_gpu_monitorstate", GPU_MonitorState)
 
 
-
-
 --------------------------------------------------------------------------------
 -- Update GPU features/memory model
 --------------------------------------------------------------------------------
@@ -70,18 +65,7 @@ local function GPU_MemoryModel(um)
 end
 usermessage.Hook("wire_gpu_memorymodel", GPU_MemoryModel)
 
-
-
-
---------------------------------------------------------------------------------
 local wire_gpu_frameratio = CreateClientConVar("wire_gpu_frameratio",4)
-
-
-
-
---------------------------------------------------------------------------------
-ENT.RenderGroup = RENDERGROUP_BOTH
-function ENT:IsTranslucent() return false end
 
 function ENT:Initialize()
   -- Create virtual machine

@@ -6,67 +6,20 @@ if (CLIENT) then
     language.Add("Tool.wire_cd_disk.desc", "Spawns a CD Disk.")
     language.Add("Tool.wire_cd_disk.0", "Primary: Create/Update CD Disk, Secondary: Change model")
     language.Add("WireDataTransfererTool_cd_disk", "CD Disk:")
-	language.Add("sboxlimit_wire_cd_disks", "You've hit CD Disks limit!")
-	language.Add("undone_Wire CD Disk", "Undone Wire CD Disk")
 end
+WireToolSetup.BaseLang()
+WireToolSetup.SetupMax( 20 )
 
 if (SERVER) then
-	CreateConVar('sbox_maxwire_cd_disks', 20)
+	function TOOL:GetConVars() 
+		return self:GetClientNumber( "precision" ), self:GetClientNumber( "iradius" ), self:GetClientNumber( "skin" )
+	end
 end
 
 TOOL.ClientConVar["model"] = "models/venompapa/wirecd_medium.mdl"
 TOOL.ClientConVar["skin"] = "0"
 TOOL.ClientConVar["precision"] = 4
 TOOL.ClientConVar["iradius"] = 10
-
-TOOL.FirstSelected = nil
-
-cleanup.Register("wire_cd_disks")
-
-function TOOL:LeftClick(trace)
-	if (!trace.HitPos) then return false end
-	if (trace.Entity:IsPlayer()) then return false end
-	if (CLIENT) then return true end
-	if not util.IsValidPhysicsObject( trace.Entity, trace.PhysicsBone ) then return false end
-
-	local ply = self:GetOwner()
-
-	if (trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_cd_disk") then
-		trace.Entity.Precision = tonumber(self:GetClientInfo("precision"))
-		trace.Entity.IRadius = tonumber(self:GetClientInfo("iradius"))
-		trace.Entity:Setup()
-		return true
-	end
-
-	if (!self:GetSWEP():CheckLimit("wire_cd_disks")) then return false end
-
-	local Ang = trace.HitNormal:Angle()
-	Ang.pitch = Ang.pitch + 90
-
-	local model = self:GetClientInfo( "model" )
-	if not util.IsValidModel( model ) or not util.IsValidProp( model ) then return end
-	local wire_cd_disk = MakeWireCDDisk(ply, trace.HitPos, Ang , model, tonumber(self:GetClientInfo("skin")))
-
-	wire_cd_disk.Precision = tonumber(self:GetClientInfo("precision"))
-	wire_cd_disk.IRadius = tonumber(self:GetClientInfo("iradius"))
-	wire_cd_disk:Setup()
-
-	local min = wire_cd_disk:OBBMins()
-	wire_cd_disk:SetPos(trace.HitPos - trace.HitNormal * min.z)
-
-	local const = WireLib.Weld(wire_cd_disk, trace.Entity, trace.PhysicsBone, true)
-
-	undo.Create("Wire CD Disk")
-		undo.AddEntity(wire_cd_disk)
-		undo.AddEntity(const)
-		undo.SetPlayer(ply)
-	undo.Finish()
-
-	ply:AddCleanup("wire_cd_disks", wire_cd_disk)
-	ply:AddCleanup("wire_cd_disks", const)
-
-	return true
-end
 
 function TOOL:RightClick(trace)
 	if (CLIENT) then return true end

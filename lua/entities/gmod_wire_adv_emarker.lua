@@ -113,27 +113,7 @@ function ENT:ClearEntities()
 	self:UpdateOutputs()
 end
 
-function MakeWireAdvEMarker( pl, Pos, Ang, model, nocollide )
-	if (!pl:CheckLimit("wire_adv_emarkers")) then return false end
-
-	local ent = ents.Create("gmod_wire_adv_emarker")
-	ent:SetPos(Pos)
-	ent:SetAngles(Ang)
-	ent:SetModel(model)
-	ent:Spawn()
-	ent:Activate()
-
-	ent:SetPlayer(pl)
-	ent.pl = pl
-	ent.nocollide = nocollide
-
-	if ( nocollide == true ) then ent:GetPhysicsObject():EnableCollisions( false ) end
-
-	pl:AddCount( "wire_adv_emarkers", ent )
-
-	return ent
-end
-duplicator.RegisterEntityClass( "gmod_wire_adv_emarker", MakeWireAdvEMarker, "Pos", "Ang", "Model", "nocollide" )
+duplicator.RegisterEntityClass( "gmod_wire_adv_emarker", MakeWireEnt, "Data" )
 
 function ENT:BuildDupeInfo()
 	local info = self.BaseClass.BuildDupeInfo(self) or {}
@@ -151,6 +131,8 @@ function ENT:BuildDupeInfo()
 end
 
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
+	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
+
 	if (!ply:CheckLimit("wire_adv_emarkers")) then
 		ent:Remove()
 		return
@@ -158,16 +140,13 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 	ply:AddCount( "wire_adv_emarkers", ent )
 
 	if (info.marks) then
-		local tbl = info.marks
+		self.Marks = self.Marks or {}
 
-		if (!self.Marks) then self.Marks = {} end
-
-		for index, entindex in pairs( tbl ) do
-			self.Marks[index] = GetEntByID(entindex) or ents.GetByIndex(entindex)
+		for index, entindex in pairs(info.marks) do
+			self.Marks[index] = GetEntByID(entindex)
 		end
 		self:UpdateOutputs()
 	end
 
 	ent:SetPlayer( ply )
-	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
 end

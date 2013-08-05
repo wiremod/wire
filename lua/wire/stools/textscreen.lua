@@ -16,7 +16,7 @@ if CLIENT then
 end
 WireToolSetup.BaseLang()
 
-WireToolSetup.SetupMax( 20, "wire_textscreens", "You've hit sound text screens limit!" )
+WireToolSetup.SetupMax( 20 )
 
 if SERVER then
 	ModelPlug_Register("speaker")
@@ -35,9 +35,7 @@ if SERVER then
 			Color(0,0,0)
 	end
 
-	function TOOL:MakeEnt( ply, model, Ang, trace )
-		return MakeWireTextScreen( ply, trace.HitPos, Ang, model, self:GetConVars() )
-	end
+	-- Uses default WireToolObj:MakeEnt's MakeWireEnt function
 end
 
 TOOL.ClientConVar = {

@@ -1920,10 +1920,12 @@ end
 
 function Editor:SaveTabs()
 	local strtabs = ""
+	local tabs = {}
 	for i = 1, self:GetNumTabs() do
 		local chosenfile = self:GetEditor(i).chosenfile
-		if chosenfile and chosenfile ~= "" then
+		if chosenfile and chosenfile ~= "" and not tabs[chosenfile] then
 			strtabs = strtabs .. chosenfile .. ";"
+			tabs[chosenfile] = true -- Prevent duplicates
 		end
 	end
 

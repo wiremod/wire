@@ -8,7 +8,7 @@ if CLIENT then
 	language.Add("tool.wire_adv_pod.1", "Now select the pod to link to.")
 end
 WireToolSetup.BaseLang("Adv. Pod Controllers")
-WireToolSetup.SetupMax( 30, TOOL.Mode.."s" , "You've hit the Wire "..TOOL.PluralName.." limit!" )
+WireToolSetup.SetupMax( 30 )
 
 if SERVER then
 	ModelPlug_Register("podctrlr")

@@ -1,7 +1,7 @@
 AddCSLuaFile()
 DEFINE_BASECLASS( "base_wire_entity" )
 ENT.PrintName		= "Wire Data Port"
-ENT.RenderGroup		= RENDERGROUP_BOTH
+ENT.RenderGroup		= RENDERGROUP_OPAQUE
 ENT.WireDebugName = "DataPort"
 
 if CLIENT then return end -- No more client
@@ -62,20 +62,4 @@ function ENT:TriggerInput(iname, value)
 	end
 end
 
-function MakeWireDataPort( pl, Pos, Ang, model )
-	if ( !pl:CheckLimit( "wire_dataports" ) ) then return false end
-
-	local wire_dataport = ents.Create( "gmod_wire_dataport" )
-	if (!wire_dataport:IsValid()) then return false end
-	wire_dataport:SetModel(model)
-
-	wire_dataport:SetAngles( Ang )
-	wire_dataport:SetPos( Pos )
-	wire_dataport:Spawn()
-	wire_dataport:SetPlayer(pl)
-
-	pl:AddCount( "wire_dataports", wire_dataport )
-
-	return wire_dataport
-end
-duplicator.RegisterEntityClass("gmod_wire_dataport", MakeWireDataPort, "Pos", "Ang", "Model")
+duplicator.RegisterEntityClass("gmod_wire_dataport", MakeWireEnt, "Data")

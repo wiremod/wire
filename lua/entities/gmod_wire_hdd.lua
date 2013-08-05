@@ -1,7 +1,7 @@
 AddCSLuaFile()
 DEFINE_BASECLASS( "base_wire_entity" )
 ENT.PrintName		= "Wire Flash EEPROM"
-ENT.RenderGroup		= RENDERGROUP_BOTH
+ENT.RenderGroup		= RENDERGROUP_OPAQUE
 ENT.WireDebugName 	= "WireHDD"
 
 if CLIENT then return end -- No more client
@@ -48,6 +48,12 @@ function ENT:Initialize()
 	-- Owners STEAMID
 	self.Owner_SteamID = "SINGLEPLAYER"
 	self:NextThink(CurTime()+1.0)
+end
+
+function ENT:Setup(DriveID, DriveCap)
+	self.DriveID = DriveID
+	self.DriveCap = DriveCap
+	self:UpdateCap()
 end
 
 function ENT:GetStructName(name)
@@ -136,7 +142,7 @@ function ENT:ReadCell(Address)
 		return nil
 	end
 
-	local player = self.pl
+	local player = self:GetPlayer()
 	if player:IsValid() then
 		local steamid = player:SteamID()
 		steamid = string.gsub(steamid, ":", "_")
@@ -194,7 +200,7 @@ function ENT:WriteCell(Address, value)
 		return false
 	end
 
-	local player = self.pl
+	local player = self:GetPlayer()
 	if (player:IsValid()) then
 		local steamid = player:SteamID()
 		steamid = string.gsub(steamid, ":", "_")
@@ -313,3 +319,5 @@ function ENT:TriggerInput(iname, value)
 
 	self:SetOverlayText(self.DriveCap.."kb".."\nWriteAddr:"..self.AWrite.."  Data:"..self.Data.."  Clock:"..self.Clk.."\nReadAddr:"..self.ARead.." = ".. self.Out)
 end
+
+duplicator.RegisterEntityClass("gmod_wire_hdd", MakeWireEnt, "Data", "DriveID", "DriveCap")

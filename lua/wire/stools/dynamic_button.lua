@@ -11,7 +11,7 @@ if CLIENT then
 	language.Add( "WireDynamicButtonTool_value_off", "Value Off:" )
 end
 WireToolSetup.BaseLang("Dynamic Buttons")
-WireToolSetup.SetupMax( 20, TOOL.Mode.."s" , "You've hit the Wire "..TOOL.PluralName.." limit!" )
+WireToolSetup.SetupMax( 20 )
 
 if SERVER then
 	function TOOL:GetConVars() 
@@ -21,9 +21,7 @@ if SERVER then
 			self:GetClientNumber( "off_r" ), self:GetClientNumber( "off_g" ), self:GetClientNumber( "off_b" )
 	end
 
-	function TOOL:MakeEnt( ply, model, Ang, trace )
-		return MakeWireDynamicButton( ply, trace.HitPos, Ang, model, self:GetConVars() )
-	end
+	-- Uses default WireToolObj:MakeEnt's MakeWireEnt function
 end
 
 TOOL.ClientConVar = {

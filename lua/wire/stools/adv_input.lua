@@ -14,7 +14,7 @@ if CLIENT then
 	language.Add( "WireAdvInputTool_speed", "Change per second:" )
 end
 WireToolSetup.BaseLang("Adv. Inputs")
-WireToolSetup.SetupMax( 20, TOOL.Mode.."s" , "You've hit the Wire "..TOOL.PluralName.." limit!" )
+WireToolSetup.SetupMax( 20 )
 
 if SERVER then
 	ModelPlug_Register("Numpad")
@@ -24,10 +24,8 @@ if SERVER then
 			self:GetClientNumber( "value_min" ), self:GetClientNumber( "value_max" ), self:GetClientNumber( "value_start" ),
 			self:GetClientNumber( "speed" )
 	end
-
-	function TOOL:MakeEnt( ply, model, Ang, trace )
-		return MakeWireAdvInput( ply, trace.HitPos, Ang, model, self:GetConVars() )
-	end
+	
+	-- Uses default WireToolObj:MakeEnt's MakeWireEnt function
 end
 
 TOOL.ClientConVar = {

@@ -14,7 +14,7 @@ if CLIENT then
 end
 WireToolSetup.BaseLang()
 
-WireToolSetup.SetupMax( 20, "wire_indicators", "You've hit indicators limit!" )
+WireToolSetup.SetupMax( 20 )
 
 if SERVER then
 	ModelPlug_Register("indicator")

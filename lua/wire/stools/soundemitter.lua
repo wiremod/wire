@@ -10,17 +10,13 @@ if CLIENT then
 end
 WireToolSetup.BaseLang()
 
-WireToolSetup.SetupMax( 10, "wire_emitters", "You've hit sound emitters limit!" )
+WireToolSetup.SetupMax( 10 )
 
 if SERVER then
 	ModelPlug_Register("speaker")
 
 	function TOOL:GetConVars()
-		return Sound( self:GetClientInfo( "sound" ) )
-	end
-
-	function TOOL:MakeEnt( ply, model, Ang, trace )
-		return MakeWireEmitter( ply, trace.HitPos, Ang, model, self:GetConVars() )
+		return self:GetClientInfo( "sound" )
 	end
 end
 
@@ -28,9 +24,10 @@ TOOL.ClientConVar = {
 	model     = "models/cheeze/wires/speaker.mdl",
 	sound     = "synth/square.wav",
 	collision = 0,
-	weld      = 1,
+	weld      = 1
 }
 function TOOL.BuildCPanel(panel)
+
 	local wide = panel:GetWide()
 
 	local SoundNameText = vgui.Create("DTextEntry", ValuePanel)

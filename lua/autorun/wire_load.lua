@@ -51,6 +51,7 @@ if SERVER then
 	AddCSLuaFile("wire/client/e2descriptions.lua")
 	AddCSLuaFile("wire/client/gmod_tool_auto.lua")
 	AddCSLuaFile("wire/client/sound_browser.lua")
+	AddCSLuaFile("wire/client/thrusterlib.lua")
 	AddCSLuaFile("wire/client/rendertarget_fix.lua")
 
 	-- HL-ZASM
@@ -72,10 +73,9 @@ if SERVER then
 
 	AddCSLuaFile("von.lua")
 
-	-- resource files
-	resource.AddFile("materials/expression 2/cog.vmt")
-	resource.AddFile("materials/wirelogo.vmt")
-	resource.AddSingleFile("materials/expression 2/cog_world.vmt")
+	if CreateConVar("wire_force_workshop", 1, {FCVAR_ARCHIVE}, "Should Wire force all clients to download the Workshop edition of Wire, for models? (requires restart to disable)"):GetBool() then
+		resource.AddWorkshop("160250458")
+	end
 end
 
 -- shared includes
@@ -114,6 +114,7 @@ if CLIENT then
 	include("wire/client/e2descriptions.lua")
 	include("wire/client/gmod_tool_auto.lua")
 	include("wire/client/sound_browser.lua")
+	include("wire/client/thrusterlib.lua")
 	include("wire/client/rendertarget_fix.lua")
 	include("wire/client/hlzasm/hc_compiler.lua")
 	

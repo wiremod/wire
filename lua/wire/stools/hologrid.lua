@@ -10,16 +10,14 @@ if CLIENT then
 	language.Add( "Tool_wire_hologrid_usegps", "Use GPS coordinates" )
 end
 WireToolSetup.BaseLang()
-WireToolSetup.SetupMax( 20, "wire_hologrids", "You've hit sound hologrids limit!" )
+WireToolSetup.SetupMax( 20 )
 
 if SERVER then
 	function TOOL:GetConVars()
 		return self:GetClientNumber( "usegps" )~=0
 	end
 
-	function TOOL:MakeEnt( ply, model, Ang, trace )
-		return MakeWireHologrid( ply, trace.HitPos, Ang, model, self:GetConVars() )
-	end
+	-- Uses default WireToolObj:MakeEnt's MakeWireEnt function
 end
 
 TOOL.ClientConVar = {

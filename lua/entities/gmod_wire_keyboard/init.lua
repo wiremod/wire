@@ -337,17 +337,7 @@ end
 
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
-	if info.pod then
-		local LinkedPod = GetEntByID(info.pod)
-		if !LinkedPod then
-			LinkedPod = ents.GetByIndex(info.pod)
-		end
-		self:LinkPod(LinkedPod, true)
-	end
 
-	if info.autobuffer ~= nil then
-		self.AutoBuffer = info.autobuffer
-	else
-		self.AutoBuffer = false
-	end
+	self:LinkPod(GetEntByID(info.pod), true)
+	self.AutoBuffer = info.autobuffer or false
 end

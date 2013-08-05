@@ -11,7 +11,7 @@ if CLIENT then
 	language.Add( "WireButtonTool_value_off", "Value Off:" )
 end
 WireToolSetup.BaseLang("Buttons")
-WireToolSetup.SetupMax( 20, TOOL.Mode.."s" , "You've hit the Wire "..TOOL.PluralName.." limit!" )
+WireToolSetup.SetupMax( 20 )
 
 if SERVER then
 	ModelPlug_Register("button")
@@ -21,9 +21,7 @@ if SERVER then
 			self:GetClientInfo( "description" ), self:GetClientNumber( "entityout" ) ~= 0
 	end
 
-	function TOOL:MakeEnt( ply, model, Ang, trace )
-		return MakeWireButton( ply, trace.HitPos, Ang, model, self:GetConVars() )
-	end
+	-- Uses default WireToolObj:MakeEnt's MakeWireEnt function
 end
 
 TOOL.ClientConVar = {

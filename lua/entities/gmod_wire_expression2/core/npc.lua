@@ -29,7 +29,7 @@ end
 
 e2function void entity:npcShoot()
 	if !validNPC(this) || !isOwner(self,this) then return end
-	if !this:HasCondition( COND_NO_WEAPON ) then return end
+--	if !this:HasCondition( 6 ) then return end -- COND_NO_WEAPON. See http://maurits.tv/data/garrysmod/wiki/wiki.garrysmod.com/index4389.html
 	this:SetSchedule( SCHED_RANGE_ATTACK1 )
 end
 

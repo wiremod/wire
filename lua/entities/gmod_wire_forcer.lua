@@ -121,25 +121,4 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
 end
 
-
-function MakeWireForcer( pl, Pos, Ang, model, Force, Length, ShowBeam, Reaction )
-	if not pl:CheckLimit( "wire_forcers" ) then return false end
-
-	local wire_forcer = ents.Create( "gmod_wire_forcer" )
-	if not wire_forcer:IsValid() then return false end
-
-	wire_forcer:SetAngles( Ang )
-	wire_forcer:SetPos( Pos )
-	wire_forcer:SetModel( model )
-	wire_forcer:Spawn()
-
-	wire_forcer:Setup(Force, Length, ShowBeam, Reaction)
-	wire_forcer:SetPlayer( pl )
-	wire_forcer.pl = pl
-
-	pl:AddCount( "wire_forcers", wire_forcer )
-
-	return wire_forcer
-end
-
-duplicator.RegisterEntityClass("gmod_wire_forcer", MakeWireForcer, "Pos", "Ang", "Model", "Force", "Length", "ShowBeam", "Reaction")
+duplicator.RegisterEntityClass("gmod_wire_forcer", MakeWireEnt, "Data", "Force", "Length", "ShowBeam", "Reaction")

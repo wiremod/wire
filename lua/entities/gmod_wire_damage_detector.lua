@@ -2,7 +2,7 @@ AddCSLuaFile()
 DEFINE_BASECLASS( "base_wire_entity" )
 ENT.PrintName		= "Wire Damage Detector"
 ENT.Author          = "Jimlad"
-ENT.RenderGroup		= RENDERGROUP_BOTH
+ENT.RenderGroup		= RENDERGROUP_OPAQUE
 ENT.WireDebugName = "Damage Detector"
 
 if CLIENT then return end -- No more client
@@ -52,6 +52,7 @@ function ENT:Initialize()
 
 	self.firsthit_dmginfo = {}		-- Stores damage info representing damage during an interval
 	self.linked_entities = {}
+	self.linked_entities[0] = self:EntIndex()
 
 	self.count = 0
 
@@ -249,28 +250,7 @@ function ENT:Think()
 	return true
 end
 
-function MakeWireDamageDetector( pl, Pos, Ang, model, includeconstrained )
-	if !pl:CheckLimit( "wire_damage_detectors" ) then return false end
-
-	local wire_damage_detector = ents.Create( "gmod_wire_damage_detector" )
-	if !IsValid(wire_damage_detector) then return false end
-
-	wire_damage_detector:SetAngles( Ang )
-	wire_damage_detector:SetPos( Pos )
-	wire_damage_detector:SetModel( model )
-	wire_damage_detector:Spawn()
-
-	wire_damage_detector:Setup( includeconstrained )
-	wire_damage_detector:LinkEntity( wire_damage_detector )	-- Link the detector to itself by default
-
-	wire_damage_detector:SetPlayer( pl )
-	wire_damage_detector.pl = pl
-
-	pl:AddCount( "wire_damage_detectors", wire_damage_detector )
-
-	return wire_damage_detector
-end
-duplicator.RegisterEntityClass("gmod_wire_damage_detector", MakeWireDamageDetector, "Pos", "Ang", "Model", "includeconstrained")
+duplicator.RegisterEntityClass("gmod_wire_damage_detector", MakeWireEnt, "Data", "includeconstrained")
 
 function ENT:BuildDupeInfo()
 	local info = self.BaseClass.BuildDupeInfo(self) or {}
@@ -282,13 +262,6 @@ end
 
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
-
-	if IsValid( GetEntByID(info.linked_entities) ) then
-		self.linked_entities = {}
-		self.linked_entities[0] = GetEntByID(info.linked_entities):EntIndex()
-	elseif IsValid( ents.GetByIndex(info.linked_entities) ) then
-		self.linked_entities = {}
-		self.linked_entities[0] = info.linked_entities
-	end
+	self.linked_entities = { [0] = GetEntByID(info.linked_entities):EntIndex() }
 	self:ShowOutput()
 end

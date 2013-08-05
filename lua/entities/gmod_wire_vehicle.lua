@@ -1,7 +1,7 @@
 AddCSLuaFile()
 DEFINE_BASECLASS( "base_wire_entity" )
 ENT.PrintName       = "Wire Vehicle Controller"
-ENT.RenderGroup		= RENDERGROUP_BOTH
+ENT.RenderGroup		= RENDERGROUP_OPAQUE
 ENT.WireDebugName = "Vehicle Controller"
 
 if CLIENT then return end -- No more client
@@ -58,10 +58,5 @@ end
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
 
-	if (info.Vehicle) then
-		self.Vehicle = GetEntByID(info.Vehicle)
-		if (!self.Vehicle) then
-			self.Vehicle = ents.GetByIndex(info.Vehicle)
-		end
-	end
+	self.Vehicle = GetEntByID(info.Vehicle)
 end

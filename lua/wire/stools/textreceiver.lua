@@ -1,5 +1,5 @@
 WireToolSetup.setCategory( "I/O" )
-WireToolSetup.open( "textreceiver", "Text Receiver", "gmod_wire_pod", nil, "Text Receivers" )
+WireToolSetup.open( "textreceiver", "Text Receiver", "gmod_wire_textreceiver", nil, "Text Receivers" )
 
 if ( CLIENT ) then
 	language.Add( "Tool.wire_textreceiver.name", "Text Receiver Tool (Wire)" )
@@ -14,7 +14,7 @@ if ( CLIENT ) then
 	end
 end
 WireToolSetup.BaseLang()
-WireToolSetup.SetupMax( 10, TOOL.Mode.."s" , "You've hit the Wire "..TOOL.PluralName.." limit!" )
+WireToolSetup.SetupMax( 10 )
 
 TOOL.ClientConVar["case_insensitive"] = 1
 TOOL.ClientConVar["use_lua_patterns"] = 0

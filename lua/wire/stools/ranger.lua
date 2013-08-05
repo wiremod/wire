@@ -23,7 +23,7 @@ if CLIENT then
 	language.Add( "Tool.wire_ranger.hires", "High Resolution")
 end
 WireToolSetup.BaseLang()
-WireToolSetup.SetupMax( 10, TOOL.Mode.."s" , "You've hit the Wire "..TOOL.PluralName.." limit!" )
+WireToolSetup.SetupMax( 10 )
 
 if SERVER then
 	function TOOL:GetConVars() 

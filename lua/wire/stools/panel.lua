@@ -9,7 +9,7 @@ if CLIENT then
 end
 WireToolSetup.BaseLang()
 
-WireToolSetup.SetupMax( 20, "wire_panels", "You've hit panels limit!" )
+WireToolSetup.SetupMax( 20 )
 
 if SERVER then
 	function TOOL:GetConVars() end

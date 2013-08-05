@@ -113,7 +113,7 @@ end
 function TOOL:RightClick(trace)
 	if (self:GetStage() ~= 0) then return self:LeftClick(trace) end
 
-	if (trace.Entity:IsValid()) and (trace.Entity:GetClass() == "gmod_wire_sensor") and (trace.Entity.pl == self:GetOwner()) then
+	if trace.Entity:IsValid() and trace.Entity:GetClass() == "gmod_wire_sensor" then
 		self:SetStage(1)
 		self.Sensor = trace.Entity
 		return true

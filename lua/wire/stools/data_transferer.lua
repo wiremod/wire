@@ -12,16 +12,14 @@ if ( CLIENT ) then
     language.Add( "WireDataTransfererTool_Model", "Choose a Model:")
 end
 WireToolSetup.BaseLang()
-WireToolSetup.SetupMax( 20, TOOL.Mode.."s" , "You've hit the Wire "..TOOL.PluralName.." limit!" )
+WireToolSetup.SetupMax( 20 )
 
 if SERVER then
 	function TOOL:GetConVars() 
 		return self:GetClientNumber("Range"), self:GetClientNumber("DefaultZero") ~= 0, self:GetClientNumber("IgnoreZero") ~= 0
 	end
-
-	function TOOL:MakeEnt( ply, model, Ang, trace )
-		return MakeWireTransferer( ply, trace.HitPos, Ang, model, self:GetConVars() )
-	end
+	
+	-- Uses default WireToolObj:MakeEnt's MakeWireEnt function
 end
 
 TOOL.ClientConVar = {

@@ -113,7 +113,7 @@ if E2Helper then
 	E2Helper.Descriptions["pos(e:)"] = "Gets the position of the entity"
 	E2Helper.Descriptions["eye(e:)"] = "Gets a players view direction else entity forward direction"
 	E2Helper.Descriptions["eyeAngles(e:)"] = "Gets a players view direction"
-	E2Helper.Descriptions["eyeTrace(e:)"] = "Equivalent to rangerOffset(16384, E:shootPos(), E:eye()), but faster (causing less lag)"
+	E2Helper.Descriptions["eyeTrace(e:)"] = "Performs a quick trace from the player's eye. Equivalent to rangerOffset(16384, E:shootPos(), E:eye()), but faster. Does not respect filters or ranger flags."
 	E2Helper.Descriptions["shootPos(e:)"] = "Returns a players shoot position"
 	E2Helper.Descriptions["aimEntity(e:)"] = "Returns the entity that the entity is aiming at"
 	E2Helper.Descriptions["aimBone(e:)"] = "Returns the bone the player is currently aiming at"

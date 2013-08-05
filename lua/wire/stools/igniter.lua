@@ -9,7 +9,7 @@ if CLIENT then
 	language.Add( "WireIgniterTool_Range", "Max Range:" )
 end
 WireToolSetup.BaseLang()
-WireToolSetup.SetupMax( 20, TOOL.Mode.."s" , "You've hit the Wire "..TOOL.PluralName.." limit!" )
+WireToolSetup.SetupMax( 20 )
 
 if SERVER then
 	CreateConVar('sbox_wire_igniters_maxlen', 30)

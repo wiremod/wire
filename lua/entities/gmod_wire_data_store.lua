@@ -1,7 +1,7 @@
 AddCSLuaFile()
 DEFINE_BASECLASS( "base_wire_entity" )
 ENT.PrintName		= "Wire Data Storer"
-ENT.RenderGroup		= RENDERGROUP_BOTH
+ENT.RenderGroup		= RENDERGROUP_OPAQUE
 ENT.WireDebugName = "Data Store"
 
 if CLIENT then return end -- No more client
@@ -20,3 +20,5 @@ function ENT:Initialize()
 	self.Values["G"] = 0
 	self.Values["H"] = 0
 end
+
+duplicator.RegisterEntityClass("gmod_wire_data_store", MakeWireEnt, "Data")

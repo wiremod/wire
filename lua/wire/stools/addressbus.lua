@@ -7,7 +7,7 @@ if ( CLIENT ) then
 	language.Add( "Tool.wire_addressbus.0", "Primary: Create/Update address bus" )
 end
 WireToolSetup.BaseLang()
-WireToolSetup.SetupMax( 20, TOOL.Mode.."s" , "You've hit the Wire "..TOOL.PluralName.." limit!" )
+WireToolSetup.SetupMax( 20 )
 
 TOOL.ClientConVar[ "model" ] = "models/jaanus/wiretool/wiretool_gate.mdl"
 TOOL.ClientConVar[ "addrspace1sz" ] = 0
@@ -25,9 +25,7 @@ if SERVER then
 			   self:GetClientNumber( "addrspace1sz" ), self:GetClientNumber( "addrspace2sz" ), self:GetClientNumber( "addrspace3sz" ), self:GetClientNumber( "addrspace4sz" )
 	end
 
-	function TOOL:MakeEnt( ply, model, Ang, trace )
-		return MakeWireAddressBus( ply, trace.HitPos, Ang, model, self:GetConVars() )
-	end
+	-- Uses default WireToolObj:MakeEnt's MakeWireEnt function
 end
 
 function TOOL:RightClick( trace )

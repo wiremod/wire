@@ -1,7 +1,7 @@
 AddCSLuaFile()
 DEFINE_BASECLASS( "base_wire_entity" )
 ENT.PrintName       = "Wire Beacon Sensor"
-ENT.RenderGroup		= RENDERGROUP_BOTH
+ENT.RenderGroup		= RENDERGROUP_OPAQUE
 ENT.WireDebugName = "Beacon Sensor"
 
 if CLIENT then return end -- No more client
@@ -216,10 +216,5 @@ end
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
 
-	if (info.to_sense) then
-		self:SetBeacon(GetEntByID(info.to_sense))
-		if (!self.ToSense) then
-			self:SetBeacon(ents.GetByIndex(info.to_sense))
-		end
-	end
+	self:SetBeacon(GetEntByID(info.to_sense))
 end

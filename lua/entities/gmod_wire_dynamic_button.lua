@@ -167,30 +167,4 @@ function ENT:ShowOutput(value)
 	self:SetOverlayText( "(" .. self.value_off .. " - " .. self.value_on .. ") = " .. value )
 end
 
-
-function MakeWireDynamicButton( pl, Pos, Ang, model, toggle, value_off, value_on, description, entityout, material_on, material_off, on_r, on_g, on_b, off_r, off_g, off_b, frozen )
-	if ( !pl:CheckLimit( "wire_dynamic_buttons" ) ) then return false end
-
-	local wire_dynamic_button = ents.Create( "gmod_wire_dynamic_button" )
-	if (!wire_dynamic_button:IsValid()) then return false end
-
-	wire_dynamic_button:SetModel(model)
-	wire_dynamic_button:SetAngles(Ang)
-	wire_dynamic_button:SetPos(Pos)
-	wire_dynamic_button:Spawn()
-
-	if wire_dynamic_button:GetPhysicsObject():IsValid() then
-		local Phys = wire_dynamic_button:GetPhysicsObject()
-		Phys:EnableMotion(!frozen)
-	end
-
-	wire_dynamic_button:Setup(toggle, value_off, value_on, description, entityout, material_on, material_off, on_r, on_g, on_b, off_r, off_g, off_b )
-	wire_dynamic_button:SetPlayer(pl)
-	wire_dynamic_button.pl = pl
-
-	pl:AddCount( "wire_dynamic_buttons", wire_dynamic_button )
-
-	return wire_dynamic_button
-end
-
-duplicator.RegisterEntityClass("gmod_wire_dynamic_button", MakeWireDynamicButton, "Pos", "Ang", "Model", "toggle", "value_off", "value_on", "description", "entityout", "material_on", "material_off", "on_r", "on_g", "on_b", "off_r", "off_g", "off_b", "frozen" )
+duplicator.RegisterEntityClass("gmod_wire_dynamic_button", MakeWireEnt, "Data", "toggle", "value_off", "value_on", "description", "entityout", "material_on", "material_off", "on_r", "on_g", "on_b", "off_r", "off_g", "off_b" )

@@ -1,7 +1,7 @@
 AddCSLuaFile()
 DEFINE_BASECLASS( "base_wire_entity" )
 ENT.PrintName		= "Wire Address Bus"
-ENT.RenderGroup		= RENDERGROUP_BOTH
+ENT.RenderGroup		= RENDERGROUP_OPAQUE
 ENT.WireDebugName 	= "AddressBus"
 
 if CLIENT then return end -- No more client
@@ -91,21 +91,4 @@ function ENT:TriggerInput(iname, value)
 	end
 end
 
-function MakeWireAddressBus( ply, Pos, Ang, model, Mem1st, Mem2st, Mem3st, Mem4st, Mem1sz, Mem2sz, Mem3sz, Mem4sz )
-	if ( !ply:CheckLimit( "wire_addressbuss" ) ) then return false end
-
-	local wire_addressbus = ents.Create( "gmod_wire_addressbus" )
-	if (!wire_addressbus:IsValid()) then return false end
-	wire_addressbus:SetModel(model)
-
-	wire_addressbus:SetAngles( Ang )
-	wire_addressbus:SetPos( Pos )
-	wire_addressbus:Spawn()
-	wire_addressbus:Setup(Mem1st, Mem2st, Mem3st, Mem4st, Mem1sz, Mem2sz, Mem3sz, Mem4sz)
-	wire_addressbus:SetPlayer(ply)
-
-	ply:AddCount( "wire_addressbuss", wire_addressbus )
-
-	return wire_addressbus
-end
-duplicator.RegisterEntityClass("gmod_wire_addressbus", MakeWireAddressBus, "Pos", "Ang", "Model", "Mem1st", "Mem2st", "Mem3st", "Mem4st", "Mem1sz", "Mem2sz", "Mem3sz", "Mem4sz")
+duplicator.RegisterEntityClass("gmod_wire_addressbus", MakeWireEnt, "Data", "Mem1st", "Mem2st", "Mem3st", "Mem4st", "Mem1sz", "Mem2sz", "Mem3sz", "Mem4sz")

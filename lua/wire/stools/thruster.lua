@@ -16,7 +16,7 @@ if CLIENT then
 	language.Add( "WireThrusterTool_uwater", "Works under water" )
 end
 WireToolSetup.BaseLang()
-WireToolSetup.SetupMax( 10, TOOL.Mode.."s" , "You've hit the Wire "..TOOL.PluralName.." limit!" )
+WireToolSetup.SetupMax( 10 )
 
 TOOL.ClientConVar = {
 	force		= 1500,
@@ -37,10 +37,6 @@ if SERVER then
 		return self:GetClientNumber( "force" ), self:GetClientNumber( "force_min" ), self:GetClientNumber( "force_max" ), self:GetClientInfo( "oweffect" ), 
 			self:GetClientInfo( "uweffect" ), self:GetClientNumber( "owater" ) ~= 0, self:GetClientNumber( "uwater" ) ~= 0, self:GetClientNumber( "bidir" ) ~= 0, 
 			self:GetClientInfo( "soundname" ), self:GetClientNumber( "collision" ) == 0
-	end
-
-	function TOOL:MakeEnt( ply, model, Ang, trace )
-		return MakeWireThruster( ply, trace.HitPos, Ang, model, self:GetConVars() )
 	end
 end
 

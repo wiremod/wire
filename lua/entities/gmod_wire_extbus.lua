@@ -1,7 +1,7 @@
 AddCSLuaFile()
 DEFINE_BASECLASS( "base_wire_entity" )
 ENT.PrintName       = "Wire Extended Bus"
-ENT.RenderGroup		= RENDERGROUP_BOTH
+ENT.RenderGroup		= RENDERGROUP_OPAQUE
 ENT.WireDebugName = "Extended Bus"
 
 if CLIENT then return end -- No more client
@@ -166,7 +166,6 @@ function ENT:WriteCell(Address, Value)
   end
 end
 
-
 function ENT:TriggerInput(iname, value)
   for i = 1,8 do
     if iname == "Memory"..i then
@@ -174,3 +173,5 @@ function ENT:TriggerInput(iname, value)
     end
   end
 end
+
+duplicator.RegisterEntityClass("gmod_wire_extbus", MakeWireEnt, "Data")

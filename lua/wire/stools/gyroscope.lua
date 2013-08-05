@@ -8,7 +8,7 @@ if CLIENT then
 	language.Add( "Tool.wire_gyroscope.out180", "Output -180 to 180 instead of 0 to 360" )
 end
 WireToolSetup.BaseLang()
-WireToolSetup.SetupMax( 10, TOOL.Mode.."s" , "You've hit the Wire "..TOOL.PluralName.." limit!" )
+WireToolSetup.SetupMax( 10 )
 
 if SERVER then
 	ModelPlug_Register("GPS")

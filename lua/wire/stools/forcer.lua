@@ -7,7 +7,7 @@ if CLIENT then
 	language.Add( "tool.wire_forcer.0", "Primary: Create/Update Forcer" )
 end
 WireToolSetup.BaseLang()
-WireToolSetup.SetupMax( 20, TOOL.Mode.."s" , "You've hit the Wire "..TOOL.PluralName.." limit!" )
+WireToolSetup.SetupMax( 20 )
 
 TOOL.ClientConVar = {
 	multiplier	= 1,
@@ -21,10 +21,8 @@ if SERVER then
 	function TOOL:GetConVars() 
 		return self:GetClientNumber( "multiplier" ), self:GetClientNumber( "length" ), self:GetClientNumber( "beam" )==1, self:GetClientNumber( "reaction" )==1
 	end
-
-	function TOOL:MakeEnt( ply, model, Ang, trace )
-		return MakeWireForcer( ply, trace.HitPos, Ang, model, self:GetConVars() )
-	end
+	
+	-- Uses default WireToolObj:MakeEnt's MakeWireEnt function
 end
 
 function TOOL:GetGhostMin( min, trace )

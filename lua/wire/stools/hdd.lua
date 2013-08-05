@@ -5,12 +5,16 @@ if ( CLIENT ) then
 	language.Add( "Tool.wire_hdd.name", "Flash (EEPROM) tool (Wire)" )
 	language.Add( "Tool.wire_hdd.desc", "Spawns flash memory. It is used for permanent storage of data (carried over sessions)" )
 	language.Add( "Tool.wire_hdd.0", "Primary: Create/Update flash memory" )
-	language.Add( "sboxlimit_wire_hdds", "You've hit flash memory limit!" )
-	language.Add( "undone_wiredigitalscreen", "Undone Flash (EEPROM)" )
 end
+WireToolSetup.BaseLang()
+WireToolSetup.SetupMax( 20 )
 
 if (SERVER) then
-	CreateConVar('sbox_maxwire_hdds', 20)
+	function TOOL:GetConVars() 
+		return self:GetClientNumber("driveid"), self:GetClientNumber("drivecap")
+	end
+
+	-- Uses default WireToolObj:MakeEnt's MakeWireEnt function
 end
 
 TOOL.ClientConVar[ "model" ] = "models/jaanus/wiretool/wiretool_gate.mdl"
@@ -20,84 +24,6 @@ TOOL.ClientConVar[ "drivecap" ] = 128
 
 TOOL.ClientConVar[ "packet_bandwidth" ] = 100
 TOOL.ClientConVar[ "packet_rate" ] = 0.4
-
-cleanup.Register( "wire_hdds" )
-
-function TOOL:LeftClick( trace )
-	if trace.Entity:IsPlayer() then return false end
-	if (CLIENT) then return true end
-	if not util.IsValidPhysicsObject( trace.Entity, trace.PhysicsBone ) then return false end
-
-	local ply = self:GetOwner()
-
-	if ( trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_hdd" ) then
-		trace.Entity.DriveID = tonumber(self:GetClientInfo( "driveid" ))
-		trace.Entity.DriveCap = tonumber(self:GetClientInfo( "drivecap" ))
-		trace.Entity:UpdateCap()
-		return true
-	end
-
-	if ( !self:GetSWEP():CheckLimit( "wire_hdds" ) ) then return false end
-
-	if (not util.IsValidModel(self:GetClientInfo( "model" ))) then return false end
-	if (not util.IsValidProp(self:GetClientInfo( "model" ))) then return false end
-
-	local ply = self:GetOwner()
-	local Ang = trace.HitNormal:Angle()
-	local model = self:GetModel()
-	Ang.pitch = Ang.pitch + 90
-
-	local wire_hdd = MakeWirehdd( ply, trace.HitPos, Ang, model, self:GetClientInfo( "driveid" ), self:GetClientInfo( "drivecap" ) )
-	local min = wire_hdd:OBBMins()
-	wire_hdd:SetPos( trace.HitPos - trace.HitNormal * min.z )
-
-	wire_hdd.DriveID = tonumber(self:GetClientInfo( "driveid" ))
-	wire_hdd.DriveCap = tonumber(self:GetClientInfo( "drivecap" ))
-
-	local const = WireLib.Weld(wire_hdd, trace.Entity, trace.PhysicsBone, true)
-
-	undo.Create("Wirehdd")
-		undo.AddEntity( wire_hdd )
-		undo.SetPlayer( ply )
-	undo.Finish()
-
-	ply:AddCleanup( "wire_hdds", wire_hdd )
-
-	return true
-end
-
-if (SERVER) then
-
-	function MakeWirehdd( pl, Pos, Ang, model, DriveID, DriveCap)
-
-		if ( !pl:CheckLimit( "wire_hdds" ) ) then return false end
-
-		local wire_hdd = ents.Create( "gmod_wire_hdd" )
-		if (!wire_hdd:IsValid()) then return false end
-		wire_hdd:SetModel(model)
-
-		wire_hdd:SetAngles( Ang )
-		wire_hdd:SetPos( Pos )
-		wire_hdd:Spawn()
-
-		wire_hdd:SetPlayer(pl)
-
-		local ttable = {
-			pl = pl,
-			model = model,
-			DriveID = DriveID,
-			DriveCap = DriveCap,
-		}
-
-		table.Merge(wire_hdd:GetTable(), ttable )
-
-		pl:AddCount( "wire_hdds", wire_hdd )
-
-		return wire_hdd
-
-	end
-	duplicator.RegisterEntityClass("gmod_wire_hdd", MakeWirehdd, "Pos", "Ang", "Model", "DriveID", "DriveCap")
-end
 
 local function GetStructName(steamID,HDD,name)
 	return "WireFlash\\"..(steamID or "UNKNOWN").."\\HDD"..HDD.."\\"..name..".txt"
@@ -385,4 +311,3 @@ function TOOL.BuildCPanel(panel)
 	})
 
 end
-

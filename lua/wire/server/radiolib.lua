@@ -34,7 +34,7 @@ function Radio_SendData(ent, subch, data)
 			Radio_Unregister(v)
 		elseif (ent:EntIndex() != v.Entity:EntIndex()) then //Not sender
 			if ((ent.Secure) && (v.Secure)) then
-				if ((ent.pl:SteamID() == v.pl:SteamID()) && (ent.Channel == v.Channel)) then
+				if ((ent:GetPlayer():SteamID() == v:GetPlayer():SteamID()) && (ent.Channel == v.Channel)) then
 					v.RecievedData[subch].Owner = ent
 					v.RecievedData[subch].Data = data
 					v:NotifyDataRecieved(subch)
@@ -63,7 +63,7 @@ function Radio_RecieveData(ent)
 			Radio_Unregister(v)
 		elseif (ent:EntIndex() != v.Entity:EntIndex()) then //Not sender
 			if ((ent.Secure) && (v.Secure)) then
-				if ((ent.pl:SteamID() == v.pl:SteamID()) && (ent.Channel == v.Channel)) then
+				if ((ent:GetPlayer():SteamID() == v:GetPlayer():SteamID()) && (ent.Channel == v.Channel)) then
 					for i=0,31 do
 						ent.RecievedData[i].Owner = v
 						ent.RecievedData[i].Data = v.SentData[i]
@@ -104,7 +104,7 @@ function Radio_ChangeChannel(ent)
 
 			//2. Retransmit under new channel
 			if ((ent.Secure) && (v.Secure)) then
-				if ((ent.pl:SteamID() == v.pl:SteamID()) && (ent.Channel == v.Channel)) then
+				if ((ent:GetPlayer():SteamID() == v:GetPlayer():SteamID()) && (ent.Channel == v.Channel)) then
 					for i=0,31 do
 						if (ent.SentData[i] ~= 0) then //dont send zeroes
 							v.RecievedData[i].Owner = ent

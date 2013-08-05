@@ -22,44 +22,12 @@ TOOL.ClientConVar[ "DefaultZero" ] = "0"
 
 cleanup.Register("wire_cd_rays")
 
-function TOOL:LeftClick(trace)
-	if (!trace.HitPos) then return false end
-	if (trace.Entity:IsPlayer()) then return false end
-	if ( CLIENT ) then return true end
-	if not util.IsValidPhysicsObject( trace.Entity, trace.PhysicsBone ) then return false end
-
-	local ply = self:GetOwner()
-
-	if ( trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_cd_ray" ) then
-		return true
+if SERVER then
+	function TOOL:GetConVars() 
+		return self:GetClientNumber("Range"), self:GetClientNumber("DefaultZero") ~= 0
 	end
 
-	if ( !self:GetSWEP():CheckLimit( "wire_cd_rays" ) ) then return false end
-
-	local Ang = trace.HitNormal:Angle()
-	Ang.pitch = Ang.pitch + 90
-
-	local range = self:GetClientNumber("Range")
-	local defZero = (self:GetClientNumber("DefaultZero") ~= 0)
-	local model = self:GetClientInfo("model")
-
-	local wire_cd_ray = MakeWireCDRay( ply, trace.HitPos, Ang, model, range, defZero )
-
-	local min = wire_cd_ray:OBBMins()
-	wire_cd_ray:SetPos( trace.HitPos - trace.HitNormal * min.z )
-
-	local const = WireLib.Weld(wire_cd_ray, trace.Entity, trace.PhysicsBone, true)
-
-	undo.Create("Wire Data CD Ray")
-		undo.AddEntity( wire_cd_ray )
-		undo.AddEntity( const )
-		undo.SetPlayer( ply )
-	undo.Finish()
-
-	ply:AddCleanup( "wire_cd_rays", wire_cd_ray )
-	ply:AddCleanup( "wire_cd_rays", const )
-
-	return true
+	-- Uses default WireToolObj:MakeEnt's MakeWireEnt function
 end
 
 
@@ -105,26 +73,6 @@ function TOOL:RightClick(trace)
 end
 
 if (SERVER) then
-
-	function MakeWireCDRay( pl, Pos, Ang, model, Range, DefaultZero)
-		if ( !pl:CheckLimit( "wire_cd_rays" ) ) then return false end
-
-		local wire_cd_ray = ents.Create( "gmod_wire_cd_ray" )
-		if (!wire_cd_ray:IsValid()) then return false end
-
-		wire_cd_ray:SetAngles( Ang )
-		wire_cd_ray:SetPos( Pos )
-		wire_cd_ray:SetModel( model )
-		wire_cd_ray:Spawn()
-		wire_cd_ray:Setup(Range,DefaultZero)
-
-		wire_cd_ray:SetPlayer( pl )
-
-		pl:AddCount( "wire_cd_rays", wire_cd_ray )
-
-		return wire_cd_ray
-	end
-	duplicator.RegisterEntityClass("gmod_wire_cd_ray", MakeWireCDRay, "Pos", "Ang", "Model", "Range", "DefaultZero")
 
 	function MakeWireCDLock( pl, Pos, Ang, model )
 		if ( !pl:CheckLimit( "wire_cd_locks" ) ) then return false end

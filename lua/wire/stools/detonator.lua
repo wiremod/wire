@@ -7,16 +7,18 @@ if CLIENT then
 	language.Add( "tool.wire_detonator.0", "Primary: Create/Update Detonator" )
 end
 WireToolSetup.BaseLang()
-WireToolSetup.SetupMax( 20, TOOL.Mode.."s" , "You've hit the Wire "..TOOL.PluralName.." limit!" )
+WireToolSetup.SetupMax( 20 )
 
 if SERVER then
 	ModelPlug_Register("detonator")
 	function TOOL:GetConVars() 
 		return self:GetClientNumber( "damage" )
 	end
-
-	function TOOL:MakeEnt( ply, model, Ang, trace )
-		return MakeWireDetonator( ply, trace.HitPos, Ang, model, self:GetConVars() )
+	
+	function TOOL:MakeEnt(ply, model, Ang, trace)
+		local ent = WireToolObj.MakeEnt(self, ply, model, Ang, trace )
+		ent.target = trace.Entity
+		return ent
 	end
 end
 
