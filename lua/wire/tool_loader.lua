@@ -1,12 +1,6 @@
 if SERVER then AddCSLuaFile() end
 
 local function LoadTools()
-	if SERVER then
-		-- load server side code for tools
-		-- These are being phased out
-		include( "sv_wirestools.lua" )
-	end
-
 	-- load tools
 	for _, filename in pairs(file.Find("wire/stools/*.lua","LUA")) do
 		include("wire/stools/"..filename)
