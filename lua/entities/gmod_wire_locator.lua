@@ -19,4 +19,4 @@ function ENT:GetBeaconVelocity(sensor)
 	return self:GetVelocity()
 end
 
-duplicator.RegisterEntityClass("gmod_wire_locator", MakeWireEnt, "Data")
+duplicator.RegisterEntityClass("gmod_wire_locator", WireLib.MakeWireEnt, "Data")

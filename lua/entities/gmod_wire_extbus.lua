@@ -174,4 +174,4 @@ function ENT:TriggerInput(iname, value)
   end
 end
 
-duplicator.RegisterEntityClass("gmod_wire_extbus", MakeWireEnt, "Data")
+duplicator.RegisterEntityClass("gmod_wire_extbus", WireLib.MakeWireEnt, "Data")

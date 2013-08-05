@@ -12,7 +12,7 @@ WireToolSetup.SetupMax( 20 )
 TOOL.ClientConVar[ "model" ] = "models/jaanus/wiretool/wiretool_gate.mdl"
 
 if SERVER then
-	-- Uses default WireToolObj:MakeEnt's MakeWireEnt function
+	-- Uses default WireToolObj:MakeEnt's WireLib.MakeWireEnt function
 end
 
 function TOOL.BuildCPanel(panel)

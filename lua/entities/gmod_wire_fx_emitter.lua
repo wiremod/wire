@@ -136,5 +136,5 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 	if info.Delay then self:SetDelay(info.Delay) end
 end
 
-duplicator.RegisterEntityClass("gmod_wire_fx_emitter", MakeWireEnt, "Data", "delay", "effect" )
+duplicator.RegisterEntityClass("gmod_wire_fx_emitter", WireLib.MakeWireEnt, "Data", "delay", "effect" )
 -- Note: delay and effect are here for backwards compatibility, they're now stored in the DataTable

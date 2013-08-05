@@ -297,4 +297,4 @@ function ENT:Retransmit(ply)
 	self:SendConfig(ply)
 end
 
-duplicator.RegisterEntityClass("gmod_wire_textscreen", MakeWireEnt, "Data", "text", "chrPerLine", "textJust", "valign", "fgcolor", "bgcolor")
+duplicator.RegisterEntityClass("gmod_wire_textscreen", WireLib.MakeWireEnt, "Data", "text", "chrPerLine", "textJust", "valign", "fgcolor", "bgcolor")

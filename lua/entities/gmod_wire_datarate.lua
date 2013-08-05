@@ -86,4 +86,4 @@ function ENT:TriggerInput(iname, value)
 	end
 end
 
-duplicator.RegisterEntityClass("gmod_wire_datarate", MakeWireEnt, "Data")
+duplicator.RegisterEntityClass("gmod_wire_datarate", WireLib.MakeWireEnt, "Data")

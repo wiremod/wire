@@ -250,7 +250,7 @@ function ENT:Think()
 	return true
 end
 
-duplicator.RegisterEntityClass("gmod_wire_damage_detector", MakeWireEnt, "Data", "includeconstrained")
+duplicator.RegisterEntityClass("gmod_wire_damage_detector", WireLib.MakeWireEnt, "Data", "includeconstrained")
 
 function ENT:BuildDupeInfo()
 	local info = self.BaseClass.BuildDupeInfo(self) or {}

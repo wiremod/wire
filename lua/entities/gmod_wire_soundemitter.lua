@@ -141,4 +141,4 @@ function ENT:Setup(sample)
 	self:SetSound(sample)
 end
 
-duplicator.RegisterEntityClass("gmod_wire_soundemitter", MakeWireEnt, "Data", "sound")
+duplicator.RegisterEntityClass("gmod_wire_soundemitter", WireLib.MakeWireEnt, "Data", "sound")

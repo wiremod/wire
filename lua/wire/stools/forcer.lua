@@ -22,7 +22,7 @@ if SERVER then
 		return self:GetClientNumber( "multiplier" ), self:GetClientNumber( "length" ), self:GetClientNumber( "beam" )==1, self:GetClientNumber( "reaction" )==1
 	end
 	
-	-- Uses default WireToolObj:MakeEnt's MakeWireEnt function
+	-- Uses default WireToolObj:MakeEnt's WireLib.MakeWireEnt function
 end
 
 function TOOL:GetGhostMin( min, trace )

@@ -11,7 +11,7 @@ WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )
 
 if (SERVER) then
-	-- Uses default WireToolObj:MakeEnt's MakeWireEnt function
+	-- Uses default WireToolObj:MakeEnt's WireLib.MakeWireEnt function
 end
 
 TOOL.ClientConVar[ "model" ] = "models/jaanus/wiretool/wiretool_range.mdl"

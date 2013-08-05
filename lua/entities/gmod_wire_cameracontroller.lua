@@ -326,4 +326,4 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 	self.CamEnt = GetEntByID(info.cam)
 end
 
-duplicator.RegisterEntityClass("gmod_wire_cameracontroller", MakeWireEnt, "Data", "Static")
+duplicator.RegisterEntityClass("gmod_wire_cameracontroller", WireLib.MakeWireEnt, "Data", "Static")
