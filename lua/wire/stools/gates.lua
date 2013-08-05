@@ -1,14 +1,13 @@
 -- Made by Divran 06/01/2012
 WireToolSetup.setCategory( "Control" )
 WireToolSetup.open( "gates", "Gates", "gmod_wire_gate", nil, "Gates" )
+WireToolSetup.BaseLang()
 
 -- The limit convars are in lua/wire/wiregates.lua
 
 if SERVER then
 	ModelPlug_Register("gate")
 end
-
-cleanup.Register("wire_gates")
 
 if CLIENT then
 	----------------------------------------------------------------------------------------------------
@@ -35,13 +34,6 @@ if CLIENT then
 	language.Add( "WireGatesTool_parent", "Parent" )
 	language.Add( "WireGatesTool_angleoffset", "Spawn angle offset" )
 	language.Add( "sboxlimit_wire_gates", "You've hit your gates limit!" )
-	language.Add( "undone_gmod_wire_gate", "Undone wire gate" )
-	language.Add( "Cleanup_gmod_wire_gate", "Wire Gates" )
-	language.Add( "Cleaned_gmod_wire_gate", "Cleaned up wire gates" )
-
-	----------------------------------------------------------------------------------------------------
-	-- BuildCPanel
-	----------------------------------------------------------------------------------------------------
 
 	function TOOL.BuildCPanel( panel )
 		WireDermaExts.ModelSelect(panel, "wire_gates_model", list.Get("Wire_gate_Models"), 3, true)
@@ -50,7 +42,7 @@ if CLIENT then
 		local weldbox = panel:CheckBox("#WireGatesTool_weld", "wire_gates_weld")
 		local parentbox = panel:CheckBox("#WireGatesTool_parent","wire_gates_parent")
 
-		panel:AddControl("label",{text="When parenting, you should check the nocollide box, or adv duplicator might not dupe the gate."})
+		panel:Help("When parenting, you should check the nocollide box, or adv duplicator might not dupe the gate.")
 
 		local angleoffset = panel:NumSlider( "#WireGatesTool_angleoffset","wire_gates_angleoffset", 0, 360, 0 )
 
@@ -74,13 +66,7 @@ if CLIENT then
 
 		----------------- GATE SELECTION & SEARCHING
 
-		local searchresultnum = vgui.Create( "DNumSlider" )
-		searchresultnum:SetConVar( "wire_gates_searchresultnum" )
-		searchresultnum:SetText( "#Tool_wire_gates_searchresultnum" )
-		searchresultnum:SetMin( 1 )
-		searchresultnum:SetMax( 100 )
-		searchresultnum:SetDecimals( 0 )
-		panel:AddItem( searchresultnum )
+		panel:NumSlider( "#Tool_wire_gates_searchresultnum","wire_gates_searchresultnum", 0, 360, 0 ) 
 
 		-- Create panels
 		local searchbox = vgui.Create( "DTextEntry" )
@@ -290,11 +276,14 @@ if CLIENT then
 	end
 end
 
-function TOOL:LeftClick_Update(trace, ply)
-	local action = self:GetClientInfo( "action" )
-	trace.Entity:Setup( GateActions[action], noclip )
-	trace.Entity.action = action
-	return true
+if SERVER then
+	function TOOL:GetConVars() 
+		return self:GetClientInfo( "action" ), self:GetClientNumber( "noclip" ) == 1
+	end
+	
+	function TOOL:MakeEnt( ply, model, Ang, trace )
+		return MakeWireGate( ply, trace.HitPos, Ang, model, self:GetConVars() )
+	end
 end
 
 function TOOL:CheckMaxLimit()
@@ -302,11 +291,6 @@ function TOOL:CheckMaxLimit()
 	return self:GetSWEP():CheckLimit(self.MaxLimitName) and self:GetSWEP():CheckLimit("wire_gate_" .. string.lower( GateActions[action].group ) .. "s")
 end
 
-function TOOL:MakeEnt( ply, model, Ang, trace )
-	local action	= self:GetClientInfo( "action" )
-	local noclip	= self:GetClientNumber( "noclip" ) == 1
-	return MakeWireGate( ply, trace.HitPos, Ang, model, action, noclip )
-end
 
 --------------------
 -- RightClick
@@ -367,11 +351,8 @@ function TOOL:Reload( trace )
 	return false
 end
 
---------------------
--- GetAngle
---------------------
 function TOOL:GetAngle( trace )
-	local ang = trace.HitNormal:Angle() + Angle(90,0,0)
+	local ang = WireToolObj.GetAngle(self, trace)
 	ang:RotateAroundAxis( trace.HitNormal, self:GetClientNumber( "angleoffset" ) )
 	return ang
 end
