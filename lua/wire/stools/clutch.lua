@@ -326,5 +326,5 @@ end
 
 hook.Add( "EntityRemoved", "wire_clutch_ballsocket_removed", function( ent )
 	local r, e = xpcall( OnBallSocketRemoved, debug.traceback, ent )
-	if !r then ErrorNoHalt( e .. "\n" ) end
+	if !r then WireLib.ErrorNoHalt( e .. "\n" ) end
 end )

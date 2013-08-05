@@ -61,8 +61,8 @@ function WireLib.TriggerInput(ent, name, value, ...)
 	if (!ent.TriggerInput) then return end
 	local ok, ret = xpcall(ent.TriggerInput, debug.traceback, ent, name, value, ...)
 	if not ok then
-		local message = string.format("Wire error (%s): %s", tostring(ent), ret)
-		ErrorNoHalt(message .. "\n")
+		local message = string.format("Wire error (%s):\n%s\n", tostring(ent), ret)
+		WireLib.ErrorNoHalt(message)
 		local ply = E2Lib and E2Lib.getOwner and E2Lib.getOwner(ent)
 		if IsValid(ply) then WireLib.ClientError(message, ply) end
 	end

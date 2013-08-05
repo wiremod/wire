@@ -67,7 +67,7 @@ end
 local function e2_include_pass2(name, luaname, contents)
 	local ok,ret= pcall(e2_extpp_pass2, contents)
 	if not ok then
-		ErrorNoHalt(luaname..ret.."\n")
+		WireLib.ErrorNoHalt(luaname..ret.."\n")
 		return
 	end
 
