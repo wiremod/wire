@@ -290,53 +290,23 @@ if CLIENT then
 	end
 end
 
---------------------
--- LeftClick
--- Create/Update Gate
---------------------
-function TOOL:LeftClick( trace )
-	if trace.Entity and trace.Entity:IsPlayer() then return false end
-	if CLIENT then return true end
-	if not util.IsValidPhysicsObject( trace.Entity, trace.PhysicsBone ) then return false end
-
-	local ply = self:GetOwner()
-
-	local ent = WireToolMakeGate( self, trace, ply )
-	if !isentity(ent) then return true end -- WireToolMakeGate returns a boolean if the player shoots a gate (to update it)
-
-	-- Parenting
-	local nocollide
-	if self:GetClientNumber( "parent" ) == 1 then
-		if (trace.Entity:IsValid()) then
-
-			-- Nocollide the gate to the prop to make adv duplicator (and normal duplicator) find it
-			if (!self.ClientConVar.noclip or self:GetClientNumber( "noclip" ) == 1) then
-				nocollide = constraint.NoCollide( ent, trace.Entity, 0,trace.PhysicsBone )
-			end
-
-			ent:SetParent( trace.Entity )
-		end
-	end
-
-	-- Welding
-	local const
-	if self:GetClientNumber( "weld" ) == 1 then
-		const = WireLib.Weld( ent, trace.Entity, trace.PhysicsBone, true )
-	end
-
-
-	undo.Create( "gmod_wire_gate" )
-		undo.AddEntity( ent )
-		if (const) then undo.AddEntity( const ) end
-		if (nocollide) then undo.AddEntity( nocollide ) end
-		undo.SetPlayer( ply )
-	undo.Finish()
-
-	ply:AddCleanup( "gmod_wire_gate", ent )
-
+function TOOL:LeftClick_Update(trace, ply)
+	local action = self:GetClientInfo( "action" )
+	trace.Entity:Setup( GateActions[action], noclip )
+	trace.Entity.action = action
 	return true
 end
 
+function TOOL:CheckMaxLimit()
+	local action	= self:GetClientInfo( "action" )
+	return self:GetSWEP():CheckLimit(self.MaxLimitName) and self:GetSWEP():CheckLimit("wire_gate_" .. string.lower( GateActions[action].group ) .. "s")
+end
+
+function TOOL:MakeEnt( ply, model, Ang, trace )
+	local action	= self:GetClientInfo( "action" )
+	local noclip	= self:GetClientNumber( "noclip" ) == 1
+	return MakeWireGate( ply, trace.HitPos, Ang, model, action, noclip )
+end
 
 --------------------
 -- RightClick
@@ -344,9 +314,9 @@ end
 --------------------
 function TOOL:RightClick( trace )
 	if CLIENT then return true end
-	if trace.Entity and trace.Entity:IsValid() and trace.Entity:GetClass() == "gmod_wire_gate" then
+	if self:CheckHitOwnClass(trace) then
 		local action = GateActions[trace.Entity.action]
-		if not action then self:GetOwner():ChatPrint( "Invalid gate (what the-?!?)" ) return end
+		assert(action, "Attempted to copy gate " .. tostring(trace.Entity) .. " with no action!")
 
 		self:GetOwner():ConCommand( "wire_gates_action " .. trace.Entity.action )
 		self:GetOwner():ChatPrint( "Gate copied ('" .. action.name .. "')." )
@@ -404,35 +374,4 @@ function TOOL:GetAngle( trace )
 	local ang = trace.HitNormal:Angle() + Angle(90,0,0)
 	ang:RotateAroundAxis( trace.HitNormal, self:GetClientNumber( "angleoffset" ) )
 	return ang
-end
-
-----------------------------------------------------------------------------------------------------
--- GHOST
-----------------------------------------------------------------------------------------------------
-if ((game.SinglePlayer() and SERVER) or (!game.SinglePlayer() and CLIENT)) then
-	function TOOL:DrawGhost()
-		local ent, ply = self.GhostEntity, self:GetOwner()
-		if (!ent or !ent:IsValid()) then return end
-		local trace = ply:GetEyeTrace()
-
-		if (!trace.Hit or trace.Entity:IsPlayer()) then
-			ent:SetNoDraw( true )
-			return
-		end
-
-		local Pos, Ang = trace.HitPos, self:GetAngle( trace )
-		ent:SetPos( Pos )
-		ent:SetAngles( Ang )
-
-		ent:SetNoDraw( false )
-	end
-
-	function TOOL:Think()
-		local model = self:GetModel()
-		if (!self.GhostEntity or !self.GhostEntity:IsValid() or self.GhostEntity:GetModel() != model) then
-			self:MakeGhostEntity( model, Vector(), Angle() )
-		end
-
-		self:DrawGhost()
-	end
 end
