@@ -167,4 +167,4 @@ function ENT:ShowOutput(value)
 	self:SetOverlayText( "(" .. self.value_off .. " - " .. self.value_on .. ") = " .. value )
 end
 
-duplicator.RegisterEntityClass("gmod_wire_dynamic_button", MakeWireEnt, "Data", "toggle", "value_off", "value_on", "description", "entityout", "material_on", "material_off", "on_r", "on_g", "on_b", "off_r", "off_g", "off_b" )
+duplicator.RegisterEntityClass("gmod_wire_dynamic_button", WireLib.MakeWireEnt, "Data", "toggle", "value_off", "value_on", "description", "entityout", "material_on", "material_off", "on_r", "on_g", "on_b", "off_r", "off_g", "off_b" )

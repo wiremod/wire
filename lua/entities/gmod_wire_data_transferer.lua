@@ -142,4 +142,4 @@ function ENT:ReceiveValue(output,value)
 	end
 end
 
-duplicator.RegisterEntityClass("gmod_wire_data_transferer", MakeWireEnt, "Data", "Range", "DefaultZero", "IgnoreZero")
+duplicator.RegisterEntityClass("gmod_wire_data_transferer", WireLib.MakeWireEnt, "Data", "Range", "DefaultZero", "IgnoreZero")

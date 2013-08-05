@@ -103,4 +103,4 @@ function ENT:ShowOutput()
 			    "Tracks: "..self.DiskTracks.."\nSectors: "..self.DiskSectors.."\nStacks: "..self.DiskStacks)
 end
 
-duplicator.RegisterEntityClass("gmod_wire_cd_disk", MakeWireEnt, "Data", "Precision", "IRadius", "Skin")
+duplicator.RegisterEntityClass("gmod_wire_cd_disk", WireLib.MakeWireEnt, "Data", "Precision", "IRadius", "Skin")

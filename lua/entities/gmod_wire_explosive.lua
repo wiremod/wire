@@ -277,4 +277,4 @@ function ENT:ShowOutput( )
 	self:SetOverlayText(txt)
 end
 
-duplicator.RegisterEntityClass( "gmod_wire_explosive", MakeWireEnt, "Data", "key", "damage", "delaytime", "removeafter", "radius", "affectother", "notaffected", "delayreloadtime", "maxhealth", "bulletproof", "explosionproof", "fallproof", "explodeatzero", "resetatexplode", "fireeffect", "coloreffect", "invisibleatzero" )
+duplicator.RegisterEntityClass( "gmod_wire_explosive", WireLib.MakeWireEnt, "Data", "key", "damage", "delaytime", "removeafter", "radius", "affectother", "notaffected", "delayreloadtime", "maxhealth", "bulletproof", "explosionproof", "fallproof", "explodeatzero", "resetatexplode", "fireeffect", "coloreffect", "invisibleatzero" )

@@ -58,7 +58,7 @@ if SERVER then
 			self:GetClientNumber("invisibleatzero")~=0, self:GetClientNumber("nocollide")~=0
 	end
 	
-	-- Uses default WireToolObj:MakeEnt's MakeWireEnt function
+	-- Uses default WireToolObj:MakeEnt's WireLib.MakeWireEnt function
 end
 
 function TOOL.BuildCPanel(panel)

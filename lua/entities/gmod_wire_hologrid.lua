@@ -50,7 +50,7 @@ function ENT:Use( activator, caller )
 	if caller:IsPlayer() then self:Setup(not self.usesgps) end
 end
 
-duplicator.RegisterEntityClass("gmod_wire_hologrid", MakeWireEnt, "Data", "usegps")
+duplicator.RegisterEntityClass("gmod_wire_hologrid", WireLib.MakeWireEnt, "Data", "usegps")
 
 
 function ENT:BuildDupeInfo()

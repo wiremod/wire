@@ -14,7 +14,7 @@ if (SERVER) then
 		return self:GetClientNumber("driveid"), self:GetClientNumber("drivecap")
 	end
 
-	-- Uses default WireToolObj:MakeEnt's MakeWireEnt function
+	-- Uses default WireToolObj:MakeEnt's WireLib.MakeWireEnt function
 end
 
 TOOL.ClientConVar[ "model" ] = "models/jaanus/wiretool/wiretool_gate.mdl"

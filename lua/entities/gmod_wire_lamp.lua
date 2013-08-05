@@ -185,4 +185,4 @@ function ENT:Setup( r, g, b, Texture, fov, dist, brightness )
 	self:TurnOn()
 end
 
-duplicator.RegisterEntityClass( "gmod_wire_lamp", MakeWireEnt, "Data", "r", "g", "b", "Texture", "FOV", "Dist", "Brightness" )
+duplicator.RegisterEntityClass( "gmod_wire_lamp", WireLib.MakeWireEnt, "Data", "r", "g", "b", "Texture", "FOV", "Dist", "Brightness" )
