@@ -182,12 +182,11 @@ function WireToolObj:Think()
 	self:UpdateGhost( self.GhostEntity )
 end
 
+function WireToolObj:CheckHitOwnClass( trace )
+	return trace.Entity:IsValid() and trace.Entity:GetClass() == self.WireClass
+end
 
 if SERVER then
-	function WireToolObj:CheckHitOwnClass( trace )
-		return trace.Entity:IsValid() and trace.Entity:GetClass() == self.WireClass
-	end
-
 	function WireToolObj:CheckMaxLimit()
 		return self:GetSWEP():CheckLimit(self.MaxLimitName or (self.Mode.."s"))
 	end

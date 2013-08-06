@@ -5,14 +5,27 @@ ENT.Author      = "Divran"
 ENT.RenderGroup		= RENDERGROUP_OPAQUE
 ENT.WireDebugName = "Adv EMarker"
 
-if CLIENT then return end -- No more client
+if CLIENT then
+	net.Receive("WireLinkedEnts", function(netlen)
+		local Controller = net.ReadEntity()
+		if IsValid(Controller) then
+			Controller.Marks = {}
+			for i=1, net.ReadUInt(16) do
+				local link = net.ReadEntity()
+				if IsValid(link) then
+					table.insert(Controller.Marks, link)
+				end
+			end
+		end
+	end)
+
+	return
+end -- No more client
 
 function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )
 	self:SetMoveType( MOVETYPE_VPHYSICS )
 	self:SetSolid( SOLID_VPHYSICS )
-
-	self.Target = nil
 
 	self.Marks = {}
 	local outputs = {}
@@ -32,24 +45,24 @@ end
 
 function ENT:TriggerInput( name, value )
 	if (name == "Entity") then
-		if (value:IsValid()) then
+		if IsValid(value) then
 			self.Target = value
 		end
 	elseif (name == "Add Entity") then
-		if (self.Target and self.Target:IsValid()) then
+		if IsValid(self.Target) then
 			if (value != 0) then
 				local bool, index = self:CheckEnt( self.Target )
 				if (!bool) then
-					self:AddEnt( self.Target )
+					self:LinkEnt( self.Target )
 				end
 			end
 		end
 	elseif (name == "Remove Entity") then
-		if (self.Target and self.Target:IsValid()) then
+		if IsValid(self.Target) then
 			if (value != 0) then
 				local bool, index = self:CheckEnt( self.Target )
 				if (bool) then
-					self:RemoveEnt( self.Target )
+					self:UnlinkEnt( self.Target )
 				end
 			end
 		end
@@ -57,6 +70,8 @@ function ENT:TriggerInput( name, value )
 		self:ClearEntities()
 	end
 end
+
+if SERVER then util.AddNetworkString("WireLinkedEnts") end
 
 function ENT:UpdateOutputs()
 	-- Trigger regular outputs
@@ -72,15 +87,13 @@ function ENT:UpdateOutputs()
 	self:SetOverlayText( "Number of entities linked: " .. #self.Marks )
 
 	-- Yellow lines information
-	if (SERVER) then
-		umsg.Start("Wire_Adv_EMarker_Links")
-			umsg.Short(self:EntIndex())
-			umsg.Short(#self.Marks)
-			for k,v in pairs( self.Marks ) do
-				umsg.Short(v:EntIndex())
-			end
-		umsg.End()
-	end
+	net.Start("WireLinkedEnts")
+		net.WriteEntity(self)
+		net.WriteUInt(#self.Marks, 16)
+		for k,v in pairs(self.Marks) do
+			net.WriteEntity(v)
+		end
+	net.Broadcast()
 end
 
 function ENT:CheckEnt( ent )
@@ -90,17 +103,17 @@ function ENT:CheckEnt( ent )
 	return false, 0
 end
 
-function ENT:AddEnt( ent )
+function ENT:LinkEnt( ent )
 	if (self:CheckEnt( ent )) then return false	end
 	self.Marks[#self.Marks+1] = ent
-	ent:CallOnRemove("AdvEMarker.UnLink", function(ent)
-		if IsValid(self) then self:RemoveEnt(ent) end
+	ent:CallOnRemove("AdvEMarker.Unlink", function(ent)
+		if IsValid(self) then self:UnlinkEnt(ent) end
 	end)
 	self:UpdateOutputs()
 	return true
 end
 
-function ENT:RemoveEnt( ent )
+function ENT:UnlinkEnt( ent )
 	local bool, index = self:CheckEnt( ent )
 	if (bool) then
 		table.remove( self.Marks, index )
@@ -118,7 +131,7 @@ duplicator.RegisterEntityClass( "gmod_wire_adv_emarker", WireLib.MakeWireEnt, "D
 function ENT:BuildDupeInfo()
 	local info = self.BaseClass.BuildDupeInfo(self) or {}
 
-	if (#self.Marks) then
+	if next(self.Marks) then
 		local tbl = {}
 		for index, e in pairs( self.Marks ) do
 			tbl[index] = e:EntIndex()
@@ -133,12 +146,6 @@ end
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
 
-	if (!ply:CheckLimit("wire_adv_emarkers")) then
-		ent:Remove()
-		return
-	end
-	ply:AddCount( "wire_adv_emarkers", ent )
-
 	if (info.marks) then
 		self.Marks = self.Marks or {}
 
@@ -147,6 +154,4 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 		end
 		self:UpdateOutputs()
 	end
-
-	ent:SetPlayer( ply )
 end

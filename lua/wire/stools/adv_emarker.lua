@@ -21,48 +21,54 @@ end
 
 function TOOL:RightClick(trace)
 	if not trace.HitPos or not IsValid(trace.Entity) or trace.Entity:IsPlayer() then return false end
-	if ( CLIENT ) then return true end
+	if CLIENT then return true end
 
 	local ent = trace.Entity
-	if (self:GetStage() == 0 and ent:GetClass() == "gmod_wire_adv_emarker") then
-		self.marker = ent
+	if self:GetStage() == 0 and self:CheckHitOwnClass(trace) then
+		self.Controller = ent
 		self:SetStage(1)
-	elseif (self:GetStage() == 1) then
-		local ret = self.marker:AddEnt(ent)
+	else
 		local ply = self:GetOwner()
-		if (ret) then
-			if (!ply:KeyDown(IN_SPEED)) then self:SetStage(0) end
-			ply:ChatPrint("Added entity: " .. tostring(ent) .. " to the Adv Entity Marker.")
+		local success = self.Controller:LinkEnt(ent)
+		if success then
+			if not ply:KeyDown(IN_SPEED) then self:SetStage(0) end
+			WireLib.AddNotify(ply, "Linked entity: " .. tostring(ent) .. " to the "..self.Name, NOTIFY_GENERIC, 5)
 		else
-			ply:ChatPrint("The Entity Marker is already linked to that entity.")
+			WireLib.AddNotify(ply, "That entity is already linked to the "..self.Name, NOTIFY_ERROR, 5, NOTIFYSOUND_DRIP3)
 		end
 	end
 	return true
 end
 
 function TOOL:Reload(trace)
-	if not trace.HitPos or trace.Entity:IsPlayer() then return false end
-	if ( CLIENT ) then return true end
+	if not trace.HitPos or not IsValid(trace.Entity) or trace.Entity:IsPlayer() then 
+		self:SetStage(0)
+		return false 
+	end
+	if CLIENT then return true end
 
 	local ent = trace.Entity
-	if not IsValid(ent) then return false end
-	if (self:GetStage() == 0 and ent:GetClass() == "gmod_wire_adv_emarker") then
-		self.marker = ent
+	if self:GetStage() == 0 and self:CheckHitOwnClass(trace) then
+		self.Controller = ent
 		self:SetStage(2)
-	elseif (self:GetStage() == 2) then
+	else
 		local ply = self:GetOwner()
-		if (ent == self.marker) then
-			ent:ClearEntities()
-			ply:ChatPrint("Adv Entity Marker unlinked from all entities.")
-			self:SetStage(0)
-		else
-			local ret = self.marker:CheckEnt(ent)
-			if (ret) then
-				if (!ply:KeyDown(IN_SPEED)) then self:SetStage(0) end
-				self.marker:RemoveEnt( ent )
-				ply:ChatPrint("Removed entity: " .. tostring(ent) .. " from the Adv Entity Marker.")
+		if ent == self.Controller then
+			if self:GetStage() == 1 then
+				self:SetStage(2)
 			else
-				ply:ChatPrint("The Entity Marker is not linked to that entity.")
+				ent:ClearEntities()
+				WireLib.AddNotify(ply, "All entities unlinked from the "..self.Name, NOTIFY_GENERIC, 7)
+				self:SetStage(0)
+			end
+		else
+			local alreadylinked = self.Controller:CheckEnt(ent)
+			if alreadylinked then
+				if not ply:KeyDown(IN_SPEED) then self:SetStage(0) end
+				self.Controller:UnlinkEnt( ent )
+				WireLib.AddNotify(ply, "Unlinked entity: " .. tostring(ent) .. " from the "..self.Name, NOTIFY_GENERIC, 5)
+			else
+				WireLib.AddNotify(ply, "That entity is not linked to the "..self.Name, NOTIFY_ERROR, 5, NOTIFYSOUND_DRIP3)
 			end
 		end
 	end
@@ -71,34 +77,17 @@ end
 if CLIENT then
 	function TOOL:DrawHUD()
 		local trace = self:GetOwner():GetEyeTrace()
-		if IsValid(trace.Entity) and trace.Entity:GetClass() == "gmod_wire_adv_emarker" then
-			local marks = trace.Entity.Marks
-			if (marks and #marks > 0) then
-				local markerpos = trace.Entity:GetPos():ToScreen()
-				for _, ent in pairs( marks ) do
-					if (ent:IsValid()) then
-						local markpos = ent:GetPos():ToScreen()
-						surface.SetDrawColor( 255,255,100,255 )
-						surface.DrawLine( markerpos.x, markerpos.y, markpos.x, markpos.y )
-					end
+		if self:CheckHitOwnClass(trace) and trace.Entity.Marks then
+			local markerpos = trace.Entity:GetPos():ToScreen()
+			for _, ent in pairs(trace.Entity.Marks) do
+				if IsValid(ent) then
+					local markpos = ent:GetPos():ToScreen()
+					surface.SetDrawColor( 255,255,100,255 )
+					surface.DrawLine( markerpos.x, markerpos.y, markpos.x, markpos.y )
 				end
 			end
 		end
 	end
-	usermessage.Hook("Wire_Adv_EMarker_Links", function(um)
-		local Marker = Entity(um:ReadShort())
-		if (Marker:IsValid()) then
-			local nr = um:ReadShort()
-			local marks = {}
-			for i=1,nr do
-				local en = Entity(um:ReadShort())
-				if (en:IsValid()) then
-					marks[#marks+1] = en
-				end
-			end
-			Marker.Marks = marks
-		end
-	end)
 
 	function TOOL.BuildCPanel(panel)
 		ModelPlug_AddToCPanel(panel, "Misc_Tools", "wire_adv_emarker")
