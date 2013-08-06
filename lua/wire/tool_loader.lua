@@ -235,9 +235,20 @@ function WireToolObj:GetAngle( trace )
 	elseif self.GhostAngle then -- the tool gives a fixed angle to add
 		Ang = Ang + self.GhostAngle
 	end
-	if not self.ClientConVar.createflat or self:GetClientNumber("createflat") == 0 then
+	if self.ClientConVar.createflat then
+		-- Screen models need a bit of adjustment
+		if self:GetClientNumber("createflat") == 0 then
+			Ang.pitch = Ang.pitch + 90
+		end
+		local model = self:GetModel()
+		if string.find(model, "pcb") or string.find(model, "hunter") then
+			-- PHX Screen models should thus be +180 when not flat, +90 when flat
+			Ang.pitch = Ang.pitch + 90
+		end
+	else
 		Ang.pitch = Ang.pitch + 90
 	end
+	
 	return Ang
 end
 
@@ -248,6 +259,9 @@ function WireToolObj:SetPos( ent, trace )
 		ent:SetPos( trace.HitPos - trace.HitNormal * self:GetGhostMin( min, trace ) )
 	elseif self.GhostMin then -- tool gives the axis for the OBBmin to use
 		ent:SetPos( trace.HitPos - trace.HitNormal * min[self.GhostMin] )
+	elseif self.ClientConVar.createflat and ((self:GetClientNumber("createflat") == 0) or (string.find(self:GetModel(), "pcb") or string.find(self:GetModel(), "hunter"))) then
+		-- Screens have odd models. If createflat is 0, or its 1 and its a PHX model, use min.x
+		ent:SetPos( trace.HitPos - trace.HitNormal * min.x )
 	else -- default to the z OBBmin
 		ent:SetPos( trace.HitPos - trace.HitNormal * min.z )
 	end
