@@ -378,8 +378,6 @@ function WireToolSetup.BaseLang( pluralname )
 	cleanup.Register(TOOL.WireClass)
 end
 
-
---
 function WireToolSetup.SetupMax( i_limit, s_maxlimitname , s_warning )
 	TOOL.MaxLimitName = s_maxlimitname or TOOL.WireClass:sub(6).."s"
 	s_warning = s_warning or "You've hit the Wire "..TOOL.PluralName.." limit!"
@@ -388,6 +386,83 @@ function WireToolSetup.SetupMax( i_limit, s_maxlimitname , s_warning )
 		AddWireAdminMaxDevice(TOOL.PluralName, TOOL.MaxLimitName)
 	else
 		CreateConVar("sbox_max"..TOOL.MaxLimitName, i_limit)
+	end
+end
+
+-- Sets up a tool with RightClick, Reload, and DrawHUD functions that link/unlink entities
+-- The SENT should have ENT:LinkEnt(e), ENT:UnlinkEnt(e), and ENT:ClearEntities()
+-- It should also send ENT.Marks to the client via WireLib.SendMarks(ent)
+function WireToolSetup.SetupLinking()
+	if CLIENT then
+		language.Add( "Tool."..TOOL.Mode..".0", "Primary: Create "..TOOL.Name..", Secondary: Add links, Reload: Remove links" )
+		language.Add( "Tool."..TOOL.Mode..".1", "Now select the entity to link to (Tip: Hold shift to link to more entities).")
+		language.Add( "Tool."..TOOL.Mode..".2", "Now select the entity to unlink (Tip: Hold shift to unlink from more entities). Reload on the same controller again to clear all linked entities." )
+		
+		function TOOL:DrawHUD()
+			local trace = self:GetOwner():GetEyeTrace()
+			if self:CheckHitOwnClass(trace) and trace.Entity.Marks then
+				local markerpos = trace.Entity:GetPos():ToScreen()
+				for _, ent in pairs(trace.Entity.Marks) do
+					if IsValid(ent) then
+						local markpos = ent:GetPos():ToScreen()
+						surface.SetDrawColor( 255,255,100,255 )
+						surface.DrawLine( markerpos.x, markerpos.y, markpos.x, markpos.y )
+					end
+				end
+			end
+		end
+	end
+	
+	function TOOL:RightClick(trace)
+		if not trace.HitPos or not IsValid(trace.Entity) or trace.Entity:IsPlayer() then return false end
+		if CLIENT then return true end
+
+		local ent = trace.Entity
+		if self:GetStage() == 0 and self:CheckHitOwnClass(trace) then
+			self.Controller = ent
+			self:SetStage(1)
+		else
+			local ply = self:GetOwner()
+			if self.Controller:LinkEnt(ent) then
+				if not ply:KeyDown(IN_SPEED) then self:SetStage(0) end
+				WireLib.AddNotify(ply, "Linked entity: " .. tostring(ent) .. " to the "..self.Name, NOTIFY_GENERIC, 5)
+			else
+				WireLib.AddNotify(ply, "That entity is already linked to the "..self.Name, NOTIFY_ERROR, 5, NOTIFYSOUND_DRIP3)
+			end
+		end
+		return true
+	end
+
+	function TOOL:Reload(trace)
+		if not trace.HitPos or not IsValid(trace.Entity) or trace.Entity:IsPlayer() then 
+			self:SetStage(0)
+			return false 
+		end
+		if CLIENT then return true end
+
+		local ent = trace.Entity
+		if self:GetStage() == 0 and self:CheckHitOwnClass(trace) then
+			self.Controller = ent
+			self:SetStage(2)
+		else
+			local ply = self:GetOwner()
+			if ent == self.Controller then
+				if self:GetStage() == 1 then
+					self:SetStage(2)
+				else
+					self.Controller:ClearEntities()
+					WireLib.AddNotify(ply, "All entities unlinked from the "..self.Name, NOTIFY_GENERIC, 7)
+					self:SetStage(0)
+				end
+			else
+				if self.Controller:UnlinkEnt( ent ) then
+					if not ply:KeyDown(IN_SPEED) then self:SetStage(0) end
+					WireLib.AddNotify(ply, "Unlinked entity: " .. tostring(ent) .. " from the "..self.Name, NOTIFY_GENERIC, 5)
+				else
+					WireLib.AddNotify(ply, "That entity is not linked to the "..self.Name, NOTIFY_ERROR, 5, NOTIFYSOUND_DRIP3)
+				end
+			end
+		end
 	end
 end
 
