@@ -79,19 +79,12 @@ function ENT:BuildDupeInfo()
 end
 
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
-	if (!ply:CheckLimit("wire_dhdds")) then
-		ent:Remove()
-		return
-	end
-	ply:AddCount( "wire_dhdds", ent )
-
 	if (info.DHDD) then
 		ent.Memory = (info.DHDD.Memory or {})
 		self:ShowOutputs()
 	end
 	self.ROM = info.ROM or false
 
-	ent:SetPlayer( ply )
 	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
 end
 

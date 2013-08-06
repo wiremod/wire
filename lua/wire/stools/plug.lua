@@ -1,5 +1,5 @@
 WireToolSetup.setCategory( "I/O" )
-WireToolSetup.open( "plug", "Plug", "gmod_wire_plug", nil, "Plugs" )
+WireToolSetup.open( "plug", "Plug", "gmod_wire_socket", nil, "Plugs" )
 
 if (SERVER) then
 
@@ -83,48 +83,12 @@ function TOOL:GetAngle( trace )
 	end
 end
 
--- Create Socket
-function TOOL:LeftClick( trace )
-	if (!trace) then return false end
-	if (trace.Entity) then
-		if (trace.Entity:IsPlayer()) then return false end
-		if (trace.Entity:GetClass() == "gmod_wire_socket") then
-			if (CLIENT) then return true end
-			trace.Entity:Setup( self:GetClientNumber( "array" ) != 0, self:GetClientNumber( "weldforce" ), math.Clamp( self:GetClientNumber( "attachrange" ), 1, 100 ) )
-			return true
-		end
+if SERVER then
+	function TOOL:GetConVars() 
+		return self:GetClientNumber("array") ~= 0, self:GetClientNumber("weldforce"), math.Clamp(self:GetClientNumber("attachrange"), 1, 100)
 	end
-	if (CLIENT) then return true end
-	if not util.IsValidPhysicsObject( trace.Entity, trace.PhysicsBone ) then return false end
-
-	local ply = self:GetOwner()
-	local socketmodel = self:GetModel()
-	local Pos, Ang = trace.HitPos, self:GetAngle(trace)
-
-	local socket = MakeWireSocket( ply, Pos, Ang, socketmodel, 	self:GetClientNumber( "array" ) != 0,
-																self:GetClientNumber( "weldforce" ),
-																math.Clamp( self:GetClientNumber( "attachrange" ), 1, 100 ) )
-
-	if (!socket or !socket:IsValid()) then return false end
-
-	local weld
-	if (self:GetClientNumber( "weld" ) != 0) then
-		weld = WireLib.Weld( socket, trace.Entity, trace.PhysicsBone, true, false, self:GetClientNumber( "weldtoworld" ) != 0 )
-	end
-
-	if (self:GetClientNumber( "freeze") != 0) then
-		socket:GetPhysicsObject():EnableMotion( false )
-	end
-
-	undo.Create("wiresocket")
-		undo.AddEntity( socket )
-		if (weld) then undo.AddEntity( weld ) end
-		undo.SetPlayer( ply )
-	undo.Finish()
-
-	ply:AddCleanup( "wire_sockets", socket )
-
-	return true
+	
+	-- Socket creation handled by WireToolObj
 end
 
 -- Create Plug
@@ -143,11 +107,9 @@ function TOOL:RightClick( trace )
 
 	local ply = self:GetOwner()
 	local plugmodel = SocketModels[self:GetModel()]
-	local Pos, Ang = trace.HitPos, self:GetAngle(trace)
 
-	local plug = MakeWirePlug( ply, Pos, Ang, plugmodel, 	self:GetClientNumber( "array" ) != 0 )
-
-	if (!plug or !plug:IsValid()) then return false end
+	local plug = WireLib.MakeWireEnt(ply, {Class = "gmod_wire_plug", Pos=trace.HitPos, Angle=self:GetAngle(trace), Model=plugmodel}, self:GetClientNumber( "array" ) != 0)
+	if not IsValid(plug) then return false end
 
 	plug:SetPos( trace.HitPos - trace.HitNormal * plug:OBBMins().x )
 

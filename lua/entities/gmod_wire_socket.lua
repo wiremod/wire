@@ -297,26 +297,7 @@ function ENT:ShowOutput()
 	self:SetOverlayText(OutText)
 end
 
-
-function MakeWireSocket( ply, Pos, Ang, model, ArrayInput, WeldForce, AttachRange, ArrayHiSpeed )
-	if (!ply:CheckLimit( "wire_sockets" )) then return false end
-
-	local socket = ents.Create( "gmod_wire_socket" )
-	if (!socket:IsValid()) then return false end
-
-	socket:SetAngles( Ang )
-	socket:SetPos( Pos )
-	socket:SetModel( model )
-	socket:SetPlayer( ply )
-	socket:Spawn()
-	socket:Setup( ArrayInput, WeldForce, AttachRange, ArrayHiSpeed )
-	socket:Activate()
-
-	ply:AddCount( "wire_socket", socket )
-
-	return socket
-end
-duplicator.RegisterEntityClass( "gmod_wire_socket", MakeWireSocket, "Pos", "Ang", "model", "ArrayInput", "WeldForce", "AttachRange" )
+duplicator.RegisterEntityClass( "gmod_wire_socket", WireLib.MakeWireEnt, "Data", "ArrayInput", "WeldForce", "AttachRange" )
 
 ------------------------------------------------------------
 -- Adv Duplicator Support
@@ -393,6 +374,4 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID, GetConstByID)
 			end
 		end)
 	end -- /OLD DUPES COMPATIBILITY
-
-	ent:SetPlayer( ply )
 end
