@@ -29,13 +29,11 @@ if SERVER then
 		math.Clamp(self:GetClientNumber("br"),0,255),
 		math.Clamp(self:GetClientNumber("bg"),0,255),
 		math.Clamp(self:GetClientNumber("bb"),0,255),
-		math.Clamp(self:GetClientNumber("ba"),0,255),
-		self:GetClientInfo( "material" ),
-		self:GetClientNumber( "noclip" ) == 1
+		math.Clamp(self:GetClientNumber("ba"),0,255)
 	end
 
-	function TOOL:MakeEnt( ply, model, Ang, trace )
-		return MakeWireIndicator( ply, trace.HitPos, Ang, model, self:GetConVars() )
+	function TOOL:PostMake(ent)
+		duplicator.StoreEntityModifier( ent, "material", { MaterialOverride = self:GetClientInfo("material") } )
 	end
 end
 

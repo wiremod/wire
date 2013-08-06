@@ -110,6 +110,7 @@ if SERVER then
 		ply:AddCleanup( self.WireClass, ent )
 
 		if self.PostMake then self:PostMake(ent, ply, trace) end
+		duplicator.ApplyEntityModifiers(ply, ent)
 
 		return true
 	end
