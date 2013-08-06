@@ -7,28 +7,11 @@ ENT.WireDebugName	= "Light"
 
 -- Shared
 
-function ENT:SetGlow(val)
-	self:SetNetworkedBool("LightGlow",val)
-end
-
-function ENT:GetGlow()
-	return self:GetNetworkedBool("LightGlow")
-end
-
-local nwvars = {
-	Brightness = 1,
-	Decay = 500,
-	Size = 100,
-}
-
-for varname,default in pairs(nwvars) do
-	ENT["Set"..varname] = function(self, val)
-		self:SetNetworkedFloat("Light"..varname,val)
-	end
-
-	ENT["Get"..varname] = function(self)
-		return self:GetNetworkedFloat("Light"..varname, default)
-	end
+function ENT:SetupDataTables()
+	self:NetworkVar( "Bool", 0, "Glow" )
+	self:NetworkVar( "Float", 0, "Brightness" )
+	self:NetworkVar( "Float", 1, "Decay" )
+	self:NetworkVar( "Float", 2, "Size" )
 end
 
 if CLIENT then 
@@ -112,7 +95,7 @@ function ENT:OnRemove()
 end
 
 function ENT:DirectionalOn()
-	if (self.DirectionalComponent) then
+	if IsValid(self.DirectionalComponent) then
 		self:DirectionalOff()
 	end
 
@@ -140,14 +123,14 @@ function ENT:DirectionalOn()
 end
 
 function ENT:DirectionalOff()
-	if (!self.DirectionalComponent) then return end
+	if not IsValid(self.DirectionalComponent) then return end
 
 	self.DirectionalComponent:Remove()
 	self.DirectionalComponent = nil
 end
 
 function ENT:RadiantOn()
-	if (self.RadiantComponent) then
+	if IsValid(self.RadiantComponent) then
 		self.RadiantComponent:Fire("TurnOn","","0")
 	else
 		local dynlight = ents.Create( "light_dynamic" )
@@ -167,8 +150,7 @@ function ENT:RadiantOn()
 end
 
 function ENT:RadiantOff()
-	if (!self.RadiantComponent) then return end
-	if not self.RadiantComponent:IsValid() then return end
+	if not IsValid(self.RadiantComponent) then return end
 	self.RadiantComponent:Fire("TurnOff","","0")
 
 	self.RadiantState = false
@@ -219,38 +201,38 @@ function ENT:Setup(directional, radiant, glow, brightness, size, decay, r, g, b)
 	self.radiant = radiant
 	self.glow = glow
 	if (self.directional) then
-		if (!self.DirectionalComponent) then
+		if not IsValid(self.DirectionalComponent) then
 			self:DirectionalOn()
 		end
 	else
-		if (self.DirectionalComponent) then
+		if IsValid(self.DirectionalComponent) then
 			self:DirectionalOff()
 		end
 	end
 	if (self.radiant) then
-		if (!self.RadiantState) then
+		if not self.RadiantState then
 			self:RadiantOn()
 		end
 	else
-		if (self.RadiantState) then
+		if self.RadiantState then
 			self:RadiantOff()
 		end
 	end
 	if (self.glow) then
 		WireLib.AdjustInputs(self, {"Red", "Green", "Blue", "RGB [VECTOR]", "GlowBrightness", "GlowDecay", "GlowSize"})
-		if (!self.GlowState) then
+		if not self.GlowState then
 			self:GlowOn()
 		end
 	else
 		WireLib.AdjustInputs(self, {"Red", "Green", "Blue", "RGB [VECTOR]"})
-		if (self.GlowState) then
+		if self.GlowState then
 			self:GlowOff()
 		end
 	end
 	
-	self:SetBrightness( brightness or 2 )
-	self:SetSize( size or 256 )
-	self:SetDecay( decay or 1280 )
+	if brightness then self:SetBrightness( brightness ) end
+	if size then self:SetSize( size ) end
+	if decay then self:SetDecay( decay ) end
 	self:SetRGB( r or 0, g or 0, b or 0 )
 end
 
@@ -277,4 +259,4 @@ function ENT:SetRGB( R, G, B )
 	self:SetColor(Color(R, G, B, self:GetColor().a))
 end
 
-duplicator.RegisterEntityClass("gmod_wire_light", MakeWireEnt, "Data", "directional", "radiant", "glow", "brightness", "size", "decay", "R", "G", "B")
+duplicator.RegisterEntityClass("gmod_wire_light", WireLib.MakeWireEnt, "Data", "directional", "radiant", "glow", "brightness", "size", "decay", "R", "G", "B")

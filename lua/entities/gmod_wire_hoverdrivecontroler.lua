@@ -6,10 +6,6 @@ ENT.Author			= "Divran"
 ENT.RenderGroup		= RENDERGROUP_OPAQUE
 
 if CLIENT then 
-	language.Add( "Cleanup_hoverdrivecontrolers", "Hoverdrive Controllers" )
-	language.Add( "Cleaned_hoverdrivecontrolers", "Cleaned up Hoverdrive Controllers" )
-	language.Add( "SBoxLimit_wire_hoverdrives", "You have hit the Hoverdrive Controllers limit!" )
-
 	return -- No more client
 end
 
@@ -310,60 +306,10 @@ function ENT:CheckAllowed( e )
 	return true
 end
 
-
-local function Dupefunc( ply, Pos, Ang, Model, UseSounds, UseEffects )
-	if (!ply:CheckLimit("wire_hoverdrives")) then return end
-	local ent = ents.Create( "gmod_wire_hoverdrivecontroler" )
-	ent:SetModel( Model )
-	ent:SetAngles( Ang )
-	ent:SetPos( Pos )
-	ent:Spawn()
-	ent:Activate()
-
-	ply:AddCount( "wire_hoverdrives", ent )
-	ply:AddCleanup( "wire_hoverdrivecontrollers", ent )
-
-	ent:ShowOutput()
-
-	return ent
-end
-duplicator.RegisterEntityClass("gmod_wire_hoverdrivecontroler", Dupefunc, "Pos", "Ang", "Model" )
-
-function ENT:BuildDupeInfo()
-	local info = self.BaseClass.BuildDupeInfo( self ) or {}
-
-	info.Hoverdrive = {}
-	info.Hoverdrive.UseEffects = self.UseEffects
-	info.Hoverdrive.UseSounds = self.UseSounds
-
-	return info
-end
-
-local newinputs = {
-	X_JumpTarget = "X",
-	Y_JumpTarget = "Y",
-	Z_JumpTarget = "Z",
-	JumpTarget = "TargetPos",
-}
-
-
-function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
-	-- Move old inputs to new
-	if info.Wires then
-		for k,v in pairs( info.Wires ) do
-			if newinputs[k] then
-				info.Wires[newinputs[k]] = v
-				info.Wires[k] = nil
-			end
-		end
-	end
-
-	if info.Hoverdrive then
-		self.UseEffects = info.Hoverdrive.UseEffects
-		self.UseSounds = info.Hoverdrive.UseSounds
-	end
-
+function ENT:Setup(UseSounds, UseEffects)
+	self.UseSounds = UseSounds
+	self.UseEffects = UseEffects
 	self:ShowOutput()
-
-	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
 end
+
+duplicator.RegisterEntityClass("gmod_wire_hoverdrivecontroler", WireLib.MakeWireEnt, "Data", "UseSounds", "UseEffects" )

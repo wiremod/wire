@@ -228,4 +228,4 @@ function ENT:CheckOwner(ent)
 	return owns
 end
 
-duplicator.RegisterEntityClass("gmod_wire_grabber", MakeWireEnt, "Data", "Range", "Gravity")
+duplicator.RegisterEntityClass("gmod_wire_grabber", WireLib.MakeWireEnt, "Data", "Range", "Gravity")

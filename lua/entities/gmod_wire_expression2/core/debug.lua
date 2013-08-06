@@ -1,5 +1,5 @@
 -- import some e2lib and math functions
-local IsValid  = E2Lib.IsValid
+local IsValid  = IsValid
 local isOwner      = E2Lib.isOwner
 local Clamp        = math.Clamp
 local seq = table.IsSequential

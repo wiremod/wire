@@ -1,9 +1,9 @@
-/******************************************************************************\
+--[[
   Expression 2 Compiler for Garry's Mod
   Andreas "Syranide" Svensson, me@syranide.com
-\******************************************************************************/
+]]
 
-AddCSLuaFile("compiler.lua")
+AddCSLuaFile()
 
 Compiler = {}
 Compiler.__index = Compiler
@@ -23,7 +23,7 @@ end
 function Compiler:Process(root, inputs, outputs, persist, delta, includes) -- Took params out becuase it isnt used. 
 	self.context = {}
 
-	self:InitScope() //Creates global scope!
+	self:InitScope() -- Creates global scope!
 
 	self.inputs = inputs
 	self.outputs = outputs
@@ -35,37 +35,37 @@ function Compiler:Process(root, inputs, outputs, persist, delta, includes) -- To
 	self.funcs = {}
 	self.dvars = {}
 	self.funcs_ret = {}
-	
-	for name,v in pairs(inputs) do
-		self:SetGlobalVariableType(name, wire_expression_types[v][1], {nil, {0, 0}})
+
+	for name, v in pairs(inputs) do
+		self:SetGlobalVariableType(name, wire_expression_types[v][1], { nil, { 0, 0 } })
 	end
-	
-	for name,v in pairs(outputs) do
-		self:SetGlobalVariableType(name, wire_expression_types[v][1], {nil, {0, 0}})
+
+	for name, v in pairs(outputs) do
+		self:SetGlobalVariableType(name, wire_expression_types[v][1], { nil, { 0, 0 } })
 	end
-	
-	for name,v in pairs(persist) do
-		self:SetGlobalVariableType(name, wire_expression_types[v][1], {nil, {0, 0}})
+
+	for name, v in pairs(persist) do
+		self:SetGlobalVariableType(name, wire_expression_types[v][1], { nil, { 0, 0 } })
 	end
-	
-	for name,v in pairs(delta) do
+
+	for name, v in pairs(delta) do
 		self.dvars[name] = v
 	end
-	
+
 	self:PushScope()
-	
+
 	local script = Compiler["Instr" .. string.upper(root[1])](self, root)
-	
+
 	self:PopScope()
-	
+
 	return script, self
 end
 
 function tps_pretty(tps)
-	if !tps or #tps == 0 then return "void" end
+	if not tps or #tps == 0 then return "void" end
 
 	local ttt = {}
-	for i=1,#tps do
+	for i = 1, #tps do
 		ttt[i] = string.lower(wire_expression_types2[tps[i]][1])
 		if ttt[i] == "NORMAL" then ttt[i] = "number" end
 	end
@@ -76,13 +76,13 @@ local function op_find(name)
 	return E2Lib.optable_inv[name]
 end
 
-/*=============================================
+--[[
 	Scopes: Rusketh
-=============================================*/
+]] --
 function Compiler:InitScope()
 	self.Scopes = {}
 	self.ScopeID = 0
-	self.Scopes[0] = self.GlobalScope or {} //for creating new enviroments
+	self.Scopes[0] = self.GlobalScope or {} --for creating new enviroments
 	self.Scope = self.Scopes[0]
 	self.GlobalScope = self.Scope
 end
@@ -97,11 +97,11 @@ function Compiler:PopScope()
 	self.ScopeID = self.ScopeID - 1
 	self.Scope = self.Scopes[self.ScopeID]
 	self.Scopes[self.ScopeID] = self.Scope
-	return table.remove(self.Scopes,self.ScopeID + 1)
+	return table.remove(self.Scopes, self.ScopeID + 1)
 end
 
 function Compiler:SaveScopes()
-	return {self.Scopes,self.ScopeID,self.Scope}
+	return { self.Scopes, self.ScopeID, self.Scope }
 end
 
 function Compiler:LoadScopes(Scopes)
@@ -112,8 +112,8 @@ end
 
 function Compiler:SetLocalVariableType(name, type, instance)
 	local typ = self.Scope[name]
-	if typ and typ != type then
-		self:Error("Variable (" .. E2Lib.limitString(name, 10) .. ") of type [" .. tps_pretty({typ}) .. "] cannot be assigned value of type [" .. tps_pretty({type}) .. "]", instance)
+	if typ and typ ~= type then
+		self:Error("Variable (" .. E2Lib.limitString(name, 10) .. ") of type [" .. tps_pretty({ typ }) .. "] cannot be assigned value of type [" .. tps_pretty({ type }) .. "]", instance)
 	end
 
 	self.Scope[name] = type
@@ -123,8 +123,8 @@ end
 function Compiler:SetGlobalVariableType(name, type, instance)
 	for i = self.ScopeID, 0, -1 do
 		local typ = self.Scopes[i][name]
-		if typ and typ != type then
-			self:Error("Variable (" .. E2Lib.limitString(name, 10) .. ") of type [" .. tps_pretty(typ) .. "] cannot be assigned value of type [" .. tps_pretty({type}) .. "]", instance)
+		if typ and typ ~= type then
+			self:Error("Variable (" .. E2Lib.limitString(name, 10) .. ") of type [" .. tps_pretty(typ) .. "] cannot be assigned value of type [" .. tps_pretty({ type }) .. "]", instance)
 		elseif typ then
 			return i
 		end
@@ -146,12 +146,12 @@ function Compiler:GetVariableType(instance, name)
 	return nil
 end
 
-/******************************************************************************/
+-- ---------------------------------------------------------------------------
 
 function Compiler:EvaluateStatement(args, index)
 	local name = string.upper(args[index + 2][1])
 	local ex, tp = Compiler["Instr" .. name](self, args[index + 2])
-	//ex.TraceBack = args[index + 2]
+	-- ex.TraceBack = args[index + 2]
 	ex.TraceName = name
 	return ex, tp
 end
@@ -160,29 +160,29 @@ function Compiler:Evaluate(args, index)
 	local ex, tp = self:EvaluateStatement(args, index)
 
 	if tp == "" then
-		self:Error("Function has no return value (void), cannot be part of expression or assigned", args[index+2])
+		self:Error("Function has no return value (void), cannot be part of expression or assigned", args[index + 2])
 	end
 
 	return ex, tp
 end
 
 function Compiler:HasOperator(instr, name, tps)
-	pars = table.concat(tps)
+	local pars = table.concat(tps)
 	local a = wire_expression2_funcs["op:" .. name .. "(" .. pars .. ")"]
 	return a and true or false
 end
 
 function Compiler:AssertOperator(instr, name, alias, tps)
 	if not self:HasOperator(instr, name, tps) then
-		self:Error("No such operator: " .. op_find(alias) .. "(".. tps_pretty(tps) ..")", instr)
+		self:Error("No such operator: " .. op_find(alias) .. "(" .. tps_pretty(tps) .. ")", instr)
 	end
 end
 
 function Compiler:GetOperator(instr, name, tps)
-	pars = table.concat(tps)
+	local pars = table.concat(tps)
 	local a = wire_expression2_funcs["op:" .. name .. "(" .. pars .. ")"]
 	if not a then
-		self:Error("No such operator: " .. op_find(name) .. "(".. tps_pretty(tps) ..")", instr)
+		self:Error("No such operator: " .. op_find(name) .. "(" .. tps_pretty(tps) .. ")", instr)
 		return
 	end
 
@@ -194,22 +194,22 @@ end
 
 function Compiler:UDFunction(Sig)
 	if self.funcs_ret and self.funcs_ret[Sig] then
-		return {Sig, self.funcs_ret[Sig],
-			function(self,args)
+		return {
+			Sig, self.funcs_ret[Sig],
+			function(self, args)
 				if self.funcs and self.funcs[Sig] then
-					return self.funcs[Sig](self,args)
+					return self.funcs[Sig](self, args)
 				elseif self.funcs_ret and self.funcs_ret[Sig] then
 					-- This only occurs if a function's definition isn't executed before the function is called
 					-- Would probably only accidentally come about when pasting an E2 that has function definitions in
 					-- if(first()) instead of if(first() || duped())
 					error("UDFunction: " .. Sig .. " undefined at runtime!", -1)
-					//return wire_expression_types2[self.funcs_ret[Sig]][2] -- This would return the default value for the type, probably better to error though
+					-- return wire_expression_types2[self.funcs_ret[Sig]][2] -- This would return the default value for the type, probably better to error though
 				end
 			end,
-		20}
-
+			20
+		}
 	end
-
 end
 
 
@@ -217,19 +217,19 @@ function Compiler:GetFunction(instr, Name, Args)
 	local Params = table.concat(Args)
 	local Func = wire_expression2_funcs[Name .. "(" .. Params .. ")"]
 
-	if !Func then
+	if not Func then
 		Func = self:UDFunction(Name .. "(" .. Params .. ")")
 	end
 
-	if !Func then
-		for I = #Params,0,-1 do
-			Func = wire_expression2_funcs[Name .. "(" .. Params:sub(1,I) .. "...)"]
+	if not Func then
+		for I = #Params, 0, -1 do
+			Func = wire_expression2_funcs[Name .. "(" .. Params:sub(1, I) .. "...)"]
 			if Func then break end
 		end
 	end
 
-	if !Func then
-		self:Error("No such function: " .. Name .. "(".. tps_pretty(Args) ..")", instr)
+	if not Func then
+		self:Error("No such function: " .. Name .. "(" .. tps_pretty(Args) .. ")", instr)
 		return
 	end
 
@@ -243,19 +243,19 @@ function Compiler:GetMethod(instr, Name, Meta, Args)
 	local Params = Meta .. ":" .. table.concat(Args)
 	local Func = wire_expression2_funcs[Name .. "(" .. Params .. ")"]
 
-	if !Func then
+	if not Func then
 		Func = self:UDFunction(Name .. "(" .. Params .. ")")
 	end
 
-	if !Func then
+	if not Func then
 		for I = #Params, #Meta + 1, -1 do
-			Func = wire_expression2_funcs[Name .. "(" .. Params:sub(1,I) .. "...)"]
+			Func = wire_expression2_funcs[Name .. "(" .. Params:sub(1, I) .. "...)"]
 			if Func then break end
 		end
 	end
 
-	if !Func then
-		self:Error("No such function: " .. tps_pretty({Meta}) .. ":" .. Name .. "("..tps_pretty(Args) ..")", instr)
+	if not Func then
+		self:Error("No such function: " .. tps_pretty({ Meta }) .. ":" .. Name .. "(" .. tps_pretty(Args) .. ")", instr)
 		return
 	end
 
@@ -276,14 +276,14 @@ function Compiler:PopPrfCounter()
 	return prfcounter
 end
 
-/******************************************************************************/
+-- ------------------------------------------------------------------------
 
 function Compiler:InstrSEQ(args)
 	self:PushPrfCounter()
 
-	local stmts = {self:GetOperator(args, "seq", {})[1], 0}
+	local stmts = { self:GetOperator(args, "seq", {})[1], 0 }
 
-	for i=1,#args-2 do
+	for i = 1, #args - 2 do
 		stmts[#stmts + 1] = self:EvaluateStatement(args, i)
 	end
 
@@ -293,11 +293,11 @@ function Compiler:InstrSEQ(args)
 end
 
 function Compiler:InstrBRK(args)
-	return {self:GetOperator(args, "brk", {})[1]}
+	return { self:GetOperator(args, "brk", {})[1] }
 end
 
 function Compiler:InstrCNT(args)
-	return {self:GetOperator(args, "cnt", {})[1]}
+	return { self:GetOperator(args, "cnt", {})[1] }
 end
 
 function Compiler:InstrFOR(args)
@@ -309,9 +309,9 @@ function Compiler:InstrFOR(args)
 	local estep, tp3
 	if args[6] then
 		estep, tp3 = self:Evaluate(args, 4)
-		if tp1 != "n" || tp2 != "n" || tp3 != "n" then self:Error("for(" .. tps_pretty({tp1}) .. ", " .. tps_pretty({tp2}) .. ", " .. tps_pretty({tp3}) .. ") is invalid, only supports indexing by number", args) end
+		if tp1 ~= "n" or tp2 ~= "n" or tp3 ~= "n" then self:Error("for(" .. tps_pretty({ tp1 }) .. ", " .. tps_pretty({ tp2 }) .. ", " .. tps_pretty({ tp3 }) .. ") is invalid, only supports indexing by number", args) end
 	else
-		if tp1 != "n" || tp2 != "n" then self:Error("for(" .. tps_pretty({tp1}) .. ", " .. tps_pretty({tp2}) .. ") is invalid, only supports indexing by number", args) end
+		if tp1 ~= "n" or tp2 ~= "n" then self:Error("for(" .. tps_pretty({ tp1 }) .. ", " .. tps_pretty({ tp2 }) .. ") is invalid, only supports indexing by number", args) end
 	end
 
 	self:PushScope()
@@ -320,7 +320,7 @@ function Compiler:InstrFOR(args)
 	local stmt = self:EvaluateStatement(args, 5)
 	self:PopScope()
 
-	return {self:GetOperator(args, "for", {})[1], var, estart, estop, estep, stmt}
+	return { self:GetOperator(args, "for", {})[1], var, estart, estop, estep, stmt }
 end
 
 function Compiler:InstrWHL(args)
@@ -333,7 +333,7 @@ function Compiler:InstrWHL(args)
 	local stmt = self:EvaluateStatement(args, 2)
 	self:PopScope()
 
-	return {self:GetOperator(args, "whl", {})[1], cond, stmt, prf_cond}
+	return { self:GetOperator(args, "whl", {})[1], cond, stmt, prf_cond }
 end
 
 
@@ -350,8 +350,8 @@ function Compiler:InstrIF(args)
 	local st2 = self:EvaluateStatement(args, 3)
 	self:PopScope()
 
-	local rtis = self:GetOperator(args, "is", {tp1})
-	local rtif = self:GetOperator(args, "if", {rtis[2]})
+	local rtis = self:GetOperator(args, "is", { tp1 })
+	local rtif = self:GetOperator(args, "if", { rtis[2] })
 	return { rtif[1], prf_cond, { rtis[1], ex1 }, st1, st2 }
 end
 
@@ -362,12 +362,12 @@ function Compiler:InstrDEF(args)
 	local ex2, tp2 = self:Evaluate(args, 2)
 	local prf_ex2 = self:PopPrfCounter()
 
-	local rtis = self:GetOperator(args, "is", {tp1})
-	local rtif = self:GetOperator(args, "def", {rtis[2]})
+	local rtis = self:GetOperator(args, "is", { tp1 })
+	local rtif = self:GetOperator(args, "def", { rtis[2] })
 	local rtdat = self:GetOperator(args, "dat", {})
 
-	if tp1 != tp2 then
-		self:Error("Different types (" .. tps_pretty({tp1}) .. ", " .. tps_pretty({tp2}) .. ") returned in default conditional", args)
+	if tp1 ~= tp2 then
+		self:Error("Different types (" .. tps_pretty({ tp1 }) .. ", " .. tps_pretty({ tp2 }) .. ") returned in default conditional", args)
 	end
 
 	return { rtif[1], { rtis[1], { rtdat[1], nil } }, ex1, ex2, prf_ex2 }, tp1
@@ -384,11 +384,11 @@ function Compiler:InstrCND(args)
 	local ex3, tp3 = self:Evaluate(args, 3)
 	local prf_ex3 = self:PopPrfCounter()
 
-	local rtis = self:GetOperator(args, "is", {tp1})
-	local rtif = self:GetOperator(args, "cnd", {rtis[2]})
+	local rtis = self:GetOperator(args, "is", { tp1 })
+	local rtif = self:GetOperator(args, "cnd", { rtis[2] })
 
-	if tp2 != tp3 then
-		self:Error("Different types (" .. tps_pretty({tp2}) .. ", " .. tps_pretty({tp3}) .. ") returned in conditional", args)
+	if tp2 ~= tp3 then
+		self:Error("Different types (" .. tps_pretty({ tp2 }) .. ", " .. tps_pretty({ tp3 }) .. ") returned in conditional", args)
 	end
 
 	return { rtif[1], { rtis[1], ex1 }, ex2, ex3, prf_ex2, prf_ex3 }, tp2
@@ -396,10 +396,10 @@ end
 
 
 function Compiler:InstrFUN(args)
-	local exprs = {false}
+	local exprs = { false }
 
 	local tps = {}
-	for i=1,#args[4] do
+	for i = 1, #args[4] do
 		local ex, tp = self:Evaluate(args[4], i - 2)
 		tps[#tps + 1] = tp
 		exprs[#exprs + 1] = ex
@@ -407,43 +407,43 @@ function Compiler:InstrFUN(args)
 
 	local rt = self:GetFunction(args, args[3], tps)
 	exprs[1] = rt[1]
-	exprs[#exprs+1] = tps
+	exprs[#exprs + 1] = tps
 
 	return exprs, rt[2]
 end
 
 function Compiler:InstrSFUN(args)
-	local exprs = {false}
+	local exprs = { false }
 
 	local fexp, ftp = self:Evaluate(args, 1)
-	
+
 	if ftp ~= "s" then
 		self:Error("User function is not string-type", args)
 	end
-	
+
 	local tps = {}
-	for i=1,#args[4] do
+	for i = 1, #args[4] do
 		local ex, tp = self:Evaluate(args[4], i - 2)
 		tps[#tps + 1] = tp
 		exprs[#exprs + 1] = ex
 	end
-	
+
 	local rtsfun = self:GetOperator(args, "sfun", {})[1]
-	
-	local typeids_str = table.concat(tps,"")
-	
-	return {rtsfun, fexp, exprs, tps, typeids_str, args[5]}, args[5]
+
+	local typeids_str = table.concat(tps, "")
+
+	return { rtsfun, fexp, exprs, tps, typeids_str, args[5] }, args[5]
 end
 
 function Compiler:InstrMTO(args)
-	local exprs = {false}
+	local exprs = { false }
 
 	local tps = {}
 
 	local ex, tp = self:Evaluate(args, 2)
 	exprs[#exprs + 1] = ex
 
-	for i=1,#args[5] do
+	for i = 1, #args[5] do
 		local ex, tp = self:Evaluate(args[5], i - 2)
 		tps[#tps + 1] = tp
 		exprs[#exprs + 1] = ex
@@ -451,98 +451,98 @@ function Compiler:InstrMTO(args)
 
 	local rt = self:GetMethod(args, args[3], tp, tps)
 	exprs[1] = rt[1]
-	exprs[#exprs+1] = tps
+	exprs[#exprs + 1] = tps
 
 	return exprs, rt[2]
 end
 
 function Compiler:InstrASS(args)
-	local op     = args[3]
+	local op = args[3]
 	local ex, tp = self:Evaluate(args, 2)
 	local ScopeID = self:SetGlobalVariableType(op, tp, args)
-	local rt     = self:GetOperator(args, "ass", {tp})
+	local rt = self:GetOperator(args, "ass", { tp })
 
 	if ScopeID == 0 and self.dvars[op] then
-		local stmts = {self:GetOperator(args, "seq", {})[1], 0}
-		stmts[3] = {self:GetOperator(args, "ass", {tp})[1], "$" .. op, {self:GetOperator(args, "var", {})[1], op,ScopeID},ScopeID}
-		stmts[4] = {rt[1], op, ex, ScopeID}
+		local stmts = { self:GetOperator(args, "seq", {})[1], 0 }
+		stmts[3] = { self:GetOperator(args, "ass", { tp })[1], "$" .. op, { self:GetOperator(args, "var", {})[1], op, ScopeID }, ScopeID }
+		stmts[4] = { rt[1], op, ex, ScopeID }
 		return stmts, tp
 	else
-		return {rt[1], op, ex, ScopeID}, tp
+		return { rt[1], op, ex, ScopeID }, tp
 	end
 end
 
 function Compiler:InstrASSL(args)
-	local op     = args[3]
+	local op = args[3]
 	local ex, tp = self:Evaluate(args, 2)
 	local ScopeID = self:SetLocalVariableType(op, tp, args)
-	local rt     = self:GetOperator(args, "ass", {tp})
+	local rt = self:GetOperator(args, "ass", { tp })
 
 	if ScopeID == 0 then
 		self:Error("Invalid use of 'local' inside the global scope.", args)
-	end //Just to make code look neater.
+	end -- Just to make code look neater.
 
-	return {rt[1], op, ex, ScopeID}, tp
+	return { rt[1], op, ex, ScopeID }, tp
 end
 
 function Compiler:InstrGET(args)
-	local ex,  tp  = self:Evaluate(args, 1)
+	local ex, tp = self:Evaluate(args, 1)
 	local ex1, tp1 = self:Evaluate(args, 2)
-	local      tp2 = args[5]
+	local tp2 = args[5]
 
 	if tp2 == nil then
-		if !self:HasOperator(args, "idx", {tp,tp1}) then
-			self:Error("No such operator: get " .. tps_pretty({tp}) .. "[".. tps_pretty({tp1}) .."]", args)
+		if not self:HasOperator(args, "idx", { tp, tp1 }) then
+			self:Error("No such operator: get " .. tps_pretty({ tp }) .. "[" .. tps_pretty({ tp1 }) .. "]", args)
 		end
 
-		local rt = self:GetOperator(args, "idx", {tp,tp1})
-		return {rt[1], ex, ex1}, rt[2]
+		local rt = self:GetOperator(args, "idx", { tp, tp1 })
+		return { rt[1], ex, ex1 }, rt[2]
 
 
 	else
-		if !self:HasOperator(args, "idx", {tp2, "=", tp,tp1}) then
-			self:Error("No such operator: get " .. tps_pretty({tp}) .. "[".. tps_pretty({tp1, tp2}) .."]", args)
+		if not self:HasOperator(args, "idx", { tp2, "=", tp, tp1 }) then
+			self:Error("No such operator: get " .. tps_pretty({ tp }) .. "[" .. tps_pretty({ tp1, tp2 }) .. "]", args)
 		end
 
-		local rt = self:GetOperator(args, "idx", {tp2, "=", tp,tp1})
-		return {rt[1], ex, ex1}, tp2
+		local rt = self:GetOperator(args, "idx", { tp2, "=", tp, tp1 })
+		return { rt[1], ex, ex1 }, tp2
 	end
 end
 
 function Compiler:InstrSET(args)
-	local ex,  tp = self:Evaluate(args, 1)
+	local ex, tp = self:Evaluate(args, 1)
 	local ex1, tp1 = self:Evaluate(args, 2)
 	local ex2, tp2 = self:Evaluate(args, 3)
 
 	if args[6] == nil then
-		if !self:HasOperator(args, "idx", {tp,tp1,tp2}) then
-			self:Error("No such operator: set " .. tps_pretty({tp}) .. "[".. tps_pretty({tp1}) .."]=" .. tps_pretty({tp2}), args)
+		if not self:HasOperator(args, "idx", { tp, tp1, tp2 }) then
+			self:Error("No such operator: set " .. tps_pretty({ tp }) .. "[" .. tps_pretty({ tp1 }) .. "]=" .. tps_pretty({ tp2 }), args)
 		end
 
-		local rt = self:GetOperator(args, "idx", {tp,tp1,tp2})
+		local rt = self:GetOperator(args, "idx", { tp, tp1, tp2 })
 
-		return {rt[1], ex, ex1, ex2, ScopeID}, rt[2]
+		return { rt[1], ex, ex1, ex2, ScopeID }, rt[2]
 	else
-		if tp2 != args[6] then
-			self:Error("Indexing type mismatch, specified [" .. tps_pretty({args[6]}) .. "] but value is [" .. tps_pretty({tp2}) .. "]", args)
+		if tp2 ~= args[6] then
+			self:Error("Indexing type mismatch, specified [" .. tps_pretty({ args[6] }) .. "] but value is [" .. tps_pretty({ tp2 }) .. "]", args)
 		end
 
-		if !self:HasOperator(args, "idx", {tp2, "=", tp,tp1,tp2}) then
-			self:Error("No such operator: set " .. tps_pretty({tp}) .. "[".. tps_pretty({tp1, tp2}) .."]", args)
+		if not self:HasOperator(args, "idx", { tp2, "=", tp, tp1, tp2 }) then
+			self:Error("No such operator: set " .. tps_pretty({ tp }) .. "[" .. tps_pretty({ tp1, tp2 }) .. "]", args)
 		end
-		local rt = self:GetOperator(args, "idx", {tp2, "=", tp,tp1,tp2})
+		local rt = self:GetOperator(args, "idx", { tp2, "=", tp, tp1, tp2 })
 
-		return {rt[1], ex, ex1, ex2}, tp2
+		return { rt[1], ex, ex1, ex2 }, tp2
 	end
 end
 
 
 -- generic code for all binary non-boolean operators
-for _,operator in ipairs({"add", "sub", "mul", "div", "mod", "exp", "eq", "neq", "geq", "leq", "gth", "lth", "band", "band", "bor", "bxor", "bshl", "bshr"}) do
-	Compiler["Instr"..operator:upper()] = function(self, args)
+for _, operator in ipairs({ "add", "sub", "mul", "div", "mod", "exp", "eq", "neq", "geq", "leq", "gth", "lth", "band", "band", "bor", "bxor", "bshl", "bshr" }) do
+	Compiler["Instr" .. operator:upper()] = function(self, args)
 		local ex1, tp1 = self:Evaluate(args, 1)
 		local ex2, tp2 = self:Evaluate(args, 2)
-		local rt       = self:GetOperator(args, operator, {tp1, tp2})
+		local rt = self:GetOperator(args, operator, { tp1, tp2 })
 		return { rt[1], ex1, ex2 }, rt[2]
 	end
 end
@@ -550,62 +550,62 @@ end
 function Compiler:InstrINC(args)
 	local op = args[3]
 	local tp, ScopeID = self:GetVariableType(args, op)
-	local rt = self:GetOperator(args, "inc", {tp})
+	local rt = self:GetOperator(args, "inc", { tp })
 
 	if ScopeID == 0 and self.dvars[op] then
-		local stmts = {self:GetOperator(args, "seq", {})[1], 0}
-		stmts[3] = {self:GetOperator(args, "ass", {tp})[1], "$" .. op, {self:GetOperator(args, "var", {})[1], op, ScopeID}, ScopeID}
-		stmts[4] = {rt[1], op, ScopeID}
+		local stmts = { self:GetOperator(args, "seq", {})[1], 0 }
+		stmts[3] = { self:GetOperator(args, "ass", { tp })[1], "$" .. op, { self:GetOperator(args, "var", {})[1], op, ScopeID }, ScopeID }
+		stmts[4] = { rt[1], op, ScopeID }
 		return stmts
 	else
-		return {rt[1], op, ScopeID}
+		return { rt[1], op, ScopeID }
 	end
 end
 
 function Compiler:InstrDEC(args)
 	local op = args[3]
 	local tp, ScopeID = self:GetVariableType(args, op)
-	local rt = self:GetOperator(args, "dec", {tp})
+	local rt = self:GetOperator(args, "dec", { tp })
 
 	if ScopeID == 0 and self.dvars[op] then
-		local stmts = {self:GetOperator(args, "seq", {})[1], 0}
-		stmts[3] = {self:GetOperator(args, "ass", {tp})[1], "$" .. op, {self:GetOperator(args, "var", {})[1], op, ScopeID}, ScopeID}
-		stmts[4] = {rt[1], op, ScopeID}
+		local stmts = { self:GetOperator(args, "seq", {})[1], 0 }
+		stmts[3] = { self:GetOperator(args, "ass", { tp })[1], "$" .. op, { self:GetOperator(args, "var", {})[1], op, ScopeID }, ScopeID }
+		stmts[4] = { rt[1], op, ScopeID }
 		return stmts
 	else
-		return {rt[1], op, ScopeID}
+		return { rt[1], op, ScopeID }
 	end
 end
 
 function Compiler:InstrNEG(args)
 	local ex1, tp1 = self:Evaluate(args, 1)
-	local rt       = self:GetOperator(args, "neg", {tp1})
+	local rt = self:GetOperator(args, "neg", { tp1 })
 	return { rt[1], ex1 }, rt[2]
 end
 
 
 function Compiler:InstrNOT(args)
 	local ex1, tp1 = self:Evaluate(args, 1)
-	local rt1is    = self:GetOperator(args, "is", {tp1})
-	local rt       = self:GetOperator(args, "not", {rt1is[2]})
+	local rt1is = self:GetOperator(args, "is", { tp1 })
+	local rt = self:GetOperator(args, "not", { rt1is[2] })
 	return { rt[1], { rt1is[1], ex1 } }, rt[2]
 end
 
 function Compiler:InstrAND(args)
 	local ex1, tp1 = self:Evaluate(args, 1)
 	local ex2, tp2 = self:Evaluate(args, 2)
-	local rt1is    = self:GetOperator(args, "is", {tp1})
-	local rt2is    = self:GetOperator(args, "is", {tp2})
-	local rt       = self:GetOperator(args, "and", {rt1is[2], rt2is[2]})
+	local rt1is = self:GetOperator(args, "is", { tp1 })
+	local rt2is = self:GetOperator(args, "is", { tp2 })
+	local rt = self:GetOperator(args, "and", { rt1is[2], rt2is[2] })
 	return { rt[1], { rt1is[1], ex1 }, { rt2is[1], ex2 } }, rt[2]
 end
 
 function Compiler:InstrOR(args)
 	local ex1, tp1 = self:Evaluate(args, 1)
 	local ex2, tp2 = self:Evaluate(args, 2)
-	local rt1is    = self:GetOperator(args, "is", {tp1})
-	local rt2is    = self:GetOperator(args, "is", {tp2})
-	local rt       = self:GetOperator(args, "or", {rt1is[2], rt2is[2]})
+	local rt1is = self:GetOperator(args, "is", { tp1 })
+	local rt2is = self:GetOperator(args, "is", { tp2 })
+	local rt = self:GetOperator(args, "or", { rt1is[2], rt2is[2] })
 	return { rt[1], { rt1is[1], ex1 }, { rt2is[1], ex2 } }, rt[2]
 end
 
@@ -614,22 +614,22 @@ function Compiler:InstrTRG(args)
 	local op = args[3]
 	local tp = self:GetVariableType(args, op)
 	local rt = self:GetOperator(args, "trg", {})
-	return {rt[1], op}, rt[2]
+	return { rt[1], op }, rt[2]
 end
 
 function Compiler:InstrDLT(args)
 	local op = args[3]
 	local tp, ScopeID = self:GetVariableType(args, op)
 
-	if ScopeID != 0 or !self.dvars[op] then
+	if ScopeID ~= 0 or not self.dvars[op] then
 		self:Error("Delta operator ($" .. E2Lib.limitString(op, 10) .. ") cannot be used on temporary variables", args)
 	end
 
 	self.dvars[op] = true
-	self:AssertOperator(args, "sub", "dlt", {tp, tp})
-	local rt = self:GetOperator(args, "sub", {tp, tp})
+	self:AssertOperator(args, "sub", "dlt", { tp, tp })
+	local rt = self:GetOperator(args, "sub", { tp, tp })
 	local rtvar = self:GetOperator(args, "var", {})
-	return {rt[1], {rtvar[1], op, ScopeID}, {rtvar[1], "$" .. op, ScopeID}}, rt[2]
+	return { rt[1], { rtvar[1], op, ScopeID }, { rtvar[1], "$" .. op, ScopeID } }, rt[2]
 end
 
 function Compiler:InstrIWC(args)
@@ -638,11 +638,11 @@ function Compiler:InstrIWC(args)
 	if self.inputs[op] then
 		local tp = self:GetVariableType(args, op)
 		local rt = self:GetOperator(args, "iwc", {})
-		return {rt[1], op}, rt[2]
+		return { rt[1], op }, rt[2]
 	elseif self.outputs[op] then
 		local tp = self:GetVariableType(args, op)
 		local rt = self:GetOperator(args, "owc", {})
-		return {rt[1], op}, rt[2]
+		return { rt[1], op }, rt[2]
 	else
 		self:Error("Connected operator (->" .. E2Lib.limitString(op, 10) .. ") can only be used on inputs or outputs", args)
 	end
@@ -651,58 +651,58 @@ end
 function Compiler:InstrNUM(args)
 	self.prfcounter = self.prfcounter + 0.5
 	RunString("Compiler.native = function() return " .. args[3] .. " end")
-	return {Compiler.native}, "n"
+	return { Compiler.native }, "n"
 end
 
 function Compiler:InstrNUMI(args)
 	self.prfcounter = self.prfcounter + 1
 	Compiler.native = { 0, tonumber(args[3]) }
 	RunString("local value = Compiler.native Compiler.native = function() return value end")
-	return {Compiler.native}, "c"
+	return { Compiler.native }, "c"
 end
 
 function Compiler:InstrNUMJ(args)
 	self.prfcounter = self.prfcounter + 1
 	Compiler.native = { 0, 0, tonumber(args[3]), 0 }
 	RunString("local value = Compiler.native Compiler.native = function() return value end")
-	return {Compiler.native}, "q"
+	return { Compiler.native }, "q"
 end
 
 function Compiler:InstrNUMK(args)
 	self.prfcounter = self.prfcounter + 1
 	Compiler.native = { 0, 0, 0, tonumber(args[3]) }
 	RunString("local value = Compiler.native Compiler.native = function() return value end")
-	return {Compiler.native}, "q"
+	return { Compiler.native }, "q"
 end
 
 function Compiler:InstrSTR(args)
 	self.prfcounter = self.prfcounter + 1.0
 	RunString(string.format("Compiler.native = function() return %q end", args[3]))
-	return {Compiler.native}, "s"
+	return { Compiler.native }, "s"
 end
 
 function Compiler:InstrVAR(args)
 	self.prfcounter = self.prfcounter + 1.0
 	local tp, ScopeID = self:GetVariableType(args, args[3])
-	RunString(string.format("Compiler.native = function(self) return self.Scopes[%i][%q] end", ScopeID, args[3])) //This Line!
-	return {Compiler.native}, tp
+	RunString(string.format("Compiler.native = function(self) return self.Scopes[%i][%q] end", ScopeID, args[3])) -- This Line!
+	return { Compiler.native }, tp
 end
 
 function Compiler:InstrFEA(args)
-	--local sfea = self:Instruction(trace, "fea", keyvar, valvar, valtype, tableexpr, self:Block("foreach statement"))
+	-- local sfea = self:Instruction(trace, "fea", keyvar, valvar, valtype, tableexpr, self:Block("foreach statement"))
 
-	local keyvar, valvar, valtype = args[3],args[4],args[5]
-	local tableexpr, tabletp = self:Evaluate(args,4)
+	local keyvar, valvar, valtype = args[3], args[4], args[5]
+	local tableexpr, tabletp = self:Evaluate(args, 4)
 
-	local op = self:GetOperator(args,"fea",{tabletp})
+	local op = self:GetOperator(args, "fea", { tabletp })
 	self:PushScope()
 	self:SetLocalVariableType(keyvar, op[2], args)
 	self:SetLocalVariableType(valvar, valtype, args)
 
-	local stmt,_ = self:EvaluateStatement(args,5)
+	local stmt, _ = self:EvaluateStatement(args, 5)
 	self:PopScope()
 
-	return {op[1],keyvar,valvar,valtype,tableexpr,stmt}
+	return { op[1], keyvar, valvar, valtype, tableexpr, stmt }
 end
 
 
@@ -716,14 +716,14 @@ function Compiler:InstrFUNCTION(args)
 	self:InitScope() -- Create a new Scope Enviroment
 	self:PushScope()
 
-	for K,D in pairs ( Args ) do
-		local Name,Type = D[1],wire_expression_types[D[2]][1]
+	for K, D in pairs(Args) do
+		local Name, Type = D[1], wire_expression_types[D[2]][1]
 		self:SetLocalVariableType(Name, Type, args)
 	end
 
-	if self.funcs_ret[Sig] and self.funcs_ret[Sig] != Return then
+	if self.funcs_ret[Sig] and self.funcs_ret[Sig] ~= Return then
 		local TP = tps_pretty(self.funcs_ret[Sig])
-		self:Error("Function " .. Sig .. " must be given return type " .. TP,args)
+		self:Error("Function " .. Sig .. " must be given return type " .. TP, args)
 	end
 
 	self.funcs_ret[Sig] = Return
@@ -739,69 +739,68 @@ function Compiler:InstrFUNCTION(args)
 
 	self.prfcounter = self.prfcounter + 40
 
-	return {self:GetOperator(args, "function", {})[1], Stmt, args}
-
+	return { self:GetOperator(args, "function", {})[1], Stmt, args }
 end
 
 function Compiler:InstrRETURN(args)
 	local Value, Type = self:Evaluate(args, 1)
 
-	if !self.func_ret or self.func_ret == "" then
-		self:Error("Return type mismatch: void expected, got " .. tps_pretty(Type),args)
-	elseif self.func_ret != Type then
-		self:Error("Return type mismatch: " .. tps_pretty(self.func_ret) .. " expected, got " .. tps_pretty(Type),args)
+	if not self.func_ret or self.func_ret == "" then
+		self:Error("Return type mismatch: void expected, got " .. tps_pretty(Type), args)
+	elseif self.func_ret ~= Type then
+		self:Error("Return type mismatch: " .. tps_pretty(self.func_ret) .. " expected, got " .. tps_pretty(Type), args)
 	end
 
-	return {self:GetOperator(args, "return", {})[1], Value, Type}
+	return { self:GetOperator(args, "return", {})[1], Value, Type }
 end
 
 function Compiler:InstrRETURNVOID(args)
-	if self.func_ret and self.func_ret != "" then
-		self:Error("Return type mismatch: " .. tps_pretty(self.func_ret) .. " expected got, void",args)
+	if self.func_ret and self.func_ret ~= "" then
+		self:Error("Return type mismatch: " .. tps_pretty(self.func_ret) .. " expected got, void", args)
 	end
 
-	return {self:GetOperator(args, "return", {})[1], Value, Type}
+	return { self:GetOperator(args, "return", {})[1], Value, Type }
 end
 
-function Compiler:InstrKVTABLE( args )
+function Compiler:InstrKVTABLE(args)
 	local s = {}
 	local stypes = {}
 
 	local exprs = args[3]
-	for k,v in pairs( exprs ) do
+	for k, v in pairs(exprs) do
 		local key, type = self["Instr" .. string.upper(k[1])](self, k)
 		if type == "s" or type == "n" then
 			local value, type = self["Instr" .. string.upper(v[1])](self, v)
 			s[key] = value
 			stypes[key] = type
 		else
-			self:Error( "String or number expected, got " .. tps_pretty( type ), k )
+			self:Error("String or number expected, got " .. tps_pretty(type), k)
 		end
 	end
 
-	return {self:GetOperator(args, "kvtable", {})[1], s, stypes}, "t"
+	return { self:GetOperator(args, "kvtable", {})[1], s, stypes }, "t"
 end
 
-function Compiler:InstrKVARRAY( args )
+function Compiler:InstrKVARRAY(args)
 	local values = {}
 	local types = {}
 
 	local exprs = args[3]
-	for k,v in pairs( exprs ) do
+	for k, v in pairs(exprs) do
 		local key, type = self["Instr" .. string.upper(k[1])](self, k)
 		if type == "n" then
 			local value, type = self["Instr" .. string.upper(v[1])](self, v)
 			values[key] = value
 			types[key] = type
 		else
-			self:Error( "Number expected, got " .. tps_pretty( type ), k )
+			self:Error("Number expected, got " .. tps_pretty(type), k)
 		end
 	end
 
-	return {self:GetOperator(args, "kvarray", {})[1], values, types}, "r"
+	return { self:GetOperator(args, "kvarray", {})[1], values, types }, "r"
 end
 
-function Compiler:InstrSWITCH( args )
+function Compiler:InstrSWITCH(args)
 	self:PushPrfCounter()
 	local value, type = Compiler["Instr" .. string.upper(args[3][1])](self, args[3]) -- This is the value we are passing though the switch statment
 	local prf_cond = self:PopPrfCounter()
@@ -810,8 +809,8 @@ function Compiler:InstrSWITCH( args )
 
 	local cases = {}
 	local Cases = args[4]
-	for i=1, #Cases do
-		local case, block, prf_eq, eq = Cases[i][1], Cases[i][2], 0
+	for i = 1, #Cases do
+		local case, block, prf_eq, eq = Cases[i][1], Cases[i][2], 0, nil
 		if case then -- The default will not have one
 			self.ScopeID = self.ScopeID - 1 -- For the case statments we pop the scope back
 			self:PushPrfCounter()
@@ -820,59 +819,59 @@ function Compiler:InstrSWITCH( args )
 			self.ScopeID = self.ScopeID + 1
 			if tp == "" then -- There is no value
 				self:Error("Function has no return value (void), cannot be part of expression or assigned", args)
-			elseif tp != type then -- Value types do not match.
-				self:Error("Case missmatch can not compare " .. tps_pretty(type) .. " with " .. tps_pretty(tp) , args)
+			elseif tp ~= type then -- Value types do not match.
+				self:Error("Case missmatch can not compare " .. tps_pretty(type) .. " with " .. tps_pretty(tp), args)
 			end
-			eq = {self:GetOperator(args, "eq", {type, tp})[1], value, ex} -- This is the equals operator to check if values match
+			eq = { self:GetOperator(args, "eq", { type, tp })[1], value, ex } -- This is the equals operator to check if values match
 		end
 		local stmts = Compiler["Instr" .. string.upper(block[1])](self, block) -- This is statments that are run when Values match
-		cases[i] = {eq,stmts,prf_eq}
+		cases[i] = { eq, stmts, prf_eq }
 	end
 
 	self:PopScope()
 
-	local rtswitch =  self:GetOperator(args, "switch", {})
-	return { rtswitch[1], prf_cond, cases, default}
+	local rtswitch = self:GetOperator(args, "switch", {})
+	return { rtswitch[1], prf_cond, cases, default }
 end
 
-function Compiler:InstrINCLU( args )
+function Compiler:InstrINCLU(args)
 
 	local file = args[3]
 	local include = self.includes[file]
-	
-	if !include or !include[1] then
+
+	if not include or not include[1] then
 		self:Error("Problem including file '" .. file .. "'", args)
 	end
-	
-	if !include[2] then
-	
+
+	if not include[2] then
+
 		include[2] = true -- Tempory value to prvent E2 compiling itself when itself. (INFINATE LOOOP!)
-		
+
 		local OldScopes = self:SaveScopes()
 		self:InitScope() -- Create a new Scope Enviroment
 		self:PushScope()
 
 		local root = include[1]
-		local status, script = pcall( Compiler["Instr" .. string.upper(root[1])], self, root)
-		
-		if !status then
-			if script:find( "C stack overflow" ) then script = "Include depth to deep" end
-			
-			if !self.IncludeError then
+		local status, script = pcall(Compiler["Instr" .. string.upper(root[1])], self, root)
+
+		if not status then
+			if script:find("C stack overflow") then script = "Include depth to deep" end
+
+			if not self.IncludeError then
 				-- Otherwise Errors messages will be wrapped inside other error messages!
 				self.IncludeError = true
 				self:Error("include '" .. file .. "' -> " .. script, args)
 			else
-				error(script,0)
+				error(script, 0)
 			end
 		end
-		
+
 		include[2] = script
-		
+
 		self:PopScope()
 		self:LoadScopes(OldScopes) -- Reload the old enviroment
 	end
-	
-	
-	return {self:GetOperator(args, "include", {})[1], file}
+
+
+	return { self:GetOperator(args, "include", {})[1], file }
 end

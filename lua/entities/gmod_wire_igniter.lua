@@ -55,22 +55,4 @@ function ENT:TriggerInput(iname, value)
 	end
 end
 
-function MakeWireIgniter( pl, Pos, Ang, model, TargetPlayers, Range )
-	if not pl:CheckLimit( "wire_igniters" ) then return false end
-
-	local wire_igniter = ents.Create( "gmod_wire_igniter" )
-	if not wire_igniter:IsValid() then return false end
-
-	wire_igniter:SetAngles( Ang )
-	wire_igniter:SetPos( Pos )
-	wire_igniter:SetModel( model )
-	wire_igniter:Spawn()
-	wire_igniter:Setup(TargetPlayers,Range)
-
-	wire_igniter:SetPlayer( pl )
-
-	pl:AddCount( "wire_igniters", wire_igniter )
-
-	return wire_igniter
-end
-duplicator.RegisterEntityClass("gmod_wire_igniter", MakeWireIgniter, "Pos", "Ang", "Model", "TargetPlayers", "Range")
+duplicator.RegisterEntityClass("gmod_wire_igniter", WireLib.MakeWireEnt, "Data", "TargetPlayers", "Range")

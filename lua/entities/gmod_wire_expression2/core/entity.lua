@@ -18,7 +18,6 @@ registerType("entity", "e", nil,
 /******************************************************************************/
 
 -- import some e2lib functions
-local IsValid  = E2Lib.IsValid
 local validPhysics = E2Lib.validPhysics
 local getOwner     = E2Lib.getOwner
 local isOwner      = E2Lib.isOwner

@@ -12,12 +12,6 @@ end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 10 )
 
-if SERVER then
-	function TOOL:MakeEnt( ply, model, Ang, trace )
-		return MakeWireHoloemitter( ply, trace.HitPos, Ang, model )
-	end
-end
-
 TOOL.ClientConVar = {
 	model = "models/jaanus/wiretool/wiretool_range.mdl",
 	weld = 1

@@ -209,7 +209,7 @@ function MakeWireGate(pl, Pos, Ang, model, action, noclip, frozen, nocollide)
 	group = string.lower(group)
 	if IsValid(pl) and not pl:CheckLimit( "wire_gate_" .. group .. "s" ) then return end
 
-	local wire_gate =  MakeWireEnt( pl, {Class = "gmod_wire_gate", Pos=Pos, Angle=Ang, Model=model}, action, noclip )
+	local wire_gate = WireLib.MakeWireEnt( pl, {Class = "gmod_wire_gate", Pos=Pos, Angle=Ang, Model=model}, action, noclip )
 	if not IsValid(wire_gate) then return end
 
 	pl:AddCount( "wire_gate_" .. group .. "s", wire_gate )

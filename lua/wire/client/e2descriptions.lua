@@ -1,4 +1,4 @@
-if E2Helper then
+if not E2Helper then return end
 
 -- Number
 E2Helper.Descriptions["mod(n n)"] = "Modulo, returns the Remainder after Argument 1 has been divided by Argument 2. Note \"mod(-1, 3) = -1\""
@@ -739,4 +739,3 @@ E2Helper.Descriptions["concat(t:)"] = "Concatenates the array-part of the table.
 E2Helper.Descriptions["concat(t:s)"] = "Concatenates the array-part of the table, with a string delimiter."
 E2Helper.Descriptions["toString(t:)"] = "Formats the table as a human-readable string."
 E2Helper.Descriptions["id(t:)"] = "Returns the unique ID of the table."
-end

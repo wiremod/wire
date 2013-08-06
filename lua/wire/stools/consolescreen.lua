@@ -10,14 +10,6 @@ WireToolSetup.BaseLang()
 
 WireToolSetup.SetupMax( 20 )
 
-if SERVER then
-	function TOOL:GetConVars() end
-
-	function TOOL:MakeEnt( ply, model, Ang, trace )
-		return MakeWireconsoleScreen( ply, trace.HitPos, Ang, model )
-	end
-end
-
 TOOL.NoLeftOnClass = true -- no update ent function needed
 TOOL.ClientConVar = {
 	model      = "models/props_lab/monitor01b.mdl",

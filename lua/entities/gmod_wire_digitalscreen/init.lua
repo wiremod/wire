@@ -26,9 +26,9 @@ function ENT:Initialize()
 	self.ChangedCellRanges = {}
 end
 
-function ENT:SetDigitalSize(ScreenWidth, ScreenHeight)
-	self:WriteCell(1048572, ScreenHeight)
-	self:WriteCell(1048573, ScreenWidth)
+function ENT:Setup(ScreenWidth, ScreenHeight)
+	self:WriteCell(1048572, ScreenHeight or 32)
+	self:WriteCell(1048573, ScreenWidth or 32)
 end
 
 function ENT:SendPixel()
@@ -192,28 +192,4 @@ function ENT:TriggerInput(iname, value)
 	end
 end
 
-
-function MakeWireDigitalScreen( pl, Pos, Ang, model, ScreenWidth, ScreenHeight )
-
-	if ( !pl:CheckLimit( "wire_digitalscreens" ) ) then return false end
-
-	local wire_digitalscreen = ents.Create( "gmod_wire_digitalscreen" )
-	if (!wire_digitalscreen:IsValid()) then return false end
-	wire_digitalscreen:SetModel(model)
-
-	if (not ScreenWidth) then ScreenWidth = 32 end
-	if (not ScreenHeight) then ScreenHeight = 32 end
-
-	wire_digitalscreen:SetAngles( Ang )
-	wire_digitalscreen:SetPos( Pos )
-	wire_digitalscreen:Spawn()
-	wire_digitalscreen:SetDigitalSize(ScreenWidth,ScreenHeight)
-
-	wire_digitalscreen:SetPlayer(pl)
-
-	pl:AddCount( "wire_digitalscreens", wire_digitalscreen )
-
-	return wire_digitalscreen
-end
-
-duplicator.RegisterEntityClass("gmod_wire_digitalscreen", MakeWireDigitalScreen, "Pos", "Ang", "Model", "ScreenWidth", "ScreenHeight")
+duplicator.RegisterEntityClass("gmod_wire_digitalscreen", WireLib.MakeWireEnt, "Data", "ScreenWidth", "ScreenHeight")

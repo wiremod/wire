@@ -21,7 +21,7 @@ if SERVER then
 		return self:GetClientNumber( "includeconstrained" )
 	end
 
-	-- Uses default WireToolObj:MakeEnt's MakeWireEnt function
+	-- Uses default WireToolObj:MakeEnt's WireLib.MakeWireEnt function
 end
 	
 function TOOL:LeftClick(trace)

@@ -18,10 +18,6 @@ if SERVER then
 	function TOOL:GetConVars() 
 		return self:GetClientNumber( "trgply" )~=0, self:GetClientNumber("range") 
 	end
-
-	function TOOL:MakeEnt( ply, model, Ang, trace )
-		return MakeWireIgniter( ply, trace.HitPos, Ang, model, self:GetConVars() )
-	end
 end
 
 TOOL.ClientConVar = {

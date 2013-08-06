@@ -151,6 +151,7 @@ function ENT:Setup(Static)
 		cam:SetPos( self:GetPos()+Vector(0,0,64) )
 		cam:SetModel( Model("models/dav0r/camera.mdl") )
 		cam:Spawn()
+		cam:CallOnRemove("wire_cam_toggle", function(oldcam) if IsValid(self) then self:ToggleCam(false) end end)
 
 		self.CamEnt = cam
 
@@ -162,7 +163,7 @@ end
 function ENT:Think()
 	self.BaseClass.Think(self)
 
-	if (!self.CamEnt or !self.CamEnt:IsValid()) then return end
+	if not IsValid(self.CamEnt) then return end
 
 	local vStart = self.CamEnt:GetPos()
 	local vForward = self.CamEnt:GetForward()
@@ -192,6 +193,7 @@ end
 function ENT:OnRemove()
 	if self.CamEnt and self.CamEnt:IsValid() then
 		self.CamEnt:RemoveCallOnRemove("wire_cam_restore")
+		self.CamEnt:RemoveCallOnRemove("wire_cam_toggle")
 		self.CamEnt:Remove()
 	end
 
@@ -326,4 +328,4 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 	self.CamEnt = GetEntByID(info.cam)
 end
 
-duplicator.RegisterEntityClass("gmod_wire_cameracontroller", MakeWireEnt, "Data", "Static")
+duplicator.RegisterEntityClass("gmod_wire_cameracontroller", WireLib.MakeWireEnt, "Data", "Static")

@@ -1,9 +1,9 @@
-/******************************************************************************\
+--[[
   Expression 2 Pre-Processor for Garry's Mod
   Andreas "Syranide" Svensson, me@syranide.com
-\******************************************************************************/
+]]
 
-AddCSLuaFile("preprocessor.lua")
+AddCSLuaFile()
 
 PreProcessor = {}
 PreProcessor.__index = PreProcessor
@@ -36,26 +36,26 @@ local function gettype(tp)
 end
 
 function PreProcessor:HandlePPCommand(comment)
-	local command,args = comment:match("^([^ ]*) ?(.*)$")
-	local handler = self["PP_"..command]
+	local command, args = comment:match("^([^ ]*) ?(.*)$")
+	local handler = self["PP_" .. command]
 	if handler then return handler(self, args) end
 end
 
-function PreProcessor:FindComments( line )
-	local ret, count, pos, found = {}, 0, 1
+function PreProcessor:FindComments(line)
+	local ret, count, pos, found = {}, 0, 1, nil
 	repeat
-		found = line:find( '[#"]', pos )
-		if (found) then -- We found something
-			local char = line:sub(found,found)
-			if (char == "#") then -- We found a comment
-				local before = line:sub( found-1, found-1 )
-				if (before == "]") then -- We found an ending
+		found = line:find('[#"]', pos)
+		if found then -- We found something
+			local char = line:sub(found, found)
+			if char == "#" then -- We found a comment
+				local before = line:sub(found - 1, found - 1)
+				if before == "]" then -- We found an ending
 					count = count + 1
-					ret[count] = { type = "end", pos = found-1 }
+					ret[count] = { type = "end", pos = found - 1 }
 					pos = found + 1
 				else
-					local after = line:sub( found+1, found+1 )
-					if (after == "[") then -- We found a start
+					local after = line:sub(found + 1, found + 1)
+					if after == "[" then -- We found a start
 						count = count + 1
 						ret[count] = { type = "start", pos = found }
 						pos = found + 2
@@ -65,9 +65,9 @@ function PreProcessor:FindComments( line )
 						pos = found + 1
 					end
 				end
-			elseif (char == '"') then -- We found a string
-				local before = line:sub( found-1, found-1 )
-				if (before == "\\" and line:sub( found-2, found-2 ) != "\\") then -- It was an escaped character
+			elseif char == '"' then -- We found a string
+				local before = line:sub(found - 1, found - 1)
+				if before == "\\" and line:sub(found - 2, found - 2) ~= "\\" then -- It was an escaped character
 					pos = found + 1 -- Skip it
 				else -- It's a string
 					count = count + 1
@@ -76,45 +76,45 @@ function PreProcessor:FindComments( line )
 				end
 			end
 		end
-	until(!found)
+		until (not found)
 	return ret, count
 end
 
 function PreProcessor:RemoveComments(line)
 
-	local comments, num = self:FindComments( line ) -- Find all comments and strings on this line
+	local comments, num = self:FindComments(line) -- Find all comments and strings on this line
 
-	if (num == 0 and self.blockcomment) then
+	if num == 0 and self.blockcomment then
 		return ""
 	end
 
 	local prev_disabled, ret, lastpos = self.disabled, "", 1
 
-	for i=1, num do
+	for i = 1, num do
 		local type = comments[i].type
-		if (type == "string" and !self.blockcomment) then -- Is it a string?
-			self.multilinestring = !self.multilinestring
-		elseif (!self.multilinestring) then -- Else it's a comment if we're not inside a multiline string
-			if (self.blockcomment) then -- Time to look for a ]#
-				if (type == "end") then -- We found one
+		if type == "string" and not self.blockcomment then -- Is it a string?
+			self.multilinestring = not self.multilinestring
+		elseif not self.multilinestring then -- Else it's a comment if we're not inside a multiline string
+			if self.blockcomment then -- Time to look for a ]#
+				if type == "end" then -- We found one
 					local pos = comments[i].pos
-					ret = ret .. (" "):rep( pos - lastpos + 4 ) -- Replace the stuff in between with spaces
-					lastpos = pos+2
+					ret = ret .. (" "):rep(pos - lastpos + 4) -- Replace the stuff in between with spaces
+					lastpos = pos + 2
 					self.blockcomment = nil -- We're no longer in a block comment
 				end
 			else -- Time to look for a #[
-				if (type == "start") then -- We found one
+				if type == "start" then -- We found one
 					local pos = comments[i].pos
-					ret = ret .. line:sub( lastpos, pos-1 )
-					lastpos = pos+2
+					ret = ret .. line:sub(lastpos, pos - 1)
+					lastpos = pos + 2
 					self.blockcomment = true -- We're now inside a block comment
-				elseif (type == "normal") then -- We found a # instead
+				elseif type == "normal" then -- We found a # instead
 					local pos = comments[i].pos
-					if line:sub( pos + 1, pos + 7 ) == "include" then
-						ret = ret .. line:sub( lastpos )
+					if line:sub(pos + 1, pos + 7) == "include" then
+						ret = ret .. line:sub(lastpos)
 					else
-						ret = ret .. line:sub( lastpos, pos-1 )
-						self:HandlePPCommand(line:sub(pos+1))
+						ret = ret .. line:sub(lastpos, pos - 1)
+						self:HandlePPCommand(line:sub(pos + 1))
 					end
 
 					lastpos = -1
@@ -124,17 +124,17 @@ function PreProcessor:RemoveComments(line)
 		end
 	end
 
-	if (prev_disabled) then
+	if prev_disabled then
 		return ""
-	elseif (lastpos != -1 and !self.blockcomment) then
-		return ret .. line:sub( lastpos, -1 )
+	elseif lastpos ~= -1 and not self.blockcomment then
+		return ret .. line:sub(lastpos, -1)
 	else
 		return ret
 	end
 end
 
 function PreProcessor:ParseDirectives(line)
-	if (self.multilinestring) then return line end
+	if self.multilinestring then return line end
 
 	-- parse directive
 	local directive, value = line:match("^@([^ ]*) ?(.*)$")
@@ -150,7 +150,7 @@ function PreProcessor:ParseDirectives(line)
 	end
 
 	local col = directive:find("[A-Z]")
-	if col then self:Error("Directive (@" .. E2Lib.limitString(directive, 10) .. ") must be lowercase", col+1) end
+	if col then self:Error("Directive (@" .. E2Lib.limitString(directive, 10) .. ") must be lowercase", col + 1) end
 	if self.incode then self:Error("Directive (@" .. E2Lib.limitString(directive, 10) .. ") must appear before code") end
 
 	-- evaluate directive
@@ -171,9 +171,9 @@ function PreProcessor:ParseDirectives(line)
 			end
 		end
 	elseif directive == "inputs" then
-		local retval, columns = self:ParsePorts(value,#directive+2)
+		local retval, columns = self:ParsePorts(value, #directive + 2)
 
-		for i,key in ipairs(retval[1]) do
+		for i, key in ipairs(retval[1]) do
 			if self.directives.inputs[3][key] then
 				self:Error("Directive (@input) contains multiple definitions of the same variable", columns[i])
 			else
@@ -184,9 +184,9 @@ function PreProcessor:ParseDirectives(line)
 			end
 		end
 	elseif directive == "outputs" then
-		local retval, columns = self:ParsePorts(value,#directive+2)
+		local retval, columns = self:ParsePorts(value, #directive + 2)
 
-		for i,key in ipairs(retval[1]) do
+		for i, key in ipairs(retval[1]) do
 			if self.directives.outputs[3][key] then
 				self:Error("Directive (@output) contains multiple definitions of the same variable", columns[i])
 			else
@@ -197,9 +197,9 @@ function PreProcessor:ParseDirectives(line)
 			end
 		end
 	elseif directive == "persist" then
-		local retval, columns = self:ParsePorts(value,#directive+2)
+		local retval, columns = self:ParsePorts(value, #directive + 2)
 
-		for i,key in ipairs(retval[1]) do
+		for i, key in ipairs(retval[1]) do
 			if self.directives.persist[3][key] then
 				self:Error("Directive (@persist) contains multiple definitions of the same variable", columns[i])
 			else
@@ -213,24 +213,24 @@ function PreProcessor:ParseDirectives(line)
 		local trimmed = string.Trim(value)
 		if trimmed == "" then
 		elseif trimmed == "all" then
-			if self.directives.trigger[1] != nil then
+			if self.directives.trigger[1] ~= nil then
 				self:Error("Directive (@trigger) conflicts with previous directives")
 			end
 			self.directives.trigger[1] = true
 		elseif trimmed == "none" then
-			if self.directives.trigger[1] != nil then
+			if self.directives.trigger[1] ~= nil then
 				self:Error("Directive (@trigger) conflicts with previous directives")
 			end
 			self.directives.trigger[1] = false
 		else
-			if self.directives.trigger[1] != nil and #self.directives.trigger[2] == 0 then
+			if self.directives.trigger[1] ~= nil and #self.directives.trigger[2] == 0 then
 				self:Error("Directive (@trigger) conflicts with previous directives")
 			end
 
 			self.directives.trigger[1] = false
-			local retval, columns = self:ParsePorts(value,#directive+2)
+			local retval, columns = self:ParsePorts(value, #directive + 2)
 
-			for i,key in ipairs(retval[1]) do
+			for i, key in ipairs(retval[1]) do
 				if self.directives.trigger[2][key] then
 					self:Error("Directive (@trigger) contains multiple definitions of the same variable", columns[i])
 				else
@@ -249,7 +249,7 @@ end
 function PreProcessor:Process(buffer, directives)
 	local lines = string.Explode("\n", buffer)
 
-	if !directives then
+	if not directives then
 		self.directives = {
 			name = nil,
 			model = nil,
@@ -263,8 +263,8 @@ function PreProcessor:Process(buffer, directives)
 		self.directives = directives
 		self.ignorestuff = true
 	end
-	
-	for i,line in ipairs(lines) do
+
+	for i, line in ipairs(lines) do
 		self.readline = i
 		line = string.TrimRight(line)
 
@@ -275,7 +275,7 @@ function PreProcessor:Process(buffer, directives)
 	end
 
 	if self.directives.trigger[1] == nil then self.directives.trigger[1] = true end
-	if !self.directives.name then self.directives.name = "" end
+	if not self.directives.name then self.directives.name = "" end
 
 	return self.directives, string.Implode("\n", lines)
 end
@@ -285,37 +285,37 @@ function PreProcessor:ParsePorts(ports, startoffset)
 	local types = {}
 	local columns = {}
 	ports = ports:gsub("%[.-%]", function(s)
-		return s:gsub(" ",",")
+		return s:gsub(" ", ",")
 	end) -- preprocess multi-variable definitions.
 
-	for column,key in ports:gmatch("()([^ ]+)") do
-		column = startoffset+column
+	for column, key in ports:gmatch("()([^ ]+)") do
+		column = startoffset + column
 		key = key:Trim()
 
 		-------------------------------- variable names --------------------------------
 
 		-- single-variable definition?
-		local _,i,namestring = key:find("^([A-Z][A-Za-z0-9_]*)")
+		local _, i, namestring = key:find("^([A-Z][A-Za-z0-9_]*)")
 		if i then
 			-- yes -> add the variable
 			names[#names + 1] = namestring
 		else
 			-- no -> maybe a multi-variable definition?
-			_,i,namestring = key:find("^%[([^]]+)%]")
+			_, i, namestring = key:find("^%[([^]]+)%]")
 			if not i then
 				-- no -> malformed variable name
 				self:Error("Variable name (" .. E2Lib.limitString(key, 10) .. ") must start with an uppercase letter", column)
 			end
 			-- yes -> add all variables.
-			for column2,var in namestring:gmatch("()([^,]+)") do
-				column2 = column+column2
+			for column2, var in namestring:gmatch("()([^,]+)") do
+				column2 = column + column2
 				var = string.Trim(var)
 				-- skip empty entries
 				if var ~= "" then
 					-- error on malformed variable names
 					if not var:match("^[A-Z]") then self:Error("Variable name (" .. E2Lib.limitString(var, 10) .. ") must start with an uppercase letter", column2) end
 					local errcol = var:find("[^A-Za-z0-9_]")
-					if errcol then self:Error("Variable declaration (" .. E2Lib.limitString(var, 10) .. ") contains invalid characters", column2+errcol-1) end
+					if errcol then self:Error("Variable declaration (" .. E2Lib.limitString(var, 10) .. ") contains invalid characters", column2 + errcol - 1) end
 					-- and finally add the variable.
 					names[#names + 1] = var
 				end
@@ -325,30 +325,30 @@ function PreProcessor:ParsePorts(ports, startoffset)
 		-------------------------------- variable types --------------------------------
 
 		local vtype
-		local character = key:sub(i+1, i+1)
+		local character = key:sub(i + 1, i + 1)
 		if character == ":" then
 			-- type is specified -> check for validity
 			vtype = key:sub(i + 2)
 
 			if vtype ~= vtype:lower() then
-				self:Error("Variable type [" .. E2Lib.limitString(vtype, 10) .. "] must be lowercase", column+i+1)
+				self:Error("Variable type [" .. E2Lib.limitString(vtype, 10) .. "] must be lowercase", column + i + 1)
 			end
 
 			if vtype == "number" then vtype = "normal" end
 
 			if not wire_expression_types[vtype:upper()] then
-				self:Error("Unknown variable type [" .. E2Lib.limitString(vtype, 10) .. "] specified for variable(s) (" .. E2Lib.limitString(namestring, 10) .. ")", column+i+1)
+				self:Error("Unknown variable type [" .. E2Lib.limitString(vtype, 10) .. "] specified for variable(s) (" .. E2Lib.limitString(namestring, 10) .. ")", column + i + 1)
 			end
 		elseif character == "" then
 			-- type is not specified -> default to NORMAL
 			vtype = "NORMAL"
 		else
 			-- invalid -> raise an error
-			self:Error("Variable declaration (" .. E2Lib.limitString(key, 10) .. ") contains invalid characters", column+i)
+			self:Error("Variable declaration (" .. E2Lib.limitString(key, 10) .. ") contains invalid characters", column + i)
 		end
 
 		-- fill in the missing types
-		for i = #types+1,#names do
+		for i = #types + 1, #names do
 			types[i] = vtype:upper()
 			columns[i] = column
 		end
@@ -359,13 +359,13 @@ end
 
 function PreProcessor:PP_ifdef(args)
 	if self.disabled ~= nil then self:Error("Found nested #ifdef") end
-	local thistype,colon,name,argtypes = args:match("([^:]-)(:?)([^:(]+)%(([^)]*)%)")
-	if not thistype or (thistype ~= "") ~= (colon ~= "") then self:Error("Malformed #ifdef argument "..args) end
+	local thistype, colon, name, argtypes = args:match("([^:]-)(:?)([^:(]+)%(([^)]*)%)")
+	if not thistype or (thistype ~= "") ~= (colon ~= "") then self:Error("Malformed #ifdef argument " .. args) end
 
 	thistype = gettype(thistype)
 
-	local tps = { thistype..colon }
-	for i,argtype in ipairs(string.Explode(",", argtypes)) do
+	local tps = { thistype .. colon }
+	for i, argtype in ipairs(string.Explode(",", argtypes)) do
 		argtype = gettype(argtype)
 		table.insert(tps, argtype)
 	end

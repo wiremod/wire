@@ -3,7 +3,7 @@ E2Lib.RegisterExtension( "holo", true )
 /******************************************************************************/
 
 local function checkOwner(self)
-	return E2Lib.IsValid(self.player);
+	return IsValid(self.player);
 end
 
 /******************************************************************************/

@@ -82,22 +82,10 @@ if (SERVER) then
 			local model = self:GetClientInfo("model")
 			if (!util.IsValidModel( model )) then return false end
 
-			local flat = self:GetClientNumber("createflat")
-			local ang
-			if (flat == 0) then
-				ang = trace.HitNormal:Angle() + Angle(90,0,0)
-			else
-				ang = trace.HitNormal:Angle()
-			end
-
-			ent = SpawnEGP( ply, trace.HitPos, ang, model )
-			if (!ent or !ent:IsValid()) then return end
-
-			if (flat == 0) then
-				ent:SetPos( trace.HitPos - trace.HitNormal * ent:OBBMins().z )
-			else
-				ent:SetPos( trace.HitPos - trace.HitNormal * ent:OBBMins().x )
-			end
+			ent = SpawnEGP( ply, trace.HitPos, self:GetAngle(trace), model )
+			if not IsValid(ent) then return end
+			
+			self:SetPos(ent, trace) -- Use WireToolObj's pos code
 		elseif (Type == 2) then -- HUD
 			ent = SpawnHUD( ply, trace.HitPos + trace.HitNormal * 0.25, trace.HitNormal:Angle() + Angle(90,0,0) )
 		elseif (Type == 3) then -- Emitter
@@ -367,24 +355,18 @@ if (CLIENT) then
 end
 
 function TOOL:UpdateGhost( ent, ply )
-	if (!ent or !ent:IsValid()) then return end
+	if not IsValid(ent) then return end
 	local trace = ply:GetEyeTrace()
 
-	if (trace.Entity and trace.Entity:IsPlayer()) then
+	if IsValid(trace.Entity) and trace.Entity:IsPlayer() then
 		ent:SetNoDraw( true )
 		return
 	end
 
-	local flat = self:GetClientNumber("createflat")
 	local Type = self:GetClientNumber("type")
 	if (Type == 1) then
-		if (flat == 0) then
-			ent:SetAngles( trace.HitNormal:Angle() + Angle(90,0,0) )
-			ent:SetPos( trace.HitPos - trace.HitNormal * ent:OBBMins().z )
-		else
-			ent:SetAngles( trace.HitNormal:Angle() )
-			ent:SetPos( trace.HitPos - trace.HitNormal * ent:OBBMins().x )
-		end
+		ent:SetAngles(self:GetAngle(trace))
+		self:SetPos(ent, trace)
 	elseif (Type == 2 or Type == 3) then
 		ent:SetPos( trace.HitPos + trace.HitNormal * 0.25 )
 		ent:SetAngles( trace.HitNormal:Angle() + Angle(90,0,0) )
