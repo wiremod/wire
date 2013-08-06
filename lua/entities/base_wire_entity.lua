@@ -77,7 +77,13 @@ if CLIENT then
 	function ENT:GetOverlayText()
 		local name = self:GetNetworkedString("WireName")
 		if name == "" then name = self.PrintName end
-		return "- " .. name .. " -\n" .. base_gmodentity.GetOverlayText(self)
+		local header = "- " .. name .. " -"
+		local message = base_gmodentity.GetOverlayText(self)
+		if message == "" then
+			return header
+		else
+			return header .. "\n" .. message
+		end
 	end
 	
 	return  -- No more client
@@ -96,7 +102,7 @@ end
 timer.Create("WireOverlayUpdate", 0.1, 0, function()
 	for _, ply in ipairs(player.GetAll()) do
 		local ent = ply:GetEyeTrace().Entity
-		if IsValid(ent) then base_gmodentity.SetOverlayText(ent, ent.OverlayText) end
+		if IsValid(ent) and ent.IsWire then base_gmodentity.SetOverlayText(ent, ent.OverlayText) end
 	end
 end)
 
