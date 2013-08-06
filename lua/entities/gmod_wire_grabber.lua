@@ -44,17 +44,13 @@ function ENT:Setup(Range, Gravity)
 end
 
 function ENT:ResetGrab()
-	if self.Weld and self.Weld:IsValid() then
+	if IsValid(self.Weld) then
 		self.Weld:Remove()
-		if self.WeldEntity then
-			if self.WeldEntity:IsValid() then
-				if self.Gravity then
-					self.WeldEntity:GetPhysicsObject():EnableGravity(true)
-				end
-			end
+		if IsValid(self.WeldEntity) and IsValid(self.WeldEntity:GetPhysicsObject()) and self.Gravity then
+			self.WeldEntity:GetPhysicsObject():EnableGravity(true)
 		end
 	end
-	if self.ExtraPropWeld and self.ExtraPropWeld:IsValid() then
+	if IsValid(self.ExtraPropWeld) then
 		self.ExtraPropWeld:Remove()
 	end
 
@@ -63,7 +59,7 @@ function ENT:ResetGrab()
 	self.ExtraPropWeld = nil
 
 	self:SetColor(Color(255, 255, 255, self:GetColor().a))
-	Wire_TriggerOutput(self,"Holding",0)
+	Wire_TriggerOutput(self, "Holding", 0)
 	Wire_TriggerOutput(self, "Grabbed Entity", self.WeldEntity)
 end
 
