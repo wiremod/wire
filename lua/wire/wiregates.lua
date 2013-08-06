@@ -47,9 +47,5 @@ function LoadWireGates()
 		end
 		WireGatesSorted[gate.group][name] = gate
 	end
-
-	-- Create gate limit
-	CreateConVar("sbox_maxwire_gates",30)
-
 end
 LoadWireGates()

@@ -1,7 +1,9 @@
 -- Made by Divran 06/01/2012
 WireToolSetup.setCategory( "Control" )
 WireToolSetup.open( "gates", "Gates", "gmod_wire_gate", nil, "Gates" )
+
 WireToolSetup.BaseLang()
+WireToolSetup.SetupMax(30)
 
 -- The limit convars are in lua/wire/wiregates.lua
 
