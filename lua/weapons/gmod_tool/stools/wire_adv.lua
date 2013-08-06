@@ -535,7 +535,9 @@ elseif CLIENT then
 				self.port = self.port+1
 				if self.port > #self.ports then self.port = 1 end
 			end
-			self.lastent:SetNetworkedBeamString("BlinkWire", self.ports[self.port][1])
+			if IsValid(self.lastent) and self.ports[self.port] then
+				self.lastent:SetNetworkedBeamString("BlinkWire", self.ports[self.port][1])
+			end
 		end
 
 		self:GetOwner():EmitSound("weapons/pistol/pistol_empty.wav")
