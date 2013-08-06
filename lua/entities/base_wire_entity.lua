@@ -12,6 +12,7 @@ ENT.AdminOnly = false
 -- Shared
 ENT.IsWire = true
 ENT.OverlayText = ""
+local base_gmodentity = scripted_ents.Get("base_gmodentity")
 
 if CLIENT then 
 	local wire_drawoutline = CreateClientConVar("wire_drawoutline", 1, true, false)
@@ -76,7 +77,7 @@ if CLIENT then
 	function ENT:GetOverlayText()
 		local name = self:GetNetworkedString("WireName")
 		if name == "" then name = self.PrintName end
-		return "- " .. name .. " -\n" .. baseclass.Get("base_gmodentity").GetOverlayText(self)
+		return "- " .. name .. " -\n" .. base_gmodentity.GetOverlayText(self)
 	end
 	
 	return  -- No more client
@@ -95,7 +96,7 @@ end
 timer.Create("WireOverlayUpdate", 0.1, 0, function()
 	for _, ply in ipairs(player.GetAll()) do
 		local ent = ply:GetEyeTrace().Entity
-		if IsValid(ent) then scripted_ents.Get("base_gmodentity").SetOverlayText(ent, ent.OverlayText) end
+		if IsValid(ent) then base_gmodentity.SetOverlayText(ent, ent.OverlayText) end
 	end
 end)
 
