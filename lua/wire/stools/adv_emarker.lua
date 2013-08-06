@@ -29,8 +29,7 @@ function TOOL:RightClick(trace)
 		self:SetStage(1)
 	else
 		local ply = self:GetOwner()
-		local success = self.Controller:LinkEnt(ent)
-		if success then
+		if self.Controller:LinkEnt(ent) then
 			if not ply:KeyDown(IN_SPEED) then self:SetStage(0) end
 			WireLib.AddNotify(ply, "Linked entity: " .. tostring(ent) .. " to the "..self.Name, NOTIFY_GENERIC, 5)
 		else
@@ -57,15 +56,13 @@ function TOOL:Reload(trace)
 			if self:GetStage() == 1 then
 				self:SetStage(2)
 			else
-				ent:ClearEntities()
+				self.Controller:ClearEntities()
 				WireLib.AddNotify(ply, "All entities unlinked from the "..self.Name, NOTIFY_GENERIC, 7)
 				self:SetStage(0)
 			end
 		else
-			local alreadylinked = self.Controller:CheckEnt(ent)
-			if alreadylinked then
+			if self.Controller:UnlinkEnt( ent ) then
 				if not ply:KeyDown(IN_SPEED) then self:SetStage(0) end
-				self.Controller:UnlinkEnt( ent )
 				WireLib.AddNotify(ply, "Unlinked entity: " .. tostring(ent) .. " from the "..self.Name, NOTIFY_GENERIC, 5)
 			else
 				WireLib.AddNotify(ply, "That entity is not linked to the "..self.Name, NOTIFY_ERROR, 5, NOTIFYSOUND_DRIP3)

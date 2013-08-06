@@ -5,22 +5,7 @@ ENT.Author      = "Divran"
 ENT.RenderGroup		= RENDERGROUP_OPAQUE
 ENT.WireDebugName = "Adv EMarker"
 
-if CLIENT then
-	net.Receive("WireLinkedEnts", function(netlen)
-		local Controller = net.ReadEntity()
-		if IsValid(Controller) then
-			Controller.Marks = {}
-			for i=1, net.ReadUInt(16) do
-				local link = net.ReadEntity()
-				if IsValid(link) then
-					table.insert(Controller.Marks, link)
-				end
-			end
-		end
-	end)
-
-	return
-end -- No more client
+if CLIENT then return end -- No more client
 
 function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )
@@ -87,18 +72,14 @@ function ENT:UpdateOutputs()
 	self:SetOverlayText( "Number of entities linked: " .. #self.Marks )
 
 	-- Yellow lines information
-	net.Start("WireLinkedEnts")
-		net.WriteEntity(self)
-		net.WriteUInt(#self.Marks, 16)
-		for k,v in pairs(self.Marks) do
-			net.WriteEntity(v)
-		end
-	net.Broadcast()
+	WireLib.SendMarks(self)
 end
 
 function ENT:CheckEnt( ent )
-	for index, e in pairs( self.Marks ) do
-		if (e == ent) then return true, index end
+	if IsValid(ent) then
+		for index, e in pairs( self.Marks ) do
+			if (e == ent) then return true, index end
+		end
 	end
 	return false, 0
 end
@@ -119,6 +100,7 @@ function ENT:UnlinkEnt( ent )
 		table.remove( self.Marks, index )
 		self:UpdateOutputs()
 	end
+	return bool
 end
 
 function ENT:ClearEntities()

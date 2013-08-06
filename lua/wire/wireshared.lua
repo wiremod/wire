@@ -717,3 +717,30 @@ elseif CLIENT then
 		end
 	end
 end
+
+-- For transmitting the yellow lines showing links between controllers and ents, as used by the Adv Entity Marker
+if SERVER then
+	function WireLib.SendMarks(controller)
+		if not IsValid(controller) or not controller.Marks then return end
+		net.Start("WireLinkedEnts")
+			net.WriteEntity(controller)
+			net.WriteUInt(#controller.Marks, 16)
+			for k,v in pairs(controller.Marks) do
+				net.WriteEntity(v)
+			end
+		net.Broadcast()
+	end
+else
+	net.Receive("WireLinkedEnts", function(netlen)
+		local Controller = net.ReadEntity()
+		if IsValid(Controller) then
+			Controller.Marks = {}
+			for i=1, net.ReadUInt(16) do
+				local link = net.ReadEntity()
+				if IsValid(link) then
+					table.insert(Controller.Marks, link)
+				end
+			end
+		end
+	end)
+end
