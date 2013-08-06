@@ -235,7 +235,16 @@ function WireToolObj:GetAngle( trace )
 	elseif self.GhostAngle then -- the tool gives a fixed angle to add
 		Ang = Ang + self.GhostAngle
 	end
-	if not self.ClientConVar.createflat or self:GetClientNumber("createflat") == 0 then
+	if self.ClientConVar.createflat then
+		local isPHX = ( string.find( self:GetModel(), "cheeze" ) || string.find( self:GetModel(), "hunter" ) ) && !string.find( self:GetModel(), "cube" )
+		if isPHX then isPHX = 1 else isPHX = 0 end
+		
+		if self:GetClientNumber("createflat") == isPHX then
+			Ang.pitch = Ang.pitch + 90
+		else
+			Ang.pitch = Ang.pitch + 180 * isPHX
+		end
+	else
 		Ang.pitch = Ang.pitch + 90
 	end
 	return Ang
@@ -249,7 +258,18 @@ function WireToolObj:SetPos( ent, trace )
 	elseif self.GhostMin then -- tool gives the axis for the OBBmin to use
 		ent:SetPos( trace.HitPos - trace.HitNormal * min[self.GhostMin] )
 	else -- default to the z OBBmin
-		ent:SetPos( trace.HitPos - trace.HitNormal * min.z )
+		if self.ClientConVar.createflat then
+			local isPHX = ( string.find( ent:GetModel(), "cheeze" ) || string.find( ent:GetModel(), "hunter" ) ) && !string.find( ent:GetModel(), "cube" )
+			if isPHX then isPHX = 1 else isPHX = 0 end
+			
+			if self:GetClientNumber("createflat") == isPHX then
+				ent:SetPos( trace.HitPos - trace.HitNormal * min.z )
+			else
+				ent:SetPos( trace.HitPos + trace.HitNormal * ent:OBBMaxs().x )
+			end
+		else
+			ent:SetPos( trace.HitPos - trace.HitNormal * min.z )
+		end
 	end
 end
 if SERVER then WireToolObj.PostMake_SetPos = WireToolObj.SetPos end
