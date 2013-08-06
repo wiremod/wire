@@ -8,8 +8,8 @@ if ( CLIENT ) then
 	language.Add( "Tool_wire_hoverdrivecontroller_effects", "Toggle effects" )
 	language.Add( "Tool_wire_hoverdrivecontroller_sounds", "Toggle sounds (Also has an input)" )
 end
-WireToolSetup.BaseLang("Hoverballs")
-WireToolSetup.SetupMax(2)
+WireToolSetup.BaseLang()
+WireToolSetup.SetupMax(3)
 
 TOOL.ClientConVar = {
 	model = "models/props_c17/utilityconducter001.mdl",
@@ -18,35 +18,23 @@ TOOL.ClientConVar = {
 }
 
 if (SERVER) then
-
 	function TOOL:GetConVars()
 		return self:GetClientNumber("sounds") ~= 0, self:GetClientNumber("effects") ~= 0
 	end
-
 else
-
 	function TOOL.BuildCPanel(panel)
 		WireDermaExts.ModelSelect(panel, "wire_hoverdrivecontroller_model", list.Get( "WireHoverdriveModels" ), 4)
 		panel:CheckBox("#Tool_wire_hoverdrivecontroller_effects","wire_hoverdrivecontroller_effects")
 		panel:CheckBox("#Tool_wire_hoverdrivecontroller_sounds","wire_hoverdrivecontroller_sounds")
 	end
-
 end
 
 function TOOL:Reload( trace )
-	if (!trace) then return end
-	if (!trace.Hit) then return end
-	if (trace.Entity) then
-		if game.SinglePlayer() then
-			self:GetOwner():ConCommand("wire_hoverdrivecontroller_model " .. trace.Entity:GetModel())
-			self:GetOwner():ChatPrint("Hoverdrive Controller model set to: " .. trace.Entity:GetModel())
-		else
-			if (CLIENT) then
-				RunConsoleCommand("wire_hoverdrivecontroller_model", trace.Entity:GetModel())
-			else
-				self:GetOwner():ChatPrint("Hoverdrive Controller model set to: " .. trace.Entity:GetModel())
-			end
-		end
+	if not IsValid(trace.Entity) then return end
+	if CLIENT then
+		RunConsoleCommand("wire_hoverdrivecontroller_model", trace.Entity:GetModel())
+	else
+		self:GetOwner():ChatPrint("Hoverdrive Controller model set to: " .. trace.Entity:GetModel())
 	end
 	return true
 end

@@ -6,10 +6,6 @@ ENT.Author			= "Divran"
 ENT.RenderGroup		= RENDERGROUP_OPAQUE
 
 if CLIENT then 
-	language.Add( "Cleanup_hoverdrivecontrolers", "Hoverdrive Controllers" )
-	language.Add( "Cleaned_hoverdrivecontrolers", "Cleaned up Hoverdrive Controllers" )
-	language.Add( "SBoxLimit_wire_hoverdrives", "You have hit the Hoverdrive Controllers limit!" )
-
 	return -- No more client
 end
 
@@ -316,4 +312,4 @@ function ENT:Setup(UseSounds, UseEffects)
 	self:ShowOutput()
 end
 
-duplicator.RegisterEntityClass("gmod_wire_hoverdrivecontroler", Dupefunc, "Data", "UseSounds", "UseEffects" )
+duplicator.RegisterEntityClass("gmod_wire_hoverdrivecontroler", WireLib.MakeWireEnt, "Data", "UseSounds", "UseEffects" )
