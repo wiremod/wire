@@ -379,7 +379,7 @@ function ENT:Think()
 				if (ply:KeyDown( IN_ATTACK ) and !self.MouseDown) then
 					self.MouseDown = true
 					if (button.toggle) then
-						if (button:IsOn()) then
+						if (button:GetOn()) then
 							button:Switch( false )
 						else
 							button.EntToOutput = ply
