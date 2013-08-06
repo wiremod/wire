@@ -13,18 +13,12 @@ function ENT:Initialize()
 	self:SetSolid( SOLID_VPHYSICS )
 
 	self.Marks = {}
-	local outputs = {}
-	local types = {}
-	outputs[1] = "Entities"
-	types[1] = "ARRAY"
-	outputs[2] = "Nr"
-	types[2] = "NORMAL"
+	local outputs = {"Entities [ARRAY]", "Nr"}
 	for i=3,12 do
-		outputs[i] = "Entity" .. (i-2)
-		types[i] = "ENTITY"
+		outputs[i] = "Entity" .. (i-2) .. " [ENTITY]"
 	end
 	self.Inputs = WireLib.CreateInputs( self, { "Entity [ENTITY]", "Add Entity", "Remove Entity", "Clear Entities" } )
-	self.Outputs = WireLib.CreateSpecialOutputs( self, outputs, types )
+	self.Outputs = WireLib.CreateOutputs( self, outputs )
 	self:SetOverlayText( "Number of entities linked: 0" )
 end
 
@@ -55,8 +49,6 @@ function ENT:TriggerInput( name, value )
 		self:ClearEntities()
 	end
 end
-
-if SERVER then util.AddNetworkString("WireLinkedEnts") end
 
 function ENT:UpdateOutputs()
 	-- Trigger regular outputs
