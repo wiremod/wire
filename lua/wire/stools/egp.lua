@@ -84,19 +84,22 @@ if (SERVER) then
 
 			local flat = self:GetClientNumber("createflat")
 			local ang
-			if (flat == 0) then
+			local isPHX = ( string.find( model, "cheeze" ) || string.find( model, "hunter" ) ) && !string.find( model, "cube" )
+			if isPHX then isPHX = 1 else isPHX = 0 end
+			
+			if (flat == isPHX) then
 				ang = trace.HitNormal:Angle() + Angle(90,0,0)
 			else
-				ang = trace.HitNormal:Angle()
+				ang = trace.HitNormal:Angle() + Angle(180*isPHX,0,0)
 			end
 
 			ent = SpawnEGP( ply, trace.HitPos, ang, model )
 			if (!ent or !ent:IsValid()) then return end
 
-			if (flat == 0) then
+			if (flat == isPHX) then
 				ent:SetPos( trace.HitPos - trace.HitNormal * ent:OBBMins().z )
 			else
-				ent:SetPos( trace.HitPos - trace.HitNormal * ent:OBBMins().x )
+				ent:SetPos( trace.HitPos + trace.HitNormal * ent:OBBMaxs().x )
 			end
 		elseif (Type == 2) then -- HUD
 			ent = SpawnHUD( ply, trace.HitPos + trace.HitNormal * 0.25, trace.HitNormal:Angle() + Angle(90,0,0) )
@@ -377,13 +380,16 @@ function TOOL:UpdateGhost( ent, ply )
 
 	local flat = self:GetClientNumber("createflat")
 	local Type = self:GetClientNumber("type")
+	local isPHX = ( string.find( self:GetModel(), "cheeze" ) || string.find( self:GetModel(), "hunter" ) ) && !string.find( self:GetModel(), "cube" )
+	if isPHX then isPHX = 1 else isPHX = 0 end
+	
 	if (Type == 1) then
-		if (flat == 0) then
+		if (flat == isPHX) then
 			ent:SetAngles( trace.HitNormal:Angle() + Angle(90,0,0) )
 			ent:SetPos( trace.HitPos - trace.HitNormal * ent:OBBMins().z )
 		else
-			ent:SetAngles( trace.HitNormal:Angle() )
-			ent:SetPos( trace.HitPos - trace.HitNormal * ent:OBBMins().x )
+			ent:SetAngles( trace.HitNormal:Angle() + Angle(180*isPHX,0,0) )
+			ent:SetPos( trace.HitPos + trace.HitNormal * ent:OBBMaxs().x )
 		end
 	elseif (Type == 2 or Type == 3) then
 		ent:SetPos( trace.HitPos + trace.HitNormal * 0.25 )
