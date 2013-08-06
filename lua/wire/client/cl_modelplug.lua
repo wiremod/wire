@@ -61,7 +61,6 @@ list.Set( "WireScreenModels", "models/props_mining/billboard001.mdl", true )
 list.Set( "WireScreenModels", "models/props_mining/billboard002.mdl", true )
 
 --PHX3
-list.Set( "WireScreenModels", "models/hunter/blocks/cube1x1x1.mdl", true )
 list.Set( "WireScreenModels", "models/hunter/plates/plate1x1.mdl", true )
 list.Set( "WireScreenModels", "models/hunter/plates/plate2x2.mdl", true )
 list.Set( "WireScreenModels", "models/hunter/plates/plate4x4.mdl", true )
