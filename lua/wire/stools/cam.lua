@@ -18,7 +18,7 @@ if SERVER then
 	end
 	
 	function TOOL:LeftClick_PostMake( ent, ply, trace )
-		if not IsValid(ent) then return false end
+		if ent == true or not IsValid(ent) then return false end
 
 		-- Welding
 		local const
@@ -67,14 +67,13 @@ function TOOL:Reload( trace )
 	self.Oldent = nil;
 	self:SetStage(0)
 
+	if not IsValid(trace.Entity) then return false end
 	if CLIENT then return true end
-	if not trace.Entity then return false end
-	if not trace.Entity:IsValid() then return false end
 
-	self.trace.Entity.CamPod = nil;
+	trace.Entity.CamPod = nil;
 end
 
 function TOOL.BuildCPanel(panel)
 	WireDermaExts.ModelSelect(panel, "wire_cam_model", list.Get( "Wire_Misc_Tools_Models" ), 1)
-	panel:AddControl( "Checkbox", { Label = "#Wirecamtool_Static", Command = "wire_cam_static" } )
+	panel:CheckBox("#Wirecamtool_Static", "wire_cam_static" )
 end
