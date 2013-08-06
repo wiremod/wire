@@ -12,12 +12,6 @@ WireToolSetup.SetupMax( 30 )
 
 if SERVER then
 	ModelPlug_Register("podctrlr")
-	
-	function TOOL:GetConVars() end
-
-	function TOOL:MakeEnt( ply, model, Ang, trace )
-		return MakeWireAdvPod( ply, trace.HitPos, Ang, model, self:GetConVars() )
-	end
 end
 
 TOOL.NoLeftOnClass = true

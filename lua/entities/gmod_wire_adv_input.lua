@@ -99,4 +99,4 @@ end
 numpad.Register( "WireAdvInput_On",On)
 numpad.Register( "WireAdvInput_Off",Off)
 
-duplicator.RegisterEntityClass("gmod_wire_adv_input", MakeWireEnt, "Data", "keymore", "keyless", "toggle", "value_min", "value_max", "value_start", "speed", "frozen")
+duplicator.RegisterEntityClass("gmod_wire_adv_input", WireLib.MakeWireEnt, "Data", "keymore", "keyless", "toggle", "value_min", "value_max", "value_start", "speed", "frozen")

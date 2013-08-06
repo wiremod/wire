@@ -174,4 +174,4 @@ function ENT:OnRestore()
 	Wire_AdjustOutputs(self, { "X", "Y", "Use", "OnScreen" })
 end
 
-duplicator.RegisterEntityClass("gmod_wire_graphics_tablet", MakeWireEnt, "Data", "gmode", "draw_background")
+duplicator.RegisterEntityClass("gmod_wire_graphics_tablet", WireLib.MakeWireEnt, "Data", "gmode", "draw_background")

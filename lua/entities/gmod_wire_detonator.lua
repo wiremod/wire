@@ -71,4 +71,4 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 	self.target = GetEntByID(info.target)
 end
 
-duplicator.RegisterEntityClass("gmod_wire_detonator", MakeWireEnt, "Data", "damage")
+duplicator.RegisterEntityClass("gmod_wire_detonator", WireLib.MakeWireEnt, "Data", "damage")

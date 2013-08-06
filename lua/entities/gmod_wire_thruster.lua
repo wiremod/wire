@@ -319,4 +319,4 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 
 end
 
-duplicator.RegisterEntityClass("gmod_wire_thruster", MakeWireEnt, "Data", "force", "force_min", "force_max", "oweffect", "uweffect", "owater", "uwater", "bidir", "soundname")
+duplicator.RegisterEntityClass("gmod_wire_thruster", WireLib.MakeWireEnt, "Data", "force", "force_min", "force_max", "oweffect", "uweffect", "owater", "uwater", "bidir", "soundname")

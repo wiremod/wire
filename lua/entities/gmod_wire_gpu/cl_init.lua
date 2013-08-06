@@ -405,7 +405,7 @@ function ENT:Draw()
           self:RenderVertex(512,512*monitor.RatioX)
           self:RenderMisc(pos, ang, res, 1/monitor.RatioX, monitor)
           end, debug.traceback)
-		if not ok then ErrorNoHalt(err) end
+		if not ok then WireLib.ErrorNoHalt(err) end
       if self.In3D2D then self.In3D2D = false cam.End3D2D() end
       self.VertexCamSettings = nil
     end

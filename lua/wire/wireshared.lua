@@ -354,6 +354,13 @@ elseif SERVER then
 	end
 end
 
+function WireLib.ErrorNoHalt(message)
+	-- ErrorNoHalt clips messages to 512 characters, so chain calls if necessary
+	for i=1,#message, 511 do
+		ErrorNoHalt(message:sub(i,i+510))
+	end
+end
+
 --[[ wire_umsg: self:umsg() system
 	Shared requirements: WireLib.umsgRegister(self) in ENT:Initialize()
 	Server requirements: ENT:Retransmit(ply)

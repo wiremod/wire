@@ -62,4 +62,4 @@ function ENT:TriggerInput(iname, value)
 	end
 end
 
-duplicator.RegisterEntityClass("gmod_wire_dataport", MakeWireEnt, "Data")
+duplicator.RegisterEntityClass("gmod_wire_dataport", WireLib.MakeWireEnt, "Data")

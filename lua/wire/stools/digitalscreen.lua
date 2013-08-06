@@ -13,10 +13,6 @@ if SERVER then
 	function TOOL:GetConVars()
 		return self:GetClientInfo("width"), self:GetClientInfo("height")
 	end
-
-	function TOOL:MakeEnt( ply, model, Ang, trace )
-		return MakeWireDigitalScreen( ply, trace.HitPos, Ang, model, self:GetConVars() )
-	end
 end
 
 TOOL.ClientConVar = {

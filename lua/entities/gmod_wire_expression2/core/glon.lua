@@ -275,7 +275,7 @@ e2function string vonEncode(array data)
 	local ok, ret = pcall(von.serialize, data)
 	if not ok then
 		last_von_error = ret
-		ErrorNoHalt("von.encode error: "..ret)
+		WireLib.ClientError("von.encode error: "..ret, self.player)
 		return ""
 	end
 
@@ -296,7 +296,7 @@ e2function array vonDecode(string data)
 
 	if not ok then
 		last_von_error = ret
-		ErrorNoHalt("von.decode error: "..ret)
+		WireLib.ClientError("von.decode error: "..ret, self.player)
 		return {}
 	end
 
@@ -324,7 +324,7 @@ e2function table vonDecodeTable(string data)
 	local ok, ret = pcall(von.deserialize, data)
 	if not ok then
 		last_von_error = ret
-		ErrorNoHalt("von.decode error: "..ret)
+		WireLib.ClientError("von.decode error: "..ret, self.player)
 		return table.Copy(DEFAULT)
 	end
 

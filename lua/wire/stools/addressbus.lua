@@ -25,7 +25,7 @@ if SERVER then
 			   self:GetClientNumber( "addrspace1sz" ), self:GetClientNumber( "addrspace2sz" ), self:GetClientNumber( "addrspace3sz" ), self:GetClientNumber( "addrspace4sz" )
 	end
 
-	-- Uses default WireToolObj:MakeEnt's MakeWireEnt function
+	-- Uses default WireToolObj:MakeEnt's WireLib.MakeWireEnt function
 end
 
 function TOOL:RightClick( trace )

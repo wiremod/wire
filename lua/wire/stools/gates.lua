@@ -1,14 +1,13 @@
 -- Made by Divran 06/01/2012
 WireToolSetup.setCategory( "Control" )
 WireToolSetup.open( "gates", "Gates", "gmod_wire_gate", nil, "Gates" )
+WireToolSetup.BaseLang()
 
 -- The limit convars are in lua/wire/wiregates.lua
 
 if SERVER then
 	ModelPlug_Register("gate")
 end
-
-cleanup.Register("wire_gates")
 
 if CLIENT then
 	----------------------------------------------------------------------------------------------------
@@ -35,13 +34,6 @@ if CLIENT then
 	language.Add( "WireGatesTool_parent", "Parent" )
 	language.Add( "WireGatesTool_angleoffset", "Spawn angle offset" )
 	language.Add( "sboxlimit_wire_gates", "You've hit your gates limit!" )
-	language.Add( "undone_gmod_wire_gate", "Undone wire gate" )
-	language.Add( "Cleanup_gmod_wire_gate", "Wire Gates" )
-	language.Add( "Cleaned_gmod_wire_gate", "Cleaned up wire gates" )
-
-	----------------------------------------------------------------------------------------------------
-	-- BuildCPanel
-	----------------------------------------------------------------------------------------------------
 
 	function TOOL.BuildCPanel( panel )
 		WireDermaExts.ModelSelect(panel, "wire_gates_model", list.Get("Wire_gate_Models"), 3, true)
@@ -50,7 +42,7 @@ if CLIENT then
 		local weldbox = panel:CheckBox("#WireGatesTool_weld", "wire_gates_weld")
 		local parentbox = panel:CheckBox("#WireGatesTool_parent","wire_gates_parent")
 
-		panel:AddControl("label",{text="When parenting, you should check the nocollide box, or adv duplicator might not dupe the gate."})
+		panel:Help("When parenting, you should check the nocollide box, or adv duplicator might not dupe the gate.")
 
 		local angleoffset = panel:NumSlider( "#WireGatesTool_angleoffset","wire_gates_angleoffset", 0, 360, 0 )
 
@@ -74,13 +66,7 @@ if CLIENT then
 
 		----------------- GATE SELECTION & SEARCHING
 
-		local searchresultnum = vgui.Create( "DNumSlider" )
-		searchresultnum:SetConVar( "wire_gates_searchresultnum" )
-		searchresultnum:SetText( "#Tool_wire_gates_searchresultnum" )
-		searchresultnum:SetMin( 1 )
-		searchresultnum:SetMax( 100 )
-		searchresultnum:SetDecimals( 0 )
-		panel:AddItem( searchresultnum )
+		panel:NumSlider( "#Tool_wire_gates_searchresultnum","wire_gates_searchresultnum", 0, 360, 0 ) 
 
 		-- Create panels
 		local searchbox = vgui.Create( "DTextEntry" )
@@ -290,51 +276,19 @@ if CLIENT then
 	end
 end
 
---------------------
--- LeftClick
--- Create/Update Gate
---------------------
-function TOOL:LeftClick( trace )
-	if trace.Entity and trace.Entity:IsPlayer() then return false end
-	if CLIENT then return true end
-	if not util.IsValidPhysicsObject( trace.Entity, trace.PhysicsBone ) then return false end
-
-	local ply = self:GetOwner()
-
-	local ent = WireToolMakeGate( self, trace, ply )
-	if !isentity(ent) then return true end -- WireToolMakeGate returns a boolean if the player shoots a gate (to update it)
-
-	-- Parenting
-	local nocollide
-	if self:GetClientNumber( "parent" ) == 1 then
-		if (trace.Entity:IsValid()) then
-
-			-- Nocollide the gate to the prop to make adv duplicator (and normal duplicator) find it
-			if (!self.ClientConVar.noclip or self:GetClientNumber( "noclip" ) == 1) then
-				nocollide = constraint.NoCollide( ent, trace.Entity, 0,trace.PhysicsBone )
-			end
-
-			ent:SetParent( trace.Entity )
-		end
+if SERVER then
+	function TOOL:GetConVars() 
+		return self:GetClientInfo( "action" ), self:GetClientNumber( "noclip" ) == 1
 	end
-
-	-- Welding
-	local const
-	if self:GetClientNumber( "weld" ) == 1 then
-		const = WireLib.Weld( ent, trace.Entity, trace.PhysicsBone, true )
+	
+	function TOOL:MakeEnt( ply, model, Ang, trace )
+		return MakeWireGate( ply, trace.HitPos, Ang, model, self:GetConVars() )
 	end
+end
 
-
-	undo.Create( "gmod_wire_gate" )
-		undo.AddEntity( ent )
-		if (const) then undo.AddEntity( const ) end
-		if (nocollide) then undo.AddEntity( nocollide ) end
-		undo.SetPlayer( ply )
-	undo.Finish()
-
-	ply:AddCleanup( "gmod_wire_gate", ent )
-
-	return true
+function TOOL:CheckMaxLimit()
+	local action	= self:GetClientInfo( "action" )
+	return self:GetSWEP():CheckLimit(self.MaxLimitName) and self:GetSWEP():CheckLimit("wire_gate_" .. string.lower( GateActions[action].group ) .. "s")
 end
 
 
@@ -344,9 +298,9 @@ end
 --------------------
 function TOOL:RightClick( trace )
 	if CLIENT then return true end
-	if trace.Entity and trace.Entity:IsValid() and trace.Entity:GetClass() == "gmod_wire_gate" then
+	if self:CheckHitOwnClass(trace) then
 		local action = GateActions[trace.Entity.action]
-		if not action then self:GetOwner():ChatPrint( "Invalid gate (what the-?!?)" ) return end
+		assert(action, "Attempted to copy gate " .. tostring(trace.Entity) .. " with no action!")
 
 		self:GetOwner():ConCommand( "wire_gates_action " .. trace.Entity.action )
 		self:GetOwner():ChatPrint( "Gate copied ('" .. action.name .. "')." )
@@ -397,42 +351,8 @@ function TOOL:Reload( trace )
 	return false
 end
 
---------------------
--- GetAngle
---------------------
 function TOOL:GetAngle( trace )
-	local ang = trace.HitNormal:Angle() + Angle(90,0,0)
+	local ang = WireToolObj.GetAngle(self, trace)
 	ang:RotateAroundAxis( trace.HitNormal, self:GetClientNumber( "angleoffset" ) )
 	return ang
-end
-
-----------------------------------------------------------------------------------------------------
--- GHOST
-----------------------------------------------------------------------------------------------------
-if ((game.SinglePlayer() and SERVER) or (!game.SinglePlayer() and CLIENT)) then
-	function TOOL:DrawGhost()
-		local ent, ply = self.GhostEntity, self:GetOwner()
-		if (!ent or !ent:IsValid()) then return end
-		local trace = ply:GetEyeTrace()
-
-		if (!trace.Hit or trace.Entity:IsPlayer()) then
-			ent:SetNoDraw( true )
-			return
-		end
-
-		local Pos, Ang = trace.HitPos, self:GetAngle( trace )
-		ent:SetPos( Pos )
-		ent:SetAngles( Ang )
-
-		ent:SetNoDraw( false )
-	end
-
-	function TOOL:Think()
-		local model = self:GetModel()
-		if (!self.GhostEntity or !self.GhostEntity:IsValid() or self.GhostEntity:GetModel() != model) then
-			self:MakeGhostEntity( model, Vector(), Angle() )
-		end
-
-		self:DrawGhost()
-	end
 end

@@ -102,4 +102,4 @@ function ENT:OnRemove()
 	end
 end
 
-duplicator.RegisterEntityClass("gmod_wire_waypoint", MakeWireEnt, "Data", "range")
+duplicator.RegisterEntityClass("gmod_wire_waypoint", WireLib.MakeWireEnt, "Data", "range")

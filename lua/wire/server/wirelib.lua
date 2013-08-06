@@ -61,8 +61,8 @@ function WireLib.TriggerInput(ent, name, value, ...)
 	if (!ent.TriggerInput) then return end
 	local ok, ret = xpcall(ent.TriggerInput, debug.traceback, ent, name, value, ...)
 	if not ok then
-		local message = string.format("Wire error (%s): %s", tostring(ent), ret)
-		ErrorNoHalt(message .. "\n")
+		local message = string.format("Wire error (%s):\n%s\n", tostring(ent), ret)
+		WireLib.ErrorNoHalt(message)
 		local ply = E2Lib and E2Lib.getOwner and E2Lib.getOwner(ent)
 		if IsValid(ply) then WireLib.ClientError(message, ply) end
 	end
@@ -1105,7 +1105,7 @@ function WireLib.dummytrace(ent)
 	}
 end
 
-function MakeWireEnt( pl, Data, ... )
+function WireLib.MakeWireEnt( pl, Data, ... )
 	if IsValid(pl) and not pl:CheckLimit(Data.Class:sub(6).."s") then return false end
 	
 	local ent = duplicator.GenericDuplicatorFunction( pl, Data )
@@ -1115,6 +1115,12 @@ function MakeWireEnt( pl, Data, ... )
 	if ent.Setup then ent:Setup(...) end
 
 	if IsValid(pl) then pl:AddCount( Data.Class:sub(6).."s", ent ) end
+
+	local phys = ent:GetPhysicsObject()
+	if IsValid(phys) then
+		if Data.frozen then phys:EnableMotion(false) end
+		if Data.nocollide then phys:EnableCollisions(false) end
+	end
 
 	return ent
 end

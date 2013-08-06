@@ -91,4 +91,4 @@ function ENT:TriggerInput(iname, value)
 	end
 end
 
-duplicator.RegisterEntityClass("gmod_wire_addressbus", MakeWireEnt, "Data", "Mem1st", "Mem2st", "Mem3st", "Mem4st", "Mem1sz", "Mem2sz", "Mem3sz", "Mem4sz")
+duplicator.RegisterEntityClass("gmod_wire_addressbus", WireLib.MakeWireEnt, "Data", "Mem1st", "Mem2st", "Mem3st", "Mem4st", "Mem1sz", "Mem2sz", "Mem3sz", "Mem4sz")

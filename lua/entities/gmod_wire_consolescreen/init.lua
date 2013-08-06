@@ -205,23 +205,4 @@ function ENT:ClientWriteCell(Address, value)
   end
 end
 
-
-function MakeWireconsoleScreen(pl, Pos, Ang, model)
-  if (!pl:CheckLimit("wire_consolescreens")) then return false end
-
-  local wire_consolescreen = ents.Create("gmod_wire_consolescreen")
-  if (!wire_consolescreen:IsValid()) then return false end
-  wire_consolescreen:SetModel(model)
-
-  wire_consolescreen:SetAngles(Ang)
-  wire_consolescreen:SetPos(Pos)
-  wire_consolescreen:Spawn()
-
-  wire_consolescreen:SetPlayer(pl)
-
-  pl:AddCount("wire_consolescreens", wire_consolescreen)
-
-  return wire_consolescreen
-end
-
-duplicator.RegisterEntityClass("gmod_wire_consolescreen", MakeWireconsoleScreen, "Pos", "Ang", "Model")
+duplicator.RegisterEntityClass("gmod_wire_consolescreen", WireLib.MakeWireEnt, "Data")

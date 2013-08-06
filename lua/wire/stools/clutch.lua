@@ -180,14 +180,12 @@ if SERVER then
 		Send_Links( self:GetOwner(), constrained_pairs )
 	end
 
-	function TOOL:MakeEnt( ply, model, Ang, trace )
-		local ent = MakeClutchController( ply, trace.HitPos, Ang, model, self:GetConVars() )
-		self:SelectController( ent )
-		return ent
+	function TOOL:PostMake(ent)
+		self:SelectController(ent)
 	end
-	
+
 	function TOOL:LeftClick_Update( trace )
-		self:SelectController(trace.Entity)
+		self:PostMake(trace.Entity)
 	end
 end
 
@@ -326,5 +324,5 @@ end
 
 hook.Add( "EntityRemoved", "wire_clutch_ballsocket_removed", function( ent )
 	local r, e = xpcall( OnBallSocketRemoved, debug.traceback, ent )
-	if !r then ErrorNoHalt( e .. "\n" ) end
+	if !r then WireLib.ErrorNoHalt( e .. "\n" ) end
 end )

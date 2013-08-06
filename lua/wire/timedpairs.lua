@@ -20,7 +20,6 @@ local next = next
 local pairs = pairs
 local unpack = unpack
 local pcall = pcall
-local ErrorNoHalt = ErrorNoHalt
 
 local functions = {}
 function WireLib.TimedpairsGetTable()
@@ -53,7 +52,7 @@ local function Timedpairs()
 				local ok, err = xpcall( data.callback, debug.traceback, kv.key, kv.value, unpack(data.args) ) -- DO EET
 
 				if not ok then -- oh noes
-					ErrorNoHalt( "Error in Timedpairs '" .. name .. "': " .. err )
+					WireLib.ErrorNoHalt( "Error in Timedpairs '" .. name .. "': " .. err )
 					toremove[#toremove+1] = name
 					break
 				elseif err == false then -- They returned false inside the function
@@ -66,7 +65,7 @@ local function Timedpairs()
 					local ok, err = xpcall( data.endcallback, debug.traceback, kv.key, kv.value, unpack(data.args) )
 
 					if not ok then
-						ErrorNoHalt( "Error in Timedpairs '" .. name .. "' (in end function): " .. err )
+						WireLib.ErrorNoHalt( "Error in Timedpairs '" .. name .. "' (in end function): " .. err )
 					end
 				end
 				toremove[#toremove+1] = name

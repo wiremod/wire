@@ -65,17 +65,13 @@ e2function void soundPlay(string rv1, rv2, string rv3)
 end
 
 e2function void entity:soundPlay(rv2, rv3, string rv4)
-	local entity = checkEntity(this)
-	if(!entity) then return end
-	if !isOwner(self, entity) then return end
-	soundCreate(self,entity,rv2,rv3,rv4,0)
+	if not IsValid(this) or not isOwner(self, this) then return end
+	soundCreate(self,this,rv2,rv3,rv4,0)
 end
 
 e2function void entity:soundPlay(string rv2, rv3, string rv4)
-	local entity = checkEntity(this)
-	if(!entity) then return end
-	if !isOwner(self, entity) then return end
-	soundCreate(self,entity,rv2,rv3,rv4,0)
+	if not IsValid(this) or not isOwner(self, this) then return end
+	soundCreate(self,this,rv2,rv3,rv4,0)
 end
 
 e2function void soundPlay(rv1, rv2, string rv3, rv4)
@@ -87,17 +83,13 @@ e2function void soundPlay(string rv1, rv2, string rv3, rv4)
 end
 
 e2function void entity:soundPlay(rv2, rv3, string rv4, rv5)
-	local entity = checkEntity(this)
-	if(!entity) then return end
-	if !isOwner(self, entity) then return end
-	soundCreate(self,entity,rv2,rv3,rv4,rv5)
+	if not IsValid(this) or not isOwner(self, this) then return end
+	soundCreate(self,this,rv2,rv3,rv4,rv5)
 end
 
 e2function void entity:soundPlay(string rv2, rv3, string rv4, rv5)
-	local entity = checkEntity(this)
-	if(!entity) then return end
-	if !isOwner(self, entity) then return end
-	soundCreate(self,entity,rv2,rv3,rv4,rv5)
+	if not IsValid(this) or not isOwner(self, this) then return end
+	soundCreate(self,this,rv2,rv3,rv4,rv5)
 end
 
 __e2setcost(5)
