@@ -66,7 +66,7 @@ function ENT:GetConstrainedPairs()
 end
 
 
-function NewBallSocket( Ent1, Ent2, friction )
+local function NewBallSocket( Ent1, Ent2, friction )
 	if !IsValid( Ent1 ) then return false end
 
 	local ballsocket = constraint.AdvBallsocket( Ent1, Ent2, 0, 0,

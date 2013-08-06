@@ -1,5 +1,5 @@
 local isOwner = E2Lib.isOwner
-local IsValid = E2Lib.IsValid
+local IsValid = IsValid
 registerCallback("e2lib_replace_function", function(funcname, func, oldfunc)
 	if funcname == "isOwner" then
 		isOwner = func

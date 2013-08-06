@@ -151,9 +151,6 @@ function E2Lib.replace_function(funcname, func)
 	wire_expression2_CallHook("e2lib_replace_function", funcname, func, oldfunc)
 end
 
-E2Lib.IsValid = IsValid
-local IsValid = E2Lib.IsValid
-
 function E2Lib.validPhysics(entity)
 	if IsValid(entity) then
 		if entity:IsWorld() then return false end
@@ -211,12 +208,6 @@ function E2Lib.isOwner(self, entity)
 end
 
 local isOwner = E2Lib.isOwner
-
--- This function is only here for compatibility. Use IsValid() in new code.
-function E2Lib.checkEntity(entity)
-	if IsValid(entity) then return entity end
-	return nil
-end
 
 -- Checks whether the player is the chip's owner or in a pod owned by the chip's owner. Assumes that ply is really a player.
 function E2Lib.canModifyPlayer(self, ply)
@@ -535,11 +526,9 @@ end
 
 -- Some functions need to be global for backwards-compatibility.
 local makeglobal = {
-	["IsValid"] = true,
 	["validPhysics"] = true,
 	["getOwner"] = true,
 	["isOwner"] = true,
-	["checkEntity"] = true,
 }
 
 -- Put all these functions into the global scope.

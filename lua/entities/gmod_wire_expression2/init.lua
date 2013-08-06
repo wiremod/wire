@@ -23,23 +23,6 @@ local function copytype(var)
 	return istable(var) and table.Copy(var) or var
 end
 
-function tablekeys(tbl)
-	local l = {}
-	for k, v in pairs(tbl) do
-		l[#l + 1] = k
-	end
-	return l
-end
-
-function tablevalues(tbl)
-	local l = {}
-	for k, v in pairs(tbl) do
-		l[#l + 1] = v
-	end
-	return l
-end
-
-
 
 local ScopeManager = {}
 ScopeManager.__index = ScopeManager

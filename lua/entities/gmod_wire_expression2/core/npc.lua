@@ -6,7 +6,7 @@ E2Lib.RegisterExtension("npc", true)
 
 __e2setcost(5) -- temporary
 
-function validNPC(entity)
+local function validNPC(entity)
 	return IsValid(entity) && entity:IsNPC()
 end
 
