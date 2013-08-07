@@ -1,29 +1,29 @@
 AddCSLuaFile()
 DEFINE_BASECLASS( "base_wire_entity" )
-ENT.PrintName       = "Wire Advanced Pod Controller"
+ENT.PrintName       = "Wire Pod Controller"
 ENT.RenderGroup		= RENDERGROUP_OPAQUE
-ENT.WireDebugName	= "Advanced Pod Controller"
+ENT.WireDebugName	= "Pod Controller"
 
 if CLIENT then 
-	hook.Add("PlayerBindPress", "wire_adv_pod", function(ply, bind, pressed)
+	hook.Add("PlayerBindPress", "wire_pod", function(ply, bind, pressed)
 		if ply:InVehicle() then
 			if (bind == "invprev") then
 				bind = "1"
 			elseif (bind == "invnext") then
 				bind = "2"
 			else return end
-			RunConsoleCommand("wire_adv_pod_bind", bind )
+			RunConsoleCommand("wire_pod_bind", bind )
 		end
 	end)
 
 	local hideHUD = false
 	local firstTime = true
 
-	hook.Add( "HUDShouldDraw", "Wire adv pod HUDShouldDraw", function( name )
+	hook.Add( "HUDShouldDraw", "Wire pod HUDShouldDraw", function( name )
 		if hideHUD then
 			if LocalPlayer():InVehicle() then
 				if firstTime then
-					LocalPlayer():ChatPrint( "The owner of this vehicle has hidden your hud using an adv pod controller. If it gets stuck this way, use the console command 'wire_adv_pod_hud_show' to forcibly enable it again." )
+					LocalPlayer():ChatPrint( "The owner of this vehicle has hidden your hud using a pod controller. If it gets stuck this way, use the console command 'wire_pod_hud_show' to forcibly enable it again." )
 					firstTime = false
 				end
 
@@ -34,7 +34,7 @@ if CLIENT then
 		end
 	end)
 
-	usermessage.Hook( "wire adv pod hud", function( um )
+	usermessage.Hook( "wire pod hud", function( um )
 		local vehicle = um:ReadEntity()
 		if LocalPlayer():InVehicle() and LocalPlayer():GetVehicle() == vehicle then
 			hideHUD = um:ReadBool()
@@ -43,7 +43,7 @@ if CLIENT then
 		end
 	end)
 
-	concommand.Add( "wire_adv_pod_hud_show", function(ply,cmd,args)
+	concommand.Add( "wire_pod_hud_show", function(ply,cmd,args)
 		hideHUD = false
 	end)
 
@@ -192,7 +192,7 @@ function ENT:SetHideHUD( bool )
 	self.HideHUD = bool
 
 	if self:HasPly() and self:HasPod() then -- If we have a player, we SHOULD always have a pod as well, but just in case.
-		umsg.Start( "wire adv pod hud", self:GetPly() )
+		umsg.Start( "wire pod hud", self:GetPly() )
 			umsg.Entity( self:GetPod() )
 			umsg.Bool( self.HideHUD )
 		umsg.End()
@@ -201,7 +201,7 @@ end
 function ENT:GetHideHUD() return self.HideHUD end
 
 -- Clientside binds
-concommand.Add("wire_adv_pod_bind", function( ply,cmd,args )
+concommand.Add("wire_pod_bind", function( ply,cmd,args )
 	local bind = args[1]
 	if (!bind) then return end
 
@@ -209,7 +209,7 @@ concommand.Add("wire_adv_pod_bind", function( ply,cmd,args )
 	elseif (bind == "2") then bind = "NextWeapon"
 	end
 
-	for _, pod in pairs( ents.FindByClass( "gmod_wire_adv_pod" ) ) do
+	for _, pod in pairs( ents.FindByClass( "gmod_wire_pod" ) ) do
 		if (ply:GetVehicle() == pod.Pod) then
 			WireLib.TriggerOutput( pod, bind, 1 )
 			timer.Simple( 0.03, function()
@@ -220,18 +220,18 @@ concommand.Add("wire_adv_pod_bind", function( ply,cmd,args )
 end)
 
 -- Serverside binds
-hook.Add( "KeyPress", "Wire_Adv_Pod_KeyPress", function( ply, key )
+hook.Add( "KeyPress", "Wire_Pod_KeyPress", function( ply, key )
 	if (!serverside_keys[key]) then return end
-	for k,v in pairs( ents.FindByClass( "gmod_wire_adv_pod" ) ) do
+	for k,v in pairs( ents.FindByClass( "gmod_wire_pod" ) ) do
 		if (v:HasPly() and v:GetPly() == ply and !v.Disable) then
 			WireLib.TriggerOutput( v, serverside_keys[key], 1 )
 		end
 	end
 end)
 
-hook.Add( "KeyRelease", "Wire_Adv_Pod_KeyRelease", function( ply, key )
+hook.Add( "KeyRelease", "Wire_Pod_KeyRelease", function( ply, key )
 	if (!serverside_keys[key]) then return end
-	for k,v in pairs( ents.FindByClass( "gmod_wire_adv_pod" ) ) do
+	for k,v in pairs( ents.FindByClass( "gmod_wire_pod" ) ) do
 		if (v:HasPly() and v:GetPly() == ply and !v.Disable) then
 			WireLib.TriggerOutput( v, serverside_keys[key], 0 )
 		end
@@ -422,7 +422,7 @@ function ENT:PlayerEntered( ply, RC )
 	end
 
 	if self.HideHUD and self:HasPod() then
-		umsg.Start( "wire adv pod hud", ply )
+		umsg.Start( "wire pod hud", ply )
 			umsg.Entity( self:GetPod() )
 			umsg.Bool( true )
 		umsg.End()
@@ -468,16 +468,16 @@ function ENT:PlayerExited( ply )
 	self:SetPly( nil )
 end
 
-hook.Add( "PlayerEnteredVehicle", "Wire_Adv_Pod_EnterVehicle", function( ply, vehicle )
-	for k,v in pairs( ents.FindByClass( "gmod_wire_adv_pod" ) ) do
+hook.Add( "PlayerEnteredVehicle", "Wire_Pod_EnterVehicle", function( ply, vehicle )
+	for k,v in pairs( ents.FindByClass( "gmod_wire_pod" ) ) do
 		if (v:HasPod() and v:GetPod() == vehicle) then
 			v:PlayerEntered( ply )
 		end
 	end
 end)
 
-hook.Add( "PlayerLeaveVehicle", "Wire_Adv_Pod_ExitVehicle", function( ply, vehicle )
-	for k,v in pairs( ents.FindByClass( "gmod_wire_adv_pod" ) ) do
+hook.Add( "PlayerLeaveVehicle", "Wire_Pod_ExitVehicle", function( ply, vehicle )
+	for k,v in pairs( ents.FindByClass( "gmod_wire_pod" ) ) do
 		if (v:HasPod() and v:GetPod() == vehicle) then
 			v:PlayerExited( ply )
 		end
@@ -510,7 +510,7 @@ function ENT:Use( User, caller )
 	if User ~= self:GetPlayer() then return end
 	if not hook.Run("PlayerGiveSWEP", User, "remotecontroller") then return end
 	User:PrintMessage(HUD_PRINTTALK, "Hold down your use key for 2 seconds to get and link a Remote Controller.")
-	timer.Create("adv_pod_use_"..self:EntIndex(), 2, 1, function()
+	timer.Create("pod_use_"..self:EntIndex(), 2, 1, function()
 		if not IsValid(User) or not User:IsPlayer() then return end
 		if not User:KeyDown(IN_USE) then return end
 		if not User:GetEyeTrace().Entity or User:GetEyeTrace().Entity ~= self then return end
@@ -527,7 +527,7 @@ function ENT:Use( User, caller )
 end
 
 -- This seems to actually do very little
-scripted_ents.Alias("gmod_wire_pod", "gmod_wire_adv_pod")
+scripted_ents.Alias("gmod_wire_adv_pod", "gmod_wire_pod")
 
 duplicator.RegisterEntityClass("gmod_wire_pod", WireLib.MakeWireEnt, "Data")
 duplicator.RegisterEntityClass("gmod_wire_adv_pod", WireLib.MakeWireEnt, "Data")
