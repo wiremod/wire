@@ -161,9 +161,14 @@ function ENT:SetHidePlayer( b )
 	end
 end
 
-function ENT:Link( pod )
-	if (!pod or !pod:IsValid() or !pod:IsVehicle()) then return false end
+function ENT:LinkEnt( pod )
+	if not IsValid(pod) or not pod:IsVehicle() then return false end
 	self:SetPod( pod )
+	return true
+end
+function ENT:UnlinkEnt()
+	self.Pod = nil
+	WireLib.TriggerOutput( self, "Entity", NULL )
 	return true
 end
 

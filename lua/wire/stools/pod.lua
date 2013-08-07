@@ -7,12 +7,8 @@ if CLIENT then
 	language.Add("tool.wire_pod.0", "Primary: Create Pod controller. Secondary: Link controller.")
 	language.Add("tool.wire_pod.1", "Now select the pod to link to.")
 end
-WireToolSetup.BaseLang("Pod Controllers")
-WireToolSetup.SetupMax( 30 )
-
-if SERVER then
-	ModelPlug_Register("podctrlr")
-end
+WireToolSetup.BaseLang()
+WireToolSetup.SetupMax( 20 )
 
 TOOL.NoLeftOnClass = true
 TOOL.ClientConVar = {
@@ -27,7 +23,7 @@ function TOOL:RightClick(trace)
 		return true
 	elseif self:GetStage() == 1 and trace.Entity:IsVehicle() then
 		local owner = self:GetOwner()
-		if self.PodCont:Link(trace.Entity) then
+		if self.PodCont:LinkEnt(trace.Entity) then
 			owner:PrintMessage(HUD_PRINTTALK,"Pod linked!")
 		else
 			owner:PrintMessage(HUD_PRINTTALK,"Link failed!")
@@ -46,5 +42,5 @@ function TOOL:Reload(trace)
 end
 
 function TOOL.BuildCPanel(panel)
-	ModelPlug_AddToCPanel(panel, "podctrlr", "wire_pod", nil, 1)
+	ModelPlug_AddToCPanel(panel, "Misc_Tools", "wire_pod", nil, 1)
 end

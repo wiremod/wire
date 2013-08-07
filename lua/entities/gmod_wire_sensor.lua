@@ -18,20 +18,20 @@ function ENT:Initialize()
 	self.Outputs = Wire_CreateOutputs(self, { "Out" })
 end
 
-function ENT:Setup( xyz_mode, outdist, outbrng, gpscord, swapyz,direction_vector,direction_normalized,target_velocity,velocity_normalized)
-	self.XYZMode = xyz_mode
+function ENT:Setup(xyz_mode, outdist, outbrng, gpscord, direction_vector, direction_normalized, target_velocity, velocity_normalized)
+	if !xyz_mode and !outdist and !outbrng and !gpscord and !direction_vector and !target_velocity then outdist = true end
+	
+	self.xyz_mode = xyz_mode
 	self.PrevOutput = nil
 	self.Value = 0
-	self.OutDist = outdist
-	self.OutBrng = outbrng
-	self.GPSCord = gpscord
-	self.SwapYZ = swapyz
-	self.direction_vector = direction_vector;
-	self.direction_normalized = direction_normalized;
-	self.target_velocity = target_velocity;
-	self.velocity_normalized = velocity_normalized;
+	self.outdist = outdist
+	self.outbrng = outbrng
+	self.gpscord = gpscord
+	self.direction_vector = direction_vector
+	self.direction_normalized = direction_normalized
+	self.target_velocity = target_velocity
+	self.velocity_normalized = velocity_normalized
 
-	if !xyz_mode and !outdist and !outbrng and !gpscord and !direction_vector and !target_velocity then self.OutDist = true outdist = true end
 
 	local onames = {}
 	if (outdist) then
@@ -68,12 +68,10 @@ function ENT:Setup( xyz_mode, outdist, outbrng, gpscord, swapyz,direction_vector
 	self:ShowOutput()
 end
 
-
 function ENT:Think()
 	self.BaseClass.Think(self)
 
-	//if (!self.Inputs.Target.Src or !self.Inputs.Target.Src:IsValid() ) then return end
-	if ( !self.ToSense or !self.ToSense:IsValid() or !self.ToSense.GetBeaconPos ) then return end
+	if not IsValid(self.ToSense) or not self.ToSense.GetBeaconPos then return end
 	if (self.Active) then
 	    local dist = 0
 	    local distc = Vector(0,0,0);
@@ -84,22 +82,18 @@ function ENT:Think()
 		local MyPos = self:GetPos()
 		//local BeaconPos = self.Inputs["Target"].Src:GetBeaconPos(self)
 		local BeaconPos = self.ToSense:GetBeaconPos(self) or MyPos
-		if (self.OutDist) then
+		if (self.outdist) then
 			dist = (BeaconPos-MyPos):Length()
 		end
-		if (self.XYZMode) then
+		if (self.xyz_mode) then
 			local DeltaPos = self:WorldToLocal(BeaconPos)
-			if (self.SwapYZ) then
-				distc = Vector(DeltaPos.z,DeltaPos.x,-DeltaPos.y)
-			else
-				distc = Vector(-DeltaPos.y,DeltaPos.x,DeltaPos.z)
-			end
+			distc = Vector(-DeltaPos.y,DeltaPos.x,DeltaPos.z)
 		end
-		if (self.OutBrng) then
+		if (self.outbrng) then
 		    local DeltaPos = self:WorldToLocal(BeaconPos)
 		    brng = DeltaPos:Angle()
 		end
-		if (self.GPSCord) then gpscords = BeaconPos end
+		if (self.gpscord) then gpscords = BeaconPos end
 		if (self.direction_vector) then
 			dirvec = BeaconPos - MyPos;
 			if(self.direction_normalized) then dirvec:Normalize() end;
@@ -116,26 +110,25 @@ function ENT:Think()
 	end
 end
 
-
 function ENT:ShowOutput()
 	local txt = ""
-	if (self.OutDist) then
-		txt = txt .. "\nDistance = " .. math.Round(self.Outputs.Distance.Value*1000)/1000
+	if (self.outdist) then
+		txt = string.format("%s\nDistance = %.3f", txt, self.Outputs.Distance.Value)
 	end
-	if (self.XYZMode) then
-		txt = txt .. "\nOffset = " .. math.Round(self.Outputs.X.Value*1000)/1000 .. "," .. math.Round(self.Outputs.Y.Value*1000)/1000 .. "," .. math.Round(self.Outputs.Z.Value*1000)/1000
+	if (self.xyz_mode) then
+		txt = string.format("%s\nOffset = %.3f, %.3f, %.3f", txt, self.Outputs.X.Value, self.Outputs.Y.Value, self.Outputs.Z.Value)
 	end
-	if (self.OutBrng) then
-		txt = txt .. "\nBearing = " .. math.Round(self.Outputs.Bearing.Value*1000)/1000 .. "," .. math.Round(self.Outputs.Elevation.Value*1000)/1000
+	if (self.outbrng) then
+		txt = string.format("%s\nBearing = %.3f, %.3f", txt, self.Outputs.Bearing.Value, self.Outputs.Elevation.Value)
 	end
-	if (self.GPSCord) then
-		txt = txt .. "\nWorldPos = " .. math.Round(self.Outputs.World_X.Value*1000)/1000 .. "," .. math.Round(self.Outputs.World_Y.Value*1000)/1000 .. "," .. math.Round(self.Outputs.World_Z.Value*1000)/1000
+	if (self.gpscord) then
+		txt = string.format("%s\nWorldPos = %.3f, %.3f, %.3f", txt, self.Outputs.World_X.Value, self.Outputs.World_Y.Value, self.Outputs.World_Z.Value)
 	end
 	if (self.direction_vector) then
-		txt = txt .. "\nDirectionVector = " .. math.Round(self.Outputs.Direction_X.Value*1000)/1000 .. "," .. math.Round(self.Outputs.Direction_Y.Value*1000)/1000 .. "," .. math.Round(self.Outputs.Direction_Z.Value*1000)/1000
+		txt = string.format("%s\nDirectionVector = %.3f, %.3f, %.3f", txt, self.Outputs.Direction_X.Value, self.Outputs.Direction_Y.Value, self.Outputs.Direction_Z.Value)
 	end
 	if (self.target_velocity) then
-		txt = txt .. "\nTargetVelocity = " .. math.Round(self.Outputs.Velocity_X.Value*1000)/1000 .. "," .. math.Round(self.Outputs.Velocity_Y.Value*1000)/1000 .. "," .. math.Round(self.Outputs.Velocity_Z.Value*1000)/1000
+		txt = string.format("%s\nTargetVelocity = %.3f, %.3f, %.3f", txt, self.Outputs.Velocity_X.Value, self.Outputs.Velocity_Y.Value, self.Outputs.Velocity_Z.Value)
 	end
 
 	self:SetOverlayText(string.Right(txt,#txt-1)) -- Cut off the first \n
@@ -143,20 +136,20 @@ end
 
 
 function ENT:TriggerOutputs(dist, brng, distc, gpscords,dirvec,velo)
-    if (self.OutDist) then
+    if (self.outdist) then
 		Wire_TriggerOutput(self, "Distance", dist)
 	end
-	if (self.XYZMode) then
+	if (self.xyz_mode) then
 	    Wire_TriggerOutput(self, "X", distc.x)
 	    Wire_TriggerOutput(self, "Y", distc.y)
 	    Wire_TriggerOutput(self, "Z", distc.z)
 	end
-	if (self.GPSCord) then
+	if (self.gpscord) then
 	    Wire_TriggerOutput(self, "World_X", gpscords.x)
 	    Wire_TriggerOutput(self, "World_Y", gpscords.y)
 	    Wire_TriggerOutput(self, "World_Z", gpscords.z)
 	end
-	if (self.OutBrng) then
+	if (self.outbrng) then
 		local pitch = brng.p
 		local yaw = brng.y
 
@@ -180,41 +173,40 @@ end
 
 function ENT:TriggerInput(iname, value)
 	if (iname == "Target") and ( self.ToSense != self.Inputs.Target.Src ) then
-		self:SetBeacon(self.Inputs.Target.Src)
+		self:LinkEnt(self.Inputs.Target.Src)
 	end
 end
 
-function ENT:SetBeacon(beacon)
-	if (beacon) and (beacon:IsValid()) then
+function ENT:LinkEnt(beacon)
+	if IsValid(beacon) and beacon.GetBeaconPos then
 		self.ToSense = beacon
 		self.Active = true
+		return true
 	else
-		self.ToSense = nil
-		self.Active = false
+		self:UnlinkEnt()
+		return "Must link to ent that outputs BeaconPos"
 	end
 end
-
-function ENT:OnRestore()
-	//this is to prevent old save breakage
-	self:Setup(self.XYZMode, self.OutDist, self.OutBrng, self.GPSCord, self.SwapYZ,self.direction_vector,self.direction_normalized,self.target_velocity,self.velocity_normalized)
-
-	self.BaseClass.OnRestore(self)
+function ENT:UnlinkEnt(ent)
+	self.ToSense = nil
+	self.Active = false
+	return true
 end
 
+duplicator.RegisterEntityClass("gmod_wire_sensor", WireLib.MakeWireEnt, "Data", "xyz_mode", "outdist", "outbrng", "gpscord", "direction_vector", "direction_normalized", "target_velocity", "velocity_normalized")
 
 function ENT:BuildDupeInfo()
 	local info = self.BaseClass.BuildDupeInfo(self) or {}
 
-	if (self.ToSense) and (self.ToSense:IsValid()) then
+	if IsValid(self.ToSense) then
 	    info.to_sense = self.ToSense:EntIndex()
 	end
 
 	return info
 end
 
-
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
 
-	self:SetBeacon(GetEntByID(info.to_sense))
+	self:LinkEnt(GetEntByID(info.to_sense))
 end
