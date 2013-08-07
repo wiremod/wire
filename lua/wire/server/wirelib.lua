@@ -1106,6 +1106,7 @@ function WireLib.dummytrace(ent)
 end
 
 function WireLib.MakeWireEnt( pl, Data, ... )
+	Data.Class = scripted_ents.Get(Data.Class).ClassName
 	if IsValid(pl) and not pl:CheckLimit(Data.Class:sub(6).."s") then return false end
 	
 	local ent = duplicator.GenericDuplicatorFunction( pl, Data )

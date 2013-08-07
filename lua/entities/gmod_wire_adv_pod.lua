@@ -526,4 +526,8 @@ function ENT:Use( User, caller )
 	end)
 end
 
+-- This seems to actually do very little
+scripted_ents.Alias("gmod_wire_pod", "gmod_wire_adv_pod")
+
+duplicator.RegisterEntityClass("gmod_wire_pod", WireLib.MakeWireEnt, "Data")
 duplicator.RegisterEntityClass("gmod_wire_adv_pod", WireLib.MakeWireEnt, "Data")
