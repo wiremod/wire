@@ -2,8 +2,8 @@ AddCSLuaFile()
 
 SWEP.Author = "Divran" -- Originally by ShaRose, rewritten by Divran at 2011-04-03
 SWEP.Contact = ""
-SWEP.Purpose = "Remote control for Adv. Pods in wire."
-SWEP.Instructions = "Left Click on Adv. Pod to link up, and use to start controlling."
+SWEP.Purpose = "Remote control for Pod Controllers in wire."
+SWEP.Instructions = "Left Click on Pod Controller to link up, and use to start controlling."
 SWEP.Category = "Wiremod"
 
 SWEP.PrintName = "Remote Control"
@@ -31,7 +31,7 @@ if CLIENT then return end
 
 function SWEP:PrimaryAttack()
 	local trace = self:GetOwner():GetEyeTrace()
-	if (trace.Entity and trace.Entity:IsValid() and trace.Entity:GetClass() == "gmod_wire_adv_pod") then
+	if (trace.Entity and trace.Entity:IsValid() and trace.Entity:GetClass() == "gmod_wire_pod") then
 		self.Linked = trace.Entity
 		self:GetOwner():ChatPrint("Remote Controller linked.")
 	end
