@@ -12,26 +12,60 @@ function ENT:Initialize()
 	self:SetSolid( SOLID_VPHYSICS )
 
 	self.State = false
+	self.CollisionState = 0
 	self.Marks = {}
-	self.Inputs = WireLib.CreateInputs(self, {"Activate"})
+	self.Inputs = WireLib.CreateInputs(self, {"Activate", "Disable Collisions"})
 	self:UpdateOutputs()
 end
 
 function ENT:TriggerInput(name, value)
 	if name == "Activate" then
-		self.State = value == 1
+		self.State = value ~= 0
 		for _, ent in pairs(self.Marks) do
 			if IsValid(ent) and IsValid(ent:GetPhysicsObject()) then
 				ent:GetPhysicsObject():EnableMotion(not self.State)
 				if not self.State then ent:GetPhysicsObject():Wake() end
 			end
 		end
-		self:UpdateOverlay()
+	elseif name == "Disable Collisions" then
+		self.CollisionState = math.Clamp(math.Round(value), 0, 4)
+		for _, ent in pairs(self.Marks) do
+			if IsValid(ent) and IsValid(ent:GetPhysicsObject()) then
+				if self.CollisionState == 0 then
+					ent:SetCollisionGroup( COLLISION_GROUP_NONE )
+					ent:GetPhysicsObject():EnableCollisions(true)
+				elseif self.CollisionState == 1 then
+					ent:SetCollisionGroup( COLLISION_GROUP_WORLD )
+					ent:GetPhysicsObject():EnableCollisions(true)
+				elseif self.CollisionState == 2 then
+					ent:SetCollisionGroup( COLLISION_GROUP_NONE )
+					ent:GetPhysicsObject():EnableCollisions(false)
+				elseif self.CollisionState == 3 then
+					ent:SetCollisionGroup( COLLISION_GROUP_WEAPON )
+					ent:GetPhysicsObject():EnableCollisions(true)
+				elseif self.CollisionState == 4 then
+					ent:SetCollisionGroup( COLLISION_GROUP_WEAPON )
+					ent:GetPhysicsObject():EnableCollisions(false)
+				end
+			end
+		end
 	end
+	self:UpdateOverlay()
 end
 
+local collisionDescriptions = {
+	[0] = "Normal Collisions",
+	[1] = "Disabled prop/player Collisions",
+	[2] = "Disabled prop/world Collisions",
+	[3] = "Disabled player Collisions",
+	[4] = "Disabled prop/world/player Collisions"
+}
+
 function ENT:UpdateOverlay()
-	self:SetOverlayText( (self.State and "Frozen" or "Unfrozen") .. "\nLinked Entities: " .. #self.Marks )
+	self:SetOverlayText( 
+		(self.State and "Frozen" or "Unfrozen") .. "\n" .. 
+		collisionDescriptions[self.CollisionState] .. "\n" ..
+		"Linked Entities: " .. #self.Marks)
 end
 function ENT:UpdateOutputs()
 	self:UpdateOverlay()
@@ -101,5 +135,6 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 			self.Marks[index] = GetEntByID(entindex)
 		end
 	end
+	self:TriggerInput("Disable Collisions", self.Inputs["Disable Collisions"].Value)
 	self:UpdateOutputs()
 end
