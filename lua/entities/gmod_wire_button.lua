@@ -124,12 +124,7 @@ function ENT:Setup(toggle, value_off, value_on, description, entityout)
 	self.toggle = toggle
 	self.value_off = value_off
 	self.value_on = value_on
-	self.Value = value_off
 	self.entityout = entityout
-	self:SetOn( false )
-
-	self:ShowOutput(self.value_off)
-	Wire_TriggerOutput(self, "Out", self.value_off)
 
 	if entityout then
 		WireLib.AdjustSpecialOutputs(self, { "Out", "EntID" , "Entity" }, { "NORMAL", "NORMAL" , "ENTITY" })
@@ -146,6 +141,7 @@ function ENT:Setup(toggle, value_off, value_on, description, entityout)
 	else
 		Wire_AdjustInputs(self, {})
 	end
+	self:Switch(self:GetOn())
 end
 
 function ENT:Switch(on)
