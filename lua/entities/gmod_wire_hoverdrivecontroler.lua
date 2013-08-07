@@ -9,6 +9,8 @@ if CLIENT then
 	return -- No more client
 end
 
+CreateConVar("wire_hoverdrive_cooldown","1",{FCVAR_ARCHIVE,FCVAR_NOTIFY})
+
 function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )
 	self:SetMoveType( MOVETYPE_VPHYSICS )
@@ -286,7 +288,7 @@ function ENT:Jump_Part2( withangles )
 	-- Cooldown - prevent teleporting for a time
 	timer.Create(
 		"teleporter_"..self:EntIndex(), -- name
-		GetConVar( "wire_hoverdrive_cooldown" ):GetFloat(), -- delay
+		GetConVarNumber( "wire_hoverdrive_cooldown" ), -- delay
 		1, -- nr of runs
 		function() -- function
 			if self:IsValid() then
