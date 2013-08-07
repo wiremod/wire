@@ -1109,8 +1109,13 @@ function WireLib.MakeWireEnt( pl, Data, ... )
 	Data.Class = scripted_ents.Get(Data.Class).ClassName
 	if IsValid(pl) and not pl:CheckLimit(Data.Class:sub(6).."s") then return false end
 	
-	local ent = duplicator.GenericDuplicatorFunction( pl, Data )
+	local ent = ents.Create( Data.Class )
 	if not IsValid(ent) then return false end
+	
+	duplicator.DoGeneric( ent, Data )
+	ent:Spawn()
+	ent:Activate()
+	duplicator.DoGenericPhysics( ent, pl, Data ) -- Is deprecated, but is the only way to access duplicator.EntityPhysics.Load (its local)
 
 	ent:SetPlayer(pl)
 	if ent.Setup then ent:Setup(...) end
