@@ -162,12 +162,14 @@ function ENT:SetHidePlayer( b )
 end
 
 function ENT:LinkEnt( pod )
-	if not IsValid(pod) or not pod:IsVehicle() then return false end
+	if not IsValid(pod) or not pod:IsVehicle() then return "Must link to a vehicle" end
 	self:SetPod( pod )
+	WireLib.SendMarks(self, {pod})
 	return true
 end
 function ENT:UnlinkEnt()
 	self.Pod = nil
+	WireLib.SendMarks(self, {})
 	WireLib.TriggerOutput( self, "Entity", NULL )
 	return true
 end

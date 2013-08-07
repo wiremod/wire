@@ -721,12 +721,12 @@ end
 -- For transmitting the yellow lines showing links between controllers and ents, as used by the Adv Entity Marker
 if SERVER then
 	util.AddNetworkString("WireLinkedEnts")
-	function WireLib.SendMarks(controller)
-		if not IsValid(controller) or not controller.Marks then return end
+	function WireLib.SendMarks(controller, marks)
+		if not IsValid(controller) or not (controller.Marks or marks) then return end
 		net.Start("WireLinkedEnts")
 			net.WriteEntity(controller)
-			net.WriteUInt(#controller.Marks, 16)
-			for k,v in pairs(controller.Marks) do
+			net.WriteUInt(#(controller.Marks or marks), 16)
+			for k,v in pairs(controller.Marks or marks) do
 				net.WriteEntity(v)
 			end
 		net.Broadcast()

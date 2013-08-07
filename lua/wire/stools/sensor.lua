@@ -39,23 +39,7 @@ TOOL.ClientConVar[ "velocity_normalized" ] = "0"
 
 TOOL.Model = "models/props_lab/huladoll.mdl"
 
-TOOL.SelectingPeer = false
-TOOL.FirstPeer = nil
-
-function TOOL:RightClick(trace)
-	if not IsValid(trace.Entity) then return end
-	if self:GetStage() == 0 and trace.Entity:GetClass() == "gmod_wire_sensor" then
-		self:SetStage(1)
-		self.Sensor = trace.Entity
-		return true
-	elseif self:GetStage() == 1 then
-		if CLIENT then return true end
-		if self.Sensor:LinkEnt(trace.Entity) then
-			self:SetStage(0)
-			return true
-		end
-	end
-end
+WireToolSetup.SetupLinking(true)
 
 function TOOL.BuildCPanel( panel )
 	panel:CheckBox("#WireSensorTool_outdist", "wire_sensor_outdist")

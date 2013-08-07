@@ -181,6 +181,7 @@ function ENT:LinkEnt(beacon)
 	if IsValid(beacon) and beacon.GetBeaconPos then
 		self.ToSense = beacon
 		self.Active = true
+		WireLib.SendMarks(self, {beacon})
 		return true
 	else
 		self:UnlinkEnt()
@@ -190,6 +191,7 @@ end
 function ENT:UnlinkEnt(ent)
 	self.ToSense = nil
 	self.Active = false
+	WireLib.SendMarks(self, {})
 	return true
 end
 

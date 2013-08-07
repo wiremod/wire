@@ -393,11 +393,13 @@ end
 -- Sets up a tool with RightClick, Reload, and DrawHUD functions that link/unlink entities
 -- The SENT should have ENT:LinkEnt(e), ENT:UnlinkEnt(e), and ENT:ClearEntities()
 -- It should also send ENT.Marks to the client via WireLib.SendMarks(ent)
-function WireToolSetup.SetupLinking()
+-- Pass it true to disable linking multiple entities (ie for Pod Controllers)
+function WireToolSetup.SetupLinking(SingleLink)
+	TOOL.SingleLink = SingleLink
 	if CLIENT then
-		language.Add( "Tool."..TOOL.Mode..".0", "Primary: Create "..TOOL.Name..", Secondary: Add links, Reload: Remove links" )
-		language.Add( "Tool."..TOOL.Mode..".1", "Now select the entity to link to (Tip: Hold shift to link to more entities).")
-		language.Add( "Tool."..TOOL.Mode..".2", "Now select the entity to unlink (Tip: Hold shift to unlink from more entities). Reload on the same controller again to clear all linked entities." )
+		language.Add( "Tool."..TOOL.Mode..".0", "Primary: Create "..TOOL.Name..", Secondary: Link entities, Reload: Unlink entities" )
+		language.Add( "Tool."..TOOL.Mode..".1", "Now select the entity to link to" .. (SingleLink and "" or " (Tip: Hold shift to link to more entities)"))
+		language.Add( "Tool."..TOOL.Mode..".2", "Now select the entity to unlink" .. (SingleLink and "" or " (Tip: Hold shift to unlink from more entities). Reload on the same controller again to clear all linked entities." ))
 		
 		function TOOL:DrawHUD()
 			local trace = self:GetOwner():GetEyeTrace()
@@ -424,11 +426,14 @@ function WireToolSetup.SetupLinking()
 			self:SetStage(1)
 		else
 			local ply = self:GetOwner()
-			if self.Controller:LinkEnt(ent) then
-				if not ply:KeyDown(IN_SPEED) then self:SetStage(0) end
+			local success = self.Controller:LinkEnt(ent)
+			if success == true then
+				if not ply:KeyDown(IN_SPEED) or self.SingleLink then self:SetStage(0) end
 				WireLib.AddNotify(ply, "Linked entity: " .. tostring(ent) .. " to the "..self.Name, NOTIFY_GENERIC, 5)
-			else
+			elseif success == false then
 				WireLib.AddNotify(ply, "That entity is already linked to the "..self.Name, NOTIFY_ERROR, 5, NOTIFYSOUND_DRIP3)
+			elseif isstring(success) then
+				WireLib.AddNotify(ply, success, NOTIFY_ERROR, 5, NOTIFYSOUND_DRIP3)
 			end
 		end
 		return true
@@ -442,7 +447,13 @@ function WireToolSetup.SetupLinking()
 		if CLIENT then return true end
 
 		local ent = trace.Entity
-		if self:GetStage() == 0 and self:CheckHitOwnClass(trace) then
+		if self.SingleLink then 
+			if self:CheckHitOwnClass(trace) then
+				ent:UnlinkEnt()
+				WireLib.AddNotify(ply, "Unlinked "..self.Name, NOTIFY_GENERIC, 5)
+			end
+			self:SetStage(0)
+		elseif self:GetStage() == 0 and self:CheckHitOwnClass(trace) then
 			self.Controller = ent
 			self:SetStage(2)
 		else
@@ -450,17 +461,20 @@ function WireToolSetup.SetupLinking()
 			if ent == self.Controller then
 				if self:GetStage() == 1 then
 					self:SetStage(2)
-				else
+				elseif self.Controller.ClearEntities then
 					self.Controller:ClearEntities()
 					WireLib.AddNotify(ply, "All entities unlinked from the "..self.Name, NOTIFY_GENERIC, 7)
 					self:SetStage(0)
 				end
 			else
-				if self.Controller:UnlinkEnt( ent ) then
+				local success = self.Controller:UnlinkEnt(ent)
+				if success == true then
 					if not ply:KeyDown(IN_SPEED) then self:SetStage(0) end
 					WireLib.AddNotify(ply, "Unlinked entity: " .. tostring(ent) .. " from the "..self.Name, NOTIFY_GENERIC, 5)
-				else
+				elseif success == false then
 					WireLib.AddNotify(ply, "That entity is not linked to the "..self.Name, NOTIFY_ERROR, 5, NOTIFYSOUND_DRIP3)
+				elseif isstring(success) then
+					WireLib.AddNotify(ply, success, NOTIFY_ERROR, 5, NOTIFYSOUND_DRIP3)
 				end
 			end
 		end

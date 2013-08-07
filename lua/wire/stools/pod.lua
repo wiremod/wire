@@ -15,31 +15,7 @@ TOOL.ClientConVar = {
 	model = "models/jaanus/wiretool/wiretool_siren.mdl"
 }
 
-function TOOL:RightClick(trace)
-	if (CLIENT) then return true end
-	if self:GetStage() == 0 and trace.Entity:GetClass() == "gmod_wire_pod" then
-		self.PodCont = trace.Entity
-		self:SetStage(1)
-		return true
-	elseif self:GetStage() == 1 and trace.Entity:IsVehicle() then
-		local owner = self:GetOwner()
-		if self.PodCont:LinkEnt(trace.Entity) then
-			owner:PrintMessage(HUD_PRINTTALK,"Pod linked!")
-		else
-			owner:PrintMessage(HUD_PRINTTALK,"Link failed!")
-		end
-		self:SetStage(0)
-		self.PodCont = nil
-		return true
-	else
-		return false
-	end
-end
-
-function TOOL:Reload(trace)
-	self:SetStage(0)
-	self.PodCont = nil
-end
+WireToolSetup.SetupLinking(true)
 
 function TOOL.BuildCPanel(panel)
 	ModelPlug_AddToCPanel(panel, "Misc_Tools", "wire_pod", nil, 1)
