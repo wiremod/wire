@@ -159,10 +159,10 @@ function ENT:SetForce( force, mul )
 	local ThrusterWorldForce
 	if (self.mode == 1) then
 		ThrusterWorldPos = self:GetPos() + self.ThrustOffset
-		ThrusterWorldForce = self.ThrustOffset * -1
+		ThrusterWorldForce = self.ThrustNormal * -1
 	else
 		ThrusterWorldPos = phys:LocalToWorld( self.ThrustOffset )
-		ThrusterWorldForce = phys:LocalToWorldVector( self.ThrustOffset * -1 )
+		ThrusterWorldForce = phys:LocalToWorldVector( self.ThrustNormal * -1 )
 	end
 	if (self.mode == 2) then
 		ThrusterWorldPos.z = ThrusterWorldPos.z + self.Z
