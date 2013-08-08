@@ -157,6 +157,7 @@ e2function array teams()
 end
 
 /******************************************************************************/
+__e2setcost(2)
 
 e2function number entity:keyForward()
 	return (IsValid(this) and this:IsPlayer() and this:KeyDown(IN_FORWARD)) and 1 or 0
@@ -222,6 +223,55 @@ end
 e2function number entity:keyPressed(string char)
 	return (IsValid(this) and this:IsPlayer() and this.keystate and this.keystate[_G["KEY_" .. string.upper(char)] or "no_key"]) and 1 or 0
 end
+
+
+local KeyAlert = {}
+local runByKey
+
+registerCallback("destruct",function(self)
+	KeyAlert[self.entity] = nil
+end)
+
+local function UpdateKeys(ply, key)
+	runByKey = ply
+	for chip, plys in pairs(KeyAlert) do
+		if IsValid(chip) then
+			if plys[ply] then
+				chip:Execute()
+			end
+		else
+			KeyAlert[e] = nil
+		end
+	end
+	runByKey = nil
+end
+hook.Add("KeyPress","Exp2KeyReceivingDown", UpdateKeys)
+hook.Add("KeyRelease","Exp2KeyReceivingUp", UpdateKeys)
+
+--- Makes the chip run on key events from the specified player (can be used on multiple players)
+e2function void runOnKeys(entity ply, on)
+	if not IsValid(ply) or not ply:IsPlayer() then return end
+	if on ~= 0 then
+		if not KeyAlert[self.entity] then KeyAlert[self.entity] = {} end
+		KeyAlert[self.entity][ply] = true
+	elseif KeyAlert[self.entity] then
+		KeyAlert[self.entity][ply] = nil
+		if not next(KeyAlert[self.entity]) then
+			KeyAlert[self.entity] = nil
+		end
+	end
+end
+
+--- Returns user if the chip is being executed because of a key event.
+e2function entity keyClk()
+	return runByKey
+end
+
+--- Returns 1 if the chip is being executed because of a key event by player <ply>
+e2function number keyClk(entity ply)
+	return (ply == runByKey) and 1 or 0
+end
+
 
 -- isTyping
 local plys = {}
