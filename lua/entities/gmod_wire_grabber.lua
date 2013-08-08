@@ -4,9 +4,6 @@ ENT.PrintName       = "Wire Grabber"
 ENT.RenderGroup		= RENDERGROUP_BOTH
 ENT.WireDebugName	= "Grabber"
 
-
--- Shared
-
 function ENT:SetupDataTables()
 	self:NetworkVar( "Float", 0, "BeamLength" )
 end

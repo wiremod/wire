@@ -1,16 +1,11 @@
 AddCSLuaFile()
 DEFINE_BASECLASS( "base_wire_entity" )
 ENT.PrintName       = "Wire Button"
-ENT.RenderGroup		= RENDERGROUP_OPAQUE
 ENT.WireDebugName	= "Button"
-
-
--- Shared
 
 function ENT:SetupDataTables()
 	self:NetworkVar( "Bool", 0, "On" )
 end
-
 
 if CLIENT then 
 	local halo_ent, halo_blur

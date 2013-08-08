@@ -2,9 +2,6 @@ if (not EmuFox) then
 	include('shared.lua')
 end
 
-ENT.RenderGroup    = RENDERGROUP_OPAQUE
-
-
 function ENT:Initialize()
 	self.Memory1 = {}
 	self.Memory2 = {}

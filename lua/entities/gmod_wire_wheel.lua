@@ -1,7 +1,6 @@
 AddCSLuaFile()
 DEFINE_BASECLASS( "base_wire_entity" )
 ENT.PrintName       = "Wire Wheel"
-ENT.RenderGroup		= RENDERGROUP_OPAQUE
 ENT.WireDebugName	= "Wheel"
 
 if CLIENT then return end -- No more client

@@ -2,7 +2,6 @@ AddCSLuaFile()
 DEFINE_BASECLASS( "base_wire_entity" )
 ENT.PrintName		= "Wire Damage Detector"
 ENT.Author          = "Jimlad"
-ENT.RenderGroup		= RENDERGROUP_OPAQUE
 ENT.WireDebugName = "Damage Detector"
 
 if CLIENT then return end -- No more client

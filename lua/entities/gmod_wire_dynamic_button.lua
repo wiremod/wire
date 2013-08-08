@@ -1,11 +1,7 @@
 AddCSLuaFile()
 DEFINE_BASECLASS( "base_wire_entity" )
 ENT.PrintName       = "Wire Dynamic Button"
-ENT.RenderGroup		= RENDERGROUP_OPAQUE
 ENT.WireDebugName	= "Dynamic Button"
-
-
--- Shared
 
 function ENT:SetupDataTables()
 	self:NetworkVar( "Bool", 0, "On" )

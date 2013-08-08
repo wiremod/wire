@@ -4,9 +4,6 @@ ENT.PrintName       = "Wire Hoverball"
 ENT.RenderGroup		= RENDERGROUP_BOTH
 ENT.WireDebugName	= "Hoverball"
 
-
--- Shared
-
 function ENT:GetTargetZ()
 	return self:GetNetworkedInt( 0 )
 end

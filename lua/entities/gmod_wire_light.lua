@@ -4,9 +4,6 @@ ENT.PrintName       = "Wire Light"
 ENT.RenderGroup		= RENDERGROUP_BOTH
 ENT.WireDebugName	= "Light"
 
-
--- Shared
-
 function ENT:SetupDataTables()
 	self:NetworkVar( "Bool", 0, "Glow" )
 	self:NetworkVar( "Float", 0, "Brightness" )

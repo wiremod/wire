@@ -3,11 +3,7 @@ DEFINE_BASECLASS( "base_wire_entity" )
 ENT.PrintName       = "Wire Socket"
 ENT.Purpose         = "Links with a plug"
 ENT.Instructions    = "Move a plug close to a plug to link them, and data will be transferred through the link."
-ENT.RenderGroup		= RENDERGROUP_OPAQUE
 ENT.WireDebugName	= "Socket"
-
-
--- Shared
 
 local PositionOffsets = {
 	["models/wingf0x/isasocket.mdl"] = Vector(0,0,0),

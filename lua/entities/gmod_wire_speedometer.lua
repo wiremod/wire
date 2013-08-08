@@ -1,11 +1,7 @@
 AddCSLuaFile()
 DEFINE_BASECLASS( "base_wire_entity" )
 ENT.PrintName       = "Wire Speedometer"
-ENT.RenderGroup		= RENDERGROUP_OPAQUE
 ENT.WireDebugName	= "Speedo"
-
-
--- Shared
 
 function ENT:GetXYZMode()
 	return self:GetNetworkedBool( 0 )

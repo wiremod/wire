@@ -9,5 +9,3 @@ ENT.Instructions    = "Click Use on it to activate it."
 
 ENT.Spawnable       = false
 ENT.AdminSpawnable  = false
-
-ENT.RenderGroup 	= RENDERGROUP_OPAQUE

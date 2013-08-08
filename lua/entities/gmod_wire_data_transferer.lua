@@ -4,9 +4,6 @@ ENT.PrintName       = "Wire Data Transferer"
 ENT.RenderGroup		= RENDERGROUP_BOTH
 ENT.WireDebugName	= "Data Transferer"
 
-
--- Shared
-
 function ENT:SetupDataTables()
 	self:NetworkVar( "Float", 0, "BeamLength" )
 end

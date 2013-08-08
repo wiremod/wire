@@ -4,9 +4,6 @@ ENT.PrintName       = "Wire Forcer"
 ENT.RenderGroup		= RENDERGROUP_BOTH
 ENT.WireDebugName	= "Forcer"
 
-
--- Shared
-
 function ENT:SetupDataTables()
 	self:NetworkVar( "Float", 0, "BeamLength" )
 	self:NetworkVar( "Bool",  0, "ShowBeam" )

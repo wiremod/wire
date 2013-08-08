@@ -1,11 +1,7 @@
 AddCSLuaFile()
 DEFINE_BASECLASS( "base_wire_entity" )
 ENT.PrintName       = "Wire Oscilloscope"
-ENT.RenderGroup		= RENDERGROUP_OPAQUE
 ENT.WireDebugName	= "Oscilloscope"
-
-
--- Shared
 
 function ENT:SetNextNode(x, y)
 	local node_idx = self:GetNetworkedInt("OscN") or 0

@@ -1,12 +1,9 @@
 AddCSLuaFile()
 DEFINE_BASECLASS( "base_wire_entity" )
 ENT.PrintName		= "Wire GPULib Controller"
-ENT.RenderGroup 	= RENDERGROUP_OPAQUE
-
 ENT.WireDebugName = "GPULib Controller"
 
 if CLIENT then return end
-
 
 function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )

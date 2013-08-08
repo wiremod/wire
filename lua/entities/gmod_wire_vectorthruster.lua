@@ -1,12 +1,8 @@
 AddCSLuaFile()
 DEFINE_BASECLASS( "base_wire_entity" )
 ENT.PrintName       = "Wire Vector Thruster"
-// Thrusters only really need to be twopass (Both) when they're active.. something to think about..
-ENT.RenderGroup 		= RENDERGROUP_BOTH
+ENT.RenderGroup 		= RENDERGROUP_BOTH -- TODO: this is only needed when they're active.
 ENT.WireDebugName	= "Vector Thruster"
-
-
--- Shared
 
 function ENT:SetEffect( name )
 	self:SetNetworkedString( "Effect", name )

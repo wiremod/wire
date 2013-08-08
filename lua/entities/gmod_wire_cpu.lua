@@ -2,14 +2,9 @@ AddCSLuaFile()
 DEFINE_BASECLASS( "base_wire_entity" )
 ENT.PrintName       = "Wire ZCPU"
 ENT.Author          = "Black Phoenix"
-ENT.RenderGroup		= RENDERGROUP_OPAQUE
 ENT.WireDebugName	= "ZCPU"
 
-if CLIENT then 
-	return  -- No more client
-end
-
--- Server
+if CLIENT then return end -- No more client
 
 function ENT:Initialize()
 	self:PhysicsInit(SOLID_VPHYSICS)

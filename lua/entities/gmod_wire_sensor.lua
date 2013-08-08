@@ -1,7 +1,6 @@
 AddCSLuaFile()
 DEFINE_BASECLASS( "base_wire_entity" )
 ENT.PrintName       = "Wire Beacon Sensor"
-ENT.RenderGroup		= RENDERGROUP_OPAQUE
 ENT.WireDebugName = "Beacon Sensor"
 
 if CLIENT then return end -- No more client

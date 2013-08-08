@@ -1,11 +1,9 @@
 AddCSLuaFile()
 DEFINE_BASECLASS( "base_wire_entity" )
 ENT.PrintName       = "Wire Analog Lever"
-ENT.RenderGroup		= RENDERGROUP_OPAQUE
 ENT.WireDebugName	= "Lever"
 
 if CLIENT then return end -- No more client
-
 
 function ENT:Initialize()
 	self:SetModel("models/props_wasteland/tram_lever01.mdl") 

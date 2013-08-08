@@ -1,7 +1,6 @@
 AddCSLuaFile()
 DEFINE_BASECLASS( "base_wire_entity" )
 ENT.PrintName       = "Wire Entity Marker"
-ENT.RenderGroup		= RENDERGROUP_OPAQUE
 ENT.WireDebugName = "EMarker"
 
 if CLIENT then return end -- No more client

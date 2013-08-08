@@ -1,11 +1,7 @@
 AddCSLuaFile()
 DEFINE_BASECLASS( "base_wire_entity" )
 ENT.PrintName       = "Wire Waypoint Beacon"
-ENT.RenderGroup		= RENDERGROUP_OPAQUE
 ENT.WireDebugName	= "Waypoint"
-
-
--- Shared
 
 function ENT:GetNextWaypoint()
 	return self:GetNetworkedEntity("NextWaypoint")

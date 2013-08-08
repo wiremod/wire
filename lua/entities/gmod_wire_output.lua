@@ -1,7 +1,6 @@
 AddCSLuaFile()
 DEFINE_BASECLASS( "base_wire_entity" )
 ENT.PrintName       = "Wire Numpad Output"
-ENT.RenderGroup		= RENDERGROUP_OPAQUE
 ENT.WireDebugName = "Numpad Output"
 
 if CLIENT then return end -- No more client

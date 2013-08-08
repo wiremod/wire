@@ -1,11 +1,7 @@
 AddCSLuaFile()
 DEFINE_BASECLASS( "base_wire_entity" )
 ENT.PrintName       = "Wire Screen"
-ENT.RenderGroup		= RENDERGROUP_OPAQUE
 ENT.WireDebugName	= "Screen"
-
-
--- Shared
 
 function ENT:SetDisplayA( float )
 	self:SetNetworkedBeamFloat( 1, float, true )

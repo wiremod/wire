@@ -1,11 +1,7 @@
 AddCSLuaFile()
 DEFINE_BASECLASS( "base_wire_entity" )
 ENT.PrintName       = "Wire Gyroscope"
-ENT.RenderGroup		= RENDERGROUP_OPAQUE
 ENT.WireDebugName	= "Gyroscope"
-
-
--- Shared
 
 function ENT:SetupDataTables()
 	self:NetworkVar( "Bool", 0, "Out180" )

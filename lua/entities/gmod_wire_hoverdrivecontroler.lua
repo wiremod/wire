@@ -3,11 +3,8 @@ DEFINE_BASECLASS( "base_wire_entity" )
 ENT.PrintName		= "Wire Teleporter"
 ENT.WireDebugName 	= "Hoverdrive Controller"
 ENT.Author			= "Divran"
-ENT.RenderGroup		= RENDERGROUP_OPAQUE
 
-if CLIENT then 
-	return -- No more client
-end
+if CLIENT then return end -- No more client
 
 CreateConVar("wire_hoverdrive_cooldown","1",{FCVAR_ARCHIVE,FCVAR_NOTIFY})
 

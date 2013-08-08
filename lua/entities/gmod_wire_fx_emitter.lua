@@ -1,11 +1,7 @@
 AddCSLuaFile()
 DEFINE_BASECLASS( "base_wire_entity" )
 ENT.PrintName       = "Wire FX Emitter"
-ENT.RenderGroup		= RENDERGROUP_OPAQUE
 ENT.WireDebugName	= "FX Emitter"
-
-
--- Shared
 
 function ENT:SetupDataTables()
 	self:NetworkVar( "Bool", 0, "On" )
@@ -17,7 +13,6 @@ end
 function ENT:GetFXPos()
 	return self:GetPos()
 end
-
 
 -- Effect registration
 

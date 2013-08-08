@@ -8,8 +8,6 @@ ENT.Instructions = ""
 
 ENT.WireDebugName = "Expression 2"
 
-ENT.RenderGroup = RENDERGROUP_OPAQUE
-
 include("core/e2lib.lua")
 include("base/preprocessor.lua")
 include("base/tokenizer.lua")

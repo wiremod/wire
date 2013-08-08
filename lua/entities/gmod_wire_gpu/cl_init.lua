@@ -1,9 +1,6 @@
 include("cl_gpuvm.lua")
 include("shared.lua")
 
-ENT.RenderGroup		= RENDERGROUP_OPAQUE
-
-
 local Monitors = {}
 local MonitorLookup = {}
 local HUDLookup = {}

@@ -2,7 +2,6 @@ AddCSLuaFile()
 DEFINE_BASECLASS( "base_wire_entity" )
 ENT.PrintName		= "Wire Water Sensor"
 ENT.WireDebugName 	= "Water Sensor"
-ENT.RenderGroup		= RENDERGROUP_OPAQUE
 
 if CLIENT then return end -- No more client
 

@@ -1,7 +1,6 @@
 AddCSLuaFile()
 DEFINE_BASECLASS( "base_wire_entity" )
 ENT.PrintName		= "Wire Plug"
-ENT.RenderGroup		= RENDERGROUP_OPAQUE
 ENT.WireDebugName = "DataPlug"
 
 if CLIENT then return end -- No more client

@@ -8,8 +8,6 @@ ENT.WireDebugName	= "No Name"
 ENT.Spawnable = false
 ENT.AdminOnly = false
 
-
--- Shared
 ENT.IsWire = true
 ENT.OverlayText = ""
 local base_gmodentity = scripted_ents.Get("base_gmodentity")

@@ -4,9 +4,6 @@ ENT.PrintName       = "Wire Colorer"
 ENT.RenderGroup		= RENDERGROUP_BOTH
 ENT.WireDebugName	= "Colorer"
 
-
--- Shared
-
 function ENT:SetupDataTables()
 	self:NetworkVar( "Float", 0, "BeamLength" )
 end

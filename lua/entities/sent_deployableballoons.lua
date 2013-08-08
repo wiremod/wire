@@ -5,12 +5,11 @@ ENT.Author          = "LuaPinapple"
 ENT.Contact         = "evilpineapple@cox.net"
 ENT.Purpose         = "It Deploys Balloons."
 ENT.Instructions    = "Use wire."
-ENT.Category		= "Wiremod"
+ENT.Category        = "Wiremod"
 
 ENT.Spawnable       = true
-ENT.AdminOnly 		= false
+ENT.AdminOnly       = false
 
-ENT.RenderGroup		= RENDERGROUP_OPAQUE
 ENT.WireDebugName = "Balloon Deployer"
 cleanup.Register("wire_deployers")
 

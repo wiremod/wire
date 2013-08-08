@@ -4,9 +4,6 @@ ENT.PrintName       = "Wire Nailer"
 ENT.RenderGroup		= RENDERGROUP_BOTH
 ENT.WireDebugName	= "Nailer"
 
-
--- Shared
-
 function ENT:SetupDataTables()
 	self:NetworkVar( "Float", 0, "BeamLength" )
 	self:NetworkVar( "Bool",  0, "ShowBeam" )

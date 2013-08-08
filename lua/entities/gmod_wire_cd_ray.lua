@@ -4,9 +4,6 @@ ENT.PrintName       = "Wire CD Ray"
 ENT.RenderGroup		= RENDERGROUP_BOTH
 ENT.WireDebugName	= "CD Ray"
 
-
--- Shared
-
 function ENT:SetupDataTables()
 	self:NetworkVar( "Float", 0, "BeamLength" )
 end

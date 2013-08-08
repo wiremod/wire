@@ -1,7 +1,6 @@
 AddCSLuaFile()
 DEFINE_BASECLASS( "base_wire_entity" )
 ENT.PrintName       = "Wire Holo Grid"
-ENT.RenderGroup		= RENDERGROUP_OPAQUE
 ENT.Author          = "Chad 'Jinto'"
 ENT.WireDebugName = "Holo Grid"
 
