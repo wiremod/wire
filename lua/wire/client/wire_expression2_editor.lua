@@ -914,7 +914,7 @@ function Editor:InitComponents()
 			"Cancel")
 	end)
 	self.C['Browser'].panel.OnFileOpen = function(_, filepath, newtab)
-		self:Open(filepath, nil, true)
+		self:Open(filepath, nil, newtab)
 	end
 
 	self.C['Val'].panel:SetText("   Click to validate...")
