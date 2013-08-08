@@ -19,4 +19,5 @@ WireToolSetup.SetupLinking(true)
 
 function TOOL.BuildCPanel(panel)
 	ModelPlug_AddToCPanel(panel, "Misc_Tools", "wire_pod", nil, 1)
+	panel:Help("Formerly known as 'Advanced Pod Controller'")
 end
