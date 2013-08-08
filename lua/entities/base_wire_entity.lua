@@ -89,12 +89,17 @@ end
 
 -- Server
 
-ENT.Spawnable = true -- Needed serverside for duplicator.GenericDuplicatorFunction to work
-
 -- We want more fine-grained control over the networking of the overlay text,
 -- so we don't just immediately send it like base_gmodentity does.
 function ENT:SetOverlayText( txt )
 	self.OverlayText = txt
+end
+
+function ENT:Initialize()
+	base_gmodentity.Initialize(self)
+	self:PhysicsInit(SOLID_VPHYSICS)
+	self:SetMoveType(MOVETYPE_VPHYSICS)
+	self:SetSolid(SOLID_VPHYSICS)
 end
 
 timer.Create("WireOverlayUpdate", 0.1, 0, function()
