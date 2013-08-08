@@ -4,7 +4,6 @@ ENT.Type = "anim"
 ENT.PrintName       = "Wire Unnamed Ent"
 ENT.Purpose = "Base for all wired SEnts"
 ENT.RenderGroup		= RENDERGROUP_OPAQUE
-ENT.WireDebugName	= "No Name"
 ENT.Spawnable = false
 ENT.AdminOnly = false
 
@@ -100,6 +99,7 @@ function ENT:Initialize()
 	self:PhysicsInit(SOLID_VPHYSICS)
 	self:SetMoveType(MOVETYPE_VPHYSICS)
 	self:SetSolid(SOLID_VPHYSICS)
+	self.WireDebugName = self.WireDebugName or (self.PrintName and self.PrintName:sub(6)) or self:GetClass():gsub("gmod_wire", "")
 end
 
 timer.Create("WireOverlayUpdate", 0.1, 0, function()
