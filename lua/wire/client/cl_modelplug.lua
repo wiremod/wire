@@ -316,6 +316,18 @@ for k,v in pairs(explosivemodels) do
 	if file.Exists(v,"GAME") then list.Set( "Wire_Explosive_Models", v, true ) end
 end
 
+for k,v in pairs({
+		"models/props_c17/canister01a.mdl",
+		"models/props_interiors/Furniture_Lamp01a.mdl",
+		"models/props_c17/oildrum001.mdl",
+		"models/props_phx/misc/smallcannon.mdl",
+		"models/props_c17/fountain_01.mdl"
+	}) do
+	if file.Exists(v,"GAME") then
+		list.Set( "Wire_Gimbal_Models", v, true )
+	end
+end
+
 local valuemodels = {
 	"models/kobilica/value.mdl",
 	"models/bull/gates/resistor.mdl",
