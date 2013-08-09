@@ -914,7 +914,7 @@ function Editor:InitComponents()
 			"Cancel")
 	end)
 	self.C['Browser'].panel.OnFileOpen = function(_, filepath, newtab)
-		self:Open(filepath, nil, true)
+		self:Open(filepath, nil, newtab)
 	end
 
 	self.C['Val'].panel:SetText("   Click to validate...")
@@ -2182,7 +2182,7 @@ function Editor:LoadFile(Line, forcenewtab)
 			for i = 1, self:GetNumTabs() do
 				if self:GetEditor(i).chosenfile == Line then
 					self:SetActiveTab(i)
-					self:SetCode(str)
+					if forcenewtab ~= nil then self:SetCode(str) end
 					return
 				elseif self:GetEditor(i):GetValue() == str then
 					self:SetActiveTab(i)

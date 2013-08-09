@@ -57,7 +57,7 @@ function PANEL:Init()
 	self.lastClick = CurTime()
 
 	self:AddRightClick(self.filemenu, nil, "Open", function()
-		self:OnFileOpen(self.File:GetFileName())
+		self:OnFileOpen(self.File:GetFileName(), false)
 	end)
 	self:AddRightClick(self.filemenu, nil, "Open in New Tab", function()
 		self:OnFileOpen(self.File:GetFileName(), true)
