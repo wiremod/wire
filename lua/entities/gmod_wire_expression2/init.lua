@@ -74,6 +74,8 @@ function ENT:OnRestore()
 	self:Setup(self.original, self.inc_files, nil, true)
 end
 
+local SysTime = SysTime
+
 function ENT:Execute()
 	if self.error then return end
 	if self.context.resetting then return end
@@ -86,6 +88,8 @@ function ENT:Execute()
 
 	self.context:PushScope()
 
+	local bench = SysTime()
+
 	local ok, msg = pcall(self.script[1], self.context, self.script)
 	if not ok then
 		if msg == "exit" then
@@ -95,6 +99,8 @@ function ENT:Execute()
 			self:Error("Expression 2 (" .. self.name .. "): " .. msg, "script error")
 		end
 	end
+
+	self.time = self.time + (SysTime( ) - bench)
 
 	self.context:PopScope()
 
@@ -137,13 +143,14 @@ function ENT:Think()
 		self.context.prfcount = self.context.prfcount + self.context.prf - e2_softquota
 		if self.context.prfcount < 0 then self.context.prfcount = 0 end
 
-		self.context.prf = 0
-
 		if self.context.prfcount / e2_hardquota > 0.33 then
-			self:SetOverlayText(self.name .. "\n" .. tostring(math.Round(self.context.prfbench)) .. " ops, " .. tostring(math.Round(self.context.prfbench / e2_softquota * 100)) .. "% (+" .. tostring(math.Round(self.context.prfcount / e2_hardquota * 100)) .. "%)")
+			self:SetOverlayText(self.name .. "\n" .. tostring(math.Round(self.context.prfbench)) .. " ops, " .. tostring(math.Round(self.context.prfbench / e2_softquota * 100)) .. "% (+" .. tostring(math.Round(self.context.prfcount / e2_hardquota * 100)) .. "%)\ncpu time: " .. math.Round( self.time, 4 ) .. "'s")
 		else
-			self:SetOverlayText(self.name .. "\n" .. tostring(math.Round(self.context.prfbench)) .. " ops, " .. tostring(math.Round(self.context.prfbench / e2_softquota * 100)) .. "%")
+			self:SetOverlayText(self.name .. "\n" .. tostring(math.Round(self.context.prfbench)) .. " ops, " .. tostring(math.Round(self.context.prfbench / e2_softquota * 100)) .. "%\ncpu time: " .. math.Round( self.time, 4 ) .. "'s")
 		end
+
+		self.time = 0
+		self.context.prf = 0
 	end
 
 	return true
@@ -197,6 +204,7 @@ function ENT:CompileCode(buffer, files)
 	end
 	self:SetNWString("name", self.name)
 
+	self.time = 0
 	self.directives = directives
 	self.inports = directives.inputs
 	self.outports = directives.outputs
