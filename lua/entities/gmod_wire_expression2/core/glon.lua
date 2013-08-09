@@ -213,7 +213,7 @@ e2function string glonError()
 		error( "Glon is not installed on this server. Please use von instead.", 0 )
 	end
 
-	return last_glon_error
+	return last_glon_error or ""
 end
 
 if glon then
@@ -305,7 +305,7 @@ e2function array vonDecode(string data)
 end
 
 e2function string vonError()
-	return last_von_error
+	return last_von_error or ""
 end
 
 __e2setcost(15)
