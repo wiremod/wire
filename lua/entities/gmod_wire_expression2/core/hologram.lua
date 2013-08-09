@@ -13,6 +13,7 @@ CreateConVar( "wire_holograms_spawn_amount", "15" ) -- This limit resets once a 
 CreateConVar( "wire_holograms_burst_amount", "80" ) -- This limit goes down first; resets every burst_delay
 CreateConVar( "wire_holograms_burst_delay", "10" )
 CreateConVar( "wire_holograms_max_clips", "5" ) -- Don't set higher than 16 without editing net.Start("wire_holograms_clip")
+local wire_holograms_model_any = CreateConVar( "wire_holograms_model_any", "0", {FCVAR_ARCHIVE}, "Allow holograms to use models besides the official hologram models." )
 local wire_holograms_size_max = CreateConVar( "wire_holograms_size_max", "50" )
 util.AddNetworkString("wire_holograms_set_visible")
 util.AddNetworkString("wire_holograms_clip")
@@ -128,6 +129,15 @@ for _,v in pairs( ModelList ) do
 
 		added[v] = true
 	end
+end
+
+local function GetModel(model)
+	if ModelList[model] then
+		model = "models/Holograms/"..ModelList[model]..".mdl"
+	elseif not wire_holograms_model_any:GetBool() then
+		return
+	end
+	return Model(model)
 end
 
 /******************************************************************************/
@@ -377,16 +387,14 @@ local function CreateHolo(self, index, pos, scale, ang, color, model)
 	if not pos   then pos   = self.entity:GetPos() end
 	if not scale then scale = Vector(1,1,1) end
 	if not ang   then ang   = self.entity:GetAngles() end
-	model = ModelList[model]
-	if not model then model = "cube" end
+	
+	model = GetModel(model or "cube") or "models/Holograms/cube.mdl"
 
 	local Holo = CheckIndex(self, index)
 	if not Holo then
 		Holo = {}
 		SetIndex(self, index, Holo)
 	end
-
-	model = "models/Holograms/"..model..".mdl"
 
 	local prop
 
@@ -566,12 +574,12 @@ e2function void holoDeleteAll()
 end
 
 e2function void holoReset(index, string model, vector scale, vector color, string material)
-	if !ModelList[model] then return end
-	model = ModelList[model]
+	model = GetModel(model)
+	if not model then return end
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
 
-	Holo.ent:SetModel(Model("models/Holograms/"..model..".mdl"))
+	Holo.ent:SetModel(model)
 	Holo.ent:SetColor(Color(color[1],color[2],color[3],255))
 	Holo.ent:SetMaterial(material)
 
@@ -759,13 +767,18 @@ e2function array holoModelList()
 	return mlist
 end
 
+e2function number holoModelAny()
+	return wire_holograms_model_any:GetInt()
+end
+
 e2function void holoModel(index, string model)
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
-	if !ModelList[model] then return end
-	model = ModelList[model]
+	
+	model = GetModel(model)
+	if not model then return end
 
-	Holo.ent:SetModel( Model( "models/Holograms/"..model..".mdl") )
+	Holo.ent:SetModel(model)
 end
 
 e2function void holoModel(index, string model, skin)
@@ -775,10 +788,10 @@ e2function void holoModel(index, string model, skin)
 	skin = skin - skin % 1
 	Holo.ent:SetSkin(skin)
 
-	if !ModelList[model] then return end
-	model = ModelList[model]
+	model = GetModel(model)
+	if not model then return end
 
-	Holo.ent:SetModel( Model( "models/Holograms/"..model..".mdl") )
+	Holo.ent:SetModel(model)
 end
 
 e2function void holoSkin(index, skin)
