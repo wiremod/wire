@@ -42,7 +42,12 @@ function ENT:TriggerInput(name,value)
 			self.TargetAng = value
 		end
 	end
+	self:ShowOutput()
+	return true
+end
+
 	
+function ENT:Think()
 	if self.On then
 		local ang
 		if self.TargetPos then
@@ -56,7 +61,7 @@ function ENT:TriggerInput(name,value)
 		-- TODO: Put an option in the CPanel for Angle(90,0,0), and other useful directions
 		self:GetPhysicsObject():Wake()
 	end
-	self:ShowOutput()
+	self:NextThink(CurTime())
 	return true
 end
 
