@@ -100,7 +100,7 @@ function ENT:Execute()
 		end
 	end
 
-	self.time = self.time + (SysTime( ) - bench)
+	self.context.time = self.context.time + (SysTime() - bench)
 
 	self.context:PopScope()
 
@@ -141,16 +141,14 @@ function ENT:Think()
 	if self.context and not self.error then
 		self.context.prfbench = self.context.prfbench * 0.95 + self.context.prf * 0.05
 		self.context.prfcount = self.context.prfcount + self.context.prf - e2_softquota
+		self.context.timebench = self.context.timebench * 0.95 + self.context.time * 0.05 -- Average it over the last 20 ticks
 		if self.context.prfcount < 0 then self.context.prfcount = 0 end
 
-		if self.context.prfcount / e2_hardquota > 0.33 then
-			self:SetOverlayText(self.name .. "\n" .. tostring(math.Round(self.context.prfbench)) .. " ops, " .. tostring(math.Round(self.context.prfbench / e2_softquota * 100)) .. "% (+" .. tostring(math.Round(self.context.prfcount / e2_hardquota * 100)) .. "%)\ncpu time: " .. math.Round( self.time, 4 ) .. "'s")
-		else
-			self:SetOverlayText(self.name .. "\n" .. tostring(math.Round(self.context.prfbench)) .. " ops, " .. tostring(math.Round(self.context.prfbench / e2_softquota * 100)) .. "%\ncpu time: " .. math.Round( self.time, 4 ) .. "'s")
-		end
+		local hardtext = (self.context.prfcount / e2_hardquota > 0.33) and "(+" .. tostring(math.Round(self.context.prfcount / e2_hardquota * 100)) .. "%)" or ""
+		self:SetOverlayText(string.format("%s\n%i ops, %i%% %s\ncpu time: %.4f's", self.name, self.context.prfbench, self.context.prfbench / e2_softquota * 100, hardtext, self.context.timebench)
 
-		self.time = 0
 		self.context.prf = 0
+		self.context.time = 0
 	end
 
 	return true
@@ -204,7 +202,6 @@ function ENT:CompileCode(buffer, files)
 	end
 	self:SetNWString("name", self.name)
 
-	self.time = 0
 	self.directives = directives
 	self.inports = directives.inputs
 	self.outports = directives.outputs
@@ -279,6 +276,8 @@ function ENT:ResetContext()
 		prf = 0,
 		prfcount = 0,
 		prfbench = 0,
+		time = 0,
+		timebench = 0,
 		includes = self.includes
 	}
 
