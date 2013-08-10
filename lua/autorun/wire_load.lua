@@ -34,6 +34,7 @@ if SERVER then
 	AddCSLuaFile("wire/cpulib.lua")
 	AddCSLuaFile("wire/timedpairs.lua")
 	AddCSLuaFile("wire/default_data_decompressor.lua")
+	AddCSLuaFile("wire/flir.lua")
 
 	-- client includes
 	AddCSLuaFile("wire/client/cl_wirelib.lua")
@@ -87,6 +88,7 @@ include("wire/gpulib.lua")
 include("wire/cpulib.lua")
 include("wire/timedpairs.lua")
 include("wire/default_data_decompressor.lua")
+include("wire/flir.lua")
 include("von.lua")
 
 -- server includes
