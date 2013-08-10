@@ -1,16 +1,16 @@
 E2Lib.RegisterExtension( "holo", true )
 
-/******************************************************************************/
+-- -----------------------------------------------------------------------------
 
 local function checkOwner(self)
-	return IsValid(self.player);
+	return IsValid(self.player)
 end
 
-/******************************************************************************/
+-- -----------------------------------------------------------------------------
 
 CreateConVar( "wire_holograms_max", "250" )
 CreateConVar( "wire_holograms_spawn_amount", "15" ) -- This limit resets once a second
-CreateConVar( "wire_holograms_burst_amount", "80" ) -- This limit goes down first; resets every burst_delay
+CreateConVar( "wire_holograms_burst_amount", "80" ) -- This limit goes down first, resets every burst_delay
 CreateConVar( "wire_holograms_burst_delay", "10" )
 CreateConVar( "wire_holograms_max_clips", "5" ) -- Don't set higher than 16 without editing net.Start("wire_holograms_clip")
 local wire_holograms_model_any = CreateConVar( "wire_holograms_model_any", "0", {FCVAR_ARCHIVE}, "Allow holograms to use models besides the official hologram models." )
@@ -85,7 +85,7 @@ local ModelList = {
 	["octagon"]           = "octagon",
 	["right_prism"]       = "right_prism",
 
-	// Removed models with their replacements
+	-- Removed models with their replacements
 
 	["dome"]             = "hq_dome",
 	["dome2"]            = "hq_hdome",
@@ -99,7 +99,7 @@ local ModelList = {
 	["hqtorus"]          = "hq_torus_oldsize",
 	["hqtorus2"]         = "hq_torus_oldsize",
 
-	// HQ models with their short names
+	-- HQ models with their short names
 
 	["hqhdome"]          = "hq_hdome",
 	["hqhdome2"]         = "hq_hdome_thin",
@@ -123,9 +123,9 @@ local ModelList = {
 local added = {}
 
 for _,v in pairs( ModelList ) do
-	if !added[v] then
-		util.PrecacheModel( "models/Holograms/" .. v .. ".mdl" )
-		//resource.AddSingleFile( "models/Holograms/" .. v .. ".mdl" )
+	if not added[v] then
+		util.PrecacheModel( "models/holograms/" .. v .. ".mdl" )
+		-- resource.AddSingleFile( "models/holograms/" .. v .. ".mdl" )
 
 		added[v] = true
 	end
@@ -133,14 +133,14 @@ end
 
 local function GetModel(model)
 	if ModelList[model] then
-		model = "models/Holograms/"..ModelList[model]..".mdl"
+		model = "models/holograms/"..ModelList[model]..".mdl"
 	elseif not wire_holograms_model_any:GetBool() then
 		return
 	end
 	return Model(model)
 end
 
-/******************************************************************************/
+-- -----------------------------------------------------------------------------
 
 local scale_queue = {}
 local clip_queue = {}
@@ -174,7 +174,7 @@ local function flush_clip_queue(queue, recipient)
 			if clip and clip.index then
 				net.WriteUInt(Holo.ent:EntIndex(), 16)
 				net.WriteUInt(clip.index, 4) -- 4: absolute highest wire_holograms_max_clips is thus 16
-				if clip.enabled != nil then
+				if clip.enabled ~= nil then
 					net.WriteBit(true)
 					net.WriteBit(clip.enabled)
 				elseif clip.origin and clip.normal and clip.isglobal then
@@ -255,7 +255,7 @@ end
 local function enable_clip(Holo, idx, enabled)
 	local clip = check_clip(Holo, idx)
 
-	if clip and clip.enabled != enabled then
+	if clip and clip.enabled ~= enabled then
 		clip.enabled = enabled
 
 		table.insert(clip_queue, {
@@ -271,7 +271,7 @@ end
 local function set_clip(Holo, idx, origin, normal, isglobal)
 	local clip = check_clip(Holo, idx)
 
-	if clip and (clip.origin != origin or clip.normal != normal or clip.isglobal != isglobal) then
+	if clip and (clip.origin ~= origin or clip.normal ~= normal or clip.isglobal ~= isglobal) then
 		clip.origin = origin
 		clip.normal = normal
 		clip.isglobal = isglobal
@@ -322,7 +322,7 @@ hook.Add( "PlayerInitialSpawn", "wire_holograms_set_vars", function(ply)
 							} )
 						end
 
-						if clip.origin and clip.normal and clip.isglobal != nil then
+						if clip.origin and clip.normal and clip.isglobal ~= nil then
 							table.insert(c_queue, {
 								Holo,
 								{
@@ -343,7 +343,7 @@ hook.Add( "PlayerInitialSpawn", "wire_holograms_set_vars", function(ply)
 	flush_clip_queue(c_queue, ply)
 end)
 
-/******************************************************************************/
+-- -----------------------------------------------------------------------------
 
 local function MakeHolo(Player, Pos, Ang, model)
 	local prop = ents.Create( "gmod_wire_hologram" )
@@ -388,7 +388,7 @@ local function CreateHolo(self, index, pos, scale, ang, color, model)
 	if not scale then scale = Vector(1,1,1) end
 	if not ang   then ang   = self.entity:GetAngles() end
 	
-	model = GetModel(model or "cube") or "models/Holograms/cube.mdl"
+	model = GetModel(model or "cube") or "models/holograms/cube.mdl"
 
 	local Holo = CheckIndex(self, index)
 	if not Holo then
@@ -416,10 +416,10 @@ local function CreateHolo(self, index, pos, scale, ang, color, model)
 		prop:CallOnRemove( "holo_on_parent_removal", function( ent, self, index ) --Remove on parent remove
 			local parent = ent:GetParent()
 
-			if !IsValid( parent ) then return end
+			if not IsValid( parent ) then return end
 
 			local Holo = CheckIndex( self, index )
-			if !Holo then return end
+			if not Holo then return end
 
 			PlayerAmount[self.uid] = PlayerAmount[self.uid] - 1
 			SetIndex( self, index, nil )
@@ -434,7 +434,7 @@ local function CreateHolo(self, index, pos, scale, ang, color, model)
 	return prop
 end
 
-/******************************************************************************/
+-- -----------------------------------------------------------------------------
 
 local function CheckSpawnTimer( self, readonly )
 	local holo = self.data.holo
@@ -491,14 +491,14 @@ local function clearholos(self)
 	end
 end
 
-/******************************************************************************/
+-- -----------------------------------------------------------------------------
 
 __e2setcost(20) -- temporary
 
 
 
 e2function entity holoCreate(index, vector position, vector scale, angle ang, vector color, string model)
-	if (not checkOwner(self)) then return; end
+	if not checkOwner(self) then return end
 	if BlockList[self.player:SteamID()] == true or CheckSpawnTimer( self ) == false then return end
 	local Holo = CheckIndex(self, index)
 	if not Holo and PlayerAmount[self.uid] >= GetConVar("wire_holograms_max"):GetInt() then return end
@@ -510,7 +510,7 @@ e2function entity holoCreate(index, vector position, vector scale, angle ang, ve
 end
 
 e2function entity holoCreate(index, vector position, vector scale, angle ang, vector color)
-	if (not checkOwner(self)) then return; end
+	if not checkOwner(self) then return end
 	if BlockList[self.player:SteamID()] == true or CheckSpawnTimer( self ) == false then return end
 	local Holo = CheckIndex(self, index)
 	if not Holo and PlayerAmount[self.uid] >= GetConVar("wire_holograms_max"):GetInt() then return end
@@ -522,7 +522,7 @@ e2function entity holoCreate(index, vector position, vector scale, angle ang, ve
 end
 
 e2function entity holoCreate(index, vector position, vector scale, angle ang)
-	if (not checkOwner(self)) then return; end
+	if not checkOwner(self) then return end
 	if BlockList[self.player:SteamID()] == true or CheckSpawnTimer( self ) == false then return end
 	local Holo = CheckIndex(self, index)
 	if not Holo and PlayerAmount[self.uid] >= GetConVar("wire_holograms_max"):GetInt() then return end
@@ -534,7 +534,7 @@ e2function entity holoCreate(index, vector position, vector scale, angle ang)
 end
 
 e2function entity holoCreate(index, vector position, vector scale)
-	if (not checkOwner(self)) then return; end
+	if not checkOwner(self) then return end
 	if BlockList[self.player:SteamID()] == true or CheckSpawnTimer( self ) == false then return end
 	local Holo = CheckIndex(self, index)
 	if not Holo and PlayerAmount[self.uid] >= GetConVar("wire_holograms_max"):GetInt() then return end
@@ -545,7 +545,7 @@ e2function entity holoCreate(index, vector position, vector scale)
 end
 
 e2function entity holoCreate(index, vector position)
-	if (not checkOwner(self)) then return; end
+	if not checkOwner(self) then return end
 	if BlockList[self.player:SteamID()] == true or CheckSpawnTimer( self ) == false then return end
 	local Holo = CheckIndex(self, index)
 	if not Holo and PlayerAmount[self.uid] >= GetConVar("wire_holograms_max"):GetInt() then return end
@@ -556,7 +556,7 @@ e2function entity holoCreate(index, vector position)
 end
 
 e2function entity holoCreate(index)
-	if (not checkOwner(self)) then return; end
+	if not checkOwner(self) then return end
 	if BlockList[self.player:SteamID()] == true or CheckSpawnTimer( self ) == false then return end
 	local Holo = CheckIndex(self, index)
 	if not Holo and PlayerAmount[self.uid] >= GetConVar("wire_holograms_max"):GetInt() then return end
@@ -604,7 +604,7 @@ e2function number holoRemainingSpawns()
 	return self.data.holo.remainingSpawns
 end
 
-/******************************************************************************/
+-- -----------------------------------------------------------------------------
 
 __e2setcost(5) -- temporary
 
@@ -656,9 +656,9 @@ e2function number holoClipsAvailable()
 	return 0
 end
 
-e2function void holoClipEnabled(index, enabled) //Clip at first index
+e2function void holoClipEnabled(index, enabled) -- Clip at first index
 	local Holo = CheckIndex(self, index)
-	if !Holo then return end
+	if not Holo then return end
 
 	if enabled == 1 then
 		enable_clip(Holo, 1, true)
@@ -669,7 +669,7 @@ end
 
 e2function void holoClipEnabled(index, clipidx, enabled)
 	local Holo = CheckIndex(self, index)
-	if !Holo then return end
+	if not Holo then return end
 
 	if enabled == 1 then
 		enable_clip(Holo, clipidx, true)
@@ -678,16 +678,16 @@ e2function void holoClipEnabled(index, clipidx, enabled)
 	end
 end
 
-e2function void holoClip(index, vector origin, vector normal, isglobal) //Clip at first index
+e2function void holoClip(index, vector origin, vector normal, isglobal) -- Clip at first index
 	local Holo = CheckIndex(self, index)
-	if !Holo then return end
+	if not Holo then return end
 
 	set_clip(Holo, 1, Vector(origin[1], origin[2], origin[3]), Vector(normal[1], normal[2], normal[3]), isglobal)
 end
 
 e2function void holoClip(index, clipidx, vector origin, vector normal, isglobal)
 	local Holo = CheckIndex(self, index)
-	if !Holo then return end
+	if not Holo then return end
 
 	set_clip(Holo, clipidx, Vector(origin[1], origin[2], origin[3]), Vector(normal[1], normal[2], normal[3]), isglobal)
 end
@@ -706,7 +706,7 @@ e2function void holoAng(index, angle ang)
 	E2Lib.setAng(Holo.ent, Angle(ang[1],ang[2],ang[3]))
 end
 
-/******************************************************************************/
+-- -----------------------------------------------------------------------------
 
 e2function void holoColor(index, vector color)
 	local Holo = CheckIndex(self, index)
@@ -755,7 +755,7 @@ e2function void holoDisableShading( index, disable )
 	Holo.ent:SetNWBool( "disable_shading", disable == 1 )
 end
 
-/******************************************************************************/
+-- -----------------------------------------------------------------------------
 
 e2function array holoModelList()
 	local mlist = {}
@@ -831,32 +831,32 @@ e2function number holoBodygroups(index, bgrp_id)
 	return Holo.ent:GetBodygroupCount(bgrp_id)
 end
 
-/******************************************************************************/
+-- -----------------------------------------------------------------------------
 
 e2function void holoVisible(index, entity ply, visible)
 	local Holo = CheckIndex(self, index)
-	if !Holo or !IsValid( ply ) or !ply:IsPlayer() then return end
+	if not Holo or not IsValid( ply ) or not ply:IsPlayer() then return end
 
 	set_visible(Holo, { ply }, visible)
 end
 
 e2function void holoVisible(index, array players, visible)
 	local Holo = CheckIndex(self, index)
-	if !Holo then return end
+	if not Holo then return end
 
 	set_visible(Holo, players, visible)
 end
 
-/******************************************************************************/
+-- -----------------------------------------------------------------------------
 local function Parent_Hologram(holo, ent, bone, attachment)
 	if ent:GetParent() and ent:GetParent():IsValid() and ent:GetParent() == holo.ent then return end
 
 	holo.ent:SetParent(ent)
 
-	if bone != nil then
+	if bone ~= nil then
 		holo.ent:SetParentPhysNum(bone)
 	end
-	if attachment != nil then
+	if attachment ~= nil then
 		holo.ent:Fire("SetParentAttachmentMaintainOffset", attachment, 0.01)
 	end
 end
@@ -880,7 +880,7 @@ e2function void holoParent(index, otherindex)
 	local Holo2 = CheckIndex(self, otherindex)
 	if not Holo2 then return end
 
-	if !Check_Parents(Holo.ent, Holo2.ent) then return end
+	if not Check_Parents(Holo.ent, Holo2.ent) then return end
 
 	Parent_Hologram(Holo, Holo2.ent, nil, nil)
 end
@@ -890,7 +890,7 @@ e2function void holoParent(index, entity ent)
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
 
-	if !Check_Parents(Holo.ent, ent) then return end
+	if not Check_Parents(Holo.ent, ent) then return end
 
 	Parent_Hologram(Holo, ent, 0, nil)
 end
@@ -921,7 +921,7 @@ e2function void holoUnparent(index)
 	Holo.ent:SetParentPhysNum(0)
 end
 
-/******************************************************************************/
+-- -----------------------------------------------------------------------------
 
 e2function entity holoEntity(index)
 	local Holo = CheckIndex(self, index)
@@ -946,7 +946,7 @@ e2function number holoIndex(entity ent)
 	return 0
 end
 
-/******************************************************************************/
+-- -----------------------------------------------------------------------------
 
 registerCallback("construct", function(self)
 	if not E2HoloRepo[self.uid] then
@@ -968,7 +968,7 @@ registerCallback("destruct", function(self)
 	clearholos(self)
 end)
 
-/******************************************************************************/
+-- -----------------------------------------------------------------------------
 
 local function ConsoleMessage(ply, text)
 	if ply:IsValid() then
@@ -1009,7 +1009,7 @@ concommand.Add( "wire_holograms_block", function( ply, com, args )
 		if BlockList[v:SteamID()] == true then
 			ConsoleMessage( ply, v:GetName() .. " is already in the holograms blocklist!" )
 		else
-			local uid = v:UniqueID();
+			local uid = v:UniqueID()
 			if E2HoloRepo[uid] then
 				for k2,v2 in pairs( E2HoloRepo[uid] ) do
 					if v2 and IsValid(v2.ent) then
@@ -1077,10 +1077,10 @@ concommand.Add( "wire_holograms_block_id", function( ply, com, args )
 		for _,player in ipairs( player.GetAll() ) do
 			player:PrintMessage( HUD_PRINTTALK, "(ADMIN) " .. steamID .. " added to holograms blocklist" )
 		end
-		local uid;
+		local uid
 		for _,v in pairs( player.GetAll() ) do
 			if v:SteamID() == steamID then
-				uid = v:UniqueID();
+				uid = v:UniqueID()
 				if (E2HoloRepo[uid]) then
 					for k2,v2 in pairs( E2HoloRepo[uid] ) do
 						if v2 and IsValid(v2.ent) then
@@ -1116,7 +1116,7 @@ concommand.Add( "wire_holograms_unblock_id", function( ply, com, args )
 	end
 end )
 
-/******************************************************************************/
+-- -----------------------------------------------------------------------------
 
 wire_holograms = {} -- This global table is used to share certain functions and variables with UWSVN
 wire_holograms.wire_holograms_size_max = wire_holograms_size_max
