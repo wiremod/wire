@@ -25,11 +25,11 @@ registerType("vector", "v", { 0, 0, 0 },
 	function(self, output) return Vector(output[1], output[2], output[3]) end,
 	function(retval)
 		if isvector(retval) then return end
-		if !istable(retval) then error("Return value is neither a Vector nor a table, but a "..type(retval).."!",0) end
+		if not istable(retval) then error("Return value is neither a Vector nor a table, but a "..type(retval).."!",0) end
 		if #retval ~= 3 then error("Return value does not have exactly 3 entries!",0) end
 	end,
 	function(v)
-		return !isvector(v) and (!istable(v) or #v ~= 3)
+		return not isvector(v) and (not istable(v) or #v ~= 3)
 	end
 )
 
@@ -81,23 +81,23 @@ end)
 --------------------------------------------------------------------------------
 
 e2function number vector:operator_is()
-	if this[1] > delta || -this[1] > delta ||
-	   this[2] > delta || -this[2] > delta ||
-	   this[3] > delta || -this[3] > delta
+	if this[1] > delta or -this[1] > delta or
+	   this[2] > delta or -this[2] > delta or
+	   this[3] > delta or -this[3] > delta
 	   then return 1 else return 0 end
 end
 
 e2function number vector:operator==( vector other )
-	if this[1] - other[1] <= delta && other[1] - this[1] <= delta &&
-	   this[2] - other[2] <= delta && other[2] - this[2] <= delta &&
-	   this[3] - other[3] <= delta && other[3] - this[3] <= delta
+	if this[1] - other[1] <= delta and other[1] - this[1] <= delta and
+	   this[2] - other[2] <= delta and other[2] - this[2] <= delta and
+	   this[3] - other[3] <= delta and other[3] - this[3] <= delta
 	   then return 1 else return 0 end
 end
 
 e2function number vector:operator!=( vector other )
-	if this[1] - other[1] > delta || other[1] - this[1] > delta ||
-	   this[2] - other[2] > delta || other[2] - this[2] > delta ||
-	   this[3] - other[3] > delta || other[3] - this[3] > delta
+	if this[1] - other[1] > delta or other[1] - this[1] > delta or
+	   this[2] - other[2] > delta or other[2] - this[2] > delta or
+	   this[3] - other[3] > delta or other[3] - this[3] > delta
 	   then return 1 else return 0 end
 end
 
@@ -516,7 +516,7 @@ end
 __e2setcost(5)
 
 --- Returns 1 if the vector lies between (or is equal to) the min/max vectors
-e2function vector inrange(vector vec, vector min, vector max)
+e2function number inrange(vector vec, vector min, vector max)
 	if vec[1] < min[1] then return 0 end
 	if vec[2] < min[2] then return 0 end
 	if vec[3] < min[3] then return 0 end
