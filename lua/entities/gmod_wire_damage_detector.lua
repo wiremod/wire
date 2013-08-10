@@ -113,6 +113,7 @@ function ENT:LinkEntity( ent )
 		if IsValid(self) and self.linked_entities and self.linked_entities[0] == ent then self:Unlink() end
 	end)
 	self:ShowOutput()
+	return true
 end
 
 function ENT:Unlink()

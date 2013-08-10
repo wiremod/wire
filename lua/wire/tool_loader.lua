@@ -421,22 +421,26 @@ function WireToolSetup.SetupLinking(SingleLink)
 		if CLIENT then return true end
 
 		local ent = trace.Entity
-		if self:GetStage() == 0 and self:CheckHitOwnClass(trace) then
-			self.Controller = ent
-			self:SetStage(1)
-		else
-			local ply = self:GetOwner()
-			local success = self.Controller:LinkEnt(ent)
-			if success == true then
-				if not ply:KeyDown(IN_SPEED) or self.SingleLink then self:SetStage(0) end
-				WireLib.AddNotify(ply, "Linked entity: " .. tostring(ent) .. " to the "..self.Name, NOTIFY_GENERIC, 5)
-			elseif success == false then
-				WireLib.AddNotify(ply, "That entity is already linked to the "..self.Name, NOTIFY_ERROR, 5, NOTIFYSOUND_DRIP3)
-			elseif isstring(success) then
-				WireLib.AddNotify(ply, success, NOTIFY_ERROR, 5, NOTIFYSOUND_DRIP3)
+		if self:GetStage() == 0 then -- stage 0: right-clicking on our own class selects it
+			if self:CheckHitOwnClass(trace) then
+				self.Controller = ent
+				self:SetStage(1)
+				return true
+			else
+				return false
 			end
+		elseif self:GetStage() == 1 then -- stage 1: right-clicking on something links it
+			if not IsValid(self.Controller) then self:SetStage(0) return end
+			local ply = self:GetOwner()
+			local success, message = self.Controller:LinkEnt(ent)
+			if success then
+				if self.SingleLink or not ply:KeyDown(IN_SPEED) then self:SetStage(0) end
+				WireLib.AddNotify(ply, "Linked entity: " .. tostring(ent) .. " to the "..self.Name, NOTIFY_GENERIC, 5)
+			else
+				WireLib.AddNotify(ply, message or "That entity is already linked to the "..self.Name, NOTIFY_ERROR, 5, NOTIFYSOUND_DRIP3)
+			end
+			return success
 		end
-		return true
 	end
 
 	function TOOL:Reload(trace)
@@ -445,38 +449,28 @@ function WireToolSetup.SetupLinking(SingleLink)
 			return false 
 		end
 		if CLIENT then return true end
-
 		local ent = trace.Entity
-		if self.SingleLink then 
-			if self:CheckHitOwnClass(trace) then
+
+		if self:CheckHitOwnClass(trace) then -- regardless of stage, reloading on our own class clears it
+			self:SetStage(0)
+			if ent.ClearEntities then
+				ent:ClearEntities()
+				WireLib.AddNotify(ply, "All entities unlinked from the "..self.Name, NOTIFY_GENERIC, 7)
+			else
 				ent:UnlinkEnt()
 				WireLib.AddNotify(ply, "Unlinked "..self.Name, NOTIFY_GENERIC, 5)
 			end
-			self:SetStage(0)
-		elseif self:GetStage() == 0 and self:CheckHitOwnClass(trace) then
-			self.Controller = ent
-			self:SetStage(2)
-		else
+			return true
+		elseif self:GetStage() == 1 then -- stage 1: reloading on something else unlinks it
 			local ply = self:GetOwner()
-			if ent == self.Controller then
-				if self:GetStage() == 1 then
-					self:SetStage(2)
-				elseif self.Controller.ClearEntities then
-					self.Controller:ClearEntities()
-					WireLib.AddNotify(ply, "All entities unlinked from the "..self.Name, NOTIFY_GENERIC, 7)
-					self:SetStage(0)
-				end
+			local success, message = self.Controller:UnlinkEnt(ent)
+			if success then
+				if not self:GetOwner():KeyDown(IN_SPEED) then self:SetStage(0) end
+				WireLib.AddNotify(ply, "Unlinked entity: " .. tostring(ent) .. " from the "..self.Name, NOTIFY_GENERIC, 5)
 			else
-				local success = self.Controller:UnlinkEnt(ent)
-				if success == true then
-					if not ply:KeyDown(IN_SPEED) then self:SetStage(0) end
-					WireLib.AddNotify(ply, "Unlinked entity: " .. tostring(ent) .. " from the "..self.Name, NOTIFY_GENERIC, 5)
-				elseif success == false then
-					WireLib.AddNotify(ply, "That entity is not linked to the "..self.Name, NOTIFY_ERROR, 5, NOTIFYSOUND_DRIP3)
-				elseif isstring(success) then
-					WireLib.AddNotify(ply, success, NOTIFY_ERROR, 5, NOTIFYSOUND_DRIP3)
-				end
+				WireLib.AddNotify(ply, message or "That entity is not linked to the "..self.Name, NOTIFY_ERROR, 5, NOTIFYSOUND_DRIP3)
 			end
+			return success
 		end
 	end
 end

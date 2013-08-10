@@ -184,7 +184,7 @@ function ENT:LinkEnt(beacon)
 		return true
 	else
 		self:UnlinkEnt()
-		return "Must link to ent that outputs BeaconPos"
+		return false, "Must link to ent that outputs BeaconPos"
 	end
 end
 function ENT:UnlinkEnt(ent)
