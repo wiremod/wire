@@ -780,7 +780,7 @@ end
 
 
 function WireLib.BuildDupeInfo( Ent )
-	if (!Ent.Inputs) then return end
+	if not Ent.Inputs then return {} end
 
 	local info = { Wires = {} }
 	for portname,input in pairs(Ent.Inputs) do
