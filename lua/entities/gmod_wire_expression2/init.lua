@@ -145,7 +145,7 @@ function ENT:Think()
 		if self.context.prfcount < 0 then self.context.prfcount = 0 end
 
 		local hardtext = (self.context.prfcount / e2_hardquota > 0.33) and "(+" .. tostring(math.Round(self.context.prfcount / e2_hardquota * 100)) .. "%)" or ""
-		self:SetOverlayText(string.format("%s\n%i ops, %i%% %s\ncpu time: %.4f's", self.name, self.context.prfbench, self.context.prfbench / e2_softquota * 100, hardtext, self.context.timebench)
+		self:SetOverlayText(string.format("%s\n%i ops, %i%% %s\ncpu time: %.4f's", self.name, self.context.prfbench, self.context.prfbench / e2_softquota * 100, hardtext, self.context.timebench))
 
 		self.context.prf = 0
 		self.context.time = 0
