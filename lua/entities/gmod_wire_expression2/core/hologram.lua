@@ -13,7 +13,7 @@ CreateConVar( "wire_holograms_spawn_amount", "15" ) -- This limit resets once a 
 CreateConVar( "wire_holograms_burst_amount", "80" ) -- This limit goes down first, resets every burst_delay
 CreateConVar( "wire_holograms_burst_delay", "10" )
 CreateConVar( "wire_holograms_max_clips", "5" ) -- Don't set higher than 16 without editing net.Start("wire_holograms_clip")
-local wire_holograms_model_any = CreateConVar( "wire_holograms_model_any", "0", {FCVAR_ARCHIVE}, "Allow holograms to use models besides the official hologram models." )
+local wire_holograms_modelany = CreateConVar( "wire_holograms_modelany", "0", {FCVAR_ARCHIVE}, "Allow holograms to use models besides the official hologram models." )
 local wire_holograms_size_max = CreateConVar( "wire_holograms_size_max", "50" )
 util.AddNetworkString("wire_holograms_set_visible")
 util.AddNetworkString("wire_holograms_clip")
@@ -134,7 +134,7 @@ end
 local function GetModel(model)
 	if ModelList[model] then
 		model = "models/holograms/"..ModelList[model]..".mdl"
-	elseif not wire_holograms_model_any:GetBool() then
+	elseif not wire_holograms_modelany:GetBool() then
 		return
 	end
 	return Model(model)
@@ -768,7 +768,7 @@ e2function array holoModelList()
 end
 
 e2function number holoModelAny()
-	return wire_holograms_model_any:GetInt()
+	return wire_holograms_modelany:GetInt()
 end
 
 e2function void holoModel(index, string model)
