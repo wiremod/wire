@@ -124,7 +124,7 @@ function Compiler:SetGlobalVariableType(name, type, instance)
 	for i = self.ScopeID, 0, -1 do
 		local typ = self.Scopes[i][name]
 		if typ and typ ~= type then
-			self:Error("Variable (" .. E2Lib.limitString(name, 10) .. ") of type [" .. tps_pretty(typ) .. "] cannot be assigned value of type [" .. tps_pretty({ type }) .. "]", instance)
+			self:Error("Variable (" .. E2Lib.limitString(name, 10) .. ") of type [" .. tps_pretty({ typ }) .. "] cannot be assigned value of type [" .. tps_pretty({ type }) .. "]", instance)
 		elseif typ then
 			return i
 		end
