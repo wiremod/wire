@@ -294,7 +294,7 @@ if (SERVER) then
 			if (!Data[1]) then return end
 
 			if (E2 and E2.entity and E2.entity:IsValid()) then
-				E2.prf = E2.prf + 100
+				E2.prf = E2.prf + 30
 			end
 
 			self:AddQueueObject( Ent, E2.player, SendObjects, Data[1] )
@@ -303,13 +303,13 @@ if (SERVER) then
 			if (!Data[1]) then return end
 
 			if (E2 and E2.entity and E2.entity:IsValid()) then
-				E2.prf = E2.prf + 100
+				E2.prf = E2.prf + 20
 			end
 
 			self:AddQueueObject( Ent, E2.player, SendObjects, { index = Data[1], remove = true } )
 		elseif (Action == "ClearScreen") then
 			if (E2 and E2.entity and E2.entity:IsValid()) then
-				E2.prf = E2.prf + 100
+				E2.prf = E2.prf + 20
 			end
 			
 			// Remove all queued actions for this screen
@@ -317,6 +317,7 @@ if (SERVER) then
 			local i = 1
 			while i<=#queue do
 				if queue[i].Ent == Ent then
+					E2.prf = E2.prf + 0.3
 					table.remove(queue, i)
 				else
 					i = i + 1
@@ -331,7 +332,7 @@ if (SERVER) then
 			if (!Data[1]) then return end
 
 			if (E2 and E2.entity and E2.entity:IsValid()) then
-				E2.prf = E2.prf + 100
+				E2.prf = E2.prf + 10
 			end
 
 			EGP:SaveFrame( E2.player, Ent, Data[1] )
@@ -341,7 +342,7 @@ if (SERVER) then
 			if (!Data[1]) then return end
 
 			if (E2 and E2.entity and E2.entity:IsValid()) then
-				E2.prf = E2.prf + 100
+				E2.prf = E2.prf + 10
 			end
 
 			local bool, frame = EGP:LoadFrame( E2.player, Ent, Data[1] )
