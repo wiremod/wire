@@ -5,7 +5,7 @@ TOOL.Tab      = "Wire"
 if CLIENT then
 	language.Add( "Tool.wire_adv.name", "Advanced Wiring Tool" )
 	language.Add( "Tool.wire_adv.desc", "Used to connect wirable props." )
-	language.Add( "Tool.wire_adv.0", "Primary: Attach to selected input, Secondary: Next input, Reload: Unlink selected input, Wheel: Select input." )
+	language.Add( "Tool.wire_adv.0", "Primary: Attach to selected input (Hold Shift for multiple inputs), Secondary: Next input, Reload: Unlink selected input, Wheel: Select input." )
 	language.Add( "Tool.wire_adv.1", "Primary: Attach to output, Secondary: Attach but continue, hold Alt to wire all matching outputs, Reload: Cancel." )
 	language.Add( "Tool.wire_adv.2", "Primary: Confirm attach to output, Secondary: Next output, Reload: Cancel, Wheel: Select output." )
 end
@@ -37,6 +37,8 @@ local function get_active_tool(ply, tool)
 end
 
 if SERVER then
+	local MultiInputs = {}
+	
 	function TOOL:RightClick(trace)
 		if self:GetStage() == 1 then
 			local ent = trace.Entity
@@ -55,6 +57,7 @@ if SERVER then
 
 	function TOOL:Holster()
 		Wire_Link_Cancel(self:GetOwner():UniqueID())
+		MultiInputs[self:GetOwner()] = nil
 		self:SetStage(0)
 	end
 
@@ -70,10 +73,12 @@ if SERVER then
 			local material = self:GetClientInfo("material")
 			local width    = self:GetClientNumber("width")
 			local color    = Color(self:GetClientNumber("r"), self:GetClientNumber("g"), self:GetClientNumber("b"))
-
 			local lpos = Vector(tonumber(x), tonumber(y), tonumber(z))
-
-			if Wire_Link_Start(self:GetOwner():UniqueID(), target, lpos, portname, material, color, width) then
+			
+			if self:GetOwner():KeyDown(IN_SPEED) then
+				if not MultiInputs[self:GetOwner()] then MultiInputs[self:GetOwner()] = {} end
+				table.insert(MultiInputs[self:GetOwner()], {target, lpos, portname})
+			elseif Wire_Link_Start(self:GetOwner():UniqueID(), target, lpos, portname, material, color, width) then
 				self:SetStage(1)
 				self.target = target
 				self.input = portname
@@ -120,7 +125,7 @@ if SERVER then
 
 			-- only one port? skip stage 2 and finish the link right away.
 			local firstportname,firstport = next(outputs)
-			if not next(outputs, firstportname) and (input_type ~= "WIRELINK" or firstport.Type == "WIRELINK") then return self:Receive("o", "0", firstportname) end
+			if not next(outputs, firstportname) and (input_type ~= "WIRELINK" or firstport.Type == "WIRELINK") or self:GetOwner():KeyDown(IN_WALK) then return self:Receive("o", "0", firstportname) end
 
 		elseif mode == "o" then -- select output
 			if self:GetStage() ~= 2 then return end
@@ -132,8 +137,27 @@ if SERVER then
 			if self:GetOwner():KeyDown(IN_WALK) then
 				local Input = self.target.Inputs[self.input]
 				WireLib.WireAll(self:GetOwner(), self.target, self.source, Input.StartPos, self.lpos, Input.Material, Input.Color, Input.Width)
+				
+				if MultiInputs[self:GetOwner()] then
+					for _, tab in pairs(MultiInputs[self:GetOwner()]) do
+						local target, lpos, portname = unpack(tab)
+						WireLib.WireAll(self:GetOwner(), target, self.source, lpos, self.lpos, Input.Material, Input.Color, Input.Width)
+					end
+					MultiInputs[self:GetOwner()] = nil
+				end
 			else
 				Wire_Link_End(self:GetOwner():UniqueID(), self.source, self.lpos, self.output, self:GetOwner())
+			
+				if MultiInputs[self:GetOwner()] then
+					local Input = self.target.Inputs[self.input]
+					for _, tab in pairs(MultiInputs[self:GetOwner()]) do
+						local target, lpos, portname = unpack(tab)
+						if Wire_Link_Start(self:GetOwner():UniqueID(), target, lpos, portname, Input.Material, Input.Color, Input.Width) then
+							Wire_Link_End(self:GetOwner():UniqueID(), self.source, self.lpos, self.output, self:GetOwner())
+						end
+					end
+					MultiInputs[self:GetOwner()] = nil
+				end
 			end
 
 			self:SetStage(0)
