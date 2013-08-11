@@ -115,13 +115,6 @@ if SERVER then
 
 			self.source = source
 			self.lpos = Vector(tonumber(x), tonumber(y), tonumber(z))
-			
-			if self:GetOwner():KeyDown(IN_WALK) then
-				local Input = self.target.Inputs[self.input]
-				WireLib.WireAll(self:GetOwner(), self.target, self.source, Input.StartPos, self.lpos, Input.Material, Input.Color, Input.Width)
-				self:SetStage(0)
-				return
-			end
 
 			self:SetStage(2)
 
@@ -136,7 +129,12 @@ if SERVER then
 
 			self.output = portname
 
-			Wire_Link_End(self:GetOwner():UniqueID(), self.source, self.lpos, self.output, self:GetOwner())
+			if self:GetOwner():KeyDown(IN_WALK) then
+				local Input = self.target.Inputs[self.input]
+				WireLib.WireAll(self:GetOwner(), self.target, self.source, Input.StartPos, self.lpos, Input.Material, Input.Color, Input.Width)
+			else
+				Wire_Link_End(self:GetOwner():UniqueID(), self.source, self.lpos, self.output, self:GetOwner())
+			end
 
 			self:SetStage(0)
 
