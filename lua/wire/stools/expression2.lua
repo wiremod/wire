@@ -760,8 +760,6 @@ elseif CLIENT then
 	if CogTexture == surface.GetTextureID("texturemissing") then CogTexture = nil end
 
 	function TOOL:DrawToolScreen(width, height)
-		cam.Start2D()
-
 		surface.SetDrawColor(32, 32, 32, 255)
 		surface.DrawRect(0, 0, 256, 256)
 
@@ -804,8 +802,6 @@ elseif CLIENT then
 			DrawTextOutline("Expression 2", "Expression2ToolScreenFont", 128, 128, Color(224, 224, 224, 255), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER, Color(0, 0, 0, 255), 4)
 			DrawTextOutline(name, "Expression2ToolScreenSubFont", 128, 128 + (h + h2) / 2 - 4, Color(224, 224, 224, 255), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER, Color(0, 0, 0, 255), 4)
 		end
-
-		cam.End2D()
 	end
 end
 

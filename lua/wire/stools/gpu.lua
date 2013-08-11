@@ -265,8 +265,6 @@ if CLIENT then
   -- Tool screen
   ------------------------------------------------------------------------------
   function TOOL:DrawToolScreen(width, height)
-    cam.Start2D()
       CPULib.RenderCPUTool(1,"ZGPU")
-    cam.End2D()
   end
 end

@@ -466,9 +466,7 @@ if CLIENT then
   end
 
   function TOOL:DrawToolScreen(width, height)
-    cam.Start2D()
       local currentTime = os.date("*t")
       CPULib.RenderCPUTool(currentTime.yday % 4,"CPU")
-    cam.End2D()
   end
 end

@@ -244,8 +244,6 @@ if CLIENT then
   -- Tool screen
   ------------------------------------------------------------------------------
   function TOOL:DrawToolScreen(width, height)
-    cam.Start2D()
       CPULib.RenderCPUTool(1,"ZSPU")
-    cam.End2D()
   end
 end
