@@ -6,7 +6,7 @@ if CLIENT then
 	language.Add( "Tool.wire_adv.name", "Advanced Wiring Tool" )
 	language.Add( "Tool.wire_adv.desc", "Used to connect wirable props." )
 	language.Add( "Tool.wire_adv.0", "Primary: Attach to selected input, Secondary: Next input, Reload: Unlink selected input, Wheel: Select input." )
-	language.Add( "Tool.wire_adv.1", "Primary: Attach to output, Secondary: Attach but continue, Reload: Cancel." )
+	language.Add( "Tool.wire_adv.1", "Primary: Attach to output, Secondary: Attach but continue, hold Alt to wire all matching outputs, Reload: Cancel." )
 	language.Add( "Tool.wire_adv.2", "Primary: Confirm attach to output, Secondary: Next output, Reload: Cancel, Wheel: Select output." )
 end
 
@@ -115,6 +115,13 @@ if SERVER then
 
 			self.source = source
 			self.lpos = Vector(tonumber(x), tonumber(y), tonumber(z))
+			
+			if self:GetOwner():KeyDown(IN_WALK) then
+				local Input = self.target.Inputs[self.input]
+				WireLib.WireAll(self:GetOwner(), self.target, self.source, Input.StartPos, self.lpos, Input.Material, Input.Color, Input.Width)
+				self:SetStage(0)
+				return
+			end
 
 			self:SetStage(2)
 
