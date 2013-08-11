@@ -12,7 +12,7 @@ function ENT:Initialize()
 	self.CamPlayer = self:GetPlayer() -- The player being shown the camera view.
 
 	self.Active = false -- Whether the player is currently being shown the camera view.
-	self.ZoomAmount = 90 -- The FOV of the player's view.
+	self.ZoomAmount = 75 -- The FOV of the player's view.
 	self.Static = false -- Whether the camera controller has a separate camera entity.
 	self.FLIR = false -- Whether infrared view is turned on.
 end
@@ -64,9 +64,9 @@ function ENT:Setup(Static)
 	if not IsValid(self.CamEnt) then return false end
 
 	if self.Static then
-		self.Inputs = WireLib.CreateInputs( self, { "Activated", "Zoom", "FLIR" } )
+		self.Inputs = WireLib.CreateInputs( self, { "Activated", "Zoom (1-90)", "FLIR" } )
 	else
-		self.Inputs = WireLib.CreateInputs( self, { "Activated", "Zoom", "X", "Y", "Z", "Pitch", "Yaw", "Roll",
+		self.Inputs = WireLib.CreateInputs( self, { "Activated", "Zoom (1-90)", "X", "Y", "Z", "Pitch", "Yaw", "Roll",
 		                                            "Angle [ANGLE]", "Position [VECTOR]", "Direction [VECTOR]",
 		                                            "Parent [ENTITY]", "FLIR" } )
 	end
@@ -104,12 +104,12 @@ function ENT:EnableCam(enabled)
 	if not IsValid(self.CamPlayer) then self.CamPlayer = self:GetPlayer() end
 	if not IsValid(self.CamPlayer) then return end
 	if not IsValid(self.CamEnt) then enabled = false end
-	if enabled and not self.Active then
+	if not self.Active then
 		self.CamPlayer.OriginalFOV = self.CamPlayer:GetFOV()
 	end
 	self.CamPlayer.CamController = enabled and self or nil
 	self.CamPlayer:SetViewEntity(enabled and self.CamEnt or self.CamPlayer)
-	self.CamPlayer:SetFOV(enabled and self.ZoomAmount or self.CamPlayer.OriginalFOV or 90, 0.01 )
+	self.CamPlayer:SetFOV(enabled and self.ZoomAmount or self.CamPlayer.OriginalFOV or 75, 0.01 )
 	FLIR.enable(self.CamPlayer, enabled and self.FLIR)
 
 	WireLib.TriggerOutput(self, "On", enabled and 1 or 0)
@@ -125,7 +125,7 @@ function ENT:TriggerInput( name, value )
 		self:EnableCam(value)
 	elseif name == "Zoom" then
 		self.ZoomAmount = math.Clamp( value, 1, 90 )
-		self.CamPlayer:SetFOV( self.ZoomAmount, 0.01 )
+		if self.Active then self.CamPlayer:SetFOV( self.ZoomAmount, 0.01 ) end
 	elseif name == "FLIR" then
 		self.FLIR = tobool(value)
 		self:EnableCam(self.Active)
