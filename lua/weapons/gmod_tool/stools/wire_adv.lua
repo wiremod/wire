@@ -355,6 +355,7 @@ elseif CLIENT then
 			self.input = nil
 			self.source = nil
 			self.output = nil
+			self.MultiInputs = nil
 
 		elseif stage == 1 then
 			self.input = self.selinput
@@ -477,6 +478,11 @@ elseif CLIENT then
 
 			self.target = trace.Entity
 			if not IsValid(self.target) then return end
+			
+			if self.MultiInputs or self:GetOwner():KeyDown(IN_SPEED) then
+				if not self.MultiInputs then self.MultiInputs = {} end
+				table.insert(self.MultiInputs, self.target)
+			end
 
 			local lpos = self.target:WorldToLocal(trace.HitPos)
 			RunConsoleCommand("wire_adv", "i", self.target:EntIndex(), self.selinput[1], lpos.x, lpos.y, lpos.z)
@@ -631,8 +637,52 @@ elseif CLIENT then
 		local wsel = bind_post[bind]
 		if wsel then wsel() end
 	end)
+	
+	local fontTable = {
+		font = "Arial",
+		size = 34,
+		weight = 1000,
+		antialias = true,
+		additive = false,
+	}
+	surface.CreateFont("Arial34", fontTable)
+	fontTable.size = 28
+	surface.CreateFont("Arial28", fontTable)
+	
+	local black = Color(0, 0, 0, 255)
+	local offWhite = Color(224, 224, 224, 255)
+	local arrowMat = Material( "icon16/arrow_down.png", "noclamp" )
+	local function WriteText(text, y) DrawTextOutline(text, "Arial28", 128, y + 28/2, offWhite, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER, black, 4) return y + 26 end
+	
+	function TOOL:DrawToolScreen(width, height)
+		surface.SetDrawColor(Color(32, 32, 32, 255))
+		surface.DrawRect(0, 0, 256, 256)
+		
+		local y = 6
+		DrawTextOutline("Advanced Wiring", "Arial34", 128, y + 34/2, offWhite, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER, black, 4) y = y + 34
+		surface.SetDrawColor(offWhite) 
+		surface.DrawRect(0, y + 4, 256, 4) y = y + 14
+		if not IsValid(self.target) then
+			y = WriteText("Click Input Entity", y)
+		else
+			if self.MultiInputs then
+				y = WriteText("Input Entities: "..#self.MultiInputs, y)
+			else
+				y = WriteText(string.format("'%s'", self:GetOwner():KeyDown(IN_WALK) and "*All*" or (self.selinput or self.input or {""})[1]), y)
+				y = WriteText(self.target.WireDebugName or self.target:GetClass(), y)
+				y = WriteText(string.format("[%i]", self.target:EntIndex()), y)
+			end
+			surface.SetMaterial(arrowMat)
+			surface.SetDrawColor(Color(200,255,200,255))
+			surface.DrawTexturedRectUV( 128-24, y+8, 48, 48, 0, 0.35, 1, 1 )
+			y = y + 58
+			if self.source then 
+				y = WriteText("%s", self.source.WireDebugName or self.source:GetClass(), y)
+				y = WriteText(string.format("[%i]", self.source:EntIndex()), y)
+			end
+		end
+	end
 
-	-- CLIENT --
 	function TOOL.BuildCPanel(panel)
 		panel:AddControl("Header", { Text = "#Tool.wire.name", Description = "#Tool.wire.desc" })
 		WireToolHelpers.MakePresetControl(panel, "wire_adv")
