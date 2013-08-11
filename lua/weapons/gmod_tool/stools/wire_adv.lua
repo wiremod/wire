@@ -280,13 +280,14 @@ elseif CLIENT then
 
 		local mousenum
 
+		local selAllPorts = LocalPlayer():KeyDown(IN_WALK)
 		local cx, cy = gui.MousePos()
 		local mouseindex = selindex and cx >= boxx and cx < boxx+boxw and math.floor((cy-boxy)/texth+1)
 		for num,port in pairs(ports) do
 			local ind = num == "wl" and #ports+1 or num
 			local name,tp,desc,connected = unpack(port)
 			local texty = boxy+(ind-1)*texth
-			if num == selindex then
+			if num == selindex or selAllPorts then
 				draw.RoundedBox(4,
 					boxx-4, texty-1,
 					boxw+8, texth+2,
