@@ -30,19 +30,33 @@ end
 
 __e2setcost(20)
 
+local function GetAllConstrainedEntities( ent, ResultTable )
+	ResultTable[ ent ] = ent
+	
+	for _, con in ipairs( ent.Constraints or {} ) do
+		for i=1, 6 do
+			local e = con["Ent"..i]
+			if e  and not ResultTable[e] and e:IsValid() then
+				GetAllConstrainedEntities(e, ResultTable)
+			end
+		end
+	end
+
+	return ResultTable
+end
 --- Returns an '''array''' containing all entities directly or indirectly constrained to <this>, except <this> itself.
 e2function array entity:getConstraints()
 	if not IsValid(this) then return {} end
 	if not constraint.HasConstraints(this) then return {} end
 
-	local keytable = constraint.GetAllConstrainedEntities(this)
+	local keytable = GetAllConstrainedEntities(this, {})
 	local array = {}
-	local count = 0
 	for _,ent in pairs(keytable) do
-		if IsValid(ent) and ent ~= this then
+		if ent ~= this then
 			table.insert(array, ent)
 		end
 	end
+	self.prf = self.prf + #array * 30
 	return array
 end
 

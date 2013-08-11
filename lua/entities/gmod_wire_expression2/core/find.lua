@@ -751,12 +751,11 @@ e2function entity findResult(index)
 	return self.data.findlist[index]
 end
 
-__e2setcost(20)
-
 --- Returns the closest entity to the given point from the previous find event
 e2function entity findClosest(vector position)
 	local closest = nil
 	local dist = math.huge
+	self.prf = self.prf + #self.data.findlist * 10
 	for _,ent in pairs(self.data.findlist) do
 		if IsValid(ent) then
 			local pos = ent:GetPos()
@@ -777,10 +776,9 @@ e2function array findToArray()
 	for k,v in ipairs(self.data.findlist) do
 		tmp[k] = v
 	end
+	self.prf = self.prf + #tmp / 3
 	return tmp
 end
-
-__e2setcost(2)
 
 --- Equivalent to findResult(1)
 e2function entity find()
@@ -788,7 +786,7 @@ e2function entity find()
 end
 
 --[[************************************************************************]]--
-__e2setcost(30)
+__e2setcost(10)
 
 --- Sorts the entities from the last find event, index 1 is the closest to point V, returns the number of entities in the list
 e2function number findSortByDistance(vector position)
@@ -796,6 +794,7 @@ e2function number findSortByDistance(vector position)
 	local Distance = position.Distance
 	local IsValid = IsValid
 	local findlist = self.data.findlist
+	self.prf = self.prf + #findlist * 12
 	table.sort(findlist, function(a, b)
 		if not IsValid(a) then return false end -- !(invalid < b) <=> (b <= invalid)
 		if not IsValid(b) then return true end -- (valid < invalid)
@@ -806,11 +805,12 @@ e2function number findSortByDistance(vector position)
 end
 
 --[[************************************************************************]]--
-__e2setcost(20)
+__e2setcost(5)
 
 local function applyClip(self, filter)
 	local findlist = self.data.findlist
-
+	self.prf = self.prf + #findlist * 5
+	
 	filterList(findlist, filter)
 
 	return #findlist
