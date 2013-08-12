@@ -42,7 +42,7 @@ if SERVER then
 	function TOOL:RightClick(trace)
 		if self:GetStage() == 1 then
 			local ent = trace.Entity
-			Wire_Link_Node(self:GetOwner():UniqueID(), ent, ent:WorldToLocal(trace.HitPos+trace.HitNormal))
+			Wire_Link_Node(self:GetOwner():UniqueID(), ent, ent:WorldToLocal(trace.HitPos + trace.HitNormal*(self:GetClientNumber("width")/2)))
 		end
 
 		return false
