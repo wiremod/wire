@@ -75,13 +75,17 @@ if SERVER then
 			local color    = Color(self:GetClientNumber("r"), self:GetClientNumber("g"), self:GetClientNumber("b"))
 			local lpos = Vector(tonumber(x), tonumber(y), tonumber(z))
 			
-			if self:GetOwner():KeyDown(IN_SPEED) then
-				if not MultiInputs[self:GetOwner()] then MultiInputs[self:GetOwner()] = {} end
-				table.insert(MultiInputs[self:GetOwner()], {target, lpos, portname})
-			elseif Wire_Link_Start(self:GetOwner():UniqueID(), target, lpos, portname, material, color, width) then
-				self:SetStage(1)
+			if Wire_Link_Start(self:GetOwner():UniqueID(), target, lpos, portname, material, color, width) then
+				-- The port exists
 				self.target = target
 				self.input = portname
+				
+				if self:GetOwner():KeyDown(IN_SPEED) then
+					if not MultiInputs[self:GetOwner()] then MultiInputs[self:GetOwner()] = {} end
+					table.insert(MultiInputs[self:GetOwner()], {target, lpos, portname})
+				else
+					self:SetStage(1)
+				end
 			end
 
 		elseif mode == "s" then -- select source entity
@@ -104,9 +108,8 @@ if SERVER then
 
 				elseif input_type == "ENTITY" then
 					-- for entities, trigger the input with that entity and cancel the link.
-					self:SetStage(0)
+					self:Holster()
 
-					Wire_Link_Cancel(self:GetOwner():UniqueID())
 					WireLib.TriggerInput(self.target, self.input, source)
 					WireLib.AddNotify(self:GetOwner(), "Triggered entity input '"..self.input.."' with '"..tostring(source).."'.", NOTIFY_GENERIC, 7)
 					return
@@ -136,18 +139,15 @@ if SERVER then
 
 			if self:GetOwner():KeyDown(IN_WALK) then
 				local Input = self.target.Inputs[self.input]
-				WireLib.WireAll(self:GetOwner(), self.target, self.source, Input.StartPos, self.lpos, Input.Material, Input.Color, Input.Width)
-				
 				if MultiInputs[self:GetOwner()] then
 					for _, tab in pairs(MultiInputs[self:GetOwner()]) do
 						local target, lpos, portname = unpack(tab)
 						WireLib.WireAll(self:GetOwner(), target, self.source, lpos, self.lpos, Input.Material, Input.Color, Input.Width)
 					end
-					MultiInputs[self:GetOwner()] = nil
+				else
+					WireLib.WireAll(self:GetOwner(), self.target, self.source, Input.StartPos, self.lpos, Input.Material, Input.Color, Input.Width)
 				end
 			else
-				Wire_Link_End(self:GetOwner():UniqueID(), self.source, self.lpos, self.output, self:GetOwner())
-			
 				if MultiInputs[self:GetOwner()] then
 					local Input = self.target.Inputs[self.input]
 					for _, tab in pairs(MultiInputs[self:GetOwner()]) do
@@ -156,11 +156,12 @@ if SERVER then
 							Wire_Link_End(self:GetOwner():UniqueID(), self.source, self.lpos, self.output, self:GetOwner())
 						end
 					end
-					MultiInputs[self:GetOwner()] = nil
+				else
+					Wire_Link_End(self:GetOwner():UniqueID(), self.source, self.lpos, self.output, self:GetOwner())
 				end
 			end
-
-			self:SetStage(0)
+			
+			self:Holster()
 
 		elseif mode == "c" then -- clear link
 			if self:GetStage() ~= 0 then return end
@@ -255,7 +256,7 @@ elseif CLIENT then
 	end
 
 	-- CLIENT --
-	local function DrawPortBox(ports, selindex, align, seltype)
+	function TOOL:DrawPortBox(ports, selindex, align, seltype)
 		align = align or 1
 
 		if not ports then return end
@@ -444,24 +445,24 @@ elseif CLIENT then
 			end -- if stage
 		end
 
-		if self.input then DrawPortBox({ self.input }, nil, 0) end
+		if self.input then self:DrawPortBox({ self.input }, nil, 0) end
 
 		self.menu = self.ports and (ent:IsValid() or stage == 2)
 		if self.menu then
 			if stage == 0 then
-				self.mousenum = DrawPortBox(self.ports, self.port, 0)
+				self.mousenum = self:DrawPortBox(self.ports, self.port, 0)
 			elseif stage == 1 then
 				self.mousenum = nil
 				local seltype = self.input[2]
 				if #self.ports == 1 and self.ports[1][2] == seltype then
-					DrawPortBox(self.ports, 1, 2, seltype)
+					self:DrawPortBox(self.ports, 1, 2, seltype)
 				elseif #self.ports == 0 and self.ports.wl then
-					DrawPortBox(self.ports, "wl", 2, seltype)
+					self:DrawPortBox(self.ports, "wl", 2, seltype)
 				else
-					DrawPortBox(self.ports, nil, 2, seltype)
+					self:DrawPortBox(self.ports, nil, 2, seltype)
 				end
 			elseif stage == 2 then
-				self.mousenum = DrawPortBox(self.ports, self.port, 2, self.input[2])
+				self.mousenum = self:DrawPortBox(self.ports, self.port, 2, self.input[2])
 			end
 		end
 	end
@@ -677,7 +678,7 @@ elseif CLIENT then
 			surface.DrawTexturedRectUV( 128-24, y+8, 48, 48, 0, 0.35, 1, 1 )
 			y = y + 58
 			if self.source then 
-				y = WriteText("%s", self.source.WireDebugName or self.source:GetClass(), y)
+				y = WriteText(self.source.WireDebugName or self.source:GetClass(), y)
 				y = WriteText(string.format("[%i]", self.source:EntIndex()), y)
 			end
 		end
