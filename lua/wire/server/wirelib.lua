@@ -727,6 +727,17 @@ function Wire_SetPathNames(ent, names)
 	ent:SetNetworkedBeamInt("wpn_count", #names)
 end
 
+function WireLib.WireAll(ply, ient, oent, ipos, opos, material, color, width)
+	if not IsValid(ient) or not IsValid(oent) or not ient.Inputs or not oent.Outputs then return false end
+	
+	for iname, _ in pairs(ient.Inputs) do
+		if oent.Outputs[iname] then
+			Wire_Link_Start(ply:UniqueID(), ient, ipos, iname, material or "arrowire/arrowire2", color or Color(255,255,255), width or 0)
+			Wire_Link_End(ply:UniqueID(), oent, opos, iname, ply)
+		end
+	end
+end
+
 do -- class OutputIterator
 	local OutputIterator = {}
 	OutputIterator.__index = OutputIterator
