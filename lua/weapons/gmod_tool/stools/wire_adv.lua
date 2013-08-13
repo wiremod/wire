@@ -5,7 +5,7 @@ TOOL.Tab      = "Wire"
 if CLIENT then
 	language.Add( "Tool.wire_adv.name", "Advanced Wiring Tool" )
 	language.Add( "Tool.wire_adv.desc", "Used to connect wirable props." )
-	language.Add( "Tool.wire_adv.0", "Primary: Attach to selected input, Secondary: Next input, Reload: Unlink selected input, Wheel: Select input." )
+	language.Add( "Tool.wire_adv.0", "Primary: Attach to selected input (Hold Shift for multiple inputs, Alt to wire all matching inputs) Secondary: Next input, Reload: Unlink selected input, Wheel: Select input." )
 	language.Add( "Tool.wire_adv.1", "Primary: Attach to output, Secondary: Attach but continue, Reload: Cancel." )
 	language.Add( "Tool.wire_adv.2", "Primary: Confirm attach to output, Secondary: Next output, Reload: Cancel, Wheel: Select output." )
 end
@@ -37,10 +37,12 @@ local function get_active_tool(ply, tool)
 end
 
 if SERVER then
+	local MultiInputs = {}
+	
 	function TOOL:RightClick(trace)
 		if self:GetStage() == 1 then
 			local ent = trace.Entity
-			Wire_Link_Node(self:GetOwner():UniqueID(), ent, ent:WorldToLocal(trace.HitPos+trace.HitNormal))
+			Wire_Link_Node(self:GetOwner():UniqueID(), ent, ent:WorldToLocal(trace.HitPos + trace.HitNormal*(self:GetClientNumber("width")/2)))
 		end
 
 		return false
@@ -53,8 +55,16 @@ if SERVER then
 		return true
 	end
 
+	function TOOL:Think()
+		if MultiInputs[self:GetOwner()] and self:GetStage() < 2 then
+			self:SetStage(self:GetOwner():KeyDown(IN_SPEED) and 0 or 1)
+		end
+	end
+
 	function TOOL:Holster()
 		Wire_Link_Cancel(self:GetOwner():UniqueID())
+		MultiInputs[self:GetOwner()] = nil
+		self.WireAll = false
 		self:SetStage(0)
 	end
 
@@ -70,13 +80,20 @@ if SERVER then
 			local material = self:GetClientInfo("material")
 			local width    = self:GetClientNumber("width")
 			local color    = Color(self:GetClientNumber("r"), self:GetClientNumber("g"), self:GetClientNumber("b"))
-
 			local lpos = Vector(tonumber(x), tonumber(y), tonumber(z))
-
+			
 			if Wire_Link_Start(self:GetOwner():UniqueID(), target, lpos, portname, material, color, width) then
-				self:SetStage(1)
+				-- The port exists
 				self.target = target
 				self.input = portname
+				
+				if self:GetOwner():KeyDown(IN_WALK) then self.WireAll = true end -- Holding alt means all matching ports will be wired together
+				if self:GetOwner():KeyDown(IN_SPEED) then
+					if not MultiInputs[self:GetOwner()] then MultiInputs[self:GetOwner()] = {} end
+					table.insert(MultiInputs[self:GetOwner()], {target, lpos, portname})
+				else
+					self:SetStage(1)
+				end
 			end
 
 		elseif mode == "s" then -- select source entity
@@ -99,9 +116,8 @@ if SERVER then
 
 				elseif input_type == "ENTITY" then
 					-- for entities, trigger the input with that entity and cancel the link.
-					self:SetStage(0)
+					self:Holster()
 
-					Wire_Link_Cancel(self:GetOwner():UniqueID())
 					WireLib.TriggerInput(self.target, self.input, source)
 					WireLib.AddNotify(self:GetOwner(), "Triggered entity input '"..self.input.."' with '"..tostring(source).."'.", NOTIFY_GENERIC, 7)
 					return
@@ -120,7 +136,7 @@ if SERVER then
 
 			-- only one port? skip stage 2 and finish the link right away.
 			local firstportname,firstport = next(outputs)
-			if not next(outputs, firstportname) and (input_type ~= "WIRELINK" or firstport.Type == "WIRELINK") then return self:Receive("o", "0", firstportname) end
+			if not next(outputs, firstportname) and (input_type ~= "WIRELINK" or firstport.Type == "WIRELINK") or self.WireAll then return self:Receive("o", "0", firstportname) end
 
 		elseif mode == "o" then -- select output
 			if self:GetStage() ~= 2 then return end
@@ -129,9 +145,31 @@ if SERVER then
 
 			self.output = portname
 
-			Wire_Link_End(self:GetOwner():UniqueID(), self.source, self.lpos, self.output, self:GetOwner())
-
-			self:SetStage(0)
+			if self.WireAll then
+				local Input = self.target.Inputs[self.input]
+				if MultiInputs[self:GetOwner()] then
+					for _, tab in pairs(MultiInputs[self:GetOwner()]) do
+						local target, lpos, portname = unpack(tab)
+						WireLib.WireAll(self:GetOwner(), target, self.source, lpos, self.lpos, Input.Material, Input.Color, Input.Width)
+					end
+				else
+					WireLib.WireAll(self:GetOwner(), self.target, self.source, Input.StartPos, self.lpos, Input.Material, Input.Color, Input.Width)
+				end
+			else
+				if MultiInputs[self:GetOwner()] then
+					local Input = self.target.Inputs[self.input]
+					for _, tab in pairs(MultiInputs[self:GetOwner()]) do
+						local target, lpos, portname = unpack(tab)
+						if Wire_Link_Start(self:GetOwner():UniqueID(), target, lpos, portname, Input.Material, Input.Color, Input.Width) then
+							Wire_Link_End(self:GetOwner():UniqueID(), self.source, self.lpos, self.output, self:GetOwner())
+						end
+					end
+				else
+					Wire_Link_End(self:GetOwner():UniqueID(), self.source, self.lpos, self.output, self:GetOwner())
+				end
+			end
+			
+			self:Holster()
 
 		elseif mode == "c" then -- clear link
 			if self:GetStage() ~= 0 then return end
@@ -226,7 +264,7 @@ elseif CLIENT then
 	end
 
 	-- CLIENT --
-	local function DrawPortBox(ports, selindex, align, seltype)
+	function TOOL:DrawPortBox(ports, selindex, align, seltype)
 		align = align or 1
 
 		if not ports then return end
@@ -273,13 +311,14 @@ elseif CLIENT then
 
 		local mousenum
 
+		local selAllPorts = self.WireAll or (self:GetStage() == 0 and LocalPlayer():KeyDown(IN_WALK))
 		local cx, cy = gui.MousePos()
 		local mouseindex = selindex and cx >= boxx and cx < boxx+boxw and math.floor((cy-boxy)/texth+1)
 		for num,port in pairs(ports) do
 			local ind = num == "wl" and #ports+1 or num
 			local name,tp,desc,connected = unpack(port)
 			local texty = boxy+(ind-1)*texth
-			if num == selindex then
+			if num == selindex or selAllPorts then
 				draw.RoundedBox(4,
 					boxx-4, texty-1,
 					boxw+8, texth+2,
@@ -320,14 +359,15 @@ elseif CLIENT then
 			if self.source and self.output then self.lastoutput[self.source] = self.output end
 		end
 
-		if stage == 0 then
+		if stage == 0 and not (self:GetOwner():KeyDown(IN_SPEED) and laststage == 1) then
 			self.target = nil
 			self.input = nil
 			self.source = nil
 			self.output = nil
-
+			self.MultiInputs = nil
+			self.WireAll = nil
 		elseif stage == 1 then
-			self.input = self.selinput
+			self.input = self.selinput or self.input
 			self.selinput = nil
 		end
 	end
@@ -413,24 +453,24 @@ elseif CLIENT then
 			end -- if stage
 		end
 
-		if self.input then DrawPortBox({ self.input }, nil, 0) end
+		if self.input then self:DrawPortBox({ self.input }, nil, 0) end
 
 		self.menu = self.ports and (ent:IsValid() or stage == 2)
 		if self.menu then
 			if stage == 0 then
-				self.mousenum = DrawPortBox(self.ports, self.port, 0)
+				self.mousenum = self:DrawPortBox(self.ports, self.port, 0)
 			elseif stage == 1 then
 				self.mousenum = nil
 				local seltype = self.input[2]
 				if #self.ports == 1 and self.ports[1][2] == seltype then
-					DrawPortBox(self.ports, 1, 2, seltype)
+					self:DrawPortBox(self.ports, 1, 2, seltype)
 				elseif #self.ports == 0 and self.ports.wl then
-					DrawPortBox(self.ports, "wl", 2, seltype)
+					self:DrawPortBox(self.ports, "wl", 2, seltype)
 				else
-					DrawPortBox(self.ports, nil, 2, seltype)
+					self:DrawPortBox(self.ports, nil, 2, seltype)
 				end
 			elseif stage == 2 then
-				self.mousenum = DrawPortBox(self.ports, self.port, 2, self.input[2])
+				self.mousenum = self:DrawPortBox(self.ports, self.port, 2, self.input[2])
 			end
 		end
 	end
@@ -447,6 +487,13 @@ elseif CLIENT then
 
 			self.target = trace.Entity
 			if not IsValid(self.target) then return end
+			
+			if self:GetOwner():KeyDown(IN_WALK) then self.WireAll = true end
+			
+			if self.MultiInputs or self:GetOwner():KeyDown(IN_SPEED) then
+				if not self.MultiInputs then self.MultiInputs = {} end
+				table.insert(self.MultiInputs, self.target)
+			end
 
 			local lpos = self.target:WorldToLocal(trace.HitPos)
 			RunConsoleCommand("wire_adv", "i", self.target:EntIndex(), self.selinput[1], lpos.x, lpos.y, lpos.z)
@@ -601,8 +648,54 @@ elseif CLIENT then
 		local wsel = bind_post[bind]
 		if wsel then wsel() end
 	end)
+	
+	local fontTable = {
+		font = "Arial",
+		size = 34,
+		weight = 1000,
+		antialias = true,
+		additive = false,
+	}
+	surface.CreateFont("Arial34", fontTable)
+	fontTable.size = 28
+	surface.CreateFont("Arial28", fontTable)
+	
+	local black = Color(0, 0, 0, 255)
+	local offWhite = Color(224, 224, 224, 255)
+	local arrowMat = Material( "icon16/arrow_down.png", "noclamp" )
+	local function WriteText(text, y) DrawTextOutline(text, "Arial28", 128, y + 28/2, offWhite, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER, black, 4) return y + 26 end
+	
+	function TOOL:DrawToolScreen(width, height)
+		surface.SetDrawColor(Color(32, 32, 32, 255))
+		surface.DrawRect(0, 0, 256, 256)
+		
+		local y = 6
+		DrawTextOutline("Advanced Wiring", "Arial34", 128, y + 34/2, offWhite, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER, black, 4) y = y + 34
+		surface.SetDrawColor(offWhite) 
+		surface.DrawRect(0, y + 4, 256, 4) y = y + 14
+		if not IsValid(self.target) then
+			y = WriteText("Click Input Entity", y)
+		else
+			if self.MultiInputs then
+				y = WriteText("Input Entities: "..#self.MultiInputs, y)
+			else
+				y = WriteText(string.format("'%s'", self.WireAll and "*All*" or (self.selinput or self.input or {""})[1]), y)
+				y = WriteText(self.target.WireDebugName or self.target:GetClass(), y)
+				y = WriteText(string.format("[%i]", self.target:EntIndex()), y)
+			end
+			
+			if self:GetStage() == 0 then return end
+			surface.SetMaterial(arrowMat)
+			surface.SetDrawColor(Color(200,255,200,255))
+			surface.DrawTexturedRectUV( 128-24, y+8, 48, 48, 0, 0.35, 1, 1 )
+			y = y + 58
+			if self.source then 
+				y = WriteText(self.source.WireDebugName or self.source:GetClass(), y)
+				y = WriteText(string.format("[%i]", self.source:EntIndex()), y)
+			end
+		end
+	end
 
-	-- CLIENT --
 	function TOOL.BuildCPanel(panel)
 		panel:AddControl("Header", { Text = "#Tool.wire.name", Description = "#Tool.wire.desc" })
 		WireToolHelpers.MakePresetControl(panel, "wire_adv")
