@@ -1,5 +1,5 @@
 TOOL.Category = "Wire - Tools"
-TOOL.Name			= "Wire"
+TOOL.Name			= "Wire Advanced"
 TOOL.Tab      = "Wire"
 
 if CLIENT then
@@ -19,20 +19,6 @@ TOOL.ClientConVar = {
 }
 
 util.PrecacheSound("weapons/pistol/pistol_empty.wav")
-
---[[ TODO
-
-	-- toolscreen
-	
-	DONE
-	-- maybe make the selected inputs display nicer (if you've selected many with the same name from the same entity, display as 3xInputName or something)
-	-- find out why wires are invisible
-	-- blinking wires
-	-- create wirelink
-	-- create entity
-
-]]
-
 
 -----------------------------------------------------------------
 -- Helper functions
@@ -55,23 +41,11 @@ local function get_active_tool(ply, tool)
 end
 
 
-if SERVER then
-	function TOOL:RightClick(trace)
-	end
-
-	function TOOL:Reload(trace)
-
-	end
-
-	function TOOL:Holster()
-	end
-	
-	
+if SERVER then	
 	-----------------------------------------------------------------
 	-- Duplicator modifiers
 	-----------------------------------------------------------------
-	
-	local function CreateWirelinkOutput( ply, ent, data )
+	function WireLib.CreateWirelinkOutput( ply, ent, data )
 		if data[1] == true then
 			if ent.Outputs then
 				local names = {}
@@ -99,9 +73,9 @@ if SERVER then
 		end
 		duplicator.StoreEntityModifier( ent, "CreateWirelinkOutput", data )
 	end
-	duplicator.RegisterEntityModifier( "CreateWirelinkOutput", CreateWirelinkOutput )
+	duplicator.RegisterEntityModifier( "CreateWirelinkOutput", WireLib.CreateWirelinkOutput )
 	
-	local function CreateEntityOutput( ply, ent, data )
+	function WireLib.CreateEntityOutput( ply, ent, data )
 		if data[1] == true then
 			if ent.Outputs then
 				local names = {}
@@ -129,7 +103,7 @@ if SERVER then
 		end
 		duplicator.StoreEntityModifier( ent, "CreateEntityOutput", data )
 	end
-	duplicator.RegisterEntityModifier( "CreateEntityOutput", CreateEntityOutput )
+	duplicator.RegisterEntityModifier( "CreateEntityOutput", WireLib.CreateEntityOutput )
 	
 	
 	-----------------------------------------------------------------
@@ -156,8 +130,8 @@ if SERVER then
 			local outputentity = wiring[5]
 			
 			if 	IsValid( inputentity ) and IsValid( outputentity ) and
-				hook.Run( "CanTool", ply, WireLib.dummytrace( inputentity ), "wire_adv_2" ) and
-				hook.Run( "CanTool", ply, WireLib.dummytrace( outputentity ), "wire_adv_2" ) and
+				hook.Run( "CanTool", ply, WireLib.dummytrace( inputentity ), "wire_adv" ) and
+				hook.Run( "CanTool", ply, WireLib.dummytrace( outputentity ), "wire_adv" ) and
 				WireLib.HasPorts( inputentity ) and WireLib.HasPorts( outputentity ) then
 					
 				local inputname = wiring[1]
@@ -170,48 +144,22 @@ if SERVER then
 					local outputpos = wiring[6]
 					local outputname = wiring[7]
 					
-					local trigger = false
 					if outputname == "Create Wirelink" and (not outputentity.Outputs or not outputentity.Outputs["wirelink"]) then
-						CreateWirelinkOutput( ply, outputentity, {true} )
+						WireLib.CreateWirelinkOutput( ply, outputentity, {true} )
 						outputname = "wirelink"
-						trigger = true
 					elseif outputname == "Create Wirelink" and outputentity.Outputs and outputentity.Outputs["wirelink"] then
 						outputname = "wirelink"
-						trigger = true
 					elseif outputname == "Create Entity" and (not outputentity.Outputs or not outputentity.Outputs["entity"]) then
-						CreateEntityOutput( ply, outputentity, {true} )
+						WireLib.CreateEntityOutput( ply, outputentity, {true} )
 						outputname = "entity"
-						trigger = true
 					elseif outputname == "Create Entity" and outputentity.Outputs and outputentity.Outputs["entity"] then
 						outputname = "entity"
-						trigger = true
-					--elseif outputname == "wirelink" and outputentity.Outputs and outputentity.Outputs["wirelink"] then
-					--	trigger = true
-					--elseif outputname == "entity" and outputentity.Outputs and outputentity.Outputs["entity"] then
-					--	trigger = true
 					end
-					
-
 					
 					WireLib.Link_End( uid, outputentity, outputpos, outputname, ply )
-					
-					if trigger then
-						--timer.Simple( 1, function()
-							--print("triggering output again: '" .. outputname .. "' of entity: '" .. tostring(outputentity) .. "'")
-							--WireLib.TriggerOutput( outputentity, outputname, outputentity ) -- Trigger wirelink/entity
-						--end )
-					end
 				end
 			end			
 		end
-	end)
-	
-	util.AddNetworkString( "wire_adv_setstage" )
-	net.Receive( "wire_adv_setstage", function( len, ply )
-		local tool = get_active_tool(ply,"wire_adv")
-		if not tool then return end
-		
-		tool:SetStage( net.ReadInt(8) )
 	end)
 	
 	util.AddNetworkString( "wire_adv_unwire" )
@@ -219,7 +167,7 @@ if SERVER then
 		local ent = net.ReadEntity()
 		local tbl = net.ReadTable()
 		
-		if hook.Run( "CanTool", ply, WireLib.dummytrace( ent ), "wire_adv_2" ) then
+		if hook.Run( "CanTool", ply, WireLib.dummytrace( ent ), "wire_adv" ) then
 			for i=1,#tbl do
 				WireLib.Link_Clear( ent, tbl[i] )
 			end
@@ -231,10 +179,7 @@ elseif CLIENT then
 	-- Tool helper functions
 	-----------------------------------------------------------------
 	TOOL._stage = 0
-	function TOOL:SetStage(stage) -- wtf garry
-		net.Start("wire_adv_setstage")
-			net.WriteInt(stage,8)
-		net.SendToServer()
+	function TOOL:SetStage(stage) -- Garry's stage functions didn't work, had to make my own
 		self._stage = stage
 	end
 	function TOOL:GetStage()
@@ -360,17 +305,22 @@ elseif CLIENT then
 	]]
 	
 	
-	function TOOL:CheckWireStart( entity, inputname )
+	function TOOL:FindWiring( entity, inputname, inputtype )
 		for i=1,#self.Wiring do
 			local wiring = self.Wiring[i]
-			if wiring[1] == inputname  and wiring[3] == entity then return false end
+			if wiring[1] == inputname  and wiring[3] == entity and wiring[8] == inputtype then return wiring, i end
 		end
-		return true
 	end
 	
 	-- Small helper functions to format the table correctly
 	function TOOL:WireStart( entity, pos, inputname, inputtype )
-		if not self:CheckWireStart( entity, inputname ) then return end -- wiring is already started
+		local wiring, id = self:FindWiring( entity, inputname, inputtype )
+		if wiring then -- wiring is already started, user wants to cancel it
+			table.remove( self.Wiring, id )
+			self:WiringRenderRemove( inputname, inputtype )
+			return
+		end
+		
 		local t = { inputname, entity:WorldToLocal( pos ), entity, {} }
 		t[8] = inputtype
 		self.Wiring[#self.Wiring+1] = t
@@ -382,22 +332,7 @@ elseif CLIENT then
 		end
 		
 		-- Add info to the wiringrender table, which is used to render the "x2" "x3" etc
-		local wiringrender
-		for i=1,#self.WiringRender do
-			if self.WiringRender[i][1] == inputname and self.WiringRender[i][2] == inputtype then
-				wiringrender = self.WiringRender[i]
-				break
-			end
-		end
-		
-		if wiringrender then
-			wiringrender[9] = wiringrender[9] + 1
-		else
-			local wiringrender = { inputname, inputtype }
-			wiringrender[8] = inputtype
-			wiringrender[9] = 1
-			self.WiringRender[#self.WiringRender+1] = wiringrender
-		end
+		self:WiringRenderAdd( inputname, inputtype )
 		
 		return t
 	end
@@ -602,7 +537,7 @@ elseif CLIENT then
 	function TOOL:ScrollUp(trace) return self:Scroll(trace,-1) end
 	function TOOL:ScrollDown(trace) return self:Scroll(trace,1) end
 	
-	hook.Add("PlayerBindPress", "wire_adv_2", function(ply, bind, pressed)
+	hook.Add("PlayerBindPress", "wire_adv", function(ply, bind, pressed)
 		if not pressed then return end
 		
 		if bind == "invnext" then
@@ -718,6 +653,8 @@ elseif CLIENT then
 				end
 			end		
 		elseif name == "Inputs" and self:GetStage() == 0 then
+			local wiring, _ = self:FindWiring( ent, tbl[idx][1], tbl[idx][2] )
+			if wiring then return true, true end -- Highlight with a different color
 			return self.CurrentWireIndex == idx or alt
 		elseif name == "Outputs" and self:GetStage() == 2 then
 			return self.CurrentWireIndex == idx
@@ -825,8 +762,12 @@ elseif CLIENT then
 		for i=1,#tbl do
 			y = y + fonth
 			
-			if self:IsHighlighted( name, tbl, ent, i ) then
-				draw.RoundedBox( 4, x-4,y, w+8,fonth+2, Color(0,150,0,192) )
+			local highlighted, diffcolor = self:IsHighlighted( name, tbl, ent, i )
+			if highlighted then
+				local clr = Color(0,150,0,192) 
+				if diffcolor and (self.CurrentWireIndex == i or self:GetOwner():KeyDown( IN_WALK )) then clr = Color(100,100,175,192)
+				elseif diffcolor then clr = Color(0,0,150,192) end
+				draw.RoundedBox( 4, x-4,y, w+8,fonth+2, clr )
 			end
 			
 			if tbl[i][4] == true then
@@ -888,65 +829,47 @@ elseif CLIENT then
 			local y = centery-hh/2-16
 			self:DrawList( "Selected", self.WiringRender, ent, x, y, ww, hh, h )
 		end
-		--[[
-		if #self.Wiring> 0 then	
-			local w, h = fitFont( #self.Wiring, ScrH() - 32 )
-			local ww, hh = getWidthHeight( self.Wiring )
-			local ww = math.max(ww,w)
-			local hh = math.max(hh,h) + h
-			local x = centerx-maxwidth-ww-38
-			local y = centery-hh/2-16
-			self:DrawList( "Selected", self.Wiring, ent, x, y, ww, hh, h )
-		end
-		]]
 	end
 	
-	--[[
-	local fontTable = {
-		font = "Arial",
-		size = 34,
-		weight = 1000,
-		antialias = true,
-		additive = false,
-	}
-	surface.CreateFont("Arial34", fontTable)
-	fontTable.size = 28
-	surface.CreateFont("Arial28", fontTable)
+
+	-----------------------------------------------------------------
+	-- Wiring Render
+	-- This table is almost the same as TOOL.Wiring,
+	-- but is organized differently and is used to
+	-- render the "Selected" box on screen properly.
+	-----------------------------------------------------------------
 	
-	local black = Color(0, 0, 0, 255)
-	local offWhite = Color(224, 224, 224, 255)
-	local arrowMat = Material( "icon16/arrow_down.png", "noclamp" )
-	local function WriteText(text, y) DrawTextOutline(text, "Arial28", 128, y + 28/2, offWhite, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER, black, 4) return y + 26 end
+	function TOOL:WiringRenderFind( inputname, inputtype )
+		for i=1,#self.WiringRender do
+			if self.WiringRender[i][1] == inputname and self.WiringRender[i][2] == inputtype then
+				return self.WiringRender[i], i
+			end
+		end
+	end
 	
-	function TOOL:DrawToolScreen(width, height)
-		surface.SetDrawColor(Color(32, 32, 32, 255))
-		surface.DrawRect(0, 0, 256, 256)
+	function TOOL:WiringRenderRemove( inputname, inputtype )
+		local wiringrender, idx = self:WiringRenderFind( inputname, inputtype )
 		
-		local y = 6
-		DrawTextOutline("Advanced Wiring", "Arial34", 128, y + 34/2, offWhite, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER, black, 4) y = y + 34
-		surface.SetDrawColor(offWhite) 
-		surface.DrawRect(0, y + 4, 256, 4) y = y + 14
-		if not IsValid(self.target) then
-			y = WriteText("Click Input Entity", y)
-		else
-			if self.MultiInputs then
-				y = WriteText("Input Entities: "..#self.MultiInputs, y)
-			else
-				y = WriteText(string.format("'%s'", self:GetOwner():KeyDown(IN_WALK) and "*All*" or (self.selinput or self.input or {""})[1]), y)
-				y = WriteText(self.target.WireDebugName or self.target:GetClass(), y)
-				y = WriteText(string.format("[%i]", self.target:EntIndex()), y)
-			end
-			surface.SetMaterial(arrowMat)
-			surface.SetDrawColor(Color(200,255,200,255))
-			surface.DrawTexturedRectUV( 128-24, y+8, 48, 48, 0, 0.35, 1, 1 )
-			y = y + 58
-			if self.source then 
-				y = WriteText(string.format("%s", self.source.WireDebugName or self.source:GetClass()), y)
-				y = WriteText(string.format("[%i]", self.source:EntIndex()), y)
+		if wiringrender then
+			wiringrender[9] = wiringrender[9] - 1
+			if wiringrender[9] == 0 then
+				table.remove( self.WiringRender, idx )
 			end
 		end
 	end
-	]]
+	
+	function TOOL:WiringRenderAdd( inputname, inputtype )
+		local wiringrender = self:WiringRenderFind( inputname, inputtype )
+		
+		if wiringrender then
+			wiringrender[9] = wiringrender[9] + 1
+		else
+			local wiringrender = { inputname, inputtype }
+			wiringrender[8] = inputtype
+			wiringrender[9] = 1
+			self.WiringRender[#self.WiringRender+1] = wiringrender
+		end
+	end
 
 	function TOOL.BuildCPanel(panel)
 		panel:AddControl("Header", { Text = "#Tool.wire.name", Description = "#Tool.wire.desc" })
