@@ -1,13 +1,13 @@
 TOOL.Category = "Wire - Tools"
-TOOL.Name			= "Wire Advanced 2"
+TOOL.Name			= "Wire"
 TOOL.Tab      = "Wire"
 
 if CLIENT then
-	language.Add( "Tool.wire_adv_2.name", "Advanced Wiring Tool" )
-	language.Add( "Tool.wire_adv_2.desc", "Used to connect things with wires." )
-	language.Add( "Tool.wire_adv_2.0", "Primary: Attach to selected input (Hold shift to select multiple inputs; Hold alt to select all inputs in the current entity), Secondary: Next input, Reload: Unlink selected input (Hold alt to unlink all in the current entity), Wheel: Scroll up or down." )
-	language.Add( "Tool.wire_adv_2.1", "Primary: Select entity, Secondary: Attach wire to point and continue, Reload: Cancel." )
-	language.Add( "Tool.wire_adv_2.2", "Primary: Confirm attach to output (Hold alt to auto-wire, matching all input/outputs names with equal names), Secondary: Next output, Reload: Cancel, Wheel: Scroll up or down." )
+	language.Add( "Tool.wire_adv.name", "Advanced Wiring Tool" )
+	language.Add( "Tool.wire_adv.desc", "Used to connect things with wires." )
+	language.Add( "Tool.wire_adv.0", "Primary: Attach to selected input (Hold shift to select multiple inputs; Hold alt to select all inputs in the current entity), Secondary: Next input, Reload: Unlink selected input (Hold alt to unlink all in the current entity), Wheel: Scroll up or down." )
+	language.Add( "Tool.wire_adv.1", "Primary: Select entity, Secondary: Attach wire to point and continue, Reload: Cancel." )
+	language.Add( "Tool.wire_adv.2", "Primary: Confirm attach to output (Hold alt to auto-wire, matching all input/outputs names with equal names), Secondary: Next output, Reload: Cancel, Wheel: Scroll up or down." )
 end
 
 TOOL.ClientConVar = {
@@ -22,10 +22,10 @@ util.PrecacheSound("weapons/pistol/pistol_empty.wav")
 
 --[[ TODO
 
-	-- maybe make the selected inputs display nicer (if you've selected many with the same name from the same entity, display as 3xInputName or something)
 	-- toolscreen
 	
 	DONE
+	-- maybe make the selected inputs display nicer (if you've selected many with the same name from the same entity, display as 3xInputName or something)
 	-- find out why wires are invisible
 	-- blinking wires
 	-- create wirelink
@@ -140,7 +140,7 @@ if SERVER then
 	net.Receive( "wire_adv_upload", function( len, ply )
 		local wirings = net.ReadTable()
 		
-		local tool = get_active_tool(ply,"wire_adv_2")
+		local tool = get_active_tool(ply,"wire_adv")
 		if not tool then return end
 		
 		local material = tool:GetClientInfo("material")
@@ -208,7 +208,7 @@ if SERVER then
 	
 	util.AddNetworkString( "wire_adv_setstage" )
 	net.Receive( "wire_adv_setstage", function( len, ply )
-		local tool = get_active_tool(ply,"wire_adv_2")
+		local tool = get_active_tool(ply,"wire_adv")
 		if not tool then return end
 		
 		tool:SetStage( net.ReadInt(8) )
@@ -606,12 +606,12 @@ elseif CLIENT then
 		if not pressed then return end
 		
 		if bind == "invnext" then
-			local self = get_active_tool(ply, "wire_adv_2")
+			local self = get_active_tool(ply, "wire_adv")
 			if not self then return end
 			
 			return self:ScrollDown(ply:GetEyeTraceNoCursor())
 		elseif bind == "invprev" then
-			local self = get_active_tool(ply, "wire_adv_2")
+			local self = get_active_tool(ply, "wire_adv")
 			if not self then return end
 			
 			return self:ScrollUp(ply:GetEyeTraceNoCursor())
@@ -952,16 +952,16 @@ elseif CLIENT then
 		panel:AddControl("Header", { Text = "#Tool.wire.name", Description = "#Tool.wire.desc" })
 		WireToolHelpers.MakePresetControl(panel, "wire_adv")
 
-		panel:NumSlider("#WireTool_width", "wire_adv_2_width", 0, 5, 2)
-		local matselect = panel:AddControl( "RopeMaterial", { Label = "#WireTool_material", convar = "wire_adv_2_material" } )
+		panel:NumSlider("#WireTool_width", "wire_adv_width", 0, 5, 2)
+		local matselect = panel:AddControl( "RopeMaterial", { Label = "#WireTool_material", convar = "wire_adv_material" } )
 		matselect:AddMaterial("Arrowire", "arrowire/arrowire")
 		matselect:AddMaterial("Arrowire2", "arrowire/arrowire2")
 
 		panel:AddControl("Color", {
 			Label = "#WireTool_colour",
-			Red = "wire_adv_2_r",
-			Green = "wire_adv_2_g",
-			Blue = "wire_adv_2_b"
+			Red = "wire_adv_r",
+			Green = "wire_adv_g",
+			Blue = "wire_adv_b"
 		})
 	end
 
