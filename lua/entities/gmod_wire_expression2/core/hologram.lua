@@ -18,6 +18,7 @@ local wire_holograms_size_max = CreateConVar( "wire_holograms_size_max", "50" )
 util.AddNetworkString("wire_holograms_set_visible")
 util.AddNetworkString("wire_holograms_clip")
 util.AddNetworkString("wire_holograms_set_scale")
+util.AddNetworkString("wire_holograms_set_bone_scale")
 
 
 -- context = chip.context = self
@@ -51,9 +52,9 @@ local ModelList = {
 	["hq_tube"]           = "hq_tube",
 	["hq_tube_thick"]     = "hq_tube_thick",
 	["hq_tube_thin"]      = "hq_tube_thin",
-	["hq_stube"]           = "hq_stube",
-	["hq_stube_thick"]     = "hq_stube_thick",
-	["hq_stube_thin"]      = "hq_stube_thin",
+	["hq_stube"]          = "hq_stube",
+	["hq_stube_thick"]    = "hq_stube_thick",
+	["hq_stube_thin"]     = "hq_stube_thin",
 	["icosphere"]         = "icosphere",
 	["icosphere2"]        = "icosphere2",
 	["icosphere3"]        = "icosphere3",
@@ -133,7 +134,7 @@ end
 
 local function GetModel(model)
 	if ModelList[model] then
-		model = "models/holograms/"..ModelList[model]..".mdl"
+		model = "models/holograms/" .. ModelList[model] .. ".mdl"
 	elseif not wire_holograms_modelany:GetBool() then
 		return
 	end
@@ -143,6 +144,7 @@ end
 -- -----------------------------------------------------------------------------
 
 local scale_queue = {}
+local bone_scale_queue = {}
 local clip_queue = {}
 local vis_queue = {}
 
@@ -162,6 +164,28 @@ local function flush_scale_queue(queue, recipient)
 			net.WriteFloat(scale.z)
 		end
 		net.WriteUInt(0, 16)
+	if recipient then net.Send(recipient) else net.Broadcast() end
+end
+
+
+local function add_bone_scale_queue( Holo, bone, scale )
+	bone_scale_queue[#bone_scale_queue+1] = { Holo, bone, scale }
+end
+
+local function flush_bone_scale_queue(queue, recipient)
+	if not queue then queue = bone_scale_queue end
+	if not next(queue) then return end
+
+	net.Start("wire_holograms_set_bone_scale")
+	for _,Holo,bone,scale in ipairs_map(queue, unpack) do
+		net.WriteUInt(Holo.ent:EntIndex(), 16)
+		net.WriteUInt(bone + 1, 16) -- using +1 to be able reset holo bones scale with -1 and not use signed int
+		net.WriteFloat(scale.x)
+		net.WriteFloat(scale.y)
+		net.WriteFloat(scale.z)
+	end
+	net.WriteUInt(0, 16)
+	net.WriteUInt(0, 16)
 	if recipient then net.Send(recipient) else net.Broadcast() end
 end
 
@@ -207,30 +231,47 @@ end
 
 registerCallback("postexecute", function(self)
 	flush_scale_queue()
+	flush_bone_scale_queue()
 	flush_clip_queue()
 	flush_vis_queue()
 
 	scale_queue = {}
+	bone_scale_queue = {}
 	clip_queue = {}
 	vis_queue = {}
 end)
 
-local function rescale(Holo, scale)
+local function rescale(Holo, scale, bone)
 	local maxval = wire_holograms_size_max:GetInt()
 	local minval = -maxval
 
-	local x = math.Clamp( scale[1], minval, maxval )
-	local y = math.Clamp( scale[2], minval, maxval )
-	local z = math.Clamp( scale[3], minval, maxval )
+	if scale then
+		local x = math.Clamp( scale[1], minval, maxval )
+		local y = math.Clamp( scale[2], minval, maxval )
+		local z = math.Clamp( scale[3], minval, maxval )
+		local scale = Vector(x, y, z)
 
-	local scale = Vector(x, y, z)
+		if Holo.scale ~= scale then
+			table.insert(scale_queue, { Holo, scale })
+			Holo.scale = scale
+		end
+	end
 
-	local obbmax = Holo.ent:OBBMaxs()
-	local obbmin = Holo.ent:OBBMins()
+	if bone then
+		Holo.bone_scale = Holo.bone_scale or {}
+		if #bone == 2 then
+			local bidx, b_scale = bone[1], bone[2]
+			local x = math.Clamp( b_scale[1], minval, maxval )
+			local y = math.Clamp( b_scale[2], minval, maxval )
+			local z = math.Clamp( b_scale[3], minval, maxval )
+			local scale = Vector(x, y, z)
 
-	if Holo.scale ~= scale then
-		table.insert(scale_queue, { Holo, scale })
-		Holo.scale = scale
+			table.insert(bone_scale_queue, { Holo, bidx, scale })
+			Holo.bone_scale[bidx] =  scale
+		else  -- reset holo bone scale
+			table.insert(bone_scale_queue, { Holo, -1, Vector(0,0,0) })
+			Holo.bone_scale = {}
+		end
 	end
 end
 
@@ -300,6 +341,7 @@ end
 
 hook.Add( "PlayerInitialSpawn", "wire_holograms_set_vars", function(ply)
 	local s_queue = {}
+	local b_s_queue = {}
 	local c_queue = {}
 
 	for pl_uid,rep in pairs( E2HoloRepo ) do
@@ -307,8 +349,15 @@ hook.Add( "PlayerInitialSpawn", "wire_holograms_set_vars", function(ply)
 			if Holo and IsValid(Holo.ent) then
 				local clips = Holo.clips
 				local scale = Holo.scale
+				local bone_scales = Holo.bone_scale
 
 				table.insert(s_queue, { Holo, scale })
+
+				if bone_scales and table.Count(bone_scales) > 0 then
+					for bidx,b_scale in pairs(bone_scales) do
+						table.insert(b_s_queue, { Holo, bidx, b_scale })
+					end
+				end
 
 				if clips and table.Count(clips) > 0 then
 					for cidx,clip in pairs(clips) do
@@ -340,6 +389,7 @@ hook.Add( "PlayerInitialSpawn", "wire_holograms_set_vars", function(ply)
 	end
 
 	flush_scale_queue(s_queue, ply)
+	flush_bone_scale_queue(b_s_queue, ply)
 	flush_clip_queue(c_queue, ply)
 end)
 
@@ -429,7 +479,7 @@ local function CreateHolo(self, index, pos, scale, ang, color, model)
 	if not IsValid(prop) then return nil end
 	if color then prop:SetColor(Color(color[1],color[2],color[3],255)) end
 
-	rescale(Holo, scale)
+	rescale(Holo, scale, {})
 
 	return prop
 end
@@ -583,7 +633,7 @@ e2function void holoReset(index, string model, vector scale, vector color, strin
 	Holo.ent:SetColor(Color(color[1],color[2],color[3],255))
 	Holo.ent:SetMaterial(material)
 
-	rescale(Holo, scale)
+	rescale(Holo, scale, {})
 end
 
 __e2setcost(5)
@@ -644,6 +694,49 @@ e2function vector holoScaleUnits(index)
 	local propsize = Holo.ent:OBBMaxs()-Holo.ent:OBBMins()
 
 	return Vector(scale[1] * propsize.x, scale[2] * propsize.y, scale[3] * propsize.z)
+end
+
+
+e2function void holoBoneScale(index, boneindex, vector scale)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return end
+
+	rescale(Holo, nil, {boneindex, scale})
+end
+
+e2function void holoBoneScale(index, string bone, vector scale)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return end
+	local boneindex = Holo.ent:LookupBone(bone)
+	if boneindex == nil then return end
+
+	rescale(Holo, nil, {boneindex, scale})
+end
+
+e2function vector holoBoneScale(index, boneindex)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return {0,0,0} end
+	if table.Count(Holo.bone_scale) <= 0 then return {0,0,0} end
+
+	for bidx,b_scale in pairs(Holo.bone_scale) do
+    	if bidx == boneindex then return b_scale end
+	end
+
+	return {0,0,0}
+end
+
+e2function vector holoBoneScale(index, string bone)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return {0,0,0} end
+	if table.Count(Holo.bone_scale) <= 0 then return {0,0,0} end
+	local boneindex = Holo.ent:LookupBone(bone)
+	if boneindex == nil then return {0,0,0} end
+
+	for bidx,b_scale in pairs(Holo.bone_scale) do
+		if bidx == boneindex then return b_scale end
+	end
+
+	return {0,0,0}
 end
 
 e2function number holoClipsAvailable()
@@ -1122,6 +1215,7 @@ wire_holograms = {} -- This global table is used to share certain functions and 
 wire_holograms.wire_holograms_size_max = wire_holograms_size_max
 wire_holograms.ModelList = ModelList
 wire_holograms.add_scale_queue = add_scale_queue
+wire_holograms.add_bone_scale_queue = add_bone_scale_queue
 wire_holograms.rescale = rescale
 wire_holograms.CheckIndex = CheckIndex
 
