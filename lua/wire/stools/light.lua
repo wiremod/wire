@@ -8,7 +8,6 @@ if CLIENT then
 	language.Add( "WireLightTool_RopeLength", "Rope Length:")
 	language.Add( "WireLightTool_bright", "Glow brightness:")
 	language.Add( "WireLightTool_size", "Glow size:" )
-	language.Add( "WireLightTool_decay", "Glow decay:" )
 	language.Add( "WireLightTool_directional", "Directional Component" )
 	language.Add( "WireLightTool_radiant", "Radiant Component" )
 	language.Add( "WireLightTool_glow", "Glow Component" )
@@ -26,18 +25,22 @@ if SERVER then
 			self:GetClientNumber("glow") ~= 0,
 			self:GetClientNumber("brightness"),
 			self:GetClientNumber("size"),
-			self:GetClientNumber("decay"),
 			self:GetClientNumber("r"),
 			self:GetClientNumber("g"),
 			self:GetClientNumber("b")
 	end
 	
 	function TOOL:LeftClick_PostMake( ent, ply, trace )
+		if trace.Entity and trace.Entity:IsPlayer() then return false end
+		if CLIENT then return true end
+		
+		-- If there's no physics object then we can't constraint it!
+		if SERVER and not util.IsValidPhysicsObject( trace.Entity, trace.PhysicsBone ) then return false end
 		if ent == true then return true end
-		if ent == nil or ent == false or not ent:IsValid() then return false end
-
+		if ent == nil or ent == false or not IsValid( ent ) then return false end
+		
 		local const = self:GetClientInfo( "const" )
-
+		
 		if const == "weld" then
 			local const = WireLib.Weld( ent, trace.Entity, trace.PhysicsBone, true )
 			undo.Create( self.WireClass )
@@ -46,36 +49,31 @@ if SERVER then
 				undo.SetPlayer( ply )
 			undo.Finish()
 		elseif const == "rope" then
-
-			local length   = self:GetClientNumber( "ropelength" )
+			local length = math.Clamp( self:GetClientNumber( "ropelength" ), 4, 1024 )
 			local material = "cable/rope"
 			
 			local LPos1 = Vector( 0, 0, 0 )
 			if ent:GetModel() == "models/maxofs2d/light_tubular.mdl" then LPos1 = Vector( 0, 0, 5 ) end
-
 			local LPos2 = trace.Entity:WorldToLocal( trace.HitPos )
-
-			if trace.Entity:IsValid() then
+			
+			if IsValid( trace.Entity ) then
 				local phys = trace.Entity:GetPhysicsObjectNum( trace.PhysicsBone )
-				if phys:IsValid() then
+				if IsValid( phys ) then
 					LPos2 = phys:WorldToLocal( trace.HitPos )
 				end
 			end
-
-			local constraint, rope = constraint.Rope( ent, trace.Entity, 0, trace.PhysicsBone, LPos1, LPos2, 0, length, 0, 1.5, material, nil )
 			
+			local constraint, rope = constraint.Rope( ent, trace.Entity, 0, trace.PhysicsBone, LPos1, LPos2, 0, length, 0, 1, material, nil )
 			ent:GetPhysicsObject():Wake()
-
+			
 			undo.Create( self.WireClass )
 				undo.AddEntity( ent )
 				undo.AddEntity( rope )
 				undo.AddEntity( constraint )
 				undo.SetPlayer( ply )
 			undo.Finish()
-
-		else --none
-			ent:GetPhysicsObject():EnableMotion(false) -- freeze
-
+		else
+			ent:GetPhysicsObject():EnableMotion( false ) -- freeze
 			undo.Create( self.WireClass )
 				undo.AddEntity( ent )
 				undo.SetPlayer( ply )
@@ -83,7 +81,6 @@ if SERVER then
 		end
 
 		ply:AddCleanup( self.WireClass, ent )
-
 		return true
 	end
 end
@@ -96,7 +93,6 @@ TOOL.ClientConVar = {
 	ropelength   = 64,
 	brightness	 = 2,
 	size		 = 256,
-	decay		 = 1280,
 	const		 = "weld",
 	r			 = 0,
 	g 			 = 0,
@@ -112,7 +108,6 @@ function TOOL.BuildCPanel(panel)
 	panel:CheckBox("#WireLightTool_radiant", "wire_light_radiant")
 	panel:CheckBox("#WireLightTool_glow", "wire_light_glow")
 	panel:NumSlider("#WireLightTool_bright", "wire_light_brightness", 0, 10, 0)
-	panel:NumSlider("#WireLightTool_decay", "wire_light_decay", 0, 5120, 0)
 	panel:NumSlider("#WireLightTool_size", "wire_light_size", 0, 1024, 0)
 	panel:AddControl("ComboBox", {
 		Label = "#WireLightTool_Const",
@@ -122,7 +117,7 @@ function TOOL.BuildCPanel(panel)
 			["Rope"] = { wire_light_const = "rope" }
 		}
 	})
-	panel:NumSlider("#WireLightTool_RopeLength", "wire_light_ropelength", 0, 256, 0)
+	panel:NumSlider("#WireLightTool_RopeLength", "wire_light_ropelength", 4, 1024, 0)
 	panel:AddControl("Color", {
 		Label = "#WireLightTool_color",
 		Red	= "wire_light_r",
@@ -133,5 +128,4 @@ function TOOL.BuildCPanel(panel)
 		ShowRGB = "1",
 		Multiplier = "255"
 	})
-
 end
