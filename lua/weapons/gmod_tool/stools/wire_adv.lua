@@ -4,10 +4,10 @@ TOOL.Tab      = "Wire"
 
 if CLIENT then
 	language.Add( "Tool.wire_adv.name", "Advanced Wiring Tool" )
-	language.Add( "Tool.wire_adv.desc", "Used to connect things with wires." )
-	language.Add( "Tool.wire_adv.0", "Primary: Attach to selected input (Hold shift to select multiple inputs; Hold alt to select all inputs in the current entity), Secondary: Next input, Reload: Unlink selected input (Hold alt to unlink all in the current entity), Wheel: Scroll up or down." )
+	language.Add( "Tool.wire_adv.desc", "Used to connect things with wires (Press shift+F to switch to debugger tool and back again)." )
+	language.Add( "Tool.wire_adv.0", "Primary: Select input (Hold shift to select multiple inputs; Hold alt to select all inputs), Secondary: Next input, Reload: Unlink selected input (Hold alt to unlink all in the current entity), Wheel: Scroll up or down." )
 	language.Add( "Tool.wire_adv.1", "Primary: Select entity, Secondary: Attach wire to point and continue, Reload: Cancel." )
-	language.Add( "Tool.wire_adv.2", "Primary: Confirm attach to output (Hold alt to auto-wire, matching all input/outputs names with equal names), Secondary: Next output, Reload: Cancel, Wheel: Scroll up or down." )
+	language.Add( "Tool.wire_adv.2", "Primary: Select output (Hold alt to auto-wire, matching all input/outputs names with equal names), Secondary: Next output, Reload: Cancel, Wheel: Scroll up or down." )
 end
 
 TOOL.ClientConVar = {
@@ -192,7 +192,7 @@ elseif CLIENT then
 		
 		self:Holster()
 	end
-	function TOOL:Unwire( ent, names ) -- arguments can be either ( ent, iname ) or ( { {ent,iname}, {ent,iname}, {ent,iname}, ... } )
+	function TOOL:Unwire( ent, names )
 		net.Start( "wire_adv_unwire" )
 			net.WriteEntity( ent )
 			net.WriteTable( names )
@@ -208,6 +208,9 @@ elseif CLIENT then
 	TOOL.CurrentOutputs = nil
 	function TOOL:CachePorts( ent )
 		local inputs, outputs = WireLib.GetPorts( ent )
+		
+		local copied = false
+		
 		if self.ShowWirelink then
 			if outputs then
 				local found = false
@@ -217,6 +220,7 @@ elseif CLIENT then
 				end
 				if not found then
 					outputs = table.Copy(outputs) -- we don't want to modify the original table
+					copied = true
 					outputs[#outputs+1] = { "Create Wirelink", "WIRELINK" }
 				end
 			else
@@ -232,7 +236,9 @@ elseif CLIENT then
 						(outputs[i][1] == "Create Entity" and outputs[i][2] == "ENTITY") then found = true break end
 				end
 				if not found then
-					outputs = table.Copy(outputs) -- we don't want to modify the original table
+					if not copied then -- we don't want to copy it twice
+						outputs = table.Copy(outputs)
+					end
 					outputs[#outputs+1] = { "Create Entity", "ENTITY" }
 				end
 			else
@@ -243,9 +249,11 @@ elseif CLIENT then
 		self.CurrentOutputs = outputs
 	end
 	
+	local next_recache = 0
 	function TOOL:GetPorts( ent )
 		if IsValid( ent ) then
-			if ent ~= self.AimingEnt2 then
+			if ent ~= self.AimingEnt2 or next_recache < CurTime() then
+				next_recache = CurTime() + 1
 				self.AimingEnt2 = ent
 				self:CachePorts( ent )
 			end
@@ -312,7 +320,6 @@ elseif CLIENT then
 		end
 	end
 	
-	-- Small helper functions to format the table correctly
 	function TOOL:WireStart( entity, pos, inputname, inputtype )
 		local wiring, id = self:FindWiring( entity, inputname, inputtype )
 		if wiring then -- wiring is already started, user wants to cancel it
@@ -344,7 +351,7 @@ elseif CLIENT then
 		wiring[6] = entity:WorldToLocal( pos )
 		wiring[7] = outputname
 		wiring[8] = nil -- we don't need to send the type to the server; wasted net message space. Delete it
-		self.NeedsUpload = true
+		self.NeedsUpload = true -- We want to upload next tick. We don't upload immediately because the client may call WireEnd more this tick (for multi wiring)
 	end
 	
 	
@@ -427,7 +434,7 @@ elseif CLIENT then
 						local outputname = outputs[j][1]
 						local outputtype = outputs[j][2]
 						
-						if self:IsHighlighted( "Outputs", outputs, self.CurrentEntity, j, i ) then
+						if self:IsMatch( inputname, inputtype, outputname, outputtype, true ) then
 							self:WireEnd( wiring, self.CurrentEntity, trace.HitPos, outputname )
 							found = true
 							break
@@ -539,7 +546,7 @@ elseif CLIENT then
 	
 	hook.Add("PlayerBindPress", "wire_adv", function(ply, bind, pressed)
 		if not pressed then return end
-		
+	
 		if bind == "invnext" then
 			local self = get_active_tool(ply, "wire_adv")
 			if not self then return end
@@ -550,6 +557,18 @@ elseif CLIENT then
 			if not self then return end
 			
 			return self:ScrollUp(ply:GetEyeTraceNoCursor())
+		elseif bind == "impulse 100" and ply:KeyDown( IN_SPEED ) then
+			local self = get_active_tool(ply, "wire_adv")
+			if not self then
+				self = get_active_tool(ply, "wire_debugger")
+				if not self then return end
+				
+				RunConsoleCommand( "gmod_tool", "wire_adv" ) -- switch back to wire adv
+				return true
+			end
+			
+			RunConsoleCommand( "gmod_tool", "wire_debugger" ) -- switch to debugger
+			return true
 		end
 	end)
 	
@@ -625,19 +644,23 @@ elseif CLIENT then
 	-----------------------------------------------------------------
 	-- HUD Stuff
 	-----------------------------------------------------------------
-	
 	function TOOL:IsHighlighted( name, tbl, ent, idx, optional_idx )
 		local alt = self:GetOwner():KeyDown( IN_WALK )
-		if name == "Outputs" and self:GetStage() == 2 and alt then -- if we're holding alt, highlight all outputs that will be wired to
-			for i=1,(optional_idx ~= nil and 1 or #self.Wiring) do
-				local outputname = tbl[idx][1]
-				local outputtype = tbl[idx][2]
-				local inputname = self.Wiring[optional_idx or i][1]
-				local inputtype = self.Wiring[optional_idx or i][8]
-				if (outputname == inputname and outputtype == inputtype) or (inputtype == "WIRELINK" and (outputname == "wirelink" or outputname == "Create Wirelink") and outputtype == "WIRELINK") or
-																			(inputtype == "ENTITY" and (outputname == "entity" or outputname == "Create Entity") and outputtype == "ENTITY") then
-					return true
+		if name == "Outputs" and self:GetStage() == 2 then
+			if alt then -- if we're holding alt, highlight all outputs that will be wired to
+				for i=1,(optional_idx ~= nil and 1 or #self.WiringRender) do
+					local wiringrender = self.WiringRender[optional_idx or i]
+					local outputname = tbl[idx][1]
+					local outputtype = tbl[idx][2]
+					local inputname = wiringrender[1]
+					local inputtype = wiringrender[2]
+					
+					if self:IsMatch( inputname, inputtype, outputname, outputtype, true ) then
+						return true
+					end
 				end
+			else
+				return self.CurrentWireIndex == idx -- Highlight selected output
 			end
 		elseif name == "Selected" and self:GetStage() == 2 and alt then -- highlight all selected inputs that will be wired
 			local inputs, outputs = self:GetPorts( ent )
@@ -646,9 +669,8 @@ elseif CLIENT then
 				local outputname = outputs[i][1]
 				local outputtype = outputs[i][2]
 				local inputname = tbl[idx][1]
-				local inputtype = tbl[idx][8]
-				if (outputname == inputname and outputtype == inputtype) or (inputtype == "WIRELINK" and (outputname == "wirelink" or outputname == "Create Wirelink") and outputtype == "WIRELINK") or
-																			(inputtype == "ENTITY" and (outputname == "entity" or outputname == "Create Entity") and outputtype == "ENTITY") then
+				local inputtype = tbl[idx][2]
+				if self:IsMatch( inputname, inputtype, outputname, outputtype, true ) then
 					return true
 				end
 			end		
@@ -656,32 +678,32 @@ elseif CLIENT then
 			local wiring, _ = self:FindWiring( ent, tbl[idx][1], tbl[idx][2] )
 			if wiring then return true, true end -- Highlight with a different color
 			return self.CurrentWireIndex == idx or alt
-		elseif name == "Outputs" and self:GetStage() == 2 then
-			return self.CurrentWireIndex == idx
 		end
 		return false
 	end
 	
 	function TOOL:IsBlocked( name, tbl, ent, idx )
 		if name == "Outputs" and self:GetStage() > 0 then -- Gray out the ones that we can't wire any of the selected inputs to
-			for i=1,#self.Wiring do
-				local inputtype = self.Wiring[i][8]
+			for i=1,#self.WiringRender do
+				local inputtype = self.WiringRender[i][2]
 				if tbl[idx][2] == inputtype then
 					return false
 				end
 			end
 			return true
-		elseif name == "Selected" and self:GetStage() == 2 and WireLib.HasPorts( ent ) and self:GetOwner():KeyDown( IN_WALK ) then -- Gray out the ones that won't be able to be wired to any input
-			local inputs, outputs = self:GetPorts( ent )
-			if not outputs then return false end
-			for i=1,#outputs do
-				if tbl[idx][8] == outputs[i][2] then return false end
+		elseif name == "Selected" and self:GetStage() == 2 then
+			if self:GetOwner():KeyDown( IN_WALK ) then -- Gray out the ones that won't be able to be wired to any input
+				local inputs, outputs = self:GetPorts( ent )
+				if not outputs then return false end
+				for i=1,#outputs do
+					if tbl[idx][2] == outputs[i][2] then return false end
+				end
+				return true
+			else -- Gray out the ones that won't be able to be wired to the selected output
+				local inputs, outputs = self:GetPorts( ent )
+				if not outputs then return false end
+				return tbl[idx][2] ~= outputs[self.CurrentWireIndex][2]
 			end
-			return true
-		elseif name == "Selected" and self:GetStage() == 2 and WireLib.HasPorts( ent ) then -- Gray out the ones that won't be able to be wired to the selected output
-			local inputs, outputs = self:GetPorts( ent )
-			if not outputs then return false end
-			return tbl[idx][2] ~= outputs[self.CurrentWireIndex][2]
 		end
 		return false
 	end
@@ -796,7 +818,7 @@ elseif CLIENT then
 		
 		local ent = self:GetStage() == 2 and self.CurrentEntity or self:GetOwner():GetEyeTrace().Entity
 		local maxwidth = 0
-		if IsValid( ent ) and WireLib.HasPorts( ent ) then
+		if IsValid( ent ) then
 			local inputs, outputs = self:GetPorts( ent )
 			if inputs and #inputs > 0 and self:GetStage() == 0 then
 				local w, h = self:fitFont( #inputs, ScrH() - 32 )
@@ -838,11 +860,20 @@ elseif CLIENT then
 	-- but is organized differently and is used to
 	-- render the "Selected" box on screen properly.
 	-----------------------------------------------------------------
+	function TOOL:IsMatch( inputname, inputtype, outputname, outputtype, checkcreated )
+		if checkcreated then
+			return (outputname == inputname and outputtype == inputtype) or (inputtype == "WIRELINK" and (outputname == "wirelink" or outputname == "Create Wirelink") and outputtype == "WIRELINK") or
+																			(inputtype == "ENTITY" and (outputname == "entity" or outputname == "Create Entity") and outputtype == "ENTITY")
+		else
+			return (outputname == inputname and outputtype == inputtype)
+		end
+	end
 	
 	function TOOL:WiringRenderFind( inputname, inputtype )
 		for i=1,#self.WiringRender do
-			if self.WiringRender[i][1] == inputname and self.WiringRender[i][2] == inputtype then
-				return self.WiringRender[i], i
+			local wiringrender = self.WiringRender[i]
+			if self:IsMatch( wiringrender[1], wiringrender[2], inputname, inputtype ) then
+				return wiringrender, i
 			end
 		end
 	end
@@ -865,7 +896,7 @@ elseif CLIENT then
 			wiringrender[9] = wiringrender[9] + 1
 		else
 			local wiringrender = { inputname, inputtype }
-			wiringrender[8] = inputtype
+			--wiringrender[8] = inputtype
 			wiringrender[9] = 1
 			self.WiringRender[#self.WiringRender+1] = wiringrender
 		end
