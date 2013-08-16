@@ -452,6 +452,7 @@ function WireToolSetup.SetupLinking(SingleLink)
 		local ent = trace.Entity
 
 		if self:CheckHitOwnClass(trace) then -- regardless of stage, reloading on our own class clears it
+			local ply = self:GetOwner()
 			self:SetStage(0)
 			if ent.ClearEntities then
 				ent:ClearEntities()
