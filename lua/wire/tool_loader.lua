@@ -260,8 +260,8 @@ function WireToolObj:SetPos( ent, trace )
 	elseif self.GhostMin then -- tool gives the axis for the OBBmin to use
 		ent:SetPos( trace.HitPos - trace.HitNormal * min[self.GhostMin] )
 	elseif self.ClientConVar.createflat and (self:GetClientNumber("createflat") == 1) ~= ((string.find(self:GetModel(), "pcb") or string.find(self:GetModel(), "hunter")) ~= nil) then
-		-- Screens have odd models. If createflat is 1, or its 0 and its a PHX model, use min.x
-		ent:SetPos( trace.HitPos - trace.HitNormal * min.x )
+		-- Screens have odd models. If createflat is 1, or its 0 and its a PHX model, use max.x
+		ent:SetPos( trace.HitPos + trace.HitNormal * ent:OBBMaxs().x )
 	else -- default to the z OBBmin
 		ent:SetPos( trace.HitPos - trace.HitNormal * min.z )
 	end
