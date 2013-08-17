@@ -131,8 +131,7 @@ if SERVER then
 			
 			if 	IsValid( inputentity ) and IsValid( outputentity ) and
 				hook.Run( "CanTool", ply, WireLib.dummytrace( inputentity ), "wire_adv" ) and
-				hook.Run( "CanTool", ply, WireLib.dummytrace( outputentity ), "wire_adv" ) and
-				WireLib.HasPorts( inputentity ) and WireLib.HasPorts( outputentity ) then
+				hook.Run( "CanTool", ply, WireLib.dummytrace( outputentity ), "wire_adv" ) then
 					
 				local inputname = wiring[1]
 				local inputpos = wiring[2]
@@ -367,8 +366,8 @@ elseif CLIENT then
 		local shift = self:GetOwner():KeyDown(IN_SPEED)
 		local alt = self:GetOwner():KeyDown(IN_WALK)
 		
-		if IsValid( trace.Entity ) and WireLib.HasPorts( trace.Entity ) then
-			if self:GetStage() == 0 then
+		if IsValid( trace.Entity ) then
+			if self:GetStage() == 0 and WireLib.HasPorts( trace.Entity ) then
 				local inputs, _ = self:GetPorts( trace.Entity )
 				
 				if alt then -- Select everything
