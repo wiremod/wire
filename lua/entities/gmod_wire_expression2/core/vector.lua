@@ -161,9 +161,15 @@ e2function vector operator/(vector lhs, vector rhs)
 	return { lhs[1] / rhs[1], lhs[2] / rhs[2], lhs[3] / rhs[3] }
 end
 
-e2function normal vector:operator[](index)
+e2function number vector:operator[](index)
 	index = math.Round(math.Clamp(index,1,3))
 	return this[index]
+end
+
+e2function number vector:operator[](index, value)
+	index = math.Round(math.Clamp(index,1,3))
+	this[index] = value
+	return value
 end
 
 --------------------------------------------------------------------------------

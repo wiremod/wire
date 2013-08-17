@@ -426,6 +426,18 @@ e2function quaternion operator^(quaternion lhs, number rhs)
 	return qexp({ l[1]*rhs, l[2]*rhs, l[3]*rhs, l[4]*rhs })
 end
 
+
+e2function number quaternion:operator[](index)
+	index = math.Round(math.Clamp(index,1,4))
+	return this[index]
+end
+
+e2function number quaternion:operator[](index, value)
+	index = math.Round(math.Clamp(index,1,4))
+	this[index] = value
+	return value
+end
+
 /******************************************************************************/
 
 __e2setcost(6)
