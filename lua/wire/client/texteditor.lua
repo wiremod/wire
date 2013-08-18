@@ -1178,28 +1178,31 @@ function EDITOR:CountFinds( str )
 end
 
 function EDITOR:FindAll( str, skip_extras )
-	if (str == "") then return end
+	if str == "" then return end
 
 	local txt = self:GetValue()
-	local pattern = "()" .. str .. "()"
+	local pattern
 
-	if (!skip_extras) then
-		local whole_word_only = wire_expression2_editor_find_whole_word_only:GetBool()
-		local ignore_case = wire_expression2_editor_find_ignore_case:GetBool()
-		local use_patterns = wire_expression2_editor_find_use_patterns:GetBool()
-
-		if (!use_patterns) then
-			str = str:gsub( "[%-%^%$%(%)%%%.%[%]%*%+%-%?]", "%%%1" )
-		end
-
-		if (ignore_case) then
-			txt = txt:lower()
-			str = str:lower()
-		end
-
-		if (whole_word_only) then pattern = "[^a-zA-Z0-9_]"..pattern.."[^a-zA-Z0-9_]" end
+	if skip_extras then
+		pattern = "()" .. str:gsub("[%-%^%$%(%)%%%.%[%]%*%+%-%?]", "%%%1") .. "()"
 	else
-		str = str:gsub( "[%-%^%$%(%)%%%.%[%]%*%+%-%?]", "%%%1" )
+		local use_patterns = wire_expression2_editor_find_use_patterns:GetBool()
+		if use_patterns then
+			pattern = "()" .. str .. "()"
+		else
+			pattern = "()" .. str:gsub( "[%-%^%$%(%)%%%.%[%]%*%+%-%?]", "%%%1" ) .. "()"
+		end
+		
+		local ignore_case = wire_expression2_editor_find_ignore_case:GetBool()
+		if ignore_case then
+			txt = txt:lower()
+			pattern = pattern:lower()
+		end
+
+		local whole_word_only = wire_expression2_editor_find_whole_word_only:GetBool()
+		if whole_word_only then
+			pattern = "[^a-zA-Z0-9_]" .. pattern .. "[^a-zA-Z0-9_]"
+		end
 	end
 
 	local ret = {}
