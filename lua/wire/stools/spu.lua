@@ -200,20 +200,12 @@ if CLIENT then
     panel:AddPanel(FileBrowser)
     FileBrowser:Setup("SPUChip")
     FileBrowser:SetSize(235,400)
-    function FileBrowser:OnFileClick()
-      local lastClickTime = CurTime()
-      if not ZSPU_Editor then
+	function FileBrowser:OnFileOpen(filepath, newtab)
+	  if not ZSPU_Editor then
         ZSPU_Editor = vgui.Create("Expression2EditorFrame")
         ZSPU_Editor:Setup("ZSPU Editor", "SPUChip", "SPU")
       end
-
-      if (currentDirectory == self.File.FileDir) and (CurTime() - lastClickTime < 1) then
-        ZSPU_Editor:Open(currentDirectory)
-      else
-        lastClickTime = CurTime()
-        currentDirectory = self.File.FileDir
-        ZSPU_Editor:LoadFile(currentDirectory)
-      end
+      ZSPU_Editor:Open(filepath, nil, newtab)
     end
 
 
