@@ -361,6 +361,11 @@ e2function number table:count()
 	return this.size
 end
 
+-- Returns the number of elements in the array-part of the table
+e2function number table:ncount()
+	return #this.n
+end
+
 __e2setcost(3)
 
 __e2setcost(1)
