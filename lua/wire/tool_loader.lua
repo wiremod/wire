@@ -435,6 +435,7 @@ function WireToolSetup.SetupLinking(SingleLink)
 			local success, message = self.Controller:LinkEnt(ent)
 			if success then
 				if self.SingleLink or not ply:KeyDown(IN_SPEED) then self:SetStage(0) end
+				self.HasLinked = true
 				WireLib.AddNotify(ply, "Linked entity: " .. tostring(ent) .. " to the "..self.Name, NOTIFY_GENERIC, 5)
 			else
 				WireLib.AddNotify(ply, message or "That entity is already linked to the "..self.Name, NOTIFY_ERROR, 5, NOTIFYSOUND_DRIP3)
@@ -467,11 +468,22 @@ function WireToolSetup.SetupLinking(SingleLink)
 			local success, message = self.Controller:UnlinkEnt(ent)
 			if success then
 				if not self:GetOwner():KeyDown(IN_SPEED) then self:SetStage(0) end
+				self.HasLinked = true
 				WireLib.AddNotify(ply, "Unlinked entity: " .. tostring(ent) .. " from the "..self.Name, NOTIFY_GENERIC, 5)
 			else
 				WireLib.AddNotify(ply, message or "That entity is not linked to the "..self.Name, NOTIFY_ERROR, 5, NOTIFYSOUND_DRIP3)
 			end
 			return success
+		end
+	end
+	
+	if not SingleLink then
+		function TOOL:Think()
+			if self.HasLinked then
+				if not self:GetOwner():KeyDown(IN_SPEED) then self:SetStage(0) end
+				if self:GetStage() == 0 then self.HasLinked = false end
+			end
+			WireToolObj.Think(self) -- Basic ghost
 		end
 	end
 end
