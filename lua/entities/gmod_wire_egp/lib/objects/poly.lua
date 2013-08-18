@@ -7,10 +7,19 @@ Obj.y = nil
 Obj.vertices = {}
 Obj.verticesindex = "vertices"
 Obj.HasUV = true
+
+-- Returns whether c is to the left of the line from a to b.
+local function counterclockwise( a, b, c )
+	local area = (a.x - c.x) * (b.y - c.y) - (b.x - c.x) * (a.y - c.y)
+	return area > 0
+end
+
 Obj.Draw = function( self )
 	if (self.a>0 and #self.vertices>2) then
+		render.CullMode(counterclockwise(unpack(self.vertices)) and MATERIAL_CULLMODE_CCW or MATERIAL_CULLMODE_CW)
 		surface.SetDrawColor( self.r, self.g, self.b, self.a )
 		surface.DrawPoly( self.vertices )
+		render.CullMode(MATERIAL_CULLMODE_CCW)
 	end
 end
 Obj.Transmit = function( self, Ent, ply )
