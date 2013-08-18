@@ -37,11 +37,10 @@ if CLIENT then
 	function ENT:Draw()
 		self:DrawModel()
 
-		local oldw = ScrW()
-		local oldh = ScrH()
-
 		local length = math.Clamp(self:GetNetworkedFloat("Length"), 1, 100)
 		if self:GetNetworkedFloat("Length") <= 0 then length = 50 end
+		local r,g,b = math.Clamp(self:GetNetworkedFloat("R"), 0, 255), math.Clamp(self:GetNetworkedFloat("G"), 0, 255), math.Clamp(self:GetNetworkedFloat("B"), 0, 255)
+		if r <= 0 and g <= 0 and b <= 0 then g = 200 end
 
 		self.GPU:RenderToGPU(function()
 			surface.SetDrawColor(10,20,5,255)
@@ -59,9 +58,6 @@ if CLIENT then
 				if ((nx1-nx2)*(nx1-nx2) + (ny1-ny2)*(ny1-ny2) < 256*256) then
 					local a = math.max(1, 3.75-(3*(i-100+length))/length)
 					local a2 = math.max(1, a/2)
-
-					local r,g,b = math.Clamp(self:GetNetworkedFloat("R"), 0, 255), math.Clamp(self:GetNetworkedFloat("G"), 0, 255), math.Clamp(self:GetNetworkedFloat("B"), 0, 255)
-					if r <= 0 and g <= 0 and b <= 0 then g = 200 end
 
 					for i=-3,3 do
 						surface.SetDrawColor(r/a, g/a, b/a, 255)
@@ -89,8 +85,6 @@ if CLIENT then
 		self.GPU:Render()
 		Wire_Render(self)
 	end
-
-	function ENT:IsTranslucent() return true end
 	
 	return  -- No more client
 end
@@ -133,24 +127,4 @@ function ENT:TriggerInput(iname, value)
 	end
 end
 
-function MakeWireOscilloscope( pl, Pos, Ang, model )
-
-	if ( !pl:CheckLimit( "wire_oscilloscopes" ) ) then return false end
-
-	local wire_oscilloscope = ents.Create( "gmod_wire_oscilloscope" )
-	if (!wire_oscilloscope:IsValid()) then return false end
-	wire_oscilloscope:SetModel( model )
-
-	wire_oscilloscope:SetAngles( Ang )
-	wire_oscilloscope:SetPos( Pos )
-	wire_oscilloscope:Spawn()
-
-	wire_oscilloscope:SetPlayer(pl)
-	wire_oscilloscope.pl = pl
-
-	pl:AddCount( "wire_oscilloscopes", wire_oscilloscope )
-
-	return wire_oscilloscope
-end
-
-duplicator.RegisterEntityClass("gmod_wire_oscilloscope", MakeWireOscilloscope, "Pos", "Ang", "Model")
+duplicator.RegisterEntityClass("gmod_wire_oscilloscope", WireLib.MakeWireEnt, "Data")
