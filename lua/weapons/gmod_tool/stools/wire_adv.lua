@@ -184,7 +184,24 @@ elseif CLIENT then
 	function TOOL:GetStage()
 		return self._stage
 	end
+	function TOOL:SanitizeUpload() -- Removes any wirings that are no longer valid
+		for i=#self.Wiring,1,-1 do
+			local wiring = self.Wiring[i]
+			local inputentity = wiring[3]
+			local outputentity = wiring[5]
+			local outputname = wiring[7]
+			
+			if 	not IsValid(inputentity) or
+				not IsValid(outputentity) or
+				not outputname then -- we don't need to check everything because only these things can possibly be invalid
+				
+				table.remove(self.Wiring,i)
+			end
+		end
+	end
 	function TOOL:Upload()
+		self:SanitizeUpload() -- Remove all invalid wirings before sending
+	
 		net.Start( "wire_adv_upload" )
 			net.WriteTable( self.Wiring )
 		net.SendToServer()
@@ -345,12 +362,14 @@ elseif CLIENT then
 	function TOOL:WireNode( wiring, entity, pos )
 		wiring[4][#wiring[4]+1] = { entity, entity:WorldToLocal( pos ) }
 	end
-	function TOOL:WireEnd( wiring, entity, pos, outputname )
+	function TOOL:WireEndEntityPos( wiring, entity, pos )
 		wiring[5] = entity
 		wiring[6] = entity:WorldToLocal( pos )
+	end
+	function TOOL:WireEndOutputName( wiring, outputname )
 		wiring[7] = outputname
 		wiring[8] = nil -- we don't need to send the type to the server; wasted net message space. Delete it
-		self.NeedsUpload = true -- We want to upload next tick. We don't upload immediately because the client may call WireEnd more this tick (for multi wiring)
+		self.NeedsUpload = true -- We want to upload next tick. We don't upload immediately because the client may call this function more this tick (for multi wiring)
 	end
 	
 	
@@ -414,6 +433,10 @@ elseif CLIENT then
 					self.CurrentWireIndex = matchingByType
 				end
 				
+				for i=1,#self.Wiring do
+					self:WireEndEntityPos( self.Wiring[i], self.CurrentEntity, trace.HitPos )
+				end
+				
 				self:GetOwner():EmitSound( "weapons/airboat/airboat_gun_lastshot" .. math.random(1,2) .. ".wav" )
 				return
 			end
@@ -434,7 +457,7 @@ elseif CLIENT then
 						local outputtype = outputs[j][2]
 						
 						if self:IsMatch( inputname, inputtype, outputname, outputtype, true ) then
-							self:WireEnd( wiring, self.CurrentEntity, trace.HitPos, outputname )
+							self:WireEndOutputName( wiring, outputname )
 							found = true
 							break
 						end
@@ -451,7 +474,7 @@ elseif CLIENT then
 				local notwired = 0
 				for i=1,#self.Wiring do
 					if outputs[self.CurrentWireIndex][2] == self.Wiring[i][8] then
-						self:WireEnd( self.Wiring[i], self.CurrentEntity, trace.HitPos, outputs[self.CurrentWireIndex][1] )
+						self:WireEndOutputName( self.Wiring[i], outputs[self.CurrentWireIndex][1] )
 					else
 						notwired = notwired + 1
 					end
