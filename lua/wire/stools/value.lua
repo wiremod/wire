@@ -115,6 +115,7 @@ if CLIENT then
 			ValuePanels[id].typeSelection:SetText( v.DataType )
 			ValuePanels[id].typeSelection:OnSelect( _, v.DataType )
 			ValuePanels[id].valueEntry:SetValue(v.Value)
+			selectedValues[id].Value = v.Value
 		end
 		
 		SendUpdate = oldSendUpdate
