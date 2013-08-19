@@ -200,7 +200,7 @@ if (SERVER) then
 						end
 						for k, Input in pairs_sortvalues(cmp.Inputs, WireLib.PortComparator) do
 							if formatPort[Input.Type] then
-								dbginfo = dbginfo .. k .. ":" .. formatPort[Input.Type](Input.Value, OrientVertical)
+								dbginfo = dbginfo .. k .. ":" .. formatPort[Input.Type](Input.Value or WireLib.DT[Input.Type].Zero, OrientVertical)
 								if OrientVertical then
 									dbginfo = dbginfo .. "\n"
 								else
@@ -223,7 +223,7 @@ if (SERVER) then
 						end
 						for k, Output in pairs_sortvalues(cmp.Outputs, WireLib.PortComparator) do
 							if formatPort[Output.Type] then
-								dbginfo = dbginfo .. k .. ":" .. formatPort[Output.Type](Output.Value, OrientVertical)
+								dbginfo = dbginfo .. k .. ":" .. formatPort[Output.Type](Output.Value or WireLib.DT[Output.Type].Zero, OrientVertical)
 								if OrientVertical then
 									dbginfo = dbginfo .. "\n"
 								else
