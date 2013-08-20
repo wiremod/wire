@@ -10,6 +10,7 @@ if CLIENT then
 	language.Add("Tool_wire_textscreen_tsize", "Text size:")
 	language.Add("Tool_wire_textscreen_tjust", "Horizontal alignment:")
 	language.Add("Tool_wire_textscreen_valign", "Vertical alignment:")
+	language.Add("Tool_wire_textscreen_tfont", "Text font:")
 	language.Add("Tool_wire_textscreen_colour", "Text colour:")
 	language.Add("Tool_wire_textscreen_createflat", "Create flat to surface")
 	language.Add("Tool_wire_textscreen_text", "Default text:")
@@ -27,6 +28,7 @@ if SERVER then
 			(16 - tonumber(self:GetClientInfo("tsize"))),
 			self:GetClientNumber("tjust"),
 			self:GetClientNumber("valign"),
+			self:GetClientInfo("tfont"),
 			Color(
 				math.min(self:GetClientNumber("tred"), 255),
 				math.min(self:GetClientNumber("tgreen"), 255),
@@ -43,6 +45,7 @@ TOOL.ClientConVar = {
 	tsize       = 10,
 	tjust       = 1,
 	valign      = 0,
+	tfont       = "Arial",
 	tred        = 255,
 	tblue       = 255,
 	tgreen      = 255,
@@ -68,10 +71,34 @@ function TOOL:RightClick( trace )
 end
 
 function TOOL.BuildCPanel(panel)
+	local Fonts = {
+		"WireGPU_ConsoleFont",
+		"Coolvetica",
+		"Arial",
+		"Lucida Console",
+		"Trebuchet",
+		"Courier New",
+		"Times New Roman",
+		"ChatFont",
+		"Marlett",
+		"Verdana",
+		"Tahoma",
+		"HalfLife2",
+		"HL2cross",
+		"Trebuchet MS",
+		"HL2MP"
+	}
+	local Options = {}
+	for k,v in ipairs(Fonts) do Options[v] = { wire_textscreen_tfont = v } end
+	
 	WireToolHelpers.MakePresetControl(panel, "wire_textscreen")
 	panel:NumSlider("#Tool_wire_textscreen_tsize", "wire_textscreen_tsize", 1, 15, 0)
 	panel:NumSlider("#Tool_wire_textscreen_tjust", "wire_textscreen_tjust", 0, 2, 0)
 	panel:NumSlider("#Tool_wire_textscreen_valign", "wire_textscreen_valign", 0, 2, 0)
+	panel:AddControl("ComboBox", {
+		Label = "#Tool_wire_textscreen_tfont",
+		Options = Options
+	})
 	panel:AddControl("Color", {
 		Label = "#Tool_wire_textscreen_colour",
 		Red = "wire_textscreen_tred",
