@@ -2173,10 +2173,13 @@ end
 
 function Editor:LoadFile(Line, forcenewtab)
 	if not Line or file.IsDir(Line, "DATA") then return end
-	local str = file.Read(Line)
-	if str == nil then
+
+	local f = file.Open(Line, "r", "DATA")
+	if not f then 
 		ErrorNoHalt("Erroring opening file: " .. Line)
 	else
+		local str = f:Read(f:Size())
+		f:Close()
 		self:AutoSave()
 		if not forcenewtab then
 			for i = 1, self:GetNumTabs() do
