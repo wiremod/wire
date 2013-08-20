@@ -8,6 +8,8 @@ function ENT:InitializeShared()
 	self.chrPerLine = 5
 	self.textJust = 0
 	self.valign = 0
+	self.tfont = "Arial"
+	self.createdFonts = {}
 
 	self.fgcolor = Color(255,255,255)
 	self.bgcolor = Color(0,0,0)
@@ -128,7 +130,7 @@ if CLIENT then
 
 		self.GPU = WireGPU(self)
 		self.layouter = MakeTextScreenLayouter()
-		self.NeedRefresh = true
+		self:CreateFont(self.tfont)
 	end
 
 	function ENT:OnRemove()
@@ -147,7 +149,7 @@ if CLIENT then
 				surface.SetDrawColor(self.bgcolor.r, self.bgcolor.g, self.bgcolor.b, 255)
 				surface.DrawRect(0, 0, w, h)
 
-				surface.SetFont("textScreenfont"..self.chrPerLine)
+				surface.SetFont(self.tfont..self.chrPerLine)
 				surface.SetTextColor(self.fgcolor)
 				self.layouter:DrawText(self.text, 0, 0, w, h, self.textJust, self.valign)
 			end)
@@ -168,8 +170,10 @@ if CLIENT then
 		Wire_Render(self)
 	end
 
-	function ENT:SetText(text)
+	function ENT:SetText(text,font)
 		self.text = text
+		self.tfont = font
+		self:CreateFont(font)
 		self.NeedRefresh = true
 	end
 
@@ -191,26 +195,28 @@ if CLIENT then
 			self.bgcolor = Color(r,g,b)
 			self.NeedRefresh = true
 		elseif what == 2 then
-			self:SetText(um:ReadString())
+			self:SetText(um:ReadString(), um:ReadString()) -- text, font
 		end
 	end
-
-	if not wire_textscreen_FontsCreated then
-		wire_textscreen_FontsCreated = true
+	
+	function ENT:CreateFont(font)
+		if self.createdFonts[font] then return end
 
 		local fontSize = 380
 		for i = 1,15 do
 			local fontData = 
 			{
-				font = "Helvetica",
+				font = font,
 				size = fontSize / i,
 				weight = 400,
 				antialias = true,
 				additive = false,
 				
 			}
-			surface.CreateFont( "textScreenfont" .. i, fontData)
+			surface.CreateFont( font .. i, fontData)
 		end
+		self.createdFonts[font] = true
+		self.NeedRefresh = true
 	end
 	
 	return  -- No more client
@@ -223,24 +229,30 @@ function ENT:Initialize()
 	self:SetMoveType( MOVETYPE_VPHYSICS )
 	self:SetSolid( SOLID_VPHYSICS )
 
-	self.Inputs = WireLib.CreateSpecialInputs(self, { "String", "FGColor", "BGColor" }, { "STRING", "VECTOR", "VECTOR" })
+	self.Inputs = WireLib.CreateSpecialInputs(self, { "String", "Font", "FGColor", "BGColor" }, { "STRING", "STRING", "VECTOR", "VECTOR" })
 	self:InitializeShared()
 end
 
-function ENT:Setup(DefaultText, chrPerLine, textJust, valign, fgcolor, bgcolor)
+function ENT:Setup(DefaultText, chrPerLine, textJust, valign, tfont, fgcolor, bgcolor)
 	self.fgcolor = fgcolor or Color(255,255,255)
 	self.bgcolor = bgcolor or Color(0,0,0)
 	self.chrPerLine = math.Clamp(math.ceil(chrPerLine or 10), 1, 15)
 	self.textJust = textJust or 1
 	self.valign = valign or 0
+	self.tfont = tfont or "Arial"
 	self:SendConfig()
-
-	self:TriggerInput("String", DefaultText or "")
+	
+	self.text = DefaultText or ""
+	self:TriggerInput("String", self.text)
 end
 
 function ENT:TriggerInput(iname, value)
 	if iname == "String" then
-		self:SetText(tostring(value))
+		self.text = tostring(value)
+		self:SetText(self.text, self.tfont)
+	elseif iname == "Font" then
+		self.tfont = tostring(value)
+		if value ~= "" then self:SetText(self.text, self.tfont) end
 	elseif iname == "FGColor" then
 		self.fgcolor = Color(value.x, value.y, value.z)
 		self.doSendConfig = true
@@ -254,12 +266,12 @@ local function formatText(text)
 	return text:gsub("<br>", "\n")
 end
 
-function ENT:SetText(text, ply)
-	self.text = text
+function ENT:SetText(text, font, ply)
 	self:umsg(ply)
 		self.umsg.Char(2) -- text
 
 		self.umsg.String(formatText(text))
+		self.umsg.String(font)
 	self.umsg.End()
 end
 
@@ -289,8 +301,8 @@ function ENT:SendConfig(ply)
 end
 
 function ENT:Retransmit(ply)
-	self:SetText(self.text, ply)
+	self:SetText(self.text, self.tfont, ply)
 	self:SendConfig(ply)
 end
 
-duplicator.RegisterEntityClass("gmod_wire_textscreen", WireLib.MakeWireEnt, "Data", "text", "chrPerLine", "textJust", "valign", "fgcolor", "bgcolor")
+duplicator.RegisterEntityClass("gmod_wire_textscreen", WireLib.MakeWireEnt, "Data", "text", "chrPerLine", "textJust", "valign", "tfont", "fgcolor", "bgcolor")
