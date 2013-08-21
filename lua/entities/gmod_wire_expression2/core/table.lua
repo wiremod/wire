@@ -540,11 +540,11 @@ e2function table table:add( table rv2 )
 		local id = rv2.ntypes[k]
 		if (!blocked_types[id]) then
 			count = count + 1
+			size = size + 1
 			ret.n[count] = v
 			ret.ntypes[count] = id
 		end
 	end
-	size = size + count
 
 	for k,v in pairs( rv2.s ) do
 		cost = cost + 1
