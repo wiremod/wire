@@ -170,10 +170,8 @@ if CLIENT then
 		Wire_Render(self)
 	end
 
-	function ENT:SetText(text,font)
+	function ENT:SetText(text)
 		self.text = text
-		self.tfont = font
-		self:CreateFont(font)
 		self.NeedRefresh = true
 	end
 
@@ -193,9 +191,13 @@ if CLIENT then
 			local g = um:ReadChar()+128
 			local b = um:ReadChar()+128
 			self.bgcolor = Color(r,g,b)
+
+			self.tfont = um:ReadString()
+			self:CreateFont(self.tfont)
+
 			self.NeedRefresh = true
 		elseif what == 2 then
-			self:SetText(um:ReadString(), um:ReadString()) -- text, font
+			self:SetText(um:ReadString()) -- text
 		end
 	end
 	
@@ -249,10 +251,10 @@ end
 function ENT:TriggerInput(iname, value)
 	if iname == "String" then
 		self.text = tostring(value)
-		self:SetText(self.text, self.tfont)
+		self:SendText()
 	elseif iname == "Font" then
 		self.tfont = tostring(value)
-		if value ~= "" then self:SetText(self.text, self.tfont) end
+		self.doSendConfig = true
 	elseif iname == "FGColor" then
 		self.fgcolor = Color(value.x, value.y, value.z)
 		self.doSendConfig = true
@@ -266,12 +268,11 @@ local function formatText(text)
 	return text:gsub("<br>", "\n")
 end
 
-function ENT:SetText(text, font, ply)
+function ENT:SendText(ply)
 	self:umsg(ply)
 		self.umsg.Char(2) -- text
 
-		self.umsg.String(formatText(text))
-		self.umsg.String(font)
+		self.umsg.String(formatText(self.text))
 	self.umsg.End()
 end
 
@@ -297,11 +298,12 @@ function ENT:SendConfig(ply)
 		self.umsg.Char(self.bgcolor.r-128)
 		self.umsg.Char(self.bgcolor.g-128)
 		self.umsg.Char(self.bgcolor.b-128)
+		self.umsg.String(self.tfont)
 	self.umsg.End()
 end
 
 function ENT:Retransmit(ply)
-	self:SetText(self.text, self.tfont, ply)
+	self:SendText(ply)
 	self:SendConfig(ply)
 end
 
