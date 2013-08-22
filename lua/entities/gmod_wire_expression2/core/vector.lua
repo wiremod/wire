@@ -41,7 +41,7 @@ e2function vector vec()
 	return { 0, 0, 0 }
 end
 
-__e2setcost(3) -- temporary
+__e2setcost(2)
 
 e2function vector vec(x)
 	return { x, x, x }
@@ -343,7 +343,7 @@ end
 
 --------------------------------------------------------------------------------
 
-__e2setcost(2)
+__e2setcost(1)
 
 e2function number vector:x()
 	return this[1]
@@ -356,6 +356,8 @@ end
 e2function number vector:z()
 	return this[3]
 end
+
+__e2setcost(2)
 
 --- SET method that returns a new vector with x replaced
 e2function vector vector:setX(x)
@@ -507,7 +509,7 @@ e2function vector mix(vector vec1, vector vec2, ratio)
 	}
 end
 
-__e2setcost(3)
+__e2setcost(2)
 
 --- Circular shift function: shiftR(vec(x,y,z)) = vec(z,x,y)
 e2function vector shiftR(vector vec)

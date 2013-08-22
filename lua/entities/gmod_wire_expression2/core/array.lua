@@ -501,12 +501,11 @@ e2function array array:add( array other )
 	local ret = {}
 	for i=1,#this do
 		ret[i] = this[i]
-		self.prf = self.prf + 0.3
 	end
 	for i=1,#other do
 		ret[#ret+1] = other[i]
-		self.prf = self.prf + 0.3
 	end
+	self.prf = self.prf + #ret / 3
 	return ret
 end
 
@@ -520,7 +519,7 @@ e2function array array:merge( array other )
 	local ret = {}
 	for i=1,math.max(#this,#other) do
 		ret[i] = other[i] or this[i]
-		self.prf = self.prf + 0.3
 	end
+	self.prf = self.prf + #ret / 3
 	return ret
 end

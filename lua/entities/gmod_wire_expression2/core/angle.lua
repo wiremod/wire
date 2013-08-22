@@ -26,7 +26,7 @@ e2function angle ang()
 	return { 0, 0, 0 }
 end
 
-__e2setcost(3) -- temporary
+__e2setcost(2)
 
 e2function angle ang(rv1)
 	return { rv1, rv1, rv1 }
@@ -57,6 +57,8 @@ e2function number operator_is(angle rv1)
 	if rv1[1] != 0 || rv1[2] != 0 || rv1[3] != 0
 	   then return 1 else return 0 end
 end
+
+__e2setcost(3)
 
 e2function number operator==(angle rv1, angle rv2)
 	if rv1[1] - rv2[1] <= delta && rv2[1] - rv1[1] <= delta &&
@@ -108,6 +110,8 @@ registerOperator("dlt", "a", "a", function(self, args)
 	return { rv1[1] - rv2[1], rv1[2] - rv2[2], rv1[3] - rv2[3] }
 end)
 
+__e2setcost(2)
+
 e2function angle operator_neg(angle rv1)
 	return { -rv1[1], -rv1[2], -rv1[3] }
 end
@@ -153,7 +157,7 @@ end
 
 /******************************************************************************/
 
-__e2setcost(5) -- temporary
+__e2setcost(5)
 
 e2function angle angnorm(angle rv1)
 	return {(rv1[1] + 180) % 360 - 180,(rv1[2] + 180) % 360 - 180,(rv1[3] + 180) % 360 - 180}
@@ -162,6 +166,8 @@ end
 e2function number angnorm(rv1)
 	return (rv1 + 180) % 360 - 180
 end
+
+__e2setcost(1)
 
 e2function number angle:pitch()
 	return this[1]
@@ -174,6 +180,8 @@ end
 e2function number angle:roll()
 	return this[3]
 end
+
+__e2setcost(2)
 
 // SET methods that returns angles
 e2function angle angle:setPitch(rv2)
@@ -189,6 +197,8 @@ e2function angle angle:setRoll(rv2)
 end
 
 /******************************************************************************/
+
+__e2setcost(5)
 
 e2function angle round(angle rv1)
 	local p = rv1[1] - (rv1[1] + 0.5) % 1 + 0.5
@@ -312,6 +322,8 @@ e2function angle mix(angle rv1, angle rv2, rv3)
 	return {p, y, r}
 end
 
+__e2setcost(2)
+
 // Circular shift function: shiftr(  p,y,r ) = ( r,p,y )
 e2function angle shiftR(angle rv1)
 	return {rv1[3], rv1[1], rv1[2]}
@@ -320,6 +332,8 @@ end
 e2function angle shiftL(angle rv1)
 	return {rv1[2], rv1[3], rv1[1]}
 end
+
+__e2setcost(5)
 
 // Returns 1 if the angle lies between (or is equal to) the min/max angles
 e2function normal inrange(angle rv1, angle rv2, angle rv3)
