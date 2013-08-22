@@ -13,8 +13,6 @@ function ENT:InitializeShared()
 
 	self.fgcolor = Color(255,255,255)
 	self.bgcolor = Color(0,0,0)
-
-	WireLib.umsgRegister(self)
 end
 
 
@@ -131,6 +129,8 @@ if CLIENT then
 		self.GPU = WireGPU(self)
 		self.layouter = MakeTextScreenLayouter()
 		self:CreateFont(self.tfont)
+
+		WireLib.netRegister(self)
 	end
 
 	function ENT:OnRemove()
@@ -175,29 +175,20 @@ if CLIENT then
 		self.NeedRefresh = true
 	end
 
-	function ENT:Receive(um)
-		local what = um:ReadChar()
-		if what == 1 then
-			self.chrPerLine = um:ReadChar()
-			self.textJust = um:ReadChar()
-			self.valign = um:ReadChar()
+	function ENT:Receive()
+		if net.ReadBit() ~= 0 then
+			self.chrPerLine = net.ReadUInt(4)
+			self.textJust = net.ReadUInt(2)
+			self.valign = net.ReadUInt(2)
 
-			local r = um:ReadChar()+128
-			local g = um:ReadChar()+128
-			local b = um:ReadChar()+128
-			self.fgcolor = Color(r,g,b)
-
-			local r = um:ReadChar()+128
-			local g = um:ReadChar()+128
-			local b = um:ReadChar()+128
-			self.bgcolor = Color(r,g,b)
-
-			self.tfont = um:ReadString()
+			self.fgcolor = Color(net.ReadUInt(8), net.ReadUInt(8), net.ReadUInt(8))
+			self.bgcolor = Color(net.ReadUInt(8), net.ReadUInt(8), net.ReadUInt(8))
+			self.tfont = net.ReadString()
 			self:CreateFont(self.tfont)
 
 			self.NeedRefresh = true
-		elseif what == 2 then
-			self:SetText(um:ReadString()) -- text
+		else
+			self:SetText(net.ReadString())
 		end
 	end
 	
@@ -269,11 +260,10 @@ local function formatText(text)
 end
 
 function ENT:SendText(ply)
-	self:umsg(ply)
-		self.umsg.Char(2) -- text
-
-		self.umsg.String(formatText(self.text))
-	self.umsg.End()
+	WireLib.netStart(self)
+		net.WriteBit(false) -- Sending Text
+		net.WriteString(formatText(self.text))
+	WireLib.netEnd(ply)
 end
 
 function ENT:Think()
@@ -284,22 +274,21 @@ end
 
 function ENT:SendConfig(ply)
 	self.doSendConfig = nil
-	self:umsg(ply)
-		self.umsg.Char(1) -- config
-
-		self.umsg.Char(self.chrPerLine)
-		self.umsg.Char(self.textJust)
-		self.umsg.Char(self.valign)
-
-		self.umsg.Char(self.fgcolor.r-128)
-		self.umsg.Char(self.fgcolor.g-128)
-		self.umsg.Char(self.fgcolor.b-128)
-
-		self.umsg.Char(self.bgcolor.r-128)
-		self.umsg.Char(self.bgcolor.g-128)
-		self.umsg.Char(self.bgcolor.b-128)
-		self.umsg.String(self.tfont)
-	self.umsg.End()
+	WireLib.netStart(self)
+		net.WriteBit(true) -- Sending Config
+		net.WriteUInt(self.chrPerLine, 4)
+		net.WriteUInt(self.textJust, 2)
+		net.WriteUInt(self.valign, 2)
+		
+		net.WriteUInt(self.fgcolor.r, 8)
+		net.WriteUInt(self.fgcolor.g, 8)
+		net.WriteUInt(self.fgcolor.b, 8)
+		
+		net.WriteUInt(self.bgcolor.r, 8)
+		net.WriteUInt(self.bgcolor.g, 8)
+		net.WriteUInt(self.bgcolor.b, 8)
+		net.WriteString(self.tfont)
+	WireLib.netEnd(ply)
 end
 
 function ENT:Retransmit(ply)

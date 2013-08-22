@@ -10,8 +10,6 @@ local Entity = Entity
 
 local string = string
 local hook = hook
-local usermessage = usermessage
-local umsg = umsg
 
 -- extra table functions
 
@@ -361,67 +359,53 @@ function WireLib.ErrorNoHalt(message)
 	end
 end
 
---[[ wire_umsg: self:umsg() system
-	Shared requirements: WireLib.umsgRegister(self) in ENT:Initialize()
-	Server requirements: ENT:Retransmit(ply)
-	Client requirements: ENT:Receive(um)
+--[[ wire_netmsg system
+	A basic framework for entities that should send newly connecting players data
+
+	Server requirements: ENT:Retransmit(ply) -- Should send all data to one player
+	Client requirements: 
+		WireLib.netRegister(self) in ENT:Initialize()
+		ENT:Receive()
 
 	To send:
-	self:umsg() -- you can pass a Player or a RecipientFilter here to only send to some clients.
-		umsg.Whatever(whatever)
-	umsg.End()
+	function ENT:Retransmit(ply)
+		WireLib.netStart(self) -- This automatically net.WriteEntity(self)'s
+			net.Write*...
+		WireLib.netEnd(ply) -- you can pass a Player or a table of players to only send to some clients, otherwise it broadcasts
+	end
+	
+	To receive:
+	function ENT:Receive()
+		net.Read*...
+	end
 
-	To unregister: WireLib.umsgUnRegister(self)
+	To unregister: WireLib.netUnRegister(self) -- Happens automatically on entity removal
 ]]
+
 if SERVER then
-	local registered_ents = {}
-
-	hook.Add("EntityRemoved", "wire_umsg", function(ent)
-		if not IsValid(ent) then return end
-		if ent:IsPlayer() then
-			for e,_ in pairs(registered_ents) do
-				if e.wire_umsg_rp then e.wire_umsg_rp:RemovePlayer(ent) end
-			end
-		else
-			WireLib.umsgUnRegister(ent)
-		end
-	end)
-
-	local wire_umsg = table.Copy(umsg)--{} -- TODO: replace
-	WireLib.wire_umsg = wire_umsg
-	setmetatable(wire_umsg, wire_umsg)
-
-	function wire_umsg:__call(ent, receiver)
-		umsg.Start("wire_umsg", receiver or ent.rp)
-		umsg.Short(ent:EntIndex())
+	util.AddNetworkString("wire_netmsg_register")
+	util.AddNetworkString("wire_netmsg_registered")
+	
+	function WireLib.netStart(self)
+		net.Start("wire_netmsg_registered")
+		net.WriteEntity(self)
 	end
-
-	function WireLib.umsgRegister(self)
-		registered_ents[self] = true
-		self.umsg = wire_umsg
-		self.wire_umsg_rp = RecipientFilter()
+	function WireLib.netEnd(ply)
+		if ply then net.Send(ply) else net.Broadcast() end
 	end
-
-	function WireLib.umsgUnRegister(self)
-		registered_ents[self] = nil
-		self.umsg = nil
-		self.wire_umsg_rp = nil
-	end
-
-	concommand.Add("wire_umsg", function(ply, cmd, args)
-		local self = Entity(tonumber(args[1]))
-		if !IsValid(self) or !self.wire_umsg_rp then return end
-		self.wire_umsg_rp:AddPlayer(ply)
-		self:Retransmit(ply)
+	
+	net.Receive("wire_netmsg_register", function(netlen, ply) 
+		local self = net.ReadEntity()
+		if IsValid(self) then self:Retransmit(ply) end
 	end)
 elseif CLIENT then
-	function WireLib.umsgRegister(self)
-		RunConsoleCommand("wire_umsg", self:EntIndex())
+	function WireLib.netRegister(self)
+		net.Start("wire_netmsg_register") net.WriteEntity(self) net.SendToServer()
 	end
 
-	usermessage.Hook("wire_umsg", function(um)
-		local self = Entity(um:ReadShort())
-		if IsValid(self) and self.Receive then self:Receive(um) end
+	net.Receive("wire_netmsg_registered", function(netlen)
+		local self = net.ReadEntity()
+		if IsValid(self) and self.Receive then self:Receive() end
 	end)
 end
 
