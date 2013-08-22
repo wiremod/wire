@@ -8,11 +8,11 @@ end
 
 -- -----------------------------------------------------------------------------
 
-CreateConVar( "wire_holograms_max", "250" )
-CreateConVar( "wire_holograms_spawn_amount", "15" ) -- This limit resets once a second
-CreateConVar( "wire_holograms_burst_amount", "80" ) -- This limit goes down first, resets every burst_delay
-CreateConVar( "wire_holograms_burst_delay", "10" )
-CreateConVar( "wire_holograms_max_clips", "5" ) -- Don't set higher than 16 without editing net.Start("wire_holograms_clip")
+local wire_holograms_max = CreateConVar( "wire_holograms_max", "250" )
+local wire_holograms_spawn_amount = CreateConVar( "wire_holograms_spawn_amount", "15" ) -- This limit resets once a second
+local wire_holograms_burst_amount = CreateConVar( "wire_holograms_burst_amount", "80" ) -- This limit goes down first, resets every burst_delay
+local wire_holograms_burst_delay = CreateConVar( "wire_holograms_burst_delay", "10" )
+local wire_holograms_max_clips = CreateConVar( "wire_holograms_max_clips", "5" ) -- Don't set higher than 16 without editing net.Start("wire_holograms_clip")
 local wire_holograms_modelany = CreateConVar( "wire_holograms_modelany", "0", {FCVAR_ARCHIVE}, "Allow holograms to use models besides the official hologram models." )
 local wire_holograms_size_max = CreateConVar( "wire_holograms_size_max", "50" )
 util.AddNetworkString("wire_holograms_set_visible")
@@ -278,7 +278,7 @@ end
 local function check_clip(Holo, idx)
 	Holo.clips = Holo.clips or {}
 
-	if idx > 0 and idx <= GetConVar("wire_holograms_max_clips"):GetInt() then
+	if idx > 0 and idx <= wire_holograms_max_clips:GetInt() then
 		Holo.clips[idx] = Holo.clips[idx] or {}
 		local clip = Holo.clips[idx]
 
@@ -491,14 +491,14 @@ local function CheckSpawnTimer( self, readonly )
 	if CurTime() >= holo.nextSpawn then
 		holo.nextSpawn = CurTime()+1
 		if CurTime() >= holo.nextBurst then
-			holo.remainingSpawns = GetConVar("wire_holograms_burst_amount"):GetInt()
-		elseif holo.remainingSpawns < 10 then
-			holo.remainingSpawns = GetConVar("wire_holograms_spawn_amount"):GetInt()
+			holo.remainingSpawns = wire_holograms_burst_amount:GetInt()
+		elseif holo.remainingSpawns < wire_holograms_spawn_amount:GetInt() then
+			holo.remainingSpawns = wire_holograms_spawn_amount:GetInt()
 		end
 	end
 
 	if CurTime() >= holo.nextBurst then
-		holo.nextBurst = CurTime()+GetConVar("wire_holograms_burst_delay"):GetInt()
+		holo.nextBurst = CurTime() + wire_holograms_burst_delay:GetInt()
 	end
 
 	if holo.remainingSpawns > 0 then
@@ -551,7 +551,7 @@ e2function entity holoCreate(index, vector position, vector scale, angle ang, ve
 	if not checkOwner(self) then return end
 	if BlockList[self.player:SteamID()] == true or CheckSpawnTimer( self ) == false then return end
 	local Holo = CheckIndex(self, index)
-	if not Holo and PlayerAmount[self.uid] >= GetConVar("wire_holograms_max"):GetInt() then return end
+	if not Holo and PlayerAmount[self.uid] >= wire_holograms_max:GetInt() then return end
 
 	position = Vector(position[1], position[2], position[3])
 	ang = Angle(ang[1], ang[2], ang[3])
@@ -563,7 +563,7 @@ e2function entity holoCreate(index, vector position, vector scale, angle ang, ve
 	if not checkOwner(self) then return end
 	if BlockList[self.player:SteamID()] == true or CheckSpawnTimer( self ) == false then return end
 	local Holo = CheckIndex(self, index)
-	if not Holo and PlayerAmount[self.uid] >= GetConVar("wire_holograms_max"):GetInt() then return end
+	if not Holo and PlayerAmount[self.uid] >= wire_holograms_max:GetInt() then return end
 
 	position = Vector(position[1], position[2], position[3])
 	ang = Angle(ang[1], ang[2], ang[3])
@@ -575,7 +575,7 @@ e2function entity holoCreate(index, vector position, vector scale, angle ang)
 	if not checkOwner(self) then return end
 	if BlockList[self.player:SteamID()] == true or CheckSpawnTimer( self ) == false then return end
 	local Holo = CheckIndex(self, index)
-	if not Holo and PlayerAmount[self.uid] >= GetConVar("wire_holograms_max"):GetInt() then return end
+	if not Holo and PlayerAmount[self.uid] >= wire_holograms_max:GetInt() then return end
 
 	position = Vector(position[1], position[2], position[3])
 	ang = Angle(ang[1], ang[2], ang[3])
@@ -587,7 +587,7 @@ e2function entity holoCreate(index, vector position, vector scale)
 	if not checkOwner(self) then return end
 	if BlockList[self.player:SteamID()] == true or CheckSpawnTimer( self ) == false then return end
 	local Holo = CheckIndex(self, index)
-	if not Holo and PlayerAmount[self.uid] >= GetConVar("wire_holograms_max"):GetInt() then return end
+	if not Holo and PlayerAmount[self.uid] >= wire_holograms_max:GetInt() then return end
 
 	position = Vector(position[1],position[2],position[3])
 	local ret = CreateHolo(self, index, position, scale)
@@ -598,7 +598,7 @@ e2function entity holoCreate(index, vector position)
 	if not checkOwner(self) then return end
 	if BlockList[self.player:SteamID()] == true or CheckSpawnTimer( self ) == false then return end
 	local Holo = CheckIndex(self, index)
-	if not Holo and PlayerAmount[self.uid] >= GetConVar("wire_holograms_max"):GetInt() then return end
+	if not Holo and PlayerAmount[self.uid] >= wire_holograms_max:GetInt() then return end
 
 	position = Vector(position[1],position[2],position[3])
 	local ret = CreateHolo(self, index, position)
@@ -609,7 +609,7 @@ e2function entity holoCreate(index)
 	if not checkOwner(self) then return end
 	if BlockList[self.player:SteamID()] == true or CheckSpawnTimer( self ) == false then return end
 	local Holo = CheckIndex(self, index)
-	if not Holo and PlayerAmount[self.uid] >= GetConVar("wire_holograms_max"):GetInt() then return end
+	if not Holo and PlayerAmount[self.uid] >= wire_holograms_max:GetInt() then return end
 
 	local ret = CreateHolo(self, index)
 	if IsValid(ret) then return ret end
@@ -641,7 +641,7 @@ __e2setcost(5)
 e2function number holoCanCreate()
 	if (not checkOwner(self)) then return 0 end
 
-	if CheckSpawnTimer(self, true) == false or PlayerAmount[self.uid] >= GetConVar("wire_holograms_max"):GetInt() then
+	if CheckSpawnTimer(self, true) == false or PlayerAmount[self.uid] >= wire_holograms_max:GetInt() then
 
 		return 0
 	end
@@ -740,13 +740,7 @@ e2function vector holoBoneScale(index, string bone)
 end
 
 e2function number holoClipsAvailable()
-	local mclips = GetConVar("wire_holograms_max_clips")
-
-	if mclips then
-		return mclips:GetInt() or 0
-	end
-
-	return 0
+	return wire_holograms_max_clips:GetInt()
 end
 
 e2function void holoClipEnabled(index, enabled) -- Clip at first index
@@ -1050,8 +1044,8 @@ registerCallback("construct", function(self)
 	self.data.holos = {}
 	self.data.holo = {
 		nextSpawn = CurTime()+1,
-		nextBurst = CurTime()+GetConVar("wire_holograms_burst_delay"):GetInt(),
-		remainingSpawns = GetConVar("wire_holograms_burst_amount"):GetInt()
+		nextBurst = CurTime()+wire_holograms_burst_delay:GetInt(),
+		remainingSpawns = wire_holograms_burst_amount:GetInt()
 	}
 end)
 
