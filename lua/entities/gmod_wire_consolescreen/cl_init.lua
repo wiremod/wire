@@ -93,6 +93,8 @@ function ENT:Initialize()
   GPULib.ClientCacheCallback(self,function(Address,Value)
     self:WriteCell(Address,Value)
   end)
+  
+  WireLib.netRegister(self)
 end
 
 function ENT:OnRemove()

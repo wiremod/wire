@@ -93,6 +93,14 @@ function ENT:Think()
   return true
 end
 
+function ENT:Retransmit(ply)
+	self.Cache:Flush()
+	for address,value in pairs(self.Memory) do
+		self.Cache:Write(address,value)
+	end
+	self.Cache:Flush(ply)
+end
+
 function ENT:TriggerInput(iname, value)
   if iname == "CharX" then
     self.CharX = value
