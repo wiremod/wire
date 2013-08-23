@@ -76,6 +76,7 @@ end
 util.AddNetworkString("wire_digitalscreen")
 local pixelbits = {20, 8, 24, 30, 8}
 function ENT:FlushCache()
+	if not next(self.ChangedCellRanges) then return end
 	net.Start("wire_digitalscreen")
 		net.WriteUInt(self:EntIndex(),16)
 		net.WriteUInt(self.Memory[1048569] or 0, 4) -- Super important the client knows what colormode we're using since that determines pixelbit
