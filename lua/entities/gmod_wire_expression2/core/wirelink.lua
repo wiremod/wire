@@ -166,7 +166,11 @@ registerCallback("postinit", function()
 
 	local getf, setf
 	-- generate getters and setters for all types
-	for typename,id,zero,input_serializer,output_serializer in pairs_map(wire_expression_types, unpack) do
+	for typename, v in pairs( wire_expression_types ) do
+		local id = v[1]
+		local zero = v[2]
+		local input_serializer = v[3]
+		local output_serializer = v[4]
 		local fname = typename == "NORMAL" and "NUMBER" or typename
 
 		-- for T:number() etc
