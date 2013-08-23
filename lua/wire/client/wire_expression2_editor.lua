@@ -2178,7 +2178,7 @@ function Editor:LoadFile(Line, forcenewtab)
 	if not f then 
 		ErrorNoHalt("Erroring opening file: " .. Line)
 	else
-		local str = f:Read(f:Size())
+		local str = f:Read(f:Size()) or ""
 		f:Close()
 		self:AutoSave()
 		if not forcenewtab then
