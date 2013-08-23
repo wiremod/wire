@@ -224,7 +224,7 @@ function ENT:Draw()
 
 		self.GPU:RenderToGPU(function()
 			local pixels = 0
-			local idx = 1
+			local idx = 0
 
 			if self.ClearQueued then
 				surface.SetDrawColor(0,0,0,255)
@@ -240,9 +240,6 @@ function ENT:Draw()
 					idx = idx - 1
 					pixels = pixels + self.ScreenWidth
 				end
-				if (idx == 0) then
-					self.RefreshRows = {}
-				end
 			else
 				idx = #self.RefreshPixels
 				while ((idx > 0) and (pixels < 8192)) do
@@ -251,9 +248,9 @@ function ENT:Draw()
 					idx = idx - 1
 					pixels = pixels + 1
 				end
-				if (idx == 0) then
-					self.RefreshRows = {}
-				end
+			end
+			if idx ~= 0 then
+				self.NeedRefresh = true
 			end
 		end)
 
