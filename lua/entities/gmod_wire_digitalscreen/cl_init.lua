@@ -19,9 +19,6 @@ function ENT:Initialize()
 	self.ScreenWidth = 32
 	self.ScreenHeight = 32
 
-		for i=1,self.ScreenHeight do
-			self.RefreshRows[i] = i-1
-		end
 	for i=1,self.ScreenHeight do
 		self.RefreshRows[i] = i-1
 	end
@@ -37,6 +34,8 @@ function ENT:Initialize()
 	//1048575 - CLK
 
 	self.GPU = WireGPU(self)
+	
+	WireLib.netRegister(self)
 end
 
 function ENT:OnRemove()

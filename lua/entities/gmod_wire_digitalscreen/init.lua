@@ -18,6 +18,7 @@ function ENT:Initialize()
 	self.PixelX = 0
 	self.PixelY = 0
 	self.PixelG = 0
+	self.Memory[1048569] = 0
 	self.Memory[1048575] = 1
 
 	self.ScreenWidth = 32
@@ -75,23 +76,59 @@ end
 
 util.AddNetworkString("wire_digitalscreen")
 local pixelbits = {20, 8, 24, 30, 8}
-function ENT:FlushCache()
+function ENT:FlushCache(ply)
 	if not next(self.ChangedCellRanges) then return end
+	local len = 40
 	net.Start("wire_digitalscreen")
 		net.WriteUInt(self:EntIndex(),16)
 		net.WriteUInt(self.Memory[1048569] or 0, 4) -- Super important the client knows what colormode we're using since that determines pixelbit
 		local pixelbit = pixelbits[(self.Memory[1048569] or 0)+1]
 		for i=1, #self.ChangedCellRanges do
 			local range = self.ChangedCellRanges[i]
-			net.WriteUInt(range.length,20)
+			len = len + 40
+			net.WriteUInt(math.min(range.length, math.ceil((480000 - len) / pixelbit)),20) -- Length of range
 			net.WriteUInt(range.start,20)
 			for i = range.start,range.start + range.length - 1 do
 				net.WriteUInt(self.Memory[i],pixelbit)
+				len = len + pixelbit
+				if len > 480000 then
+					-- Message is over 60kb, end the message early
+					net.WriteUInt(0, 20)
+					if ply then net.Send(ply) else net.Broadcast() end
+					-- Start a new message
+					len = 80
+					range.length = range.length - (i - range.start + 1)
+					range.start = i + 1
+					net.Start("wire_digitalscreen")
+						net.WriteUInt(self:EntIndex(),16)
+						net.WriteUInt(self.Memory[1048569] or 0, 4)
+						net.WriteUInt(math.min(range.length, math.ceil((480000 - len) / pixelbit)),20) -- Length of range
+						net.WriteUInt(range.start,20)
+				end
 			end
 		end
 		net.WriteUInt(0,20)
-	net.Broadcast()
+	if ply then net.Send(ply) else net.Broadcast() end
 	self.ChangedCellRanges = {}
+end
+
+function ENT:Retransmit(ply)
+	self:FlushCache() -- Empty the cache
+	
+	self:MarkCellChanged(1048569) -- Colormode
+	self:MarkCellChanged(1048572) -- Screen Width
+	self:MarkCellChanged(1048573) -- Screen Height
+	self:MarkCellChanged(1048575) -- Clk
+	self:FlushCache(ply)
+	
+	local memory = self.Memory
+	for addr=0, self.ScreenWidth*self.ScreenHeight do
+		if memory[addr] then
+			self:MarkCellChanged(addr)
+		end
+	end
+	self:MarkCellChanged(1048575) -- Clk
+	self:FlushCache(ply)
 end
 
 function ENT:ClearPixel(i)
