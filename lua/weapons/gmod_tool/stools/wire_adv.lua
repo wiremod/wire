@@ -41,7 +41,7 @@ local function get_active_tool(ply, tool)
 end
 
 
-if SERVER then	
+if SERVER then
 	-----------------------------------------------------------------
 	-- Duplicator modifiers
 	-----------------------------------------------------------------
@@ -173,7 +173,29 @@ if SERVER then
 		end
 	end)
 	
+	
+	if game.SinglePlayer() then -- wtfgarry (these functions don't get called clientside in single player so we need this hack to fix it)
+		util.AddNetworkString( "wire_adv_wtfgarry" )
+		local function send( ply, funcname )
+			net.Start( "wire_adv_wtfgarry" )
+				net.WriteString( funcname )
+			net.Send( ply )
+		end
+		
+		function TOOL:LeftClick() send( self:GetOwner(), "LeftClick" ) end
+		function TOOL:RightClick() send( self:GetOwner(), "RightClick" ) end
+		function TOOL:Reload() send( self:GetOwner(), "Reload" ) end
+	end
 elseif CLIENT then
+	if game.SinglePlayer() then -- wtfgarry
+		net.Receive( "wire_adv_wtfgarry", function( len )
+			local funcname = net.ReadString()
+			local tool = get_active_tool( LocalPlayer(), "wire_adv" )
+			if not tool then return end
+			tool[funcname]( tool, LocalPlayer():GetEyeTrace() )
+		end)
+	end
+
 	-----------------------------------------------------------------
 	-- Tool helper functions
 	-----------------------------------------------------------------
@@ -529,8 +551,9 @@ elseif CLIENT then
 	
 	function TOOL:Scroll(trace,dir)
 		local ent = self:GetStage() == 0 and trace.Entity or self.CurrentEntity
-		if IsValid(ent) and WireLib.HasPorts( ent ) then
-			local inputs, outputs = self:GetPorts( ent )			
+		if IsValid(ent) then
+			local inputs, outputs = self:GetPorts( ent )
+			if not inputs and not outputs then return end
 			local check = self:GetStage() == 0 and inputs or outputs
 			
 			local b = false
@@ -566,7 +589,7 @@ elseif CLIENT then
 	function TOOL:ScrollUp(trace) return self:Scroll(trace,-1) end
 	function TOOL:ScrollDown(trace) return self:Scroll(trace,1) end
 	
-	hook.Add("PlayerBindPress", "wire_adv", function(ply, bind, pressed)
+	local function hookfunc( ply, bind, pressed )
 		if not pressed then return end
 	
 		if bind == "invnext" then
@@ -592,7 +615,13 @@ elseif CLIENT then
 			RunConsoleCommand( "gmod_tool", "wire_debugger" ) -- switch to debugger
 			return true
 		end
-	end)
+	end
+	
+	if game.SinglePlayer() then -- wtfgarry (have to have a delay in single player or the hook won't get added)
+		timer.Simple(5,function() hook.Add( "PlayerBindPress", "wire_adv_playerbindpress", hookfunc ) end)
+	else
+		hook.Add( "PlayerBindPress", "wire_adv_playerbindpress", hookfunc )
+	end
 	
 	-----------------------------------------------------------------
 	-- Remember wire indexes
