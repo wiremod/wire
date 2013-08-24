@@ -5,13 +5,10 @@ if CLIENT then
 	language.Add("Tool.wire_cpu.name", "CPU Tool (Wire)")
 	language.Add("Tool.wire_cpu.desc", "Spawns a central processing unit")
 	language.Add("Tool.wire_cpu.0",    "Primary: upload program to hispeed device, Reload: attach debugger, Shift+Reload: clear, Secondary: open editor")
-	language.Add("sboxlimit_wire_cpu", "You've hit ZCPU limit!")
-	language.Add("undone_wire_cpu",    "Undone the ZCPU")
 	language.Add("ToolWirecpu_Model",  "Model:" )
 end
-
-if SERVER then CreateConVar("sbox_maxwire_cpus", 7) end
-cleanup.Register("wire_cpus")
+WireToolSetup.BaseLang()
+WireToolSetup.SetupMax( 7 )
 
 TOOL.ClientConVar = {
   model             = "models/cheeze/wires/cpu.mdl",
@@ -29,35 +26,10 @@ if CLIENT then
 end
 
 
-
-
 if SERVER then
   util.AddNetworkString("ZCPU_RequestCode")
   util.AddNetworkString("ZCPU_OpenEditor")
   util.AddNetworkString("CPULib.InvalidateDebugger")
-  ------------------------------------------------------------------------------
-  -- ZCPU entity factory
-  ------------------------------------------------------------------------------
-  local function MakeWireCPU(player, Pos, Ang, model)
-    if !player:CheckLimit("wire_cpus") then return false end
-
-    local self = ents.Create("gmod_wire_cpu")
-    if !self:IsValid() then return false end
-
-    self:SetModel(model)
-    self:SetAngles(Ang)
-    self:SetPos(Pos)
-    self:Spawn()
-    self:SetPlayer(player)
-    self.player = player
-
-    player:AddCount("wire_cpus", self)
-    player:AddCleanup("wire_cpus", self)
-    return self
-  end
-  duplicator.RegisterEntityClass("gmod_wire_cpu", MakeWireCPU, "Pos", "Ang", "Model")
-
-
   ------------------------------------------------------------------------------
   -- Reload: wipe ROM/RAM and reset memory model, or attach debugger
   ------------------------------------------------------------------------------
@@ -67,8 +39,7 @@ if SERVER then
 
     if player:KeyDown(IN_SPEED) then
       if (trace.Entity:IsValid()) and
-         (trace.Entity:GetClass() == "gmod_wire_cpu") and
-         (trace.Entity.player == player) then
+         (trace.Entity:GetClass() == "gmod_wire_cpu") then
         trace.Entity:SetMemoryModel(self:GetClientInfo("memorymodel"))
         trace.Entity:FlashData({})
         net.Start("CPULib.InvalidateDebugger") net.WriteUInt(0,2) net.Send(player)
@@ -76,8 +47,7 @@ if SERVER then
     else
       if (not trace.Entity:IsPlayer()) and
          (trace.Entity:IsValid()) and
-         (trace.Entity:GetClass() == "gmod_wire_cpu") and
-         (trace.Entity.player == player) then
+         (trace.Entity:GetClass() == "gmod_wire_cpu") then
         CPULib.AttachDebugger(trace.Entity,player)
         CPULib.SendDebugData(trace.Entity.VM,nil,player)
         net.Start("CPULib.InvalidateDebugger") net.WriteUInt(2,2) net.Send(player)
@@ -89,66 +59,24 @@ if SERVER then
     return true
   end
 
-
-  ------------------------------------------------------------------------------
   -- Left click: spawn CPU or upload current program into it
-  ------------------------------------------------------------------------------
-  function TOOL:LeftClick(trace)
-	if not util.IsValidPhysicsObject( trace.Entity, trace.PhysicsBone ) then return false end
-
-    local player = self:GetOwner()
-    local model = self:GetClientInfo("model")
-	if not util.IsValidModel( model ) or not util.IsValidProp( model ) then return end
-    local pos = trace.HitPos
-    local ang = trace.HitNormal:Angle()
-    ang.pitch = ang.pitch + 90
-
-    -- Re-upload data to CPU or a hispeed device
-    if (trace.Entity:IsValid()) and
-       ((trace.Entity:GetClass() == "gmod_wire_cpu") or
-        (trace.Entity.WriteCell)) and
-       (trace.Entity:GetPlayer() == player) then
-      CPULib.SetUploadTarget(trace.Entity,player)
-      net.Start("ZCPU_RequestCode") net.Send(player)
-      net.Start("CPULib.InvalidateDebugger") net.WriteUInt(0,2) net.Send(player)
-      return true
-    end
-
-    if !self:GetSWEP():CheckLimit("wire_cpus") then return false end
-
-    local entity = ents.Create("gmod_wire_cpu")
-    if !entity:IsValid() then return false end
-
-    player:AddCount("wire_cpus", entity)
-
-    entity:SetModel(model)
-    entity:SetAngles(ang)
-    entity:SetPos(pos)
-    entity:Spawn()
-    entity:SetPlayer(player)
-    entity.player = player
-
-    entity:SetPos(trace.HitPos - trace.HitNormal * entity:OBBMins().z)
-    local constraint = WireLib.Weld(entity, trace.Entity, trace.PhysicsBone, true)
-
-    undo.Create("wire_cpu")
-      undo.AddEntity(entity)
-      undo.SetPlayer(player)
-      undo.AddEntity(constraint)
-    undo.Finish()
-
-    entity:SetMemoryModel(self:GetClientInfo("memorymodel"))
-
-    player:AddCleanup("wire_cpus", entity)
-    CPULib.SetUploadTarget(entity,player)
-    net.Start("ZCPU_RequestCode") net.Send(player)
-    return true
+  function TOOL:CheckHitOwnClass(trace)
+    return trace.Entity:IsValid() and (trace.Entity:GetClass() == self.WireClass or trace.Entity.WriteCell)
+  end
+  function TOOL:LeftClick_Update(trace)
+    CPULib.SetUploadTarget(trace.Entity, self:GetOwner())
+    net.Start("ZCPU_RequestCode") net.Send(self:GetOwner())
+    net.Start("CPULib.InvalidateDebugger") net.WriteUInt(0,2) net.Send(player)
+  end
+  function TOOL:MakeEnt(ply, model, Ang, trace)
+    local ent = WireLib.MakeWireEnt(ply, {Class = self.WireClass, Pos=trace.HitPos, Angle=Ang, Model=model})
+    ent:SetMemoryModel(self:GetClientInfo("memorymodel"))
+    self:LeftClick_Update(trace)
+    return ent
   end
 
 
-  ------------------------------------------------------------------------------
   -- Right click: open editor
-  ------------------------------------------------------------------------------
   function TOOL:RightClick(trace)
     net.Start("ZCPU_OpenEditor") net.Send(self:GetOwner())
     return true
@@ -156,11 +84,6 @@ if SERVER then
 end
 
 
-
-
-
-
---------------------------------------------------------------------------------
 if CLIENT then
   ------------------------------------------------------------------------------
   -- Compiler callbacks on the compiling state

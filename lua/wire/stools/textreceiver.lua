@@ -36,10 +36,6 @@ if SERVER then
 		end
 		return self:GetClientNumber("use_lua_patterns") ~= 0, matches, self:GetClientNumber("case_insensitive") ~= 0
 	end
-
-	function TOOL:MakeEnt( ply, model, Ang, trace )
-		return MakeWireTextReceiver( ply, trace.HitPos, Ang, model, self:GetConVars() )
-	end
 end
 
 function TOOL:RightClick( trace )

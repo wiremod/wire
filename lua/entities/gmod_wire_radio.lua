@@ -133,3 +133,5 @@ function ENT:OnRemove()
 	if (!self.channel) then return end
 	Radio_Unregister(self)
 end
+
+duplicator.RegisterEntityClass("gmod_wire_radio", WireLib.MakeWireEnt, "Data", "channel", "values", "secure")

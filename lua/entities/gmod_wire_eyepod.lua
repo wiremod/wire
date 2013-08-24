@@ -352,3 +352,5 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 
 	self:PodLink(GetEntByID(info.pod))
 end
+
+duplicator.RegisterEntityClass("gmod_wire_eyepod", WireLib.MakeWireEnt, "Data", "DefaultToZero", "ShowRateOfChange" , "ClampXMin" , "ClampXMax" , "ClampYMin" , "ClampYMax" , "ClampX", "ClampY")

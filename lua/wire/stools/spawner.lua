@@ -32,16 +32,12 @@ function TOOL:LeftClick(trace)
 	local delay			= self:GetClientNumber("delay", 0)
 	local undo_delay	= self:GetClientNumber("undo_delay", 0)
 	local spawn_effect  = self:GetClientNumber("spawn_effect", 0)
-
+	// In multiplayer we clamp the delay to help prevent people being idiots
+	if !game.SinglePlayer() and delay < 0.1 then
+		delay = 0.1
+	end
 	if ent:GetClass() == "gmod_wire_spawner" then
-		local spawner = ent
-
-		// In multiplayer we clamp the delay to help prevent people being idiots
-		if !game.SinglePlayer() and delay < 0.1 then
-			delay = 0.1
-		end
-
-		spawner:Setup(delay, undo_delay, spawn_effect)
+		ent:Setup(delay, undo_delay, spawn_effect)
 		return true
 	end
 
@@ -58,7 +54,7 @@ function TOOL:LeftClick(trace)
 	local c		        = ent:GetColor()
 	local skin			= ent:GetSkin() or 0
 
-	local wire_spawner = MakeWireSpawner( pl, Pos, Ang, model, delay, undo_delay, spawn_effect, mat, c.r, c.g, c.b, c.a, skin, frozen )
+	local wire_spawner = WireLib.MakeWireEnt(pl, {Class = self.WireClass, Pos=trace.HitPos, Angle=Ang, Model=model}, delay, undo_delay, spawn_effect, mat, c.r, c.g, c.b, c.a, skin)
 	if !wire_spawner:IsValid() then return end
 
 	ent:Remove()
@@ -70,6 +66,8 @@ function TOOL:LeftClick(trace)
 
 	return true
 end
+
+function TOOL:Think() end -- Disable ghost
 
 function TOOL.BuildCPanel( panel )
 	WireToolHelpers.MakePresetControl(panel, "wire_spawner")

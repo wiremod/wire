@@ -40,15 +40,6 @@ function ENT:OnRemove()
 	end
 end
 
-function ENT:Setup(a,ar,ag,ab,aa)
-	self.A = a or 0
-	self.AR = ar or 255
-	self.AG = ag or 0
-	self.AB = ab or 0
-	self.AA = aa or 255
-	self:SetColor(Color(ar, ag, ab, aa))
-end
-
 function ENT:TriggerInput(iname, value, iter)
 	if (iname == "Memory") then
 		self.Memory = self.Inputs.Memory.Src
@@ -72,12 +63,4 @@ function ENT:AttachedToSocket(socket)
 	Wire_TriggerOutput(self, "Connected", 1)
 end
 
-function ENT:OnRestore()
-	self.A = self.A or 0
-	self.AR = self.AR or 255
-	self.AG = self.AG or 0
-	self.AB = self.AB or 0
-	self.AA = self.AA or 255
-
-    self.BaseClass.OnRestore(self)
-end
+duplicator.RegisterEntityClass("gmod_wire_dataplug", WireLib.MakeWireEnt, "Data")

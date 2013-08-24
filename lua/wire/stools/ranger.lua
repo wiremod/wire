@@ -32,10 +32,6 @@ if SERVER then
 			self:GetClientNumber("out_ang")~=0, self:GetClientNumber("out_col")~=0, self:GetClientNumber("out_val")~=0, self:GetClientNumber("out_sid")~=0,
 			self:GetClientNumber("out_uid")~=0, self:GetClientNumber("out_eid")~=0, self:GetClientNumber("out_hnrm")~=0, self:GetClientNumber("hires")~=0
 	end
-
-	function TOOL:MakeEnt( ply, model, Ang, trace )
-		return MakeWireRanger( ply, trace.HitPos, Ang, model, self:GetConVars() )
-	end
 end
 
 TOOL.ClientConVar = {

@@ -29,7 +29,7 @@ function ENT:Initialize()
 	self.Inputs = Wire_CreateInputs(self, { "A", "HideHUD" })
 end
 
-function ENT:Setup(a, ar, ag, ab, aa, b, br, bg, bb, ba)
+function ENT:Setup(a, ar, ag, ab, aa, b, br, bg, bb, ba, material, showinhud, huddesc, hudaddname, hudshowvalue, hudstyle, allowhook, fullcircleangle)
 	self.A = a or 0
 	self.AR = ar or 255
 	self.AG = ag or 0
@@ -40,12 +40,31 @@ function ENT:Setup(a, ar, ag, ab, aa, b, br, bg, bb, ba)
 	self.BG = bg or 255
 	self.BB = bb or 0
 	self.BA = ba or 255
-
-	// Why is this here? (TheApathetic)
-	//local factor = math.max(0, math.min(self.Inputs.A.Value-self.A/(self.B-self.A), 1))
-	// Moved to HUDSetup() to ensure that the entity is
-	// registered in the HUD before the first value is passed
-	//self:TriggerInput("A", 0)
+	self:SetMaterial(material)
+	
+	local ttable = {
+		a	= a,
+		ar	= ar,
+		ag	= ag,
+		ab	= ab,
+		aa	= aa,
+		b	= b,
+		br	= br,
+		bg	= bg,
+		bb	= bb,
+		ba	= ba,
+		material = material,
+		showinhud = showinhud,
+		huddesc = huddesc,
+		hudaddname = hudaddname,
+		hudshowvalue = hudshowvalue,
+		hudstyle = hudstyle,
+		allowhook = allowhook,
+		fullcircleangle = fullcircleangle
+	}
+	table.Merge(self:GetTable(), ttable )
+	
+	self:HUDSetup(showinhud, huddesc, hudaddname, hudshowvalue, hudstyle, allowhook, fullcircleangle)
 end
 
 // For HUD Indicators
@@ -360,3 +379,6 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 
 	self.Pod = GetEntByID(info.pod)
 end
+
+duplicator.RegisterEntityClass("gmod_wire_hudindicator", WireLib.MakeWireEnt, "Data", "a", "ar", "ag", "ab", "aa", "b", "br",
+	"bg", "bb", "ba", "material", "showinhud", "huddesc", "hudaddname", "hudshowvalue", "hudstyle", "allowhook", "fullcircleangle")

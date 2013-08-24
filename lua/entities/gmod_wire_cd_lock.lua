@@ -109,3 +109,5 @@ function ENT:AttachDisk(disk)
 	self.Disk = disk
 	Wire_TriggerOutput(self, "Locked", 1)
 end
+
+duplicator.RegisterEntityClass("gmod_wire_cd_lock", WireLib.MakeWireEnt, "Data")

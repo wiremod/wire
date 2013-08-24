@@ -79,7 +79,36 @@ local function TranslateType( Value, DataType )
     return 0
 end
 
-function ENT:Setup(valuesin, legacynames)
+function ENT:Setup(valuesin)
+	if not valuesin then return end
+
+	local legacynames = false
+	local _,val = next(valuesin)
+	if not istable(val) then
+		-- The old Gmod12 dupe format, lets convert it
+		local convertedValues = {}
+		local convtbl = {
+			["NORMAL"] = "Number",
+			["ANGLE"] = "Angle",
+			["VECTOR"] = "Vector",
+			["VECTOR2"] = "Vector",
+			["VECTOR4"] = "Vector",
+			["STRING"] = "String",
+		}
+		for k,v in pairs(valuesin) do
+			local theType,theValue = string.match (v, "^ *([^: ]+) *:(.*)$")
+			theType = string.upper(theType or "NORMAL")
+			
+			if not convtbl[theType] then
+				theType = "NORMAL"
+			end
+			
+			table.insert(convertedValues, { DataType=convtbl[theType], Value=theValue or v } )
+		end
+		valuesin = convertedValues
+		legacynames = true
+	end
+
 	self.value = valuesin -- Wirelink/Duplicator Info 
 	
 	local names = {}
@@ -116,49 +145,4 @@ function ENT:ReadCell( Address )
 	return self.value[Address+1]
 end
 
-function MakeWireValue( ply, Pos, Ang, model, value )
-	if (!ply:CheckLimit("wire_values")) then return false end
-
-	local wire_value = ents.Create("gmod_wire_value")
-	if (!wire_value:IsValid()) then return false end
-	
-	wire_value:SetAngles(Ang)
-	wire_value:SetPos(Pos)
-	wire_value:SetModel(model)
-	wire_value:Spawn()
-	if value then
-		local _,val = next(value)
-		if istable(val) then
-			-- The new Gmod13 format, good
-			wire_value:Setup(value)
-		else
-			-- The old Gmod12 dupe format, lets convert it
-			local convertedValues = {}
-			local convtbl = {
-				["NORMAL"] = "Number",
-				["ANGLE"] = "Angle",
-				["VECTOR"] = "Vector",
-				["VECTOR2"] = "Vector",
-				["VECTOR4"] = "Vector",
-				["STRING"] = "String",
-			}
-			for k,v in pairs(value) do
-				local theType,theValue = string.match (v, "^ *([^: ]+) *:(.*)$")
-				theType = string.upper(theType or "NORMAL")
-				
-				if not convtbl[theType] then
-					theType = "NORMAL"
-				end
-				
-				table.insert(convertedValues, { DataType=convtbl[theType], Value=theValue or v } )
-			end
-			wire_value:Setup( convertedValues, true )
-		end
-	end
-	wire_value:SetPlayer(ply)
-
-	ply:AddCount("wire_values", wire_value)
-
-	return wire_value
-end
-duplicator.RegisterEntityClass("gmod_wire_value", MakeWireValue, "Pos", "Ang", "Model", "value")
+duplicator.RegisterEntityClass("gmod_wire_value", WireLib.MakeWireEnt, "Data", "value")

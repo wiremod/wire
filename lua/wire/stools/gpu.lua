@@ -1,17 +1,14 @@
 WireToolSetup.setCategory( "Advanced" )
-WireToolSetup.open( "gpu", "Display - GPU", "gmod_wire_cpu", nil, "GPUs" )
+WireToolSetup.open( "gpu", "Display - GPU", "gmod_wire_gpu", nil, "GPUs" )
 
 if CLIENT then
   language.Add("Tool.wire_gpu.name", "GPU Tool (Wire)")
   language.Add("Tool.wire_gpu.desc", "Spawns a graphics processing unit")
   language.Add("Tool.wire_gpu.0",    "Primary: create/reflash ZGPU or other hispeed device, Secondary: open editor and/or attach debugger to the ZGPU")
-  language.Add("sboxlimit_wire_gpu", "You've hit ZGPU limit!")
-  language.Add("undone_wire_gpu",    "Undone the ZGPU")
   language.Add("ToolWiregpu_Model",  "Model:" )
 end
-
-if SERVER then CreateConVar("sbox_maxwire_gpus", 7) end
-cleanup.Register("wire_gpus")
+WireToolSetup.BaseLang()
+WireToolSetup.SetupMax( 7 )
 
 TOOL.ClientConVar = {
   model             = "models/cheeze/wires/cpu.mdl",
@@ -28,35 +25,9 @@ if CLIENT then
   function TOOL:RightClick() return false end
 end
 
-
-
-
 if SERVER then
   util.AddNetworkString("ZGPU_RequestCode")
   util.AddNetworkString("ZGPU_OpenEditor")
-  ------------------------------------------------------------------------------
-  -- ZGPU entity factory
-  ------------------------------------------------------------------------------
-  local function MakeWireGPU(player, Pos, Ang, model)
-    if !player:CheckLimit("wire_gpus") then return false end
-
-    local self = ents.Create("gmod_wire_gpu")
-    if !self:IsValid() then return false end
-
-    self:SetModel(model)
-    self:SetAngles(Ang)
-    self:SetPos(Pos)
-    self:Spawn()
-    self:SetPlayer(player)
-    self.player = player
-
-    player:AddCount("wire_gpus", self)
-    player:AddCleanup("wire_gpus", self)
-    return self
-  end
-  duplicator.RegisterEntityClass("gmod_wire_gpu", MakeWireGPU, "Pos", "Ang", "Model")
-
-
   ------------------------------------------------------------------------------
   -- Reload: wipe ROM/RAM and reset memory model
   ------------------------------------------------------------------------------
@@ -65,73 +36,28 @@ if SERVER then
 
     local player = self:GetOwner()
     if (trace.Entity:IsValid()) and
-       (trace.Entity:GetClass() == "gmod_wire_gpu") and
-       (trace.Entity.player == player) then
+       (trace.Entity:GetClass() == "gmod_wire_gpu") then
       trace.Entity:SetMemoryModel(self:GetClientInfo("memorymodel"))
       return true
     end
   end
 
-
-  ------------------------------------------------------------------------------
   -- Left click: spawn GPU or upload current program into it
-  ------------------------------------------------------------------------------
-  function TOOL:LeftClick(trace)
-	if not util.IsValidPhysicsObject( trace.Entity, trace.PhysicsBone ) then return false end
-
-    local player = self:GetOwner()
-    local model = self:GetClientInfo("model")
-	if not util.IsValidModel( model ) or not util.IsValidProp( model ) then return end
-
-    local pos = trace.HitPos
-    local ang = trace.HitNormal:Angle()
-    ang.pitch = ang.pitch + 90
-
-    -- Re-upload data to GPU or a hispeed device
-    if (trace.Entity:IsValid()) and
-       ((trace.Entity:GetClass() == "gmod_wire_gpu") or
-        (trace.Entity.WriteCell)) and
-       (trace.Entity.player == player) then
-      CPULib.SetUploadTarget(trace.Entity,player)
-      net.Start("ZGPU_RequestCode") net.Send(player)
-      return true
-    end
-
-    if !self:GetSWEP():CheckLimit("wire_gpus") then return false end
-
-    local entity = ents.Create("gmod_wire_gpu")
-    if !entity:IsValid() then return false end
-
-    player:AddCount("wire_gpus", entity)
-
-    entity:SetModel(model)
-    entity:SetAngles(ang)
-    entity:SetPos(pos)
-    entity:Spawn()
-    entity:SetPlayer(player)
-    entity.player = player
-
-    entity:SetPos(trace.HitPos - trace.HitNormal * entity:OBBMins().z)
-    local constraint = WireLib.Weld(entity, trace.Entity, trace.PhysicsBone, true)
-
-    undo.Create("wire_gpu")
-      undo.AddEntity(entity)
-      undo.SetPlayer(player)
-      undo.AddEntity(constraint)
-    undo.Finish()
-
-    entity:SetMemoryModel(self:GetClientInfo("memorymodel"))
-
-    player:AddCleanup("wire_gpus", entity)
-    CPULib.SetUploadTarget(entity,player)
-    net.Start("ZGPU_RequestCode") net.Send(player)
-    return true
+  function TOOL:CheckHitOwnClass(trace)
+    return trace.Entity:IsValid() and (trace.Entity:GetClass() == self.WireClass or trace.Entity.WriteCell)
+  end
+  function TOOL:LeftClick_Update(trace)
+    CPULib.SetUploadTarget(trace.Entity, self:GetOwner())
+    net.Start("ZGPU_RequestCode") net.Send(self:GetOwner())
+  end
+  function TOOL:MakeEnt(ply, model, Ang, trace)
+    local ent = WireLib.MakeWireEnt(ply, {Class = self.WireClass, Pos=trace.HitPos, Angle=Ang, Model=model})
+    ent:SetMemoryModel(self:GetClientInfo("memorymodel"))
+    self:LeftClick_Update(trace)
+    return ent
   end
 
 
-  ------------------------------------------------------------------------------
-  -- Right click: open editor
-  ------------------------------------------------------------------------------
   function TOOL:RightClick(trace)
     net.Start("ZGPU_OpenEditor") net.Send(self:GetOwner())
     return true
@@ -139,11 +65,6 @@ if SERVER then
 end
 
 
-
-
-
-
---------------------------------------------------------------------------------
 if CLIENT then
   ------------------------------------------------------------------------------
   -- Compiler callbacks on the compiling state

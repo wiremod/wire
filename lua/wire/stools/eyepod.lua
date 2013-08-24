@@ -1,134 +1,65 @@
 WireToolSetup.setCategory( "I/O" )
 WireToolSetup.open( "eyepod", "Eye Pod", "gmod_wire_eyepod", nil, "Eye Pods" )
 
-TOOL.ClientConVar[ "model" ] = "models/jaanus/wiretool/wiretool_siren.mdl"
-
-/* If we're running on the client, setup the description strings */
 if ( CLIENT ) then
 	//tool hud lang
     language.Add( "Tool.wire_eyepod.name", "Eye Pod Tool (Wire)" )
     language.Add( "Tool.wire_eyepod.desc", "Spawns an Eye Pod Mouse Controller." )
     language.Add( "Tool.wire_eyepod.0", "Primary: Create/Update Controller  Secondary: Link controller  Reload: Unlink EyePod/Cancel Current Link" )
-	language.Add("Tool_wire_eyepod_1", "Now select the pod to link to.")
+	language.Add( "Tool.wire_eyepod.1", "Now select the pod to link to.")
 
 	//panel control lang
 	language.Add( "WireEyePod_DefaultToZero", "Default Outputs To Zero When Inactive" )
 	language.Add( "WireEyePod_CumulativeOutput", "Output Cumulative Mouse Position" )
-
-	//management lang
-    language.Add( "undone_Wire Eye Pod", "Undone Wire Eye Pod" )
-elseif (SERVER) then
-	CreateConVar('sbox_maxwire_eyepods', 15)
 end
+WireToolSetup.BaseLang()
+WireToolSetup.SetupMax( 15 )
 
-//console varibles
+TOOL.ClientConVar[ "model" ] = "models/jaanus/wiretool/wiretool_siren.mdl"
 TOOL.ClientConVar[ "DefaultToZero" ] = "1"
 TOOL.ClientConVar[ "CumulativeOutput" ] = "0"
-
-//clamps
 TOOL.ClientConVar[ "XMin" ] = "0"
 TOOL.ClientConVar[ "XMax" ] = "0"
 TOOL.ClientConVar[ "YMin" ] = "0"
 TOOL.ClientConVar[ "YMax" ] = "0"
 
+if SERVER then
+	function TOOL:GetConVars() 
+		local DefaultToZero = self:GetClientNumber("DefaultToZero")
+		local CumulativeOutput = self:GetClientNumber("CumulativeOutput")
+		local ShowRateOfChange = (CumulativeOutput ~= 0) and 0 or 1
+		//set the default to zero to one if you are showing the mouse position instead
+		if (ShowRateOfChange == 1) then DefaultToZero = 1 end
 
-cleanup.Register( "wire_eyepods" )
-
-function TOOL:LeftClick( trace )
-	if (!trace.HitPos) then return false end
-	if (trace.Entity:IsPlayer()) then return false end
-	if (CLIENT) then return true end
-	if not util.IsValidPhysicsObject( trace.Entity, trace.PhysicsBone ) then return false end
-
-	if ( !self:GetSWEP():CheckLimit( "wire_eyepods" ) ) then return false end
-
-	/* Setup all of our local variables */
-	local ply = self:GetOwner()
-
-	//get numbers from client
-	local DefaultToZero = self:GetClientNumber("DefaultToZero")
-	local CumulativeOutput = self:GetClientNumber("CumulativeOutput")
-	local ShowRateOfChange = 1
-	if (CumulativeOutput == 1) then
-		ShowRateOfChange = 0
-	else
-		ShowRateOfChange = 1
-	end
-	//set the default to zero to one if you are showing the mouse position instead
-	if (ShowRateOfChange == 1) then DefaultToZero = 1 end
-	//get clamp
-	local ClampXMin = self:GetClientNumber("XMin")
-	local ClampXMax = self:GetClientNumber("XMax")
-	local ClampYMin = self:GetClientNumber("YMin")
-	local ClampYMax = self:GetClientNumber("YMax")
-	local ClampX = 0
-	local ClampY = 0
-	//test clamp
-	if ( (ClampXMin != 0 or ClampXMax != 0) and (ClampYMin != 0 or ClampYMax != 0) and
-		ClampXMin != ClampXMax and ClampYMin != ClampYMax and
-		ClampXMin < ClampXMax and ClampYMin < ClampYMax ) then
-
-		ClampXMin = self:GetClientNumber("XMin")
-		ClampXMax = self:GetClientNumber("XMax")
-		ClampYMin = self:GetClientNumber("YMin")
-		ClampYMax = self:GetClientNumber("YMax")
-
-		ClampX = 1
-		ClampY = 1
-	elseif( (ClampXMin == 0 and ClampXMax == 0) or (ClampYMin == 0 or ClampYMax == 0) )then
-		if(ClampXMin == 0 and ClampXMax == 0 and (ClampYMin != 0 or ClampYMax != 0)) then
-			ClampX = 0
-			ClampY = 1
-			ClampYMin = self:GetClientNumber("YMin")
-			ClampYMax = self:GetClientNumber("YMax")
-		elseif(ClampYMin == 0 and ClampYMax == 0 and (ClampXMin != 0 or ClampXMax != 0)) then
+		local ClampXMin = self:GetClientNumber("XMin")
+		local ClampXMax = self:GetClientNumber("XMax")
+		local ClampYMin = self:GetClientNumber("YMin")
+		local ClampYMax = self:GetClientNumber("YMax")
+		local ClampX = 0
+		local ClampY = 0
+		//test clamp
+		if ( (ClampXMin != 0 or ClampXMax != 0) and (ClampYMin != 0 or ClampYMax != 0) and
+			ClampXMin != ClampXMax and ClampYMin != ClampYMax and
+			ClampXMin < ClampXMax and ClampYMin < ClampYMax ) then
 			ClampX = 1
-			ClampY = 0
-			ClampXMin = self:GetClientNumber("XMin")
-			ClampXMax = self:GetClientNumber("XMax")
+			ClampY = 1
+		elseif( (ClampXMin == 0 and ClampXMax == 0) or (ClampYMin == 0 or ClampYMax == 0) )then
+			if(ClampXMin == 0 and ClampXMax == 0 and (ClampYMin != 0 or ClampYMax != 0)) then
+				ClampX = 0
+				ClampY = 1
+			elseif(ClampYMin == 0 and ClampYMax == 0 and (ClampXMin != 0 or ClampXMax != 0)) then
+				ClampX = 1
+				ClampY = 0
+			else
+				ClampX = 0
+				ClampY = 0
+			end
 		else
-			ClampX = 0
-			ClampY = 0
+			WireLib.AddNotify(ply, "Invalid Clamping of Wire EyePod Values!", NOTIFY_ERROR, 5, NOTIFYSOUND_DRIP1)
+			return 1, 0, 0, 0, 0, 0, 0, 0
 		end
-	else
-		WireLib.AddNotify(ply, "Invalid Clamping of Wire EyePod Values!", NOTIFY_ERROR, 5, NOTIFYSOUND_DRIP1)
-		return false
+		return DefaultToZero, ShowRateOfChange, ClampXMin, ClampXMax, ClampYMin, ClampYMax, ClampX, ClampY
 	end
-
-
-	//update the eyepod
-	if (trace.Entity:IsValid() and trace.Entity:GetClass() == "gmod_wire_eyepod") then
-		trace.Entity:Setup(DefaultToZero,ShowRateOfChange, ClampXMin, ClampXMax, ClampYMin, ClampYMax, ClampX, ClampY)
-		return true
-	end
-
-	/* Normal to hit surface */
-	local Ang = trace.HitNormal:Angle()
-	Ang.pitch = Ang.pitch + 90
-
-	/* Make the EyePod */
-	local ent = MakeWireEyePod(ply, trace.HitPos, Ang, self:GetModel(), DefaultToZero, ShowRateOfChange, ClampXMin, ClampXMax, ClampYMin, ClampYMax, ClampX, ClampY)
-
-	local min = ent:OBBMins()
-	ent:SetPos( trace.HitPos - trace.HitNormal * min.z )
-
-	/* Weld it to the surface, as long as it isn't the ground */
-	if (!trace.HitWorld) then
-		local const = WireLib.Weld(ent, trace.Entity, trace.PhysicsBone, true)
-	end
-
-	/* Add it to the undo list */
-	undo.Create("Wire Eye Pod")
-		undo.AddEntity(ent)
-		if (!(const == nil)) then
-			undo.AddEntity(const)
-		end
-		undo.SetPlayer(ply)
-	undo.Finish()
-
-	ply:AddCleanup( "wire_eyepods", ent )
-
-	return true
 end
 
 //link the eyepod to the vehicle
@@ -176,41 +107,6 @@ function TOOL:Reload(trace)
 		self:GetOwner():ChatPrint("Wire Eye Pod Unlinked")
 		return true
 	end
-end
-
-if (SERVER) then
-	/* Makes an EyePod */
-	function MakeWireEyePod(pl, Pos, Ang, model, DefaultToZero, ShowRateOfChange, ClampXMin, ClampXMax, ClampYMin, ClampYMax, ClampX, ClampY)
-		if !pl:CheckLimit( "wire_eyepods" ) then return false end
-		local ent = ents.Create("gmod_wire_eyepod")
-		if !ent:IsValid() then return false end
-		ent:SetAngles(Ang)
-		ent:SetPos(Pos)
-		ent:SetModel(model)
-		ent:Spawn()
-		ent:SetPlayer(pl)
-		ent:Setup(DefaultToZero,ShowRateOfChange,ClampXMin,ClampXMax,ClampYMin,ClampYMax, ClampX, ClampY)
-
-		ent:SetPlayer( pl )
-
-		local ttable = {
-		    DefaultToZero = DefaultToZero,
-			ShowRateOfChange = ShowRateOfChange,
-			ClampXMin = ClampXMin,
-			ClampXMax = ClampXMax,
-			ClampYMin = ClampYMin,
-			ClampYMax = ClampYMax,
-			ClampX = ClampX,
-			ClampY = ClampY,
-			pl = pl
-		}
-		table.Merge(ent:GetTable(), ttable )
-
-		pl:AddCount( "wire_eyepods", ent )
-
-		return ent
-	end
-	duplicator.RegisterEntityClass("gmod_wire_eyepod", MakeWireEyePod, "Pos", "Ang", "Model", "DefaultToZero", "ShowRateOfChange" , "ClampXMin" , "ClampXMax" , "ClampYMin" , "ClampYMax" , "ClampX", "ClampY")
 end
 
 -------------------------------------- TOOL Menu ---------------------------------------------------

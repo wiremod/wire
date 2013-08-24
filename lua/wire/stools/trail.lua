@@ -17,11 +17,7 @@ TOOL.ClientConVar = {
 TOOL.Model = "models/jaanus/wiretool/wiretool_range.mdl"
 
 if SERVER then
-	function TOOL:GetConVars() return self:GetClientInfo("material", "sprites/obsolete") end
-
-	function TOOL:MakeEnt( ply, model, Ang, trace )
-		return MakeWireTrail( ply, trace.HitPos, Ang, model, { Material = self:GetConVars() } )
-	end
+	function TOOL:GetConVars() return { Material = self:GetClientInfo("material", "sprites/obsolete") } end
 end
 
 function TOOL.BuildCPanel(panel)

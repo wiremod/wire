@@ -17,10 +17,6 @@ if (SERVER) then
 	function TOOL:GetConVars() 
 		return self:GetClientNumber( "autobuffer" ) ~= 0
 	end
-
-	function TOOL:MakeEnt( ply, model, Ang, trace )
-		return MakeWireKeyboard( ply, trace.HitPos, Ang, model, self:GetConVars() )
-	end
 end
 
 TOOL.ClientConVar = {
@@ -31,43 +27,7 @@ TOOL.ClientConVar = {
 	leavekey = KEY_LALT
 }
 
-function TOOL:RightClick( trace )
-	if (!trace.HitPos) then return false end
-	local ent = trace.Entity
-	if (ent:IsPlayer()) then return false end
-	if ( CLIENT ) then return true end
-
-	if self:GetStage() == 0 then
-		if ( not ent:IsValid() or ent:GetClass() ~= "gmod_wire_keyboard" ) then return false end
-
-		self:SetStage(1)
-		self.LinkSource = ent
-		return true
-	else
-		--TODO: player check is missing. done by the prop protection plugin?
-		if ( not ent:IsValid() or not ent:IsVehicle() ) then return false end
-
-		self.LinkSource:LinkPod(ent)
-
-		self:SetStage(0)
-		self.LinkSource = nil
-		return true
-	end
-end
-
-function TOOL:Reload(trace)
-	self:SetStage(0)
-	self.LinkSource = nil
-
-	if (!trace.HitPos) then return false end
-	local ent = trace.Entity
-	if (ent:IsPlayer()) then return false end
-	if ( CLIENT ) then return true end
-
-	if ( not ent:IsValid() or ent:GetClass() ~= "gmod_wire_keyboard" ) then return false end
-	ent:LinkPod(nil)
-	return true
-end
+WireToolSetup.SetupLinking(true)
 
 function TOOL.BuildCPanel(panel)
 	ModelPlug_AddToCPanel(panel, "Keyboard", "wire_keyboard", true)

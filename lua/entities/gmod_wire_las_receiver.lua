@@ -28,23 +28,5 @@ local function playerDeath( victim, weapon, killer)
 end
 hook.Add( "PlayerDeath", "laserMemory", playerDeath)
 
-function MakeWireLaserReceiver( pl, Pos, Ang, model )
-	if ( !pl:CheckLimit( "wire_las_receivers" ) ) then return false end
-
-	local ent = ents.Create( "gmod_wire_las_receiver" )
-	if not IsValid(ent) then return false end
-
-	ent:SetAngles( Ang )
-	ent:SetPos( Pos )
-	ent:SetModel( model or "models/jaanus/wiretool/wiretool_range.mdl" )
-	ent:Spawn()
-
-	ent:SetPlayer( pl )
-	ent.pl = pl
-
-	pl:AddCount( "wire_las_receivers", ent )
-
-	return ent
-end
-duplicator.RegisterEntityClass("gmod_wire_las_receiver", MakeWireLaserReceiver, "Pos", "Ang", "Model")
-duplicator.RegisterEntityClass("gmod_wire_las_reciever", MakeWireLaserReceiver, "Pos", "Ang", "Model") -- For old dupe support
+duplicator.RegisterEntityClass("gmod_wire_las_receiver", WireLib.MakeWireEnt, "Data")
+duplicator.RegisterEntityClass("gmod_wire_las_reciever", WireLib.MakeWireEnt, "Data") -- For old dupe support

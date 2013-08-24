@@ -19,9 +19,6 @@ if SERVER then
 	function TOOL:GetConVars() 
 		return self:GetClientNumber( "keygroup" ), self:GetClientNumber( "toggle" ), self:GetClientNumber( "value_off" ), self:GetClientNumber( "value_on" )
 	end	
-	function TOOL:MakeEnt( ply, model, Ang, trace )
-		return MakeWireInput( ply, trace.HitPos, Ang, model, self:GetConVars() )
-	end
 end
 
 TOOL.ClientConVar = {

@@ -63,26 +63,4 @@ function ENT:IsOn()
 	return self.On
 end
 
-function MakeWireOutput( pl, Pos, Ang, model, key )
-	if (numpad.GetModifiedKey) then key = numpad.GetModifiedKey(pl, key) end
-
-	if ( !pl:CheckLimit( "wire_outputs" ) ) then return false end
-
-	local wire_output = ents.Create( "gmod_wire_output" )
-	if (!wire_output:IsValid()) then return false end
-
-	wire_output:SetAngles( Ang )
-	wire_output:SetPos( Pos )
-	wire_output:SetModel( Model(model or "models/jaanus/wiretool/wiretool_output.mdl") )
-	wire_output:Spawn()
-
-	wire_output:SetPlayer(pl)
-	wire_output.pl = pl
-	wire_output:Setup(key)
-
-	wire_output:ShowOutput()
-	pl:AddCount( "wire_outputs", wire_output )
-
-	return wire_output
-end
-duplicator.RegisterEntityClass("gmod_wire_output", MakeWireOutput, "Pos", "Ang", "Model", "key")
+duplicator.RegisterEntityClass("gmod_wire_output", WireLib.MakeWireEnt, "Data", "key")

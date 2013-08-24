@@ -14,7 +14,6 @@ if CLIENT then
 	language.Add("Tool_wire_screen_createflat", "Create flat to surface")
 end
 WireToolSetup.BaseLang()
-
 WireToolSetup.SetupMax( 20 )
 
 if SERVER then
@@ -27,10 +26,6 @@ if SERVER then
 		self:GetClientInfo("textb"),
 		self:GetClientNumber("leftalign") == 1,
 		self:GetClientNumber("floor") == 1
-	end
-
-	function TOOL:MakeEnt( ply, model, Ang, trace )
-		return MakeWireScreen( ply, trace.HitPos, Ang, model, self:GetConVars() )
 	end
 end
 

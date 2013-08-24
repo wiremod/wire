@@ -91,23 +91,4 @@ function ENT:ShowOutput( )
 	end
 end
 
-function MakeWireSimpleExplosive(pl, Pos, Ang, model, key, damage, removeafter, radius, nocollide )
-	if ( !pl:CheckLimit( "wire_simple_explosives" ) ) then return nil end
-	local explosive = ents.Create( "gmod_wire_simple_explosive" )
-
-	explosive:SetModel( model )
-	explosive:SetPos( Pos )
-	explosive:SetAngles( Ang )
-	explosive:Spawn()
-	explosive:Activate()
-
-	explosive:Setup( key, damage, removeafter, radius, nocollide )
-	explosive:SetPlayer( pl )
-	explosive.pl = pl
-
-	pl:AddCount( "wire_simple_explosive", explosive )
-	pl:AddCleanup( "gmod_wire_simple_explosive", explosive )
-
-	return explosive
-end
-duplicator.RegisterEntityClass( "gmod_wire_simple_explosive", MakeWireSimpleExplosive, "Pos", "Ang", "Model", "key", "damage", "removeafter", "radius", "nocollide" )
+duplicator.RegisterEntityClass( "gmod_wire_simple_explosive", WireLib.MakeWireEnt, "Data", "key", "damage", "removeafter", "radius" )

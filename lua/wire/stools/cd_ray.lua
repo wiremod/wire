@@ -53,7 +53,7 @@ function TOOL:RightClick(trace)
 
 	if not util.IsValidModel( model ) or not util.IsValidProp( model ) then return end
 
-	local wire_cd_lock = MakeWireCDLock( ply, trace.HitPos, Ang, model )
+	local wire_cd_lock = WireLib.MakeWireEnt(ply, {Class = "gmod_wire_cd_lock", Pos=trace.HitPos, Angle=Ang, Model=model})
 
 	local min = wire_cd_lock:OBBMins()
 	wire_cd_lock:SetPos( trace.HitPos - trace.HitNormal * min.z )
@@ -70,29 +70,6 @@ function TOOL:RightClick(trace)
 	ply:AddCleanup( "wire_cd_locks", const )
 
 	return true
-end
-
-if (SERVER) then
-
-	function MakeWireCDLock( pl, Pos, Ang, model )
-		if ( !pl:CheckLimit( "wire_cd_locks" ) ) then return false end
-
-		local wire_cd_lock = ents.Create( "gmod_wire_cd_lock" )
-		if (!wire_cd_lock:IsValid()) then return false end
-
-		wire_cd_lock:SetAngles( Ang )
-		wire_cd_lock:SetPos( Pos )
-		wire_cd_lock:SetModel( model )
-		wire_cd_lock:Spawn()
-
-		wire_cd_lock:SetPlayer( pl )
-
-		pl:AddCount( "wire_cd_locks", wire_cd_lock )
-
-		return wire_cd_lock
-	end
-	duplicator.RegisterEntityClass("gmod_wire_cd_lock", MakeWireCDLock, "Pos", "Ang", "Model")
-
 end
 
 function TOOL.BuildCPanel(panel)

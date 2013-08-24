@@ -15,9 +15,6 @@ if SERVER then
 	
 	function TOOL:GetConVars() 
 		return self:GetClientNumber( "keygroup" )
-	end	
-	function TOOL:MakeEnt( ply, model, Ang, trace )
-		return MakeWireOutput( ply, trace.HitPos, Ang, model, self:GetConVars() )
 	end
 end
 

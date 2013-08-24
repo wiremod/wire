@@ -8,7 +8,6 @@ if ( CLIENT ) then
     language.Add( "Tool.wire_hudindicator.desc", "Spawns a Hud Indicator for use with the wire system." )
     language.Add( "Tool.wire_hudindicator.0", "Primary: Create/Update Hud Indicator Secondary: Hook/Unhook someone else's Hud Indicator Reload: Link Hud Indicator to vehicle" )
 	language.Add( "Tool.wire_hudindicator.1", "Now use Reload on a vehicle to link this Hud Indicator to it, or on the same Hud Indicator to unlink it" )
-	language.Add( "undone_wirehudindicator", "Undone Wire Hud Indicator" )
 
 	// HUD Indicator stuff
 	language.Add( "ToolWireHudIndicator_showinhud", "Show in my HUD")
@@ -31,11 +30,8 @@ if ( CLIENT ) then
 	language.Add( "ToolWireHudIndicator_registeredindicators", "Registered Indicators:")
 	language.Add( "ToolWireHudIndicator_deleteselected", "Unregister Selected Indicator")
 end
-
-if (SERVER) then
-	// Hud indicators use the original indicator CVar
-	//CreateConVar('sbox_maxwire_indicators', 20)
-end
+WireToolSetup.BaseLang()
+WireToolSetup.SetupMax( 20 )
 
 TOOL.ClientConVar[ "model" ] = "models/jaanus/wiretool/wiretool_siren.mdl"
 TOOL.ClientConVar[ "a" ] = "0"
@@ -63,95 +59,13 @@ TOOL.ClientConVar[ "hookhidehud" ] = "0" // Couldn't resist this name :P
 TOOL.ClientConVar[ "fullcircleangle" ] = "0"
 TOOL.ClientConVar[ "registerdelete" ] = "0"
 
-cleanup.Register( "wire_indicators" )
-
-function TOOL:LeftClick( trace )
-
-	if trace.Entity && trace.Entity:IsPlayer() then return false end
-
-	// If there's no physics object then we can't constraint it!
-	if ( SERVER && !util.IsValidPhysicsObject( trace.Entity, trace.PhysicsBone ) ) then return false end
-
-	if (CLIENT) then return true end
-
-	local ply = self:GetOwner()
-
-	local model			= self:GetModel()
-	local a				= self:GetClientNumber("a")
-	local ar			= math.min(self:GetClientNumber("ar"), 255)
-	local ag			= math.min(self:GetClientNumber("ag"), 255)
-	local ab			= math.min(self:GetClientNumber("ab"), 255)
-	local aa			= math.min(self:GetClientNumber("aa"), 255)
-	local b				= self:GetClientNumber("b")
-	local br			= math.min(self:GetClientNumber("br"), 255)
-	local bg			= math.min(self:GetClientNumber("bg"), 255)
-	local bb			= math.min(self:GetClientNumber("bb"), 255)
-	local ba			= math.min(self:GetClientNumber("ba"), 255)
-	local material		= self:GetClientInfo( "material" )
-
-	local showinhud		= (self:GetClientNumber( "showinhud" ) > 0)
-	local huddesc		= self:GetClientInfo( "huddesc" )
-	local hudaddname	= (self:GetClientNumber( "hudaddname" ) > 0)
-	local hudshowvalue	= self:GetClientNumber( "hudshowvalue" )
-	local hudstyle		= self:GetClientNumber( "hudstyle" )
-	local allowhook		= (self:GetClientNumber( "allowhook" ) > 0)
-	local fullcircleangle = self:GetClientNumber( "fullcircleangle" )
-
-	// If we shot a wire_indicator change its force
-	if ( trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_hudindicator" ) then
-
-		trace.Entity:Setup(a, ar, ag, ab, aa, b, br, bg, bb, ba)
-		trace.Entity:SetMaterial( material )
-
-		trace.Entity.a	= a
-		trace.Entity.ar	= ar
-		trace.Entity.ag	= ag
-		trace.Entity.ab	= ab
-		trace.Entity.aa	= aa
-		trace.Entity.b	= b
-		trace.Entity.br	= br
-		trace.Entity.bg	= bg
-		trace.Entity.bb	= bb
-		trace.Entity.ba	= ba
-
-		// This will un-register if showinhud is false
-		trace.Entity:HUDSetup(showinhud, huddesc, hudaddname, hudshowvalue, hudstyle, allowhook, fullcircleangle)
-
-		trace.Entity.showinhud = showinhud
-		trace.Entity.huddesc = huddesc
-		trace.Entity.hudaddname = hudaddname
-		trace.Entity.hudshowvalue = hudshowvalue
-		trace.Entity.hudstyle = hudstyle
-		trace.Entity.allowhook = allowhook
-		trace.Entity.fullcircleangle = fullcircleangle
-
-		return true
+if SERVER then
+	function TOOL:GetConVars() 
+		return self:GetClientNumber("a"), math.min(self:GetClientNumber("ar"), 255), math.min(self:GetClientNumber("ag"), 255), math.min(self:GetClientNumber("ab"), 255), math.min(self:GetClientNumber("aa"), 255), 
+			self:GetClientNumber("b"), math.min(self:GetClientNumber("br"), 255), math.min(self:GetClientNumber("bg"), 255), math.min(self:GetClientNumber("bb"), 255), math.min(self:GetClientNumber("ba"), 255),
+			self:GetClientInfo( "material" ), self:GetClientNumber( "showinhud" ) ~= 0, self:GetClientInfo( "huddesc" ), self:GetClientNumber( "hudaddname" ) ~= 0,
+			self:GetClientNumber( "hudshowvalue" ), self:GetClientNumber( "hudstyle" ), self:GetClientNumber( "allowhook" ) ~= 0, self:GetClientNumber( "fullcircleangle" )
 	end
-
-	if ( !self:GetSWEP():CheckLimit( "wire_indicators" ) ) then return false end
-
-	if (not util.IsValidModel(model)) then return false end
-	if (not util.IsValidProp(model)) then return false end		// Allow ragdolls to be used?
-
-	//local Ang = trace.HitNormal:Angle()
-	local Ang = self:GetAngle(trace)
-
-	wire_indicator = MakeWireHudIndicator( ply, trace.HitPos, Ang, model, a, ar, ag, ab, aa, b, br, bg, bb, ba, material, showinhud, huddesc, hudaddname, hudshowvalue, hudstyle, allowhook, fullcircleangle )
-
-	local min = wire_indicator:OBBMins()
-	wire_indicator:SetPos( trace.HitPos - trace.HitNormal * self:GetSelectedMin(min) )
-
-	local const = WireLib.Weld(wire_indicator, trace.Entity, trace.PhysicsBone, true)
-
-	undo.Create("WireHudIndicator")
-		undo.AddEntity( wire_indicator )
-		undo.AddEntity( const )
-		undo.SetPlayer( ply )
-	undo.Finish()
-
-	ply:AddCleanup( "wire_indicators", wire_indicator )
-
-	return true
 end
 
 function TOOL:RightClick( trace )
@@ -229,64 +143,6 @@ function TOOL:Reload( trace )
 	end
 
 	return true
-end
-
-if (SERVER) then
-
-	function MakeWireHudIndicator( pl, Pos, Ang, model, a, ar, ag, ab, aa, b, br, bg, bb, ba, material, showinhud, huddesc, hudaddname, hudshowvalue, hudstyle, allowhook, fullcircleangle, nocollide, Vel, aVel, frozen )
-		if ( !pl:CheckLimit( "wire_indicators" ) ) then return false end
-
-		local wire_indicator = ents.Create( "gmod_wire_hudindicator" )
-		if (!wire_indicator:IsValid()) then return false end
-
-		wire_indicator:SetModel( model )
-		wire_indicator:SetMaterial( material )
-		wire_indicator:SetAngles( Ang )
-		wire_indicator:SetPos( Pos )
-		wire_indicator:Spawn()
-
-		wire_indicator:Setup(a, ar, ag, ab, aa, b, br, bg, bb, ba)
-		wire_indicator:SetPlayer(pl)
-
-		wire_indicator:HUDSetup(showinhud, huddesc, hudaddname, hudshowvalue, hudstyle, allowhook, fullcircleangle)
-
-		if (nocollide) then
-			local phys = wire_indicator:GetPhysicsObject()
-			if ( phys:IsValid() ) then phys:EnableCollisions(false) end
-		end
-
-		local ttable = {
-			a	= a,
-			ar	= ar,
-			ag	= ag,
-			ab	= ab,
-			aa	= aa,
-			b	= b,
-			br	= br,
-			bg	= bg,
-			bb	= bb,
-			ba	= ba,
-			material = material,
-			pl	= pl,
-			nocollide = nocollide,
-			showinhud = showinhud,
-			huddesc = huddesc,
-			hudaddname = hudaddname,
-			hudshowvalue = hudshowvalue,
-			hudstyle = hudstyle,
-			allowhook = allowhook,
-			fullcircleangle = fullcircleangle
-		}
-		table.Merge(wire_indicator:GetTable(), ttable )
-
-		pl:AddCount( "wire_indicators", wire_indicator )
-
-		return wire_indicator
-	end
-
-	duplicator.RegisterEntityClass("gmod_wire_hudindicator", MakeWireHudIndicator, "Pos", "Ang", "Model", "a", "ar", "ag", "ab", "aa", "b", "br",
-	  "bg", "bb", "ba", "material", "showinhud", "huddesc", "hudaddname", "hudshowvalue", "hudstyle", "allowhook", "fullcircleangle", "nocollide", "Vel", "aVel", "frozen")
-
 end
 
 function TOOL:GetAngle( trace )

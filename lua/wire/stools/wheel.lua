@@ -41,7 +41,7 @@ if SERVER then
 		if fwd == stop or bck == stop or fwd == bck then return false end
 
 		-- Create the wheel
-		local wheelEnt = MakeWireWheel( ply, trace.HitPos, Ang, model, nil, nil, nil, fwd, bck, stop, torque )
+		local wheelEnt = WireLib.MakeWireEnt(ply, {Class = self.WireClass, Pos=trace.HitPos, Angle=Ang, Model=model}, fwd, bck, stop, torque )
 		self:SetPos( wheelEnt, trace )
 		
 		-- Wake up the physics object so that the entity updates

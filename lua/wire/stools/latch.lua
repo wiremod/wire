@@ -9,8 +9,9 @@ if CLIENT then
     language.Add( "Tool.wire_latch.0", "Primary: Click on first entity to be latched" )
     language.Add( "Tool.wire_latch.1", "Left click on the second entity" )
     language.Add( "Tool.wire_latch.2", "Left click to place the controller" )
-	language.Add( "undone_wirelatch", "Undone Wire Latch" )
 end
+WireToolSetup.BaseLang()
+WireToolSetup.SetupMax( 15 )
 
 function TOOL:LeftClick( trace )
 	if trace.Entity:IsValid() and trace.Entity:IsPlayer() then return end
@@ -34,9 +35,7 @@ function TOOL:LeftClick( trace )
 		local const = self.Constraint
 
 		// Attach controller to the weld constraint
-		local Ang = trace.HitNormal:Angle()
-		Ang.pitch = Ang.pitch + 90
-		local controller = MakeWireLatchController( ply, trace.HitPos, Ang, self:GetModel() )
+		local controller = WireLib.MakeWireEnt(ply, {Class = self.WireClass, Pos=trace.HitPos, Angle=self:GetAngle(trace), Model=self:GetModel()})
 
 		if !IsValid(controller) then
 			WireLib.AddNotify( self:GetOwner(), "Weld latch controller placement failed!", NOTIFY_GENERIC, 7 )
@@ -104,40 +103,6 @@ function TOOL:Reload( trace )
 	self.Constraint = nil
 	self:ClearObjects()
 	self:SetStage(0)
-end
-
-if SERVER then
-	function MakeWireLatchController( pl, Pos, Ang, model )
-		local controller = ents.Create("gmod_wire_latch")
-
-		controller:SetPos( Pos )
-		controller:SetAngles( Ang )
-		controller:SetModel( Model(model or "models/jaanus/wiretool/wiretool_siren.mdl") )
-		controller:SetPlayer(pl)
-
-		controller:Spawn()
-
-		return controller
-	end
-	duplicator.RegisterEntityClass("gmod_wire_latch", MakeWireLatchController, "Pos", "Ang", "Model")
-
-	function MakeWireLatch( Ent1, Ent2, Bone1, Bone2, forcelimit )
-		if ( !constraint.CanConstrain( Ent1, Bone1 ) ) then return false end
-		if ( !constraint.CanConstrain( Ent2, Bone2 ) ) then return false end
-
-		local Phys1 = Ent1:GetPhysicsObjectNum( Bone1 )
-		local Phys2 = Ent2:GetPhysicsObjectNum( Bone2 )
-
-		if ( Phys1 == Phys2 ) then return false end
-
-		local const = constraint.Weld( Ent1, Ent2, Bone1, Bone2, forcelimit or 0 )
-
-		if !IsValid(const) then return nil end
-
-		const.Type = "" -- prevents the duplicator from copying this weld
-
-		return const
-	end
 end
 
 function TOOL.BuildCPanel( panel )

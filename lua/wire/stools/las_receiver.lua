@@ -9,14 +9,6 @@ end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )
 
-if SERVER then
-	function TOOL:GetConVars() end
-
-	function TOOL:MakeEnt( ply, model, Ang, trace )
-		return MakeWireLaserReceiver( ply, trace.HitPos, Ang, model, self:GetConVars() )
-	end
-end
-
 TOOL.ClientConVar = {
 	model = "models/jaanus/wiretool/wiretool_range.mdl",
 }

@@ -13,9 +13,6 @@ if (SERVER) then
 	function TOOL:GetConVars() 
 		return self:GetClientNumber( "forcelim" ), self:GetClientNumber( "range" ), self:GetClientNumber( "beam" )==1
 	end	
-	function TOOL:MakeEnt( ply, model, Ang, trace )
-		return MakeWireNailer( ply, trace.HitPos, Ang, model, self:GetConVars() )
-	end
 end
 
 TOOL.ClientConVar = {

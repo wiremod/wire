@@ -12,12 +12,6 @@ WireToolSetup.SetupMax( 20 )
 
 if SERVER then
 	ModelPlug_Register("WaterSensor")
-	
-	function TOOL:GetConVars() end
-
-	function TOOL:MakeEnt( ply, model, Ang, trace )
-		return MakeWireWaterSensor( ply, trace.HitPos, Ang, model, self:GetConVars() )
-	end
 end
 
 TOOL.ClientConVar = {

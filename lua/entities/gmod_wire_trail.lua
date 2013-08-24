@@ -46,23 +46,4 @@ function ENT:TriggerInput(iname, value)
 	end
 end
 
-function MakeWireTrail( pl, Pos, Ang, model, Trail)
-	if not pl:CheckLimit( "wire_trails" ) then return false end
-
-	local wire_trail = ents.Create( "gmod_wire_trail" )
-	if not wire_trail:IsValid() then return false end
-
-	wire_trail:SetAngles( Ang )
-	wire_trail:SetPos( Pos )
-	wire_trail:SetModel( Model(model or "models/jaanus/wiretool/wiretool_range.mdl") )
-	wire_trail:Spawn()
-	wire_trail:Setup(Trail)
-
-	wire_trail:SetPlayer( pl )
-	wire_trail.pl = pl
-
-	pl:AddCount( "wire_trails", wire_trail )
-
-	return wire_trail
-end
-duplicator.RegisterEntityClass("gmod_wire_trail", MakeWireTrail, "Pos", "Ang", "Model", "Trail")
+duplicator.RegisterEntityClass("gmod_wire_trail", WireLib.MakeWireEnt, "Data", "Trail")

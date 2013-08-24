@@ -136,23 +136,26 @@ function ENT:Use( ply )
 end
 
 function ENT:OnRemove()
-	self:LinkPod( nil, true )
+	self:UnlinkEnt()
 	self:PlayerDetach()
 	self.BaseClass.OnRemove(self)
 end
 
-function ENT:LinkPod( pod, silent )
-	if not IsValid(pod) then
-		if IsValid(self.Pod) then
-			self.Pod.WireKeyboard = nil
-			self.Pod = nil
-		end
-	else
-		if IsValid(self.Pod) and self.Pod == pod then return end
-
-		pod.WireKeyboard = self
-		self.Pod = pod
+function ENT:LinkEnt( pod )
+	if not IsValid(pod) or not pod:IsVehicle() then return false, "Must link to a vehicle" end
+	if IsValid(self.Pod) then self.Pod.WireKeyboard = nil end
+	pod.WireKeyboard = self
+	self.Pod = pod
+	WireLib.SendMarks(self, {pod})
+	return true
+end
+function ENT:UnlinkEnt()
+	if IsValid(self.Pod) then
+		self.Pod.WireKeyboard = nil
 	end
+	self.Pod = nil
+	WireLib.SendMarks(self, {})
+	return true
 end
 
 hook.Add( "PlayerEnteredVehicle", "Wire_Keyboard_PlayerEnteredVehicle", function( ply, pod )
@@ -303,34 +306,12 @@ function ENT:Setup(autobuffer)
 	self.AutoBuffer = autobuffer
 end
 
-if (SERVER) then
-	function MakeWireKeyboard( pl, Pos, Ang, model, autobuffer )
-		if ( !pl:CheckLimit( "wire_keyboards" ) ) then return false end
-
-		local wire_keyboard = ents.Create( "gmod_wire_keyboard" )
-		if (!wire_keyboard:IsValid()) then return false end
-
-		wire_keyboard:SetAngles( Ang )
-		wire_keyboard:SetPos( Pos )
-		wire_keyboard:SetModel( Model(model or "models/jaanus/wiretool/wiretool_input.mdl") )
-		wire_keyboard:Spawn()
-
-		wire_keyboard:SetPlayer( pl )
-		wire_keyboard.pl = pl
-		wire_keyboard:Setup(autobuffer)
-
-		pl:AddCount( "wire_keyboards", wire_keyboard )
-
-		return wire_keyboard
-	end
-	duplicator.RegisterEntityClass("gmod_wire_keyboard", MakeWireKeyboard, "Pos", "Ang", "Model", "AutoBuffer")
-end
+duplicator.RegisterEntityClass("gmod_wire_keyboard", WireLib.MakeWireEnt, "Data", "AutoBuffer")
 
 function ENT:BuildDupeInfo()
 	local info = self.BaseClass.BuildDupeInfo(self) or {}
 	if IsValid(self.Pod) then
 	    info.pod = self.Pod:EntIndex()
-		info.autobuffer = self.AutoBuffer
 	end
 	return info
 end
@@ -338,6 +319,6 @@ end
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
 
-	self:LinkPod(GetEntByID(info.pod), true)
-	self.AutoBuffer = info.autobuffer or false
+	self:LinkEnt(GetEntByID(info.pod), true)
+	if info.autobuffer then self.AutoBuffer = info.autobuffer end
 end

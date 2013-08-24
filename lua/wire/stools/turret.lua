@@ -36,61 +36,26 @@ TOOL.ClientConVar = {
 TOOL.GhostAngle = Angle(-90,0,0)
 TOOL.GetGhostMin = function() return -2 end
 
-function TOOL:LeftClick( trace, worldweld )
-	if trace.Entity and trace.Entity:IsPlayer() then return false end
-	if CLIENT then return true end
-
-	local ply = self:GetOwner()
-
-	local delay 		= self:GetClientNumber( "delay" )
-	local force 		= self:GetClientNumber( "force" )
-	local sound 		= self:GetClientInfo( "sound" )
-	local tracer 		= self:GetClientInfo( "tracer" )
-	local damage	 	= self:GetClientNumber( "damage" )
-	local spread	 	= self:GetClientNumber( "spread" )
-	local numbullets 	= self:GetClientNumber( "numbullets" )
-	local tracernum 	= self:GetClientNumber( "tracernum" )
-	local model 		= self:GetClientInfo( "model" )
-	if not util.IsValidModel( model ) or not util.IsValidProp( model ) then return end
-
-	-- We shot an existing turret - just change its values
-	if trace.Entity:IsValid() and trace.Entity:GetClass() == "gmod_wire_turret" then
-		trace.Entity:SetDamage( damage )
-		trace.Entity:SetDelay( delay )
-		trace.Entity:SetNumBullets( numbullets )
-		trace.Entity:SetSpread( spread )
-		trace.Entity:SetForce( force )
-		trace.Entity:SetSound( sound )
-		trace.Entity:SetTracer( tracer )
-		trace.Entity:SetTracerNum( tracernum )
-		return true
+if SERVER then
+	function TOOL:GetConVars() 
+		return self:GetClientNumber("delay"), self:GetClientNumber("damage"), self:GetClientNumber("force"), self:GetClientInfo("sound"), 
+			self:GetClientNumber("numbullets"), self:GetClientNumber("spread"), self:GetClientInfo("tracer"), self:GetClientNumber("tracernum")
 	end
-
-	if not self:GetSWEP():CheckLimit( "wire_turrets" ) then return false end
-
-	trace.HitPos = trace.HitPos + trace.HitNormal * 2
-
-	local Ang=nil
-
-	local turret = MakeWireTurret( ply, trace.HitPos, Ang, model, delay, damage, force, sound, numbullets, spread, tracer, tracernum )
-
-	turret:SetAngles( trace.HitNormal:Angle() )
-
-	local weld = WireLib.Weld(turret, trace.Entity, trace.PhysicsBone, true, false, worldweld or false)
-
-	undo.Create("WireTurret")
-		undo.AddEntity( turret )
-		undo.AddEntity( weld )
-		undo.SetPlayer( ply )
-	undo.Finish()
-
-	return true
 end
 
-function TOOL:RightClick( trace )
-	return self:LeftClick( trace, true )
-end
+local ValidTurretModels = {
+	["models/weapons/w_smg1.mdl"] = true,
+	["models/weapons/w_smg_mp5.mdl"] = true,
+	["models/weapons/w_smg_mac10.mdl"] = true,
+	["models/weapons/w_rif_m4a1.mdl"] = true,
+	["models/weapons/w_357.mdl"] = true,
+	["models/weapons/w_shot_m3super90.mdl"] = true
+}
 
+function TOOL:GetModel()
+	local model = WireToolObj.GetModel(self)
+	return ValidTurretModels[model] and model or "models/weapons/w_smg1.mdl"
+end
 
 function TOOL.BuildCPanel( CPanel )
 	WireToolHelpers.MakePresetControl(CPanel, "wire_turret")

@@ -365,3 +365,5 @@ concommand.Add("wgm", function(player, command, args)
     GPU.Inputs.MemBus.Src:WriteCell(Address-65536,Value)
   end
 end)
+
+duplicator.RegisterEntityClass("gmod_wire_gpu", WireLib.MakeWireEnt, "Data")

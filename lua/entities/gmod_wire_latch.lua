@@ -186,3 +186,23 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 	self:TriggerInput("Activate", info.Activate)
 	self:TriggerInput("NoCollide", info.NoCollide)
 end
+
+duplicator.RegisterEntityClass("gmod_wire_latch", WireLib.MakeWireEnt, "Data")
+
+function MakeWireLatch( Ent1, Ent2, Bone1, Bone2, forcelimit )
+	if ( !constraint.CanConstrain( Ent1, Bone1 ) ) then return false end
+	if ( !constraint.CanConstrain( Ent2, Bone2 ) ) then return false end
+
+	local Phys1 = Ent1:GetPhysicsObjectNum( Bone1 )
+	local Phys2 = Ent2:GetPhysicsObjectNum( Bone2 )
+
+	if ( Phys1 == Phys2 ) then return false end
+
+	local const = constraint.Weld( Ent1, Ent2, Bone1, Bone2, forcelimit or 0 )
+
+	if !IsValid(const) then return nil end
+
+	const.Type = "" -- prevents the duplicator from copying this weld
+
+	return const
+end

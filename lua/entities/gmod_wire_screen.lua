@@ -230,30 +230,4 @@ function ENT:Setup(SingleValue, SingleBigFont, TextA, TextB, LeftAlign, Floor)
 	self:SetSingleValue(SingleValue)
 end
 
-function MakeWireScreen( pl, Pos, Ang, model, SingleValue, SingleBigFont, TextA, TextB, LeftAlign, Floor, frozen )
-
-	if ( !pl:CheckLimit( "wire_screens" ) ) then return false end
-
-	local wire_screen = ents.Create( "gmod_wire_screen" )
-	if (!wire_screen:IsValid()) then return false end
-	wire_screen:SetModel(model)
-	wire_screen:SetAngles( Ang )
-	wire_screen:SetPos( Pos )
-	wire_screen:Spawn()
-
-	if wire_screen:GetPhysicsObject():IsValid() then
-		local Phys = wire_screen:GetPhysicsObject()
-		Phys:EnableMotion(!frozen)
-	end
-
-	wire_screen:Setup(SingleValue, SingleBigFont, TextA, TextB, LeftAlign, Floor)
-
-	wire_screen:SetPlayer(pl)
-	wire_screen.pl = pl
-
-	pl:AddCount( "wire_screens", wire_screen )
-
-	return wire_screen
-
-end
-duplicator.RegisterEntityClass("gmod_wire_screen", MakeWireScreen, "Pos", "Ang", "Model", "SingleValue", "SingleBigFont", "TextA", "TextB", "LeftAlign", "Floor", "frozen")
+duplicator.RegisterEntityClass("gmod_wire_screen", WireLib.MakeWireEnt, "Data", "SingleValue", "SingleBigFont", "TextA", "TextB", "LeftAlign", "Floor")

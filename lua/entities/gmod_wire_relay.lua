@@ -19,29 +19,30 @@ function ENT:Initialize()
 	self.Outputs = Wire_CreateOutputs(self, { "A" })
 end
 
-function ENT:Setup(keygroup1, keygroup2, keygroup3, keygroup4, keygroup5, keygroupoff, toggle, normclose, poles, throws)
-	self.KeyGroup1		= keygroup1
-	self.KeyGroup2		= keygroup2
-	self.KeyGroup3		= keygroup3
-	self.KeyGroup4		= keygroup4
-	self.KeyGroup5		= keygroup5
-	self.KeyGroupOff	= keygroupoff
-	self.Toggle			= toggle
-	self.NormClose		= normclose or 0
-	self.SelInput 		= normclose or 0
-	self.Poles 			= poles
-	self.Throws 		= throws
+function ENT:Setup(keygroup1, keygroup2, keygroup3, keygroup4, keygroup5, keygroupoff, toggle, normclose, poles, throws, nokey)
+	self.keygroup1		= keygroup1
+	self.keygroup2		= keygroup2
+	self.keygroup3		= keygroup3
+	self.keygroup4		= keygroup4
+	self.keygroup5		= keygroup5
+	self.keygroupoff	= keygroupoff
+	self.toggle			= toggle
+	self.normclose		= normclose or 0
+	self.selinput 		= normclose or 0
+	self.poles 			= poles
+	self.throws 		= throws
+	self.nokey			= nokey
 
 	local outpoles = {"A", "B", "C", "D", "E", "F", "G", "H"} //output names
 	local inputs = {} 	//wont need this outside setup
 	self.outputs = {} 	//need to rebuild output names
 
 	//build inputs and putputs, init all nil values
-	for p=1, self.Poles do
+	for p=1, self.poles do
 		self.outputs[p] = outpoles[p]
 		self.Value[p] = self.Value[p] or 0
-		for t=1, self.Throws do
-			//inputs[ p * self.Poles + t ] = t .. outpoles[p]
+		for t=1, self.throws do
+			//inputs[ p * self.poles + t ] = t .. outpoles[p]
 			table.insert(inputs, ( t .. outpoles[p] ))
 			self.Last[ t .. outpoles[p] ] = self.Last[ t .. outpoles[p] ] or 0
 		end
@@ -54,24 +55,52 @@ function ENT:Setup(keygroup1, keygroup2, keygroup3, keygroup4, keygroup5, keygro
 
 	//set the switch to its new normal state
 	self:Switch( normclose )
+	
+	if not nokey then
+		local pl = self:GetPlayer()
+		if (keygroupoff) then
+			numpad.OnDown( pl, keygroupoff, "WireRelay_On", self, 0 )
+			numpad.OnUp( pl, keygroupoff, "WireRelay_Off", self, 0 )
+		end
+		if (keygroup1) then
+			numpad.OnDown( pl, keygroup1, "WireRelay_On", self, 1 )
+			numpad.OnUp( pl, keygroup1, "WireRelay_Off", self, 1 )
+		end
+		if (keygroup2) then
+			numpad.OnDown( pl, keygroup2, "WireRelay_On", self, 2 )
+			numpad.OnUp( pl, keygroup2, "WireRelay_Off", self, 2 )
+		end
+		if (keygroup3) then
+			numpad.OnDown( pl, keygroup3, "WireRelay_On", self, 3 )
+			numpad.OnUp( pl, keygroup3, "WireRelay_Off", self, 3 )
+		end
+		if (keygroup4) then
+			numpad.OnDown( pl, keygroup4, "WireRelay_On", self, 4 )
+			numpad.OnUp( pl, keygroup4, "WireRelay_Off", self, 4 )
+		end
+		if (keygroup5) then
+			numpad.OnDown( pl, keygroup5, "WireRelay_On", self, 5 )
+			numpad.OnUp( pl, keygroup5, "WireRelay_Off", self, 5 )
+		end
+	end
 end
 
 
 function ENT:TriggerInput(iname, value)
 	if (iname == "Switch") then
-		if (math.abs(value) >= 0 && math.abs(value) <= self.Throws) then
+		if (math.abs(value) >= 0 && math.abs(value) <= self.throws) then
 			self:Switch(math.abs(value))
 		end
 	elseif (iname) then
 		self.Last[iname] = value or 0
-		self:Switch(self.SelInput)
+		self:Switch(self.selinput)
 	end
 end
 
 
 function ENT:Switch( mul )
 	if (!self:IsValid()) then return false end
-	self.SelInput = mul
+	self.selinput = mul
 	for p,v in ipairs(self.outputs) do
 		self.Value[p] = self.Last[ mul .. v ] or 0
 		Wire_TriggerOutput(self, v, self.Value[p])
@@ -82,11 +111,11 @@ end
 
 
 function ENT:ShowOutput()
-	local txt = self.Poles .. "P" .. self.Throws .. "T "
-	if (self.SelInput == 0) then
+	local txt = self.poles .. "P" .. self.throws .. "T "
+	if (self.selinput == 0) then
 		txt = txt .. "Sel: off"
 	else
-		txt = txt .. "Sel: " .. self.SelInput
+		txt = txt .. "Sel: " .. self.selinput
 	end
 
 	for p,v in ipairs(self.outputs) do
@@ -98,16 +127,16 @@ end
 
 
 function ENT:InputActivate( mul )
-	if ( self.Toggle && self.SelInput == mul) then //only toggle for the same key
-		return self:Switch( self.NormClose )
+	if ( self.toggle && self.selinput == mul) then //only toggle for the same key
+		return self:Switch( self.normclose )
 	else
 		return self:Switch( mul )
 	end
 end
 
 function ENT:InputDeactivate( mul )
-	if ( self.Toggle ) then return true end
-	return self:Switch( self.NormClose )
+	if ( self.toggle ) then return true end
+	return self:Switch( self.normclose )
 end
 
 
@@ -123,3 +152,5 @@ end
 
 numpad.Register( "WireRelay_On", On )
 numpad.Register( "WireRelay_Off", Off )
+
+duplicator.RegisterEntityClass("gmod_wire_relay", WireLib.MakeWireEnt, "Data", "keygroup1", "keygroup2", "keygroup3", "keygroup4", "keygroup5", "keygroupoff", "toggle", "normclose", "poles", "throws", "nokey")

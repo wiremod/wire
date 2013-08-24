@@ -15,10 +15,6 @@ if SERVER then
 	function TOOL:GetConVars() 
 		return tobool(self:GetClientNumber("xyz_mode")), tobool(self:GetClientNumber("angvel")) 
 	end
-
-	function TOOL:MakeEnt( ply, model, Ang, trace )
-		return MakeWireSpeedometer( ply, trace.HitPos, Ang, model, self:GetConVars() )
-	end
 end
 
 TOOL.Model = "models/jaanus/wiretool/wiretool_speed.mdl"

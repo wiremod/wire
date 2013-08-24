@@ -17,8 +17,7 @@ function ENT:Initialize()
 	self.Other = nil
 end
 
-function ENT:Setup( channel )
-	self.Channel = channel
+function ENT:Setup()
 	self.PrevOutputA = nil
 	self.PrevOutputB = nil
 	self.PrevOutputC = nil
@@ -72,6 +71,24 @@ function ENT:RadioLink(other, id)
 	self:ShowOutput("update", 1)
 end
 
+function ENT:LinkEnt( other )
+	if not IsValid(other) or not other:GetClass() == "gmod_wire_twoway_radio" then return false, "Must link to another Two-Way Radio" end
+
+	local id = Radio_GetTwoWayID()
+	self:RadioLink(other, id)
+	other:RadioLink(self, id)
+	WireLib.AddNotify(self:GetPlayer(), "Radios paired up. Pair ID is " .. tostring(id) .. ".", NOTIFY_GENERIC, 7)
+
+	WireLib.SendMarks(self, {other})
+	return true
+end
+function ENT:UnlinkEnt()
+	self.Other:RadioLink(nil, nil)
+	WireLib.SendMarks(self.Other, {})
+	self:RadioLink(nil, nil)
+	WireLib.SendMarks(self, {})
+	return true
+end
 
 function ENT:ShowOutput(iname, value)
 	local changed
@@ -139,3 +156,5 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 		self:RadioLink(other, id)
 	end
 end
+
+duplicator.RegisterEntityClass("gmod_wire_twoway_radio", WireLib.MakeWireEnt, "Data")

@@ -131,22 +131,4 @@ function ENT:CheckOwner(ent)
 	return owns
 end
 
-function MakeWireNailer( pl, Pos, Ang, model, flim, Range, ShowBeam )
-	if ( !pl:CheckLimit( "wire_nailers" ) ) then return false end
-
-	local wire_nailer = ents.Create( "gmod_wire_nailer" )
-	if (!wire_nailer:IsValid()) then return false end
-
-	wire_nailer:SetAngles( Ang )
-	wire_nailer:SetPos( Pos )
-	wire_nailer:SetModel( model )
-	wire_nailer:Spawn()
-
-	wire_nailer:Setup( flim, Range, ShowBeam )
-	wire_nailer:SetPlayer( pl )
-
-	pl:AddCount( "wire_nailers", wire_nailer )
-
-	return wire_nailer
-end
-duplicator.RegisterEntityClass("gmod_wire_nailer", MakeWireNailer, "Pos", "Ang", "Model", "Flim")
+duplicator.RegisterEntityClass("gmod_wire_nailer", WireLib.MakeWireEnt, "Data", "Flim")

@@ -7,19 +7,10 @@ if CLIENT then
 	language.Add( "tool.wire_pixel.0", "Primary: Create Pixel" )
 end
 WireToolSetup.BaseLang()
-
 WireToolSetup.SetupMax( 20 )
 
 if SERVER then
 	ModelPlug_Register("pixel")
-
-	function TOOL:GetConVars()
-		return self:GetClientNumber( "noclip" ) == 1
-	end
-
-	function TOOL:MakeEnt( ply, model, Ang, trace )
-		return MakeWirePixel( ply, trace.HitPos, Ang, model, self:GetConVars() )
-	end
 end
 
 TOOL.NoLeftOnClass = true -- no update ent function needed

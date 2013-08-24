@@ -16,13 +16,10 @@ if ( CLIENT ) then
 	language.Add( "WireRelayTool_normclose",   "Normaly:" )
 	language.Add( "WireRelayTool_poles",       "Number of poles:" )
 	language.Add( "WireRelayTool_throws",      "Number of throws:" )
-	language.Add( "sboxlimit_wire_relays",     "You've hit the wire relays limit!" )
-	language.Add( "undone_wirerelay",          "Undone Wire Relay" )
 end
+WireToolSetup.BaseLang()
+WireToolSetup.SetupMax( 20 )
 
-if (SERVER) then
-	CreateConVar('sbox_maxwire_relays', 20)
-end
 TOOL.ClientConVar = {
 	keygroupoff = "0",
 	keygroup1   = "1",
@@ -38,125 +35,12 @@ TOOL.ClientConVar = {
 	model       = "models/kobilica/relay.mdl",
 }
 
-cleanup.Register( "wire_relays" )
-
-function TOOL:LeftClick( trace )
-
-	if (!trace.HitPos) then return false end
-	if (trace.Entity:IsPlayer()) then return false end
-	if ( CLIENT ) then return true end
-	if not util.IsValidPhysicsObject( trace.Entity, trace.PhysicsBone ) then return false end
-
-	local ply = self:GetOwner()
-
-	local _keygroup1   = self:GetClientNumber( "keygroup1" )
-	local _keygroup2   = self:GetClientNumber( "keygroup2" )
-	local _keygroup3   = self:GetClientNumber( "keygroup3" )
-	local _keygroup4   = self:GetClientNumber( "keygroup4" )
-	local _keygroup5   = self:GetClientNumber( "keygroup5" )
-	local _keygroupoff = self:GetClientNumber( "keygroupoff" )
-	local _nokey       = self:GetClientNumber( "nokey" ) == 1
-	local _toggle      = self:GetClientNumber( "toggle" ) == 1
-	local _normclose   = self:GetClientNumber( "normclose" )
-	local _value_off   = self:GetClientNumber( "value_off" )
-	local _poles       = self:GetClientNumber( "poles" )
-	local _throws      = self:GetClientNumber( "throws" )
-	local _model       = self:GetClientInfo( "model" )
-	if not util.IsValidModel( _model ) or not util.IsValidProp( _model ) then return end
-
-	if ( trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_relay" ) then
-		trace.Entity:Setup( _keygroup1, _keygroup2, _keygroup3, _keygroup4, _keygroup5, _keygroupoff, _toggle, _normclose, _poles, _throws, _nokey )
-		return true
+if SERVER then
+	function TOOL:GetConVars() 
+		return self:GetClientNumber("keygroup1"), self:GetClientNumber("keygroup2"), self:GetClientNumber("keygroup3"), self:GetClientNumber("keygroup4"), self:GetClientNumber("keygroup5"), 
+			self:GetClientNumber("keygroupoff"), self:GetClientNumber("toggle") ~= 0, self:GetClientNumber("normclose"), 
+			self:GetClientNumber("poles"), self:GetClientNumber("throws"), self:GetClientNumber("nokey") ~= 0
 	end
-
-	if ( !self:GetSWEP():CheckLimit( "wire_relays" ) ) then return false end
-
-	local Ang = trace.HitNormal:Angle()
-	Ang.pitch = Ang.pitch + 90
-
-	local wire_relay = MakeWireRelay( ply, trace.HitPos, Ang, _model, _keygroup1, _keygroup2, _keygroup3, _keygroup4, _keygroup5, _keygroupoff, _toggle, _normclose, _poles, _throws, _nokey )
-
-	local min = wire_relay:OBBMins()
-	wire_relay:SetPos( trace.HitPos - trace.HitNormal * min.z )
-
-	local const = WireLib.Weld(wire_relay, trace.Entity, trace.PhysicsBone, true)
-
-	undo.Create("WireRelay")
-		undo.AddEntity( wire_relay )
-		undo.AddEntity( const )
-		undo.SetPlayer( ply )
-	undo.Finish()
-
-	ply:AddCleanup( "wire_relays", wire_relay )
-
-	return true
-end
-
-if (SERVER) then
-
-	function MakeWireRelay( pl, Pos, Ang, model, keygroup1, keygroup2, keygroup3, keygroup4, keygroup5, keygroupoff, toggle, normclose, poles, throws, nokey)
-		--print(model)
-		if ( !pl:CheckLimit( "wire_relays" ) ) then return false end
-
-		local wire_relay = ents.Create( "gmod_wire_relay" )
-		if (!wire_relay:IsValid()) then return false end
-
-		wire_relay:SetAngles( Ang )
-		wire_relay:SetPos( Pos )
-		wire_relay:SetModel( Model(model) )
-		wire_relay:Spawn()
-
-		wire_relay:Setup( keygroup1, keygroup2, keygroup3, keygroup4, keygroup5, keygroupoff, toggle, normclose, poles, throws )
-		wire_relay:SetPlayer( pl )
-
-		if (!nokey) then
-			if (keygroupoff) then
-				numpad.OnDown( pl, keygroupoff, "WireRelay_On", wire_relay, 0 )
-				numpad.OnUp( pl, keygroupoff, "WireRelay_Off", wire_relay, 0 )
-			end
-			if (keygroup1) then
-				numpad.OnDown( pl, keygroup1, "WireRelay_On", wire_relay, 1 )
-				numpad.OnUp( pl, keygroup1, "WireRelay_Off", wire_relay, 1 )
-			end
-			if (keygroup2) then
-				numpad.OnDown( pl, keygroup2, "WireRelay_On", wire_relay, 2 )
-				numpad.OnUp( pl, keygroup2, "WireRelay_Off", wire_relay, 2 )
-			end
-			if (keygroup3) then
-				numpad.OnDown( pl, keygroup3, "WireRelay_On", wire_relay, 3 )
-				numpad.OnUp( pl, keygroup3, "WireRelay_Off", wire_relay, 3 )
-			end
-			if (keygroup4) then
-				numpad.OnDown( pl, keygroup4, "WireRelay_On", wire_relay, 4 )
-				numpad.OnUp( pl, keygroup4, "WireRelay_Off", wire_relay, 4 )
-			end
-			if (keygroup5) then
-				numpad.OnDown( pl, keygroup5, "WireRelay_On", wire_relay, 5 )
-				numpad.OnUp( pl, keygroup5, "WireRelay_Off", wire_relay, 5 )
-			end
-		end
-
-		local ttable = {
-			keygroup1   = keygroup1,
-			keygroup2   = keygroup2,
-			keygroup3   = keygroup3,
-			keygroup4   = keygroup4,
-			keygroup5   = keygroup5,
-			keygroupoff = keygroupoff,
-			toggle      = toggle,
-			normclose   = normclose,
-			poles       = poles,
-			throws      = throws,
-			nokey       = nokey,
-			pl          = pl
-		}
-		table.Merge(wire_relay, ttable )
-
-		pl:AddCount( "wire_relays", wire_relay )
-
-		return wire_relay
-	end
-	duplicator.RegisterEntityClass("gmod_wire_relay", MakeWireRelay, "Pos", "Ang", "Model", "keygroup1", "keygroup2", "keygroup3", "keygroup4", "keygroup5", "keygroupoff", "toggle", "normclose", "poles", "throws", "nokey")
 end
 
 function TOOL.BuildCPanel(panel)

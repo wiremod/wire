@@ -49,10 +49,24 @@ function ENT:Initialize()
 	Wire_TriggerOutput(self, "Props", self.UndoList)
 end
 
-function ENT:Setup( delay, undo_delay, spawn_effect )
+function ENT:Setup( delay, undo_delay, spawn_effect, mat, r, g, b, a, skin )
 	self.delay = delay
 	self.undo_delay = undo_delay
 	self.spawn_effect = spawn_effect
+	if r then 
+		self.mat = mat
+		self.r = r
+		self.g = g
+		self.b = b
+		self.a = a
+		self.skin = skin
+	
+		self:SetRenderMode(3)
+		self:SetMaterial(mat or "")
+		self:SetSkin(skin or 0)
+		self:SetColor(Color(r or 255, g or 255, b or 255, 100))
+	end
+	
 	self:ShowOutput()
 end
 
@@ -205,48 +219,4 @@ function ENT:OnRemove()
 	end
 end
 
-function MakeWireSpawner( pl, Pos, Ang, model, delay, undo_delay, spawn_effect, mat, r, g, b, a, skin, frozen )
-	if !pl:CheckLimit("wire_spawners") then return nil end
-
-	local spawner = ents.Create("gmod_wire_spawner")
-		if !spawner:IsValid() then return end
-		spawner:SetPos(Pos)
-		spawner:SetAngles(Ang)
-		spawner:SetModel(model)
-		spawner:SetRenderMode(3)
-		spawner:SetMaterial(mat or "")
-		spawner:SetSkin(skin or 0)
-		spawner:SetColor(Color(r or 255, g or 255, b or 255, 100))
-	spawner:Spawn()
-
-	if spawner:GetPhysicsObject():IsValid() then
-		local Phys = spawner:GetPhysicsObject()
-		Phys:EnableMotion(!frozen)
-	end
-
-	// In multiplayer we clamp the delay to help prevent people being idiots
-	if not game.SinglePlayer() and delay < 0.1 then
-		delay = 0.1
-	end
-
-	spawner:SetPlayer(pl)
-	spawner:Setup(delay, undo_delay, spawn_effect)
-
-	local tbl = {
-		pl           = pl,
-		mat          = mat,
-		skin         = skin,
-		r            = r,
-		g            = g,
-		b            = b,
-		a            = a,
-	}
-	table.Merge(spawner:GetTable(), tbl)
-
-	pl:AddCount("wire_spawners", spawner)
-	pl:AddCleanup("gmod_wire_spawner", spawner)
-
-	return spawner
-end
-duplicator.RegisterEntityClass("gmod_wire_spawner", MakeWireSpawner, "Pos", "Ang", "Model", "delay", "undo_delay", "spawn_effect", "mat", "r", "g", "b", "a", "skin", "frozen")
-
+duplicator.RegisterEntityClass("gmod_wire_spawner", WireLib.MakeWireEnt, "Data", "delay", "undo_delay", "spawn_effect", "mat", "r", "g", "b", "a", "skin")

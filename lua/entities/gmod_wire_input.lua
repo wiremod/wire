@@ -95,28 +95,4 @@ end
 numpad.Register( "WireInput_On", On )
 numpad.Register( "WireInput_Off", Off )
 
-function MakeWireInput( pl, Pos, Ang, model, keygroup, toggle, value_off, value_on, frozen )
-	if ( !pl:CheckLimit( "wire_inputs" ) ) then return false end
-
-	local wire_input = ents.Create( "gmod_wire_input" )
-	if (!wire_input:IsValid()) then return false end
-
-	wire_input:SetAngles( Ang )
-	wire_input:SetPos( Pos )
-	wire_input:SetModel( Model(model or "models/jaanus/wiretool/wiretool_input.mdl") )
-	wire_input:Spawn()
-
-	if wire_input:GetPhysicsObject():IsValid() then
-		wire_input:GetPhysicsObject():EnableMotion(!frozen)
-	end
-
-	wire_input:SetPlayer( pl )
-	wire_input:Setup( keygroup, toggle, value_off, value_on )
-	wire_input.pl = pl
-
-	pl:AddCount( "wire_inputs", wire_input )
-	pl:AddCleanup( "gmod_wire_input", wire_input )
-
-	return wire_input
-end
-duplicator.RegisterEntityClass("gmod_wire_input", MakeWireInput, "Pos", "Ang", "Model", "keygroup", "toggle", "value_off", "value_on", "frozen")
+duplicator.RegisterEntityClass("gmod_wire_input", WireLib.MakeWireEnt, "Data", "keygroup", "toggle", "value_off", "value_on")

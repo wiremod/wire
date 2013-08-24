@@ -13,9 +13,16 @@ function ENT:Initialize()
 	self.Inputs = Wire_CreateInputs( self, { "Throttle", "Steering", "Handbrake", "Engine", "Lock" } )
 end
 
--- Link to Vehicle
-function ENT:Setup( Vehicle )
-	self.Vehicle = Vehicle
+function ENT:LinkEnt( pod )
+	if not IsValid(pod) or not pod:IsVehicle() then return false, "Must link to a vehicle" end
+	self.Vehicle = pod
+	WireLib.SendMarks(self, {pod})
+	return true
+end
+function ENT:UnlinkEnt()
+	self.Vehicle = nil
+	WireLib.SendMarks(self, {})
+	return true
 end
 
 function ENT:TriggerInput(iname, value)
@@ -59,3 +66,5 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 
 	self.Vehicle = GetEntByID(info.Vehicle)
 end
+
+duplicator.RegisterEntityClass("gmod_wire_vehicle", WireLib.MakeWireEnt, "Data")

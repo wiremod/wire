@@ -496,22 +496,4 @@ function ENT:checkOwnership( ent )
 	return ent.WireTargetFinder[ self:GetPlayer() ]
 end
 
-function MakeWireTargetFinder(pl, Pos, Ang, model, range, players, npcs, npcname, beacons, hoverballs, thrusters, props, propmodel, vehicles, playername, casesen, rpgs, painttarget, minrange, maxtargets, maxbogeys, notargetowner, entity, notownersstuff, steamname, colorcheck, colortarget, pcolR, pcolG, pcolB, pcolA, checkbuddylist, onbuddylist)
-	if (!pl:CheckLimit("wire_target_finders")) then return end
-
-	local wire_target_finder = ents.Create("gmod_wire_target_finder")
-	wire_target_finder:SetPos(Pos)
-	wire_target_finder:SetAngles(Ang)
-	wire_target_finder:SetModel( Model(model or "models/props_lab/powerbox02d.mdl") )
-	wire_target_finder:Spawn()
-	wire_target_finder:Activate()
-
-	wire_target_finder:Setup(range, players, npcs, npcname, beacons, hoverballs, thrusters, props, propmodel, vehicles, playername, casesen, rpgs, painttarget, minrange, maxtargets, maxbogeys, notargetowner, entity, notownersstuff, steamname, colorcheck, colortarget, pcolR, pcolG, pcolB, pcolA, checkbuddylist, onbuddylist)
-	wire_target_finder:SetPlayer(pl)
-	wire_target_finder.pl = pl
-
-	pl:AddCount( "wire_target_finders", wire_target_finder )
-
-	return wire_target_finder
-end
-duplicator.RegisterEntityClass("gmod_wire_target_finder", MakeWireTargetFinder, "Pos", "Ang", "Model", "range", "players", "npcs", "npcname", "beacons", "hoverballs", "thrusters", "props", "propmodel", "vehicles", "playername", "casesen", "rpgs", "painttarget", "minrange", "maxtargets", "maxbogeys", "notargetowner", "entity", "notownersstuff", "steamname", "colorcheck", "colortarget", "pcolR", "pcolG", "pcolB", "pcolA", "checkbuddylist", "onbuddylist")
+duplicator.RegisterEntityClass("gmod_wire_target_finder", WireLib.MakeWireEnt, "Data", "range", "players", "npcs", "npcname", "beacons", "hoverballs", "thrusters", "props", "propmodel", "vehicles", "playername", "casesen", "rpgs", "painttarget", "minrange", "maxtargets", "maxbogeys", "notargetowner", "entity", "notownersstuff", "steamname", "colorcheck", "colortarget", "pcolR", "pcolG", "pcolB", "pcolA", "checkbuddylist", "onbuddylist")

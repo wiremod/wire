@@ -321,3 +321,5 @@ function ENT:Think()
   self:NextThink(CurTime()+0.05)
   return true
 end
+
+duplicator.RegisterEntityClass("gmod_wire_spu", WireLib.MakeWireEnt, "Data")

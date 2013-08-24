@@ -20,7 +20,7 @@ function ENT:Initialize()
 	self.Inputs = Wire_CreateInputs(self, { "A: Go", "B: Break", "C: SpeedMod" })
 end
 
-function ENT:Setup(fwd, bck, stop, torque, direction)
+function ENT:Setup(fwd, bck, stop, torque, direction, axis)
 	self.fwd = fwd
 	self.bck = bck
 	self.stop = stop
@@ -28,6 +28,7 @@ function ENT:Setup(fwd, bck, stop, torque, direction)
 	else self:SetTorque(torque)
 	end
 	if direction then self:SetDirection( direction ) end
+	if axis then self.Axis = axis end
 	
 	self:UpdateOverlayText()
 end
@@ -189,32 +190,7 @@ function ENT:Use( activator, caller, type, value )
 	end
 end
 
-function MakeWireWheel( pl, Pos, Ang, model, Vel, aVel, frozen, fwd, bck, stop, BaseTorque, direction, axis, Data )
-	if ( !pl:CheckLimit( "wire_wheels" ) ) then return false end
-
-	local wheel = ents.Create( "gmod_wire_wheel" )
-	if ( !wheel:IsValid() ) then return end
-
-	wheel:SetModel( model )
-	wheel:SetPos( Pos )
-	wheel:SetAngles( Ang )
-	wheel:Spawn()
-	wheel:SetPlayer( pl )
-	wheel.pl = pl
-
-	duplicator.DoGenericPhysics( wheel, pl, Data )
-
-	if ( axis ) then
-		wheel.Axis = axis
-	end
-	
-	wheel:Setup(fwd,bck,stop, BaseTorque, direction)
-
-	pl:AddCount( "wire_wheels", wheel )
-
-	return wheel
-end
-duplicator.RegisterEntityClass( "gmod_wire_wheel", MakeWireWheel, "Pos", "Ang", "Model", "Vel", "aVel", "frozen", "fwd", "bck", "stop", "BaseTorque", "direction", "Axis", "Data" )
+duplicator.RegisterEntityClass("gmod_wire_wheel", WireLib.MakeWireEnt, "Data", "fwd", "bck", "stop", "BaseTorque", "direction", "Axis")
 
 function ENT:SetWheelBase(Base)
 	Base:DeleteOnRemove( self )

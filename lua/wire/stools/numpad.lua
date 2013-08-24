@@ -18,9 +18,6 @@ if SERVER then
 	function TOOL:GetConVars() 
 		return self:GetClientNumber( "toggle" )==1, self:GetClientNumber( "value_off" ), self:GetClientNumber( "value_on" )
 	end	
-	function TOOL:MakeEnt( ply, model, Ang, trace )
-		return MakeWireNumpad( ply, trace.HitPos, Ang, model, self:GetConVars() )
-	end
 end
 
 TOOL.ClientConVar = {

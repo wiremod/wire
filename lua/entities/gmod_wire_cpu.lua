@@ -264,3 +264,5 @@ function ENT:TriggerInput(iname, value)
 		end
 	end
 end
+
+duplicator.RegisterEntityClass("gmod_wire_cpu", WireLib.MakeWireEnt, "Data")

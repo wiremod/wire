@@ -63,7 +63,7 @@ end
 duplicator.RegisterEntityClass("gmod_wire_indicator", WireLib.MakeWireEnt, "Data", "a", "ar", "ag", "ab", "aa", "b", "br", "bg", "bb", "ba")
 
 function MakeWire7Seg( pl, Pos, Ang, Model, a, ar, ag, ab, aa, b, br, bg, bb, ba)
-	if not pl:CheckLimit( "wire_indicators" ) then return false end
+	if IsValid(pl) and not pl:CheckLimit( "wire_indicators" ) then return false end
 
 	local function MakeWireIndicator(prototype, scale)
 		local name, angOffset, posOffset = unpack(prototype)

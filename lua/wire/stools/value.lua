@@ -17,9 +17,6 @@ if SERVER then
 	end)
 	function TOOL:GetConVars() 
 		return playerValues[self:GetOwner()] or {}
-	end	
-	function TOOL:MakeEnt( ply, model, Ang, trace )
-		return MakeWireValue( ply, trace.HitPos, Ang, model, self:GetConVars() )
 	end
 
 	function TOOL:RightClick(trace)

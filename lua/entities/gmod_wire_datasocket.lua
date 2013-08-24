@@ -41,6 +41,7 @@ function ENT:Initialize()
 	self.Memory = nil
 	self.OwnMemory = nil
 	self.Const = nil
+	self.ReceivedValue = 0
 
 	self.Inputs = Wire_CreateInputs(self, { "Memory" })
 	self.Outputs = Wire_CreateOutputs(self, { "Memory" })
@@ -50,16 +51,6 @@ end
 function ENT:SetMemory(mement)
 	self.Memory = mement
 	Wire_TriggerOutput(self, "Memory", 1)
-end
-
-function ENT:Setup(a,ar,ag,ab,aa)
-	self.A = a or 0
-	self.AR = ar or 255
-	self.AG = ag or 0
-	self.AB = ab or 0
-	self.AA = aa or 255
-
-	self:SetColor(Color(ar, ag, ab, aa))
 end
 
 function ENT:ReadCell( Address )
@@ -178,18 +169,10 @@ function ENT:AttachPlug( plug )
 	plug:AttachedToSocket(self)
 end
 
-function ENT:OnRestore()
-	self.A = self.A or 0
-	self.AR = self.AR or 255
-	self.AG = self.AG or 0
-	self.AB = self.AB or 0
-	self.AA = self.AA or 255
-
-	self.BaseClass.OnRestore(self)
-end
-
 function ENT:TriggerInput(iname, value, iter)
 	if (iname == "Memory") then
 		self.OwnMemory = self.Inputs.Memory.Src
 	end
 end
+
+duplicator.RegisterEntityClass("gmod_wire_datasocket", WireLib.MakeWireEnt, "Data")

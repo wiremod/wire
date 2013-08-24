@@ -20,10 +20,6 @@ if SERVER then
 		return self:GetClientNumber( "trigger" ), self:GetClientNumber( "damage" ), self:GetClientNumber( "removeafter" )==1, 
 			self:GetClientNumber( "radius" ), self:GetClientNumber( "nocollide" ) == 1
 	end
-
-	function TOOL:MakeEnt( ply, model, Ang, trace )
-		return MakeWireSimpleExplosive( ply, trace.HitPos, Ang, model, self:GetConVars() )
-	end
 end
 
 TOOL.ClientConVar = {

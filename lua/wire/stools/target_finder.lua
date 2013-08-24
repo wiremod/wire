@@ -54,9 +54,6 @@ if SERVER then
 			self:GetClientInfo("steamname"), (self:GetClientNumber("colorcheck") ~= 0), (self:GetClientNumber("colortarget") ~= 0), 
 			self:GetClientNumber("pcolR"), self:GetClientNumber("pcolG"), self:GetClientNumber("pcolB"), self:GetClientNumber("pcolA"), 
 			self:GetClientNumber("checkbuddylist") != 0, self:GetClientNumber("onbuddylist") != 0
-	end	
-	function TOOL:MakeEnt( ply, model, Ang, trace )
-		return MakeWireTargetFinder( ply, trace.HitPos, Ang, model, self:GetConVars() )
 	end
 end
 

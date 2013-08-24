@@ -17,10 +17,6 @@ TOOL.ClientConVar = {
 
 if SERVER then
 	function TOOL:GetConVars() return self:GetClientNumber("range") end
-
-	function TOOL:MakeEnt( ply, model, Ang, trace )
-		return MakeWireUser( ply, trace.HitPos, Ang, model, self:GetConVars() )
-	end
 end
 
 function TOOL.BuildCPanel( panel )

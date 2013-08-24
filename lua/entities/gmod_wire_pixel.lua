@@ -56,32 +56,4 @@ function ENT:ShowOutput( R, G, B )
 	end
 end
 
-
-function MakeWirePixel( pl, Pos, Ang, model, nocollide)
-	if ( !pl:CheckLimit( "wire_pixels" ) ) then return false end
-
-	local wire_pixel = ents.Create( "gmod_wire_pixel" )
-	if (!wire_pixel:IsValid()) then return false end
-
-	wire_pixel:SetModel( model )
-	wire_pixel:SetAngles( Ang )
-	wire_pixel:SetPos( Pos )
-	wire_pixel:Spawn()
-
-	wire_pixel:Setup()
-	wire_pixel:SetPlayer(pl)
-
-	if ( nocollide == true ) then wire_pixel:SetCollisionGroup(COLLISION_GROUP_WORLD) end
-
-	local ttable = {
-		pl	= pl,
-		nocollide = nocollide
-	}
-	table.Merge(wire_pixel:GetTable(), ttable )
-
-	pl:AddCount( "wire_pixels", wire_pixel )
-
-	return wire_pixel
-end
-
-duplicator.RegisterEntityClass("gmod_wire_pixel", MakeWirePixel, "Pos", "Ang", "Model", "nocollide")
+duplicator.RegisterEntityClass("gmod_wire_pixel", WireLib.MakeWireEnt, "Data")

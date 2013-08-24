@@ -55,6 +55,12 @@ function ENT:Setup( toggle, value_off, value_on)
 	self.value_off = value_off
 	self.value_on = value_on
 
+	self.impulses = {}
+	for k,keyenum in ipairs(keyenums) do
+		table.insert(self.impulses, numpad.OnDown( pl, keyenum, "WireNumpad_On", self, k ))
+		table.insert(self.impulses, numpad.OnUp( pl, keyenum, "WireNumpad_Off", self, k ))
+	end
+
 	self:ShowOutput()
 end
 
@@ -112,29 +118,4 @@ local function Off( pl, ent, key )
 end
 numpad.Register( "WireNumpad_Off", Off )
 
-function MakeWireNumpad( pl, Pos, Ang, model, toggle, value_off, value_on )
-	if ( !pl:CheckLimit( "wire_numpads" ) ) then return false end
-
-	local wire_numpad = ents.Create( "gmod_wire_numpad" )
-	if (!wire_numpad:IsValid()) then return false end
-
-	wire_numpad:SetAngles( Ang )
-	wire_numpad:SetPos( Pos )
-	wire_numpad:SetModel( Model(model or "models/jaanus/wiretool/wiretool_input.mdl") )
-	wire_numpad:Spawn()
-
-	wire_numpad:Setup(toggle, value_off, value_on )
-	wire_numpad:SetPlayer( pl )
-	wire_numpad.pl = pl
-
-	wire_numpad.impulses = {}
-	for k,keyenum in ipairs(keyenums) do
-		table.insert(wire_numpad.impulses, numpad.OnDown( pl, keyenum, "WireNumpad_On", wire_numpad, k ))
-		table.insert(wire_numpad.impulses, numpad.OnUp( pl, keyenum, "WireNumpad_Off", wire_numpad, k ))
-	end
-
-	pl:AddCount( "wire_numpads", wire_numpad )
-
-	return wire_numpad
-end
-duplicator.RegisterEntityClass("gmod_wire_numpad", MakeWireNumpad, "Pos", "Ang", "Model", "toggle", "value_off", "value_on")
+duplicator.RegisterEntityClass("gmod_wire_numpad", WireLib.MakeWireEnt, "Data", "toggle", "value_off", "value_on")
