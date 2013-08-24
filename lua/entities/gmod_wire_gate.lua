@@ -211,7 +211,7 @@ function MakeWireGate(pl, Pos, Ang, model, action, noclip, frozen, nocollide)
 	local wire_gate = WireLib.MakeWireEnt( pl, {Class = "gmod_wire_gate", Pos=Pos, Angle=Ang, Model=model}, action, noclip )
 	if not IsValid(wire_gate) then return end
 
-	pl:AddCount( "wire_gate_" .. group .. "s", wire_gate )
+	if IsValid(pl) then pl:AddCount( "wire_gate_" .. group .. "s", wire_gate ) end
 
 	return wire_gate
 end

@@ -32,7 +32,7 @@ end
 
 function ENT:SetEGPOwner( ply )
 	self.ply = ply
-	self.plyID = ply:UniqueID()
+	self.plyID = IsValid(ply) and ply:UniqueID() or "World"
 end
 
 function ENT:GetEGPOwner()

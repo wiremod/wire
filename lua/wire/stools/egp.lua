@@ -15,7 +15,8 @@ if (SERVER) then
 	CreateConVar('sbox_maxwire_egps', 5)
 
 	local function SpawnEnt( ply, Pos, Ang, model, class)
-		if (!ply:CheckLimit("wire_egps")) then return false end
+		if IsValid(ply) and (!ply:CheckLimit("wire_egps")) then return false end
+		if not ply then ply = game.GetWorld() end -- For Garry's Map Saver
 		local ent = ents.Create(class)
 		if (model) then ent:SetModel(model) end
 		ent:SetAngles(Ang)
@@ -26,7 +27,7 @@ if (SERVER) then
 		ent:SetPlayer(ply)
 		ent:SetEGPOwner( ply )
 
-		ply:AddCount( "wire_egps", ent )
+		if IsValid(ply) then ply:AddCount( "wire_egps", ent ) end
 
 		return ent
 	end

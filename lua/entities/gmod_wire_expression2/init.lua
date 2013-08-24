@@ -359,7 +359,7 @@ function ENT:Setup(buffer, includes, restore, forcecompile)
 		self:PCallHook('destruct')
 	end
 
-	self.uid = self.player:UniqueID()
+	self.uid = IsValid(self.player) and self.player:UniqueID() or "World"
 
 	if forcecompile or self:IsCodeDifferent(buffer, includes) then
 		self:CompileCode(buffer, includes)
@@ -499,6 +499,7 @@ hook.Add("PlayerAuthed", "Wire_Expression2_Player_Authed", function(ply, sid, ui
 end)
 
 function MakeWireExpression2(player, Pos, Ang, model, buffer, name, inputs, outputs, vars, inc_files)
+	if not player then player = game.GetWorld() end -- For Garry's Map Saver
 	if IsValid(player) and not player:CheckLimit("wire_expressions") then return false end
 
 	local self = ents.Create("gmod_wire_expression2")
