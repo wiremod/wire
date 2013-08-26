@@ -32,7 +32,7 @@ if CLIENT then
 	end
 
 	function ENT:ShowOutput(p, y, r)
-		self:SetOverlayText( "Angles = " .. math.Round(p*1000)/1000 .. "," .. math.Round(y*1000)/1000 .. "," .. math.Round(r*1000)/1000 )
+		self:SetOverlayText(string.format("Angles = %.3f, %.3f, %.3f", p, y, r))
 	end
 	
 	return  -- No more client
@@ -61,10 +61,10 @@ function ENT:Think()
 	self.BaseClass.Think(self)
 
     local ang = self:GetAngles()
-	if (ang.p < 0 && !self.out180) then ang.p = ang.p + 360 end
-	if (ang.y < 0 && !self.out180) then ang.y = ang.y + 360 end
-	if (ang.r < 0 && !self.out180) then ang.r = ang.r + 360
-	elseif (ang.r > 180 && self.out180) then ang.r = ang.r - 360 end
+	if (ang.p < 0 && !self:GetOut180()) then ang.p = ang.p + 360 end
+	if (ang.y < 0 && !self:GetOut180()) then ang.y = ang.y + 360 end
+	if (ang.r < 0 && !self:GetOut180()) then ang.r = ang.r + 360
+	elseif (ang.r > 180 && self:GetOut180()) then ang.r = ang.r - 360 end
 	Wire_TriggerOutput(self, "Pitch", ang.p)
 	Wire_TriggerOutput(self, "Yaw", ang.y)
 	Wire_TriggerOutput(self, "Roll", ang.r)
