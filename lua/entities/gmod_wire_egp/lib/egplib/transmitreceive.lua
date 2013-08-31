@@ -465,6 +465,7 @@ else -- SERVER/CLIENT
 						ChangeOrder_To = net.ReadInt(16)
 					end
 
+					local current_obj
 					local bool, k, v = self:HasObject( Ent, index )
 					if (bool) then -- Object already exists
 						if (v.ID != ID) then -- Not the same kind of object, create new
@@ -478,6 +479,8 @@ else -- SERVER/CLIENT
 
 							-- For EGP HUD
 							if (Obj.res) then Obj.res = nil end
+							
+							current_obj = Obj
 						else -- Edit
 							self:EditObject( v, v:Receive() )
 
@@ -488,6 +491,8 @@ else -- SERVER/CLIENT
 
 							-- For EGP HUD
 							if (v.res) then v.res = nil end
+							
+							current_obj = v
 						end
 					else -- Object does not exist. Create new
 						local Obj = self:GetObjectByID( ID )
@@ -495,12 +500,22 @@ else -- SERVER/CLIENT
 						Obj.index = index
 						if (Obj.OnCreate) then Obj:OnCreate() end
 						Ent.RenderTable[#Ent.RenderTable+1] = Obj--table.insert( Ent.RenderTable, Obj )
+						
+						current_obj = Obj
 					end
 
-					-- Change Order
+					-- Change Order (later)
 					if (ChangeOrder_From and ChangeOrder_To) then
-						local b = self:SetOrder( Ent, ChangeOrder_From, ChangeOrder_To )
+						current_obj.ChangeOrder = {ChangeOrder_From,ChangeOrder_To}
 					end
+				end
+			end
+			
+			for i=1,#Ent.RenderTable do -- Change order now
+				local obj = Ent.RenderTable[i]
+				if obj.ChangeOrder then
+					self:SetOrder( Ent, obj.ChangeOrder[1], obj.ChangeOrder[2] )
+					obj.ChangeOrder = nil
 				end
 			end
 
