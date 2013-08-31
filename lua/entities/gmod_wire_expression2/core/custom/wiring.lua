@@ -76,7 +76,7 @@ e2function array entity:getWireInputs()
 	if not IsValid(this) or not isOwner(self, this) or not this.Inputs then return {} end
 	local ret = {}
 	for k,v in pairs(this.Inputs) do
-		if k ~= "" then
+		if k != "" then
 			table.insert(ret, k)
 		end
 	end
@@ -88,7 +88,7 @@ e2function array entity:getWireOutputs()
 	if not IsValid(this) or not isOwner(self, this) or not this.Outputs then return {} end
 	local ret = {}
 	for k,v in pairs(this.Outputs) do
-		if k ~= "" then
+		if k != "" then
 			table.insert(ret, k)
 		end
 	end
@@ -102,8 +102,19 @@ e2function wirelink entity:wirelink()
 	if not IsValid(this) then return nil end
 	if not isOwner(self, this) then return nil end
 	if not this.Inputs and not this.Outputs then return nil end
-	if not this.Outputs["wirelink"] then -- create one if none
-		WireLib.CreateWirelinkOutput( self.player, this, {true} )
+	if !this.extended then
+		this.extended = true
+		RefreshSpecialOutputs(this)
 	end
 	return this
+end
+
+--- Removes <this>'s entity wirelink
+e2function number entity:removeWirelink()
+	if not IsValid(this) then return 0 end
+	if not isOwner(self, this) then return 0 end
+	if !this.extended then return 0 end
+	this.extended = false
+	RefreshSpecialOutputs(this)
+	return 1
 end
