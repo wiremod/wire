@@ -10,7 +10,6 @@ if CLIENT then
 	language.Add( "Tool.simple_explosive.damage", "Damage:" )
 	language.Add( "Tool.simple_explosive.removeafter", "Remove on explosion" )
 	language.Add( "Tool.simple_explosive.radius", "Blast radius:" )
-	language.Add( "Tool.simple_explosive.nocollide", "No collide all but world" )
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )
@@ -18,7 +17,7 @@ WireToolSetup.SetupMax( 20 )
 if SERVER then
 	function TOOL:GetConVars()
 		return self:GetClientNumber( "trigger" ), self:GetClientNumber( "damage" ), self:GetClientNumber( "removeafter" )==1, 
-			self:GetClientNumber( "radius" ), self:GetClientNumber( "nocollide" ) == 1
+			self:GetClientNumber( "radius" )
 	end
 end
 
@@ -29,7 +28,6 @@ TOOL.ClientConVar = {
 	damage = 200,		-- Damage to inflict
 	radius = 300,
 	removeafter = 0,
-	nocollide = 0,
 }
 TOOL.ReloadSetsModel = true
 
@@ -40,5 +38,4 @@ function TOOL.BuildCPanel(panel)
 	panel:NumSlider("#Tool.simple_explosive.damage", "wire_simple_explosive_damage", 0, 500, 0 )
 	panel:NumSlider("#Tool.simple_explosive.radius", "wire_simple_explosive_radius", 1, 1500, 0 )
 	panel:CheckBox("#Tool.simple_explosive.removeafter","wire_simple_explosive_removeafter")
-	panel:CheckBox("#Tool.simple_explosive.nocollide","wire_simple_explosive_nocollide")
 end

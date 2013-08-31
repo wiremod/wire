@@ -43,7 +43,7 @@ function ENT:TriggerInput(iname, value)
 	end
 end
 
-function ENT:Setup( key, damage, delaytime, removeafter, radius, affectother, notaffected, delayreloadtime, maxhealth, bulletproof, explosionproof, fallproof, explodeatzero, resetatexplode, fireeffect, coloreffect, invisibleatzero, nocollide )
+function ENT:Setup( key, damage, delaytime, removeafter, radius, affectother, notaffected, delayreloadtime, maxhealth, bulletproof, explosionproof, fallproof, explodeatzero, resetatexplode, fireeffect, coloreffect, invisibleatzero )
 	
 	self.key = key
 	self.Damage = math.Clamp( damage, 0, 1500 )
@@ -63,7 +63,6 @@ function ENT:Setup( key, damage, delaytime, removeafter, radius, affectother, no
 
 	self.FireEffect = fireeffect
 	self.ColorEffect = coloreffect
-	self.NoCollide = nocollide
 	self.InvisibleAtZero = invisibleatzero
 
 	self:SetMaxHealth(maxhealth)
@@ -91,7 +90,6 @@ function ENT:Setup( key, damage, delaytime, removeafter, radius, affectother, no
 	
 	local ttable = {
 		key = key,
-		nocollide = nocollide,
 		damage = damage,
 		removeafter = removeafter,
 		delaytime = delaytime,
@@ -125,12 +123,6 @@ function ENT:ResetHealth( )
 	if (self.ColorEffect) then self:SetColor(Color(255, 255, 255, 255)) end
 
 	self:SetNoDraw( false )
-
-	if (self.NoCollide) then
-		self:SetCollisionGroup(COLLISION_GROUP_WORLD)
-	else
-		self:SetCollisionGroup(COLLISION_GROUP_NONE)
-	end
 
 	self:ShowOutput()
 end

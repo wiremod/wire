@@ -14,7 +14,6 @@ WireToolSetup.SetupMax( 10 )
 
 TOOL.ClientConVar = {
 	model = "models/jaanus/wiretool/wiretool_range.mdl",
-	weld = 1
 }
 
 function TOOL:RightClick( trace )
@@ -60,5 +59,4 @@ function TOOL.BuildCPanel( panel )
 
 	panel:NumSlider("#Tool_wire_holoemitter_fadetime", "cl_wire_holoemitter_maxfadetime", 0, 100, 1)
 	panel:CheckBox("#Tool_wire_holoemitter_keeplatestdot", "wire_holoemitter_keeplatestdot")
-	panel:CheckBox("Weld", "wire_holoemitter_weld")
 end

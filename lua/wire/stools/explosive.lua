@@ -12,7 +12,6 @@ TOOL.ClientConVar = {
 	notaffected = 0,
 	delaytime = 0,
 	delayreloadtime = 0,
-	weld = 1,
 	maxhealth = 100,
 	bulletproof = 0,
 	explosionproof = 0,
@@ -36,7 +35,6 @@ if ( CLIENT ) then
 	language.Add( "Tool.wire_explosive.removeafter", "Remove on explosion" )
 	language.Add( "Tool.wire_explosive.affectother", "Damaged/moved by other wired explosives" )
 	language.Add( "Tool.wire_explosive.notaffected", "Not moved by any phyiscal damage" )
-	language.Add( "Tool.wire_explosive.weld", "Weld" )
 	language.Add( "Tool.wire_explosive.maxhealth", "Max health:" )
 	language.Add( "Tool.wire_explosive.bulletproof", "Bullet proof" )
 	language.Add( "Tool.wire_explosive.explosionproof", "Explosion proof" )
@@ -55,7 +53,7 @@ if SERVER then
 			self:GetClientNumber("radius"), self:GetClientNumber("affectother")~=0, self:GetClientNumber("notaffected")~=0, self:GetClientNumber("delayreloadtime"),
 			self:GetClientNumber("maxhealth"), self:GetClientNumber("bulletproof")~=0, self:GetClientNumber("explosionproof")~=0, self:GetClientNumber("fallproof")~=0,
 			self:GetClientNumber("explodeatzero")~=0, self:GetClientNumber("resetatexplode")~=0, self:GetClientNumber("fireeffect")~=0, self:GetClientNumber("coloreffect")~=0,
-			self:GetClientNumber("invisibleatzero")~=0, self:GetClientNumber("nocollide")~=0
+			self:GetClientNumber("invisibleatzero")~=0
 	end
 	
 	-- Uses default WireToolObj:MakeEnt's WireLib.MakeWireEnt function
@@ -72,7 +70,6 @@ function TOOL.BuildCPanel(panel)
 	panel:CheckBox("#Tool.wire_explosive.removeafter","wire_explosive_removeafter")
 	panel:CheckBox("#Tool.wire_explosive.affectother","wire_explosive_affectother")
 	panel:CheckBox("#Tool.wire_explosive.notaffected","wire_explosive_notaffected")
-	panel:CheckBox("#Tool.wire_explosive.weld","wire_explosive_weld")
 	panel:NumSlider("#Tool.wire_explosive.maxhealth", "wire_explosive_maxhealth", 0, 500, 0 )
 	panel:CheckBox("#Tool.wire_explosive.bulletproof","wire_explosive_bulletproof")
 	panel:CheckBox("#Tool.wire_explosive.explosionproof","wire_explosive_explosionproof")

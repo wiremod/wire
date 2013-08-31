@@ -50,9 +50,7 @@ TOOL.ClientConVar = {
 	bb       = 0,
 	ba       = 255,
 	material = "models/debug/debugwhite",
-	noclip   = 0,
 	rotate90 = 0,
-	weld     = 1,
 }
 
 --function TOOL:GetGhostAngle( Ang )
@@ -120,6 +118,4 @@ function TOOL.BuildCPanel(panel)
 	})
 
 	panel:CheckBox("#ToolWireIndicator_90", "wire_indicator_rotate90")
-	panel:CheckBox("#WireGatesTool_noclip", "wire_indicator_noclip")
-	panel:CheckBox("Weld", "wire_indicator_weld")
 end

@@ -16,12 +16,8 @@ end
 TOOL.NoLeftOnClass = true -- no update ent function needed
 TOOL.ClientConVar = {
 	model  = "models/jaanus/wiretool/wiretool_siren.mdl",
-	noclip = 0,
-	weld   = 1,
 }
 
 function TOOL.BuildCPanel(panel)
 	WireDermaExts.ModelSelect(panel, "wire_pixel_model", list.Get("Wire_pixel_Models"), 3, true)
-	panel:CheckBox("#WireGatesTool_noclip", "wire_pixel_noclip")
-	panel:CheckBox("Weld", "wire_pixel_weld")
 end
