@@ -19,13 +19,13 @@ function ENT:TriggerInput( name, value )
 	if (name == "Entity") then
 		self.Entities = {}
 		if self:CheckPP(value) then
-			self.Entities[value] = true
+			self:LinkEnt(value)
 		end
 	elseif (name == "Entities") then
 		self.Entities = {}
 		for _, ent in pairs(value) do
 			if self:CheckPP(ent) then
-				self.Entities[ent] = true
+				self:LinkEnt(ent)
 			end
 		end
 	elseif (name == "Position") then
@@ -72,5 +72,60 @@ local function MovePlayer( ply, vehicle )
 end
 hook.Add("PlayerLeaveVehicle", "WireExitPoint", MovePlayer )
 
+function ENT:SendMarks()
+	local marks = {}
+	for ent,_ in pairs(self.Entities) do table.insert(marks, ent) end
+	WireLib.SendMarks(self, marks)
+end
+
+function ENT:LinkEnt( ent )
+	if self.Entities[ent] then return end
+	self.Entities[ent] = true
+	ent:CallOnRemove("ExitPoint.Unlink", function(ent)
+		if IsValid(self) then self:UnlinkEnt(ent) end
+	end)
+	
+	self:SendMarks()
+	self:ShowOutput()
+	return true
+end
+
+function ENT:UnlinkEnt( ent )
+	if not self.Entities[ent] then return end
+	self.Entities[ent] = nil
+	
+	self:SendMarks()
+	self:ShowOutput()
+	return true
+end
+
+function ENT:ClearEntities()
+	self.Entities = {}
+	WireLib.SendMarks(self, {})
+	self:ShowOutput()
+end
+
+function ENT:BuildDupeInfo()
+	local info = self.BaseClass.BuildDupeInfo(self) or {}
+
+	if next(self.Entities) then
+		info.marks = {}
+		for ent, _ in pairs(self.Entities) do
+			if IsValid(ent) then table.insert(info.marks, ent:EntIndex()) end
+		end
+	end
+
+	return info
+end
+
+function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
+	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
+
+	if info.marks then
+		for _, entindex in pairs(info.marks) do
+			self:LinkEnt(GetEntByID(entindex))
+		end
+	end
+end
 
 duplicator.RegisterEntityClass("gmod_wire_exit_point", WireLib.MakeWireEnt, "Data")

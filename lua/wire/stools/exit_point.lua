@@ -13,6 +13,8 @@ TOOL.ClientConVar = {
 	model = "models/jaanus/wiretool/wiretool_range.mdl",
 }
 
+WireToolSetup.SetupLinking()
+
 function TOOL.BuildCPanel(panel)
 	ModelPlug_AddToCPanel(panel, "Misc_Tools", "wire_exit_point", true)
 end
