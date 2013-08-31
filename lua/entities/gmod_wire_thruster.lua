@@ -264,9 +264,9 @@ end
 function ENT:ShowOutput()
 	self:SetOverlayText(string.format("Force Mul: %.2f\nModel Mul: %.2f\nInput: %.2f\nForce Applied: %.2f",
 		self.force or 0,
-		self:GetOffset().z,
+		self.ThrustOffset.z,
 		self.mul or 0,
-		(self.force or 0) * (self.mul or 0) * self:GetOffset().z
+		(self.force or 0) * (self.mul or 0) * self.ThrustOffset.z
 	))
 end
 
