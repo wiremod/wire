@@ -268,7 +268,45 @@ function WireToolObj:SetPos( ent, trace )
 end
 if SERVER then WireToolObj.PostMake_SetPos = WireToolObj.SetPos end
 
+if CLIENT then
+	local fonttab = {font = "Helvetica", size = 60, weight = 900}
+	for size=60,20,-2 do
+		fonttab.size = size
+		surface.CreateFont("GmodToolScreen"..size, fonttab)
+	end
 
+	local txBackground = surface.GetTextureID("models/weapons/v_toolgun/wirescreen_bg")
+	function WireToolObj:DrawToolScreen(width, height)
+		surface.SetTexture(txBackground)
+		surface.DrawTexturedRect(0, 0, width, height)
+		
+		local text = self.Name
+		if self.ScreenFont then
+			surface.SetFont(self.ScreenFont)
+		else
+			for size=60,20,-2 do
+				surface.SetFont("GmodToolScreen"..size)
+				local x,y = surface.GetTextSize(text)
+				if x <= (width - 16) then
+					self.ScreenFont = "GmodToolScreen"..size
+					break
+				end
+			end
+		end
+		local w, h = surface.GetTextSize(text)
+		local x = width/2 - w/2
+		local y = 105 - h/2
+		
+		-- Draw shadow first
+		surface.SetTextColor(0, 0, 0, 255)
+		surface.SetTextPos(x + 3, y + 3)
+		surface.DrawText(text)
+			
+		surface.SetTextColor(255, 255, 255, 255)
+		surface.SetTextPos(x, y)
+		surface.DrawText(text)
+	end
+end
 
 
 -- function used by TOOL.BuildCPanel
