@@ -69,6 +69,7 @@ if SERVER then
 				WireLib.CreateSpecialOutputs( ent, { "wirelink" }, { "WIRELINK" } )
 			end
 			
+			ent.extended = true
 			WireLib.TriggerOutput( ent, "wirelink", ent )
 		end
 		duplicator.StoreEntityModifier( ent, "CreateWirelinkOutput", data )

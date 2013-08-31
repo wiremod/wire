@@ -819,10 +819,22 @@ function WireLib.BuildDupeInfo( Ent )
 end
 
 function WireLib.ApplyDupeInfo( ply, ent, info, GetEntByID )
+	if info.extended and ent.extended == nil then -- old dupe compatibility
+		WireLib.CreateWirelinkOutput( ply, ent, {true} ) -- use the new function
+	end
+
 	local idx = 0
 	if IsValid(ply) then idx = ply:UniqueID() end -- Map Save loading does not have a ply
 	if (info.Wires) then
 		for k,input in pairs(info.Wires) do
+		
+			if input.SrcId == "link" then -- more old dupe compatibility. If the target entity has no wirelink output, create one
+				input.SrcId = "wirelink"
+				local temp_ent = GetEntByID( input.Src )
+				if not temp_ent.extended then
+					WireLib.CreateWirelinkOutput( ply, temp_ent, {true} )
+				end
+			end
 
 			Wire_Link_Start(idx, ent, input.StartPos, k, input.Material, input.Color, input.Width)
 
