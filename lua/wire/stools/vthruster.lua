@@ -17,7 +17,6 @@ TOOL.ClientConVar[ "force_min" ] = "0"
 TOOL.ClientConVar[ "force_max" ] = "10000"
 TOOL.ClientConVar[ "model" ] = "models/jaanus/wiretool/wiretool_speed.mdl"
 TOOL.ClientConVar[ "bidir" ] = "1"
-TOOL.ClientConVar[ "collision" ] = "0"
 TOOL.ClientConVar[ "soundname" ] = ""
 TOOL.ClientConVar[ "oweffect" ] = "fire"
 TOOL.ClientConVar[ "uweffect" ] = "same"
@@ -62,7 +61,7 @@ function TOOL:LeftClick( trace )
 		local anchorbone = self:GetBone(1)
 		local normal = self:GetNormal(1)
 
-		local const = WireLib.Weld(wire_thruster, anchor, trace.PhysicsBone, true, self:GetClientNumber( "collision" ) ~= 0)
+		local const = WireLib.Weld(wire_thruster, anchor, trace.PhysicsBone, true, false)
 
 		local Phys = wire_thruster:GetPhysicsObject()
 		Phys:EnableMotion( true )
@@ -221,7 +220,6 @@ function TOOL.BuildCPanel(panel)
 	panel:NumSlider("#WireThrusterTool_force_min", "wire_vthruster_force_min", -10000, 10000, 2 )
 	panel:NumSlider("#WireThrusterTool_force_max", "wire_vthruster_force_max", -10000, 10000, 2 )
 	panel:CheckBox("#WireThrusterTool_bidir", "wire_vthruster_bidir")
-	panel:CheckBox("#WireThrusterTool_collision", "wire_vthruster_collision")
 	panel:CheckBox("#WireThrusterTool_owater", "wire_vthruster_owater")
 	panel:CheckBox("#WireThrusterTool_uwater", "wire_vthruster_uwater")
 
