@@ -20,19 +20,12 @@ function ENT:Initialize()
 	self.Inputs = Wire_CreateInputs(self, { "Detonate" })
 end
 
-function ENT:Setup( key, damage, removeafter, radius, nocollide )
+function ENT:Setup( key, damage, removeafter, radius )
 	self.key			= key
 	self.damage			= math.Min(damage, 1500)
 	self.removeafter	= removeafter
 	self.radius			= math.Clamp(radius, 1, 10000)
-	self.nocollide		= nocollide
 	self.Exploded		= false
-
-	if (self.nocollide) then
-		self:SetCollisionGroup(COLLISION_GROUP_DEBRIS_TRIGGER)
-	else
-		self:SetCollisionGroup(COLLISION_GROUP_NONE)
-	end
 
 	if (self.damage > 0) then
 		self.NormInfo = "Damage: " .. math.floor(self.damage) .. "\nRadius: " .. math.floor(self.radius)

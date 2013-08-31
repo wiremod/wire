@@ -51,7 +51,6 @@ TOOL.ClientConVar = {
 	tgreen      = 255,
 	ninputs     = 3,
 	createflat  = 1,
-	weld        = 1,
 	text        = "",
 }
 
@@ -112,6 +111,4 @@ function TOOL.BuildCPanel(panel)
 	WireDermaExts.ModelSelect(panel, "wire_textscreen_model", list.Get( "WireScreenModels" ), 5)
 	panel:CheckBox("#Tool_wire_textscreen_createflat", "wire_textscreen_createflat")
 	panel:TextEntry("#Tool_wire_textscreen_text", "wire_textscreen_text")
-
-	panel:CheckBox("Weld", "wire_textscreen_weld")
 end

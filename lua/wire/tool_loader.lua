@@ -80,10 +80,9 @@ if SERVER then
 		if ent == nil or ent == false or not ent:IsValid() then return false end
 
 		-- Parenting
-		local nocollide
-		if (self.ClientConVar.parent and self:GetClientNumber( "parent" ) == 1) then
+		local nocollide, const
+		if self:GetClientNumber( "parent" ) == 1 then
 			if (trace.Entity:IsValid()) then
-
 				-- Nocollide the gate to the prop to make adv duplicator (and normal duplicator) find it
 				if (!self.ClientConVar.noclip or self:GetClientNumber( "noclip" ) == 1) then
 					nocollide = constraint.NoCollide( ent, trace.Entity, 0,trace.PhysicsBone )
@@ -91,14 +90,15 @@ if SERVER then
 
 				ent:SetParent( trace.Entity )
 			end
+		elseif not self:GetOwner():KeyDown(IN_WALK) then
+			-- Welding
+			const = WireLib.Weld( ent, trace.Entity, trace.PhysicsBone, true, false, self:GetOwner():GetInfo( "wire_tool_weldworld" )~="0" )
+			
+			-- Nocollide All
+			if self:GetOwner():GetInfo( "wire_tool_nocollide" )~="0" then
+				ent:SetCollisionGroup( COLLISION_GROUP_WORLD )
+			end
 		end
-
-		-- Welding
-		local const
-		if not self.ClientConVar.weld or self:GetClientNumber( "weld" ) == 1 then
-			const = WireLib.Weld( ent, trace.Entity, trace.PhysicsBone, true, false, self:GetClientNumber( "weldtoworld", 0 ) != 0 )
-		end
-
 
 		undo.Create( self.WireClass )
 			undo.AddEntity( ent )
@@ -305,7 +305,33 @@ if CLIENT then
 		surface.SetTextColor(255, 255, 255, 255)
 		surface.SetTextPos(x, y)
 		surface.DrawText(text)
+		
+		local on = self:GetOwner():GetInfo( "wire_tool_weldworld" )~="0" and not self:GetOwner():KeyDown(IN_WALK)
+		draw.DrawText("World Weld:  "..(on and "On" or "Off"),
+			"GmodToolScreen20",
+			5, height-38,
+			Color(on and 150 or 255, on and 255 or 150, 150, 255)
+		)
+		local on = self:GetOwner():GetInfo( "wire_tool_nocollide" )~="0" and not self:GetOwner():KeyDown(IN_WALK)
+		draw.DrawText("Nocollide All: "..(on and "On" or "Off"),
+			"GmodToolScreen20",
+			5, height-22,
+			Color(on and 150 or 255, on and 255 or 150, 150, 255)
+		)
 	end
+	
+	CreateClientConVar( "wire_tool_weldworld", "0", true, true )
+	CreateClientConVar( "wire_tool_nocollide", "1", true, true )
+	local function CreateCPanel_WireOptions( Panel )
+		Panel:ClearControls()
+		
+		Panel:Help("Hold Alt while spawning Wire entities\nto disable Weld and Nocollide All")
+		Panel:CheckBox("Allow Weld to World", "wire_tool_weldworld")
+		Panel:CheckBox("Nocollide All", "wire_tool_nocollide")
+	end
+	hook.Add("PopulateToolMenu","WireLib_WireOptions",function()
+		spawnmenu.AddToolMenuOption( "Wire", "Wire - Tools", "WireOptions", "Tool Options", "", "", CreateCPanel_WireOptions, nil )
+	end)
 end
 
 

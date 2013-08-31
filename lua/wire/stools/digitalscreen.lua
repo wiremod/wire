@@ -20,7 +20,6 @@ TOOL.ClientConVar = {
 	width      = 32,
 	height     = 32,
 	createflat = 0,
-	weld       = 1,
 }
 
 function TOOL.BuildCPanel(panel)
@@ -28,5 +27,4 @@ function TOOL.BuildCPanel(panel)
 	panel:NumSlider("Width", "wire_digitalscreen_width", 1, 512, 0)
 	panel:NumSlider("Height", "wire_digitalscreen_height", 1, 512, 0)
 	panel:CheckBox("#Create Flat to Surface", "wire_digitalscreen_createflat")
-	panel:CheckBox("Weld", "wire_digitalscreen_weld")
 end
