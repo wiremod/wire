@@ -151,7 +151,6 @@ function WireLib.CreateSpecialOutputs(ent, names, types, descs)
 	descs = descs or {}
 	local ent_ports = {}
 	ent.Outputs = ent_ports
-	if ent.extended then table.insert(names, "link") table.insert(types, "WIRELINK") end
 	for n,v in pairs(names) do
 		local name, desc, tp = ParsePortName(v, types[n] or "NORMAL", descs and descs[n])
 
@@ -177,7 +176,6 @@ function WireLib.CreateSpecialOutputs(ent, names, types, descs)
 	end
 
 	WireLib._SetOutputs(ent)
-	if ent.extended then table.remove(names) table.remove(types) end
 
 	return ent_ports
 end
@@ -244,7 +242,6 @@ function WireLib.AdjustSpecialOutputs(ent, names, types, descs)
 	types = types or {}
 	descs = descs or {}
 	local ent_ports = ent.Outputs or {}
-	if ent.extended then table.insert(names, "link") table.insert(types, "WIRELINK") end
 	for n,v in ipairs(names) do
 		local name, desc, tp = ParsePortName(v, types[n] or "NORMAL", descs and descs[n])
 
@@ -298,7 +295,6 @@ function WireLib.AdjustSpecialOutputs(ent, names, types, descs)
 	end
 
 	WireLib._SetOutputs(ent)
-	if ent.extended then table.remove(names) table.remove(types) end
 
 	return ent_ports
 end
@@ -628,11 +624,6 @@ end
 
 
 function Wire_Link_End(idx, ent, pos, oname, pl)
-	if oname == "link" and ent.extended == nil then
-		ent.extended = true
-		RefreshSpecialOutputs(ent)
-	end
-	
 	if !CurLink[idx] then return end
 
 	if !IsValid(CurLink[idx].Dst) then return end
@@ -823,21 +814,26 @@ function WireLib.BuildDupeInfo( Ent )
 			end
 		end
 	end
-	if Ent.extended then info.extended = true end
 
 	return info
 end
 
 function WireLib.ApplyDupeInfo( ply, ent, info, GetEntByID )
 	if info.extended and ent.extended == nil then
-		ent.extended = true
-		RefreshSpecialOutputs(ent)
+		WireLib.CreateWirelinkOutput( ply, ent, {true} ) -- old dupe compatibility; use the new function
 	end
+
 	local idx = 0
 	if IsValid(ply) then idx = ply:UniqueID() end -- Map Save loading does not have a ply
 	if (info.Wires) then
 		for k,input in pairs(info.Wires) do
-
+			if input.SrcId == "link" then -- more old dupe compatibility. If the target entity has no wirelink output, create one
+				input.SrcId = "wirelink"
+				local temp_ent = GetEntByID( input.Src )
+				if not temp_ent.extended then
+					WireLib.CreateWirelinkOutput( ply, temp_ent, {true} )
+				end
+			end
 			Wire_Link_Start(idx, ent, input.StartPos, k, input.Material, input.Color, input.Width)
 
 			if input.Path then

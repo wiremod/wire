@@ -4,10 +4,10 @@ TOOL.Tab      = "Wire"
 
 if CLIENT then
 	language.Add( "Tool.wire_adv.name", "Advanced Wiring Tool" )
-	language.Add( "Tool.wire_adv.desc", "Used to connect wirable props." )
-	language.Add( "Tool.wire_adv.0", "Primary: Attach to selected input (Hold Shift for multiple inputs, Alt to wire all matching inputs) Secondary: Next input, Reload: Unlink selected input, Wheel: Select input." )
-	language.Add( "Tool.wire_adv.1", "Primary: Attach to output, Secondary: Attach but continue, Reload: Cancel." )
-	language.Add( "Tool.wire_adv.2", "Primary: Confirm attach to output, Secondary: Next output, Reload: Cancel, Wheel: Select output." )
+	language.Add( "Tool.wire_adv.desc", "Used to connect things with wires (Press shift+F to switch to debugger tool and back again)." )
+	language.Add( "Tool.wire_adv.0", "Primary: Select input (Hold shift to select multiple inputs; Hold alt to select all inputs), Secondary: Next input, Reload: Unlink selected input (Hold alt to unlink all in the current entity), Wheel: Scroll up or down." )
+	language.Add( "Tool.wire_adv.1", "Primary: Select entity, Secondary: Attach wire to point and continue, Reload: Cancel." )
+	language.Add( "Tool.wire_adv.2", "Primary: Select output (Hold alt to auto-wire, matching all input/outputs names with equal names), Secondary: Next output, Reload: Cancel, Wheel: Scroll up or down." )
 end
 
 TOOL.ClientConVar = {
@@ -19,6 +19,10 @@ TOOL.ClientConVar = {
 }
 
 util.PrecacheSound("weapons/pistol/pistol_empty.wav")
+
+-----------------------------------------------------------------
+-- Helper functions
+-----------------------------------------------------------------
 
 local function get_tool(ply, tool)
 	-- find toolgun
@@ -37,204 +41,744 @@ local function get_active_tool(ply, tool)
 end
 
 if SERVER then
-	local MultiInputs = {}
+	-----------------------------------------------------------------
+	-- Duplicator modifiers
+	-----------------------------------------------------------------
+	function WireLib.CreateWirelinkOutput( ply, ent, data )
+		if data[1] == true then
+			if ent.Outputs then
+				local names = {}
+				local types = {}
+				local descs = {}
+				local x = 0
+				for k,v in pairs( ent.Outputs ) do
+					x = x + 1
+					local num = v.Num
+					names[num] = v.Name
+					types[num] = v.Type
+					descs[num] = v.Desc
+				end
+				
+				names[x+1] = "wirelink"
+				types[x+1] = "WIRELINK"
+				descs[x+1] = ""
+			
+				WireLib.AdjustSpecialOutputs( ent, names, types, descs )
+			else
+				WireLib.CreateSpecialOutputs( ent, { "wirelink" }, { "WIRELINK" } )
+			end
+			
+			ent.extended = true
+			WireLib.TriggerOutput( ent, "wirelink", ent )
+		end
+		duplicator.StoreEntityModifier( ent, "CreateWirelinkOutput", data )
+	end
+	duplicator.RegisterEntityModifier( "CreateWirelinkOutput", WireLib.CreateWirelinkOutput )
 	
-	function TOOL:RightClick(trace)
-		if self:GetStage() == 1 then
-			local ent = trace.Entity
-			Wire_Link_Node(self:GetOwner():UniqueID(), ent, ent:WorldToLocal(trace.HitPos + trace.HitNormal*(self:GetClientNumber("width")/2)))
+	function WireLib.CreateEntityOutput( ply, ent, data )
+		if data[1] == true then
+			if ent.Outputs then
+				local names = {}
+				local types = {}
+				local descs = {}
+				local x = 0
+				for k,v in pairs( ent.Outputs ) do
+					x = x + 1
+					local num = v.Num
+					names[num] = v.Name
+					types[num] = v.Type
+					descs[num] = v.Desc
+				end
+				
+				names[x+1] = "entity"
+				types[x+1] = "ENTITY"
+				descs[x+1] = ""
+			
+				WireLib.AdjustSpecialOutputs( ent, names, types, descs )
+			else
+				WireLib.CreateSpecialOutputs( ent, { "entity" }, { "ENTITY" } )
+			end
+			
+			WireLib.TriggerOutput( ent, "entity", ent )
 		end
-
-		return false
+		duplicator.StoreEntityModifier( ent, "CreateEntityOutput", data )
+	end
+	duplicator.RegisterEntityModifier( "CreateEntityOutput", WireLib.CreateEntityOutput )
+	
+	
+	-----------------------------------------------------------------
+	-- Receving data from client
+	-----------------------------------------------------------------
+	
+	util.AddNetworkString( "wire_adv_upload" )
+	net.Receive( "wire_adv_upload", function( len, ply )
+		local wirings = net.ReadTable()
+		
+		local tool = get_active_tool(ply,"wire_adv")
+		if not tool then return end
+		
+		local material = tool:GetClientInfo("material")
+		local width    = tool:GetClientNumber("width")
+		local color    = Color(tool:GetClientNumber("r"), tool:GetClientNumber("g"), tool:GetClientNumber("b"))
+		
+		local uid = ply:UniqueID()
+		
+		for i=1,#wirings do
+			local wiring = wirings[i]
+			
+			local inputentity = wiring[3]
+			local outputentity = wiring[5]
+			
+			if IsValid( inputentity ) and IsValid( outputentity ) and
+				hook.Run( "CanTool", ply, WireLib.dummytrace( inputentity ), "wire_adv" ) and
+				hook.Run( "CanTool", ply, WireLib.dummytrace( outputentity ), "wire_adv" ) then
+					
+				local inputname = wiring[1]
+				local inputpos = wiring[2]
+				if WireLib.Link_Start( uid, inputentity, inputpos, inputname, material, color, width ) then
+					for i=1,#wiring[4] do
+						local node = wiring[4][i]
+						WireLib.Link_Node( uid, node[1], node[2] )
+					end
+					local outputpos = wiring[6]
+					local outputname = wiring[7]
+					
+					if outputname == "Create Wirelink" and (not outputentity.Outputs or not outputentity.Outputs["wirelink"]) then
+						WireLib.CreateWirelinkOutput( ply, outputentity, {true} )
+						outputname = "wirelink"
+					elseif outputname == "Create Wirelink" and outputentity.Outputs and outputentity.Outputs["wirelink"] then
+						outputname = "wirelink"
+					elseif outputname == "Create Entity" and (not outputentity.Outputs or not outputentity.Outputs["entity"]) then
+						WireLib.CreateEntityOutput( ply, outputentity, {true} )
+						outputname = "entity"
+					elseif outputname == "Create Entity" and outputentity.Outputs and outputentity.Outputs["entity"] then
+						outputname = "entity"
+					end
+					
+					WireLib.Link_End( uid, outputentity, outputpos, outputname, ply )
+				end
+			end			
+		end
+	end)
+	
+	util.AddNetworkString( "wire_adv_unwire" )
+	net.Receive( "wire_adv_unwire", function( len, ply )
+		local ent = net.ReadEntity()
+		local tbl = net.ReadTable()
+		
+		if hook.Run( "CanTool", ply, WireLib.dummytrace( ent ), "wire_adv" ) then
+			for i=1,#tbl do
+				WireLib.Link_Clear( ent, tbl[i] )
+			end
+		end
+	end)
+	
+	
+	if game.SinglePlayer() then -- wtfgarry (these functions don't get called clientside in single player so we need this hack to fix it)
+		util.AddNetworkString( "wire_adv_wtfgarry" )
+		local function send( ply, funcname )
+			net.Start( "wire_adv_wtfgarry" )
+				net.WriteString( funcname )
+			net.Send( ply )
+		end
+		
+		function TOOL:LeftClick() send( self:GetOwner(), "LeftClick" ) end
+		function TOOL:RightClick() send( self:GetOwner(), "RightClick" ) end
+		function TOOL:Reload() send( self:GetOwner(), "Reload" ) end
+	end
+elseif CLIENT then
+	if game.SinglePlayer() then -- wtfgarry
+		net.Receive( "wire_adv_wtfgarry", function( len )
+			local funcname = net.ReadString()
+			local tool = get_active_tool( LocalPlayer(), "wire_adv" )
+			if not tool then return end
+			tool[funcname]( tool, LocalPlayer():GetEyeTrace() )
+		end)
 	end
 
-	function TOOL:Reload(trace)
-		if self:GetStage() ~= 0 then
-			self:Holster()
+	-----------------------------------------------------------------
+	-- Tool helper functions
+	-----------------------------------------------------------------
+	TOOL._stage = 0
+	function TOOL:SetStage(stage) -- Garry's stage functions didn't work, had to make my own
+		self._stage = stage
+	end
+	function TOOL:GetStage()
+		return self._stage
+	end
+	function TOOL:SanitizeUpload() -- Removes any wirings that are no longer valid
+		for i=#self.Wiring,1,-1 do
+			local wiring = self.Wiring[i]
+			local inputentity = wiring[3]
+			local outputentity = wiring[5]
+			local outputname = wiring[7]
+			
+			if 	not IsValid(inputentity) or
+				not IsValid(outputentity) or
+				not outputname then -- we don't need to check everything because only these things can possibly be invalid
+				
+				table.remove(self.Wiring,i)
+			end
 		end
-		return true
+	end
+	function TOOL:Upload()
+		self:SanitizeUpload() -- Remove all invalid wirings before sending
+	
+		net.Start( "wire_adv_upload" )
+			net.WriteTable( self.Wiring )
+		net.SendToServer()
+		
+		self:Holster()
+	end
+	function TOOL:Unwire( ent, names )
+		net.Start( "wire_adv_unwire" )
+			net.WriteEntity( ent )
+			net.WriteTable( names )
+		net.SendToServer()
+	end
+	
+	
+	-----------------------------------------------------------------
+	-- GetPorts
+	-----------------------------------------------------------------
+	TOOL.AimingEnt2 = nil
+	TOOL.CurrentInputs = nil
+	TOOL.CurrentOutputs = nil
+	function TOOL:CachePorts( ent )
+		local inputs, outputs = WireLib.GetPorts( ent )
+		
+		local copied = false
+		
+		if self.ShowWirelink then
+			if outputs then
+				local found = false
+				for i=1,#outputs do
+					if (outputs[i][1] == "wirelink" and outputs[i][2] == "WIRELINK") or
+						(outputs[i][1] == "Create Wirelink" and outputs[i][2] == "WIRELINK") then found = true break end
+				end
+				if not found then
+					outputs = table.Copy(outputs) -- we don't want to modify the original table
+					copied = true
+					outputs[#outputs+1] = { "Create Wirelink", "WIRELINK" }
+				end
+			else
+				outputs = { { "Create Wirelink", "WIRELINK" } }
+			end
+		end
+		
+		if self.ShowEntity then
+			if outputs then
+				local found = false
+				for i=1,#outputs do
+					if (outputs[i][1] == "entity" and outputs[i][2] == "ENTITY") or
+						(outputs[i][1] == "Create Entity" and outputs[i][2] == "ENTITY") then found = true break end
+				end
+				if not found then
+					if not copied then -- we don't want to copy it twice
+						outputs = table.Copy(outputs)
+					end
+					outputs[#outputs+1] = { "Create Entity", "ENTITY" }
+				end
+			else
+				outputs = { { "Create Entity", "ENTITY" } }
+			end
+		end
+		self.CurrentInputs = inputs
+		self.CurrentOutputs = outputs
+	end
+	
+	local next_recache = 0
+	function TOOL:GetPorts( ent )
+		if IsValid( ent ) then
+			if ent ~= self.AimingEnt2 or next_recache < CurTime() then
+				next_recache = CurTime() + 1
+				self.AimingEnt2 = ent
+				self:CachePorts( ent )
+			end
+			return self.CurrentInputs, self.CurrentOutputs
+		else
+			self.CurrentInputs = nil
+			self.CurrentOutputs = nil
+			self.AimingEnt2 = nil
+		end
 	end
 
-	function TOOL:Think()
-		if MultiInputs[self:GetOwner()] and self:GetStage() < 2 then
-			self:SetStage(self:GetOwner():KeyDown(IN_SPEED) and 0 or 1)
-		end
-	end
+	TOOL.CurrentWireIndex = 1
+	TOOL.CurrentEntity = nil -- entity which was selected in mode 1
+	TOOL.Wiring = {} -- all wires
+	TOOL.WiringRender = {} -- table for rendering inputs nicely
+	TOOL.NeedsUpload = false -- bool for sending all wires to server
+	TOOL.ShowWirelink = false -- bool for showing "Create Wirelink" output
+	TOOL.ShowEntity = false -- bool for showing "Create Entity" output
 
 	function TOOL:Holster()
-		Wire_Link_Cancel(self:GetOwner():UniqueID())
-		MultiInputs[self:GetOwner()] = nil
-		self.WireAll = false
+		self.CurrentWireIndex = 1
+		if IsValid(self.CurrentEntity) then self.CurrentEntity:SetNetworkedBeamString("BlinkWire", "") end
+		self.CurrentEntity = nil
+		self.Wiring = {}
+		self.WiringRender = {}
+		self.ShowWirelink = false
+		self.ShowEntity = false
 		self:SetStage(0)
 	end
 
-	-- SERVER --
-	function TOOL:Receive(mode, entid, portname, x, y, z)
-		if mode == "i" then -- select input and target entity
-			if self:GetStage() ~= 0 then return end
+	-----------------------------------------------------------------
+	-- Wiring helper functions
+	-----------------------------------------------------------------
+	
+	--[[ Wirings table format:
+		self.Wiring[x] = wiring
+		
+		where
+		
+		wiring = {
+			[1] = inputname,
+			[2] = inputpos,
+			[3] = inputentity,
+			[4] = nodes,
+			[5] = outputentity,
+			[6] = outputpos,
+			[7] = outputname,
+			[8] = inputtype,
+		}
+		
+		where
+		
+		nodes = {
+			[1] = entity,
+			[2] = pos,
+		}
+	]]
+	
+	
+	function TOOL:FindWiring( entity, inputname, inputtype )
+		for i=1,#self.Wiring do
+			local wiring = self.Wiring[i]
+			if wiring[1] == inputname  and wiring[3] == entity and wiring[8] == inputtype then return wiring, i end
+		end
+	end
+	
+	function TOOL:WireStart( entity, pos, inputname, inputtype )
+		local wiring, id = self:FindWiring( entity, inputname, inputtype )
+		if wiring then -- wiring is already started, user wants to cancel it
+			table.remove( self.Wiring, id )
+			self:WiringRenderRemove( inputname, inputtype )
+			return
+		end
+		
+		local t = { inputname, entity:WorldToLocal( pos ), entity, {} }
+		t[8] = inputtype
+		self.Wiring[#self.Wiring+1] = t
+		
+		if inputtype == "WIRELINK" then
+			self.ShowWirelink = true
+		elseif inputtype == "ENTITY" then
+			self.ShowEntity = true
+		end
+		
+		-- Add info to the wiringrender table, which is used to render the "x2" "x3" etc
+		self:WiringRenderAdd( inputname, inputtype )
+		
+		return t
+	end
+	function TOOL:WireNode( wiring, entity, pos )
+		wiring[4][#wiring[4]+1] = { entity, entity:WorldToLocal( pos ) }
+	end
+	function TOOL:WireEndEntityPos( wiring, entity, pos )
+		wiring[5] = entity
+		wiring[6] = entity:WorldToLocal( pos )
+	end
+	function TOOL:WireEndOutputName( wiring, outputname )
+		wiring[7] = outputname
+		wiring[8] = nil -- we don't need to send the type to the server; wasted net message space. Delete it
+		self.NeedsUpload = true -- We want to upload next tick. We don't upload immediately because the client may call this function more this tick (for multi wiring)
+	end
+	
+	
+	-----------------------------------------------------------------
+	-- Mouse buttons
+	-----------------------------------------------------------------
 
-			local target = Entity(tonumber(entid))
-			if not target:IsValid() then return end
-			if not gamemode.Call("CanTool", self:GetOwner(), WireLib.dummytrace(target), "wire_adv") then return end
-
-			local material = self:GetClientInfo("material")
-			local width    = self:GetClientNumber("width")
-			local color    = Color(self:GetClientNumber("r"), self:GetClientNumber("g"), self:GetClientNumber("b"))
-			local lpos = Vector(tonumber(x), tonumber(y), tonumber(z))
-			
-			if Wire_Link_Start(self:GetOwner():UniqueID(), target, lpos, portname, material, color, width) then
-				-- The port exists
-				self.target = target
-				self.input = portname
+	TOOL.wtfgarry = 0
+	function TOOL:LeftClick(trace)
+		if self.wtfgarry > CurTime() then return end
+		self.wtfgarry = CurTime() + 0.1
+		
+		local shift = self:GetOwner():KeyDown(IN_SPEED)
+		local alt = self:GetOwner():KeyDown(IN_WALK)
+		
+		if IsValid( trace.Entity ) then
+			if self:GetStage() == 0 and WireLib.HasPorts( trace.Entity ) then
+				local inputs, _ = self:GetPorts( trace.Entity )
 				
-				if self:GetOwner():KeyDown(IN_WALK) then self.WireAll = true end -- Holding alt means all matching ports will be wired together
-				if self:GetOwner():KeyDown(IN_SPEED) then
-					if not MultiInputs[self:GetOwner()] then MultiInputs[self:GetOwner()] = {} end
-					table.insert(MultiInputs[self:GetOwner()], {target, lpos, portname})
-				else
-					self:SetStage(1)
-				end
-			end
-
-		elseif mode == "s" then -- select source entity
-			if self:GetStage() ~= 1 then return end
-
-			local source = Entity(tonumber(entid))
-			if not source:IsValid() then return end
-			if not gamemode.Call("CanTool", self:GetOwner(), WireLib.dummytrace(source), "wire_adv") then return end
-			if not WireLib.HasPorts(self.target) then return end
-			if not self.target.Inputs then return end
-
-			local outputs = source.Outputs
-			local input_type = self.target.Inputs[self.input].Type
-			if not outputs or not next(outputs) then
-				-- the entity has no outputs
-				if input_type == "WIRELINK" then
-					-- for wirelink, fake a "link" output.
-					outputs = { link = { Type = "WIRELINK" } }
-					-- TODO: check if wirelink makes sense (props etc)
-
-				elseif input_type == "ENTITY" then
-					-- for entities, trigger the input with that entity and cancel the link.
-					self:Holster()
-
-					WireLib.TriggerInput(self.target, self.input, source)
-					WireLib.AddNotify(self:GetOwner(), "Triggered entity input '"..self.input.."' with '"..tostring(source).."'.", NOTIFY_GENERIC, 7)
-					return
-
-				else
-					-- for all other types, display an error.
-					WireLib.AddNotify(self:GetOwner(), "The selected entity has no outputs. Please select a different entity.", NOTIFY_GENERIC, 7)
-					return
-				end
-			end
-
-			self.source = source
-			self.lpos = Vector(tonumber(x), tonumber(y), tonumber(z))
-
-			self:SetStage(2)
-
-			-- only one port? skip stage 2 and finish the link right away.
-			local firstportname,firstport = next(outputs)
-			if not next(outputs, firstportname) and (input_type ~= "WIRELINK" or firstport.Type == "WIRELINK") or self.WireAll then return self:Receive("o", "0", firstportname) end
-
-		elseif mode == "o" then -- select output
-			if self:GetStage() ~= 2 then return end
-
-			if not gamemode.Call("CanTool", self:GetOwner(), WireLib.dummytrace(self.source), "wire_adv") then return end -- actually useless
-
-			self.output = portname
-
-			if self.WireAll then
-				local Input = self.target.Inputs[self.input]
-				if MultiInputs[self:GetOwner()] then
-					for _, tab in pairs(MultiInputs[self:GetOwner()]) do
-						local target, lpos, portname = unpack(tab)
-						WireLib.WireAll(self:GetOwner(), target, self.source, lpos, self.lpos, Input.Material, Input.Color, Input.Width)
+				if alt then -- Select everything
+					for i=1,#inputs do
+						self:WireStart( trace.Entity, trace.HitPos, inputs[i][1], inputs[i][2] )
 					end
 				else
-					WireLib.WireAll(self:GetOwner(), self.target, self.source, Input.StartPos, self.lpos, Input.Material, Input.Color, Input.Width)
+					-- Single input selection
+					self:WireStart( trace.Entity, trace.HitPos, inputs[self.CurrentWireIndex][1], inputs[self.CurrentWireIndex][2] )
 				end
-			else
-				if MultiInputs[self:GetOwner()] then
-					local Input = self.target.Inputs[self.input]
-					for _, tab in pairs(MultiInputs[self:GetOwner()]) do
-						local target, lpos, portname = unpack(tab)
-						if Wire_Link_Start(self:GetOwner():UniqueID(), target, lpos, portname, Input.Material, Input.Color, Input.Width) then
-							Wire_Link_End(self:GetOwner():UniqueID(), self.source, self.lpos, self.output, self:GetOwner())
+				self:GetOwner():EmitSound( "weapons/airboat/airboat_gun_lastshot" .. math.random(1,2) .. ".wav" )
+				return
+			elseif self:GetStage() == 1 then
+				local _, outputs = self:GetPorts( trace.Entity )
+				if not outputs and not self.ShowWirelink and not self.ShowEntity then return end
+				
+				self.CurrentEntity = trace.Entity
+				
+				self:SetStage(2)
+				self:LoadMemorizedIndex( self.CurrentEntity, true )
+
+				-- find first matching output by name or type
+				local oldport = self.CurrentWireIndex
+				local port = self.CurrentWireIndex
+				local matchingByType
+				local matchingByName
+				repeat
+					if outputs[port][1] == self.Wiring[1][1] and outputs[port][2] == self.Wiring[1][8] and not matchingByName then
+						matchingByName = port
+					end
+					if outputs[port][2] == self.Wiring[1][8] and not matchingByType then
+						matchingByType = port
+					end
+					
+					port = port + 1
+					if port > #outputs then
+						port = 1
+					end
+				until port == oldport or (matchingByName and matchingByType)
+				
+				if matchingByName then
+					self.CurrentWireIndex = matchingByName
+				elseif matchingByType then
+					self.CurrentWireIndex = matchingByType
+				end
+				
+				for i=1,#self.Wiring do
+					self:WireEndEntityPos( self.Wiring[i], self.CurrentEntity, trace.HitPos )
+				end
+				
+				self:GetOwner():EmitSound( "weapons/airboat/airboat_gun_lastshot" .. math.random(1,2) .. ".wav" )
+				return
+			end
+		end
+		
+		if self:GetStage() == 2 then
+			local _, outputs = self:GetPorts( self.CurrentEntity )
+			
+			if alt then -- Auto wiring
+				local notwired = 0
+				for i=1,#self.Wiring do
+					local wiring = self.Wiring[i]
+					local inputname = wiring[1]
+					local inputtype = wiring[8]
+					local found = false
+					for j=1,#outputs do
+						local outputname = outputs[j][1]
+						local outputtype = outputs[j][2]
+						
+						if self:IsMatch( inputname, inputtype, outputname, outputtype, true ) then
+							self:WireEndOutputName( wiring, outputname )
+							found = true
+							break
 						end
 					end
-				else
-					Wire_Link_End(self:GetOwner():UniqueID(), self.source, self.lpos, self.output, self:GetOwner())
+					if not found then notwired = notwired + 1 end
 				end
+				
+				if notwired > 0 then
+					WireLib.AddNotify( "Could not find a matching name for " .. notwired .. " inputs. They were not wired.", NOTIFY_HINT, 5, NOTIFYSOUND_DRIP1 )
+				end
+				
+				self:SetStage(0)
+			else -- Normal wiring
+				local notwired = 0
+				for i=1,#self.Wiring do
+					if outputs[self.CurrentWireIndex][2] == self.Wiring[i][8] then
+						self:WireEndOutputName( self.Wiring[i], outputs[self.CurrentWireIndex][1] )
+					else
+						notwired = notwired + 1
+					end
+				end
+				
+				if notwired > 0 then
+					WireLib.AddNotify( "The type did not match for " .. notwired .. " inputs. They were not wired.", NOTIFY_HINT, 5, NOTIFYSOUND_DRIP1 )
+				end
+				
+				self:SetStage(0)
 			end
 			
-			self:Holster()
-
-		elseif mode == "c" then -- clear link
-			if self:GetStage() ~= 0 then return end
-
-			local target = Entity(tonumber(entid))
-			if not target:IsValid() then return end
-			if not gamemode.Call("CanTool", self:GetOwner(), WireLib.dummytrace(target), "wire_adv") then return end
-
-			Wire_Link_Clear(target, portname)
+			self:GetOwner():EmitSound( "weapons/airboat/airboat_gun_lastshot" .. math.random(1,2) .. ".wav" )
 		end
 	end
-
-	-- SERVER --
-	concommand.Add("wire_adv", function(ply, cmd, args)
-		local tool = get_tool(ply, "wire_adv")
-		if not tool then return end
-
-		local hook = tool.Receive
-		if not hook then return end
-
-		hook(tool, unpack(args))
-	end)
-
-elseif CLIENT then
-
-	function TOOL:Holster()
-		if IsValid(self.lastent) then self.lastent:SetNetworkedBeamString("BlinkWire", "") end
-		self.lastent = nil
-		self.lastinput = {}
-		self.lastoutput = {}
-	end
-
-	hook.Add("GUIMousePressed", "wire_adv", function(mousecode, aimvec)
-		local self = get_active_tool(LocalPlayer(), "wire_adv")
-		if not self then return end
-
-		if self:Click(mousecode, aimvec, false) then return true end
-	end)
-
-	hook.Add("GUIMouseDoublePressed", "wire_adv", function(mousecode, aimvec)
-		local self = get_active_tool(LocalPlayer(), "wire_adv")
-		if not self then return end
-
-		if self:Click(mousecode, aimvec, true) then return true end
-	end)
-
-	function TOOL:Click(mousecode, aimvec, doubleclick)
-		if mousecode ~= MOUSE_LEFT then return end
-		if not self.menu then return end
-
-		if self.mousenum then
-			if self.input and self.ports[self.mousenum][2] ~= self.input[2] then return end
-
-			self.port = self.mousenum
-
-			if doubleclick then
-				local trace = self:GetOwner():GetEyeTraceNoCursor()
-				if self:LeftClickB(trace) then
-					self:GetWeapon():DoShootEffect(trace.HitPos, trace.HitNormal, trace.Entity, trace.PhysicsBone)
-				end
-			else
-				self:GetOwner():EmitSound("weapons/pistol/pistol_empty.wav")
+	
+	function TOOL:RightClick(trace)
+		if self.wtfgarry > CurTime() then return end
+		self.wtfgarry = CurTime() + 0.1
+		
+		if self:GetStage() == 0 or self:GetStage() == 2 then
+			self:ScrollDown(trace)
+		elseif IsValid(trace.Entity) and self:GetStage() == 1 then
+			for i=1,#self.Wiring do
+				self:WireNode( self.Wiring[i], trace.Entity, trace.HitPos )
 			end
 		end
+	end
 
+	function TOOL:Reload(trace)
+		if self.wtfgarry > CurTime() then return end
+		self.wtfgarry = CurTime() + 0.1
+		
+		if self:GetStage() == 0 and IsValid( trace.Entity ) and WireLib.HasPorts( trace.Entity ) then
+			local inputs, outputs = self:GetPorts( trace.Entity )
+			if self:GetOwner():KeyDown( IN_WALK ) then
+				local t = {}
+				for i=1,#inputs do
+					t[i] = inputs[i][1]
+				end
+				self:Unwire( trace.Entity, t )
+			else
+				self:Unwire( trace.Entity, { inputs[self.CurrentWireIndex][1] } )
+			end
+		end
+		
+		self:Holster()
+		self:LoadMemorizedIndex( trace.Entity, true )
+
+		self:GetOwner():EmitSound( "weapons/airboat/airboat_gun_lastshot" .. math.random(1,2) .. ".wav" )
+	end
+	
+	function TOOL:Scroll(trace,dir)
+		local ent = self:GetStage() == 0 and trace.Entity or self.CurrentEntity
+		if IsValid(ent) then
+			local inputs, outputs = self:GetPorts( ent )
+			if not inputs and not outputs then return end
+			local check = self:GetStage() == 0 and inputs or outputs
+			
+			local b = false
+			local oldport = self.CurrentWireIndex
+			
+			if self:GetStage() == 2 then
+				repeat
+					self.CurrentWireIndex = self.CurrentWireIndex + dir
+					if self.CurrentWireIndex > #check then
+						self.CurrentWireIndex = 1
+					elseif self.CurrentWireIndex < 1 then
+						self.CurrentWireIndex = #check
+					end
+				until not self:IsBlocked( "Outputs", outputs, ent, self.CurrentWireIndex ) or self.CurrentWireIndex == oldport
+			else
+				self.CurrentWireIndex = self.CurrentWireIndex + dir
+				
+				if self.CurrentWireIndex > #check then
+					self.CurrentWireIndex = 1
+				elseif self.CurrentWireIndex < 1 then
+					self.CurrentWireIndex = #check
+				end
+			end
+		
+			if oldport ~= self.CurrentWireIndex then
+				ent:SetNetworkedBeamString("BlinkWire", check[self.CurrentWireIndex][1])
+				self:GetOwner():EmitSound("weapons/pistol/pistol_empty.wav")
+			end
+			return true
+		end
+	end
+	
+	function TOOL:ScrollUp(trace) return self:Scroll(trace,-1) end
+	function TOOL:ScrollDown(trace) return self:Scroll(trace,1) end
+	
+	local function hookfunc( ply, bind, pressed )
+		if not pressed then return end
+	
+		if bind == "invnext" then
+			local self = get_active_tool(ply, "wire_adv")
+			if not self then return end
+			
+			return self:ScrollDown(ply:GetEyeTraceNoCursor())
+		elseif bind == "invprev" then
+			local self = get_active_tool(ply, "wire_adv")
+			if not self then return end
+			
+			return self:ScrollUp(ply:GetEyeTraceNoCursor())
+		elseif bind == "impulse 100" and ply:KeyDown( IN_SPEED ) then
+			local self = get_active_tool(ply, "wire_adv")
+			if not self then
+				self = get_active_tool(ply, "wire_debugger")
+				if not self then return end
+				
+				RunConsoleCommand( "gmod_tool", "wire_adv" ) -- switch back to wire adv
+				return true
+			end
+			
+			RunConsoleCommand( "gmod_tool", "wire_debugger" ) -- switch to debugger
+			return true
+		end
+	end
+	
+	if game.SinglePlayer() then -- wtfgarry (have to have a delay in single player or the hook won't get added)
+		timer.Simple(5,function() hook.Add( "PlayerBindPress", "wire_adv_playerbindpress", hookfunc ) end)
+	else
+		hook.Add( "PlayerBindPress", "wire_adv_playerbindpress", hookfunc )
+	end
+	
+	-----------------------------------------------------------------
+	-- Remember wire indexes
+	-----------------------------------------------------------------
+	
+	-- Remember wire index positions for entities
+	TOOL.WireIndexMemory = {}
+	TOOL.AimingEnt = nil
+	function TOOL:LoadMemorizedIndex( ent, forceload )
+		-- Memorize selected input
+		if IsValid(self.AimingEnt) and not forceload then
+			if not self.WireIndexMemory[self.AimingEnt] then
+				self.WireIndexMemory[self.AimingEnt] = {}
+			end
+			if not self.WireIndexMemory[self.AimingEnt:GetClass()] then
+				self.WireIndexMemory[self.AimingEnt:GetClass()] = {} -- save to class as well
+			end
+			self.WireIndexMemory[self.AimingEnt][self:GetStage()] = self.CurrentWireIndex
+			self.WireIndexMemory[self.AimingEnt:GetClass()][self:GetStage()] = self.CurrentWireIndex -- save to class as well
+		end
+	
+		-- Retrieve memorized selected input
+		if IsValid(ent) and (ent ~= self.AimingEnt or forceload) then
+			if self:GetStage() == 2 and self.CurrentEntity ~= ent then return end
+		
+			if self.WireIndexMemory[ent] and self.WireIndexMemory[ent][self:GetStage()] then
+				self.CurrentWireIndex = self.WireIndexMemory[ent][self:GetStage()]
+			elseif self.WireIndexMemory[ent:GetClass()] and self.WireIndexMemory[ent:GetClass()][self:GetStage()] then -- if this entity doesn't have a stored position, get an educated from the class instead
+				self.CurrentWireIndex = self.WireIndexMemory[ent:GetClass()][self:GetStage()]
+			end
+			
+			
+			if IsValid( self.AimingEnt ) then
+				self.AimingEnt:SetNetworkedBeamString("BlinkWire", "")
+				local inputs, outputs = self:GetPorts( ent )
+				local check = self:GetStage() == 0 and inputs or outputs
+				if check then
+					self.CurrentWireIndex = math.Clamp(	self.CurrentWireIndex, 1, #check )
+					if check[self.CurrentWireIndex] then
+						ent:SetNetworkedBeamString("BlinkWire", check[self.CurrentWireIndex][1])
+					end
+				end
+			end
+			self.AimingEnt = ent
+		end
+	end
+	
+	-----------------------------------------------------------------
+	-- Think
+	-----------------------------------------------------------------
+	function TOOL:Think()
+		local ent = self:GetOwner():GetEyeTrace().Entity
+		self:LoadMemorizedIndex( ent )
+	
+		-- Check for holding shift etc
+		local shift = self:GetOwner():KeyDown( IN_SPEED )
+		
+		if #self.Wiring > 0 and self:GetStage() == 0 and not shift then
+			self:SetStage(1)
+		elseif #self.Wiring > 0 and self:GetStage() == 1 and shift then
+			self:SetStage(0)
+		end
+		
+		-- Check if we need to upload
+		if self.NeedsUpload then
+			self.NeedsUpload = false
+			self:Upload()
+		end
+	end
+	
+	-----------------------------------------------------------------
+	-- HUD Stuff
+	-----------------------------------------------------------------
+	function TOOL:IsHighlighted( name, tbl, ent, idx, optional_idx )
+		local alt = self:GetOwner():KeyDown( IN_WALK )
+		if name == "Outputs" and self:GetStage() == 2 then
+			if alt then -- if we're holding alt, highlight all outputs that will be wired to
+				for i=1,(optional_idx ~= nil and 1 or #self.WiringRender) do
+					local wiringrender = self.WiringRender[optional_idx or i]
+					local outputname = tbl[idx][1]
+					local outputtype = tbl[idx][2]
+					local inputname = wiringrender[1]
+					local inputtype = wiringrender[2]
+					
+					if self:IsMatch( inputname, inputtype, outputname, outputtype, true ) then
+						return true
+					end
+				end
+			else
+				return self.CurrentWireIndex == idx -- Highlight selected output
+			end
+		elseif name == "Selected" and self:GetStage() == 2 and alt then -- highlight all selected inputs that will be wired
+			local inputs, outputs = self:GetPorts( ent )
+			
+			for i=1,#outputs do
+				local outputname = outputs[i][1]
+				local outputtype = outputs[i][2]
+				local inputname = tbl[idx][1]
+				local inputtype = tbl[idx][2]
+				if self:IsMatch( inputname, inputtype, outputname, outputtype, true ) then
+					return true
+				end
+			end		
+		elseif name == "Inputs" and self:GetStage() == 0 then
+			local wiring, _ = self:FindWiring( ent, tbl[idx][1], tbl[idx][2] )
+			if wiring then return true, true end -- Highlight with a different color
+			return self.CurrentWireIndex == idx or alt
+		end
+		return false
+	end
+	
+	function TOOL:IsBlocked( name, tbl, ent, idx )
+		if name == "Outputs" and self:GetStage() > 0 then -- Gray out the ones that we can't wire any of the selected inputs to
+			for i=1,#self.WiringRender do
+				local inputtype = self.WiringRender[i][2]
+				if tbl[idx][2] == inputtype then
+					return false
+				end
+			end
+			return true
+		elseif name == "Selected" and self:GetStage() == 2 then
+			if self:GetOwner():KeyDown( IN_WALK ) then -- Gray out the ones that won't be able to be wired to any input
+				local inputs, outputs = self:GetPorts( ent )
+				if not outputs then return false end
+				for i=1,#outputs do
+					if tbl[idx][2] == outputs[i][2] then return false end
+				end
+				return true
+			else -- Gray out the ones that won't be able to be wired to the selected output
+				local inputs, outputs = self:GetPorts( ent )
+				if not outputs then return false end
+				return tbl[idx][2] ~= outputs[self.CurrentWireIndex][2]
+			end
+		end
+		return false
+	end
+	
+	local function getName( input )
+		local name = input[1]
+		local tp = input[8] or (type(input[2]) == "string" and input[2] or "")
+		local desc = (IsEntity(input[3]) and "" or input[3]) or ""
+		return name .. (desc ~= "" and " (" .. desc .. ")" or "") .. (tp ~= "NORMAL" and " [" .. tp.. "]" or "")
+	end
+	
+	local function getWidthHeight( inputs )
+		local width, height = 0, 0
+		for i=1,#inputs do
+			local input = inputs[i]
+			local name = getName( input )
+			local w,h = surface.GetTextSize( name )
+			if w > width then
+				if input[9] and input[9] > 1 then w = w + 14 end
+				width = w
+			end
+			height = height + h
+		end
+		return width, height
 	end
 	
 	local fontData = {font = "Trebuchet24"} -- 24 and 18 are stock
@@ -242,457 +786,170 @@ elseif CLIENT then
 		fontData.size = size
 		surface.CreateFont("Trebuchet"..size, fontData)
 	end
-
-	local function fitfont(...)
-		local fontnames = { "Trebuchet24", "Trebuchet22", "Trebuchet20", "Trebuchet18", "Trebuchet16", "Trebuchet14" }
-		local fontheights = {}
-
-		for i,fontname in ipairs(fontnames) do
-			fontheights[i] = draw.GetFontHeight(fontname)
-		end
-
-		function fitfont(nlines, h)
-			local maxfontheight = h/nlines
-			for i,fontheight in ipairs(fontheights) do
-				if fontheight <= maxfontheight then
-					return fontnames[i]
-				end
-			end
-			return fontnames[#fontnames]
-		end
-		return fitfont(...)
-	end
-
-	-- CLIENT --
-	function TOOL:DrawPortBox(ports, selindex, align, seltype)
-		align = align or 1
-
-		if not ports then return end
-
-		surface.SetFont(fitfont(#ports, ScrH()-32))
-		local _,texth = surface.GetTextSize(" ")
-		local boxh, boxw = #ports*texth,0
-
-		local createwl = seltype == "WIRELINK"
-		for num,port in ipairs(ports) do
-			local name,tp,desc,connected = unpack(port)
-
-			local text = name
-			if desc ~= "" then text = text.." ("..desc..")" end
-			if tp ~= "NORMAL" then text = text.." ["..tp.."]" end
-			port.text = text
-
-			local textw = surface.GetTextSize(text)
-			if textw > boxw then boxw = textw end
-
-			-- If this is a wirelink output, signal that we don't need the "Create Wirelink" option.
-			if tp == "WIRELINK" then createwl = false end
-		end
-
-		if createwl then
-			-- we seem to need a "Create Wirelink" option, so add one.
-			local text = "Create Wirelink"
-			ports.wl = { "link", "WIRELINK", "", text = text }
-
-			local textw = surface.GetTextSize(text)
-			if textw > boxw then boxw = textw end
-			boxh = boxh+texth
-		else
-			ports.wl = nil
-		end
-
-		local boxx, boxy = ScrW()/2-boxw-32, ScrH()/2-boxh/2
-		boxx = boxx + align/2*(boxw+64)
-		draw.RoundedBox(8,
-			boxx-8, boxy-8,
-			boxw+16, boxh+16,
-			Color(50,50,75,192)
-		)
-
-		local mousenum
-
-		local selAllPorts = self.WireAll or (self:GetStage() == 0 and LocalPlayer():KeyDown(IN_WALK))
-		local cx, cy = gui.MousePos()
-		local mouseindex = selindex and cx >= boxx and cx < boxx+boxw and math.floor((cy-boxy)/texth+1)
-		for num,port in pairs(ports) do
-			local ind = num == "wl" and #ports+1 or num
-			local name,tp,desc,connected = unpack(port)
-			local texty = boxy+(ind-1)*texth
-			if num == selindex or selAllPorts then
-				draw.RoundedBox(4,
-					boxx-4, texty-1,
-					boxw+8, texth+2,
-					Color(0,150,0,192)
-				)
-			end
-			if mouseindex == ind then
-				draw.RoundedBox(4,
-					boxx-4, texty-1,
-					boxw+8, texth+2,
-					Color(255,255,255,16)
-				)
-				mousenum = num
-			end
-
-			surface.SetTextPos(boxx,texty)
-			if connected then
-				surface.SetTextColor(Color(255,0,0,255))
-			elseif seltype and seltype ~= tp then
-				surface.SetTextColor(Color(255,255,255,32))
-			else
-				surface.SetTextColor(Color(255,255,255,255))
-			end
-			if (port.text) then surface.DrawText(port.text) end
-			port.text = nil
-		end
-
-		return mousenum
-	end
-
-	-- CLIENT --
-	function TOOL:NewStage(stage, laststage)
-		if laststage == nil then
-			self:Holster() -- initialize lastinput/output tables
-		elseif laststage == 0 then
-			if self.target and self.selinput then self.lastinput[self.target] = self.selinput end
-		elseif laststage == 2 then
-			if self.source and self.output then self.lastoutput[self.source] = self.output end
-		end
-
-		if stage == 0 and not (self:GetOwner():KeyDown(IN_SPEED) and laststage == 1) then
-			self.target = nil
-			self.input = nil
-			self.source = nil
-			self.output = nil
-			self.MultiInputs = nil
-			self.WireAll = nil
-		elseif stage == 1 then
-			self.input = self.selinput or self.input
-			self.selinput = nil
-		end
-	end
-
-	local function lookup(tbl, value)
-		if not value then return end -- this is an optimization
-
-		for k,v in pairs(tbl) do
-			if value == v then return k end
-		end
-	end
-
-	-- CLIENT --
-	function TOOL:DrawHUD()
-		local stage = self:GetStage()
-		local newstage = self.laststage ~= stage
-		local ent = LocalPlayer():GetEyeTraceNoCursor().Entity
-		local newent = ent:IsValid() and ent ~= self.lastent
-		if newstage then
-			self:NewStage(stage, self.laststage)
-			self.laststage = stage
-
-			-- trigger a "newent" event
-			newent = true
-		end
-
-		if newent and (stage ~= 2 or newstage) then
-			if self.lastent then self.lastent:SetNetworkedBeamString("BlinkWire", "") end
-			self.lastent = ent
-
-			local inputs, outputs = WireLib.GetPorts(ent)
-			local iswire = inputs or outputs or ent.Base == "base_wire_entity"
-			self.iswire = iswire
-
-			if stage == 0 then
-				self.ports = inputs
-				self.port = self.ports and lookup(self.ports,self.lastinput[ent]) or 1
-
-			elseif stage == 1 then
-				if outputs then
-					self.ports = outputs
-				elseif iswire and self.input[2] == "WIRELINK" then
-					self.ports = {}
-					self.port = "wl"
-				else
-					self.ports = nil
-				end
-
-			elseif stage == 2 then
-				self.ports = outputs
-				if outputs then
-					if self.ports.wl then
-						self.port = "wl"
-					else
-						-- we have outputs, so pick a port of a matching type
-						local inputname, inputtype = unpack(self.input)
-						inputname = inputname:gsub(" ", "")
-
-						local lastoutput = self.lastoutput[ent]
-						self.port = lastoutput and lastoutput[2] == inputtype and lookup(self.ports,lastoutput)
-
-						for num,name,tp in ipairs_map(outputs,unpack) do
-							if tp == inputtype then
-								-- found a port of a matching type
-								if name:gsub(" ", "") == inputname then
-									-- the name matches too? select and break
-									self.port = num
-									break
-								elseif not self.port then
-									-- no port selected? select this one
-									self.port = num
-								end
-							end
-						end
-
-						-- no matching port? default to 1
-						if not self.port then self.port = lookup(self.ports,lastoutput) or 1 end
-					end -- if self.ports.wl
-				elseif iswire and self.input[2] == "WIRELINK" then
-					self.ports = {}
-					self.port = "wl"
-				end -- if outputs
-			end -- if stage
-		end
-
-		if self.input then self:DrawPortBox({ self.input }, nil, 0) end
-
-		self.menu = self.ports and (ent:IsValid() or stage == 2)
-		if self.menu then
-			if stage == 0 then
-				self.mousenum = self:DrawPortBox(self.ports, self.port, 0)
-			elseif stage == 1 then
-				self.mousenum = nil
-				local seltype = self.input[2]
-				if #self.ports == 1 and self.ports[1][2] == seltype then
-					self:DrawPortBox(self.ports, 1, 2, seltype)
-				elseif #self.ports == 0 and self.ports.wl then
-					self:DrawPortBox(self.ports, "wl", 2, seltype)
-				else
-					self:DrawPortBox(self.ports, nil, 2, seltype)
-				end
-			elseif stage == 2 then
-				self.mousenum = self:DrawPortBox(self.ports, self.port, 2, self.input[2])
-			end
-		end
-	end
-
-	-- CLIENT --
-	function TOOL:LeftClickB(trace)
-		local stage = self:GetStage()
-		if stage == 0 then
-			if not self.ports then return end
-			if not self.port then return end
-
-			self.selinput = self.ports[self.port]
-			if not self.selinput then return end
-
-			self.target = trace.Entity
-			if not IsValid(self.target) then return end
-			
-			if self:GetOwner():KeyDown(IN_WALK) then self.WireAll = true end
-			
-			if self.MultiInputs or self:GetOwner():KeyDown(IN_SPEED) then
-				if not self.MultiInputs then self.MultiInputs = {} end
-				table.insert(self.MultiInputs, self.target)
-			end
-
-			local lpos = self.target:WorldToLocal(trace.HitPos)
-			RunConsoleCommand("wire_adv", "i", self.target:EntIndex(), self.selinput[1], lpos.x, lpos.y, lpos.z)
-
-			return true
-
-		elseif stage == 1 then
-			if not self.ports and self.iswire then return end
-			self.source = trace.Entity
-			if not IsValid(self.source) then return end
-
-			local lpos = self.source:WorldToLocal(trace.HitPos)
-			RunConsoleCommand("wire_adv", "s", self.source:EntIndex(), 0, lpos.x, lpos.y, lpos.z)
-
-			return true
-
-		elseif stage == 2 then
-			if not self.ports then return end
-			if not self.port then return end
-
-			self.output = self.ports[self.port]
-			if not self.output then return end
-
-			RunConsoleCommand("wire_adv", "o", 0, self.output[1])
-
-			return true
-		end
-	end
-
-	function TOOL:ReloadB(trace)
-		if self:GetStage() == 0 then
-			if not self.ports then return end
-
-			local port = self.ports[self.port]
-			if not port then return end
-
-			RunConsoleCommand("wire_adv", "c", trace.Entity:EntIndex(), port[1])
-			return true
-		end
-	end
-
-	-- CLIENT --
-	function TOOL:ScrollUp(trace)
-		if not self.menu then return end
-
-		local stage = self:GetStage()
-		if stage == 1 then return end
-
-		if not self.ports.wl then
-			local seltype = stage ~= 0 and self.input[2]
-
-			local oldport = math.Clamp(self.port, 1, #self.ports)
-			repeat
-				self.port = self.port-1
-				if self.port < 1 then self.port = #self.ports end
-			until stage == 0 or self.ports[self.port][2] == seltype or self.port == oldport
-
-			if stage ~= 0 and self.ports[self.port][2] ~= seltype then
-				self.port = self.port-1
-				if self.port < 1 then self.port = #self.ports end
-			end
-			self.lastent:SetNetworkedBeamString("BlinkWire", self.ports[self.port][1])
-		end
-
-		self:GetOwner():EmitSound("weapons/pistol/pistol_empty.wav")
-
-		return true
-	end
-
-	function TOOL:ScrollDown(trace)
-		if not self.menu then return end
-
-		local stage = self:GetStage()
-		if stage == 1 then return end
-
-		if not self.ports.wl then
-			local seltype = stage ~= 0 and self.input[2]
-
-			local oldport = math.Clamp(self.port, 1, #self.ports)
-			repeat
-				self.port = self.port+1
-				if self.port > #self.ports then self.port = 1 end
-			until stage == 0 or self.ports[self.port][2] == seltype or self.port == oldport
-
-			if stage ~= 0 and self.ports[self.port][2] ~= seltype then
-				self.port = self.port+1
-				if self.port > #self.ports then self.port = 1 end
-			end
-			if IsValid(self.lastent) and self.ports[self.port] then
-				self.lastent:SetNetworkedBeamString("BlinkWire", self.ports[self.port][1])
-			end
-		end
-
-		self:GetOwner():EmitSound("weapons/pistol/pistol_empty.wav")
-
-		return true
-	end
-	TOOL.RightClickB = TOOL.ScrollDown
-
-	-- CLIENT --
-	local bind_mappings = {
-		["+attack" ] = { "LeftClickB", true },
-		["+attack2"] = { "RightClickB" },
-		["+reload" ] = { "ReloadB", true },
-		["invprev" ] = { "ScrollUp" },
-		["invnext" ] = { "ScrollDown" },
-	}
-	local weapon_selection_close_time = 0
-
-	local function open_menu()
-		weapon_selection_close_time = CurTime()+6
-	end
-
-	local function close_menu()
-		weapon_selection_close_time = 0
-	end
-
-	local bind_post = {
-		invnext = open_menu,
-		invprev = open_menu,
-		["+attack" ] = close_menu,
-		["+attack2"] = close_menu,
-	}
-
-	hook.Add("PlayerBindPress", "wire_adv", function(ply, bind, pressed)
-		if not pressed then return end
-
-		if bind:match("^slot%d+$") then return open_menu() end
-
-		if CurTime() > weapon_selection_close_time then
-			local mapping = bind_mappings[bind]
-			if not mapping then return end
-
-			local hookname, doeffect = unpack(mapping)
-
-			local self = get_active_tool(ply, "wire_adv")
-			if not self then return end
-
-			local hook = self[hookname]
-			if not hook then return end
-
-			local trace = ply:GetEyeTraceNoCursor()
-			local ret = hook(self, trace)
-			if ret then
-				if doeffect then
-					self:GetWeapon():DoShootEffect(trace.HitPos, trace.HitNormal, trace.Entity, trace.PhysicsBone)
-				end
-				return true
-			end
-		end
-
-		local wsel = bind_post[bind]
-		if wsel then wsel() end
-	end)
 	
-	local fontTable = {
-		font = "Arial",
-		size = 34,
-		weight = 1000,
-		antialias = true,
-		additive = false,
-	}
-	surface.CreateFont("Arial34", fontTable)
-	fontTable.size = 28
-	surface.CreateFont("Arial28", fontTable)
+	local fontheights
 	
-	local black = Color(0, 0, 0, 255)
-	local offWhite = Color(224, 224, 224, 255)
-	local arrowMat = Material( "icon16/arrow_down.png", "noclamp" )
-	local function WriteText(text, y) DrawTextOutline(text, "Arial28", 128, y + 28/2, offWhite, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER, black, 4) return y + 26 end
+	local function getFontSizes()
+		fontheights = {}
+		for i=14,24,2 do
+			local fontname = "Trebuchet" .. i
+			local h = draw.GetFontHeight( fontname )
+			fontheights[fontname] = h
+		end
+	end
 	
-	function TOOL:DrawToolScreen(width, height)
-		surface.SetDrawColor(Color(32, 32, 32, 255))
-		surface.DrawRect(0, 0, 256, 256)
+	TOOL.CurrentFont = "Trebuchet24"
+	function TOOL:fitFont( lines, maxsize )
+		if not fontheights then
+			getFontSizes()
+		end
 		
-		local y = 6
-		DrawTextOutline("Advanced Wiring", "Arial34", 128, y + 34/2, offWhite, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER, black, 4) y = y + 34
-		surface.SetDrawColor(offWhite) 
-		surface.DrawRect(0, y + 4, 256, 4) y = y + 14
-		if not IsValid(self.target) then
-			y = WriteText("Click Input Entity", y)
-		else
-			if self.MultiInputs then
-				y = WriteText("Input Entities: "..#self.MultiInputs, y)
-			else
-				y = WriteText(string.format("'%s'", self.WireAll and "*All*" or (self.selinput or self.input or {""})[1]), y)
-				y = WriteText(self.target.WireDebugName or self.target:GetClass(), y)
-				y = WriteText(string.format("[%i]", self.target:EntIndex()), y)
+		for i=24,14,-2 do
+			local fontname = "Trebuchet" .. i
+			local height = fontheights[fontname]
+			if height * lines <= maxsize then
+				self.CurrentFont = fontname
+				surface.SetFont( fontname )
+				local w, _ = surface.GetTextSize( "Selected:" )
+				return w, height
+			end
+		end				
+	end
+	
+	function TOOL:DrawList( name, tbl, ent, x, y, w, h, fonth )
+		draw.RoundedBox( 6, x, y, w+16, h+14, Color(50,50,75,192) )
+		
+		x = x + 8
+		y = y + 2
+		
+		local temp,_ = surface.GetTextSize( name .. ":" )
+		surface.SetTextColor( Color(255,255,255,255) )
+		surface.SetTextPos( x-temp/2+w/2, y )
+		surface.DrawText( name .. ":" )
+		surface.SetDrawColor( Color(255,255,255,255) )
+		surface.DrawLine( x, y + fonth+2, x+w, y + fonth+2 )
+		
+		y = y + 6
+		
+		-- Draw inputs
+		for i=1,#tbl do
+			y = y + fonth
+			
+			local highlighted, diffcolor = self:IsHighlighted( name, tbl, ent, i )
+			if highlighted then
+				local clr = Color(0,150,0,192) 
+				if diffcolor and (self.CurrentWireIndex == i or self:GetOwner():KeyDown( IN_WALK )) then clr = Color(100,100,175,192)
+				elseif diffcolor then clr = Color(0,0,150,192) end
+				draw.RoundedBox( 4, x-4,y, w+8,fonth+2, clr )
 			end
 			
-			if self:GetStage() == 0 then return end
-			surface.SetMaterial(arrowMat)
-			surface.SetDrawColor(Color(200,255,200,255))
-			surface.DrawTexturedRectUV( 128-24, y+8, 48, 48, 0, 0.35, 1, 1 )
-			y = y + 58
-			if self.source then 
-				y = WriteText(self.source.WireDebugName or self.source:GetClass(), y)
-				y = WriteText(string.format("[%i]", self.source:EntIndex()), y)
+			if tbl[i][4] == true then
+				surface.SetTextColor( Color(255,0,0,255) )
+			elseif self:IsBlocked( name, tbl, ent, i ) then
+				surface.SetTextColor( Color(255,255,255,32) )
+			else
+				surface.SetTextColor( Color(255,255,255,255) )
 			end
+			
+			if tbl[i][9] and tbl[i][9] > 1 then
+				surface.SetFont( "Trebuchet14" )
+				local tempw, temph = surface.GetTextSize( "x" .. tbl[i][9] )
+				surface.SetTextPos( x+w-tempw+2, y+fonth/2-temph/2 )
+				surface.DrawText( "x" .. tbl[i][9] )
+				surface.SetFont( self.CurrentFont )
+			end
+			
+			surface.SetTextPos( x, y )
+			surface.DrawText( getName( tbl[i] ) )
+		end
+	end
+
+	function TOOL:DrawHUD()
+		local centerx, centery = ScrW()/2, ScrH()/2
+		
+		local ent = self:GetStage() == 2 and self.CurrentEntity or self:GetOwner():GetEyeTrace().Entity
+		local maxwidth = 0
+		if IsValid( ent ) then
+			local inputs, outputs = self:GetPorts( ent )
+			if inputs and #inputs > 0 and self:GetStage() == 0 then
+				local w, h = self:fitFont( #inputs, ScrH() - 32 )
+				local ww, hh = getWidthHeight( inputs )
+				ww = math.max(ww,w)
+				hh = math.max(hh,h) + h
+				maxwidth = ww + 22
+				local x = centerx-ww-38
+				local y = centery-hh/2-16
+				self:DrawList( "Inputs", inputs, ent, x, y, ww, hh, h )
+			end
+			
+			if outputs and #outputs > 0 and self:GetStage() > 0 then
+				local w, h = self:fitFont( #outputs, ScrH() - 32 )
+				local ww, hh = getWidthHeight( outputs )
+				ww = math.max(ww,w)
+				hh = math.max(hh,h) + h
+				local x = centerx+38
+				local y = centery-hh/2-16
+				self:DrawList( "Outputs", outputs, ent, x, y, ww, hh, h )
+			end
+		end
+		
+		if #self.WiringRender > 0 then	
+			local w, h = self:fitFont( #self.WiringRender, ScrH() - 32 )
+			local ww, hh = getWidthHeight( self.WiringRender )
+			local ww = math.max(ww,w)
+			local hh = math.max(hh,h) + h
+			local x = centerx-maxwidth-ww-38
+			local y = centery-hh/2-16
+			self:DrawList( "Selected", self.WiringRender, ent, x, y, ww, hh, h )
+		end
+	end
+	
+
+	-----------------------------------------------------------------
+	-- Wiring Render
+	-- This table is almost the same as TOOL.Wiring,
+	-- but is organized differently and is used to
+	-- render the "Selected" box on screen properly.
+	-----------------------------------------------------------------
+	function TOOL:IsMatch( inputname, inputtype, outputname, outputtype, checkcreated )
+		if checkcreated then
+			return (outputname == inputname and outputtype == inputtype) or (inputtype == "WIRELINK" and (outputname == "wirelink" or outputname == "Create Wirelink") and outputtype == "WIRELINK") or
+																			(inputtype == "ENTITY" and (outputname == "entity" or outputname == "Create Entity") and outputtype == "ENTITY")
+		else
+			return (outputname == inputname and outputtype == inputtype)
+		end
+	end
+	
+	function TOOL:WiringRenderFind( inputname, inputtype )
+		for i=1,#self.WiringRender do
+			local wiringrender = self.WiringRender[i]
+			if self:IsMatch( wiringrender[1], wiringrender[2], inputname, inputtype ) then
+				return wiringrender, i
+			end
+		end
+	end
+	
+	function TOOL:WiringRenderRemove( inputname, inputtype )
+		local wiringrender, idx = self:WiringRenderFind( inputname, inputtype )
+		
+		if wiringrender then
+			wiringrender[9] = wiringrender[9] - 1
+			if wiringrender[9] == 0 then
+				table.remove( self.WiringRender, idx )
+			end
+		end
+	end
+	
+	function TOOL:WiringRenderAdd( inputname, inputtype )
+		local wiringrender = self:WiringRenderFind( inputname, inputtype )
+		
+		if wiringrender then
+			wiringrender[9] = wiringrender[9] + 1
+		else
+			local wiringrender = { inputname, inputtype }
+			--wiringrender[8] = inputtype
+			wiringrender[9] = 1
+			self.WiringRender[#self.WiringRender+1] = wiringrender
 		end
 	end
 
@@ -714,11 +971,3 @@ elseif CLIENT then
 	end
 
 end
-
---[[ TODO:
-	fixes:
-	- Only play effects when appropriate (already better than old wire_adv there)
-	- check if wirelink makes sense (props etc) on the server-side
-
-	new features:
-]]
