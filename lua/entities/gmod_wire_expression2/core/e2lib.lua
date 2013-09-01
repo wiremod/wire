@@ -200,6 +200,7 @@ function E2Lib.isFriend(owner, player)
 end
 
 function E2Lib.isOwner(self, entity)
+	if game.SinglePlayer() then return true end
 	local player = self.player
 	local owner = getOwner(self, entity)
 	if not IsValid(owner) then return false end
