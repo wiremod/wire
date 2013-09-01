@@ -4,6 +4,10 @@ local function table_IsEmpty(t) return not next(t) end
 
 local filterList = E2Lib.filterList
 
+local function replace_match(a,b)
+	return string.match( string.Replace(a,"-","__"), string.Replace(b,"-","__") )
+end
+
 -- -- some generic filter criteria -- --
 
 local function filter_all() return true end
@@ -111,7 +115,7 @@ local function filter_binary_predicate_match_none(lookup, func, binary_predicate
 	return function(a)
 		a = func(a)
 		for b,_ in pairs(lookup) do
-			if binary_predicate(a, b, 1, true) then return false end
+			if binary_predicate(a, b) then return false end
 		end
 		return true
 	end
@@ -124,7 +128,7 @@ local function filter_binary_predicate_match_one(lookup, func, binary_predicate)
 	return function(a)
 		a = func(a)
 		for b,_ in pairs(lookup) do
-			if binary_predicate(a, b, 1, true) then return true end
+			if binary_predicate(a, b) then return true end
 		end
 		return false
 	end
@@ -210,9 +214,9 @@ local function update_filters(self)
 	local bl_owner_filter = filter_function_result_not_in_lookup(find.bl_owner, function(ent) return getOwner(self,ent) end)
 
 	-- blacklist for models
-	local bl_model_filter = filter_binary_predicate_match_none(find.bl_model, function(ent) return string.lower(ent:GetModel() or "") end, string.find)
+	local bl_model_filter = filter_binary_predicate_match_none(find.bl_model, function(ent) return string.lower(ent:GetModel() or "") end, replace_match)
 	-- blacklist for classes
-	local bl_class_filter = filter_binary_predicate_match_none(find.bl_class, function(ent) return string.lower(ent:GetClass()) end, string.find)
+	local bl_class_filter = filter_binary_predicate_match_none(find.bl_class, function(ent) return string.lower(ent:GetClass()) end, replace_match)
 
 	-- combine all blacklist filters (done further down)
 	--local filter_blacklist = filter_and(bl_entity_filter, bl_owner_filter, bl_model_filter, bl_class_filter)
@@ -233,9 +237,9 @@ local function update_filters(self)
 		local wl_owner_filter = filter_function_result_in_lookup(find.wl_owner, function(ent) return getOwner(self,ent) end)
 
 		-- blacklist for models
-		local wl_model_filter = filter_binary_predicate_match_one(find.wl_model, function(ent) return string.lower(ent:GetModel() or "") end, string.find)
+		local wl_model_filter = filter_binary_predicate_match_one(find.wl_model, function(ent) return string.lower(ent:GetModel() or "") end, replace_match)
 		-- blacklist for classes
-		local wl_class_filter = filter_binary_predicate_match_one(find.wl_class, function(ent) return string.lower(ent:GetClass()) end, string.find)
+		local wl_class_filter = filter_binary_predicate_match_one(find.wl_class, function(ent) return string.lower(ent:GetClass()) end, replace_match)
 
 		-- combine all whitelist filters
 		filter_whitelist = filter_or(wl_entity_filter, wl_owner_filter, wl_model_filter, wl_class_filter)
@@ -821,7 +825,7 @@ e2function number findClipToClass(string class)
 	class = string.lower(class)
 	return applyClip(self, function(ent)
 		if !IsValid(ent) then return false end
-		return string.find(string.lower(ent:GetClass()), class, 1, true)
+		return replace_match(string.lower(ent:GetClass()), class)
 	end)
 end
 
@@ -829,7 +833,7 @@ end
 e2function number findClipFromClass(string class)
 	return applyClip(self, function(ent)
 		if !IsValid(ent) then return false end
-		return not string.find(string.lower(ent:GetClass()), class, 1, true)
+		return not replace_match(string.lower(ent:GetClass()), class)
 	end)
 end
 
@@ -837,7 +841,7 @@ end
 e2function number findClipToModel(string model)
 	return applyClip(self, function(ent)
 		if !IsValid(ent) then return false end
-		return string.find(string.lower(ent:GetModel() or ""), model, 1, true)
+		return replace_match(string.lower(ent:GetModel() or ""), model)
 	end)
 end
 
@@ -845,7 +849,7 @@ end
 e2function number findClipFromModel(string model)
 	return applyClip(self, function(ent)
 		if !IsValid(ent) then return false end
-		return not string.find(string.lower(ent:GetModel() or ""), model, 1, true)
+		return not replace_match(string.lower(ent:GetModel() or ""), model)
 	end)
 end
 
@@ -853,7 +857,7 @@ end
 e2function number findClipToName(string name)
 	return applyClip(self, function(ent)
 		if !IsValid(ent) then return false end
-		return string.find(string.lower(ent:GetName()), name, 1, true)
+		return replace_match(string.lower(ent:GetName()), name)
 	end)
 end
 
@@ -861,7 +865,7 @@ end
 e2function number findClipFromName(string name)
 	return applyClip(self, function(ent)
 		if !IsValid(ent) then return false end
-		return not string.find(string.lower(ent:GetName()), name, 1, true)
+		return not replace_match(string.lower(ent:GetName()), name)
 	end)
 end
 
