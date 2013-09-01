@@ -420,6 +420,9 @@ elseif CLIENT then
 					self:WireStart( trace.Entity, trace.HitPos, inputs[self.CurrentWireIndex][1], inputs[self.CurrentWireIndex][2] )
 				end
 				self:GetOwner():EmitSound( "weapons/airboat/airboat_gun_lastshot" .. math.random(1,2) .. ".wav" )
+				if not shift then
+					self:SetStage(1) -- Set this immediately so the HUD doesn't glitch
+				end
 				return
 			elseif self:GetStage() == 1 then
 				local _, outputs = self:GetPorts( trace.Entity )
@@ -509,6 +512,7 @@ elseif CLIENT then
 				self:SetStage(0)
 			end
 			
+			self.WiringRender = {} -- Empty this now so the HUD doesn't glitch
 			self:GetOwner():EmitSound( "weapons/airboat/airboat_gun_lastshot" .. math.random(1,2) .. ".wav" )
 		end
 	end
