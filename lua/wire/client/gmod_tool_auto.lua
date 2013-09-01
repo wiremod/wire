@@ -88,9 +88,9 @@ local lastuniqueid = 0
 --- Returns a uniqueid that can be used to remove the pattern later.
 ---
 --- replacement can be:
----   true: Use the first pattern capture as the toolmode
+---   true: Use the first pattern capture as the toolmode.
 ---   string: Use this string as the toolmode.
----   table: Look up first pattern capture and use the result as the  If nothing was found, the match is ignored
+---   table: Look up first pattern capture and use the result as the toolmode. If nothing was found, the match is ignored.
 ---   array table: Cycles through the table's entries when using gmod_tool_auto multiple times on the same entity.
 ---   function(ent, ntapped, capture1, capture2, ...): pass the captures to a function, along with a number that specifies how often gmod_tool_auto was used on the same entity.
 ---
