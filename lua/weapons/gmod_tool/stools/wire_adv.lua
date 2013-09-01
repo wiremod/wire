@@ -525,7 +525,7 @@ elseif CLIENT then
 			self:ScrollDown(trace)
 		elseif IsValid(trace.Entity) and self:GetStage() == 1 then
 			for i=1,#self.Wiring do
-				self:WireNode( self.Wiring[i], trace.Entity, trace.HitPos )
+				self:WireNode( self.Wiring[i], trace.Entity, trace.HitPos + trace.HitNormal*(self:GetClientNumber("width")/2) )
 			end
 		end
 	end
