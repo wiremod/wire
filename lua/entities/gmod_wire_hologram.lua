@@ -137,7 +137,7 @@ if CLIENT then
 			local clipid = net.ReadUInt(4)
 
 			if net.ReadBit() ~= 0 then
-				SetClipEnabled(entid, clipid, net.ReadBit())
+				SetClipEnabled(entid, clipid, net.ReadBit() ~= 0)
 			else
 				SetClip(entid, clipid, net.ReadVector(), Vector(net.ReadFloat(), net.ReadFloat(), net.ReadFloat()), net.ReadBit() ~= 0)
 			end
