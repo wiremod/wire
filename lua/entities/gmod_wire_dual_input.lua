@@ -17,6 +17,7 @@ function ENT:Setup(keygroup, keygroup2, toggle, value_off, value_on, value_on2)
 	self.keygroup = keygroup
 	self.keygroup2 = keygroup2
 
+	local pl = self:GetPlayer()
 	numpad.OnDown( pl, keygroup, "WireDualInput_On", self, 1 )
 	numpad.OnUp( pl, keygroup, "WireDualInput_Off", self, 1 )
 	numpad.OnDown( pl, keygroup2, "WireDualInput_On", self, -1 )
