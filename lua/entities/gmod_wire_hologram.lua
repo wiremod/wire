@@ -28,28 +28,23 @@ if CLIENT then
 		self.blocked = blocked[ownerid] or false
 
 		self.clips = {}
+		self:DoClip()
+		self:DoVisible()
 	end
 
 	hook.Add("PlayerBindPress", "wire_hologram_scale_setup", function() -- For initial spawn
 		for _, ent in pairs(ents.FindByClass("gmod_wire_hologram")) do
 			if ent:IsValid() and ent.DoScale then
 				ent:DoScale()
+				ent:DoClip()
+				ent:DoVisible()
 			end
 		end
 		hook.Remove("PlayerBindPress", "wire_hologram_scale_setup")
 	end)
 
 	function ENT:SetupClipping()
-		local eidx = self:EntIndex()
-
-		if clip_buffer[eidx] ~= nil then
-			table.Merge(self.clips, clip_buffer[eidx])
-
-			clip_buffer[eidx] = nil
-		end
-
-
-		if self.clips and next(self.clips) then
+		if next(self.clips) then
 			self.oldClipState = render.EnableClipping(true)
 
 			for _, clip in pairs(self.clips) do
@@ -69,7 +64,7 @@ if CLIENT then
 	end
 
 	function ENT:FinishClipping()
-		if self.clips and next(self.clips) then
+		if next(self.clips) then
 			for _, clip in pairs(self.clips) do
 				render.PopCustomClipPlane()
 			end
@@ -79,14 +74,7 @@ if CLIENT then
 	end
 
 	function ENT:Draw()
-		local eidx = self:EntIndex()
-
-		if vis_buffer[eidx] ~= nil then
-			self.visible = vis_buffer[eidx]
-			vis_buffer[eidx] = nil
-		end
-
-		if self.blocked or self.visible == false then return end -- self.visible and vis_buffer[] is nil by default, but nil != false
+		if self.blocked or self.notvisible then return end
 
 		if self:GetColor().a ~= 255 then
 			self.RenderGroup = RENDERGROUP_BOTH
@@ -108,6 +96,15 @@ if CLIENT then
 	end
 
 	-- -----------------------------------------------------------------------------
+
+	function ENT:DoClip()
+		local eidx = self:EntIndex()
+
+		if clip_buffer[eidx] ~= nil then
+			table.Merge(self.clips, clip_buffer[eidx])
+			clip_buffer[eidx] = nil
+		end
+	end
 
 	local function CheckClip(eidx, cidx)
 		clip_buffer[eidx] = clip_buffer[eidx] or {}
@@ -140,6 +137,10 @@ if CLIENT then
 				SetClipEnabled(entid, clipid, net.ReadBit() ~= 0)
 			else
 				SetClip(entid, clipid, net.ReadVector(), Vector(net.ReadFloat(), net.ReadFloat(), net.ReadFloat()), net.ReadBit() ~= 0)
+			end
+			local ent = Entity(entid)
+			if ent and ent.DoClip then
+				ent:DoClip()
 			end
 			entid = net.ReadUInt(16)
 		end
@@ -232,11 +233,27 @@ if CLIENT then
 
 	-- -----------------------------------------------------------------------------
 
+	function ENT:DoVisible()
+		local eidx = self:EntIndex()
+
+		if vis_buffer[eidx] ~= nil then
+			self.notvisible = vis_buffer[eidx]
+			vis_buffer[eidx] = nil
+		end
+	end
+
 	net.Receive("wire_holograms_set_visible", function(netlen)
 		local index = net.ReadUInt(16)
 
 		while index ~= 0 do
-			vis_buffer[index] = net.ReadBit() ~= 0
+
+			local ent = Entity(index)
+			if ent and ent.DoVisible then
+				ent.notvisible = net.ReadBit() == 0
+			else
+				vis_buffer[index] = net.ReadBit() == 0
+			end
+			
 			index = net.ReadUInt(16)
 		end
 	end)
