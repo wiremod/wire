@@ -1139,6 +1139,7 @@ function WireLib.MakeWireEnt( pl, Data, ... )
 end
 
 function WireLib.CalcElasticConsts(Ent1, Ent2)
+	if not IsValid(Ent1:GetPhysicsObject()) or not IsValid(Ent2:GetPhysicsObject()) then return 100, 20 end
 	local minMass = math.min(Ent1:IsWorld() and 99999 or Ent1:GetPhysicsObject():GetMass(), Ent2:IsWorld() and 99999 or Ent2:GetPhysicsObject():GetMass())
 	local const = minMass * 100
 	local damp = minMass * 20
