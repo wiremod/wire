@@ -291,7 +291,6 @@ function ENT:ResetContext()
 	self.Inputs = WireLib.AdjustSpecialInputs(self, self.inports[1], self.inports[2])
 	self.Outputs = WireLib.AdjustSpecialOutputs(self, self.outports[1], self.outports[2])
 	self._original = string.Replace(string.Replace(self.original, "\"", string.char(163)), "\n", string.char(128))
-	self._buffer = self.original -- TODO: is that really intended?
 
 	self._name = self.name
 	self._inputs = { {}, {} }
@@ -360,15 +359,21 @@ function ENT:Setup(buffer, includes, restore, forcecompile)
 	end
 
 	self.uid = IsValid(self.player) and self.player:UniqueID() or "World"
+	self:SetColor(Color(255, 255, 255, self:GetColor().a))
 
 	if forcecompile or self:IsCodeDifferent(buffer, includes) then
 		self:CompileCode(buffer, includes)
+		if self.error then
+			self._original = string.Replace(string.Replace(self.original, "\"", string.char(163)), "\n", string.char(128))
+			self._name = self.name
+			self._inputs = { {}, {} }
+			self._outputs = { {}, {} }
+		end
 	else
 		self:ResetContext()
 	end
 
 	self:SetOverlayText(self.name)
-	self:SetColor(Color(255, 255, 255, self:GetColor().a))
 
 	local ok, msg = pcall(self.CallHook, self, 'construct')
 	if not ok then
