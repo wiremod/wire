@@ -330,12 +330,41 @@ local function set_clip(Holo, idx, origin, normal, isglobal)
 end
 
 local function set_visible(Holo, players, visible)
+	if not Holo.visible then Holo.visible = {} end
+	visible = (visible == 1) or (visible == true)
 	for _,ply in pairs( players ) do
-		if IsValid( ply ) and ply:IsPlayer() then
+		if IsValid( ply ) and ply:IsPlayer() and Holo.visible[ply] ~= visible then
+			Holo.visible[ply] = visible
 			vis_queue[ply] = vis_queue[ply] or {}
 
-			table.insert( vis_queue[ply], { Holo, visible == 1 or visible == true } )
+			table.insert( vis_queue[ply], { Holo, visible } )
 		end
+	end
+end
+
+local function reset_clholo(Holo, scale)
+	if Holo.clips then
+		for cidx, clip in pairs(Holo.clips) do
+			if clip.enabled then
+				table.insert(clip_queue, {
+					Holo, {
+						index = cidx,
+						enabled = false
+					}
+				} )
+			end
+		end
+		Holo.clips = {}
+	end
+	rescale(Holo, scale, {})
+	if Holo.visible then 
+		for ply, state in pairs(Holo.visible) do
+			if not state then
+				vis_queue[ply] = vis_queue[ply] or {}
+				table.insert( vis_queue[ply], { Holo, true } )
+			end
+		end
+		Holo.visible = {}
 	end
 end
 
@@ -479,7 +508,7 @@ local function CreateHolo(self, index, pos, scale, ang, color, model)
 	if not IsValid(prop) then return nil end
 	if color then prop:SetColor(Color(color[1],color[2],color[3],255)) end
 
-	rescale(Holo, scale, {})
+	reset_clholo(Holo, scale) -- Reset scale, clips, and visible status
 
 	return prop
 end
@@ -633,7 +662,7 @@ e2function void holoReset(index, string model, vector scale, vector color, strin
 	Holo.ent:SetColor(Color(color[1],color[2],color[3],255))
 	Holo.ent:SetMaterial(material)
 
-	rescale(Holo, scale, {})
+	reset_clholo(Holo, scale) -- Reset scale, clips, and visible status
 end
 
 __e2setcost(5)
