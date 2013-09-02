@@ -23,7 +23,6 @@ if CLIENT then
 	language.Add( "Tool_wire_gates_searchresultnum", "Number of search results:" )
 
 	TOOL.ClientConVar["model"] = "models/jaanus/wiretool/wiretool_gate.mdl"
-	TOOL.ClientConVar["weld"] = 1
 	TOOL.ClientConVar["parent"] = 0
 	TOOL.ClientConVar["noclip"] = 1
 	TOOL.ClientConVar["angleoffset"] = 0
@@ -32,7 +31,6 @@ if CLIENT then
 
 	language.Add( "WireGatesTool_action", "Gate action" )
 	language.Add( "WireGatesTool_noclip", "NoCollide" )
-	language.Add( "WireGatesTool_weld", "Weld" )
 	language.Add( "WireGatesTool_parent", "Parent" )
 	language.Add( "WireGatesTool_angleoffset", "Spawn angle offset" )
 	language.Add( "sboxlimit_wire_gates", "You've hit your gates limit!" )
@@ -41,7 +39,6 @@ if CLIENT then
 		WireDermaExts.ModelSelect(panel, "wire_gates_model", list.Get("Wire_gate_Models"), 3, true)
 
 		local nocollidebox = panel:CheckBox("#WireGatesTool_noclip", "wire_gates_noclip")
-		local weldbox = panel:CheckBox("#WireGatesTool_weld", "wire_gates_weld")
 		local parentbox = panel:CheckBox("#WireGatesTool_parent","wire_gates_parent")
 
 		panel:Help("When parenting, you should check the nocollide box, or adv duplicator might not dupe the gate.")
@@ -52,16 +49,9 @@ if CLIENT then
 			self:Toggle()
 		end
 
-		function weldbox.Button:DoClick() -- block the weld checkbox from being toggled while the parent box is checked
-			if (parentbox:GetChecked() == false) then
-				self:Toggle()
-			end
-		end
-
-		function parentbox.Button:DoClick() -- when you check the parent box, uncheck the weld box and check the nocollide box
+		function parentbox.Button:DoClick() -- when you check the parent box, check the nocollide box
 			self:Toggle()
 			if (self:GetChecked() == true) then
-				weldbox:SetValue(0)
 				nocollidebox:SetValue(1)
 			end
 		end

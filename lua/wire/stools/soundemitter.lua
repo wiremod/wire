@@ -6,7 +6,6 @@ if CLIENT then
 	language.Add( "tool.wire_soundemitter.desc", "Spawns a sound emitter for use with the wire system." )
 	language.Add( "tool.wire_soundemitter.0", "Primary: Create/Update Sound Emitter" )
 	language.Add( "WireEmitterTool_sound", "Sound:" )
-	language.Add( "WireEmitterTool_collision", "Collision" )
 end
 WireToolSetup.BaseLang()
 
@@ -23,8 +22,6 @@ end
 TOOL.ClientConVar = {
 	model     = "models/cheeze/wires/speaker.mdl",
 	sound     = "synth/square.wav",
-	collision = 0,
-	weld      = 1
 }
 function TOOL.BuildCPanel(panel)
 
@@ -84,7 +81,5 @@ function TOOL.BuildCPanel(panel)
 		SoundPreStop:SetPos(SoundPreWide / 2, 0)
 	end
 
-	panel:CheckBox("#WireEmitterTool_collision", "wire_soundemitter_collision")
 	ModelPlug_AddToCPanel(panel, "speaker", "wire_soundemitter", true)
-	panel:CheckBox("Weld", "wire_soundemitter_weld")
 end

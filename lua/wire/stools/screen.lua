@@ -38,7 +38,6 @@ TOOL.ClientConVar = {
 	createflat    = 1,
 	leftalign     = 0,
 	floor         = 0,
-	weld          = 1,
 }
 
 function TOOL.BuildCPanel(panel)
@@ -51,5 +50,4 @@ function TOOL.BuildCPanel(panel)
 	panel:TextEntry("#Tool_wire_screen_texta", "wire_screen_texta")
 	panel:TextEntry("#Tool_wire_screen_textb", "wire_screen_textb")
 	panel:CheckBox("#Tool_wire_screen_createflat", "wire_screen_createflat")
-	panel:CheckBox("Weld", "wire_screen_weld")
 end

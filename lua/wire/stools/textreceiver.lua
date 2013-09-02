@@ -18,7 +18,6 @@ WireToolSetup.SetupMax( 10 )
 
 TOOL.ClientConVar["case_insensitive"] = 1
 TOOL.ClientConVar["use_lua_patterns"] = 0
-TOOL.ClientConVar["weld"] = 1
 
 TOOL.ClientConVar["num_matches"] = 1
 TOOL.ClientConVar["match1"] = "Hello World"

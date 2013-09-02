@@ -10,7 +10,6 @@ if CLIENT then
 	language.Add( "WireThrusterTool_force_min", "Force minimum:" )
 	language.Add( "WireThrusterTool_force_max", "Force maximum:" )
 	language.Add( "WireThrusterTool_bidir", "Bi-directional" )
-	language.Add( "WireThrusterTool_collision", "Collision" )
 	language.Add( "WireThrusterTool_soundname", "Select sound" )
 	language.Add( "WireThrusterTool_owater", "Works out of water" )
 	language.Add( "WireThrusterTool_uwater", "Works under water" )
@@ -24,7 +23,6 @@ TOOL.ClientConVar = {
 	force_max	= 10000,
 	model		= "models/props_c17/lampShade001a.mdl",
 	bidir		= 1,
-	collision	= 0,
 	soundname 	= "",
 	oweffect	= "fire",
 	uweffect	= "same",
@@ -36,7 +34,7 @@ if SERVER then
 	function TOOL:GetConVars() 
 		return self:GetClientNumber( "force" ), self:GetClientNumber( "force_min" ), self:GetClientNumber( "force_max" ), self:GetClientInfo( "oweffect" ), 
 			self:GetClientInfo( "uweffect" ), self:GetClientNumber( "owater" ) ~= 0, self:GetClientNumber( "uwater" ) ~= 0, self:GetClientNumber( "bidir" ) ~= 0, 
-			self:GetClientInfo( "soundname" ), self:GetClientNumber( "collision" ) == 0
+			self:GetClientInfo( "soundname" )
 	end
 end
 
@@ -150,7 +148,6 @@ function TOOL.BuildCPanel(panel)
 	panel:NumSlider("#WireThrusterTool_force_min", "wire_thruster_force_min", -10000, 10000, 0)
 	panel:NumSlider("#WireThrusterTool_force_max", "wire_thruster_force_max", -10000, 10000, 0)
 	panel:CheckBox("#WireThrusterTool_bidir", "wire_thruster_bidir")
-	panel:CheckBox("#WireThrusterTool_collision", "wire_thruster_collision")
 	panel:CheckBox("#WireThrusterTool_owater", "wire_thruster_owater")
 	panel:CheckBox("#WireThrusterTool_uwater", "wire_thruster_uwater")
 end

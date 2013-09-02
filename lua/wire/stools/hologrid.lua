@@ -23,7 +23,6 @@ end
 TOOL.ClientConVar = {
 	model = "models/jaanus/wiretool/wiretool_siren.mdl",
 	usegps = 0,
-	weld   = 1,
 }
 
 function TOOL:RightClick( trace )
@@ -66,5 +65,4 @@ end
 function TOOL.BuildCPanel( panel )
 	WireDermaExts.ModelSelect(panel, "wire_hologrid_model", list.Get( "Wire_Misc_Tools_Models" ), 1)
 	panel:CheckBox("#Tool_wire_hologrid_usegps", "wire_hologrid_usegps")
-	panel:CheckBox("Weld", "wire_hologrid_weld")
 end

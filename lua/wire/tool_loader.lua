@@ -80,10 +80,9 @@ if SERVER then
 		if ent == nil or ent == false or not ent:IsValid() then return false end
 
 		-- Parenting
-		local nocollide
-		if (self.ClientConVar.parent and self:GetClientNumber( "parent" ) == 1) then
+		local nocollide, const
+		if self:GetClientNumber( "parent" ) == 1 then
 			if (trace.Entity:IsValid()) then
-
 				-- Nocollide the gate to the prop to make adv duplicator (and normal duplicator) find it
 				if (!self.ClientConVar.noclip or self:GetClientNumber( "noclip" ) == 1) then
 					nocollide = constraint.NoCollide( ent, trace.Entity, 0,trace.PhysicsBone )
@@ -91,14 +90,15 @@ if SERVER then
 
 				ent:SetParent( trace.Entity )
 			end
+		elseif not self:GetOwner():KeyDown(IN_WALK) then
+			-- Welding
+			const = WireLib.Weld( ent, trace.Entity, trace.PhysicsBone, true, false, self:GetOwner():GetInfo( "wire_tool_weldworld" )~="0" )
+			
+			-- Nocollide All
+			if self:GetOwner():GetInfo( "wire_tool_nocollide" )~="0" then
+				ent:SetCollisionGroup( COLLISION_GROUP_WORLD )
+			end
 		end
-
-		-- Welding
-		local const
-		if not self.ClientConVar.weld or self:GetClientNumber( "weld" ) == 1 then
-			const = WireLib.Weld( ent, trace.Entity, trace.PhysicsBone, true, false, self:GetClientNumber( "weldtoworld", 0 ) != 0 )
-		end
-
 
 		undo.Create( self.WireClass )
 			undo.AddEntity( ent )
@@ -268,7 +268,81 @@ function WireToolObj:SetPos( ent, trace )
 end
 if SERVER then WireToolObj.PostMake_SetPos = WireToolObj.SetPos end
 
+if CLIENT then
+	local fonttab = {font = "Helvetica", size = 60, weight = 900}
+	for size=60,20,-2 do
+		fonttab.size = size
+		surface.CreateFont("GmodToolScreen"..size, fonttab)
+	end
 
+	local iconparams = {
+		["$vertexcolor"] = 1,
+		["$vertexalpha"] = 1,
+		["$ignorez"] = 1 -- This is essential, since the base Gmod screen_bg has ignorez, otherwise it'll draw overtop of us
+	}
+	local txBackground = surface.GetTextureID("models/weapons/v_toolgun/wirescreen_bg")
+	function WireToolObj:DrawToolScreen(width, height)
+		surface.SetTexture(txBackground)
+		surface.DrawTexturedRect(0, 0, width, height)
+		
+		local text = self.Name
+		if self.ScreenFont then
+			surface.SetFont(self.ScreenFont)
+		else
+			for size=60,20,-2 do
+				surface.SetFont("GmodToolScreen"..size)
+				local x,y = surface.GetTextSize(text)
+				if x <= (width - 16) then
+					self.ScreenFont = "GmodToolScreen"..size
+					break
+				end
+			end
+		end
+		local w, h = surface.GetTextSize(text)
+		local x = width/2 - w/2
+		local y = 105 - h/2
+		
+		-- Draw shadow first
+		surface.SetTextColor(0, 0, 0, 255)
+		surface.SetTextPos(x + 3, y + 3)
+		surface.DrawText(text)
+			
+		surface.SetTextColor(255, 255, 255, 255)
+		surface.SetTextPos(x, y)
+		surface.DrawText(text)
+		
+		iconparams[ "$basetexture" ] = "spawnicons/"..self:GetModel():sub(1,-5)
+		local mat = CreateMaterial(self:GetModel() .. "_DImage", "UnlitGeneric", iconparams )
+		surface.SetMaterial(mat)
+		surface.DrawTexturedRect( 128 - 32, 150, 64, 64)
+		
+		local on = self:GetOwner():GetInfo( "wire_tool_weldworld" )~="0" and not self:GetOwner():KeyDown(IN_WALK)
+		draw.DrawText("World Weld:  "..(on and "On" or "Off"),
+			"GmodToolScreen20",
+			5, height-38,
+			Color(on and 150 or 255, on and 255 or 150, 150, 255)
+		)
+		local on = self:GetOwner():GetInfo( "wire_tool_nocollide" )~="0" and not self:GetOwner():KeyDown(IN_WALK)
+		draw.DrawText("Nocollide All: "..(on and "On" or "Off"),
+			"GmodToolScreen20",
+			5, height-22,
+			Color(on and 150 or 255, on and 255 or 150, 150, 255)
+		)
+	end
+	
+	CreateClientConVar( "wire_tool_weldworld", "0", true, true )
+	CreateClientConVar( "wire_tool_nocollide", "1", true, true )
+	local function CreateCPanel_WireOptions( Panel )
+		Panel:ClearControls()
+		
+		Panel:Help("Hold Alt while spawning Wire entities\nto disable Weld and Nocollide All")
+		Panel:CheckBox("Allow Weld to World", "wire_tool_weldworld")
+		Panel:CheckBox("Nocollide All", "wire_tool_nocollide")
+	end
+	hook.Add("PopulateToolMenu","WireLib_WireOptions",function()
+		spawnmenu.AddToolMenuOption( "Wire", "Wire - Tools", "WireOptions", "Tool Options", "", "", CreateCPanel_WireOptions, nil )
+	end)
+end
 
 
 -- function used by TOOL.BuildCPanel

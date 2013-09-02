@@ -21,8 +21,6 @@ else
 	language.Add( "undone_wireplug", "Undone Wire Plug" )
 	language.Add( "undone_wiresocket", "Undone Wire Socket" )
 
-	language.Add( "Tool_wire_plug_weld", "Weld the socket." )
-	language.Add( "Tool_wire_plug_weldtoworld", "Weld the socket to the world." )
 	language.Add( "Tool_wire_plug_freeze", "Freeze the socket." )
 	language.Add( "Tool_wire_plug_array", "Use array inputs/outputs instead." )
 	language.Add( "Tool_wire_plug_weldforce", "Plug weld force:" )
@@ -32,8 +30,6 @@ else
 end
 
 TOOL.ClientConVar["model"] = "models/props_lab/tpplugholder_single.mdl"
-TOOL.ClientConVar["weld"] = 1
-TOOL.ClientConVar["weldtoworld"] = 0
 TOOL.ClientConVar["freeze"] = 1
 TOOL.ClientConVar["array"] = 0
 TOOL.ClientConVar["weldforce"] = 5000
@@ -126,8 +122,6 @@ end
 function TOOL.BuildCPanel( panel )
 	WireToolHelpers.MakePresetControl(panel, "wire_plug")
 	ModelPlug_AddToCPanel(panel, "Socket", "wire_plug")
-	panel:CheckBox("#Tool_wire_plug_weld", "wire_plug_weld")
-	panel:CheckBox("#Tool_wire_plug_weldtoworld", "wire_plug_weldtoworld")
 	panel:CheckBox("#Tool_wire_plug_freeze", "wire_plug_freeze")
 	panel:CheckBox("#Tool_wire_plug_array", "wire_plug_array")
 	panel:NumSlider("#Tool_wire_plug_weldforce", "wire_plug_weldforce", 0, 100000)

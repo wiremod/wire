@@ -14,11 +14,9 @@ TOOL.NoLeftOnClass = true -- no update ent function needed
 TOOL.ClientConVar = {
 	model      = "models/props_lab/monitor01b.mdl",
 	createflat = 0,
-	weld       = 1,
 }
 
 function TOOL.BuildCPanel(panel)
 	WireDermaExts.ModelSelect(panel, "wire_consolescreen_model", list.Get( "WireScreenModels" ), 5)
 	panel:CheckBox("#Create Flat to Surface", "wire_consolescreen_createflat")
-	panel:CheckBox("Weld", "wire_consolescreen_weld")
 end
