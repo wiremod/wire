@@ -9,8 +9,8 @@ function ENT:Initialize()
   self:SetMoveType(MOVETYPE_VPHYSICS)
   self:SetSolid(SOLID_VPHYSICS)
 
-  self.Inputs = Wire_CreateInputs(self, { "CharX", "CharY", "Char", "CharParam", "Clk", "Reset" })
-  self.Outputs = Wire_CreateOutputs(self, { "Memory" })
+  self.Inputs = WireLib.CreateInputs(self, { "CharX", "CharY", "Char (ASCII/Unicode)", "CharParam (RGBrgb; White=999)", "Clk", "Reset" })
+  self.Outputs = WireLib.CreateOutputs(self, { "Memory" })
 
   self.Memory = {}
 

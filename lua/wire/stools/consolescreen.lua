@@ -7,7 +7,6 @@ if CLIENT then
 	language.Add( "tool.wire_consolescreen.0", "Primary: Create/Update screen" )
 end
 WireToolSetup.BaseLang()
-
 WireToolSetup.SetupMax( 20 )
 
 TOOL.NoLeftOnClass = true -- no update ent function needed
@@ -21,4 +20,5 @@ function TOOL.BuildCPanel(panel)
 	WireDermaExts.ModelSelect(panel, "wire_consolescreen_model", list.Get( "WireScreenModels" ), 5)
 	panel:CheckBox("#Create Flat to Surface", "wire_consolescreen_createflat")
 	panel:CheckBox("Weld", "wire_consolescreen_weld")
+	panel:Help("CharParam is LBBBFFF format: background and foreground colour of the character (one digit each for RGB), if L is nonzero the char flashes")
 end
