@@ -318,6 +318,16 @@ if CLIENT then
 			return names
 		end)
 
+	-- Severe lagspikes can detach the source entity from its lua, so we need to reapply things when its reattached
+	hook.Add("NetworkEntityCreated", "wire_hologram_rescale", function(ent)
+		if ent.scale and ent.DoScale then
+			-- ent.scale isn't present on newly created holograms, only old ones that've been hit by a lagspike
+			ent:DoScale()
+			ent:DoClip()
+			ent:DoVisible()
+		end
+	end)
+
 	return -- No more client
 end
 
