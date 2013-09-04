@@ -25,7 +25,7 @@ local function findFunc( self, funcname, typeids, typeids_str )
 	for i=1,#self.strfunc_cache do
 		local t = self.strfunc_cache[i]
 		if t[1] == str then
-			return t[2], t[3]
+			return t[2], t[3], t[4]
 		end
 	end
 	
@@ -68,7 +68,7 @@ local function findFunc( self, funcname, typeids, typeids_str )
 	end
 	
 	if func then
-		local t = { str, func, func_return_type }
+		local t = { str, func, func_return_type, vararg }
 		insert( self.strfunc_cache, 1, t )
 		if #self.strfunc_cache == 21 then self.strfunc_cache[21] = nil end
 	end
@@ -92,15 +92,14 @@ registerOperator( "sfun", "", "", function(self, args)
 	
 	self.prf = self.prf + 40
 	
-	if vararg then
-		funcargs[1] = function(self,arg) return arg[1] end
-		funcargs[#funcargs+1] = typeids
-		funcargs.TraceName = "FUN"
-	end
+	if vararg then funcargs[#funcargs+1] = typeids end -- if this is a vararg func, we need to send the typeids as well
 	
 	if returntype ~= "" then
-		return func( self, funcargs )
+		local ret = func( self, funcargs )
+		if vararg then funcargs[#funcargs] = nil end -- clean up
+		return ret
 	else
 		func( self, funcargs )
+		if vararg then funcargs[#funcargs] = nil end -- clean up
 	end
 end)
