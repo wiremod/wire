@@ -51,6 +51,7 @@ end
 
 -- Installs a typecheck in a function identified by the given signature.
 local function makecheck(signature)
+	if signature == "op:seq()" then return end
 	local name = signature:match("^([^(]*)")
 	local entry = wire_expression2_funcs[signature]
 	local oldfunc, signature, rets, func, cost = entry.oldfunc, unpack(entry)
