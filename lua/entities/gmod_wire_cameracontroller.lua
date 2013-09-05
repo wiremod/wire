@@ -12,7 +12,7 @@ function ENT:Initialize()
 	self.CamPlayer = self:GetPlayer() -- The player being shown the camera view.
 
 	self.Active = false -- Whether the player is currently being shown the camera view.
-	self.ZoomAmount = 75 -- The FOV of the player's view.
+	self.ZoomAmount = nil -- The FOV of the player's view.
 	self.Static = false -- Whether the camera controller has a separate camera entity.
 	self.FLIR = false -- Whether infrared view is turned on.
 end
@@ -109,7 +109,9 @@ function ENT:EnableCam(enabled)
 	end
 	self.CamPlayer.CamController = enabled and self or nil
 	self.CamPlayer:SetViewEntity(enabled and self.CamEnt or self.CamPlayer)
-	self.CamPlayer:SetFOV(enabled and self.ZoomAmount or self.CamPlayer.OriginalFOV or 75, 0.01 )
+	if self.ZoomAmount then 
+		self.CamPlayer:SetFOV(enabled and self.ZoomAmount or self.CamPlayer.OriginalFOV or 75, 0.01 )
+	end
 	FLIR.enable(self.CamPlayer, enabled and self.FLIR)
 
 	WireLib.TriggerOutput(self, "On", enabled and 1 or 0)
