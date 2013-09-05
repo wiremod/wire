@@ -11,7 +11,7 @@ registerType("entity", "e", nil,
 		if not retval.EntIndex then error("Return value is neither nil nor an Entity, but a "..type(retval).."!",0) end
 	end,
 	function(v)
-		return not IsValid(v)
+		return not isentity(v) or not v:IsValid()
 	end
 )
 
