@@ -12,7 +12,7 @@ function ENT:Initialize()
 	self.CamPlayer = self:GetPlayer() -- The player being shown the camera view.
 
 	self.Active = false -- Whether the player is currently being shown the camera view.
-	self.ZoomAmount = nil -- The FOV of the player's view.
+	self.FOV = nil -- The FOV of the player's view. (By default, do not change the FOV.)
 	self.Static = false -- Whether the camera controller has a separate camera entity.
 	self.FLIR = false -- Whether infrared view is turned on.
 end
@@ -104,14 +104,12 @@ function ENT:EnableCam(enabled)
 	if not IsValid(self.CamPlayer) then self.CamPlayer = self:GetPlayer() end
 	if not IsValid(self.CamPlayer) then return end
 	if not IsValid(self.CamEnt) then enabled = false end
-	if not self.Active then
-		self.CamPlayer.OriginalFOV = self.CamPlayer:GetFOV()
+	if self.FOV then
+		if not self.Active then self.CamPlayer.OriginalFOV = self.CamPlayer:GetFOV() end
+		self.CamPlayer:SetFOV(enabled and self.FOV or self.CamPlayer.OriginalFOV or 75, 0.01 )
 	end
 	self.CamPlayer.CamController = enabled and self or nil
 	self.CamPlayer:SetViewEntity(enabled and self.CamEnt or self.CamPlayer)
-	if self.ZoomAmount then 
-		self.CamPlayer:SetFOV(enabled and self.ZoomAmount or self.CamPlayer.OriginalFOV or 75, 0.01 )
-	end
 	FLIR.enable(self.CamPlayer, enabled and self.FLIR)
 
 	WireLib.TriggerOutput(self, "On", enabled and 1 or 0)
@@ -126,16 +124,20 @@ function ENT:TriggerInput( name, value )
 		end
 		self:EnableCam(value)
 	elseif name == "Zoom" then
-		self.ZoomAmount = math.Clamp( value, 1, 90 )
-		if self.Active then self.CamPlayer:SetFOV( self.ZoomAmount, 0.01 ) end
+		self.FOV = value > 0 and math.Clamp( value, 1, 90 ) or nil
+		self:EnableCam(self.Active)
 	elseif name == "FLIR" then
 		self.FLIR = tobool(value)
 		self:EnableCam(self.Active)
 	elseif name == "Direction" then
 		self:TriggerInput("Angle", value:Angle())
 	elseif IsValid(self.CamEnt) then
-		local pos = self.CamEnt:GetPos()
-		local ang = self.CamEnt:GetAngles()
+		local pos, ang = self.CamEnt:GetPos(), self.CamEnt:GetAngles()
+		if IsValid(self.CamEnt:GetParent()) then
+			pos = self.camEnt:GetParent():WorldToLocal(pos)
+			ang = self.camEnt:GetParent():GetAngles() - ang
+		end
+
 		if name == "Parent" then
 			self.CamEnt:SetParent(IsValid(value) and value or nil)
 		elseif name == "Position" then pos = value
@@ -147,14 +149,11 @@ function ENT:TriggerInput( name, value )
 		elseif name == "Yaw" then ang.y = value
 		elseif name == "Roll" then ang.r = value
 		end
-		-- We unparent before moving the child entity
+
 		if IsValid(self.CamEnt:GetParent()) then
-			local parent = self:GetParent()
-			self:SetParent(nil)
+			pos = self.camEnt:GetParent():LocalToWorld(pos)
+			ang = self.camEnt:GetParent():GetAngles() + ang
 		end
-			self.CamEnt:SetPos(pos)
-			self.CamEnt:SetAngles(ang)
-		if IsValid(self.CamEnt:GetParent()) then self:SetParent(parent) end
 	end
 end
 
