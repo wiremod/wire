@@ -408,8 +408,9 @@ elseif CLIENT then
 		local alt = self:GetOwner():KeyDown(IN_WALK)
 		
 		if IsValid( trace.Entity ) then
-			if self:GetStage() == 0 and WireLib.HasPorts( trace.Entity ) then
+			if self:GetStage() == 0 then
 				local inputs, _ = self:GetPorts( trace.Entity )
+				if not inputs then return end
 				
 				if alt then -- Select everything
 					for i=1,#inputs do
@@ -419,14 +420,17 @@ elseif CLIENT then
 					-- Single input selection
 					self:WireStart( trace.Entity, trace.HitPos, inputs[self.CurrentWireIndex][1], inputs[self.CurrentWireIndex][2] )
 				end
+				
 				self:GetOwner():EmitSound( "weapons/airboat/airboat_gun_lastshot" .. math.random(1,2) .. ".wav" )
+				
 				if not shift then
 					self:SetStage(1) -- Set this immediately so the HUD doesn't glitch
 				end
+				
 				return
 			elseif self:GetStage() == 1 then
 				local _, outputs = self:GetPorts( trace.Entity )
-				if not outputs and not self.ShowWirelink and not self.ShowEntity then return end
+				if not outputs then return end
 				
 				self.CurrentEntity = trace.Entity
 				
