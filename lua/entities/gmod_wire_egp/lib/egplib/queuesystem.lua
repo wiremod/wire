@@ -14,12 +14,12 @@ function EGP:AddQueueObject( Ent, ply, Function, Object )
 			local found = false
 			for k,v in ipairs( LastItem.Args[1] ) do
 				if (v.index == Object.index) then
-					found = true
 					--self:EditObject( v, Object )
 
 					if (Object.remove) then -- The object has been removed
 						table.remove( LastItem.Args[1], k )
 					elseif (v.ID != Object.ID) then -- Not the same kind of object, create new
+						found = true
 						if (v.OnRemove) then v:OnRemove() end
 						local Obj = self:GetObjectByID( Object.ID )
 						self:EditObject( Obj, Object:DataStreamInfo() )
@@ -27,6 +27,7 @@ function EGP:AddQueueObject( Ent, ply, Function, Object )
 						if (Obj.OnCreate) then Obj:OnCreate() end
 						LastItem.Args[1][k] = Obj
 					else -- Edit
+						found = true
 						self:EditObject( v, Object:DataStreamInfo() )
 					end
 

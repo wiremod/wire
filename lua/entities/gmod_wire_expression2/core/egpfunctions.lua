@@ -86,7 +86,7 @@ e2function number wirelink:egpOrder( number index )
 	if (bool) then
 		return k
 	end
-	return 0
+	return -1
 end
 
 __e2setcost(15)
@@ -664,7 +664,7 @@ e2function number wirelink:egpFidelity( number index )
 			return v.fidelity
 		end
 	end
-	return 0
+	return -1
 end
 
 ----------------------------
@@ -718,7 +718,7 @@ e2function number wirelink:egpParent( number index )
 			return v.parent
 		end
 	end
-	return 0
+	return -1
 end
 
 --------------------------------------------------------

@@ -305,6 +305,14 @@ if (SERVER) then
 			if (E2 and E2.entity and E2.entity:IsValid()) then
 				E2.prf = E2.prf + 20
 			end
+			
+			for i=1,#Ent.RenderTable do
+				E2.prf = E2.prf + 0.3
+				if Ent.RenderTable[i].index == Data[1] then
+					table.remove( Ent.RenderTable, i )
+					break
+				end
+			end
 
 			self:AddQueueObject( Ent, E2.player, SendObjects, { index = Data[1], remove = true } )
 		elseif (Action == "ClearScreen") then
