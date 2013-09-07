@@ -1020,7 +1020,7 @@ function Editor:AddControlPanelTab(label, icon, tooltip)
 	end
 	local old = ret.Tab.OnMousePressed
 	function ret.Tab.OnMousePressed(...)
-		frame:ResizeAll()
+		timer.Simple(0.1,function() frame:ResizeAll() end) -- timers solve everything
 		old(...)
 	end
 
@@ -1720,8 +1720,8 @@ Text here]# ]]
 		dlist2:Clear()
 		local size = 0
 		for k, v in pairs(E2s) do
-			local ply = v:GetNWEntity("_player", false)
-			if ply and ply == LocalPlayer() or showall then
+			local ply = v:GetNWEntity("player", NULL)
+			if IsValid(ply) and ply == LocalPlayer() or showall then
 				local nick
 				if not ply or not ply:IsValid() then nick = "Unknown" else nick = ply:Nick() end
 				local name = v:GetNWString("name", "generic")

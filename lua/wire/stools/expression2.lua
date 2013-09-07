@@ -56,7 +56,7 @@ if SERVER then
 		entity:Spawn()
 		entity:SetPlayer(player)
 		entity.player = player
-		entity:SetNWEntity("_player", player)
+		entity:SetNWEntity("player", player)
 
 		entity:SetPos(trace.HitPos - trace.HitNormal * entity:OBBMins().z)
 		local constraint = WireLib.Weld(entity, trace.Entity, trace.PhysicsBone, true)
