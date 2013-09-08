@@ -120,23 +120,22 @@ function EDITOR:OnMousePressed(code)
 
 			if (wire_expression2_editor_highlight_on_double_click:GetBool()) then
 				self.HighlightedAreasByDoubleClick = {}
-				local all_finds = self:FindAll( self:GetSelection(), true )
+				local all_finds = self:FindAllWords( self:GetSelection() )
 				if (all_finds) then
+					all_finds[0] = {1,1} -- Set [0] so the [i-1]'s don't fail on the first iteration
+					self.HighlightedAreasByDoubleClick[0] = {{1,1}, {1,1}}
 					for i=1,#all_finds do
-						local start = all_finds[i][1]-1
-						local stop = all_finds[i][2]-1
-						local caretstart = self:MovePosition( {1,1}, start )
-						local caretstop = self:MovePosition( {1,1}, stop )
-						local wordstart, wordstop = self:getWordStart( caretstart ), self:getWordEnd( caretstart )
+						-- Instead of finding the caret by searching from the beginning every time, start searching from the previous caret
+						local start = all_finds[i][1] - all_finds[i-1][1]
+						local stop = all_finds[i][2] - all_finds[i-1][2]
+						local caretstart = self:MovePosition( self.HighlightedAreasByDoubleClick[i-1][1], start )
+						local caretstop = self:MovePosition( self.HighlightedAreasByDoubleClick[i-1][2], stop )
+						self.HighlightedAreasByDoubleClick[i] = { caretstart, caretstop }
 
-						-- This massive if block checks a) if it's NOT the word the user just highlighted and b) if the string is its own word and not part of another word
-						if ((caretstart[1] != self.Start[1] or caretstart[2] != self.Start[2] or
-							caretstop[1] != self.Caret[1] or caretstop[2] != self.Caret[2]) and
-							(caretstart[1] == wordstart[1] and caretstart[2] == wordstart[2] and
-							caretstop[1] == wordstop[1] and caretstop[2] == wordstop[2])) then
-
+						-- This checks if it's NOT the word the user just highlighted
+						if (caretstart[1] != self.Start[1] or caretstart[2] != self.Start[2] or
+							caretstop[1] != self.Caret[1] or caretstop[2] != self.Caret[2]) then
 								self:HighlightArea( { caretstart, caretstop }, GetHighlightColor() )
-								self.HighlightedAreasByDoubleClick[#self.HighlightedAreasByDoubleClick+1] = { caretstart, caretstop }
 						end
 					end
 				end
@@ -1178,33 +1177,12 @@ function EDITOR:CountFinds( str )
 	end
 end
 
-function EDITOR:FindAll( str, skip_extras )
+function EDITOR:FindAllWords( str )
 	if str == "" then return end
 
 	local txt = self:GetValue()
-	local pattern
-
-	if skip_extras then
-		pattern = "()" .. str:gsub("[%-%^%$%(%)%%%.%[%]%*%+%-%?]", "%%%1") .. "()"
-	else
-		local use_patterns = wire_expression2_editor_find_use_patterns:GetBool()
-		if use_patterns then
-			pattern = "()" .. str .. "()"
-		else
-			pattern = "()" .. str:gsub( "[%-%^%$%(%)%%%.%[%]%*%+%-%?]", "%%%1" ) .. "()"
-		end
-		
-		local ignore_case = wire_expression2_editor_find_ignore_case:GetBool()
-		if ignore_case then
-			txt = txt:lower()
-			pattern = pattern:lower()
-		end
-
-		local whole_word_only = wire_expression2_editor_find_whole_word_only:GetBool()
-		if whole_word_only then
-			pattern = "[^a-zA-Z0-9_]" .. pattern .. "[^a-zA-Z0-9_]"
-		end
-	end
+	-- [^a-zA-Z0-9_] ensures we only find whole words, and the gsub escapes any regex command characters that happen to be in str
+	local pattern = "[^a-zA-Z0-9_]()" .. str:gsub("[%-%^%$%(%)%%%.%[%]%*%+%-%?]", "%%%1") .. "()[^a-zA-Z0-9_]"
 
 	local ret = {}
 	for start,stop in txt:gmatch( pattern ) do
