@@ -1138,6 +1138,16 @@ function WireLib.MakeWireEnt( pl, Data, ... )
 	return ent
 end
 
+function WireLib.ClassAlias(realclass, alias)
+	scripted_ents.Alias(alias, realclass)
+	-- Hack for Advdupe2, since scripted_ents.GetList() does not respect aliases
+	hook.Add("Initialize", "Rename_"..alias, function()
+		local tab = scripted_ents.GetStored(realclass).t -- Grab the registered entity (ie gmod_wire_pod)
+		scripted_ents.Register(tab, alias) -- Set "adv_pod" to be defined as this ENT
+		tab.ClassName = realclass -- scripted_ents.Register changes this to your argument, lets change it back
+	end)
+end
+
 function WireLib.CalcElasticConsts(Ent1, Ent2)
 	if not IsValid(Ent1:GetPhysicsObject()) or not IsValid(Ent2:GetPhysicsObject()) then return 100, 20 end
 	local minMass = math.min(Ent1:IsWorld() and 99999 or Ent1:GetPhysicsObject():GetMass(), Ent2:IsWorld() and 99999 or Ent2:GetPhysicsObject():GetMass())

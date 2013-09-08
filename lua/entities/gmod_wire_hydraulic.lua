@@ -147,13 +147,7 @@ function MakeWireHydraulicController( pl, Pos, Ang, model, MyEntId, const, rope 
 end
 duplicator.RegisterEntityClass("gmod_wire_hydraulic", MakeWireHydraulicController, "Pos", "Ang", "Model", "MyId" )
 duplicator.RegisterEntityClass("gmod_wire_winch_controller", MakeWireHydraulicController, "Pos", "Ang", "Model", "MyId")
-scripted_ents.Alias("gmod_wire_winch_controller", "gmod_wire_hydraulic")
--- Hack for Advdupe2, since scripted_ents.GetList() does not respect aliases
-hook.Add("Initialize", "WinchController_rename", function()
-	local tab = scripted_ents.GetStored("gmod_wire_hydraulic").t -- Grab the new ENT
-	scripted_ents.Register(tab, "gmod_wire_winch_controller") -- Set the old classname to be defined as this ENT
-	tab.ClassName = "gmod_wire_hydraulic" -- scripted_ents.Register changes this to your argument, lets change it back
-end)
+WireLib.ClassAlias("gmod_wire_hydraulic", "gmod_wire_winch_controller")
 
 function MakeWireHydraulic( pl, Ent1, Ent2, Bone1, Bone2, LPos1, LPos2, width, material, speed, fixed, stretchonly, MyCrtl )
 	if not constraint.CanConstrain(Ent1, Bone1) then return false end

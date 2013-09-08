@@ -532,11 +532,9 @@ function ENT:Use( User, caller )
 	end)
 end
 
--- This seems to actually do very little
-scripted_ents.Alias("gmod_wire_adv_pod", "gmod_wire_pod")
-
 duplicator.RegisterEntityClass("gmod_wire_pod", WireLib.MakeWireEnt, "Data")
 duplicator.RegisterEntityClass("gmod_wire_adv_pod", WireLib.MakeWireEnt, "Data")
+WireLib.ClassAlias("gmod_wire_pod", "gmod_wire_adv_pod")
 
 -- Hack for Advdupe2, since scripted_ents.GetList() does not respect aliases
 hook.Add("Initialize", "AdvPod_rename", function()
