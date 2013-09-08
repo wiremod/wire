@@ -665,42 +665,43 @@ function EDITOR:CopyPosition(caret)
 end
 
 function EDITOR:MovePosition(caret, offset)
-	local caret = { caret[1], caret[2] }
+	local row, col = caret[1], caret[2]
 
 	if offset > 0 then
+		local numRows = #self.Rows
 		while true do
-			local length = #(self.Rows[caret[1]]) - caret[2] + 2
+			local length = #(self.Rows[row]) - col + 2
 			if offset < length then
-				caret[2] = caret[2] + offset
+				col = col + offset
 				break
-			elseif caret[1] == #self.Rows then
-				caret[2] = caret[2] + length - 1
+			elseif row == numRows then
+				col = col + length - 1
 				break
 			else
 				offset = offset - length
-				caret[1] = caret[1] + 1
-				caret[2] = 1
+				row = row + 1
+				col = 1
 			end
 		end
 	elseif offset < 0 then
 		offset = -offset
 
 		while true do
-			if offset < caret[2] then
-				caret[2] = caret[2] - offset
+			if offset < col then
+				col = col - offset
 				break
-			elseif caret[1] == 1 then
-				caret[2] = 1
+			elseif row == 1 then
+				col = 1
 				break
 			else
-				offset = offset - caret[2]
-				caret[1] = caret[1] - 1
-				caret[2] = #(self.Rows[caret[1]]) + 1
+				offset = offset - col
+				row = row - 1
+				col = #(self.Rows[row]) + 1
 			end
 		end
 	end
 
-	return caret
+	return {row, col}
 end
 
 
