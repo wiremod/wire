@@ -871,7 +871,7 @@ function EDITOR:_OnTextChanged()
 
 	if text == "" then return end
 	if not ctrlv then
-		if text == "\n" then return end
+		if text == "\n" or text == "`" then return end
 		if text == "}" and GetConVarNumber('wire_expression2_autoindent') ~= 0 then
 			self:SetSelection(text)
 			local row = self.Rows[self.Caret[1]]
