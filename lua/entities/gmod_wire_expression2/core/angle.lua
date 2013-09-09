@@ -201,17 +201,16 @@ end
 __e2setcost(5)
 
 e2function angle round(angle rv1)
-	local p = rv1[1] - (rv1[1] + 0.5) % 1 + 0.5
-	local y = rv1[2] - (rv1[2] + 0.5) % 1 + 0.5
-	local r = rv1[3] - (rv1[3] + 0.5) % 1 + 0.5
+	local p = math.Round(rv1[1])
+	local y = math.Round(rv1[2])
+	local r = math.Round(rv1[3])
 	return {p, y, r}
 end
 
-e2function angle round(angle rv1, rv2)
-	local shf = 10 ^ rv2
-	local p = rv1[1] - ((rv1[1] * shf + 0.5) % 1 + 0.5) / shf
-	local y = rv1[2] - ((rv1[2] * shf + 0.5) % 1 + 0.5) / shf
-	local r = rv1[3] - ((rv1[3] * shf + 0.5) % 1 + 0.5) / shf
+e2function angle round(angle rv1, angle rv2)
+	local p = math.Round(rv1[1], rv2[1])
+	local y = math.Round(rv1[2], rv2[2])
+	local r = math.Round(rv1[3], rv2[3])
 	return {p, y, r}
 end
 
