@@ -17,6 +17,7 @@ registerType("angle", "a", { 0, 0, 0 },
 )
 
 local pi = math.pi
+local floor, ceil = math.floor, math.ceil
 
 /******************************************************************************/
 
@@ -145,13 +146,11 @@ e2function angle operator/(angle rv1, rv2)
 end
 
 e2function number angle:operator[](index)
-	index = math.Round(math.Clamp(index,1,3))
-	return this[index]
+	return this[floor(math.Clamp(index, 1, 3) + 0.5)]
 end
 
 e2function number angle:operator[](index, value)
-	index = math.Round(math.Clamp(index,1,3))
-	this[index] = value
+	this[floor(math.Clamp(index, 1, 3) + 0.5)] = value
 	return value
 end
 
@@ -201,48 +200,54 @@ end
 __e2setcost(5)
 
 e2function angle round(angle rv1)
-	local p = math.Round(rv1[1])
-	local y = math.Round(rv1[2])
-	local r = math.Round(rv1[3])
-	return {p, y, r}
+	return {
+		floor(rv1[1] + 0.5), 
+		floor(rv1[2] + 0.5), 
+		floor(rv1[3] + 0.5)
+	}
 end
 
-e2function angle round(angle rv1, angle rv2)
-	local p = math.Round(rv1[1], rv2[1])
-	local y = math.Round(rv1[2], rv2[2])
-	local r = math.Round(rv1[3], rv2[3])
-	return {p, y, r}
+e2function angle round(angle rv1, decimals)
+	local shf = 10 ^ decimals
+	return {
+		floor(rv1[1] * shf + 0.5) / shf, 
+		floor(rv1[2] * shf + 0.5) / shf, 
+		floor(rv1[3] * shf + 0.5) / shf
+	}
 end
 
-// ceil/floor on p,y,r separately
 e2function angle ceil(angle rv1)
-	local p = rv1[1] - rv1[1] % -1
-	local y = rv1[2] - rv1[2] % -1
-	local r = rv1[3] - rv1[3] % -1
-	return {p, y, r}
+	return {
+		ceil(rv1[1]), 
+		ceil(rv1[2]), 
+		ceil(rv1[3])
+	}
 end
 
-e2function angle ceil(angle rv1, rv2)
-	local shf = 10 ^ rv2
-	local p = rv1[1] - ((rv1[1] * shf) % -1) / shf
-	local y = rv1[2] - ((rv1[2] * shf) % -1) / shf
-	local r = rv1[3] - ((rv1[3] * shf) % -1) / shf
-	return {p, y, r}
+e2function angle ceil(angle rv1, decimals)
+	local shf = 10 ^ decimals
+	return {
+		ceil(rv1[1] * shf) / shf, 
+		ceil(rv1[2] * shf) / shf, 
+		ceil(rv1[3] * shf) / shf
+	}
 end
 
 e2function angle floor(angle rv1)
-	local p = rv1[1] - rv1[1] % 1
-	local y = rv1[2] - rv1[2] % 1
-	local r = rv1[3] - rv1[3] % 1
-	return {p, y, r}
+	return {
+		floor(rv1[1]), 
+		floor(rv1[2]), 
+		floor(rv1[3])
+	}
 end
 
-e2function angle floor(angle rv1, rv2)
-	local shf = 10 ^ rv2
-	local p = rv1[1] - ((rv1[1] * shf) % 1) / shf
-	local y = rv1[2] - ((rv1[2] * shf) % 1) / shf
-	local r = rv1[3] - ((rv1[3] * shf) % 1) / shf
-	return {p, y, r}
+e2function angle floor(angle rv1, decimals)
+	local shf = 10 ^ decimals
+	return {
+		floor(rv1[1] * shf) / shf, 
+		floor(rv1[2] * shf) / shf, 
+		floor(rv1[3] * shf) / shf
+	}
 end
 
 // Performs modulo on p,y,r separately

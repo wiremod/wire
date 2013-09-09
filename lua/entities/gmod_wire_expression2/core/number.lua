@@ -12,6 +12,7 @@ local sqrt   = math.sqrt
 
 local floor  = math.floor
 local ceil   = math.ceil
+local Round  = math.Round
 
 local sin    = math.sin
 local cos    = math.cos
@@ -225,48 +226,43 @@ end)
 
 __e2setcost(2) -- approximation
 
-registerFunction("abs", "n", "n", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	if rv1 >= 0 then return rv1 else return -rv1 end
-end)
+e2function number abs(value)
+	if value >= 0 then return value else return -value end
+end
 
 --- rounds towards +inf
 e2function number ceil(rv1)
-	return rv1 - rv1 % -1
+	return ceil(rv1)
 end
 
-registerFunction("ceil", "nn", "n", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	local shf = 10 ^ floor(rv2 + 0.5)
-	return rv1 - ((rv1 * shf) % -1) / shf
-end)
+e2function number ceil(value, decimals)
+	local shf = 10 ^ floor(decimals + 0.5)
+	return ceil(value * shf) / shf
+end
 
 --- rounds towards -inf
 e2function number floor(rv1)
-	return rv1 - rv1 % 1
+	return floor(rv1)
 end
 
-registerFunction("floor", "nn", "n", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	local shf = 10 ^ floor(rv2 + 0.5)
-	return rv1 - ((rv1 * shf) % 1) / shf
-end)
+e2function number floor(value, decimals)
+	local shf = 10 ^ floor(decimals + 0.5)
+	return floor(value * shf) / shf
+end
 
 --- rounds to the nearest integer
 e2function number round(rv1)
-	return math.Round(rv1)
+	return floor(rv1 + 0.5)
 end
 
 e2function number round(value, decimals)
-	return math.Round(value, decimals)
+	local shf = 10 ^ floor(decimals + 0.5)
+	return floor(value * shf + 0.5) / shf
 end
 
 --- rounds towards zero
 e2function number int(rv1)
-	if rv1 >= 0 then return rv1 - rv1 % 1 else return rv1 - rv1 % -1 end
+	if rv1 >= 0 then return floor(rv1) else return ceil(rv1) end
 end
 
 --- returns the fractional part. (frac(-1.5) == 0.5 & frac(3.2) == 0.2)

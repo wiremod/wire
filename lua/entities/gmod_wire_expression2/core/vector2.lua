@@ -5,6 +5,7 @@
 local delta  = wire_expression2_delta
 
 local floor = math.floor
+local ceil = math.ceil
 local random = math.random
 local pi = math.pi
 
@@ -155,13 +156,11 @@ registerOperator("div", "xv2xv2", "xv2", function(self, args)
 end)
 
 e2function number vector2:operator[](index)
-	index = math.Round(math.Clamp(index,1,2))
-	return this[index]
-	end
+	return this[floor(math.Clamp(index, 1, 2) + 0.5)]
+end
 
 e2function number vector2:operator[](index, value)
-	index = math.Round(math.Clamp(index,1,2))
-	this[index] = value
+	this[floor(math.Clamp(index, 1, 2) + 0.5)] = value
 	return value
 end
 
@@ -308,55 +307,52 @@ end)
 
 /******************************************************************************/
 
-__e2setcost(5)
+__e2setcost(4)
 
-e2function vector round(vector2 rv1)
+e2function vector2 round(vector2 rv1)
 	return {
-		math.Round(rv1[1]),
-		math.Round(rv1[2]),
+		floor(rv1[1] + 0.5), 
+		floor(rv1[2] + 0.5)
 	}
 end
 
-e2function vector round(vector2 rv1, decimals)
+e2function vector2 round(vector2 rv1, decimals)
+	local shf = 10 ^ decimals
 	return {
-		math.Round(rv1[1], decimals),
-		math.Round(rv1[2], decimals),
+		floor(rv1[1] * shf + 0.5) / shf, 
+		floor(rv1[2] * shf + 0.5) / shf
 	}
 end
 
-registerFunction("ceil", "xv2", "xv2", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	local x = rv1[1] - rv1[1] % -1
-	local y = rv1[2] - rv1[2] % -1
-	return { x, y }
-end)
+e2function vector2 ceil( vector2 rv1 )
+	return {
+		ceil(rv1[1]), 
+		ceil(rv1[2])
+	}
+end
 
-registerFunction("ceil", "xv2n", "xv2", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	local shf = 10 ^ rv2
-	local x = rv1[1] - ((rv1[1] * shf) % -1) / shf
-	local y = rv1[2] - ((rv1[2] * shf) % -1) / shf
-	return { x, y }
-end)
+e2function vector2 ceil(vector2 rv1, decimals)
+	local shf = 10 ^ decimals
+	return {
+		ceil(rv1[1] * shf) / shf, 
+		ceil(rv1[2] * shf) / shf
+	}
+end
 
-registerFunction("floor", "xv2", "xv2", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	local x = rv1[1] - rv1[1] % 1
-	local y = rv1[2] - rv1[2] % 1
-	return { x, y }
-end)
+e2function vector2 floor(vector2 rv1)
+	return {
+		floor(rv1[1]), 
+		floor(rv1[2])
+	}
+end
 
-registerFunction("floor", "xv2n", "xv2", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	local shf = 10 ^ rv2
-	local x = rv1[1] - ((rv1[1] * shf) % 1) / shf
-	local y = rv1[2] - ((rv1[2] * shf) % 1) / shf
-	return { x, y }
-end)
+e2function vector2 floor(vector2 rv1, decimals)
+	local shf = 10 ^ decimals
+	return {
+		floor(rv1[1] * shf) / shf, 
+		floor(rv1[2] * shf) / shf
+	}
+end
 
 // min/max based on vector length - returns shortest/longest vector
 registerFunction("min", "xv2xv2", "xv2", function(self, args)
@@ -497,7 +493,7 @@ e2function string vector2:toString() = e2function string toString(vector2 v)
 
 -- register a formatter for the debugger
 WireLib.registerDebuggerFormat("VECTOR2", function(value)
-	return "(" .. math.Round(value[1]*10)/10 .. "," .. math.Round(value[2]*10)/10 .. ")"
+	return string.format("(%.2f, %.2f)", value[1], value[2])
 end)
 
 /******************************************************************************/
@@ -697,13 +693,11 @@ registerOperator("div", "xv4xv4", "xv4", function(self, args)
 end)
 
 e2function number vector4:operator[](index)
-	index = math.Round(math.Clamp(index,1,4))
-	return this[index]
+	return this[floor(math.Clamp(index, 1, 4) + 0.5)]
 end
 
 e2function number vector4:operator[](index, value)
-	index = math.Round(math.Clamp(index,1,4))
-	this[index] = value
+	this[floor(math.Clamp(index, 1, 4) + 0.5)] = value
 	return value
 end
 
@@ -849,75 +843,64 @@ end)
 
 /******************************************************************************/
 
-__e2setcost(9)
+__e2setcost(8)
 
-registerFunction("round", "xv4", "xv4", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-
-	local shf = 10 ^ rv2
-	local x,y,z,w = unpack(rv1)
-
+e2function vector4 round(vector4 rv1)
 	return {
-		floor(x*shf+0.5)/shf,
-		floor(y*shf+0.5)/shf,
-		floor(z*shf+0.5)/shf,
-		floor(w*shf+0.5)/shf,
+		floor(rv1[1] + 0.5),
+		floor(rv1[2] + 0.5),
+		floor(rv1[3] + 0.5),
+		floor(rv1[4] + 0.5)
 	}
-end)
+end
 
-registerFunction("round", "xv4n", "xv4", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	local shf = 10 ^ rv2
-	local x = rv1[1] - ((rv1[1] * shf + 0.5) % 1 + 0.5) / shf
-	local y = rv1[2] - ((rv1[2] * shf + 0.5) % 1 + 0.5) / shf
-	local z = rv1[3] - ((rv1[3] * shf + 0.5) % 1 + 0.5) / shf
-	local w = rv1[4] - ((rv1[4] * shf + 0.5) % 1 + 0.5) / shf
-	return {x, y, z, w}
-end)
+e2function vector4 round(vector4 rv1, decimals)
+	local shf = 10 ^ decimals
+	return {
+		floor(rv1[1] * shf + 0.5) / shf, 
+		floor(rv1[2] * shf + 0.5) / shf,
+		floor(rv1[3] * shf + 0.5) / shf, 
+		floor(rv1[4] * shf + 0.5) / shf
+	}
+end
 
-registerFunction("ceil", "xv4", "xv4", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	local x = rv1[1] - rv1[1] % -1
-	local y = rv1[2] - rv1[2] % -1
-	local z = rv1[3] - rv1[3] % -1
-	local w = rv1[4] - rv1[4] % -1
-	return {x, y, z, w}
-end)
+e2function vector4 ceil( vector4 rv1 )
+	return {
+		ceil(rv1[1]),
+		ceil(rv1[2]),
+		ceil(rv1[3]),
+		ceil(rv1[4]),
+	}
+end
 
-registerFunction("ceil", "xv4n", "xv4", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	local shf = 10 ^ rv2
-	local x = rv1[1] - ((rv1[1] * shf) % -1) / shf
-	local y = rv1[2] - ((rv1[2] * shf) % -1) / shf
-	local z = rv1[3] - ((rv1[3] * shf) % -1) / shf
-	local w = rv1[4] - ((rv1[4] * shf) % -1) / shf
-	return {x, y, z, w}
-end)
+e2function vector4 ceil(vector4 rv1, decimals)
+	local shf = 10 ^ decimals
+	return {
+		ceil(rv1[1] * shf) / shf,
+		ceil(rv1[2] * shf) / shf,
+		ceil(rv1[3] * shf) / shf,
+		ceil(rv1[4] * shf) / shf
+	}
+end
 
-registerFunction("floor", "xv4", "xv4", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	local x = rv1[1] - rv1[1] % 1
-	local y = rv1[2] - rv1[2] % 1
-	local z = rv1[3] - rv1[3] % 1
-	local w = rv1[4] - rv1[4] % 1
-	return {x, y, z, w}
-end)
+e2function vector4 floor(vector4 rv1)
+	return {
+		floor(rv1[1]),
+		floor(rv1[2]),
+		floor(rv1[3]),
+		floor(rv1[4])
+	}
+end
 
-registerFunction("floor", "xv4n", "xv4", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	local shf = 10 ^ rv2
-	local x = rv1[1] - ((rv1[1] * shf) % 1) / shf
-	local y = rv1[2] - ((rv1[2] * shf) % 1) / shf
-	local z = rv1[3] - ((rv1[3] * shf) % 1) / shf
-	local w = rv1[4] - ((rv1[4] * shf) % 1) / shf
-	return {x, y, z, w}
-end)
+e2function vector4 floor(vector4 rv1, decimals)
+	local shf = 10 ^ decimals
+	return {
+		floor(rv1[1] * shf) / shf,
+		floor(rv1[2] * shf) / shf,
+		floor(rv1[3] * shf) / shf,
+		floor(rv1[4] * shf) / shf
+	}
+end
 
 __e2setcost(13)
 
@@ -1130,5 +1113,5 @@ e2function string vector4:toString() = e2function string toString(vector4 v)
 
 -- register a formatter for the debugger
 WireLib.registerDebuggerFormat("VECTOR4", function(value)
-	return "(" .. math.Round(value[1]*10)/10 .. "," .. math.Round(value[2]*10)/10 .. "," .. math.Round(value[3]*10)/10 .. "," .. math.Round(value[4]*10)/10 .. ")"
+	return string.format("(%.2f, %.2f, %.2f, %.2f)", value[1], value[2], value[3], value[4])
 end)

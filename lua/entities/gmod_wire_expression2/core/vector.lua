@@ -8,6 +8,7 @@ local random = math.random
 local Vector = Vector
 local sqrt = math.sqrt
 local floor = math.floor
+local ceil = math.ceil
 local pi = math.pi
 local atan2 = math.atan2
 local asin = math.asin
@@ -162,13 +163,11 @@ e2function vector operator/(vector lhs, vector rhs)
 end
 
 e2function number vector:operator[](index)
-	index = math.Round(math.Clamp(index,1,3))
-	return this[index]
+	return this[floor(math.Clamp(index, 1, 3) + 0.5)]
 end
 
 e2function number vector:operator[](index, value)
-	index = math.Round(math.Clamp(index,1,3))
-	this[index] = value
+	this[floor(math.Clamp(index, 1, 3) + 0.5)] = value
 	return value
 end
 
@@ -388,55 +387,56 @@ end
 
 --------------------------------------------------------------------------------
 
-__e2setcost(7)
+__e2setcost(6)
 
 e2function vector round(vector rv1)
 	return {
-		math.Round(rv1[1]),
-		math.Round(rv1[2]),
-		math.Round(rv1[3]),
+		floor(rv1[1] + 0.5), 
+		floor(rv1[2] + 0.5), 
+		floor(rv1[3] + 0.5)
 	}
 end
 
 e2function vector round(vector rv1, decimals)
+	local shf = 10 ^ decimals
 	return {
-		math.Round(rv1[1], decimals),
-		math.Round(rv1[2], decimals),
-		math.Round(rv1[3], decimals),
+		floor(rv1[1] * shf + 0.5) / shf, 
+		floor(rv1[2] * shf + 0.5) / shf, 
+		floor(rv1[3] * shf + 0.5) / shf
 	}
 end
 
 e2function vector ceil( vector rv1 )
 	return {
-		rv1[1] - rv1[1] % -1,
-		rv1[2] - rv1[2] % -1,
-		rv1[3] - rv1[3] % -1,
+		ceil(rv1[1]), 
+		ceil(rv1[2]), 
+		ceil(rv1[3])
 	}
 end
 
 e2function vector ceil(vector rv1, decimals)
 	local shf = 10 ^ decimals
 	return {
-		rv1[1] - ((rv1[1] * shf) % -1) / shf,
-		rv1[2] - ((rv1[2] * shf) % -1) / shf,
-		rv1[3] - ((rv1[3] * shf) % -1) / shf,
+		ceil(rv1[1] * shf) / shf, 
+		ceil(rv1[2] * shf) / shf, 
+		ceil(rv1[3] * shf) / shf
 	}
 end
 
 e2function vector floor(vector rv1)
 	return {
-		rv1[1] - rv1[1] % 1,
-		rv1[2] - rv1[2] % 1,
-		rv1[3] - rv1[3] % 1,
+		floor(rv1[1]), 
+		floor(rv1[2]), 
+		floor(rv1[3])
 	}
 end
 
 e2function vector floor(vector rv1, decimals)
 	local shf = 10 ^ decimals
 	return {
-		rv1[1] - ((rv1[1] * shf) % 1) / shf,
-		rv1[2] - ((rv1[2] * shf) % 1) / shf,
-		rv1[3] - ((rv1[3] * shf) % 1) / shf,
+		floor(rv1[1] * shf) / shf, 
+		floor(rv1[2] * shf) / shf, 
+		floor(rv1[3] * shf) / shf
 	}
 end
 
