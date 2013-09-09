@@ -310,26 +310,19 @@ end)
 
 __e2setcost(5)
 
-registerFunction("round", "xv2", "xv2", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	local x = rv1[1] - (rv1[1] + 0.5) % 1 + 0.5
-	local y = rv1[2] - (rv1[2] + 0.5) % 1 + 0.5
-	return { x, y }
-end)
-
-registerFunction("round", "xv2n", "xv2", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-
-	local shf = 10 ^ rv2
-	local x,y = unpack(rv1)
-
+e2function vector round(vector2 rv1)
 	return {
-		floor(x*shf+0.5)/shf,
-		floor(y*shf+0.5)/shf,
+		math.Round(rv1[1]),
+		math.Round(rv1[2]),
 	}
-end)
+end
+
+e2function vector round(vector2 rv1, decimals)
+	return {
+		math.Round(rv1[1], decimals),
+		math.Round(rv1[2], decimals),
+	}
+end
 
 registerFunction("ceil", "xv2", "xv2", function(self, args)
 	local op1 = args[2]
