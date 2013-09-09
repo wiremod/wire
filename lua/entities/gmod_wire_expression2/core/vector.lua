@@ -392,20 +392,17 @@ __e2setcost(7)
 
 e2function vector round(vector rv1)
 	return {
-		rv1[1] - (rv1[1] + 0.5) % 1 + 0.5,
-		rv1[2] - (rv1[2] + 0.5) % 1 + 0.5,
-		rv1[3] - (rv1[3] + 0.5) % 1 + 0.5,
+		math.Round(rv1[1]),
+		math.Round(rv1[2]),
+		math.Round(rv1[3]),
 	}
 end
 
-e2function vector round(vector rv1, decimals )
-	local shf = 10 ^ decimals
-	local x,y,z = rv1[1], rv1[2], rv1[3]
-
+e2function vector round(vector rv1, decimals)
 	return {
-		floor(x*shf+0.5)/shf,
-		floor(y*shf+0.5)/shf,
-		floor(z*shf+0.5)/shf,
+		math.Round(rv1[1], decimals),
+		math.Round(rv1[2], decimals),
+		math.Round(rv1[3], decimals),
 	}
 end
 

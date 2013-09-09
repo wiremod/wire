@@ -257,16 +257,12 @@ end)
 
 --- rounds to the nearest integer
 e2function number round(rv1)
-	return rv1 - (rv1 + 0.5) % 1 + 0.5
+	return math.Round(rv1)
 end
 
-registerFunction("round", "nn", "n", function(self, args)
-	local op1, op2 = args[2], args[3]
-	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-
-	local shf = 10 ^ floor(rv2 + 0.5)
-	return floor(rv1*shf+0.5)/shf
-end)
+e2function number round(value, decimals)
+	return math.Round(value, decimals)
+end
 
 --- rounds towards zero
 e2function number int(rv1)
