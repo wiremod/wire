@@ -1156,3 +1156,60 @@ function WireLib.CalcElasticConsts(Ent1, Ent2)
 
 	return const, damp
 end
+
+
+-- Returns a string like "Git f3a4ac3" or "SVN 2703" or "Workshop" or "Extracted"
+-- The partial git hash can be plugged into https://github.com/wiremod/wire/commit/f3a4ac3 to show the actual commit
+local cachedversion
+function WireLib.GetVersion()
+	-- If we've already found our version just return that again
+	if cachedversion then return cachedversion end
+
+	-- Check if we're Workshop version first
+	for k, addon in pairs(engine.GetAddons()) do
+		if addon.wsid == "160250458" then
+			cachedversion = "Workshop"
+			return cachedversion
+		end
+	end
+	
+	-- Find what our legacy folder is called
+	local wirefolder = "addons/wire"
+	if not file.Exists(wirefolder, "GAME") then
+		for k, folder in pairs(({file.Find("addons/*", "GAME")})[2]) do
+			if folder:find("wire") and not folder:find("extra") then
+				wirefolder = "addons/"..folder
+				break
+			end
+		end
+	end
+	
+	if file.Exists(wirefolder, "GAME") then
+		if file.Exists(wirefolder.."/.git", "GAME") then
+			cachedversion = "Git "..(file.Read(wirefolder.."/.git/refs/heads/master", "GAME") or "Unknown"):sub(1,7)
+		elseif file.Exists(wirefolder.."/.svn", "GAME") then
+			-- Note: This method will likely only detect TortoiseSVN installs
+			local wcdb = file.Read(wirefolder.."/.svn/wc.db", "GAME") or ""
+			local start = wcdb:find("/wiremod/wire/!svn/ver/%d+/branches%)")
+			if start then
+				cachedversion = "SVN "..wcdb:sub(start+23, start+26)
+			else
+				cachedversion = "SVN Unknown"
+			end
+		else
+			cachedversion = "Extracted"
+		end
+	end
+	
+	if not cachedversion then cachedversion = "Unknown" end
+	
+	return cachedversion
+end
+concommand.Add("wireversion", function(ply,cmd,args)
+	local text = "Wiremod's version: '"..WireLib.GetVersion().."'"
+	if IsValid(ply) then 
+		ply:ChatPrint(text)
+	else
+		print(text)
+	end
+end, nil, "Prints the server's Wiremod version")

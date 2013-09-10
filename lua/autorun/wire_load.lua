@@ -127,3 +127,5 @@ if file.Find("wire/uwsvn_load.lua","LUA")[1] then
 	if SERVER then AddCSLuaFile( "wire/uwsvn_load.lua" ) end
 	include("wire/uwsvn_load.lua")
 end
+
+if SERVER then print("Wiremod Version '"..WireLib.GetVersion().."' loaded") end
