@@ -396,7 +396,7 @@ if SERVER then
 	
 	net.Receive("wire_netmsg_register", function(netlen, ply) 
 		local self = net.ReadEntity()
-		if IsValid(self) then self:Retransmit(ply) end
+		if IsValid(self) and self.Retransmit then self:Retransmit(ply) end
 	end)
 elseif CLIENT then
 	function WireLib.netRegister(self)
