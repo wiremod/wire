@@ -9,6 +9,7 @@
 		"*.vcproj",
 		"*.svn*",
 		"*.txt",
+		"*.xcf",
 		".git*",
 		".gitignore",
 		"git-hooks-pre-commit",
