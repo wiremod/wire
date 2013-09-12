@@ -824,6 +824,143 @@ end
 
 -- -----------------------------------------------------------------------------
 
+-- Hologram Bone Helper Functions
+local function HoloHasBones( holo )
+	if holo.ent:GetBoneCount() - 1 != 0 then
+		return true
+	else 
+		return false
+	end
+end
+
+local function HoloBoneGetAng( ent, id )
+	local index
+	if isstring( id ) then
+		index = ent:LookupBone( id ) or 0
+	else
+		index = id or 0
+	end
+	local BonePos, BoneAng = ent:GetBonePosition( index )
+
+	return { BoneAng.p, BoneAng.y, BoneAng.r }
+end
+
+local function HoloBoneGetPos( ent, id )
+	local index
+	if isstring( id ) then
+		index = ent:LookupBone( id ) or 0
+	else
+		index = id or 0
+	end
+	local BonePos, BoneAng = ent:GetBonePosition( index )
+
+	return { BonePos.x, BonePos.y, BonePos.z }
+end
+
+-- Hologram Bone Angle Functions
+e2function angle holoBoneAng(index, string bone)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return end
+	if not HoloHasBones( Holo ) then return end
+
+	return HoloBoneGetAng( Holo.ent, bone )
+end
+
+e2function angle holoBoneAng(index, number bone)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return end
+	if not HoloHasBones( Holo ) then return end
+
+	return HoloBoneGetAng( Holo.ent, bone )
+end
+
+e2function void holoBoneAng(index, string bone, angle ang)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return end
+	if not HoloHasBones( Holo ) then return end
+
+	local lookup = Holo.ent:LookupBone( bone ) or 0
+	Holo.ent:ManipulateBoneAngles( lookup, Angle( ang[1], ang[2], ang[3] ) )
+end
+
+e2function void holoBoneAng(index, number bone, angle ang)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return end
+	if not HoloHasBones( Holo ) then return end
+
+	Holo.ent:ManipulateBoneAngles( bone, Angle( ang[1], ang[2], ang[3] ) )
+end
+
+-- Hologram Bone Vector Functions
+e2function vector holoBonePos(index, string bone)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return end
+	if not HoloHasBones( Holo ) then return end
+
+	return HoloBoneGetPos( Holo.ent, bone )
+end
+
+e2function vector holoBonePos(index, number bone)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return end
+	if not HoloHasBones( Holo ) then return end
+
+	return HoloBoneGetPos( Holo.ent, bone )
+end
+
+e2function void holoBonePos(index, string bone, vector pos)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return end
+	if not HoloHasBones( Holo ) then return end
+
+	local lookup = Holo.ent:LookupBone( bone ) or 0
+	Holo.ent:ManipulateBonePosition( lookup, Vector( pos[1], pos[2], pos[3] ) )
+end
+
+e2function void holoBonePos(index, number bone, vector pos)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return end
+	if not HoloHasBones( Holo ) then return end
+
+	Holo.ent:ManipulateBonePosition( bone, Vector( pos[1], pos[2], pos[3] ) )
+end
+
+-- Hologram Bone Misc Functions
+e2function array holoBones(index)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return end
+	if not HoloHasBones( Holo ) then return { } end
+
+	local ret = {}
+	local ent = Holo.ent
+	local bones = ent:GetBoneCount() - 1
+
+	for i = 0, bones do
+		ret[i] = ent:GetBoneName( i )
+	end
+	return ret
+end
+
+e2function string holoBoneParent(index, string bone)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return end
+	if not HoloHasBones( Holo ) then return end
+
+	local lookup = Holo.ent:LookupBone( bone ) or 0
+	local id = Holo.ent:GetBoneParent( lookup )
+	return Holo.ent:GetBoneName( id )
+end
+
+e2function number holoBoneParent(index, number bone)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return end
+	if not HoloHasBones( Holo ) then return end
+
+	return Holo.ent:GetBoneParent( bone )
+end
+
+-- -----------------------------------------------------------------------------
+
 e2function void holoColor(index, vector color)
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
