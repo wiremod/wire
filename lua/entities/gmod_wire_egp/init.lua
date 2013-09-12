@@ -14,6 +14,7 @@ function ENT:Initialize()
 
 	self.Outputs = WireLib.CreateOutputs( self, { "User [ENTITY]", "link [WIRELINK]" } )
 	WireLib.TriggerOutput( self, "link", self )
+	self.extended = true
 
 	self.xScale = { 0, 512 }
 	self.yScale = { 0, 512 }

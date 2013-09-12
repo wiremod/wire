@@ -18,6 +18,7 @@ function ENT:Initialize()
 	self.Inputs = WireLib.CreateInputs( self, { "0 to 512" } )
 	self.Outputs = WireLib.CreateOutputs( self, { "link [WIRELINK]" } )
 	WireLib.TriggerOutput( self, "link", self )
+	self.extended = true
 
 	self.xScale = { 0, 512 }
 	self.yScale = { 0, 512 }

@@ -253,8 +253,7 @@ elseif CLIENT then
 			if outputs then
 				local found = false
 				for i=1,#outputs do
-					if (outputs[i][1] == "wirelink" and outputs[i][2] == "WIRELINK") or
-						(outputs[i][1] == "Create Wirelink" and outputs[i][2] == "WIRELINK") then found = true break end
+					if outputs[i][2] == "WIRELINK" then found = true break end
 				end
 				if not found then
 					outputs = table.Copy(outputs) -- we don't want to modify the original table
