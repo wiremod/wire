@@ -74,7 +74,7 @@ function ENT:SetConstraint( c )
 	end
 
 	if self.current_damping ~= 0 or (self.Inputs and self.Inputs.Damping.Src) then
-		self:TriggerInput("Constant", self.Inputs.Constant.Value)
+		self:TriggerInput("Damping", self.Inputs.Damping.Value)
 	else
 		self.current_damping = self.constraint:GetKeyValues().damping
 	end
