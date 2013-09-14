@@ -375,25 +375,21 @@ function ENT:OnRestore()
 end
 
 function ENT:TargetPainter( tt, targeted )
-	if tt and						-- There is a target
-		tt.Entity and				-- Target has is an entity
-		tt.Entity:IsValid() and 	-- And it's valid
-		tt.Entity:EntIndex() != 0	-- And isn't worldspawn
-	then
+	if tt and IsValid(tt) and tt:EntIndex() ~= 0 then
 		if (targeted) then
-			self.OldColor = tt.Entity:GetColor()
-			tt.Entity:SetColor(Color(255, 0, 0, 255))
+			self.OldColor = tt:GetColor()
+			tt:SetColor(Color(255, 0, 0, 255))
 		else
 			if not self.OldColor then self.OldColor = Color(255,255,255,255) end
 
-			local c = tt.Entity:GetColor()
+			local c = tt:GetColor()
 
 			-- do not change color back if the target color changed in the meantime
 			if c.r != 255 or c.g != 0 or c.b != 0 or c.a != 255 then
 				self.OldColor = c
 			end
 
-			tt.Entity:SetColor(self.OldColor)
+			tt:SetColor(self.OldColor)
 		end
 	end
 end
