@@ -33,7 +33,7 @@ __e2setcost(20)
 local function GetAllConstrainedEntities( ent, ResultTable )
 	ResultTable[ ent ] = ent
 	
-	for _, con in ipairs( ent.Constraints or {} ) do
+	for _, con in pairs( ent.Constraints or {} ) do
 		for i=1, 6 do
 			local e = con["Ent"..i]
 			if e  and not ResultTable[e] and e:IsValid() then
