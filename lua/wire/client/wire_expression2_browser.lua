@@ -64,7 +64,8 @@ function PANEL:Init()
 	end)
 	self:AddRightClick(self.filemenu, nil, "*SPACER*")
 	self:AddRightClick(self.filemenu, nil, "Rename to..", function()
-		local fname = fileName(self.File:GetFileName())
+		local prefname = fileName(self.File:GetFileName())
+		local fname = string.sub(prefname, 1, #prefname - 4)
 		Derma_StringRequestNoBlur("Rename File \"" .. fname .. "\"", "Rename file " .. fname, fname,
 			function(strTextOut)
 			-- Renaming starts in the garrysmod folder now, in comparison to other commands that start in the data folder.
