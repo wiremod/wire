@@ -137,7 +137,7 @@ function ENT:TriggerInput( name, value )
 		local pos, ang = self.CamEnt:GetPos(), self.CamEnt:GetAngles()
 		if IsValid(self.CamEnt:GetParent()) then
 			pos = self.CamEnt:GetParent():WorldToLocal(pos)
-			ang = self.CamEnt:GetParent():GetAngles() - ang
+			ang = self.CamEnt:GetParent():WorldToLocalAngles(ang)
 		end
 
 		if name == "Parent" then
@@ -154,7 +154,7 @@ function ENT:TriggerInput( name, value )
 
 		if IsValid(self.CamEnt:GetParent()) then
 			pos = self.CamEnt:GetParent():LocalToWorld(pos)
-			ang = self.CamEnt:GetParent():GetAngles() + ang
+			ang = self.CamEnt:GetParent():LocalToWorldAngles(ang)
 		end
 		self.CamEnt:SetPos(pos)
 		self.CamEnt:SetAngles(ang)
