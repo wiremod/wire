@@ -227,6 +227,7 @@ end
 
 local KeyAlert = {}
 local runByKey
+local KeyWasReleased = 0
 
 registerCallback("destruct",function(self)
 	KeyAlert[self.entity] = nil
@@ -244,9 +245,13 @@ local function UpdateKeys(ply, key)
 		end
 	end
 	runByKey = nil
+	KeyWasReleased = 0
 end
 hook.Add("KeyPress","Exp2KeyReceivingDown", UpdateKeys)
-hook.Add("KeyRelease","Exp2KeyReceivingUp", UpdateKeys)
+hook.Add("KeyRelease","Exp2KeyReceivingUp", function(ply, key)
+	KeyWasReleased = 1
+	UpdateKeys(ply, key)
+end )
 
 --- Makes the chip run on key events from the specified player (can be used on multiple players)
 e2function void runOnKeys(entity ply, on)
@@ -267,9 +272,10 @@ e2function entity keyClk()
 	return runByKey
 end
 
---- Returns 1 if the chip is being executed because of a key event by player <ply>
+--- Returns 1 or -1 if the chip is being executed because of a key event by player <ply>
+--- depending of whether the key was just pressed or released
 e2function number keyClk(entity ply)
-	return (ply == runByKey) and 1 or 0
+	return ((ply == runByKey) and IsValid( ply )) and ((KeyWasReleased == 0) and 1 or -1) or 0
 end
 
 
