@@ -311,7 +311,6 @@ elseif CLIENT then
 	TOOL.ShowEntity = false -- bool for showing "Create Entity" output
 
 	function TOOL:Holster()
-		self.CurrentWireIndex = 1
 		if IsValid(self.CurrentEntity) then self.CurrentEntity:SetNetworkedBeamString("BlinkWire", "") end
 		self.CurrentEntity = nil
 		self.Wiring = {}
@@ -434,6 +433,13 @@ elseif CLIENT then
 				self.CurrentEntity = trace.Entity
 				
 				self:SetStage(2)
+				
+				if next(outputs,next(outputs)) == nil then -- there's only one element in the table
+					self.wtfgarry = 0
+					self:LeftClick( trace ) -- wire it right away
+					return
+				end
+				
 				self:LoadMemorizedIndex( self.CurrentEntity, true )
 
 				-- find first matching output by name or type
@@ -496,8 +502,6 @@ elseif CLIENT then
 				if notwired > 0 then
 					WireLib.AddNotify( "Could not find a matching name for " .. notwired .. " inputs. They were not wired.", NOTIFY_HINT, 5, NOTIFYSOUND_DRIP1 )
 				end
-				
-				self:SetStage(0)
 			else -- Normal wiring
 				local notwired = 0
 				for i=1,#self.Wiring do
@@ -511,10 +515,9 @@ elseif CLIENT then
 				if notwired > 0 then
 					WireLib.AddNotify( "The type did not match for " .. notwired .. " inputs. They were not wired.", NOTIFY_HINT, 5, NOTIFYSOUND_DRIP1 )
 				end
-				
-				self:SetStage(0)
 			end
 			
+			self:SetStage(0)
 			self.WiringRender = {} -- Empty this now so the HUD doesn't glitch
 			self:GetOwner():EmitSound( "weapons/airboat/airboat_gun_lastshot" .. math.random(1,2) .. ".wav" )
 		end
@@ -637,42 +640,57 @@ elseif CLIENT then
 	-- Remember wire index positions for entities
 	TOOL.WireIndexMemory = {}
 	TOOL.AimingEnt = nil
+	TOOL.AimingStage = 0
 	function TOOL:LoadMemorizedIndex( ent, forceload )
-		-- Memorize selected input
-		if IsValid(self.AimingEnt) and not forceload then
-			if not self.WireIndexMemory[self.AimingEnt] then
-				self.WireIndexMemory[self.AimingEnt] = {}
+		if ent ~= self.AimingEnt or self:GetStage() ~= self.AimingStage or forceload then
+			if self:GetStage() == 2 and self.CurrentEntity ~= ent then
+				self.AimingEnt = ent
+				self.AimingStage = self:GetStage()
+				return
 			end
-			if not self.WireIndexMemory[self.AimingEnt:GetClass()] then
-				self.WireIndexMemory[self.AimingEnt:GetClass()] = {} -- save to class as well
-			end
-			self.WireIndexMemory[self.AimingEnt][self:GetStage()] = self.CurrentWireIndex
-			self.WireIndexMemory[self.AimingEnt:GetClass()][self:GetStage()] = self.CurrentWireIndex -- save to class as well
-		end
-	
-		-- Retrieve memorized selected input
-		if IsValid(ent) and (ent ~= self.AimingEnt or forceload) then
-			if self:GetStage() == 2 and self.CurrentEntity ~= ent then return end
 		
-			if self.WireIndexMemory[ent] and self.WireIndexMemory[ent][self:GetStage()] then
-				self.CurrentWireIndex = self.WireIndexMemory[ent][self:GetStage()]
-			elseif self.WireIndexMemory[ent:GetClass()] and self.WireIndexMemory[ent:GetClass()][self:GetStage()] then -- if this entity doesn't have a stored position, get an educated from the class instead
-				self.CurrentWireIndex = self.WireIndexMemory[ent:GetClass()][self:GetStage()]
+			-- Memorize selected input
+			if IsValid(self.AimingEnt) and not forceload then
+				if not self.WireIndexMemory[self.AimingEnt] then
+					self.WireIndexMemory[self.AimingEnt] = {}
+				end
+				if not self.WireIndexMemory[self.AimingEnt:GetClass()] then
+					self.WireIndexMemory[self.AimingEnt:GetClass()] = {} -- save to class as well
+				end
+				self.WireIndexMemory[self.AimingEnt][self.AimingStage] = self.CurrentWireIndex
+				self.WireIndexMemory[self.AimingEnt:GetClass()][self.AimingStage] = self.CurrentWireIndex -- save to class as well
 			end
 			
-			
+			-- Clear blinking wire
 			if IsValid( self.AimingEnt ) then
 				self.AimingEnt:SetNetworkedBeamString("BlinkWire", "")
+			end
+			
+			if IsValid( ent ) then
+				-- Retrieve memorized selected input
+				if self.WireIndexMemory[ent] and self.WireIndexMemory[ent][self:GetStage()] then
+					self.CurrentWireIndex = self.WireIndexMemory[ent][self:GetStage()]
+				elseif self.WireIndexMemory[ent:GetClass()] and self.WireIndexMemory[ent:GetClass()][self:GetStage()] then -- if this entity doesn't have a stored position, get it from the class instead
+					self.CurrentWireIndex = self.WireIndexMemory[ent:GetClass()][self:GetStage()]
+				else
+					self.CurrentWireIndex = 1
+				end
+				
+				-- Clamp index
 				local inputs, outputs = self:GetPorts( ent )
 				local check = self:GetStage() == 0 and inputs or outputs
 				if check then
 					self.CurrentWireIndex = math.Clamp(	self.CurrentWireIndex, 1, #check )
+					
+					-- Set blinking wire
 					if check[self.CurrentWireIndex] then
 						ent:SetNetworkedBeamString("BlinkWire", check[self.CurrentWireIndex][1])
 					end
 				end
 			end
+				
 			self.AimingEnt = ent
+			self.AimingStage = self:GetStage()
 		end
 	end
 	
