@@ -75,9 +75,7 @@ function ENT:Initialize()
 
 	self:SetUseType(SIMPLE_USE)
 
-	self.Outputs = WireLib.CreateOutputs( self, { "link [WIRELINK]" } )
-	WireLib.TriggerOutput( self, "link", self )
-	self.extended = true
+	WireLib.CreateWirelinkOutput( nil, self, {true} )
 
 	self.xScale = { 0, 512 }
 	self.yScale = { 0, 512 }
