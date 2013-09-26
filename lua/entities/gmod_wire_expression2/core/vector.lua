@@ -312,7 +312,7 @@ e2function vector2 vector:dehomogenized()
 	return { this[1]/w, this[2]/w }
 end
 
-e2function vector vector(vector rv1)
+e2function vector positive(vector rv1)
 	return {
 		rv1[1] >= 0 and rv1[1] or -rv1[1],
 		rv1[2] >= 0 and rv1[2] or -rv1[2],
