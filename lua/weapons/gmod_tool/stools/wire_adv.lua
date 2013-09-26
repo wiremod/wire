@@ -434,6 +434,10 @@ elseif CLIENT then
 				
 				self:SetStage(2)
 				
+				for i=1,#self.Wiring do
+					self:WireEndEntityPos( self.Wiring[i], self.CurrentEntity, trace.HitPos )
+				end
+				
 				if next(outputs,next(outputs)) == nil then -- there's only one element in the table
 					self.wtfgarry = 0
 					self:LeftClick( trace ) -- wire it right away
@@ -465,10 +469,6 @@ elseif CLIENT then
 					self.CurrentWireIndex = matchingByName
 				elseif matchingByType then
 					self.CurrentWireIndex = matchingByType
-				end
-				
-				for i=1,#self.Wiring do
-					self:WireEndEntityPos( self.Wiring[i], self.CurrentEntity, trace.HitPos )
 				end
 				
 				self:GetOwner():EmitSound( "weapons/airboat/airboat_gun_lastshot" .. math.random(1,2) .. ".wav" )
