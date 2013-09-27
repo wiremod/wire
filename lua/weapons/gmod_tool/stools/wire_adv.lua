@@ -416,6 +416,7 @@ elseif CLIENT then
 					end
 				else
 					-- Single input selection
+					if not inputs[self.CurrentWireIndex] then return end -- Can happen if theres no inputs, only outputs
 					self:WireStart( trace.Entity, trace.HitPos, inputs[self.CurrentWireIndex][1], inputs[self.CurrentWireIndex][2] )
 				end
 				
