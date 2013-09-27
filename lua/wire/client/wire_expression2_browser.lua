@@ -64,7 +64,7 @@ function PANEL:Init()
 	end)
 	self:AddRightClick(self.filemenu, nil, "*SPACER*")
 	self:AddRightClick(self.filemenu, nil, "Rename to..", function()
-		local fname = fileName(self.File:GetFileName())
+		local fname = string.StripExtension(fileName(self.File:GetFileName()))
 		Derma_StringRequestNoBlur("Rename File \"" .. fname .. "\"", "Rename file " .. fname, fname,
 			function(strTextOut)
 			-- Renaming starts in the garrysmod folder now, in comparison to other commands that start in the data folder.
@@ -78,7 +78,7 @@ function PANEL:Init()
 			end)
 	end)
 	self:AddRightClick(self.filemenu, nil, "Copy to..", function()
-		local fname = fileName(self.File:GetFileName())
+		local fname = string.StripExtension(fileName(self.File:GetFileName()))
 		Derma_StringRequestNoBlur("Copy File \"" .. fname .. "\"", "Copy File to...", fname,
 			function(strTextOut)
 				strTextOut = string.gsub(strTextOut, ".", invalid_filename_chars)
