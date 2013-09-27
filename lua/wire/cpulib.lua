@@ -36,7 +36,7 @@ if CLIENT then
   CPULib.Debugger.Breakpoint = {}
 
   -- Convars to control CPULib
-  local wire_cpu_upload_speed = CreateClientConVar("wire_cpu_upload_speed",1800,false,false)
+  local wire_cpu_upload_speed = CreateClientConVar("wire_cpu_upload_speed",1000,false,false)
   local wire_cpu_compile_speed = CreateClientConVar("wire_cpu_compile_speed",128,false,false)
   local wire_cpu_show_all_registers = CreateClientConVar("wire_cpu_show_all_registers",0,false,false)
 
@@ -175,8 +175,8 @@ if CLIENT then
   function CPULib.OnUploadTimer()
     if not CPULib.RemainingData then return end
 
-    local upload_speed = wire_cpu_upload_speed:GetFloat() -- Number of index/value pairs to send (6 bytes each)
-    if game.SinglePlayer() then upload_speed = 9000 end
+    local upload_speed = wire_cpu_upload_speed:GetFloat() -- Number of index/value pairs to send (11 bytes each)
+    if game.SinglePlayer() then upload_speed = 5000 end
 
     local iters = math.min(upload_speed, CPULib.RemainingUploadData)
     net.Start("wire_cpulib_buffer")
@@ -185,7 +185,7 @@ if CLIENT then
       local index,value = next(CPULib.RemainingData)
       CPULib.RemainingUploadData = CPULib.RemainingUploadData - 1
       net.WriteUInt(index, 24)
-      net.WriteInt(value or 0, 24) -- 24bits, may only need Int21 to hold all possible values
+      net.WriteDouble(value or 0) -- 64bits, in case theres any float literals. Int21 is sufficient for all function calls/memory addresses
       CPULib.RemainingData[index] = nil
     end
     if CPULib.RemainingUploadData <= 0 then
@@ -491,7 +491,7 @@ if SERVER then
     if not Buffer.Entity then return end
     
     for iteration=1, net.ReadUInt(16) do
-      Buffer.Data[net.ReadUInt(24)] = net.ReadInt(24)
+      Buffer.Data[net.ReadUInt(24)] = net.ReadDouble()
     end
     
     if net.ReadBit() ~= 0 then -- We're done!
