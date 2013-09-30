@@ -552,10 +552,9 @@ elseif CLIENT then
 			else
 				self:Unwire( trace.Entity, { inputs[self.CurrentWireIndex][1] } )
 			end
+		else
+			self:Holster()
 		end
-		
-		self:Holster()
-		self:LoadMemorizedIndex( trace.Entity, true )
 
 		self:GetOwner():EmitSound( "weapons/airboat/airboat_gun_lastshot" .. math.random(1,2) .. ".wav" )
 	end
@@ -644,9 +643,7 @@ elseif CLIENT then
 	TOOL.AimingStage = 0
 	function TOOL:LoadMemorizedIndex( ent, forceload )
 		if ent ~= self.AimingEnt or self:GetStage() ~= self.AimingStage or forceload then
-			if self:GetStage() == 2 and self.CurrentEntity ~= ent then
-				self.AimingEnt = ent
-				self.AimingStage = self:GetStage()
+			if self:GetStage() == 2 and self.CurrentEntity ~= ent then -- if you aim away during stage 2, don't change CurrentWireIndex
 				return
 			end
 		
