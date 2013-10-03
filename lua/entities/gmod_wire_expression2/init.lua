@@ -290,6 +290,11 @@ function ENT:ResetContext()
 
 	self.Inputs = WireLib.AdjustSpecialInputs(self, self.inports[1], self.inports[2])
 	self.Outputs = WireLib.AdjustSpecialOutputs(self, self.outports[1], self.outports[2])
+	
+	if self.extended then -- It was extended before the adjustment, recreate the wirelink
+		WireLib.CreateWirelinkOutput( self.player, self, {true} )
+	end
+	
 	self._original = string.Replace(string.Replace(self.original, "\"", string.char(163)), "\n", string.char(128))
 
 	self._name = self.name
