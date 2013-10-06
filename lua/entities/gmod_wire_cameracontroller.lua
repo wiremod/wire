@@ -57,8 +57,9 @@ function ENT:MakeCamera(oldcam)
 	return cam
 end
 
-function ENT:Setup(Static)
+function ENT:Setup(Static, ParentLocal)
 	self.Static = tobool(Static)
+	self.ParentLocal = tobool(ParentLocal)
 
 	if not IsValid(self.CamEnt) then self:MakeCamera() end
 	if not IsValid(self.CamEnt) then return false end
@@ -135,7 +136,7 @@ function ENT:TriggerInput( name, value )
 		self:TriggerInput("Angle", value:Angle())
 	elseif IsValid(self.CamEnt) then
 		local pos, ang = self.CamEnt:GetPos(), self.CamEnt:GetAngles()
-		if IsValid(self.CamEnt:GetParent()) then
+		if IsValid(self.CamEnt:GetParent()) and self.ParentLocal then
 			pos = self.CamEnt:GetParent():WorldToLocal(pos)
 			ang = self.CamEnt:GetParent():WorldToLocalAngles(ang)
 		end
@@ -152,7 +153,7 @@ function ENT:TriggerInput( name, value )
 		elseif name == "Roll" then ang.r = value
 		end
 
-		if IsValid(self.CamEnt:GetParent()) then
+		if IsValid(self.CamEnt:GetParent()) and self.ParentLocal then
 			pos = self.CamEnt:GetParent():LocalToWorld(pos)
 			ang = self.CamEnt:GetParent():LocalToWorldAngles(ang)
 		end
@@ -213,4 +214,4 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 	self:UpdateMarks()
 end
 
-duplicator.RegisterEntityClass("gmod_wire_cameracontroller", WireLib.MakeWireEnt, "Data", "Static")
+duplicator.RegisterEntityClass("gmod_wire_cameracontroller", WireLib.MakeWireEnt, "Data", "Static", "ParentLocal")
