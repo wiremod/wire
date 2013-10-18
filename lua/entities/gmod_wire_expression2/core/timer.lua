@@ -122,3 +122,71 @@ end
 e2function number systime()
 	return SysTime()
 end
+
+-----------------------------------------------------------------------------------
+
+local function luaDateToE2Table( time )
+	local ret = {n={},ntypes={},s={},stypes={},size=0}
+	local time = os.date("*t",time)
+	
+	for k,v in pairs( time ) do
+		if k == "isdst" then
+			ret.s.isdst = (v and 1 or 0)
+			ret.stypes.isdst = "n"
+		else
+			ret.s[k] = v
+			ret.stypes[k] = "n"
+		end
+		
+		ret.size = ret.size + 1
+	end
+	
+	return ret
+end
+
+-- Returns the server's current time formatted neatly in a table
+e2function table date()
+	return luaDateToE2Table()
+end
+
+-- Returns the specified time formatted neatly in a table
+e2function table date( time )
+	return luaDateToE2Table(time)
+end
+
+-- This function has a strange and slightly misleading name, but changing it might break older E2s, so I'm leaving it
+-- It's essentially the same as the date function above
+e2function number time(string component)
+	local ostime = os.date("!*t")
+	local ret = ostime[component]
+
+	return tonumber(ret) or ret and 1 or 0 -- the later parts account for invalid components and isdst
+end
+
+
+-----------------------------------------------------------------------------------
+
+-- Returns the time in seconds
+e2function number time()
+	return os.time()
+end
+
+-- Attempts to construct the time from the data in the given table (same as lua's os.time)
+-- The table structure must be the same as in the above date functions
+-- If any values are missing or of the wrong type, that value is ignored (it will be nil)
+local validkeys = {hour = true, min = true, day = true, sec = true, yday = true, wday = true, month = true, year = true, isdst = true}
+e2function number time(table data)
+	local args = {}
+	
+	for k,v in pairs( data.s ) do
+		if data.stypes[k] ~= "n" or not validkeys[k] then continue end
+		
+		if k == "isdst" then
+			args.isdst = (v == 1)
+		else
+			args[k] = v
+		end
+	end
+	
+	return os.time( args )
+end

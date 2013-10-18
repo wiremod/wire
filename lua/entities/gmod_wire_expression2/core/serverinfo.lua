@@ -64,10 +64,3 @@ end
 e2function number angSpeedLimit()
 	return physenv.GetPerformanceSettings()["MaxAngularVelocity"]
 end
-
-e2function number time(string component)
-	local ostime = os.date("!*t")
-	local ret = ostime[component]
-
-	return tonumber(ret) or ret and 1 or 0 -- the later parts account for invalid components and isdst
-end
