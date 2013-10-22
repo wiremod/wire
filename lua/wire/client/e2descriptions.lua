@@ -419,6 +419,7 @@ E2Helper.Descriptions["inertia(b:)"] = "Gets the principal components of Bs iner
 E2Helper.Descriptions["isFrozen(b:)"] = "Returns 1 if B is frozen, 0 otherwise"
 
 -- Wirelink
+E2Helper.Descriptions["wirelink()"] = "Returns wirelink to this E2."
 E2Helper.Descriptions["isHiSpeed(xwl:)"] = "Returns true if the linked component is high-speed capable."
 E2Helper.Descriptions["entity(xwl:)"] = "Returns the entity of the linked component."
 E2Helper.Descriptions["hasInput(xwl:s)"] = "Returns true if the linked component has an input of the specified name."

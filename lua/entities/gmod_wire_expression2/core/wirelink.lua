@@ -275,7 +275,21 @@ e2function vector wirelink:xyz()
 end
 
 /******************************************************************************/
+
+__e2setcost(5) -- temporary
+
+--- Return E2 wirelink -- and create it if none created yet
+e2function wirelink wirelink() 
+	if not self.entity.extended then
+		WireLib.CreateWirelinkOutput( self.player, self.entity, {true} ) 
+	end
+	return self.entity
+end
+
+/******************************************************************************/
 -- XWL:inputs/outputs/inputType/outputType by jeremydeath
+
+__e2setcost(15) -- temporary
 
 --- Returns an array of all the inputs that <this> has without their types. Returns an empty array if it has none
 e2function array wirelink:inputs()
