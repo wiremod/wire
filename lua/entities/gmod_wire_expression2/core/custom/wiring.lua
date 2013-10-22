@@ -95,13 +95,12 @@ e2function array entity:getWireOutputs()
 	return ret
 end
 
-__e2setcost(25)
+__e2setcost(5)
 
 --- Returns <this>'s entity wirelink
 e2function wirelink entity:wirelink()
 	if not IsValid(this) then return nil end
 	if not isOwner(self, this) then return nil end
-	if not this.Inputs and not this.Outputs then return nil end
 	if not this.extended then
 		WireLib.CreateWirelinkOutput( self.player, this, {true} )
 	end
