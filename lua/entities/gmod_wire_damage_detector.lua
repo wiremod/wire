@@ -6,7 +6,7 @@ ENT.WireDebugName = "Damage Detector"
 
 if CLIENT then return end -- No more client
 
-local DEFAULT = {n={},ntypes={},s={},stypes={},size=0,istable=true}
+local DEFAULT = {n={},ntypes={},s={},stypes={},size=0}
 
 // Global table to keep track of all detectors
 local Wire_Damage_Detectors = {}
@@ -143,9 +143,11 @@ function ENT:TriggerInput( iname, value )
 		end
 	elseif (iname == "Reset") then
 		if value then
-            self.count = 0
-            self.firsthit_dmginfo = {}
-            self.victims = table.Copy(DEFAULT)
+			self.count = 0
+			self.firsthit_dmginfo = {}
+			self.victims = table.Copy(DEFAULT)
+			self.damage = 0
+			self:TriggerOutput()
 		end
 	end
 end
