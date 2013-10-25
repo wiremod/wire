@@ -24,6 +24,7 @@ local function soundCreate(self, entity, index, time, path, fade)
 	if isnumber(index) then index = index - index % 1 end
 	if data[index] then data[index]:Stop() end
 	data[index] = sound
+	entity:CallOnRemove( "E2_stopsound", function() sound:Stop() end )
 	sound:Play()
 	if time==0 && fade==0 then return end
 	if time<0 then time = time * -1 end
