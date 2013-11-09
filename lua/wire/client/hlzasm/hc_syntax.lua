@@ -245,10 +245,17 @@ function HCOMP:BlockStart(blockType)
   continueLeaf.Label.Leaf = continueLeaf
   self:AddLeafToTail(continueLeaf)
 
+  -- Only FOR loops have step code
+  if (blockType == "WHILE") or
+     (blockType == "DO") then
+    self.CurrentStepLeaf = nil
+  end
+
   self.SpecialLeaf[#self.SpecialLeaf+1] = {
     Break = breakLeaf,
     Continue = continueLeaf,
     JumpBack = self:NewLeaf(),
+    Step = self.CurrentStepLeaf,
   }
 
   if (blockType == "FOR") or
@@ -285,9 +292,11 @@ function HCOMP:BlockEnd()
     if self.SpecialLeaf[#self.SpecialLeaf-1] then
       self.CurrentContinueLeaf = self.SpecialLeaf[#self.SpecialLeaf-1].Continue
       self.CurrentBreakLeaf = self.SpecialLeaf[#self.SpecialLeaf-1].Break
+      self.CurrentStepLeaf = self.SpecialLeaf[#self.SpecialLeaf-1].Step
     else
       self.CurrentContinueLeaf = nil
       self.CurrentBreakLeaf = nil
+      self.CurrentStepLeaf = nil
     end
   end
 
@@ -1302,6 +1311,9 @@ function HCOMP:Statement() local TOKEN = self.TOKEN
 
     self:AddLeafToTail(initLeaf)
 
+    -- Save stepLeaf for inlining continue
+    self.CurrentStepLeaf = stepLeaf
+
     -- Enter the FOR block
     local needBlock = self:MatchToken(TOKEN.LBRACKET)
     if needBlock then
@@ -1374,6 +1386,11 @@ function HCOMP:Statement() local TOKEN = self.TOKEN
       local jumpBackLeaf = self:NewLeaf()
       jumpBackLeaf.Opcode = "jmp"
       jumpBackLeaf.Operands[1] = { PointerToLabel = self.CurrentContinueLeaf.Label }
+
+      if (self.CurrentStepLeaf) then
+        self:AddLeafToTail(self.CurrentStepLeaf)
+      end
+
       self:AddLeafToTail(jumpBackLeaf)
       return true
     else
