@@ -129,6 +129,8 @@ local function luaDateToE2Table( time )
 	local ret = {n={},ntypes={},s={},stypes={},size=0}
 	local time = os.date("*t",time)
 	
+	if not time then return ret end -- this happens if you give it a negative time
+	
 	for k,v in pairs( time ) do
 		if k == "isdst" then
 			ret.s.isdst = (v and 1 or 0)
