@@ -210,7 +210,7 @@ function HCOMP:StartCompile(sourceCode,fileName,writeByteCallback,writeByteCalle
   self.Settings.SeparateDataSegment = false -- Puts all variables into separate data segment
   self.Settings.GenerateLibrary = false -- Generate precompiled library
   self.Settings.AlwaysEnterLeave = false -- Always generate the enter/leave blocks
-  self.Settings.NoUnreferencedLeaves = true -- Dont generate functions, variables that are not referenced
+  self.Settings.NoUnreferencedLeaves = false -- Dont generate functions, variables that are not referenced
   self.Settings.DataSegmentOffset = 0 -- Data segment offset for separate data segment
 
   -- Search paths
