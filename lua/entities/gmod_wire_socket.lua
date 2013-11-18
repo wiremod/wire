@@ -348,9 +348,9 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID, GetConstByID)
 			if GetConstByID then
 				if info.Socket.Weld then
 					ent.Weld = GetConstByID( info.Socket.Weld )
-				else
-					FindConstraint( ent, plug )
 				end
+			else
+				FindConstraint( ent, plug )
 			end
 		end
 	else -- OLD DUPES COMPATIBILITY
