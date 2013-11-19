@@ -4,10 +4,11 @@ TOOL.Tab      = "Wire"
 
 if CLIENT then
 	language.Add( "Tool.wire_adv.name", "Advanced Wiring Tool" )
-	language.Add( "Tool.wire_adv.desc", "Used to connect things with wires (Press shift+F to switch to debugger tool and back again)." )
+	language.Add( "Tool.wire_adv.desc", "Used to connect things with wires." )
 	language.Add( "Tool.wire_adv.0", "Primary: Select input (Hold shift to select multiple inputs; Hold alt to select all inputs), Secondary: Next input, Reload: Unlink selected input (Hold alt to unlink all in the current entity), Wheel: Scroll up or down." )
 	language.Add( "Tool.wire_adv.1", "Primary: Select entity, Secondary: Attach wire to point and continue, Reload: Cancel." )
 	language.Add( "Tool.wire_adv.2", "Primary: Select output (Hold alt to auto-wire, matching all input/outputs names with equal names), Secondary: Next output, Reload: Cancel, Wheel: Scroll up or down." )
+	language.Add( "gmod_tool_auto.advert", "You can bind something to `gmod_tool_auto` to automatically switch to the Wire tool!" )
 end
 
 TOOL.ClientConVar = {
@@ -612,18 +613,6 @@ elseif CLIENT then
 			if not self then return end
 			
 			return self:ScrollUp(ply:GetEyeTraceNoCursor())
-		elseif bind == "impulse 100" and ply:KeyDown( IN_SPEED ) then
-			local self = get_active_tool(ply, "wire_adv")
-			if not self then
-				self = get_active_tool(ply, "wire_debugger")
-				if not self then return end
-				
-				RunConsoleCommand( "gmod_tool", "wire_adv" ) -- switch back to wire adv
-				return true
-			end
-			
-			RunConsoleCommand( "gmod_tool", "wire_debugger" ) -- switch to debugger
-			return true
 		end
 	end
 	
@@ -978,6 +967,7 @@ elseif CLIENT then
 
 	function TOOL.BuildCPanel(panel)
 		panel:AddControl("Header", { Text = "#Tool.wire.name", Description = "#Tool.wire.desc" })
+		panel:ControlHelp( "#gmod_tool_auto.advert" )
 		WireToolHelpers.MakePresetControl(panel, "wire_adv")
 
 		panel:NumSlider("#WireTool_width", "wire_adv_width", 0, 5, 2)
