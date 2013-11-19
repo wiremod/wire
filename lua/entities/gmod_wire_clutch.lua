@@ -245,14 +245,11 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 		Ent1 = GetEntByID(v.Ent1)
 		Ent2 = GetEntByID(v.Ent2, game.GetWorld())
 
-		if IsValid(Ent1) and Ent1 ~= Ent2 then
-			if CPPI then
-				if Ent1:CPPICanTool( ply, "ballsocket_adv" ) and Ent2:CPPICanTool( ply, "ballsocket_adv" ) then
-					self:AddClutch( Ent1, Ent2 )
-				end
-			else
-				self:AddClutch( Ent1, Ent2 )
-			end
+		if IsValid(Ent1) and
+		   Ent1 ~= Ent2 and
+		   hook.Run( "CanTool", ply, WireLib.dummytrace(Ent1), "ballsocket_adv" ) and
+		   hook.Run( "CanTool", ply, WireLib.dummytrace(Ent2), "ballsocket_adv" ) then
+			self:AddClutch( Ent1, Ent2 )
 		end
 	end
 end

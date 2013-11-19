@@ -60,24 +60,29 @@ function ENT:ResetGrab()
 	Wire_TriggerOutput(self, "Grabbed Entity", self.WeldEntity)
 end
 
+function ENT:CanGrab(trace)
+	-- Bail if we hit world or a player
+	if not IsValid(trace.Entity) or trace.Entity:IsPlayer() then return false end
+	-- If there's no physics object then we can't constraint it!
+	if not util.IsValidPhysicsObject(trace.Entity, trace.PhysicsBone) then return false end
+	
+	-- We might also want to check PhysgunPickup, but this should be sufficient
+	if self.OnlyGrabOwners and not hook.Run( "CanTool", self:GetOwner(), trace, "weld" ) then return false end
+	return true
+end
+
 function ENT:TriggerInput(iname, value)
 	if iname == "Grab" then
 		if value ~= 0 and self.Weld == nil then
 			local vStart = self:GetPos()
 			local vForward = self:GetUp()
 
-			local trace = {}
-				trace.start = vStart
-				trace.endpos = vStart + (vForward * self:GetBeamLength())
-				trace.filter = { self }
-			local trace = util.TraceLine( trace )
-
-			-- Bail if we hit world or a player
-			if (not trace.Entity:IsValid() and trace.Entity ~= game.GetWorld())  or trace.Entity:IsPlayer() then return end
-			-- If there's no physics object then we can't constraint it!
-			if not util.IsValidPhysicsObject( trace.Entity, trace.PhysicsBone ) then return end
-
-			if self.OnlyGrabOwners and (trace.Entity:GetOwner() ~= self:GetOwner() and not self:CheckOwner(trace.Entity)) then return end
+			local trace = util.TraceLine {
+				start = vStart,
+				endpos = vStart + (vForward * self:GetBeamLength()),
+				filter = { self }
+			}
+			if not CanGrab(trace) then return end
 
 			-- Weld them!
 			local const = constraint.Weld(self, trace.Entity, 0, 0, self.WeldStrength)
