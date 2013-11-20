@@ -50,7 +50,6 @@ e2function number convarnum(string cvar)
 end
 
 e2function number maxOfType(string typename)
-	if typename == "wire_holograms" then return GetConVarNumber("wire_holograms_max") or 0 end
 	return GetConVarNumber("sbox_max"..typename) or 0
 end
 

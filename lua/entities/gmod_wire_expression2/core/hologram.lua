@@ -8,7 +8,12 @@ end
 
 -- -----------------------------------------------------------------------------
 
-local wire_holograms_max = CreateConVar( "wire_holograms_max", "250" )
+-- In order to keep compatibility with with anybody's configs, 
+-- we load the value from the old name if it exists.
+local initial_max_holograms = GetConVarString("wire_holograms_max")
+if initial_max_holograms == "" then initial_max_holograms = "250" end
+
+local wire_holograms_max = CreateConVar( "sbox_maxwire_holograms", initial_max_holograms)
 local wire_holograms_spawn_amount = CreateConVar( "wire_holograms_spawn_amount", "15" ) -- This limit resets once a second
 local wire_holograms_burst_amount = CreateConVar( "wire_holograms_burst_amount", "80" ) -- This limit goes down first, resets every burst_delay
 local wire_holograms_burst_delay = CreateConVar( "wire_holograms_burst_delay", "10" )
