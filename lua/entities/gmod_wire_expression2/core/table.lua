@@ -669,8 +669,8 @@ e2function table table:difference( table rv2 )
 		cost = cost + 1
 		if (!rv2.s[k]) then
 			size = size + 1
-			ret.s[size] = v
-			ret.stypes[size] = this.stypes[k]
+			ret.s[k] = v
+			ret.stypes[k] = this.stypes[k]
 		end
 	end
 	self.prf = self.prf + cost * opcost
@@ -698,8 +698,8 @@ e2function table table:intersect( table rv2 )
 		cost = cost + 1
 		if (rv2.s[k]) then
 			size = size + 1
-			ret.s[size] = v
-			ret.stypes[size] = this.stypes[k]
+			ret.s[k] = v
+			ret.stypes[k] = this.stypes[k]
 		end
 	end
 	self.prf = self.prf + cost * opcost
