@@ -20,6 +20,17 @@ function ENT:Initialize()
 end
 
 function ENT:Setup(keygroup1, keygroup2, keygroup3, keygroup4, keygroup5, keygroupoff, toggle, normclose, poles, throws, nokey)
+	
+	local outpoles = {"A", "B", "C", "D", "E", "F", "G", "H"} //output names
+	
+	// Clamp
+	throws = throws > 10 and 10 or throws
+	poles = poles > #outpoles and #outpoles or poles
+	
+	local inputs = {} 	//wont need this outside setup
+
+	self.outputs = {} 	//need to rebuild output names
+	
 	self.keygroup1		= keygroup1
 	self.keygroup2		= keygroup2
 	self.keygroup3		= keygroup3
@@ -32,11 +43,7 @@ function ENT:Setup(keygroup1, keygroup2, keygroup3, keygroup4, keygroup5, keygro
 	self.poles 			= poles
 	self.throws 		= throws
 	self.nokey			= nokey
-
-	local outpoles = {"A", "B", "C", "D", "E", "F", "G", "H"} //output names
-	local inputs = {} 	//wont need this outside setup
-	self.outputs = {} 	//need to rebuild output names
-
+	
 	//build inputs and putputs, init all nil values
 	for p=1, self.poles do
 		self.outputs[p] = outpoles[p]
