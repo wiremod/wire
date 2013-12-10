@@ -95,7 +95,7 @@ if CLIENT then
   function ZSPU_OpenEditor()
     if not ZSPU_Editor then
       ZSPU_Editor = vgui.Create("Expression2EditorFrame")
-      ZSPU_Editor:Setup("ZSPU Editor", "SPUChip", "SPU")
+      ZSPU_Editor:Setup("ZSPU Editor", "spuchip", "SPU")
     end
     ZSPU_Editor:Open()
   end
@@ -122,12 +122,12 @@ if CLIENT then
     local currentDirectory
     local FileBrowser = vgui.Create("wire_expression2_browser" , panel)
     panel:AddPanel(FileBrowser)
-    FileBrowser:Setup("SPUChip")
+    FileBrowser:Setup("spuchip")
     FileBrowser:SetSize(235,400)
 	function FileBrowser:OnFileOpen(filepath, newtab)
 	  if not ZSPU_Editor then
         ZSPU_Editor = vgui.Create("Expression2EditorFrame")
-        ZSPU_Editor:Setup("ZSPU Editor", "SPUChip", "SPU")
+        ZSPU_Editor:Setup("ZSPU Editor", "spuchip", "SPU")
       end
       ZSPU_Editor:Open(filepath, nil, newtab)
     end
