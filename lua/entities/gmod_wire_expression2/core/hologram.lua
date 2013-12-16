@@ -918,6 +918,19 @@ e2function void holoSkin(index, skin)
 	Holo.ent:SetSkin(skin)
 end
 
+e2function void holoSubColor(index, vector color)
+	if not checkOwner(self) then return end
+	if BlockList[self.player:SteamID()] == true or CheckSpawnTimer(self) == false then return end
+	local Holo = CheckIndex(self, index)
+	if not Holo then return end
+	local X = color[1]/255
+	local Y = color[2]/255
+	local Z = color[3]/255
+	function Holo:GetPlayerVector()
+		return Vector(X,Y,Z)
+	end
+end
+
 e2function void holoMaterial(index, string material)
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
@@ -1230,7 +1243,7 @@ concommand.Add( "wire_holograms_unblock_id", function( ply, com, args )
 	else
 		ConsoleMessage( ply, steamID .. " is not in the holograms blocklist!" )
 	end
-end )
+end )	
 
 -- -----------------------------------------------------------------------------
 
