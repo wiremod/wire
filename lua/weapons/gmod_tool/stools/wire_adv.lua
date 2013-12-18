@@ -565,6 +565,7 @@ elseif CLIENT then
 			local inputs, outputs = self:GetPorts( ent )
 			if not inputs and not outputs then return end
 			local check = self:GetStage() == 0 and inputs or outputs
+			if #check == 0 then return end
 			
 			local b = false
 			local oldport = self.CurrentWireIndex
