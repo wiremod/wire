@@ -612,6 +612,14 @@ function Editor:CreateTab(chosenfile)
 				self:SetActiveTab(self:GetLastTab())
 				self:SetLastTab(old)
 			end)
+			menu:AddOption("Reload", function()
+				self:FixTabFadeTime()
+				local old = self:GetLastTab()
+				self:SetActiveTab(pnl)
+				self:LoadFile(editor.chosenfile, false)
+				self:SetActiveTab(self:GetLastTab())
+				self:SetLastTab(old)
+			end)
 			menu:AddSpacer()
 			menu:AddOption("Copy file path to clipboard", function()
 				if editor.chosenfile and editor.chosenfile ~= "" then
@@ -823,6 +831,7 @@ function Editor:InitComponents()
 	self.C['Sav'] = self:addComponent(vgui.Create("Button", self), bw + 41, 30, 20, 20) -- Save button
 	self.C['NewTab'] = self:addComponent(vgui.Create("Button", self), bw + 62, 30, 20, 20) -- New tab button
 	self.C['CloseTab'] = self:addComponent(vgui.Create("Button", self), bw + 83, 30, 20, 20) -- Close tab button
+	self.C['Reload'] = self:addComponent(vgui.Create("Button", self), bw + 104, 30, 20, 20) -- Reload tab button
 	self.C['SaE'] = self:addComponent(vgui.Create("Button", self), -70, 30, -10, 20) -- Save & Exit button
 	self.C['SavAs'] = self:addComponent(vgui.Create("Button", self), -123, 30, -72, 20) -- Save As button
 	self.C['Browser'] = self:addComponent(vgui.Create("wire_expression2_browser", self), 10, 30, bw + 7, -10) -- Expression browser
@@ -876,6 +885,17 @@ function Editor:InitComponents()
 	end
 	self.C['CloseTab'].panel.DoClick = function(button)
 		self:CloseTab()
+	end
+
+	self.C['Reload'].panel:SetText("")
+	self.C['Reload'].panel:SetImage("icon16/page_refresh.png")
+	self.C['Reload'].panel.Paint = function(button)
+		local w, h = button:GetSize()
+		draw.RoundedBox(1, 0, 0, w, h, self.colors.col_FL)
+		if button.Hovered then draw.RoundedBox(0, 1, 1, w - 2, h - 2, Color(0, 0, 0, 192)) end
+	end
+	self.C['Reload'].panel.DoClick = function(button)
+		self:LoadFile(self:GetChosenFile(), false)
 	end
 
 	self.C['SaE'].panel:SetText("")
