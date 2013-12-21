@@ -543,6 +543,7 @@ elseif CLIENT then
 		
 		if self:GetStage() == 0 and IsValid( trace.Entity ) and WireLib.HasPorts( trace.Entity ) then
 			local inputs, outputs = self:GetPorts( trace.Entity )
+			if not inputs then return end
 			if self:GetOwner():KeyDown( IN_WALK ) then
 				local t = {}
 				for i=1,#inputs do
