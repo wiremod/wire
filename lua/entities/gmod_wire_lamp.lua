@@ -82,28 +82,19 @@ function ENT:Initialize()
 	self.Inputs = WireLib.CreateSpecialInputs(self, {"Red", "Green", "Blue", "RGB", "FOV", "Distance", "Brightness", "On", "Texture"}, {"NORMAL", "NORMAL", "NORMAL", "VECTOR", "NORMAL", "NORMAL", "NORMAL", "NORMAL", "STRING"})
 end
 
-function ENT:SetLightColor( r, g, b )
-	-- for dupe
-	self.r = r
-	self.g = g
-	self.b = b
-
-	self:SetColor(Color(r, g, b, 255))
-end
-
 function ENT:OnTakeDamage( dmginfo )
 	self:TakePhysicsDamage( dmginfo )
 end
 
 function ENT:TriggerInput(iname, value)
 	if (iname == "Red") then
-		self:SetLightColor( value, self.g, self.b )
+		self.r = value
 	elseif (iname == "Green") then
-		self:SetLightColor( self.r, value, self.b )
+		self.g = value
 	elseif (iname == "Blue") then
-		self:SetLightColor( self.r, self.g, value )
+		self.b = value
 	elseif (iname == "RGB") then
-		self:SetLightColor( value[1], value[2], value[3] )
+		self.r, self.g, self.b = value[1], value[2], value[3]
 	elseif (iname == "FOV") then
 		self.FOV = value
 	elseif (iname == "Distance") then
@@ -111,20 +102,27 @@ function ENT:TriggerInput(iname, value)
 	elseif (iname == "Brightness") then
 		self.Brightness = value
 	elseif (iname == "On") then
-		if value > 0 then
-			if !self.flashlight then self:TurnOn() end
-		elseif self.flashlight then
-			self:TurnOff()
-		end
+		self:Switch( value ~= 0 )
 	elseif (iname == "Texture") then
 		if value != "" then self.Texture = value else self.Texture = "effects/flashlight001" end
 	end
 	self:UpdateLight()
 end
 
-function ENT:TurnOn()
-	self:SetOn(true)
-	local angForward = self:GetAngles() + Angle( 90, 0, 0 )
+function ENT:Switch( on )
+	if on == self:GetOn() then return end
+	self.on = on
+
+	if not on then
+		SafeRemoveEntity( self.flashlight )
+		self.flashlight = nil
+		self:SetOn( false )
+		return
+	end
+
+	self:SetOn( true )
+
+	local angForward = self:GetAngles()
 	
 	self.flashlight = ents.Create( "env_projectedtexture" )
 	
@@ -150,13 +148,8 @@ function ENT:TurnOn()
 	self.flashlight:Input( "SpotlightTexture", NULL, NULL, self.Texture )
 end
 
-function ENT:TurnOff()
-	self:SetOn(false)
-	SafeRemoveEntity( self.flashlight )
-	self.flashlight = nil
-end
-
 function ENT:UpdateLight()
+	self:SetColor( Color( self.r, self.g, self.b, self:GetColor().a ) )
 	if ( !IsValid( self.flashlight ) ) then return end
 
 	self.flashlight:Input( "SpotlightTexture", NULL, NULL, self.Texture )
@@ -168,18 +161,19 @@ function ENT:UpdateLight()
 	self.flashlight:SetKeyValue( "lightcolor", Format( "%i %i %i 255", c.r*b, c.g*b, c.b*b ) )
 	
 	self:SetOverlayText( "Red: " .. c.r .. " Green: " .. c.g .. " Blue: " .. c.b .. "\n" ..
-						 "FoV: " .. self.FOV .. " Distance: " .. self.Dist .. " Brightness: " .. self.Brightness)
+						 "FoV: " .. self.FOV .. " Distance: " .. self.Dist .. " Brightness: " .. self.Brightness )
 end
 
-function ENT:Setup( r, g, b, Texture, fov, dist, brightness )
-	self:SetLightColor( r or 255, g or 255, b or 255 )
+function ENT:Setup( r, g, b, Texture, fov, dist, brightness, on )
+	self.r, self.g, self.b = r or 255, g or 255, b or 255
 	
 	self.Texture = Texture or "effects/flashlight001"
 	self.FOV = fov or 90
 	self.Dist = dist or 1024
 	self.Brightness = brightness or 8
+	self.on = on or true
+	self:Switch( self.on )
 	self:UpdateLight()
-	self:TurnOn()
 end
 
-duplicator.RegisterEntityClass( "gmod_wire_lamp", WireLib.MakeWireEnt, "Data", "r", "g", "b", "Texture", "FOV", "Dist", "Brightness" )
+duplicator.RegisterEntityClass( "gmod_wire_lamp", WireLib.MakeWireEnt, "Data", "r", "g", "b", "Texture", "FOV", "Dist", "Brightness", "on" )
