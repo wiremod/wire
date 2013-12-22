@@ -520,7 +520,7 @@ function Wire_TriggerOutput(ent, oname, value, iter)
 
 		for _,dst in ipairs(output.Connected) do
 			if (IsValid(dst.Entity)) then
-				WireLib.TriggerInput(dst.Entity, dst.Name, value)
+				WireLib.TriggerInput(dst.Entity, dst.Name, value, iter)
 			end
 		end
 
