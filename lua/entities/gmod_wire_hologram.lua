@@ -288,7 +288,7 @@ if CLIENT then
 		while index ~= 0 do
 			local ent = Entity(index)
 			if IsValid(ent) and ent.DoPlayerColor then
-				SetPlayerColor(ent, net.ReadVector())
+				SetPlayerColor(index, net.ReadVector())
 			else
 				player_color_buffer[index] = net.ReadVector()
 			end
