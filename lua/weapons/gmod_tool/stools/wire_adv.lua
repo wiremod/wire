@@ -543,6 +543,7 @@ elseif CLIENT then
 		
 		if self:GetStage() == 0 and IsValid( trace.Entity ) and WireLib.HasPorts( trace.Entity ) then
 			local inputs, outputs = self:GetPorts( trace.Entity )
+			if not inputs then return end
 			if self:GetOwner():KeyDown( IN_WALK ) then
 				local t = {}
 				for i=1,#inputs do
@@ -552,10 +553,9 @@ elseif CLIENT then
 			else
 				self:Unwire( trace.Entity, { inputs[self.CurrentWireIndex][1] } )
 			end
+		else
+			self:Holster()
 		end
-		
-		self:Holster()
-		self:LoadMemorizedIndex( trace.Entity, true )
 
 		self:GetOwner():EmitSound( "weapons/airboat/airboat_gun_lastshot" .. math.random(1,2) .. ".wav" )
 	end
@@ -566,6 +566,7 @@ elseif CLIENT then
 			local inputs, outputs = self:GetPorts( ent )
 			if not inputs and not outputs then return end
 			local check = self:GetStage() == 0 and inputs or outputs
+			if #check == 0 then return end
 			
 			local b = false
 			local oldport = self.CurrentWireIndex
@@ -644,9 +645,7 @@ elseif CLIENT then
 	TOOL.AimingStage = 0
 	function TOOL:LoadMemorizedIndex( ent, forceload )
 		if ent ~= self.AimingEnt or self:GetStage() ~= self.AimingStage or forceload then
-			if self:GetStage() == 2 and self.CurrentEntity ~= ent then
-				self.AimingEnt = ent
-				self.AimingStage = self:GetStage()
+			if self:GetStage() == 2 and self.CurrentEntity ~= ent then -- if you aim away during stage 2, don't change CurrentWireIndex
 				return
 			end
 		

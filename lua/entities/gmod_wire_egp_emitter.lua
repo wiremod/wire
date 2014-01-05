@@ -17,7 +17,7 @@ if CLIENT then
 			if object.parent == -1 or object.Is3DTracker then self.UpdateConstantly = true end -- Check if an object is parented to the cursor (or for 3DTrackers)
 
 			if object.parent and object.parent ~= 0 then
-				if not object.IsParented then EGP:SetParent(self, object.index, object.parentindex) end
+				if not object.IsParented then EGP:SetParent(self, object.index, object.parent) end
 				local _, data = EGP:GetGlobalPos(self, object.index)
 				EGP:EditObject(object, data)
 			elseif not object.parent or object.parent == 0 and object.IsParented then

@@ -134,12 +134,12 @@ if CLIENT then
     local currentDirectory
     local FileBrowser = vgui.Create("wire_expression2_browser" , panel)
     panel:AddPanel(FileBrowser)
-    FileBrowser:Setup("CPUChip")
+    FileBrowser:Setup("cpuchip")
     FileBrowser:SetSize(235,400)
     function FileBrowser:OnFileOpen(filepath, newtab)
       if not ZCPU_Editor then
         ZCPU_Editor = vgui.Create("Expression2EditorFrame")
-        ZCPU_Editor:Setup("ZCPU Editor", "CPUChip", "CPU")
+        ZCPU_Editor:Setup("ZCPU Editor", "cpuchip", "CPU")
       end
       ZCPU_Editor:Open(filepath, nil, newtab)
     end

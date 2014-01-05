@@ -19,10 +19,10 @@ if SERVER then
 	function TOOL:CheckPassword()
 		local password = self:GetClientNumber("password")
 		if password == nil or string.find(password, "0") then
-			WireLib.AddNotify(ply, "Password can only contain numbers 1-9", NOTIFY_ERROR, 5, NOTIFYSOUND_DRIP3)
+			WireLib.AddNotify(self:GetOwner(), "Password can only contain numbers 1-9", NOTIFY_ERROR, 5, NOTIFYSOUND_DRIP3)
 			return false
 		elseif string.len(password) > 4 then
-			WireLib.AddNotify(ply, "Password must be under 4 characters long", NOTIFY_ERROR, 5, NOTIFYSOUND_DRIP3)
+			WireLib.AddNotify(self:GetOwner(), "Password cannot be over 4 characters", NOTIFY_ERROR, 5, NOTIFYSOUND_DRIP3)
 			return false
 		end
 		return true

@@ -27,7 +27,6 @@ local function maxsize()
 	return _maxsize
 end
 
-
 --------------------------------------------------------------------------------
 
 local function checkOwner(self)
@@ -131,15 +130,67 @@ local function upperfirst( word )
 	return word:Left(1):upper() .. word:Right(-2):lower()
 end
 
-local function normal_table_tostring( tbl, indenting, printed, abortafter )
-	ret = ""
-	cost = 0
+----------------------------------
+-- tostrings
+----------------------------------
+
+-- for invert(R) and printTable and T:toString()
+local tostrings = {
+	number=tostring,
+	string=tostring,
+	Entity=tostring,
+	Weapon=tostring,
+	Player=tostring,
+	Vehicle=tostring,
+	NPC=tostring,
+	PhysObj=e2_tostring_bone,
+	["nil"] = function() return "(null)" end
+}
+
+function tostrings.table(t)
+	return "["..table.concat(t, ",").."]"
+end
+
+function tostrings.Vector2(v)
+	return ("[%s,%s]"):format(v[1],v[2])
+end
+
+function tostrings.Vector(v)
+	return ("[%s,%s,%s]"):format(v[1],v[2],v[3])
+end
+
+function tostrings.Vector4(v)
+	return ("[%s,%s,%s,%s]"):format(v[1],v[2],v[3],v[4])
+end
+
+-- for invert(T)
+local tostring_typeid = {
+	c =		formatPort.COMPLEX,
+	b =		tostring,
+	e =		tostring,
+	xwl =	tostring,
+	xrd =	tostring,
+	n =		tostring,
+	q =		formatPort.QUATERNION,
+	s =		function(s) return s end,
+	r =		tostring,
+	xm4 =	tostrings.table,
+	t =		tostring,
+	v =		tostrings.Vector,
+	m =		tostrings.table,
+	xv2 = 	tostrings.Vector2,
+	xm2 = 	tostrings.table,
+	a = 	tostrings.Vector,
+	xv4 = 	tostrings.Vector4,
+}
+
+local function normal_table_tostring( tbl, indenting, abortafter )
+	local ret = ""
+	local cost = 0
 	for k,v in pairs( tbl ) do
-		if (istable(v) and !printed[v]) then
-			printed[v] = true
-			ret = ret .. rep("\t",indenting) .. k .. ":\n"
-			local ret2, cost2 = normal_table_tostring( tbl, indenting + 2, printed, abortafter )
-			cost = cost + cost2 + 2
+		if tostrings[type(v)] then
+			ret = ret .. rep("\t",indenting) .. k .. "\t=\t" .. tostrings[type(v)]( v ) .. "\n"
+			cost = cost + 1
 		else
 			ret = ret .. rep("\t",indenting) .. k .. "\t=\t" .. tostring(v) .. "\n"
 			cost = cost + 1
@@ -152,44 +203,49 @@ local function normal_table_tostring( tbl, indenting, printed, abortafter )
 	return ret, cost
 end
 
-local function table_tostring( tbl, indenting, printed, abortafter )
+local table_tostring
+
+local function var_tostring( k, v, typeid, indenting, printed, abortafter )
+	local ret = ""
+	local cost = 0
+	if (typeid == "t" and not printed[v]) then -- If it's a table
+		printed[v] = true
+		ret = rep("\t",indenting) .. k .. ":\n"
+		local ret2, cost2 = table_tostring( v, indenting + 2, printed, abortafter )
+		ret = ret .. ret2
+		cost = cost2 + 1
+	elseif typeid == "r" and not printed[v] then -- if it's an array
+		printed[v] = true
+		ret = rep("\t",indenting) .. k .. ":\n"
+		local ret2, cost2 = normal_table_tostring( v, indenting + 2, abortafter )
+		ret = ret .. ret2
+		cost = cost2 + 1
+	elseif tostring_typeid[typeid] then -- if it's a type defined in this table
+		ret = rep("\t",indenting) .. k .. "\t=\t" .. tostring_typeid[typeid]( v ) .. "\n"
+		cost = 1
+	else -- if it's anything else
+		ret = rep("\t",indenting) .. k .. "\t=\t" .. tostring(v) .. "\n"
+		cost = 1
+	end
+	return ret, cost
+end
+
+table_tostring = function( tbl, indenting, printed, abortafter )
 	local ret = ""
 	local cost = 0
 	for k,v in pairs( tbl.n ) do
-		if (tbl.ntypes[k] == "t" and !printed[v]) then -- If it's an table
-			printed[v] = true
-			ret = ret .. rep("\t",indenting) .. k .. ":\n"
-			local ret2, cost2 = table_tostring( v, indenting + 2, printed, abortafter )
-			ret = ret .. ret2
-			cost = cost + cost2 + 2
-		elseif (istable(v) and !printed[v]) then -- If it's another kind of table
-			printed[v] = true
-			ret = ret .. rep("\t",indenting) .. k .. ":\n"
-			local ret2, cost2 = normal_table_tostring( v, indenting + 2, printed, abortafter )
-			ret = ret .. ret2
-		else -- If it's anything else (or a table which has already been printed)
-			ret = ret .. rep("\t",indenting) .. k .. "\t=\t" .. tostring(v) .. "\n"
-		end
-		if (abortafter and cost > abortafter) then
+		local ret2, cost2 = var_tostring( k, v, tbl.ntypes[k], indenting, printed, abortafter )
+		ret = ret .. ret2
+		cost = cost + cost2
+		if abortafter and cost > abortafter then
 			ret = ret .. "\n- Aborted to prevent lag -"
 			return ret, cost
 		end
 	end
 	for k,v in pairs( tbl.s ) do
-		if (tbl.stypes[k] == "t" and !printed[v]) then -- If it's an table
-			printed[v] = true
-			ret = ret .. rep("\t",indenting) .. k .. ":\n"
-			local ret2, cost2 = table_tostring( v, indenting + 2, printed, abortafter )
-			ret = ret .. ret2
-			cost = cost + cost2 + 2
-		elseif (istable(v) and !printed[v]) then -- If it's another kind of table
-			printed[v] = true
-			ret = ret .. rep("\t",indenting) .. k .. ":\n"
-			local ret2, cost2 = normal_table_tostring( v, indenting + 2, printed, abortafter )
-			ret = ret .. ret2
-		else -- If it's anything else (or a table which has already been printed)
-			ret = ret .. rep("\t",indenting) .. k .. "\t=\t" .. tostring(v) .. "\n"
-		end
+		local ret2, cost2 = var_tostring( k, v, tbl.stypes[k], indenting, printed, abortafter )
+		ret = ret .. ret2
+		cost = cost + cost2
 		if (abortafter and cost > abortafter) then
 			ret = ret .. "\n- Aborted to prevent lag -"
 			return ret, cost
@@ -613,8 +669,8 @@ e2function table table:difference( table rv2 )
 		cost = cost + 1
 		if (!rv2.s[k]) then
 			size = size + 1
-			ret.s[size] = v
-			ret.stypes[size] = this.stypes[k]
+			ret.s[k] = v
+			ret.stypes[k] = this.stypes[k]
 		end
 	end
 	self.prf = self.prf + cost * opcost
@@ -642,8 +698,8 @@ e2function table table:intersect( table rv2 )
 		cost = cost + 1
 		if (rv2.s[k]) then
 			size = size + 1
-			ret.s[size] = v
-			ret.stypes[size] = this.stypes[k]
+			ret.s[k] = v
+			ret.stypes[k] = this.stypes[k]
 		end
 	end
 	self.prf = self.prf + cost * opcost
@@ -822,56 +878,6 @@ __e2setcost(5)
 --------------------------------------------------------------------------------
 -- Backwards compatibility functions (invert & co.)
 --------------------------------------------------------------------------------
-
--- for invert(R)
-local tostrings = {
-	number=tostring,
-	string=tostring,
-	Entity=tostring,
-	Weapon=tostring,
-	Player=tostring,
-	Vehicle=tostring,
-	NPC=tostring,
-	PhysObj=e2_tostring_bone,
-	["nil"] = function() return "(null)" end
-}
-
-function tostrings.table(t)
-	return "["..table.concat(t, ",").."]"
-end
-
-function tostrings.Vector2(v)
-	return ("[%s,%s]"):format(v[1],v[2])
-end
-
-function tostrings.Vector(v)
-	return ("[%s,%s,%s]"):format(v[1],v[2],v[3])
-end
-
-function tostrings.Vector4(v)
-	return ("[%s,%s,%s,%s]"):format(v[1],v[2],v[3],v[4])
-end
-
--- for invert(T)
-local tostring_typeid = {
-	c =		formatPort.COMPLEX,
-	b =		tostring,
-	e =		tostring,
-	xwl =	tostring,
-	xrd =	tostring,
-	n =		tostring,
-	q =		formatPort.QUATERNION,
-	s =		function(s) return s end,
-	r =		tostring,
-	xm4 =	tostrings.table,
-	t =		tostring,
-	v =		tostrings.Vector,
-	m =		tostrings.table,
-	xv2 = 	tostrings.Vector2,
-	xm2 = 	tostrings.table,
-	a = 	tostrings.Vector,
-	xv4 = 	tostrings.Vector4,
-}
 
 --- Returns a lookup table for <arr>. Usage: Index = T:number(toString(Value)).
 --- Don't overuse this function, as it can become expensive for arrays with > 10 entries!

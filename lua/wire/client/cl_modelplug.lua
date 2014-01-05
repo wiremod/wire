@@ -131,7 +131,7 @@ local CheezesButtons = {
 }
 for k,v in ipairs(CheezesButtons) do
 	if file.Exists(v,"GAME") then
-		list.Set( "ButtonModels", v, true )
+		list.Set( "ButtonModels", v, {} )
 		list.Set( "Wire_button_Models", v, true )
 	end
 end
@@ -149,7 +149,7 @@ local CheezesSmallButtons = {
 }
 for k,v in ipairs(CheezesSmallButtons) do
 	if file.Exists(v,"GAME") then
-		list.Set( "ButtonModels", v, true )
+		list.Set( "ButtonModels", v, {} )
 		list.Set( "Wire_button_small_Models", v, true )
 	end
 end
