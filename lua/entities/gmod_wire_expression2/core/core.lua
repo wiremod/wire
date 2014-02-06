@@ -393,6 +393,15 @@ e2function number opcounter()
 	return ceil(self.prf + self.prfcount)
 end
 
+e2function number cpuUsage()
+	return self.timebench
+end
+
+e2function number entity:cpuUsage()
+	if not IsValid(this) or this:GetClass() ~= "gmod_wire_expression2" or not this.context then return 0 end
+	return this.context.timebench
+end
+
 --- If used as a while loop condition, stabilizes the expression around <maxexceed> hardquota used.
 e2function number perf()
 	if self.prf + self.prfcount >= e2_hardquota-e2_tickquota then return 0 end
