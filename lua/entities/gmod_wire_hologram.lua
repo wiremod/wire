@@ -194,9 +194,10 @@ if CLIENT then
 
 		local count = self:GetBoneCount() or -1
 		if count > 1 then
-			for i = 0, count do
+			for i = count, 0, -1 do
 				self:ManipulateBoneScale(i, self.bone_scale[i] or scale)
 			end
+			self:SetModelScale((scale.x + scale.y + scale.z) / 3, 0)
 		elseif self.EnableMatrix then
 			local mat = Matrix()
 			mat:Scale(Vector(scale.y, scale.x, scale.z)) -- Note: We're swapping X and Y because RenderMultiply isn't consistant with the rest of source
