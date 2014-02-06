@@ -12,8 +12,6 @@ local table_insert = table.insert
 local table_remove = table.remove
 local floor = math.floor
 
-E2_MAX_ARRAY_SIZE = 1024*1024	-- 1MB
-
 local blocked_types = {
 	["t"] = true,
 	["r"] = true,
@@ -174,10 +172,8 @@ registerCallback( "postinit", function()
 				if (!array or !index) then return fixdef( default ) end -- Make sure array and index are valid
 				if (typecheck and typecheck( value )) then return fixdef( default ) end -- If typecheck returns true, the type is wrong.
 				if (doinsert) then
-					if (#array + 1 > E2_MAX_ARRAY_SIZE) then return fixdef( default ) end -- Check max size
 					table_insert( array, index, value )
 				else
-					if (index > E2_MAX_ARRAY_SIZE) then return fixdef( default ) end -- Check max size
 					array[floor(index)] = value
 				end
 				self.vclk[array] = true
