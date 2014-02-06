@@ -990,8 +990,7 @@ registerCallback( "postinit", function()
 		registerOperator("idx", id.."=ts"..id , id, function( self, args )
 			local op1, op2, op3, scope = args[2], args[3], args[4], args[5]
 			local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
-			if rv3 == nil then return end
-			if (!rv1.s[rv2]) then rv1.size = rv1.size + 1 end
+			if (not rv1.s[rv2] and rv3 ~= nil) then rv1.size = rv1.size + 1 end
 			rv1.s[rv2] = rv3
 			rv1.stypes[rv2] = id
 			self.vclk[rv1] = true //self.Scopes[scope].vclk[rv1] = true
@@ -1001,8 +1000,7 @@ registerCallback( "postinit", function()
 		registerOperator("idx", id.."=tn"..id, id, function(self,args)
 			local op1, op2, op3, scope = args[2], args[3], args[4], args[5]
 			local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
-			if rv3 == nil then return end
-			if (!rv1.n[rv2]) then rv1.size = rv1.size + 1 end
+			if (not rv1.n[rv2] and rv3 ~= nil) then rv1.size = rv1.size + 1 end
 			rv1.n[rv2] = rv3
 			rv1.ntypes[rv2] = id
 			self.vclk[rv1] = true //self.Scopes[scope].vclk[rv1] = true
