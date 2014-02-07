@@ -438,8 +438,8 @@ e2function number array:maxIndex()
 	for k,v in pairs( this ) do
 		indexes = indexes + 1
 		local val = tonumber(v) or 0
-		if (num == nil or v > num) then
-			num = v
+		if (num == nil or val > num) then
+			num = val
 			index = k
 		end
 	end
