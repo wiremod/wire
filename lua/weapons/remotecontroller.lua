@@ -31,7 +31,7 @@ if CLIENT then return end
 
 function SWEP:PrimaryAttack()
 	local trace = self:GetOwner():GetEyeTrace()
-	if (trace.Entity and trace.Entity:IsValid() and trace.Entity:GetClass() == "gmod_wire_pod") then
+	if IsValid(trace.Entity) and trace.Entity:GetClass() == "gmod_wire_pod" and gamemode.Call("PlayerUse", self:GetOwner(), trace.Entity) then
 		self.Linked = trace.Entity
 		self:GetOwner():ChatPrint("Remote Controller linked.")
 	end

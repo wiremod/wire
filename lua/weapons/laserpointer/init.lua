@@ -34,7 +34,7 @@ end
 function SWEP:SecondaryAttack()
 	local trace = self:GetOwner():GetEyeTrace()
 
-	if IsValid(trace.Entity) and trace.Entity:GetClass() == "gmod_wire_las_receiver" then
+	if IsValid(trace.Entity) and trace.Entity:GetClass() == "gmod_wire_las_receiver" and gamemode.Call("CanTool", self:GetOwner(), trace, "wire_las_receiver") then
 		self.Receiver = trace.Entity
 		self:GetOwner():PrintMessage( HUD_PRINTTALK, "Linked Sucessfully" )
 		return true
