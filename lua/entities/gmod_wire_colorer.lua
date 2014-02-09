@@ -34,35 +34,24 @@ function ENT:Setup(outColor,Range)
 	self:ShowOutput()
 end
 
-local function CheckPP(ply, ent)
-	if !IsValid(ply) or !IsValid(ent) then return false end
-	if CPPI then
-		-- Temporary, done this way due to certain PP implementations not always returning a value for CPPICanTool
-		if ent == ply then return true end
-		if ent:CPPICanTool( ply, "colour" ) == false then return false end
-	end
-	return true
-end
-
 function ENT:TriggerInput(iname, value)
-	if iname == "Fire" then
-		if value ~= 0 then
-			local vStart = self:GetPos()
-			local vForward = self:GetUp()
+	if iname == "Fire" and value ~= 0 then
+		local vStart = self:GetPos()
+		local vForward = self:GetUp()
 
-			local trace = {}
-				trace.start = vStart
-				trace.endpos = vStart + (vForward * self:GetBeamLength())
-				trace.filter = { self }
-			local trace = util.TraceLine( trace )
-
-			if !CheckPP( self:GetPlayer(), trace.Entity ) then return end
-			if trace.Entity:IsPlayer() then
-				trace.Entity:SetColor(Color(self.InColor.r, self.InColor.g, self.InColor.b, 255))
-			else
-				trace.Entity:SetColor(Color(self.InColor.r, self.InColor.g, self.InColor.b, self.InColor.a))
-				trace.Entity:SetRenderMode(self.InColor.a == 255 and RENDERMODE_NORMAL or RENDERMODE_TRANSALPHA )
-			end
+		local trace = util.TraceLine {
+			start = vStart,
+			endpos = vStart + (vForward * self:GetBeamLength()),
+			filter = { self }
+		}
+		if not IsValid(trace.Entity) then return end
+		if not hook.Run( "CanTool", self:GetOwner(), trace, "colour" ) then return end
+			
+		if trace.Entity:IsPlayer() then
+			trace.Entity:SetColor(Color(self.InColor.r, self.InColor.g, self.InColor.b, 255))
+		else
+			trace.Entity:SetColor(Color(self.InColor.r, self.InColor.g, self.InColor.b, self.InColor.a))
+			trace.Entity:SetRenderMode(self.InColor.a == 255 and RENDERMODE_NORMAL or RENDERMODE_TRANSALPHA )
 		end
 	elseif iname == "R" then
 		self.InColor.r = math.Clamp(value, 0, 255)

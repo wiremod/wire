@@ -218,28 +218,14 @@ function ENT:FindColor(contact)
 	end
 end
 
-//Prop Protection Buddy List Support (EXPERIMENTAL!!!)
-function ENT:CheckTheBuddyList(Ami)
-	if (!self.CheckBuddyList) then return true end
-
-	local info = Ami:GetInfo( "propprotection_ami"..self:GetPlayer():EntIndex() ) --am I on their list
-	if ( info == "0" ) then
-		return !self.OnBuddyList
+function ENT:CheckTheBuddyList(friend)
+	if not self.CheckBuddyList or not CPPI then return true end
+	
+	for _, v in pairs(self:GetPlayer():CPPIGetFriends()) do
+		if v == friend then return self.OnBuddyList end
 	end
-	return self.OnBuddyList
+	return not self.OnBuddyList
 end
-
-/*function ENT:BelongsToBuddy(contact)
-	if (!self.CheckBuddyList) then return true end
-
-	local info = self:GetOwner():GetInfo( "propprotection_ami"..contact:GetPlayer():EntIndex() )
-	if ( info == "0" ) then
-		return false
-	else
-		return true
-	end
-end*/
-
 
 function ENT:Think()
 	self.BaseClass.Think(self)
