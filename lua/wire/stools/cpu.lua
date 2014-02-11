@@ -114,7 +114,7 @@ if CLIENT then
   function ZCPU_OpenEditor()
     if not ZCPU_Editor then
       ZCPU_Editor = vgui.Create("Expression2EditorFrame")
-      ZCPU_Editor:Setup("ZCPU Editor", "CPUChip", "CPU")
+      ZCPU_Editor:Setup("ZCPU Editor", "cpuchip", "CPU")
     end
     ZCPU_Editor:Open()
   end
