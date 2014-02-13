@@ -287,4 +287,101 @@ GateActions["string_select"] = {
 	end
 }
 
+GateActions["string_to_memory"] = {
+  name = "String => Memory",
+  inputs = { "A" },
+  inputtypes = { "STRING" },
+  outputs = { "Memory" },
+  reset = function(gate) 
+    gate.stringQueued = false
+    gate.stringChanged = false
+  	gate.currentString = ""
+  end,
+
+  output = function(gate, A)
+    if (A ~= gate.currentString) then
+    	if (not gate.stringChanged) then
+    		gate.stringChanged = true
+    		gate.currentString = A
+    		gate.stringQueued = false
+    	else
+    		gate.stringQueued = true
+    	end
+    end
+  	return gate.Outputs["Memory"].Value --This will prevent Wire_TriggerOutput from changing anything
+  end,
+
+  ReadCell = function(self, gate, Address) 
+  	if (Address == 0) then 	   --Clk
+  		if (gate.stringChanged) then return 1 else return 0 end
+  	elseif (Address == 1) then --String length
+  		return #(gate.currentString)
+  	else --Return string bytes
+  		local index = Address - 1
+  		if (index > #(gate.currentString)) then -- Check whether requested address is outside the string
+  			return 0 
+  		else 
+  			return string.byte(gate.currentString, index) 
+  		end
+  	end
+  end,
+
+  WriteCell = function(self, gate, Address, value)
+  	if (Address == 0) and (value == 0) then --String got accepted
+  		gate.stringChanged = false
+	  	if gate.stringQueued then --Get queued string
+			gate.stringQueued = false
+			gate.currentString = gate.Inputs["A"].Value
+			gate.stringChanged = true		
+	  	end
+	  	return true
+  	else
+  		return false
+  	end
+  end
+}
+
+
+GateActions["string_from_memory"] = {
+  name = "Memory => String (1024 Byte)",
+  inputs = {},
+  outputs = { "Out", "Memory" },
+  outputtypes = { "STRING", "NORMAL" },
+  reset = function(gate) --initialize the memory
+    gate.memory = {}
+    for i=1, 1023 do
+    	gate.memory[i] = 0
+    end
+    gate.currentString = ""
+    gate.ready = true
+  end,
+
+  output = function(gate) 
+  	return gate.currentString, gate.Outputs["Memory"].Value
+  end,
+
+  ReadCell = function(self, gate, address) 
+  	if (address == 0) then
+  		return 0
+  	elseif (address < 1024) then
+  		return gate.memory[address]
+  	else
+  		return 0
+  	end
+  end,
+
+  WriteCell = function(self, gate, address, value)
+  	if (address == 0) and (value == 1) then -- Clk has been set
+  		gate.currentString = string.char(unpack(gate.memory))
+  		gate:CalcOutput()
+  		return true
+  	elseif (address < 1024) then -- Don't enlarge the memory
+  		gate.memory[address] = value
+  		return true
+  	else
+  		return false
+  	end
+  end
+}
+
 GateActions()
