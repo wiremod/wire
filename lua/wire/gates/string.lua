@@ -343,15 +343,13 @@ GateActions["string_to_memory"] = {
 
 
 GateActions["string_from_memory"] = {
-  name = "Memory => String (1024 Byte)",
+  name = "Memory => String",
   inputs = {},
   outputs = { "Out", "Memory" },
   outputtypes = { "STRING", "NORMAL" },
-  reset = function(gate) --initialize the memory
+  reset = function(gate) --initialize the gate
     gate.memory = {}
-    for i=1, 1023 do
-    	gate.memory[i] = 0
-    end
+    gate.stringLength = 0
     gate.currentString = ""
     gate.ready = true
   end,
@@ -363,24 +361,28 @@ GateActions["string_from_memory"] = {
   ReadCell = function(self, gate, address) 
   	if (address == 0) then
   		return 0
-  	elseif (address < 1024) then
-  		return gate.memory[address]
+  	elseif (address == 1) then
+  		return gate.stringLength
   	else
-  		return 0
+  		return gate.memory[address-1] or 0 -- "or 0" to prevent it from returning nil if index is outside the array
   	end
   end,
 
   WriteCell = function(self, gate, address, value)
-  	if (address == 0) and (value == 1) then -- Clk has been set
-  		gate.currentString = string.char(unpack(gate.memory))
-  		gate:CalcOutput()
-  		return true
-  	elseif (address < 1024) then -- Don't enlarge the memory
-  		gate.memory[address] = value
-  		return true
-  	else
-  		return false
-  	end
+  	if (value >= 0) then
+		if (address == 0) and (value == 1) then -- Clk has been set
+			gate.currentString = string.char(unpack(gate.memory, 1, gate.stringLength))
+			gate:CalcOutput()
+			return true
+		elseif (address == 1) then -- Set string length
+			gate.stringLength = math.floor(value)
+			return true
+		elseif (address > 1) then  -- Set memory cell
+			gate.memory[address-1] = math.floor(value)
+			return true
+		end
+	end
+	return false; -- if (value < 0) or ((address == 0) and (value != 1))
   end
 }
 
