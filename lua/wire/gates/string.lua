@@ -371,7 +371,14 @@ GateActions["string_from_memory"] = {
   WriteCell = function(self, gate, address, value)
   	if (value >= 0) then
 		if (address == 0) and (value == 1) then -- Clk has been set
-			gate.currentString = string.char(unpack(gate.memory, 1, gate.stringLength))
+			local maxIndex = gate.stringLength
+			for i=1,gate.stringLength,1 do
+				if not gate.memory[i] then
+					maxIndex = i-1
+					break
+				end
+			end
+			gate.currentString = string.char(unpack(gate.memory, 1, maxIndex))
 			gate:CalcOutput()
 			return true
 		elseif (address == 1) then -- Set string length
