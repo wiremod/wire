@@ -82,7 +82,7 @@ function ENT:TriggerInput(iname, value)
 				endpos = vStart + (vForward * self:GetBeamLength()),
 				filter = { self }
 			}
-			if not CanGrab(trace) then return end
+			if not self:CanGrab(trace) then return end
 
 			-- Weld them!
 			local const = constraint.Weld(self, trace.Entity, 0, 0, self.WeldStrength)
