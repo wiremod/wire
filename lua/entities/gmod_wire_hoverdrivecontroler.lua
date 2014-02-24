@@ -38,8 +38,9 @@ end
 
 function ENT:TriggerInput(iname, value)
 	if (iname == "Jump") then
-		if (value != 0 and !self.Jumping) then
-			self:Jump(self.Inputs.TargetAngle.Src ~= nil)
+		if (value ~= 0 and not self.Jumping) then
+			self:Jump(self.UseAngle or self.Inputs.TargetAngle.Src ~= nil)
+			self.UseAngle = false
 		end
 	elseif (iname == "TargetPos") then
 		self.TargetPos = value
@@ -51,6 +52,10 @@ function ENT:TriggerInput(iname, value)
 		self.TargetPos.z = value
 	elseif (iname == "TargetAngle") then
 		self.TargetAng = value
+		-- if the angle is set, we should use it for jumping
+		-- even if there's nothing connected to the angle wire.
+		-- otherwise, we can't use wirelink for angles.
+		self.UseAngle = true
 	elseif (iname == "Sound") then
 		self.UseSounds = value ~= 0
 	end
