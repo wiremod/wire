@@ -986,6 +986,7 @@ function Editor:InitComponents()
 			self.C['Sav'].x = self.C['Sav'].x - button.anispeed
 			self.C['NewTab'].x = self.C['NewTab'].x - button.anispeed
 			self.C['CloseTab'].x = self.C['CloseTab'].x - button.anispeed
+			self.C['Reload'].x = self.C['Reload'].x - button.anispeed
 			self.C['TabHolder'].x = self.C['TabHolder'].x - button.anispeed
 			self.C['Val'].x = self.C['Val'].x - button.anispeed
 			self.C['Browser'].w = self.C['Browser'].w - button.anispeed
@@ -994,6 +995,7 @@ function Editor:InitComponents()
 			self.C['Sav'].x = self.C['Sav'].x + button.anispeed
 			self.C['NewTab'].x = self.C['NewTab'].x + button.anispeed
 			self.C['CloseTab'].x = self.C['CloseTab'].x + button.anispeed
+			self.C['Reload'].x = self.C['Reload'].x + button.anispeed
 			self.C['TabHolder'].x = self.C['TabHolder'].x + button.anispeed
 			self.C['Val'].x = self.C['Val'].x + button.anispeed
 			self.C['Browser'].w = self.C['Browser'].w + button.anispeed
