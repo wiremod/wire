@@ -124,6 +124,9 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 
 		for index, entindex in pairs(info.marks) do
 			self.Marks[index] = GetEntByID(entindex)
+			ent:CallOnRemove("AdvEMarker.Unlink", function(ent)
+				if IsValid(self) then self:UnlinkEnt(ent) end
+			end)
 		end
 		self:UpdateOutputs()
 	end
