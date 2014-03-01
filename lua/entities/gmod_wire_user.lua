@@ -1,6 +1,7 @@
 AddCSLuaFile()
 DEFINE_BASECLASS( "base_wire_entity" )
 ENT.PrintName       = "Wire User"
+ENT.RenderGroup		= RENDERGROUP_BOTH
 ENT.WireDebugName	= "User"
 
 function ENT:SetupDataTables()
