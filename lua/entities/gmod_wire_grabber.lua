@@ -147,8 +147,8 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 
 	if self.WeldEntity and self.Inputs.Grab.Value ~= 0 then
 
-		if not self.Weld then
-			self.Weld = constraint.Weld(self, trace.Entity, 0, 0, self.WeldStrength)
+		if not self.Weld and self.trace~=nil then
+			self.Weld = constraint.Weld(self, self.trace, 0, 0, self.WeldStrength)
 			self.Weld.Type = "" --prevents the duplicator from making this weld
 		end
 
@@ -160,10 +160,13 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 		if self.Gravity then
 			self.WeldEntity:GetPhysicsObject():EnableGravity(false)
 		end
-
-		self:SetColor(Color(255, 0, 0, self:GetColor().a))
-		Wire_TriggerOutput(self, "Holding", 1)
-		Wire_TriggerOutput(self, "Grabbed Entity", self.WeldEntity)
+		if self.Weld then
+			self:SetColor(Color(255, 0, 0, self:GetColor().a))
+			Wire_TriggerOutput(self, "Holding", 1)
+			Wire_TriggerOutput(self, "Grabbed Entity", self.WeldEntity)
+		else
+			self:ResetGrab()
+		end
 	end
 end
 
