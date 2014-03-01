@@ -66,8 +66,9 @@ function ENT:CanGrab(trace)
 	-- If there's no physics object then we can't constraint it!
 	if not util.IsValidPhysicsObject(trace.Entity, trace.PhysicsBone) then return false end
 	
-	-- We might also want to check PhysgunPickup, but this should be sufficient
-	if self.OnlyGrabOwners and not hook.Run( "CanTool", self:GetOwner(), trace, "weld" ) then return false end
+	if not gamemode.Call( "CanTool", self:GetOwner(), trace, "weld" ) then return false end
+	if self.OnlyGrabOwners and (self:GetOwner() ~= trace.Entity:GetOwner()) then return false end
+
 	return true
 end
 
