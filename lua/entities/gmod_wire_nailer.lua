@@ -46,14 +46,14 @@ function ENT:TriggerInput(iname, value)
 			endpos = vStart + (vForward * self:GetBeamLength()),
 			filter = { self }
 		}
-		if not CanNail(trace1) then return end
+		if not self:CanNail(trace1) then return end
 			
 		local trace2 = util.TraceLine {
 			start = trace1.HitPos,
 			endpos = trace1.HitPos + (vForward * 50.0),
 			filter = { trace1.Entity, self }
 		}
-		if not CanNail(trace2) then return end
+		if not self:CanNail(trace2) then return end
 
 		local constraint = constraint.Weld( trace1.Entity, trace2.Entity, trace1.PhysicsBone, trace2.PhysicsBone, self.Flim )
 
