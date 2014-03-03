@@ -823,6 +823,8 @@ function Compiler:InstrSWITCH(args)
 				self:Error("Case missmatch can not compare " .. tps_pretty(type) .. " with " .. tps_pretty(tp), args)
 			end
 			eq = { self:GetOperator(args, "eq", { type, tp })[1], value, ex } -- This is the equals operator to check if values match
+		else
+			default=i
 		end
 		local stmts = Compiler["Instr" .. string.upper(block[1])](self, block) -- This is statments that are run when Values match
 		cases[i] = { eq, stmts, prf_eq }

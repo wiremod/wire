@@ -475,7 +475,7 @@ end)
 __e2setcost(3) -- approximation
 
 registerOperator("switch", "", "", function(self, args)
-	local cases, startcase = args[3]
+	local cases, startcase = args[3], args[4]
 
 	self:PushScope()
 
