@@ -11,7 +11,7 @@ function gmsave.ShouldSaveEntity( ent, ... )
 end
 
 local wire_expression2_unlimited = CreateConVar("wire_expression2_unlimited", "0")
-local wire_expression2_quotasoft = CreateConVar("wire_expression2_quotasoft", "5000")
+local wire_expression2_quotasoft = CreateConVar("wire_expression2_quotasoft", "10000")
 local wire_expression2_quotahard = CreateConVar("wire_expression2_quotahard", "100000")
 local wire_expression2_quotatick = CreateConVar("wire_expression2_quotatick", "25000")
 
@@ -144,7 +144,7 @@ end
 
 function ENT:Think()
 	self.BaseClass.Think(self)
-	self:NextThink(CurTime())
+	self:NextThink(CurTime()+0.030303)
 
 	if self.context and not self.error then
 		self.context.prfbench = self.context.prfbench * 0.95 + self.context.prf * 0.05
