@@ -5,9 +5,9 @@ TOOL.Tab      = "Wire"
 if CLIENT then
 	language.Add( "Tool.wire_adv.name", "Advanced Wiring Tool" )
 	language.Add( "Tool.wire_adv.desc", "Connect things with wires. (Press Shift+F to switch to the debugger tool)" )
-	language.Add( "Tool.wire_adv.0", "Primary: Select (Shift: Select multiple; Alt: Select all), Secondary: Next, Reload: Unlink (Hold Alt: Unlink all), Mouse Wheel: Scroll" )
-	language.Add( "Tool.wire_adv.1", "Primary: Select, Secondary: Add wire point, Reload: Cancel" )
-	language.Add( "Tool.wire_adv.2", "Primary: Select (Hold Alt: Auto-connect matching input/outputs), Secondary: Next, Reload: Cancel, Mouse Wheel: Scroll" )
+	language.Add( "Tool.wire_adv.0", "Primary: Select input (Shift: Select multiple; Alt: Select all), Secondary: Next, Reload: Unlink (Alt: Unlink all), Mouse Wheel: Next" )
+	language.Add( "Tool.wire_adv.1", "Primary: Select entity, Secondary: Add wire point, Reload: Cancel" )
+	language.Add( "Tool.wire_adv.2", "Primary: Select output (Alt: Auto-connect matching input/outputs), Secondary: Next, Reload: Cancel, Mouse Wheel: Next" )
 end
 
 TOOL.ClientConVar = {
