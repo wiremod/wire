@@ -110,7 +110,7 @@ function ENT:TriggerInput(iname, value)
 end
 
 function ENT:Switch( on )
-	if on == self:GetOn() then return end
+	if on ~= not self.flashlight then return end
 	self.on = on
 
 	if not on then
@@ -171,7 +171,7 @@ function ENT:Setup( r, g, b, Texture, fov, dist, brightness, on )
 	self.FOV = fov or 90
 	self.Dist = dist or 1024
 	self.Brightness = brightness or 8
-	self.on = on or true
+	self.on = on or false
 	self:Switch( self.on )
 	self:UpdateLight()
 end
