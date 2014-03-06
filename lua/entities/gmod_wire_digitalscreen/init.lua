@@ -89,7 +89,11 @@ function ENT:FlushCache(ply)
 			net.WriteUInt(math.min(range.length, math.ceil((480000 - len) / pixelbit)),20) -- Length of range
 			net.WriteUInt(range.start,20)
 			for i = range.start,range.start + range.length - 1 do
-				net.WriteUInt(self.Memory[i],pixelbit)
+				if i>=1048500 then
+					net.WriteUInt(self.Memory[i],10)
+				else
+					net.WriteUInt(self.Memory[i],pixelbit)
+				end
 				len = len + pixelbit
 				if len > 480000 then
 					-- Message is over 60kb, end the message early
