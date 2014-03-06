@@ -168,59 +168,49 @@ function ENT:OnRemove()
 	end
 end
 
+function ENT:ClearPod()
+	if IsValid(self.driver) then
+		self:updateEyePodState(false)
+		self.driver = nil
+	end
+	if self.DefaultToZero == 1 then
+		if self.X==0 and self.Y==0 then return end
+		self.X = 0
+		self.Y = 0
+		Wire_TriggerOutput(self, "X", self.X)
+		Wire_TriggerOutput(self, "Y", self.Y)
+		local XY_Vec = {self.X, self.Y}
+		Wire_TriggerOutput(self, "XY", XY_Vec)
+	end
+end
 function ENT:Think()
 	-- Make sure the gate updates even if we don't receive any input
 	self:TriggerInput()
-
+	local overLayText = " - Not Active"
+	
 	if IsValid(self.pod) then
-		-- if we are in a pod, set the player
-		if self.pod:IsVehicle() and self.pod:GetDriver():IsPlayer() then
-			self.driver = self.pod:GetDriver()
-		else -- else set X and Y to 0
-			if IsValid(self.driver) then
-				self:updateEyePodState(false)
-				self.driver = nil
+		if self.pod:IsVehicle() then
+			local player = self.pod:GetDriver()
+			if player:IsPlayer() then
+				self.driver = player
+				overLayText = " - In use by "..player:Name()
+			else
+				self:ClearPod()
 			end
-			if self.DefaultToZero == 1 then
-				self.X = 0
-				self.Y = 0
-				Wire_TriggerOutput(self, "X", self.X)
-				Wire_TriggerOutput(self, "Y", self.Y)
-				local XY_Vec = {self.X, self.Y}
-				Wire_TriggerOutput(self, "XY", XY_Vec)
-			end
+			overLayText = overLayText.."\nLinked to "..self.pod:GetModel()
+		else
+			overLayText = overLayText.."\nNot Linked"
+			self:ClearPod()
 		end
-	else -- else set X and Y to 0
-		if IsValid(self.driver) then
-			self:updateEyePodState(false)
-			self.driver = nil
-		end
-		if self.DefaultToZero == 1 then
-			self.X = 0
-			self.Y = 0
-			Wire_TriggerOutput(self, "X", self.X)
-			Wire_TriggerOutput(self, "Y", self.Y)
-			local XY_Vec = {self.X, self.Y}
-			Wire_TriggerOutput(self, "XY", XY_Vec)
-		end
+	else
+		self:ClearPod()
 		self.pod = nil
+		overLayText = overLayText.."\nNot Linked"
 	end
 
 	-- update the overlay with the user's name
-	local Txt = ""
-	if self.enabled and IsValid(self.driver) and self.driver:IsPlayer() then
-		Txt = Txt.." - In use by "..self.driver:Name()
-	else
-		Txt = Txt.." - Not Active"
-	end
-	if IsValid(self.pod) and self.pod:IsVehicle() then
-		Txt = Txt.."\nLinked to "..self.pod:GetModel()
-	else
-		Txt = Txt.."\nNot Linked"
-	end
-
-	self:SetOverlayText(Txt)
-
+	self:SetOverlayText(overLayText)
+	
 	self:NextThink(CurTime() + 0.1)
 
 	return true
@@ -259,18 +249,7 @@ function ENT:TriggerInput(iname, value)
 
 	-- If we're not enabled, set the output to zero and exit
 	if not self.enabled then
-		if self.DefaultToZero == 1 then
-			self.X = 0
-			self.Y = 0
-			Wire_TriggerOutput(self, "X", self.X)
-			Wire_TriggerOutput(self, "Y", self.Y)
-			local XY_Vec = {self.X, self.Y}
-			Wire_TriggerOutput(self, "XY", XY_Vec)
-		end
-		if IsValid(self.driver) and IsValid(self.pod) then
-			self:updateEyePodState(self.enabled)
-		end
-		return
+		self:ClearPod()
 	end
 
 	--Turn on the EyePod Control file
