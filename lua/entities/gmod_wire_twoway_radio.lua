@@ -45,7 +45,10 @@ function ENT:Think()
 		self.PairID = nil
 	end
 end
-
+function IsRadio(entity)
+	if IsValid(entity) and entity:GetClass() == "gmod_wire_twoway_radio" then return true end
+	return false
+end
 function ENT:ReceiveRadio(iname, value)
 	if (iname == "A") and (self.Other) and (self.Other:IsValid()) then
 		Wire_TriggerOutput(self, "A", value)
@@ -72,17 +75,26 @@ function ENT:RadioLink(other, id)
 end
 
 function ENT:LinkEnt( other )
-	if not IsValid(other) or not other:GetClass() == "gmod_wire_twoway_radio" then return false, "Must link to another Two-Way Radio" end
-
+	if not IsRadio(other) then return false, "Must link to another Two-Way Radio" end
+	if other == self then return false, "Cannot link Two-Way Radio to itself" end
+	-- If it's already linked...
+	if self.Other then
+		-- to the same one, return
+		if self.Other == other then return false end
+		--to a different one, then tell it to unlink
+		self.Other.UnlinkEnt()
+	end
+	
 	local id = Radio_GetTwoWayID()
 	self:RadioLink(other, id)
 	other:RadioLink(self, id)
-	WireLib.AddNotify(self:GetPlayer(), "Radios paired up. Pair ID is " .. tostring(id) .. ".", NOTIFY_GENERIC, 7)
-
+	WireLib.AddNotify(self:GetPlayer(), "The Radios are now paired. Pair ID is " .. tostring(id) .. ".", NOTIFY_GENERIC, 7)
 	WireLib.SendMarks(self, {other})
 	return true
 end
 function ENT:UnlinkEnt()
+	if not IsRadio(self) then return false end
+	if not IsRadio(self.Other) then return false end
 	self.Other:RadioLink(nil, nil)
 	WireLib.SendMarks(self.Other, {})
 	self:RadioLink(nil, nil)
@@ -93,22 +105,22 @@ end
 function ENT:ShowOutput(iname, value)
 	local changed
 	if (iname == "A") then
-		if (A ~= self.PrevOutputA) then
+		if (value ~= self.PrevOutputA) then
 			self.PrevOutputA = (value or 0)
 			changed = 1
 		end
 	elseif (iname == "B") then
-		if (B ~= self.PrevOutputB) then
+		if (value ~= self.PrevOutputB) then
 			self.PrevOutputB = (value or 0)
 			changed = 1
 		end
 	elseif (iname == "C") then
-		if (C ~= self.PrevOutputC) then
+		if (value ~= self.PrevOutputC) then
 			self.PrevOutputC = (value or 0)
 			changed = 1
 		end
 	elseif (iname == "D") then
-		if (D ~= self.PrevOutputD) then
+		if (value ~= self.PrevOutputD) then
 			self.PrevOutputD = (value or 0)
 			changed = 1
 		end
