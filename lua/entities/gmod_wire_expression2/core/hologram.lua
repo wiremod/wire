@@ -1012,7 +1012,7 @@ e2function void holoParent(index, entity ent)
 end
 
 e2function void holoParent(index, bone b)
-	local ent, boneindex = E2Lib.isValidBone2(b)
+	local ent, boneindex = E2Lib.isValidBone(b)
 	if not ent then return end
 
 	local Holo = CheckIndex(self, index)
