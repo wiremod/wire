@@ -232,11 +232,11 @@ function ENT:TriggerInput(iname, value)
 		self.enabled = value ~= 0
 		
 		if self.enabled == false and self.DefaultToZero == 1 and (self.X ~= 0 or self.Y ~= 0) then
-			eyepod.X = 0
-			eyepod.Y = 0
-			WireLib.TriggerOutput( eyepod, "X", 0 )
-			WireLib.TriggerOutput( eyepod, "Y", 0 )
-			WireLib.TriggerOutput( eyepod, "XY", {0,0} )
+			self.X = 0
+			self.Y = 0
+			WireLib.TriggerOutput( self, "X", 0 )
+			WireLib.TriggerOutput( self, "Y", 0 )
+			WireLib.TriggerOutput( self, "XY", {0,0} )
 		end			
 		
 		self:UpdateOverlay()

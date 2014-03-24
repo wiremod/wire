@@ -80,7 +80,7 @@ function ENT:Think()
 	end
 
 	if self.Reaction and IsValid(self:GetPhysicsObject()) and (self.Force + self.OffsetForce ~= 0) then
-		phys:ApplyForceCenter( Forward * -(self.Force + self.OffsetForce) * self.ForceMul )
+		self:GetPhysicsObject():ApplyForceCenter( Forward * -(self.Force + self.OffsetForce) * self.ForceMul )
 	end
 
 	self:NextThink( CurTime() )
