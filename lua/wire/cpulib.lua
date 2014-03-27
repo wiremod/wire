@@ -1171,7 +1171,7 @@ GPU(309, "RESERVED",      2,    0.0,    0,         "",      "",      "")
 ---- Dec 32 -- SPU output control ---------------------------------------------------------------------------------------------------------------
 SPU(320, "CHRESET" ,      1,    1.0,    0,         "CHAN",  "",      "Reset channel")
 SPU(321, "CHSTART",       1,    1.0,    0,         "CHAN",  "",      "Start sound on channel")
-SPU(322, "CHSTOP",        1,    1.0,    0,         "CHAN",  "",      "Start sound on channel")
+SPU(322, "CHSTOP",        1,    1.0,    0,         "CHAN",  "",      "Stop sound on channel")
 SPU(323, "RESERVED",      1,    0.0,    0,         "",      "",      "")
 SPU(324, "RESERVED",      1,    0.0,    0,         "",      "",      "")
 SPU(325, "RESERVED",      1,    0.0,    0,         "",      "",      "")
