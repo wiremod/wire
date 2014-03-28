@@ -39,7 +39,7 @@ function ENT:TriggerInput(iname, value)
 			local svarTargetPlayers = GetConVarNumber('sbox_wire_igniters_allowtrgply') > 0
 
 			if not IsValid(trace.Entity) then return false end
-			if not gamemode.Call("CanProperty", self:GetOwner(), "ignite", trace.Entity) then return false end
+			if not gamemode.Call("CanProperty", self:GetPlayer(), "ignite", trace.Entity) then return false end
 			if (trace.Entity:IsPlayer() && (!self.TargetPlayers || !svarTargetPlayers)) then return false end
 			if (trace.Entity:IsWorld()) then return false end
 			
