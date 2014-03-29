@@ -192,7 +192,7 @@ if CLIENT then
 
 	function GPU:Finalize()
 		if not self.RT then return end
-		timer.Simple(0,function() -- This is to test if the entity has truly been removed. If you really know you need to remove the RT, call FreeRT()
+		timer.Simple(0.2, function() -- This is to test if the entity has truly been removed. If you really know you need to remove the RT, call FreeRT()
 			if IsValid(self.Entity) then
 				--MsgN(self,"Entity still exists, exiting.")
 				return
