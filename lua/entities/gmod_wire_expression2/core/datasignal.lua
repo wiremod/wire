@@ -36,15 +36,19 @@ local f = math.floor
 ---------------------------------------------
 --[[
 	When sending:
-		A) Scope = 0 -> Only send to E2s you own.
-		B) Scope = 1 -> Send to E2s you own and to people who have you in their PP friends list.
-		C) Scope = 2 -> Send to everyone.
+		Scope = 0 -> Only send to E2s you own.
+		Scope = 1 -> Send to E2s you own and to people who have you in their PP friends list.
+		Scope = 2 -> Send to everyone.
 
 	When receiving:
-		D) Scope = 0 -> Only receive from E2s you own.
-		E) Scope = 1 -> Receive from E2s you own and from people who have you in their PP friends list.
-		F) Scope = 2 -> Receive from everyone.
+		Scope = 0 -> Only receive from E2s you own.
+		Scope = 1 -> Receive from E2s you own and from people who have you in their PP friends list.
+		Scope = 2 -> Receive from everyone.
 ]]
+
+local function isOwner( froment, toent ) -- we need a more strict isOwner than E2's default implementation, which also checks isFriend
+	return froment.player == toent.player
+end
 
 local function IsAllowed( froment, toent, fromscope )
 	if not froment or not froment:IsValid() or froment:GetClass() ~= "gmod_wire_expression2" then return false end
@@ -54,14 +58,20 @@ local function IsAllowed( froment, toent, fromscope )
 
 	local toscope = toent.context.data.datasignal.scope
 
-	if isOwner( froment, toent ) then											-- If you're the owner, it's always ok
+	if (fromscope == 2 and toscope == 2) or isOwner(froment, toent) then -- both scopes are 2 or the receiver E2 is yours
 		return true
-	elseif fromscope == 1 then													-- B
-		return toscope > 0 and isFriend( toent.player, froment.player )			-- E
-	elseif fromscope == 2 then
-		return (toscope == 1 and isFriend( toent.player, froment.player ))		-- E
-				or toscope == 2													-- F
+	elseif fromscope == 2 and toscope == 1 and isFriend( toent.player, froment.player ) then -- if sending to everyone, and receiving from only friends, check if receiver is friend with sender
+		return true
+	elseif fromscope == 1 then -- send only to friends
+		if toscope == 2 then -- receiving from all, check only if sender is friend with receiver
+			return isFriend( froment.player, toent.player )
+		elseif toscope == 1 then -- receiving from friends, check both if sender is friend with receiver and if receiver is friend with sender
+			return 	isFriend( froment.player, toent.player ) and
+					isFriend( toent.player, froment.player )
+		end
 	end
+	
+	return false -- Any other outcome is false
 end
 
 ---------------------------------------------
