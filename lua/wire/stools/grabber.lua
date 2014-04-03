@@ -12,8 +12,6 @@ WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )
 
 if SERVER then
-	CreateConVar('sbox_wire_grabbers_onlyOwnersProps', 1)
-	
 	function TOOL:GetConVars() 
 		return self:GetClientNumber("Range"), self:GetClientNumber("Gravity")~=0
 	end
