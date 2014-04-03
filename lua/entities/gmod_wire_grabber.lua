@@ -24,8 +24,6 @@ function ENT:Initialize()
 	self:GetPhysicsObject():SetMass(10)
 
 	self:Setup(100, true)
-
-	self.OnlyGrabOwners = GetConVarNumber('sbox_wire_grabbers_onlyOwnersProps') > 0
 end
 
 function ENT:OnRemove()
@@ -67,7 +65,6 @@ function ENT:CanGrab(trace)
 	if not util.IsValidPhysicsObject(trace.Entity, trace.PhysicsBone) then return false end
 	
 	if not gamemode.Call( "CanTool", self:GetPlayer(), trace, "weld" ) then return false end
-	if self.OnlyGrabOwners and (not trace.Entity.GetPlayer or self:GetPlayer() ~= trace.Entity:GetPlayer()) then return false end
 
 	return true
 end
@@ -168,66 +165,6 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 			self:ResetGrab()
 		end
 	end
-end
-
--- Free Fall's Owner Check Code
-function ENT:CheckOwner(ent)
-	ply = self:GetPlayer()
-
-	hasCPPI = istable( CPPI )
-	hasEPS = istable( eps )
-	hasPropSecure = istable( PropSecure )
-	hasProtector = istable( Protector )
-
-	if not hasCPPI and not hasPropProtection and not hasSPropProtection and not hasEPS and not hasPropSecure and not hasProtector then return true end
-
-	local t = hook.GetTable()
-
-	local fn = t.CanTool.PropProtection
-	hasPropProtection = isfunction( fn )
-	if hasPropProtection then
-		-- We're going to get the function we need now. It's local so this is a bit dirty
-		local gi = debug.getinfo( fn )
-		for i=1, gi.nups do
-			local k, v = debug.getupvalue( fn, i )
-			if k == "Appartient" then
-				propProtectionFn = v
-			end
-		end
-	end
-
-	local fn = t.CanTool[ "SPropProtection.EntityRemoved" ]
-	hasSPropProtection = isfunction( fn )
-	if hasSPropProtection then
-		local gi = debug.getinfo( fn )
-		for i=1, gi.nups do
-			local k, v = debug.getupvalue( fn, i )
-			if k == "SPropProtection" then
-				SPropProtectionFn = v.PlayerCanTouch
-			end
-		end
-	end
-
-	local owns
-	if hasCPPI then
-		owns = ent:CPPICanPhysgun( ply )
-	elseif hasPropProtection then -- Chaussette's Prop Protection (preferred over PropSecure)
-		owns = propProtectionFn( ply, ent )
-	elseif hasSPropProtection then -- Simple Prop Protection by Spacetech
-		if ent:GetNetworkedString( "Owner" ) ~= "" then -- So it doesn't give an unowned prop
-			owns = SPropProtectionFn( ply, ent )
-		else
-			owns = false
-		end
-	elseif hasEPS then -- EPS
-		owns = eps.CanPlayerTouch( ply, ent )
-	elseif hasPropSecure then -- PropSecure
-		owns = PropSecure.IsPlayers( ply, ent )
-	elseif hasProtector then -- Protector
-		owns = Protector.Owner( ent ) == ply:UniqueID()
-	end
-
-	return owns
 end
 
 duplicator.RegisterEntityClass("gmod_wire_grabber", WireLib.MakeWireEnt, "Data", "Range", "Gravity")
