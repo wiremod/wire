@@ -57,8 +57,8 @@ function ENT:Setup( toggle, value_off, value_on)
 
 	self.impulses = {}
 	for k,keyenum in ipairs(keyenums) do
-		table.insert(self.impulses, numpad.OnDown( pl, keyenum, "WireNumpad_On", self, k ))
-		table.insert(self.impulses, numpad.OnUp( pl, keyenum, "WireNumpad_Off", self, k ))
+		table.insert(self.impulses, numpad.OnDown( self:GetPlayer(), keyenum, "WireNumpad_On", self, k ))
+		table.insert(self.impulses, numpad.OnUp( self:GetPlayer(), keyenum, "WireNumpad_Off", self, k ))
 	end
 
 	self:ShowOutput()
