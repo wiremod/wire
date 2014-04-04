@@ -34,7 +34,7 @@ if SERVER then
 end
 
 function TOOL:LeftClick( trace )
-	if ( trace.Entity:IsValid() && trace.Entity:IsPlayer() ) then return end
+	if !trace.Hit || ( trace.Entity:IsValid() && trace.Entity:IsPlayer() ) then return end
 	if ( SERVER && !util.IsValidPhysicsObject( trace.Entity, trace.PhysicsBone ) ) then return false end
 
 	local iNum = self:NumObjects()
