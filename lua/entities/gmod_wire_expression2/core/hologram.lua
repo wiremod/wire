@@ -1079,8 +1079,6 @@ registerCallback("construct", function(self)
 end)
 
 registerCallback("destruct", function(self)
-	if not self or not IsValid(self.entity) then return end -- TODO: evaluate necessity
-
 	clearholos(self)
 end)
 
