@@ -5,8 +5,36 @@ local matFire			= Material( "effects/fire_cloud1" )
 local matPlasma			= Material( "effects/strider_muzzle" )
 local matColor			= Material( "effects/bloodstream" )
 
--- fixed by WeltEnSTurm: one emitter is enough!
-local emitter = ParticleEmitter(Vector(0,0,0))
+local smokeemitter = ParticleEmitter(Vector(0,0,0))
+local magicemitter = ParticleEmitter(Vector(0,0,0))
+local lightemitter = ParticleEmitter(Vector(0,0,0))
+
+local moneyemitters = 
+{
+	ParticleEmitter(Vector(0,0,0)),
+	ParticleEmitter(Vector(0,0,0)),
+	ParticleEmitter(Vector(0,0,0))
+}
+local featheremitters = 
+{
+	ParticleEmitter(Vector(0,0,0)),
+	ParticleEmitter(Vector(0,0,0)),
+	ParticleEmitter(Vector(0,0,0)),
+	ParticleEmitter(Vector(0,0,0))
+}
+
+local crossemitter = ParticleEmitter(Vector(0,0,0))
+local soulemitter = ParticleEmitter(Vector(0,0,0))
+local spermemitter = ParticleEmitter(Vector(0,0,0))
+local gooemitter = ParticleEmitter(Vector(0,0,0))
+local goo2emitter = ParticleEmitter(Vector(0,0,0))
+local featheremitter = ParticleEmitter(Vector(0,0,0))
+local staremitter = ParticleEmitter(Vector(0,0,0))
+local candyemitter = ParticleEmitter(Vector(0,0,0))
+local fireemitter = ParticleEmitter(Vector(0,0,0))
+local heatemitter = ParticleEmitter(Vector(0,0,0))
+local ballemitter = ParticleEmitter(Vector(0,0,0))
+local bubbleemitter = ParticleEmitter(Vector(0,0,0))
 
 WireLib.ThrusterEffectThink = {}
 WireLib.ThrusterEffectDraw = {}
@@ -270,7 +298,7 @@ WireLib.ThrusterEffectDraw.fire_smoke = function(self)
 	vOffset = self:LocalToWorld(self:GetOffset()) + Vector( math.Rand( -3, 3 ), math.Rand( -3, 3 ), math.Rand( -3, 3 ) )
 	vNormal = self:CalcNormal()
 
-		local particle = emitter:Add( "particles/smokey", vOffset )
+		local particle = smokeemitter:Add( "particles/smokey", vOffset )
 			particle:SetVelocity( vNormal * math.Rand( 10, 30 ) )
 			particle:SetDieTime( 2.0 )
 			particle:SetStartAlpha( math.Rand( 50, 150 ) )
@@ -279,7 +307,7 @@ WireLib.ThrusterEffectDraw.fire_smoke = function(self)
 			particle:SetRoll( math.Rand( -0.2, 0.2 ) )
 			particle:SetColor( 200, 200, 210 )
 
-	emitter:Finish()
+	
 
 end
 
@@ -302,7 +330,7 @@ WireLib.ThrusterEffectDraw.fire_smoke_big = function(self)
 	vOffset = self:LocalToWorld(self:GetOffset()) + Vector( math.Rand( -3, 3 ), math.Rand( -3, 3 ), math.Rand( -3, 3 ) )
 	vNormal = self:CalcNormal()
 
-		local particle = emitter:Add( "particles/smokey", vOffset )
+		local particle = smokeemitter:Add( "particles/smokey", vOffset )
 			particle:SetVelocity( vNormal * math.Rand( 10, 20 ) )
 			particle:SetDieTime( 3.0 )
 			particle:SetStartAlpha( math.Rand( 150, 255 ) )
@@ -311,7 +339,7 @@ WireLib.ThrusterEffectDraw.fire_smoke_big = function(self)
 			particle:SetRoll( math.Rand( -0.2, 0.2 ) )
 			particle:SetColor( 200, 200, 210 )
 
-	emitter:Finish()
+	
 
 	local effectdata = EffectData()
 		effectdata:SetOrigin( vOffset )
@@ -330,7 +358,7 @@ WireLib.ThrusterEffectThink.smoke = function(self)
 	local vOffset = self:LocalToWorld(self:GetOffset()) + Vector( math.Rand( -3, 3 ), math.Rand( -3, 3 ), math.Rand( -3, 3 ) )
 	local vNormal = self:CalcNormal()
 
-		local particle = emitter:Add( "particles/smokey", vOffset )
+		local particle = smokeemitter:Add( "particles/smokey", vOffset )
 			particle:SetVelocity( vNormal * math.Rand( 10, 30 ) )
 			particle:SetDieTime( 2.0 )
 			particle:SetStartAlpha( math.Rand( 50, 150 ) )
@@ -339,7 +367,7 @@ WireLib.ThrusterEffectThink.smoke = function(self)
 			particle:SetRoll( math.Rand( -0.2, 0.2 ) )
 			particle:SetColor( 200, 200, 210 )
 
-	emitter:Finish()
+	
 
 end
 
@@ -353,7 +381,7 @@ WireLib.ThrusterEffectThink.smoke_firecolors = function(self)
 	local vOffset = self:LocalToWorld(self:GetOffset()) + Vector( math.Rand( -3, 3 ), math.Rand( -3, 3 ), math.Rand( -3, 3 ) )
 	local vNormal = self:CalcNormal()
 
-		local particle = emitter:Add( "particles/smokey", vOffset )
+		local particle = smokeemitter:Add( "particles/smokey", vOffset )
 			particle:SetVelocity( vNormal * math.Rand( 10, 30 ) )
 			particle:SetDieTime( 2.0 )
 			particle:SetStartAlpha( math.Rand( 50, 150 ) )
@@ -362,7 +390,7 @@ WireLib.ThrusterEffectThink.smoke_firecolors = function(self)
 			particle:SetRoll( math.Rand( -0.2, 0.2 ) )
 			particle:SetColor(math.random(220,255),math.random(110,220),0 )
 
-	emitter:Finish()
+	
 
 end
 
@@ -376,7 +404,7 @@ WireLib.ThrusterEffectThink.smoke_random = function(self)
 	local vOffset = self:LocalToWorld(self:GetOffset()) + Vector( math.Rand( -3, 3 ), math.Rand( -3, 3 ), math.Rand( -3, 3 ) )
 	local vNormal = self:CalcNormal()
 
-		local particle = emitter:Add( "particles/smokey", vOffset )
+		local particle = smokeemitter:Add( "particles/smokey", vOffset )
 			particle:SetVelocity( vNormal * math.Rand( 10, 30 ) )
 			particle:SetDieTime( 2.0 )
 			particle:SetStartAlpha( math.Rand( 50, 150 ) )
@@ -385,7 +413,7 @@ WireLib.ThrusterEffectThink.smoke_random = function(self)
 			particle:SetRoll( math.Rand( -0.2, 0.2 ) )
 			particle:SetColor( math.random(100,255),math.random(100,255),math.random(100,255) )
 
-	emitter:Finish()
+	
 
 end
 
@@ -398,7 +426,7 @@ WireLib.ThrusterEffectThink.smoke_diy = function(self)
 	local vOffset = self:LocalToWorld(self:GetOffset()) + Vector( math.Rand( -3, 3 ), math.Rand( -3, 3 ), math.Rand( -3, 3 ) )
 	local vNormal = self:CalcNormal()
 
-		local particle = emitter:Add( "particles/smokey", vOffset )
+		local particle = smokeemitter:Add( "particles/smokey", vOffset )
 			particle:SetVelocity( vNormal * math.Rand( 10, 30 ) )
 			particle:SetDieTime( 2.0 )
 			particle:SetStartAlpha( math.Rand( 50, 150 ) )
@@ -407,7 +435,7 @@ WireLib.ThrusterEffectThink.smoke_diy = function(self)
 			particle:SetRoll( math.Rand( -0.2, 0.2 ) )
 			particle:SetColor(self:GetColor())
 
-	emitter:Finish()
+	
 
 end
 
@@ -455,7 +483,7 @@ WireLib.ThrusterEffectDraw.color_magic = function(self)
 
 	vOffset = vOffset + VectorRand() * 5
 
-		local particle = emitter:Add( "sprites/gmdm_pickups/light", vOffset )
+		local particle = lightemitter:Add( "sprites/gmdm_pickups/light", vOffset )
 			particle:SetVelocity( vNormal * math.Rand( 50, 80 ) )
 			particle:SetDieTime( 1 )
 			particle:SetStartAlpha( 255 )
@@ -464,7 +492,7 @@ WireLib.ThrusterEffectDraw.color_magic = function(self)
 			particle:SetEndSize( 0 )
 			particle:SetRoll( math.Rand( -0.2, 0.2 ) )
 
-	emitter:Finish()
+	
 
 end
 
@@ -480,7 +508,8 @@ WireLib.ThrusterEffectThink.money = function(self)
 
 	vOffset = vOffset + VectorRand() * 20
 
-		local particle = emitter:Add( "thrusteraddon/money"..math.floor(math.random(1,3)).."", vOffset )
+		local randparticle = math.floor(math.random(1,3))
+		local particle = moneyemitters[randparticle]:Add( "thrusteraddon/money"..randparticle.."", vOffset )
 			particle:SetVelocity( vNormal * math.Rand( 0, 70 ) )
 			particle:SetDieTime( math.Rand(3,5 ) )
 			particle:SetStartAlpha( 255 )
@@ -489,7 +518,7 @@ WireLib.ThrusterEffectThink.money = function(self)
 			particle:SetEndSize( 5 )
 			particle:SetRoll( math.Rand( -90, 90 ) )
 
-	emitter:Finish()
+	
 
 end
 
@@ -503,7 +532,7 @@ WireLib.ThrusterEffectThink.debug_10 = function(self)
 	local vOffset = self:LocalToWorld(self:GetOffset())
 	local vNormal = self:CalcNormal()
 
-		local particle = emitter:Add( "decals/cross", vOffset )
+		local particle = crossemitter:Add( "decals/cross", vOffset )
 			particle:SetVelocity( vNormal * 0 )
 			particle:SetDieTime( 10 )
 			particle:SetStartAlpha( 255 )
@@ -513,7 +542,7 @@ WireLib.ThrusterEffectThink.debug_10 = function(self)
 			particle:SetEndSize( math.Rand(7,10) )
 			particle:SetRoll(0)
 
-	emitter:Finish()
+	
 
 end
 
@@ -527,7 +556,7 @@ WireLib.ThrusterEffectThink.debug_30 = function(self)
 	local vOffset = self:LocalToWorld(self:GetOffset())
 	local vNormal = self:CalcNormal()
 
-		local particle = emitter:Add( "decals/cross", vOffset )
+		local particle = crossemitter:Add( "decals/cross", vOffset )
 			particle:SetVelocity( vNormal * 0 )
 			particle:SetDieTime( 30 )
 			particle:SetStartAlpha( 255 )
@@ -537,7 +566,7 @@ WireLib.ThrusterEffectThink.debug_30 = function(self)
 			particle:SetEndSize( math.Rand(7,10) )
 			particle:SetRoll(0)
 
-	emitter:Finish()
+	
 
 end
 
@@ -551,7 +580,7 @@ WireLib.ThrusterEffectThink.debug_60 = function(self)
 	local vOffset = self:LocalToWorld(self:GetOffset())
 	local vNormal = self:CalcNormal()
 
-		local particle = emitter:Add( "decals/cross", vOffset )
+		local particle = crossemitter:Add( "decals/cross", vOffset )
 			particle:SetVelocity( vNormal * 0 )
 			particle:SetDieTime( 60 )
 			particle:SetStartAlpha( 255 )
@@ -561,7 +590,7 @@ WireLib.ThrusterEffectThink.debug_60 = function(self)
 			particle:SetEndSize( math.Rand(7,10) )
 			particle:SetRoll(0)
 
-	emitter:Finish()
+	
 
 end
 
@@ -577,7 +606,7 @@ WireLib.ThrusterEffectThink.souls = function(self)
 
 	vOffset = vOffset + VectorRand() * 20
 
-		local particle = emitter:Add( "sprites/soul", vOffset )
+		local particle = soulemitter:Add( "sprites/soul", vOffset )
 			particle:SetVelocity( vNormal * math.Rand( 0, 50 ) )
 			particle:SetDieTime( math.Rand(3,5 ) )
 			particle:SetStartAlpha( 255 )
@@ -587,7 +616,7 @@ WireLib.ThrusterEffectThink.souls = function(self)
 			particle:SetEndSize( math.Rand(7,10) )
 			particle:SetRoll( math.Rand( -90, 90 ) )
 
-	emitter:Finish()
+	
 
 end
 
@@ -603,7 +632,7 @@ WireLib.ThrusterEffectThink.sperm = function(self)
 
 	vOffset = vOffset + VectorRand() * 5
 
-		local particle = emitter:Add( "thrusteraddon/sperm", vOffset )
+		local particle = spermemitter:Add( "thrusteraddon/sperm", vOffset )
 			particle:SetVelocity( vNormal * math.Rand( 0, 70 ) )
 			particle:SetDieTime( math.Rand(3,5 ) )
 			particle:SetStartAlpha( 255 )
@@ -612,7 +641,7 @@ WireLib.ThrusterEffectThink.sperm = function(self)
 			particle:SetEndSize( 1 )
 			particle:SetRoll( math.random(-180, 180) )
 
-		local particle2 = emitter:Add( "thrusteraddon/goo", vOffset )
+		local particle2 = gooemitter:Add( "thrusteraddon/goo", vOffset )
 			particle2:SetVelocity( vNormal * 0.5  )
 			particle2:SetDieTime( math.Rand(3,5 ) )
 			particle2:SetStartAlpha( 100 )
@@ -622,7 +651,7 @@ WireLib.ThrusterEffectThink.sperm = function(self)
 			particle2:SetEndSize( 1 )
 			particle2:SetRoll( math.random(-180, 180) )
 
-		local particle3 = emitter:Add( "thrusteraddon/goo2", vOffset )
+		local particle3 = goo2emitter:Add( "thrusteraddon/goo2", vOffset )
 			particle3:SetVelocity( vNormal * 0.5 )
 			particle3:SetDieTime( math.Rand(3,5 ) )
 			particle3:SetStartAlpha(100 )
@@ -632,8 +661,9 @@ WireLib.ThrusterEffectThink.sperm = function(self)
 			particle3:SetEndSize( 1 )
 			particle3:SetRoll( math.random(-180, 180) )
 
-	emitter:Finish()
-
+	
+	
+	
 end
 
 WireLib.ThrusterEffectThink.feather = function(self)
@@ -648,7 +678,9 @@ WireLib.ThrusterEffectThink.feather = function(self)
 
 	vOffset = vOffset + VectorRand() * 30
 
-		local particle = emitter:Add( "thrusteraddon/feather"..math.floor(math.random(2,4)).."", vOffset )
+	local randfeather = math.floor(math.random(2,4))
+	
+		local particle = featheremitters[randfeather]:Add( "thrusteraddon/feather"..randfeather.."", vOffset )
 			particle:SetVelocity( vNormal * math.Rand( 0, 50 ) )
 			particle:SetDieTime( math.Rand(5,7 ) )
 			particle:SetStartAlpha( 120 )
@@ -657,7 +689,7 @@ WireLib.ThrusterEffectThink.feather = function(self)
 			particle:SetEndSize( 5 )
 			particle:SetRoll( math.Rand( -90, 90 ) )
 
-	emitter:Finish()
+	
 
 end
 
@@ -673,7 +705,7 @@ WireLib.ThrusterEffectThink.goldstar = function(self)
 
 	vOffset = vOffset + VectorRand() * 10
 
-		local particle = emitter:Add( "thrusteraddon/Goldstar", vOffset )
+		local particle = staremitter:Add( "thrusteraddon/Goldstar", vOffset )
 			particle:SetVelocity( vNormal * math.Rand( 150, 200 ) )
 			particle:SetDieTime( math.Rand(0,1 ) )
 			particle:SetStartAlpha( 120 )
@@ -682,7 +714,7 @@ WireLib.ThrusterEffectThink.goldstar = function(self)
 			particle:SetEndSize( 5 )
 			particle:SetRoll( math.Rand( -90, 90 ) )
 
-	emitter:Finish()
+	
 
 end
 
@@ -698,7 +730,7 @@ WireLib.ThrusterEffectThink.candy_cane = function(self)
 
 	vOffset = vOffset + VectorRand() * 5
 
-		local particle = emitter:Add( "thrusteraddon/candy", vOffset )
+		local particle = candyemitter:Add( "thrusteraddon/candy", vOffset )
 			particle:SetVelocity( vNormal * math.Rand( 0, 20 ) )
 			particle:SetDieTime( math.Rand(5,7 ) )
 			particle:SetStartAlpha( 120 )
@@ -707,7 +739,7 @@ WireLib.ThrusterEffectThink.candy_cane = function(self)
 			particle:SetEndSize( 5 )
 			particle:SetRoll( math.Rand( -90, 90 ) )
 
-	emitter:Finish()
+	
 
 end
 
@@ -726,7 +758,7 @@ WireLib.ThrusterEffectThink.jetflame = function(self)
 	local speed = math.Rand(90,252)
 	local roll = math.Rand(-90,90)
 
-		local particle = emitter:Add( "particle/fire", vOffset )
+		local particle = fireemitter:Add( "particle/fire", vOffset )
 			particle:SetVelocity( vNormal * speed )
 			particle:SetDieTime( 0.3 )
 			particle:SetStartAlpha( 255 )
@@ -736,7 +768,7 @@ WireLib.ThrusterEffectThink.jetflame = function(self)
 			particle:SetColor( math.Rand(220,255),math.Rand(180,220),55 )
 			particle:SetRoll( roll )
 
-		local particle3 = emitter:Add( "sprites/heatwave", vOffset )
+		local particle3 = heatemitter:Add( "sprites/heatwave", vOffset )
 			particle3:SetVelocity( vNormal * speed )
 			particle3:SetDieTime( 0.7 )
 			particle3:SetStartAlpha( 255 )
@@ -748,7 +780,7 @@ WireLib.ThrusterEffectThink.jetflame = function(self)
 
 			vOffset = self:LocalToWorld(self:GetOffset())
 
-		local particle2 = emitter:Add( "particle/fire", vOffset )
+		local particle2 = fireemitter:Add( "particle/fire", vOffset )
 			particle2:SetVelocity( vNormal * speed )
 			particle2:SetDieTime( 0.2 )
 			particle2:SetStartAlpha( 200 )
@@ -761,8 +793,8 @@ WireLib.ThrusterEffectThink.jetflame = function(self)
 
 
 
-	emitter:Finish()
-
+	
+	
 end
 
 WireLib.ThrusterEffectThink.jetflame_purple = function(self)
@@ -780,7 +812,7 @@ WireLib.ThrusterEffectThink.jetflame_purple = function(self)
 	local speed = math.Rand(90,252)
 	local roll = math.Rand(-90,90)
 
-		local particle = emitter:Add( "particle/fire", vOffset )
+		local particle = fireemitter:Add( "particle/fire", vOffset )
 			particle:SetVelocity( vNormal * speed )
 			particle:SetDieTime( 0.3 )
 			particle:SetStartAlpha( 255 )
@@ -790,7 +822,7 @@ WireLib.ThrusterEffectThink.jetflame_purple = function(self)
 			particle:SetColor(  math.Rand(220,255),55, math.Rand(220,255) )
 			particle:SetRoll( roll )
 
-		local particle3 = emitter:Add( "sprites/heatwave", vOffset )
+		local particle3 = heatemitter:Add( "sprites/heatwave", vOffset )
 			particle3:SetVelocity( vNormal * speed )
 			particle3:SetDieTime( 0.7 )
 			particle3:SetStartAlpha( 255 )
@@ -802,7 +834,7 @@ WireLib.ThrusterEffectThink.jetflame_purple = function(self)
 
 			vOffset = self:LocalToWorld(self:GetOffset())
 
-		local particle2 = emitter:Add( "particle/fire", vOffset )
+		local particle2 = fireemitter:Add( "particle/fire", vOffset )
 			particle2:SetVelocity( vNormal * speed )
 			particle2:SetDieTime( 0.2 )
 			particle2:SetStartAlpha( 200 )
@@ -815,7 +847,8 @@ WireLib.ThrusterEffectThink.jetflame_purple = function(self)
 
 
 
-	emitter:Finish()
+	
+	
 
 end
 
@@ -834,7 +867,7 @@ WireLib.ThrusterEffectThink.jetflame_red = function(self)
 	local speed = math.Rand(90,252)
 	local roll = math.Rand(-90,90)
 
-		local particle = emitter:Add( "particle/fire", vOffset )
+		local particle = fireemitter:Add( "particle/fire", vOffset )
 			particle:SetVelocity( vNormal * speed )
 			particle:SetDieTime( 0.3 )
 			particle:SetStartAlpha( 255 )
@@ -844,7 +877,7 @@ WireLib.ThrusterEffectThink.jetflame_red = function(self)
 			particle:SetColor( math.Rand(220,255),55,55 )
 			particle:SetRoll( roll )
 
-		local particle3 = emitter:Add( "sprites/heatwave", vOffset )
+		local particle3 = heatemitter:Add( "sprites/heatwave", vOffset )
 			particle3:SetVelocity( vNormal * speed )
 			particle3:SetDieTime( 0.7 )
 			particle3:SetStartAlpha( 255 )
@@ -856,7 +889,7 @@ WireLib.ThrusterEffectThink.jetflame_red = function(self)
 
 			vOffset = self:LocalToWorld(self:GetOffset())
 
-		local particle2 = emitter:Add( "particle/fire", vOffset )
+		local particle2 = fireemitter:Add( "particle/fire", vOffset )
 			particle2:SetVelocity( vNormal * speed )
 			particle2:SetDieTime( 0.2 )
 			particle2:SetStartAlpha( 200 )
@@ -867,7 +900,8 @@ WireLib.ThrusterEffectThink.jetflame_red = function(self)
 			particle2:SetRoll( roll )
 
 
-	emitter:Finish()
+	
+	
 
 end
 
@@ -886,7 +920,7 @@ WireLib.ThrusterEffectThink.jetflame_blue = function(self)
 	local speed = math.Rand(90,252)
 	local roll = math.Rand(-90,90)
 
-		local particle = emitter:Add( "particle/fire", vOffset )
+		local particle = fireemitter:Add( "particle/fire", vOffset )
 			particle:SetVelocity( vNormal * speed )
 			particle:SetDieTime( 0.3 )
 			particle:SetStartAlpha( 255 )
@@ -896,7 +930,7 @@ WireLib.ThrusterEffectThink.jetflame_blue = function(self)
 			particle:SetColor( 55,55, math.Rand(220,255) )
 			particle:SetRoll( roll )
 
-		local particle3 = emitter:Add( "sprites/heatwave", vOffset )
+		local particle3 = heatemitter:Add( "sprites/heatwave", vOffset )
 			particle3:SetVelocity( vNormal * speed )
 			particle3:SetDieTime( 0.7 )
 			particle3:SetStartAlpha( 255 )
@@ -908,7 +942,7 @@ WireLib.ThrusterEffectThink.jetflame_blue = function(self)
 
 			vOffset = self:LocalToWorld(self:GetOffset())
 
-		local particle2 = emitter:Add( "particle/fire", vOffset )
+		local particle2 = fireemitter:Add( "particle/fire", vOffset )
 			particle2:SetVelocity( vNormal * speed )
 			particle2:SetDieTime( 0.2 )
 			particle2:SetStartAlpha( 200 )
@@ -920,7 +954,8 @@ WireLib.ThrusterEffectThink.jetflame_blue = function(self)
 
 
 
-	emitter:Finish()
+	
+	
 
 end
 
@@ -934,7 +969,7 @@ WireLib.ThrusterEffectThink.balls_firecolors = function(self)
 	local vNormal = self:CalcNormal()
 	vOffset = vOffset + VectorRand() * 2
 
-		local particle = emitter:Add( "sprites/sent_ball", vOffset )
+		local particle = ballemitter:Add( "sprites/sent_ball", vOffset )
 			particle:SetVelocity( vNormal * 80 )
 			particle:SetDieTime( 1 )
 			particle:SetStartAlpha( 255 )
@@ -944,7 +979,7 @@ WireLib.ThrusterEffectThink.balls_firecolors = function(self)
 			particle:SetEndSize( 0 )
 			particle:SetRoll( 0 )
 
-	emitter:Finish()
+	
 
 end
 
@@ -958,7 +993,7 @@ WireLib.ThrusterEffectThink.balls_random = function(self)
 	local vNormal = self:CalcNormal()
 	vOffset = vOffset + VectorRand() * 2
 
-		local particle = emitter:Add( "sprites/sent_ball", vOffset )
+		local particle = ballemitter:Add( "sprites/sent_ball", vOffset )
 			particle:SetVelocity( vNormal * 80 )
 			particle:SetDieTime( 1 )
 			particle:SetStartAlpha( 255 )
@@ -968,7 +1003,7 @@ WireLib.ThrusterEffectThink.balls_random = function(self)
 			particle:SetEndSize( 0 )
 			particle:SetRoll( 0 )
 
-	emitter:Finish()
+	
 
 end
 
@@ -982,7 +1017,7 @@ WireLib.ThrusterEffectThink.balls = function(self)
 	local vNormal = self:CalcNormal()
 	vOffset = vOffset + VectorRand() * 2
 
-		local particle = emitter:Add( "sprites/sent_ball", vOffset )
+		local particle = ballemitter:Add( "sprites/sent_ball", vOffset )
 			particle:SetVelocity( vNormal * 80 )
 			particle:SetDieTime( 1 )
 			particle:SetStartAlpha( 255 )
@@ -992,7 +1027,7 @@ WireLib.ThrusterEffectThink.balls = function(self)
 			particle:SetEndSize( 0 )
 			particle:SetRoll( 0 )
 
-	emitter:Finish()
+	
 
 end
 
@@ -1008,7 +1043,7 @@ WireLib.ThrusterEffectThink.plasma_rings = function(self)
 
 	vOffset = vOffset + VectorRand() * 5
 
-		local particle = emitter:Add( "sprites/magic", vOffset )
+		local particle = magicemitter:Add( "sprites/magic", vOffset )
 			particle:SetVelocity( vNormal * math.Rand( 50, 80 ) )
 			particle:SetDieTime( 1 )
 			particle:SetStartAlpha( 255 )
@@ -1017,7 +1052,7 @@ WireLib.ThrusterEffectThink.plasma_rings = function(self)
 			particle:SetEndSize( 0 )
 			particle:SetRoll( math.Rand( -0.2, 0.2 ) )
 
-	emitter:Finish()
+	
 
 end
 
@@ -1033,7 +1068,7 @@ WireLib.ThrusterEffectThink.magic_firecolors = function(self)
 
 	vOffset = vOffset + VectorRand() * 5
 
-		local particle = emitter:Add( "sprites/gmdm_pickups/light", vOffset )
+		local particle = lightemitter:Add( "sprites/gmdm_pickups/light", vOffset )
 			particle:SetVelocity( vNormal * math.Rand( 50, 80 ) )
 			particle:SetDieTime( 1 )
 			particle:SetStartAlpha( 255 )
@@ -1043,7 +1078,7 @@ WireLib.ThrusterEffectThink.magic_firecolors = function(self)
 			particle:SetEndSize( 0 )
 			particle:SetRoll( math.Rand( -0.2, 0.2 ) )
 
-	emitter:Finish()
+	
 
 end
 
@@ -1059,7 +1094,7 @@ WireLib.ThrusterEffectThink.magic = function(self)
 
 	vOffset = vOffset + VectorRand() * 5
 
-		local particle = emitter:Add( "sprites/gmdm_pickups/light", vOffset )
+		local particle = lightemitter:Add( "sprites/gmdm_pickups/light", vOffset )
 			particle:SetVelocity( vNormal * math.Rand( 50, 80 ) )
 			particle:SetDieTime( 1 )
 			particle:SetStartAlpha( 255 )
@@ -1068,7 +1103,7 @@ WireLib.ThrusterEffectThink.magic = function(self)
 			particle:SetEndSize( 0 )
 			particle:SetRoll( math.Rand( -0.2, 0.2 ) )
 
-	emitter:Finish()
+	
 
 end
 
@@ -1083,7 +1118,7 @@ WireLib.ThrusterEffectThink.magic_diy = function(self)
 
 	vOffset = vOffset + VectorRand() * 5
 
-		local particle = emitter:Add( "sprites/gmdm_pickups/light", vOffset )
+		local particle = lightemitter:Add( "sprites/gmdm_pickups/light", vOffset )
 			particle:SetVelocity( vNormal * math.Rand( 50, 80 ) )
 			particle:SetDieTime( 1 )
 			particle:SetStartAlpha( 255 )
@@ -1093,7 +1128,7 @@ WireLib.ThrusterEffectThink.magic_diy = function(self)
 			particle:SetEndSize( 0 )
 			particle:SetRoll( math.Rand( -0.2, 0.2 ) )
 
-	emitter:Finish()
+	
 
 end
 
@@ -1109,7 +1144,7 @@ WireLib.ThrusterEffectThink.magic_color = function(self)
 
 	vOffset = vOffset + VectorRand() * 5
 
-		local particle = emitter:Add( "sprites/gmdm_pickups/light", vOffset )
+		local particle = lightemitter:Add( "sprites/gmdm_pickups/light", vOffset )
 			particle:SetVelocity( vNormal * math.Rand( 50, 80) )
 			particle:SetDieTime( 1 )
 			particle:SetStartAlpha( 255 )
@@ -1119,7 +1154,7 @@ WireLib.ThrusterEffectThink.magic_color = function(self)
 			particle:SetEndSize( 0 )
 			particle:SetRoll( math.Rand( -0.2, 0.2 ) )
 
-	emitter:Finish()
+	
 
 end
 
@@ -1437,7 +1472,7 @@ WireLib.ThrusterEffectThink.bubble = function(self)
 	local vNormal = self:CalcNormal()
 	vOffset = vOffset + VectorRand() * 5
 
-	local particle = emitter:Add( "effects/bubble", vOffset )
+	local particle = bubbleemitter:Add( "effects/bubble", vOffset )
 	vNormal.x = vNormal.x * 0.7
 	vNormal.y = vNormal.y * 0.7
 	vNormal.z = (vNormal.z+1) * 20
@@ -1450,5 +1485,5 @@ WireLib.ThrusterEffectThink.bubble = function(self)
 	particle:SetEndSize( 0 )
 	particle:SetRoll( 0 )
 
-	emitter:Finish()
+	
 end
