@@ -24,8 +24,6 @@ function ENT:Initialize()
 	self:GetPhysicsObject():SetMass(10)
 
 	self:Setup(100, true)
-
-	self.OnlyGrabOwners = GetConVarNumber('sbox_wire_grabbers_onlyOwnersProps') > 0
 end
 
 function ENT:OnRemove()
@@ -60,24 +58,29 @@ function ENT:ResetGrab()
 	Wire_TriggerOutput(self, "Grabbed Entity", self.WeldEntity)
 end
 
+function ENT:CanGrab(trace)
+	-- Bail if we hit world or a player
+	if not IsValid(trace.Entity) or trace.Entity:IsPlayer() then return false end
+	-- If there's no physics object then we can't constraint it!
+	if not util.IsValidPhysicsObject(trace.Entity, trace.PhysicsBone) then return false end
+	
+	if not gamemode.Call( "CanTool", self:GetPlayer(), trace, "weld" ) then return false end
+
+	return true
+end
+
 function ENT:TriggerInput(iname, value)
 	if iname == "Grab" then
 		if value ~= 0 and self.Weld == nil then
 			local vStart = self:GetPos()
 			local vForward = self:GetUp()
 
-			local trace = {}
-				trace.start = vStart
-				trace.endpos = vStart + (vForward * self:GetBeamLength())
-				trace.filter = { self }
-			local trace = util.TraceLine( trace )
-
-			-- Bail if we hit world or a player
-			if (not trace.Entity:IsValid() and trace.Entity ~= game.GetWorld())  or trace.Entity:IsPlayer() then return end
-			-- If there's no physics object then we can't constraint it!
-			if not util.IsValidPhysicsObject( trace.Entity, trace.PhysicsBone ) then return end
-
-			if self.OnlyGrabOwners and (trace.Entity:GetOwner() ~= self:GetOwner() and not self:CheckOwner(trace.Entity)) then return end
+			local trace = util.TraceLine {
+				start = vStart,
+				endpos = vStart + (vForward * self:GetBeamLength()),
+				filter = { self }
+			}
+			if not self:CanGrab(trace) then return end
 
 			-- Weld them!
 			local const = constraint.Weld(self, trace.Entity, 0, 0, self.WeldStrength)
@@ -141,8 +144,8 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 
 	if self.WeldEntity and self.Inputs.Grab.Value ~= 0 then
 
-		if not self.Weld then
-			self.Weld = constraint.Weld(self, trace.Entity, 0, 0, self.WeldStrength)
+		if not self.Weld and self.trace~=nil then
+			self.Weld = constraint.Weld(self, self.trace, 0, 0, self.WeldStrength)
 			self.Weld.Type = "" --prevents the duplicator from making this weld
 		end
 
@@ -154,71 +157,14 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 		if self.Gravity then
 			self.WeldEntity:GetPhysicsObject():EnableGravity(false)
 		end
-
-		self:SetColor(Color(255, 0, 0, self:GetColor().a))
-		Wire_TriggerOutput(self, "Holding", 1)
-		Wire_TriggerOutput(self, "Grabbed Entity", self.WeldEntity)
-	end
-end
-
--- Free Fall's Owner Check Code
-function ENT:CheckOwner(ent)
-	ply = self:GetPlayer()
-
-	hasCPPI = istable( CPPI )
-	hasEPS = istable( eps )
-	hasPropSecure = istable( PropSecure )
-	hasProtector = istable( Protector )
-
-	if not hasCPPI and not hasPropProtection and not hasSPropProtection and not hasEPS and not hasPropSecure and not hasProtector then return true end
-
-	local t = hook.GetTable()
-
-	local fn = t.CanTool.PropProtection
-	hasPropProtection = isfunction( fn )
-	if hasPropProtection then
-		-- We're going to get the function we need now. It's local so this is a bit dirty
-		local gi = debug.getinfo( fn )
-		for i=1, gi.nups do
-			local k, v = debug.getupvalue( fn, i )
-			if k == "Appartient" then
-				propProtectionFn = v
-			end
-		end
-	end
-
-	local fn = t.CanTool[ "SPropProtection.EntityRemoved" ]
-	hasSPropProtection = isfunction( fn )
-	if hasSPropProtection then
-		local gi = debug.getinfo( fn )
-		for i=1, gi.nups do
-			local k, v = debug.getupvalue( fn, i )
-			if k == "SPropProtection" then
-				SPropProtectionFn = v.PlayerCanTouch
-			end
-		end
-	end
-
-	local owns
-	if hasCPPI then
-		owns = ent:CPPICanPhysgun( ply )
-	elseif hasPropProtection then -- Chaussette's Prop Protection (preferred over PropSecure)
-		owns = propProtectionFn( ply, ent )
-	elseif hasSPropProtection then -- Simple Prop Protection by Spacetech
-		if ent:GetNetworkedString( "Owner" ) ~= "" then -- So it doesn't give an unowned prop
-			owns = SPropProtectionFn( ply, ent )
+		if self.Weld then
+			self:SetColor(Color(255, 0, 0, self:GetColor().a))
+			Wire_TriggerOutput(self, "Holding", 1)
+			Wire_TriggerOutput(self, "Grabbed Entity", self.WeldEntity)
 		else
-			owns = false
+			self:ResetGrab()
 		end
-	elseif hasEPS then -- EPS
-		owns = eps.CanPlayerTouch( ply, ent )
-	elseif hasPropSecure then -- PropSecure
-		owns = PropSecure.IsPlayers( ply, ent )
-	elseif hasProtector then -- Protector
-		owns = Protector.Owner( ent ) == ply:UniqueID()
 	end
-
-	return owns
 end
 
 duplicator.RegisterEntityClass("gmod_wire_grabber", WireLib.MakeWireEnt, "Data", "Range", "Gravity")

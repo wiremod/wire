@@ -1124,9 +1124,9 @@ function HCOMP:Statement() local TOKEN = self.TOKEN
       returnLeaf.ExplictAssign = true
       self:AddLeafToTail(returnLeaf)
     end
-
+    self:MatchToken(TOKEN.COLON)
+    
     -- Check if this is the last return in the function
---    self:MatchToken(TOKEN.COLON)
 --    if self:MatchToken(TOKEN.RBRACKET) then
 --      if self.BlockDepth > 0 then
 --        self:BlockEnd()

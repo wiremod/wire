@@ -278,9 +278,6 @@ WireLib.ThrusterEffectDraw.fire_smoke = function(self)
 			particle:SetEndSize( math.Rand( 32, 64  ) )
 			particle:SetRoll( math.Rand( -0.2, 0.2 ) )
 			particle:SetColor( 200, 200, 210 )
-
-	emitter:Finish()
-
 end
 
 WireLib.ThrusterEffectDraw.fire_smoke_big = function(self)
@@ -311,13 +308,12 @@ WireLib.ThrusterEffectDraw.fire_smoke_big = function(self)
 			particle:SetRoll( math.Rand( -0.2, 0.2 ) )
 			particle:SetColor( 200, 200, 210 )
 
-	emitter:Finish()
+	
 
 	local effectdata = EffectData()
 		effectdata:SetOrigin( vOffset )
 		effectdata:SetNormal( vNormal )
 	util.Effect( "ThumperDust ", effectdata )
-
 end
 
 WireLib.ThrusterEffectThink.smoke = function(self)
@@ -338,9 +334,6 @@ WireLib.ThrusterEffectThink.smoke = function(self)
 			particle:SetEndSize( math.Rand( 64, 128 ) )
 			particle:SetRoll( math.Rand( -0.2, 0.2 ) )
 			particle:SetColor( 200, 200, 210 )
-
-	emitter:Finish()
-
 end
 
 WireLib.ThrusterEffectThink.smoke_firecolors = function(self)
@@ -361,9 +354,6 @@ WireLib.ThrusterEffectThink.smoke_firecolors = function(self)
 			particle:SetEndSize( math.Rand( 64, 128 ) )
 			particle:SetRoll( math.Rand( -0.2, 0.2 ) )
 			particle:SetColor(math.random(220,255),math.random(110,220),0 )
-
-	emitter:Finish()
-
 end
 
 WireLib.ThrusterEffectThink.smoke_random = function(self)
@@ -384,9 +374,6 @@ WireLib.ThrusterEffectThink.smoke_random = function(self)
 			particle:SetEndSize( math.Rand( 64, 128 ) )
 			particle:SetRoll( math.Rand( -0.2, 0.2 ) )
 			particle:SetColor( math.random(100,255),math.random(100,255),math.random(100,255) )
-
-	emitter:Finish()
-
 end
 
 WireLib.ThrusterEffectThink.smoke_diy = function(self)
@@ -406,9 +393,6 @@ WireLib.ThrusterEffectThink.smoke_diy = function(self)
 			particle:SetEndSize( math.Rand( 64, 128 ) )
 			particle:SetRoll( math.Rand( -0.2, 0.2 ) )
 			particle:SetColor(self:GetColor())
-
-	emitter:Finish()
-
 end
 
 WireLib.ThrusterEffectDraw.color_magic = function(self)
@@ -463,9 +447,6 @@ WireLib.ThrusterEffectDraw.color_magic = function(self)
 			particle:SetStartSize( math.Rand( 1, 3 ) )
 			particle:SetEndSize( 0 )
 			particle:SetRoll( math.Rand( -0.2, 0.2 ) )
-
-	emitter:Finish()
-
 end
 
 WireLib.ThrusterEffectThink.money = function(self)
@@ -488,9 +469,6 @@ WireLib.ThrusterEffectThink.money = function(self)
 			particle:SetStartSize( 5 )
 			particle:SetEndSize( 5 )
 			particle:SetRoll( math.Rand( -90, 90 ) )
-
-	emitter:Finish()
-
 end
 
 WireLib.ThrusterEffectThink.debug_10 = function(self)
@@ -512,9 +490,6 @@ WireLib.ThrusterEffectThink.debug_10 = function(self)
 			particle:SetStartSize( 5 )
 			particle:SetEndSize( math.Rand(7,10) )
 			particle:SetRoll(0)
-
-	emitter:Finish()
-
 end
 
 WireLib.ThrusterEffectThink.debug_30 = function(self)
@@ -536,9 +511,6 @@ WireLib.ThrusterEffectThink.debug_30 = function(self)
 			particle:SetStartSize( 5 )
 			particle:SetEndSize( math.Rand(7,10) )
 			particle:SetRoll(0)
-
-	emitter:Finish()
-
 end
 
 WireLib.ThrusterEffectThink.debug_60 = function(self)
@@ -560,9 +532,6 @@ WireLib.ThrusterEffectThink.debug_60 = function(self)
 			particle:SetStartSize( 5 )
 			particle:SetEndSize( math.Rand(7,10) )
 			particle:SetRoll(0)
-
-	emitter:Finish()
-
 end
 
 WireLib.ThrusterEffectThink.souls = function(self)
@@ -586,9 +555,6 @@ WireLib.ThrusterEffectThink.souls = function(self)
 			particle:SetStartSize( 0 )
 			particle:SetEndSize( math.Rand(7,10) )
 			particle:SetRoll( math.Rand( -90, 90 ) )
-
-	emitter:Finish()
-
 end
 
 WireLib.ThrusterEffectThink.sperm = function(self)
@@ -631,9 +597,6 @@ WireLib.ThrusterEffectThink.sperm = function(self)
 			particle3:SetStartSize( 5 )
 			particle3:SetEndSize( 1 )
 			particle3:SetRoll( math.random(-180, 180) )
-
-	emitter:Finish()
-
 end
 
 WireLib.ThrusterEffectThink.feather = function(self)
@@ -656,9 +619,6 @@ WireLib.ThrusterEffectThink.feather = function(self)
 			particle:SetStartSize( 5 )
 			particle:SetEndSize( 5 )
 			particle:SetRoll( math.Rand( -90, 90 ) )
-
-	emitter:Finish()
-
 end
 
 WireLib.ThrusterEffectThink.goldstar = function(self)
@@ -681,9 +641,6 @@ WireLib.ThrusterEffectThink.goldstar = function(self)
 			particle:SetStartSize( 5 )
 			particle:SetEndSize( 5 )
 			particle:SetRoll( math.Rand( -90, 90 ) )
-
-	emitter:Finish()
-
 end
 
 WireLib.ThrusterEffectThink.candy_cane = function(self)
@@ -706,9 +663,6 @@ WireLib.ThrusterEffectThink.candy_cane = function(self)
 			particle:SetStartSize( 5 )
 			particle:SetEndSize( 5 )
 			particle:SetRoll( math.Rand( -90, 90 ) )
-
-	emitter:Finish()
-
 end
 
 WireLib.ThrusterEffectThink.jetflame = function(self)
@@ -757,12 +711,6 @@ WireLib.ThrusterEffectThink.jetflame = function(self)
 			particle2:SetEndSize( 5 )
 			particle2:SetColor( 200,200,200 )
 			particle2:SetRoll( roll )
-
-
-
-
-	emitter:Finish()
-
 end
 
 WireLib.ThrusterEffectThink.jetflame_purple = function(self)
@@ -811,12 +759,6 @@ WireLib.ThrusterEffectThink.jetflame_purple = function(self)
 			particle2:SetEndSize( 5 )
 			particle2:SetColor( 200,200,200 )
 			particle2:SetRoll( roll )
-
-
-
-
-	emitter:Finish()
-
 end
 
 WireLib.ThrusterEffectThink.jetflame_red = function(self)
@@ -865,10 +807,6 @@ WireLib.ThrusterEffectThink.jetflame_red = function(self)
 			particle2:SetEndSize( 5 )
 			particle2:SetColor( 200,200,200 )
 			particle2:SetRoll( roll )
-
-
-	emitter:Finish()
-
 end
 
 WireLib.ThrusterEffectThink.jetflame_blue = function(self)
@@ -917,11 +855,6 @@ WireLib.ThrusterEffectThink.jetflame_blue = function(self)
 			particle2:SetEndSize( 5 )
 			particle2:SetColor( 200,200,200 )
 			particle2:SetRoll( roll )
-
-
-
-	emitter:Finish()
-
 end
 
 WireLib.ThrusterEffectThink.balls_firecolors = function(self)
@@ -943,9 +876,6 @@ WireLib.ThrusterEffectThink.balls_firecolors = function(self)
 			particle:SetStartSize( 4 )
 			particle:SetEndSize( 0 )
 			particle:SetRoll( 0 )
-
-	emitter:Finish()
-
 end
 
 WireLib.ThrusterEffectThink.balls_random = function(self)
@@ -967,9 +897,6 @@ WireLib.ThrusterEffectThink.balls_random = function(self)
 			particle:SetStartSize( 4 )
 			particle:SetEndSize( 0 )
 			particle:SetRoll( 0 )
-
-	emitter:Finish()
-
 end
 
 WireLib.ThrusterEffectThink.balls = function(self)
@@ -991,9 +918,6 @@ WireLib.ThrusterEffectThink.balls = function(self)
 			particle:SetStartSize( 4 )
 			particle:SetEndSize( 0 )
 			particle:SetRoll( 0 )
-
-	emitter:Finish()
-
 end
 
 WireLib.ThrusterEffectThink.plasma_rings = function(self)
@@ -1016,9 +940,6 @@ WireLib.ThrusterEffectThink.plasma_rings = function(self)
 			particle:SetStartSize( math.Rand( 3,5 ) )
 			particle:SetEndSize( 0 )
 			particle:SetRoll( math.Rand( -0.2, 0.2 ) )
-
-	emitter:Finish()
-
 end
 
 WireLib.ThrusterEffectThink.magic_firecolors = function(self)
@@ -1042,9 +963,6 @@ WireLib.ThrusterEffectThink.magic_firecolors = function(self)
 			particle:SetStartSize( math.Rand( 1, 3 ) )
 			particle:SetEndSize( 0 )
 			particle:SetRoll( math.Rand( -0.2, 0.2 ) )
-
-	emitter:Finish()
-
 end
 
 WireLib.ThrusterEffectThink.magic = function(self)
@@ -1067,9 +985,6 @@ WireLib.ThrusterEffectThink.magic = function(self)
 			particle:SetStartSize( math.Rand( 1, 3 ) )
 			particle:SetEndSize( 0 )
 			particle:SetRoll( math.Rand( -0.2, 0.2 ) )
-
-	emitter:Finish()
-
 end
 
 WireLib.ThrusterEffectThink.magic_diy = function(self)
@@ -1092,9 +1007,6 @@ WireLib.ThrusterEffectThink.magic_diy = function(self)
 			particle:SetStartSize( math.Rand( 1, 3 ) )
 			particle:SetEndSize( 0 )
 			particle:SetRoll( math.Rand( -0.2, 0.2 ) )
-
-	emitter:Finish()
-
 end
 
 WireLib.ThrusterEffectThink.magic_color = function(self)
@@ -1118,9 +1030,6 @@ WireLib.ThrusterEffectThink.magic_color = function(self)
 			particle:SetStartSize( math.Rand( 1, 3 ) )
 			particle:SetEndSize( 0 )
 			particle:SetRoll( math.Rand( -0.2, 0.2 ) )
-
-	emitter:Finish()
-
 end
 
 WireLib.ThrusterEffectDraw.rings = function(self)
@@ -1450,5 +1359,5 @@ WireLib.ThrusterEffectThink.bubble = function(self)
 	particle:SetEndSize( 0 )
 	particle:SetRoll( 0 )
 
-	emitter:Finish()
+	
 end

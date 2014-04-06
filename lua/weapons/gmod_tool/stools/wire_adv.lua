@@ -4,10 +4,10 @@ TOOL.Tab      = "Wire"
 
 if CLIENT then
 	language.Add( "Tool.wire_adv.name", "Advanced Wiring Tool" )
-	language.Add( "Tool.wire_adv.desc", "Used to connect things with wires (Press shift+F to switch to debugger tool and back again)." )
-	language.Add( "Tool.wire_adv.0", "Primary: Select input (Hold shift to select multiple inputs; Hold alt to select all inputs), Secondary: Next input, Reload: Unlink selected input (Hold alt to unlink all in the current entity), Wheel: Scroll up or down." )
-	language.Add( "Tool.wire_adv.1", "Primary: Select entity, Secondary: Attach wire to point and continue, Reload: Cancel." )
-	language.Add( "Tool.wire_adv.2", "Primary: Select output (Hold alt to auto-wire, matching all input/outputs names with equal names), Secondary: Next output, Reload: Cancel, Wheel: Scroll up or down." )
+	language.Add( "Tool.wire_adv.desc", "Connect things with wires. (Press Shift+F to switch to the debugger tool)" )
+	language.Add( "Tool.wire_adv.0", "Primary: Select input (Shift: Select multiple; Alt: Select all), Secondary: Next, Reload: Unlink (Alt: Unlink all), Mouse Wheel: Next" )
+	language.Add( "Tool.wire_adv.1", "Primary: Select entity, Secondary: Add wire point, Reload: Cancel" )
+	language.Add( "Tool.wire_adv.2", "Primary: Select output (Alt: Auto-connect matching input/outputs), Secondary: Next, Reload: Cancel, Mouse Wheel: Next" )
 end
 
 TOOL.ClientConVar = {

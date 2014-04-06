@@ -6,6 +6,8 @@ ENT.WireDebugName = "Prop Spawner"
 
 if CLIENT then return end -- No more client
 
+local wire_spawner_delay = CreateConVar( "wire_spawner_delay", game.SinglePlayer() and 0 or 0.2 )
+
 local GlobalUndoList = {}
 
 hook.Add("EntityRemoved", "wire_spawner_EntityRemoved", function(ent)
@@ -28,6 +30,10 @@ function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )
 	self:SetCollisionGroup( COLLISION_GROUP_WEAPON )
 	self:DrawShadow( false )
+
+	self:SetTrigger( true ) -- enables receiving StartTouch/EndTouch calls
+	self.DisabledByTouch = false
+	self.DisabledByTimeUntil = CurTime()
 
 	local phys = self:GetPhysicsObject()
 	if (phys:IsValid()) then phys:Wake() end
@@ -70,7 +76,18 @@ function ENT:Setup( delay, undo_delay, spawn_effect, mat, r, g, b, a, skin )
 	self:ShowOutput()
 end
 
+function ENT:StartTouch( ent )
+	-- we handle touch blocking in DoSpawn, as otherwise we can get
+	-- a StartTouch before we've added the prop to our local undo list.
+end
+
+function ENT:EndTouch( ent )
+	if ent.PropSpawner == self then self.DisabledByTouch = false end
+end
+
 function ENT:DoSpawn( pl, down )
+
+	if self.DisabledByTouch or self.DisabledByTimeUntil > CurTime() then return end
 
 	local ent	= self
 	if (not ent:IsValid()) then return end
@@ -94,6 +111,7 @@ function ENT:DoSpawn( pl, down )
 	prop:SetMaterial( ent:GetMaterial() )
 	prop:SetColor(Color(self.r, self.g, self.b, self.a))
 	prop:SetSkin( ent:GetSkin() or 0 )
+	prop.PropSpawner = self
 
 	-- apply the physic's objects properties
 	local phys2 = prop:GetPhysicsObject()
@@ -127,6 +145,9 @@ function ENT:DoSpawn( pl, down )
 	Wire_TriggerOutput(self, "Out", self.CurrentPropCount)
 	Wire_TriggerOutput(self, "Props", self.UndoList)
 	self:ShowOutput()
+
+	self.DisabledByTouch = true
+	self.DisabledByTimeUntil = CurTime() + wire_spawner_delay:GetFloat()
 
 	if (self.undo_delay == 0) then return end
 

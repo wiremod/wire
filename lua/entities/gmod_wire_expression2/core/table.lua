@@ -22,11 +22,6 @@ local blocked_types = {
 	xgt = true,
 }
 
-local _maxsize = 1024*1024
-local function maxsize()
-	return _maxsize
-end
-
 --------------------------------------------------------------------------------
 
 local function checkOwner(self)
@@ -264,11 +259,6 @@ registerOperator("ass", "t", "t", function(self, args)
 	local lhs, op2, scope = args[2], args[3], args[4]
 	local      rhs = op2[1](self, op2)
 
-	if (rhs.size > maxsize()) then
-		self.prf = self.prf + 500
-		return table.Copy(DEFAULT)
-	end
-
 	local Scope = self.Scopes[scope]
 	if !Scope.lookup then Scope.lookup = {} end
 
@@ -352,11 +342,6 @@ registerOperator( "kvtable", "", "t", function( self, args )
 				ntypes[key] = types[k]
 			end
 			size = size + 1
-
-			if size > maxsize() then
-				self.prf = self.prf + size * opcost + 500
-				return ret
-			end
 		end
 	end
 
@@ -384,10 +369,6 @@ e2function table table(...)
 	for k,v in ipairs( tbl ) do
 		if (!blocked_types[typeids[k]]) then
 			size = size + 1
-			if (size > maxsize()) then -- Max size check
-				self.prf = self.prf + size * opcost + 500
-				return table.Copy(DEFAULT)
-			end
 			ret.n[k] = v
 			ret.ntypes[k] = typeids[k]
 		end
@@ -1009,12 +990,7 @@ registerCallback( "postinit", function()
 		registerOperator("idx", id.."=ts"..id , id, function( self, args )
 			local op1, op2, op3, scope = args[2], args[3], args[4], args[5]
 			local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
-			if rv3 == nil then return end
-			if (!rv1.s[rv2]) then rv1.size = rv1.size + 1 end
-			if (rv1.size > maxsize()) then
-				self.prf = self.prf + 500
-				return fixdef(v[2])
-			end
+			if (not rv1.s[rv2] and rv3 ~= nil) then rv1.size = rv1.size + 1 end
 			rv1.s[rv2] = rv3
 			rv1.stypes[rv2] = id
 			self.vclk[rv1] = true //self.Scopes[scope].vclk[rv1] = true
@@ -1024,9 +1000,7 @@ registerCallback( "postinit", function()
 		registerOperator("idx", id.."=tn"..id, id, function(self,args)
 			local op1, op2, op3, scope = args[2], args[3], args[4], args[5]
 			local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
-			if rv3 == nil then return end
-			if (!rv1.n[rv2]) then rv1.size = rv1.size + 1 end
-			if (rv1.size > maxsize()) then return fixdef(v[2]) end
+			if (not rv1.n[rv2] and rv3 ~= nil) then rv1.size = rv1.size + 1 end
 			rv1.n[rv2] = rv3
 			rv1.ntypes[rv2] = id
 			self.vclk[rv1] = true //self.Scopes[scope].vclk[rv1] = true
@@ -1087,10 +1061,6 @@ registerCallback( "postinit", function()
 			if rv2 == nil then return end
 			local n = #rv1.n+1
 			rv1.size = rv1.size + 1
-			if (rv1.size > maxsize()) then
-				self.prf = self.prf + 500
-				return fixdef(v[2])
-			end
 			rv1.n[n] = rv2
 			rv1.ntypes[n] = id
 			self.vclk[rv1] = true
@@ -1109,10 +1079,6 @@ registerCallback( "postinit", function()
 			if rv3 == nil then return end
 			if (rv2 < 0) then return end
 			rv1.size = rv1.size + 1
-			if (rv1.size > maxsize()) then
-				self.prf = self.prf + 500
-				return fixdef(v[2])
-			end
 			table.insert( rv1.n, rv2, rv3 )
 			table.insert( rv1.ntypes, rv2, id )
 			self.vclk[rv1] = true
@@ -1124,10 +1090,6 @@ registerCallback( "postinit", function()
 			local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
 			if rv2 == nil then return end
 			rv1.size = rv1.size + 1
-			if (rv1.size > maxsize()) then
-				self.prf = self.prf + 500
-				return fixdef(v[2])
-			end
 			table.insert( rv1.n, 1, rv2 )
 			table.insert( rv1.ntypes, 1, id )
 			self.vclk[rv1] = true

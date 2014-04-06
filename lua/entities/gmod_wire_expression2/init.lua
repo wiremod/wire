@@ -2,8 +2,16 @@ AddCSLuaFile('cl_init.lua')
 AddCSLuaFile('shared.lua')
 include('shared.lua')
 
+-- This makes E2s not save using garry's workshop save
+-- Until someone can find the cause of the crashes, leave this in here
+local old = gmsave.ShouldSaveEntity
+function gmsave.ShouldSaveEntity( ent, ... )
+	if ent:GetClass() == "gmod_wire_expression2" then return false end
+	return old( ent, ... )
+end
+
 local wire_expression2_unlimited = CreateConVar("wire_expression2_unlimited", "0")
-local wire_expression2_quotasoft = CreateConVar("wire_expression2_quotasoft", "5000")
+local wire_expression2_quotasoft = CreateConVar("wire_expression2_quotasoft", "10000")
 local wire_expression2_quotahard = CreateConVar("wire_expression2_quotahard", "100000")
 local wire_expression2_quotatick = CreateConVar("wire_expression2_quotatick", "25000")
 
@@ -136,7 +144,7 @@ end
 
 function ENT:Think()
 	self.BaseClass.Think(self)
-	self:NextThink(CurTime())
+	self:NextThink(CurTime()+0.030303)
 
 	if self.context and not self.error then
 		self.context.prfbench = self.context.prfbench * 0.95 + self.context.prf * 0.05

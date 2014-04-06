@@ -154,6 +154,7 @@ if CLIENT then
 		local ent = Entity(entindex)
 
 		if ent and ent.DoScale then
+			ent.bone_flag = nil
 			ent:DoScale()
 		end
 	end
@@ -171,6 +172,7 @@ if CLIENT then
 
 		if ent and ent.DoScale then
 			if bindex == -1 then ent.bone_scale = {} end -- reset bone scale
+			ent.bone_flag = true
 			ent:DoScale()
 		end
 	end
@@ -194,8 +196,12 @@ if CLIENT then
 
 		local count = self:GetBoneCount() or -1
 		if count > 1 then
-			for i = 0, count do
-				self:ManipulateBoneScale(i, self.bone_scale[i] or scale)
+			if self.bone_flag then
+				for i = count, 0, -1 do
+					self:ManipulateBoneScale(i, self.bone_scale[i] or scale)
+				end
+			else
+				self:SetModelScale((scale.x + scale.y + scale.z) / 3, 0)
 			end
 		elseif self.EnableMatrix then
 			local mat = Matrix()

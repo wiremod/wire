@@ -54,37 +54,35 @@ function ENT:TriggerInput( name, value )
 end
 
 function ENT:Think()
-	if (self.Force != 0 or self.OffsetForce != 0 or self.Velocity != 0) then
-		local Forward = self:GetUp()
-		local StartPos = self:GetPos() + Forward * self:OBBMaxs().z
+	if self.Force == 0 and self.OffsetForce == 0 and self.Velocity == 0 then return end
 
-		local tr = {}
-		tr.start = StartPos
-		tr.endpos = StartPos + self:GetBeamLength() * Forward
-		tr.filter = self
-		local trace = util.TraceLine( tr )
-		if (trace) then
-			if (trace.Entity and trace.Entity:IsValid()) then
-				if (trace.Entity:GetMoveType() == MOVETYPE_VPHYSICS) then
-					local phys = trace.Entity:GetPhysicsObject()
-					if (phys:IsValid()) then
-						if (self.Force != 0) then phys:ApplyForceCenter( Forward * self.Force * self.ForceMul ) end
-						if (self.OffsetForce != 0) then phys:ApplyForceOffset( Forward * self.OffsetForce * self.ForceMul, trace.HitPos ) end
-						if (self.Velocity != 0) then phys:SetVelocityInstantaneous( Forward * self.Velocity ) end
-					end
-				else
-					if (self.Velocity != 0) then trace.Entity:SetVelocity( Forward * self.Velocity ) end
-				end
-			end
-		end
+	local Forward = self:GetUp()
+	local BeamOrigin = self:GetPos() + Forward * self:OBBMaxs().z
 
-		if (self.Reaction) then
-			local phys = self:GetPhysicsObject()
-			if (phys:IsValid()) then
-				if (self.Force != 0 or self.OffsetForce != 0) then phys:ApplyForceCenter( Forward * -self.Force * self.ForceMul ) end
-			end
-		end
+	local trace = util.TraceLine {
+		start = BeamOrigin,
+		endpos = BeamOrigin + self:GetBeamLength() * Forward,
+		filter = self
+	}
+
+	if not IsValid(trace.Entity) then return end
+	if not gamemode.Call( "GravGunPunt", self:GetPlayer(), trace.Entity ) then return end
+
+	if trace.Entity:GetMoveType() == MOVETYPE_VPHYSICS then
+		local phys = trace.Entity:GetPhysicsObject()
+		if not IsValid(phys) then return end
+
+		if self.Force ~= 0 then phys:ApplyForceCenter( Forward * self.Force * self.ForceMul ) end
+		if self.OffsetForce ~= 0 then phys:ApplyForceOffset( Forward * self.OffsetForce * self.ForceMul, trace.HitPos ) end
+		if self.Velocity ~= 0 then phys:SetVelocityInstantaneous( Forward * self.Velocity ) end
+	else
+		if self.Velocity ~= 0 then trace.Entity:SetVelocity( Forward * self.Velocity ) end
 	end
+
+	if self.Reaction and IsValid(self:GetPhysicsObject()) and (self.Force + self.OffsetForce ~= 0) then
+		self:GetPhysicsObject():ApplyForceCenter( Forward * -(self.Force + self.OffsetForce) * self.ForceMul )
+	end
+
 	self:NextThink( CurTime() )
 	return true
 end

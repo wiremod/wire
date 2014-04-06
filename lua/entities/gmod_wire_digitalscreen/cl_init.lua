@@ -53,7 +53,11 @@ net.Receive("wire_digitalscreen", function(netlen)
 			if length == 0 then break end
 			local address = net.ReadUInt(20)
 			for i=1, length do
-				ent:WriteCell(address, net.ReadUInt(pixelbit))
+				if address>=1048500 then
+					ent:WriteCell(address, net.ReadUInt(10))
+				else
+					ent:WriteCell(address, net.ReadUInt(pixelbit))
+				end
 				address = address + 1
 			end
 		end

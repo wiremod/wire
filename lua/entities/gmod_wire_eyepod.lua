@@ -106,21 +106,21 @@ function ENT:Setup(DefaultToZero, RateOfChange, ClampXMin, ClampXMax, ClampYMin,
 end
 
 local Rotate90ModelList = {
-	"models/props_c17/furniturechair001a.mdl",
-	"models/airboat.mdl",
-	"models/props_c17/chair_office01a.mdl",
-	"models/nova/chair_office02.mdl",
-	"models/nova/chair_office01.mdl",
-	"models/props_combine/breenchair.mdl",
-	"models/nova/chair_wood01.mdl",
-	"models/nova/airboat_seat.mdl",
-	"models/nova/chair_plastic01.mdl",
-	"models/nova/jeep_seat.mdl",
-	"models/props_phx/carseat.mdl",
-	"models/props_phx/carseat2.mdl",
-	"models/props_phx/carseat3.mdl",
-	"models/buggy.mdl",
-	"models/vehicle.mdl"
+	["models/props_c17/furniturechair001a.mdl"]	= true,
+	["models/airboat.mdl"]						= true,
+	["models/props_c17/chair_office01a.mdl"]	= true,
+	["models/nova/chair_office02.mdl"]			= true,
+	["models/nova/chair_office01.mdl"]			= true,
+	["models/props_combine/breenchair.mdl"]		= true,
+	["models/nova/chair_wood01.mdl"]			= true,
+	["models/nova/airboat_seat.mdl"]			= true,
+	["models/nova/chair_plastic01.mdl"]			= true,
+	["models/nova/jeep_seat.mdl"]				= true,
+	["models/props_phx/carseat.mdl"]			= true,
+	["models/props_phx/carseat2.mdl"]			= true,
+	["models/props_phx/carseat3.mdl"]			= true,
+	["models/buggy.mdl"]						= true,
+	["models/vehicle.mdl"]						= true
 }
 
 function ENT:PodLink(vehicle)
@@ -129,6 +129,7 @@ function ENT:PodLink(vehicle)
 			self.pod.AttachedWireEyePod = nil
 		end
 		self.pod = nil
+		self:UpdateOverlay()
 		return false
 	end
 	self.pod = vehicle
@@ -136,14 +137,14 @@ function ENT:PodLink(vehicle)
 	self.rotate90 = false
 	self.eyeAng = Angle(0, 0, 0)
 	if IsValid(vehicle) and vehicle:IsVehicle() then
-		if table.HasValue(Rotate90ModelList, string.lower(vehicle:GetModel())) then
+		if Rotate90ModelList[string.lower(vehicle:GetModel())] then
 			self.rotate90 = true
 			self.eyeAng = Angle(0, 90, 0)
 		end
 	end
 
-
 	vehicle.AttachedWireEyePod = self
+	self:UpdateOverlay()
 	return true
 end
 
@@ -157,6 +158,39 @@ function ENT:updateEyePodState(enabled)
 	umsg.End()
 end
 
+hook.Add("PlayerEnteredVehicle","gmod_wire_eyepod_entervehicle",function(ply,vehicle)
+	local eyepod = vehicle.AttachedWireEyePod
+	if eyepod ~= nil then
+		if IsValid(eyepod) then
+			eyepod.driver = vehicle:GetDriver()
+			eyepod:updateEyePodState(eyepod.enabled)
+			eyepod:UpdateOverlay()
+		else
+			vehicle.AttachedWireEyePod = nil
+		end
+	end
+end)
+
+hook.Add("PlayerLeaveVehicle","gmod_wire_eyepod_leavevehicle",function(ply,vehicle)
+	local eyepod = vehicle.AttachedWireEyePod
+	if eyepod ~= nil then
+		if IsValid(eyepod) then
+			eyepod:updateEyePodState(false)
+			eyepod.driver = nil
+			if (eyepod.X ~= 0 or eyepod.Y ~= 0) and eyepod.DefaultToZero == 1 then
+				eyepod.X = 0
+				eyepod.Y = 0
+				WireLib.TriggerOutput( eyepod, "X", 0 )
+				WireLib.TriggerOutput( eyepod, "Y", 0 )
+				WireLib.TriggerOutput( eyepod, "XY", {0,0} )
+			end
+			eyepod:UpdateOverlay()
+		else
+			vehicle.AttachedWireEyePod = nil
+		end
+	end
+end)
+
 function ENT:OnRemove()
 	if IsValid(self.pod) and self.pod:IsVehicle() then
 		self.pod.AttachedWireEyePod = nil
@@ -168,50 +202,13 @@ function ENT:OnRemove()
 	end
 end
 
-function ENT:Think()
-	-- Make sure the gate updates even if we don't receive any input
-	self:TriggerInput()
-
-	if IsValid(self.pod) then
-		-- if we are in a pod, set the player
-		if self.pod:IsVehicle() and self.pod:GetDriver():IsPlayer() then
-			self.driver = self.pod:GetDriver()
-		else -- else set X and Y to 0
-			if IsValid(self.driver) then
-				self:updateEyePodState(false)
-				self.driver = nil
-			end
-			if self.DefaultToZero == 1 then
-				self.X = 0
-				self.Y = 0
-				Wire_TriggerOutput(self, "X", self.X)
-				Wire_TriggerOutput(self, "Y", self.Y)
-				local XY_Vec = {self.X, self.Y}
-				Wire_TriggerOutput(self, "XY", XY_Vec)
-			end
-		end
-	else -- else set X and Y to 0
-		if IsValid(self.driver) then
-			self:updateEyePodState(false)
-			self.driver = nil
-		end
-		if self.DefaultToZero == 1 then
-			self.X = 0
-			self.Y = 0
-			Wire_TriggerOutput(self, "X", self.X)
-			Wire_TriggerOutput(self, "Y", self.Y)
-			local XY_Vec = {self.X, self.Y}
-			Wire_TriggerOutput(self, "XY", XY_Vec)
-		end
-		self.pod = nil
-	end
-
+function ENT:UpdateOverlay()
 	-- update the overlay with the user's name
 	local Txt = ""
 	if self.enabled and IsValid(self.driver) and self.driver:IsPlayer() then
-		Txt = Txt.." - In use by "..self.driver:Name()
+		Txt = Txt.."In use by "..self.driver:Name()
 	else
-		Txt = Txt.." - Not Active"
+		Txt = Txt.."Not Active"
 	end
 	if IsValid(self.pod) and self.pod:IsVehicle() then
 		Txt = Txt.."\nLinked to "..self.pod:GetModel()
@@ -220,10 +217,6 @@ function ENT:Think()
 	end
 
 	self:SetOverlayText(Txt)
-
-	self:NextThink(CurTime() + 0.1)
-
-	return true
 end
 
 local function AngNorm(Ang)
@@ -237,6 +230,16 @@ function ENT:TriggerInput(iname, value)
 	-- Change variables to reflect input
 	if iname == "Enable" then
 		self.enabled = value ~= 0
+		
+		if self.enabled == false and self.DefaultToZero == 1 and (self.X ~= 0 or self.Y ~= 0) then
+			self.X = 0
+			self.Y = 0
+			WireLib.TriggerOutput( self, "X", 0 )
+			WireLib.TriggerOutput( self, "Y", 0 )
+			WireLib.TriggerOutput( self, "XY", {0,0} )
+		end			
+		
+		self:UpdateOverlay()
 	elseif iname == "SetPitch" then
 		self.eyeAng = Angle(AngNorm90(value), self.eyeAng.y, self.eyeAng.r)
 	elseif iname == "SetYaw" then
@@ -256,31 +259,11 @@ function ENT:TriggerInput(iname, value)
 	elseif iname == "UnfreezeYaw" then
 		self.freezeYaw = value == 0
 	end
-
-	-- If we're not enabled, set the output to zero and exit
-	if not self.enabled then
-		if self.DefaultToZero == 1 then
-			self.X = 0
-			self.Y = 0
-			Wire_TriggerOutput(self, "X", self.X)
-			Wire_TriggerOutput(self, "Y", self.Y)
-			local XY_Vec = {self.X, self.Y}
-			Wire_TriggerOutput(self, "XY", XY_Vec)
-		end
-		if IsValid(self.driver) and IsValid(self.pod) then
-			self:updateEyePodState(self.enabled)
-		end
-		return
-	end
-
-	--Turn on the EyePod Control file
-	self.enabled = true
-	if IsValid(self.driver) and IsValid(self.pod) then
+	
+	if IsValid(self.pod) and IsValid(self.driver) then
 		self:updateEyePodState(self.enabled)
 	end
 end
-
-local UpdateTimer = CurTime()
 
 hook.Add("SetupMove", "WireEyePodMouseControl", function(ply, movedata)
 	--is the player in a vehicle?
@@ -290,12 +273,8 @@ hook.Add("SetupMove", "WireEyePodMouseControl", function(ply, movedata)
 	local vehicle = ply:GetVehicle()
 	if not IsValid(vehicle) then return end
 
-	local Table = vehicle:GetTable()
-
-	if not Table then return end
-
 	--get the EyePod
-	local eyePod = Table.AttachedWireEyePod
+	local eyePod = vehicle.AttachedWireEyePod
 
 	--is the vehicle linked to an EyePod?
 	if not IsValid(eyePod) then return end
@@ -303,6 +282,15 @@ hook.Add("SetupMove", "WireEyePodMouseControl", function(ply, movedata)
 	if eyePod.enabled then
 
 		local cmd = ply:GetCurrentCommand()
+		
+		local oldX = eyePod.X
+		local oldY = eyePod.Y
+		
+		--reset the output so it is not cumualative if you want the rate of change
+		if eyePod.ShowRateOfChange == 1 then
+			eyePod.X = 0
+			eyePod.Y = 0
+		end
 
 		--update the cumualative output
 		eyePod.X = cmd:GetMouseX()/10 + eyePod.X
@@ -316,24 +304,18 @@ hook.Add("SetupMove", "WireEyePodMouseControl", function(ply, movedata)
 			eyePod.Y = math.Clamp(eyePod.Y, eyePod.ClampYMin, eyePod.ClampYMax)
 		end
 
-		--update the outputs every 0.015 seconds
-		if (CurTime() > (eyePod.LastUpdateTime+0.015)) then
-			Wire_TriggerOutput(eyePod, "X", eyePod.X)
-			Wire_TriggerOutput(eyePod, "Y", eyePod.Y)
+		if oldX ~= eyePod.X or oldY ~= eyePod.Y then
+			-- Update outputs
+			WireLib.TriggerOutput(eyePod, "X", eyePod.X)
+			WireLib.TriggerOutput(eyePod, "Y", eyePod.Y)
+			
 			local XY_Vec = {eyePod.X, eyePod.Y}
-			Wire_TriggerOutput(eyePod, "XY", XY_Vec)
-			--reset the output so it is not cumualative if you want the rate of change
-			if eyePod.ShowRateOfChange == 1 then
-				eyePod.X = 0
-				eyePod.Y = 0
-			end
-			eyePod.LastUpdateTime = CurTime()
+			WireLib.TriggerOutput(eyePod, "XY", XY_Vec)
 		end
 
 		--reset the mouse
 		cmd:SetMouseX(0)
 		cmd:SetMouseY(0)
-		return
 
 	end
 end)

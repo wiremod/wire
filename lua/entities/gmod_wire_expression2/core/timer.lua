@@ -125,9 +125,9 @@ end
 
 -----------------------------------------------------------------------------------
 
-local function luaDateToE2Table( time )
+local function luaDateToE2Table( time, utc )
 	local ret = {n={},ntypes={},s={},stypes={},size=0}
-	local time = os.date("*t",time)
+	local time = os.date((utc and "!" or "") .. "*t",time)
 	
 	if not time then return ret end -- this happens if you give it a negative time
 	
@@ -154,6 +154,16 @@ end
 -- Returns the specified time formatted neatly in a table
 e2function table date( time )
 	return luaDateToE2Table(time)
+end
+
+-- Returns the server's current time formatted neatly in a table using UTC
+e2function table dateUTC()
+	return luaDateToE2Table(nil,true)
+end
+
+-- Returns the specified time formatted neatly in a table using UTC
+e2function table dateUTC( time )
+	return luaDateToE2Table(time,true)
 end
 
 -- This function has a strange and slightly misleading name, but changing it might break older E2s, so I'm leaving it

@@ -76,11 +76,13 @@ end
 
 local function On( pl, ent, mul )
 	if (!ent:IsValid()) then return false end
+	if not gamemode.Call("PlayerUse", pl, ent) then return end
 	return ent:InputActivate( mul )
 end
 
 local function Off( pl, ent, mul )
 	if (!ent:IsValid()) then return false end
+	if not gamemode.Call("PlayerUse", pl, ent) then return end
 	return ent:InputDeactivate( mul )
 end
 

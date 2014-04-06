@@ -9,7 +9,6 @@ function ENT:InitializeShared()
 	self.textJust = 0
 	self.valign = 0
 	self.tfont = "Arial"
-	self.createdFonts = {}
 
 	self.fgcolor = Color(255,255,255)
 	self.bgcolor = Color(0,0,0)
@@ -128,7 +127,7 @@ if CLIENT then
 
 		self.GPU = WireGPU(self)
 		self.layouter = MakeTextScreenLayouter()
-		self:CreateFont(self.tfont)
+		self:CreateFont(self.tfont, self.chrPerLine)
 
 		WireLib.netRegister(self)
 	end
@@ -184,7 +183,7 @@ if CLIENT then
 			self.fgcolor = Color(net.ReadUInt(8), net.ReadUInt(8), net.ReadUInt(8))
 			self.bgcolor = Color(net.ReadUInt(8), net.ReadUInt(8), net.ReadUInt(8))
 			self.tfont = net.ReadString()
-			self:CreateFont(self.tfont)
+			self:CreateFont(self.tfont, self.chrPerLine)
 
 			self.NeedRefresh = true
 		else
@@ -192,23 +191,19 @@ if CLIENT then
 		end
 	end
 	
-	function ENT:CreateFont(font)
-		if self.createdFonts[font] then return end
+	local createdFonts = {}
+	function ENT:CreateFont(font, chrPerLine)
+		if createdFonts[font .. chrPerLine] then return end
 
-		local fontSize = 380
-		for i = 1,15 do
-			local fontData = 
-			{
-				font = font,
-				size = fontSize / i,
-				weight = 400,
-				antialias = true,
-				additive = false,
-				
-			}
-			surface.CreateFont( font .. i, fontData)
-		end
-		self.createdFonts[font] = true
+		local fontData = {
+			font = font,
+			size = 380 / chrPerLine,
+			weight = 400,
+			antialias = true,
+			additive = false
+		}
+		surface.CreateFont(font .. chrPerLine, fontData)
+		createdFonts[font .. chrPerLine] = true
 		self.NeedRefresh = true
 	end
 	
