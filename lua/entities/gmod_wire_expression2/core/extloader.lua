@@ -76,8 +76,25 @@ local function e2_include_pass2(name, luaname, contents)
 		-- e2_extpp_pass2 returned false => file didn't need preprocessing => use the regular means of inclusion
 		return include(name)
 	end
+	
 	-- file needed preprocessing => Run the processed file
-	RunStringEx(ret, luaname)
+	local ok, func = pcall(CompileString,ret,luaname)
+	if not ok then -- an error occurred while compiling
+		error(func)
+		return
+	end
+	
+	local ok, err = pcall(func)
+	if not ok then -- an error occured while executing
+		if string.find(err,"Skipping disabled E2 extension") ~= 0 then -- if it's just a disabled E2 extension...
+			local err = string.match(err,"(Skipping disabled E2 extension.+).$") -- filter to the part we want
+			print(err) -- print the error
+		else
+			error(err) -- otherwise, actually cause an error
+		end
+		return
+	end
+	
 	__e2setcost(nil) -- Reset ops cost at the end of each file
 end
 
