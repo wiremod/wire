@@ -536,21 +536,11 @@ local function CheckSpawnTimer( self, readonly )
 	end
 end
 
--- Removes the hologram with the given index from the given chip.
-local function removeholo(self, index)
-	local Holo = CheckIndex(self, index)
-	if not Holo then return end
-
-	if IsValid(Holo.ent) then
-		Holo.ent:Remove()
-	end
-end
-
 -- Removes all holograms from the given chip.
 local function clearholos(self)
 	-- delete local holos
 	for index,Holo in pairs(self.data.holos) do
-		removeholo(self, index)
+		if IsValid(Holo.ent) then Holo.ent:Remove() end
 	end
 
 	-- delete global holos owned by this chip
@@ -558,7 +548,7 @@ local function clearholos(self)
 	if not rep then return end
 	for index,Holo in ipairs(rep) do
 		if Holo.e2owner == self then
-			removeholo(self, -index)
+			if IsValid(Holo.ent) then Holo.ent:Remove() end
 		end
 	end
 end
@@ -638,7 +628,12 @@ e2function entity holoCreate(index)
 end
 
 e2function void holoDelete(index)
-	removeholo(self, index)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return end
+
+	if IsValid(Holo.ent) then
+		Holo.ent:Remove()
+	end
 end
 
 e2function void holoDeleteAll()
