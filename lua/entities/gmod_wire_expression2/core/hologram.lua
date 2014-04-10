@@ -444,7 +444,7 @@ local function CheckIndex(self, index)
 	else
 		Holo = self.data.holos[index]
 	end
-	if not Holo or not IsValid(Holo.ent) then return nil end
+	if not Holo or Holo.ent == NULL or Holo.ent == nil then return nil end
 	return Holo
 end
 
@@ -492,11 +492,7 @@ local function CreateHolo(self, index, pos, scale, ang, color, model)
 		Holo.ent = prop
 		Holo.e2owner = self
 
-		prop:CallOnRemove( "holo_on_parent_removal", function( ent, self, index ) --Remove on parent remove
-			local parent = ent:GetParent()
-
-			if not IsValid( parent ) then return end
-
+		prop:CallOnRemove( "holo_cleanup", function( ent, self, index ) --Give the player more holograms if we get removed
 			local Holo = CheckIndex( self, index )
 			if not Holo then return end
 
@@ -544,9 +540,6 @@ end
 local function removeholo(self, index)
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
-
-	PlayerAmount[self.uid] = PlayerAmount[self.uid] - 1
-	SetIndex(self, index, nil)
 
 	if IsValid(Holo.ent) then
 		Holo.ent:Remove()
