@@ -53,6 +53,6 @@ end
 Obj.DataStreamInfo = function( self )
 	local tbl = {}
 	table.Merge( tbl, self.BaseClass.DataStreamInfo( self ) )
-	table.Merge( tbl, { angle = self.angle, size = self.size } )
+	table.Merge( tbl, { angle = self.angle, size = self.size, fidelity = self.fidelity } )
 	return tbl
 end
