@@ -36,6 +36,9 @@ if CLIENT then
 	function ENT:GetWorldTipPositions( w, h ) -- make sure it doesn't go out of the screen
 		local pos = LocalPlayer():GetEyeTrace().HitPos:ToScreen()
 		
+		pos.x = math.Round(pos.x)
+		pos.y = math.Round(pos.y)
+		
 		w = math.min( w, ScrW() - 64 )
 		h = math.min( h, ScrH() - 64 )
 		
