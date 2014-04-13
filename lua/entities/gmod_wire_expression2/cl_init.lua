@@ -77,14 +77,99 @@ function wire_expression2_validate(buffer)
 	return nil, includes
 end
 
--- On the server we need errors instead of return values, so we wrap and throw errors.
--- no SERVER in client file
---[[
-if SERVER then
-    local _wire_expression2_validate = wire_expression2_validate
-    function wire_expression2_validate(...)
-        local msg = _wire_expression2_validate(...)
-        if msg then error(msg, 0) end
-    end
+function ENT:GetWorldTipBodySize()
+	return self:DrawWorldTipBody( {min={x=0,y=0}}, true ) -- this is a bit of a hack, but it's the only way to get the true size of what we're about to draw
 end
-]] --
+
+-- string.GetTextSize shits itself if the string is both wide and tall,
+-- so we have to explode it around \n and add the sizes together
+-- since it works fine for strings that are wide but not tall
+local function wtfgarry( str )
+	local w, h = 0, 0
+	local expl = string.Explode( "\n", str )
+	for i=1,#expl do
+		local _w, _h = surface.GetTextSize( expl[i] )
+		w = math.max(w,_w)
+		h = h + _h
+	end
+	return w, h
+end
+
+function ENT:DrawWorldTipBody( pos, dontdraw )
+	local data = self:GetOverlayData()
+	if not data then return end
+	
+	local txt = data.txt
+	local err = data.error -- this isn't used (yet), might do something with it later
+	
+	local white = Color(255,255,255,255)
+	local black = Color(0,0,0,255)
+	
+	local h_of_lower = 210 -- height of the lower section (the prfbench/percent bar section)
+	
+	local w_total, yoffset = 0, pos.min.y
+	
+	-------------------
+	-- Name
+	-------------------
+	local w,h = wtfgarry( txt )
+	h = math.min(h,ScrH()-h_of_lower)
+	
+	if not dontdraw then
+		render.SetScissorRect( pos.min.x + 16, pos.min.y, pos.max.x - 16, pos.max.y - (pos.size.h - h) + 9, true )
+		draw.DrawText( txt, "GModWorldtip", pos.min.x + pos.size.w/2, yoffset + 9, white, TEXT_ALIGN_CENTER )
+		render.SetScissorRect( 0, 0, ScrW(), ScrH(), false )
+	end
+	
+	w_total = math.max( w_total, w )
+	yoffset = yoffset + h + 18
+	
+	if not dontdraw then
+		surface.SetDrawColor( black )
+		surface.DrawLine( pos.min.x, yoffset, pos.max.x, yoffset )
+	end
+	
+	-------------------
+	-- prfcount/benchmarking/etc
+	-------------------
+	local prfbench = data.prfbench
+	local prfcount = data.prfcount
+	local timebench = data.timebench
+
+	local e2_hardquota = GetConVar("wire_expression2_quotahard"):GetInt()
+	local e2_softquota = GetConVar("wire_expression2_quotasoft"):GetInt()
+		
+	local hardtext = (prfcount / e2_hardquota > 0.33) and "(+" .. tostring(math.Round(prfcount / e2_hardquota * 100)) .. "%)" or ""
+	local str = string.format("%i ops, %i%% %s\n\n\ncpu time: %ius", prfbench, prfbench / e2_softquota * 100, hardtext, timebench*1000000)
+	
+	if not dontdraw then
+		local w = pos.size.w - 18 * 2
+		
+		local softquota_width = w * 0.7
+		local quota_width = softquota_width * (prfbench/e2_softquota) + (w - softquota_width) * (prfcount/e2_hardquota)
+	
+		local y = yoffset + 36
+		surface.SetDrawColor( Color(0,170,0,255) )
+		surface.DrawRect( pos.min.x + 18, y, softquota_width, 20 )
+		
+		surface.SetDrawColor( Color(170,0,0,255) )
+		surface.DrawRect( pos.min.x + 18 + softquota_width - 1, y, w - softquota_width + 2, 20 )
+		
+		surface.SetDrawColor( Color(0,0,0,200) )
+		surface.DrawRect( pos.min.x + 18, y, quota_width, 20 )
+		
+		surface.SetDrawColor( black )
+		surface.DrawLine( pos.min.x + 18, y, pos.min.x + 18 + w, y )
+		surface.DrawLine( pos.min.x + 18 + w, y, pos.min.x + 18 + w, y + 20 )
+		surface.DrawLine( pos.min.x + 18 + w, y + 20, pos.min.x + 18, y + 20 )
+		surface.DrawLine( pos.min.x + 18, y + 20, pos.min.x + 18, y )
+	
+		draw.DrawText( str, "GModWorldtip", pos.min.x + pos.size.w/2, yoffset + 9, white, TEXT_ALIGN_CENTER )
+	end
+	
+	local w,h = surface.GetTextSize( str )
+	w_total = math.max( w_total, w )
+	yoffset = yoffset + h	
+	
+	return w_total, yoffset - pos.min.y
+end
