@@ -393,6 +393,30 @@ elseif CLIENT then
 	end
 	
 	
+	-- This function will help when using ALT to wire, when a single output's type matches but the name does not
+	-- it will allow us to check if only a single output of matching types exist on the entity without looping
+	-- through the entity's outputs several times per frame
+	TOOL.AutoWiringTypeLookup_t = {}
+	function TOOL:AutoWiringTypeLookup( ent )
+		if not IsValid( ent ) then
+			self.AutoWiringTypeLookup_t = {}
+		else
+			self.AutoWiringTypeLookup_t = {}
+			local _, outputs = self:GetPorts( ent )
+			for i=1,#outputs do
+				local outputtype = outputs[i][2]
+				if self.AutoWiringTypeLookup_t[outputtype] == nil then -- if we haven't found any outputs of this type yet, 
+					self.AutoWiringTypeLookup_t[outputtype] = i -- set the index
+				elseif self.AutoWiringTypeLookup_t[outputtype] ~= nil then -- if we've already found outputs of this type,
+					self.AutoWiringTypeLookup_t[outputtype] = false -- set to false
+				end
+			end
+		end
+	end
+	function TOOL:AutoWiringTypeLookup_Check( inputtype )
+		return self.AutoWiringTypeLookup_t[inputtype]
+	end
+	
 	-----------------------------------------------------------------
 	-- Mouse buttons
 	-----------------------------------------------------------------
@@ -432,6 +456,7 @@ elseif CLIENT then
 				if not outputs then return end
 				
 				self.CurrentEntity = trace.Entity
+				self:AutoWiringTypeLookup( self.CurrentEntity )
 				
 				self:SetStage(2)
 				
@@ -482,6 +507,7 @@ elseif CLIENT then
 			
 			if alt then -- Auto wiring
 				local notwired = 0
+				local typematched = 0
 				for i=1,#self.Wiring do
 					local wiring = self.Wiring[i]
 					local inputname = wiring[1]
@@ -497,12 +523,24 @@ elseif CLIENT then
 							break
 						end
 					end
-					if not found then notwired = notwired + 1 end
+					
+					if not found then -- if we didn't find a matching name & type, check if there's only one matching type (ignoring name)
+						local idx = self:AutoWiringTypeLookup_Check( inputtype )
+						if idx then
+							self:WireEndOutputName( wiring, outputs[idx][1] )
+							typematched = typematched + 1
+						else
+							notwired = notwired + 1
+						end
+					end
 				end
 				
 				if notwired > 0 then
-					WireLib.AddNotify( "Could not find a matching name for " .. notwired .. " inputs. They were not wired.", NOTIFY_HINT, 5, NOTIFYSOUND_DRIP1 )
+					WireLib.AddNotify( "Could not find a matching name/type for " .. notwired .. " inputs. They were not wired.", NOTIFY_HINT, 10, NOTIFYSOUND_DRIP1 )
 				end
+				if typematched > 0 then
+					WireLib.AddNotify( "Could not find a matching name/type for " .. typematched .. " inputs. However, a single output of that type was found, which was used instead.", NOTIFY_HINT, 10, NOTIFYSOUND_DRIP1 )
+				end					
 			else -- Normal wiring
 				local notwired = 0
 				for i=1,#self.Wiring do
@@ -720,20 +758,25 @@ elseif CLIENT then
 	-----------------------------------------------------------------
 	-- HUD Stuff
 	-----------------------------------------------------------------
-	function TOOL:IsHighlighted( name, tbl, ent, idx, optional_idx )
+	function TOOL:IsHighlighted( name, tbl, ent, idx )
 		local alt = self:GetOwner():KeyDown( IN_WALK )
 		if name == "Outputs" and self:GetStage() == 2 then
 			if alt then -- if we're holding alt, highlight all outputs that will be wired to
-				for i=1,(optional_idx ~= nil and 1 or #self.WiringRender) do
-					local wiringrender = self.WiringRender[optional_idx or i]
-					local outputname = tbl[idx][1]
-					local outputtype = tbl[idx][2]
-					local inputname = wiringrender[1]
-					local inputtype = wiringrender[2]
+				local outputname = tbl[idx][1]
+				local outputtype = tbl[idx][2]
+				
+				for i=1,#self.WiringRender do
+					local inputname = self.WiringRender[i][1]
+					local inputtype = self.WiringRender[i][2]
 					
 					if self:IsMatch( inputname, inputtype, outputname, outputtype, true ) then
 						return true
 					end
+				end
+				
+				local _idx = self:AutoWiringTypeLookup_Check( outputtype )
+				if _idx then
+					return true
 				end
 			else
 				return self.CurrentWireIndex == idx -- Highlight selected output
@@ -741,15 +784,21 @@ elseif CLIENT then
 		elseif name == "Selected" and self:GetStage() == 2 and alt then -- highlight all selected inputs that will be wired
 			local inputs, outputs = self:GetPorts( ent )
 			
+			local inputname = tbl[idx][1]
+			local inputtype = tbl[idx][2]
+			
 			for i=1,#outputs do
 				local outputname = outputs[i][1]
 				local outputtype = outputs[i][2]
-				local inputname = tbl[idx][1]
-				local inputtype = tbl[idx][2]
 				if self:IsMatch( inputname, inputtype, outputname, outputtype, true ) then
 					return true
 				end
-			end		
+			end
+			
+			local _idx = self:AutoWiringTypeLookup_Check( inputtype )
+			if _idx then
+				return true
+			end
 		elseif name == "Inputs" and self:GetStage() == 0 then
 			local wiring, _ = self:FindWiring( ent, tbl[idx][1], tbl[idx][2] )
 			if wiring then return true, true end -- Highlight with a different color
