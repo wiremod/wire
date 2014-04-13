@@ -154,7 +154,6 @@ if CLIENT then
 		local ent = Entity(entindex)
 
 		if ent and ent.DoScale then
-			ent.bone_flag = nil
 			ent:DoScale()
 		end
 	end
@@ -172,7 +171,6 @@ if CLIENT then
 
 		if ent and ent.DoScale then
 			if bindex == -1 then ent.bone_scale = {} end -- reset bone scale
-			ent.bone_flag = true
 			ent:DoScale()
 		end
 	end
@@ -195,17 +193,18 @@ if CLIENT then
 		local scale = self.scale or Vector(1, 1, 1)
 
 		local count = self:GetBoneCount() or -1
-		if count > 1 then
-			if self.bone_flag then
-				for i = count, 0, -1 do
-					self:ManipulateBoneScale(i, self.bone_scale[i] or scale)
+		if count == 1 then
+			for i = count, 0, -1 do
+				local bone_scale = self.bone_scale[i] or scale
+				if string.Left(self:GetModel(), 17) == "models/holograms/" then
+					bone_scale = Vector(bone_scale.y, bone_scale.x, bone_scale.z)
 				end
-			else
-				self:SetModelScale((scale.x + scale.y + scale.z) / 3, 0)
+				
+				self:ManipulateBoneScale(i, bone_scale)
 			end
 		elseif self.EnableMatrix then
 			local mat = Matrix()
-			mat:Scale(Vector(scale.y, scale.x, scale.z)) -- Note: We're swapping X and Y because RenderMultiply isn't consistant with the rest of source
+			mat:Scale(Vector(scale.x, scale.y, scale.z))
 			self:EnableMatrix("RenderMultiply", mat)
 		else
 			-- Some entities, like ragdolls, cannot be resized with EnableMatrix, so lets average the three components to get a float
