@@ -1,4 +1,4 @@
-language.Add("Undone_e2_spawned_prop", "E2 Spawned Prop")
+language.Add("Undone_e2_spawned_prop", "Undone E2 Spawned Prop")
 E2Helper.Descriptions["propManipulate"] = "Allows to do any single prop core function in one term.\n(position, rotation, freeze, gravity, notsolid)"
 E2Helper.Descriptions["propSpawn"] = "Use the model string or a template entity to spawn a prop.\nYou can set the position and/or the rotation as well.\nThe last number indicates frozen/unfrozen."
 E2Helper.Descriptions["propDelete"] = "Removes the given entity(s). Returns how may are deleted."
