@@ -31,7 +31,10 @@ if CLIENT then
 		WorldTip.ent = self
 	end
 	
-	function ENT:GetWorldTipPositions( w, h ) -- make sure it doesn't go out of the screen
+	local edgesize = 18
+	
+	 -- makes sure the overlay doesn't go out of the screen & provides several useful sizes and positions for the DrawBody function
+	function ENT:GetWorldTipPositions( w, h, w_body, h_body, w_footer, h_footer )
 		local pos = LocalPlayer():GetEyeTrace().HitPos:ToScreen()
 		
 		pos.x = math.Round(pos.x)
@@ -43,16 +46,16 @@ if CLIENT then
 		local maxx = pos.x - 32
 		local maxy = pos.y - 32
 		
-		local minx = maxx-w
-		local miny = maxy-h
+		local minx = maxx - w
+		local miny = maxy - h
 		
 		if minx < 32 then
-			maxx = 32+w
+			maxx = 32 + w
 			minx = 32
 		end
 		
 		if miny < 32 then
-			maxy = 32+h
+			maxy = 32 + h
 			miny = 32
 		end
 		
@@ -62,15 +65,15 @@ if CLIENT then
 		return {	min = {x = minx,y = miny},
 					max = {x = maxx,y = maxy}, 
 					center = {x = centerx, y = centery},
-					size = {w = w, h = h} }
+					size = {w = w, h = h},
+					bodysize = {w = w_body, h = h_body },
+					footersize = {w = w_footer, h = h_footer},
+					edgesize = edgesize
+				}
 	end
-		
-	local edgesize = 18
+
 	-- This is overridable by other wire entities which want to customize the overlay, but generally you shouldn't override it
-	function ENT:DrawWorldTipOutline( w, h )
-		local pos = self:GetWorldTipPositions( w + edgesize * 2, h + edgesize )
-		
-		
+	function ENT:DrawWorldTipOutline( pos )
 		draw.NoTexture()
 		surface.SetDrawColor(Color(25,25,25,200))
 		
@@ -86,14 +89,12 @@ if CLIENT then
 		render.CullMode(MATERIAL_CULLMODE_CCW)
 		surface.DrawPoly( poly )
 		
-		surface.SetDrawColor(0,0,0,255)
+		surface.SetDrawColor(Color(0,0,0,255))
 		
 		for i=1,#poly-1 do
 			surface.DrawLine( poly[i].x, poly[i].y, poly[i+1].x, poly[i+1].y )
 		end
 		surface.DrawLine( poly[#poly].x, poly[#poly].y, poly[1].x, poly[1].y )
-		
-		return pos
 	end
 	
 	local function getWireName( ent )
@@ -103,13 +104,13 @@ if CLIENT then
 	
 	-- This is overridable by other wire entities which want to customize the overlay
 	function ENT:GetWorldTipBodySize()
-		return surface.GetTextSize( self:GetOverlayData().txt )
+		return surface.GetTextSize( self:GetOverlayData().txt or "" )
 	end
 	
 	-- This is overridable by other wire entities which want to customize the overlay
 	function ENT:DrawWorldTipBody( pos )
 		local data = self:GetOverlayData()
-		draw.DrawText( data.txt, "GModWorldtip", pos.min.x + pos.size.w/2, pos.min.y + edgesize/2, Color(255,255,255,255), TEXT_ALIGN_CENTER )
+		draw.DrawText( data.txt, "GModWorldtip", pos.center.x, pos.min.y + edgesize/2, Color(255,255,255,255), TEXT_ALIGN_CENTER )
 	end
 	
 	-- This is overridable by other wire entities which want to customize the overlay
@@ -131,22 +132,35 @@ if CLIENT then
 		local w_total = txt ~= "" and w_txt or 0
 		local h_total = txt ~= "" and h_txt or 0
 		
+		local w_footer, h_footer = 0, 0
+		
 		local info_requires_multiline = false
 		if w_total < w_class + w_name - edgesize then
 			info_requires_multiline = true
-			w_total = math.max(w_total,w_class)
-			h_total = h_total + h_class + h_name + edgesize + 8
+			
+			w_footer = math.max(w_total,w_class,w_name)
+			h_footer = h_class + h_name + edgesize + 8
+			
+			w_total = w_footer
+			h_total = h_total + h_footer
 		else
-			w_total = math.max(w_total,w_class + 8 + w_name)
-			h_total = h_total + h_class + edgesize + 8
+			w_footer = math.max(w_total,w_class + 8 + w_name)
+			h_footer = math.max(h_class,h_name) + edgesize + 8
+			
+			w_total = w_footer
+			h_total = h_total + h_footer
 		end
 		
-		if txt == "" then h_total = h_total - h_txt end
+		if not txt or txt == "" then h_total = h_total - h_txt - edgesize end
 		
-		local pos = self:DrawWorldTipOutline(w_total,h_total)
+		local pos = self:GetWorldTipPositions( w_total + edgesize*2,h_total + edgesize,
+												w_txt,h_txt,
+												w_footer,h_footer )
+
+		self:DrawWorldTipOutline( pos )
 		
 		local offset = pos.min.y
-		if data.txt and #data.txt > 0 then
+		if txt and #txt > 0 then
 			self:DrawWorldTipBody( pos )
 			offset = offset + h_txt + edgesize
 			
@@ -177,7 +191,7 @@ if CLIENT then
 		local trace = LocalPlayer():GetEyeTrace()
 		
 		if trace.Entity ~= self then return false end
-		if trace.HitPos:Distance(LocalPlayer():GetShootPos()) > 128 then return false end
+		if trace.HitPos:Distance(LocalPlayer():GetShootPos()) > 200 then return false end
 	
 		return true
 	end
@@ -273,7 +287,7 @@ function ENT:SetOverlayText( txt )
 		self.OverlayData = {}
 	end
 	
-	if #txt > 12000 then
+	if txt and #txt > 12000 then
 		string.sub(txt,1,12000) -- I have tested this and 12000 chars is enough to cover the entire screen at 1920x1080. You're unlikely to need more
 	end
 	

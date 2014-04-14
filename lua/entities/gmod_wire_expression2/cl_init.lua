@@ -91,10 +91,32 @@ local function wtfgarry( str )
 	return w, h
 end
 
-local h_of_lower = 76 + 18 -- height of the lower section (the prfbench/percent bar section)
+local h_of_lower = 100 -- height of the lower section (the prfbench/percent bar section)
 function ENT:GetWorldTipBodySize()
-	local w,h = wtfgarry( self:GetOverlayData().txt )
-	return w, math.min(h+ h_of_lower,ScrH()-h_of_lower-18*2)
+	local data = self:GetOverlayData()
+	if not data then return 100, 20 end
+	
+	local w_total,h_total = wtfgarry( data.txt )
+	h_total = h_total + 18
+	
+	-- ops text
+	local str = "0 ops, 0%% A"
+	
+	h_of_lower = 0
+	local w,h = surface.GetTextSize( str )
+	w_total = math.max(w_total,w)
+	h_total = h_total + h + 18
+	h_of_lower = h_of_lower + h + 18
+	
+	-- cpu time text
+	local str = "cpu time: 0us"
+	
+	local w,h = surface.GetTextSize( str )
+	w_total = math.max(w_total,w)
+	h_total = h_total + h + 20
+	h_of_lower = h_of_lower + h + 20 + 18
+	
+	return w_total, math.min(h_total,ScrH() - (h_of_lower + 32*2))
 end
 
 function ENT:DrawWorldTipBody( pos )
@@ -108,19 +130,20 @@ function ENT:DrawWorldTipBody( pos )
 	local black = Color(0,0,0,255)
 	
 	local w_total, yoffset = 0, pos.min.y
-	
+		
 	-------------------
 	-- Name
 	-------------------
 	local w,h = wtfgarry( txt )
-	h = math.min(h,ScrH()-h_of_lower*2-18*2)
+	h = h + pos.edgesize
+	h = math.min(h,pos.size.h - (h_of_lower+pos.footersize.h))
 	
-	render.SetScissorRect( pos.min.x + 16, pos.min.y, pos.max.x - 16, pos.max.y - (pos.size.h - h) + 9, true )
+	render.SetScissorRect( pos.min.x + 16, pos.min.y, pos.max.x - 16, pos.min.y + h, true )
 	draw.DrawText( txt, "GModWorldtip", pos.min.x + pos.size.w/2, yoffset + 9, white, TEXT_ALIGN_CENTER )
 	render.SetScissorRect( 0, 0, ScrW(), ScrH(), false )
 	
 	w_total = math.max( w_total, w )
-	yoffset = yoffset + h + 18
+	yoffset = yoffset + h
 	
 	surface.SetDrawColor( black )
 	surface.DrawLine( pos.min.x, yoffset, pos.max.x, yoffset )
@@ -134,30 +157,42 @@ function ENT:DrawWorldTipBody( pos )
 
 	local e2_hardquota = GetConVar("wire_expression2_quotahard"):GetInt()
 	local e2_softquota = GetConVar("wire_expression2_quotasoft"):GetInt()
-		
+	
+	-- fancy percent bar
+	local w = pos.size.w - pos.edgesize * 2
+	
+	-- ops text
 	local hardtext = (prfcount / e2_hardquota > 0.33) and "(+" .. tostring(math.Round(prfcount / e2_hardquota * 100)) .. "%)" or ""
-	local str = string.format("%i ops, %i%% %s\n\n\ncpu time: %ius", prfbench, prfbench / e2_softquota * 100, hardtext, timebench*1000000)
+	local str = string.format("%i ops, %i%% %s", prfbench, prfbench / e2_softquota * 100, hardtext)
+	draw.DrawText( str, "GModWorldtip", pos.min.x + pos.size.w/2, yoffset + 9, white, TEXT_ALIGN_CENTER )
+	
+	local _,h = surface.GetTextSize( str )
+	yoffset = yoffset + h + pos.edgesize
 
-	local w = pos.size.w - 18 * 2
+	-- fancy percent bar
 	
 	local softquota_width = w * 0.7
 	local quota_width = softquota_width * (prfbench/e2_softquota) + (w - softquota_width) * (prfcount/e2_hardquota)
-
-	local y = yoffset + 36
+	
+	local y = yoffset
 	surface.SetDrawColor( Color(0,170,0,255) )
-	surface.DrawRect( pos.min.x + 18, y, softquota_width, 20 )
+	surface.DrawRect( pos.min.x + pos.edgesize, y, softquota_width, 20 )
 	
 	surface.SetDrawColor( Color(170,0,0,255) )
-	surface.DrawRect( pos.min.x + 18 + softquota_width - 1, y, w - softquota_width + 2, 20 )
+	surface.DrawRect( pos.min.x + pos.edgesize + softquota_width - 1, y, w - softquota_width + 2, 20 )
 	
 	surface.SetDrawColor( Color(0,0,0,200) )
-	surface.DrawRect( pos.min.x + 18, y, quota_width, 20 )
+	surface.DrawRect( pos.min.x + pos.edgesize, y, quota_width, 20 )
 	
 	surface.SetDrawColor( black )
-	surface.DrawLine( pos.min.x + 18, y, pos.min.x + 18 + w, y )
-	surface.DrawLine( pos.min.x + 18 + w, y, pos.min.x + 18 + w, y + 20 )
-	surface.DrawLine( pos.min.x + 18 + w, y + 20, pos.min.x + 18, y + 20 )
-	surface.DrawLine( pos.min.x + 18, y + 20, pos.min.x + 18, y )
-
+	surface.DrawLine( pos.min.x + pos.edgesize, y, pos.min.x + pos.edgesize + w, y )
+	surface.DrawLine( pos.min.x + pos.edgesize + w, y, pos.min.x + pos.edgesize + w, y + 20 )
+	surface.DrawLine( pos.min.x + pos.edgesize + w, y + 20, pos.min.x + pos.edgesize, y + 20 )
+	surface.DrawLine( pos.min.x + pos.edgesize, y + 20, pos.min.x + pos.edgesize, y )
+	
+	yoffset = yoffset + 20
+	
+	-- cpu time text
+	local str = string.format("cpu time: %ius", timebench*1000000)
 	draw.DrawText( str, "GModWorldtip", pos.min.x + pos.size.w/2, yoffset + 9, white, TEXT_ALIGN_CENTER )
 end
