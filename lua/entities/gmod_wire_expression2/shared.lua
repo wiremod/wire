@@ -8,6 +8,11 @@ ENT.Instructions = ""
 
 ENT.WireDebugName = "Expression 2"
 
+CreateConVar("wire_expression2_unlimited", "0", {FCVAR_REPLICATED})
+CreateConVar("wire_expression2_quotasoft", "10000", {FCVAR_REPLICATED})
+CreateConVar("wire_expression2_quotahard", "100000", {FCVAR_REPLICATED})
+CreateConVar("wire_expression2_quotatick", "25000", {FCVAR_REPLICATED})
+
 include("core/e2lib.lua")
 include("base/preprocessor.lua")
 include("base/tokenizer.lua")
