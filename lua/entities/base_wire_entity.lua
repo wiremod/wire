@@ -112,7 +112,6 @@ if CLIENT then
 	function ENT:DrawWorldTipBody( pos )
 		local data = self:GetOverlayData()
 		draw.DrawText( data.txt, "GModWorldtip", pos.min.x + pos.size.w/2, pos.min.y + edgesize/2, Color(255,255,255,255), TEXT_ALIGN_CENTER )
-		return surface.GetTextSize( data.txt )
 	end
 	
 	-- This is overridable by other wire entities which want to customize the overlay
@@ -138,10 +137,10 @@ if CLIENT then
 		if w_total < w_class + w_name - edgesize then
 			info_requires_multiline = true
 			w_total = math.max(w_total,w_class)
-			h_total = h_total + h_class + h_name + 16
+			h_total = h_total + h_class + h_name + edgesize + 8
 		else
 			w_total = math.max(w_total,w_class + 8 + w_name)
-			h_total = h_total + h_class + 16
+			h_total = h_total + h_class + edgesize + 8
 		end
 		
 		if txt == "" then h_total = h_total - h_txt end
@@ -150,19 +149,19 @@ if CLIENT then
 		
 		local offset = pos.min.y
 		if data.txt and #data.txt > 0 then
-			local _w, _h = self:DrawWorldTipBody( pos )
-			offset = offset + _h + edgesize
+			self:DrawWorldTipBody( pos )
+			offset = offset + h_txt + edgesize
 			
 			surface.SetDrawColor( Color(0,0,0,255) )
 			surface.DrawLine( pos.min.x, offset, pos.max.x, offset )
 		end
 		
 		if info_requires_multiline then
-			draw.DrawText( class, "GModWorldtip", pos.center.x, offset + 4, Color(255,255,255,255), TEXT_ALIGN_CENTER )
-			draw.DrawText( name, "GModWorldtip", pos.center.x, offset + h_class + 8, Color(255,255,255,255), TEXT_ALIGN_CENTER )
+			draw.DrawText( class, "GModWorldtip", pos.center.x, offset + 8, Color(255,255,255,255), TEXT_ALIGN_CENTER )
+			draw.DrawText( name, "GModWorldtip", pos.center.x, offset + h_class + 16, Color(255,255,255,255), TEXT_ALIGN_CENTER )
 		else
-			draw.DrawText( class, "GModWorldtip", pos.min.x + edgesize, offset + 8, Color(255,255,255,255) )
-			draw.DrawText( name, "GModWorldtip", pos.min.x + pos.size.w - w_name - edgesize, offset + 8, Color(255,255,255,255) )
+			draw.DrawText( class, "GModWorldtip", pos.min.x + edgesize, offset + 16, Color(255,255,255,255) )
+			draw.DrawText( name, "GModWorldtip", pos.min.x + pos.size.w - w_name - edgesize, offset + 16, Color(255,255,255,255) )
 		end
 	end
 	
@@ -250,12 +249,10 @@ if CLIENT then
 			ent.OverlayData = net.ReadTable()
 		end
 	end )
-	
-	return  -- No more client
 end
 
 --------------------------------------------------------------------------------
--- Overlay sending
+-- Overlay setting
 --------------------------------------------------------------------------------
 -- We want more fine-grained control over everything related to overlays,
 -- so we have a custom system here
@@ -282,6 +279,12 @@ function ENT:SetOverlayData( data )
 		self.OverlayData.txt = string.sub(self.OverlayData.txt,1,12000)
 	end
 end
+
+if CLIENT then return end -- no more client
+
+--------------------------------------------------------------------------------
+-- Overlay syncing
+--------------------------------------------------------------------------------
 
 util.AddNetworkString( "wire_overlay_data" )
 
