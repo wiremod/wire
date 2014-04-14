@@ -10,10 +10,10 @@ function gmsave.ShouldSaveEntity( ent, ... )
 	return old( ent, ... )
 end
 
-local wire_expression2_unlimited = CreateConVar("wire_expression2_unlimited", "0")
-local wire_expression2_quotasoft = CreateConVar("wire_expression2_quotasoft", "10000")
-local wire_expression2_quotahard = CreateConVar("wire_expression2_quotahard", "100000")
-local wire_expression2_quotatick = CreateConVar("wire_expression2_quotatick", "25000")
+local wire_expression2_unlimited = GetConVar("wire_expression2_unlimited")
+local wire_expression2_quotasoft = GetConVar("wire_expression2_quotasoft")
+local wire_expression2_quotahard = GetConVar("wire_expression2_quotahard")
+local wire_expression2_quotatick = GetConVar("wire_expression2_quotatick")
 
 timer.Create("e2quota", 1, 0, function()
 	if wire_expression2_unlimited:GetBool() then
