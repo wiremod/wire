@@ -8,8 +8,6 @@ ENT.Spawnable = false
 ENT.AdminOnly = false
 
 ENT.IsWire = true
-ENT.OverlayText = ""
-local base_gmodentity = scripted_ents.Get("base_gmodentity")
 
 if CLIENT then 
 	local wire_drawoutline = CreateClientConVar("wire_drawoutline", 1, true, false)
@@ -173,6 +171,16 @@ if CLIENT then
 		
 		ent:DrawWorldTip()
 	end)
+	
+	-- Custom better version of this base_gmodentity function
+	function ENT:BeingLookedAtByLocalPlayer()
+		local trace = LocalPlayer():GetEyeTrace()
+		
+		if trace.Entity ~= self then return false end
+		if trace.HitPos:Distance(LocalPlayer():GetShootPos()) > 128 then return false end
+	
+		return true
+	end
 
 	function ENT:DoNormalDraw(nohalo, notip)
 		local looked_at = self:BeingLookedAtByLocalPlayer()
@@ -260,7 +268,6 @@ end
 -- It allows us to optionally send values rather than entire strings, which saves networking
 -- It also allows us to only update overlays when someone is looking at the entity.
 
--- Server
 function ENT:SetOverlayText( txt )
 	if not self.OverlayData then
 		self.OverlayData = {}
@@ -305,7 +312,7 @@ end)
 --------------------------------------------------------------------------------
 
 function ENT:Initialize()
-	base_gmodentity.Initialize(self)
+	self.BaseClass.Initialize(self)
 	self:PhysicsInit(SOLID_VPHYSICS)
 	self:SetMoveType(MOVETYPE_VPHYSICS)
 	self:SetSolid(SOLID_VPHYSICS)
