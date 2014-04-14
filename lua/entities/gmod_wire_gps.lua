@@ -9,7 +9,7 @@ if CLIENT then
 
 		local pos = self:GetPos()
 		if (COLOSSAL_SANDBOX) then pos = pos * 6.25 end
-		local txt = "Position = " .. math.Round(pos.x*1000)/1000 .. "," .. math.Round(pos.y*1000)/1000 .. "," .. math.Round(pos.z*1000)/1000
+		local txt = string.format( "Position = %0.3f, %0.3f, %0.3f", math.Round(pos.x,3),math.Round(pos.y,3),math.Round(pos.z,3) )
 
 		self:SetOverlayText( txt )
 
