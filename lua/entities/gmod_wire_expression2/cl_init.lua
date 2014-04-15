@@ -99,8 +99,16 @@ function ENT:GetWorldTipBodySize()
 	local w_total,h_total = wtfgarry( data.txt )
 	h_total = h_total + 18
 	
+	local prfbench = data.prfbench
+	local prfcount = data.prfcount
+	local timebench = data.timebench
+
+	local e2_hardquota = GetConVar("wire_expression2_quotahard"):GetInt()
+	local e2_softquota = GetConVar("wire_expression2_quotasoft"):GetInt()
+	
 	-- ops text
-	local str = "0 ops, 0%% A"
+	local hardtext = (prfcount / e2_hardquota > 0.33) and "(+" .. tostring(math.Round(prfcount / e2_hardquota * 100)) .. "%)" or ""
+	local str = string.format("%i ops, %i%% %s", prfbench, prfbench / e2_softquota * 100, hardtext)
 	
 	h_of_lower = 0
 	local w,h = surface.GetTextSize( str )
@@ -109,7 +117,7 @@ function ENT:GetWorldTipBodySize()
 	h_of_lower = h_of_lower + h + 18
 	
 	-- cpu time text
-	local str = "cpu time: 0us"
+	local str = string.format("cpu time: %ius", timebench*1000000)
 	
 	local w,h = surface.GetTextSize( str )
 	w_total = math.max(w_total,w)
