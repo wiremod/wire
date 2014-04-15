@@ -282,6 +282,7 @@ end
 -- It allows us to optionally send values rather than entire strings, which saves networking
 -- It also allows us to only update overlays when someone is looking at the entity.
 
+ENT.OverlayData_UpdateTime = {}
 function ENT:SetOverlayText( txt )
 	if not self.OverlayData then
 		self.OverlayData = {}
@@ -292,6 +293,8 @@ function ENT:SetOverlayText( txt )
 	end
 	
 	self.OverlayData.txt = txt
+	
+	self.OverlayData_UpdateTime.time = CurTime()
 end
 
 function ENT:SetOverlayData( data )
@@ -299,6 +302,8 @@ function ENT:SetOverlayData( data )
 	if self.OverlayData.txt and #self.OverlayData.txt > 12000 then
 		self.OverlayData.txt = string.sub(self.OverlayData.txt,1,12000)
 	end
+	
+	self.OverlayData_UpdateTime.time = CurTime()
 end
 
 if CLIENT then return end -- no more client
@@ -312,7 +317,11 @@ util.AddNetworkString( "wire_overlay_data" )
 timer.Create("WireOverlayUpdate", 0.1, 0, function()
 	for _, ply in ipairs(player.GetAll()) do
 		local ent = ply:GetEyeTrace().Entity
-		if IsValid(ent) and ent.IsWire and ent.OverlayData then
+		if IsValid(ent) and ent.IsWire and 
+			ent.OverlayData and ent.OverlayData_UpdateTime.time > (ent.OverlayData_UpdateTime[ply] or 0) then
+			
+			ent.OverlayData_UpdateTime[ply] = CurTime()
+			
 			net.Start( "wire_overlay_data" )
 				net.WriteEntity( ent )
 				net.WriteTable( ent.OverlayData )
@@ -325,8 +334,9 @@ end)
 -- Other functions
 --------------------------------------------------------------------------------
 
+local base_gmodentity = scripted_ents.Get("base_gmodentity")
 function ENT:Initialize()
-	self.BaseClass.Initialize(self)
+	base_gmodentity.Initialize(self)
 	self:PhysicsInit(SOLID_VPHYSICS)
 	self:SetMoveType(MOVETYPE_VPHYSICS)
 	self:SetSolid(SOLID_VPHYSICS)
