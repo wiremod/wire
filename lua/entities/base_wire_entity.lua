@@ -35,7 +35,12 @@ if CLIENT then
 	
 	 -- makes sure the overlay doesn't go out of the screen & provides several useful sizes and positions for the DrawBody function
 	function ENT:GetWorldTipPositions( w, h, w_body, h_body, w_footer, h_footer )
-		local pos = LocalPlayer():GetEyeTrace().HitPos:ToScreen()
+		local pos = LocalPlayer():GetEyeTrace().HitPos
+		local spos = LocalPlayer():GetShootPos()
+		if pos == spos then -- if the position is right in your face, get a better position
+			pos = spos + LocalPlayer():GetAimVector() * 5
+		end
+		pos = pos:ToScreen()
 		
 		pos.x = math.Round(pos.x)
 		pos.y = math.Round(pos.y)
