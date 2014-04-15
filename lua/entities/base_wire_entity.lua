@@ -325,8 +325,9 @@ end)
 -- Other functions
 --------------------------------------------------------------------------------
 
+local base_gmodentity = scripted_ents.Get("base_gmodentity")
 function ENT:Initialize()
-	self.BaseClass.Initialize(self)
+	base_gmodentity.Initialize(self)
 	self:PhysicsInit(SOLID_VPHYSICS)
 	self:SetMoveType(MOVETYPE_VPHYSICS)
 	self:SetSolid(SOLID_VPHYSICS)
