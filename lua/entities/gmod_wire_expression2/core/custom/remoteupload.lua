@@ -29,6 +29,7 @@ __e2setcost(250)
 e2function void entity:remoteSetCode( string code )
 	if not this or not this:IsValid() or this:GetClass() ~= "gmod_wire_expression2" then return end
 	if not E2Lib.isOwner( self, this ) then return end
+	if not check(self.player) then return end
 	
 	this:Setup( code, {} )
 end
@@ -36,6 +37,7 @@ end
 e2function void entity:remoteSetCode( string main, table includes )
 	if not this or not this:IsValid() or this:GetClass() ~= "gmod_wire_expression2" then return end
 	if not E2Lib.isOwner( self, this ) then return end
+	if not check(self.player) then return end
 
 	local luatable = {}
 	
