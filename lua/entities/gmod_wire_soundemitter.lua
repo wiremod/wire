@@ -25,7 +25,7 @@ function ENT:Initialize()
 
 	self.Inputs = Wire_CreateInputs(self, { "A", "Toggle", "Volume", "Play", "Stop",
 		"PitchRelative", "Sample", "SampleName [STRING]" })
-	self.Outputs = Wire_CreateOutputs(self, { "Memory" })
+	self.Outputs = Wire_CreateOutputs(self, { "Duration", "Property Sound", "Properties [ARRAY]", "Memory" })
 
 	self.Samples = table.Copy(DefaultSamples)
 
@@ -52,20 +52,16 @@ function ENT:ReadCell(address)
 	return nil
 end
 
-local cells = {
+local cellsOut = {
 	[0] = "A",
 	[1] = "Volume",
 	[2] = "PitchRelative",
-	[3] = "Sample",
-	[4] = "LFOType",
-	[5] = "LFORate",
-	[6] = "LFOModPitch",
-	[7]= "LFOModVolume"
+	[3] = "Sample"
 }
 
 function ENT:WriteCell(address, value)
-	if cells[address] then
-		self:TriggerInput(cells[address], value)
+	if cellsOut[address] then
+		self:TriggerInput(cellsOut[address], value)
 		return true
 	else
 		return false
@@ -82,6 +78,14 @@ function ENT:TriggerInput(iname, value)
 			self:TriggerInput("Stop", 1)
 		end
 	elseif iname == "Play" and value ~= 0 then
+		// Property sounds need to be refreshed
+		// every time to work probably especially
+		// when it has multiple sounds/pitches/volumes.
+		if self.SoundProperties then
+			self.NeedsRefresh = true
+			Wire_TriggerOutput(self, "Duration", SoundDuration(self.sound))
+		end
+
 		self.Active = true
 		self:StartSounds()
 	elseif iname == "Stop" and value ~= 0 then
@@ -104,6 +108,17 @@ function ENT:UpdateSound()
 		self.NeedsRefresh = nil
 		self.SoundObj = CreateSound(self, self.sound)
 		self.ActiveSample = self.sound
+
+		self.SoundProperties = sound.GetProperties(self.sound)
+		if self.SoundProperties then
+			Wire_TriggerOutput(self, "Duration", SoundDuration(self.sound))
+			Wire_TriggerOutput(self, "Property Sound", 1)
+			Wire_TriggerOutput(self, "Properties", self.SoundProperties)
+		else
+			Wire_TriggerOutput(self, "Property Sound", 0)
+			Wire_TriggerOutput(self, "Properties", {})
+		end
+
 		if self.Active then self:StartSounds() end
 	end
 	self.SoundObj:ChangePitch(self.Pitch, 0)
@@ -118,6 +133,17 @@ function ENT:SetSound(soundName)
 	util.PrecacheSound(parsedsound)
 
 	self.sound = parsedsound
+
+	self.SoundProperties = sound.GetProperties(self.sound)
+	if self.SoundProperties then
+		Wire_TriggerOutput(self, "Duration", SoundDuration(self.sound))
+		Wire_TriggerOutput(self, "Property Sound", 1)
+		Wire_TriggerOutput(self, "Properties", self.SoundProperties)
+	else
+		Wire_TriggerOutput(self, "Property Sound", 0)
+		Wire_TriggerOutput(self, "Properties", {})
+	end
+
 	self:SetOverlayText( parsedsound:gsub("[/\\]+","/") )
 end
 
