@@ -6,12 +6,15 @@
 local PANEL = {}
 
 AccessorFunc( PANEL, "m_strRootPath", 		"RootPath" ) // path of the root Root
-AccessorFunc( PANEL, "m_strList", 			"List" ) // List files
+AccessorFunc( PANEL, "m_strList", 			"List" ) // List file
 AccessorFunc( PANEL, "m_strFile", 			"File" ) // sounds listed in list files
 AccessorFunc( PANEL, "m_bUnsaved", 			"Unsaved" ) // edited list file Saved?
+AccessorFunc( PANEL, "m_strSelectedList", 	"SelectedList" ) // Selected list file
+
+AccessorFunc( PANEL, "m_nListSpeed", 			"ListSpeed" ) // how many items to list an once
+AccessorFunc( PANEL, "m_nMaxItems",				"MaxItems" ) // how may items at maximum
 
 local max_char_count = 200 //File length limit
-local max_item_count = 512 //Item count limit
 
 local invalid_filename_chars = {
 	["*"] = "",
@@ -32,11 +35,6 @@ local invalid_chars = {
 	["\\"] = "",
 	['"'] = "",
 }
-
-local counttab={}
-for i=1, max_item_count do
-	counttab[i] = true
-end
 
 local function ConnectPathes(path1, path2)
 	local path = ""
@@ -206,11 +204,14 @@ end
 
 
 function PANEL:Init()
-	self.TimedpairsName = "wire_listeditor_files_" .. tostring({})
+	self.TimedpairsName = "wire_listeditor_items_" .. tostring({})
 
 	self:SetDrawBackground(false)
 
+	self:SetListSpeed(40)
+	self:SetMaxItems(512)
 	self:SetUnsaved(false)
+
 	self.TabfileCount = 0
 	self.Tabfile = {}
 
@@ -235,7 +236,12 @@ function PANEL:Init()
 	self.Files:SetMultiSelect(false)
 	self.Files:Dock(FILL)
 
+	local Column = self.Files:AddColumn("No.")
+	Column:SetFixedWidth(30)
+	Column:SetWide(30)
+
 	self.Files:AddColumn("Name")
+
 	local Column = self.Files:AddColumn("Type")
 	Column:SetFixedWidth(70)
 	Column:SetWide(70)
@@ -409,19 +415,22 @@ function PANEL:AddItem(...)
 	local item = itemtable[1]
 
 	if (!isstring(item) or item == "") then return end
-	if (self.TabfileCount > max_item_count) then return end
+	if (self.TabfileCount > self.m_nMaxItems) then return end
 	if (#item > max_char_count) then return end
 	if (self.Tabfile[item]) then return end
 
 	local itemargs = {}
+	local i = 0
+
 	for k, v in ipairs(itemtable) do
 		if (k == 1) then continue end
 	
-		itemargs[k-1] = v
+		i = i + 1
+		itemargs[i] = v
 	end
 	self.Tabfile[item] = itemargs
 
-	local line = self.Files:AddLine(...)
+	local line = self.Files:AddLine(self.TabfileCount + 1, ...)
 	line.m_strFilename = item
 	line.m_tabData = itemargs
 
@@ -472,17 +481,43 @@ function PANEL:OpenList(strfile)
 		self.Tabfile = {}
 		self.TabfileCount = 0
 		
-		WireLib.Timedpairs(self.TimedpairsName, counttab, 20, function(index, _, self, filedata)
-			if (!IsValid(self)) then return false end
-			if (!IsValid(self.Files)) then return false end
+		local counttab={}
+		for i=1, self.m_nMaxItems do
+			counttab[i] = true
+		end
+		
+		WireLib.Timedpairs(self.TimedpairsName, counttab, self.m_nListSpeed, function(index, _, self, filedata)
+			if (!IsValid(self)) then
+				filedata:Close()
+				return false
+			end
+
+			if (!IsValid(self.Files)) then
+				filedata:Close()
+				return false
+			end
+
+			if (self.TabfileCount >= self.m_nMaxItems) then
+				filedata:Close()
+				self:SetUnsaved(false)
+				
+				return false
+			end
 
 			local linetable = ReadLine(filedata)
-			if (!linetable) then return false end // do not add to empty lines
+			if (!linetable) then // do not add to empty lines
+				filedata:Close()
+				self:SetUnsaved(false)
+				
+				return false
+			end
 
 			self:AddItem(unpack(linetable))
 			self:SetUnsaved(false)
 		end, function(index, _, self, filedata)
 			filedata:Close()
+
+			if (!IsValid(self)) then return end
 			self:SetUnsaved(false)
 		end, self, filedata)
 		

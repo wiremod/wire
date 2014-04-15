@@ -4,7 +4,7 @@ WireToolSetup.open( "soundemitter", "Sound Emitter", "gmod_wire_soundemitter", n
 if CLIENT then
 	language.Add( "tool.wire_soundemitter.name", "Sound Emitter Tool (Wire)" )
 	language.Add( "tool.wire_soundemitter.desc", "Spawns a sound emitter for use with the wire system." )
-	language.Add( "tool.wire_soundemitter.0", "Primary: Create/Update Sound Emitter" )
+	language.Add( "tool.wire_soundemitter.0", "Primary: Create/Update Sound Emitter, Secondary: Open Sound Browser" )
 	language.Add( "WireEmitterTool_sound", "Sound:" )
 end
 WireToolSetup.BaseLang()
@@ -23,6 +23,14 @@ TOOL.ClientConVar = {
 	model     = "models/cheeze/wires/speaker.mdl",
 	sound     = "synth/square.wav",
 }
+
+function TOOL:RightClick( trace )
+	if SERVER and !game.SinglePlayer() then return false end
+	RunConsoleCommand("wire_sound_browser_open", self:GetClientInfo("sound"), "1")
+	
+	return false
+end
+
 function TOOL.BuildCPanel(panel)
 
 	local wide = panel:GetWide()
@@ -42,7 +50,7 @@ function TOOL.BuildCPanel(panel)
 	SoundBrowserButton:SetTall(20)
 	SoundBrowserButton:SetVisible(true)
 	SoundBrowserButton.DoClick = function()
-		RunConsoleCommand("wire_sound_browser_open",SoundNameText:GetValue())
+		RunConsoleCommand("wire_sound_browser_open", SoundNameText:GetValue(), "1")
 	end
 	panel:AddItem(SoundBrowserButton)
 
