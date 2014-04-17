@@ -109,7 +109,9 @@ if CLIENT then
 	
 	-- This is overridable by other wire entities which want to customize the overlay
 	function ENT:GetWorldTipBodySize()
-		return surface.GetTextSize( self:GetOverlayData().txt or "" )
+		local txt = self:GetOverlayData().txt
+		if txt == "" then return 0,0 end
+		return surface.GetTextSize( txt )
 	end
 	
 	-- This is overridable by other wire entities which want to customize the overlay
@@ -130,12 +132,12 @@ if CLIENT then
 		local class = getWireName( self ) .. " [" .. self:EntIndex() .. "]"
 		local name = "(" .. self:GetPlayerName() .. ")"
 	
-		local w_txt, 	h_txt = self:GetWorldTipBodySize()
+		local w_body, 	h_body = self:GetWorldTipBodySize()
 		local w_class, 	h_class = surface.GetTextSize( class )
 		local w_name, 	h_name = surface.GetTextSize( name )
 		
-		local w_total = txt ~= "" and w_txt or 0
-		local h_total = txt ~= "" and h_txt or 0
+		local w_total = txt ~= "" and w_body or 0
+		local h_total = txt ~= "" and h_body or 0
 		
 		local w_footer, h_footer = 0, 0
 		
@@ -156,18 +158,18 @@ if CLIENT then
 			h_total = h_total + h_footer
 		end
 		
-		if not txt or txt == "" then h_total = h_total - h_txt - edgesize end
+		if h_body == 0 then h_total = h_total - h_body - edgesize end
 		
 		local pos = self:GetWorldTipPositions( w_total + edgesize*2,h_total + edgesize,
-												w_txt,h_txt,
+												w_body,h_body,
 												w_footer,h_footer )
 
 		self:DrawWorldTipOutline( pos )
 		
 		local offset = pos.min.y
-		if txt and #txt > 0 then
+		if h_body > 0 then
 			self:DrawWorldTipBody( pos )
-			offset = offset + h_txt + edgesize
+			offset = offset + h_body + edgesize
 			
 			surface.SetDrawColor( Color(0,0,0,255) )
 			surface.DrawLine( pos.min.x, offset, pos.max.x, offset )
@@ -287,7 +289,6 @@ end
 -- It allows us to optionally send values rather than entire strings, which saves networking
 -- It also allows us to only update overlays when someone is looking at the entity.
 
-ENT.OverlayData_UpdateTime = {}
 function ENT:SetOverlayText( txt )
 	if not self.OverlayData then
 		self.OverlayData = {}
@@ -299,6 +300,7 @@ function ENT:SetOverlayText( txt )
 	
 	self.OverlayData.txt = txt
 	
+	if not self.OverlayData_UpdateTime then	self.OverlayData_UpdateTime = {} end
 	self.OverlayData_UpdateTime.time = CurTime()
 end
 
@@ -308,6 +310,7 @@ function ENT:SetOverlayData( data )
 		self.OverlayData.txt = string.sub(self.OverlayData.txt,1,12000)
 	end
 	
+	if not self.OverlayData_UpdateTime then	self.OverlayData_UpdateTime = {} end
 	self.OverlayData_UpdateTime.time = CurTime()
 end
 
@@ -323,7 +326,9 @@ timer.Create("WireOverlayUpdate", 0.1, 0, function()
 	for _, ply in ipairs(player.GetAll()) do
 		local ent = ply:GetEyeTrace().Entity
 		if IsValid(ent) and ent.IsWire and 
-			ent.OverlayData and ent.OverlayData_UpdateTime.time > (ent.OverlayData_UpdateTime[ply] or 0) then
+			ent.OverlayData and 
+			ent.OverlayData_UpdateTime and 
+			ent.OverlayData_UpdateTime.time > (ent.OverlayData_UpdateTime[ply] or 0) then
 			
 			ent.OverlayData_UpdateTime[ply] = CurTime()
 			
