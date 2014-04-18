@@ -317,12 +317,14 @@ if CLIENT then
 
   -- Get breakpoint at line
   function CPULib.GetDebugBreakpoint(fileName,caretPos)
+    if not fileName or not caretPos then return nil end
     return CPULib.Debugger.Breakpoint[caretPos[1]..":"..fileName]
   end
 
   -- Set breakpoint at line
   -- FIXME: bug: can only set breakpoints in one file
   function CPULib.SetDebugBreakpoint(fileName,caretPos,condition)
+    if not fileName or not caretPos then return nil end
     if not condition then
       CPULib.Debugger.Breakpoint[caretPos[1]..":"..fileName] = nil
       if CPULib.Debugger.PointersByLine[caretPos[1]..":"..fileName] then
