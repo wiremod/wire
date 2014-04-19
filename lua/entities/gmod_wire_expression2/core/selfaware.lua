@@ -103,11 +103,7 @@ e2function void setName( string name )
 	end
 	e.name = name
 	e:SetNWString( "name", e.name )
-	if self.prfcount / e2_hardquota > 0.33 then
-		e:SetOverlayText(name .. "\n" .. tostring(math.Round(self.prfbench)) .. " ops, " .. tostring(math.Round(self.prfbench / e2_softquota * 100)) .. "% (+" .. tostring(math.Round(self.prfcount / e2_hardquota * 100)) .. "%)")
-	else
-		e:SetOverlayText(name .. "\n" .. tostring(math.Round(self.prfbench)) .. " ops, " .. tostring(math.Round(self.prfbench / e2_softquota * 100)) .. "%")
-	end
+	e:SetOverlayText(name)
 end
 
 -- Get the name of another E2
