@@ -120,8 +120,6 @@ if CLIENT then
 	include("wire/client/rendertarget_fix.lua")
 	include("wire/client/hlzasm/hc_compiler.lua")
 	
-	-- Temporary workaround while OnEntityCreated isn't working...
-	timer.Create("OnEntityCreatedWorkaround", 10, 1, function() hook.Call("OnEntityCreated",GAMEMODE,LocalPlayer()) end)
 end
 
 -- Load UWSVN, done here so its definitely after Wire is loaded.
