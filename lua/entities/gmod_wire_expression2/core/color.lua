@@ -88,6 +88,13 @@ e2function void entity:setAlpha(a)
 	this:SetRenderMode(c.a == 255 and RENDERMODE_NORMAL or RENDERMODE_TRANSALPHA)
 end
 
+e2function void entity:setRenderMode(mode)
+	if !IsValid(this) then return end
+	if !isOwner(self, this) then return end
+	
+	this:SetRenderMode(mode)
+end
+
 --- HSV
 
 --- Converts <hsv> from the [http://en.wikipedia.org/wiki/HSV_color_space HSV color space] to the [http://en.wikipedia.org/wiki/RGB_color_space RGB color space]
