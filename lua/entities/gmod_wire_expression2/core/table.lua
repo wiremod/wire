@@ -499,6 +499,7 @@ e2function table table:clipToTypeid( string typeid )
 				ret.n[n] = v
 			end
 			ret.ntypes[n] = this.ntypes[k]
+			ret.size = ret.size + 1
 		end
 	end
 	for k,v in pairs( this.s ) do
@@ -509,6 +510,7 @@ e2function table table:clipToTypeid( string typeid )
 				ret.s[k] = v
 			end
 			ret.stypes[k] = this.stypes[k]
+			ret.size = ret.size + 1
 		end
 	end
 	self.prf = self.prf + this.size * opcost
@@ -526,6 +528,7 @@ e2function table table:clipFromTypeid( string typeid )
 				ret.n[k] = v
 			end
 			ret.ntypes[k] = this.ntypes[k]
+			ret.size = ret.size + 1
 		end
 	end
 	for k,v in pairs( this.s ) do
@@ -536,6 +539,7 @@ e2function table table:clipFromTypeid( string typeid )
 				ret.s[k] = v
 			end
 			ret.stypes[k] = this.stypes[k]
+			ret.size = ret.size + 1
 		end
 	end
 	self.prf = self.prf + this.size * opcost
@@ -990,7 +994,8 @@ registerCallback( "postinit", function()
 		registerOperator("idx", id.."=ts"..id , id, function( self, args )
 			local op1, op2, op3, scope = args[2], args[3], args[4], args[5]
 			local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
-			if (not rv1.s[rv2] and rv3 ~= nil) then rv1.size = rv1.size + 1 end
+			if (rv1.s[rv2] == nil and rv3 ~= nil) then rv1.size = rv1.size + 1
+			elseif (rv1.n[rv2] ~= nil and rv3 == nil) then rv1.size = rv1.size - 1 end
 			rv1.s[rv2] = rv3
 			rv1.stypes[rv2] = id
 			self.vclk[rv1] = true //self.Scopes[scope].vclk[rv1] = true
@@ -1000,7 +1005,8 @@ registerCallback( "postinit", function()
 		registerOperator("idx", id.."=tn"..id, id, function(self,args)
 			local op1, op2, op3, scope = args[2], args[3], args[4], args[5]
 			local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
-			if (not rv1.n[rv2] and rv3 ~= nil) then rv1.size = rv1.size + 1 end
+			if (rv1.n[rv2] == nil and rv3 ~= nil) then rv1.size = rv1.size + 1
+			elseif (rv1.n[rv2] ~= nil and rv3 == nil) then rv1.size = rv1.size - 1 end
 			rv1.n[rv2] = rv3
 			rv1.ntypes[rv2] = id
 			self.vclk[rv1] = true //self.Scopes[scope].vclk[rv1] = true
