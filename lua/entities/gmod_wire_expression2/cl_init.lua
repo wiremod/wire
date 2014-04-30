@@ -180,7 +180,7 @@ function ENT:DrawWorldTipBody( pos )
 	-- fancy percent bar
 	
 	local softquota_width = w * 0.7
-	local quota_width = softquota_width * (prfbench/e2_softquota) + (w - softquota_width) * (prfcount/e2_hardquota)
+	local quota_width = softquota_width * math.min(prfbench/e2_softquota,1) + (w - softquota_width + 1) * (prfcount/e2_hardquota)
 	
 	local y = yoffset
 	surface.SetDrawColor( Color(0,170,0,255) )
