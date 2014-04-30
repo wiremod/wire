@@ -82,6 +82,10 @@ local function ranger(self, rangertype, range, p1, p2, hulltype, mins, maxs, tra
 			tracedata.endpos = tracedata.start + chip:GetUp()*range
 		end
 	end
+	
+	-- clamp positions
+	tracedata.start = E2Lib.clampPos( tracedata.start )
+	tracedata.endpos = E2Lib.clampPos( tracedata.endpos )
 
 	---------------------------------------------------------------------------------------
 	local trace
@@ -97,6 +101,13 @@ local function ranger(self, rangertype, range, p1, p2, hulltype, mins, maxs, tra
 			local s2 = Vector(maxs[1], maxs[2], maxs[3])
 			tracedata.mins = s1
 			tracedata.maxs = s2
+		end
+		
+		if not entities then -- unfortunately we have to add tons of ops if this happens
+							 -- If we didn't, it would be possible to crash servers with it.
+			tracedata.mins = E2Lib.clampPos( tracedata.mins )
+			tracedata.maxs = E2Lib.clampPos( tracedata.maxs )
+			self.prf = self.prf + tracedata.mins:Distance(tracedata.maxs) * 0.5
 		end
 
 		trace = util.TraceHull( tracedata )
@@ -194,7 +205,7 @@ e2function void rangerHitWater(hitwater)
 	self.data.rangerwater = hitwater ~= 0
 end
 
---- Default is 1, if any other value is given it will hit entities
+--- Default is 1, if any value other than 0 is is given, it will hit entities
 e2function void rangerHitEntities(hitentities)
 	self.data.rangerentities = hitentities ~= 0
 end
@@ -435,7 +446,7 @@ local ids = {
 	["HitBoxBone"] = "n"
 }
 
-local DEFAULT = {n={},ntypes={},s={},stypes={},size=0,istable=true,depth=0}
+local DEFAULT = {n={},ntypes={},s={},stypes={},size=0}
 
 -- Converts the ranger into a table. This allows you to manually get any and all raw data from the trace.
 e2function table ranger:toTable()
