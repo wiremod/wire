@@ -64,3 +64,7 @@ end
 e2function number angSpeedLimit()
 	return physenv.GetPerformanceSettings()["MaxAngularVelocity"]
 end
+
+e2function number tickInterval()
+	return engine.TickInterval()
+end
