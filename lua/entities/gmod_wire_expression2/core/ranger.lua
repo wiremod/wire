@@ -85,7 +85,9 @@ local function ranger(self, rangertype, range, p1, p2, hulltype, mins, maxs, tra
 	
 	-- clamp positions
 	tracedata.start = E2Lib.clampPos( tracedata.start )
-	tracedata.endpos = E2Lib.clampPos( tracedata.endpos )
+	if tracedata.start:Distance( tracedata.endpos ) > 57000 then -- 57000 is slightly larger than the diagonal distance (min corner to max corner) of the source max map size
+		tracedata.endpos = tracedata.start + (tracedata.endpos - tracedata.start):GetNormal() * 57000
+	end
 
 	---------------------------------------------------------------------------------------
 	local trace
