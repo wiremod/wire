@@ -221,13 +221,41 @@ e2function number entity:keyRightTurn()
 end
 
 e2function number entity:keyPressed(string char)
-	return (IsValid(this) and this:IsPlayer() and this.keystate and this.keystate[_G["KEY_" .. string.upper(char)] or "no_key"]) and 1 or 0
+	if not IsValid(this) or not this:IsPlayer() then return 0 end
+	if this.keystate then
+		local key = _G["KEY_" .. string.upper(char)] or "no_key"
+		if this.keystate[key] then return 1 end
+		
+		key = _G[string.match(string.upper(char),"^(MOUSE_.+)$") or ""] or "no_key"
+		if this.keystate[key] then return 1 end
+	end
+	
+	return 0
 end
 
 
 local KeyAlert = {}
 local runByKey
+local pressedKey = ""
 local KeyWasReleased = 0
+
+local keys_lookup = {}
+local sub = string.sub
+local lower = string.lower
+for k,v in pairs( _G ) do
+	if sub(k,1,4) == "KEY_" then
+		keys_lookup[v] = lower(sub(k,5))
+	end
+end
+
+-- Manually input the mouse buttons because they're a bit fucked up
+keys_lookup[107] = "mouse_left"
+keys_lookup[108] = "mouse_right"
+keys_lookup[109] = "mouse_middle"
+keys_lookup[110] = "mouse_4"
+keys_lookup[111] = "mouse_5"
+keys_lookup[112] = "mouse_wheel_up"
+keys_lookup[113] = "mouse_wheel_down"
 
 registerCallback("destruct",function(self)
 	KeyAlert[self.entity] = nil
@@ -235,6 +263,7 @@ end)
 
 local function UpdateKeys(ply, key)
 	runByKey = ply
+	pressedKey = keys_lookup[key] or ""
 	for chip, plys in pairs(KeyAlert) do
 		if IsValid(chip) then
 			if plys[ply] then
@@ -245,13 +274,15 @@ local function UpdateKeys(ply, key)
 		end
 	end
 	runByKey = nil
+	pressedKey = ""
 	KeyWasReleased = 0
 end
-hook.Add("KeyPress","Exp2KeyReceivingDown", UpdateKeys)
-hook.Add("KeyRelease","Exp2KeyReceivingUp", function(ply, key)
-	KeyWasReleased = 1
-	UpdateKeys(ply, key)
-end )
+
+-- delay these 1 tick with timers, otherwise ply:keyPressed(str) doesn't work properly, in case old E2s uses that function
+-- It is recommended to use keyClkPressed() instead to get which key was pressed.
+hook.Add("PlayerButtonDown","Exp2KeyReceivingDown", function(ply,key) timer.Simple(0,function() UpdateKeys(ply,key) end) end)
+local temp = function(ply, key)	KeyWasReleased = 1 UpdateKeys(ply, key) end
+hook.Add("PlayerButtonUp","Exp2KeyReceivingUp", function(ply,key) timer.Simple(0,function() temp(ply,key) end) end )
 
 --- Makes the chip run on key events from the specified player (can be used on multiple players)
 e2function void runOnKeys(entity ply, on)
@@ -276,6 +307,11 @@ end
 --- depending of whether the key was just pressed or released
 e2function number keyClk(entity ply)
 	return ((ply == runByKey) and IsValid( ply )) and ((KeyWasReleased == 0) and 1 or -1) or 0
+end
+
+-- Returns the key which caused the keyClk event to trigger
+e2function string keyClkPressed()
+	return pressedKey
 end
 
 
