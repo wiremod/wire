@@ -10,10 +10,10 @@ function gmsave.ShouldSaveEntity( ent, ... )
 	return old( ent, ... )
 end
 
-local wire_expression2_unlimited = CreateConVar("wire_expression2_unlimited", "0")
-local wire_expression2_quotasoft = CreateConVar("wire_expression2_quotasoft", "10000")
-local wire_expression2_quotahard = CreateConVar("wire_expression2_quotahard", "100000")
-local wire_expression2_quotatick = CreateConVar("wire_expression2_quotatick", "25000")
+local wire_expression2_unlimited = GetConVar("wire_expression2_unlimited")
+local wire_expression2_quotasoft = GetConVar("wire_expression2_quotasoft")
+local wire_expression2_quotahard = GetConVar("wire_expression2_quotahard")
+local wire_expression2_quotatick = GetConVar("wire_expression2_quotatick")
 
 timer.Create("e2quota", 1, 0, function()
 	if wire_expression2_unlimited:GetBool() then
@@ -66,6 +66,26 @@ function ScopeManager:LoadScopes(Scopes)
 	self.Scope = Scopes[3]
 end
 
+function ENT:UpdateOverlay(clear)
+	if clear then
+		self:SetOverlayData( {
+								txt = "(none)",
+								error = self.error,
+								prfbench = 0,
+								prfcount = 0,
+								timebench = 0
+							})
+	else
+		self:SetOverlayData( {
+								txt = self.name, -- name/error
+								error = self.error, -- error bool
+								prfbench = self.context.prfbench,
+								prfcount = self.context.prfcount,
+								timebench = self.context.timebench
+							})
+	end	
+end
+
 function ENT:Initialize()
 	self:PhysicsInit(SOLID_VPHYSICS)
 	self:SetMoveType(MOVETYPE_VPHYSICS)
@@ -74,7 +94,7 @@ function ENT:Initialize()
 	self.Inputs = WireLib.CreateInputs(self, {})
 	self.Outputs = WireLib.CreateOutputs(self, {})
 
-	self:SetOverlayText("(none)")
+	self:UpdateOverlay(true)
 	self:SetColor(Color(255, 0, 0, self:GetColor().a))
 end
 
@@ -152,8 +172,7 @@ function ENT:Think()
 		self.context.timebench = self.context.timebench * 0.95 + self.context.time * 0.05 -- Average it over the last 20 ticks
 		if self.context.prfcount < 0 then self.context.prfcount = 0 end
 
-		local hardtext = (self.context.prfcount / e2_hardquota > 0.33) and "(+" .. tostring(math.Round(self.context.prfcount / e2_hardquota * 100)) .. "%)" or ""
-		self:SetOverlayText(string.format("%s\n%i ops, %i%% %s\ncpu time: %ius", self.name, self.context.prfbench, self.context.prfbench / e2_softquota * 100, hardtext, self.context.timebench*1000000))
+		self:UpdateOverlay()
 
 		self.context.prf = 0
 		self.context.time = 0

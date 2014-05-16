@@ -15,7 +15,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ]]--
 
-if VERSION < 143 and VERSION > 5 then
+if VERSION < 140403 and VERSION > 5 then
 	-- VERSION > 5 check added June 2013, to address issues regarding the Steampipe update sometimes setting VERSION to 1.
 	ErrorNoHalt("WireMod: This branch of wiremod only supports Gmod13+.\n")
 	return
@@ -47,6 +47,7 @@ if SERVER then
 	AddCSLuaFile("wire/client/wire_expression2_editor.lua")
 	AddCSLuaFile("wire/client/wire_filebrowser.lua")
 	AddCSLuaFile("wire/client/wire_listeditor.lua")
+	AddCSLuaFile("wire/client/wire_soundpropertylist.lua")
 	AddCSLuaFile("wire/client/e2helper.lua")
 	AddCSLuaFile("wire/client/e2descriptions.lua")
 	AddCSLuaFile("wire/client/gmod_tool_auto.lua")
@@ -110,6 +111,7 @@ if CLIENT then
 	include("wire/client/wire_expression2_editor.lua")
 	include("wire/client/wire_filebrowser.lua")
 	include("wire/client/wire_listeditor.lua")
+	include("wire/client/wire_soundpropertylist.lua")
 	include("wire/client/e2helper.lua")
 	include("wire/client/e2descriptions.lua")
 	include("wire/client/gmod_tool_auto.lua")
@@ -118,8 +120,6 @@ if CLIENT then
 	include("wire/client/rendertarget_fix.lua")
 	include("wire/client/hlzasm/hc_compiler.lua")
 	
-	-- Temporary workaround while OnEntityCreated isn't working...
-	timer.Create("OnEntityCreatedWorkaround", 10, 1, function() hook.Call("OnEntityCreated",GAMEMODE,LocalPlayer()) end)
 end
 
 -- Load UWSVN, done here so its definitely after Wire is loaded.

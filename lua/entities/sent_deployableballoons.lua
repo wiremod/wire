@@ -141,20 +141,35 @@ function ENT:DeployBalloons()
 	balloon:SetPlayer(self:GetPlayer())
 	duplicator.DoGeneric(balloon,{Pos = self:GetPos() + (self:GetUp()*25)})
 	duplicator.DoGenericPhysics(balloon,pl,{Pos = Pos})
-	local spawnervec = (self:GetPos()-balloon:GetPos()):GetNormalized()*250 --just to be sure
-	local trace = util.QuickTrace(balloon:GetPos(),spawnervec,balloon)
-	local Pos = self:GetPos()+(self:GetUp()*25)
-	local LPos1 = balloon:WorldToLocal(Pos)
-	local LPos2 = trace.Entity:WorldToLocal(trace.HitPos)
-	local phys = trace.Entity:GetPhysicsObjectNum(trace.PhysicsBone)
-	if phys and phys:IsValid() then
-		LPos2 = phys:WorldToLocal(trace.HitPos)
+
+	local balloonPos = balloon:GetPos() -- the origin the balloon is at the bottom
+	local hitEntity = self
+	local hitPos = self:LocalToWorld(Vector(0, 0, self:OBBMaxs().z)) -- the top of the spawner
+
+	-- We trace from the balloon to us, and if there's anything in the way, we
+	-- attach a constraint to that instead - that way, the balloon spawner can
+	-- be hidden underneath a plate which magically gets balloons attached to it.
+	local balloonToSpawner = (hitPos - balloonPos):GetNormalized() * 250
+	local trace = util.QuickTrace(balloon:GetPos(), balloonToSpawner, balloon)
+
+	if constraint.CanConstrain(trace.Entity, trace.PhysicsBone) then
+		local phys = trace.Entity:GetPhysicsObjectNum(trace.PhysicsBone)
+		if IsValid(phys) then
+			hitEntity = trace.Entity
+			hitPos = trace.HitPos
+		end
 	end
+
 	if self.weld then
-		local constraint = constraint.Weld( balloon, trace.Entity, 0, trace.PhysicsBone, 0)
+		local constraint = constraint.Weld( balloon, hitEntity, 0, trace.PhysicsBone, 0)
 		balloon:DeleteOnRemove(constraint)
 	else
-		local constraint, rope = constraint.Rope(balloon,trace.Entity,0,trace.PhysicsBone,LPos1,LPos2,0,self.rl,0,1.5,material,nil)
+		balloonPos = balloon:WorldToLocal(balloonPos)
+		hitPos = hitEntity:WorldToLocal(hitPos)
+
+		local constraint, rope = constraint.Rope(
+			balloon, hitEntity, 0, trace.PhysicsBone, balloonPos, hitPos, 
+			0, self.rl, 0, 1.5, material, false)
 		if constraint then
 			balloon:DeleteOnRemove(constraint)
 			balloon:DeleteOnRemove(rope)

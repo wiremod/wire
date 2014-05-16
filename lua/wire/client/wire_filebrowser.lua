@@ -7,7 +7,7 @@ local PANEL = {}
 AccessorFunc( PANEL, "m_strRootName", 			"RootName" ) // name of the root Root
 AccessorFunc( PANEL, "m_strRootPath", 			"RootPath" ) // path of the root Root
 AccessorFunc( PANEL, "m_strWildCard", 			"WildCard" ) // "GAME", "DATA" etc.
-AccessorFunc( PANEL, "m_tFilter", 				"FileTyps" ) // "*.wav", *.mdl, {"*.vmt", "*.vtf"} etc.
+AccessorFunc( PANEL, "m_tFilter", 				"FileTyps" ) // "*.wav", "*.mdl", {"*.vmt", "*.vtf"} etc.
 
 AccessorFunc( PANEL, "m_strOpenPath", 			"OpenPath" ) // open path
 AccessorFunc( PANEL, "m_strOpenFile", 			"OpenFile" ) // open path+file
@@ -212,12 +212,13 @@ end
    Name: Init
 -----------------------------------------------------------]]
 function PANEL:Init()
-	self.TimedpairsName = "wire_filebrowser_files_" .. tostring({})
+	self.TimedpairsName = "wire_filebrowser_items_" .. tostring({})
 
 	self.PageButtonSize = 20
 
-	self.m_nListSpeed = 6
-	self.m_nMaxItemsPerPage = 200
+	self:SetListSpeed(6)
+	self:SetMaxItemsPerPage(200)
+
 	self.m_nPageCount = 1
 
 	self.m_strOpenPath = nil
@@ -576,7 +577,11 @@ function PANEL:SetPage(page)
 	local ShowProgress = (FileCount > self.m_nListSpeed * 5)
 
 	self.PageLoadingProgress:SetVisible(ShowProgress)
-	if (FileCount <= 0) then return end
+	if (FileCount <= 0) then
+		self.PageLoadingProgress:SetVisible(false)
+
+		return
+	end
 
 	self.PageLoadingProgress:SetFraction(Fraction)
 	self.PageLoadingLabel:SetText("0 of " .. FileCount .. " files found.")
@@ -631,6 +636,7 @@ function PANEL:SetPage(page)
 		self.PageLoadingLabel:Center()
 
 		self.PageLoadingProgress:SetVisible(false)
+		self:InvalidateLayout()
 	end, self)
 end
 

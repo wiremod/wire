@@ -243,7 +243,7 @@ function EDITOR:OnMousePressed(code)
 				self:BlockCommentSelection( true )
 			end)
 		end
-		if (not self:GetParent().E2) then
+		if self.chosenfile and not self:GetParent().E2 then
 			menu:AddSpacer()
 
 			local caretPos = self:CursorToCaret()

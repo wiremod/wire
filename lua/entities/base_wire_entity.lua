@@ -8,8 +8,6 @@ ENT.Spawnable = false
 ENT.AdminOnly = false
 
 ENT.IsWire = true
-ENT.OverlayText = ""
-local base_gmodentity = scripted_ents.Get("base_gmodentity")
 
 if CLIENT then 
 	local wire_drawoutline = CreateClientConVar("wire_drawoutline", 1, true, false)
@@ -25,6 +23,184 @@ if CLIENT then
 			-- Every SENT that has GetBeamLength should draw a tracer. Some of them have the GetShowBeam boolean
 			Wire_DrawTracerBeam( self, 1, self.GetBeamHighlight and self:GetBeamHighlight() or false ) 
 		end
+	end
+	
+	local WorldTip = { dietime = 0 }
+	function ENT:AddWorldTip( txt )
+		WorldTip.dietime = SysTime() + 0.05
+		WorldTip.ent = self
+	end
+	
+	local edgesize = 18
+	
+	 -- makes sure the overlay doesn't go out of the screen & provides several useful sizes and positions for the DrawBody function
+	function ENT:GetWorldTipPositions( w, h, w_body, h_body, w_footer, h_footer )
+		local pos = LocalPlayer():GetEyeTrace().HitPos
+		local spos = LocalPlayer():GetShootPos()
+		if pos == spos then -- if the position is right in your face, get a better position
+			pos = spos + LocalPlayer():GetAimVector() * 5
+		end
+		pos = pos:ToScreen()
+		
+		pos.x = math.Round(pos.x)
+		pos.y = math.Round(pos.y)
+		
+		w = math.min( w, ScrW() - 64 )
+		h = math.min( h, ScrH() - 64 )
+		
+		local maxx = pos.x - 32
+		local maxy = pos.y - 32
+		
+		local minx = maxx - w
+		local miny = maxy - h
+		
+		if minx < 32 then
+			maxx = 32 + w
+			minx = 32
+		end
+		
+		if miny < 32 then
+			maxy = 32 + h
+			miny = 32
+		end
+		
+		local centerx = (maxx+minx)/2
+		local centery = (maxy+miny)/2
+		
+		return {	min = {x = minx,y = miny},
+					max = {x = maxx,y = maxy}, 
+					center = {x = centerx, y = centery},
+					size = {w = w, h = h},
+					bodysize = {w = w_body, h = h_body },
+					footersize = {w = w_footer, h = h_footer},
+					edgesize = edgesize
+				}
+	end
+
+	-- This is overridable by other wire entities which want to customize the overlay, but generally you shouldn't override it
+	function ENT:DrawWorldTipOutline( pos )
+		draw.NoTexture()
+		surface.SetDrawColor(Color(25,25,25,200))
+		
+		local poly = {
+						{x = pos.min.x + edgesize, 	y = pos.min.y,				u = 0, v = 0 },
+						{x = pos.max.x, 			y = pos.min.y,				u = 0, v = 0 },
+						{x = pos.max.x, 			y = pos.max.y - edgesize,	u = 0, v = 0 },
+						{x = pos.max.x - edgesize, 	y = pos.max.y,				u = 0, v = 0 },
+						{x = pos.min.x, 			y = pos.max.y,				u = 0, v = 0 },
+						{x = pos.min.x, 			y = pos.min.y + edgesize,	u = 0, v = 0 },
+					}
+		
+		render.CullMode(MATERIAL_CULLMODE_CCW)
+		surface.DrawPoly( poly )
+		
+		surface.SetDrawColor(Color(0,0,0,255))
+		
+		for i=1,#poly-1 do
+			surface.DrawLine( poly[i].x, poly[i].y, poly[i+1].x, poly[i+1].y )
+		end
+		surface.DrawLine( poly[#poly].x, poly[#poly].y, poly[1].x, poly[1].y )
+	end
+	
+	local function getWireName( ent )
+		local name = ent:GetNetworkedString("WireName")
+		if not name or name == "" then return ent.PrintName else return name end
+	end
+	
+	-- This is overridable by other wire entities which want to customize the overlay
+	function ENT:GetWorldTipBodySize()
+		local txt = self:GetOverlayData().txt
+		if txt == "" then return 0,0 end
+		return surface.GetTextSize( txt )
+	end
+	
+	-- This is overridable by other wire entities which want to customize the overlay
+	function ENT:DrawWorldTipBody( pos )
+		local data = self:GetOverlayData()
+		draw.DrawText( data.txt, "GModWorldtip", pos.center.x, pos.min.y + edgesize/2, Color(255,255,255,255), TEXT_ALIGN_CENTER )
+	end
+	
+	-- This is overridable by other wire entities which want to customize the overlay
+	function ENT:DrawWorldTip()
+		local data = self:GetOverlayData()
+		if not data then return end
+		
+		surface.SetFont( "GModWorldtip" )
+		
+		-- if data and data.txt then -- the entity has some text, draw it
+		local txt = data.txt
+		local class = getWireName( self ) .. " [" .. self:EntIndex() .. "]"
+		local name = "(" .. self:GetPlayerName() .. ")"
+	
+		local w_body, 	h_body = self:GetWorldTipBodySize()
+		local w_class, 	h_class = surface.GetTextSize( class )
+		local w_name, 	h_name = surface.GetTextSize( name )
+		
+		local w_total = txt ~= "" and w_body or 0
+		local h_total = txt ~= "" and h_body or 0
+		
+		local w_footer, h_footer = 0, 0
+		
+		local info_requires_multiline = false
+		if w_total < w_class + w_name - edgesize then
+			info_requires_multiline = true
+			
+			w_footer = math.max(w_total,w_class,w_name)
+			h_footer = h_class + h_name + edgesize + 8
+			
+			w_total = w_footer
+			h_total = h_total + h_footer
+		else
+			w_footer = math.max(w_total,w_class + 8 + w_name)
+			h_footer = math.max(h_class,h_name) + edgesize + 8
+			
+			w_total = w_footer
+			h_total = h_total + h_footer
+		end
+		
+		if h_body == 0 then h_total = h_total - h_body - edgesize end
+		
+		local pos = self:GetWorldTipPositions( w_total + edgesize*2,h_total + edgesize,
+												w_body,h_body,
+												w_footer,h_footer )
+
+		self:DrawWorldTipOutline( pos )
+		
+		local offset = pos.min.y
+		if h_body > 0 then
+			self:DrawWorldTipBody( pos )
+			offset = offset + h_body + edgesize
+			
+			surface.SetDrawColor( Color(0,0,0,255) )
+			surface.DrawLine( pos.min.x, offset, pos.max.x, offset )
+		end
+		
+		if info_requires_multiline then
+			draw.DrawText( class, "GModWorldtip", pos.center.x, offset + 8, Color(255,255,255,255), TEXT_ALIGN_CENTER )
+			draw.DrawText( name, "GModWorldtip", pos.center.x, offset + h_class + 16, Color(255,255,255,255), TEXT_ALIGN_CENTER )
+		else
+			draw.DrawText( class, "GModWorldtip", pos.min.x + edgesize, offset + 16, Color(255,255,255,255) )
+			draw.DrawText( name, "GModWorldtip", pos.min.x + pos.size.w - w_name - edgesize, offset + 16, Color(255,255,255,255) )
+		end
+	end
+	
+	hook.Add("HUDPaint","wire_draw_world_tips",function()
+		if SysTime() > WorldTip.dietime then return end
+	
+		local ent = WorldTip.ent
+		if not IsValid(ent) then return end
+		
+		ent:DrawWorldTip()
+	end)
+	
+	-- Custom better version of this base_gmodentity function
+	function ENT:BeingLookedAtByLocalPlayer()
+		local trace = LocalPlayer():GetEyeTrace()
+		
+		if trace.Entity ~= self then return false end
+		if trace.HitPos:Distance(LocalPlayer():GetShootPos()) > 200 then return false end
+	
+		return true
 	end
 
 	function ENT:DoNormalDraw(nohalo, notip)
@@ -44,7 +220,7 @@ if CLIENT then
 			self:DrawModel()
 		end
 		if not notip and looked_at then
-			AddWorldTip(self:EntIndex(), self:GetOverlayText(), 0.5, self:GetPos(), self)
+			self:AddWorldTip()
 		end
 	end
 
@@ -70,30 +246,105 @@ if CLIENT then
 		halos = {}
 		halos_inv = {}
 	end)
-
+	
+	--------------------------------------------------------------------------------
+	-- Overlay getting
+	--------------------------------------------------------------------------------
+	
+	-- Basic legacy GetOverlayText, is no longer used here but we leave it here in case other addons rely on it.
 	function ENT:GetOverlayText()
 		local name = self:GetNetworkedString("WireName")
 		if name == "" then name = self.PrintName end
 		local header = "- " .. name .. " -"
-		local message = base_gmodentity.GetOverlayText(self)
-		if message == "" then
-			return header
+		
+		local data = self:GetOverlayData()
+		if data and data.txt then
+			return header .. "\n" .. data.txt
 		else
-			return header .. "\n" .. message
+			return header
 		end
 	end
 	
-	return  -- No more client
+	function ENT:GetOverlayData()
+		return self.OverlayData
+	end
+	
+	--------------------------------------------------------------------------------
+	-- Overlay receiving
+	--------------------------------------------------------------------------------
+	net.Receive( "wire_overlay_data", function( len )
+		local ent = net.ReadEntity()
+		if IsValid( ent ) then
+			ent.OverlayData = net.ReadTable()
+		end
+	end )
 end
 
--- Server
+--------------------------------------------------------------------------------
+-- Overlay setting
+--------------------------------------------------------------------------------
+-- We want more fine-grained control over everything related to overlays,
+-- so we have a custom system here
 
--- We want more fine-grained control over the networking of the overlay text,
--- so we don't just immediately send it like base_gmodentity does.
+-- It allows us to optionally send values rather than entire strings, which saves networking
+-- It also allows us to only update overlays when someone is looking at the entity.
+
 function ENT:SetOverlayText( txt )
-	self.OverlayText = txt
+	if not self.OverlayData then
+		self.OverlayData = {}
+	end
+	
+	if txt and #txt > 12000 then
+		string.sub(txt,1,12000) -- I have tested this and 12000 chars is enough to cover the entire screen at 1920x1080. You're unlikely to need more
+	end
+	
+	self.OverlayData.txt = txt
+	
+	if not self.OverlayData_UpdateTime then	self.OverlayData_UpdateTime = {} end
+	self.OverlayData_UpdateTime.time = CurTime()
 end
 
+function ENT:SetOverlayData( data )
+	self.OverlayData = data
+	if self.OverlayData.txt and #self.OverlayData.txt > 12000 then
+		self.OverlayData.txt = string.sub(self.OverlayData.txt,1,12000)
+	end
+	
+	if not self.OverlayData_UpdateTime then	self.OverlayData_UpdateTime = {} end
+	self.OverlayData_UpdateTime.time = CurTime()
+end
+
+if CLIENT then return end -- no more client
+
+--------------------------------------------------------------------------------
+-- Overlay syncing
+--------------------------------------------------------------------------------
+
+util.AddNetworkString( "wire_overlay_data" )
+
+timer.Create("WireOverlayUpdate", 0.1, 0, function()
+	for _, ply in ipairs(player.GetAll()) do
+		local ent = ply:GetEyeTrace().Entity
+		if IsValid(ent) and ent.IsWire and 
+			ent.OverlayData and 
+			ent.OverlayData_UpdateTime and 
+			ent.OverlayData_UpdateTime.time > (ent.OverlayData_UpdateTime[ply] or 0) then
+			
+			ent.OverlayData_UpdateTime[ply] = CurTime()
+			
+			net.Start( "wire_overlay_data" )
+				net.WriteEntity( ent )
+				net.WriteTable( ent.OverlayData )
+			net.Send( ply )
+		end
+	end
+end)
+
+--------------------------------------------------------------------------------
+-- Other functions
+--------------------------------------------------------------------------------
+
+local base_gmodentity = scripted_ents.Get("base_gmodentity")
 function ENT:Initialize()
 	base_gmodentity.Initialize(self)
 	self:PhysicsInit(SOLID_VPHYSICS)
@@ -101,13 +352,6 @@ function ENT:Initialize()
 	self:SetSolid(SOLID_VPHYSICS)
 	self.WireDebugName = self.WireDebugName or (self.PrintName and self.PrintName:sub(6)) or self:GetClass():gsub("gmod_wire", "")
 end
-
-timer.Create("WireOverlayUpdate", 0.1, 0, function()
-	for _, ply in ipairs(player.GetAll()) do
-		local ent = ply:GetEyeTrace().Entity
-		if IsValid(ent) and ent.IsWire then base_gmodentity.SetOverlayText(ent, ent.OverlayText) end
-	end
-end)
 
 function ENT:OnRemove()
 	WireLib.Remove(self)

@@ -98,6 +98,7 @@ function PropCore.PhysManipulate(this, pos, rot, freeze, gravity, notsolid)
 end
 
 --------------------------------------------------------------------------------
+__e2setcost(30)
 e2function entity propSpawn(string model, number frozen)
 	if not PropCore.ValidAction(self, nil, "spawn") then return nil end
 	return PropCore.CreateProp(self,model,self.entity:GetPos()+self.entity:GetUp()*25,self.entity:GetAngles(),frozen)
@@ -143,6 +144,7 @@ e2function entity propSpawn(entity template, vector pos, angle rot, number froze
 end
 
 --------------------------------------------------------------------------------
+__e2setcost(5)
 e2function void entity:propDelete()
 	if not PropCore.ValidAction(self, this, "delete") then return end
 	this:Remove()
@@ -246,6 +248,8 @@ e2function void entity:deparent()
 	if not PropCore.ValidAction(self, this, "deparent") then return end
 	this:SetParent( nil )
 end
+
+__e2setcost(1)
 
 e2function void propSpawnEffect(number on)
 	self.data.propSpawnEffect = on ~= 0
