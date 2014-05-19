@@ -4,174 +4,211 @@
 
 E2Lib.RegisterExtension("sound", true)
 
-//-----------------------//
-//--Server Convar--//
-//-----------------------//
+local wire_expression2_maxsounds = CreateConVar( "wire_expression2_maxsounds", 16 )
+local wire_expression2_sound_burst_max = CreateConVar( "wire_expression2_sound_burst_max", 8 )
+local wire_expression2_sound_burst_rate = CreateConVar( "wire_expression2_sound_burst_rate", 0.1 )
 
-local wire_expression2_maxsounds = CreateConVar( "wire_expression2_maxsounds", 8 )
+---------------------------------------------------------------
+-- Helper functions
+---------------------------------------------------------------
 
-//--------------------------//
-//--Functions--//
-//--------------------------//
-
-local function soundCreate(self, entity, index, time, path, fade)
-	if path:match('["?]') then return end
-	local data = self.data['currentsound']
-	if table.Count(data)>wire_expression2_maxsounds:GetFloat() then return end
-	path = path:Trim()
-	path = string.gsub(path, "\\", "/")
-	local sound = CreateSound(entity, path)
-	if isnumber(index) then index = index - index % 1 end
-	if data[index] then data[index]:Stop() end
-	data[index] = sound
-	entity:CallOnRemove( "E2_stopsound", function() sound:Stop() end )
-	sound:Play()
-	if time==0 && fade==0 then return end
-	if time<0 then time = time * -1 end
-	if fade<0 then fade = fade * -1 end
-	timer.Create( "sounddeletetime"..index, time, 1, function()
-		if !data[index] then return end
-		if fade==0 then
-			data[index]:Stop()
-			data[index] = nil
-			return
-		end
-		data[index]:FadeOut(fade)
-		timer.Create( "soundfadetime"..index, fade, 1, function()
-			if !data[index] then return end
-			data[index]:Stop()
-			data[index] = nil
+local function isAllowed( self )
+	local data = self.data.sound_data
+	local count = data.count
+	if count == wire_expression2_maxsounds:GetInt() then return false end
+	
+	if data.burst == 0 then return false end
+	
+	data.burst = data.burst - 1
+	
+	local timerid = "E2_sound_burst_count_" .. self.entity:EntIndex()
+	if not timer.Exists( timerid ) then
+		timer.Create( timerid, wire_expression2_sound_burst_rate:GetFloat(), 0, function()
+			if not IsValid( self.entity ) then
+				timer.Remove( timerid )
+				return
+			end
+				
+			data.burst = data.burst + 1
+			if data.burst == wire_expression2_sound_burst_max:GetInt() then
+				timer.Remove( timerid )
+			end
 		end)
-	end)
+	end
+	
+	return true
+end
+
+local function getSound( self, index )
+	if isnumber( index ) then index = math.floor( index ) end
+	return self.data.sound_data.sounds[index]
 end
 
 local function soundStop(self, index, fade)
-	local data = self.data['currentsound']
-	if !data[index] then return end
-	local sound = data[index]
-	sound:FadeOut(fade)
-	data[index] = nil
+	local sound = getSound( self, index )
+	if not sound then return end
+	
+	fade = math.abs( fade )
+	
+	if fade == 0 then
+		sound:Stop()
+	else
+		sound:FadeOut( fade )
+	end
+	
+	if isnumber( index ) then index = math.floor( index ) end
+	self.data.sound_data.sounds[index] = nil
+	
+	self.data.sound_data.count = self.data.sound_data.count - 1
 end
 
-/*************************************************************/
+local function soundCreate(self, entity, index, time, path, fade)
+	if path:match('["?]') then return end
+	local data = self.data.sound_data
+	if not isAllowed( self ) then return end
+	
+	path = path:Trim()
+	path = path:gsub( "\\", "/" )
+	if isnumber( index ) then index = math.floor( index ) end
+	
+	local sound = getSound( self, index )
+	if sound then
+		sound:Stop()
+	else
+		data.count = data.count + 1
+	end
+	
+	local sound = CreateSound( entity, path )
+	data.sounds[index] = sound
+	sound:Play()
+	
+	entity:CallOnRemove( "E2_stopsound", function()
+		if IsValid( sound ) then sound:Stop() end
+	end	)
+	
+	if time == 0 and fade == 0 then return end
+	time = math.abs( time )
+	
+	timer.Simple( time, function()
+		if not IsValid( self ) or not IsValid( entity ) then return end
+		
+		soundStop( self, index, fade )
+	end)
+end
+
+local function soundPurge( self )
+	local sound_data = self.data.sound_data
+	if sound_data.sounds then
+		for k,v in pairs( sound_data.sounds ) do
+			v:Stop()
+		end
+	end
+	
+	sound_data.sounds = {}
+	sound_data.count = 0
+end
+
+---------------------------------------------------------------
+-- Play functions
+---------------------------------------------------------------
 
 __e2setcost(25)
 
-e2function void soundPlay(rv1, rv2, string rv3)
-	soundCreate(self,self.entity,rv1,rv2,rv3,0)
+e2function void soundPlay( index, duration, string path )
+	soundCreate(self,self.entity,index,duration,path,0)
 end
 
-e2function void soundPlay(string rv1, rv2, string rv3)
-	soundCreate(self,self.entity,rv1, rv2,rv3,0)
-end
-
-e2function void entity:soundPlay(rv2, rv3, string rv4)
+e2function void entity:soundPlay( index, duration, string path)
 	if not IsValid(this) or not isOwner(self, this) then return end
-	soundCreate(self,this,rv2,rv3,rv4,0)
+	soundCreate(self,this,index,duration,path,0)
 end
 
-e2function void entity:soundPlay(string rv2, rv3, string rv4)
+e2function void soundPlay( index, duration, string path, fade )
+	soundCreate(self,self.entity,index,duration,path,fade)
+end
+
+e2function void entity:soundPlay( index, duration, string path, fade )
 	if not IsValid(this) or not isOwner(self, this) then return end
-	soundCreate(self,this,rv2,rv3,rv4,0)
+	soundCreate(self,this,index,duration,path,fade)
 end
 
-e2function void soundPlay(rv1, rv2, string rv3, rv4)
-	soundCreate(self,self.entity,rv1,rv2,rv3,rv4)
-end
+e2function void soundPlay( string index, duration, string path ) = e2function void soundPlay( index, duration, string path )
+e2function void entity:soundPlay( string index, duration, string path ) = e2function void entity:soundPlay( index, duration, string path )
+e2function void soundPlay( string index, duration, string path, fade ) = e2function void soundPlay( index, duration, string path, fade )
+e2function void entity:soundPlay( string index, duration, string path, fade ) = e2function void entity:soundPlay( index, duration, string path, fade )
 
-e2function void soundPlay(string rv1, rv2, string rv3, rv4)
-	soundCreate(self,self.entity,rv1, rv2,rv3,rv4)
-end
-
-e2function void entity:soundPlay(rv2, rv3, string rv4, rv5)
-	if not IsValid(this) or not isOwner(self, this) then return end
-	soundCreate(self,this,rv2,rv3,rv4,rv5)
-end
-
-e2function void entity:soundPlay(string rv2, rv3, string rv4, rv5)
-	if not IsValid(this) or not isOwner(self, this) then return end
-	soundCreate(self,this,rv2,rv3,rv4,rv5)
-end
+---------------------------------------------------------------
+-- Modifier functions
+---------------------------------------------------------------
 
 __e2setcost(5)
 
-e2function void soundStop(rv1)
-	rv1 = rv1 - rv1 % 1
-	soundStop(self, rv1, 0)
+e2function void soundStop( index )
+	soundStop(self, index, 0)
 end
 
-e2function void soundStop(rv1, rv2)
-	rv1 = rv1 - rv1 % 1
-	soundStop(self, rv1, rv2)
+e2function void soundStop( index, fadetime )
+	soundStop(self, index, fadetime)
 end
 
-e2function void soundStop(string rv1)
-	soundStop(self, rv1, 0)
+e2function void soundVolume( index, volume )
+	local sound = getSound( self, index )
+	if not sound then return end
+	
+	sound:ChangeVolume( math.Clamp( volume, 0, 1 ), 0 )
 end
 
-e2function void soundStop(string rv1, rv2)
-	soundStop(self, rv1, rv2)
+e2function void soundVolume( index, volume, fadetime )
+	local sound = getSound( self, index )
+	if not sound then return end
+	
+	sound:ChangeVolume( math.Clamp( volume, 0, 1 ), math.abs( fadetime ) )
+end
+	
+
+e2function void soundPitch( index, pitch )
+	local sound = getSound( self, index )
+	if not sound then return end
+	
+	sound:ChangePitch( math.Clamp( pitch, 0, 255 ), 0 )
 end
 
-e2function void soundVolume(rv1, rv2)
-	rv1 = rv1 - rv1 % 1
-	local data = self.data['currentsound']
-	if data[rv1] then
-		local sound = data[rv1]
-		rv2 = math.Clamp(rv2,0,1)
-		sound:ChangeVolume(rv2,0)
-	end
+e2function void soundPitch( index, pitch, fadetime )
+	local sound = getSound( self, index )
+	if not sound then return end
+	
+	sound:ChangePitch( math.Clamp( pitch, 0, 255 ), math.abs( fadetime ) )
 end
 
-e2function void soundVolume(string rv1, rv2)
-	local data = self.data['currentsound']
-	if data[rv1] then
-		local sound = data[rv1]
-		rv2 = math.Clamp(rv2,0,1)
-		sound:ChangeVolume(rv2,0)
-	end
-end
 
-e2function void soundPitch(rv1, rv2)
-	rv1 = rv1 - rv1 % 1
-	local data = self.data['currentsound']
-	if data[rv1] then
-		local sound = data[rv1]
-		rv2 = math.Clamp(rv2,0,255)
-		sound:ChangePitch(rv2,0)
-	end
-end
+e2function void soundStop( string index ) = e2function void soundStop( index )
+e2function void soundStop( string index, fadetime ) = e2function void soundStop( index, fadetime )
+e2function void soundVolume( string index, volume ) = e2function void soundVolume( index, volume )
+e2function void soundVolume( string index, volume, fadetime ) = e2function void soundVolume( index, volume, fadetime )
+e2function void soundPitch( string index, pitch ) = e2function void soundPitch( index, pitch )
+e2function void soundPitch( string index, pitch, fadetime ) = e2function void soundPitch( index, pitch, fadetime )
 
-e2function void soundPitch(string rv1, rv2)
-	local data = self.data['currentsound']
-	if data[rv1] then
-		local sound = data[rv1]
-		rv2 = math.Clamp(rv2,0,255)
-		sound:ChangePitch(rv2,0)
-	end
-end
+---------------------------------------------------------------
+-- Other
+---------------------------------------------------------------
 
 e2function void soundPurge()
-	local data = self.data['currentsound']
-	local count = table.Count(data)
-	for _,v in pairs(data) do
-		v:Stop()
-	end
-	self.data['currentsound'] = {}
+	soundPurge( self )
 end
 
 e2function number soundDuration(string sound)
 	return SoundDuration(sound) or 0
 end
 
-/******************************************************************************/
+---------------------------------------------------------------
 
 registerCallback("construct", function(self)
-	self.data['currentsound'] = {}
+	self.data.sound_data = {}
+	self.data.sound_data.burst = wire_expression2_sound_burst_max:GetInt()
+	self.data.sound_data.sounds = {}
+	self.data.sound_data.count = 0
 end)
 
 registerCallback("destruct", function(self)
-	for _,v in pairs(self.data['currentsound']) do
-		v:Stop()
-	end
+	soundPurge( self )
 end)
