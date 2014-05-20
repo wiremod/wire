@@ -477,7 +477,6 @@ if SERVER then
 	end
 
 	hook.Add("EntityRemoved", "wire_ports", function(ent)
-		if not IsValid(ent) then return end
 		if not ent:IsPlayer() then
 			WireLib._RemoveWire(ent:EntIndex())
 		end
