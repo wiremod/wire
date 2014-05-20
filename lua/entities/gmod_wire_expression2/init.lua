@@ -550,16 +550,25 @@ function MakeWireExpression2(player, Pos, Ang, model, buffer, name, inputs, outp
 	self.player = player
 	self:SetNWEntity("player", player)
 
-	buffer = string.Replace(string.Replace(buffer, string.char(163), "\""), string.char(128), "\n")
+	if isstring( buffer ) then -- if someone dupes an E2 with compile errors, then all these values will be invalid
+		buffer = string.Replace(string.Replace(buffer, string.char(163), "\""), string.char(128), "\n")
+		self.buffer = buffer
+		self:SetOverlayText(name)
+		
+		self.inc_files = inc_files or {}
 
-	self:SetOverlayText(name)
-	self.buffer = buffer
-	self.inc_files = inc_files or {}
+		self.Inputs = WireLib.AdjustSpecialInputs(self, inputs[1], inputs[2])
+		self.Outputs = WireLib.AdjustSpecialOutputs(self, outputs[1], outputs[2])
 
-	self.Inputs = WireLib.AdjustSpecialInputs(self, inputs[1], inputs[2])
-	self.Outputs = WireLib.AdjustSpecialOutputs(self, outputs[1], outputs[2])
-
-	self.dupevars = vars
+		self.dupevars = vars
+	else
+		self.buffer = "error(\"You tried to dupe an E2 with compile errors!\")\n#Unfortunately, no code can be saved when duping an E2 with compile errors.\n#Fix your errors and try again."
+		
+		self.inc_files = {}
+		self.dupevars = {}
+		
+		self.name = "generic"
+	end
 
 	if IsValid(player) then
 		player:AddCount("wire_expressions", self)
