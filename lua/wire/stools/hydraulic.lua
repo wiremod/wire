@@ -130,6 +130,8 @@ function TOOL:RightClick( trace )
 		tr.filter[2] = trace.Entity
 	end
 	local trace2 = util.TraceLine( tr )
+	
+	if not hook.Run( "CanTool", self:GetOwner(), trace2, "wire_hydraulic" ) then return false end
 
 	return self:LeftClick(trace) and self:LeftClick(trace2)
 end
