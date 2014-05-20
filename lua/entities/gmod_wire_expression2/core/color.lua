@@ -91,6 +91,7 @@ end
 e2function void entity:setRenderMode(mode)
 	if !IsValid(this) then return end
 	if !isOwner(self, this) then return end
+	if this:IsPlayer() then return end
 	
 	this:SetRenderMode(mode)
 end
