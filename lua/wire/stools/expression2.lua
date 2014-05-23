@@ -420,18 +420,21 @@ elseif CLIENT then
 		local num = net.ReadInt( 16 )
 		for i=1,num do
 			local E2 = net.ReadEntity()
-			local prfbench = net.ReadDouble()
-			local prfcount = net.ReadDouble()
-			local timebench = net.ReadDouble()
-			
-			local data = E2:GetOverlayData()
-			E2:SetOverlayData( {
-				txt = data.txt,
-				error = data.error,
-				prfbench = prfbench,
-				prfcount = prfcount,
-				timebench = timebench
-			} )
+			if E2.GetOverlayData and E2.SetOverlayData then
+				local prfbench = net.ReadDouble()
+				local prfcount = net.ReadDouble()
+				local timebench = net.ReadDouble()
+				
+				local data = E2:GetOverlayData() or {}
+				
+				E2:SetOverlayData( {
+					txt = data.txt or "(generic)",
+					error = data.error or false,
+					prfbench = prfbench,
+					prfcount = prfcount,
+					timebench = timebench
+				} )
+			end
 		end
 	end )
 
