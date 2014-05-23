@@ -123,7 +123,19 @@ if (SERVER) then
 
 		return true
 	end
+end
 
+WireToolSetup.SetupLinking() -- Generates RightClick, Reload, and DrawHUD functions
+
+function TOOL:CheckHitOwnClass( trace )
+	return IsValid(trace.Entity) and trace.Entity:GetClass() == "gmod_wire_egp_hud" -- We only need linking for the hud
+end
+
+-- Remove SetupLinking's reload function
+TOOL.Reload = nil
+
+if SERVER then
+	--[[
 	function TOOL:RightClick( trace )
 		if (!trace.Entity or !trace.Entity:IsValid()) then return false end
 		if (trace.Entity:IsPlayer()) then return false end
@@ -156,12 +168,12 @@ if (SERVER) then
 
 		return true
 	end
-end
-if (CLIENT) then
+	]]
+else
 	language.Add( "Tool.wire_egp.name", "E2 Graphics Processor" )
     language.Add( "Tool.wire_egp.desc", "EGP Tool" )
     language.Add( "Tool.wire_egp.0", "Primary: Create EGP Screen/HUD/Emitter, Secondary: Link EGP HUD to vehicle, Reload: Open the Reload Menu for several lag fixing options." )
-	language.Add( "Tool.wire_egp.1", "Now right click a vehicle, or right click the same EGP HUD again to unlink it." )
+	language.Add( "Tool.wire_egp.1", "Now right click a vehicle (Tip: Hold shift to unlink from more entities)." )
 	language.Add( "sboxlimit_wire_egps", "You've hit the EGP limit!" )
 	language.Add( "Undone_wire_egp", "Undone EGP" )
 	language.Add( "Tool_wire_egp_createflat", "Create flat to surface" )
@@ -310,18 +322,7 @@ if (CLIENT) then
 			end
 			Menu.SingleObjects:SetEnabled( true )
 		end
-
-		--[[
-		if (!EGP:ValidEGP( trace.Entity )) then return false end
-		if (trace.Entity:GetClass() == "gmod_wire_egp_hud") then return false end
-		if (trace.Entity:GetClass() == "gmod_wire_egp_emitter") then return false end
-		trace.Entity.GPU:Finalize()
-		trace.Entity.GPU = GPULib.WireGPU( trace.Entity )
-		trace.Entity:EGP_Update()
-		LocalPlayer():ChatPrint("[EGP] RenderTarget reloaded.")
-		]]
 	end
-	--TOOL:Reload(LocalPlayer():GetEyeTrace())
 
 	function TOOL.BuildCPanel(panel)
 		if !(EGP) then return end
@@ -377,6 +378,11 @@ function TOOL:UpdateGhost( ent, ply )
 end
 
 function TOOL:Think()
+	if self.HasLinked then
+		if not self:GetOwner():KeyDown(IN_SPEED) then self:SetStage(0) end
+		if self:GetStage() == 0 then self.HasLinked = false end
+	end
+
 	local Type = self:GetClientNumber("type")
 	if (!self.GhostEntity or !self.GhostEntity:IsValid()) then
 		local trace = self:GetOwner():GetEyeTrace()
