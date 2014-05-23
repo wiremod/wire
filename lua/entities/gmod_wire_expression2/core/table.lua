@@ -828,29 +828,39 @@ e2function table findToTable()
 end
 
 __e2setcost(1)
-local concat = table.concat
+local luaconcat = table.concat
+local clamp = math.Clamp
+local function concat( tab, delimeter, startindex, endindex )
+	local ret = {}
+	local len = #tab
+	for i=clamp(startindex or 1,1,len), clamp(endindex or len,1,len) do
+		ret[#ret+1] = tostring(tab[i])
+	end
+	return luaconcat( ret, delimeter )
+end
+
 e2function string table:concat()
 	self.prf = self.prf + #this * opcost
 	return concat(this.n)
 end
 e2function string table:concat(string delimiter)
-	self.prf = self.prf + #this/3
+	self.prf = self.prf + #this * opcost
 	return concat(this.n,delimiter)
 end
 e2function string table:concat(string delimiter, startindex)
-	self.prf = self.prf + #this/3
+	self.prf = self.prf + #this * opcost
 	return concat(this.n,delimiter,startindex)
 end
 e2function string table:concat(string delimiter, startindex, endindex)
-	self.prf = self.prf + #this/3
+	self.prf = self.prf + #this * opcost
 	return concat(this.n,delimiter,startindex,endindex)
 end
 e2function string table:concat(startindex)
-	self.prf = self.prf + #this/3
+	self.prf = self.prf + #this * opcost
 	return concat(this.n,"",startindex,endindex)
 end
 e2function string table:concat(startindex,endindex)
-	self.prf = self.prf + #this/3
+	self.prf = self.prf + #this * opcost
 	return concat(this.n,"",startindex,endindex)
 end
 
