@@ -67,10 +67,8 @@ function ENT:UpdateOutputs()
 end
 
 function ENT:CheckEnt( ent )
-	if IsValid(ent) then
-		for index, e in pairs( self.Marks ) do
-			if (e == ent) then return true, index end
-		end
+	for index, e in pairs( self.Marks ) do
+		if (e == ent) then return true, index end
 	end
 	return false, 0
 end
@@ -79,7 +77,7 @@ function ENT:LinkEnt( ent )
 	if (self:CheckEnt( ent )) then return false	end
 	self.Marks[#self.Marks+1] = ent
 	ent:CallOnRemove("AdvEMarker.Unlink", function(ent)
-		if IsValid(self) then self:UnlinkEnt(ent) end
+		self:UnlinkEnt(ent)
 	end)
 	self:UpdateOutputs()
 	return true
@@ -95,8 +93,15 @@ function ENT:UnlinkEnt( ent )
 end
 
 function ENT:ClearEntities()
+	for i=1,#self.Marks do
+		self.Marks[i]:RemoveCallOnRemove( "AdvEMarker.Unlink" )
+	end
 	self.Marks = {}
 	self:UpdateOutputs()
+end
+
+function ENT:OnRemove()
+	self:ClearEntities()
 end
 
 duplicator.RegisterEntityClass( "gmod_wire_adv_emarker", WireLib.MakeWireEnt, "Data" )
