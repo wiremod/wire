@@ -18,6 +18,7 @@ Editor.FontConVar = CreateClientConVar("wire_expression2_editor_font", defaultFo
 Editor.FontSizeConVar = CreateClientConVar("wire_expression2_editor_font_size", 16, true, false)
 Editor.BlockCommentStyleConVar = CreateClientConVar("wire_expression2_editor_block_comment_style", 1, true, false)
 Editor.NewTabOnOpen = CreateClientConVar("wire_expression2_new_tab_on_open", "1", true, false)
+Editor.ops_sync_subscribe = CreateClientConVar("wire_expression_ops_sync_subscribe",0,true,false)
 
 Editor.Fonts = {}
 -- 				Font					Description
@@ -1707,10 +1708,16 @@ Text here]# ]]
 	DefaultButton:SetPos(x + w + 2, y + 8 + RBox:GetTall() * 3 + 20)
 	DefaultButton:SetSize(RBox:GetSize())
 
+	local ops_sync_checkbox = vgui.Create("DCheckBoxLabel")
+	dlist:AddItem(ops_sync_checkbox)
+	ops_sync_checkbox:SetConVar("wire_expression_ops_sync_subscribe")
+	ops_sync_checkbox:SetText("ops/cpu usage syncing for remote uploader (Admin only)")
+	ops_sync_checkbox:SizeToContents()
+	ops_sync_checkbox:SetTooltip("Opt into live ops/cpu usage for all E2s on the server via the remote uploader tab. If you're not admin, this checkbox does nothing.")
 
 	-- ------------------------------------------- REMOTE UPDATER TAB
-	local sheet = self:AddControlPanelTab("Remote Updater", "icon16/world.png", "Update your Expressions/GPUs/CPUs from far away.\nNote: Does not work for CPU/GPU yet.")
-
+	local sheet = self:AddControlPanelTab("Remote Updater", "icon16/world.png", "Manage your E2s from far away.")
+	
 	local dlist = vgui.Create("DPanelList", sheet.Panel)
 	dlist.Paint = function() end
 	frame:AddResizeObject(dlist, 2, 2)
@@ -1723,7 +1730,19 @@ Text here]# ]]
 	-- frame:AddResizeObject( dlist2, 2,2 )
 	-- dlist2:SetTall( 444 )
 	dlist2:SetSpacing(1)
-	dlist2.Paint = function() end
+
+	local painted = 0
+	local opened = false
+	dlist2.Paint = function() painted = SysTime() + 0.05 end
+	timer.Create( "wire_expression2_ops_sync_check", 0, 0, function()
+		if painted > SysTime() and not opened then
+			opened = true
+			if Editor.ops_sync_subscribe:GetBool() then RunConsoleCommand("wire_expression_ops_sync","1") end
+		elseif painted < SysTime() and opened then
+			opened = false
+			RunConsoleCommand("wire_expression_ops_sync","0")
+		end
+	end)
 
 	local UpdateList = vgui.Create("DButton")
 	UpdateList:SetText("")
@@ -1747,8 +1766,15 @@ Text here]# ]]
 				local nick
 				if not ply or not ply:IsValid() then nick = "Unknown" else nick = ply:Nick() end
 				local name = v:GetNWString("name", "generic")
+				
+				local singleline = string.match( name, "(.-)\n" )
+				if singleline then name = singleline .. "..." end
+				
+				local max = 20
+				if #name > max then name = string.sub(name,1,max) .. "..." end
+				
 				local panel = vgui.Create("DPanel")
-				panel:SetTall(46)
+				panel:SetTall((LocalPlayer():IsAdmin() and 74 or 47))
 				panel.Paint = function(panel)
 					local w, h = panel:GetSize()
 					draw.RoundedBox(1, 0, 0, w, h, Color(65, 105, 255, 100))
@@ -1757,11 +1783,45 @@ Text here]# ]]
 				size = size + panel:GetTall() + 1
 
 				local label = vgui.Create("DLabel", panel)
-				label:SetText("Name: " .. name .. "\nEntity ID: '" .. v:EntIndex() .. "'" .. (showall and "\nOwner: " .. nick or ""))
+				local idx = v:EntIndex()
+				
+				local str = string.format("Name: %s\nEntity ID: '%d'\nOwner: %s",name,idx,nick)
+				if LocalPlayer():IsAdmin() then
+					str = string.format("Name: %s\nEntity ID: '%d'\n%i ops, %i%% %s\ncpu time: %ius\nOwner: %s",name,idx,0,0,"",0,nick)
+				end
+				
+				label:SetText(str)
 				label:SizeToContents()
+				label:SetWide(280)
 				label:SetWrap(true)
 				label:SetPos(4, 4)
 				label:SetTextColor(Color(255, 255, 255, 255))
+				
+				if LocalPlayer():IsAdmin() then
+					local hardquota = GetConVar("wire_expression2_quotahard")
+					local softquota = GetConVar("wire_expression2_quotasoft")
+					
+					function label:Think()
+						if not IsValid(v) then
+							label.Think = function() end
+							return
+						end
+						
+						local data = v:GetOverlayData()
+						if data then						
+							local prfbench = data.prfbench
+							local prfcount = data.prfcount
+							local timebench = data.timebench
+
+							local e2_hardquota = hardquota:GetInt()
+							local e2_softquota = softquota:GetInt()
+							
+							local hardtext = (prfcount / e2_hardquota > 0.33) and "(+" .. tostring(math.Round(prfcount / e2_hardquota * 100)) .. "%)" or ""
+		
+							label:SetText(string.format("Name: %s\nEntity ID: '%d'\n%i ops, %i%% %s\ncpu time: %ius\nOwner: %s",name,idx,prfbench,prfbench / e2_softquota * 100,hardtext,timebench*1000000,nick))
+						end						
+					end
+				end
 
 				local btn = vgui.Create("DButton", panel)
 				btn:SetText("")

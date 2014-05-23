@@ -265,10 +265,6 @@ if CLIENT then
 		end
 	end
 	
-	function ENT:GetOverlayData()
-		return self.OverlayData
-	end
-	
 	--------------------------------------------------------------------------------
 	-- Overlay receiving
 	--------------------------------------------------------------------------------
@@ -312,6 +308,10 @@ function ENT:SetOverlayData( data )
 	
 	if not self.OverlayData_UpdateTime then	self.OverlayData_UpdateTime = {} end
 	self.OverlayData_UpdateTime.time = CurTime()
+end
+
+function ENT:GetOverlayData()
+	return self.OverlayData
 end
 
 if CLIENT then return end -- no more client
