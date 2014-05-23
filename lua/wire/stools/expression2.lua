@@ -399,7 +399,10 @@ if SERVER then
 					net.WriteInt( #E2s, 16 )
 					for i=1,#E2s do
 						net.WriteEntity( E2s[i] )
-						net.WriteTable( E2s[i]:GetOverlayData() )
+						local data = E2s[i]:GetOverlayData()
+						net.WriteDouble( data.prfbench )
+						net.WriteDouble( data.prfcount )
+						net.WriteDouble( data.timebench )
 					end
 				net.Send( plys )
 			end)
@@ -417,7 +420,18 @@ elseif CLIENT then
 		local num = net.ReadInt( 16 )
 		for i=1,num do
 			local E2 = net.ReadEntity()
-			E2:SetOverlayData( net.ReadTable() )
+			local prfbench = net.ReadDouble()
+			local prfcount = net.ReadDouble()
+			local timebench = net.ReadDouble()
+			
+			local data = E2:GetOverlayData()
+			E2:SetOverlayData( {
+				txt = data.txt,
+				error = data.error,
+				prfbench = prfbench,
+				prfcount = prfcount,
+				timebench = timebench
+			} )
 		end
 	end )
 
