@@ -316,4 +316,4 @@ function ENT:Setup(UseSounds, UseEffects)
 	self:ShowOutput()
 end
 
-duplicator.RegisterEntityClass("gmod_wire_hoverdrivecontroler", WireLib.MakeWireEnt, "Data", "UseSounds", "UseEffects" )
+duplicator.RegisterEntityClass("gmod_wire_hoverdrivecontroller", WireLib.MakeWireEnt, "Data", "UseSounds", "UseEffects" )
