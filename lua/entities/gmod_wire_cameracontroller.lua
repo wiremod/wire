@@ -102,21 +102,35 @@ function ENT:OnRemove()
 end
 
 function ENT:EnableCam(enabled)
-	if not IsValid(self.CamPlayer) then self.CamPlayer = self:GetPlayer() end
-	if not IsValid(self.CamPlayer) then return end
-	if not IsValid(self.CamEnt) then enabled = false end
-	if self.FOV then
-		if not self.CamPlayer.OriginalFOV then self.CamPlayer.OriginalFOV = self.CamPlayer:GetFOV() end
-		self.CamPlayer:SetFOV(enabled and self.FOV or self.CamPlayer.OriginalFOV or 75, 0.01 )
-	elseif self.CamPlayer.OriginalFOV then
-		self.CamPlayer:SetFOV(self.CamPlayer.OriginalFOV, 0.1)
+	if enabled and not self.Active then
+		self.CamPlayer = IsValid(self.CamPod) and self.CamPod:GetDriver()
+		if not IsValid(self.CamPlayer) then self.CamPlayer = self:GetPlayer() end
+		if not IsValid(self.CamPlayer) then return end
+		-- We allow cam controllers to override other view entities, but not each other
+		if self.CamPlayer:GetViewEntity():GetClass() == self:GetClass then return end
+		
+		self.CamPlayer.OriginalFOV = self.CamPlayer:GetFOV()
+		self.CamPlayer.OriginalView = self.CamPlayer:GetViewEntity()
+		self.CamPlayer:SetViewEntity(self.CamEnt)
+		self:UpdateCam()
+	elseif self.Active and not enabled then
+		if not IsValid(self.CamPlayer) or self.CamPlayer:GetViewEntity() ~= self.CamEnt then return end
+		self.CamPlayer:SetFOV(self.CamPlayer.OriginalFOV or 75, 0.01)
+		self.CamPlayer:SetViewEntity(self.CamPlayer.OriginalView or self.CamPlayer)
+		self.CamPlayer.OriginalFOV = nil
+		self.CamPlayer.OriginalView = nil
+		self.CamPlayer = nil
 	end
-	self.CamPlayer.CamController = enabled and self or nil
-	self.CamPlayer:SetViewEntity(enabled and self.CamEnt or self.CamPlayer)
-	FLIR.enable(self.CamPlayer, enabled and self.FLIR)
-
-	WireLib.TriggerOutput(self, "On", enabled and 1 or 0)
+	
 	self.Active = enabled
+	WireLib.TriggerOutput(self, "On", self.Active and 1 or 0)
+end
+
+function ENT:UpdateCam()
+	if not IsValid(self.CamPlayer) then return end
+	FLIR.enable(self.CamPlayer, self.FLIR)
+	self.CamPlayer:SetFOV( self.FOV or self.CamPlayer.OriginalFOV or 75, 0.01 )
+	
 end
 
 function ENT:TriggerInput( name, value )
@@ -128,10 +142,10 @@ function ENT:TriggerInput( name, value )
 		self:EnableCam(value)
 	elseif name == "Zoom" then
 		self.FOV = value > 0 and math.Clamp( value, 1, 90 ) or nil
-		self:EnableCam(self.Active)
+		self:UpdateCam()
 	elseif name == "FLIR" then
 		self.FLIR = tobool(value)
-		self:EnableCam(self.Active)
+		self:UpdateCam()
 	elseif name == "Direction" then
 		self:TriggerInput("Angle", value:Angle())
 	elseif IsValid(self.CamEnt) then
@@ -163,13 +177,12 @@ function ENT:TriggerInput( name, value )
 end
 
 hook.Add("PlayerLeaveVehicle", "gmod_wire_cameracontroller", function(player, vehicle)
-	if IsValid(player.CamController) and player.CamController.CamPod == vehicle then
-		player.CamController:EnableCam(false)
-	end
+if player:GetViewEntity().CamPod == vehicle then
+	player:GetViewEntity():EnableCam(false)
 end)
 
 concommand.Add( "wire_cameracontroller_leave", function(player)
-	if IsValid(player.CamController) then player.CamController:EnableCam(false) end
+	if player:GetViewEntity().EnableCam then player:GetViewEntity:EnableCam(false) end
 end)
 
 function ENT:UpdateMarks()
