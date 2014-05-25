@@ -342,7 +342,7 @@ for k,v in pairs(valuemodels) do
 	if file.Exists(v,"GAME") then list.Set( "Wire_Value_Models", v, true ) end
 end
 
-local hoverdrivemodels = {
+local teleportermodels = {
 	"models/props_c17/utilityconducter001.mdl",
 	"models/Combine_Helicopter/helicopter_bomb01.mdl",
 	"models/props_combine/combine_interface001.mdl",
@@ -359,8 +359,8 @@ local hoverdrivemodels = {
 	"models/props_c17/pottery03a.mdl",
 	"models/props_wasteland/laundry_washer003.mdl"
 }
-for k,v in pairs(hoverdrivemodels) do
-	if file.Exists(v,"GAME") then list.Set( "WireHoverdriveModels", v, true ) end
+for k,v in pairs(teleportermodels) do
+	if file.Exists(v,"GAME") then list.Set( "WireTeleporterModels", v, true ) end
 end
 
 local turretmodels = {
