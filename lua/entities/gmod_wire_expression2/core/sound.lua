@@ -60,6 +60,8 @@ local function soundStop(self, index, fade)
 	self.data.sound_data.sounds[index] = nil
 	
 	self.data.sound_data.count = self.data.sound_data.count - 1
+	
+	timer.Remove( "E2_sound_stop_" .. self.entity:EntIndex() .. "_" .. index )
 end
 
 local function soundCreate(self, entity, index, time, path, fade)
@@ -71,9 +73,12 @@ local function soundCreate(self, entity, index, time, path, fade)
 	path = path:gsub( "\\", "/" )
 	if isnumber( index ) then index = math.floor( index ) end
 	
+	local timerid = "E2_sound_stop_" .. self.entity:EntIndex() .. "_" .. index
+	
 	local sound = getSound( self, index )
 	if sound then
 		sound:Stop()
+		timer.Remove( timerid )
 	else
 		data.count = data.count + 1
 	end
@@ -83,14 +88,14 @@ local function soundCreate(self, entity, index, time, path, fade)
 	sound:Play()
 	
 	entity:CallOnRemove( "E2_stopsound", function()
-		if IsValid( sound ) then sound:Stop() end
-	end	)
+		soundStop( self, index, 0 )
+	end )
 	
 	if time == 0 and fade == 0 then return end
 	time = math.abs( time )
 	
-	timer.Simple( time, function()
-		if not IsValid( self ) or not IsValid( entity ) then return end
+	timer.Create( timerid, time, 1, function()
+		if not self or not IsValid( self.entity ) or not IsValid( entity ) then return end
 		
 		soundStop( self, index, fade )
 	end)
@@ -101,6 +106,7 @@ local function soundPurge( self )
 	if sound_data.sounds then
 		for k,v in pairs( sound_data.sounds ) do
 			v:Stop()
+			timer.Remove( "E2_sound_stop_" .. self.entity:EntIndex() .. "_" .. k )
 		end
 	end
 	
