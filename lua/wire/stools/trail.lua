@@ -1,4 +1,4 @@
-WireToolSetup.setCategory( "Physics" )
+WireToolSetup.setCategory( "Visuals" )
 WireToolSetup.open( "trail", "Trail", "gmod_wire_trail", nil, "Trails" )
 
 if CLIENT then

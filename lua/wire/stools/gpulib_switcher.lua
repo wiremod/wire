@@ -1,4 +1,4 @@
-WireToolSetup.setCategory( "Display" )
+WireToolSetup.setCategory( "Visuals" )
 WireToolSetup.open( "gpulib_switcher", "GPULib Switcher", "gmod_wire_gpulib_controller" )
 
 TOOL.ClientConVar[ "model" ] = "models/jaanus/wiretool/wiretool_siren.mdl"

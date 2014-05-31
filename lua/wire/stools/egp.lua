@@ -1,5 +1,5 @@
 -- Wire EGP by Divran
-WireToolSetup.setCategory( "Display" )
+WireToolSetup.setCategory( "Visuals/Screens" )
 WireToolSetup.open( "egp", "EGP v3", "gmod_wire_egp", nil, "EGPs" )
 
 TOOL.ClientConVar["model"] = "models/kobilica/wiremonitorbig.mdl"

@@ -1,5 +1,5 @@
-WireToolSetup.setCategory("Control")
-WireToolSetup.open("expression2", "Chip - Expression 2", "gmod_wire_expression2", nil, "Expression2s")
+WireToolSetup.setCategory( "Chips, Gates", "Common" )
+WireToolSetup.open("expression2", "Expression 2", "gmod_wire_expression2", nil, "Expression2s")
 
 if CLIENT then
 	language.Add("Tool.wire_expression2.name", "Expression 2 Tool (Wire)")

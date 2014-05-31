@@ -340,7 +340,7 @@ if CLIENT then
 		Panel:CheckBox("Nocollide All", "wire_tool_nocollide")
 	end
 	hook.Add("PopulateToolMenu","WireLib_WireOptions",function()
-		spawnmenu.AddToolMenuOption( "Wire", "Wire - Tools", "WireOptions", "Tool Options", "", "", CreateCPanel_WireOptions, nil )
+		spawnmenu.AddToolMenuOption( "Wire", "Options", "WireOptions", "Tool Options", "", "", CreateCPanel_WireOptions, nil )
 	end)
 end
 
@@ -403,8 +403,15 @@ end
 WireToolSetup = {}
 
 -- sets the ToolCategory for every wire tool made fallowing its call
-function WireToolSetup.setCategory( s_cat )
-	WireToolSetup.cat = "Wire - "..s_cat
+function WireToolSetup.setCategory( s_cat, ... )
+	WireToolSetup.cat = s_cat
+	
+	local categories = {...}
+	if #categories > 0 then
+		WireToolSetup.Wire_MultiCategories = categories
+	else
+		WireToolSetup.Wire_MultiCategories = nil
+	end
 end
 
 -- makes a new TOOL
@@ -423,6 +430,7 @@ function WireToolSetup.open( s_mode, s_name, s_class, f_toolmakeent, s_pluralnam
 	TOOL.Mode			= "wire_"..s_mode
 	TOOL.short_name		= s_mode
 	TOOL.Category		= WireToolSetup.cat
+	TOOL.Wire_MultiCategories = WireToolSetup.Wire_MultiCategories
 	TOOL.Name			= s_name
 	TOOL.PluralName		= s_pluralname
 	TOOL.WireClass		= s_class

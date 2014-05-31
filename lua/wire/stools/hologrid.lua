@@ -1,4 +1,4 @@
-WireToolSetup.setCategory( "Render" )
+WireToolSetup.setCategory( "Visuals/Holographic" )
 WireToolSetup.open( "hologrid", "HoloGrid", "gmod_wire_hologrid", nil, "HoloGrids" )
 
 if CLIENT then
