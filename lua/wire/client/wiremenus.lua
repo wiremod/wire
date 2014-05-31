@@ -1,5 +1,5 @@
 local Categories = {
-	"Common",
+	"Favourites",
 	"Chips, Gates",
 	"Visuals",
 	"Detection",

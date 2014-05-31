@@ -1,4 +1,4 @@
-WireToolSetup.setCategory( "Vehicle Control", "Common" )
+WireToolSetup.setCategory( "Vehicle Control" )
 WireToolSetup.open( "pod", "Pod Controller", "gmod_wire_pod", nil, "Pod Controllers" )
 
 if CLIENT then

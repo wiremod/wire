@@ -7,6 +7,33 @@ local expand_all = CreateConVar( "wire_tool_menu_expand_all", 0, {FCVAR_ARCHIVE}
 local search_max_convar = CreateConVar( "wire_tool_menu_search_limit", 28, {FCVAR_ARCHIVE} )
 local separate_wire_extras = CreateConVar( "wire_tool_menu_separate_wire_extras", 1, {FCVAR_ARCHIVE} )
 
+local function expandall( bool, nodes )
+	for i=1,#nodes do
+		nodes[i]:SetExpanded( bool )
+		if nodes[i].WireCookieText then cookie.Set( nodes[i].WireCookieText, bool and 1 or 0 ) end
+		
+		if nodes[i].ChildNodes then
+			expandall( bool, nodes[i].ChildNodes:GetChildren() )
+		end
+	end
+end
+
+local function expandbycookie( nodes )
+	for i=1,#nodes do
+		local b = cookie.GetNumber( nodes[i].WireCookieText )
+		
+		if b and b == 1 then
+			nodes[i]:SetExpanded( b and b == 1 )
+			
+			if nodes[i].ChildNodes then
+				expandbycookie( nodes[i].ChildNodes:GetChildren() )
+			end
+		else
+			nodes[i]:SetExpanded( false )
+		end				
+	end
+end
+
 --[[---------------------------------------------------------
    Name: Paint
 -----------------------------------------------------------]]
@@ -50,11 +77,25 @@ function PANEL:Init()
 		-- create this here so that it's below ExpandAll
 		local SeparateWireExtras = vgui.Create( "DCheckBoxLabel", SearchBoxPanel )
 		SeparateWireExtras:SetText( "Separate Wire Extras" )
-		SeparateWireExtras:SetToolTip( "Whether or not to separate wire extras tools into its own category. Requires rejoin to take effect." )
+		SeparateWireExtras:SetToolTip( "Whether or not to separate wire extras tools into its own category." )
 		SeparateWireExtras:SetConVar( "wire_tool_menu_separate_wire_extras" )
 		SeparateWireExtras.Label:SetDark(true)
 		SeparateWireExtras:DockMargin( 4, 4, 0, 0 )
 		SeparateWireExtras:Dock( BOTTOM )
+		
+		local first = true
+		local parent = self
+		local oldval
+		function SeparateWireExtras:OnChange( value )
+			if oldval == value then return end -- wtfgarry
+			oldval = value
+			
+			if first then first = false return end
+			
+			timer.Simple( 0.1, function()
+				parent:ReloadEverything()
+			end )
+		end
 		
 		SearchBoxPanel:SetTall( 104 )
 	end
@@ -78,15 +119,7 @@ function PANEL:Init()
 	ExpandAll:DockMargin( 4, 4, 0, 0 )
 	ExpandAll:Dock( BOTTOM )
 	
-	local function expandall( bool, nodes )
-		for i=1,#nodes do
-			nodes[i]:SetExpanded( bool )
-			
-			if nodes[i].ChildNodes then
-				expandall( bool, nodes[i].ChildNodes:GetChildren() )
-			end
-		end
-	end
+	local first = true
 	
 	local parent = self
 	local oldval
@@ -95,17 +128,17 @@ function PANEL:Init()
 		oldval = value
 		
 		local childNodes = parent.List:Root().ChildNodes:GetChildren()
-		expandall( value, childNodes )
+		
+		if first then
+			-- this was the only way to get this to run at the right time... garry bypassing hacks wohoo
+			-- it works because DCheckBox:OnChange is called when the player first sees the checkbox (aka when they open the wire tool tab)
+			first = false
+			expandbycookie( childNodes ) 
+		else
+			expandall( value, childNodes )
+		end
 	end
 	ExpandAll.Label:SetDark(true)
-	
-	-- Expand all if convar is enabled
-	timer.Simple( 1, function()
-		if expand_all:GetBool() then
-			local childNodes = self.List:Root().ChildNodes:GetChildren()
-			expandall( true, childNodes )
-		end
-	end )
 	
 	self.List:Dock( FILL )
 	
@@ -139,7 +172,21 @@ function PANEL:Init()
 	end
 	
 	self.ToolTable = {}
+	self.OriginalToolTable = {}
 	self.CategoryLookup = {}
+end
+
+function PANEL:ReloadEverything()
+	self.List:Root():Remove()
+	self.List:Init()
+	self.SearchList:Clear()
+	self.SearchBox:SetValue( "" )
+	
+	self.CategoryLookup = {}
+	self.ToolTable = {}
+	
+	self:LoadToolsFromTable( self.OriginalToolTable )
+	expandbycookie( self.List:Root().ChildNodes:GetChildren() )
 end
 
 
@@ -225,6 +272,23 @@ function PANEL:Search( text )
 	return results
 end
 
+local function AddNode( list, text, cookietext )
+	local node = list:AddNode( text )
+	
+	cookietext = "ToolMenu.Wire." .. cookietext
+	node.WireCookieText = cookietext
+	
+	function node:DoClick()
+		local b = not self.m_bExpanded
+		self:SetExpanded( b )
+		
+		cookie.Set( cookietext, b and 1 or 0 )
+	end
+	node.Expander.DoClick = function() node:DoClick() end
+	
+	return node
+end
+
 function PANEL:CreateCategories()
 	for k,v in pairs( self.ToolTable ) do
 		if istable( v ) then			
@@ -241,14 +305,16 @@ function PANEL:CreateCategories()
 			
 			if #expl == 1 then
 				if not self.CategoryLookup[category] then
-					local node = self.List:AddNode( v.Text )
+					--local node = self.List:AddNode( v.Text )
+					local node = AddNode( self.List, v.Text, category )
 					self.CategoryLookup[category] = node
 				end
 			else
-				local curnode = self.CategoryLookup[expl[1]]
-				if not curnode then
-					curnode = self.List:AddNode( expl[1] )
-					self.CategoryLookup[expl[1]] = curnode
+				local category = expl[1]
+				if not self.CategoryLookup[category] then
+					--local node = self.List:AddNode( category )
+					local node = AddNode( self.List, category, category )
+					self.CategoryLookup[category] = node
 				end
 				
 				for i=2,#expl do
@@ -256,7 +322,8 @@ function PANEL:CreateCategories()
 					
 					local path = table.concat(expl,"/",1,i)
 					if not self.CategoryLookup[path] then
-						local node = self.CategoryLookup[table.concat(expl,"/",1,i-1)]:AddNode( str )
+						--local node = self.CategoryLookup[table.concat(expl,"/",1,i-1)]:AddNode( str )
+						local node = AddNode( self.CategoryLookup[table.concat(expl,"/",1,i-1)], str, path )
 						self.CategoryLookup[path] = node
 					end
 				end
@@ -265,9 +332,9 @@ function PANEL:CreateCategories()
 	end
 end
 
-function PANEL:AddToolToCategories( tool, tooltbl )
-	for i=1,#tooltbl.Wire_MultiCategories do
-		local categoryName = tooltbl.Wire_MultiCategories[i]
+function PANEL:AddToolToCategories( tool, categories )
+	for i=1,#categories do
+		local categoryName = categories[i]
 		
 		local added = false
 		
@@ -301,10 +368,15 @@ function PANEL:FixWireCategories()
 		if istable(category) then
 			for _, tool in pairs( category ) do
 				if istable(tool) then
+					local fav = cookie.GetNumber( "ToolMenu.Wire.Favourites." .. tool.ItemName )
+					if fav and fav == 1 then
+						self:AddToolToCategories( tool, {"Favourites"} )
+					end						
+				
 					local tooltbl = weapons.Get("gmod_tool").Tool[tool.ItemName]
 					if tooltbl then
 						if tooltbl.Wire_MultiCategories then
-							self:AddToolToCategories( tool, tooltbl )
+							self:AddToolToCategories( tool, tooltbl.Wire_MultiCategories )
 						end
 					end
 				end
@@ -317,6 +389,7 @@ end
 --  Name: LoadToolsFromTable
 -----------------------------------------------------------
 function PANEL:LoadToolsFromTable( inTable )
+	self.OriginalToolTable = table.Copy( inTable )
 	self.ToolTable = table.Copy( inTable )
 	
 	-- First, we copy all tools into their multi categories
@@ -356,8 +429,6 @@ function PANEL:AddCategory( Name, Label, tItems, CategoryID )
 		-- fail silently instead, otherwise the entire tool menu fucks up
 		return
 	end
-
-	Category:SetCookieName( "ToolMenu." .. tostring( Name ) )
 	
 	local bAlt = true
 	
@@ -369,12 +440,28 @@ function PANEL:AddCategory( Name, Label, tItems, CategoryID )
 		local item = Category:AddNode( v.Text )
 		item.Icon:SetImage( "icon16/wrench.png" )
 		
-		item.DoClick = function( button )
+		function item:DoClick()
 
-			spawnmenu.ActivateTool( button.Name )
+			spawnmenu.ActivateTool( self.Name )
 
 		end
 		
+		local parent = self
+		function item:DoRightClick()
+			local menu = DermaMenu()
+			
+			local b = cookie.GetNumber( self.WireFavouritesCookieText )
+			if b and b == 1 then
+				menu:AddOption( "Remove from favourites", function() cookie.Set( self.WireFavouritesCookieText, 0 ) parent:ReloadEverything() end )
+			else
+				menu:AddOption( "Add to favourites", function() cookie.Set( self.WireFavouritesCookieText, 1 ) parent:ReloadEverything() end )
+			end
+			menu:Open()
+			
+			return true
+		end
+		
+		item.WireFavouritesCookieText	= "ToolMenu.Wire.Favourites." .. v.ItemName
 		item.ControlPanelBuildFunction	= v.CPanelFunction
 		item.Command					= v.Command
 		item.Name						= v.ItemName
