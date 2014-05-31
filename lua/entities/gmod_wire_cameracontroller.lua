@@ -793,7 +793,7 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 		local veh = info.Vehicles
 		if veh then
 			for i=1,#veh do
-				self.Vehicles[i] = GetEntByID( veh[i] )
+				self:LinkEnt( GetEntByID( veh[i] ) )
 			end
 		end
 	end

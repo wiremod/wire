@@ -7,11 +7,13 @@ if CLIENT then return end -- No more client
 function ENT:Initialize()
 	self.BaseClass.Initialize(self)
 	
-	self.Inputs = WireLib.CreateInputs(self, {"Entity [ENTITY]", "Entities [ARRAY]", "Position [VECTOR]", "Local Position [VECTOR]"})
+	self.Inputs = WireLib.CreateInputs(self, {"Entity [ENTITY]", "Entities [ARRAY]", "Position [VECTOR]", "Local Position [VECTOR]", "Angle [ANGLE]", "Local Angle [ANGLE]"})
 	
-	self.Position = Vector()
+	self.Position = Vector(0,0,0)
+	self.Angle = Angle(0,0,0)
 	self.Entities = {}
 	self.Global = false
+	self.GlobalAngle = false
 	self:AddExitPoint()
 end
 
@@ -34,6 +36,12 @@ function ENT:TriggerInput( name, value )
 	elseif (name == "Local Position") then
 		self.Position = value
 		self.Global = false
+	elseif (name == "Angle") then
+		self.Angle = value
+		self.GlobalAngle = true
+	elseif (name == "Local Angle") then
+		self.Angle = value
+		self.GlobalAngle = false
 	end
 	self:ShowOutput()
 end
@@ -60,12 +68,21 @@ hook.Add( "EntityRemoved", "WireExitPoint", RemoveExitPoint )
 local function MovePlayer( ply, vehicle )
 	for epoint, _ in pairs( ExitPoints ) do
 		if IsValid(epoint) and not epoint.Position:IsZero() and epoint.Entities and epoint.Entities[vehicle] then
-			-- if ( vehicle:GetPos():Distance( epoint:GetPos() ) < 1000 ) then -- Meh, why the distinction?
 			if epoint.Global then
 				ply:SetPos( epoint.Position + Vector(0,0,5) ) -- Add 5z so they don't get stuck in the GPS or whatnot
+				local ang = ply:EyeAngles()
 			else
 				ply:SetPos( vehicle:LocalToWorld( epoint.Position ) + Vector(0,0,5) )
 			end
+			
+			if epoint.GlobalAngle then
+				ply:SetEyeAngles( Angle( epoint.Angle.p, epoint.Angle.y, 0 ) )
+			else
+				local ang = epoint:LocalToWorldAngles( epoint.Angle )
+				ang.r = 0
+				ply:SetEyeAngles( ang )
+			end
+			
 			return
 		end
 	end

@@ -39,6 +39,13 @@ function PANEL:Init()
 	self.SearchBox:Dock( TOP )
 	self:SetupSearchbox()
 	
+	local parent = self
+	function self.SearchBox:OnEnter()
+		if #parent.SearchList:GetLines() > 0 then
+			parent.SearchList:OnClickLine( parent.SearchList:GetLine( 1 ) )
+		end
+	end
+	
 	if WireLib.WireExtrasInstalled then
 		-- create this here so that it's below ExpandAll
 		local SeparateWireExtras = vgui.Create( "DCheckBoxLabel", SearchBoxPanel )
@@ -110,6 +117,18 @@ function PANEL:Init()
 	self.SearchList:SetVisible( false )
 	self.SearchList:AddColumn( "Name" )
 	self.SearchList:AddColumn( "Category" )
+	self.SearchList:SetMultiSelect( false )
+	
+	function self.SearchList:OnClickLine( line )
+			-- Deselect old
+			local t = self:GetSelected()
+			if t and next(t) then
+				t[1]:SetSelected(false)
+			end
+
+			line:SetSelected(true) -- Select new
+			spawnmenu.ActivateTool( line.Name )
+		end
 	
 	self.Content = vgui.Create( "DCategoryList" )
 	self.Divider:SetRight( self.Content )
@@ -142,7 +161,8 @@ function PANEL:SetupSearchbox()
 			parent.SearchList:Clear()
 			for i=1,math.min(#results,search_max_convar:GetInt()) do
 				local result = results[i]
-				parent.SearchList:AddLine( result.item.Text, result.item.Category )
+				local line = parent.SearchList:AddLine( result.item.Text, result.item.Category )
+				line.Name = result.item.ItemName
 			end
 		else
 			if searching then
