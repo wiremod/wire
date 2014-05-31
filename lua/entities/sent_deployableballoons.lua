@@ -87,7 +87,7 @@ function ENT:Initialize()
 	self.rl = 64
 	if WireAddon then
 		self.Inputs = Wire_CreateInputs(self,{ "Force", "Length", "Weld?", "Popable?", "BalloonType", "Deploy" })
-		self.Outputs = Wire_CreateOutputs(self,{ "Deployed" })
+		self.Outputs=WireLib.CreateSpecialOutputs(self, { "Deployed", "BalloonEntity" }, {"NORMAL","ENTITY" })
 		Wire_TriggerOutput(self,"Deployed", self.Deployed)
 		--Wire_TriggerOutput(self,"Force", self.force)
 	end
@@ -126,6 +126,7 @@ function ENT:TriggerInput(key,value)
 		self.weld = value ~= 0
 	elseif (key == "Popable?") then
 		self.popable = value ~= 0
+		self:UpdatePopable()
 	elseif (key == "BalloonType") then
 		self.balloonType=value+1 --To correct for 1 based indexing
 	end
@@ -141,6 +142,17 @@ hook.Add("EntityRemoved", "balloon_deployer", function(ent)
 		deployer:TriggerInput("Deploy", 0)
 	end
 end)
+function ENT:UpdatePopable()
+	if not DmgFilter then DamageFilter() end
+	local balloon = self.Balloon
+	if balloon ~= nil and balloon:IsValid() then
+		if not self.popable then
+			balloon:Fire("setdamagefilter", "DmgFilter", 0);
+		else
+			balloon:Fire("setdamagefilter", "", 0);
+		end
+	end
+end
 
 function ENT:DeployBalloons()
 	local balloon
@@ -151,13 +163,7 @@ function ENT:DeployBalloons()
 		model = BalloonTypes[1]
 	end
 	balloon:SetModel(model)
-	
 	balloon:Spawn()
-	if not self.popable then
-		if not DmgFilter then DamageFilter() end
-		balloon:Fire("setdamagefilter", "DmgFilter", 0);
-	end
-	balloon:SetRenderMode( RENDERMODE_TRANSALPHA )
 	balloon:SetColor(Color(math.random(0,255), math.random(0,255), math.random(0,255), 255))
 	balloon:SetForce(self.force)
 	balloon:SetMaterial("models/balloon/balloon")
@@ -200,8 +206,9 @@ function ENT:DeployBalloons()
 	end
 	self:DeleteOnRemove(balloon)
 	self.Balloon = balloon
-
+	self:UpdatePopable()
 	balloon_registry[balloon] = self
+	Wire_TriggerOutput(self, "BalloonEntity", self.Balloon)
 end
 
 function ENT:OnRemove()
