@@ -1,4 +1,4 @@
-WireToolSetup.setCategory( "Beacon" )
+WireToolSetup.setCategory( "Detection/Beacon" )
 WireToolSetup.open( "waypoint", "Waypoint", "gmod_wire_waypoint", nil, "Waypoints" )
 
 if ( CLIENT ) then

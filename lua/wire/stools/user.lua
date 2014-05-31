@@ -1,4 +1,4 @@
-WireToolSetup.setCategory( "Physics" )
+WireToolSetup.setCategory( "Other" )
 WireToolSetup.open( "user", "User", "gmod_wire_user", nil, "Users" )
 
 if CLIENT then

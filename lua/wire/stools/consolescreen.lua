@@ -1,4 +1,4 @@
-WireToolSetup.setCategory( "Display" )
+WireToolSetup.setCategory( "Visuals/Screens" )
 WireToolSetup.open( "consolescreen", "Console Screen", "gmod_wire_consolescreen", nil,  "Screens" )
 
 if CLIENT then

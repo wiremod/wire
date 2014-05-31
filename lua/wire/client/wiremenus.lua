@@ -1,21 +1,27 @@
-local Wire_Categories = {
-	"Wire - Advanced",
-	"Wire - Beacon",
-	"Wire - Control",
-	"Wire - Data",
-	"Wire - Detection",
-	"Wire - Display",
-	"Wire - Render",
-	"Wire - I/O",
-	"Wire - Physics",
-	"Wire - Tools",
+local Categories = {
+	"Common",
+	"Chips, Gates",
+	"Visuals",
+	"Detection",
+	"Input, Output",
+	"Vehicle Control",
+	"Physics",
+	"Other",
+	"Memory",
+	"Advanced",
+	"Tools",
+	"Options",
 }
+
+hook.Add( "AddToolMenuCategories", "WireCategories", function()
+	for i=1,#Categories do
+		local Category = Categories[i]
+		spawnmenu.AddToolCategory("Wire", Category, Category)
+	end
+end)
 
 local function WireTab()
 	spawnmenu.AddToolTab( "Wire", "Wire" )
-	for _,Category in ipairs(Wire_Categories) do
-		spawnmenu.AddToolCategory("Wire", Category, Category)
-	end
 
 	--start: UGLY HACK, BAD BAD BAD D:
 	local oldspawnmenuAddToolMenuOption = spawnmenu.AddToolMenuOption

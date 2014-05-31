@@ -1,4 +1,4 @@
-WireToolSetup.setCategory( "I/O" )
+WireToolSetup.setCategory( "Input, Output/Keyboard Interaction" )
 WireToolSetup.open( "dual_input", "Dual Input", "gmod_wire_dual_input", nil, "Dual Inputs" )
 
 if CLIENT then

@@ -1,4 +1,4 @@
-WireToolSetup.setCategory( "I/O" )
+WireToolSetup.setCategory( "Input, Output" )
 WireToolSetup.open( "keypad", "Keypad", "gmod_wire_keypad", nil, "Keypads" )
 
 if CLIENT then

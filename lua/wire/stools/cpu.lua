@@ -1,5 +1,5 @@
-WireToolSetup.setCategory( "Control" )
-WireToolSetup.open( "cpu", "Chip - CPU", "gmod_wire_cpu", nil, "CPUs" )
+WireToolSetup.setCategory( "Chips, Gates", "Advanced" )
+WireToolSetup.open( "cpu", "CPU", "gmod_wire_cpu", nil, "CPUs" )
 
 if CLIENT then
 	language.Add("Tool.wire_cpu.name", "CPU Tool (Wire)")

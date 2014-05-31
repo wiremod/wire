@@ -1,4 +1,4 @@
-WireToolSetup.setCategory( "Physics" )
+WireToolSetup.setCategory( "Physics/Force" )
 WireToolSetup.open( "vthruster", "Vector Thruster", "gmod_wire_vectorthruster", nil, "Vector Thrusters" )
 
 if ( CLIENT ) then

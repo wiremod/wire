@@ -1,4 +1,4 @@
-WireToolSetup.setCategory( "Data" )
+WireToolSetup.setCategory( "Memory" )
 WireToolSetup.open( "data_transferer", "Transferer", "gmod_wire_data_transferer", nil, "Transferers" )
 
 if ( CLIENT ) then

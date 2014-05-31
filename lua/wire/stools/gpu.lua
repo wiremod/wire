@@ -1,5 +1,5 @@
-WireToolSetup.setCategory( "Advanced" )
-WireToolSetup.open( "gpu", "Display - GPU", "gmod_wire_gpu", nil, "GPUs" )
+WireToolSetup.setCategory( "Chips, Gates", "Visuals/Screens", "Advanced" )
+WireToolSetup.open( "gpu", "GPU", "gmod_wire_gpu", nil, "GPUs" )
 
 if CLIENT then
   language.Add("Tool.wire_gpu.name", "GPU Tool (Wire)")

@@ -1,4 +1,4 @@
-WireToolSetup.setCategory( "Physics" )
+WireToolSetup.setCategory( "Physics/Constraints" )
 WireToolSetup.open( "grabber", "Grabber", "gmod_wire_grabber", nil, "Grabbers" )
 
 if CLIENT then

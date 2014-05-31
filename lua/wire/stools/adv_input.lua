@@ -1,4 +1,4 @@
-WireToolSetup.setCategory( "I/O" )
+WireToolSetup.setCategory( "Input, Output/Keyboard Interaction" )
 WireToolSetup.open( "adv_input", "Adv. Input", "gmod_wire_adv_input", nil, "Adv Inputs" )
 
 if CLIENT then

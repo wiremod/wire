@@ -1,4 +1,4 @@
-WireToolSetup.setCategory( "Display" )
+WireToolSetup.setCategory( "Visuals/Screens" )
 WireToolSetup.open( "digitalscreen", "Digital Screen", "gmod_wire_digitalscreen", nil, "Digital Screens" )
 
 if CLIENT then
