@@ -82,7 +82,7 @@ as pressing the "All" button.]])
 end
 
 hook.Add("PopulateToolMenu","WireLib_RenderTarget_Fix",function()
-	spawnmenu.AddToolMenuOption( "Wire", "Wire - Display", "RTFix", "Fix RenderTargets", "", "", CreateCPanel, nil )
+	spawnmenu.AddToolMenuOption( "Wire", "Options", "RTFix", "Fix RenderTargets", "", "", CreateCPanel, nil )
 end)
 
 ---------------------------------------------------------------------

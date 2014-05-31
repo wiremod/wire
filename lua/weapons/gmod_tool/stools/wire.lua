@@ -7,7 +7,7 @@ include( "wire/tool_loader.lua" )
 TOOL = OLD_TOOL
 
 TOOL.Mode			= "wire"
-TOOL.Category		= "Wire - Tools"
+TOOL.Category		= "Tools"
 TOOL.Name			= "Wire (Legacy)"
 TOOL.Tab			= "Wire"
 

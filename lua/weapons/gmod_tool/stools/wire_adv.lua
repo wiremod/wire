@@ -1,6 +1,6 @@
-TOOL.Category = "Wire - Tools"
-TOOL.Name			= "Wire Advanced"
-TOOL.Tab      = "Wire"
+TOOL.Category	= "Tools"
+TOOL.Name		= "Wire Advanced"
+TOOL.Tab		= "Wire"
 
 if CLIENT then
 	language.Add( "Tool.wire_adv.name", "Advanced Wiring Tool" )
