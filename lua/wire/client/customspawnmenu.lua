@@ -66,6 +66,19 @@ function PANEL:Init()
 	self.SearchBox:Dock( TOP )
 	self:SetupSearchbox()
 	
+	local clearsearch = vgui.Create( "DImageButton", self.SearchBox )
+	clearsearch:SetMaterial( "icon16/cross.png" )
+	local src = self.SearchBox
+	function clearsearch:DoClick()
+		src:SetValue( "" )
+		src:OnTextChanged()
+	end
+	clearsearch:DockMargin( 2,2,4,2 )
+	clearsearch:Dock( RIGHT )
+	clearsearch:SetSize( 14, 10 )
+	clearsearch:SetVisible( false )
+	self.SearchBox.clearsearch = clearsearch
+	
 	local parent = self
 	function self.SearchBox:OnEnter()
 		if #parent.SearchList:GetLines() > 0 then
@@ -203,6 +216,7 @@ function PANEL:SetupSearchbox()
 				parent.SearchList:MoveTo( x, y, 0.1, 0, 1 )
 				parent.SearchList:SetSize( w, h )
 				parent.SearchList:SetVisible( true )
+				self.clearsearch:SetVisible( true )
 			end
 			local results = parent:Search( text )
 			parent.SearchList:Clear()
@@ -223,6 +237,7 @@ function PANEL:SetupSearchbox()
 						parent.SearchList:SetVisible( false )
 					end
 				end )
+				self.clearsearch:SetVisible( false )
 			end
 			parent.SearchList:Clear()
 		end
