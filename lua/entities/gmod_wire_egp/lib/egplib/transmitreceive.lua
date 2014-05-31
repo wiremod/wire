@@ -585,10 +585,10 @@ if (SERVER) then
 			if (#targets == 0) then return false, "There are no EGP screens on the map." end
 		end
 
-		local DataToSend = {}
+		local sent
 		for k,v in ipairs( targets ) do
 			if (v.RenderTable and #v.RenderTable>0) then
-				local DataToSend2 = {}
+				local DataToSend = {}
 				for k2, v2 in pairs( v.RenderTable ) do
 					local obj = v2
 
@@ -608,18 +608,26 @@ if (SERVER) then
 						EGP:MoveTopLeft( v, obj )
 					end
 
-					DataToSend2[#DataToSend2+1] = { ID = obj.ID, index = obj.index, Settings = obj:DataStreamInfo() }
+					DataToSend[#DataToSend+1] = { ID = obj.ID, index = obj.index, Settings = obj:DataStreamInfo() }
 				end
-				DataToSend[#DataToSend+1] = { Ent = v, Objects = DataToSend2 }
+				
+				timer.Simple( k, function() -- send 1 second apart
+					net.Start("EGP_Request_Transmit")
+						net.WriteTable({
+							Ent = v,
+							Objects = DataToSend,
+							IsLastScreen = (k == #targets) and #targets or nil -- Doubles as notifying the client that no more data will arrive, and tells them how many did arrive
+						})
+					net.Send(ply)
+				end)
+				sent = true
 			end
 		end
-		if (DataToSend and #DataToSend>0) then
-			net.Start("EGP_Request_Transmit")
-				net.WriteTable(DataToSend)
-			net.Send(ply)
-			return true, #DataToSend
+		if not sent then
+			return false, "None of the screens have any objects drawn on them."
+		else
+			return true, #targets
 		end
-		return false, "None of the screens have any objects drawn on them."
 	end
 
 	local function initspawn(ply)
@@ -637,24 +645,27 @@ if (SERVER) then
 else
 
 	function EGP:ReceiveDataStream( decoded )
-		for k,v in pairs( decoded ) do
-			local Ent = v.Ent
-			if (self:ValidEGP( Ent )) then
-				Ent.RenderTable = {}
-				for k2,v2 in pairs( v.Objects ) do
-					local Obj = self:GetObjectByID(v2.ID)
-					self:EditObject( Obj, v2.Settings )
-					-- If parented, reset the parent indexes
-					if (Obj.parent and Obj.parent != 0) then
-						self:AddParentIndexes( Obj )
-					end
-					Obj.index = v2.index
-					table.insert( Ent.RenderTable, Obj )
+		local Ent = decoded.Ent
+		local Objects = decoded.Objects
+		
+		if (self:ValidEGP( Ent )) then
+			Ent.RenderTable = {}
+			for _,v in pairs( Objects ) do
+				local Obj = self:GetObjectByID(v.ID)
+				self:EditObject( Obj, v.Settings )
+				-- If parented, reset the parent indexes
+				if (Obj.parent and Obj.parent != 0) then
+					self:AddParentIndexes( Obj )
 				end
-				Ent:EGP_Update()
+				Obj.index = v.index
+				table.insert( Ent.RenderTable, Obj )
 			end
+			Ent:EGP_Update()
 		end
-		LocalPlayer():ChatPrint("[EGP] Received EGP object reload. " .. #decoded .. " screens' objects were reloaded.")
+		
+		if decoded.IsLastScreen then
+			LocalPlayer():ChatPrint("[EGP] Received EGP object reload. " .. decoded.IsLastScreen .. " screens' objects were reloaded.")
+		end
 	end
 	net.Receive("EGP_Request_Transmit", function(len,ply)
 		EGP:ReceiveDataStream(net.ReadTable())
