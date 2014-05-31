@@ -52,14 +52,16 @@ local function soundStop(self, index, fade)
 	
 	if fade == 0 then
 		sound:Stop()
+		
+		if isnumber( index ) then index = math.floor( index ) end
+		self.data.sound_data.sounds[index] = nil
+		
+		self.data.sound_data.count = self.data.sound_data.count - 1
 	else
 		sound:FadeOut( fade )
+		
+		timer.Simple( fade, function() soundStop( self, index, 0 ) end)
 	end
-	
-	if isnumber( index ) then index = math.floor( index ) end
-	self.data.sound_data.sounds[index] = nil
-	
-	self.data.sound_data.count = self.data.sound_data.count - 1
 	
 	timer.Remove( "E2_sound_stop_" .. self.entity:EntIndex() .. "_" .. index )
 end
