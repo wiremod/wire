@@ -534,7 +534,7 @@ end
 vgui.Register( "WireToolPanel", PANEL, "Panel" )
 
 local function CreateCPanel( panel )
-	local checkbox = panel:CheckBox( "Use wire's custom spawn menu for all tabs", "wire_tool_menu_custom_menu_for_all_tabs" )
+	local checkbox = panel:CheckBox( "Use wire's custom tool menu for all tabs", "wire_tool_menu_custom_menu_for_all_tabs" )
 	checkbox:SetToolTip( "Requires rejoin to take effect" )
 end
 
@@ -554,7 +554,7 @@ WireLib.registerTabForCustomMenu( "Wire" )
 
 local old
 hook.Add( "PopulateToolMenu", "Wire_CustomSpawnMenu", function()
-	spawnmenu.AddToolMenuOption( "Wire", "Options", "Custom Spawn Menu Options", "Custom Spawn Menu Options", "", "", CreateCPanel )
+	spawnmenu.AddToolMenuOption( "Wire", "Options", "Custom Tool Menu Options", "Custom Tool Menu Options", "", "", CreateCPanel )
 
 	local ToolMenu = vgui.GetControlTable( "ToolMenu" )
 
