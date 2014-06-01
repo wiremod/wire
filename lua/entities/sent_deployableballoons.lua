@@ -143,7 +143,6 @@ hook.Add("EntityRemoved", "balloon_deployer", function(ent)
 	end
 end)
 function ENT:UpdatePopable()
-	if not DmgFilter then DamageFilter() end
 	local balloon = self.Balloon
 	if balloon ~= nil and balloon:IsValid() then
 		if not self.popable then
