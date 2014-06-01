@@ -442,6 +442,11 @@ function PANEL:LoadToolsFromTable( inTable )
 	self.OriginalToolTable = table.Copy( inTable )
 	self.ToolTable = table.Copy( inTable )
 	
+	-- If this tab has no favourites category, add one at the top
+	if self.ToolTable[1].ItemName ~= "Favourites" then
+		table.insert( self.ToolTable, 1, { ItemName = "Favourites", Text = "Favourites" } )
+	end
+	
 	-- First, we copy all tools into their multi categories
 	self:FixWireCategories()
 	
