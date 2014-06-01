@@ -1,12 +1,16 @@
 
 local PANEL = {}
 
+local CurrentName -- a small hack to know when to create the wire extras checkbox
+
 AccessorFunc( PANEL, "m_TabID", 			"TabID" )
 
 local expand_all = CreateConVar( "wire_tool_menu_expand_all", 0, {FCVAR_ARCHIVE} )
 local search_max_convar = CreateConVar( "wire_tool_menu_search_limit", 28, {FCVAR_ARCHIVE} )
 local separate_wire_extras = CreateConVar( "wire_tool_menu_separate_wire_extras", 1, {FCVAR_ARCHIVE} )
+local custom_for_all_tabs = CreateConVar( "wire_tool_menu_custom_menu_for_all_tabs", 0, {FCVAR_ARCHIVE} )
 
+-- Helper functions
 local function expandall( bool, nodes )
 	for i=1,#nodes do
 		nodes[i]:SetExpanded( bool )
@@ -34,9 +38,10 @@ local function expandbycookie( nodes )
 	end
 end
 
---[[---------------------------------------------------------
-   Name: Paint
------------------------------------------------------------]]
+
+----------------------------------------------------------------------
+-- Init
+----------------------------------------------------------------------
 function PANEL:Init()
 	
 	self.Divider = vgui.Create( "DHorizontalDivider", self )
@@ -59,10 +64,11 @@ function PANEL:Init()
 	
 	local SearchBoxPanel = vgui.Create( "DPanel", LeftPanel )
 	SearchBoxPanel:SetTall( 84 )
+	SearchBoxPanel:DockPadding( 2,2,2,2 )
 	SearchBoxPanel:Dock( TOP )
 	
 	self.SearchBox = vgui.Create( "DTextEntry", SearchBoxPanel )
-	self.SearchBox:DockMargin( 4, 4, 4, 0 )
+	self.SearchBox:DockMargin( 2, 2, 2, 0 )
 	self.SearchBox:Dock( TOP )
 	self:SetupSearchbox()
 	
@@ -86,7 +92,7 @@ function PANEL:Init()
 		end
 	end
 	
-	if WireLib.WireExtrasInstalled then
+	if WireLib.WireExtrasInstalled and CurrentName == "Wire" then
 		-- create this here so that it's below ExpandAll
 		local SeparateWireExtras = vgui.Create( "DCheckBoxLabel", SearchBoxPanel )
 		SeparateWireExtras:SetText( "Separate Wire Extras" )
@@ -189,6 +195,11 @@ function PANEL:Init()
 	self.CategoryLookup = {}
 end
 
+----------------------------------------------------------------------
+-- ReloadEverything
+-- Called when a user adds/removes favourites or checks/unchecks
+-- the wire extras checkbox
+----------------------------------------------------------------------
 function PANEL:ReloadEverything()
 	self.List:Root():Remove()
 	self.List:Init()
@@ -203,6 +214,11 @@ function PANEL:ReloadEverything()
 end
 
 
+----------------------------------------------------------------------
+-- SetupSearchbox
+-- This was so big, I moved it into its own function
+-- rather than doing it in PANEL:Init()
+----------------------------------------------------------------------
 function PANEL:SetupSearchbox()
 	local searching
 	local parent = self
@@ -243,6 +259,10 @@ function PANEL:SetupSearchbox()
 		end
 	end
 end
+
+----------------------------------------------------------------------
+-- Search algorithm
+----------------------------------------------------------------------
 
 -- Thank you http://lua-users.org/lists/lua-l/2009-07/msg00461.html
 local function Levenshtein( s, t )
@@ -287,6 +307,7 @@ function PANEL:Search( text )
 	return results
 end
 
+-- Helper function
 local function AddNode( list, text, cookietext )
 	local node = list:AddNode( text )
 	
@@ -304,6 +325,11 @@ local function AddNode( list, text, cookietext )
 	return node
 end
 
+----------------------------------------------------------------------
+-- CreateCategories
+-- Creates the categories before placing tools in them to ensure
+-- they are created in the correct order, and only once
+----------------------------------------------------------------------
 function PANEL:CreateCategories()
 	for k,v in pairs( self.ToolTable ) do
 		if istable( v ) then			
@@ -347,6 +373,11 @@ function PANEL:CreateCategories()
 	end
 end
 
+
+----------------------------------------------------------------------
+-- AddToolToCategories
+-- Handles multiple categories by copying the tool and moving the copies into said categories
+----------------------------------------------------------------------
 function PANEL:AddToolToCategories( tool, categories )
 	for i=1,#categories do
 		local categoryName = categories[i]
@@ -376,6 +407,10 @@ function PANEL:AddToolToCategories( tool, categories )
 	end
 end
 
+----------------------------------------------------------------------
+-- FixWireCategories
+-- Handles multi categories and favourites
+----------------------------------------------------------------------
 function PANEL:FixWireCategories()
 	local t = table.Copy( self.ToolTable )
 
@@ -401,7 +436,7 @@ function PANEL:FixWireCategories()
 end
 
 -----------------------------------------------------------
---  Name: LoadToolsFromTable
+-- Name: LoadToolsFromTable
 -----------------------------------------------------------
 function PANEL:LoadToolsFromTable( inTable )
 	self.OriginalToolTable = table.Copy( inTable )
@@ -433,15 +468,12 @@ function PANEL:LoadToolsFromTable( inTable )
 end
 
 -----------------------------------------------------------
---   Name: AddCategory
+-- Name: AddCategory
 -----------------------------------------------------------
 function PANEL:AddCategory( Name, Label, tItems, CategoryID )
 
-	--local Category = self.List:AddNode( Label )
 	local Category = self.CategoryLookup[Name]
 	if not Category then
-		-- error("Wire spawn menu error: unable to find category node! (error nr 2)")
-		-- fail silently instead, otherwise the entire tool menu fucks up
 		return
 	end
 	
@@ -501,14 +533,35 @@ end
 
 vgui.Register( "WireToolPanel", PANEL, "Panel" )
 
+local function CreateCPanel( panel )
+	local checkbox = panel:CheckBox( "Use wire's custom spawn menu for all tabs", "wire_tool_menu_custom_menu_for_all_tabs" )
+	checkbox:SetToolTip( "Requires rejoin to take effect" )
+end
+
+----------------------------------------------------------------------
+-- Incoming garry hack
+----------------------------------------------------------------------
+
+local tabs = {}
+
+-- Allow any addon to register to be given a custom menu
+function WireLib.registerTabForCustomMenu( tab )
+	tabs[tab] = true
+end
+
+-- Register ourselves
+WireLib.registerTabForCustomMenu( "Wire" )
 
 local old
 hook.Add( "PopulateToolMenu", "Wire_CustomSpawnMenu", function()
+	spawnmenu.AddToolMenuOption( "Wire", "Options", "Custom Spawn Menu Options", "Custom Spawn Menu Options", "", "", CreateCPanel )
+
 	local ToolMenu = vgui.GetControlTable( "ToolMenu" )
 
 	old = ToolMenu.AddToolPanel
 	function ToolMenu:AddToolPanel( Name, ToolTable )
-		if ToolTable.Label == "Wire" then
+		if tabs[ToolTable.Name] or custom_for_all_tabs:GetBool() == true then
+			CurrentName = ToolTable.Name
 			local Panel = vgui.Create( "WireToolPanel" )
 			Panel:SetTabID( Name )
 			Panel:LoadToolsFromTable( ToolTable.Items )
