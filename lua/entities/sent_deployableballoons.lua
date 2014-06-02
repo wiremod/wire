@@ -55,6 +55,7 @@ end
 hook.Add("Initialize", "DamageFilter", DamageFilter)
 
 duplicator.RegisterEntityClass("sent_deployableballoons", MakeBalloonSpawner, "Data")
+WireLib.ClassAlias("gmod_balloon", "gmod_iballoon")
 
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 	--Moves old "Lenght" input to new "Length" input for older dupes
