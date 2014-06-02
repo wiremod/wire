@@ -75,36 +75,44 @@ function ENT:MarkCellChanged(Address)
 end
 
 local function numberToString(t, number, bytes)
-	local str = ""
+	local str = {}
 	for j=1,bytes do
-		str = str .. string.char(number % 256)
+		str[#str+1] = string.char(number % 256)
 		number = math.floor(number / 256)
     end
-	t[1] = t[1] .. str
+	t[#t+1] = table.concat(str)
 end
 
 util.AddNetworkString("wire_digitalscreen")
-local pixelbits = {3, 1, 3, 4, 1}
+local pixelbytes = {3, 1, 3, 4, 1}
 function ENT:FlushCache(ply)
 	if not next(self.ChangedCellRanges) then return end
 	--local len = 40
-	local datastr = {""}
+	local datastr = {}
 	numberToString(datastr,self:EntIndex(),2)
-	numberToString(datastr,self.Memory[1048569] or 0, 1) -- Super important the client knows what colormode we're using since that determines pixelbit
-	local pixelbit = pixelbits[(self.Memory[1048569] or 0)+1]
+	numberToString(datastr,self.Memory[1048569] or 0, 1) -- Super important the client knows what colormode we're using since that determines pixelbyte
+	local pixelbyte = pixelbytes[(self.Memory[1048569] or 0)+1]
+	local bytesremaining = 1
 	
-	for i=1, #self.ChangedCellRanges do
-		local range = self.ChangedCellRanges[i]
+	while bytesremaining>0 and next(self.ChangedCellRanges) do
+		local range = self.ChangedCellRanges[1]
 		--len = len + 40
-		numberToString(datastr,range.length--[[math.min(range.length, math.ceil((480000 - len) / pixelbit))]],3) -- Length of range
-		numberToString(datastr,range.start,3)
-		for i = range.start,range.start + range.length - 1 do
+		local length = math.min(range.length, math.ceil(bytesremaining/pixelbyte)) --Estimate how many numbers to read from the range
+		local start = range.start
+		
+		range.length = range.length - length --Update the range and remove it if its empty
+		range.start = start + length
+		if range.length==0 then table.remove(self.ChangedCellRanges, 1) end
+		
+		numberToString(datastr,length,3) -- Length of range
+		numberToString(datastr,start,3) -- Address of range
+		for i = start, start + length - 1 do
 			if i>=1048500 then
 				numberToString(datastr,self.Memory[i],2)
 				--len = len + 10
 			else
-				numberToString(datastr,self.Memory[i],pixelbit)
-				--len = len + pixelbit
+				numberToString(datastr,self.Memory[i],pixelbyte)
+				--len = len + pixelbyte
 			end
 			
 			--[[if len > 480000 then
@@ -118,19 +126,19 @@ function ENT:FlushCache(ply)
 				net.Start("wire_digitalscreen")
 					net.WriteUInt(self:EntIndex(),16)
 					net.WriteUInt(self.Memory[1048569] or 0, 4)
-					net.WriteUInt(math.min(range.length, math.ceil((480000 - len) / pixelbit)),20) -- Length of range
+					net.WriteUInt(math.min(range.length, math.ceil((480000 - len) / pixelbyte)),20) -- Length of range
 					net.WriteUInt(range.start,20)
 			end]]
 		end
+		bytesremaining = 30720-#datastr --30kb per tick should be fine.
 	end
 	numberToString(datastr,0,3)
 		
-	local compressed = util.Compress(datastr[1])
+	local compressed = util.Compress(table.concat(datastr))
 	
 	net.Start("wire_digitalscreen")
 		net.WriteData(compressed,#compressed)
 	if ply then net.Send(ply) else net.Broadcast() end
-	self.ChangedCellRanges = {}
 end
 
 function ENT:Retransmit(ply)
