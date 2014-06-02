@@ -1,262 +1,288 @@
-AddCSLuaFile( "cl_init.lua" )
-AddCSLuaFile( "shared.lua" )
-include('shared.lua')
-
-ENT.WireDebugName = "DigitalScreen"
+if (not EmuFox) then
+	include('shared.lua')
+end
 
 function ENT:Initialize()
+	self.Memory1 = {}
+	self.Memory2 = {}
 
-	self:PhysicsInit(SOLID_VPHYSICS)
-	self:SetMoveType(MOVETYPE_VPHYSICS)
-	self:SetSolid(SOLID_VPHYSICS)
-
-	self.Inputs = Wire_CreateInputs(self, { "PixelX", "PixelY", "PixelG", "Clk", "FillColor", "ClearRow", "ClearCol" })
-	self.Outputs = Wire_CreateOutputs(self, { "Memory" })
-
-	self.Memory = {}
-
-	self.PixelX = 0
-	self.PixelY = 0
-	self.PixelG = 0
-	self.Memory[1048569] = 0
-	self.Memory[1048575] = 1
+	self.LastClk = true
+	self.NewClk = true
+	self.Memory1[1048575] = 1
+	self.Memory2[1048575] = 1
+	self.NeedRefresh = true
+	self.IsClear = true
+	self.ClearQueued = false
+	self.RefreshPixels = {}
+	self.RefreshRows = {}
 
 	self.ScreenWidth = 32
 	self.ScreenHeight = 32
 
-	self.ChangedCellRanges = {}
+	for i=1,self.ScreenHeight do
+		self.RefreshRows[i] = i-1
+	end
+
+	//0..786431 - RGB data
+
+	//1048569 - Color mode (0: RGBXXX; 1: R G B)
+	//1048570 - Clear row
+	//1048571 - Clear column
+	//1048572 - Screen Height
+	//1048573 - Screen Width
+	//1048574 - Hardware Clear Screen
+	//1048575 - CLK
+
+	self.GPU = WireGPU(self)
+	
+	WireLib.netRegister(self)
 end
 
-function ENT:Setup(ScreenWidth, ScreenHeight)
-	self:WriteCell(1048572, ScreenHeight or 32)
-	self:WriteCell(1048573, ScreenWidth or 32)
+function ENT:OnRemove()
+	self.GPU:Finalize()
+	self.NeedRefresh = true
 end
 
-function ENT:SendPixel()
-	if self.Memory[1048575] == 0 then return end -- why?
-	if self.PixelX < 0 then return end
-	if self.PixelY < 0 then return end
-	if self.PixelX >= self.ScreenWidth then return end
-	if self.PixelY >= self.ScreenHeight then return end
-
-	local address = self.PixelY*self.ScreenWidth + self.PixelX
-	self:WriteCell(address, self.PixelG)
+local function stringToNumber(t, str, bytes)
+	local index = t[1]
+	t[1] = t[1] + bytes
+	str = str:sub(index,index+bytes-1)
+	local n = 0
+	for j=1,bytes do
+		n = n + str:byte(j)*math.pow(256,j-1)
+    end
+	return n
 end
 
-function ENT:ReadCell(Address)
+local pixelbytes = {3, 1, 3, 4, 1}
+net.Receive("wire_digitalscreen", function(netlen)
+	local s = net.ReadData(netlen/8)
+	local datastr = util.Decompress(s)
+	if not datastr then return end
+	
+	local t = {1}
+	local ent = Entity(stringToNumber(t,datastr,2))
+	local pixelbyte = pixelbytes[stringToNumber(t,datastr,1)+1]
+	
+	if IsValid(ent) and ent.Memory1 and ent.Memory2 then
+		while true do
+			local length = stringToNumber(t,datastr,3)
+			if length == 0 then break end
+			local address = stringToNumber(t,datastr,3)
+			for i=1, length do
+				if address>=1048500 then
+					ent:WriteCell(address, stringToNumber(t,datastr,2))
+				else
+					ent:WriteCell(address, stringToNumber(t,datastr,pixelbyte))
+				end
+				address = address + 1
+			end
+		end
+	end
+end)
+
+function ENT:ReadCell(Address,value)
 	if Address < 0 then return nil end
 	if Address >= 1048576 then return nil end
 
-	return self.Memory[Address] or 0
+	return self.Memory2[Address]
 end
 
-function ENT:MarkCellChanged(Address)
-	local lastrange = self.ChangedCellRanges[#self.ChangedCellRanges]
-	if lastrange then
-		if Address == lastrange.start + lastrange.length then
-			-- wrote just after the end of the range, append
-			lastrange.length = lastrange.length + 1
-		elseif Address == lastrange.start - 1 then
-			-- wrote just before the start of the range, prepend
-			lastrange.start = lastrange.start - 1
-			lastrange.length = lastrange.length + 1
-		elseif Address < lastrange.start - 1 or Address > lastrange.start + lastrange.length then
-			-- wrote outside the range
-			lastrange = nil
-		end
-	end
-	if not lastrange then
-		lastrange = {
-			start = Address,
-			length = 1
-		}
-		self.ChangedCellRanges[#self.ChangedCellRanges + 1] = lastrange
-	end
-end
-
-local function numberToString(t, number, bytes)
-	local str = {}
-	for j=1,bytes do
-		str[#str+1] = string.char(number % 256)
-		number = math.floor(number / 256)
-    end
-	t[#t+1] = table.concat(str)
-end
-
-util.AddNetworkString("wire_digitalscreen")
-local pixelbytes = {3, 1, 3, 4, 1}
-function ENT:FlushCache(ply)
-	if not next(self.ChangedCellRanges) then return end
-	--local len = 40
-	local datastr = {}
-	numberToString(datastr,self:EntIndex(),2)
-	numberToString(datastr,self.Memory[1048569] or 0, 1) -- Super important the client knows what colormode we're using since that determines pixelbyte
-	local pixelbyte = pixelbytes[(self.Memory[1048569] or 0)+1]
-	local bytesremaining = 1
-	
-	while bytesremaining>0 and next(self.ChangedCellRanges) do
-		local range = self.ChangedCellRanges[1]
-		--len = len + 40
-		local length = math.min(range.length, math.ceil(bytesremaining/pixelbyte)) --Estimate how many numbers to read from the range
-		local start = range.start
-		
-		range.length = range.length - length --Update the range and remove it if its empty
-		range.start = start + length
-		if range.length==0 then table.remove(self.ChangedCellRanges, 1) end
-		
-		numberToString(datastr,length,3) -- Length of range
-		numberToString(datastr,start,3) -- Address of range
-		for i = start, start + length - 1 do
-			if i>=1048500 then
-				numberToString(datastr,self.Memory[i],2)
-				--len = len + 10
-			else
-				numberToString(datastr,self.Memory[i],pixelbyte)
-				--len = len + pixelbyte
-			end
-			
-			--[[if len > 480000 then
-				-- Message is over 60kb, end the message early
-				numberToString(datastr,0, 20)
-				if ply then net.Send(ply) else net.Broadcast() end
-				-- Start a new message
-				len = 80
-				range.length = range.length - (i - range.start + 1)
-				range.start = i + 1
-				net.Start("wire_digitalscreen")
-					net.WriteUInt(self:EntIndex(),16)
-					net.WriteUInt(self.Memory[1048569] or 0, 4)
-					net.WriteUInt(math.min(range.length, math.ceil((480000 - len) / pixelbyte)),20) -- Length of range
-					net.WriteUInt(range.start,20)
-			end]]
-		end
-		bytesremaining = 30720-#datastr --30kb per tick should be fine.
-	end
-	numberToString(datastr,0,3)
-		
-	local compressed = util.Compress(table.concat(datastr))
-	
-	net.Start("wire_digitalscreen")
-		net.WriteData(compressed,#compressed)
-	if ply then net.Send(ply) else net.Broadcast() end
-end
-
-function ENT:Retransmit(ply)
-	self:FlushCache() -- Empty the cache
-	
-	self:MarkCellChanged(1048569) -- Colormode
-	self:MarkCellChanged(1048572) -- Screen Width
-	self:MarkCellChanged(1048573) -- Screen Height
-	self:MarkCellChanged(1048575) -- Clk
-	self:FlushCache(ply)
-	
-	local memory = self.Memory
-	for addr=0, self.ScreenWidth*self.ScreenHeight do
-		if memory[addr] then
-			self:MarkCellChanged(addr)
-		end
-	end
-	self:MarkCellChanged(1048575) -- Clk
-	self:FlushCache(ply)
-end
-
-function ENT:ClearPixel(i)
-	if self.Memory[1048569] == 1 then
-		-- R G B mode
-		self.Memory[i*3] = 0
-		self.Memory[i*3+1] = 0
-		self.Memory[i*3+2] = 0
-		return
-	end
-
-	-- other modes
-	self.Memory[i] = 0
-end
-
-function ENT:ClearCellRange(start, length)
-	for i = start, start + length - 1 do
-		self.Memory[i] = 0
-	end
-end
-
-function ENT:WriteCell(Address, value)
-	Address = math.floor (Address)
+function ENT:WriteCell(Address,value)
 	if Address < 0 then return false end
 	if Address >= 1048576 then return false end
 
-	if Address < 1048500 then -- RGB data
-		if self.Memory[Address] == value or
-		   (value == 0 and self.Memory[Address] == nil) then
-			return true
+	if Address == 1048575 then
+		self.NewClk = value ~= 0
+	elseif Address < 1048500 then
+		self.IsClear = false
+	end
+
+	if (self.NewClk) then
+		self.Memory1[Address] = value -- visible buffer
+		self.NeedRefresh = true
+		if self.Memory1[1048569] == 1 then -- R G B mode
+			local pixelno = math.floor(Address/3)
+			if self.RefreshPixels[#self.RefreshPixels] ~= pixelno then
+				self.RefreshPixels[#self.RefreshPixels+1] = pixelno
+			end
+		else -- other modes
+			self.RefreshPixels[#self.RefreshPixels+1] = Address
 		end
+	end
+	self.Memory2[Address] = value -- invisible buffer
+
+	if Address == 1048574 then
+		local mem1,mem2 = {},{}
+		for addr = 1048500,1048575 do
+			mem1[addr] = self.Memory1[addr]
+			mem2[addr] = self.Memory2[addr]
+		end
+		self.Memory1,self.Memory2 = mem1,mem2
+		self.IsClear = true
+		self.ClearQueued = true
+		self.NeedRefresh = true
+	elseif Address == 1048572 then
+		self.ScreenHeight = value
+		if not self.IsClear then
+			self.NeedRefresh = true
+			for i = 1,self.ScreenHeight do
+				self.RefreshRows[i] = i-1
+			end
+		end
+	elseif Address == 1048573 then
+		self.ScreenWidth = value
+		if not self.IsClear then
+			self.NeedRefresh = true
+			for i = 1,self.ScreenHeight do
+				self.RefreshRows[i] = i-1
+			end
+		end
+	end
+
+	if self.LastClk ~= self.NewClk then
+		-- swap the memory if clock changes
+		self.LastClk = self.NewClk
+		self.Memory1 = table.Copy(self.Memory2)
+
+		self.NeedRefresh = true
+		for i=1,self.ScreenHeight do
+			self.RefreshRows[i] = i-1
+		end
+	end
+	return true
+end
+
+local transformcolor = {}
+transformcolor[0] = function(c) -- RGBXXX
+	local crgb = math.floor(c / 1000)
+	local cgray = c - math.floor(c / 1000)*1000
+
+	cb = cgray+28*math.fmod(crgb, 10)
+	cg = cgray+28*math.fmod(math.floor(crgb / 10), 10)
+	cr = cgray+28*math.fmod(math.floor(crgb / 100), 10)
+
+	return cr, cg, cb
+end
+transformcolor[2] = function(c) -- 24 bit mode
+	cb = math.fmod(c, 256)
+	cg = math.fmod(math.floor(c / 256), 256)
+	cr = math.fmod(math.floor(c / 65536), 256)
+
+	return cr, cg, cb
+end
+transformcolor[3] = function(c) -- RRRGGGBBB
+	cb = math.fmod(c, 1000)
+	cg = math.fmod(math.floor(c / 1e3), 1000)
+	cr = math.fmod(math.floor(c / 1e6), 1000)
+
+	return cr, cg, cb
+end
+transformcolor[4] = function(c) -- XXX
+	return c, c, c
+end
+
+local floor = math.floor
+
+function ENT:RedrawPixel(a)
+	if a >= self.ScreenWidth*self.ScreenHeight then return end
+
+	local cr,cg,cb
+
+	local x = a % self.ScreenWidth
+	local y = math.floor(a / self.ScreenWidth)
+
+	local colormode = self.Memory1[1048569] or 0
+
+	if colormode == 1 then
+		cr = self.Memory1[a*3  ] or 0
+		cg = self.Memory1[a*3+1] or 0
+		cb = self.Memory1[a*3+2] or 0
 	else
-		if Address == 1048569 then -- Color mode (0: RGBXXX; 1: R G B; 2: 24 bit RGB; 3: RRRGGGBBB; 4: XXX)
-			value = math.Clamp(math.floor(value or 0), 0, 4)
-		elseif Address == 1048570 then -- Clear row
-			local row = math.Clamp(math.floor(value), 0, self.ScreenHeight-1)
-			if self.Memory[1048569] == 1 then
-				self:ClearCellRange(row*self.ScreenWidth*3, self.ScreenWidth*3)
-			else
-				self:ClearCellRange(row*self.ScreenWidth, self.ScreenWidth)
-			end
-		elseif Address == 1048571 then -- Clear column
-			local col = math.Clamp(math.floor(value), 0, self.ScreenWidth-1)
-			for i = col,col+self.ScreenWidth*(self.ScreenHeight-1),self.ScreenWidth do
-				self:ClearPixel(i)
-			end
-		elseif Address == 1048572 then -- Height
-			self.ScreenHeight = math.Clamp(math.floor(value), 1, 512)
-		elseif Address == 1048573 then -- Width
-			self.ScreenWidth  = math.Clamp(math.floor(value), 1, 512)
-		elseif Address == 1048574 then -- Hardware Clear Screen
-			local mem = {}
-			for addr = 1048500,1048575 do
-				mem[addr] = self.Memory[addr]
-			end
-			self.Memory = mem
-			-- clear pixel data from usermessage queue
-			while #self.ChangedCellRanges > 0 and
-				  self.ChangedCellRanges[1].start + self.ChangedCellRanges[1].length < 1048500 do
-				table.remove(self.ChangedCellRanges, 1)
-			end
-		elseif Address == 1048575 then -- CLK
-			-- not needed atm
+		local c = self.Memory1[a] or 0
+		cr, cg, cb = (transformcolor[colormode] or transformcolor[0])(c)
+	end
+
+	local xstep = (512/self.ScreenWidth)
+	local ystep = (512/self.ScreenHeight)
+
+	surface.SetDrawColor(cr,cg,cb,255)
+	local tx, ty = floor(x*xstep), floor(y*ystep)
+	surface.DrawRect( tx, ty, floor((x+1)*xstep-tx), floor((y+1)*ystep-ty) )
+end
+
+function ENT:RedrawRow(y)
+	local xstep = (512/self.ScreenWidth)
+	local ystep = (512/self.ScreenHeight)
+	if y >= self.ScreenHeight then return end
+	local a = y*self.ScreenWidth
+
+	local colormode = self.Memory1[1048569] or 0
+
+	for x = 0,self.ScreenWidth-1 do
+		local cr,cg,cb
+
+		if (colormode == 1) then
+			cr = self.Memory1[(a+x)*3  ] or 0
+			cg = self.Memory1[(a+x)*3+1] or 0
+			cb = self.Memory1[(a+x)*3+2] or 0
+		else
+			local c = self.Memory1[a+x] or 0
+			cr, cg, cb = (transformcolor[colormode] or transformcolor[0])(c)
 		end
-	end
 
-	self.Memory[Address] = value
-
-	self:MarkCellChanged(Address)
-
-	return true
-end
-
-function ENT:Think()
-	self:FlushCache()
-	self:NextThink(CurTime()+0.2)
-	return true
-end
-
-function ENT:TriggerInput(iname, value)
-	if (iname == "PixelX") then
-		self.PixelX = math.floor(value)
-		self:SendPixel()
-	elseif (iname == "PixelY") then
-		self.PixelY = math.floor(value)
-		self:SendPixel()
-	elseif (iname == "PixelG") then
-		self.PixelG = math.floor(value)
-		self:SendPixel()
-	elseif (iname == "Clk") then
-		self:WriteCell(1048575, value)
-		self:SendPixel()
-	elseif (iname == "FillColor") then
-		self:WriteCell(1048574,value)
-	elseif (iname == "ClearCol") then
-		self:WriteCell(1048571,math.Clamp( value, 0, 31 ))
-	elseif (iname == "ClearRow") then
-		self:WriteCell(1048570,math.Clamp( value, 0, 31 ))
+		surface.SetDrawColor(cr,cg,cb,255)
+		local tx, ty = floor(x*xstep), floor(y*ystep)
+		surface.DrawRect( tx, ty, floor((x+1)*xstep-tx), floor((y+1)*ystep-ty) )
 	end
 end
 
-duplicator.RegisterEntityClass("gmod_wire_digitalscreen", WireLib.MakeWireEnt, "Data", "ScreenWidth", "ScreenHeight")
+function ENT:Draw()
+	self:DrawModel()
+
+	if self.NeedRefresh then
+		self.NeedRefresh = false
+
+		self.GPU:RenderToGPU(function()
+			local pixels = 0
+			local idx = 0
+
+			if self.ClearQueued then
+				surface.SetDrawColor(0,0,0,255)
+				surface.DrawRect(0,0, 512,512)
+				self.ClearQueued = false
+			end
+
+			if (#self.RefreshRows > 0) then
+				idx = #self.RefreshRows
+				while ((idx > 0) and (pixels < 8192)) do
+					self:RedrawRow(self.RefreshRows[idx])
+					self.RefreshRows[idx] = nil
+					idx = idx - 1
+					pixels = pixels + self.ScreenWidth
+				end
+			else
+				idx = #self.RefreshPixels
+				while ((idx > 0) and (pixels < 8192)) do
+					self:RedrawPixel(self.RefreshPixels[idx])
+					self.RefreshPixels[idx] = nil
+					idx = idx - 1
+					pixels = pixels + 1
+				end
+			end
+			if idx ~= 0 then
+				self.NeedRefresh = true
+			end
+		end)
+
+	end
+
+	if EmuFox then return end
+
+	self.GPU:Render()
+	Wire_Render(self)
+end
+
+function ENT:IsTranslucent()
+	return true
+end
