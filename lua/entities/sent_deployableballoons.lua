@@ -20,9 +20,28 @@ if CLIENT then
 	return -- No more client
 end
 
-local material 	= "cable/rope"
 
+local material 	= "cable/rope"
+local BalloonTypes =
+					{
+					Model("models/MaxOfS2D/balloon_classic.mdl"),
+					Model("models/balloons/balloon_classicheart.mdl"),
+					Model("models/balloons/balloon_dog.mdl"),
+					Model("models/balloons/balloon_star.mdl")
+					}
 CreateConVar('sbox_maxwire_deployers', 2)
+
+local DmgFilter
+
+local function CreateDamageFilter()
+	if DmgFilter then return end
+	local DmgFilter = ents.Create("filter_activator_name")
+		DmgFilter:SetKeyValue("targetname", "DmgFilter")
+		DmgFilter:SetKeyValue("negated", "1")
+	DmgFilter:Spawn()
+end
+hook.Add("Initialize", "CreateDamageFilter", CreateDamageFilter)
+
 local function MakeBalloonSpawner(pl, Data)
 	if not pl:CheckLimit("wire_deployers") then return nil end
 
@@ -40,7 +59,10 @@ local function MakeBalloonSpawner(pl, Data)
 	return ent
 end
 
+hook.Add("Initialize", "DamageFilter", DamageFilter)
+
 duplicator.RegisterEntityClass("sent_deployableballoons", MakeBalloonSpawner, "Data")
+WireLib.ClassAlias("gmod_balloon", "gmod_iballoon")
 
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 	--Moves old "Lenght" input to new "Length" input for older dupes
@@ -72,8 +94,8 @@ function ENT:Initialize()
 	self.popable = true
 	self.rl = 64
 	if WireAddon then
-		self.Inputs = Wire_CreateInputs(self,{ "Force", "Length", "Weld?", "Popable?", "Deploy" })
-		self.Outputs = Wire_CreateOutputs(self,{ "Deployed" })
+		self.Inputs = Wire_CreateInputs(self,{ "Force", "Length", "Weld?", "Popable?", "BalloonType", "Deploy" })
+		self.Outputs=WireLib.CreateSpecialOutputs(self, { "Deployed", "BalloonEntity" }, {"NORMAL","ENTITY" })
 		Wire_TriggerOutput(self,"Deployed", self.Deployed)
 		--Wire_TriggerOutput(self,"Force", self.force)
 	end
@@ -110,7 +132,10 @@ function ENT:TriggerInput(key,value)
 	elseif (key == "Weld?") then
 		self.weld = value ~= 0
 	elseif (key == "Popable?") then
-		//self.popable = value ~= 0 -- Invinsible balloons don't seem to exist anymore
+		self.popable = value ~= 0
+		self:UpdatePopable()
+	elseif (key == "BalloonType") then
+		self.balloonType=value+1 --To correct for 1 based indexing
 	end
 	self:UpdateOverlay()
 end
@@ -124,17 +149,27 @@ hook.Add("EntityRemoved", "balloon_deployer", function(ent)
 		deployer:TriggerInput("Deploy", 0)
 	end
 end)
+function ENT:UpdatePopable()
+	local balloon = self.Balloon
+	if balloon ~= nil and balloon:IsValid() then
+		if not self.popable then
+			balloon:Fire("setdamagefilter", "DmgFilter", 0);
+		else
+			balloon:Fire("setdamagefilter", "", 0);
+		end
+	end
+end
 
 function ENT:DeployBalloons()
 	local balloon
-	if self.popable then
-		balloon = ents.Create("gmod_balloon") --normal balloon
-	else
-		balloon = ents.Create("gmod_iballoon") --invincible balloon
+	balloon = ents.Create("gmod_balloon") --normal balloon
+	
+	local model = BalloonTypes[self.balloonType]
+	if(model==nil) then
+		model = BalloonTypes[1]
 	end
-	balloon:SetModel("models/MaxOfS2D/balloon_classic.mdl")
+	balloon:SetModel(model)
 	balloon:Spawn()
-	balloon:SetRenderMode( RENDERMODE_TRANSALPHA )
 	balloon:SetColor(Color(math.random(0,255), math.random(0,255), math.random(0,255), 255))
 	balloon:SetForce(self.force)
 	balloon:SetMaterial("models/balloon/balloon")
@@ -177,8 +212,9 @@ function ENT:DeployBalloons()
 	end
 	self:DeleteOnRemove(balloon)
 	self.Balloon = balloon
-
+	self:UpdatePopable()
 	balloon_registry[balloon] = self
+	Wire_TriggerOutput(self, "BalloonEntity", self.Balloon)
 end
 
 function ENT:OnRemove()
