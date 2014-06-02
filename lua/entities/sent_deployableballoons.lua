@@ -40,7 +40,7 @@ local function CreateDamageFilter()
 		DmgFilter:SetKeyValue("negated", "1")
 	DmgFilter:Spawn()
 end
-CreateDamageFilter()
+hook.Add("Initialize", "CreateDamageFilter", CreateDamageFilter)
 
 local function MakeBalloonSpawner(pl, Data)
 	if not pl:CheckLimit("wire_deployers") then return nil end
