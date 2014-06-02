@@ -74,44 +74,61 @@ function ENT:MarkCellChanged(Address)
 	end
 end
 
+local function numberToString(t, number, bytes)
+	local str = ""
+	for j=1,bytes do
+		str = str .. string.char(number % 256)
+		number = math.floor(number / 256)
+    end
+	t[1] = t[1] .. str
+end
+
 util.AddNetworkString("wire_digitalscreen")
-local pixelbits = {20, 8, 24, 30, 8}
+local pixelbits = {3, 1, 3, 4, 1}
 function ENT:FlushCache(ply)
 	if not next(self.ChangedCellRanges) then return end
-	local len = 40
-	net.Start("wire_digitalscreen")
-		net.WriteUInt(self:EntIndex(),16)
-		net.WriteUInt(self.Memory[1048569] or 0, 4) -- Super important the client knows what colormode we're using since that determines pixelbit
-		local pixelbit = pixelbits[(self.Memory[1048569] or 0)+1]
-		for i=1, #self.ChangedCellRanges do
-			local range = self.ChangedCellRanges[i]
-			len = len + 40
-			net.WriteUInt(math.min(range.length, math.ceil((480000 - len) / pixelbit)),20) -- Length of range
-			net.WriteUInt(range.start,20)
-			for i = range.start,range.start + range.length - 1 do
-				if i>=1048500 then
-					net.WriteUInt(self.Memory[i],10)
-				else
-					net.WriteUInt(self.Memory[i],pixelbit)
-				end
-				len = len + pixelbit
-				if len > 480000 then
-					-- Message is over 60kb, end the message early
-					net.WriteUInt(0, 20)
-					if ply then net.Send(ply) else net.Broadcast() end
-					-- Start a new message
-					len = 80
-					range.length = range.length - (i - range.start + 1)
-					range.start = i + 1
-					net.Start("wire_digitalscreen")
-						net.WriteUInt(self:EntIndex(),16)
-						net.WriteUInt(self.Memory[1048569] or 0, 4)
-						net.WriteUInt(math.min(range.length, math.ceil((480000 - len) / pixelbit)),20) -- Length of range
-						net.WriteUInt(range.start,20)
-				end
+	--local len = 40
+	local datastr = {""}
+	numberToString(datastr,self:EntIndex(),2)
+	numberToString(datastr,self.Memory[1048569] or 0, 1) -- Super important the client knows what colormode we're using since that determines pixelbit
+	local pixelbit = pixelbits[(self.Memory[1048569] or 0)+1]
+	
+	for i=1, #self.ChangedCellRanges do
+		local range = self.ChangedCellRanges[i]
+		--len = len + 40
+		numberToString(datastr,range.length--[[math.min(range.length, math.ceil((480000 - len) / pixelbit))]],3) -- Length of range
+		numberToString(datastr,range.start,3)
+		for i = range.start,range.start + range.length - 1 do
+			if i>=1048500 then
+				numberToString(datastr,self.Memory[i],2)
+				--len = len + 10
+			else
+				numberToString(datastr,self.Memory[i],pixelbit)
+				--len = len + pixelbit
 			end
+			
+			--[[if len > 480000 then
+				-- Message is over 60kb, end the message early
+				numberToString(datastr,0, 20)
+				if ply then net.Send(ply) else net.Broadcast() end
+				-- Start a new message
+				len = 80
+				range.length = range.length - (i - range.start + 1)
+				range.start = i + 1
+				net.Start("wire_digitalscreen")
+					net.WriteUInt(self:EntIndex(),16)
+					net.WriteUInt(self.Memory[1048569] or 0, 4)
+					net.WriteUInt(math.min(range.length, math.ceil((480000 - len) / pixelbit)),20) -- Length of range
+					net.WriteUInt(range.start,20)
+			end]]
 		end
-		net.WriteUInt(0,20)
+	end
+	numberToString(datastr,0,3)
+		
+	local compressed = util.Compress(datastr[1])
+	
+	net.Start("wire_digitalscreen")
+		net.WriteData(compressed,#compressed)
 	if ply then net.Send(ply) else net.Broadcast() end
 	self.ChangedCellRanges = {}
 end
