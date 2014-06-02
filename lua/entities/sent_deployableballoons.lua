@@ -20,6 +20,7 @@ if CLIENT then
 	return -- No more client
 end
 
+
 local material 	= "cable/rope"
 local BalloonTypes =
 					{
@@ -29,6 +30,17 @@ local BalloonTypes =
 					Model("models/balloons/balloon_star.mdl")
 					}
 CreateConVar('sbox_maxwire_deployers', 2)
+
+local DmgFilter
+CreateDamageFilter()
+local function CreateDamageFilter()
+	if DmgFilter then return end
+	local DmgFilter = ents.Create("filter_activator_name")
+		DmgFilter:SetKeyValue("targetname", "DmgFilter")
+		DmgFilter:SetKeyValue("negated", "1")
+	DmgFilter:Spawn()
+end
+
 local function MakeBalloonSpawner(pl, Data)
 	if not pl:CheckLimit("wire_deployers") then return nil end
 
@@ -45,13 +57,7 @@ local function MakeBalloonSpawner(pl, Data)
 	pl:AddCleanup("wire_deployers", ent)
 	return ent
 end
-local function DamageFilter()
-	if DmgFilter then return end
-	DmgFilter = ents.Create("filter_activator_name")
-		DmgFilter:SetKeyValue("targetname", "DmgFilter")
-		DmgFilter:SetKeyValue("negated", "1")
-	DmgFilter:Spawn()
-end
+
 hook.Add("Initialize", "DamageFilter", DamageFilter)
 
 duplicator.RegisterEntityClass("sent_deployableballoons", MakeBalloonSpawner, "Data")
@@ -97,7 +103,6 @@ function ENT:Initialize()
 		phys:SetMass(250)
 		phys:Wake()
 	end
-	DamageFilter()
 	self:UpdateOverlay()
 end
 
