@@ -32,7 +32,7 @@ local BalloonTypes =
 CreateConVar('sbox_maxwire_deployers', 2)
 
 local DmgFilter
-CreateDamageFilter()
+
 local function CreateDamageFilter()
 	if DmgFilter then return end
 	local DmgFilter = ents.Create("filter_activator_name")
@@ -40,6 +40,7 @@ local function CreateDamageFilter()
 		DmgFilter:SetKeyValue("negated", "1")
 	DmgFilter:Spawn()
 end
+CreateDamageFilter()
 
 local function MakeBalloonSpawner(pl, Data)
 	if not pl:CheckLimit("wire_deployers") then return nil end
