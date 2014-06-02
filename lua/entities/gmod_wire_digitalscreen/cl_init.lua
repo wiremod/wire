@@ -43,20 +43,37 @@ function ENT:OnRemove()
 	self.NeedRefresh = true
 end
 
-local pixelbits = {20, 8, 24, 30, 8}
+local function stringToNumber(t, str, bytes)
+	local index = t[1]
+	t[1] = t[1] + bytes
+	str = str:sub(index,index+bytes-1)
+	local n = 0
+	for j=1,bytes do
+		n = n + str:byte(j)*math.pow(256,j-1)
+    end
+	return n
+end
+
+local pixelbits = {3, 1, 3, 4, 1}
 net.Receive("wire_digitalscreen", function(netlen)
-	local ent = Entity(net.ReadUInt(16))
-	local pixelbit = pixelbits[net.ReadUInt(4)+1]
+	local s = net.ReadData(netlen/8)
+	local datastr = util.Decompress(s)
+	if not datastr then return end
+	
+	local t = {1}
+	local ent = Entity(stringToNumber(t,datastr,2))
+	local pixelbit = pixelbits[stringToNumber(t,datastr,1)+1]
+	
 	if IsValid(ent) and ent.Memory1 and ent.Memory2 then
 		while true do
-			local length = net.ReadUInt(20)
+			local length = stringToNumber(t,datastr,3)
 			if length == 0 then break end
-			local address = net.ReadUInt(20)
+			local address = stringToNumber(t,datastr,3)
 			for i=1, length do
 				if address>=1048500 then
-					ent:WriteCell(address, net.ReadUInt(10))
+					ent:WriteCell(address, stringToNumber(t,datastr,2))
 				else
-					ent:WriteCell(address, net.ReadUInt(pixelbit))
+					ent:WriteCell(address, stringToNumber(t,datastr,pixelbit))
 				end
 				address = address + 1
 			end
