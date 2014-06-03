@@ -70,6 +70,8 @@ if CLIENT then
 			
 			-- AutoMove
 			if AutoMove then
+				curang = LocalPlayer():EyeAngles()
+			
 				if AllowZoom then
 					if zoombind ~= 0 then
 						zoomdistance = math.Clamp(zoomdistance + zoombind * max((abs(curdistance) + abs(zoomdistance))/10,10),0-curdistance,16000-curdistance)
@@ -82,15 +84,12 @@ if CLIENT then
 							
 				if HasParent and ValidParent then
 					if LocalMove then
-						curang = LocalPlayer():EyeAngles()
 						curpos = parent:LocalToWorld( curpos - curang:Forward() * smoothdistance )
 						curang = parent:LocalToWorldAngles( curang )
 					else
-						curang = LocalPlayer():EyeAngles()
 						curpos = parent:LocalToWorld( curpos ) - curang:Forward() * smoothdistance
 					end
 				else
-					curang = LocalPlayer():EyeAngles()
 					curpos = curpos - curang:Forward() * smoothdistance
 				end
 			else
@@ -102,26 +101,38 @@ if CLIENT then
 			
 			-- AutoUnclip
 			if AutoUnclip then
-				local start = pos
+				local start, endpos
+				
 				if not AutoMove then
 					if HasParent and ValidParent then
 						start = parent:GetPos()
 					else
 						start = self:GetPos()
 					end
+					
+					endpos = curpos
+				else
+					if HasParent and ValidParent then
+						start = parent:LocalToWorld(pos)
+					else
+						start = pos
+					end
+					
+					endpos = curpos
 				end
-				local endpos = curpos
 			
 				local tr = {
 					start = start,
 					endpos = endpos,
-					mask = bit.bor(MASK_WATER, CONTENTS_SOLID)
+					mask = bit.bor(MASK_WATER, CONTENTS_SOLID),
+					mins = Vector(-8,-8,-8),
+					maxs = Vector(8,8,8)
 				}
 				
-				local trace = util.TraceLine( tr )
+				local trace = util.TraceHull( tr )
 				
 				if trace.Hit then
-					curpos = trace.HitPos + curang:Forward() * 10
+					curpos = trace.HitPos
 				end
 			end
 			
@@ -226,8 +237,7 @@ end
 function ENT:Initialize()
 	self.BaseClass.Initialize(self)
 	self.Outputs = WireLib.CreateOutputs( self, { 	"On", "HitPos [VECTOR]", "CamPos [VECTOR]", "CamDir [VECTOR]", 
-													"CamAng [ANGLE]", "EyeDir [VECTOR]", "EyeAng [ANGLE]", 
-													"Distance", "Trace [RANGER]" } )
+													"CamAng [ANGLE]", "Distance", "Trace [RANGER]" } )
 	self.Inputs = WireLib.CreateInputs( self, {	"Activated", "Direction [VECTOR]", "Angle [ANGLE]", "Position [VECTOR]",
 												"Distance", "Parent [ENTITY]", "FLIR", "FOV" } )
 
@@ -312,18 +322,6 @@ function ENT:SyncPositions( ply )
 	net.Send( ply or self.Players )
 end
 
-function ENT:GetContraption()
-	self.Entities = {}
-	
-	local parent = self
-	if IsValid( self.Parent ) then parent = self.Parent end
-	
-	local ents = constraint.GetAllConstrainedEntities( parent )
-	for k,v in pairs( ents ) do
-		self.Entities[#self.Entities+1] = v
-	end
-end
-
 --------------------------------------------------
 -- Outputting aimpos, aim angle, etc
 --------------------------------------------------
@@ -331,17 +329,13 @@ local nextupdate = 0
 function ENT:Think()
 	self.BaseClass.Think(self)
 	
-	if CurTime() > nextupdate then
-		nextupdate = CurTime() + 5
-		self:GetContraption()
-	end
-	
 	local ply = self.Players[1]
 	
 	if self.Active and IsValid( ply ) then
 	
 		local HasParent = self:GetNWBool( "HasParent", false )
 		local parent = self:GetNWEntity( "Parent" )
+		local ValidParent = IsValid( parent )
 
 		local pos, ang = self.Position, self.Angle
 		
@@ -350,6 +344,9 @@ function ENT:Think()
 		
 		if self.AutoMove then
 			curang = ply:EyeAngles()
+			local veh = ply:GetVehicle()
+			if IsValid( veh ) then curang = veh:WorldToLocalAngles( curang ) end
+			
 			local dist = self.Distance
 			
 			if HasParent and IsValid( parent ) then
@@ -362,26 +359,47 @@ function ENT:Think()
 			else
 				curpos = curpos - curang:Forward() * dist
 			end
+		else
+			if HasParent and ValidParent then
+				curpos = parent:LocalToWorld( curpos )
+				curang = parent:LocalToWorldAngles( curang )
+			end
 		end
 		
 		-- AutoUnclip
 		if self.AutoUnclip then
-			local start = pos
-			if HasParent and IsValid( parent ) then
-				start = parent:LocalToWorld( start )
-			end
-			local endpos = curpos
+			local start, endpos
 			
+			if not self.AutoMove then
+				if HasParent and ValidParent then
+					start = parent:GetPos()
+				else
+					start = self:GetPos()
+				end
+				
+				endpos = curpos
+			else
+				if HasParent and ValidParent then
+					start = parent:LocalToWorld(pos)
+				else
+					start = pos
+				end
+				
+				endpos = curpos
+			end
+		
 			local tr = {
 				start = start,
 				endpos = endpos,
 				mask = bit.bor(MASK_WATER, CONTENTS_SOLID),
+				mins = Vector(-8,-8,-8),
+				maxs = Vector(8,8,8)
 			}
 			
-			local trace = util.TraceLine( tr )
+			local trace = util.TraceHull( tr )
 			
 			if trace.Hit then
-				curpos = trace.HitPos + curang:Forward() * 10
+				curpos = trace.HitPos
 			end
 		end
 		
@@ -400,11 +418,6 @@ function ENT:Think()
 		WireLib.TriggerOutput(self,"CamDir",curang:Forward())
 		WireLib.TriggerOutput(self,"CamAng",curang)
 		
-		local eye = Angle(0,0,0)
-		if self.FixEyeAngles and self.FixedEyeAngles then eye = self.FixedEyeAngles end
-		WireLib.TriggerOutput(self,"EyeDir",eye:Forward())
-		WireLib.TriggerOutput(self,"EyeAng",eye)
-		
 		WireLib.TriggerOutput(self,"Distance",self.ZoomDistance or 0)
 		WireLib.TriggerOutput(self,"Trace",trace)
 	else
@@ -419,8 +432,6 @@ function ENT:Think()
 		WireLib.TriggerOutput(self,"CamPos",Vector(0,0,0))
 		WireLib.TriggerOutput(self,"CamDir",Vector(0,0,0))
 		WireLib.TriggerOutput(self,"CamAng",Angle(0,0,0))
-		WireLib.TriggerOutput(self,"EyeDir",Vector(0,0,0))
-		WireLib.TriggerOutput(self,"EyeAng",Angle(0,0,0))
 		WireLib.TriggerOutput(self,"Distance",0)
 		WireLib.TriggerOutput(self,"Trace",nil)
 	end
@@ -786,7 +797,7 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 		
 		WireLib.AdjustSpecialOutputs( self, { 	"On", "X", "Y", "Z", "XYZ [VECTOR]", "HitPos [VECTOR]", 
 												"CamPos [VECTOR]", "CamDir [VECTOR]", "CamAng [ANGLE]", 
-												"EyeDir [VECTOR]", "EyeAng [ANGLE]", "Distance", "Trace [RANGER]" } )
+												"Distance", "Trace [RANGER]" } )
 		
 		self.OldDupe = true
 	else
