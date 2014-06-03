@@ -322,12 +322,30 @@ function ENT:SyncPositions( ply )
 	net.Send( ply or self.Players )
 end
 
+function ENT:GetContraption()
+	if CurTime() > (self.NextGetContraption or 0) then
+		self.Entities = {}
+		
+		local parent = self
+		if IsValid( self.Parent ) then parent = self.Parent end
+		
+		local ents = constraint.GetAllConstrainedEntities( parent )
+		for k,v in pairs( ents ) do
+			self.Entities[#self.Entities+1] = v
+		end
+		
+		self.NextGetContraption = CurTime() + 5
+	end
+end
+
 --------------------------------------------------
 -- Outputting aimpos, aim angle, etc
 --------------------------------------------------
 local nextupdate = 0
 function ENT:Think()
 	self.BaseClass.Think(self)
+	
+	self:GetContraption()
 	
 	local ply = self.Players[1]
 	
