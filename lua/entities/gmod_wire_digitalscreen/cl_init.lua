@@ -54,43 +54,67 @@ local function stringToNumber(t, str, bytes)
 	return n
 end
 
-local pixelbytes = {3, 1, 3, 4, 1}
+local pixelbits = {20, 8, 24, 30, 8, 3, 1, 3, 4, 1}
 net.Receive("wire_digitalscreen", function(netlen)
-	local s = net.ReadData(netlen/8)
-	local datastr = util.Decompress(s)
-	if not datastr then return end
-	
-	local t = {1}
-	local ent = Entity(stringToNumber(t,datastr,2))
-	local pixelbyte = pixelbytes[stringToNumber(t,datastr,1)+1]
+	local ent = Entity(net.ReadUInt(16))
 	
 	if IsValid(ent) and ent.Memory1 and ent.Memory2 then
-		while true do
-			local length = stringToNumber(t,datastr,3)
-			if length == 0 then break end
-			local address = stringToNumber(t,datastr,3)
-			for i=1, length do
-				if address>=1048500 then
-					ent:WriteCell(address, stringToNumber(t,datastr,2))
-				else
-					ent:WriteCell(address, stringToNumber(t,datastr,pixelbyte))
+		local compression = net.ReadUInt(1)
+		local pixelformat = net.ReadUInt(5)
+		local pixelbit = pixelbits[pixelformat]
+		local datastr
+		local t
+		local readData
+		
+		if compression==0 then
+			readData = function()
+				local length = net.ReadUInt(20)
+				if length == 0 then return end
+				local address = net.ReadUInt(20)
+				for i = address, address + length - 1 do
+					if i>=1048500 then
+						ent:WriteCell(i, net.ReadUInt(10))
+					else
+						ent:WriteCell(i, net.ReadUInt(pixelbit))
+					end
 				end
-				address = address + 1
+				return true
+			end
+		else
+			pixelbit = pixelbits[pixelformat+5]
+			datastr = util.Decompress(net.ReadData((netlen-21)/8))
+			if not datastr then return end
+			t = {1}
+			
+			readData = function()
+				local length = stringToNumber(t,datastr,3)
+				if length == 0 then return end
+				local address = stringToNumber(t,datastr,3)
+				for i = address, address + length - 1 do
+					if i>=1048500 then
+						ent:WriteCell(i, stringToNumber(t,datastr,2))
+					else
+						ent:WriteCell(i, stringToNumber(t,datastr,pixelbit))
+					end
+				end
+				return true
 			end
 		end
+	
+		while readData() do end
 	end
 end)
 
 function ENT:ReadCell(Address,value)
 	if Address < 0 then return nil end
-	if Address >= 1048576 then return nil end
+	if Address >= 1048577 then return nil end
 
 	return self.Memory2[Address]
 end
 
 function ENT:WriteCell(Address,value)
 	if Address < 0 then return false end
-	if Address >= 1048576 then return false end
+	if Address >= 1048577 then return false end
 
 	if Address == 1048575 then
 		self.NewClk = value ~= 0
