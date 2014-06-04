@@ -89,7 +89,7 @@ local pixelbits = {20, 8, 24, 30, 8, 3, 1, 3, 4, 1} --The compressed pixel forma
 function ENT:FlushCache(ply)
 	if not next(self.ChangedCellRanges) then return end
 	
-	local compression = self.Memory[1048576] or 0
+	local compression = self.Memory[1048576] or 1
 	local pixelformat = (self.Memory[1048569] or 0) + 1
 	local pixelbit = pixelbits[pixelformat]
 	local bitsremaining = 480000
