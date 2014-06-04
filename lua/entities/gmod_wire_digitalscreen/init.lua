@@ -45,7 +45,7 @@ end
 
 function ENT:ReadCell(Address)
 	if Address < 0 then return nil end
-	if Address >= 1048576 then return nil end
+	if Address >= 1048577 then return nil end
 
 	return self.Memory[Address] or 0
 end
@@ -84,60 +84,77 @@ local function numberToString(t, number, bytes)
 end
 
 util.AddNetworkString("wire_digitalscreen")
-local pixelbytes = {3, 1, 3, 4, 1}
+
+-- Color mode (0: RGBXXX; 1: R G B; 2: 24 bit RGB; 3: RRRGGGBBB; 4: XXX)
+-- Color mode Compressed (5: RGBXXX; 6: R G B; 7: 24 bit RGB; 8: RRRGGGBBB; 9: XXX)
+local pixelbits = {20, 8, 24, 30, 8, 3, 1, 3, 4, 1} --The compressed pixel formats are in bytes
 function ENT:FlushCache(ply)
 	if not next(self.ChangedCellRanges) then return end
-	--local len = 40
-	local datastr = {}
-	numberToString(datastr,self:EntIndex(),2)
-	numberToString(datastr,self.Memory[1048569] or 0, 1) -- Super important the client knows what colormode we're using since that determines pixelbyte
-	local pixelbyte = pixelbytes[(self.Memory[1048569] or 0)+1]
-	local bytesremaining = 1
 	
-	while bytesremaining>0 and next(self.ChangedCellRanges) do
+	local compression = self.Memory[1048576] or 0
+	local pixelformat = (self.Memory[1048569] or 0) + 1
+	local pixelbit = pixelbits[pixelformat]
+	local bitsremaining = 480000
+	local buildData
+	local datastr
+	
+	if compression==0 then
+		buildData = function(start, length)
+			net.WriteUInt(length, 20) -- Length of range
+			net.WriteUInt(start, 20) -- Address of range
+			for i = start, start + length - 1 do
+				if i>=1048500 then
+					net.WriteUInt(self.Memory[i], 10)
+				else
+					net.WriteUInt(self.Memory[i], pixelbit)
+				end
+			end
+		end
+	else
+		datastr = {}
+		pixelbit = pixelbits[pixelformat+5]
+		
+		buildData = function(start, length)
+			numberToString(datastr,length,3) -- Length of range
+			numberToString(datastr,start,3) -- Address of range
+			for i = start, start + length - 1 do
+				if i>=1048500 then
+					numberToString(datastr,self.Memory[i],2)
+				else
+					numberToString(datastr,self.Memory[i],pixelbit)
+				end
+			end
+		end
+	end
+	
+	net.Start("wire_digitalscreen")
+	net.WriteUInt(self:EntIndex(),16)
+	net.WriteUInt(compression,1)
+	net.WriteUInt(pixelformat, 5)
+	bitsremaining = bitsremaining - 22
+	
+	while bitsremaining>0 and next(self.ChangedCellRanges) do
 		local range = self.ChangedCellRanges[1]
-		--len = len + 40
-		local length = math.min(range.length, math.ceil(bytesremaining/pixelbyte)) --Estimate how many numbers to read from the range
 		local start = range.start
+		local length = math.min(range.length, math.ceil(bitsremaining/pixelbit)) --Estimate how many numbers to read from the range
 		
 		range.length = range.length - length --Update the range and remove it if its empty
 		range.start = start + length
 		if range.length==0 then table.remove(self.ChangedCellRanges, 1) end
 		
-		numberToString(datastr,length,3) -- Length of range
-		numberToString(datastr,start,3) -- Address of range
-		for i = start, start + length - 1 do
-			if i>=1048500 then
-				numberToString(datastr,self.Memory[i],2)
-				--len = len + 10
-			else
-				numberToString(datastr,self.Memory[i],pixelbyte)
-				--len = len + pixelbyte
-			end
-			
-			--[[if len > 480000 then
-				-- Message is over 60kb, end the message early
-				numberToString(datastr,0, 20)
-				if ply then net.Send(ply) else net.Broadcast() end
-				-- Start a new message
-				len = 80
-				range.length = range.length - (i - range.start + 1)
-				range.start = i + 1
-				net.Start("wire_digitalscreen")
-					net.WriteUInt(self:EntIndex(),16)
-					net.WriteUInt(self.Memory[1048569] or 0, 4)
-					net.WriteUInt(math.min(range.length, math.ceil((480000 - len) / pixelbyte)),20) -- Length of range
-					net.WriteUInt(range.start,20)
-			end]]
-		end
-		bytesremaining = 30720-#datastr --30kb per tick should be fine.
-	end
-	numberToString(datastr,0,3)
+		buildData(start, length)
 		
-	local compressed = util.Compress(table.concat(datastr))
-	
-	net.Start("wire_digitalscreen")
+		bitsremaining = bitsremaining - length*pixelbit
+	end
+		
+	if compression==0 then
+		net.WriteUInt(0, 20)
+	else
+		numberToString(datastr,0,3)
+		local compressed = util.Compress(table.concat(datastr))
 		net.WriteData(compressed,#compressed)
+	end
+	
 	if ply then net.Send(ply) else net.Broadcast() end
 end
 
@@ -182,7 +199,7 @@ end
 function ENT:WriteCell(Address, value)
 	Address = math.floor (Address)
 	if Address < 0 then return false end
-	if Address >= 1048576 then return false end
+	if Address >= 1048577 then return false end
 
 	if Address < 1048500 then -- RGB data
 		if self.Memory[Address] == value or
@@ -190,8 +207,10 @@ function ENT:WriteCell(Address, value)
 			return true
 		end
 	else
-		if Address == 1048569 then -- Color mode (0: RGBXXX; 1: R G B; 2: 24 bit RGB; 3: RRRGGGBBB; 4: XXX)
-			value = math.Clamp(math.floor(value or 0), 0, 4)
+		if Address == 1048569 then 
+			-- Color mode (0: RGBXXX; 1: R G B; 2: 24 bit RGB; 3: RRRGGGBBB; 4: XXX)
+			-- Color mode Compressed (5: RGBXXX; 6: R G B; 7: 24 bit RGB; 8: RRRGGGBBB; 9: XXX)
+			value = math.Clamp(math.floor(value or 0), 0, 9)
 		elseif Address == 1048570 then -- Clear row
 			local row = math.Clamp(math.floor(value), 0, self.ScreenHeight-1)
 			if self.Memory[1048569] == 1 then
