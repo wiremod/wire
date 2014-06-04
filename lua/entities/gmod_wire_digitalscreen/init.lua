@@ -85,8 +85,6 @@ end
 
 util.AddNetworkString("wire_digitalscreen")
 
--- Color mode (0: RGBXXX; 1: R G B; 2: 24 bit RGB; 3: RRRGGGBBB; 4: XXX)
--- Color mode Compressed (5: RGBXXX; 6: R G B; 7: 24 bit RGB; 8: RRRGGGBBB; 9: XXX)
 local pixelbits = {20, 8, 24, 30, 8, 3, 1, 3, 4, 1} --The compressed pixel formats are in bytes
 function ENT:FlushCache(ply)
 	if not next(self.ChangedCellRanges) then return end
@@ -209,7 +207,6 @@ function ENT:WriteCell(Address, value)
 	else
 		if Address == 1048569 then 
 			-- Color mode (0: RGBXXX; 1: R G B; 2: 24 bit RGB; 3: RRRGGGBBB; 4: XXX)
-			-- Color mode Compressed (5: RGBXXX; 6: R G B; 7: 24 bit RGB; 8: RRRGGGBBB; 9: XXX)
 			value = math.Clamp(math.floor(value or 0), 0, 9)
 		elseif Address == 1048570 then -- Clear row
 			local row = math.Clamp(math.floor(value), 0, self.ScreenHeight-1)
