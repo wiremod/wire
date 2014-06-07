@@ -99,10 +99,10 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 
 	local vehicles = info.egp_hud_vehicles
 	for i=1,#vehicles do
-		local vehicle = GetEntById( vehicles[i] )
+		local vehicle = GetEntByID( vehicles[i] )
 		
 		if IsValid( vehicle ) then
-			EGP:LinkHUDToVehicle( self, vehicle )
+			self:LinkEnt( vehicle )
 		end
 	end
 end
