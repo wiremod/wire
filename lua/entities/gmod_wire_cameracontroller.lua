@@ -40,12 +40,74 @@ if CLIENT then
 	local AllowZoom = false
 	local DrawPlayer = true
 	
-	-- Other
-	local filter = {}
-	
 	-- View calculations
 	local max = math.max
 	local abs = math.abs
+	
+	local function DoAutoMove( curpos, curang, curdistance, parent, HasParent, ValidParent )
+		curang = LocalPlayer():EyeAngles()
+		
+		if AllowZoom then
+			if zoombind ~= 0 then
+				zoomdistance = math.Clamp(zoomdistance + zoombind * max((abs(curdistance) + abs(zoomdistance))/10,10),0,16000-curdistance)
+				zoombind = 0
+			end
+			curdistance = curdistance + zoomdistance
+		end
+		
+		smoothdistance = Lerp( 0.08, smoothdistance, curdistance )
+					
+		if HasParent and ValidParent then
+			if LocalMove then
+				curpos = parent:LocalToWorld( curpos - curang:Forward() * smoothdistance )
+				curang = parent:LocalToWorldAngles( curang )
+			else
+				curpos = parent:LocalToWorld( curpos ) - curang:Forward() * smoothdistance
+			end
+		else
+			curpos = curpos - curang:Forward() * smoothdistance
+		end
+		
+		return curpos, curang
+	end
+	
+	local function DoAutoUnclip( curpos, parent, HasParent, ValidParent )
+		local start, endpos
+		
+		if not AutoMove then
+			if HasParent and ValidParent then
+				start = parent:GetPos()
+			else
+				start = self:GetPos()
+			end
+			
+			endpos = curpos
+		else
+			if HasParent and ValidParent then
+				start = parent:LocalToWorld(pos)
+			else
+				start = pos
+			end
+			
+			endpos = curpos
+		end
+	
+		local tr = {
+			start = start,
+			endpos = endpos,
+			mask = bit.bor(MASK_WATER, CONTENTS_SOLID),
+			mins = Vector(-8,-8,-8),
+			maxs = Vector(8,8,8)
+		}
+		
+		local trace = util.TraceHull( tr )
+		
+		if trace.Hit then
+			return trace.HitPos
+		end
+		
+		return curpos
+	end
 	
 	hook.Remove("CalcView","wire_camera_controller_calcview")
 	hook.Add( "CalcView", "wire_camera_controller_calcview", function()
@@ -61,93 +123,59 @@ if CLIENT then
 			local HasParent = self:GetNWBool( "HasParent", false )
 			if HasParent then
 				local p = self:GetNWEntity( "Parent" )
-				if IsValid( p ) then				
+				if IsValid( p ) then
 					parent = p
 				end
 			end
 			
 			local ValidParent = IsValid( parent )
 			
+			local newview = {}
+			
 			-- AutoMove
 			if AutoMove then
-				curang = LocalPlayer():EyeAngles()
+				-- only smooth the position, and do it before the automove
+				smoothpos = LerpVector( 0.08, smoothpos, curpos )
 			
-				if AllowZoom then
-					if zoombind ~= 0 then
-						zoomdistance = math.Clamp(zoomdistance + zoombind * max((abs(curdistance) + abs(zoomdistance))/10,10),0-curdistance,16000-curdistance)
-						zoombind = 0
-					end
-					curdistance = curdistance + zoomdistance
+				curpos, curang = DoAutoMove( smoothpos, curang, curdistance, parent, HasParent, ValidParent )
+				
+				if AutoUnclip then
+					curpos = DoAutoUnclip( curpos, parent, HasParent, ValidParent )
 				end
 				
-				smoothdistance = Lerp( 0.08, smoothdistance, curdistance )
-							
-				if HasParent and ValidParent then
-					if LocalMove then
-						curpos = parent:LocalToWorld( curpos - curang:Forward() * smoothdistance )
-						curang = parent:LocalToWorldAngles( curang )
-					else
-						curpos = parent:LocalToWorld( curpos ) - curang:Forward() * smoothdistance
-					end
-				else
-					curpos = curpos - curang:Forward() * smoothdistance
-				end
-			else
-				if HasParent and ValidParent then
-					curpos = parent:LocalToWorld( curpos )
-					curang = parent:LocalToWorldAngles( curang )
-				end
-			end
-			
-			-- AutoUnclip
-			if AutoUnclip then
-				local start, endpos
-				
-				if not AutoMove then
-					if HasParent and ValidParent then
-						start = parent:GetPos()
-					else
-						start = self:GetPos()
-					end
-					
-					endpos = curpos
-				else
-					if HasParent and ValidParent then
-						start = parent:LocalToWorld(pos)
-					else
-						start = pos
-					end
-					
-					endpos = curpos
-				end
-			
-				local tr = {
-					start = start,
-					endpos = endpos,
-					mask = bit.bor(MASK_WATER, CONTENTS_SOLID),
-					mins = Vector(-8,-8,-8),
-					maxs = Vector(8,8,8)
-				}
-				
-				local trace = util.TraceHull( tr )
-				
-				if trace.Hit then
-					curpos = trace.HitPos
-				end
-			end
-			
-			if AutoMove or (HasParent and ValidParent) then -- Don't smooth it if we're using client side camera or if we have a parent
-				smoothpos = curpos
-				smoothang = curang
-			else
-				-- Smooth the vectors before using them
+				-- apply view
+				newview.origin = curpos
+				newview.angles = curang
+			elseif HasParent and ValidParent then			
+				-- smooth BEFORE using toWorld
 				smoothpos = LerpVector( 0.08, smoothpos, curpos )
 				smoothang = LerpAngle( 0.06, smoothang, curang )
+				
+				-- now toworld it
+				curpos = parent:LocalToWorld( smoothpos )
+				curang = parent:LocalToWorldAngles( smoothang )
+				
+				-- now check for auto unclip
+				if AutoUnclip then
+					curpos = DoAutoUnclip( curpos, parent, HasParent, ValidParent )
+				end
+				
+				-- apply view
+				newview.origin = curpos
+				newview.angles = curang
+			else
+				-- check auto unclip first
+				if AutoUnclip then
+					curpos = DoAutoUnclip( curpos, parent, HasParent, ValidParent )
+				end
+			
+				-- there's no parent, just smooth it
+				smoothpos = LerpVector( 0.08, smoothpos, curpos )
+				smoothang = LerpAngle( 0.06, smoothang, curang )
+				newview.origin = smoothpos
+				newview.angles = smoothang
 			end
 			
-			local newview = {}
-			newview.origin = smoothpos
-			newview.angles = smoothang
 			newview.drawviewer = DrawPlayer
 			return newview
 		end
@@ -237,7 +265,7 @@ end
 function ENT:Initialize()
 	self.BaseClass.Initialize(self)
 	self.Outputs = WireLib.CreateOutputs( self, { 	"On", "HitPos [VECTOR]", "CamPos [VECTOR]", "CamDir [VECTOR]", 
-													"CamAng [ANGLE]", "Distance", "Trace [RANGER]" } )
+													"CamAng [ANGLE]", "Trace [RANGER]" } )
 	self.Inputs = WireLib.CreateInputs( self, {	"Activated", "Direction [VECTOR]", "Angle [ANGLE]", "Position [VECTOR]",
 												"Distance", "Parent [ENTITY]", "FLIR", "FOV" } )
 
@@ -254,6 +282,8 @@ function ENT:Initialize()
 	self.Vehicles = {}
 	
 	self.NextSync = 0
+	self.NextGetContraption = 0
+	self.NextUpdateOutputs = 0
 	
 	self:GetContraption()
 end
@@ -322,35 +352,36 @@ function ENT:SyncPositions( ply )
 	net.Send( ply or self.Players )
 end
 
+
+--------------------------------------------------
+-- GetContraption
+-- Used in UpdateOutputs to make the traces ignore the contraption
+--------------------------------------------------
 function ENT:GetContraption()
-	if CurTime() > (self.NextGetContraption or 0) then
-		self.Entities = {}
-		
-		local parent = self
-		if IsValid( self.Parent ) then parent = self.Parent end
-		
-		local ents = constraint.GetAllConstrainedEntities( parent )
-		for k,v in pairs( ents ) do
-			self.Entities[#self.Entities+1] = v
-		end
-		
-		self.NextGetContraption = CurTime() + 5
+	if CurTime() < self.NextGetContraption then return end
+	self.NextGetContraption = CurTime() + 5
+	
+	self.Entities = {}
+	
+	local parent = self
+	if IsValid( self.Parent ) then parent = self.Parent end
+	
+	local ents = constraint.GetAllConstrainedEntities( parent )
+	for k,v in pairs( ents ) do
+		self.Entities[#self.Entities+1] = v
 	end
 end
 
 --------------------------------------------------
--- Outputting aimpos, aim angle, etc
+-- UpdateOutputs
 --------------------------------------------------
-local nextupdate = 0
-function ENT:Think()
-	self.BaseClass.Think(self)
-	
-	self:GetContraption()
+function ENT:UpdateOutputs()
+	if CurTime() < self.NextUpdateOutputs then return end
+	self.NextUpdateOutputs = CurTime() + 0.1
 	
 	local ply = self.Players[1]
 	
 	if self.Active and IsValid( ply ) then
-	
 		local HasParent = self:GetNWBool( "HasParent", false )
 		local parent = self:GetNWEntity( "Parent" )
 		local ValidParent = IsValid( parent )
@@ -435,8 +466,6 @@ function ENT:Think()
 		WireLib.TriggerOutput(self,"CamPos",curpos)
 		WireLib.TriggerOutput(self,"CamDir",curang:Forward())
 		WireLib.TriggerOutput(self,"CamAng",curang)
-		
-		WireLib.TriggerOutput(self,"Distance",self.ZoomDistance or 0)
 		WireLib.TriggerOutput(self,"Trace",trace)
 	else
 		if self.OldDupe then
@@ -450,11 +479,25 @@ function ENT:Think()
 		WireLib.TriggerOutput(self,"CamPos",Vector(0,0,0))
 		WireLib.TriggerOutput(self,"CamDir",Vector(0,0,0))
 		WireLib.TriggerOutput(self,"CamAng",Angle(0,0,0))
-		WireLib.TriggerOutput(self,"Distance",0)
 		WireLib.TriggerOutput(self,"Trace",nil)
 	end
+end
+
+--------------------------------------------------
+-- Think
+--------------------------------------------------
+function ENT:Think()
+	self.BaseClass.Think(self)
 	
-	self:NextThink(CurTime()+0.1)
+	if self.NeedsSync then
+		self.NeedsSync = nil
+		self:SyncPositions()
+	end
+	
+	self:GetContraption()
+	self:UpdateOutputs()
+	
+	self:NextThink(CurTime())
 	return true
 end
 
@@ -477,11 +520,6 @@ end
 function ENT:DisableCam( ply, vehicle )
 	if #self.Vehicles == 0 then -- if the cam controller isn't linked, it controls the owner's view
 		self.Players[1] = self:GetPlayer()
-	end
-	
-	if vehicle == self.Vehicles[1] then
-		self.FixedEyeAngles = nil
-		self.ZoomDistance = nil
 	end
 	
 	self:SetFOV( ply, false )
@@ -684,7 +722,7 @@ function ENT:TriggerInput( name, value )
 		end
 	
 		self:LocalizePositions(true)
-		self:SyncPositions()
+		self.NeedsSync = true
 	end
 end
 
@@ -815,7 +853,7 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 		
 		WireLib.AdjustSpecialOutputs( self, { 	"On", "X", "Y", "Z", "XYZ [VECTOR]", "HitPos [VECTOR]", 
 												"CamPos [VECTOR]", "CamDir [VECTOR]", "CamAng [ANGLE]", 
-												"Distance", "Trace [RANGER]" } )
+												"Trace [RANGER]" } )
 		
 		self.OldDupe = true
 	else
@@ -827,7 +865,7 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 		end
 	end
 	
-	self:UpdateMarks()
+	timer.Simple( 0.1, function() if IsValid( self ) then self:UpdateMarks() end end ) -- timers solve everything
 end
 
 duplicator.RegisterEntityClass("gmod_wire_cameracontroller", WireLib.MakeWireEnt, "Data", "ParentLocal","AutoMove","LocalMove","AllowZoom","AutoUnclip","DrawPlayer")
