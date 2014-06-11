@@ -96,6 +96,8 @@ local ValidTracers = {
 function ENT:Setup(delay, damage, force, sound, numbullets, spread, tracer, tracernum)
 	if not game.SinglePlayer() then
 		self.delay = math.max(delay,0.05) -- clamp delay if it's not single player
+	else
+		self.delay = delay
 	end
 	
 	self.damage = damage
@@ -109,6 +111,8 @@ function ENT:Setup(delay, damage, force, sound, numbullets, spread, tracer, trac
 	
 	if not game.SinglePlayer() then
 		self.numbullets = math.Clamp( numbullets, 1, 10 ) -- clamp num bullets if it's not single player
+	else
+		self.numbullets = numbullets
 	end
 
 	self.spread = spread -- for duplication
