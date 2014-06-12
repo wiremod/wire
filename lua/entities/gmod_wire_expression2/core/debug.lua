@@ -211,7 +211,7 @@ local printColor_typeids = {
 
 local function printColorVarArg(chip, ply, typeids, ...)
 	if not IsValid(ply) then return end
-	if not check_delay( self.player ) then return end
+	if not check_delay(ply) then return end
 	local send_array = { ... }
 
 	for i,tp in ipairs(typeids) do
