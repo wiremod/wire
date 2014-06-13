@@ -36,14 +36,10 @@ end
 if !SERVER then return end
 function ENT:Overlay()
 	local txt="Hold Length: "..math.Round(self:GetHold(),1)
-	local function app(...)
-		local args={...}
-		txt=txt.."\n"..table.concat(args,"\n")
-	end
 	if self.BlockInput then
-		app("Blocking Input")
+		txt=txt.."\nBlocking Input"
 	elseif self.Ply then
-		app("In Use")
+		txt=txt.."\nIn Use"
 	end
 	self:SetOverlayText(txt)
 end
@@ -96,12 +92,8 @@ net.Receive("textentry_action",function(_,ply)
 	end
 end)
 function ENT:Use(ply)
-	if self.BlockInput then
-		WireLib.AddNotify(ply,"That text entry is not accepting input right now!",NOTIFY_ERROR,5,6)
-		return
-	end
 	if !IsValid(ply) then return end
-	if IsValid(self.Ply) then
+	if self.BlockInput or IsValid(self.Ply) then
 		WireLib.AddNotify(ply,"That text entry is not accepting input right now!",NOTIFY_ERROR,5,6)
 		return
 	end
