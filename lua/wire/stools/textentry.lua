@@ -9,7 +9,7 @@ if CLIENT then
 	lang("0","Primary: Create/Update a Text Entry keyboard.")
 end
 TOOL.ClientConVar["model"] = "models/beer/wiremod/keyboard.mdl"
-TOOL.ClientConVar["hold"] = "0.1"
+TOOL.ClientConVar["hold"] = "1"
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax(20)
 if SERVER then
@@ -19,6 +19,6 @@ if SERVER then
 end
 function TOOL.BuildCPanel(panel)
 	panel:AddControl("Header",{Description="Input strings on a keyboard to be used with the wire system."})
-	panel:NumSlider("Hold Length","wire_textentry_hold",0.1,100,1)
+	panel:NumSlider("Hold Length","wire_textentry_hold",1,100,1)
 	panel:ControlHelp("Sets how long the string output is set to the inputted text in seconds.")
 end

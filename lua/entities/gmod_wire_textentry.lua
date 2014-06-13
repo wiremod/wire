@@ -69,51 +69,40 @@ end
 util.AddNetworkString("textentry_action")
 util.AddNetworkString("textentry_show")
 net.Receive("textentry_action",function(_,ply)
-	local intruder=false
 	local self=net.ReadEntity()
-	if !IsValid(self) then intruder=true end
-	if ply!=self.Ply then intruder=true end
+	if !IsValid(self) or ply!=self.Ply or !IsValid(ply) then return end
 	local act=net.ReadBit()
-	if not intruder then
-		if !act then
-			self.Ply=nil
-			self:Output("In Use",0)
-			self:Output("User",nil)
-			return
-		elseif act and !self.BlockInput then
-			self:Output("Memory",net.ReadString())
-			self.Ply=nil
-			self:Output("In Use",0)
-			self:Output("User",nil)
-			timer.Simple(self:GetHold(),function()
-				if IsValid(self) then
-					self:Output("Memory","")
-				end
-			end)
-		elseif act and self.BlockInput then
-			self.Ply=nil
-			self:Output("In Use",0)
-			self:Output("User",nil)
-			WireLib.AddNotify(ply,"That keyboard is not accepting input right now!",NOTIFY_ERROR,5,6)
-		else
-			intruder=true
-			//theoretically this shouldn't happen
-		end
-	end
-	if intruder then
-		print("SOMEBODY IS SENDING NET MESSAGES MANUALLY")
-		print("> name:","",ply:Nick())
-		print("> steamid:",ply:SteamID())
+	if !act then
+		self.Ply=nil
+		self:Output("In Use",0)
+		self:Output("User",nil)
+		return
+	elseif act and !self.BlockInput then
+		self:Output("Memory",net.ReadString())
+		self.Ply=nil
+		self:Output("In Use",0)
+		self:Output("User",nil)
+		timer.Destroy("TextEntry"..self:EntIndex())
+		timer.Create("TextEntry"..self:EntIndex(),self:GetHold(),1,function()
+			if IsValid(self) then
+				self:Output("Memory","")
+			end
+		end)
+	elseif act and self.BlockInput then
+		self.Ply=nil
+		self:Output("In Use",0)
+		self:Output("User",nil)
+		WireLib.AddNotify(ply,"That text entry is not accepting input right now!",NOTIFY_ERROR,5,6)
 	end
 end)
 function ENT:Use(ply)
 	if self.BlockInput then
-		WireLib.AddNotify(ply,"That keyboard is not accepting input right now!",NOTIFY_ERROR,5,6)
+		WireLib.AddNotify(ply,"That text entry is not accepting input right now!",NOTIFY_ERROR,5,6)
 		return
 	end
 	if !IsValid(ply) then return end
 	if IsValid(self.Ply) then
-		WireLib.AddNotify(ply,"That keyboard is not accepting input right now!",NOTIFY_ERROR,5,6)
+		WireLib.AddNotify(ply,"That text entry is not accepting input right now!",NOTIFY_ERROR,5,6)
 		return
 	end
 	self.Ply=ply
@@ -124,8 +113,8 @@ function ENT:Use(ply)
 	net.Send(ply)
 end
 function ENT:Think()
-	if self:GetHold()<0.1 then
-		self:SetHold(0.1)
+	if self:GetHold()<1 then
+		self:SetHold(1)
 	end
 	self:Overlay()
 	self:NextThink(CurTime()+1)
