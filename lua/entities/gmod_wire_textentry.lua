@@ -33,7 +33,6 @@ if CLIENT then
 	end)
 	return
 end
-if !SERVER then return end
 function ENT:Overlay()
 	local txt="Hold Length: "..math.Round(self:GetHold(),1)
 	if self.BlockInput then
@@ -49,7 +48,7 @@ function ENT:Initialize()
     self:SetUseType(SIMPLE_USE)
 	
 	self.Inputs=WireLib.CreateInputs(self,{"Block Input"})
-	self.Outputs=WireLib.CreateOutputs(self,{"In Use","Memory [STRING]","User [ENTITY]"})
+	self.Outputs=WireLib.CreateOutputs(self,{"In Use","Text [STRING]","User [ENTITY]"})
 	self.BlockInput=false
 	self:Overlay()
 end
