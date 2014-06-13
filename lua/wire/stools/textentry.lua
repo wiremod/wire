@@ -39,6 +39,7 @@ function TOOL:LeftClick(trace)
 		undo.AddEntity(const)
 		undo.SetPlayer(self:GetOwner())
 	undo.Finish()
+	return true
 end
 function TOOL.BuildCPanel(panel)
 	panel:AddControl("Header",{Description="Input strings on a keyboard to be used with the wire system."})
