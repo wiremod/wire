@@ -73,14 +73,14 @@ net.Receive("textentry_action",function(_,ply)
 		self:Output("User",nil)
 		return
 	elseif act and !self.BlockInput then
-		self:Output("Memory",net.ReadString())
+		self:Output("Text",net.ReadString())
 		self.Ply=nil
 		self:Output("In Use",0)
 		self:Output("User",nil)
 		timer.Destroy("TextEntry"..self:EntIndex())
 		timer.Create("TextEntry"..self:EntIndex(),self:GetHold(),1,function()
 			if IsValid(self) then
-				self:Output("Memory","")
+				self:Output("Text","")
 			end
 		end)
 	elseif act and self.BlockInput then
