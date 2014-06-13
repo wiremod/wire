@@ -18,7 +18,7 @@ function ENT:Overlay()
 		local args={...}
 		txt=txt.."\n"..table.concat(args,"\n")
 	end
-	app("Hold Length: "..self:GetDelay())
+	app("Hold Length: "..math.Round(self:GetDelay(),1))
 	if self.BlockInput then
 		app("Blocking Input")
 	elseif self.Ply then
@@ -128,4 +128,6 @@ function ENT:Think()
 	if self:GetDelay()<0.1 then
 		self:SetDelay(0.1)
 	end
+	self:Overlay()
+	self:NextThink(CurTime()+1)
 end
