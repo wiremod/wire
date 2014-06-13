@@ -34,20 +34,32 @@ if CLIENT then
 	return
 end
 function ENT:Overlay()
-	local txt="Hold Length: "..math.Round(self:GetHold(),1)
+	local txt="Hold Length: "..(math.Round(self:GetHold(),1)>0 and math.Round(self:GetHold(),1) or "Forever")
 	if self.BlockInput then
 		txt=txt.."\nBlocking Input"
 	elseif self.Ply then
 		txt=txt.."\nIn Use"
 	end
+	if IsValid(self.Vehicle)then
+		local lst=list.Get("Vehicles")
+		local name="Error"
+		for k,v in pairs(lst)do
+			if v.Class==self.Vehicle:GetClass() and v.Model==self.Vehicle:GetModel() then
+				name=k
+				break
+			end
+		end
+		name=string.Replace(name,"_"," ")
+		txt=txt.."\nLinked Vehicle: Vehicle ("..name..") ["..self.Vehicle:EntIndex().."]"
+	end
 	self:SetOverlayText(txt)
 end
 function ENT:Initialize()
-    self:SetModel( "models/beer/wiremod/keyboard.mdl" )
+    //self:SetModel( self.Model )
     self:PhysicsInit(SOLID_VPHYSICS)
     self:SetUseType(SIMPLE_USE)
 	
-	self.Inputs=WireLib.CreateInputs(self,{"Block Input"})
+	self.Inputs=WireLib.CreateInputs(self,{"Block Input","Prompt"})
 	self.Outputs=WireLib.CreateOutputs(self,{"In Use","Text [STRING]","User [ENTITY]"})
 	self.BlockInput=false
 	self:Overlay()
@@ -59,7 +71,36 @@ function ENT:TriggerInput(name,value)
 	if name=="Block Input" then
 		self.BlockInput = value~=0
 		self:Overlay()
+	elseif name=="Prompt" and IsValid(self.Vehicle) and !self.BlockInput and !IsValid(self.Ply) and value!=0 then
+		local ply=self.Vehicle:GetDriver()
+		if !IsValid(ply) then return end
+		self.Ply=ply
+		self:Output("User",ply)
+		self:Output("In Use",1)
+		net.Start("textentry_show")
+			net.WriteEntity(self)
+		net.Send(ply)
 	end
+end
+function ENT:UnlinkEnt(ent)
+	if ent==self.Vehicle and IsValid(ent) then
+		self.Vehicle=nil
+		self.Marks={}
+		WireLib.SendMarks(self)
+	end
+end
+function ENT:LinkEnt(ent)
+	if ent==self then
+		return false,"You can't link a text entry to itself!"
+	end
+	if !IsValid(ent) or !ent:IsVehicle() then return false,"That entity isn't a vehicle!" end
+	self.Vehicle=ent
+	self.Marks={ent}
+	WireLib.SendMarks(self)
+	return true
+end
+function ENT:ClearEntities()
+	self:UnlinkEnt(self.Vehicle)
 end
 util.AddNetworkString("textentry_action")
 util.AddNetworkString("textentry_show")
@@ -78,11 +119,13 @@ net.Receive("textentry_action",function(_,ply)
 		self:Output("In Use",0)
 		self:Output("User",nil)
 		timer.Destroy("TextEntry"..self:EntIndex())
-		timer.Create("TextEntry"..self:EntIndex(),self:GetHold(),1,function()
-			if IsValid(self) then
-				self:Output("Text","")
-			end
-		end)
+		if self:GetHold()>0 then
+			timer.Create("TextEntry"..self:EntIndex(),self:GetHold(),1,function()
+				if IsValid(self) then
+					self:Output("Text","")
+				end
+			end)
+		end
 	elseif act and self.BlockInput then
 		self.Ply=nil
 		self:Output("In Use",0)
@@ -104,18 +147,25 @@ function ENT:Use(ply)
 	net.Send(ply)
 end
 function ENT:Think()
-	if self:GetHold()<1 then
-		self:SetHold(1)
+	if self:GetHold()<0 then
+		self:SetHold(0)
+	end
+	if !IsValid(self.Vehicle) then
+		self.Vehicle=nil
+		self.Marks={}
+		WireLib.SendMarks(self)
 	end
 	self:Overlay()
-	self:NextThink(CurTime()+1)
-	return true
 end
-function ENT:Setup(hold)
-	if tonumber(hold) then
-		hold=tonumber(hold)
-		self:SetHold(hold)
-		self.hold=hold
+function ENT:Setup(Model,Hold)
+	if tonumber(Hold) then
+		Hold=tonumber(Hold)
+		self:SetHold(Hold)
+		self.hold=Hold
+	end
+	if isstring(Model) then
+		self.Model=Model
+		self:SetModel(Model)
 	end
 end
 duplicator.RegisterEntityClass("gmod_wire_textentry",WireLib.MakeWireEnt,"Data")

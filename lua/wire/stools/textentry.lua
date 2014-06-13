@@ -6,19 +6,21 @@ if CLIENT then
 	end
 	lang("name","Wire Text Entry")
 	lang("desc","Input strings on a keyboard to be used with the wire system.")
-	lang("0","Primary: Create/Update a Text Entry keyboard.")
 end
-TOOL.ClientConVar["model"] = "models/beer/wiremod/keyboard.mdl"
-TOOL.ClientConVar["hold"] = "1"
+TOOL.ClientConVar["Model"] = "models/beer/wiremod/keyboard.mdl"
+TOOL.ClientConVar["Hold"] = "1"
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax(20)
 if SERVER then
 	function TOOL:GetConVars()
-		return self:GetClientNumber("hold")
+		return self:GetClientNumber("Model"),self:GetClientNumber("Hold")
 	end
 end
+WireToolSetup.SetupLinking(true)
 function TOOL.BuildCPanel(panel)
 	panel:AddControl("Header",{Description="Input strings on a keyboard to be used with the wire system."})
-	panel:NumSlider("Hold Length","wire_textentry_hold",1,100,1)
-	panel:ControlHelp("Sets how long the string output is set to the inputted text in seconds.")
+	ModelPlug_AddToCPanel(panel, "Keyboard", "wire_textentry", true)
+	panel:NumSlider("Hold Length","wire_textentry_hold",0,10,1)
+	panel:ControlHelp("Sets how long the string output is set to the inputted text in seconds. 0 for forever.")
 end
+
