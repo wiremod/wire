@@ -6,7 +6,6 @@ local CurrentName -- a small hack to know when to create the wire extras checkbo
 AccessorFunc( PANEL, "m_TabID", 			"TabID" )
 
 local expand_all = CreateConVar( "wire_tool_menu_expand_all", 0, {FCVAR_ARCHIVE} )
-local search_max_convar = CreateConVar( "wire_tool_menu_search_limit", 28, {FCVAR_ARCHIVE} )
 local separate_wire_extras = CreateConVar( "wire_tool_menu_separate_wire_extras", 1, {FCVAR_ARCHIVE} )
 local custom_for_all_tabs = CreateConVar( "wire_tool_menu_custom_menu_for_all_tabs", 0, {FCVAR_ARCHIVE} )
 
@@ -63,7 +62,7 @@ function PANEL:Init()
 	self.Divider:SetLeft( LeftPanel )
 	
 	local SearchBoxPanel = vgui.Create( "DPanel", LeftPanel )
-	SearchBoxPanel:SetTall( 84 )
+	SearchBoxPanel:SetTall( 44 )
 	SearchBoxPanel:DockPadding( 2,2,2,2 )
 	SearchBoxPanel:Dock( TOP )
 	
@@ -116,20 +115,10 @@ function PANEL:Init()
 			end )
 		end
 		
-		SearchBoxPanel:SetTall( 104 )
+		SearchBoxPanel:SetTall( 64 )
 	end
 	
 	local ExpandAll = vgui.Create( "DCheckBoxLabel", SearchBoxPanel ) -- create this here so that it's below the slider
-	
-	local ResultSlider = vgui.Create( "DNumSlider", SearchBoxPanel )
-	ResultSlider:SetText( "Search results:" )
-	ResultSlider:SetConVar( "wire_tool_menu_search_limit" )
-	ResultSlider:SetMin( 1 )
-	ResultSlider:SetMax( 50 )
-	ResultSlider:SetDecimals( 0 )
-	ResultSlider.Label:SetDark(true)
-	ResultSlider:DockMargin( 4, 4, -26, 0 )
-	ResultSlider:Dock( BOTTOM )
 	
 	self.List = vgui.Create( "DTree", LeftPanel )
 	
@@ -223,12 +212,15 @@ function PANEL:SetupSearchbox()
 	local searching
 	local parent = self
 	function self.SearchBox:OnTextChanged()
+		timer.Remove( "wire_customspawnmenu_hidesearchbox" )
+	
 		local text = self:GetValue()
 		if text ~= "" then
 			if not searching then
 				searching = true
 				local x,y = parent.List:GetPos()
 				local w,h = parent.List:GetSize()
+				parent.SearchList:SetPos( x + w, y )
 				parent.SearchList:MoveTo( x, y, 0.1, 0, 1 )
 				parent.SearchList:SetSize( w, h )
 				parent.SearchList:SetVisible( true )
@@ -236,7 +228,7 @@ function PANEL:SetupSearchbox()
 			end
 			local results = parent:Search( text )
 			parent.SearchList:Clear()
-			for i=1,math.min(#results,search_max_convar:GetInt()) do
+			for i=1,#results do
 				local result = results[i]
 				local line = parent.SearchList:AddLine( result.item.Text, result.item.Category )
 				line.Name = result.item.ItemName
@@ -246,9 +238,10 @@ function PANEL:SetupSearchbox()
 				searching = false
 				local x,y = parent.List:GetPos()
 				local w,h = parent.List:GetSize()
+				parent.SearchList:SetPos( x, y )
 				parent.SearchList:MoveTo( x + w, y, 0.1, 0, 1 )
 				parent.SearchList:SetSize( w, h )
-				timer.Simple( 0.1, function()
+				timer.Create( "wire_customspawnmenu_hidesearchbox", 0.1, 1, function()
 					if IsValid( parent ) then
 						parent.SearchList:SetVisible( false )
 					end
@@ -311,6 +304,8 @@ end
 local function AddNode( list, text, cookietext )
 	local node = list:AddNode( text )
 	
+	node.Label:SetFont( "DermaDefaultBold" )
+	
 	cookietext = "ToolMenu.Wire." .. cookietext
 	node.WireCookieText = cookietext
 	
@@ -321,6 +316,26 @@ local function AddNode( list, text, cookietext )
 		cookie.Set( cookietext, b and 1 or 0 )
 	end
 	node.Expander.DoClick = function() node:DoClick() end
+	
+	function node:DoRightClick()
+		local menu = DermaMenu()
+			
+		local b = self.m_bExpanded
+		if b then
+			menu:AddOption( "Unexpand all", function()
+				self:SetExpanded( false )
+				expandall( false, self.ChildNodes:GetChildren() )
+			end )
+		else
+			menu:AddOption( "Expand all", function()
+				self:SetExpanded( true )
+				expandall( true, self.ChildNodes:GetChildren() )
+			end )
+		end
+		menu:Open()
+		
+		return true
+	end
 	
 	return node
 end
