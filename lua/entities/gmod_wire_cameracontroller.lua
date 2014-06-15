@@ -456,7 +456,6 @@ function ENT:UpdateOutputs()
 		local hitPos = trace.HitPos or Vector(0,0,0)
 		
 		if self.OldDupe then
-			WireLib.TriggerOutput(self, "XYZ", hitPos)
 			WireLib.TriggerOutput(self, "X", hitPos.x)
 			WireLib.TriggerOutput(self, "Y", hitPos.y)
 			WireLib.TriggerOutput(self, "Z", hitPos.z)
@@ -469,7 +468,6 @@ function ENT:UpdateOutputs()
 		WireLib.TriggerOutput(self,"Trace",trace)
 	else
 		if self.OldDupe then
-			WireLib.TriggerOutput(self, "XYZ", Vector(0,0,0))
 			WireLib.TriggerOutput(self, "X", 0)
 			WireLib.TriggerOutput(self, "Y", 0)
 			WireLib.TriggerOutput(self, "Z", 0)
@@ -829,6 +827,8 @@ function ENT:BuildDupeInfo()
 	end
 	info.Vehicles = veh
 	
+	info.OldDupe = self.OldDupe
+	
 	-- Other options are saved using duplicator.RegisterEntityClass
 	
 	return info
@@ -837,7 +837,7 @@ end
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
 	
-	if info.cam or info.pod then -- OLD DUPE DETECTED
+	if info.cam or info.pod or info.OldDupe then -- OLD DUPE DETECTED
 		if info.cam then
 			local CamEnt = GetEntByID( info.cam )
 			if IsValid( CamEnt ) then CamEnt:Remove() end
@@ -849,9 +849,9 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 						
 		WireLib.AdjustSpecialInputs( self, {	"Activated", "X", "Y", "Z", "Pitch", "Yaw", "Roll",
 												"Angle [ANGLE]", "Position [VECTOR]", "Distance", "Direction [VECTOR]",
-												"Parent [ENTITY]", "FLIR", "FOV", "Zoom (1-90)" } )
+												"Parent [ENTITY]", "FLIR", "FOV" } )
 		
-		WireLib.AdjustSpecialOutputs( self, { 	"On", "X", "Y", "Z", "XYZ [VECTOR]", "HitPos [VECTOR]", 
+		WireLib.AdjustSpecialOutputs( self, { 	"On", "X", "Y", "Z", "HitPos [VECTOR]", 
 												"CamPos [VECTOR]", "CamDir [VECTOR]", "CamAng [ANGLE]", 
 												"Trace [RANGER]" } )
 		
@@ -865,7 +865,10 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 		end
 	end
 	
-	timer.Simple( 0.1, function() if IsValid( self ) then self:UpdateMarks() end end ) -- timers solve everything
+	timer.Simple( 0.1, function() if IsValid( self ) then self:UpdateMarks() end end ) -- timers solve everything (the entity isn't valid on the client at first, so we wait a bit)
 end
+
+WireLib.AddInputAlias( "Zoom", "FOV" )
+WireLib.AddOutputAlias( "XYZ", "HitPos" )
 
 duplicator.RegisterEntityClass("gmod_wire_cameracontroller", WireLib.MakeWireEnt, "Data", "ParentLocal","AutoMove","LocalMove","AllowZoom","AutoUnclip","DrawPlayer")
