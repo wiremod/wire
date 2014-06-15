@@ -3115,6 +3115,7 @@ do -- E2 Syntax highlighting
 		["@outputs"] = 1,
 		["@persist"] = 1,
 		["@trigger"] = 2, -- like 1, except that all/none are yellow
+		["@autoupdate"] = 0,
 	}
 
 	local colors = {
