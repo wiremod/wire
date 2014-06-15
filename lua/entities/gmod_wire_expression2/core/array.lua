@@ -452,7 +452,17 @@ end
 -- Concatenates the values of the array
 --------------------------------------------------------------------------------
 __e2setcost(1)
-local concat = table.concat
+local luaconcat = table.concat
+local clamp = math.Clamp
+local function concat( tab, delimeter, startindex, endindex )
+	local ret = {}
+	local len = #tab
+	for i=clamp(startindex or 1,1,len), clamp(endindex or len,1,len) do
+		ret[#ret+1] = tostring(tab[i])
+	end
+	return luaconcat( ret, delimeter )
+end
+
 e2function string array:concat()
 	self.prf = self.prf + #this/3
 	return concat(this)

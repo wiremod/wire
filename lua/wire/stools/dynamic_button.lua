@@ -1,4 +1,4 @@
-WireToolSetup.setCategory( "I/O" )
+WireToolSetup.setCategory( "Input, Output" )
 WireToolSetup.open( "dynamic_button", "Dynamic Button", "gmod_wire_dynamic_button", nil, "Dynamic Buttons" )
 
 if CLIENT then

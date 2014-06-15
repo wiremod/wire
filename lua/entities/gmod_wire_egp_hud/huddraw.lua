@@ -91,29 +91,60 @@ hook.Add("Initialize","EGP_HUD_Initialize",function()
 		local vehiclelinks = {}
 
 		function EGP:LinkHUDToVehicle( hud, vehicle )
-			vehiclelinks[hud] = vehicle
-			hud.LinkedVehicle = vehicle
+			if not hud.LinkedVehicles then hud.LinkedVehicles = {} end
+			if not hud.Marks then hud.Marks = {} end
+			
+			hud.Marks[#hud.Marks+1] = vehicle
+			hud.LinkedVehicles[vehicle] = true
+			vehiclelinks[hud] = hud.LinkedVehicles
+			
+			timer.Simple( 0.1, function() -- timers solve everything (this time, it's the fact that the entity isn't valid on the client after dupe)
+				WireLib.SendMarks( hud )
+			end)
 		end
 
-		function EGP:UnlinkHUDFromVehicle( hud )
-			if (vehiclelinks[hud]) then
-				local vehicle = vehiclelinks[hud]
-				if (vehicle and vehicle:IsValid()) then
-					if (vehicle:GetDriver() and vehicle:GetDriver():IsValid()) then
-						umsg.Start( "EGP_HUD_Use", vehicle:GetDriver() )
-							umsg.Entity( hud )
-							umsg.Char( -1 )
-						umsg.End()
-					end
-				end
+		function EGP:UnlinkHUDFromVehicle( hud, vehicle )
+			if not vehicle then -- unlink all		
 				vehiclelinks[hud] = nil
-				hud.LinkedVehicle = nil
+				hud.LinkedVehicles = nil
+				hud.Marks = nil
+			else
+				if vehiclelinks[hud] then
+					local bool = vehiclelinks[hud][vehicle]
+					if bool then
+						if vehicle:GetDriver() and vehicle:GetDriver():IsValid() then
+							umsg.Start( "EGP_HUD_Use", vehicle:GetDriver() )
+								umsg.Entity( hud )
+								umsg.Char( -1 )
+							umsg.End()
+						end
+					end
+					
+					if hud.Marks then
+						for i=1,#hud.Marks do
+							if hud.Marks[i] == vehicle then
+								table.remove( hud.Marks, i )
+								break
+							end
+						end
+					end
+					
+					hud.LinkedVehicles[vehicle] = nil
+					if not next( hud.LinkedVehicles ) then
+						hud.LinkedVehicles = nil
+						hud.Marks = nil
+					end
+					
+					vehiclelinks[hud] = hud.LinkedVehicles
+				end
 			end
+			
+			WireLib.SendMarks( hud )
 		end
 
 		hook.Add("PlayerEnteredVehicle","EGP_HUD_PlayerEnteredVehicle",function( ply, vehicle )
 			for k,v in pairs( vehiclelinks ) do
-				if (v == vehicle) then
+				if v[vehicle] ~= nil then
 					umsg.Start( "EGP_HUD_Use", ply )
 						umsg.Entity( k )
 						umsg.Char( 1 )
@@ -124,7 +155,7 @@ hook.Add("Initialize","EGP_HUD_Initialize",function()
 
 		hook.Add("PlayerLeaveVehicle","EGP_HUD_PlayerLeaveVehicle",function( ply, vehicle )
 			for k,v in pairs( vehiclelinks ) do
-				if (v == vehicle) then
+				if v[vehicle] ~= nil then
 					umsg.Start( "EGP_HUD_Use", ply )
 						umsg.Entity( k )
 						umsg.Char( -1 )

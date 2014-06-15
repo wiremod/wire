@@ -92,7 +92,7 @@ function ENT:TriggerInput(iname, value)
 		self.Active = false
 		self:StopSounds()
 	elseif iname == "Volume" then
-		self.Volume = math.Clamp(math.floor(value*100), 0, 100)
+		self.Volume = math.Clamp(math.floor(value*100), 0.0, 100.0)
 	elseif iname == "PitchRelative" then
 		self.Pitch = math.Clamp(math.floor(value*100), 0, 255)
 	elseif iname == "Sample" then
@@ -122,7 +122,7 @@ function ENT:UpdateSound()
 		if self.Active then self:StartSounds() end
 	end
 	self.SoundObj:ChangePitch(self.Pitch, 0)
-	self.SoundObj:ChangeVolume(self.Volume, 0)
+	self.SoundObj:ChangeVolume(self.Volume / 100.0, 0)
 end
 
 function ENT:SetSound(soundName)

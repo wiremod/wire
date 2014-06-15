@@ -1,4 +1,4 @@
-WireToolSetup.setCategory( "I/O" )
+WireToolSetup.setCategory( "Input, Output" )
 WireToolSetup.open( "button", "Button", "gmod_wire_button", nil, "Buttons" )
 
 if CLIENT then

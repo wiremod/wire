@@ -1,4 +1,4 @@
-WireToolSetup.setCategory( "I/O" )
+WireToolSetup.setCategory( "Input, Output/Keyboard Interaction" )
 WireToolSetup.open( "output", "Numpad Output", "gmod_wire_output", nil, "Numpad Outputs" )
 
 if CLIENT then

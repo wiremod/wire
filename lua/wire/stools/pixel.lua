@@ -1,4 +1,4 @@
-WireToolSetup.setCategory( "Display" )
+WireToolSetup.setCategory( "Visuals/Indicators" )
 WireToolSetup.open( "pixel", "Pixel", "gmod_wire_pixel", nil, "Pixels" )
 
 if CLIENT then

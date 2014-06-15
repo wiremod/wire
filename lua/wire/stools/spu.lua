@@ -1,5 +1,5 @@
-WireToolSetup.setCategory( "Advanced" )
-WireToolSetup.open( "spu", "Chip - SPU", "gmod_wire_spu", nil, "SPUs" )
+WireToolSetup.setCategory( "Chips, Gates", "Other/Sound", "Advanced" )
+WireToolSetup.open( "spu", "SPU", "gmod_wire_spu", nil, "SPUs" )
 
 if CLIENT then
   language.Add("Tool.wire_spu.name", "SPU Tool (Wire)")

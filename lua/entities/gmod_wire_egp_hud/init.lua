@@ -53,12 +53,42 @@ end
 
 function ENT:UpdateTransmitState() return TRANSMIT_ALWAYS end
 
+function ENT:LinkEnt( ent )
+	if IsValid( ent ) and ent:IsVehicle() then
+		if self.LinkedVehicles and self.LinkedVehicles[ent] then
+			return false
+		end
+		
+		EGP:LinkHUDToVehicle( self, ent )
+		ent:CallOnRemove( "EGP HUD unlink on remove", function( ent )
+			EGP:UnlinkHUDFromVehicle( self, ent )
+		end)
+		return true
+	else
+		return false, tostring(ent) .. " is invalid or is not a vehicle"
+	end
+end
+
+function ENT:OnRemove()
+	if self.Marks then
+		for i=1,#self.Marks do
+			self.Marks[i]:RemoveCallOnRemove( "EGP HUD unlink on remove" )
+		end
+	end
+	
+	EGP:UnlinkHUDFromVehicle( self )
+end
+
 function ENT:BuildDupeInfo()
 	local info = self.BaseClass.BuildDupeInfo(self) or {}
 
-	local vehicle = self.LinkedVehicle
-	if (vehicle) then
-		info.egp_hud_vehicle = vehicle:EntIndex()
+	local vehicles = self.LinkedVehicles
+	if vehicles then
+		local _vehicles = {}
+		for k,v in pairs( vehicles ) do
+			_vehicles[#_vehicles+1] = k:EntIndex()
+		end
+		info.egp_hud_vehicles = _vehicles
 	end
 
 	return info
@@ -67,8 +97,12 @@ end
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
 
-	local vehicle = GetEntByID( info.egp_hud_vehicle )
-	if IsValid(vehicle) then
-		EGP:LinkHUDToVehicle( self, vehicle )
+	local vehicles = info.egp_hud_vehicles
+	for i=1,#vehicles do
+		local vehicle = GetEntByID( vehicles[i] )
+		
+		if IsValid( vehicle ) then
+			self:LinkEnt( vehicle )
+		end
 	end
 end

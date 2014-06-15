@@ -43,37 +43,81 @@ function ENT:OnRemove()
 	self.NeedRefresh = true
 end
 
-local pixelbits = {20, 8, 24, 30, 8}
+local function stringToNumber(index, str, bytes)
+	local newpos = index+bytes
+	str = str:sub(index,newpos-1)
+	local n = 0
+	for j=1,bytes do
+		n = n + str:byte(j)*math.pow(256,j-1)
+    end
+	return n, newpos
+end
+
+local pixelbits = {20, 8, 24, 30, 8, 3, 1, 3, 4, 1}
 net.Receive("wire_digitalscreen", function(netlen)
 	local ent = Entity(net.ReadUInt(16))
-	local pixelbit = pixelbits[net.ReadUInt(4)+1]
+	
 	if IsValid(ent) and ent.Memory1 and ent.Memory2 then
-		while true do
-			local length = net.ReadUInt(20)
-			if length == 0 then break end
-			local address = net.ReadUInt(20)
-			for i=1, length do
-				if address>=1048500 then
-					ent:WriteCell(address, net.ReadUInt(10))
-				else
-					ent:WriteCell(address, net.ReadUInt(pixelbit))
+		local compression = net.ReadUInt(1)
+		local pixelformat = net.ReadUInt(5)
+		local pixelbit = pixelbits[pixelformat]
+		local readData
+		
+		if compression==0 then
+			readData = function()
+				local length = net.ReadUInt(20)
+				if length == 0 then return end
+				local address = net.ReadUInt(20)
+				for i = address, address + length - 1 do
+					if i>=1048500 then
+						ent:WriteCell(i, net.ReadUInt(10))
+					else
+						ent:WriteCell(i, net.ReadUInt(pixelbit))
+					end
 				end
-				address = address + 1
+				return true
+			end
+		else
+			pixelbit = pixelbits[pixelformat+5]
+			local datastr = util.Decompress(net.ReadData((netlen-22)/8))
+			if not datastr then return end
+			local readIndex = 1
+			
+			readData = function()
+				local length
+				length, readIndex = stringToNumber(readIndex,datastr,3)
+				if length == 0 then return end
+				local address
+				address, readIndex = stringToNumber(readIndex,datastr,3)
+				for i = address, address + length - 1 do
+					if i>=1048500 then
+						local data
+						data, readIndex = stringToNumber(readIndex,datastr,2)
+						ent:WriteCell(i, data)
+					else
+						local data
+						data, readIndex = stringToNumber(readIndex,datastr,pixelbit)
+						ent:WriteCell(i, data)
+					end
+				end
+				return true
 			end
 		end
+	
+		while readData() do end
 	end
 end)
 
 function ENT:ReadCell(Address,value)
 	if Address < 0 then return nil end
-	if Address >= 1048576 then return nil end
+	if Address >= 1048577 then return nil end
 
 	return self.Memory2[Address]
 end
 
 function ENT:WriteCell(Address,value)
 	if Address < 0 then return false end
-	if Address >= 1048576 then return false end
+	if Address >= 1048577 then return false end
 
 	if Address == 1048575 then
 		self.NewClk = value ~= 0

@@ -83,12 +83,12 @@ if CLIENT then
 		surface.SetDrawColor(Color(25,25,25,200))
 		
 		local poly = {
-						{x = pos.min.x + edgesize, 	y = pos.min.y,				u = 0, v = 0 },
-						{x = pos.max.x, 			y = pos.min.y,				u = 0, v = 0 },
-						{x = pos.max.x, 			y = pos.max.y - edgesize,	u = 0, v = 0 },
-						{x = pos.max.x - edgesize, 	y = pos.max.y,				u = 0, v = 0 },
-						{x = pos.min.x, 			y = pos.max.y,				u = 0, v = 0 },
-						{x = pos.min.x, 			y = pos.min.y + edgesize,	u = 0, v = 0 },
+						{x = pos.min.x + edgesize, 			y = pos.min.y,					u = 0, v = 0 },
+						{x = pos.max.x, 					y = pos.min.y,					u = 0, v = 0 },
+						{x = pos.max.x, 					y = pos.max.y - edgesize + 0.5,	u = 0, v = 0 },
+						{x = pos.max.x - edgesize + 0.5, 	y = pos.max.y,					u = 0, v = 0 },
+						{x = pos.min.x, 					y = pos.max.y,					u = 0, v = 0 },
+						{x = pos.min.x, 					y = pos.min.y + edgesize,		u = 0, v = 0 },
 					}
 		
 		render.CullMode(MATERIAL_CULLMODE_CCW)
@@ -265,10 +265,6 @@ if CLIENT then
 		end
 	end
 	
-	function ENT:GetOverlayData()
-		return self.OverlayData
-	end
-	
 	--------------------------------------------------------------------------------
 	-- Overlay receiving
 	--------------------------------------------------------------------------------
@@ -312,6 +308,10 @@ function ENT:SetOverlayData( data )
 	
 	if not self.OverlayData_UpdateTime then	self.OverlayData_UpdateTime = {} end
 	self.OverlayData_UpdateTime.time = CurTime()
+end
+
+function ENT:GetOverlayData()
+	return self.OverlayData
 end
 
 if CLIENT then return end -- no more client

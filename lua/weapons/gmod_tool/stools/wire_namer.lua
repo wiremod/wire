@@ -1,4 +1,4 @@
-TOOL.Category		= "Wire - Tools"
+TOOL.Category		= "Tools"
 TOOL.Name			= "Namer"
 TOOL.Command		= nil
 TOOL.ConfigName		= ""

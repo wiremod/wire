@@ -1,4 +1,4 @@
-WireToolSetup.setCategory( "Display" )
+WireToolSetup.setCategory( "Visuals/Indicators" )
 WireToolSetup.open( "indicator", "Indicator", "gmod_wire_indicator", nil, "Indicators" )
 
 if CLIENT then

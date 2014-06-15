@@ -1,19 +1,17 @@
 AddCSLuaFile()
 DEFINE_BASECLASS( "base_wire_entity" )
 ENT.PrintName		= "Wire Teleporter"
-ENT.WireDebugName 	= "Hoverdrive Controller"
+ENT.WireDebugName 	= "Teleporter"
 ENT.Author			= "Divran"
 
 if CLIENT then return end -- No more client
 
-CreateConVar("wire_hoverdrive_cooldown","1",{FCVAR_ARCHIVE,FCVAR_NOTIFY})
+CreateConVar("wire_teleporter_cooldown","1",{FCVAR_ARCHIVE,FCVAR_NOTIFY})
 
 function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )
 	self:SetMoveType( MOVETYPE_VPHYSICS )
 	self:SetSolid( SOLID_VPHYSICS )
-
-	local phys = self:GetPhysicsObject()
 
 	self.Jumping = false
 	self.TargetPos = self:GetPos()
@@ -290,7 +288,7 @@ function ENT:Jump_Part2( withangles )
 	-- Cooldown - prevent teleporting for a time
 	timer.Create(
 		"teleporter_"..self:EntIndex(), -- name
-		GetConVarNumber( "wire_hoverdrive_cooldown" ), -- delay
+		GetConVarNumber( "wire_teleporter_cooldown" ), -- delay
 		1, -- nr of runs
 		function() -- function
 			if self:IsValid() then
@@ -317,3 +315,5 @@ function ENT:Setup(UseSounds, UseEffects)
 end
 
 duplicator.RegisterEntityClass("gmod_wire_hoverdrivecontroler", WireLib.MakeWireEnt, "Data", "UseSounds", "UseEffects" )
+duplicator.RegisterEntityClass("gmod_wire_teleporter", WireLib.MakeWireEnt, "Data", "UseSounds", "UseEffects")
+WireLib.ClassAlias("gmod_wire_teleporter", "gmod_wire_hoverdrivecontroler")

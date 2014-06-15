@@ -1,4 +1,4 @@
-WireToolSetup.setCategory( "Physics" )
+WireToolSetup.setCategory( "Physics/Force" )
 WireToolSetup.open( "wheel", "Wheel", "gmod_wire_wheel", nil, "Wheels" )
 
 if CLIENT then

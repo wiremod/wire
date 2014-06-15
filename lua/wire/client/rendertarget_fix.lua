@@ -49,8 +49,7 @@ end)
 local function CreateCPanel( Panel )
 	Panel:ClearControls()
 
-	local lbl =  vgui.Create("DLabel")
-	lbl:SetText([[Here you can fix screens that use
+	Panel:Help( [[Here you can fix screens that use
 rendertargets if they break due to lag.
 If a screen is not on this list, it means
 that either its author has not added it to
@@ -58,9 +57,7 @@ this list, the screen has its own fix, or
 that no fix is necessary.
 You can also use the console command
 "wire_rt_fix", which does the same thing
-as pressing the "All" button.]])
-	lbl:SizeToContents()
-	Panel:AddItem( lbl )
+as pressing the "All" button.]] )
 
 	local btn = vgui.Create("DButton")
 	btn:SetText("All")
@@ -82,7 +79,7 @@ as pressing the "All" button.]])
 end
 
 hook.Add("PopulateToolMenu","WireLib_RenderTarget_Fix",function()
-	spawnmenu.AddToolMenuOption( "Wire", "Wire - Display", "RTFix", "Fix RenderTargets", "", "", CreateCPanel, nil )
+	spawnmenu.AddToolMenuOption( "Wire", "Options", "RTFix", "Fix RenderTargets", "", "", CreateCPanel, nil )
 end)
 
 ---------------------------------------------------------------------

@@ -1,5 +1,5 @@
-WireToolSetup.setCategory("Control")
-WireToolSetup.open("expression2", "Chip - Expression 2", "gmod_wire_expression2", nil, "Expression2s")
+WireToolSetup.setCategory( "Chips, Gates" )
+WireToolSetup.open("expression2", "Expression 2", "gmod_wire_expression2", nil, "Expression2s")
 
 if CLIENT then
 	language.Add("Tool.wire_expression2.name", "Expression 2 Tool (Wire)")
@@ -289,7 +289,7 @@ if SERVER then
 
 	local antispam = {}
 	-- Returns true if they are spamming, false if they can go ahead and use it
-	local function canhas(ply) -- cheezeburger!
+	local function canhas(ply)
 		if not antispam[ply] then antispam[ply] = 0 end
 		if antispam[ply] < CurTime() then
 			antispam[ply] = CurTime() + 1
@@ -300,7 +300,7 @@ if SERVER then
 		end
 	end
 
-	concommand.Add("wire_expression_forcehalt", function(player, command, args) -- this is for the "E2 remote updater"
+	concommand.Add("wire_expression_forcehalt", function(player, command, args)
 		local E2 = tonumber(args[1])
 		if not E2 then return end
 		E2 = Entity(E2)
@@ -319,7 +319,7 @@ if SERVER then
 		end
 	end)
 
-	concommand.Add("wire_expression_requestcode", function(player, command, args) -- this is for the "E2 remote updater"
+	concommand.Add("wire_expression_requestcode", function(player, command, args)
 		local E2 = tonumber(args[1])
 		if not E2 then return end
 		E2 = Entity(E2)
@@ -338,7 +338,7 @@ if SERVER then
 		end
 	end)
 
-	concommand.Add("wire_expression_reset", function(player, command, args) -- this is for the "E2 remote updater"
+	concommand.Add("wire_expression_reset", function(player, command, args)
 		local E2 = tonumber(args[1])
 		if not E2 then return end
 		E2 = Entity(E2)
@@ -359,8 +359,84 @@ if SERVER then
 			WireLib.ClientError("You do not have premission to halt this E2.", player)
 		end
 	end)
+	
+	------------------------------------------------------
+	-- Syncing ops for remote uploader (admin only)
+	-- Server part
+	------------------------------------------------------
+	
+	local players_synced = {}
+	util.AddNetworkString( "wire_expression_sync_ops" )
+	concommand.Add("wire_expression_ops_sync", function(player,command,args)
+		if not player:IsAdmin() then return end
+		
+		local bool = args[1] ~= "0"
+		
+		if bool then
+			players_synced[player] = true
+		else
+			players_synced[player] = nil
+		end
+		
+		if next( players_synced ) and not timer.Exists( "wire_expression_ops_sync" ) then
+		
+			timer.Create( "wire_expression_ops_sync",0.2,0,function()
+				local plys = {}
+				for ply,_ in pairs( players_synced ) do
+					if not IsValid( ply ) then
+						players_synced[ply] = nil
+					else
+						plys[#plys+1] = ply
+					end
+				end
+				if not next( players_synced ) then
+					timer.Remove( "wire_expression_ops_sync" )
+				end
+			
+				local E2s = ents.FindByClass("gmod_wire_expression2")
 
+				net.Start( "wire_expression_sync_ops" )
+					net.WriteInt( #E2s, 16 )
+					for i=1,#E2s do
+						net.WriteEntity( E2s[i] )
+						local data = E2s[i]:GetOverlayData()
+						net.WriteDouble( data.prfbench )
+						net.WriteDouble( data.prfcount )
+						net.WriteDouble( data.timebench )
+					end
+				net.Send( plys )
+			end)
+		elseif not next( players_synced ) and timer.Exists( "wire_expression_ops_sync" ) then
+			timer.Remove( "wire_expression_ops_sync" )
+		end
+		
+	end)
 elseif CLIENT then
+	------------------------------------------------------
+	-- Syncing ops for remote uploader (admin only)
+	-- Client part
+	------------------------------------------------------
+	net.Receive( "wire_expression_sync_ops", function( len )
+		local num = net.ReadInt( 16 )
+		for i=1,num do
+			local E2 = net.ReadEntity()
+			if E2.GetOverlayData and E2.SetOverlayData then
+				local prfbench = net.ReadDouble()
+				local prfcount = net.ReadDouble()
+				local timebench = net.ReadDouble()
+				
+				local data = E2:GetOverlayData() or {}
+				
+				E2:SetOverlayData( {
+					txt = data.txt or "(generic)",
+					error = data.error or false,
+					prfbench = prfbench,
+					prfcount = prfcount,
+					timebench = timebench
+				} )
+			end
+		end
+	end )
 
 	--------------------------------------------------------------
 	-- Clientside Send

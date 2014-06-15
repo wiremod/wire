@@ -54,6 +54,7 @@ if SERVER then
 	AddCSLuaFile("wire/client/sound_browser.lua")
 	AddCSLuaFile("wire/client/thrusterlib.lua")
 	AddCSLuaFile("wire/client/rendertarget_fix.lua")
+	AddCSLuaFile("wire/client/customspawnmenu.lua")
 
 	-- HL-ZASM
 	AddCSLuaFile("wire/client/hlzasm/hc_compiler.lua")
@@ -119,6 +120,7 @@ if CLIENT then
 	include("wire/client/thrusterlib.lua")
 	include("wire/client/rendertarget_fix.lua")
 	include("wire/client/hlzasm/hc_compiler.lua")
+	include("wire/client/customspawnmenu.lua")
 	
 end
 

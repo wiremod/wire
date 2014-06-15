@@ -1,6 +1,6 @@
 // Created by TheApathetic, so you know who to
 // blame if something goes wrong (someone else :P)
-WireToolSetup.setCategory( "Display" )
+WireToolSetup.setCategory( "Visuals/Indicators" )
 WireToolSetup.open( "hudindicator", "Hud Indicator", "gmod_wire_hudindicator", nil, "Hud Indicators" )
 
 if ( CLIENT ) then

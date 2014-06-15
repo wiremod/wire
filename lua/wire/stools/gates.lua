@@ -1,5 +1,5 @@
 -- Made by Divran 06/01/2012
-WireToolSetup.setCategory( "Control" )
+WireToolSetup.setCategory( "Chips, Gates" )
 WireToolSetup.open( "gates", "Gates", "gmod_wire_gate", nil, "Gates" )
 
 WireToolSetup.BaseLang()
