@@ -91,7 +91,7 @@ end
 function ENT:SetLength(value)
 	self.TargetLength = value
 	self.constraint:Fire("SetSpringLength", value, 0)
-	if self.rope then self.rope:Fire("SetLength", value, 0) end
+	if IsValid(self.rope) then self.rope:Fire("SetLength", value, 0) end
 end
 
 function ENT:TriggerInput(iname, value)
