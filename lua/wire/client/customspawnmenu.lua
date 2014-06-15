@@ -322,7 +322,7 @@ local function AddNode( list, text, cookietext )
 			
 		local b = self.m_bExpanded
 		if b then
-			menu:AddOption( "Unexpand all", function()
+			menu:AddOption( "Collapse all", function()
 				self:SetExpanded( false )
 				expandall( false, self.ChildNodes:GetChildren() )
 			end )
