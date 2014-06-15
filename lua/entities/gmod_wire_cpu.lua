@@ -221,12 +221,6 @@ function ENT:BuildDupeInfo()
 end
 
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
-	-- Compatibility with old NMI input
-	if info.Wires and info.Wires.NMI then
-		info.Wires.Interrupt = info.Wires.NMI
-		info.Wires.NMI = nil
-	end
-
 	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
 
 	self.VM.SerialNo = info.SerialNo or CPULib.GenerateSN("UNK")
@@ -242,6 +236,9 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 		self.VM:Reset()
 	end
 end
+
+-- Compatibility with old NMI input
+WireLib.AddInputAlias( "NMI", "Interrupt" )
 
 function ENT:TriggerInput(iname, value)
 	if iname == "Clk" then
