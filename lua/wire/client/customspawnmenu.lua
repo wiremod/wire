@@ -161,15 +161,15 @@ function PANEL:Init()
 	self.SearchList:SetMultiSelect( false )
 	
 	function self.SearchList:OnClickLine( line )
-			-- Deselect old
-			local t = self:GetSelected()
-			if t and next(t) then
-				t[1]:SetSelected(false)
-			end
-
-			line:SetSelected(true) -- Select new
-			spawnmenu.ActivateTool( line.Name )
+		-- Deselect old
+		local t = self:GetSelected()
+		if t and next(t) then
+			t[1]:SetSelected(false)
 		end
+
+		line:SetSelected(true) -- Select new
+		spawnmenu.ActivateTool( line.Name )
+	end
 	
 	self.Content = vgui.Create( "DCategoryList" )
 	self.Divider:SetRight( self.Content )
@@ -194,6 +194,7 @@ function PANEL:ReloadEverything()
 	self.List:Init()
 	self.SearchList:Clear()
 	self.SearchBox:SetValue( "" )
+	self.SearchBox:OnTextChanged()
 	
 	self.CategoryLookup = {}
 	self.ToolTable = {}
@@ -232,6 +233,24 @@ function PANEL:SetupSearchbox()
 				local result = results[i]
 				local line = parent.SearchList:AddLine( result.item.Text, result.item.Category )
 				line.Name = result.item.ItemName
+				line.WireFavouritesCookieText = result.item.WireFavouritesCookieText
+				
+				function line:OnRightClick()
+					-- the menu wasn't clickable unless the search list had focus for some reason
+					parent.SearchList:RequestFocus()
+				
+					local menu = DermaMenu()
+					
+					local b = cookie.GetNumber( self.WireFavouritesCookieText )
+					if b and b == 1 then
+						menu:AddOption( "Remove from favourites", function() cookie.Set( self.WireFavouritesCookieText, 0 ) parent:ReloadEverything() end )
+					else
+						menu:AddOption( "Add to favourites", function() cookie.Set( self.WireFavouritesCookieText, 1 ) parent:ReloadEverything() end )
+					end
+					menu:Open()
+					
+					return true
+				end
 			end
 		else
 			if searching then
@@ -361,14 +380,12 @@ function PANEL:CreateCategories()
 			
 			if #expl == 1 then
 				if not self.CategoryLookup[category] then
-					--local node = self.List:AddNode( v.Text )
 					local node = AddNode( self.List, v.Text, category )
 					self.CategoryLookup[category] = node
 				end
 			else
 				local category = expl[1]
 				if not self.CategoryLookup[category] then
-					--local node = self.List:AddNode( category )
 					local node = AddNode( self.List, category, category )
 					self.CategoryLookup[category] = node
 				end
@@ -378,7 +395,6 @@ function PANEL:CreateCategories()
 					
 					local path = table.concat(expl,"/",1,i)
 					if not self.CategoryLookup[path] then
-						--local node = self.CategoryLookup[table.concat(expl,"/",1,i-1)]:AddNode( str )
 						local node = AddNode( self.CategoryLookup[table.concat(expl,"/",1,i-1)], str, path )
 						self.CategoryLookup[path] = node
 					end
@@ -497,8 +513,6 @@ function PANEL:AddCategory( Name, Label, tItems, CategoryID )
 		return
 	end
 	
-	local bAlt = true
-	
 	for k, v in pairs( tItems ) do
 	
 		v.Category = Label
@@ -529,6 +543,7 @@ function PANEL:AddCategory( Name, Label, tItems, CategoryID )
 		end
 		
 		item.WireFavouritesCookieText	= "ToolMenu.Wire.Favourites." .. v.ItemName
+		v.WireFavouritesCookieText		= item.WireFavouritesCookieText
 		item.ControlPanelBuildFunction	= v.CPanelFunction
 		item.Command					= v.Command
 		item.Name						= v.ItemName
