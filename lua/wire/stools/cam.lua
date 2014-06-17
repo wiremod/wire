@@ -12,6 +12,7 @@ if ( CLIENT ) then
 	language.Add( "Tool.wire_cam.allowzoom", "Client side zooming" )
 	language.Add( "Tool.wire_cam.autounclip", "Auto un-clip" )
 	language.Add( "Tool.wire_cam.drawplayer", "Draw player" )
+	language.Add( "Tool.wire_cam.smooth_amount", "Smooth speed (default: 18)" )
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )
@@ -34,6 +35,7 @@ TOOL.ClientConVar[ "localmove" ] = "0"
 TOOL.ClientConVar[ "allowzoom" ] = "0"
 TOOL.ClientConVar[ "autounclip" ] = "0"
 TOOL.ClientConVar[ "drawplayer" ] = "1"
+TOOL.ClientConVar[ "smooth_amount" ] = "18"
 
 WireToolSetup.SetupLinking()
 
@@ -52,4 +54,7 @@ function TOOL.BuildCPanel(panel)
 	panel:Help( "Enable/disable the player being able to see themselves. Useful if you want to position the camera inside the player's head." )
 	
 	panel:Help( "As you may have noticed, there are a lot of behaviors that change depending on which checkboxes are checked. For a detailed walkthrough of everything, go to http://wiki.wiremod.com/wiki/Cam_Controller") 
+	
+	panel:NumSlider( "#Tool.wire_cam.smooth_amount", "wire_cam_smooth_amount", 4, 30, 1 )
+	panel:Help( "Smooth speed is a client side setting, and is not saved on the cam controller entity. Changing it will immediately affect all cam controllers you use." )
 end

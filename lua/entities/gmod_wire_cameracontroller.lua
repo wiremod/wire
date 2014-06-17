@@ -44,7 +44,12 @@ if CLIENT then
 	local max = math.max
 	local abs = math.abs
 	
+	local pos_speed_convar = GetConVar( "wire_cam_smooth_amount" )
+	
 	local function DoAutoMove( curpos, curang, curdistance, parent, HasParent, ValidParent )
+		local pos_speed = pos_speed_convar:GetFloat()
+		local ang_speed = pos_speed - 2
+	
 		curang = LocalPlayer():EyeAngles()
 		
 		if AllowZoom then
@@ -55,7 +60,7 @@ if CLIENT then
 			curdistance = curdistance + zoomdistance
 		end
 		
-		smoothdistance = Lerp( 0.08, smoothdistance, curdistance )
+		smoothdistance = Lerp( FrameTime() * pos_speed, smoothdistance, curdistance )
 					
 		if HasParent and ValidParent then
 			if LocalMove then
@@ -113,6 +118,9 @@ if CLIENT then
 	hook.Add( "CalcView", "wire_camera_controller_calcview", function()
 		if enabled then
 			if not IsValid( self ) then enabled = false return end
+				
+			local pos_speed = pos_speed_convar:GetFloat()
+			local ang_speed = pos_speed - 2
 			
 			local curpos = pos
 			local curang = ang
@@ -135,7 +143,7 @@ if CLIENT then
 			-- AutoMove
 			if AutoMove then
 				-- only smooth the position, and do it before the automove
-				smoothpos = LerpVector( 0.08, smoothpos, curpos )
+				smoothpos = LerpVector( FrameTime() * pos_speed, smoothpos, curpos )
 			
 				curpos, curang = DoAutoMove( smoothpos, curang, curdistance, parent, HasParent, ValidParent )
 				
@@ -148,8 +156,8 @@ if CLIENT then
 				newview.angles = curang
 			elseif HasParent and ValidParent then			
 				-- smooth BEFORE using toWorld
-				smoothpos = LerpVector( 0.08, smoothpos, curpos )
-				smoothang = LerpAngle( 0.06, smoothang, curang )
+				smoothpos = LerpVector( FrameTime() * pos_speed, smoothpos, curpos )
+				smoothang = LerpAngle( FrameTime() * ang_speed, smoothang, curang )
 				
 				-- now toworld it
 				curpos = parent:LocalToWorld( smoothpos )
@@ -170,8 +178,8 @@ if CLIENT then
 				end
 			
 				-- there's no parent, just smooth it
-				smoothpos = LerpVector( 0.08, smoothpos, curpos )
-				smoothang = LerpAngle( 0.06, smoothang, curang )
+				smoothpos = LerpVector( FrameTime() * pos_speed, smoothpos, curpos )
+				smoothang = LerpAngle( FrameTime() * ang_speed, smoothang, curang )
 				newview.origin = smoothpos
 				newview.angles = smoothang
 			end
