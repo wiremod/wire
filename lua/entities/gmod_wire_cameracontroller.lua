@@ -314,7 +314,7 @@ end
 -- Data sending
 --------------------------------------------------
 
-local function SendPositions( pos, ang, dist, vel, angvel )
+local function SendPositions( pos, ang, dist )
 	-- pos/ang
 	net.WriteFloat( pos.x )
 	net.WriteFloat( pos.y )
@@ -340,7 +340,7 @@ function ENT:SyncSettings( ply, active )
 			net.WriteBit( self.AllowZoom )
 			net.WriteBit( self.AutoUnclip )
 			net.WriteBit( self.DrawPlayer )
-			SendPositions( self.Position, self.Angle, self.Distance, self.Vel, self.AngVel )
+			SendPositions( self.Position, self.Angle, self.Distance )
 		end
 	if #self.Vehicles == 0 then self.Players[1] = self:GetPlayer() end
 	net.Send( ply or self.Players )
@@ -355,7 +355,7 @@ function ENT:SyncPositions( ply )
 	
 	net.Start( "wire_camera_controller_sync" )
 		net.WriteEntity( self )
-		SendPositions( self.Position, self.Angle, self.Distance, self.Vel, self.AngVel )
+		SendPositions( self.Position, self.Angle, self.Distance )
 	if #self.Vehicles == 0 then self.Players[1] = self:GetPlayer() end
 	net.Send( ply or self.Players )
 end
@@ -523,7 +523,7 @@ end
 -- DisableCam
 --------------------------------------------------
 
-function ENT:DisableCam( ply, vehicle )
+function ENT:DisableCam( ply )
 	if #self.Vehicles == 0 then -- if the cam controller isn't linked, it controls the owner's view
 		self.Players[1] = self:GetPlayer()
 	end
@@ -537,11 +537,22 @@ function ENT:DisableCam( ply, vehicle )
 		for i=1,#self.Players do
 			if self.Players[i] == ply then
 				table.remove( self.Players, i )
+				break
 			end
 		end
 		
+		-- Unhook the SetViewEntity hack
+		ply:SetViewEntity()
+		
 		ply.CamController = nil
 	else
+		-- Unhook the SetViewEntity hack for all players
+		for i=1,#self.Players do
+			if IsValid( self.Players[i] ) then
+				self.Players[i]:SetViewEntity()
+			end
+		end
+		
 		self.Players = {}
 	end
 		
@@ -555,7 +566,7 @@ end
 -- EnableCam
 --------------------------------------------------
 
-function ENT:EnableCam( ply, vehicle )
+function ENT:EnableCam( ply )
 	if #self.Vehicles == 0 then -- if the cam controller isn't linked, it controls the owner's view
 		self.Players[1] = self:GetPlayer()
 	end
@@ -570,6 +581,10 @@ function ENT:EnableCam( ply, vehicle )
 		WireLib.TriggerOutput(self, "On", 1)
 		self.Active = true
 		
+		-- SetViewEntity fixes the problem where the camera would get stuck if you fly through a PVS edge
+		-- this is a hack since isn't actually used, because we're overriding it with CalcView
+		if IsValid( self.Parent ) then ply:SetViewEntity( self.Parent ) end
+		
 		self:SyncSettings( ply )
 	else -- No player specified, activate cam for everyone not already active
 		local lookup = {}
@@ -581,7 +596,7 @@ function ENT:EnableCam( ply, vehicle )
 				local ply = veh:GetDriver()
 				if IsValid( ply ) then
 					if not lookup[ply] then
-						self:EnableCam( ply, veh )
+						self:EnableCam( ply )
 					end
 				end
 			else
@@ -728,7 +743,7 @@ function ENT:TriggerInput( name, value )
 		end
 	
 		self:LocalizePositions(true)
-		self.NeedsSync = true
+		if name ~= "Parent" then self.NeedsSync = true end
 	end
 end
 
@@ -738,12 +753,12 @@ end
 
 hook.Add("PlayerEnteredVehicle", "gmod_wire_cameracontroller", function(player, vehicle)
 	if IsValid(vehicle.CamController) and vehicle.CamController.Activated then
-		vehicle.CamController:EnableCam( player, vehicle )
+		vehicle.CamController:EnableCam( player )
 	end
 end)
 hook.Add("PlayerLeaveVehicle", "gmod_wire_cameracontroller", function(player, vehicle)
 	if IsValid(vehicle.CamController) and vehicle.CamController.Activated then
-		vehicle.CamController:DisableCam( player, vehicle )
+		vehicle.CamController:DisableCam( player )
 	end
 end)
 
@@ -794,7 +809,7 @@ function ENT:LinkEnt(pod)
 	self.Players = {}
 	
 	if IsValid( pod:GetDriver() ) then
-		self:EnableCam( pod:GetDriver(), pod )
+		self:EnableCam( pod:GetDriver() )
 	end
 	
 	self:UpdateMarks()
@@ -812,7 +827,7 @@ function ENT:UnlinkEnt(pod)
 	if idx == 0 then return false end
 	
 	if IsValid( pod:GetDriver() ) then
-		self:DisableCam( pod:GetDriver(), pod )
+		self:DisableCam( pod:GetDriver() )
 	end
 	
 	pod:RemoveCallOnRemove( "wire_camera_controller_remove_pod" )
