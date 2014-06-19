@@ -44,7 +44,12 @@ if CLIENT then
 	local max = math.max
 	local abs = math.abs
 	
+	local pos_speed_convar = GetConVar( "wire_cam_smooth_amount" )
+	
 	local function DoAutoMove( curpos, curang, curdistance, parent, HasParent, ValidParent )
+		local pos_speed = pos_speed_convar:GetFloat()
+		local ang_speed = pos_speed - 2
+	
 		curang = LocalPlayer():EyeAngles()
 		
 		if AllowZoom then
@@ -55,7 +60,7 @@ if CLIENT then
 			curdistance = curdistance + zoomdistance
 		end
 		
-		smoothdistance = Lerp( 0.08, smoothdistance, curdistance )
+		smoothdistance = Lerp( FrameTime() * pos_speed, smoothdistance, curdistance )
 					
 		if HasParent and ValidParent then
 			if LocalMove then
@@ -113,6 +118,9 @@ if CLIENT then
 	hook.Add( "CalcView", "wire_camera_controller_calcview", function()
 		if enabled then
 			if not IsValid( self ) then enabled = false return end
+				
+			local pos_speed = pos_speed_convar:GetFloat()
+			local ang_speed = pos_speed - 2
 			
 			local curpos = pos
 			local curang = ang
@@ -135,7 +143,7 @@ if CLIENT then
 			-- AutoMove
 			if AutoMove then
 				-- only smooth the position, and do it before the automove
-				smoothpos = LerpVector( 0.08, smoothpos, curpos )
+				smoothpos = LerpVector( FrameTime() * pos_speed, smoothpos, curpos )
 			
 				curpos, curang = DoAutoMove( smoothpos, curang, curdistance, parent, HasParent, ValidParent )
 				
@@ -148,8 +156,8 @@ if CLIENT then
 				newview.angles = curang
 			elseif HasParent and ValidParent then			
 				-- smooth BEFORE using toWorld
-				smoothpos = LerpVector( 0.08, smoothpos, curpos )
-				smoothang = LerpAngle( 0.06, smoothang, curang )
+				smoothpos = LerpVector( FrameTime() * pos_speed, smoothpos, curpos )
+				smoothang = LerpAngle( FrameTime() * ang_speed, smoothang, curang )
 				
 				-- now toworld it
 				curpos = parent:LocalToWorld( smoothpos )
@@ -170,8 +178,8 @@ if CLIENT then
 				end
 			
 				-- there's no parent, just smooth it
-				smoothpos = LerpVector( 0.08, smoothpos, curpos )
-				smoothang = LerpAngle( 0.06, smoothang, curang )
+				smoothpos = LerpVector( FrameTime() * pos_speed, smoothpos, curpos )
+				smoothang = LerpAngle( FrameTime() * ang_speed, smoothang, curang )
 				newview.origin = smoothpos
 				newview.angles = smoothang
 			end
@@ -306,7 +314,7 @@ end
 -- Data sending
 --------------------------------------------------
 
-local function SendPositions( pos, ang, dist, vel, angvel )
+local function SendPositions( pos, ang, dist )
 	-- pos/ang
 	net.WriteFloat( pos.x )
 	net.WriteFloat( pos.y )
@@ -332,7 +340,7 @@ function ENT:SyncSettings( ply, active )
 			net.WriteBit( self.AllowZoom )
 			net.WriteBit( self.AutoUnclip )
 			net.WriteBit( self.DrawPlayer )
-			SendPositions( self.Position, self.Angle, self.Distance, self.Vel, self.AngVel )
+			SendPositions( self.Position, self.Angle, self.Distance )
 		end
 	if #self.Vehicles == 0 then self.Players[1] = self:GetPlayer() end
 	net.Send( ply or self.Players )
@@ -347,7 +355,7 @@ function ENT:SyncPositions( ply )
 	
 	net.Start( "wire_camera_controller_sync" )
 		net.WriteEntity( self )
-		SendPositions( self.Position, self.Angle, self.Distance, self.Vel, self.AngVel )
+		SendPositions( self.Position, self.Angle, self.Distance )
 	if #self.Vehicles == 0 then self.Players[1] = self:GetPlayer() end
 	net.Send( ply or self.Players )
 end
@@ -456,7 +464,6 @@ function ENT:UpdateOutputs()
 		local hitPos = trace.HitPos or Vector(0,0,0)
 		
 		if self.OldDupe then
-			WireLib.TriggerOutput(self, "XYZ", hitPos)
 			WireLib.TriggerOutput(self, "X", hitPos.x)
 			WireLib.TriggerOutput(self, "Y", hitPos.y)
 			WireLib.TriggerOutput(self, "Z", hitPos.z)
@@ -469,7 +476,6 @@ function ENT:UpdateOutputs()
 		WireLib.TriggerOutput(self,"Trace",trace)
 	else
 		if self.OldDupe then
-			WireLib.TriggerOutput(self, "XYZ", Vector(0,0,0))
 			WireLib.TriggerOutput(self, "X", 0)
 			WireLib.TriggerOutput(self, "Y", 0)
 			WireLib.TriggerOutput(self, "Z", 0)
@@ -517,7 +523,7 @@ end
 -- DisableCam
 --------------------------------------------------
 
-function ENT:DisableCam( ply, vehicle )
+function ENT:DisableCam( ply )
 	if #self.Vehicles == 0 then -- if the cam controller isn't linked, it controls the owner's view
 		self.Players[1] = self:GetPlayer()
 	end
@@ -531,11 +537,22 @@ function ENT:DisableCam( ply, vehicle )
 		for i=1,#self.Players do
 			if self.Players[i] == ply then
 				table.remove( self.Players, i )
+				break
 			end
 		end
 		
+		-- Unhook the SetViewEntity hack
+		ply:SetViewEntity()
+		
 		ply.CamController = nil
 	else
+		-- Unhook the SetViewEntity hack for all players
+		for i=1,#self.Players do
+			if IsValid( self.Players[i] ) then
+				self.Players[i]:SetViewEntity()
+			end
+		end
+		
 		self.Players = {}
 	end
 		
@@ -549,7 +566,7 @@ end
 -- EnableCam
 --------------------------------------------------
 
-function ENT:EnableCam( ply, vehicle )
+function ENT:EnableCam( ply )
 	if #self.Vehicles == 0 then -- if the cam controller isn't linked, it controls the owner's view
 		self.Players[1] = self:GetPlayer()
 	end
@@ -564,6 +581,10 @@ function ENT:EnableCam( ply, vehicle )
 		WireLib.TriggerOutput(self, "On", 1)
 		self.Active = true
 		
+		-- SetViewEntity fixes the problem where the camera would get stuck if you fly through a PVS edge
+		-- this is a hack since isn't actually used, because we're overriding it with CalcView
+		if IsValid( self.Parent ) then ply:SetViewEntity( self.Parent ) end
+		
 		self:SyncSettings( ply )
 	else -- No player specified, activate cam for everyone not already active
 		local lookup = {}
@@ -575,7 +596,7 @@ function ENT:EnableCam( ply, vehicle )
 				local ply = veh:GetDriver()
 				if IsValid( ply ) then
 					if not lookup[ply] then
-						self:EnableCam( ply, veh )
+						self:EnableCam( ply )
 					end
 				end
 			else
@@ -722,7 +743,7 @@ function ENT:TriggerInput( name, value )
 		end
 	
 		self:LocalizePositions(true)
-		self.NeedsSync = true
+		if name ~= "Parent" then self.NeedsSync = true end
 	end
 end
 
@@ -732,12 +753,12 @@ end
 
 hook.Add("PlayerEnteredVehicle", "gmod_wire_cameracontroller", function(player, vehicle)
 	if IsValid(vehicle.CamController) and vehicle.CamController.Activated then
-		vehicle.CamController:EnableCam( player, vehicle )
+		vehicle.CamController:EnableCam( player )
 	end
 end)
 hook.Add("PlayerLeaveVehicle", "gmod_wire_cameracontroller", function(player, vehicle)
 	if IsValid(vehicle.CamController) and vehicle.CamController.Activated then
-		vehicle.CamController:DisableCam( player, vehicle )
+		vehicle.CamController:DisableCam( player )
 	end
 end)
 
@@ -788,7 +809,7 @@ function ENT:LinkEnt(pod)
 	self.Players = {}
 	
 	if IsValid( pod:GetDriver() ) then
-		self:EnableCam( pod:GetDriver(), pod )
+		self:EnableCam( pod:GetDriver() )
 	end
 	
 	self:UpdateMarks()
@@ -806,7 +827,7 @@ function ENT:UnlinkEnt(pod)
 	if idx == 0 then return false end
 	
 	if IsValid( pod:GetDriver() ) then
-		self:DisableCam( pod:GetDriver(), pod )
+		self:DisableCam( pod:GetDriver() )
 	end
 	
 	pod:RemoveCallOnRemove( "wire_camera_controller_remove_pod" )
@@ -829,6 +850,8 @@ function ENT:BuildDupeInfo()
 	end
 	info.Vehicles = veh
 	
+	info.OldDupe = self.OldDupe
+	
 	-- Other options are saved using duplicator.RegisterEntityClass
 	
 	return info
@@ -837,7 +860,7 @@ end
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
 	
-	if info.cam or info.pod then -- OLD DUPE DETECTED
+	if info.cam or info.pod or info.OldDupe then -- OLD DUPE DETECTED
 		if info.cam then
 			local CamEnt = GetEntByID( info.cam )
 			if IsValid( CamEnt ) then CamEnt:Remove() end
@@ -849,9 +872,9 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 						
 		WireLib.AdjustSpecialInputs( self, {	"Activated", "X", "Y", "Z", "Pitch", "Yaw", "Roll",
 												"Angle [ANGLE]", "Position [VECTOR]", "Distance", "Direction [VECTOR]",
-												"Parent [ENTITY]", "FLIR", "FOV", "Zoom (1-90)" } )
+												"Parent [ENTITY]", "FLIR", "FOV" } )
 		
-		WireLib.AdjustSpecialOutputs( self, { 	"On", "X", "Y", "Z", "XYZ [VECTOR]", "HitPos [VECTOR]", 
+		WireLib.AdjustSpecialOutputs( self, { 	"On", "X", "Y", "Z", "HitPos [VECTOR]", 
 												"CamPos [VECTOR]", "CamDir [VECTOR]", "CamAng [ANGLE]", 
 												"Trace [RANGER]" } )
 		
@@ -865,7 +888,10 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 		end
 	end
 	
-	timer.Simple( 0.1, function() if IsValid( self ) then self:UpdateMarks() end end ) -- timers solve everything
+	timer.Simple( 0.1, function() if IsValid( self ) then self:UpdateMarks() end end ) -- timers solve everything (the entity isn't valid on the client at first, so we wait a bit)
 end
+
+WireLib.AddInputAlias( "Zoom", "FOV" )
+WireLib.AddOutputAlias( "XYZ", "HitPos" )
 
 duplicator.RegisterEntityClass("gmod_wire_cameracontroller", WireLib.MakeWireEnt, "Data", "ParentLocal","AutoMove","LocalMove","AllowZoom","AutoUnclip","DrawPlayer")

@@ -238,6 +238,10 @@ function PreProcessor:ParseDirectives(line)
 				end
 			end
 		end
+	elseif directive == "autoupdate" then
+		if CLIENT then return "" end
+		if not IsValid( self.ent ) or not self.ent.duped or not self.ent.filepath or self.ent.filepath == "" then return "" end
+		WireLib.Expression2Upload( self.ent:GetPlayer(), self.ent, self.ent.filepath )
 	else
 		self:Error("Unknown directive found (@" .. E2Lib.limitString(directive, 10) .. ")", 2)
 	end
@@ -246,7 +250,10 @@ function PreProcessor:ParseDirectives(line)
 	return ""
 end
 
-function PreProcessor:Process(buffer, directives)
+function PreProcessor:Process(buffer, directives, ent)
+	-- entity is needed for autoupdate
+	self.ent = ent
+
 	local lines = string.Explode("\n", buffer)
 
 	if not directives then

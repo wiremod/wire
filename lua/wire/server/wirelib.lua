@@ -827,14 +827,34 @@ function WireLib.ApplyDupeInfo( ply, ent, info, GetEntByID )
 	if IsValid(ply) then idx = ply:UniqueID() end -- Map Save loading does not have a ply
 	if (info.Wires) then
 		for k,input in pairs(info.Wires) do
+			local ent2 = GetEntByID(input.Src)
+			
 			if input.SrcId == "link" or input.SrcId == "wirelink" then -- If the target entity has no wirelink output, create one (& more old dupe compatibility)
 				input.SrcId = "wirelink"
-				local temp_ent = GetEntByID( input.Src )
-				if not temp_ent.extended then
-					WireLib.CreateWirelinkOutput( ply, temp_ent, {true} )
+				if not ent2.extended then
+					WireLib.CreateWirelinkOutput( ply, ent2, {true} )
 				end
 			end
-
+		
+			-- Input alias
+			if not ent.Inputs[k] then
+				if ent.InputAliases[k] then
+					k = ent.InputAliases[k]
+				else
+					Msg("ApplyDupeInfo: Error, Could not find input '" .. k .. "' on entity type: '" .. ent:GetClass() .. "'\n")
+					continue
+				end
+			end
+			
+			-- Output alias
+			if IsValid( ent2 ) and not ent2.Outputs[input.SrcId] then
+				if ent2.OutputAliases[input.SrcId] then
+					input.SrcId = ent2.OutputAliases[input.SrcId]
+				else
+					Msg("ApplyDupeInfo: Error, Could not find output '" .. input.SrcId .. "' on entity type: '" .. ent2:GetClass() .. "'\n")
+					continue
+				end
+			end
 			Wire_Link_Start(idx, ent, input.StartPos, k, input.Material, input.Color, input.Width)
 
 			if input.Path then
@@ -848,7 +868,6 @@ function WireLib.ApplyDupeInfo( ply, ent, info, GetEntByID )
 				end
 			end
 
-			local ent2 = GetEntByID(input.Src)
 			if IsValid(ent2) then
 				Wire_Link_End(idx, ent2, input.SrcPos, input.SrcId)
 			else
@@ -1146,6 +1165,62 @@ function WireLib.ClassAlias(realclass, alias)
 		scripted_ents.Register(tab, alias) -- Set "adv_pod" to be defined as this ENT
 		tab.ClassName = realclass -- scripted_ents.Register changes this to your argument, lets change it back
 	end)
+end
+
+-- Adds an input alias so that we can rename inputs on entities without breaking old dupes
+-- Usage: WireLib.AddInputAlias( old, new ) works if used in the entity's file
+-- or WireLib.AddInputAlias( class, old, new ) if used elsewhere
+-- or WireLib.AddInputAlias( entity, old, new ) for a specific entity
+function WireLib.AddInputAlias( class, old, new )
+	if not new then
+		new = old
+		old = class
+		class = nil
+	end
+	
+	local ENT_table
+	
+	if not class and ENT then
+		ENT_table = ENT
+	elseif isstring( class ) then
+		ENT_table = scripted_ents.GetStored( class )
+	elseif isentity( class ) and IsValid( class ) then
+		ENT_table = class
+	else
+		error( "Invalid class or entity specified" )
+		return
+	end
+	
+	if not ENT_table.InputAliases then ENT_table.InputAliases = {} end
+	ENT_table.InputAliases[old] = new
+end
+
+-- Adds an output alias so that we can rename outputs on entities without breaking old dupes
+-- Usage: WireLib.AddOutputAlias( old, new ) works if used in the entity's file
+-- or WireLib.AddOutputAlias( class, old, new ) if used elsewhere
+-- or WireLib.AddOutputAlias( entity, old, new ) for a specific entity
+function WireLib.AddOutputAlias( class, old, new )
+	if not new then
+		new = old
+		old = class
+		class = nil
+	end
+	
+	local ENT_table
+	
+	if not class and ENT then
+		ENT_table = ENT
+	elseif isstring( class ) then
+		ENT_table = scripted_ents.GetStored( class )
+	elseif isentity( class ) and IsValid( class ) then
+		ENT_table = class
+	else
+		error( "Invalid class or entity specified" )
+		return
+	end
+	
+	if not ENT_table.OutputAliases then ENT_table.OutputAliases = {} end
+	ENT_table.OutputAliases[old] = new
 end
 
 function WireLib.CalcElasticConsts(Ent1, Ent2)

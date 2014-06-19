@@ -212,10 +212,13 @@ function ENT:Error(message, overlaytext)
 	WireLib.ClientError(message, self.player)
 end
 
-function ENT:CompileCode(buffer, files)
+function ENT:CompileCode(buffer, files, filepath)
 	self.original = buffer
+	if filepath then -- filepath may have already been set from the dupe function
+		self.filepath = filepath
+	end
 
-	local status, directives, buffer = PreProcessor.Execute(buffer)
+	local status, directives, buffer = PreProcessor.Execute(buffer,nil,self)
 	if not status then self:Error(directives) return end
 	self.buffer = buffer
 	self.error = false
@@ -385,7 +388,7 @@ function ENT:IsCodeDifferent(buffer, includes)
 	return false
 end
 
-function ENT:Setup(buffer, includes, restore, forcecompile)
+function ENT:Setup(buffer, includes, restore, forcecompile, filepath)
 	if self.script then
 		self:PCallHook('destruct')
 	end
@@ -394,7 +397,7 @@ function ENT:Setup(buffer, includes, restore, forcecompile)
 	self:SetColor(Color(255, 255, 255, self:GetColor().a))
 
 	if forcecompile or self:IsCodeDifferent(buffer, includes) then
-		self:CompileCode(buffer, includes)
+		self:CompileCode(buffer, includes, filepath)
 		if self.error then
 			self._original = string.Replace(string.Replace(self.original, "\"", string.char(163)), "\n", string.char(128))
 			self._name = self.name
@@ -535,12 +538,14 @@ hook.Add("PlayerAuthed", "Wire_Expression2_Player_Authed", function(ply, sid, ui
 	end
 end)
 
-function MakeWireExpression2(player, Pos, Ang, model, buffer, name, inputs, outputs, vars, inc_files)
+function MakeWireExpression2(player, Pos, Ang, model, buffer, name, inputs, outputs, vars, inc_files, filepath)
 	if not player then player = game.GetWorld() end -- For Garry's Map Saver
 	if IsValid(player) and not player:CheckLimit("wire_expressions") then return false end
 
 	local self = ents.Create("gmod_wire_expression2")
 	if not self:IsValid() then return false end
+	
+	self.duped = true
 
 	self:SetModel(model)
 	self:SetAngles(Ang)
@@ -561,6 +566,8 @@ function MakeWireExpression2(player, Pos, Ang, model, buffer, name, inputs, outp
 		self.Outputs = WireLib.AdjustSpecialOutputs(self, outputs[1], outputs[2])
 
 		self.dupevars = vars
+		
+		self.filepath = filepath
 	else
 		self.buffer = "error(\"You tried to dupe an E2 with compile errors!\")\n#Unfortunately, no code can be saved when duping an E2 with compile errors.\n#Fix your errors and try again."
 		
@@ -576,4 +583,4 @@ function MakeWireExpression2(player, Pos, Ang, model, buffer, name, inputs, outp
 	end
 	return self
 end
-duplicator.RegisterEntityClass("gmod_wire_expression2", MakeWireExpression2, "Pos", "Ang", "Model", "_original", "_name", "_inputs", "_outputs", "_vars", "inc_files")
+duplicator.RegisterEntityClass("gmod_wire_expression2", MakeWireExpression2, "Pos", "Ang", "Model", "_original", "_name", "_inputs", "_outputs", "_vars", "inc_files", "filepath")

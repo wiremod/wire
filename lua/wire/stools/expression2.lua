@@ -110,9 +110,16 @@ if SERVER then
 	end
 
 	function TOOL:Upload(ent)
+		WireLib.Expression2Upload( self:GetOwner(), ent )
+	end
+	
+	function WireLib.Expression2Upload( ply, target, filepath )
+		if not IsValid( target ) then error( "Invalid entity specified" ) end
 		net.Start("wire_expression2_tool_upload")
-		net.WriteUInt(ent:EntIndex(), 16)
-		net.Send(self:GetOwner())
+			net.WriteUInt(target:EntIndex(), 16)
+			net.WriteString( filepath or "" )
+			net.WriteInt( target.buffer and tonumber(util.CRC( target.buffer )) or -1, 32 ) -- send the hash so we know if there's any difference
+		net.Send(ply)
 	end
 
 	function TOOL:Download(ply, ent)
@@ -134,10 +141,6 @@ if SERVER then
 	util.AddNetworkString("wire_expression2_upload")
 	util.AddNetworkString("wire_expression2_progress")
 
-	function Expression2SetProgressServer(ply, progress)
-		net.Start("wire_expression2_progress") net.WriteInt(progress or -1, 16) net.Send(ply)
-	end
-
 	-- ------------------------------------------------------------
 	-- Serverside Send
 	-- ------------------------------------------------------------
@@ -158,16 +161,21 @@ if SERVER then
 
 		local main, includes = targetEnt:GetCode()
 		if not includes or not next(includes) then -- There are no includes
-			Expression2SetProgressServer(ply, 10)
 			local datastr = von.serialize({ { targetEnt.name, main } })
 			local numpackets = math.ceil(#datastr / 64000)
+			
+			local n = 0
 			for i = 1, #datastr, 64000 do
-				net.Start("wire_expression2_download")
-				net.WriteEntity(targetEnt)
-				net.WriteBit(uploadandexit or false)
-				net.WriteUInt(numpackets, 16)
-				net.WriteString(datastr:sub(i, i + 63999))
-				net.Send(ply)
+				timer.Simple( n, function()
+					if not IsValid( targetEnt ) then return end
+					net.Start("wire_expression2_download")
+						net.WriteEntity(targetEnt)
+						net.WriteBit(uploadandexit or false)
+						net.WriteUInt(numpackets, 16)
+						net.WriteString(datastr:sub(i, i + 63999))
+					net.Send(ply)
+				end)
+				n = n + 1
 			end
 		elseif not wantedfiles then
 			local data = {}
@@ -197,16 +205,20 @@ if SERVER then
 				end
 			end
 
-			Expression2SetProgressServer(ply, 10)
 			local datastr = von.serialize(data)
 			local numpackets = math.ceil(#datastr / 64000)
+			local n = 0
 			for i = 1, #datastr, 64000 do
-				net.Start("wire_expression2_download")
-				net.WriteEntity(targetEnt)
-				net.WriteBit(uploadandexit or false)
-				net.WriteUInt(numpackets, 16)
-				net.WriteString(datastr:sub(i, i + 63999))
-				net.Send(ply)
+				timer.Simple( n, function()
+					if not IsValid( targetEnt ) then return end
+					net.Start("wire_expression2_download")
+						net.WriteEntity(targetEnt)
+						net.WriteBit(uploadandexit or false)
+						net.WriteUInt(numpackets, 16)
+						net.WriteString(datastr:sub(i, i + 63999))
+					net.Send(ply)
+				end)
+				n = n + 1
 			end
 		end
 	end
@@ -224,7 +236,6 @@ if SERVER then
 
 		if not wantedfiles[ply] then wantedfiles[ply] = {} end
 		table.insert(wantedfiles[ply], net.ReadString())
-		Expression2SetProgressServer(ply, #wantedfiles[ply] / numpackets * 100)
 		if numpackets <= #wantedfiles[ply] then
 			local ok, ret = pcall(von.deserialize, E2Lib.decode(table.concat(wantedfiles[ply])))
 			wantedfiles[ply] = nil
@@ -235,7 +246,6 @@ if SERVER then
 			end
 
 			WireLib.Expression2Download(ply, toent, ret, uploadandexit)
-			timer.Create("wire_expression2_resetprogress_" .. ply:UniqueID(), 0.75, 1, function() Expression2SetProgressServer(ply) end)
 		end
 	end)
 
@@ -243,12 +253,17 @@ if SERVER then
 	-- Serverside Receive
 	-- ------------------------------------------------------------
 	local uploads = {}
+	local upload_ents = {}
 	net.Receive("wire_expression2_upload", function(len, ply)
 		local toent = Entity(net.ReadUInt(16))
 		local numpackets = net.ReadUInt(16)
 
-		if not IsValid(toent) or toent:GetClass() ~= "gmod_wire_expression2" then
-			WireLib.AddNotify(ply, "Invalid Expression chip specified. Upload aborted.", NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3)
+		if (not IsValid(toent) or toent:GetClass() ~= "gmod_wire_expression2") then
+			if uploads[ply] then -- this is to prevent notification spam due to the net library automatically limiting its own transfer rate so that the messages arrive late
+				uploads[ply] = nil
+				upload_ents[ply] = nil
+				WireLib.AddNotify(ply, "Invalid Expression chip specified. Upload aborted.", NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3)
+			end
 			return
 		end
 
@@ -256,10 +271,15 @@ if SERVER then
 			WireLib.AddNotify(ply, "You are not allowed to upload to the target Expression chip. Upload aborted.", NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3)
 			return
 		end
+		
+		if upload_ents[ply] ~= toent then -- a new upload was started, abort previous
+			uploads[ply] = nil
+		end
+		
+		upload_ents[ply] = toent
 
 		if not uploads[ply] then uploads[ply] = {} end
-		table.insert(uploads[ply], net.ReadString())
-		Expression2SetProgressServer(ply, #uploads[ply] / numpackets * 100)
+		uploads[ply][#uploads[ply]+1] = net.ReadString()
 		if numpackets <= #uploads[ply] then
 			local datastr = E2Lib.decode(table.concat(uploads[ply]))
 			uploads[ply] = nil
@@ -277,9 +297,10 @@ if SERVER then
 			for k, v in pairs(ret[2]) do
 				includes[k] = v
 			end
+			
+			local filepath = ret[3]
 
-			toent:Setup(code, includes)
-			timer.Create("wire_expression2_resetprogress_" .. ply:UniqueID(), 0.75, 1, function() Expression2SetProgressServer(ply) end)
+			toent:Setup(code, includes, nil, nil, filepath)
 		end
 	end)
 
@@ -441,16 +462,97 @@ elseif CLIENT then
 	--------------------------------------------------------------
 	-- Clientside Send
 	--------------------------------------------------------------
+	
+	local queue_max = 0
+	local queue = {}
+	local sending = false
+	
+	local upload_queue
+	
+	-- send next E2
+	local function next_queue()
+		Expression2SetProgress( nil, queue_progress )
+		table.remove( queue, 1 )
+		
+		-- Clear away all removed E2s from the queue
+		while true do
+			if #queue == 0 then break end
+			if not IsValid( Entity(queue[1].targetEnt) ) then
+				table.remove( queue, 1 )
+			else
+				break
+			end
+		end
+		
+		timer.Simple( 1, function() -- wait a while before doing anything so stuff doesn't lag
+			if #queue == 0 then
+				Expression2SetProgress()
+				sending = false -- done sending
+				queue_max = 0
+			else
+				upload_queue() -- send next
+			end
+		end)
+	end
+	
+	upload_queue = function()
+		local q = queue[1]
+		
+		local targetEnt = q.targetEnt
+		local datastr = q.datastr
+	
+		local queue_progress = (queue_max > 1 and (1-((#queue-1) / queue_max)) * 100 or nil)
+		Expression2SetProgress(1, queue_progress)
 
-	function WireLib.Expression2Upload(targetEnt, code)
+		local numpackets = math.ceil(#datastr / 64000)
+		local n = 0
+		local x = 0
+		local exited = false
+		for i = 1, #datastr, 64000 do
+			n = n + 1
+			timer.Simple( n, function()
+				x = x + 1
+				if not IsValid( Entity(targetEnt) ) then
+					if exited then
+						return
+					else
+						exited = true
+						next_queue()
+						return
+					end
+				elseif x == numpackets then
+					next_queue()
+				end
+				
+				local queue_progress = (queue_max > 1 and (1-((#queue-1) / queue_max)) * 100 or nil)
+				Expression2SetProgress( x / numpackets * 100, queue_progress )
+				
+				net.Start("wire_expression2_upload")
+					net.WriteUInt(targetEnt, 16)
+					net.WriteUInt(numpackets, 16)
+					net.WriteString(datastr:sub(i, i + 63999))
+				net.SendToServer()
+			end)
+		end
+	end
+
+	function WireLib.Expression2Upload(targetEnt, code, filepath)
 		if not targetEnt then targetEnt = LocalPlayer():GetEyeTrace().Entity or NULL end
 		if isentity(targetEnt) then
 			if not IsValid(targetEnt) then return end -- We don't know what entity its going to
 			targetEnt = targetEnt:EntIndex()
 		end
+		
+		for i=1,#queue do
+			if queue[i].targetEnt == targetEnt then
+				WireLib.AddNotify("You're already uploading that E2!", NOTIFY_ERROR, 7, NOTIFYSOUND_ERROR1)
+				return
+			end
+		end
 
 		if not code and not wire_expression2_editor then return end -- If the player leftclicks without opening the editor or cpanel (first spawn)
 		code = code or wire_expression2_editor:GetCode()
+		filepath = filepath or wire_expression2_editor:GetChosenFile()
 		local err, includes
 
 		if e2_function_data_received then
@@ -473,40 +575,61 @@ elseif CLIENT then
 				newincludes[k] = v
 			end
 
-			datastr = E2Lib.encode(von.serialize({ code, newincludes }))
+			datastr = E2Lib.encode(von.serialize({ code, newincludes, filepath }))
 		else
-			datastr = E2Lib.encode(von.serialize({ code, {} }))
+			datastr = E2Lib.encode(von.serialize({ code, {}, filepath }))
 		end
-
-		Expression2SetProgress(10)
-
-		local numpackets = math.ceil(#datastr / 64000)
-		for i = 1, #datastr, 64000 do
-			net.Start("wire_expression2_upload")
-			net.WriteUInt(targetEnt, 16)
-			net.WriteUInt(numpackets, 16)
-			net.WriteString(datastr:sub(i, i + 63999))
-			net.SendToServer()
-		end
+		
+		queue[#queue+1] = {
+			targetEnt = targetEnt,
+			datastr = datastr
+		}
+		
+		queue_max = queue_max + 1
+		
+		if sending then return end
+		sending = true
+		upload_queue()
 	end
 
 	net.Receive("wire_expression2_tool_upload", function(len, ply)
-		WireLib.Expression2Upload(net.ReadUInt(16))
+		local ent = net.ReadUInt(16)
+		local filepath = net.ReadString()
+		local hash = net.ReadInt(32)
+		if filepath ~= "" then
+			if filepath and file.Exists(filepath, "DATA") then
+				local str = file.Read(filepath)
+				local strhash = tonumber(util.CRC(str))
+				if hash ~= strhash then -- Only upload if we need to
+					WireLib.Expression2Upload(ent,str,filepath)
+				end
+			end
+		else
+			WireLib.Expression2Upload(ent)
+		end
 	end)
 
 	--------------------------------------------------------------
 	-- Clientside Receive
 	--------------------------------------------------------------
 	local buffer, count = "", 0
+	local current_ent
 	net.Receive("wire_expression2_download", function(len)
 		local ent = net.ReadEntity()
+		
+		if IsValid( current_ent ) and IsValid( ent ) and ent ~= current_ent then
+			-- different E2, reset buffer
+			buffer = ""
+			count = 0
+		end
+		
 		local uploadandexit = net.ReadBit() ~= 0
 		local numpackets = net.ReadUInt(16)
 
 		buffer = buffer .. net.ReadString()
 		count = count + 1
 
-		Expression2SetProgress(count / numpackets * 100)
+		Expression2SetProgress(count / numpackets * 100, nil, "Downloading")
 		if numpackets <= count then
 			local ok, ret = pcall(von.deserialize, buffer)
 			buffer, count = "", 0
@@ -669,12 +792,6 @@ elseif CLIENT then
 		pnl:SetVisible(true)
 	end)
 
-	net.Receive("wire_expression2_progress", function(len)
-		local progress = net.ReadInt(16)
-		if progress < 0 then progress = nil end
-		Expression2SetProgress(progress)
-	end)
-
 	--------------------------------------------------------------
 	function TOOL.BuildCPanel(panel)
 		local w, h = panel:GetSize()
@@ -763,6 +880,7 @@ elseif CLIENT then
 	local percent = nil
 	local percent2 = nil
 	local name = "Unnamed"
+	local what = "Uploading"
 
 	function Expression2SetName(n)
 		name = n
@@ -786,9 +904,10 @@ elseif CLIENT then
 		name = string.Trim(name) .. "..."
 	end
 
-	function Expression2SetProgress(p, p2)
-		percent = p
-		percent2 = p2
+	function Expression2SetProgress(p, p2, w)
+		what = w or "Uploading"
+		percent = p and math.Clamp(p,0,100) or nil
+		percent2 = p2 and math.Clamp(p2,0,100) or nil
 	end
 
 	function DrawTextOutline(text, font, x, y, color, xalign, yalign, bordercolor, border)
@@ -830,13 +949,15 @@ elseif CLIENT then
 		surface.SetFont("Expression2ToolScreenSubFont")
 		local w2, h2 = surface.GetTextSize(" ")
 
-		if percent then
+		if percent or percent2 then		
 			surface.SetFont("Expression2ToolScreenFont")
-			local w, h = surface.GetTextSize("Uploading")
-			DrawTextOutline("Uploading", "Expression2ToolScreenFont", 128, 128, Color(224, 224, 224, 255), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER, Color(0, 0, 0, 255), 4)
+			local w, h = surface.GetTextSize(what)
+			DrawTextOutline(what, "Expression2ToolScreenFont", 128, 128, Color(224, 224, 224, 255), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER, Color(0, 0, 0, 255), 4)
 
-			draw.RoundedBox(4, 128 - w / 2 - 2, 128 + h / 2 - 0, (w * percent) / 100 + 4, h2 - 4, Color(0, 0, 0, 255))
-			draw.RoundedBox(2, 128 - w / 2 + 2, 128 + h / 2 + 4, (w * percent) / 100 - 4, h2 - 12, Color(224, 224, 224, 255))
+			if percent then
+				draw.RoundedBox(4, 128 - w / 2 - 2, 128 + h / 2 - 0, (w * percent) / 100 + 4, h2 - 4, Color(0, 0, 0, 255))
+				draw.RoundedBox(2, 128 - w / 2 + 2, 128 + h / 2 + 4, (w * percent) / 100 - 4, h2 - 12, Color(224, 224, 224, 255))
+			end
 
 			if percent2 then
 				draw.RoundedBox(4, 128 - w / 2 - 2, 128 + h / 2 + 24, (w * percent2) / 100 + 4, h2 - 4, Color(0, 0, 0, 255))
