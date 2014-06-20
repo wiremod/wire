@@ -1,13 +1,12 @@
 
 local PANEL = {}
 
-local CurrentName -- a small hack to know when to create the wire extras checkbox
-
 AccessorFunc( PANEL, "m_TabID", 			"TabID" )
 
 local expand_all = CreateConVar( "wire_tool_menu_expand_all", 0, {FCVAR_ARCHIVE} )
 local separate_wire_extras = CreateConVar( "wire_tool_menu_separate_wire_extras", 1, {FCVAR_ARCHIVE} )
 local custom_for_all_tabs = CreateConVar( "wire_tool_menu_custom_menu_for_all_tabs", 0, {FCVAR_ARCHIVE} )
+local tab_width = CreateConVar( "wire_tool_menu_tab_width", -1, {FCVAR_ARCHIVE} )
 
 -- Helper functions
 local function expandall( bool, nodes )
@@ -42,21 +41,23 @@ end
 -- Init
 ----------------------------------------------------------------------
 function PANEL:Init()
-	
 	self.Divider = vgui.Create( "DHorizontalDivider", self )
 	self.Divider:Dock( FILL )
 	self.Divider:SetDividerWidth( 6 )
 	
-	if ScrW() > 1600 then
-		self:SetWide( 548 )
-		self.Divider:SetLeftWidth( 200 )
-	elseif ScrW() > 1280 then
-		self:SetWide( 460 )
-		self.Divider:SetLeftWidth( 160 )
-	else
-		self:SetWide( 390 )
-		self.Divider:SetLeftWidth( 130 )
+	if tab_width:GetInt() > ScrW() * 0.6 then -- too big! you won't be able to see the rest of the spawn menu if it's this big, let's make it smaller
+		RunConsoleCommand( "wire_tool_menu_tab_width", ScrW() * 0.6 )
+	elseif tab_width:GetInt() == -1 then -- set up default value
+		local width = 390
+		if ScrW() > 1600 then width = 548
+		elseif ScrW() > 1280 then width = 460 end
+		RunConsoleCommand( "wire_tool_menu_tab_width", width )
+	elseif tab_width:GetInt() < 390 then -- too small! you won't be able to see the tools, make it bigger
+		RunConsoleCommand( "wire_tool_menu_tab_width", 390 )
 	end
+	
+	self:SetWide( tab_width:GetInt() )
+	self.Divider:SetLeftWidth( tab_width:GetInt() / 2.8 )
 	
 	local LeftPanel = vgui.Create( "DPanel" )
 	self.Divider:SetLeft( LeftPanel )
@@ -90,34 +91,7 @@ function PANEL:Init()
 			parent.SearchList:OnClickLine( parent.SearchList:GetLine( 1 ) )
 		end
 	end
-	
-	if WireLib.WireExtrasInstalled and CurrentName == "Wire" then
-		-- create this here so that it's below ExpandAll
-		local SeparateWireExtras = vgui.Create( "DCheckBoxLabel", SearchBoxPanel )
-		SeparateWireExtras:SetText( "Separate Wire Extras" )
-		SeparateWireExtras:SetToolTip( "Whether or not to separate wire extras tools into its own category." )
-		SeparateWireExtras:SetConVar( "wire_tool_menu_separate_wire_extras" )
-		SeparateWireExtras.Label:SetDark(true)
-		SeparateWireExtras:DockMargin( 4, 4, 0, 0 )
-		SeparateWireExtras:Dock( BOTTOM )
 		
-		local first = true
-		local parent = self
-		local oldval
-		function SeparateWireExtras:OnChange( value )
-			if oldval == value then return end -- wtfgarry
-			oldval = value
-			
-			if first then first = false return end
-			
-			timer.Simple( 0.1, function()
-				parent:ReloadEverything()
-			end )
-		end
-		
-		SearchBoxPanel:SetTall( 64 )
-	end
-	
 	local ExpandAll = vgui.Create( "DCheckBoxLabel", SearchBoxPanel ) -- create this here so that it's below the slider
 	
 	self.List = vgui.Create( "DTree", LeftPanel )
@@ -568,9 +542,52 @@ end
 
 vgui.Register( "WireToolPanel", PANEL, "Panel" )
 
+local wire_tab
+local all_tabs = {}
 local function CreateCPanel( panel )
 	local checkbox = panel:CheckBox( "Use wire's custom tool menu for all tabs", "wire_tool_menu_custom_menu_for_all_tabs" )
 	checkbox:SetToolTip( "Requires rejoin to take effect" )
+	
+	if WireLib.WireExtrasInstalled then
+		local SeparateWireExtras = panel:CheckBox( "Separate Wire Extras", "wire_tool_menu_separate_wire_extras" )
+		SeparateWireExtras:SetToolTip( "Whether or not to separate wire extras tools into its own category." )
+		
+		local first = true
+		local oldval
+		function SeparateWireExtras:OnChange( value )
+			if oldval == value then return end -- wtfgarry
+			oldval = value
+			
+			if first then first = false return end
+			
+			timer.Simple( 0.1, function()
+				if IsValid( wire_tab ) then
+					wire_tab:ReloadEverything()
+				end
+			end )
+		end
+	end
+	
+	local TabWidth = panel:NumSlider( "Tab width", "wire_tool_menu_tab_width", 300, 3000, 0 )
+	panel:Help( [[Set the width of all tabs.
+Defaults:
+Screen width > 1600px: 548px,
+Screen width > 1280px: 460px,
+Screen width < 1280px: 390px.
+Note:
+Can't be smaller than the width of any non-custom tab, and can't be greater than screenwidth * 0.6.
+Changes will take effect 3 seconds after you edit the value.]] )
+
+	function TabWidth:ValueChanged( value )
+		timer.Remove( "wire_tab_width_changed" )
+		timer.Create( "wire_tab_width_changed", 3, 1, function()
+			all_tabs[1]:GetParent():SetWide( 390 )
+			for i=1,#all_tabs do -- change the width of all registered tabs
+				all_tabs[i]:SetWidth( math.Clamp( value, 390, ScrW() * 0.6 ) )
+			end
+			all_tabs[1]:GetParent():PerformLayout()
+		end)
+	end
 end
 
 ----------------------------------------------------------------------
@@ -596,8 +613,13 @@ hook.Add( "PopulateToolMenu", "Wire_CustomSpawnMenu", function()
 	old = ToolMenu.AddToolPanel
 	function ToolMenu:AddToolPanel( Name, ToolTable )
 		if tabs[ToolTable.Name] or custom_for_all_tabs:GetBool() == true then
-			CurrentName = ToolTable.Name
 			local Panel = vgui.Create( "WireToolPanel" )
+			
+			if ToolTable.Name == "Wire" then
+				wire_tab = Panel -- for wire tab options menu
+			end
+			all_tabs[#all_tabs+1] = Panel -- list of all registered tabs
+			
 			Panel:SetTabID( Name )
 			Panel:LoadToolsFromTable( ToolTable.Items )
 		
