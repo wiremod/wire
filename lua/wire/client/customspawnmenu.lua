@@ -45,19 +45,22 @@ function PANEL:Init()
 	self.Divider:Dock( FILL )
 	self.Divider:SetDividerWidth( 6 )
 	
-	if tab_width:GetInt() > ScrW() * 0.6 then -- too big! you won't be able to see the rest of the spawn menu if it's this big, let's make it smaller
-		RunConsoleCommand( "wire_tool_menu_tab_width", ScrW() * 0.6 )
-	elseif tab_width:GetInt() == -1 then -- set up default value
-		local width = 390
+	local width = tab_width:GetInt()
+	if width > ScrW() * 0.6 then -- too big! you won't be able to see the rest of the spawn menu if it's this big, let's make it smaller
+		width = ScrW() * 0.6
+		RunConsoleCommand( "wire_tool_menu_tab_width", width )
+	elseif width == -1 then -- set up default value
+		width = 390
 		if ScrW() > 1600 then width = 548
 		elseif ScrW() > 1280 then width = 460 end
 		RunConsoleCommand( "wire_tool_menu_tab_width", width )
-	elseif tab_width:GetInt() < 390 then -- too small! you won't be able to see the tools, make it bigger
-		RunConsoleCommand( "wire_tool_menu_tab_width", 390 )
+	elseif width < 390 then -- too small! you won't be able to see the tools, make it bigger
+		width = 390
+		RunConsoleCommand( "wire_tool_menu_tab_width", width )
 	end
 	
-	self:SetWide( tab_width:GetInt() )
-	self.Divider:SetLeftWidth( tab_width:GetInt() / 2.8 )
+	self:SetWide( width )
+	self.Divider:SetLeftWidth( width / 2.8 )
 	
 	local LeftPanel = vgui.Create( "DPanel" )
 	self.Divider:SetLeft( LeftPanel )
