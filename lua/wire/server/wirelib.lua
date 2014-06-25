@@ -838,7 +838,7 @@ function WireLib.ApplyDupeInfo( ply, ent, info, GetEntByID )
 		
 			-- Input alias
 			if not ent.Inputs[k] then
-				if ent.InputAliases[k] then
+				if ent.InputAliases and ent.InputAliases[k] then
 					k = ent.InputAliases[k]
 				else
 					Msg("ApplyDupeInfo: Error, Could not find input '" .. k .. "' on entity type: '" .. ent:GetClass() .. "'\n")
@@ -848,7 +848,7 @@ function WireLib.ApplyDupeInfo( ply, ent, info, GetEntByID )
 			
 			-- Output alias
 			if IsValid( ent2 ) and not ent2.Outputs[input.SrcId] then
-				if ent2.OutputAliases[input.SrcId] then
+				if ent2.OutputAliases and ent2.OutputAliases[input.SrcId] then
 					input.SrcId = ent2.OutputAliases[input.SrcId]
 				else
 					Msg("ApplyDupeInfo: Error, Could not find output '" .. input.SrcId .. "' on entity type: '" .. ent2:GetClass() .. "'\n")
