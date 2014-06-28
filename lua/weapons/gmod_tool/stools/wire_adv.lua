@@ -772,11 +772,14 @@ elseif CLIENT then
 					if self:IsMatch( inputname, inputtype, outputname, outputtype, true ) then
 						return true
 					end
-				end
-				
-				local _idx = self:AutoWiringTypeLookup_Check( outputtype )
-				if _idx then
-					return true
+					
+					local _idx = self:AutoWiringTypeLookup_Check( inputtype )
+					if _idx then
+						local _outputtype = tbl[_idx][2]
+						if outputtype == _outputtype then
+							return true
+						end
+					end
 				end
 			else
 				return self.CurrentWireIndex == idx -- Highlight selected output
