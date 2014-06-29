@@ -7,6 +7,7 @@ local expand_all = CreateConVar( "wire_tool_menu_expand_all", 0, {FCVAR_ARCHIVE}
 local separate_wire_extras = CreateConVar( "wire_tool_menu_separate_wire_extras", 1, {FCVAR_ARCHIVE} )
 local custom_for_all_tabs = CreateConVar( "wire_tool_menu_custom_menu_for_all_tabs", 0, {FCVAR_ARCHIVE} )
 local tab_width = CreateConVar( "wire_tool_menu_tab_width", -1, {FCVAR_ARCHIVE} )
+local horizontal_divider_width = CreateConVar( "wire_tool_menu_horizontal_divider_width", 0.28, {FCVAR_ARCHIVE} )
 
 -- Helper functions
 local function expandall( bool, nodes )
@@ -46,21 +47,32 @@ function PANEL:Init()
 	self.Divider:SetDividerWidth( 6 )
 	
 	local width = tab_width:GetInt()
+	local divider_width = horizontal_divider_width:GetFloat()
 	if width > ScrW() * 0.6 then -- too big! you won't be able to see the rest of the spawn menu if it's this big, let's make it smaller
 		width = ScrW() * 0.6
-		RunConsoleCommand( "wire_tool_menu_tab_width", width )
 	elseif width == -1 then -- set up default value
 		width = 390
 		if ScrW() > 1600 then width = 548
 		elseif ScrW() > 1280 then width = 460 end
-		RunConsoleCommand( "wire_tool_menu_tab_width", width )
 	elseif width < 390 then -- too small! you won't be able to see the tools, make it bigger
 		width = 390
+	end
+	
+	if width ~= tab_width:GetInt() then -- things changed, update convars
+		divider_width = 0.28 -- reset horizontal divider width
 		RunConsoleCommand( "wire_tool_menu_tab_width", width )
+		RunConsoleCommand( "wire_tool_menu_horizontal_divider_width", divider_width )
 	end
 	
 	self:SetWide( width )
-	self.Divider:SetLeftWidth( width / 2.8 )
+	self.Divider:SetLeftWidth( width * divider_width )
+	
+	local old = self.Divider.OnMouseReleased
+	function self.Divider.OnMouseReleased( ... )
+		local width_percent = math.Round(self.Divider:GetLeftWidth() / self:GetWide(),2)
+		RunConsoleCommand( "wire_tool_menu_horizontal_divider_width", width_percent )
+		old( ... )
+	end
 	
 	local LeftPanel = vgui.Create( "DPanel" )
 	self.Divider:SetLeft( LeftPanel )
@@ -74,26 +86,6 @@ function PANEL:Init()
 	self.SearchBox:DockMargin( 2, 2, 2, 0 )
 	self.SearchBox:Dock( TOP )
 	self:SetupSearchbox()
-	
-	local clearsearch = vgui.Create( "DImageButton", self.SearchBox )
-	clearsearch:SetMaterial( "icon16/cross.png" )
-	local src = self.SearchBox
-	function clearsearch:DoClick()
-		src:SetValue( "" )
-		src:OnTextChanged()
-	end
-	clearsearch:DockMargin( 2,2,4,2 )
-	clearsearch:Dock( RIGHT )
-	clearsearch:SetSize( 14, 10 )
-	clearsearch:SetVisible( false )
-	self.SearchBox.clearsearch = clearsearch
-	
-	local parent = self
-	function self.SearchBox:OnEnter()
-		if #parent.SearchList:GetLines() > 0 then
-			parent.SearchList:OnClickLine( parent.SearchList:GetLine( 1 ) )
-		end
-	end
 		
 	local ExpandAll = vgui.Create( "DCheckBoxLabel", SearchBoxPanel ) -- create this here so that it's below the slider
 	
@@ -187,8 +179,74 @@ end
 -- rather than doing it in PANEL:Init()
 ----------------------------------------------------------------------
 function PANEL:SetupSearchbox()
-	local searching
+	local clearsearch = vgui.Create( "DImageButton", self.SearchBox )
+	clearsearch:SetMaterial( "icon16/cross.png" )
+	local src = self.SearchBox
+	function clearsearch:DoClick()
+		src:SetValue( "" )
+		src:OnTextChanged()
+		src:SetValue( "Search..." )
+	end
+	clearsearch:DockMargin( 2,2,4,2 )
+	clearsearch:Dock( RIGHT )
+	clearsearch:SetSize( 14, 10 )
+	clearsearch:SetVisible( false )
+	self.SearchBox.clearsearch = clearsearch
+	
+	-- OnEnter
 	local parent = self
+	function self.SearchBox:OnEnter( select_next )
+		local lines = #parent.SearchList:GetLines()
+		if lines > 0 then -- if we have no lines at all, do nothing
+			local line = parent.SearchList:GetSelectedLine() or 0
+			if select_next then -- if tabbed, select next line
+				if lines > line then
+					parent.SearchList:OnClickLine( parent.SearchList:GetLine( line+1 ) )
+				else
+					parent.SearchList:OnClickLine( parent.SearchList:GetLine( 1 ) )
+				end
+			elseif line == 0 then -- if not tabbed, only select first line if no line is selected
+				parent.SearchList:OnClickLine( parent.SearchList:GetLine( 1 ) )
+			end				
+		end
+	end
+	
+	local old = self.SearchBox.OnGetFocus
+	function self.SearchBox:OnGetFocus()
+		if self:GetValue() == "Search..." then -- If "Search...", erase it
+			self:SetValue( "" )
+		end
+		old( self )
+	end
+	
+	-- On lose focus
+	local old = self.SearchBox.OnLoseFocus
+	function self.SearchBox:OnLoseFocus()
+		if self.Tabbed then -- regain focus if tabbed
+			self:RequestFocus()
+			self.Tabbed = nil
+		else
+			if self:GetValue() == "" then -- if empty, reset "Search..." text
+				timer.Simple( 0, function() self:SetValue( "Search..." ) end )
+			end
+			old( self )
+		end
+	end
+	
+	-- detecting tab to select next item in search result
+	local old = self.SearchBox.OnKeyCodeTyped
+	function self.SearchBox:OnKeyCodeTyped( code )
+		if code == 67 then -- tab
+			self:OnEnter( true )
+			self.Tabbed = true
+		else
+			old( self, code )
+		end
+	end
+	
+	self.SearchBox:SetValue( "Search..." )
+
+	local searching
 	function self.SearchBox:OnTextChanged()
 		timer.Remove( "wire_customspawnmenu_hidesearchbox" )
 	
