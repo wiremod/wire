@@ -20,4 +20,5 @@ E2Helper.Descriptions["noCollide"] = "Creates a nocollide constraint between two
 E2Helper.Descriptions["noCollideAll"] = "Nocollides an entity to all entities/players, just like the tool's right-click"
 E2Helper.Descriptions["weld"] = "Creates a weld constraint between two entities"
 E2Helper.Descriptions["e:constraintBreak(s)"] = "Breaks all constraints of a type (weld, axis, nocollide, ballsocket) on an entity"
+E2Helper.Descriptions["e:constraintBreak(se)"] = "Breaks a constraint of a type (weld, axis, nocollide, ballsocket) between two entities"
 E2Helper.Descriptions["e:constraintBreakAll()"] = "Breaks all constraints of all types on an entity"

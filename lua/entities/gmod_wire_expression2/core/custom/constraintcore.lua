@@ -226,6 +226,26 @@ e2function void entity:constraintBreak(string type)
 	constraint.RemoveConstraints(this, caps(type))
 end
 
+--- Breaks a constraint of type <type> between <this> and <ent2>
+e2function void entity:constraintBreak(string type, entity ent2)
+	if !checkEnts(self, this, ent2) then return end
+	local consts = this.Constraints
+	local consts2 = ent2.Constraints
+	if !consts then 
+		if !consts2 then return end
+		consts = consts2
+	end 
+	for _,v in pairs( consts ) do
+		if IsValid(v) then
+			local CTab = v:GetTable()
+			if CTab.Type == "Weld" && ( CTab.Ent1 == this && CTab.Ent2 == ent2 ) ||  ( CTab.Ent1 == ent2 && CTab.Ent2 == this ) then
+				v:Remove()
+				break
+			end
+	 	end
+	end
+end
+
 --- Breaks EVERY CONSTRAINT on <this>
 e2function void entity:constraintBreakAll()
 	if !IsValid(this) then return end
