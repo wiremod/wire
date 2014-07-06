@@ -19,15 +19,22 @@ if CLIENT then
 		
 		if self:IsOn() then
 			local Pos = self:GetPos()
-			local TPos = Vector(Pos.x,Pos.y,self:GetZTarget())
-			local Distance = Pos.z - TPos.z
+			local vDiff = (Pos - LocalPlayer():EyePos()):GetNormalized()
 			
-			local Pos = Pos
-			
-			local color = Color( 40, 50, 200, 255 )
+			local color = Color( 70, 180, 255, 255 ) -- Color( 40, 50, 200, 255 )
 			render.SetMaterial( glowmat )
-			local pulse = math.sin( RealTime() * 20 ) * 16
-			render.DrawSprite( Pos, 80 + pulse, 80 + pulse, color )
+			
+			-- Draw central glow
+			render.DrawSprite( Pos - vDiff * 2, 22, 22, color )
+			
+			-- Draw glow based on distance from target
+			local Distance = math.Clamp( math.abs( ( self:GetZTarget() - Pos.z ) * math.sin( RealTime() * 20 )  ) * 0.05, 0, 1 )
+			color.r = color.r * Distance
+			color.g = color.g * Distance
+			color.b = color.b * Distance
+			
+			render.DrawSprite( Pos + vDiff * 4, 48, 48, color )
+			render.DrawSprite( Pos + vDiff * 4, 52, 52, color )
 		end
 	end
 	
