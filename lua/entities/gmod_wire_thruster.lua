@@ -287,32 +287,7 @@ function ENT:OnRestore()
 	self:SetOffset( self.ThrustOffset )
 	self:StartMotionController()
 
-	if (self.PrevOutput) then
-		self:Switch(true, self.PrevOutput)
-	else
-		self:Switch(false)
-	end
-
 	self.BaseClass.OnRestore(self)
-end
-
-function ENT:BuildDupeInfo()
-	local info = self.BaseClass.BuildDupeInfo(self) or {}
-
-	if (self.PrevOutput) and (self:IsOn()) then
-		info.PrevOutput = self.PrevOutput
-	end
-
-	return info
-end
-
-function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
-	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
-
-	if (info.PrevOutput) then
-		self:Switch(true, info.PrevOutput)
-	end
-
 end
 
 duplicator.RegisterEntityClass("gmod_wire_thruster", WireLib.MakeWireEnt, "Data", "force", "force_min", "force_max", "oweffect", "uweffect", "owater", "uwater", "bidir", "soundname")
