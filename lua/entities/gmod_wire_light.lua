@@ -69,6 +69,51 @@ if CLIENT then
 		end
 	end
 	
+	local color_box_size = 64
+	function ENT:GetWorldTipBodySize()
+		-- text
+		local w_total,h_total = surface.GetTextSize( "Color:\n255,255,255,255" )
+		
+		-- Color box width
+		w_total = math.max(w_total,color_box_size)
+		
+		-- Color box height
+		h_total = h_total + 18 + color_box_size + 18/2
+		
+		return w_total, h_total
+	end
+	
+	local white = Color(255,255,255,255)
+	local black = Color(0,0,0,255)
+	
+	local function drawColorBox( color, x, y )
+		surface.SetDrawColor( color )
+		surface.DrawRect( x, y, color_box_size, color_box_size )
+	
+		local size = color_box_size
+	
+		surface.SetDrawColor( black )
+		surface.DrawLine( x, 		y, 			x + size, 	y )
+		surface.DrawLine( x + size, y, 			x + size, 	y + size )
+		surface.DrawLine( x + size, y + size, 	x, 			y + size )
+		surface.DrawLine( x, 		y + size, 	x, 			y )
+	end
+	
+	function ENT:DrawWorldTipBody( pos )
+		-- get colors
+		local data = self:GetOverlayData()
+		local color = Color(data.r or 255,data.g or 255,data.b or 255,255)
+				
+		-- text
+		local color_text = string.format("Color:\n%d,%d,%d",color.r,color.g,color.b)
+		
+		local w,h = surface.GetTextSize( color_text )
+		draw.DrawText( color_text, "GModWorldtip", pos.center.x, pos.min.y + pos.edgesize, white, TEXT_ALIGN_CENTER )
+		
+		-- color box
+		drawColorBox( color, pos.center.x - color_box_size / 2, pos.min.y + pos.edgesize * 1.5 + h )
+	end
+	
 	return  -- No more client
 end
 
@@ -182,10 +227,13 @@ function ENT:TriggerInput(iname, value)
 	elseif (iname == "RGB") then
 		R,G,B = value[1], value[2], value[3]
 	elseif (iname == "GlowBrightness") then
+		if not game.SinglePlayer() then math.Clamp( value, 0, 10 ) end
 		self:SetBrightness(value)
 	elseif (iname == "GlowDecay") then
+		if not game.SinglePlayer() then math.Clamp( value, 0, 5120 ) end
 		self:SetDecay(value)
 	elseif (iname == "GlowSize") then
+		if not game.SinglePlayer() then math.Clamp( value, 0, 2048 ) end
 		self:SetSize(value)
 	end
 	if ( R ~= self.R or G ~= self.G or B ~= self.B ) then
@@ -194,6 +242,11 @@ function ENT:TriggerInput(iname, value)
 end
 
 function ENT:Setup(directional, radiant, glow, brightness, size, decay, r, g, b)
+	if not game.SinglePlayer() then
+		brightness = math.Clamp( brightness, 0, 10 )
+		decay = math.Clamp( decay, 0, 5120 )
+		size = math.Clamp( size, 0, 2048 )
+	end
 	self.directional = directional
 	self.radiant = radiant
 	self.glow = glow
@@ -251,7 +304,7 @@ function ENT:SetRGB( R, G, B )
 		self:DirectionalOff()
 		self:RadiantOff()
 	end
-	self:SetOverlayText( "Red:" .. R .. " Green:" .. G .. " Blue:" .. B )
+	self:SetOverlayData( {r=R,g=G,b=B} )
 	self.R, self.G, self.B = R, G, B
 	self:SetColor(Color(R, G, B, self:GetColor().a))
 end
