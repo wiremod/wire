@@ -20,8 +20,6 @@ if CLIENT then
 	language.Add( "Tool.wire_gates.desc", "Spawns gates for use with the wire system." )
 	language.Add( "Tool.wire_gates.0", "Primary: Create/Update Gate, Secondary: Copy Gate, Reload: Increase angle offset by 45 degrees, Shift+Reload: Unparent gate (If parented)." )
 
-	language.Add( "Tool_wire_gates_searchresultnum", "Number of search results:" )
-
 	TOOL.ClientConVar["model"] = "models/jaanus/wiretool/wiretool_gate.mdl"
 	TOOL.ClientConVar["parent"] = 0
 	TOOL.ClientConVar["noclip"] = 1
@@ -58,19 +56,35 @@ if CLIENT then
 
 		----------------- GATE SELECTION & SEARCHING
 
-		panel:NumSlider( "#Tool_wire_gates_searchresultnum","wire_gates_searchresultnum", 0, 360, 0 ) 
-
 		-- Create panels
 		local searchbox = vgui.Create( "DTextEntry" )
-		searchbox:SetToolTip( "Leave empty to show all gates in a tree. Write something to display search results in a list." )
-
-		local tree = vgui.Create( "DTree" )
-		local searchlist = vgui.Create( "DListView" )
-		searchlist:AddColumn( "Gate Name" )
-		searchlist:AddColumn( "Category" )
-
+		
+		searchbox:SetValue( "Search..." )
+		
+		local old = searchbox.OnGetFocus
+		function searchbox:OnGetFocus()
+			if self:GetValue() == "Search..." then -- If "Search...", erase it
+				self:SetValue( "" )
+			end
+			old( self )
+		end
+		
+		-- On lose focus
+		local old = searchbox.OnLoseFocus
+		function searchbox:OnLoseFocus()
+			if self:GetValue() == "" then -- if empty, reset "Search..." text
+				timer.Simple( 0, function() self:SetValue( "Search..." ) end )
+			end
+			old( self )
+		end
+		
 		local holder = vgui.Create( "DPanel" )
 		holder:SetTall( 500 )
+
+		local tree = vgui.Create( "DTree", holder )
+		local searchlist = vgui.Create( "DListView", holder )
+		searchlist:AddColumn( "Gate Name" )
+		searchlist:AddColumn( "Category" )
 
 		-- Thank you http://lua-users.org/lists/lua-l/2009-07/msg00461.html
 		local function Levenshtein( s, t )
@@ -118,20 +132,16 @@ if CLIENT then
 			if text ~= "" then
 				if not searching then
 					searching = true
-					anim = RealTime() + 0.3
-					animstart = RealTime()
-					holder:InvalidateLayout()
-
-					timer.Simple(0.3,function()
-						local w = holder:GetWide() - 4
-						tree:SetWide( 0 )
-						searchlist:SetWide( w )
-						searchlist:SetPos( 2, 2 )
-					end)
+					local x,y = tree:GetPos()
+					local w,h = tree:GetSize()
+					searchlist:SetPos( x + w, y )
+					searchlist:MoveTo( x, y, 0.1, 0, 1 )
+					searchlist:SetSize( w, h )
+					searchlist:SetVisible( true )
 				end
 				local results = Search( text )
 				searchlist:Clear()
-				for i=1,math.min(#results,GetConVarNumber("wire_gates_searchresultnum")) do
+				for i=1,#results do
 					local result = results[i]
 
 					local line = searchlist:AddLine( result.name, result.group )
@@ -144,23 +154,22 @@ if CLIENT then
 			else
 				if searching then
 					searching = false
-					anim = RealTime() + 0.3
-					animstart = RealTime()
-					holder:InvalidateLayout()
-
-					timer.Simple(0.3,function()
-						local w = holder:GetWide() - 4
-						tree:SetWide( w  )
-						searchlist:SetWide( 0 )
-						searchlist:SetPos( 2 + w, 2 )
-					end)
+					local x,y = tree:GetPos()
+					local w,h = tree:GetSize()
+					searchlist:SetPos( x, y )
+					searchlist:MoveTo( x + w, y, 0.1, 0, 1 )
+					searchlist:SetSize( w, h )
+					timer.Create( "wire_customspawnmenu_hidesearchlist", 0.1, 1, function()
+						if IsValid( searchlist ) then
+							searchlist:SetVisible( false )
+						end
+					end )
 				end
 				searchlist:Clear()
 			end
 		end
 
 		function searchlist:OnClickLine( line )
-
 			-- Deselect old
 			local t = searchlist:GetSelected()
 			if t and next(t) then
@@ -170,49 +179,21 @@ if CLIENT then
 			line:SetSelected(true) -- Select new
 			RunConsoleCommand( "wire_gates_action", line.action )
 		end
-
-		panel:AddItem( searchbox )
-
-		-- Set sizes & other settings
-		searchlist:SetPos( 500,2 )
-		searchlist:SetTall( 496 )
-		searchlist:SetParent( holder )
-		searchlist:SetMultiSelect( false )
-
-		tree:SetPos( 2,2 )
-		tree:SetTall( 496 )
-		tree:SetParent( holder )
-
-		timer.Simple(0.1,function()
-			local w = holder:GetWide() - 4
-			tree:SetWide( w  )
-			searchlist:SetWide( 0 )
-			searchlist:SetPos( 2 + w, 2 )
-		end)
-
-		-- Animation
-		function holder:PerformLayout()
-			if searching ~= nil then
-				local w = holder:GetWide()-4
-				if anim >= RealTime() then
-					local curanim = anim - RealTime()
-					local animpercent = curanim / (anim-animstart)
-					local animpercentinv = 1-animpercent
-
-					if searching then
-						tree:SetWide( w * animpercent )
-						searchlist:SetWide( w * animpercentinv )
-						searchlist:SetPos( 2 + w * animpercent, 2 )
-					else
-						tree:SetWide( w * animpercentinv )
-						searchlist:SetWide( w * animpercent )
-						searchlist:SetPos( 2 + w * animpercentinv, 2 )
-					end
-
-					timer.Simple( 0, function() self:InvalidateLayout() end )
-				end
+		
+		function searchbox:OnEnter()
+			if #searchlist:GetLines() > 0 then
+				searchlist:OnClickLine( searchlist:GetLine( 1 ) )
 			end
 		end
+
+		panel:AddItem( searchbox )
+		
+		tree:Dock( FILL )
+
+		-- Set sizes & other settings
+		searchlist:SetVisible( false )
+		searchlist:SetMultiSelect( false )
+
 
 		local function FillSubTree( tree, node, temp )
 			node.Icon:SetImage( "icon16/arrow_refresh.png" )
@@ -242,24 +223,28 @@ if CLIENT then
 
 				if index == max then
 					timer.Remove("wire_gates_fillsubtree_delay" .. tostring(subtree))
-					--timer.Simple(0, function() tree:InvalidateLayout() end)
-					if not node.m_bExpanded then
-						node:InternalDoClick()
-					end
 					node.Icon:SetImage( "icon16/folder.png" )
 				end
 			end )
 		end
+		
+		local CategoriesSorted = {}
+		
+		for gatetype, gatefuncs in pairs( WireGatesSorted ) do
+			CategoriesSorted[#CategoriesSorted+1] = { gatetype = gatetype, gatefuncs = gatefuncs }
+		end
+		
+		table.sort( CategoriesSorted, function( a, b ) return a.gatetype < b.gatetype end )
 
-		for gatetype,gatefuncs in pairs( WireGatesSorted ) do
-			local node = tree:AddNode( gatetype .. " Gates" )
+		for i=1,#CategoriesSorted do
+			local gatetype = CategoriesSorted[i].gatetype
+			local gatefuncs = CategoriesSorted[i].gatefuncs
+			
+			local node = tree:AddNode( gatetype )
 			node.Icon:SetImage( "icon16/folder.png" )
-			node.first_time = true
+			FillSubTree( tree, node, gatefuncs )
 			function node:DoClick()
-				if self.first_time then
-					FillSubTree( tree, self, gatefuncs )
-					self.first_time = nil
-				end
+				self:SetExpanded( not self.m_bExpanded )
 			end
 		end
 
