@@ -37,7 +37,6 @@ if SERVER then
 		if trace.Entity:IsValid()
 				and trace.Entity:GetClass() == "gmod_wire_expression2"
 				and (trace.Entity.player == player or trace.Entity.player:GetInfoNum("wire_expression2_friendwrite", 0) ~= 0)
-				and E2Lib.isFriend(trace.Entity.player, player)
 		then
 			self:Upload(trace.Entity)
 			return true
@@ -82,7 +81,6 @@ if SERVER then
 		if trace.Entity:IsValid()
 				and trace.Entity:GetClass() == "gmod_wire_expression2"
 				and (trace.Entity.player == player or trace.Entity.player:GetInfoNum("wire_expression2_friendwrite", 0) ~= 0)
-				and E2Lib.isFriend(trace.Entity.player, player)
 		then
 			trace.Entity:Reset()
 			return true
@@ -99,7 +97,6 @@ if SERVER then
 
 		if trace.Entity:IsValid()
 				and trace.Entity:GetClass() == "gmod_wire_expression2"
-				and E2Lib.isFriend(trace.Entity.player, player)
 		then
 			self:Download(player, trace.Entity)
 			return true
@@ -154,7 +151,7 @@ if SERVER then
 			error("Invalid player entity (wtf??). This should never happen. " .. tostring(ply), 0)
 		end
 
-		if not E2Lib.isFriend(targetEnt.player, ply) then
+		if not hook.Run( "CanTool", ply, WireLib.dummytrace( targetEnt ), "Expression 2" ) then
 			WireLib.AddNotify(ply, "You're not allowed to download from this Expression (ent index: " .. targetEnt:EntIndex() .. ").", NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3)
 			return
 		end
@@ -267,7 +264,7 @@ if SERVER then
 			return
 		end
 
-		if toent.player != ply and (not E2Lib.isFriend(toent.player, ply) or toent.player:GetInfoNum("wire_expression2_friendwrite", 0) != 1) then
+		if toent.player != ply and (not hook.Run( "CanTool", ply, WireLib.dummytrace( toent ), "Expression 2" ) or toent.player:GetInfoNum("wire_expression2_friendwrite", 0) ~= 1) then
 			WireLib.AddNotify(ply, "You are not allowed to upload to the target Expression chip. Upload aborted.", NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3)
 			return
 		end
@@ -328,7 +325,7 @@ if SERVER then
 		if not E2 or not E2:IsValid() or E2:GetClass() ~= "gmod_wire_expression2" then return end
 		if canhas(player) then return end
 		if E2.error then return end
-		if E2.player == player or E2Lib.isFriend(E2.player, player) then
+		if hook.Run( "CanTool", player, WireLib.dummytrace( E2 ), "Expression 2" ) then --E2.player == player or E2Lib.isFriend(E2.player, player) then
 			E2:PCallHook("destruct")
 			E2:Error("Execution halted (Triggered by: " .. player:Nick() .. ")", "Execution halted")
 			if E2.player ~= player then
@@ -346,7 +343,7 @@ if SERVER then
 		E2 = Entity(E2)
 		if canhas(player) then return end
 		if not E2 or not E2:IsValid() or E2:GetClass() ~= "gmod_wire_expression2" then return end
-		if E2.player == player or E2Lib.isFriend(E2.player, player) then
+		if hook.Run( "CanTool", player, WireLib.dummytrace( E2 ), "Expression 2" ) then -- E2.player == player or E2Lib.isFriend(E2.player, player) then
 			WireLib.Expression2Download(player, E2)
 			WireLib.AddNotify(player, "Downloading code...", NOTIFY_GENERIC, 5, math.random(1, 4))
 			player:PrintMessage(HUD_PRINTCONSOLE, "Downloading code...")
@@ -365,7 +362,7 @@ if SERVER then
 		E2 = Entity(E2)
 		if not E2 or not E2:IsValid() or E2:GetClass() ~= "gmod_wire_expression2" then return end
 		if canhas(player) then return end
-		if E2.player == player or (E2Lib.isFriend(E2.player, player) and E2.player:GetInfoNum("wire_expression2_friendwrite", 0) == 1) then
+		if hook.Run( "CanTool", player, WireLib.dummytrace( E2 ), "Expression 2" ) and E2.player:GetInfoNum("wire_expression2_friendwrite", 0) == 1 then
 			if E2.context.data.last or E2.first then return end
 
 			E2:Reset()
