@@ -105,10 +105,10 @@ function ENT:CalcOutput(iter)
 			local result = { self.Action.output(self, unpack(self:GetActionInputs())) }
 
 			for k,v in ipairs(self.Action.outputs) do
-				Wire_TriggerOutput(self, v, result[k], iter)
+				Wire_TriggerOutput(self, v, result[k] or WireLib.DT[ self.Outputs[v].Type ].Zero, iter)
 			end
 		else
-			local value = self.Action.output(self, unpack(self:GetActionInputs())) or 0
+			local value = self.Action.output(self, unpack(self:GetActionInputs())) or WireLib.DT[ self.Outputs.Out.Type ].Zero
 
 			Wire_TriggerOutput(self, "Out", value, iter)
 		end
@@ -190,13 +190,13 @@ function ENT:GetActionOutputs()
 	if (self.Action.outputs) then
 		local result = {}
 		for _,v in ipairs(self.Action.outputs) do
-		    result[v] = self.Outputs[v].Value or 0
+		    result[v] = self.Outputs[v].Value or WireLib.DT[ self.Outputs[v].Type ].Zero
 		end
 
 		return result
 	end
 
-	return self.Outputs.Out.Value or 0
+	return self.Outputs.Out.Value or WireLib.DT[ self.Outputs.Out.Type ].Zero
 end
 
 function MakeWireGate(pl, Pos, Ang, model, action, noclip, frozen, nocollide)
