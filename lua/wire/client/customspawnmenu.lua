@@ -5,6 +5,7 @@ AccessorFunc( PANEL, "m_TabID", 			"TabID" )
 
 local expand_all = CreateConVar( "wire_tool_menu_expand_all", 0, {FCVAR_ARCHIVE} )
 local separate_wire_extras = CreateConVar( "wire_tool_menu_separate_wire_extras", 1, {FCVAR_ARCHIVE} )
+local hide_duplicates = CreateConVar( "wire_tool_menu_hide_duplicates", 0, {FCVAR_ARCHIVE} )
 local custom_for_all_tabs = CreateConVar( "wire_tool_menu_custom_menu_for_all_tabs", 0, {FCVAR_ARCHIVE} )
 local tab_width = CreateConVar( "wire_tool_menu_tab_width", -1, {FCVAR_ARCHIVE} )
 local horizontal_divider_width = CreateConVar( "wire_tool_menu_horizontal_divider_width", 0.28, {FCVAR_ARCHIVE} )
@@ -484,15 +485,19 @@ function PANEL:FixWireCategories()
 		if istable(category) then
 			for _, tool in pairs( category ) do
 				if istable(tool) then
+					-- favourites
 					local fav = cookie.GetNumber( "ToolMenu.Wire.Favourites." .. tool.ItemName )
 					if fav and fav == 1 then
 						self:AddToolToCategories( tool, {"Favourites"} )
 					end						
 				
-					local tooltbl = weapons.Get("gmod_tool").Tool[tool.ItemName]
-					if tooltbl then
-						if tooltbl.Wire_MultiCategories then
-							self:AddToolToCategories( tool, tooltbl.Wire_MultiCategories )
+					-- multi categories
+					if not hide_duplicates:GetBool() then
+						local tooltbl = weapons.Get("gmod_tool").Tool[tool.ItemName]
+						if tooltbl then
+							if tooltbl.Wire_MultiCategories then
+								self:AddToolToCategories( tool, tooltbl.Wire_MultiCategories )
+							end
 						end
 					end
 				end
@@ -605,6 +610,23 @@ vgui.Register( "WireToolPanel", PANEL, "Panel" )
 
 local wire_tab
 local all_tabs = {}
+
+local function setUpTabReloadOnChange( checkbox )
+	checkbox.first = true
+	function checkbox:OnChange( value )
+		if self.oldval == value then return end -- wtfgarry
+		self.oldval = value
+		
+		if self.first then self.first = false return end
+		
+		timer.Simple( 0.1, function()
+			if IsValid( wire_tab ) then
+				wire_tab:ReloadEverything()
+			end
+		end )
+	end
+end
+
 local function CreateCPanel( panel )
 	local checkbox = panel:CheckBox( "Use wire's custom tool menu for all tabs", "wire_tool_menu_custom_menu_for_all_tabs" )
 	checkbox:SetToolTip( "Requires rejoin to take effect" )
@@ -612,22 +634,13 @@ local function CreateCPanel( panel )
 	if WireLib.WireExtrasInstalled then
 		local SeparateWireExtras = panel:CheckBox( "Separate Wire Extras", "wire_tool_menu_separate_wire_extras" )
 		SeparateWireExtras:SetToolTip( "Whether or not to separate wire extras tools into its own category." )
-		
-		local first = true
-		local oldval
-		function SeparateWireExtras:OnChange( value )
-			if oldval == value then return end -- wtfgarry
-			oldval = value
-			
-			if first then first = false return end
-			
-			timer.Simple( 0.1, function()
-				if IsValid( wire_tab ) then
-					wire_tab:ReloadEverything()
-				end
-			end )
-		end
+
+		setUpTabReloadOnChange( SeparateWireExtras )
 	end
+	
+	local HideDuplicates = panel:CheckBox( "Hide tool duplicates", "wire_tool_menu_hide_duplicates" )
+	setUpTabReloadOnChange( HideDuplicates )
+	panel:Help( "It makes sense to have certain tools in multiple categories at once. However, if you don't want this, you can disable it here. The tools will then only appear in their primary category." )
 	
 	local TabWidth = panel:NumSlider( "Tab width", "wire_tool_menu_tab_width", 300, 3000, 0 )
 	panel:Help( [[Set the width of all tabs.
