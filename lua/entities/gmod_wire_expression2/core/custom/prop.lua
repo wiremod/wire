@@ -207,6 +207,15 @@ e2function void entity:propGravity(number gravity)
 	if not PropCore.ValidAction(self, this, "gravity") then return end
 	PropCore.PhysManipulate(this, nil, nil, nil, gravity, nil)
 end
+
+e2function void entity:propDrag( number drag )
+	if not PropCore.ValidAction(self, this, "drag") then return end
+	local phys = this:GetPhysicsObject()
+	if IsValid( phys ) then
+		phys:EnableDrag( drag ~= 0 )
+	end
+end
+
 --------------------------------------------------------------------------------
 
 e2function void entity:setPos(vector pos)
