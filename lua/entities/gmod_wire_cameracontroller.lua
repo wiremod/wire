@@ -189,13 +189,14 @@ if CLIENT then
 		end
 	end)
 	
-	hook.Remove("PlayerBindPress","wire_camera_controller_zoom")
 	hook.Add("PlayerBindPress", "wire_camera_controller_zoom", function(ply, bind, pressed)
-		if ply:InVehicle() then
+		if enabled and AllowZoom then
 			if (bind == "invprev") then
 				zoombind = -1
+				return true
 			elseif (bind == "invnext") then
 				zoombind = 1
+				return true
 			end
 		end
 	end)
@@ -524,8 +525,8 @@ end
 --------------------------------------------------
 
 function ENT:DisableCam( ply )
-	if #self.Vehicles == 0 then -- if the cam controller isn't linked, it controls the owner's view
-		self.Players[1] = self:GetPlayer()
+	if #self.Vehicles == 0 and not ply then -- if the cam controller isn't linked, it controls the owner's view
+		ply = self:GetPlayer()
 	end
 	
 	self:SetFOV( ply, false )
@@ -567,11 +568,15 @@ end
 --------------------------------------------------
 
 function ENT:EnableCam( ply )
-	if #self.Vehicles == 0 then -- if the cam controller isn't linked, it controls the owner's view
-		self.Players[1] = self:GetPlayer()
+	if #self.Vehicles == 0 and not ply then -- if the cam controller isn't linked, it controls the owner's view
+		ply = self:GetPlayer()
 	end
 	
 	if IsValid( ply ) then
+		for i=1,#self.Players do
+			if self.Players[i] == ply then return end -- check if this player is already active
+		end
+	
 		self.Players[#self.Players+1] = ply
 		ply.CamController = self
 		
