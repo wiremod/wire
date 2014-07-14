@@ -1945,7 +1945,7 @@ local code1 = "@name \n@inputs \n@outputs \n@persist \n@trigger \n\n"
 -- code2 contains the code that is to be marked, so it can simply be overwritten or deleted.
 local code2 = [[#[
     A new preprocessor command, @autoupdate has been added.
-	See the wiki for more info.
+    See the wiki for more info.
 
     Documentation and examples are available at:
     http://wiki.wiremod.com/wiki/Expression_2
