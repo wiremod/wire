@@ -636,7 +636,6 @@ end
 
 local function composedata(startSize, endSize, length, material, color, alpha)
 	if string.find(material, '"', 1, true) then return nil end
-	if not file.Exists("materials/"..material..".vmt","GAME") then return nil end -- check for non-existant materials.
 
 	return {
 		Color = Color( color[1], color[2], color[3], alpha ),
@@ -646,6 +645,8 @@ local function composedata(startSize, endSize, length, material, color, alpha)
 		Material = material,
 	}
 end
+
+__e2setcost(30)
 
 --- StartSize, EndSize, Length, Material, Color (RGB), Alpha
 --- Adds a trail to <this> with the specified attributes.
@@ -660,7 +661,6 @@ e2function void entity:setTrails(startSize, endSize, length, string material, ve
 	SetTrails(self.player, this, Data)
 end
 
-__e2setcost(30)
 
 --- StartSize, EndSize, Length, Material, Color (RGB), Alpha, AttachmentID, Additive
 --- Adds a trail to <this> with the specified attributes.
