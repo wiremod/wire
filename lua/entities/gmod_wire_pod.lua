@@ -534,11 +534,4 @@ end
 
 duplicator.RegisterEntityClass("gmod_wire_pod", WireLib.MakeWireEnt, "Data")
 duplicator.RegisterEntityClass("gmod_wire_adv_pod", WireLib.MakeWireEnt, "Data")
-WireLib.ClassAlias("gmod_wire_pod", "gmod_wire_adv_pod")
-
--- Hack for Advdupe2, since scripted_ents.GetList() does not respect aliases
-hook.Add("Initialize", "AdvPod_rename", function()
-	local tab = scripted_ents.GetStored("gmod_wire_pod").t -- Grab this ENT
-	scripted_ents.Register(tab, "gmod_wire_adv_pod") -- Set "adv_pod" to be defined as this ENT
-	tab.ClassName = "gmod_wire_pod" -- scripted_ents.Register changes this to your argument, lets change it back
-end)
+scripted_ents.Alias("gmod_wire_adv_pod", "gmod_wire_pod")
