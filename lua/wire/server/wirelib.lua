@@ -1157,16 +1157,6 @@ function WireLib.MakeWireEnt( pl, Data, ... )
 	return ent
 end
 
-function WireLib.ClassAlias(realclass, alias)
-	scripted_ents.Alias(alias, realclass)
-	-- Hack for Advdupe2, since scripted_ents.GetList() does not respect aliases
-	hook.Add("Initialize", "Rename_"..alias, function()
-		local tab = scripted_ents.GetStored(realclass).t -- Grab the registered entity (ie gmod_wire_pod)
-		scripted_ents.Register(tab, alias) -- Set "adv_pod" to be defined as this ENT
-		tab.ClassName = realclass -- scripted_ents.Register changes this to your argument, lets change it back
-	end)
-end
-
 -- Adds an input alias so that we can rename inputs on entities without breaking old dupes
 -- Usage: WireLib.AddInputAlias( old, new ) works if used in the entity's file
 -- or WireLib.AddInputAlias( class, old, new ) if used elsewhere

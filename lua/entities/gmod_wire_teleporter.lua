@@ -316,4 +316,4 @@ end
 
 duplicator.RegisterEntityClass("gmod_wire_hoverdrivecontroler", WireLib.MakeWireEnt, "Data", "UseSounds", "UseEffects" )
 duplicator.RegisterEntityClass("gmod_wire_teleporter", WireLib.MakeWireEnt, "Data", "UseSounds", "UseEffects")
-WireLib.ClassAlias("gmod_wire_teleporter", "gmod_wire_hoverdrivecontroler")
+scripted_ents.Alias("gmod_wire_hoverdrivecontroler", "gmod_wire_teleporter")

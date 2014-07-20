@@ -62,7 +62,7 @@ end
 hook.Add("Initialize", "DamageFilter", DamageFilter)
 
 duplicator.RegisterEntityClass("sent_deployableballoons", MakeBalloonSpawner, "Data")
-WireLib.ClassAlias("gmod_balloon", "gmod_iballoon")
+scripted_ents.Alias("gmod_iballoon", "gmod_balloon")
 
 --Moves old "Lenght" input to new "Length" input for older dupes
 WireLib.AddInputAlias( "Lenght", "Length" )
