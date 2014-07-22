@@ -97,7 +97,28 @@ GateActions["osdate"] = {
 		return "OS Date = "..Out
 	end
 }
-
+GateActions["osrealtime"] = {
+	name = "OS RealTime",
+	inputs = { },
+	timed = true,
+	output = function(gate)
+		return RealTime()
+	end,
+	label = function(Out)
+		return "RealTime = "..Out
+	end
+}
+GateActions["osruntime"] = {
+	name = "Server RunTime",
+	inputs = { },
+	timed = true,
+	output = function(gate)
+		return CurTime()
+	end,
+	label = function(Out)
+		return "RunTime = "..Out
+	end
+}
 GateActions["pulser"] = {
 	name = "Pulser",
 	inputs = { "Run", "Reset", "TickTime" },
