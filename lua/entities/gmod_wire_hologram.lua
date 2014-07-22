@@ -20,6 +20,7 @@ if CLIENT then
 	local bone_scale_buffer = {}
 	local clip_buffer = {}
 	local vis_buffer = {}
+	local player_color_buffer = {}
 
 	function ENT:Initialize()
 		self.bone_scale = {}
@@ -30,6 +31,7 @@ if CLIENT then
 		self.clips = {}
 		self:DoClip()
 		self:DoVisible()
+		self:DoPlayerColor()
 	end
 
 	hook.Add("PlayerBindPress", "wire_hologram_scale_setup", function() -- For initial spawn
@@ -38,6 +40,7 @@ if CLIENT then
 				ent:DoScale()
 				ent:DoClip()
 				ent:DoVisible()
+				ent:DoPlayerColor()
 			end
 		end
 		hook.Remove("PlayerBindPress", "wire_hologram_scale_setup")
@@ -264,6 +267,42 @@ if CLIENT then
 	end)
 
 	-- -----------------------------------------------------------------------------
+	
+	local function SetPlayerColor(entindex, color)
+		local ent = Entity(entindex)
+		-- For reference, here's why this works:
+		-- https://github.com/garrynewman/garrysmod/blob/master/garrysmod/lua/matproxy/player_color.lua
+		function ent:GetPlayerColor()
+			return color
+		end
+	end
+	
+	function ENT:DoPlayerColor()
+		local eidx = self:EntIndex()
+		if player_color_buffer[eidx] ~= nil then
+			SetPlayerColor(eidx, player_color_buffer[eidx])
+			player_color_buffer[eidx] = nil
+		end
+		
+		
+	end
+
+	net.Receive("wire_holograms_set_player_color", function(netlen)
+		local index = net.ReadUInt(16)
+		
+		while index ~= 0 do
+			local ent = Entity(index)
+			if IsValid(ent) and ent.DoPlayerColor then
+				SetPlayerColor(index, net.ReadVector())
+			else
+				player_color_buffer[index] = net.ReadVector()
+			end
+			
+			index = net.ReadUInt(16)
+		end
+	end)
+	
+	-- -----------------------------------------------------------------------------
 
 	concommand.Add("wire_holograms_block_client",
 		function(ply, command, args)
@@ -330,6 +369,7 @@ if CLIENT then
 			ent:DoScale()
 			ent:DoClip()
 			ent:DoVisible()
+			ent:DoPlayerColor()
 		end
 	end)
 
