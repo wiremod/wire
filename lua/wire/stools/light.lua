@@ -8,7 +8,6 @@ if CLIENT then
 	language.Add( "WireLightTool_RopeLength", "Rope Length:")
 	language.Add( "WireLightTool_bright", "Glow brightness:")
 	language.Add( "WireLightTool_size", "Glow size:" )
-	language.Add( "WireLightTool_decay", "Glow decay:" )
 	language.Add( "WireLightTool_directional", "Directional Component" )
 	language.Add( "WireLightTool_radiant", "Radiant Component" )
 	language.Add( "WireLightTool_glow", "Glow Component" )
@@ -26,7 +25,6 @@ if SERVER then
 			self:GetClientNumber("glow") ~= 0,
 			self:GetClientNumber("brightness"),
 			self:GetClientNumber("size"),
-			self:GetClientNumber("decay"),
 			self:GetClientNumber("r"),
 			self:GetClientNumber("g"),
 			self:GetClientNumber("b")
@@ -47,7 +45,7 @@ if SERVER then
 			undo.Finish()
 		elseif const == "rope" then
 
-			local length   = self:GetClientNumber( "ropelength" )
+			local length = math.Clamp( self:GetClientNumber( "ropelength" ), 4, 1024 )
 			local material = "cable/rope"
 			
 			local LPos1 = Vector( 0, 0, 0 )
@@ -96,7 +94,6 @@ TOOL.ClientConVar = {
 	ropelength   = 64,
 	brightness	 = 2,
 	size		 = 256,
-	decay		 = 1280,
 	const		 = "weld",
 	r			 = 0,
 	g 			 = 0,
@@ -112,7 +109,6 @@ function TOOL.BuildCPanel(panel)
 	panel:CheckBox("#WireLightTool_radiant", "wire_light_radiant")
 	panel:CheckBox("#WireLightTool_glow", "wire_light_glow")
 	panel:NumSlider("#WireLightTool_bright", "wire_light_brightness", 0, 10, 0)
-	panel:NumSlider("#WireLightTool_decay", "wire_light_decay", 0, 5120, 0)
 	panel:NumSlider("#WireLightTool_size", "wire_light_size", 0, 1024, 0)
 	panel:AddControl("ComboBox", {
 		Label = "#WireLightTool_Const",
@@ -122,7 +118,7 @@ function TOOL.BuildCPanel(panel)
 			["Rope"] = { wire_light_const = "rope" }
 		}
 	})
-	panel:NumSlider("#WireLightTool_RopeLength", "wire_light_ropelength", 0, 256, 0)
+	panel:NumSlider("#WireLightTool_RopeLength", "wire_light_ropelength", 4, 1024, 0)
 	panel:AddControl("Color", {
 		Label = "#WireLightTool_color",
 		Red	= "wire_light_r",

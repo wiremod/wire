@@ -7,8 +7,7 @@ ENT.WireDebugName	= "Light"
 function ENT:SetupDataTables()
 	self:NetworkVar( "Bool", 0, "Glow" )
 	self:NetworkVar( "Float", 0, "Brightness" )
-	self:NetworkVar( "Float", 1, "Decay" )
-	self:NetworkVar( "Float", 2, "Size" )
+	self:NetworkVar( "Float", 1, "Size" )
 end
 
 if CLIENT then 
@@ -29,23 +28,21 @@ if CLIENT then
 		local Distance = ViewNormal:Length()
 		ViewNormal:Normalize()
 			
-		local Visible	= util.PixelVisible( LightPos, 4, self.PixVis )	
+		local Visible = util.PixelVisible( LightPos, 4, self.PixVis )	
 		
-		if ( !Visible || Visible < 0.1 ) then return end
+		if not Visible or Visible < 0.1 then return end
 
 		local c = self:GetColor()
-		c.a = 255 * Visible
-		
-		if self:GetModel() == "models/maxofs2d/light_tubular.mdl" then
-			render.DrawSprite( LightPos - up * 2, 8, 8, c, Visible )
-			render.DrawSprite( LightPos - up * 4, 8, 8, c, Visible )
-			render.DrawSprite( LightPos - up * 6, 8, 8, c, Visible )
-			render.DrawSprite( LightPos - up * 5, 64, 64, c, Visible )
-		else
-			if self:GetModel() == "models/jaanus/wiretool/wiretool_siren.mdl" then c.a = 255 * -Visible end
-			render.DrawSprite( LightPos + up * ( self:OBBMaxs() - self:OBBMins() ) / 2, 128, 128, c, Visible )
-		end
+		local Alpha = 255 * Visible
 
+		if self:GetModel() == "models/maxofs2d/light_tubular.mdl" then
+			render.DrawSprite( LightPos - up * 2, 8, 8, Color(255, 255, 255, Alpha), Visible )
+			render.DrawSprite( LightPos - up * 4, 8, 8, Color(255, 255, 255, Alpha), Visible )
+			render.DrawSprite( LightPos - up * 6, 8, 8, Color(255, 255, 255, Alpha), Visible )
+			render.DrawSprite( LightPos - up * 5, 128, 128, c, Visible )
+		else
+			render.DrawSprite( self:LocalToWorld( self:OBBCenter() ), 128, 128, c, Visible )
+		end
 	end
 
 	local wire_light_block = CreateClientConVar("wire_light_block", 0, false, false)
@@ -62,7 +59,7 @@ if CLIENT then
 				dlight.b = c.b
 				
 				dlight.Brightness = self:GetBrightness()
-				dlight.Decay = self:GetDecay()
+				dlight.Decay = self:GetSize() * 5
 				dlight.Size = self:GetSize()
 				dlight.DieTime = CurTime() + 1
 			end
@@ -124,189 +121,124 @@ function ENT:Initialize()
 	self:SetMoveType( MOVETYPE_VPHYSICS )
 	self:SetSolid( SOLID_VPHYSICS )
 
-	self.R, self.G, self.B = 0,0,0
-
 	self.Inputs = WireLib.CreateInputs(self, {"Red", "Green", "Blue", "RGB [VECTOR]"})
 end
 
-function ENT:OnRemove()
-	if not IsValid(self.RadiantComponent) then return end
-	self.RadiantComponent:SetParent() //Bugfix by aVoN
-	self.RadiantComponent:Fire("TurnOff","",0)
-	self.RadiantComponent:Fire("kill","",1)
-end
-
-function ENT:DirectionalOn()
-	if IsValid(self.DirectionalComponent) then
-		self:DirectionalOff()
-	end
-
-	local flashlight = ents.Create( "env_projectedtexture" )
+function ENT:Directional( On )
+	if On then
+		if IsValid( self.DirectionalComponent ) then return end
+		
+		local flashlight = ents.Create( "env_projectedtexture" )
 		flashlight:SetParent( self )
 
 		// The local positions are the offsets from parent..
 		flashlight:SetLocalPos( Vector( 0, 0, 0 ) )
-		flashlight:SetAngles( self:GetAngles() + Angle( -90, 0, 0 ) )
+		flashlight:SetLocalAngles( Angle( -90, 0, 0 ) )
+		if self:GetModel() == "models/maxofs2d/light_tubular.mdl" then
+			flashlight:SetLocalAngles( Angle( 90, 0, 0 ) )
+		end
 
 		// Looks like only one flashlight can have shadows enabled!
 		flashlight:SetKeyValue( "enableshadows", 1 )
-		flashlight:SetKeyValue( "farz", 2048 )
-		flashlight:SetKeyValue( "nearz", 8 )
+		flashlight:SetKeyValue( "farz", 1024 )
+		flashlight:SetKeyValue( "nearz", 12 )
+		flashlight:SetKeyValue( "lightfov", 90 )
 
-		//Todo: Make this tweakable?
-		flashlight:SetKeyValue( "lightfov", 50 )
+		local c = self:GetColor()
+		local b = self.brightness
+		flashlight:SetKeyValue( "lightcolor", Format( "%i %i %i 255", c.r * b, c.g * b, c.b * b ) )
+		
+		flashlight:Spawn()
+		flashlight:Input( "SpotlightTexture", NULL, NULL, "effects/flashlight001" )
 
-		// Color.. Bright pink if none defined to alert us to error
-		flashlight:SetKeyValue( "lightcolor", "255 0 255" )
-	flashlight:Spawn()
-	flashlight:Input( "SpotlightTexture", NULL, NULL, "effects/flashlight001" )
-
-	self.DirectionalComponent = flashlight
-end
-
-function ENT:DirectionalOff()
-	if not IsValid(self.DirectionalComponent) then return end
-
-	self.DirectionalComponent:Remove()
-	self.DirectionalComponent = nil
-end
-
-function ENT:RadiantOn()
-	if IsValid(self.RadiantComponent) then
-		self.RadiantComponent:Fire("TurnOn","","0")
-	else
-		local dynlight = ents.Create( "light_dynamic" )
-		dynlight:SetPos( self:GetPos() )
-		local dynlightpos = dynlight:GetPos()+Vector( 0, 0, 10 )
-		dynlight:SetPos( dynlightpos )
-		dynlight:SetKeyValue( "_light", self.R .. " " .. self.G .. " " .. self.B .. " " .. 255 )
-		dynlight:SetKeyValue( "style", 0 )
-		dynlight:SetKeyValue( "distance", 255 )
-		dynlight:SetKeyValue( "brightness", 5 )
-		dynlight:SetParent( self )
-		dynlight:Spawn()
-		self.RadiantComponent = dynlight
+		self.DirectionalComponent = flashlight
+	elseif IsValid( self.DirectionalComponent ) then
+		self.DirectionalComponent:Remove()
+		self.DirectionalComponent = nil
 	end
-
-	self.RadiantState = true
 end
 
-function ENT:RadiantOff()
-	if not IsValid(self.RadiantComponent) then return end
-	self.RadiantComponent:Fire("TurnOff","","0")
-
-	self.RadiantState = false
-	--self.RadiantComponent:Remove()
-	--self.RadiantComponent = nil
+function ENT:Radiant( On )
+	if On then
+		if IsValid( self.RadiantComponent ) then
+			self.RadiantComponent:Fire( "TurnOn", "", "0" )
+		else
+			local dynlight = ents.Create( "light_dynamic" )
+			dynlight:SetPos( self:GetPos() )
+			local dynlightpos = dynlight:GetPos() + Vector( 0, 0, 10 )
+			dynlight:SetPos( dynlightpos )
+			dynlight:SetKeyValue( "_light", Format( "%i %i %i 255", self.R, self.G, self.B ) )
+			dynlight:SetKeyValue( "style", 0 )
+			dynlight:SetKeyValue( "distance", 255 )
+			dynlight:SetKeyValue( "brightness", 5 )
+			dynlight:SetParent( self )
+			dynlight:Spawn()
+			
+			self.RadiantComponent = dynlight
+		end
+	elseif IsValid( self.RadiantComponent ) then
+		self.RadiantComponent:Fire( "TurnOff", "", "0" )
+	end
 end
 
-
-function ENT:GlowOn()
-	self:SetGlow(true)
-
-	self.GlowState = true
-	self.brightness = self:GetBrightness()
-	self.decay = self:GetDecay()
-	self.size = self:GetSize()
-end
-
-function ENT:GlowOff()
-	self:SetGlow(false)
-
-	self.GlowState = false
+function ENT:UpdateLight()
+	self:SetColor( Color( self.R, self.G, self.B, self:GetColor().a ) )
+	self:SetOverlayData( { r = self.R, g = self.G, b = self.B } )
+	
+	if IsValid( self.DirectionalComponent ) then self.DirectionalComponent:SetKeyValue( "lightcolor", Format( "%i %i %i 255", self.R * self.brightness, self.G * self.brightness, self.B * self.brightness ) ) end
+	if IsValid( self.RadiantComponent ) then self.RadiantComponent:SetKeyValue( "_light", Format( "%i %i %i 255", self.R, self.G, self.B ) ) end
 end
 
 function ENT:TriggerInput(iname, value)
-	local R,G,B = self.R, self.G, self.B
 	if (iname == "Red") then
-		R = value
+		self.R = value
 	elseif (iname == "Green") then
-		G = value
+		self.G = value
 	elseif (iname == "Blue") then
-		B = value
+		self.B = value
 	elseif (iname == "RGB") then
-		R,G,B = value[1], value[2], value[3]
+		self.R, self.G, self.B = value[1], value[2], value[3]
 	elseif (iname == "GlowBrightness") then
 		if not game.SinglePlayer() then math.Clamp( value, 0, 10 ) end
-		self:SetBrightness(value)
-	elseif (iname == "GlowDecay") then
-		if not game.SinglePlayer() then math.Clamp( value, 0, 5120 ) end
-		self:SetDecay(value)
+		self.brightness = value
+		self:SetBrightness( value )
 	elseif (iname == "GlowSize") then
-		if not game.SinglePlayer() then math.Clamp( value, 0, 2048 ) end
-		self:SetSize(value)
-	end
-	if ( R ~= self.R or G ~= self.G or B ~= self.B ) then
-		self:SetRGB( R, G, B )
-	end
-end
-
-function ENT:Setup(directional, radiant, glow, brightness, size, decay, r, g, b)
-	if not game.SinglePlayer() then
-		brightness = math.Clamp( brightness, 0, 10 )
-		decay = math.Clamp( decay, 0, 5120 )
-		size = math.Clamp( size, 0, 2048 )
-	end
-	self.directional = directional
-	self.radiant = radiant
-	self.glow = glow
-	if (self.directional) then
-		if not IsValid(self.DirectionalComponent) then
-			self:DirectionalOn()
-		end
-	else
-		if IsValid(self.DirectionalComponent) then
-			self:DirectionalOff()
-		end
-	end
-	if (self.radiant) then
-		if not self.RadiantState then
-			self:RadiantOn()
-		end
-	else
-		if self.RadiantState then
-			self:RadiantOff()
-		end
-	end
-	if (self.glow) then
-		WireLib.AdjustInputs(self, {"Red", "Green", "Blue", "RGB [VECTOR]", "GlowBrightness", "GlowDecay", "GlowSize"})
-		if not self.GlowState then
-			self:GlowOn()
-		end
-	else
-		WireLib.AdjustInputs(self, {"Red", "Green", "Blue", "RGB [VECTOR]"})
-		if self.GlowState then
-			self:GlowOff()
-		end
+		if not game.SinglePlayer() then math.Clamp( value, 0, 1024 ) end
+		self.size = value
+		self:SetSize( value )
 	end
 	
-	if brightness then self:SetBrightness( brightness ) end
-	if size then self:SetSize( size ) end
-	if decay then self:SetDecay( decay ) end
-	self:SetRGB( r or 0, g or 0, b or 0 )
+	self:UpdateLight()
 end
 
-function ENT:SetRGB( R, G, B )
-	if (((R + G) + B) != 0) then
-		if (self.directional) then
-			if (!self.DirectionalComponent) then
-				self:DirectionalOn()
-			end
-			self.DirectionalComponent:SetKeyValue( "lightcolor", Format( "%i %i %i", R, G, B ) )
-		end
-		if (self.radiant) then
-			if (!self.RadiantState) then
-				self:RadiantOn()
-			end
-			self.RadiantComponent:SetColor(Color(R, G, B, 255))
-		end
-	else
-		self:DirectionalOff()
-		self:RadiantOff()
+function ENT:Setup(directional, radiant, glow, brightness, size, r, g, b)
+	self.directional = directional or false
+	self.radiant = radiant or false
+	self.glow = glow or false
+	self.brightness = brightness or 2
+	self.size = size or 256
+	self.R = r or 0
+	self.G = g or 0
+	self.B = b or 0
+	
+	if not game.SinglePlayer() then
+		self.brightness = math.Clamp( self.brightness, 0, 10 )
+		self.size = math.Clamp( self.size, 0, 1024 )
 	end
-	self:SetOverlayData( {r=R,g=G,b=B} )
-	self.R, self.G, self.B = R, G, B
-	self:SetColor(Color(R, G, B, self:GetColor().a))
+	
+	self:Directional( self.directional )
+	self:Radiant( self.radiant )
+	self:SetGlow( self.glow )
+	self:SetBrightness( self.brightness )
+	self:SetSize( self.size )
+	
+	if self.glow then
+		WireLib.AdjustInputs(self, {"Red", "Green", "Blue", "RGB [VECTOR]", "GlowBrightness", "GlowSize"})
+	else
+		WireLib.AdjustInputs(self, {"Red", "Green", "Blue", "RGB [VECTOR]"})
+	end
+	
+	self:UpdateLight()
 end
 
-duplicator.RegisterEntityClass("gmod_wire_light", WireLib.MakeWireEnt, "Data", "directional", "radiant", "glow", "brightness", "size", "decay", "R", "G", "B")
+duplicator.RegisterEntityClass("gmod_wire_light", WireLib.MakeWireEnt, "Data", "directional", "radiant", "glow", "brightness", "size", "R", "G", "B")
