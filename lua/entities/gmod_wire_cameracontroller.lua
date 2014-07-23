@@ -116,78 +116,82 @@ if CLIENT then
 	
 	hook.Remove("CalcView","wire_camera_controller_calcview")
 	hook.Add( "CalcView", "wire_camera_controller_calcview", function()
-		if enabled then
-			if not IsValid( self ) then enabled = false return end
-				
-			local pos_speed = pos_speed_convar:GetFloat()
-			local ang_speed = pos_speed - 2
+		if not enabled then return end
+		if not IsValid( self ) then enabled = false return end
 			
-			local curpos = pos
-			local curang = ang
-			local curdistance = distance
-			
-			local parent
-			
-			local HasParent = self:GetNWBool( "HasParent", false )
-			if HasParent then
-				local p = self:GetNWEntity( "Parent" )
-				if IsValid( p ) then
-					parent = p
-				end
+		local pos_speed = pos_speed_convar:GetFloat()
+		local ang_speed = pos_speed - 2
+		
+		local curpos = pos
+		local curang = ang
+		local curdistance = distance
+		
+		local parent
+		
+		local HasParent = self:GetNWBool( "HasParent", false )
+		if HasParent then
+			local p = self:GetNWEntity( "Parent" )
+			if IsValid( p ) then
+				parent = p
 			end
-			
-			local ValidParent = IsValid( parent )
-			
-			local newview = {}
-			
-			-- AutoMove
-			if AutoMove then
-				-- only smooth the position, and do it before the automove
-				smoothpos = LerpVector( FrameTime() * pos_speed, smoothpos, curpos )
-			
-				curpos, curang = DoAutoMove( smoothpos, curang, curdistance, parent, HasParent, ValidParent )
-				
-				if AutoUnclip then
-					curpos = DoAutoUnclip( curpos, parent, HasParent, ValidParent )
-				end
-				
-				-- apply view
-				newview.origin = curpos
-				newview.angles = curang
-			elseif HasParent and ValidParent then			
-				-- smooth BEFORE using toWorld
-				smoothpos = LerpVector( FrameTime() * pos_speed, smoothpos, curpos )
-				smoothang = LerpAngle( FrameTime() * ang_speed, smoothang, curang )
-				
-				-- now toworld it
-				curpos = parent:LocalToWorld( smoothpos )
-				curang = parent:LocalToWorldAngles( smoothang )
-				
-				-- now check for auto unclip
-				if AutoUnclip then
-					curpos = DoAutoUnclip( curpos, parent, HasParent, ValidParent )
-				end
-				
-				-- apply view
-				newview.origin = curpos
-				newview.angles = curang
-			else
-				-- check auto unclip first
-				if AutoUnclip then
-					curpos = DoAutoUnclip( curpos, parent, HasParent, ValidParent )
-				end
-			
-				-- there's no parent, just smooth it
-				smoothpos = LerpVector( FrameTime() * pos_speed, smoothpos, curpos )
-				smoothang = LerpAngle( FrameTime() * ang_speed, smoothang, curang )
-				newview.origin = smoothpos
-				newview.angles = smoothang
-			end
-			
-			newview.drawviewer = DrawPlayer
-			return newview
 		end
+		
+		local ValidParent = IsValid( parent )
+		
+		local newview = {}
+		
+		-- AutoMove
+		if AutoMove then
+			-- only smooth the position, and do it before the automove
+			smoothpos = LerpVector( FrameTime() * pos_speed, smoothpos, curpos )
+		
+			curpos, curang = DoAutoMove( smoothpos, curang, curdistance, parent, HasParent, ValidParent )
+			
+			if AutoUnclip then
+				curpos = DoAutoUnclip( curpos, parent, HasParent, ValidParent )
+			end
+			
+			-- apply view
+			newview.origin = curpos
+			newview.angles = curang
+		elseif HasParent and ValidParent then			
+			-- smooth BEFORE using toWorld
+			smoothpos = LerpVector( FrameTime() * pos_speed, smoothpos, curpos )
+			smoothang = LerpAngle( FrameTime() * ang_speed, smoothang, curang )
+			
+			-- now toworld it
+			curpos = parent:LocalToWorld( smoothpos )
+			curang = parent:LocalToWorldAngles( smoothang )
+			
+			-- now check for auto unclip
+			if AutoUnclip then
+				curpos = DoAutoUnclip( curpos, parent, HasParent, ValidParent )
+			end
+			
+			-- apply view
+			newview.origin = curpos
+			newview.angles = curang
+		else
+			-- check auto unclip first
+			if AutoUnclip then
+				curpos = DoAutoUnclip( curpos, parent, HasParent, ValidParent )
+			end
+		
+			-- there's no parent, just smooth it
+			smoothpos = LerpVector( FrameTime() * pos_speed, smoothpos, curpos )
+			smoothang = LerpAngle( FrameTime() * ang_speed, smoothang, curang )
+			newview.origin = smoothpos
+			newview.angles = smoothang
+		end
+		
+		newview.drawviewer = DrawPlayer -- this doesn't work (probably because I use SetViewEntity serverside)
+		return newview
 	end)
+	
+	-- calcview.drawviewer doesn't work, probably because I use SetViewEntity serverside, so I do this to fix that
+	hook.Add( "PrePlayerDraw", "wire_camera_controller_preplayerdraw", function( ply )
+		if enabled and not DrawPlayer and ply == LocalPlayer() then return true end
+	end )
 	
 	hook.Add("PlayerBindPress", "wire_camera_controller_zoom", function(ply, bind, pressed)
 		if enabled and AllowZoom then
@@ -245,10 +249,6 @@ if CLIENT then
 				curdistance = distance
 				smoothdistance = distance
 				zoomdistance = 0
-			end
-		else
-			if IsValid( oldparent ) then
-				oldparent:SetPredictable( false )
 			end
 		end
 			
