@@ -13,132 +13,124 @@ function ENT:Initialize()
 	self.Outputs = Wire_CreateOutputs(self, { "Out" })
 end
 
-local function ReturnType( DataType )
-	// Supported Data Types.
-	// Should be requested by client and only kept serverside.
-	local DataTypes = {
-		["NORMAL"] = "number",
-		["STRING"] = "string",
-		["VECTOR"] = "vector",
-		["ANGLE"]  = "angle"
-	}
-	for k,v in pairs(DataTypes) do
-		if(v == DataType:lower()) then
-			return k
-		end
-	end
-	return nil
-end
-
-local function StringToNumber( str )
-	local val = tonumber(str) or 0
-	return val
-end
-
-local function StringToVector( str )
-	if str != nil and str != "" then
-		local tbl = string.Split(str, ",")
-		if #tbl >= 2 and #tbl <=3 then
-			local vec = Vector(0,0,0)
-			vec.x = StringToNumber(tbl[1])
-			vec.y = StringToNumber(tbl[2])
-			if #tbl == 3 then
-				vec.z = StringToNumber(tbl[3])
-			end
-			return vec
-		end
-	end
-	return Vector(0,0,0)
-end
-
-local function StringToAngle( str )
-	if str != nil and str != "" then
-		local tbl = string.Split(str, ",")
-		if #tbl == 3 then
-			local ang = Angle(0,0,0)
-			ang.p = StringToNumber(tbl[1])
-			ang.y = StringToNumber(tbl[2])
-			ang.r = StringToNumber(tbl[3])
-			return ang
-		end
-	end
-	return Angle(0,0,0)
-end
-
-local tbl = {
-	["NORMAL"] = StringToNumber,
-	["STRING"] = tostring,
-	["VECTOR"] = StringToVector,
-	["ANGLE"] = StringToAngle,
+local types_lookup = {
+	NORMAL = 0,
+	ANGLE = Angle(0,0,0),
+	VECTOR = Vector(0,0,0),
+	VECTOR2 = {0,0},
+	VECTOR4 = {0,0,0,0},
+	STRING = "",
 }
 
-local function TranslateType( Value, DataType )
-    if tbl[DataType] then
-        return tbl[DataType]( Value )
-    end
-    return 0
+function ENT:SetupLegacy( values )
+	local new = {}
+	
+	for k,v in pairs( values ) do
+		local tp, val = string.match( v, "^ *([^: ]+) *:(.*)$" )
+		tp = string.upper(tp or "NORMAL")
+		
+		if types_lookup[tp] then
+			new[#new+1] = { DataType = tp, Value = val or v }
+		end
+	end
+	
+	self.LegacyOutputs = true
+	self:Setup( new )
 end
 
-function ENT:Setup(valuesin)
+local parsers = {}
+function parsers.NORMAL( val )
+	return tonumber(string.match( val, "^ *([%d.]+) *$" ))
+end
+function parsers.VECTOR ( val )
+	local x,y,z = string.match( val, "^ *([%d.]+) *, *([%d.]+) *, *([%d.]+) *$" )
+	if tonumber(x) and tonumber(y) and tonumber(y) then
+		return {tonumber(x),tonumber(y),tonumber(z)}
+	end
+end
+function parsers.VECTOR2( val )
+	local x, y = string.match( val, "^ *([%d.]+) *, *([%d.]+) *$" )
+	if tonumber(x) and tonumber(y) then return {tonumber(x), tonumber(y)} end
+end
+function parsers.VECTOR4( val )
+	local x, y, z, w = string.match( val, "^ *([%d.]+) *, *([%d.]+) *, *([%d.]+) *, *([%d.]+) *$" )
+	if tonumber(x) and tonumber(y) and tonumber(y) and tonumber(w) then
+		return {tonumber(x),tonumber(y),tonumber(z),tonumber(w)}
+	end
+end
+function parsers.ANGLE( val )
+	local p,y,r = string.match( val, "^ *([%d.]+) *, *([%d.]+) *, *([%d.]+) *$" )
+	if tonumber(p) and tonumber(y) and tonumber(r) then
+		return Angle(tonumber(p),tonumber(y),tonumber(r))
+	end
+end
+function parsers.STRING( val )
+	return tostring( val )
+end
+
+function ENT:ParseValue( value, tp )
+	if parsers[tp] then
+		local ret = parsers[tp]( value )
+		if ret then
+			return ret
+		else
+			WireLib.AddNotify( self:GetPlayer(), "Constant Value: Unable to parse value '" .. tostring(value) .. "' as type '" .. tp .. "'.", NOTIFY_ERROR, 5, NOTIFYSOUND_ERROR1 )
+			return types_lookup[tp]
+		end
+	end
+end
+
+function ENT:Setup( valuesin )
 	if not valuesin then return end
-
-	local legacynames = false
-	local _,val = next(valuesin)
-	if not istable(val) then
-		-- The old Gmod12 dupe format, lets convert it
-		local convertedValues = {}
-		local convtbl = {
-			["NORMAL"] = "Number",
-			["ANGLE"] = "Angle",
-			["VECTOR"] = "Vector",
-			["VECTOR2"] = "Vector",
-			["VECTOR4"] = "Vector",
-			["STRING"] = "String",
-		}
+	
+	local _, val = next( valuesin )
+	if not istable( val ) then -- old dupe
+		self:SetupLegacy( valuesin )
+	else
+		self.value = valuesin -- Wirelink/Duplicator Info 
+	
+		local names = {}
+		local types = {}
+		local values = {}
+		local descs = {}
+		
 		for k,v in pairs(valuesin) do
-			local theType,theValue = string.match (v, "^ *([^: ]+) *:(.*)$")
-			theType = string.upper(theType or "NORMAL")
+			v.DataType = string.upper( v.DataType )
+			if v.DataType == "NUMBER" then v.DataType = "NORMAL" end
 			
-			if not convtbl[theType] then
-				theType = "NORMAL"
+			if types_lookup[string.upper( v.DataType )] ~= nil then
+				names[k] = tostring( k )
+				types[k] = string.upper( v.DataType )
+				values[k] = self:ParseValue( v.Value, string.upper( v.DataType ) )
+				print(names[k],values[k])
+				descs[k] = values[k] ~= nil and v.Value or "*ERROR*"
+			else
+				WireLib.AddNotify( self:GetPlayer(), "Constant Value: Invalid type '" .. string.upper( v.DataType ) .. "' specified.", NOTIFY_ERROR, 5, NOTIFYSOUND_ERROR1 )
+				names[k] = tostring( k )
+				types[k] = "STRING"
+				values[k] = "INVALID TYPE SPECIFIED"
+				descs[k] = "*ERROR*"
 			end
-			
-			table.insert(convertedValues, { DataType=convtbl[theType], Value=theValue or v } )
 		end
-		valuesin = convertedValues
-		legacynames = true
-	end
-
-	self.value = valuesin -- Wirelink/Duplicator Info 
-	
-	local names = {}
-	local types = {}
-	local values = {}
-	local descs = {}
-	
-	for k,v in pairs(valuesin) do
-		names[k] = tostring( k )
-		types[k] = ReturnType(v.DataType)
-		values[k] = TranslateType(v.Value, ReturnType(v.DataType))
-		descs[k] = v.Value
-	end
-	if legacynames then
-		-- Gmod12 Constant Values will have outputs like Value1, Value2... 
-		-- To avoid breaking old dupes, we'll use those names if we're created from an old dupe
-		for k,v in pairs(names) do
-			names[k] = "Value"..v
+		
+		if self.LegacyOutputs then
+			-- Gmod12 Constant Values will have outputs like Value1, Value2... 
+			-- To avoid breaking old dupes, we'll use those names if we're created from an old dupe
+			for k,v in pairs(names) do
+				names[k] = "Value"..v
+			end
 		end
-	end
 
-	// this is where storing the values as strings comes in: they are the descriptions for the inputs.
-	WireLib.AdjustSpecialOutputs(self, names, types, descs )
+		-- this is where storing the values as strings comes in: they are the descriptions for the inputs.
+		WireLib.AdjustSpecialOutputs(self, names, types, descs )
 
-	local txt = ""
-	for k,v in pairs(valuesin) do
-		txt = txt .. names[k] .. " [" .. tostring(v.DataType) .. "]: " .. descs[k] .. "\n"
-		Wire_TriggerOutput( self, names[k], values[k] )
+		local txt = {}
+		for k,v in pairs(valuesin) do
+			txt[#txt+1] = string.format( "%s [%s]: %s",names[k],types[k],descs[k])
+			WireLib.TriggerOutput( self, names[k], values[k] )
+		end
+		self:SetOverlayText(table.concat( txt, "\n" ))
 	end
-	self:SetOverlayText(string.Left(txt,#txt-1)) -- Cut off the last \n
 end
 
 function ENT:ReadCell( Address )
