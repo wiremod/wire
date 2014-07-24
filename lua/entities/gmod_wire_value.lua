@@ -102,7 +102,6 @@ function ENT:Setup( valuesin )
 				names[k] = tostring( k )
 				types[k] = string.upper( v.DataType )
 				values[k] = self:ParseValue( v.Value, string.upper( v.DataType ) )
-				print(names[k],values[k])
 				descs[k] = values[k] ~= nil and v.Value or "*ERROR*"
 			else
 				WireLib.AddNotify( self:GetPlayer(), "Constant Value: Invalid type '" .. string.upper( v.DataType ) .. "' specified.", NOTIFY_ERROR, 5, NOTIFYSOUND_ERROR1 )
