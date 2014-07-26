@@ -38,28 +38,29 @@ function ENT:SetupLegacy( values )
 	self:Setup( new )
 end
 
+local tonumber = tonumber
 local parsers = {}
 function parsers.NORMAL( val )
-	return tonumber(string.match( val, "^ *([%d.]+) *$" ))
+	return tonumber(val)
 end
 function parsers.VECTOR ( val )
-	local x,y,z = string.match( val, "^ *([%d.]+) *, *([%d.]+) *, *([%d.]+) *$" )
+	local x,y,z = string.match( val, "^ *([^%s,]+) *, *([^%s,]+) *, *([^%s,]+) *$" )
 	if tonumber(x) and tonumber(y) and tonumber(y) then
 		return {tonumber(x),tonumber(y),tonumber(z)}
 	end
 end
 function parsers.VECTOR2( val )
-	local x, y = string.match( val, "^ *([%d.]+) *, *([%d.]+) *$" )
+	local x, y = string.match( val, "^ *([^%s,]+) *, *([^%s,]+) *$" )
 	if tonumber(x) and tonumber(y) then return {tonumber(x), tonumber(y)} end
 end
 function parsers.VECTOR4( val )
-	local x, y, z, w = string.match( val, "^ *([%d.]+) *, *([%d.]+) *, *([%d.]+) *, *([%d.]+) *$" )
+	local x, y, z, w = string.match( val, "^ *([^%s,]+) *, *([^%s,]+) *, *([^%s,]+) *, *([^%s,]+) *$" )
 	if tonumber(x) and tonumber(y) and tonumber(y) and tonumber(w) then
 		return {tonumber(x),tonumber(y),tonumber(z),tonumber(w)}
 	end
 end
 function parsers.ANGLE( val )
-	local p,y,r = string.match( val, "^ *([%d.]+) *, *([%d.]+) *, *([%d.]+) *$" )
+	local p,y,r = string.match( val, "^ *([^%s,]+) *, *([^%s,]+) *, *([^%s,]+) *$" )
 	if tonumber(p) and tonumber(y) and tonumber(r) then
 		return Angle(tonumber(p),tonumber(y),tonumber(r))
 	end
@@ -84,7 +85,9 @@ function ENT:Setup( valuesin )
 	if not valuesin then return end
 	
 	local _, val = next( valuesin )
-	if not istable( val ) then -- old dupe
+	if not val then
+		WireLib.AddNotify( self:GetPlayer(), "Constant Value: No values found!", NOTIFY_ERROR, 5, NOTIFYSOUND_ERROR1 )
+	elseif not istable( val ) then -- old dupe
 		self:SetupLegacy( valuesin )
 	else
 		self.value = valuesin -- Wirelink/Duplicator Info 

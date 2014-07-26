@@ -64,6 +64,8 @@ if CLIENT then
 	local panels = {}
 	local slider
 	local typeGuessCheckbox
+	local itemPanel
+	local resetButton
 	
 	local SendUpdate
 	
@@ -126,13 +128,13 @@ if CLIENT then
 	end
 	
 	local validityChecks = {
-		Number = 		function( val ) return string.match( val, "^ *([%d.]+) *$" ) ~= nil end,
-		["2D Vector"] = function( val ) local x,y = string.match( val, "^ *([%d.]+) *, *([%d.]+) *$" ) return x and y end,
-		Vector = 		function( val ) local x,y,z = string.match( val, "^ *([%d.]+) *, *([%d.]+) *, *([%d.]+) *$" ) return x and y and z end,
-		["4D Vector"] = function( val ) local x,y,z,w = string.match( val, "^ *([%d.]+) *, *([%d.]+) *, *([%d.]+) *, *([%d.]+) *$" ) return x and y and z and w end,
-		Angle =			function( val ) local x,y,z = string.match( val, "^ *([%d.]+) *, *([%d.]+) *, *([%d.]+) *$" ) return x and y and z end, -- it's the same as vectors
+		Number = 		function( val ) return tonumber(val) ~= nil end,
+		["2D Vector"] = function( val ) local x,y = string.match( val, "^ *([^%s,]+) *, *([^%s,]+) *$" ) return tonumber(x) ~= nil and tonumber(y) ~= nil end,
+		Vector = 		function( val ) local x,y,z = string.match( val, "^ *([^%s,]+) *, *([^%s,]+) *, *([^%s,]+) *$" ) return tonumber(x) ~= nil and tonumber(y) ~= nil and tonumber(z) ~= nil end,
+		["4D Vector"] = function( val ) local x,y,z,w = string.match( val, "^ *([^%s,]+) *, *([^%s,]+) *, *([^%s,]+) *, *([%d.]+) *$" ) return tonumber(x) ~= nil and tonumber(y) ~= nil and tonumber(z) ~= nil and tonumber(w) ~= nil end,
 		String = 		function( val ) return true end,
 	}
+	validityChecks.Angle = validityChecks.Vector -- it's the same as vectors
 	
 	local examples = {
 		Number = "12.34",
@@ -187,18 +189,49 @@ if CLIENT then
 		pnl:SetWide( w )
 		pnl:SetLabel( "Value " .. id )
 		pnl:Dock( TOP )
+		pnl.id = id
 		
-		local typeSelection = vgui.Create( "DComboBox", pnl )
-		pnl.typeSelection = typeSelection
-		typeSelection:SetWide( w )
-		typeSelection:Dock( TOP )
+		local top_panel = vgui.Create( "DPanel", pnl )
+		top_panel.Paint = function() end
+		top_panel:Dock( TOP )
+		
+		local _ = vgui.Create( "DPanel", top_panel ) -- this was the only solution I could think of to properly align this shit
+		_:Dock( RIGHT )
+		_.Paint = function() end
+		_:SetSize( 16, 14 )
+		local rem = vgui.Create( "DImageButton", _ )
+		rem:SetImage( "icon16/delete.png" )
+		rem:SizeToContents()
+		rem:SetPos( 0, 4 )
+		rem:SetToolTip( "Remove this value" )
+		
+		rem.DoClick = function()
+			if #selectedValues == 1 then -- can't remove the last value
+				resetButton:DoClick() -- instead, do a reset
+				return
+			end
+			
+			local id = pnl.id
+			panels[id]:Remove()
+			table.remove( panels, id )
+			table.remove( selectedValues, id )
+			slider:SetValue( math.max( slider:GetValue() - 1, 1 ) )
+			for i=id, math.Clamp(math.Round(slider:GetValue()),1,20) do
+				panels[i].id = i
+				panels[i]:SetLabel( "Value " .. i )
+			end
+		end
+		
+		local typeSelection = vgui.Create( "DComboBox", top_panel )
+		typeSelection:Dock( FILL )
 		typeSelection:DockMargin( 2, 2, 2, 2 )
+		pnl.typeSelection = typeSelection
 		
 		typeSelection.OnSelect = function( panel, index, value )
-			selectedValues[id].DataType = types_lookup[value] or "NORMAL"
+			selectedValues[pnl.id].DataType = types_lookup[value] or "NORMAL"
 			SendUpdate()
 			
-			local val, tp = selectedValues[id].Value, selectedValues[id].DataType
+			local val, tp = selectedValues[pnl.id].Value, selectedValues[pnl.id].DataType
 			tp = types_lookup2[tp] or "Number"
 			
 			if validateValue( val, tp ) then
@@ -220,9 +253,9 @@ if CLIENT then
 		valueEntry:DockMargin( 2, 2, 2, 2 )
 		
 		valueEntry.OnChange = function( panel )
-			selectedValues[id].Value = panel:GetValue()
+			selectedValues[pnl.id].Value = panel:GetValue()
 			
-			local val, tp = selectedValues[id].Value, selectedValues[id].DataType
+			local val, tp = selectedValues[pnl.id].Value, selectedValues[pnl.id].DataType
 			tp = types_lookup2[tp] or "Number"
 			
 			if typeGuessCheckbox:GetChecked() then
@@ -240,7 +273,7 @@ if CLIENT then
 		
 		local oldLoseFocus = valueEntry.OnLoseFocus
 		valueEntry.OnLoseFocus = function( panel )
-			selectedValues[id].Value = panel:GetValue()
+			selectedValues[pnl.id].Value = panel:GetValue()
 			SendUpdate()
 			oldLoseFocus(panel) -- Otherwise we can't close the spawnmenu!
 		end
@@ -274,9 +307,21 @@ if CLIENT then
 		ModelPlug_AddToCPanel(panel, "Value", "wire_value", true)
 		
 		local reset = panel:Button("Reset Values")
+		resetButton = reset
 		
 		typeGuessCheckbox = panel:CheckBox( "Automatically guess types", "wire_value_guesstype" )
-		typeGuessCheckbox:SetToolTip( "When enabled, the type dropdown will automatically be updated as you type with guessed types. It's unable to guess angles because it looks the same as vectors." )
+		typeGuessCheckbox:SetToolTip( 
+[[When enabled, the type dropdown will automatically be updated as you type with
+guessed types. It's unable to guess angles because they look the same as vectors.
+
+The green check you see inside the text boxes is the validator. If the value you write
+is a value that can't be parsed as the selected type, the green check will turn into
+a red X to indicate there's an error (You can then hover your cursor over the text box
+to see what's wrong).
+
+There will never be an error if auto type guessing is enabled (unless you manually
+set the type), because it will automatically set the type to a string when all other
+types fail.]] )
 		
 		local w,_ = panel:GetSize()
 		local valueSlider = vgui.Create( "DNumSlider" )
@@ -312,7 +357,7 @@ if CLIENT then
 			if value != LastValueAmount then
 				if value > LastValueAmount then
 					for i = LastValueAmount + 1, value, 1 do
-						panels[i] = AddValue( panel, i )
+						panels[i] = AddValue( itemPanel, i )
 					end
 				elseif value < LastValueAmount then
 					for i = value + 1, LastValueAmount, 1 do
@@ -322,13 +367,36 @@ if CLIENT then
 					end
 				end
 				
-				panel:SetTall( value * 120 )
+				itemPanel:SetTall( value * 73 )
 				LastValueAmount = value
 				SendUpdate()
 			end
 		end
 		
+		itemPanel = vgui.Create( "DPanel" )
+		itemPanel.Paint = function() end
+		panel:AddItem( itemPanel )
+		itemPanel:SetTall( 73 )
+		
 		loadValues()
 		SendUpdate()
+		
+		local pnl = vgui.Create( "DPanel" )
+		panel:AddItem( pnl )
+		pnl.Paint = function() end
+		pnl:SetTall( 16 )
+		
+		local add = vgui.Create( "DImageButton", pnl )
+		add:SetImage( "icon16/add.png" )
+		add:SizeToContents()
+		add:SetToolTip( "Add a new value" )
+		
+		function pnl.PerformLayout()
+			add:Center()
+		end
+		
+		function add.DoClick()
+			slider:SetValue( math.min( slider:GetValue() + 1, 20 ) )
+		end
 	end
 end
