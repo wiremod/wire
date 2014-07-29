@@ -2,13 +2,13 @@ WireToolSetup.setCategory( "Vehicle Control" )
 WireToolSetup.open( "eyepod", "Eye Pod", "gmod_wire_eyepod", nil, "Eye Pods" )
 
 if ( CLIENT ) then
-	//tool hud lang
+	--tool hud lang
     language.Add( "Tool.wire_eyepod.name", "Eye Pod Tool (Wire)" )
     language.Add( "Tool.wire_eyepod.desc", "Spawns an Eye Pod Mouse Controller." )
     language.Add( "Tool.wire_eyepod.0", "Primary: Create/Update Controller  Secondary: Link controller  Reload: Unlink EyePod/Cancel Current Link" )
 	language.Add( "Tool.wire_eyepod.1", "Now select the pod to link to.")
 
-	//panel control lang
+	--panel control lang
 	language.Add( "WireEyePod_DefaultToZero", "Default Outputs To Zero When Inactive" )
 	language.Add( "WireEyePod_CumulativeOutput", "Output Cumulative Mouse Position" )
 end
@@ -28,7 +28,7 @@ if SERVER then
 		local DefaultToZero = self:GetClientNumber("DefaultToZero")
 		local CumulativeOutput = self:GetClientNumber("CumulativeOutput")
 		local ShowRateOfChange = (CumulativeOutput ~= 0) and 0 or 1
-		//set the default to zero to one if you are showing the mouse position instead
+		--set the default to zero to one if you are showing the mouse position instead
 		if (ShowRateOfChange == 1) then DefaultToZero = 1 end
 
 		local ClampXMin = self:GetClientNumber("XMin")
@@ -37,7 +37,7 @@ if SERVER then
 		local ClampYMax = self:GetClientNumber("YMax")
 		local ClampX = 0
 		local ClampY = 0
-		//test clamp
+		--test clamp
 		if ( (ClampXMin != 0 or ClampXMax != 0) and (ClampYMin != 0 or ClampYMax != 0) and
 			ClampXMin != ClampXMax and ClampYMin != ClampYMax and
 			ClampXMin < ClampXMax and ClampYMin < ClampYMax ) then
@@ -62,7 +62,7 @@ if SERVER then
 	end
 end
 
-//link the eyepod to the vehicle
+--link the eyepod to the vehicle
 function TOOL:RightClick(trace)
 	if ( CLIENT ) then return true end
 	local entity = trace.Entity
@@ -110,8 +110,8 @@ function TOOL:Reload(trace)
 end
 
 -------------------------------------- TOOL Menu ---------------------------------------------------
-//TODO:  Figure out a way for dynamic panels to work with check boxes (check boxes that use concommands instead of convars default to 1 allways)
-//check for client
+--TODO:  Figure out a way for dynamic panels to work with check boxes (check boxes that use concommands instead of convars default to 1 allways)
+--check for client
 if (CLIENT) then
 
 	function Wire_EyePod_Menu(panel)
@@ -122,7 +122,7 @@ if (CLIENT) then
 			Description = "#Tool.wire_eyepod.desc"
 		})
 
-		//preset chooser
+		--preset chooser
 		panel:AddControl("ComboBox", {
 			Label = "#Presets",
 			MenuButton = "1",
@@ -161,7 +161,7 @@ if (CLIENT) then
 			Command = "wire_eyepod_DefaultToZero"
 		})
 
-		//clamps
+		--clamps
 		panel:AddControl( "Label",  {
 					Text = "\nClamp the output of the EyePod. \nSet both sliders to 0 to remove the clamp in that axis.",
 					Description = "Clamps the outputs of the EyePod. Set to 0 not to clamp in that axis"}    )

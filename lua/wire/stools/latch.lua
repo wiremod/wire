@@ -16,7 +16,7 @@ WireToolSetup.SetupMax( 15 )
 function TOOL:LeftClick( trace )
 	if trace.Entity:IsValid() and trace.Entity:IsPlayer() then return end
 
-	// If there's no physics object then we can't constraint it!
+	-- If there's no physics object then we can't constraint it!
 	if SERVER and !util.IsValidPhysicsObject( trace.Entity, trace.PhysicsBone ) then return false end
 
 	local iNum = self:NumObjects()
@@ -34,7 +34,7 @@ function TOOL:LeftClick( trace )
 		local Ent1, Ent2, Ent3  = self:GetEnt(1),	 self:GetEnt(2), trace.Entity
 		local const = self.Constraint
 
-		// Attach controller to the weld constraint
+		-- Attach controller to the weld constraint
 		local controller = WireLib.MakeWireEnt(ply, {Class = self.WireClass, Pos=trace.HitPos, Angle=self:GetAngle(trace), Model=self:GetModel()})
 
 		if !IsValid(controller) then
@@ -45,14 +45,14 @@ function TOOL:LeftClick( trace )
 			return false
 		end
 
-		// Send entity and constraint info over to the controller
+		-- Send entity and constraint info over to the controller
 		controller:SendVars( self.Ent1, self.Ent2, self.Bone1, self.Bone2, self.Constraint )
 
-		// Initialize controller inputs/outputs
+		-- Initialize controller inputs/outputs
 		controller:TriggerInput( "Activate", 1 )
 		Wire_TriggerOutput( controller, "Welded", 1 )
 
-		// Finish placing the controller
+		-- Finish placing the controller
 		local min = controller:OBBMins()
 		controller:SetPos( trace.HitPos - trace.HitNormal * min.z )
 
@@ -73,7 +73,7 @@ function TOOL:LeftClick( trace )
 			return true
 		end
 
-		// Get information we're about to use
+		-- Get information we're about to use
 		self.Ent1,  self.Ent2  = self:GetEnt(1),	 self:GetEnt(2)
 		self.Bone1, self.Bone2 = self:GetBone(1),	 self:GetBone(2)
 

@@ -79,7 +79,7 @@ function ENT:Think()
 		local gpscords = Vector(0,0,0);
 		local dirvec = Vector(0,0,0);
 		local MyPos = self:GetPos()
-		//local BeaconPos = self.Inputs["Target"].Src:GetBeaconPos(self)
+		--local BeaconPos = self.Inputs["Target"].Src:GetBeaconPos(self)
 		local BeaconPos = self.ToSense:GetBeaconPos(self) or MyPos
 		if (self.outdist) then
 			dist = (BeaconPos-MyPos):Length()

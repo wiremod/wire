@@ -78,9 +78,9 @@ function ENT:TriggerInput(iname, value)
 			self:TriggerInput("Stop", 1)
 		end
 	elseif iname == "Play" and value ~= 0 then
-		// Property sounds need to be refreshed
-		// every time to work probably especially
-		// when it has multiple sounds/pitches/volumes.
+		-- Property sounds need to be refreshed
+		-- every time to work probably especially
+		-- when it has multiple sounds/pitches/volumes.
 		if self.SoundProperties then
 			self.NeedsRefresh = true
 			Wire_TriggerOutput(self, "Duration", SoundDuration(self.sound))

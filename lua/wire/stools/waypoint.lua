@@ -51,7 +51,7 @@ function TOOL:LeftClick(trace)
 	local ent = self:LeftClick_Make( trace, ply )
 	local ret = self:LeftClick_PostMake( ent, ply, trace )
 
-	// Auto-link (itsbth)
+	-- Auto-link (itsbth)
 	if ( self.OldWaypoint && self.OldWaypoint:IsValid() and self:GetClientNumber("alink") == 1 ) then
 		self.OldWaypoint:SetNextWaypoint(ent)
 	end

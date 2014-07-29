@@ -23,7 +23,7 @@ function ENT:Setup(keygroup1, keygroup2, keygroup3, keygroup4, keygroup5, keygro
 	
 	local outpoles = {"A", "B", "C", "D", "E", "F", "G", "H"} //output names
 	
-	// Clamp
+	-- Clamp
 	throws = throws > 10 and 10 or throws
 	poles = poles > #outpoles and #outpoles or poles
 	
@@ -44,23 +44,23 @@ function ENT:Setup(keygroup1, keygroup2, keygroup3, keygroup4, keygroup5, keygro
 	self.throws 		= throws
 	self.nokey			= nokey
 	
-	//build inputs and putputs, init all nil values
+	--build inputs and putputs, init all nil values
 	for p=1, self.poles do
 		self.outputs[p] = outpoles[p]
 		self.Value[p] = self.Value[p] or 0
 		for t=1, self.throws do
-			//inputs[ p * self.poles + t ] = t .. outpoles[p]
+			--inputs[ p * self.poles + t ] = t .. outpoles[p]
 			table.insert(inputs, ( t .. outpoles[p] ))
 			self.Last[ t .. outpoles[p] ] = self.Last[ t .. outpoles[p] ] or 0
 		end
 	end
-	//add switch input to end of input list
+	--add switch input to end of input list
 	table.insert(inputs, "Switch")
 
 	Wire_AdjustInputs(self, inputs)
 	Wire_AdjustOutputs(self, self.outputs)
 
-	//set the switch to its new normal state
+	--set the switch to its new normal state
 	self:Switch( normclose )
 	
 	if not nokey then

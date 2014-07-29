@@ -23,15 +23,15 @@ function ENT:Initialize()
 		self.RefreshRows[i] = i-1
 	end
 
-	//0..786431 - RGB data
+	--0..786431 - RGB data
 
-	//1048569 - Color mode (0: RGBXXX; 1: R G B)
-	//1048570 - Clear row
-	//1048571 - Clear column
-	//1048572 - Screen Height
-	//1048573 - Screen Width
-	//1048574 - Hardware Clear Screen
-	//1048575 - CLK
+	--1048569 - Color mode (0: RGBXXX; 1: R G B)
+	--1048570 - Clear row
+	--1048571 - Clear column
+	--1048572 - Screen Height
+	--1048573 - Screen Width
+	--1048574 - Hardware Clear Screen
+	--1048575 - CLK
 
 	self.GPU = WireGPU(self)
 	

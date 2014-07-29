@@ -74,14 +74,14 @@ function TOOL:LeftClick( trace )
 
 		if CLIENT then return true end
 
-		// Get client's CVars
+		-- Get client's CVars
 		local material	= self:GetClientInfo( "material" ) or "cable/rope"
 		local width		= self:GetClientNumber("width", 3)
 		local speed		= self:GetClientNumber("speed", 16)
 		local fixed		= self:GetClientNumber("fixed", 0)
 		local stretchonly = self:GetClientNumber("stretchonly", 0) ~= 0
 
-		// Get information we're about to use
+		-- Get information we're about to use
 		local Ent1,  Ent2  = self:GetEnt(1),	 self:GetEnt(2)
 		local Bone1, Bone2 = self:GetBone(1),	 self:GetBone(2)
 		local LPos1, LPos2 = self:GetLocalPos(1),self:GetLocalPos(2)

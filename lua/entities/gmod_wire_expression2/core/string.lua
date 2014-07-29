@@ -2,10 +2,10 @@
   String support
 \******************************************************************************/
 
-// TODO: is string.left() faster than s:left()?
-// TODO: is string.sub faster than both left and right?
-// TODO: these return bad results when used with negative numbers!
-// TODO: benchmarks!
+-- TODO: is string.left() faster than s:left()?
+-- TODO: is string.sub faster than both left and right?
+-- TODO: these return bad results when used with negative numbers!
+-- TODO: benchmarks!
 
 local string = string -- optimization
 

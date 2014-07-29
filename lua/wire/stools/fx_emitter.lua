@@ -28,7 +28,7 @@ end
 function TOOL.BuildCPanel( CPanel )
 	CPanel:AddControl( "Header", { Text = "#Tool.wire_fx_emitter.name", Description	= "#Tool.wire_fx_emitter.desc" }  )
 
-	// Effect types
+	-- Effect types
 	local params = { Label = "#Effect", Height = "250", MenuButton="0", Options = {} }
 		for k,_ in pairs(ComboBox_Wire_FX_Emitter_Options) do
 			params.Options[ "#wire_fx_emitter_" .. k ] = { wire_fx_emitter_Effect = k }

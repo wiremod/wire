@@ -2,7 +2,7 @@
   Quaternion support
 \******************************************************************************/
 
-// TODO: implement more!
+-- TODO: implement more!
 
 -- faster access to some math library functions
 local abs   = math.abs
@@ -240,7 +240,7 @@ registerOperator("ass", "q", "q", function(self, args)
 end)
 
 /******************************************************************************/
-// TODO: define division as multiplication with (1/x), or is it not useful?
+-- TODO: define division as multiplication with (1/x), or is it not useful?
 
 __e2setcost(4)
 

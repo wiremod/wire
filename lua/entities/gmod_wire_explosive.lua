@@ -162,7 +162,7 @@ function ENT:Trigger()
 		if (self.FireEffect) then self:Ignite((self.Delaytime + 3),0) end
 	end
 	self.exploding = true
-	// Force reset of counter
+	-- Force reset of counter
 	self.CountTime = 0
 end
 
@@ -184,9 +184,9 @@ function ENT:Think()
 		end
 	end
 
-	// Do count check to ensure that
-	// ShowOutput() is called every second
-	// when exploding or reloading
+	-- Do count check to ensure that
+	-- ShowOutput() is called every second
+	-- when exploding or reloading
 	if ((self.CountTime or 0) < CurTime()) then
 		local temptime = 0
 		if (self.exploding) then
@@ -241,7 +241,7 @@ function ENT:Explode( )
 
 	self.reloading = true
 	self.ReloadTime = CurTime() + math.max(1, self.Delayreloadtime)
-	// Force reset of counter
+	-- Force reset of counter
 	self.CountTime = 0
 	self:ShowOutput()
 end

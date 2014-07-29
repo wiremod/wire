@@ -1,31 +1,31 @@
 -- this is all crap D:
 
-///////////////////////////////////////////////
-//		===BeamNetVars===				//
-//	Custom Networked Vars Module			//
-//	Based off Garry's Networked Vars Module		//
-//	Modification by: TAD2020				//
-///////////////////////////////////////////////
-//	How to use:							//
-//	Just like NetVars, ent:SetNetworkedBeam*		//
-//	and ent:GetNetworkedBeam*				//
-//	Key should be short or a small number.		//
-//	These functions should only be used instead	//
-//	standard NetVars when very large quanity		//
-//	of rarly updated values need to be sent with	//
-//	low importantance. Mainly this is used by		//
-//	wire's client side beams and rapidly updating	//
-//	overlay text.						//
-//	Data is sent at a tick interval, if too much		//
-//	is in the outgoing query, the delay between		//
-//	sends is increased.					//
-//	On player joins, all current data is queried to	//
-//	to send to them in the lowest priority stack.		//
-//	Low priority stack sends a few entities's		//
-//	vars each tick.						//
-///////////////////////////////////////////////
+--/////////////////////////////////////////////
+--		===BeamNetVars===				//
+--	Custom Networked Vars Module			//
+--	Based off Garry's Networked Vars Module		//
+--	Modification by: TAD2020				//
+--/////////////////////////////////////////////
+--	How to use:							//
+--	Just like NetVars, ent:SetNetworkedBeam*		//
+--	and ent:GetNetworkedBeam*				//
+--	Key should be short or a small number.		//
+--	These functions should only be used instead	//
+--	standard NetVars when very large quanity		//
+--	of rarly updated values need to be sent with	//
+--	low importantance. Mainly this is used by		//
+--	wire's client side beams and rapidly updating	//
+--	overlay text.						//
+--	Data is sent at a tick interval, if too much		//
+--	is in the outgoing query, the delay between		//
+--	sends is increased.					//
+--	On player joins, all current data is queried to	//
+--	to send to them in the lowest priority stack.		//
+--	Low priority stack sends a few entities's		//
+--	vars each tick.						//
+--/////////////////////////////////////////////
 
-//RD header for multi distro-ablity
+--RD header for multi distro-ablity
 local ThisBeamNetVarsVersion = 0.71
 if (BeamNetVars) and (BeamNetVars.Version) and (BeamNetVars.Version > ThisBeamNetVarsVersion) then
 	Msg("======== A Newer Version of BeamNetVars Detected ========\n"..
@@ -44,14 +44,14 @@ BeamNetVars = {}
 BeamNetVars.Version = ThisBeamNetVarsVersion
 
 if (SERVER) then
-	//we want this
-	//sv_usermessage_maxsize = 1024
+	--we want this
+	--sv_usermessage_maxsize = 1024
 	game.ConsoleCommand( "sv_usermessage_maxsize 1024\n" )
 end
 
 local meta = FindMetaTable( "Entity" )
 
-// Return if there's nothing to add on to
+-- Return if there's nothing to add on to
 if (!meta) then return end
 
 local Vector_Default 	= Vector(0,0,0)
@@ -76,7 +76,7 @@ end
 
 local function AttemptToSwitchTables( Ent, EntIndex )
 	if ( NetworkVars[ EntIndex ] == nil ) then return end
-	// We have an old entindex based entry! Move it over!
+	-- We have an old entindex based entry! Move it over!
 	NetworkVars[ Ent ] = NetworkVars[ EntIndex ]
 	NetworkVars[ EntIndex ] = nil
 end
@@ -99,8 +99,8 @@ local function GetNetworkTable( ent, name )
 	end
 	if ( !NetworkVars[ ent ] ) then
 		NetworkVars[ ent ] = {}
-		// This is the first time this entity has been created.
-		// Check whether we previously had an entindex based table
+		-- This is the first time this entity has been created.
+		-- Check whether we previously had an entindex based table
 		if ( CLIENT && !isnumber( ent ) && !isstring( ent ) ) then
 			AttemptToSwitchTables( ent, ent:EntIndex() )
 		end
@@ -153,25 +153,25 @@ end
 
 
 
-//
-// make all the ent.Get/SetNetworkedBeamVarCrap
-//
+--
+-- make all the ent.Get/SetNetworkedBeamVarCrap
+--
 local function AddNetworkFunctions( name, SetFunction, GetFunction, Default )
 
 	NetworkFunction[ name ] = {}
 	NetworkFunction[ name ].SetFunction = SetFunction
 	NetworkFunction[ name ].GetFunction = GetFunction
 
-	// SetNetworkedBlah
+	-- SetNetworkedBlah
 	meta[ "SetNetworkedBeam" .. name ] = function ( self, key, value, urgent )
 
 		key = tostring(key)
 
-		// The same - don't waste our time.
+		-- The same - don't waste our time.
 		if ( value == GetNetworkTable( self, name )[ key ] ) then return end
 
-		// Clients can set this too, but they should only really be setting it
-		// when they expect the exact same result coming over the wire (ie prediction)
+		-- Clients can set this too, but they should only really be setting it
+		-- when they expect the exact same result coming over the wire (ie prediction)
 		GetNetworkTable( self, name )[key] = value
 
 		if ( SERVER ) then
@@ -191,7 +191,7 @@ local function AddNetworkFunctions( name, SetFunction, GetFunction, Default )
 
 	meta[ "SetNWB" .. name ] = meta[ "SetNetworkedBeam" .. name ]
 
-	// GetNetworkedBlah
+	-- GetNetworkedBlah
 	meta[ "GetNetworkedBeam" .. name ] = function ( self, key, default )
 
 		key = tostring(key)
@@ -199,7 +199,7 @@ local function AddNetworkFunctions( name, SetFunction, GetFunction, Default )
 		local out = GetNetworkTable( self, name )[ key ]
 		if ( out != nil ) then return out end
 		if ( default == nil ) then return Default end
-		//default = default or Default -- not a good idea for booleans :)
+		--default = default or Default -- not a good idea for booleans :)
 
 		return default
 
@@ -208,7 +208,7 @@ local function AddNetworkFunctions( name, SetFunction, GetFunction, Default )
 	meta[ "GetNWB" .. name ] = meta[ "GetNetworkedBeam" .. name ]
 
 
-	// SetGlobalBlah
+	-- SetGlobalBlah
 	_G[ "SetGlobalBeam"..name ] = function ( key, value, urgent )
 
 		key = tostring(key)
@@ -227,7 +227,7 @@ local function AddNetworkFunctions( name, SetFunction, GetFunction, Default )
 	end
 
 
-	// GetGlobalBlah
+	-- GetGlobalBlah
 	_G[ "GetGlobalBeam"..name ] = function ( key )
 
 		key = tostring(key)
@@ -241,13 +241,13 @@ local function AddNetworkFunctions( name, SetFunction, GetFunction, Default )
 
 
 	if ( SERVER ) then
-		// Pool the name of the function.
-		// Makes it send a number representing the string rather than the string itself.
-		// Only do this with strings that you send quite a bit and always stay the same.
+		-- Pool the name of the function.
+		-- Makes it send a number representing the string rather than the string itself.
+		-- Only do this with strings that you send quite a bit and always stay the same.
 		umsg.PoolString( "RcvEntityBeamVar_"..name )
 	end
 
-	// Client Receive Function
+	-- Client Receive Function
 	if ( CLIENT ) then
 
 		local function RecvFunc( m )
@@ -260,7 +260,7 @@ local function AddNetworkFunctions( name, SetFunction, GetFunction, Default )
 				IndexKey = "G"
 			else
 				IndexKey = Entity( EntIndex )
-				// No entity yet - store using entindex
+				-- No entity yet - store using entindex
 				if ( IndexKey == NULL ) then IndexKey = EntIndex end
 			end
 			GetNetworkTable( IndexKey, name )[Key] = Value
@@ -284,11 +284,11 @@ AddNetworkFunctions( "String", 	"String", 	"ReadString", 	"" )
 
 
 
-//
-// We want our networked vars to save don't we? Yeah - we do - stupid.
-//
+--
+-- We want our networked vars to save don't we? Yeah - we do - stupid.
+--
 local function Save( save )
-	// Remove baggage
+	-- Remove baggage
 	for k, v in pairs(NetworkVars) do
 		if ( k == NULL ) then
 			NetworkVars[k] = nil
@@ -298,15 +298,15 @@ local function Save( save )
 end
 local function Restore( restore )
 	NetworkVars = saverestore.ReadTable( restore )
-	//PrintTable(NetworkVars)
+	--PrintTable(NetworkVars)
 end
 saverestore.AddSaveHook( "EntityNetworkedBeamVars", Save )
 saverestore.AddRestoreHook( "EntityNetworkedBeamVars", Restore )
 
 if (SERVER) then
-//
-// send the netvars queried in the stack
-//
+--
+-- send the netvars queried in the stack
+--
 local NextBeamVarsDelayedSendTime = 0
 local NormalOpMode = true
 local function NetworkVarsSend()
@@ -333,7 +333,7 @@ local function NetworkVarsSend()
 			DelayedUpdates = {}
 		end
 
-		//we send one entity's ExtraDelayedUpdates each tick
+		--we send one entity's ExtraDelayedUpdates each tick
 		local i = 0
 		for Index, a in pairs(ExtraDelayedUpdates) do
 			for VarType, b in pairs(a) do
@@ -359,9 +359,9 @@ end
 hook.Add("Think", "NetBeamLib_Think", NetworkVarsSend)
 
 
-//
-// Send a full update to player that have just joined the server
-//
+--
+-- Send a full update to player that have just joined the server
+--
 local function FullUpdateEntityNetworkVars( ply )
 	--Msg("==sending netbeamvar var data to "..tostring(ply).."\n")
 	--Msg("\n===Size: "..table.Count(NetworkVars).."\n")
@@ -388,9 +388,9 @@ concommand.Add( "networkbeamvars_SendAll", DelayedFullUpdateEntityNetworkVars )
 concommand.Add( "networkbeamvars_SendAllNow", FullUpdateEntityNetworkVars )
 
 
-//
-// Listen out for dead entities so we can remove their vars
-//
+--
+-- Listen out for dead entities so we can remove their vars
+--
 local function NetworkVarsCleanup( ent )
 	NetworkVars[ ent ] = nil
 end

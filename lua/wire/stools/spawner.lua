@@ -32,7 +32,7 @@ function TOOL:LeftClick(trace)
 	local delay			= self:GetClientNumber("delay", 0)
 	local undo_delay	= self:GetClientNumber("undo_delay", 0)
 	local spawn_effect  = self:GetClientNumber("spawn_effect", 0)
-	// In multiplayer we clamp the delay to help prevent people being idiots
+	-- In multiplayer we clamp the delay to help prevent people being idiots
 	if !game.SinglePlayer() and delay < 0.1 then
 		delay = 0.1
 	end

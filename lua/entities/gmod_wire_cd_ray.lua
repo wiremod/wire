@@ -189,7 +189,7 @@ function ENT:Think()
 		end
 
 		if ((track >= disk.FirstTrack) and (stack >= 0) and (sector >= 0) and
-			//(track < disk.DiskTracks) and
+			--(track < disk.DiskTracks) and
 			(stack < disk.DiskStacks)) then
 			self.Command[21] = vel //[R] Raw disk spin velocity
 			self.Command[22] = a //[R] Raw disk spin angle
@@ -249,7 +249,7 @@ function ENT:Think()
 		self.Command[31] = 0
 	end
 
-	//Update output
+	--Update output
 	if (self.WriteBuffer[0]) then
 		Wire_TriggerOutput(self, "Data",self.WriteBuffer[0])
 	else

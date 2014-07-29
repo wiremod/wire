@@ -8,10 +8,10 @@ if CLIENT then return end -- No more client
 
 local DEFAULT = {n={},ntypes={},s={},stypes={},size=0}
 
-// Global table to keep track of all detectors
+-- Global table to keep track of all detectors
 local Wire_Damage_Detectors = {}
 
-// Damage detection function
+-- Damage detection function
 local function CheckWireDamageDetectors( ent, inflictor, attacker, amount, dmginfo )
 	if amount > 0  then
 		local entID = ent:EntIndex()
@@ -55,7 +55,7 @@ function ENT:Initialize()
 
 	self.count = 0
 
-	// Store output damage info
+	-- Store output damage info
 	self.victims = table.Copy(DEFAULT)
 	WireLib.TriggerOutput( self, "Victims", self.victims )
 	self.damage = 0
@@ -74,7 +74,7 @@ function ENT:OnRemove()
 	Wire_Remove(self)
 end
 
-// Update overlay
+-- Update overlay
 function ENT:ShowOutput()
 	local text
 	if self.includeconstrained == 0 then
@@ -210,7 +210,7 @@ function ENT:UpdateDamage( dmginfo, entID )		-- Update damage table
 			dmginfo:GetDamageForce()
 		}
 
-		// Damage type (handle common types)
+		-- Damage type (handle common types)
 		self.dmgtype = ""
 		if dmginfo:IsExplosionDamage() then self.dmgtype = "Explosive"
 		elseif dmginfo:IsBulletDamage() or dmginfo:IsDamageType(DMG_BUCKSHOT) then self.dmgtype = "Bullet"
@@ -234,7 +234,7 @@ function ENT:UpdateDamage( dmginfo, entID )		-- Update damage table
 		self.damage = self.damage + damage
 	end
 
-	// Update victims table (ent, damage)
+	-- Update victims table (ent, damage)
 	self.victims.s[tostring(entID)] = ( self.victims[tostring(entID)] or 0 ) + damage
 	self.victims.stypes[tostring(entID)] = "n"
 

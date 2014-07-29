@@ -30,7 +30,7 @@ local function caps(text)
 	return capstext
 end
 
-// All vectors are LOCAL positions relative to their corresponding entities
+-- All vectors are LOCAL positions relative to their corresponding entities
 __e2setcost(30)
 
 --- Creates an axis between <ent1> and <ent2> at vector positions local to each ent.
@@ -92,7 +92,7 @@ local function CalcElasticConsts(Phys1, Phys2, Ent1, Ent2)
 	return const, damp
 end
 
-// Note: Winch is just a rename of Hydraulic with the last parameter True.
+-- Note: Winch is just a rename of Hydraulic with the last parameter True.
 --- Makes a winch constraint (stored at index <index>) between <ent1> and <ent2>, at vectors local to their respective ents, with <width> width. 
 e2function void winch(index, entity ent1, vector v1, entity ent2, vector v2, width)
 	if !checkEnts(self, ent1, ent2) then return end
