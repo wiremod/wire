@@ -1,3 +1,6 @@
+// A sound property browsner. It helps to find all sounds which are defined in sound scripts or by sound.Add().
+// Made by Grocel.
+
 local PANEL = {}
 
 local max_char_count = 200 //Name length limit
