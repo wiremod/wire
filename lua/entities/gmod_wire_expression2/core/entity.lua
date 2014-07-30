@@ -50,7 +50,7 @@ local function checkOwner(self)
 end
 
 /******************************************************************************/
-// Functions using operators
+-- Functions using operators
 
 __e2setcost(5) -- temporary
 
@@ -90,7 +90,7 @@ e2function number entity:id()
 end
 
 /******************************************************************************/
-// Functions getting string
+-- Functions getting string
 
 e2function entity noentity()
 	return NULL
@@ -112,7 +112,7 @@ e2function entity entity:owner()
 end
 
 /******************************************************************************/
-// Functions getting vector
+-- Functions getting vector
 e2function vector entity:pos()
 	if not IsValid(this) then return {0,0,0} end
 	return this:GetPos()
@@ -158,7 +158,7 @@ e2function vector entity:angVelVector()
 end
 
 /******************************************************************************/
-// Functions  using vector getting vector
+-- Functions  using vector getting vector
 
 __e2setcost(15)
 
@@ -197,7 +197,7 @@ e2function angle entity:toLocal(angle worldAngle)
 end
 
 /******************************************************************************/
-// Functions getting number
+-- Functions getting number
 
 __e2setcost(5)
 
@@ -211,7 +211,7 @@ e2function number entity:radius()
 	return this:BoundingRadius()
 end
 
-// original bearing & elevation thanks to Gwahir
+-- original bearing & elevation thanks to Gwahir
 --- Returns the bearing (yaw) from <this> to <pos>
 
 __e2setcost(15)
@@ -295,7 +295,7 @@ e2function number entity:volume()
 end
 
 /******************************************************************************/
-// Functions getting boolean/number
+-- Functions getting boolean/number
 e2function number entity:isPlayer()
 	if not IsValid(this) then return 0 end
 	if this:IsPlayer() then return 1 else return 0 end
@@ -331,7 +331,7 @@ e2function number entity:isValid()
 end
 
 /******************************************************************************/
-// Functions getting angles
+-- Functions getting angles
 
 e2function angle entity:angles()
 	if not IsValid(this) then return {0,0,0} end

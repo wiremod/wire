@@ -131,14 +131,14 @@ function ENT:Directional( On )
 		local flashlight = ents.Create( "env_projectedtexture" )
 		flashlight:SetParent( self )
 
-		// The local positions are the offsets from parent..
+		-- The local positions are the offsets from parent..
 		flashlight:SetLocalPos( Vector( 0, 0, 0 ) )
 		flashlight:SetLocalAngles( Angle( -90, 0, 0 ) )
 		if self:GetModel() == "models/maxofs2d/light_tubular.mdl" then
 			flashlight:SetLocalAngles( Angle( 90, 0, 0 ) )
 		end
 
-		// Looks like only one flashlight can have shadows enabled!
+		-- Looks like only one flashlight can have shadows enabled!
 		flashlight:SetKeyValue( "enableshadows", 1 )
 		flashlight:SetKeyValue( "farz", 1024 )
 		flashlight:SetKeyValue( "nearz", 12 )

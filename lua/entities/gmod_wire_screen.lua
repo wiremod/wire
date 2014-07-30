@@ -19,11 +19,11 @@ function ENT:GetDisplayB( )
 	return self:GetNetworkedBeamFloat( 2 )
 end
 
-// Extra stuff for Wire Screen (TheApathetic)
+-- Extra stuff for Wire Screen (TheApathetic)
 function ENT:SetSingleValue(singlevalue)
 	self:SetNetworkedBool("SingleValue",singlevalue)
 
-	// Change inputs if necessary
+	-- Change inputs if necessary
 	if (singlevalue) then
 		Wire_AdjustInputs(self, {"A"})
 	else
@@ -85,20 +85,20 @@ if CLIENT then
 			surface.SetDrawColor(0, 0, 0, 255)
 			surface.DrawRect(x, y, w, h)
 
-			// Check for Single Value (TheApathetic)
+			-- Check for Single Value (TheApathetic)
 			if (self:GetSingleValue()) then
 				local rectheight = 20
 				local textfont = "Trebuchet18"
 				local valuefont = "screen_font"
 
-				// Check for Single Bigger Font setting
+				-- Check for Single Bigger Font setting
 				if (self:GetSingleBigFont()) then
 					rectheight = 40
 					textfont = "Trebuchet36"
 					valuefont = "screen_font_single"
 				end
 
-				// Sizes here have been doubled when possible
+				-- Sizes here have been doubled when possible
 				surface.SetDrawColor(100,100,150,255)
 				surface.DrawRect(x,y,w,rectheight)
 
@@ -115,7 +115,7 @@ if CLIENT then
 				local halign = self:GetLeftAlign() and 0 or 1
 				draw.DrawText(DisplayA,valuefont,x + w/2*halign,y + rectheight,Color(255,255,255,255),halign)
 			else
-				// Normal two-value Wire Screen
+				-- Normal two-value Wire Screen
 
 				-- draw top bars
 				surface.SetDrawColor(100,100,150,255)
@@ -124,7 +124,7 @@ if CLIENT then
 				surface.SetDrawColor(100,100,150,255)
 				surface.DrawRect(x,y+94,w,20)
 
-				// Replaced "Value A" and "Value B" here (TheApathetic)
+				-- Replaced "Value A" and "Value B" here (TheApathetic)
 				draw.DrawText(self:GetTextA(), "Trebuchet18", x + w/2, y +  2, Color(255,255,255,255), 1)
 				draw.DrawText(self:GetTextB(), "Trebuchet18", x + w/2, y + 96, Color(255,255,255,255), 1)
 

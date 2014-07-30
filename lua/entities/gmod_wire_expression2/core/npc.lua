@@ -79,9 +79,9 @@ e2function void entity:npcSetTarget(entity ent)
 	this:SetEnemy(ent)
 end
 
-//--Relationship functions--//
+----Relationship functions--//
 
-// Disposition: 0 - Error, 1 - hate, 2 - fear, 3 - like, 4 - neutral
+-- Disposition: 0 - Error, 1 - hate, 2 - fear, 3 - like, 4 - neutral
 
 local function NpcDisp(string)
 	if(string == "hate") then return 1 end

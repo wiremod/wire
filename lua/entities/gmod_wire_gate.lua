@@ -26,7 +26,7 @@ function ENT:Setup( action, noclip )
 	if (gate.outputs) then
 		WireLib.AdjustSpecialOutputs(self, gate.outputs, gate.outputtypes)
 	else
-		//Wire_AdjustOutputs(self, { "Out" })
+		--Wire_AdjustOutputs(self, { "Out" })
 		WireLib.AdjustSpecialOutputs(self, { "Out" }, gate.outputtypes)
 	end
 
@@ -60,7 +60,7 @@ function ENT:Setup( action, noclip )
 	self.Action = gate
 	self.PrevValue = nil
 
-	//self.Action.inputtypes = self.Action.inputtypes or {}
+	--self.Action.inputtypes = self.Action.inputtypes or {}
 
 	self:CalcOutput()
 	self:ShowOutput()
@@ -163,7 +163,7 @@ function ENT:GetActionInputs(as_names)
 			if (as_names) then
 				table.insert(Args, self.Action.inputs[#Args+1] or "*Not enough inputs*")
 			else
-				//table.insert( Args, WireLib.DT[ (self.Action.inputtypes[#Args+1] or "NORMAL") ].Zero )
+				--table.insert( Args, WireLib.DT[ (self.Action.inputtypes[#Args+1] or "NORMAL") ].Zero )
 				table.insert( Args, WireLib.DT[ self.Inputs[ self.Action.inputs[#Args+1] ].Type ].Zero )
 			end
 		end

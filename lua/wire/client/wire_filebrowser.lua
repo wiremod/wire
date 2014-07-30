@@ -1,6 +1,6 @@
-// A file browser panel, used by the sound browser.
-// Can be used for any file type, recommend for huge file numbers.
-// Made by Grocel.
+-- A file browser panel, used by the sound browser.
+-- Can be used for any file type, recommend for huge file numbers.
+-- Made by Grocel.
 
 local PANEL = {}
 
@@ -22,8 +22,8 @@ local invalid_chars = {
 	["\r"] = "",
 	["\\"] = "/",
 	["//"] = "/",
-	//["/.svn"] = "", // Disallow access to .svn folders. (Not needed.)
-	//["/.git"] = "", // Disallow access to .git folders. (Not needed.)
+	--["/.svn"] = "", // Disallow access to .svn folders. (Not needed.)
+	--["/.git"] = "", // Disallow access to .git folders. (Not needed.)
 }
 
 local function ConnectPathes(path1, path2)
@@ -48,7 +48,7 @@ local function PathFilter(Folder, TxtPanel, Root)
 
 	local ValidFolder = Folder
 
-	//local ValidFolder = string.lower(Folder) // for .svn and .git filters.
+	--local ValidFolder = string.lower(Folder) // for .svn and .git filters.
 	for k, v in pairs(invalid_chars) do
 		for i = 1, #string.Explode(k, ValidFolder) do
 			if (!string.match(ValidFolder, k)) then break end
@@ -512,7 +512,7 @@ function PANEL:PerformLayout()
 	end
 
 
-	//Fixes scrollbar glitches on resize
+	--Fixes scrollbar glitches on resize
 	self.Tree:OnMouseWheeled(0)
 	self.List:OnMouseWheeled(0)
 

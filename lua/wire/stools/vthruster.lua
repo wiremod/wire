@@ -41,7 +41,7 @@ function TOOL:LeftClick( trace )
 	if (numobj == 0) then
 		if IsValid(trace.Entity) and trace.Entity:IsPlayer() then return false end
 
-		// If there's no physics object then we can't constraint it!
+		-- If there's no physics object then we can't constraint it!
 		if ( SERVER && !util.IsValidPhysicsObject( trace.Entity, trace.PhysicsBone ) ) then return false end
 		if (CLIENT) then return true end
 
@@ -122,7 +122,7 @@ function TOOL.BuildCPanel(panel)
 
 		local Effects = {
 			["#No Effects"] = "none",
-			//["#Same as over water"] = "same",
+			--["#Same as over water"] = "same",
 			["#Flames"] = "fire",
 			["#Plasma"] = "plasma",
 			["#Smoke"] = "smoke",
@@ -162,9 +162,9 @@ function TOOL.BuildCPanel(panel)
 			["#Comic Balls Random"] = "balls_random",
 			["#Comic Balls Fire Colors"] = "balls_firecolors",
 			["#Souls"] = "souls",
-			//["#Debugger 10 Seconds"] = "debug_10", These are just buggy and shouldn't be used.
-			//["#Debugger 30 Seconds"] = "debug_30",
-			//["#Debugger 60 Seconds"] = "debug_60",
+			--["#Debugger 10 Seconds"] = "debug_10", These are just buggy and shouldn't be used.
+			--["#Debugger 30 Seconds"] = "debug_30",
+			--["#Debugger 60 Seconds"] = "debug_60",
 			["#Fire and Smoke"] = "fire_smoke",
 			["#Fire and Smoke Huge"] = "fire_smoke_big",
 			["#5 Growing Rings"] = "rings_grow_rings",

@@ -253,7 +253,7 @@ if (SERVER) then
 		end
 	end
 	timer.Create("Wire_DebuggerThink", game.SinglePlayer() and 0.05 or 0.1, 0, Wire_DebuggerThink)
-	//hook.Add("Think", "Wire_DebuggerThink", Wire_DebuggerThink)
+	--hook.Add("Think", "Wire_DebuggerThink", Wire_DebuggerThink)
 
 end
 

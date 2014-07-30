@@ -104,13 +104,13 @@ function ENT:Setup(maxrange, players, npcs, npcname, beacons, hoverballs, thrust
 	local AdjInputs = {}
 	for i = 1, self.MaxTargets do
 		local inputnext = tostring(i).."-NextTarget"
-		//local inputprev = tostring(i).."-PrevTarget"
+		--local inputprev = tostring(i).."-PrevTarget"
 		local inputhold = tostring(i).."-HoldTarget"
 		self.Selector.Next[inputnext] = i
-		//self.Selector.Prev[inputprev] = i
-		//self.Selector.Hold[inputhold] = i
+		--self.Selector.Prev[inputprev] = i
+		--self.Selector.Hold[inputhold] = i
 		table.insert(AdjInputs, inputnext)
-		//table.insert(AdjInputs, inputprev)
+		--table.insert(AdjInputs, inputprev)
 		table.insert(AdjInputs, inputhold)
 	end
 	table.insert(AdjInputs, "Hold")
@@ -195,7 +195,7 @@ function ENT:SelectorNext(ch)
 	end
 end
 
-//function ENT:SelectorPrev(ch) end --TODO if needed
+--function ENT:SelectorPrev(ch) end --TODO if needed
 
 function ENT:FindInValue(haystack,needle,case_sensitive)
 	if !isstring(haystack) or !isstring(needle) then return false end;
@@ -231,7 +231,7 @@ function ENT:Think()
 	self.BaseClass.Think(self)
 
 	if not (self.Inputs.Hold and self.Inputs.Hold.Value > 0) then
-		// Find targets that meet requirements
+		-- Find targets that meet requirements
 		local mypos = self:GetPos()
 		local bogeys,dists = {},{}
 		for _,contact in pairs(ents.FindInSphere(self:GetPos(), self.MaxRange or 10)) do
@@ -258,14 +258,14 @@ function ENT:Think()
 			then
 				local dist = (contact:GetPos() - mypos):Length()
 				if (dist >= self.MinRange) then
-					//put targets in a table index by the distance from the finder
+					--put targets in a table index by the distance from the finder
 					bogeys[dist] = contact
 					dists[#dists+1] = dist
 				end
 			end
 		end
 
-		//sort the list of bogeys by key (distance)
+		--sort the list of bogeys by key (distance)
 		self.Bogeys = {}
 		self.InRange = {}
 		table.sort(dists)
@@ -279,7 +279,7 @@ function ENT:Think()
 		end
 
 
-		//check that the selected targets are valid
+		--check that the selected targets are valid
 		for i = 1, self.MaxTargets do
 			if (self:IsOnHold(i)) then
 				self.InRange[i] = true
@@ -302,7 +302,7 @@ function ENT:Think()
 
 	end
 
-	//temp hack
+	--temp hack
 	if self.SelectedTargets[1] then
 		self:ShowOutput(true)
 	else
@@ -315,13 +315,13 @@ end
 function ENT:IsTargeted(bogey, bogeynum)
 	for i = 1, self.MaxTargets do
 		if (self.SelectedTargets[i]) and (self.SelectedTargets[i] == bogey) then
-			//hold this target
+			--hold this target
 			if (self.Inputs[i.."-HoldTarget"]) and (self.Inputs[i.."-HoldTarget"].Value > 0) then
 				self.InRange[i] = true
 				return true
 			end
 
-			//this bogey is not as close as others, untarget it and let it be add back to the list
+			--this bogey is not as close as others, untarget it and let it be add back to the list
 			if (bogeynum > self.MaxTargets) then
 				self.SelectedTargets[i] = nil
 				if (self.PaintTarget) then self:TargetPainter(bogey, false) end
@@ -396,11 +396,11 @@ end
 
 
 
-//
-//	PropProtection support
-//
-//	Uses code from uclip for checking ownership
-//
+--
+--	PropProtection support
+--
+--	Uses code from uclip for checking ownership
+--
 -- Written by Team Ulysses, http://ulyssesmod.net/
 local hasPropProtection = false -- Chaussette's Prop Protection (preferred over PropSecure)
 local propProtectionFn -- Function to call to see if a prop belongs to a player. We have to fetch it from a local so we'll store it here.

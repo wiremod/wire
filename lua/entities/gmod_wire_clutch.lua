@@ -12,7 +12,7 @@ function ENT:Initialize()
 	self:SetSolid( SOLID_VPHYSICS )
 
 	self.Inputs = Wire_CreateInputs( self, { "Friction" } )
-	//self.Outputs = Wire_CreateOutputs( self, { "Welded" } )
+	--self.Outputs = Wire_CreateOutputs( self, { "Welded" } )
 
 	self.clutch_friction = 0
 	self.clutch_ballsockets = {}	-- Table of constraints as keys
@@ -51,7 +51,7 @@ function ENT:ClutchExists( Ent1, Ent2 )
 end
 
 
-// Returns an array with each entry as a table containing Ent1, Ent2
+-- Returns an array with each entry as a table containing Ent1, Ent2
 function ENT:GetConstrainedPairs()
 	local ConstrainedPairs = {}
 	for k, v in pairs( self.clutch_ballsockets ) do
@@ -74,7 +74,7 @@ local function NewBallSocket( Ent1, Ent2, friction )
 		friction, friction, friction, 1, 0 )
 
 	if ballsocket then
-		// Prevent ball socket from being affected by dupe/remove functions
+		-- Prevent ball socket from being affected by dupe/remove functions
 		ballsocket.Type = ""
 	end
 
@@ -82,7 +82,7 @@ local function NewBallSocket( Ent1, Ent2, friction )
 end
 
 
-// Register a new clutch association with the controller
+-- Register a new clutch association with the controller
 function ENT:AddClutch( Ent1, Ent2, friction )
 	local ballsocket = NewBallSocket( Ent1, Ent2, friction or self.clutch_friction )
 
@@ -96,7 +96,7 @@ function ENT:AddClutch( Ent1, Ent2, friction )
 end
 
 
-// Remove a new clutch association from the controller
+-- Remove a new clutch association from the controller
 function ENT:RemoveClutch( const )
 	self.clutch_ballsockets[const]	= nil
 
@@ -109,7 +109,7 @@ end
 
 
 function ENT:SetClutchFriction( const, friction )
-	// There seems to be no direct way to edit constraint friction, so we must create a new ball socket constraint
+	-- There seems to be no direct way to edit constraint friction, so we must create a new ball socket constraint
 	self.clutch_ballsockets[const] = nil
 
 	if IsValid( const ) then
@@ -132,7 +132,7 @@ end
    -- Main controller functions --
    Handle controller tables, wire input
 ---------------------------------------------------------*/
-// Used for setting/restoring entity mass when creating the clutch constraint
+-- Used for setting/restoring entity mass when creating the clutch constraint
 local function SaveMass( MassTable, ent )
 	if IsValid( ent ) and !MassTable[ent] then
 		local Phys = ent:GetPhysicsObject()
@@ -150,15 +150,15 @@ local function RestoreMass( MassTable )
 end
 
 
-// Set friction on all constrained ents, called by input or timer (if delayed)
+-- Set friction on all constrained ents, called by input or timer (if delayed)
 function ENT:UpdateFriction()
-	// Set masses to 1 - this will prevents friction from varying depending on mass
+	-- Set masses to 1 - this will prevents friction from varying depending on mass
 	local MassTable = {}
 
-	// Create a table copy so when we start ammending self.clutch_ballsockets, it won't affect this loop
+	-- Create a table copy so when we start ammending self.clutch_ballsockets, it won't affect this loop
 	local clutch_ballsockets = table.Copy( self.clutch_ballsockets )
 
-	// Update all registered ball socket constraints
+	-- Update all registered ball socket constraints
 	local numconstraints = 0	-- Used to calculate the delay between inputs
 
 	for k, v in pairs( clutch_ballsockets ) do
@@ -182,7 +182,7 @@ function ENT:UpdateFriction()
 end
 
 
-// Called when the clutch input delay timer finishes
+-- Called when the clutch input delay timer finishes
 local function ClutchDelayEnd( ent )
 	ent.ClutchDelay = nil
 
@@ -198,7 +198,7 @@ function ENT:TriggerInput( iname, value )
 		if !self.ClutchDelay then
 			self.clutch_friction = value
 
-			// Create a delay to avoid server lag
+			-- Create a delay to avoid server lag
 			local numconstraints = self:UpdateFriction()
 			local maxrate = math.max( GetConVarNumber( "wire_clutch_maxrate", 20 ), 1 )
 			local Delay = numconstraints / maxrate
@@ -207,12 +207,12 @@ function ENT:TriggerInput( iname, value )
 			timer.Create( "wire_clutch_delay_" .. tostring(self:EntIndex()), Delay, 0, function() ClutchDelayEnd(self) end )
 
 		else
-			// This should only happen if an error prevents the ClutchDelayEnd function from being called
+			-- This should only happen if an error prevents the ClutchDelayEnd function from being called
 			if !timer.Exists( "wire_clutch_delay_" .. tostring(self:EntIndex())) then
 				self.ClutchDelay = false
 			end
 
-			// Store new friction value so it can be updated after the delay
+			-- Store new friction value so it can be updated after the delay
 			self.delayed_clutch_friction = value
 
 		end

@@ -10,7 +10,7 @@ function EFFECT:Init( data )
 
 	if ( !TargetEntity || !TargetEntity:IsValid() ) then return end
 
-	//local vOffset = TargetEntity:GetPos()
+	--local vOffset = TargetEntity:GetPos()
 
 	local Low, High = TargetEntity:WorldSpaceAABB()
 	local Center = data:GetOrigin() //High - (( High - Low ) * 0.5)

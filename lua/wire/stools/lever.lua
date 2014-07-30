@@ -17,7 +17,7 @@ if SERVER then
 	end
 	
 	function TOOL:MakeEnt( ply, model, Ang, trace )
-		//return WireLib.MakeWireEnt( ply, {Class = self.WireClass, Pos=trace.HitPos, Angle=Ang, Model=model}, self:GetConVars() )
+		--return WireLib.MakeWireEnt( ply, {Class = self.WireClass, Pos=trace.HitPos, Angle=Ang, Model=model}, self:GetConVars() )
 		
 		local ent = WireLib.MakeWireEnt(ply, {Class = self.WireClass, Pos=(trace.HitPos + trace.HitNormal*22), Angle=Ang, Model=model}, self:GetConVars()) // +trace.HitNormal*46
 		

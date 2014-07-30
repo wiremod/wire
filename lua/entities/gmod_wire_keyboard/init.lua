@@ -170,7 +170,7 @@ hook.Add("PlayerLeaveVehicle", "wire_keyboard_PlayerLeaveVehicle", function( ply
 	end
 end)
 
-//local Wire_Keyboard_Remap = Wire_Keyboard_Remap // Defined in remap.lua
+--local Wire_Keyboard_Remap = Wire_Keyboard_Remap // Defined in remap.lua
 function ENT:GetRemappedKey( key_enum )
 	if not key_enum or key_enum == 0 or key_enum > KEY_LAST then return 0 end -- Above KEY_LAST are joystick and mouse enums
 

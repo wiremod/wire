@@ -1,7 +1,7 @@
-// A list editor. It allows reading editing and saving lists as *.txt files.
-// It uses wire_expression2_browser for it's file browser.
-// The files have an easy structure for easy editing. Rows are separated by '\n' and columns by '|'.
-// Made by Grocel.
+-- A list editor. It allows reading editing and saving lists as *.txt files.
+-- It uses wire_expression2_browser for it's file browser.
+-- The files have an easy structure for easy editing. Rows are separated by '\n' and columns by '|'.
+-- Made by Grocel.
 
 local PANEL = {}
 
@@ -53,7 +53,7 @@ local function ConnectPathes(path1, path2)
 	return path
 end
 
-//Parse the lines from a given file object
+--Parse the lines from a given file object
 local function ReadLine(filedata)
 	if (!filedata) then return end
 
@@ -140,7 +140,7 @@ local function SaveTo(self, func, ...)
 	return true
 end
 
-//Ask for override: Opens a confirmation if the file name is different box.
+--Ask for override: Opens a confirmation if the file name is different box.
 local function AsForOverride(self, func, filename, ...)
 	if (!IsValid(self)) then return end
 
@@ -165,7 +165,7 @@ local function AsForOverride(self, func, filename, ...)
 	)
 end
 
-//Ask for save: Opens a confirmation box.
+--Ask for save: Opens a confirmation box.
 local function AsForSave(self, func, ...)
 	if (!IsValid(self)) then return end
 
@@ -355,7 +355,7 @@ function PANEL:PerformLayout()
 		self.SplitPanel:SetLeftWidth(minw)
 	end
 
-	//Fixes scrollbar glitches on resize
+	--Fixes scrollbar glitches on resize
 	if (IsValid(self.FileBrowser.Folders)) then
 		self.FileBrowser.Folders:OnMouseWheeled(0)
 	end
@@ -434,7 +434,7 @@ function PANEL:AddItem(...)
 	line.m_strFilename = item
 	line.m_tabData = itemargs
 
-	//if (self.m_strFile == item) then
+	--if (self.m_strFile == item) then
 	if (self.m_strSelectedList == self.m_strList and self.m_strFile == item) then
 		self.Files:SelectItem(line)
 	end

@@ -33,7 +33,7 @@ end
 
 function SWEP:ViewModelDrawn()
 	if self.Weapon:GetNWBool("Active") and self.VM then
-        //Draw the laser beam.
+        --Draw the laser beam.
         render.SetMaterial( LASER )
 		render.DrawBeam(self.VM:GetAttachment(self.Attach).Pos, self:GetOwner():GetEyeTrace().HitPos, 2, 0, 12.5, Color(255, 0, 0, 255))
     end
@@ -41,7 +41,7 @@ end
 function SWEP:DrawWorldModel()
 	self.Weapon:DrawModel()
 	if self.Weapon:GetNWBool("Active") and self.WM then
-        //Draw the laser beam.
+        --Draw the laser beam.
         render.SetMaterial( LASER )
 		local posang = self.WM:GetAttachment(self.WAttach)
 		if not posang then self.WM = nil ErrorNoHalt("Laserpointer CL: Attachment lost, did they change model or something?\n") return end

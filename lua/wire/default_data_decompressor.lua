@@ -16,7 +16,7 @@ local function ReadDir(root)
 	return tab
 end
 -- Uncomment and Rename this file to wire/lua/wire/default_data_files.lua to update it
-//file.Write("default_data_files.txt", "//"..util.TableToJSON(ReadDir("")))
+--file.Write("default_data_files.txt", "//"..util.TableToJSON(ReadDir("")))
 
 -- Decompress the json string wire/lua/wire/default_data_files.lua into the corresponding 36+ default data files
 local function WriteDir(tab)

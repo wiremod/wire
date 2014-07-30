@@ -1,5 +1,5 @@
-// A sound browser for the sound emitter and the expression 2 editor.
-// Made by Grocel.
+-- A sound browser for the sound emitter and the expression 2 editor.
+-- Made by Grocel.
 
 local max_char_count = 200 //File length limit
 local max_char_chat_count = 110 // chat has a ~128 char limit, varies depending on char wide.
@@ -30,7 +30,7 @@ local TranslateCHAN = {
 	[CHAN_USER_BASE] = "CHAN_USER_BASE"
 }
 
-// Output the infos about the given sound.
+-- Output the infos about the given sound.
 local function GetFileInfos(strfile)
 	if (!isstring(strfile) or strfile == "") then return end
 
@@ -43,7 +43,7 @@ end
 local function FormatSize(nsize)
 	if (!nsize) then return end
 
-	//Negative filessizes aren't Valid.
+	--Negative filessizes aren't Valid.
 	if (nsize < 0) then return end
 
 	return nsize, string.NiceSize(nsize)
@@ -52,7 +52,7 @@ end
 local function FormatLength(nduration)
 	if (!nduration) then return end
 
-	//Negative durations aren't Valid.
+	--Negative durations aren't Valid.
 	if (nduration < 0) then return end
 
 	local nm = math.floor(nduration / 60)
@@ -88,7 +88,7 @@ local function GetInfoTable(strfile)
 end
 
 
-// Output the infos about the given sound.
+-- Output the infos about the given sound.
 local oldstrfile
 local function GenerateInfoTree(strfile, backnode, count)
 	if(oldstrfile == strfile and strfile) then return end
@@ -260,21 +260,21 @@ local function GenerateInfoTree(strfile, backnode, count)
 	end
 end
 
-// Set the volume of the sound.
+-- Set the volume of the sound.
 local function SetSoundVolume(volume)
 	if(!SoundObj) then return end
 
 	SoundObj:ChangeVolume(tonumber(volume) or 1, 0.1)
 end
 
-// Set the pitch of the sound.
+-- Set the pitch of the sound.
 local function SetSoundPitch(pitch)
 	if(!SoundObj) then return end
 
 	SoundObj:ChangePitch(tonumber(pitch) or 100, 0.1)
 end
 
-// Play the given sound, if no sound is given then mute a playing sound.
+-- Play the given sound, if no sound is given then mute a playing sound.
 local function PlaySound(file, volume, pitch)
 	if(SoundObj) then
 		SoundObj:Stop()
@@ -294,7 +294,7 @@ local function PlaySound(file, volume, pitch)
 	end
 end
 
-// Play the given sound without effects, if no sound is given then mute a playing sound.
+-- Play the given sound without effects, if no sound is given then mute a playing sound.
 local function PlaySoundNoEffect(file)
 	if(SoundObjNoEffect) then
 		SoundObjNoEffect:Stop()
@@ -315,16 +315,16 @@ local function PlaySoundNoEffect(file)
 end
 
 local function SetupSoundemitter(strSound)
-	// Setup the Soundemitter stool with the soundpath.
+	-- Setup the Soundemitter stool with the soundpath.
 	RunConsoleCommand("wire_soundemitter_sound", strSound)
 
-	// Pull out the soundemitter stool after setup.
+	-- Pull out the soundemitter stool after setup.
 	RunConsoleCommand("gmod_toolmode", "wire_soundemitter")
 	RunConsoleCommand("use", "gmod_tool")
 end
 
 local function SetupClipboard(strSound)
-	// Copy the soundpath to Clipboard.
+	-- Copy the soundpath to Clipboard.
 	SetClipboardText(strSound)
 end
 
@@ -337,26 +337,26 @@ local function Sendmenu(strSound, SoundEmitter, nSoundVolume, nSoundPitch) // Op
 
 	if (SoundEmitter) then
 
-		//Setup soundemitter
+		--Setup soundemitter
 			MenuItem = Menu:AddOption("Setup soundemitter", function()
 				SetupSoundemitter(strSound)
 			end)
 			MenuItem:SetImage("icon16/sound.png")
 
-		//Setup soundemitter and close
+		--Setup soundemitter and close
 			MenuItem = Menu:AddOption("Setup soundemitter and close", function()
 				SetupSoundemitter(strSound)
 				SoundBrowserPanel:Close()
 			end)
 			MenuItem:SetImage("icon16/sound.png")
 
-		//Copy to clipboard
+		--Copy to clipboard
 			MenuItem = Menu:AddOption("Copy to clipboard", function()
 				SetupClipboard(strSound)
 			end)
 			MenuItem:SetImage("icon16/page_paste.png")
 
-		//Copy to clipboard and close
+		--Copy to clipboard and close
 			MenuItem = Menu:AddOption("Copy to clipboard and close", function()
 				SetupClipboard(strSound)
 				SoundBrowserPanel:Close()
@@ -365,26 +365,26 @@ local function Sendmenu(strSound, SoundEmitter, nSoundVolume, nSoundPitch) // Op
 
 		else
 
-		//Copy to clipboard
+		--Copy to clipboard
 			MenuItem = Menu:AddOption("Copy to clipboard", function()
 				SetupClipboard(strSound)
 			end)
 			MenuItem:SetImage("icon16/page_paste.png")
 
-		//Copy to clipboard and close
+		--Copy to clipboard and close
 			MenuItem = Menu:AddOption("Copy to clipboard and close", function()
 				SetupClipboard(strSound)
 				SoundBrowserPanel:Close()
 			end)
 			MenuItem:SetImage("icon16/page_paste.png")
 
-		//Setup soundemitter
+		--Setup soundemitter
 			MenuItem = Menu:AddOption("Setup soundemitter", function()
 				SetupSoundemitter(strSound)
 			end)
 			MenuItem:SetImage("icon16/sound.png")
 
-		//Setup soundemitter and close
+		--Setup soundemitter and close
 			MenuItem = Menu:AddOption("Setup soundemitter and close", function()
 				SetupSoundemitter(strSound)
 				SoundBrowserPanel:Close()
@@ -396,10 +396,10 @@ local function Sendmenu(strSound, SoundEmitter, nSoundVolume, nSoundPitch) // Op
 	Menu:AddSpacer()
 
 	if (IsValid(TabFavourites)) then
-		// Add the soundpath to the favourites.
+		-- Add the soundpath to the favourites.
 		if (TabFavourites:ItemInList(strSound)) then
 
-			//Remove from favourites
+			--Remove from favourites
 				MenuItem = Menu:AddOption("Remove from favourites", function()
 					TabFavourites:RemoveItem(strSound)
 				end)
@@ -407,7 +407,7 @@ local function Sendmenu(strSound, SoundEmitter, nSoundVolume, nSoundPitch) // Op
 
 		else
 
-			//Add to favourites
+			--Add to favourites
 				MenuItem = Menu:AddOption("Add to favourites", function()
 					TabFavourites:AddItem(strSound, sound.GetProperties(strSound) and "property" or "file")
 				end)
@@ -426,9 +426,9 @@ local function Sendmenu(strSound, SoundEmitter, nSoundVolume, nSoundPitch) // Op
 
 	Menu:AddSpacer()
 
-	//Print to console
+	--Print to console
 		MenuItem = Menu:AddOption("Print to console", function()
-			// Print the soundpath in the Console/HUD.
+			-- Print the soundpath in the Console/HUD.
 			local ply = LocalPlayer()
 			if (!IsValid(ply)) then return end
 
@@ -436,9 +436,9 @@ local function Sendmenu(strSound, SoundEmitter, nSoundVolume, nSoundPitch) // Op
 		end)
 		MenuItem:SetImage("icon16/monitor_go.png")
 
-	//Print to Chat
+	--Print to Chat
 		MenuItem = Menu:AddOption("Print to Chat", function()
-			// Say the the soundpath.
+			-- Say the the soundpath.
 			RunConsoleCommand("say", strSound)
 		end)
 		MenuItem:SetImage("icon16/group_go.png")
@@ -453,14 +453,14 @@ local function Sendmenu(strSound, SoundEmitter, nSoundVolume, nSoundPitch) // Op
 
 	Menu:AddSpacer()
 
-	//Play
+	--Play
 		MenuItem = Menu:AddOption("Play", function()
 			PlaySound(strSound, nSoundVolume, nSoundPitch, strtype)
 			PlaySoundNoEffect()
 		end)
 		MenuItem:SetImage("icon16/control_play.png")
 
-	//Play without effects
+	--Play without effects
 		MenuItem = Menu:AddOption("Play without effects", function()
 			PlaySound()
 			PlaySoundNoEffect(strSound, strtype)
@@ -484,15 +484,15 @@ local function Infomenu(parent, node, SoundEmitter, nSoundVolume, nSoundPitch)
 
 	local Menu = DermaMenu()
 
-	//Copy to clipboard
+	--Copy to clipboard
 		MenuItem = Menu:AddOption("Copy to clipboard", function()
 			SetupClipboard(strNodeName)
 		end)
 		MenuItem:SetImage("icon16/page_paste.png")
 
-	//Print to console
+	--Print to console
 		MenuItem = Menu:AddOption("Print to console", function()
-			// Print the soundpath in the Console/HUD.
+			-- Print the soundpath in the Console/HUD.
 			local ply = LocalPlayer()
 			if (!IsValid(ply)) then return end
 
@@ -500,9 +500,9 @@ local function Infomenu(parent, node, SoundEmitter, nSoundVolume, nSoundPitch)
 		end)
 		MenuItem:SetImage("icon16/monitor_go.png")
 
-	//Print to Chat
+	--Print to Chat
 		MenuItem = Menu:AddOption("Print to Chat", function()
-			// Say the the soundpath.
+			-- Say the the soundpath.
 			RunConsoleCommand("say", strNodeName)
 		end)
 		MenuItem:SetImage("icon16/group_go.png")
@@ -518,8 +518,8 @@ local function Infomenu(parent, node, SoundEmitter, nSoundVolume, nSoundPitch)
 	Menu:Open()
 end
 
-// Save the file path. It should be cross session.
-// It's used when opening the browser in the e2 editor.
+-- Save the file path. It should be cross session.
+-- It's used when opening the browser in the e2 editor.
 local function SaveFilePath(panel, file)
 	if (!IsValid(panel)) then return end
 	if (panel.Soundemitter) then return end
@@ -527,7 +527,7 @@ local function SaveFilePath(panel, file)
 	panel:SetCookie("wire_soundfile", file)
 end
 
-// Open the Sound Browser.
+-- Open the Sound Browser.
 local function CreateSoundBrowser(path, se)
 	local soundemitter = false
 	if (isstring(path) and path ~= "") then
@@ -660,7 +660,7 @@ local function CreateSoundBrowser(path, se)
 	TabFileBrowser:SetWildCard("GAME")
 	TabFileBrowser:SetFileTyps({"*.mp3","*.wav"})
 
-	//TabFileBrowser:AddColumns("Type", "Size", "Length") //getting the duration is very slow.
+	--TabFileBrowser:AddColumns("Type", "Size", "Length") //getting the duration is very slow.
 	local Columns = TabFileBrowser:AddColumns("Format", "Size")
 	Columns[1]:SetFixedWidth(70)
 	Columns[1]:SetWide(70)
@@ -676,7 +676,7 @@ local function CreateSoundBrowser(path, se)
 		local nsizeB, strsize = FormatSize(nsize, nduration)
 		local nduration, strduration = FormatLength(nduration, nsize)
 
-		//return {strformat, strsize or "n/a", strduration or "n/a"} //getting the duration is very slow.
+		--return {strformat, strsize or "n/a", strduration or "n/a"} //getting the duration is very slow.
 		return {strformat, strsize or "n/a"}
 	end
 
@@ -893,7 +893,7 @@ local function CreateSoundBrowser(path, se)
 	SoundBrowserPanel:InvalidateLayout(true)
 end
 
-// Open the Sound Browser.
+-- Open the Sound Browser.
 local function OpenSoundBrowser(pl, cmd, args)
 	local path = args[1] // nil or "" will put the browser in e2 mode else the soundemitter mode is applied.
 	local se = args[2]
@@ -908,7 +908,7 @@ local function OpenSoundBrowser(pl, cmd, args)
 
 	if (!IsValid(TabFileBrowser)) then return end
 
-	//Replaces the timer, doesn't get paused in singleplayer.
+	--Replaces the timer, doesn't get paused in singleplayer.
 	WireLib.Timedcall(function(SoundBrowserPanel, TabFileBrowser, path, se)
 		if (!IsValid(SoundBrowserPanel)) then return end
 		if (!IsValid(TabFileBrowser)) then return end

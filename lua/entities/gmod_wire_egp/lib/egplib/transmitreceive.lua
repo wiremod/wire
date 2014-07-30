@@ -320,7 +320,7 @@ if (SERVER) then
 				E2.prf = E2.prf + 20
 			end
 			
-			// Remove all queued actions for this screen
+			-- Remove all queued actions for this screen
 			local queue = self.Queue[E2.player] or {}
 			local i = 1
 			while i<=#queue do

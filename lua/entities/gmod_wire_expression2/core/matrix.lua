@@ -35,7 +35,7 @@ registerType("matrix2", "xm2", { 0, 0,
 )
 
 /******************************************************************************/
-// Common functions - explicit matrix solvers
+-- Common functions - explicit matrix solvers
 
 local function det2(a)
 	return ( a[1] * a[4] - a[3] * a[2] )
@@ -97,7 +97,7 @@ registerOperator("ass", "xm2", "xm2", function(self, args)
 end)
 
 /******************************************************************************/
-// Comparison
+-- Comparison
 
 e2function number operator_is(matrix2 rv1)
 	if rv1[1] > delta || -rv1[1] > delta ||
@@ -124,7 +124,7 @@ e2function number operator!=(matrix2 rv1, matrix2 rv2)
 end
 
 /******************************************************************************/
-// Basic operations
+-- Basic operations
 
 registerOperator("dlt", "xm2", "xm2", function(self, args)
 	local op1, scope = args[2], args[3]
@@ -196,7 +196,7 @@ e2function matrix2 operator^(matrix2 rv1, rv2)
 end
 
 /******************************************************************************/
-// Row/column/element manipulation
+-- Row/column/element manipulation
 
 e2function vector2 matrix2:row(rv2)
 	local k
@@ -345,7 +345,7 @@ e2function matrix2 matrix2:swapElements(rv2, rv3, rv4, rv5)
 end
 
 /******************************************************************************/
-// Useful matrix maths functions
+-- Useful matrix maths functions
 
 e2function vector2 diagonal(matrix2 rv1)
 	return { rv1[1], rv1[4] }
@@ -393,7 +393,7 @@ registerType("matrix", "m", { 0, 0, 0,
 )
 
 /******************************************************************************/
-// Common functions - matrix solvers
+-- Common functions - matrix solvers
 
 /*
 -- Useful functions - may be used in the future? These have been written explicitly in the relevant commands for now.
@@ -482,7 +482,7 @@ registerOperator("ass", "m", "m", function(self, args)
 end)
 
 /******************************************************************************/
-// Comparison
+-- Comparison
 
 e2function number operator_is(matrix rv1)
 	if rv1[1] > delta || -rv1[1] > delta ||
@@ -524,7 +524,7 @@ e2function number operator!=(matrix rv1, matrix rv2)
 end
 
 /******************************************************************************/
-// Basic operations
+-- Basic operations
 
 registerOperator("dlt", "m", "m", function(self, args)
 	local op1, scope = args[2], args[3]
@@ -616,7 +616,7 @@ e2function matrix operator^(matrix rv1, rv2)
 end
 
 /******************************************************************************/
-// Row/column/element manipulation
+-- Row/column/element manipulation
 
 e2function vector matrix:row(rv2)
 	local k
@@ -822,7 +822,7 @@ e2function matrix matrix:setDiagonal(rv2, rv3, rv4)
 end
 
 /******************************************************************************/
-// Useful matrix maths functions
+-- Useful matrix maths functions
 
 e2function vector diagonal(matrix rv1)
 	return { rv1[1], rv1[5], rv1[9] }
@@ -849,7 +849,7 @@ e2function matrix adj(matrix rv1)
 end
 
 /******************************************************************************/
-// Extra functions
+-- Extra functions
 
 e2function matrix matrix(entity rv1)
 	if(!IsValid(rv1)) then
@@ -879,7 +879,7 @@ e2function vector matrix:z()
 	return { this[3], this[6], this[9] }
 end
 
-// Returns a 3x3 reference frame matrix as described by the angle <ang>. Multiplying by this matrix will be the same as rotating by the given angle.
+-- Returns a 3x3 reference frame matrix as described by the angle <ang>. Multiplying by this matrix will be the same as rotating by the given angle.
 e2function matrix matrix(angle ang)
 	ang = Angle(ang[1], ang[2], ang[3])
 	local x = ang:Forward()
@@ -892,7 +892,7 @@ e2function matrix matrix(angle ang)
 	}
 end
 
-// Converts a rotation matrix to angle form (assumes matrix is orthogonal)
+-- Converts a rotation matrix to angle form (assumes matrix is orthogonal)
 local rad2deg = 180 / math.pi
 
 e2function angle matrix:toAngle()
@@ -902,7 +902,7 @@ e2function angle matrix:toAngle()
 	return { pitch, yaw, roll }
 end
 
-// Create a rotation matrix in the format (v,n) where v is the axis direction vector and n is degrees (right-handed rotation)
+-- Create a rotation matrix in the format (v,n) where v is the axis direction vector and n is degrees (right-handed rotation)
 e2function matrix mRotation(vector rv1, rv2)
 
 	local vec
@@ -1026,7 +1026,7 @@ registerOperator("ass", "xm4", "xm4", function(self, args)
 end)
 
 /******************************************************************************/
-// Comparison
+-- Comparison
 
 e2function number operator_is(matrix4 rv1)
 	if rv1[1] > delta || -rv1[1] > delta ||
@@ -1089,7 +1089,7 @@ e2function number operator!=(matrix4 rv1, matrix4 rv2)
 end
 
 /******************************************************************************/
-// Basic operations
+-- Basic operations
 
 registerOperator("dlt", "xm4", "xm4", function(self, args)
 	local op1, scope = args[2], args[3]
@@ -1172,7 +1172,7 @@ end
 
 e2function matrix4 operator^(matrix4 lhs, rhs)
 
-	//if rhs == -1 then return ( inverse4(lhs) )
+	--if rhs == -1 then return ( inverse4(lhs) )
 
 	if rhs == 0 then 	return { 1, 0, 0, 0,
 								 0, 1, 0, 0,
@@ -1209,7 +1209,7 @@ e2function matrix4 operator^(matrix4 lhs, rhs)
 end
 
 /******************************************************************************/
-// Row/column/element manipulation
+-- Row/column/element manipulation
 
 e2function vector4 matrix4:row(rv2)
 	local k
@@ -1459,7 +1459,7 @@ e2function matrix4 matrix4:setDiagonal(rv2, rv3, rv4, rv5)
 end
 
 /******************************************************************************/
-// Useful matrix maths functions
+-- Useful matrix maths functions
 
 e2function vector4 diagonal(matrix4 rv1)
 	return { rv1[1], rv1[6], rv1[11], rv1[16] }
@@ -1476,7 +1476,7 @@ e2function matrix4 transpose(matrix4 rv1)
 			 rv1[4], rv1[8], rv1[12], rv1[16] }
 end
 
-// find the inverse for a standard affine transformation matix
+-- find the inverse for a standard affine transformation matix
 e2function matrix4 inverseA(matrix4 rv1)
 	local t1 = rv1[1] * rv1[4] + rv1[5] * rv1[8] + rv1[9] * rv1[12]
 	local t2 = rv1[2] * rv1[4] + rv1[6] * rv1[8] + rv1[10] * rv1[12]
@@ -1488,7 +1488,7 @@ e2function matrix4 inverseA(matrix4 rv1)
 end
 
 /******************************************************************************/
-// Extra functions
+-- Extra functions
 
 e2function matrix4 matrix4(entity rv1)
 	if(!IsValid(rv1)) then

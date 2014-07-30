@@ -1,6 +1,6 @@
-//First there was phenes
-//Then there was High6
-//Then Black Phoenix came and rewrote everything, what a bastard
+--First there was phenes
+--Then there was High6
+--Then Black Phoenix came and rewrote everything, what a bastard
 
 local Radio_Entities = {}
 
@@ -13,7 +13,7 @@ function Radio_Unregister(ent)
 		if (v == ent) then
 			table.remove(Radio_Entities, k)
 		elseif (IsEntity(v.Entity)) then
-			//Zero out all channels that this radio used
+			--Zero out all channels that this radio used
 			for i=0,31 do
 				if (v.RecievedData[i].Owner == ent) then
 					v.RecievedData[i].Owner = nil
@@ -85,24 +85,24 @@ function Radio_RecieveData(ent)
 end
 
 function Radio_ChangeChannel(ent)
-	//Request all other radios send data to this radio
+	--Request all other radios send data to this radio
 	Radio_RecieveData(ent)
 
 	for k,v in ipairs(Radio_Entities) do
 		if (not IsEntity(v.Entity)) then //Invalid radio
 			Radio_Unregister(v)
 		elseif (ent:EntIndex() != v.Entity:EntIndex()) then //Not sender
-			//1. Kill all transmissions for this radio
-			//for i=0,31 do
-			//	if (v.RecievedData[i].Owner == ent) then
-			//		v.RecievedData[i].Owner = nil
-			//		v.RecievedData[i].Data = 0
-			//		v:NotifyDataRecieved(i)
-			//	end
-			//end
+			--1. Kill all transmissions for this radio
+			--for i=0,31 do
+			--	if (v.RecievedData[i].Owner == ent) then
+			--		v.RecievedData[i].Owner = nil
+			--		v.RecievedData[i].Data = 0
+			--		v:NotifyDataRecieved(i)
+			--	end
+			--end
 			Radio_RecieveData(v)
 
-			//2. Retransmit under new channel
+			--2. Retransmit under new channel
 			if ((ent.Secure) && (v.Secure)) then
 				if ((ent:GetPlayer():SteamID() == v:GetPlayer():SteamID()) && (ent.Channel == v.Channel)) then
 					for i=0,31 do
@@ -138,5 +138,5 @@ function Radio_GetTwoWayID()
 end
 
 -- phenex: End radio mod.
-//Modified by High6 (To support 4 values)
-//Rebuilt by high6 to allow defined amount of values/secure lines
+--Modified by High6 (To support 4 values)
+--Rebuilt by high6 to allow defined amount of values/secure lines

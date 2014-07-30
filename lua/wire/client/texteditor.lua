@@ -745,7 +745,7 @@ function EDITOR:SetArea(selection, text, isundo, isredo, before, after)
 	local buffer = self:GetArea(selection)
 
 	if start[1] != stop[1] or start[2] != stop[2] then
-		// clear selection
+		-- clear selection
 		self.Rows[start[1]] = string_sub(self.Rows[start[1]], 1, start[2] - 1) .. string_sub(self.Rows[stop[1]], stop[2])
 		self.PaintRows[start[1]] = false
 
@@ -755,7 +755,7 @@ function EDITOR:SetArea(selection, text, isundo, isredo, before, after)
 			self.PaintRows = {} // TODO: fix for cache errors
 		end
 
-		// add empty row at end of file (TODO!)
+		-- add empty row at end of file (TODO!)
 		if self.Rows[#self.Rows] != "" then
 			self.Rows[#self.Rows + 1] = ""
 			self.PaintRows[#self.Rows + 1] = false
@@ -782,7 +782,7 @@ function EDITOR:SetArea(selection, text, isundo, isredo, before, after)
 		end
 	end
 
-	// insert text
+	-- insert text
 	local rows = string_Explode("\n", text)
 
 	local remainder = string_sub(self.Rows[start[1]], start[2])
@@ -800,7 +800,7 @@ function EDITOR:SetArea(selection, text, isundo, isredo, before, after)
 	self.Rows[stop[1]] = self.Rows[stop[1]] .. remainder
 	self.PaintRows[stop[1]] = false
 
-	// add empty row at end of file (TODO!)
+	-- add empty row at end of file (TODO!)
 	if self.Rows[#self.Rows] != "" then
 		self.Rows[#self.Rows + 1] = ""
 		self.PaintRows[#self.Rows + 1] = false
@@ -3100,7 +3100,7 @@ do -- E2 Syntax highlighting
 		["else"]     = { [true] = true },
 		["break"]    = { [true] = true },
 		["continue"] = { [true] = true },
-		//["function"] = { [true] = true },
+		--["function"] = { [true] = true },
 		["return"] = { [true] = true },
 		["local"]  = { [true] = true },
 	}

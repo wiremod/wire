@@ -52,7 +52,7 @@ function TOOL:GetModel()
 	return model, SocketModels[ model ]
 end
 
-// Create socket
+-- Create socket
 function TOOL:LeftClick( trace )
 	if (!trace.HitPos) then return false end
 	if (trace.Entity:IsPlayer()) then return false end
@@ -90,7 +90,7 @@ function TOOL:LeftClick( trace )
 	return true
 end
 
-// Create plug
+-- Create plug
 function TOOL:RightClick( trace )
 	if (!trace.HitPos) then return false end
 	if (trace.Entity:IsPlayer()) then return false end

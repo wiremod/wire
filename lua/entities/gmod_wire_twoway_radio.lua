@@ -144,7 +144,7 @@ function ENT:OnRestore()
 	Wire_AdjustOutputs(self, { "A", "B", "C", "D" })
 end
 
-// Dupe info functions added by TheApathetic
+-- Dupe info functions added by TheApathetic
 function ENT:BuildDupeInfo()
 	local info = self.BaseClass.BuildDupeInfo(self) or {}
 

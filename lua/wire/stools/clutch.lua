@@ -27,7 +27,7 @@ cleanup.Register( "wire_clutch" )
 local Send_Links
 
 if SERVER then
-	// Send info: constraints associated with the selected clutch controller
+	-- Send info: constraints associated with the selected clutch controller
 	Send_Links = function( ply, constrained_pairs )
 		umsg.Start( "wire_clutch_links", ply )
 			local num_constraints = #constrained_pairs
@@ -50,7 +50,7 @@ if CLIENT then
 	local Linked_Ents = {}		-- Table of constrained ents, with Ent1 as k and Ent2 as v
 	local Unique_Ents = {}		-- Table of entities as keys
 	
-	// Receive stage 0 info
+	-- Receive stage 0 info
 	local function Receive_links( um )
 		table.Empty( Linked_Ents )
 		local num_constraints = um:ReadShort() or 0
@@ -81,7 +81,7 @@ if CLIENT then
 	end
 
 
-	// Client function for drawing a line to represent constraint to world
+	-- Client function for drawing a line to represent constraint to world
 	local function DrawBaseLine( pos, viewpos )
 		local dist = math.Clamp( viewpos:Distance( pos ), 50, 5000 )
 		local linelength = 3000 / dist
@@ -94,7 +94,7 @@ if CLIENT then
 	end
 
 
-	// Client function for drawing a circle around the currently selected controller
+	-- Client function for drawing a circle around the currently selected controller
 	local function DrawSelectCircle( pos, viewpos )
 		local pos2D = pos:ToScreen()
 
@@ -109,18 +109,18 @@ if CLIENT then
 		local controller = self:GetWeapon():GetNetworkedEntity( "WireClutchController" )
 		if !IsValid( controller ) then return end
 
-		// Draw circle around the controller
+		-- Draw circle around the controller
 		local viewpos = LocalPlayer():GetViewModel():GetPos()
 		local controllerpos = controller:LocalToWorld( controller:OBBCenter() )
 		DrawSelectCircle( controllerpos, viewpos )
 
 		local numconstraints_0 = #Linked_Ents
 		if numconstraints_0 ~= 0 then
-			// Draw lines between each pair of constrained ents
+			-- Draw lines between each pair of constrained ents
 			surface.SetDrawColor( 100, 255, 100, 255 )
 
 
-			// Check whether each entity/position can be drawn
+			-- Check whether each entity/position can be drawn
 			for k, v in pairs( Linked_Ents ) do
 				local basepos
 				local pos1, pos2
@@ -171,7 +171,7 @@ if SERVER then
 		self.controller = controller
 		self:GetWeapon():SetNetworkedEntity( "WireClutchController", controller or Entity(0) ) -- Must use null entity since nil won't send
 
-		// Send constraint from the controller to the client
+		-- Send constraint from the controller to the client
 		local constrained_pairs = {}
 		if IsValid( controller ) then
 			constrained_pairs = controller:GetConstrainedPairs()
@@ -206,27 +206,27 @@ function TOOL:RightClick( trace )
 
 	if ( !IsValid( trace.Entity ) and !trace.Entity:IsWorld() ) or trace.Entity:IsPlayer() then return end
 
-	// First click: select the first entity
+	-- First click: select the first entity
 	if stage == 0 then
 		if trace.Entity:IsWorld() then
 			ply:PrintMessage( HUD_PRINTTALK, "Select a valid entity" )
 			return
 		end
 
-		// Check that we won't be going over the max number of links allowed
+		-- Check that we won't be going over the max number of links allowed
 		local maxlinks = GetConVarNumber( "wire_clutch_maxlinks", 10 )
 		if table.Count( self.controller.clutch_ballsockets ) >= maxlinks then
 			ply:PrintMessage( HUD_PRINTTALK, "A maximum of " .. tostring( maxlinks ) .. " links are allowed per clutch controller" )
 			return
 		end
 
-		// Store this entity for use later
+		-- Store this entity for use later
 		local Phys = trace.Entity:GetPhysicsObjectNum( trace.PhysicsBone )
 		self:SetObject( 1, trace.Entity, trace.HitPos, Phys, trace.PhysicsBone, trace.HitNormal )
 
 		self:SetStage(1)
 
-	// Second click: select the second entity, and update the controller
+	-- Second click: select the second entity, and update the controller
 	else
 		local Ent1, Ent2 = self:GetEnt(1), trace.Entity
 
@@ -235,17 +235,17 @@ function TOOL:RightClick( trace )
 			return false
 		end
 
-		// Check that these ents aren't already registered on this controller
+		-- Check that these ents aren't already registered on this controller
 		if self.controller:ClutchExists( Ent1, Ent2 ) then
 			ply:PrintMessage( HUD_PRINTTALK, "Entities have already been registered to this controller!" )
 			return true
 		end
 
-		// Add this constraint to the clutch controller
+		-- Add this constraint to the clutch controller
 		self.controller:AddClutch( Ent1, Ent2 )
 		WireLib.AddNotify( ply, "Entities registered with clutch controller", NOTIFY_GENERIC, 7 )
 
-		// Update client
+		-- Update client
 		Send_Links( ply, self.controller:GetConstrainedPairs() )
 
 		self:ClearObjects()
@@ -271,7 +271,7 @@ function TOOL:Reload( trace )
 		self:SetStage(0)
 		return
 
-	// Remove clutch associations with this entity
+	-- Remove clutch associations with this entity
 	elseif IsValid( self.controller ) then
 		if trace.Entity:IsWorld() then
 			self:ClearObjects()
@@ -287,7 +287,7 @@ function TOOL:Reload( trace )
 
 		end
 
-		// Update client with new constraint info
+		-- Update client with new constraint info
 		self:SelectController( self.controller )
 	end
 
@@ -310,7 +310,7 @@ if CLIENT then return end
 /*---------------------------------------------------------
    -- Clutch controller server functions --
 ---------------------------------------------------------*/
-// When a ball socket is removed, clear the entry for each clutch controller
+-- When a ball socket is removed, clear the entry for each clutch controller
 local function OnBallSocketRemoved( const )
 	if const.Type and const.Type == "" and const:GetClass() == "phys_ragdollconstraint" then
 		for k, v in pairs( ents.FindByClass("gmod_wire_clutch") ) do

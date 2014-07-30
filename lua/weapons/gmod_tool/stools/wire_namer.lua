@@ -28,9 +28,9 @@ function TOOL:LeftClick(trace)
 
 	local name = self:GetClientInfo("name")
 
-	//trace.Entity:SetNetworkedString("WireName", name)
+	--trace.Entity:SetNetworkedString("WireName", name)
 
-	//made the WireName duplicatable entmod (TAD2020)
+	--made the WireName duplicatable entmod (TAD2020)
 	SetName( Player, trace.Entity, {name = name} )
 
 	return true

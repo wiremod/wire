@@ -1,5 +1,5 @@
-// Created by TheApathetic, so you know who to
-// blame if something goes wrong (someone else :P)
+-- Created by TheApathetic, so you know who to
+-- blame if something goes wrong (someone else :P)
 WireToolSetup.setCategory( "Visuals/Indicators" )
 WireToolSetup.open( "hudindicator", "Hud Indicator", "gmod_wire_hudindicator", nil, "Hud Indicators" )
 
@@ -9,7 +9,7 @@ if ( CLIENT ) then
     language.Add( "Tool.wire_hudindicator.0", "Primary: Create/Update Hud Indicator Secondary: Hook/Unhook someone else's Hud Indicator Reload: Link Hud Indicator to vehicle" )
 	language.Add( "Tool.wire_hudindicator.1", "Now use Reload on a vehicle to link this Hud Indicator to it, or on the same Hud Indicator to unlink it" )
 
-	// HUD Indicator stuff
+	-- HUD Indicator stuff
 	language.Add( "ToolWireHudIndicator_showinhud", "Show in my HUD")
 	language.Add( "ToolWireHudIndicator_hudheaderdesc", "HUD Indicator Settings:")
 	language.Add( "ToolWireHudIndicator_huddesc", "Description:")
@@ -46,7 +46,7 @@ TOOL.ClientConVar[ "bb" ] = "0"
 TOOL.ClientConVar[ "ba" ] = "255"
 TOOL.ClientConVar[ "rotate90" ] = "0"
 TOOL.ClientConVar[ "material" ] = "models/debug/debugwhite"
-// HUD Indicator stuff
+-- HUD Indicator stuff
 TOOL.ClientConVar[ "showinhud" ] = "0"
 TOOL.ClientConVar[ "huddesc" ] = ""
 TOOL.ClientConVar[ "hudaddname" ] = "0"
@@ -69,7 +69,7 @@ if SERVER then
 end
 
 function TOOL:RightClick( trace )
-	// Can only right-click on HUD Indicators
+	-- Can only right-click on HUD Indicators
 	if (!trace.Entity || !trace.Entity:IsValid() || trace.Entity:GetClass() != "gmod_wire_hudindicator") then return false end
 
 	if (CLIENT) then return true end
@@ -77,14 +77,14 @@ function TOOL:RightClick( trace )
 	local ply = self:GetOwner()
 	local hookhidehud = (self:GetClientNumber( "hookhidehud" ) > 0)
 
-	// Can't hook your own HUD Indicators
+	-- Can't hook your own HUD Indicators
 	if (ply == trace.Entity:GetPlayer()) then
 		WireLib.AddNotify(self:GetOwner(), "You cannot hook your own HUD Indicators!", NOTIFY_GENERIC, 7)
 		return false
 	end
 
 	if (!trace.Entity:CheckRegister(ply)) then
-		// Has the creator allowed this HUD Indicator to be hooked?
+		-- Has the creator allowed this HUD Indicator to be hooked?
 		if (!trace.Entity.AllowHook) then
 			WireLib.AddNotify(self:GetOwner(), "You are not allowed to hook this HUD Indicator.", NOTIFY_GENERIC, 7)
 			return false
@@ -98,10 +98,10 @@ function TOOL:RightClick( trace )
 	return true
 end
 
-// Hook HUD Indicator to vehicle
+-- Hook HUD Indicator to vehicle
 function TOOL:Reload( trace )
-	// Can only use this on HUD Indicators and vehicles
-	// The class checks are done later on, no need to do it twice
+	-- Can only use this on HUD Indicators and vehicles
+	-- The class checks are done later on, no need to do it twice
 	if (!trace.Entity || !trace.Entity:IsValid()) then return false end
 
 	if (CLIENT) then return true end
@@ -134,7 +134,7 @@ function TOOL:Reload( trace )
 				return false
 			end
 		else
-			// Unlink HUD Indicator from this vehicle
+			-- Unlink HUD Indicator from this vehicle
 			trace.Entity:UnLinkVehicle()
 		end
 
@@ -148,7 +148,7 @@ end
 function TOOL:GetAngle( trace )
 	local Ang = trace.HitNormal:Angle()
 	local Model = self:GetModel()
-	//these models get mounted differently
+	--these models get mounted differently
 	if (Model == "models/props_borealis/bluebarrel001.mdl" || Model == "models/props_junk/PopCan01a.mdl") then
 		return Ang + Angle(270, 0, 0)
 	elseif (Model == "models/props_trainstation/trainstation_clock001.mdl" || Model == "models/segment.mdl" || Model == "models/segment2.mdl") then
@@ -160,7 +160,7 @@ end
 
 function TOOL:GetSelectedMin( min )
 	local Model = self:GetModel()
-	//these models are different
+	--these models are different
 	if (Model == "models/props_trainstation/trainstation_clock001.mdl" || Model == "models/segment.mdl" || Model == "models/segment2.mdl") then
 		return min.x
 	else
@@ -177,8 +177,8 @@ function TOOL:Think()
 	self:UpdateGhost( self.GhostEntity )
 
 	if (SERVER) then
-		// Add check to see if player is registered with
-		// the HUD Indicator at which he is pointing
+		-- Add check to see if player is registered with
+		-- the HUD Indicator at which he is pointing
 		if ((self.NextCheckTime or 0) < CurTime()) then
 			local ply = self:GetOwner()
 			local trace = ply:GetEyeTrace()
@@ -191,7 +191,7 @@ function TOOL:Think()
 				end
 			else
 				if (self.LastRegisterCheck == true) then
-					// Don't need to set this every 1/10 of a second
+					-- Don't need to set this every 1/10 of a second
 					self.LastRegisterCheck = false
 					self:GetWeapon():SetNetworkedBool("HUDIndicatorCheckRegister", false)
 				end
@@ -340,7 +340,7 @@ function TOOL.BuildCPanel(panel)
 		Command = "wire_hudindicator_fullcircleangle"
 	})
 
-	// Get the currently registered HUD Indicators for this player that can be unregistered
+	-- Get the currently registered HUD Indicators for this player that can be unregistered
 	local registered = HUDIndicator_GetCurrentRegistered()
 	if (#registered > 0) then
 		local options = {}
@@ -375,7 +375,7 @@ function TOOL.BuildCPanel(panel)
 	})
 end
 
-// Concommand to unregister HUD Indicator through control panel
+-- Concommand to unregister HUD Indicator through control panel
 local function HUDIndicator_RemoteUnRegister(ply, cmd, arg)
 	local eindex = ply:GetInfoNum("wire_hudindicator_registerdelete", 0)
 	if (eindex == 0) then return end
