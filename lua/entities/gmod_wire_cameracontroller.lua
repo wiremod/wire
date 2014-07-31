@@ -13,6 +13,8 @@ if CLIENT then
 	local enabled = false
 	local self
 	
+	local clientprop
+	
 	-- Position
 	local pos = Vector(0,0,0)
 	local smoothpos = Vector(0,0,0)
@@ -45,6 +47,22 @@ if CLIENT then
 	local abs = math.abs
 	
 	local pos_speed_convar = GetConVar( "wire_cam_smooth_amount" )
+	
+	local function GetParent()
+		local parent
+		
+		local HasParent = self:GetNWBool( "HasParent", false )
+		if HasParent then
+			local p = self:GetNWEntity( "Parent" )
+			if IsValid( p ) then
+				parent = p
+			end
+		end
+		
+		local ValidParent = IsValid( parent )
+		
+		return parent, HasParent, ValidParent
+	end
 	
 	local function DoAutoMove( curpos, curang, curdistance, parent, HasParent, ValidParent )
 		local pos_speed = pos_speed_convar:GetFloat()
@@ -126,17 +144,7 @@ if CLIENT then
 		local curang = ang
 		local curdistance = distance
 		
-		local parent
-		
-		local HasParent = self:GetNWBool( "HasParent", false )
-		if HasParent then
-			local p = self:GetNWEntity( "Parent" )
-			if IsValid( p ) then
-				parent = p
-			end
-		end
-		
-		local ValidParent = IsValid( parent )
+		local parent, HasParent, ValidParent = GetParent()
 		
 		local newview = {}
 		
@@ -249,12 +257,49 @@ if CLIENT then
 				curdistance = distance
 				smoothdistance = distance
 				zoomdistance = 0
+				
+				--[[ ******************
+					This is a hack to solve the issue of the parent entity being invisible, due to 
+					the fact that ply:SetViewEntity( parent ) must be used serverside
+					in order to be able to move through visleafs
+					
+					SetViewEntity makes the entity invisible for some reason, so this renders it again
+					using a client side model.
+				]]
+				
+				local parent, HasParent, ValidParent = GetParent()
+				if HasParent and ValidParent then
+					clientprop = ClientsideModel( parent:GetModel(), parent:GetRenderGroup() )
+					clientprop:SetPos( parent:GetPos() )
+					clientprop:SetAngles( parent:GetAngles() )
+					clientprop:SetParent( parent )
+					clientprop:DrawShadow( false ) -- shadow is already drawn by parent
+					parent:CallOnRemove( "CamController.RemoveClientProp", function()
+						if IsValid( clientprop ) then
+							clientprop:Remove()
+						end
+					end )
+				end
+			end
+		elseif enabled then
+			if IsValid( clientprop ) then
+				clientprop:Remove()
 			end
 		end
-			
+		--[[ ****************** ]]
 		
 		enabled = enable
 	end)
+	
+	function ENT:Draw()
+		self.BaseClass.Draw( self )
+		
+		if enabled then
+			local parent, HasParent, ValidParent = GetParent()
+			if parent.Draw then parent:Draw()
+			elseif parent.DrawModel then parent:DrawModel() end
+		end		
+	end
 	
 	net.Receive( "wire_camera_controller_sync", function( len )
 		if not enabled or not IsValid( self ) then return end
@@ -588,7 +633,7 @@ function ENT:EnableCam( ply )
 		
 		-- SetViewEntity fixes the problem where the camera would get stuck if you fly through a PVS edge
 		-- this is a hack since isn't actually used, because we're overriding it with CalcView
-		if IsValid( self.Parent ) then ply:SetViewEntity( self.Parent ) end
+		if IsValid( self.Parent ) then ply:SetViewEntity( self.Parent )	end
 		
 		self:SyncSettings( ply )
 	else -- No player specified, activate cam for everyone not already active
