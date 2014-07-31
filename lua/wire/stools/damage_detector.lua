@@ -23,76 +23,8 @@ if SERVER then
 
 	-- Uses default WireToolObj:MakeEnt's WireLib.MakeWireEnt function
 end
-	
-function TOOL:LeftClick(trace)
-	if not trace.HitPos or trace.Entity:IsPlayer() then return false end
-	if ( CLIENT ) then return true end
-	if not util.IsValidPhysicsObject( trace.Entity, trace.PhysicsBone ) then return false end
 
-	self:SetStage(0)
-	local ply = self:GetOwner()
-
-	if ( trace.Entity:GetClass() == "gmod_wire_damage_detector" ) then
-		trace.Entity:Setup( self:GetConVars() )
-		self:GetWeapon():SetNetworkedEntity( "WireDamageDetectorLink", Entity(trace.Entity.linked_entities[0]) )
-		self:GetWeapon():SetNetworkedEntity( "WireDamageDetectorEnt", trace.Entity )
-	else
-		local ent = self:LeftClick_Make( trace, ply )
-		return self:LeftClick_PostMake( ent, ply, trace )
-	end
-	return true
-end
-
-function TOOL:RightClick(trace)
-	if not trace.HitPos or not IsValid(trace.Entity) or trace.Entity:IsPlayer() then return false end
-	if ( CLIENT ) then return true end
-
-	if self:GetStage() == 0 and trace.Entity:GetClass() == "gmod_wire_damage_detector" then
-		self.detector = trace.Entity
-		self:SetStage(1)
-		return true
-	elseif self:GetStage() == 1 then
-		self.detector:LinkEntity( trace.Entity )
-		self:SetStage(0)
-		self:GetOwner():PrintMessage( HUD_PRINTTALK,"Damage Detector linked" )
-		self:GetWeapon():SetNetworkedEntity( "WireDamageDetectorLink", trace.Entity )
-		self:GetWeapon():SetNetworkedEntity( "WireDamageDetectorEnt", self.detector )
-		return true
-	else
-		self:SetStage(0)
-		self:GetOwner():PrintMessage( HUD_PRINTTALK,"Invalid Target" )
-		return false
-	end
-end
-
-function TOOL:Reload(trace)
-	if not trace.HitPos or trace.Entity:IsPlayer() then return false end
-	if ( CLIENT ) then return true end
-
-	self:SetStage(0)
-	local detector = trace.Entity
-	if !IsValid(detector) then return false end
-	if detector:GetClass() == "gmod_wire_damage_detector" then
-		detector:Unlink()
-		self:GetOwner():PrintMessage( HUD_PRINTTALK,"Damage Detector unlinked" )
-		self:GetWeapon():SetNetworkedEntity( "WireDamageDetectorLink", detector )
-		self:GetWeapon():SetNetworkedEntity( "WireDamageDetectorEnt", detector ) // Set same point so line won't draw
-		return true
-	end
-end
-
-function TOOL:DrawHUD()
-	local link = self:GetWeapon():GetNetworkedEntity( "WireDamageDetectorLink" )
-	local ent = self:GetWeapon():GetNetworkedEntity( "WireDamageDetectorEnt" )
-	if !IsValid(link) or !IsValid(ent) then return end
-
-	local linkpos = link:GetPos():ToScreen()
-	local entpos = ent:GetPos():ToScreen()
-	if linkpos.x > 0 and linkpos.y > 0 and linkpos.x < ScrW() and linkpos.y < ScrH( ) then
-		surface.SetDrawColor( 255, 255, 100, 255 )
-		surface.DrawLine(entpos.x, entpos.y, linkpos.x, linkpos.y)
-	end
-end
+WireToolSetup.SetupLinking()
 
 function TOOL.BuildCPanel(panel)
 	ModelPlug_AddToCPanel(panel, "Misc_Tools", "wire_damage_detector")
