@@ -12,6 +12,8 @@ function ENT:Initialize()
 	self:SetUseType( SIMPLE_USE )
 	self.Outputs = WireLib.CreateSpecialOutputs(self, {"X", "Y", "Z", "Active", "Pos", "RangerData"}, {"NORMAL", "NORMAL", "NORMAL", "NORMAL", "VECTOR", "RANGER"})
 	self.VPos = Vector(0,0,0)
+	
+	self:SetOverlayText( "Laser Pointer Receiver" )
 end
 
 function ENT:GetBeaconPos(sensor)
