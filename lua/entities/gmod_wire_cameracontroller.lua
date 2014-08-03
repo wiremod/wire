@@ -343,6 +343,24 @@ function ENT:Initialize()
 end
 
 --------------------------------------------------
+-- UpdateOverlay
+--------------------------------------------------
+
+function ENT:UpdateOverlay()
+	self:SetOverlayText(
+		string.format( "Local Coordinates: %s\nClient side movement: %s\nCL movement local to parent: %s\nClient side zooming: %s\nAuto unclip: %s\nDraw player: %s\n\nActivated: %s",
+			self.ParentLocal and "Yes" or "No",
+			self.AutoMove and "Yes" or "No",
+			self.LocalMove and "Yes" or "No",
+			self.AllowZoom and "Yes" or "No",
+			self.AutoUnclip and "Yes" or "No",
+			self.DrawPlayer and "Yes" or "No",
+			self.Activated and "Yes" or "No"
+		)
+	)
+end
+
+--------------------------------------------------
 -- Setup
 --------------------------------------------------
 
@@ -354,6 +372,8 @@ function ENT:Setup(ParentLocal,AutoMove,LocalMove,AllowZoom,AutoUnclip,DrawPlaye
 	self.AutoUnclip = tobool(AutoUnclip)
 	self.DrawPlayer = tobool(DrawPlayer)
 	self:SyncSettings()
+	
+	self:UpdateOverlay()
 end
 
 --------------------------------------------------
@@ -744,15 +764,13 @@ function ENT:TriggerInput( name, value )
 	if name == "Activated" then
 		self.Activated = value ~= 0
 		if value ~= 0 then self:EnableCam() else self:DisableCam() end
-		return
+		self:UpdateOverlay()
 	elseif name == "Zoom" or name == "FOV" then
 		self.FOV = math.Clamp( value, 1, 90 )
 		self:SetFOV()
-		return
 	elseif name == "FLIR" then
 		self.FLIR = value ~= 0
 		self:SetFLIR()
-		return
 	else
 		self:LocalizePositions(false)
 		

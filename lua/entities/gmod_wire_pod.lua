@@ -112,6 +112,8 @@ function ENT:Initialize()
 	self:SetActivated( false )
 
 	self:SetColor(Color(255,0,0,self:GetColor().a))
+	
+	self:SetOverlayText( "Pod Controller" )
 end
 
 -- Accessor funcs for certain functions

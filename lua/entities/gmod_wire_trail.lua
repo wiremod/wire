@@ -24,6 +24,7 @@ end
 
 function ENT:Setup(Trail)
 	self.Trail = table.Merge(self.Trail, Trail)
+	self:SetOverlayText( "Trail: " .. Trail.Material )
 end
 
 function ENT:TriggerInput(iname, value)
