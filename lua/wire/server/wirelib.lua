@@ -829,15 +829,8 @@ function WireLib.ApplyDupeInfo( ply, ent, info, GetEntByID )
 		for k,input in pairs(info.Wires) do
 			local ent2 = GetEntByID(input.Src)
 			
-			if input.SrcId == "link" or input.SrcId == "wirelink" then -- If the target entity has no wirelink output, create one (& more old dupe compatibility)
-				input.SrcId = "wirelink"
-				if not ent2.extended then
-					WireLib.CreateWirelinkOutput( ply, ent2, {true} )
-				end
-			end
-		
 			-- Input alias
-			if not ent.Inputs[k] then
+			if ent.Inputs and not ent.Inputs[k] then -- if the entity has any inputs and the input 'k' is not one of them...
 				if ent.InputAliases and ent.InputAliases[k] then
 					k = ent.InputAliases[k]
 				else
@@ -846,15 +839,32 @@ function WireLib.ApplyDupeInfo( ply, ent, info, GetEntByID )
 				end
 			end
 			
-			-- Output alias
-			if IsValid( ent2 ) and not ent2.Outputs[input.SrcId] then
-				if ent2.OutputAliases and ent2.OutputAliases[input.SrcId] then
-					input.SrcId = ent2.OutputAliases[input.SrcId]
-				else
-					Msg("ApplyDupeInfo: Error, Could not find output '" .. input.SrcId .. "' on entity type: '" .. ent2:GetClass() .. "'\n")
-					continue
+			if IsValid( ent2 ) then
+				-- Wirelink and entity outputs
+				
+				-- These are required if whichever duplicator you're using does not do entity modifiers before it runs PostEntityPaste
+				-- because if so, the wirelink and entity outputs may not have been created yet
+				
+				if input.SrcId == "link" or input.SrcId == "wirelink" then -- If the target entity has no wirelink output, create one (& more old dupe compatibility)
+					input.SrcId = "wirelink"
+					if not ent2.extended then
+						WireLib.CreateWirelinkOutput( ply, ent2, {true} )
+					end
+				elseif input.SrcId == "entity" and ((ent2.Outputs and not ent2.Outputs.entity) or not ent2.Outputs) then -- if the input name is 'entity', and the target entity doesn't have that output...
+					WireLib.CreateEntityOutput( ply, ent2, {true} )
+				end
+				
+				-- Output alias
+				if ent2.Outputs and not ent2.Outputs[input.SrcId] then -- if the target entity has any outputs and the output 'input.SrcId' is not one of them...
+					if ent2.OutputAliases and ent2.OutputAliases[input.SrcId] then
+						input.SrcId = ent2.OutputAliases[input.SrcId]
+					else
+						Msg("ApplyDupeInfo: Error, Could not find output '" .. input.SrcId .. "' on entity type: '" .. ent2:GetClass() .. "'\n")
+						continue
+					end
 				end
 			end
+			
 			Wire_Link_Start(idx, ent, input.StartPos, k, input.Material, input.Color, input.Width)
 
 			if input.Path then

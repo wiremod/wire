@@ -55,6 +55,7 @@ if SERVER then
 					x = x + 1
 					local num = v.Num
 					names[num] = v.Name
+					if v.Name == "wirelink" then return end -- we already have a wirelink output, abort
 					types[num] = v.Type
 					descs[num] = v.Desc
 				end
@@ -86,6 +87,7 @@ if SERVER then
 					x = x + 1
 					local num = v.Num
 					names[num] = v.Name
+					if v.Name == "entity" then return end -- we already have an entity output, abort
 					types[num] = v.Type
 					descs[num] = v.Desc
 				end
