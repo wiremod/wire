@@ -291,16 +291,6 @@ if CLIENT then
 		enabled = enable
 	end)
 	
-	function ENT:Draw()
-		self.BaseClass.Draw( self )
-		
-		if enabled then
-			local parent, HasParent, ValidParent = GetParent()
-			if parent.Draw then parent:Draw()
-			elseif parent.DrawModel then parent:DrawModel() end
-		end		
-	end
-	
 	net.Receive( "wire_camera_controller_sync", function( len )
 		if not enabled or not IsValid( self ) then return end
 		local cam = net.ReadEntity()
@@ -682,21 +672,22 @@ end
 
 function ENT:SetFOV( ply, b )
 	if b == nil then b = self.FOV ~= nil end
+	if self.FOV == 0 then b = false end
 	
 	if IsValid( ply ) then
 		if b then
-			if not ply.DefaultFOV then
-				ply.DefaultFOV = ply:GetFOV()
+			if not ply.Wire_Cam_DefaultFOV then
+				ply.Wire_Cam_DefaultFOV = ply:GetFOV()
 			end
 			
 			if ply:GetFOV() ~= self.FOV then
 				ply:SetFOV( self.FOV, 0.01 )
 			end
-		elseif ply.DefaultFOV then
-			if ply:GetFOV() ~= ply.DefaultFOV then
-				ply:SetFOV( ply.DefaultFOV, 0.01 )
+		elseif ply.Wire_Cam_DefaultFOV then
+			if ply:GetFOV() ~= ply.Wire_Cam_DefaultFOV then
+				ply:SetFOV( ply.Wire_Cam_DefaultFOV, 0.01 )
 			end
-			ply.DefaultFOV = nil
+			ply.Wire_Cam_DefaultFOV = nil
 		end
 	else
 		for i=#self.Players,1,-1 do
@@ -766,10 +757,12 @@ function ENT:TriggerInput( name, value )
 		if value ~= 0 then self:EnableCam() else self:DisableCam() end
 		self:UpdateOverlay()
 	elseif name == "Zoom" or name == "FOV" then
-		self.FOV = math.Clamp( value, 1, 90 )
+		self.FOV = math.Clamp( value, 0, 90 )
+		if not self.Activated then return end
 		self:SetFOV()
 	elseif name == "FLIR" then
 		self.FLIR = value ~= 0
+		if not self.Activated then return end
 		self:SetFLIR()
 	else
 		self:LocalizePositions(false)
