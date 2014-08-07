@@ -187,6 +187,8 @@ function ENT:Initialize( )
 	self.Data.LineBeam = false
 	self.Data.GroundBeam = false
 	self.Data.Size = 1
+	
+	self:SetOverlayText( "Holo Emitter" )
 end
 
 function ENT:AddPoint()

@@ -13,6 +13,8 @@ if CLIENT then
 	local enabled = false
 	local self
 	
+	local clientprop
+	
 	-- Position
 	local pos = Vector(0,0,0)
 	local smoothpos = Vector(0,0,0)
@@ -45,6 +47,22 @@ if CLIENT then
 	local abs = math.abs
 	
 	local pos_speed_convar = GetConVar( "wire_cam_smooth_amount" )
+	
+	local function GetParent()
+		local parent
+		
+		local HasParent = self:GetNWBool( "HasParent", false )
+		if HasParent then
+			local p = self:GetNWEntity( "Parent" )
+			if IsValid( p ) then
+				parent = p
+			end
+		end
+		
+		local ValidParent = IsValid( parent )
+		
+		return parent, HasParent, ValidParent
+	end
 	
 	local function DoAutoMove( curpos, curang, curdistance, parent, HasParent, ValidParent )
 		local pos_speed = pos_speed_convar:GetFloat()
@@ -116,78 +134,72 @@ if CLIENT then
 	
 	hook.Remove("CalcView","wire_camera_controller_calcview")
 	hook.Add( "CalcView", "wire_camera_controller_calcview", function()
-		if enabled then
-			if not IsValid( self ) then enabled = false return end
-				
-			local pos_speed = pos_speed_convar:GetFloat()
-			local ang_speed = pos_speed - 2
+		if not enabled then return end
+		if not IsValid( self ) then enabled = false return end
 			
-			local curpos = pos
-			local curang = ang
-			local curdistance = distance
+		local pos_speed = pos_speed_convar:GetFloat()
+		local ang_speed = pos_speed - 2
+		
+		local curpos = pos
+		local curang = ang
+		local curdistance = distance
+		
+		local parent, HasParent, ValidParent = GetParent()
+		
+		local newview = {}
+		
+		-- AutoMove
+		if AutoMove then
+			-- only smooth the position, and do it before the automove
+			smoothpos = LerpVector( FrameTime() * pos_speed, smoothpos, curpos )
+		
+			curpos, curang = DoAutoMove( smoothpos, curang, curdistance, parent, HasParent, ValidParent )
 			
-			local parent
-			
-			local HasParent = self:GetNWBool( "HasParent", false )
-			if HasParent then
-				local p = self:GetNWEntity( "Parent" )
-				if IsValid( p ) then
-					parent = p
-				end
+			if AutoUnclip then
+				curpos = DoAutoUnclip( curpos, parent, HasParent, ValidParent )
 			end
 			
-			local ValidParent = IsValid( parent )
+			-- apply view
+			newview.origin = curpos
+			newview.angles = curang
+		elseif HasParent and ValidParent then			
+			-- smooth BEFORE using toWorld
+			smoothpos = LerpVector( FrameTime() * pos_speed, smoothpos, curpos )
+			smoothang = LerpAngle( FrameTime() * ang_speed, smoothang, curang )
 			
-			local newview = {}
+			-- now toworld it
+			curpos = parent:LocalToWorld( smoothpos )
+			curang = parent:LocalToWorldAngles( smoothang )
 			
-			-- AutoMove
-			if AutoMove then
-				-- only smooth the position, and do it before the automove
-				smoothpos = LerpVector( FrameTime() * pos_speed, smoothpos, curpos )
-			
-				curpos, curang = DoAutoMove( smoothpos, curang, curdistance, parent, HasParent, ValidParent )
-				
-				if AutoUnclip then
-					curpos = DoAutoUnclip( curpos, parent, HasParent, ValidParent )
-				end
-				
-				-- apply view
-				newview.origin = curpos
-				newview.angles = curang
-			elseif HasParent and ValidParent then			
-				-- smooth BEFORE using toWorld
-				smoothpos = LerpVector( FrameTime() * pos_speed, smoothpos, curpos )
-				smoothang = LerpAngle( FrameTime() * ang_speed, smoothang, curang )
-				
-				-- now toworld it
-				curpos = parent:LocalToWorld( smoothpos )
-				curang = parent:LocalToWorldAngles( smoothang )
-				
-				-- now check for auto unclip
-				if AutoUnclip then
-					curpos = DoAutoUnclip( curpos, parent, HasParent, ValidParent )
-				end
-				
-				-- apply view
-				newview.origin = curpos
-				newview.angles = curang
-			else
-				-- check auto unclip first
-				if AutoUnclip then
-					curpos = DoAutoUnclip( curpos, parent, HasParent, ValidParent )
-				end
-			
-				-- there's no parent, just smooth it
-				smoothpos = LerpVector( FrameTime() * pos_speed, smoothpos, curpos )
-				smoothang = LerpAngle( FrameTime() * ang_speed, smoothang, curang )
-				newview.origin = smoothpos
-				newview.angles = smoothang
+			-- now check for auto unclip
+			if AutoUnclip then
+				curpos = DoAutoUnclip( curpos, parent, HasParent, ValidParent )
 			end
 			
-			newview.drawviewer = DrawPlayer
-			return newview
+			-- apply view
+			newview.origin = curpos
+			newview.angles = curang
+		else
+			-- check auto unclip first
+			if AutoUnclip then
+				curpos = DoAutoUnclip( curpos, parent, HasParent, ValidParent )
+			end
+		
+			-- there's no parent, just smooth it
+			smoothpos = LerpVector( FrameTime() * pos_speed, smoothpos, curpos )
+			smoothang = LerpAngle( FrameTime() * ang_speed, smoothang, curang )
+			newview.origin = smoothpos
+			newview.angles = smoothang
 		end
+		
+		newview.drawviewer = DrawPlayer -- this doesn't work (probably because I use SetViewEntity serverside)
+		return newview
 	end)
+	
+	-- calcview.drawviewer doesn't work, probably because I use SetViewEntity serverside, so I do this to fix that
+	hook.Add( "PrePlayerDraw", "wire_camera_controller_preplayerdraw", function( ply )
+		if enabled and not DrawPlayer and ply == LocalPlayer() then return true end
+	end )
 	
 	hook.Add("PlayerBindPress", "wire_camera_controller_zoom", function(ply, bind, pressed)
 		if enabled and AllowZoom then
@@ -245,13 +257,43 @@ if CLIENT then
 				curdistance = distance
 				smoothdistance = distance
 				zoomdistance = 0
+				
+				--[[ ******************
+					This is a hack to solve the issue of the parent entity being invisible, due to 
+					the fact that ply:SetViewEntity( parent ) must be used serverside
+					in order to be able to move through visleafs
+					
+					SetViewEntity makes the entity invisible for some reason, so this renders it again
+					using a client side model.
+				]]
+				
+				local parent, HasParent, ValidParent = GetParent()
+				if HasParent and ValidParent then
+					clientprop = ClientsideModel( parent:GetModel(), parent:GetRenderGroup() )
+					clientprop:SetPos( parent:GetPos() )
+					clientprop:SetAngles( parent:GetAngles() )
+					clientprop:SetParent( parent )
+					clientprop:DrawShadow( false ) -- shadow is already drawn by parent
+					clientprop:SetMaterial( parent:GetMaterial() )
+					clientprop:SetSkin( parent:GetSkin() )
+					
+					local color = parent:GetColor()
+					if color.a < 255 then clientprop:SetRenderMode( RENDERMODE_TRANSALPHA )	end
+					clientprop:SetColor( color )
+					
+					parent:CallOnRemove( "CamController.RemoveClientProp", function()
+						if IsValid( clientprop ) then
+							clientprop:Remove()
+						end
+					end )
+				end
 			end
-		else
-			if IsValid( oldparent ) then
-				oldparent:SetPredictable( false )
+		elseif enabled then
+			if IsValid( clientprop ) then
+				clientprop:Remove()
 			end
 		end
-			
+		--[[ ****************** ]]
 		
 		enabled = enable
 	end)
@@ -298,6 +340,24 @@ function ENT:Initialize()
 end
 
 --------------------------------------------------
+-- UpdateOverlay
+--------------------------------------------------
+
+function ENT:UpdateOverlay()
+	self:SetOverlayText(
+		string.format( "Local Coordinates: %s\nClient side movement: %s\nCL movement local to parent: %s\nClient side zooming: %s\nAuto unclip: %s\nDraw player: %s\n\nActivated: %s",
+			self.ParentLocal and "Yes" or "No",
+			self.AutoMove and "Yes" or "No",
+			self.LocalMove and "Yes" or "No",
+			self.AllowZoom and "Yes" or "No",
+			self.AutoUnclip and "Yes" or "No",
+			self.DrawPlayer and "Yes" or "No",
+			self.Activated and "Yes" or "No"
+		)
+	)
+end
+
+--------------------------------------------------
 -- Setup
 --------------------------------------------------
 
@@ -309,6 +369,8 @@ function ENT:Setup(ParentLocal,AutoMove,LocalMove,AllowZoom,AutoUnclip,DrawPlaye
 	self.AutoUnclip = tobool(AutoUnclip)
 	self.DrawPlayer = tobool(DrawPlayer)
 	self:SyncSettings()
+	
+	self:UpdateOverlay()
 end
 
 --------------------------------------------------
@@ -588,7 +650,7 @@ function ENT:EnableCam( ply )
 		
 		-- SetViewEntity fixes the problem where the camera would get stuck if you fly through a PVS edge
 		-- this is a hack since isn't actually used, because we're overriding it with CalcView
-		if IsValid( self.Parent ) then ply:SetViewEntity( self.Parent ) end
+		if IsValid( self.Parent ) then ply:SetViewEntity( self.Parent )	end
 		
 		self:SyncSettings( ply )
 	else -- No player specified, activate cam for everyone not already active
@@ -617,21 +679,22 @@ end
 
 function ENT:SetFOV( ply, b )
 	if b == nil then b = self.FOV ~= nil end
+	if self.FOV == 0 then b = false end
 	
 	if IsValid( ply ) then
 		if b then
-			if not ply.DefaultFOV then
-				ply.DefaultFOV = ply:GetFOV()
+			if not ply.Wire_Cam_DefaultFOV then
+				ply.Wire_Cam_DefaultFOV = ply:GetFOV()
 			end
 			
 			if ply:GetFOV() ~= self.FOV then
 				ply:SetFOV( self.FOV, 0.01 )
 			end
-		elseif ply.DefaultFOV then
-			if ply:GetFOV() ~= ply.DefaultFOV then
-				ply:SetFOV( ply.DefaultFOV, 0.01 )
+		elseif ply.Wire_Cam_DefaultFOV then
+			if ply:GetFOV() ~= ply.Wire_Cam_DefaultFOV then
+				ply:SetFOV( ply.Wire_Cam_DefaultFOV, 0.01 )
 			end
-			ply.DefaultFOV = nil
+			ply.Wire_Cam_DefaultFOV = nil
 		end
 	else
 		for i=#self.Players,1,-1 do
@@ -699,15 +762,15 @@ function ENT:TriggerInput( name, value )
 	if name == "Activated" then
 		self.Activated = value ~= 0
 		if value ~= 0 then self:EnableCam() else self:DisableCam() end
-		return
+		self:UpdateOverlay()
 	elseif name == "Zoom" or name == "FOV" then
-		self.FOV = math.Clamp( value, 1, 90 )
+		self.FOV = math.Clamp( value, 0, 90 )
+		if not self.Activated then return end
 		self:SetFOV()
-		return
 	elseif name == "FLIR" then
 		self.FLIR = value ~= 0
+		if not self.Activated then return end
 		self:SetFLIR()
-		return
 	else
 		self:LocalizePositions(false)
 		

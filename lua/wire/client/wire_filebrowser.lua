@@ -170,6 +170,7 @@ local function ShowFolder(self, path)
 
 	self.m_strOpenPath = path
 	path = ConnectPathes(self.m_strRootPath, path)
+	self.oldpage = nil
 
 	self.Files = BuildFileList(path, self.m_tFilter, self.m_strWildCard)
 
@@ -185,8 +186,8 @@ local function ShowFolder(self, path)
 		return
 	end
 
-	self.PageChooseNumbers.Buttons = {}
 	self.PageChooseNumbers:Clear(true)
+	self.PageChooseNumbers.Buttons = {}
 
 	for i=1, self.m_nPageCount do
 		self.PageChooseNumbers.Buttons[i] = self.PageChooseNumbers:Add("DButton")
@@ -197,7 +198,6 @@ local function ShowFolder(self, path)
 		button:SetText(tostring(i))
 		button:SetVisible(false)
 		button:SetToolTip("Page " .. i .. " of " .. self.m_nPageCount)
-
 
 		button.DoClick = function(panel)
 			self:SetPage(i)
@@ -418,11 +418,20 @@ function PANEL:UpdatePageToolTips()
 end
 
 function PANEL:LayoutPages(forcelayout)
-	if (!self.PageChoosePanel:IsVisible()) then return end
+	if (!self.PageChoosePanel:IsVisible()) then
+		self.oldpage = nil
+		return
+	end
 
 	local x, y = self.PageRightButton:GetPos()
 	local Wide = x - self.PageLeftButton:GetWide()-40
-	if (Wide <= 0 or forcelayout) then self:InvalidateLayout() return end
+	if (Wide <= 0 or forcelayout) then
+		self.oldpage = nil
+		self:InvalidateLayout()
+		return
+	end
+	if (self.oldpage == self.m_nPage and self.oldpage and self.m_nPage) then return end
+	self.oldpage = self.m_nPage
 
 	if (self.m_nPage >= self.m_nPageCount) then
 		EnableButton(self.PageLeftButton, true)
@@ -447,20 +456,28 @@ function PANEL:LayoutPages(forcelayout)
 	local VisibleButtons = 0
 	for i=1, self.m_nPageCount do
 		local button = self.PageChooseNumbers.Buttons[i]
+		if (!IsValid(button)) then continue end
+		
 		if (pagepos < i+ButtonCount and pagepos >= i-ButtonCount+1) then
 			button:SetVisible(true)
+			EnableButton(button, true)
 			VisibleButtons = VisibleButtons + 1
 		else
 			button:SetVisible(false)
+			EnableButton(button, false)
 		end
 
 		button.Depressed = false
 	end
-
-	self.PageChooseNumbers.Buttons[self.m_nPage].Depressed = true
+	
+	local SelectButton = self.PageChooseNumbers.Buttons[self.m_nPage]
+	if (IsValid(SelectButton)) then
+		SelectButton.Depressed = true
+		SelectButton:SetMouseInputEnabled(false)
+	end
+	
 	self.PageChooseNumbers:SetWide(VisibleButtons*self.PageButtonSize)
 	self.PageChooseNumbers:Center()
-
 end
 
 function PANEL:AddColumns(...)
@@ -473,6 +490,7 @@ end
 
 function PANEL:Think()
 	if (self.SplitPanel:GetDragging()) then
+		self.oldpage = nil
 		self:InvalidateLayout()
 	end
 
@@ -513,6 +531,7 @@ function PANEL:Setup()
 	self.m_strOpenPath = nil
 	self.m_strOpenFile = nil
 	self.m_strOpenFilename = nil
+	self.oldpage = nil
 
 	self.Tree:Clear(true)
 	if (IsValid(self.Root)) then
@@ -535,6 +554,7 @@ function PANEL:SetOpenPath(path)
 
 	path = PathFilter(path, self.FolderPathText, self.m_strRootPath) or ""
 	if (self.m_strOpenPath == path) then return end
+	self.oldpage = nil
 
 	NavigateToFolder(self, path)
 	self.m_strOpenPath = path

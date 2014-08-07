@@ -8,17 +8,18 @@ end
 
 -- -----------------------------------------------------------------------------
 
-local wire_holograms_max = CreateConVar( "wire_holograms_max", "250" )
-local wire_holograms_spawn_amount = CreateConVar( "wire_holograms_spawn_amount", "15" ) -- This limit resets once a second
-local wire_holograms_burst_amount = CreateConVar( "wire_holograms_burst_amount", "80" ) -- This limit goes down first, resets every burst_delay
-local wire_holograms_burst_delay = CreateConVar( "wire_holograms_burst_delay", "10" )
-local wire_holograms_max_clips = CreateConVar( "wire_holograms_max_clips", "5" ) -- Don't set higher than 16 without editing net.Start("wire_holograms_clip")
+local wire_holograms_max = CreateConVar( "wire_holograms_max", "250", {FCVAR_ARCHIVE} )
+local wire_holograms_spawn_amount = CreateConVar( "wire_holograms_spawn_amount", "15", {FCVAR_ARCHIVE} ) -- This limit resets once a second
+local wire_holograms_burst_amount = CreateConVar( "wire_holograms_burst_amount", "80", {FCVAR_ARCHIVE} ) -- This limit goes down first, resets every burst_delay
+local wire_holograms_burst_delay = CreateConVar( "wire_holograms_burst_delay", "10", {FCVAR_ARCHIVE} )
+local wire_holograms_max_clips = CreateConVar( "wire_holograms_max_clips", "5", {FCVAR_ARCHIVE} ) -- Don't set higher than 16 without editing net.Start("wire_holograms_clip")
 local wire_holograms_modelany = CreateConVar( "wire_holograms_modelany", "0", {FCVAR_ARCHIVE}, "Allow holograms to use models besides the official hologram models." )
-local wire_holograms_size_max = CreateConVar( "wire_holograms_size_max", "50" )
+local wire_holograms_size_max = CreateConVar( "wire_holograms_size_max", "50", {FCVAR_ARCHIVE} )
 util.AddNetworkString("wire_holograms_set_visible")
 util.AddNetworkString("wire_holograms_clip")
 util.AddNetworkString("wire_holograms_set_scale")
 util.AddNetworkString("wire_holograms_set_bone_scale")
+util.AddNetworkString("wire_holograms_set_player_color")
 
 
 -- context = chip.context = self
@@ -147,6 +148,7 @@ local scale_queue = {}
 local bone_scale_queue = {}
 local clip_queue = {}
 local vis_queue = {}
+local player_color_queue = {}
 
 local function add_scale_queue( Holo, scale ) -- Add an item to the scale queue (used by UWSVN holoModel)
 	scale_queue[#scale_queue+1] = { Holo, scale }
@@ -229,16 +231,30 @@ local function flush_vis_queue()
 	end
 end
 
+local function flush_player_color_queue()
+	if not next(player_color_queue) then return end
+	
+	net.Start("wire_holograms_set_player_color")
+		for _,Holo,color in ipairs_map(player_color_queue, unpack) do
+			net.WriteUInt(Holo.ent:EntIndex(), 16)
+			net.WriteVector(color)
+		end
+		net.WriteUInt(0, 16)
+	net.Broadcast()
+end
+
 registerCallback("postexecute", function(self)
 	flush_scale_queue()
 	flush_bone_scale_queue()
 	flush_clip_queue()
 	flush_vis_queue()
+	flush_player_color_queue()
 
 	scale_queue = {}
 	bone_scale_queue = {}
 	clip_queue = {}
 	vis_queue = {}
+	player_color_queue = {}
 end)
 
 local function rescale(Holo, scale, bone)
@@ -366,6 +382,10 @@ local function reset_clholo(Holo, scale)
 		end
 		Holo.visible = {}
 	end
+end
+
+local function set_player_color(Holo, color)
+	table.insert( player_color_queue, { Holo, color } )
 end
 
 hook.Add( "PlayerInitialSpawn", "wire_holograms_set_vars", function(ply)
@@ -911,6 +931,17 @@ e2function void holoMaterial(index, string material)
 	if not Holo then return end
 
 	Holo.ent:SetMaterial(material)
+end
+
+e2function void holoPlayerColor(index, vector color)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return end
+	
+	local r = color[1]/255
+	local g = color[2]/255
+	local b = color[3]/255
+	
+	set_player_color(Holo, Vector(r, g, b))
 end
 
 e2function void holoRenderFX(index, effect)

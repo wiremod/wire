@@ -97,7 +97,7 @@ GateActions["toggle"] = {
 		return OffValue
 	end,
 	reset = function(gate)
-		gate.LatchStore = 0
+		gate.LatchStore = false
 		gate.PrevValue = nil
 	end,
 	label = function(Out, Clk, OnValue, OffValue)

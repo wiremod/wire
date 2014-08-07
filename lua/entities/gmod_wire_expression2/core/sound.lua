@@ -4,9 +4,9 @@
 
 E2Lib.RegisterExtension("sound", true)
 
-local wire_expression2_maxsounds = CreateConVar( "wire_expression2_maxsounds", 16 )
-local wire_expression2_sound_burst_max = CreateConVar( "wire_expression2_sound_burst_max", 8 )
-local wire_expression2_sound_burst_rate = CreateConVar( "wire_expression2_sound_burst_rate", 0.1 )
+local wire_expression2_maxsounds = CreateConVar( "wire_expression2_maxsounds", 16, {FCVAR_ARCHIVE} )
+local wire_expression2_sound_burst_max = CreateConVar( "wire_expression2_sound_burst_max", 8, {FCVAR_ARCHIVE} )
+local wire_expression2_sound_burst_rate = CreateConVar( "wire_expression2_sound_burst_rate", 0.1, {FCVAR_ARCHIVE} )
 
 ---------------------------------------------------------------
 -- Helper functions

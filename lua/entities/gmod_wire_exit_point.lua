@@ -15,6 +15,8 @@ function ENT:Initialize()
 	self.Global = false
 	self.GlobalAngle = false
 	self:AddExitPoint()
+	
+	self:ShowOutput()
 end
 
 function ENT:TriggerInput( name, value )
