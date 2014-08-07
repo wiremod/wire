@@ -274,6 +274,13 @@ if CLIENT then
 					clientprop:SetAngles( parent:GetAngles() )
 					clientprop:SetParent( parent )
 					clientprop:DrawShadow( false ) -- shadow is already drawn by parent
+					clientprop:SetMaterial( parent:GetMaterial() )
+					clientprop:SetSkin( parent:GetSkin() )
+					
+					local color = parent:GetColor()
+					if color.a < 255 then clientprop:SetRenderMode( RENDERMODE_TRANSALPHA )	end
+					clientprop:SetColor( color )
+					
 					parent:CallOnRemove( "CamController.RemoveClientProp", function()
 						if IsValid( clientprop ) then
 							clientprop:Remove()
