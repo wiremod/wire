@@ -46,7 +46,7 @@ end
 function parsers.VECTOR ( val )
 	local x,y,z = string.match( val, "^ *([^%s,]+) *, *([^%s,]+) *, *([^%s,]+) *$" )
 	if tonumber(x) and tonumber(y) and tonumber(y) then
-		return {tonumber(x),tonumber(y),tonumber(z)}
+		return Vector(tonumber(x),tonumber(y),tonumber(z))
 	end
 end
 function parsers.VECTOR2( val )
