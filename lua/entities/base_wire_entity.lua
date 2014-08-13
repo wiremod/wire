@@ -110,7 +110,7 @@ if CLIENT then
 	-- This is overridable by other wire entities which want to customize the overlay
 	function ENT:GetWorldTipBodySize()
 		local txt = self:GetOverlayData().txt
-		if txt == "" then return 0,0 end
+		if txt == nil or txt == "" then return 0,0 end
 		return surface.GetTextSize( txt )
 	end
 	
@@ -127,7 +127,6 @@ if CLIENT then
 		
 		surface.SetFont( "GModWorldtip" )
 		
-		-- if data and data.txt then -- the entity has some text, draw it
 		local txt = data.txt
 		local class = getWireName( self ) .. " [" .. self:EntIndex() .. "]"
 		local name = "(" .. self:GetPlayerName() .. ")"
@@ -291,7 +290,7 @@ function ENT:SetOverlayText( txt )
 	end
 	
 	if txt and #txt > 12000 then
-		string.sub(txt,1,12000) -- I have tested this and 12000 chars is enough to cover the entire screen at 1920x1080. You're unlikely to need more
+		txt = string.sub(txt,1,12000) -- I have tested this and 12000 chars is enough to cover the entire screen at 1920x1080. You're unlikely to need more
 	end
 	
 	self.OverlayData.txt = txt
