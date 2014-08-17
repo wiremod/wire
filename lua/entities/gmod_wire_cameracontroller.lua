@@ -368,7 +368,6 @@ function ENT:Setup(ParentLocal,AutoMove,LocalMove,AllowZoom,AutoUnclip,DrawPlaye
 	self.AllowZoom = tobool(AllowZoom)
 	self.AutoUnclip = tobool(AutoUnclip)
 	self.DrawPlayer = tobool(DrawPlayer)
-	self:SyncSettings()
 	
 	self:UpdateOverlay()
 end
@@ -405,7 +404,6 @@ function ENT:SyncSettings( ply, active )
 			net.WriteBit( self.DrawPlayer )
 			SendPositions( self.Position, self.Angle, self.Distance )
 		end
-	if #self.Vehicles == 0 then self.Players[1] = self:GetPlayer() end
 	net.Send( ply or self.Players )
 end
 
@@ -419,7 +417,6 @@ function ENT:SyncPositions( ply )
 	net.Start( "wire_camera_controller_sync" )
 		net.WriteEntity( self )
 		SendPositions( self.Position, self.Angle, self.Distance )
-	if #self.Vehicles == 0 then self.Players[1] = self:GetPlayer() end
 	net.Send( ply or self.Players )
 end
 
