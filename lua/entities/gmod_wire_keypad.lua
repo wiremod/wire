@@ -226,4 +226,4 @@ end)
 
 duplicator.RegisterEntityClass("sent_keypad", WireLib.MakeWireEnt, "Data", "Pass", "secure")
 duplicator.RegisterEntityClass("gmod_wire_keypad", WireLib.MakeWireEnt, "Data", "Password", "Secure")
-WireLib.ClassAlias("gmod_wire_keypad", "sent_keypad")
+scripted_ents.Alias("sent_keypad", "gmod_wire_keypad")
