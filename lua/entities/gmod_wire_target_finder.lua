@@ -236,7 +236,7 @@ function ENT:Think()
 		local bogeys,dists = {},{}
 		for _,contact in pairs(ents.FindInSphere(self:GetPos(), self.MaxRange or 10)) do
 			local class = contact:GetClass()
-			if (not self.NoTargetOwnersStuff or (class == "player") or (contact:GetOwner() ~= self:GetPlayer() and not self:checkOwnership(contact))) and (
+			if (not self.NoTargetOwnersStuff or (class == "player") or (E2Lib.getOwner({}, contact) ~= self:GetPlayer())) and (
 				-- NPCs
 				((self.TargetNPC) and (contact:IsNPC()) and (self:FindInValue(class,self.NPCName))) or
 				--Players
@@ -446,36 +446,5 @@ local function init()
 	end
 end
 hook.Add( "Initialize", "WireTargetFinderInitialize", init )
-
--- This function checks the protector to see if ownership has changed from what we think it is. Notifies player too.
-local function updateOwnership( ply, ent )
-	if noProtection then return end -- No point on going on
-	if not ent.WireTargetFinder then ent.WireTargetFinder = {} end -- Initialize table
-
-	local owns
-	if hasPropProtection then -- Chaussette's Prop Protection (preferred over PropSecure)
-		owns = propProtectionFn( ply, ent )
-	elseif hasPropSecure then -- PropSecure
-		owns = PropSecure.IsPlayers( ply, ent )
-	elseif hasProtector then -- Protector
-		owns = Protector.Owner( ent ) == ply:UniqueID()
-	end
-
-	if owns == false then -- More convienent to store as nil, takes less memory!
-		owns = nil
-	end
-
-	if ent.WireTargetFinder[ ply ] ~= owns then
-		ent.WireTargetFinder[ ply ] = owns
-	end
-end
-
-function ENT:checkOwnership( ent )
-	if noProtection then return true end -- No protection, they own everything.
-	if (!self.CheckBuddyList) then return true end
-
-	updateOwnership( self:GetPlayer(), ent )	-- Make sure server and the client are current
-	return ent.WireTargetFinder[ self:GetPlayer() ]
-end
 
 duplicator.RegisterEntityClass("gmod_wire_target_finder", WireLib.MakeWireEnt, "Data", "range", "players", "npcs", "npcname", "beacons", "hoverballs", "thrusters", "props", "propmodel", "vehicles", "playername", "casesen", "rpgs", "painttarget", "minrange", "maxtargets", "maxbogeys", "notargetowner", "entity", "notownersstuff", "steamname", "colorcheck", "colortarget", "pcolR", "pcolG", "pcolB", "pcolA", "checkbuddylist", "onbuddylist")
