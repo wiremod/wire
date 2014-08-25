@@ -197,14 +197,10 @@ if CLIENT then
 		local scale = self.scale or Vector(1, 1, 1)
 
 		local count = self:GetBoneCount() or -1
-		if count == 1 then
+		if count > 1 then
 			for i = count, 0, -1 do
 				local bone_scale = self.bone_scale[i] or scale
-				if string.Left(self:GetModel(), 17) == "models/holograms/" then
-					bone_scale = Vector(bone_scale.y, bone_scale.x, bone_scale.z)
-				end
-				
-				self:ManipulateBoneScale(i, bone_scale)
+				self:ManipulateBoneScale(i, bone_scale) // Note: Using ManipulateBoneScale currently causes RenderBounds to be reset every frame!
 			end
 		elseif self.EnableMatrix then
 			local mat = Matrix()
