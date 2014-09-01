@@ -48,7 +48,7 @@ function ENT:Think()
 	if not IsValid(self.BaseEnt) then return end
 	
 	if IsValid(self.User) then
-		local dist = self.User:GetShootPos():Distance(self.BaseEnt:GetPos())
+		local dist = self.User:GetShootPos():Distance(self:GetPos())
 		if dist < 160 and (self.User:KeyDown(IN_USE) or self.User:KeyDown(IN_ATTACK)) then
 			local TargPos = self.User:GetShootPos() + self.User:GetAimVector() * dist
 			local distMax = TargPos:Distance(self.BaseEnt:GetPos() + self.BaseEnt:GetForward() * 30)
@@ -95,6 +95,7 @@ function ENT:BuildDupeInfo()
 	local info = self.BaseClass.BuildDupeInfo(self) or {}
 	if IsValid(self.BaseEnt) then
 		info.baseent = self.BaseEnt:EntIndex()
+		constraint.Weld(self, self.BaseEnt, 0, 0, 0, true) -- Just in case the weld has been broken somehow, remake to ensure inclusion in dupe
 	end
 	info.value = self.Value
 	return info
