@@ -31,7 +31,7 @@ TOOL.ClientConVar = {
 
 function TOOL.BuildCPanel(panel)
 	WireToolHelpers.MakePresetControl(panel, "wire_data_transferer")
-	ModelPlug_AddToCPanel(panel, "Misc_Tools", "wire_data_store")
+	ModelPlug_AddToCPanel(panel, "Laser_Tools", "wire_data_transferer")
 
 	panel:NumSlider("#WireDataTransfererTool_Range", "wire_data_transferer_Range", 1, 30000, 0)
 	panel:CheckBox("#WireDataTransfererTool_DefaultZero", "wire_data_transferer_DefaultZero")

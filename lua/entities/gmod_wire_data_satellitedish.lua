@@ -12,6 +12,22 @@ function ENT:Initialize()
 	self:ShowOutput()
 end
 
+function ENT:LinkEnt( transmitter )
+	if not IsValid(transmitter) || transmitter:GetClass() != "gmod_wire_data_transferer" then 
+		return false, "Satellite Dishes can only be linked to Wire Data Transferers!"
+	end
+	self.Transmitter = transmitter
+	self:ShowOutput()
+	WireLib.SendMarks(self, {transmitter})
+	return true
+end
+function ENT:UnlinkEnt()
+	self.Transmitter = nil
+	self:ShowOutput()
+	WireLib.SendMarks(self, {})
+	return true
+end
+
 function ENT:ShowOutput()
 	self:SetOverlayText( IsValid(self.Transmitter) and "Linked" or "Unlinked" )
 end
