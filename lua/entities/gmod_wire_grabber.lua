@@ -38,6 +38,22 @@ function ENT:Setup(Range, Gravity)
 	self.Gravity = Gravity
 end
 
+function ENT:LinkEnt( prop )
+	if not IsValid(prop) then return false, "Not a valid entity!" end
+	self.ExtraProp = prop
+	WireLib.SendMarks(self, {prop})
+	return true
+end
+function ENT:UnlinkEnt()
+	if IsValid(self.ExtraPropWeld) then
+		self.ExtraPropWeld:Remove()
+		self.ExtraPropWeld = nil
+	end
+	self.ExtraProp = nil
+	WireLib.SendMarks(self, {})
+	return true
+end
+
 function ENT:ResetGrab()
 	if IsValid(self.Weld) then
 		self.Weld:Remove()
