@@ -375,6 +375,16 @@ for k,v in pairs(turretmodels) do
 	if file.Exists(v,"GAME") then list.Set( "WireTurretModels", v, true ) end
 end
 
+local satellitedish_models = {
+	"models/props_wasteland/prison_lamp001c.mdl",
+	"models/props_rooftop/satellitedish02.mdl", -- EP2, but its perfect
+}
+for k,v in pairs(satellitedish_models) do
+	if file.Exists(v,"GAME") then
+		list.Set( "Wire_satellitedish_Models", v, true )
+	end
+end
+
 --Beer's models
 --MsgN("\tBeer's Model pack")
 
