@@ -457,7 +457,13 @@ local clamp = math.Clamp
 local function concat( tab, delimeter, startindex, endindex )
 	local ret = {}
 	local len = #tab
-	for i=clamp(startindex or 1,1,len), clamp(endindex or len,1,len) do
+	
+	startindex = startindex or 1
+	if startindex > len then return "" end
+	
+	endindex = clamp(endindex or len, startindex, len)
+	
+	for i=startindex, endindex do
 		ret[#ret+1] = tostring(tab[i])
 	end
 	return luaconcat( ret, delimeter )
