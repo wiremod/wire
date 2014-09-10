@@ -35,8 +35,133 @@ local function fileName(filepath)
 	return string.match(filepath, "[/\\]?([^/\\]*)$")
 end
 
+local string_find = string.find
+local string_lower = string.lower
+function PANEL:Search( str, foldername, fullpath, parentfullpath )
+	if not self.SearchFolders[fullpath] then
+		self.SearchFolders[fullpath] = (self.SearchFolders[parentfullpath] or self.Folders):AddNode( foldername )
+	
+		local files, folders = file.Find( fullpath .. "/*", "DATA" )
+		
+		local node = self.SearchFolders[fullpath]
+		if fullpath == self.startfolder then self.Root = node end -- get root
+		node.Icon:SetImage( "icon16/arrow_refresh.png" )
+		node:SetExpanded( true )
+		
+		local myresults = false
+		for i=1,#files do
+			if string_find( string_lower( files[i] ), str, 1, true ) ~= nil then
+				local filenode = node:AddNode( files[i], "icon16/page_white.png" )
+				filenode:SetFileName( fullpath .. "/" .. files[i] )
+				myresults = true
+			end
+			
+			coroutine.yield()
+		end
+		
+		if #folders == 0 then
+			if not myresults then
+				node:Remove()
+				return false
+			end
+			
+			node.Icon:SetImage( "icon16/folder.png" )
+			return true
+		else
+			local results = false
+			for i=1,#folders do
+				if self:Search( str, folders[i], fullpath .. "/" .. folders[i], fullpath ) then
+					results = true
+				end
+				
+				coroutine.yield()
+			end
+			
+			
+			if results or myresults then
+				node.Icon:SetImage( "icon16/folder.png" )
+				return true
+			else
+				node:Remove()
+				return false
+			end
+		end
+	end
+	
+	return false
+end
+
+function PANEL:StartSearch( str )
+	self:UpdateFolders( true )
+	
+	self.SearchFolders = {}
+			
+	local crt = coroutine.create( self.Search )
+	coroutine.resume( crt, self, str, self.startfolder, self.startfolder, "" )
+	
+	timer.Create( "wire_expression2_search", 0, 0, function()
+		for i=1,50 do -- Load 50 files/folders at a time
+			local status, err = coroutine.resume( crt )
+			if not status then -- we're done searching
+				timer.Remove( "wire_expression2_search" )
+				return
+			end
+		end
+	end )
+end
+
 function PANEL:Init()
 	self:SetDrawBackground(false)
+	
+	self.SearchBox = vgui.Create( "DTextEntry", self )
+	self.SearchBox:Dock( TOP )
+	self.SearchBox:DockMargin( 0,0,0,0 )
+	self.SearchBox:SetValue( "Search..." )
+	
+	local clearsearch = vgui.Create( "DImageButton", self.SearchBox )
+	clearsearch:SetMaterial( "icon16/cross.png" )
+	local src = self.SearchBox
+	function clearsearch:DoClick()
+		src:SetValue( "" )
+		src:OnEnter()
+		src:SetValue( "Search..." )
+	end
+	clearsearch:DockMargin( 2,2,4,2 )
+	clearsearch:Dock( RIGHT )
+	clearsearch:SetSize( 14, 10 )
+	clearsearch:SetVisible( false )
+	
+	
+	local old = self.SearchBox.OnGetFocus
+	function self.SearchBox:OnGetFocus()
+		if self:GetValue() == "Search..." then -- If "Search...", erase it
+			self:SetValue( "" )
+		end
+		old( self )
+	end
+	
+	-- On lose focus
+	local old = self.SearchBox.OnLoseFocus
+	function self.SearchBox:OnLoseFocus()
+		if self:GetValue() == "" then -- if empty, reset "Search..." text
+			timer.Simple( 0, function() self:SetValue( "Search..." ) end )
+		end
+		old( self )
+	end
+	
+	function self.SearchBox.OnEnter()
+		local str = self.SearchBox:GetValue()
+		
+		if str ~= "" then
+			self:StartSearch( string.Replace( string.lower( str ), " ", "_" ) )
+			
+			clearsearch:SetVisible( true )
+		else
+			timer.Remove( "wire_expression2_search" )
+			self:UpdateFolders()
+			clearsearch:SetVisible( false )
+		end
+	end
 
 	self.Update = vgui.Create("DButton", self)
 	self.Update:SetTall(20)
@@ -144,13 +269,16 @@ function PANEL:OnFileOpen(filepath, newtab)
 	error("Please override wire_expression2_browser:OnFileOpen(filepath, newtab)", 0)
 end
 
-function PANEL:UpdateFolders()
+function PANEL:UpdateFolders( empty )
 	self.Folders:Clear(true)
 	if IsValid(self.Root) then
 		self.Root:Remove()
 	end
-	self.Root = self.Folders.RootNode:AddFolder(self.startfolder, self.startfolder, "DATA", true)
-	self.Root:SetExpanded(true)
+	
+	if not empty then
+		self.Root = self.Folders.RootNode:AddFolder(self.startfolder, self.startfolder, "DATA", true)
+		self.Root:SetExpanded(true)
+	end
 
 	self.Folders.DoClick = function(tree, node)
 		if self.File == node and CurTime() <= self.lastClick + 0.5 then
