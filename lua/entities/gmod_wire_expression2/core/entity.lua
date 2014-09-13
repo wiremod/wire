@@ -580,22 +580,24 @@ end
 
 -- Returns the entity's (min) axis-aligned bounding box
 e2function vector entity:aabbMin()
-	if (!this or !this:IsValid() or !this:GetPhysicsObject() or !this:GetPhysicsObject():IsValid()) then return Vector(0,0,0) end
+	if (!this or !this:IsValid() or !this:GetPhysicsObject() or !this:GetPhysicsObject():IsValid()) then return {0,0,0} end
 	local ret, _ = this:GetPhysicsObject():GetAABB()
-	return ret
+	return ret or {0,0,0}
 end
 
 -- Returns the entity's (max) axis-aligned bounding box
 e2function vector entity:aabbMax()
-	if (!this or !this:IsValid() or !this:GetPhysicsObject() or !this:GetPhysicsObject():IsValid()) then return Vector(0,0,0) end
+	if (!this or !this:IsValid() or !this:GetPhysicsObject() or !this:GetPhysicsObject():IsValid()) then return {0,0,0} end
 	local _, ret = this:GetPhysicsObject():GetAABB()
-	return ret
+	return ret or {0,0,0}
 end
 
 -- Returns the entity's axis-aligned bounding box size
 e2function vector entity:aabbSize()
-	if (!this or !this:IsValid() or !this:GetPhysicsObject() or !this:GetPhysicsObject():IsValid()) then return Vector(0,0,0) end
+	if (!this or !this:IsValid() or !this:GetPhysicsObject() or !this:GetPhysicsObject():IsValid()) then return {0,0,0} end
 	local ret, ret2 = this:GetPhysicsObject():GetAABB()
+	ret = ret or Vector(0,0,0)
+	ret2 = ret2 or Vector(0,0,0)
 	return ret2 - ret
 end
 
