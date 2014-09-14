@@ -674,7 +674,7 @@ end
 -- SetFOV
 --------------------------------------------------
 
-function ENT:SetFOV( ply, b, tries )
+function ENT:SetFOV( ply, b )
 	if b == nil and self.FOV ~= nil then b = true end
 	if self.FOV == 0 then b = false end
 	
