@@ -172,7 +172,7 @@ registerCallback( "postinit", function()
 				if (!array or !index) then return fixdef( default ) end -- Make sure array and index are valid
 				if (typecheck and typecheck( value )) then return fixdef( default ) end -- If typecheck returns true, the type is wrong.
 				if (doinsert) then
-					if index > 2^31 or index < 0 then return end -- too large, possibility of crashing gmod
+					if index > 2^31 or index < 0 then return fixdef( default ) end -- too large, possibility of crashing gmod
 					table_insert( array, index, value )
 				else
 					array[floor(index)] = value
