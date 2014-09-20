@@ -19,9 +19,10 @@ function E2Lib.getArguments(self, args)
 	return unpack(ret)
 end
 
-local function isnan(n)
+function E2Lib.isnan(n)
 	return n ~= n
 end
+local isnan = E2Lib.isnan
 
 -- This function clamps the position before moving the entity
 local minx, miny, minz = -16384, -16384, -16384

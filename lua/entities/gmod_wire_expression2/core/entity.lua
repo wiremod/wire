@@ -274,6 +274,7 @@ end
 
 e2function void setMass(mass)
 	if not validPhysics(self.entity) then return end
+	if E2Lib.isnan( mass ) then mass = 50000 end
 	local mass = Clamp(mass, 0.001, 50000)
 	local phys = self.entity:GetPhysicsObject()
 	phys:SetMass(mass)
@@ -283,6 +284,7 @@ e2function void entity:setMass(mass)
 	if not validPhysics(this) then return end
 	if not isOwner(self, this) then return end
 	if(this:IsPlayer()) then return end
+	if E2Lib.isnan( mass ) then mass = 50000 end
 	local mass = Clamp(mass, 0.001, 50000)
 	local phys = this:GetPhysicsObject()
 	phys:SetMass(mass)
