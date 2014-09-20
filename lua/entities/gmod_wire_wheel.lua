@@ -36,8 +36,16 @@ end
 --[[---------------------------------------------------------
    Sets the base torque
 ---------------------------------------------------------]]
-function ENT:UpdateOverlayText()
-	self:SetOverlayText( "Torque: " .. math.floor( self.TorqueScale * self.BaseTorque ) .. "\nSpeed: 0\nBreak: " .. self.Breaking .. "\nSpeedMod: " .. math.floor( self.SpeedMod * 100 ) .. "%" )
+function ENT:UpdateOverlayText(speed)
+	local motor = self:GetMotor()
+	local friction = 0
+	if IsValid(motor) then friction = motor.friction end
+	self:SetOverlayText( 
+		"Torque: " .. math.floor( self.TorqueScale * self.BaseTorque ) .. 
+		"\nFriction: " .. friction .. 
+		"\nSpeed: " .. (speed or 0) .. 
+		"\nBreak: " .. self.Breaking .. 
+		"\nSpeedMod: " .. math.floor( self.SpeedMod * 100 ) .. "%" )
 end
 
 --[[---------------------------------------------------------
@@ -55,6 +63,7 @@ end
 
 function ENT:SetMotor( Motor )
 	self.Motor = Motor
+	self:UpdateOverlayText()
 end
 
 function ENT:GetMotor()
@@ -88,10 +97,8 @@ function ENT:Forward( mul )
 	mul = mul or 1
 	local mdir = Motor.direction
 	local Speed = mdir * mul * self.TorqueScale * (1 + self.SpeedMod)
-
-	txt = "Torque: " .. math.floor( self.TorqueScale * self.BaseTorque ) .. "\nSpeed: " .. (mdir * mul * (1 + self.SpeedMod)) .. "\nBreak: " .. self.Breaking .. "\nSpeedMod: " .. math.floor( self.SpeedMod * 100 ) .. "%"
-	--self.BaseClass.BaseClass.SetOverlayText(self, txt)
-	self:SetOverlayText(txt)
+	
+	self:UpdateOverlayText(mdir * mul * (1 + self.SpeedMod))
 
 	Motor:Fire( "Scale", Speed, 0 )
 	Motor:GetTable().forcescale = Speed
