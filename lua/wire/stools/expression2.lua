@@ -508,12 +508,12 @@ elseif CLIENT then
 		Expression2SetProgress(1, queue_progress)
 
 		local numpackets = math.ceil(#datastr / 64000)
-		local n = first and 0.1 or 1
-		local x = 0
+		local delay = first and 0.01 or 1
+		local packet = 0
 		local exited = false
 		for i = 1, #datastr, 64000 do
-			timer.Simple( n, function()
-				x = x + 1
+			timer.Simple( delay, function()
+				packet = packet + 1
 				if timeStarted + 2 < CurTime() and -- only remove the E2 from the queue if more than 2 seconds has passed since the upload was requested (if the user has high ping)
 					not IsValid(Entity( targetEnt )) then
 					if exited then
@@ -525,12 +525,12 @@ elseif CLIENT then
 					end
 				end
 				
-				if x == numpackets then
+				if packet == numpackets then
 					next_queue()
 				end
 				
 				local queue_progress = (queue_max > 1 and (1-((#queue-1) / queue_max)) * 100 or nil)
-				Expression2SetProgress( x / numpackets * 100, queue_progress )
+				Expression2SetProgress( packet / numpackets * 100, queue_progress )
 				
 				net.Start("wire_expression2_upload")
 					net.WriteUInt(targetEnt, 16)
@@ -539,7 +539,7 @@ elseif CLIENT then
 				net.SendToServer()
 			end)
 		end
-		n = n + 1
+		delay = delay + 1
 	end
 
 	function WireLib.Expression2Upload(targetEnt, code, filepath)
@@ -596,7 +596,7 @@ elseif CLIENT then
 		
 		if sending then return end
 		sending = true
-		upload_queue(true)
+		upload_queue(true) // true means its the first packet, suppressing the delay
 	end
 
 	net.Receive("wire_expression2_tool_upload", function(len, ply)
