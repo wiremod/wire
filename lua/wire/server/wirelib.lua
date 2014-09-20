@@ -63,7 +63,7 @@ function WireLib.TriggerInput(ent, name, value, ...)
 	if not ok then
 		local message = string.format("Wire error (%s):\n%s\n", tostring(ent), ret)
 		WireLib.ErrorNoHalt(message)
-		local ply = E2Lib and E2Lib.getOwner and E2Lib.getOwner({}, ent)
+		local ply = WireLib.GetOwner(ent)
 		if IsValid(ply) then WireLib.ClientError(message, ply) end
 	end
 end
@@ -1119,6 +1119,10 @@ function WireLib.PostDupe(entid, func)
 			func(ent)
 		end
 	end)
+end
+
+function WireLib.GetOwner(ent)
+	return E2Lib.getOwner({}, ent)
 end
 
 function WireLib.dummytrace(ent)

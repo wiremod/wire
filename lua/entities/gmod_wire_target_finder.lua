@@ -236,7 +236,7 @@ function ENT:Think()
 		local bogeys,dists = {},{}
 		for _,contact in pairs(ents.FindInSphere(self:GetPos(), self.MaxRange or 10)) do
 			local class = contact:GetClass()
-			if (not self.NoTargetOwnersStuff or (class == "player") or (E2Lib.getOwner({}, contact) ~= self:GetPlayer())) and (
+			if (not self.NoTargetOwnersStuff or (class == "player") or (WireLib.GetOwner(contact) ~= self:GetPlayer())) and (
 				-- NPCs
 				((self.TargetNPC) and (contact:IsNPC()) and (self:FindInValue(class,self.NPCName))) or
 				--Players
