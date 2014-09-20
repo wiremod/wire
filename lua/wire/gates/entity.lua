@@ -589,8 +589,8 @@ GateActions["entity_owner"] = {
 	outputtypes = { "ENTITY" },
 	timed = true,
 	output = function(gate, Ent)
-		if !Ent:IsValid() then return E2Lib.getOwner(gate,gate)	 end
-		return E2Lib.getOwner(gate,Ent)
+		if !Ent:IsValid() then return WireLib.GetOwner(gate) end
+		return WireLib.GetOwner(Ent)
 	end,
 	label = function(Out,Ent)
 		return string.format ("owner(%s) = %s", Ent, tostring(Out))
@@ -745,7 +745,7 @@ GateActions["entity_setmass"] = {
 	output = function(gate, Ent, Val )
 		if !Ent:IsValid() then return end
 		if !Ent:GetPhysicsObject():IsValid() then return end
-		if !(E2Lib.getOwner(gate, gate) == E2Lib.getOwner(gate, Ent)) then return end
+		if not gamemode.Call("CanTool", WireLib.GetOwner(gate), WireLib.dummytrace(Ent), "weight") then return end
 		if !Val then Val = Ent:GetPhysicsObject():GetMass() end
 		Val = math.Clamp(Val, 0.001, 50000)
 		Ent:GetPhysicsObject():SetMass(Val)
@@ -786,7 +786,7 @@ GateActions["entity_setcol"] = {
 	timed = true,
 	output = function(gate, Ent, Col )
 		if !Ent:IsValid() then return end
-		if !(E2Lib.getOwner(gate, gate) == E2Lib.getOwner(gate, Ent)) then return end
+		if not gamemode.Call("CanTool", WireLib.GetOwner(gate), WireLib.dummytrace(Ent), "color") then return end
 		if !isvector(Col) then Col = Vector(255,255,255) end
 		Ent:SetColor(Color(Col.x,Col.y,Col.z,255))
 	end,
