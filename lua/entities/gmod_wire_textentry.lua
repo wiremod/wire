@@ -158,28 +158,23 @@ net.Receive("wire_textentry_action",function(len,ply)
 	
 	local text = net.ReadString()
 	
-	
-	self:Unprompt() -- in all cases, make text entry available for use again
-	
-	if text ~= "" then
-		if not self.BlockInput then
-			WireLib.TriggerOutput( self, "Text", text )
-			
-			local timername = "wire_textentry_" .. self:EntIndex()
-			timer.Remove( timername )
-			if math.max(self:GetHold(),0) > 0 then
-				timer.Create( timername, math.max(self:GetHold(),0), 1, function()
-					if IsValid( self ) then
-						WireLib.TriggerOutput( self, "User", nil )
-						WireLib.TriggerOutput( self, "Text", "" )
-					end
-				end)
-			end
+	if not self.BlockInput then
+		WireLib.TriggerOutput( self, "Text", text )
+		
+		local timername = "wire_textentry_" .. self:EntIndex()
+		timer.Remove( timername )
+		if math.max(self:GetHold(),0) > 0 then
+			timer.Create( timername, math.max(self:GetHold(),0), 1, function()
+				if IsValid( self ) then
+					WireLib.TriggerOutput( self, "User", nil )
+					WireLib.TriggerOutput( self, "Text", "" )
+				end
+			end)
 		end
 	end
 	
+	self:Unprompt() -- in all cases, make text entry available for use again
 	self:UpdateOverlay()
-	-- if act is 0, we silently fail
 end)
 
 ----------------------------------------------------

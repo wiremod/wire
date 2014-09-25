@@ -471,13 +471,15 @@ elseif CLIENT then
 	
 	-- send next E2
 	local function next_queue()
+		local queue_progress = (queue_max > 1 and (1-((#queue-1) / queue_max)) * 100 or nil)
 		Expression2SetProgress( nil, queue_progress )
 		table.remove( queue, 1 )
 		
 		-- Clear away all removed E2s from the queue
 		while true do
 			if #queue == 0 then break end
-			if not IsValid( Entity(queue[1].targetEnt) ) then
+			if queue[1].timeStarted + 2 < CurTime() -- only clear it if more than 2 seconds has passed since the upload was requested (if the user has high ping)
+				and not IsValid( Entity(queue[1].targetEnt) ) then
 				table.remove( queue, 1 )
 			else
 				break
@@ -495,24 +497,25 @@ elseif CLIENT then
 		end)
 	end
 	
-	upload_queue = function()
+	upload_queue = function(first)
 		local q = queue[1]
 		
 		local targetEnt = q.targetEnt
 		local datastr = q.datastr
+		local timeStarted = q.timeStarted
 	
 		local queue_progress = (queue_max > 1 and (1-((#queue-1) / queue_max)) * 100 or nil)
 		Expression2SetProgress(1, queue_progress)
 
 		local numpackets = math.ceil(#datastr / 64000)
-		local n = 0
-		local x = 0
+		local delay = first and 0.01 or 1
+		local packet = 0
 		local exited = false
 		for i = 1, #datastr, 64000 do
-			n = n + 1
-			timer.Simple( n, function()
-				x = x + 1
-				if not IsValid( Entity(targetEnt) ) then
+			timer.Simple( delay, function()
+				packet = packet + 1
+				if timeStarted + 2 < CurTime() and -- only remove the E2 from the queue if more than 2 seconds has passed since the upload was requested (if the user has high ping)
+					not IsValid(Entity( targetEnt )) then
 					if exited then
 						return
 					else
@@ -520,12 +523,14 @@ elseif CLIENT then
 						next_queue()
 						return
 					end
-				elseif x == numpackets then
+				end
+				
+				if packet == numpackets then
 					next_queue()
 				end
 				
 				local queue_progress = (queue_max > 1 and (1-((#queue-1) / queue_max)) * 100 or nil)
-				Expression2SetProgress( x / numpackets * 100, queue_progress )
+				Expression2SetProgress( packet / numpackets * 100, queue_progress )
 				
 				net.Start("wire_expression2_upload")
 					net.WriteUInt(targetEnt, 16)
@@ -534,6 +539,7 @@ elseif CLIENT then
 				net.SendToServer()
 			end)
 		end
+		delay = delay + 1
 	end
 
 	function WireLib.Expression2Upload(targetEnt, code, filepath)
@@ -582,14 +588,15 @@ elseif CLIENT then
 		
 		queue[#queue+1] = {
 			targetEnt = targetEnt,
-			datastr = datastr
+			datastr = datastr,
+			timeStarted = CurTime()
 		}
 		
 		queue_max = queue_max + 1
 		
 		if sending then return end
 		sending = true
-		upload_queue()
+		upload_queue(true) // true means its the first packet, suppressing the delay
 	end
 
 	net.Receive("wire_expression2_tool_upload", function(len, ply)
@@ -955,13 +962,13 @@ elseif CLIENT then
 			DrawTextOutline(what, "Expression2ToolScreenFont", 128, 128, Color(224, 224, 224, 255), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER, Color(0, 0, 0, 255), 4)
 
 			if percent then
-				draw.RoundedBox(4, 128 - w / 2 - 2, 128 + h / 2 - 0, (w * percent) / 100 + 4, h2 - 4, Color(0, 0, 0, 255))
-				draw.RoundedBox(2, 128 - w / 2 + 2, 128 + h / 2 + 4, (w * percent) / 100 - 4, h2 - 12, Color(224, 224, 224, 255))
+				draw.RoundedBox(4, 128 - w / 2 - 2, 128 + h / 2 - 0, ((w+4) * percent) / 100, h2 - 4, Color(0, 0, 0, 255))
+				draw.RoundedBox(2, 128 - w / 2 + 2, 128 + h / 2 + 4, ((w-4) * percent) / 100, h2 - 12, Color(224, 224, 224, 255))
 			end
 
 			if percent2 then
-				draw.RoundedBox(4, 128 - w / 2 - 2, 128 + h / 2 + 24, (w * percent2) / 100 + 4, h2 - 4, Color(0, 0, 0, 255))
-				draw.RoundedBox(2, 128 - w / 2 + 2, 128 + h / 2 + 28, (w * percent2) / 100 - 4, h2 - 12, Color(224, 224, 224, 255))
+				draw.RoundedBox(4, 128 - w / 2 - 2, 128 + h / 2 + 24, ((w+4) * percent2) / 100, h2 - 4, Color(0, 0, 0, 255))
+				draw.RoundedBox(2, 128 - w / 2 + 2, 128 + h / 2 + 28, ((w-4) * percent2) / 100, h2 - 12, Color(224, 224, 224, 255))
 			end
 		elseif name then
 			DrawTextOutline("Expression 2", "Expression2ToolScreenFont", 128, 128, Color(224, 224, 224, 255), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER, Color(0, 0, 0, 255), 4)

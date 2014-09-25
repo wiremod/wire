@@ -63,7 +63,7 @@ function WireLib.TriggerInput(ent, name, value, ...)
 	if not ok then
 		local message = string.format("Wire error (%s):\n%s\n", tostring(ent), ret)
 		WireLib.ErrorNoHalt(message)
-		local ply = E2Lib and E2Lib.getOwner and E2Lib.getOwner(ent)
+		local ply = WireLib.GetOwner(ent)
 		if IsValid(ply) then WireLib.ClientError(message, ply) end
 	end
 end
@@ -1121,6 +1121,10 @@ function WireLib.PostDupe(entid, func)
 	end)
 end
 
+function WireLib.GetOwner(ent)
+	return E2Lib.getOwner({}, ent)
+end
+
 function WireLib.dummytrace(ent)
 	local pos = ent:GetPos()
 	return {
@@ -1165,16 +1169,6 @@ function WireLib.MakeWireEnt( pl, Data, ... )
 	end
 
 	return ent
-end
-
-function WireLib.ClassAlias(realclass, alias)
-	scripted_ents.Alias(alias, realclass)
-	-- Hack for Advdupe2, since scripted_ents.GetList() does not respect aliases
-	hook.Add("Initialize", "Rename_"..alias, function()
-		local tab = scripted_ents.GetStored(realclass).t -- Grab the registered entity (ie gmod_wire_pod)
-		scripted_ents.Register(tab, alias) -- Set "adv_pod" to be defined as this ENT
-		tab.ClassName = realclass -- scripted_ents.Register changes this to your argument, lets change it back
-	end)
 end
 
 -- Adds an input alias so that we can rename inputs on entities without breaking old dupes

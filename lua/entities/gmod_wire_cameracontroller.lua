@@ -368,7 +368,6 @@ function ENT:Setup(ParentLocal,AutoMove,LocalMove,AllowZoom,AutoUnclip,DrawPlaye
 	self.AllowZoom = tobool(AllowZoom)
 	self.AutoUnclip = tobool(AutoUnclip)
 	self.DrawPlayer = tobool(DrawPlayer)
-	self:SyncSettings()
 	
 	self:UpdateOverlay()
 end
@@ -405,7 +404,6 @@ function ENT:SyncSettings( ply, active )
 			net.WriteBit( self.DrawPlayer )
 			SendPositions( self.Position, self.Angle, self.Distance )
 		end
-	if #self.Vehicles == 0 then self.Players[1] = self:GetPlayer() end
 	net.Send( ply or self.Players )
 end
 
@@ -419,7 +417,6 @@ function ENT:SyncPositions( ply )
 	net.Start( "wire_camera_controller_sync" )
 		net.WriteEntity( self )
 		SendPositions( self.Position, self.Angle, self.Distance )
-	if #self.Vehicles == 0 then self.Players[1] = self:GetPlayer() end
 	net.Send( ply or self.Players )
 end
 
@@ -678,7 +675,7 @@ end
 --------------------------------------------------
 
 function ENT:SetFOV( ply, b )
-	if b == nil then b = self.FOV ~= nil end
+	if b == nil and self.FOV ~= nil then b = true end
 	if self.FOV == 0 then b = false end
 	
 	if IsValid( ply ) then
@@ -688,11 +685,11 @@ function ENT:SetFOV( ply, b )
 			end
 			
 			if ply:GetFOV() ~= self.FOV then
-				ply:SetFOV( self.FOV, 0.01 )
+				ply:SetFOV( self.FOV, 0 )
 			end
 		elseif ply.Wire_Cam_DefaultFOV then
 			if ply:GetFOV() ~= ply.Wire_Cam_DefaultFOV then
-				ply:SetFOV( ply.Wire_Cam_DefaultFOV, 0.01 )
+				ply:SetFOV( ply.Wire_Cam_DefaultFOV, 0 )
 			end
 			ply.Wire_Cam_DefaultFOV = nil
 		end
@@ -700,7 +697,7 @@ function ENT:SetFOV( ply, b )
 		for i=#self.Players,1,-1 do
 			local ply = self.Players[i]
 			if IsValid(ply) then
-				self:SetFOV( ply, b, 0.01 )
+				self:SetFOV( ply, b )
 			else
 				table.remove( self.Players, i )
 			end

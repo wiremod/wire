@@ -172,6 +172,7 @@ registerCallback( "postinit", function()
 				if (!array or !index) then return fixdef( default ) end -- Make sure array and index are valid
 				if (typecheck and typecheck( value )) then return fixdef( default ) end -- If typecheck returns true, the type is wrong.
 				if (doinsert) then
+					if index > 2^31 or index < 0 then return fixdef( default ) end -- too large, possibility of crashing gmod
 					table_insert( array, index, value )
 				else
 					array[floor(index)] = value
@@ -457,7 +458,13 @@ local clamp = math.Clamp
 local function concat( tab, delimeter, startindex, endindex )
 	local ret = {}
 	local len = #tab
-	for i=clamp(startindex or 1,1,len), clamp(endindex or len,1,len) do
+	
+	startindex = startindex or 1
+	if startindex > len then return "" end
+	
+	endindex = clamp(endindex or len, startindex, len)
+	
+	for i=startindex, endindex do
 		ret[#ret+1] = tostring(tab[i])
 	end
 	return luaconcat( ret, delimeter )

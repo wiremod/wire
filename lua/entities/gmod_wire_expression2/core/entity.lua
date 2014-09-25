@@ -274,6 +274,7 @@ end
 
 e2function void setMass(mass)
 	if not validPhysics(self.entity) then return end
+	if E2Lib.isnan( mass ) then mass = 50000 end
 	local mass = Clamp(mass, 0.001, 50000)
 	local phys = self.entity:GetPhysicsObject()
 	phys:SetMass(mass)
@@ -283,6 +284,7 @@ e2function void entity:setMass(mass)
 	if not validPhysics(this) then return end
 	if not isOwner(self, this) then return end
 	if(this:IsPlayer()) then return end
+	if E2Lib.isnan( mass ) then mass = 50000 end
 	local mass = Clamp(mass, 0.001, 50000)
 	local phys = this:GetPhysicsObject()
 	phys:SetMass(mass)
@@ -580,22 +582,24 @@ end
 
 -- Returns the entity's (min) axis-aligned bounding box
 e2function vector entity:aabbMin()
-	if (!this or !this:IsValid() or !this:GetPhysicsObject() or !this:GetPhysicsObject():IsValid()) then return Vector(0,0,0) end
+	if (!this or !this:IsValid() or !this:GetPhysicsObject() or !this:GetPhysicsObject():IsValid()) then return {0,0,0} end
 	local ret, _ = this:GetPhysicsObject():GetAABB()
-	return ret
+	return ret or {0,0,0}
 end
 
 -- Returns the entity's (max) axis-aligned bounding box
 e2function vector entity:aabbMax()
-	if (!this or !this:IsValid() or !this:GetPhysicsObject() or !this:GetPhysicsObject():IsValid()) then return Vector(0,0,0) end
+	if (!this or !this:IsValid() or !this:GetPhysicsObject() or !this:GetPhysicsObject():IsValid()) then return {0,0,0} end
 	local _, ret = this:GetPhysicsObject():GetAABB()
-	return ret
+	return ret or {0,0,0}
 end
 
 -- Returns the entity's axis-aligned bounding box size
 e2function vector entity:aabbSize()
-	if (!this or !this:IsValid() or !this:GetPhysicsObject() or !this:GetPhysicsObject():IsValid()) then return Vector(0,0,0) end
+	if (!this or !this:IsValid() or !this:GetPhysicsObject() or !this:GetPhysicsObject():IsValid()) then return {0,0,0} end
 	local ret, ret2 = this:GetPhysicsObject():GetAABB()
+	ret = ret or Vector(0,0,0)
+	ret2 = ret2 or Vector(0,0,0)
 	return ret2 - ret
 end
 
