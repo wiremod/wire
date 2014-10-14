@@ -191,19 +191,19 @@ end
 
 function ENT:TriggerInput(iname, value)
 	if (iname == "Red") then
-		self.R = value
+		self.R = math.Clamp(value,0,255)
 	elseif (iname == "Green") then
-		self.G = value
+		self.G = math.Clamp(value,0,255)
 	elseif (iname == "Blue") then
-		self.B = value
+		self.B = math.Clamp(value,0,255)
 	elseif (iname == "RGB") then
-		self.R, self.G, self.B = value[1], value[2], value[3]
+		self.R, self.G, self.B = math.Clamp(value[1],0,255), math.Clamp(value[2],0,255), math.Clamp(value[3],0,255)
 	elseif (iname == "GlowBrightness") then
-		if not game.SinglePlayer() then math.Clamp( value, 0, 10 ) end
+		if not game.SinglePlayer() then value = math.Clamp( value, 0, 10 ) end
 		self.brightness = value
 		self:SetBrightness( value )
 	elseif (iname == "GlowSize") then
-		if not game.SinglePlayer() then math.Clamp( value, 0, 1024 ) end
+		if not game.SinglePlayer() then value = math.Clamp( value, 0, 1024 ) end
 		self.size = value
 		self:SetSize( value )
 	end
