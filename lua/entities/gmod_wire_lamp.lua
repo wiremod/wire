@@ -88,19 +88,21 @@ end
 
 function ENT:TriggerInput(iname, value)
 	if (iname == "Red") then
-		self.r = value
+		self.r = math.Clamp(value,0,255)
 	elseif (iname == "Green") then
-		self.g = value
+		self.g = math.Clamp(value,0,255)
 	elseif (iname == "Blue") then
-		self.b = value
+		self.b = math.Clamp(value,0,255)
 	elseif (iname == "RGB") then
-		self.r, self.g, self.b = value[1], value[2], value[3]
+		self.r = math.Clamp(value[1],0,255)
+		self.g = math.Clamp(value[2],0,255)
+		self.b = math.Clamp(value[3],0,255)
 	elseif (iname == "FOV") then
 		self.FOV = value
 	elseif (iname == "Distance") then
 		self.Dist = value
 	elseif (iname == "Brightness") then
-		self.Brightness = value
+		self.Brightness = math.Clamp(value,0,255)
 	elseif (iname == "On") then
 		self:Switch( value ~= 0 )
 	elseif (iname == "Texture") then
