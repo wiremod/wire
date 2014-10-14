@@ -234,7 +234,7 @@ function ENT:Think()
 		// Find targets that meet requirements
 		local mypos = self:GetPos()
 		local bogeys,dists = {},{}
-		for _,contact in pairs(ents.FindInSphere(self:GetPos(), self.MaxRange or 10)) do
+		for _,contact in pairs(ents.FindInSphere(mypos, self.MaxRange or 10)) do
 			local class = contact:GetClass()
 			if (not self.NoTargetOwnersStuff or (class == "player") or (WireLib.GetOwner(contact) ~= self:GetPlayer())) and (
 				-- NPCs
