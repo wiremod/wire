@@ -303,7 +303,7 @@ e2function void entity:setBuoyancy(number perbuoy)
 	if E2Lib.isnan( perbuoy ) then perbuoy = 0 end
 	local perbuoy = Clamp(perbuoy, 0, 100)
 	local phys = this:GetPhysicsObject()
-        phys:SetBuoyancyRatio(perbuoy/100)
+	phys:SetBuoyancyRatio(perbuoy/100)
 end
 
 /******************************************************************************/
