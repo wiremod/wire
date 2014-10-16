@@ -216,6 +216,17 @@ e2function void entity:propDrag( number drag )
 	end
 end
 
+
+e2function void entity:propSetBuoyancy(number buoyratio)
+	if not PropCore.ValidAction(self, this, "buoy") then return end
+	if E2Lib.isnan( perbuoy ) then perbuoy = 0 end
+	local buoyratio = Clamp(buoyratio, 0, 1)
+	local phys = this:GetPhysicsObject()
+	if IsValid( phys ) then
+		phys:SetBuoyancyRatio(buoyratio)
+	end
+end
+
 --------------------------------------------------------------------------------
 
 e2function void entity:setPos(vector pos)
