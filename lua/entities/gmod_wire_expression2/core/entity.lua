@@ -296,6 +296,16 @@ e2function number entity:volume()
 	return phys:GetVolume()
 end
 
+e2function void entity:setBuoyancy(number perbuoy)
+	if not validPhysics(this) then return end
+	if not isOwner(self, this) then return end
+	if(this:IsPlayer()) then return end
+	if E2Lib.isnan( perbuoy ) then perbuoy = 0 end
+	local perbuoy = Clamp(perbuoy, 0, 100)
+	local phys = this:GetPhysicsObject()
+        phys:SetBuoyancyRatio(perbuoy/100)
+end
+
 /******************************************************************************/
 // Functions getting boolean/number
 e2function number entity:isPlayer()
