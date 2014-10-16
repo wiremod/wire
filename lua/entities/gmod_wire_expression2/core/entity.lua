@@ -734,7 +734,7 @@ e2function array entity:attachments()
 	local tmp = {}
 	local atc = this:GetAttachments()
 	for i=1, #atc do
-		tmp[i] = v.name
+		tmp[i] = atc[i].name
 	end
 	return tmp
 end
