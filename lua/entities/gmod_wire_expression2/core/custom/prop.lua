@@ -216,13 +216,13 @@ e2function void entity:propDrag( number drag )
 	end
 end
 
-e2function void entity:propSetBuoyancy(number perbuoy)
+e2function void entity:propSetBuoyancy(number bratio)
 	if not PropCore.ValidAction(self, this, "buoy") then return end
-	if E2Lib.isnan( perbuoy ) then perbuoy = 0 end
-	local perbuoy = math.Clamp(perbuoy, 0, 1)
+	if E2Lib.isnan( bratio ) then bratio = 0 end
+	local bratio = math.Clamp(bratio, 0, 1)
 	local phys = this:GetPhysicsObject()
 	if IsValid( phys ) then
-		phys:SetBuoyancyRatio(perbuoy)
+		phys:SetBuoyancyRatio(bratio)
 	end
 end
 
