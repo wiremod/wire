@@ -11,6 +11,7 @@ if ( CLIENT ) then
 	language.Add( "Tool.wire_cam.localmove", "Localized movement" )
 	language.Add( "Tool.wire_cam.allowzoom", "Client side zooming" )
 	language.Add( "Tool.wire_cam.autounclip", "Auto un-clip" )
+	language.Add( "Tool.wire_cam.autounclip_ignorewater", "Auto un-clip ignores water" )
 	language.Add( "Tool.wire_cam.drawplayer", "Draw player" )
 	language.Add( "Tool.wire_cam.smooth_amount", "Smooth speed (default: 18)" )
 end
@@ -24,7 +25,8 @@ if SERVER then
 				self:GetClientNumber( "localmove" ),
 				self:GetClientNumber( "allowzoom" ),
 				self:GetClientNumber( "autounclip" ),
-				self:GetClientNumber( "drawplayer" )
+				self:GetClientNumber( "drawplayer" ),
+				self:GetClientNumber( "autounclip_ignorewater" )
 	end
 end
 
@@ -34,6 +36,7 @@ TOOL.ClientConVar[ "automove" ] = "0"
 TOOL.ClientConVar[ "localmove" ] = "0"
 TOOL.ClientConVar[ "allowzoom" ] = "0"
 TOOL.ClientConVar[ "autounclip" ] = "0"
+TOOL.ClientConVar[ "autounclip_ignorewater" ] = "0"
 TOOL.ClientConVar[ "drawplayer" ] = "1"
 TOOL.ClientConVar[ "smooth_amount" ] = "18"
 
@@ -50,6 +53,8 @@ function TOOL.BuildCPanel(panel)
 	panel:Help( "Allow the player to move the camera in and out using the scroller on their mouse. The 'Distance' input is used as an offset for this. (NOTE: only used if 'client side movement' is enabled. NOTE: The cam controller's outputs might be wrong when this is enabled, because the server doesn't know how much they've zoomed - it only knows what the 'Distance' input is set to)." )
 	panel:CheckBox("#Tool.wire_cam.autounclip", "wire_cam_autounclip" )
 	panel:Help( "Automatically prevents the camera from clipping into walls by moving it closer to the parent entity (or cam controller if no parent is specified)." )
+	panel:CheckBox("#Tool.wire_cam.autounclip_ignorewater", "wire_cam_autounclip_ignorewater" )
+	
 	panel:CheckBox("#Tool.wire_cam.drawplayer", "wire_cam_drawplayer" )
 	panel:Help( "Enable/disable the player being able to see themselves. Useful if you want to position the camera inside the player's head." )
 	
