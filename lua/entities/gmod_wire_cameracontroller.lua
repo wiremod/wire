@@ -39,6 +39,7 @@ if CLIENT then
 	local AutoMove = false
 	local LocalMove = false
 	local AutoUnclip = false
+	local AutoUnclip_IgnoreWater = false
 	local AllowZoom = false
 	local DrawPlayer = true
 	
@@ -118,7 +119,7 @@ if CLIENT then
 		local tr = {
 			start = start,
 			endpos = endpos,
-			mask = bit.bor(MASK_WATER, CONTENTS_SOLID),
+			mask = (AutoUnclip_IgnoreWater and CONTENTS_SOLID or bit.bor(MASK_WATER, CONTENTS_SOLID)),
 			mins = Vector(-8,-8,-8),
 			maxs = Vector(8,8,8)
 		}
@@ -244,6 +245,7 @@ if CLIENT then
 			LocalMove = net.ReadBit() ~= 0
 			AllowZoom = net.ReadBit() ~= 0
 			AutoUnclip = net.ReadBit() ~= 0
+			AutoUnclip_IgnoreWater = net.ReadBit() ~= 0
 			DrawPlayer = net.ReadBit() ~= 0
 			ReadPositions()
 			
@@ -344,13 +346,16 @@ end
 --------------------------------------------------
 
 function ENT:UpdateOverlay()
+	local unclip = self.AutoUnclip and "Yes" or "No"
+	if self.AutoUnclip_IgnoreWater then unclip = unclip .. " (Ignores water)" end
+
 	self:SetOverlayText(
 		string.format( "Local Coordinates: %s\nClient side movement: %s\nCL movement local to parent: %s\nClient side zooming: %s\nAuto unclip: %s\nDraw player: %s\n\nActivated: %s",
 			self.ParentLocal and "Yes" or "No",
 			self.AutoMove and "Yes" or "No",
 			self.LocalMove and "Yes" or "No",
 			self.AllowZoom and "Yes" or "No",
-			self.AutoUnclip and "Yes" or "No",
+			unclip,
 			self.DrawPlayer and "Yes" or "No",
 			self.Activated and "Yes" or "No"
 		)
@@ -361,12 +366,13 @@ end
 -- Setup
 --------------------------------------------------
 
-function ENT:Setup(ParentLocal,AutoMove,LocalMove,AllowZoom,AutoUnclip,DrawPlayer)
+function ENT:Setup(ParentLocal,AutoMove,LocalMove,AllowZoom,AutoUnclip,DrawPlayer,AutoUnclip_IgnoreWater)
 	self.ParentLocal = tobool(ParentLocal)
 	self.AutoMove = tobool(AutoMove)
 	self.LocalMove = tobool(LocalMove)
 	self.AllowZoom = tobool(AllowZoom)
 	self.AutoUnclip = tobool(AutoUnclip)
+	self.AutoUnclip_IgnoreWater = tobool(AutoUnclip_IgnoreWater)
 	self.DrawPlayer = tobool(DrawPlayer)
 	
 	self:UpdateOverlay()
@@ -401,6 +407,7 @@ function ENT:SyncSettings( ply, active )
 			net.WriteBit( self.LocalMove )
 			net.WriteBit( self.AllowZoom )
 			net.WriteBit( self.AutoUnclip )
+			net.WriteBit( self.AutoUnclip_IgnoreWater )
 			net.WriteBit( self.DrawPlayer )
 			SendPositions( self.Position, self.Angle, self.Distance )
 		end
@@ -508,7 +515,7 @@ function ENT:UpdateOutputs()
 			local tr = {
 				start = start,
 				endpos = endpos,
-				mask = bit.bor(MASK_WATER, CONTENTS_SOLID),
+				mask = (self.AutoUnclip_IgnoreWater and CONTENTS_SOLID or bit.bor(MASK_WATER, CONTENTS_SOLID)),
 				mins = Vector(-8,-8,-8),
 				maxs = Vector(8,8,8)
 			}
@@ -959,4 +966,4 @@ end
 WireLib.AddInputAlias( "Zoom", "FOV" )
 WireLib.AddOutputAlias( "XYZ", "HitPos" )
 
-duplicator.RegisterEntityClass("gmod_wire_cameracontroller", WireLib.MakeWireEnt, "Data", "ParentLocal","AutoMove","LocalMove","AllowZoom","AutoUnclip","DrawPlayer")
+duplicator.RegisterEntityClass("gmod_wire_cameracontroller", WireLib.MakeWireEnt, "Data", "ParentLocal","AutoMove","LocalMove","AllowZoom","AutoUnclip","DrawPlayer","AutoUnclip_IgnoreWater")
