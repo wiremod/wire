@@ -234,6 +234,7 @@ end
 
 --Dynamic button materials
 local WireDynamicButtonMaterials = {
+	["No Material"] = "",
     ["Clean"] = "bull/dynamic_button_clean",
     ["0"]     = "bull/dynamic_button_0",
     ["1"]     = "bull/dynamic_button_1",
@@ -641,9 +642,10 @@ list.Set("Wire_chip_Models", "models/bull/gates/transistor2_mini.mdl", true)
 list.Set("Wire_speaker_Models", "models/bull/various/subwoofer.mdl", true)
 
 -- Converted from WireModelPacks/bull_buttons.txt
+list.Set("Wire_dynamic_button_Models", "models/bull/dynamicbuttonmedium.mdl", true)
 list.Set("Wire_dynamic_button_Models", "models/bull/dynamicbuttonflat.mdl", true)
 list.Set("Wire_dynamic_button_Models", "models/bull/dynamicbutton.mdl", true)
 list.Set("Wire_dynamic_button_small_Models", "models/bull/dynamicbuttonmedium_small.mdl", true)
 list.Set("Wire_dynamic_button_small_Models", "models/bull/dynamicbutton_small.mdl", true)
 list.Set("Wire_dynamic_button_small_Models", "models/bull/dynamicbuttonflat_small.mdl", true)
-list.Set("Wire_dynamic_button_Models", "models/bull/dynamicbuttonmedium.mdl", true)
+list.Set("Wire_dynamic_button_Models", "models/maxofs2d/button_05.mdl", true)
