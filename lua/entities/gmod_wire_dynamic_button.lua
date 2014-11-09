@@ -92,7 +92,7 @@ function ENT:Think()
 	end
 end
 
-function ENT:Setup(toggle, value_off, value_on, description, entityout, material_on, material_off, on_r, on_g, on_b, off_r, off_g, off_b )
+function ENT:Setup(toggle, value_on, value_off, description, entityout, material_on, material_off, on_r, on_g, on_b, off_r, off_g, off_b )
 	self.toggle = toggle
 	self.value_off = value_off
 	self.value_on = value_on
@@ -139,13 +139,13 @@ function ENT:Switch(on)
 	if (on) then
 		self:ShowOutput(self.value_on)
 		self.Value = self.value_on
-        self:SetMaterial(self.material_on)
+        if self.material_on ~= "" then self:SetMaterial(self.material_on) end
 		self:SetColor(Color(self.on_r, self.on_g, self.on_b, 255))
 
 	else
 		self:ShowOutput(self.value_off)
 		self.Value = self.value_off
-		self:SetMaterial(self.material_off)
+		if self.material_off ~= "" then self:SetMaterial(self.material_off) end
         self:SetColor(Color(self.off_r, self.off_g, self.off_b, 255))
 
 		if self.OutputEntID then self.EntToOutput = NULL end
@@ -163,4 +163,4 @@ function ENT:ShowOutput(value)
 	self:SetOverlayText( "(" .. self.value_off .. " - " .. self.value_on .. ") = " .. value )
 end
 
-duplicator.RegisterEntityClass("gmod_wire_dynamic_button", WireLib.MakeWireEnt, "Data", "toggle", "value_off", "value_on", "description", "entityout", "material_on", "material_off", "on_r", "on_g", "on_b", "off_r", "off_g", "off_b" )
+duplicator.RegisterEntityClass("gmod_wire_dynamic_button", WireLib.MakeWireEnt, "Data", "toggle", "value_on", "value_off", "description", "entityout", "material_on", "material_off", "on_r", "on_g", "on_b", "off_r", "off_g", "off_b" )

@@ -9,14 +9,18 @@ if CLIENT then
 	language.Add( "WireDynamicButtonTool_entityout", "Output Entity" )
 	language.Add( "WireDynamicButtonTool_value_on", "Value On:" )
 	language.Add( "WireDynamicButtonTool_value_off", "Value Off:" )
+	language.Add( "WireDynamicButtonTool_materials_on", "Material On:" )
+	language.Add( "WireDynamicButtonTool_materials_off", "Material Off:" )
+	language.Add( "WireDynamicButtonTool_colour_on", "Color On:" )
+	language.Add( "WireDynamicButtonTool_colour_off", "Color Off:" )
 end
 WireToolSetup.BaseLang("Dynamic Buttons")
 WireToolSetup.SetupMax( 20 )
 
 if SERVER then
 	function TOOL:GetConVars() 
-		return self:GetClientNumber( "toggle" ) ~= 0, self:GetClientNumber( "value_off" ), self:GetClientNumber( "value_on" ), 
-			self:GetClientInfo( "description" ), self:GetClientNumber( "entityout" ) ~= 0, self:GetClientInfo( "material_off" ), self:GetClientInfo( "material_on" ), 
+		return self:GetClientNumber( "toggle" ) ~= 0, self:GetClientNumber( "value_on" ), self:GetClientNumber( "value_off" ), 
+			self:GetClientInfo( "description" ), self:GetClientNumber( "entityout" ) ~= 0, self:GetClientInfo( "material_on" ), self:GetClientInfo( "material_off" ), 
 			self:GetClientNumber( "on_r" ), self:GetClientNumber( "on_g" ), self:GetClientNumber( "on_b" ), 
 			self:GetClientNumber( "off_r" ), self:GetClientNumber( "off_g" ), self:GetClientNumber( "off_b" )
 	end
@@ -50,17 +54,17 @@ function TOOL.BuildCPanel(panel)
 		{	dynamic_button = "Normal",
 			dynamic_button_small = "Small"
 		},
-		"wire_dynamic_button", "#Dynamic_Button_Model", 1.1
+		"wire_dynamic_button", "#Dynamic_Button_Model", 1.3
 	)
 
 	panel:NumSlider("#WireDynamicButtonTool_value_on", "wire_dynamic_button_value_on", -10, 10, 1)
 	panel:AddControl("ListBox", {
-		Label = "WireDynamicButtonMaterialsOn",
+		Label = "#WireDynamicButtonTool_materials_on",
 		Options = list.Get( "WireDynamicButtonMaterialsOn" )
 	} )
 
 	panel:AddControl("Color", {
-		Label = "#ToolWireDynamicButton_colour_on",
+		Label = "#WireDynamicButtonTool_colour_on",
 		Red = "wire_dynamic_button_on_r",
 		Green = "wire_dynamic_button_on_g",
 		Blue = "wire_dynamic_button_on_b",
@@ -68,12 +72,12 @@ function TOOL.BuildCPanel(panel)
 
 	panel:NumSlider("#WireDynamicButtonTool_value_off", "wire_dynamic_button_value_off", -10, 10, 1)
 	panel:AddControl("ListBox", {
-		Label = "#WireDynamicButtonTool_entityout",
+		Label = "#WireDynamicButtonTool_materials_off",
 		Options = list.Get( "WireDynamicButtonMaterialsOff" )
 	} )
 
 	panel:AddControl("Color", {
-		Label = "#ToolWireDynamicButton_colour_off",
+		Label = "#WireDynamicButtonTool_colour_off",
 		Red = "wire_dynamic_button_off_r",
 		Green = "wire_dynamic_button_off_g",
 		Blue = "wire_dynamic_button_off_b",
