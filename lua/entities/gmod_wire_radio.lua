@@ -12,8 +12,8 @@ function ENT:Initialize()
 	self:SetMoveType( MOVETYPE_VPHYSICS )
 	self:SetSolid( SOLID_VPHYSICS )
 
-	self.Inputs = Wire_CreateInputs(self, { "Channel"})
-	self.Outputs = Wire_CreateOutputs(self, { "ERRORS!!!" })
+	self.Inputs = WireLib.CreateInputs(self, { "Channel"})
+	self.Outputs = WireLib.CreateOutputs(self, { "ERRORS!!!" })
 
 	self.Channel = 0
 	self.values = 4
@@ -34,7 +34,7 @@ end
 
 function ENT:Setup(channel,values,secure)
 	channel = math.floor(tonumber(channel) or 0)
-	self.secure = secure
+	self.Secure = secure
 	self.Old = false
 	if (tonumber(values) == nil) then
 		values = 4
@@ -47,15 +47,15 @@ function ENT:Setup(channel,values,secure)
 	local onames = {}
 	if (self.Old == false) then
 		for i = 1,self.values do
-			onames[i] = tostring(i) //without tostring() you kill the debugger.
+			onames[i] = tostring(i) --without tostring() you kill the debugger.
 		end
 	else
 		onames = {"A","B","C","D"}
 	end
 
-	Wire_AdjustOutputs(self,onames)
+	WireLib.AdjustOutputs(self,onames)
 	table.insert(onames,"Channel")
-	Wire_AdjustInputs(self,onames)
+	WireLib.AdjustInputs(self,onames)
 
 	self.Channel = channel
 	Radio_ChangeChannel(self)
@@ -85,7 +85,7 @@ function ENT:TriggerInput(iname, value)
 end
 
 function ENT:NotifyDataRecieved(subch)
-	Wire_TriggerOutput(self,tostring(subch+1),self.RecievedData[subch].Data)
+	WireLib.TriggerOutput(self,tostring(subch+1),self.RecievedData[subch].Data)
 end
 
 function ENT:ReadCell(Address)
@@ -119,7 +119,7 @@ function ENT:ShowOutput()
 			overlay = overlay .. " " .. i .. ":" ..
 				math.Round((self.RecievedData[i-1].Data)*1000)/1000
 		end
-		if (self.secure == true) then overlay = overlay .. "\nSecured" end
+		if (self.Secure == true) then overlay = overlay .. "\nSecured" end
 		self:SetOverlayText(overlay)
 	end
 end
@@ -134,4 +134,4 @@ function ENT:OnRemove()
 	Radio_Unregister(self)
 end
 
-duplicator.RegisterEntityClass("gmod_wire_radio", WireLib.MakeWireEnt, "Data", "channel", "values", "secure")
+duplicator.RegisterEntityClass("gmod_wire_radio", WireLib.MakeWireEnt, "Data", "Channel", "values", "Secure")
