@@ -196,13 +196,7 @@ if CLIENT then
 
 		local scale = self.scale or Vector(1, 1, 1)
 
-		local count = self:GetBoneCount() or -1
-		if count > 1 then
-			for i = count, 0, -1 do
-				local bone_scale = self.bone_scale[i] or scale
-				self:ManipulateBoneScale(i, bone_scale) // Note: Using ManipulateBoneScale currently causes RenderBounds to be reset every frame!
-			end
-		elseif self.EnableMatrix then
+		if self.EnableMatrix then
 			local mat = Matrix()
 			mat:Scale(Vector(scale.x, scale.y, scale.z))
 			self:EnableMatrix("RenderMultiply", mat)
@@ -210,10 +204,19 @@ if CLIENT then
 			-- Some entities, like ragdolls, cannot be resized with EnableMatrix, so lets average the three components to get a float
 			self:SetModelScale((scale.x + scale.y + scale.z) / 3, 0)
 		end
+		
+		if table.Count( self.bone_scale ) > 0 then
+			local count = self:GetBoneCount() or -1
+			
+			for i = count, 0, -1 do
+				local bone_scale = self.bone_scale[i] or Vector(1,1,1)
+				self:ManipulateBoneScale(i, bone_scale) // Note: Using ManipulateBoneScale currently causes RenderBounds to be reset every frame!
+			end
+		end
 
 		local propmax = self:OBBMaxs()
 		local propmin = self:OBBMins()
-		self:SetRenderBounds(Vector(scale.x * propmax.x, scale.y * propmax.y, scale.z * propmax.z), Vector(scale.x * propmin.x, scale.y * propmin.y, scale.z * propmin.z))
+		self:SetRenderBounds(Vector(scale.x * propmin.x, scale.y * propmin.y, scale.z * propmin.z),Vector(scale.x * propmax.x, scale.y * propmax.y, scale.z * propmax.z))
 	end
 
 	net.Receive("wire_holograms_set_scale", function(netlen)
