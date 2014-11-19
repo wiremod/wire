@@ -256,11 +256,10 @@ end
 
 e2function void entity:parentTo(entity target)
 	if not PropCore.ValidAction(self, this, "parent") then return end
-	if not IsValid(target) then return end
+	if not IsValid(target) then return nil end
 	if(!isOwner(self, target)) then return end
 	if this == target then return end
 	if (!parent_check( this, target )) then return end
-	if this:IsVehicle() and target:IsPlayer() then return end
 	this:SetParent(target)
 end
 
