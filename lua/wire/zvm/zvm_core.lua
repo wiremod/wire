@@ -568,6 +568,9 @@ end
 function ZVM:Step(overrideSteps,extraEmitFunction)
   if self.BusLock == 1 then return end
 
+  -- Trigger timers
+  self:TimerLogic()
+  
   -- Calculate absolute execution address and set current page
   self.XEIP = self.IP + self.CS
   self:SetCurrentPage(math.floor(self.XEIP/128))
@@ -636,9 +639,6 @@ function ZVM:Step(overrideSteps,extraEmitFunction)
     -- Step clock forward (account for precompiling)
     self.TMR = self.TMR + 24*8000--instruction*9000
   end
-  
-  -- Trigger timers
-  self:TimerLogic()
 
   -- Set this page as previous (if it is executable)
   self.XEIP = self.IP + self.CS
