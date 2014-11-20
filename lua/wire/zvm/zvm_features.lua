@@ -688,6 +688,7 @@ function ZVM:Interrupt(interruptNo,interruptParameter,isExternal,cascadeInterrup
       --6  [64] = NMI interrupt
       --7  [128] = Replace PTBL with NewPTE (overrides #8)
       --8  [256] = Replace PTBE with NewPTE
+      --9  [512] = Push extended registers (R0-R31)
 
       if isExternal and (FLAGS[6] ~= 1) then
         if not cascadeInterrupt then self:Interrupt(13,4,false,true) end
@@ -695,8 +696,15 @@ function ZVM:Interrupt(interruptNo,interruptParameter,isExternal,cascadeInterrup
       end
 
       if FLAGS[5] == 1 then -- Interrupt enabled
-        -- Push return data
+        -- Push extended registers
         self.BusLock = 0
+        if FLAGS[9] == 1 then
+          for i=31,0,-1 do
+            self:Push(self["R"..i])
+          end
+        end
+
+        -- Push return data
         self.IF = 0
         self.INTR = 0
         self:Push(self.IP)

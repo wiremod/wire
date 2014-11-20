@@ -85,7 +85,10 @@ if CLIENT then
   function CPULib.SelectTab(editor,fileName)
     if not editor then return end
     local fullFileName = editor.EditorType.."Chip\\"..fileName
-    if string.sub(fileName,1,7) == editor.EditorType.."Chip" then
+    fileName = string.lower(fileName)
+    fullFileName = string.lower(fullFileName)
+    editor.EditorType = string.lower(editor.EditorType)
+    if string.sub(fileName,1,7) == editor.EditorType.."chip" then
       fullFileName = fileName
     end
 
@@ -1034,6 +1037,8 @@ CPU(135, "ENTER",         1,  10.00,    0,         "SIZE",  "",      "Enter stac
 CPU(136, "IRETP",         1,   2.00,    R0,        "PTBL",  "",      "Set PTBL, then return from an interrupt")
 CPU(137, "EXTRETP",       1,  10.00,    R0,        "PTBL",  "",      "Set PTBL, then return from an external interrupt")
 ---- Dec 14 -- UNDEFINED ------------------------------------------------------------------------------------------------------------------------
+CPU(140, "EXTRETA",       0,  11.00,    R0,        "",      "",      "Return from an external interrupt and restore R0-R31 registers")
+CPU(141, "EXTRETPA",      1,  11.00,    R0,        "PTBL",  "",      "Set PTBL, then return from an external interrupt with restoring R0-R31 registers")
 ---- Dec 15 -- UNDEFINED ------------------------------------------------------------------------------------------------------------------------
 ---- Dec 16 -- UNDEFINED ------------------------------------------------------------------------------------------------------------------------
 ---- Dec 17 -- UNDEFINED ------------------------------------------------------------------------------------------------------------------------
