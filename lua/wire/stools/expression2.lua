@@ -33,7 +33,7 @@ if SERVER then
 		local pos = trace.HitPos
 		local ang = self:GetAngle(trace)
 
-		if trace.Entity:IsValid() and trace.Entity:GetClass() == "gmod_wire_expression2" then
+		if IsValid(trace.Entity) and trace.Entity:GetClass() == "gmod_wire_expression2" then
 			self:Upload(trace.Entity)
 			return true
 		end
@@ -41,7 +41,7 @@ if SERVER then
 		if not self:GetSWEP():CheckLimit("wire_expressions") then return false end
 
 		local entity = ents.Create("gmod_wire_expression2")
-		if not entity or not entity:IsValid() then return false end
+		if not IsValid(entity) then return false end
 
 		player:AddCount("wire_expressions", entity)
 
@@ -74,7 +74,7 @@ if SERVER then
 
 		local player = self:GetOwner()
 
-		if trace.Entity:IsValid() and trace.Entity:GetClass() == "gmod_wire_expression2" then
+		if IsValid(trace.Entity) and trace.Entity:GetClass() == "gmod_wire_expression2" then
 			trace.Entity:Reset()
 			return true
 		else
@@ -88,7 +88,7 @@ if SERVER then
 
 		local player = self:GetOwner()
 
-		if trace.Entity:IsValid() and trace.Entity:GetClass() == "gmod_wire_expression2" then
+		if IsValid(trace.Entity) and trace.Entity:GetClass() == "gmod_wire_expression2" then
 			self:Download(player, trace.Entity)
 			return true
 		end
@@ -313,7 +313,7 @@ if SERVER then
 		local E2 = tonumber(args[1])
 		if not E2 then return end
 		E2 = Entity(E2)
-		if not E2 or not E2:IsValid() or E2:GetClass() ~= "gmod_wire_expression2" then return end
+		if not IsValid(E2) or E2:GetClass() ~= "gmod_wire_expression2" then return end
 		if canhas(player) then return end
 		if E2.error then return end
 		if hook.Run( "CanTool", player, WireLib.dummytrace( E2 ), "wire_expression2" ) then
@@ -333,7 +333,7 @@ if SERVER then
 		if not E2 then return end
 		E2 = Entity(E2)
 		if canhas(player) then return end
-		if not E2 or not E2:IsValid() or E2:GetClass() ~= "gmod_wire_expression2" then return end
+		if not IsValid(E2) or E2:GetClass() ~= "gmod_wire_expression2" then return end
 		if hook.Run( "CanTool", player, WireLib.dummytrace( E2 ), "wire_expression2" ) then
 			WireLib.Expression2Download(player, E2)
 			WireLib.AddNotify(player, "Downloading code...", NOTIFY_GENERIC, 5, math.random(1, 4))
@@ -351,7 +351,7 @@ if SERVER then
 		local E2 = tonumber(args[1])
 		if not E2 then return end
 		E2 = Entity(E2)
-		if not E2 or not E2:IsValid() or E2:GetClass() ~= "gmod_wire_expression2" then return end
+		if not IsValid(E2) or E2:GetClass() ~= "gmod_wire_expression2" then return end
 		if canhas(player) then return end
 		if hook.Run( "CanTool", player, WireLib.dummytrace( E2 ), "wire_expression2" ) then
 			if E2.context.data.last or E2.first then return end
@@ -1008,7 +1008,7 @@ elseif CLIENT then
 	net.Receive("wire_expression2_editor_status", function(len)
 		local ply = net.ReadEntity()
 		local status = net.ReadBit() ~= 0 -- net.ReadBit returns 0 or 1, despite net.WriteBit taking a boolean
-		if not ply:IsValid() or ply == LocalPlayer() then return end
+		if not IsValid(ply) or ply == LocalPlayer() then return end
 
 		busy_players[ply] = status or nil
 	end)
