@@ -1536,13 +1536,6 @@ function Editor:InitControlPanel(frame)
 	ConcmdWhitelist:SetConVar("wire_expression2_concmd_whitelist")
 	ConcmdWhitelist:SetToolTip("Separate the commands with commas.")
 
-	local FriendWrite = vgui.Create("DCheckBoxLabel")
-	dlist:AddItem(FriendWrite)
-	FriendWrite:SetConVar("wire_expression2_friendwrite")
-	FriendWrite:SetText("Friend Write")
-	FriendWrite:SizeToContents()
-	FriendWrite:SetTooltip("Allow/disallow people in your prop protection friends list from reading and writing to your E2s.")
-
 	local label = vgui.Create("DLabel")
 	dlist:AddItem(label)
 	label:SetText("Expression 2 block comment style")
