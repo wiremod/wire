@@ -142,7 +142,7 @@ if SERVER then
 			error("Invalid player entity (wtf??). This should never happen. " .. tostring(ply), 0)
 		end
 
-		if not hook.Run( "CanTool", ply, WireLib.dummytrace(targetEnt), "wire_expression2") ) then return end then
+		if not hook.Run( "CanTool", ply, WireLib.dummytrace(targetEnt), "wire_expression2") then
 			WireLib.AddNotify(ply, "You're not allowed to download from this Expression (ent index: " .. targetEnt:EntIndex() .. ").", NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3)
 			return
 		end
@@ -324,7 +324,7 @@ if SERVER then
 				player:PrintMessage(HUD_PRINTCONSOLE, "Expression halted.")
 			end
 		else
-			WireLib.ClientError("You do not have premission to halt this E2.", player)
+			WireLib.ClientError("You do not have permission to halt this E2.", player)
 		end
 	end)
 
@@ -365,7 +365,7 @@ if SERVER then
 				E2.player:PrintMessage(HUD_PRINTCONSOLE, player:Nick() .. " reset your E2 '" .. E2.name .. "' using remote updater.")
 			end
 		else
-			WireLib.ClientError("You do not have premission to halt this E2.", player)
+			WireLib.ClientError("You do not have permission to reset this E2.", player)
 		end
 	end)
 	
