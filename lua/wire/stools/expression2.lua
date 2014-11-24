@@ -142,7 +142,7 @@ if SERVER then
 			error("Invalid player entity (wtf??). This should never happen. " .. tostring(ply), 0)
 		end
 
-		if not hook.Run( "CanTool", ply, WireLib.dummytrace(targetEnt), "wire_expression") ) then return end then
+		if not hook.Run( "CanTool", ply, WireLib.dummytrace(targetEnt), "wire_expression2") ) then return end then
 			WireLib.AddNotify(ply, "You're not allowed to download from this Expression (ent index: " .. targetEnt:EntIndex() .. ").", NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3)
 			return
 		end
