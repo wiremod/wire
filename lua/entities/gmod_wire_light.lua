@@ -19,6 +19,13 @@ if CLIENT then
 
 	function ENT:Initialize()
 		self.PixVis = util.GetPixelVisibleHandle()
+
+		--[[
+		This is some unused value which is used to activate the wire overlay.
+		We're not using it because we are using NetworkVars instead, since wire
+		overlays only update when you look at them, and we want to update the
+		sprite colors whenever the wire input changes. ]]
+		self:SetOverlayData({})
 	end
 	
 	function ENT:GetMyColor()
@@ -127,14 +134,6 @@ function ENT:Initialize()
 	self:SetSolid( SOLID_VPHYSICS )
 
 	self.Inputs = WireLib.CreateInputs(self, {"Red", "Green", "Blue", "RGB [VECTOR]"})
-	
-	--[[
-	This is some unused value which is used to activate the wire overlay.
-	We're not using it because we are using NetworkVars instead, since wire
-	overlays only update when you look at them
-	and we want to update the sprite colors whenever the wire input changes.
-	It will only ever be sent once per player, so it won't add much overhead. ]]
-	self:SetOverlayData( { 1 } ) 
 end
 
 function ENT:Directional( On )
