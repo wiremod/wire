@@ -42,6 +42,7 @@ if CLIENT then
 	local AutoUnclip_IgnoreWater = false
 	local AllowZoom = false
 	local DrawPlayer = true
+	local DrawParent = true
 	
 	-- View calculations
 	local max = math.max
@@ -247,6 +248,7 @@ if CLIENT then
 			AutoUnclip = net.ReadBit() ~= 0
 			AutoUnclip_IgnoreWater = net.ReadBit() ~= 0
 			DrawPlayer = net.ReadBit() ~= 0
+			DrawParent = net.ReadBit() ~= 0
 			ReadPositions()
 			
 			-- If we switched on, set current positions and angles
@@ -270,7 +272,7 @@ if CLIENT then
 				]]
 				
 				local parent, HasParent, ValidParent = GetParent()
-				if HasParent and ValidParent then
+				if HasParent and ValidParent and DrawParent then
 					clientprop = ClientsideModel( parent:GetModel(), parent:GetRenderGroup() )
 					clientprop:SetPos( parent:GetPos() )
 					clientprop:SetAngles( parent:GetAngles() )
@@ -350,13 +352,14 @@ function ENT:UpdateOverlay()
 	if self.AutoUnclip_IgnoreWater then unclip = unclip .. " (Ignores water)" end
 
 	self:SetOverlayText(
-		string.format( "Local Coordinates: %s\nClient side movement: %s\nCL movement local to parent: %s\nClient side zooming: %s\nAuto unclip: %s\nDraw player: %s\n\nActivated: %s",
+		string.format( "Local Coordinates: %s\nClient side movement: %s\nCL movement local to parent: %s\nClient side zooming: %s\nAuto unclip: %s\nDraw player: %s\nDraw parent: %s\n\nActivated: %s",
 			self.ParentLocal and "Yes" or "No",
 			self.AutoMove and "Yes" or "No",
 			self.LocalMove and "Yes" or "No",
 			self.AllowZoom and "Yes" or "No",
 			unclip,
 			self.DrawPlayer and "Yes" or "No",
+			self.DrawParent and "Yes" or "No",
 			self.Activated and "Yes" or "No"
 		)
 	)
@@ -366,7 +369,7 @@ end
 -- Setup
 --------------------------------------------------
 
-function ENT:Setup(ParentLocal,AutoMove,LocalMove,AllowZoom,AutoUnclip,DrawPlayer,AutoUnclip_IgnoreWater)
+function ENT:Setup(ParentLocal,AutoMove,LocalMove,AllowZoom,AutoUnclip,DrawPlayer,AutoUnclip_IgnoreWater,DrawParent)
 	self.ParentLocal = tobool(ParentLocal)
 	self.AutoMove = tobool(AutoMove)
 	self.LocalMove = tobool(LocalMove)
@@ -374,6 +377,7 @@ function ENT:Setup(ParentLocal,AutoMove,LocalMove,AllowZoom,AutoUnclip,DrawPlaye
 	self.AutoUnclip = tobool(AutoUnclip)
 	self.AutoUnclip_IgnoreWater = tobool(AutoUnclip_IgnoreWater)
 	self.DrawPlayer = tobool(DrawPlayer)
+	self.DrawParent = tobool(DrawParent)
 	
 	self:UpdateOverlay()
 end

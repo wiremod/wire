@@ -13,6 +13,7 @@ if ( CLIENT ) then
 	language.Add( "Tool.wire_cam.autounclip", "Auto un-clip" )
 	language.Add( "Tool.wire_cam.autounclip_ignorewater", "Auto un-clip ignores water" )
 	language.Add( "Tool.wire_cam.drawplayer", "Draw player" )
+	language.Add( "Tool.wire_cam.drawparent", "Draw parent" )
 	language.Add( "Tool.wire_cam.smooth_amount", "Smooth speed (default: 18)" )
 end
 WireToolSetup.BaseLang()
@@ -26,7 +27,8 @@ if SERVER then
 				self:GetClientNumber( "allowzoom" ),
 				self:GetClientNumber( "autounclip" ),
 				self:GetClientNumber( "drawplayer" ),
-				self:GetClientNumber( "autounclip_ignorewater" )
+				self:GetClientNumber( "autounclip_ignorewater" ),
+				self:GetClientNumber( "drawparent" )
 	end
 end
 
@@ -38,6 +40,7 @@ TOOL.ClientConVar[ "allowzoom" ] = "0"
 TOOL.ClientConVar[ "autounclip" ] = "0"
 TOOL.ClientConVar[ "autounclip_ignorewater" ] = "0"
 TOOL.ClientConVar[ "drawplayer" ] = "1"
+TOOL.ClientConVar[ "drawparent" ] = "1"
 TOOL.ClientConVar[ "smooth_amount" ] = "18"
 
 WireToolSetup.SetupLinking()
@@ -57,8 +60,10 @@ function TOOL.BuildCPanel(panel)
 	
 	panel:CheckBox("#Tool.wire_cam.drawplayer", "wire_cam_drawplayer" )
 	panel:Help( "Enable/disable the player being able to see themselves. Useful if you want to position the camera inside the player's head." )
+	panel:CheckBox("#Tool.wire_cam.drawparent", "wire_cam_drawparent" )
+	panel:Help( "Enable/disable the rendering of the parent entity. Useful if you want to position the camera inside the parent." )
 	
-	panel:Help( "As you may have noticed, there are a lot of behaviors that change depending on which checkboxes are checked. For a detailed walkthrough of everything, go to http://wiki.wiremod.com/wiki/Cam_Controller") 
+	panel:Help( "As you may have noticed, there are a lot of behaviours that change depending on which checkboxes are checked. For a detailed walk-through of everything, go to http://wiki.wiremod.com/wiki/Cam_Controller") 
 	
 	panel:NumSlider( "#Tool.wire_cam.smooth_amount", "wire_cam_smooth_amount", 4, 30, 1 )
 	panel:Help( "Smooth speed is a client side setting, and is not saved on the cam controller entity. Changing it will immediately affect all cam controllers you use." )
