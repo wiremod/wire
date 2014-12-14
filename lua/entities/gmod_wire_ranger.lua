@@ -118,21 +118,22 @@ end
 function ENT:Think()
 	self.BaseClass.Think(self)
 
-	local trace = {}
-	trace.start = self:GetPos()
+	local tracedata = {}
+	tracedata.start = self:GetPos()
 	if (self.Inputs.X.Value == 0 and self.Inputs.Y.Value == 0) then
-		trace.endpos = trace.start + self:GetUp() * self:GetBeamLength()
+		tracedata.endpos = tracedata.start + self:GetUp() * self:GetBeamLength()
 	else
 		local skew = Vector(self.Inputs.X.Value, self.Inputs.Y.Value, 1)
 		skew = skew*(self:GetBeamLength()/skew:Length())
 		local beam_x = self:GetRight()*skew.x
 		local beam_y = self:GetForward()*skew.y
 		local beam_z = self:GetUp()*skew.z
-		trace.endpos = trace.start + beam_x + beam_y + beam_z
+		tracedata.endpos = tracedata.start + beam_x + beam_y + beam_z
 	end
-	trace.filter = { self }
-	if (self.trace_water) then trace.mask = -1 end
-	trace = util.TraceLine(trace)
+	tracedata.filter = { self }
+	if (self.trace_water) then tracedata.mask = -1 end
+	local trace = util.TraceLine(tracedata)
+	trace.RealStartPos = tracedata.start
 
 	local dist = 0
 	local pos = Vector(0, 0, 0)
