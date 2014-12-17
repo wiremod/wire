@@ -31,7 +31,9 @@ e2function void entity:remoteSetCode( string code )
 	if not E2Lib.isOwner( self, this ) then return end
 	if not check(self.player) then return end
 	
-	this:Setup( code, {} )
+	timer.Simple( 0, function()
+		this:Setup( code, {}, nil, nil, "remoteSetCode" )
+	end )
 end
 
 e2function void entity:remoteSetCode( string main, table includes )
@@ -50,7 +52,9 @@ e2function void entity:remoteSetCode( string main, table includes )
 		end
 	end
 	
-	this:Setup( main, luatable )
+	timer.Simple( 0, function()
+		this:Setup( main, luatable, nil, nil, "remoteSetCode" )
+	end )
 end
 
 __e2setcost(20)
