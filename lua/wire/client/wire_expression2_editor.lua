@@ -806,7 +806,7 @@ function Editor:CloseTab(_tab)
 	table.remove(self.C['TabHolder'].panel.Items, sheetindex)
 	table.remove(self.C['TabHolder'].panel.tabScroller.Panels, tabscroller_sheetindex)
 
-	self.C['TabHolder'].panel:InvalidateLayout()
+	self.C['TabHolder'].panel.tabScroller:InvalidateLayout()
 	local w, h = self.C['TabHolder'].panel:GetSize()
 	self.C['TabHolder'].panel:SetSize(w + 1, h) -- +1 so it updates
 end
