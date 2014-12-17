@@ -517,7 +517,7 @@ function Editor:SetActiveTab(val)
 	if tabtext then
 		if self:GetActiveTab():GetText() ~= tabtext then
 			self:GetActiveTab():SetText(tabtext)
-			self.C['TabHolder'].panel:InvalidateLayout()
+			self.C['TabHolder'].panel.tabScroller:InvalidateLayout()
 		end
 	end
 end
