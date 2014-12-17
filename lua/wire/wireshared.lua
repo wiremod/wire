@@ -485,12 +485,14 @@ if SERVER then
 	function WireLib._SetInputs(ent, lqueue)
 		local queue = lqueue or queue
 		local eid = ent:EntIndex()
+		
+		if not ents_with_inputs[eid] then ents_with_inputs[eid] = {} end
 
 		queue[#queue+1] = { eid, DELETE, INPUT }
 
 		for Name, CurPort in pairs_sortvalues(ent.Inputs, WireLib.PortComparator) do
 			local entry = { Name, CurPort.Type, CurPort.Desc or "" }
-			ents_with_inputs[eid] = entry
+			ents_with_inputs[eid][#ents_with_inputs[eid]+1] = entry
 			queue[#queue+1] = { eid, PORT, INPUT, entry, CurPort.Num }
 		end
 		for Name, CurPort in pairs_sortvalues(ent.Inputs, WireLib.PortComparator) do
@@ -501,12 +503,14 @@ if SERVER then
 	function WireLib._SetOutputs(ent, lqueue)
 		local queue = lqueue or queue
 		local eid = ent:EntIndex()
+		
+		if not ents_with_outputs[eid] then ents_with_outputs[eid] = {} end
 
 		queue[#queue+1] = { eid, DELETE, OUTPUT }
 
 		for Name, CurPort in pairs_sortvalues(ent.Outputs, WireLib.PortComparator) do
 			local entry = { Name, CurPort.Type, CurPort.Desc or "" }
-			ents_with_outputs[eid] = entry
+			ents_with_outputs[eid][#ents_with_outputs[eid]+1] = entry
 			queue[#queue+1] = { eid, PORT, OUTPUT, entry, CurPort.Num }
 		end
 	end
