@@ -13,7 +13,9 @@ local wire_holograms_spawn_amount = CreateConVar( "wire_holograms_spawn_amount",
 local wire_holograms_burst_amount = CreateConVar( "wire_holograms_burst_amount", "80", {FCVAR_ARCHIVE} ) -- This limit goes down first, resets every burst_delay
 local wire_holograms_burst_delay = CreateConVar( "wire_holograms_burst_delay", "10", {FCVAR_ARCHIVE} )
 local wire_holograms_max_clips = CreateConVar( "wire_holograms_max_clips", "5", {FCVAR_ARCHIVE} ) -- Don't set higher than 16 without editing net.Start("wire_holograms_clip")
-local wire_holograms_modelany = CreateConVar( "wire_holograms_modelany", "0", {FCVAR_ARCHIVE}, "Allow holograms to use models besides the official hologram models." )
+local wire_holograms_modelany = CreateConVar( "wire_holograms_modelany", "0", {FCVAR_ARCHIVE},
+	"1: Allow holograms to use models besides the official hologram models." ..
+	"2: Allow holograms to additionally use models not present on the server." )
 local wire_holograms_size_max = CreateConVar( "wire_holograms_size_max", "50", {FCVAR_ARCHIVE} )
 util.AddNetworkString("wire_holograms_set_visible")
 util.AddNetworkString("wire_holograms_clip")
@@ -136,8 +138,10 @@ end
 local function GetModel(model)
 	if ModelList[model] then
 		model = "models/holograms/" .. ModelList[model] .. ".mdl"
-	elseif not wire_holograms_modelany:GetBool() then
+	elseif wire_holograms_modelany:GetInt() == 0 then
 		return
+	elseif wire_holograms_modelany:GetInt() == 1 then
+		if not util.IsValidModel(model) then return nil end
 	end
 	return Model(model)
 end
