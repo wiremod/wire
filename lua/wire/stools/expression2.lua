@@ -526,8 +526,8 @@ elseif CLIENT then
 					net.WriteString(datastr:sub(i, i + 63999))
 				net.SendToServer()
 			end)
+			delay = delay + 1
 		end
-		delay = delay + 1
 	end
 
 	function WireLib.Expression2Upload(targetEnt, code, filepath)
