@@ -532,6 +532,7 @@ function ENT:UpdateOutputs()
 		end
 		
 		local trace = util.TraceLine({start=curpos,endpos=curpos+curang:Forward()*999999999,filter=self.Entities})
+		trace.StartPos = curpos
 		local hitPos = trace.HitPos or Vector(0,0,0)
 		
 		if self.OldDupe then
