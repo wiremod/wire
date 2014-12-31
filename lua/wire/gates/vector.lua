@@ -65,11 +65,12 @@ GateActions["vector_neg"] = {
 GateActions["vector_mul"] = {
 	name = "Multiplication",
 	inputs = { "A", "B" },
-	inputtypes = { "VECTOR", "NORMAL" },
+	inputtypes = { "VECTOR", "VECTOR" },
 	outputtypes = { "VECTOR" },
 	output = function(gate, A, B)
-		if !isvector (A) then A = Vector (0, 0, 0) end
-		return (A * B)
+		if !A then A = Vector(0, 0, 0) end
+		if !B then B = Vector(0, 0, 0) end
+		return Vector( A.x * B.x, A.y * B.y, A.z * B.z )
 	end,
 	label = function(Out, A, B)
 		return string.format ("%s * %s = (%d,%d,%d)", A, B, Out.x, Out.y, Out.z)
@@ -662,7 +663,7 @@ GateActions["vector_mulcomp"] = {
 		return Vector( A.x * B, A.y * B, A.z * B )
 	end,
 	label = function(Out, A, B)
-	    return string.format ("%s * %s = "..tostring(Out), A, B )
+	    return string.format ("%s * %s = (%d,%d,%d)", A, B, Out.x, Out.y, Out.z )
 	end
 }
 
