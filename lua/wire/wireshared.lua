@@ -732,3 +732,27 @@ else
 		end
 	end)
 end
+
+--[[
+	Returns the "distance" between two strings
+	ie the amount of character swaps you have to do to get the first string to equal the second
+	Example:
+		levenshtein( "test", "toast" ) returns 2, because two steps: 'e' swapped to 'o', and 'a' is added
+	
+	Very useful for searching algorithms
+	Used by custom spawn menu search & gate tool search, for example
+	Credits go to: http://lua-users.org/lists/lua-l/2009-07/msg00461.html
+]]
+function WireLib.levenshtein( s, t )
+	local d, sn, tn = {}, #s, #t
+	local byte, min = string.byte, math.min
+	for i = 0, sn do d[i * tn] = i end
+	for j = 0, tn do d[j] = j end
+	for i = 1, sn do
+		local si = byte(s, i)
+		for j = 1, tn do
+			d[i*tn+j] = min(d[(i-1)*tn+j]+1, d[i*tn+j-1]+1, d[(i-1)*tn+j-1]+(si == byte(t,j) and 0 or 1))
+		end
+	end
+	return d[#d]
+end
