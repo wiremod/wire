@@ -23,6 +23,9 @@ hook.Add( "Think", "e2_printcolor_delays", function()
 			local print_max = ply:GetInfoNum( "wire_expression2_print_max", print_max )
 			
 			if CurTime() > delays.next_time and delays.count < print_max then
+				local print_delay = ply:GetInfoNum( "wire_expression2_print_delay", print_delay )
+				delays.next_time = CurTime() + print_delay
+				
 				delays.count = delays.count + 1
 			elseif delays.count > print_max then
 				delays.count = print_max
