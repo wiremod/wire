@@ -316,7 +316,7 @@ if SERVER then
 		if not IsValid(E2) or E2:GetClass() ~= "gmod_wire_expression2" then return end
 		if canhas(player) then return end
 		if E2.error then return end
-		if hook.Run( "CanTool", player, WireLib.dummytrace( E2 ), "wire_expression2" ) then
+		if hook.Run( "CanTool", player, WireLib.dummytrace( E2 ), "wire_expression2", "halt execution" ) then
 			E2:PCallHook("destruct")
 			E2:Error("Execution halted (Triggered by: " .. player:Nick() .. ")", "Execution halted")
 			if E2.player ~= player then
@@ -334,7 +334,7 @@ if SERVER then
 		E2 = Entity(E2)
 		if canhas(player) then return end
 		if not IsValid(E2) or E2:GetClass() ~= "gmod_wire_expression2" then return end
-		if hook.Run( "CanTool", player, WireLib.dummytrace( E2 ), "wire_expression2" ) then
+		if hook.Run( "CanTool", player, WireLib.dummytrace( E2 ), "wire_expression2", "request code" ) then
 			WireLib.Expression2Download(player, E2)
 			WireLib.AddNotify(player, "Downloading code...", NOTIFY_GENERIC, 5, math.random(1, 4))
 			player:PrintMessage(HUD_PRINTCONSOLE, "Downloading code...")
@@ -353,7 +353,7 @@ if SERVER then
 		E2 = Entity(E2)
 		if not IsValid(E2) or E2:GetClass() ~= "gmod_wire_expression2" then return end
 		if canhas(player) then return end
-		if hook.Run( "CanTool", player, WireLib.dummytrace( E2 ), "wire_expression2" ) then
+		if hook.Run( "CanTool", player, WireLib.dummytrace( E2 ), "wire_expression2", "reset" ) then
 			if E2.context.data.last or E2.first then return end
 
 			E2:Reset()
