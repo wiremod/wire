@@ -1,6 +1,6 @@
 -- Compatibility Global
 
-if (!WireLib) then return end
+if not WireLib then return end
 
 WireAddon = 1
 
@@ -55,10 +55,10 @@ end)
 
 -- helper function that pcalls an input
 function WireLib.TriggerInput(ent, name, value, ...)
-	if (!IsValid(ent) or !HasPorts(ent) or !ent.Inputs or !ent.Inputs[name]) then return end
+	if (not IsValid(ent) or not HasPorts(ent) or not ent.Inputs or not ent.Inputs[name]) then return end
 	ent.Inputs[name].Value = value
 
-	if (!ent.TriggerInput) then return end
+	if (not ent.TriggerInput) then return end
 	local ok, ret = xpcall(ent.TriggerInput, debug.traceback, ent, name, value, ...)
 	if not ok then
 		local message = string.format("Wire error (%s):\n%s\n", tostring(ent), ret)
@@ -105,9 +105,6 @@ WireLib.DT = {
 		Zero = {},
 		BiDir = true
 	},
-	/*HOVERDATAPORT = {
-		Zero = 0
-	},*/
 }
 
 function WireLib.CreateSpecialInputs(ent, names, types, descs)
@@ -301,10 +298,10 @@ end
 
 
 function WireLib.RetypeInputs(ent, iname, itype, descs)
-	if !HasPorts(ent) then return end
+	if not HasPorts(ent) then return end
 
 	local ent_ports = ent.Inputs
-	if (!ent_ports[iname]) or (!itype) then return end
+	if (not ent_ports[iname]) or (not itype) then return end
 	ent_ports[iname].Desc = descs
 	ent_ports[iname].Type = itype
 	ent_ports[iname].Value = WireLib.DT[itype].Zero
@@ -314,10 +311,10 @@ end
 
 
 function WireLib.RetypeOutputs(ent, oname, otype, descs)
-	if !HasPorts(ent) then return end
+	if not HasPorts(ent) then return end
 
 	local ent_ports = ent.Outputs
-	if (!ent_ports[oname]) or (!otype) then return end
+	if (not ent_ports[oname]) or (not otype) then return end
 	ent_ports[oname].Desc = descs
 	ent_ports[oname].Type = otype
 	ent_ports[oname].Value = WireLib.DT[otype].Zero
@@ -327,8 +324,8 @@ end
 
 
 -- force_outputs is only needed for existing components to allow them to be updated
-function Wire_Restored(ent, force_outputs)
-	if !HasPorts(ent) then return end
+function WireLib.Restored(ent, force_outputs)
+	if not HasPorts(ent) then return end
 
 	local ent_ports = ent.Inputs
 	if (ent_ports) then
@@ -393,7 +390,7 @@ local function ClearPorts(ports, ConnectEnt, DontSendToCL)
 
 		for k,v in ipairs(ports) do
 			local Ent, Name = v.Entity, v.Name
-			if (IsValid(Ent) and (!ConnectEnt or (ConnectEnt == Ent))) then
+			if (IsValid(Ent) and (not ConnectEnt or (ConnectEnt == Ent))) then
 				local ports = Ent.Inputs
 				if (ports) then
 					local port = ports[Name]
@@ -411,7 +408,7 @@ local function ClearPorts(ports, ConnectEnt, DontSendToCL)
 end
 
 -- Set DontUnList to true, if you want to call WireLib._RemoveWire(eid) manually.
-function Wire_Remove(ent, DontUnList)
+function WireLib.Remove(ent, DontUnList)
 	--Clear the inputs
 	local ent_ports = ent.Inputs
 	if (ent_ports) then
@@ -449,11 +446,11 @@ end
 
 
 local function Wire_Link(dst, dstid, src, srcid, path)
-	if (!IsValid(dst) or !HasPorts(dst) or !dst.Inputs or !dst.Inputs[dstid]) then
+	if (not IsValid(dst) or not HasPorts(dst) or not dst.Inputs or not dst.Inputs[dstid]) then
 		Msg("Wire_link: Invalid destination!\n")
 		return
 	end
-	if (!IsValid(src) or !HasPorts(src) or !src.Outputs or !src.Outputs[srcid]) then
+	if (not IsValid(src) or not HasPorts(src) or not src.Outputs or not src.Outputs[srcid]) then
 		Msg("Wire_link: Invalid source!\n")
 		return
 	end
@@ -495,10 +492,10 @@ local function Wire_Link(dst, dstid, src, srcid, path)
 	WireLib.TriggerInput(dst, dstid, output.Value)
 end
 
-function Wire_TriggerOutput(ent, oname, value, iter)
-	if !IsValid(ent) then return end
-	if !HasPorts(ent) then return end
-	if (!ent.Outputs) then return end
+function WireLib.TriggerOutput(ent, oname, value, iter)
+	if not IsValid(ent) then return end
+	if not HasPorts(ent) then return end
+	if (not ent.Outputs) then return end
 
 	local output = ent.Outputs[oname]
 	if (output) and (value ~= output.Value or output.Type == "ARRAY" or output.Type == "TABLE") then
@@ -530,7 +527,7 @@ function Wire_TriggerOutput(ent, oname, value, iter)
 end
 
 local function Wire_Unlink(ent, iname, DontSendToCL)
-	if !HasPorts(ent) then return end
+	if not HasPorts(ent) then return end
 
 	local input = ent.Inputs[iname]
 	if (input) then
@@ -567,10 +564,10 @@ local function Wire_Unlink(ent, iname, DontSendToCL)
 	end
 end
 
-function Wire_Link_Start(idx, ent, pos, iname, material, color, width)
-	if !IsValid(ent) then return end
-	if !HasPorts(ent) then return end
-	if (!ent.Inputs or !ent.Inputs[iname]) then return end
+function WireLib.Link_Start(idx, ent, pos, iname, material, color, width)
+	if not IsValid(ent) then return end
+	if not HasPorts(ent) then return end
+	if (not ent.Inputs or not ent.Inputs[iname]) then return end
 
 	local input = ent.Inputs[iname]
 
@@ -606,10 +603,10 @@ function Wire_Link_Start(idx, ent, pos, iname, material, color, width)
 end
 
 
-function Wire_Link_Node(idx, ent, pos)
-	if !CurLink[idx] then return end
-	if !IsValid(CurLink[idx].Dst) then return end
-	if !IsValid(ent) then return end -- its the world, give up
+function WireLib.Link_Node(idx, ent, pos)
+	if not CurLink[idx] then return end
+	if not IsValid(CurLink[idx].Dst) then return end
+	if not IsValid(ent) then return end -- its the world, give up
 
 	local net_name = "wp_" .. CurLink[idx].DstId
 	local node_idx = CurLink[idx].Dst:GetNetworkedBeamInt(net_name)+1
@@ -623,17 +620,17 @@ function Wire_Link_Node(idx, ent, pos)
 end
 
 
-function Wire_Link_End(idx, ent, pos, oname, pl)
-	if !CurLink[idx] then return end
+function WireLib.Link_End(idx, ent, pos, oname, pl)
+	if not CurLink[idx] then return end
 
-	if !IsValid(CurLink[idx].Dst) then return end
-	if !HasPorts(CurLink[idx].Dst) then return end
+	if not IsValid(CurLink[idx].Dst) then return end
+	if not HasPorts(CurLink[idx].Dst) then return end
 
-	if !IsValid(ent) then return end
-	if !HasPorts(ent) then return end
-	if !ent.Outputs then return end
+	if not IsValid(ent) then return end
+	if not HasPorts(ent) then return end
+	if not ent.Outputs then return end
 
-	if (CurLink[idx].Dst:GetClass() == "gmod_wire_sensor") and (ent:GetClass() != "gmod_wire_target_finder") then
+	if (CurLink[idx].Dst:GetClass() == "gmod_wire_sensor") and (ent:GetClass() ~= "gmod_wire_target_finder") then
 		MsgN("Wire_link: Beacon Sensor can only be wired to a Target Finder!")
 		if pl then
 			WireLib.AddNotify(pl, "Beacon Sensor can only be wired to a Target Finder!", NOTIFY_GENERIC, 7)
@@ -653,7 +650,7 @@ function Wire_Link_End(idx, ent, pos, oname, pl)
 		return
 	end
 	--Msg("input type= " .. input.Type .. "  output type= " .. (output.Type or "NIL") .. "\n")	-- I bet that was getting anoying (TAD2020)
-	if (input.Type != output.Type) and (input.Type != "ANY") and (output.Type != "ANY") then
+	if (input.Type ~= output.Type) and (input.Type ~= "ANY") and (output.Type ~= "ANY") then
 		local text = "Data Type Mismatch! Input takes "..input.Type.." and Output gives "..output.Type
 		MsgN(text)
 		if pl then WireLib.AddNotify(pl, text, NOTIFY_GENERIC, 7) end
@@ -681,9 +678,9 @@ function Wire_Link_End(idx, ent, pos, oname, pl)
 end
 
 
-function Wire_Link_Cancel(idx)
-	if !CurLink[idx] then return end
-	if !IsValid(CurLink[idx].Dst) then return end
+function WireLib.Link_Cancel(idx)
+	if not CurLink[idx] then return end
+	if not IsValid(CurLink[idx].Dst) then return end
 
 	--local orig = CurLink[idx].OldPath[0]
 	--RDbeamlib.StartWireBeam( CurLink[idx].Dst, CurLink[idx].DstId, orig.pos, orig.material, orig.color, orig.width )
@@ -703,7 +700,7 @@ function Wire_Link_Cancel(idx)
 end
 
 
-function Wire_Link_Clear(ent, iname, DontSendToCL)
+function WireLib.Link_Clear(ent, iname, DontSendToCL)
 	local net_name = "wp_" .. iname
 	ent:SetNetworkedBeamInt(net_name, 0)
 	--RDbeamlib.ClearWireBeam( ent, iname )
@@ -711,7 +708,7 @@ function Wire_Link_Clear(ent, iname, DontSendToCL)
 	Wire_Unlink(ent, iname, DontSendToCL)
 end
 
-function Wire_SetPathNames(ent, names)
+function WireLib.SetPathNames(ent, names)
 	for k,v in pairs(names) do
 		ent:SetNetworkedBeamString("wpn_" .. k, v)
 	end
@@ -764,12 +761,12 @@ end)
 
 -- used for welding wired stuff, if trace is world, the ent is not welded and is frozen instead
 function WireLib.Weld(ent, traceEntity, tracePhysicsBone, DOR, collision, AllowWorldWeld)
-	if (!ent or !traceEntity or traceEntity:IsNPC() or traceEntity:IsPlayer()) then return end
+	if (not ent or not traceEntity or traceEntity:IsNPC() or traceEntity:IsPlayer()) then return end
 	local phys = ent:GetPhysicsObject()
 	if ( traceEntity:IsValid() ) or ( traceEntity:IsWorld() and AllowWorldWeld ) then
 		local const = constraint.Weld( ent, traceEntity, 0, tracePhysicsBone, 0, (not collision), DOR )
 		-- Don't disable collision if it's not attached to anything
-		if (!collision) then
+		if (not collision) then
 			if phys:IsValid() then phys:EnableCollisions( false ) end
 			ent.nocollide = true
 		end
@@ -887,7 +884,7 @@ function WireLib.ApplyDupeInfo( ply, ent, info, GetEntByID )
 	end
 end
 
-function RefreshSpecialOutputs(ent)
+function WireLib.RefreshSpecialOutputs(ent)
 	local names = {}
 	local types = {}
 	local descs = {}
@@ -908,41 +905,42 @@ function RefreshSpecialOutputs(ent)
 	WireLib.TriggerOutput(ent, "link", ent)
 end
 
-function Wire_CreateInputs(ent, names, descs)
+function WireLib.CreateInputs(ent, names, descs)
 	return WireLib.CreateSpecialInputs(ent, names, {}, descs)
 end
 
 
-function Wire_CreateOutputs(ent, names, descs)
+function WireLib.CreateOutputs(ent, names, descs)
 	return WireLib.CreateSpecialOutputs(ent, names, {}, descs)
 end
 
 
-function Wire_AdjustInputs(ent, names, descs)
+function WireLib.AdjustInputs(ent, names, descs)
 	return WireLib.AdjustSpecialInputs(ent, names, {}, descs)
 end
 
 
-function Wire_AdjustOutputs(ent, names, descs)
+function WireLib.AdjustOutputs(ent, names, descs)
 	return WireLib.AdjustSpecialOutputs(ent, names, {}, descs)
 end
 
-WireLib.CreateInputs         = Wire_CreateInputs
-WireLib.CreateOutputs        = Wire_CreateOutputs
-WireLib.AdjustInputs         = Wire_AdjustInputs
-WireLib.AdjustOutputs        = Wire_AdjustOutputs
-WireLib.Restored             = Wire_Restored
-WireLib.Remove               = Wire_Remove
-WireLib.TriggerOutput        = Wire_TriggerOutput
-WireLib.Link_Start           = Wire_Link_Start
-WireLib.Link_Node            = Wire_Link_Node
-WireLib.Link_End             = Wire_Link_End
-WireLib.Link_Cancel          = Wire_Link_Cancel
-WireLib.Link_Clear           = Wire_Link_Clear
-WireLib.SetPathNames         = Wire_SetPathNames
-WireLib.CreateOutputIterator = Wire_CreateOutputIterator
-Wire_BuildDupeInfo           = WireLib.BuildDupeInfo
-Wire_ApplyDupeInfo           = WireLib.ApplyDupeInfo
+-- Backwards compatibility
+Wire_CreateInputs				= WireLib.CreateInputs
+Wire_CreateOutputs				= WireLib.CreateOutputs
+Wire_AdjustInputs				= WireLib.AdjustInputs
+Wire_AdjustOutputs				= WireLib.AdjustOutputs
+Wire_Restored					= WireLib.Restored
+Wire_Remove						= WireLib.Remove
+Wire_TriggerOutput				= WireLib.TriggerOutput
+Wire_Link_Start					= WireLib.Link_Start
+Wire_Link_Node					= WireLib.Link_Node
+Wire_Link_End					= WireLib.Link_End
+Wire_Link_Cancel				= WireLib.Link_Cancel
+Wire_Link_Clear					= WireLib.Link_Clear
+Wire_SetPathNames				= WireLib.SetPathNames
+Wire_CreateOutputIterator		= WireLib.CreateOutputIterator
+Wire_BuildDupeInfo				= WireLib.BuildDupeInfo
+Wire_ApplyDupeInfo				= WireLib.ApplyDupeInfo
 
 --backwards logic: set enable to false to show show values on gates instead
 Wire_EnableGateInputValues = true
@@ -1019,22 +1017,6 @@ local function WireForceDelayOverlayTextUpdate(pl, cmd, args)
 	pl:PrintMessage(HUD_PRINTCONSOLE, "\nWire_ForceDelayOverlayTextUpdate = "..tostring(Wire_ForceDelayOverlayTextUpdate).."\n")
 end
 concommand.Add( "Wire_ForceDelayOverlayTextUpdate", WireForceDelayOverlayTextUpdate )
-
-
---[[Wire_UseOldGateOutputLables = false
-local function WireUseOldGateOutputLables(pl, cmd, args)
-	if ( args[1] ) and ( ( pl:IsAdmin() ) or ( pl:IsSuperAdmin( )() ) ) then
-		if args[1] == "1" or args[1] == 1 then
-			Wire_UseOldGateOutputLables = true
-		elseif args[1] == "0" or args[1] == 0 then
-			Wire_UseOldGateOutputLables = false
-		else
-			pl:PrintMessage(HUD_PRINTCONSOLE, "Only takes 0 or 1")
-		end
-	end
-	pl:PrintMessage(HUD_PRINTCONSOLE, "\nWire_UseOldGateOutputLables = "..tostring(Wire_UseOldGateOutputLables).."\n")
-end
-concommand.Add( "Wire_UseOldGateOutputLables", WireUseOldGateOutputLables )]]
 
 -- prevent applyForce+Anti-noclip-based killing contraptions
 hook.Add("InitPostEntity", "antiantinoclip", function()
