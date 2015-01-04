@@ -186,7 +186,7 @@ function WireLib.AdjustSpecialInputs(ent, names, types, descs)
 
 		if (ent_ports[name]) then
 			if tp ~= ent_ports[name].Type then
-				timer.Simple(0, function() Wire_Link_Clear(ent, name) end)
+				timer.Simple(0, function() WireLib.Link_Clear(ent, name) end)
 				ent_ports[name].Value = WireLib.DT[tp].Zero
 				ent_ports[name].Type = tp
 			end
@@ -222,7 +222,7 @@ function WireLib.AdjustSpecialInputs(ent, names, types, descs)
 		if (port.Keep) then
 			port.Keep = nil
 		else
-			Wire_Link_Clear(ent, portname)
+			WireLib.Link_Clear(ent, portname)
 
 			ent_ports[portname] = nil
 		end
@@ -246,7 +246,7 @@ function WireLib.AdjustSpecialOutputs(ent, names, types, descs)
 			if tp ~= ent_ports[name].Type then
 				for i,inp in ipairs(ent_ports[name].Connected) do
 					if (IsValid(inp.Entity)) then
-						Wire_Link_Clear(inp.Entity, inp.Name)
+						WireLib.Link_Clear(inp.Entity, inp.Name)
 					end
 				end
 				ent_ports[name].Type = tp
@@ -284,7 +284,7 @@ function WireLib.AdjustSpecialOutputs(ent, names, types, descs)
 			-- fix by Syranide: unlinks wires of removed outputs
 			for i,inp in ipairs(port.Connected) do
 				if (IsValid(inp.Entity)) then
-					Wire_Link_Clear(inp.Entity, inp.Name)
+					WireLib.Link_Clear(inp.Entity, inp.Name)
 				end
 			end
 			ent_ports[portname] = nil
@@ -376,7 +376,7 @@ function WireLib.Restored(ent, force_outputs)
 			Outputs[idx] = port
 		end
 	elseif (force_outputs) then
-		ent.Outputs = Wire_CreateOutputs(ent, force_outputs)
+		ent.Outputs = WireLib.CreateOutputs(ent, force_outputs)
 	end
 end
 
@@ -395,7 +395,7 @@ local function ClearPorts(ports, ConnectEnt, DontSendToCL)
 				if (ports) then
 					local port = ports[Name]
 					if (port) then
-						Wire_Link_Clear(Ent, Name, DontSendToCL)
+						WireLib.Link_Clear(Ent, Name, DontSendToCL)
 						newValid = true
 					end
 				end
@@ -513,7 +513,7 @@ function WireLib.TriggerOutput(ent, oname, value, iter)
 			return
 		end
 
-		iter = Wire_CreateOutputIterator()
+		iter = WireLib.CreateOutputIterator()
 
 		for _,dst in ipairs(output.Connected) do
 			if (IsValid(dst.Entity)) then
@@ -635,7 +635,7 @@ function WireLib.Link_End(idx, ent, pos, oname, pl)
 		if pl then
 			WireLib.AddNotify(pl, "Beacon Sensor can only be wired to a Target Finder!", NOTIFY_GENERIC, 7)
 		end
-		Wire_Link_Cancel(idx)
+		WireLib.Link_Cancel(idx)
 		return
 	end
 
@@ -646,7 +646,7 @@ function WireLib.Link_End(idx, ent, pos, oname, pl)
 		local text = "Selected output not found or no output present."
 		MsgN(text)
 		if pl then WireLib.AddNotify(pl, text, NOTIFY_GENERIC, 7) end
-		Wire_Link_Cancel(idx)
+		WireLib.Link_Cancel(idx)
 		return
 	end
 	--Msg("input type= " .. input.Type .. "  output type= " .. (output.Type or "NIL") .. "\n")	-- I bet that was getting anoying (TAD2020)
@@ -654,7 +654,7 @@ function WireLib.Link_End(idx, ent, pos, oname, pl)
 		local text = "Data Type Mismatch! Input takes "..input.Type.." and Output gives "..output.Type
 		MsgN(text)
 		if pl then WireLib.AddNotify(pl, text, NOTIFY_GENERIC, 7) end
-		Wire_Link_Cancel(idx)
+		WireLib.Link_Cancel(idx)
 		return
 	end
 
@@ -720,8 +720,8 @@ function WireLib.WireAll(ply, ient, oent, ipos, opos, material, color, width)
 	
 	for iname, _ in pairs(ient.Inputs) do
 		if oent.Outputs[iname] then
-			Wire_Link_Start(ply:UniqueID(), ient, ipos, iname, material or "arrowire/arrowire2", color or Color(255,255,255), width or 0)
-			Wire_Link_End(ply:UniqueID(), oent, opos, iname, ply)
+			WireLib.Link_Start(ply:UniqueID(), ient, ipos, iname, material or "arrowire/arrowire2", color or Color(255,255,255), width or 0)
+			WireLib.Link_End(ply:UniqueID(), oent, opos, iname, ply)
 		end
 	end
 end
@@ -748,7 +748,7 @@ do -- class OutputIterator
 		self.Processing = nil
 	end
 
-	function Wire_CreateOutputIterator()
+	function WireLib.CreateOutputIterator()
 		return setmetatable({}, OutputIterator)
 	end
 end -- class OutputIterator
@@ -862,13 +862,13 @@ function WireLib.ApplyDupeInfo( ply, ent, info, GetEntByID )
 				end
 			end
 			
-			Wire_Link_Start(idx, ent, input.StartPos, k, input.Material, input.Color, input.Width)
+			WireLib.Link_Start(idx, ent, input.StartPos, k, input.Material, input.Color, input.Width)
 
 			if input.Path then
 				for _,v in ipairs(input.Path) do
 					local ent2 = GetEntByID(v.Entity)
 					if IsValid(ent2) then
-						Wire_Link_Node(idx, ent2, v.Pos)
+						WireLib.Link_Node(idx, ent2, v.Pos)
 					else
 						Msg("ApplyDupeInfo: Error, Could not find the entity for wire path\n")
 					end
@@ -876,7 +876,7 @@ function WireLib.ApplyDupeInfo( ply, ent, info, GetEntByID )
 			end
 
 			if IsValid(ent2) then
-				Wire_Link_End(idx, ent2, input.SrcPos, input.SrcId)
+				WireLib.Link_End(idx, ent2, input.SrcPos, input.SrcId)
 			else
 				Msg("ApplyDupeInfo: Error, Could not find the output entity\n")
 			end
