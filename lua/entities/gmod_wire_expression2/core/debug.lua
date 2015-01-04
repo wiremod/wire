@@ -31,7 +31,7 @@ hook.Add( "Think", "e2_printcolor_delays", function()
 				delays.count = print_max
 			end
 		else
-			print_delays[k] = nil
+			print_delays[ply] = nil
 		end
 	end
 end)
