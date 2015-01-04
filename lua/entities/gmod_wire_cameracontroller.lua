@@ -50,23 +50,12 @@ if CLIENT then
 	
 	local pos_speed_convar = GetConVar( "wire_cam_smooth_amount" )
 	
+	local Parent
 	local function GetParent()
-		local parent
-		
-		local HasParent = self:GetNWBool( "HasParent", false )
-		if HasParent then
-			local p = self:GetNWEntity( "Parent" )
-			if IsValid( p ) then
-				parent = p
-			end
-		end
-		
-		local ValidParent = IsValid( parent )
-		
-		return parent, HasParent, ValidParent
+		return Parent, IsValid( Parent )
 	end
 	
-	local function DoAutoMove( curpos, curang, curdistance, parent, HasParent, ValidParent )
+	local function DoAutoMove( curpos, curang, curdistance, parent, HasParent )
 		local pos_speed = pos_speed_convar:GetFloat()
 		local ang_speed = pos_speed - 2
 	
@@ -82,7 +71,7 @@ if CLIENT then
 		
 		smoothdistance = Lerp( FrameTime() * pos_speed, smoothdistance, curdistance )
 					
-		if HasParent and ValidParent then
+		if HasParent then
 			if LocalMove then
 				curpos = parent:LocalToWorld( curpos - curang:Forward() * smoothdistance )
 				curang = parent:LocalToWorldAngles( curang )
@@ -96,11 +85,11 @@ if CLIENT then
 		return curpos, curang
 	end
 	
-	local function DoAutoUnclip( curpos, parent, HasParent, ValidParent )
+	local function DoAutoUnclip( curpos, parent, HasParent )
 		local start, endpos
 		
 		if not AutoMove then
-			if HasParent and ValidParent then
+			if HasParent then
 				start = parent:GetPos()
 			else
 				start = self:GetPos()
@@ -108,7 +97,7 @@ if CLIENT then
 			
 			endpos = curpos
 		else
-			if HasParent and ValidParent then
+			if HasParent then
 				start = parent:LocalToWorld(pos)
 			else
 				start = pos
@@ -146,7 +135,7 @@ if CLIENT then
 		local curang = ang
 		local curdistance = distance
 		
-		local parent, HasParent, ValidParent = GetParent()
+		local parent, HasParent = GetParent()
 		
 		local newview = {}
 		
@@ -155,16 +144,16 @@ if CLIENT then
 			-- only smooth the position, and do it before the automove
 			smoothpos = LerpVector( FrameTime() * pos_speed, smoothpos, curpos )
 		
-			curpos, curang = DoAutoMove( smoothpos, curang, curdistance, parent, HasParent, ValidParent )
+			curpos, curang = DoAutoMove( smoothpos, curang, curdistance, parent, HasParent )
 			
 			if AutoUnclip then
-				curpos = DoAutoUnclip( curpos, parent, HasParent, ValidParent )
+				curpos = DoAutoUnclip( curpos, parent, HasParent )
 			end
 			
 			-- apply view
 			newview.origin = curpos
 			newview.angles = curang
-		elseif HasParent and ValidParent then			
+		elseif HasParent then			
 			-- smooth BEFORE using toWorld
 			smoothpos = LerpVector( FrameTime() * pos_speed, smoothpos, curpos )
 			smoothang = LerpAngle( FrameTime() * ang_speed, smoothang, curang )
@@ -175,7 +164,7 @@ if CLIENT then
 			
 			-- now check for auto unclip
 			if AutoUnclip then
-				curpos = DoAutoUnclip( curpos, parent, HasParent, ValidParent )
+				curpos = DoAutoUnclip( curpos, parent, HasParent )
 			end
 			
 			-- apply view
@@ -184,7 +173,7 @@ if CLIENT then
 		else
 			-- check auto unclip first
 			if AutoUnclip then
-				curpos = DoAutoUnclip( curpos, parent, HasParent, ValidParent )
+				curpos = DoAutoUnclip( curpos, parent, HasParent )
 			end
 		
 			-- there's no parent, just smooth it
@@ -230,6 +219,9 @@ if CLIENT then
 		
 		-- distance
 		distance = math.Clamp(net.ReadFloat(),-16000,16000)
+		
+		-- Parent
+		Parent = net.ReadEntity()
 	end
 	
 	net.Receive( "wire_camera_controller_toggle", function( len )
@@ -271,8 +263,8 @@ if CLIENT then
 					using a client side model.
 				]]
 				
-				local parent, HasParent, ValidParent = GetParent()
-				if HasParent and ValidParent and DrawParent then
+				local parent, HasParent = GetParent()
+				if HasParent and DrawParent then
 					clientprop = ClientsideModel( parent:GetModel(), parent:GetRenderGroup() )
 					clientprop:SetPos( parent:GetPos() )
 					clientprop:SetAngles( parent:GetAngles() )
@@ -386,7 +378,7 @@ end
 -- Data sending
 --------------------------------------------------
 
-local function SendPositions( pos, ang, dist )
+local function SendPositions( pos, ang, dist, parent )
 	-- pos/ang
 	net.WriteFloat( pos.x )
 	net.WriteFloat( pos.y )
@@ -397,6 +389,9 @@ local function SendPositions( pos, ang, dist )
 	
 	-- distance
 	net.WriteFloat( dist )
+	
+	-- parent
+	net.WriteEntity( parent )
 end
 
 util.AddNetworkString( "wire_camera_controller_toggle" )
@@ -413,7 +408,8 @@ function ENT:SyncSettings( ply, active )
 			net.WriteBit( self.AutoUnclip )
 			net.WriteBit( self.AutoUnclip_IgnoreWater )
 			net.WriteBit( self.DrawPlayer )
-			SendPositions( self.Position, self.Angle, self.Distance )
+			net.WriteBit( self.DrawParent )
+			SendPositions( self.Position, self.Angle, self.Distance, self.Parent )
 		end
 	net.Send( ply or self.Players )
 end
@@ -427,7 +423,7 @@ function ENT:SyncPositions( ply )
 	
 	net.Start( "wire_camera_controller_sync" )
 		net.WriteEntity( self )
-		SendPositions( self.Position, self.Angle, self.Distance )
+		SendPositions( self.Position, self.Angle, self.Distance, self.Parent )
 	net.Send( ply or self.Players )
 end
 
@@ -461,9 +457,8 @@ function ENT:UpdateOutputs()
 	local ply = self.Players[1]
 	
 	if self.Active and IsValid( ply ) then
-		local HasParent = self:GetNWBool( "HasParent", false )
-		local parent = self:GetNWEntity( "Parent" )
-		local ValidParent = IsValid( parent )
+		local parent = self.Parent
+		local HasParent = IsValid( parent )
 
 		local pos, ang = self.Position, self.Angle
 		
@@ -488,7 +483,7 @@ function ENT:UpdateOutputs()
 				curpos = curpos - curang:Forward() * dist
 			end
 		else
-			if HasParent and ValidParent then
+			if HasParent then
 				curpos = parent:LocalToWorld( curpos )
 				curang = parent:LocalToWorldAngles( curang )
 			end
@@ -499,7 +494,7 @@ function ENT:UpdateOutputs()
 			local start, endpos
 			
 			if not self.AutoMove then
-				if HasParent and ValidParent then
+				if HasParent then
 					start = parent:GetPos()
 				else
 					start = self:GetPos()
@@ -507,7 +502,7 @@ function ENT:UpdateOutputs()
 				
 				endpos = curpos
 			else
-				if HasParent and ValidParent then
+				if HasParent then
 					start = parent:LocalToWorld(pos)
 				else
 					start = pos
@@ -749,16 +744,14 @@ end
 function ENT:LocalizePositions(b)
 	if self.ParentLocal then return end
 	-- Localize the position if we have a parent
-	if self:GetNWBool( "HasParent", false ) then
-		local parent = self:GetNWEntity( "Parent" )
-		if IsValid( parent ) then
-			if b then
-				self.Position = parent:WorldToLocal( self.Position )
-				self.Angle = parent:WorldToLocalAngles( self.Angle )
-			else
-				self.Position = parent:LocalToWorld( self.Position )
-				self.Angle = parent:LocalToWorldAngles( self.Angle )
-			end
+	if IsValid( self.Parent ) then
+		local parent = self.Parent
+		if b then
+			self.Position = parent:WorldToLocal( self.Position )
+			self.Angle = parent:WorldToLocalAngles( self.Angle )
+		else
+			self.Position = parent:LocalToWorld( self.Position )
+			self.Angle = parent:LocalToWorldAngles( self.Angle )
 		end
 	end
 end
@@ -784,19 +777,7 @@ function ENT:TriggerInput( name, value )
 		self:LocalizePositions(false)
 		
 		if name == "Parent" then
-			if IsValid( self.Parent ) then
-				self.Parent:RemoveCallOnRemove( "wire_camera_controller_remove_parent" )
-			end
-			
 			self.Parent = value
-			self:SetNWEntity( "Parent", value )
-			self:SetNWBool( "HasParent", IsValid(value) )
-			
-			if IsValid( self.Parent ) and self.Parent ~= self then
-				self.Parent:CallOnRemove( "wire_camera_controller_remove_parent", function()
-					self:SetNWBool( "HasParent", false )
-				end)
-			end
 		elseif name == "Position" then
 			self.Position = value
 		elseif name == "Distance" then
