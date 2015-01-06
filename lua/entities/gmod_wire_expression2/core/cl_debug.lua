@@ -1,3 +1,6 @@
+CreateClientConVar( "wire_expression2_print_max", 15, true, true )
+CreateClientConVar( "wire_expression2_print_delay", 0.3, true, true )
+
 local chips = {}
 
 hook.Add("EntityRemoved", "wire_expression2_printColor", function(ent)

@@ -517,7 +517,7 @@ function Editor:SetActiveTab(val)
 	if tabtext then
 		if self:GetActiveTab():GetText() ~= tabtext then
 			self:GetActiveTab():SetText(tabtext)
-			self.C['TabHolder'].panel:InvalidateLayout()
+			self.C['TabHolder'].panel.tabScroller:InvalidateLayout()
 		end
 	end
 end
@@ -806,7 +806,7 @@ function Editor:CloseTab(_tab)
 	table.remove(self.C['TabHolder'].panel.Items, sheetindex)
 	table.remove(self.C['TabHolder'].panel.tabScroller.Panels, tabscroller_sheetindex)
 
-	self.C['TabHolder'].panel:InvalidateLayout()
+	self.C['TabHolder'].panel.tabScroller:InvalidateLayout()
 	local w, h = self.C['TabHolder'].panel:GetSize()
 	self.C['TabHolder'].panel:SetSize(w + 1, h) -- +1 so it updates
 end
@@ -1535,13 +1535,6 @@ function Editor:InitControlPanel(frame)
 	dlist:AddItem(ConcmdWhitelist)
 	ConcmdWhitelist:SetConVar("wire_expression2_concmd_whitelist")
 	ConcmdWhitelist:SetToolTip("Separate the commands with commas.")
-
-	local FriendWrite = vgui.Create("DCheckBoxLabel")
-	dlist:AddItem(FriendWrite)
-	FriendWrite:SetConVar("wire_expression2_friendwrite")
-	FriendWrite:SetText("Friend Write")
-	FriendWrite:SizeToContents()
-	FriendWrite:SetTooltip("Allow/disallow people in your prop protection friends list from reading and writing to your E2s.")
 
 	local label = vgui.Create("DLabel")
 	dlist:AddItem(label)

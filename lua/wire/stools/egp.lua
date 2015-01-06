@@ -188,6 +188,20 @@ else
 
 	local Menu = {}
 	local CurEnt
+	
+	function refreshRT( ent )
+		ent.GPU:FreeRT()
+		ent.GPU = GPULib.WireGPU( ent )
+		ent:EGP_Update()
+	end
+	
+	function refreshObjects( ent )
+		if ent then
+			RunConsoleCommand("EGP_Request_Reload",ent:EntIndex())
+		else
+			RunConsoleCommand("EGP_Request_Reload")
+		end
+	end
 
 	local function CreateToolReloadMenu()
 		local pnl = vgui.Create("DFrame")
@@ -219,9 +233,9 @@ else
 		btn:SetSize( w, h )
 		function btn:DoClick()
 			pnl:SetVisible( false )
-			CurEnt.GPU:FreeRT()
-			CurEnt.GPU = GPULib.WireGPU( CurEnt )
-			CurEnt:EGP_Update()
+			
+			refreshRT( CurEnt )
+			
 			LocalPlayer():ChatPrint("[EGP] RenderTarget reloaded.")
 		end
 
@@ -231,8 +245,10 @@ else
 		btn2:SetSize( w, h )
 		function btn2:DoClick()
 			pnl:SetVisible( false )
+			
+			refreshObjects( CurEnt )
+			
 			LocalPlayer():ChatPrint("[EGP] Requesting...")
-			RunConsoleCommand("EGP_Request_Reload",CurEnt:EntIndex())
 		end
 
 		local btn3 = vgui.Create("DButton",pnl)
@@ -244,13 +260,12 @@ else
 			if (CurEnt:GetClass() == "gmod_wire_egp_hud" and CurEnt:GetClass() == "gmod_wire_egp_emitter") then
 				LocalPlayer():ChatPrint("[EGP] Entity does not have a RenderTarget")
 			else
-				CurEnt.GPU:FreeRT()
-				CurEnt.GPU = GPULib.WireGPU( CurEnt )
-				CurEnt:EGP_Update()
+				refreshRT( CurEnt )
+				
 				LocalPlayer():ChatPrint("[EGP] RenderTarget reloaded.")
 			end
 			LocalPlayer():ChatPrint("[EGP] Requesting object reload...")
-			RunConsoleCommand("EGP_Request_Reload",CurEnt:EntIndex())
+			refreshObjects( CurEnt )
 		end
 
 		local btn4 = vgui.Create("DButton",pnl)
@@ -261,13 +276,9 @@ else
 			pnl:SetVisible( false )
 			local tbl = ents.FindByClass("gmod_wire_egp")
 			for k,v in pairs( tbl ) do
-				v.GPU:FreeRT()
-				v.GPU = GPULib.WireGPU( v )
-				v:EGP_Update()
+				refreshRT( v )
 			end
-			if (tbl) then
-				LocalPlayer():ChatPrint("[EGP] RenderTargets reloaded on all screens on the map.")
-			end
+			LocalPlayer():ChatPrint("[EGP] RenderTargets reloaded on all screens on the map.")
 		end
 
 		local btn5 = vgui.Create("DButton",pnl)
@@ -277,7 +288,7 @@ else
 		function btn5:DoClick()
 			pnl:SetVisible( false )
 			LocalPlayer():ChatPrint("[EGP] Requesting...")
-			RunConsoleCommand("EGP_Request_Reload")
+			refreshObjects()
 		end
 
 		local btn6 = vgui.Create("DButton",pnl)
@@ -288,15 +299,11 @@ else
 			pnl:SetVisible( false )
 			local tbl = ents.FindByClass("gmod_wire_egp")
 			for k,v in pairs( tbl ) do
-				v.GPU:FreeRT()
-				v.GPU = GPULib.WireGPU( v )
-				v:EGP_Update()
+				refreshRT( v )
 			end
-			if (tbl) then
-				LocalPlayer():ChatPrint("[EGP] RenderTargets reloaded on all screens on the map.")
-			end
+			LocalPlayer():ChatPrint("[EGP] RenderTargets reloaded on all screens on the map.")
 			LocalPlayer():ChatPrint("[EGP] Requesting object reload...")
-			RunConsoleCommand("EGP_Request_Reload")
+			refreshObjects()
 		end
 
 		pnl:MakePopup()

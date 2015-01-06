@@ -50,7 +50,9 @@ function TOOL:RightClick( trace )
 		ply:ConCommand( "wire_textreceiver_case_insensitive " .. (CaseInsensitive and 1 or 0))
 		for i=1,24 do
 			local match = Matches[i]
-			ply:ConCommand( "wire_textreceiver_match" .. i .. " " .. match )
+			if match ~= nil then
+				ply:ConCommand( "wire_textreceiver_match" .. i .. " " .. match )
+			end
 		end
 
 		ply:ChatPrint( "Text receiver settings copied." )
@@ -72,7 +74,7 @@ if CLIENT then
 		matchlist:EnableVerticalScrollbar( true )
 
 		local function UpdateMatchList(n)
-			local n = math.Clamp(n or GetConVarNumber( "wire_textreceiver_num_matches" ),0,24)
+			local n = math.Clamp(math.Round(n) or GetConVarNumber( "wire_textreceiver_num_matches" ),0,24)
 
 			matchlist:Clear()
 

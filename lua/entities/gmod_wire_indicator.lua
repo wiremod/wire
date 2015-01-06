@@ -97,13 +97,17 @@ function MakeWire7Seg( pl, Pos, Ang, Model, a, ar, ag, ab, aa, b, br, bg, bb, ba
 
 	for i = 2, 7 do
 		wire_indicators[i] = MakeWireIndicator( prototypes[i], scale )
+		if not IsValid( wire_indicators[i] ) then break end
 
 		for y = 1, i-1 do
 			const = constraint.Weld( wire_indicators[i], wire_indicators[y], 0, 0, 0, true, true )
 		end
 		wire_indicators[i - 1]:DeleteOnRemove( wire_indicators[i] ) --when one is removed, all are. a linked chain
 	end
-	wire_indicators[7]:DeleteOnRemove( wire_indicators[1] ) --loops chain back to first
+	
+	if wire_indicators[7] then
+		wire_indicators[7]:DeleteOnRemove( wire_indicators[1] ) --loops chain back to first
+	end
 
 	return wire_indicators
 end

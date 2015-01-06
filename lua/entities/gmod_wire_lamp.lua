@@ -88,19 +88,19 @@ end
 
 function ENT:TriggerInput(iname, value)
 	if (iname == "Red") then
-		self.r = value
+		self.r = math.Clamp(value,0,255)
 	elseif (iname == "Green") then
-		self.g = value
+		self.g = math.Clamp(value,0,255)
 	elseif (iname == "Blue") then
-		self.b = value
+		self.b = math.Clamp(value,0,255)
 	elseif (iname == "RGB") then
-		self.r, self.g, self.b = value[1], value[2], value[3]
+		self.r, self.g, self.b = math.Clamp(value[1],0,255), math.Clamp(value[2],0,255), math.Clamp(value[3],0,255)
 	elseif (iname == "FOV") then
 		self.FOV = value
 	elseif (iname == "Distance") then
 		self.Dist = value
 	elseif (iname == "Brightness") then
-		self.Brightness = value
+		self.Brightness = math.Clamp(value,0,10)
 	elseif (iname == "On") then
 		self:Switch( value ~= 0 )
 	elseif (iname == "Texture") then
@@ -165,12 +165,12 @@ function ENT:UpdateLight()
 end
 
 function ENT:Setup( r, g, b, Texture, fov, dist, brightness, on )
-	self.r, self.g, self.b = r or 255, g or 255, b or 255
+	self.r, self.g, self.b = math.Clamp(r or 255,0,255), math.Clamp(g or 255,0,255), math.Clamp(b or 255,0,255)
 	
 	self.Texture = Texture or "effects/flashlight001"
 	self.FOV = fov or 90
 	self.Dist = dist or 1024
-	self.Brightness = brightness or 8
+	self.Brightness = math.Clamp(brightness or 8,0,10)
 	self.on = on or false
 	self:Switch( self.on )
 	self:UpdateLight()

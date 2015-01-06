@@ -726,6 +726,19 @@ e2function angle entity:attachmentAng(string attachmentName)
 	return { ang.p, ang.y, ang.r }
 end
 
+__e2setcost(20)
+
+-- Returns a table containing all attachments for <this>
+e2function array entity:attachments()
+	if not IsValid(this) then return {} end
+	local tmp = {}
+	local atc = this:GetAttachments()
+	for i=1, #atc do
+		tmp[i] = atc[i].name
+	end
+	return tmp
+end
+
 /******************************************************************************/
 
 __e2setcost(15)

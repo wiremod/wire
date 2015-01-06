@@ -17,26 +17,37 @@ local print_max = 15
 
 local print_delays = {}
 
-timer.Create("e2_printcolor_delays",print_delay,0,function()
-	for k,v in pairs( print_delays ) do
-		if (k and k:IsValid() and k:IsPlayer()) then
-			if (print_delays[k] < print_max) then
-				print_delays[k] = print_delays[k] + 1
+hook.Add( "Think", "e2_printcolor_delays", function()
+	for ply, delays in pairs( print_delays ) do
+		if IsValid( ply ) then
+			local print_max = ply:GetInfoNum( "wire_expression2_print_max", print_max )
+			
+			if CurTime() > delays.next_time and delays.count < print_max then
+				local print_delay = ply:GetInfoNum( "wire_expression2_print_delay", print_delay )
+				delays.next_time = CurTime() + print_delay
+				
+				delays.count = delays.count + 1
+			elseif delays.count > print_max then
+				delays.count = print_max
 			end
 		else
-			print_delays[k] = nil
+			print_delays[ply] = nil
 		end
 	end
 end)
 
 local function check_delay( ply )
-	if (!print_delays[ply]) then
-		print_delays[ply] = print_max - 1
-		return true
+	local delays = print_delays[ply]
+
+	if not delays then
+		delays = { count = print_max }
+		print_delays[ply] = delays
 	end
 
-	if (print_delays[ply] > 0) then
-		print_delays[ply] = print_delays[ply] - 1
+	if delays.count > 0 then
+		local print_delay = ply:GetInfoNum( "wire_expression2_print_delay", print_delay )
+		delays.next_time = CurTime() + print_delay
+		delays.count = delays.count - 1
 		return true
 	end
 

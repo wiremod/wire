@@ -8,6 +8,9 @@ function ENT:SetupDataTables()
 	self:NetworkVar( "Bool", 0, "Glow" )
 	self:NetworkVar( "Float", 0, "Brightness" )
 	self:NetworkVar( "Float", 1, "Size" )
+	self:NetworkVar( "Int", 0, "R" )
+	self:NetworkVar( "Int", 1, "G" )
+	self:NetworkVar( "Int", 2, "B" )
 end
 
 if CLIENT then 
@@ -16,6 +19,17 @@ if CLIENT then
 
 	function ENT:Initialize()
 		self.PixVis = util.GetPixelVisibleHandle()
+
+		--[[
+		This is some unused value which is used to activate the wire overlay.
+		We're not using it because we are using NetworkVars instead, since wire
+		overlays only update when you look at them, and we want to update the
+		sprite colors whenever the wire input changes. ]]
+		self:SetOverlayData({})
+	end
+	
+	function ENT:GetMyColor()
+		return Color( self:GetR(), self:GetG(), self:GetB(), 255 )
 	end
 
 	function ENT:DrawTranslucent()
@@ -32,13 +46,12 @@ if CLIENT then
 		
 		if not Visible or Visible < 0.1 then return end
 
-		local c = self:GetColor()
-		local Alpha = 255 * Visible
+		local c = self:GetMyColor()
 
 		if self:GetModel() == "models/maxofs2d/light_tubular.mdl" then
-			render.DrawSprite( LightPos - up * 2, 8, 8, Color(255, 255, 255, Alpha), Visible )
-			render.DrawSprite( LightPos - up * 4, 8, 8, Color(255, 255, 255, Alpha), Visible )
-			render.DrawSprite( LightPos - up * 6, 8, 8, Color(255, 255, 255, Alpha), Visible )
+			render.DrawSprite( LightPos - up * 2, 8, 8, Color(255, 255, 255, 255), Visible )
+			render.DrawSprite( LightPos - up * 4, 8, 8, Color(255, 255, 255, 255), Visible )
+			render.DrawSprite( LightPos - up * 6, 8, 8, Color(255, 255, 255, 255), Visible )
 			render.DrawSprite( LightPos - up * 5, 128, 128, c, Visible )
 		else
 			render.DrawSprite( self:LocalToWorld( self:OBBCenter() ), 128, 128, c, Visible )
@@ -53,7 +66,7 @@ if CLIENT then
 			if dlight then
 				dlight.Pos = self:GetPos()
 				
-				local c = self:GetColor()
+				local c = self:GetMyColor()
 				dlight.r = c.r
 				dlight.g = c.g
 				dlight.b = c.b
@@ -97,9 +110,8 @@ if CLIENT then
 	end
 	
 	function ENT:DrawWorldTipBody( pos )
-		-- get colors
-		local data = self:GetOverlayData()
-		local color = Color(data.r or 255,data.g or 255,data.b or 255,255)
+		-- get color
+		local color = self:GetMyColor()
 				
 		-- text
 		local color_text = string.format("Color:\n%d,%d,%d",color.r,color.g,color.b)
@@ -131,14 +143,14 @@ function ENT:Directional( On )
 		local flashlight = ents.Create( "env_projectedtexture" )
 		flashlight:SetParent( self )
 
-		// The local positions are the offsets from parent..
+		-- The local positions are the offsets from parent..
 		flashlight:SetLocalPos( Vector( 0, 0, 0 ) )
 		flashlight:SetLocalAngles( Angle( -90, 0, 0 ) )
 		if self:GetModel() == "models/maxofs2d/light_tubular.mdl" then
 			flashlight:SetLocalAngles( Angle( 90, 0, 0 ) )
 		end
 
-		// Looks like only one flashlight can have shadows enabled!
+		-- Looks like only one flashlight can have shadows enabled!
 		flashlight:SetKeyValue( "enableshadows", 1 )
 		flashlight:SetKeyValue( "farz", 1024 )
 		flashlight:SetKeyValue( "nearz", 12 )
@@ -182,8 +194,9 @@ function ENT:Radiant( On )
 end
 
 function ENT:UpdateLight()
-	self:SetColor( Color( self.R, self.G, self.B, self:GetColor().a ) )
-	self:SetOverlayData( { r = self.R, g = self.G, b = self.B } )
+	self:SetR( self.R )
+	self:SetG( self.G )
+	self:SetB( self.B )
 	
 	if IsValid( self.DirectionalComponent ) then self.DirectionalComponent:SetKeyValue( "lightcolor", Format( "%i %i %i 255", self.R * self.brightness, self.G * self.brightness, self.B * self.brightness ) ) end
 	if IsValid( self.RadiantComponent ) then self.RadiantComponent:SetKeyValue( "_light", Format( "%i %i %i 255", self.R, self.G, self.B ) ) end
@@ -191,19 +204,19 @@ end
 
 function ENT:TriggerInput(iname, value)
 	if (iname == "Red") then
-		self.R = value
+		self.R = math.Clamp(value,0,255)
 	elseif (iname == "Green") then
-		self.G = value
+		self.G = math.Clamp(value,0,255)
 	elseif (iname == "Blue") then
-		self.B = value
+		self.B = math.Clamp(value,0,255)
 	elseif (iname == "RGB") then
-		self.R, self.G, self.B = value[1], value[2], value[3]
+		self.R, self.G, self.B = math.Clamp(value[1],0,255), math.Clamp(value[2],0,255), math.Clamp(value[3],0,255)
 	elseif (iname == "GlowBrightness") then
-		if not game.SinglePlayer() then math.Clamp( value, 0, 10 ) end
+		if not game.SinglePlayer() then value = math.Clamp( value, 0, 10 ) end
 		self.brightness = value
 		self:SetBrightness( value )
 	elseif (iname == "GlowSize") then
-		if not game.SinglePlayer() then math.Clamp( value, 0, 1024 ) end
+		if not game.SinglePlayer() then value = math.Clamp( value, 0, 1024 ) end
 		self.size = value
 		self:SetSize( value )
 	end
@@ -217,9 +230,9 @@ function ENT:Setup(directional, radiant, glow, brightness, size, r, g, b)
 	self.glow = glow or false
 	self.brightness = brightness or 2
 	self.size = size or 256
-	self.R = r or 0
-	self.G = g or 0
-	self.B = b or 0
+	self.R = r or 255
+	self.G = g or 255
+	self.B = b or 255
 	
 	if not game.SinglePlayer() then
 		self.brightness = math.Clamp( self.brightness, 0, 10 )

@@ -24,7 +24,7 @@ function ENT:Initialize()
 	self.UseEffects = true
 
 	self.ClassSpecificActions = {
-		gmod_wire_hoverball = function( ent, oldpos, newpos ) ent:SetTargetZ( newpos.z ) end,
+		gmod_wire_hoverball = function( ent, oldpos, newpos ) ent:SetZTarget( newpos.z ) end,
 		gmod_toggleablehoverball = function( ent, oldpos, newpos ) ent:SetTargetZ( newpos.z ) end,
 		gmod_hoverball = function( ent, oldpos, newpos ) ent.dt.TargetZ = newpos.z end,
 	}

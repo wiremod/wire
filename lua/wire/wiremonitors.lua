@@ -201,8 +201,12 @@ models/props_spytech/computer_screen_bank.mdl
 
 local function fallback(self, model)
 	local ent
-	for _,e in ipairs(ents.GetAll()) do
-		if e:GetModel() == model then
+	local entities = ents.GetAll() -- tried to use FindByModel, but it didn't work - don't know why
+	for i=1,#entities do
+		local e = entities[i]
+		if 	e:GetModel() == model and
+			e:GetClass() ~= "class C_BaseFlex" and -- don't include adv dupe 2 ghosts
+			e:GetClass() ~= "gmod_ghost" then -- don't include adv dupe 1 ghosts
 			ent = e
 			break
 		end

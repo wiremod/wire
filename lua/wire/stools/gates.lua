@@ -86,21 +86,6 @@ if CLIENT then
 		searchlist:AddColumn( "Gate Name" )
 		searchlist:AddColumn( "Category" )
 
-		-- Thank you http://lua-users.org/lists/lua-l/2009-07/msg00461.html
-		local function Levenshtein( s, t )
-			local d, sn, tn = {}, #s, #t
-			local byte, min = string.byte, math.min
-			for i = 0, sn do d[i * tn] = i end
-			for j = 0, tn do d[j] = j end
-			for i = 1, sn do
-				local si = byte(s, i)
-				for j = 1, tn do
-					d[i*tn+j] = min(d[(i-1)*tn+j]+1, d[i*tn+j-1]+1, d[(i-1)*tn+j-1]+(si == byte(t,j) and 0 or 1))
-				end
-			end
-			return d[#d]
-		end
-
 		local string_find = string.find
 		local table_SortByMember = table.SortByMember
 		local string_lower = string.lower
@@ -114,7 +99,7 @@ if CLIENT then
 				local name = gate.name
 				local lowname = string_lower(name)
 				if string_find( lowname, text, 1, true ) then -- If it has ANY match at all
-					results[#results+1] = { name = gate.name, group = gate.group, action = action, dist = Levenshtein( text, lowname ) }
+					results[#results+1] = { name = gate.name, group = gate.group, action = action, dist = WireLib.levenshtein( text, lowname ) }
 				end
 			end
 

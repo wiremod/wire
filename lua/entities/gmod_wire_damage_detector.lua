@@ -148,7 +148,9 @@ end
 
 function ENT:ClearEntities()
 	for i=1, #self.linked_entities do
-		self.linked_entities[i]:RemoveCallOnRemove( "DDetector.Unlink" )
+		if IsValid( self.linked_entities[i] ) then -- generally, all entities should be kept valid automatically by the CallOnRemove functions, but CallOnRemove isn't called for players apparently
+			self.linked_entities[i]:RemoveCallOnRemove( "DDetector.Unlink" )
+		end
 	end
 	
 	self.linked_entities = {}
@@ -260,7 +262,7 @@ function ENT:UpdateDamage( dmginfo, ent ) -- Update damage table
 	if self.dmgtype == "Explosive" then		-- Explosives will output the entity that receives the most damage
 		if self.damage < damage then
 			self.damage = damage
-			self.firsthit_dmginfo[2] = ents.GetByIndex(entID)
+			self.firsthit_dmginfo[2] = ent
 		end
 	else
 		self.damage = self.damage + damage

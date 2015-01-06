@@ -14,7 +14,7 @@ if CLIENT then
 end
 WireToolSetup.BaseLang()
 
-WireToolSetup.SetupMax( 20 )
+WireToolSetup.SetupMax( 21 )
 
 if SERVER then
 	ModelPlug_Register("indicator")
