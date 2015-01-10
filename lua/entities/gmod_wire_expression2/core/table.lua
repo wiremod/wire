@@ -474,7 +474,7 @@ e2function void table:remove( number index )
 	table.remove( this.n, index )
 	table.remove( this.ntypes, index )
 	this.size = this.size - 1
-	self.vclk[this] = true
+	self.GlobalScope.vclk[this] = true
 end
 
 -- Remove a variable at a string index
@@ -484,7 +484,7 @@ e2function void table:remove( string index )
 	this.s[index] = nil
 	this.stypes[index] = nil
 	this.size = this.size - 1
-	self.vclk[this] = true
+	self.GlobalScope.vclk[this] = true
 end
 
 -- Removes all variables not of the type
@@ -706,7 +706,7 @@ e2function void table:pop()
 	this.n[n] = nil
 	this.ntypes[n] = nil
 	this.size = this.size - 1
-	self.vclk[this] = true
+	self.GlobalScope.vclk[this] = true
 end
 
 -- Removes the first emelemt in the array part
@@ -714,7 +714,7 @@ e2function void table:shift()
 	table.remove( this.n, 1 )
 	table.remove( this.ntypes, 1 )
 	this.size = this.size - 1
-	self.vclk[this] = true
+	self.GlobalScope.vclk[this] = true
 end
 
 __e2setcost(5)
@@ -1014,7 +1014,7 @@ registerCallback( "postinit", function()
 			elseif (rv1.n[rv2] ~= nil and rv3 == nil) then rv1.size = rv1.size - 1 end
 			rv1.s[rv2] = rv3
 			rv1.stypes[rv2] = id
-			self.vclk[rv1] = true //self.Scopes[scope].vclk[rv1] = true
+			self.GlobalScope.vclk[rv1] = true
 			return rv3
 		end)
 
@@ -1025,7 +1025,7 @@ registerCallback( "postinit", function()
 			elseif (rv1.n[rv2] ~= nil and rv3 == nil) then rv1.size = rv1.size - 1 end
 			rv1.n[rv2] = rv3
 			rv1.ntypes[rv2] = id
-			self.vclk[rv1] = true //self.Scopes[scope].vclk[rv1] = true
+			self.GlobalScope.vclk[rv1] = true
 			return rv3
 		end)
 
@@ -1044,14 +1044,14 @@ registerCallback( "postinit", function()
 				table.remove( rv1.n, rv2 )
 				table.remove( rv1.ntypes, rv2 )
 				rv1.size = rv1.size - 1
-				self.vclk[rv1] = true
+				self.GlobalScope.vclk[rv1] = true
 				return ret
 			else
 				if (!rv1.s[rv2] or rv1.stypes[rv2] != id) then return fixdef(v[2]) end
 				local ret = rv1.s[rv2]
 				rv1.s[rv2] = nil
 				rv1.stypes[rv2] = nil
-				self.vclk[rv1] = true
+				self.GlobalScope.vclk[rv1] = true
 				rv1.size = rv1.size - 1
 				return ret
 			end
@@ -1085,7 +1085,7 @@ registerCallback( "postinit", function()
 			rv1.size = rv1.size + 1
 			rv1.n[n] = rv2
 			rv1.ntypes[n] = id
-			self.vclk[rv1] = true
+			self.GlobalScope.vclk[rv1] = true
 			return rv2
 		end)
 
@@ -1104,7 +1104,7 @@ registerCallback( "postinit", function()
 			rv1.size = rv1.size + 1
 			table.insert( rv1.n, rv2, rv3 )
 			table.insert( rv1.ntypes, rv2, id )
-			self.vclk[rv1] = true
+			self.GlobalScope.vclk[rv1] = true
 			return rv3
 		end)
 
@@ -1115,7 +1115,7 @@ registerCallback( "postinit", function()
 			rv1.size = rv1.size + 1
 			table.insert( rv1.n, 1, rv2 )
 			table.insert( rv1.ntypes, 1, id )
-			self.vclk[rv1] = true
+			self.GlobalScope.vclk[rv1] = true
 			return rv2
 		end)
 

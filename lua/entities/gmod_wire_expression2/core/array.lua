@@ -143,7 +143,7 @@ registerCallback( "postinit", function()
 				local ret
 				if (doremove) then
 					ret = table_remove( array, index )
-					self.vclk[array] = true
+					self.GlobalScope.vclk[array] = true
 				else
 					ret = array[floor(index)]
 				end
@@ -177,7 +177,7 @@ registerCallback( "postinit", function()
 				else
 					array[floor(index)] = value
 				end
-				self.vclk[array] = true
+				self.GlobalScope.vclk[array] = true
 				return value
 			end
 
@@ -271,7 +271,7 @@ end)
 __e2setcost(15)
 e2function void array:pop()
 	table_remove( this )
-	self.vclk[this] = true
+	self.GlobalScope.vclk[this] = true
 end
 
 --------------------------------------------------------------------------------
@@ -281,7 +281,7 @@ end
 __e2setcost(15)
 e2function void array:remove( index )
 	table_remove( this, index )
-	self.vclk[this] = true
+	self.GlobalScope.vclk[this] = true
 end
 
 --------------------------------------------------------------------------------
@@ -291,7 +291,7 @@ end
 __e2setcost(15)
 e2function void array:shift()
 	table_remove( this, 1 )
-	self.vclk[this] = true
+	self.GlobalScope.vclk[this] = true
 end
 
 --------------------------------------------------------------------------------
