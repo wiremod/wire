@@ -603,7 +603,7 @@ _s_meta = {
 	end
 }
 
-von = {}
+WireLib.von = {}
 
-von.deserialize = setmetatable(_deserialize,_d_meta)
-von.serialize = setmetatable(_serialize,_s_meta)
+WireLib.von.deserialize = setmetatable(_deserialize,_d_meta)
+WireLib.von.serialize = setmetatable(_serialize,_s_meta)

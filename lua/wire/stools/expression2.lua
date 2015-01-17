@@ -149,7 +149,7 @@ if SERVER then
 
 		local main, includes = targetEnt:GetCode()
 		if not includes or not next(includes) then -- There are no includes
-			local datastr = von.serialize({ { targetEnt.name, main } })
+			local datastr = WireLib.von.serialize({ { targetEnt.name, main } })
 			local numpackets = math.ceil(#datastr / 64000)
 			
 			local n = 0
@@ -171,7 +171,7 @@ if SERVER then
 				data[#data + 1] = k
 			end
 
-			local datastr = von.serialize(data)
+			local datastr = WireLib.von.serialize(data)
 			net.Start("wire_expression2_download_wantedfiles_list")
 			net.WriteEntity(targetEnt)
 			net.WriteBit(uploadandexit or false)
@@ -193,7 +193,7 @@ if SERVER then
 				end
 			end
 
-			local datastr = von.serialize(data)
+			local datastr = WireLib.von.serialize(data)
 			local numpackets = math.ceil(#datastr / 64000)
 			local n = 0
 			for i = 1, #datastr, 64000 do
@@ -225,7 +225,7 @@ if SERVER then
 		if not wantedfiles[ply] then wantedfiles[ply] = {} end
 		table.insert(wantedfiles[ply], net.ReadString())
 		if numpackets <= #wantedfiles[ply] then
-			local ok, ret = pcall(von.deserialize, E2Lib.decode(table.concat(wantedfiles[ply])))
+			local ok, ret = pcall(WireLib.von.deserialize, E2Lib.decode(table.concat(wantedfiles[ply])))
 			wantedfiles[ply] = nil
 			if not ok then
 				WireLib.AddNotify(ply, "Expression 2 download failed! Error message:\n" .. ret, NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3)
@@ -271,7 +271,7 @@ if SERVER then
 		if numpackets <= #uploads[ply] then
 			local datastr = E2Lib.decode(table.concat(uploads[ply]))
 			uploads[ply] = nil
-			local ok, ret = pcall(von.deserialize, datastr)
+			local ok, ret = pcall(WireLib.von.deserialize, datastr)
 
 			if not ok then
 				WireLib.AddNotify(ply, "Expression 2 upload failed! Error message:\n" .. ret, NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3)
@@ -569,9 +569,9 @@ elseif CLIENT then
 				newincludes[k] = v
 			end
 
-			datastr = E2Lib.encode(von.serialize({ code, newincludes, filepath }))
+			datastr = E2Lib.encode(WireLib.von.serialize({ code, newincludes, filepath }))
 		else
-			datastr = E2Lib.encode(von.serialize({ code, {}, filepath }))
+			datastr = E2Lib.encode(WireLib.von.serialize({ code, {}, filepath }))
 		end
 		
 		queue[#queue+1] = {
@@ -626,7 +626,7 @@ elseif CLIENT then
 
 		Expression2SetProgress(count / numpackets * 100, nil, "Downloading")
 		if numpackets <= count then
-			local ok, ret = pcall(von.deserialize, buffer)
+			local ok, ret = pcall(WireLib.von.deserialize, buffer)
 			buffer, count = "", 0
 			if not ok then
 				WireLib.AddNotify(ply, "Expression 2 download failed! Error message:\n" .. ret, NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3)
@@ -662,7 +662,7 @@ elseif CLIENT then
 		local uploadandexit = net.ReadBit() ~= 0
 		local buffer = net.ReadString()
 
-		local ok, ret = pcall(von.deserialize, buffer)
+		local ok, ret = pcall(WireLib.von.deserialize, buffer)
 		if not ok then
 			WireLib.AddNotify(ply, "Expression 2 file list download failed! Error message:\n" .. ret, NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3)
 			print("Expression 2 file list download failed! Error message:\n" .. ret)
@@ -756,7 +756,7 @@ elseif CLIENT then
 			for k, v in pairs(selectedfiles) do haschoice = true break end
 			if not haschoice then pnl:Close() return end
 
-			local datastr = E2Lib.encode(von.serialize(selectedfiles))
+			local datastr = E2Lib.encode(WireLib.von.serialize(selectedfiles))
 			local numpackets = math.ceil(#datastr / 64000)
 			for i = 1, #datastr, 64000 do
 				net.Start("wire_expression2_download_wantedfiles")
