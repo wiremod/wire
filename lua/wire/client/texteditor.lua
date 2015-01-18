@@ -10,6 +10,7 @@ local table_remove = table.remove
 local math_floor = math.floor
 local math_Clamp = math.Clamp
 local math_ceil = math.ceil
+local math_abs = math.abs
 local string_match = string.match
 local string_gmatch = string.gmatch
 local string_gsub = string.gsub
@@ -48,6 +49,7 @@ function EDITOR:Init()
 	self.Undo = {}
 	self.Redo = {}
 	self.PaintRows = {}
+	self.DontPaintRows = {}
 
 	self.LineNumberWidth = 2
 
@@ -92,6 +94,8 @@ function EDITOR:CursorToCaret()
 
 	local line = math_floor(y / self.FontHeight)
 	local char = math_floor(x / self.FontWidth+0.5)
+	
+	line = line + self:LinesHiddenAbove( line + self.Scroll[1] )
 
 	line = line + self.Scroll[1]
 	char = char + self.Scroll[2]
@@ -102,6 +106,106 @@ function EDITOR:CursorToCaret()
 
 	return { line, char }
 end
+
+-------------------------------------------
+-- Hidden lines
+-- used for stuff like hiding certain code regions
+-------------------------------------------
+
+--[[ todo:
+
+* scrolling doesn't take hidden areas into account yet
+* cursor indicator doesn't stay in the right place when scrolling
+* there's not yet any ui. Use this to test:
+	lua_run_cl wire_expression2_editor:GetCurrentEditor().DontPaintRows = {[10]=true,[11]=true,[12]=true,[13]=true,[14]=true,[15]=true}
+* erasing the linebreak just at the top of a hidden area breaks it
+* probably lots more
+]]
+
+-- Returns nr of lines hidden above 'row'
+function EDITOR:LinesHiddenAbove( row )
+	local n = 0
+	for i=row,1,-1 do
+		if self.DontPaintRows[i] then
+			n = n + 1
+		end
+	end
+	return n
+end
+
+-- Returns nr of lines hidden between 'from' and 'to'
+function EDITOR:LinesHiddenAt( from, to )
+	local n = 0
+	for i=from,to do
+		if self.DontPaintRows[i] then
+			n = n + 1
+		end
+	end
+	return n
+end
+
+-- Hide all lines between 'from' and 'to'
+function EDITOR:HideLines( from, to )
+	for i=from,to do
+		self.DontPaintRows[i] = true
+	end
+end
+
+-- Show all lines between 'from' and 'to'
+function EDITOR:ShowLines( from, to )
+	for i=from,to do
+		self.DontPaintRows[i] = nil
+	end
+end
+
+-- Returns the other edge of the hidden line area
+function EDITOR:PreviousShownLine( start )
+	for i=start,1,-1 do
+		if not self.DontPaintRows[i] then
+			return i
+		end
+	end
+	
+	return 1
+end
+
+-- Returns the other edge of the hidden line area
+function EDITOR:NextShownLine( start )
+	for i=start,#self.Rows do
+		if not self.DontPaintRows[i] then
+			return i
+		end
+	end
+	
+	return #self.Rows
+end
+
+function EDITOR:MoveHiddenLines( row, offset )
+	if offset == 0 then return end
+	
+	local new = {}
+
+	local dir = offset > 0 and 1 or -1
+	offset = math_abs(offset)
+	if dir == 1 then -- move all down
+		for k,v in pairs( self.DontPaintRows ) do
+			new[k+offset] = v
+		end
+	else -- move all up
+		for k,v in pairs( self.DontPaintRows ) do
+			new[k-offset] = v
+		end
+	end
+
+	-- merge back into table
+	for i=row,#self.Rows do
+		self.DontPaintRows[i] = new[i]
+	end
+end
+
+-------------------------------------------
+-- Hidden lines end
+-------------------------------------------
 
 local wire_expression2_editor_highlight_on_double_click = CreateClientConVar( "wire_expression2_editor_highlight_on_double_click", "1", true, false )
 local wire_expression2_editor_color_dblclickhighlight = CreateClientConVar( "wire_expression2_editor_color_dblclickhighlight", "0_100_0_100", true, false )
@@ -353,7 +457,7 @@ function EDITOR:HighlightLine( line, r, g, b, a )
 end
 function EDITOR:ClearHighlightedLines() self.HighlightedLines = nil end
 
-function EDITOR:PaintLine(row)
+function EDITOR:PaintLine(row,ypos)
 	if row > #self.Rows then return end
 
 	if !self.PaintRows[row] then
@@ -361,16 +465,19 @@ function EDITOR:PaintLine(row)
 	end
 
 	local width, height = self.FontWidth, self.FontHeight
+	
+	--ypos = (row - self.Scroll[1]) * height
+	ypos = ypos * height
 
 	if row == self.Caret[1] and self.TextEntry:HasFocus() then
 		surface_SetDrawColor(48, 48, 48, 255)
-		surface_DrawRect(self.LineNumberWidth + 5, (row - self.Scroll[1]) * height, self:GetWide() - (self.LineNumberWidth + 5), height)
+		surface_DrawRect(self.LineNumberWidth + 5, ypos, self:GetWide() - (self.LineNumberWidth + 5), height)
 	end
 
 	if (self.HighlightedLines and self.HighlightedLines[row]) then
 		local color = self.HighlightedLines[row]
 		surface_SetDrawColor( color[1], color[2], color[3], color[4] )
-		surface_DrawRect(self.LineNumberWidth + 5, (row - self.Scroll[1]) * height, self:GetWide() - (self.LineNumberWidth + 5), height)
+		surface_DrawRect(self.LineNumberWidth + 5, ypos, self:GetWide() - (self.LineNumberWidth + 5), height)
 	end
 
 	if self:HasSelection() then
@@ -387,18 +494,18 @@ function EDITOR:PaintLine(row)
 		if endchar < 0 then endchar = 0 end
 
 		if row == line and line == endline then
-			surface_DrawRect(char * width + self.LineNumberWidth + 6, (row - self.Scroll[1]) * height, width * (endchar - char), height)
+			surface_DrawRect(char * width + self.LineNumberWidth + 6, ypos, width * (endchar - char), height)
 		elseif row == line then
-			surface_DrawRect(char * width + self.LineNumberWidth + 6, (row - self.Scroll[1]) * height, width * (length - char + 1), height)
+			surface_DrawRect(char * width + self.LineNumberWidth + 6, ypos, width * (length - char + 1), height)
 		elseif row == endline then
-			surface_DrawRect(self.LineNumberWidth + 6, (row - self.Scroll[1]) * height, width * endchar, height)
+			surface_DrawRect(self.LineNumberWidth + 6, ypos, width * endchar, height)
 		elseif row > line and row < endline then
-			surface_DrawRect(self.LineNumberWidth + 6, (row - self.Scroll[1]) * height, width * (length + 1), height)
+			surface_DrawRect(self.LineNumberWidth + 6, ypos, width * (length + 1), height)
 		end
 	end
 
 
-	draw_SimpleText(tostring(row), self.CurrentFont, self.LineNumberWidth + 2, (row - self.Scroll[1]) * height, Color(128, 128, 128, 255), TEXT_ALIGN_RIGHT)
+	draw_SimpleText(tostring(row), self.CurrentFont, self.LineNumberWidth + 2, ypos, Color(128, 128, 128, 255), TEXT_ALIGN_RIGHT)
 
 	local offset = -self.Scroll[2] + 1
 	for i,cell in ipairs(self.PaintRows[row]) do
@@ -408,18 +515,18 @@ function EDITOR:PaintLine(row)
 				offset = line:len()
 
 				if cell[2][2] then
-					draw_SimpleText(line .. " ", self.CurrentFont .. "_Bold", self.LineNumberWidth+ 6, (row - self.Scroll[1]) * height, cell[2][1])
+					draw_SimpleText(line .. " ", self.CurrentFont .. "_Bold", self.LineNumberWidth+ 6, ypos, cell[2][1])
 				else
-					draw_SimpleText(line .. " ", self.CurrentFont, self.LineNumberWidth + 6, (row - self.Scroll[1]) * height, cell[2][1])
+					draw_SimpleText(line .. " ", self.CurrentFont, self.LineNumberWidth + 6, ypos, cell[2][1])
 				end
 			else
 				offset = offset + cell[1]:len()
 			end
 		else
 			if cell[2][2] then
-				draw_SimpleText(cell[1] .. " ", self.CurrentFont .. "_Bold", offset * width + self.LineNumberWidth + 6, (row - self.Scroll[1]) * height, cell[2][1])
+				draw_SimpleText(cell[1] .. " ", self.CurrentFont .. "_Bold", offset * width + self.LineNumberWidth + 6, ypos, cell[2][1])
 			else
-				draw_SimpleText(cell[1] .. " ", self.CurrentFont, offset * width + self.LineNumberWidth + 6, (row - self.Scroll[1]) * height, cell[2][1])
+				draw_SimpleText(cell[1] .. " ", self.CurrentFont, offset * width + self.LineNumberWidth + 6, ypos, cell[2][1])
 			end
 
 			offset = offset + cell[1]:len()
@@ -467,7 +574,11 @@ function EDITOR:PaintTextOverlay()
 
 		if (RealTime() - self.Blink) % 0.8 < 0.4 then
 			surface_SetDrawColor(240, 240, 240, 255)
-			surface_DrawRect((self.Caret[2] - self.Scroll[2]) * width + self.LineNumberWidth + 6, (self.Caret[1] - self.Scroll[1]) * height, 1, height)
+			
+			local mousey = self.Caret[1] - self.Scroll[1]
+			mousey = mousey - self:LinesHiddenAbove( self.Caret[1] )
+			
+			surface_DrawRect((self.Caret[2] - self.Scroll[2]) * width + self.LineNumberWidth + 6, mousey * height, 1, height)
 		end
 
 		-- Area highlighting
@@ -609,9 +720,25 @@ function EDITOR:Paint()
 
 	self.Scroll[1] = math_floor(self.ScrollBar:GetScroll() + 1)
 
+	local i = self.Scroll[1]
+	local stop = self.Scroll[1] + self.Size[1] + 1
+	local ypos = 0
+	while true do
+		if self.DontPaintRows[i] then
+			stop = stop + 1
+		else
+			self:PaintLine( i, ypos )
+			ypos = ypos + 1
+		end
+		
+		i = i + 1
+		if i > stop then break end
+	end
+	--[[
 	for i=self.Scroll[1],self.Scroll[1]+self.Size[1]+1 do
 		self:PaintLine(i)
 	end
+	]]
 
 	-- Paint the overlay of the text (bracket highlighting and carret postition)
 	self:PaintTextOverlay()
@@ -683,6 +810,9 @@ function EDITOR:MovePosition(caret, offset)
 				col = 1
 			end
 		end
+		
+		-- Skip hidden lines
+		row = self:NextShownLine( row )
 	elseif offset < 0 then
 		offset = -offset
 
@@ -699,6 +829,9 @@ function EDITOR:MovePosition(caret, offset)
 				col = #(self.Rows[row]) + 1
 			end
 		end
+		
+		-- Skip hidden lines
+		row = self:PreviousShownLine( row )
 	end
 
 	return {row, col}
@@ -746,17 +879,24 @@ function EDITOR:SetArea(selection, text, isundo, isredo, before, after)
 	local buffer = self:GetArea(selection)
 
 	if start[1] != stop[1] or start[2] != stop[2] then
-		// clear selection
+		-- clear selection
 		self.Rows[start[1]] = string_sub(self.Rows[start[1]], 1, start[2] - 1) .. string_sub(self.Rows[stop[1]], stop[2])
 		self.PaintRows[start[1]] = false
 
 		for i=start[1]+1,stop[1] do
 			table_remove(self.Rows, start[1] + 1)
 			table_remove(self.PaintRows, start[1] + 1)
-			self.PaintRows = {} // TODO: fix for cache errors
+			self.PaintRows = {} -- TODO: fix for cache errors
 		end
+		
+		-- Make these lines visible, if they are hidden
+		self:ShowLines( start[1]+1, stop[1] )
+		
+		-- Move all hidden lines below this line up that many steps
+		print("move up from:",stop[1]+1,"amount:",-(stop[1] - start[1]))
+		self:MoveHiddenLines( stop[1]+1, -(stop[1] - start[1]) )
 
-		// add empty row at end of file (TODO!)
+		-- add empty row at end of file (TODO!)
 		if self.Rows[#self.Rows] != "" then
 			self.Rows[#self.Rows + 1] = ""
 			self.PaintRows[#self.Rows + 1] = false
@@ -783,7 +923,7 @@ function EDITOR:SetArea(selection, text, isundo, isredo, before, after)
 		end
 	end
 
-	// insert text
+	-- insert text
 	local rows = string_Explode("\n", text)
 
 	local remainder = string_sub(self.Rows[start[1]], start[2])
@@ -793,19 +933,24 @@ function EDITOR:SetArea(selection, text, isundo, isredo, before, after)
 	for i=2,#rows do
 		table_insert(self.Rows, start[1] + i - 1, rows[i])
 		table_insert(self.PaintRows, start[1] + i - 1, false)
-		self.PaintRows = {} // TODO: fix for cache errors
+		self.PaintRows = {} -- TODO: fix for cache errors
 	end
+	
+	-- Move all hidden lines below this line down that many steps
+	local _, newlines = string_gsub( text, "\n", "" )
+	print("move down from:",start[1] + #rows - 1,"amount:",newlines)
+	self:MoveHiddenLines( start[1] + #rows - 1, newlines )
 
 	local stop = { start[1] + #rows - 1, #(self.Rows[start[1] + #rows - 1]) + 1 }
 
 	self.Rows[stop[1]] = self.Rows[stop[1]] .. remainder
 	self.PaintRows[stop[1]] = false
 
-	// add empty row at end of file (TODO!)
+	-- add empty row at end of file (TODO!)
 	if self.Rows[#self.Rows] != "" then
 		self.Rows[#self.Rows + 1] = ""
 		self.PaintRows[#self.Rows + 1] = false
-		self.PaintRows = {} // TODO: fix for cache errors
+		self.PaintRows = {} -- TODO: fix for cache errors
 	end
 
 	self.ScrollBar:SetUp(self.Size[1], #self.Rows - 1)
@@ -1965,6 +2110,9 @@ function EDITOR:_OnKeyCodeTyped(code)
 
 			if self.Caret[1] > 1 then
 				self.Caret[1] = self.Caret[1] - 1
+				
+				-- Skip hidden lines
+				self.Caret[1] = self:PreviousShownLine( self.Caret[1] )
 
 				local length = #(self.Rows[self.Caret[1]])
 				if self.Caret[2] > length + 1 then
@@ -1988,6 +2136,9 @@ function EDITOR:_OnKeyCodeTyped(code)
 
 			if self.Caret[1] < #self.Rows then
 				self.Caret[1] = self.Caret[1] + 1
+				
+				-- Skip hidden lines
+				self.Caret[1] = self:NextShownLine( self.Caret[1] )
 
 				local length = #(self.Rows[self.Caret[1]])
 				if self.Caret[2] > length + 1 then
