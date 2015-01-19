@@ -85,7 +85,7 @@ function ClientSideSound:ChangeFadeDistance(min, max)
 	net.Start("e2_soundfadedist")
 		net.WriteString(self.index)
 		net.WriteDouble(math.Clamp(min,50,300))
-		net.WriteDouble(math.Clamp(max,350,2000)
+		net.WriteDouble(math.Clamp(max,350,2000))
 	net.Broadcast()
 end
 	

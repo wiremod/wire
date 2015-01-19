@@ -1,21 +1,13 @@
 local E2Sounds = {}
 local BlockedPlayers = {}
-local BlockingAll = false
 
-concommand.Add("wire_expression2_sound_blockall", function(ply, com, args)
-	if args[1] then
-		local n = tonumber(args[1])
-		if n then
-			if n~=0 then
-				BlockingAll = true
-				for k,v in pairs(E2Sounds) do
-					v.SoundChannel:Stop()
-				end
-				E2Sounds = {}
-			else
-				BlockingAll = false
-			end
+local wire_expression2_sound_enabled = CreateConVar( "wire_expression2_sound_enabled_cl", 2, {FCVAR_ARCHIVE},"2: Anyone's sounds can be heard, 1: Only friend's sounds will be heard, 0: Only your own sounds will be heard")
+cvars.AddChangeCallback("wire_expression2_sound_enabled_cl", function(name, old, new)
+	if new~=2 then
+		for k,v in pairs(E2Sounds) do
+			v.SoundChannel:Stop()
 		end
+		E2Sounds = {}
 	end
 end)
 
@@ -108,12 +100,14 @@ local function setFadeVolume(data, volume, time)
 end
 
 net.Receive("e2_soundcreate",function()
-	if BlockingAll then return end
+	local access = wire_expression2_sound_enabled:GetInt()
+	if access==0 then return end
 	local index = net.ReadString()
 	local path = net.ReadString()
 	local time = net.ReadDouble()
 	local ent = net.ReadEntity()
 	local ply = net.ReadEntity()
+	if access==1 and ply:GetFriendStatus()~="friend" and ply~=LocalPlayer() then return end
 	
 	if BlockedPlayers[ply:SteamID()] then return end
 	
