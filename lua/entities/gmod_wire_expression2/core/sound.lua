@@ -4,9 +4,10 @@
 
 E2Lib.RegisterExtension("sound", true)
 
-local wire_expression2_maxsounds = CreateConVar( "wire_expression2_maxsounds", 16 )
-local wire_expression2_sound_burst_max = CreateConVar( "wire_expression2_sound_burst_max", 8 )
-local wire_expression2_sound_burst_rate = CreateConVar( "wire_expression2_sound_burst_rate", 0.1 )
+local wire_expression2_maxsounds = CreateConVar( "wire_expression2_maxsounds", 16, {FCVAR_ARCHIVE} )
+local wire_expression2_sound_burst_max = CreateConVar( "wire_expression2_sound_burst_max", 8, {FCVAR_ARCHIVE} )
+local wire_expression2_sound_burst_rate = CreateConVar( "wire_expression2_sound_burst_rate", 0.1, {FCVAR_ARCHIVE} )
+local wire_expression2_sound_allowurl = CreateConVar( "wire_expression2_sound_allowurl", 0, {FCVAR_ARCHIVE} )
 
 ---------------------------------------------------------------
 -- Helper functions
@@ -66,26 +67,73 @@ local function soundStop(self, index, fade)
 	timer.Remove( "E2_sound_stop_" .. self.entity:EntIndex() .. "_" .. index )
 end
 
+local ClientSideSound = {}
+ClientSideSound.mt = {__index = ClientSideSound}
+
+ClientSideSound.SendIndex = function(self)
+	umsg.String(self.e2:EntIndex() .. "_" .. self.index)
+end
+	
+ClientSideSound.CreateSound = function(path, index, e2, entity) 
+	local self = setmetatable({index = index, e2 = e2},ClientSideSound.mt)
+	umsg.Start("e2_soundurlcreate")
+		self:SendIndex()
+		umsg.String(path)
+		umsg.Entity(entity)
+	umsg.End()
+	return self
+end
+	
+ClientSideSound.Play = function() end
+	
+ClientSideSound.Stop = function(self)
+	umsg.Start("e2_soundurlstop")
+		self:SendIndex()
+	umsg.End()
+end
+	
+ClientSideSound.ChangeVolume = function(self, vol)
+	umsg.Start("e2_soundurlvolume")
+		self:SendIndex()
+		umsg.Float(vol)
+	umsg.End()
+end
+	
+ClientSideSound.ChangePitch = function(self, pitch)
+	umsg.Start("e2_soundurlpitch")
+		self:SendIndex()
+		umsg.Float(math.Clamp(pitch,0,2))
+	umsg.End()
+end
+	
+ClientSideSound.FadeOut = function(self)
+	self:Stop()
+end
+
 local function soundCreate(self, entity, index, time, path, fade)
-	if path:match('["?]') then return end
-	local data = self.data.sound_data
 	if not isAllowed( self ) then return end
 	
-	path = path:Trim()
-	path = path:gsub( "\\", "/" )
 	if isnumber( index ) then index = math.floor( index ) end
-	
 	local timerid = "E2_sound_stop_" .. self.entity:EntIndex() .. "_" .. index
 	
-	local sound = getSound( self, index )
-	if sound then
-		sound:Stop()
+	local data = self.data.sound_data
+	local oldsound = getSound( self, index )
+	if oldsound then
+		oldsound:Stop()
 		timer.Remove( timerid )
-	else
-		data.count = data.count + 1
 	end
 	
-	local sound = CreateSound( entity, path )
+	local sound
+	if path:sub(1,4)=="http" then
+		if wire_expression2_sound_allowurl:GetInt()==0 then return end
+		sound = ClientSideSound.CreateSound(path,index,self.entity,entity)
+	else
+		if path:match('["?]') then return end
+		path = path:Trim()
+		path = path:gsub( "\\", "/" )
+		sound = CreateSound( entity, path )
+	end
+	
 	data.sounds[index] = sound
 	sound:Play()
 	
@@ -101,6 +149,10 @@ local function soundCreate(self, entity, index, time, path, fade)
 		
 		soundStop( self, index, fade )
 	end)
+	
+	if not oldsound then
+		data.count = data.count + 1
+	end
 end
 
 local function soundPurge( self )
