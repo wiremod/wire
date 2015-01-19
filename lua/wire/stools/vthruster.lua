@@ -46,7 +46,8 @@ function TOOL:LeftClick( trace )
 		if (CLIENT) then return true end
 
 		local ent = WireToolObj.LeftClick_Make(self, trace, ply )
-		if ent != true and IsValid(ent) then
+		if isbool(ent) then return ent end
+		if IsValid(ent) then
 			ent:GetPhysicsObject():EnableMotion( false )
 			self:ReleaseGhostEntity()
 
