@@ -7,7 +7,94 @@ E2Lib.RegisterExtension("sound", true)
 local wire_expression2_maxsounds = CreateConVar( "wire_expression2_maxsounds", 16, {FCVAR_ARCHIVE} )
 local wire_expression2_sound_burst_max = CreateConVar( "wire_expression2_sound_burst_max", 8, {FCVAR_ARCHIVE} )
 local wire_expression2_sound_burst_rate = CreateConVar( "wire_expression2_sound_burst_rate", 0.1, {FCVAR_ARCHIVE} )
-local wire_expression2_sound_allowurl = CreateConVar( "wire_expression2_sound_allowurl", 0, {FCVAR_ARCHIVE} )
+local wire_expression2_sound_allowurl = CreateConVar( "wire_expression2_sound_allowurl", 1, {FCVAR_ARCHIVE} )
+
+util.AddNetworkString("e2_soundcreate")
+util.AddNetworkString("e2_soundplay")
+util.AddNetworkString("e2_soundpause")
+util.AddNetworkString("e2_soundstop")
+util.AddNetworkString("e2_soundremove")
+util.AddNetworkString("e2_soundvolume")
+util.AddNetworkString("e2_soundpitch")
+util.AddNetworkString("e2_soundfadedist")
+util.AddNetworkString("e2_soundsetlooping")
+
+---------------------------------------------------------------
+-- Client-side sound class
+---------------------------------------------------------------
+
+local ClientSideSound = {}
+ClientSideSound.mt = {__index = ClientSideSound}
+	
+function ClientSideSound.CreateSound( path, time, index, entity, e2 ) 
+	local self = setmetatable({index = e2:EntIndex() .. "_" .. index, path=path},ClientSideSound.mt)
+	net.Start("e2_soundcreate")
+		net.WriteString(self.index)
+		net.WriteString(path)
+		net.WriteDouble(time)
+		net.WriteEntity(entity)
+		net.WriteEntity(e2:GetPlayer())
+	net.Broadcast()
+	return self
+end
+
+function ClientSideSound:Play(time, entity)
+	net.Start("e2_soundplay")
+		net.WriteString(self.index)
+		net.WriteDouble(time)
+		net.WriteEntity(entity)
+	net.Broadcast()
+end
+
+function ClientSideSound:Pause()
+	net.Start("e2_soundpause")
+		net.WriteString(self.index)
+	net.Broadcast()
+end
+	
+function ClientSideSound:Stop(time)
+	net.Start("e2_soundstop")
+		net.WriteString(self.index)
+		net.WriteDouble(time)
+	net.Broadcast()
+end
+	
+function ClientSideSound:Remove()
+	net.Start("e2_soundremove")
+		net.WriteString(self.index)
+	net.Broadcast()
+end
+	
+function ClientSideSound:ChangeVolume(vol, time)
+	net.Start("e2_soundvolume")
+		net.WriteString(self.index)
+		net.WriteDouble(vol)
+		net.WriteDouble(time)
+	net.Broadcast()
+end
+	
+function ClientSideSound:ChangePitch(pitch, time)
+	net.Start("e2_soundpitch")
+		net.WriteString(self.index)
+		net.WriteDouble(math.Clamp(pitch,0,2))
+		net.WriteDouble(time)
+	net.Broadcast()
+end
+	
+function ClientSideSound:ChangeFadeDistance(min, max)
+	net.Start("e2_soundfadedist")
+		net.WriteString(self.index)
+		net.WriteDouble(math.Clamp(min,50,300))
+		net.WriteDouble(math.Clamp(max,350,2000)
+	net.Broadcast()
+end
+	
+function ClientSideSound:SetLooping(bool)
+	net.Start("e2_soundsetlooping")
+		net.WriteString(self.index)
+		net.WriteUInt(bool and 1 or 0, 8)
+	net.Broadcast()
+end
 
 ---------------------------------------------------------------
 -- Helper functions
@@ -40,127 +127,59 @@ local function isAllowed( self )
 	return true
 end
 
+local function soundDestroy(self, index)
+	if self.data.sound_data.sounds[index] then
+		self.data.sound_data.sounds[index]:Remove()
+		self.data.sound_data.sounds[index] = nil
+		self.data.sound_data.count = self.data.sound_data.count - 1
+	end
+end
+
 local function getSound( self, index )
 	if isnumber( index ) then index = math.floor( index ) end
 	return self.data.sound_data.sounds[index]
 end
 
-local function soundStop(self, index, fade)
-	local sound = getSound( self, index )
-	if not sound then return end
-	
-	fade = math.abs( fade )
-	
-	if fade == 0 then
-		sound:Stop()
-		
-		if isnumber( index ) then index = math.floor( index ) end
-		self.data.sound_data.sounds[index] = nil
-		
-		self.data.sound_data.count = self.data.sound_data.count - 1
-	else
-		sound:FadeOut( fade )
-		
-		timer.Simple( fade, function() soundStop( self, index, 0 ) end)
-	end
-	
-	timer.Remove( "E2_sound_stop_" .. self.entity:EntIndex() .. "_" .. index )
-end
-
-local ClientSideSound = {}
-ClientSideSound.mt = {__index = ClientSideSound}
-
-ClientSideSound.SendIndex = function(self)
-	umsg.String(self.e2:EntIndex() .. "_" .. self.index)
-end
-	
-ClientSideSound.CreateSound = function(path, index, e2, entity) 
-	local self = setmetatable({index = index, e2 = e2},ClientSideSound.mt)
-	umsg.Start("e2_soundurlcreate")
-		self:SendIndex()
-		umsg.String(path)
-		umsg.Entity(entity)
-	umsg.End()
-	return self
-end
-	
-ClientSideSound.Play = function() end
-	
-ClientSideSound.Stop = function(self)
-	umsg.Start("e2_soundurlstop")
-		self:SendIndex()
-	umsg.End()
-end
-	
-ClientSideSound.ChangeVolume = function(self, vol)
-	umsg.Start("e2_soundurlvolume")
-		self:SendIndex()
-		umsg.Float(vol)
-	umsg.End()
-end
-	
-ClientSideSound.ChangePitch = function(self, pitch)
-	umsg.Start("e2_soundurlpitch")
-		self:SendIndex()
-		umsg.Float(math.Clamp(pitch,0,2))
-	umsg.End()
-end
-	
-ClientSideSound.FadeOut = function(self)
-	self:Stop()
-end
-
 local function soundCreate(self, entity, index, time, path, fade)
 	if not isAllowed( self ) then return end
 	
-	if isnumber( index ) then index = math.floor( index ) end
-	local timerid = "E2_sound_stop_" .. self.entity:EntIndex() .. "_" .. index
-	
-	local data = self.data.sound_data
-	local oldsound = getSound( self, index )
-	if oldsound then
-		oldsound:Stop()
-		timer.Remove( timerid )
-	end
-	
-	local sound
 	if path:sub(1,4)=="http" then
 		if wire_expression2_sound_allowurl:GetInt()==0 then return end
-		sound = ClientSideSound.CreateSound(path,index,self.entity,entity)
 	else
 		if path:match('["?]') then return end
 		path = path:Trim()
 		path = path:gsub( "\\", "/" )
-		sound = CreateSound( entity, path )
 	end
 	
-	data.sounds[index] = sound
-	sound:Play()
+	if isnumber( index ) then index = math.floor( index ) end
 	
-	entity:CallOnRemove( "E2_stopsound", function()
-		soundStop( self, index, 0 )
-	end )
-	
-	if time == 0 and fade == 0 then return end
-	time = math.abs( time )
-	
-	timer.Create( timerid, time, 1, function()
-		if not self or not IsValid( self.entity ) or not IsValid( entity ) then return end
-		
-		soundStop( self, index, fade )
-	end)
-	
-	if not oldsound then
+	local data = self.data.sound_data
+	local oldsound = getSound( self, index )
+	if oldsound then
+		if oldsound.path == path then
+			oldsound:Play(time, entity)
+			return
+		end
+		oldsound:Remove()
+	else
 		data.count = data.count + 1
 	end
+	
+	local sound = ClientSideSound.CreateSound(path,time,index,entity,self.entity)
+	
+	data.sounds[index] = sound
+	
+	entity:CallOnRemove( "E2_stopsound", function()
+		soundDestroy( self, index )
+	end )
+	
 end
 
 local function soundPurge( self )
 	local sound_data = self.data.sound_data
 	if sound_data.sounds then
 		for k,v in pairs( sound_data.sounds ) do
-			v:Stop()
-			timer.Remove( "E2_sound_stop_" .. self.entity:EntIndex() .. "_" .. k )
+			v:Remove()
 		end
 	end
 	
@@ -204,11 +223,30 @@ e2function void entity:soundPlay( string index, duration, string path, fade ) = 
 __e2setcost(5)
 
 e2function void soundStop( index )
-	soundStop(self, index, 0)
+	local sound = getSound( self, index )
+	if not sound then return end
+	
+	sound:Stop(0)
 end
 
 e2function void soundStop( index, fadetime )
-	soundStop(self, index, fadetime)
+	local sound = getSound( self, index )
+	if not sound then return end
+	
+	sound:Stop(fadetime)
+end
+
+e2function void soundPause( index )
+	local sound = getSound( self, index )
+	if not sound then return end
+	
+	sound:Pause()
+end
+
+e2function void soundRemove( index )
+		if isnumber( index ) then index = math.floor( index ) end
+		
+		soundDestroy( self, index )
 end
 
 e2function void soundVolume( index, volume )
@@ -240,13 +278,31 @@ e2function void soundPitch( index, pitch, fadetime )
 	sound:ChangePitch( math.Clamp( pitch, 0, 255 ), math.abs( fadetime ) )
 end
 
+e2function void soundFadeDistance( index, min, max )
+	local sound = getSound( self, index )
+	if not sound then return end
+	
+	sound:ChangeFadeDistance( min, max )
+end
+
+--e2function void soundLoop( index, bool )
+	--local sound = getSound( self, index )
+	--if not sound then return end
+	
+	--sound:SetLooping( bool ~= 0 )
+--end
+
 
 e2function void soundStop( string index ) = e2function void soundStop( index )
 e2function void soundStop( string index, fadetime ) = e2function void soundStop( index, fadetime )
+e2function void soundPause( string index ) = e2function void soundPause( index )
+e2function void soundRemove( string index ) = e2function void soundRemove( index )
 e2function void soundVolume( string index, volume ) = e2function void soundVolume( index, volume )
 e2function void soundVolume( string index, volume, fadetime ) = e2function void soundVolume( index, volume, fadetime )
 e2function void soundPitch( string index, pitch ) = e2function void soundPitch( index, pitch )
 e2function void soundPitch( string index, pitch, fadetime ) = e2function void soundPitch( index, pitch, fadetime )
+e2function void soundFadeDistance( string index, min, max ) = e2function void soundFadeDistance( index, min, max ) 
+--e2function void soundLoop( string index, bool ) = e2function void soundLoop( index, bool )
 
 ---------------------------------------------------------------
 -- Other
