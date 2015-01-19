@@ -821,20 +821,37 @@ function Editor:InitComponents()
 
 	local bw = wire_expression2_editor_browserwidth:GetInt()
 
+	local DMenuButton = vgui.RegisterTable({
+		Init = function(panel)
+			panel:SetText("")
+			panel:SetSize(22, 20)
+			panel:Dock(LEFT)
+		end,
+		Paint = function(panel, w, h)
+			draw.RoundedBox(1, 0, 0, w, h, self.colors.col_FL)
+			if panel:IsHovered() then draw.RoundedBox(0, 1, 1, w - 2, h - 2, Color(0, 0, 0, 192)) end
+		end,
+		DoClick = function(panel)
+			local name = panel:GetName()
+			local f = name and name ~= "" and self[name] or nil
+			if f then f() end
+		end
+	}, "DButton")
+
 	-- addComponent( panel, x, y, w, h )
 	-- if x, y, w, h is minus, it will stay relative to right or buttom border
 	self.C.Close = self:addComponent(vgui.Create("DButton", self), -22, 4, 18, 18) -- Close button
-	self.C.Inf = self:addComponent(vgui.Create("DButton", self), -42, 4, 18, 18) -- Info button
-	self.C.ConBut = self:addComponent(vgui.Create("Button", self), -62, 4, 18, 18) -- Control panel open/close
+	self.C.Inf = self:addComponent(vgui.CreateFromTable(DMenuButton, self), -42, 4, 18, 18) -- Info button
+	self.C.ConBut = self:addComponent(vgui.CreateFromTable(DMenuButton, self), -62, 4, 18, 18) -- Control panel open/close
 
-	self.C.Btoggle = self:addComponent(vgui.Create("Button", self), bw + 20, 30, 20, 20) -- Toggle Browser being shown
-	self.C.Sav = self:addComponent(vgui.Create("Button", self), bw + 41, 30, 20, 20) -- Save button
-	self.C.NewTab = self:addComponent(vgui.Create("Button", self), bw + 62, 30, 20, 20) -- New tab button
-	self.C.CloseTab = self:addComponent(vgui.Create("Button", self), bw + 83, 30, 20, 20) -- Close tab button
-	self.C.Reload = self:addComponent(vgui.Create("Button", self), bw + 104, 30, 20, 20) -- Reload tab button
-
-	self.C.SaE = self:addComponent(vgui.Create("Button", self), -70, 30, -10, 20) -- Save & Exit button
-	self.C.SavAs = self:addComponent(vgui.Create("Button", self), -123, 30, -72, 20) -- Save As button
+	self.C.Menu = self:addComponent(vgui.Create("DPanel", self), bw + 20, 30, -8, 20)
+	self.C.Btoggle = vgui.CreateFromTable(DMenuButton, self.C.Menu) -- Toggle Browser being shown
+	self.C.Sav = vgui.CreateFromTable(DMenuButton, self.C.Menu) -- Save button
+	self.C.NewTab = vgui.CreateFromTable(DMenuButton, self.C.Menu, "NewTab") -- New tab button
+	self.C.CloseTab = vgui.CreateFromTable(DMenuButton, self.C.Menu, "CloseTab") -- Close tab button
+	self.C.Reload = vgui.CreateFromTable(DMenuButton, self.C.Menu) -- Reload tab button
+	self.C.SaE = vgui.CreateFromTable(DMenuButton, self.C.Menu) -- Save & Exit button
+	self.C.SavAs = vgui.CreateFromTable(DMenuButton, self.C.Menu) -- Save As button
 
 	self.C.Browser = self:addComponent(vgui.Create("wire_expression2_browser", self), 10, 30, bw + 7, -10) -- Expression browser
 	self.C.TabHolder = self:addComponent(vgui.Create("DPropertySheet", self), bw + 15, 52, -5, -27) -- TabHolder
@@ -846,7 +863,15 @@ function Editor:InitComponents()
 
 	-- extra component options
 
-	self.C.TabHolder.Paint = function() end
+	local DoNothing = function() end
+	self.C.TabHolder.Paint = DoNothing
+	self.C.Menu.Paint = DoNothing
+
+	self.C.SaE:SetSize(80, 20)
+	self.C.SaE:Dock(RIGHT)
+	self.C.SavAs:SetSize(51, 20)
+	self.C.SavAs:Dock(RIGHT)
+
 
 	self.C.Close:SetText("x")
 	self.C.Close.DoClick = function(btn) self:Close() end
@@ -858,74 +883,23 @@ function Editor:InitComponents()
 	self.C.Inf.DoClick = function(btn)
 		self.C.Credit:SetVisible(not self.C.Credit:IsVisible())
 	end
-	self.C.Sav:SetText("")
+
 	self.C.Sav:SetImage("icon16/disk.png")
-	self.C.Sav.Paint = function(button)
-		local w, h = button:GetSize()
-		draw.RoundedBox(1, 0, 0, w, h, self.colors.col_FL)
-		if button.Hovered then draw.RoundedBox(0, 1, 1, w - 2, h - 2, Color(0, 0, 0, 192)) end
-	end
 	self.C.Sav.DoClick = function(button) self:SaveFile(self:GetChosenFile()) end
 
-	self.C.NewTab:SetText("")
 	self.C.NewTab:SetImage("icon16/page_white_add.png")
-	self.C.NewTab.Paint = function(button)
-		local w, h = button:GetSize()
-		draw.RoundedBox(1, 0, 0, w, h, self.colors.col_FL)
-		if button.Hovered then draw.RoundedBox(0, 1, 1, w - 2, h - 2, Color(0, 0, 0, 192)) end
-	end
-	self.C.NewTab.DoClick = function(button)
-		self:NewTab()
-	end
 
-	self.C.CloseTab:SetText("")
 	self.C.CloseTab:SetImage("icon16/page_white_delete.png")
-	self.C.CloseTab.Paint = function(button)
-		local w, h = button:GetSize()
-		draw.RoundedBox(1, 0, 0, w, h, self.colors.col_FL)
-		if button.Hovered then draw.RoundedBox(0, 1, 1, w - 2, h - 2, Color(0, 0, 0, 192)) end
-	end
-	self.C.CloseTab.DoClick = function(button)
-		self:CloseTab()
-	end
 
-	self.C.Reload:SetText("")
 	self.C.Reload:SetImage("icon16/page_refresh.png")
-	self.C.Reload.Paint = function(button)
-		local w, h = button:GetSize()
-		draw.RoundedBox(1, 0, 0, w, h, self.colors.col_FL)
-		if button.Hovered then draw.RoundedBox(0, 1, 1, w - 2, h - 2, Color(0, 0, 0, 192)) end
-	end
 	self.C.Reload.DoClick = function(button)
 		self:LoadFile(self:GetChosenFile(), false)
 	end
 
-	self.C.SaE:SetText("")
-	self.C.SaE.Font = "E2SmallFont"
-	self.C.SaE.Paint = function(button)
-		local w, h = button:GetSize()
-		draw.RoundedBox(1, 0, 0, w, h, self.colors.col_FL)
-		if button.Hovered then draw.RoundedBox(0, 1, 1, w - 2, h - 2, Color(0, 0, 0, 192)) end
-		surface.SetFont(button.Font)
-		surface.SetTextPos(3, 4)
-		surface.SetTextColor(255, 255, 255, 255)
-		if self.chip then surface.DrawText("Upload & Exit")
-		else surface.DrawText(" Save & Exit")
-		end
-	end
+	self.C.SaE:SetText("Save and Exit")
 	self.C.SaE.DoClick = function(button) self:SaveFile(self:GetChosenFile(), true) end
 
-	self.C.SavAs:SetText("")
-	self.C.SavAs.Font = "E2SmallFont"
-	self.C.SavAs.Paint = function(button)
-		local w, h = button:GetSize()
-		draw.RoundedBox(1, 0, 0, w, h, self.colors.col_FL)
-		if button.Hovered then draw.RoundedBox(0, 1, 1, w - 2, h - 2, Color(0, 0, 0, 192)) end
-		surface.SetFont(button.Font)
-		surface.SetTextPos(3, 4)
-		surface.SetTextColor(255, 255, 255, 255)
-		surface.DrawText("  Save As")
-	end
+	self.C.SavAs:SetText("Save As")
 	self.C.SavAs.DoClick = function(button) self:SaveFile(self:GetChosenFile(), false, true) end
 
 	self.C.Browser:AddRightClick(self.C.Browser.filemenu, 4, "Save to", function()
@@ -964,11 +938,6 @@ function Editor:InitComponents()
 		end
 	end
 	self.C.Btoggle:SetText("<")
-	self.C.Btoggle.Paint = function(button)
-		local w, h = button:GetSize()
-		draw.RoundedBox(1, 0, 0, w, h, self.colors.col_FL)
-		if button.Hovered then draw.RoundedBox(0, 1, 1, w - 2, h - 2, Color(0, 0, 0, 192)) end
-	end
 	self.C.Btoggle.DoClick = function(button)
 		if button.hide then
 			button.hide = false
@@ -978,42 +947,6 @@ function Editor:InitComponents()
 			button:SetText(">")
 		end
 		button.toggle = true
-	end
-	self.C.Btoggle.anispeed = 10
-	self.C.Btoggle.Think = function(button)
-		if not button.toggle then return end
-		local bw = wire_expression2_editor_browserwidth:GetInt()
-		if button.hide and self.C.Btoggle.Bounds.x > 10 then
-			self.C.Btoggle.Bounds.x = self.C.Btoggle.Bounds.x - button.anispeed
-			self.C.Sav.Bounds.x = self.C.Sav.Bounds.x - button.anispeed
-			self.C.NewTab.Bounds.x = self.C.NewTab.Bounds.x - button.anispeed
-			self.C.CloseTab.Bounds.x = self.C.CloseTab.Bounds.x - button.anispeed
-			self.C.Reload.Bounds.x = self.C.Reload.Bounds.x - button.anispeed
-			self.C.TabHolder.Bounds.x = self.C.TabHolder.Bounds.x - button.anispeed
-			self.C.Val.Bounds.x = self.C.Val.Bounds.x - button.anispeed
-			self.C.Browser.Bounds.w = self.C.Browser.Bounds.w - button.anispeed
-		elseif not button.hide and self.C.Btoggle.Bounds.x < bw + 20 then
-			self.C.Btoggle.Bounds.x = self.C.Btoggle.Bounds.x + button.anispeed
-			self.C.Sav.Bounds.x = self.C.Sav.Bounds.x + button.anispeed
-			self.C.NewTab.Bounds.x = self.C.NewTab.Bounds.x + button.anispeed
-			self.C.CloseTab.Bounds.x = self.C.CloseTab.Bounds.x + button.anispeed
-			self.C.Reload.Bounds.x = self.C.Reload.Bounds.x + button.anispeed
-			self.C.TabHolder.Bounds.x = self.C.TabHolder.Bounds.x + button.anispeed
-			self.C.Val.Bounds.x = self.C.Val.Bounds.x + button.anispeed
-			self.C.Browser.Bounds.w = self.C.Browser.Bounds.w + button.anispeed
-		end
-
-		if self.C.Browser:IsVisible() and self.C.Browser.Bounds.w <= 0 then self.C.Browser:SetVisible(false)
-		elseif not self.C.Browser:IsVisible() and self.C.Browser.Bounds.w > 0 then self.C.Browser:SetVisible(true)
-		end
-		self:InvalidateLayout()
-		if button.hide then
-			if self.C.Btoggle.Bounds.x > 10 or self.C.Sav.Bounds.x > 30 or self.C.Val.Bounds.x < bw + 20 or self.C.Browser.Bounds.w > 0 then return end
-			button.toggle = false
-		else
-			if self.C.Btoggle.Bounds.x < bw + 20 or self.C.Sav.Bounds.x < bw + 40 or self.C.Val.Bounds.x < bw + 20 or self.C.Browser.Bounds.w < bw then return end
-			button.toggle = false
-		end
 	end
 	self.C.ConBut:SetImage("icon16/wrench.png")
 	self.C.ConBut:SetText("")
