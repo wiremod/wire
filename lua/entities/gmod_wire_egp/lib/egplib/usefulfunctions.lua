@@ -155,12 +155,69 @@ function EGP:SendMaterial( obj ) -- ALWAYS use this when sending material
 	end
 end
 
+EGP.CachedMaterials = {}
+EGP.LoadingMaterials = {}
+
+function EGP:CheckURLDownloads()
+	for mat, v in pairs(EGP.LoadingMaterials) do
+		if not v.Panel:IsLoading() then
+			timer.Simple(0.2,function()
+				local ShaderInfo = {
+				["$vertexcolor"] = 1,
+				["$vertexalpha"] = 1,
+				["$ignorez"] = 1,
+				["$nolod"] = 1,
+				}
+				local urlmaterial = CreateMaterial("egp_urltex_" .. util.CRC(mat .. SysTime()), "UnlitGeneric", ShaderInfo)
+				local tex = v.Panel:GetHTMLMaterial():GetTexture("$basetexture")
+				tex:Download()
+				urlmaterial:SetTexture("$basetexture", tex)
+				tex:Download()
+				v.Panel:Remove()
+			
+				EGP.CachedMaterials[mat] = urlmaterial
+				for _, t in pairs(v.Tables) do
+					t.material = urlmaterial
+				end
+			end)
+			
+			EGP.LoadingMaterials[mat] = nil
+		end
+	end
+	if not next(EGP.LoadingMaterials) then
+		timer.Destroy("EGP_URLMaterialChecker")
+	end
+end
+
+function EGP:LoadURLMaterial( tbl, mat )
+	if EGP.CachedMaterials[mat] then
+		tbl.material = EGP.CachedMaterials[mat]
+	elseif EGP.LoadingMaterials[mat] then
+		table.insert(EGP.LoadingMaterials[mat].Tables, tbl)
+	else
+		local Panel = vgui.Create( "DHTML" )
+		Panel:SetSize( 1024, 1024 )
+		Panel:OpenURL( mat )
+		Panel:SetAlpha( 0 )
+		Panel:SetMouseInputEnabled( false )
+		
+		if next(EGP.LoadingMaterials)==nil then
+			timer.Create("EGP_URLMaterialChecker",1,0,function() EGP:CheckURLDownloads() end)
+		end
+		
+		EGP.LoadingMaterials[mat] = {Tables = {tbl}, Panel = Panel}
+	end
+end
+
 function EGP:ReceiveMaterial( tbl ) -- ALWAYS use this when receiving material
 	local temp = net.ReadString()
 	local what, mat = temp:sub(1,1), temp:sub(2)
 	if what == "0" then
 		if mat == "" then
 			tbl.material = false
+		elseif mat:sub(1,4)=="http" then
+			tbl.material = false
+			EGP:LoadURLMaterial(tbl, mat)
 		else
 			tbl.material = Material(mat)
 		end
