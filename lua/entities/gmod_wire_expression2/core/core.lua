@@ -404,14 +404,16 @@ end
 
 --- If used as a while loop condition, stabilizes the expression around <maxexceed> hardquota used.
 e2function number perf()
-	if self.prf + self.prfcount >= e2_hardquota-e2_tickquota then return 0 end
+	if self.prf >= e2_tickquota*0.95 then return 0 end
+	if self.prf + self.prfcount >= (e2_hardquota+e2_softquota) then return 0 end
 	if self.prf >= e2_softquota*2 then return 0 end
 	return 1
 end
 
 e2function number perf(number n)
 	n = math.Clamp(n, 0, 100)
-	if self.prf + self.prfcount >= (e2_hardquota-e2_tickquota) * n * 0.01 then return 0 end
+	if self.prf >= e2_tickquota*n*0.01 then return 0 end
+	if self.prf + self.prfcount >= (e2_hardquota+e2_softquota) * n * 0.01 then return 0 end
 	if n == 100 then
 		if self.prf >= e2_softquota * 2 then return 0 end
 	else
