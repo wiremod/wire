@@ -5,10 +5,7 @@ if CLIENT then
 	language.Add("Tool.wire_expression2.name", "Expression 2 Tool (Wire)")
 	language.Add("Tool.wire_expression2.desc", "Spawns an Expression 2 chip for use with the wire system.")
 	language.Add("Tool.wire_expression2.0", "Primary: Create/Update Expression, Secondary: Open Expression in Editor")
-	language.Add("sboxlimit_wire_expression", "You've hit the Expression limit!")
-	language.Add("Undone_wire_expression2", "Undone Expression 2")
-	language.Add("Cleanup_wire_expressions", "Expression 1+2")
-	language.Add("Cleaned_wire_expressions", "Cleaned up all Wire Expressions")
+	language.Add("sboxlimit_wire_expressions", "You've hit the Expression limit!")
 end
 
 TOOL.ClientConVar = {
@@ -19,53 +16,22 @@ TOOL.ClientConVar = {
 	autoindent = 1,
 }
 
-cleanup.Register("wire_expressions")
+TOOL.MaxLimitName = "wire_expressions"
+WireToolSetup.BaseLang()
 
 if SERVER then
 	CreateConVar('sbox_maxwire_expressions', 20)
+	
+	function TOOL:MakeEnt(ply, model, Ang, trace)
+		return MakeWireExpression2(ply, trace.HitPos, Ang, model)
+	end
+	
+	function TOOL:PostMake(ent)
+		self:Upload(ent)
+	end
 
-	function TOOL:LeftClick(trace)
-		if not util.IsValidPhysicsObject(trace.Entity, trace.PhysicsBone) then return false end
-
-		local player = self:GetOwner()
-
-		local model = self:GetModel()
-		local pos = trace.HitPos
-		local ang = self:GetAngle(trace)
-
-		if IsValid(trace.Entity) and trace.Entity:GetClass() == "gmod_wire_expression2" then
-			self:Upload(trace.Entity)
-			return true
-		end
-
-		if not self:GetSWEP():CheckLimit("wire_expressions") then return false end
-
-		local entity = ents.Create("gmod_wire_expression2")
-		if not IsValid(entity) then return false end
-
-		player:AddCount("wire_expressions", entity)
-
-		entity:SetModel(model)
-		entity:SetAngles(ang)
-		entity:SetPos(pos)
-		entity:Spawn()
-		entity:SetPlayer(player)
-		entity.player = player
-		entity:SetNWEntity("player", player)
-
-		entity:SetPos(trace.HitPos - trace.HitNormal * entity:OBBMins().z)
-		local constraint = WireLib.Weld(entity, trace.Entity, trace.PhysicsBone, true)
-
-		undo.Create("wire_expression2")
-		undo.AddEntity(entity)
-		undo.SetPlayer(player)
-		undo.AddEntity(constraint)
-		undo.Finish()
-
-		player:AddCleanup("wire_expressions", entity)
-
-		self:Upload(entity)
-		return true
+	function TOOL:LeftClick_Update( trace )
+		self:Upload(trace.Entity)
 	end
 
 	function TOOL:Reload(trace)

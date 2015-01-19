@@ -33,10 +33,9 @@ function TOOL:LeftClick( trace )
 		local ply = self:GetOwner()
 		local Ent1, Ent2, Ent3  = self:GetEnt(1),	 self:GetEnt(2), trace.Entity
 		local const = self.Constraint
-
-		// Attach controller to the weld constraint
-		local controller = WireLib.MakeWireEnt(ply, {Class = self.WireClass, Pos=trace.HitPos, Angle=self:GetAngle(trace), Model=self:GetModel()})
-
+		
+		local controller = self:LeftClick_Make( trace, ply )
+		if isbool(controller) then return controller end
 		if !IsValid(controller) then
 			WireLib.AddNotify( self:GetOwner(), "Weld latch controller placement failed!", NOTIFY_GENERIC, 7 )
 			self.Constraint = nil
@@ -44,6 +43,7 @@ function TOOL:LeftClick( trace )
 			self:SetStage(0)
 			return false
 		end
+		self:LeftClick_PostMake( controller, ply, trace )
 
 		// Send entity and constraint info over to the controller
 		controller:SendVars( self.Ent1, self.Ent2, self.Bone1, self.Bone2, self.Constraint )
@@ -51,18 +51,6 @@ function TOOL:LeftClick( trace )
 		// Initialize controller inputs/outputs
 		controller:TriggerInput( "Activate", 1 )
 		Wire_TriggerOutput( controller, "Welded", 1 )
-
-		// Finish placing the controller
-		local min = controller:OBBMins()
-		controller:SetPos( trace.HitPos - trace.HitNormal * min.z )
-
-		local const2 = WireLib.Weld( controller, trace.Entity, trace.PhysicsBone, true )
-
-		undo.Create("WireLatch")
-			undo.AddEntity( controller )
-			undo.AddEntity( const2 )
-			undo.SetPlayer( ply )
-		undo.Finish()
 
 		self.Constraint = nil
 		self:ClearObjects()
