@@ -825,24 +825,29 @@ function Editor:InitComponents()
 	-- if x, y, w, h is minus, it will stay relative to right or buttom border
 	self.C.Close = self:addComponent(vgui.Create("DButton", self), -22, 4, 18, 18) -- Close button
 	self.C.Inf = self:addComponent(vgui.Create("DButton", self), -42, 4, 18, 18) -- Info button
+	self.C.ConBut = self:addComponent(vgui.Create("Button", self), -62, 4, 18, 18) -- Control panel open/close
+
+	self.C.Btoggle = self:addComponent(vgui.Create("Button", self), bw + 20, 30, 20, 20) -- Toggle Browser being shown
 	self.C.Sav = self:addComponent(vgui.Create("Button", self), bw + 41, 30, 20, 20) -- Save button
 	self.C.NewTab = self:addComponent(vgui.Create("Button", self), bw + 62, 30, 20, 20) -- New tab button
 	self.C.CloseTab = self:addComponent(vgui.Create("Button", self), bw + 83, 30, 20, 20) -- Close tab button
 	self.C.Reload = self:addComponent(vgui.Create("Button", self), bw + 104, 30, 20, 20) -- Reload tab button
+
 	self.C.SaE = self:addComponent(vgui.Create("Button", self), -70, 30, -10, 20) -- Save & Exit button
 	self.C.SavAs = self:addComponent(vgui.Create("Button", self), -123, 30, -72, 20) -- Save As button
+
 	self.C.Browser = self:addComponent(vgui.Create("wire_expression2_browser", self), 10, 30, bw + 7, -10) -- Expression browser
 	self.C.TabHolder = self:addComponent(vgui.Create("DPropertySheet", self), bw + 15, 52, -5, -27) -- TabHolder
 	self:CreateTab("generic")
-	self.C.Btoggle = self:addComponent(vgui.Create("Button", self), bw + 20, 30, 20, 20) -- Toggle Browser being shown
-	self.C.ConBut = self:addComponent(vgui.Create("Button", self), -62, 4, 18, 18) -- Control panel open/close
+	self.C.Val = self:addComponent(vgui.Create("Button", self), bw + 20, -30, -10, 20) -- Validation line
+
 	self.C.Control = self:addComponent(vgui.Create("Panel", self), -350, 52, 342, -32) -- Control Panel
 	self.C.Credit = self:addComponent(vgui.Create("DTextEntry", self), -160, 52, 150, 150) -- Credit box
-	self.C.Val = self:addComponent(vgui.Create("Button", self), bw + 20, -30, -10, 20) -- Validation line
+
+	-- extra component options
 
 	self.C.TabHolder.Paint = function() end
 
-	-- extra component options
 	self.C.Close:SetText("x")
 	self.C.Close.DoClick = function(btn) self:Close() end
 	self.C.Credit:SetTextColor(Color(0, 0, 0, 255))
