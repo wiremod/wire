@@ -149,6 +149,7 @@ local soundFuncs = {
 
 local function loadSound(index)
 
+	local path = E2Sounds[index].Path
 	local function createSoundCallback(channel, er, ername)
 		if IsValid(channel) then
 			if E2Sounds[index] and IsValid(E2Sounds[index].Entity) then
@@ -180,7 +181,6 @@ local function loadSound(index)
 		end
 	end
 	
-	local path = E2Sounds[index].Path
 	if path:sub(1,4)=="http" then
 		sound.PlayURL( path, "3d noblock", createSoundCallback )
 	else
