@@ -272,7 +272,7 @@ net.Receive("e2_soundrequest",function()
 	local access = wire_expression2_sound_enabled:GetInt()
 	if access==0 then return end
 	
-	local numRequests = net.ReadUInt(32)
+	local numRequests = math.Clamp(net.ReadUInt(32),0,40)
 	for I=1, numRequests do
 		local index = net.ReadString()
 		local func = net.ReadString()
