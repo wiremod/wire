@@ -90,7 +90,7 @@ include("wire/cpulib.lua")
 include("wire/timedpairs.lua")
 include("wire/default_data_decompressor.lua")
 include("wire/flir.lua")
-include("von.lua")
+include("wire/von.lua")
 
 -- server includes
 if SERVER then
