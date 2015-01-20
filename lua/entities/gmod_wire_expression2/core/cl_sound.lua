@@ -139,7 +139,7 @@ local soundFuncs = {
 	end,
 	
 	SetLooping = function(sound, loop)
-		sound.SoundChannel:EnableLooping( loop )
+		sound.SoundChannel:EnableLooping( loop~=0 )
 	end,
 	
 	SetTimePosition= function(sound, time)
