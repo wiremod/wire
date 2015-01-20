@@ -70,158 +70,212 @@ local function moveSounds()
 				if v.DieTime then
 					if CurTime()>=v.DieTime then
 						v.SoundChannel:Stop()
+						v.DieTime = nil
 					end
 				end
-			else
-				v.SoundChannel:Stop()
-				E2Sounds[k] = nil
 			end
-		else
-			E2Sounds[k] = nil
 		end
 	end
+	
 	if not next(E2Sounds) then
 		hook.Remove("Think", "E2_move_sounds")
 	end
 end
 
-local function setFadePitch(data, pitch, time)
-	data.FadePitchStart = CurTime()
-	data.FadePitchTime = math.max(time,0.01)
-	data.OriginalPitch = data.SoundChannel:GetPlaybackRate()
-	data.DeltaPitch = pitch - data.OriginalPitch
+local function setFadePitch(sound, pitch, time)
+	sound.FadePitchStart = CurTime()
+	sound.FadePitchTime = math.max(time,0.01)
+	sound.OriginalPitch = sound.SoundChannel:GetPlaybackRate()
+	sound.DeltaPitch = pitch - sound.OriginalPitch
 end
 
-local function setFadeVolume(data, volume, time)
-	data.FadeVolumeStart = CurTime()
-	data.FadeVolumeTime = math.max(time,0.01)
-	data.OriginalVolume = data.SoundChannel:GetVolume()
-	data.DeltaVolume = volume - data.OriginalVolume
+local function setFadeVolume(sound, volume, time)
+	sound.FadeVolumeStart = CurTime()
+	sound.FadeVolumeTime = math.max(time,0.01)
+	sound.OriginalVolume = sound.SoundChannel:GetVolume()
+	sound.DeltaVolume = volume - sound.OriginalVolume
 end
 
-net.Receive("e2_soundcreate",function()
-	local access = wire_expression2_sound_enabled:GetInt()
-	if access==0 then return end
-	local index = net.ReadString()
-	local path = net.ReadString()
-	local time = net.ReadDouble()
-	local ent = net.ReadEntity()
-	local ply = net.ReadEntity()
-	if access==1 and ply:GetFriendStatus()~="friend" and ply~=LocalPlayer() then return end
+local soundFuncs = {	
+	Play = function(sound, time, ent)
+		sound.SoundChannel:Play()
+		sound.Entity = ent
+		if time>0 then
+			sound.DieTime = CurTime() + time
+		end
+	end,
 	
-	if BlockedPlayers[ply:SteamID()] then return end
+	Pause = function(sound)
+			sound.SoundChannel:Pause()
+	end,
 	
-	local function createSoundCallback(snd, er, ername)
-		if IsValid(snd) then
-		
-			if not next(E2Sounds) then
-				hook.Add("Think", "E2_move_sounds",moveSounds)
-			end
-			
-			E2Sounds[index] = {SoundChannel = snd, Entity = ent, Player = ply}
-			if time>0 then
-				E2Sounds[index].DieTime = CurTime() + time
+	Stop = function(sound, time)
+		if time>0 then
+			sound.DieTime = CurTime() + time
+			setFadeVolume(sound, 0, time)
+		else
+			sound.SoundChannel:Stop()
+		end
+	end,
+	
+	ChangeVolume = function(sound, volume, time)
+		if time>0 then
+			setFadeVolume(sound, volume, time)
+		else
+			sound.SoundChannel:SetVolume(volume)
+		end
+	end,
+	
+	ChangePitch = function(sound, rate, time)
+		if time>0 then
+			setFadePitch(sound, rate, time)
+		else
+			sound.SoundChannel:SetPlaybackRate(rate)
+		end
+	end,
+	
+	ChangeFadeDistance = function(sound, min, max)
+		sound.SoundChannel:Set3DFadeDistance(min, max)
+	end,
+	
+	SetLooping = function(sound, loop)
+		sound.SoundChannel:EnableLooping( loop )
+	end,
+	
+	SetTimePosition= function(sound, time)
+		sound.SoundChannel:SetTime( time )
+	end
+}
+
+local function loadSound(index)
+
+	local function createSoundCallback(channel, er, ername)
+		if IsValid(channel) then
+			if E2Sounds[index] and IsValid(E2Sounds[index].Entity) then
+				local sound = E2Sounds[index]
+				if IsValid(sound.SoundChannel) then
+					sound.SoundChannel:Stop()
+				end
+				sound.SoundChannel = channel
+				channel:EnableLooping(true)
+				channel:SetPos(sound.Entity:GetPos())
+				
+				local queue = sound.Queue
+				for I=1, #queue do
+					queue[I].Func(sound, unpack(queue[I].Arg))
+				end
+				sound.Queue = nil
+				
+				if sound.Length>0 then
+					E2Sounds[index].DieTime = CurTime() + sound.Length
+				end
+				sound.Length = 0
+			else
+				channel:Stop()
+				E2Sounds[index] = nil
 			end
 		else
-			print("[E2] Failed to play sound: " .. path)
+			LocalPlayer():PrintMessage( HUD_PRINTCONSOLE, "[E2] Failed to play sound: " .. path .. "\n")
+			E2Sounds[index] = nil
 		end
 	end
 	
+	local path = E2Sounds[index].Path
 	if path:sub(1,4)=="http" then
-		sound.PlayURL( path, "3d", createSoundCallback )
+		sound.PlayURL( path, "3d noblock", createSoundCallback )
 	else
-		sound.PlayFile( path, "3d", createSoundCallback )
+		sound.PlayFile( "sound/" .. path, "3d noblock", createSoundCallback )
 	end
-end)
+end
 
-net.Receive("e2_soundplay",function()
-	local index = net.ReadString()
-		
-	if E2Sounds[index] then
+local controlFuncs = {
+	Create = function(index)
+		local path = net.ReadString()
 		local time = net.ReadDouble()
 		local ent = net.ReadEntity()
-		E2Sounds[index].SoundChannel:Play()
-		E2Sounds[index].Entity = ent
-		if time>0 then
-			E2Sounds[index].DieTime = CurTime() + time
+		local ply = net.ReadEntity()
+		
+		if wire_expression2_sound_enabled:GetInt()==1 and ply:GetFriendStatus()~="friend" and ply~=LocalPlayer() then return end
+		if BlockedPlayers[ply:SteamID()] then return end
+		
+		if not next(E2Sounds) then
+			hook.Add("Think", "E2_move_sounds",moveSounds)
+		end
+		
+		E2Sounds[index] = {SoundChannel = nil, Entity = ent, Player = ply, Queue = {}, Path = path, Length = time}
+		
+		loadSound(index)
+	end,
+	
+	Remove = function(index)
+		if E2Sounds[index] then
+			if IsValid(E2Sounds[index].SoundChannel) then
+				E2Sounds[index].SoundChannel:Stop()
+			end
+			E2Sounds[index] = nil
 		end
 	end
-end)
+}
 
-net.Receive("e2_soundpause",function()
-	local index = net.ReadString()
-	
-	if E2Sounds[index] then
-		E2Sounds[index].SoundChannel:Pause()
-		timer.Remove( "E2_sound_stop_" .. index )
+local netFuncs = {	
+	Play = function()	
+		return {net.ReadDouble(), net.ReadEntity()}
+	end,
+	Pause = function()
+		return {}
+	end,
+	Stop = function()
+		return {net.ReadDouble()}
+	end,
+	ChangeVolume = function()
+		return {net.ReadDouble(), net.ReadDouble()}
+	end,
+	ChangePitch = function()
+		return {net.ReadDouble(), net.ReadDouble()}
+	end,
+	ChangeFadeDistance = function()
+		return {net.ReadDouble(), net.ReadDouble()}
+	end,
+	SetLooping = function()
+		return {net.ReadUInt(8)}
+	end,
+	SetTimePosition = function()
+		return {net.ReadUInt(32)}
 	end
-end)
+}
 
-net.Receive("e2_soundstop",function()
-	local index = net.ReadString()
-	
-	if E2Sounds[index] then
-		local time = net.ReadDouble()
-		if time>0 then
-			E2Sounds[index].DieTime = CurTime() + time
-			setFadeVolume(E2Sounds[index], 0, time)
-		else
-			E2Sounds[index].SoundChannel:Stop()
+local function decideFunction(index, func)
+	if controlFuncs[func] then
+		controlFuncs[func](index)
+	elseif netFuncs[func] then
+		local sound = E2Sounds[index]
+		local netdata = netFuncs[func](sound)
+		if sound then
+			if sound.SoundChannel then
+				if sound.SoundChannel:IsValid() then
+					soundFuncs[func](sound,unpack(netdata))
+				else
+					sound.SoundChannel = nil
+					sound.Queue = {{Func = soundFuncs[func], Arg = netdata}}
+					loadSound(index)
+				end
+			elseif sound.Queue then
+				sound.Queue[#sound.Queue+1] = {Func = soundFuncs[func], Arg = netdata}
+			else
+				 E2Sounds[index] = nil
+			end
 		end
 	end
-end)
+end
 
-net.Receive("e2_soundremove",function()
-	local index = net.ReadString()
+net.Receive("e2_soundrequest",function()
+	local access = wire_expression2_sound_enabled:GetInt()
+	if access==0 then return end
 	
-	if E2Sounds[index] then
-		E2Sounds[index].SoundChannel:Stop()
-		E2Sounds[index] = nil
-	end
-end)
-	
-net.Receive("e2_soundvolume",function()
-	local index = net.ReadString()	
-	
-	if E2Sounds[index] then
-		local volume =  net.ReadDouble()
-		local time = net.ReadDouble()
-		if time>0 then
-			setFadeVolume(E2Sounds[index], volume, time)
-		else
-			E2Sounds[index].SoundChannel:SetVolume(volume)
-		end
-	end
-end)
-
-net.Receive("e2_soundpitch",function()
-	local index = net.ReadString()
-	
-	if E2Sounds[index] then
-		local rate = net.ReadDouble()
-		local time = net.ReadDouble()
-		if time>0 then
-			setFadePitch(E2Sounds[index], rate, time)
-		else
-			E2Sounds[index].SoundChannel:SetPlaybackRate(rate)
-		end
-	end
-end)
-
-net.Receive("e2_soundfadedist",function()
-	local index = net.ReadString()
-	
-	if E2Sounds[index] then
-		local min = net.ReadDouble()
-		local max = net.ReadDouble()
-		E2Sounds[index].SoundChannel:Set3DFadeDistance(min, max)
-	end
-end)
-
-net.Receive("e2_soundsetlooping",function()
-	local index = net.ReadString()
-	
-	if E2Sounds[index] then
-		E2Sounds[index].SoundChannel:EnableLooping( net.ReadUInt(8) > 0 )
+	local numRequests = net.ReadUInt(32)
+	for I=1, numRequests do
+		local index = net.ReadString()
+		local func = net.ReadString()
+		decideFunction(index, func)
 	end
 end)

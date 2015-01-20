@@ -9,15 +9,7 @@ local wire_expression2_sound_burst_max = CreateConVar( "wire_expression2_sound_b
 local wire_expression2_sound_burst_rate = CreateConVar( "wire_expression2_sound_burst_rate", 0.1, {FCVAR_ARCHIVE} )
 local wire_expression2_sound_allowurl = CreateConVar( "wire_expression2_sound_allowurl", 1, {FCVAR_ARCHIVE} )
 
-util.AddNetworkString("e2_soundcreate")
-util.AddNetworkString("e2_soundplay")
-util.AddNetworkString("e2_soundpause")
-util.AddNetworkString("e2_soundstop")
-util.AddNetworkString("e2_soundremove")
-util.AddNetworkString("e2_soundvolume")
-util.AddNetworkString("e2_soundpitch")
-util.AddNetworkString("e2_soundfadedist")
-util.AddNetworkString("e2_soundsetlooping")
+util.AddNetworkString("e2_soundrequest")
 
 ---------------------------------------------------------------
 -- Client-side sound class
@@ -25,77 +17,109 @@ util.AddNetworkString("e2_soundsetlooping")
 
 local ClientSideSound = {}
 ClientSideSound.mt = {__index = ClientSideSound}
-	
-function ClientSideSound.CreateSound( path, time, index, entity, e2 ) 
-	local self = setmetatable({index = e2:EntIndex() .. "_" .. index, path=path},ClientSideSound.mt)
-	net.Start("e2_soundcreate")
-		net.WriteString(self.index)
-		net.WriteString(path)
+ClientSideSound.SendRequests = {}
+ClientSideSound.SendFuncs = {
+	Create = function(self, time, ent, ply)
+		net.WriteString(self.path)
+		net.WriteDouble(time)
+		net.WriteEntity(ent)
+		net.WriteEntity(ply)
+	end,
+	Play = function(self, time, entity)
 		net.WriteDouble(time)
 		net.WriteEntity(entity)
-		net.WriteEntity(e2:GetPlayer())
-	net.Broadcast()
+	end,
+	Pause = function(self)
+	end,
+	Stop = function(self, time)
+		net.WriteDouble(time)
+	end,
+	Remove = function(self)
+	end,
+	ChangeVolume = function(self, vol, time)
+		net.WriteDouble(vol)
+		net.WriteDouble(time)
+	end,
+	ChangePitch = function(self, pitch, time)
+		net.WriteDouble(pitch)
+		net.WriteDouble(time)
+	end,
+	ChangeFadeDistance = function(self, min, max)
+		net.WriteDouble(min)
+		net.WriteDouble(max)
+	end,
+	SetLooping = function(self, val)
+		net.WriteUInt(val, 8)
+	end,
+	SetTimePosition = function(self, val)
+		net.WriteUInt(val, 32)
+	end
+}
+	
+function ClientSideSound.CreateSound( path, time, index, entity, e2 ) 
+	local self = setmetatable({},ClientSideSound.mt)
+	self.index = e2:EntIndex() .. "_" .. index
+	self.path = path
+	self:SendRequest("Create",time,entity,e2:GetPlayer())
 	return self
 end
 
-function ClientSideSound:Play(time, entity)
-	net.Start("e2_soundplay")
-		net.WriteString(self.index)
-		net.WriteDouble(time)
-		net.WriteEntity(entity)
+function ClientSideSound:SendRequest(request, ...)
+	local len = #ClientSideSound.SendRequests
+	if len==0 then hook.Add("Think","e2_sound_broadcast",ClientSideSound.Broadcast) end
+	ClientSideSound.SendRequests[len + 1] = {Func = request, Arg = {self, ...}}
+end
+
+function ClientSideSound.Broadcast()
+	net.Start("e2_soundrequest")
+		local numReq = #ClientSideSound.SendRequests
+		net.WriteUInt(numReq, 32)
+		for I=1, numReq do
+			local Request = ClientSideSound.SendRequests[I]
+			net.WriteString(Request.Arg[1].index)
+			net.WriteString(Request.Func)
+			ClientSideSound.SendFuncs[Request.Func](unpack(Request.Arg))
+		end
 	net.Broadcast()
+	ClientSideSound.SendRequests = {}
+	hook.Remove("Think","e2_sound_broadcast")
+end
+
+function ClientSideSound:Play(time, entity)
+	self:SendRequest("Play",time,entity)
 end
 
 function ClientSideSound:Pause()
-	net.Start("e2_soundpause")
-		net.WriteString(self.index)
-	net.Broadcast()
+	self:SendRequest("Pause")
 end
 	
 function ClientSideSound:Stop(time)
-	net.Start("e2_soundstop")
-		net.WriteString(self.index)
-		net.WriteDouble(time)
-	net.Broadcast()
+	self:SendRequest("Stop",time)
 end
 	
 function ClientSideSound:Remove()
-	net.Start("e2_soundremove")
-		net.WriteString(self.index)
-	net.Broadcast()
+	self:SendRequest("Remove")
 end
 	
 function ClientSideSound:ChangeVolume(vol, time)
-	net.Start("e2_soundvolume")
-		net.WriteString(self.index)
-		net.WriteDouble(vol)
-		net.WriteDouble(time)
-	net.Broadcast()
+	self:SendRequest("ChangeVolume", vol, time)
 end
 	
 function ClientSideSound:ChangePitch(pitch, time)
-	net.Start("e2_soundpitch")
-		net.WriteString(self.index)
-		net.WriteDouble(math.Clamp(pitch,0,2))
-		net.WriteDouble(time)
-	net.Broadcast()
+	self:SendRequest("ChangePitch",pitch,time)
 end
 	
 function ClientSideSound:ChangeFadeDistance(min, max)
-	net.Start("e2_soundfadedist")
-		net.WriteString(self.index)
-		net.WriteDouble(math.Clamp(min,50,300))
-		net.WriteDouble(math.Clamp(max,350,2000))
-	net.Broadcast()
+	self:SendRequest("ChangeFadeDistance",min,max)
 end
 	
-function ClientSideSound:SetLooping(bool)
-	net.Start("e2_soundsetlooping")
-		net.WriteString(self.index)
-		net.WriteUInt(bool and 1 or 0, 8)
-	net.Broadcast()
+function ClientSideSound:SetLooping(val)
+	self:SendRequest("SetLooping",val)
 end
 
+function ClientSideSound:SetTimePosition(val)
+	self:SendRequest("SetTimePosition",val)
+end
 ---------------------------------------------------------------
 -- Helper functions
 ---------------------------------------------------------------
@@ -157,6 +181,7 @@ local function soundCreate(self, entity, index, time, path, fade)
 	local oldsound = getSound( self, index )
 	if oldsound then
 		if oldsound.path == path then
+			oldsound:SetTimePosition(0)
 			oldsound:Play(time, entity)
 			return
 		end
@@ -268,29 +293,36 @@ e2function void soundPitch( index, pitch )
 	local sound = getSound( self, index )
 	if not sound then return end
 	
-	sound:ChangePitch( math.Clamp( pitch, 0, 255 ), 0 )
+	sound:ChangePitch( math.Clamp( pitch, 0, 300 ) / 100, 0 )
 end
 
 e2function void soundPitch( index, pitch, fadetime )
 	local sound = getSound( self, index )
 	if not sound then return end
 	
-	sound:ChangePitch( math.Clamp( pitch, 0, 255 ), math.abs( fadetime ) )
+	sound:ChangePitch( math.Clamp( pitch, 0, 300 ) / 100, math.abs( fadetime ) )
 end
 
 e2function void soundFadeDistance( index, min, max )
 	local sound = getSound( self, index )
 	if not sound then return end
 	
-	sound:ChangeFadeDistance( min, max )
+	sound:ChangeFadeDistance( math.Clamp(min,50,300), math.Clamp(max,350,2000) )
 end
 
---e2function void soundLoop( index, bool )
-	--local sound = getSound( self, index )
-	--if not sound then return end
+e2function void soundLoop( index, val )
+	local sound = getSound( self, index )
+	if not sound then return end
 	
-	--sound:SetLooping( bool ~= 0 )
---end
+	sound:SetLooping( val )
+end
+
+e2function void soundTimePosition( index, val )
+	local sound = getSound( self, index )
+	if not sound then return end
+	
+	sound:SetTimePosition( val )
+end
 
 
 e2function void soundStop( string index ) = e2function void soundStop( index )
@@ -302,7 +334,8 @@ e2function void soundVolume( string index, volume, fadetime ) = e2function void 
 e2function void soundPitch( string index, pitch ) = e2function void soundPitch( index, pitch )
 e2function void soundPitch( string index, pitch, fadetime ) = e2function void soundPitch( index, pitch, fadetime )
 e2function void soundFadeDistance( string index, min, max ) = e2function void soundFadeDistance( index, min, max ) 
---e2function void soundLoop( string index, bool ) = e2function void soundLoop( index, bool )
+e2function void soundLoop( string index, bool ) = e2function void soundLoop( index, bool )
+e2function void soundTimePosition( string index, val ) = e2function void soundTimePosition( index, val )
 
 ---------------------------------------------------------------
 -- Other
