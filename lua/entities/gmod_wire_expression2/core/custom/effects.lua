@@ -1,5 +1,33 @@
 E2Lib.RegisterExtension("effects",false)
 
+local wire_expression2_effect_burst_max = CreateConVar( "wire_expression2_effect_burst_max", 4, {FCVAR_ARCHIVE} )
+local wire_expression2_effect_burst_rate = CreateConVar( "wire_expression2_effect_burst_rate", 0.1, {FCVAR_ARCHIVE} )
+
+local function isAllowed( self )
+	local data = self.data
+	
+	if data.effect_burst == 0 then return false end
+	
+	data.effect_burst = data.effect_burst - 1
+	
+	local timerid = "E2_effect_burst_count_" .. self.entity:EntIndex()
+	if not timer.Exists( timerid ) then
+		timer.Create( timerid, wire_expression2_effect_burst_rate:GetFloat(), 0, function()
+			if not IsValid( self.entity ) then
+				timer.Remove( timerid )
+				return
+			end
+				
+			data.effect_burst = data.effect_burst + 1
+			if data.effect_burst == wire_expression2_effect_burst_max:GetInt() then
+				timer.Remove( timerid )
+			end
+		end)
+	end
+	
+	return true
+end
+
 registerType("effect", "ef", nil,
 	nil,
 	nil,
@@ -143,6 +171,13 @@ end
 
 e2function void effect:play(string name)
 	if not this then return end
+	if not isAllowed(self) then return end
 	
 	util.Effect(name,this,false)
 end
+
+registerCallback("construct", function(self)
+	self.data.effect_burst = wire_expression2_effect_burst_max:GetInt()
+end)
+
+
