@@ -157,31 +157,27 @@ end
 
 EGP.CachedMaterials = {}
 EGP.LoadingMaterials = {}
+setmetatable(EGP.CachedMaterials, {__mode = "v"})
 
 function EGP:CheckURLDownloads()
 	for mat, v in pairs(EGP.LoadingMaterials) do
 		if not v.Panel:IsLoading() then
 			timer.Simple(0.2,function()
-				local ShaderInfo = {
-				["$vertexcolor"] = 1,
-				["$vertexalpha"] = 1,
-				["$ignorez"] = 1,
-				["$nolod"] = 1,
-				}
-				local urlmaterial = CreateMaterial("egp_urltex_" .. util.CRC(mat .. SysTime()), "UnlitGeneric", ShaderInfo)
 				local tex = v.Panel:GetHTMLMaterial():GetTexture("$basetexture")
 				tex:Download()
-				urlmaterial:SetTexture("$basetexture", tex)
+				v.Material:SetTexture("$basetexture", tex)
 				tex:Download()
 				v.Panel:Remove()
 			
 				EGP.CachedMaterials[mat] = urlmaterial
-				for _, t in pairs(v.Tables) do
-					t.material = urlmaterial
-				end
 			end)
 			
 			EGP.LoadingMaterials[mat] = nil
+		else
+			if CurTime() > v.Timeout then
+				v.Panel:Remove()
+				EGP.LoadingMaterials[mat] = nil
+			end
 		end
 	end
 	if not next(EGP.LoadingMaterials) then
@@ -193,19 +189,42 @@ function EGP:LoadURLMaterial( tbl, mat )
 	if EGP.CachedMaterials[mat] then
 		tbl.material = EGP.CachedMaterials[mat]
 	elseif EGP.LoadingMaterials[mat] then
-		table.insert(EGP.LoadingMaterials[mat].Tables, tbl)
+		tbl.material = EGP.LoadingMaterials[mat].Material
 	else
 		local Panel = vgui.Create( "DHTML" )
 		Panel:SetSize( 1024, 1024 )
-		Panel:OpenURL( mat )
 		Panel:SetAlpha( 0 )
 		Panel:SetMouseInputEnabled( false )
+		Panel:SetHTML(
+		[[
+			<style type="text/css">
+				html 
+				{			
+					overflow:hidden;
+					margin: 0px 0px;
+				}
+			</style>
+			
+			<body>
+				<img src="]] .. mat .. [[" alt="" width="1024" height="1024" />
+			</body>
+		]]
+		)
 		
+		local ShaderInfo = {
+			["$vertexcolor"] = 1,
+			["$vertexalpha"] = 1,
+			["$ignorez"] = 1,
+			["$nolod"] = 1
+		}
+		local urlmaterial = CreateMaterial("egp_urltex_" .. util.CRC(mat .. SysTime()), "UnlitGeneric", ShaderInfo)
+				
 		if next(EGP.LoadingMaterials)==nil then
 			timer.Create("EGP_URLMaterialChecker",1,0,function() EGP:CheckURLDownloads() end)
 		end
 		
-		EGP.LoadingMaterials[mat] = {Tables = {tbl}, Panel = Panel}
+		EGP.LoadingMaterials[mat] = {Panel = Panel, Material = urlmaterial, Timeout = CurTime()+20}
+		tbl.material = urlmaterial
 	end
 end
 
@@ -216,7 +235,6 @@ function EGP:ReceiveMaterial( tbl ) -- ALWAYS use this when receiving material
 		if mat == "" then
 			tbl.material = false
 		elseif mat:sub(1,4)=="http" then
-			tbl.material = false
 			EGP:LoadURLMaterial(tbl, mat)
 		else
 			tbl.material = Material(mat)
