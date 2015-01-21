@@ -66,23 +66,23 @@ end
 
 function ClientSideSound:SendRequest(request, ...)
 	local len = #ClientSideSound.SendRequests
-	if len==0 then hook.Add("Think","e2_sound_broadcast",ClientSideSound.Broadcast) end
-	ClientSideSound.SendRequests[len + 1] = {Func = request, Arg = {self, ...}}
+	ClientSideSound.SendRequests[#ClientSideSound.SendRequests + 1] = {Func = request, Arg = {self, ...}}
 end
 
 function ClientSideSound.Broadcast()
-	net.Start("e2_soundrequest")
-		local numReq = #ClientSideSound.SendRequests
-		net.WriteUInt(numReq, 32)
-		for I=1, numReq do
-			local Request = ClientSideSound.SendRequests[I]
-			net.WriteString(Request.Arg[1].index)
-			net.WriteString(Request.Func)
-			ClientSideSound.SendFuncs[Request.Func](unpack(Request.Arg))
-		end
-	net.Broadcast()
-	ClientSideSound.SendRequests = {}
-	hook.Remove("Think","e2_sound_broadcast")
+	local numReq = #ClientSideSound.SendRequests
+	if numReq > 0 then
+		net.Start("e2_soundrequest")
+			net.WriteUInt(numReq, 32)
+			for I=1, numReq do
+				local Request = ClientSideSound.SendRequests[I]
+				net.WriteString(Request.Arg[1].index)
+				net.WriteString(Request.Func)
+				ClientSideSound.SendFuncs[Request.Func](unpack(Request.Arg))
+			end
+		net.Broadcast()
+		ClientSideSound.SendRequests = {}
+	end
 end
 
 function ClientSideSound:Play(time, entity)
@@ -360,4 +360,8 @@ end)
 
 registerCallback("destruct", function(self)
 	soundPurge( self )
+end)
+
+registerCallback("postexecute",function(self)
+	ClientSideSound.Broadcast()
 end)
