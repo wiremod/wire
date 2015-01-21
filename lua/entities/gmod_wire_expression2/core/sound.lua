@@ -10,6 +10,7 @@ local wire_expression2_sound_burst_rate = CreateConVar( "wire_expression2_sound_
 local wire_expression2_sound_allowurl = CreateConVar( "wire_expression2_sound_allowurl", 1, {FCVAR_ARCHIVE} )
 
 util.AddNetworkString("e2_soundrequest")
+util.AddNetworkString("e2_soundremove")
 
 ---------------------------------------------------------------
 -- Client-side sound class
@@ -33,8 +34,6 @@ ClientSideSound.SendFuncs = {
 	end,
 	Stop = function(self, time)
 		net.WriteDouble(time)
-	end,
-	Remove = function(self)
 	end,
 	ChangeVolume = function(self, vol, time)
 		net.WriteDouble(vol)
@@ -66,7 +65,8 @@ end
 
 function ClientSideSound:SendRequest(request, ...)
 	local len = #ClientSideSound.SendRequests
-	ClientSideSound.SendRequests[#ClientSideSound.SendRequests + 1] = {Func = request, Arg = {self, ...}}
+	if len>=100 then return end
+	ClientSideSound.SendRequests[len + 1] = {Func = request, Arg = {self, ...}}
 end
 
 function ClientSideSound.Broadcast()
@@ -98,7 +98,9 @@ function ClientSideSound:Stop(time)
 end
 	
 function ClientSideSound:Remove()
-	self:SendRequest("Remove")
+	net.Start("e2_soundremove")
+		net.WriteString(self.index)
+	net.Broadcast()
 end
 	
 function ClientSideSound:ChangeVolume(vol, time)
@@ -360,6 +362,7 @@ end)
 
 registerCallback("destruct", function(self)
 	soundPurge( self )
+	ClientSideSound.Broadcast()
 end)
 
 registerCallback("postexecute",function(self)
