@@ -235,6 +235,9 @@ function EGP:ReceiveMaterial( tbl ) -- ALWAYS use this when receiving material
 		if mat == "" then
 			tbl.material = false
 		elseif mat:sub(1,4)=="http" then
+			mat = string.gsub( mat, "[^%w _~%.%-/:]", function( str )
+				return string.format( "%%%02X", string.byte( str ) )
+			end )
 			EGP:LoadURLMaterial(tbl, mat)
 		else
 			tbl.material = Material(mat)
