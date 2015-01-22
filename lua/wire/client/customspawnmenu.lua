@@ -1,14 +1,14 @@
 
 local PANEL = {}
 
-local CurrentName -- a small hack to know when to create the wire extras checkbox
-
 AccessorFunc( PANEL, "m_TabID", 			"TabID" )
 
 local expand_all = CreateConVar( "wire_tool_menu_expand_all", 0, {FCVAR_ARCHIVE} )
-local search_max_convar = CreateConVar( "wire_tool_menu_search_limit", 28, {FCVAR_ARCHIVE} )
 local separate_wire_extras = CreateConVar( "wire_tool_menu_separate_wire_extras", 1, {FCVAR_ARCHIVE} )
+local hide_duplicates = CreateConVar( "wire_tool_menu_hide_duplicates", 0, {FCVAR_ARCHIVE} )
 local custom_for_all_tabs = CreateConVar( "wire_tool_menu_custom_menu_for_all_tabs", 0, {FCVAR_ARCHIVE} )
+local tab_width = CreateConVar( "wire_tool_menu_tab_width", -1, {FCVAR_ARCHIVE} )
+local horizontal_divider_width = CreateConVar( "wire_tool_menu_horizontal_divider_width", 0.28, {FCVAR_ARCHIVE} )
 
 -- Helper functions
 local function expandall( bool, nodes )
@@ -43,27 +43,43 @@ end
 -- Init
 ----------------------------------------------------------------------
 function PANEL:Init()
-	
 	self.Divider = vgui.Create( "DHorizontalDivider", self )
 	self.Divider:Dock( FILL )
 	self.Divider:SetDividerWidth( 6 )
 	
-	if ScrW() > 1600 then
-		self:SetWide( 548 )
-		self.Divider:SetLeftWidth( 200 )
-	elseif ScrW() > 1280 then
-		self:SetWide( 460 )
-		self.Divider:SetLeftWidth( 160 )
-	else
-		self:SetWide( 390 )
-		self.Divider:SetLeftWidth( 130 )
+	local width = tab_width:GetInt()
+	local divider_width = horizontal_divider_width:GetFloat()
+	if width > ScrW() * 0.6 then -- too big! you won't be able to see the rest of the spawn menu if it's this big, let's make it smaller
+		width = ScrW() * 0.6
+	elseif width == -1 then -- set up default value
+		width = 390
+		if ScrW() > 1600 then width = 548
+		elseif ScrW() > 1280 then width = 460 end
+	elseif width < 390 then -- too small! you won't be able to see the tools, make it bigger
+		width = 390
+	end
+	
+	if width ~= tab_width:GetInt() then -- things changed, update convars
+		divider_width = 0.28 -- reset horizontal divider width
+		RunConsoleCommand( "wire_tool_menu_tab_width", width )
+		RunConsoleCommand( "wire_tool_menu_horizontal_divider_width", divider_width )
+	end
+	
+	self:SetWide( width )
+	self.Divider:SetLeftWidth( width * divider_width )
+	
+	local old = self.Divider.OnMouseReleased
+	function self.Divider.OnMouseReleased( ... )
+		local width_percent = math.Round(self.Divider:GetLeftWidth() / self:GetWide(),2)
+		RunConsoleCommand( "wire_tool_menu_horizontal_divider_width", width_percent )
+		old( ... )
 	end
 	
 	local LeftPanel = vgui.Create( "DPanel" )
 	self.Divider:SetLeft( LeftPanel )
 	
 	local SearchBoxPanel = vgui.Create( "DPanel", LeftPanel )
-	SearchBoxPanel:SetTall( 84 )
+	SearchBoxPanel:SetTall( 44 )
 	SearchBoxPanel:DockPadding( 2,2,2,2 )
 	SearchBoxPanel:Dock( TOP )
 	
@@ -71,65 +87,8 @@ function PANEL:Init()
 	self.SearchBox:DockMargin( 2, 2, 2, 0 )
 	self.SearchBox:Dock( TOP )
 	self:SetupSearchbox()
-	
-	local clearsearch = vgui.Create( "DImageButton", self.SearchBox )
-	clearsearch:SetMaterial( "icon16/cross.png" )
-	local src = self.SearchBox
-	function clearsearch:DoClick()
-		src:SetValue( "" )
-		src:OnTextChanged()
-	end
-	clearsearch:DockMargin( 2,2,4,2 )
-	clearsearch:Dock( RIGHT )
-	clearsearch:SetSize( 14, 10 )
-	clearsearch:SetVisible( false )
-	self.SearchBox.clearsearch = clearsearch
-	
-	local parent = self
-	function self.SearchBox:OnEnter()
-		if #parent.SearchList:GetLines() > 0 then
-			parent.SearchList:OnClickLine( parent.SearchList:GetLine( 1 ) )
-		end
-	end
-	
-	if WireLib.WireExtrasInstalled and CurrentName == "Wire" then
-		-- create this here so that it's below ExpandAll
-		local SeparateWireExtras = vgui.Create( "DCheckBoxLabel", SearchBoxPanel )
-		SeparateWireExtras:SetText( "Separate Wire Extras" )
-		SeparateWireExtras:SetToolTip( "Whether or not to separate wire extras tools into its own category." )
-		SeparateWireExtras:SetConVar( "wire_tool_menu_separate_wire_extras" )
-		SeparateWireExtras.Label:SetDark(true)
-		SeparateWireExtras:DockMargin( 4, 4, 0, 0 )
-		SeparateWireExtras:Dock( BOTTOM )
 		
-		local first = true
-		local parent = self
-		local oldval
-		function SeparateWireExtras:OnChange( value )
-			if oldval == value then return end -- wtfgarry
-			oldval = value
-			
-			if first then first = false return end
-			
-			timer.Simple( 0.1, function()
-				parent:ReloadEverything()
-			end )
-		end
-		
-		SearchBoxPanel:SetTall( 104 )
-	end
-	
 	local ExpandAll = vgui.Create( "DCheckBoxLabel", SearchBoxPanel ) -- create this here so that it's below the slider
-	
-	local ResultSlider = vgui.Create( "DNumSlider", SearchBoxPanel )
-	ResultSlider:SetText( "Search results:" )
-	ResultSlider:SetConVar( "wire_tool_menu_search_limit" )
-	ResultSlider:SetMin( 1 )
-	ResultSlider:SetMax( 50 )
-	ResultSlider:SetDecimals( 0 )
-	ResultSlider.Label:SetDark(true)
-	ResultSlider:DockMargin( 4, 4, -26, 0 )
-	ResultSlider:Dock( BOTTOM )
 	
 	self.List = vgui.Create( "DTree", LeftPanel )
 	
@@ -172,15 +131,15 @@ function PANEL:Init()
 	self.SearchList:SetMultiSelect( false )
 	
 	function self.SearchList:OnClickLine( line )
-			-- Deselect old
-			local t = self:GetSelected()
-			if t and next(t) then
-				t[1]:SetSelected(false)
-			end
-
-			line:SetSelected(true) -- Select new
-			spawnmenu.ActivateTool( line.Name )
+		-- Deselect old
+		local t = self:GetSelected()
+		if t and next(t) then
+			t[1]:SetSelected(false)
 		end
+
+		line:SetSelected(true) -- Select new
+		spawnmenu.ActivateTool( line.Name )
+	end
 	
 	self.Content = vgui.Create( "DCategoryList" )
 	self.Divider:SetRight( self.Content )
@@ -205,6 +164,7 @@ function PANEL:ReloadEverything()
 	self.List:Init()
 	self.SearchList:Clear()
 	self.SearchBox:SetValue( "" )
+	self.SearchBox:OnTextChanged()
 	
 	self.CategoryLookup = {}
 	self.ToolTable = {}
@@ -220,15 +180,84 @@ end
 -- rather than doing it in PANEL:Init()
 ----------------------------------------------------------------------
 function PANEL:SetupSearchbox()
-	local searching
+	local clearsearch = vgui.Create( "DImageButton", self.SearchBox )
+	clearsearch:SetMaterial( "icon16/cross.png" )
+	local src = self.SearchBox
+	function clearsearch:DoClick()
+		src:SetValue( "" )
+		src:OnTextChanged()
+		src:SetValue( "Search..." )
+	end
+	clearsearch:DockMargin( 2,2,4,2 )
+	clearsearch:Dock( RIGHT )
+	clearsearch:SetSize( 14, 10 )
+	clearsearch:SetVisible( false )
+	self.SearchBox.clearsearch = clearsearch
+	
+	-- OnEnter
 	local parent = self
+	function self.SearchBox:OnEnter( select_next )
+		local lines = #parent.SearchList:GetLines()
+		if lines > 0 then -- if we have no lines at all, do nothing
+			local line = parent.SearchList:GetSelectedLine() or 0
+			if select_next then -- if tabbed, select next line
+				if lines > line then
+					parent.SearchList:OnClickLine( parent.SearchList:GetLine( line+1 ) )
+				else
+					parent.SearchList:OnClickLine( parent.SearchList:GetLine( 1 ) )
+				end
+			elseif line == 0 then -- if not tabbed, only select first line if no line is selected
+				parent.SearchList:OnClickLine( parent.SearchList:GetLine( 1 ) )
+			end				
+		end
+	end
+	
+	local old = self.SearchBox.OnGetFocus
+	function self.SearchBox:OnGetFocus()
+		if self:GetValue() == "Search..." then -- If "Search...", erase it
+			self:SetValue( "" )
+		end
+		old( self )
+	end
+	
+	-- On lose focus
+	local old = self.SearchBox.OnLoseFocus
+	function self.SearchBox:OnLoseFocus()
+		if self.Tabbed then -- regain focus if tabbed
+			self:RequestFocus()
+			self.Tabbed = nil
+		else
+			if self:GetValue() == "" then -- if empty, reset "Search..." text
+				timer.Simple( 0, function() self:SetValue( "Search..." ) end )
+			end
+			old( self )
+		end
+	end
+	
+	-- detecting tab to select next item in search result
+	local old = self.SearchBox.OnKeyCodeTyped
+	function self.SearchBox:OnKeyCodeTyped( code )
+		if code == 67 then -- tab
+			self:OnEnter( true )
+			self.Tabbed = true
+		else
+			old( self, code )
+		end
+	end
+	
+	self.SearchBox:SetValue( "Search..." )
+
+	local searching
 	function self.SearchBox:OnTextChanged()
+		timer.Remove( "wire_customspawnmenu_hidesearchbox" )
+	
 		local text = self:GetValue()
 		if text ~= "" then
 			if not searching then
 				searching = true
 				local x,y = parent.List:GetPos()
 				local w,h = parent.List:GetSize()
+				parent.SearchList:SetPos( x + w, y )
 				parent.SearchList:MoveTo( x, y, 0.1, 0, 1 )
 				parent.SearchList:SetSize( w, h )
 				parent.SearchList:SetVisible( true )
@@ -236,19 +265,38 @@ function PANEL:SetupSearchbox()
 			end
 			local results = parent:Search( text )
 			parent.SearchList:Clear()
-			for i=1,math.min(#results,search_max_convar:GetInt()) do
+			for i=1,#results do
 				local result = results[i]
 				local line = parent.SearchList:AddLine( result.item.Text, result.item.Category )
 				line.Name = result.item.ItemName
+				line.WireFavouritesCookieText = result.item.WireFavouritesCookieText
+				
+				function line:OnRightClick()
+					-- the menu wasn't clickable unless the search list had focus for some reason
+					parent.SearchList:RequestFocus()
+				
+					local menu = DermaMenu()
+					
+					local b = cookie.GetNumber( self.WireFavouritesCookieText )
+					if b and b == 1 then
+						menu:AddOption( "Remove from favourites", function() cookie.Set( self.WireFavouritesCookieText, 0 ) parent:ReloadEverything() end )
+					else
+						menu:AddOption( "Add to favourites", function() cookie.Set( self.WireFavouritesCookieText, 1 ) parent:ReloadEverything() end )
+					end
+					menu:Open()
+					
+					return true
+				end
 			end
 		else
 			if searching then
 				searching = false
 				local x,y = parent.List:GetPos()
 				local w,h = parent.List:GetSize()
+				parent.SearchList:SetPos( x, y )
 				parent.SearchList:MoveTo( x + w, y, 0.1, 0, 1 )
 				parent.SearchList:SetSize( w, h )
-				timer.Simple( 0.1, function()
+				timer.Create( "wire_customspawnmenu_hidesearchbox", 0.1, 1, function()
 					if IsValid( parent ) then
 						parent.SearchList:SetVisible( false )
 					end
@@ -263,21 +311,6 @@ end
 ----------------------------------------------------------------------
 -- Search algorithm
 ----------------------------------------------------------------------
-
--- Thank you http://lua-users.org/lists/lua-l/2009-07/msg00461.html
-local function Levenshtein( s, t )
-	local d, sn, tn = {}, #s, #t
-	local byte, min = string.byte, math.min
-	for i = 0, sn do d[i * tn] = i end
-	for j = 0, tn do d[j] = j end
-	for i = 1, sn do
-		local si = byte(s, i)
-		for j = 1, tn do
-			d[i*tn+j] = min(d[(i-1)*tn+j]+1, d[i*tn+j-1]+1, d[(i-1)*tn+j-1]+(si == byte(t,j) and 0 or 1))
-		end
-	end
-	return d[#d]
-end
 
 local string_find = string.find
 local table_SortByMember = table.SortByMember
@@ -296,7 +329,7 @@ function PANEL:Search( text )
 			if string_find( lowname, text, 1, true ) and not string_find( lowname, "(legacy)", 1, true ) and not v.Alias then
 				results[#results+1] = {
 					item = v,
-					dist = Levenshtein( text, lowname )
+					dist = WireLib.levenshtein( text, lowname )
 				}
 			end
 		end
@@ -311,6 +344,8 @@ end
 local function AddNode( list, text, cookietext )
 	local node = list:AddNode( text )
 	
+	node.Label:SetFont( "DermaDefaultBold" )
+	
 	cookietext = "ToolMenu.Wire." .. cookietext
 	node.WireCookieText = cookietext
 	
@@ -321,6 +356,26 @@ local function AddNode( list, text, cookietext )
 		cookie.Set( cookietext, b and 1 or 0 )
 	end
 	node.Expander.DoClick = function() node:DoClick() end
+	
+	function node:DoRightClick()
+		local menu = DermaMenu()
+			
+		local b = self.m_bExpanded
+		if b then
+			menu:AddOption( "Collapse all", function()
+				self:SetExpanded( false )
+				expandall( false, self.ChildNodes:GetChildren() )
+			end )
+		else
+			menu:AddOption( "Expand all", function()
+				self:SetExpanded( true )
+				expandall( true, self.ChildNodes:GetChildren() )
+			end )
+		end
+		menu:Open()
+		
+		return true
+	end
 	
 	return node
 end
@@ -346,14 +401,12 @@ function PANEL:CreateCategories()
 			
 			if #expl == 1 then
 				if not self.CategoryLookup[category] then
-					--local node = self.List:AddNode( v.Text )
 					local node = AddNode( self.List, v.Text, category )
 					self.CategoryLookup[category] = node
 				end
 			else
 				local category = expl[1]
 				if not self.CategoryLookup[category] then
-					--local node = self.List:AddNode( category )
 					local node = AddNode( self.List, category, category )
 					self.CategoryLookup[category] = node
 				end
@@ -363,7 +416,6 @@ function PANEL:CreateCategories()
 					
 					local path = table.concat(expl,"/",1,i)
 					if not self.CategoryLookup[path] then
-						--local node = self.CategoryLookup[table.concat(expl,"/",1,i-1)]:AddNode( str )
 						local node = AddNode( self.CategoryLookup[table.concat(expl,"/",1,i-1)], str, path )
 						self.CategoryLookup[path] = node
 					end
@@ -418,15 +470,19 @@ function PANEL:FixWireCategories()
 		if istable(category) then
 			for _, tool in pairs( category ) do
 				if istable(tool) then
+					-- favourites
 					local fav = cookie.GetNumber( "ToolMenu.Wire.Favourites." .. tool.ItemName )
 					if fav and fav == 1 then
 						self:AddToolToCategories( tool, {"Favourites"} )
 					end						
 				
-					local tooltbl = weapons.Get("gmod_tool").Tool[tool.ItemName]
-					if tooltbl then
-						if tooltbl.Wire_MultiCategories then
-							self:AddToolToCategories( tool, tooltbl.Wire_MultiCategories )
+					-- multi categories
+					if not hide_duplicates:GetBool() then
+						local tooltbl = weapons.Get("gmod_tool").Tool[tool.ItemName]
+						if tooltbl then
+							if tooltbl.Wire_MultiCategories then
+								self:AddToolToCategories( tool, tooltbl.Wire_MultiCategories )
+							end
 						end
 					end
 				end
@@ -482,8 +538,6 @@ function PANEL:AddCategory( Name, Label, tItems, CategoryID )
 		return
 	end
 	
-	local bAlt = true
-	
 	for k, v in pairs( tItems ) do
 	
 		v.Category = Label
@@ -514,6 +568,7 @@ function PANEL:AddCategory( Name, Label, tItems, CategoryID )
 		end
 		
 		item.WireFavouritesCookieText	= "ToolMenu.Wire.Favourites." .. v.ItemName
+		v.WireFavouritesCookieText		= item.WireFavouritesCookieText
 		item.ControlPanelBuildFunction	= v.CPanelFunction
 		item.Command					= v.Command
 		item.Name						= v.ItemName
@@ -538,9 +593,60 @@ end
 
 vgui.Register( "WireToolPanel", PANEL, "Panel" )
 
+local wire_tab
+local all_tabs = {}
+
+local function setUpTabReloadOnChange( checkbox )
+	checkbox.first = true
+	function checkbox:OnChange( value )
+		if self.oldval == value then return end -- wtfgarry
+		self.oldval = value
+		
+		if self.first then self.first = false return end
+		
+		timer.Simple( 0.1, function()
+			if IsValid( wire_tab ) then
+				wire_tab:ReloadEverything()
+			end
+		end )
+	end
+end
+
 local function CreateCPanel( panel )
 	local checkbox = panel:CheckBox( "Use wire's custom tool menu for all tabs", "wire_tool_menu_custom_menu_for_all_tabs" )
 	checkbox:SetToolTip( "Requires rejoin to take effect" )
+	
+	if WireLib.WireExtrasInstalled then
+		local SeparateWireExtras = panel:CheckBox( "Separate Wire Extras", "wire_tool_menu_separate_wire_extras" )
+		SeparateWireExtras:SetToolTip( "Whether or not to separate wire extras tools into its own category." )
+
+		setUpTabReloadOnChange( SeparateWireExtras )
+	end
+	
+	local HideDuplicates = panel:CheckBox( "Hide tool duplicates", "wire_tool_menu_hide_duplicates" )
+	setUpTabReloadOnChange( HideDuplicates )
+	panel:Help( "It makes sense to have certain tools in multiple categories at once. However, if you don't want this, you can disable it here. The tools will then only appear in their primary category." )
+	
+	local TabWidth = panel:NumSlider( "Tab width", "wire_tool_menu_tab_width", 300, 3000, 0 )
+	panel:Help( [[Set the width of all tabs.
+Defaults:
+Screen width > 1600px: 548px,
+Screen width > 1280px: 460px,
+Screen width < 1280px: 390px.
+Note:
+Can't be smaller than the width of any non-custom tab, and can't be greater than screenwidth * 0.6.
+Changes will take effect 3 seconds after you edit the value.]] )
+
+	function TabWidth:ValueChanged( value )
+		timer.Remove( "wire_tab_width_changed" )
+		timer.Create( "wire_tab_width_changed", 3, 1, function()
+			all_tabs[1]:GetParent():SetWide( 390 )
+			for i=1,#all_tabs do -- change the width of all registered tabs
+				all_tabs[i]:SetWidth( math.Clamp( value, 390, ScrW() * 0.6 ) )
+			end
+			all_tabs[1]:GetParent():PerformLayout()
+		end)
+	end
 end
 
 ----------------------------------------------------------------------
@@ -566,8 +672,13 @@ hook.Add( "PopulateToolMenu", "Wire_CustomSpawnMenu", function()
 	old = ToolMenu.AddToolPanel
 	function ToolMenu:AddToolPanel( Name, ToolTable )
 		if tabs[ToolTable.Name] or custom_for_all_tabs:GetBool() == true then
-			CurrentName = ToolTable.Name
 			local Panel = vgui.Create( "WireToolPanel" )
+			
+			if ToolTable.Name == "Wire" then
+				wire_tab = Panel -- for wire tab options menu
+			end
+			all_tabs[#all_tabs+1] = Panel -- list of all registered tabs
+			
 			Panel:SetTabID( Name )
 			Panel:LoadToolsFromTable( ToolTable.Items )
 		

@@ -49,8 +49,7 @@ end)
 local function CreateCPanel( Panel )
 	Panel:ClearControls()
 
-	local lbl =  vgui.Create("DLabel")
-	lbl:SetText([[Here you can fix screens that use
+	Panel:Help( [[Here you can fix screens that use
 rendertargets if they break due to lag.
 If a screen is not on this list, it means
 that either its author has not added it to
@@ -58,9 +57,7 @@ this list, the screen has its own fix, or
 that no fix is necessary.
 You can also use the console command
 "wire_rt_fix", which does the same thing
-as pressing the "All" button.]])
-	lbl:SizeToContents()
-	Panel:AddItem( lbl )
+as pressing the "All" button.]] )
 
 	local btn = vgui.Create("DButton")
 	btn:SetText("All")
@@ -111,3 +108,4 @@ RTFix:Add("gmod_wire_oscilloscope","Oscilloscope", def)
 --RTFix:Add("gmod_wire_panel","Control Panel", function( ent ) def( ent, nil, true ) end) No fix is needed for this
 --RTFix:Add("gmod_wire_screen","Screen", function( ent ) def( ent, nil, true ) end) No fix is needed for this
 RTFix:Add("gmod_wire_textscreen","Text Screen", function( ent ) def( ent, "NeedRefresh" ) end)
+RTFix:Add("gmod_wire_egp","EGP",function( ent ) def( ent, "NeedsUpdate" ) end)

@@ -17,6 +17,7 @@ local string_rep = string.rep
 local string_byte = string.byte
 local string_format = string.format
 local string_Trim = string.Trim
+local string_reverse = string.reverse
 local math_min = math.min
 local table_insert = table.insert
 local table_sort = table.sort
@@ -1019,50 +1020,48 @@ function EDITOR:Find( str, looped )
 			self:SetCaret( {1,1} )
 			self:Find( _str, (looped or 0) + 1 )
 		end
-	else
+	else -- Up
 		local text = table_concat( self.Rows, "\n", 1, self.Start[1]-1 )
 		local line = self.Rows[self.Start[1]]
 		text = text .. "\n" .. line:sub( 1, self.Start[2]-1 )
+		
+		str = string_reverse( str )
+		text = string_reverse( text )
+		
+		if (ignore_case) then text = text:lower() end
 
-		local found
 		local offset = 2
 		for loop = 1, 100 do
 			local start, stop = text:find( str, offset, !use_patterns )
 			if (start and stop) then
+
 				if (whole_word_only) then
-					local caretstart = self:MovePosition( {1,1}, start )
+					local caretstart = self:MovePosition( self.Start, -start )
 					caretstart = { caretstart[1], caretstart[2]-1 }
-					local caretstop = self:MovePosition( {1,1}, stop )
+					local caretstop = self:MovePosition( self.Start, -stop )
 					caretstop = { caretstop[1], caretstop[2]-1 }
 					local wstart = self:getWordStart( { caretstart[1], caretstart[2]+1 } )
 					local wstop = self:getWordEnd( { caretstart[1], caretstart[2]+1 } )
 					if (caretstart[1] == wstart[1] and caretstop[1] == wstop[1] and
 						caretstart[2] == wstart[2] and caretstop[2]+1 == wstop[2]) then
-							found = { caretstart, caretstop }
-							if ((caretstop[1] == self.Start[1] and caretstop[2] >= self.Start[2]) or (caretstop[1] > self.Start[1])) then break end
+							self:HighlightFoundWord( nil, caretstart, caretstop )
+							return true
 					else
 						offset = start+1
 					end
 				else
-					found = { start-1, stop-1 }
-
-					local caretstop = self:MovePosition( {1,1}, stop )
-					if ((caretstop[1] == self.Start[1] and caretstop[2] >= self.Start[2]) or (caretstop[1] > self.Start[1])) then break end
+					self:HighlightFoundWord( nil, -(start-1), -(stop+1) )
+					return true
 				end
-				offset = start+1
+
 			else
 				break
 			end
-			if (loop == 100) then error("\nInfinite loop protection enabled.\nPlease provide a detailed description of what you were doing when you got this error on www.wiremod.com.\n(Except if you were trying to find the patterns '.-' or '.?' or something similar. Then it's your own fault!)\n") return end
-		end
-
-		if (found) then
-			self:HighlightFoundWord( {1,1}, found[1], found[2] )
-			return true
+			if (loop == 100) then error("\nInfinite loop protection enabled.\nPlease provide a detailed description of what you were doing when you got this error on www.wiremod.com.\n") return end
 		end
 
 		if (wrap_around) then
-			self:SetCaret( {#self.Rows,#self.Rows[#self.Rows]} )
+			self:SetCaret( { #self.Rows,#self.Rows[#self.Rows] } )
 			self:Find( _str, (looped or 0) + 1 )
 		end
 	end
@@ -1079,7 +1078,7 @@ function EDITOR:Replace( str, replacewith )
 
 	local _str = str
 	if (!use_patterns) then
-		str = str:gsub( "[%-%^%$%(%)%%%.%[%]%*%+%-%?]", "%%%1" )
+		str = str:gsub( "[%-%^%$%(%)%%%.%[%]%*%+%?]", "%%%1" )
 		replacewith = replacewith:gsub( "%%", "%%%1" )
 	end
 
@@ -1099,7 +1098,7 @@ function EDITOR:ReplaceAll( str, replacewith )
 	local use_patterns = wire_expression2_editor_find_use_patterns:GetBool()
 
 	if (!use_patterns) then
-		str = str:gsub( "[%-%^%$%(%)%%%.%[%]%*%+%-%?]", "%%%1" )
+		str = str:gsub( "[%-%^%$%(%)%%%.%[%]%*%+%?]", "%%%1" )
 		replacewith = replacewith:gsub( "%%", "%%%1" )
 	end
 
@@ -1152,7 +1151,7 @@ function EDITOR:CountFinds( str )
 	local use_patterns = wire_expression2_editor_find_use_patterns:GetBool()
 
 	if (!use_patterns) then
-		str = str:gsub( "[%-%^%$%(%)%%%.%[%]%*%+%-%?]", "%%%1" )
+		str = str:gsub( "[%-%^%$%(%)%%%.%[%]%*%+%?]", "%%%1" )
 	end
 
 	local txt = self:GetValue()
@@ -1182,7 +1181,7 @@ function EDITOR:FindAllWords( str )
 
 	local txt = self:GetValue()
 	-- [^a-zA-Z0-9_] ensures we only find whole words, and the gsub escapes any regex command characters that happen to be in str
-	local pattern = "[^a-zA-Z0-9_]()" .. str:gsub("[%-%^%$%(%)%%%.%[%]%*%+%-%?]", "%%%1") .. "()[^a-zA-Z0-9_]"
+	local pattern = "[^a-zA-Z0-9_]()" .. str:gsub("[%-%^%$%(%)%%%.%[%]%*%+%?]", "%%%1") .. "()[^a-zA-Z0-9_]"
 
 	local ret = {}
 	for start,stop in txt:gmatch( pattern ) do
@@ -1196,7 +1195,7 @@ function EDITOR:CreateFindWindow()
 	self.FindWindow = vgui.Create( "DFrame", self )
 
 	local pnl = self.FindWindow
-	pnl:SetSize( 320, 200 )
+	pnl:SetSize( 322, 201 )
 	pnl:ShowCloseButton( true )
 	pnl:SetDeleteOnClose( false ) -- No need to create a new window every time
 	pnl:MakePopup() -- Make it separate from the editor itself
@@ -1271,6 +1270,7 @@ function EDITOR:CreateFindWindow()
 	dir_up:SetText( "Up" )
 	dir_up:SizeToContents()
 	dir_up:SetPos( 130, 24 )
+	dir_up:SetTooltip( "Note: Most patterns won't work when searching up because the search function reverses the string to search backwards." )
 	dir_up:SetValue( !wire_expression2_editor_find_dir:GetBool() )
 	dir_down:SetText( "Down" )
 	dir_down:SizeToContents()
@@ -1504,7 +1504,7 @@ function EDITOR:CreateFindWindow()
 
 	local old = pnl.GoToLineTab.Tab.OnMousePressed
 	pnl.GoToLineTab.Tab.OnMousePressed = function( ... )
-		pnl:SetHeight( 83 )
+		pnl:SetHeight( 86 )
 		pnl.TabHolder:StretchToParent( 1, 23, 1, 1 )
 		old( ... )
 	end
@@ -1522,13 +1522,13 @@ function EDITOR:OpenFindWindow( mode )
 		if (selection and selection != "") then self.FindWindow.FindTab.Entry:SetText( selection ) end
 		self.FindWindow.TabHolder:SetActiveTab( self.FindWindow.FindTab.Tab )
 		self.FindWindow.FindTab.Entry:RequestFocus()
-		self.FindWindow:SetHeight( 200 )
+		self.FindWindow:SetHeight( 201 )
 		self.FindWindow.TabHolder:StretchToParent( 1, 23, 1, 1 )
 	elseif (mode == "find and replace") then
 		if (selection and selection != "") then self.FindWindow.ReplaceTab.Entry:SetText( selection ) end
 		self.FindWindow.TabHolder:SetActiveTab( self.FindWindow.ReplaceTab.Tab )
 		self.FindWindow.ReplaceTab.Entry:RequestFocus()
-		self.FindWindow:SetHeight( 200 )
+		self.FindWindow:SetHeight( 201 )
 		self.FindWindow.TabHolder:StretchToParent( 1, 23, 1, 1 )
 	elseif (mode == "go to line") then
 		self.FindWindow.TabHolder:SetActiveTab( self.FindWindow.GoToLineTab.Tab )
@@ -2287,7 +2287,7 @@ end
 
 local function FindFunctions( self, has_colon, word )
 	-- Filter out magic characters
-	word = word:gsub( "[%-%^%$%(%)%%%.%[%]%*%+%-%?]", "%%%1" )
+	word = word:gsub( "[%-%^%$%(%)%%%.%[%]%*%+%?]", "%%%1" )
 
 	local len = #word
 	local wordl = word:lower()
@@ -3115,6 +3115,7 @@ do -- E2 Syntax highlighting
 		["@outputs"] = 1,
 		["@persist"] = 1,
 		["@trigger"] = 2, -- like 1, except that all/none are yellow
+		["@autoupdate"] = 0,
 	}
 
 	local colors = {

@@ -207,6 +207,25 @@ e2function void entity:propGravity(number gravity)
 	if not PropCore.ValidAction(self, this, "gravity") then return end
 	PropCore.PhysManipulate(this, nil, nil, nil, gravity, nil)
 end
+
+e2function void entity:propDrag( number drag )
+	if not PropCore.ValidAction(self, this, "drag") then return end
+	local phys = this:GetPhysicsObject()
+	if IsValid( phys ) then
+		phys:EnableDrag( drag ~= 0 )
+	end
+end
+
+e2function void entity:propSetBuoyancy(number bratio)
+	if not PropCore.ValidAction(self, this, "buoy") then return end
+	if E2Lib.isnan( bratio ) then bratio = 0 end
+	local bratio = math.Clamp(bratio, 0, 1)
+	local phys = this:GetPhysicsObject()
+	if IsValid( phys ) then
+		phys:SetBuoyancyRatio(bratio)
+	end
+end
+
 --------------------------------------------------------------------------------
 
 e2function void entity:setPos(vector pos)

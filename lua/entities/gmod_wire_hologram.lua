@@ -2,6 +2,7 @@ AddCSLuaFile()
 DEFINE_BASECLASS("base_anim") -- NOTE: Not base_wire_entity! Simpler than that
 ENT.PrintName = "Wire Hologram"
 ENT.RenderGroup = RENDERGROUP_OPAQUE
+ENT.DisableDuplicator = true
 
 function ENT:SetPlayer(ply)
 	self:SetVar("Founder", ply)
@@ -20,6 +21,7 @@ if CLIENT then
 	local bone_scale_buffer = {}
 	local clip_buffer = {}
 	local vis_buffer = {}
+	local player_color_buffer = {}
 
 	function ENT:Initialize()
 		self.bone_scale = {}
@@ -30,6 +32,7 @@ if CLIENT then
 		self.clips = {}
 		self:DoClip()
 		self:DoVisible()
+		self:DoPlayerColor()
 	end
 
 	hook.Add("PlayerBindPress", "wire_hologram_scale_setup", function() -- For initial spawn
@@ -38,6 +41,7 @@ if CLIENT then
 				ent:DoScale()
 				ent:DoClip()
 				ent:DoVisible()
+				ent:DoPlayerColor()
 			end
 		end
 		hook.Remove("PlayerBindPress", "wire_hologram_scale_setup")
@@ -192,17 +196,7 @@ if CLIENT then
 
 		local scale = self.scale or Vector(1, 1, 1)
 
-		local count = self:GetBoneCount() or -1
-		if count == 1 then
-			for i = count, 0, -1 do
-				local bone_scale = self.bone_scale[i] or scale
-				if string.Left(self:GetModel(), 17) == "models/holograms/" then
-					bone_scale = Vector(bone_scale.y, bone_scale.x, bone_scale.z)
-				end
-				
-				self:ManipulateBoneScale(i, bone_scale)
-			end
-		elseif self.EnableMatrix then
+		if self.EnableMatrix then
 			local mat = Matrix()
 			mat:Scale(Vector(scale.x, scale.y, scale.z))
 			self:EnableMatrix("RenderMultiply", mat)
@@ -210,10 +204,19 @@ if CLIENT then
 			-- Some entities, like ragdolls, cannot be resized with EnableMatrix, so lets average the three components to get a float
 			self:SetModelScale((scale.x + scale.y + scale.z) / 3, 0)
 		end
+		
+		if table.Count( self.bone_scale ) > 0 then
+			local count = self:GetBoneCount() or -1
+			
+			for i = count, 0, -1 do
+				local bone_scale = self.bone_scale[i] or Vector(1,1,1)
+				self:ManipulateBoneScale(i, bone_scale) // Note: Using ManipulateBoneScale currently causes RenderBounds to be reset every frame!
+			end
+		end
 
 		local propmax = self:OBBMaxs()
 		local propmin = self:OBBMins()
-		self:SetRenderBounds(Vector(scale.x * propmax.x, scale.y * propmax.y, scale.z * propmax.z), Vector(scale.x * propmin.x, scale.y * propmin.y, scale.z * propmin.z))
+		self:SetRenderBounds(Vector(scale.x * propmin.x, scale.y * propmin.y, scale.z * propmin.z),Vector(scale.x * propmax.x, scale.y * propmax.y, scale.z * propmax.z))
 	end
 
 	net.Receive("wire_holograms_set_scale", function(netlen)
@@ -263,6 +266,42 @@ if CLIENT then
 		end
 	end)
 
+	-- -----------------------------------------------------------------------------
+	
+	local function SetPlayerColor(entindex, color)
+		local ent = Entity(entindex)
+		-- For reference, here's why this works:
+		-- https://github.com/garrynewman/garrysmod/blob/master/garrysmod/lua/matproxy/player_color.lua
+		function ent:GetPlayerColor()
+			return color
+		end
+	end
+	
+	function ENT:DoPlayerColor()
+		local eidx = self:EntIndex()
+		if player_color_buffer[eidx] ~= nil then
+			SetPlayerColor(eidx, player_color_buffer[eidx])
+			player_color_buffer[eidx] = nil
+		end
+		
+		
+	end
+
+	net.Receive("wire_holograms_set_player_color", function(netlen)
+		local index = net.ReadUInt(16)
+		
+		while index ~= 0 do
+			local ent = Entity(index)
+			if IsValid(ent) and ent.DoPlayerColor then
+				SetPlayerColor(index, net.ReadVector())
+			else
+				player_color_buffer[index] = net.ReadVector()
+			end
+			
+			index = net.ReadUInt(16)
+		end
+	end)
+	
 	-- -----------------------------------------------------------------------------
 
 	concommand.Add("wire_holograms_block_client",
@@ -330,6 +369,7 @@ if CLIENT then
 			ent:DoScale()
 			ent:DoClip()
 			ent:DoVisible()
+			ent:DoPlayerColor()
 		end
 	end)
 

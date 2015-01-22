@@ -60,6 +60,7 @@ function TOOL:LeftClick( trace )
 		end
 		
 		local controller = self:LeftClick_Make(trace, ply)
+		if isbool(controller) then return controller end
 		self:LeftClick_PostMake(controller, ply, trace)
 		
 		if controller then

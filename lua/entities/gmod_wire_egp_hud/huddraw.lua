@@ -98,7 +98,9 @@ hook.Add("Initialize","EGP_HUD_Initialize",function()
 			hud.LinkedVehicles[vehicle] = true
 			vehiclelinks[hud] = hud.LinkedVehicles
 			
-			WireLib.SendMarks( hud )
+			timer.Simple( 0.1, function() -- timers solve everything (this time, it's the fact that the entity isn't valid on the client after dupe)
+				WireLib.SendMarks( hud )
+			end)
 		end
 
 		function EGP:UnlinkHUDFromVehicle( hud, vehicle )

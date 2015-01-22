@@ -272,7 +272,7 @@ __e2setcost(10)
 
 --- Encodes <data> into a string, using [[von]].
 e2function string vonEncode(array data)
-	local ok, ret = pcall(von.serialize, data)
+	local ok, ret = pcall(WireLib.von.serialize, data)
 	if not ok then
 		last_von_error = ret
 		WireLib.ClientError("von.encode error: "..ret, self.player)
@@ -292,7 +292,7 @@ e2function array vonDecode(string data)
 
 	self.prf = self.prf + #data / 2
 
-	local ok, ret = pcall(von.deserialize, data)
+	local ok, ret = pcall(WireLib.von.deserialize, data)
 
 	if not ok then
 		last_von_error = ret
@@ -321,7 +321,7 @@ e2function table vonDecodeTable(string data)
 
 	self.prf = self.prf + #data / 2
 
-	local ok, ret = pcall(von.deserialize, data)
+	local ok, ret = pcall(WireLib.von.deserialize, data)
 	if not ok then
 		last_von_error = ret
 		WireLib.ClientError("von.decode error: "..ret, self.player)

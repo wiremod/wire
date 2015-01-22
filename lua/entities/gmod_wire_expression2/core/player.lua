@@ -270,7 +270,7 @@ local function UpdateKeys(ply, key)
 				chip:Execute()
 			end
 		else
-			KeyAlert[e] = nil
+			KeyAlert[chip] = nil
 		end
 	end
 	runByKey = nil

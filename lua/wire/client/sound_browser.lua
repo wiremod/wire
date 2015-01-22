@@ -89,7 +89,11 @@ end
 
 
 // Output the infos about the given sound.
+local oldstrfile
 local function GenerateInfoTree(strfile, backnode, count)
+	if(oldstrfile == strfile and strfile) then return end
+	oldstrfile = strfile
+
 	local SoundData, IsFile = GetInfoTable(strfile)
 
 	if (!IsValid(backnode)) then
@@ -542,6 +546,13 @@ local function CreateSoundBrowser(path, se)
 	local nSoundVolume = 1
 	local nSoundPitch = 100
 
+	if(IsValid(SoundBrowserPanel)) then SoundBrowserPanel:Remove() end
+	if(IsValid(TabFileBrowser)) then TabFileBrowser:Remove() end
+	if(IsValid(TabSoundPropertyList)) then TabSoundPropertyList:Remove() end
+	if(IsValid(TabFavourites)) then TabFavourites:Remove() end
+	if(IsValid(SoundInfoTree)) then SoundInfoTree:Remove() end
+	if(IsValid(SoundInfoTreeRoot)) then SoundInfoTreeRoot:Remove() end
+
 	SoundBrowserPanel = vgui.Create("DFrame") // The main frame.
 	SoundBrowserPanel:SetPos(50,25)
 	SoundBrowserPanel:SetSize(750, 500)
@@ -577,6 +588,22 @@ local function CreateSoundBrowser(path, se)
 
 	SoundInfoTree = vgui.Create("DTree") // The info tree.
 	SoundInfoTree:SetClickOnDragHover(false)
+	local oldClicktime = CurTime()
+	SoundInfoTree.DoClick = function( parent, node )
+		if (!IsValid(parent)) then return end
+		if (!IsValid(node)) then return end
+		parent:SetSelectedItem(node)
+		
+		local Clicktime = CurTime()
+		if ((Clicktime - oldClicktime) > 0.3) then oldClicktime = Clicktime return end
+		oldClicktime = Clicktime
+
+		if (!node.IsSoundNode) then return end
+	
+		local file = node:GetText()
+		PlaySound(file, nSoundVolume, nSoundPitch)
+		PlaySoundNoEffect()
+	end
 	SoundInfoTree.DoRightClick = function( parent, node )
 		if (!IsValid(parent)) then return end
 		if (!IsValid(node)) then return end
@@ -677,7 +704,7 @@ local function CreateSoundBrowser(path, se)
 		SaveFilePath(SoundBrowserPanel, file)
 
 		strSound = file
-		GenerateInfoTree(item)
+		GenerateInfoTree(file)
 	end
 
 
@@ -701,7 +728,7 @@ local function CreateSoundBrowser(path, se)
 		SaveFilePath(SoundBrowserPanel, property)
 
 		strSound = property
-		GenerateInfoTree(item)
+		GenerateInfoTree(property)
 	end
 
 	file.CreateDir("soundlists")

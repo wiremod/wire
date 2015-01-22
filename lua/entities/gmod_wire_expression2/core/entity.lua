@@ -274,6 +274,7 @@ end
 
 e2function void setMass(mass)
 	if not validPhysics(self.entity) then return end
+	if E2Lib.isnan( mass ) then mass = 50000 end
 	local mass = Clamp(mass, 0.001, 50000)
 	local phys = self.entity:GetPhysicsObject()
 	phys:SetMass(mass)
@@ -283,6 +284,7 @@ e2function void entity:setMass(mass)
 	if not validPhysics(this) then return end
 	if not isOwner(self, this) then return end
 	if(this:IsPlayer()) then return end
+	if E2Lib.isnan( mass ) then mass = 50000 end
 	local mass = Clamp(mass, 0.001, 50000)
 	local phys = this:GetPhysicsObject()
 	phys:SetMass(mass)
@@ -580,22 +582,24 @@ end
 
 -- Returns the entity's (min) axis-aligned bounding box
 e2function vector entity:aabbMin()
-	if (!this or !this:IsValid() or !this:GetPhysicsObject() or !this:GetPhysicsObject():IsValid()) then return Vector(0,0,0) end
+	if (!this or !this:IsValid() or !this:GetPhysicsObject() or !this:GetPhysicsObject():IsValid()) then return {0,0,0} end
 	local ret, _ = this:GetPhysicsObject():GetAABB()
-	return ret
+	return ret or {0,0,0}
 end
 
 -- Returns the entity's (max) axis-aligned bounding box
 e2function vector entity:aabbMax()
-	if (!this or !this:IsValid() or !this:GetPhysicsObject() or !this:GetPhysicsObject():IsValid()) then return Vector(0,0,0) end
+	if (!this or !this:IsValid() or !this:GetPhysicsObject() or !this:GetPhysicsObject():IsValid()) then return {0,0,0} end
 	local _, ret = this:GetPhysicsObject():GetAABB()
-	return ret
+	return ret or {0,0,0}
 end
 
 -- Returns the entity's axis-aligned bounding box size
 e2function vector entity:aabbSize()
-	if (!this or !this:IsValid() or !this:GetPhysicsObject() or !this:GetPhysicsObject():IsValid()) then return Vector(0,0,0) end
+	if (!this or !this:IsValid() or !this:GetPhysicsObject() or !this:GetPhysicsObject():IsValid()) then return {0,0,0} end
 	local ret, ret2 = this:GetPhysicsObject():GetAABB()
+	ret = ret or Vector(0,0,0)
+	ret2 = ret2 or Vector(0,0,0)
 	return ret2 - ret
 end
 
@@ -636,7 +640,6 @@ end
 
 local function composedata(startSize, endSize, length, material, color, alpha)
 	if string.find(material, '"', 1, true) then return nil end
-	if not file.Exists("materials/"..material..".vmt","GAME") then return nil end -- check for non-existant materials.
 
 	return {
 		Color = Color( color[1], color[2], color[3], alpha ),
@@ -646,6 +649,8 @@ local function composedata(startSize, endSize, length, material, color, alpha)
 		Material = material,
 	}
 end
+
+__e2setcost(30)
 
 --- StartSize, EndSize, Length, Material, Color (RGB), Alpha
 --- Adds a trail to <this> with the specified attributes.
@@ -660,7 +665,6 @@ e2function void entity:setTrails(startSize, endSize, length, string material, ve
 	SetTrails(self.player, this, Data)
 end
 
-__e2setcost(30)
 
 --- StartSize, EndSize, Length, Material, Color (RGB), Alpha, AttachmentID, Additive
 --- Adds a trail to <this> with the specified attributes.
@@ -720,6 +724,19 @@ e2function angle entity:attachmentAng(string attachmentName)
 	if not attachment then return { 0, 0, 0 } end
 	local ang = attachment.Ang
 	return { ang.p, ang.y, ang.r }
+end
+
+__e2setcost(20)
+
+-- Returns a table containing all attachments for <this>
+e2function array entity:attachments()
+	if not IsValid(this) then return {} end
+	local tmp = {}
+	local atc = this:GetAttachments()
+	for i=1, #atc do
+		tmp[i] = atc[i].name
+	end
+	return tmp
 end
 
 /******************************************************************************/

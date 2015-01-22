@@ -517,7 +517,7 @@ function Editor:SetActiveTab(val)
 	if tabtext then
 		if self:GetActiveTab():GetText() ~= tabtext then
 			self:GetActiveTab():SetText(tabtext)
-			self.C['TabHolder'].panel:InvalidateLayout()
+			self.C['TabHolder'].panel.tabScroller:InvalidateLayout()
 		end
 	end
 end
@@ -806,7 +806,7 @@ function Editor:CloseTab(_tab)
 	table.remove(self.C['TabHolder'].panel.Items, sheetindex)
 	table.remove(self.C['TabHolder'].panel.tabScroller.Panels, tabscroller_sheetindex)
 
-	self.C['TabHolder'].panel:InvalidateLayout()
+	self.C['TabHolder'].panel.tabScroller:InvalidateLayout()
 	local w, h = self.C['TabHolder'].panel:GetSize()
 	self.C['TabHolder'].panel:SetSize(w + 1, h) -- +1 so it updates
 end
@@ -1536,13 +1536,6 @@ function Editor:InitControlPanel(frame)
 	ConcmdWhitelist:SetConVar("wire_expression2_concmd_whitelist")
 	ConcmdWhitelist:SetToolTip("Separate the commands with commas.")
 
-	local FriendWrite = vgui.Create("DCheckBoxLabel")
-	dlist:AddItem(FriendWrite)
-	FriendWrite:SetConVar("wire_expression2_friendwrite")
-	FriendWrite:SetText("Friend Write")
-	FriendWrite:SizeToContents()
-	FriendWrite:SetTooltip("Allow/disallow people in your prop protection friends list from reading and writing to your E2s.")
-
 	local label = vgui.Create("DLabel")
 	dlist:AddItem(label)
 	label:SetText("Expression 2 block comment style")
@@ -1944,12 +1937,8 @@ end
 local code1 = "@name \n@inputs \n@outputs \n@persist \n@trigger \n\n"
 -- code2 contains the code that is to be marked, so it can simply be overwritten or deleted.
 local code2 = [[#[
-    Scopes have been added. If you find any bugs,
-    please report them on the forums.
-
-    An option to copy with bbcode color syntax
-    highlighting has been added (for use on forums).
-    Right click anywhere in the editor to use it.
+    A new preprocessor command, @autoupdate has been added.
+    See the wiki for more info.
 
     Documentation and examples are available at:
     http://wiki.wiremod.com/wiki/Expression_2

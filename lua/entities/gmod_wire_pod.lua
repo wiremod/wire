@@ -112,6 +112,8 @@ function ENT:Initialize()
 	self:SetActivated( false )
 
 	self:SetColor(Color(255,0,0,self:GetColor().a))
+	
+	self:SetOverlayText( "Pod Controller" )
 end
 
 -- Accessor funcs for certain functions
@@ -381,8 +383,12 @@ function ENT:Think()
 		-- Button pressing
 		if (self.AllowButtons and distance < 82) then
 			local button = trace.Entity
-			if (button and button:IsValid() and button:GetClass() == "gmod_wire_button") then
-				if (ply:KeyDown( IN_ATTACK ) and !self.MouseDown) then
+			if IsValid(button) and (ply:KeyDown( IN_ATTACK ) and !self.MouseDown) then
+				if button:GetClass() == "gmod_wire_lever" then
+					// The parented lever doesn't have a great serverside hitbox, so this isn't flawless
+					self.MouseDown = true
+					button:Use(ply, ply, USE_ON, 0)
+				elseif button:GetClass() == "gmod_wire_button" || button:GetClass() == "gmod_wire_dynamic_button" then
 					self.MouseDown = true
 					if (button.toggle) then
 						if (button:GetOn()) then
@@ -398,9 +404,9 @@ function ENT:Think()
 						button.EntToOutput = ply
 						button:Switch( true )
 					end
-				elseif (!ply:KeyDown( IN_ATTACK ) and self.MouseDown) then
-					self.MouseDown = false
 				end
+			elseif (!ply:KeyDown( IN_ATTACK ) and self.MouseDown) then
+				self.MouseDown = false
 			end
 		end
 
@@ -534,11 +540,4 @@ end
 
 duplicator.RegisterEntityClass("gmod_wire_pod", WireLib.MakeWireEnt, "Data")
 duplicator.RegisterEntityClass("gmod_wire_adv_pod", WireLib.MakeWireEnt, "Data")
-WireLib.ClassAlias("gmod_wire_pod", "gmod_wire_adv_pod")
-
--- Hack for Advdupe2, since scripted_ents.GetList() does not respect aliases
-hook.Add("Initialize", "AdvPod_rename", function()
-	local tab = scripted_ents.GetStored("gmod_wire_pod").t -- Grab this ENT
-	scripted_ents.Register(tab, "gmod_wire_adv_pod") -- Set "adv_pod" to be defined as this ENT
-	tab.ClassName = "gmod_wire_pod" -- scripted_ents.Register changes this to your argument, lets change it back
-end)
+scripted_ents.Alias("gmod_wire_adv_pod", "gmod_wire_pod")

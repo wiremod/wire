@@ -30,7 +30,7 @@ function ENT:Initialize()
 	self.Samples = table.Copy(DefaultSamples)
 
 	self.Active = false
-	self.Volume = 5
+	self.Volume = 100
 	self.Pitch = 100
 	self.sound = self.Samples[1]
 	-- self.sound is a string, self.SoundObj is a CSoundPatch

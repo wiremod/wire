@@ -83,12 +83,12 @@ if CLIENT then
 		surface.SetDrawColor(Color(25,25,25,200))
 		
 		local poly = {
-						{x = pos.min.x + edgesize, 	y = pos.min.y,				u = 0, v = 0 },
-						{x = pos.max.x, 			y = pos.min.y,				u = 0, v = 0 },
-						{x = pos.max.x, 			y = pos.max.y - edgesize,	u = 0, v = 0 },
-						{x = pos.max.x - edgesize, 	y = pos.max.y,				u = 0, v = 0 },
-						{x = pos.min.x, 			y = pos.max.y,				u = 0, v = 0 },
-						{x = pos.min.x, 			y = pos.min.y + edgesize,	u = 0, v = 0 },
+						{x = pos.min.x + edgesize, 			y = pos.min.y,					u = 0, v = 0 },
+						{x = pos.max.x, 					y = pos.min.y,					u = 0, v = 0 },
+						{x = pos.max.x, 					y = pos.max.y - edgesize + 0.5,	u = 0, v = 0 },
+						{x = pos.max.x - edgesize + 0.5, 	y = pos.max.y,					u = 0, v = 0 },
+						{x = pos.min.x, 					y = pos.max.y,					u = 0, v = 0 },
+						{x = pos.min.x, 					y = pos.min.y + edgesize,		u = 0, v = 0 },
 					}
 		
 		render.CullMode(MATERIAL_CULLMODE_CCW)
@@ -110,7 +110,7 @@ if CLIENT then
 	-- This is overridable by other wire entities which want to customize the overlay
 	function ENT:GetWorldTipBodySize()
 		local txt = self:GetOverlayData().txt
-		if txt == "" then return 0,0 end
+		if txt == nil or txt == "" then return 0,0 end
 		return surface.GetTextSize( txt )
 	end
 	
@@ -127,7 +127,6 @@ if CLIENT then
 		
 		surface.SetFont( "GModWorldtip" )
 		
-		-- if data and data.txt then -- the entity has some text, draw it
 		local txt = data.txt
 		local class = getWireName( self ) .. " [" .. self:EntIndex() .. "]"
 		local name = "(" .. self:GetPlayerName() .. ")"
@@ -291,7 +290,7 @@ function ENT:SetOverlayText( txt )
 	end
 	
 	if txt and #txt > 12000 then
-		string.sub(txt,1,12000) -- I have tested this and 12000 chars is enough to cover the entire screen at 1920x1080. You're unlikely to need more
+		txt = string.sub(txt,1,12000) -- I have tested this and 12000 chars is enough to cover the entire screen at 1920x1080. You're unlikely to need more
 	end
 	
 	self.OverlayData.txt = txt
@@ -375,6 +374,13 @@ function ENT:PreEntityCopy()
 	if DupeInfo then
 		duplicator.StoreEntityModifier(self, "WireDupeInfo", DupeInfo)
 	end
+end
+
+function ENT:OnEntityCopyTableFinish(dupedata)
+	-- Called by Garry's duplicator, to modify the table that will be saved about an ent
+	
+	-- Remove anything with non-string keys, or util.TableToJSON will crash the game
+	dupedata.OverlayData_UpdateTime = nil
 end
 
 local function EntityLookup(CreatedEntities)

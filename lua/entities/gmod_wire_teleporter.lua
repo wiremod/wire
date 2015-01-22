@@ -24,7 +24,7 @@ function ENT:Initialize()
 	self.UseEffects = true
 
 	self.ClassSpecificActions = {
-		gmod_wire_hoverball = function( ent, oldpos, newpos ) ent:SetTargetZ( newpos.z ) end,
+		gmod_wire_hoverball = function( ent, oldpos, newpos ) ent:SetZTarget( newpos.z ) end,
 		gmod_toggleablehoverball = function( ent, oldpos, newpos ) ent:SetTargetZ( newpos.z ) end,
 		gmod_hoverball = function( ent, oldpos, newpos ) ent.dt.TargetZ = newpos.z end,
 	}
@@ -316,4 +316,4 @@ end
 
 duplicator.RegisterEntityClass("gmod_wire_hoverdrivecontroler", WireLib.MakeWireEnt, "Data", "UseSounds", "UseEffects" )
 duplicator.RegisterEntityClass("gmod_wire_teleporter", WireLib.MakeWireEnt, "Data", "UseSounds", "UseEffects")
-WireLib.ClassAlias("gmod_wire_teleporter", "gmod_wire_hoverdrivecontroler")
+scripted_ents.Alias("gmod_wire_hoverdrivecontroler", "gmod_wire_teleporter")

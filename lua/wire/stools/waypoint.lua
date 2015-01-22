@@ -49,6 +49,7 @@ function TOOL:LeftClick(trace)
 	end
 	
 	local ent = self:LeftClick_Make( trace, ply )
+	if isbool(ent) then return ent end
 	local ret = self:LeftClick_PostMake( ent, ply, trace )
 
 	// Auto-link (itsbth)

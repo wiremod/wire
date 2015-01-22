@@ -94,6 +94,20 @@ function ENT:Initialize()
 	end
 end
 
+function ENT:UpdateOverlay()
+	self:SetOverlayText(
+		string.format( "Default to Zero: %s\nCumulative: %s\nMin: %s,%s\nMax: %s,%s\n%s\n\nActivated: %s%s",
+			(self.DefaultToZero == 1) and "Yes" or "No",
+			(self.ShowRateOfChange == 0) and "Yes" or "No",
+			self.ClampXMin, self.ClampYMin,
+			self.ClampXMax, self.ClampYMax,
+			IsValid( self.pod ) and "Linked to: " .. self.pod:GetModel() or "Not linked",
+			self.enabled and "Yes" or "No",
+			(self.enabled == true and IsValid( self.driver )) and "\nIn use by: " .. self.driver:Nick() or ""
+		)
+	)
+end
+
 function ENT:Setup(DefaultToZero, RateOfChange, ClampXMin, ClampXMax, ClampYMin, ClampYMax, ClampX, ClampY)
 	self.DefaultToZero = DefaultToZero
 	self.ShowRateOfChange = RateOfChange
@@ -103,6 +117,8 @@ function ENT:Setup(DefaultToZero, RateOfChange, ClampXMin, ClampXMax, ClampYMin,
 	self.ClampYMax = ClampYMax
 	self.ClampX = ClampX
 	self.ClampY = ClampY
+	
+	self:UpdateOverlay()
 end
 
 local Rotate90ModelList = {
@@ -200,23 +216,6 @@ function ENT:OnRemove()
 		self:updateEyePodState(false)
 		self.driver = nil
 	end
-end
-
-function ENT:UpdateOverlay()
-	-- update the overlay with the user's name
-	local Txt = ""
-	if self.enabled and IsValid(self.driver) and self.driver:IsPlayer() then
-		Txt = Txt.."In use by "..self.driver:Name()
-	else
-		Txt = Txt.."Not Active"
-	end
-	if IsValid(self.pod) and self.pod:IsVehicle() then
-		Txt = Txt.."\nLinked to "..self.pod:GetModel()
-	else
-		Txt = Txt.."\nNot Linked"
-	end
-
-	self:SetOverlayText(Txt)
 end
 
 local function AngNorm(Ang)

@@ -234,6 +234,7 @@ end
 
 --Dynamic button materials
 local WireDynamicButtonMaterials = {
+	["No Material"] = "",
     ["Clean"] = "bull/dynamic_button_clean",
     ["0"]     = "bull/dynamic_button_0",
     ["1"]     = "bull/dynamic_button_1",
@@ -373,6 +374,16 @@ local turretmodels = {
 }
 for k,v in pairs(turretmodels) do
 	if file.Exists(v,"GAME") then list.Set( "WireTurretModels", v, true ) end
+end
+
+local satellitedish_models = {
+	"models/props_wasteland/prison_lamp001c.mdl",
+	"models/props_rooftop/satellitedish02.mdl", -- EP2, but its perfect
+}
+for k,v in pairs(satellitedish_models) do
+	if file.Exists(v,"GAME") then
+		list.Set( "Wire_satellitedish_Models", v, true )
+	end
 end
 
 --Beer's models
@@ -631,9 +642,10 @@ list.Set("Wire_chip_Models", "models/bull/gates/transistor2_mini.mdl", true)
 list.Set("Wire_speaker_Models", "models/bull/various/subwoofer.mdl", true)
 
 -- Converted from WireModelPacks/bull_buttons.txt
+list.Set("Wire_dynamic_button_Models", "models/bull/dynamicbuttonmedium.mdl", true)
 list.Set("Wire_dynamic_button_Models", "models/bull/dynamicbuttonflat.mdl", true)
 list.Set("Wire_dynamic_button_Models", "models/bull/dynamicbutton.mdl", true)
 list.Set("Wire_dynamic_button_small_Models", "models/bull/dynamicbuttonmedium_small.mdl", true)
 list.Set("Wire_dynamic_button_small_Models", "models/bull/dynamicbutton_small.mdl", true)
 list.Set("Wire_dynamic_button_small_Models", "models/bull/dynamicbuttonflat_small.mdl", true)
-list.Set("Wire_dynamic_button_Models", "models/bull/dynamicbuttonmedium.mdl", true)
+list.Set("Wire_dynamic_button_Models", "models/maxofs2d/button_05.mdl", true)

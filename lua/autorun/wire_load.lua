@@ -35,6 +35,7 @@ if SERVER then
 	AddCSLuaFile("wire/timedpairs.lua")
 	AddCSLuaFile("wire/default_data_decompressor.lua")
 	AddCSLuaFile("wire/flir.lua")
+	AddCSLuaFile("wire/von.lua")
 
 	-- client includes
 	AddCSLuaFile("wire/client/cl_wirelib.lua")
@@ -73,8 +74,6 @@ if SERVER then
 	AddCSLuaFile("wire/zvm/zvm_opcodes.lua")
 	AddCSLuaFile("wire/zvm/zvm_data.lua")
 
-	AddCSLuaFile("von.lua")
-
 	if CreateConVar("wire_force_workshop", 1, {FCVAR_ARCHIVE}, "Should Wire force all clients to download the Workshop edition of Wire, for models? (requires restart to disable)"):GetBool() then
 		resource.AddWorkshop("160250458")
 	end
@@ -90,7 +89,7 @@ include("wire/cpulib.lua")
 include("wire/timedpairs.lua")
 include("wire/default_data_decompressor.lua")
 include("wire/flir.lua")
-include("von.lua")
+include("wire/von.lua")
 
 -- server includes
 if SERVER then

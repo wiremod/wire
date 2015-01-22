@@ -91,7 +91,7 @@ end
 function ENT:SetLength(value)
 	self.TargetLength = value
 	self.constraint:Fire("SetSpringLength", value, 0)
-	if self.rope then self.rope:Fire("SetLength", value, 0) end
+	if IsValid(self.rope) then self.rope:Fire("SetLength", value, 0) end
 end
 
 function ENT:TriggerInput(iname, value)
@@ -147,7 +147,7 @@ function MakeWireHydraulicController( pl, Pos, Ang, model, MyEntId, const, rope 
 end
 duplicator.RegisterEntityClass("gmod_wire_hydraulic", MakeWireHydraulicController, "Pos", "Ang", "Model", "MyId" )
 duplicator.RegisterEntityClass("gmod_wire_winch_controller", MakeWireHydraulicController, "Pos", "Ang", "Model", "MyId")
-WireLib.ClassAlias("gmod_wire_hydraulic", "gmod_wire_winch_controller")
+scripted_ents.Alias("gmod_wire_winch_controller", "gmod_wire_hydraulic")
 
 function MakeWireHydraulic( pl, Ent1, Ent2, Bone1, Bone2, LPos1, LPos2, width, material, speed, fixed, stretchonly, MyCrtl )
 	if not constraint.CanConstrain(Ent1, Bone1) then return false end

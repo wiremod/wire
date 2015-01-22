@@ -47,7 +47,7 @@ function ENT:FireShot()
 		bullet.Num 			= self.numbullets
 		bullet.Src 			= shootOrigin
 		bullet.Dir 			= shootAngles:Forward()
-		bullet.Spread 		= self.spread
+		bullet.Spread 		= self.spreadvector
 		bullet.Tracer		= self.tracernum
 		bullet.TracerName 	= self.tracer
 		bullet.Force		= self.force
@@ -94,7 +94,12 @@ local ValidTracers = {
 }
 
 function ENT:Setup(delay, damage, force, sound, numbullets, spread, tracer, tracernum)
-	self.delay = delay
+	if not game.SinglePlayer() then
+		self.delay = math.max(delay,0.05) -- clamp delay if it's not single player
+	else
+		self.delay = delay
+	end
+	
 	self.damage = damage
 	self.force = force
 	-- Preventing client crashes
@@ -103,8 +108,15 @@ function ENT:Setup(delay, damage, force, sound, numbullets, spread, tracer, trac
 	else
 		self.sound = sound
 	end
-	self.numbullets = numbullets
-	self.spread = Vector(spread, spread, 0)
+	
+	if not game.SinglePlayer() then
+		self.numbullets = math.Clamp( numbullets, 1, 10 ) -- clamp num bullets if it's not single player
+	else
+		self.numbullets = numbullets
+	end
+
+	self.spread = spread -- for duplication
+	self.spreadvector = Vector(spread,spread,0)
 
 	self.tracer = ValidTracers[string.Trim(tracer)] and string.Trim(tracer) or ""
 	self.tracernum = tracernum or 1

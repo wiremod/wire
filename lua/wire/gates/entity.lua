@@ -16,22 +16,28 @@ local function checka( v )
 			-math.huge < v.r and v.r < math.huge
 end
 
+local function isAllowed( gate, ent )
+	return hook.Run( "PhysgunPickup", gate:GetPlayer(), ent ) ~= false
+end
+
 GateActions["entity_applyf"] = {
 	name = "Apply Force",
 	inputs = { "Ent" , "Vec" },
 	inputtypes = { "ENTITY" , "VECTOR" },
 	timed = true,
-	output = function(gate, Ent , Vec )
-		if !Ent then return end
-		if !Ent:IsValid() or !Ent:GetPhysicsObject():IsValid() then return end
-		if not E2Lib.isOwner(gate, Ent) then return end
-		if !isvector(Vec) then Vec = Vector(0, 0, 0) end
-		if checkv(Vec) then
-			Ent:GetPhysicsObject():ApplyForceCenter(Vec)
-		end
+	output = function(gate, ent, vec )
+		if not IsValid( ent ) then return end
+		local phys = ent:GetPhysicsObject()
+		if not IsValid( phys ) then return end
+		if not isAllowed( gate, ent ) then return end
+		if !isvector(vec) then vec = Vector (0, 0, 0) end
+		if not checkv(vec) then return end
+		if vec.x == 0 and vec.y == 0 and vec.z == 0 then return end
+	
+		phys:ApplyForceCenter( vec )
 	end,
-	label = function()
-		return ""
+	label = function(_,ent,vec)
+		return string.format( "(%s):applyForce(%s)", ent, vec )
 	end
 }
 
@@ -40,18 +46,20 @@ GateActions["entity_applyof"] = {
 	inputs = { "Ent" , "Vec" , "Offset" },
 	inputtypes = { "ENTITY" , "VECTOR" , "VECTOR" },
 	timed = true,
-	output = function(gate, Ent , Vec , Offset )
-		if !Ent then return end
-		if !Ent:IsValid() or !Ent:GetPhysicsObject():IsValid() then return end
-		if not E2Lib.isOwner(gate, Ent) then return end
-		if !isvector(Vec) then Vec = Vector (0, 0, 0) end
-		if !isvector(Offset) then Offset = Vector (0, 0, 0) end
-		if checkv(Vec) and checkv(Offset) then
-			Ent:GetPhysicsObject():ApplyForceOffset(Vec, Offset)
-		end
+	output = function(gate, ent, vec, offset )
+		if not IsValid( ent ) then return end
+		local phys = ent:GetPhysicsObject()
+		if not IsValid( phys ) then return end
+		if not isAllowed( gate, ent ) then return end
+		if !isvector(vec) then vec = Vector (0, 0, 0) end
+		if !isvector(offset) then offset = Vector (0, 0, 0) end
+		if not checkv(vec) or not checkv( offset ) then return end
+		if vec.x == 0 and vec.y == 0 and vec.z == 0 then return end
+		
+		phys:ApplyForceOffset(vec, offset)
 	end,
-	label = function()
-		return ""
+	label = function(_,ent,vec,offset)
+		return string.format( "(%s):applyForceOffset(%s,%s)", ent, vec, offset )
 	end
 }
 
@@ -62,20 +70,18 @@ GateActions["entity_applyaf"] = {
 	inputs = { "Ent" , "Ang" },
 	inputtypes = { "ENTITY" , "ANGLE" },
 	timed = true,
-	output = function(gate, Ent , angForce )
-		if !Ent then return end
-		if !Ent:IsValid() or !Ent:GetPhysicsObject():IsValid() then return end
-		if not E2Lib.isOwner(gate, Ent) then return end
-
+	output = function(gate, ent, angForce )
+		if not IsValid( ent ) then return end
+		local phys = ent:GetPhysicsObject()
+		if not IsValid( phys ) then return end
+		if not isAllowed( gate, ent ) then return end
+		if not checka( angForce ) then return end
 		if angForce.p == 0 and angForce.y == 0 and angForce.r == 0 then return end
-		if not checka(angForce) then return end
-
-		local phys = Ent:GetPhysicsObject()
 
 		-- assign vectors
-		local up = Ent:GetUp()
-		local left = Ent:GetRight() * -1
-		local forward = Ent:GetForward()
+		local up = ent:GetUp()
+		local left = ent:GetRight() * -1
+		local forward = ent:GetForward()
 
 		-- apply pitch force
 		if angForce.p ~= 0 then
@@ -97,10 +103,9 @@ GateActions["entity_applyaf"] = {
 			phys:ApplyForceOffset( up, roll )
 			phys:ApplyForceOffset( up * -1, roll * -1 )
 		end
-
 	end,
-	label = function()
-		return ""
+	label = function(Out,ent,angForce)
+		return string.format( "(%s):applyAngForce(%s)", ent, angForce )
 	end
 }
 
@@ -112,18 +117,17 @@ GateActions["entity_applytorq"] = {
 	inputs = { "Ent" , "Vec" },
 	inputtypes = { "ENTITY" , "VECTOR" },
 	timed = true,
-	output = function(gate, Ent , Vec )
-		if !Ent then return end
-		if not Ent:IsValid() then return end
-		if not E2Lib.isOwner(gate, Ent) then return end
+	output = function(gate, ent, vec )
+		if not IsValid( ent ) then return end
+		local phys = ent:GetPhysicsObject()
+		if not IsValid( phys ) then return end
+		if not isAllowed( gate, ent ) then return end
+		if !isvector(vec) then vec = Vector (0, 0, 0) end
+		if !isvector(offset) then offset = Vector (0, 0, 0) end
+		if not checkv(vec) or not checkv( offset ) then return end
+		if vec.x == 0 and vec.y == 0 and vec.z == 0 then return end
 
-		if Vec.x == 0 and Vec.y == 0 and Vec.z == 0 then return end
-		if not checkv(Vec) then return end
-
-		local phys = Ent:GetPhysicsObject()
-		if not phys:IsValid() then return end
-
-		local tq = Vec
+		local tq = vec
 		local torqueamount = tq:Length()
 
 		-- Convert torque from local to world axis
@@ -144,8 +148,8 @@ GateActions["entity_applytorq"] = {
 		phys:ApplyForceOffset( dir, off )
 		phys:ApplyForceOffset( dir * -1, off * -1 )
 	end,
-	label = function()
-		return ""
+	label = function(_,ent,vec)
+		return string.format( "(%s):applyTorque(%s)", ent, vec )
 	end
 }
 
@@ -589,8 +593,8 @@ GateActions["entity_owner"] = {
 	outputtypes = { "ENTITY" },
 	timed = true,
 	output = function(gate, Ent)
-		if !Ent:IsValid() then return E2Lib.getOwner(gate,gate)	 end
-		return E2Lib.getOwner(gate,Ent)
+		if !Ent:IsValid() then return WireLib.GetOwner(gate) end
+		return WireLib.GetOwner(Ent)
 	end,
 	label = function(Out,Ent)
 		return string.format ("owner(%s) = %s", Ent, tostring(Out))
@@ -745,7 +749,7 @@ GateActions["entity_setmass"] = {
 	output = function(gate, Ent, Val )
 		if !Ent:IsValid() then return end
 		if !Ent:GetPhysicsObject():IsValid() then return end
-		if !(E2Lib.getOwner(gate, gate) == E2Lib.getOwner(gate, Ent)) then return end
+		if not gamemode.Call("CanTool", WireLib.GetOwner(gate), WireLib.dummytrace(Ent), "weight") then return end
 		if !Val then Val = Ent:GetPhysicsObject():GetMass() end
 		Val = math.Clamp(Val, 0.001, 50000)
 		Ent:GetPhysicsObject():SetMass(Val)
@@ -786,7 +790,7 @@ GateActions["entity_setcol"] = {
 	timed = true,
 	output = function(gate, Ent, Col )
 		if !Ent:IsValid() then return end
-		if !(E2Lib.getOwner(gate, gate) == E2Lib.getOwner(gate, Ent)) then return end
+		if not gamemode.Call("CanTool", WireLib.GetOwner(gate), WireLib.dummytrace(Ent), "color") then return end
 		if !isvector(Col) then Col = Vector(255,255,255) end
 		Ent:SetColor(Color(Col.x,Col.y,Col.z,255))
 	end,
