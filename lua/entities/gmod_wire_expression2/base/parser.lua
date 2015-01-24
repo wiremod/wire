@@ -7,48 +7,73 @@ AddCSLuaFile()
 
 --[[
 
-Root
- 1 : q1
+The following is a description of the E2 language as a parsing
+expression grammar. Note that the parser does all its semantic analysis
+while parsing, forbidding certain things which this grammar allows.
 
-seQuencing
- 1 : ""
- 2 : "s1 q1", "s1, q2"
+* ε is the end-of-file
+* E? matches zero or one occurrences of T (and will always match one if possible)
+* E* matches zero or more occurrences of T (and will always match as many as possible)
+* E F matches E (and then whitespace) and then F
+* E / F tries matching E, if it fails it matches F (from the start location)
+* &E matches E, but does not consume any input.
+* !E matches everything except E, and does not consume any input.
 
-Statement
- 1 : if (e1) { q1 } i1
- 2 : while (e1) { q1 }
- 3 : for (var = e1, e1[, e1]) { q1 }
- 4 : foreach(var, var:type = e1) { q1}
- 5 : break, continue
- 6 : var++, var--
- 7 : var += e1, var -= e1, var *= e1, var /= e1
- 8 : var = s8, var[e1,type] = s8
- 9 : e1
+Root ← Stmts
 
-If
- 1 : elseif (e1) { q1 } i1
- 2 : else { q1 }
+Stmts ← Stmt1 (("," / " ") Stmt1)* ε
 
-Expression
- 1 : var = e1, var += e1, var -= e1, var *= e1, var /= e1 [ERROR]
- 2 : e3 ? e1 : e1, e3 ?: e1
- 3 : e1 | e2			-- (or)
- 4 : e1 & e2			-- (and)
- 5 : e1 || e2 			-- (bit or)
- 6 : e1 && e1			-- (bit and)
- 7 : e1 ^^ e2			-- (bit xor)
- 6 : e5 == e6, e5 != e6
- 7 : e6 < e7, e6 > e7, e6 <= e7, e6 >= e7
- 8 : e1 << e2, e1 >> e2 -- (bit shift)
- 9 : e7 + e8, e7 - e8
-10 : e8 * e9, e8 / e9, e8 % e9
-11 : e9 ^ e10
-12 : +e11, -e11, !e10
-13 : e11:fun([e1, ...]), e11[var,type]
-14 : (e1), fun([e1, ...])
-15 : string, num, ~var, $var, ->var
-16 : var++, var-- [ERROR]
-17 : var
+Stmt1 ← ("if" Cond Block IfElseIf)? Stmt2
+Stmt2 ← ("while" Cond Block)? Stmt3
+Stmt3 ← ("for" "(" Var "=" Expr1 "," Expr1 ("," Expr1)? ")" Block)? Stmt4
+Stmt4 ← ("foreach" "(" Var "," Var ":" Fun "=" Expr1 ")" Block)? Stmt5
+Stmt5 ← ("break" / "continue")? Stmt6
+Stmt6 ← (Var ("++" / "--"))? Stmt7
+Stmt7 ← (Var ("+=" / "-=" / "*=" / "/="))? Stmt8
+Stmt8 ← "local"? (Var (&"[" Index ("=" Stmt8)? / "=" Stmt8))? Stmt9
+Stmt9 ← ("switch" "(" Expr1 ")" "{" SwitchBlock)? Stmt10
+Stmt10 ← (FunctionStmt / ReturnStmt)? Stmt11
+Stmt11 ← ("#include" String)? Expr1
+
+FunctionStmt ← "function" FunctionHead "(" FunctionArgs Block
+FunctionHead ← (Type Type ":" Fun / Type ":" Fun / Type Fun / Fun)
+FunctionArgs ← (FunctionArg ("," FunctionArg)*)? ")"
+FunctionArg ← Var (":" Type)?
+
+ReturnStmt ← "return" ("void" / &"}" / Expr1)
+IfElseIf ← "elseif" Cond Block IfElseIf / IfElse
+IfElse ← "else" Block
+Cond ← "(" Expr1 ")"
+Block ← "{" (Stmt1 (("," / " ") Stmt1)*)? "}"
+SwitchBlock ← (("case" Expr1 / "default") CaseBlock)* "}"
+CaseBlock ← (Stmt1 (("," / " ") Stmt1)*)? &("case" / "default" / "}")
+
+Expr1 ← !(Var "=") !(Var "+=") !(Var "-=") !(Var "*=") !(Var "/=") Expr2
+Expr2 ← Expr3 (("?" Expr1 ":" Expr1) / ("?:" Expr1))?
+Expr3 ← Expr4 ("|" Expr4)*
+Expr4 ← Expr5 ("&" Expr5)*
+Expr5 ← Expr6 ("||" Expr6)*
+Expr6 ← Expr7 ("&&" Expr7)*
+Expr7 ← Expr8 ("^^" Expr8)*
+Expr8 ← Expr9 (("==" / "!=") Expr9)*
+Expr9 ← Expr10 ((">" / "<" / ">=" / "<=") Expr10)*
+Expr10 ← Expr11 (("<<" / ">>") Expr11)*
+Expr11 ← Expr12 (("+" / "-") Expr12)*
+Expr12 ← Expr13 (("*" / "/" / "%") Expr13)*
+Expr13 ← Expr14 ("^" Expr14)*
+Expr14 ← ("+" / "-" / "!") Expr15
+Expr15 ← Expr16 (MethodCallExpr / TableIndexExpr)?
+Expr16 ← "(" Expr1 ")" / FunctionCallExpr / Expr17
+Expr17 ← Number / String / "~" Var / "$" Var / "->" Var / Expr18
+Expr18 ← !(Var "++") !(Var "--") Expr19
+Expr19 ← Var
+
+MethodCallExpr ← ":" Fun "(" (Expr1 ("," Expr1)*)? ")"
+TableIndexExpr ← "[" Expr1 ("," Type)? "]"
+
+FunctionCallExpr ← Fun "(" KeyValueList? ")"
+KeyValueList ← (KeyValue ("," KeyValue))*
+KeyValue = Expr1 ("=" Expr1)?
 
 ]]
 -- ----------------------------------------------------------------------------------
