@@ -812,14 +812,9 @@ function Editor:OnTabClosed(sheet) end
 -- This function is made to be overwritten
 
 -- initialization commands
-
-local wire_expression2_editor_browserwidth = CreateClientConVar("wire_expression2_editor_browserwidth", "200", true, false)
-
 function Editor:InitComponents()
 	self.Components = {}
 	self.C = {}
-
-	local bw = wire_expression2_editor_browserwidth:GetInt()
 
 	local DMenuButton = vgui.RegisterTable({
 		Init = function(panel)
@@ -844,7 +839,15 @@ function Editor:InitComponents()
 	self.C.Inf = self:addComponent(vgui.CreateFromTable(DMenuButton, self), -45-8-24, 2, 22, 20) -- Info button
 	self.C.ConBut = self:addComponent(vgui.CreateFromTable(DMenuButton, self), -45-8-24-24, 2, 22, 20) -- Control panel open/close
 
-	self.C.Menu = self:addComponent(vgui.Create("DPanel", self), bw + 20, 30, -8, 20)
+	self.C.Divider = vgui.Create("DHorizontalDivider", self)
+
+	self.C.Browser = vgui.Create("wire_expression2_browser", self.C.Divider) -- Expression browser
+
+	self.C.MainPane = vgui.Create("DPanel", self.C.Divider)
+	self.C.Menu = vgui.Create("DPanel", self.C.MainPane)
+	self.C.Val = vgui.Create("Button", self.C.MainPane) -- Validation line
+	self.C.TabHolder = vgui.Create("DPropertySheet", self.C.MainPane)
+
 	self.C.Btoggle = vgui.CreateFromTable(DMenuButton, self.C.Menu) -- Toggle Browser being shown
 	self.C.Sav = vgui.CreateFromTable(DMenuButton, self.C.Menu) -- Save button
 	self.C.NewTab = vgui.CreateFromTable(DMenuButton, self.C.Menu, "NewTab") -- New tab button
@@ -853,19 +856,33 @@ function Editor:InitComponents()
 	self.C.SaE = vgui.CreateFromTable(DMenuButton, self.C.Menu) -- Save & Exit button
 	self.C.SavAs = vgui.CreateFromTable(DMenuButton, self.C.Menu) -- Save As button
 
-	self.C.Browser = self:addComponent(vgui.Create("wire_expression2_browser", self), 10, 30, bw + 7, -10) -- Expression browser
-	self.C.TabHolder = self:addComponent(vgui.Create("DPropertySheet", self), bw + 15, 52, -5, -27) -- TabHolder
-	self:CreateTab("generic")
-	self.C.Val = self:addComponent(vgui.Create("Button", self), bw + 20, -30, -10, 20) -- Validation line
-
 	self.C.Control = self:addComponent(vgui.Create("Panel", self), -350, 52, 342, -32) -- Control Panel
 	self.C.Credit = self:addComponent(vgui.Create("DTextEntry", self), -160, 52, 150, 150) -- Credit box
 
+	self:CreateTab("generic")
+
 	-- extra component options
+
+	self:DockPadding(10, 30, 10, 10)
+
+	self.C.Divider:SetLeft(self.C.Browser)
+	self.C.Divider:SetRight(self.C.MainPane)
+	self.C.Divider:Dock(FILL)
+	self.C.Divider:SetDividerWidth(4)
+	self.C.Divider:SetCookieName("wire_expression2_editor_divider")
 
 	local DoNothing = function() end
 	self.C.TabHolder.Paint = DoNothing
+	self.C.MainPane.Paint = DoNothing
 	self.C.Menu.Paint = DoNothing
+
+	self.C.Menu:Dock(TOP)
+	self.C.TabHolder:Dock(FILL)
+	self.C.Val:Dock(BOTTOM)
+
+	self.C.Menu:SetHeight(20)
+	self.C.Val:SetHeight(20)
+	self.C.TabHolder:DockMargin(-10, 0, -8, -5)
 
 	self.C.SaE:SetSize(80, 20)
 	self.C.SaE:Dock(RIGHT)
@@ -1411,27 +1428,6 @@ function Editor:InitControlPanel(frame)
 	HighlightOnDoubleClick:SetText("Highlight copies of selected word")
 	HighlightOnDoubleClick:SizeToContents()
 	HighlightOnDoubleClick:SetTooltip("Find all identical words and highlight them after a double-click.")
-
-	-- Browser width
-	local BrowserWidthSlider = vgui.Create("DNumSlider")
-	dlist:AddItem(BrowserWidthSlider)
-	BrowserWidthSlider:SetText("Browser Width")
-	BrowserWidthSlider:SetMinMax(150, 325)
-	BrowserWidthSlider:SetDecimals(0)
-	BrowserWidthSlider:SetDark(false)
-	BrowserWidthSlider:SetConVar("wire_expression2_editor_browserwidth")
-	local btoggle = self.C.Btoggle
-	function BrowserWidthSlider.OnValueChanged(pnl, bw)
-		if bw == wire_expression2_editor_browserwidth:GetInt() then return end
-		btoggle.hide = self.C.Browser.Bounds.w > bw
-		btoggle.toggle = true
-		timer.Create("Expression2_ChangeBrowserWidth", 0, 30, function()
-			if btoggle.hide and self.C.Browser.Bounds.w < (bw + 10) then
-				btoggle.hide = false
-				timer.Remove("Expression2_ChangeBrowserWidth")
-			end
-		end)
-	end
 
 	local WorldClicker = vgui.Create("DCheckBoxLabel")
 	dlist:AddItem(WorldClicker)
