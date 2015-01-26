@@ -2232,176 +2232,99 @@ function Editor:Setup(nTitle, nLocation, nEditorType)
 	self.Location = nLocation
 	self.EditorType = nEditorType
 	self.C.Browser:Setup(nLocation)
-	if not nEditorType then
-		-- Remove syntax highlighting
-		local func = function(self, row) return { { self.Rows[row], { Color(255, 255, 255, 255), false } } } end
-		self:SetSyntaxColorLine(func)
 
+	local syntaxHighlighters = {
+		CPU = self:GetCurrentEditor().CPUGPUSyntaxColorLine,
+		GPU = self:GetCurrentEditor().CPUGPUSyntaxColorLine,
+		SPU = self:GetCurrentEditor().CPUGPUSyntaxColorLine,
+		E2 = nil, -- the E2 highlighter is used by default
+		[""] = function(self, row) return { { self.Rows[row], { Color(255, 255, 255, 255), false } } } end
+	}
+
+	local syntaxHighlighter = syntaxHighlighters[nEditorType or ""]
+	if syntaxHighlighter then self:SetSyntaxColorLine(syntaxHighlighter) end
+
+	local useValidator = nEditorType ~= nil
+	local useE2Helper = nEditorType == "CPU" or nEditorType == "GPU" or nEditorType == "SPU" or nEditorType == "E2"
+	local useSoundBrowser = nEditorType == "SPU" or nEditorType == "E2"
+	local useDebugger = nEditorType == "CPU"
+
+	if not useValidator then
 		-- Remove validation line
 		self.C.TabHolder.Bounds.h = -10
 		self.C.Val:SetVisible(false)
-	elseif nEditorType == "CPU" or nEditorType == "GPU" or nEditorType == "SPU" then
-		-- Set syntax highlighting
-		local func = self:GetCurrentEditor().CPUGPUSyntaxColorLine
-		self:SetSyntaxColorLine(func)
+	end
 
-		-- Add "E2Helper" button
-		local E2Help = self:addComponent(vgui.Create("Button", self), -180, 30, -125, 20)
-		E2Help:SetText("")
-		E2Help.Font = "E2SmallFont"
-		E2Help.Paint = function(button)
-			local w, h = button:GetSize()
-			draw.RoundedBox(1, 0, 0, w, h, self.colors.col_FL)
-			if button.Hovered then draw.RoundedBox(0, 1, 1, w - 2, h - 2, Color(0, 0, 0, 192)) end
-			surface.SetFont(button.Font)
-			surface.SetTextPos(3, 4)
-			surface.SetTextColor(255, 255, 255, 255)
-			surface.DrawText("  E2Helper")
-		end
+	if useE2Helper then -- Add "E2Helper" button
+		local E2Help = vgui.Create("Button", self.C.Menu)
+		E2Help:SetSize(58, 20)
+		E2Help:Dock(RIGHT)
+		E2Help:SetText("E2Helper")
 		E2Help.DoClick = function()
 			E2Helper.Show()
 			E2Helper.UseCPU(nEditorType)
 			E2Helper.Update()
 		end
 		self.C.E2Help = E2Help
+	end
 
-		if nEditorType == "SPU" then
-			-- Add "Sound Browser" button
-			local SoundBrw = self:addComponent(vgui.Create("Button", self), -262, 30, -182, 20)
-			SoundBrw:SetText("")
-			SoundBrw.Font = "E2SmallFont"
-			SoundBrw.Paint = function(button)
-				local w, h = button:GetSize()
-				draw.RoundedBox(1, 0, 0, w, h, self.colors.col_FL)
-				if button.Hovered then draw.RoundedBox(0, 1, 1, w - 2, h - 2, Color(0, 0, 0, 192)) end
-				surface.SetFont(button.Font)
-				surface.SetTextPos(3, 4)
-				surface.SetTextColor(255, 255, 255, 255)
-				surface.DrawText("  Sound Browser")
-			end
-			SoundBrw.DoClick = function() RunConsoleCommand("wire_sound_browser_open") end
-			self.C.SoundBrw = SoundBrw
-		end
+	if useSoundBrowser then -- Add "Sound Browser" button
+		local SoundBrw = vgui.Create("Button", self.C.Menu)
+		SoundBrw:SetSize(85, 20)
+		SoundBrw:Dock(RIGHT)
+		SoundBrw:SetText("Sound Browser")
+		SoundBrw.DoClick = function() RunConsoleCommand("wire_sound_browser_open") end
+		self.C.SoundBrw = SoundBrw
+	end
 
-		if nEditorType == "CPU" then
-			-- Add "step forward" button
-			local DebugForward = self:addComponent(vgui.Create("Button", self), -300, 30, -220, 20)
-			DebugForward:SetText("")
-			DebugForward.Font = "E2SmallFont"
-			DebugForward.Paint = function(button)
-				if not CPULib.DebuggerAttached then return end
-				local w, h = button:GetSize()
-				draw.RoundedBox(1, 0, 0, w, h, self.colors.col_FL)
-				if button.Hovered then draw.RoundedBox(0, 1, 1, w - 2, h - 2, Color(0, 0, 0, 192)) end
-				surface.SetFont(button.Font)
-				surface.SetTextPos(3, 4)
-				surface.SetTextColor(255, 255, 255, 255)
-				surface.DrawText("  Step Forward")
-			end
-			DebugForward.DoClick = function()
-				local currentPosition = CPULib.Debugger.PositionByPointer[CPULib.Debugger.Variables.IP]
-				if currentPosition then
-					local linePointers = CPULib.Debugger.PointersByLine[currentPosition.Line .. ":" .. currentPosition.File]
-					if linePointers then -- Run till end of line
-						RunConsoleCommand("wire_cpulib_debugstep", linePointers[2])
-					else -- Run just once
-						RunConsoleCommand("wire_cpulib_debugstep")
-					end
+	if useDebugger then
+		-- Add "step forward" button
+		local DebugForward = self:addComponent(vgui.Create("Button", self), -300, 30, -220, 20)
+		DebugForward:SetText("Step Forward")
+		DebugForward.Font = "E2SmallFont"
+		DebugForward.DoClick = function()
+			local currentPosition = CPULib.Debugger.PositionByPointer[CPULib.Debugger.Variables.IP]
+			if currentPosition then
+				local linePointers = CPULib.Debugger.PointersByLine[currentPosition.Line .. ":" .. currentPosition.File]
+				if linePointers then -- Run till end of line
+					RunConsoleCommand("wire_cpulib_debugstep", linePointers[2])
 				else -- Run just once
 					RunConsoleCommand("wire_cpulib_debugstep")
 				end
-				-- Reset interrupt text
-				CPULib.InterruptText = nil
+			else -- Run just once
+				RunConsoleCommand("wire_cpulib_debugstep")
 			end
-			self.C.DebugForward = DebugForward
-
-			-- Add "reset" button
-			local DebugReset = self:addComponent(vgui.Create("Button", self), -350, 30, -310, 20)
-			DebugReset:SetText("")
-			DebugReset.Font = "E2SmallFont"
-			DebugReset.Paint = function(button)
-				if not CPULib.DebuggerAttached then return end
-				local w, h = button:GetSize()
-				draw.RoundedBox(1, 0, 0, w, h, self.colors.col_FL)
-				if button.Hovered then draw.RoundedBox(0, 1, 1, w - 2, h - 2, Color(0, 0, 0, 192)) end
-				surface.SetFont(button.Font)
-				surface.SetTextPos(3, 4)
-				surface.SetTextColor(255, 255, 255, 255)
-				surface.DrawText("  Reset")
-			end
-			DebugReset.DoClick = function()
-				RunConsoleCommand("wire_cpulib_debugreset")
-				-- Reset interrupt text
-				CPULib.InterruptText = nil
-			end
-			self.C.DebugReset = DebugReset
-
-			-- Add "run" button
-			local DebugRun = self:addComponent(vgui.Create("Button", self), -395, 30, -360, 20)
-			DebugRun:SetText("")
-			DebugRun.Font = "E2SmallFont"
-			DebugRun.Paint = function(button)
-				if not CPULib.DebuggerAttached then return end
-				local w, h = button:GetSize()
-				draw.RoundedBox(1, 0, 0, w, h, self.colors.col_FL)
-				if button.Hovered then draw.RoundedBox(0, 1, 1, w - 2, h - 2, Color(0, 0, 0, 192)) end
-				surface.SetFont(button.Font)
-				surface.SetTextPos(3, 4)
-				surface.SetTextColor(255, 255, 255, 255)
-				surface.DrawText("  Run")
-			end
-			DebugRun.DoClick = function()
-				RunConsoleCommand("wire_cpulib_debugrun")
-			end
-			self.C.DebugRun = DebugRun
+			-- Reset interrupt text
+			CPULib.InterruptText = nil
 		end
+		self.C.DebugForward = DebugForward
 
-		-- insert default code
-		self:SetCode("")
-	elseif nEditorType == "E2" then
-		-- Add "E2Helper" button
-		local E2Help = self:addComponent(vgui.Create("Button", self), -180, 30, -125, 20)
-		E2Help:SetText("")
-		E2Help.Font = "E2SmallFont"
-		E2Help.Paint = function(button)
-			local w, h = button:GetSize()
-			draw.RoundedBox(1, 0, 0, w, h, self.colors.col_FL)
-			if button.Hovered then draw.RoundedBox(0, 1, 1, w - 2, h - 2, Color(0, 0, 0, 192)) end
-			surface.SetFont(button.Font)
-			surface.SetTextPos(3, 4)
-			surface.SetTextColor(255, 255, 255, 255)
-			surface.DrawText("  E2Helper")
+		-- Add "reset" button
+		local DebugReset = self:addComponent(vgui.Create("Button", self), -350, 30, -310, 20)
+		DebugReset:SetText("Reset")
+		DebugReset.DoClick = function()
+			RunConsoleCommand("wire_cpulib_debugreset")
+			-- Reset interrupt text
+			CPULib.InterruptText = nil
 		end
-		E2Help.DoClick = function()
-			E2Helper.Show()
-			E2Helper.UseE2(nEditorType)
-			E2Helper.Update()
-		end
-		self.C.E2Help = E2Help
+		self.C.DebugReset = DebugReset
 
-		-- Add "Sound Browser" button
-		local SoundBrw = self:addComponent(vgui.Create("Button", self), -262, 30, -182, 20)
-		SoundBrw:SetText("")
-		SoundBrw.Font = "E2SmallFont"
-		SoundBrw.Paint = function(button)
-			local w, h = button:GetSize()
-			draw.RoundedBox(1, 0, 0, w, h, self.colors.col_FL)
-			if button.Hovered then draw.RoundedBox(0, 1, 1, w - 2, h - 2, Color(0, 0, 0, 192)) end
-			surface.SetFont(button.Font)
-			surface.SetTextPos(3, 4)
-			surface.SetTextColor(255, 255, 255, 255)
-			surface.DrawText("  Sound Browser")
-		end
-		SoundBrw.DoClick = function() RunConsoleCommand("wire_sound_browser_open") end
-		self.C.SoundBrw = SoundBrw
-
-		-- Flag as E2
-		self.E2 = true
-		self:NewScript(true)
+		-- Add "run" button
+		local DebugRun = self:addComponent(vgui.Create("Button", self), -395, 30, -360, 20)
+		DebugRun:SetText("Run")
+		DebugRun.DoClick = function() RunConsoleCommand("wire_cpulib_debugrun") end
+		self.C.DebugRun = DebugRun
 	end
-	if (wire_expression2_editor_openoldtabs:GetBool()) then
+
+	if nEditorType == "E2" then
+		self.E2 = true
+		self:NewScript(true) -- insert default code
+	end
+
+	if wire_expression2_editor_openoldtabs:GetBool() then
 		self:OpenOldTabs()
 	end
+
 	self:InvalidateLayout()
 end
 
