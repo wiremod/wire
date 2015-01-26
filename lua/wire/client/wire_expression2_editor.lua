@@ -840,9 +840,9 @@ function Editor:InitComponents()
 
 	-- addComponent( panel, x, y, w, h )
 	-- if x, y, w, h is minus, it will stay relative to right or buttom border
-	self.C.Close = self:addComponent(vgui.Create("DButton", self), -22, 4, 18, 18) -- Close button
-	self.C.Inf = self:addComponent(vgui.CreateFromTable(DMenuButton, self), -42, 4, 18, 18) -- Info button
-	self.C.ConBut = self:addComponent(vgui.CreateFromTable(DMenuButton, self), -62, 4, 18, 18) -- Control panel open/close
+	self.C.Close = self:addComponent(vgui.Create("DButton", self), -45-8, 0, 45, 20) -- Close button
+	self.C.Inf = self:addComponent(vgui.CreateFromTable(DMenuButton, self), -45-8-24, 2, 22, 20) -- Info button
+	self.C.ConBut = self:addComponent(vgui.CreateFromTable(DMenuButton, self), -45-8-24-24, 2, 22, 20) -- Control panel open/close
 
 	self.C.Menu = self:addComponent(vgui.Create("DPanel", self), bw + 20, 30, -8, 20)
 	self.C.Btoggle = vgui.CreateFromTable(DMenuButton, self.C.Menu) -- Toggle Browser being shown
@@ -875,17 +875,21 @@ function Editor:InitComponents()
 	self.C.Inf:Dock(NODOCK)
 	self.C.ConBut:Dock(NODOCK)
 
-
-	self.C.Close:SetText("x")
+	self.C.Close:SetText("r")
+	self.C.Close:SetFont("Marlett")
 	self.C.Close.DoClick = function(btn) self:Close() end
-	self.C.Credit:SetTextColor(Color(0, 0, 0, 255))
-	self.C.Credit:SetText("\t\tCREDITS\n\n\tEditor by: \tSyranide and Shandolum\n\n\tTabs (and more) added by Divran.\n\n\tFixed for GMod13 By Ninja101") -- Sure why not ;)
-	self.C.Credit:SetMultiline(true)
-	self.C.Credit:SetVisible(false)
-	self.C.Inf:SetText("i")
+
+	self.C.ConBut:SetImage("icon16/wrench.png")
+	self.C.ConBut:SetText("")
+	self.C.ConBut.Paint = DoNothing
+	self.C.ConBut.DoClick = function() self.C.Control:SetVisible(not self.C.Control:IsVisible()) end
+
+	self.C.Inf:SetImage("icon16/information.png")
+	self.C.Inf.Paint = DoNothing
 	self.C.Inf.DoClick = function(btn)
 		self.C.Credit:SetVisible(not self.C.Credit:IsVisible())
 	end
+
 
 	self.C.Sav:SetImage("icon16/disk.png")
 	self.C.Sav.DoClick = function(button) self:SaveFile(self:GetChosenFile()) end
@@ -951,10 +955,12 @@ function Editor:InitComponents()
 		end
 		button.toggle = true
 	end
-	self.C.ConBut:SetImage("icon16/wrench.png")
-	self.C.ConBut:SetText("")
-	self.C.ConBut.Paint = function(button) end
-	self.C.ConBut.DoClick = function() self.C.Control:SetVisible(not self.C.Control:IsVisible()) end
+
+	self.C.Credit:SetTextColor(Color(0, 0, 0, 255))
+	self.C.Credit:SetText("\t\tCREDITS\n\n\tEditor by: \tSyranide and Shandolum\n\n\tTabs (and more) added by Divran.\n\n\tFixed for GMod13 By Ninja101") -- Sure why not ;)
+	self.C.Credit:SetMultiline(true)
+	self.C.Credit:SetVisible(false)
+
 	self:InitControlPanel(self.C.Control) -- making it seperate for better overview
 	self.C.Control:SetVisible(false)
 	if self.E2 then self:Validate() end
