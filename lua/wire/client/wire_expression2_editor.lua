@@ -889,16 +889,26 @@ function Editor:InitComponents()
 			self:Validate(true)
 		end
 	end
-	self.C.Btoggle:SetText("<")
-	self.C.Btoggle.DoClick = function(button)
+	self.C.Btoggle:SetImage("icon16/application_side_contract.png")
+	function self.C.Btoggle.DoClick(button)
 		if button.hide then
+			self.C.Divider:LoadCookies()
+		else
+			self.C.Divider:SetLeftWidth(0)
+		end
+		button:InvalidateLayout()
+	end
+
+	local oldBtoggleLayout = self.C.Btoggle.PerformLayout
+	function self.C.Btoggle.PerformLayout(button)
+		oldBtoggleLayout(button)
+		if self.C.Divider:GetLeftWidth() > 0 then
 			button.hide = false
-			button:SetText("<")
+			button:SetImage("icon16/application_side_contract.png")
 		else
 			button.hide = true
-			button:SetText(">")
+			button:SetImage("icon16/application_side_expand.png")
 		end
-		button.toggle = true
 	end
 
 	self.C.Credit:SetTextColor(Color(0, 0, 0, 255))
