@@ -834,7 +834,7 @@ function Editor:InitComponents()
 		DoClick = function(panel)
 			local name = panel:GetName()
 			local f = name and name ~= "" and self[name] or nil
-			if f then f() end
+			if f then f(self) end
 		end
 	}, "DButton")
 
@@ -871,6 +871,9 @@ function Editor:InitComponents()
 	self.C.SaE:Dock(RIGHT)
 	self.C.SavAs:SetSize(51, 20)
 	self.C.SavAs:Dock(RIGHT)
+
+	self.C.Inf:Dock(NODOCK)
+	self.C.ConBut:Dock(NODOCK)
 
 
 	self.C.Close:SetText("x")
