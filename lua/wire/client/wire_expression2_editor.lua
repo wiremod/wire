@@ -442,7 +442,7 @@ function Editor:SetActiveTab(val)
 		self.C.TabHolder:SetActiveTab(val)
 		val:GetPanel():RequestFocus()
 	end
-
+	if self.E2 then self:Validate() end
 
 	-- Editor subtitle and tab text
 	local title, tabtext = getPreferredTitles(self:GetChosenFile(), self:GetCode())
