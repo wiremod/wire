@@ -809,7 +809,8 @@ function Editor:InitComponents()
 
 	self.C.TabHolder:SetPadding(1)
 
-	self.C.Menu:SetHeight(22)
+	self.C.Menu:SetHeight(24)
+	self.C.Menu:DockPadding(2,2,2,2)
 	self.C.Val:SetHeight(22)
 
 	self.C.SaE:SetSize(80, 20)
@@ -1786,7 +1787,7 @@ function Editor:Validate(gotoerror)
 	if self.EditorType == "E2" then
 		local errors = wire_expression2_validate(self:GetCode())
 		if not errors then
-			self.C.Val:SetBGColor(0, 128, 0, 180)
+			self.C.Val:SetBGColor(0, 110, 20, 255)
 			self.C.Val:SetText("   Validation successful")
 			return true
 		end
@@ -1797,7 +1798,7 @@ function Editor:Validate(gotoerror)
 			end
 			if row then self:GetCurrentEditor():SetCaret({ tonumber(row), tonumber(col) }) end
 		end
-		self.C.Val:SetBGColor(128, 0, 0, 180)
+		self.C.Val:SetBGColor(110, 0, 20, 255)
 		self.C.Val:SetText("   " .. errors)
 	elseif self.EditorType == "CPU" or self.EditorType == "GPU" or self.EditorType == "SPU" then
 		self.C.Val:SetBGColor(64, 64, 64, 180)
