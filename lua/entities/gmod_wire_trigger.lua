@@ -1,4 +1,4 @@
-// Wire Trigger created by mitterdoo
+-- Wire Trigger created by mitterdoo
 AddCSLuaFile()
 DEFINE_BASECLASS( "base_wire_entity" )
 ENT.PrintName       = "Wire Trigger"
@@ -89,14 +89,14 @@ function ENT:Think()
 	trig:SetTrigger(true)
 end
 
-function ENT:ShowOutput() --this function is evil (very), should be done clientside
+function ENT:ShowOutput()
 
 	local txt = "Size: " .. tostring( self:GetTriggerSize() ) .. "\n"
 	txt = txt .. "Offset: " .. tostring( self:GetTriggerOffset() ) .. "\n"
 	txt = txt .. "Triggered by: " .. (
-		self:GetFilter() == 0 and "All Entities" or
-		self:GetFilter() == 1 and "Only Players" or
-		self:GetFilter() == 2 and "Only Props"
+		self:GetFilter() == 0 and "#Tool.wire_trigger.filter_all" or
+		self:GetFilter() == 1 and "#Tool.wire_trigger.filter_players" or
+		self:GetFilter() == 2 and "#Tool.wire_trigger.filter_props"
 	)
 
 	self:SetOverlayText(txt)
