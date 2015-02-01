@@ -1,4 +1,4 @@
-// Wire Trigger created by mitterdoo
+-- Wire Trigger created by mitterdoo
 WireToolSetup.setCategory( "Detection" )
 WireToolSetup.open( "trigger", "Trigger", "gmod_wire_trigger", nil, "Triggers" )
  
@@ -7,7 +7,7 @@ WireToolSetup.SetupMax( 64 )
  
 TOOL.ClientConVar = {
 	model = "models/jaanus/wiretool/wiretool_siren.mdl",
-	filter = 0, // 0: all entities, 1: only players, 2: only props (and stuff that isn't a player)
+	filter = 0, -- 0: all entities, 1: only players, 2: only props (and stuff that isn't a player)
 	owneronly = 0,
 	sizex = 64,
 	sizey = 64,
@@ -29,6 +29,12 @@ if CLIENT then
 	language.Add( "Tool.wire_trigger.offsetz", "Offset Z" )
 	language.Add( "tool.wire_trigger.name", "Trigger Tool (Wire)" )
 	language.Add( "tool.wire_trigger.desc", "Spawns a Trigger" )
+	language.Add( "Tool.wire_trigger.alltriggers", "All Triggers Visible" )
+	language.Add( "tool.wire_trigger.resetsize", "Reset Size" )
+	language.Add( "tool.wire_trigger.resetoffset", "Reset Offset" )
+	language.Add( "Tool.wire_trigger.filter_all", "All Entities" )
+	language.Add( "Tool.wire_trigger.filter_players", "Only Players" )
+	language.Add( "Tool.wire_trigger.filter_props", "Only Props" )
 	language.Add( "tool."..TOOL.Mode..".0", "Primary: Create "..TOOL.Name.."" )
 
 	concommand.Add( "wire_trigger_reset_size", function( ply, cmd, args )
@@ -75,7 +81,7 @@ function TOOL:RightClick( tr )
 		local ent = tr.Entity
 		if ent:GetClass() == "gmod_wire_trigger" then
 
-			// http://youtu.be/RTR1ny0O_io
+			-- http:--youtu.be/RTR1ny0O_io
 			local size = ent:GetTriggerSize()
 			local offset = ent:GetTriggerOffset()
 			RunConsoleCommand( "wire_trigger_sizex", size.x )
@@ -96,21 +102,21 @@ end
  
 function TOOL.BuildCPanel( panel )
 	ModelPlug_AddToCPanel(panel, "Misc_Tools", "wire_trigger")
-	panel:CheckBox( "All Triggers Visible", "wire_trigger_drawalltriggers" )
+	panel:CheckBox( "#Tool.wire_trigger.alltriggers", "wire_trigger_drawalltriggers" )
 	panel:AddControl( "ComboBox", {
 		Label = "#Tool.wire_trigger.filter",
 		Options = {
-			["All Entities"] = { wire_trigger_filter = 0 },
-			["Only Players"] = { wire_trigger_filter = 1 },
-			["Only Props"] = { wire_trigger_filter = 2 },
+			["#Tool.wire_trigger.filter_all"] = { wire_trigger_filter = 0 },
+			["#Tool.wire_trigger.filter_players"] = { wire_trigger_filter = 1 },
+			["#Tool.wire_trigger.filter_props"] = { wire_trigger_filter = 2 },
 		}
 	})
 	panel:CheckBox( "#Tool.wire_trigger.owneronly", "wire_trigger_owneronly" )
-	panel:Button( "Reset Size", "wire_trigger_reset_size" )
+	panel:Button( "#Tool.wire_trigger.resetsize", "wire_trigger_reset_size" )
 	panel:NumSlider("#Tool.wire_trigger.sizex", "wire_trigger_sizex", -1000, 1000, 64)
 	panel:NumSlider("#Tool.wire_trigger.sizey", "wire_trigger_sizey", -1000, 1000, 64)
 	panel:NumSlider("#Tool.wire_trigger.sizez", "wire_trigger_sizez", -1000, 1000, 64)
-	panel:Button( "Reset Offset", "wire_trigger_reset_offset" )
+	panel:Button( "#Tool.wire_trigger.resetoffset", "wire_trigger_reset_offset" )
 	panel:NumSlider("#Tool.wire_trigger.offsetx", "wire_trigger_offsetx", -1000, 1000, 0)
 	panel:NumSlider("#Tool.wire_trigger.offsety", "wire_trigger_offsety", -1000, 1000, 0)
 	panel:NumSlider("#Tool.wire_trigger.offsetz", "wire_trigger_offsetz", -1000, 1000, 0)
