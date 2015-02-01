@@ -56,23 +56,29 @@ end
 function TOOL:GetConVars()
 	return self:GetClientNumber( "model" ), self:GetClientNumber( "filter" ), self:GetClientNumber( "owneronly" ), self:GetClientNumber( "sizex" ), self:GetClientNumber( "sizey" ), self:GetClientNumber( "sizez" ), self:GetClientNumber( "offsetx" ), self:GetClientNumber( "offsety" ), self:GetClientNumber( "offsetz" )
 end
+
+local function DrawTriggerOutlines( list )
+	cam.Start3D( LocalPlayer():EyePos(), LocalPlayer():EyeAngles() )
+		for k,ent in pairs( list ) do
+			local trig = ent:GetTriggerEntity()
+			
+			render.DrawWireframeBox( trig:GetPos(), Angle(0,0,0), trig:OBBMins(), trig:OBBMaxs(), Color( 255, 255, 0 ), true )
+			render.DrawLine( trig:GetPos(), ent:GetPos(), Color( 255, 255, 0 ) )
+		end
+	cam.End3D()
+end
+
+hook.Add( "HUDPaint", "wire_trigger_draw_all_triggers", function() 
+	if DrawOutline:GetBool() then
+		DrawTriggerOutlines( ents.FindByClass( "gmod_wire_trigger" ) )
+	end
+end )
+
 function TOOL:DrawHUD()
 	local tr = util.TraceLine( util.GetPlayerTrace( LocalPlayer() ) )
 	local ent = tr.Entity
-	if IsValid( ent ) and ent:GetClass() == "gmod_wire_trigger" or DrawOutline:GetBool() then
-
-		local list = { ent }
-		if DrawOutline:GetBool() then
-			list = ents.FindByClass( "gmod_wire_trigger" )
-		end
-		cam.Start3D( LocalPlayer():EyePos(), LocalPlayer():EyeAngles() )
-			for k,ent in pairs( list ) do
-				local trig = ent:GetTriggerEntity()
-				render.DrawWireframeBox( trig:GetPos(), Angle( 0, 0, 0 ), trig:OBBMins(), trig:OBBMaxs(), Color( 255, 255, 0 ), true )
-				render.DrawLine( trig:GetPos(), ent:GetPos(), Color( 255, 255, 0 ) )
-			end
-		cam.End3D()
-
+	if IsValid( ent ) and ent:GetClass() == "gmod_wire_trigger" and not DrawOutline:GetBool() then
+		DrawTriggerOutlines( {ent} )
 	end
 end
 function TOOL:RightClick( tr )
