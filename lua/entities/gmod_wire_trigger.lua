@@ -12,20 +12,33 @@ function ENT:SetupDataTables()
 	self:NetworkVar( "Int", 0, "Filter" )
 	self:NetworkVar( "Bool", 0, "OwnerOnly" )
 end
-function ENT:Draw()
-	self:DrawModel()
-end
 
-if CLIENT then return end -- No more client
+if CLIENT then
+	function ENT:GetOverlayData()
+		local size = self:GetTriggerSize()
+		local offset = self:GetTriggerOffset()
+
+		local txt = "Size: " .. string.format( "(%.2f,%.2f,%.2f)", size.x, size.y, size.z ) .. "\n"
+		txt = txt .. "Offset: " .. string.format( "(%.2f,%.2f,%.2f)", offset.x, offset.y, offset.z ) .. "\n"
+		txt = txt .. "Triggered by: " .. (
+			self:GetFilter() == 0 and "All Entities" or
+			self:GetFilter() == 1 and "Only Players" or
+			self:GetFilter() == 2 and "Only Props"
+		)
+
+		return {txt=txt}
+	end
+
+	return -- No more client
+end
 
 function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )
 	self:SetMoveType( MOVETYPE_VPHYSICS )
 	self:SetSolid( SOLID_VPHYSICS )
-    local phys = self:GetPhysicsObject() if (phys:IsValid()) then phys:Wake() end
+	local phys = self:GetPhysicsObject() if (phys:IsValid()) then phys:Wake() end
 
 	self.Outputs = WireLib.CreateOutputs(self, { "EntCount", "Entities [ARRAY]" })
-
 end
 
 function ENT:Setup( model, filter, owneronly, sizex, sizey, sizez, offsetx, offsety, offsetz )
@@ -72,34 +85,6 @@ function ENT:Setup( model, filter, owneronly, sizex, sizey, sizez, offsetx, offs
 	self:SetTriggerEntity( trig )
 	trig:SetTriggerEntity( self )
 	self:DeleteOnRemove( trig )
-
-	self:ShowOutput()
-end
-
-function ENT:TriggerInput(iname, value)
-
-end
-
-function ENT:Think()
-	self.BaseClass.Think(self)
-	local trig = self:GetTriggerEntity()
-	trig:SetTrigger(false)
-	trig:SetPos( self:LocalToWorld( self:GetTriggerOffset() ) )
-	trig:SetAngles( self:GetAngles() )
-	trig:SetTrigger(true)
-end
-
-function ENT:ShowOutput()
-
-	local txt = "Size: " .. tostring( self:GetTriggerSize() ) .. "\n"
-	txt = txt .. "Offset: " .. tostring( self:GetTriggerOffset() ) .. "\n"
-	txt = txt .. "Triggered by: " .. (
-		self:GetFilter() == 0 and "#Tool.wire_trigger.filter_all" or
-		self:GetFilter() == 1 and "#Tool.wire_trigger.filter_players" or
-		self:GetFilter() == 2 and "#Tool.wire_trigger.filter_props"
-	)
-
-	self:SetOverlayText(txt)
 end
 
 

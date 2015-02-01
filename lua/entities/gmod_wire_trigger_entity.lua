@@ -7,8 +7,8 @@ ENT.Author = "mitterdoo"
 function ENT:Initialize()
 
 	if SERVER then
+		self.EntsLookup = {}
 		self.EntsInside = {}
-		self.Count = 0
 	end
 
 end
@@ -20,21 +20,27 @@ end
 function ENT:StartTouch( ent )
 
 	local owner = self:GetTriggerEntity()
+	if not IsValid( owner ) then return end
 	if ent == owner then return end -- this never happens but just in case...
-	if owner:GetFilter() == 1 and !ent:IsPlayer() or owner:GetFilter() == 2 and ent:IsPlayer() then return end
-	if owner:GetOwnerOnly() and WireLib.GetOwner( ent ) != WireLib.GetOwner( owner ) then return end
-	self.EntsInside[ ent ] = true
-	self.Count = self.Count + 1
-	WireLib.TriggerOutput( self:GetTriggerEntity(), "EntCount", self.Count )
-	WireLib.TriggerOutput( self:GetTriggerEntity(), "Entities", self.EntsInside )
+	if owner:GetFilter() == 1 and not ent:IsPlayer() or owner:GetFilter() == 2 and ent:IsPlayer() then return end
+	if owner:GetOwnerOnly() and WireLib.GetOwner( ent ) ~= WireLib.GetOwner( owner ) then return end
+
+	self.EntsInside[ #self.EntsInside+1 ] = ent
+	self.EntsLookup[ ent ] = #self.EntsInside
+
+	WireLib.TriggerOutput( owner, "EntCount", #self.EntsInside )
+	WireLib.TriggerOutput( owner, "Entities", self.EntsInside )
 
 end
 function ENT:EndTouch( ent )
 
-	if !self.EntsInside[ ent ] then return end
-	self.EntsInside[ ent ] = nil
-	self.Count = self.Count - 1
-	WireLib.TriggerOutput( self:GetTriggerEntity(), "EntCount", self.Count )
-	WireLib.TriggerOutput( self:GetTriggerEntity(), "Entities", self.EntsInside )
+	local owner = self:GetTriggerEntity()
+	if not IsValid( owner ) then return end
+	if not self.EntsLookup[ ent ] then return end
+
+	table.remove( self.EntsInside, self.EntsLookup[ ent ] )
+	self.EntsLookup[ ent ] = nil
+	WireLib.TriggerOutput( owner, "EntCount", #self.EntsInside )
+	WireLib.TriggerOutput( owner, "Entities", self.EntsInside )
 
 end
