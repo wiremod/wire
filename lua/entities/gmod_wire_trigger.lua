@@ -24,7 +24,7 @@ function ENT:Initialize()
 	self:SetSolid( SOLID_VPHYSICS )
     local phys = self:GetPhysicsObject() if (phys:IsValid()) then phys:Wake() end
 
-	self.Outputs = Wire_CreateOutputs(self, { "EntCount", "Entities [ARRAY]" })
+	self.Outputs = WireLib.CreateOutputs(self, { "EntCount", "Entities [ARRAY]" })
 
 end
 
