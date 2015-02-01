@@ -8,6 +8,7 @@ function ENT:Initialize()
 
 	if SERVER then
 		self.EntsInside = {}
+		self.Count = 0
 	end
 
 end
@@ -23,7 +24,8 @@ function ENT:StartTouch( ent )
 	if owner:GetFilter() == 1 and !ent:IsPlayer() or owner:GetFilter() == 2 and ent:IsPlayer() then return end
 	if owner:GetOwnerOnly() and WireLib.GetOwner( ent ) != WireLib.GetOwner( owner ) then return end
 	self.EntsInside[ ent ] = true
-	WireLib.TriggerOutput( self:GetTriggerEntity(), "EntCount", table.Count( self.EntsInside ) )
+	self.Count = self.Count + 1
+	WireLib.TriggerOutput( self:GetTriggerEntity(), "EntCount", self.Count )
 	WireLib.TriggerOutput( self:GetTriggerEntity(), "Entities", self.EntsInside )
 
 end
@@ -31,7 +33,8 @@ function ENT:EndTouch( ent )
 
 	if !self.EntsInside[ ent ] then return end
 	self.EntsInside[ ent ] = nil
-	WireLib.TriggerOutput( self:GetTriggerEntity(), "EntCount", table.Count( self.EntsInside ) )
+	self.Count = self.Count - 1
+	WireLib.TriggerOutput( self:GetTriggerEntity(), "EntCount", self.Count )
 	WireLib.TriggerOutput( self:GetTriggerEntity(), "Entities", self.EntsInside )
 
 end
