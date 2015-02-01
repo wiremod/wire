@@ -66,26 +66,34 @@ function ENT:Setup( model, filter, owneronly, sizex, sizey, sizez, offsetx, offs
 	self:SetTriggerSize( Vector( sizex, sizey, sizez ) )
 	self:SetTriggerOffset( Vector( offsetx, offsety, offsetz ) )
 
-	local trig = ents.Create( "gmod_wire_trigger_entity" )
-	trig:SetPos( self:LocalToWorld( self:GetTriggerOffset() ) )
-	trig:SetAngles( self:GetAngles() )
-	trig:PhysicsInit( SOLID_BBOX )
-	trig:SetMoveType( MOVETYPE_VPHYSICS )
-	trig:SetSolid( SOLID_BBOX )
-	trig:SetModel( "models/hunter/blocks/cube025x025x025.mdl" )
-	trig:SetParent( self )
-	trig:Spawn()
 
 	local mins = self:GetTriggerSize() / -2
 	local maxs = self:GetTriggerSize() / 2
-	trig:SetCollisionBounds( mins, maxs )
-	trig:SetCollisionGroup( 10 )
-	trig:SetNoDraw( true )
-	trig:SetTrigger( true )
-	self:SetTriggerEntity( trig )
-	trig:SetTriggerEntity( self )
-	self:DeleteOnRemove( trig )
-end
 
+	local oldtrig = self:GetTriggerEntity()
+	if IsValid( oldtrig ) then
+		oldtrig:SetCollisionBounds( mins, maxs )
+		oldtrig:SetPos( self:LocalToWorld( self:GetTriggerOffset() ) )
+		oldtrig:Reset()
+	else
+		local trig = ents.Create( "gmod_wire_trigger_entity" )
+		trig:SetPos( self:LocalToWorld( self:GetTriggerOffset() ) )
+		trig:SetAngles( self:GetAngles() )
+		trig:PhysicsInit( SOLID_BBOX )
+		trig:SetMoveType( MOVETYPE_VPHYSICS )
+		trig:SetSolid( SOLID_BBOX )
+		trig:SetModel( "models/hunter/blocks/cube025x025x025.mdl" )
+		trig:SetParent( self )
+		trig:Spawn()
+
+		trig:SetCollisionBounds( mins, maxs )
+		trig:SetCollisionGroup( COLLISION_GROUP_IN_VEHICLE )
+		trig:SetNoDraw( true )
+		trig:SetTrigger( true )
+		self:SetTriggerEntity( trig )
+		trig:SetTriggerEntity( self )
+		self:DeleteOnRemove( trig )
+	end
+end
 
 duplicator.RegisterEntityClass("gmod_wire_trigger", WireLib.MakeWireEnt, "Data", "model", "filter", "owneronly", "sizex", "sizey", "sizez", "offsetx", "offsety", "offsetz" )

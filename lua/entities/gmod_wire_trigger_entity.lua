@@ -17,6 +17,17 @@ function ENT:SetupDataTables()
 	self:NetworkVar( "Entity", 0, "TriggerEntity" )
 
 end
+
+function ENT:Reset()
+	self.EntsInside = {}
+	self.EntsLookup = {}
+
+	local owner = self:GetTriggerEntity()
+	if not IsValid( owner ) then return end
+	WireLib.TriggerOutput( owner, "EntCount", 0 )
+	WireLib.TriggerOutput( owner, "Entities", self.EntsInside )
+end
+
 function ENT:StartTouch( ent )
 
 	local owner = self:GetTriggerEntity()
