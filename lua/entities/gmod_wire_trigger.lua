@@ -30,6 +30,13 @@ end
 
 function ENT:Setup( model, filter, owneronly, sizex, sizey, sizez, offsetx, offsety, offsetz )
 
+ 	filter = math.Clamp( filter, 0, 2 )
+ 	sizex = math.Clamp( sizex, -1000, 1000 )
+ 	sizey = math.Clamp( sizey, -1000, 1000 )
+ 	sizez = math.Clamp( sizez, -1000, 1000 )
+ 	offsetx = math.Clamp( offsetx, -1000, 1000 )
+ 	offsety = math.Clamp( offsety, -1000, 1000 )
+ 	offsetz = math.Clamp( offsetz, -1000, 1000 )
 	self.model = model
 	self.filter = filter
 	self.owneronly = owneronly
@@ -42,7 +49,7 @@ function ENT:Setup( model, filter, owneronly, sizex, sizey, sizez, offsetx, offs
 
 	self:SetOwnerOnly( tobool( owneronly ) )
 	self:SetModel( model )
-	self:SetFilter( math.Clamp( filter, 0, 2 ) )
+	self:SetFilter( filter )
 	self:SetTriggerSize( Vector( sizex, sizey, sizez ) )
 	self:SetTriggerOffset( Vector( offsetx, offsety, offsetz ) )
 
