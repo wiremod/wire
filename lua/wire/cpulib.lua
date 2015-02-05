@@ -114,14 +114,14 @@ if CLIENT then
   function CPULib.Validate(editor,source,fileName)
     CPULib.Compile(source,fileName,
       function()
-        editor.C["Val"].panel:SetBGColor(50, 128, 20, 180)
-        editor.C["Val"].panel:SetFGColor(255, 255, 255, 128)
-        editor.C["Val"].panel:SetText("   Success, "..(HCOMP.WritePointer or "?").." bytes compiled.")
+        editor.C.Val:SetBGColor(50, 128, 20, 180)
+        editor.C.Val:SetFGColor(255, 255, 255, 128)
+        editor.C.Val:SetText("   Success, "..(HCOMP.WritePointer or "?").." bytes compiled.")
       end,
       function(error,errorPos)
-        editor.C["Val"].panel:SetBGColor(128, 20, 50, 180)
-        editor.C["Val"].panel:SetFGColor(255, 255, 255, 128)
-        editor.C["Val"].panel:SetText("   "..(error or "unknown error"))
+        editor.C.Val:SetBGColor(128, 20, 50, 180)
+        editor.C.Val:SetFGColor(255, 255, 255, 128)
+        editor.C.Val:SetText("   "..(error or "unknown error"))
 
         if not errorPos then return end
 

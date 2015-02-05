@@ -40,8 +40,9 @@ end
 
 function ENT:TriggerInput( name, value )
 	if name == "Kick the bastard out of keyboard" then
-		self.Locked = (value ~= 0)
-		self:PlayerDetach()
+			
+		timer.Simple(0.1, function() if IsValid(self) then self.Locked = (value ~= 0) self:PlayerDetach() end end ) --It was kicking at the same time as giving output - added tiny delay fixing that race condition
+		
 	end
 end
 

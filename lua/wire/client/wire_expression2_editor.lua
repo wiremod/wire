@@ -148,15 +148,14 @@ local invalid_filename_chars = {
 
 -- overwritten commands
 function Editor:Init()
+	-- don't use any of the default DFrame UI components
+	for _, v in pairs(self:GetChildren()) do v:Remove()	end
 	self.Title = ""
 	self.subTitle = ""
 	self.LastClick = 0
 	self.GuiClick = 0
 	self.SimpleGUI = false
 	self.Location = ""
-
-	-- colors
-	self.colors = {}
 
 	self.C = {}
 	self.Components = {}
@@ -186,28 +185,10 @@ function Editor:Init()
 	self:InitShutdownHook()
 end
 
-local col_FL = CreateClientConVar("wire_expression2_editor_color_fl", "65_105_225", true, false)
-local col_FR = CreateClientConVar("wire_expression2_editor_color_fr", "25_25_112", true, false)
-local Dark = CreateClientConVar("wire_expression2_editor_color_dark", "255", true, false)
-local SimpleGUI = CreateClientConVar("wire_expression2_editor_color_simplegui", "0", true, false)
-
 local size = CreateClientConVar("wire_expression2_editor_size", "800_600", true, false)
 local pos = CreateClientConVar("wire_expression2_editor_pos", "-1_-1", true, false)
 
 function Editor:LoadEditorSettings()
-	-- Colors
-
-	local r, g, b = col_FL:GetString():match("(%d+)_(%d+)_(%d+)")
-	self.colors.col_FL = Color(tonumber(r), tonumber(g), tonumber(b), 255)
-	self.colors.tmp_FL = Color(tonumber(r), tonumber(g), tonumber(b), 255)
-
-	local r, g, b = col_FR:GetString():match("(%d+)_(%d+)_(%d+)")
-	self.colors.col_FR = Color(tonumber(r), tonumber(g), tonumber(b), 255)
-	self.colors.tmp_FR = Color(tonumber(r), tonumber(g), tonumber(b), 255)
-
-	self.colors.tmp_Dark = Dark:GetFloat()
-
-	self.SimpleGUI = SimpleGUI:GetBool()
 
 	-- Position & Size
 	local w, h = size:GetString():match("(%d+)_(%d+)")
@@ -236,14 +217,6 @@ function Editor:LoadEditorSettings()
 end
 
 function Editor:SaveEditorSettings()
-	-- Colors
-	local r, g, b = self.colors.col_FL.r, self.colors.col_FL.g, self.colors.col_FL.b
-	RunConsoleCommand("wire_expression2_editor_color_fl", r .. "_" .. g .. "_" .. b)
-	local r, g, b = self.colors.col_FR.r, self.colors.col_FR.g, self.colors.col_FR.b
-	RunConsoleCommand("wire_expression2_editor_color_fr", r .. "_" .. g .. "_" .. b)
-	RunConsoleCommand("wire_expression2_editor_color_dark", self.tmp_Dark and "1" or "0")
-
-	RunConsoleCommand("wire_expression2_editor_color_simplegui", self.SimpleGUI and "1" or "0")
 
 	-- Position & Size
 	local w, h = self:GetSize()
@@ -253,45 +226,10 @@ function Editor:SaveEditorSettings()
 	RunConsoleCommand("wire_expression2_editor_pos", x .. "_" .. y)
 end
 
-function Editor:DefaultEditorColors()
-	self.colors.col_FL = Color(65, 105, 225, 255) -- Royal Blue
-	self.colors.col_FR = Color(25, 25, 112, 255) -- Midnight Blue
-	self.colors.tmp_FL = Color(65, 105, 225, 255)
-	self.colors.tmp_FR = Color(25, 25, 112, 255)
-	self.colors.tmp_Dark = 255
-
-	self:SaveEditorSettings()
-end
-
-function Editor:Paint()
-	local w, h = self:GetSize()
-	if self.SimpleGUI then
-		draw.RoundedBox(4, 0, 0, w, h, self.colors.col_FL)
-		surface.SetDrawColor(0, 0, 0, 150)
-		surface.DrawRect(0, 22, w, 1)
-	else
-		local dif = { (self.colors.col_FR.r - self.colors.col_FL.r) / w, (self.colors.col_FR.g - self.colors.col_FL.g) / w, (self.colors.col_FR.b - self.colors.col_FL.b) / w }
-		draw.RoundedBox(4, 0, 0, 10, h, self.colors.col_FL)
-		draw.RoundedBox(4, w - 15, 0, 15, h, self.colors.col_FR)
-
-		for i = 5, w - 9, 5 do
-			surface.SetDrawColor(math.floor(self.colors.col_FL.r + dif[1] * i), math.floor(self.colors.col_FL.g + dif[2] * i), math.floor(self.colors.col_FL.b + dif[3] * i), self.colors.col_FL.a)
-			surface.DrawRect(i, 0, 5, h)
-		end
-	end
-	draw.RoundedBox(4, 7, 27, w - 14, h - 34, Color(0, 0, 0, 192))
-	surface.SetDrawColor(0, 0, 0, 150)
-	surface.DrawRect(0, 22, w, 1)
-	surface.SetDrawColor(255, 255, 255, 255)
-
-	draw.RoundedBox(4, 7, 27, w - 14, h - 34, Color(0, 0, 0, 192))
-	return true
-end
 
 function Editor:PaintOver()
 	local w, h = self:GetSize()
 
-	draw.RoundedBox(4, 0, 0, 118, 21, self.colors.col_FL)
 	surface.SetFont("DefaultBold")
 	surface.SetTextColor(255, 255, 255, 255)
 	surface.SetTextPos(10, 6)
@@ -314,13 +252,13 @@ function Editor:PerformLayout()
 
 	for i = 1, #self.Components do
 		local c = self.Components[i]
-		local c_x, c_y, c_w, c_h = c.x, c.y, c.w, c.h
-		if (c.x < 0) then c_x = w + c.x end
-		if (c.y < 0) then c_y = h + c.y end
-		if (c.w < 0) then c_w = w + c.w - c_x end
-		if (c.h < 0) then c_h = h + c.h - c_y end
-		c.panel:SetPos(c_x, c_y)
-		c.panel:SetSize(c_w, c_h)
+		local c_x, c_y, c_w, c_h = c.Bounds.x, c.Bounds.y, c.Bounds.w, c.Bounds.h
+		if (c_x < 0) then c_x = w + c_x end
+		if (c_y < 0) then c_y = h + c_y end
+		if (c_w < 0) then c_w = w + c_w - c_x end
+		if (c_h < 0) then c_h = h + c_h - c_y end
+		c:SetPos(c_x, c_y)
+		c:SetSize(c_w, c_h)
 	end
 end
 
@@ -451,14 +389,10 @@ function Editor:getMode()
 end
 
 function Editor:addComponent(panel, x, y, w, h)
-	local t = #self.Components + 1
-	self.Components[t] = {}
-	self.Components[t].panel = panel
-	self.Components[t].x = x
-	self.Components[t].y = y
-	self.Components[t].w = w
-	self.Components[t].h = h
-	return self.Components[t]
+	assert(not panel.Bounds)
+	panel.Bounds = { x = x, y = y, w = w, h = h }
+	self.Components[#self.Components + 1] = panel
+	return panel
 end
 
 -- TODO: Fix this function
@@ -491,9 +425,9 @@ function Editor:GetLastTab() return self.LastTab end
 
 function Editor:SetLastTab(Tab) self.LastTab = Tab end
 
-function Editor:GetActiveTab() return self.C['TabHolder'].panel:GetActiveTab() end
+function Editor:GetActiveTab() return self.C.TabHolder:GetActiveTab() end
 
-function Editor:GetNumTabs() return #self.C['TabHolder'].panel.Items end
+function Editor:GetNumTabs() return #self.C.TabHolder.Items end
 
 function Editor:SetActiveTab(val)
 	if self:GetActiveTab() == val then
@@ -502,13 +436,13 @@ function Editor:SetActiveTab(val)
 	end
 	self:SetLastTab(self:GetActiveTab())
 	if isnumber(val) then
-		self.C['TabHolder'].panel:SetActiveTab(self.C['TabHolder'].panel.Items[val].Tab)
+		self.C.TabHolder:SetActiveTab(self.C.TabHolder.Items[val].Tab)
 		self:GetCurrentEditor():RequestFocus()
 	elseif val and val:IsValid() then
-		self.C['TabHolder'].panel:SetActiveTab(val)
+		self.C.TabHolder:SetActiveTab(val)
 		val:GetPanel():RequestFocus()
 	end
-
+	if self.E2 then self:Validate() end
 
 	-- Editor subtitle and tab text
 	local title, tabtext = getPreferredTitles(self:GetChosenFile(), self:GetCode())
@@ -517,14 +451,14 @@ function Editor:SetActiveTab(val)
 	if tabtext then
 		if self:GetActiveTab():GetText() ~= tabtext then
 			self:GetActiveTab():SetText(tabtext)
-			self.C['TabHolder'].panel.tabScroller:InvalidateLayout()
+			self.C.TabHolder.tabScroller:InvalidateLayout()
 		end
 	end
 end
 
 function Editor:GetActiveTabIndex()
 	local tab = self:GetActiveTab()
-	for k, v in pairs(self.C['TabHolder'].panel.Items) do
+	for k, v in pairs(self.C.TabHolder.Items) do
 		if tab == v.Tab then
 			return k
 		end
@@ -534,7 +468,7 @@ end
 
 
 function Editor:SetActiveTabIndex(index)
-	local tab = self.C['TabHolder'].panel.Items[index].Tab
+	local tab = self.C.TabHolder.Items[index].Tab
 
 	if not tab then return end
 
@@ -562,16 +496,16 @@ function Editor:GetSyntaxColorLine() return self.SyntaxColorLine end
 local old
 function Editor:FixTabFadeTime()
 	if old ~= nil then return end -- It's already being fixed
-	local old = self.C['TabHolder'].panel:GetFadeTime()
-	self.C['TabHolder'].panel:SetFadeTime(0)
-	timer.Simple(old, function() self.C['TabHolder'].panel:SetFadeTime(old) old = nil end)
+	local old = self.C.TabHolder:GetFadeTime()
+	self.C.TabHolder:SetFadeTime(0)
+	timer.Simple(old, function() self.C.TabHolder:SetFadeTime(old) old = nil end)
 end
 
 function Editor:CreateTab(chosenfile)
 	local editor = vgui.Create("Expression2Editor")
 	editor.parentpanel = self
 
-	local sheet = self.C['TabHolder'].panel:AddSheet(extractNameFromFilePath(chosenfile), editor)
+	local sheet = self.C.TabHolder:AddSheet(extractNameFromFilePath(chosenfile), editor)
 	self:SetEditorFont(editor)
 	editor.chosenfile = chosenfile
 
@@ -591,7 +525,7 @@ function Editor:CreateTab(chosenfile)
 				self:FixTabFadeTime()
 				self:SetActiveTab(pnl)
 				for i = self:GetNumTabs(), 1, -1 do
-					if self.C['TabHolder'].panel.Items[i] ~= sheet then
+					if self.C.TabHolder.Items[i] ~= sheet then
 						self:CloseTab(i)
 					end
 				end
@@ -645,16 +579,6 @@ function Editor:CreateTab(chosenfile)
 		self:SetActiveTab(pnl)
 	end
 
-	sheet.Tab.Paint = function(tab)
-		local w, h = tab:GetSize()
-		draw.RoundedBox(1, 0, 0, w, h, self.colors.col_FL)
-		if self:GetActiveTab() == tab then
-			draw.RoundedBox(0, 1, 1, w - 2, h - 2, Color(0, 0, 0, 192))
-		elseif self:GetLastTab() == tab then
-			draw.RoundedBox(0, 1, 1, w - 2, h - 2, Color(0, 0, 0, 145))
-		end
-	end
-
 	editor.OnTextChanged = function(panel)
 		timer.Create("e2autosave", 5, 1, function()
 			self:AutoSave()
@@ -701,7 +625,7 @@ function Editor:OnTabCreated(sheet) end
 
 function Editor:GetNextAvailableTab()
 	local activetab = self:GetActiveTab()
-	for k, v in pairs(self.C['TabHolder'].panel.Items) do
+	for k, v in pairs(self.C.TabHolder.Items) do
 		if v.Tab and v.Tab:IsValid() and v.Tab ~= activetab then
 			return v.Tab
 		end
@@ -720,7 +644,7 @@ function Editor:CloseTab(_tab)
 	local activetab, sheetindex
 	if _tab then
 		if isnumber(_tab) then
-			local temp = self.C['TabHolder'].panel.Items[_tab]
+			local temp = self.C.TabHolder.Items[_tab]
 			if temp then
 				activetab = temp.Tab
 				sheetindex = _tab
@@ -730,7 +654,7 @@ function Editor:CloseTab(_tab)
 		else
 			activetab = _tab
 			-- Find the sheet index
-			for k, v in pairs(self.C['TabHolder'].panel.Items) do
+			for k, v in pairs(self.C.TabHolder.Items) do
 				if activetab == v.Tab then
 					sheetindex = k
 					break
@@ -740,7 +664,7 @@ function Editor:CloseTab(_tab)
 	else
 		activetab = self:GetActiveTab()
 		-- Find the sheet index
-		for k, v in pairs(self.C['TabHolder'].panel.Items) do
+		for k, v in pairs(self.C.TabHolder.Items) do
 			if activetab == v.Tab then
 				sheetindex = k
 				break
@@ -753,14 +677,14 @@ function Editor:CloseTab(_tab)
 	-- There's only one tab open, no need to actually close any tabs
 	if self:GetNumTabs() == 1 then
 		activetab:SetText("generic")
-		self.C['TabHolder'].panel:InvalidateLayout()
+		self.C.TabHolder:InvalidateLayout()
 		self:NewScript(true)
 		return
 	end
 
 	-- Find the panel (for the scroller)
 	local tabscroller_sheetindex
-	for k, v in pairs(self.C['TabHolder'].panel.tabScroller.Panels) do
+	for k, v in pairs(self.C.TabHolder.tabScroller.Panels) do
 		if v == activetab then
 			tabscroller_sheetindex = k
 			break
@@ -778,7 +702,7 @@ function Editor:CloseTab(_tab)
 					self:SetLastTab()
 				else -- Reset the current tab (backup)
 					self:GetActiveTab():SetText("generic")
-					self.C['TabHolder'].panel:InvalidateLayout()
+					self.C.TabHolder:InvalidateLayout()
 					self:NewScript(true)
 					return
 				end
@@ -792,7 +716,7 @@ function Editor:CloseTab(_tab)
 				self:SetActiveTab(othertab)
 			else -- Reset the current tab (backup)
 				self:GetActiveTab():SetText("generic")
-				self.C['TabHolder'].panel:InvalidateLayout()
+				self.C.TabHolder:InvalidateLayout()
 				self:NewScript(true)
 				return
 			end
@@ -803,12 +727,12 @@ function Editor:CloseTab(_tab)
 
 	activetab:GetPanel():Remove()
 	activetab:Remove()
-	table.remove(self.C['TabHolder'].panel.Items, sheetindex)
-	table.remove(self.C['TabHolder'].panel.tabScroller.Panels, tabscroller_sheetindex)
+	table.remove(self.C.TabHolder.Items, sheetindex)
+	table.remove(self.C.TabHolder.tabScroller.Panels, tabscroller_sheetindex)
 
-	self.C['TabHolder'].panel.tabScroller:InvalidateLayout()
-	local w, h = self.C['TabHolder'].panel:GetSize()
-	self.C['TabHolder'].panel:SetSize(w + 1, h) -- +1 so it updates
+	self.C.TabHolder.tabScroller:InvalidateLayout()
+	local w, h = self.C.TabHolder:GetSize()
+	self.C.TabHolder:SetSize(w + 1, h) -- +1 so it updates
 end
 
 function Editor:OnTabClosed(sheet) end
@@ -816,210 +740,185 @@ function Editor:OnTabClosed(sheet) end
 -- This function is made to be overwritten
 
 -- initialization commands
-
-local wire_expression2_editor_browserwidth = CreateClientConVar("wire_expression2_editor_browserwidth", "200", true, false)
-
 function Editor:InitComponents()
 	self.Components = {}
 	self.C = {}
 
-	local bw = wire_expression2_editor_browserwidth:GetInt()
+	local function PaintFlatButton(panel, w, h)
+		if not (panel:IsHovered() or panel:IsDown()) then return end
+		derma.SkinHook("Paint", "Button", panel, w, h)
+	end
+
+	local DMenuButton = vgui.RegisterTable({
+		Init = function(panel)
+			panel:SetText("")
+			panel:SetSize(24, 20)
+			panel:Dock(LEFT)
+		end,
+		Paint = PaintFlatButton,
+		DoClick = function(panel)
+			local name = panel:GetName()
+			local f = name and name ~= "" and self[name] or nil
+			if f then f(self) end
+		end
+	}, "DButton")
 
 	-- addComponent( panel, x, y, w, h )
 	-- if x, y, w, h is minus, it will stay relative to right or buttom border
-	self.C['Close'] = self:addComponent(vgui.Create("DButton", self), -22, 4, 18, 18) -- Close button
-	self.C['Inf'] = self:addComponent(vgui.Create("DButton", self), -42, 4, 18, 18) -- Info button
-	self.C['Sav'] = self:addComponent(vgui.Create("Button", self), bw + 41, 30, 20, 20) -- Save button
-	self.C['NewTab'] = self:addComponent(vgui.Create("Button", self), bw + 62, 30, 20, 20) -- New tab button
-	self.C['CloseTab'] = self:addComponent(vgui.Create("Button", self), bw + 83, 30, 20, 20) -- Close tab button
-	self.C['Reload'] = self:addComponent(vgui.Create("Button", self), bw + 104, 30, 20, 20) -- Reload tab button
-	self.C['SaE'] = self:addComponent(vgui.Create("Button", self), -70, 30, -10, 20) -- Save & Exit button
-	self.C['SavAs'] = self:addComponent(vgui.Create("Button", self), -123, 30, -72, 20) -- Save As button
-	self.C['Browser'] = self:addComponent(vgui.Create("wire_expression2_browser", self), 10, 30, bw + 7, -10) -- Expression browser
-	self.C['TabHolder'] = self:addComponent(vgui.Create("DPropertySheet", self), bw + 15, 52, -5, -27) -- TabHolder
-	self:CreateTab("generic")
-	self.C['Btoggle'] = self:addComponent(vgui.Create("Button", self), bw + 20, 30, 20, 20) -- Toggle Browser being shown
-	self.C['ConBut'] = self:addComponent(vgui.Create("Button", self), -62, 4, 18, 18) -- Control panel open/close
-	self.C['Control'] = self:addComponent(vgui.Create("Panel", self), -350, 52, 342, -32) -- Control Panel
-	self.C['Credit'] = self:addComponent(vgui.Create("DTextEntry", self), -160, 52, 150, 150) -- Credit box
-	self.C['Val'] = self:addComponent(vgui.Create("Button", self), bw + 20, -30, -10, 20) -- Validation line
+	self.C.Close = self:addComponent(vgui.Create("DButton", self), -45-4, 0, 45, 22) -- Close button
+	self.C.Inf = self:addComponent(vgui.CreateFromTable(DMenuButton, self), -45-4-26, 0, 24, 22) -- Info button
+	self.C.ConBut = self:addComponent(vgui.CreateFromTable(DMenuButton, self), -45-4-24-26, 0, 24, 22) -- Control panel open/close
 
-	self.C['TabHolder'].panel.Paint = function() end
+	self.C.Divider = vgui.Create("DHorizontalDivider", self)
+
+	self.C.Browser = vgui.Create("wire_expression2_browser", self.C.Divider) -- Expression browser
+
+	self.C.MainPane = vgui.Create("DPanel", self.C.Divider)
+	self.C.Menu = vgui.Create("DPanel", self.C.MainPane)
+	self.C.Val = vgui.Create("Button", self.C.MainPane) -- Validation line
+	self.C.TabHolder = vgui.Create("DPropertySheet", self.C.MainPane)
+
+	self.C.Btoggle = vgui.CreateFromTable(DMenuButton, self.C.Menu) -- Toggle Browser being shown
+	self.C.Sav = vgui.CreateFromTable(DMenuButton, self.C.Menu) -- Save button
+	self.C.NewTab = vgui.CreateFromTable(DMenuButton, self.C.Menu, "NewTab") -- New tab button
+	self.C.CloseTab = vgui.CreateFromTable(DMenuButton, self.C.Menu, "CloseTab") -- Close tab button
+	self.C.Reload = vgui.CreateFromTable(DMenuButton, self.C.Menu) -- Reload tab button
+	self.C.SaE = vgui.Create("DButton", self.C.Menu) -- Save & Exit button
+	self.C.SavAs = vgui.Create("DButton", self.C.Menu) -- Save As button
+
+	self.C.Control = self:addComponent(vgui.Create("Panel", self), -350, 52, 342, -32) -- Control Panel
+	self.C.Credit = self:addComponent(vgui.Create("DTextEntry", self), -160, 52, 150, 150) -- Credit box
+
+	self:CreateTab("generic")
 
 	-- extra component options
-	self.C['Close'].panel:SetText("x")
-	self.C['Close'].panel.DoClick = function(btn) self:Close() end
-	self.C['Credit'].panel:SetTextColor(Color(0, 0, 0, 255))
-	self.C['Credit'].panel:SetText("\t\tCREDITS\n\n\tEditor by: \tSyranide and Shandolum\n\n\tTabs (and more) added by Divran.\n\n\tFixed for GMod13 By Ninja101") -- Sure why not ;)
-	self.C['Credit'].panel:SetMultiline(true)
-	self.C['Credit'].panel:SetVisible(false)
-	self.C['Inf'].panel:SetText("i")
-	self.C['Inf'].panel.DoClick = function(btn)
-		self.C['Credit'].panel:SetVisible(not self.C['Credit'].panel:IsVisible())
-	end
-	self.C['Sav'].panel:SetText("")
-	self.C['Sav'].panel:SetImage("icon16/disk.png")
-	self.C['Sav'].panel.Paint = function(button)
-		local w, h = button:GetSize()
-		draw.RoundedBox(1, 0, 0, w, h, self.colors.col_FL)
-		if button.Hovered then draw.RoundedBox(0, 1, 1, w - 2, h - 2, Color(0, 0, 0, 192)) end
-	end
-	self.C['Sav'].panel.DoClick = function(button) self:SaveFile(self:GetChosenFile()) end
 
-	self.C['NewTab'].panel:SetText("")
-	self.C['NewTab'].panel:SetImage("icon16/page_white_add.png")
-	self.C['NewTab'].panel.Paint = function(button)
-		local w, h = button:GetSize()
-		draw.RoundedBox(1, 0, 0, w, h, self.colors.col_FL)
-		if button.Hovered then draw.RoundedBox(0, 1, 1, w - 2, h - 2, Color(0, 0, 0, 192)) end
-	end
-	self.C['NewTab'].panel.DoClick = function(button)
-		self:NewTab()
+	self.C.Divider:SetLeft(self.C.Browser)
+	self.C.Divider:SetRight(self.C.MainPane)
+	self.C.Divider:Dock(FILL)
+	self.C.Divider:SetDividerWidth(4)
+	self.C.Divider:SetCookieName("wire_expression2_editor_divider")
+
+	local DoNothing = function() end
+	self.C.MainPane.Paint = DoNothing
+	--self.C.Menu.Paint = DoNothing
+
+	self.C.Menu:Dock(TOP)
+	self.C.TabHolder:Dock(FILL)
+	self.C.Val:Dock(BOTTOM)
+
+	self.C.TabHolder:SetPadding(1)
+
+	self.C.Menu:SetHeight(24)
+	self.C.Menu:DockPadding(2,2,2,2)
+	self.C.Val:SetHeight(22)
+
+	self.C.SaE:SetSize(80, 20)
+	self.C.SaE:Dock(RIGHT)
+	self.C.SavAs:SetSize(51, 20)
+	self.C.SavAs:Dock(RIGHT)
+
+	self.C.Inf:Dock(NODOCK)
+	self.C.ConBut:Dock(NODOCK)
+
+	self.C.Close:SetText("r")
+	self.C.Close:SetFont("Marlett")
+	self.C.Close.DoClick = function(btn) self:Close() end
+
+	self.C.ConBut:SetImage("icon16/wrench.png")
+	self.C.ConBut:SetText("")
+	self.C.ConBut.Paint = PaintFlatButton
+	self.C.ConBut.DoClick = function() self.C.Control:SetVisible(not self.C.Control:IsVisible()) end
+
+	self.C.Inf:SetImage("icon16/information.png")
+	self.C.Inf.Paint = PaintFlatButton
+	self.C.Inf.DoClick = function(btn)
+		self.C.Credit:SetVisible(not self.C.Credit:IsVisible())
 	end
 
-	self.C['CloseTab'].panel:SetText("")
-	self.C['CloseTab'].panel:SetImage("icon16/page_white_delete.png")
-	self.C['CloseTab'].panel.Paint = function(button)
-		local w, h = button:GetSize()
-		draw.RoundedBox(1, 0, 0, w, h, self.colors.col_FL)
-		if button.Hovered then draw.RoundedBox(0, 1, 1, w - 2, h - 2, Color(0, 0, 0, 192)) end
-	end
-	self.C['CloseTab'].panel.DoClick = function(button)
-		self:CloseTab()
-	end
 
-	self.C['Reload'].panel:SetText("")
-	self.C['Reload'].panel:SetImage("icon16/page_refresh.png")
-	self.C['Reload'].panel.Paint = function(button)
-		local w, h = button:GetSize()
-		draw.RoundedBox(1, 0, 0, w, h, self.colors.col_FL)
-		if button.Hovered then draw.RoundedBox(0, 1, 1, w - 2, h - 2, Color(0, 0, 0, 192)) end
-	end
-	self.C['Reload'].panel.DoClick = function(button)
+	self.C.Sav:SetImage("icon16/disk.png")
+	self.C.Sav.DoClick = function(button) self:SaveFile(self:GetChosenFile()) end
+
+	self.C.NewTab:SetImage("icon16/page_white_add.png")
+
+	self.C.CloseTab:SetImage("icon16/page_white_delete.png")
+
+	self.C.Reload:SetImage("icon16/page_refresh.png")
+	self.C.Reload.DoClick = function(button)
 		self:LoadFile(self:GetChosenFile(), false)
 	end
 
-	self.C['SaE'].panel:SetText("")
-	self.C['SaE'].panel.Font = "E2SmallFont"
-	self.C['SaE'].panel.Paint = function(button)
-		local w, h = button:GetSize()
-		draw.RoundedBox(1, 0, 0, w, h, self.colors.col_FL)
-		if button.Hovered then draw.RoundedBox(0, 1, 1, w - 2, h - 2, Color(0, 0, 0, 192)) end
-		surface.SetFont(button.Font)
-		surface.SetTextPos(3, 4)
-		surface.SetTextColor(255, 255, 255, 255)
-		if self.chip then surface.DrawText("Upload & Exit")
-		else surface.DrawText(" Save & Exit")
-		end
-	end
-	self.C['SaE'].panel.DoClick = function(button) self:SaveFile(self:GetChosenFile(), true) end
+	self.C.SaE:SetText("Save and Exit")
+	self.C.SaE.DoClick = function(button) self:SaveFile(self:GetChosenFile(), true) end
 
-	self.C['SavAs'].panel:SetText("")
-	self.C['SavAs'].panel.Font = "E2SmallFont"
-	self.C['SavAs'].panel.Paint = function(button)
-		local w, h = button:GetSize()
-		draw.RoundedBox(1, 0, 0, w, h, self.colors.col_FL)
-		if button.Hovered then draw.RoundedBox(0, 1, 1, w - 2, h - 2, Color(0, 0, 0, 192)) end
-		surface.SetFont(button.Font)
-		surface.SetTextPos(3, 4)
-		surface.SetTextColor(255, 255, 255, 255)
-		surface.DrawText("  Save As")
-	end
-	self.C['SavAs'].panel.DoClick = function(button) self:SaveFile(self:GetChosenFile(), false, true) end
+	self.C.SavAs:SetText("Save As")
+	self.C.SavAs.DoClick = function(button) self:SaveFile(self:GetChosenFile(), false, true) end
 
-	self.C['Browser'].panel:AddRightClick(self.C['Browser'].panel.filemenu, 4, "Save to", function()
+	self.C.Browser:AddRightClick(self.C.Browser.filemenu, 4, "Save to", function()
 		Derma_Query("Overwrite this file?", "Save To",
 			"Overwrite", function()
-				self:SaveFile(self.C['Browser'].panel.File.FileDir)
+				self:SaveFile(self.C.Browser.File.FileDir)
 			end,
 			"Cancel")
 	end)
-	self.C['Browser'].panel.OnFileOpen = function(_, filepath, newtab)
+	self.C.Browser.OnFileOpen = function(_, filepath, newtab)
 		self:Open(filepath, nil, newtab)
 	end
 
-	self.C['Val'].panel:SetText("   Click to validate...")
-	self.C['Val'].panel.UpdateColours = function(button, skin)
+	self.C.Val:SetText("   Click to validate...")
+	self.C.Val.UpdateColours = function(button, skin)
 		return button:SetTextStyleColor(skin.Colours.Button.Down)
 	end
-	self.C['Val'].panel.SetBGColor = function(button, r, g, b, a)
-		self.C['Val'].panel.bgcolor = Color(r, g, b, a)
+	self.C.Val.SetBGColor = function(button, r, g, b, a)
+		self.C.Val.bgcolor = Color(r, g, b, a)
 	end
-	self.C['Val'].panel.bgcolor = self.colors.col_FL
-	self.C['Val'].panel.Paint = function(button)
+	self.C.Val.bgcolor = Color(255, 255, 255)
+	self.C.Val.Paint = function(button)
 		local w, h = button:GetSize()
 		draw.RoundedBox(1, 0, 0, w, h, button.bgcolor)
 		if button.Hovered then draw.RoundedBox(0, 1, 1, w - 2, h - 2, Color(0, 0, 0, 128)) end
 	end
-	self.C['Val'].panel.OnMousePressed = function(panel, btn)
+	self.C.Val.OnMousePressed = function(panel, btn)
 		if btn == MOUSE_RIGHT then
 			local menu = DermaMenu()
 			menu:AddOption("Copy to clipboard", function()
-				SetClipboardText(self.C['Val'].panel:GetValue():sub(4))
+				SetClipboardText(self.C.Val:GetValue():sub(4))
 			end)
 			menu:Open()
 		else
 			self:Validate(true)
 		end
 	end
-	self.C['Btoggle'].panel:SetText("<")
-	self.C['Btoggle'].panel.Paint = function(button)
-		local w, h = button:GetSize()
-		draw.RoundedBox(1, 0, 0, w, h, self.colors.col_FL)
-		if button.Hovered then draw.RoundedBox(0, 1, 1, w - 2, h - 2, Color(0, 0, 0, 192)) end
-	end
-	self.C['Btoggle'].panel.DoClick = function(button)
+	self.C.Btoggle:SetImage("icon16/application_side_contract.png")
+	function self.C.Btoggle.DoClick(button)
 		if button.hide then
+			self.C.Divider:LoadCookies()
+		else
+			self.C.Divider:SetLeftWidth(0)
+		end
+		button:InvalidateLayout()
+	end
+
+	local oldBtoggleLayout = self.C.Btoggle.PerformLayout
+	function self.C.Btoggle.PerformLayout(button)
+		oldBtoggleLayout(button)
+		if self.C.Divider:GetLeftWidth() > 0 then
 			button.hide = false
-			button:SetText("<")
+			button:SetImage("icon16/application_side_contract.png")
 		else
 			button.hide = true
-			button:SetText(">")
+			button:SetImage("icon16/application_side_expand.png")
 		end
-		button.toggle = true
 	end
-	self.C['Btoggle'].panel.anispeed = 10
-	self.C['Btoggle'].panel.Think = function(button)
-		if not button.toggle then return end
-		local bw = wire_expression2_editor_browserwidth:GetInt()
-		if button.hide and self.C['Btoggle'].x > 10 then
-			self.C['Btoggle'].x = self.C['Btoggle'].x - button.anispeed
-			self.C['Sav'].x = self.C['Sav'].x - button.anispeed
-			self.C['NewTab'].x = self.C['NewTab'].x - button.anispeed
-			self.C['CloseTab'].x = self.C['CloseTab'].x - button.anispeed
-			self.C['Reload'].x = self.C['Reload'].x - button.anispeed
-			self.C['TabHolder'].x = self.C['TabHolder'].x - button.anispeed
-			self.C['Val'].x = self.C['Val'].x - button.anispeed
-			self.C['Browser'].w = self.C['Browser'].w - button.anispeed
-		elseif not button.hide and self.C['Btoggle'].x < bw + 20 then
-			self.C['Btoggle'].x = self.C['Btoggle'].x + button.anispeed
-			self.C['Sav'].x = self.C['Sav'].x + button.anispeed
-			self.C['NewTab'].x = self.C['NewTab'].x + button.anispeed
-			self.C['CloseTab'].x = self.C['CloseTab'].x + button.anispeed
-			self.C['Reload'].x = self.C['Reload'].x + button.anispeed
-			self.C['TabHolder'].x = self.C['TabHolder'].x + button.anispeed
-			self.C['Val'].x = self.C['Val'].x + button.anispeed
-			self.C['Browser'].w = self.C['Browser'].w + button.anispeed
-		end
 
-		if self.C['Browser'].panel:IsVisible() and self.C['Browser'].w <= 0 then self.C['Browser'].panel:SetVisible(false)
-		elseif not self.C['Browser'].panel:IsVisible() and self.C['Browser'].w > 0 then self.C['Browser'].panel:SetVisible(true)
-		end
-		self:InvalidateLayout()
-		if button.hide then
-			if self.C['Btoggle'].x > 10 or self.C['Sav'].x > 30 or self.C['Val'].x < bw + 20 or self.C['Browser'].w > 0 then return end
-			button.toggle = false
-		else
-			if self.C['Btoggle'].x < bw + 20 or self.C['Sav'].x < bw + 40 or self.C['Val'].x < bw + 20 or self.C['Browser'].w < bw then return end
-			button.toggle = false
-		end
-	end
-	self.C['ConBut'].panel:SetImage("icon16/wrench.png")
-	self.C['ConBut'].panel:SetText("")
-	self.C['ConBut'].panel.Paint = function(button) end
-	self.C['ConBut'].panel.DoClick = function() self.C['Control'].panel:SetVisible(not self.C['Control'].panel:IsVisible()) end
-	self:InitControlPanel(self.C['Control'].panel) -- making it seperate for better overview
-	self.C['Control'].panel:SetVisible(false)
+	self.C.Credit:SetTextColor(Color(0, 0, 0, 255))
+	self.C.Credit:SetText("\t\tCREDITS\n\n\tEditor by: \tSyranide and Shandolum\n\n\tTabs (and more) added by Divran.\n\n\tFixed for GMod13 By Ninja101") -- Sure why not ;)
+	self.C.Credit:SetMultiline(true)
+	self.C.Credit:SetVisible(false)
+
+	self:InitControlPanel(self.C.Control) -- making it seperate for better overview
+	self.C.Control:SetVisible(false)
 	if self.E2 then self:Validate() end
 end
 
@@ -1031,52 +930,22 @@ function Editor:AutoSave()
 end
 
 function Editor:AddControlPanelTab(label, icon, tooltip)
-	local frame = self.C['Control'].panel
-	local panel = vgui.Create("Panel")
+	local frame = self.C.Control
+	local panel = vgui.Create("DPanel")
 	local ret = frame.TabHolder:AddSheet(label, panel, icon, false, false, tooltip)
-	ret.Tab.Paint = function(tab)
-		local w, h = tab:GetSize()
-		draw.RoundedBox(1, 0, 0, w, h, self.colors.col_FL)
-		if frame.TabHolder:GetActiveTab() == tab then
-			draw.RoundedBox(0, 1, 1, w - 2, h - 2, Color(0, 0, 0, 192))
-		end
-	end
 	local old = ret.Tab.OnMousePressed
 	function ret.Tab.OnMousePressed(...)
 		timer.Simple(0.1,function() frame:ResizeAll() end) -- timers solve everything
 		old(...)
 	end
 
+	ret.Panel:SetBackgroundColor(Color(96, 96, 96, 255))
+
 	return ret
 end
 
 function Editor:InitControlPanel(frame)
-	local C = self.C['Control']
-
-	-- Give it the nice gradient look
-	frame.Paint = function(pnl)
-		local _w, _h = self:GetSize()
-		local w, h = pnl:GetSize()
-		if self.SimpleGUI then
-			draw.RoundedBox(4, 0, 0, w, h, self.colors.col_FL)
-			surface.SetDrawColor(0, 0, 0, 150)
-			surface.DrawRect(0, 22, w, 1)
-		else
-			local dif = { (self.colors.col_FR.r - self.colors.col_FL.r) / _w, (self.colors.col_FR.g - self.colors.col_FL.g) / _w, (self.colors.col_FR.b - self.colors.col_FL.b) / _w }
-			local i = _w - 350
-			draw.RoundedBox(4, 0, 0, 10, h, Color(math.floor(self.colors.col_FL.r + dif[1] * i), math.floor(self.colors.col_FL.g + dif[2] * i), math.floor(self.colors.col_FL.b + dif[3] * i), self.colors.col_FL.a))
-			draw.RoundedBox(4, w - 15, 0, 15, h, self.colors.col_FR)
-
-			local _i = 0
-			for i = _w - 350 + 5, _w, 5 do
-				_i = _i + 5
-				surface.SetDrawColor(math.floor(self.colors.col_FL.r + dif[1] * i), math.floor(self.colors.col_FL.g + dif[2] * i), math.floor(self.colors.col_FL.b + dif[3] * i), self.colors.col_FL.a)
-				surface.DrawRect(_i, 0, 5, h)
-			end
-		end
-		draw.RoundedBox(4, 7, 27, w - 14, h - 34, Color(0, 0, 0, 192))
-		draw.RoundedBox(4, 7, 27, w - 14, h - 34, Color(0, 0, 0, 192))
-	end
+	local C = self.C.Control
 
 	-- Add a property sheet to hold the tabs
 	local tabholder = vgui.Create("DPropertySheet", frame)
@@ -1128,8 +997,6 @@ function Editor:InitControlPanel(frame)
 	-- Our first object to auto resize is the tabholder. This sets it to position 2,4 and with a width and height offset of w-4, h-8.
 	frame:AddResizeObject(tabholder, 2, 4)
 
-	tabholder.Paint = function() end
-
 	-- ------------------------------------------- EDITOR TAB
 	local sheet = self:AddControlPanelTab("Editor", "icon16/wrench.png", "Options for the editor itself.")
 
@@ -1140,47 +1007,11 @@ function Editor:InitControlPanel(frame)
 	frame:AddResizeObject(dlist, 4, 4)
 	dlist:EnableVerticalScrollbar(true)
 
-	local Label = vgui.Create("DLabel")
-	dlist:AddItem(Label)
-	Label:SetText("Window border colors")
-	Label:SizeToContents()
-
-	local SimpleColors = vgui.Create("DCheckBoxLabel")
-	dlist:AddItem(SimpleColors)
-	SimpleColors:SetSize(180, 20)
-	SimpleColors:SetText("Simple Colors")
-	SimpleColors:SetConVar("wire_expression2_editor_color_simplegui")
-	function SimpleColors.OnChange(pnl, b)
-		self.SimpleGUI = b
-	end
-
-	local DarknessColor = vgui.Create("DNumSlider")
-	dlist:AddItem(DarknessColor)
-	DarknessColor:SetText("Darkness")
-	DarknessColor:SetMinMax(0, 255)
-	DarknessColor:SetDecimals(0)
-	DarknessColor:SetDark(false)
-	function DarknessColor.OnValueChanged(pnl, val)
-		self.colors.tmp_Dark = val
-		self:CalculateColor()
-	end
-
-	DarknessColor:SetValue(255)
-
-	local defaultbutton = vgui.Create("DButton")
-	defaultbutton:SetText("Default")
-	defaultbutton:SetToolTip("Set window border colors to default")
-	function defaultbutton.DoClick(btn)
-		self:DefaultEditorColors()
-	end
-
-	dlist:AddItem(defaultbutton)
-
 	-- Other colors
 
 	local Label = vgui.Create("DLabel")
 	dlist:AddItem(Label)
-	Label:SetText("Other color options")
+	Label:SetText("Editor colors")
 	Label:SizeToContents()
 
 	local SkipUpdate = false
@@ -1469,27 +1300,6 @@ function Editor:InitControlPanel(frame)
 	HighlightOnDoubleClick:SizeToContents()
 	HighlightOnDoubleClick:SetTooltip("Find all identical words and highlight them after a double-click.")
 
-	-- Browser width
-	local BrowserWidthSlider = vgui.Create("DNumSlider")
-	dlist:AddItem(BrowserWidthSlider)
-	BrowserWidthSlider:SetText("Browser Width")
-	BrowserWidthSlider:SetMinMax(150, 325)
-	BrowserWidthSlider:SetDecimals(0)
-	BrowserWidthSlider:SetDark(false)
-	BrowserWidthSlider:SetConVar("wire_expression2_editor_browserwidth")
-	local btoggle = self.C['Btoggle'].panel
-	function BrowserWidthSlider.OnValueChanged(pnl, bw)
-		if bw == wire_expression2_editor_browserwidth:GetInt() then return end
-		btoggle.hide = self.C['Browser'].w > bw
-		btoggle.toggle = true
-		timer.Create("Expression2_ChangeBrowserWidth", 0, 30, function()
-			if btoggle.hide and self.C['Browser'].w < (bw + 10) then
-				btoggle.hide = false
-				timer.Remove("Expression2_ChangeBrowserWidth")
-			end
-		end)
-	end
-
 	local WorldClicker = vgui.Create("DCheckBoxLabel")
 	dlist:AddItem(WorldClicker)
 	WorldClicker:SetConVar("wire_expression2_editor_worldclicker")
@@ -1710,7 +1520,7 @@ Text here]# ]]
 
 	-- ------------------------------------------- REMOTE UPDATER TAB
 	local sheet = self:AddControlPanelTab("Remote Updater", "icon16/world.png", "Manage your E2s from far away.")
-	
+
 	local dlist = vgui.Create("DPanelList", sheet.Panel)
 	dlist.Paint = function() end
 	frame:AddResizeObject(dlist, 2, 2)
@@ -1738,17 +1548,8 @@ Text here]# ]]
 	end)
 
 	local UpdateList = vgui.Create("DButton")
-	UpdateList:SetText("")
+	UpdateList:SetText("Update List (Show only yours)")
 	dlist:AddItem(UpdateList)
-	UpdateList.Paint = function(button)
-		local w, h = button:GetSize()
-		draw.RoundedBox(1, 0, 0, w, h, self.colors.col_FL)
-		if button.Hovered then draw.RoundedBox(0, 1, 1, w - 2, h - 2, Color(0, 0, 0, 192)) end
-		surface.SetFont("E2SmallFont")
-		surface.SetTextPos(w / 2 - surface.GetTextSize("Update List (Show only yours)") / 2, 6)
-		surface.SetTextColor(255, 255, 255, 255)
-		surface.DrawText("Update List (Show only yours)")
-	end
 	UpdateList.DoClick = function(pnl, showall)
 		local E2s = ents.FindByClass("gmod_wire_expression2")
 		dlist2:Clear()
@@ -1759,13 +1560,13 @@ Text here]# ]]
 				local nick
 				if not ply or not ply:IsValid() then nick = "Unknown" else nick = ply:Nick() end
 				local name = v:GetNWString("name", "generic")
-				
+
 				local singleline = string.match( name, "(.-)\n" )
 				if singleline then name = singleline .. "..." end
-				
+
 				local max = 20
 				if #name > max then name = string.sub(name,1,max) .. "..." end
-				
+
 				local panel = vgui.Create("DPanel")
 				panel:SetTall((LocalPlayer():IsAdmin() and 74 or 47))
 				panel.Paint = function(panel)
@@ -1777,111 +1578,74 @@ Text here]# ]]
 
 				local label = vgui.Create("DLabel", panel)
 				local idx = v:EntIndex()
-				
+
 				local str = string.format("Name: %s\nEntity ID: '%d'\nOwner: %s",name,idx,nick)
 				if LocalPlayer():IsAdmin() then
 					str = string.format("Name: %s\nEntity ID: '%d'\n%i ops, %i%% %s\ncpu time: %ius\nOwner: %s",name,idx,0,0,"",0,nick)
 				end
-				
+
 				label:SetText(str)
 				label:SizeToContents()
 				label:SetWide(280)
 				label:SetWrap(true)
 				label:SetPos(4, 4)
 				label:SetTextColor(Color(255, 255, 255, 255))
-				
+
 				if LocalPlayer():IsAdmin() then
 					local hardquota = GetConVar("wire_expression2_quotahard")
 					local softquota = GetConVar("wire_expression2_quotasoft")
-					
+
 					function label:Think()
 						if not IsValid(v) then
 							label.Think = function() end
 							return
 						end
-						
+
 						local data = v:GetOverlayData()
-						if data then						
+						if data then
 							local prfbench = data.prfbench
 							local prfcount = data.prfcount
 							local timebench = data.timebench
 
 							local e2_hardquota = hardquota:GetInt()
 							local e2_softquota = softquota:GetInt()
-							
+
 							local hardtext = (prfcount / e2_hardquota > 0.33) and "(+" .. tostring(math.Round(prfcount / e2_hardquota * 100)) .. "%)" or ""
-		
+
 							label:SetText(string.format("Name: %s\nEntity ID: '%d'\n%i ops, %i%% %s\ncpu time: %ius\nOwner: %s",name,idx,prfbench,prfbench / e2_softquota * 100,hardtext,timebench*1000000,nick))
-						end						
+						end
 					end
 				end
 
 				local btn = vgui.Create("DButton", panel)
-				btn:SetText("")
+				btn:SetText("Upload")
 				btn:SetSize(57, 18)
 				timer.Simple(0, function() btn:SetPos(panel:GetWide() - btn:GetWide() * 2 - 6, 4) end)
 				btn.DoClick = function(pnl)
 					WireLib.Expression2Upload(v)
 				end
-				btn.Paint = function(button)
-					local w, h = button:GetSize()
-					draw.RoundedBox(1, 0, 0, w, h, self.colors.col_FL)
-					if button.Hovered then draw.RoundedBox(0, 1, 1, w - 2, h - 2, Color(0, 0, 0, 192)) end
-					surface.SetFont("E2SmallFont")
-					surface.SetTextPos(3, 4)
-					surface.SetTextColor(255, 255, 255, 255)
-					surface.DrawText("    Upload")
-				end
 
 				local btn = vgui.Create("DButton", panel)
-				btn:SetText("")
+				btn:SetText("Download")
 				btn:SetSize(57, 18)
 				timer.Simple(0, function() btn:SetPos(panel:GetWide() - btn:GetWide() - 4, 4) end)
 				btn.DoClick = function(pnl)
 					RunConsoleCommand("wire_expression_requestcode", v:EntIndex())
 				end
-				btn.Paint = function(button)
-					local w, h = button:GetSize()
-					draw.RoundedBox(1, 0, 0, w, h, self.colors.col_FL)
-					if button.Hovered then draw.RoundedBox(0, 1, 1, w - 2, h - 2, Color(0, 0, 0, 192)) end
-					surface.SetFont("E2SmallFont")
-					surface.SetTextPos(3, 4)
-					surface.SetTextColor(255, 255, 255, 255)
-					surface.DrawText("  Download")
-				end
 
 				local btn = vgui.Create("DButton", panel)
-				btn:SetText("")
+				btn:SetText("Halt execution")
 				btn:SetSize(75, 18)
 				timer.Simple(0, function() btn:SetPos(panel:GetWide() - btn:GetWide() - 4, 24) end)
 				btn.DoClick = function(pnl)
 					RunConsoleCommand("wire_expression_forcehalt", v:EntIndex())
 				end
-				btn.Paint = function(button)
-					local w, h = button:GetSize()
-					draw.RoundedBox(1, 0, 0, w, h, self.colors.col_FL)
-					if button.Hovered then draw.RoundedBox(0, 1, 1, w - 2, h - 2, Color(0, 0, 0, 192)) end
-					surface.SetFont("E2SmallFont")
-					surface.SetTextPos(3, 4)
-					surface.SetTextColor(255, 255, 255, 255)
-					surface.DrawText("  Halt execution")
-				end
-
 				local btn2 = vgui.Create("DButton", panel)
-				btn2:SetText("")
+				btn2:SetText("Reset")
 				btn2:SetSize(39, 18)
 				timer.Simple(0, function() btn2:SetPos(panel:GetWide() - btn2:GetWide() - btn:GetWide() - 6, 24) end)
 				btn2.DoClick = function(pnl)
 					RunConsoleCommand("wire_expression_reset", v:EntIndex())
-				end
-				btn2.Paint = function(button)
-					local w, h = button:GetSize()
-					draw.RoundedBox(1, 0, 0, w, h, self.colors.col_FL)
-					if button.Hovered then draw.RoundedBox(0, 1, 1, w - 2, h - 2, Color(0, 0, 0, 192)) end
-					surface.SetFont("E2SmallFont")
-					surface.SetTextPos(3, 4)
-					surface.SetTextColor(255, 255, 255, 255)
-					surface.DrawText("  Reset")
 				end
 			end
 		end
@@ -1889,30 +1653,9 @@ Text here]# ]]
 		dlist:InvalidateLayout()
 	end
 	local UpdateList2 = vgui.Create("DButton")
-	UpdateList2:SetText("")
+	UpdateList2:SetText("Update List (Show all)")
 	dlist:AddItem(UpdateList2)
-	UpdateList2.Paint = function(button)
-		local w, h = button:GetSize()
-		draw.RoundedBox(1, 0, 0, w, h, self.colors.col_FL)
-		if button.Hovered then draw.RoundedBox(0, 1, 1, w - 2, h - 2, Color(0, 0, 0, 192)) end
-		surface.SetFont("E2SmallFont")
-		surface.SetTextPos(w / 2 - surface.GetTextSize("Update List (Show all)") / 2, 6)
-		surface.SetTextColor(255, 255, 255, 255)
-		surface.DrawText("Update List (Show all)")
-	end
 	UpdateList2.DoClick = function(pnl) UpdateList:DoClick(true) end
-end
-
-function Editor:CalculateColor()
-	self.colors.col_FL.r = math.floor(self.colors.tmp_FL.r * self.colors.tmp_Dark / 255)
-	self.colors.col_FL.g = math.floor(self.colors.tmp_FL.g * self.colors.tmp_Dark / 255)
-	self.colors.col_FL.b = math.floor(self.colors.tmp_FL.b * self.colors.tmp_Dark / 255)
-
-	self.colors.col_FR.r = math.floor(self.colors.tmp_FR.r * self.colors.tmp_Dark / 255)
-	self.colors.col_FR.g = math.floor(self.colors.tmp_FR.g * self.colors.tmp_Dark / 255)
-	self.colors.col_FR.b = math.floor(self.colors.tmp_FR.b * self.colors.tmp_Dark / 255)
-
-	self:InvalidateLayout()
 end
 
 -- used with color-circles
@@ -1955,7 +1698,7 @@ function Editor:NewScript(incurrent)
 
 		-- Set title
 		self:GetActiveTab():SetText("generic")
-		self.C['TabHolder'].panel:InvalidateLayout()
+		self.C.TabHolder:InvalidateLayout()
 
 		if self.E2 then
 			-- add both code1 and code2 to the editor
@@ -2044,8 +1787,8 @@ function Editor:Validate(gotoerror)
 	if self.EditorType == "E2" then
 		local errors = wire_expression2_validate(self:GetCode())
 		if not errors then
-			self.C['Val'].panel:SetBGColor(0, 128, 0, 180)
-			self.C['Val'].panel:SetText("   Validation successful")
+			self.C.Val:SetBGColor(0, 110, 20, 255)
+			self.C.Val:SetText("   Validation successful")
 			return true
 		end
 		if gotoerror then
@@ -2055,19 +1798,19 @@ function Editor:Validate(gotoerror)
 			end
 			if row then self:GetCurrentEditor():SetCaret({ tonumber(row), tonumber(col) }) end
 		end
-		self.C['Val'].panel:SetBGColor(128, 0, 0, 180)
-		self.C['Val'].panel:SetText("   " .. errors)
+		self.C.Val:SetBGColor(110, 0, 20, 255)
+		self.C.Val:SetText("   " .. errors)
 	elseif self.EditorType == "CPU" or self.EditorType == "GPU" or self.EditorType == "SPU" then
-		self.C['Val'].panel:SetBGColor(64, 64, 64, 180)
-		self.C['Val'].panel:SetText("   Recompiling...")
+		self.C.Val:SetBGColor(64, 64, 64, 180)
+		self.C.Val:SetText("   Recompiling...")
 		CPULib.Validate(self, self:GetCode(), self:GetChosenFile())
 	end
 	return true
 end
 
 function Editor:SetValidatorStatus(text, r, g, b, a)
-	self.C['Val'].panel:SetBGColor(r or 0, g or 180, b or 0, a or 180)
-	self.C['Val'].panel:SetText("   " .. text)
+	self.C.Val:SetBGColor(r or 0, g or 180, b or 0, a or 180)
+	self.C.Val:SetText("   " .. text)
 end
 
 function Editor:SubTitle(sub)
@@ -2137,8 +1880,8 @@ function Editor:SetCode(code)
 end
 
 function Editor:GetEditor(n)
-	if self.C['TabHolder'].panel.Items[n] then
-		return self.C['TabHolder'].panel.Items[n].Panel
+	if self.C.TabHolder.Items[n] then
+		return self.C.TabHolder.Items[n].Panel
 	end
 end
 
@@ -2173,7 +1916,7 @@ function Editor:Open(Line, code, forcenewtab)
 		else
 			tab = self:GetActiveTab()
 			tab:SetText(tabtext)
-			self.C['TabHolder'].panel:InvalidateLayout()
+			self.C.TabHolder:InvalidateLayout()
 		end
 		self:SetActiveTab(tab)
 
@@ -2195,8 +1938,8 @@ function Editor:SaveFile(Line, close, SaveAs)
 	end
 	if not Line or SaveAs or Line == self.Location .. "/" .. ".txt" then
 		local str
-		if self.C['Browser'].panel.File then
-			str = self.C['Browser'].panel.File.FileDir -- Get FileDir
+		if self.C.Browser.File then
+			str = self.C.Browser.File.FileDir -- Get FileDir
 			if str and str ~= "" then -- Check if not nil
 
 				-- Remove "expression2/" or "cpuchip/" etc
@@ -2227,7 +1970,7 @@ function Editor:SaveFile(Line, close, SaveAs)
 
 	file.Write(Line, self:GetCode())
 
-	local panel = self.C['Val'].panel
+	local panel = self.C.Val
 	timer.Simple(0, function() panel.SetText(panel, "   Saved as " .. Line) end)
 	surface.PlaySound("ambient/water/drip3.wav")
 
@@ -2246,7 +1989,7 @@ function Editor:LoadFile(Line, forcenewtab)
 	if not Line or file.IsDir(Line, "DATA") then return end
 
 	local f = file.Open(Line, "r", "DATA")
-	if not f then 
+	if not f then
 		ErrorNoHalt("Erroring opening file: " .. Line)
 	else
 		local str = f:Read(f:Size()) or ""
@@ -2272,7 +2015,7 @@ function Editor:LoadFile(Line, forcenewtab)
 			else
 				tab = self:GetActiveTab()
 				tab:SetText(tabtext)
-				self.C['TabHolder'].panel:InvalidateLayout()
+				self.C.TabHolder:InvalidateLayout()
 			end
 			self:SetActiveTab(tab)
 			self:ChosenFile(Line)
@@ -2297,177 +2040,98 @@ function Editor:Setup(nTitle, nLocation, nEditorType)
 	self.Title = nTitle
 	self.Location = nLocation
 	self.EditorType = nEditorType
-	self.C['Browser'].panel:Setup(nLocation)
-	if not nEditorType then
-		-- Remove syntax highlighting
-		local func = function(self, row) return { { self.Rows[row], { Color(255, 255, 255, 255), false } } } end
-		self:SetSyntaxColorLine(func)
+	self.C.Browser:Setup(nLocation)
 
-		-- Remove validation line
-		self.C['TabHolder'].h = -10
-		self.C['Val'].panel:SetVisible(false)
-	elseif nEditorType == "CPU" or nEditorType == "GPU" or nEditorType == "SPU" then
-		-- Set syntax highlighting
-		local func = self:GetCurrentEditor().CPUGPUSyntaxColorLine
-		self:SetSyntaxColorLine(func)
+	local syntaxHighlighters = {
+		CPU = self:GetCurrentEditor().CPUGPUSyntaxColorLine,
+		GPU = self:GetCurrentEditor().CPUGPUSyntaxColorLine,
+		SPU = self:GetCurrentEditor().CPUGPUSyntaxColorLine,
+		E2 = nil, -- the E2 highlighter is used by default
+		[""] = function(self, row) return { { self.Rows[row], { Color(255, 255, 255, 255), false } } } end
+	}
 
-		-- Add "E2Helper" button
-		local E2Help = self:addComponent(vgui.Create("Button", self), -180, 30, -125, 20)
-		E2Help.panel:SetText("")
-		E2Help.panel.Font = "E2SmallFont"
-		E2Help.panel.Paint = function(button)
-			local w, h = button:GetSize()
-			draw.RoundedBox(1, 0, 0, w, h, self.colors.col_FL)
-			if button.Hovered then draw.RoundedBox(0, 1, 1, w - 2, h - 2, Color(0, 0, 0, 192)) end
-			surface.SetFont(button.Font)
-			surface.SetTextPos(3, 4)
-			surface.SetTextColor(255, 255, 255, 255)
-			surface.DrawText("  E2Helper")
-		end
-		E2Help.panel.DoClick = function()
+	local syntaxHighlighter = syntaxHighlighters[nEditorType or ""]
+	if syntaxHighlighter then self:SetSyntaxColorLine(syntaxHighlighter) end
+
+	local useValidator = nEditorType ~= nil
+	local useE2Helper = nEditorType == "CPU" or nEditorType == "GPU" or nEditorType == "SPU" or nEditorType == "E2"
+	local useSoundBrowser = nEditorType == "SPU" or nEditorType == "E2"
+	local useDebugger = nEditorType == "CPU"
+
+	if not useValidator then
+		self.C.Val:SetVisible(false)
+	end
+
+	if useE2Helper then -- Add "E2Helper" button
+		local E2Help = vgui.Create("Button", self.C.Menu)
+		E2Help:SetSize(58, 20)
+		E2Help:Dock(RIGHT)
+		E2Help:SetText("E2Helper")
+		E2Help.DoClick = function()
 			E2Helper.Show()
 			E2Helper.UseCPU(nEditorType)
 			E2Helper.Update()
 		end
 		self.C.E2Help = E2Help
+	end
 
-		if nEditorType == "SPU" then
-			-- Add "Sound Browser" button
-			local SoundBrw = self:addComponent(vgui.Create("Button", self), -262, 30, -182, 20)
-			SoundBrw.panel:SetText("")
-			SoundBrw.panel.Font = "E2SmallFont"
-			SoundBrw.panel.Paint = function(button)
-				local w, h = button:GetSize()
-				draw.RoundedBox(1, 0, 0, w, h, self.colors.col_FL)
-				if button.Hovered then draw.RoundedBox(0, 1, 1, w - 2, h - 2, Color(0, 0, 0, 192)) end
-				surface.SetFont(button.Font)
-				surface.SetTextPos(3, 4)
-				surface.SetTextColor(255, 255, 255, 255)
-				surface.DrawText("  Sound Browser")
-			end
-			SoundBrw.panel.DoClick = function() RunConsoleCommand("wire_sound_browser_open") end
-			self.C.SoundBrw = SoundBrw
-		end
+	if useSoundBrowser then -- Add "Sound Browser" button
+		local SoundBrw = vgui.Create("Button", self.C.Menu)
+		SoundBrw:SetSize(85, 20)
+		SoundBrw:Dock(RIGHT)
+		SoundBrw:SetText("Sound Browser")
+		SoundBrw.DoClick = function() RunConsoleCommand("wire_sound_browser_open") end
+		self.C.SoundBrw = SoundBrw
+	end
 
-		if nEditorType == "CPU" then
-			-- Add "step forward" button
-			local DebugForward = self:addComponent(vgui.Create("Button", self), -300, 30, -220, 20)
-			DebugForward.panel:SetText("")
-			DebugForward.panel.Font = "E2SmallFont"
-			DebugForward.panel.Paint = function(button)
-				if not CPULib.DebuggerAttached then return end
-				local w, h = button:GetSize()
-				draw.RoundedBox(1, 0, 0, w, h, self.colors.col_FL)
-				if button.Hovered then draw.RoundedBox(0, 1, 1, w - 2, h - 2, Color(0, 0, 0, 192)) end
-				surface.SetFont(button.Font)
-				surface.SetTextPos(3, 4)
-				surface.SetTextColor(255, 255, 255, 255)
-				surface.DrawText("  Step Forward")
-			end
-			DebugForward.panel.DoClick = function()
-				local currentPosition = CPULib.Debugger.PositionByPointer[CPULib.Debugger.Variables.IP]
-				if currentPosition then
-					local linePointers = CPULib.Debugger.PointersByLine[currentPosition.Line .. ":" .. currentPosition.File]
-					if linePointers then -- Run till end of line
-						RunConsoleCommand("wire_cpulib_debugstep", linePointers[2])
-					else -- Run just once
-						RunConsoleCommand("wire_cpulib_debugstep")
-					end
+	if useDebugger then
+		-- Add "step forward" button
+		local DebugForward = self:addComponent(vgui.Create("Button", self), -300, 30, -220, 20)
+		DebugForward:SetText("Step Forward")
+		DebugForward.Font = "E2SmallFont"
+		DebugForward.DoClick = function()
+			local currentPosition = CPULib.Debugger.PositionByPointer[CPULib.Debugger.Variables.IP]
+			if currentPosition then
+				local linePointers = CPULib.Debugger.PointersByLine[currentPosition.Line .. ":" .. currentPosition.File]
+				if linePointers then -- Run till end of line
+					RunConsoleCommand("wire_cpulib_debugstep", linePointers[2])
 				else -- Run just once
 					RunConsoleCommand("wire_cpulib_debugstep")
 				end
-				-- Reset interrupt text
-				CPULib.InterruptText = nil
+			else -- Run just once
+				RunConsoleCommand("wire_cpulib_debugstep")
 			end
-			self.C.DebugForward = DebugForward
-
-			-- Add "reset" button
-			local DebugReset = self:addComponent(vgui.Create("Button", self), -350, 30, -310, 20)
-			DebugReset.panel:SetText("")
-			DebugReset.panel.Font = "E2SmallFont"
-			DebugReset.panel.Paint = function(button)
-				if not CPULib.DebuggerAttached then return end
-				local w, h = button:GetSize()
-				draw.RoundedBox(1, 0, 0, w, h, self.colors.col_FL)
-				if button.Hovered then draw.RoundedBox(0, 1, 1, w - 2, h - 2, Color(0, 0, 0, 192)) end
-				surface.SetFont(button.Font)
-				surface.SetTextPos(3, 4)
-				surface.SetTextColor(255, 255, 255, 255)
-				surface.DrawText("  Reset")
-			end
-			DebugReset.panel.DoClick = function()
-				RunConsoleCommand("wire_cpulib_debugreset")
-				-- Reset interrupt text
-				CPULib.InterruptText = nil
-			end
-			self.C.DebugReset = DebugReset
-
-			-- Add "run" button
-			local DebugRun = self:addComponent(vgui.Create("Button", self), -395, 30, -360, 20)
-			DebugRun.panel:SetText("")
-			DebugRun.panel.Font = "E2SmallFont"
-			DebugRun.panel.Paint = function(button)
-				if not CPULib.DebuggerAttached then return end
-				local w, h = button:GetSize()
-				draw.RoundedBox(1, 0, 0, w, h, self.colors.col_FL)
-				if button.Hovered then draw.RoundedBox(0, 1, 1, w - 2, h - 2, Color(0, 0, 0, 192)) end
-				surface.SetFont(button.Font)
-				surface.SetTextPos(3, 4)
-				surface.SetTextColor(255, 255, 255, 255)
-				surface.DrawText("  Run")
-			end
-			DebugRun.panel.DoClick = function()
-				RunConsoleCommand("wire_cpulib_debugrun")
-			end
-			self.C.DebugRun = DebugRun
+			-- Reset interrupt text
+			CPULib.InterruptText = nil
 		end
+		self.C.DebugForward = DebugForward
 
-		-- insert default code
-		self:SetCode("")
-	elseif nEditorType == "E2" then
-		-- Add "E2Helper" button
-		local E2Help = self:addComponent(vgui.Create("Button", self), -180, 30, -125, 20)
-		E2Help.panel:SetText("")
-		E2Help.panel.Font = "E2SmallFont"
-		E2Help.panel.Paint = function(button)
-			local w, h = button:GetSize()
-			draw.RoundedBox(1, 0, 0, w, h, self.colors.col_FL)
-			if button.Hovered then draw.RoundedBox(0, 1, 1, w - 2, h - 2, Color(0, 0, 0, 192)) end
-			surface.SetFont(button.Font)
-			surface.SetTextPos(3, 4)
-			surface.SetTextColor(255, 255, 255, 255)
-			surface.DrawText("  E2Helper")
+		-- Add "reset" button
+		local DebugReset = self:addComponent(vgui.Create("Button", self), -350, 30, -310, 20)
+		DebugReset:SetText("Reset")
+		DebugReset.DoClick = function()
+			RunConsoleCommand("wire_cpulib_debugreset")
+			-- Reset interrupt text
+			CPULib.InterruptText = nil
 		end
-		E2Help.panel.DoClick = function()
-			E2Helper.Show()
-			E2Helper.UseE2(nEditorType)
-			E2Helper.Update()
-		end
-		self.C.E2Help = E2Help
+		self.C.DebugReset = DebugReset
 
-		-- Add "Sound Browser" button
-		local SoundBrw = self:addComponent(vgui.Create("Button", self), -262, 30, -182, 20)
-		SoundBrw.panel:SetText("")
-		SoundBrw.panel.Font = "E2SmallFont"
-		SoundBrw.panel.Paint = function(button)
-			local w, h = button:GetSize()
-			draw.RoundedBox(1, 0, 0, w, h, self.colors.col_FL)
-			if button.Hovered then draw.RoundedBox(0, 1, 1, w - 2, h - 2, Color(0, 0, 0, 192)) end
-			surface.SetFont(button.Font)
-			surface.SetTextPos(3, 4)
-			surface.SetTextColor(255, 255, 255, 255)
-			surface.DrawText("  Sound Browser")
-		end
-		SoundBrw.panel.DoClick = function() RunConsoleCommand("wire_sound_browser_open") end
-		self.C.SoundBrw = SoundBrw
-
-		-- Flag as E2
-		self.E2 = true
-		self:NewScript(true)
+		-- Add "run" button
+		local DebugRun = self:addComponent(vgui.Create("Button", self), -395, 30, -360, 20)
+		DebugRun:SetText("Run")
+		DebugRun.DoClick = function() RunConsoleCommand("wire_cpulib_debugrun") end
+		self.C.DebugRun = DebugRun
 	end
-	if (wire_expression2_editor_openoldtabs:GetBool()) then
+
+	if nEditorType == "E2" then
+		self.E2 = true
+		self:NewScript(true) -- insert default code
+	end
+
+	if wire_expression2_editor_openoldtabs:GetBool() then
 		self:OpenOldTabs()
 	end
+
 	self:InvalidateLayout()
 end
 
