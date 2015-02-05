@@ -155,61 +155,92 @@ function EGP:SendMaterial( obj ) -- ALWAYS use this when sending material
 	end
 end
 
-EGP.CachedMaterials = {}
-EGP.LoadingMaterials = {}
-setmetatable(EGP.CachedMaterials, {__mode = "v"})
+EGP.CachedURLMaterials = {}
+EGP.LoadingURLQueue = {}
+setmetatable(EGP.CachedURLMaterials, {__mode = "v"})
 
 function EGP:CheckURLDownloads()
-	for mat, v in pairs(EGP.LoadingMaterials) do
-		if not v.Panel:IsLoading() then
-			timer.Simple(0.2,function()
-				local tex = v.Panel:GetHTMLMaterial():GetTexture("$basetexture")
-				tex:Download()
-				v.Material:SetTexture("$basetexture", tex)
-				tex:Download()
-				v.Panel:Remove()
-			
-				EGP.CachedMaterials[mat] = urlmaterial
-			end)
-			
-			EGP.LoadingMaterials[mat] = nil
-		else
-			if CurTime() > v.Timeout then
-				v.Panel:Remove()
-				EGP.LoadingMaterials[mat] = nil
+	local numqueued = #EGP.LoadingURLQueue
+	local urltable = EGP.LoadingURLQueue[numqueued]
+	
+	if urltable then
+		if urltable.Panel then
+			if not urltable.Panel:IsLoading() then
+				timer.Simple(0.2,function()
+					local tex = urltable.Panel:GetHTMLMaterial():GetTexture("$basetexture")
+					tex:Download()
+					urltable.Material:SetTexture("$basetexture", tex)
+					tex:Download()
+					urltable.Panel:Remove()
+					if urltable.cb then urltable.cb() end
+				end)		
+				EGP.CachedURLMaterials[urltable.Url] = urltable.Material
+				EGP.LoadingURLQueue[numqueued] = nil					
+			else
+				if CurTime() > urltable.Timeout then
+					urltable.Panel:Remove()
+					EGP.LoadingURLQueue[numqueued] = nil
+				end
 			end
+		
+		else		
+			local Panel = vgui.Create( "DHTML" )
+			Panel:SetSize( 1024, 1024 )
+			Panel:SetAlpha( 0 )
+			Panel:SetMouseInputEnabled( false )
+			Panel:SetHTML(
+			[[
+				<style type="text/css">
+					html 
+					{			
+						overflow:hidden;
+						margin: -7.5px -7.5px;
+					}
+				</style>
+				
+				<body>
+					<img src="]] .. urltable.Url .. [[" alt="" width="1024" height="1024" />
+				</body>
+			]]
+			)
+			urltable.Timeout = CurTime()+20
+			urltable.Panel = Panel
 		end
 	end
-	if not next(EGP.LoadingMaterials) then
+	
+	if #EGP.LoadingURLQueue == 0 then
 		timer.Destroy("EGP_URLMaterialChecker")
 	end
 end
 
-function EGP:LoadURLMaterial( tbl, mat )
-	if EGP.CachedMaterials[mat] then
-		tbl.material = EGP.CachedMaterials[mat]
-	elseif EGP.LoadingMaterials[mat] then
-		tbl.material = EGP.LoadingMaterials[mat].Material
+local cv_max_url_materials = CreateConVar( "wire_egp_max_urlmaterials", "30", { FCVAR_REPLICATED, FCVAR_ARCHIVE } ) 
+
+function EGP:LoadURLMaterial( tbl, url, cb )
+	if EGP.CachedURLMaterials[url] then
+		tbl.material = EGP.CachedURLMaterials[url]
 	else
-		local Panel = vgui.Create( "DHTML" )
-		Panel:SetSize( 1024, 1024 )
-		Panel:SetAlpha( 0 )
-		Panel:SetMouseInputEnabled( false )
-		Panel:SetHTML(
-		[[
-			<style type="text/css">
-				html 
-				{			
-					overflow:hidden;
-					margin: 0px 0px;
-				}
-			</style>
-			
-			<body>
-				<img src="]] .. mat .. [[" alt="" width="1024" height="1024" />
-			</body>
-		]]
-		)
+		for k,v in pairs(EGP.LoadingURLQueue) do
+			if v.Url == url then
+				tbl.material = v.Material
+				return
+			end
+		end
+	
+		--Count the number of materials
+		local totalMaterials = 0, key
+		while true do
+			key = next(EGP.CachedURLMaterials, key)
+			if not key then break end
+			totalMaterials = totalMaterials + 1
+		end
+		
+		local queuesize = #EGP.LoadingURLQueue
+		totalMaterials = totalMaterials + queuesize
+		
+		if totalMaterials>=cv_max_url_materials:GetInt() then
+			tbl.material = false
+			return
+		end
 		
 		local ShaderInfo = {
 			["$vertexcolor"] = 1,
@@ -217,18 +248,18 @@ function EGP:LoadURLMaterial( tbl, mat )
 			["$ignorez"] = 1,
 			["$nolod"] = 1
 		}
-		local urlmaterial = CreateMaterial("egp_urltex_" .. util.CRC(mat .. SysTime()), "UnlitGeneric", ShaderInfo)
-				
-		if next(EGP.LoadingMaterials)==nil then
+		local urlmaterial = CreateMaterial("egp_urltex_" .. util.CRC(url .. SysTime()), "UnlitGeneric", ShaderInfo)
+		tbl.material = urlmaterial
+					
+		if queuesize == 0 then
 			timer.Create("EGP_URLMaterialChecker",1,0,function() EGP:CheckURLDownloads() end)
 		end
 		
-		EGP.LoadingMaterials[mat] = {Panel = Panel, Material = urlmaterial, Timeout = CurTime()+20}
-		tbl.material = urlmaterial
+		EGP.LoadingURLQueue[queuesize + 1] = {Material = urlmaterial, Url = url, cb = cb}
 	end
 end
 
-function EGP:ReceiveMaterial( tbl ) -- ALWAYS use this when receiving material
+function EGP:ReceiveMaterial( tbl, obj ) -- ALWAYS use this when receiving material
 	local temp = net.ReadString()
 	local what, mat = temp:sub(1,1), temp:sub(2)
 	if what == "0" then
@@ -238,7 +269,13 @@ function EGP:ReceiveMaterial( tbl ) -- ALWAYS use this when receiving material
 			mat = string.gsub( mat, "[^%w _~%.%-/:]", function( str )
 				return string.format( "%%%02X", string.byte( str ) )
 			end )
-			EGP:LoadURLMaterial(tbl, mat)
+			
+			EGP:LoadURLMaterial(tbl, mat, function() 
+				if IsValid(obj.EGP) then
+					obj.EGP:EGP_Update()
+				end
+			end)
+			
 		else
 			tbl.material = Material(mat)
 		end
