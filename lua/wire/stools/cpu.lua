@@ -212,7 +212,7 @@ if CLIENT then
   fontData.size = 26
   surface.CreateFont( "ZCPUToolScreenFontSmall", fontData ) 
 
-  local function outc(text,y,color) draw.DrawText(text,"ZCPUToolScreenFont",2,32*y,color,0) end
+  local function outc(text,y,color) draw.DrawText(text or "","ZCPUToolScreenFont",2,32*y,color,0) end
   local prevStateTime = RealTime()
   local prevState = nil
   local consoleHistory = { "", "", "", "", "", "" }
