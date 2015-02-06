@@ -113,8 +113,8 @@ function ENT:GetFloatTable(Text)
 	local tbl = {}
 	local ptr = 0
 	while (string.len(text) > 0) do
-		local value = string.sub(text,1,24)
-		text = string.sub(text,24,string.len(text))
+		local value = string.sub(text, 1, 24)
+		text = string.sub(text, 25)
 		tbl[ptr] = tonumber(value)
 		ptr = ptr + 1
 	end
