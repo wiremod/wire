@@ -15,6 +15,7 @@ EGP.ValidFonts[6] = "Courier New"
 EGP.ValidFonts[7] = "Times New Roman"
 EGP.ValidFonts[8] = "ChatFont"
 EGP.ValidFonts[9] = "Marlett"
+EGP.ValidFonts[10] = "Roboto"
 if (CLIENT) then
 	local new = {}
 	for k,v in ipairs( EGP.ValidFonts ) do
