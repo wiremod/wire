@@ -140,6 +140,38 @@ function PANEL:Init()
 		line:SetSelected(true) -- Select new
 		spawnmenu.ActivateTool( line.Name )
 	end
+
+	self.SubSearchList = vgui.Create( "DListView", LeftPanel )
+	self.SubSearchList:AddColumn( "Name" )
+	self.SubSearchList:AddColumn( "Tool" )
+	self.SubSearchList:SetMultiSelect( false )
+	self.SubSearchList:SetVisible( false )
+
+	local searchlist = self.SearchList
+	function self.SubSearchList:OnClickLine( line )
+
+		-- Deselect old
+		local t = self:GetSelected()
+		if t and next(t) then
+			t[1]:SetSelected(false)
+		end
+
+		-- select new line
+		line:SetSelected( true )
+
+		-- click SearchList's OnClickLine for this tool so that the tool is switched
+		for i=1,#searchlist.Lines do
+			if searchlist.Lines[i].Name == line.item.tool_mode then
+				searchlist:OnClickLine( searchlist.Lines[i] )
+				break
+			end
+		end
+
+		-- call this item's onclick function
+		if line.item.onclick then
+			line.item.onclick( line.item )
+		end
+	end
 	
 	self.Content = vgui.Create( "DCategoryList" )
 	self.Divider:SetRight( self.Content )
@@ -262,8 +294,12 @@ function PANEL:SetupSearchbox()
 				parent.SearchList:SetSize( w, h )
 				parent.SearchList:SetVisible( true )
 				self.clearsearch:SetVisible( true )
+
+				parent.SubSearchList:SetPos( x, y + h / 2 - 2 )
+				parent.SubSearchList:SetSize( w, h / 2 + 2 )
+				parent.SubSearchList:SetVisible( false )
 			end
-			local results = parent:Search( text )
+			local results, sub_results = parent:Search( text )
 			parent.SearchList:Clear()
 			for i=1,#results do
 				local result = results[i]
@@ -288,6 +324,24 @@ function PANEL:SetupSearchbox()
 					return true
 				end
 			end
+
+			parent.SubSearchList:Clear()
+			if #sub_results > 0 then
+				parent.SearchList:SetTall( parent.List:GetTall() / 2 )
+				parent.SubSearchList:SetVisible( true )
+
+				for i=1,#sub_results do
+					local result = sub_results[i]
+					local line = parent.SubSearchList:AddLine( result.text, result.tool_name )
+					line.item = result
+					if result.selected then
+						line:SetSelected( true )
+					end
+				end
+			else
+				parent.SearchList:SetTall( parent.List:GetTall() )
+				parent.SubSearchList:SetVisible( false )
+			end
 		else
 			if searching then
 				searching = false
@@ -302,6 +356,9 @@ function PANEL:SetupSearchbox()
 					end
 				end )
 				self.clearsearch:SetVisible( false )
+
+				parent.SearchList:SetTall( parent.List:GetTall() )
+				parent.SubSearchList:SetVisible( false )
 			end
 			parent.SearchList:Clear()
 		end
@@ -321,23 +378,56 @@ function PANEL:Search( text )
 	text = string_lower(text)
 
 	local results = {}
+	local sub_results = {}
+
+	local first_word, sub_text = string.match( text, "([^ ]-) (.*)")
+
 	for categoryID,categories in pairs( self.ToolTable ) do
 		for _, v in pairs( categories ) do
-			local name = v.Text
-			local lowname = string_lower( name )
+			local lowname = string_lower( v.Text )
+			local lowname_other = string_lower( v.ItemName )
 		
-			if string_find( lowname, text, 1, true ) and not string_find( lowname, "(legacy)", 1, true ) and not v.Alias then
-				results[#results+1] = {
-					item = v,
-					dist = WireLib.levenshtein( text, lowname )
-				}
+			local a = string_find( lowname, text, 1, true )
+			local b = string_find( lowname_other, text, 1, true )
+			local c = first_word and string_find( lowname, first_word, 1, true ) or false
+			local d = first_word and string_find( lowname_other, first_word, 1, true ) or false
+			if (a or b or c or d) and not string_find( lowname, "(legacy)", 1, true ) and not v.Alias then
+				local add_to_results = a or b
+
+				-- If this tool has its own searching, run it
+				if first_word and sub_text then
+					local tool_object = LocalPlayer():GetWeapon("gmod_tool"):GetToolObject(v.ItemName)
+					if tool_object then
+						local search_func = tool_object.Search
+						if search_func then
+							local results = tool_object:Search( sub_text )
+
+							for i=1,#results do
+								results[i].tool_name = v.Text
+								results[i].tool_mode = v.ItemName
+								sub_results[#sub_results+1] = results[i]
+							end
+
+
+							add_to_results = #results > 0
+						end
+					end
+				end
+
+				if add_to_results then -- only add to results if the entire search text matches, or if this tool has its own search and that has a match
+					results[#results+1] = {
+						item = v,
+						dist = math.min(WireLib.levenshtein( text, lowname ),WireLib.levenshtein( text, lowname_other ))
+					}
+				end
 			end
 		end
 	end
 
 	table_SortByMember( results, "dist", true )
+	table_SortByMember( sub_results, "dist", true )
 
-	return results
+	return results, sub_results
 end
 
 -- Helper function

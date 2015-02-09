@@ -33,6 +33,37 @@ if CLIENT then
 	language.Add( "WireGatesTool_angleoffset", "Spawn angle offset" )
 	language.Add( "sboxlimit_wire_gates", "You've hit your gates limit!" )
 
+	local function onSearchClick( item )
+		RunConsoleCommand( "wire_gates_action", item.action )
+	end
+
+	local string_find = string.find
+	local string_lower = string.lower
+
+	-- External searching algorithm (used for custom wire tool menu)
+	function TOOL:Search( text )
+		text = string_lower(text)
+
+		local conv_action = GetConVarString("wire_gates_action")
+
+		local results = {}
+		for action,gate in pairs( GateActions ) do
+			local name = gate.name
+			local lowname = string_lower(name)
+			if string_find( lowname, text, 1, true ) then -- If it has ANY match at all
+				results[#results+1] = {
+					text = gate.name .. " - " .. gate.group,
+					onclick = onSearchClick,
+					action = action,
+					dist = WireLib.levenshtein( text, lowname ),
+					selected = (conv_action == action)
+				}
+			end
+		end
+
+		return results
+	end
+
 	function TOOL.BuildCPanel( panel )
 		WireDermaExts.ModelSelect(panel, "wire_gates_model", list.Get("Wire_gate_Models"), 3, true)
 
