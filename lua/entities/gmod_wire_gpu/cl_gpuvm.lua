@@ -829,7 +829,7 @@ function VM:ReadString(address)
   while currentChar ~= 0 do
     currentChar = self:ReadCell(address + charCount)
 
-    if (currentChar > 0) and (currentChar < 255) then
+    if currentChar and currentChar < 255 then
       charString = charString .. string.char(currentChar)
     else
       if currentChar ~= 0 then
