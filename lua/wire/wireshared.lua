@@ -578,7 +578,6 @@ if SERVER then
 	end
 
 	local function FlushQueue(lqueue, ply)
-		ply = ply or rp
 		// Zero these two for the writemsg function
 		eid = 0
 		numports = {}
