@@ -518,6 +518,14 @@ e2function vector mix(vector vec1, vector vec2, ratio)
 	}
 end
 
+e2function vector bezier(vector startVec, vector control, vector endVec, ratio)
+	return {
+		(1-ratio)^2 * startVec[1] + (2 * (1-ratio) * ratio * control[1]) + ratio^2 * endVec[1],
+		(1-ratio)^2 * startVec[2] + (2 * (1-ratio) * ratio * control[2]) + ratio^2 * endVec[2],
+		(1-ratio)^2 * startVec[3] + (2 * (1-ratio) * ratio * control[3]) + ratio^2 * endVec[3]
+	}
+end
+
 __e2setcost(2)
 
 --- Circular shift function: shiftR(vec(x,y,z)) = vec(z,x,y)
