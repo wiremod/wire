@@ -96,6 +96,10 @@ e2function entity noentity()
 	return NULL
 end
 
+e2function entity world()
+	return game.GetWorld()
+end
+
 e2function string entity:type()
 	if not IsValid(this) then return "" end
 	return this:GetClass()
@@ -330,6 +334,11 @@ end
 
 e2function number entity:isValid()
 	return IsValid(this) and 1 or 0
+end
+
+--- Returns 1 if <this> has valid physics. Note: Players do not. 
+e2function number entity:isValidPhysics()
+	return E2Lib.validPhysics(this) and 1 or 0
 end
 
 /******************************************************************************/

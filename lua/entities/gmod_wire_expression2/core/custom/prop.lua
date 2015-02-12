@@ -31,7 +31,7 @@ function PropCore.ValidSpawn()
 	return true
 end
 
-local canHaveInvalidPhysics = {delete=true, parent=true, deparent=true}
+local canHaveInvalidPhysics = {delete=true, parent=true, deparent=true, solid=true, shadow=true, draw=true}
 function PropCore.ValidAction(self, entity, cmd)
 	if(cmd=="spawn" or cmd=="Tdelete") then return true end
 	if(!IsValid(entity)) then return false end
@@ -246,6 +246,18 @@ end
 e2function void entity:propNotSolid(number notsolid)
 	if not PropCore.ValidAction(self, this, "solid") then return end
 	PropCore.PhysManipulate(this, nil, nil, nil, nil, notsolid)
+end
+
+--- Makes <this> not render at all
+e2function void entity:propDraw(number drawEnable)
+	if not PropCore.ValidAction(self, this, "draw") then return end
+	this:SetNoDraw( drawEnable == 0 )
+end
+
+--- Makes <this>'s shadow not render at all
+e2function void entity:propShadow(number shadowEnable)
+	if not PropCore.ValidAction(self, this, "shadow") then return end
+	this:DrawShadow( shadowEnable ~= 0 )
 end
 
 e2function void entity:propGravity(number gravity)
