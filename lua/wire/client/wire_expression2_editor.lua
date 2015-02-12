@@ -100,7 +100,8 @@ local colors = {
 	["ppcommand"] = Color(240, 96, 240), -- purple
 	["typename"] = Color(240, 160, 96), -- orange
 	["constant"] = Color(240, 160, 240), -- pink
-	["userfunction"] = Color(102, 122, 102), -- dark green
+	["userfunction"] = Color(102, 122, 102), -- dark grayish-green
+	["dblclickhighlight"] = Color(0, 100, 0) -- dark green
 }
 
 local colors_defaults = {}
@@ -1018,7 +1019,7 @@ function Editor:InitControlPanel(frame)
 		label:Dock( TOP )
 		label:SetText( "Syntax Colors" )
 		label:SizeToContents()
-		
+
 		-- Dropdown box of convars to change ( affects editor colors )
 		local box = vgui.Create( "DComboBox", mixPanel )
 		box:Dock( TOP )
@@ -1034,7 +1035,7 @@ function Editor:InitControlPanel(frame)
 		mixer.ValueChanged = function ( _, clr )
 			self:SetSyntaxColor( active, clr )
 		end
-		
+
 		for k, _ in pairs( colors_convars ) do
 			box:AddChoice( k )
 		end
@@ -1057,18 +1058,18 @@ function Editor:InitControlPanel(frame)
 			end
 			mixer:SetColor( colors_defaults[ active ] )
 		end
-	
+
 		-- Reset to default button
 		local reset = vgui.Create( "DButton", mixPanel )
 		reset:Dock( BOTTOM )
 		reset:SetText( "Set to Default" )
-		
+
 		reset.DoClick = function ()
 			self:SetSyntaxColor( active, colors_defaults[ active ] )
 			mixer:SetColor( colors_defaults[ active ] )
 		end
 
-		
+
 		-- Select a convar to be displayed automatically
 		box:ChooseOptionID( 1 )
 	end
