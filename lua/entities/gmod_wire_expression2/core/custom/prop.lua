@@ -285,6 +285,12 @@ e2function void enablePropSpawnUndo(number on)
 	self.data.propSpawnPersist = on ~= 0
 end
 
+e2function void propDeleteAll()
+	for _,ent in pairs(self.data.propSpawns) do
+		if ent:IsValid() then ent:Remove() end
+	end
+end
+
 e2function number propCanCreate()
 	if PropCore.ValidSpawn() then return 1 end
 	return 0

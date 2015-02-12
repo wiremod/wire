@@ -17,3 +17,4 @@ E2Helper.Descriptions["propCanCreate"] = "Returns 1 when propSpawn() will succes
 E2Helper.Descriptions["propDrag"] = "Passing 0 makes the entity not be affected by drag"
 E2Helper.Descriptions["propSetBuoyancy"] = "Sets the prop's buoyancy ratio from 0 to 1"
 E2Helper.Descriptions["enablePropSpawnUndo"] = "Set to 0 to force prop removal on E2 shutdown, and suppress Undo entries for props."
+E2Helper.Descriptions["propDeleteAll"] = "Removes all entities spawned by this E2"
