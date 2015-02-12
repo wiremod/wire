@@ -29,7 +29,7 @@ local function Expression2TickClock()
 	local ents = {}
 
 	-- this additional step is needed because we cant modify registered_chips while it is being iterated.
-	local i = 0
+	local i = 1
 	for entity,_ in pairs(registered_chips) do
 		if entity:IsValid() then 
 			ents[i] = entity
