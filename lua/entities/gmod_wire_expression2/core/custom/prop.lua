@@ -66,10 +66,15 @@ function PropCore.CreateProp(self,model,pos,angles,freeze)
 	
 	prop:Activate()
 	self.player:AddCleanup( "props", prop )
-	undo.Create("e2_spawned_prop")
-		undo.AddEntity( prop )
-		undo.SetPlayer( self.player )
-	undo.Finish()
+	if self.data.propSpawnPersist then
+		undo.Create("e2_spawned_prop")
+			undo.AddEntity( prop )
+			undo.SetPlayer( self.player )
+		undo.Finish()
+	else
+		table.insert( self.data.propSpawns, prop )
+	end
+	
 	local phys = prop:GetPhysicsObject()
 	if (phys:IsValid()) then
 		if(angles!=nil) then E2Lib.setAng( phys, angles ) end
@@ -275,6 +280,10 @@ e2function void propSpawnEffect(number on)
 	self.data.propSpawnEffect = on ~= 0
 end
 
+e2function void enablePropSpawnUndo(number on)
+	self.data.propSpawnPersist = on ~= 0
+end
+
 e2function number propCanCreate()
 	if PropCore.ValidSpawn() then return 1 end
 	return 0
@@ -282,4 +291,11 @@ end
 
 registerCallback("construct", function(self)
 	self.data.propSpawnEffect = true
+	self.data.propSpawnPersist = true
+	self.data.propSpawns = {}
+end)
+registerCallback("destruct", function(self)
+	for _,ent in pairs(self.data.propSpawns) do
+		if ent:IsValid() then ent:Remove() end
+	end
 end)
