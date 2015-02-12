@@ -51,7 +51,7 @@ e2function array entity:getConstraints()
 
 	local keytable = GetAllConstrainedEntities(this, {})
 	local array = {}
-	local i = 0
+	local i = 1
 	for _,ent in pairs(keytable) do
 		if ent ~= this then
 			array[i] = ent
