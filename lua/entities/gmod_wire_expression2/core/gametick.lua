@@ -29,8 +29,12 @@ local function Expression2TickClock()
 	local ents = {}
 
 	-- this additional step is needed because we cant modify registered_chips while it is being iterated.
+	local i = 0
 	for entity,_ in pairs(registered_chips) do
-		if entity:IsValid() then table.insert(ents, entity) end
+		if entity:IsValid() then 
+			ents[i] = entity
+			i = i + 1
+		end
 	end
 
 	tickrun = 1

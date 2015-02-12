@@ -51,12 +51,14 @@ e2function array entity:getConstraints()
 
 	local keytable = GetAllConstrainedEntities(this, {})
 	local array = {}
+	local i = 0
 	for _,ent in pairs(keytable) do
 		if ent ~= this then
-			table.insert(array, ent)
+			array[i] = ent
+			i = i + 1
 		end
 	end
-	self.prf = self.prf + #array * 30
+	self.prf = self.prf + i * 30
 	return array
 end
 
