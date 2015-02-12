@@ -1,7 +1,7 @@
-/******************************************************************************\
-  Expression 2 Text Editor for Garry's Mod
-  Andreas "Syranide" Svensson, me@syranide.com
-\******************************************************************************/
+--
+-- Expression 2 Text Editor for Garry's Mod
+-- Andreas "Syranide" Svensson, me@syranide.com
+--
 
 local string_Explode = string.Explode
 local table_concat = table.concat
@@ -104,12 +104,6 @@ function EDITOR:CursorToCaret()
 end
 
 local wire_expression2_editor_highlight_on_double_click = CreateClientConVar( "wire_expression2_editor_highlight_on_double_click", "1", true, false )
-local wire_expression2_editor_color_dblclickhighlight = CreateClientConVar( "wire_expression2_editor_color_dblclickhighlight", "0_100_0_100", true, false )
-local def = Color(0,100,0,100)
-local function GetHighlightColor()
-	local r,g,b,a = wire_expression2_editor_color_dblclickhighlight:GetString():match( "(%d+)_(%d+)_(%d+)_(%d+)" )
-	return tonumber(r) or def.r,tonumber(g) or def.g,tonumber(b) or def.b, tonumber(a) or def.a
-end
 
 function EDITOR:OnMousePressed(code)
 	if code == MOUSE_LEFT then
@@ -136,7 +130,8 @@ function EDITOR:OnMousePressed(code)
 						-- This checks if it's NOT the word the user just highlighted
 						if (caretstart[1] != self.Start[1] or caretstart[2] != self.Start[2] or
 							caretstop[1] != self.Caret[1] or caretstop[2] != self.Caret[2]) then
-								self:HighlightArea( { caretstart, caretstop }, GetHighlightColor() )
+								local c = self:GetSyntaxColor("dblclickhighlight")
+								self:HighlightArea( { caretstart, caretstop }, c.r, c.g, c.b, 100 )
 						end
 					end
 				end
@@ -1024,10 +1019,10 @@ function EDITOR:Find( str, looped )
 		local text = table_concat( self.Rows, "\n", 1, self.Start[1]-1 )
 		local line = self.Rows[self.Start[1]]
 		text = text .. "\n" .. line:sub( 1, self.Start[2]-1 )
-		
+
 		str = string_reverse( str )
 		text = string_reverse( text )
-		
+
 		if (ignore_case) then text = text:lower() end
 
 		local offset = 2
@@ -3131,8 +3126,13 @@ do -- E2 Syntax highlighting
 		["ppcommand"] = { Color(240,  96, 240), false}, -- purple
 		["typename"]  = { Color(240, 160,  96), false}, -- orange
 		["constant"]  = { Color(240, 160, 240), false}, -- pink
-		["userfunction"] = { Color(102, 122, 102), false}, -- dark green
+		["userfunction"] = { Color(102, 122, 102), false}, -- dark grayish-green
+		["dblclickhighlight"] = { Color(0, 100, 0), false}, -- dark green
 	}
+
+	function EDITOR:GetSyntaxColor(name)
+			return colors[name][1]
+	end
 
 	function EDITOR:SetSyntaxColors( col )
 		for k,v in pairs( col ) do
