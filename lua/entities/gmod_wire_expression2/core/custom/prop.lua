@@ -74,6 +74,7 @@ function PropCore.CreateProp(self,model,pos,angles,freeze)
 	else
 		table.insert( self.data.propSpawns, prop )
 	end
+	table.insert( self.data.propSpawnsAll, prop )
 	
 	local phys = prop:GetPhysicsObject()
 	if (phys:IsValid()) then
@@ -324,9 +325,10 @@ e2function void enablePropSpawnUndo(number on)
 end
 
 e2function void propDeleteAll()
-	for _,ent in pairs(self.data.propSpawns) do
+	for _,ent in pairs(self.data.propSpawnsAll) do
 		if ent:IsValid() then ent:Remove() end
 	end
+	self.data.propSpawnsAll = {}
 end
 
 e2function number propCanCreate()
@@ -338,6 +340,7 @@ registerCallback("construct", function(self)
 	self.data.propSpawnEffect = true
 	self.data.propSpawnPersist = true
 	self.data.propSpawns = {}
+	self.data.propSpawnsAll = {}
 end)
 registerCallback("destruct", function(self)
 	for _,ent in pairs(self.data.propSpawns) do
