@@ -273,6 +273,7 @@ e2function void entity:deparent()
 	if not PropCore.ValidAction(self, this, "deparent") then return end
 	this:SetParent( nil )
 end
+e2function void entity:parentTo() = e2function void entity:deparent()
 
 __e2setcost(1)
 
