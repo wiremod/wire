@@ -150,6 +150,44 @@ e2function entity propSpawn(entity template, vector pos, angle rot, number froze
 end
 
 --------------------------------------------------------------------------------
+
+--- Spawns a vehicle with <model> model, at location <pos>, at angle <ang>
+e2function entity seatSpawn(string model, vector pos, angle rot)
+	if(!util.IsValidModel(model) || !util.IsValidProp(model) || not PropCore.ValidSpawn() )then
+		return nil
+	end
+	local position = E2Lib.clampPos(Vector(pos[1], pos[2], pos[3]))
+	if !util.IsInWorld( position ) then return nil end
+	if model == '' then model = 'models/Nova/airboat_seat.mdl' end
+	local seat = ents.Create('prop_vehicle_prisoner_pod')
+	seat:SetModel(model)
+	seat:SetPos(position)
+	seat:SetAngles(Angle(rot[1], rot[2], rot[3]))
+	seat:Spawn()
+	seat:SetKeyValue( "limitview", 0 )
+	table.Merge( seat, { HandleAnimation = function(_,ply) return ply:SelectWeightedSequence( ACT_HL2MP_SIT ) end } )
+	gamemode.Call( "PlayerSpawnedVehicle", self.player, seat )
+	
+	self.player:AddCleanup( "props", seat )
+	if self.data.propSpawnPersist then
+		undo.Create("e2_spawned_prop")
+			undo.AddEntity( seat )
+			undo.SetPlayer( self.player )
+		undo.Finish()
+	else
+		table.insert( self.data.propSpawns, seat )
+	end
+	
+	seat:CallOnRemove( "wire_expression2_propcore_remove", function()
+		E2totalspawnedprops = E2totalspawnedprops - 1
+	end)
+	E2totalspawnedprops = E2totalspawnedprops+1
+	E2tempSpawnedProps = E2tempSpawnedProps+1
+
+	return seat
+end
+
+--------------------------------------------------------------------------------
 __e2setcost(5)
 e2function void entity:propDelete()
 	if not PropCore.ValidAction(self, this, "delete") then return end
