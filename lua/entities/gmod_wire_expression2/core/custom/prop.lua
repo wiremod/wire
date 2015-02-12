@@ -31,10 +31,11 @@ function PropCore.ValidSpawn()
 	return true
 end
 
+local canHaveInvalidPhysics = {delete=true, parent=true, deparent=true}
 function PropCore.ValidAction(self, entity, cmd)
 	if(cmd=="spawn" or cmd=="Tdelete") then return true end
 	if(!IsValid(entity)) then return false end
-	if(!validPhysics(entity)) then return false end
+	if(!canHaveInvalidPhysics[cmd] and !validPhysics(entity)) then return false end
 	if(!isOwner(self, entity)) then return false end
 	if entity:IsPlayer() then return false end
 	local ply = self.player
