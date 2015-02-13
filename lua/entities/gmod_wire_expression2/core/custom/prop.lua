@@ -55,8 +55,9 @@ function PropCore.CreateProp(self,model,pos,angles,freeze,isVehicle)
 	if not PropCore.ValidSpawn() then return nil end
 	
 	if isVehicle then
+		if self.player:CheckLimit( "vehicles" ) == false then return end
 		if model == "" then model = "models/nova/airboat_seat.mdl" end
-		if model ~= "models/vehicles/prisoner_pod_inner.mdl" then angles = angles + Angle(0, -90, 0) end
+		if model ~= "models/vehicles/prisoner_pod_inner.mdl" then angles:RotateAroundAxis( angles:Up(), -90 ) end
 	end
 	
 	if not util.IsValidModel( model ) or not util.IsValidProp( model ) then return nil end
@@ -112,12 +113,12 @@ function PropCore.CreateProp(self,model,pos,angles,freeze,isVehicle)
 	
 	prop:CallOnRemove( "wire_expression2_propcore_remove",
 		function( prop )
-			self.data.spawnedProps[ tostring( prop ) ] = nil
+			self.data.spawnedProps[ prop ] = nil
 			E2totalspawnedprops = E2totalspawnedprops - 1
 		end
 	)
 	
-	self.data.spawnedProps[ tostring( prop ) ] = { ent = prop, undo = self.data.propSpawnUndo }
+	self.data.spawnedProps[ prop ] = self.data.propSpawnUndo
 	E2totalspawnedprops = E2totalspawnedprops + 1
 	E2tempSpawnedProps = E2tempSpawnedProps + 1
 	
@@ -193,43 +194,9 @@ e2function entity seatSpawn(string model, number frozen)
 	return PropCore.CreateProp(self,model,self.entity:GetPos()+self.entity:GetUp()*25,self.entity:GetAngles(),frozen,true)
 end
 
-e2function entity seatSpawn(entity template, number frozen)
-	if not PropCore.ValidAction(self, nil, "spawn") then return nil end
-	if not IsValid(template) then return nil end
-	return PropCore.CreateProp(self,template:GetModel(),self.entity:GetPos()+self.entity:GetUp()*25,self.entity:GetAngles(),frozen,true)
-end
-
-e2function entity seatSpawn(string model, vector pos, number frozen)
-	if not PropCore.ValidAction(self, nil, "spawn") then return nil end
-	return PropCore.CreateProp(self,model,Vector(pos[1],pos[2],pos[3]),self.entity:GetAngles(),frozen,true)
-end
-
-e2function entity seatSpawn(entity template, vector pos, number frozen)
-	if not PropCore.ValidAction(self, nil, "spawn") then return nil end
-	if not IsValid(template) then return nil end
-	return PropCore.CreateProp(self,template:GetModel(),Vector(pos[1],pos[2],pos[3]),self.entity:GetAngles(),frozen,true)
-end
-
-e2function entity seatSpawn(string model, angle rot, number frozen)
-	if not PropCore.ValidAction(self, nil, "spawn") then return nil end
-	return PropCore.CreateProp(self,model,self.entity:GetPos()+self.entity:GetUp()*25,Angle(rot[1],rot[2],rot[3]),frozen,true)
-end
-
-e2function entity seatSpawn(entity template, angle rot, number frozen)
-	if not PropCore.ValidAction(self, nil, "spawn") then return nil end
-	if not IsValid(template) then return nil end
-	return PropCore.CreateProp(self,template:GetModel(),self.entity:GetPos()+self.entity:GetUp()*25,Angle(rot[1],rot[2],rot[3]),frozen,true)
-end
-
 e2function entity seatSpawn(string model, vector pos, angle rot, number frozen)
 	if not PropCore.ValidAction(self, nil, "spawn") then return nil end
 	return PropCore.CreateProp(self,model,Vector(pos[1],pos[2],pos[3]),Angle(rot[1],rot[2],rot[3]),frozen,true)
-end
-
-e2function entity seatSpawn(entity template, vector pos, angle rot, number frozen)
-	if not PropCore.ValidAction(self, nil, "spawn") then return nil end
-	if not IsValid(template) then return nil end
-	return PropCore.CreateProp(self,template:GetModel(),Vector(pos[1],pos[2],pos[3]),Angle(rot[1],rot[2],rot[3]),frozen,true)
 end
 
 --------------------------------------------------------------------------------
@@ -279,9 +246,9 @@ e2function number array:propDelete()
 end
 
 e2function void propDeleteAll()
-	for _, t in pairs( self.data.spawnedProps ) do
-		if IsValid( t.ent ) then
-			t.ent:Remove()
+	for ent in pairs( self.data.spawnedProps ) do
+		if IsValid( ent ) then
+			ent:Remove()
 		end
 	end
 	self.data.spawnedProps = {}
@@ -409,9 +376,9 @@ registerCallback("construct",
 
 registerCallback("destruct",
 	function(self)
-		for _, t in pairs( self.data.spawnedProps ) do
-			if t.undo == false and IsValid( t.ent ) then
-				t.ent:Remove()
+		for ent, undo in pairs( self.data.spawnedProps ) do
+			if undo == false and IsValid( ent ) then
+				ent:Remove()
 			end
 		end
 	end
