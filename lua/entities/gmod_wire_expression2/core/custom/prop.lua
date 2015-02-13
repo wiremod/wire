@@ -57,7 +57,6 @@ function PropCore.CreateProp(self,model,pos,angles,freeze,isVehicle)
 	if isVehicle then
 		if self.player:CheckLimit( "vehicles" ) == false then return end
 		if model == "" then model = "models/nova/airboat_seat.mdl" end
-		if model ~= "models/vehicles/prisoner_pod_inner.mdl" then angles:RotateAroundAxis( angles:Up(), -90 ) end
 	end
 	
 	if not util.IsValidModel( model ) or not util.IsValidProp( model ) then return nil end
