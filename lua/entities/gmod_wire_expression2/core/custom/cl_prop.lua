@@ -1,4 +1,5 @@
 language.Add("Undone_e2_spawned_prop", "Undone E2 Spawned Prop")
+language.Add("Undone_e2_spawned_seat", "Undone E2 Spawned Seat")
 E2Helper.Descriptions["propManipulate"] = "Allows to do any single prop core function in one term.\n(position, rotation, freeze, gravity, notsolid)"
 E2Helper.Descriptions["propSpawn"] = "Use the model string or a template entity to spawn a prop.\nYou can set the position and/or the rotation as well.\nThe last number indicates frozen/unfrozen."
 E2Helper.Descriptions["seatSpawn"] = "Spawn a remodeled prop_vehicle_prisoner_pod"
@@ -19,5 +20,5 @@ E2Helper.Descriptions["propDrag"] = "Passing 0 makes the entity not be affected 
 E2Helper.Descriptions["propDraw"] = "Passing 0 disables rendering for the entity (makes it really invisible)"
 E2Helper.Descriptions["propShadow"] = "Passing 0 disables rendering for the entity's shadow"
 E2Helper.Descriptions["propSetBuoyancy"] = "Sets the prop's buoyancy ratio from 0 to 1"
-E2Helper.Descriptions["enablePropSpawnUndo"] = "Set to 0 to force prop removal on E2 shutdown, and suppress Undo entries for props."
+E2Helper.Descriptions["propSpawnUndo"] = "Set to 0 to force prop removal on E2 shutdown, and suppress Undo entries for props."
 E2Helper.Descriptions["propDeleteAll"] = "Removes all entities spawned by this E2"
