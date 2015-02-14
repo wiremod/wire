@@ -55,7 +55,7 @@ function PropCore.CreateProp(self,model,pos,angles,freeze,isVehicle)
 	if not PropCore.ValidSpawn() then return nil end
 	
 	if isVehicle then
-		if self.player:CheckLimit( "vehicles" ) == false then return end
+		if self.player:CheckLimit( "vehicles" ) == false then return nil end
 		if model == "" then model = "models/nova/airboat_seat.mdl" end
 	end
 	
@@ -90,9 +90,16 @@ function PropCore.CreateProp(self,model,pos,angles,freeze,isVehicle)
 		prop = self.data.propSpawnEffect and MakeProp( self.player, pos, angles, model, {}, {} ) or MakePropNoEffect( self.player, pos, angles, model, {}, {} )
 	end
 	
-	if not prop then return end
+	if not IsValid(prop) then return nil end
 	
 	prop:Activate()
+	
+	local phys = prop:GetPhysicsObject()
+	if IsValid( phys ) then
+		if angles ~= nil then E2Lib.setAng( phys, angles ) end
+		phys:Wake()
+		if freeze > 0 then phys:EnableMotion( false ) end
+	end
 	
 	self.player:AddCleanup( cleanupCategory, prop )
 	
@@ -101,13 +108,6 @@ function PropCore.CreateProp(self,model,pos,angles,freeze,isVehicle)
 			undo.AddEntity( prop )
 			undo.SetPlayer( self.player )
 		undo.Finish( undoName .. " (" .. model .. ")" )
-	end
-
-	local phys = prop:GetPhysicsObject()
-	if IsValid( phys ) then
-		if angles ~= nil then E2Lib.setAng( phys, angles ) end
-		phys:Wake()
-		if freeze > 0 then phys:EnableMotion( false ) end
 	end
 	
 	prop:CallOnRemove( "wire_expression2_propcore_remove",
