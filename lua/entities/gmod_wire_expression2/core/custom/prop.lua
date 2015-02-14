@@ -90,7 +90,7 @@ function PropCore.CreateProp(self,model,pos,angles,freeze,isVehicle)
 		prop = self.data.propSpawnEffect and MakeProp( self.player, pos, angles, model, {}, {} ) or MakePropNoEffect( self.player, pos, angles, model, {}, {} )
 	end
 	
-	if not IsValid(prop) then return nil end
+	if not IsValid( prop ) then return nil end
 	
 	prop:Activate()
 	
