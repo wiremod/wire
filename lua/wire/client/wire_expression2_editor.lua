@@ -1844,29 +1844,36 @@ function Editor:Setup(nTitle, nLocation, nEditorType)
 		[""] = function(self, row) return { { self.Rows[row], { Color(255, 255, 255, 255), false } } } end
 	}
 
+	local helpModes = {
+		CPU = E2Helper.UseCPU,
+		GPU = E2Helper.UseCPU,
+		SPU = E2Helper.UseCPU,
+		E2 = E2Helper.UseE2
+	}
+
 	local syntaxHighlighter = syntaxHighlighters[nEditorType or ""]
 	if syntaxHighlighter then self:SetSyntaxColorLine(syntaxHighlighter) end
 
-	local useValidator = nEditorType ~= nil
-	local useE2Helper = nEditorType == "CPU" or nEditorType == "GPU" or nEditorType == "SPU" or nEditorType == "E2"
-	local useSoundBrowser = nEditorType == "SPU" or nEditorType == "E2"
-	local useDebugger = nEditorType == "CPU"
-
-	if not useValidator then
-		self.C.Val:SetVisible(false)
-	end
-
-	if useE2Helper then -- Add "E2Helper" button
+	local helpMode = helpModes[nEditorType or ""]
+	if helpMode then -- Add "E2Helper" button
 		local E2Help = vgui.Create("Button", self.C.Menu)
 		E2Help:SetSize(58, 20)
 		E2Help:Dock(RIGHT)
 		E2Help:SetText("E2Helper")
 		E2Help.DoClick = function()
 			E2Helper.Show()
-			E2Helper.UseCPU(nEditorType)
+			helpMode(nEditorType)
 			E2Helper.Update()
 		end
 		self.C.E2Help = E2Help
+	end
+
+	local useValidator = nEditorType ~= nil
+	local useSoundBrowser = nEditorType == "SPU" or nEditorType == "E2"
+	local useDebugger = nEditorType == "CPU"
+
+	if not useValidator then
+		self.C.Val:SetVisible(false)
 	end
 
 	if useSoundBrowser then -- Add "Sound Browser" button
