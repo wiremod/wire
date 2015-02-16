@@ -58,8 +58,7 @@ concommand.Add("gmod_tool_auto", function(ply, command, args)
 		return
 	end
 
-	RunConsoleCommand( "gmod_tool", toolmode )
-	RunConsoleCommand( "toolcpanel", toolmode )
+	spawnmenu.ActivateTool(toolmode)
 end)
 
 local toolbuttons = {}

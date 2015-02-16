@@ -660,11 +660,11 @@ elseif CLIENT then
 				self = get_active_tool(ply, "wire_debugger")
 				if not self then return end
 				
-				RunConsoleCommand( "gmod_tool", "wire_adv" ) -- switch back to wire adv
+				spawnmenu.ActivateTool( "wire_adv") -- switch back to wire adv
 				return true
 			end
 			
-			RunConsoleCommand( "gmod_tool", "wire_debugger" ) -- switch to debugger
+			spawnmenu.ActivateTool("wire_debugger") -- switch to debugger
 			return true
 		end
 	end

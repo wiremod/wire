@@ -319,8 +319,7 @@ local function SetupSoundemitter(strSound)
 	RunConsoleCommand("wire_soundemitter_sound", strSound)
 
 	// Pull out the soundemitter stool after setup.
-	RunConsoleCommand("gmod_toolmode", "wire_soundemitter")
-	RunConsoleCommand("use", "gmod_tool")
+	spawnmenu.ActivateTool("wire_soundemitter")
 end
 
 local function SetupClipboard(strSound)

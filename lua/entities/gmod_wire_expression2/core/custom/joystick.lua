@@ -52,8 +52,45 @@ net.Receive("E2_joystick_senddata", function(u,ply)
 	end
 end)
 
+local function setJoystickStream(self,ply,enum,on)
+	if joystickdata[ply] then
+		if not ply:IsValid() then joystickdata[ply] = nil return end
+		
+		local enabled = on ~= 0
+		
+		net.Start("E2_joystick_setstream")
+		net.WriteUInt(enum, 8)
+		net.WriteBit(enabled)
+		net.Send(ply)
+		
+		if enabled then
+			joystickdata[ply].Ref[self] = true
+			joystickdata[ply].active_joystick = enum
+		else
+			joystickdata[ply].Ref[self] = nil
+			joystickdata[ply].active_joystick = nil
+		end	
+	end
+end
+
 hook.Add("PlayerDisconnect","wire_joystick_clear",function(ply)
 	joystickdata[ply] = nil
+end)
+
+hook.Add("PlayerEnteredVehicle","wire_joystick_vehicle",function(ply, veh)
+	local tbl = joystickdata[veh]
+	if tbl then
+		setJoystickStream(tbl.chip, ply, tbl.enum, 1)
+		tbl.player = ply
+	end
+end)
+
+hook.Add("PlayerLeaveVehicle","wire_joystick_vehicle",function(ply, veh)
+	local tbl = joystickdata[veh]
+	if tbl and tbl.player then
+		setJoystickStream(tbl.chip, ply, 1, 0)
+		tbl.player = nil
+	end
 end)
 
 __e2setcost( 200 )
@@ -64,86 +101,80 @@ e2function void joystickRefresh()
 end
 
 e2function void joystickSetActive(enum, on)
-	if not IsValid(self.player) then joystickdata[self.player] = nil end
-	if joystickdata[self.player] and joystickdata[self.player].joysticks[enum] then
-		local enabled = on ~= 0
-		
-		net.Start("E2_joystick_setstream")
-		net.WriteUInt(enum, 8)
-		net.WriteBit(enabled)
-		net.Send(self.player)
-		
-		if enabled then
-			joystickdata[self.player].Ref[self] = true
-			joystickdata[self.player].active_joystick = enum
+	setJoystickStream(self.player, enum, on)
+end
+
+e2function void entity:joystickSetActive(enum, on)
+	if IsValid(this) and this:IsVehicle() then
+		if on ~= 0 then
+			joystickdata[this] = {chip = self, enum = enum}
 		else
-			joystickdata[self.player].Ref[self] = nil
-			joystickdata[self.player].active_joystick = nil
-		end	
+			joystickdata[this] = nil
+		end
 	end
 end
 
 __e2setcost( 5 )
 
-e2function number joystickCount()
-	if joystickdata[self.player] then
-		return #joystickdata[self.player].joysticks
+e2function number entity:joystickCount()
+	if joystickdata[this] then
+		return #joystickdata[this].joysticks
 	else
 		return 0
 	end
 end
 
-e2function string joystickName(enum)
-	if joystickdata[self.player] and joystickdata[self.player].joysticks[enum] then
-		return joystickdata[self.player].joysticks[enum].name
+e2function string entity:joystickName(enum)
+	if joystickdata[this] and joystickdata[this].joysticks[enum] then
+		return joystickdata[this].joysticks[enum].name
 	else
 		return ""
 	end
 end
 
-e2function number joystickAxisCount(enum)
-	if joystickdata[self.player] and joystickdata[self.player].joysticks[enum] then
-		return joystickdata[self.player].joysticks[enum].num_axis
+e2function number entity:joystickAxisCount(enum)
+	if joystickdata[this] and joystickdata[this].joysticks[enum] then
+		return joystickdata[this].joysticks[enum].num_axis
 	else
 		return 0
 	end
 end
 
-e2function number joystickButtonCount(enum)
-	if joystickdata[self.player] and joystickdata[self.player].joysticks[enum] then
-		return joystickdata[self.player].joysticks[enum].num_buttons
+e2function number entity:joystickButtonCount(enum)
+	if joystickdata[this] and joystickdata[this].joysticks[enum] then
+		return joystickdata[this].joysticks[enum].num_buttons
 	else
 		return 0
 	end
 end
 
-e2function number joystickPOVCount(enum)
-	if joystickdata[self.player] and joystickdata[self.player].joysticks[enum] then
-		return joystickdata[self.player].joysticks[enum].num_povs
+e2function number entity:joystickPOVCount(enum)
+	if joystickdata[this] and joystickdata[this].joysticks[enum] then
+		return joystickdata[this].joysticks[enum].num_povs
 	else
 		return 0
 	end
 end
 
-e2function array joystickAxisData(enum)
-	if joystickdata[self.player] and joystickdata[self.player].joysticks[enum] then
-		return joystickdata[self.player].joysticks[enum].axis_data
+e2function array entity:joystickAxisData(enum)
+	if joystickdata[this] and joystickdata[this].joysticks[enum] then
+		return joystickdata[this].joysticks[enum].axis_data
 	else
 		return {}
 	end
 end
 
-e2function array joystickButtonData(enum)
-	if joystickdata[self.player] and joystickdata[self.player].joysticks[enum] then
-		return joystickdata[self.player].joysticks[enum].button_data
+e2function array entity:joystickButtonData(enum)
+	if joystickdata[this] and joystickdata[this].joysticks[enum] then
+		return joystickdata[this].joysticks[enum].button_data
 	else
 		return {}
 	end
 end
 
-e2function array joystickPOVData(enum)
-	if joystickdata[self.player] and joystickdata[self.player].joysticks[enum] then
-		return joystickdata[self.player].joysticks[enum].pov_data
+e2function array entity:joystickPOVData(enum)
+	if joystickdata[this] and joystickdata[this].joysticks[enum] then
+		return joystickdata[this].joysticks[enum].pov_data
 	else
 		return {}
 	end
@@ -154,10 +185,16 @@ registerCallback( "destruct", function( self )
 	if joystickdata[self.player] then
 		joystickdata[self.player].Ref[self] = nil
 		if not next(joystickdata[self.player].Ref) then
-			net.Start("E2_joystick_setstream")
-			net.WriteUInt(0, 8)
-			net.WriteBit(false)
-			net.Send(self.player)
+			setJoystickStream(self.player,1,0)
+		end
+	end
+	
+	for k, v in pairs(joystickdata) do
+		if v.chip == self then
+			if v.player then
+				setJoystickStream(v.player,1,0)
+			end
+			joystickdata[k] = nil
 		end
 	end
 end)

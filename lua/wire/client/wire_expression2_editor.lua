@@ -100,7 +100,8 @@ local colors = {
 	["ppcommand"] = Color(240, 96, 240), -- purple
 	["typename"] = Color(240, 160, 96), -- orange
 	["constant"] = Color(240, 160, 240), -- pink
-	["userfunction"] = Color(102, 122, 102), -- dark green
+	["userfunction"] = Color(102, 122, 102), -- dark grayish-green
+	["dblclickhighlight"] = Color(0, 100, 0) -- dark green
 }
 
 local colors_defaults = {}
@@ -1007,154 +1008,71 @@ function Editor:InitControlPanel(frame)
 	frame:AddResizeObject(dlist, 4, 4)
 	dlist:EnableVerticalScrollbar(true)
 
-	-- Other colors
+	-- Color Mixer PANEL - Houses label, combobox, mixer, reset button & reset all button.
+	local mixPanel = vgui.Create( "panel" )
+	mixPanel:SetTall( 240 )
+	dlist:AddItem( mixPanel )
 
-	local Label = vgui.Create("DLabel")
-	dlist:AddItem(Label)
-	Label:SetText("Editor colors")
-	Label:SizeToContents()
+	do
+		-- Label
+		local label = vgui.Create( "DLabel", mixPanel )
+		label:Dock( TOP )
+		label:SetText( "Syntax Colors" )
+		label:SizeToContents()
 
-	local SkipUpdate = false
-	local CurrentColor = "Double click highlight"
-	local r, g, b, a = 255, 255, 255, 255
+		-- Dropdown box of convars to change ( affects editor colors )
+		local box = vgui.Create( "DComboBox", mixPanel )
+		box:Dock( TOP )
+		box:SetValue( "Color feature" )
+		local active = nil
 
-	local temp = vgui.Create("Panel")
-	dlist:AddItem(temp)
-	temp:SetTall(132)
-
-	-- Create color mixer, number wangs, default button, and drop down menu
-	local ColorMixer = vgui.Create("DColorMixer", temp)
-	local RBox = vgui.Create("DNumberWang", temp)
-	local GBox = vgui.Create("DNumberWang", temp)
-	local BBox = vgui.Create("DNumberWang", temp)
-	local ABox = vgui.Create("DNumberWang", temp)
-	local DefaultButton = vgui.Create("DButton", temp)
-	local CurrentColorSelect = vgui.Create("DComboBox", temp)
-
-	-- Add choices
-	local Choices = {
-		["Double click highlight"] = { "wire_expression2_editor_color_dblclickhighlight", { 0, 100, 0, 100 } },
-	}
-	for k, v in pairs(Choices) do
-		CurrentColorSelect:AddChoice(k)
-	end
-
-	-- Manage choices
-	CurrentColorSelect.OnSelect = function(panel, index, value)
-		if (Choices[value]) then
-			local r, g, b, a = GetConVar(Choices[value][1]):GetString():match("(%d+)_(%d+)_(%d+)_(%d+)")
-			r, g, b, a = tonumber(r) or Choices[value][2][1], tonumber(g) or Choices[value][2][2], tonumber(b) or Choices[value][2][3], tonumber(a) or Choices[value][2][4]
-			RBox:SetValue(r)
-			GBox:SetValue(g)
-			BBox:SetValue(b)
-			ABox:SetValue(a)
-			ColorMixer:SetColor(Color(r, g, b, a))
-			CurrentColor = value
+		-- Mixer
+		local mixer = vgui.Create( "DColorMixer", mixPanel )
+		mixer:Dock( FILL )
+		mixer:SetPalette( true )
+		mixer:SetAlphaBar( true )
+		mixer:SetWangs( true )
+		mixer.ValueChanged = function ( _, clr )
+			self:SetSyntaxColor( active, clr )
 		end
-	end
 
-	-- Default button
-	DefaultButton.DoClick = function(pnl)
-		r, g, b, a = Choices[CurrentColor][2][1], Choices[CurrentColor][2][2], Choices[CurrentColor][2][3], Choices[CurrentColor][2][4]
-		ColorMixer:SetColor(Color(r, g, b, a))
-		RBox:SetValue(r)
-		GBox:SetValue(g)
-		BBox:SetValue(b)
-		ABox:SetValue(a)
-		RunConsoleCommand(Choices[CurrentColor][1], r .. "_" .. g .. "_" .. b .. "_" .. a)
-	end
-
-	DefaultButton:SetText("Default")
-
-	ColorMixer:SetSize(130, 130)
-
-	ColorMixer.PerformLayout = function(pnl)
-		local w, h = pnl:GetSize()
-		pnl.RGB:SetPos(0, 0)
-		pnl.RGB:SetSize(20, h)
-		pnl.Palette:SetPos(44, 0)
-		pnl.Palette:SetSize(w - 44, h)
-		pnl.Alpha:SetPos(22, 0)
-		pnl.Alpha:SetSize(20, h)
-	end
-
-	local old = ColorMixer.Palette.OnMouseReleased
-	ColorMixer.Palette.OnMouseReleased = function(...)
-		local clr = ColorMixer:GetColor()
-		r, g, b, a = clr.r, clr.g, clr.b, 255 - ColorMixer.Alpha:GetValue() * 255
-		SkipUpdate = true
-		RBox:SetValue(r)
-		GBox:SetValue(g)
-		BBox:SetValue(b)
-		ABox:SetValue(a)
-		SkipUpdate = false
-		RunConsoleCommand(Choices[CurrentColor][1], r .. "_" .. g .. "_" .. b .. "_" .. a)
-		old(...)
-	end
-
-	local old = ColorMixer.RGB.OnMouseReleased
-	ColorMixer.RGB.OnMouseReleased = function(...)
-		ColorMixer.Palette:OnMouseReleased()
-		old(...)
-	end
-
-	local old = ColorMixer.Alpha.OnMouseReleased
-	ColorMixer.Alpha.OnMouseReleased = function(...)
-		ColorMixer.Palette:OnMouseReleased()
-		old(...)
-	end
-
-	-- Loop this to make it a little neater
-	local temp = { RBox, GBox, BBox, ABox }
-	for k, v in pairs(temp) do
-		v:SetValue(255)
-		v:SetMin(0)
-		v:SetMax(255)
-		v:SetDecimals(0)
-		v:SetWide(64)
-		local old = v:GetTextArea().OnEnter
-		v:GetTextArea().OnEnter = function(...)
-			v:OnValueChanged()
-			old(...)
+		for k, _ in pairs( colors_convars ) do
+			box:AddChoice( k )
 		end
-	end
 
-	-- OnValueChanged functions
-	RBox.OnValueChanged = function(pnl)
-		if SkipUpdate or r == pnl:GetValue() then return end
-		r = pnl:GetValue()
-		ColorMixer:SetColor(Color(r, g, b, a))
-		RunConsoleCommand(Choices[CurrentColor][1], r .. "_" .. g .. "_" .. b .. "_" .. a)
-	end
-	GBox.OnValueChanged = function(pnl)
-		if SkipUpdate or g == pnl:GetValue() then return end
-		g = pnl:GetValue()
-		ColorMixer:SetColor(Color(r, g, b, a))
-		RunConsoleCommand(Choices[CurrentColor][1], r .. "_" .. g .. "_" .. b .. "_" .. a)
-	end
-	BBox.OnValueChanged = function(pnl)
-		if SkipUpdate or b == pnl:GetValue() then return end
-		b = pnl:GetValue()
-		ColorMixer:SetColor(Color(r, g, b, a))
-		RunConsoleCommand(Choices[CurrentColor][1], r .. "_" .. g .. "_" .. b .. "_" .. a)
-	end
-	ABox.OnValueChanged = function(pnl)
-		if SkipUpdate or a == pnl:GetValue() then return end
-		a = pnl:GetValue()
-		ColorMixer:SetColor(Color(r, g, b, a))
-		RunConsoleCommand(Choices[CurrentColor][1], r .. "_" .. g .. "_" .. b .. "_" .. a)
-	end
+		box.OnSelect = function ( self, index, value, data )
+			-- DComboBox doesn't have a method for getting active value ( to my knowledge )
+			-- Therefore, cache it, we're in a local scope so we're fine.
+			active = value
+			mixer:SetColor( colors[ active ] or Color( 255, 255, 255 ) )
+		end
 
-	-- Positioning
-	local x, y = ColorMixer:GetPos()
-	local w, _ = ColorMixer:GetSize()
-	CurrentColorSelect:SetPos(x + w + 2, y)
-	RBox:SetPos(x + w + 2, y + 2 + 20)
-	GBox:SetPos(x + w + 2, y + 4 + RBox:GetTall() + 20)
-	BBox:SetPos(x + w + 2, y + 6 + RBox:GetTall() * 2 + 20)
-	ABox:SetPos(x + w + 2, y + 6 + RBox:GetTall() * 3 + 20)
-	DefaultButton:SetPos(x + w + 2, y + 8 + RBox:GetTall() * 4 + 20)
-	DefaultButton:SetSize(RBox:GetSize())
+		-- Reset ALL button
+		local rAll = vgui.Create( "DButton", mixPanel )
+		rAll:Dock( BOTTOM )
+		rAll:SetText( "Reset ALL to Default" )
+
+		rAll.DoClick = function ()
+			for k, v in pairs( colors_defaults ) do
+				self:SetSyntaxColor( k, v )
+			end
+			mixer:SetColor( colors_defaults[ active ] )
+		end
+
+		-- Reset to default button
+		local reset = vgui.Create( "DButton", mixPanel )
+		reset:Dock( BOTTOM )
+		reset:SetText( "Set to Default" )
+
+		reset.DoClick = function ()
+			self:SetSyntaxColor( active, colors_defaults[ active ] )
+			mixer:SetColor( colors_defaults[ active ] )
+		end
+
+
+		-- Select a convar to be displayed automatically
+		box:ChooseOptionID( 1 )
+	end
 
 	--- - FONTS
 
@@ -1386,130 +1304,6 @@ Text here]# ]]
 		panel:SetToolTip(modes[value][2])
 		RunConsoleCommand("wire_expression2_editor_block_comment_style", modes[value][1])
 	end
-
-	-- SYNTAX HIGHLIGHT COLORS
-
-	local Label = vgui.Create("DLabel")
-	dlist:AddItem(Label)
-	Label:SetText("Expression 2 syntax highlighting colors")
-	Label:SizeToContents()
-
-	local SkipUpdate = false
-	local CurrentColor = "directive"
-	local r, g, b = 255, 255, 255
-
-	local temp = vgui.Create("Panel")
-	dlist:AddItem(temp)
-	temp:SetTall(132)
-
-	-- Create color mixer, number wangs, default button, and drop down menu
-	local ColorMixer = vgui.Create("DColorMixer", temp)
-	local RBox = vgui.Create("DNumberWang", temp)
-	local GBox = vgui.Create("DNumberWang", temp)
-	local BBox = vgui.Create("DNumberWang", temp)
-	local DefaultButton = vgui.Create("DButton", temp)
-	local CurrentColorSelect = vgui.Create("DComboBox", temp)
-
-	-- Add choices
-	for k, v in pairs(colors) do
-		CurrentColorSelect:AddChoice(k)
-	end
-	-- Manage choices
-	CurrentColorSelect.OnSelect = function(panel, index, value)
-		CurrentColor = value
-		ColorMixer:SetColor(colors[value])
-		r = colors[value].r
-		g = colors[value].g
-		b = colors[value].b
-		RBox:SetValue(r)
-		GBox:SetValue(g)
-		BBox:SetValue(b)
-	end
-
-	-- Default button
-	DefaultButton.DoClick = function(pnl)
-		ColorMixer:SetColor(colors_defaults[CurrentColor])
-		r = colors_defaults[CurrentColor].r
-		g = colors_defaults[CurrentColor].g
-		b = colors_defaults[CurrentColor].b
-		RBox:SetValue(r)
-		GBox:SetValue(g)
-		BBox:SetValue(b)
-		self:SetSyntaxColor(CurrentColor, colors_defaults[CurrentColor])
-	end
-
-	DefaultButton:SetText("Default")
-
-	ColorMixer:SetSize(130, 130)
-	-- ColorMixer:SetPos( 170, 205 )
-
-	-- Remove alpha bar
-	ColorMixer.Alpha:SetVisible(false)
-	ColorMixer.PerformLayout = function(pnl)
-		local w, h = pnl:GetSize()
-		pnl.RGB:SetPos(0, 0)
-		pnl.RGB:SetSize(20, h)
-		pnl.Palette:SetPos(22, 0)
-		pnl.Palette:SetSize(w - 22, h)
-	end
-
-	local old = ColorMixer.Palette.OnMouseReleased
-	ColorMixer.Palette.OnMouseReleased = function(...)
-		local clr = ColorMixer:GetColor()
-		r, g, b = clr.r, clr.g, clr.b
-		SkipUpdate = true
-		RBox:SetValue(r)
-		GBox:SetValue(g)
-		BBox:SetValue(b)
-		SkipUpdate = false
-		self:SetSyntaxColor(CurrentColor, clr)
-		old(...)
-	end
-
-	-- Loop this to make it a little neater
-	local temp = { RBox, GBox, BBox }
-	for k, v in pairs(temp) do
-		v:SetValue(255)
-		v:SetMin(0)
-		v:SetMax(255)
-		v:SetDecimals(0)
-		v:SetWide(64)
-		local old = v:GetTextArea().OnEnter
-		v:GetTextArea().OnEnter = function(...)
-			v:OnValueChanged()
-			old(...)
-		end
-	end
-
-	-- OnValueChanged functions
-	RBox.OnValueChanged = function(pnl)
-		if SkipUpdate or r == pnl:GetValue() then return end
-		r = pnl:GetValue()
-		ColorMixer:SetColor(Color(r, g, b))
-		self:SetSyntaxColor(CurrentColor, Color(r, g, b))
-	end
-	GBox.OnValueChanged = function(pnl)
-		if SkipUpdate or g == pnl:GetValue() then return end
-		g = pnl:GetValue()
-		ColorMixer:SetColor(Color(r, g, b))
-		self:SetSyntaxColor(CurrentColor, Color(r, g, b))
-	end
-	BBox.OnValueChanged = function(pnl)
-		if SkipUpdate or b == pnl:GetValue() then return end
-		b = pnl:GetValue()
-		ColorMixer:SetColor(Color(r, g, b))
-		self:SetSyntaxColor(CurrentColor, Color(r, g, b))
-	end
-
-	-- Positioning
-	local x, y = ColorMixer:GetPos()
-	local w, _ = ColorMixer:GetSize()
-	CurrentColorSelect:SetPos(x + w + 2, y)
-	RBox:SetPos(x + w + 2, y + 2 + 20)
-	GBox:SetPos(x + w + 2, y + 4 + RBox:GetTall() + 20)
-	BBox:SetPos(x + w + 2, y + 6 + RBox:GetTall() * 2 + 20)
-	DefaultButton:SetPos(x + w + 2, y + 8 + RBox:GetTall() * 3 + 20)
-	DefaultButton:SetSize(RBox:GetSize())
 
 	local ops_sync_checkbox = vgui.Create("DCheckBoxLabel")
 	dlist:AddItem(ops_sync_checkbox)
@@ -2050,29 +1844,36 @@ function Editor:Setup(nTitle, nLocation, nEditorType)
 		[""] = function(self, row) return { { self.Rows[row], { Color(255, 255, 255, 255), false } } } end
 	}
 
+	local helpModes = {
+		CPU = E2Helper.UseCPU,
+		GPU = E2Helper.UseCPU,
+		SPU = E2Helper.UseCPU,
+		E2 = E2Helper.UseE2
+	}
+
 	local syntaxHighlighter = syntaxHighlighters[nEditorType or ""]
 	if syntaxHighlighter then self:SetSyntaxColorLine(syntaxHighlighter) end
 
-	local useValidator = nEditorType ~= nil
-	local useE2Helper = nEditorType == "CPU" or nEditorType == "GPU" or nEditorType == "SPU" or nEditorType == "E2"
-	local useSoundBrowser = nEditorType == "SPU" or nEditorType == "E2"
-	local useDebugger = nEditorType == "CPU"
-
-	if not useValidator then
-		self.C.Val:SetVisible(false)
-	end
-
-	if useE2Helper then -- Add "E2Helper" button
+	local helpMode = helpModes[nEditorType or ""]
+	if helpMode then -- Add "E2Helper" button
 		local E2Help = vgui.Create("Button", self.C.Menu)
 		E2Help:SetSize(58, 20)
 		E2Help:Dock(RIGHT)
 		E2Help:SetText("E2Helper")
 		E2Help.DoClick = function()
 			E2Helper.Show()
-			E2Helper.UseCPU(nEditorType)
+			helpMode(nEditorType)
 			E2Helper.Update()
 		end
 		self.C.E2Help = E2Help
+	end
+
+	local useValidator = nEditorType ~= nil
+	local useSoundBrowser = nEditorType == "SPU" or nEditorType == "E2"
+	local useDebugger = nEditorType == "CPU"
+
+	if not useValidator then
+		self.C.Val:SetVisible(false)
 	end
 
 	if useSoundBrowser then -- Add "Sound Browser" button

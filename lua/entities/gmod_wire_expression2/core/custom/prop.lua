@@ -31,10 +31,11 @@ function PropCore.ValidSpawn()
 	return true
 end
 
+local canHaveInvalidPhysics = {delete=true, parent=true, deparent=true, solid=true, shadow=true, draw=true}
 function PropCore.ValidAction(self, entity, cmd)
 	if(cmd=="spawn" or cmd=="Tdelete") then return true end
 	if(!IsValid(entity)) then return false end
-	if(!validPhysics(entity)) then return false end
+	if(!canHaveInvalidPhysics[cmd] and !validPhysics(entity)) then return false end
 	if(!isOwner(self, entity)) then return false end
 	if entity:IsPlayer() then return false end
 	local ply = self.player
@@ -49,55 +50,96 @@ local function MakePropNoEffect(...)
 	return ret
 end
 
-function PropCore.CreateProp(self,model,pos,angles,freeze)
-	if(!util.IsValidModel(model) || !util.IsValidProp(model) || not PropCore.ValidSpawn() )then
-		return nil
+function PropCore.CreateProp(self,model,pos,angles,freeze,isVehicle)
+
+	if not PropCore.ValidSpawn() then return nil end
+	
+	if isVehicle then
+		if self.player:CheckLimit( "vehicles" ) == false then return nil end
+		if model == "" then model = "models/nova/airboat_seat.mdl" end
 	end
+	
+	if not util.IsValidModel( model ) or not util.IsValidProp( model ) then return nil end
+	
 	pos = E2Lib.clampPos( pos )
+	
 	local prop
 	
-	if self.data.propSpawnEffect then
-		prop = MakeProp( self.player, pos, angles, model, {}, {} )
+	local cleanupCategory = "props"
+	local undoCategory = "e2_spawned_prop"
+	local undoName = "E2 Prop"
+	
+	if isVehicle then
+		cleanupCategory = "vehicles"
+		undoCategory = "e2_spawned_seat"
+		undoName = "E2 Seat"
+		
+		prop = ents.Create("prop_vehicle_prisoner_pod")
+		prop:SetModel(model)
+		prop:SetPos(pos)
+		prop:SetAngles(angles)
+		
+		if self.data.propSpawnEffect then DoPropSpawnedEffect( prop ) end
+		
+		prop:Spawn()
+		prop:SetKeyValue( "limitview", 0 )
+		
+		table.Merge( prop, { HandleAnimation = function( _, ply ) return ply:SelectWeightedSequence( ACT_HL2MP_SIT ) end } )
+		gamemode.Call( "PlayerSpawnedVehicle", self.player, prop )
 	else
-		prop = MakePropNoEffect( self.player, pos, angles, model, {}, {} )
+		prop = self.data.propSpawnEffect and MakeProp( self.player, pos, angles, model, {}, {} ) or MakePropNoEffect( self.player, pos, angles, model, {}, {} )
 	end
-	if not prop then return end
+	
+	if not IsValid( prop ) then return nil end
 	
 	prop:Activate()
-	self.player:AddCleanup( "props", prop )
-	undo.Create("e2_spawned_prop")
-		undo.AddEntity( prop )
-		undo.SetPlayer( self.player )
-	undo.Finish()
+	
 	local phys = prop:GetPhysicsObject()
-	if (phys:IsValid()) then
-		if(angles!=nil) then E2Lib.setAng( phys, angles ) end
+	if IsValid( phys ) then
+		if angles ~= nil then E2Lib.setAng( phys, angles ) end
 		phys:Wake()
-		if(freeze>0) then phys:EnableMotion( false ) end
+		if freeze > 0 then phys:EnableMotion( false ) end
 	end
-	prop:CallOnRemove( "wire_expression2_propcore_remove", function( prop )
-		E2totalspawnedprops = E2totalspawnedprops - 1
-	end)
-	E2totalspawnedprops = E2totalspawnedprops+1
-	E2tempSpawnedProps = E2tempSpawnedProps+1
+	
+	self.player:AddCleanup( cleanupCategory, prop )
+	
+	if self.data.propSpawnUndo then
+		undo.Create( undoCategory )
+			undo.AddEntity( prop )
+			undo.SetPlayer( self.player )
+		undo.Finish( undoName .. " (" .. model .. ")" )
+	end
+	
+	prop:CallOnRemove( "wire_expression2_propcore_remove",
+		function( prop )
+			self.data.spawnedProps[ prop ] = nil
+			E2totalspawnedprops = E2totalspawnedprops - 1
+		end
+	)
+	
+	self.data.spawnedProps[ prop ] = self.data.propSpawnUndo
+	E2totalspawnedprops = E2totalspawnedprops + 1
+	E2tempSpawnedProps = E2tempSpawnedProps + 1
+	
 	return prop
 end
 
 function PropCore.PhysManipulate(this, pos, rot, freeze, gravity, notsolid)
-	if(notsolid!=nil) then this:SetNotSolid(notsolid ~= 0) end
 	local phys = this:GetPhysicsObject()
-	if(pos!=nil) then E2Lib.setPos( phys, Vector(pos[1],pos[2],pos[3]) ) end
-	if(rot!=nil) then E2Lib.setAng( phys,  Angle(rot[1],rot[2],rot[3]) ) end
-	if(freeze!=nil) then phys:EnableMotion(freeze == 0) end
-	if(gravity!=nil) then phys:EnableGravity(gravity~=0) end
+	if pos ~= nil then E2Lib.setPos( phys, Vector( pos[1],pos[2],pos[3] ) ) end
+	if rot ~= nil then E2Lib.setAng( phys,  Angle( rot[1],rot[2],rot[3] ) ) end
+	if freeze ~= nil then phys:EnableMotion( freeze == 0 ) end
+	if gravity ~= nil then phys:EnableGravity( gravity ~= 0 ) end
+	if notsolid ~= nil then this:SetSolid( notsolid ~= 0 and SOLID_NONE or SOLID_VPHYSICS ) end
 	phys:Wake()
-	if(!phys:IsMoveable())then
-		phys:EnableMotion(true)
-		phys:EnableMotion(false)
+	if !phys:IsMoveable() then
+		phys:EnableMotion( true )
+		phys:EnableMotion( false )
 	end
 end
 
 --------------------------------------------------------------------------------
+
 __e2setcost(30)
 e2function entity propSpawn(string model, number frozen)
 	if not PropCore.ValidAction(self, nil, "spawn") then return nil end
@@ -144,6 +186,20 @@ e2function entity propSpawn(entity template, vector pos, angle rot, number froze
 end
 
 --------------------------------------------------------------------------------
+
+__e2setcost(60)
+e2function entity seatSpawn(string model, number frozen)
+	if not PropCore.ValidAction(self, nil, "spawn") then return nil end
+	return PropCore.CreateProp(self,model,self.entity:GetPos()+self.entity:GetUp()*25,self.entity:GetAngles(),frozen,true)
+end
+
+e2function entity seatSpawn(string model, vector pos, angle rot, number frozen)
+	if not PropCore.ValidAction(self, nil, "spawn") then return nil end
+	return PropCore.CreateProp(self,model,Vector(pos[1],pos[2],pos[3]),Angle(rot[1],rot[2],rot[3]),frozen,true)
+end
+
+--------------------------------------------------------------------------------
+
 __e2setcost(5)
 e2function void entity:propDelete()
 	if not PropCore.ValidAction(self, this, "delete") then return end
@@ -155,6 +211,7 @@ e2function void entity:propBreak()
 	this:Fire("break",1,0)
 end
 
+__e2setcost(30)
 local function removeAllIn( self, tbl )
 	local count = 0
 	for k,v in pairs( tbl ) do
@@ -187,6 +244,18 @@ e2function number array:propDelete()
 	return count
 end
 
+e2function void propDeleteAll()
+	for ent in pairs( self.data.spawnedProps ) do
+		if IsValid( ent ) then
+			ent:Remove()
+		end
+	end
+	self.data.spawnedProps = {}
+end
+
+
+__e2setcost(5)
+
 --------------------------------------------------------------------------------
 e2function void entity:propManipulate(vector pos, angle rot, number freeze, number gravity, number notsolid)
 	if not PropCore.ValidAction(self, this, "manipulate") then return end
@@ -201,6 +270,18 @@ end
 e2function void entity:propNotSolid(number notsolid)
 	if not PropCore.ValidAction(self, this, "solid") then return end
 	PropCore.PhysManipulate(this, nil, nil, nil, nil, notsolid)
+end
+
+--- Makes <this> not render at all
+e2function void entity:propDraw(number drawEnable)
+	if not PropCore.ValidAction(self, this, "draw") then return end
+	this:SetNoDraw( drawEnable == 0 )
+end
+
+--- Makes <this>'s shadow not render at all
+e2function void entity:propShadow(number shadowEnable)
+	if not PropCore.ValidAction(self, this, "shadow") then return end
+	this:DrawShadow( shadowEnable ~= 0 )
 end
 
 e2function void entity:propGravity(number gravity)
@@ -267,6 +348,7 @@ e2function void entity:deparent()
 	if not PropCore.ValidAction(self, this, "deparent") then return end
 	this:SetParent( nil )
 end
+e2function void entity:parentTo() = e2function void entity:deparent()
 
 __e2setcost(1)
 
@@ -274,11 +356,29 @@ e2function void propSpawnEffect(number on)
 	self.data.propSpawnEffect = on ~= 0
 end
 
+e2function void propSpawnUndo(number on)
+	self.data.propSpawnUndo = on ~= 0
+end
+
 e2function number propCanCreate()
 	if PropCore.ValidSpawn() then return 1 end
 	return 0
 end
 
-registerCallback("construct", function(self)
-	self.data.propSpawnEffect = true
-end)
+registerCallback("construct",
+	function(self)
+		self.data.propSpawnEffect = true
+		self.data.propSpawnUndo = true
+		self.data.spawnedProps = {}
+	end
+)
+
+registerCallback("destruct",
+	function(self)
+		for ent, undo in pairs( self.data.spawnedProps ) do
+			if undo == false and IsValid( ent ) then
+				ent:Remove()
+			end
+		end
+	end
+)
