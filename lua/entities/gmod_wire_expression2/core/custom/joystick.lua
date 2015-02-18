@@ -158,7 +158,7 @@ end
 
 e2function array entity:joystickAxisData(enum)
 	if joystickdata[this] and joystickdata[this].joysticks[enum] then
-		return joystickdata[this].joysticks[enum].axis_data
+		return table.Copy(joystickdata[this].joysticks[enum].axis_data)
 	else
 		return {}
 	end
@@ -166,7 +166,7 @@ end
 
 e2function array entity:joystickButtonData(enum)
 	if joystickdata[this] and joystickdata[this].joysticks[enum] then
-		return joystickdata[this].joysticks[enum].button_data
+		return table.Copy(joystickdata[this].joysticks[enum].button_data)
 	else
 		return {}
 	end
@@ -174,7 +174,7 @@ end
 
 e2function array entity:joystickPOVData(enum)
 	if joystickdata[this] and joystickdata[this].joysticks[enum] then
-		return joystickdata[this].joysticks[enum].pov_data
+		return table.Copy(joystickdata[this].joysticks[enum].pov_data)
 	else
 		return {}
 	end
