@@ -469,7 +469,7 @@ do
 	
 	function E2Lib.GetExtensions( niceList )
 		if sortExtensionsList then
-			table.sort( E2Lib.extensions.list, function( a, b ) return a[1] < b[1] end )
+			table.sort( E2Lib.extensions.list, function( a, b ) return a < b end )
 			sortExtensionsList = nil
 		end
 		
