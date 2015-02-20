@@ -522,17 +522,21 @@ do
 			if IsValid( ply ) and not ply:IsSuperAdmin() and not game.SinglePlayer() then return end
 			
 			local name = args[ 1 ]
-			if E2Lib.extensions.status[ name ] ~= nil then
-				if E2Lib.extensions.status[ name ] == true then
-					local str = "Extension '" .. name .. "' is already enabled. Did you remember to reload Expression 2 using the console command 'wire_expression2_reload'?"
-					if IsValid( ply ) then ply:PrintMessage( 2, str ) else print( str ) end
+			if name then
+				if E2Lib.extensions.status[ name ] ~= nil then
+					if E2Lib.extensions.status[ name ] == true then
+						local str = "Extension '" .. name .. "' is already enabled. Did you remember to reload Expression 2 using the console command 'wire_expression2_reload'?"
+						if IsValid( ply ) then ply:PrintMessage( 2, str ) else print( str ) end
+					else
+						E2Lib.SetExtensionStatus( name, true )
+						local str = "Extension '" .. name .. "' enabled. Now reload Expression 2 using the console command 'wire_expression2_reload'."
+						if IsValid( ply ) then ply:PrintMessage( 2, str ) else print( str ) end
+					end
 				else
-					E2Lib.SetExtensionStatus( name, true )
-					local str = "Extension '" .. name .. "' enabled. Now reload Expression 2 using the console command 'wire_expression2_reload'."
-					if IsValid( ply ) then ply:PrintMessage( 2, str ) else print( str ) end
+					printExtensions( ply, "Unknown extension '" .. name .. "'. Here is a list of available extensions:" )
 				end
 			else
-				printExtensions( ply, "Unknown extension '" .. name .. "'. Here is a list of available extensions:" )
+				printExtensions( ply, "Available extensions:" )
 			end
 		end,
 		makeAutoCompleteList
@@ -544,17 +548,21 @@ do
 			if IsValid( ply ) and not ply:IsSuperAdmin() and not game.SinglePlayer() then return end
 			
 			local name = args[ 1 ]
-			if E2Lib.extensions.status[ name ] ~= nil then
-				if E2Lib.extensions.status[ name ] == false then
-					local str = "Extension '" .. name .. "' is already disabled. Did you remember to reload Expression 2 using the console command 'wire_expression2_reload'?"
-					if IsValid( ply ) then ply:PrintMessage( 2, str ) else print( str ) end
+			if name then
+				if E2Lib.extensions.status[ name ] ~= nil then
+					if E2Lib.extensions.status[ name ] == false then
+						local str = "Extension '" .. name .. "' is already disabled. Did you remember to reload Expression 2 using the console command 'wire_expression2_reload'?"
+						if IsValid( ply ) then ply:PrintMessage( 2, str ) else print( str ) end
+					else
+						E2Lib.SetExtensionStatus( name, false )
+						local str = "Extension '" .. name .. "' disabled. Now reload Expression 2 using the console command 'wire_expression2_reload'."
+						if IsValid( ply ) then ply:PrintMessage( 2, str ) else print( str ) end
+					end
 				else
-					E2Lib.SetExtensionStatus( name, false )
-					local str = "Extension '" .. name .. "' disabled. Now reload Expression 2 using the console command 'wire_expression2_reload'."
-					if IsValid( ply ) then ply:PrintMessage( 2, str ) else print( str ) end
+					printExtensions( ply, "Unknown extension '" .. name .. "'. Here is a list of available extensions:" )
 				end
 			else
-				printExtensions( ply, "Unknown extension '" .. name .. "'. Here is a list of available extensions:" )
+				printExtensions( ply, "Available extensions:" )
 			end
 		end,
 		makeAutoCompleteList
