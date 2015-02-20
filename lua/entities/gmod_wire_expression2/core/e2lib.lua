@@ -450,6 +450,8 @@ do
 		if q then
 			for _, row in ipairs( q ) do
 				E2Lib.extensions.status[ row.name ] = row.enabled == "1" and true or false
+				E2Lib.extensions.list[ #E2Lib.extensions.list + 1 ] = row.name
+				sortExtensionsList = true
 			end
 		end
 	end
@@ -483,9 +485,9 @@ do
 	function E2Lib.RegisterExtension( name, default )
 		if E2Lib.extensions.status[ name ] == nil then
 			E2Lib.SetExtensionStatus( name, default or false )
+			E2Lib.extensions.list[ #E2Lib.extensions.list + 1 ] = name
+			sortExtensionsList = true
 		end
-		E2Lib.extensions.list[ #E2Lib.extensions.list + 1 ] = name
-		sortExtensionsList = true
 		
 		-- DO NOT MODIFY THIS LINE, PLEASE!
 		assert( E2Lib.extensions.status[ name ], "Skipping disabled E2 extension '" .. name .. "'. To enable, run 'wire_expression2_extension_enable " .. name .. "'\n" )
