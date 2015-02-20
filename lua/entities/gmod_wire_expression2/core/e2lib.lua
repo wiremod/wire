@@ -507,7 +507,7 @@ do
 	local function makeAutoCompleteList( cmd, args )
 		args = args:Trim():lower()
 		local t = {}
-		local status = cmd:find("enable") and false or true
+		local status = not tobool( cmd:find("enable") )
 		for _, n in ipairs( E2Lib.extensions.list ) do
 			if n:find( args ) and E2Lib.extensions.status[ n ] == status then
 				t[ #t + 1 ] = cmd .. " " .. n
