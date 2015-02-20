@@ -495,7 +495,7 @@ do
 	
 	
 	local function printExtensions( ply, str )
-		if ply:IsValid() then
+		if IsValid( ply ) then
 			if str then ply:PrintMessage( 2, str ) end
 			for _, s in ipairs( E2Lib.GetExtensions( true ) ) do ply:PrintMessage( 2, " " .. s ) end
 		else
@@ -509,7 +509,7 @@ do
 		local t = {}
 		local status = not tobool( cmd:find("enable") )
 		for _, n in ipairs( E2Lib.extensions.list ) do
-			if n:find( args ) and E2Lib.extensions.status[ n ] == status then
+			if E2Lib.extensions.status[ n ] == status and n:find( args ) then
 				t[ #t + 1 ] = cmd .. " " .. n
 			end
 		end
@@ -519,17 +519,17 @@ do
 	concommand.Add( "wire_expression2_extension_enable",
 		function( ply, cmd, args )
 		
-			if ply:IsValid() and not ply:IsSuperAdmin() and not game.SinglePlayer() then return end
+			if IsValid( ply ) and not ply:IsSuperAdmin() and not game.SinglePlayer() then return end
 			
 			local name = args[ 1 ]
 			if E2Lib.extensions.status[ name ] ~= nil then
 				if E2Lib.extensions.status[ name ] == true then
 					local str = "Extension '" .. name .. "' is already enabled. Did you remember to reload Expression 2 using the console command 'wire_expression2_reload'?"
-					if ply:IsValid() then ply:PrintMessage( 2, str ) else print( str ) end
+					if IsValid( ply ) then ply:PrintMessage( 2, str ) else print( str ) end
 				else
 					E2Lib.SetExtensionStatus( name, true )
 					local str = "Extension '" .. name .. "' enabled. Now reload Expression 2 using the console command 'wire_expression2_reload'."
-					if ply:IsValid() then ply:PrintMessage( 2, str ) else print( str ) end
+					if IsValid( ply ) then ply:PrintMessage( 2, str ) else print( str ) end
 				end
 			else
 				printExtensions( ply, "Unknown extension '" .. name .. "'. Here is a list of available extensions:" )
@@ -541,17 +541,17 @@ do
 	concommand.Add( "wire_expression2_extension_disable",
 		function( ply, cmd, args )
 		
-			if ply:IsValid() and not ply:IsSuperAdmin() and not game.SinglePlayer() then return end
+			if IsValid( ply ) and not ply:IsSuperAdmin() and not game.SinglePlayer() then return end
 			
 			local name = args[ 1 ]
 			if E2Lib.extensions.status[ name ] ~= nil then
 				if E2Lib.extensions.status[ name ] == false then
 					local str = "Extension '" .. name .. "' is already disabled. Did you remember to reload Expression 2 using the console command 'wire_expression2_reload'?"
-					if ply:IsValid() then ply:PrintMessage( 2, str ) else print( str ) end
+					if IsValid( ply ) then ply:PrintMessage( 2, str ) else print( str ) end
 				else
 					E2Lib.SetExtensionStatus( name, false )
 					local str = "Extension '" .. name .. "' disabled. Now reload Expression 2 using the console command 'wire_expression2_reload'."
-					if ply:IsValid() then ply:PrintMessage( 2, str ) else print( str ) end
+					if IsValid( ply ) then ply:PrintMessage( 2, str ) else print( str ) end
 				end
 			else
 				printExtensions( ply, "Unknown extension '" .. name .. "'. Here is a list of available extensions:" )
