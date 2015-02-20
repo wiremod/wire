@@ -503,6 +503,18 @@ do
 			for _, s in ipairs( E2Lib.GetExtensions( true ) ) do print( " " .. s ) end
 		end
 	end
+
+	local function makeAutoCompleteList( cmd, args )
+		args = args:Trim():lower()
+		local t = {}
+		local status = cmd:find("enable") and false or true
+		for _, n in ipairs( E2Lib.extensions.list ) do
+			if n:find( args ) and E2Lib.extensions.status[ n ] == status then
+				t[ #t + 1 ] = cmd .. " " .. n
+			end
+		end
+		return t
+	end
 	
 	concommand.Add( "wire_expression2_extension_enable",
 		function( ply, cmd, args )
@@ -522,7 +534,8 @@ do
 			else
 				printExtensions( ply, "Unknown extension '" .. name .. "'. Here is a list of available extensions:" )
 			end
-		end
+		end,
+		makeAutoCompleteList
 	)
 
 	concommand.Add( "wire_expression2_extension_disable",
@@ -543,7 +556,8 @@ do
 			else
 				printExtensions( ply, "Unknown extension '" .. name .. "'. Here is a list of available extensions:" )
 			end
-		end
+		end,
+		makeAutoCompleteList
 	)
 	
 end
