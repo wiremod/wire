@@ -311,7 +311,7 @@ e2function void propSetFriction(number mulfric)
 	if not PropCore.ValidAction(self, this, "fric") then return end
 	if E2Lib.isnan( mulfric ) then mulfric = 1 end
 	local mulfric = math.Clamp(mulfric, -100, 100)
-	local phys = this:SetFriction(mulfric)
+	this:SetFriction(mulfric)
 end
 
 e2function void propGetFriction()
