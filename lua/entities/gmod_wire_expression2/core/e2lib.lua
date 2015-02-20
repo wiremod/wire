@@ -446,9 +446,10 @@ do
 		sql.Query( "CREATE TABLE IF NOT EXISTS wire_expression2_extensions (name varchar(255), enabled tinyint)" )
 		sql.Query( "CREATE UNIQUE INDEX name ON wire_expression2_extensions(name)" )
 	else
-		local q = sql.Query( "SELECT * FROM wire_expression2_extensions" )
-		if q then
-			for _, row in ipairs( q ) do
+		local list = sql.Query( "SELECT * FROM wire_expression2_extensions" )
+		if list then
+			for i = 1, #list do
+				local row = list[ i ]
 				E2Lib.extensions.status[ row.name ] = row.enabled == "1" and true or false
 				E2Lib.extensions.list[ #E2Lib.extensions.list + 1 ] = row.name
 				sortExtensionsList = true
@@ -477,8 +478,14 @@ do
 		
 		local l = 0
 		local t = {}
-		for _, n in ipairs( E2Lib.extensions.list ) do if #n > l then l = #n end end
-		for k, n in ipairs( E2Lib.extensions.list ) do t[k] = n .. string.rep( " ", l - #n ) .. "   " .. ( E2Lib.extensions.status[n] and "enabled" or "disabled" ) end
+		local list = E2Lib.extensions.list
+		local count = #list
+		for i = 1, count do if #list[ i ] > l then l = #list[ i ] end end
+		l = l + 3
+		for i = 1, count do
+			local n = list[ i ]
+			t[ i ] = n .. string.rep( " ", l - #n ) .. ( E2Lib.extensions.status[n] and "enabled" or "disabled" )
+		end
 		return t
 	end
 	
@@ -495,20 +502,23 @@ do
 	
 	
 	local function printExtensions( ply, str )
+		local list = E2Lib.GetExtensions( true )
 		if IsValid( ply ) then
 			if str then ply:PrintMessage( 2, str ) end
-			for _, s in ipairs( E2Lib.GetExtensions( true ) ) do ply:PrintMessage( 2, " " .. s ) end
+			for i = 1, #list do ply:PrintMessage( 2, " " .. list[ i ] ) end
 		else
 			if str then print( str ) end
-			for _, s in ipairs( E2Lib.GetExtensions( true ) ) do print( " " .. s ) end
+			for i = 1, #list do print( " " .. list[ i ] ) end
 		end
 	end
 
 	local function makeAutoCompleteList( cmd, args )
 		args = args:Trim():lower()
 		local t = {}
+		local list = E2Lib.extensions.list
 		local status = not tobool( cmd:find( "enable" ) )
-		for _, n in ipairs( E2Lib.extensions.list ) do
+		for i = 1, #list do
+			local n = list[ i ]
 			if E2Lib.extensions.status[ n ] == status and n:find( args ) then
 				t[ #t + 1 ] = cmd .. " " .. n
 			end
