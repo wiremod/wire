@@ -406,7 +406,7 @@ do
 		local hex = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' }
 
 
-		for i = 1, invalid_chars:len() do
+		for i = 1, #invalid_chars do
 			local char = invalid_chars:sub(i, i)
 			enctbl[char] = true
 		end
@@ -419,7 +419,7 @@ do
 			end
 		end
 
-		--for i = 1,valid_chars:len() do
+		--for i = 1, #valid_chars do
 		--	local char = valid_chars:sub(i, i)
 		--	enctbl[char] = char
 		--end
@@ -467,18 +467,18 @@ do
 	end
 	]]
 	
-	function E2Lib.GetExtensions( niceList )
+	function E2Lib.GetExtensions( pretty )
 		if sortExtensionsList then
 			table.sort( E2Lib.extensions.list, function( a, b ) return a < b end )
 			sortExtensionsList = nil
 		end
 		
-		if not niceList then return E2Lib.extensions.list end
+		if not pretty then return E2Lib.extensions.list end
 		
 		local l = 0
 		local t = {}
-		for _, n in ipairs( E2Lib.extensions.list ) do if n:len() > l then l = n:len() end end
-		for k, n in ipairs( E2Lib.extensions.list ) do t[k] = n .. string.rep( " ", l - n:len() ) .. "   " .. ( E2Lib.extensions.status[n] and "enabled" or "disabled" ) end
+		for _, n in ipairs( E2Lib.extensions.list ) do if #n > l then l = #n end end
+		for k, n in ipairs( E2Lib.extensions.list ) do t[k] = n .. string.rep( " ", l - #n ) .. "   " .. ( E2Lib.extensions.status[n] and "enabled" or "disabled" ) end
 		return t
 	end
 	
@@ -507,7 +507,7 @@ do
 	local function makeAutoCompleteList( cmd, args )
 		args = args:Trim():lower()
 		local t = {}
-		local status = not tobool( cmd:find("enable") )
+		local status = not tobool( cmd:find( "enable" ) )
 		for _, n in ipairs( E2Lib.extensions.list ) do
 			if E2Lib.extensions.status[ n ] == status and n:find( args ) then
 				t[ #t + 1 ] = cmd .. " " .. n
@@ -518,9 +518,7 @@ do
 	
 	concommand.Add( "wire_expression2_extension_enable",
 		function( ply, cmd, args )
-		
 			if IsValid( ply ) and not ply:IsSuperAdmin() and not game.SinglePlayer() then return end
-			
 			local name = args[ 1 ]
 			if name then
 				if E2Lib.extensions.status[ name ] ~= nil then
@@ -532,21 +530,15 @@ do
 						local str = "Extension '" .. name .. "' enabled. Now reload Expression 2 using the console command 'wire_expression2_reload'."
 						if IsValid( ply ) then ply:PrintMessage( 2, str ) else print( str ) end
 					end
-				else
-					printExtensions( ply, "Unknown extension '" .. name .. "'. Here is a list of available extensions:" )
-				end
-			else
-				printExtensions( ply, "Available extensions:" )
-			end
+				else printExtensions( ply, "Unknown extension '" .. name .. "'. Here is a list of available extensions:" ) end
+			else printExtensions( ply, "Available extensions:" ) end
 		end,
 		makeAutoCompleteList
 	)
 
 	concommand.Add( "wire_expression2_extension_disable",
 		function( ply, cmd, args )
-		
 			if IsValid( ply ) and not ply:IsSuperAdmin() and not game.SinglePlayer() then return end
-			
 			local name = args[ 1 ]
 			if name then
 				if E2Lib.extensions.status[ name ] ~= nil then
@@ -558,12 +550,8 @@ do
 						local str = "Extension '" .. name .. "' disabled. Now reload Expression 2 using the console command 'wire_expression2_reload'."
 						if IsValid( ply ) then ply:PrintMessage( 2, str ) else print( str ) end
 					end
-				else
-					printExtensions( ply, "Unknown extension '" .. name .. "'. Here is a list of available extensions:" )
-				end
-			else
-				printExtensions( ply, "Available extensions:" )
-			end
+				else printExtensions( ply, "Unknown extension '" .. name .. "'. Here is a list of available extensions:" ) end
+			else printExtensions( ply, "Available extensions:" ) end
 		end,
 		makeAutoCompleteList
 	)
