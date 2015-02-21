@@ -33,9 +33,9 @@ function ENT:_EGP_Update( bool )
 			elseif ((!v.parent or v.parent == 0) and v.IsParented) then
 				EGP:UnParent( self, v.index )
 			end
-			local oldtex = EGP:SetMaterial( v.material, self )
+			local oldtex = EGP:SetMaterial( v.material )
 			v:Draw(self)
-			EGP:FixMaterial( oldtex, self )
+			EGP:FixMaterial( oldtex )
 		end
 	end)
 end

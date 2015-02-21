@@ -69,9 +69,9 @@ hook.Add("Initialize","EGP_HUD_Initialize",function()
 						Ent.HasUpdatedThisFrame = nil
 						if (Ent.RenderTable and #Ent.RenderTable > 0) then
 							for _,object in pairs( Ent.RenderTable ) do
-								local oldtex = EGP:SetMaterial( object.material, Ent )
+								local oldtex = EGP:SetMaterial( object.material )
 								object:Draw(Ent)
-								EGP:FixMaterial( oldtex, Ent )
+								EGP:FixMaterial( oldtex )
 
 								-- Check for 3DTracker parent
 								if (!Ent.HasUpdatedThisFrame and object.parent) then

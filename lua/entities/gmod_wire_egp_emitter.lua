@@ -48,10 +48,10 @@ if CLIENT then
 			cam.Start3D2D( pos , ang , 0.25 )
 				for i=1,#self.RenderTable do
 					local object = self.RenderTable[i]
-					local oldtex = EGP:SetMaterial( object.material, self )
+					local oldtex = EGP:SetMaterial( object.material )
 
 					object:Draw(self)
-					EGP:FixMaterial( oldtex, self )
+					EGP:FixMaterial( oldtex )
 				end
 			cam.End3D2D()
 		end
