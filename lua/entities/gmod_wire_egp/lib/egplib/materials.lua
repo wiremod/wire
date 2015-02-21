@@ -43,7 +43,7 @@ if (CLIENT) then
 	local GetTextureID = surface.GetTextureID
 	local NoTexture = draw.NoTexture
 
-	function EGP:SetMaterial( Mat )
+	function EGP:SetMaterial( Mat, egp_entity )
 		if type(Mat) == "IMaterial" then
 			SetMaterial( Mat )
 		elseif isentity(Mat) then
@@ -57,7 +57,7 @@ if (CLIENT) then
 		end
 	end
 	
-	function EGP:FixMaterial( OldTex )
+	function EGP:FixMaterial( OldTex, egp_entity )
 		if (!OldTex) then return end
 		WireGPU_matScreen:SetTexture("$basetexture", OldTex)
 	end
