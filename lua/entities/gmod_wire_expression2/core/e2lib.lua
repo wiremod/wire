@@ -451,7 +451,7 @@ do
 			for i = 1, #list do
 				local row = list[ i ]
 				E2Lib.extensions.status[ row.name ] = row.enabled == "1" and true or false
-				E2Lib.extensions.list[ #E2Lib.extensions.list + 1 ] = row.name
+				E2Lib.extensions.list[ i ] = row.name
 			end
 		end
 	end
@@ -483,7 +483,7 @@ do
 		l = l + 3
 		for i = 1, count do
 			local n = list[ i ]
-			t[ i ] = n .. string.rep( " ", l - #n ) .. ( E2Lib.extensions.status[n] and "enabled" or "disabled" )
+			t[ i ] = n .. string.rep( " ", l - #n ) .. ( E2Lib.extensions.status[ n ] and "enabled" or "disabled" )
 		end
 		return t
 	end
@@ -514,12 +514,14 @@ do
 	local function makeAutoCompleteList( cmd, args )
 		args = args:Trim():lower()
 		local t = {}
-		local list = E2Lib.extensions.list
+		local list = E2Lib.GetExtensions()
 		local status = not tobool( cmd:find( "enable" ) )
+		local j = 1
 		for i = 1, #list do
 			local n = list[ i ]
 			if E2Lib.extensions.status[ n ] == status and n:find( args ) then
-				t[ #t + 1 ] = cmd .. " " .. n
+				t[ j ] = cmd .. " " .. n
+				j = j + 1
 			end
 		end
 		return t
