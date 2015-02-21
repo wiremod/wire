@@ -450,13 +450,13 @@ do
 			E2Lib.extensions.list[ i ] = row.name
 		end
 	else
-		sql.Query( "CREATE TABLE wire_expression2_extensions ( name VARCHAR(32), enabled BOOLEAN )"  )
+		sql.Query( "CREATE TABLE wire_expression2_extensions ( name VARCHAR(32), enabled BOOLEAN )" )
 		sql.Query( "CREATE UNIQUE INDEX name ON wire_expression2_extensions ( name )" )
 	end
-
+	
 	function E2Lib.SetExtensionStatus( name, status )
 		E2Lib.extensions.status[ name ] = status
-		sql.Query( "REPLACE INTO wire_expression2_extensions (name, enabled) VALUES (" .. sql.SQLStr( name ) .. ", " .. ( status and 1 or 0 ) .. ")" )
+		sql.Query( "REPLACE INTO wire_expression2_extensions ( name, enabled ) VALUES ( " .. sql.SQLStr( name ) .. ", " .. ( status and 1 or 0 ) .. " )" )
 	end
 
 	--[[ useless yet
