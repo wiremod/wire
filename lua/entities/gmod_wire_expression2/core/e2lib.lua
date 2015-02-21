@@ -530,8 +530,8 @@ do
 		if IsValid( ply ) and not ply:IsSuperAdmin() and not game.SinglePlayer() then return end
 		local name = args[ 1 ]
 		if name then
-			local status = tobool( cmd:find( "enable" ) )
 			if E2Lib.extensions.status[ name ] ~= nil then
+				local status = tobool( cmd:find( "enable" ) )
 				if E2Lib.extensions.status[ name ] == status then
 					local str = "Extension '" .. name .. "' is already " .. ( status and "enabled" or "disabled" ) .. ". Did you remember to reload Expression 2 using the console command 'wire_expression2_reload'?"
 					if IsValid( ply ) then ply:PrintMessage( 2, str ) else print( str ) end
