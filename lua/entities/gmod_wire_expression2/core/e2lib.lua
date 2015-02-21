@@ -442,23 +442,21 @@ do
 	E2Lib.extensions = { status = {}, list = {} }
 	local sortExtensionsList = true
 
-	if not sql.TableExists( "wire_expression2_extensions" ) then
-		sql.Query( "CREATE TABLE IF NOT EXISTS wire_expression2_extensions (name varchar(255), enabled tinyint)" )
-		sql.Query( "CREATE UNIQUE INDEX name ON wire_expression2_extensions(name)" )
-	else
-		local list = sql.Query( "SELECT * FROM wire_expression2_extensions" )
-		if list then
-			for i = 1, #list do
-				local row = list[ i ]
-				E2Lib.extensions.status[ row.name ] = row.enabled == "1" and true or false
-				E2Lib.extensions.list[ i ] = row.name
-			end
+	local list = sql.Query( "SELECT * FROM wire_expression2_extensions" )
+	if list then
+		for i = 1, #list do
+			local row = list[ i ]
+			E2Lib.extensions.status[ row.name ] = row.enabled == "1" and true or false
+			E2Lib.extensions.list[ i ] = row.name
 		end
+	else
+		sql.Query( "CREATE TABLE wire_expression2_extensions ( name VARCHAR(32), enabled BOOLEAN )"  )
+		sql.Query( "CREATE UNIQUE INDEX name ON wire_expression2_extensions ( name )" )
 	end
 
 	function E2Lib.SetExtensionStatus( name, status )
 		E2Lib.extensions.status[ name ] = status
-		sql.Query( string.format( "REPLACE INTO wire_expression2_extensions (name, enabled) VALUES (%s, %d)", sql.SQLStr( name ), status and 1 or 0 ) )
+		sql.Query( "REPLACE INTO wire_expression2_extensions (name, enabled) VALUES (" .. sql.SQLStr( name ) .. ", " .. ( status and 1 or 0 ) .. ")" )
 	end
 
 	--[[ useless yet
