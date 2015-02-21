@@ -440,7 +440,7 @@ end
 
 do
 	E2Lib.extensions = { status = {}, list = {} }
-	local sortExtensionsList
+	local sortExtensionsList = true
 
 	if not sql.TableExists( "wire_expression2_extensions" ) then
 		sql.Query( "CREATE TABLE IF NOT EXISTS wire_expression2_extensions (name varchar(255), enabled tinyint)" )
@@ -452,7 +452,6 @@ do
 				local row = list[ i ]
 				E2Lib.extensions.status[ row.name ] = row.enabled == "1" and true or false
 				E2Lib.extensions.list[ #E2Lib.extensions.list + 1 ] = row.name
-				sortExtensionsList = true
 			end
 		end
 	end
