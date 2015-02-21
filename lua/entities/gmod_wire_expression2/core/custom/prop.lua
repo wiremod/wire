@@ -312,7 +312,7 @@ e2function void entity:propSetFriction(number friction)
 	this:SetFriction(friction)
 end
 
-e2function void entity:propGetFriction()
+e2function number entity:propGetFriction()
 	if not PropCore.ValidAction(self, this, "friction") then return end
 	return this:GetFriction()
 end
