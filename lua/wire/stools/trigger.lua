@@ -54,7 +54,7 @@ if CLIENT then
 
 end
 function TOOL:GetConVars()
-	return self:GetClientNumber( "model" ), self:GetClientNumber( "filter" ), self:GetClientNumber( "owneronly" ), self:GetClientNumber( "sizex" ), self:GetClientNumber( "sizey" ), self:GetClientNumber( "sizez" ), self:GetClientNumber( "offsetx" ), self:GetClientNumber( "offsety" ), self:GetClientNumber( "offsetz" )
+	return self:GetClientInfo( "model" ), self:GetClientNumber( "filter" ), self:GetClientNumber( "owneronly" ), self:GetClientNumber( "sizex" ), self:GetClientNumber( "sizey" ), self:GetClientNumber( "sizez" ), self:GetClientNumber( "offsetx" ), self:GetClientNumber( "offsety" ), self:GetClientNumber( "offsetz" )
 end
 
 local function DrawTriggerOutlines( list )
