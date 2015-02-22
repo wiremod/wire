@@ -5,7 +5,7 @@ if not glon then pcall(require,"glon") end
 local last_glon_error = ""
 
 -- GLON output validation
-local DEFAULT = {n={},ntypes={},s={},stypes={},size=0,depth=0}
+local DEFAULT = {n={},ntypes={},s={},stypes={},size=0}
 
 --[[
 wire_expression2_glon = {}
@@ -37,6 +37,17 @@ local function logGlonCall( self, glonString, ret, safeGlonObject )
 end
 ]]
 
+-- converts a lua variable's type to a wire typeid
+local function luaTypeToWireTypeid( v )
+	local typename = type( v )
+
+	-- special check for number
+	if typename == "number" then typename = "normal" end
+
+	-- convert full type name to typeid
+	return wire_expression_types[ string.upper( typename ) ][1]
+end
+
 local forbiddenTypes = {
 	["xgt"] = true,
 	["xwl"] = true
@@ -49,7 +60,7 @@ local function sanitizeGlonOutput ( self, glonOutputObject, objectType, safeGlon
 
 	if not objectType then return nil end
 	if forbiddenTypes[objectType] then return nil end
-	if not wire_expression_types2[objectType] then return nil end
+	if not wire_expression_types2[objectType] and not objecType == "external_t" then return nil end
 
 	safeGlonObjectMap = safeGlonObjectMap or {
 		r = {},
@@ -102,6 +113,7 @@ typeSanitizers = {
 						if safeObject then
 							safeTable.s[tostring(k)] = safeObject
 							safeTable.stypes[tostring(k)] = objectType
+							safeTable.size = safeTable.size + 1
 						end
 					end
 				end
@@ -114,12 +126,11 @@ typeSanitizers = {
 							if safeObject then
 								safeTable.n[k] = safeObject
 								safeTable.ntypes[k] = objectType
+								safeTable.size = safeTable.size + 1
 							end
 						end
 					end
 				end
-
-				safeTable.size = table.Count(safeTable.s) + #safeTable.n
 
 				return safeTable
 			end,
@@ -134,7 +145,30 @@ typeSanitizers = {
 				end
 
 				return safeValue
-			end
+			end,
+	["external_t"] = function ( self, glonOutputObject, safeGlonObjectMap )
+				if safeGlonObjectMap["t"][glonOutputObject] then
+					return safeGlonObjectMap["t"][glonOutputObject]
+				end
+
+				local safeTable = {}
+				if not glonOutputObject then return safeTable end
+				safeGlonObjectMap["t"][glonOutputObject] = safeTable
+
+				if !istable(glonOutputObject) then return safeTable end
+
+				for k, v in pairs(glonOutputObject) do
+					local objectType = luaTypeToWireTypeid( v )
+					if objectType == "t" then objectType = "external_t" end
+
+					local safeObject = sanitizeGlonOutput( self, v, objectType, safeGlonObjectMap )
+					if safeObject then
+						safeTable[k] = safeObject
+					end
+				end
+
+				return safeTable
+			end,
 }
 
 -- Default sanitizer for types that are arrays of numbers
@@ -168,7 +202,7 @@ __e2setcost(10)
 --- Encodes <data> into a string, using [[GLON]].
 e2function string glonEncode(array data)
 	if not glon then
-		error( "Glon is not installed on this server. Please use von instead.", 0 )
+		error( "Glon is not installed on this server. Please use von or json instead.", 0 )
 	end
 
 	local ok, ret = pcall(glon.encode, data)
@@ -188,10 +222,10 @@ end
 --- Decodes <data> into an array, using [[GLON]].
 e2function array glonDecode(string data)
 	if not glon then
-		error( "Glon is not installed on this server. Please use von instead.", 0 )
+		error( "Glon is not installed on this server. Please use von or json instead.", 0 )
 	end
 
-	if not data then return {} end
+	if not data or data == "" then return {} end
 
 	self.prf = self.prf + #data / 2
 
@@ -210,7 +244,7 @@ end
 
 e2function string glonError()
 	if not glon then
-		error( "Glon is not installed on this server. Please use von instead.", 0 )
+		error( "Glon is not installed on this server. Please use von or json instead.", 0 )
 	end
 
 	return last_glon_error or ""
@@ -245,10 +279,10 @@ __e2setcost(25)
 -- decodes a glon string and returns an table
 e2function table glonDecodeTable(string data)
 	if not glon then
-		error( "Glon is not installed on this server. Please use von instead.", 0 )
+		error( "Glon is not installed on this server. Please use von or json instead.", 0 )
 	end
 
-	if not data then return table.Copy(DEFAULT) end
+	if not data or data == "" then return table.Copy(DEFAULT) end
 
 	self.prf = self.prf + #data / 2
 
@@ -288,7 +322,7 @@ end
 
 --- Decodes <data> into an array, using [[von]].
 e2function array vonDecode(string data)
-	if not data then return {} end
+	if not data or data == "" then return {} end
 
 	self.prf = self.prf + #data / 2
 
@@ -304,6 +338,7 @@ e2function array vonDecode(string data)
 	return safeArray or {}
 end
 
+__e2setcost(1)
 e2function string vonError()
 	return last_von_error or ""
 end
@@ -317,7 +352,7 @@ __e2setcost(25)
 
 -- decodes a glon string and returns an table
 e2function table vonDecodeTable(string data)
-	if not data then return table.Copy(DEFAULT) end
+	if not data or data == "" then return table.Copy(DEFAULT) end
 
 	self.prf = self.prf + #data / 2
 
@@ -331,3 +366,166 @@ e2function table vonDecodeTable(string data)
 	local safeTable = sanitizeGlonOutput( self, ret, "t" )
 	return safeTable or table.Copy(DEFAULT)
 end
+
+---------------------------------------------------------------------------
+-- json
+---------------------------------------------------------------------------
+
+local last_json_error
+
+__e2setcost(10)
+
+local function jsonEncode( self, data, prettyprint )
+	local ok, ret = pcall(util.TableToJSON, data, prettyprint ~= 0)
+	if not ok then
+		last_json_error = ret
+		WireLib.ClientError("jsonEncode error: "..ret, self.player)
+		return ""
+	end
+
+	if ret then
+		self.prf = self.prf + #ret / 2
+	end
+
+	return ret or ""
+end
+
+e2function string jsonEncode( array data, prettyprint ) return jsonEncode( self, data, prettyprint ) end
+e2function string jsonEncode( array data ) return jsonEncode( self, data, 0 ) end
+e2function string jsonEncode( table data, prettyprint ) return jsonEncode( self, data, prettyprint ) end
+e2function string jsonEncode( table data ) return jsonEncode( self, data, 0 ) end
+
+__e2setcost(1)
+e2function string jsonError()
+	return last_json_error or ""
+end
+
+local function jsonDecode( self, data, tp )
+	if not data or data == "" then return {} end
+
+	self.prf = self.prf + #data / 2
+
+	local ok, ret = pcall(util.JSONToTable, data)
+
+	if not ok then
+		last_json_error = ret
+		WireLib.ClientError("jsonDecode error: "..ret, self.player)
+		return {}
+	end
+
+	local safeArray = sanitizeGlonOutput( self, ret, tp )
+	return safeArray or {}
+end
+
+__e2setcost(25)
+
+e2function array jsonDecode( string data ) return jsonDecode( self, data, "r" ) end
+e2function table jsonDecodeTable( string data ) return jsonDecode( self, data, "t" ) end
+
+__e2setcost(50)
+
+local function jsonEncodeExternal_recurse( self, data, tp, copied_tables )
+	local luatable = {}
+	copied_tables[data] = luatable
+
+	local e2types = wire_expression_types2
+
+	for k,v in pairs( data.n ) do
+		self.prf = self.prf + 0.3
+
+		if data.ntypes[k] == "r" then
+			-- skip arrays, we can't encode them properly because ambiguous types
+			v = nil
+		elseif data.ntypes[k] == "t" then
+			if copied_tables[v] then
+				v = copied_tables[v]
+			else
+				v = jsonEncodeExternal_recurse( self, v, data.ntypes[k], copied_tables )
+			end
+
+		-- convert from E2 type to Lua type
+		elseif e2types[data.ntypes[k]] and e2types[data.ntypes[k]][4] then
+			v = e2types[data.ntypes[k]][4]( self, v )
+		end
+
+		luatable[k] = v
+	end
+
+	for k,v in pairs( data.s ) do
+		self.prf = self.prf + 0.3
+		
+		if data.ntypes[k] == "r" then
+			-- skip arrays, we can't encode them properly because E2 has many ambiguous types
+			-- and arrays don't keep track of those types
+			v = nil
+		elseif data.ntypes[k] == "t" then
+			if copied_tables[v] then
+				v = copied_tables[v]
+			else
+				v = jsonEncodeExternal_recurse( self, v, data.stypes[k], copied_tables )
+			end
+
+		-- convert from E2 type to Lua type
+		elseif e2types[data.stypes[k]] and e2types[data.stypes[k]][4] then
+			v = e2types[data.stypes[k]][4]( self, v )
+		end
+
+		luatable[k] = v
+	end
+
+	return luatable
+end
+
+local function jsonEncodeExternal( self, data, prettyprint )
+	local copied_tables = {}
+	local luatable = jsonEncodeExternal_recurse( self, data, "external_t", copied_tables )
+	return jsonEncode( self, luatable, prettyprint )
+end
+
+-- Used to encode an E2 table to a Lua table, so that it can be used by external resources properly.
+e2function string jsonEncodeExternal( table data ) return jsonEncodeExternal( self, data, 0 ) end
+e2function string jsonEncodeExternal( table data, prettyprint ) return jsonEncodeExternal( self, data, prettyprint ) end
+
+local function jsonDecodeTableExternal_recurse( self, luatable, copied_tables )
+	local e2table = table.Copy(DEFAULT)
+
+	local wire_expression_types = wire_expression_types
+
+	for k,v in pairs( luatable ) do
+		local typeid = luaTypeToWireTypeid( v )
+
+		-- if it's a table, recurse through it and convert all the tables it contains
+		if typeid == "t" then
+			local val = v
+			v = table.Copy(DEFAULT)
+
+			if copied_tables[val] then
+				v = copied_tables[val]
+			else
+				v = jsonDecodeTableExternal_recurse( self, val, copied_tables )
+			end
+		end
+
+		if type(k) == "number" then
+			e2table.ntypes[k] = typeid
+			e2table.n[k] = v
+			e2table.size = e2table.size + 1
+		elseif type(k) == "string" then
+			e2table.stypes[k] = typeid
+			e2table.s[k] = v
+			e2table.size = e2table.size + 1
+		end
+	end
+
+	self.prf = self.prf + 0.3 * e2table.size
+
+	return e2table
+end
+
+e2function table jsonDecodeTableExternal( string data )
+	local luatable = jsonDecode( self, data, "external_t" )
+	local copied_tables = {}
+	return jsonDecodeTableExternal_recurse( self, luatable, copied_tables )
+end
+
+__e2setcost(nil)
