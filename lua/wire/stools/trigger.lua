@@ -68,7 +68,10 @@ local function DrawTriggerOutlines( list )
 	cam.End3D()
 end
 
-hook.Add( "HUDPaint", "wire_trigger_draw_all_triggers", function() 
+hook.Add( "HUDPaint", "wire_trigger_draw_all_triggers", function()
+	if DrawOutline:GetBool() then
+		DrawTriggerOutlines( ents.FindByClass( "gmod_wire_trigger" ) )
+	end
 end )
 
 function TOOL:DrawHUD()
@@ -76,8 +79,6 @@ function TOOL:DrawHUD()
 	local ent = tr.Entity
 	if IsValid( ent ) and ent:GetClass() == "gmod_wire_trigger" and not DrawOutline:GetBool() then
 		DrawTriggerOutlines( {ent} )
-	elseif DrawOutline:GetBool() then
-		DrawTriggerOutlines( ents.FindByClass( "gmod_wire_trigger" ) )
 	end
 end
 function TOOL:RightClick( tr )
