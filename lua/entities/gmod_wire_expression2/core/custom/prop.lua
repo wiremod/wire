@@ -307,6 +307,13 @@ e2function void entity:propSetBuoyancy(number bratio)
 	end
 end
 
+e2function void entity:propMakePersistent(number persistent)
+	if not PropCore.ValidAction(self, this, "persist") then return end
+	if GetConVarString("sbox_persist") == "0" then return end
+	if not gamemode.Call("CanProperty", self.player, "persist", this) then return end
+	this:SetPersistent(persistent ~= 0)
+end
+
 --------------------------------------------------------------------------------
 
 e2function void entity:setPos(vector pos)
