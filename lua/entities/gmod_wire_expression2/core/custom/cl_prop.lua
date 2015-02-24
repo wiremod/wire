@@ -8,7 +8,6 @@ E2Helper.Descriptions["propDelete"] = "Removes the given entity(s). Returns how 
 E2Helper.Descriptions["propFreeze"] = "Passing 0 unfreezes the entity, everything else freezes it."
 E2Helper.Descriptions["propNotSolid"] = "Passing 0 makes the entity solid, everything else makes it non-solid."
 E2Helper.Descriptions["propGravity"] = "Passing 0 makes the entity weightless, everything else makes it weighty."
-E2Helper.Descriptions["propMakePersistent"] = "Setting to 1 will make the prop persistent."
 E2Helper.Descriptions["setPos"] = "Sets the position of an entity."
 E2Helper.Descriptions["reposition"] = "Deprecated. Kept for backwards-compatibility."
 E2Helper.Descriptions["setAng"] = "Set the rotation of an entity."
@@ -23,3 +22,6 @@ E2Helper.Descriptions["propShadow"] = "Passing 0 disables rendering for the enti
 E2Helper.Descriptions["propSetBuoyancy"] = "Sets the prop's buoyancy ratio from 0 to 1"
 E2Helper.Descriptions["propSpawnUndo"] = "Set to 0 to force prop removal on E2 shutdown, and suppress Undo entries for props."
 E2Helper.Descriptions["propDeleteAll"] = "Removes all entities spawned by this E2"
+E2Helper.Descriptions["propSetFriction"] = "Sets prop's friction coefficient ( normal is 1 )"
+E2Helper.Descriptions["propGetFriction"] = "Gets prop's friction coefficient"
+
