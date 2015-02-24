@@ -48,6 +48,12 @@ local function luaTypeToWireTypeid( v )
 	return wire_expression_types[ string.upper( typename ) ][1]
 end
 
+local function glon_not_installed()
+	if not glon then
+		error( "Glon is not installed on this server. Please use von or json instead.", 0 )
+	end
+end
+
 local forbiddenTypes = {
 	["xgt"] = true,
 	["xwl"] = true
@@ -201,9 +207,7 @@ __e2setcost(10)
 
 --- Encodes <data> into a string, using [[GLON]].
 e2function string glonEncode(array data)
-	if not glon then
-		error( "Glon is not installed on this server. Please use von or json instead.", 0 )
-	end
+	glon_not_installed()
 
 	local ok, ret = pcall(glon.encode, data)
 	if not ok then
@@ -221,9 +225,7 @@ end
 
 --- Decodes <data> into an array, using [[GLON]].
 e2function array glonDecode(string data)
-	if not glon then
-		error( "Glon is not installed on this server. Please use von or json instead.", 0 )
-	end
+	glon_not_installed()
 
 	if not data or data == "" then return {} end
 
@@ -243,9 +245,7 @@ e2function array glonDecode(string data)
 end
 
 e2function string glonError()
-	if not glon then
-		error( "Glon is not installed on this server. Please use von or json instead.", 0 )
-	end
+	glon_not_installed()
 
 	return last_glon_error or ""
 end
@@ -278,9 +278,7 @@ __e2setcost(25)
 
 -- decodes a glon string and returns an table
 e2function table glonDecodeTable(string data)
-	if not glon then
-		error( "Glon is not installed on this server. Please use von or json instead.", 0 )
-	end
+	glon_not_installed()
 
 	if not data or data == "" then return table.Copy(DEFAULT) end
 
@@ -477,6 +475,7 @@ end
 e2function string jsonEncode( table data ) return jsonEncode_start( self, data, 0 ) end
 e2function string jsonEncode( table data, prettyprint ) return jsonEncode_start( self, data, prettyprint ) end
 
+-- this function converts a lua table into an E2 table
 local function jsonDecode_recurse( self, luatable, copied_tables )
 	local e2table = table.Copy(DEFAULT)
 
