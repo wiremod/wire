@@ -301,7 +301,7 @@ e2function void entity:propSetBuoyancy(number buoyancy)
 	if not PropCore.ValidAction(self, this, "buoyancy") then return end
 	local buoyancy = math.Clamp(buoyancy, 0, 1)
 	local phys = this:GetPhysicsObject()
-	if IsValid(phys) then
+	if IsValid( phys ) then
 		phys:SetBuoyancyRatio(buoyancy)
 	end
 end
