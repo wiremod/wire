@@ -373,8 +373,7 @@ end
 
 local last_json_error
 
-__e2setcost(10)
-
+-- this encodes the table into json
 local function jsonEncode( self, data, prettyprint )
 	local ok, ret = pcall(util.TableToJSON, data, prettyprint ~= 0)
 	if not ok then
@@ -390,16 +389,7 @@ local function jsonEncode( self, data, prettyprint )
 	return ret or ""
 end
 
-e2function string jsonEncode( array data, prettyprint ) return jsonEncode( self, data, prettyprint ) end
-e2function string jsonEncode( array data ) return jsonEncode( self, data, 0 ) end
-e2function string jsonEncode( table data, prettyprint ) return jsonEncode( self, data, prettyprint ) end
-e2function string jsonEncode( table data ) return jsonEncode( self, data, 0 ) end
-
-__e2setcost(1)
-e2function string jsonError()
-	return last_json_error or ""
-end
-
+-- this decodes the json string into a table
 local function jsonDecode( self, data, tp )
 	if not data or data == "" then return {} end
 
@@ -417,14 +407,15 @@ local function jsonDecode( self, data, tp )
 	return safeArray or {}
 end
 
-__e2setcost(25)
-
-e2function array jsonDecode( string data ) return jsonDecode( self, data, "r" ) end
-e2function table jsonDecodeTable( string data ) return jsonDecode( self, data, "t" ) end
+__e2setcost(1)
+e2function string jsonError()
+	return last_json_error or ""
+end
 
 __e2setcost(50)
 
-local function jsonEncodeExternal_recurse( self, data, tp, copied_tables )
+-- this function converts an E2 table into a Lua table (drops arrays)
+local function jsonEncode_recurse( self, data, tp, copied_tables )
 	local luatable = {}
 	copied_tables[data] = luatable
 
@@ -476,17 +467,17 @@ local function jsonEncodeExternal_recurse( self, data, tp, copied_tables )
 	return luatable
 end
 
-local function jsonEncodeExternal( self, data, prettyprint )
+local function jsonEncode_start( self, data, prettyprint )
 	local copied_tables = {}
-	local luatable = jsonEncodeExternal_recurse( self, data, "external_t", copied_tables )
+	local luatable = jsonEncode_recurse( self, data, "external_t", copied_tables )
 	return jsonEncode( self, luatable, prettyprint )
 end
 
 -- Used to encode an E2 table to a Lua table, so that it can be used by external resources properly.
-e2function string jsonEncodeExternal( table data ) return jsonEncodeExternal( self, data, 0 ) end
-e2function string jsonEncodeExternal( table data, prettyprint ) return jsonEncodeExternal( self, data, prettyprint ) end
+e2function string jsonEncode( table data ) return jsonEncode_start( self, data, 0 ) end
+e2function string jsonEncode( table data, prettyprint ) return jsonEncode_start( self, data, prettyprint ) end
 
-local function jsonDecodeTableExternal_recurse( self, luatable, copied_tables )
+local function jsonDecode_recurse( self, luatable, copied_tables )
 	local e2table = table.Copy(DEFAULT)
 
 	local wire_expression_types = wire_expression_types
@@ -522,10 +513,10 @@ local function jsonDecodeTableExternal_recurse( self, luatable, copied_tables )
 	return e2table
 end
 
-e2function table jsonDecodeTableExternal( string data )
+e2function table jsonDecode( string data )
 	local luatable = jsonDecode( self, data, "external_t" )
 	local copied_tables = {}
-	return jsonDecodeTableExternal_recurse( self, luatable, copied_tables )
+	return jsonDecode_recurse( self, luatable, copied_tables )
 end
 
 __e2setcost(nil)
