@@ -28,7 +28,7 @@ local function isAllowed( self )
 	return true
 end
 
-registerType("effect", "ef", nil,
+registerType("effect", "xef", nil,
 	nil,
 	nil,
 	function(retval)
@@ -43,7 +43,7 @@ registerType("effect", "ef", nil,
 
 __e2setcost(1)
 
-registerOperator("ass", "ef", "ef", function(self, args)
+registerOperator("ass", "xef", "xef", function(self, args)
 	local lhs, op2, scope = args[2], args[3], args[4]
 	local rhs = op2[1](self, op2)
 
