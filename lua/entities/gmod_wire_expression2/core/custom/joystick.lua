@@ -101,7 +101,7 @@ e2function void joystickRefresh()
 end
 
 e2function void joystickSetActive(enum, on)
-	setJoystickStream(self.player, enum, on)
+	setJoystickStream(self, self.player, enum, on)
 end
 
 e2function void entity:joystickSetActive(enum, on)
@@ -181,18 +181,18 @@ e2function array entity:joystickPOVData(enum)
 end
 
 registerCallback( "destruct", function( self )
-	if not IsValid(self.player) then joysticks[self.player] = nil end
+	if not IsValid(self.player) then joystickdata[self.player] = nil end
 	if joystickdata[self.player] then
 		joystickdata[self.player].Ref[self] = nil
 		if not next(joystickdata[self.player].Ref) then
-			setJoystickStream(self.player,1,0)
+			setJoystickStream(self, self.player,1,0)
 		end
 	end
 	
 	for k, v in pairs(joystickdata) do
 		if v.chip == self then
 			if v.player then
-				setJoystickStream(v.player,1,0)
+				setJoystickStream(v.chip, v.player,1,0)
 			end
 			joystickdata[k] = nil
 		end
