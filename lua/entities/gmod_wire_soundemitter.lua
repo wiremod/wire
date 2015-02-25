@@ -25,7 +25,7 @@ function ENT:Initialize()
 
 	self.Inputs = WireLib.CreateInputs(self, { "A", "Toggle", "Volume", "Play", "Stop",
 		"PitchRelative", "Sample", "SampleName [STRING]" })
-	self.Outputs = Wire_CreateOutputs(self, { "Duration", "Property Sound", "Properties [ARRAY]", "Memory" })
+	self.Outputs = WireLib.CreateOutputs(self, { "Duration", "Property Sound", "Properties [ARRAY]", "Memory" })
 
 	self.Samples = table.Copy(DefaultSamples)
 
@@ -48,15 +48,34 @@ function ENT:OnRemove()
 	self.BaseClass.OnRemove(self)
 end
 
+--[[
+	readcells:
+	0: active
+	1: volume
+	2: pitchrelative
+	3: duration
+]]
 function ENT:ReadCell(address)
-	return nil
+	if address == 0 then
+		return self.Active and 1 or 0
+	elseif address == 1 then
+		return self.Volume / 100
+	elseif address == 2 then
+		return self.Pitch / 100
+	elseif address == 3 then
+		return self.Outputs.Duration.Value
+	end
 end
 
+
+-- writecells:
 local cellsOut = {
 	[0] = "A",
 	[1] = "Volume",
 	[2] = "PitchRelative",
-	[3] = "Sample"
+	[3] = "Sample",
+	[4] = "Play",
+	[5] = "Stop",
 }
 
 function ENT:WriteCell(address, value)
