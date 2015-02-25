@@ -34,7 +34,8 @@ function ENT:StartTouch( ent )
 	if not IsValid( owner ) then return end
 	if ent == owner then return end -- this never happens but just in case...
 	if owner:GetFilter() == 1 and not ent:IsPlayer() or owner:GetFilter() == 2 and ent:IsPlayer() then return end
-	if owner:GetOwnerOnly() and WireLib.GetOwner( ent ) ~= WireLib.GetOwner( owner ) then return end
+	local ply = ent:IsPlayer() and ent
+	if owner:GetOwnerOnly() and ( WireLib.GetOwner( ent ) or ply ) ~= WireLib.GetOwner( owner ) then return end
 
 	self.EntsInside[ #self.EntsInside+1 ] = ent
 	self.EntsLookup[ ent ] = #self.EntsInside
