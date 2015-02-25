@@ -297,14 +297,22 @@ e2function void entity:propDrag( number drag )
 	end
 end
 
-e2function void entity:propSetBuoyancy(number bratio)
-	if not PropCore.ValidAction(self, this, "buoy") then return end
-	if E2Lib.isnan( bratio ) then bratio = 0 end
-	local bratio = math.Clamp(bratio, 0, 1)
+e2function void entity:propSetBuoyancy(number buoyancy)
+	if not PropCore.ValidAction(self, this, "buoyancy") then return end
 	local phys = this:GetPhysicsObject()
 	if IsValid( phys ) then
-		phys:SetBuoyancyRatio(bratio)
+		phys:SetBuoyancyRatio( math.Clamp(buoyancy, 0, 1) )
 	end
+end
+
+e2function void entity:propSetFriction(number friction)
+	if not PropCore.ValidAction(self, this, "friction") then return end
+	this:SetFriction( math.Clamp(friction, -1000, 1000) )
+end
+
+e2function number entity:propGetFriction()
+	if not PropCore.ValidAction(self, this, "friction") then return end
+	return this:GetFriction()
 end
 
 e2function void entity:propMakePersistent(number persistent)
