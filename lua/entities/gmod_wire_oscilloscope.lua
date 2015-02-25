@@ -131,4 +131,41 @@ function ENT:TriggerInput(iname, value)
 	end
 end
 
+--[[
+	hi-speed Addresses:
+	0: X
+	1: Y
+	2: R
+	3: G
+	4: B
+	5: Length
+	6: Update frequency
+]]
+local address_lookup = {nil,nil,"R","G","B","Length","Update Frequency"}
+function ENT:WriteCell( address, value )
+	address = address + 1
+	if address == 1 then
+		self.Inputs.X.Value = value
+	elseif address == 2 then
+		self.Inputs.Y.Value = value
+	elseif address_lookup[address] then
+		self:TriggerInput( address_lookup[address], value )
+	end
+end
+
+function ENT:ReadCell( address )
+	address = address + 1
+	if address == 1 then
+		return self.Inputs.X.Value
+	elseif address == 2 then
+		return self.Inputs.Y.Value
+	elseif address == 4 then
+		return self.updaterate
+	elseif address_lookup[address] then
+		return self:GetNetworkedFloat( address_lookup[address] )
+	end
+
+	return 0
+end
+
 duplicator.RegisterEntityClass("gmod_wire_oscilloscope", WireLib.MakeWireEnt, "Data")
