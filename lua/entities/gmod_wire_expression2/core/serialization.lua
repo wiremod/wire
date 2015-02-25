@@ -1,4 +1,4 @@
-E2Lib.RegisterExtension("glon", true)
+E2Lib.RegisterExtension("serialization", true)
 
 if not glon then pcall(require,"glon") end
 
