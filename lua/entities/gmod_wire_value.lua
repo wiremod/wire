@@ -10,7 +10,7 @@ function ENT:Initialize()
 	self:SetMoveType( MOVETYPE_VPHYSICS )
 	self:SetSolid( SOLID_VPHYSICS )
 
-	self.Outputs = Wire_CreateOutputs(self, { "Out" })
+	self.Outputs = WireLib.CreateOutputs(self, { "Out" })
 end
 
 local types_lookup = {
