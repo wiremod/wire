@@ -299,17 +299,15 @@ end
 
 e2function void entity:propSetBuoyancy(number buoyancy)
 	if not PropCore.ValidAction(self, this, "buoyancy") then return end
-	local buoyancy = math.Clamp(buoyancy, 0, 1)
 	local phys = this:GetPhysicsObject()
 	if IsValid( phys ) then
-		phys:SetBuoyancyRatio( buoyancy )
+		phys:SetBuoyancyRatio( math.Clamp(buoyancy, 0, 1) )
 	end
 end
 
 e2function void entity:propSetFriction(number friction)
 	if not PropCore.ValidAction(self, this, "friction") then return end
-	local friction = math.Clamp(friction, -1000, 1000)
-	this:SetFriction(friction)
+	this:SetFriction( math.Clamp(friction, -1000, 1000) )
 end
 
 e2function number entity:propGetFriction()
