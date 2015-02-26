@@ -128,7 +128,7 @@ function E2Helper.Create(reset)
 	E2Helper.DescriptionEntry = vgui.Create("DTextEntry", E2Helper.Frame)
 	E2Helper.DescriptionEntry:SetPos(5, 330)
 	E2Helper.DescriptionEntry:SetSize(270, 45)
-	E2Helper.DescriptionEntry:SetEditable(false)
+	E2Helper.DescriptionEntry:SetEditable(true)
 	E2Helper.DescriptionEntry:SetMultiline(true)
 
 	E2Helper.ResultFrame = vgui.Create("DListView", E2Helper.Frame)
