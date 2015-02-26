@@ -322,6 +322,18 @@ e2function void entity:propMakePersistent(number persistent)
 	this:SetPersistent(persistent ~= 0)
 end
 
+e2function void entity:propPhysicalMaterial(string physprop)
+	if not PropCore.ValidAction(self, this, "physprop") then return end
+	construct.SetPhysProp(self.player, this, 0, nil, {nil, Material = physprop})
+end
+
+e2function string entity:propPhysicalMaterial()
+	if not PropCore.ValidAction(self, this, "physprop") then return end
+	local phys = this:GetPhysicsObject()
+	if IsValid(phys) then return phys:GetMaterial() or "" end
+	return ""
+end
+
 --------------------------------------------------------------------------------
 
 e2function void entity:setPos(vector pos)
