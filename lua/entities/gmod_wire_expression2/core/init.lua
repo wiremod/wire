@@ -240,17 +240,15 @@ if SERVER then
 
 		local antispam = {}
 		function wire_expression2_sendfunctions(ply, isconcmd)
-			if isconcmd then
+			if isconcmd and not game.SinglePlayer() then
 				if not antispam[ply] then antispam[ply] = 0 end
 				if antispam[ply] > CurTime() then
 					ply:PrintMessage(HUD_PRINTCONSOLE, "This command has a 60 second anti spam protection. Try again in " .. math.Round(antispam[ply] - CurTime()) .. " seconds.")
 					return
 				end
 				antispam[ply] = CurTime() + 60
-				sendData(ply)
-			elseif game.SinglePlayer() then
-				sendData(ply)
 			end
+			sendData(ply)
 		end
 
 		-- add a console command the user can use to re-request the function info, in case of errors or updates

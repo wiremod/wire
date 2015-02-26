@@ -1,4 +1,4 @@
-E2Lib.RegisterExtension("propcore", false)
+E2Lib.RegisterExtension("constraintcore", false)
 
 registerCallback("construct", function(self)
 	self.data.constraintUndos = true
