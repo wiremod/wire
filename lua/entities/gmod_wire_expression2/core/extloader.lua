@@ -27,7 +27,9 @@ if ENT then
 		Msg("Calling constructors for all Expression2 chips.\n")
 		wire_expression2_prepare_functiondata()
 		if not args or args[1] ~= "nosend" then
-			wire_expression2_sendfunctions(player.GetAll())
+			for _, p in pairs( player.GetAll() ) do
+				if IsValid( p ) then wire_expression2_sendfunctions( p ) end
+			end
 		end
 		for _, chip in ipairs(chips) do
 			pcall(chip.OnRestore, chip)
