@@ -15,7 +15,7 @@ local function sendJoystickData()
 		joystick.refresh()
 		
 		net.Start("E2_joystick_sendstream")
-		for I=0, stream.num_axis-1 do
+		for I=0, 7 do
 			net.WriteUInt(joystick.axis(stream.enum,I),16)
 		end
 		for I=0, stream.num_buttons-1 do

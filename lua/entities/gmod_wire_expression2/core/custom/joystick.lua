@@ -18,7 +18,7 @@ net.Receive("E2_joystick_sendstream",function(u,ply)
 	if joystickdata[ply] and joystickdata[ply].active_joystick then 
 		local tbl = joystickdata[ply].joysticks[joystickdata[ply].active_joystick]
 		if tbl then
-			for I=1, tbl.num_axis do
+			for I=1, 8 do
 				tbl.axis_data[I] = net.ReadUInt(16)
 			end
 			for I=1, tbl.num_buttons do
@@ -66,7 +66,7 @@ local function setJoystickStream(self,ply,enum,on)
 		if enabled then
 			joystickdata[ply].Ref[self] = true
 			joystickdata[ply].active_joystick = enum
-		else
+		else			
 			joystickdata[ply].Ref[self] = nil
 			joystickdata[ply].active_joystick = nil
 		end	
@@ -156,28 +156,37 @@ e2function number entity:joystickPOVCount(enum)
 	end
 end
 
-e2function array entity:joystickAxisData(enum)
-	if joystickdata[this] and joystickdata[this].joysticks[enum] then
-		return table.Copy(joystickdata[this].joysticks[enum].axis_data)
-	else
-		return {}
+e2function array entity:joystickAxisData()
+	local player_data = joystickdata[this]
+	if player_data and player_data.active_joystick then
+		local stick = player_data.joysticks[player_data.active_joystick]
+		if stick then
+			return table.Copy(stick.axis_data)
+		end
 	end
+	return {}
 end
 
-e2function array entity:joystickButtonData(enum)
-	if joystickdata[this] and joystickdata[this].joysticks[enum] then
-		return table.Copy(joystickdata[this].joysticks[enum].button_data)
-	else
-		return {}
+e2function array entity:joystickButtonData()
+	local player_data = joystickdata[this]
+	if player_data and player_data.active_joystick then
+		local stick = player_data.joysticks[player_data.active_joystick]
+		if stick then
+			return table.Copy(stick.button_data)
+		end
 	end
+	return {}
 end
 
-e2function array entity:joystickPOVData(enum)
-	if joystickdata[this] and joystickdata[this].joysticks[enum] then
-		return table.Copy(joystickdata[this].joysticks[enum].pov_data)
-	else
-		return {}
+e2function array entity:joystickPOVData()
+	local player_data = joystickdata[this]
+	if player_data and player_data.active_joystick then
+		local stick = player_data.joysticks[player_data.active_joystick]
+		if stick then
+			return table.Copy(stick.pov_data)
+		end
 	end
+	return {}
 end
 
 registerCallback( "destruct", function( self )
