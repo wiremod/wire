@@ -18,15 +18,34 @@ net.Receive("E2_joystick_sendstream",function(u,ply)
 	if joystickdata[ply] and joystickdata[ply].active_joystick then 
 		local tbl = joystickdata[ply].joysticks[joystickdata[ply].active_joystick]
 		if tbl then
+			local updates = {joysticks = {}, povs = {}, buttons = false}
+			
 			for I=1, 8 do
-				tbl.axis_data[I] = net.ReadUInt(16)
-			end
-			for I=1, tbl.num_buttons do
-				tbl.button_data[I] = net.ReadBit()
+				updates.joysticks[I] = net.ReadBit() ~= 0
 			end
 			for I=1, tbl.num_povs do
-				tbl.pov_data[I] = net.ReadUInt(16)
+				updates.povs[I] = net.ReadBit() ~= 0
 			end
+			updates.buttons = net.ReadBit() ~= 0
+		
+			for k,v in pairs(updates.joysticks) do
+				if v then
+					tbl.axis_data[k] = net.ReadUInt(16)
+				end
+			end
+			
+			for k,v in pairs(updates.povs) do
+				if v then
+					tbl.pov_data[k] = net.ReadUInt(16)
+				end
+			end
+			
+			if updates.buttons then
+				for I=1, tbl.num_buttons do
+					tbl.button_data[I] = net.ReadBit()
+				end
+			end
+			
 		end
 	end
 end)
