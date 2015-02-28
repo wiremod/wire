@@ -12,7 +12,7 @@ local stream = nil
 
 local function sendJoystickData()
 	if stream then
-		joystick.refresh()
+		joystick.refresh(stream.enum)
 		
 		--Get data
 		local axis_data = {}
