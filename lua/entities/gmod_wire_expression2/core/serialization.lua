@@ -48,7 +48,7 @@ local function luaTypeToWireTypeid( v )
 	return wire_expression_types[ string.upper( typename ) ][1]
 end
 
-local function glon_not_installed()
+local function check_glon_installed()
 	if not glon then
 		error( "Glon is not installed on this server. Please use von or json instead.", 0 )
 	end
@@ -207,7 +207,7 @@ __e2setcost(10)
 
 --- Encodes <data> into a string, using [[GLON]].
 e2function string glonEncode(array data)
-	glon_not_installed()
+	check_glon_installed()
 
 	local ok, ret = pcall(glon.encode, data)
 	if not ok then
@@ -225,7 +225,7 @@ end
 
 --- Decodes <data> into an array, using [[GLON]].
 e2function array glonDecode(string data)
-	glon_not_installed()
+	check_glon_installed()
 
 	if not data or data == "" then return {} end
 
@@ -245,7 +245,7 @@ e2function array glonDecode(string data)
 end
 
 e2function string glonError()
-	glon_not_installed()
+	check_glon_installed()
 
 	return last_glon_error or ""
 end
@@ -278,7 +278,7 @@ __e2setcost(25)
 
 -- decodes a glon string and returns an table
 e2function table glonDecodeTable(string data)
-	glon_not_installed()
+	check_glon_installed()
 
 	if not data or data == "" then return table.Copy(DEFAULT) end
 
