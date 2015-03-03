@@ -63,7 +63,7 @@ if CLIENT then
 		
 		if AllowZoom then
 			if zoombind ~= 0 then
-				zoomdistance = math.Clamp(zoomdistance + zoombind * max((abs(curdistance) + abs(zoomdistance))/10,10),0,16000-curdistance)
+				zoomdistance = math.Clamp(zoomdistance + zoombind * FrameTime() * 100 * max((abs(curdistance) + abs(zoomdistance))/10,10),0,16000-curdistance)
 				zoombind = 0
 			end
 			curdistance = curdistance + zoomdistance
