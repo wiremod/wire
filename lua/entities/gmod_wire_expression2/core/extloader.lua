@@ -2,12 +2,15 @@
   Loading extensions
 ]]
 
+wire_expression2_PreLoadExtensions()
+
 -- Save E2's metatable for wire_expression2_reload
 if ENT then
 	local wire_expression2_ENT = ENT
 	function wire_expression2_reload(ply, cmd, args)
 		if IsValid(ply) and ply:IsPlayer() and not ply:IsSuperAdmin() and not game.SinglePlayer() then return end
-
+		
+		timer.Destroy( "E2_AutoReloadTimer" )
 		Msg("Calling destructors for all Expression2 chips.\n")
 		local chips = ents.FindByClass("gmod_wire_expression2")
 		for _, chip in ipairs(chips) do
@@ -88,11 +91,8 @@ local function e2_include_pass2(name, luaname, contents)
 	
 	local ok, err = pcall(func)
 	if not ok then -- an error occured while executing
-		if string.find(err,"Skipping disabled E2 extension") ~= 0 then -- if it's just a disabled E2 extension...
-			local err = string.match(err,"(Skipping disabled E2 extension.+).$") -- filter to the part we want
-			print(err) -- print the error
-		else
-			error(err) -- otherwise, actually cause an error
+		if not err:find( "EXTENSION_DISABLED" ) then
+			error(err)
 		end
 		return
 	end
@@ -170,3 +170,5 @@ end
 e2_include_finalize()
 
 wire_expression2_CallHook("postinit")
+
+wire_expression2_PostLoadExtensions()

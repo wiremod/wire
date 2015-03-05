@@ -431,69 +431,88 @@ do
 	end
 end
 
--- -------------------------- disabling extensions -----------------------------
+-- ------------------------------- extensions ----------------------------------
 
-do
-	local extensions = { status = {}, list = {}, prettyList = {} }
+do	
+	local extensions = nil
 
-	local list = sql.Query( "SELECT * FROM wire_expression2_extensions" )
-	if list then
-		for i = 1, #list do
-			local row = list[ i ]
-			extensions.status[ row.name ] = row.enabled == "1" and true or false
-			extensions.list[ i ] = row.name
+	function wire_expression2_PreLoadExtensions()
+		hook.Run( "Expression2_PreLoadExtensions" )
+		extensions = { status = {}, list = {}, prettyList = {} }
+		local list = sql.Query( "SELECT * FROM wire_expression2_extensions" )
+		if list then
+			for i = 1, #list do
+				local row = list[ i ]
+				extensions.status[ row.name:Trim():lower() ] = row.enabled == "1" and true or false
+			end
+		else
+			sql.Query( "CREATE TABLE wire_expression2_extensions ( name VARCHAR(32), enabled BOOLEAN )" )
+			sql.Query( "CREATE UNIQUE INDEX name ON wire_expression2_extensions ( name )" )
 		end
-		extensions.sortList = true
-		extensions.rebuildPrettyList = true
-	else
-		sql.Query( "CREATE TABLE wire_expression2_extensions ( name VARCHAR(32), enabled BOOLEAN )" )
-		sql.Query( "CREATE UNIQUE INDEX name ON wire_expression2_extensions ( name )" )
 	end
 	
-		
 	function E2Lib.RegisterExtension( name, default )
+		name = name:Trim():lower()
 		if extensions.status[ name ] == nil then
-			E2Lib.SetExtensionStatus( name, default or false )
-			extensions.list[ #extensions.list + 1 ] = name
-			extensions.sortList = true
+			E2Lib.SetExtensionStatus( name, default )
 		end
-		extensions.rebuildPrettyList = true
-		
-		-- This line shouldn't be modified because it tells the parser that this extension is disabled, thus making its functions not available in the E2 Editor.
-		assert( extensions.status[ name ], "Skipping disabled E2 extension '" .. name .. "'. To enable, run 'wire_expression2_extension_enable " .. name .. "'\n" )
+		extensions.list[ #extensions.list + 1 ] = name
+
+		-- This line shouldn't be modified because it tells the parser that this extension is disabled,
+		-- thus making its functions not available in the E2 Editor (see function e2_include_pass2 in extloader.lua).
+		assert( extensions.status[ name ], "EXTENSION_DISABLED" )
 	end
-	
+
 	function E2Lib.SetExtensionStatus( name, status )
+		name = name:Trim():lower()
+		status = tobool(status)
 		extensions.status[ name ] = status
 		sql.Query( "REPLACE INTO wire_expression2_extensions ( name, enabled ) VALUES ( " .. sql.SQLStr( name ) .. ", " .. ( status and 1 or 0 ) .. " )" )
 	end
 
 	function E2Lib.GetExtensionStatus( name )
+		name = name:Trim():lower()
 		return extensions.status[ name ]
 	end
 	
 	function E2Lib.GetExtensions()
-		if extensions.sortList then
-			table.sort( extensions.list, function( a, b ) return a:lower() < b:lower() end )
-			extensions.sortList = nil
-		end
 		return extensions.list
 	end
+	
 
+	local function buildPrettyList()
+		local function padLeft( str, len ) return (" "):rep( len - #str ) .. str end
+		local function padRight( str, len ) return str .. (" "):rep( len - #str ) end
+		local function padCenter( str, len ) return padRight( padLeft( str, math.floor( (len/2) + #str - (#str/2) ) ), len ) end
+		
+		local list, column1, column2 = extensions.list, {}, {}
+		local columnsWidth = 0
+		for i = 1, #list do
+			local name = list[ i ]
+			if #name > columnsWidth then columnsWidth = #name end
+			if extensions.status[ name ] == true then column1[ #column1 + 1 ] = name else column2[ #column2 + 1 ] = name end
+		end
+		local title = "E2 EXTENSIONS"
+		local maxWidth = math.max( 16, columnsWidth * 2, #title - 3 )
+		if maxWidth % 2 ~= 0 then maxWidth = maxWidth + 1 end
+		columnsWidth = maxWidth / 2
+		maxWidth = maxWidth + 3
+		local rows = math.max( #column1, #column2 )
+		local delimiter =  " +-" .. ("-"):rep( columnsWidth ) .. "-+-" .. ("-"):rep( columnsWidth ) .. "-+"
+		
+		list = {}
+		list[ 1 ] = " +-" .. ("-"):rep( maxWidth ) .. "-+"
+		list[ 2 ] = " | " .. padCenter( title, maxWidth ) .. " |"
+		list[ 3 ] = delimiter
+		list[ 4 ] = " | " .. padCenter( "ENABLED", columnsWidth ) .. " | " .. padCenter( "DISABLED", columnsWidth ) .. " |"
+		list[ 5 ] = delimiter
+		for i = 1, rows do list[ #list + 1 ] = " | " .. padRight( column1[i] or "", columnsWidth ) .. " | " .. padRight( column2[i] or "", columnsWidth ) .. " |" end
+		list[ #list + 1 ] = delimiter
+		
+		extensions.prettyList = list
+	end
 	
 	local function printExtensions( ply, str )
-		if extensions.rebuildPrettyList then
-			local list = E2Lib.GetExtensions()
-			local maxLen = 0
-			for i = 1, #list do if #list[ i ] > maxLen then maxLen = #list[ i ] end end
-			maxLen = maxLen + 3
-			for i = 1, #list do
-				local name = list[ i ]
-				extensions.prettyList[ i ] = " " .. name .. string.rep( " ", maxLen - #name ) .. ( extensions.status[ name ] and "enabled" or "disabled" )
-			end
-			extensions.rebuildPrettyList = nil
-		end
-		
 		if IsValid( ply ) then
 			if str then ply:PrintMessage( 2, str ) end
 			for i = 1, #extensions.prettyList do ply:PrintMessage( 2, extensions.prettyList[ i ] ) end
@@ -505,13 +524,13 @@ do
 
 	local function makeAutoCompleteList( cmd, args )
 		args = args:Trim():lower()
-		local status = not tobool( cmd:find( "enable" ) )
-		local list = E2Lib.GetExtensions()
+		local status = tobool( cmd:find( "enable" ) )
+		local list = extensions.list
 		local tbl = {}
 		local j = 1
 		for i = 1, #list do
 			local name = list[ i ]
-			if extensions.status[ name ] == status and name:find( args ) then
+			if extensions.status[ name ] ~= status and name:find( args ) then
 				tbl[ j ] = cmd .. " " .. name
 				j = j + 1
 			end
@@ -523,23 +542,34 @@ do
 		if IsValid( ply ) and not ply:IsSuperAdmin() and not game.SinglePlayer() then return end
 		local name = args[ 1 ]
 		if name then
+			name = name:Trim():lower()
 			if extensions.status[ name ] ~= nil then
 				local status = tobool( cmd:find( "enable" ) )
 				if extensions.status[ name ] == status then
-					local str = "Extension '" .. name .. "' is already " .. ( status and "enabled" or "disabled" ) .. ". Did you remember to reload Expression 2 using the console command 'wire_expression2_reload'?"
+					local str = "Extension '" .. name .. "' is already " .. ( status and "enabled" or "disabled" ) .. "."
 					if IsValid( ply ) then ply:PrintMessage( 2, str ) else print( str ) end
 				else
 					E2Lib.SetExtensionStatus( name, status )
-					local str = "Extension '" .. name .. "' " .. ( status and "enabled" or "disabled" ) .. ". Now reload Expression 2 using the console command 'wire_expression2_reload'."
+					timer.Create( "E2_AutoReloadTimer", 10, 1, wire_expression2_reload )
+					local str = "Extension '" .. name .. "' " .. ( status and "enabled" or "disabled" ) .. ". Expression 2 will be reloaded in 10 seconds."
 					if IsValid( ply ) then ply:PrintMessage( 2, str ) else print( str ) end
 				end
 			else printExtensions( ply, "Unknown extension '" .. name .. "'. Here is a list of available extensions:" ) end
-		else printExtensions( ply, "Available extensions:" ) end
+		else printExtensions( ply, "Usage: '" .. cmd .. " <name>'. Here is a list of available extensions:" ) end
 	end
 	
 	concommand.Add( "wire_expression2_extension_enable", conCommandSetExtensionStatus, makeAutoCompleteList )
 	concommand.Add( "wire_expression2_extension_disable", conCommandSetExtensionStatus, makeAutoCompleteList )
+	concommand.Add( "wire_expression2_extensions", function( ply ) printExtensions( ply ) end )
 	
+	
+	function wire_expression2_PostLoadExtensions()
+		table.sort( extensions.list, function( a, b ) return a < b end )
+		buildPrettyList()
+		printExtensions()
+		hook.Run( "Expression2_PostLoadExtensions" )
+	end
+
 end
 
 -- ------------------------------ compatibility --------------------------------
