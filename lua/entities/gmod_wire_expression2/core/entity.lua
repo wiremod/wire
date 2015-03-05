@@ -650,8 +650,8 @@ end
 local function composedata(startSize, endSize, length, material, color, alpha)
 	if string.find(material, '"', 1, true) then return nil end
 
-	endSize = math.Clamp( endsize, 0, 128 )
-	startSize = math.Clamp( startsize, 0, 128 )
+	endSize = math.Clamp( endSize, 0, 128 )
+	startSize = math.Clamp( startSize, 0, 128 )
 
 	return {
 		Color = Color( color[1], color[2], color[3], alpha ),
