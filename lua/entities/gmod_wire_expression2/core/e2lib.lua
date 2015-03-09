@@ -57,18 +57,13 @@ local tonumber = tonumber
 function E2Lib.getHash(self, data)
 	--[[
 	-- Thanks to emspike for this code
-
 	self.prf = self.prf + #data
-
 	local a, b = 1, 0
-
 	for i = 1, #data do
 			a = (a + str_byte(str_sub(data,i,i))) % 65521
 			b = (b + a) % 65521
 	end
-
 	return b << 16 | a
-
 	-- but we're going to use Garry's function, since it's most likely done in C++, so it's probably faster.
 	-- For some reason, Garry's util.CRC returns a string... but it's always a number, so tonumbering it should work.
 	-- I'm making it default to -1 if it for some reason throws a letter in there, breaking tonumber.
@@ -406,7 +401,7 @@ do
 		local hex = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' }
 
 
-		for i = 1, invalid_chars:len() do
+		for i = 1, #invalid_chars do
 			local char = invalid_chars:sub(i, i)
 			enctbl[char] = true
 		end
@@ -419,7 +414,7 @@ do
 			end
 		end
 
-		--for i = 1,valid_chars:len() do
+		--for i = 1, #valid_chars do
 		--	local char = valid_chars:sub(i, i)
 		--	enctbl[char] = char
 		--end
@@ -439,89 +434,112 @@ end
 -- -------------------------- disabling extensions -----------------------------
 
 do
-	local extensions = {}
+	local extensions = { status = {}, list = {}, prettyList = {} }
 
-	if not sql.TableExists("wire_expression2_extensions") then
-		sql.Query("CREATE TABLE IF NOT EXISTS wire_expression2_extensions (name varchar(255), enabled tinyint)")
-		sql.Query("CREATE UNIQUE INDEX name ON wire_expression2_extensions(name)")
-	end
-
-	function extensions.GetStatus(name, default)
-		local value = sql.QueryValue(string.format("SELECT enabled FROM wire_expression2_extensions WHERE (name = %s)", sql.SQLStr(name)))
-		value = value and value ~= "0" or default
-		return value
-	end
-
-	function extensions.SetStatus(name, status)
-		sql.Query(string.format("REPLACE INTO wire_expression2_extensions (name, enabled) VALUES (%s, %d)", sql.SQLStr(name), status and 1 or 0))
-	end
-
-	function E2Lib.RegisterExtension(name, default)
-		local status = extensions.GetStatus(name, default)
-		if not status then Error("Skipping disabled E2 extension '" .. name .. "'. To enable, run 'wire_expression2_extension_enable " .. name .. "'\n") end
-	end
-
-	concommand.Add("wire_expression2_extension_enable", function(ply, cmd, args)
-		if ply:IsValid() then
-			if not ply:IsSuperAdmin() and not game.SinglePlayer() then return end
+	local list = sql.Query( "SELECT * FROM wire_expression2_extensions" )
+	if list then
+		for i = 1, #list do
+			local row = list[ i ]
+			extensions.status[ row.name ] = row.enabled == "1" and true or false
+			extensions.list[ i ] = row.name
 		end
-
-		if extensions.GetStatus(args[1]) then
-			if ply:IsValid() then
-				ply:PrintMessage(2, "Extension '" .. args[1] .. "' is already enabled. Did you remember to reload Expression 2 using the console command 'wire_expression2_reload'?")
-			else
-				print("Extension '" .. args[1] .. "' is already enabled. Did you remember to reload Expression 2 using the console command 'wire_expression2_reload'?")
-			end
-			return
+		extensions.sortList = true
+		extensions.rebuildPrettyList = true
+	else
+		sql.Query( "CREATE TABLE wire_expression2_extensions ( name VARCHAR(32), enabled BOOLEAN )" )
+		sql.Query( "CREATE UNIQUE INDEX name ON wire_expression2_extensions ( name )" )
+	end
+	
+		
+	function E2Lib.RegisterExtension( name, default )
+		if extensions.status[ name ] == nil then
+			E2Lib.SetExtensionStatus( name, default or false )
+			extensions.list[ #extensions.list + 1 ] = name
+			extensions.sortList = true
 		end
+		extensions.rebuildPrettyList = true
+		
+		-- This line shouldn't be modified because it tells the parser that this extension is disabled, thus making its functions not available in the E2 Editor.
+		assert( extensions.status[ name ], "Skipping disabled E2 extension '" .. name .. "'. To enable, run 'wire_expression2_extension_enable " .. name .. "'\n" )
+	end
+	
+	function E2Lib.SetExtensionStatus( name, status )
+		extensions.status[ name ] = status
+		sql.Query( "REPLACE INTO wire_expression2_extensions ( name, enabled ) VALUES ( " .. sql.SQLStr( name ) .. ", " .. ( status and 1 or 0 ) .. " )" )
+	end
 
-		extensions.SetStatus(args[1], true)
+	function E2Lib.GetExtensionStatus( name )
+		return extensions.status[ name ]
+	end
+	
+	function E2Lib.GetExtensions()
+		if extensions.sortList then
+			table.sort( extensions.list, function( a, b ) return a:lower() < b:lower() end )
+			extensions.sortList = nil
+		end
+		return extensions.list
+	end
 
-		if extensions.GetStatus(args[1]) then
-			if ply:IsValid() then
-				ply:PrintMessage(2, "Extension '" .. args[1] .. "' enabled. Now reload Expression 2 using the console command 'wire_expression2_reload'.")
-			else
-				print("Extension '" .. args[1] .. "' enabled. Now reload Expression 2 using the console command 'wire_expression2_reload'.")
+	
+	local function printExtensions( ply, str )
+		if extensions.rebuildPrettyList then
+			local list = E2Lib.GetExtensions()
+			local maxLen = 0
+			for i = 1, #list do if #list[ i ] > maxLen then maxLen = #list[ i ] end end
+			maxLen = maxLen + 3
+			for i = 1, #list do
+				local name = list[ i ]
+				extensions.prettyList[ i ] = " " .. name .. string.rep( " ", maxLen - #name ) .. ( extensions.status[ name ] and "enabled" or "disabled" )
 			end
+			extensions.rebuildPrettyList = nil
+		end
+		
+		if IsValid( ply ) then
+			if str then ply:PrintMessage( 2, str ) end
+			for i = 1, #extensions.prettyList do ply:PrintMessage( 2, extensions.prettyList[ i ] ) end
 		else
-			if ply:IsValid() then
-				ply:PrintMessage(2, "Failed to enable extension '" .. args[1] .. "'.")
-			else
-				print("Failed to enable extension '" .. args[1] .. "'.")
+			if str then print( str ) end
+			for i = 1, #extensions.prettyList do print( extensions.prettyList[ i ] ) end
+		end
+	end
+
+	local function makeAutoCompleteList( cmd, args )
+		args = args:Trim():lower()
+		local status = not tobool( cmd:find( "enable" ) )
+		local list = E2Lib.GetExtensions()
+		local tbl = {}
+		local j = 1
+		for i = 1, #list do
+			local name = list[ i ]
+			if extensions.status[ name ] == status and name:find( args ) then
+				tbl[ j ] = cmd .. " " .. name
+				j = j + 1
 			end
 		end
-	end)
-
-	concommand.Add("wire_expression2_extension_disable", function(ply, cmd, args)
-		if ply:IsValid() then
-			if not ply:IsSuperAdmin() and not game.SinglePlayer() then return end
-		end
-
-		if not extensions.GetStatus(args[1]) then
-			if ply:IsValid() then
-				ply:PrintMessage(2, "Extension '" .. args[1] .. "' is already disabled. Did you remember to reload Expression 2 using the console command 'wire_expression2_reload'?")
-			else
-				print("Extension '" .. args[1] .. "' is already disabled. Did you remember to reload Expression 2 using the console command 'wire_expression2_reload'?")
-			end
-			return
-		end
-
-		extensions.SetStatus(args[1], false)
-
-		if extensions.GetStatus(args[1]) then
-			if ply:IsValid() then
-				ply:PrintMessage(2, "Failed to disable extension '" .. args[1] .. "'.")
-			else
-				print("Failed to disable extension '" .. args[1] .. "'.")
-			end
-		else
-			if ply:IsValid() then
-				ply:PrintMessage(2, "Extension '" .. args[1] .. "' disabled. Now reload Expression 2 using the console command 'wire_expression2_reload'.")
-			else
-				print("Extension '" .. args[1] .. "' disabled. Now reload Expression 2 using the console command 'wire_expression2_reload'.")
-			end
-		end
-	end)
+		return tbl
+	end
+	
+	local function conCommandSetExtensionStatus( ply, cmd, args )
+		if IsValid( ply ) and not ply:IsSuperAdmin() and not game.SinglePlayer() then return end
+		local name = args[ 1 ]
+		if name then
+			if extensions.status[ name ] ~= nil then
+				local status = tobool( cmd:find( "enable" ) )
+				if extensions.status[ name ] == status then
+					local str = "Extension '" .. name .. "' is already " .. ( status and "enabled" or "disabled" ) .. ". Did you remember to reload Expression 2 using the console command 'wire_expression2_reload'?"
+					if IsValid( ply ) then ply:PrintMessage( 2, str ) else print( str ) end
+				else
+					E2Lib.SetExtensionStatus( name, status )
+					local str = "Extension '" .. name .. "' " .. ( status and "enabled" or "disabled" ) .. ". Now reload Expression 2 using the console command 'wire_expression2_reload'."
+					if IsValid( ply ) then ply:PrintMessage( 2, str ) else print( str ) end
+				end
+			else printExtensions( ply, "Unknown extension '" .. name .. "'. Here is a list of available extensions:" ) end
+		else printExtensions( ply, "Available extensions:" ) end
+	end
+	
+	concommand.Add( "wire_expression2_extension_enable", conCommandSetExtensionStatus, makeAutoCompleteList )
+	concommand.Add( "wire_expression2_extension_disable", conCommandSetExtensionStatus, makeAutoCompleteList )
+	
 end
 
 -- ------------------------------ compatibility --------------------------------

@@ -23,9 +23,9 @@ function ENT:Initialize()
 	self:SetMoveType( MOVETYPE_VPHYSICS )
 	self:SetSolid( SOLID_VPHYSICS )
 
-	self.Inputs = Wire_CreateInputs(self, { "A", "Toggle", "Volume", "Play", "Stop",
+	self.Inputs = WireLib.CreateInputs(self, { "A", "Toggle", "Volume", "Play", "Stop",
 		"PitchRelative", "Sample", "SampleName [STRING]" })
-	self.Outputs = Wire_CreateOutputs(self, { "Duration", "Property Sound", "Properties [ARRAY]", "Memory" })
+	self.Outputs = WireLib.CreateOutputs(self, { "Duration", "Property Sound", "Properties [ARRAY]", "Memory" })
 
 	self.Samples = table.Copy(DefaultSamples)
 
@@ -48,15 +48,34 @@ function ENT:OnRemove()
 	self.BaseClass.OnRemove(self)
 end
 
+--[[
+	readcells:
+	0: active
+	1: volume
+	2: pitchrelative
+	3: duration
+]]
 function ENT:ReadCell(address)
-	return nil
+	if address == 0 then
+		return self.Active and 1 or 0
+	elseif address == 1 then
+		return self.Volume / 100
+	elseif address == 2 then
+		return self.Pitch / 100
+	elseif address == 3 then
+		return self.Outputs.Duration.Value
+	end
 end
 
+
+-- writecells:
 local cellsOut = {
 	[0] = "A",
 	[1] = "Volume",
 	[2] = "PitchRelative",
-	[3] = "Sample"
+	[3] = "Sample",
+	[4] = "Play",
+	[5] = "Stop",
 }
 
 function ENT:WriteCell(address, value)
@@ -78,12 +97,12 @@ function ENT:TriggerInput(iname, value)
 			self:TriggerInput("Stop", 1)
 		end
 	elseif iname == "Play" and value ~= 0 then
-		// Property sounds need to be refreshed
-		// every time to work probably especially
-		// when it has multiple sounds/pitches/volumes.
+		-- Property sounds need to be refreshed
+		-- every time to work probably especially
+		-- when it has multiple sounds/pitches/volumes.
 		if self.SoundProperties then
 			self.NeedsRefresh = true
-			Wire_TriggerOutput(self, "Duration", SoundDuration(self.sound))
+			WireLib.TriggerOutput(self, "Duration", SoundDuration(self.sound))
 		end
 
 		self.Active = true
@@ -111,12 +130,12 @@ function ENT:UpdateSound()
 
 		self.SoundProperties = sound.GetProperties(self.sound)
 		if self.SoundProperties then
-			Wire_TriggerOutput(self, "Duration", SoundDuration(self.sound))
-			Wire_TriggerOutput(self, "Property Sound", 1)
-			Wire_TriggerOutput(self, "Properties", self.SoundProperties)
+			WireLib.TriggerOutput(self, "Duration", SoundDuration(self.sound))
+			WireLib.TriggerOutput(self, "Property Sound", 1)
+			WireLib.TriggerOutput(self, "Properties", self.SoundProperties)
 		else
-			Wire_TriggerOutput(self, "Property Sound", 0)
-			Wire_TriggerOutput(self, "Properties", {})
+			WireLib.TriggerOutput(self, "Property Sound", 0)
+			WireLib.TriggerOutput(self, "Properties", {})
 		end
 
 		if self.Active then self:StartSounds() end
@@ -136,12 +155,12 @@ function ENT:SetSound(soundName)
 
 	self.SoundProperties = sound.GetProperties(self.sound)
 	if self.SoundProperties then
-		Wire_TriggerOutput(self, "Duration", SoundDuration(self.sound))
-		Wire_TriggerOutput(self, "Property Sound", 1)
-		Wire_TriggerOutput(self, "Properties", self.SoundProperties)
+		WireLib.TriggerOutput(self, "Duration", SoundDuration(self.sound))
+		WireLib.TriggerOutput(self, "Property Sound", 1)
+		WireLib.TriggerOutput(self, "Properties", self.SoundProperties)
 	else
-		Wire_TriggerOutput(self, "Property Sound", 0)
-		Wire_TriggerOutput(self, "Properties", {})
+		WireLib.TriggerOutput(self, "Property Sound", 0)
+		WireLib.TriggerOutput(self, "Properties", {})
 	end
 
 	self:SetOverlayText( parsedsound:gsub("[/\\]+","/") )
