@@ -2,6 +2,7 @@ AddCSLuaFile()
 DEFINE_BASECLASS( "base_wire_entity" )
 ENT.PrintName       = "Wire Pod Controller"
 ENT.WireDebugName	= "Pod Controller"
+ENT.AllowLockInsideVehicle = CreateConVar( "wire_pod_allowlockinsidevehicle", "0", FCVAR_ARCHIVE, "Allow or disallow people to be locked inside of vehicles" ) 
 
 if CLIENT then 
 	hook.Add("PlayerBindPress", "wire_pod", function(ply, bind, pressed)
@@ -492,6 +493,14 @@ hook.Add( "PlayerLeaveVehicle", "Wire_Pod_ExitVehicle", function( ply, vehicle )
 	for k,v in pairs( ents.FindByClass( "gmod_wire_pod" ) ) do
 		if (v:HasPod() and v:GetPod() == vehicle) then
 			v:PlayerExited( ply )
+		end
+	end
+end)
+
+hook.Add("CanExitVehicle","Wire_Pod_CanExitVehicle", function( vehicle, ply )
+	for k,v in pairs( ents.FindByClass( "gmod_wire_pod" ) ) do
+		if (v:HasPod() and v:GetPod() == vehicle) and v.Locked and v.AllowLockInsideVehicle:GetBool() then
+			return false
 		end
 	end
 end)
