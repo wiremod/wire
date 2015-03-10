@@ -382,7 +382,7 @@ e2function void entity:setSubMaterial(index, string material)
 	if not IsValid(this) then return end
 	if not isOwner(self, this) then return end
 	if string.lower(material) == "pp/copy" then return end
-	this:SetSubMaterial(index+1,material)
+	this:SetSubMaterial(index-1,material)
 end
 
 --- Gets <this>'s current skin number.
