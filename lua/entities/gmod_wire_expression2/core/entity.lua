@@ -361,12 +361,7 @@ __e2setcost(20)
 
 e2function array entity:getMaterials()
 	if not IsValid(this) then return {} end
-	local tmp = {}
-	local mats = this:GetMaterials()
-	for i=1, #mats do
-		tmp[i] = mats[i]
-	end
-	return tmp
+	return this:GetMaterials()
 end
 
 __e2setcost(10)
