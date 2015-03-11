@@ -67,6 +67,8 @@ local function RemoveExitPoint( ent )
 end
 hook.Add( "EntityRemoved", "WireExitPoint", RemoveExitPoint )
 
+
+local ClampDistance = CreateConVar("wire_pod_exit_distance", "1000", FCVAR_ARCHIVE, "The maximum distance an exit point can move a player")
 local function MovePlayer( ply, vehicle )
 	for epoint, _ in pairs( ExitPoints ) do
 		if IsValid(epoint) and not epoint.Position:IsZero() and epoint.Entities and epoint.Entities[vehicle] then
@@ -74,11 +76,11 @@ local function MovePlayer( ply, vehicle )
 				local origin = vehicle:GetPos()
 				local direction = epoint.Position - origin
 				local direction_distance = direction:Length()
-				ply:SetPos( origin + direction / direction_distance * math.Clamp(direction_distance, 0, 300) + Vector(0,0,5) ) -- Add 5z so they don't get stuck in the GPS or whatnot
+				ply:SetPos( origin + direction / direction_distance * math.min(direction_distance, math.max(0, ClampDistance:GetInt())) + Vector(0,0,5) ) -- Add 5z so they don't get stuck in the GPS or whatnot
 				local ang = ply:EyeAngles()
 			else
 				local LocalPosDistance = epoint.Position:Length()
-				ply:SetPos( vehicle:LocalToWorld( epoint.Position / LocalPosDistance * math.Clamp(LocalPosDistance, 0, 300) ) + Vector(0,0,5) )
+				ply:SetPos( vehicle:LocalToWorld( epoint.Position / LocalPosDistance * math.min(LocalPosDistance, math.max(0, ClampDistance:GetInt()))) + Vector(0,0,5) )
 			end
 			
 			if epoint.GlobalAngle then
