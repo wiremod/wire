@@ -357,11 +357,32 @@ e2function string entity:getMaterial()
 	return this:GetMaterial() or ""
 end
 
+e2function string entity:getSubMaterial(index)
+	if not IsValid(this) then return "" end
+	return this:GetSubMaterial(index-1) or ""
+end
+
+__e2setcost(20)
+
+e2function array entity:getMaterials()
+	if not IsValid(this) then return {} end
+	return this:GetMaterials()
+end
+
+__e2setcost(10)
+
 e2function void entity:setMaterial(string material)
 	if not IsValid(this) then return end
 	if not isOwner(self, this) then return end
 	if string.lower(material) == "pp/copy" then return end
 	this:SetMaterial(material)
+end
+
+e2function void entity:setSubMaterial(index, string material)
+	if not IsValid(this) then return end
+	if not isOwner(self, this) then return end
+	if string.lower(material) == "pp/copy" then return end
+	this:SetSubMaterial(index-1,material)
 end
 
 --- Gets <this>'s current skin number.
