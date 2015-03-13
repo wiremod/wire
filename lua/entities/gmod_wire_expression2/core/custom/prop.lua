@@ -297,6 +297,15 @@ e2function void entity:propDrag( number drag )
 	end
 end
 
+e2function void entity:propInertia( vector inertia )
+	if not PropCore.ValidAction(self, this, "inertia") then return end
+	if Vector( inertia[1], inertia[2], inertia[3] ):IsZero() then return end
+	local phys = this:GetPhysicsObject()
+	if IsValid( phys ) then
+		phys:SetInertia(Vector(inertia[1], inertia[2], inertia[3]))
+	end
+end
+
 e2function void entity:propSetBuoyancy(number buoyancy)
 	if not PropCore.ValidAction(self, this, "buoyancy") then return end
 	local phys = this:GetPhysicsObject()
