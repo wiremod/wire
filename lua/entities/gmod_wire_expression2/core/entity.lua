@@ -357,6 +357,11 @@ e2function string entity:getMaterial()
 	return this:GetMaterial() or ""
 end
 
+e2function string entity:getSubMaterial(index)
+	if not IsValid(this) then return "" end
+	return this:GetSubMaterial(index-1) or ""
+end
+
 __e2setcost(20)
 
 e2function array entity:getMaterials()
