@@ -1690,6 +1690,11 @@ end
 function Editor:Open(Line, code, forcenewtab)
 	if self:IsVisible() and not Line and not code then self:Close() end
 	self:SetV(true)
+	if self.chip then
+		self.C.SaE:SetText("Upload & Exit")
+	else
+		self.C.SaE:SetText("Save and Exit")
+	end
 	if code then
 		if not forcenewtab then
 			for i = 1, self:GetNumTabs() do
