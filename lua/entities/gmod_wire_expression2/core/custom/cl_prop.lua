@@ -20,6 +20,7 @@ E2Helper.Descriptions["deparent"] = "Unparents an entity, so it moves freely aga
 E2Helper.Descriptions["propBreak"] = "Breaks/Explodes breakable/explodable props (Useful for Mines)."
 E2Helper.Descriptions["propCanCreate"] = "Returns 1 when propSpawn() will successfully spawn a prop until the limit is reached."
 E2Helper.Descriptions["propDrag"] = "Passing 0 makes the entity not be affected by drag"
+E2Helper.Descriptions["propInertia"] = "Sets the directional inertia"
 E2Helper.Descriptions["propDraw"] = "Passing 0 disables rendering for the entity (makes it really invisible)"
 E2Helper.Descriptions["propShadow"] = "Passing 0 disables rendering for the entity's shadow"
 E2Helper.Descriptions["propSetBuoyancy"] = "Sets the prop's buoyancy ratio from 0 to 1"
