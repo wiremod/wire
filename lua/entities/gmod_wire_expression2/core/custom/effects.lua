@@ -80,7 +80,7 @@ end
 e2function effect effect:setAngles(angle ang)
 	if not this then return end
 	
-	this:SetAngles(ang)
+	this:SetAngles( Angle( ang[1] ,ang[2] ,ang[3] ))
 	return this
 end
 
