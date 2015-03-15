@@ -51,6 +51,8 @@ function ENT:TriggerInput(iname, value)
 	if iname == "Set" then
 		if (self.toggle) then
 			self:Switch(value ~= 0)
+			self.PrevUser = nil
+			self.podpress = nil
 		end
 	end
 end
