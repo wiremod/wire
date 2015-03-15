@@ -163,7 +163,6 @@ local function loadSound(index)
 					sound.SoundChannel:Stop()
 				end
 				sound.SoundChannel = channel
-				channel:EnableLooping(true)
 				channel:SetPos(sound.Entity:GetPos())
 				
 				local queue = sound.Queue
