@@ -337,7 +337,7 @@ ZVM.OpcodeTable[45] = function(self)  --CLP
   self:Dyn_Emit("VM.PF = 0")
 end
 ZVM.OpcodeTable[46] = function(self)  --STD
-  if ZVM.MicrocodeDebug then
+  if self.MicrocodeDebug then
     self:Dyn_Emit("VM.Debug = true")
   end
 end
@@ -1162,14 +1162,14 @@ ZVM.OpcodeTable[135] = function(self)  --ENTER
 end
 ZVM.OpcodeTable[136] = function(self)  --IRETP
   self:Dyn_Emit("VM.PTBL = $1")
-  ZVM.OpcodeTable[41](self) -- as IRET
+  self.OpcodeTable[41](self) -- as IRET
 end
 ZVM.OpcodeTable[137] = function(self)  --EXTRETP
   self:Dyn_Emit("VM.PTBL = $1")
-  ZVM.OpcodeTable[110](self) -- as EXTRET
+  self.OpcodeTable[110](self) -- as EXTRET
 end
 ZVM.OpcodeTable[139] = function(self)  --CLD
-  if ZVM.MicrocodeDebug then
+  if self.MicrocodeDebug then
     self:Dyn_Emit("VM.Debug = false")
   end
 end
@@ -1216,7 +1216,7 @@ ZVM.OpcodeTable[140] = function(self) --EXTRETA
 end
 ZVM.OpcodeTable[141] = function(self) --EXTRETPA
   self:Dyn_Emit("VM.PTBL = $1")
-  ZVM.OpcodeTable[140](self) -- as EXTRETP
+  self.OpcodeTable[140](self) -- as EXTRETP
 end
 
 
