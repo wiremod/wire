@@ -11,7 +11,7 @@ cvars.AddChangeCallback("wire_expression2_sound_enabled_cl", function(name, old,
 	end
 end)
 
-function doPlayerBlocking(args, cb)
+local function doPlayerBlocking(args, cb)
 	local name = args[1]:lower()
 	local players = E2Lib.filterList(player.GetAll(), function(ent) return ent:GetName():lower():match(name) end)
 	if #players == 1 then
