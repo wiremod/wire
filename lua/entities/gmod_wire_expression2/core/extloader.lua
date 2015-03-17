@@ -6,41 +6,54 @@ wire_expression2_PreLoadExtensions()
 
 -- Save E2's metatable for wire_expression2_reload
 if ENT then
+
 	local wire_expression2_ENT = ENT
+
 	function wire_expression2_reload(ply, cmd, args)
-		if IsValid(ply) and ply:IsPlayer() and not ply:IsSuperAdmin() and not game.SinglePlayer() then return end
+		if IsValid( ply ) and not ply:IsSuperAdmin() and not game.SinglePlayer() then
+			ply:PrintMessage( 2, "Sorry " .. ply:Name() .. ", you don't have access to this command." )
+			return
+		end
+		
+		local function _Msg( str )
+			if IsValid( ply ) then ply:PrintMessage( 2, str ) end
+			if not game.SinglePlayer() then MsgN( str ) end
+		end
 		
 		timer.Destroy( "E2_AutoReloadTimer" )
-		Msg("Calling destructors for all Expression2 chips.\n")
-		local chips = ents.FindByClass("gmod_wire_expression2")
-		for _, chip in ipairs(chips) do
+		
+		_Msg( "Calling destructors for all Expression 2 chips." )
+		local chips = ents.FindByClass( "gmod_wire_expression2" )
+		for _, chip in ipairs( chips ) do
 			if not chip.error then
-				chip:PCallHook('destruct')
+				chip:PCallHook( "destruct" )
 			end
 			chip.script = nil
 		end
-		Msg("Reloading Expression2 extensions.\n")
-
+		
+		_Msg( "Reloading Expression 2 extensions." )
 		ENT = wire_expression2_ENT
 		wire_expression2_is_reload = true
-		include("entities/gmod_wire_expression2/core/extloader.lua")
+		include( "entities/gmod_wire_expression2/core/extloader.lua" )
 		wire_expression2_is_reload = nil
 		ENT = nil
 
-		Msg("Calling constructors for all Expression2 chips.\n")
+		_Msg( "Calling constructors for all Expression 2 chips." )
 		wire_expression2_prepare_functiondata()
 		if not args or args[1] ~= "nosend" then
-			for _, p in pairs( player.GetAll() ) do
+			for _, p in ipairs( player.GetAll() ) do
 				if IsValid( p ) then wire_expression2_sendfunctions( p ) end
 			end
 		end
-		for _, chip in ipairs(chips) do
-			pcall(chip.OnRestore, chip)
+		for _, chip in ipairs( chips ) do
+			pcall( chip.OnRestore, chip )
 		end
-		Msg("Done reloading Expression2 extensions.\n")
+		
+		_Msg( "Done reloading Expression 2 extensions." )
 	end
 
-	concommand.Add("wire_expression2_reload", wire_expression2_reload)
+	concommand.Add( "wire_expression2_reload", wire_expression2_reload )
+	
 end
 
 wire_expression2_reset_extensions()
@@ -168,7 +181,5 @@ do
 end
 
 e2_include_finalize()
-
 wire_expression2_CallHook("postinit")
-
 wire_expression2_PostLoadExtensions()
