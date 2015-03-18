@@ -295,21 +295,21 @@ e2function void soundPitch( index, pitch )
 	local sound = getSound( self, index )
 	if not sound then return end
 	
-	sound:ChangePitch( math.Clamp( pitch, 0, 300 ) / 100, 0 )
+	sound:ChangePitch( math.Clamp( pitch, 0, 400 ) / 100, 0 )
 end
 
 e2function void soundPitch( index, pitch, fadetime )
 	local sound = getSound( self, index )
 	if not sound then return end
 	
-	sound:ChangePitch( math.Clamp( pitch, 0, 300 ) / 100, math.abs( fadetime ) )
+	sound:ChangePitch( math.Clamp( pitch, 0, 400 ) / 100, math.abs( fadetime ) )
 end
 
 e2function void soundFadeDistance( index, min, max )
 	local sound = getSound( self, index )
 	if not sound then return end
 	
-	sound:ChangeFadeDistance( math.Clamp(min,50,300), math.Clamp(max,350,2000) )
+	sound:ChangeFadeDistance( math.Clamp(min,50,1000), math.Clamp(max,10000,200000) )
 end
 
 e2function void soundLoop( index, val )
