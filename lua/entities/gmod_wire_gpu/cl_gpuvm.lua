@@ -829,7 +829,7 @@ function VM:ReadString(address)
   while currentChar ~= 0 do
     currentChar = self:ReadCell(address + charCount)
 
-    if (currentChar > 0) and (currentChar < 255) then
+    if currentChar and currentChar < 255 then
       charString = charString .. string.char(currentChar)
     else
       if currentChar ~= 0 then
@@ -2175,7 +2175,7 @@ VM.OpcodeTable[280] = function(self)  --DDFRAME
   self:Dyn_Emit("$L VD2 = {}")
   self:Dyn_Emit("VD2[1] = {")
   self:Dyn_Emit("  x = -V3.w + V1.x,")
-  self:Dyn_Emit("  y = --V3.w + V1.y}")
+  self:Dyn_Emit("  y = -V3.w + V1.y}")
   self:Dyn_Emit("VD2[2] = {")
   self:Dyn_Emit("  x = -V3.w + V1.x + V2.x,")
   self:Dyn_Emit("  y = -V3.w + V1.y}")

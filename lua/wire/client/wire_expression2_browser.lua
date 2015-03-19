@@ -37,7 +37,7 @@ end
 
 local string_find = string.find
 local string_lower = string.lower
-function PANEL:Search( str, foldername, fullpath, parentfullpath )
+function PANEL:Search( str, foldername, fullpath, parentfullpath, first_recursion )
 	if not self.SearchFolders[fullpath] then
 		self.SearchFolders[fullpath] = (self.SearchFolders[parentfullpath] or self.Folders):AddNode( foldername )
 	
@@ -48,63 +48,99 @@ function PANEL:Search( str, foldername, fullpath, parentfullpath )
 		node.Icon:SetImage( "icon16/arrow_refresh.png" )
 		node:SetExpanded( true )
 		
-		local myresults = false
+		local myresults = 0
 		for i=1,#files do
 			if string_find( string_lower( files[i] ), str, 1, true ) ~= nil then
 				local filenode = node:AddNode( files[i], "icon16/page_white.png" )
 				filenode:SetFileName( fullpath .. "/" .. files[i] )
-				myresults = true
+				myresults = myresults + 1
 			end
 			
 			coroutine.yield()
 		end
 		
 		if #folders == 0 then
-			if not myresults then
-				node:Remove()
-				return false
+			if myresults == 0 then
+				if node ~= self.Root then node:Remove() end
+				if first_recursion then
+					coroutine.yield( false, myresults )
+				else
+					return false, myresults
+				end
 			end
 			
 			node.Icon:SetImage( "icon16/folder.png" )
-			return true
+			if first_recursion then
+				coroutine.yield( true, myresults )
+			else
+				return true, myresults
+			end
 		else
-			local results = false
 			for i=1,#folders do
-				if self:Search( str, folders[i], fullpath .. "/" .. folders[i], fullpath ) then
-					results = true
+				local b, res = self:Search( str, folders[i], fullpath .. "/" .. folders[i], fullpath )
+				if b then
+					myresults = myresults + res
 				end
 				
 				coroutine.yield()
 			end
 			
 			
-			if results or myresults then
+			if myresults > 0 then
 				node.Icon:SetImage( "icon16/folder.png" )
-				return true
+				if first_recursion then
+					coroutine.yield( true, myresults )
+				else
+					return true, myresults
+				end
 			else
-				node:Remove()
-				return false
+				if node ~= self.Root then node:Remove() end
+				if first_recursion then
+					coroutine.yield( false, myresults )
+				else
+					return false, myresults
+				end
 			end
 		end
 	end
 	
-	return false
+	if first_recursion then
+		coroutine.yield( false, 0 )
+	else
+		return false, 0
+	end
+end
+
+local function check_results( status, bool, count )
+	if bool ~= nil and count ~= nil then -- we're done searching
+		if count == 0 then
+			local node = self.Root:AddNode( "No results" )
+			node.Icon:SetImage( "icon16/exclamation.png" )
+			self.Root.Icon:SetImage( "icon16/folder.png" )
+		end
+		timer.Remove( "wire_expression2_search" )
+		return true
+	elseif not status then -- something went wrong, abort
+		timer.Remove( "wire_expression2_search" )
+		return true
+	end
 end
 
 function PANEL:StartSearch( str )
 	self:UpdateFolders( true )
 	
 	self.SearchFolders = {}
-			
+	
 	local crt = coroutine.create( self.Search )
-	coroutine.resume( crt, self, str, self.startfolder, self.startfolder, "" )
+	local status, bool, count = coroutine.resume( crt, self, str, self.startfolder, self.startfolder, "", true )
+	check_results( status, bool, count )
 	
 	timer.Create( "wire_expression2_search", 0, 0, function()
-		for i=1,50 do -- Load 50 files/folders at a time
-			local status, err = coroutine.resume( crt )
-			if not status then -- we're done searching
-				timer.Remove( "wire_expression2_search" )
-				return
+		for i=1,100 do -- Load loads of files/folders at a time
+			local status, bool, count = coroutine.resume( crt )
+
+			if check_results( status, bool, count ) then
+				return -- exit loop etc
 			end
 		end
 	end )

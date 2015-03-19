@@ -451,6 +451,13 @@ registerFunction("mix", "xv2xv2n", "xv2", function(self, args)
 	return { x, y }
 end)
 
+e2function vector2 bezier(vector2 startVec, vector2 control, vector2 endVec, ratio)
+	return {
+		(1-ratio)^2 * startVec[1] + (2 * (1-ratio) * ratio * control[1]) + ratio^2 * endVec[1],
+		(1-ratio)^2 * startVec[2] + (2 * (1-ratio) * ratio * control[2]) + ratio^2 * endVec[2]
+	}
+end
+
 __e2setcost(2)
 
 // swap x/y

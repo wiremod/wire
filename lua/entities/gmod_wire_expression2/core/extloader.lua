@@ -2,40 +2,58 @@
   Loading extensions
 ]]
 
+wire_expression2_PreLoadExtensions()
+
 -- Save E2's metatable for wire_expression2_reload
 if ENT then
-	local wire_expression2_ENT = ENT
-	function wire_expression2_reload(ply, cmd, args)
-		if IsValid(ply) and ply:IsPlayer() and not ply:IsSuperAdmin() and not game.SinglePlayer() then return end
 
-		Msg("Calling destructors for all Expression2 chips.\n")
-		local chips = ents.FindByClass("gmod_wire_expression2")
-		for _, chip in ipairs(chips) do
+	local wire_expression2_ENT = ENT
+
+	function wire_expression2_reload(ply, cmd, args)
+		if IsValid( ply ) and not ply:IsSuperAdmin() and not game.SinglePlayer() then
+			ply:PrintMessage( 2, "Sorry " .. ply:Name() .. ", you don't have access to this command." )
+			return
+		end
+		
+		local function _Msg( str )
+			if IsValid( ply ) then ply:PrintMessage( 2, str ) end
+			if not game.SinglePlayer() then MsgN( str ) end
+		end
+		
+		timer.Destroy( "E2_AutoReloadTimer" )
+		
+		_Msg( "Calling destructors for all Expression 2 chips." )
+		local chips = ents.FindByClass( "gmod_wire_expression2" )
+		for _, chip in ipairs( chips ) do
 			if not chip.error then
-				chip:PCallHook('destruct')
+				chip:PCallHook( "destruct" )
 			end
 			chip.script = nil
 		end
-		Msg("Reloading Expression2 extensions.\n")
-
+		
+		_Msg( "Reloading Expression 2 extensions." )
 		ENT = wire_expression2_ENT
 		wire_expression2_is_reload = true
-		include("entities/gmod_wire_expression2/core/extloader.lua")
+		include( "entities/gmod_wire_expression2/core/extloader.lua" )
 		wire_expression2_is_reload = nil
 		ENT = nil
 
-		Msg("Calling constructors for all Expression2 chips.\n")
+		_Msg( "Calling constructors for all Expression 2 chips." )
 		wire_expression2_prepare_functiondata()
 		if not args or args[1] ~= "nosend" then
-			wire_expression2_sendfunctions(player.GetAll())
+			for _, p in ipairs( player.GetAll() ) do
+				if IsValid( p ) then wire_expression2_sendfunctions( p ) end
+			end
 		end
-		for _, chip in ipairs(chips) do
-			pcall(chip.OnRestore, chip)
+		for _, chip in ipairs( chips ) do
+			pcall( chip.OnRestore, chip )
 		end
-		Msg("Done reloading Expression2 extensions.\n")
+		
+		_Msg( "Done reloading Expression 2 extensions." )
 	end
 
-	concommand.Add("wire_expression2_reload", wire_expression2_reload)
+	concommand.Add( "wire_expression2_reload", wire_expression2_reload )
+	
 end
 
 wire_expression2_reset_extensions()
@@ -86,11 +104,8 @@ local function e2_include_pass2(name, luaname, contents)
 	
 	local ok, err = pcall(func)
 	if not ok then -- an error occured while executing
-		if string.find(err,"Skipping disabled E2 extension") ~= 0 then -- if it's just a disabled E2 extension...
-			local err = string.match(err,"(Skipping disabled E2 extension.+).$") -- filter to the part we want
-			print(err) -- print the error
-		else
-			error(err) -- otherwise, actually cause an error
+		if not err:find( "EXTENSION_DISABLED" ) then
+			error(err)
 		end
 		return
 	end
@@ -166,5 +181,5 @@ do
 end
 
 e2_include_finalize()
-
 wire_expression2_CallHook("postinit")
+wire_expression2_PostLoadExtensions()

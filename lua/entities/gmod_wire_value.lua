@@ -10,7 +10,7 @@ function ENT:Initialize()
 	self:SetMoveType( MOVETYPE_VPHYSICS )
 	self:SetSolid( SOLID_VPHYSICS )
 
-	self.Outputs = Wire_CreateOutputs(self, { "Out" })
+	self.Outputs = WireLib.CreateOutputs(self, { "Out" })
 end
 
 local types_lookup = {
@@ -132,11 +132,23 @@ function ENT:Setup( valuesin )
 			WireLib.TriggerOutput( self, names[k], values[k] )
 		end
 		self:SetOverlayText(table.concat( txt, "\n" ))
+
+		self.types = types
+		self.values = values
 	end
 end
 
 function ENT:ReadCell( Address )
-	return self.value[Address+1]
+	local tp = self.types[Address+1]
+	-- we can only retrieve numbers here, unfortunately.
+	-- This is because the ReadCell function assumes that things like vectors and strings store one of their values per cell,
+	-- which the constant value does not. While this could be worked around, it's just not worth the effort imo, and it'd just be confusing to use
+	-- If you need to get other types, you'll need to use E2's "Wlk[OutputName,OutputType]" index syntax instead
+	if tp == "NORMAL" then
+		return self.values[Address+1]
+	end
+
+	return 0
 end
 
 duplicator.RegisterEntityClass("gmod_wire_value", WireLib.MakeWireEnt, "Data", "value")

@@ -1,49 +1,52 @@
 if not E2Helper then return end
 
-local types = { "Angle", "Array", "Bone", "Complex", "Entity", "GTable", "Matrix4", "Matrix2", "Matrix", "Number", 
-		"Quaternion", "Ranger", "String", "Table", "Vector4", "Vector2", "Vector", "Wirelink" }
-
-for k, v in pairs( types ) do
-	local short = string.Left( v, 3 )
-	local type = string.lower( v )
-	local typeid = string.Left( type, 1 )
-	-- tables
-	E2Helper.Descriptions["insert"..v.."(t:n"..typeid..")"] = "Inserts the variable at the specified position. Moves all other indexes up one step to compensate"
-	E2Helper.Descriptions["remove"..v.."(t:n)"] = "Removes the variable at the specified numerical index, with the specified type, and returns it. All sequential keys will be moved down to fill the gap"
-	E2Helper.Descriptions["remove"..v.."(t:s)"] = "Removes the variable at the specified string index, with the specified type, and returns it"
-	E2Helper.Descriptions["pop"..v.."(t:)"] = "Removes and returns the last variable"
-	E2Helper.Descriptions["push"..v.."(t:"..typeid..")"] = "Adds the variable to the end of the table"
-	E2Helper.Descriptions["unshift"..v.."(t:"..typeid..")"] = "Adds the data to the beginning of the table. Will move all other entries up one step to compensate"
-	-- arrays
-	E2Helper.Descriptions["insert"..v.."(r:n"..typeid..")"] = "Inserts the variable at the specified position. Moves all other indexes up one step to compensate"
-	E2Helper.Descriptions["set"..v.."(r:n"..typeid..")"] = "Sets a variable at specified index. Deprecated, use R[N,"..type.."] = X instead"
-	E2Helper.Descriptions[type.."(r:n)"] = "Returns the "..type.." stored in the array under specified index. Deprecated, use R[N,"..type.."] instead"
-	E2Helper.Descriptions["pop"..v.."(r:)"] = "Deletes and returns the last entry in the array. Be sure not to use popNumber() on a vector or similar, as the data may be lost"
-	E2Helper.Descriptions["push"..v.."(r:"..typeid..")"] = "Saves the data at the end of the array"
-	E2Helper.Descriptions["unshift"..v.."(r:"..typeid..")"] = "Adds the data to the beginning of the array. Will move all other entries up one address"
-	E2Helper.Descriptions["shift"..v.."(r:)"] = "Deletes and returns the first element of the array, moving other entries down one address to compensate"
-	E2Helper.Descriptions["remove"..v.."(r:n)"] = "Deletes and returns the specified entry, moving subsequent entries down to compensate"
-	-- gvars
-	E2Helper.Descriptions["gRemoveAll"..v.."s()"] = "Removes all variables of the "..type.." type in your non-shared table"
-	E2Helper.Descriptions["gRemoveAll"..v.."s(s)"] = "Removes all variables of the "..type.." type in your non-shared table in group S"
-	E2Helper.Descriptions["gDeleteAll"..short.."()"] = "Exactly the same as gRemoveAll"..v.."s(S) (Except it removes in the group set by gSetGroup instead of using the group as an argument)"
-	E2Helper.Descriptions["gDelete"..short.."(s)"] = "Removes and returns the variable of the "..type.." type at the index S in the current group"
-	E2Helper.Descriptions["gDelete"..short.."(n)"] = "Exactly the same as gDelete"..short.."(N:toString())"
-	E2Helper.Descriptions["gGet"..short.."(s)"] = "Gets a variable of the "..type.." type from index S in the current group"
-	E2Helper.Descriptions["gGet"..short.."(n)"] = "Exactly the same as gGet"..short.."(N:toString())"
-	E2Helper.Descriptions["gSet"..short.."(s"..typeid..")"] = "Sets a variable of the "..type.." type at index S in the current group"
-	E2Helper.Descriptions["gSet"..short.."(n"..typeid..")"] = "Exactly the same as gSet"..short.."(N:toString(),"..type..")"
-	E2Helper.Descriptions["remove"..v.."(xgt:s)"] = "Removes and returns the variable of the "..type.." type at the index S"
-	-- self-aware
-	E2Helper.Descriptions["ioGetInput"..v.."(s)"] = "Get the value of the input S of the E2"
-	E2Helper.Descriptions["ioSetOutput(s"..typeid..")"] = "Trigger the output S of the E2 with the "..type.." value"
-	E2Helper.Descriptions["select(n"..typeid.."...)"] = "Returns the Nth value given after the index, "..type.."'s zero element otherwise. If you mix types, the behaviour is undefined"
-	-- datasignals
-	E2Helper.Descriptions["dsGet"..v.."()"] = "Returns the received "..type
-	-- wirelink
-	E2Helper.Descriptions[type.."(xwl:s)"] = "Returns the "..type.." from the specified address of linked component. Deprecated, use XWL[S,"..type.."] instead"
-	E2Helper.Descriptions["set"..v.."(xwl:s"..typeid..")"] = "Sets the component's input of the specified name equal to specified "..type..". Deprecated, use XWL[S,"..type.."] = X instead"
-end
+local name, short, type, typeid
+timer.Simple(0.1, function()
+	for k, v in pairs( wire_expression_types ) do
+		if k == "NORMAL" then k = "NUMBER" end
+		
+		name = k:sub(1,1) .. k:sub(2):lower()
+		short = name:Left(3)
+		type = name:lower()
+		typeid = v[1]
+		-- tables
+		E2Helper.Descriptions["insert"..name.."(t:n"..typeid..")"] = "Inserts the variable at the specified position. Moves all other indexes up one step to compensate"
+		E2Helper.Descriptions["remove"..name.."(t:n)"] = "Removes the variable at the specified numerical index, with the specified type, and returns it. All sequential keys will be moved down to fill the gap"
+		E2Helper.Descriptions["remove"..name.."(t:s)"] = "Removes the variable at the specified string index, with the specified type, and returns it"
+		E2Helper.Descriptions["pop"..name.."(t:)"] = "Removes and returns the last variable"
+		E2Helper.Descriptions["push"..name.."(t:"..typeid..")"] = "Adds the variable to the end of the table"
+		E2Helper.Descriptions["unshift"..name.."(t:"..typeid..")"] = "Adds the data to the beginning of the table. Will move all other entries up one step to compensate"
+		-- arrays
+		E2Helper.Descriptions["insert"..name.."(r:n"..typeid..")"] = "Inserts the variable at the specified position. Moves all other indexes up one step to compensate"
+		E2Helper.Descriptions["set"..name.."(r:n"..typeid..")"] = "Sets a variable at specified index. Deprecated, use R[N,"..type.."] = X instead"
+		E2Helper.Descriptions[type.."(r:n)"] = "Returns the "..type.." stored in the array under specified index. Deprecated, use R[N,"..type.."] instead"
+		E2Helper.Descriptions["pop"..name.."(r:)"] = "Deletes and returns the last entry in the array. Be sure not to use popNumber() on a vector or similar, as the data may be lost"
+		E2Helper.Descriptions["push"..name.."(r:"..typeid..")"] = "Saves the data at the end of the array"
+		E2Helper.Descriptions["unshift"..name.."(r:"..typeid..")"] = "Adds the data to the beginning of the array. Will move all other entries up one address"
+		E2Helper.Descriptions["shift"..name.."(r:)"] = "Deletes and returns the first element of the array, moving other entries down one address to compensate"
+		E2Helper.Descriptions["remove"..name.."(r:n)"] = "Deletes and returns the specified entry, moving subsequent entries down to compensate"
+		-- gvars
+		E2Helper.Descriptions["gRemoveAll"..name.."s()"] = "Removes all variables of the "..type.." type in your non-shared table"
+		E2Helper.Descriptions["gRemoveAll"..name.."s(s)"] = "Removes all variables of the "..type.." type in your non-shared table in group S"
+		E2Helper.Descriptions["gDeleteAll"..short.."()"] = "Exactly the same as gRemoveAll"..name.."s(S) (Except it removes in the group set by gSetGroup instead of using the group as an argument)"
+		E2Helper.Descriptions["gDelete"..short.."(s)"] = "Removes and returns the variable of the "..type.." type at the index S in the current group"
+		E2Helper.Descriptions["gDelete"..short.."(n)"] = "Exactly the same as gDelete"..short.."(N:toString())"
+		E2Helper.Descriptions["gGet"..short.."(s)"] = "Gets a variable of the "..type.." type from index S in the current group"
+		E2Helper.Descriptions["gGet"..short.."(n)"] = "Exactly the same as gGet"..short.."(N:toString())"
+		E2Helper.Descriptions["gSet"..short.."(s"..typeid..")"] = "Sets a variable of the "..type.." type at index S in the current group"
+		E2Helper.Descriptions["gSet"..short.."(n"..typeid..")"] = "Exactly the same as gSet"..short.."(N:toString(),"..type..")"
+		E2Helper.Descriptions["remove"..name.."(xgt:s)"] = "Removes and returns the variable of the "..type.." type at the index S"
+		-- self-aware
+		E2Helper.Descriptions["ioGetInput"..name.."(s)"] = "Get the value of the input S of the E2"
+		E2Helper.Descriptions["ioSetOutput(s"..typeid..")"] = "Trigger the output S of the E2 with the "..type.." value"
+		E2Helper.Descriptions["select(n"..typeid.."...)"] = "Returns the Nth value given after the index, "..type.."'s zero element otherwise. If you mix types, the behaviour is undefined"
+		-- datasignals
+		E2Helper.Descriptions["dsGet"..name.."()"] = "Returns the received "..type
+		-- wirelink
+		E2Helper.Descriptions[type.."(xwl:s)"] = "Returns the "..type.." from the specified address of linked component. Deprecated, use XWL[S,"..type.."] instead"
+		E2Helper.Descriptions["set"..name.."(xwl:s"..typeid..")"] = "Sets the component's input of the specified name equal to specified "..type..". Deprecated, use XWL[S,"..type.."] = X instead"
+	end
+end)
 
 -- Number
 E2Helper.Descriptions["mod(nn)"] = "Modulo, returns the Remainder after Argument 1 has been divided by Argument 2. Note \"mod(-1, 3) = -1\""
@@ -151,6 +154,7 @@ E2Helper.Descriptions["toNumber(s:n)"] = "Parses a number from a string. The arg
 E2Helper.Descriptions["toString(n:)"] = "Formats a number as a string. (Numbers may be concatenated into a string without using this function)"
 E2Helper.Descriptions["toString(n)"] = "Formats a number as a string. (Numbers may be concatenated into a string without using this function)"
 E2Helper.Descriptions["toString(n:n)"] = "Formats a number as a string, using argument 2 as the base. i.e. using 16 for base would convert the number to hex"
+E2Helper.Descriptions["toString(nn)"] = "Formats a number as a string, using argument 2 as the base. i.e. using 16 for base would convert the number to hex"
 E2Helper.Descriptions["toChar(n)"] = "Returns a one-character string from it's ASCII code, where 32 = argument 1 = 255. An empty string is returned for numbers outside that range"
 E2Helper.Descriptions["toUnicodeChar(n)"] = "Returns a one-character string from it's UNICODE code"
 E2Helper.Descriptions["toByte(s)"] = "Returns the ASCII code of the 1st character in the string"
@@ -169,6 +173,7 @@ E2Helper.Descriptions["entity(n)"] = "Gets the entity associated with the id"
 E2Helper.Descriptions["owner()"] = "Gets the owner of the expression ( same as entity():owner() )"
 E2Helper.Descriptions["id(e:)"] = "Gets the numeric id of an entity"
 E2Helper.Descriptions["noentity()"] = "Returns an invalid entity"
+E2Helper.Descriptions["world()"] = "Returns the world entity"
 E2Helper.Descriptions["type(e:)"] = "Gets the class of an entity"
 E2Helper.Descriptions["model(e:)"] = "Gets the model of an entity"
 E2Helper.Descriptions["owner(e:)"] = "Gets the owner of an entity"
@@ -260,6 +265,7 @@ E2Helper.Descriptions["isCrouch(e:)"] = "Is the player crouching?"
 E2Helper.Descriptions["isFlashlightOn(e:)"] = "Returns 1 if the player has flashlight on, 0 otherwise"
 E2Helper.Descriptions["isTyping(e:)"] = "Is the player typing a message in chat?"
 E2Helper.Descriptions["isValid(e:)"] = "Returns 1 if the entity is valid, 0 otherwise"
+E2Helper.Descriptions["isValidPhysics(e:)"] = "Returns 1 if the entity has valid physics (players don't)"
 E2Helper.Descriptions["inNoclip(e:)"] = "Is the player in noclip mode?"
 E2Helper.Descriptions["friends(e:)"] = "Returns an array of players on the prop protection friends list"
 E2Helper.Descriptions["trusts(e:e)"] = "Is E2 on the prop protection friends list of E?"
@@ -312,12 +318,13 @@ E2Helper.Descriptions["attachmentPos(e:n)"] = "Returns Es attachment position as
 E2Helper.Descriptions["attachmentAng(e:n)"] = "Returns Es attachment angle associated with attachmentID"
 E2Helper.Descriptions["attachmentPos(e:s)"] = "Same as E:attachmentPos(E:lookupAttachment(attachmentName))"
 E2Helper.Descriptions["attachmentAng(e:s)"] = "Same as E:attachmentAng(E:lookupAttachment(attachmentName))"
+E2Helper.Descriptions["attachments(e:)"] = "Returns array of attachment names of the entity"
 
 -- Vector
 E2Helper.Descriptions["vec2(n)"] = "Makes a 2D vector"
 E2Helper.Descriptions["vec2(nn)"] = "Makes a 2D vector"
 E2Helper.Descriptions["vec2()"] = "Same as vec2(0,0)"
-E2Helper.Descriptions["vec2(xv)"] = "Converts a 3D vector into a 2D vector (the z component is dropped)"
+E2Helper.Descriptions["vec2(v)"] = "Converts a 3D vector into a 2D vector (the z component is dropped)"
 E2Helper.Descriptions["vec2(xv4)"] = "Converts a 4D vector into a 2D vector (the z and w components are dropped)"
 E2Helper.Descriptions["shift(xv2)"] = "Swaps the vector's x,y components"
 E2Helper.Descriptions["toAngle(xv2:)"] = "Returns the 2D angle of the vector (given in degrees, -180 to 180)"
@@ -470,6 +477,8 @@ E2Helper.Descriptions["outerProduct(xv4:xv4)"] = "Gets the outer product (tensor
 E2Helper.Descriptions["pointContents(v)"] = "Returns a string with all the \"content\" types in the vector point, seperated by commas"
 E2Helper.Descriptions["pointContentsArray(v)"] = "Returns an array with all the \"content\" types in the vector point"
 E2Helper.Descriptions["pointHasContent(vs)"] = "'S' can be a string containing the last half of the CONTENTS_ enums (ie without the \"CONTENTS_\"). Multiple CONTENTS types can be seperated by a comma. Check: Enumeration_List:Contents for a full list. Examples: \"water,solid\" or \"empty,transparent\". The function returns 1 if any one of the types are found in the vector point"
+E2Helper.Descriptions["bezier(xv2xv2xv2n)"] = "Returns the 3D vector position on the bezier curve between the starting and ending 3D vector, given by the ratio (value between 0 and 1)"
+E2Helper.Descriptions["bezier(vvvn)"] = "Returns the 2D position on the bezier curve between the starting and ending 2D vector, given by the ratio (value between 0 and 1)"
 
 -- Matrix
 E2Helper.Descriptions["identity2()"] = "Creates a 2x2 identity matrix"
@@ -686,14 +695,6 @@ E2Helper.Descriptions["inputs(xwl:)"] = "Returns an array of all the inputs that
 E2Helper.Descriptions["outputs(xwl:)"] = "Returns an array of all the outputs that XWL has without their types. Returns an empty array if it has none"
 E2Helper.Descriptions["inputType(xwl:s)"] = "Returns the type of input that S is in lowercase. ( \"NORMAL\" is changed to \"number\" )"
 E2Helper.Descriptions["outputType(xwl:s)"] = "Returns the type of output that S is in lowercase. ( \"NORMAL\" is changed to \"number\" )"
-E2Helper.Descriptions["setArray(xwl:sr)"] = "Sets the component's input of the specified name equal to specified array. Deprecated, use XWL[S,array] = X instead"
-E2Helper.Descriptions["setGtable(xwl:sxgt)"] = "Sets the component's input of the specified name equal to specified gtable. Deprecated, use XWL[S,gtable] = X instead"
-E2Helper.Descriptions["setMatrix2(xwl:sxm2)"] = "Sets the component's input of the specified name equal to specified 2x2 matrix. Deprecated, use XWL[S,matrix2] = X instead"
-E2Helper.Descriptions["setMatrix4(xwl:sxm4)"] = "Sets the component's input of the specified name equal to specified 4x4 matrix. Deprecated, use XWL[S,matrix4] = X instead"
-E2Helper.Descriptions["setRanger(xwl:sxrd)"] = "Sets the component's input of the specified name equal to specified 4x4 matrix. Deprecated, use XWL[S,ranger] = X instead"
-E2Helper.Descriptions["setVector2(xwl:sxv2)"] = "Sets the component's input of the specified name equal to specified 2D vector. Deprecated, use XWL[S,vector2] = X instead"
-E2Helper.Descriptions["setVector4(xwl:sxv4)"] = "Sets the component's input of the specified name equal to specified 4D vector. Deprecated, use XWL[S,vector4] = X instead"
-E2Helper.Descriptions["setWirelink(xwl:sxwl)"] = "Sets the component's input of the specified name equal to specified wirelink. Deprecated, use XWL[S,wirelink] = X instead"
 E2Helper.Descriptions["setXyz(xwl:v)"] = "Sets the X/Y/Z to the corresponding values in the vector"
 
 -- Quaternions
@@ -807,19 +808,6 @@ E2Helper.Descriptions["hashNoComments()"] = "Returns a numerical hash using the 
 E2Helper.Descriptions["concmd(s)"] = "Takes a string and executes it in console. Returns 1 if it succeeded and 0 if it failed.The client must enable this in the console with \"wire_expression2_concmd 1\". \"wire_expression2_concmd_whitelist\" allows you to choose which commands can be used.[http://www.wiremod.com/forum/151800-post12.html]"
 E2Helper.Descriptions["ioInputEntity(s)"] = "Returns the entity the input S is wired to"
 E2Helper.Descriptions["ioOutputEntities(s)"] = "Returns an array of all entities wired to the output S"
-E2Helper.Descriptions["ioSetOutput(sxm2)"] = "Trigger the output S of the E2 with the 2x2 matrix value"
-E2Helper.Descriptions["ioSetOutput(sxm4)"] = "Trigger the output S of the E2 with the 4x4 matrix value"
-E2Helper.Descriptions["ioSetOutput(sxv2)"] = "Trigger the output S of the E2 with the 2D vector value"
-E2Helper.Descriptions["ioSetOutput(sxv4)"] = "Trigger the output S of the E2 with the 4D vector value"
-E2Helper.Descriptions["ioSetOutput(sxwl)"] = "Trigger the output S of the E2 with the wirelink value"
-E2Helper.Descriptions["ioSetOutput(sxrd)"] = "Trigger the output S of the E2 with the ranger value"
-E2Helper.Descriptions["select(nxm2...)"] = "Returns the Nth value given after the index, 2x2 matrix's zero element otherwise. If you mix types, the behaviour is undefined"
-E2Helper.Descriptions["select(nxm4...)"] = "Returns the Nth value given after the index, 4x4 matrix's zero element otherwise. If you mix types, the behaviour is undefined"
-E2Helper.Descriptions["select(nxv2...)"] = "Returns the Nth value given after the index, 2D vector's zero element otherwise. If you mix types, the behaviour is undefined"
-E2Helper.Descriptions["select(nxv4...)"] = "Returns the Nth value given after the index, 4D vector's zero element otherwise. If you mix types, the behaviour is undefined"
-E2Helper.Descriptions["select(nxwl...)"] = "Returns the Nth value given after the index, wirelink's zero element otherwise. If you mix types, the behaviour is undefined"
-E2Helper.Descriptions["select(nxrd...)"] = "Returns the Nth value given after the index, ranger's zero element otherwise. If you mix types, the behaviour is undefined"
-E2Helper.Descriptions["select(nxgt...)"] = "Returns the Nth value given after the index, GTable's zero element otherwise. If you mix types, the behaviour is undefined"
 E2Helper.Descriptions["runOnLast(n)"] = "If set to 1, the chip will run once when it is removed, setting the last() flag when it does"
 E2Helper.Descriptions["selfDestruct()"] = "Removes the expression"
 E2Helper.Descriptions["selfDestructAll()"] = "Removes the expression and all constrained props"
@@ -1256,27 +1244,6 @@ E2Helper.Descriptions["exists(t:n)"] = "Returns 1 if the table contains any valu
 E2Helper.Descriptions["invert(t)"] = "Inverts the table, creating a lookup table"
 E2Helper.Descriptions["keys(t:)"] = "Returns an array with the keys of the table"
 E2Helper.Descriptions["values(t:)"] = "Returns an array with the values of the table (tables and arrays, which arrays do not support, are discarded)"
-E2Helper.Descriptions["insertArray(t:nr)"] = "Inserts the variable at the specified position. Moves all other indexes up one step to compensate"
-E2Helper.Descriptions["insertMatrix2(t:nxm2)"] = "Inserts the variable at the specified position. Moves all other indexes up one step to compensate"
-E2Helper.Descriptions["insertMatrix4(t:nxm4)"] = "Inserts the variable at the specified position. Moves all other indexes up one step to compensate"
-E2Helper.Descriptions["insertVector2(t:nxv2)"] = "Inserts the variable at the specified position. Moves all other indexes up one step to compensate"
-E2Helper.Descriptions["insertVector4(t:nxv4)"] = "Inserts the variable at the specified position. Moves all other indexes up one step to compensate"
-E2Helper.Descriptions["insertRanger(t:nxrd)"] = "Inserts the variable at the specified position. Moves all other indexes up one step to compensate"
-E2Helper.Descriptions["insertWirelink(t:nxwl)"] = "Inserts the variable at the specified position. Moves all other indexes up one step to compensate"
-E2Helper.Descriptions["pushArray(t:r)"] = "Adds the variable to the end of the table"
-E2Helper.Descriptions["pushMatrix2(t:xm2)"] = "Adds the variable to the end of the table"
-E2Helper.Descriptions["pushMatrix4(t:xm4)"] = "Adds the variable to the end of the table"
-E2Helper.Descriptions["pushVector2(t:xv2)"] = "Adds the variable to the end of the table"
-E2Helper.Descriptions["pushVector4(t:xv4)"] = "Adds the variable to the end of the table"
-E2Helper.Descriptions["pushRanger(t:xrd)"] = "Adds the variable to the end of the table"
-E2Helper.Descriptions["pushWirelink(t:xwl)"] = "Adds the variable to the end of the table"
-E2Helper.Descriptions["unshiftArray(t:r)"] = "Adds the data to the beginning of the table. Will move all other entries up one step to compensate"
-E2Helper.Descriptions["unshiftMatrix2(t:xm2)"] = "Adds the data to the beginning of the table. Will move all other entries up one step to compensate"
-E2Helper.Descriptions["unshiftMatrix4(t:xm4)"] = "Adds the data to the beginning of the table. Will move all other entries up one step to compensate"
-E2Helper.Descriptions["unshiftVector2(t:xv2)"] = "Adds the data to the beginning of the table. Will move all other entries up one step to compensate"
-E2Helper.Descriptions["unshiftVector4(t:xv4)"] = "Adds the data to the beginning of the table. Will move all other entries up one step to compensate"
-E2Helper.Descriptions["unshiftRanger(t:xrd)"] = "Adds the data to the beginning of the table. Will move all other entries up one step to compensate"
-E2Helper.Descriptions["unshiftWirelink(t:xwl)"] = "Adds the data to the beginning of the table. Will move all other entries up one step to compensate"
 
 -- arrays
 E2Helper.Descriptions["array(...)"] = "Creates an array"
@@ -1302,31 +1269,7 @@ E2Helper.Descriptions["maxIndex(r:)"] = "Returns the index of the largest number
 E2Helper.Descriptions["merge(r:r)"] = "Merges R2 with R. Any variables with the same indexes are overwritten by R2's variables"
 E2Helper.Descriptions["pop(r:)"] = "Deletes the last entry in the array"
 E2Helper.Descriptions["shift(r:)"] = "Deletes the first element of the array; all other entries will move down one address"
-E2Helper.Descriptions["insertMatrix2(r:nxm2)"] = "Inserts the variable at the specified position. Moves all other indexes up one step to compensate"
-E2Helper.Descriptions["insertMatrix4(r:nxm4)"] = "Inserts the variable at the specified position. Moves all other indexes up one step to compensate"
-E2Helper.Descriptions["insertVector2(r:nxv2)"] = "Inserts the variable at the specified position. Moves all other indexes up one step to compensate"
-E2Helper.Descriptions["insertVector4(r:nxv4)"] = "Inserts the variable at the specified position. Moves all other indexes up one step to compensate"
-E2Helper.Descriptions["insertRanger(r:nxrd)"] = "Inserts the variable at the specified position. Moves all other indexes up one step to compensate"
-E2Helper.Descriptions["insertWirelink(r:nxwl)"] = "Inserts the variable at the specified position. Moves all other indexes up one step to compensate"
-E2Helper.Descriptions["pushMatrix2(r:xm2)"] = "Adds the variable to the end of the array"
-E2Helper.Descriptions["pushMatrix4(r:xm4)"] = "Adds the variable to the end of the array"
-E2Helper.Descriptions["pushVector2(r:xv2)"] = "Adds the variable to the end of the array"
-E2Helper.Descriptions["pushVector4(r:xv4)"] = "Adds the variable to the end of the array"
-E2Helper.Descriptions["pushRanger(r:xrd)"] = "Adds the variable to the end of the array"
-E2Helper.Descriptions["pushWirelink(r:xwl)"] = "Adds the variable to the end of the array"
 E2Helper.Descriptions["remove(r:n)"] = "Deletes the specified entry, moving subsequent entries down to compensate"
-E2Helper.Descriptions["setMatrix2(r:nxm2)"] = "Sets a variable at specified index. Deprecated, use R[N,matrix2] = X instead"
-E2Helper.Descriptions["setMatrix4(r:nxm4)"] = "Sets a variable at specified index. Deprecated, use R[N,matrix4] = X instead"
-E2Helper.Descriptions["setRanger(r:nxrd)"] = "Sets a variable at specified index. Deprecated, use R[N,ranger] = X instead"
-E2Helper.Descriptions["setVector2(r:nxv2)"] = "Sets a variable at specified index. Deprecated, use R[N,vector2] = X instead"
-E2Helper.Descriptions["setVector4(r:nxv4)"] = "Sets a variable at specified index. Deprecated, use R[N,vector4] = X instead"
-E2Helper.Descriptions["setWirelink(r:nxwl)"] = "Sets a variable at specified index. Deprecated, use R[N,wirelink] = X instead"
-E2Helper.Descriptions["unshiftMatrix2(r:xm2)"] = "Adds the data to the beginning of the array. Will move all other entries up one address"
-E2Helper.Descriptions["unshiftMatrix4(r:xm4)"] = "Adds the data to the beginning of the array. Will move all other entries up one address"
-E2Helper.Descriptions["unshiftVector2(r:xv2)"] = "Adds the data to the beginning of the array. Will move all other entries up one address"
-E2Helper.Descriptions["unshiftVector4(r:xv4)"] = "Adds the data to the beginning of the array. Will move all other entries up one address"
-E2Helper.Descriptions["unshiftRanger(r:xrd)"] = "Adds the data to the beginning of the array. Will move all other entries up one address"
-E2Helper.Descriptions["unshiftWirelink(r:xwl)"] = "Adds the data to the beginning of the array. Will move all other entries up one address"
 
 -- binary
 E2Helper.Descriptions["bOr(nn)"] = "Performs bitwise OR against the two numbers"
@@ -1479,3 +1422,24 @@ E2Helper.Descriptions["soundVolume(snn)"] = "soundVolume(string Index, Volume, F
 E2Helper.Descriptions["soundVolume(sn)"] = "soundVolume(string Index, Volume), where Volume is a number between 0 and 1. Default Volume is 1"
 E2Helper.Descriptions["soundVolume(nn)"] = "soundVolume(integer Index, Volume), where Volume is a number between 0 and 1. Default Volume is 1"
 E2Helper.Descriptions["soundVolume(nnn)"] = "soundVolume(integer Index, Volume, FadeTime), where Volume is a number between 0 and 1. Default Volume is 1"
+
+---- Custom ----
+-- Effect
+E2Helper.Descriptions["effect()"] = "Creates and returns new effect"
+E2Helper.Descriptions["play(xef:s)"] = "Plays the effect with given name (eg. watersplash)"
+E2Helper.Descriptions["setAngles(xef:a)"] = "Sets the angle of the effect"
+E2Helper.Descriptions["setAttachment(xef:n)"] = "Creates new attachment ID for the effect"
+E2Helper.Descriptions["setColor(xef:n)"] = "Sets the color of the effect. Color is represented by a byte"
+E2Helper.Descriptions["setDamageType(xef:n)"] = "Sets the damage type of the effect. See DMG_ Enums on GMod Wiki"
+E2Helper.Descriptions["setEntIndex(xef:n)"] = "Sets the entity of the effect via its index"
+E2Helper.Descriptions["setEntity(xef:e)"] = "Sets the entity of the effect"
+E2Helper.Descriptions["setFlags(xef:n)"] = "Sets the flags of the effect"
+E2Helper.Descriptions["setHitBox(xef:n)"] = "Sets the hit box index of the effect"
+E2Helper.Descriptions["setMagnitude(xef:n)"] = "Sets the magnitude of the effect"
+E2Helper.Descriptions["setMaterialIndex(xef:n)"] = "Sets the material index of the effect"
+E2Helper.Descriptions["setNormal(xef:v)"] = "Sets the normalized direction vector of the effect"
+E2Helper.Descriptions["setOrigin(xef:v)"] = "Sets the origin of the effect"
+E2Helper.Descriptions["setRadius(xef:n)"] = "Sets the radius of the effect"
+E2Helper.Descriptions["setScale(xef:n)"] = "Sets the scale of the effect"
+E2Helper.Descriptions["setStart(xef:v)"] = "Sets the start of the effect"
+E2Helper.Descriptions["setSurfaceProp(xef:n)"] = "Sets the surface property index of the effect"

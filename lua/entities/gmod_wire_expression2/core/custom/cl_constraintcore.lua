@@ -10,6 +10,7 @@ E2Helper.Descriptions["enableConstraintUndo"] = "If 0, suppresses creation of un
 E2Helper.Descriptions["axis"] = "Creates an axis constraint between two entities at vectors local to each entity"
 E2Helper.Descriptions["ballsocket"] = "Creates a ballsocket constraint between two entities at a vector local to ent1"
 E2Helper.Descriptions["ballsocket(evevvv)"] = "Creates an AdvBallsocket constraint between two entities at a vector local to ent1, using the specified mins, maxs, and frictions)"
+E2Helper.Descriptions["ballsocket(evevvvn)"] = "Creates an AdvBallsocket constraint between two entities at a vector local to ent1, using the specified mins, maxs, frictions, rotateonly)"
 E2Helper.Descriptions["weldAng"] = "Creates an angular weld constraint (angles are fixed, position is free) between two entities at a vector local to ent1"
 E2Helper.Descriptions["winch"] = "Creates a winch constraint with a referenceid, between two entities, at vectors local to each"
 E2Helper.Descriptions["hydraulic"] = "Creates a hydraulic constraint with a referenceid, between two entities, at vectors local to each"

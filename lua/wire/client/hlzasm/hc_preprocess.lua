@@ -82,6 +82,11 @@ function HCOMP:ParsePreprocessMacro(lineText,macroPosition)
     self.Defines[defineName] = defineValue
   elseif macroName == "undef" then -- #undef
     local defineName = trimString(string.sub(macroParameters,1,(string.find(macroParameters," ") or 0)-1))
+    if tonumber(defineName) then
+      self:Error("Bad idea to undefine numbers",
+        macroPosition.Line,macroPosition.Col,macroPosition.File)
+    end
+	self.Defines[defineName] = nil
   elseif macroName == "ifdef" then -- #ifdef
     local defineName = trimString(string.sub(macroParameters,1,(string.find(macroParameters," ") or 0)-1))
     if self.Defines[defineName] then

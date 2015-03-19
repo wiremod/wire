@@ -96,6 +96,10 @@ e2function entity noentity()
 	return NULL
 end
 
+e2function entity world()
+	return game.GetWorld()
+end
+
 e2function string entity:type()
 	if not IsValid(this) then return "" end
 	return this:GetClass()
@@ -332,6 +336,11 @@ e2function number entity:isValid()
 	return IsValid(this) and 1 or 0
 end
 
+--- Returns 1 if <this> has valid physics. Note: Players do not. 
+e2function number entity:isValidPhysics()
+	return E2Lib.validPhysics(this) and 1 or 0
+end
+
 /******************************************************************************/
 // Functions getting angles
 
@@ -348,11 +357,32 @@ e2function string entity:getMaterial()
 	return this:GetMaterial() or ""
 end
 
+e2function string entity:getSubMaterial(index)
+	if not IsValid(this) then return "" end
+	return this:GetSubMaterial(index-1) or ""
+end
+
+__e2setcost(20)
+
+e2function array entity:getMaterials()
+	if not IsValid(this) then return {} end
+	return this:GetMaterials()
+end
+
+__e2setcost(10)
+
 e2function void entity:setMaterial(string material)
 	if not IsValid(this) then return end
 	if not isOwner(self, this) then return end
 	if string.lower(material) == "pp/copy" then return end
 	this:SetMaterial(material)
+end
+
+e2function void entity:setSubMaterial(index, string material)
+	if not IsValid(this) then return end
+	if not isOwner(self, this) then return end
+	if string.lower(material) == "pp/copy" then return end
+	this:SetSubMaterial(index-1,material)
 end
 
 --- Gets <this>'s current skin number.
@@ -640,6 +670,9 @@ end
 
 local function composedata(startSize, endSize, length, material, color, alpha)
 	if string.find(material, '"', 1, true) then return nil end
+
+	endSize = math.Clamp( endSize, 0, 128 )
+	startSize = math.Clamp( startSize, 0, 128 )
 
 	return {
 		Color = Color( color[1], color[2], color[3], alpha ),

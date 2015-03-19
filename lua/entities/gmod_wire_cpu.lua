@@ -166,7 +166,7 @@ function ENT:Run()
 			-- Run VM step
 			local previousTMR = self.VM.TMR
 			self.VM:Step()
-			Cycles = Cycles - (self.VM.TMR - previousTMR)
+			Cycles = Cycles - math.max(1, self.VM.TMR - previousTMR)
 		end
 	end
 

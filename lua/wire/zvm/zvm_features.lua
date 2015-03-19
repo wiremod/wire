@@ -19,12 +19,14 @@ ZVM.ROM = {}
 
 -- CPUID instruction result
 function ZVM:CPUID(index)
-      if index == 0 then
+  if index == 0 then
     return self.CPUVER  -- CPU version
   elseif index == 1 then
     return self.RAMSize -- Amount of internal RAM
   elseif index == 2 then
     return self.CPUTYPE -- 0: ZCPU, 1: ZGPU, 2: ZSPU
+  elseif index == 3 then
+    return self.ROMSize -- Amount of internal ROM
   end
 end
 
