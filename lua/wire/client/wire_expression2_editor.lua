@@ -840,12 +840,18 @@ function Editor:InitComponents()
 
 	self.C.Sav:SetImage("icon16/disk.png")
 	self.C.Sav.DoClick = function(button) self:SaveFile(self:GetChosenFile()) end
+	self.C.Sav:SetToolTip( "Save" )
 
 	self.C.NewTab:SetImage("icon16/page_white_add.png")
+	self.C.NewTab.DoClick = function(button) self:NewTab() end
+	self.C.NewTab:SetToolTip( "New tab" )
 
 	self.C.CloseTab:SetImage("icon16/page_white_delete.png")
+	self.C.CloseTab.DoClick = function(button) self:CloseTab() end
+	self.C.CloseTab:SetToolTip( "Close tab" )
 
 	self.C.Reload:SetImage("icon16/page_refresh.png")
+	self.C.Reload:SetToolTip( "Refresh file" )
 	self.C.Reload.DoClick = function(button)
 		self:LoadFile(self:GetChosenFile(), false)
 	end
