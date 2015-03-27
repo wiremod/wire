@@ -98,14 +98,14 @@ local function e2_include_pass2(name, luaname, contents)
 	-- file needed preprocessing => Run the processed file
 	local ok, func = pcall(CompileString,ret,luaname)
 	if not ok then -- an error occurred while compiling
-		error(func)
+		ErrorNoHalt(func.."\n") --Lets not error and halt the rest of the loading.
 		return
 	end
 	
 	local ok, err = pcall(func)
 	if not ok then -- an error occured while executing
 		if not err:find( "EXTENSION_DISABLED" ) then
-			error(err)
+			ErrorNoHalt(err.."\n")
 		end
 		return
 	end
