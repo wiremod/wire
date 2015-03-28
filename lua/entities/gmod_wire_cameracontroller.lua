@@ -253,43 +253,8 @@ if CLIENT then
 				curdistance = distance
 				smoothdistance = distance
 				zoomdistance = 0
-				
-				--[[ ******************
-					This is a hack to solve the issue of the parent entity being invisible, due to 
-					the fact that ply:SetViewEntity( parent ) must be used serverside
-					in order to be able to move through visleafs
-					
-					SetViewEntity makes the entity invisible for some reason, so this renders it again
-					using a client side model.
-				]]
-				
-				local parent, HasParent = GetParent()
-				if HasParent and DrawParent then
-					clientprop = ClientsideModel( parent:GetModel(), parent:GetRenderGroup() )
-					clientprop:SetPos( parent:GetPos() )
-					clientprop:SetAngles( parent:GetAngles() )
-					clientprop:SetParent( parent )
-					clientprop:DrawShadow( false ) -- shadow is already drawn by parent
-					clientprop:SetMaterial( parent:GetMaterial() )
-					clientprop:SetSkin( parent:GetSkin() )
-					
-					local color = parent:GetColor()
-					if color.a < 255 then clientprop:SetRenderMode( RENDERMODE_TRANSALPHA )	end
-					clientprop:SetColor( color )
-					
-					parent:CallOnRemove( "CamController.RemoveClientProp", function()
-						if IsValid( clientprop ) then
-							clientprop:Remove()
-						end
-					end )
-				end
-			end
-		elseif enabled then
-			if IsValid( clientprop ) then
-				clientprop:Remove()
 			end
 		end
-		--[[ ****************** ]]
 		
 		enabled = enable
 	end)
@@ -579,8 +544,6 @@ end
 --------------------------------------------------
 
 hook.Add("SetupPlayerVisibility", "gmod_wire_cameracontroller", function(player)
-	if IsValid(player.CamController) then
-		AddOriginToPVS(player.CamController.Position)
 	end
 end)
 
@@ -618,18 +581,7 @@ function ENT:DisableCam( ply )
 			end
 		end
 		
-		-- Unhook the SetViewEntity hack
-		ply:SetViewEntity()
-		
 		ply.CamController = nil
-	else
-		-- Unhook the SetViewEntity hack for all players
-		for i=1,#self.Players do
-			if IsValid( self.Players[i] ) then
-				self.Players[i]:SetViewEntity()
-			end
-		end
-		
 		self.Players = {}
 	end
 		
@@ -661,10 +613,6 @@ function ENT:EnableCam( ply )
 		
 		WireLib.TriggerOutput(self, "On", 1)
 		self.Active = true
-		
-		-- SetViewEntity fixes the problem where the camera would get stuck if you fly through a PVS edge
-		-- this is a hack since isn't actually used, because we're overriding it with CalcView
-		if IsValid( self.Parent ) then ply:SetViewEntity( self.Parent )	end
 		
 		self:SyncSettings( ply )
 	else -- No player specified, activate cam for everyone not already active
