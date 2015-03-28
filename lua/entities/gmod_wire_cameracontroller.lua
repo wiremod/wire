@@ -575,6 +575,16 @@ function ENT:Think()
 end
 
 --------------------------------------------------
+-- PVS Hook
+--------------------------------------------------
+
+hook.Add("SetupPlayerVisibility", "gmod_wire_cameracontroller", function(player)
+	if IsValid(player.CamController) then
+		AddOriginToPVS(player.CamController.Position)
+	end
+end)
+
+--------------------------------------------------
 -- OnRemove
 --------------------------------------------------
 
