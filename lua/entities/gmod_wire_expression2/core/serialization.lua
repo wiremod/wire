@@ -1,9 +1,5 @@
 E2Lib.RegisterExtension("serialization", true)
 
-if not glon then pcall(require,"glon") end
-
-local last_glon_error = ""
-
 -- GLON output validation
 local DEFAULT = {n={},ntypes={},s={},stypes={},size=0}
 
@@ -46,12 +42,6 @@ local function luaTypeToWireTypeid( v )
 
 	-- convert full type name to typeid
 	return wire_expression_types[ string.upper( typename ) ][1]
-end
-
-local function check_glon_installed()
-	if not glon then
-		error( "Glon is not installed on this server. Please use von or json instead.", 0 )
-	end
 end
 
 local forbiddenTypes = {
@@ -203,54 +193,56 @@ for objectType, arrayLength in pairs(numericArrayDataTypes) do
 	end
 end
 
-__e2setcost(10)
-
---- Encodes <data> into a string, using [[GLON]].
-e2function string glonEncode(array data)
-	check_glon_installed()
-
-	local ok, ret = pcall(glon.encode, data)
-	if not ok then
-		last_glon_error = ret
-		ErrorNoHalt("glon.encode error: "..ret)
-		return ""
-	end
-
-	if ret then
-		self.prf = self.prf + #ret / 2
-	end
-
-	return ret or ""
+-- Attempt to load glon
+if not glon and file.Exists( 'includes/modules/glon.lua', 'LUA' ) then
+	pcall(require,"glon")
 end
 
---- Decodes <data> into an array, using [[GLON]].
-e2function array glonDecode(string data)
-	check_glon_installed()
-
-	if not data or data == "" then return {} end
-
-	self.prf = self.prf + #data / 2
-
-	local ok, ret = pcall(glon.decode, data)
-
-	if not ok then
-		last_glon_error = ret
-		ErrorNoHalt("glon.decode error: "..ret)
-		return {}
-	end
-
-	local safeArray = sanitizeGlonOutput( self, ret, "r" )
-	-- logGlonCall( self, data, ret, safeArray )
-	return safeArray or {}
-end
-
-e2function string glonError()
-	check_glon_installed()
-
-	return last_glon_error or ""
-end
-
+-- If glon STILL doesn't exist, don't load any of these functions
 if glon then
+	local last_glon_error = ""
+
+	__e2setcost(10)
+
+	--- Encodes <data> into a string, using [[GLON]].
+	e2function string glonEncode(array data)
+		local ok, ret = pcall(glon.encode, data)
+		if not ok then
+			last_glon_error = ret
+			ErrorNoHalt("glon.encode error: "..ret)
+			return ""
+		end
+
+		if ret then
+			self.prf = self.prf + #ret / 2
+		end
+
+		return ret or ""
+	end
+
+	--- Decodes <data> into an array, using [[GLON]].
+	e2function array glonDecode(string data)
+		if not data or data == "" then return {} end
+
+		self.prf = self.prf + #data / 2
+
+		local ok, ret = pcall(glon.decode, data)
+
+		if not ok then
+			last_glon_error = ret
+			ErrorNoHalt("glon.decode error: "..ret)
+			return {}
+		end
+
+		local safeArray = sanitizeGlonOutput( self, ret, "r" )
+		-- logGlonCall( self, data, ret, safeArray )
+		return safeArray or {}
+	end
+
+	e2function string glonError()
+		return last_glon_error or ""
+	end
+
 	hook.Add("InitPostEntity", "wire_expression2_glonfix", function()
 		-- Fixing other people's bugs...
 		for i = 1,20 do
@@ -263,36 +255,34 @@ if glon then
 			end
 		end
 	end)
-end
 
----------------------------------------------------------------------------
--- table glon
----------------------------------------------------------------------------
+	---------------------------------------------------------------------------
+	-- table glon
+	---------------------------------------------------------------------------
 
-__e2setcost(15)
+	__e2setcost(15)
 
---- Encodes <data> into a string, using [[GLON]].
-e2function string glonEncode(table data) = e2function string glonEncode(array data)
+	--- Encodes <data> into a string, using [[GLON]].
+	e2function string glonEncode(table data) = e2function string glonEncode(array data)
 
-__e2setcost(25)
+	__e2setcost(25)
 
--- decodes a glon string and returns an table
-e2function table glonDecodeTable(string data)
-	check_glon_installed()
+	-- decodes a glon string and returns an table
+	e2function table glonDecodeTable(string data)
+		if not data or data == "" then return table.Copy(DEFAULT) end
 
-	if not data or data == "" then return table.Copy(DEFAULT) end
+		self.prf = self.prf + #data / 2
 
-	self.prf = self.prf + #data / 2
+		local ok, ret = pcall(glon.decode, data)
+		if not ok then
+			last_glon_error = ret
+			ErrorNoHalt("glon.decode error: "..ret)
+			return table.Copy(DEFAULT)
+		end
 
-	local ok, ret = pcall(glon.decode, data)
-	if not ok then
-		last_glon_error = ret
-		ErrorNoHalt("glon.decode error: "..ret)
-		return table.Copy(DEFAULT)
+		local safeTable = sanitizeGlonOutput( self, ret, "t" )
+		return safeTable or table.Copy(DEFAULT)
 	end
-
-	local safeTable = sanitizeGlonOutput( self, ret, "t" )
-	return safeTable or table.Copy(DEFAULT)
 end
 
 ---------------------------------------------------------------------------
