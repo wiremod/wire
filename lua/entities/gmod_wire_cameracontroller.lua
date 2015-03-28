@@ -187,11 +187,6 @@ if CLIENT then
 		return newview
 	end)
 	
-	-- calcview.drawviewer doesn't work, probably because I use SetViewEntity serverside, so I do this to fix that
-	hook.Add( "PrePlayerDraw", "wire_camera_controller_preplayerdraw", function( ply )
-		if enabled and not DrawPlayer and ply == LocalPlayer() then return true end
-	end )
-	
 	hook.Add("PlayerBindPress", "wire_camera_controller_zoom", function(ply, bind, pressed)
 		if enabled and AllowZoom then
 			if (bind == "invprev") then
@@ -231,6 +226,13 @@ if CLIENT then
 		if cam ~= self and enabled then return end -- another camera controller is already enabled
 		
 		self = cam
+
+		-- make the previous parent visible
+		-- (this also makes the parent visible when you turn off the cam controller)
+		local parent, HasParent = GetParent()
+		if HasParent then
+			parent:SetNoDraw( false )
+		end
 		
 		if enable then
 			ParentLocal = net.ReadBit() ~= 0
@@ -242,6 +244,12 @@ if CLIENT then
 			DrawPlayer = net.ReadBit() ~= 0
 			DrawParent = net.ReadBit() ~= 0
 			ReadPositions()
+
+			-- Hide the parent if that's what the user wants
+			local parent, HasParent = GetParent()
+			if HasParent and not DrawParent then
+				parent:SetNoDraw( true )
+			end
 			
 			-- If we switched on, set current positions and angles
 			if not enabled then
@@ -544,6 +552,11 @@ end
 --------------------------------------------------
 
 hook.Add("SetupPlayerVisibility", "gmod_wire_cameracontroller", function(player)
+	local cam = player.CamController
+	if IsValid(cam) then
+		local pos = cam.Position
+		if cam.ParentLocal and IsValid( cam.Parent ) then pos = cam.Parent:LocalToWorld(pos) end
+		AddOriginToPVS(pos)
 	end
 end)
 
@@ -582,6 +595,7 @@ function ENT:DisableCam( ply )
 		end
 		
 		ply.CamController = nil
+	else		
 		self.Players = {}
 	end
 		
