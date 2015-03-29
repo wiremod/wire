@@ -3,6 +3,9 @@ local editing = {}
 hook.Add("E2_IsEditing","E2_IsEditing_Hook",function(ply,set)
         editing[ply] = set
 end)
+hook.Add("PlayerDisconnected","E2_IsEditing_Disconnected",function(ply)
+	editing[ply] = nil
+end)
  
 __e2setcost(5)
 e2function number entity:isE2Editing()
