@@ -944,7 +944,7 @@ if SERVER then
 		local handler = wire_expression2_event[args[1]]
 		if not handler then return end
 
-		if args[1] == "editor_open" then hook.Run("E2_IsEditing",ply,true) else hook.Run("E2_IsEditing",ply,false) end
+		if args[1] == "editor_open" then hook.Run("IsEditing",ply,true) end
 
 		return handler(ply, args)
 	end)

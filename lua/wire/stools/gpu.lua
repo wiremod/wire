@@ -99,6 +99,7 @@ if CLIENT then
       ZGPU_Editor:Setup("ZGPU Editor", "gpuchip", "GPU")
     end
     ZGPU_Editor:Open()
+    net.Start("IsEditing") net.WriteBool(true) net.SendToServer()
   end
   net.Receive("ZGPU_OpenEditor", ZGPU_OpenEditor)
 

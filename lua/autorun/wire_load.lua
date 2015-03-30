@@ -25,6 +25,8 @@ if SERVER then
 	-- this file
 	AddCSLuaFile("autorun/wire_load.lua")
 
+	util.AddNetworkString( "IsEditing" )
+
 	-- shared includes
 	AddCSLuaFile("wire/wireshared.lua")
 	AddCSLuaFile("wire/beam_netvars.lua")
