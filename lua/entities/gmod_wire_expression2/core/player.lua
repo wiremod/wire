@@ -328,19 +328,20 @@ end
 -- isCoding
 local editing = {}
 
+util.AddNetworkString( "IsEditing" )
+
 local function handleEditUpdate(ply,state)
 	editing[ply] = (state and true or nil)
-	print("Handled edit update: " .. tostring(state))
 end
- 
+
 hook.Add("IsEditing","IsEditing_Hook",function(ply,set) handleEditUpdate(ply,set) end)
-hook.Add("PlayerDisconnected","IsEditing_Disconnected",function(ply) editing[ply] = nil end)
+hook.Add("PlayerDisconnected","IsEditing_Disconnected",function(ply) handleEditUpdate(ply,nil) end)
 net.Receive("IsEditing", function(netlen,ply) handleEditUpdate(ply,net.ReadBool()) end)
  
 __e2setcost(5)
 e2function number entity:isEditing()
-	if !IsValid(this) then return -1 end
-	if !this:IsPlayer() then return -1 end
+	if !IsValid(this) then return 0 end
+	if !this:IsPlayer() then return 0 end
 
 	return editing[this] and 1 or 0
 end
