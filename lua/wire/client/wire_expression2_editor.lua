@@ -1838,7 +1838,7 @@ function Editor:Close()
 	self:SetV(false)
 	self.chip = false
 
-	net.Start("IsEditing") net.WriteBool(false) net.SendToServer()
+	net.Start("Wire_IsEditing") net.WriteBool(false) net.SendToServer()
 
 	self:SaveEditorSettings()
 end

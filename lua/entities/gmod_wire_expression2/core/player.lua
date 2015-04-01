@@ -328,15 +328,15 @@ end
 -- isCoding
 local editing = {}
 
-util.AddNetworkString( "IsEditing" )
+util.AddNetworkString( "Wire_IsEditing" )
 
 local function handleEditUpdate(ply,state)
 	editing[ply] = (state and true or nil)
 end
 
-hook.Add("IsEditing","IsEditing_Hook",function(ply,set) handleEditUpdate(ply,set) end)
-hook.Add("PlayerDisconnected","IsEditing_Disconnected",function(ply) handleEditUpdate(ply,nil) end)
-net.Receive("IsEditing", function(netlen,ply) handleEditUpdate(ply,net.ReadBool()) end)
+hook.Add("Wire_IsEditing","Wire_IsEditing_Hook",function(ply,set) handleEditUpdate(ply,set) end)
+hook.Add("PlayerDisconnected","Wire_IsEditing_Disconnected",function(ply) handleEditUpdate(ply,nil) end)
+net.Receive("Wire_IsEditing", function(netlen,ply) handleEditUpdate(ply,net.ReadBool()) end)
  
 __e2setcost(5)
 e2function number entity:isEditing()
