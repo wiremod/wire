@@ -15,7 +15,22 @@ net.Receive("wire_keyboard_blockinput", function(netlen)
 	end
 end)
 
+local panel
+
+local function hideMessage()
+	if not panel then return end
+
+	panel:Remove()
+	panel = nil
+end
+
 net.Receive("wire_keyboard_activatemessage", function(netlen)
+	local on = net.ReadBit() ~= 0
+
+	hideMessage()
+
+	if not on then return end
+
 	local pod = net.ReadBit() ~= 0
 
 	local leaveKey = LocalPlayer():GetInfoNum("wire_keyboard_leavekey", KEY_LALT)
@@ -28,5 +43,19 @@ net.Receive("wire_keyboard_activatemessage", function(netlen)
 		text = "Wire Keyboard turned on - press " .. leaveKeyName .. " to leave."
 	end
 
-	chat.AddText(text)
+	panel = vgui.Create("DShape") -- DPanel is broken for small sizes
+	panel:SetColor(Color(0, 0, 0, 192))
+	panel:SetType("Rect")
+
+	local label = vgui.Create("DLabel", panel)
+	label:SetText(text)
+	label:SizeToContents()
+
+	local padding = 3
+	label:SetPos(2 * padding, 2 * padding)
+	panel:SizeToChildren(true, true)
+	label:SetPos(padding, padding)
+
+	panel:CenterHorizontal()
+	panel:CenterVertical(0.95)
 end)
