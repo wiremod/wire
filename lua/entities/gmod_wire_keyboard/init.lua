@@ -283,35 +283,40 @@ end
 function ENT:Think()
 	if not IsValid(self.ply) then
 		self:NextThink(CurTime() + 0.3) -- Don't need to update as often
-	else
-		if self.IgnoreFirstKey then -- Don't start listening to keys until Use is released
-			if not self.ply.keystate[KEY_E] then self.IgnoreFirstKey = nil end
-		else
-			local leavekey = self.ply:GetInfoNum("wire_keyboard_leavekey", KEY_LALT)
+		return true
+	end
 
-			-- Remove lifted up keys from our ActiveKeys
-			for key_enum, bool in pairs(self.ActiveKeys) do
-				if not self.ply.keystate[key_enum] then
-					self:KeyReleased(key_enum)
-				end
-			end
+	if self.IgnoreFirstKey then -- Don't start listening to keys until Use is released
+		if not self.ply.keystate[KEY_E] then self.IgnoreFirstKey = nil end
 
-			-- Check for newly pressed keys and add them to our ActiveKeys
-			for key_enum, bool in pairs(self.ply.keystate) do
-				if key_enum == leavekey then
-					if leavekey ~= KEY_ALT or not self:IsPressedEnum(KEY_LCONTROL) then -- if LCONTROL and LALT are being pressed, then the player is trying to use the "ALT GR" key which is available for some languages
-						self:PlayerDetach() -- Pressing the leave key quits the keyboard
-						break
-					end
-				end
+		self:NextThink(CurTime())
+		return true
+	end
 
-				if not self:IsPressedEnum(key_enum) then
-					self:KeyPressed(key_enum)
-				end
+	local leavekey = self.ply:GetInfoNum("wire_keyboard_leavekey", KEY_LALT)
+
+	-- Remove lifted up keys from our ActiveKeys
+	for key_enum, bool in pairs(self.ActiveKeys) do
+		if not self.ply.keystate[key_enum] then
+			self:KeyReleased(key_enum)
+		end
+	end
+
+	-- Check for newly pressed keys and add them to our ActiveKeys
+	for key_enum, bool in pairs(self.ply.keystate) do
+		if key_enum == leavekey then
+			if leavekey ~= KEY_ALT or not self:IsPressedEnum(KEY_LCONTROL) then -- if LCONTROL and LALT are being pressed, then the player is trying to use the "ALT GR" key which is available for some languages
+				self:PlayerDetach() -- Pressing the leave key quits the keyboard
+				break
 			end
 		end
-		self:NextThink(CurTime())
+
+		if not self:IsPressedEnum(key_enum) then
+			self:KeyPressed(key_enum)
+		end
 	end
+
+	self:NextThink(CurTime())
 	return true
 end
 
