@@ -97,6 +97,7 @@ function ENT:PlayerAttach(ply)
 	end
 
 	net.Start("wire_keyboard_activatemessage")
+		net.WriteBit(true)
 		net.WriteBit(IsValid(self.Pod))
 	net.Send(ply)
 
@@ -129,6 +130,10 @@ function ENT:PlayerDetach()
 
 	if IsValid(ply) then
 		net.Start("wire_keyboard_blockinput")
+			net.WriteBit(false)
+		net.Send(ply)
+
+		net.Start("wire_keyboard_activatemessage")
 			net.WriteBit(false)
 		net.Send(ply)
 
