@@ -17,11 +17,15 @@ end)
 
 net.Receive("wire_keyboard_activatemessage", function(netlen)
 	local pod = net.ReadBit() ~= 0
-	local keyName = string.upper(input.GetKeyName(net.ReadUInt(16)))
+	local leaveKey = net.ReadUInt(16)
+	local leaveKeyName = string.upper(input.GetKeyName(leaveKey))
 
+	local text
 	if pod then
-		chat.AddText( "This pod is linked to a keyboard - press " .. keyName .. " to leave." )
+		text = "This pod is linked to a keyboard - press " .. leaveKeyName .. " to leave."
 	else
-		chat.AddText( "Keyboard turned on - press " .. keyName .. " to leave." )
+		text = "Keyboard turned on - press " .. leaveKeyName .. " to leave."
 	end
+
+	chat.AddText(text)
 end)
