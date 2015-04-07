@@ -17,7 +17,8 @@ end)
 
 net.Receive("wire_keyboard_activatemessage", function(netlen)
 	local pod = net.ReadBit() ~= 0
-	local leaveKey = net.ReadUInt(16)
+
+	local leaveKey = LocalPlayer():GetInfoNum("wire_keyboard_leavekey", KEY_LALT)
 	local leaveKeyName = string.upper(input.GetKeyName(leaveKey))
 
 	local text
