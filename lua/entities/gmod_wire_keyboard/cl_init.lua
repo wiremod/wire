@@ -23,9 +23,9 @@ net.Receive("wire_keyboard_activatemessage", function(netlen)
 
 	local text
 	if pod then
-		text = "This pod is linked to a keyboard - press " .. leaveKeyName .. " to leave."
+		text = "This pod is linked to a Wire Keyboard - press " .. leaveKeyName .. " to leave."
 	else
-		text = "Keyboard turned on - press " .. leaveKeyName .. " to leave."
+		text = "Wire Keyboard turned on - press " .. leaveKeyName .. " to leave."
 	end
 
 	chat.AddText(text)
