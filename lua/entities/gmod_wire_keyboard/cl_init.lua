@@ -2,9 +2,13 @@ include('shared.lua')
 include("remap.lua") -- For stools/keyboard.lua's layout selector
 
 net.Receive("wire_keyboard_blockinput", function(netlen)
-	if net.ReadBit() ~= 0 then 
-		hook.Add("PlayerBindPress", "wire_keyboard_blockinput", function(ply, bind, pressed) 
-			return (bind ~= "+attack" and bind ~= "+attack2") or nil -- true for all keys except the mouse, to block keyboard actions while typing
+	if net.ReadBit() ~= 0 then
+		hook.Add("PlayerBindPress", "wire_keyboard_blockinput", function(ply, bind, pressed)
+			-- return true for all keys except the mouse, to block keyboard actions while typing
+			if bind == "+attack" then return nil end
+			if bind == "+attack2" then return nil end
+
+			return true
 		end)
 	else
 		hook.Remove("PlayerBindPress", "wire_keyboard_blockinput")

@@ -10,57 +10,61 @@ ENT.WireDebugName = "Wired Keyboard"
 local All_Enums = {} -- table containing key -> key enum conversion
 
 -- Add a few common keys
-for i=48,57 do -- 0 -> 9
+for i = 48, 57 do -- 0 -> 9
 	All_Enums[i] = _G["KEY_" .. string.char(i)]
 end
-for i=65,90 do -- A -> Z
+for i = 65, 90 do -- A -> Z
 	All_Enums[i] = _G["KEY_" .. string.upper(string.char(i))]
 end
-for i=97,122 do -- a -> z
+for i = 97, 122 do -- a -> z
 	All_Enums[i] = _G["KEY_" .. string.upper(string.char(i))]
 end
 
 function ENT:Initialize()
-	self:PhysicsInit( SOLID_VPHYSICS )
-	self:SetMoveType( MOVETYPE_VPHYSICS )
-	self:SetSolid( SOLID_VPHYSICS )
-	self:SetUseType( SIMPLE_USE )
+	self:PhysicsInit(SOLID_VPHYSICS)
+	self:SetMoveType(MOVETYPE_VPHYSICS)
+	self:SetSolid(SOLID_VPHYSICS)
+	self:SetUseType(SIMPLE_USE)
 
-	self.Inputs = WireLib.CreateInputs( self, { "Kick the bastard out of keyboard" } )
-	self.Outputs = WireLib.CreateOutputs( self, { "Memory", "User [ENTITY]", "InUse" } )
+	self.Inputs = WireLib.CreateInputs(self, { "Kick the bastard out of keyboard" })
+	self.Outputs = WireLib.CreateOutputs(self, { "Memory", "User [ENTITY]", "InUse" })
 
 	self.ActiveKeys = {} -- table containing all currently active keys, used to see when keys are pressed/released
 	self.Buffer = {} -- array containing all currently active keys, value is ascii
 	self.BufferLookup = {} -- lookup table mapping enums to buffer positions
 	self.Buffer[0] = 0
 
-	self:SetOverlayText( "Not in use" )
-	WireLib.TriggerOutput( self, "InUse", 0 )
+	self:SetOverlayText("Not in use")
+	WireLib.TriggerOutput(self, "InUse", 0)
 end
 
-function ENT:TriggerInput( name, value )
+function ENT:TriggerInput(name, value)
 	if name == "Kick the bastard out of keyboard" then
-			
-		timer.Simple(0.1, function() if IsValid(self) then self.Locked = (value ~= 0) self:PlayerDetach() end end ) --It was kicking at the same time as giving output - added tiny delay fixing that race condition
-		
+		-- It was kicking at the same time as giving output - added tiny delay fixing that race condition
+		timer.Simple(0.1, function()
+			if IsValid(self) then
+				self.Locked = (value ~= 0)
+				self:PlayerDetach()
+			end
+		end)
 	end
 end
 
-function ENT:ReadCell( Address )
+function ENT:ReadCell(Address)
 	if Address >= 0 and Address < 32 then
 		return self.Buffer[Address] or 0
 	elseif Address >= 32 and Address < 256 then
-		return self:IsPressedAscii( Address - 32 ) and 1 or 0
+		return self:IsPressedAscii(Address - 32) and 1 or 0
 	end
 
 	return 0
 end
 
-function ENT:WriteCell( Address, value )
+function ENT:WriteCell(Address, value)
 	if Address == 0 then
 		self:UnshiftBuffer() -- User wants to remove the first key in the buffer
 	else
-		self:RemoveFromBufferByKey( value )
+		self:RemoveFromBufferByKey(value)
 	end
 
 	return false
@@ -68,7 +72,7 @@ end
 
 util.AddNetworkString("wire_keyboard_blockinput")
 util.AddNetworkString("wire_keyboard_activatemessage")
-function ENT:PlayerAttach( ply )
+function ENT:PlayerAttach(ply)
 	if not IsValid(ply) or IsValid(self.ply) then return end -- If the keyboard is already in use, don't attach the player
 
 	if IsValid(ply.WireKeyboard) then -- If the player is already using a different keyboard
@@ -81,12 +85,17 @@ function ENT:PlayerAttach( ply )
 
 	-- Store player
 	self.ply = ply
-	WireLib.TriggerOutput( self, "User", ply )
-	WireLib.TriggerOutput( self, "InUse", 1 )
+	WireLib.TriggerOutput(self, "User", ply)
+	WireLib.TriggerOutput(self, "InUse", 1)
 	self:SetOverlayText("In use by " .. ply:Nick())
 
 	-- Block keyboard input
-	if ply:GetInfoNum("wire_keyboard_sync", 1) == 1 then net.Start( "wire_keyboard_blockinput" ) net.WriteBit(true) net.Send(ply) end
+	if ply:GetInfoNum("wire_keyboard_sync", 1) == 1 then
+		net.Start("wire_keyboard_blockinput")
+			net.WriteBit(true)
+		net.Send(ply)
+	end
+
 	local leavekey = ply:GetInfoNum("wire_keyboard_leavekey", KEY_LALT)
 
 	net.Start("wire_keyboard_activatemessage")
@@ -108,11 +117,11 @@ function ENT:PlayerAttach( ply )
 end
 
 function ENT:PlayerDetach()
-	WireLib.TriggerOutput( self, "User", nil )
-	WireLib.TriggerOutput( self, "InUse", 0 )
+	WireLib.TriggerOutput(self, "User", nil)
+	WireLib.TriggerOutput(self, "InUse", 0)
 
 	self:SetOverlayText("Not in use")
-	
+
 	local ply = self.ply
 	self.ply = nil
 
@@ -120,20 +129,23 @@ function ENT:PlayerDetach()
 	if IsValid(self.Pod) and IsValid(self.Pod:GetDriver()) and self.Pod:GetDriver() == ply then
 		self.Pod:GetDriver():ExitVehicle()
 	end
-	
-	if IsValid(ply) then 
-		net.Start( "wire_keyboard_blockinput" ) net.WriteBit(false) net.Send(ply)
-		ply.WireKeyboard = nil 
+
+	if IsValid(ply) then
+		net.Start("wire_keyboard_blockinput")
+			net.WriteBit(false)
+		net.Send(ply)
+
+		ply.WireKeyboard = nil
 	end
 end
 
-function ENT:Use( ply )
+function ENT:Use(ply)
 	if IsValid(self.Pod) then
-		ply:ChatPrint( "This keyboard is linked to a pod. Please use the pod instead." )
+		ply:ChatPrint("This keyboard is linked to a pod. Please use the pod instead.")
 		return
 	end
 
-	self:PlayerAttach( ply )
+	self:PlayerAttach(ply)
 end
 
 function ENT:OnRemove()
@@ -142,7 +154,7 @@ function ENT:OnRemove()
 	self.BaseClass.OnRemove(self)
 end
 
-function ENT:LinkEnt( pod )
+function ENT:LinkEnt(pod)
 	if not IsValid(pod) or not pod:IsVehicle() then return false, "Must link to a vehicle" end
 	if IsValid(self.Pod) then self.Pod.WireKeyboard = nil end
 	pod.WireKeyboard = self
@@ -159,32 +171,32 @@ function ENT:UnlinkEnt()
 	return true
 end
 
-hook.Add( "PlayerEnteredVehicle", "Wire_Keyboard_PlayerEnteredVehicle", function( ply, pod )
+hook.Add("PlayerEnteredVehicle", "Wire_Keyboard_PlayerEnteredVehicle", function(ply, pod)
 	if IsValid(pod.WireKeyboard) then
-		pod.WireKeyboard:PlayerAttach( ply )
+		pod.WireKeyboard:PlayerAttach(ply)
 	end
 end)
 
-hook.Add("PlayerLeaveVehicle", "wire_keyboard_PlayerLeaveVehicle", function( ply, pod )
+hook.Add("PlayerLeaveVehicle", "wire_keyboard_PlayerLeaveVehicle", function(ply, pod)
 	if IsValid(pod.WireKeyboard) and pod.WireKeyboard.ply == ply then
 		pod.WireKeyboard:PlayerDetach()
 	end
 end)
 
-//local Wire_Keyboard_Remap = Wire_Keyboard_Remap // Defined in remap.lua
-function ENT:GetRemappedKey( key_enum )
+--local Wire_Keyboard_Remap = Wire_Keyboard_Remap -- Defined in remap.lua
+function ENT:GetRemappedKey(key_enum)
 	if not key_enum or key_enum == 0 or key_enum > KEY_LAST then return 0 end -- Above KEY_LAST are joystick and mouse enums
 
 	local layout = "American"
 	if IsValid(self.ply) then layout = self.ply:GetInfo("wire_keyboard_layout", "American") end
 	local current = Wire_Keyboard_Remap[layout]
-	if (!current) then return 0 end
+	if not current then return 0 end
 
 	local ret = current.normal[key_enum]
 
 	-- Check if a special key is being held down (such as SHIFT)
-	for k,v in pairs( self.ActiveKeys ) do
-		if (v == true and current[k] and current[k][key_enum]) then
+	for k,v in pairs(self.ActiveKeys) do
+		if v == true and current[k] and current[k][key_enum] then
 			ret = current[k][key_enum]
 		end
 	end
@@ -193,62 +205,62 @@ function ENT:GetRemappedKey( key_enum )
 	return ret
 end
 
-function ENT:KeyPressed( key_enum )
+function ENT:KeyPressed(key_enum)
 	local key = self:GetRemappedKey(key_enum)
 	if key == nil or key == 0 then return end
 
 	if not All_Enums[key] then All_Enums[key] = key_enum end
-	
+
 	self.ActiveKeys[key_enum] = true
-	self:PushBuffer( key, key_enum )
-	
-	WireLib.TriggerOutput( self, "Memory", key )
+	self:PushBuffer(key, key_enum)
+
+	WireLib.TriggerOutput(self, "Memory", key)
 end
 
-function ENT:KeyReleased( key_enum )
+function ENT:KeyReleased(key_enum)
 	local key = self:GetRemappedKey(key_enum)
 	if key == nil or key == 0 then return end
 
 	self.ActiveKeys[key_enum] = nil
 
 	if self.AutoBuffer then
-		self:RemoveFromBufferByKey( key )
+		self:RemoveFromBufferByKey(key)
 	end
-	
-	WireLib.TriggerOutput( self, "Memory", 0 )
+
+	WireLib.TriggerOutput(self, "Memory", 0)
 end
 
-function ENT:IsPressedEnum( key_enum )
+function ENT:IsPressedEnum(key_enum)
 	return self.ActiveKeys[key_enum]
 end
 
-function ENT:IsPressedAscii( key )
+function ENT:IsPressedAscii(key)
 	local key_enum = All_Enums[key]
 	if not key_enum then return false end
-	return self:IsPressedEnum( key_enum )
+	return self:IsPressedEnum(key_enum)
 end
 
 function ENT:UnshiftBuffer()
-	self:RemoveFromBufferByPosition( 1 )
+	self:RemoveFromBufferByPosition(1)
 end
 
-function ENT:PushBuffer( key, key_enum )
+function ENT:PushBuffer(key, key_enum)
 	self.Buffer[0] = self.Buffer[0] + 1
 	self.Buffer[self.Buffer[0]] = key
-	
+
 	if not self.BufferLookup[key_enum] then self.BufferLookup[key_enum] = {} end
 	local positions = self.BufferLookup[key_enum]
 	positions[#positions+1] = self.Buffer[0]
 end
 
-function ENT:RemoveFromBufferByPosition( bufferpos )
+function ENT:RemoveFromBufferByPosition(bufferpos)
 	if self.Buffer[0] <= 0 then return end
-	local key = table.remove( self.Buffer, bufferpos )
+	local key = table.remove(self.Buffer, bufferpos)
 	self.Buffer[0] = self.Buffer[0] - 1
-	
+
 	-- Move all remaining keys down one step
-	for key_enum,positions in pairs( self.BufferLookup ) do
-		for k,pos in pairs( positions ) do
+	for key_enum,positions in pairs(self.BufferLookup) do
+		for k,pos in pairs(positions) do
 			if bufferpos < pos then
 				positions[k] = positions[k] - 1
 			end
@@ -256,21 +268,21 @@ function ENT:RemoveFromBufferByPosition( bufferpos )
 	end
 end
 
-function ENT:RemoveFromBufferByKey( key )
+function ENT:RemoveFromBufferByKey(key)
 	local key_enum = All_Enums[key]
 	if not key_enum then return false end -- key is invalid
-	
+
 	local positions = self.BufferLookup[key_enum]
 	if not positions then return false end -- error, shouldn't happen
-	local bufferpos = table.remove( positions, 1 )
+	local bufferpos = table.remove(positions, 1)
 	if not bufferpos then return false end -- error, shouldn't happen
-	
-	self:RemoveFromBufferByPosition( bufferpos )
+
+	self:RemoveFromBufferByPosition(bufferpos)
 end
 
 function ENT:Think()
 	if not IsValid(self.ply) then
-		self:NextThink( CurTime() + 0.3 ) -- Don't need to update as often
+		self:NextThink(CurTime() + 0.3) -- Don't need to update as often
 	else
 		if self.IgnoreFirstKey then -- Don't start listening to keys until Use is released
 			if not self.ply.keystate[KEY_E] then self.IgnoreFirstKey = nil end
@@ -280,25 +292,25 @@ function ENT:Think()
 			-- Remove lifted up keys from our ActiveKeys
 			for key_enum, bool in pairs(self.ActiveKeys) do
 				if not self.ply.keystate[key_enum] then
-					self:KeyReleased( key_enum )
+					self:KeyReleased(key_enum)
 				end
 			end
 
 			-- Check for newly pressed keys and add them to our ActiveKeys
 			for key_enum, bool in pairs(self.ply.keystate) do
-				if (key_enum == leavekey) then
-					if leavekey ~= KEY_ALT or not self:IsPressedEnum( KEY_LCONTROL ) then -- if LCONTROL and LALT are being pressed, then the player is trying to use the "ALT GR" key which is available for some languages
+				if key_enum == leavekey then
+					if leavekey ~= KEY_ALT or not self:IsPressedEnum(KEY_LCONTROL) then -- if LCONTROL and LALT are being pressed, then the player is trying to use the "ALT GR" key which is available for some languages
 						self:PlayerDetach() -- Pressing the leave key quits the keyboard
 						break
 					end
 				end
-				
-				if not self:IsPressedEnum( key_enum ) then
-					self:KeyPressed( key_enum )
+
+				if not self:IsPressedEnum(key_enum) then
+					self:KeyPressed(key_enum)
 				end
 			end
 		end
-		self:NextThink( CurTime() )
+		self:NextThink(CurTime())
 	end
 	return true
 end
@@ -312,7 +324,7 @@ duplicator.RegisterEntityClass("gmod_wire_keyboard", WireLib.MakeWireEnt, "Data"
 function ENT:BuildDupeInfo()
 	local info = self.BaseClass.BuildDupeInfo(self) or {}
 	if IsValid(self.Pod) then
-	    info.pod = self.Pod:EntIndex()
+		info.pod = self.Pod:EntIndex()
 	end
 	return info
 end
