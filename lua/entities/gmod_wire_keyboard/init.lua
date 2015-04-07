@@ -96,11 +96,8 @@ function ENT:PlayerAttach(ply)
 		net.Send(ply)
 	end
 
-	local leavekey = ply:GetInfoNum("wire_keyboard_leavekey", KEY_LALT)
-
 	net.Start("wire_keyboard_activatemessage")
 		net.WriteBit(IsValid(self.Pod))
-		net.WriteUInt(leavekey, 16)
 	net.Send(ply)
 
 	-- Set the wire keyboard value on the player
