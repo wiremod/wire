@@ -170,7 +170,7 @@ function ENT:Initialize()
 end
 
 function ENT:Setup(password, securemode)
-	self.Password = util.CRC(password)
+	self.Password = password
 	self.Secure = securemode
 end
 

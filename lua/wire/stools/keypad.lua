@@ -13,7 +13,7 @@ WireToolSetup.SetupMax(10)
 
 if SERVER then
 	function TOOL:GetConVars() 
-		return tonumber(self:GetClientInfo("password")), self:GetClientNumber("secure") ~= 0
+		return util.CRC(self:GetClientInfo("password")), self:GetClientNumber("secure") ~= 0
 	end
 	
 	function TOOL:CheckPassword()
