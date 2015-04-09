@@ -17,7 +17,3 @@ hook.Add("OnEntityCreated", "wire_expression2_extension_player", function(ent)
 
 	SendFriendStatus()
 end)
-
--- isTyping
-hook.Add("StartChat","E2_IsTyping_Start",function() RunConsoleCommand("E2_StartChat") end)
-hook.Add("FinishChat","E2_IsTyping_Finish",function() RunConsoleCommand("E2_FinishChat") end)
