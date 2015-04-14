@@ -4,9 +4,9 @@
 ]]--
 
 local cv_transfer_delay    = CreateConVar( "wire_expression2_file_delay", "5", { FCVAR_ARCHIVE } )
-local cv_max_transfer_size = CreateConVar( "wire_expression2_file_max_size", "300", { FCVAR_REPLICATED, FCVAR_ARCHIVE } ) //in kb
+local cv_max_transfer_size = CreateConVar( "wire_expression2_file_max_size", "300", { FCVAR_REPLICATED, FCVAR_ARCHIVE } ) -- in kb
 
-local download_chunk_size = 20000 //Our overhead is pretty small so lets send it in moderate sized pieces, no need to max out the buffer
+local download_chunk_size = 20000 -- Our overhead is pretty small so lets send it in moderate sized pieces, no need to max out the buffer
 
 E2Lib.RegisterExtension( "file", true )
 
@@ -57,7 +57,7 @@ local function file_Upload( ply, entity, filename )
 
 	uploads[ply] = {
 		name = filename,
-		uploading = false, //don't halt other uploads incase file does not exist
+		uploading = false, --don't halt other uploads incase file does not exist
 		uploaded = false,
 		data = "",
 		ent = entity,
@@ -124,7 +124,7 @@ local function file_List( ply, entity, dir )
 	delays[ply].list = CurTime()
 end
 
-/* --- File loading --- */
+--- File loading ---
 
 __e2setcost( 20 )
 
@@ -154,7 +154,7 @@ e2function number fileStatus()
 	return run_on.file.status or FILE_UNKNOWN
 end
 
-/* --- File reading/writing --- */
+--- File reading/writing ---
 
 e2function string fileName()
 	local pfile = uploads[self.player]
@@ -194,7 +194,7 @@ e2function void fileAppend( string filename, string data )
 	file_Download( self.player, filename, data, true )
 end
 
-/* --- File Listing --- */
+--- File Listing ---
 
 __e2setcost( 20 )
 
@@ -226,7 +226,7 @@ e2function array fileReadList()
 	return (plist.uploaded and !plist.uploading and plist.data) and plist.data or {}
 end
 
-/* --- runOnFile event --- */
+--- runOnFile event ---
 
 __e2setcost( 5 )
 
@@ -242,7 +242,7 @@ e2function number fileClk( string filename )
 	return (run_on.file.run == 1 and run_on.file.name == filename) and 1 or 0
 end
 
-/* -- runOnList event --- */
+-- runOnList event ---
 
 __e2setcost( 5 )
 
@@ -258,7 +258,7 @@ e2function number fileListClk( string dir )
 	return (run_on.list.run == 1 and run_on.list.dir == dir) and 1 or 0
 end
 
-/* --- Hooks 'n' Shit --- */
+--- Hooks 'n' Shit ---
 
 registerCallback( "construct", function( self )
 	uploads[self.player] = uploads[self.player] or {
@@ -280,7 +280,7 @@ registerCallback( "construct", function( self )
 	}
 end )
 
-/* Downloading */
+--- Downloading ---
 util.AddNetworkString("wire_expression2_file_download_begin")
 util.AddNetworkString("wire_expression2_file_download_chunk")
 util.AddNetworkString("wire_expresison2_file_download_finish")
@@ -316,7 +316,7 @@ timer.Create("wire_expression2_flush_file_buffer", 0.2, 0, function()
 	end
 end)
 
-/* Uploading */
+--- Uploading ---
 
 local function file_execute( ent, filename, status )
 	if !IsValid( ent ) or !run_on.file.ents[ent] then return end
@@ -339,7 +339,7 @@ net.Receive("wire_expression2_file_begin", function(netlen, ply)
 	
 	local len = net.ReadUInt(32)
 
-	if len == 0 then //file not found
+	if len == 0 then -- file not found
 		file_execute( pfile.ent, pfile.name, FILE_404 )
 		return
 	end
@@ -396,7 +396,7 @@ net.Receive("wire_expression2_file_finish", function(netlen, ply)
 	pfile.data = E2Lib.decode( pfile.buffer )
 	pfile.buffer = ""
 
-	if string.len( pfile.data ) != pfile.len then //transfer error
+	if string.len( pfile.data ) != pfile.len then -- transfer error
 		pfile.data = ""
 		file_execute( pfile.ent, pfile.name, FILE_TRANSFER_ERROR )
 		return
@@ -432,7 +432,7 @@ concommand.Add("wire_expression2_file_singleplayer", function(ply, cmd, args)
 	file_execute(pfile.ent, pfile.name, FILE_OK)
 end)
 
-/* Listing */
+--- Listing ---
 util.AddNetworkString("wire_expression2_file_list")
 net.Receive("wire_expression2_file_list", function(netlen, ply)
 	local plist = lists[ply]
