@@ -482,7 +482,7 @@ local function jsonDecode_recurse( self, luatable, copied_tables )
 			if copied_tables[val] then
 				v = copied_tables[val]
 			else
-				v = jsonDecodeTableExternal_recurse( self, val, copied_tables )
+				v = jsonDecode_recurse( self, val, copied_tables )
 			end
 		end
 
