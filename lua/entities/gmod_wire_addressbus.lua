@@ -30,6 +30,9 @@ function ENT:Setup(Mem1st, Mem2st, Mem3st, Mem4st, Mem1sz, Mem2sz, Mem3sz, Mem4s
 	local starts = {Mem1st,Mem2st,Mem3st,Mem4st}
 	local sizes =  {Mem1sz,Mem2sz,Mem3sz,Mem4sz}
 	for i = 1,4 do
+		starts[i] = tonumber(starts[i]) or 0
+		sizes[i] = tonumber(sizes[i]) or 0
+
 		self.MemStart[i] = starts[i]
 		self.MemEnd[i] = starts[i] + sizes[i] - 1
 		self["Mem"..i.."st"] = starts[i]
