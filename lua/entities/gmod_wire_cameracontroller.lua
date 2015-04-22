@@ -555,7 +555,7 @@ hook.Add("SetupPlayerVisibility", "gmod_wire_cameracontroller", function(player)
 	local cam = player.CamController
 	if IsValid(cam) then
 		local pos = cam.Position
-		if cam.ParentLocal and IsValid( cam.Parent ) then pos = cam.Parent:LocalToWorld(pos) end
+		if IsValid( cam.Parent ) then pos = cam.Parent:LocalToWorld(pos) end
 		AddOriginToPVS(pos)
 	end
 end)
