@@ -3,7 +3,7 @@
 --------------------------------------------------------------------------------
 local INVALID_BREAKPOINT_IP = 2e7
 
-CPULib = {}
+CPULib = CPULib or {}
 if CLIENT then
   -- Sourcecode available as compiled binary
   CPULib.Source = ""
@@ -741,7 +741,7 @@ function CPULib.GenerateSN(entityType)
   local currentDate = os.date("*t")
 
   local SNDate = (currentDate.year-2007)*500+(currentDate.yday)
-  if SNDate ~= sessionDate then
+  if (not sessionBase) or (SNDate ~= sessionDate) then
     sessionBase = math.floor(math.random()*99999)
     sessionDate = SNDate
   else
