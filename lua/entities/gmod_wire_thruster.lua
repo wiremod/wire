@@ -238,7 +238,7 @@ function ENT:Switch( on, mul )
 	if (on) then
 		if (changed) and (self.soundname and self.soundname != "") then
 			self:StopSound( self.soundname )
-			self:EmitSound( self.soundname )
+			--self:EmitSound( self.soundname )
 		end
 		
 		self.mul = mul

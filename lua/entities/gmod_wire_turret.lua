@@ -31,9 +31,9 @@ function ENT:FireShot()
 	self.NextShot = CurTime() + self.delay
 
 	-- Make a sound if you want to.
-	if self.sound then
-		self:EmitSound(self.sound)
-	end
+	--if self.sound then
+	--	self:EmitSound(self.sound)
+	--end
 
 	-- Get the muzzle attachment (this is pretty much always 1)
 	local Attachment = self:GetAttachment( 1 )
