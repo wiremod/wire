@@ -755,3 +755,198 @@ function WireLib.levenshtein( s, t )
 	end
 	return d[#d]
 end
+
+--[[
+	nicenumber
+	by Divran
+
+	Adds several functions to format numbers into millions, billions, etc
+	Adds a function to format a number (assumed seconds) into a duration (weeks, days, hours, minutes, seconds, etc)
+
+	This is used, for example, by the wire screen.
+]]
+
+WireLib.nicenumber = {}
+local nicenumber = WireLib.nicenumber
+ 
+local numbers = {
+	{
+		name = "septillion",
+		short = "sep",
+		symbol = "Y",
+		prefix = "yotta",
+		zeroes = 10^24,
+	},
+	{
+		name = "sextillion",
+		short = "sex",
+		symbol = "Z",
+		prefix = "zetta",
+		zeroes = 10^21,
+	},
+	{
+		name = "quintillion",
+		short = "quint",
+		symbol = "E",
+		prefix = "exa",
+		zeroes = 10^18,
+	},
+	{
+		name = "quadrillion",
+		short = "quad",
+		symbol = "P",
+		prefix = "peta",
+		zeroes = 10^15,
+	},
+	{
+		name = "trillion",
+		short = "T",
+		symbol = "T",
+		prefix = "tera",
+		zeroes = 10^12,
+	},
+	{
+		name = "billion",
+		short = "B",
+		symbol = "B",
+		prefix = "giga",
+		zeroes = 10^9,
+	},
+	{
+		name = "million",
+		short = "M",
+		symbol = "M",
+		prefix = "mega",
+		zeroes = 10^6,
+	},
+	{
+		name = "thousand",
+		short = "K",
+		symbol = "K",
+		prefix = "kilo",
+		zeroes = 10^3
+	}
+}
+ 
+local one = {
+	name = "ones",
+	short = "",
+	symbol = "",
+	prefix = "",
+	zeroes = 1
+}
+ 
+-- returns a table of tables that inherit from the above info
+local floor = math.floor
+local min = math.min
+function nicenumber.info( n, steps )
+	if not n or n < 0 then return {} end
+	if n > 10 ^ 300 then n = 10 ^ 300 end
+
+	local t = {}
+
+	steps = steps or #numbers
+
+	local displayones = true
+	local cursteps = 0
+
+	for i = 1, #numbers do
+		local zeroes = numbers[i].zeroes
+
+		local nn = floor(n / zeroes)
+		if nn > 0 then
+			cursteps = cursteps + 1
+			if cursteps > steps then break end
+
+			t[#t+1] = setmetatable({value = nn},{__index = numbers[i]})
+
+			n = n % numbers[i].zeroes
+
+			displayones = false
+		end
+	end
+
+	if n >= 0 and displayones then
+		t[#t+1] = setmetatable({value = n},{__index = one})
+	end
+
+	return t
+end
+ 
+local sub = string.sub
+ 
+-- returns string
+-- example 12B 34M
+function nicenumber.format( n, steps )
+	local t = nicenumber.info( n, steps )
+
+	steps = steps or #numbers
+
+	local str = ""
+	for i=1,#t do
+		if i > steps then break end
+		str = str .. t[i].value .. t[i].symbol .. " "
+	end
+
+	return sub( str, 1, -2 ) -- remove trailing space
+end
+ 
+-- returns string with decimals
+-- example 12.34B
+local round = math.Round
+function nicenumber.formatDecimal( n, decimals )
+	local t = nicenumber.info( n, 1 )
+
+	decimals = decimals or 2
+
+	local largest = t[1]
+	if largest then
+		n = n / largest.zeroes
+		return round( n, decimals ) .. largest.symbol
+	else
+		return "0"
+	end
+end
+
+-------------------------
+-- nicetime
+-------------------------
+local floor = math.floor
+local times = {
+	{ "y", 31556926 }, -- years
+	{ "mon", 2629743.83 }, -- months
+	{ "w", 604800 }, -- weeks
+	{ "d", 86400 }, -- days
+	{ "h", 3600 }, -- hours
+	{ "m", 60 }, -- minutes
+	{ "s", 1 }, -- seconds
+}       
+function nicenumber.nicetime( n )
+	n = math.abs( n )
+
+	if n == 0 then return "0s" end
+
+	local prev_name = ""
+	local prev_val = 0
+	for i=1,#times do
+		local name = times[i][1]
+		local num = times[i][2]
+
+		local temp = floor(n / num)
+		if temp > 0 or prev_name ~= "" then
+			if prev_name ~= "" then
+				return prev_val .. prev_name .. " " .. temp .. name
+			else
+				prev_name = name
+				prev_val = temp
+				n = n % num
+			end
+		end
+	end
+
+	if prev_name ~= "" then
+		return prev_val .. prev_name
+	else
+		return "0s"
+	end
+end
