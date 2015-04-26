@@ -11,6 +11,8 @@ if CLIENT then
 	language.Add("Tool_wire_screen_textb", "Text B:")
 	language.Add("Tool_wire_screen_leftalign", "Left alignment")
 	language.Add("Tool_wire_screen_floor", "Floor screen value")
+	language.Add("Tool_wire_screen_formatnumber", "Format the number into millions, billions, etc")
+	language.Add("Tool_wire_screen_formattime", "Format the number as a duration, in seconds")
 	language.Add("Tool_wire_screen_createflat", "Create flat to surface")
 end
 WireToolSetup.BaseLang()
@@ -25,7 +27,9 @@ if SERVER then
 		self:GetClientInfo("texta"),
 		self:GetClientInfo("textb"),
 		self:GetClientNumber("leftalign") == 1,
-		self:GetClientNumber("floor") == 1
+		self:GetClientNumber("floor") == 1,
+		self:GetClientNumber("formatnumber") == 1,
+		self:GetClientNumber("formattime") == 1
 	end
 end
 
@@ -38,6 +42,8 @@ TOOL.ClientConVar = {
 	createflat    = 1,
 	leftalign     = 0,
 	floor         = 0,
+	formatnumber  = 0,
+	formattime    = 0,
 }
 
 function TOOL.BuildCPanel(panel)
@@ -47,6 +53,9 @@ function TOOL.BuildCPanel(panel)
 	panel:CheckBox("#Tool_wire_screen_singlebigfont", "wire_screen_singlebigfont")
 	panel:CheckBox("#Tool_wire_screen_leftalign", "wire_screen_leftalign")
 	panel:CheckBox("#Tool_wire_screen_floor", "wire_screen_floor")
+	panel:CheckBox("#Tool_wire_screen_formatnumber", "wire_screen_formatnumber")
+	local p = panel:CheckBox("#Tool_wire_screen_formattime", "wire_screen_formattime")
+	p:SetToolTip( "This overrides the two above settings" )
 	panel:TextEntry("#Tool_wire_screen_texta", "wire_screen_texta")
 	panel:TextEntry("#Tool_wire_screen_textb", "wire_screen_textb")
 	panel:CheckBox("#Tool_wire_screen_createflat", "wire_screen_createflat")
