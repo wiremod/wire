@@ -1480,6 +1480,10 @@ end
 local code1 = "@name \n@inputs \n@outputs \n@persist \n@trigger \n\n"
 -- code2 contains the code that is to be marked, so it can simply be overwritten or deleted.
 local code2 = [[#[
+    Shoutout to Expression Advanced 2! Have you tried it yet?
+    You should try it. It's a hundred times faster than E2
+    and has more features. http://goo.gl/sZcyN9
+
     A new preprocessor command, @autoupdate has been added.
     See the wiki for more info.
 
