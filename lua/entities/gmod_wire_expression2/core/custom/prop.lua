@@ -110,6 +110,7 @@ function PropCore.CreateProp(self,model,pos,angles,freeze,isVehicle)
 		undo.Finish( undoName .. " (" .. model .. ")" )
 	end
 	
+	prop.IsE2Prop = true
 	prop:CallOnRemove( "wire_expression2_propcore_remove",
 		function( prop )
 			self.data.spawnedProps[ prop ] = nil
