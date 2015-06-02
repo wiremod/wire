@@ -187,11 +187,6 @@ if CLIENT then
 		return newview
 	end)
 	
-	-- calcview.drawviewer doesn't work, probably because I use SetViewEntity serverside, so I do this to fix that
-	hook.Add( "PrePlayerDraw", "wire_camera_controller_preplayerdraw", function( ply )
-		if enabled and not DrawPlayer and ply == LocalPlayer() then return true end
-	end )
-	
 	hook.Add("PlayerBindPress", "wire_camera_controller_zoom", function(ply, bind, pressed)
 		if enabled and AllowZoom then
 			if (bind == "invprev") then
@@ -231,6 +226,13 @@ if CLIENT then
 		if cam ~= self and enabled then return end -- another camera controller is already enabled
 		
 		self = cam
+
+		-- make the previous parent visible
+		-- (this also makes the parent visible when you turn off the cam controller)
+		local parent, HasParent = GetParent()
+		if HasParent then
+			parent:SetNoDraw( false )
+		end
 		
 		if enable then
 			ParentLocal = net.ReadBit() ~= 0
@@ -242,6 +244,12 @@ if CLIENT then
 			DrawPlayer = net.ReadBit() ~= 0
 			DrawParent = net.ReadBit() ~= 0
 			ReadPositions()
+
+			-- Hide the parent if that's what the user wants
+			local parent, HasParent = GetParent()
+			if HasParent and not DrawParent then
+				parent:SetNoDraw( true )
+			end
 			
 			-- If we switched on, set current positions and angles
 			if not enabled then
@@ -253,43 +261,8 @@ if CLIENT then
 				curdistance = distance
 				smoothdistance = distance
 				zoomdistance = 0
-				
-				--[[ ******************
-					This is a hack to solve the issue of the parent entity being invisible, due to 
-					the fact that ply:SetViewEntity( parent ) must be used serverside
-					in order to be able to move through visleafs
-					
-					SetViewEntity makes the entity invisible for some reason, so this renders it again
-					using a client side model.
-				]]
-				
-				local parent, HasParent = GetParent()
-				if HasParent and DrawParent then
-					clientprop = ClientsideModel( parent:GetModel(), parent:GetRenderGroup() )
-					clientprop:SetPos( parent:GetPos() )
-					clientprop:SetAngles( parent:GetAngles() )
-					clientprop:SetParent( parent )
-					clientprop:DrawShadow( false ) -- shadow is already drawn by parent
-					clientprop:SetMaterial( parent:GetMaterial() )
-					clientprop:SetSkin( parent:GetSkin() )
-					
-					local color = parent:GetColor()
-					if color.a < 255 then clientprop:SetRenderMode( RENDERMODE_TRANSALPHA )	end
-					clientprop:SetColor( color )
-					
-					parent:CallOnRemove( "CamController.RemoveClientProp", function()
-						if IsValid( clientprop ) then
-							clientprop:Remove()
-						end
-					end )
-				end
-			end
-		elseif enabled then
-			if IsValid( clientprop ) then
-				clientprop:Remove()
 			end
 		end
-		--[[ ****************** ]]
 		
 		enabled = enable
 	end)
@@ -575,6 +548,19 @@ function ENT:Think()
 end
 
 --------------------------------------------------
+-- PVS Hook
+--------------------------------------------------
+
+hook.Add("SetupPlayerVisibility", "gmod_wire_cameracontroller", function(player)
+	local cam = player.CamController
+	if IsValid(cam) then
+		local pos = cam.Position
+		if IsValid( cam.Parent ) then pos = cam.Parent:LocalToWorld(pos) end
+		AddOriginToPVS(pos)
+	end
+end)
+
+--------------------------------------------------
 -- OnRemove
 --------------------------------------------------
 
@@ -608,18 +594,8 @@ function ENT:DisableCam( ply )
 			end
 		end
 		
-		-- Unhook the SetViewEntity hack
-		ply:SetViewEntity()
-		
 		ply.CamController = nil
-	else
-		-- Unhook the SetViewEntity hack for all players
-		for i=1,#self.Players do
-			if IsValid( self.Players[i] ) then
-				self.Players[i]:SetViewEntity()
-			end
-		end
-		
+	else		
 		self.Players = {}
 	end
 		
@@ -651,10 +627,6 @@ function ENT:EnableCam( ply )
 		
 		WireLib.TriggerOutput(self, "On", 1)
 		self.Active = true
-		
-		-- SetViewEntity fixes the problem where the camera would get stuck if you fly through a PVS edge
-		-- this is a hack since isn't actually used, because we're overriding it with CalcView
-		if IsValid( self.Parent ) then ply:SetViewEntity( self.Parent )	end
 		
 		self:SyncSettings( ply )
 	else -- No player specified, activate cam for everyone not already active
