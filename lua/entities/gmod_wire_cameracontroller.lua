@@ -773,7 +773,7 @@ function ENT:TriggerInput( name, value )
 		end
 	
 		self:LocalizePositions(true)
-		if name ~= "Parent" then self.NeedsSync = true end
+		self.NeedsSync = true
 	end
 end
 
