@@ -232,9 +232,7 @@ function EGP:SetParent( Ent, index, parentindex )
 		else
 			local bool2, k2, v2 = self:HasObject( Ent, parentindex )
 			if (bool2) then
-				if (CLIENT or game.SinglePlayer()) then
-					self:AddParentIndexes( v )
-				end
+				self:AddParentIndexes( v )
 
 				if (SERVER) then parentindex = math.Clamp(parentindex,1,self.ConVars.MaxObjects:GetInt()) end
 
@@ -280,13 +278,8 @@ function EGP:UnParent( Ent, index )
 		index = v.index
 	end
 	if (bool) then
-		local hasVertices, data
-		if (CLIENT) then
-			hasVertices, data = self:GetGlobalPos( Ent, index )
-			self:RemoveParentIndexes( v, hasVertices )
-		else
-			hasVertices, data = self:GetGlobalPos( Ent, index )
-		end
+		local hasVertices, data = self:GetGlobalPos( Ent, index )
+		self:RemoveParentIndexes( v, hasVertices )
 
 		if (!v.parent or v.parent == 0) then return false end
 

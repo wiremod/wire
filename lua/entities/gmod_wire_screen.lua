@@ -19,15 +19,15 @@ function ENT:GetDisplayB( )
 	return self:GetNetworkedBeamFloat( 2 )
 end
 
-// Extra stuff for Wire Screen (TheApathetic)
+-- Extra stuff for Wire Screen (TheApathetic)
 function ENT:SetSingleValue(singlevalue)
-	self:SetNetworkedBool("SingleValue",singlevalue)
+	self:SetNWBool("SingleValue",singlevalue)
 
-	// Change inputs if necessary
+	-- Change inputs if necessary
 	if (singlevalue) then
-		Wire_AdjustInputs(self, {"A"})
+		WireLib.AdjustInputs(self, {"A"})
 	else
-		Wire_AdjustInputs(self, {"A","B"})
+		WireLib.AdjustInputs(self, {"A","B"})
 	end
 end
 function ENT:GetSingleValue()
@@ -35,38 +35,52 @@ function ENT:GetSingleValue()
 end
 
 function ENT:SetSingleBigFont(singlebigfont)
-	self:SetNetworkedBool("SingleBigFont",singlebigfont)
+	self:SetNWBool("SingleBigFont",singlebigfont)
 end
 function ENT:GetSingleBigFont()
 	return self:GetNetworkedBool("SingleBigFont")
 end
 
 function ENT:SetTextA(text)
-	self:SetNetworkedString("TextA",text)
+	self:SetNWString("TextA",text)
 end
 function ENT:GetTextA()
 	return self:GetNetworkedString("TextA")
 end
 
 function ENT:SetTextB(text)
-	self:SetNetworkedString("TextB",text)
+	self:SetNWString("TextB",text)
 end
 function ENT:GetTextB()
-	return self:GetNetworkedString("TextB")
+	return self:GetNWString("TextB")
 end
 
 function ENT:SetLeftAlign(leftalign)
-	self:SetNetworkedBool("LeftAlign",leftalign)
+	self:SetNWBool("LeftAlign",leftalign)
 end
 function ENT:GetLeftAlign()
-	return self:GetNetworkedBool("LeftAlign")
+	return self:GetNWBool("LeftAlign")
 end
 
 function ENT:SetFloor(Floor)
-	self:SetNetworkedBool("Floor",Floor)
+	self:SetNWBool("Floor",Floor)
 end
 function ENT:GetFloor()
-	return self:GetNetworkedBool("Floor")
+	return self:GetNWBool("Floor")
+end
+
+function ENT:SetFormatNumber( FormatNumber )
+	self:SetNWBool( "FormatNumber", FormatNumber )
+end
+function ENT:GetFormatNumber()
+	return self:GetNWBool("FormatNumber")
+end
+
+function ENT:SetFormatTime( FormatTime )
+	self:SetNWBool( "FormatTime", FormatTime )
+end
+function ENT:GetFormatTime()
+	return self:GetNWBool("FormatTime")
 end
 
 if CLIENT then 
@@ -78,72 +92,74 @@ if CLIENT then
 		self.GPU:Finalize()
 	end
 
+	local header_color = Color(100,100,150,255)
+	local text_color = Color(255,255,255,255)
+	local background_color = Color(0,0,0,255)
+
+	local large_font = "Trebuchet36"
+	local small_font = "Trebuchet18"
+	local value_large_font = "screen_font_single"
+	local value_small_font = "screen_font"
+
+	local small_height = 20
+	local large_height = 40
+
+	function ENT:DrawNumber( header, value, x,y,w,h )
+		local header_height = small_height
+		local header_font = small_font
+		local value_font = value_small_font
+
+		if self:GetSingleValue() and self:GetSingleBigFont() then
+			header_height = large_height
+			header_font = large_font
+			value_font = value_large_font
+		end
+
+		surface.SetDrawColor( header_color )
+		surface.DrawRect( x, y, w, header_height )
+
+		surface.SetFont( header_font )
+		surface.SetTextColor( text_color )
+		local _w,_h = surface.GetTextSize( header )
+		surface.SetTextPos( x + w / 2 - _w / 2, y + 2 )
+		surface.DrawText( header, header_font )
+
+		if self:GetFormatTime() then -- format as time, aka duration - override formatnumber and floor settings
+			value = WireLib.nicenumber.nicetime( value )
+		elseif self:GetFormatNumber() then
+			if self:GetFloor() then
+				value = WireLib.nicenumber.format( math.floor( value ), 1 )
+			else
+				value = WireLib.nicenumber.formatDecimal( value )
+			end
+		elseif self:GetFloor() then
+			value = "" .. math.floor( value )
+		else
+			-- note: loses precision after ~7 decimals, so don't bother displaying more
+			value = "" .. math.floor( value * 10000000 ) / 10000000 
+		end
+
+		local align = self:GetLeftAlign() and 0 or 1
+		surface.SetFont( value_font )
+		local _w,_h = surface.GetTextSize( value )
+		surface.SetTextPos( x + (w / 2 - _w / 2) * align, y + header_height )
+		surface.DrawText( value )
+	end
+
 	function ENT:Draw()
 		self:DrawModel()
 
 		self.GPU:RenderToWorld(nil, 188, function(x, y, w, h)
-			surface.SetDrawColor(0, 0, 0, 255)
+			surface.SetDrawColor(background_color)
 			surface.DrawRect(x, y, w, h)
 
-			// Check for Single Value (TheApathetic)
-			if (self:GetSingleValue()) then
-				local rectheight = 20
-				local textfont = "Trebuchet18"
-				local valuefont = "screen_font"
-
-				// Check for Single Bigger Font setting
-				if (self:GetSingleBigFont()) then
-					rectheight = 40
-					textfont = "Trebuchet36"
-					valuefont = "screen_font_single"
-				end
-
-				// Sizes here have been doubled when possible
-				surface.SetDrawColor(100,100,150,255)
-				surface.DrawRect(x,y,w,rectheight)
-
-				draw.DrawText(self:GetTextA(), textfont, x + w/2, y + 2, Color(255,255,255,255), 1)
-
-				local DisplayA
-
-				if (self:GetFloor()) then
-					DisplayA = math.floor(self:GetDisplayA( ))
-				else
-					DisplayA = math.floor(self:GetDisplayA( ) * 1000)/ 1000
-				end
-
-				local halign = self:GetLeftAlign() and 0 or 1
-				draw.DrawText(DisplayA,valuefont,x + w/2*halign,y + rectheight,Color(255,255,255,255),halign)
+			if self:GetSingleValue() then
+				self:DrawNumber( self:GetTextA(), self:GetDisplayA(), x,y,w,h )
 			else
-				// Normal two-value Wire Screen
-
-				-- draw top bars
-				surface.SetDrawColor(100,100,150,255)
-				surface.DrawRect(x,y,w,20)
-
-				surface.SetDrawColor(100,100,150,255)
-				surface.DrawRect(x,y+94,w,20)
-
-				// Replaced "Value A" and "Value B" here (TheApathetic)
-				draw.DrawText(self:GetTextA(), "Trebuchet18", x + w/2, y +  2, Color(255,255,255,255), 1)
-				draw.DrawText(self:GetTextB(), "Trebuchet18", x + w/2, y + 96, Color(255,255,255,255), 1)
-
-				local DisplayA
-				local DisplayB
-
-				if (self:GetFloor()) then
-					DisplayA = math.floor(self:GetDisplayA( ))
-					DisplayB = math.floor(self:GetDisplayB( ))
-				else
-					DisplayA = math.floor(self:GetDisplayA( ) * 1000)/ 1000
-					DisplayB = math.floor(self:GetDisplayB( ) * 1000)/ 1000
-				end
-
-				local halign = self:GetLeftAlign() and 0 or 1
-				draw.DrawText(DisplayA, "screen_font", x + w/2*halign, y +  20, Color(255,255,255,255), halign)
-				draw.DrawText(DisplayB, "screen_font", x + w/2*halign, y + 114, Color(255,255,255,255), halign)
+				local h = h/2
+				self:DrawNumber( self:GetTextA(), self:GetDisplayA(), x,y,w,h )
+				self:DrawNumber( self:GetTextB(), self:GetDisplayB(), x,y+h,w,h )
 			end
-
 		end)
 
 		Wire_Render(self)
@@ -170,15 +186,15 @@ end
 
 -- Server
 
-ENT.ValueA = 0
-ENT.ValueB = 0
-
 function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )
 	self:SetMoveType( MOVETYPE_VPHYSICS )
 	self:SetSolid( SOLID_VPHYSICS )
 
-	self.Inputs = Wire_CreateInputs(self, { "A", "B" })
+	self.Inputs = WireLib.CreateInputs(self, { "A", "B" })
+
+	self.ValueA = 0
+	self.ValueB = 0
 end
 
 function ENT:Think()
@@ -196,9 +212,6 @@ function ENT:Think()
 	return true
 end
 
-function ENT:Use()
-end
-
 function ENT:TriggerInput(iname, value)
 	if (iname == "A") then
 		self.ValueA = value
@@ -207,7 +220,7 @@ function ENT:TriggerInput(iname, value)
 	end
 end
 
-function ENT:Setup(SingleValue, SingleBigFont, TextA, TextB, LeftAlign, Floor)
+function ENT:Setup(SingleValue, SingleBigFont, TextA, TextB, LeftAlign, Floor, FormatNumber, FormatTime)
 	--for duplication
 	self.SingleValue	= SingleValue
 	self.SingleBigFont	= SingleBigFont
@@ -215,6 +228,8 @@ function ENT:Setup(SingleValue, SingleBigFont, TextA, TextB, LeftAlign, Floor)
 	self.TextB 			= TextB
 	self.LeftAlign 		= LeftAlign
 	self.Floor	 		= Floor
+	self.FormatNumber	= FormatNumber
+	self.FormatTime		= FormatTime
 
 	-- Extra stuff for Wire Screen (TheApathetic)
 	self:SetTextA(TextA)
@@ -228,6 +243,10 @@ function ENT:Setup(SingleValue, SingleBigFont, TextA, TextB, LeftAlign, Floor)
 
 	--Put it here to update inputs if necessary (TheApathetic)
 	self:SetSingleValue(SingleValue)
+
+	-- Auto formatting (Divran)
+	self:SetFormatNumber( FormatNumber )
+	self:SetFormatTime( FormatTime )
 end
 
-duplicator.RegisterEntityClass("gmod_wire_screen", WireLib.MakeWireEnt, "Data", "SingleValue", "SingleBigFont", "TextA", "TextB", "LeftAlign", "Floor")
+duplicator.RegisterEntityClass("gmod_wire_screen", WireLib.MakeWireEnt, "Data", "SingleValue", "SingleBigFont", "TextA", "TextB", "LeftAlign", "Floor", "FormatNumber", "FormatTime")

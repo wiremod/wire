@@ -196,10 +196,12 @@ end
 
 function ENT:SetCPUName(name)
 	local overlayStr = ""
+	local a = math.floor(self.VM.SerialNo / 100000)
+	local b = math.floor(self.VM.SerialNo % 100000)
 	if name and (name ~= "") then
-		self:SetOverlayText(string.format("%s\nS/N %d",name,self.VM.SerialNo))
+		self:SetOverlayText(string.format("%s\nS/N %05d%05d",name,a,b))
 	else
-		self:SetOverlayText(string.format("Zyelios CPU\nS/N %d",self.VM.SerialNo))
+		self:SetOverlayText(string.format("Zyelios CPU\nS/N %05d%05d",a,b))
 	end
 	self.CPUName = name
 end

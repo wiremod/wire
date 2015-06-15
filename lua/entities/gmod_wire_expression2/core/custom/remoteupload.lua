@@ -16,7 +16,7 @@ umsg.PoolString("e2_remoteupload_request")
 __e2setcost(1000)
 e2function void entity:remoteUpload( string filepath )
 	if not this or not this:IsValid() or this:GetClass() ~= "gmod_wire_expression2" then return end
-	if not E2Lib.isOwner( self, this ) then return end
+	if E2Lib.getOwner( this ) ~= self.player then return end
 	if not check(self.player) then return end
 
 	umsg.Start( "e2_remoteupload_request", self.player )
@@ -28,7 +28,7 @@ end
 __e2setcost(250)
 e2function void entity:remoteSetCode( string code )
 	if not this or not this:IsValid() or this:GetClass() ~= "gmod_wire_expression2" then return end
-	if not E2Lib.isOwner( self, this ) then return end
+	if E2Lib.getOwner( this ) ~= self.player then return end
 	if not check(self.player) then return end
 	
 	timer.Simple( 0, function()
@@ -38,7 +38,7 @@ end
 
 e2function void entity:remoteSetCode( string main, table includes )
 	if not this or not this:IsValid() or this:GetClass() ~= "gmod_wire_expression2" then return end
-	if not E2Lib.isOwner( self, this ) then return end
+	if E2Lib.getOwner( this ) ~= self.player then return end
 	if not check(self.player) then return end
 
 	local luatable = {}
