@@ -16,7 +16,7 @@ function ENT:Initialize()
 
 	self.Memory = {}
 	self.ROM = false
-	self.AllowWrite = false
+	self.AllowWrite = true
 
 	self:SetOverlayText("DHDD")
 end
@@ -29,7 +29,7 @@ end
 
 -- Write cell
 function ENT:WriteCell( Address, value )
-	if (not self.ROM) or (self.ROM and self.AllowWrite) then
+	if self.AllowWrite then
 		self.Memory[Address] = value
 	end
 	self:ShowOutputs()
@@ -49,12 +49,14 @@ end
 
 function ENT:TriggerInput( name, value )
 	if (name == "Data") then
-		if (!value) then return end
+		if not value then return end -- if the value is invalid, abort
+		if not IsValid(self.Inputs.Data.Src) then return end -- if the input is not wired to anything, abort
+		if not self.AllowWrite then return end -- if we don't allow writing, abort
+
 		self.Memory = value
 		self:ShowOutputs()
 	elseif (name == "Clear") then
 		self.Memory = {}
-		self.MemSize = 0
 		self:ShowOutputs()
 	elseif (name == "AllowWrite") then
 		self.AllowWrite = value >= 1
@@ -74,12 +76,17 @@ function ENT:BuildDupeInfo()
 		info.DHDD.Memory[k] = v
 	end
 
+	info.DHDD.AllowWrite = self.AllowWrite
+
 	return info
 end
 
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 	if (info.DHDD) then
 		ent.Memory = (info.DHDD.Memory or {})
+		if info.DHDD.AllowWrite ~= nil then
+			ent.AllowWrite = info.DHDD.AllowWrite
+		end
 		self:ShowOutputs()
 	end
 	self.ROM = info.ROM or false
