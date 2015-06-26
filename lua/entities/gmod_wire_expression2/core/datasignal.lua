@@ -50,11 +50,11 @@ local function isOwner( froment, toent ) -- we need a more strict isOwner than E
 	return froment.player == toent.player
 end
 
-local function IsAllowed( froment, toent, fromscope )
+local function IsAllowed( froment, toent, fromscope, signaltype )
 	if not froment or not froment:IsValid() or froment:GetClass() ~= "gmod_wire_expression2" then return false end
 	if not toent or not toent:IsValid() or toent:GetClass() ~= "gmod_wire_expression2" then return false end
 
-	if froment == toent then return false end -- Can't send to the same E2
+	if signaltype ~= "direct" and froment == toent then return false end -- Can't send to the same E2 (if it's a group signal)
 
 	local toscope = toent.context.data.datasignal.scope
 
@@ -125,8 +125,10 @@ end
 -- Check if any signals are in the queue, waiting to be sent
 -- Returns true on success, false on failure
 ---------------------------------------------
-local function sendSignalToE2( from, fromscope, to, signalname, groupname, var, vartype )
-	if not IsAllowed( from, to, fromscope ) then return false end
+local function sendSignalToE2( from, fromscope, to, signalname, groupname, var, vartype, signaltype )
+	signaltype = signaltype or "direct" -- default to "direct"
+
+	if not IsAllowed( from, to, fromscope, signaltype ) then return false end
 
 	from.context.prf = from.context.prf + 80
 
@@ -156,7 +158,7 @@ local function sendSignalToGroup( from, fromscope, signalname, groupname, var, v
 
 	local ret = true
 	for e2,_ in pairs( group ) do
-		if not sendSignalToE2( from, fromscope, e2, signalname, groupname, var, vartype ) then
+		if not sendSignalToE2( from, fromscope, e2, signalname, groupname, var, vartype, "group" ) then
 			ret = false
 		end
 	end
@@ -173,7 +175,7 @@ local function probeGroup( from, fromscope, groupname )
 
 	if groups[groupname] then
 		for e2,_ in pairs( groups[groupname] ) do
-			if IsAllowed( from, e2, fromscope ) then
+			if IsAllowed( from, e2, fromscope, "group" ) then
 				ret[#ret+1] = e2
 			end
 		end
