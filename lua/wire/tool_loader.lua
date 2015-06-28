@@ -414,6 +414,12 @@ function WireToolSetup.setCategory( s_cat, ... )
 	end
 end
 
+-- Sets the icon for the current tool
+function WireToolSetup.setToolMenuIcon( icon )
+	if SERVER then return end
+	TOOL.Wire_ToolMenuIcon = icon
+end
+
 -- makes a new TOOL
 --  s_mode: Tool_mode, same as the old tool lua file name, minus the "wire_" part
 --  s_name: Proper name for the tool

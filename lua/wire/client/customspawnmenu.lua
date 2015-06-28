@@ -341,8 +341,8 @@ function PANEL:Search( text )
 end
 
 -- Helper function
-local function AddNode( list, text, cookietext )
-	local node = list:AddNode( text )
+local function AddNode( list, text, icon, cookietext )
+	local node = list:AddNode( text, icon )
 	
 	node.Label:SetFont( "DermaDefaultBold" )
 	
@@ -401,13 +401,13 @@ function PANEL:CreateCategories()
 			
 			if #expl == 1 then
 				if not self.CategoryLookup[category] then
-					local node = AddNode( self.List, v.Text, category )
+					local node = AddNode( self.List, v.Text, v.Icon, category )
 					self.CategoryLookup[category] = node
 				end
 			else
 				local category = expl[1]
 				if not self.CategoryLookup[category] then
-					local node = AddNode( self.List, category, category )
+					local node = AddNode( self.List, category, nil, category )
 					self.CategoryLookup[category] = node
 				end
 				
@@ -416,7 +416,7 @@ function PANEL:CreateCategories()
 					
 					local path = table.concat(expl,"/",1,i)
 					if not self.CategoryLookup[path] then
-						local node = AddNode( self.CategoryLookup[table.concat(expl,"/",1,i-1)], str, path )
+						local node = AddNode( self.CategoryLookup[table.concat(expl,"/",1,i-1)], str, nil, path )
 						self.CategoryLookup[path] = node
 					end
 				end
@@ -500,7 +500,11 @@ function PANEL:LoadToolsFromTable( inTable )
 	
 	-- If this tab has no favourites category, add one at the top
 	if self.ToolTable[1].ItemName ~= "Favourites" then
-		table.insert( self.ToolTable, 1, { ItemName = "Favourites", Text = "Favourites" } )
+		table.insert( self.ToolTable, 1, { ItemName = "Favourites", Text = "Favourites", Icon = "icon16/star.png" } )
+
+	-- If this tab DOES have a favourites category, set its icon to a star
+	elseif self.ToolTable[1].ItemName == "Favourites" then
+		self.ToolTable[1].Icon = "icon16/star.png"
 	end
 	
 	-- First, we copy all tools into their multi categories
@@ -522,6 +526,7 @@ function PANEL:LoadToolsFromTable( inTable )
 			local Label = v.Text
 			v.ItemName = nil
 			v.Text = nil
+			v.Icon = nil
 			
 			self:AddCategory( Name, Label, v )			
 		end
@@ -542,9 +547,17 @@ function PANEL:AddCategory( Name, Label, tItems, CategoryID )
 	
 		v.Category = Label
 		v.CategoryID = CategoryID
+
+		local icon = "icon16/wrench.png"
+
+		local tooltbl = weapons.Get("gmod_tool").Tool[v.ItemName]
+		if tooltbl then
+			if tooltbl.Wire_ToolMenuIcon then
+				icon = tooltbl.Wire_ToolMenuIcon
+			end
+		end
 	
-		local item = Category:AddNode( v.Text )
-		item.Icon:SetImage( "icon16/wrench.png" )
+		local item = Category:AddNode( v.Text, icon )
 		
 		function item:DoClick()
 
