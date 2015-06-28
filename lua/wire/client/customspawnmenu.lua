@@ -9,6 +9,7 @@ local hide_duplicates = CreateConVar( "wire_tool_menu_hide_duplicates", 0, {FCVA
 local custom_for_all_tabs = CreateConVar( "wire_tool_menu_custom_menu_for_all_tabs", 0, {FCVAR_ARCHIVE} )
 local tab_width = CreateConVar( "wire_tool_menu_tab_width", -1, {FCVAR_ARCHIVE} )
 local horizontal_divider_width = CreateConVar( "wire_tool_menu_horizontal_divider_width", 0.28, {FCVAR_ARCHIVE} )
+local custom_icons = CreateConVar( "wire_tool_menu_custom_icons", 1, {FCVAR_ARCHIVE} )
 
 -- Helper functions
 local function expandall( bool, nodes )
@@ -550,10 +551,12 @@ function PANEL:AddCategory( Name, Label, tItems, CategoryID )
 
 		local icon = "icon16/wrench.png"
 
-		local tooltbl = weapons.Get("gmod_tool").Tool[v.ItemName]
-		if tooltbl then
-			if tooltbl.Wire_ToolMenuIcon then
-				icon = tooltbl.Wire_ToolMenuIcon
+		if custom_icons:GetBool() then
+			local tooltbl = weapons.Get("gmod_tool").Tool[v.ItemName]
+			if tooltbl then
+				if tooltbl.Wire_ToolMenuIcon then
+					icon = tooltbl.Wire_ToolMenuIcon
+				end
 			end
 		end
 	
@@ -640,6 +643,10 @@ local function CreateCPanel( panel )
 	setUpTabReloadOnChange( HideDuplicates )
 	panel:Help( "It makes sense to have certain tools in multiple categories at once. However, if you don't want this, you can disable it here. The tools will then only appear in their primary category." )
 	
+	local UseIcons = panel:CheckBox( "Use custom icons", "wire_tool_menu_custom_icons" )
+	setUpTabReloadOnChange( UseIcons )
+	UseIcons:SetToolTip( "If disabled, all tools will use the 'wrench' icon." )
+
 	local TabWidth = panel:NumSlider( "Tab width", "wire_tool_menu_tab_width", 300, 3000, 0 )
 	panel:Help( [[Set the width of all tabs.
 Defaults:
