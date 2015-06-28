@@ -6,6 +6,9 @@ if CLIENT then
 	language.Add("Tool.wire_expression2.desc", "Spawns an Expression 2 chip for use with the wire system.")
 	language.Add("Tool.wire_expression2.0", "Primary: Create/Update Expression, Secondary: Open Expression in Editor")
 	language.Add("sboxlimit_wire_expressions", "You've hit the Expression limit!")
+
+	--WireToolSetup.setToolMenuIcon( "beer/wiremod/gate_e2" )
+	WireToolSetup.setToolMenuIcon( "vgui/e2logo" )
 end
 
 TOOL.ClientConVar = {

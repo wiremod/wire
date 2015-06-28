@@ -15,6 +15,8 @@ if ( CLIENT ) then
 	language.Add( "Tool.wire_cam.drawplayer", "Draw player" )
 	language.Add( "Tool.wire_cam.drawparent", "Draw parent" )
 	language.Add( "Tool.wire_cam.smooth_amount", "Smooth speed (default: 18)" )
+
+	WireToolSetup.setToolMenuIcon( "icon16/camera.png" )
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )

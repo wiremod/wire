@@ -17,6 +17,8 @@ if CLIENT then
 		
 		panel:Help("#Tool.wire_dhdd.note")
 	end
+	
+	WireToolSetup.setToolMenuIcon( "icon16/database.png" )
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )

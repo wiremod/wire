@@ -6,6 +6,8 @@ if CLIENT then
 	language.Add( "tool.wire_soundemitter.desc", "Spawns a sound emitter for use with the wire system." )
 	language.Add( "tool.wire_soundemitter.0", "Primary: Create/Update Sound Emitter, Secondary: Open Sound Browser" )
 	language.Add( "WireEmitterTool_sound", "Sound:" )
+
+	WireToolSetup.setToolMenuIcon( "bull/various/subwoofer" )
 end
 WireToolSetup.BaseLang()
 

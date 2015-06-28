@@ -5,6 +5,8 @@ if CLIENT then
 	language.Add( "Tool.wire_gps.name", "GPS Tool (Wire)" )
 	language.Add( "Tool.wire_gps.desc", "Spawns a GPS for use with the wire system." )
 	language.Add( "Tool.wire_gps.0", "Primary: Create/Update GPS" )
+
+	WireToolSetup.setToolMenuIcon( "icon16/world.png" )
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 10 )

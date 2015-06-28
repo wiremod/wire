@@ -8,6 +8,8 @@ if CLIENT then
 	language.Add( "Tool.wire_adv.0", "Primary: Select input (Shift: Select multiple; Alt: Select all), Secondary: Next, Reload: Unlink (Alt: Unlink all), Mouse Wheel: Next" )
 	language.Add( "Tool.wire_adv.1", "Primary: Select entity, Secondary: Add wire point, Reload: Cancel" )
 	language.Add( "Tool.wire_adv.2", "Primary: Select output (Alt: Auto-connect matching input/outputs), Secondary: Next, Reload: Cancel, Mouse Wheel: Next" )
+
+	TOOL.Wire_ToolMenuIcon = "icon16/connect.png"
 end
 
 TOOL.ClientConVar = {
