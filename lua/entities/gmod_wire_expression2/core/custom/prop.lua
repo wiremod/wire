@@ -127,15 +127,17 @@ end
 
 function PropCore.PhysManipulate(this, pos, rot, freeze, gravity, notsolid)
 	local phys = this:GetPhysicsObject()
-	if pos ~= nil then E2Lib.setPos( phys, Vector( pos[1],pos[2],pos[3] ) ) end
-	if rot ~= nil then E2Lib.setAng( phys,  Angle( rot[1],rot[2],rot[3] ) ) end
-	if freeze ~= nil then phys:EnableMotion( freeze == 0 ) end
-	if gravity ~= nil then phys:EnableGravity( gravity ~= 0 ) end
-	if notsolid ~= nil then this:SetSolid( notsolid ~= 0 and SOLID_NONE or SOLID_VPHYSICS ) end
-	phys:Wake()
-	if !phys:IsMoveable() then
-		phys:EnableMotion( true )
-		phys:EnableMotion( false )
+	if IsValid( phys ) then
+		if pos ~= nil then E2Lib.setPos( phys, Vector( pos[1],pos[2],pos[3] ) ) end
+		if rot ~= nil then E2Lib.setAng( phys,  Angle( rot[1],rot[2],rot[3] ) ) end
+		if freeze ~= nil then phys:EnableMotion( freeze == 0 ) end
+		if gravity ~= nil then phys:EnableGravity( gravity ~= 0 ) end
+		if notsolid ~= nil then this:SetSolid( notsolid ~= 0 and SOLID_NONE or SOLID_VPHYSICS ) end
+		phys:Wake()
+		if !phys:IsMoveable() then
+			phys:EnableMotion( true )
+			phys:EnableMotion( false )
+		end
 	end
 end
 
@@ -372,10 +374,20 @@ local function parent_check( child, parent )
 	return true
 end
 
+local function parent_antispam( child )
+	if child.E2_propcore_antispam or 0 > CurTime() then
+		return false
+	end
+
+	child.E2_propcore_antispam = CurTime() + 0.06
+	return true
+end
+
 e2function void entity:parentTo(entity target)
 	if not PropCore.ValidAction(self, this, "parent") then return end
 	if not IsValid(target) then return nil end
 	if(!isOwner(self, target)) then return end
+	if not parent_antispam( this ) then return end
 	if this == target then return end
 	if (!parent_check( this, target )) then return end
 	this:SetParent(target)

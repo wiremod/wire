@@ -33,6 +33,8 @@ if CLIENT then
 	language.Add( "WireGatesTool_angleoffset", "Spawn angle offset" )
 	language.Add( "sboxlimit_wire_gates", "You've hit your gates limit!" )
 
+	WireToolSetup.setToolMenuIcon( "bull/gates/gate_logic_and" )
+
 	function TOOL.BuildCPanel( panel )
 		WireDermaExts.ModelSelect(panel, "wire_gates_model", list.Get("Wire_gate_Models"), 3, true)
 

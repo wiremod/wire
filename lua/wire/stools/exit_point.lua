@@ -5,6 +5,8 @@ if CLIENT then
 	language.Add( "tool."..TOOL.Mode..".name", TOOL.Name.." Tool (Wire)" )
 	language.Add( "tool."..TOOL.Mode..".desc", "Spawns a "..TOOL.Name )
 	language.Add( "tool."..TOOL.Mode..".0", "Primary: Create "..TOOL.Name.."" )
+
+	WireToolSetup.setToolMenuIcon( "icon16/door_out.png" )
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax(6)

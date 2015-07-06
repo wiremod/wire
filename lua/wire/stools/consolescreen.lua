@@ -5,6 +5,8 @@ if CLIENT then
 	language.Add( "tool.wire_consolescreen.name", "Console Screen Tool (Wire)" )
 	language.Add( "tool.wire_consolescreen.desc", "Spawns a console screen" )
 	language.Add( "tool.wire_consolescreen.0", "Primary: Create/Update screen" )
+
+	WireToolSetup.setToolMenuIcon( "icon16/application_xp_terminal.png" )
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )

@@ -15,6 +15,8 @@ if CLIENT then
 		
 		panel:Help("#Tool.wire_rom.note")
 	end
+	
+	WireToolSetup.setToolMenuIcon( "icon16/database.png" )
 end
 TOOL.MaxLimitName = "wire_dhdds"
 
