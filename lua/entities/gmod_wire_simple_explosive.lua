@@ -24,7 +24,7 @@ function ENT:Setup( key, damage, removeafter, radius )
 	self.key			= key
 	self.damage			= math.Min(damage, 1500)
 	self.removeafter	= removeafter
-	self.radius			= math.Clamp(radius, 1, 10000)
+	self.radius			= math.Clamp(radius, 1, 300)
 	self.Exploded		= false
 
 	if (self.damage > 0) then

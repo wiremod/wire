@@ -49,7 +49,7 @@ function ENT:Setup( key, damage, delaytime, removeafter, radius, affectother, no
 	self.Damage = math.Clamp( damage, 0, 1500 )
 	self.Delaytime = delaytime
 	self.Removeafter = removeafter
-	self.Radius = math.min(512,math.max(radius, 1))
+	self.Radius = math.min(300,math.max(radius, 1))
 	self.Affectother = affectother
 	self.Notaffected = notaffected
 	self.Delayreloadtime = delayreloadtime
