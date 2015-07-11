@@ -61,26 +61,30 @@ function Wire_Render(ent)
 					local color = Color(color_v.x, color_v.y, color_v.z, 255)
 					local width = ent:GetNetworkedBeamFloat(net_name .. "_width")
 
-					local scroll = CurTime()*WIRE_SCROLL_SPEED
+					if width > 0 then
 
-					render.SetMaterial(getmat(ent:GetNetworkedBeamString(net_name .. "_mat")))
-					render.StartBeam(len+1)
-					render.AddBeam(start, width, scroll, color)
+						local scroll = CurTime()*WIRE_SCROLL_SPEED
 
-					for j=1,len do
-						local node_ent = ent:GetNetworkedBeamEntity(net_name .. "_" .. j .. "_ent")
-						local endpos = ent:GetNetworkedBeamVector(net_name .. "_" .. j .. "_pos")
-						if (node_ent:IsValid()) then
-							endpos = node_ent:LocalToWorld(endpos)
+						render.SetMaterial(getmat(ent:GetNetworkedBeamString(net_name .. "_mat")))
+						render.StartBeam(len+1)
+						render.AddBeam(start, width, scroll, color)
 
-							scroll = scroll+(endpos-start):Length()/10
+						for j=1,len do
+							local node_ent = ent:GetNetworkedBeamEntity(net_name .. "_" .. j .. "_ent")
+							local endpos = ent:GetNetworkedBeamVector(net_name .. "_" .. j .. "_pos")
+							if (node_ent:IsValid()) then
+								endpos = node_ent:LocalToWorld(endpos)
 
-							render.AddBeam(endpos, width, scroll, color)
+								scroll = scroll+(endpos-start):Length()/10
 
-							start = endpos
+								render.AddBeam(endpos, width, scroll, color)
+
+								start = endpos
+							end
 						end
+						render.EndBeam()
+
 					end
-					render.EndBeam()
 				end
 			end
 		end
