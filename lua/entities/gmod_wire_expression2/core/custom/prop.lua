@@ -375,7 +375,7 @@ local function parent_check( child, parent )
 end
 
 local function parent_antispam( child )
-	if child.E2_propcore_antispam or 0 > CurTime() then
+	if (child.E2_propcore_antispam or 0) > CurTime() then
 		return false
 	end
 
