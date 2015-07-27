@@ -287,7 +287,7 @@ function ENT:Initialize()
 	self.Outputs = WireLib.CreateOutputs( self, { 	"On", "HitPos [VECTOR]", "CamPos [VECTOR]", "CamDir [VECTOR]", 
 													"CamAng [ANGLE]", "Trace [RANGER]" } )
 	self.Inputs = WireLib.CreateInputs( self, {	"Activated", "Direction [VECTOR]", "Angle [ANGLE]", "Position [VECTOR]",
-												"Distance", "Parent [ENTITY]", "TraceFilter [ARRAY]", "FLIR", "FOV" } )
+												"Distance", "Parent [ENTITY]", "FilterEntities [ARRAY]", "FLIR", "FOV" } )
 
 	self.Activated = false -- Whether or not to activate the cam controller for all players sitting in linked vehicles, or as soon as a player sits in a linked vehicle
 	self.Active = false -- Whether the player is currently being shown the camera view.
@@ -418,8 +418,8 @@ function ENT:GetContraption()
 	for k,v in pairs( ents ) do
 		self.Entities[#self.Entities+1] = v
 	end
-	if self.Inputs.TraceFilter and self.Inputs.TraceFilter.Value then
-		for k,v in pairs( self.Inputs.TraceFilter.Value ) do
+	if self.Inputs.FilterEntities and self.Inputs.FilterEntities.Value then
+		for k,v in pairs( self.Inputs.FilterEntities.Value ) do
 			if IsEntity( v ) and IsValid( v ) then
 				self.Entities[#self.Entities+1] = v
 			end
