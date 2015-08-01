@@ -348,6 +348,10 @@ function Editor:Think()
 	if y < 0 then y = 0 end
 	if x + w > surface.ScreenWidth() then x = surface.ScreenWidth() - w end
 	if y + h > surface.ScreenHeight() then y = surface.ScreenHeight() - h end
+	if y < 0 then y = 0 end
+	if x < 0 then x = 0 end
+	if w > surface.ScreenWidth() then w = surface.ScreenWidth() end
+	if h > surface.ScreenHeight() then h = surface.ScreenHeight() end
 
 	self:SetPos(x, y)
 	self:SetSize(w, h)
