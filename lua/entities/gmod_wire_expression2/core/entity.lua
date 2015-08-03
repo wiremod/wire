@@ -511,6 +511,43 @@ e2function void entity:applyAngForce(angle angForce)
 	end
 end
 
+e2function void entity:applyOffsetAngForce(angle angForce, vector position)
+	if not validPhysics(this) then return nil end
+	if not isOwner(self, this) then return nil end
+
+	if angForce[1] == 0 and angForce[2] == 0 and angForce[3] == 0 then return end
+	if not check(angForce) then return end
+
+	local phys = this:GetPhysicsObject()
+
+	-- assign vectors
+	local position = Vector(position[1], position[2], position[3])
+	local up = this:GetUp()
+	local left = this:GetRight() * -1
+	local forward = this:GetForward()
+
+	-- apply pitch force
+	if angForce[1] ~= 0 then
+		local pitch = up      * (angForce[1] * 0.5)
+		phys:ApplyForceOffset( forward, position + pitch )
+		phys:ApplyForceOffset( forward * -1, position - pitch )
+	end
+
+	-- apply yaw force
+	if angForce[2] ~= 0 then
+		local yaw   = forward * (angForce[2] * 0.5)
+		phys:ApplyForceOffset( left, position + yaw )
+		phys:ApplyForceOffset( left * -1, position - yaw )
+	end
+
+	-- apply roll force
+	if angForce[3] ~= 0 then
+		local roll  = left    * (angForce[3] * 0.5)
+		phys:ApplyForceOffset( up, position + roll )
+		phys:ApplyForceOffset( up * -1, position - roll )
+	end
+end
+
 --- Applies torque according to a local torque vector, with magnitude and sense given by the vector's direction, magnitude and orientation.
 e2function void entity:applyTorque(vector torque)
 	if not IsValid(this) then return end
@@ -546,6 +583,24 @@ end
 e2function vector entity:inertia()
 	if not validPhysics(this) then return {0,0,0} end
 	return this:GetPhysicsObject():GetInertia()
+end
+
+e2function vector array:massCenter()
+	if !next(this) then return {0, 0, 0} end
+	local Center = Vector()
+	local Mass = 0
+	for _, Entity in pairs(this) do
+		if IsEntity(Entity) and validPhysics(Entity) then
+			local Phys = Entity:GetPhysicsObject()
+			local EntMass = Phys:GetMass()
+			Center = Center + Entity:LocalToWorld(Phys:GetMassCenter()) * EntMass
+			Mass = Mass + EntMass
+		end
+	end
+	if Mass > 0 then
+		return Center / Mass
+	end
+	return {0,0,0}
 end
 
 
