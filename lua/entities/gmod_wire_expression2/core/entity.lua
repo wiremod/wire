@@ -586,6 +586,12 @@ e2function vector entity:inertia()
 	return this:GetPhysicsObject():GetInertia()
 end
 
+e2function angle entity:inertia()
+	if not validPhysics(this) then return {0,0,0} end
+	local Inertia = this:GetPhysicsObject():GetInertia()
+	return Angle(Inertia[2], Inertia[3], Inertia[1]) * 90/math.pi
+end
+	
 e2function vector array:massCenter()
 	if not next(this) then return {0, 0, 0} end
 	local Center = Vector()
