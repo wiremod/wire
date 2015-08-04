@@ -514,6 +514,7 @@ end
 e2function void entity:applyOffsetAngForce(angle angForce, vector position)
 	if not validPhysics(this) then return nil end
 	if not isOwner(self, this) then return nil end
+	if not check(position) then return nil end
 
 	if angForce[1] == 0 and angForce[2] == 0 and angForce[3] == 0 then return end
 	if not check(angForce) then return end
@@ -586,7 +587,7 @@ e2function vector entity:inertia()
 end
 
 e2function vector array:massCenter()
-	if !next(this) then return {0, 0, 0} end
+	if not next(this) then return {0, 0, 0} end
 	local Center = Vector()
 	local Mass = 0
 	for _, Entity in pairs(this) do
