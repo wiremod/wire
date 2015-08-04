@@ -389,6 +389,11 @@ e2function number ops()
 	return round(self.prfbench)
 end
 
+e2function number entity:ops()
+	if not IsValid(this) or this:GetClass() ~= "gmod_wire_expression2" or not this.context then return 0 end
+	return this.context.prfbench
+end
+
 e2function number opcounter()
 	return ceil(self.prf + self.prfcount)
 end
