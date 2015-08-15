@@ -3652,7 +3652,13 @@ do -- CPU/GPU Syntax highlighting
 		while self.character do
 			local tokenname = ""
 			self.tokendata = ""
-
+			
+			-- eat all spaces
+			local spaces = self:SkipPattern(" *")
+			if spaces then addToken("operator", spaces) end
+			if !self.character then break end
+			
+			
 			if self:NextPattern("^0[xXbB][0-9A-F]+") then
 				tokenname = "number"
 			elseif self:NextPattern("^[0-9][0-9.e]*") then
