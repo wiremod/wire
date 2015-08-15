@@ -3513,22 +3513,37 @@ do -- E2 Syntax highlighting
 	end -- EDITOR:SyntaxColorLine
 end -- do...
 
-do
-	local colors = {
-		["normal"]   = { Color(255, 255, 136), false},
-		["opcode"]   = { Color(255, 136,   0), false},
-		["comment"]  = { Color(128, 128, 128), false},
-		["register"] = { Color(255, 255, 136), false},
-		["number"]   = { Color(232, 232,   0), false},
-		["string"]   = { Color(255, 136, 136), false},
-		["filename"] = { Color(232, 232, 232), false},
-		["label"]    = { Color(255, 255, 176), false},
-		["keyword"]  = { Color(255, 136,   0), false},
-		["memref"]   = { Color(232, 232,   0), false},
-		["pmacro"]   = { Color(136, 136, 255), false},
-
---		["compare"]  = { Color(255, 186,  40), true},
+do -- CPU/GPU Syntax highlighting
+	local ftypeTable = { -- function type lookup table
+		"FLOAT","INT48","VOID","CHAR"
 	}
+	local vtypeTable = { -- variable type lookup table
+		"SCALAR","VECTOR","VECTOR1F","VECTOR2F","UV","VECTOR3F","VECTOR4F","COLOR","VEC1F",
+		"VEC2F","VEC3F","VEC4F","MATRIX","CONST"
+	}
+
+	for k,v in pairs(ftypeTable) do
+		ftypeTable[v] = true
+	end
+	for k,v in pairs(vtypeTable) do
+		vtypeTable[v] = true
+	end
+
+	local function istype(tp)
+		tp = string.upper(tp)
+		return ftypeTable[tp] or vtypeTable[tp]
+	end
+	-- Build lookup table for keywords
+	local keywordsTable = {
+		"GOTO","FOR","IF","ELSE","WHILE","DO","SWITCH","CASE","RETURN","BREAK",
+		"CONTINUE","EXPORT","INLINE","FORWARD","REGISTER","DB","ALLOC",
+		"STRING","DB","DEFINE","CODE","DATA","ORG","OFFSET",
+		"INT","PRESERVE","ZAP","STRUCT"
+	}
+
+	for k,v in pairs(keywordsTable) do
+		keywordsTable[v] = true
+	end
 
 	-- Build lookup table for opcodes
 	local opcodeTable = {}
@@ -3536,20 +3551,6 @@ do
 		if v.Mnemonic ~= "RESERVED" then
 			opcodeTable[v.Mnemonic] = true
 		end
-	end
-
-	-- Build lookup table for keywords
-	local keywordsList = {
-		"GOTO","FOR","IF","ELSE","WHILE","DO","SWITCH","CASE","CONST","RETURN","BREAK",
-		"CONTINUE","EXPORT","INLINE","FORWARD","REGISTER","DB","ALLOC","SCALAR","VECTOR1F",
-		"VECTOR2F","UV","VECTOR3F","VECTOR4F","COLOR","VEC1F","VEC2F","VEC3F","VEC4F","MATRIX",
-		"STRING","DB","DEFINE","CODE","DATA","ORG","OFFSET","INT48","FLOAT","CHAR","VOID",
-		"INT","FLOAT","CHAR","VOID","PRESERVE","ZAP"
-	}
-
-	local keywordsTable = {}
-	for k,v in pairs(keywordsList) do
-		keywordsTable[v] = true
 	end
 
 	-- Build lookup table for registers
@@ -3564,7 +3565,7 @@ do
 	-- Build lookup table for macros
 	local macroTable = {
 	["PRAGMA"] = true,
-	["INCLUDE"] = true,
+	--["INCLUDE"] = true, -- #include gets highlighted in other way
 	["#INCLUDE##"] = true,
 	["DEFINE"] = true,
 	["IFDEF"] = true,
@@ -3574,81 +3575,189 @@ do
 	["UNDEF"] = true,
 	}
 
+	local colors = {
+		["number"]    = { Color(240, 160, 160), false}, -- light red
+		["function"]  = { Color(160, 160, 240), false}, -- blue
+		["variable"]  = { Color(160, 240, 160), false}, -- light green
+		["string"]    = { Color(128, 128, 128), false}, -- grey
+		["keyword"]   = { Color(255, 136,   0), false}, -- turquoise
+		["operator"]  = { Color(224, 224, 224), false}, -- white
+		["comment"]   = { Color(128, 128, 128), false}, -- grey
+		["ppcommand"] = { Color(240,  96, 240), false}, -- purple
+		["typename"]  = { Color(240, 160,  96), false}, -- orange
+		["constant"]  = { Color(240, 160, 240), false}, -- pink
+		["normal"]    = { Color(255, 255, 136), false},
+		["opcode"]    = { Color(255, 136,   0), false},
+		["register"]  = { Color(178, 107,   0), false},
+		["filename"]  = { Color(232, 232, 232), false},
+		["label"]     = { Color(255, 255, 230), false},
+		["memref"]    = { Color(232, 232,   0), false},
+
+	}
+
+	function EDITOR:GetSyntaxColor(name)
+			return colors[name][1]
+	end
+
+	function EDITOR:SetSyntaxColors( col )
+		for k,v in pairs( col ) do
+			if (colors[k]) then
+				colors[k][1] = v
+			end
+		end
+	end
+
+	function EDITOR:SetSyntaxColor( colorname, colr )
+		if (!colors[colorname]) then return end
+		colors[colorname][1] = colr
+	end
+
+	local cols = {}
+	local lastcol
+	local function addToken(tokenname, tokendata)
+		local color = colors[tokenname]
+		if lastcol and color == lastcol[2] then
+			lastcol[1] = lastcol[1] .. tokendata
+		else
+			cols[#cols + 1] = { tokendata, color, tokenname }
+			lastcol = cols[#cols]
+		end
+	end
+
+
 	function EDITOR:CPUGPUSyntaxColorLine(row)
-		local cols = {}
+		cols,lastcol = {}, nil
+
+
 		self:ResetTokenizer(row)
 		self:NextCharacter()
 
-		local isGpu = self:GetParent().EditorType == "GPU"
+
+		if self.blockcomment then
+			while self.character do -- Find the ending *
+				if (self.character == "*") then
+					self:NextCharacter()
+					if (self.character == "/") then -- Check if there is a / directly after the ending *
+							self.blockcomment = nil
+							self:NextCharacter()
+							break
+						end
+					end
+					if self.character == "\\" then self:NextCharacter() end
+					self:NextCharacter()
+				end
+			addToken("comment", self.tokendata)
+		end
 
 		while self.character do
 			local tokenname = ""
 			self.tokendata = ""
-
-			self:NextPattern(" *")
+			
+			-- eat all spaces
+			local spaces = self:SkipPattern(" *")
+			if spaces then addToken("operator", spaces) end
 			if !self.character then break end
-
-			if self:NextPattern("^[0-9][0-9.]*") then
+			
+			
+			if self:NextPattern("^0[xXbB][0-9A-F]+") then
+				tokenname = "number"
+			elseif self:NextPattern("^[0-9][0-9.e]*") then
 				tokenname = "number"
 			elseif self:NextPattern("^[a-zA-Z0-9_@.]+:") then
 				tokenname = "label"
-			elseif self:NextPattern("^[a-zA-Z0-9_]+") then
+			elseif self:NextPattern("^[a-zA-Z0-9_.@]+") then -- Word
 				local sstr = string.upper(self.tokendata:Trim())
-				if opcodeTable[sstr] then
-					tokenname = "opcode"
+
+				if keywordsTable[sstr] then
+					tokenname = "keyword"
 				elseif registersTable[sstr] then
 					tokenname = "register"
-				elseif keywordsTable[sstr] then
-					tokenname = "keyword"
+				elseif opcodeTable[sstr] then
+					tokenname = "opcode"
+				elseif istype(sstr) then
+					tokenname = "typename"
 				else
 					tokenname = "normal"
 				end
-			elseif (self.character == "'") or (self.character == "\"")  then
-				self:NextCharacter()
-				while self.character and (self.character != "'") and (self.character != "\"") do
-					if self.character == "\\" then self:NextCharacter() end
-					self:NextCharacter()
-				end
-				self:NextCharacter()
-				tokenname = "string"
-			elseif self:NextPattern("#include <") then  --(self.character == "<")
+			elseif self:NextPattern("%[%s*[a-zA-Z0-9_@]+%s*%]+") then
+				tokenname = "memref"
+			elseif self:NextPattern("#include <") then
+				addToken("ppcommand","#include")
+				self.tokendata = " <"
 				while self.character and (self.character != ">") do
 					self:NextCharacter()
 				end
 				self:NextCharacter()
 				tokenname = "filename"
-			elseif self:NextPattern("^//.*$") then
-				tokenname = "comment"
-			elseif (self.character == "#") then
+			elseif self.character == '"' then
 				self:NextCharacter()
-				if self:NextPattern("^[a-zA-Z0-9_#]+") then
+				while self.character do -- Find the ending "
+					if (self.character == '"') then
+						tokenname = "string"
+						break
+					end
+					if (self.character == "\\") then self:NextCharacter() end
+					self:NextCharacter()
+				end
+
+				if (tokenname == "") then -- If no ending " was found...
+					tokenname = "string"
+				else
+					self:NextCharacter()
+				end
+			elseif self.character == "#" then
+				self:NextCharacter()
+				if self:NextPattern("^[a-zA-Z0-9_]+") then
 					local sstr = string.sub(string.upper(self.tokendata:Trim()),2)
 					if macroTable[sstr] then
-						tokenname = "pmacro"
+						tokenname = "ppcommand"
 					else
 						tokenname = "memref"
 					end
 				else
- 					tokenname = "memref"
+ 					tokenname = "normal"
 				end
-			elseif (self.character == "[") or (self.character == "]") then
+			elseif self.character == "/" then
 				self:NextCharacter()
-				tokenname = "memref"
+				if (self.character == "*") then -- Check if there is a * directly after the /
+					self:NextCharacter()
+
+					while self.character do -- Find the ending *
+						if (self.character == "*") then
+							self:NextCharacter()
+							if (self.character == "/") then -- Check if there is a / directly after the ending *
+								tokenname = "comment"
+								self:NextCharacter()
+								break
+							end
+						end
+						if self.character == "\\" then self:NextCharacter() end
+						self:NextCharacter()
+					end
+					if (tokenname == "") then -- If no ending */ was found...
+						self.blockcomment = true
+						self:NextPattern(".-%*/")
+						tokenname = "comment"
+					end
+				elseif (self.character == "/" ) then -- one line comment //
+					self:NextPattern(".*")
+					tokenname = "comment"
+				else
+					tokenname = "operator"
+				end
 			else
 				self:NextCharacter()
-				tokenname = "normal"
+
+				tokenname = "operator"
 			end
 
-			color = colors[tokenname]
-			if #cols > 1 and color == cols[#cols][2] then
-				cols[#cols][1] = cols[#cols][1] .. self.tokendata
-			else
-				cols[#cols + 1] = {self.tokendata, color}
-			end
+			addToken(tokenname, self.tokendata)
 		end
+
 		return cols
-	end -- EDITOR:SyntaxColorLine
+	end -- EDITOR:CPUGUSyntaxColorLine
 end -- do...
+
 
 -- register editor panel
 vgui.Register("Expression2Editor", EDITOR, "Panel");
