@@ -3588,9 +3588,7 @@ do
 			self:NextPattern(" *")
 			if !self.character then break end
 
-			if self:NextPattern("^[0-9][0-9.]*") then
-				tokenname = "number"
-			elseif self:NextPattern("^[a-zA-Z0-9_@.]+:") then
+			if self:NextPattern("^[a-zA-Z0-9_@.]+:") then
 				tokenname = "label"
 			elseif self:NextPattern("^[a-zA-Z0-9_@.]+") then
 				local sstr = string.upper(self.tokendata:Trim())
@@ -3600,6 +3598,8 @@ do
 					tokenname = "register"
 				elseif keywordsTable[sstr] then
 					tokenname = "keyword"
+				elseif tonumber(self.tokendata) then
+					tokenname = "number"
 				else
 					tokenname = "normal"
 				end
