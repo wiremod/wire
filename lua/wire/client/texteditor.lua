@@ -3565,7 +3565,7 @@ do
 		"CONTINUE","EXPORT","INLINE","FORWARD","REGISTER","DB","ALLOC","SCALAR","VECTOR1F",
 		"VECTOR2F","UV","VECTOR3F","VECTOR4F","COLOR","VEC1F","VEC2F","VEC3F","VEC4F","MATRIX",
 		"STRING","DB","DEFINE","CODE","DATA","ORG","OFFSET","INT48","FLOAT","CHAR","VOID",
-		"INT","FLOAT","CHAR","VOID","PRESERVE","ZAP"
+		"INT","FLOAT","CHAR","VOID","PRESERVE","ZAP","STRUCT","VECTOR"
 	}
 
 	local keywordsTable = {}
@@ -3619,11 +3619,9 @@ do
 			self:NextPattern(" *")
 			if !self.character then break end
 
-			if self:NextPattern("^[0-9][0-9.]*") then
-				tokenname = "number"
-			elseif self:NextPattern("^[a-zA-Z0-9_@.]+:") then
+			if self:NextPattern("^[a-zA-Z0-9_@.]+:") then
 				tokenname = "label"
-			elseif self:NextPattern("^[a-zA-Z0-9_]+") then
+			elseif self:NextPattern("^[a-zA-Z0-9_@.]+") then
 				local sstr = string.upper(self.tokendata:Trim())
 				if opcodeTable[sstr] then
 					tokenname = "opcode"
@@ -3631,6 +3629,8 @@ do
 					tokenname = "register"
 				elseif keywordsTable[sstr] then
 					tokenname = "keyword"
+				elseif tonumber(self.tokendata) then
+					tokenname = "number"
 				else
 					tokenname = "normal"
 				end
@@ -3642,10 +3642,17 @@ do
 				end
 				self:NextCharacter()
 				tokenname = "string"
-			elseif self:NextPattern("#include <") then  --(self.character == "<")
-				while self.character and (self.character != ">") do
-					self:NextCharacter()
+			elseif self:NextPattern("#include +<") then
+				local color = colors["pmacro"]
+				if #cols > 1 and color == cols[#cols][2] then
+					cols[#cols][1] = cols[#cols][1] .. self.tokendata:sub(1,-2) -- no "<"
+				else
+					cols[#cols + 1] = {self.tokendata:sub(1,-2), color}
 				end
+				
+				self.tokendata = "<"
+				self:NextPattern("^[a-zA-Z0-9_/\\]+%.txt>")
+				tokenname = "filename"
 				self:NextCharacter()
 				tokenname = "filename"
 			elseif self:NextPattern("^//.*$") then
@@ -3662,7 +3669,7 @@ do
 				tokenname = "comment"
 			elseif (self.character == "#") then
 				self:NextCharacter()
-				if self:NextPattern("^[a-zA-Z0-9_#]+") then
+				if self:NextPattern("^[a-zA-Z0-9_@.#]+") then
 					local sstr = string.sub(string.upper(self.tokendata:Trim()),2)
 					if macroTable[sstr] then
 						tokenname = "pmacro"
