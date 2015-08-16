@@ -3611,10 +3611,17 @@ do
 				end
 				self:NextCharacter()
 				tokenname = "string"
-			elseif self:NextPattern("#include <") then  --(self.character == "<")
-				while self.character and (self.character != ">") do
-					self:NextCharacter()
+			elseif self:NextPattern("#include +<") then
+				local color = colors["pmacro"]
+				if #cols > 1 and color == cols[#cols][2] then
+					cols[#cols][1] = cols[#cols][1] .. self.tokendata:sub(1,-2) -- no "<"
+				else
+					cols[#cols + 1] = {self.tokendata:sub(1,-2), color}
 				end
+				
+				self.tokendata = "<"
+				self:NextPattern("^[a-zA-Z0-9_/\\]+%.txt>")
+				tokenname = "filename"
 				self:NextCharacter()
 				tokenname = "filename"
 			elseif self:NextPattern("^//.*$") then
