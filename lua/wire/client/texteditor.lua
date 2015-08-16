@@ -3592,7 +3592,7 @@ do
 				tokenname = "number"
 			elseif self:NextPattern("^[a-zA-Z0-9_@.]+:") then
 				tokenname = "label"
-			elseif self:NextPattern("^[a-zA-Z0-9_]+") then
+			elseif self:NextPattern("^[a-zA-Z0-9_@.]+") then
 				local sstr = string.upper(self.tokendata:Trim())
 				if opcodeTable[sstr] then
 					tokenname = "opcode"
