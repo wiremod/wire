@@ -3017,6 +3017,27 @@ function EDITOR:ResetTokenizer(row)
 				self.e2fs_functions[k] = nil
 			end
 		end
+	
+	else
+		if row == self.Scroll[1] then
+			-- As above, but for HL-ZASM: Check whether the line self.Scroll[1] starts within a block comment.
+			self.blockcomment = nil
+			
+			for k=1, self.Scroll[1]-1 do
+				local row = self.Rows[k]
+				
+				for match in string_gmatch(row, "[/*][/*]") do
+					if match == "//" then
+						-- single line comment start; skip remainder of line
+						break
+					elseif match == "/*" then
+						self.blockcomment = true
+					elseif match == "*/" then
+						self.blockcomment = nil
+					end
+				end
+			end
+		end
 	end
 end
 
@@ -3578,6 +3599,16 @@ do
 		local cols = {}
 		self:ResetTokenizer(row)
 		self:NextCharacter()
+		
+		if self.blockcomment then
+			if self:NextPattern(".-%*/") then
+				self.blockcomment = nil
+			else
+				self:NextPattern(".*")
+			end
+
+			cols[#cols + 1] = {self.tokendata, colors["comment"]}
+		end
 
 		local isGpu = self:GetParent().EditorType == "GPU"
 
@@ -3618,6 +3649,16 @@ do
 				self:NextCharacter()
 				tokenname = "filename"
 			elseif self:NextPattern("^//.*$") then
+				tokenname = "comment"
+			elseif self:NextPattern("^/%*") then -- start of a multi-line comment
+				--addToken("comment", self.tokendata)
+				self.blockcomment = true
+				if self:NextPattern(".-%*/") then
+					self.blockcomment = nil
+				else
+					self:NextPattern(".*")
+				end
+
 				tokenname = "comment"
 			elseif (self.character == "#") then
 				self:NextCharacter()
