@@ -3628,7 +3628,7 @@ do
 				tokenname = "comment"
 			elseif (self.character == "#") then
 				self:NextCharacter()
-				if self:NextPattern("^[a-zA-Z0-9_#]+") then
+				if self:NextPattern("^[a-zA-Z0-9_@.#]+") then
 					local sstr = string.sub(string.upper(self.tokendata:Trim()),2)
 					if macroTable[sstr] then
 						tokenname = "pmacro"
