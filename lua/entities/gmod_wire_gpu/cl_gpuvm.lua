@@ -836,7 +836,6 @@ function VM:ReadString(address)
     elseif currentChar ~= 0 then
         self:Interrupt(23,currentChar)
         return ""
-      end
     end
 
     charCount = charCount + 1
