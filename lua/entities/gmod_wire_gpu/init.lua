@@ -102,7 +102,7 @@ concommand.Add("wire_gpu_resendcache", GPU_PlayerRespawn)
 --------------------------------------------------------------------------------
 -- Checks if address is valid
 --------------------------------------------------------------------------------
-local function IsValidAddress(n)
+local function isValidAddress(n)
   return n and (math.floor(n) == n) and (n >= -140737488355327) and (n <= 140737488355328)
 end
 
