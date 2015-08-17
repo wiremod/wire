@@ -98,10 +98,26 @@ hook.Add("PlayerInitialSpawn", "GPUPlayerRespawn", GPU_PlayerRespawn)
 concommand.Add("wire_gpu_resendcache", GPU_PlayerRespawn)
 
 
+
+--------------------------------------------------------------------------------
+-- Checks if address is valid
+--------------------------------------------------------------------------------
+local function IsValidAddress(n)
+  return n and (math.floor(n) == n) and (n >= -140737488355327) and (n <= 140737488355328)
+end
+
+
+
 --------------------------------------------------------------------------------
 -- Read cell from GPU memory
 --------------------------------------------------------------------------------
 function ENT:ReadCell(Address)
+  -- Check if address is valid
+  if not isValidAddress(Address) then
+    self:Interrupt(15,Address)
+    return
+  end
+  
   if (Address < 0) or (Address >= self.RAMSize) then
     return nil
   else
