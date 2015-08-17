@@ -10,64 +10,64 @@
 --------------------------------------------------------------------------------
 -- All symbols (tokens) recognized by parser
 HCOMP.TOKEN_TEXT = {}
-HCOMP.TOKEN_TEXT["IDENT"]     = {{"ZASM","C","HLZASM"},{}} -- ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz _
-HCOMP.TOKEN_TEXT["NUMBER"]    = {{"ZASM","C","HLZASM"},{}} -- 0123456789
-HCOMP.TOKEN_TEXT["LPAREN"]    = {{"ZASM","C","HLZASM"},{"("}}
-HCOMP.TOKEN_TEXT["RPAREN"]    = {{"ZASM","C","HLZASM"},{")"}}
-HCOMP.TOKEN_TEXT["LBRACKET"]  = {{       "C","HLZASM"},{"{"}}
-HCOMP.TOKEN_TEXT["RBRACKET"]  = {{       "C","HLZASM"},{"}"}}
-HCOMP.TOKEN_TEXT["LSUBSCR"]   = {{"ZASM","C","HLZASM"},{"["}}
-HCOMP.TOKEN_TEXT["RSUBSCR"]   = {{"ZASM","C","HLZASM"},{"]"}}
-HCOMP.TOKEN_TEXT["COLON"]     = {{"ZASM","C","HLZASM"},{";"}}
-HCOMP.TOKEN_TEXT["DCOLON"]    = {{"ZASM","C","HLZASM"},{":"}}
-HCOMP.TOKEN_TEXT["HASH"]      = {{"ZASM","C","HLZASM"},{"#"}}
-HCOMP.TOKEN_TEXT["TIMES"]     = {{"ZASM","C","HLZASM"},{"*"}}
-HCOMP.TOKEN_TEXT["SLASH"]     = {{"ZASM","C","HLZASM"},{"/"}}
-HCOMP.TOKEN_TEXT["MODULUS"]   = {{       "C","HLZASM"},{"%"}}
-HCOMP.TOKEN_TEXT["PLUS"]      = {{"ZASM","C","HLZASM"},{"+"}}
-HCOMP.TOKEN_TEXT["MINUS"]     = {{"ZASM","C","HLZASM"},{"-"}}
-HCOMP.TOKEN_TEXT["AND"]       = {{       "C","HLZASM"},{"&"}}
-HCOMP.TOKEN_TEXT["OR"]        = {{       "C","HLZASM"},{"|"}}
-HCOMP.TOKEN_TEXT["XOR"]       = {{       "C","HLZASM"},{"^"}}
-HCOMP.TOKEN_TEXT["POWER"]     = {{       "C","HLZASM"},{"^^"}}
-HCOMP.TOKEN_TEXT["INC"]       = {{       "C","HLZASM"},{"++"}}
-HCOMP.TOKEN_TEXT["DEC"]       = {{       "C","HLZASM"},{"--"}}
-HCOMP.TOKEN_TEXT["SHL"]       = {{       "C","HLZASM"},{"<<"}}
-HCOMP.TOKEN_TEXT["SHR"]       = {{       "C","HLZASM"},{">>"}}
-HCOMP.TOKEN_TEXT["EQL"]       = {{       "C","HLZASM"},{"=="}}
-HCOMP.TOKEN_TEXT["NEQ"]       = {{       "C","HLZASM"},{"!="}}
-HCOMP.TOKEN_TEXT["LEQ"]       = {{       "C","HLZASM"},{"<="}}
-HCOMP.TOKEN_TEXT["LSS"]       = {{       "C","HLZASM"},{"<"}}
-HCOMP.TOKEN_TEXT["GEQ"]       = {{       "C","HLZASM"},{">="}}
-HCOMP.TOKEN_TEXT["GTR"]       = {{       "C","HLZASM"},{">"}}
-HCOMP.TOKEN_TEXT["NOT"]       = {{       "C","HLZASM"},{"!"}}
-HCOMP.TOKEN_TEXT["EQUAL"]     = {{       "C","HLZASM"},{"="}}
-HCOMP.TOKEN_TEXT["LAND"]      = {{       "C","HLZASM"},{"&&"}}
-HCOMP.TOKEN_TEXT["LOR"]       = {{       "C","HLZASM"},{"||"}}
-HCOMP.TOKEN_TEXT["EQLADD"]    = {{       "C","HLZASM"},{"+="}}
-HCOMP.TOKEN_TEXT["EQLSUB"]    = {{       "C","HLZASM"},{"-="}}
-HCOMP.TOKEN_TEXT["EQLMUL"]    = {{       "C","HLZASM"},{"*="}}
-HCOMP.TOKEN_TEXT["EQLDIV"]    = {{       "C","HLZASM"},{"/="}}
-HCOMP.TOKEN_TEXT["COMMA"]     = {{"ZASM","C","HLZASM"},{","}}
-HCOMP.TOKEN_TEXT["DOT"]       = {{"ZASM","C","HLZASM"},{"."}}
+HCOMP.TOKEN_TEXT["IDENT"]     = {{"ZASM","HLZASM"},{}} -- ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz _
+HCOMP.TOKEN_TEXT["NUMBER"]    = {{"ZASM","HLZASM"},{}} -- 0123456789
+HCOMP.TOKEN_TEXT["LPAREN"]    = {{"ZASM","HLZASM"},{"("}}
+HCOMP.TOKEN_TEXT["RPAREN"]    = {{"ZASM","HLZASM"},{")"}}
+HCOMP.TOKEN_TEXT["LBRACKET"]  = {{       "HLZASM"},{"{"}}
+HCOMP.TOKEN_TEXT["RBRACKET"]  = {{       "HLZASM"},{"}"}}
+HCOMP.TOKEN_TEXT["LSUBSCR"]   = {{"ZASM","HLZASM"},{"["}}
+HCOMP.TOKEN_TEXT["RSUBSCR"]   = {{"ZASM","HLZASM"},{"]"}}
+HCOMP.TOKEN_TEXT["COLON"]     = {{"ZASM","HLZASM"},{";"}}
+HCOMP.TOKEN_TEXT["DCOLON"]    = {{"ZASM","HLZASM"},{":"}}
+HCOMP.TOKEN_TEXT["HASH"]      = {{"ZASM","HLZASM"},{"#"}}
+HCOMP.TOKEN_TEXT["TIMES"]     = {{"ZASM","HLZASM"},{"*"}}
+HCOMP.TOKEN_TEXT["SLASH"]     = {{"ZASM","HLZASM"},{"/"}}
+HCOMP.TOKEN_TEXT["MODULUS"]   = {{       "HLZASM"},{"%"}}
+HCOMP.TOKEN_TEXT["PLUS"]      = {{"ZASM","HLZASM"},{"+"}}
+HCOMP.TOKEN_TEXT["MINUS"]     = {{"ZASM","HLZASM"},{"-"}}
+HCOMP.TOKEN_TEXT["AND"]       = {{       "HLZASM"},{"&"}}
+HCOMP.TOKEN_TEXT["OR"]        = {{       "HLZASM"},{"|"}}
+HCOMP.TOKEN_TEXT["XOR"]       = {{       "HLZASM"},{"^"}}
+HCOMP.TOKEN_TEXT["POWER"]     = {{       "HLZASM"},{"^^"}}
+HCOMP.TOKEN_TEXT["INC"]       = {{       "HLZASM"},{"++"}}
+HCOMP.TOKEN_TEXT["DEC"]       = {{       "HLZASM"},{"--"}}
+HCOMP.TOKEN_TEXT["SHL"]       = {{       "HLZASM"},{"<<"}}
+HCOMP.TOKEN_TEXT["SHR"]       = {{       "HLZASM"},{">>"}}
+HCOMP.TOKEN_TEXT["EQL"]       = {{       "HLZASM"},{"=="}}
+HCOMP.TOKEN_TEXT["NEQ"]       = {{       "HLZASM"},{"!="}}
+HCOMP.TOKEN_TEXT["LEQ"]       = {{       "HLZASM"},{"<="}}
+HCOMP.TOKEN_TEXT["LSS"]       = {{       "HLZASM"},{"<"}}
+HCOMP.TOKEN_TEXT["GEQ"]       = {{       "HLZASM"},{">="}}
+HCOMP.TOKEN_TEXT["GTR"]       = {{       "HLZASM"},{">"}}
+HCOMP.TOKEN_TEXT["NOT"]       = {{       "HLZASM"},{"!"}}
+HCOMP.TOKEN_TEXT["EQUAL"]     = {{       "HLZASM"},{"="}}
+HCOMP.TOKEN_TEXT["LAND"]      = {{       "HLZASM"},{"&&"}}
+HCOMP.TOKEN_TEXT["LOR"]       = {{       "HLZASM"},{"||"}}
+HCOMP.TOKEN_TEXT["EQLADD"]    = {{       "HLZASM"},{"+="}}
+HCOMP.TOKEN_TEXT["EQLSUB"]    = {{       "HLZASM"},{"-="}}
+HCOMP.TOKEN_TEXT["EQLMUL"]    = {{       "HLZASM"},{"*="}}
+HCOMP.TOKEN_TEXT["EQLDIV"]    = {{       "HLZASM"},{"/="}}
+HCOMP.TOKEN_TEXT["COMMA"]     = {{"ZASM","HLZASM"},{","}}
+HCOMP.TOKEN_TEXT["DOT"]       = {{"ZASM","HLZASM"},{"."}}
 
-HCOMP.TOKEN_TEXT["GOTO"]      = {{"C","HLZASM"},{"GOTO"}}
-HCOMP.TOKEN_TEXT["FOR"]       = {{"C","HLZASM"},{"FOR"}}
-HCOMP.TOKEN_TEXT["IF"]        = {{"C","HLZASM"},{"IF"}}
-HCOMP.TOKEN_TEXT["ELSE"]      = {{"C","HLZASM"},{"ELSE"}}
-HCOMP.TOKEN_TEXT["WHILE"]     = {{"C","HLZASM"},{"WHILE"}}
-HCOMP.TOKEN_TEXT["DO"]        = {{"C","HLZASM"},{"DO"}}
-HCOMP.TOKEN_TEXT["SWITCH"]    = {{"C","HLZASM"},{"SWITCH"}}
-HCOMP.TOKEN_TEXT["CASE"]      = {{"C","HLZASM"},{"CASE"}}
-HCOMP.TOKEN_TEXT["CONST"]     = {{"C","HLZASM"},{"CONST"}}
-HCOMP.TOKEN_TEXT["RETURN"]    = {{"C","HLZASM"},{"RETURN"}}
-HCOMP.TOKEN_TEXT["BREAK"]     = {{"C","HLZASM"},{"BREAK"}}
-HCOMP.TOKEN_TEXT["CONTINUE"]  = {{"C","HLZASM"},{"CONTINUE"}}
-HCOMP.TOKEN_TEXT["EXPORT"]    = {{"C","HLZASM"},{"EXPORT"}}
-HCOMP.TOKEN_TEXT["INLINE"]    = {{"C","HLZASM"},{"INLINE"}}
-HCOMP.TOKEN_TEXT["FORWARD"]   = {{"C","HLZASM"},{"FORWARD"}}
-HCOMP.TOKEN_TEXT["LREGISTER"] = {{"C","HLZASM"},{"REGISTER"}}
-HCOMP.TOKEN_TEXT["STRUCT"]    = {{"C","HLZASM"},{"STRUCT"}}
+HCOMP.TOKEN_TEXT["GOTO"]      = {{"HLZASM"},{"GOTO"}}
+HCOMP.TOKEN_TEXT["FOR"]       = {{"HLZASM"},{"FOR"}}
+HCOMP.TOKEN_TEXT["IF"]        = {{"HLZASM"},{"IF"}}
+HCOMP.TOKEN_TEXT["ELSE"]      = {{"HLZASM"},{"ELSE"}}
+HCOMP.TOKEN_TEXT["WHILE"]     = {{"HLZASM"},{"WHILE"}}
+HCOMP.TOKEN_TEXT["DO"]        = {{"HLZASM"},{"DO"}}
+HCOMP.TOKEN_TEXT["SWITCH"]    = {{"HLZASM"},{"SWITCH"}}
+HCOMP.TOKEN_TEXT["CASE"]      = {{"HLZASM"},{"CASE"}}
+HCOMP.TOKEN_TEXT["CONST"]     = {{"HLZASM"},{"CONST"}}
+HCOMP.TOKEN_TEXT["RETURN"]    = {{"HLZASM"},{"RETURN"}}
+HCOMP.TOKEN_TEXT["BREAK"]     = {{"HLZASM"},{"BREAK"}}
+HCOMP.TOKEN_TEXT["CONTINUE"]  = {{"HLZASM"},{"CONTINUE"}}
+HCOMP.TOKEN_TEXT["EXPORT"]    = {{"HLZASM"},{"EXPORT"}}
+HCOMP.TOKEN_TEXT["INLINE"]    = {{"HLZASM"},{"INLINE"}}
+HCOMP.TOKEN_TEXT["FORWARD"]   = {{"HLZASM"},{"FORWARD"}}
+HCOMP.TOKEN_TEXT["LREGISTER"] = {{"HLZASM"},{"REGISTER"}}
+HCOMP.TOKEN_TEXT["STRUCT"]    = {{"HLZASM"},{"STRUCT"}}
 
 HCOMP.TOKEN_TEXT["DB"]        = {{"ZASM","HLZASM"},{"DB"}}
 HCOMP.TOKEN_TEXT["ALLOC"]     = {{"ZASM","HLZASM"},{"ALLOC"}}
@@ -82,8 +82,7 @@ HCOMP.TOKEN_TEXT["DATA"]      = {{"ZASM","HLZASM"},{"DATA"}}
 HCOMP.TOKEN_TEXT["ORG"]       = {{"ZASM","HLZASM"},{"ORG"}}
 HCOMP.TOKEN_TEXT["OFFSET"]    = {{"ZASM","HLZASM"},{"OFFSET"}}
 HCOMP.TOKEN_TEXT["TYPE"]      = {{"ZASM","HLZASM"},{"VOID","FLOAT","CHAR","INT48","VECTOR"}}
-HCOMP.TOKEN_TEXT["CTYPE"]     = {            {"C"},{"VOID","FLOAT","CHAR","INT","VECTOR"}}
-HCOMP.TOKEN_TEXT["USERTYPE"]  = {{"ZASM","C","HLZASM"},{}}
+HCOMP.TOKEN_TEXT["USERTYPE"]  = {{"ZASM","HLZASM"},{}}
 
 HCOMP.TOKEN_TEXT["PRESERVE"]  = {{"HLZASM"},{"PRESERVE"}}
 HCOMP.TOKEN_TEXT["ZAP"]       = {{"HLZASM"},{"ZAP"}}
@@ -91,13 +90,13 @@ HCOMP.TOKEN_TEXT["ZAP"]       = {{"HLZASM"},{"ZAP"}}
 HCOMP.TOKEN_TEXT["REGISTER"]  = {{"ZASM","HLZASM"},{"EAX","EBX","ECX","EDX","ESI","EDI","ESP","EBP"}}
 HCOMP.TOKEN_TEXT["SEGMENT"]   = {{"ZASM","HLZASM"},{"CS","SS","DS","ES","GS","FS","KS","LS"}}
 HCOMP.TOKEN_TEXT["OPCODE"]    = {{"ZASM","HLZASM"},{}} -- mov, cmp, etc...
-HCOMP.TOKEN_TEXT["COMMENT1"]  = {{"ZASM","C","HLZASM"},{"//"}} -- comment 1
-HCOMP.TOKEN_TEXT["COMMENT2"]  = {{"ZASM","C","HLZASM"},{"/*"}} -- comment 2
-HCOMP.TOKEN_TEXT["COMMENT3"]  = {{"ZASM","C","HLZASM"},{"*/"}} -- comment 3
-HCOMP.TOKEN_TEXT["MACRO"]     = {{"ZASM","C","HLZASM"},{}} -- preprocessor macro
-HCOMP.TOKEN_TEXT["STRING"]    = {{"ZASM","C","HLZASM"},{}} -- buffer of chars
-HCOMP.TOKEN_TEXT["CHAR"]      = {{"ZASM","C","HLZASM"},{}} -- single character
-HCOMP.TOKEN_TEXT["EOF"]       = {{"ZASM","C","HLZASM"},{}} -- end of file
+HCOMP.TOKEN_TEXT["COMMENT1"]  = {{"ZASM","HLZASM"},{"//"}} -- comment 1
+HCOMP.TOKEN_TEXT["COMMENT2"]  = {{"ZASM","HLZASM"},{"/*"}} -- comment 2
+HCOMP.TOKEN_TEXT["COMMENT3"]  = {{"ZASM","HLZASM"},{"*/"}} -- comment 3
+HCOMP.TOKEN_TEXT["MACRO"]     = {{"ZASM","HLZASM"},{}} -- preprocessor macro
+HCOMP.TOKEN_TEXT["STRING"]    = {{"ZASM","HLZASM"},{}} -- buffer of chars
+HCOMP.TOKEN_TEXT["CHAR"]      = {{"ZASM","HLZASM"},{}} -- single character
+HCOMP.TOKEN_TEXT["EOF"]       = {{"ZASM","HLZASM"},{}} -- end of file
 
 -- Add ZCPU ports
 for port=0,1023 do
