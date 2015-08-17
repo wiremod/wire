@@ -828,11 +828,12 @@ function VM:ReadString(address)
 
   while currentChar ~= 0 do
     currentChar = self:ReadCell(address + charCount)
-
-    if currentChar and currentChar < 255 then
+    -- Reading failed
+    if not currentChar then
+    	return
+    elseif currentChar > 0 and currentChar < 255 then
       charString = charString .. string.char(currentChar)
-    else
-      if currentChar ~= 0 then
+    elseif currentChar ~= 0 then
         self:Interrupt(23,currentChar)
         return ""
       end
