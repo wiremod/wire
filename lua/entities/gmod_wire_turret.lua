@@ -49,7 +49,7 @@ function ENT:FireShot()
 		bullet.Dir 			= shootAngles:Forward()
 		bullet.Spread 		= Vector(0.04366, 0.04366, 0)
 		bullet.Tracer		= 1
-		bullet.TracerName 	= "Tracer"
+		bullet.TracerName 	=  self.tracer
 		bullet.Force		=   20
 		bullet.Damage		= math.min( self.damage, 12)
 		bullet.Attacker 	= self:GetPlayer()
@@ -89,7 +89,6 @@ local ValidTracers = {
 	["Tracer"]=true,
 	["AR2Tracer"]=true,
 	["AirboatGunHeavyTracer"]=true,
-	["LaserTracer"]=true,
 	[""]=true,
 }
 
