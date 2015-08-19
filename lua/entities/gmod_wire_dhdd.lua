@@ -94,7 +94,7 @@ end
 
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 	if (info.DHDD) then
-		ent.Memory = (info.DHDD.Memory or {})
+		ent:SetMemory(info.DHDD.Memory)
 		if info.DHDD.AllowWrite ~= nil then
 			ent.AllowWrite = info.DHDD.AllowWrite
 		end
