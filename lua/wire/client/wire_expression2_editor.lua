@@ -1906,7 +1906,7 @@ function Editor:Setup(nTitle, nLocation, nEditorType)
 
 	if useDebugger then
 		-- Add "step forward" button
-		local DebugForward = self:addComponent(vgui.Create("Button", self), -300, 30, -220, 20)
+		local DebugForward = self:addComponent(vgui.Create("Button", self), -306, 30, -226, 20)
 		DebugForward:SetText("Step Forward")
 		DebugForward.Font = "E2SmallFont"
 		DebugForward.DoClick = function()
@@ -1927,7 +1927,7 @@ function Editor:Setup(nTitle, nLocation, nEditorType)
 		self.C.DebugForward = DebugForward
 
 		-- Add "reset" button
-		local DebugReset = self:addComponent(vgui.Create("Button", self), -350, 30, -310, 20)
+		local DebugReset = self:addComponent(vgui.Create("Button", self), -346, 30, -306, 20)
 		DebugReset:SetText("Reset")
 		DebugReset.DoClick = function()
 			RunConsoleCommand("wire_cpulib_debugreset")
@@ -1937,7 +1937,7 @@ function Editor:Setup(nTitle, nLocation, nEditorType)
 		self.C.DebugReset = DebugReset
 
 		-- Add "run" button
-		local DebugRun = self:addComponent(vgui.Create("Button", self), -395, 30, -360, 20)
+		local DebugRun = self:addComponent(vgui.Create("Button", self), -381, 30, -346, 20)
 		DebugRun:SetText("Run")
 		DebugRun.DoClick = function() RunConsoleCommand("wire_cpulib_debugrun") end
 		self.C.DebugRun = DebugRun
