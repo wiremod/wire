@@ -14,11 +14,22 @@ function ENT:Initialize()
 	self.Outputs = WireLib.CreateOutputs( self, { "Memory [ARRAY]", "Size" } )
 	self.Inputs = WireLib.CreateInputs( self, { "Data [ARRAY]", "Clear", "AllowWrite" } )
 
-	self.Memory = {}
+	self:SetMemory()
 	self.ROM = false
 	self.AllowWrite = true
 
 	self:SetOverlayText("DHDD")
+end
+
+function ENT:SetMemory(Memory)
+	self.Memory = setmetatable(Memory or {},
+		{
+		__newindex  = function (Data, Index, Value)
+				rawset(Data, Index, Value)
+				self:ShowOutputs()
+			end
+		}
+	)
 end
 
 -- Read cell
@@ -53,10 +64,10 @@ function ENT:TriggerInput( name, value )
 		if not IsValid(self.Inputs.Data.Src) then return end -- if the input is not wired to anything, abort
 		if not self.AllowWrite then return end -- if we don't allow writing, abort
 
-		self.Memory = value
+		self:SetMemory(value)
 		self:ShowOutputs()
 	elseif (name == "Clear") then
-		self.Memory = {}
+		self:SetMemory()
 		self:ShowOutputs()
 	elseif (name == "AllowWrite") then
 		self.AllowWrite = value >= 1
