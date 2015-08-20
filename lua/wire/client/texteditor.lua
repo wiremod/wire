@@ -3642,30 +3642,6 @@ do
 				end
 				self:NextCharacter()
 				tokenname = "string"
-			elseif self:NextPattern("#include +<") then
-				local color = colors["pmacro"]
-				if #cols > 1 and color == cols[#cols][2] then
-					cols[#cols][1] = cols[#cols][1] .. self.tokendata:sub(1,-2) -- no "<"
-				else
-					cols[#cols + 1] = {self.tokendata:sub(1,-2), color}
-				end
-				
-				self.tokendata = "<"
-				self:NextPattern("^[a-zA-Z0-9_/\\]+%.txt>")
-				tokenname = "filename"
-				self:NextCharacter()
-			elseif self:NextPattern("#include +\"") then
-				local color = colors["pmacro"]
-				if #cols > 1 and color == cols[#cols][2] then
-					cols[#cols][1] = cols[#cols][1] .. self.tokendata:sub(1,-2) -- no "<"
-				else
-					cols[#cols + 1] = {self.tokendata:sub(1,-2), color}
-				end
-				
-				self.tokendata = "\""
-				self:NextPattern("^[a-zA-Z0-9_/\\]+%.txt\"")
-				tokenname = "filename"
-				self:NextCharacter()
 			elseif self:NextPattern("^//.*$") then
 				tokenname = "comment"
 			elseif self:NextPattern("^/%*") then -- start of a multi-line comment
@@ -3692,7 +3668,6 @@ do
 						self:NextPattern(".*$")
 						tokenname = "normal"
 					end
-					self:NextCharacter()
 				elseif self:NextPattern("include +\"") then
 					
 					cols[#cols + 1] = {self.tokendata:sub(1,-2), colors["pmacro"]}
@@ -3704,7 +3679,6 @@ do
 						self:NextPattern(".*$")
 						tokenname = "normal"
 					end
-					self:NextCharacter()
 				elseif self:NextPattern("define") or self:NextPattern("pragma") then
 					self:NextPattern(".*$")
 					tokenname = "pmacro"
