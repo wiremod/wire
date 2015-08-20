@@ -393,6 +393,11 @@ end
 
 __e2setcost(1)
 
+-- Returns the address of the table
+e2function string table:toString()
+	return tostring(this.n)
+end
+
 -- Returns the number of elements in the table
 e2function number table:count()
 	return this.size
