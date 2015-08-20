@@ -3642,19 +3642,6 @@ do
 				end
 				self:NextCharacter()
 				tokenname = "string"
-			elseif self:NextPattern("#include +<") then
-				local color = colors["pmacro"]
-				if #cols > 1 and color == cols[#cols][2] then
-					cols[#cols][1] = cols[#cols][1] .. self.tokendata:sub(1,-2) -- no "<"
-				else
-					cols[#cols + 1] = {self.tokendata:sub(1,-2), color}
-				end
-				
-				self.tokendata = "<"
-				self:NextPattern("^[a-zA-Z0-9_/\\]+%.txt>")
-				tokenname = "filename"
-				self:NextCharacter()
-				tokenname = "filename"
 			elseif self:NextPattern("^//.*$") then
 				tokenname = "comment"
 			elseif self:NextPattern("^/%*") then -- start of a multi-line comment
@@ -3669,9 +3656,33 @@ do
 				tokenname = "comment"
 			elseif (self.character == "#") then
 				self:NextCharacter()
-				if self:NextPattern("^[a-zA-Z0-9_@.#]+") then
+				
+				if self:NextPattern("include +<") then
+					
+					cols[#cols + 1] = {self.tokendata:sub(1,-2), colors["pmacro"]}
+					
+					self.tokendata = "<"
+					if self:NextPattern("^[a-zA-Z0-9_/\\]+%.txt>") then
+						tokenname = "filename"
+					else
+						self:NextPattern(".*$")
+						tokenname = "normal"
+					end
+				elseif self:NextPattern("include +\"") then
+					
+					cols[#cols + 1] = {self.tokendata:sub(1,-2), colors["pmacro"]}
+					
+					self.tokendata = "\""
+					if self:NextPattern("^[a-zA-Z0-9_/\\]+%.txt\"") then
+						tokenname = "filename"
+					else
+						self:NextPattern(".*$")
+						tokenname = "normal"
+					end
+				elseif self:NextPattern("^[a-zA-Z0-9_@.#]+") then
 					local sstr = string.sub(string.upper(self.tokendata:Trim()),2)
 					if macroTable[sstr] then
+						self:NextPattern(".*$")
 						tokenname = "pmacro"
 					else
 						tokenname = "memref"
