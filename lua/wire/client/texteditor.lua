@@ -3686,16 +3686,24 @@ do
 					cols[#cols + 1] = {self.tokendata:sub(1,-2), colors["pmacro"]}
 					
 					self.tokendata = "<"
-					self:NextPattern("^[a-zA-Z0-9_/\\]+%.txt>")
-					tokenname = "filename"
+					if self:NextPattern("^[a-zA-Z0-9_/\\]+%.txt>") then
+						tokenname = "filename"
+					else
+						self:NextPattern(".*$")
+						tokenname = "normal"
+					end
 					self:NextCharacter()
 				elseif self:NextPattern("include +\"") then
 					
 					cols[#cols + 1] = {self.tokendata:sub(1,-2), colors["pmacro"]}
 					
 					self.tokendata = "\""
-					self:NextPattern("^[a-zA-Z0-9_/\\]+%.txt\"")
-					tokenname = "filename"
+					if self:NextPattern("^[a-zA-Z0-9_/\\]+%.txt\"") then
+						tokenname = "filename"
+					else
+						self:NextPattern(".*$")
+						tokenname = "normal"
+					end
 					self:NextCharacter()
 				elseif self:NextPattern("define") or self:NextPattern("pragma") then
 					self:NextPattern(".*$")
