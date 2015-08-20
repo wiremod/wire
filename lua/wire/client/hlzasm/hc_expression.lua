@@ -561,22 +561,46 @@ function HCOMP:Expression_Level0()
            )
   elseif self:MatchToken(self.TOKEN.EQLADD) then -- +=
     local rightLeaf = self:Expression_LevelLeaf(0)
-    return self:NewOpcode("add",leftLeaf,rightLeaf)
+    
+    local operationLeaf = self:NewOpcode("add",leftLeaf,rightLeaf)
+    operationLeaf.ExplictAssign = true
+    operationLeaf.ReturnAfterAssign = true
+    return operationLeaf
   elseif self:MatchToken(self.TOKEN.EQLSUB) then -- -=
     local rightLeaf = self:Expression_LevelLeaf(0)
-    return self:NewOpcode("sub",leftLeaf,rightLeaf)
+    
+    local operationLeaf = self:NewOpcode("sub",leftLeaf,rightLeaf)
+    operationLeaf.ExplictAssign = true
+    operationLeaf.ReturnAfterAssign = true
+    return operationLeaf
   elseif self:MatchToken(self.TOKEN.EQLMUL) then -- *=
     local rightLeaf = self:Expression_LevelLeaf(0)
-    return self:NewOpcode("mul",leftLeaf,rightLeaf)
+    
+    local operationLeaf = self:NewOpcode("mul",leftLeaf,rightLeaf)
+    operationLeaf.ExplictAssign = true
+    operationLeaf.ReturnAfterAssign = true
+    return operationLeaf
   elseif self:MatchToken(self.TOKEN.EQLDIV) then -- /=
     local rightLeaf = self:Expression_LevelLeaf(0)
-    return self:NewOpcode("div",leftLeaf,rightLeaf)
+    
+    local operationLeaf = self:NewOpcode("div",leftLeaf,rightLeaf)
+    operationLeaf.ExplictAssign = true
+    operationLeaf.ReturnAfterAssign = true
+    return operationLeaf
   elseif self:MatchToken(self.TOKEN.SHR) then -- >>
     local rightLeaf = self:Expression_LevelLeaf(0)
-    return self:NewOpcode("bshr",leftLeaf,rightLeaf)
+    
+    local operationLeaf = self:NewOpcode("bshr",leftLeaf,rightLeaf)
+    operationLeaf.ExplictAssign = true
+    operationLeaf.ReturnAfterAssign = true
+    return operationLeaf
   elseif self:MatchToken(self.TOKEN.SHL) then -- <<
     local rightLeaf = self:Expression_LevelLeaf(0)
-    return self:NewOpcode("bshl",leftLeaf,rightLeaf)
+    
+    local operationLeaf = self:NewOpcode("bshl",leftLeaf,rightLeaf)
+    operationLeaf.ExplictAssign = true
+    operationLeaf.ReturnAfterAssign = true
+    return operationLeaf
   else
     return leftLeaf
   end
