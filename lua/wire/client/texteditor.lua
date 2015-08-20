@@ -3679,12 +3679,10 @@ do
 						self:NextPattern(".*$")
 						tokenname = "normal"
 					end
-				elseif self:NextPattern("define") or self:NextPattern("pragma") then
-					self:NextPattern(".*$")
-					tokenname = "pmacro"
 				elseif self:NextPattern("^[a-zA-Z0-9_@.#]+") then
 					local sstr = string.sub(string.upper(self.tokendata:Trim()),2)
 					if macroTable[sstr] then
+						self:NextPattern(".*$")
 						tokenname = "pmacro"
 					else
 						tokenname = "memref"
