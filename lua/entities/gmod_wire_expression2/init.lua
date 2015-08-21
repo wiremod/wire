@@ -142,8 +142,18 @@ function ENT:Execute()
 
 	for k, v in pairs(self.inports[3]) do
 		if self.GlobalScope[k] then
-			if wire_expression_types[self.Inputs[k].Type][3] and (not self.realinputs or self.Inputs[k].Value == nil) then
-				self.GlobalScope[k] = wire_expression_types[self.Inputs[k].Type][3](self.context, self.Inputs[k].Value)
+			if wire_expression_types[self.Inputs[k].Type][3] then
+				local Copy = wire_expression_types[self.Inputs[k].Type][3](self.context, self.Inputs[k].Value)
+				if Copy then
+					-- If the copy function doesn't return nil, it means that it's legal to input this class
+					if self.realinputs then
+						self.GlobalScope[k] = self.Inputs[k].Value
+					else
+						self.GlobalScope[k] = Copy
+					end
+				else
+					self.GlobalScope[k] = nil
+				end
 			else
 				self.GlobalScope[k] = self.Inputs[k].Value
 			end
