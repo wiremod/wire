@@ -196,6 +196,16 @@ function PreProcessor:ParseDirectives(line)
 				self.directives.outputs[3][key] = retval[2][i]
 			end
 		end
+	elseif directive == "realinputs" then
+		local retval, columns = self:ParsePorts(value, #directive + 2)
+
+		for i, key in ipairs(retval[1]) do
+			if self.directives.realinputs[key] then
+				self:Error("Directive (@realinputs) contains multiple definitions of the same variable", columns[i])
+			else
+				self.directives.realinputs[key] = true
+			end
+		end
 	elseif directive == "persist" then
 		local retval, columns = self:ParsePorts(value, #directive + 2)
 
