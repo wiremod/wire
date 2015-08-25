@@ -3131,6 +3131,7 @@ do -- E2 Syntax highlighting
 		["@outputs"] = 1,
 		["@persist"] = 1,
 		["@trigger"] = 2, -- like 1, except that all/none are yellow
+		["@realinputs"] = 2,
 		["@autoupdate"] = 0,
 	}
 
