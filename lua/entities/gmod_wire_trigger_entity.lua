@@ -7,7 +7,6 @@ ENT.Author = "mitterdoo"
 function ENT:Initialize()
 
 	if SERVER then
-		self.EntsLookup = {}
 		self.EntsInside = {}
 	end
 
@@ -20,7 +19,6 @@ end
 
 function ENT:Reset()
 	self.EntsInside = {}
-	self.EntsLookup = {}
 
 	local owner = self:GetTriggerEntity()
 	if not IsValid( owner ) then return end
@@ -38,7 +36,6 @@ function ENT:StartTouch( ent )
 	if owner:GetOwnerOnly() and ( WireLib.GetOwner( ent ) or ply ) ~= WireLib.GetOwner( owner ) then return end
 
 	self.EntsInside[ #self.EntsInside+1 ] = ent
-	self.EntsLookup[ ent ] = true
 
 	WireLib.TriggerOutput( owner, "EntCount", #self.EntsInside )
 	WireLib.TriggerOutput( owner, "Entities", self.EntsInside )
@@ -48,12 +45,10 @@ function ENT:EndTouch( ent )
 
 	local owner = self:GetTriggerEntity()
 	if not IsValid( owner ) then return end
-	if not self.EntsLookup[ ent ] then return end
 
 	for i = 1, #self.EntsInside do 
 		if self.EntsInside[ i ] == ent then
 			table.remove( self.EntsInside, i ) 
-			self.EntsLookup[ ent ] = nil
 		end 
 	end
 	
