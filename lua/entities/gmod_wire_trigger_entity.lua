@@ -38,7 +38,7 @@ function ENT:StartTouch( ent )
 	if owner:GetOwnerOnly() and ( WireLib.GetOwner( ent ) or ply ) ~= WireLib.GetOwner( owner ) then return end
 
 	self.EntsInside[ #self.EntsInside+1 ] = ent
-	self.EntsLookup[ ent ] = #self.EntsInside
+	self.EntsLookup[ ent ] = true
 
 	WireLib.TriggerOutput( owner, "EntCount", #self.EntsInside )
 	WireLib.TriggerOutput( owner, "Entities", self.EntsInside )
@@ -50,8 +50,13 @@ function ENT:EndTouch( ent )
 	if not IsValid( owner ) then return end
 	if not self.EntsLookup[ ent ] then return end
 
-	table.remove( self.EntsInside, self.EntsLookup[ ent ] )
-	self.EntsLookup[ ent ] = nil
+	for i = 1, #self.EntsInside do 
+		if self.EntsInside[ i ] == ent then
+			table.remove( self.EntsInside, i ) 
+			self.EntsLookup[ ent ] = nil
+		end 
+	end
+	
 	WireLib.TriggerOutput( owner, "EntCount", #self.EntsInside )
 	WireLib.TriggerOutput( owner, "Entities", self.EntsInside )
 
