@@ -1,5 +1,3 @@
-if !WireLib then return end
-
 WireToolSetup.setCategory( "Detection" )
 WireToolSetup.open( "col_detector", "Collision Detector", "gmod_wire_coldetector", nil, "Collision Detectors" )
 
