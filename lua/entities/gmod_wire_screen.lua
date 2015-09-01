@@ -3,89 +3,45 @@ DEFINE_BASECLASS( "base_wire_entity" )
 ENT.PrintName       = "Wire Screen"
 ENT.WireDebugName	= "Screen"
 
-function ENT:SetDisplayA( float )
-	self:SetNetworkedBeamFloat( 1, float, true )
+function ENT:SetupDataTables()
+	self:NetworkVar("Bool", 0, "SingleValue")
+	self:NetworkVar("Bool", 1, "SingleBigFont")
+	self:NetworkVar("Bool", 2, "LeftAlign")
+	self:NetworkVar("Bool", 3, "Floor")
+	self:NetworkVar("Bool", 4, "FormatNumber")
+	self:NetworkVar("Bool", 5, "FormatTime")
+
+	self:NetworkVar("String", 0, "TextA")
+	self:NetworkVar("String", 1, "TextB")
+
+	self:NetworkVarNotify("SingleValue", function(ent, name, oldval, newval)
+		WireLib.AdjustInputs(ent, newval and {"A"} or {"A", "B"})
+	end)
 end
 
-function ENT:SetDisplayB( float )
-	self:SetNetworkedBeamFloat( 2, float, true )
-end
+if CLIENT then
 
-function ENT:GetDisplayA( )
-	return self:GetNetworkedBeamFloat( 1 )
-end
+	net.Receive("gmod_wire_screen.updateA", function()
+		local ent = net.ReadEntity()
+		ent.ValueA = net.ReadFloat()
+	end)
 
-function ENT:GetDisplayB( )
-	return self:GetNetworkedBeamFloat( 2 )
-end
+	net.Receive("gmod_wire_screen.updateB", function()
+		local ent = net.ReadEntity()
+		ent.ValueB = net.ReadFloat()
+	end)
 
--- Extra stuff for Wire Screen (TheApathetic)
-function ENT:SetSingleValue(singlevalue)
-	self:SetNWBool("SingleValue",singlevalue)
+	net.Receive("gmod_wire_screen.updateAB", function()
+		local ent = net.ReadEntity()
+		ent.ValueA = net.ReadFloat()
+		ent.ValueB = net.ReadFloat()
+	end)
 
-	-- Change inputs if necessary
-	if (singlevalue) then
-		WireLib.AdjustInputs(self, {"A"})
-	else
-		WireLib.AdjustInputs(self, {"A","B"})
-	end
-end
-function ENT:GetSingleValue()
-	return self:GetNetworkedBool("SingleValue")
-end
-
-function ENT:SetSingleBigFont(singlebigfont)
-	self:SetNWBool("SingleBigFont",singlebigfont)
-end
-function ENT:GetSingleBigFont()
-	return self:GetNetworkedBool("SingleBigFont")
-end
-
-function ENT:SetTextA(text)
-	self:SetNWString("TextA",text)
-end
-function ENT:GetTextA()
-	return self:GetNetworkedString("TextA")
-end
-
-function ENT:SetTextB(text)
-	self:SetNWString("TextB",text)
-end
-function ENT:GetTextB()
-	return self:GetNWString("TextB")
-end
-
-function ENT:SetLeftAlign(leftalign)
-	self:SetNWBool("LeftAlign",leftalign)
-end
-function ENT:GetLeftAlign()
-	return self:GetNWBool("LeftAlign")
-end
-
-function ENT:SetFloor(Floor)
-	self:SetNWBool("Floor",Floor)
-end
-function ENT:GetFloor()
-	return self:GetNWBool("Floor")
-end
-
-function ENT:SetFormatNumber( FormatNumber )
-	self:SetNWBool( "FormatNumber", FormatNumber )
-end
-function ENT:GetFormatNumber()
-	return self:GetNWBool("FormatNumber")
-end
-
-function ENT:SetFormatTime( FormatTime )
-	self:SetNWBool( "FormatTime", FormatTime )
-end
-function ENT:GetFormatTime()
-	return self:GetNWBool("FormatTime")
-end
-
-if CLIENT then 
 	function ENT:Initialize()
 		self.GPU = WireGPU(self, true)
+
+		self.ValueA = 0
+		self.ValueB = 0
 	end
 
 	function ENT:OnRemove()
@@ -136,7 +92,7 @@ if CLIENT then
 			value = "" .. math.floor( value )
 		else
 			-- note: loses precision after ~7 decimals, so don't bother displaying more
-			value = "" .. math.floor( value * 10000000 ) / 10000000 
+			value = "" .. math.floor( value * 10000000 ) / 10000000
 		end
 
 		local align = self:GetLeftAlign() and 0 or 1
@@ -154,11 +110,11 @@ if CLIENT then
 			surface.DrawRect(x, y, w, h)
 
 			if self:GetSingleValue() then
-				self:DrawNumber( self:GetTextA(), self:GetDisplayA(), x,y,w,h )
+				self:DrawNumber( self:GetTextA(), self.ValueA, x,y,w,h )
 			else
 				local h = h/2
-				self:DrawNumber( self:GetTextA(), self:GetDisplayA(), x,y,w,h )
-				self:DrawNumber( self:GetTextB(), self:GetDisplayB(), x,y+h,w,h )
+				self:DrawNumber( self:GetTextA(), self.ValueA, x,y,w,h )
+				self:DrawNumber( self:GetTextB(), self.ValueB, x,y+h,w,h )
 			end
 		end)
 
@@ -180,11 +136,14 @@ if CLIENT then
 	surface.CreateFont("screen_font_single", fontData )
 	fontData.size = 36
 	surface.CreateFont("Trebuchet36", fontData )
-	
+
 	return  -- No more client
 end
 
 -- Server
+util.AddNetworkString("gmod_wire_screen.updateA")
+util.AddNetworkString("gmod_wire_screen.updateB")
+util.AddNetworkString("gmod_wire_screen.updateAB")
 
 function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )
@@ -198,15 +157,24 @@ function ENT:Initialize()
 end
 
 function ENT:Think()
+	if self.ValueA and self.ValueB then	net.Start("gmod_wire_screen.updateAB")
+	elseif self.ValueA then net.Start("gmod_wire_screen.updateA")
+	elseif self.ValueB then net.Start("gmod_wire_screen.updateB")
+	else return end
+
+	net.WriteEntity(self)
+
 	if self.ValueA then
-		self:SetDisplayA( self.ValueA )
+		net.WriteFloat(self.ValueA)
 		self.ValueA = nil
 	end
 
 	if self.ValueB then
-		self:SetDisplayB( self.ValueB )
+		net.WriteFloat(self.ValueB)
 		self.ValueB = nil
 	end
+
+	net.SendPVS(self:GetPos())
 
 	self:NextThink(CurTime() + 0.05)
 	return true
@@ -220,33 +188,16 @@ function ENT:TriggerInput(iname, value)
 	end
 end
 
+-- only needed for compatibility with old dupes
 function ENT:Setup(SingleValue, SingleBigFont, TextA, TextB, LeftAlign, Floor, FormatNumber, FormatTime)
-	--for duplication
-	self.SingleValue	= SingleValue
-	self.SingleBigFont	= SingleBigFont
-	self.TextA			= TextA
-	self.TextB 			= TextB
-	self.LeftAlign 		= LeftAlign
-	self.Floor	 		= Floor
-	self.FormatNumber	= FormatNumber
-	self.FormatTime		= FormatTime
-
-	-- Extra stuff for Wire Screen (TheApathetic)
-	self:SetTextA(TextA)
-	self:SetTextB(TextB)
-	self:SetSingleBigFont(SingleBigFont)
-
-	--LeftAlign (TAD2020)
-	self:SetLeftAlign(LeftAlign)
-	--Floor (TAD2020)
-	self:SetFloor(Floor)
-
-	--Put it here to update inputs if necessary (TheApathetic)
-	self:SetSingleValue(SingleValue)
-
-	-- Auto formatting (Divran)
-	self:SetFormatNumber( FormatNumber )
-	self:SetFormatTime( FormatTime )
+	if SingleValue ~= nil then self:SetSingleValue(SingleValue) end
+	if SingleBigFont ~= nil then self:SetSingleBigFont(SingleBigFont) end
+	if type(TextA) == "string" then	self:SetTextA(TextA) end
+	if type(TextB) == "string" then self:SetTextB(TextB) end
+	if LeftAlign ~= nil then self:SetLeftAlign(LeftAlign) end
+	if Floor ~= nil then self:SetFloor(Floor) end
+	if FormatNumber ~= nil then self:SetFormatNumber(FormatNumber) end
+	if FormatTime ~= nil then self:SetFormatTime(FormatTime) end
 end
 
 duplicator.RegisterEntityClass("gmod_wire_screen", WireLib.MakeWireEnt, "Data", "SingleValue", "SingleBigFont", "TextA", "TextB", "LeftAlign", "Floor", "FormatNumber", "FormatTime")
