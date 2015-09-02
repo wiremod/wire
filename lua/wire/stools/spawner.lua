@@ -21,7 +21,6 @@ if SERVER then
 end
 
 cleanup.Register("gmod_wire_spawner")
-
 function TOOL:LeftClick(trace)
 	local ent = trace.Entity
 	if !ent or !ent:IsValid() then return false end
@@ -54,8 +53,15 @@ function TOOL:LeftClick(trace)
 	local c		        = ent:GetColor()
 	local skin			= ent:GetSkin() or 0
 
-	local wire_spawner = WireLib.MakeWireEnt(pl, {Class = self.WireClass, Pos=trace.HitPos, Angle=Ang, Model=model}, delay, undo_delay, spawn_effect, mat, c.r, c.g, c.b, c.a, skin)
+	local preserveMotion = phys:IsMotionEnabled()
+
+	local wire_spawner = WireLib.MakeWireEnt(pl, {Class = self.WireClass, Pos=Pos, Angle=Ang, Model=model}, delay, undo_delay, spawn_effect, mat, c.r, c.g, c.b, c.a, skin)
 	if !wire_spawner:IsValid() then return end
+
+	local physObj = wire_spawner:GetPhysicsObject()
+	if IsValid( physObj ) then
+		physObj:EnableMotion( preserveMotion )
+	end
 
 	ent:Remove()
 
