@@ -11,15 +11,15 @@ WireToolSetup.SetupMax( 20 )
 
 TOOL.ClientConVar = {
 	constrained = 0,
-	nophysics	= 0,
-	model		= "models/jaanus/wiretool/wiretool_siren.mdl"
+	nophysics = 0,
+	model = "models/jaanus/wiretool/wiretool_siren.mdl"
 }
 
 WireToolSetup.SetupLinking()
 
 if SERVER then
 	function TOOL:GetConVars() 
-		return self:GetClientNumber( "constrained" ) !=0, self:GetClientNumber( "nophysics" ) !=0
+		return self:GetClientNumber( "constrained" ) ~=0, self:GetClientNumber( "nophysics" ) ~=0
 	end
 end
 
