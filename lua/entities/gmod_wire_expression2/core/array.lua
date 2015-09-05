@@ -285,6 +285,17 @@ e2function void array:remove( index )
 end
 
 --------------------------------------------------------------------------------
+-- Force remove
+-- Forcibly removes the value from the array by setting it to nil
+-- Does not shift larger indexes down to fill the hole
+--------------------------------------------------------------------------------
+e2function void array:unset( index )
+	if this[index] == nil then return end
+	this[index] = nil
+	self.GlobalScope.vclk[this] = true
+end
+
+--------------------------------------------------------------------------------
 -- Shift
 -- Removes the first entry in the array
 --------------------------------------------------------------------------------
