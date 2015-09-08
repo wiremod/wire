@@ -14,11 +14,33 @@ function ENT:Initialize()
 	self.Outputs = WireLib.CreateOutputs( self, { "Memory [ARRAY]", "Size" } )
 	self.Inputs = WireLib.CreateInputs( self, { "Data [ARRAY]", "Clear", "AllowWrite" } )
 
-	self.Memory = {}
+	self:SetMemory()
 	self.ROM = false
 	self.AllowWrite = true
+end
 
-	self:SetOverlayText("DHDD")
+function ENT:SetMemory(Memory)
+	self.Memory = Memory or {}
+
+	local Metatable = {}
+
+	function Metatable.__index(Proxy, Index)
+		return self.Memory[Index]
+	end
+
+	function Metatable.__newindex(Proxy, Index, Value)
+		if self.AllowWrite then
+			self.Memory[Index] = value
+			self:ShowOutputs()
+		end
+	end
+
+	function Metatable.__len(Proxy)
+		return #self.Memory
+	end
+
+	self.Proxy = setmetatable({}, Metatable)
+	self:ShowOutputs()
 end
 
 -- Read cell
@@ -37,13 +59,13 @@ function ENT:WriteCell( Address, value )
 end
 
 function ENT:ShowOutputs()
-	WireLib.TriggerOutput( self, "Memory", self.Memory )
 	local n = #self.Memory
+	WireLib.TriggerOutput( self, "Memory", self.Proxy )
 	WireLib.TriggerOutput( self, "Size", n )
 	if not self.ROM then
-		self:SetOverlayText("DHDD\nSize: " .. n .." bytes" )
+		self:SetOverlayText( "DHDD\nSize: " .. n .." bytes" )
 	else
-		self:SetOverlayText("ROM\nSize: " .. n .." bytes" )
+		self:SetOverlayText( "ROM\nSize: " .. n .." bytes" )
 	end
 end
 
@@ -53,11 +75,9 @@ function ENT:TriggerInput( name, value )
 		if not IsValid(self.Inputs.Data.Src) then return end -- if the input is not wired to anything, abort
 		if not self.AllowWrite then return end -- if we don't allow writing, abort
 
-		self.Memory = value
-		self:ShowOutputs()
+		self:SetMemory(value)
 	elseif (name == "Clear") then
-		self.Memory = {}
-		self:ShowOutputs()
+		self:SetMemory()
 	elseif (name == "AllowWrite") then
 		self.AllowWrite = value >= 1
 	end
@@ -83,11 +103,10 @@ end
 
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 	if (info.DHDD) then
-		ent.Memory = (info.DHDD.Memory or {})
+		ent:SetMemory(info.DHDD.Memory)
 		if info.DHDD.AllowWrite ~= nil then
 			ent.AllowWrite = info.DHDD.AllowWrite
 		end
-		self:ShowOutputs()
 	end
 	self.ROM = info.ROM or false
 
