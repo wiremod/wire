@@ -196,6 +196,16 @@ function PreProcessor:ParseDirectives(line)
 				self.directives.outputs[3][key] = retval[2][i]
 			end
 		end
+	elseif directive == "rawinputs" then
+		local retval, columns = self:ParsePorts(value, #directive + 2)
+
+		for i, key in ipairs(retval[1]) do
+			if self.directives.rawinputs[key] then
+				self:Error("Directive (@rawinputs) contains multiple definitions of the same variable", columns[i])
+			else
+				self.directives.rawinputs[key] = true
+			end
+		end
 	elseif directive == "persist" then
 		local retval, columns = self:ParsePorts(value, #directive + 2)
 
@@ -265,6 +275,7 @@ function PreProcessor:Process(buffer, directives, ent)
 			persist = { {}, {}, {} },
 			delta = { {}, {}, {} },
 			trigger = { nil, {} },
+			rawinputs = { },
 		}
 	else
 		self.directives = directives
