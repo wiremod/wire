@@ -3017,15 +3017,15 @@ function EDITOR:ResetTokenizer(row)
 				self.e2fs_functions[k] = nil
 			end
 		end
-	
+
 	else
 		if row == self.Scroll[1] then
 			-- As above, but for HL-ZASM: Check whether the line self.Scroll[1] starts within a block comment.
 			self.blockcomment = nil
-			
+
 			for k=1, self.Scroll[1]-1 do
 				local row = self.Rows[k]
-				
+
 				for match in string_gmatch(row, "[/*][/*]") do
 					if match == "//" then
 						-- single line comment start; skip remainder of line
@@ -3128,6 +3128,7 @@ do -- E2 Syntax highlighting
 		["@name"] = 0, -- all yellow
 		["@model"] = 0,
 		["@inputs"] = 1, -- directive yellow, types orange, rest normal
+		["@rawinputs"] = 1,
 		["@outputs"] = 1,
 		["@persist"] = 1,
 		["@trigger"] = 2, -- like 1, except that all/none are yellow
@@ -3599,7 +3600,7 @@ do
 		local cols = {}
 		self:ResetTokenizer(row)
 		self:NextCharacter()
-		
+
 		if self.blockcomment then
 			if self:NextPattern(".-%*/") then
 				self.blockcomment = nil
@@ -3642,6 +3643,19 @@ do
 				end
 				self:NextCharacter()
 				tokenname = "string"
+			elseif self:NextPattern("#include +<") then
+				local color = colors["pmacro"]
+				if #cols > 1 and color == cols[#cols][2] then
+					cols[#cols][1] = cols[#cols][1] .. self.tokendata:sub(1,-2) -- no "<"
+				else
+					cols[#cols + 1] = {self.tokendata:sub(1,-2), color}
+				end
+
+				self.tokendata = "<"
+				self:NextPattern("^[a-zA-Z0-9_/\\]+%.txt>")
+				tokenname = "filename"
+				self:NextCharacter()
+				tokenname = "filename"
 			elseif self:NextPattern("^//.*$") then
 				tokenname = "comment"
 			elseif self:NextPattern("^/%*") then -- start of a multi-line comment
@@ -3656,33 +3670,9 @@ do
 				tokenname = "comment"
 			elseif (self.character == "#") then
 				self:NextCharacter()
-				
-				if self:NextPattern("include +<") then
-					
-					cols[#cols + 1] = {self.tokendata:sub(1,-2), colors["pmacro"]}
-					
-					self.tokendata = "<"
-					if self:NextPattern("^[a-zA-Z0-9_/\\]+%.txt>") then
-						tokenname = "filename"
-					else
-						self:NextPattern(".*$")
-						tokenname = "normal"
-					end
-				elseif self:NextPattern("include +\"") then
-					
-					cols[#cols + 1] = {self.tokendata:sub(1,-2), colors["pmacro"]}
-					
-					self.tokendata = "\""
-					if self:NextPattern("^[a-zA-Z0-9_/\\]+%.txt\"") then
-						tokenname = "filename"
-					else
-						self:NextPattern(".*$")
-						tokenname = "normal"
-					end
-				elseif self:NextPattern("^[a-zA-Z0-9_@.#]+") then
+				if self:NextPattern("^[a-zA-Z0-9_@.#]+") then
 					local sstr = string.sub(string.upper(self.tokendata:Trim()),2)
 					if macroTable[sstr] then
-						self:NextPattern(".*$")
 						tokenname = "pmacro"
 					else
 						tokenname = "memref"
