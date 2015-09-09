@@ -1,7 +1,7 @@
 E2Lib.RegisterExtension("collcallback", true)
 
-local maxcollclk = CreateConVar( "wire_col_detector_e2_maxcollclk", 100, 0, "Maximum amount of props with collision detection per gate" )
-local collallow = CreateConVar( "wire_col_detector_e2_collallow", 1, 0, "Allow collision detection of other players' stuff" )
+local wire_col_detector_e2_maxcollclk = CreateConVar( "wire_col_detector_e2_maxcollclk", 100, 0, "Maximum amount of props with collision detection per gate" )
+local wire_col_detector_e2_collallow = CreateConVar( "wire_col_detector_e2_collallow", 1, 0, "Allow collision detection of other players' stuff" )
 
 local registered_ents = {}
 
@@ -17,7 +17,7 @@ hook.Add("EntityRemoved", "E2CollClkEntityRemoved", function(ent)
 	registered_ents[ent]=nil
 end)
 
-function entitiesCollide(ent, data)
+local function entitiesCollide(ent, data)
 	for i = 1, #registered_ents[ent], 1 do
 		self = registered_ents[ent][i]
 		if not IsValid(self.entity) then
@@ -25,12 +25,28 @@ function entitiesCollide(ent, data)
 			i = i-1
 		else
 			if (self.collFilter and #self.colDatas ~= 0) or (self.collIgnoreConstrained and table.HasValue(constraint.GetAllConstrainedEntities(ent), data.HitEntity)) then return end
-			self.colData=data
+			
+			self.colData = data
 			self.colData.ourEnt = ent
 			self.colData.posFirst = ent:GetPhysicsObject():GetPos()
 			self.colData.posSecond = data.HitEntity:GetPhysicsObject():GetPos()
 			self.colData.angleFirst = ent:GetPhysicsObject():GetAngles()
 			self.colData.angleSecond = data.HitEntity:GetPhysicsObject():GetAngles()
+			
+			for i = 0, ent:GetPhysicsObjectCount()-1 do
+				if ent:GetPhysicsObjectNum(i) == data.PhysObject then
+					data.boneFirst = i
+					break
+				end
+			end
+			
+			for i = 0, data.HitEntity:GetPhysicsObjectCount()-1 do
+				if data.HitEntity:GetPhysicsObjectNum(i) == data.HitObject then
+					data.boneSecond = i
+					break
+				end
+			end
+			
 			if self.physicsEarlyCallback then
 				self.entity:Execute()
 			else
@@ -47,8 +63,9 @@ function entitiesCollide(ent, data)
 	end
 end
 
-function addCallback(ent, gate)
-	if not IsValid(ent) or gate.colProps > maxcollclk:GetInt() or (not collallow:GetBool() and not isOwner(gate, ent)) then return end
+local function addCallback(ent, gate)
+	if not IsValid(ent) or gate.colProps > wire_col_detector_e2_maxcollclk:GetInt() then return end
+	if not wire_col_detector_e2_collallow:GetBool() and not isOwner(gate, ent) then return end
 	
 	if registered_ents[ent] == nil then
 		registered_ents[ent] = {}
@@ -67,7 +84,7 @@ function addCallback(ent, gate)
 	else return end
 end
 
-function removeCallback(ent, gate)
+local function removeCallback(ent, gate)
 	if not registered_ents[ent] then return end
 	local tbl = registered_ents[ent]
 	for i = 1, #tbl, 1 do
@@ -161,6 +178,16 @@ end
 e2function angle collHitEntityAng()
 	if not self.colData then return Angle(0, 0, 0) end
 	return self.colData.angleSecond
+end
+
+e2function bone collEntityBone()
+	if not self.colData then return nil end
+	return getBone(self.colData.ourEnt,self.colData.boneFirst)
+end
+
+e2function bone collHitEntityBone()
+	if not self.colData then return nil end
+	return getBone(self.colData.HitEntity,self.colData.boneSecond)
 end
 
 __e2setcost(30)
