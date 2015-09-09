@@ -6,12 +6,12 @@ ENT.WireDebugName = "Collision Detector"
 
 if CLIENT then return end
 
-local stickplayer = CreateConVar( "wire_col_detector_stickplayer", 0, 0, "Allow linked entity stick to players" )
-local stickprops = CreateConVar( "wire_col_detector_stickprops", 0, 0, "Allow sticking to other players stuff" )
+local wire_col_detector_stickplayer = CreateConVar( "wire_col_detector_wire_col_detector_stickplayer", 0, 0, "Allow linked entity stick to players", {FCVAR_ARCHIVE})
+local wire_col_detector_stickprops = CreateConVar( "wire_col_detector_wire_col_detector_stickprops", 0, 0, "Allow sticking to other players stuff", {FCVAR_ARCHIVE})
 
-function entitiesCollide(ent,data)
+function entitiesCollide(ent, data)
 	if not IsValid(ent.ColSensor) or ent.ColSensor.LinkedEnt ~= ent then return end
-	ent.ColSensor:ApplyCollide(data,ent)
+	ent.ColSensor:ApplyCollide(data, ent)
 end
 
 function ENT:Initialize()
@@ -20,23 +20,23 @@ function ENT:Initialize()
 	self:SetSolid( SOLID_VPHYSICS )
 	self.LinkedEnt = self
 	self.Inputs = WireLib.CreateInputs( self, {"Stick to world", "Stick to props", "Stick to npc/players"} )
-	self.Outputs = WireLib.CreateOutputs(self, {"Collided","Speed","Delta Time","Hit Position [VECTOR]","Hit Normal [VECTOR]","Velocity [VECTOR]","Hit Entity Velocity [VECTOR]","Hit Entity [ENTITY]","Entity Position [VECTOR]","Entity Angle [ANGLE]","Hit Entity Position [VECTOR]","Hit Entity Angle [ANGLE]"})
+	self.Outputs = WireLib.CreateOutputs(self, {"Collided", "Speed", "Delta Time", "Hit Position [VECTOR]", "Hit Normal [VECTOR]", "Velocity [VECTOR]", "Hit Entity Velocity [VECTOR]", "Hit Entity [ENTITY]", "Entity Position [VECTOR]", "Entity Angle [ANGLE]", "Hit Entity Position [VECTOR]", "Hit Entity Angle [ANGLE]"})
 end
 
-function ENT:Setup(AllowConstrained,NoPhysics)
+function ENT:Setup(AllowConstrained, NoPhysics)
 	self.AllowConstrained = AllowConstrained
 	self.NoPhysics = NoPhysics
 	self:ShowOutput()
 end
 
-function ENT:PhysicsCollide(data,collider)
+function ENT:PhysicsCollide(data, [[:w:]]ollider)
 	if self.LinkedEnt == self then
-		self:ApplyCollide(data,self)
+		self:ApplyCollide(data, self)
 	end
 end
 
-function ENT:ApplyCollide(data,ent)
-	if not self.AllowConstrained and table.HasValue(constraint.GetAllConstrainedEntities(ent),data.HitEntity) then return end
+function ENT:ApplyCollide(data, ent)
+	if not self.AllowConstrained and table.HasValue(constraint.GetAllConstrainedEntities(ent), data.HitEntity) then return end
 	
 	local posxd = ent:GetPhysicsObject():GetPos()
 	local anglesxd = ent:GetPhysicsObject():GetAngles()
@@ -62,8 +62,8 @@ function ENT:ApplyCollide(data,ent)
 	
 	if self.StickToWorld == 0 and self.StickToNPC == 0 and self.StickToProp == 0 then return end
 	
-	if GetConVarNumber("wire_col_detector_stickplayer") == 0 and data.HitEntity:IsPlayer() then return end
-	if GetConVarNumber("wire_col_detector_stickprops") == 0 and not gamemode.Call("CanProperty",self:GetPlayer(),"weld",data.HitEntity) then return end
+	if GetConVarNumber("wire_col_detector_wire_col_detector_stickplayer") == 0 and data.HitEntity:IsPlayer() then return end
+	if GetConVarNumber("wire_col_detector_wire_col_detector_stickprops") == 0 and not gamemode.Call("CanProperty", self:GetPlayer(), "weld", data.HitEntity) then return end
 	
 	if self.StickToWorld == 0 and data.HitEntity:IsWorld() then return end
 	if self.StickToNPC == 0 and (data.HitEntity:IsNPC() or data.HitEntity:IsPlayer()) then return end
@@ -71,7 +71,7 @@ function ENT:ApplyCollide(data,ent)
 	local ent2pos = data.HitEntity:GetPos()
 	local ent2ang = data.HitEntity:GetAngles()
 	
-	timer.Simple(0,function()
+	timer.Simple(0, function()
 		if IsValid(ent) and (IsValid(data.HitEntity) or data.HitEntity:IsWorld()) and not IsValid(self.Stick) and  not IsValid(ent:GetParent()) then
 			local bonehit = 0
 			self.StickTo = data.HitEntity
@@ -81,7 +81,7 @@ function ENT:ApplyCollide(data,ent)
 			angle.roll = ent2ang.roll-angle.roll
 			vec:Rotate(angle)
 			
-			for i = 0,data.HitEntity:GetPhysicsObjectCount()-1 do
+			for i = 0, data.HitEntity:GetPhysicsObjectCount()-1 do
 				if data.HitEntity:GetPhysicsObjectNum(i) == data.HitObject then
 					bonehit = i
 					break
@@ -98,8 +98,8 @@ function ENT:ApplyCollide(data,ent)
 			ent:SetAngles(anglesxd)
 			ent:SetPos(posxd)
 			
-			if util.IsValidPhysicsObject( data.HitEntity, 0) && (not self.NoPhysics || data.HitEntity:IsWorld()) then
-				self.Stick = constraint.Weld(ent, data.HitEntity,0,bonehit,0,true)
+			if util.IsValidPhysicsObject( data.HitEntity, 0) and (not self.NoPhysics or data.HitEntity:IsWorld()) then
+				self.Stick = constraint.Weld(ent, data.HitEntity, 0, bonehit, 0, true)
 				if data.HitEntity:IsWorld() then
 					ent:GetPhysicsObject():EnableMotion(false)
 					ent:GetPhysicsObject():Sleep()
@@ -107,7 +107,7 @@ function ENT:ApplyCollide(data,ent)
 			else
 				ent:PhysicsDestroy()
 				ent:SetSolid(SOLID_NONE)
-				ent:FollowBone(data.HitEntity,bonehit)
+				ent:FollowBone(data.HitEntity, bonehit)
 				
 			end
 			
@@ -128,7 +128,7 @@ function ENT:RemoveLink()
 			self.LinkedEnt:SetParent(nil)
 			self.LinkedEnt:PhysicsInit(SOLID_VPHYSICS)
 			self.LinkedEnt:SetSolid( SOLID_VPHYSICS )
-			timer.Simple(0,function() 
+			timer.Simple(0, function() 
 				if IsValid(self.LinkedEnt) then
 					self.LinkedEnt:GetPhysicsObject():Wake() 
 				end
@@ -187,13 +187,13 @@ function ENT:LinkEnt(ent)
 	ent.ColSensor = self
 	
 	if self.LinkedEnt.PhysicsCollide then
-		self.LinkedEnt.PhysicsCollide = function(sel,data,collider)
+		self.LinkedEnt.PhysicsCollide = function(sel, data, collider)
 			if IsValid(self) then
-				self:ApplyCollide(data,self.LinkedEnt)
+				self:ApplyCollide(data, self.LinkedEnt)
 			end
 		end
 	else
-		ent:AddCallback("PhysicsCollide",entitiesCollide)
+		ent:AddCallback("PhysicsCollide", entitiesCollide)
 	end
 	
 	self:ShowOutput()
@@ -224,4 +224,4 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 	end
 end
 
-duplicator.RegisterEntityClass("gmod_wire_coldetector", WireLib.MakeWireEnt,"Data","AllowConstrained","NoPhysics")
+duplicator.RegisterEntityClass("gmod_wire_coldetector", WireLib.MakeWireEnt, "Data", "AllowConstrained", "NoPhysics")

@@ -19,7 +19,7 @@ WireToolSetup.SetupLinking()
 
 if SERVER then
 	function TOOL:GetConVars() 
-		return self:GetClientNumber( "constrained" ) ~=0, self:GetClientNumber( "nophysics" ) ~=0
+		return self:GetClientNumber("constrained") ~=0, self:GetClientNumber("nophysics") ~=0
 	end
 end
 
@@ -28,6 +28,6 @@ function TOOL:GetGhostMin( min, trace )
 end
 
 function TOOL.BuildCPanel(panel)
-	panel:CheckBox("Output collisions with constrained entities","wire_col_detector_constrained")
-	panel:CheckBox("Parent sticked entities","wire_col_detector_nophysics")
+	panel:CheckBox("Output collisions with constrained entities", "wire_col_detector_constrained")
+	panel:CheckBox("Parent sticked entities", "wire_col_detector_nophysics")
 end
