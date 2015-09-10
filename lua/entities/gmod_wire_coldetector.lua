@@ -6,8 +6,8 @@ ENT.WireDebugName = "Collision Detector"
 
 if CLIENT then return end
 
-local wire_col_detector_stickplayer = CreateConVar( "wire_col_detector_wire_col_detector_stickplayer", 0, 0, "Allow linked entity stick to players", {FCVAR_ARCHIVE})
-local wire_col_detector_stickprops = CreateConVar( "wire_col_detector_wire_col_detector_stickprops", 0, 0, "Allow sticking to other players stuff", {FCVAR_ARCHIVE})
+local wire_col_detector_stickplayer = CreateConVar( "wire_col_detector_stickplayer", 0, 0, "Allow linked entity stick to players", {FCVAR_ARCHIVE})
+local wire_col_detector_stickprops = CreateConVar( "wire_col_detector_stickprops", 0, 0, "Allow sticking to other players stuff", {FCVAR_ARCHIVE})
 
 function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )
