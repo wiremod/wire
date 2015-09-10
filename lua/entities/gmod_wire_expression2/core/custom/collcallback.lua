@@ -28,10 +28,16 @@ local function entitiesCollide(ent, data)
 			
 			self.colData = data
 			self.colData.ourEnt = ent
-			self.colData.posFirst = ent:GetPhysicsObject():GetPos()
-			self.colData.posSecond = data.HitEntity:GetPhysicsObject():GetPos()
-			self.colData.angleFirst = ent:GetPhysicsObject():GetAngles()
-			self.colData.angleSecond = data.HitEntity:GetPhysicsObject():GetAngles()
+			self.colData.posFirst = data.PhysObject:GetPos()
+			self.colData.angleFirst = ent.PhysObject:GetAngles()
+			
+			if IsValid(data.HitObject) then
+				self.colData.posSecond = data.HitObject:GetPos()
+				self.colData.angleSecond = data.HitObject:GetAngles()
+			else
+				self.colData.posSecond = data.HitEntity:GetPos()
+				self.colData.angleSecond = data.HitEntity:GetAngles()
+			end
 			
 			for i = 0, ent:GetPhysicsObjectCount()-1 do
 				if ent:GetPhysicsObjectNum(i) == data.PhysObject then
