@@ -176,6 +176,8 @@ function ENT:TriggerInput(name, value)
 end
 
 function ENT:Think()
+	self.BaseClass.Think(self)
+	
 	if self.Collided then
 		WireLib.TriggerOutput(self, "Collided", 0)
 		self.Collided = false
