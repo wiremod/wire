@@ -203,7 +203,7 @@ function ENT:LinkEnt(ent)
 	end
 	self.LinkedEnt = ent
 	ent.ColSensor = self
-	print("linking some enti")
+	
 	if self.LinkedEnt.PhysicsCollide then
 		self.LinkedEnt.OldPhysicsCollide = self.LinkEnt.PhysicsCollide
 		self.LinkedEnt.PhysicsCollide = function(sel, data, collider)
