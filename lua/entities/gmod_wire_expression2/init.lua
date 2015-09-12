@@ -584,3 +584,56 @@ function MakeWireExpression2(player, Pos, Ang, model, buffer, name, inputs, outp
 	return self
 end
 duplicator.RegisterEntityClass("gmod_wire_expression2", MakeWireExpression2, "Pos", "Ang", "Model", "_original", "_name", "_inputs", "_outputs", "_vars", "inc_files", "filepath")
+
+--------------------------------------------------
+-- Emergency shutdown (beta testing so far)
+--------------------------------------------------
+CreateConVar("wire_expression2_unlimited", "0", {FCVAR_REPLICATED})
+CreateConVar("wire_expression2_quotasoft", "10000", {FCVAR_REPLICATED})
+CreateConVar("wire_expression2_quotahard", "100000", {FCVAR_REPLICATED})
+CreateConVar("wire_expression2_quotatick", "25000", {FCVAR_REPLICATED})
+
+local average_ram = 0
+local enable = CreateConVar( 
+	"wire_expression2_ram_emergency_shutdown_enable", "0", {FCVAR_ARCHIVE}, 
+	"Enable/disable the emergency shutdown feature. Requires map reload after change." )
+
+local average_halt_multiplier = CreateConVar( 
+	"wire_expression2_ram_emergency_shutdown_spike", "4", {FCVAR_ARCHIVE}, 
+	"if (current_ram > average_ram * spike_convar) then shut down all E2s" )
+
+local halt_max_amount = CreateConVar( 
+	"wire_expression2_ram_emergency_shutdown_total", "512", {FCVAR_ARCHIVE}, 
+	"This is in kilobytes, if (current_ram > total_convar) then shut down all E2s" )
+
+if enable:GetBool() then
+	hook.Remove( "Think", "wire_expression2_emergency_shutdown" ) -- remove old hook
+	hook.Add( "Think", "wire_expression2_emergency_shutdown", function()
+		local current_ram = collectgarbage("count")
+		if average_ram == 0 then -- set up initial value
+			average_ram = current_ram
+		else
+			-- calculate average
+			average_ram = average_ram * 0.95 + current_ram * 0.05
+
+			if current_ram > average_ram * average_halt_multiplier:GetFloat() or -- if the current ram spikes
+				current_ram > halt_max_amount:GetInt() * 1000 then -- or if the current ram goes over a set limit
+
+				local e2s = ents.FindByClass("gmod_wire_expression2") -- find all E2s and halt them
+				for k,v in pairs( e2s ) do
+					if not v.error then
+						-- immediately clear any memory the E2 may be holding
+						v:PCallHook("destruct")
+						v:ResetContext()
+						v:PCallHook("construct")
+
+						-- Notify the user why we shut down
+						v:Error( "High server RAM usage detected! Emergency E2 shutdown!" )
+					end
+				end
+				collectgarbage() -- collect the garbage now
+				average_ram = collectgarbage("count") -- reset average ram when we're done
+			end
+		end
+	end)
+end
