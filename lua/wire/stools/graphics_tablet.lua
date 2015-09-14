@@ -19,9 +19,12 @@ WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )
 
 if SERVER then
-	function TOOL:GetConVars() 
-		return self:GetClientNumber("outmode") ~= 0, self:GetClientNumber("draw_background") ~= 0
-	end
+  function TOOL:GetDataTables()
+    return {
+      CursorMode = self:GetClientNumber("outmode") ~= 0,
+      DrawBackground = self:GetClientNumber("draw_background") ~= 0
+    }
+  end
 
 	-- Uses default WireToolObj:MakeEnt's WireLib.MakeWireEnt function
 end
