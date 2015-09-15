@@ -144,12 +144,7 @@ function ENT:Execute()
 		if self.GlobalScope[k] then
 			local CopyFunction = wire_expression_types[self.Inputs[k].Type][3]
 			if CopyFunction and not self.rawinputs[k] then
-				local Copy = CopyFunction(self.context, self.Inputs[k].Value)
-				if Copy then
-					self.GlobalScope[k] = Copy
-				else
-					self.GlobalScope[k] = nil
-				end
+				self.GlobalScope[k] = CopyFunction(self.context, self.Inputs[k].Value)
 			else
 				self.GlobalScope[k] = self.Inputs[k].Value
 			end
