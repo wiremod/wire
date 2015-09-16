@@ -13,17 +13,8 @@ function ENT:Initialize()
 
 	self.Outputs = WireLib.CreateOutputs( self, { "Memory [ARRAY]", "Size" } )
 	self.Inputs = WireLib.CreateInputs( self, { "Data [ARRAY]", "Clear", "AllowWrite" } )
-
-	self:SetMemory()
-	self.ROM = false
-	self.AllowWrite = true
-end
-
-function ENT:SetMemory(Memory)
-	self.Memory = Memory or {}
-
+	
 	local Metatable = {}
-
 	function Metatable.__index(Proxy, Index)
 		return self.Memory[Index]
 	end
@@ -39,7 +30,15 @@ function ENT:SetMemory(Memory)
 		return #self.Memory
 	end
 
+	self.Memory = {}
 	self.Proxy = setmetatable({}, Metatable)
+	self.ROM = false
+	self.AllowWrite = true
+	self:ShowOutputs()
+end
+
+function ENT:SetMemory(Memory)
+	self.Memory = Memory or {}
 	self:ShowOutputs()
 end
 
