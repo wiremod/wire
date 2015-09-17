@@ -588,11 +588,6 @@ duplicator.RegisterEntityClass("gmod_wire_expression2", MakeWireExpression2, "Po
 --------------------------------------------------
 -- Emergency shutdown (beta testing so far)
 --------------------------------------------------
-CreateConVar("wire_expression2_unlimited", "0", {FCVAR_REPLICATED})
-CreateConVar("wire_expression2_quotasoft", "10000", {FCVAR_REPLICATED})
-CreateConVar("wire_expression2_quotahard", "100000", {FCVAR_REPLICATED})
-CreateConVar("wire_expression2_quotatick", "25000", {FCVAR_REPLICATED})
-
 local average_ram = 0
 local enable = CreateConVar( 
 	"wire_expression2_ram_emergency_shutdown_enable", "0", {FCVAR_ARCHIVE}, 
