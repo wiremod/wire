@@ -360,16 +360,10 @@ function ENT:ResetContext()
 	for k, v in pairs(self.Inputs) do
 		local CopyFunction = wire_expression_types[v.Type][3]
 		if CopyFunction then
-			local Copy = CopyFunction(self.context, v.Value)
-			if Copy then
-				-- If the copy function doesn't return nil, it means that it's legal to input this class
-				if self.rawinputs[k] then
-					self.GlobalScope[k] = v.Value
-				else
-					self.GlobalScope[k] = Copy
-				end
+			if self.rawinputs[k] then
+				self.GlobalScope[k] = v.Value
 			else
-				self.GlobalScope[k] = nil
+				self.GlobalScope[k] = CopyFunction(self.context, v.Value)
 			end
 		else
 			self.GlobalScope[k] = v.Value
