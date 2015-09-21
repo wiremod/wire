@@ -3,10 +3,21 @@ DEFINE_BASECLASS( "base_wire_entity" )
 ENT.PrintName       = "Wire Graphics Tablet"
 ENT.WireDebugName	= "Graphics Tablet"
 ENT.Author = "greenarrow"
+ENT.Editable = true
 
 ENT.workingDistance = 64
 
-if CLIENT then 
+local SCREEN_CURSOR = false -- (0, 0) is top left, (1, 1) is bottom right
+local GRAPH_CURSOR = true -- (0, 0) is center, (1, 1) is top right
+
+function ENT:SetupDataTables()
+	self:NetworkVar("Bool", 0, "DrawBackground", { KeyName = "DrawBackground",
+		Edit = { type = "Boolean", title = "#Tool_wire_graphics_tablet_mode", order = 1 } })
+	self:NetworkVar("Bool", 1, "CursorMode", { KeyName = "CursorMode",
+		Edit = { type = "Boolean", title = "#Tool_wire_graphics_tablet_draw_background", order = 2 } })
+end
+
+if CLIENT then
 	function ENT:Initialize()
 		self.GPU = WireGPU(self, true)
 	end
@@ -25,7 +36,7 @@ if CLIENT then
 	function ENT:Draw()
 		self:DrawModel()
 
-		local draw_background = self:GetNetworkedBeamBool("draw_background", true)
+		local draw_background = self:GetDrawBackground()
 		self.GPU:RenderToWorld(nil, 512, function(x, y, w, h, monitor, pos, ang, res)
 			if draw_background then
 				surface.SetDrawColor(0, 0, 0, 255)
@@ -65,12 +76,11 @@ if CLIENT then
 		end, draw_background and nil or 0.1)
 		Wire_Render(self)
 	end
-	
+
 	return  -- No more client
 end
 
 -- Server
-ENT.outputMode = false
 
 function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )
@@ -87,13 +97,6 @@ function ENT:Initialize()
 	self.lastX = 0
 	self.lastY = 0
 	self.lastClick = 0
-end
-
-function ENT:Setup(gmode, draw_background)
-	self.gmode = gmode
-	self.outputMode = gmode
-	self.draw_background = draw_background
-	self:SetNetworkedBeamBool("draw_background", draw_background, true)
 end
 
 function ENT:Think()
@@ -132,7 +135,7 @@ function ENT:Think()
 					if (cx ~= self.lastX or cy ~= self.lastY) then
 						self.lastX = cx
 						self.lastY = cy
-						if (self.outputMode) then
+						if self:GetCursorMode() == GRAPH_CURSOR then
 							cx = cx * 2 - 1
 							cy = -(cy * 2 - 1)
 						end
@@ -168,6 +171,12 @@ end
 function ENT:OnRestore()
 	self.BaseClass.OnRestore(self)
 	Wire_AdjustOutputs(self, { "X", "Y", "Use", "OnScreen" })
+end
+
+-- only needed for legacy dupes
+function ENT:Setup(gmode, draw_background)
+	if gmode ~= nil then self:SetCursorMode(gmode) end
+	if draw_background ~= nil then self:SetDrawBackground(draw_background) end
 end
 
 duplicator.RegisterEntityClass("gmod_wire_graphics_tablet", WireLib.MakeWireEnt, "Data", "gmode", "draw_background")
