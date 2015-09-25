@@ -26,5 +26,7 @@ E2Helper.Descriptions["propShadow"] = "Passing 0 disables rendering for the enti
 E2Helper.Descriptions["propSetBuoyancy"] = "Sets the prop's buoyancy ratio from 0 to 1"
 E2Helper.Descriptions["propSetFriction"] = "Sets prop's friction coefficient (default is 1)"
 E2Helper.Descriptions["propGetFriction"] = "Gets prop's friction coefficient"
+E2Helper.Descriptions["propSetElasticity"] = "Sets prop's elasticity coefficient (default is 1)"
+E2Helper.Descriptions["propGetElasticity"] = "Gets prop's elasticity coefficient"
 E2Helper.Descriptions["propSpawnUndo"] = "Set to 0 to force prop removal on E2 shutdown, and suppress Undo entries for props."
 E2Helper.Descriptions["propDeleteAll"] = "Removes all entities spawned by this E2"
