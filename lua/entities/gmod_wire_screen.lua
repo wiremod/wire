@@ -2,88 +2,37 @@ AddCSLuaFile()
 DEFINE_BASECLASS( "base_wire_entity" )
 ENT.PrintName       = "Wire Screen"
 ENT.WireDebugName	= "Screen"
+ENT.Editable = true
 
-function ENT:SetDisplayA( float )
-	self:SetNetworkedBeamFloat( 1, float, true )
-end
+function ENT:SetupDataTables()
+	self:NetworkVar("Bool", 0, "SingleValue", { KeyName = "SingleValue",
+		Edit = { type = "Boolean", title = "#Tool_wire_screen_singlevalue", order = 1 } })
+	self:NetworkVar("Bool", 1, "SingleBigFont", { KeyName = "SingleBigFont",
+		Edit = { type = "Boolean", title = "#Tool_wire_screen_singlebigfont", order = 2 } })
+	self:NetworkVar("Bool", 2, "LeftAlign", { KeyName = "LeftAlign",
+		Edit = { type = "Boolean", title = "#Tool_wire_screen_leftalign", order = 3 } })
+	self:NetworkVar("Bool", 3, "Floor", { KeyName = "Floor",
+		Edit = { type = "Boolean", title = "#Tool_wire_screen_floor", order = 4 } })
+	self:NetworkVar("Bool", 4, "FormatNumber", { KeyName = "FormatNumber",
+		Edit = { type = "Boolean", title = "#Tool_wire_screen_formatnumber", order = 5 } })
+	self:NetworkVar("Bool", 5, "FormatTime", { KeyName = "FormatTime",
+		Edit = { type = "Boolean", title = "#Tool_wire_screen_formattime", order = 6 } })
+	self:NetworkVar("String", 0, "TextA", { KeyName = "TextA",
+		Edit = { type = "Generic", title = "#Tool_wire_screen_texta", order = 7 } })
+	self:NetworkVar("String", 1, "TextB", { KeyName = "TextB",
+		Edit = { type = "Generic", title = "#Tool_wire_screen_textb", order = 8 } })
 
-function ENT:SetDisplayB( float )
-	self:SetNetworkedBeamFloat( 2, float, true )
-end
-
-function ENT:GetDisplayA( )
-	return self:GetNetworkedBeamFloat( 1 )
-end
-
-function ENT:GetDisplayB( )
-	return self:GetNetworkedBeamFloat( 2 )
-end
-
--- Extra stuff for Wire Screen (TheApathetic)
-function ENT:SetSingleValue(singlevalue)
-	self:SetNWBool("SingleValue",singlevalue)
-
-	-- Change inputs if necessary
-	if (singlevalue) then
-		WireLib.AdjustInputs(self, {"A"})
-	else
-		WireLib.AdjustInputs(self, {"A","B"})
-	end
-end
-function ENT:GetSingleValue()
-	return self:GetNetworkedBool("SingleValue")
+	if SERVER then self:NetworkVarNotify("SingleValue", function(ent, key, old, value)
+		WireLib.AdjustInputs(self, value and { "A", "B" } or { "A" })
+	end) end
 end
 
-function ENT:SetSingleBigFont(singlebigfont)
-	self:SetNWBool("SingleBigFont",singlebigfont)
-end
-function ENT:GetSingleBigFont()
-	return self:GetNetworkedBool("SingleBigFont")
-end
+function ENT:SetDisplayA(float)	self:SetNWFloat("DisplayA", float) end
+function ENT:SetDisplayB(float)	self:SetNWFloat("DisplayB", float) end
+function ENT:GetDisplayA() return self:GetNWFloat("DisplayA") end
+function ENT:GetDisplayB() return self:GetNWFloat("DisplayB") end
 
-function ENT:SetTextA(text)
-	self:SetNWString("TextA",text)
-end
-function ENT:GetTextA()
-	return self:GetNetworkedString("TextA")
-end
-
-function ENT:SetTextB(text)
-	self:SetNWString("TextB",text)
-end
-function ENT:GetTextB()
-	return self:GetNWString("TextB")
-end
-
-function ENT:SetLeftAlign(leftalign)
-	self:SetNWBool("LeftAlign",leftalign)
-end
-function ENT:GetLeftAlign()
-	return self:GetNWBool("LeftAlign")
-end
-
-function ENT:SetFloor(Floor)
-	self:SetNWBool("Floor",Floor)
-end
-function ENT:GetFloor()
-	return self:GetNWBool("Floor")
-end
-
-function ENT:SetFormatNumber( FormatNumber )
-	self:SetNWBool( "FormatNumber", FormatNumber )
-end
-function ENT:GetFormatNumber()
-	return self:GetNWBool("FormatNumber")
-end
-
-function ENT:SetFormatTime( FormatTime )
-	self:SetNWBool( "FormatTime", FormatTime )
-end
-function ENT:GetFormatTime()
-	return self:GetNWBool("FormatTime")
-end
-
-if CLIENT then 
+if CLIENT then
 	function ENT:Initialize()
 		self.GPU = WireGPU(self, true)
 	end
@@ -136,7 +85,7 @@ if CLIENT then
 			value = "" .. math.floor( value )
 		else
 			-- note: loses precision after ~7 decimals, so don't bother displaying more
-			value = "" .. math.floor( value * 10000000 ) / 10000000 
+			value = "" .. math.floor( value * 10000000 ) / 10000000
 		end
 
 		local align = self:GetLeftAlign() and 0 or 1
@@ -180,7 +129,7 @@ if CLIENT then
 	surface.CreateFont("screen_font_single", fontData )
 	fontData.size = 36
 	surface.CreateFont("Trebuchet36", fontData )
-	
+
 	return  -- No more client
 end
 
@@ -220,33 +169,16 @@ function ENT:TriggerInput(iname, value)
 	end
 end
 
+-- only needed for legacy dupes
 function ENT:Setup(SingleValue, SingleBigFont, TextA, TextB, LeftAlign, Floor, FormatNumber, FormatTime)
-	--for duplication
-	self.SingleValue	= SingleValue
-	self.SingleBigFont	= SingleBigFont
-	self.TextA			= TextA
-	self.TextB 			= TextB
-	self.LeftAlign 		= LeftAlign
-	self.Floor	 		= Floor
-	self.FormatNumber	= FormatNumber
-	self.FormatTime		= FormatTime
-
-	-- Extra stuff for Wire Screen (TheApathetic)
-	self:SetTextA(TextA)
-	self:SetTextB(TextB)
-	self:SetSingleBigFont(SingleBigFont)
-
-	--LeftAlign (TAD2020)
-	self:SetLeftAlign(LeftAlign)
-	--Floor (TAD2020)
-	self:SetFloor(Floor)
-
-	--Put it here to update inputs if necessary (TheApathetic)
-	self:SetSingleValue(SingleValue)
-
-	-- Auto formatting (Divran)
-	self:SetFormatNumber( FormatNumber )
-	self:SetFormatTime( FormatTime )
+	if type(TextA) == "string" then self:SetTextA(TextA) end
+	if type(TextB) == "string" then self:SetTextB(TextB) end
+	if SingleBigFont ~= nil then self:SetSingleBigFont(SingleBigFont) end
+	if LeftAlign ~= nil then self:SetLeftAlign(LeftAlign) end
+	if Floor ~= nil then self:SetFloor(Floor) end
+	if SingleValue ~= nil then self:SetSingleValue(SingleValue) end
+	if FormatNumber ~= nil then self:SetFormatNumber(FormatNumber) end
+	if FormatTime ~= nil then self:SetFormatTime(FormatTime) end
 end
 
 duplicator.RegisterEntityClass("gmod_wire_screen", WireLib.MakeWireEnt, "Data", "SingleValue", "SingleBigFont", "TextA", "TextB", "LeftAlign", "Floor", "FormatNumber", "FormatTime")
