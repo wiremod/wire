@@ -487,6 +487,22 @@ e2function void table:remove( string index )
 	self.GlobalScope.vclk[this] = true
 end
 
+--------------------------------------------------------------------------------
+-- Force remove
+-- Forcibly removes the value from the array by setting it to nil
+-- Does not shift larger indexes down to fill the hole
+--------------------------------------------------------------------------------
+e2function void table:unset( index )
+	if this.n[index] == nil then return end
+	this.n[index] = nil
+	this.ntypes[index] = nil
+	this.size = this.size - 1
+	self.GlobalScope.vclk[this] = true
+end
+
+-- Force remove for strings is an alias to table:remove(string)
+e2function void table:unset( string index ) = e2function void table:remove( string index )
+
 -- Removes all variables not of the type
 e2function table table:clipToTypeid( string typeid )
 	local ret = table.Copy(DEFAULT)
