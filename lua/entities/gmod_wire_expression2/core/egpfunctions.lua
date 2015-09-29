@@ -757,15 +757,9 @@ e2function vector2 wirelink:egpPos( number index )
 	return {-1,-1}
 end
 
--- Overriding ErrorNoHalt to prevent it from printing the error which prints if you try to use GetGlobalPos on a nonexistant object.
-local olderror = ErrorNoHalt
-local override = function() end
-
 __e2setcost(20)
 e2function vector wirelink:egpGlobalPos( number index )
-	ErrorNoHalt = override
 	local hasvertices, posang = EGP:GetGlobalPos( this, index )
-	ErrorNoHalt = olderror
 	if (!hasvertices) then
 		return { posang.x, posang.y, posang.angle }
 	end
