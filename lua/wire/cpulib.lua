@@ -84,11 +84,10 @@ if CLIENT then
   -- Make sure the file is opened in the tab
   function CPULib.SelectTab(editor,fileName)
     if not editor then return end
-    local fullFileName = editor.EditorType.."Chip\\"..fileName
-    fileName = string.lower(fileName)
-    fullFileName = string.lower(fullFileName)
-    editor.EditorType = string.lower(editor.EditorType)
-    if string.sub(fileName,1,7) == editor.EditorType.."chip" then
+    local editorType = string.lower(editor.EditorType)
+    local fullFileName = editorType.."chip\\"..fileName
+
+    if string.sub(fileName,1,7) == editorType.."chip" then
       fullFileName = fileName
     end
 
