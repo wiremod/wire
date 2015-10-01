@@ -604,8 +604,6 @@ function Parser:Stmt10()
 
 			if Type == "number" then Type = "normal" end
 
-			if Type == "normal" then self:Error("Number can not be used as function object type", TypeToken) end
-
 			if Type == "void" then self:Error("Void can not be used as function object type", TypeToken) end
 
 			Type = Type:upper()
