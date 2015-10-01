@@ -19,8 +19,8 @@ function ENT:Initialize()
 	self:SetSolid( SOLID_VPHYSICS )
 	self:StartMotionController()
 
-	self.Inputs = Wire_CreateInputs(self, { "X", "Y", "SelectValue","Length"})
-	self.Outputs = Wire_CreateOutputs(self, { "Dist" })
+	self.Inputs = WireLib.CreateInputs(self, { "X", "Y", "SelectValue","Length"})
+	self.Outputs = WireLib.CreateOutputs(self, { "Dist" })
 	self.hires = false
 end
 
@@ -50,59 +50,58 @@ function ENT:Setup( range, default_zero, show_beam, ignore_world, trace_water, o
 	self:SetNetworkedBool("TraceWater", trace_water)
 
 	local onames, otypes = {}, {}
-	if (out_dist) then
-		table.insert(onames, "Dist") table.insert(otypes, "NORMAL")
+
+
+	local function add(...)
+		local args = {...}
+		for i=1,#args,2 do
+			onames[#onames+1] = args[i]
+			otypes[#otypes+1] = args[i+1]
+		end
 	end
-	if (out_pos) then
-		table.insert(onames, "Pos") table.insert(otypes, "VECTOR")
-		table.insert(onames, "Pos X") table.insert(otypes, "NORMAL")
-		table.insert(onames, "Pos Y") table.insert(otypes, "NORMAL")
-		table.insert(onames, "Pos Z") table.insert(otypes, "NORMAL")
+
+
+	if (out_dist) then add("Dist","NORMAL") end
+	if (out_pos) then 
+		add("Pos", "VECTOR",
+			"Pos X", "NORMAL",
+			"Pos Y", "NORMAL",
+			"Pos Z", "NORMAL")
 	end
 	if (out_vel) then
-		table.insert(onames, "Vel") table.insert(otypes, "VECTOR")
-		table.insert(onames, "Vel X") table.insert(otypes, "NORMAL")
-		table.insert(onames, "Vel Y") table.insert(otypes, "NORMAL")
-		table.insert(onames, "Vel Z") table.insert(otypes, "NORMAL")
+		add("Vel","VECTOR",
+			"Vel X","NORMAL",
+			"Vel Y","NORMAL",
+			"Vel Z","NORMAL")
 	end
 	if (out_ang) then
-		table.insert(onames, "Ang") table.insert(otypes, "ANGLE")
-		table.insert(onames, "Ang Pitch") table.insert(otypes, "NORMAL")
-		table.insert(onames, "Ang Yaw") table.insert(otypes, "NORMAL")
-		table.insert(onames, "Ang Roll") table.insert(otypes, "NORMAL")
+		add("Ang","ANGLE",
+			"Ang Pitch","NORMAL",
+			"Ang Yaw","NORMAL",
+			"Ang Roll","NORMAL")
 	end
 	if (out_col) then
-		table.insert(onames, "Col RGB") table.insert(otypes, "VECTOR")
-		table.insert(onames, "Col R") table.insert(otypes, "NORMAL")
-		table.insert(onames, "Col G") table.insert(otypes, "NORMAL")
-		table.insert(onames, "Col B") table.insert(otypes, "NORMAL")
-		table.insert(onames, "Col A") table.insert(otypes, "NORMAL")
+		add("Col RGB","VECTOR",
+			"Col R","NORMAL",
+			"Col G","NORMAL",
+			"Col B","NORMAL",
+			"Col A","NORMAL")
 	end
-	if (out_val) then
-		table.insert(onames, "Val") table.insert(otypes, "NORMAL")
-		table.insert(onames, "ValSize") table.insert(otypes, "NORMAL")
-	end
-	if (out_sid) then
-		table.insert(onames, "SteamID") table.insert(otypes, "STRING")
-	end
-	if (out_uid) then
-		table.insert(onames, "UniqueID") table.insert(otypes, "NORMAL")
-	end
-	if (out_eid) then
-		table.insert(onames, "EntID") table.insert(otypes, "NORMAL")
-		table.insert(onames, "Entity") table.insert(otypes, "ENTITY")
-	end
+	if (out_val) then add("Val","NORMAL","ValSize","NORMAL") end
+	if (out_sid) then add( "SteamID", "STRING" ) end
+	if (out_uid) then add( "UniqueID","NORMAL" ) end
+	if (out_eid) then add( "EntID", "NORMAL", "Entity", "ENTITY" ) end
 	if (out_hnrm) then
-		table.insert(onames, "HitNormal") table.insert(otypes, "VECTOR")
-		table.insert(onames, "HitNormal X") table.insert(otypes, "NORMAL")
-		table.insert(onames, "HitNormal Y") table.insert(otypes, "NORMAL")
-		table.insert(onames, "HitNormal Z") table.insert(otypes, "NORMAL")
+		add("HitNormal","VECTOR",
+			"HitNormal X","NORMAL",
+			"HitNormal Y","NORMAL",
+			"HitNormal Z","NORMAL")
 	end
-	table.insert(onames, "RangerData") table.insert(otypes, "RANGER")
+	add( "RangerData", "RANGER" )
 	WireLib.AdjustSpecialOutputs(self, onames, otypes)
 
 	self:TriggerOutput(0, Vector(0, 0, 0), Vector(0, 0, 0), Angle(0, 0, 0), Color(255, 255, 255, 255),nil,0,0,NULL, Vector(0, 0, 0),nil)
-	self:ShowOutput()
+	self:ShowOutput(0, Vector(0, 0, 0), Vector(0, 0, 0), Angle(0, 0, 0), Color(255, 255, 255, 255),nil,0,0,NULL, Vector(0, 0, 0),nil)
 end
 
 function ENT:TriggerInput(iname, value)
@@ -164,9 +163,9 @@ function ENT:Think()
 			end
 
 			if (self.out_val and ent.Outputs) then
-				local i = 0
+				local i = 1
 				for k,v in pairs(ent.Outputs) do
-					if (v.Value != nil) then
+					if (v.Value != nil and type(v.Value) == "number") then
 						val[i] = v.Value
 						i = i + 1
 					end
@@ -197,7 +196,7 @@ function ENT:Think()
 	end
 
 	self:TriggerOutput(dist, pos, vel, ang, col, val, sid, uid, ent, hnrm, trace)
-	self:ShowOutput()
+	self:ShowOutput(dist, pos, vel, ang, col, val, sid, uid, ent, hnrm, trace)
 
 	if (self.hires) then
 		self:NextThink(CurTime())
@@ -208,65 +207,21 @@ function ENT:Think()
 	return true
 end
 
-function ENT:ShowOutput() --this function is evil (very), should be done clientside
+local round = math.Round
 
+function ENT:ShowOutput(dist, pos, vel, ang, col, val, sid, uid, ent, hnrm, trace)
 	local txt = "Max Range: " .. self:GetBeamLength()
 
-	if (self.out_dist) then
-		txt = txt .. "\nRange = " .. math.Round(self.Outputs["Dist"].Value*1000)/1000
-	end
-
-	if (self.out_pos) then
-		txt = txt .. "\nPosition = "
-			.. math.Round(self.Outputs["Pos X"].Value*1000)/1000 .. ", "
-			.. math.Round(self.Outputs["Pos Y"].Value*1000)/1000 .. ", "
-			.. math.Round(self.Outputs["Pos Z"].Value*1000)/1000
-	end
-
-	if (self.out_vel) then
-		txt = txt .. "\nVelocity = "
-			.. math.Round(self.Outputs["Vel X"].Value*1000)/1000 .. ", "
-			.. math.Round(self.Outputs["Vel Y"].Value*1000)/1000 .. ", "
-			.. math.Round(self.Outputs["Vel Z"].Value*1000)/1000
-	end
-
-	if (self.out_ang) then
-		txt = txt .. "\nAngles = "
-			.. math.Round(self.Outputs["Ang Pitch"].Value*1000)/1000 .. ", "
-			.. math.Round(self.Outputs["Ang Yaw"].Value*1000)/1000 .. ", "
-			.. math.Round(self.Outputs["Ang Roll"].Value*1000)/1000
-	end
-
-	if (self.out_col) then
-		txt = txt .. "\nColor = "
-			.. math.Round(self.Outputs["Col R"].Value*1000)/1000 .. ", "
-			.. math.Round(self.Outputs["Col G"].Value*1000)/1000 .. ", "
-			.. math.Round(self.Outputs["Col B"].Value*1000)/1000 .. ", "
-			.. math.Round(self.Outputs["Col A"].Value*1000)/1000
-	end
-
-	if (self.out_val) then
-		txt = txt .. "\nValue = " .. math.Round((self.Outputs["Val"].Value)*1000)/1000 .. " ValSize = " .. self.Outputs["ValSize"].Value
-	end
-
-	if (self.out_sid) then
-		txt = txt .. "\nSteamID = " .. (self.Outputs["SteamID"].Value or "")
-	end
-
-	if (self.out_uid) then
-		txt = txt .. "\nUniqueID = " .. (self.Outputs["UniqueID"].Value or 0)
-	end
-
-	if (self.out_eid) then
-		txt = txt .. "\nEntID = " .. (self.Outputs["EntID"].Value or 0)
-	end
-
-	if (self.out_hnrm) then
-		txt = txt .. "\nHitNormal = "
-			.. math.Round(self.Outputs["HitNormal X"].Value*1000)/1000 .. ", "
-			.. math.Round(self.Outputs["HitNormal Y"].Value*1000)/1000 .. ", "
-			.. math.Round(self.Outputs["HitNormal Z"].Value*1000)/1000
-	end
+	if (self.out_dist) then txt = txt .. "\nRange = " .. round(dist,3) end
+	if (self.out_pos) then txt = txt .. string.format("\nPosition = %s, %s, %s", round(pos.x,3), round(pos.y,3), round(pos.z,3)) end
+	if (self.out_vel) then txt = txt .. string.format("\nVelocity = %s, %s, %s", round(vel.x,3), round(vel.y,3), round(vel.z,3)) end
+	if (self.out_ang) then txt = txt .. string.format("\nAngles = %s, %s, %s", round(ang.pitch,3), round(ang.yaw,3), round(ang.roll,3)) end
+	if (self.out_col) then txt = txt .. string.format("\nColor = %s, %s, %s, %s", round(col.r), round(col.g), round(col.b), round(col.a)) end
+	if (self.out_val) then txt = txt .. string.format("\nValue = %s ValSize = %s", round(self.Outputs["Val"].Value or 0,3), #(val or {}) ) end
+	if (self.out_sid) then txt = txt .. "\nSteamID = " .. (sid or "") end
+	if (self.out_uid) then txt = txt .. "\nUniqueID = " .. (uid or 0) end
+	if (self.out_eid) then txt = txt .. "\nEntID = " .. ent:EntIndex() end
+	if (self.out_hnrm) then txt = txt .. string.format("\nHitNormal = %s, %s, %s", round(hnrm.x,3), round(hnrm.y,3), round(hnrm.z,3)) end
 
 	self:SetOverlayText(txt)
 end
@@ -274,66 +229,66 @@ end
 function ENT:TriggerOutput(dist, pos, vel, ang, col, val, sid, uid, ent, hnrm, trace)
 
 	if (self.out_dist) then
-		Wire_TriggerOutput(self, "Dist", dist)
+		WireLib.TriggerOutput(self, "Dist", dist)
 	end
 
 	if (self.out_pos) then
-		Wire_TriggerOutput(self, "Pos", pos)
-		Wire_TriggerOutput(self, "Pos X", pos.x)
-		Wire_TriggerOutput(self, "Pos Y", pos.y)
-		Wire_TriggerOutput(self, "Pos Z", pos.z)
+		WireLib.TriggerOutput(self, "Pos", pos)
+		WireLib.TriggerOutput(self, "Pos X", pos.x)
+		WireLib.TriggerOutput(self, "Pos Y", pos.y)
+		WireLib.TriggerOutput(self, "Pos Z", pos.z)
 	end
 
 	if (self.out_vel) then
-		Wire_TriggerOutput(self, "Vel", vel)
-		Wire_TriggerOutput(self, "Vel X", vel.x)
-		Wire_TriggerOutput(self, "Vel Y", vel.y)
-		Wire_TriggerOutput(self, "Vel Z", vel.z)
+		WireLib.TriggerOutput(self, "Vel", vel)
+		WireLib.TriggerOutput(self, "Vel X", vel.x)
+		WireLib.TriggerOutput(self, "Vel Y", vel.y)
+		WireLib.TriggerOutput(self, "Vel Z", vel.z)
 	end
 
 	if (self.out_ang) then
-		Wire_TriggerOutput(self, "Ang", ang)
-		Wire_TriggerOutput(self, "Ang Pitch", ang.p)
-		Wire_TriggerOutput(self, "Ang Yaw", ang.y)
-		Wire_TriggerOutput(self, "Ang Roll", ang.r)
+		WireLib.TriggerOutput(self, "Ang", ang)
+		WireLib.TriggerOutput(self, "Ang Pitch", ang.p)
+		WireLib.TriggerOutput(self, "Ang Yaw", ang.y)
+		WireLib.TriggerOutput(self, "Ang Roll", ang.r)
 	end
 
 	if (self.out_col) then
-		Wire_TriggerOutput(self, "Col RGB", Vector(col.r, col.g, col.b))
-		Wire_TriggerOutput(self, "Col R", col.r)
-		Wire_TriggerOutput(self, "Col G", col.g)
-		Wire_TriggerOutput(self, "Col B", col.b)
-		Wire_TriggerOutput(self, "Col A", col.a)
+		WireLib.TriggerOutput(self, "Col RGB", Vector(col.r, col.g, col.b))
+		WireLib.TriggerOutput(self, "Col R", col.r)
+		WireLib.TriggerOutput(self, "Col G", col.g)
+		WireLib.TriggerOutput(self, "Col B", col.b)
+		WireLib.TriggerOutput(self, "Col A", col.a)
 	end
 
 	if (self.out_sid) then
-		Wire_TriggerOutput(self, "SteamID", sid)
+		WireLib.TriggerOutput(self, "SteamID", sid)
 	end
 
 	if (self.out_uid) then
-		Wire_TriggerOutput(self, "UniqueID", uid)
+		WireLib.TriggerOutput(self, "UniqueID", uid)
 	end
 
 	if (self.out_eid) then
-		Wire_TriggerOutput(self, "EntID", ent:EntIndex())
-		Wire_TriggerOutput(self, "Entity", ent)
+		WireLib.TriggerOutput(self, "EntID", ent:EntIndex())
+		WireLib.TriggerOutput(self, "Entity", ent)
 	end
 
 	if (self.out_hnrm and hnrm) then
-		Wire_TriggerOutput(self, "HitNormal", hnrm)
-		Wire_TriggerOutput(self, "HitNormal X", hnrm.x)
-		Wire_TriggerOutput(self, "HitNormal Y", hnrm.y)
-		Wire_TriggerOutput(self, "HitNormal Z", hnrm.z)
+		WireLib.TriggerOutput(self, "HitNormal", hnrm)
+		WireLib.TriggerOutput(self, "HitNormal X", hnrm.x)
+		WireLib.TriggerOutput(self, "HitNormal Y", hnrm.y)
+		WireLib.TriggerOutput(self, "HitNormal Z", hnrm.z)
 	end
 
-	if (val != nil && #val > 0 && self.Inputs.SelectValue.Value < table.Count(val)) then
-		Wire_TriggerOutput(self, "Val", val[self.Inputs.SelectValue.Value])
-		Wire_TriggerOutput(self, "ValSize", table.Count(val))
+	if (val ~= nil and #val > 0 and self.Inputs.SelectValue.Value <= #val) then
+		WireLib.TriggerOutput(self, "Val", val[self.Inputs.SelectValue.Value])
+		WireLib.TriggerOutput(self, "ValSize", #val)
 	else
-		Wire_TriggerOutput(self, "Val", 0)
-		Wire_TriggerOutput(self, "ValSize", 0)
+		WireLib.TriggerOutput(self, "Val", 0)
+		WireLib.TriggerOutput(self, "ValSize", 0)
 	end
-	Wire_TriggerOutput(self, "RangerData", trace)
+	WireLib.TriggerOutput(self, "RangerData", trace)
 
 end
 

@@ -326,6 +326,16 @@ e2function number entity:propGetFriction()
 	return this:GetFriction()
 end
 
+e2function void entity:propSetElasticity(number elasticity)
+	if not PropCore.ValidAction(self, this, "elasticity") then return end
+	this:SetElasticity( math.Clamp(elasticity, -1000, 1000) )
+end
+
+e2function number entity:propGetElasticity()
+	if not PropCore.ValidAction(self, this, "elasticity") then return end
+	return this:GetElasticity()
+end
+
 e2function void entity:propMakePersistent(number persistent)
 	if not PropCore.ValidAction(self, this, "persist") then return end
 	if GetConVarString("sbox_persist") == "0" then return end
