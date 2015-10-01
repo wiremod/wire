@@ -53,7 +53,6 @@ function HCOMP:ParsePreprocessMacro(lineText,macroPosition)
       end
     elseif pragmaName == "language" then
       if string.lower(pragmaCommand) == "hlzasm" then self.Settings.CurrentLanguage = "HLZASM" end
-      if string.lower(pragmaCommand) == "c"      then self.Settings.CurrentLanguage = "C"      end
       if string.lower(pragmaCommand) == "zasm"   then self.Settings.CurrentLanguage = "ZASM"   end
     elseif pragmaName == "crt" then
       local crtFilename = "lib\\"..string.lower(pragmaCommand).."\\init.txt"
