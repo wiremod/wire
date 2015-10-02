@@ -34,6 +34,7 @@ __e2setcost(8)
 
 e2function vector entity:shootPos()
 	if(!IsValid(this)) then return {0,0,0} end
+	if not isOwner(self, this) then return {0,0,0} end
 	if(this:IsPlayer() or this:IsNPC()) then
 		return this:GetShootPos()
 	else return {0,0,0} end

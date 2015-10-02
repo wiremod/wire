@@ -113,6 +113,7 @@ __e2setcost(3)
 --- Returns <this>'s <index>th bone.
 e2function bone entity:bone(index)
 	if not IsValid(this) then return nil end
+	if not isOwner(self, this) then return end
 	if index < 0 then return nil end
 	if index >= this:GetPhysicsObjectCount() then return nil end
 	return getBone(this, index)
@@ -121,6 +122,7 @@ end
 --- Returns an array containing all of <this>'s bones. This array's first element has the index 0!
 e2function array entity:bones()
 	if not IsValid(this) then return {} end
+	if not isOwner(self, this) then return {} end
 	local ret = {}
 	local maxn = this:GetPhysicsObjectCount()-1
 	for i = 0,maxn do
