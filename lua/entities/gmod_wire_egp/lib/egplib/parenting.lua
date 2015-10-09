@@ -168,8 +168,7 @@ function EGP:GetGlobalPos( Ent, index )
 			return false, { x = v.x, y = v.y, angle = v.angle or 0 }
 		end
 	end
-	-- Shouldn't ever get down here
-	ErrorNoHalt("[EGP] Parenting error. Tried to get position of nonexistant object (index = " .. index .. ")\n")
+
 	return false, {x=0,y=0,angle=0}
 end
 

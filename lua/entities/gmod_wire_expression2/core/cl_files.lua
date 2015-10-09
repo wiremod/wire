@@ -15,6 +15,7 @@ local allowed_directories = { //prefix with >(allowed directory)/file.txt for fi
 	["e2shared"] = "expression2/e2shared",
 	["cpushared"] = "cpuchip/e2shared",
 	["gpushared"] = "gpuchip/e2shared",
+	["spushared"] = "spuchip/e2shared",
 	["dupeshared"] = "adv_duplicator/e2shared"
 }
 
