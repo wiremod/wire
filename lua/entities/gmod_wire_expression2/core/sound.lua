@@ -54,6 +54,18 @@ ClientSideSound.SendFuncs = {
 		net.WriteUInt(val, 32)
 	end
 }
+ClientSideSound.SendFuncsLookup = {
+	Create = 1,
+	Play = 2,
+	Pause = 3,
+	Remove = 4,
+	Stop = 5,
+	ChangeVolume = 6,
+	ChangePitch = 7,
+	ChangeFadeDistance = 8,
+	SetLooping = 9,
+	SetTimePosition = 10
+}
 	
 function ClientSideSound.CreateSound( path, time, index, entity, e2 ) 
 	local self = setmetatable({},ClientSideSound.mt)
@@ -77,7 +89,7 @@ function ClientSideSound.Broadcast()
 			for I=1, numReq do
 				local Request = ClientSideSound.SendRequests[I]
 				net.WriteString(Request.Arg[1].index)
-				net.WriteString(Request.Func)
+				net.WriteUInt(ClientSideSound.SendFuncsLookup[Request.Func],8)
 				ClientSideSound.SendFuncs[Request.Func](unpack(Request.Arg))
 			end
 		net.Broadcast()

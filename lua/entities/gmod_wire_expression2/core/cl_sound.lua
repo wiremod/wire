@@ -44,7 +44,7 @@ end )
 
 local function moveSounds()
 	for k,v in pairs(E2Sounds) do
-		if IsValid(v.SoundChannel) then
+		if v.IsBass and IsValid(v.SoundChannel) then
 			if IsValid(v.Entity) then
 				v.SoundChannel:SetPos(v.Entity:GetPos())
 				if v.FadePitchStart then
@@ -96,7 +96,7 @@ local function setFadeVolume(sound, volume, time)
 	sound.DeltaVolume = volume - sound.OriginalVolume
 end
 
-local soundFuncs = {	
+local bassSoundFuncs = {	
 	Play = function(sound, time, ent)
 		sound.SoundChannel:Play()
 		sound.Entity = ent
@@ -152,45 +152,59 @@ local soundFuncs = {
 	end
 }
 
-local function loadSound(index)
+local CSSoundMeta = FindMetaTable("CSoundPatch")
+CSSoundMeta.SetVolume = CSSoundMeta.ChangeVolume
+CSSoundMeta.SetPlaybackRate = CSSoundMeta.ChangePitch
+local gmodSoundFuncs = {	
+	Play = bassSoundFuncs.Play,
+	Stop = bassSoundFuncs.Stop,
+	Remove = bassSoundFuncs.Remove,
+	ChangeVolume = bassSoundFuncs.ChangeVolume,
+	ChangePitch = bassSoundFuncs.ChangePitch
+}
 
-	local path = E2Sounds[index].Path
-	local function createSoundCallback(channel, er, ername)
-		if IsValid(channel) then
-			if E2Sounds[index] and IsValid(E2Sounds[index].Entity) then
-				local sound = E2Sounds[index]
-				if IsValid(sound.SoundChannel) then
-					sound.SoundChannel:Stop()
-				end
-				sound.SoundChannel = channel
-				channel:SetPos(sound.Entity:GetPos())
-				
-				local queue = sound.Queue
-				if queue then
-					for I=1, #queue do
-						queue[I].Func(sound, unpack(queue[I].Arg))
+local function loadSound(index)
+	local sound = E2Sounds[index]
+	local path = sound.Path
+	if sound.IsBass then
+		local function createSoundCallback(channel, er, ername)
+			if IsValid(channel) then
+				if E2Sounds[index] and IsValid(sound.Entity) then
+					if IsValid(sound.SoundChannel) then
+						sound.SoundChannel:Stop()
 					end
-					sound.Queue = nil
+					sound.SoundChannel = channel
+					channel:SetPos(sound.Entity:GetPos())
+					
+					local queue = sound.Queue
+					if queue then
+						for I=1, #queue do
+							queue[I].Func(sound, unpack(queue[I].Arg))
+						end
+						sound.Queue = nil
+					end
+					
+					if sound.Length>0 then
+						E2Sounds[index].DieTime = CurTime() + sound.Length
+					end
+					sound.Length = 0
+				else
+					channel:Stop()
+					E2Sounds[index] = nil
 				end
-				
-				if sound.Length>0 then
-					E2Sounds[index].DieTime = CurTime() + sound.Length
-				end
-				sound.Length = 0
 			else
-				channel:Stop()
+				LocalPlayer():PrintMessage( HUD_PRINTCONSOLE, "[E2] Failed to play sound: " .. path .. "\n")
 				E2Sounds[index] = nil
 			end
-		else
-			LocalPlayer():PrintMessage( HUD_PRINTCONSOLE, "[E2] Failed to play sound: " .. path .. "\n")
-			E2Sounds[index] = nil
 		end
-	end
-	
-	if path:sub(1,4)=="http" then
-		sound.PlayURL( path, "3d noblock", createSoundCallback )
+		sound.PlayURL(path, "3d noblock", createSoundCallback)
 	else
-		sound.PlayFile( "sound/" .. path, "3d noblock", createSoundCallback )
+		local newsound = CreateSound(sound.Entity, path)
+		newsound:Play()
+		sound.Entity:CallOnRemove("E2Sound_"..index, function( ent )
+			newsound:Stop()
+		end)
+		sound.SoundChannel = newsound
 	end
 end
 
@@ -200,6 +214,8 @@ local function createSound(index)
 	local ent = net.ReadEntity()
 	local ply = net.ReadEntity()
 	
+	if not ent:IsValid() or not ply:IsValid() then return end
+	
 	if wire_expression2_sound_enabled:GetInt()==1 and ply:GetFriendStatus()~="friend" and ply~=LocalPlayer() then return end
 	if BlockedPlayers[ply:SteamID()] then return end
 	
@@ -207,7 +223,10 @@ local function createSound(index)
 		hook.Add("Think", "E2_move_sounds",moveSounds)
 	end
 	
-	E2Sounds[index] = {SoundChannel = nil, Entity = ent, Player = ply, Queue = {}, Path = path, Length = time, Index = index}
+	if E2Sounds[index] and E2Sounds[index].SoundChannel and E2Sounds[index].SoundChannel:IsValid() then
+		E2Sounds[index].SoundChannel:Stop()
+	end
+	E2Sounds[index] = {SoundChannel = nil, Entity = ent, Player = ply, Queue = {}, Path = path, Length = time, Index = index, IsBass = path:sub(1,4)=="http"}
 	
 	loadSound(index)
 end
@@ -243,26 +262,44 @@ local netFuncs = {
 }
 
 local function decideFunction(index, func)
-	if netFuncs[func] then
+	if func == "Create" then
+		createSound(index)
+	elseif netFuncs[func] then
 		local sound = E2Sounds[index]
 		local netdata = netFuncs[func]()
 		if sound then
-			if sound.SoundChannel then
-				if sound.SoundChannel:IsValid() then
-					soundFuncs[func](sound,unpack(netdata))
+			local soundFunc = sound.IsBass and bassSoundFuncs[func] or gmodSoundFuncs[func]
+			if soundFunc then
+				if sound.SoundChannel then
+					if not sound.IsBass or sound.SoundChannel:IsValid() then
+						soundFunc(sound,unpack(netdata))
+					--[[else
+						sound.SoundChannel = nil
+						sound.Queue = {{Func = soundFunc, Arg = netdata}}
+						loadSound(index)]]
+					end
+				elseif sound.Queue then
+					sound.Queue[#sound.Queue+1] = {Func = soundFunc, Arg = netdata}
 				else
-					sound.SoundChannel = nil
-					sound.Queue = {{Func = soundFuncs[func], Arg = netdata}}
-					loadSound(index)
+					 E2Sounds[index] = nil
 				end
-			elseif sound.Queue then
-				sound.Queue[#sound.Queue+1] = {Func = soundFuncs[func], Arg = netdata}
-			else
-				 E2Sounds[index] = nil
 			end
 		end
 	end
 end
+
+local funcLookup = {
+	"Create",
+	"Play",
+	"Pause",
+	"Stop",
+	"Remove",
+	"ChangeVolume",
+	"ChangePitch",
+	"ChangeFadeDistance",
+	"SetLooping",
+	"SetTimePosition",
+}
 
 net.Receive("e2_soundrequest",function()
 	local access = wire_expression2_sound_enabled:GetInt()
@@ -271,12 +308,8 @@ net.Receive("e2_soundrequest",function()
 	local numRequests = math.Clamp(net.ReadUInt(32),0,100)
 	for I=1, numRequests do
 		local index = net.ReadString()
-		local func = net.ReadString()
-		if func == "Create" then
-			createSound(index)
-		else
-			decideFunction(index, func)
-		end
+		local func = funcLookup[net.ReadUInt(8)]
+		decideFunction(index, func)
 	end
 end)
 
