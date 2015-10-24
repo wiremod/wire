@@ -205,7 +205,7 @@ end
 --------------------------------------------------------------------------------
 function ENT:TriggerInput(iname, value)
   if iname == "Clk" then
-    self.Clk = value
+    self.Clk = (value ~= 0 and 1 or 0)
     self:WriteCell(65535,self.Clk)
   elseif iname == "Reset" then
     if value >= 1.0 then self:WriteCell(65534,1) end
