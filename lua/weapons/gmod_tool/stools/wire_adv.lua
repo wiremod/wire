@@ -1,13 +1,25 @@
+
+-- Load wiremod tools in /lua/wire/stools/
+-- Note: If this tool is ever removed, be sure to put this in another stool!
+local OLD_TOOL = TOOL
+TOOL = nil
+include( "wire/tool_loader.lua" )
+TOOL = OLD_TOOL
+
 TOOL.Category	= "Tools"
-TOOL.Name		= "Wire Advanced"
+TOOL.Name		= "Wire"
 TOOL.Tab		= "Wire"
 
 if CLIENT then
-	language.Add( "Tool.wire_adv.name", "Advanced Wiring Tool" )
+	language.Add( "Tool.wire_adv.name", "Wiring Tool" )
 	language.Add( "Tool.wire_adv.desc", "Connect things with wires. (Press Shift+F to switch to the debugger tool)" )
+	language.Add( "Tool.wire_adv.desc2", "Used to connect wirable props." )
 	language.Add( "Tool.wire_adv.0", "Primary: Select input (Shift: Select multiple; Alt: Select all), Secondary: Next, Reload: Unlink (Alt: Unlink all), Mouse Wheel: Next" )
 	language.Add( "Tool.wire_adv.1", "Primary: Select entity, Secondary: Add wire point, Reload: Cancel" )
 	language.Add( "Tool.wire_adv.2", "Primary: Select output (Alt: Auto-connect matching input/outputs), Secondary: Next, Reload: Cancel, Mouse Wheel: Next" )
+	language.Add( "WireTool_width", "Width:" )
+	language.Add( "WireTool_material", "Material:" )
+	language.Add( "WireTool_colour", "Colour:" )
 
 	TOOL.Wire_ToolMenuIcon = "icon16/connect.png"
 end
@@ -1035,7 +1047,7 @@ elseif CLIENT then
 	end
 
 	function TOOL.BuildCPanel(panel)
-		panel:AddControl("Header", { Text = "#Tool.wire.name", Description = "#Tool.wire.desc" })
+		panel:AddControl("Header", { Text = "#Tool.wire_adv.name", Description = "#Tool.wire_adv.desc2" })
 		WireToolHelpers.MakePresetControl(panel, "wire_adv")
 
 		panel:NumSlider("#WireTool_width", "wire_adv_width", 0, 5, 2)
