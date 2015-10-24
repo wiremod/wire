@@ -90,13 +90,11 @@ function PANEL:Init()
 	self:SetupSearchbox()
 		
 	local ExpandAll = vgui.Create( "DCheckBoxLabel", SearchBoxPanel ) -- create this here so that it's below the slider
-	
-	self.List = vgui.Create( "DTree", LeftPanel )
-	
 	ExpandAll:SetText( "Expand All" )
 	ExpandAll:SetConVar( "wire_tool_menu_expand_all" )
 	ExpandAll:DockMargin( 4, 4, 0, 0 )
 	ExpandAll:Dock( BOTTOM )
+	ExpandAll.Label:SetDark(true)
 	
 	local first = true
 	
@@ -117,9 +115,16 @@ function PANEL:Init()
 			expandall( value, childNodes )
 		end
 	end
-	ExpandAll.Label:SetDark(true)
 	
+	self.List = vgui.Create( "DTree", LeftPanel )
 	self.List:Dock( FILL )
+	
+	self.WiringButton = vgui.Create("DButton", LeftPanel)
+	self.WiringButton:SetText("Wiring tool")
+	self.WiringButton:Dock(BOTTOM)
+	function self.WiringButton:DoClick()
+		spawnmenu.ActivateTool("wire_adv")
+	end
 	
 	self.SearchList = vgui.Create( "DListView", LeftPanel )
 	local x,y = self.List:GetPos()
