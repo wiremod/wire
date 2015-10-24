@@ -34,26 +34,6 @@ if CLIENT then
 	WireToolSetup.setToolMenuIcon( "bull/gates/gate_logic_and" )
 
 	function TOOL.BuildCPanel( panel )
-		WireDermaExts.ModelSelect(panel, "wire_gates_model", list.Get("Wire_gate_Models"), 3, true)
-
-		local nocollidebox = panel:CheckBox("#WireGatesTool_noclip", "wire_gates_noclip")
-		local parentbox = panel:CheckBox("#WireGatesTool_parent","wire_gates_parent")
-
-		panel:Help("When parenting, you should check the nocollide box, or adv duplicator might not dupe the gate.")
-
-		local angleoffset = panel:NumSlider( "#WireGatesTool_angleoffset","wire_gates_angleoffset", 0, 360, 0 )
-
-		function nocollidebox.Button:DoClick()
-			self:Toggle()
-		end
-
-		function parentbox.Button:DoClick() -- when you check the parent box, check the nocollide box
-			self:Toggle()
-			if (self:GetChecked() == true) then
-				nocollidebox:SetValue(1)
-			end
-		end
-
 		----------------- GATE SELECTION & SEARCHING
 
 		-- Create panels
@@ -225,6 +205,30 @@ if CLIENT then
 
 		-- add it all to the main panel
 		panel:AddItem( holder )
+
+
+		-- MISCELLANEOUS PLACEMENT OPTIONS, AND MODEL
+		
+		local nocollidebox = panel:CheckBox("#WireGatesTool_noclip", "wire_gates_noclip")
+		local parentbox = panel:CheckBox("#WireGatesTool_parent","wire_gates_parent")
+
+		panel:Help("When parenting, you should check the nocollide box, or adv duplicator might not dupe the gate.")
+
+		local angleoffset = panel:NumSlider( "#WireGatesTool_angleoffset","wire_gates_angleoffset", 0, 360, 0 )
+
+		WireDermaExts.ModelSelect(panel, "wire_gates_model", list.Get("Wire_gate_Models"), 3, true)
+
+		function nocollidebox.Button:DoClick()
+			self:Toggle()
+		end
+
+		function parentbox.Button:DoClick() -- when you check the parent box, check the nocollide box
+			self:Toggle()
+			if (self:GetChecked() == true) then
+				nocollidebox:SetValue(1)
+			end
+		end
+
 	end
 end
 
