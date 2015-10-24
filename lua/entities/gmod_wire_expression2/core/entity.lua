@@ -378,11 +378,7 @@ e2function void entity:setMaterial(string material)
 	if not IsValid(this) then return end
 	if not isOwner(self, this) then return end
 	if string.lower(material) == "pp/copy" then return end
-	
-	local material_obj = Material(material)
-	if material_obj:GetShader()=="VertexLitGeneric" then
-		this:SetMaterial(material)
-	end
+	this:SetMaterial(material)
 end
 
 e2function void entity:setSubMaterial(index, string material)
