@@ -5,8 +5,6 @@ WireToolSetup.open( "gates", "Gates", "gmod_wire_gate", nil, "Gates" )
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax(30)
 
--- The limit convars are in lua/wire/wiregates.lua
-
 if SERVER then
 	ModelPlug_Register("gate")
 end
@@ -238,11 +236,6 @@ if SERVER then
 	function TOOL:MakeEnt( ply, model, Ang, trace )
 		return MakeWireGate( ply, trace.HitPos, Ang, model, self:GetConVars() )
 	end
-end
-
-function TOOL:CheckMaxLimit()
-	local action	= self:GetClientInfo( "action" )
-	return self:GetSWEP():CheckLimit(self.MaxLimitName) and self:GetSWEP():CheckLimit("wire_gate_" .. string.lower( GateActions[action].group ) .. "s")
 end
 
 
