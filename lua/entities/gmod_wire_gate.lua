@@ -200,19 +200,8 @@ function ENT:GetActionOutputs()
 end
 
 function MakeWireGate(pl, Pos, Ang, model, action, noclip, frozen, nocollide)
-	local gate = GateActions[action]
-	if not gate then return end
+	if not GateActions[action] then return end
 
-	local group = gate.group
-	if not group then return end
-	group = string.lower(group)
-	if IsValid(pl) and not pl:CheckLimit( "wire_gate_" .. group .. "s" ) then return end
-
-	local wire_gate = WireLib.MakeWireEnt( pl, {Class = "gmod_wire_gate", Pos=Pos, Angle=Ang, Model=model}, action, noclip )
-	if not IsValid(wire_gate) then return end
-
-	if IsValid(pl) then pl:AddCount( "wire_gate_" .. group .. "s", wire_gate ) end
-
-	return wire_gate
+	return WireLib.MakeWireEnt(pl, { Class = "gmod_wire_gate", Pos=Pos, Angle=Ang, Model=model }, action, noclip)
 end
 duplicator.RegisterEntityClass("gmod_wire_gate", MakeWireGate, "Pos", "Ang", "Model", "action", "noclip")
