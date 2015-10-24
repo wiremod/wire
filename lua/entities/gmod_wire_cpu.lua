@@ -244,7 +244,7 @@ WireLib.AddInputAlias( "NMI", "Interrupt" )
 
 function ENT:TriggerInput(iname, value)
 	if iname == "Clk" then
-		self.Clk = value
+		self.Clk = (value >= 1 and 1 or 0)
 		if self.Clk >= 1.0 then self:NextThink(CurTime()) end
 	elseif iname == "Frequency" then
 		if (not game.SinglePlayer()) and (value > 1400000) then self.Frequency = 1400000 return end
