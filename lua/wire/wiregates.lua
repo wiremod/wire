@@ -39,11 +39,6 @@ function LoadWireGates()
 	for name,gate in pairs(GateActions) do
 		if not WireGatesSorted[gate.group] then
 			WireGatesSorted[gate.group] = {}
-
-			-- Create limit specific to each gate group (and language.add it)
-			local gr = string.lower(gate.group)
-			CreateConVar("sbox_maxwire_gate_" .. gr .. "s", 30 )
-			if CLIENT then language.Add( "sboxlimit_wire_gate_" .. gr .. "s", "You've hit your " .. gr .. " gates limit!" ) end
 		end
 		WireGatesSorted[gate.group][name] = gate
 	end

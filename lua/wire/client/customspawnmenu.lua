@@ -90,13 +90,11 @@ function PANEL:Init()
 	self:SetupSearchbox()
 		
 	local ExpandAll = vgui.Create( "DCheckBoxLabel", SearchBoxPanel ) -- create this here so that it's below the slider
-	
-	self.List = vgui.Create( "DTree", LeftPanel )
-	
 	ExpandAll:SetText( "Expand All" )
 	ExpandAll:SetConVar( "wire_tool_menu_expand_all" )
 	ExpandAll:DockMargin( 4, 4, 0, 0 )
 	ExpandAll:Dock( BOTTOM )
+	ExpandAll.Label:SetDark(true)
 	
 	local first = true
 	
@@ -117,8 +115,8 @@ function PANEL:Init()
 			expandall( value, childNodes )
 		end
 	end
-	ExpandAll.Label:SetDark(true)
 	
+	self.List = vgui.Create( "DTree", LeftPanel )
 	self.List:Dock( FILL )
 	
 	self.SearchList = vgui.Create( "DListView", LeftPanel )
@@ -153,6 +151,21 @@ function PANEL:Init()
 	self.ToolTable = {}
 	self.OriginalToolTable = {}
 	self.CategoryLookup = {}
+end
+
+
+----------------------------------------------------------------------
+-- AddQuickToolButton
+-- Called to add quick-access button underneath the main list
+-- for a specific tool
+----------------------------------------------------------------------
+function PANEL:AddQuickToolButton(label, tool_id)
+	local button = vgui.Create("DButton", self.Divider:GetLeft())
+	button:SetText(label)
+	button:Dock(BOTTOM)
+	function button:DoClick()
+		spawnmenu.ActivateTool(tool_id)
+	end
 end
 
 ----------------------------------------------------------------------
@@ -701,6 +714,11 @@ hook.Add( "PopulateToolMenu", "Wire_CustomSpawnMenu", function()
 			
 			Panel:SetTabID( Name )
 			Panel:LoadToolsFromTable( ToolTable.Items )
+			
+			-- TODO: make this more flexible
+			if ToolTable.Name == "Wire" then
+				Panel:AddQuickToolButton("Wiring Tool", "wire_adv")
+			end
 		
 			self:AddSheet( ToolTable.Label, Panel, ToolTable.Icon )
 			self.ToolPanels[ Name ] = Panel

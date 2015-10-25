@@ -5,8 +5,6 @@ WireToolSetup.open( "gates", "Gates", "gmod_wire_gate", nil, "Gates" )
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax(30)
 
--- The limit convars are in lua/wire/wiregates.lua
-
 if SERVER then
 	ModelPlug_Register("gate")
 end
@@ -36,26 +34,6 @@ if CLIENT then
 	WireToolSetup.setToolMenuIcon( "bull/gates/gate_logic_and" )
 
 	function TOOL.BuildCPanel( panel )
-		WireDermaExts.ModelSelect(panel, "wire_gates_model", list.Get("Wire_gate_Models"), 3, true)
-
-		local nocollidebox = panel:CheckBox("#WireGatesTool_noclip", "wire_gates_noclip")
-		local parentbox = panel:CheckBox("#WireGatesTool_parent","wire_gates_parent")
-
-		panel:Help("When parenting, you should check the nocollide box, or adv duplicator might not dupe the gate.")
-
-		local angleoffset = panel:NumSlider( "#WireGatesTool_angleoffset","wire_gates_angleoffset", 0, 360, 0 )
-
-		function nocollidebox.Button:DoClick()
-			self:Toggle()
-		end
-
-		function parentbox.Button:DoClick() -- when you check the parent box, check the nocollide box
-			self:Toggle()
-			if (self:GetChecked() == true) then
-				nocollidebox:SetValue(1)
-			end
-		end
-
 		----------------- GATE SELECTION & SEARCHING
 
 		-- Create panels
@@ -183,7 +161,7 @@ if CLIENT then
 
 
 		local function FillSubTree( tree, node, temp )
-			node.Icon:SetImage( "icon16/arrow_refresh.png" )
+			node.Icon:SetImage( "icon16/folder.png" )
 
 			local subtree = {}
 			for k,v in pairs( temp ) do
@@ -192,12 +170,7 @@ if CLIENT then
 
 			table_SortByMember(subtree, "name", true )
 
-			local index = 0
-			local max = #subtree
-
-			timer.Create( "wire_gates_fillsubtree_delay"..tostring(subtree), 0, 0, function()
-				index = index + 1
-
+			for index=1, #subtree do
 				local action, gate = subtree[index].action, subtree[index].gate
 				local node2 = node:AddNode( gate.name or "No name found :(" )
 				node2.name = gate.name
@@ -206,13 +179,8 @@ if CLIENT then
 					RunConsoleCommand( "wire_gates_Action", self.action )
 				end
 				node2.Icon:SetImage( "icon16/newspaper.png" )
-				tree:InvalidateLayout()
-
-				if index == max then
-					timer.Remove("wire_gates_fillsubtree_delay" .. tostring(subtree))
-					node.Icon:SetImage( "icon16/folder.png" )
-				end
-			end )
+			end
+			tree:InvalidateLayout()
 		end
 		
 		local CategoriesSorted = {}
@@ -237,6 +205,30 @@ if CLIENT then
 
 		-- add it all to the main panel
 		panel:AddItem( holder )
+
+
+		-- MISCELLANEOUS PLACEMENT OPTIONS, AND MODEL
+		
+		local nocollidebox = panel:CheckBox("#WireGatesTool_noclip", "wire_gates_noclip")
+		local parentbox = panel:CheckBox("#WireGatesTool_parent","wire_gates_parent")
+
+		panel:Help("When parenting, you should check the nocollide box, or adv duplicator might not dupe the gate.")
+
+		local angleoffset = panel:NumSlider( "#WireGatesTool_angleoffset","wire_gates_angleoffset", 0, 360, 0 )
+
+		WireDermaExts.ModelSelect(panel, "wire_gates_model", list.Get("Wire_gate_Models"), 3, true)
+
+		function nocollidebox.Button:DoClick()
+			self:Toggle()
+		end
+
+		function parentbox.Button:DoClick() -- when you check the parent box, check the nocollide box
+			self:Toggle()
+			if (self:GetChecked() == true) then
+				nocollidebox:SetValue(1)
+			end
+		end
+
 	end
 end
 
@@ -248,11 +240,6 @@ if SERVER then
 	function TOOL:MakeEnt( ply, model, Ang, trace )
 		return MakeWireGate( ply, trace.HitPos, Ang, model, self:GetConVars() )
 	end
-end
-
-function TOOL:CheckMaxLimit()
-	local action	= self:GetClientInfo( "action" )
-	return self:GetSWEP():CheckLimit(self.MaxLimitName) and self:GetSWEP():CheckLimit("wire_gate_" .. string.lower( GateActions[action].group ) .. "s")
 end
 
 
