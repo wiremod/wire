@@ -164,30 +164,30 @@ local gmodSoundFuncs = {
 }
 
 local function loadSound(index)
-	local sound = E2Sounds[index]
-	local path = sound.Path
-	if sound.IsBass then
+	local soundtbl = E2Sounds[index]
+	local path = soundtbl.Path
+	if soundtbl.IsBass then
 		local function createSoundCallback(channel, er, ername)
 			if IsValid(channel) then
-				if E2Sounds[index] and IsValid(sound.Entity) then
-					if IsValid(sound.SoundChannel) then
-						sound.SoundChannel:Stop()
+				if E2Sounds[index] and IsValid(soundtbl.Entity) then
+					if IsValid(soundtbl.SoundChannel) then
+						soundtbl.SoundChannel:Stop()
 					end
-					sound.SoundChannel = channel
-					channel:SetPos(sound.Entity:GetPos())
+					soundtbl.SoundChannel = channel
+					channel:SetPos(soundtbl.Entity:GetPos())
 					
-					local queue = sound.Queue
+					local queue = soundtbl.Queue
 					if queue then
 						for I=1, #queue do
-							queue[I].Func(sound, unpack(queue[I].Arg))
+							queue[I].Func(soundtbl, unpack(queue[I].Arg))
 						end
-						sound.Queue = nil
+						soundtbl.Queue = nil
 					end
 					
-					if sound.Length>0 then
-						E2Sounds[index].DieTime = CurTime() + sound.Length
+					if soundtbl.Length>0 then
+						E2Sounds[index].DieTime = CurTime() + soundtbl.Length
 					end
-					sound.Length = 0
+					soundtbl.Length = 0
 				else
 					channel:Stop()
 					E2Sounds[index] = nil
@@ -199,12 +199,12 @@ local function loadSound(index)
 		end
 		sound.PlayURL(path, "3d noblock", createSoundCallback)
 	else
-		local newsound = CreateSound(sound.Entity, path)
+		local newsound = CreateSound(soundtbl.Entity, path)
 		newsound:Play()
-		sound.Entity:CallOnRemove("E2Sound_"..index, function( ent )
+		soundtbl.Entity:CallOnRemove("E2Sound_"..index, function( ent )
 			newsound:Stop()
 		end)
-		sound.SoundChannel = newsound
+		soundtbl.SoundChannel = newsound
 	end
 end
 
