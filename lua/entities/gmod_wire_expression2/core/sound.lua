@@ -54,6 +54,7 @@ ClientSideSound.SendFuncs = {
 		net.WriteUInt(val, 32)
 	end
 }
+
 ClientSideSound.SendFuncsLookup = {
 	Create = 1,
 	Play = 2,
@@ -68,10 +69,12 @@ ClientSideSound.SendFuncsLookup = {
 }
 	
 function ClientSideSound.CreateSound( path, time, index, entity, e2 ) 
-	local self = setmetatable({},ClientSideSound.mt)
-	self.index = e2:EntIndex() .. "_" .. index
-	self.path = path
-	self:SendRequest("Create",time,entity,e2:GetPlayer())
+	
+		local self = setmetatable({},ClientSideSound.mt)
+		self.index = e2:EntIndex() .. "_" .. index
+		self.path = path
+		self:SendRequest("Create",time,entity,e2:GetPlayer())
+		
 	return self
 end
 
@@ -82,19 +85,22 @@ function ClientSideSound:SendRequest(request, ...)
 end
 
 function ClientSideSound.Broadcast()
-	local numReq = #ClientSideSound.SendRequests
-	if numReq > 0 then
-		net.Start("e2_soundrequest")
-			net.WriteUInt(numReq, 32)
-			for I=1, numReq do
-				local Request = ClientSideSound.SendRequests[I]
-				net.WriteString(Request.Arg[1].index)
-				net.WriteUInt(ClientSideSound.SendFuncsLookup[Request.Func],8)
-				ClientSideSound.SendFuncs[Request.Func](unpack(Request.Arg))
-			end
-		net.Broadcast()
-		ClientSideSound.SendRequests = {}
-	end
+	// This delay is required in attaching the sound to holograms or other e2 created entities
+	timer.Simple(0.07,function()
+		local numReq = #ClientSideSound.SendRequests
+		if numReq > 0 then
+			net.Start("e2_soundrequest")
+				net.WriteUInt(numReq, 32)
+				for I=1, numReq do
+					local Request = ClientSideSound.SendRequests[I]
+					net.WriteString(Request.Arg[1].index)
+					net.WriteUInt(ClientSideSound.SendFuncsLookup[Request.Func],8)
+					ClientSideSound.SendFuncs[Request.Func](unpack(Request.Arg))
+				end
+			net.Broadcast()
+			ClientSideSound.SendRequests = {}
+		end
+	end)
 end
 
 function ClientSideSound:Play(time, entity)
@@ -181,7 +187,7 @@ end
 local function soundCreate(self, entity, index, time, path, fade)
 	if not isAllowed( self ) then return end
 	
-	if path:sub(1,4)=="http" then
+	if path:sub(1,4)=="http" || path:sub(1,3) == "www" then
 		if wire_expression2_sound_allowurl:GetInt()==0 then return end
 	else
 		if path:match('["?]') then return end
@@ -302,15 +308,27 @@ e2function void soundVolume( index, volume, fadetime )
 	sound:ChangeVolume( math.Clamp( volume, 0, 1 ), math.abs( fadetime ) )
 end
 	
-
 e2function void soundPitch( index, pitch )
+	local sound = getSound( self, index )
+	if not sound then return end
+	
+	sound:ChangePitch( math.Clamp( pitch, 0, 255 ), 0 )
+end
+
+e2function void soundPitch( index, pitch, fadetime )
+	local sound = getSound( self, index )
+	if not sound then return end
+	sound:ChangePitch( math.Clamp( pitch, 0, 255 ), math.abs( fadetime ) )
+end
+
+e2function void soundHTTPPitch( index, pitch )
 	local sound = getSound( self, index )
 	if not sound then return end
 	
 	sound:ChangePitch( math.Clamp( pitch, 0, 400 ) / 100, 0 )
 end
 
-e2function void soundPitch( index, pitch, fadetime )
+e2function void soundHTTPPitch( index, pitch, fadetime )
 	local sound = getSound( self, index )
 	if not sound then return end
 	
@@ -338,7 +356,6 @@ e2function void soundTimePosition( index, val )
 	sound:SetTimePosition( val )
 end
 
-
 e2function void soundStop( string index ) = e2function void soundStop( index )
 e2function void soundStop( string index, fadetime ) = e2function void soundStop( index, fadetime )
 e2function void soundPause( string index ) = e2function void soundPause( index )
@@ -347,6 +364,8 @@ e2function void soundVolume( string index, volume ) = e2function void soundVolum
 e2function void soundVolume( string index, volume, fadetime ) = e2function void soundVolume( index, volume, fadetime )
 e2function void soundPitch( string index, pitch ) = e2function void soundPitch( index, pitch )
 e2function void soundPitch( string index, pitch, fadetime ) = e2function void soundPitch( index, pitch, fadetime )
+e2function void soundHTTPPitch( string index, pitch ) = e2function void soundHTTPPitch( index, pitch )
+e2function void soundHTTPPitch( string index, pitch, fadetime ) = e2function void soundHTTPPitch( index, pitch, fadetime )
 e2function void soundFadeDistance( string index, min, max ) = e2function void soundFadeDistance( index, min, max ) 
 e2function void soundLoop( string index, bool ) = e2function void soundLoop( index, bool )
 e2function void soundTimePosition( string index, val ) = e2function void soundTimePosition( index, val )

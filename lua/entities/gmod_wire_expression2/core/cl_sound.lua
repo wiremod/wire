@@ -164,51 +164,60 @@ local gmodSoundFuncs = {
 }
 
 local function loadSound(index)
-	local soundtbl = E2Sounds[index]
-	local path = soundtbl.Path
-	if soundtbl.IsBass then
-		local function createSoundCallback(channel, er, ername)
+
+	local sounds = E2Sounds[index]
+	local path = sounds.Path
+	
+	if sounds.IsBass then
+		sound.PlayURL(path, "3d mono noblock", function(channel, er, ername)
 			if IsValid(channel) then
-				if E2Sounds[index] and IsValid(soundtbl.Entity) then
-					if IsValid(soundtbl.SoundChannel) then
-						soundtbl.SoundChannel:Stop()
+				if E2Sounds[index] and IsValid(sounds.Entity) then
+				
+					if IsValid(sounds.SoundChannel) then
+						sounds.SoundChannel:Stop()
 					end
-					soundtbl.SoundChannel = channel
-					channel:SetPos(soundtbl.Entity:GetPos())
 					
-					local queue = soundtbl.Queue
+					sounds.SoundChannel = channel
+					channel:SetPos(sounds.Entity:GetPos())
+					
+					local queue = sounds.Queue
 					if queue then
 						for I=1, #queue do
-							queue[I].Func(soundtbl, unpack(queue[I].Arg))
+							queue[I].Func(sounds, unpack(queue[I].Arg))
 						end
-						soundtbl.Queue = nil
+						sounds.Queue = nil
 					end
 					
-					if soundtbl.Length>0 then
-						E2Sounds[index].DieTime = CurTime() + soundtbl.Length
+					if sounds.Length>0 then
+						E2Sounds[index].DieTime = CurTime() + sounds.Length
 					end
-					soundtbl.Length = 0
+					sounds.Length = 0
 				else
 					channel:Stop()
 					E2Sounds[index] = nil
 				end
 			else
-				LocalPlayer():PrintMessage( HUD_PRINTCONSOLE, "[E2] Failed to play sound: " .. path .. "\n")
+				LocalPlayer():PrintMessage( HUD_PRINTCONSOLE, "[E2] Failed to play sound: " .. path .. " | BASS_ERROR : " .. ername .."\n")
+				if er == -1 then // BASS_ERROR_UNKNOWN , its usually because the sound isnt mono and 3D requires that, (mono) tag doesn't seem to affect it.
+					LocalPlayer():PrintMessage( HUD_PRINTCONSOLE, "[E2] Please make sure the HTTP sound is MONO.\n")
+				end
+				
 				E2Sounds[index] = nil
 			end
-		end
-		sound.PlayURL(path, "3d noblock", createSoundCallback)
+			
+		end)
 	else
-		local newsound = CreateSound(soundtbl.Entity, path)
+		local newsound = CreateSound(sounds.Entity, path)
 		newsound:Play()
-		soundtbl.Entity:CallOnRemove("E2Sound_"..index, function( ent )
+		sounds.Entity:CallOnRemove("E2Sound_"..index, function( ent )
 			newsound:Stop()
 		end)
-		soundtbl.SoundChannel = newsound
+		sounds.SoundChannel = newsound
 	end
 end
 
 local function createSound(index)
+
 	local path = net.ReadString()
 	local time = net.ReadDouble()
 	local ent = net.ReadEntity()
@@ -223,10 +232,17 @@ local function createSound(index)
 		hook.Add("Think", "E2_move_sounds",moveSounds)
 	end
 	
-	if E2Sounds[index] and E2Sounds[index].SoundChannel and E2Sounds[index].SoundChannel:IsValid() then
+	if E2Sounds[index] and E2Sounds[index].SoundChannel and IsValid(E2Sounds[index].SoundChannel) then
 		E2Sounds[index].SoundChannel:Stop()
 	end
-	E2Sounds[index] = {SoundChannel = nil, Entity = ent, Player = ply, Queue = {}, Path = path, Length = time, Index = index, IsBass = path:sub(1,4)=="http"}
+	
+	local bass = false
+	
+	if path:sub(1,4) == "http" || path:sub(1,3) == "www" then
+		bass = true
+	end
+	
+	E2Sounds[index] = {SoundChannel = nil, Entity = ent, Player = ply, Queue = {}, Path = path, Length = time, Index = index, IsBass = bass}
 	
 	loadSound(index)
 end
@@ -302,6 +318,7 @@ local funcLookup = {
 }
 
 net.Receive("e2_soundrequest",function()
+
 	local access = wire_expression2_sound_enabled:GetInt()
 	if access==0 then return end
 	
@@ -311,6 +328,7 @@ net.Receive("e2_soundrequest",function()
 		local func = funcLookup[net.ReadUInt(8)]
 		decideFunction(index, func)
 	end
+	
 end)
 
 net.Receive("e2_soundremove",function()
