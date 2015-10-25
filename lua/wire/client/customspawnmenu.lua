@@ -119,13 +119,6 @@ function PANEL:Init()
 	self.List = vgui.Create( "DTree", LeftPanel )
 	self.List:Dock( FILL )
 	
-	self.WiringButton = vgui.Create("DButton", LeftPanel)
-	self.WiringButton:SetText("Wiring tool")
-	self.WiringButton:Dock(BOTTOM)
-	function self.WiringButton:DoClick()
-		spawnmenu.ActivateTool("wire_adv")
-	end
-	
 	self.SearchList = vgui.Create( "DListView", LeftPanel )
 	local x,y = self.List:GetPos()
 	local w,h = self.List:GetSize()
@@ -158,6 +151,21 @@ function PANEL:Init()
 	self.ToolTable = {}
 	self.OriginalToolTable = {}
 	self.CategoryLookup = {}
+end
+
+
+----------------------------------------------------------------------
+-- AddQuickToolButton
+-- Called to add quick-access button underneath the main list
+-- for a specific tool
+----------------------------------------------------------------------
+function PANEL:AddQuickToolButton(label, tool_id)
+	local button = vgui.Create("DButton", self.Divider:GetLeft())
+	button:SetText(label)
+	button:Dock(BOTTOM)
+	function button:DoClick()
+		spawnmenu.ActivateTool(tool_id)
+	end
 end
 
 ----------------------------------------------------------------------
@@ -706,6 +714,11 @@ hook.Add( "PopulateToolMenu", "Wire_CustomSpawnMenu", function()
 			
 			Panel:SetTabID( Name )
 			Panel:LoadToolsFromTable( ToolTable.Items )
+			
+			-- TODO: make this more flexible
+			if ToolTable.Name == "Wire" then
+				Panel:AddQuickToolButton("Wiring Tool", "wire_adv")
+			end
 		
 			self:AddSheet( ToolTable.Label, Panel, ToolTable.Icon )
 			self.ToolPanels[ Name ] = Panel
