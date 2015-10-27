@@ -584,6 +584,9 @@ function VM:HardReset()
 
   -- Has initialized already
   self.INIT = 0
+  
+  -- Reset async thread
+  self.AsyncState = nil
 end
 
 
