@@ -364,7 +364,6 @@ e2function void entity:propStatic( number static )
 		this.PhysgunDisabled = true
 		this:SetUnFreezable( true )
 		phys:EnableMotion( false )
-		--phys:Sleep()
 	elseif this.propStaticE2 ~= nil then
 		this.PhysgunDisabled = false
 		this:SetUnFreezable( false )
