@@ -183,7 +183,7 @@ if CLIENT then
 
 
 		local function FillSubTree( tree, node, temp )
-			node.Icon:SetImage( "icon16/arrow_refresh.png" )
+			node.Icon:SetImage( "icon16/folder.png" )
 
 			local subtree = {}
 			for k,v in pairs( temp ) do
@@ -192,12 +192,7 @@ if CLIENT then
 
 			table_SortByMember(subtree, "name", true )
 
-			local index = 0
-			local max = #subtree
-
-			timer.Create( "wire_gates_fillsubtree_delay"..tostring(subtree), 0, 0, function()
-				index = index + 1
-
+			for index=1, #subtree do
 				local action, gate = subtree[index].action, subtree[index].gate
 				local node2 = node:AddNode( gate.name or "No name found :(" )
 				node2.name = gate.name
@@ -206,13 +201,8 @@ if CLIENT then
 					RunConsoleCommand( "wire_gates_Action", self.action )
 				end
 				node2.Icon:SetImage( "icon16/newspaper.png" )
-				tree:InvalidateLayout()
-
-				if index == max then
-					timer.Remove("wire_gates_fillsubtree_delay" .. tostring(subtree))
-					node.Icon:SetImage( "icon16/folder.png" )
-				end
-			end )
+			end
+			tree:InvalidateLayout()
 		end
 		
 		local CategoriesSorted = {}
