@@ -355,7 +355,7 @@ e2function string entity:propPhysicalMaterial()
 	return ""
 end
 
-hook.Add( "CanDrive", "checkPropStaticE2", function( ply, ent ) return ent.propStaticE2 == nil end )
+hook.Add( "CanDrive", "checkPropStaticE2", function( ply, ent ) if ent.propStaticE2 ~= nil then return false end end )
 e2function void entity:propStatic( number static )
 	if not PropCore.ValidAction( self, this, "static" ) then return end
 	if static ~= 0 and this.propStaticE2 == nil then
@@ -376,19 +376,6 @@ e2function void entity:propStatic( number static )
 		this.propStaticE2 = nil
 	end
 end
-
-if AdvancedResize then
-	__e2setcost( 30 )
-	e2function void entity:propScale( vector scale )
-		if not PropCore.ValidAction(self, this, "scale") then return end
-		local sx = math.Clamp( scale[1], 0.1, 10 )
-		local sy = math.Clamp( scale[2], 0.1, 10 )
-		local sz = math.Clamp( scale[3], 0.1, 10 )
-		AdvancedResize( this, sx, sy, sz, sx, sy, sz, 0 )
-	end
-end
-
-__e2setcost(5)
 
 --------------------------------------------------------------------------------
 
