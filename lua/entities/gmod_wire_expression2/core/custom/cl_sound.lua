@@ -115,70 +115,111 @@ local function setFadeVolume(sound, volume, time)
 	sound.DeltaVolume = volume - sound.OriginalVolume
 end
 
+local netFuncs = {	
+	Play = function()	
+		return {net.ReadDouble(), net.ReadEntity()}
+	end,
+	Pause = function()
+		return {}
+	end,
+	Resume = function()
+		return {}
+	end,
+	Remove = function()
+		return {}
+	end,
+	Stop = function()
+		return {net.ReadDouble()}
+	end,
+	ChangeVolume = function()
+		return {net.ReadDouble(), net.ReadDouble()}
+	end,
+	ChangePitch = function()
+		return {net.ReadDouble(), net.ReadDouble()}
+	end,
+	ChangeFadeDistance = function()
+		return {net.ReadDouble(), net.ReadDouble()}
+	end,
+	SetLooping = function()
+		return {net.ReadUInt(8)}
+	end,
+	SetTime = function()
+		return {net.ReadUInt(32)}
+	end
+}
+
+local funcLookup = {
+	"Create",
+	"Play",
+	"Pause",
+	"Resume",
+	"Remove",
+	"Stop",
+	"ChangeVolume",
+	"ChangePitch",
+	"ChangeFadeDistance",
+	"SetLooping",
+	"SetTime",
+}
+	
 local bassNetFunctions = {	
-	Play = function(sound, data)
+	Play = function(sound, time, ent)
 		sound.SoundChannel:Play()
-		sound.Entity = data[3]
-		if data[2] > 0 then
-			sound.DieTime = CurTime() + data[2]
+		sound.Entity = ent
+		if time > 0 then
+			sound.DieTime = CurTime() + time
 		end
 	end,
-	Pause = function(sound, data)
+	Pause = function(sound)
 		sound.SoundChannel:Pause()
 	end,
-	Resume = function(sound, data)
+	Resume = function(sound)
 		sound.SoundChannel:Play()
 	end,
-	Remove = function(sound, data)
+	Remove = function(sound)
 		sound.SoundChannel:Stop()
 		E2Sounds[sound.Index] = nil
 	end,
-	Stop = function(sound, data)
-		if data[2] > 0 then
-			sound.DieTime = CurTime() + data[2]
-			setFadeVolume(sound, 0, data[2])
+	Stop = function(sound, time)
+		if time > 0 then
+			sound.DieTime = CurTime() + time
+			setFadeVolume(sound, 0, time)
 		else
 			sound.SoundChannel:Stop()
 		end
 	end,
-	ChangeVolume = function(sound, data)
-		if data[3] > 0 then
-			setFadeVolume(sound, data[2], data[3])
+	ChangeVolume = function(sound, volume, time)
+		if time > 0 then
+			setFadeVolume(sound, volume, time)
 		else
-			sound.SoundChannel:SetVolume(data[2])
+			sound.SoundChannel:SetVolume(volume)
 		end
-		return true
 	end,
-	ChangePitch = function(sound, data)
-		if data[3] > 0 then
-			setFadePitch(sound, data[2], data[3])
+	ChangePitch = function(sound, rate, time)
+		if time > 0 then
+			setFadePitch(sound, rate, time)
 		else
-			sound.SoundChannel:SetPlaybackRate(data[2])
+			sound.SoundChannel:SetPlaybackRate(rate)
 		end
-		
-		return true
 	end,
-	ChangeFadeDistance = function(sound, data)
-		sound.SoundChannel:Set3DFadeDistance(data[2], data[3])
-		return true
+	ChangeFadeDistance = function(sound, min, max)
+		sound.SoundChannel:Set3DFadeDistance(min, max)
 	end,
-	SetLooping = function(sound, data)
-		sound.SoundChannel:EnableLooping( data[2]~=0 )
-		return true
+	SetLooping = function(sound, loop )
+		sound.SoundChannel:EnableLooping( loop~=0 )
 	end,
-	SetTime = function(sound, data)
-		sound.SoundChannel:SetTime( data[2] )
-		return true
+	SetTime = function(sound, time)
+		sound.SoundChannel:SetTime( time )
 	end
 }
 
 local gmodSoundFuncs = {	
 	Play = bassNetFunctions.Play,
-	Stop = function(sound, data)
-		if data[2] > 0 then
+	Stop = function(sound, time)
+		if time > 0 then
 			if sound.FadeRequest then return end
-			sound.SoundChannel:FadeOut(math.abs(data[2]))
-			sound.FadeRequest = math.abs(data[2])
+			sound.SoundChannel:FadeOut(math.abs(time))
+			sound.FadeRequest = math.abs(time)
 		else
 			sound.SoundChannel:Stop()
 		end	
@@ -187,57 +228,7 @@ local gmodSoundFuncs = {
 	ChangeVolume = bassNetFunctions.ChangeVolume,
 	ChangePitch = bassNetFunctions.ChangePitch
 }
-/*
-local gmodSoundFuncs = {	
-	Play = function(sound, data)
 
-		sound.SoundChannel:Play()
-		sound.Entity = data[3]
-		
-		if data[2] > 0 then
-			sound.DieTime = CurTime() + data[2]
-		end
-		
-		return true
-	end,
-	Stop = function(sound, data)
-
-		if data[2] > 0 then
-			sound.SoundChannel:FadeOut(math.abs(data[2]))
-			sound.FadeRequest = math.abs(data[2])
-		else
-			sound.SoundChannel:Stop()
-		end	
-		
-		return true
-	end,
-	Remove = function(sound, data)
-		sound.SoundChannel:Stop()
-		E2Sounds[sound.Index] = nil
-		return true
-	end,
-	ChangeVolume = function(sound, data)
-		if !sound.SoundChannel then return false end
-		if data[3] > 0 then
-			sound.SoundChannel:ChangeVolume(data[2], data[3])
-		else
-			sound.SoundChannel:ChangeVolume(data[2])
-		end
-		return true
-	end,
-	ChangePitch = function(sound, data)
-		if !sound.SoundChannel then return false end
-		
-		if data[3] > 0 then
-			sound.SoundChannel:ChangePitch(data[2], data[3])
-		else
-			sound.SoundChannel:ChangePitch(data[2])
-		end
-		
-		return true
-	end
-}
-*/
 local function loadSound(index)
 
 	local sounds = E2Sounds[index]
@@ -257,19 +248,18 @@ local function loadSound(index)
 					channel:SetPos(sounds.Entity:GetPos())
 					
 					if sounds.Pitch > 0 then
-						newsound:SetPlaybackRate(math.Clamp( sounds.Pitch, 0, 400 ) / 100)
+						channel:SetPlaybackRate(math.Clamp( sounds.Pitch, 0, 400 ) / 100)
 					end
 					
 					if sounds.Volume > 0 then
-						newsound:SetVolume( math.Clamp( sounds.Volume, 0, 1 ))
+						channel:SetVolume( math.Clamp( sounds.Volume, 0, 1 ))
 					end
 
 					// Execute the QUEUED Stuff.
-					if sounds.BassQueue != nil and #sounds.BassQueue > 0 then
-						for _,v in pairs(sounds.BassQueue) do
-							if bassNetFunctions[v.Func] then
-								bassNetFunctions[v.Func](sounds,v.Data)
-							end
+					local queue = sounds.BassQueue
+					if queue then
+						for I=1, #queue do
+							queue[I].Func(soundtbl, unpack(queue[I].Arg))
 						end
 						table.Empty(sounds.BassQueue)
 					end
@@ -315,15 +305,14 @@ local function loadSound(index)
 	
 end
 
-local function createSound(index,data)
-	
-	local path = data[1].path
-	local pitch = data[1].pitch
-	local volume = data[1].volume
-	
-	local time = data[2]
-	local ent = data[3]
-	local ply = data[4]
+local function createSound(index)
+
+	local path = net.ReadString()
+	local time = net.ReadDouble()
+	local pitch = net.ReadDouble()
+	local volume = net.ReadDouble()
+	local ent = net.ReadEntity()
+	local ply = net.ReadEntity()
 
 	if not IsValid(ent) or not IsValid(ply) then return end
 	if wire_expression2_sound_enabled:GetInt()==1 and ply:GetFriendStatus()~="friend" and ply~=LocalPlayer() then return end
@@ -343,28 +332,32 @@ local function createSound(index,data)
 		bass = true
 	end
 	
-	E2Sounds[index] = {SoundChannel = nil, Entity = ent, Player = ply, BassQueue = {}, Path = path, Pitch = pitch, Volume = volume, Length = time, Index = index, IsBass = bass}
+	E2Sounds[index] = {SoundChannel = nil, Entity = ent, Player = ply, Queue = {}, Path = path, Pitch = pitch, Volume = volume, Length = time, Index = index, IsBass = bass}
 	loadSound(index)
 	
 end
 
-local function decideFunction(index, func, data)
+local function decideFunction(index,func)
 
 	if func == "Create" then
-		createSound(index,data)
+		createSound(index)
 	else
+	
 		local sound = E2Sounds[index]
+		local netdata = netFuncs[func]()
 		
 		if sound then
 			if sound.IsBass then
-				if bassNetFunctions[func] and sound.SoundChannel then 
-					bassNetFunctions[func](sound,data) // Execute the sound Function
+				local soundFunc = bassNetFunctions[func] 
+				if soundFunc and sound.SoundChannel then 
+					soundFunc(sound,unpack(netdata)) // Execute the sound Function
 				elseif sound.BassQueue then // QUEUE it
-					sound.BassQueue[#sound.BassQueue+1] = {Func = func, Data = data}
+					sound.BassQueue[#sound.BassQueue+1] = {Func = soundFunc, Arg = netdata}
 				end
 			else
-				if gmodSoundFuncs[func] and sound.SoundChannel then
-					gmodSoundFuncs[func](sound,data)
+				local soundFunc = gmodSoundFuncs[func] 
+				if soundFunc and sound.SoundChannel then
+					soundFunc(sound,unpack(netdata))
 				end
 			end
 		end
@@ -379,15 +372,14 @@ net.Receive("e2_soundrequest",function()
 	local access = wire_expression2_sound_enabled:GetInt()
 	if access==0 then return end
 	
-	local requests = net.ReadTable()
-	if requests == nil or #requests <= 0 then return end
-
-	for _,k in pairs(requests) do
-		local indx = k.Arg[1].index
-		local e2function = k.Func
+	local numRequests = math.Clamp(net.ReadUInt(32),0,100)
+	for I=1, numRequests do
+	
+		local index = net.ReadString()
+		local funcLook = funcLookup[net.ReadUInt(8)]
 		
-		if k == nil or indx == nil or e2function == nil then continue end
-		decideFunction(indx, e2function,k.Arg)
+		if !funcLook then continue end
+		decideFunction(index, funcLook)
 	end
 	
 end)

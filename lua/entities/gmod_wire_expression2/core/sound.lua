@@ -18,16 +18,69 @@ util.AddNetworkString("e2_soundremove")
 
 local ClientSideSound = {}
 ClientSideSound.mt = {__index = ClientSideSound}
+
 ClientSideSound.SendRequests = {}
-	
+
+ClientSideSound.SendFuncs = {
+	Create = function(self, time, ent, ply,pitch,volume)
+		net.WriteString(self.path)
+		net.WriteDouble(time)
+		net.WriteDouble(pitch)
+		net.WriteDouble(volume)
+		net.WriteEntity(ent)
+		net.WriteEntity(ply)
+	end,
+	Play = function(self, time, entity)
+		net.WriteDouble(time)
+		net.WriteEntity(entity)
+	end,
+	Pause = function(self)
+	end,
+	Resume = function(self)
+	end,
+	Stop = function(self, time)
+		net.WriteDouble(time)
+	end,
+	ChangeVolume = function(self, vol, time)
+		net.WriteDouble(vol)
+		net.WriteDouble(time)
+	end,
+	ChangePitch = function(self, pitch, time)
+		net.WriteDouble(pitch)
+		net.WriteDouble(time)
+	end,
+	ChangeFadeDistance = function(self, min, max)
+		net.WriteDouble(min)
+		net.WriteDouble(max)
+	end,
+	SetLooping = function(self, val)
+		net.WriteUInt(val, 8)
+	end,
+	SetTime = function(self, val)
+		net.WriteUInt(val, 32)
+	end
+}
+
+ClientSideSound.SendFuncsLookup = {
+	Create = 1,
+	Play = 2,
+	Pause = 3,
+	Resume = 4,
+	Remove = 5,
+	Stop = 6,
+	ChangeVolume = 7,
+	ChangePitch = 8,
+	ChangeFadeDistance = 9,
+	SetLooping = 10,
+	SetTime = 11
+}
+
 function ClientSideSound.CreateSound( path, time, index, entity, e2, pitch, volume) 
 	
 		local self = setmetatable({},ClientSideSound.mt)
 		self.index = e2:EntIndex() .. "_" .. index
 		self.path = path
-		self.pitch = pitch
-		self.volume = volume
-		self:SendRequest("Create",time,entity,e2:GetPlayer())
+		self:SendRequest("Create",time,entity,e2:GetPlayer(),pitch,volume)
 		
 	return self
 end
@@ -39,17 +92,22 @@ function ClientSideSound:SendRequest(request, ...)
 end
 
 function ClientSideSound.Broadcast()
-	// This delay is required in attaching the sound to holograms or other e2 created entities
-	if #ClientSideSound.SendRequests > 0 then
-		//timer.Simple(0.07,function()
+
+	local numReq = #ClientSideSound.SendRequests
+	if numReq > 0 then
+		net.Start("e2_soundrequest")
+			net.WriteUInt(numReq, 32)
+			for I=1, numReq do
+				local Request = ClientSideSound.SendRequests[I]
+				net.WriteString(Request.Arg[1].index)
+				net.WriteUInt(ClientSideSound.SendFuncsLookup[Request.Func],8)
+				ClientSideSound.SendFuncs[Request.Func](unpack(Request.Arg))
+			end
+		net.Broadcast()
 		
-			net.Start("e2_soundrequest")
-				net.WriteTable(ClientSideSound.SendRequests)
-			net.Broadcast()
-					
-			ClientSideSound.SendRequests = {}
-		//end)
+		ClientSideSound.SendRequests = {}
 	end
+
 end
 
 function ClientSideSound:Play(time, entity)
@@ -272,14 +330,12 @@ end
 e2function void soundHTTPPitch( index, pitch )
 	local sound = getSound( self, index )
 	if not sound then return end
-	
 	sound:ChangePitch( math.Clamp( pitch, 0, 400 ) / 100, 0 )
 end
 
 e2function void soundHTTPPitch( index, pitch, fadetime )
 	local sound = getSound( self, index )
 	if not sound then return end
-	
 	sound:ChangePitch( math.Clamp( pitch, 0, 400 ) / 100, math.abs( fadetime ) )
 end
 
@@ -311,10 +367,12 @@ e2function void soundResume( string index ) = e2function void soundResume( index
 e2function void soundRemove( string index ) = e2function void soundRemove( index )
 e2function void soundVolume( string index, volume ) = e2function void soundVolume( index, volume )
 e2function void soundVolume( string index, volume, fadetime ) = e2function void soundVolume( index, volume, fadetime )
+
 e2function void soundPitch( string index, pitch ) = e2function void soundPitch( index, pitch )
 e2function void soundPitch( string index, pitch, fadetime ) = e2function void soundPitch( index, pitch, fadetime )
 e2function void soundHTTPPitch( string index, pitch ) = e2function void soundHTTPPitch( index, pitch )
 e2function void soundHTTPPitch( string index, pitch, fadetime ) = e2function void soundHTTPPitch( index, pitch, fadetime )
+
 e2function void soundFadeDistance( string index, min, max ) = e2function void soundFadeDistance( index, min, max ) 
 e2function void soundLoop( string index, bool ) = e2function void soundLoop( index, bool )
 e2function void soundTime( string index, val ) = e2function void soundTime( index, val )
