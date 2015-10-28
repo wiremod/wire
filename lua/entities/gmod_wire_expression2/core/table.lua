@@ -471,8 +471,13 @@ end
 e2function void table:remove( number index )
 	if (#this.n == 0) then return end
 	if (!this.n[index]) then return end
-	table.remove( this.n, index )
-	table.remove( this.ntypes, index )
+	if index < 1 then -- table.remove doesn't work if the index is below 1
+		this.n[index] = nil
+		this.ntypes[index] = nil
+	else
+		table.remove( this.n, index )
+		table.remove( this.ntypes, index )
+	end
 	this.size = this.size - 1
 	self.GlobalScope.vclk[this] = true
 end
@@ -1057,8 +1062,13 @@ registerCallback( "postinit", function()
 			if (numidx) then
 				if (!rv1.n[rv2] or rv1.ntypes[rv2] != id) then return fixdef(v[2]) end
 				local ret = rv1.n[rv2]
-				table.remove( rv1.n, rv2 )
-				table.remove( rv1.ntypes, rv2 )
+				if rv2 < 1 then -- table.remove doesn't work if the index is below 1
+					rv1.n[rv2] = nil
+					rv1.ntypes[rv2] = nil
+				else
+					table.remove( rv1.n, rv2 )
+					table.remove( rv1.ntypes, rv2 )
+				end
 				rv1.size = rv1.size - 1
 				self.GlobalScope.vclk[rv1] = true
 				return ret
