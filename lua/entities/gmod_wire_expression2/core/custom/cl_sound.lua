@@ -45,50 +45,51 @@ end )
 local function moveSounds()
 
 	for _,v in pairs(E2Sounds) do
-	
-		if v.IsBass and v.SoundChannel then
-		
-			if IsValid(v.Entity) then
+		if v then
+			if v.IsBass and IsValid(v.SoundChannel) then
 			
-				v.SoundChannel:SetPos(v.Entity:GetPos())
-				if v.FadePitchStart then
-					local t = (CurTime() - v.FadePitchStart)/v.FadePitchTime
-					local inter = v.OriginalPitch + v.DeltaPitch*t
-					if t>=1 then
-						v.SoundChannel:SetPlaybackRate(v.OriginalPitch + v.DeltaPitch)
-						v.FadePitchStart = nil
-					else
-						v.SoundChannel:SetPlaybackRate(inter)
+				if IsValid(v.Entity) then
+				
+					v.SoundChannel:SetPos(v.Entity:GetPos())
+					
+					if v.FadePitchStart then
+						local t = (CurTime() - v.FadePitchStart)/v.FadePitchTime
+						local inter = v.OriginalPitch + v.DeltaPitch*t
+						if t>=1 then
+							v.SoundChannel:SetPlaybackRate(v.OriginalPitch + v.DeltaPitch)
+							v.FadePitchStart = nil
+						else
+							v.SoundChannel:SetPlaybackRate(inter)
+						end
 					end
-				end
-				if v.FadeVolumeStart then
-					local t = (CurTime() - v.FadeVolumeStart)/v.FadeVolumeTime
-					local inter = v.OriginalVolume + v.DeltaVolume*t
-					if t>=1 then
-						v.SoundChannel:SetVolume(v.OriginalVolume + v.DeltaVolume)
-						v.FadeVolumeStart = nil
-					else
-						v.SoundChannel:SetVolume(inter)
+					if v.FadeVolumeStart then
+						local t = (CurTime() - v.FadeVolumeStart)/v.FadeVolumeTime
+						local inter = v.OriginalVolume + v.DeltaVolume*t
+						if t>=1 then
+							v.SoundChannel:SetVolume(v.OriginalVolume + v.DeltaVolume)
+							v.FadeVolumeStart = nil
+						else
+							v.SoundChannel:SetVolume(inter)
+						end
 					end
-				end
-				if v.DieTime then
-					if CurTime()>=v.DieTime then
-						v.SoundChannel:Stop()
-						v.DieTime = nil
+					if v.DieTime then
+						if CurTime()>=v.DieTime then
+							v.SoundChannel:Stop()
+							v.DieTime = nil
+						end
 					end
+					
 				end
 				
-			end
-			
-		elseif v.SoundChannel then
-			if v.FadeRequest != nil and v.FadeRequest > 0 then
-				timer.Simple(v.FadeRequest,function()
-					v.SoundChannel:Stop()
-				end)
-				v.FadeRequest = -1
+			elseif v.SoundChannel then
+				if v.FadeRequest != nil and v.FadeRequest > 0 then
+					timer.Simple(v.FadeRequest,function()
+						v.SoundChannel:Stop()
+					end)
+					v.FadeRequest = -1
+				end
 			end
 		end
-		
 	end
 
 	if not next(E2Sounds) then
@@ -236,9 +237,10 @@ local function loadSound(index)
 
 	if sounds.IsBass then
 		sound.PlayURL(path, "3d mono noblock", function(channel, er, ername)
+		
 			if IsValid(channel) then
 
-				if IsValid(sounds.Entity) then
+				if E2Sounds[index] and IsValid(sounds.Entity) then
 				
 					if sounds.SoundChannel then
 						sounds.SoundChannel:Stop()
@@ -256,12 +258,12 @@ local function loadSound(index)
 					end
 
 					// Execute the QUEUED Stuff.
-					local queue = sounds.BassQueue
+					local queue = sounds.Queue
 					if queue then
 						for I=1, #queue do
-							queue[I].Func(soundtbl, unpack(queue[I].Arg))
+							queue[I].Func(sounds, unpack(queue[I].Arg))
 						end
-						table.Empty(sounds.BassQueue)
+						sounds.Queue = nil
 					end
 					
 					if sounds.Length > 0 then
@@ -342,21 +344,26 @@ local function decideFunction(index,func)
 	if func == "Create" then
 		createSound(index)
 	else
-	
+
 		local sound = E2Sounds[index]
 		local netdata = netFuncs[func]()
 		
 		if sound then
+		
 			if sound.IsBass then
+			
 				local soundFunc = bassNetFunctions[func] 
-				if soundFunc and sound.SoundChannel then 
-					soundFunc(sound,unpack(netdata)) // Execute the sound Function
-				elseif sound.BassQueue then // QUEUE it
-					sound.BassQueue[#sound.BassQueue+1] = {Func = soundFunc, Arg = netdata}
+				if soundFunc then
+					if sound.SoundChannel then 
+						soundFunc(sound,unpack(netdata)) // Execute the sound Function
+					elseif sound.Queue then // QUEUE it
+						sound.Queue[#sound.Queue+1] = {Func = soundFunc, Arg = netdata}
+					end
 				end
+				
 			else
 				local soundFunc = gmodSoundFuncs[func] 
-				if soundFunc and sound.SoundChannel then
+				if soundFunc and sound.SoundChannel then // No delay on creating the sounds
 					soundFunc(sound,unpack(netdata))
 				end
 			end
@@ -374,17 +381,9 @@ net.Receive("e2_soundrequest",function()
 	
 	local numRequests = math.Clamp(net.ReadUInt(32),0,100)
 	for I=1, numRequests do
-	
 		local index = net.ReadString()
 		local funcLook = funcLookup[net.ReadUInt(8)]
-		
-		if !funcLook then continue end
 		decideFunction(index, funcLook)
 	end
 	
-end)
-
-net.Receive("e2_soundremove",function()
-	local index = net.ReadString()
-	decideFunction(index, "Remove")
 end)

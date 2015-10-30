@@ -38,6 +38,8 @@ ClientSideSound.SendFuncs = {
 	end,
 	Resume = function(self)
 	end,
+	Remove = function(self)
+	end,
 	Stop = function(self, time)
 		net.WriteDouble(time)
 	end,
@@ -104,7 +106,6 @@ function ClientSideSound.Broadcast()
 				ClientSideSound.SendFuncs[Request.Func](unpack(Request.Arg))
 			end
 		net.Broadcast()
-		
 		ClientSideSound.SendRequests = {}
 	end
 
@@ -127,9 +128,7 @@ function ClientSideSound:Stop(time)
 end
 	
 function ClientSideSound:Remove()
-	net.Start("e2_soundremove")
-		net.WriteString(self.index)
-	net.Broadcast()
+	self:SendRequest("Remove")
 end
 	
 function ClientSideSound:ChangeVolume(vol, time)
@@ -158,7 +157,8 @@ end
 local function isAllowed( self )
 
 	local data = self.data.sound_data
-	if #data >= wire_expression2_maxsounds:GetInt() then return false end
+	//local count = self.data.count or 0
+	//if count >= wire_expression2_maxsounds:GetInt() then return false end
 	
 	if data.burst == 0 then return false end
 	data.burst = data.burst - 1
@@ -185,7 +185,7 @@ local function soundDestroy(self, index)
 	if self.data.sound_data.sounds[index] then
 		self.data.sound_data.sounds[index]:Remove()
 		self.data.sound_data.sounds[index] = nil
-		//table.remove(self.data.sound_data.sounds,index)
+		//self.data.sound_data.count = self.data.sound_data.count - 1
 	end
 end
 
@@ -200,18 +200,23 @@ local function soundCreate(self, entity, index, time, path, pitch, volume)
 	
 	if path:sub(1,4)=="http" || path:sub(1,3) == "www" then
 		if wire_expression2_sound_allowurl:GetInt()==0 then return end
-		self.IsBass = true
 	else
 		if path:match('["?]') then return end
 		path = path:Trim()
 		path = path:gsub( "\\", "/" )
-		self.IsBass = false
 	end
 	
 	if isnumber( index ) then index = math.floor( index ) end	
 	local data = self.data.sound_data
-	local sound = ClientSideSound.CreateSound(path,time,index,entity,self.entity,pitch,volume)
+	local oldsound = getSound( self, index )
 	
+	if oldsound then
+		oldsound:Remove()
+	else
+		//data.count = data.count + 1
+	end
+	
+	local sound = ClientSideSound.CreateSound(path,time,index,entity,self.entity,pitch,volume)
 	data.sounds[index] = sound
 	
 	entity:CallOnRemove( "E2_stopsound", function()
@@ -230,7 +235,8 @@ local function soundPurge( self )
 	end
 	
 	sound_data.sounds = {}
-
+	sound_data.count = 0
+	
 end
 
 ---------------------------------------------------------------
