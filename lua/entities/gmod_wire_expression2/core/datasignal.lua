@@ -405,7 +405,7 @@ end
 
 -- Get all E2s which would have received a signal if you had sent it to this group and scope
 e2function array dsProbe( string groupname, number scope )
-	return probeGroup( self.entity, groupname, c(f(scope),0,2) )
+	return probeGroup( self.entity, c(f(scope),0,2), groupname )
 end
 
 
