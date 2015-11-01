@@ -1,6 +1,4 @@
-if (not EmuFox) then
-	include('shared.lua')
-end
+include('shared.lua')
 
 function ENT:Initialize()
 	self.Memory1 = {}
@@ -303,8 +301,6 @@ function ENT:Draw()
 		end)
 
 	end
-
-	if EmuFox then return end
 
 	self.GPU:Render()
 	Wire_Render(self)
