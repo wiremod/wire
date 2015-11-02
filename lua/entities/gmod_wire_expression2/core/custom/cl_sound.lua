@@ -146,6 +146,12 @@ local netFuncs = {
 	end,
 	SetTime = function()
 		return {net.ReadUInt(32)}
+	end,
+	GetSoundFFT = function()
+		return {}
+	end,
+	GetSoundStatus = function()
+		return {}
 	end
 }
 
@@ -161,6 +167,8 @@ local funcLookup = {
 	"ChangeFadeDistance",
 	"SetLooping",
 	"SetTime",
+	"GetSoundFFT",
+	"GetSoundStatus"
 }
 	
 local bassNetFunctions = {	
@@ -211,6 +219,13 @@ local bassNetFunctions = {
 	end,
 	SetTime = function(sound, time)
 		sound.SoundChannel:SetTime( time )
+	end,
+	GetSoundFFT = function(sound)
+		//return sound.SoundChannel:SetTime( time )
+	end,
+	GetSoundStatus = function(sound)
+	
+		return sound.SoundChannel:GetState()
 	end
 }
 

@@ -60,6 +60,10 @@ ClientSideSound.SendFuncs = {
 	end,
 	SetTime = function(self, val)
 		net.WriteUInt(val, 32)
+	end,
+	GetSoundFFT = function(self)
+	end,
+	GetSoundStatus = function(self)
 	end
 }
 
@@ -74,7 +78,9 @@ ClientSideSound.SendFuncsLookup = {
 	ChangePitch = 8,
 	ChangeFadeDistance = 9,
 	SetLooping = 10,
-	SetTime = 11
+	SetTime = 11,
+	GetSoundFFT = 12,
+	GetSoundStatus = 13
 }
 
 function ClientSideSound.CreateSound( path, time, index, entity, e2, pitch, volume) 
@@ -150,6 +156,14 @@ end
 function ClientSideSound:SetTime(val)
 	self:SendRequest("SetTime",val)
 end
+
+function ClientSideSound:GetSoundFFT()
+	self:SendRequest("GetSoundFFT")
+end
+
+function ClientSideSound:GetSoundStatus()
+	self:SendRequest("GetSoundStatus")
+end
 ---------------------------------------------------------------
 -- Helper functions
 ---------------------------------------------------------------
@@ -157,8 +171,8 @@ end
 local function isAllowed( self )
 
 	local data = self.data.sound_data
-	//local count = self.data.count or 0
-	//if count >= wire_expression2_maxsounds:GetInt() then return false end
+	//if self.data.sound_data.count == nil then self.data.sound_data.count = 0 end
+	//if self.data.sound_data.count >= wire_expression2_maxsounds:GetInt() then return false end
 	
 	if data.burst == 0 then return false end
 	data.burst = data.burst - 1
@@ -213,7 +227,7 @@ local function soundCreate(self, entity, index, time, path, pitch, volume)
 	if oldsound then
 		oldsound:Remove()
 	else
-		//data.count = data.count + 1
+		//self.data.sound_data.count = self.data.sound_data.count + 1
 	end
 	
 	local sound = ClientSideSound.CreateSound(path,time,index,entity,self.entity,pitch,volume)
@@ -235,7 +249,7 @@ local function soundPurge( self )
 	end
 	
 	sound_data.sounds = {}
-	sound_data.count = 0
+	//self.data.sound_data.count = 0
 	
 end
 
