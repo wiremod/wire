@@ -222,7 +222,7 @@ function HCOMP:StartCompile(sourceCode,fileName,writeByteCallback,writeByteCalle
   -- Prepare parser
   self.Stage = 1
   self.Tokens = {}
-  self.Code = {{ Text = sourceCode, Line = 1, Col = 1, File = self.FileName }}
+  self.Code = {{ Text = sourceCode, Line = 1, Col = 1, File = self.FileName, NextCharPos = 1 }}
 
   -- Structs
   self.Structs = {}

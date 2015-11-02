@@ -184,16 +184,17 @@ end
 function HCOMP:nextFile()
   table.remove(self.Code,1)
   if not self.Code[1] then
-    self.Code[1] = { Text = "", Line = 1, Col = 1, File = "internal error" }
+    self.Code[1] = { Text = "", Line = 1, Col = 1, File = "internal error", NextCharPos = 1 }
   end
 end
 
 -- Return next character
 function HCOMP:getChar()
-  local char = string.sub(self.Code[1].Text,1,1)
+  local pos = self.Code[1].NextCharPos
+  local char = string.sub(self.Code[1].Text,pos,pos)
   if char == "" then
     self:nextFile()
-    char = string.sub(self.Code[1].Text,1,1)
+    char = string.sub(self.Code[1].Text,pos,pos)
   end
   return char
 end
@@ -201,17 +202,18 @@ end
 -- Skip current char
 function HCOMP:nextChar()
   local code = self.Code[1]
-  if code.Text == "" then
+  local pos = code.NextCharPos
+  if pos > #code.Text then
     self:nextFile()
   else
-    local char = string.sub(code.Text,1,1)
+    local char = string.sub(code.Text,pos,pos)
     if char == "\n" then
       code.Line = code.Line + 1
       code.Col = 1
     else
       code.Col = code.Col + 1
     end
-    code.Text = string.sub(code.Text,2)
+    code.NextCharPos = pos + 1
   end
 end
 
@@ -225,9 +227,6 @@ function HCOMP:Tokenize() local TOKEN = self.TOKEN
         (self:getChar() == "\t") or
         (self:getChar() == "\n") or
 		(self:getChar() == "\r") do self:nextChar() end
-
-  -- Store this line as previous (FIXME: need this?)
-  self.PreviousCodeLine = self.Code[1].Text
 
   -- Read token position
   local tokenPosition = { Line = self.Code[1].Line,
@@ -269,7 +268,7 @@ function HCOMP:Tokenize() local TOKEN = self.TOKEN
     self:nextChar() -- Skip leading character
 
     local fetchString = ""
-    while (self.Code[1].Text ~= "") and (self:getChar() ~= "'") and (self:getChar() ~= "\"") do
+    while (self.Code[1].NextCharPos <= #self.Code[1].Text) and (self:getChar() ~= "'") and (self:getChar() ~= "\"") do
 
       if self:getChar() == "\\" then
         self:nextChar()
