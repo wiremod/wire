@@ -147,12 +147,16 @@ end
 -- Create lookup table for double-character tokens
 HCOMP.PARSER_DBCHAR = {}
 for symID,symList in pairs(HCOMP.TOKEN_TEXT) do
+  local languages = symList[1]
   local symText = symList[2][1] or ""
   if #symText == 2 then
     local char1 = string.sub(symText,1,1)
     local char2 = string.sub(symText,2,2)
-    HCOMP.PARSER_DBCHAR[char1] = HCOMP.PARSER_DBCHAR[char1] or {}
-    HCOMP.PARSER_DBCHAR[char1][char2] = true
+    for _,lang in pairs(languages) do
+      HCOMP.PARSER_DBCHAR[lang] = HCOMP.PARSER_DBCHAR[lang] or {}
+      HCOMP.PARSER_DBCHAR[lang][char1] = HCOMP.PARSER_DBCHAR[lang][char1] or {}
+      HCOMP.PARSER_DBCHAR[lang][char1][char2] = true
+    end
   end
 end
 
@@ -338,9 +342,9 @@ function HCOMP:Tokenize() local TOKEN = self.TOKEN
     token = self:getChar()
     self:nextChar()
 
-    if HCOMP.PARSER_DBCHAR[token] then
+    if HCOMP.PARSER_DBCHAR[self.Settings.CurrentLanguage][token] then
       local curChar = self:getChar()
-      if HCOMP.PARSER_DBCHAR[token][curChar] then
+      if HCOMP.PARSER_DBCHAR[self.Settings.CurrentLanguage][token][curChar] then
         token = token .. curChar
         self:nextChar()
         if token == "//" then -- Line comment
