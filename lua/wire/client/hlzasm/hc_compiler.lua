@@ -179,9 +179,9 @@ function HCOMP:StartCompile(sourceCode,fileName,writeByteCallback,writeByteCalle
   self.FileName = string.sub(fileName,string.find(fileName,"\\$") or 1)
   if string.GetPathFromFilename then
     local filePath = string.GetPathFromFilename(fileName)
-    self.WorkingDir = ".\\"..string.sub(filePath,(string.find(filePath,"Chip") or -4)+5)
+    self.WorkingDir = string.sub(filePath,(string.find(string.lower(filePath),"chip") or -4)+5)
   else
-    self.WorkingDir = ".\\"
+    self.WorkingDir = ""
   end
 
   -- Initialize compiler settings
