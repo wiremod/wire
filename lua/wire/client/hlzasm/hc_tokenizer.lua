@@ -213,7 +213,8 @@ function HCOMP:Tokenize() local TOKEN = self.TOKEN
   -- Skip whitespaces
   while (self:getChar() ==  " ") or
         (self:getChar() == "\t") or
-        (self:getChar() == "\n") do self:nextChar() end
+        (self:getChar() == "\n") or
+		(self:getChar() == "\r") do self:nextChar() end
 
   -- Store this line as previous (FIXME: need this?)
   self.PreviousCodeLine = self.Code[1].Text
