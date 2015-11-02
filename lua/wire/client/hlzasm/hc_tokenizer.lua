@@ -144,7 +144,8 @@ for symID,symList in pairs(HCOMP.TOKEN_TEXT) do
 end
 
 
--- Create lookup table for double-character tokens
+-- Create lookup table for symbols and double-character tokens
+HCOMP.PARSER_SYMBOLS = {}
 HCOMP.PARSER_DBCHAR = {}
 for symID,symList in pairs(HCOMP.TOKEN_TEXT) do
   local languages = symList[1]
@@ -156,6 +157,12 @@ for symID,symList in pairs(HCOMP.TOKEN_TEXT) do
       HCOMP.PARSER_DBCHAR[lang] = HCOMP.PARSER_DBCHAR[lang] or {}
       HCOMP.PARSER_DBCHAR[lang][char1] = HCOMP.PARSER_DBCHAR[lang][char1] or {}
       HCOMP.PARSER_DBCHAR[lang][char1][char2] = true
+    end
+  end
+  if #symText == 1 then
+    for _,lang in pairs(languages) do
+	  HCOMP.PARSER_SYMBOLS[lang] = HCOMP.PARSER_SYMBOLS[lang] or {}
+	  HCOMP.PARSER_SYMBOLS[lang][symText] = true
     end
   end
 end
@@ -207,7 +214,6 @@ function HCOMP:nextChar()
     code.Text = string.sub(code.Text,2)
   end
 end
-
 
 
 
@@ -336,44 +342,58 @@ function HCOMP:Tokenize() local TOKEN = self.TOKEN
       token = self.Defines[token]
     end
   end
+  
+  local is_symbol = false
 
   -- If no alphanumeric token fetched, try to fetch the special-character ones
   if token == "" then
     token = self:getChar()
     self:nextChar()
 
-    if HCOMP.PARSER_DBCHAR[self.Settings.CurrentLanguage][token] then
+    if HCOMP.PARSER_DBCHAR[self.Settings.CurrentLanguage][token] and HCOMP.PARSER_DBCHAR[self.Settings.CurrentLanguage][token][self:getChar()] then
       local curChar = self:getChar()
-      if HCOMP.PARSER_DBCHAR[self.Settings.CurrentLanguage][token][curChar] then
-        token = token .. curChar
-        self:nextChar()
-        if token == "//" then -- Line comment
-          while (self:getChar() ~= "") and (self:getChar() ~= "\n") do self:nextChar() end
-          return true
-        elseif token == "/*" then -- Block comment open
-          while self:getChar() ~= "" do
-            local curChar = self:getChar()
+      token = token .. curChar
+      self:nextChar()
+      if token == "//" then -- Line comment
+        while (self:getChar() ~= "") and (self:getChar() ~= "\n") do self:nextChar() end
+        return true
+      elseif token == "/*" then -- Block comment open
+        while self:getChar() ~= "" do
+          local curChar = self:getChar()
+          self:nextChar()
+          if (curChar == "*") and (self:getChar() == "/") then
             self:nextChar()
-            if (curChar == "*") and (self:getChar() == "/") then
-              self:nextChar()
-              return true
-            end
+            return true
           end
-
-          -- Error in tokenizing
-          self:Error("Comment block not closed (reached end of file)",
-            tokenPosition.Line,tokenPosition.Col,tokenPosition.File)
-          return true
-        elseif token == "*/" then -- Block comment end (returns error token)
-          table.insert(self.Tokens,{
-            Type = TOKEN.COMMENT3,
-            Position = tokenPosition,
-          })
-          return true
         end
+
+        -- Error in tokenizing
+        self:Error("Comment block not closed (reached end of file)",
+          tokenPosition.Line,tokenPosition.Col,tokenPosition.File)
+        return true
+      elseif token == "*/" then -- Block comment end (returns error token)
+        table.insert(self.Tokens,{
+          Type = TOKEN.COMMENT3,
+          Position = tokenPosition,
+        })
+        return true
       end
+	  
+	  -- Else it's a two-character symbol token
+	  is_symbol = true
+	  
+    elseif HCOMP.PARSER_SYMBOLS[self.Settings.CurrentLanguage][token] then
+	  -- It's a one-character symbol token
+	  is_symbol = true
+	
+	else
+	  -- We have no idea what this is (it's not an identifier character, nor a recognized symbol)
+	  self:Error("Unknown character '"..token.."'",
+        tokenPosition.Line,tokenPosition.Col,tokenPosition.File)
     end
   end
+  
+  assert(token ~= "")
 
   -- Determine which token it is
   local tokenLookupTable = self.PARSER_LOOKUP[self.Settings.CurrentLanguage][string.upper(token)]
@@ -384,6 +404,12 @@ function HCOMP:Tokenize() local TOKEN = self.TOKEN
       Position = tokenPosition,
     })
     return true
+  end
+  
+  if is_symbol then
+    -- If we get here something is weird, because why would a symbol be in PARSER_DBCHARS or PARSER_SYMBOLS but not in PARSER_LOOKUP?
+    self:Error("Unknown symbol '"..token.."'",
+      tokenPosition.Line,tokenPosition.Col,tokenPosition.File)
   end
 
   -- Maybe its a number
