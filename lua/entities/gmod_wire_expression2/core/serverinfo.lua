@@ -2,6 +2,8 @@
   Server Information
 \******************************************************************************/
 
+__e2setcost(1)
+
 e2function string map()
 	return game.GetMap()
 end
@@ -9,6 +11,17 @@ end
 local hostname = GetConVar("hostname")
 e2function string hostname()
 	return hostname:GetString()
+end
+
+local hostipnum = tonumber(GetConVar("hostip"):GetString())
+local ipstructure = {}
+ipstructure[1] = bit.rshift(bit.band(hostipnum, 0xFF000000), 24)
+ipstructure[2] = bit.rshift(bit.band(hostipnum, 0x00FF0000), 16)
+ipstructure[3] = bit.rshift(bit.band(hostipnum, 0x0000FF00), 8)
+ipstructure[4] = bit.band(hostipnum, 0x000000FF)
+local hostip = table.concat(ipstructure, ".")
+e2function string hostip()
+	return hostip
 end
 
 local sv_lan = GetConVar("sv_lan")
