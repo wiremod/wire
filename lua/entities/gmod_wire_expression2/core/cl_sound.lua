@@ -48,6 +48,9 @@ local function moveSounds()
 			if v.IsBass and v.SoundChannel:IsValid() then
 				if IsValid(v.Entity) then
 					v.SoundChannel:SetPos(v.Entity:GetPos())
+				else
+					v.SoundChannel:Stop()
+					E2Sounds[k] = nil
 				end
 			end
 			if not v.IsBass or (v.IsBass and v.SoundChannel:IsValid()) then
@@ -75,6 +78,7 @@ local function moveSounds()
 					if CurTime()>=v.DieTime then
 						v.SoundChannel:Stop()
 						v.DieTime = nil
+						E2Sounds[k] = nil
 					end
 				end
 			end
@@ -105,51 +109,26 @@ local function setFadeVolume(sound, volume, time)
 end
 
 local netFuncs = {	
-	Play = function()	
-		return {net.ReadDouble(), net.ReadEntity()}
-	end,
-	Pause = function()
-		return {}
-	end,
-	Resume = function()
-		return {}
-	end,
-	Remove = function()
-		return {}
-	end,
-	Stop = function()
-		return {net.ReadDouble()}
-	end,
-	ChangeVolume = function()
-		return {net.ReadDouble(), net.ReadDouble()}
-	end,
-	ChangePitch = function()
-		return {net.ReadDouble(), net.ReadDouble()}
-	end,
-	ChangeFadeDistance = function()
-		return {net.ReadDouble(), net.ReadDouble()}
-	end,
-	SetLooping = function()
-		return {net.ReadUInt(8)}
-	end,
-	SetTime = function()
-		return {net.ReadUInt(32)}
-	end,
-	GetSoundFFT = function()
-		return {}
-	end,
-	GetSoundStatus = function()
-		return {}
-	end
+	Play = function() return net.ReadDouble(), net.ReadEntity() end,
+	Pause = function() end,
+	Resume = function() end,
+	Stop = function() return net.ReadDouble() end,
+	StopNoTime = function() end,
+	ChangeVolume = function() return net.ReadDouble(), net.ReadDouble() end,
+	ChangePitch = function() return net.ReadDouble(), net.ReadDouble() end,
+	ChangeFadeDistance = function() return net.ReadDouble(), net.ReadDouble() end,
+	SetLooping = function() return net.ReadUInt(8) end,
+	SetTime = function() return net.ReadUInt(32) end,
+	GetSoundFFT = function() end,
+	GetSoundStatus = function() end
 }
 
 local funcLookup = {
 	"Create",
-	"Play",
 	"Pause",
 	"Resume",
-	"Remove",
 	"Stop",
+	"StopNoTime",
 	"ChangeVolume",
 	"ChangePitch",
 	"ChangeFadeDistance",
@@ -173,17 +152,13 @@ local bassNetFunctions = {
 	Resume = function(sound)
 		sound.SoundChannel:Play()
 	end,
-	Remove = function(sound)
+	Stop = function(sound, time)
+		sound.DieTime = CurTime() + time
+		setFadeVolume(sound, 0, time)
+	end,
+	StopNoTime = function(sound)
 		sound.SoundChannel:Stop()
 		E2Sounds[sound.Index] = nil
-	end,
-	Stop = function(sound, time)
-		if time > 0 then
-			sound.DieTime = CurTime() + time
-			setFadeVolume(sound, 0, time)
-		else
-			sound.SoundChannel:Stop()
-		end
 	end,
 	ChangeVolume = function(sound, volume, time)
 		if sound.SoundChannel then
@@ -227,16 +202,7 @@ local bassNetFunctions = {
 
 local gmodSoundFuncs = {	
 	Play = bassNetFunctions.Play,
-	Stop = function(sound, time)
-		if time > 0 then
-			if sound.FadeRequest then return end
-			sound.SoundChannel:FadeOut(math.abs(time))
-			sound.FadeRequest = math.abs(time)
-		else
-			sound.SoundChannel:Stop()
-		end	
-	end,
-	Remove = bassNetFunctions.Remove,
+	Stop = bassNetFunctions.Stop,
 	ChangeVolume = bassNetFunctions.ChangeVolume,
 	ChangePitch = bassNetFunctions.ChangePitch
 }
@@ -367,16 +333,18 @@ local function decideFunction(index,func)
 		createSound(index)
 	else
 		local sound = E2Sounds[index]
-		local netdata = netFuncs[func]()
+		local netdata = netFuncs[func]
 		if sound then
 			local soundFunc = sound.IsBass and bassNetFunctions[func] or gmodSoundFuncs[func]
 			if soundFunc then
 				if sound.SoundChannel then 
-					soundFunc(sound,unpack(netdata)) // Execute the sound Function
+					soundFunc(sound, netdata()) // Execute the sound Function
 				elseif sound.Queue then // QUEUE it
-					sound.Queue[#sound.Queue+1] = {Func = soundFunc, Arg = netdata}
+					sound.Queue[#sound.Queue+1] = {Func = soundFunc, Arg = {netdata()}}
 				end
 			end
+		else
+			netdata()
 		end
 	end
 end
