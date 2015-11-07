@@ -13,13 +13,29 @@ e2function string hostname()
 	return hostname:GetString()
 end
 
-local hostipnum = tonumber(GetConVar("hostip"):GetString())
-local ipstructure = {}
-ipstructure[1] = bit.rshift(bit.band(hostipnum, 0xFF000000), 24)
-ipstructure[2] = bit.rshift(bit.band(hostipnum, 0x00FF0000), 16)
-ipstructure[3] = bit.rshift(bit.band(hostipnum, 0x0000FF00), 8)
-ipstructure[4] = bit.band(hostipnum, 0x000000FF)
-local hostip = table.concat(ipstructure, ".")
+local hostip = "0.0.0.0"
+local failed = 0
+
+local function httpRequestServerIP()
+	if failed > 5 then return end
+	failed = failed + 1
+	
+	http.Fetch( "http://api.ipify.org/",
+		function( data )
+			if data:match("%d+%.%d+%.%d+%.%d+") then
+				hostip = data
+			else
+				timer.Simple( 2, httpRequestServerIP )
+			end
+		end,
+		
+		function()
+			timer.Simple( 2, httpRequestServerIP )
+		end
+	)
+end
+timer.Simple( 5, httpRequestServerIP ) -- Http sometimes isn't initialized by the time Initialize is called
+
 e2function string hostip()
 	return hostip
 end
