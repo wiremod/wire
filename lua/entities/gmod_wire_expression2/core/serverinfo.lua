@@ -34,7 +34,7 @@ local function httpRequestServerIP()
 		end
 	)
 end
-timer.Simple( 5, httpRequestServerIP ) -- Http sometimes isn't initialized by the time Initialize is called
+hook.Add( "Initialize", "httpRequestServerIP", httpRequestServerIP )
 
 e2function string hostip()
 	return hostip
