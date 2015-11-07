@@ -2,6 +2,8 @@
   Server Information
 \******************************************************************************/
 
+__e2setcost(1)
+
 e2function string map()
 	return game.GetMap()
 end
@@ -9,6 +11,33 @@ end
 local hostname = GetConVar("hostname")
 e2function string hostname()
 	return hostname:GetString()
+end
+
+local hostip = "0.0.0.0"
+local failed = 0
+
+local function httpRequestServerIP()
+	if failed > 5 then return end
+	failed = failed + 1
+	
+	http.Fetch( "http://api.ipify.org/",
+		function( data )
+			if data:match("%d+%.%d+%.%d+%.%d+") then
+				hostip = data
+			else
+				timer.Simple( 2, httpRequestServerIP )
+			end
+		end,
+		
+		function()
+			timer.Simple( 2, httpRequestServerIP )
+		end
+	)
+end
+hook.Add( "Initialize", "httpRequestServerIP", httpRequestServerIP )
+
+e2function string hostip()
+	return hostip
 end
 
 local sv_lan = GetConVar("sv_lan")
