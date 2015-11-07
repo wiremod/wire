@@ -7,7 +7,7 @@ E2Lib.RegisterExtension("sound", true)
 local wire_expression2_maxsounds = CreateConVar( "wire_expression2_maxsounds", 16, {FCVAR_ARCHIVE} )
 local wire_expression2_sound_burst_max = CreateConVar( "wire_expression2_sound_burst_max", 8, {FCVAR_ARCHIVE} )
 local wire_expression2_sound_burst_rate = CreateConVar( "wire_expression2_sound_burst_rate", 0.1, {FCVAR_ARCHIVE} )
-local wire_expression2_sound_allowurl = CreateConVar( "wire_expression2_sound_allowurl", 1, {FCVAR_ARCHIVE} )
+local wire_expression2_sound_allowurl = CreateConVar( "wire_expression2_sound_allowurl", 0, {FCVAR_ARCHIVE} )
 
 util.AddNetworkString("e2_soundrequest")
 util.AddNetworkString("e2_soundremove")
@@ -230,7 +230,7 @@ local function soundCreate(self, entity, index, time, path, pitch, volume)
 	if oldsound then
 		oldsound:Remove()
 	else
-		self.data.sound_data.count = self.data.sound_data.count + 1
+		data.count = data.count + 1
 	end
 	
 	local sound = ClientSideSound.CreateSound(path,time,index,entity,self.entity,pitch,volume)

@@ -44,9 +44,13 @@ end )
 
 local function moveSounds()
 	for k,v in pairs(E2Sounds) do
-		if v.IsBass and IsValid(v.SoundChannel) then
-			if IsValid(v.Entity) then
-				v.SoundChannel:SetPos(v.Entity:GetPos())
+		if v.SoundChannel then
+			if v.IsBass and v.SoundChannel:IsValid() then
+				if IsValid(v.Entity) then
+					v.SoundChannel:SetPos(v.Entity:GetPos())
+				end
+			end
+			if not v.IsBass or (v.IsBass and v.SoundChannel:IsValid()) then
 				if v.FadePitchStart then
 					local t = (CurTime() - v.FadePitchStart)/v.FadePitchTime
 					local inter = v.OriginalPitch + v.DeltaPitch*t
@@ -182,18 +186,26 @@ local bassNetFunctions = {
 		end
 	end,
 	ChangeVolume = function(sound, volume, time)
-		if time > 0 then
-			setFadeVolume(sound, volume, time)
+		if sound.SoundChannel then
+			if time > 0 then
+				setFadeVolume(sound, volume, time)
+			else
+				sound.SoundChannel:SetVolume(volume)
+			end
 		else
-			sound.SoundChannel:SetVolume(volume)
+			sound.StartVolume = volume
 		end
 	end,
 	ChangePitch = function(sound, rate, time)
-		rate = math.Clamp( rate, 0, sound.IsBass and 400 or 255 ) / 100
-		if time > 0 then
-			setFadePitch(sound, rate, time)
+		rate = sound.IsBass and math.Clamp( rate, 0, 400 ) / 100 or math.Clamp( rate, 0, 255 )
+		if sound.SoundChannel then
+			if time > 0 then
+				setFadePitch(sound, rate, time)
+			else
+				sound.SoundChannel:SetPlaybackRate(rate)
+			end
 		else
-			sound.SoundChannel:SetPlaybackRate(rate)
+			sound.StartPitch = rate
 		end
 	end,
 	ChangeFadeDistance = function(sound, min, max)
@@ -249,19 +261,19 @@ local function loadSound(index)
 					channel:SetPos(soundtbl.Entity:GetPos())
 
 					// Execute the QUEUED Stuff.
-					local queue = sounds.Queue
+					local queue = soundtbl.Queue
 					if queue then
 						for I=1, #queue do
-							queue[I].Func(sounds, unpack(queue[I].Arg))
+							queue[I].Func(soundtbl, unpack(queue[I].Arg))
 						end
-						sounds.Queue = nil
+						soundtbl.Queue = nil
 					end
 					
-					if sounds.Length > 0 then
-						E2Sounds[index].DieTime = CurTime() + sounds.Length
+					if soundtbl.Length > 0 then
+						E2Sounds[index].DieTime = CurTime() + soundtbl.Length
 					end
 					
-					sounds.Length = 0
+					soundtbl.Length = 0
 				else
 					channel:Stop()
 					E2Sounds[index] = nil
@@ -278,26 +290,48 @@ local function loadSound(index)
 			
 		end)
 	else
-		if E2Sounds[index] != nil and IsValid(sounds.Entity) then
+		if E2Sounds[index] != nil and IsValid(soundtbl.Entity) then
 			local s = Sound(path)
-			local newsound = CreateSound(sounds.Entity, s)
+			local newsound = CreateSound(soundtbl.Entity, s)
 			if !newsound then E2Sounds[index] = nil return end
 			
-			if sounds.Pitch <= 0 then sounds.Pitch = 100 else sounds.Pitch = math.Clamp( sounds.Pitch, 0, 255 ) end
-			if sounds.Volume <= 0 then sounds.Volume = 1 else sounds.Volume = math.Clamp( sounds.Volume, 0, 1 ) end
-			newsound:PlayEx(sounds.Volume,sounds.Pitch)
-
-			if sounds.Length > 0 then
-				E2Sounds[index].DieTime = CurTime() + sounds.Length
+			--For some reason trying to stop the sound after the entity is dead won't work
+			soundtbl.Entity:CallOnRemove("E2SoundRemove"..index, function()
+				newsound:Stop()
+			end)
+			
+			--Check for a starting volume or pitch
+			local queue = soundtbl.Queue
+			if queue then
+				for k, tbl in pairs(queue) do
+					if tbl.Func == gmodSoundFuncs.ChangeVolume or tbl.Func == gmodSoundFuncs.ChangePitch then
+						tbl.Func(soundtbl, unpack(tbl.Arg))
+						queue[k] = nil
+					end
+				end
 			end
 			
-			sounds.Length = 0
-			sounds.SoundChannel = newsound
+			newsound:PlayEx(soundtbl.StartVolume or 1, soundtbl.StartPitch or 100)
+			
+			if queue then
+				for k, tbl in pairs(queue) do
+					tbl.Func(soundtbl, unpack(tbl.Arg))
+				end
+				soundtbl.Queue = nil
+			end
+			
+			if soundtbl.Length > 0 then
+				E2Sounds[index].DieTime = CurTime() + soundtbl.Length
+			end
+			
+			soundtbl.Length = 0
+			soundtbl.SoundChannel = newsound
 		end
 	end
 	
 end
 
+local createList = {}
 local function createSound(index)
 
 	local path = net.ReadString()
@@ -324,42 +358,27 @@ local function createSound(index)
 	end
 	
 	E2Sounds[index] = {SoundChannel = nil, Entity = ent, Player = ply, Queue = {}, Path = path, Length = time, Index = index, IsBass = bass}
-	loadSound(index)
+	createList[#createList + 1] = index
 	
 end
 
 local function decideFunction(index,func)
-
 	if func == "Create" then
 		createSound(index)
 	else
-
 		local sound = E2Sounds[index]
 		local netdata = netFuncs[func]()
-		
 		if sound then
-		
-			if sound.IsBass then
-			
-				local soundFunc = bassNetFunctions[func] 
-				if soundFunc then
-					if sound.SoundChannel then 
-						soundFunc(sound,unpack(netdata)) // Execute the sound Function
-					elseif sound.Queue then // QUEUE it
-						sound.Queue[#sound.Queue+1] = {Func = soundFunc, Arg = netdata}
-					end
-				end
-				
-			else
-				local soundFunc = gmodSoundFuncs[func] 
-				if soundFunc and sound.SoundChannel then // No delay on creating the sounds
-					soundFunc(sound,unpack(netdata))
+			local soundFunc = sound.IsBass and bassNetFunctions[func] or gmodSoundFuncs[func]
+			if soundFunc then
+				if sound.SoundChannel then 
+					soundFunc(sound,unpack(netdata)) // Execute the sound Function
+				elseif sound.Queue then // QUEUE it
+					sound.Queue[#sound.Queue+1] = {Func = soundFunc, Arg = netdata}
 				end
 			end
 		end
-
 	end
-	
 end
 
 
@@ -374,5 +393,10 @@ net.Receive("e2_soundrequest",function()
 		local funcLook = funcLookup[net.ReadUInt(8)]
 		decideFunction(index, funcLook)
 	end
+	
+	for I=1, #createList do
+		loadSound(createList[I])
+	end
+	createList = {}
 	
 end)
