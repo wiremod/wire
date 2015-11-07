@@ -110,7 +110,6 @@ function PropCore.CreateProp(self,model,pos,angles,freeze,isVehicle)
 		undo.Finish( undoName .. " (" .. model .. ")" )
 	end
 	
-	prop.IsE2Prop = true
 	prop:CallOnRemove( "wire_expression2_propcore_remove",
 		function( prop )
 			self.data.spawnedProps[ prop ] = nil
@@ -211,6 +210,7 @@ end
 
 e2function void entity:propBreak()
 	if not PropCore.ValidAction(self, this, "break") then return end
+	this.IsE2Prop = 2
 	this:Fire("break",1,0)
 end
 
