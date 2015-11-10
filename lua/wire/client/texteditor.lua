@@ -701,7 +701,7 @@ end
 
 
 function EDITOR:HasSelection()
-	return self.Caret[1] != self.Start[1] || self.Caret[2] != self.Start[2]
+	return self.Caret[1] ~= self.Start[1] or self.Caret[2] ~= self.Start[2]
 end
 
 function EDITOR:Selection()
@@ -3547,7 +3547,7 @@ do
 		["keyword"]  = { Color(255, 136,   0), false},
 		["memref"]   = { Color(232, 232,   0), false},
 		["pmacro"]   = { Color(136, 136, 255), false},
-
+		["error"]    = { Color(240,  96,  96), false},
 --		["compare"]  = { Color(255, 186,  40), true},
 	}
 
@@ -3635,13 +3635,15 @@ do
 					tokenname = "normal"
 				end
 			elseif (self.character == "'") or (self.character == "\"")  then
+				tokenname = "string"
+				local delimiter = self.character
 				self:NextCharacter()
-				while self.character and (self.character != "'") and (self.character != "\"") do
+				while self.character ~= delimiter do
+					if not self.character then tokenname = "error" break end
 					if self.character == "\\" then self:NextCharacter() end
 					self:NextCharacter()
 				end
 				self:NextCharacter()
-				tokenname = "string"
 			elseif self:NextPattern("^//.*$") then
 				tokenname = "comment"
 			elseif self:NextPattern("^/%*") then -- start of a multi-line comment
