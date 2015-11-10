@@ -210,7 +210,7 @@ end
 
 e2function void entity:propBreak()
 	if not PropCore.ValidAction(self, this, "break") then return end
-	this.IsE2Prop = 2
+	this.IsE2Prop = true
 	this:Fire("break",1,0)
 end
 
