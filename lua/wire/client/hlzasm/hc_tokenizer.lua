@@ -276,7 +276,7 @@ function HCOMP:Tokenize() local TOKEN = self.TOKEN
         end
         self:nextChar()
       elseif self:getChar() == "\n" then
-        self:Error("Newline in string constant",
+        self:Error("Missing terminating " .. stringType .. " character",
           tokenPosition.Line,tokenPosition.Col,tokenPosition.File)
       else
         fetchString = fetchString .. self:getChar()
