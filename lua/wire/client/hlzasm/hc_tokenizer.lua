@@ -258,7 +258,7 @@ function HCOMP:Tokenize() local TOKEN = self.TOKEN
     self:nextChar() -- Skip leading character
 
     local fetchString = ""
-    while (self.Code[1].Text ~= "") and (self:getChar() ~= "'") and (self:getChar() ~= "\"") do
+    while self.Code[1].Text ~= "" and self:getChar() ~= stringType do
 
       if self:getChar() == "\\" then
         self:nextChar()
@@ -407,7 +407,7 @@ end
 -- Print a string of tokens as an expression
 function HCOMP:PrintTokens(tokenList)
   local text = ""
-  if !istable(tokenList) then error("[global 1:1] Internal error 516 ("..tokenList..")") end
+  if not istable(tokenList) then error("[global 1:1] Internal error 516 ("..tokenList..")") end
 
   for _,token in ipairs(tokenList) do
     if (token.Type == self.TOKEN.NUMBER) or
