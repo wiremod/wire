@@ -652,9 +652,9 @@ if SERVER then
 
     if not args[1] then -- Step forward
       Data.Entity.VM:Step(1)
-      Data.Entity.Clk = 0
+      Data.Entity.VMStopped = true
     else -- Run until instruction
-      Data.Entity.Clk = 1
+      Data.Entity.VMStopped = false
       Data.Entity:NextThink(CurTime())
 
       Data.Entity.LastInstruction = tonumber(args[1]) or 0
@@ -679,7 +679,7 @@ if SERVER then
     CPULib.SendDebugData(Data.Entity.VM,nil,Data.Player)
     Data.Entity.VM.IP = tempIP
 
-    Data.Entity.Clk = 1
+    Data.Entity.Clk = true
     Data.Entity:NextThink(CurTime())
   end)
 
