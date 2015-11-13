@@ -46,11 +46,9 @@ end
 local Inputs = {}
 local Outputs = {}
 local CurLink = {}
-
+local cur_time = CurTime()
 hook.Add("Think", "WireLib_Think", function()
-	for idx,port in pairs(Outputs) do
-		port.TriggerLimit = 4
-	end
+	cur_time = CurTime()
 end)
 
 -- helper function that pcalls an input
@@ -158,7 +156,7 @@ function WireLib.CreateSpecialOutputs(ent, names, types, descs)
 			Type = tp,
 			Value = WireLib.DT[ tp ].Zero,
 			Connected = {},
-			TriggerLimit = 8,
+			TriggerLimiter = cur_time,
 			Num = n,
 		}
 
@@ -258,7 +256,7 @@ function WireLib.AdjustSpecialOutputs(ent, names, types, descs)
 				Type = types[n] or "NORMAL",
 				Value = WireLib.DT[ (types[n] or "NORMAL") ].Zero,
 				Connected = {},
-				TriggerLimit = 8,
+				TriggerLimiter = cur_time,
 				Num = n,
 			}
 
@@ -499,6 +497,7 @@ local function Wire_Link(dst, dstid, src, srcid, path)
 	WireLib.TriggerInput(dst, dstid, output.Value)
 end
 
+local trigger_step = engine.TickInterval() / 4
 function WireLib.TriggerOutput(ent, oname, value, iter)
 	if not IsValid(ent) then return end
 	if not HasPorts(ent) then return end
@@ -506,8 +505,8 @@ function WireLib.TriggerOutput(ent, oname, value, iter)
 
 	local output = ent.Outputs[oname]
 	if (output) and (value ~= output.Value or output.Type == "ARRAY" or output.Type == "TABLE") then
-		if (output.TriggerLimit <= 0) then return end
-		output.TriggerLimit = output.TriggerLimit - 1
+		if (output.TriggerLimiter < cur_time) then output.TriggerLimiter = cur_time end
+		output.TriggerLimiter = output.TriggerLimiter + trigger_step
 
 		output.Value = value
 
