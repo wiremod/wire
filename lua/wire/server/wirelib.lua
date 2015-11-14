@@ -19,6 +19,8 @@ local tostring = tostring
 local Vector = Vector
 local Color = Color
 local Material = Material
+local FrameTime = FrameTime
+local CurTime= CurTime
 
 local HasPorts = WireLib.HasPorts -- Very important for checks!
 
@@ -49,11 +51,11 @@ local CurLink = {}
 
 local frametime = FrameTime()
 local cur_time = CurTime()
-local max_overtime = cur_time + frametime*4
+local max_overtime = 1/0
 hook.Add("Think", "WireLib_Think", function()
 	frametime = FrameTime()
 	cur_time = CurTime()
-	max_overtime = cur_time + frametime * 4
+	max_overtime = cur_time + frametime * 8
 end)
 
 -- helper function that pcalls an input
