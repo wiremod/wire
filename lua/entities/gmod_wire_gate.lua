@@ -17,6 +17,7 @@ end
 function ENT:Setup( action, noclip )
 	local gate = GateActions[action]
 	if not gate then return end
+	if GateActions[action].is_banned then return end
 	
 	self.action = action
 
@@ -26,7 +27,7 @@ function ENT:Setup( action, noclip )
 	if (gate.outputs) then
 		WireLib.AdjustSpecialOutputs(self, gate.outputs, gate.outputtypes)
 	else
-		//Wire_AdjustOutputs(self, { "Out" })
+		--Wire_AdjustOutputs(self, { "Out" })
 		WireLib.AdjustSpecialOutputs(self, { "Out" }, gate.outputtypes)
 	end
 
@@ -60,7 +61,7 @@ function ENT:Setup( action, noclip )
 	self.Action = gate
 	self.PrevValue = nil
 
-	//self.Action.inputtypes = self.Action.inputtypes or {}
+	--self.Action.inputtypes = self.Action.inputtypes or {}
 
 	self:CalcOutput()
 	self:ShowOutput()
@@ -163,7 +164,7 @@ function ENT:GetActionInputs(as_names)
 			if (as_names) then
 				table.insert(Args, self.Action.inputs[#Args+1] or "*Not enough inputs*")
 			else
-				//table.insert( Args, WireLib.DT[ (self.Action.inputtypes[#Args+1] or "NORMAL") ].Zero )
+				--table.insert( Args, WireLib.DT[ (self.Action.inputtypes[#Args+1] or "NORMAL") ].Zero )
 				table.insert( Args, WireLib.DT[ self.Inputs[ self.Action.inputs[#Args+1] ].Type ].Zero )
 			end
 		end
@@ -201,6 +202,7 @@ end
 
 function MakeWireGate(pl, Pos, Ang, model, action, noclip, frozen, nocollide)
 	if not GateActions[action] then return end
+	if GateActions[action].is_banned then return end
 
 	return WireLib.MakeWireEnt(pl, { Class = "gmod_wire_gate", Pos=Pos, Angle=Ang, Model=model }, action, noclip)
 end
