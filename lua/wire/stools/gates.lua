@@ -3,7 +3,7 @@ WireToolSetup.setCategory( "Chips, Gates" )
 WireToolSetup.open( "gates", "Gates", "gmod_wire_gate", nil, "Gates" )
 
 WireToolSetup.BaseLang()
-WireToolSetup.SetupMax(30)
+WireToolSetup.SetupMax(100)
 
 if SERVER then
 	ModelPlug_Register("gate")
