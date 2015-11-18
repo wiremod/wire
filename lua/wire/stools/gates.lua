@@ -216,7 +216,17 @@ if CLIENT then
 		local CategoriesSorted = {}
 		
 		for gatetype, gatefuncs in pairs( WireGatesSorted ) do
-			CategoriesSorted[#CategoriesSorted+1] = { gatetype = gatetype, gatefuncs = gatefuncs }
+			local allowed_gates = {}
+			local any_allowed = false
+			for k,v in pairs(gatefuncs) do
+				if not v.is_banned then
+					allowed_gates[k] = v
+					any_allowed = true
+				end
+			end
+			if any_allowed then
+				CategoriesSorted[#CategoriesSorted+1] = { gatetype = gatetype, gatefuncs = allowed_gates }
+			end
 		end
 		
 		table.sort( CategoriesSorted, function( a, b ) return a.gatetype < b.gatetype end )
