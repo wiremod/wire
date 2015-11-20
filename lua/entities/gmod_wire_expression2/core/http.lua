@@ -3,7 +3,7 @@
 	     (McLovin)
 */
 
-E2Lib.RegisterExtension( "http", true )
+E2Lib.RegisterExtension( "http", false )
 
 local cvar_delay = CreateConVar( "wire_expression2_http_delay", "3", FCVAR_ARCHIVE )
 local cvar_timeout = CreateConVar( "wire_expression2_http_timeout", "15", FCVAR_ARCHIVE )
