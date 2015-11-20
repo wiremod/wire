@@ -291,6 +291,10 @@ e2function number inputClk()
 	return self.triggerinput and 1 or 0
 end
 
+e2function string inputClkName()
+	return self.triggerinput or ""
+end
+
 -- This MUST be the first destruct hook!
 registerCallback("destruct", function(self)
 	local entity = self.entity
