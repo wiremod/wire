@@ -33,15 +33,34 @@ local function logGlonCall( self, glonString, ret, safeGlonObject )
 end
 ]]
 
+-- this conversions table is used by luaTypeToWireTypeid
+local conversions = {
+	-- convert boolean to number
+	boolean = function( v ) return "normal", v and 1 or 0 end,
+
+	-- these probably won't happen, but just in case
+	Player = function( v ) return "Entity" end,
+	NPC = function( v ) return "Entity" end,
+}
+
 -- converts a lua variable's type to a wire typeid
+-- also returns v. v may have been modified in the process (converting boolean to number, for example)
 local function luaTypeToWireTypeid( v )
 	local typename = type( v )
+
+	if conversions[typename] then
+		local new_val
+		typename, new_val = conversions[typename]( v )
+		if new_val ~= nil then
+			v = new_val
+		end
+	end
 
 	-- special check for number
 	if typename == "number" then typename = "normal" end
 
 	-- convert full type name to typeid
-	return wire_expression_types[ string.upper( typename ) ][1]
+	return wire_expression_types[ string.upper( typename ) ][1], v
 end
 
 local forbiddenTypes = {
@@ -154,7 +173,7 @@ typeSanitizers = {
 				if !istable(glonOutputObject) then return safeTable end
 
 				for k, v in pairs(glonOutputObject) do
-					local objectType = luaTypeToWireTypeid( v )
+					local objectType, v = luaTypeToWireTypeid( v )
 					if objectType == "t" then objectType = "external_t" end
 
 					local safeObject = sanitizeGlonOutput( self, v, objectType, safeGlonObjectMap )
@@ -472,7 +491,7 @@ local function jsonDecode_recurse( self, luatable, copied_tables )
 	local wire_expression_types = wire_expression_types
 
 	for k,v in pairs( luatable ) do
-		local typeid = luaTypeToWireTypeid( v )
+		local typeid, v = luaTypeToWireTypeid( v )
 
 		-- if it's a table, recurse through it and convert all the tables it contains
 		if typeid == "t" then
