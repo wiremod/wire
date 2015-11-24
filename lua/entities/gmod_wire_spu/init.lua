@@ -40,7 +40,7 @@ function ENT:Initialize()
     self.SoundSources[i]:SetParent(self)
     self.SoundSources[i]:SetModel("models/cheeze/wires/nano_math.mdl")
     self.SoundSources[i]:SetNotSolid(true)
-    self.SoundSources[i]:SetPos(self:GetPos()+Vector(1*math.sin(2*math.pi*i/WireSPU_MaxChannels),1*math.cos(2*math.pi*i/WireSPU_MaxChannels),0))
+    self.SoundSources[i]:SetPos(self:GetPos())
     self.SoundSources[i]:Spawn()
   end
 
