@@ -369,6 +369,45 @@ function WireLib.ErrorNoHalt(message)
 	end
 end
 
+--- Generate a random version 4 UUID and return it as a string.
+function WireLib.GenerateUUID()
+	-- It would be easier to generate this by word rather than by byte, but
+	-- MSVC's RAND_MAX = 0x7FFF, which means math.random(0, 0xFFFF) won't
+	-- return all possible values.
+	local bytes = {}
+	for i = 1, 16 do bytes[i] = math.random(0, 0xFF) end
+	bytes[7] = bit.bor(0x40, bit.band(bytes[7], 0x0F))
+	bytes[9] = bit.bor(0x80, bit.band(bytes[7], 0x3F))
+	return string.format("%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x", unpack(bytes))
+end
+
+local PERSISTENT_UUID_KEY = "WireLib.GetServerUUID"
+if SERVER then
+	--- Return a persistent UUID associated with the server.
+	function WireLib.GetServerUUID()
+		local uuid = cookie.GetString(PERSISTENT_UUID_KEY)
+		if not uuid then
+			uuid = WireLib.GenerateUUID()
+			cookie.Set(PERSISTENT_UUID_KEY, uuid)
+		end
+		return uuid
+	end
+
+	util.AddNetworkString(PERSISTENT_UUID_KEY)
+
+	hook.Add("PlayerInitialSpawn", PERSISTENT_UUID_KEY, function(player)
+		net.Start(PERSISTENT_UUID_KEY)
+		net.WriteString(WireLib.GetServerUUID())
+		net.Send(player)
+	end)
+
+else
+	local SERVER_UUID
+	net.Receive(PERSISTENT_UUID_KEY, function() SERVER_UUID = net.ReadString() end)
+	function WireLib.GetServerUUID() return SERVER_UUID end
+end
+
+
 --[[ wire_netmsg system
 	A basic framework for entities that should send newly connecting players data
 
