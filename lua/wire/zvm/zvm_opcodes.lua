@@ -1630,35 +1630,23 @@ ZVM.OpcodeTable[295] = function(self)  --VDIV
   self:Dyn_Emit("end")
 end
 ZVM.OpcodeTable[296] = function(self)  --VTRANSFORM
---[[  if (self.VMODE == 2) then
-    local vec = self:Read2f(Param1 + self[self.PrecompileData[self.XEIP].Segment1])
-    local mx = self:ReadMatrix(Param2 + self[self.PrecompileData[self.XEIP].Segment2])
-
-    local tmp = {}
-    for i=0,3 do
-      tmp[i] = mx[i*4+0] * vec.x +
-         mx[i*4+1] * vec.y +
-         mx[i*4+2] * 0 +
-         mx[i*4+3] * 1
+  self:Dyn_Emit("local address_1 = $1 + VM."..(self.EmitOperandSegment[1] or "DS"))
+  self:Dyn_Emit("local address_2 = $2 + VM."..(self.EmitOperandSegment[2] or "DS"))
+  self:Dyn_Emit [[local V = VM:ReadVector(address_1, VM.VMODE)]]
+  self:Dyn_EmitInterruptCheck()
+  self:Dyn_Emit [[local M = VM:ReadMatrix(address_2)]]
+  self:Dyn_EmitInterruptCheck()
+  self:Dyn_Emit [[
+    if VM.VMODE < 4 then V.w = 1 end
+    local result = {}
+    for i = 0, 3 do
+      result[i] = M[i*4 + 0] * V.x +
+                  M[i*4 + 1] * V.y +
+                  M[i*4 + 2] * V.z +
+                  M[i*4 + 3] * V.w
     end
-
-
-    self:Write2f(Param1 + self[self.PrecompileData[self.XEIP].Segment1],
-      {x = tmp[0], y = tmp[1], z = 0})
-  else
-    local vec = self:Read3f(Param1 + self[self.PrecompileData[self.XEIP].Segment1])
-    local mx = self:ReadMatrix(Param2 + self[self.PrecompileData[self.XEIP].Segment2])
-
-    local tmp = {}
-    for i=0,3 do
-      tmp[i] = mx[i*4+0] * vec.x +
-         mx[i*4+1] * vec.y +
-         mx[i*4+2] * vec.z +
-         mx[i*4+3] * 1
-    end
-
-
-    self:Write3f(Param1 + self[self.PrecompileData[self.XEIP].Segment1],
-      {x = tmp[0], y = tmp[1], z = tmp[2]})
-  end ]]--
+    V.x, V.y, V.z, V.w = result[1], result[2], result[3], result[4]
+    VM:WriteVector(address_1, VM.VMODE, { x = result[1], y = result[2], z = result[3], w = result[4] })
+  ]]
+  self:Dyn_EmitInterruptCheck()
 end
