@@ -39,13 +39,19 @@ function LoadWireGates()
 	for name,gate in pairs(GateActions) do
 		if not WireGatesSorted[gate.group] then
 			WireGatesSorted[gate.group] = {}
-
-			-- Create limit specific to each gate group (and language.add it)
-			local gr = string.lower(gate.group)
-			CreateConVar("sbox_maxwire_gate_" .. gr .. "s", 30 )
-			if CLIENT then language.Add( "sboxlimit_wire_gate_" .. gr .. "s", "You've hit your " .. gr .. " gates limit!" ) end
 		end
 		WireGatesSorted[gate.group][name] = gate
 	end
 end
 LoadWireGates()
+
+local banned_categories_convar = CreateConVar("wire_banned_gate_categories", "", {FCVAR_ARCHIVE, FCVAR_REPLICATED, FCVAR_NOTIFY}, "For multiple categories, separate them with commas. If you change this, existing gates won't be affected.")
+local function UpdateBannedGates(reload_spawnmenu)
+	local as_list = string.Explode(",", banned_categories_convar:GetString())
+	for _,v in pairs(GateActions) do
+		v.is_banned = table.HasValue(as_list, v.group)
+	end
+	if CLIENT and reload_spawnmenu then RunConsoleCommand("spawnmenu_reload") end
+end
+cvars.AddChangeCallback("wire_banned_gate_categories", function() UpdateBannedGates(true) end, "UpdateBannedGates")
+UpdateBannedGates(false)
