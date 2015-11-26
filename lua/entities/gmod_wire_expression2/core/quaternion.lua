@@ -544,6 +544,18 @@ e2function quaternion slerp(quaternion q0, quaternion q1, number t)
 	return qmul(q0,q)
 end
 
+-- Performs Linear interpolation between <q0> and <q1>. Returns <q0> for <t>=0, <q1> for <t>=1
+e2function quaternion lerp(quaternion q0, quaternion q1, number t, number reduceTo360)
+    local t1 = 1 - t
+    local dot = q0[1]*q1[1] + q0[2]*q1[2] + q0[3]*q1[3] + q0[4]*q1[4]
+    
+    if reduceTo360 > 1 and dot < 0 then
+        return ( qmul(q0, t1) + qmul(q1, -t) )
+    else
+        return ( qmul(q0, t1) + qmul(q1, t) )
+    end
+end
+
 /******************************************************************************/
 __e2setcost(7)
 
