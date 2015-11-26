@@ -55,7 +55,7 @@ local max_overtime = math.huge
 hook.Add("Think", "WireLib_Think", function()
 	frametime = FrameTime()
 	cur_time = CurTime()
-	max_overtime = cur_time + frametime * 5
+	max_overtime = cur_time + frametime -- timestamp of one frame into future
 end)
 
 -- helper function that pcalls an input
@@ -514,9 +514,11 @@ function WireLib.TriggerOutput(ent, oname, value, iter)
 
 		local lastfire = output.TriggerLimit
 		
+		-- Do not trigger if we have eaten our slices of the frame (rate limiter)
 		if (lastfire >= max_overtime) then return end
 		
-		output.TriggerLimit = (lastfire < cur_time and cur_time or lastfire) + frametime
+		-- Each trigger eats 1/4 of a frame time, after 4 triggers we are one frametime into future and get rate limited
+		output.TriggerLimit = (lastfire < cur_time and cur_time or lastfire) + frametime * 0.22221 -- around 4.5 per triggers frame (1/4.5 rounded down, 4.5 to allow headroom for float weirdnesses)
 		
 		output.Value = value
 
