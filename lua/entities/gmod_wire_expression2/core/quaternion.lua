@@ -549,7 +549,7 @@ e2function quaternion lerp(quaternion q0, quaternion q1, number t, number reduce
     local t1 = 1 - t
     local dot = q0[1]*q1[1] + q0[2]*q1[2] + q0[3]*q1[3] + q0[4]*q1[4]
     
-    if reduceTo360 > 1 and dot < 0 then
+    if reduceTo360 and dot < 0 then
         return ( qmul(q0, t1) + qmul(q1, -t) )
     else
         return ( qmul(q0, t1) + qmul(q1, t) )
