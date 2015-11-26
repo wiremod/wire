@@ -144,15 +144,26 @@ for symID,symList in pairs(HCOMP.TOKEN_TEXT) do
 end
 
 
--- Create lookup table for double-character tokens
+-- Create lookup table for symbols and double-character tokens
+HCOMP.PARSER_SYMBOLS = {}
 HCOMP.PARSER_DBCHAR = {}
 for symID,symList in pairs(HCOMP.TOKEN_TEXT) do
+  local languages = symList[1]
   local symText = symList[2][1] or ""
   if #symText == 2 then
     local char1 = string.sub(symText,1,1)
     local char2 = string.sub(symText,2,2)
-    HCOMP.PARSER_DBCHAR[char1] = HCOMP.PARSER_DBCHAR[char1] or {}
-    HCOMP.PARSER_DBCHAR[char1][char2] = true
+    for _,lang in pairs(languages) do
+      HCOMP.PARSER_DBCHAR[lang] = HCOMP.PARSER_DBCHAR[lang] or {}
+      HCOMP.PARSER_DBCHAR[lang][char1] = HCOMP.PARSER_DBCHAR[lang][char1] or {}
+      HCOMP.PARSER_DBCHAR[lang][char1][char2] = true
+    end
+  end
+  if #symText == 1 then
+    for _,lang in pairs(languages) do
+	  HCOMP.PARSER_SYMBOLS[lang] = HCOMP.PARSER_SYMBOLS[lang] or {}
+	  HCOMP.PARSER_SYMBOLS[lang][symText] = true
+    end
   end
 end
 
@@ -173,16 +184,17 @@ end
 function HCOMP:nextFile()
   table.remove(self.Code,1)
   if not self.Code[1] then
-    self.Code[1] = { Text = "", Line = 1, Col = 1, File = "internal error" }
+    self.Code[1] = { Text = "", Line = 1, Col = 1, File = "internal error", NextCharPos = 1 }
   end
 end
 
 -- Return next character
 function HCOMP:getChar()
-  local char = string.sub(self.Code[1].Text,1,1)
+  local pos = self.Code[1].NextCharPos
+  local char = string.sub(self.Code[1].Text,pos,pos)
   if char == "" then
     self:nextFile()
-    char = string.sub(self.Code[1].Text,1,1)
+    char = string.sub(self.Code[1].Text,pos,pos)
   end
   return char
 end
@@ -190,20 +202,20 @@ end
 -- Skip current char
 function HCOMP:nextChar()
   local code = self.Code[1]
-  if code.Text == "" then
+  local pos = code.NextCharPos
+  if pos > #code.Text then
     self:nextFile()
   else
-    local char = string.sub(code.Text,1,1)
+    local char = string.sub(code.Text,pos,pos)
     if char == "\n" then
       code.Line = code.Line + 1
       code.Col = 1
     else
       code.Col = code.Col + 1
     end
-    code.Text = string.sub(code.Text,2)
+    code.NextCharPos = pos + 1
   end
 end
-
 
 
 
@@ -213,10 +225,8 @@ function HCOMP:Tokenize() local TOKEN = self.TOKEN
   -- Skip whitespaces
   while (self:getChar() ==  " ") or
         (self:getChar() == "\t") or
-        (self:getChar() == "\n") do self:nextChar() end
-
-  -- Store this line as previous (FIXME: need this?)
-  self.PreviousCodeLine = self.Code[1].Text
+        (self:getChar() == "\n") or
+		(self:getChar() == "\r") do self:nextChar() end
 
   -- Read token position
   local tokenPosition = { Line = self.Code[1].Line,
@@ -258,7 +268,7 @@ function HCOMP:Tokenize() local TOKEN = self.TOKEN
     self:nextChar() -- Skip leading character
 
     local fetchString = ""
-    while self.Code[1].Text ~= "" and self:getChar() ~= stringType do
+    while self.Code[1].NextCharPos <= #self.Code[1].Text and self:getChar() ~= stringType do
 
       if self:getChar() == "\\" then
         self:nextChar()
@@ -331,44 +341,58 @@ function HCOMP:Tokenize() local TOKEN = self.TOKEN
       token = self.Defines[token]
     end
   end
+  
+  local is_symbol = false
 
   -- If no alphanumeric token fetched, try to fetch the special-character ones
   if token == "" then
     token = self:getChar()
     self:nextChar()
 
-    if HCOMP.PARSER_DBCHAR[token] then
+    if HCOMP.PARSER_DBCHAR[self.Settings.CurrentLanguage][token] and HCOMP.PARSER_DBCHAR[self.Settings.CurrentLanguage][token][self:getChar()] then
       local curChar = self:getChar()
-      if HCOMP.PARSER_DBCHAR[token][curChar] then
-        token = token .. curChar
-        self:nextChar()
-        if token == "//" then -- Line comment
-          while (self:getChar() ~= "") and (self:getChar() ~= "\n") do self:nextChar() end
-          return true
-        elseif token == "/*" then -- Block comment open
-          while self:getChar() ~= "" do
-            local curChar = self:getChar()
+      token = token .. curChar
+      self:nextChar()
+      if token == "//" then -- Line comment
+        while (self:getChar() ~= "") and (self:getChar() ~= "\n") do self:nextChar() end
+        return true
+      elseif token == "/*" then -- Block comment open
+        while self:getChar() ~= "" do
+          local curChar = self:getChar()
+          self:nextChar()
+          if (curChar == "*") and (self:getChar() == "/") then
             self:nextChar()
-            if (curChar == "*") and (self:getChar() == "/") then
-              self:nextChar()
-              return true
-            end
+            return true
           end
-
-          -- Error in tokenizing
-          self:Error("Comment block not closed (reached end of file)",
-            tokenPosition.Line,tokenPosition.Col,tokenPosition.File)
-          return true
-        elseif token == "*/" then -- Block comment end (returns error token)
-          table.insert(self.Tokens,{
-            Type = TOKEN.COMMENT3,
-            Position = tokenPosition,
-          })
-          return true
         end
+
+        -- Error in tokenizing
+        self:Error("Comment block not closed (reached end of file)",
+          tokenPosition.Line,tokenPosition.Col,tokenPosition.File)
+        return true
+      elseif token == "*/" then -- Block comment end (returns error token)
+        table.insert(self.Tokens,{
+          Type = TOKEN.COMMENT3,
+          Position = tokenPosition,
+        })
+        return true
       end
+	  
+	  -- Else it's a two-character symbol token
+	  is_symbol = true
+	  
+    elseif HCOMP.PARSER_SYMBOLS[self.Settings.CurrentLanguage][token] then
+	  -- It's a one-character symbol token
+	  is_symbol = true
+	
+	else
+	  -- We have no idea what this is (it's not an identifier character, nor a recognized symbol)
+	  self:Error("Unknown character '"..token.."'",
+        tokenPosition.Line,tokenPosition.Col,tokenPosition.File)
     end
   end
+  
+  assert(token ~= "")
 
   -- Determine which token it is
   local tokenLookupTable = self.PARSER_LOOKUP[self.Settings.CurrentLanguage][string.upper(token)]
@@ -379,6 +403,12 @@ function HCOMP:Tokenize() local TOKEN = self.TOKEN
       Position = tokenPosition,
     })
     return true
+  end
+  
+  if is_symbol then
+    -- If we get here something is weird, because why would a symbol be in PARSER_DBCHARS or PARSER_SYMBOLS but not in PARSER_LOOKUP?
+    self:Error("Unknown symbol '"..token.."'",
+      tokenPosition.Line,tokenPosition.Col,tokenPosition.File)
   end
 
   -- Maybe its a number
