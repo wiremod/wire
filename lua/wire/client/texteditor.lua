@@ -3130,6 +3130,7 @@ do -- E2 Syntax highlighting
 		["@inputs"] = 1, -- directive yellow, types orange, rest normal
 		["@outputs"] = 1,
 		["@persist"] = 1,
+		["@rawinputs"] = 1,
 		["@trigger"] = 2, -- like 1, except that all/none are yellow
 		["@autoupdate"] = 0,
 	}
