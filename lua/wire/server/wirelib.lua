@@ -20,7 +20,7 @@ local Vector = Vector
 local Color = Color
 local Material = Material
 local FrameTime = FrameTime
-local CurTime= CurTime
+local CurTime = CurTime
 
 local HasPorts = WireLib.HasPorts -- Very important for checks!
 
