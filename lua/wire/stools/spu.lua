@@ -98,6 +98,7 @@ if CLIENT then
       ZSPU_Editor:Setup("ZSPU Editor", "spuchip", "SPU")
     end
     ZSPU_Editor:Open()
+    net.Start("Wire_IsEditing") net.WriteBool(true) net.SendToServer()
   end
   net.Receive("ZSPU_OpenEditor", ZSPU_OpenEditor)
 

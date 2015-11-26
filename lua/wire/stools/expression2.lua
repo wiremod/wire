@@ -946,6 +946,9 @@ if SERVER then
 	concommand.Add("wire_expression2_event", function(ply, command, args)
 		local handler = wire_expression2_event[args[1]]
 		if not handler then return end
+
+		if args[1] == "editor_open" then hook.Run("Wire_IsEditing",ply,true) end
+
 		return handler(ply, args)
 	end)
 

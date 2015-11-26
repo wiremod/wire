@@ -325,6 +325,27 @@ e2function number entity:isTyping()
 	return plys[this] and 1 or 0
 end
 
+-- isCoding
+local editing = {}
+
+util.AddNetworkString( "Wire_IsEditing" )
+
+local function handleEditUpdate(ply,state)
+	editing[ply] = (state and true or nil)
+end
+
+hook.Add("Wire_IsEditing","Wire_IsEditing_Hook",function(ply,set) handleEditUpdate(ply,set) end)
+hook.Add("PlayerDisconnected","Wire_IsEditing_Disconnected",function(ply) handleEditUpdate(ply,nil) end)
+net.Receive("Wire_IsEditing", function(netlen,ply) handleEditUpdate(ply,net.ReadBool()) end)
+ 
+__e2setcost(5)
+e2function number entity:isEditing()
+	if !IsValid(this) then return 0 end
+	if !this:IsPlayer() then return 0 end
+
+	return editing[this] and 1 or 0
+end
+
 /******************************************************************************/
 
 local Trusts
