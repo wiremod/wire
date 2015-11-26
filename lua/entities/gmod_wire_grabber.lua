@@ -91,10 +91,13 @@ function ENT:TriggerInput(iname, value)
 			local vStart = self:GetPos()
 			local vForward = self:GetUp()
 
+			local filter = ents.FindByClass( "gmod_wire_spawner" ) -- for prop spawning contraptions that grab spawned props
+			table.insert( filter, self )
+
 			local trace = util.TraceLine {
 				start = vStart,
 				endpos = vStart + (vForward * self:GetBeamLength()),
-				filter = { self }
+				filter = filter
 			}
 			if not self:CanGrab(trace) then return end
 
