@@ -51,11 +51,11 @@ local CurLink = {}
 
 local frametime = FrameTime()
 local cur_time = CurTime()
-local max_overtime = 1/0
+local max_overtime = math.huge
 hook.Add("Think", "WireLib_Think", function()
 	frametime = FrameTime()
 	cur_time = CurTime()
-	max_overtime = cur_time + frametime * 8
+	max_overtime = cur_time + frametime * 5
 end)
 
 -- helper function that pcalls an input
