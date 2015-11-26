@@ -15,7 +15,8 @@ function ENT:Initialize()
 	self.Outputs = Wire_CreateOutputs(self, { "Error" })
 
 	-- CPU platform settings
-	self.Clk = 0
+	self.Clk = false -- whether the Clk input is on
+	self.VMStopped = false -- whether the VM has halted itself (e.g. by running off the end of the program)
 	self.Frequency = 2000
 
 	-- Create virtual machine
@@ -29,7 +30,7 @@ function ENT:Initialize()
 		Wire_TriggerOutput(self, "Error", errorCode)
 	end
 	self.VM.SignalShutdown = function(VM)
-		self.Clk = 0
+		self.VMStopped = true
 	end
 	self.VM.ExternalWrite = function(VM,Address,Value)
 		if Address >= 0 then -- Use MemBus
@@ -85,6 +86,15 @@ function ENT:Initialize()
 			end
 		end
 	end
+	
+	local oldReset = self.VM.Reset
+	self.VM.Reset = function(...)
+		if self.Clk and self.VMStopped then
+			self:NextThink(CurTime())
+		end
+		self.VMStopped = false
+		return oldReset(...)
+	end
 
 	-- Player that debugs the processor
 	self.DebuggerPlayer = nil
@@ -134,14 +144,14 @@ function ENT:Run()
 			-- self:Emit("VM.IP = "..(self.PrecompileIP or 0))
 			-- self:Emit("VM.XEIP = "..(self.PrecompileTrueXEIP or 0))
 
-			self:Dyn_Emit("if (VM.CPUIF.Clk == 1) and (VM.CPUIF.OnVMStep) then")
+			self:Dyn_Emit("if (VM.CPUIF.Clk and not VM.CPUIF.VMStopped) and (VM.CPUIF.OnVMStep) then")
 				self:Dyn_EmitState()
 				self:Emit("VM.CPUIF.OnVMStep()")
 			self:Emit("end")
 			self:Emit("if VM.CPUIF.BreakpointInstructions[VM.IP] then")
 				self:Dyn_EmitState()
 				self:Emit("VM.CPUIF.OnBreakpointInstruction(VM.IP)")
-				self:Emit("VM.CPUIF.Clk = 0")
+				self:Emit("VM.CPUIF.VMStopped = true")
 				self:Emit("VM.TMR = VM.TMR + "..self.PrecompileInstruction)
 				self:Emit("VM.CODEBYTES = VM.CODEBYTES + "..self.PrecompileBytes)
 				self:Emit("if true then return end")
@@ -150,7 +160,7 @@ function ENT:Run()
 				self:Dyn_EmitState()
 				self:Emit("VM.CPUIF.ForceLastInstruction = nil")
 				self:Emit("VM.CPUIF.OnLastInstruction()")
-				self:Emit("VM.CPUIF.Clk = 0")
+				self:Emit("VM.CPUIF.VMStopped = true")
 				self:Emit("VM.TMR = VM.TMR + "..self.PrecompileInstruction)
 				self:Emit("VM.CODEBYTES = VM.CODEBYTES + "..self.PrecompileBytes)
 				self:Emit("if true then return end")
@@ -162,7 +172,7 @@ function ENT:Run()
 		local Cycles = math.max(1,math.floor(self.Frequency*DeltaTime*0.5))
 		self.VM.TimerDT = (DeltaTime/Cycles)
 
-		while (Cycles > 0) and (self.Clk > 0) and (self.VM.Idle == 0) do
+		while (Cycles > 0) and (self.Clk) and (not self.VMStopped) and (self.VM.Idle == 0) do
 			-- Run VM step
 			local previousTMR = self.VM.TMR
 			self.VM:Step()
@@ -179,7 +189,7 @@ end
 
 function ENT:Think()
 	self:Run()
-	if self.Clk >= 1.0 then self:NextThink(CurTime()) end
+	if self.Clk and not self.VMStopped then self:NextThink(CurTime()) end
 	return true
 end
 
@@ -244,8 +254,11 @@ WireLib.AddInputAlias( "NMI", "Interrupt" )
 
 function ENT:TriggerInput(iname, value)
 	if iname == "Clk" then
-		self.Clk = value
-		if self.Clk >= 1.0 then self:NextThink(CurTime()) end
+		self.Clk = (value >= 1)
+		if self.Clk then
+			self.VMStopped = false
+			self:NextThink(CurTime())
+		end
 	elseif iname == "Frequency" then
 		if (not game.SinglePlayer()) and (value > 1400000) then self.Frequency = 1400000 return end
 		if value > 0 then self.Frequency = math.floor(value) end
@@ -259,7 +272,7 @@ function ENT:TriggerInput(iname, value)
 		Wire_TriggerOutput(self, "Error", 0)
 	elseif iname == "Interrupt" then
 		if (value >= 32) && (value < 256) then
-			if (self.Clk >= 1.0) then self.VM:ExternalInterrupt(math.floor(value)) end
+			if (self.Clk and not self.VMStopped) then self.VM:ExternalInterrupt(math.floor(value)) end
 		end
 	end
 end

@@ -129,7 +129,7 @@ function PropCore.PhysManipulate(this, pos, rot, freeze, gravity, notsolid)
 	if IsValid( phys ) then
 		if pos ~= nil then E2Lib.setPos( phys, Vector( pos[1],pos[2],pos[3] ) ) end
 		if rot ~= nil then E2Lib.setAng( phys,  Angle( rot[1],rot[2],rot[3] ) ) end
-		if freeze ~= nil then phys:EnableMotion( freeze == 0 ) end
+		if freeze ~= nil and this:GetUnFreezable() ~= true then phys:EnableMotion( freeze == 0 ) end
 		if gravity ~= nil then phys:EnableGravity( gravity ~= 0 ) end
 		if notsolid ~= nil then this:SetSolid( notsolid ~= 0 and SOLID_NONE or SOLID_VPHYSICS ) end
 		phys:Wake()
@@ -353,6 +353,27 @@ e2function string entity:propPhysicalMaterial()
 	local phys = this:GetPhysicsObject()
 	if IsValid(phys) then return phys:GetMaterial() or "" end
 	return ""
+end
+
+hook.Add( "CanDrive", "checkPropStaticE2", function( ply, ent ) if ent.propStaticE2 ~= nil then return false end end )
+e2function void entity:propStatic( number static )
+	if not PropCore.ValidAction( self, this, "static" ) then return end
+	if static ~= 0 and this.propStaticE2 == nil then
+		local phys = this:GetPhysicsObject()
+		this.propStaticE2 = phys:IsMotionEnabled()
+		this.PhysgunDisabled = true
+		this:SetUnFreezable( true )
+		phys:EnableMotion( false )
+	elseif this.propStaticE2 ~= nil then
+		this.PhysgunDisabled = false
+		this:SetUnFreezable( false )
+		if this.propStaticE2 == true then
+			local phys = this:GetPhysicsObject()
+			phys:Wake()
+			phys:EnableMotion( true )
+		end
+		this.propStaticE2 = nil
+	end
 end
 
 --------------------------------------------------------------------------------

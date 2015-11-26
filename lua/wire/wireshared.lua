@@ -92,6 +92,16 @@ function pairs_sortvalues(tbl, criterion)
 	end
 end
 
+--- Iterates over a table like `pairs`, but also removes each field from the
+--- table as it does so. Adding to the table while iterating is allowed, and
+--- each added entry will be consumed in some future iteration.
+function pairs_consume(table)
+	return function()
+		local k, v = next(table)
+		if k then table[k] = nil return k, v end
+	end
+end
+
 -- like ipairs, except it maps the value with mapfunction before returning.
 function ipairs_map(tbl, mapfunction)
 	local iter, state, k = ipairs(tbl)
@@ -311,7 +321,7 @@ do
 		NOTIFY_UNDO = 2
 		NOTIFY_HINT = 3
 		NOTIFY_CLEANUP = 4
-		
+
 		util.AddNetworkString("wire_addnotify")
 		function WireLib.AddNotify(ply, Message, Type, Duration, Sound)
 			if isstring(ply) then ply, Message, Type, Duration, Sound = nil, ply, Message, Type, Duration end
@@ -363,7 +373,7 @@ end
 	A basic framework for entities that should send newly connecting players data
 
 	Server requirements: ENT:Retransmit(ply) -- Should send all data to one player
-	Client requirements: 
+	Client requirements:
 		WireLib.netRegister(self) in ENT:Initialize()
 		ENT:Receive()
 
@@ -373,7 +383,7 @@ end
 			net.Write*...
 		WireLib.netEnd(ply) -- you can pass a Player or a table of players to only send to some clients, otherwise it broadcasts
 	end
-	
+
 	To receive:
 	function ENT:Receive()
 		net.Read*...
@@ -385,7 +395,7 @@ end
 if SERVER then
 	util.AddNetworkString("wire_netmsg_register")
 	util.AddNetworkString("wire_netmsg_registered")
-	
+
 	function WireLib.netStart(self)
 		net.Start("wire_netmsg_registered")
 		net.WriteEntity(self)
@@ -393,8 +403,8 @@ if SERVER then
 	function WireLib.netEnd(ply)
 		if ply then net.Send(ply) else net.Broadcast() end
 	end
-	
-	net.Receive("wire_netmsg_register", function(netlen, ply) 
+
+	net.Receive("wire_netmsg_register", function(netlen, ply)
 		local self = net.ReadEntity()
 		if IsValid(self) and self.Retransmit then self:Retransmit(ply) end
 	end)
@@ -445,7 +455,7 @@ if SERVER then
 	local ents_with_inputs = {}
 	local ents_with_outputs = {}
 	--local IOlookup = { [INPUT] = ents_with_inputs, [OUTPUT] = ents_with_outputs }
-	
+
 	util.AddNetworkString("wire_ports")
 	timer.Create("Debugger.PoolTypeStrings",1,1,function()
 		if WireLib.Debugger and WireLib.Debugger.formatPort then
@@ -485,7 +495,7 @@ if SERVER then
 	function WireLib._SetInputs(ent, lqueue)
 		local queue = lqueue or queue
 		local eid = ent:EntIndex()
-		
+
 		if not ents_with_inputs[eid] then ents_with_inputs[eid] = {} end
 
 		queue[#queue+1] = { eid, DELETE, INPUT }
@@ -503,7 +513,7 @@ if SERVER then
 	function WireLib._SetOutputs(ent, lqueue)
 		local queue = lqueue or queue
 		local eid = ent:EntIndex()
-		
+
 		if not ents_with_outputs[eid] then ents_with_outputs[eid] = {} end
 
 		queue[#queue+1] = { eid, DELETE, OUTPUT }
@@ -525,7 +535,7 @@ if SERVER then
 
 		queue[#queue+1] = {eid, LINK, num, state}
 	end
-	
+
 	local eid = 0
 	local numports, firstportnum, portstrings = {}, {}, {}
 	local function writeCurrentStrings()
@@ -543,7 +553,7 @@ if SERVER then
 	local function writemsg(msg)
 		-- First write a signed int for the command code
 		-- Then sometimes write extra data specific to the command (type varies)
-		
+
 		if msg[1] ~= eid then
 			eid = msg[1]
 			writeCurrentStrings() -- We're switching to talking about a different entity, lets send port information
@@ -737,7 +747,7 @@ end
 	ie the amount of character swaps you have to do to get the first string to equal the second
 	Example:
 		levenshtein( "test", "toast" ) returns 2, because two steps: 'e' swapped to 'o', and 'a' is added
-	
+
 	Very useful for searching algorithms
 	Used by custom spawn menu search & gate tool search, for example
 	Credits go to: http://lua-users.org/lists/lua-l/2009-07/msg00461.html
@@ -768,7 +778,7 @@ end
 
 WireLib.nicenumber = {}
 local nicenumber = WireLib.nicenumber
- 
+
 local numbers = {
 	{
 		name = "septillion",
@@ -827,7 +837,7 @@ local numbers = {
 		zeroes = 10^3
 	}
 }
- 
+
 local one = {
 	name = "ones",
 	short = "",
@@ -835,7 +845,7 @@ local one = {
 	prefix = "",
 	zeroes = 1
 }
- 
+
 -- returns a table of tables that inherit from the above info
 local floor = math.floor
 local min = math.min
@@ -872,9 +882,9 @@ function nicenumber.info( n, steps )
 
 	return t
 end
- 
+
 local sub = string.sub
- 
+
 -- returns string
 -- example 12B 34M
 function nicenumber.format( n, steps )
@@ -890,7 +900,7 @@ function nicenumber.format( n, steps )
 
 	return sub( str, 1, -2 ) -- remove trailing space
 end
- 
+
 -- returns string with decimals
 -- example 12.34B
 local round = math.Round
@@ -920,7 +930,7 @@ local times = {
 	{ "h", 3600 }, -- hours
 	{ "m", 60 }, -- minutes
 	{ "s", 1 }, -- seconds
-}       
+}
 function nicenumber.nicetime( n )
 	n = math.abs( n )
 

@@ -545,7 +545,7 @@ function MakeWireExpression2(player, Pos, Ang, model, buffer, name, inputs, outp
 	local self = ents.Create("gmod_wire_expression2")
 	if not self:IsValid() then return false end
 	
-	self.duped = true
+	if buffer then self.duped = true end
 
 	self:SetModel(model)
 	self:SetAngles(Ang)
