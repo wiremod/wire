@@ -86,28 +86,13 @@ end
 
 if CLIENT then
   ------------------------------------------------------------------------------
-  -- Compiler callbacks on the compiling state
+  -- Request compiled code (called remotely from server)
   ------------------------------------------------------------------------------
-  local function compile_success()
+  
+  net.Receive("ZCPU_RequestCode", function()
     CPULib.Upload()
-  end
-
-  local function compile_error(errorText)
-    print(errorText)
-    GAMEMODE:AddNotify(errorText,NOTIFY_GENERIC,7)
-  end
-
-
-  ------------------------------------------------------------------------------
-  -- Request code to be compiled (called remotely from server)
-  ------------------------------------------------------------------------------
-  function ZCPU_RequestCode()
-    if ZCPU_Editor then
-      CPULib.Compile(ZCPU_Editor:GetCode(),ZCPU_Editor:GetChosenFile(),compile_success,compile_error)
-    end
-  end
-  net.Receive("ZCPU_RequestCode", ZCPU_RequestCode)
-
+  end)
+  
   ------------------------------------------------------------------------------
   -- Open ZCPU editor
   ------------------------------------------------------------------------------
