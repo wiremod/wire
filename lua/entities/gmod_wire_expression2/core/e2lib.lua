@@ -439,6 +439,19 @@ do
 	local extensions = nil
 	local function printExtensions() end
 	local function conCommandSetExtensionStatus() end
+
+	function E2Lib.GetExtensions()
+		return extensions.list
+	end
+
+	function E2Lib.GetExtensionStatus(name)
+		name = name:Trim():lower()
+		return extensions.status[name]
+	end
+
+	function E2Lib.GetExtensionDocumentation(name)
+		return extensions.documentation[name] or {}
+	end
 	
 	if SERVER then -- serverside stuff
 		
@@ -448,7 +461,7 @@ do
 
 		function wire_expression2_PreLoadExtensions()
 			hook.Run( "Expression2_PreLoadExtensions" )
-			extensions = { status = {}, list = {}, prettyList = {} }
+			extensions = { status = {}, list = {}, prettyList = {}, documentation = {} }
 			local list = sql.Query( "SELECT * FROM wire_expression2_extensions" )
 			if list then
 				for i = 1, #list do
@@ -460,13 +473,17 @@ do
 			end
 			extensions.save = true
 		end
-		
-		function E2Lib.RegisterExtension( name, default )
+
+		function E2Lib.RegisterExtension(name, default, description, warning)
 			name = name:Trim():lower()
 			if extensions.status[ name ] == nil then
 				E2Lib.SetExtensionStatus( name, default )
 			end
 			extensions.list[ #extensions.list + 1 ] = name
+
+			if description or warning then
+				extensions.documentation[name] = { Description = description, Warning = warning }
+			end
 
 			-- This line shouldn't be modified because it tells the parser that this extension is disabled,
 			-- thus making its functions not available in the E2 Editor (see function e2_include_pass2 in extloader.lua).
@@ -482,21 +499,11 @@ do
 			end
 		end
 		
-		function E2Lib.GetExtensionStatus( name )
-			name = name:Trim():lower()
-			return extensions.status[ name ]
-		end
-		
-		function E2Lib.GetExtensions()
-			return extensions.list
-		end
-		
 		-- After using E2Lib.SetExtensionStatus in an external script, this function should be called.
 		-- Its purpose is to update the clientside autocomplete list for the concommands.
 		function E2Lib.UpdateClientsideExtensionsList( ply )
 			net.Start( "wire_expression2_server_send_extensions_list" )
-			net.WriteTable( extensions.list )
-			net.WriteTable( extensions.status )
+			net.WriteTable(extensions)
 			if IsValid( ply ) then
 				net.Send( ply )
 			else
@@ -613,13 +620,9 @@ do
 			net.SendToServer()
 		end
 
-		net.Receive( "wire_expression2_server_send_extensions_list",
-			function( )
-				extensions.list = net.ReadTable()
-				extensions.status = net.ReadTable()
-				table.sort( extensions.list, function( a, b ) return a < b end )
-			end
-		)
+		net.Receive( "wire_expression2_server_send_extensions_list", function()
+			extensions = net.ReadTable()
+		end)
 		
 	end
 
