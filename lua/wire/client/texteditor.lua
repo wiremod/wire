@@ -1840,8 +1840,6 @@ function EDITOR:_OnKeyCodeTyped(code)
 			self:GetParent():Close()
 		elseif code == KEY_T then
 			self:GetParent():NewTab()
-		elseif code == KEY_W then
-			self:GetParent():CloseTab()
 		elseif code == KEY_PAGEUP then
 			local parent = self:GetParent()
 
