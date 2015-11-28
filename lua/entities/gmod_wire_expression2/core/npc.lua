@@ -2,7 +2,7 @@
   NPC control and such
 \******************************************************************************/
 
-E2Lib.RegisterExtension("npc", true)
+E2Lib.RegisterExtension("npc", true, "Allows controlling of NPCs.", "NPCs can be given weapons and ordered to hate other players.")
 
 __e2setcost(5) -- temporary
 

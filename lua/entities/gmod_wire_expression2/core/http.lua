@@ -3,7 +3,7 @@
 	     (McLovin)
 */
 
-E2Lib.RegisterExtension( "http", false )
+E2Lib.RegisterExtension( "http", false, "Lets E2 chips make web requests to the real internet.", "Allows any E2 to make your server make arbitrary HTTP GET requests to any site. It can use this to make HTTP requests to any IP address inside your local network." )
 
 local cvar_delay = CreateConVar( "wire_expression2_http_delay", "3", FCVAR_ARCHIVE )
 local cvar_timeout = CreateConVar( "wire_expression2_http_timeout", "15", FCVAR_ARCHIVE )
