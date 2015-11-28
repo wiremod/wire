@@ -2,7 +2,7 @@
   Console support
 \******************************************************************************/
 
-E2Lib.RegisterExtension("console", true)
+E2Lib.RegisterExtension("console", true, "Lets E2 chips run concommands and retrieve convars")
 
 local function validConCmd(self, command)
 	local ply = self.player

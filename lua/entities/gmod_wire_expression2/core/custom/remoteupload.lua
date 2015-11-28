@@ -1,4 +1,4 @@
-E2Lib.RegisterExtension("remoteupload", false)
+E2Lib.RegisterExtension("remoteupload", false, "Allows the E2 to remotely change the source code of other E2s.")
 
 local antispam = {}
 

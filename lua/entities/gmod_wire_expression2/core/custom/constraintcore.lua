@@ -1,4 +1,4 @@
-E2Lib.RegisterExtension("constraintcore", false)
+E2Lib.RegisterExtension("constraintcore", false, "Allows the creation and manipulation of constraints between entities.")
 
 registerCallback("construct", function(self)
 	self.data.constraintUndos = true
