@@ -22,9 +22,11 @@ function ENT:SetupDataTables()
 	self:NetworkVar("String", 1, "TextB", { KeyName = "TextB",
 		Edit = { type = "Generic", title = "#Tool_wire_screen_textb", order = 8 } })
 
-	if SERVER then self:NetworkVarNotify("SingleValue", function(ent, key, old, single)
-		WireLib.AdjustInputs(self, single and { "A" } or { "A", "B" })
-	end) end
+	if SERVER then
+		self:NetworkVarNotify("SingleValue", function(ent, key, old, single)
+			WireLib.AdjustInputs(self, single and { "A" } or { "A", "B" })
+		end)
+	end
 end
 
 function ENT:SetDisplayA(float)	self:SetNWFloat("DisplayA", float) end
