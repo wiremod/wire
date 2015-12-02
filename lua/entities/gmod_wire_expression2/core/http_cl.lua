@@ -91,6 +91,12 @@ function lib:readMetadata()
 	return net.ReadTable(),net.ReadInt(12)
 end
 
+-- table, number function(void)
+-- Internal: Do not call.
+function lib:readError()
+	return net.ReadString()
+end
+
 -- void function(void)
 -- Internal: Do not call.
 function lib:handleIncomingRequest()
@@ -120,7 +126,7 @@ function lib:handleIncomingRequest()
 			end
 		else
 			if request.failure then
-				request.failure(self:readHTTPCode())
+				request.failure(self:readError())
 			end
 			self.requests[uid] = nil
 		end

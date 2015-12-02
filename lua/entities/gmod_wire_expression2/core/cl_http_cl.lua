@@ -62,8 +62,8 @@ function lib:performRequest(url,uid)
 		self.timerCoroutine("wire_e2_cl_http_"..uid,self.sendInterval,function()
 			return self:returnData(uid,body,length,headers,code)
 		end)
-	end,function(code)
-		self:returnFailure(uid,code)
+	end,function(err)
+		self:returnFailure(uid,err)
 	end)
 end
 
@@ -114,13 +114,13 @@ function lib:writeMetadata(uid,length,headers,code)
 	net.SendToServer()
 end
 
--- void function(string uid, number code)
+-- void function(string uid, string err)
 -- Internal: Do not call.
-function lib:returnFailure(uid,code)
+function lib:returnFailure(uid,err)
 	net.Start(self.netMsgID)
 		net.WriteString(uid)	-- this is who we are
 		net.WriteBool(true)		-- unfortunately, the request caused an error
-		net.WriteInt(code,12)	-- and this is the code
+		net.WriteString(err)	-- and this is the code
 	net.SendToServer()
 end
 
