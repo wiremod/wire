@@ -147,13 +147,24 @@ local function handleIncomingRequest()
 	end
 end
 
+local function canOverwriteUID(uid)
+	if lib.requests[uid] then
+		return (SysTime() - lib.requests[uid].lastTouched) > lib.sendTimeout
+	end
+	
+	return true
+end
+
 -- void function(entity client, string url, function callback_success[, function callback_failure])
 function lib.request(client,url,callback_success,callback_failure)
 	-- When the client sends us the data from the request, we need to know which
 	-- request it was for, so a UID is used.
 
 	if(cvar_useClient:GetInt() ~= 0) then
-		local uid = newUID()
+		local uid
+		repeat
+			uid = newUID()
+		until canOverwriteUID(uid)
 
 		lib.requests[uid] = {
 			success = callback_success,
