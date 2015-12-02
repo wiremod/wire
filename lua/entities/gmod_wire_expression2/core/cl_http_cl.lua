@@ -26,7 +26,7 @@ end
 
 lib.rawRequest = http.Fetch
 lib.segmentSize = 4 * 1024-- 4 kilobytes
-lib.segmentBits = math.min(math.ceil(math.log(lib.segmentSize,2)),32)
+lib.segmentBits = math.min(math.ceil(math.log(lib.segmentSize,2)) + 2,32)
 lib.sendInterval = 0.5-- seconds
 lib.HTTP_REQUEST_FAILED = 1024--enum for HTTP failure
 
@@ -85,12 +85,12 @@ function lib:writeHTTPBody(uid,body,length)
 
 	-- reliable netmessages are always sent in order
 	for i=1,segments do
-		local segment = body:sub(self.segmentSize * (i-1),self.segmentSize * i - 1)
+		local segment = body:sub(self.segmentSize * (i-1) + 1,self.segmentSize * i)
 		net.Start(self.netMsgID)
 			net.WriteString(uid)						-- this is who we are
 			net.WriteBool(false)						-- No; the request did not error
 			net.WriteBool(true)							-- yes we are writing a body
-			net.WriteInt(#segment,self.segmentBits + 1)	-- the body is this much long
+			net.WriteInt(#segment,self.segmentBits)		-- the body is this much long
 			net.WriteData(segment,#segment)				-- and here is the body
 		net.SendToServer()
 

@@ -26,7 +26,7 @@ end
 
 lib.rawRequest = http.Fetch
 lib.segmentSize = 4 * 1024-- 4 kilobytes
-lib.segmentBits = math.min(math.ceil(math.log(lib.segmentSize,2)),32)
+lib.segmentBits = math.min(math.ceil(math.log(lib.segmentSize+2,2)),32)
 lib.sendInterval = 0.5-- seconds
 lib.HTTP_REQUEST_FAILED = 1024--enum for HTTP failure
 
@@ -82,7 +82,7 @@ end
 -- string function(void)
 -- Internal: Do not call.
 function lib:readSegment()
-	return net.ReadData(net.ReadInt(self.segmentBits+1))
+	return net.ReadData(net.ReadInt(self.segmentBits))
 end
 
 -- table, number function(void)
