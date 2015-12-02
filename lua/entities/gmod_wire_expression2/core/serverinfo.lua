@@ -20,6 +20,10 @@ e2function string gamemode()
 	return gmod.GetGamemode().Name
 end
 
+e2function string serverUUID()
+	return WireLib.GetServerUUID()
+end
+
 e2function number isSinglePlayer()
 	return game.SinglePlayer() and 1 or 0
 end
