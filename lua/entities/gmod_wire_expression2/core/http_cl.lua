@@ -28,6 +28,7 @@ lib.rawRequest = http.Fetch
 lib.segmentSize = 4 * 1024-- 4 kilobytes
 lib.segmentBits = math.min(math.ceil(math.log(lib.segmentSize,2)),32)
 lib.sendInterval = 0.5-- seconds
+lib.HTTP_REQUEST_FAILED = 1024--enum for HTTP failure
 
 -- void function(string id, number interval, function func)
 -- Internal: Do not call.
@@ -44,7 +45,7 @@ if SERVER then
 
 	lib.requests = {}
 
-	-- void function(entity client, string url, function callback_success, function callback_failure)
+	-- void function(entity client, string url, function callback_success[, function callback_failure])
 	function lib:request(client,url,callback_success,callback_failure)
 		-- When the client sends us the data from the request, we need to know which
 		-- request it was for, so a UID is used.
@@ -72,17 +73,53 @@ if SERVER then
 		return net.ReadString(),net.ReadBool()
 	end
 
+	-- boolean function(void)
+	-- Internal: Do not call.
+	function lib:isSendingBody()
+		return net.ReadBool()
+	end
+
+	-- string function(void)
+	-- Internal: Do not call.
+	function lib:readSegment()
+		return net.ReadData(net.ReadInt(self.segmentBits+1))
+	end
+
+	-- table, number function(void)
+	-- Internal: Do not call.
+	function lib:readMetadata()
+		return net.ReadTable(),net.ReadInt(12)
+	end
+
 	-- void function(void)
 	-- Internal: Do not call.
 	function lib:handleIncomingRequest()
 		local uid,success = self:decodeRequestHeader()
 
 		if self.requests[uid] then
+			local request = self.requests[uid]
 			if success then
-				
+				request.body_compressed = request.body_compressed or "" -- define the compressed body if it does not already exist
+				if self:isSendingBody() then
+					local segment = self:readSegment()
+					request.body_compressed = request.body_compressed..segment
+				else
+					local headers,code = self:readMetadata()
+
+					local body = ""
+					if request.body_compressed ~= "" then
+						body = util.Decompress(request.body_compressed)
+					end
+
+					if body then
+						request.success(body,#body,headers,code)
+					else
+						request.failure(self.HTTP_REQUEST_FAILED)
+					end
+				end
 			else
-				if self.requests[uid].failure then
-					self.requests[uid].failure(self:readHTTPCode())
+				if request.failure then
+					request.failure(self:readHTTPCode())
 				end
 				self.requests[uid] = nil
 			end
@@ -118,7 +155,7 @@ else
 	-- void function(string uid, string body, number length, table headers, number code)
 	-- Internal: Do not call.
 	function lib:returnData(uid,body,length,headers,code)
-		local body_compressed = util.Compress(body)
+		local body_compressed = util.Compress(body) or ""
 
 		self:writeHTTPBody(uid,body_compressed,#body_compressed)
 		self:writeMetadata(uid,length,headers,code)
