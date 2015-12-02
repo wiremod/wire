@@ -65,6 +65,29 @@ if SERVER then
 			net.WriteString(uid)
 		net.Send(client)
 	end
+
+	-- string, boolean function(void)
+	-- Internal: Do not call.
+	function lib:decodeRequestHeader()
+		return net.ReadString(),net.ReadBool()
+	end
+
+	-- void function(void)
+	-- Internal: Do not call.
+	function lib:handleIncomingRequest()
+		local uid,success = self:decodeRequestHeader()
+
+		if self.requests[uid] then
+			if success then
+				
+			else
+				if self.requests[uid].failure then
+					self.requests[uid].failure(self:readHTTPCode())
+				end
+				self.requests[uid] = nil
+			end
+		end
+	end
 else
 	-- string, string function(void)
 	-- Internal: Do not call.
