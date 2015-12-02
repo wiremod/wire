@@ -131,7 +131,7 @@ local function handleIncomingRequest()
 end
 
 -- void function(entity client, string url, function callback_success[, function callback_failure])
-function lib:request(client,url,callback_success,callback_failure)
+function lib.request(client,url,callback_success,callback_failure)
 	-- When the client sends us the data from the request, we need to know which
 	-- request it was for, so a UID is used.
 
