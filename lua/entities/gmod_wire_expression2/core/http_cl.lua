@@ -52,14 +52,15 @@ lib.requests = {}
 function lib:request(client,url,callback_success,callback_failure)
 	-- When the client sends us the data from the request, we need to know which
 	-- request it was for, so a UID is used.
-	local uid = self:newUID()
-
-	self.requests[uid] = {
-		success = callback_success,
-		failure = callback_failure
-	}
 
 	if(cvar_useClient:GetInt() ~= 0) then
+		local uid = self:newUID()
+
+		self.requests[uid] = {
+			success = callback_success,
+			failure = callback_failure
+		}
+
 		self:launchNewRequest(client,url,uid)
 	else
 		self.rawRequest(url,callback_success,callback_failure)
