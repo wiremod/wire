@@ -60,7 +60,8 @@ function lib:request(client,url,callback_success,callback_failure)
 
 		self.requests[uid] = {
 			success = callback_success,
-			failure = callback_failure
+			failure = callback_failure,
+			ply = client
 		}
 
 		self:launchNewRequest(client,url,uid)
@@ -110,11 +111,14 @@ end
 
 -- void function(void)
 -- Internal: Do not call.
-function lib:handleIncomingRequest()
+function lib:handleIncomingRequest(ply)
 	local uid,failure = self:decodeRequestHeader()
 
 	if self.requests[uid] then
 		local request = self.requests[uid]
+
+		if ply ~= request.ply then return end -- Only the player who was requested to do a HTTP request may send us information about it
+
 		if not failure then
 			request.body_compressed = request.body_compressed or "" -- define the compressed body if it does not already exist
 			local isSendingBody = self:isSendingBody()
