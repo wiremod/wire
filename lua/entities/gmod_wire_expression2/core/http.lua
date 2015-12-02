@@ -35,7 +35,7 @@ e2function void httpRequest( string url )
 		url = url
 	}
 
-	http.Fetch(url, function( contents, size, headers, code )
+	E2Lib.clHTTP:request(ply, url, function( contents, size, headers, code )
 		if !IsValid( ply ) or !ply:IsPlayer() or !requests[ply] then return end
 
 		local preq = requests[ply]
