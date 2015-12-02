@@ -18,10 +18,12 @@ E2Lib.clHTTP = {}
 local lib = E2Lib.clHTTP
 
 lib.netMsgID = "wire_expression2_cl_http" -- open to change
+lib.currentUID = 0
 
--- string function(void)
+-- number function(void)
 function lib:newUID()
-	return ("0x%08xf"):format(math.random(1,0xD4A51000))-- return 0x(hex) between 0 and 10^12
+	self.currentUID = (self.currentUID + 1) % 255
+	return self.currentUID -- return a number between 0 and 254
 end
 
 lib.rawRequest = http.Fetch
@@ -44,7 +46,7 @@ end
 -- string, string function(void)
 -- Internal: Do not call.
 function lib:decodeRequest()
-	return net.ReadString(),net.ReadString()
+	return net.ReadString(),net.ReadUInt(8)
 end
 
 -- void function(void)
@@ -55,7 +57,7 @@ function lib:handleIncomingRequest()
 	self:performRequest(url,uid)
 end
 
--- void function(string url, string uid)
+-- void function(string url, number uid)
 -- Internal: Do not call.
 function lib:performRequest(url,uid)
 	self.rawRequest(url,function(body,length,headers,code)
@@ -67,7 +69,7 @@ function lib:performRequest(url,uid)
 	end)
 end
 
--- void function(string uid, string body, number length, table headers, number code)
+-- void function(number uid, string body, number length, table headers, number code)
 -- Internal: Do not call.
 function lib:returnData(uid,body,length,headers,code)
 	local body_compressed = util.Compress(body) or ""
@@ -78,7 +80,7 @@ function lib:returnData(uid,body,length,headers,code)
 	return true
 end
 
--- void function(string uid, string body_compressed, number length)
+-- void function(number uid, string body_compressed, number length)
 -- Internal: Do not call.
 function lib:writeHTTPBody(uid,body,length)
 	local segments = math.ceil(length/self.segmentSize)
@@ -87,10 +89,10 @@ function lib:writeHTTPBody(uid,body,length)
 	for i=1,segments do
 		local segment = body:sub(self.segmentSize * (i-1) + 1,self.segmentSize * i)
 		net.Start(self.netMsgID)
-			net.WriteString(uid)						-- this is who we are
+			net.WriteUInt(uid,8)						-- this is who we are
 			net.WriteBool(false)						-- No; the request did not error
 			net.WriteBool(true)							-- yes we are writing a body
-			net.WriteInt(#segment,self.segmentBits)		-- the body is this much long
+			net.WriteUInt(#segment,self.segmentBits)	-- the body is this much long
 			net.WriteData(segment,#segment)				-- and here is the body
 		net.SendToServer()
 
@@ -98,11 +100,11 @@ function lib:writeHTTPBody(uid,body,length)
 	end
 end
 
--- void function(string uid, number length, table headers, number code)
+-- void function(number uid, number length, table headers, number code)
 -- Internal: Do not call.
 function lib:writeMetadata(uid,length,headers,code)
 	net.Start(self.netMsgID)
-		net.WriteString(uid)						-- this is who we are
+		net.WriteUInt(uid,8)						-- this is who we are
 		net.WriteBool(false)						-- No; the request did not error
 		net.WriteBool(false)						-- we are ready to finalise the message
 		-- CAPITAL SIN: net.WriteTable is horribly
@@ -110,15 +112,15 @@ function lib:writeMetadata(uid,length,headers,code)
 		-- elegant solution to write in a variable
 		-- table
 		net.WriteTable(headers)						-- these are the headers
-		net.WriteInt(code,12)						-- and this is the code
+		net.WriteUInt(code,12)						-- and this is the code
 	net.SendToServer()
 end
 
--- void function(string uid, string err)
+-- void function(number uid, string err)
 -- Internal: Do not call.
 function lib:returnFailure(uid,err)
 	net.Start(self.netMsgID)
-		net.WriteString(uid)	-- this is who we are
+		net.WriteUInt(uid,8)	-- this is who we are
 		net.WriteBool(true)		-- unfortunately, the request caused an error
 		net.WriteString(err)	-- and this is the code
 	net.SendToServer()

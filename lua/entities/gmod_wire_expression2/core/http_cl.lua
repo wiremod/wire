@@ -21,10 +21,12 @@ E2Lib.clHTTP = {}
 local lib = E2Lib.clHTTP
 
 lib.netMsgID = "wire_expression2_cl_http" -- open to change
+lib.currentUID = 0
 
--- string function(void)
+-- number function(void)
 function lib:newUID()
-	return ("0x%08xf"):format(math.random(1,0xD4A51000))-- return 0x(hex) between 0 and 10^12
+	self.currentUID = (self.currentUID + 1) % 255
+	return self.currentUID -- return a number between 0 and 254
 end
 
 lib.rawRequest = http.Fetch
@@ -67,19 +69,19 @@ function lib:request(client,url,callback_success,callback_failure)
 	end
 end
 
--- void function(entity client, string url, string uid)
+-- void function(entity client, string url, number uid)
 -- Internal: Do not call.
 function lib:launchNewRequest(client,url,uid)
 	net.Start(self.netMsgID)
 		net.WriteString(url)
-		net.WriteString(uid)
+		net.WriteUInt(uid,8)
 	net.Send(client)
 end
 
 -- string, boolean function(void)
 -- Internal: Do not call.
 function lib:decodeRequestHeader()
-	return net.ReadString(),net.ReadBool()
+	return net.ReadUInt(8),net.ReadBool()
 end
 
 -- boolean function(void)
@@ -91,13 +93,13 @@ end
 -- string function(void)
 -- Internal: Do not call.
 function lib:readSegment()
-	return net.ReadData(net.ReadInt(self.segmentBits))
+	return net.ReadData(net.ReadUInt(self.segmentBits))
 end
 
 -- table, number function(void)
 -- Internal: Do not call.
 function lib:readMetadata()
-	return net.ReadTable(),net.ReadInt(12)
+	return net.ReadTable(),net.ReadUInt(12)
 end
 
 -- table, number function(void)
