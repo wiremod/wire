@@ -31,10 +31,14 @@ local function newUID()
 end
 
 lib.rawRequest = http.Fetch
+lib.requestMaxCompressedSize = 16 * 1024 * 1024 -- 16 megabytes
 lib.segmentSize = 4 * 1024-- 4 kilobytes
 lib.segmentBits = math.min(math.ceil(math.log(lib.segmentSize,2)) + 2,32)
 lib.sendInterval = 0.5-- seconds
+lib.sendTimeout = 5-- seconds
 lib.HTTP_REQUEST_FAILED = "did not receive HTTP body" -- message for HTTP failure
+lib.HTTP_REQUEST_TOO_BIG = "request was too big to handle" -- message for when a request is too large
+lib.HTTP_REQUEST_TIMEOUT = "client took too long to report back" -- message for when a client takes too long inbetween messages
 
 -- void function(string id, number interval, function func)
 -- Internal: Do not call.
@@ -97,12 +101,25 @@ local function handleIncomingRequest()
 
 	if lib.requests[uid] then
 		local request = lib.requests[uid]
+		if (SysTime() - request.lastTouched) > lib.sendTimeout then
+			request.failure(lib.HTTP_REQUEST_TIMEOUT)
+			lib.requests[uid] = nil
+
+			return
+		end
+
+		request.lastTouched = SysTime()
 		if not failure then
 			request.body_compressed = request.body_compressed or "" -- define the compressed body if it does not already exist
 			local isSendingBody = isSendingBody()
 			if isSendingBody then
 				local segment = readSegment()
 				request.body_compressed = request.body_compressed..segment
+
+				if #request.body_compressed > lib.requestMaxCompressedSize then
+					request.failure(lib.HTTP_REQUEST_TOO_BIG)
+					lib.requests[uid] = nil
+				end
 			else
 				local headers,code = readMetadata()
 
@@ -140,7 +157,8 @@ function lib.request(client,url,callback_success,callback_failure)
 
 		lib.requests[uid] = {
 			success = callback_success,
-			failure = callback_failure
+			failure = callback_failure,
+			lastTouched = SysTime()
 		}
 
 		launchNewRequest(client,url,uid)

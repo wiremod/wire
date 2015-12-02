@@ -27,10 +27,12 @@ local function newUID()
 end
 
 lib.rawRequest = http.Fetch
+lib.requestMaxCompressedSize = 16 * 1024 * 1024 -- 16 megabytes
 lib.segmentSize = 4 * 1024-- 4 kilobytes
 lib.segmentBits = math.min(math.ceil(math.log(lib.segmentSize,2)) + 2,32)
 lib.sendInterval = 0.5-- seconds
 lib.HTTP_REQUEST_FAILED = "did not receive HTTP body" -- message for HTTP failure
+lib.HTTP_REQUEST_TOO_BIG = "request was too big to handle" -- message for when a request is too large
 
 -- void function(string id, number interval, function func)
 -- Internal: Do not call.
