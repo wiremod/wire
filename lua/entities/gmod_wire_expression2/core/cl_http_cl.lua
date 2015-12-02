@@ -21,9 +21,9 @@ lib.netMsgID = "wire_expression2_cl_http" -- open to change
 lib.currentUID = 0
 
 -- number function(void)
-function lib:newUID()
-	self.currentUID = (self.currentUID + 1) % 255
-	return self.currentUID -- return a number between 0 and 254
+local function newUID()
+	lib.currentUID = (lib.currentUID + 1) % 255
+	return lib.currentUID -- return a number between 0 and 254
 end
 
 lib.rawRequest = http.Fetch
@@ -34,7 +34,7 @@ lib.HTTP_REQUEST_FAILED = 1024--enum for HTTP failure
 
 -- void function(string id, number interval, function func)
 -- Internal: Do not call.
-function lib.timerCoroutine(id,interval,func)
+local function timerCoroutine(id,interval,func)
 	func = coroutine.wrap(func)
 	timer.Create(id,interval,0,function()
 		if func() then
@@ -43,56 +43,19 @@ function lib.timerCoroutine(id,interval,func)
 	end)
 end
 
--- string, string function(void)
--- Internal: Do not call.
-function lib:decodeRequest()
-	return net.ReadString(),net.ReadUInt(8)
-end
-
--- void function(void)
--- Internal: Do not call.
-function lib:handleIncomingRequest()
-	local url,uid = self:decodeRequest()
-
-	self:performRequest(url,uid)
-end
-
--- void function(string url, number uid)
--- Internal: Do not call.
-function lib:performRequest(url,uid)
-	self.rawRequest(url,function(body,length,headers,code)
-		self.timerCoroutine("wire_e2_cl_http_"..uid,self.sendInterval,function()
-			return self:returnData(uid,body,length,headers,code)
-		end)
-	end,function(err)
-		self:returnFailure(uid,err)
-	end)
-end
-
--- void function(number uid, string body, number length, table headers, number code)
--- Internal: Do not call.
-function lib:returnData(uid,body,length,headers,code)
-	local body_compressed = util.Compress(body) or ""
-
-	self:writeHTTPBody(uid,body_compressed,#body_compressed)
-	self:writeMetadata(uid,length,headers,code)
-
-	return true
-end
-
 -- void function(number uid, string body_compressed, number length)
 -- Internal: Do not call.
-function lib:writeHTTPBody(uid,body,length)
-	local segments = math.ceil(length/self.segmentSize)
+local function writeHTTPBody(uid,body,length)
+	local segments = math.ceil(length/lib.segmentSize)
 
 	-- reliable netmessages are always sent in order
 	for i=1,segments do
-		local segment = body:sub(self.segmentSize * (i-1) + 1,self.segmentSize * i)
-		net.Start(self.netMsgID)
+		local segment = body:sub(lib.segmentSize * (i-1) + 1,lib.segmentSize * i)
+		net.Start(lib.netMsgID)
 			net.WriteUInt(uid,8)						-- this is who we are
 			net.WriteBool(false)						-- No; the request did not error
 			net.WriteBool(true)							-- yes we are writing a body
-			net.WriteUInt(#segment,self.segmentBits)	-- the body is this much long
+			net.WriteUInt(#segment,lib.segmentBits)	-- the body is this much long
 			net.WriteData(segment,#segment)				-- and here is the body
 		net.SendToServer()
 
@@ -102,8 +65,8 @@ end
 
 -- void function(number uid, number length, table headers, number code)
 -- Internal: Do not call.
-function lib:writeMetadata(uid,length,headers,code)
-	net.Start(self.netMsgID)
+local function writeMetadata(uid,length,headers,code)
+	net.Start(lib.netMsgID)
 		net.WriteUInt(uid,8)						-- this is who we are
 		net.WriteBool(false)						-- No; the request did not error
 		net.WriteBool(false)						-- we are ready to finalise the message
@@ -118,14 +81,51 @@ end
 
 -- void function(number uid, string err)
 -- Internal: Do not call.
-function lib:returnFailure(uid,err)
-	net.Start(self.netMsgID)
+local function returnFailure(uid,err)
+	net.Start(lib.netMsgID)
 		net.WriteUInt(uid,8)	-- this is who we are
 		net.WriteBool(true)		-- unfortunately, the request caused an error
 		net.WriteString(err)	-- and this is the code
 	net.SendToServer()
 end
 
+-- void function(number uid, string body, number length, table headers, number code)
+-- Internal: Do not call.
+local function returnData(uid,body,length,headers,code)
+	local body_compressed = util.Compress(body) or ""
+
+	writeHTTPBody(uid,body_compressed,#body_compressed)
+	writeMetadata(uid,length,headers,code)
+
+	return true
+end
+
+-- void function(string url, number uid)
+-- Internal: Do not call.
+local function performRequest(url,uid)
+	lib.rawRequest(url,function(body,length,headers,code)
+		timerCoroutine("wire_e2_cl_http_"..uid,lib.sendInterval,function()
+			return returnData(uid,body,length,headers,code)
+		end)
+	end,function(err)
+		returnFailure(uid,err)
+	end)
+end
+
+-- string, string function(void)
+-- Internal: Do not call.
+local function decodeRequest()
+	return net.ReadString(),net.ReadUInt(8)
+end
+
+-- void function(void)
+-- Internal: Do not call.
+local function handleIncomingRequest()
+	local url,uid = decodeRequest()
+
+	performRequest(url,uid)
+end
+
 net.Receive(lib.netMsgID,function(_,ply)
-	lib:handleIncomingRequest(ply)
+	handleIncomingRequest(ply)
 end)
