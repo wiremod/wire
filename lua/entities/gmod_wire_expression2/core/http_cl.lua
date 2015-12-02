@@ -123,6 +123,8 @@ function lib:handleIncomingRequest()
 				elseif request.failure then
 					request.failure(self.HTTP_REQUEST_FAILED)
 				end
+
+				self.requests[uid] = nil
 			end
 		else
 			if request.failure then
