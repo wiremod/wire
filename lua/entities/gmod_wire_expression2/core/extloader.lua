@@ -14,14 +14,14 @@ if ENT then
 			ply:PrintMessage( 2, "Sorry " .. ply:Name() .. ", you don't have access to this command." )
 			return
 		end
-		
+
 		local function _Msg( str )
 			if IsValid( ply ) then ply:PrintMessage( 2, str ) end
 			if not game.SinglePlayer() then MsgN( str ) end
 		end
-		
+
 		timer.Destroy( "E2_AutoReloadTimer" )
-		
+
 		_Msg( "Calling destructors for all Expression 2 chips." )
 		local chips = ents.FindByClass( "gmod_wire_expression2" )
 		for _, chip in ipairs( chips ) do
@@ -30,7 +30,7 @@ if ENT then
 			end
 			chip.script = nil
 		end
-		
+
 		_Msg( "Reloading Expression 2 extensions." )
 		ENT = wire_expression2_ENT
 		wire_expression2_is_reload = true
@@ -48,12 +48,12 @@ if ENT then
 		for _, chip in ipairs( chips ) do
 			pcall( chip.OnRestore, chip )
 		end
-		
+
 		_Msg( "Done reloading Expression 2 extensions." )
 	end
 
 	concommand.Add( "wire_expression2_reload", wire_expression2_reload )
-	
+
 end
 
 wire_expression2_reset_extensions()
@@ -94,14 +94,14 @@ local function e2_include_pass2(name, luaname, contents)
 		-- e2_extpp_pass2 returned false => file didn't need preprocessing => use the regular means of inclusion
 		return include(name)
 	end
-	
+
 	-- file needed preprocessing => Run the processed file
 	local ok, func = pcall(CompileString,ret,luaname)
 	if not ok then -- an error occurred while compiling
 		error(func)
 		return
 	end
-	
+
 	local ok, err = pcall(func)
 	if not ok then -- an error occured while executing
 		if not err:find( "EXTENSION_DISABLED" ) then
@@ -109,7 +109,7 @@ local function e2_include_pass2(name, luaname, contents)
 		end
 		return
 	end
-	
+
 	__e2setcost(nil) -- Reset ops cost at the end of each file
 end
 
@@ -160,6 +160,7 @@ e2_include("complex.lua")
 e2_include("bitwise.lua")
 e2_include("quaternion.lua")
 e2_include("debug.lua")
+e2_include("http_cl.lua")
 e2_include("http.lua")
 e2_include("compat.lua")
 e2_include("custom.lua")
