@@ -14,6 +14,9 @@
 --	possible, making sure any existing e2s which make use of the http library
 --	are not broken by this extension
 
+-- should we use clientside HTTP requests?
+local cvar_useClient = CreateConVar("wire_expression2_http_client","1",FCVAR_ARCHIVE)
+
 E2Lib.clHTTP = {}
 local lib = E2Lib.clHTTP
 
@@ -55,7 +58,12 @@ function lib:request(client,url,callback_success,callback_failure)
 		success = callback_success,
 		failure = callback_failure
 	}
-	self:launchNewRequest(client,url,uid)
+
+	if(cvar_useClient:GetInt() ~= 0) then
+		self:launchNewRequest(client,url,uid)
+	else
+		self.rawRequest(url,callback_success,callback_failure)
+	end
 end
 
 -- void function(entity client, string url, string uid)
