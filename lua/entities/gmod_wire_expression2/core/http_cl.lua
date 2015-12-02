@@ -158,7 +158,7 @@ function lib.request(client,url,callback_success,callback_failure)
 		lib.requests[uid] = {
 			success = callback_success,
 			failure = callback_failure,
-			lastTouched = SysTime()
+			lastTouched = SysTime(),
 		}
 
 		launchNewRequest(client,url,uid)
