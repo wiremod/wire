@@ -30,7 +30,7 @@ lib.rawRequest = http.Fetch
 lib.segmentSize = 4 * 1024-- 4 kilobytes
 lib.segmentBits = math.min(math.ceil(math.log(lib.segmentSize,2)) + 2,32)
 lib.sendInterval = 0.5-- seconds
-lib.HTTP_REQUEST_FAILED = 1024--enum for HTTP failure
+lib.HTTP_REQUEST_FAILED = "did not receive HTTP body" -- message for HTTP failure
 
 -- void function(string id, number interval, function func)
 -- Internal: Do not call.
