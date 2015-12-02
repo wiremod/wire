@@ -33,6 +33,7 @@ lib.HTTP_REQUEST_FAILED = 1024--enum for HTTP failure
 -- void function(string id, number interval, function func)
 -- Internal: Do not call.
 function lib.timerCoroutine(id,interval,func)
+	func = coroutine.wrap(func)
 	timer.Create(id,interval,0,function()
 		if func() then
 			timer.Remove(id)
@@ -40,173 +41,91 @@ function lib.timerCoroutine(id,interval,func)
 	end)
 end
 
-if SERVER then
-	util.AddNetworkString(lib.netMsgID)
+util.AddNetworkString(lib.netMsgID)
 
-	lib.requests = {}
+lib.requests = {}
 
-	-- void function(entity client, string url, function callback_success[, function callback_failure])
-	function lib:request(client,url,callback_success,callback_failure)
-		-- When the client sends us the data from the request, we need to know which
-		-- request it was for, so a UID is used.
-		local uid = self:newUID()
+-- void function(entity client, string url, function callback_success[, function callback_failure])
+function lib:request(client,url,callback_success,callback_failure)
+	-- When the client sends us the data from the request, we need to know which
+	-- request it was for, so a UID is used.
+	local uid = self:newUID()
 
-		self.requests[uid] = {
-			success = callback_success,
-			failure = callback_failure
-		}
-		self:launchNewRequest(client,url,uid)
-	end
+	self.requests[uid] = {
+		success = callback_success,
+		failure = callback_failure
+	}
+	self:launchNewRequest(client,url,uid)
+end
 
-	-- void function(entity client, string url, string uid)
-	-- Internal: Do not call.
-	function lib:launchNewRequest(client,url,uid)
-		net.Start(self.netMsgID)
-			net.WriteString(url)
-			net.WriteString(uid)
-		net.Send(client)
-	end
+-- void function(entity client, string url, string uid)
+-- Internal: Do not call.
+function lib:launchNewRequest(client,url,uid)
+	net.Start(self.netMsgID)
+		net.WriteString(url)
+		net.WriteString(uid)
+	net.Send(client)
+end
 
-	-- string, boolean function(void)
-	-- Internal: Do not call.
-	function lib:decodeRequestHeader()
-		return net.ReadString(),net.ReadBool()
-	end
+-- string, boolean function(void)
+-- Internal: Do not call.
+function lib:decodeRequestHeader()
+	return net.ReadString(),net.ReadBool()
+end
 
-	-- boolean function(void)
-	-- Internal: Do not call.
-	function lib:isSendingBody()
-		return net.ReadBool()
-	end
+-- boolean function(void)
+-- Internal: Do not call.
+function lib:isSendingBody()
+	return net.ReadBool()
+end
 
-	-- string function(void)
-	-- Internal: Do not call.
-	function lib:readSegment()
-		return net.ReadData(net.ReadInt(self.segmentBits+1))
-	end
+-- string function(void)
+-- Internal: Do not call.
+function lib:readSegment()
+	return net.ReadData(net.ReadInt(self.segmentBits+1))
+end
 
-	-- table, number function(void)
-	-- Internal: Do not call.
-	function lib:readMetadata()
-		return net.ReadTable(),net.ReadInt(12)
-	end
+-- table, number function(void)
+-- Internal: Do not call.
+function lib:readMetadata()
+	return net.ReadTable(),net.ReadInt(12)
+end
 
-	-- void function(void)
-	-- Internal: Do not call.
-	function lib:handleIncomingRequest()
-		local uid,success = self:decodeRequestHeader()
+-- void function(void)
+-- Internal: Do not call.
+function lib:handleIncomingRequest()
+	local uid,failure = self:decodeRequestHeader()
 
-		if self.requests[uid] then
-			local request = self.requests[uid]
-			if success then
-				request.body_compressed = request.body_compressed or "" -- define the compressed body if it does not already exist
-				if self:isSendingBody() then
-					local segment = self:readSegment()
-					request.body_compressed = request.body_compressed..segment
-				else
-					local headers,code = self:readMetadata()
-
-					local body = ""
-					if request.body_compressed ~= "" then
-						body = util.Decompress(request.body_compressed)
-					end
-
-					if body then
-						request.success(body,#body,headers,code)
-					else
-						request.failure(self.HTTP_REQUEST_FAILED)
-					end
-				end
+	if self.requests[uid] then
+		local request = self.requests[uid]
+		if not failure then
+			request.body_compressed = request.body_compressed or "" -- define the compressed body if it does not already exist
+			local isSendingBody = self:isSendingBody()
+			if isSendingBody then
+				local segment = self:readSegment()
+				request.body_compressed = request.body_compressed..segment
 			else
-				if request.failure then
-					request.failure(self:readHTTPCode())
+				local headers,code = self:readMetadata()
+
+				local body = ""
+				if request.body_compressed ~= "" then
+					body = util.Decompress(request.body_compressed)
 				end
-				self.requests[uid] = nil
+
+				if body then
+					request.success(body,#body,headers,code)
+				else
+					request.failure(self.HTTP_REQUEST_FAILED)
+				end
 			end
+		else
+			if request.failure then
+				request.failure(self:readHTTPCode())
+			end
+			self.requests[uid] = nil
 		end
-	end
-else
-	-- string, string function(void)
-	-- Internal: Do not call.
-	function lib:decodeRequest()
-		return net.ReadString(),ent.ReadString()
-	end
-
-	-- void function(void)
-	-- Internal: Do not call.
-	function lib:handleIncomingRequest()
-		local url,uid = self:decodeRequest()
-
-		self:performRequest(url,uid)
-	end
-
-	-- void function(string url, string uid)
-	-- Internal: Do not call.
-	function lib:performRequest(url,uid)
-		self.rawRequest(url,function(body,length,headers,code)
-			self.timerCoroutine("wire_e2_cl_http_"..uid,self.sendInterval,function()
-				self:returnData(uid,body,length,headers,code)
-			end)
-		end,function(code)
-			self:returnFailure(uid,code)
-		end)
-	end
-
-	-- void function(string uid, string body, number length, table headers, number code)
-	-- Internal: Do not call.
-	function lib:returnData(uid,body,length,headers,code)
-		local body_compressed = util.Compress(body) or ""
-
-		self:writeHTTPBody(uid,body_compressed,#body_compressed)
-		self:writeMetadata(uid,length,headers,code)
-
-		return true
-	end
-
-	-- void function(string uid, string body_compressed, number length)
-	-- Internal: Do not call.
-	function lib:writeHTTPBody(uid,body,length)
-		local segments = math.ceil(length/self.segmentSize)
-
-		-- reliable netmessages are always sent in order
-		for i=1,segments do
-			local segment = body:sub(self.segmentSize * (i-1),self.segmentSize * i - 1)
-			net.Start(self.netMsgID)
-				net.WriteString(uid)						-- this is who we are
-				net.WriteBool(false)						-- No; the request did not error
-				net.WriteBool(true)							-- yes we are writing a body
-				net.WriteInt(#segment,self.segmentBits + 1)	-- the body is this much long
-				net.WriteData(segment,#segment)				-- and here is the body
-			net.SendToServer()
-
-			coroutine.yield()
-		end
-	end
-
-	-- void function(string uid, number length, table headers, number code)
-	-- Internal: Do not call.
-	function lib:writeMetadata(uid,length,headers,code)
-		net.Start(self.netMsgID)
-			net.WriteString(uid)						-- this is who we are
-			net.WriteBool(false)						-- No; the request did not error
-			net.WriteBool(false)						-- we are ready to finalise the message
-			-- CAPITAL SIN: net.WriteTable is horribly
-			-- unoptimised; but there is no other
-			-- elegant solution to write in a variable
-			-- table
-			net.WriteTable(headers)						-- these are the headers
-			net.WriteInt(code,12)						-- and this is the code
-		net.SendToServer()
-	end
-
-	-- void function(string uid, number code)
-	-- Internal: Do not call.
-	function lib:returnFailure(uid,code)
-		net.Start(self.netMsgID)
-			net.WriteString(uid)	-- this is who we are
-			net.WriteBool(true)		-- unfortunately, the request caused an error
-			net.WriteInt(code,12)	-- and this is the code
-		net.SendToServer()
+	else
+		error("Attempt to send a request with an unknown UID "..uid)
 	end
 end
 
