@@ -18,7 +18,23 @@ E2Lib.clHTTP = {}
 local lib = E2Lib.clHTTP
 
 lib.netMsgID = "wire_expression2_cl_http" -- open to change
+lib.whitelistSyncNetMsgID = "wire_expression2_cl_http_whitelist" -- open to change
 lib.currentUID = 0
+lib.defaultWhitelistData = [[#
+#	The Wiremod Expression 2 client-side HTTP request whitelist
+#
+#	Hints:
+#	- One entry per line!
+#	- Entries are also lua string patterns
+#	- Anything after a # in an entry is ignored and treated as a comment
+#	- You do not have to have a new line at the end of this file.
+#	- Empty lines are ignored
+#
+#	Have fun!
+
+#^https?://www.github.com/.*$
+#^https?://www.github.com/.*$
+]]
 
 -- number function(void)
 local function newUID()
@@ -131,3 +147,32 @@ end
 net.Receive(lib.netMsgID,function(_,ply)
 	handleIncomingRequest(ply)
 end)
+
+-- void function(void)
+local function reloadWhitelist()
+	local whitelistText = file.Read("wire_http_whitelist_cl.txt","DATA")
+	local whitelistData = {}
+	if whitelistText and (whitelistText ~= "") then
+		for entry,comment in whitelistText:gmatch("([^#\n\r]*)[^\n\r]*[\n\r]*") do
+			if entry ~= "" then
+				whitelistData[#whitelistData+1] = entry
+			end
+		end
+	else
+		file.Write("wire_http_whitelist_cl.txt",lib.defaultWhitelistData)
+	end
+
+	net.Start(lib.whitelistSyncNetMsgID)
+	-- CAPITAL SIN: net.WriteTable is horribly
+	-- unoptimised; but there is no other
+	-- elegant solution to write in a variable
+	-- table
+		net.WriteTable(whitelistData)
+	net.SendToServer()
+
+	print("Client-side HTTP whitelist reloaded")
+end
+
+-- Send, to the server, our request whitelist
+reloadWhitelist()
+concommand.Add("wire_expression2_http_reloadwhitelist",reloadWhitelist)

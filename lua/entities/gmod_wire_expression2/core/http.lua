@@ -14,6 +14,11 @@ local run_on = {
 	ents = {}
 }
 
+local HTTP_MODE_SERVER = 1
+local HTTP_MODE_CLIENT = 2
+local HTTP_MODE_AUTO = 3
+local HTTP_MODE_DEFAULT = HTTP_MODE_AUTO
+
 local function player_can_request( ply )
 	local preq = requests[ply]
 
@@ -26,7 +31,19 @@ __e2setcost( 20 )
 
 e2function void httpRequest( string url )
 	local ply = self.player
+	local mode = self.http_mode or HTTP_MODE_DEFAULT
+
 	if !player_can_request( ply ) or url == "" then return end
+
+	-- validRequest-> is the request OK?
+	-- state-> which state can run this request?
+	local validRequest,state = E2Lib.clHTTP.canRequest(ply,url)
+	if not validRequest then return end
+
+	if (mode == HTTP_MODE_SERVER) and (state == "clientside") then return end
+	if (mode == HTTP_MODE_CLIENT) and (state == "serverside") then return end
+
+	if (mode == HTTP_MODE_AUTO) and (state == "shared") then state = "serverside" end -- always request from the server if possible
 
 	requests[ply] = {
 		in_progress = true,
@@ -35,7 +52,7 @@ e2function void httpRequest( string url )
 		url = url
 	}
 
-	E2Lib.clHTTP.request(ply, url, function( contents, size, headers, code )
+	E2Lib.clHTTP.request((state ~= "serverside") and ply, url, function( contents, size, headers, code )
 		if !IsValid( ply ) or !ply:IsPlayer() or !requests[ply] then return end
 
 		local preq = requests[ply]
@@ -57,6 +74,28 @@ e2function void httpRequest( string url )
 end
 
 __e2setcost( 5 )
+
+e2function number httpRequestMode()
+	return self.http_mode or HTTP_MODE_DEFAULT
+end
+
+e2function void httpSetRequestMode(number enum_mode)
+	self.http_mode = math.min(3,math.max(1,enum_mode))
+end
+
+e2function number httpCanClientRequest(string url)
+	local validRequest,state = E2Lib.clHTTP.canRequest(self.player,url)
+	if not validRequest then return 0 end
+
+	return ((state == "serverside") and 0) or 1
+end
+
+e2function number httpCanServerRequest(string url)
+	local validRequest,state = E2Lib.clHTTP.canRequest(self.player,url)
+	if not validRequest then return 0 end
+
+	return ((state == "clientside") and 0) or 1
+end
 
 e2function number httpCanRequest()
 	return ( player_can_request( self.player ) ) and 1 or 0

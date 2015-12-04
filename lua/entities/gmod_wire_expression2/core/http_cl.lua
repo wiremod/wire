@@ -21,6 +21,7 @@ E2Lib.clHTTP = {}
 local lib = E2Lib.clHTTP
 
 lib.netMsgID = "wire_expression2_cl_http" -- open to change
+lib.whitelistSyncNetMsgID = "wire_expression2_cl_http_whitelist" -- open to change
 lib.currentUID = 0
 
 -- number function(void)
@@ -39,6 +40,37 @@ lib.sendTimeout = 5-- seconds
 lib.HTTP_REQUEST_FAILED = "did not receive HTTP body" -- message for HTTP failure
 lib.HTTP_REQUEST_TOO_BIG = "request was too big to handle" -- message for when a request is too large
 lib.HTTP_REQUEST_TIMEOUT = "client took too long to report back" -- message for when a client takes too long inbetween messages
+lib.defaultWhitelistData = [[#
+#	The Wiremod Expression 2 server-side HTTP request whitelist
+#
+#	Hints:
+#	- One entry per line!
+#	- Entries are also lua string patterns
+#	- Anything after a # in an entry is ignored and treated as a comment
+#	- You do not have to have a new line at the end of this file.
+#	- Empty lines are ignored
+#
+#	Have fun!
+
+#^https?://www.github.com/.*$
+#^https?://www.github.com/.*$
+]]
+
+-- hardcoded entries: these are always preserved and are (ideally) for developer use only
+lib.requestWhitelist = {
+	shared = { -- ordered list of whitelisted patterns
+		"^https?://www.google.com/.*$",
+		"^https?://www.github.com/.*$",
+	},
+	serverside = { -- ordered list of whitelisted patterns
+
+	},
+	clientside = { -- a table indexed by a player entity object, holding a set of ordered sub-table whitelist patterns
+		default = { -- ordered list of default whitelisted patterns: add entries here.
+
+		},
+	},
+}
 
 -- void function(string id, number interval, function func)
 -- Internal: Do not call.
@@ -52,6 +84,7 @@ local function timerCoroutine(id,interval,func)
 end
 
 util.AddNetworkString(lib.netMsgID)
+util.AddNetworkString(lib.whitelistSyncNetMsgID)
 
 lib.requests = {}
 
@@ -151,8 +184,33 @@ local function canOverwriteUID(uid)
 	if lib.requests[uid] then
 		return (SysTime() - lib.requests[uid].lastTouched) > lib.sendTimeout
 	end
-	
+
 	return true
+end
+
+-- bool,string function(entity/bool client, string url)
+function lib.canRequest(client,url)
+	for i,entry in ipairs(lib.requestWhitelist.shared) do
+		if url:match(entry) then
+			return true,"shared"
+		end
+	end
+
+	if client and lib.requestWhitelist.clientside[client] then
+		for i,entry in ipairs(lib.requestWhitelist.clientside[client]) do
+			if url:match(entry) then
+				return true,"clientside"
+			end
+		end
+	end
+
+	for i,entry in ipairs(lib.requestWhitelist.serverside) do
+		if url:match(entry) then
+			return true,"serverside"
+		end
+	end
+
+	return false
 end
 
 -- void function(entity client, string url, function callback_success[, function callback_failure])
@@ -160,7 +218,9 @@ function lib.request(client,url,callback_success,callback_failure)
 	-- When the client sends us the data from the request, we need to know which
 	-- request it was for, so a UID is used.
 
-	if(cvar_useClient:GetInt() ~= 0) then
+	if not lib.canRequest(client,url) then return end
+
+	if client and (cvar_useClient:GetInt() ~= 0) then
 		local uid
 		repeat
 			uid = newUID()
@@ -178,6 +238,44 @@ function lib.request(client,url,callback_success,callback_failure)
 	end
 end
 
+-- The serverside whitelist reloading function
+-- void function(entity ply)
+local function reloadWhitelist(ply)
+	if IsValid(ply) then return end
+
+	local whitelistText = file.Read("wire_http_whitelist_sv.txt","DATA")
+	if whitelistText and (whitelistText ~= "") then
+		for entry,comment in whitelistText:gmatch("([^#\n\r]*)[^\n\r]*[\n\r]*") do
+			if entry ~= "" then
+				lib.requestWhitelist.serverside[#lib.requestWhitelist.serverside+1] = entry
+			end
+		end
+	else
+		file.Write("wire_http_whitelist_sv.txt",lib.defaultWhitelistData)
+	end
+
+	print("Server-side HTTP whitelist reloaded")
+end
+concommand.Add("wire_expression2_http_reloadwhitelist",reloadWhitelist)
+
+reloadWhitelist()
+
 net.Receive(lib.netMsgID,function(_,ply)
 	handleIncomingRequest(ply)
+end)
+
+net.Receive(lib.whitelistSyncNetMsgID,function(_,ply)
+	local whitelistData = net.ReadTable()
+
+	local whitelist = {} -- create (and reset) the table
+
+	for i,entry in ipairs(lib.requestWhitelist.clientside.default) do
+		whitelist[#whitelist+1] = entry
+	end
+
+	for i,entry in ipairs(whitelistData) do
+		whitelist[#whitelist+1] = entry
+	end
+
+	lib.requestWhitelist.clientside[ply] = whitelist
 end)
