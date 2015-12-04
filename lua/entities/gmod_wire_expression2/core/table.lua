@@ -360,7 +360,7 @@ end)
 
 __e2setcost(1)
 
--- Creates an table
+-- Creates a table
 e2function table table(...)
 	local tbl = {...}
 	if (#tbl == 0) then return table.Copy(DEFAULT) end
