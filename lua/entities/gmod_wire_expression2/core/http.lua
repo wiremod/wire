@@ -83,18 +83,16 @@ e2function void httpSetRequestMode(number enum_mode)
 	self.http_mode = math.min(3,math.max(1,enum_mode))
 end
 
-e2function number httpCanClientRequest(string url)
+e2function number httpCanRequest(string url)
+	local mode = self.http_mode or HTTP_MODE_DEFAULT
+
 	local validRequest,state = E2Lib.clHTTP.canRequest(self.player,url)
 	if not validRequest then return 0 end
 
-	return ((state == "serverside") and 0) or 1
-end
+	if (mode == HTTP_MODE_SERVER) and (state == "clientside") then return 0 end
+	if (mode == HTTP_MODE_CLIENT) and (state == "serverside") then return 0 end
 
-e2function number httpCanServerRequest(string url)
-	local validRequest,state = E2Lib.clHTTP.canRequest(self.player,url)
-	if not validRequest then return 0 end
-
-	return ((state == "clientside") and 0) or 1
+	return ( player_can_request( self.player ) ) and 1 or 0
 end
 
 e2function number httpCanRequest()
