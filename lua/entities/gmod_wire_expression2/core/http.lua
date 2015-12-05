@@ -19,6 +19,11 @@ local HTTP_MODE_CLIENT = 2
 local HTTP_MODE_AUTO = 3
 local HTTP_MODE_DEFAULT = HTTP_MODE_AUTO
 
+E2Lib.registerConstant("HTTP_MODE_SERVER",HTTP_MODE_SERVER)
+E2Lib.registerConstant("HTTP_MODE_CLIENT",HTTP_MODE_CLIENT)
+E2Lib.registerConstant("HTTP_MODE_AUTO",HTTP_MODE_AUTO)
+E2Lib.registerConstant("HTTP_MODE_DEFAULT",HTTP_MODE_DEFAULT)
+
 local function player_can_request( ply )
 	local preq = requests[ply]
 
