@@ -126,7 +126,9 @@ local function handleIncomingRequest()
 	if lib.requests[uid] then
 		local request = lib.requests[uid]
 		if (SysTime() - request.lastTouched) > lib.sendTimeout then
-			request.failure(lib.HTTP_REQUEST_TIMEOUT)
+			if request.failure then
+				request.failure(lib.HTTP_REQUEST_TIMEOUT)
+			end
 			lib.requests[uid] = nil
 
 			return
