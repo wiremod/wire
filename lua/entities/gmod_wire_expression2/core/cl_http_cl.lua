@@ -50,8 +50,7 @@ lib.sendInterval = 0.5-- seconds
 lib.HTTP_REQUEST_FAILED = "did not receive HTTP body" -- message for HTTP failure
 lib.HTTP_REQUEST_TOO_BIG = "request was too big to handle" -- message for when a request is too large
 
--- void function(string id, number interval, function func)
--- Internal: Do not call.
+-- void function(string id, number interval, function func); Internal: Do not call.
 local function timerCoroutine(id,interval,func)
 	func = coroutine.wrap(func)
 	timer.Create(id,interval,0,function()
@@ -61,8 +60,7 @@ local function timerCoroutine(id,interval,func)
 	end)
 end
 
--- void function(number uid, string body_compressed, number length)
--- Internal: Do not call.
+-- void function(number uid, string body_compressed, number length); Internal: Do not call.
 local function writeHTTPBody(uid,body,length)
 	local segments = math.ceil(length/lib.segmentSize)
 
@@ -81,8 +79,7 @@ local function writeHTTPBody(uid,body,length)
 	end
 end
 
--- void function(number uid, number length, table headers, number code)
--- Internal: Do not call.
+-- void function(number uid, number length, table headers, number code); Internal: Do not call.
 local function writeMetadata(uid,length,headers,code)
 	net.Start(lib.netMsgID)
 		net.WriteUInt(uid,8)						-- this is who we are
@@ -97,8 +94,7 @@ local function writeMetadata(uid,length,headers,code)
 	net.SendToServer()
 end
 
--- void function(number uid, string err)
--- Internal: Do not call.
+-- void function(number uid, string err); Internal: Do not call.
 local function returnFailure(uid,err)
 	net.Start(lib.netMsgID)
 		net.WriteUInt(uid,8)	-- this is who we are
@@ -107,8 +103,7 @@ local function returnFailure(uid,err)
 	net.SendToServer()
 end
 
--- void function(number uid, string body, number length, table headers, number code)
--- Internal: Do not call.
+-- void function(number uid, string body, number length, table headers, number code); Internal: Do not call.
 local function returnData(uid,body,length,headers,code)
 	local body_compressed = util.Compress(body) or ""
 
@@ -118,8 +113,7 @@ local function returnData(uid,body,length,headers,code)
 	return true
 end
 
--- void function(string url, number uid)
--- Internal: Do not call.
+-- void function(string url, number uid); Internal: Do not call.
 local function performRequest(url,uid)
 	lib.rawRequest(url,function(body,length,headers,code)
 		timerCoroutine("wire_e2_cl_http_"..uid,lib.sendInterval,function()
@@ -130,14 +124,12 @@ local function performRequest(url,uid)
 	end)
 end
 
--- string, string function(void)
--- Internal: Do not call.
+-- string, string function(void); Internal: Do not call.
 local function decodeRequest()
 	return net.ReadString(),net.ReadUInt(8)
 end
 
--- void function(void)
--- Internal: Do not call.
+-- void function(void); Internal: Do not call.
 local function handleIncomingRequest()
 	local url,uid = decodeRequest()
 

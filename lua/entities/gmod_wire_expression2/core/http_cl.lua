@@ -24,8 +24,7 @@ lib.netMsgID = "wire_expression2_cl_http" -- open to change
 lib.whitelistSyncNetMsgID = "wire_expression2_cl_http_whitelist" -- open to change
 lib.currentUID = 0
 
--- number function(void)
--- Internal: Do not call.
+-- number function(void); Internal: Do not call.
 local function newUID()
 	lib.currentUID = (lib.currentUID + 1) % 255
 	return lib.currentUID -- return a number between 0 and 255
@@ -72,8 +71,7 @@ lib.requestWhitelist = {
 	},
 }
 
--- void function(string id, number interval, function func)
--- Internal: Do not call.
+-- void function(string id, number interval, function func); Internal: Do not call.
 local function timerCoroutine(id,interval,func)
 	func = coroutine.wrap(func)
 	timer.Create(id,interval,0,function()
@@ -88,8 +86,7 @@ util.AddNetworkString(lib.whitelistSyncNetMsgID)
 
 lib.requests = {}
 
--- void function(entity client, string url, number uid)
--- Internal: Do not call.
+-- void function(entity client, string url, number uid); Internal: Do not call.
 local function launchNewRequest(client,url,uid)
 	net.Start(lib.netMsgID)
 		net.WriteString(url)
@@ -97,38 +94,32 @@ local function launchNewRequest(client,url,uid)
 	net.Send(client)
 end
 
--- string, boolean function(void)
--- Internal: Do not call.
+-- string, boolean function(void); Internal: Do not call.
 local function decodeRequestHeader()
 	return net.ReadUInt(8),net.ReadBool()
 end
 
--- boolean function(void)
--- Internal: Do not call.
+-- boolean function(void); Internal: Do not call.
 local function isSendingBody()
 	return net.ReadBool()
 end
 
--- string function(void)
--- Internal: Do not call.
+-- string function(void); Internal: Do not call.
 local function readSegment()
 	return net.ReadData(net.ReadInt(lib.segmentBits))
 end
 
--- table, number function(void)
--- Internal: Do not call.
+-- table, number function(void); Internal: Do not call.
 local function readMetadata()
 	return net.ReadTable(),net.ReadInt(12)
 end
 
--- table, number function(void)
--- Internal: Do not call.
+-- table, number function(void); Internal: Do not call.
 local function readError()
 	return net.ReadString()
 end
 
--- void function(void)
--- Internal: Do not call.
+-- void function(void); Internal: Do not call.
 local function handleIncomingRequest()
 	local uid,failure = decodeRequestHeader()
 
