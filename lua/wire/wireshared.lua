@@ -999,3 +999,71 @@ function nicenumber.nicetime( n )
 		return "0s"
 	end
 end
+
+------------------------------------------------------
+-- Loads a font into the cache if it doesn't exist
+-- Returns true if font exists, else returns false
+------------------------------------------------------
+local _fontcache = {}
+local _defaultFontSize = 18
+
+function WireLib.LoadFont( name, size )
+	if not name then return false end
+	
+	local fontSize = size or _defaultFontSize
+	local fontKey = name .. "_" .. fontSize
+	
+	-- Shortcircuit if font has already loaded
+	if _fontcache[fontKey] ~= nil then
+		return true
+	end
+	
+	-- If font isn't in cache, create it
+	local fontTable =
+	{
+		font = name,
+		size = fontSize,
+		weight = 800,
+		antialias = true,
+		additive = false,
+	}
+	
+	-- Font may or may not load, but assume it did
+	surface.CreateFont(fontKey, fontTable)
+	fontcache[fontKey] = true
+	
+	return true
+end
+
+-- Bypass the cache
+function WireLib.ReloadFont( name, size )
+	if not name then return false end
+	
+	local fontSize = size or _defaultFontSize
+	local fontKey = name .. "_" .. fontSize
+	
+	local fontTable =
+	{
+		font = name,
+		size = fontSize,
+		weight = 800,
+		antialias = true,
+		additive = false,
+	}
+	
+	-- Font may or may not load, but assume it did
+	surface.CreateFont(fontKey, fontTable)
+	fontcache[fontKey] = true
+	
+	return true
+end
+
+function WireLib.FontExists( name, size )
+	if not name then return false end
+	return _fontcache[name .. "_" .. (size or _defaultFontSize)] ~= nil
+end
+
+function WireLib.SetFont( name, size )
+	if not name then return false end
+	surface.SetFont(name .. "_" .. (size or _defaultFontSize))	
+end
