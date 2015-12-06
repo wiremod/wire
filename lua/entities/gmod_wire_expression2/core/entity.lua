@@ -119,7 +119,7 @@ end
 // Functions getting vector
 e2function vector entity:pos()
 	if not IsValid(this) then return {0,0,0} end
-	if not isOwner(self, this) then return {0,0,0} end
+	if not isOwner(self, this) and not this:IsPlayer() then return {0,0,0} end
 	return this:GetPos()
 end
 
@@ -169,7 +169,7 @@ __e2setcost(15)
 
 e2function vector entity:toWorld(vector localPosition)
 	if not IsValid(this) then return {0,0,0} end
-	if not isOwner(self, this) then return {0,0,0} end
+	if not isOwner(self, this) and not this:IsPlayer() then return {0,0,0} end
 	return this:LocalToWorld(Vector(localPosition[1],localPosition[2],localPosition[3]))
 end
 
@@ -180,7 +180,7 @@ end
 
 e2function vector entity:toWorldAxis(vector localAxis)
 	if not IsValid(this) then return {0,0,0} end
-	if not isOwner(self, this) then return {0,0,0} end
+	if not isOwner(self, this) and not this:IsPlayer() then return {0,0,0} end
 	return this:LocalToWorld(Vector(localAxis[1],localAxis[2],localAxis[3]))-this:GetPos()
 end
 
@@ -601,7 +601,7 @@ end
 -- Same as using E:toWorld(E:boxCenter()) in E2, but since Lua runs faster, this is more efficient.
 e2function vector entity:boxCenterW()
 	if not IsValid(this) then return {0,0,0} end
-	if not isOwner(self, this) then return {0,0,0} end
+	if not isOwner(self, this) and not this:IsPlayer() then return {0,0,0} end
 	return this:LocalToWorld(this:OBBCenter())
 end
 
@@ -736,7 +736,7 @@ end
 --- Returns <this>'s attachment position associated with <attachmentID>
 e2function vector entity:attachmentPos(attachmentID)
 	if not IsValid(this) then return { 0, 0, 0 } end
-	if not isOwner(self, this) then return {0,0,0} end
+	if not isOwner(self, this) and not this:IsPlayer() then return {0,0,0} end
 	local attachment = this:GetAttachment(attachmentID)
 	if not attachment then return { 0, 0, 0 } end
 	return attachment.Pos
@@ -754,7 +754,7 @@ end
 --- Same as <this>:attachmentPos(entity:lookupAttachment(<attachmentName>))
 e2function vector entity:attachmentPos(string attachmentName)
 	if not IsValid(this) then return { 0, 0, 0 } end
-	if not isOwner(self, this) then return {0,0,0} end
+	if not isOwner(self, this) and not this:IsPlayer() then return {0,0,0} end
 	local attachment = this:GetAttachment(this:LookupAttachment(attachmentName))
 	if not attachment then return { 0, 0, 0 } end
 	return attachment.Pos
