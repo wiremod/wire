@@ -3719,8 +3719,8 @@ concommand.Add("wire_expression2_reloadeditor", function(ply, command, args)
 	wire_expression2_editor = nil
 	ZCPU_Editor = nil
 	ZGPU_Editor = nil
-	include("wire/client/TextEditor.lua")
-	include("wire/client/wire_expression2_editor.lua")
+	include("wire/client/text_editor/texteditor.lua")
+	include("wire/client/text_editor/wire_expression2_editor.lua")
 	initE2Editor()
 	if code then wire_expression2_editor:SetCode(code) end
 end)
