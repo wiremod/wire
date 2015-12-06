@@ -883,7 +883,7 @@ function VM:FontWrite(posaddr,text)
       self.Layouter:DrawText(tostring(text), vertex.x, vertex.y, self.TextBox.x,
                        self.TextBox.y, self.Memory[65473], self.Memory[65471])
     else
-      draw.DrawText(text,"WireGPU_"..self.FontName[self.Font]..self.FontSize,
+      draw.DrawText(text, WireLib.LoadFont(self.FontName[self.Font], self.FontSize),
               vertex.x,vertex.y,Color(self.Color.x,self.Color.y,self.Color.z,self.Color.w),
               self.Memory[65473])
     end
