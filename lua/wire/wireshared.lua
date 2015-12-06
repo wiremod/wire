@@ -1008,14 +1008,14 @@ local _fontcache = {}
 local _defaultFontSize = 18
 
 function WireLib.LoadFont( name, size )
-	if not name then return false end
+	if not name then return nil end
 	
 	local fontSize = size or _defaultFontSize
 	local fontKey = name .. "_" .. fontSize
 	
 	-- Shortcircuit if font has already loaded
 	if _fontcache[fontKey] ~= nil then
-		return true
+		return fontKey
 	end
 	
 	-- If font isn't in cache, create it
@@ -1032,7 +1032,7 @@ function WireLib.LoadFont( name, size )
 	surface.CreateFont(fontKey, fontTable)
 	fontcache[fontKey] = true
 	
-	return true
+	return fontKey
 end
 
 -- Bypass the cache
@@ -1055,7 +1055,7 @@ function WireLib.ReloadFont( name, size )
 	surface.CreateFont(fontKey, fontTable)
 	fontcache[fontKey] = true
 	
-	return true
+	return fontKey
 end
 
 function WireLib.FontExists( name, size )
