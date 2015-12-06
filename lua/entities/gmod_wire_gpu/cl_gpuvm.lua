@@ -182,6 +182,10 @@ function ENT:OverrideVM()
   self.VM.FontName[5] = "Coolvetica"
   self.VM.FontName[6] = "Akbar"
   self.VM.FontName[7] = "csd"
+  self.VM.FontName[8] = "WireGPU_ConsoleFont"
+  self.VM.FontName[9] = "ChatFont"
+  self.VM.FontName[10] = "Marlett"
+  self.VM.FontName[11] = "Roboto"
 
   -- Add text layouter
   self.VM.Layouter = MakeTextScreenLayouter()
@@ -193,23 +197,14 @@ end
 --------------------------------------------------------------------------------
 -- Switches to a font, creating it if it does not exist
 --------------------------------------------------------------------------------
-local fontcache = {}
 function VM:SetFont()
-	local name, size = self.FontName[self.Font], self.FontSize
-	if not fontcache[name] or not fontcache[name][size] then
-		if not fontcache[name] then fontcache[name] = {} end
-		
-		surface.CreateFont("WireGPU_"..name..size, {
-			font = name,
-			size = size,
-			weight = 800,
-			antialias = true,
-			additive = false,
-		})
-		fontcache[name][size] = true
-	end
+	local name = self.FontName[self.Font]
+	local size = self.FontSize
+	local fontKey = WireLib.LoadFont(name, size)
 	
-	surface.SetFont("WireGPU_"..name..size)
+	if fontKey then
+		surface.SetFont(fontKey)
+	end
 end
 
 
