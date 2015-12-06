@@ -1030,7 +1030,7 @@ function WireLib.LoadFont( name, size )
 	
 	-- Font may or may not load, but assume it did
 	surface.CreateFont(fontKey, fontTable)
-	fontcache[fontKey] = true
+	_fontcache[fontKey] = true
 	
 	return fontKey
 end
@@ -1053,7 +1053,7 @@ function WireLib.ReloadFont( name, size )
 	
 	-- Font may or may not load, but assume it did
 	surface.CreateFont(fontKey, fontTable)
-	fontcache[fontKey] = true
+	_fontcache[fontKey] = true
 	
 	return fontKey
 end
