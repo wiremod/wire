@@ -1561,7 +1561,7 @@ VM.OpcodeTable[216] = function(self)  --DTEXTURE
   self:Dyn_Emit("VM.Texture = $1")
 end
 VM.OpcodeTable[217] = function(self)  --DSETFONT
-  self:Dyn_Emit("VM.Font = math.Clamp(math.floor($1),0,7)")
+  self:Dyn_Emit("VM.Font = math.Clamp(math.floor($1),0,#VM.FontName)")
   end
 VM.OpcodeTable[218] = function(self)  --DSETSIZE
   self:Dyn_Emit("VM.FontSize = math.floor(math.max(4,math.min($1,200)))")
