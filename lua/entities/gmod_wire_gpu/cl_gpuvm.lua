@@ -182,10 +182,10 @@ function ENT:OverrideVM()
   self.VM.FontName[5] = "Coolvetica"
   self.VM.FontName[6] = "Akbar"
   self.VM.FontName[7] = "csd"
-  self.VM.FontName[8] = "WireGPU_ConsoleFont"
-  self.VM.FontName[9] = "ChatFont"
-  self.VM.FontName[10] = "Marlett"
-  self.VM.FontName[11] = "Roboto"
+  self.VM.FontName[8] = "Roboto"
+  self.VM.FontName[9] = "Marlett"
+  self.VM.FontName[10] = "ChatFont"
+  self.VM.FontName[11] = "WireGPU_ConsoleFont"
 
   -- Add text layouter
   self.VM.Layouter = MakeTextScreenLayouter()
