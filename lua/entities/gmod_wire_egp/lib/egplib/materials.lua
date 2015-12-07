@@ -4,19 +4,19 @@
 local EGP = EGP
 
 -- Valid fonts table
-EGP.ValidFonts_Lookup = {}
 EGP.ValidFonts = {}
-EGP.ValidFonts[1] = "WireGPU_ConsoleFont"
-EGP.ValidFonts[2] = "Coolvetica"
+EGP.ValidFonts[0] = "Lucida Console"
+EGP.ValidFonts[1] = "Courier New"
+EGP.ValidFonts[2] = "Trebuchet"
 EGP.ValidFonts[3] = "Arial"
-EGP.ValidFonts[4] = "Lucida Console"
-EGP.ValidFonts[5] = "Trebuchet"
-EGP.ValidFonts[6] = "Courier New"
-EGP.ValidFonts[7] = "Times New Roman"
-EGP.ValidFonts[8] = "ChatFont"
+EGP.ValidFonts[4] = "Times New Roman"
+EGP.ValidFonts[5] = "Coolvetica"
+EGP.ValidFonts[6] = "Akbar"
+EGP.ValidFonts[7] = "csd"
+EGP.ValidFonts[8] = "Roboto"
 EGP.ValidFonts[9] = "Marlett"
-EGP.ValidFonts[10] = "Roboto"
-EGP.ValidFonts[11] = "csd"
+EGP.ValidFonts[10] = "ChatFont"
+EGP.ValidFonts[11] = "WireGPU_ConsoleFont"
 
 if (CLIENT) then
 	
