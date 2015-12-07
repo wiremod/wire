@@ -19,24 +19,9 @@ EGP.ValidFonts[10] = "Roboto"
 EGP.ValidFonts[11] = "csd"
 
 if (CLIENT) then
-	local new = {}
+	
 	for k,v in ipairs( EGP.ValidFonts ) do
-		local font = "WireEGP_18_"..k
-		local fontTable =
-		{
-			font=v,
-			size = 18,
-			weight = 800,
-			antialias = true,
-			additive = false
-		}
-		surface.CreateFont( font, fontTable )
-		
-		EGP.ValidFonts_Lookup[font] = true
-		table.insert( new, font )
-	end
-	for k,v in ipairs( new ) do
-		table.insert( EGP.ValidFonts, v )
+		local font = WireLib.LoadFont( v, 18 )
 	end
 
 	local type = type
