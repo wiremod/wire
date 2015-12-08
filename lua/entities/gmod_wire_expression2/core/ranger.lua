@@ -2,7 +2,7 @@
   Expression 2 built-in ranger/tracing extension
 \******************************************************************************/
 
-E2Lib.RegisterExtension("ranger", true)
+E2Lib.RegisterExtension("ranger", true, "Lets E2 chips trace rays and check for collisions.")
 
 -------------------
 -- Main function --
