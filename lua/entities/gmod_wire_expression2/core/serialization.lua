@@ -1,4 +1,4 @@
-E2Lib.RegisterExtension("serialization", true)
+E2Lib.RegisterExtension("serialization", true, "Adds functions to serialize data structures into a string and back again.")
 
 -- GLON output validation
 local DEFAULT = {n={},ntypes={},s={},stypes={},size=0}
