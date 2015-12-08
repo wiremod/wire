@@ -45,20 +45,7 @@ Obj.Draw = function( self )
 		surface_SetTextColor( self.r, self.g, self.b, self.a )
 
 		if (!EGP.ValidFonts[self.fontid]) then self.fontid = 1 end
-		local font = "WireEGP_" .. self.size .. "_" .. self.fontid
-		if (!EGP.ValidFonts_Lookup[font]) then
-			local fontTable =
-			{
-				font=EGP.ValidFonts[self.fontid],
-				size = self.size,
-				weight = 800,
-				antialias = true,
-				additive = false
-			}
-			surface_CreateFont( font, fontTable )
-			EGP.ValidFonts[#EGP.ValidFonts+1]= font
-			EGP.ValidFonts_Lookup[font] = true
-		end
+		local font = WireLib.LoadFont(EGP.ValidFonts[self.fontid], self.size)
 		surface_SetFont( font )
 
 		if self.angle == 0 then

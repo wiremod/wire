@@ -24,20 +24,7 @@ Obj.Draw = function( self )
 		surface.SetTextColor( self.r, self.g, self.b, self.a )
 
 		if (!EGP.ValidFonts[self.fontid]) then self.fontid = 1 end
-		local font = "WireEGP_" .. self.size .. "_" .. self.fontid
-		if (!EGP.ValidFonts_Lookup[font]) then
-			local fontTable =
-			{
-				font=EGP.ValidFonts[self.fontid],
-				size = self.size,
-				weight = 800,
-				antialias = true,
-				additive = false
-			}
-			surface.CreateFont( font, fontTable )
-			table.insert( EGP.ValidFonts, font )
-			EGP.ValidFonts_Lookup[font] = true
-		end
+		local font = WireLib.LoadFont(EGP.ValidFonts[self.fontid], self.size)
 		surface.SetFont( font )
 
 		--if (!self.layouter) then self.layouter = EGP:MakeTextLayouter() end -- Trying to make my own layouter...

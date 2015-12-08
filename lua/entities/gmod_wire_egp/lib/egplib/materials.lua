@@ -4,37 +4,24 @@
 local EGP = EGP
 
 -- Valid fonts table
-EGP.ValidFonts_Lookup = {}
 EGP.ValidFonts = {}
-EGP.ValidFonts[1] = "WireGPU_ConsoleFont"
-EGP.ValidFonts[2] = "Coolvetica"
+EGP.ValidFonts[0] = "Lucida Console"
+EGP.ValidFonts[1] = "Courier New"
+EGP.ValidFonts[2] = "Trebuchet"
 EGP.ValidFonts[3] = "Arial"
-EGP.ValidFonts[4] = "Lucida Console"
-EGP.ValidFonts[5] = "Trebuchet"
-EGP.ValidFonts[6] = "Courier New"
-EGP.ValidFonts[7] = "Times New Roman"
-EGP.ValidFonts[8] = "ChatFont"
+EGP.ValidFonts[4] = "Times New Roman"
+EGP.ValidFonts[5] = "Coolvetica"
+EGP.ValidFonts[6] = "Akbar"
+EGP.ValidFonts[7] = "csd"
+EGP.ValidFonts[8] = "Roboto"
 EGP.ValidFonts[9] = "Marlett"
-EGP.ValidFonts[10] = "Roboto"
+EGP.ValidFonts[10] = "ChatFont"
+EGP.ValidFonts[11] = "WireGPU_ConsoleFont"
+
 if (CLIENT) then
-	local new = {}
+	
 	for k,v in ipairs( EGP.ValidFonts ) do
-		local font = "WireEGP_18_"..k
-		local fontTable =
-		{
-			font=v,
-			size = 18,
-			weight = 800,
-			antialias = true,
-			additive = false
-		}
-		surface.CreateFont( font, fontTable )
-		
-		EGP.ValidFonts_Lookup[font] = true
-		table.insert( new, font )
-	end
-	for k,v in ipairs( new ) do
-		table.insert( EGP.ValidFonts, v )
+		local font = WireLib.LoadFont( v, 18 )
 	end
 
 	local type = type

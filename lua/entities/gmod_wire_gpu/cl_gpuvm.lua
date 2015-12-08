@@ -182,6 +182,10 @@ function ENT:OverrideVM()
   self.VM.FontName[5] = "Coolvetica"
   self.VM.FontName[6] = "Akbar"
   self.VM.FontName[7] = "csd"
+  self.VM.FontName[8] = "Roboto"
+  self.VM.FontName[9] = "Marlett"
+  self.VM.FontName[10] = "ChatFont"
+  self.VM.FontName[11] = "WireGPU_ConsoleFont"
 
   -- Add text layouter
   self.VM.Layouter = MakeTextScreenLayouter()
@@ -193,23 +197,14 @@ end
 --------------------------------------------------------------------------------
 -- Switches to a font, creating it if it does not exist
 --------------------------------------------------------------------------------
-local fontcache = {}
 function VM:SetFont()
-	local name, size = self.FontName[self.Font], self.FontSize
-	if not fontcache[name] or not fontcache[name][size] then
-		if not fontcache[name] then fontcache[name] = {} end
-		
-		surface.CreateFont("WireGPU_"..name..size, {
-			font = name,
-			size = size,
-			weight = 800,
-			antialias = true,
-			additive = false,
-		})
-		fontcache[name][size] = true
-	end
+	local name = self.FontName[self.Font]
+	local size = self.FontSize
+	local fontKey = WireLib.LoadFont(name, size)
 	
-	surface.SetFont("WireGPU_"..name..size)
+	if fontKey then
+		surface.SetFont(fontKey)
+	end
 end
 
 
@@ -888,7 +883,7 @@ function VM:FontWrite(posaddr,text)
       self.Layouter:DrawText(tostring(text), vertex.x, vertex.y, self.TextBox.x,
                        self.TextBox.y, self.Memory[65473], self.Memory[65471])
     else
-      draw.DrawText(text,"WireGPU_"..self.FontName[self.Font]..self.FontSize,
+      draw.DrawText(text, WireLib.LoadFont(self.FontName[self.Font], self.FontSize),
               vertex.x,vertex.y,Color(self.Color.x,self.Color.y,self.Color.z,self.Color.w),
               self.Memory[65473])
     end
@@ -1561,7 +1556,7 @@ VM.OpcodeTable[216] = function(self)  --DTEXTURE
   self:Dyn_Emit("VM.Texture = $1")
 end
 VM.OpcodeTable[217] = function(self)  --DSETFONT
-  self:Dyn_Emit("VM.Font = math.Clamp(math.floor($1),0,7)")
+  self:Dyn_Emit("VM.Font = math.Clamp(math.floor($1),0,#VM.FontName)")
   end
 VM.OpcodeTable[218] = function(self)  --DSETSIZE
   self:Dyn_Emit("VM.FontSize = math.floor(math.max(4,math.min($1,200)))")
