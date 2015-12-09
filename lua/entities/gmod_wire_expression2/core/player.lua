@@ -381,7 +381,7 @@ local steamfriends = {}
 concommand.Add("wire_expression2_friend_status", function(ply, command, args)
 	local friends = {}
 
-	for index in args[1]:gmatch("[^,]") do
+	for index in args[1]:gmatch("[^,]+") do
 		local n = tonumber(index)
 		if not n then return end
 		table.insert(friends, Entity(index))
@@ -390,7 +390,7 @@ concommand.Add("wire_expression2_friend_status", function(ply, command, args)
 	steamfriends[ply:EntIndex()] = friends
 end)
 
-hook.Add("EntityRemoved", "wire_expression2_friend_status", function(ply)
+hook.Add("PlayerDisconnected", "wire_expression2_friend_status", function(ply)
 	steamfriends[ply:EntIndex()] = nil
 end)
 
