@@ -8,7 +8,7 @@ local cv_max_transfer_size = CreateConVar( "wire_expression2_file_max_size", "30
 
 local download_chunk_size = 20000 -- Our overhead is pretty small so lets send it in moderate sized pieces, no need to max out the buffer
 
-E2Lib.RegisterExtension( "file", true )
+E2Lib.RegisterExtension( "file", true, "Allows reading and writing of files in the player's local data directory." )
 
 local FILE_UNKNOWN = 0
 local FILE_OK = 1

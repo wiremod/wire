@@ -83,7 +83,7 @@ function ENT:UpdateOverlay(clear)
 								prfcount = self.context.prfcount,
 								timebench = self.context.timebench
 							})
-	end
+	end	
 end
 
 function ENT:Initialize()
@@ -142,9 +142,8 @@ function ENT:Execute()
 
 	for k, v in pairs(self.inports[3]) do
 		if self.GlobalScope[k] then
-			local CopyFunction = wire_expression_types[self.Inputs[k].Type][3]
-			if CopyFunction and not self.rawinputs[k] then
-				self.GlobalScope[k] = CopyFunction(self.context, self.Inputs[k].Value)
+			if wire_expression_types[self.Inputs[k].Type][3] then
+				self.GlobalScope[k] = wire_expression_types[self.Inputs[k].Type][3](self.context, self.Inputs[k].Value)
 			else
 				self.GlobalScope[k] = self.Inputs[k].Value
 			end
@@ -238,7 +237,6 @@ function ENT:CompileCode(buffer, files, filepath)
 	self.outports = directives.outputs
 	self.persists = directives.persist
 	self.trigger = directives.trigger
-	self.rawinputs = directives.rawinputs
 
 	local status, tokens = Tokenizer.Execute(self.buffer)
 	if not status then self:Error(tokens) return end
@@ -322,11 +320,11 @@ function ENT:ResetContext()
 
 	self.Inputs = WireLib.AdjustSpecialInputs(self, self.inports[1], self.inports[2])
 	self.Outputs = WireLib.AdjustSpecialOutputs(self, self.outports[1], self.outports[2])
-
+	
 	if self.extended then -- It was extended before the adjustment, recreate the wirelink
 		WireLib.CreateWirelinkOutput( self.player, self, {true} )
 	end
-
+	
 	self._original = string.Replace(string.Replace(self.original, "\"", string.char(163)), "\n", string.char(128))
 
 	self._name = self.name
@@ -358,9 +356,8 @@ function ENT:ResetContext()
 	end
 
 	for k, v in pairs(self.Inputs) do
-		local CopyFunction = wire_expression_types[v.Type][3]
-		if CopyFunction and not self.rawinputs[k] then
-			self.GlobalScope[k] = CopyFunction(self.context, v.Value)
+		if wire_expression_types[v.Type][3] then
+			self.GlobalScope[k] = wire_expression_types[v.Type][3](self.context, v.Value)
 		else
 			self.GlobalScope[k] = v.Value
 		end
@@ -441,7 +438,7 @@ function ENT:Reset()
 	self.context.resetting = true
 
 	-- reset the chip in the next tick
-	timer.Simple(0, function() self:Setup(self.original, self.inc_files) end)
+	timer.Simple(0, function() self.Setup(self, self.original, self.inc_files) end)
 end
 
 function ENT:TriggerInput(key, value)
@@ -547,7 +544,7 @@ function MakeWireExpression2(player, Pos, Ang, model, buffer, name, inputs, outp
 
 	local self = ents.Create("gmod_wire_expression2")
 	if not self:IsValid() then return false end
-
+	
 	if buffer then self.duped = true end
 
 	self:SetModel(model)
@@ -562,21 +559,21 @@ function MakeWireExpression2(player, Pos, Ang, model, buffer, name, inputs, outp
 		buffer = string.Replace(string.Replace(buffer, string.char(163), "\""), string.char(128), "\n")
 		self.buffer = buffer
 		self:SetOverlayText(name)
-
+		
 		self.inc_files = inc_files or {}
 
 		self.Inputs = WireLib.AdjustSpecialInputs(self, inputs[1], inputs[2])
 		self.Outputs = WireLib.AdjustSpecialOutputs(self, outputs[1], outputs[2])
 
 		self.dupevars = vars
-
+		
 		self.filepath = filepath
 	else
 		self.buffer = "error(\"You tried to dupe an E2 with compile errors!\")\n#Unfortunately, no code can be saved when duping an E2 with compile errors.\n#Fix your errors and try again."
-
+		
 		self.inc_files = {}
 		self.dupevars = {}
-
+		
 		self.name = "generic"
 	end
 

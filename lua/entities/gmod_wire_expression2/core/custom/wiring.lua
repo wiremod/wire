@@ -1,5 +1,5 @@
 -- Originally by Jeremydeath, updated by Nebual + Natrim's wirelink
-E2Lib.RegisterExtension("wiring", false)
+E2Lib.RegisterExtension("wiring", false, "Allows the creation and deletion of wires between entities and getting wirelinks.")
 
 __e2setcost(30)
 
