@@ -33,17 +33,17 @@ local function validWirelink(self, ent)
 	return true
 end
 
-local function check_output_alias( ent, portname )
+local function mapOutputAlias(ent, portname)
 	if ent.OutputAliases and ent.OutputAliases[portname] then
-		portname = ent.OutputAliases[portname]
+		return ent.OutputAliases[portname]
 	end
 
 	return portname
 end
 
-local function check_input_alias( ent, portname )
+local function mapInputAlias(ent, portname)
 	if ent.InputAliases and ent.InputAliases[portname] then
-		portname = ent.InputAliases[portname]
+		return ent.InputAliases[portname]
 	end
 
 	return portname
@@ -204,7 +204,7 @@ registerCallback("postinit", function()
 
 					if not validWirelink(self, this) then return {} end
 
-					portname = check_output_alias( this, portname )
+					portname = mapOutputAlias(this, portname)
 
 					if not this.Outputs[portname] then return {} end
 					if this.Outputs[portname].Type ~= typename then return {} end
@@ -219,7 +219,7 @@ registerCallback("postinit", function()
 
 					if not validWirelink(self, this) then return zero end
 
-					portname = check_output_alias( this, portname )
+					portname = mapOutputAlias(this, portname)
 
 					if not this.Outputs[portname] then return zero end
 					if this.Outputs[portname].Type ~= typename then return zero end
@@ -236,7 +236,7 @@ registerCallback("postinit", function()
 
 				if not validWirelink(self, this) then return zero end
 
-				portname = check_output_alias( this, portname )
+				portname = mapOutputAlias(this, portname)
 
 				if not this.Outputs[portname] then return zero end
 				if this.Outputs[portname].Type ~= typename then return zero end
@@ -253,7 +253,7 @@ registerCallback("postinit", function()
 				if not validWirelink(self, this) then return value end
 				if not this.Inputs then return value end
 
-				portname = check_input_alias( this, portname )
+				portname = mapInputAlias(this, portname)
 
 				TriggerInput(self, this, portname, output_serializer(self, value), typename)
 				return value
@@ -266,7 +266,7 @@ registerCallback("postinit", function()
 				if not validWirelink(self, this) then return value end
 				if not this.Inputs then return value end
 
-				portname = check_input_alias( this, portname )
+				portname = mapInputAlias(this, portname)
 
 				TriggerInput(self, this, portname, value, typename)
 				return value
