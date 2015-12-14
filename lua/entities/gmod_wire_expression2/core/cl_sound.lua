@@ -238,8 +238,8 @@ local function loadSound(index)
 					if soundtbl.Length > 0 then
 						E2Sounds[index].DieTime = CurTime() + soundtbl.Length
 					end
-					
 					soundtbl.Length = 0
+					
 				else
 					channel:Stop()
 					E2Sounds[index] = nil
@@ -266,6 +266,8 @@ local function loadSound(index)
 				newsound:Stop()
 			end)
 			
+			soundtbl.SoundChannel = newsound
+			
 			--Check for a starting volume or pitch
 			local queue = soundtbl.Queue
 			if queue then
@@ -289,9 +291,8 @@ local function loadSound(index)
 			if soundtbl.Length > 0 then
 				E2Sounds[index].DieTime = CurTime() + soundtbl.Length
 			end
-			
 			soundtbl.Length = 0
-			soundtbl.SoundChannel = newsound
+			
 		end
 	end
 	
