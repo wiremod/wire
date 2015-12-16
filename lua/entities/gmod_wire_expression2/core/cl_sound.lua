@@ -146,12 +146,6 @@ local netFuncs = {
 	end,
 	SetTime = function()
 		return {net.ReadUInt(32)}
-	end,
-	GetSoundFFT = function()
-		return {}
-	end,
-	GetSoundStatus = function()
-		return {}
 	end
 }
 
@@ -166,9 +160,7 @@ local funcLookup = {
 	"ChangePitch",
 	"ChangeFadeDistance",
 	"SetLooping",
-	"SetTime",
-	"GetSoundFFT",
-	"GetSoundStatus"
+	"SetTime"
 }
 	
 local bassNetFunctions = {	
@@ -205,10 +197,15 @@ local bassNetFunctions = {
 		end
 	end,
 	ChangePitch = function(sound, rate, time)
-		if time > 0 then
-			setFadePitch(sound, rate, time)
+		rate = sound.IsBass and math.Clamp( rate, 0, 400 ) / 100 or math.Clamp( rate, 0, 255 )
+		if sound.SoundChannel then
+			if time > 0 then
+				setFadePitch(sound, rate, time)
+			else
+				sound.SoundChannel:SetPlaybackRate(rate)
+			end
 		else
-			sound.SoundChannel:SetPlaybackRate(rate)
+			sound.StartPitch = rate
 		end
 	end,
 	ChangeFadeDistance = function(sound, min, max)
@@ -219,13 +216,6 @@ local bassNetFunctions = {
 	end,
 	SetTime = function(sound, time)
 		sound.SoundChannel:SetTime( time )
-	end,
-	GetSoundFFT = function(sound)
-		//return sound.SoundChannel:SetTime( time )
-	end,
-	GetSoundStatus = function(sound)
-	
-		return sound.SoundChannel:GetState()
 	end
 }
 
@@ -247,45 +237,45 @@ local gmodSoundFuncs = {
 
 local function loadSound(index)
 
-	local sounds = E2Sounds[index]
-	local path = sounds.Path
+	local soundtbl = E2Sounds[index]
+	local path = soundtbl.Path
 
-	if sounds.IsBass then
+	if soundtbl.IsBass then
 		sound.PlayURL(path, "3d mono noblock", function(channel, er, ername)
 		
 			if IsValid(channel) then
 
-				if E2Sounds[index] and IsValid(sounds.Entity) then
+				if E2Sounds[index] and IsValid(soundtbl.Entity) then
 				
-					if sounds.SoundChannel then
-						sounds.SoundChannel:Stop()
+					if soundtbl.SoundChannel then
+						soundtbl.SoundChannel:Stop()
 					end
 					
-					sounds.SoundChannel = channel
-					channel:SetPos(sounds.Entity:GetPos())
+					soundtbl.SoundChannel = channel
+					channel:SetPos(soundtbl.Entity:GetPos())
 					
-					if sounds.Pitch > 0 then
-						channel:SetPlaybackRate(math.Clamp( sounds.Pitch, 0, 400 ) / 100)
+					if soundtbl.Pitch > 0 then
+						channel:SetPlaybackRate(math.Clamp( soundtbl.Pitch, 0, 400 ) / 100)
 					end
 					
-					if sounds.Volume > 0 then
-						channel:SetVolume( math.Clamp( sounds.Volume, 0, 1 ))
+					if soundtbl.Volume > 0 then
+						channel:SetVolume( math.Clamp( soundtbl.Volume, 0, 1 ))
 					end
 
 					// Execute the QUEUED Stuff.
-					local queue = sounds.Queue
+					local queue = soundtbl.Queue
 					if queue then
 						for I=1, #queue do
-							queue[I].Func(sounds, unpack(queue[I].Arg))
+							queue[I].Func(soundtbl, unpack(queue[I].Arg))
 						end
-						sounds.Queue = nil
+						soundtbl.Queue = nil
 					end
 					
-					if sounds.Length > 0 then
-						E2Sounds[index].DieTime = CurTime() + sounds.Length
+					if soundtbl.Length > 0 then
+						E2Sounds[index].DieTime = CurTime() + soundtbl.Length
 					end
 					
-					sounds.Length = 0
+					soundtbl.Length = 0
 				else
 					channel:Stop()
 					E2Sounds[index] = nil
@@ -302,21 +292,27 @@ local function loadSound(index)
 			
 		end)
 	else
-		if E2Sounds[index] != nil and IsValid(sounds.Entity) then
+		if E2Sounds[index] != nil and IsValid(soundtbl.Entity) then
 			local s = Sound(path)
-			local newsound = CreateSound(sounds.Entity, s)
+			local newsound = CreateSound(soundtbl.Entity, s)
 			if !newsound then E2Sounds[index] = nil return end
 			
-			if sounds.Pitch <= 0 then sounds.Pitch = 100 else sounds.Pitch = math.Clamp( sounds.Pitch, 0, 255 ) end
-			if sounds.Volume <= 0 then sounds.Volume = 1 else sounds.Volume = math.Clamp( sounds.Volume, 0, 1 ) end
-			newsound:PlayEx(sounds.Volume,sounds.Pitch)
-
-			if sounds.Length > 0 then
-				E2Sounds[index].DieTime = CurTime() + sounds.Length
+			// If its not set on the soundPlay() it will be 0 and not nil
+			if soundtbl.Pitch <= 0 then soundtbl.Pitch = 100 else soundtbl.Pitch = math.Clamp( soundtbl.Pitch, 0, 255 ) end
+			if soundtbl.Volume <= 0 then soundtbl.Volume = 1 else soundtbl.Volume = math.Clamp( soundtbl.Volume, 0, 1 ) end
+			newsound:PlayEx(soundtbl.Volume,soundtbl.Pitch)
+			
+			--For some reason trying to stop the sound after the entity is dead won't work
+			soundtbl.Entity:CallOnRemove("E2SoundRemove"..index, function()
+				newsound:Stop()
+			end)
+			
+			if soundtbl.Length > 0 then
+				E2Sounds[index].DieTime = CurTime() + soundtbl.Length
 			end
 			
-			sounds.Length = 0
-			sounds.SoundChannel = newsound
+			soundtbl.Length = 0
+			soundtbl.SoundChannel = newsound
 		end
 	end
 	
