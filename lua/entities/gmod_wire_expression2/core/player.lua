@@ -390,7 +390,7 @@ concommand.Add("wire_expression2_friend_status", function(ply, command, args)
 	steamfriends[ply:EntIndex()] = friends
 end)
 
-hook.Add("PlayerDisconnected", "wire_expression2_friend_status", function(ply)
+hook.Add("EntityRemoved", "wire_expression2_friend_status", function(ply)
 	steamfriends[ply:EntIndex()] = nil
 end)
 
