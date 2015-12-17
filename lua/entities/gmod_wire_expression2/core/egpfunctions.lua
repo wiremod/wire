@@ -959,6 +959,16 @@ e2function void wirelink:egpResolution( vector2 topleft, vector2 bottomright )
 	EGP:DoAction( this, self, "SetScale", xScale, yScale )
 end
 
+e2function vector4 wirelink:egpResolution()
+	if (!EGP:IsAllowed( self, this )) then return end
+	return { this.xScale[1], this.yScale[1], this.xScale[2], this.yScale[2] }
+end
+
+e2function vector2 wirelink:egpSize()
+	if (!EGP:IsAllowed( self, this )) then return end
+	return { math.abs(this.xScale[2] - this.xScale[1]), math.abs(this.yScale[2] - this.yScale[1]) }
+end
+
 e2function void wirelink:egpDrawTopLeft( number onoff )
 	if (!EGP:IsAllowed( self, this )) then return end
 	local bool = true
