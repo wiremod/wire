@@ -26,7 +26,7 @@ function ENT:Initialize()
 	self:SetSolid(SOLID_VPHYSICS)
 	self:SetUseType(SIMPLE_USE)
 
-	self.Inputs = WireLib.CreateInputs(self, { "Kick the bastard out of keyboard" })
+	self.Inputs = WireLib.CreateInputs(self, { "Kick" })
 	self.Outputs = WireLib.CreateOutputs(self, { "Memory", "User [ENTITY]", "InUse" })
 
 	self.ActiveKeys = {} -- table containing all currently active keys, used to see when keys are pressed/released
@@ -38,8 +38,10 @@ function ENT:Initialize()
 	WireLib.TriggerOutput(self, "InUse", 0)
 end
 
+WireLib.AddInputAlias("Kick the bastard out of keyboard", "Kick")
+
 function ENT:TriggerInput(name, value)
-	if name == "Kick the bastard out of keyboard" then
+	if name == "Kick" then
 		-- It was kicking at the same time as giving output - added tiny delay fixing that race condition
 		timer.Simple(0.1, function()
 			if IsValid(self) then
