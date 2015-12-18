@@ -962,11 +962,20 @@ end
 e2function vector4 wirelink:egpResolution()
 	if (!EGP:IsAllowed( self, this )) then return end
 	return { this.xScale[1], this.yScale[1], this.xScale[2], this.yScale[2] }
+	--return EGP:DoAction( this, self, "GetScale" )
 end
 
 e2function vector2 wirelink:egpSize()
 	if (!EGP:IsAllowed( self, this )) then return end
-	return { math.abs(this.xScale[2] - this.xScale[1]), math.abs(this.yScale[2] - this.yScale[1]) }
+	local width = math.abs(this.xScale[2] - this.xScale[1])
+	if (this.xScale[2] < this.xScale[1]) then -- in the case of the xmin being bigger than xmax
+		width = math.abs(this.xScale[1] - this.xScale[2])
+	end
+	local height = math.abs(this.yScale[2] - this.yScale[1])
+	if (this.yScale[2] < this.yScale[1]) then -- in the case of the ymin being bigger than ymax
+		height = math.abs(this.yScale[1] - this.yScale[2])
+	end
+	return { width, height }
 end
 
 e2function void wirelink:egpDrawTopLeft( number onoff )
