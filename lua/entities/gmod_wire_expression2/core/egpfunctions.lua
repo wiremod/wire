@@ -959,23 +959,20 @@ e2function void wirelink:egpResolution( vector2 topleft, vector2 bottomright )
 	EGP:DoAction( this, self, "SetScale", xScale, yScale )
 end
 
-e2function vector4 wirelink:egpResolution()
+e2function vector2 wirelink:egpOrigin()
 	if (!EGP:IsAllowed( self, this )) then return end
-	return { this.xScale[1], this.yScale[1], this.xScale[2], this.yScale[2] }
-	--return EGP:DoAction( this, self, "GetScale" )
+	local xOrigin = this.xScale[1] + (this.xScale[2] - this.xScale[1])/2
+	local yOrigin = this.yScale[1] + (this.yScale[2] - this.yScale[1])/2
+	return { xOrigin, yOrigin }
+	--return EGP:DoAction( this, self, "GetOrigin" )
 end
 
 e2function vector2 wirelink:egpSize()
 	if (!EGP:IsAllowed( self, this )) then return end
-	local width = math.abs(this.xScale[2] - this.xScale[1])
-	if (this.xScale[2] < this.xScale[1]) then -- in the case of the xmin being bigger than xmax
-		width = math.abs(this.xScale[1] - this.xScale[2])
-	end
-	local height = math.abs(this.yScale[2] - this.yScale[1])
-	if (this.yScale[2] < this.yScale[1]) then -- in the case of the ymin being bigger than ymax
-		height = math.abs(this.yScale[1] - this.yScale[2])
-	end
+	local width = math.abs(this.xScale[1] - this.xScale[2])
+	local height = math.abs(this.yScale[1] - this.yScale[2])
 	return { width, height }
+	--return EGP:DoAction( this, self, "GetScreenSize" )
 end
 
 e2function void wirelink:egpDrawTopLeft( number onoff )
