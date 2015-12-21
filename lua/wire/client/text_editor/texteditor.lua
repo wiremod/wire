@@ -105,6 +105,154 @@ end
 
 local wire_expression2_editor_highlight_on_double_click = CreateClientConVar( "wire_expression2_editor_highlight_on_double_click", "1", true, false )
 
+function EDITOR:OpenContextMenu()
+	self:AC_SetVisible( false )
+	local menu = DermaMenu()
+
+	if self:CanUndo() then
+		menu:AddOption("Undo", function()
+			self:DoUndo()
+		end)
+	end
+	if self:CanRedo() then
+		menu:AddOption("Redo", function()
+			self:DoRedo()
+		end)
+	end
+
+	if self:CanUndo() or self:CanRedo() then
+		menu:AddSpacer()
+	end
+
+	if self:HasSelection() then
+		menu:AddOption("Cut", function()
+			if self:HasSelection() then
+				self.clipboard = self:GetSelection()
+				self.clipboard = string_gsub(self.clipboard, "\n", "\r\n")
+				SetClipboardText(self.clipboard)
+				self:SetSelection()
+			end
+		end)
+		menu:AddOption("Copy", function()
+			if self:HasSelection() then
+				self.clipboard = self:GetSelection()
+				self.clipboard = string_gsub(self.clipboard, "\n", "\r\n")
+				SetClipboardText(self.clipboard)
+			end
+		end)
+	end
+
+	menu:AddOption("Paste", function()
+		if self.clipboard then
+			self:SetSelection(self.clipboard)
+		else
+			self:SetSelection()
+		end
+	end)
+
+	if self:HasSelection() then
+		menu:AddOption("Delete", function()
+			self:SetSelection()
+		end)
+	end
+
+	menu:AddSpacer()
+
+	menu:AddOption("Select all", function()
+		self:SelectAll()
+	end)
+
+	menu:AddSpacer()
+
+	menu:AddOption("Indent", function()
+		self:Indent(false)
+	end)
+	menu:AddOption("Outdent", function()
+		self:Indent(true)
+	end)
+
+	if self:HasSelection() then
+		menu:AddSpacer()
+
+		menu:AddOption("Comment Block", function()
+			self:CommentSelection(false)
+		end)
+		menu:AddOption("Uncomment Block", function()
+			self:CommentSelection(true)
+		end)
+
+		menu:AddOption("Comment Selection",function()
+			self:BlockCommentSelection( false )
+		end)
+		menu:AddOption("Uncomment Selection",function()
+			self:BlockCommentSelection( true )
+		end)
+	end
+	if self.chosenfile and not self:GetParent().E2 then
+		menu:AddSpacer()
+
+		local caretPos = self:CursorToCaret()
+		local IsBreakpointSet = CPULib.GetDebugBreakpoint( self.chosenfile, caretPos )
+
+		if not IsBreakpointSet then
+			menu:AddOption( "Add Breakpoint", function()
+				CPULib.SetDebugBreakpoint( self.chosenfile, caretPos, true )
+			end)
+			--				menu:AddOption( "Add Conditional Breakpoint", function()
+			--					Derma_StringRequestNoBlur( "Add Conditional Breakpoint", "456", "123",
+			--					function( strTextOut )
+			--						CPULib.SetDebugBreakpoint( caretPos, strTextOut )
+			--					end )
+			--				end)
+		else
+			menu:AddOption( "Remove Breakpoint", function()
+				CPULib.SetDebugBreakpoint( self.chosenfile, caretPos )
+			end)
+		end
+	end
+
+	menu:AddSpacer()
+
+	menu:AddOption( "Copy with BBCode colors", function()
+		local str = string_format( "[code][font=%s]", self:GetParent().FontConVar:GetString() )
+
+		local prev_colors
+		local first_loop = true
+
+		for i=1,#self.Rows do
+			local colors = self:SyntaxColorLine(i)
+
+			for k,v in pairs( colors ) do
+				local color = v[2][1]
+
+				if (prev_colors and prev_colors == color) or string_Trim(v[1]) == "" then
+					str = str .. v[1]
+				else
+					prev_colors = color
+
+					if first_loop then
+						str = str .. string_format( '[color="#%x%x%x"]', color.r - 50, color.g - 50, color.b - 50 ) .. v[1]
+						first_loop = false
+					else
+						str = str .. string_format( '[/color][color="#%x%x%x"]', color.r - 50, color.g - 50, color.b - 50 ) .. v[1]
+					end
+				end
+			end
+
+			str = str .. "\r\n"
+
+		end
+
+		str = str .. "[/color][/font][/code]"
+
+		self.clipboard = str
+		SetClipboardText( str )
+	end)
+
+	menu:Open()
+	return menu
+end
+
 function EDITOR:OnMousePressed(code)
 	if code == MOUSE_LEFT then
 		local cursor = self:CursorToCaret()
@@ -157,150 +305,7 @@ function EDITOR:OnMousePressed(code)
 		end
 		self:AC_Check()
 	elseif code == MOUSE_RIGHT then
-		self:AC_SetVisible( false )
-		local menu = DermaMenu()
-
-		if self:CanUndo() then
-			menu:AddOption("Undo", function()
-				self:DoUndo()
-			end)
-		end
-		if self:CanRedo() then
-			menu:AddOption("Redo", function()
-				self:DoRedo()
-			end)
-		end
-
-		if self:CanUndo() or self:CanRedo() then
-			menu:AddSpacer()
-		end
-
-		if self:HasSelection() then
-			menu:AddOption("Cut", function()
-				if self:HasSelection() then
-					self.clipboard = self:GetSelection()
-					self.clipboard = string_gsub(self.clipboard, "\n", "\r\n")
-					SetClipboardText(self.clipboard)
-					self:SetSelection()
-				end
-			end)
-			menu:AddOption("Copy", function()
-				if self:HasSelection() then
-					self.clipboard = self:GetSelection()
-					self.clipboard = string_gsub(self.clipboard, "\n", "\r\n")
-					SetClipboardText(self.clipboard)
-				end
-			end)
-		end
-
-		menu:AddOption("Paste", function()
-			if self.clipboard then
-				self:SetSelection(self.clipboard)
-			else
-				self:SetSelection()
-			end
-		end)
-
-		if self:HasSelection() then
-			menu:AddOption("Delete", function()
-				self:SetSelection()
-			end)
-		end
-
-		menu:AddSpacer()
-
-		menu:AddOption("Select all", function()
-			self:SelectAll()
-		end)
-
-		menu:AddSpacer()
-
-		menu:AddOption("Indent", function()
-			self:Indent(false)
-		end)
-		menu:AddOption("Outdent", function()
-			self:Indent(true)
-		end)
-
-		if self:HasSelection() then
-			menu:AddSpacer()
-
-			menu:AddOption("Comment Block", function()
-				self:CommentSelection(false)
-			end)
-			menu:AddOption("Uncomment Block", function()
-				self:CommentSelection(true)
-			end)
-
-			menu:AddOption("Comment Selection",function()
-				self:BlockCommentSelection( false )
-			end)
-			menu:AddOption("Uncomment Selection",function()
-				self:BlockCommentSelection( true )
-			end)
-		end
-		if self.chosenfile and not self:GetParent().E2 then
-			menu:AddSpacer()
-
-			local caretPos = self:CursorToCaret()
-			local IsBreakpointSet = CPULib.GetDebugBreakpoint( self.chosenfile, caretPos )
-
-			if not IsBreakpointSet then
-				menu:AddOption( "Add Breakpoint", function()
-					CPULib.SetDebugBreakpoint( self.chosenfile, caretPos, true )
-				end)
---				menu:AddOption( "Add Conditional Breakpoint", function()
---					Derma_StringRequestNoBlur( "Add Conditional Breakpoint", "456", "123",
---					function( strTextOut )
---						CPULib.SetDebugBreakpoint( caretPos, strTextOut )
---					end )
---				end)
-			else
-				menu:AddOption( "Remove Breakpoint", function()
-					CPULib.SetDebugBreakpoint( self.chosenfile, caretPos )
-				end)
-			end
-		end
-
-		menu:AddSpacer()
-
-		menu:AddOption( "Copy with BBCode colors", function()
-			local str = string_format( "[code][font=%s]", self:GetParent().FontConVar:GetString() )
-
-			local prev_colors
-			local first_loop = true
-
-			for i=1,#self.Rows do
-			local colors = self:SyntaxColorLine(i)
-
-				for k,v in pairs( colors ) do
-					local color = v[2][1]
-
-					if (prev_colors and prev_colors == color) or string_Trim(v[1]) == "" then
-						str = str .. v[1]
-					else
-						prev_colors = color
-
-						if first_loop then
-							str = str .. string_format( '[color="#%x%x%x"]', color.r - 50, color.g - 50, color.b - 50 ) .. v[1]
-							first_loop = false
-						else
-							str = str .. string_format( '[/color][color="#%x%x%x"]', color.r - 50, color.g - 50, color.b - 50 ) .. v[1]
-						end
-					end
-				end
-
-				str = str .. "\r\n"
-
-			end
-
-			str = str .. "[/color][/font][/code]"
-
-			self.clipboard = str
-			SetClipboardText( str )
-		end)
-
-		menu:Open()
+		self:OpenContextMenu()
 	end
 end
 
@@ -648,9 +653,23 @@ function EDITOR:Paint()
 	return true
 end
 
-function EDITOR:SetCaret(caret)
+-- Moves the caret to a new position. Optionally also collapses the selection
+-- into a single caret. If maintain_selection is nil, then the selection will
+-- be maintained only if Shift is pressed.
+function EDITOR:SetCaret(caret, maintain_selection)
 	self.Caret = self:CopyPosition(caret)
-	self.Start = self:CopyPosition(caret)
+
+	self.Caret[1] = math.Clamp(self.Caret[1], 1, #self.Rows)
+	self.Caret[2] = math.Clamp(self.Caret[2], 1, #self.Rows[self.Caret[1]] + 1)
+
+	if maintain_selection == nil then
+		maintain_selection = input.IsKeyDown(KEY_LSHIFT) or input.IsKeyDown(KEY_RSHIFT)
+	end
+
+	if not maintain_selection then
+		self.Start = self:CopyPosition(self.Caret)
+	end
+
 	self:ScrollCaret()
 end
 
@@ -828,7 +847,7 @@ function EDITOR:GetSelection()
 end
 
 function EDITOR:SetSelection(text)
-	self:SetCaret(self:SetArea(self:Selection(), text))
+	self:SetCaret(self:SetArea(self:Selection(), text), false)
 end
 
 function EDITOR:OnTextChanged()
@@ -1012,7 +1031,7 @@ function EDITOR:Find( str, looped )
 		end
 
 		if wrap_around then
-			self:SetCaret( {1,1} )
+			self:SetCaret( {1,1}, false )
 			self:Find( _str, (looped or 0) + 1 )
 		end
 	else -- Up
@@ -1056,7 +1075,7 @@ function EDITOR:Find( str, looped )
 		end
 
 		if wrap_around then
-			self:SetCaret( { #self.Rows,#self.Rows[#self.Rows] } )
+			self:SetCaret( { #self.Rows,#self.Rows[#self.Rows] }, false )
 			self:Find( _str, (looped or 0) + 1 )
 		end
 	end
@@ -1463,7 +1482,7 @@ function EDITOR:CreateFindWindow()
 		local val = tonumber(GoToEntry:GetValue())
 		if val then
 			val = math_Clamp(val, 1, #self.Rows)
-			self:SetCaret({val, #self.Rows[val] + 1})
+			self:SetCaret({val, #self.Rows[val] + 1}, false)
 		end
 		GoToEntry:SetText(tostring(val))
 		self.FindWindow:Close()
@@ -1542,7 +1561,7 @@ function EDITOR:DoUndo()
 		local undo = self.Undo[#self.Undo]
 		self.Undo[#self.Undo] = nil
 
-		self:SetCaret(self:SetArea(undo[1], undo[2], true, false, undo[3], undo[4]))
+		self:SetCaret(self:SetArea(undo[1], undo[2], true, false, undo[3], undo[4]), false)
 	end
 end
 
@@ -1555,7 +1574,7 @@ function EDITOR:DoRedo()
 		local redo = self.Redo[#self.Redo]
 		self.Redo[#self.Redo] = nil
 
-		self:SetCaret(self:SetArea(redo[1], redo[2], false, true, redo[3], redo[4]))
+		self:SetCaret(self:SetArea(redo[1], redo[2], false, true, redo[3], redo[4]), false)
 	end
 end
 
@@ -1785,6 +1804,63 @@ function EDITOR:ContextHelp()
 	E2Helper.Show(word)
 end
 
+function EDITOR:Copy()
+	if not self:HasSelection() then return end
+	self.clipboard = string_gsub(self:GetSelection(), "\n", "\r\n")
+	return SetClipboardText(self.clipboard)
+end
+
+function EDITOR:Cut()
+	self:Copy()
+	return self:SetSelection("")
+end
+
+-- TODO these two functions have no place in here
+function EDITOR:PreviousTab()
+	local parent = self:GetParent()
+
+	local currentTab = parent:GetActiveTabIndex() - 1
+	if currentTab < 1 then currentTab = currentTab + parent:GetNumTabs() end
+
+	parent:SetActiveTabIndex(currentTab)
+end
+
+function EDITOR:NextTab()
+	local parent = self:GetParent()
+
+	local currentTab = parent:GetActiveTabIndex() + 1
+	local numTabs = parent:GetNumTabs()
+	if currentTab > numTabs then currentTab = currentTab - numTabs end
+
+	parent:SetActiveTabIndex(currentTab)
+end
+
+function EDITOR:DuplicateLine()
+	-- Save current selection
+	local old_start = self:CopyPosition( self.Start )
+	local old_end = self:CopyPosition( self.Caret )
+	local old_scroll = self:CopyPosition( self.Scroll )
+
+	local str = self:GetSelection()
+	if str ~= "" then -- If you have a selection
+	self:SetSelection( str:rep(2) ) -- Repeat it
+	else -- If you don't
+	-- Select the current line
+	self.Start = { self.Start[1], 1 }
+	self.Caret = { self.Start[1], #self.Rows[self.Start[1]]+1 }
+	-- Get the text
+	local str = self:GetSelection()
+	-- Repeat it
+	self:SetSelection( str .. "\n" .. str )
+	end
+
+	-- Restore selection
+	self.Caret = old_end
+	self.Start = old_start
+	self.Scroll = old_scroll
+	self:ScrollCaret()
+end
+
 function EDITOR:_OnKeyCodeTyped(code)
 	self.Blink = RealTime()
 
@@ -1809,18 +1885,9 @@ function EDITOR:_OnKeyCodeTyped(code)
 		elseif code == KEY_Y then
 			self:DoRedo()
 		elseif code == KEY_X then
-			if self:HasSelection() then
-				self.clipboard = self:GetSelection()
-				self.clipboard = string_gsub(self.clipboard, "\n", "\r\n")
-				SetClipboardText(self.clipboard)
-				self:SetSelection()
-			end
+			self:Cut()
 		elseif code == KEY_C then
-			if self:HasSelection() then
-				self.clipboard = self:GetSelection()
-				self.clipboard = string_gsub(self.clipboard, "\n", "\r\n")
-				SetClipboardText(self.clipboard)
-			end
+			self:Copy()
 		-- pasting is now handled by the textbox that is used to capture input
 		--[[
 		elseif code == KEY_V then
@@ -1843,49 +1910,18 @@ function EDITOR:_OnKeyCodeTyped(code)
 		elseif code == KEY_W then
 			self:GetParent():CloseTab()
 		elseif code == KEY_PAGEUP then
-			local parent = self:GetParent()
-
-			local currentTab = parent:GetActiveTabIndex() - 1
-			if currentTab < 1 then currentTab = currentTab + parent:GetNumTabs() end
-
-			parent:SetActiveTabIndex(currentTab)
+			self:PreviousTab()
 		elseif code == KEY_PAGEDOWN then
-			local parent = self:GetParent()
-
-			local currentTab = parent:GetActiveTabIndex() + 1
-			local numTabs = parent:GetNumTabs()
-			if currentTab > numTabs then currentTab = currentTab - numTabs end
-
-			parent:SetActiveTabIndex(currentTab)
+			self:NextTab()
 		elseif code == KEY_UP then
 			self.Scroll[1] = self.Scroll[1] - 1
 			if self.Scroll[1] < 1 then self.Scroll[1] = 1 end
 		elseif code == KEY_DOWN then
 			self.Scroll[1] = self.Scroll[1] + 1
 		elseif code == KEY_LEFT then
-			if self:HasSelection() and not shift then
-				self.Start = self:CopyPosition(self.Caret)
-			else
-				self.Caret = self:wordLeft(self.Caret)
-			end
-
-			self:ScrollCaret()
-
-			if not shift then
-				self.Start = self:CopyPosition(self.Caret)
-			end
+			self:SetCaret(self:wordLeft(self.Caret))
 		elseif code == KEY_RIGHT then
-			if self:HasSelection() and not shift then
-				self.Start = self:CopyPosition(self.Caret)
-			else
-				self.Caret = self:wordRight(self.Caret)
-			end
-
-			self:ScrollCaret()
-
-			if not shift then
-				self.Start = self:CopyPosition(self.Caret)
-			end
+			self:SetCaret(self:wordRight(self.Caret))
 		--[[ -- old code that scrolls on ctrl-left/right:
 		elseif code == KEY_LEFT then
 			self.Scroll[2] = self.Scroll[2] - 1
@@ -1894,47 +1930,11 @@ function EDITOR:_OnKeyCodeTyped(code)
 			self.Scroll[2] = self.Scroll[2] + 1
 		]]
 		elseif code == KEY_HOME then
-			self.Caret[1] = 1
-			self.Caret[2] = 1
-
-			self:ScrollCaret()
-
-			if not shift then
-				self.Start = self:CopyPosition(self.Caret)
-			end
+			self:SetCaret({ 1, 1 })
 		elseif code == KEY_END then
-			self.Caret[1] = #self.Rows
-			self.Caret[2] = 1
-
-			self:ScrollCaret()
-
-			if not shift then
-				self.Start = self:CopyPosition(self.Caret)
-			end
+			self:SetCaret({ #self.Rows, 1 })
 		elseif code == KEY_D then
-			-- Save current selection
-			local old_start = self:CopyPosition( self.Start )
-			local old_end = self:CopyPosition( self.Caret )
-			local old_scroll = self:CopyPosition( self.Scroll )
-
-			local str = self:GetSelection()
-			if str ~= "" then -- If you have a selection
-				self:SetSelection( str:rep(2) ) -- Repeat it
-			else -- If you don't
-				-- Select the current line
-				self.Start = { self.Start[1], 1 }
-				self.Caret = { self.Start[1], #self.Rows[self.Start[1]]+1 }
-				-- Get the text
-				local str = self:GetSelection()
-				-- Repeat it
-				self:SetSelection( str .. "\n" .. str )
-			end
-
-			-- Restore selection
-			self.Caret = old_end
-			self.Start = old_start
-			self.Scroll = old_scroll
-			self:ScrollCaret()
+			self:DuplicateLine()
 		end
 
 	else
@@ -1958,20 +1958,8 @@ function EDITOR:_OnKeyCodeTyped(code)
 				end
 			end
 
-			if self.Caret[1] > 1 then
-				self.Caret[1] = self.Caret[1] - 1
-
-				local length = #(self.Rows[self.Caret[1]])
-				if self.Caret[2] > length + 1 then
-					self.Caret[2] = length + 1
-				end
-			end
-
-			self:ScrollCaret()
-
-			if not shift then
-				self.Start = self:CopyPosition(self.Caret)
-			end
+			self.Caret[1] = self.Caret[1] - 1
+			self:SetCaret(self.Caret)
 		elseif code == KEY_DOWN then
 			if self.AC_Panel and self.AC_Panel:IsVisible() then
 				local mode = wire_expression2_autocomplete_controlstyle:GetInt()
@@ -1981,72 +1969,28 @@ function EDITOR:_OnKeyCodeTyped(code)
 				end
 			end
 
-			if self.Caret[1] < #self.Rows then
-				self.Caret[1] = self.Caret[1] + 1
-
-				local length = #(self.Rows[self.Caret[1]])
-				if self.Caret[2] > length + 1 then
-					self.Caret[2] = length + 1
-				end
-			end
-
-			self:ScrollCaret()
-
-			if not shift then
-				self.Start = self:CopyPosition(self.Caret)
-			end
+			self.Caret[1] = self.Caret[1] + 1
+			self:SetCaret(self.Caret)
 		elseif code == KEY_LEFT then
 			if self:HasSelection() and not shift then
-				self.Start = self:CopyPosition(self.Caret)
+				self:SetCaret(self.Caret, false)
 			else
-				self.Caret = self:MovePosition(self.Caret, -1)
-			end
-
-			self:ScrollCaret()
-
-			if not shift then
-				self.Start = self:CopyPosition(self.Caret)
+				self:SetCaret(self:MovePosition(self.Caret, -1))
 			end
 		elseif code == KEY_RIGHT then
 			if self:HasSelection() and not shift then
-				self.Start = self:CopyPosition(self.Caret)
+				self:SetCaret(self.Caret, false)
 			else
-				self.Caret = self:MovePosition(self.Caret, 1)
-			end
-
-			self:ScrollCaret()
-
-			if not shift then
-				self.Start = self:CopyPosition(self.Caret)
+				self:SetCaret(self:MovePosition(self.Caret, 1))
 			end
 		elseif code == KEY_PAGEUP then
 			self.Caret[1] = self.Caret[1] - math_ceil(self.Size[1] / 2)
 			self.Scroll[1] = self.Scroll[1] - math_ceil(self.Size[1] / 2)
-			if self.Caret[1] < 1 then self.Caret[1] = 1 end
-
-			local length = #self.Rows[self.Caret[1]]
-			if self.Caret[2] > length + 1 then self.Caret[2] = length + 1 end
-			if self.Scroll[1] < 1 then self.Scroll[1] = 1 end
-
-			self:ScrollCaret()
-
-			if not shift then
-				self.Start = self:CopyPosition(self.Caret)
-			end
+			self:SetCaret(self.Caret)
 		elseif code == KEY_PAGEDOWN then
 			self.Caret[1] = self.Caret[1] + math_ceil(self.Size[1] / 2)
 			self.Scroll[1] = self.Scroll[1] + math_ceil(self.Size[1] / 2)
-			if self.Caret[1] > #self.Rows then self.Caret[1] = #self.Rows end
-			if self.Caret[1] == #self.Rows then self.Caret[2] = 1 end
-
-			local length = #self.Rows[self.Caret[1]]
-			if self.Caret[2] > length + 1 then self.Caret[2] = length + 1 end
-
-			self:ScrollCaret()
-
-			if not shift then
-				self.Start = self:CopyPosition(self.Caret)
-			end
+			self:SetCaret(self.Caret)
 		elseif code == KEY_HOME then
 			local row = self.Rows[self.Caret[1]]
 			local first_char = row:find("%S") or row:len()+1
@@ -2055,42 +1999,32 @@ function EDITOR:_OnKeyCodeTyped(code)
 			else
 				self.Caret[2] = first_char
 			end
-
-			self:ScrollCaret()
-
-			if not shift then
-				self.Start = self:CopyPosition(self.Caret)
-			end
+			self:SetCaret(self.Caret)
 		elseif code == KEY_END then
 			local length = #(self.Rows[self.Caret[1]])
 			self.Caret[2] = length + 1
-
-			self:ScrollCaret()
-
-			if not shift then
-				self.Start = self:CopyPosition(self.Caret)
-			end
+			self:SetCaret(self.Caret)
 		elseif code == KEY_BACKSPACE then
 			if self:HasSelection() then
 				self:SetSelection()
 			else
 				local buffer = self:GetArea({self.Caret, {self.Caret[1], 1}})
+				local delta = -1
 				if self.Caret[2] % 4 == 1 and #(buffer) > 0 and string_rep(" ", #(buffer)) == buffer then
-					self:SetCaret(self:SetArea({self.Caret, self:MovePosition(self.Caret, -4)}))
-				else
-					self:SetCaret(self:SetArea({self.Caret, self:MovePosition(self.Caret, -1)}))
+					delta = -4
 				end
+				self:SetCaret(self:SetArea({self.Caret, self:MovePosition(self.Caret, delta)}))
 			end
 		elseif code == KEY_DELETE then
 			if self:HasSelection() then
 				self:SetSelection()
 			else
 				local buffer = self:GetArea({{self.Caret[1], self.Caret[2] + 4}, {self.Caret[1], 1}})
+				local delta = 1
 				if self.Caret[2] % 4 == 1 and string_rep(" ", #(buffer)) == buffer and #(self.Rows[self.Caret[1]]) >= self.Caret[2] + 4 - 1 then
-					self:SetCaret(self:SetArea({self.Caret, self:MovePosition(self.Caret, 4)}))
-				else
-					self:SetCaret(self:SetArea({self.Caret, self:MovePosition(self.Caret, 1)}))
+					delta = 4
 				end
+				self:SetCaret(self:SetArea({self.Caret, self:MovePosition(self.Caret, delta)}))
 			end
 		elseif code == KEY_F1 then
 			self:ContextHelp()
