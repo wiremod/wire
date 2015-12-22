@@ -489,14 +489,14 @@ local function extractNameFromFilePath(str)
 	end
 end
 
-function Editor:SetSyntaxColorLine(func)
-	self.SyntaxColorLine = func
+function Editor:SetEditorMode(mode_name)
+	self.EditorMode = mode_name
 	for i = 1, self:GetNumTabs() do
-		self:GetEditor(i).SyntaxColorLine = func
+		self:GetEditor(i):SetMode(mode_name)
 	end
 end
 
-function Editor:GetSyntaxColorLine() return self.SyntaxColorLine end
+function Editor:GetEditorMode() return self.EditorMode end
 
 local old
 function Editor:FixTabFadeTime()
@@ -612,12 +612,7 @@ function Editor:CreateTab(chosenfile)
 	end
 	editor:RequestFocus()
 
-	local func = self:GetSyntaxColorLine()
-	if func ~= nil then -- it's a custom syntax highlighter
-		editor.SyntaxColorLine = func
-	else -- else it's E2's syntax highlighter
-		editor:SetSyntaxColors(colors)
-	end
+	editor:SetMode(self:GetEditorMode())
 
 	self:OnTabCreated(sheet) -- Call a function that you can override to do custom stuff to each tab.
 
@@ -1855,12 +1850,12 @@ function Editor:Setup(nTitle, nLocation, nEditorType)
 	self.EditorType = nEditorType
 	self.C.Browser:Setup(nLocation)
 
-	local syntaxHighlighters = {
-		CPU = self:GetCurrentEditor().CPUGPUSyntaxColorLine,
-		GPU = self:GetCurrentEditor().CPUGPUSyntaxColorLine,
-		SPU = self:GetCurrentEditor().CPUGPUSyntaxColorLine,
-		E2 = nil, -- the E2 highlighter is used by default
-		[""] = function(self, row) return { { self.Rows[row], { Color(255, 255, 255, 255), false } } } end
+	local textEditorModes = {
+		CPU = "ZCPU",
+		GPU = "ZCPU",
+		SPU = "ZCPU",
+		E2 = "E2",
+		[""] = "Default"
 	}
 
 	local helpModes = {
@@ -1870,8 +1865,8 @@ function Editor:Setup(nTitle, nLocation, nEditorType)
 		E2 = E2Helper.UseE2
 	}
 
-	local syntaxHighlighter = syntaxHighlighters[nEditorType or ""]
-	if syntaxHighlighter then self:SetSyntaxColorLine(syntaxHighlighter) end
+	self:SetEditorMode(textEditorModes[nEditorType or ""])
+
 
 	local helpMode = helpModes[nEditorType or ""]
 	if helpMode then -- Add "E2Helper" button
