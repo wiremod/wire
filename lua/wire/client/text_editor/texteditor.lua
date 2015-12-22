@@ -33,6 +33,11 @@ local draw_SimpleText = draw.SimpleText
 local draw_WordBox = draw.WordBox
 local draw_RoundedBox = draw.RoundedBox
 
+WireTextEditor = { Modes = {} }
+include("modes/e2.lua")
+include("modes/zcpu.lua")
+WireTextEditor.Modes.Default = { SyntaxColorLine = function(self, row) return { { self.Rows[row], { Color(255, 255, 255, 255), false } } } end }
+
 local wire_expression2_autocomplete_controlstyle = CreateClientConVar( "wire_expression2_autocomplete_controlstyle", "0", true, false )
 
 local EDITOR = {}
@@ -48,6 +53,8 @@ function EDITOR:Init()
 	self.Undo = {}
 	self.Redo = {}
 	self.PaintRows = {}
+
+	self.CurrentMode = assert(WireTextEditor.Modes.Default)
 
 	self.LineNumberWidth = 2
 
@@ -69,6 +76,21 @@ function EDITOR:Init()
 	self.LastClick = 0
 
 	self.e2fs_functions = {}
+end
+
+function EDITOR:SetMode(mode_name)
+	self.CurrentMode = WireTextEditor.Modes[mode_name or "Default"]
+	if not self.CurrentMode then
+		Msg("Couldn't find text editor mode '".. tostring(mode_name) .. "'")
+		self.CurrentMode = assert(WireTextEditor.Modes.Default, "Couldn't find default text editor mode")
+	end
+end
+
+function EDITOR:DoAction(name, ...)
+	if not self.CurrentMode then return end
+	local f = assert(self.CurrentMode, "No current mode set")[name]
+	if not f then f = WireTextEditor.Modes.Default[name] end
+	if f then return f(self, ...) end
 end
 
 function EDITOR:GetParent()
@@ -188,28 +210,8 @@ function EDITOR:OpenContextMenu()
 			self:BlockCommentSelection( true )
 		end)
 	end
-	if self.chosenfile and not self:GetParent().E2 then
-		menu:AddSpacer()
 
-		local caretPos = self:CursorToCaret()
-		local IsBreakpointSet = CPULib.GetDebugBreakpoint( self.chosenfile, caretPos )
-
-		if not IsBreakpointSet then
-			menu:AddOption( "Add Breakpoint", function()
-				CPULib.SetDebugBreakpoint( self.chosenfile, caretPos, true )
-			end)
-			--				menu:AddOption( "Add Conditional Breakpoint", function()
-			--					Derma_StringRequestNoBlur( "Add Conditional Breakpoint", "456", "123",
-			--					function( strTextOut )
-			--						CPULib.SetDebugBreakpoint( caretPos, strTextOut )
-			--					end )
-			--				end)
-		else
-			menu:AddOption( "Remove Breakpoint", function()
-				CPULib.SetDebugBreakpoint( self.chosenfile, caretPos )
-			end)
-		end
-	end
+	self:DoAction("PopulateMenu", menu)
 
 	menu:AddSpacer()
 
@@ -627,28 +629,7 @@ function EDITOR:Paint()
 		draw_WordBox( 4, _w - w - (self.ScrollBar:IsVisible() and 16 or 0) - 10, _h - h - 10, str, "Default", Color( 0,0,0,100 ), Color( 255,255,255,255 ) )
 	end
 
-	-- Paint CPU debug hints
-	if self.CurrentVarValue then
-		local pos = self.CurrentVarValue[1]
-		local x, y = (pos[2]+2) * self.FontWidth, (pos[1]-1-self.Scroll[1]) * self.FontHeight
-		local txt = CPULib.GetDebugPopupText(self.CurrentVarValue[2])
-		if txt then
-			draw_WordBox(2, x, y, txt, "E2SmallFont", Color(0,0,0,255), Color(255,255,255,255) )
-		end
-	end
-
-	if not self:GetParent().E2 then
-		if CPULib.DebuggerAttached then
-			local debugWindowText = CPULib.GetDebugWindowText()
-			for k,v in ipairs(debugWindowText) do
-				if v ~= "" then
-                                        local y = (k % 24)
-                                        local x = 15*(1 + math_floor(#debugWindowText / 24) - math_floor(k / 24))
-					draw_WordBox(2, self:GetWide()-self.FontWidth*x, self.FontHeight*(-1+y), v, "E2SmallFont", Color(0,0,0,255), Color(255,255,255,255) )
-				end
-			end
-		end
-	end
+	self:DoAction("Paint")
 
 	return true
 end
@@ -2831,39 +2812,8 @@ function EDITOR:AC_Reset()
 	panel.list:StretchToParent( 1,1,1,1 )
 end
 
----------------------------------------------------------------------------------------------------------
--- CPU/GPU hint box
----------------------------------------------------------------------------------------------------------
-local oldpos, haschecked = {0,0}, false
 function EDITOR:Think()
-	if self:GetParent().E2 then self.Think = nil return end -- E2 doesn't need this
-
-	local caret = self:CursorToCaret()
-	local startpos, word = self:getWordStart( caret, true )
-
-	if word and word ~= "" then
-		if not haschecked then
-			oldpos = {startpos[1],startpos[2]}
-			haschecked = true
-			timer.Simple(0.3,function()
-			if not self then return end
-			if not self.CursorToCaret then return end
-				local caret = self:CursorToCaret()
-				local startpos, word = self:getWordStart( caret, true )
-				if startpos[1] == oldpos[1] and startpos[2] == oldpos[2] then
-					self.CurrentVarValue = { startpos, word }
-				end
-			end)
-		elseif (oldpos[1] ~= startpos[1] or oldpos[2] ~= startpos[2]) and haschecked then
-			haschecked = false
-			self.CurrentVarValue = nil
-			oldpos = {0,0}
-		end
-	else
-		self.CurrentVarValue = nil
-		haschecked = false
-		oldpos = {0,0}
-	end
+	self:DoAction("Think")
 end
 
 ---------------------------------------------------------------------------------------------------------
@@ -2914,65 +2864,7 @@ function EDITOR:ResetTokenizer(row)
 	self.character = ""
 	self.tokendata = ""
 
-	if self:GetParent().E2 then
-		if row == self.Scroll[1] then
-
-			-- This code checks if the visible code is inside a string or a block comment
-			self.blockcomment = nil
-			self.multilinestring = nil
-			local singlelinecomment = false
-
-			local str = string_gsub( table_concat( self.Rows, "\n", 1, self.Scroll[1]-1 ), "\r", "" )
-
-			for before, char, after in string_gmatch( str, '()([#"\n])()' ) do
-				local before = string_sub( str, before-1, before-1  )
-				local after = string_sub( str, after, after )
-				if not self.blockcomment and not self.multilinestring and not singlelinecomment then
-					if char == '"' then
-						self.multilinestring = true
-					elseif char == "#" and after == "[" then
-						self.blockcomment = true
-					elseif char == "#" then
-						singlelinecomment = true
-					end
-				elseif self.multilinestring and char == '"' and before ~= "\\" then
-					self.multilinestring = nil
-				elseif self.blockcomment and char == "#" and before == "]" then
-					self.blockcomment = nil
-				elseif singlelinecomment and char == "\n" then
-					singlelinecomment = false
-				end
-			end
-		end
-
-
-		for k,v in pairs( self.e2fs_functions ) do
-			if v == row then
-				self.e2fs_functions[k] = nil
-			end
-		end
-	
-	else
-		if row == self.Scroll[1] then
-			-- As above, but for HL-ZASM: Check whether the line self.Scroll[1] starts within a block comment.
-			self.blockcomment = nil
-			
-			for k=1, self.Scroll[1]-1 do
-				local row = self.Rows[k]
-				
-				for match in string_gmatch(row, "[/*][/*]") do
-					if match == "//" then
-						-- single line comment start; skip remainder of line
-						break
-					elseif match == "/*" then
-						self.blockcomment = true
-					elseif match == "*/" then
-						self.blockcomment = nil
-					end
-				end
-			end
-		end
-	end
+	self:DoAction("ResetTokenizer", row)
 end
 
 function EDITOR:NextCharacter()
@@ -3029,620 +2921,19 @@ function EDITOR:NextPattern(pattern)
 	return true
 end
 
-do -- E2 Syntax highlighting
-	local function istype(tp)
-		return wire_expression_types[tp:upper()] or tp == "number"
+function EDITOR:SetSyntaxColors(colors)
+	for name, color in pairs(colors) do
+		self:SetSyntaxColor(name, color)
 	end
-
-	-- keywords[name][nextchar!="("]
-	local keywords = {
-		-- keywords that can be followed by a "(":
-		["if"]       = { [true] = true, [false] = true },
-		["elseif"]   = { [true] = true, [false] = true },
-		["while"]    = { [true] = true, [false] = true },
-		["for"]      = { [true] = true, [false] = true },
-		["foreach"]  = { [true] = true, [false] = true },
-		["switch"] 	 = { [true] = true, [false] = true },
-		["case"]     = { [true] = true, [false] = true },
-		["default"]  = { [true] = true, [false] = true },
-
-		-- keywords that cannot be followed by a "(":
-		["else"]     = { [true] = true },
-		["break"]    = { [true] = true },
-		["continue"] = { [true] = true },
-		--["function"] = { [true] = true },
-		["return"] = { [true] = true },
-		["local"]  = { [true] = true },
-	}
-
-	-- fallback for nonexistant entries:
-	setmetatable(keywords, { __index=function(tbl,index) return {} end })
-
-	local directives = {
-		["@name"] = 0, -- all yellow
-		["@model"] = 0,
-		["@inputs"] = 1, -- directive yellow, types orange, rest normal
-		["@outputs"] = 1,
-		["@persist"] = 1,
-		["@trigger"] = 2, -- like 1, except that all/none are yellow
-		["@autoupdate"] = 0,
-	}
-
-	local colors = {
-		["directive"] = { Color(240, 240, 160), false}, -- yellow
-		["number"]    = { Color(240, 160, 160), false}, -- light red
-		["function"]  = { Color(160, 160, 240), false}, -- blue
-		["notfound"]  = { Color(240,  96,  96), false}, -- dark red
-		["variable"]  = { Color(160, 240, 160), false}, -- light green
-		["string"]    = { Color(128, 128, 128), false}, -- grey
-		["keyword"]   = { Color(160, 240, 240), false}, -- turquoise
-		["operator"]  = { Color(224, 224, 224), false}, -- white
-		["comment"]   = { Color(128, 128, 128), false}, -- grey
-		["ppcommand"] = { Color(240,  96, 240), false}, -- purple
-		["typename"]  = { Color(240, 160,  96), false}, -- orange
-		["constant"]  = { Color(240, 160, 240), false}, -- pink
-		["userfunction"] = { Color(102, 122, 102), false}, -- dark grayish-green
-		["dblclickhighlight"] = { Color(0, 100, 0), false}, -- dark green
-	}
-
-	function EDITOR:GetSyntaxColor(name)
-			return colors[name][1]
-	end
-
-	function EDITOR:SetSyntaxColors( col )
-		for k,v in pairs( col ) do
-			if colors[k] then
-				colors[k][1] = v
-			end
-		end
-	end
-
-	function EDITOR:SetSyntaxColor( colorname, colr )
-		if not colors[colorname] then return end
-		colors[colorname][1] = colr
-	end
-
-	-- cols[n] = { tokendata, color }
-	local cols = {}
-	local lastcol
-	local function addToken(tokenname, tokendata)
-		local color = colors[tokenname]
-		if lastcol and color == lastcol[2] then
-			lastcol[1] = lastcol[1] .. tokendata
-		else
-			cols[#cols + 1] = { tokendata, color, tokenname }
-			lastcol = cols[#cols]
-		end
-	end
-
-	function EDITOR:SyntaxColorLine(row)
-		cols,lastcol = {}, nil
-
-
-		self:ResetTokenizer(row)
-		self:NextCharacter()
-
-		-- 0=name 1=port 2=trigger 3=foreach
-		local highlightmode = nil
-
-		if self.blockcomment then
-			if self:NextPattern(".-]#") then
-				self.blockcomment = nil
-			else
-				self:NextPattern(".*")
-			end
-
-			addToken("comment", self.tokendata)
-		elseif self.multilinestring then
-			while self.character do -- Find the ending "
-				if self.character == '"' then
-					self.multilinestring = nil
-					self:NextCharacter()
-					break
-				end
-				if self.character == "\\" then self:NextCharacter() end
-				self:NextCharacter()
-			end
-
-			addToken("string", self.tokendata)
-		elseif self:NextPattern("^@[^ ]*") then
-			highlightmode = directives[self.tokendata]
-
-			-- check for unknown directives
-			if not highlightmode then
-				return {
-					{ "@", colors.directive },
-					{ self.line:sub(2), colors.notfound }
-				}
-			end
-
-			-- check for plain text directives
-			if highlightmode == 0 then return {{ self.line, colors.directive }} end
-
-			-- parse the rest like regular code
-			cols = {{ self.tokendata, colors.directive }}
-		end
-
-		local found = self:SkipPattern( "( *function)" )
-		if found then
-			addToken( "keyword", found ) -- Add "function"
-			self.tokendata = "" -- Reset tokendata
-
-			local spaces = self:SkipPattern( " *" )
-			if spaces then addToken( "comment", spaces ) end
-
-			if self:NextPattern( "[a-z][a-zA-Z0-9]*%s%s*[a-z][a-zA-Z0-9]*:[a-z][a-zA-Z0-9_]*" ) then -- Everything specified (returntype typeindex:funcname)
-				local returntype, spaces, typeindex, funcname = self.tokendata:match( "([a-z][a-zA-Z0-9]*)(%s%s*)([a-z][a-zA-Z0-9]*):([a-z][a-zA-Z0-9_]*)" )
-
-				if istype( returntype ) or returntype == "void" then
-					addToken( "typename", returntype )
-				else
-					addToken( "notfound", returntype )
-				end
-				addToken( "comment", spaces )
-				if istype( typeindex ) then
-					addToken( "typename", typeindex )
-				else
-					addToken( "notfound", typeindex )
-				end
-				addToken( "operator", ":" )
-				addToken( "userfunction", funcname )
-
-				if not wire_expression2_funclist[funcname] then
-					self.e2fs_functions[funcname] = row
-				end
-
-				self.tokendata = ""
-			elseif self:NextPattern( "[a-z][a-zA-Z0-9]*%s%s*[a-z][a-zA-Z0-9_]*" ) then -- returntype funcname
-				local returntype, spaces, funcname = self.tokendata:match( "([a-z][a-zA-Z0-9]*)(%s%s*)([a-z][a-zA-Z0-9_]*)" )
-
-				if istype( returntype ) or returntype == "void" then
-					addToken( "typename", returntype )
-				else
-					addToken( "notfound", returntype )
-				end
-				addToken( "comment", spaces )
-				if istype( funcname ) then -- Hey... this isn't a function name! :O
-					addToken( "typename", funcname )
-				else
-					addToken( "userfunction", funcname )
-				end
-
-				if not wire_expression2_funclist[funcname] then
-					self.e2fs_functions[funcname] = row
-				end
-
-				self.tokendata = ""
-			elseif self:NextPattern( "[a-z][a-zA-Z0-9]*:[a-z][a-zA-Z0-9_]*" ) then -- typeindex:funcname
-				local typeindex, funcname = self.tokendata:match( "([a-z][a-zA-Z0-9]*):([a-z][a-zA-Z0-9_]*)" )
-
-				if istype( typeindex ) then
-					addToken( "typename", typeindex )
-				else
-					addToken( "notfound", typeindex )
-				end
-				addToken( "operator", ":" )
-				addToken( "userfunction", funcname )
-
-				if not wire_expression2_funclist[funcname] then
-					self.e2fs_functions[funcname] = row
-				end
-
-				self.tokendata = ""
-			elseif self:NextPattern( "[a-z][a-zA-Z0-9_]*" ) then -- funcname
-				local funcname = self.tokendata:match( "[a-z][a-zA-Z0-9_]*" )
-
-				if istype( funcname ) or funcname == "void" then -- Hey... this isn't a function name! :O
-					addToken( "typename", funcname )
-				else
-					addToken( "userfunction", funcname )
-
-					if not wire_expression2_funclist[funcname] then
-						self.e2fs_functions[funcname] = row
-					end
-				end
-
-				self.tokendata = ""
-			end
-
-			if self:NextPattern( "%(" ) then -- We found a bracket
-				-- Color the bracket
-				addToken( "operator", self.tokendata )
-
-				while self.character and self.character ~= ")" do -- Loop until the ending bracket
-					self.tokendata = ""
-
-					local spaces = self:SkipPattern( " *" )
-					if spaces then addToken( "comment", spaces ) end
-
-					if self:NextPattern( "%[" ) then -- Found a [
-						-- Color the bracket
-						addToken( "operator", self.tokendata )
-						self.tokendata = ""
-
-						while self:NextPattern( "[A-Z][a-zA-Z0-9_]*" ) do -- If we found a variable
-							addToken( "variable", self.tokendata )
-							self.tokendata = ""
-
-							local spaces = self:SkipPattern( " *" )
-							if spaces then addToken( "comment", spaces ) end
-						end
-
-						if self:NextPattern( "%]" ) then
-							addToken( "operator", "]" )
-							self.tokendata = ""
-						end
-					elseif self:NextPattern( "[A-Z][a-zA-Z0-9_]*" ) then -- If we found a variable
-						-- Color the variable
-						addToken( "variable", self.tokendata )
-						self.tokendata = ""
-					end
-
-					if self:NextPattern( ":" ) then -- Check for the colon
-						addToken( "operator", ":" )
-						self.tokendata = ""
-					end
-
-					-- Find the type
-					if self:NextPattern( "[a-z][a-zA-Z0-9_]*" ) then
-						if istype( self.tokendata ) or self.tokendata == "void" then -- If it's a type
-							addToken( "typename", self.tokendata )
-						else -- aww
-							addToken( "notfound", self.tokendata )
-						end
-					else
-						break
-					end
-
-					local spaces = self:SkipPattern( " *" )
-					if spaces then addToken( "comment", spaces ) end
-
-					-- If we found a comma, skip it
-					if self.character == "," then addToken( "operator", "," ) self:NextCharacter() end
-				end
-			end
-
-			self.tokendata = ""
-			if self:NextPattern( "%) *{?" ) then -- check for ending bracket (and perhaps an ending {?)
-				addToken( "operator", self.tokendata )
-			end
-		end
-
-		while self.character do
-			local tokenname = ""
-			self.tokendata = ""
-
-			-- eat all spaces
-			local spaces = self:SkipPattern(" *")
-			if spaces then addToken("operator", spaces) end
-			if not self.character then break end
-
-			-- eat next token
-			if self:NextPattern("^_[A-Z][A-Z_0-9]*") then
-				local word = self.tokendata
-				for k,_ in pairs( wire_expression2_constants ) do
-					if k == word then
-						tokenname = "constant"
-					end
-				end
-				if tokenname == "" then tokenname = "notfound" end
-			elseif self:NextPattern("^0[xb][0-9A-F]+") then
-				tokenname = "number"
-			elseif self:NextPattern("^[0-9][0-9.e]*") then
-				tokenname = "number"
-
-			elseif self:NextPattern("^[a-z][a-zA-Z0-9_]*") then
-				local sstr = self.tokendata
-				if highlightmode then
-					if highlightmode == 1 and istype(sstr) then
-						tokenname = "typename"
-					elseif highlightmode == 2 and (sstr == "all" or sstr == "none") then
-						tokenname = "directive"
-					elseif highlightmode == 3 and istype(sstr) then
-						tokenname = "typename"
-						highlightmode = nil
-					else
-						tokenname = "notfound"
-					end
-				else
-					-- is this a keyword or a function?
-					local char = self.character or ""
-					local keyword = char ~= "("
-
-					local spaces = self:SkipPattern(" *") or ""
-
-					if self.character == "]" then
-						-- X[Y,typename]
-						tokenname = istype(sstr) and "typename" or "notfound"
-					elseif keywords[sstr][keyword] then
-						tokenname = "keyword"
-						if sstr == "foreach" then highlightmode = 3
-						elseif sstr == "return" and self:NextPattern( "void" ) then
-							addToken( "keyword", "return" )
-							tokenname = "typename"
-							self.tokendata = spaces .. "void"
-							spaces = ""
-						end
-					elseif wire_expression2_funclist[sstr] then
-						tokenname = "function"
-
-					elseif self.e2fs_functions[sstr] then
-						tokenname = "userfunction"
-
-					else
-						tokenname = "notfound"
-
-						local correctName = wire_expression2_funclist_lowercase[sstr:lower()]
-						if correctName then
-							self.tokendata = ""
-							for i = 1,#sstr do
-								local c = sstr:sub(i,i)
-								if correctName:sub(i,i) == c then
-									tokenname = "function"
-								else
-									tokenname = "notfound"
-								end
-								if i == #sstr then
-									self.tokendata = c
-								else
-									addToken(tokenname, c)
-								end
-							end
-						end
-					end
-					addToken(tokenname, self.tokendata)
-					tokenname = "operator"
-					self.tokendata = spaces
-				end
-
-			elseif self:NextPattern("^[A-Z][a-zA-Z0-9_]*") then
-				tokenname = "variable"
-
-			elseif self.character == '"' then
-				self:NextCharacter()
-				while self.character do -- Find the ending "
-					if self.character == '"' then
-						tokenname = "string"
-						break
-					end
-					if self.character == "\\" then self:NextCharacter() end
-					self:NextCharacter()
-				end
-
-				if tokenname == "" then -- If no ending " was found...
-					self.multilinestring = true
-					tokenname = "string"
-				else
-					self:NextCharacter()
-				end
-
-			elseif self.character == "#" then
-				self:NextCharacter()
-				if self.character == "[" then -- Check if there is a [ directly after the #
-					while self.character do -- Find the ending ]
-						if self.character == "]" then
-							self:NextCharacter()
-							if self.character == "#" then -- Check if there is a # directly after the ending ]
-								tokenname = "comment"
-								break
-							end
-						end
-						if self.character == "\\" then self:NextCharacter() end
-						self:NextCharacter()
-					end
-					if tokenname == "" then -- If no ending ]# was found...
-						self.blockcomment = true
-						tokenname = "comment"
-					else
-						self:NextCharacter()
-					end
-				end
-
-				if tokenname == "" then
-
-					self:NextPattern("[^ ]*") -- Find the whole word
-
-					if PreProcessor["PP_"..self.tokendata:sub(2)] then
-						-- there is a preprocessor command by that name => mark as such
-						tokenname = "ppcommand"
-					elseif self.tokendata == "#include" then
-						tokenname = "keyword"
-					else
-						-- eat the rest and mark as a comment
-						self:NextPattern(".*")
-						tokenname = "comment"
-					end
-
-				end
-			else
-				self:NextCharacter()
-
-				tokenname = "operator"
-			end
-
-			addToken(tokenname, self.tokendata)
-		end
-
-		return cols
-	end -- EDITOR:SyntaxColorLine
-end -- do...
-
-do
-	local colors = {
-		["normal"]   = { Color(255, 255, 136), false},
-		["opcode"]   = { Color(255, 136,   0), false},
-		["comment"]  = { Color(128, 128, 128), false},
-		["register"] = { Color(255, 255, 136), false},
-		["number"]   = { Color(232, 232,   0), false},
-		["string"]   = { Color(255, 136, 136), false},
-		["filename"] = { Color(232, 232, 232), false},
-		["label"]    = { Color(255, 255, 176), false},
-		["keyword"]  = { Color(255, 136,   0), false},
-		["memref"]   = { Color(232, 232,   0), false},
-		["pmacro"]   = { Color(136, 136, 255), false},
-		["error"]    = { Color(240,  96,  96), false},
---		["compare"]  = { Color(255, 186,  40), true},
-	}
-
-	-- Build lookup table for opcodes
-	local opcodeTable = {}
-	for k,v in pairs(CPULib.InstructionTable) do
-		if v.Mnemonic ~= "RESERVED" then
-			opcodeTable[v.Mnemonic] = true
-		end
-	end
-
-	-- Build lookup table for keywords
-	local keywordsList = {
-		"GOTO","FOR","IF","ELSE","WHILE","DO","SWITCH","CASE","CONST","RETURN","BREAK",
-		"CONTINUE","EXPORT","INLINE","FORWARD","REGISTER","DB","ALLOC","SCALAR","VECTOR1F",
-		"VECTOR2F","UV","VECTOR3F","VECTOR4F","COLOR","VEC1F","VEC2F","VEC3F","VEC4F","MATRIX",
-		"STRING","DB","DEFINE","CODE","DATA","ORG","OFFSET","INT48","FLOAT","CHAR","VOID",
-		"INT","FLOAT","CHAR","VOID","PRESERVE","ZAP","STRUCT","VECTOR"
-	}
-
-	local keywordsTable = {}
-	for k,v in pairs(keywordsList) do
-		keywordsTable[v] = true
-	end
-
-	-- Build lookup table for registers
-	local registersTable = {
-		EAX = true,EBX = true,ECX = true,EDX = true,ESI = true,EDI = true,
-		ESP = true,EBP = true,CS = true,SS = true,DS = true,ES = true,GS = true,
-		FS = true,KS = true,LS = true
-	}
-	for reg=0,31 do registersTable["R"..reg] = true end
-	for port=0,1023 do registersTable["PORT"..port] = true end
-
-	-- Build lookup table for macros
-	local macroTable = {
-	["PRAGMA"] = true,
-	["INCLUDE"] = true,
-	["#INCLUDE##"] = true,
-	["DEFINE"] = true,
-	["IFDEF"] = true,
-	["IFNDEF"] = true,
-	["ENDIF"] = true,
-	["ELSE"] = true,
-	["UNDEF"] = true,
-	}
-
-	function EDITOR:CPUGPUSyntaxColorLine(row)
-		local cols = {}
-		self:ResetTokenizer(row)
-		self:NextCharacter()
-		
-		if self.blockcomment then
-			if self:NextPattern(".-%*/") then
-				self.blockcomment = nil
-			else
-				self:NextPattern(".*")
-			end
-
-			cols[#cols + 1] = {self.tokendata, colors["comment"]}
-		end
-
-		local isGpu = self:GetParent().EditorType == "GPU"
-
-		while self.character do
-			local tokenname = ""
-			self.tokendata = ""
-
-			self:NextPattern(" *")
-			if not self.character then break end
-
-			if self:NextPattern("^[a-zA-Z0-9_@.]+:") then
-				tokenname = "label"
-			elseif self:NextPattern("^[a-zA-Z0-9_@.]+") then
-				local sstr = string.upper(self.tokendata:Trim())
-				if opcodeTable[sstr] then
-					tokenname = "opcode"
-				elseif registersTable[sstr] then
-					tokenname = "register"
-				elseif keywordsTable[sstr] then
-					tokenname = "keyword"
-				elseif tonumber(self.tokendata) then
-					tokenname = "number"
-				else
-					tokenname = "normal"
-				end
-			elseif (self.character == "'") or (self.character == "\"")  then
-				tokenname = "string"
-				local delimiter = self.character
-				self:NextCharacter()
-				while self.character ~= delimiter do
-					if not self.character then tokenname = "error" break end
-					if self.character == "\\" then self:NextCharacter() end
-					self:NextCharacter()
-				end
-				self:NextCharacter()
-			elseif self:NextPattern("^//.*$") then
-				tokenname = "comment"
-			elseif self:NextPattern("^/%*") then -- start of a multi-line comment
-				--addToken("comment", self.tokendata)
-				self.blockcomment = true
-				if self:NextPattern(".-%*/") then
-					self.blockcomment = nil
-				else
-					self:NextPattern(".*")
-				end
-
-				tokenname = "comment"
-			elseif self.character == "#" then
-				self:NextCharacter()
-				
-				if self:NextPattern("include +<") then
-					
-					cols[#cols + 1] = {self.tokendata:sub(1,-2), colors["pmacro"]}
-					
-					self.tokendata = "<"
-					if self:NextPattern("^[a-zA-Z0-9_/\\]+%.txt>") then
-						tokenname = "filename"
-					else
-						self:NextPattern(".*$")
-						tokenname = "normal"
-					end
-				elseif self:NextPattern("include +\"") then
-					
-					cols[#cols + 1] = {self.tokendata:sub(1,-2), colors["pmacro"]}
-					
-					self.tokendata = "\""
-					if self:NextPattern("^[a-zA-Z0-9_/\\]+%.txt\"") then
-						tokenname = "filename"
-					else
-						self:NextPattern(".*$")
-						tokenname = "normal"
-					end
-				elseif self:NextPattern("^[a-zA-Z0-9_@.#]+") then
-					local sstr = string.sub(string.upper(self.tokendata:Trim()),2)
-					if macroTable[sstr] then
-						self:NextPattern(".*$")
-						tokenname = "pmacro"
-					else
-						tokenname = "memref"
-					end
-				else
- 					tokenname = "memref"
-				end
-			elseif self.character == "[" or self.character == "]" then
-				self:NextCharacter()
-				tokenname = "memref"
-			else
-				self:NextCharacter()
-				tokenname = "normal"
-			end
-
-			local color = colors[tokenname]
-			if #cols > 1 and color == cols[#cols][2] then
-				cols[#cols][1] = cols[#cols][1] .. self.tokendata
-			else
-				cols[#cols + 1] = {self.tokendata, color}
-			end
-		end
-		return cols
-	end -- EDITOR:SyntaxColorLine
-end -- do...
+end
+
+function EDITOR:SetSyntaxColor(name, color)
+	return self:DoAction("SetSyntaxColor", name, color)
+end
+
+function EDITOR:SyntaxColorLine(row)
+	return self:DoAction("SyntaxColorLine", row)
+end
 
 -- register editor panel
 vgui.Register("Expression2Editor", EDITOR, "Panel");
