@@ -446,7 +446,6 @@ end
 function HCOMP:DefineVariable(isFunctionParam,isForwardDecl,isRegisterDecl,isStructMember) local TOKEN = self.TOKEN
   local varType,varSize,isStruct
   if self:MatchToken(TOKEN.IDENT) then -- Define structure
-    local structData = self.Structs[structName]
     varType = self.TokenData
     varSize = 0 -- Depends on pointer level
     isStruct = true
@@ -1125,7 +1124,7 @@ function HCOMP:Statement() local TOKEN = self.TOKEN
       self:AddLeafToTail(returnLeaf)
     end
     self:MatchToken(TOKEN.COLON)
-    
+
     -- Check if this is the last return in the function
 --    if self:MatchToken(TOKEN.RBRACKET) then
 --      if self.BlockDepth > 0 then
