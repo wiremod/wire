@@ -143,7 +143,6 @@ function HCOMP:OutputLibrary(block)
     for index,value in ipairs(block.Data) do
       if istable(value)then -- Data is a constant expression
         block.Data[index] = self:PrintTokens(value)
-        block.Data[index] = v or self.Settings.MagicValue
       end
     end
   end
