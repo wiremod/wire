@@ -617,6 +617,10 @@ end
 --------------------------------------------------
 
 function ENT:EnableCam( ply )
+	-- if we're in the middle of being pasted, then there may be linked vehicles
+	-- that we don't know about yet so we just ignore the call. See wiremod/wire#1062
+	if self.DuplicationInProgress then return end
+
 	if #self.Vehicles == 0 and not ply then -- if the cam controller isn't linked, it controls the owner's view
 		ply = self:GetPlayer()
 	end
