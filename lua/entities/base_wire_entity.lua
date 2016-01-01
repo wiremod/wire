@@ -392,6 +392,10 @@ local function EntityLookup(CreatedEntities)
 	end
 end
 
+function ENT:OnDuplicated()
+	self.DuplicationInProgress = true
+end
+
 function ENT:PostEntityPaste(Player,Ent,CreatedEntities)
 	-- We manually apply the entity mod here rather than using a
 	-- duplicator.RegisterEntityModifier because we need access to the
@@ -399,4 +403,5 @@ function ENT:PostEntityPaste(Player,Ent,CreatedEntities)
 	if Ent.EntityMods and Ent.EntityMods.WireDupeInfo then
 		Ent:ApplyDupeInfo(Player, Ent, Ent.EntityMods.WireDupeInfo, EntityLookup(CreatedEntities))
 	end
+	self.DuplicationInProgress = nil
 end
