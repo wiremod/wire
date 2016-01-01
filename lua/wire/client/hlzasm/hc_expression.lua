@@ -810,14 +810,14 @@ function HCOMP:ConstantExpression_Level1()
     if not rightConst then return false end
 
     if token == self.TOKEN.LAND then
-      if (leftValue > 0) and (rightValeu > 0) then
+      if (leftValue > 0) and (rightValue > 0) then
         return true,(leftPrecise and rightPrecise),1
       else
         return true,(leftPrecise and rightPrecise),0
       end
     end
     if token == self.TOKEN.LOR  then
-      if (leftValue > 0) or (rightValeu > 0) then
+      if (leftValue > 0) or (rightValue > 0) then
         return true,(leftPrecise and rightPrecise),1
       else
         return true,(leftPrecise and rightPrecise),0
