@@ -1,5 +1,6 @@
 local math_floor = math.floor
 local string_gmatch = string.gmatch
+local string_gsub = string.gsub
 local draw_WordBox = draw.WordBox
 
 local EDITOR = {}
@@ -94,6 +95,41 @@ local macroTable = {
   ["ELSE"] = true,
   ["UNDEF"] = true,
 }
+
+function EDITOR:CommentSelection(removecomment)
+  local comment_char = "//"
+  if removecomment then
+    -- shift-TAB with a selection --
+    local tmp = string_gsub("\n"..self:GetSelection(), "\n"..comment_char, "\n")
+
+    -- makes sure that the first line is outdented
+    self:SetSelection(tmp:sub(2))
+  else
+    -- plain TAB with a selection --
+    self:SetSelection(comment_char .. self:GetSelection():gsub("\n", "\n"..comment_char))
+  end
+end
+
+function EDITOR:BlockCommentSelction(removecomment)
+  local sel_start, sel_caret = self:MakeSelection( self:Selection() )
+  local str = self:GetSelection()
+  if removecomment then
+    if str:find( "^/%*" ) and str:find( "%*/$" ) then
+      self:SetSelection( str:gsub( "^/%*(.+)%*/$", "%1" ) )
+
+      sel_caret[2] = sel_caret[2] - 2
+    end
+  else
+    self:SetSelection( "/*" .. str .. "*/" )
+
+    if sel_caret[1] == sel_start[1] then
+      sel_caret[2] = sel_caret[2] + 4
+    else
+      sel_caret[2] = sel_caret[2] + 2
+    end
+  end
+  return { sel_start, sel_caret }
+end
 
 function EDITOR:ResetTokenizer(row)
   if row == self.Scroll[1] then

@@ -82,6 +82,77 @@ local function addToken(tokenname, tokendata)
   end
 end
 
+function EDITOR:CommentSelection(removecomment)
+  local sel_start, sel_caret = self:MakeSelection( self:Selection() )
+  local mode = self:GetParent().BlockCommentStyleConVar:GetInt()
+
+  if mode == 0 then -- New (alt 1)
+  local str = self:GetSelection()
+  if removecomment then
+    if str:find( "^#%[\n" ) and str:find( "\n%]#$" ) then
+      self:SetSelection( str:gsub( "^#%[\n(.+)\n%]#$", "%1" ) )
+      sel_caret[1] = sel_caret[1] - 2
+    end
+  else
+    self:SetSelection( "#[\n" .. str .. "\n]#" )
+    sel_caret[1] = sel_caret[1] + 1
+    sel_caret[2] = 3
+  end
+  elseif mode == 1 then -- New (alt 2)
+  local str = self:GetSelection()
+  if removecomment then
+    if str:find( "^#%[" ) and str:find( "%]#$" ) then
+      self:SetSelection( str:gsub( "^#%[(.+)%]#$", "%1" ) )
+
+      sel_caret[2] = sel_caret[2] - 4
+    end
+  else
+    self:SetSelection( "#[" .. self:GetSelection() .. "]#" )
+  end
+  elseif mode == 2 then -- Old
+  local comment_char = "#"
+  if removecomment then
+    -- shift-TAB with a selection --
+    local tmp = string_gsub("\n"..self:GetSelection(), "\n"..comment_char, "\n")
+
+    -- makes sure that the first line is outdented
+    self:SetSelection(tmp:sub(2))
+  else
+    -- plain TAB with a selection --
+    self:SetSelection(comment_char .. self:GetSelection():gsub("\n", "\n"..comment_char))
+  end
+  else
+    ErrorNoHalt( "Invalid block comment style" )
+  end
+
+  return { sel_start, sel_caret }
+end
+
+function EDITOR:BlockCommentSelection(removecomment)
+  local sel_start, sel_caret = self:MakeSelection( self:Selection() )
+  local str = self:GetSelection()
+  if removecomment then
+    if str:find( "^#%[" ) and str:find( "%]#$" ) then
+      self:SetSelection( str:gsub( "^#%[(.+)%]#$", "%1" ) )
+
+      if sel_caret[1] == sel_start[1] then
+        sel_caret[2] = sel_caret[2] - 4
+      else
+        sel_caret[2] = sel_caret[2] - 2
+      end
+    end
+  else
+    self:SetSelection( "#[" .. str .."]#" )
+
+    if sel_caret[1] == sel_start[1] then
+      sel_caret[2] = sel_caret[2] + 4
+    else
+      sel_caret[2] = sel_caret[2] + 2
+    end
+  end
+  return { sel_start, sel_caret }
+end
+
 function EDITOR:ResetTokenizer(row)
   if row == self.Scroll[1] then
 
