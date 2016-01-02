@@ -153,6 +153,12 @@ function EDITOR:BlockCommentSelection(removecomment)
   return { sel_start, sel_caret }
 end
 
+function EDITOR:ShowContextHelp(word)
+  E2Helper.Show()
+  E2Helper.UseE2(self:GetParent().EditorType)
+  E2Helper.Show(word)
+end
+
 function EDITOR:ResetTokenizer(row)
   if row == self.Scroll[1] then
 

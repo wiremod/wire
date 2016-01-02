@@ -131,6 +131,12 @@ function EDITOR:BlockCommentSelction(removecomment)
   return { sel_start, sel_caret }
 end
 
+function EDITOR:ShowContextHelp(word)
+  E2Helper.Show()
+  E2Helper.UseCPU(self:GetParent().EditorType)
+  E2Helper.Show(word)
+end
+
 function EDITOR:ResetTokenizer(row)
   if row == self.Scroll[1] then
     -- As above, but for HL-ZASM: Check whether the line self.Scroll[1] starts within a block comment.
