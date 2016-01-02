@@ -1684,9 +1684,8 @@ function EDITOR:ContextHelp()
 
 		word = line:sub(startcol, endcol)
 	end
-	E2Helper.Show()
-	if self:GetParent().E2 then E2Helper.UseE2(self:GetParent().EditorType) else E2Helper.UseCPU(self:GetParent().EditorType) end
-	E2Helper.Show(word)
+
+	self:DoAction("ShowContextHelp", word)
 end
 
 function EDITOR:Copy()
