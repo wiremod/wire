@@ -85,6 +85,10 @@ local function file_Download( ply, filename, data, append )
 	if !file_canDownload( ply ) or !IsValid( ply ) or !ply:IsPlayer() or string.Right( filename, 4 ) != ".txt" then return false end
 	if string.len( data ) > (cv_max_transfer_size:GetInt() * 1024) then return false end
 
+	-- if we're trying to append an empty string then we don't need to queue up
+	-- a download to consider the operation completed
+	if append and string.len(data) == 0 then return true end
+
 	downloads[ply] = {
 		name = filename,
 		data = data,
