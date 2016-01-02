@@ -1611,52 +1611,10 @@ function EDITOR:BlockCommentSelection( removecomment )
 
 	local scroll = self:CopyPosition( self.Scroll )
 
-	-- Remember selection
-	local sel_start, sel_caret = self:MakeSelection( self:Selection() )
+	local new_selection = self:DoAction("BlockCommentSelection", removecomment)
+	if not new_selection then return end
 
-	if self:GetParent().E2 then
-		local str = self:GetSelection()
-		if removecomment then
-			if str:find( "^#%[" ) and str:find( "%]#$" ) then
-				self:SetSelection( str:gsub( "^#%[(.+)%]#$", "%1" ) )
-
-				if sel_caret[1] == sel_start[1] then
-					sel_caret[2] = sel_caret[2] - 4
-				else
-					sel_caret[2] = sel_caret[2] - 2
-				end
-			end
-		else
-			self:SetSelection( "#[" .. str .."]#" )
-
-			if sel_caret[1] == sel_start[1] then
-				sel_caret[2] = sel_caret[2] + 4
-			else
-				sel_caret[2] = sel_caret[2] + 2
-			end
-		end
-	else
-		local str = self:GetSelection()
-		if removecomment then
-			if str:find( "^/%*" ) and str:find( "%*/$" ) then
-				self:SetSelection( str:gsub( "^/%*(.+)%*/$", "%1" ) )
-
-				sel_caret[2] = sel_caret[2] - 2
-			end
-		else
-			self:SetSelection( "/*" .. str .. "*/" )
-
-			if sel_caret[1] == sel_start[1] then
-				sel_caret[2] = sel_caret[2] + 4
-			else
-				sel_caret[2] = sel_caret[2] + 2
-			end
-		end
-	end
-
-	-- restore selection
-	self.Caret = sel_caret
-	self.Start = sel_start
+	self.Start, self.Caret = self:MakeSelection(new_selection)
 	-- restore scroll position
 	self.Scroll = scroll
 	-- trigger scroll bar update (TODO: find a better way)
@@ -1688,65 +1646,11 @@ function EDITOR:CommentSelection( removecomment )
 	if self.Caret[2] == 1 then
 		self.Caret = self:MovePosition(self.Caret, -1)
 	end
+	local new_selection = self:DoAction("CommentSelection", removecomment)
+	if not new_selection then return end
 
-	if self:GetParent().E2 then -- For Expression 2
-		local mode = self:GetParent().BlockCommentStyleConVar:GetInt()
+	self.Start, self.Caret = self:MakeSelection(new_selection)
 
-		if mode == 0 then -- New (alt 1)
-			local str = self:GetSelection()
-			if removecomment then
-				if str:find( "^#%[\n" ) and str:find( "\n%]#$" ) then
-					self:SetSelection( str:gsub( "^#%[\n(.+)\n%]#$", "%1" ) )
-					sel_caret[1] = sel_caret[1] - 2
-				end
-			else
-				self:SetSelection( "#[\n" .. str .. "\n]#" )
-				sel_caret[1] = sel_caret[1] + 1
-				sel_caret[2] = 3
-			end
-		elseif mode == 1 then -- New (alt 2)
-			local str = self:GetSelection()
-			if removecomment then
-				if str:find( "^#%[" ) and str:find( "%]#$" ) then
-					self:SetSelection( str:gsub( "^#%[(.+)%]#$", "%1" ) )
-
-					sel_caret[2] = sel_caret[2] - 4
-				end
-			else
-				self:SetSelection( "#[" .. self:GetSelection() .. "]#" )
-			end
-		elseif mode == 2 then -- Old
-			local comment_char = "#"
-			if removecomment then
-				-- shift-TAB with a selection --
-				local tmp = string_gsub("\n"..self:GetSelection(), "\n"..comment_char, "\n")
-
-				-- makes sure that the first line is outdented
-				self:SetSelection(tmp:sub(2))
-			else
-				-- plain TAB with a selection --
-				self:SetSelection(comment_char .. self:GetSelection():gsub("\n", "\n"..comment_char))
-			end
-		else
-			ErrorNoHalt( "Invalid block comment style" )
-		end
-	else -- For CPU/GPU
-		local comment_char = "//"
-		if removecomment then
-			-- shift-TAB with a selection --
-			local tmp = string_gsub("\n"..self:GetSelection(), "\n"..comment_char, "\n")
-
-			-- makes sure that the first line is outdented
-			self:SetSelection(tmp:sub(2))
-		else
-			-- plain TAB with a selection --
-			self:SetSelection(comment_char .. self:GetSelection():gsub("\n", "\n"..comment_char))
-		end
-	end
-
-	-- restore selection
-	self.Caret = sel_caret
-	self.Start = sel_start
 	-- restore scroll position
 	self.Scroll = scroll
 	-- trigger scroll bar update (TODO: find a better way)
