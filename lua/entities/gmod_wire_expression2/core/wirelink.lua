@@ -33,6 +33,22 @@ local function validWirelink(self, ent)
 	return true
 end
 
+local function mapOutputAlias(ent, portname)
+	if ent.OutputAliases and ent.OutputAliases[portname] then
+		return ent.OutputAliases[portname]
+	end
+
+	return portname
+end
+
+local function mapInputAlias(ent, portname)
+	if ent.InputAliases and ent.InputAliases[portname] then
+		return ent.InputAliases[portname]
+	end
+
+	return portname
+end
+
 /******************************************************************************/
 
 local function WriteStringZero(entity, address, string)
@@ -188,6 +204,8 @@ registerCallback("postinit", function()
 
 					if not validWirelink(self, this) then return {} end
 
+					portname = mapOutputAlias(this, portname)
+
 					if not this.Outputs[portname] then return {} end
 					if this.Outputs[portname].Type ~= typename then return {} end
 
@@ -200,6 +218,8 @@ registerCallback("postinit", function()
 					this, portname = this[1](self, this), portname[1](self, portname)
 
 					if not validWirelink(self, this) then return zero end
+
+					portname = mapOutputAlias(this, portname)
 
 					if not this.Outputs[portname] then return zero end
 					if this.Outputs[portname].Type ~= typename then return zero end
@@ -216,6 +236,8 @@ registerCallback("postinit", function()
 
 				if not validWirelink(self, this) then return zero end
 
+				portname = mapOutputAlias(this, portname)
+
 				if not this.Outputs[portname] then return zero end
 				if this.Outputs[portname].Type ~= typename then return zero end
 
@@ -231,6 +253,8 @@ registerCallback("postinit", function()
 				if not validWirelink(self, this) then return value end
 				if not this.Inputs then return value end
 
+				portname = mapInputAlias(this, portname)
+
 				TriggerInput(self, this, portname, output_serializer(self, value), typename)
 				return value
 			end
@@ -241,6 +265,8 @@ registerCallback("postinit", function()
 
 				if not validWirelink(self, this) then return value end
 				if not this.Inputs then return value end
+
+				portname = mapInputAlias(this, portname)
 
 				TriggerInput(self, this, portname, value, typename)
 				return value
