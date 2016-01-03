@@ -76,6 +76,10 @@ function EDITOR:Init()
 	self.LastClick = 0
 
 	self.e2fs_functions = {}
+
+	self.Colors = {
+		dblclickhighlight = Color(0, 100, 0),
+	}
 end
 
 function EDITOR:SetMode(mode_name)
@@ -2824,6 +2828,10 @@ function EDITOR:NextPattern(pattern)
 	return true
 end
 
+function EDITOR:GetSyntaxColor(name)
+	return self.Colors[name] or self:DoAction("GetSyntaxColor", name)
+end
+
 function EDITOR:SetSyntaxColors(colors)
 	for name, color in pairs(colors) do
 		self:SetSyntaxColor(name, color)
@@ -2831,7 +2839,11 @@ function EDITOR:SetSyntaxColors(colors)
 end
 
 function EDITOR:SetSyntaxColor(name, color)
-	return self:DoAction("SetSyntaxColor", name, color)
+	if self.Colors[name] then
+		self.Colors[name] = color
+	else
+		return self:DoAction("SetSyntaxColor", name, color)
+	end
 end
 
 function EDITOR:SyntaxColorLine(row)

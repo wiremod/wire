@@ -57,7 +57,6 @@ local colors = {
   ["typename"]  = { Color(240, 160,  96), false}, -- orange
   ["constant"]  = { Color(240, 160, 240), false}, -- pink
   ["userfunction"] = { Color(102, 122, 102), false}, -- dark grayish-green
-  ["dblclickhighlight"] = { Color(0, 100, 0), false}, -- dark green
 }
 
 function EDITOR:GetSyntaxColor(name)
