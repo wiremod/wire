@@ -892,15 +892,20 @@ elseif CLIENT then
 	end
 	
 	TOOL.CurrentFont = "Trebuchet24"
+	-- Find the largest font that can fit `lines` lines of text into a box `maxsize`
+	-- tall. Set that font as current, and return the size of one line of text.
+	-- If no fonts would fit, then the smallest font possible will be returned.
 	function TOOL:fitFont( lines, maxsize )
 		if not fontheights then
 			getFontSizes()
 		end
+
+		local minFontSize = 14
 		
-		for i=24,14,-2 do
+		for i=24, minFontSize, -2 do
 			local fontname = "Trebuchet" .. i
 			local height = fontheights[fontname]
-			if height * lines <= maxsize then
+			if height * lines <= maxsize or i == minFontSize then
 				self.CurrentFont = fontname
 				surface.SetFont( fontname )
 				local w, _ = surface.GetTextSize( "Selected:" )
