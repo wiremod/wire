@@ -83,22 +83,25 @@ function e2_parse_args(args)
 	local argtable = { typeids = {}, argnames = {} }
 	if args:find("%S") == nil then return argtable end -- no arguments
 	local function handle_arg(arg)
+		-- trim argument
+		arg = arg:match("^%s*(.-)%s*$")
+
 		-- ellipses before this argument? raise error
 		if ellipses then error("PP syntax error: Ellipses (...) must be the last argument.", 0) end
 		-- is this argument an ellipsis?
-		if string.match(arg, "^%s*%.%.%.%s*$") then
+		if arg == "..." then
 			-- signal ellipses-ness
 			ellipses = true
 			return false
 		end
 
 		-- assume a type name was given and split up the argument into type name and argument name.
-		local typename, argname = string.match(arg, "^%s*(" .. p_typename .. ")%s+(" .. p_argname .. ")%s*$")
+		local typename, argname = string.match(arg, "^(" .. p_typename .. ")%s+(" .. p_argname .. ")$")
 
 		-- the assumption failed
 		if not typename then
 			-- try looking for a argument name only and defaulting the type name to "number"
-			argname = string.match(arg, "^%s*(" .. p_argname .. ")%s*$")
+			argname = string.match(arg, "^(" .. p_argname .. ")$")
 			typename = "number"
 		end
 
