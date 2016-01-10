@@ -409,13 +409,3 @@ function e2_extpp_pass2(contents)
 		return false
 	end
 end
-
-if e2_sim then
-	function e2_extpp(contents)
-		e2_extpp_init()
-		e2_extpp_pass1(contents)
-		local ret = e2_extpp_pass2(contents)
-		preparsed_types = nil
-		return ret
-	end
-end
