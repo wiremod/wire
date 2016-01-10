@@ -251,11 +251,17 @@ function e2_extpp_pass2(contents)
 			-- op_type is nil if we register a function and a number if it as operator
 			local name, regfn, op_type = handleop(name)
 
-			-- return type (void means "returns nothing", i.e. "" in registerFunctionese)
-			local ret_typeid = (ret == "void") and "" or e2_get_typeid(ret) -- ret_typeid = (ret == "void") ? "" : e2_get_typeid(ret)
+			local ret_typeid
+			if ret == "void" then
+				-- void means "returns nothing", i.e. "" in registerFunctionese
+				ret_typeid = ""
+			else
+				-- For all other typenames, query return type from E2
+				ret_typeid = e2_get_typeid(ret)
 
-			-- return type not found => throw an error
-			if not ret_typeid then error("PP syntax error: Invalid return type: '" .. ret .. "'", 0) end
+				-- return type not found => throw an error
+				if not ret_typeid then error("PP syntax error: Invalid return type: '" .. ret .. "'", 0) end
+			end
 
 			-- if "typename:" was found in front of the function name
 			if thistype ~= "" then
