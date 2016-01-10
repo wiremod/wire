@@ -48,8 +48,14 @@ local optable = {
 	["operator_bshr"] = "bshr",
 }
 
--- This is an array for types that were parsed from all E2 extensions. We initialize it with an alias "number" for "normal".
-local preparsed_types = { ["NUMBER"] = "n" }
+-- This is an array for types that were parsed from all E2 extensions.
+local preparsed_types
+
+-- This function initialized extpp's dynamic fields
+function e2_extpp_init()
+	-- We initialize the array of preparsed types  with an alias "number" for "normal".
+	preparsed_types = { ["NUMBER"] = "n" }
+end
 
 -- This function checks whether its argument is a valid type id.
 local function is_valid_typeid(typeid)
@@ -406,7 +412,7 @@ end
 
 if e2_sim then
 	function e2_extpp(contents)
-		preparsed_types = { ["NUMBER"] = "n" }
+		e2_extpp_init()
 		e2_extpp_pass1(contents)
 		local ret = e2_extpp_pass2(contents)
 		preparsed_types = nil
