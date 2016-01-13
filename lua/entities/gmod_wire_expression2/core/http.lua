@@ -5,6 +5,7 @@
 
 E2Lib.RegisterExtension( "http", false )
 
+include("wire/clientsidehttp.lua")
 local cvar_delay = CreateConVar( "wire_expression2_http_delay", "3", FCVAR_ARCHIVE )
 local cvar_timeout = CreateConVar( "wire_expression2_http_timeout", "15", FCVAR_ARCHIVE )
 
@@ -42,7 +43,7 @@ e2function void httpRequest( string url )
 
 	-- validRequest-> is the request OK?
 	-- state-> which state can run this request?
-	local validRequest,state = E2Lib.clHTTP.canRequest(ply,url)
+	local validRequest,state = clHTTP.canRequest(ply,url)
 	if not validRequest then return end
 
 	if (mode == HTTP_MODE_SERVER) and (state == "clientside") then return end
@@ -57,7 +58,7 @@ e2function void httpRequest( string url )
 		url = url
 	}
 
-	E2Lib.clHTTP.request((state ~= "serverside") and ply, url, function( contents, size, headers, code )
+	clHTTP.request((state ~= "serverside") and ply, url, function( contents, size, headers, code )
 		if !IsValid( ply ) or !ply:IsPlayer() or !requests[ply] then return end
 
 		local preq = requests[ply]
@@ -91,7 +92,7 @@ end
 e2function number httpCanRequest(string url)
 	local mode = self.http_mode or HTTP_MODE_DEFAULT
 
-	local validRequest,state = E2Lib.clHTTP.canRequest(self.player,url)
+	local validRequest,state = clHTTP.canRequest(self.player,url)
 	if not validRequest then return 0 end
 
 	if (mode == HTTP_MODE_SERVER) and (state == "clientside") then return 0 end
