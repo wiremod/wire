@@ -71,8 +71,7 @@ if SERVER then
     -- hardcoded entries: these are always preserved and are (ideally) for developer use only
     clHTTP.requestWhitelist = {
     	shared = { -- ordered list of whitelisted patterns
-    		"^https?://www.google.com/.*$",
-    		"^https?://www.github.com/.*$",
+
     	},
     	serverside = { -- ordered list of whitelisted patterns
 
