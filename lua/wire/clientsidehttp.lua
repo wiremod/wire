@@ -46,27 +46,27 @@ clHTTP.HTTP_REQUEST_FAILED = "did not receive HTTP body" -- message for HTTP fai
 clHTTP.HTTP_REQUEST_TOO_BIG = "request was too big to handle" -- message for when a request is too large
 clHTTP.HTTP_REQUEST_TIMEOUT = "client took too long to report back" -- message for when a client takes too long inbetween messages
 
+clHTTP.defaultWhitelistData = ([[#
+#	The Wiremod Expression 2 %s-side HTTP request whitelist
+#
+#	Hints:
+#	- One entry per line!
+#	- Entries are also lua string patterns
+#	- Anything after a # in an entry is ignored and treated as a comment
+#	- You do not have to have a new line at the end of this file.
+#	- Empty lines are ignored
+#
+#	Have fun!
+
+#^https?://www.github.com/.*$
+#^https?://www.github.com/.*$
+]]):format(SERVER and "server" or "client")
+
 if SERVER then
     AddCSLuaFile()
 
     -- should we use clientside HTTP requests?
     local cvar_useClient = CreateConVar("wire_expression2_http_client","1",FCVAR_ARCHIVE)
-
-    clHTTP.defaultWhitelistData = [[#
-    #	The Wiremod Expression 2 server-side HTTP request whitelist
-    #
-    #	Hints:
-    #	- One entry per line!
-    #	- Entries are also lua string patterns
-    #	- Anything after a # in an entry is ignored and treated as a comment
-    #	- You do not have to have a new line at the end of this file.
-    #	- Empty lines are ignored
-    #
-    #	Have fun!
-
-    #^https?://www.github.com/.*$
-    #^https?://www.github.com/.*$
-    ]]
 
     -- hardcoded entries: these are always preserved and are (ideally) for developer use only
     clHTTP.requestWhitelist = {
@@ -250,22 +250,6 @@ if SERVER then
     	clHTTP.requestWhitelist.clientside[ply] = whitelist
     end)
 else
-    clHTTP.defaultWhitelistData = [[#
-    #	The Wiremod Expression 2 client-side HTTP request whitelist
-    #
-    #	Hints:
-    #	- One entry per line!
-    #	- Entries are also lua string patterns
-    #	- Anything after a # in an entry is ignored and treated as a comment
-    #	- You do not have to have a new line at the end of this file.
-    #	- Empty lines are ignored
-    #
-    #	Have fun!
-
-    #^https?://www.github.com/.*$
-    #^https?://www.github.com/.*$
-    ]]
-
     -- void function(string id, number interval, function func); Internal: Do not call.
     local function timerCoroutine(id,interval,func)
     	func = coroutine.wrap(func)
