@@ -51,7 +51,7 @@ registerOperator("ass", "xgt", "xgt", function(self, args)
 	return rhs
 end)
 
-registerOperator("fea","xgt","s",function(self,args)
+registerOperator("fea","xgt","",function(self,args)
 	local keyname,valname,valtypeid = args[2],args[3],args[4]
 	local tbl = args[5]
 	tbl = tbl[1](self,tbl)
