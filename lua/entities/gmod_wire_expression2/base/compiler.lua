@@ -696,7 +696,21 @@ function Compiler:InstrFEA(args)
 
 	local op = self:GetOperator(args, "fea", { tabletp })
 	self:PushScope()
-	self:SetLocalVariableType(keyvar, op[2], args)
+
+	-- The type of the keys iterated over depends on what's being iterated over (ie. tabletp).
+	-- The 'table' returned by tableexpr can be a table, an array, a gtable, or others in future.
+	-- If the type has an indexing operator that takes strings, then we iterate over strings,
+	-- otherwise we iterator over numbers.
+	local keytype
+	if self:HasOperator(args, "idx", { valtype, "=", tabletp, "s" }) then
+		keytype = "s"
+	elseif self:HasOperator(args, "idx", { valtype, "=", tabletp, "n" }) then
+		keytype = "n"
+	else
+		self:Error("Table expression (of type '" .. tabletp .. "') has no indexing operator", args)
+	end
+
+	self:SetLocalVariableType(keyvar, keytype, args)
 	self:SetLocalVariableType(valvar, valtype, args)
 
 	local stmt, _ = self:EvaluateStatement(args, 5)
