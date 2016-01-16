@@ -108,7 +108,7 @@ registerOperator("for", "", "", function(self, args)
 
 end)
 
-registerOperator("fea","r","n",function(self,args)
+registerOperator("fea","r","",function(self,args)
 	local keyname,valname,valtypeid = args[2],args[3],args[4]
 	local tbl = args[5]
 	tbl = tbl[1](self,tbl)
