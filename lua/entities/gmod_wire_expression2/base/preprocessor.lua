@@ -13,7 +13,7 @@ function PreProcessor.Execute(...)
 	local instance = setmetatable({}, PreProcessor)
 
 	-- and pcall the new instance's Process method.
-	return pcall(instance.Process, instance, ...)
+	return xpcall(instance.Process, E2Lib.errorHandler, instance, ...)
 end
 
 function PreProcessor:Error(message, column)
