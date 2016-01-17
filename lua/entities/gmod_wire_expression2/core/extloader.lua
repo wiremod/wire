@@ -64,7 +64,12 @@ local function luaExists(luaname)
 	return #file.Find(luaname, "LUA") ~= 0
 end
 
-local included_files = {}
+local included_files
+
+local function e2_include_init()
+	e2_extpp_init()
+	included_files = {}
+end
 
 -- parses typename/typeid associations from a file and stores info about the file for later use by e2_include_finalize/e2_include_pass2
 local function e2_include(name)
@@ -122,6 +127,8 @@ local function e2_include_finalize()
 end
 
 -- end preprocessor stuff
+
+e2_include_init()
 
 e2_include("core.lua")
 e2_include("array.lua")
