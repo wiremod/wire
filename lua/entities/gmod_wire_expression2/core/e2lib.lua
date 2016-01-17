@@ -75,7 +75,7 @@ end
 
 -- -------------------------- signature generation -----------------------------
 
-local function maketype(typeid)
+function E2Lib.typeName(typeid)
 	if typeid == "" then return "void" end
 	if typeid == "n" then return "number" end
 
@@ -86,7 +86,7 @@ local function maketype(typeid)
 	return typename or "unknown"
 end
 
-local function splitargs(args)
+function E2Lib.splitType(args)
 	local ret = {}
 	local thistype
 	local i = 1
@@ -109,7 +109,7 @@ local function splitargs(args)
 				typeid = args:sub(i, i + 2)
 				i = i + 2
 			end
-			table.insert(ret, maketype(typeid))
+			table.insert(ret, E2Lib.typeName(typeid))
 		end
 		i = i + 1
 	end
@@ -121,7 +121,7 @@ function E2Lib.generate_signature(signature, rets, argnames)
 	local funcname, args = string.match(signature, "([^(]+)%(([^)]*)%)")
 	if not funcname then error("malformed signature") end
 
-	local thistype, args = splitargs(args)
+	local thistype, args = E2Lib.splitType(args)
 
 	if argnames then
 		for i = 1, #args do
@@ -131,7 +131,7 @@ function E2Lib.generate_signature(signature, rets, argnames)
 	local new_signature = string.format("%s(%s)", funcname, table.concat(args, ","))
 	if thistype then new_signature = thistype .. ":" .. new_signature end
 
-	return (not rets or rets == "") and (new_signature) or (maketype(rets) .. "=" .. new_signature)
+	return (not rets or rets == "") and (new_signature) or (E2Lib.typeName(rets) .. "=" .. new_signature)
 end
 
 -- ------------------------ various entity checkers ----------------------------
