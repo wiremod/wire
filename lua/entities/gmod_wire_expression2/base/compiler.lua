@@ -63,11 +63,11 @@ end
 
 function tps_pretty(tps)
 	if not tps or #tps == 0 then return "void" end
-
+	if type(tps) == "string" then tps = { tps } end
 	local ttt = {}
 	for i = 1, #tps do
-		ttt[i] = string.lower(wire_expression_types2[tps[i]][1])
-		if ttt[i] == "NORMAL" then ttt[i] = "number" end
+		local _, typenames = E2Lib.splitType(tps[i])
+		for j = 1, #typenames do table.insert(ttt, typenames[j]) end
 	end
 	return table.concat(ttt, ", ")
 end
