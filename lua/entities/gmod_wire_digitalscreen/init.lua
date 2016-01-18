@@ -231,9 +231,13 @@ function ENT:WriteCell(Address, value)
 			end
 			self.Memory = mem
 			-- clear pixel data from usermessage queue
-			while #self.ChangedCellRanges > 0 and
-				  self.ChangedCellRanges[1].start + self.ChangedCellRanges[1].length < 1048500 do
-				table.remove(self.ChangedCellRanges, 1)
+			local i = 1
+			while self.ChangedCellRanges[i] ~= nil do
+				if self.ChangedCellRanges[i].start + self.ChangedCellRanges[i].length < 1048500 then
+					table.remove(self.ChangedCellRanges, i)
+				else
+					i = i + 1
+				end
 			end
 		elseif Address == 1048575 then -- CLK
 			-- not needed atm
