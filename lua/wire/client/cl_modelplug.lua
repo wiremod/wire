@@ -54,6 +54,8 @@ list.Set( "WireScreenModels", "models/cheeze/pcb/pcb5.mdl", true )
 list.Set( "WireScreenModels", "models/cheeze/pcb/pcb7.mdl", true )
 list.Set( "WireScreenModels", "models/cheeze/pcb/pcb8.mdl", true )
 list.Set( "WireScreenModels", "models/cheeze/pcb2/pcb8.mdl", true )
+list.Set( "WireScreenModels", "models/props/cs_militia/reload_bullet_tray.mdl", true )
+list.Set( "WireScreenModels", "models/props_lab/workspace002.mdl", true )
 --list.Set( "WireScreenModels", "models/blacknecro/ledboard60.mdl", true ) --broken
 
 --TF2 Billboards
@@ -66,6 +68,7 @@ list.Set( "WireScreenModels", "models/hunter/plates/plate2x2.mdl", true )
 list.Set( "WireScreenModels", "models/hunter/plates/plate4x4.mdl", true )
 list.Set( "WireScreenModels", "models/hunter/plates/plate8x8.mdl", true )
 list.Set( "WireScreenModels", "models/hunter/plates/plate05x05.mdl", true )
+list.Set( "WireScreenModels", "models/hunter/blocks/cube1x1x1.mdl", true )
 
 --screens with out a GPULib setup (for the tools wire_panel and wire_screen)
 list.Set( "WireNoGPULibScreenModels", "models/props_lab/monitor01b.mdl", true )
