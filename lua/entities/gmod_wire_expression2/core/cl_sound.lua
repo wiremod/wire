@@ -108,7 +108,7 @@ local function setFadeVolume(sound, volume, time)
 	sound.DeltaVolume = volume - sound.OriginalVolume
 end
 
-local netFuncs = {	
+local netFuncs = {
 	Play = function() return net.ReadDouble(), net.ReadEntity() end,
 	Pause = function() end,
 	Resume = function() end,
@@ -119,8 +119,6 @@ local netFuncs = {
 	ChangeFadeDistance = function() return net.ReadDouble(), net.ReadDouble() end,
 	SetLooping = function() return net.ReadUInt(8) end,
 	SetTime = function() return net.ReadUInt(32) end,
-	GetSoundFFT = function() end,
-	GetSoundStatus = function() end
 }
 
 local funcLookup = {
@@ -133,9 +131,7 @@ local funcLookup = {
 	"ChangePitch",
 	"ChangeFadeDistance",
 	"SetLooping",
-	"SetTime",
-	"GetSoundFFT",
-	"GetSoundStatus"
+	"SetTime"
 }
 	
 local bassNetFunctions = {	
@@ -191,12 +187,6 @@ local bassNetFunctions = {
 	end,
 	SetTime = function(sound, time)
 		sound.SoundChannel:SetTime( time )
-	end,
-	GetSoundFFT = function(sound)
-		//return sound.SoundChannel:SetTime( time )
-	end,
-	GetSoundStatus = function(sound)
-		return sound.SoundChannel:GetState()
 	end
 }
 
@@ -225,6 +215,14 @@ local function loadSound(index)
 					
 					soundtbl.SoundChannel = channel
 					channel:SetPos(soundtbl.Entity:GetPos())
+					
+					if soundtbl.Pitch > 0 then
+						channel:SetPlaybackRate(math.Clamp( soundtbl.Pitch, 0, 400 ) / 100)
+					end
+					
+					if soundtbl.Volume > 0 then
+						channel:SetVolume( math.Clamp( soundtbl.Volume, 0, 1 ))
+					end
 
 					// Execute the QUEUED Stuff.
 					local queue = soundtbl.Queue
@@ -239,7 +237,6 @@ local function loadSound(index)
 						E2Sounds[index].DieTime = CurTime() + soundtbl.Length
 					end
 					soundtbl.Length = 0
-					
 				else
 					channel:Stop()
 					E2Sounds[index] = nil
@@ -260,7 +257,7 @@ local function loadSound(index)
 			local s = Sound(path)
 			local newsound = CreateSound(soundtbl.Entity, s)
 			if !newsound then E2Sounds[index] = nil return end
-			
+
 			--For some reason trying to stop the sound after the entity is dead won't work
 			soundtbl.Entity:CallOnRemove("E2SoundRemove"..index, function()
 				newsound:Stop()
@@ -292,7 +289,6 @@ local function loadSound(index)
 				E2Sounds[index].DieTime = CurTime() + soundtbl.Length
 			end
 			soundtbl.Length = 0
-			
 		end
 	end
 	

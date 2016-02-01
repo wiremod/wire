@@ -53,10 +53,6 @@ ClientSideSound.SendFuncs = {
 	end,
 	SetTime = function(self, val)
 		net.WriteUInt(val, 32)
-	end,
-	GetSoundFFT = function(self)
-	end,
-	GetSoundStatus = function(self)
 	end
 }
 
@@ -71,8 +67,6 @@ ClientSideSound.SendFuncsLookup = {
 	ChangeFadeDistance = 8,
 	SetLooping = 9,
 	SetTime = 10,
-	GetSoundFFT = 11,
-	GetSoundStatus = 12
 }
 
 function ClientSideSound.CreateSound( path, time, index, entity, e2, pitch, volume) 
@@ -152,13 +146,6 @@ function ClientSideSound:SetTime(val)
 	self:SendRequest("SetTime",val)
 end
 
-function ClientSideSound:GetSoundFFT()
-	self:SendRequest("GetSoundFFT")
-end
-
-function ClientSideSound:GetSoundStatus()
-	self:SendRequest("GetSoundStatus")
-end
 ---------------------------------------------------------------
 -- Helper functions
 ---------------------------------------------------------------
@@ -166,19 +153,19 @@ end
 local function isAllowed( self )
 
 	local data = self.data.sound_data
-	if self.data.sound_data.count >= wire_expression2_maxsounds:GetInt() then 
+	if data.count >= wire_expression2_maxsounds:GetInt() then 
 		--See if there are any dead sounds
-		for _, sound in pairs(self.data.sound_data.sounds) do
+		for _, sound in pairs(data.sounds) do
 			if (sound.DieTime and CurTime() >= sound.DieTime) or not IsValid(sound.entity) then
-				self.data.sound_data.sounds[ _ ] = nil
-				self.data.sound_data.count = self.data.sound_data.count - 1
+				data.sounds[ _ ] = nil
+				data.count = data.count - 1
 			end
 		end
-		if self.data.sound_data.count >= wire_expression2_maxsounds:GetInt() then
+		if data.count >= wire_expression2_maxsounds:GetInt() then
 			return false
 		end
 	end
-	
+		
 	if data.burst == 0 then return false end
 	data.burst = data.burst - 1
 	
@@ -230,7 +217,16 @@ local function soundCreate(self, entity, index, time, path, pitch, volume)
 		path = path:gsub( "\\", "/" )
 	end
 	
-	data.count = data.count + 1
+	if isnumber( index ) then index = math.floor( index ) end	
+	local data = self.data.sound_data
+	
+	local oldsound = getSound( self, index )
+
+	if oldsound then
+		oldsound:Stop(0) // The sound is overwriten, we don't need to increase the count since we are using the same "sound spot"
+	else
+		data.count = data.count + 1
+	end
 	
 	local sound = ClientSideSound.CreateSound(path,time,index,entity,self.entity,pitch,volume)
 	data.sounds[index] = sound
@@ -245,7 +241,6 @@ local function soundPurge( self )
 			clearSound( sound_data, v )
 		end
 	end
-	
 end
 
 ---------------------------------------------------------------
@@ -285,19 +280,17 @@ __e2setcost(5)
 e2function void soundStop( index )
 	local sound = getSound( self, index )
 	if not sound then return end
-			
-	clearSound( self.data.sound_data, sound )
 	
+	clearSound( self.data.sound_data, sound )
 end
 
-e2function void soundStop( index, dietime )
+e2function void soundStop( index, fadetime )
 	local sound = getSound( self, index )
 	if not sound then return end
 	
-	dietime = math.abs( dietime )
-	
-	sound:Stop( dietime )
-	sound.DieTime = CurTime() + dietime
+	fadetime = math.abs( fadetime )
+	sound.DieTime = CurTime() + fadetime // Fade seems to take a little longer to remove the sound
+	sound:Stop(fadetime)
 end
 
 e2function void soundPause( index )
