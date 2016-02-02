@@ -2,6 +2,8 @@
   Server Information
 \******************************************************************************/
 
+__e2setcost(1)
+
 e2function string map()
 	return game.GetMap()
 end
@@ -9,6 +11,10 @@ end
 local hostname = GetConVar("hostname")
 e2function string hostname()
 	return hostname:GetString()
+end
+
+e2function string hostip()
+	return game.GetIPAddress()
 end
 
 local sv_lan = GetConVar("sv_lan")
