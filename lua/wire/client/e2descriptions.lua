@@ -851,6 +851,7 @@ E2Helper.Descriptions["convertUnit(ssn)"] = "Converts between two units"
 -- Server information
 E2Helper.Descriptions["map()"] = "Returns the current map name"
 E2Helper.Descriptions["hostname()"] = "Returns the Name of the server"
+E2Helper.Descriptions["hostip()"] = "Returns the IP of the server"
 E2Helper.Descriptions["isLan()"] = "Returns 1 if lan mode is enabled"
 E2Helper.Descriptions["gamemode()"] = "Returns the name of the current gamemode"
 E2Helper.Descriptions["gravity()"] = "Returns gravity"
