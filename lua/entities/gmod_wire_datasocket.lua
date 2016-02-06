@@ -54,6 +54,7 @@ function ENT:SetMemory(mement)
 end
 
 function ENT:ReadCell( Address )
+	Address = math.floor(Address)
 	if (self.Memory) then
 		if (self.Memory.ReadCell) then
 			return self.Memory:ReadCell( Address )
@@ -66,6 +67,7 @@ function ENT:ReadCell( Address )
 end
 
 function ENT:WriteCell( Address, value )
+	Address = math.floor(Address)
 	if (self.Memory) then
 		if (self.Memory.WriteCell) then
 			return self.Memory:WriteCell( Address, value )

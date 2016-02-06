@@ -37,6 +37,7 @@ function ENT:Think()
 end
 
 function ENT:ReadCell(Address)
+	Address = math.floor(Address)
 	if (Address >= 0) && (Address <= 7) then
 		return self.Ports[Address]
 	else
@@ -45,6 +46,7 @@ function ENT:ReadCell(Address)
 end
 
 function ENT:WriteCell(Address, value)
+	Address = math.floor(Address)
 	if (Address >= 0) && (Address <= 7) then
 		self.OutPorts[Address] = value
 		return true

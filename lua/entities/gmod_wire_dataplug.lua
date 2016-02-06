@@ -19,6 +19,7 @@ function ENT:Initialize()
 end
 
 function ENT:ReadCell( Address )
+	Address = math.floor(Address)
     if IsValid(self.MySocket) and self.MySocket.OwnMemory and self.MySocket.OwnMemory.ReadCell then
 		return self.MySocket.OwnMemory:ReadCell( Address )
 	end
@@ -26,6 +27,7 @@ function ENT:ReadCell( Address )
 end
 
 function ENT:WriteCell( Address, value )
+	Address = math.floor(Address)
 	if IsValid(self.MySocket) and self.MySocket.OwnMemory and self.MySocket.OwnMemory.WriteCell then
 		return self.MySocket.OwnMemory:WriteCell( Address, value )
 	end

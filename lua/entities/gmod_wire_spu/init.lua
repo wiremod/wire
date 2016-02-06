@@ -127,6 +127,7 @@ concommand.Add("wire_spu_resendcache", SPU_PlayerRespawn)
 -- Read cell from SPU memory
 --------------------------------------------------------------------------------
 function ENT:ReadCell(Address)
+  Address = math.floor(Address)
   if (Address < 0) or (Address >= self.RAMSize) then
     return nil
   else
@@ -143,6 +144,7 @@ end
 -- Write cell to SPU memory
 --------------------------------------------------------------------------------
 function ENT:WriteCell(Address, Value, Player)
+  Address = math.floor(Address)
   if (Address < 0) or (Address >= self.RAMSize) then
     return false
   else

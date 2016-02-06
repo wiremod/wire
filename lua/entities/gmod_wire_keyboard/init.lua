@@ -53,6 +53,7 @@ function ENT:TriggerInput(name, value)
 end
 
 function ENT:ReadCell(Address)
+	Address = math.floor(Address)
 	if Address >= 0 and Address < 32 then
 		return self.Buffer[Address] or 0
 	elseif Address >= 32 and Address < 256 then
@@ -63,6 +64,7 @@ function ENT:ReadCell(Address)
 end
 
 function ENT:WriteCell(Address, value)
+	Address = math.floor(Address)
 	if Address == 0 then
 		self:UnshiftBuffer() -- User wants to remove the first key in the buffer
 	else

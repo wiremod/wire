@@ -23,12 +23,14 @@ end
 
 -- Read cell
 function ENT:ReadCell( Address )
+	Address = math.floor(Address)
 	local data = self.Memory[Address or 0] or 0
 	return isnumber(data) and data or 0
 end
 
 -- Write cell
 function ENT:WriteCell( Address, value )
+	Address = math.floor(Address)
 	if self.AllowWrite then
 		self.Memory[Address] = value
 	end

@@ -107,6 +107,7 @@ net.Receive("wire_digitalscreen", function(netlen)
 end)
 
 function ENT:ReadCell(Address,value)
+	Address = math.floor(Address)
 	if Address < 0 then return nil end
 	if Address >= 1048577 then return nil end
 
@@ -114,6 +115,7 @@ function ENT:ReadCell(Address,value)
 end
 
 function ENT:WriteCell(Address,value)
+	Address = math.floor(Address)
 	if Address < 0 then return false end
 	if Address >= 1048577 then return false end
 

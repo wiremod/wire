@@ -89,6 +89,7 @@ function ENT:NotifyDataRecieved(subch)
 end
 
 function ENT:ReadCell(Address)
+	Address = math.floor(Address)
 	if (Address >= 0) && (Address < self.values) then
 		return self.RecievedData[Address].Data
 	else
@@ -97,6 +98,7 @@ function ENT:ReadCell(Address)
 end
 
 function ENT:WriteCell(Address, value)
+	Address = math.floor(Address)
 	if (Address >= 0) && (Address < self.values) then
 		Radio_SendData(self,Address,value)
 		return true

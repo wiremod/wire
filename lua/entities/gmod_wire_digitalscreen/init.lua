@@ -44,6 +44,7 @@ function ENT:SendPixel()
 end
 
 function ENT:ReadCell(Address)
+	Address = math.floor(Address)
 	if Address < 0 then return nil end
 	if Address >= 1048577 then return nil end
 
