@@ -35,7 +35,14 @@ registerOperator("function", "", "", function(self, args)
 		self:LoadScopes(OldScopes) -- Restore the old scope before we throw any errors
 
 		if ok then
-			return
+			-- the statement executed without calling 'return'
+			if returntype == '' then
+				return -- which is okay only if the function has a void return type
+			else
+				error("Function " .. E2Lib.generate_signature(signature, nil, parameters) ..
+				        " executed and didn't return a value - expecting a value of type " ..
+				        E2Lib.typeName(returntype) .. "'", 0)
+			end
 		end
 
 		if message == "return" then
