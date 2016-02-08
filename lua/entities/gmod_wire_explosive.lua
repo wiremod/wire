@@ -5,6 +5,8 @@ ENT.WireDebugName 	= "Explosive"
 
 if CLIENT then return end -- No more client
 
+local wire_explosive_delay = CreateConVar( "wire_explosive_delay", game.SinglePlayer() and 0 or 0.2 )
+
 function ENT:Initialize()
 
 	self:PhysicsInit( SOLID_VPHYSICS )
@@ -23,6 +25,7 @@ function ENT:Initialize()
 	self.ExplodeTime = 0
 	self.ReloadTime = 0
 	self.CountTime = 0
+	self.DisabledByTimeUntil = CurTime()
 
 	self.Inputs = Wire_CreateInputs(self, { "Detonate", "ResetHealth" })
 
@@ -214,7 +217,10 @@ function ENT:Explode( )
 	self:Extinguish()
 
 	if (!self.exploding) then return end //why are we exploding if we shouldn't be
-
+	
+	if self.DisabledByTimeUntil > CurTime() then return end
+	self.DisabledByTimeUntil = CurTime() + wire_explosive_delay:GetFloat()
+	
 	ply = self:GetPlayer() or self
 	if(not IsValid(ply)) then ply = self end;
 
