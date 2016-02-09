@@ -25,7 +25,6 @@ function ENT:Initialize()
 	self.ExplodeTime = 0
 	self.ReloadTime = 0
 	self.CountTime = 0
-	self.DisabledByTimeUntil = CurTime()
 
 	self.Inputs = Wire_CreateInputs(self, { "Detonate", "ResetHealth" })
 
@@ -217,10 +216,7 @@ function ENT:Explode( )
 	self:Extinguish()
 
 	if (!self.exploding) then return end //why are we exploding if we shouldn't be
-	
-	if self.DisabledByTimeUntil > CurTime() then return end
-	self.DisabledByTimeUntil = CurTime() + wire_explosive_delay:GetFloat()
-	
+
 	ply = self:GetPlayer() or self
 	if(not IsValid(ply)) then ply = self end;
 
@@ -246,7 +242,7 @@ function ENT:Explode( )
 	self.exploding = false
 
 	self.reloading = true
-	self.ReloadTime = CurTime() + math.max(1, self.Delayreloadtime)
+	self.ReloadTime = CurTime() + math.max(wire_explosive_delay:GetFloat(), self.Delayreloadtime)
 	// Force reset of counter
 	self.CountTime = 0
 	self:ShowOutput()
