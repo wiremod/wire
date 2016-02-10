@@ -39,7 +39,7 @@ function ENT:FireShot()
 	local Attachment = self:GetAttachment( 1 )
 
 	-- Get the shot angles and stuff.
-	local shootOrigin = Attachment.Pos
+	local shootOrigin = Attachment.Pos + self:GetVelocity() * engine.TickInterval() 
 	local shootAngles = self:GetAngles()
 
 	-- Shoot a bullet
