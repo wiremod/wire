@@ -1,6 +1,6 @@
-/******************************************************************************\
-  Core language support
-\******************************************************************************/
+--------------------------------------------------------------------------------
+--  Core language support
+--------------------------------------------------------------------------------
 
 local delta = wire_expression2_delta
 
@@ -18,7 +18,7 @@ registerOperator("var", "", "", function(self, args)
 	return val
 end)
 
-/******************************************************************************/
+--------------------------------------------------------------------------------
 
 __e2setcost(0)
 
@@ -38,7 +38,7 @@ registerOperator("seq", "", "", function(self, args)
 	return op[1](self, op)
 end)
 
-/******************************************************************************/
+--------------------------------------------------------------------------------
 
 __e2setcost(0) -- approximation
 
@@ -46,7 +46,7 @@ registerOperator("whl", "", "", function(self, args)
 	local op1, op2 = args[2], args[3]
 
 	self.prf = self.prf + args[4] + 3
-	while op1[1](self, op1) != 0 do
+	while op1[1](self, op1) ~= 0 do
 		self:PushScope()
 		local ok, msg = pcall(op2[1], self, op2)
 		if not ok then
@@ -108,7 +108,7 @@ registerOperator("for", "", "", function(self, args)
 
 end)
 
-registerOperator("fea","r","n",function(self,args)
+registerOperator("fea","r","",function(self,args)
 	local keyname,valname,valtypeid = args[2],args[3],args[4]
 	local tbl = args[5]
 	tbl = tbl[1](self,tbl)
@@ -138,8 +138,13 @@ registerOperator("fea","r","n",function(self,args)
 
 			local ok, msg = pcall(statement[1], self, statement)
 			if not ok then
-				if msg == "break" then self:PopScope() break
-				elseif msg ~= "continue" then self:PopScope() error(msg, 0) end
+				if msg == "break" then
+					self:PopScope()
+					break
+				elseif msg ~= "continue" then
+					self:PopScope()
+					error(msg, 0)
+				end
 			end
 		end
 		self:PopScope()
@@ -156,7 +161,7 @@ registerOperator("cnt", "", "", function(self, args)
 	error("continue", 0)
 end)
 
-/******************************************************************************/
+--------------------------------------------------------------------------------
 
 __e2setcost(3) -- approximation
 
@@ -164,20 +169,20 @@ registerOperator("if", "n", "", function(self, args)
 	local op1 = args[3]
 	self.prf = self.prf + args[2]
 
-	local IlikeTrains, result //Yes you do :D
+	local ok, result
 
-	if op1[1](self, op1) != 0 then
+	if op1[1](self, op1) ~= 0 then
 		self:PushScope()
 		local op2 = args[4]
-		IlikeTrains, result = pcall(op2[1],self, op2)
+		ok, result = pcall(op2[1],self, op2)
 	else
 		self:PushScope() -- for else statments, elseif staments will run the if opp again
 		local op3 = args[5]
-		IlikeTrains, result = pcall(op3[1],self, op3)
+		ok, result = pcall(op3[1],self, op3)
 	end
 
 	self:PopScope()
-	if !IlikeTrains then
+	if not ok then
 		error(result,0)
 	end
 end)
@@ -191,7 +196,7 @@ registerOperator("def", "n", "", function(self, args)
 	op1[2][2] = rv2
 	local rv1 = op1[1](self, op1)
 
-	if rv1 != 0 then
+	if rv1 ~= 0 then
 		return rv2
 	else
 		self.prf = self.prf + args[5]
@@ -203,7 +208,7 @@ end)
 registerOperator("cnd", "n", "", function(self, args)
 	local op1 = args[2]
 	local rv1 = op1[1](self, op1)
-	if rv1 != 0 then
+	if rv1 ~= 0 then
 		self.prf = self.prf + args[5]
 		local op2 = args[3]
 		return op2[1](self, op2)
@@ -214,7 +219,7 @@ registerOperator("cnd", "n", "", function(self, args)
 	end
 end)
 
-/******************************************************************************/
+--------------------------------------------------------------------------------
 
 __e2setcost(1) -- approximation
 
@@ -233,11 +238,11 @@ registerOperator("owc","","n",function(self,args)
 	local op1 = args[2]
 	local tbl = self.entity.Outputs[op1].Connected
 	local ret = #tbl
-	for i=1,ret do if (!IsValid(tbl[i].Entity)) then ret = ret - 1 end end
+	for i=1,ret do if (not IsValid(tbl[i].Entity)) then ret = ret - 1 end end
 	return ret
 end)
 
-/******************************************************************************/
+--------------------------------------------------------------------------------
 
 __e2setcost(0) -- cascaded
 
@@ -275,7 +280,7 @@ registerOperator("or", "nn", "n", function(self, args)
 	return rv2 ~= 0 and 1 or 0
 end)
 
-/******************************************************************************/
+--------------------------------------------------------------------------------
 
 __e2setcost(1) -- approximation
 
@@ -344,7 +349,7 @@ e2function void runOnLast(activate)
 	self.data.runOnLast = activate ~= 0
 end
 
-/******************************************************************************/
+--------------------------------------------------------------------------------
 
 __e2setcost(2) -- approximation
 
@@ -356,7 +361,7 @@ e2function void error( string reason )
 	error(reason, 2)
 end
 
-/******************************************************************************/
+--------------------------------------------------------------------------------
 
 __e2setcost(100) -- approximation
 
@@ -381,7 +386,7 @@ registerCallback("postinit", function()
 	end)
 end)
 
-/******************************************************************************/
+--------------------------------------------------------------------------------
 
 local floor  = math.floor
 local ceil   = math.ceil
@@ -481,7 +486,7 @@ registerCallback("postinit", function()
 	end
 end)
 
-/******************************************************************************/
+--------------------------------------------------------------------------------
 
 __e2setcost(3) -- approximation
 

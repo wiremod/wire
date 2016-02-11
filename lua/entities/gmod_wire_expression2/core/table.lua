@@ -37,17 +37,17 @@ local DEFAULT = {n={},ntypes={},s={},stypes={},size=0}
 
 registerType("table", "t", table.Copy(DEFAULT),
 	function(self, input)
-		if (IsEmpty(input)) then
+		if IsEmpty(input) then
 			return table.Copy(DEFAULT)
 		end
 		return input
 	end,
 	nil,
 	function(retval)
-		if !istable(retval) then error("Return value is not a table, but a "..type(retval).."!",0) end
+		if not istable(retval) then error("Return value is not a table, but a "..type(retval).."!", 0) end
 	end,
 	function(v)
-		return !istable(v)
+		return not istable(v)
 	end
 )
 
@@ -284,7 +284,7 @@ end
 
 __e2setcost(nil)
 
-registerOperator("fea","t","s",function(self,args)
+registerOperator("fea","t","",function(self,args)
 	local keyname,valname,valtypeid = args[2],args[3],args[4]
 	local tbl = args[5]
 	tbl = tbl[1](self,tbl)
@@ -360,7 +360,7 @@ end)
 
 __e2setcost(1)
 
--- Creates an table
+-- Creates a table
 e2function table table(...)
 	local tbl = {...}
 	if (#tbl == 0) then return table.Copy(DEFAULT) end
