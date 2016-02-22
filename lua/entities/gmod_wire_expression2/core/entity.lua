@@ -463,11 +463,7 @@ e2function void entity:applyForce(vector force)
 	if not isOwner(self, this) then return nil end
 
 	if check( force ) then
-		if this.IsE2Prop then
-			this.IsE2Prop = true
-		else
-			this.IsE2Prop = 1
-		end
+		this.IsE2Prop = true
 		local phys = this:GetPhysicsObject()
 		phys:ApplyForceCenter(Vector(force[1],force[2],force[3]))
 	end
@@ -478,11 +474,7 @@ e2function void entity:applyOffsetForce(vector force, vector position)
 	if not isOwner(self, this) then return nil end
 
 	if check(force) and check(position) then
-		if this.IsE2Prop then
-			this.IsE2Prop = true
-		else
-			this.IsE2Prop = 1
-		end
+		this.IsE2Prop = true
 		local phys = this:GetPhysicsObject()
 		phys:ApplyForceOffset(Vector(force[1],force[2],force[3]), Vector(position[1],position[2],position[3]))
 	end
@@ -494,11 +486,7 @@ e2function void entity:applyAngForce(angle angForce)
 
 	if angForce[1] == 0 and angForce[2] == 0 and angForce[3] == 0 then return end
 	if not check(angForce) then return end
-	if this.IsE2Prop then
-		this.IsE2Prop = true
-	else
-		this.IsE2Prop = 1
-	end
+	this.IsE2Prop = true
 
 	local phys = this:GetPhysicsObject()
 
@@ -557,11 +545,7 @@ e2function void entity:applyTorque(vector torque)
 	local dir = ( tq:Cross(off) ):GetNormal()
 
 	if not checkv( dir ) or not checkv( off ) then return end
-	if this.IsE2Prop then
-		this.IsE2Prop = true
-	else
-		this.IsE2Prop = 1
-	end
+	this.IsE2Prop = true
 	phys:ApplyForceOffset( dir, off )
 	phys:ApplyForceOffset( dir * -1, off * -1 )
 end
