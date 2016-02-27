@@ -28,12 +28,12 @@ function ENT:FireShot()
 
 	if ( self.NextShot > CurTime() ) then return end
 
-	self.NextShot = CurTime() + self.delay
+	self.NextShot = CurTime() + 0.075
 
 	-- Make a sound if you want to.
-	if self.sound then
-		self:EmitSound(self.sound)
-	end
+	--if self.sound then
+	--	self:EmitSound(self.sound)
+	--end
 
 	-- Get the muzzle attachment (this is pretty much always 1)
 	local Attachment = self:GetAttachment( 1 )
@@ -44,14 +44,14 @@ function ENT:FireShot()
 
 	-- Shoot a bullet
 	local bullet = {}
-		bullet.Num 			= self.numbullets
+		bullet.Num 			= 1
 		bullet.Src 			= shootOrigin
 		bullet.Dir 			= shootAngles:Forward()
-		bullet.Spread 		= self.spreadvector
-		bullet.Tracer		= self.tracernum
-		bullet.TracerName 	= self.tracer
-		bullet.Force		= self.force
-		bullet.Damage		= self.damage
+		bullet.Spread 		= Vector(0.04366, 0.04366, 0)
+		bullet.Tracer		= 1
+		bullet.TracerName 	=  self.tracer
+		bullet.Force		=   20
+		bullet.Damage		= math.min( self.damage, 12)
 		bullet.Attacker 	= self:GetPlayer()
 	self:FireBullets( bullet )
 
@@ -89,7 +89,6 @@ local ValidTracers = {
 	["Tracer"]=true,
 	["AR2Tracer"]=true,
 	["AirboatGunHeavyTracer"]=true,
-	["LaserTracer"]=true,
 	[""]=true,
 }
 

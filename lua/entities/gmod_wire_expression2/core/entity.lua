@@ -119,6 +119,7 @@ end
 // Functions getting vector
 e2function vector entity:pos()
 	if not IsValid(this) then return {0,0,0} end
+	if not isOwner(self, this) and not this:IsPlayer() then return {0,0,0} end
 	return this:GetPos()
 end
 
@@ -168,6 +169,7 @@ __e2setcost(15)
 
 e2function vector entity:toWorld(vector localPosition)
 	if not IsValid(this) then return {0,0,0} end
+	if not isOwner(self, this) and not this:IsPlayer() then return {0,0,0} end
 	return this:LocalToWorld(Vector(localPosition[1],localPosition[2],localPosition[3]))
 end
 
@@ -178,6 +180,7 @@ end
 
 e2function vector entity:toWorldAxis(vector localAxis)
 	if not IsValid(this) then return {0,0,0} end
+	if not isOwner(self, this) and not this:IsPlayer() then return {0,0,0} end
 	return this:LocalToWorld(Vector(localAxis[1],localAxis[2],localAxis[3]))-this:GetPos()
 end
 
@@ -460,6 +463,7 @@ e2function void entity:applyForce(vector force)
 	if not isOwner(self, this) then return nil end
 
 	if check( force ) then
+		this.IsE2Prop = true
 		local phys = this:GetPhysicsObject()
 		phys:ApplyForceCenter(Vector(force[1],force[2],force[3]))
 	end
@@ -470,6 +474,7 @@ e2function void entity:applyOffsetForce(vector force, vector position)
 	if not isOwner(self, this) then return nil end
 
 	if check(force) and check(position) then
+		this.IsE2Prop = true
 		local phys = this:GetPhysicsObject()
 		phys:ApplyForceOffset(Vector(force[1],force[2],force[3]), Vector(position[1],position[2],position[3]))
 	end
@@ -481,6 +486,7 @@ e2function void entity:applyAngForce(angle angForce)
 
 	if angForce[1] == 0 and angForce[2] == 0 and angForce[3] == 0 then return end
 	if not check(angForce) then return end
+	this.IsE2Prop = true
 
 	local phys = this:GetPhysicsObject()
 
@@ -539,6 +545,7 @@ e2function void entity:applyTorque(vector torque)
 	local dir = ( tq:Cross(off) ):GetNormal()
 
 	if not checkv( dir ) or not checkv( off ) then return end
+	this.IsE2Prop = true
 	phys:ApplyForceOffset( dir, off )
 	phys:ApplyForceOffset( dir * -1, off * -1 )
 end
@@ -594,6 +601,7 @@ end
 -- Same as using E:toWorld(E:boxCenter()) in E2, but since Lua runs faster, this is more efficient.
 e2function vector entity:boxCenterW()
 	if not IsValid(this) then return {0,0,0} end
+	if not isOwner(self, this) and not this:IsPlayer() then return {0,0,0} end
 	return this:LocalToWorld(this:OBBCenter())
 end
 
@@ -728,6 +736,7 @@ end
 --- Returns <this>'s attachment position associated with <attachmentID>
 e2function vector entity:attachmentPos(attachmentID)
 	if not IsValid(this) then return { 0, 0, 0 } end
+	if not isOwner(self, this) and not this:IsPlayer() then return {0,0,0} end
 	local attachment = this:GetAttachment(attachmentID)
 	if not attachment then return { 0, 0, 0 } end
 	return attachment.Pos
@@ -745,6 +754,7 @@ end
 --- Same as <this>:attachmentPos(entity:lookupAttachment(<attachmentName>))
 e2function vector entity:attachmentPos(string attachmentName)
 	if not IsValid(this) then return { 0, 0, 0 } end
+	if not isOwner(self, this) and not this:IsPlayer() then return {0,0,0} end
 	local attachment = this:GetAttachment(this:LookupAttachment(attachmentName))
 	if not attachment then return { 0, 0, 0 } end
 	return attachment.Pos
