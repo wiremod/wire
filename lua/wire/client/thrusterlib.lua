@@ -267,15 +267,19 @@ WireLib.ThrusterEffectDraw.fire_smoke = function(self)
 
 	self.SmokeTimer = CurTime() + 0.015
 
-	vOffset = self:LocalToWorld(self:GetOffset()) + Vector( math.Rand( -3, 3 ), math.Rand( -3, 3 ), math.Rand( -3, 3 ) )
-	vNormal = self:CalcNormal()
+	vOffset = vOffset + Vector( math.Rand( -3, 3 ), math.Rand( -3, 3 ), math.Rand( -3, 3 ) )
+	local orth1 = Vector( vNormal.z, vNormal.x, vNormal.y )
+	orth1 = ( orth1 - vNormal * vNormal:Dot(orth1) ):GetNormalized()
+	local orth2 = vNormal:Cross( orth1 )
 
 		local particle = emitter:Add( "particles/smokey", vOffset )
-			particle:SetVelocity( vNormal * math.Rand( 10, 30 ) )
+			particle:SetVelocity( vNormal * math.Rand( 1900, 2000 ) + orth1 * math.Rand( -50, 50 ) + orth2 * math.Rand( -50, 50 ) )
+			particle:SetAirResistance( 60 )
 			particle:SetDieTime( 2.0 )
-			particle:SetStartAlpha( math.Rand( 50, 150 ) )
-			particle:SetStartSize( math.Rand( 8, 16 ) )
-			particle:SetEndSize( math.Rand( 32, 64  ) )
+			particle:SetStartAlpha( math.Rand( 0, 10 ) )
+			particle:SetEndAlpha( 200 )
+			particle:SetStartSize( math.Rand( 16, 24 ) )
+			particle:SetEndSize( math.Rand( 64, 84 ) )
 			particle:SetRoll( math.Rand( -0.2, 0.2 ) )
 			particle:SetColor( 200, 200, 210 )
 end
