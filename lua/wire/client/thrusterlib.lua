@@ -232,7 +232,9 @@ WireLib.ThrusterEffectDraw.fire_smoke = function(self)
 
 	local vOffset = self:LocalToWorld(self:GetOffset())
 	local vNormal = self:CalcNormal()
-	local Magnitude = math.min( self:GetNWFloat("Thrust") / 100000, 100 )
+	
+	self.effectavg = ( self.effectavg * 29 + math.min( self:GetNWFloat("Thrust") / 100000, 100 ) ) / 30
+	local Magnitude = self.effectavg
 
 	local scroll = CurTime() * -10
 

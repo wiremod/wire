@@ -34,6 +34,7 @@ end
 if CLIENT then 
 	function ENT:Initialize()
 		self.ShouldDraw = 1
+		self.effectavg = 0
 
 		local mx, mn = self:GetRenderBounds()
 		self:SetRenderBounds(mn + Vector(0,0,128), mx, 0)
