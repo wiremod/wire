@@ -6,6 +6,7 @@ ENT.WireDebugName	= "Vector Thruster"
 
 function ENT:SetEffect( name )
 	self:SetNetworkedString( "Effect", name )
+	self.neteffect = WireLib.ThrusterNetEffects[ name ]
 end
 function ENT:GetEffect()
 	return self:GetNetworkedString( "Effect" )
@@ -48,6 +49,7 @@ end
 if CLIENT then 
 	function ENT:Initialize()
 		self.ShouldDraw = 1
+		self.EffectAvg = 0
 
 		local mx, mn = self:GetRenderBounds()
 		self:SetRenderBounds(mn + Vector(0,0,128), mx, 0)
@@ -174,6 +176,12 @@ function ENT:SetForce( force, mul )
 	self.ForceLinear, self.ForceAngle = phys:CalculateVelocityOffset( ThrusterWorldForce, ThrusterWorldPos );
 
 	self.ForceLinear = phys:WorldToLocalVector( self.ForceLinear )
+	
+	if self.neteffect then
+		-- self.ForceLinear is 0 if the thruster is frozen
+		self.effectforce = ThrusterWorldForce:Length()
+		self.updateeffect = true
+	end
 end
 
 function ENT:Setup(force, force_min, force_max, oweffect, uweffect, owater, uwater, bidir, soundname, mode, angleinputs)
@@ -250,6 +258,14 @@ function ENT:TriggerInput(iname, value)
 	self.ThrustOffset = self.ThrustNormal + self:GetOffset()
 	if (self.ThrustNormal == Vector(0,0,0)) then self:SetOn( false ) elseif (self.mul != 0) then self:SetOn( true ) end
 	self:Switch( self:IsOn(), self.mul )
+end
+
+function ENT:Think()
+	if self.neteffect and self.updateeffect then
+		self.updateeffect = false
+		self:SetNWFloat("Thrust", self.effectforce)
+	end
+	self:NextThink(CurTime()+0.5)
 end
 
 function ENT:PhysicsSimulate( phys, deltatime )

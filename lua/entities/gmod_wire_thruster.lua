@@ -4,13 +4,13 @@ ENT.PrintName       = "Wire Thruster"
 ENT.RenderGroup 		= RENDERGROUP_BOTH -- TODO: this is only needed when they're active.
 ENT.WireDebugName	= "Thruster"
 
-local net_effects = {
+WireLib.ThrusterNetEffects = {
 	["fire_smoke"] = true
 }
 
 function ENT:SetEffect( name )
 	self:SetNetworkedString( "Effect", name )
-	self.neteffect = net_effects[ name ]
+	self.neteffect = WireLib.ThrusterNetEffects[ name ]
 end
 function ENT:GetEffect( name )
 	return self:GetNetworkedString( "Effect" )
@@ -34,7 +34,7 @@ end
 if CLIENT then 
 	function ENT:Initialize()
 		self.ShouldDraw = 1
-		self.effectavg = 0
+		self.EffectAvg = 0
 
 		local mx, mn = self:GetRenderBounds()
 		self:SetRenderBounds(mn + Vector(0,0,128), mx, 0)
@@ -130,10 +130,12 @@ function ENT:SetForce( force, mul )
 	ThrusterWorldForce = ThrusterWorldForce * self.force * mul * 50
 	self.ForceLinear, self.ForceAngle = phys:CalculateVelocityOffset( ThrusterWorldForce, ThrusterWorldPos );
 	self.ForceLinear = phys:WorldToLocalVector( self.ForceLinear )
-	
-	-- self.ForceLinear is 0 if the thruster is frozen
-	self.effectforce = ThrusterWorldForce:Length()
-	self.updateeffect = true
+
+	if self.neteffect then
+		-- self.ForceLinear is 0 if the thruster is frozen
+		self.effectforce = ThrusterWorldForce:Length()
+		self.updateeffect = true
+	end
 
 	if ( mul > 0 ) then
 		self:SetOffset( self.ThrustOffset )
