@@ -1281,23 +1281,3 @@ concommand.Add("wireversion", function(ply,cmd,args)
 		print(text)
 	end
 end, nil, "Prints the server's Wiremod version")
-
--- This hook fixes a bug where entering a vehicle that is parented to you, or to an entity that is parented to you, will crash the server.
--- Remember to remove this if it's fixed by team garry or in the engine itself
-
-local nextPrint = {} -- used to prevent message spam
-hook.Add( "CanPlayerEnterVehicle", "check vehicle parented to player", function( ply, veh )
-    local parent = veh:GetParent()
-    while IsValid( parent ) do
-        if parent == ply then
-            if not nextPrint[ply] or nextPrint[ply] < RealTime() then
-                WireLib.AddNotify(ply, "You can't enter this vehicle because it is parented to you.", NOTIFY_ERROR, 7, NOTIFYSOUND_ERROR1 ) -- prettier notification
-                --ply:ChatPrint( "You can't enter this vehicle because it is parented to you." )
-                nextPrint[ply] = RealTime() + 0.3
-            end
-            return false
-        end
-        if parent == veh then return end -- parent loop? this should've crashed the server already but okay
-        parent = parent:GetParent()
-    end
-end )
