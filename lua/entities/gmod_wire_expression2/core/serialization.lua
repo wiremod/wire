@@ -421,6 +421,25 @@ end
 
 __e2setcost(50)
 
+-- arrays don't store their values' types, so there are many ambiguous types.
+-- This function removes all values that are ambiguous
+-- (basically only keeps numbers and strings)
+local function jsonEncode_arrays( array )
+	local luatable = {}
+
+	for k,v in pairs( array ) do
+		local tp = type(v)
+
+		if tp == "number" then
+			luatable[k] = v
+		elseif tp == "string" then
+			luatable[k] = v
+		end
+	end
+
+	return luatable
+end
+
 -- this function converts an E2 table into a Lua table (drops arrays)
 local function jsonEncode_recurse( self, data, tp, copied_tables )
 	local luatable = {}
@@ -432,8 +451,7 @@ local function jsonEncode_recurse( self, data, tp, copied_tables )
 		self.prf = self.prf + 0.3
 
 		if data.ntypes[k] == "r" then
-			-- skip arrays, we can't encode them properly because ambiguous types
-			v = nil
+			v = jsonEncode_arrays( v )
 		elseif data.ntypes[k] == "t" then
 			if copied_tables[v] then
 				v = copied_tables[v]
@@ -453,9 +471,7 @@ local function jsonEncode_recurse( self, data, tp, copied_tables )
 		self.prf = self.prf + 0.3
 
 		if data.stypes[k] == "r" then
-			-- skip arrays, we can't encode them properly because E2 has many ambiguous types
-			-- and arrays don't keep track of those types
-			v = nil
+			v = jsonEncode_arrays( v )
 		elseif data.stypes[k] == "t" then
 			if copied_tables[v] then
 				v = copied_tables[v]
