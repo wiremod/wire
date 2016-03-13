@@ -4,13 +4,13 @@
 			Function Creator
 ==============================================================*/
 
-local function Function(A,S,Scopes)
+local function Function(A,S)
 
 	local Func = function(self,args)
 
 		local Variables = {}
 		for K,Data in pairs (A) do
-			local Name, Type, OP = Data[1], Data[2], args[K + 1]
+			local Name, OP = Data[1], args[K + 1]
 			local RV = OP[1](self, OP)
 			Variables[#Variables + 1] = {Name,RV}
 		end
