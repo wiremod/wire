@@ -6,11 +6,11 @@ registerOperator("function", "", "", function(self, args)
 	local statement, args = args[2], args[3]
 	local signature, returntype, parameters = args[3], args[4], args[6]
 
-	self.funcs[signature] = function(self, args)
+	self.funcs[signature] = function(self, arguments)
 		-- First, evaluate each argument in the current (calling) scope
 		local variables = {}
 		for i, data in ipairs(parameters) do
-			local name, expression = data[1], args[i + 1]
+			local name, expression = data[1], arguments[i + 1]
 			local value = expression[1](self, expression)
 			variables[name] = value
 		end
