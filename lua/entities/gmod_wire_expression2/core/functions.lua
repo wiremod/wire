@@ -1,8 +1,12 @@
 -- Implements operators for E2 user-defined functions
 
-local function Function(parameters, statement)
+__e2setcost(20)
+registerOperator("function", "", "", function(self, args)
 
-	local Func = function(self, args)
+	local statement, args = args[2], args[3]
+	local signature, returntype, parameters = args[3], args[4], args[6]
+
+	self.funcs[signature] = function(self, args)
 
 		local variables = {}
 		for i, data in pairs(parameters) do
@@ -42,18 +46,6 @@ local function Function(parameters, statement)
 		end
 
 	end
-
-	return Func
-end
-
-__e2setcost(20)
-registerOperator("function", "", "", function(self, args)
-
-	local statement, args = args[2], args[3]
-	local signature, returntype, parameters = args[3], args[4], args[6]
-
-	self.funcs[signature] = Function(parameters, statement)
-
 end)
 
 __e2setcost(2)
