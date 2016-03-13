@@ -44,7 +44,7 @@ registerOperator("function", "", "", function(self, args)
 		elseif message:find("C stack overflow") then
 			-- a 'C stack overflow' message typically means infinite recursion. To keep things simple for
 			-- users we just phrase this as a regular tick quota error.
-			error("tick quota exceeded", -1)
+			message = "tick quota exceeded"
 		end
 
 		error(message, 0)
