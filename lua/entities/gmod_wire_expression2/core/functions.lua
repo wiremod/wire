@@ -9,7 +9,7 @@ registerOperator("function", "", "", function(self, args)
 	self.funcs[signature] = function(self, args)
 		-- First, evaluate each argument in the current (calling) scope
 		local variables = {}
-		for i, data in pairs(parameters) do
+		for i, data in ipairs(parameters) do
 			local name, expression = data[1], args[i + 1]
 			local value = expression[1](self, expression)
 			variables[name] = value
