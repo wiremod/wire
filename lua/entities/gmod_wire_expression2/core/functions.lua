@@ -1,8 +1,4 @@
-/*==============================================================
-	E2 Function System
-		By Rusketh
-			Function Creator
-==============================================================*/
+-- Implements operators for E2 user-defined functions
 
 local function Function(parameters, statement)
 
@@ -49,14 +45,6 @@ local function Function(parameters, statement)
 
 	return Func
 end
-
-
-
-/*==============================================================
-	E2 Function System
-		By Rusketh
-			General Operators
-==============================================================*/
 
 __e2setcost(20)
 registerOperator("function", "", "", function(self, args)
