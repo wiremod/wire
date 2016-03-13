@@ -12,7 +12,7 @@ registerOperator("function", "", "", function(self, args)
 		for i, data in pairs(parameters) do
 			local name, expression = data[1], args[i + 1]
 			local value = expression[1](self, expression)
-			variables[#variables + 1] = { name, value }
+			variables[name] = value
 		end
 
 		-- Then create a new scope for the body of the function, which consists only of the global
@@ -22,11 +22,10 @@ registerOperator("function", "", "", function(self, args)
 		local OldScopes = self:SaveScopes()
 		self:InitScope()
 		self:PushScope()
-		for I = 1, #variables do
-			local Var = variables[I]
-			self.Scope[Var[1]] = Var[2]
-			self.Scope["$" .. Var[1]] = Var[2]
-			self.Scope.vclk[Var[1]] = true
+		for name, value in pairs(variables) do
+			self.Scope[name] = value
+			self.Scope["$" .. name] = value
+			self.Scope.vclk[name] = true
 		end
 
 		-- Then evaluate the statement to get the return value
