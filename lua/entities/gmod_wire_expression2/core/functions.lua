@@ -36,13 +36,13 @@ registerOperator("function", "", "", function(self, args)
 			return
 		end
 
+		if message == "return" then
+			return self.func_rv
+		end
+
 		if message:find("C stack overflow") then
 			-- a "C stack overflow" error will probably just confuse E2 users more than a "tick quota" error.
 			error("tick quota exceeded", -1)
-		end
-
-		if message == "return" then
-			return self.func_rv
 		end
 
 		error(message, 0)
