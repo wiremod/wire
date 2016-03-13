@@ -42,9 +42,7 @@ registerOperator("function", "", "", function(self, args)
 		if message == "return" then
 			-- return instructions implement early-out with error("return")
 			return self.func_rv
-		end
-
-		if message:find("C stack overflow") then
+		elseif message:find("C stack overflow") then
 			-- a 'C stack overflow' message typically means infinite recursion. To keep things simple for
 			-- users we just phrase this as a regular tick quota error.
 			error("tick quota exceeded", -1)
