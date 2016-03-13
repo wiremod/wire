@@ -32,7 +32,6 @@ registerOperator("function", "", "", function(self, args)
 		self.func_rv = nil
 		local ok, message = pcall(statement[1], self, statement)
 
-		self:PopScope()
 		self:LoadScopes(OldScopes) -- Restore the old scope before we throw any errors
 
 		if ok then
