@@ -438,7 +438,7 @@ local function jsonEncode_recurse( self, data, tp, copied_tables )
 			if copied_tables[v] then
 				v = copied_tables[v]
 			else
-				v = jsonEncodeExternal_recurse( self, v, data.ntypes[k], copied_tables )
+				v = jsonEncode_recurse( self, v, data.ntypes[k], copied_tables )
 			end
 
 		-- convert from E2 type to Lua type
@@ -451,16 +451,16 @@ local function jsonEncode_recurse( self, data, tp, copied_tables )
 
 	for k,v in pairs( data.s ) do
 		self.prf = self.prf + 0.3
-		
-		if data.ntypes[k] == "r" then
+
+		if data.stypes[k] == "r" then
 			-- skip arrays, we can't encode them properly because E2 has many ambiguous types
 			-- and arrays don't keep track of those types
 			v = nil
-		elseif data.ntypes[k] == "t" then
+		elseif data.stypes[k] == "t" then
 			if copied_tables[v] then
 				v = copied_tables[v]
 			else
-				v = jsonEncodeExternal_recurse( self, v, data.stypes[k], copied_tables )
+				v = jsonEncode_recurse( self, v, data.stypes[k], copied_tables )
 			end
 
 		-- convert from E2 type to Lua type
