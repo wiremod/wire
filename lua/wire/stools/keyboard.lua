@@ -15,7 +15,7 @@ if (SERVER) then
 	ModelPlug_Register("Keyboard")
 	
 	function TOOL:GetConVars() 
-		return self:GetClientNumber( "autobuffer" ) ~= 0
+		return self:GetClientNumber( "autobuffer" ) ~= 0, self:GetClientNumber( "sync" ) ~= 0
 	end
 end
 
@@ -32,8 +32,7 @@ WireToolSetup.SetupLinking(true)
 function TOOL.BuildCPanel(panel)
 	ModelPlug_AddToCPanel(panel, "Keyboard", "wire_keyboard", true)
 
-	panel:Help("Lock player controls when keyboard is active")
-	panel:CheckBox("Synchronous", "wire_keyboard_sync")
+	panel:CheckBox("Lock player controls on keyboard", "wire_keyboard_sync")
 
 	local languages = panel:ComboBox("Keyboard Layout", "wire_keyboard_layout")
 	local curlayout = LocalPlayer():GetInfo("wire_keyboard_layout")

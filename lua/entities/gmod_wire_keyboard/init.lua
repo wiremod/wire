@@ -92,7 +92,7 @@ function ENT:PlayerAttach(ply)
 	self:SetOverlayText("In use by " .. ply:Nick())
 
 	-- Block keyboard input
-	if ply:GetInfoNum("wire_keyboard_sync", 1) == 1 then
+	if self.Synchronous then
 		net.Start("wire_keyboard_blockinput")
 			net.WriteBit(true)
 		net.Send(ply)
@@ -324,11 +324,12 @@ function ENT:Think()
 	return true
 end
 
-function ENT:Setup(autobuffer)
+function ENT:Setup(autobuffer, sync)
 	self.AutoBuffer = autobuffer
+	self.Synchronous = sync
 end
 
-duplicator.RegisterEntityClass("gmod_wire_keyboard", WireLib.MakeWireEnt, "Data", "AutoBuffer")
+duplicator.RegisterEntityClass("gmod_wire_keyboard", WireLib.MakeWireEnt, "Data", "AutoBuffer", "Synchronous")
 
 function ENT:BuildDupeInfo()
 	local info = self.BaseClass.BuildDupeInfo(self) or {}
