@@ -61,7 +61,7 @@ end)
 
 registerOperator("ass", "xv2", "xv2", function(self, args)
 	local op1, op2, scope = args[2], args[3], args[4]
-	local      rv2 = op2[1](self, op2)
+	local      rv2 = op2[1](self, op2) or { 0, 0 }
 	self.Scopes[scope][op1] = rv2
 	self.Scopes[scope].vclk[op1] = true
 	return rv2
@@ -599,7 +599,7 @@ end)
 
 registerOperator("ass", "xv4", "xv4", function(self, args)
 	local op1, op2, scope = args[2], args[3], args[4]
-	local      rv2 = op2[1](self, op2)
+	local      rv2 = op2[1](self, op2) or { 0, 0, 0, 0 }
 	self.Scopes[scope][op1] = rv2
 	self.Scopes[scope].vclk[op1] = true
 	return rv2
