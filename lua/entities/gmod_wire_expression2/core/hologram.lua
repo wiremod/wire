@@ -1,4 +1,4 @@
-E2Lib.RegisterExtension( "holo", true )
+E2Lib.RegisterExtension( "holo", true, "Allows E2 to create and manipulate non-solid models." )
 
 -- -----------------------------------------------------------------------------
 

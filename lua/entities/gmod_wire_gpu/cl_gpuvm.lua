@@ -43,7 +43,7 @@ function ENT:OverrideVM()
     if self.ASYNC == 1 then
       if self.EntryPoint5 > 0 then
         self.IP = self.EntryPoint5
-        self.LADD = interruptParameter
+        self.LADD = interruptParameter or self.XEIP
         self.LINT = interruptNo
       else
         -- Shutdown asynchronous thread
@@ -52,7 +52,7 @@ function ENT:OverrideVM()
     else
       if self.EntryPoint3 > 0 then
         self.IP = self.EntryPoint3
-        self.LADD = interruptParameter
+        self.LADD = interruptParameter or self.XEIP
         self.LINT = interruptNo
       else
         if (interruptNo == 2) and (self.XEIP == 0) then self.INTR = 1 return end
@@ -64,7 +64,7 @@ function ENT:OverrideVM()
 		  
           draw.DrawText("Error in the instruction stream","WireGPU_ErrorFont",48,16,Color(255,255,255,255))
           draw.DrawText((self.ErrorText[interruptNo] or "Unknown error").." (#"..interruptNo..")","WireGPU_ErrorFont",16,16+32*2,Color(255,255,255,255))
-          draw.DrawText("Parameter: "..interruptParameter,"WireGPU_ErrorFont",16,16+32*3,Color(255,255,255,255))
+          draw.DrawText("Parameter: "..(interruptParameter or 0),"WireGPU_ErrorFont",16,16+32*3,Color(255,255,255,255))
           draw.DrawText("Address: "..self.XEIP,"WireGPU_ErrorFont",16,16+32*4,Color(255,255,255,255))
 
           local errorPosition = CPULib.Debugger.PositionByPointer[self.XEIP]
@@ -584,6 +584,9 @@ function VM:HardReset()
 
   -- Has initialized already
   self.INIT = 0
+  
+  -- Reset async thread
+  self.AsyncState = nil
 end
 
 
@@ -828,14 +831,14 @@ function VM:ReadString(address)
 
   while currentChar ~= 0 do
     currentChar = self:ReadCell(address + charCount)
-
-    if currentChar and currentChar < 255 then
+    -- Reading failed
+    if not currentChar then
+    	return
+    elseif currentChar > 0 and currentChar < 255 then
       charString = charString .. string.char(currentChar)
-    else
-      if currentChar ~= 0 then
+    elseif currentChar ~= 0 then
         self:Interrupt(23,currentChar)
         return ""
-      end
     end
 
     charCount = charCount + 1

@@ -287,7 +287,7 @@ function ENT:Initialize()
 	self.Outputs = WireLib.CreateOutputs( self, { 	"On", "HitPos [VECTOR]", "CamPos [VECTOR]", "CamDir [VECTOR]", 
 													"CamAng [ANGLE]", "Trace [RANGER]" } )
 	self.Inputs = WireLib.CreateInputs( self, {	"Activated", "Direction [VECTOR]", "Angle [ANGLE]", "Position [VECTOR]",
-												"Distance", "Parent [ENTITY]", "FLIR", "FOV" } )
+												"Distance", "Parent [ENTITY]", "FilterEntities [ARRAY]", "FLIR", "FOV" } )
 
 	self.Activated = false -- Whether or not to activate the cam controller for all players sitting in linked vehicles, or as soon as a player sits in a linked vehicle
 	self.Active = false -- Whether the player is currently being shown the camera view.
@@ -417,6 +417,13 @@ function ENT:GetContraption()
 	local ents = constraint.GetAllConstrainedEntities( parent )
 	for k,v in pairs( ents ) do
 		self.Entities[#self.Entities+1] = v
+	end
+	if self.Inputs.FilterEntities and self.Inputs.FilterEntities.Value then
+		for k,v in pairs( self.Inputs.FilterEntities.Value ) do
+			if IsEntity( v ) and IsValid( v ) then
+				self.Entities[#self.Entities+1] = v
+			end
+		end
 	end
 end
 
@@ -610,6 +617,10 @@ end
 --------------------------------------------------
 
 function ENT:EnableCam( ply )
+	-- if we're in the middle of being pasted, then there may be linked vehicles
+	-- that we don't know about yet so we just ignore the call. See wiremod/wire#1062
+	if self.DuplicationInProgress then return end
+
 	if #self.Vehicles == 0 and not ply then -- if the cam controller isn't linked, it controls the owner's view
 		ply = self:GetPlayer()
 	end

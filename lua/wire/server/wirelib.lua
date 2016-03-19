@@ -244,11 +244,7 @@ function WireLib.AdjustSpecialOutputs(ent, names, types, descs)
 
 		if (ent_ports[name]) then
 			if tp ~= ent_ports[name].Type then
-				for i,inp in ipairs(ent_ports[name].Connected) do
-					if (IsValid(inp.Entity)) then
-						WireLib.Link_Clear(inp.Entity, inp.Name)
-					end
-				end
+				WireLib.DisconnectOutput(ent, name)
 				ent_ports[name].Type = tp
 			end
 			ent_ports[name].Keep = true
@@ -281,12 +277,7 @@ function WireLib.AdjustSpecialOutputs(ent, names, types, descs)
 		if (port.Keep) then
 			port.Keep = nil
 		else
-			-- fix by Syranide: unlinks wires of removed outputs
-			for i,inp in ipairs(port.Connected) do
-				if (IsValid(inp.Entity)) then
-					WireLib.Link_Clear(inp.Entity, inp.Name)
-				end
-			end
+			WireLib.DisconnectOutput(ent, portname)
 			ent_ports[portname] = nil
 		end
 	end
@@ -296,14 +287,27 @@ function WireLib.AdjustSpecialOutputs(ent, names, types, descs)
 	return ent_ports
 end
 
+--- Disconnects all wires from the given output.
+function WireLib.DisconnectOutput(entity, output_name)
+	local output = entity.Outputs[output_name]
+	if output == nil then return end
+	for _, input in pairs_consume(output.Connected) do
+		if IsValid(input.Entity) then
+			WireLib.Link_Clear(input.Entity, input.Name)
+		end
+	end
+end
 
 function WireLib.RetypeInputs(ent, iname, itype, descs)
 	if not HasPorts(ent) then return end
 
 	local ent_ports = ent.Inputs
 	if (not ent_ports[iname]) or (not itype) then return end
+	if itype ~= ent_ports[iname].Type then
+		WireLib.Link_Clear(ent, iname)
+		ent_ports[iname].Type = itype
+	end
 	ent_ports[iname].Desc = descs
-	ent_ports[iname].Type = itype
 	ent_ports[iname].Value = WireLib.DT[itype].Zero
 
 	WireLib._SetInputs(ent)
@@ -315,8 +319,11 @@ function WireLib.RetypeOutputs(ent, oname, otype, descs)
 
 	local ent_ports = ent.Outputs
 	if (not ent_ports[oname]) or (not otype) then return end
+	if otype ~= ent_ports[oname].Type then
+		WireLib.DisconnectOutput(ent, oname)
+		ent_ports[oname].Type = otype
+	end
 	ent_ports[oname].Desc = descs
-	ent_ports[oname].Type = otype
 	ent_ports[oname].Value = WireLib.DT[otype].Zero
 
 	WireLib._SetOutputs(ent)
@@ -717,7 +724,7 @@ end
 
 function WireLib.WireAll(ply, ient, oent, ipos, opos, material, color, width)
 	if not IsValid(ient) or not IsValid(oent) or not ient.Inputs or not oent.Outputs then return false end
-	
+
 	for iname, _ in pairs(ient.Inputs) do
 		if oent.Outputs[iname] then
 			WireLib.Link_Start(ply:UniqueID(), ient, ipos, iname, material or "arrowire/arrowire2", color or Color(255,255,255), width or 0)
@@ -825,7 +832,7 @@ function WireLib.ApplyDupeInfo( ply, ent, info, GetEntByID )
 	if (info.Wires) then
 		for k,input in pairs(info.Wires) do
 			local ent2 = GetEntByID(input.Src)
-			
+
 			-- Input alias
 			if ent.Inputs and not ent.Inputs[k] then -- if the entity has any inputs and the input 'k' is not one of them...
 				if ent.InputAliases and ent.InputAliases[k] then
@@ -835,13 +842,13 @@ function WireLib.ApplyDupeInfo( ply, ent, info, GetEntByID )
 					continue
 				end
 			end
-			
+
 			if IsValid( ent2 ) then
 				-- Wirelink and entity outputs
-				
+
 				-- These are required if whichever duplicator you're using does not do entity modifiers before it runs PostEntityPaste
 				-- because if so, the wirelink and entity outputs may not have been created yet
-				
+
 				if input.SrcId == "link" or input.SrcId == "wirelink" then -- If the target entity has no wirelink output, create one (& more old dupe compatibility)
 					input.SrcId = "wirelink"
 					if not ent2.extended then
@@ -850,7 +857,7 @@ function WireLib.ApplyDupeInfo( ply, ent, info, GetEntByID )
 				elseif input.SrcId == "entity" and ((ent2.Outputs and not ent2.Outputs.entity) or not ent2.Outputs) then -- if the input name is 'entity', and the target entity doesn't have that output...
 					WireLib.CreateEntityOutput( ply, ent2, {true} )
 				end
-				
+
 				-- Output alias
 				if ent2.Outputs and not ent2.Outputs[input.SrcId] then -- if the target entity has any outputs and the output 'input.SrcId' is not one of them...
 					if ent2.OutputAliases and ent2.OutputAliases[input.SrcId] then
@@ -861,7 +868,7 @@ function WireLib.ApplyDupeInfo( ply, ent, info, GetEntByID )
 					end
 				end
 			end
-			
+
 			WireLib.Link_Start(idx, ent, input.StartPos, k, input.Material, input.Color, input.Width)
 
 			if input.Path then
@@ -1130,10 +1137,10 @@ end
 function WireLib.MakeWireEnt( pl, Data, ... )
 	Data.Class = scripted_ents.Get(Data.Class).ClassName
 	if IsValid(pl) and not pl:CheckLimit(Data.Class:sub(6).."s") then return false end
-	
+
 	local ent = ents.Create( Data.Class )
 	if not IsValid(ent) then return false end
-	
+
 	duplicator.DoGeneric( ent, Data )
 	ent:Spawn()
 	ent:Activate()
@@ -1163,9 +1170,9 @@ function WireLib.AddInputAlias( class, old, new )
 		old = class
 		class = nil
 	end
-	
+
 	local ENT_table
-	
+
 	if not class and ENT then
 		ENT_table = ENT
 	elseif isstring( class ) then
@@ -1176,7 +1183,7 @@ function WireLib.AddInputAlias( class, old, new )
 		error( "Invalid class or entity specified" )
 		return
 	end
-	
+
 	if not ENT_table.InputAliases then ENT_table.InputAliases = {} end
 	ENT_table.InputAliases[old] = new
 end
@@ -1191,9 +1198,9 @@ function WireLib.AddOutputAlias( class, old, new )
 		old = class
 		class = nil
 	end
-	
+
 	local ENT_table
-	
+
 	if not class and ENT then
 		ENT_table = ENT
 	elseif isstring( class ) then
@@ -1204,7 +1211,7 @@ function WireLib.AddOutputAlias( class, old, new )
 		error( "Invalid class or entity specified" )
 		return
 	end
-	
+
 	if not ENT_table.OutputAliases then ENT_table.OutputAliases = {} end
 	ENT_table.OutputAliases[old] = new
 end
@@ -1233,7 +1240,7 @@ function WireLib.GetVersion()
 			return cachedversion
 		end
 	end
-	
+
 	-- Find what our legacy folder is called
 	local wirefolder = "addons/wire"
 	if not file.Exists(wirefolder, "GAME") then
@@ -1244,7 +1251,7 @@ function WireLib.GetVersion()
 			end
 		end
 	end
-	
+
 	if file.Exists(wirefolder, "GAME") then
 		if file.Exists(wirefolder.."/.git", "GAME") then
 			cachedversion = "Git "..(file.Read(wirefolder.."/.git/refs/heads/master", "GAME") or "Unknown"):sub(1,7)
@@ -1261,36 +1268,16 @@ function WireLib.GetVersion()
 			cachedversion = "Extracted"
 		end
 	end
-	
+
 	if not cachedversion then cachedversion = "Unknown" end
-	
+
 	return cachedversion
 end
 concommand.Add("wireversion", function(ply,cmd,args)
 	local text = "Wiremod's version: '"..WireLib.GetVersion().."'"
-	if IsValid(ply) then 
+	if IsValid(ply) then
 		ply:ChatPrint(text)
 	else
 		print(text)
 	end
 end, nil, "Prints the server's Wiremod version")
-
--- This hook fixes a bug where entering a vehicle that is parented to you, or to an entity that is parented to you, will crash the server.
--- Remember to remove this if it's fixed by team garry or in the engine itself
-
-local nextPrint = {} -- used to prevent message spam
-hook.Add( "CanPlayerEnterVehicle", "check vehicle parented to player", function( ply, veh )
-    local parent = veh:GetParent()
-    while IsValid( parent ) do
-        if parent == ply then
-            if not nextPrint[ply] or nextPrint[ply] < RealTime() then
-                WireLib.AddNotify(ply, "You can't enter this vehicle because it is parented to you.", NOTIFY_ERROR, 7, NOTIFYSOUND_ERROR1 ) -- prettier notification
-                --ply:ChatPrint( "You can't enter this vehicle because it is parented to you." )
-                nextPrint[ply] = RealTime() + 0.3
-            end
-            return false
-        end
-        if parent == veh then return end -- parent loop? this should've crashed the server already but okay
-        parent = parent:GetParent()
-    end
-end )

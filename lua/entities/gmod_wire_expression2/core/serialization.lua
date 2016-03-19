@@ -1,4 +1,4 @@
-E2Lib.RegisterExtension("serialization", true)
+E2Lib.RegisterExtension("serialization", true, "Adds functions to serialize data structures into a string and back again.")
 
 -- GLON output validation
 local DEFAULT = {n={},ntypes={},s={},stypes={},size=0}
@@ -33,15 +33,34 @@ local function logGlonCall( self, glonString, ret, safeGlonObject )
 end
 ]]
 
+-- this conversions table is used by luaTypeToWireTypeid
+local conversions = {
+	-- convert boolean to number
+	boolean = function( v ) return "normal", v and 1 or 0 end,
+
+	-- these probably won't happen, but just in case
+	Player = function( v ) return "Entity" end,
+	NPC = function( v ) return "Entity" end,
+}
+
 -- converts a lua variable's type to a wire typeid
+-- also returns v. v may have been modified in the process (converting boolean to number, for example)
 local function luaTypeToWireTypeid( v )
 	local typename = type( v )
+
+	if conversions[typename] then
+		local new_val
+		typename, new_val = conversions[typename]( v )
+		if new_val ~= nil then
+			v = new_val
+		end
+	end
 
 	-- special check for number
 	if typename == "number" then typename = "normal" end
 
 	-- convert full type name to typeid
-	return wire_expression_types[ string.upper( typename ) ][1]
+	return wire_expression_types[ string.upper( typename ) ][1], v
 end
 
 local forbiddenTypes = {
@@ -154,7 +173,7 @@ typeSanitizers = {
 				if !istable(glonOutputObject) then return safeTable end
 
 				for k, v in pairs(glonOutputObject) do
-					local objectType = luaTypeToWireTypeid( v )
+					local objectType, v = luaTypeToWireTypeid( v )
 					if objectType == "t" then objectType = "external_t" end
 
 					local safeObject = sanitizeGlonOutput( self, v, objectType, safeGlonObjectMap )
@@ -402,6 +421,25 @@ end
 
 __e2setcost(50)
 
+-- arrays don't store their values' types, so there are many ambiguous types.
+-- This function removes all values that are ambiguous
+-- (basically only keeps numbers and strings)
+local function jsonEncode_arrays( array )
+	local luatable = {}
+
+	for k,v in pairs( array ) do
+		local tp = type(v)
+
+		if tp == "number" then
+			luatable[k] = v
+		elseif tp == "string" then
+			luatable[k] = v
+		end
+	end
+
+	return luatable
+end
+
 -- this function converts an E2 table into a Lua table (drops arrays)
 local function jsonEncode_recurse( self, data, tp, copied_tables )
 	local luatable = {}
@@ -413,13 +451,12 @@ local function jsonEncode_recurse( self, data, tp, copied_tables )
 		self.prf = self.prf + 0.3
 
 		if data.ntypes[k] == "r" then
-			-- skip arrays, we can't encode them properly because ambiguous types
-			v = nil
+			v = jsonEncode_arrays( v )
 		elseif data.ntypes[k] == "t" then
 			if copied_tables[v] then
 				v = copied_tables[v]
 			else
-				v = jsonEncodeExternal_recurse( self, v, data.ntypes[k], copied_tables )
+				v = jsonEncode_recurse( self, v, data.ntypes[k], copied_tables )
 			end
 
 		-- convert from E2 type to Lua type
@@ -432,16 +469,14 @@ local function jsonEncode_recurse( self, data, tp, copied_tables )
 
 	for k,v in pairs( data.s ) do
 		self.prf = self.prf + 0.3
-		
-		if data.ntypes[k] == "r" then
-			-- skip arrays, we can't encode them properly because E2 has many ambiguous types
-			-- and arrays don't keep track of those types
-			v = nil
-		elseif data.ntypes[k] == "t" then
+
+		if data.stypes[k] == "r" then
+			v = jsonEncode_arrays( v )
+		elseif data.stypes[k] == "t" then
 			if copied_tables[v] then
 				v = copied_tables[v]
 			else
-				v = jsonEncodeExternal_recurse( self, v, data.stypes[k], copied_tables )
+				v = jsonEncode_recurse( self, v, data.stypes[k], copied_tables )
 			end
 
 		-- convert from E2 type to Lua type
@@ -472,7 +507,7 @@ local function jsonDecode_recurse( self, luatable, copied_tables )
 	local wire_expression_types = wire_expression_types
 
 	for k,v in pairs( luatable ) do
-		local typeid = luaTypeToWireTypeid( v )
+		local typeid, v = luaTypeToWireTypeid( v )
 
 		-- if it's a table, recurse through it and convert all the tables it contains
 		if typeid == "t" then

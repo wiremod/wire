@@ -59,18 +59,23 @@ if SERVER then
 
 		return ent
 	end
-	
+
 	-- Default MakeEnt function, override to use a different MakeWire* function
 	function WireToolObj:MakeEnt( ply, model, Ang, trace )
-		return WireLib.MakeWireEnt( ply, {Class = self.WireClass, Pos=trace.HitPos, Angle=Ang, Model=model}, self:GetConVars() )
+		local ent = WireLib.MakeWireEnt( ply, {Class = self.WireClass, Pos=trace.HitPos, Angle=Ang, Model=model}, self:GetConVars() )
+		if ent.RestoreNetworkVars then ent:RestoreNetworkVars(self:GetDataTables()) end
+		return ent
 	end
 
 	function WireToolObj:GetConVars() return end
-	
+
+	function WireToolObj:GetDataTables() return {} end
+
 	--
 	-- to prevent update, set TOOL.NoLeftOnClass = true
 	function WireToolObj:LeftClick_Update( trace )
 		if trace.Entity.Setup then trace.Entity:Setup(self:GetConVars()) end
+		if trace.Entity.RestoreNetworkVars then trace.Entity:RestoreNetworkVars(self:GetDataTables()) end
 	end
 
 	--
@@ -93,7 +98,7 @@ if SERVER then
 		elseif not self:GetOwner():KeyDown(IN_WALK) then
 			-- Welding
 			const = WireLib.Weld( ent, trace.Entity, trace.PhysicsBone, true, false, self:GetOwner():GetInfo( "wire_tool_weldworld" )~="0" )
-			
+
 			-- Nocollide All
 			if self:GetOwner():GetInfo( "wire_tool_nocollide" )~="0" then
 				ent:SetCollisionGroup( COLLISION_GROUP_WORLD )
@@ -225,7 +230,7 @@ end
 
 function WireToolObj:GetAngle( trace )
 	local Ang
-	if math.abs(trace.HitNormal.x) < 0.001 and math.abs(trace.HitNormal.y) < 0.001 then 
+	if math.abs(trace.HitNormal.x) < 0.001 and math.abs(trace.HitNormal.y) < 0.001 then
 		Ang = Vector(0,0,trace.HitNormal.z):Angle()
 	else
 		Ang = trace.HitNormal:Angle()
@@ -248,7 +253,7 @@ function WireToolObj:GetAngle( trace )
 	else
 		Ang.pitch = Ang.pitch + 90
 	end
-	
+
 	return Ang
 end
 
@@ -284,7 +289,7 @@ if CLIENT then
 	function WireToolObj:DrawToolScreen(width, height)
 		surface.SetTexture(txBackground)
 		surface.DrawTexturedRect(0, 0, width, height)
-		
+
 		local text = self.Name
 		if self.ScreenFont then
 			surface.SetFont(self.ScreenFont)
@@ -301,21 +306,21 @@ if CLIENT then
 		local w, h = surface.GetTextSize(text)
 		local x = width/2 - w/2
 		local y = 105 - h/2
-		
+
 		-- Draw shadow first
 		surface.SetTextColor(0, 0, 0, 255)
 		surface.SetTextPos(x + 3, y + 3)
 		surface.DrawText(text)
-			
+
 		surface.SetTextColor(255, 255, 255, 255)
 		surface.SetTextPos(x, y)
 		surface.DrawText(text)
-		
+
 		iconparams[ "$basetexture" ] = "spawnicons/"..self:GetModel():sub(1,-5)
 		local mat = CreateMaterial(self:GetModel() .. "_DImage", "UnlitGeneric", iconparams )
 		surface.SetMaterial(mat)
 		surface.DrawTexturedRect( 128 - 32, 150, 64, 64)
-		
+
 		local on = self:GetOwner():GetInfo( "wire_tool_weldworld" )~="0" and not self:GetOwner():KeyDown(IN_WALK)
 		draw.DrawText("World Weld:  "..(on and "On" or "Off"),
 			"GmodToolScreen20",
@@ -329,12 +334,12 @@ if CLIENT then
 			Color(on and 150 or 255, on and 255 or 150, 150, 255)
 		)
 	end
-	
+
 	CreateClientConVar( "wire_tool_weldworld", "0", true, true )
 	CreateClientConVar( "wire_tool_nocollide", "1", true, true )
 	local function CreateCPanel_WireOptions( Panel )
 		Panel:ClearControls()
-		
+
 		Panel:Help("Hold Alt while spawning Wire entities\nto disable Weld and Nocollide All")
 		Panel:CheckBox("Allow Weld to World", "wire_tool_weldworld")
 		Panel:CheckBox("Nocollide All", "wire_tool_nocollide")
@@ -378,7 +383,7 @@ if CLIENT then
 		end
 		panel:AddPanel( ctrl )
 	end
-	
+
 	function WireToolHelpers.MakeModelSizer(panel, convar)
 		return panel:AddControl("ListBox", {
 			Label = "Model Size",
@@ -405,13 +410,19 @@ WireToolSetup = {}
 -- sets the ToolCategory for every wire tool made fallowing its call
 function WireToolSetup.setCategory( s_cat, ... )
 	WireToolSetup.cat = s_cat
-	
+
 	local categories = {...}
 	if #categories > 0 then
 		WireToolSetup.Wire_MultiCategories = categories
 	else
 		WireToolSetup.Wire_MultiCategories = nil
 	end
+end
+
+-- Sets the icon for the current tool
+function WireToolSetup.setToolMenuIcon( icon )
+	if SERVER then return end
+	TOOL.Wire_ToolMenuIcon = icon
 end
 
 -- makes a new TOOL
@@ -482,7 +493,7 @@ function WireToolSetup.SetupLinking(SingleLink)
 		language.Add( "Tool."..TOOL.Mode..".0", "Primary: Create "..TOOL.Name..", Secondary: Link entities, Reload: Unlink entities" )
 		language.Add( "Tool."..TOOL.Mode..".1", "Now select the entity to link to" .. (SingleLink and "" or " (Tip: Hold shift to link to more entities)"))
 		language.Add( "Tool."..TOOL.Mode..".2", "Now select the entity to unlink" .. (SingleLink and "" or " (Tip: Hold shift to unlink from more entities). Reload on the same controller again to clear all linked entities." ))
-		
+
 		function TOOL:DrawHUD()
 			local trace = self:GetOwner():GetEyeTrace()
 			if self:CheckHitOwnClass(trace) and trace.Entity.Marks then
@@ -497,7 +508,7 @@ function WireToolSetup.SetupLinking(SingleLink)
 			end
 		end
 	end
-	
+
 	function TOOL:RightClick(trace)
 		if not trace.HitPos or not IsValid(trace.Entity) or trace.Entity:IsPlayer() then return false end
 		if CLIENT then return true end
@@ -527,9 +538,9 @@ function WireToolSetup.SetupLinking(SingleLink)
 	end
 
 	function TOOL:Reload(trace)
-		if not trace.HitPos or not IsValid(trace.Entity) or trace.Entity:IsPlayer() then 
+		if not trace.HitPos or not IsValid(trace.Entity) or trace.Entity:IsPlayer() then
 			self:SetStage(0)
-			return false 
+			return false
 		end
 		if CLIENT then return true end
 		local ent = trace.Entity
@@ -558,7 +569,7 @@ function WireToolSetup.SetupLinking(SingleLink)
 			return success
 		end
 	end
-	
+
 	if not SingleLink then
 		function TOOL:Think()
 			if self.HasLinked then

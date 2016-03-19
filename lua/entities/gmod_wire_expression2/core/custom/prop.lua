@@ -3,7 +3,7 @@ Prop Core by MrFaul started by ZeikJT
 report any wishes, issues to Mr.Faul@gmx.de (GER or ENG pls)
 \******************************************************************************/
 
-E2Lib.RegisterExtension("propcore", false)
+E2Lib.RegisterExtension("propcore", false, "Allows E2 chips to create and manipulate props", "Can be used to teleport props to arbitrary locations, including other player's faces")
 PropCore = {}
 local sbox_E2_maxProps = CreateConVar( "sbox_E2_maxProps", "-1", FCVAR_ARCHIVE )
 local sbox_E2_maxPropsPerSecond = CreateConVar( "sbox_E2_maxPropsPerSecond", "4", FCVAR_ARCHIVE )
@@ -126,15 +126,17 @@ end
 
 function PropCore.PhysManipulate(this, pos, rot, freeze, gravity, notsolid)
 	local phys = this:GetPhysicsObject()
-	if pos ~= nil then E2Lib.setPos( phys, Vector( pos[1],pos[2],pos[3] ) ) end
-	if rot ~= nil then E2Lib.setAng( phys,  Angle( rot[1],rot[2],rot[3] ) ) end
-	if freeze ~= nil then phys:EnableMotion( freeze == 0 ) end
-	if gravity ~= nil then phys:EnableGravity( gravity ~= 0 ) end
-	if notsolid ~= nil then this:SetSolid( notsolid ~= 0 and SOLID_NONE or SOLID_VPHYSICS ) end
-	phys:Wake()
-	if !phys:IsMoveable() then
-		phys:EnableMotion( true )
-		phys:EnableMotion( false )
+	if IsValid( phys ) then
+		if pos ~= nil then E2Lib.setPos( phys, Vector( pos[1],pos[2],pos[3] ) ) end
+		if rot ~= nil then E2Lib.setAng( phys,  Angle( rot[1],rot[2],rot[3] ) ) end
+		if freeze ~= nil and this:GetUnFreezable() ~= true then phys:EnableMotion( freeze == 0 ) end
+		if gravity ~= nil then phys:EnableGravity( gravity ~= 0 ) end
+		if notsolid ~= nil then this:SetSolid( notsolid ~= 0 and SOLID_NONE or SOLID_VPHYSICS ) end
+		phys:Wake()
+		if !phys:IsMoveable() then
+			phys:EnableMotion( true )
+			phys:EnableMotion( false )
+		end
 	end
 end
 
@@ -324,6 +326,16 @@ e2function number entity:propGetFriction()
 	return this:GetFriction()
 end
 
+e2function void entity:propSetElasticity(number elasticity)
+	if not PropCore.ValidAction(self, this, "elasticity") then return end
+	this:SetElasticity( math.Clamp(elasticity, -1000, 1000) )
+end
+
+e2function number entity:propGetElasticity()
+	if not PropCore.ValidAction(self, this, "elasticity") then return end
+	return this:GetElasticity()
+end
+
 e2function void entity:propMakePersistent(number persistent)
 	if not PropCore.ValidAction(self, this, "persist") then return end
 	if GetConVarString("sbox_persist") == "0" then return end
@@ -341,6 +353,27 @@ e2function string entity:propPhysicalMaterial()
 	local phys = this:GetPhysicsObject()
 	if IsValid(phys) then return phys:GetMaterial() or "" end
 	return ""
+end
+
+hook.Add( "CanDrive", "checkPropStaticE2", function( ply, ent ) if ent.propStaticE2 ~= nil then return false end end )
+e2function void entity:propStatic( number static )
+	if not PropCore.ValidAction( self, this, "static" ) then return end
+	if static ~= 0 and this.propStaticE2 == nil then
+		local phys = this:GetPhysicsObject()
+		this.propStaticE2 = phys:IsMotionEnabled()
+		this.PhysgunDisabled = true
+		this:SetUnFreezable( true )
+		phys:EnableMotion( false )
+	elseif this.propStaticE2 ~= nil then
+		this.PhysgunDisabled = false
+		this:SetUnFreezable( false )
+		if this.propStaticE2 == true then
+			local phys = this:GetPhysicsObject()
+			phys:Wake()
+			phys:EnableMotion( true )
+		end
+		this.propStaticE2 = nil
+	end
 end
 
 --------------------------------------------------------------------------------
@@ -371,10 +404,20 @@ local function parent_check( child, parent )
 	return true
 end
 
+local function parent_antispam( child )
+	if (child.E2_propcore_antispam or 0) > CurTime() then
+		return false
+	end
+
+	child.E2_propcore_antispam = CurTime() + 0.06
+	return true
+end
+
 e2function void entity:parentTo(entity target)
 	if not PropCore.ValidAction(self, this, "parent") then return end
 	if not IsValid(target) then return nil end
 	if(!isOwner(self, target)) then return end
+	if not parent_antispam( this ) then return end
 	if this == target then return end
 	if (!parent_check( this, target )) then return end
 	this:SetParent(target)

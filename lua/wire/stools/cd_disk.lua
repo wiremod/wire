@@ -6,6 +6,8 @@ if (CLIENT) then
     language.Add("Tool.wire_cd_disk.desc", "Spawns a CD Disk.")
     language.Add("Tool.wire_cd_disk.0", "Primary: Create/Update CD Disk, Secondary: Change model")
     language.Add("WireDataTransfererTool_cd_disk", "CD Disk:")
+
+    WireToolSetup.setToolMenuIcon( "venompapa/wirecd/wirecd" )
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )

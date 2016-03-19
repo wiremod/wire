@@ -53,13 +53,12 @@ function HCOMP:ParsePreprocessMacro(lineText,macroPosition)
       end
     elseif pragmaName == "language" then
       if string.lower(pragmaCommand) == "hlzasm" then self.Settings.CurrentLanguage = "HLZASM" end
-      if string.lower(pragmaCommand) == "c"      then self.Settings.CurrentLanguage = "C"      end
       if string.lower(pragmaCommand) == "zasm"   then self.Settings.CurrentLanguage = "ZASM"   end
     elseif pragmaName == "crt" then
       local crtFilename = "lib\\"..string.lower(pragmaCommand).."\\init.txt"
       local fileText = self:LoadFile(crtFilename)
       if fileText then
-        table.insert(self.Code, 1, { Text = fileText, Line = 1, Col = 1, File = crtFilename })
+        table.insert(self.Code, 1, { Text = fileText, Line = 1, Col = 1, File = crtFilename, NextCharPos = 1 })
       else
         self:Error("Unable to include CRT library "..pragmaCommand,
           macroPosition.Line,macroPosition.Col,macroPosition.File)
@@ -153,7 +152,7 @@ function HCOMP:ParsePreprocessMacro(lineText,macroPosition)
 
     -- Push this file on top of the stack
     if fileText then
-      table.insert(self.Code, 1, { Text = fileText, Line = 1, Col = 1, File = fileName })
+      table.insert(self.Code, 1, { Text = fileText, Line = 1, Col = 1, File = fileName, NextCharPos = 1 })
     else
       self:Error("Cannot open file: "..fileName,
         macroPosition.Line,macroPosition.Col,macroPosition.File)

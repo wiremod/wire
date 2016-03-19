@@ -208,7 +208,7 @@ function Editor:LoadEditorSettings()
 		self:SetPos(x, y)
 	end
 
-	if x < 0 or y < 0 or x + w > ScrW() or x + h > ScrH() then -- If the editor is outside the screen, reset it
+	if x < 0 or y < 0 or x + w > ScrW() or y + h > ScrH() then -- If the editor is outside the screen, reset it
 		local width, height = math.min(surface.ScreenWidth() - 200, 800), math.min(surface.ScreenHeight() - 200, 620)
 		self:SetPos((surface.ScreenWidth() - width) / 2, (surface.ScreenHeight() - height) / 2)
 		self:SetSize(width, height)
@@ -348,6 +348,10 @@ function Editor:Think()
 	if y < 0 then y = 0 end
 	if x + w > surface.ScreenWidth() then x = surface.ScreenWidth() - w end
 	if y + h > surface.ScreenHeight() then y = surface.ScreenHeight() - h end
+	if y < 0 then y = 0 end
+	if x < 0 then x = 0 end
+	if w > surface.ScreenWidth() then w = surface.ScreenWidth() end
+	if h > surface.ScreenHeight() then h = surface.ScreenHeight() end
 
 	self:SetPos(x, y)
 	self:SetSize(w, h)
@@ -485,14 +489,14 @@ local function extractNameFromFilePath(str)
 	end
 end
 
-function Editor:SetSyntaxColorLine(func)
-	self.SyntaxColorLine = func
+function Editor:SetEditorMode(mode_name)
+	self.EditorMode = mode_name
 	for i = 1, self:GetNumTabs() do
-		self:GetEditor(i).SyntaxColorLine = func
+		self:GetEditor(i):SetMode(mode_name)
 	end
 end
 
-function Editor:GetSyntaxColorLine() return self.SyntaxColorLine end
+function Editor:GetEditorMode() return self.EditorMode end
 
 local old
 function Editor:FixTabFadeTime()
@@ -608,12 +612,7 @@ function Editor:CreateTab(chosenfile)
 	end
 	editor:RequestFocus()
 
-	local func = self:GetSyntaxColorLine()
-	if func ~= nil then -- it's a custom syntax highlighter
-		editor.SyntaxColorLine = func
-	else -- else it's E2's syntax highlighter
-		editor:SetSyntaxColors(colors)
-	end
+	editor:SetMode(self:GetEditorMode())
 
 	self:OnTabCreated(sheet) -- Call a function that you can override to do custom stuff to each tab.
 
@@ -1851,12 +1850,12 @@ function Editor:Setup(nTitle, nLocation, nEditorType)
 	self.EditorType = nEditorType
 	self.C.Browser:Setup(nLocation)
 
-	local syntaxHighlighters = {
-		CPU = self:GetCurrentEditor().CPUGPUSyntaxColorLine,
-		GPU = self:GetCurrentEditor().CPUGPUSyntaxColorLine,
-		SPU = self:GetCurrentEditor().CPUGPUSyntaxColorLine,
-		E2 = nil, -- the E2 highlighter is used by default
-		[""] = function(self, row) return { { self.Rows[row], { Color(255, 255, 255, 255), false } } } end
+	local textEditorModes = {
+		CPU = "ZCPU",
+		GPU = "ZCPU",
+		SPU = "ZCPU",
+		E2 = "E2",
+		[""] = "Default"
 	}
 
 	local helpModes = {
@@ -1866,8 +1865,8 @@ function Editor:Setup(nTitle, nLocation, nEditorType)
 		E2 = E2Helper.UseE2
 	}
 
-	local syntaxHighlighter = syntaxHighlighters[nEditorType or ""]
-	if syntaxHighlighter then self:SetSyntaxColorLine(syntaxHighlighter) end
+	self:SetEditorMode(textEditorModes[nEditorType or ""])
+
 
 	local helpMode = helpModes[nEditorType or ""]
 	if helpMode then -- Add "E2Helper" button
@@ -1902,7 +1901,7 @@ function Editor:Setup(nTitle, nLocation, nEditorType)
 
 	if useDebugger then
 		-- Add "step forward" button
-		local DebugForward = self:addComponent(vgui.Create("Button", self), -300, 30, -220, 20)
+		local DebugForward = self:addComponent(vgui.Create("Button", self), -306, 31, -226, 20)
 		DebugForward:SetText("Step Forward")
 		DebugForward.Font = "E2SmallFont"
 		DebugForward.DoClick = function()
@@ -1923,7 +1922,7 @@ function Editor:Setup(nTitle, nLocation, nEditorType)
 		self.C.DebugForward = DebugForward
 
 		-- Add "reset" button
-		local DebugReset = self:addComponent(vgui.Create("Button", self), -350, 30, -310, 20)
+		local DebugReset = self:addComponent(vgui.Create("Button", self), -346, 31, -306, 20)
 		DebugReset:SetText("Reset")
 		DebugReset.DoClick = function()
 			RunConsoleCommand("wire_cpulib_debugreset")
@@ -1933,7 +1932,7 @@ function Editor:Setup(nTitle, nLocation, nEditorType)
 		self.C.DebugReset = DebugReset
 
 		-- Add "run" button
-		local DebugRun = self:addComponent(vgui.Create("Button", self), -395, 30, -360, 20)
+		local DebugRun = self:addComponent(vgui.Create("Button", self), -381, 31, -346, 20)
 		DebugRun:SetText("Run")
 		DebugRun.DoClick = function() RunConsoleCommand("wire_cpulib_debugrun") end
 		self.C.DebugRun = DebugRun

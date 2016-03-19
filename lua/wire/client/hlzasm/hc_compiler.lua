@@ -179,16 +179,16 @@ function HCOMP:StartCompile(sourceCode,fileName,writeByteCallback,writeByteCalle
   self.FileName = string.sub(fileName,string.find(fileName,"\\$") or 1)
   if string.GetPathFromFilename then
     local filePath = string.GetPathFromFilename(fileName)
-    self.WorkingDir = ".\\"..string.sub(filePath,(string.find(filePath,"Chip") or -4)+5)
+    self.WorkingDir = string.sub(filePath,(string.find(string.lower(filePath),"chip") or -4)+5)
   else
-    self.WorkingDir = ".\\"
+    self.WorkingDir = ""
   end
 
   -- Initialize compiler settings
   self.Settings = {}
 
   -- Internal settings
-  self.Settings.CurrentLanguage = "HLZASM" -- C, ZASM2, PASCAL
+  self.Settings.CurrentLanguage = "HLZASM" -- ZASM2
   self.Settings.CurrentPlatform = "CPU"
   self.Settings.MagicValue = -700500 -- This magic value will appear in invalid output code
   self.Settings.OptimizeLevel = 0 -- 0: none, 1: low, 2: high; high optimize level might mangle code for perfomance
@@ -222,7 +222,7 @@ function HCOMP:StartCompile(sourceCode,fileName,writeByteCallback,writeByteCalle
   -- Prepare parser
   self.Stage = 1
   self.Tokens = {}
-  self.Code = {{ Text = sourceCode, Line = 1, Col = 1, File = self.FileName }}
+  self.Code = {{ Text = sourceCode, Line = 1, Col = 1, File = self.FileName, NextCharPos = 1 }}
 
   -- Structs
   self.Structs = {}
@@ -627,9 +627,7 @@ end
 -- Set special labels
 function HCOMP:SetSpecialLabels()
   -- Set special labels
-  if self.Settings.CurrentLanguage ~= "C" then
-    self:SetLabel("programsize",self.WritePointer)
-  end
+  self:SetLabel("programsize",self.WritePointer)
   self:SetLabel("__PROGRAMSIZE__",self.WritePointer)
   self:SetLabel("__DATE_YEAR__",  tonumber(os.date("%Y")))
   self:SetLabel("__DATE_MONTH__", tonumber(os.date("%m")))

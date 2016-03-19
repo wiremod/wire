@@ -1,4 +1,4 @@
-E2Lib.RegisterExtension("find", true)
+E2Lib.RegisterExtension("find", true, "Allows an E2 to search for entities matching a filter.")
 
 local function table_IsEmpty(t) return not next(t) end
 

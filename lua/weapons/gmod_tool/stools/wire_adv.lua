@@ -1,13 +1,27 @@
+
+-- Load wiremod tools in /lua/wire/stools/
+-- Note: If this tool is ever removed, be sure to put this in another stool!
+local OLD_TOOL = TOOL
+TOOL = nil
+include( "wire/tool_loader.lua" )
+TOOL = OLD_TOOL
+
 TOOL.Category	= "Tools"
-TOOL.Name		= "Wire Advanced"
+TOOL.Name		= "Wire"
 TOOL.Tab		= "Wire"
 
 if CLIENT then
-	language.Add( "Tool.wire_adv.name", "Advanced Wiring Tool" )
+	language.Add( "Tool.wire_adv.name", "Wiring Tool" )
 	language.Add( "Tool.wire_adv.desc", "Connect things with wires. (Press Shift+F to switch to the debugger tool)" )
+	language.Add( "Tool.wire_adv.desc2", "Used to connect wirable props." )
 	language.Add( "Tool.wire_adv.0", "Primary: Select input (Shift: Select multiple; Alt: Select all), Secondary: Next, Reload: Unlink (Alt: Unlink all), Mouse Wheel: Next" )
 	language.Add( "Tool.wire_adv.1", "Primary: Select entity, Secondary: Add wire point, Reload: Cancel" )
 	language.Add( "Tool.wire_adv.2", "Primary: Select output (Alt: Auto-connect matching input/outputs), Secondary: Next, Reload: Cancel, Mouse Wheel: Next" )
+	language.Add( "WireTool_width", "Width:" )
+	language.Add( "WireTool_material", "Material:" )
+	language.Add( "WireTool_colour", "Colour:" )
+
+	TOOL.Wire_ToolMenuIcon = "icon16/connect.png"
 end
 
 TOOL.ClientConVar = {
@@ -878,15 +892,20 @@ elseif CLIENT then
 	end
 	
 	TOOL.CurrentFont = "Trebuchet24"
+	-- Find the largest font that can fit `lines` lines of text into a box `maxsize`
+	-- tall. Set that font as current, and return the size of one line of text.
+	-- If no fonts would fit, then the smallest font possible will be returned.
 	function TOOL:fitFont( lines, maxsize )
 		if not fontheights then
 			getFontSizes()
 		end
+
+		local minFontSize = 14
 		
-		for i=24,14,-2 do
+		for i=24, minFontSize, -2 do
 			local fontname = "Trebuchet" .. i
 			local height = fontheights[fontname]
-			if height * lines <= maxsize then
+			if height * lines <= maxsize or i == minFontSize then
 				self.CurrentFont = fontname
 				surface.SetFont( fontname )
 				local w, _ = surface.GetTextSize( "Selected:" )
@@ -1033,7 +1052,7 @@ elseif CLIENT then
 	end
 
 	function TOOL.BuildCPanel(panel)
-		panel:AddControl("Header", { Text = "#Tool.wire.name", Description = "#Tool.wire.desc" })
+		panel:AddControl("Header", { Text = "#Tool.wire_adv.name", Description = "#Tool.wire_adv.desc2" })
 		WireToolHelpers.MakePresetControl(panel, "wire_adv")
 
 		panel:NumSlider("#WireTool_width", "wire_adv_width", 0, 5, 2)

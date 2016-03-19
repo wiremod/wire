@@ -1,4 +1,4 @@
-E2Lib.RegisterExtension("effects",false)
+E2Lib.RegisterExtension("effects", false, "Allows E2s to play arbitrary effects.")
 
 local wire_expression2_effect_burst_max = CreateConVar( "wire_expression2_effect_burst_max", 4, {FCVAR_ARCHIVE} )
 local wire_expression2_effect_burst_rate = CreateConVar( "wire_expression2_effect_burst_rate", 0.1, {FCVAR_ARCHIVE} )

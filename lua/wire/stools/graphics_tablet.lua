@@ -8,9 +8,9 @@ WireToolSetup.setCategory( "Input, Output/Mouse Interaction" )
 WireToolSetup.open( "graphics_tablet", "Graphics Tablet", "gmod_wire_graphics_tablet", nil, "Graphics Tablet" )
 
 if ( CLIENT ) then
-    language.Add( "Tool.wire_graphics_tablet.name", "Graphics Tablet Tool (Wire)" )
-    language.Add( "Tool.wire_graphics_tablet.desc", "Spawns a graphics tablet, which outputs cursor coordinates" )
-    language.Add( "Tool.wire_graphics_tablet.0", "Primary: Create/Update graphics tablet" )
+  language.Add( "Tool.wire_graphics_tablet.name", "Graphics Tablet Tool (Wire)" )
+  language.Add( "Tool.wire_graphics_tablet.desc", "Spawns a graphics tablet, which outputs cursor coordinates" )
+  language.Add( "Tool.wire_graphics_tablet.0", "Primary: Create/Update graphics tablet" )
 	language.Add( "Tool_wire_graphics_tablet_mode", "Output mode: -1 to 1 (ticked), 0 to 1 (unticked)" )
 	language.Add( "Tool_wire_graphics_tablet_draw_background", "Draw background" )
 	language.Add( "Tool_wire_graphics_tablet_createflat", "Create flat to surface" )
@@ -19,9 +19,12 @@ WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )
 
 if SERVER then
-	function TOOL:GetConVars() 
-		return self:GetClientNumber("outmode") ~= 0, self:GetClientNumber("draw_background") ~= 0
-	end
+	function TOOL:GetDataTables()
+    return {
+      DrawBackground = self:GetClientNumber("draw_background") ~= 0,
+      CursorMode = self:GetClientNumber("outmode") ~= 0
+    }
+  end
 
 	-- Uses default WireToolObj:MakeEnt's WireLib.MakeWireEnt function
 end

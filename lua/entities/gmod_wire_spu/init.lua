@@ -40,7 +40,7 @@ function ENT:Initialize()
     self.SoundSources[i]:SetParent(self)
     self.SoundSources[i]:SetModel("models/cheeze/wires/nano_math.mdl")
     self.SoundSources[i]:SetNotSolid(true)
-    self.SoundSources[i]:SetPos(self:GetPos()+Vector(1*math.sin(2*math.pi*i/WireSPU_MaxChannels),1*math.cos(2*math.pi*i/WireSPU_MaxChannels),0))
+    self.SoundSources[i]:SetPos(self:GetPos())
     self.SoundSources[i]:Spawn()
   end
 
@@ -205,7 +205,7 @@ end
 --------------------------------------------------------------------------------
 function ENT:TriggerInput(iname, value)
   if iname == "Clk" then
-    self.Clk = value
+    self.Clk = (value >= 1 and 1 or 0)
     self:WriteCell(65535,self.Clk)
   elseif iname == "Reset" then
     if value >= 1.0 then self:WriteCell(65534,1) end

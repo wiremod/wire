@@ -9,6 +9,7 @@ local hide_duplicates = CreateConVar( "wire_tool_menu_hide_duplicates", 0, {FCVA
 local custom_for_all_tabs = CreateConVar( "wire_tool_menu_custom_menu_for_all_tabs", 0, {FCVAR_ARCHIVE} )
 local tab_width = CreateConVar( "wire_tool_menu_tab_width", -1, {FCVAR_ARCHIVE} )
 local horizontal_divider_width = CreateConVar( "wire_tool_menu_horizontal_divider_width", 0.28, {FCVAR_ARCHIVE} )
+local custom_icons = CreateConVar( "wire_tool_menu_custom_icons", 1, {FCVAR_ARCHIVE} )
 
 -- Helper functions
 local function expandall( bool, nodes )
@@ -341,8 +342,8 @@ function PANEL:Search( text )
 end
 
 -- Helper function
-local function AddNode( list, text, cookietext )
-	local node = list:AddNode( text )
+local function AddNode( list, text, icon, cookietext )
+	local node = list:AddNode( text, icon )
 	
 	node.Label:SetFont( "DermaDefaultBold" )
 	
@@ -401,13 +402,13 @@ function PANEL:CreateCategories()
 			
 			if #expl == 1 then
 				if not self.CategoryLookup[category] then
-					local node = AddNode( self.List, v.Text, category )
+					local node = AddNode( self.List, v.Text, v.Icon, category )
 					self.CategoryLookup[category] = node
 				end
 			else
 				local category = expl[1]
 				if not self.CategoryLookup[category] then
-					local node = AddNode( self.List, category, category )
+					local node = AddNode( self.List, category, nil, category )
 					self.CategoryLookup[category] = node
 				end
 				
@@ -416,7 +417,7 @@ function PANEL:CreateCategories()
 					
 					local path = table.concat(expl,"/",1,i)
 					if not self.CategoryLookup[path] then
-						local node = AddNode( self.CategoryLookup[table.concat(expl,"/",1,i-1)], str, path )
+						local node = AddNode( self.CategoryLookup[table.concat(expl,"/",1,i-1)], str, nil, path )
 						self.CategoryLookup[path] = node
 					end
 				end
@@ -500,7 +501,11 @@ function PANEL:LoadToolsFromTable( inTable )
 	
 	-- If this tab has no favourites category, add one at the top
 	if self.ToolTable[1].ItemName ~= "Favourites" then
-		table.insert( self.ToolTable, 1, { ItemName = "Favourites", Text = "Favourites" } )
+		table.insert( self.ToolTable, 1, { ItemName = "Favourites", Text = "Favourites", Icon = "icon16/star.png" } )
+
+	-- If this tab DOES have a favourites category, set its icon to a star
+	elseif self.ToolTable[1].ItemName == "Favourites" then
+		self.ToolTable[1].Icon = "icon16/star.png"
 	end
 	
 	-- First, we copy all tools into their multi categories
@@ -522,6 +527,7 @@ function PANEL:LoadToolsFromTable( inTable )
 			local Label = v.Text
 			v.ItemName = nil
 			v.Text = nil
+			v.Icon = nil
 			
 			self:AddCategory( Name, Label, v )			
 		end
@@ -542,9 +548,19 @@ function PANEL:AddCategory( Name, Label, tItems, CategoryID )
 	
 		v.Category = Label
 		v.CategoryID = CategoryID
+
+		local icon = "icon16/wrench.png"
+
+		if custom_icons:GetBool() then
+			local tooltbl = weapons.Get("gmod_tool").Tool[v.ItemName]
+			if tooltbl then
+				if tooltbl.Wire_ToolMenuIcon then
+					icon = tooltbl.Wire_ToolMenuIcon
+				end
+			end
+		end
 	
-		local item = Category:AddNode( v.Text )
-		item.Icon:SetImage( "icon16/wrench.png" )
+		local item = Category:AddNode( v.Text, icon )
 		
 		function item:DoClick()
 
@@ -627,6 +643,10 @@ local function CreateCPanel( panel )
 	setUpTabReloadOnChange( HideDuplicates )
 	panel:Help( "It makes sense to have certain tools in multiple categories at once. However, if you don't want this, you can disable it here. The tools will then only appear in their primary category." )
 	
+	local UseIcons = panel:CheckBox( "Use custom icons", "wire_tool_menu_custom_icons" )
+	setUpTabReloadOnChange( UseIcons )
+	UseIcons:SetToolTip( "If disabled, all tools will use the 'wrench' icon." )
+
 	local TabWidth = panel:NumSlider( "Tab width", "wire_tool_menu_tab_width", 300, 3000, 0 )
 	panel:Help( [[Set the width of all tabs.
 Defaults:

@@ -1,5 +1,5 @@
 -- Originally by Jeremydeath, updated by Nebual + Natrim's wirelink
-E2Lib.RegisterExtension("wiring", false)
+E2Lib.RegisterExtension("wiring", false, "Allows the creation and deletion of wires between entities and getting wirelinks.")
 
 __e2setcost(30)
 
@@ -51,7 +51,7 @@ e2function number entity:createWire(entity ent2, string inputname, string output
 	
 	local trigger = self.entity.trigger
 	self.entity.trigger = { false, {} } -- So the wire creation doesn't execute the E2 immediately because an input changed
-	WireLib.Link_Start(self.player:UniqueID(), this, this:WorldToLocal(this:GetPos()), input, mat, Vector(color[1],color[2],color[3]), width or 1)
+	WireLib.Link_Start(self.player:UniqueID(), this, this:WorldToLocal(this:GetPos()), inputname, mat, Vector(color[1],color[2],color[3]), width or 1)
 	WireLib.Link_End(self.player:UniqueID(), ent2, ent2:WorldToLocal(ent2:GetPos()), outputname, self.player)
 	self.entity.trigger = trigger
 	

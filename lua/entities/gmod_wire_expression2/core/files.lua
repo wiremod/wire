@@ -8,7 +8,7 @@ local cv_max_transfer_size = CreateConVar( "wire_expression2_file_max_size", "30
 
 local download_chunk_size = 20000 -- Our overhead is pretty small so lets send it in moderate sized pieces, no need to max out the buffer
 
-E2Lib.RegisterExtension( "file", true )
+E2Lib.RegisterExtension( "file", true, "Allows reading and writing of files in the player's local data directory." )
 
 local FILE_UNKNOWN = 0
 local FILE_OK = 1
@@ -84,6 +84,10 @@ end
 local function file_Download( ply, filename, data, append )
 	if !file_canDownload( ply ) or !IsValid( ply ) or !ply:IsPlayer() or string.Right( filename, 4 ) != ".txt" then return false end
 	if string.len( data ) > (cv_max_transfer_size:GetInt() * 1024) then return false end
+
+	-- if we're trying to append an empty string then we don't need to queue up
+	-- a download to consider the operation completed
+	if append and string.len(data) == 0 then return true end
 
 	downloads[ply] = {
 		name = filename,
@@ -296,13 +300,14 @@ timer.Create("wire_expression2_flush_file_buffer", 0.2, 0, function()
 			end
 
 			local strlen = math.Clamp( string.len( fdata.data ), 0, download_chunk_size )
-			if strlen < 1 then continue end
 
-			net.Start("wire_expression2_file_download_chunk")
+			if strlen > 0 then
+				net.Start("wire_expression2_file_download_chunk")
 				net.WriteString(string.sub( fdata.data, 1, strlen ))
-			net.Send(ply)
+				net.Send(ply)
 
-			fdata.data = string.sub( fdata.data, strlen + 1, string.len( fdata.data ) )
+				fdata.data = string.sub( fdata.data, strlen + 1, string.len( fdata.data ) )
+			end
 
 			if string.len( fdata.data ) < 1 then
 				net.Start("wire_expresison2_file_download_finish")

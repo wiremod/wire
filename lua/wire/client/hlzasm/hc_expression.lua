@@ -561,22 +561,46 @@ function HCOMP:Expression_Level0()
            )
   elseif self:MatchToken(self.TOKEN.EQLADD) then -- +=
     local rightLeaf = self:Expression_LevelLeaf(0)
-    return self:NewOpcode("add",leftLeaf,rightLeaf)
+    
+    local operationLeaf = self:NewOpcode("add",leftLeaf,rightLeaf)
+    operationLeaf.ExplictAssign = true
+    operationLeaf.ReturnAfterAssign = true
+    return operationLeaf
   elseif self:MatchToken(self.TOKEN.EQLSUB) then -- -=
     local rightLeaf = self:Expression_LevelLeaf(0)
-    return self:NewOpcode("sub",leftLeaf,rightLeaf)
+    
+    local operationLeaf = self:NewOpcode("sub",leftLeaf,rightLeaf)
+    operationLeaf.ExplictAssign = true
+    operationLeaf.ReturnAfterAssign = true
+    return operationLeaf
   elseif self:MatchToken(self.TOKEN.EQLMUL) then -- *=
     local rightLeaf = self:Expression_LevelLeaf(0)
-    return self:NewOpcode("mul",leftLeaf,rightLeaf)
+    
+    local operationLeaf = self:NewOpcode("mul",leftLeaf,rightLeaf)
+    operationLeaf.ExplictAssign = true
+    operationLeaf.ReturnAfterAssign = true
+    return operationLeaf
   elseif self:MatchToken(self.TOKEN.EQLDIV) then -- /=
     local rightLeaf = self:Expression_LevelLeaf(0)
-    return self:NewOpcode("div",leftLeaf,rightLeaf)
+    
+    local operationLeaf = self:NewOpcode("div",leftLeaf,rightLeaf)
+    operationLeaf.ExplictAssign = true
+    operationLeaf.ReturnAfterAssign = true
+    return operationLeaf
   elseif self:MatchToken(self.TOKEN.SHR) then -- >>
     local rightLeaf = self:Expression_LevelLeaf(0)
-    return self:NewOpcode("bshr",leftLeaf,rightLeaf)
+    
+    local operationLeaf = self:NewOpcode("bshr",leftLeaf,rightLeaf)
+    operationLeaf.ExplictAssign = true
+    operationLeaf.ReturnAfterAssign = true
+    return operationLeaf
   elseif self:MatchToken(self.TOKEN.SHL) then -- <<
     local rightLeaf = self:Expression_LevelLeaf(0)
-    return self:NewOpcode("bshl",leftLeaf,rightLeaf)
+    
+    local operationLeaf = self:NewOpcode("bshl",leftLeaf,rightLeaf)
+    operationLeaf.ExplictAssign = true
+    operationLeaf.ReturnAfterAssign = true
+    return operationLeaf
   else
     return leftLeaf
   end
@@ -786,14 +810,14 @@ function HCOMP:ConstantExpression_Level1()
     if not rightConst then return false end
 
     if token == self.TOKEN.LAND then
-      if (leftValue > 0) and (rightValeu > 0) then
+      if (leftValue > 0) and (rightValue > 0) then
         return true,(leftPrecise and rightPrecise),1
       else
         return true,(leftPrecise and rightPrecise),0
       end
     end
     if token == self.TOKEN.LOR  then
-      if (leftValue > 0) or (rightValeu > 0) then
+      if (leftValue > 0) or (rightValue > 0) then
         return true,(leftPrecise and rightPrecise),1
       else
         return true,(leftPrecise and rightPrecise),0

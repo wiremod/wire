@@ -32,10 +32,14 @@ local function removecheck(signature)
 	entry.oldfunc = oldfunc
 end
 
--- TODO: combine with makecheck
+--- This function ensures that the given function shows up by the given name in stack traces.
+--- It does so by eval'ing a generated block of code which invokes the actual function.
+--- Tail recursion optimization is specifically avoided by introducing a local variable in the generated code block.
 local function namefunc(func, name)
-	name = "e2_" .. name:gsub("[^A-Za-z_0-9]", "_")
+	-- Filter the name
+	name = name:gsub("[^A-Za-z_0-9]", "_")
 
+	-- RunString doesn't have a return value, so we need to go via a global variable
 	wire_expression2_namefunc = func
 	RunString(([[
 		local %s = wire_expression2_namefunc
@@ -46,6 +50,8 @@ local function namefunc(func, name)
 	]]):format(name, name))
 	local ret = wire_expression2_namefunc
 	wire_expression2_namefunc = nil
+
+	-- Now ret contains the wrapped function and we can just return it.
 	return ret
 end
 
@@ -57,7 +63,7 @@ local function makecheck(signature)
 	local oldfunc, signature, rets, func, cost = entry.oldfunc, unpack(entry)
 
 	if oldfunc then return end
-	oldfunc = namefunc(func, name)
+	oldfunc = namefunc(func, "e2_" .. name)
 
 	function func(...)
 		local retval = oldfunc(...)

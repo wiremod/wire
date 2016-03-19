@@ -21,15 +21,17 @@ WireToolSetup.SetupMax( 20 )
 if SERVER then
 	ModelPlug_Register("pixel")
 
-	function TOOL:GetConVars()
-		return self:GetClientNumber("singlevalue") == 1,
-		self:GetClientNumber("singlebigfont") == 1,
-		self:GetClientInfo("texta"),
-		self:GetClientInfo("textb"),
-		self:GetClientNumber("leftalign") == 1,
-		self:GetClientNumber("floor") == 1,
-		self:GetClientNumber("formatnumber") == 1,
-		self:GetClientNumber("formattime") == 1
+	function TOOL:GetDataTables()
+		return {
+			SingleValue = self:GetClientNumber("singlevalue") == 1,
+			SingleBigFont = self:GetClientNumber("singlebigfont") == 1,
+			TextA = self:GetClientInfo("texta"),
+			TextB = self:GetClientInfo("textb"),
+			LeftAlign = self:GetClientNumber("leftalign") == 1,
+			Floor = self:GetClientNumber("floor") == 1,
+			FormatNumber = self:GetClientNumber("formatnumber") == 1,
+			FormatTime = self:GetClientNumber("formattime") == 1
+		}
 	end
 end
 

@@ -98,10 +98,26 @@ hook.Add("PlayerInitialSpawn", "GPUPlayerRespawn", GPU_PlayerRespawn)
 concommand.Add("wire_gpu_resendcache", GPU_PlayerRespawn)
 
 
+
+--------------------------------------------------------------------------------
+-- Checks if address is valid
+--------------------------------------------------------------------------------
+local function isValidAddress(n)
+  return n and (math.floor(n) == n) and (n >= -140737488355327) and (n <= 140737488355328)
+end
+
+
+
 --------------------------------------------------------------------------------
 -- Read cell from GPU memory
 --------------------------------------------------------------------------------
 function ENT:ReadCell(Address)
+  -- Check if address is valid
+  if not isValidAddress(Address) then
+    self:Interrupt(15,Address)
+    return
+  end
+  
   if (Address < 0) or (Address >= self.RAMSize) then
     return nil
   else
@@ -189,7 +205,7 @@ end
 --------------------------------------------------------------------------------
 function ENT:TriggerInput(iname, value)
   if iname == "Clk" then
-    self.Clk = value
+    self.Clk = (value >= 1 and 1 or 0)
     self:WriteCell(65535,self.Clk)
   elseif iname == "Reset" then
     if value >= 1.0 then self:WriteCell(65534,1) end

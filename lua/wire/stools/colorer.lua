@@ -9,6 +9,8 @@ if CLIENT then
     language.Add( "WireColorerTool_outColor", "Output Color" )
     language.Add( "WireColorerTool_Range", "Max Range:" )
     language.Add( "WireColorerTool_Model", "Choose a Model:")
+
+	WireToolSetup.setToolMenuIcon( "icon16/color_wheel.png" )
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )

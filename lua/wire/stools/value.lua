@@ -5,6 +5,8 @@ if CLIENT then
 	language.Add("Tool.wire_value.name", "Value Tool (Wire)")
 	language.Add("Tool.wire_value.desc", "Spawns a constant value for use with the wire system.")
 	language.Add("Tool.wire_value.0", "Primary: Create/Update Value, Secondary: Copy Settings")
+
+	WireToolSetup.setToolMenuIcon( "icon16/database_go.png" )
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )

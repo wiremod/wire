@@ -75,7 +75,7 @@ end
 
 -- -------------------------- signature generation -----------------------------
 
-local function maketype(typeid)
+function E2Lib.typeName(typeid)
 	if typeid == "" then return "void" end
 	if typeid == "n" then return "number" end
 
@@ -86,7 +86,7 @@ local function maketype(typeid)
 	return typename or "unknown"
 end
 
-local function splitargs(args)
+function E2Lib.splitType(args)
 	local ret = {}
 	local thistype
 	local i = 1
@@ -109,7 +109,7 @@ local function splitargs(args)
 				typeid = args:sub(i, i + 2)
 				i = i + 2
 			end
-			table.insert(ret, maketype(typeid))
+			table.insert(ret, E2Lib.typeName(typeid))
 		end
 		i = i + 1
 	end
@@ -121,7 +121,7 @@ function E2Lib.generate_signature(signature, rets, argnames)
 	local funcname, args = string.match(signature, "([^(]+)%(([^)]*)%)")
 	if not funcname then error("malformed signature") end
 
-	local thistype, args = splitargs(args)
+	local thistype, args = E2Lib.splitType(args)
 
 	if argnames then
 		for i = 1, #args do
@@ -131,7 +131,7 @@ function E2Lib.generate_signature(signature, rets, argnames)
 	local new_signature = string.format("%s(%s)", funcname, table.concat(args, ","))
 	if thistype then new_signature = thistype .. ":" .. new_signature end
 
-	return (not rets or rets == "") and (new_signature) or (maketype(rets) .. "=" .. new_signature)
+	return (not rets or rets == "") and (new_signature) or (E2Lib.typeName(rets) .. "=" .. new_signature)
 end
 
 -- ------------------------ various entity checkers ----------------------------
@@ -439,6 +439,19 @@ do
 	local extensions = nil
 	local function printExtensions() end
 	local function conCommandSetExtensionStatus() end
+
+	function E2Lib.GetExtensions()
+		return extensions.list
+	end
+
+	function E2Lib.GetExtensionStatus(name)
+		name = name:Trim():lower()
+		return extensions.status[name]
+	end
+
+	function E2Lib.GetExtensionDocumentation(name)
+		return extensions.documentation[name] or {}
+	end
 	
 	if SERVER then -- serverside stuff
 		
@@ -448,7 +461,7 @@ do
 
 		function wire_expression2_PreLoadExtensions()
 			hook.Run( "Expression2_PreLoadExtensions" )
-			extensions = { status = {}, list = {}, prettyList = {} }
+			extensions = { status = {}, list = {}, prettyList = {}, documentation = {} }
 			local list = sql.Query( "SELECT * FROM wire_expression2_extensions" )
 			if list then
 				for i = 1, #list do
@@ -460,13 +473,17 @@ do
 			end
 			extensions.save = true
 		end
-		
-		function E2Lib.RegisterExtension( name, default )
+
+		function E2Lib.RegisterExtension(name, default, description, warning)
 			name = name:Trim():lower()
 			if extensions.status[ name ] == nil then
 				E2Lib.SetExtensionStatus( name, default )
 			end
 			extensions.list[ #extensions.list + 1 ] = name
+
+			if description or warning then
+				extensions.documentation[name] = { Description = description, Warning = warning }
+			end
 
 			-- This line shouldn't be modified because it tells the parser that this extension is disabled,
 			-- thus making its functions not available in the E2 Editor (see function e2_include_pass2 in extloader.lua).
@@ -482,21 +499,11 @@ do
 			end
 		end
 		
-		function E2Lib.GetExtensionStatus( name )
-			name = name:Trim():lower()
-			return extensions.status[ name ]
-		end
-		
-		function E2Lib.GetExtensions()
-			return extensions.list
-		end
-		
 		-- After using E2Lib.SetExtensionStatus in an external script, this function should be called.
 		-- Its purpose is to update the clientside autocomplete list for the concommands.
 		function E2Lib.UpdateClientsideExtensionsList( ply )
 			net.Start( "wire_expression2_server_send_extensions_list" )
-			net.WriteTable( extensions.list )
-			net.WriteTable( extensions.status )
+			net.WriteTable(extensions)
 			if IsValid( ply ) then
 				net.Send( ply )
 			else
@@ -613,13 +620,9 @@ do
 			net.SendToServer()
 		end
 
-		net.Receive( "wire_expression2_server_send_extensions_list",
-			function( )
-				extensions.list = net.ReadTable()
-				extensions.status = net.ReadTable()
-				table.sort( extensions.list, function( a, b ) return a < b end )
-			end
-		)
+		net.Receive( "wire_expression2_server_send_extensions_list", function()
+			extensions = net.ReadTable()
+		end)
 		
 	end
 

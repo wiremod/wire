@@ -2,6 +2,8 @@
   Server Information
 \******************************************************************************/
 
+__e2setcost(1)
+
 e2function string map()
 	return game.GetMap()
 end
@@ -11,6 +13,10 @@ e2function string hostname()
 	return hostname:GetString()
 end
 
+e2function string hostip()
+	return game.GetIPAddress()
+end
+
 local sv_lan = GetConVar("sv_lan")
 e2function number isLan()
 	return sv_lan:GetBool() and 1 or 0
@@ -18,6 +24,10 @@ end
 
 e2function string gamemode()
 	return gmod.GetGamemode().Name
+end
+
+e2function string serverUUID()
+	return WireLib.GetServerUUID()
 end
 
 e2function number isSinglePlayer()

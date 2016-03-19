@@ -26,7 +26,7 @@ function ENT:Initialize()
 	self:SetSolid(SOLID_VPHYSICS)
 	self:SetUseType(SIMPLE_USE)
 
-	self.Inputs = WireLib.CreateInputs(self, { "Kick the bastard out of keyboard" })
+	self.Inputs = WireLib.CreateInputs(self, { "Kick" })
 	self.Outputs = WireLib.CreateOutputs(self, { "Memory", "User [ENTITY]", "InUse" })
 
 	self.ActiveKeys = {} -- table containing all currently active keys, used to see when keys are pressed/released
@@ -38,8 +38,10 @@ function ENT:Initialize()
 	WireLib.TriggerOutput(self, "InUse", 0)
 end
 
+WireLib.AddInputAlias("Kick the bastard out of keyboard", "Kick")
+
 function ENT:TriggerInput(name, value)
-	if name == "Kick the bastard out of keyboard" then
+	if name == "Kick" then
 		-- It was kicking at the same time as giving output - added tiny delay fixing that race condition
 		timer.Simple(0.1, function()
 			if IsValid(self) then
@@ -90,7 +92,7 @@ function ENT:PlayerAttach(ply)
 	self:SetOverlayText("In use by " .. ply:Nick())
 
 	-- Block keyboard input
-	if ply:GetInfoNum("wire_keyboard_sync", 1) == 1 then
+	if self.Synchronous then
 		net.Start("wire_keyboard_blockinput")
 			net.WriteBit(true)
 		net.Send(ply)
@@ -322,11 +324,12 @@ function ENT:Think()
 	return true
 end
 
-function ENT:Setup(autobuffer)
+function ENT:Setup(autobuffer, sync)
 	self.AutoBuffer = autobuffer
+	self.Synchronous = sync
 end
 
-duplicator.RegisterEntityClass("gmod_wire_keyboard", WireLib.MakeWireEnt, "Data", "AutoBuffer")
+duplicator.RegisterEntityClass("gmod_wire_keyboard", WireLib.MakeWireEnt, "Data", "AutoBuffer", "Synchronous")
 
 function ENT:BuildDupeInfo()
 	local info = self.BaseClass.BuildDupeInfo(self) or {}

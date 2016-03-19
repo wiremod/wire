@@ -10,64 +10,64 @@
 --------------------------------------------------------------------------------
 -- All symbols (tokens) recognized by parser
 HCOMP.TOKEN_TEXT = {}
-HCOMP.TOKEN_TEXT["IDENT"]     = {{"ZASM","C","HLZASM"},{}} -- ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz _
-HCOMP.TOKEN_TEXT["NUMBER"]    = {{"ZASM","C","HLZASM"},{}} -- 0123456789
-HCOMP.TOKEN_TEXT["LPAREN"]    = {{"ZASM","C","HLZASM"},{"("}}
-HCOMP.TOKEN_TEXT["RPAREN"]    = {{"ZASM","C","HLZASM"},{")"}}
-HCOMP.TOKEN_TEXT["LBRACKET"]  = {{       "C","HLZASM"},{"{"}}
-HCOMP.TOKEN_TEXT["RBRACKET"]  = {{       "C","HLZASM"},{"}"}}
-HCOMP.TOKEN_TEXT["LSUBSCR"]   = {{"ZASM","C","HLZASM"},{"["}}
-HCOMP.TOKEN_TEXT["RSUBSCR"]   = {{"ZASM","C","HLZASM"},{"]"}}
-HCOMP.TOKEN_TEXT["COLON"]     = {{"ZASM","C","HLZASM"},{";"}}
-HCOMP.TOKEN_TEXT["DCOLON"]    = {{"ZASM","C","HLZASM"},{":"}}
-HCOMP.TOKEN_TEXT["HASH"]      = {{"ZASM","C","HLZASM"},{"#"}}
-HCOMP.TOKEN_TEXT["TIMES"]     = {{"ZASM","C","HLZASM"},{"*"}}
-HCOMP.TOKEN_TEXT["SLASH"]     = {{"ZASM","C","HLZASM"},{"/"}}
-HCOMP.TOKEN_TEXT["MODULUS"]   = {{       "C","HLZASM"},{"%"}}
-HCOMP.TOKEN_TEXT["PLUS"]      = {{"ZASM","C","HLZASM"},{"+"}}
-HCOMP.TOKEN_TEXT["MINUS"]     = {{"ZASM","C","HLZASM"},{"-"}}
-HCOMP.TOKEN_TEXT["AND"]       = {{       "C","HLZASM"},{"&"}}
-HCOMP.TOKEN_TEXT["OR"]        = {{       "C","HLZASM"},{"|"}}
-HCOMP.TOKEN_TEXT["XOR"]       = {{       "C","HLZASM"},{"^"}}
-HCOMP.TOKEN_TEXT["POWER"]     = {{       "C","HLZASM"},{"^^"}}
-HCOMP.TOKEN_TEXT["INC"]       = {{       "C","HLZASM"},{"++"}}
-HCOMP.TOKEN_TEXT["DEC"]       = {{       "C","HLZASM"},{"--"}}
-HCOMP.TOKEN_TEXT["SHL"]       = {{       "C","HLZASM"},{"<<"}}
-HCOMP.TOKEN_TEXT["SHR"]       = {{       "C","HLZASM"},{">>"}}
-HCOMP.TOKEN_TEXT["EQL"]       = {{       "C","HLZASM"},{"=="}}
-HCOMP.TOKEN_TEXT["NEQ"]       = {{       "C","HLZASM"},{"!="}}
-HCOMP.TOKEN_TEXT["LEQ"]       = {{       "C","HLZASM"},{"<="}}
-HCOMP.TOKEN_TEXT["LSS"]       = {{       "C","HLZASM"},{"<"}}
-HCOMP.TOKEN_TEXT["GEQ"]       = {{       "C","HLZASM"},{">="}}
-HCOMP.TOKEN_TEXT["GTR"]       = {{       "C","HLZASM"},{">"}}
-HCOMP.TOKEN_TEXT["NOT"]       = {{       "C","HLZASM"},{"!"}}
-HCOMP.TOKEN_TEXT["EQUAL"]     = {{       "C","HLZASM"},{"="}}
-HCOMP.TOKEN_TEXT["LAND"]      = {{       "C","HLZASM"},{"&&"}}
-HCOMP.TOKEN_TEXT["LOR"]       = {{       "C","HLZASM"},{"||"}}
-HCOMP.TOKEN_TEXT["EQLADD"]    = {{       "C","HLZASM"},{"+="}}
-HCOMP.TOKEN_TEXT["EQLSUB"]    = {{       "C","HLZASM"},{"-="}}
-HCOMP.TOKEN_TEXT["EQLMUL"]    = {{       "C","HLZASM"},{"*="}}
-HCOMP.TOKEN_TEXT["EQLDIV"]    = {{       "C","HLZASM"},{"/="}}
-HCOMP.TOKEN_TEXT["COMMA"]     = {{"ZASM","C","HLZASM"},{","}}
-HCOMP.TOKEN_TEXT["DOT"]       = {{"ZASM","C","HLZASM"},{"."}}
+HCOMP.TOKEN_TEXT["IDENT"]     = {{"ZASM","HLZASM"},{}} -- ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz _
+HCOMP.TOKEN_TEXT["NUMBER"]    = {{"ZASM","HLZASM"},{}} -- 0123456789
+HCOMP.TOKEN_TEXT["LPAREN"]    = {{"ZASM","HLZASM"},{"("}}
+HCOMP.TOKEN_TEXT["RPAREN"]    = {{"ZASM","HLZASM"},{")"}}
+HCOMP.TOKEN_TEXT["LBRACKET"]  = {{       "HLZASM"},{"{"}}
+HCOMP.TOKEN_TEXT["RBRACKET"]  = {{       "HLZASM"},{"}"}}
+HCOMP.TOKEN_TEXT["LSUBSCR"]   = {{"ZASM","HLZASM"},{"["}}
+HCOMP.TOKEN_TEXT["RSUBSCR"]   = {{"ZASM","HLZASM"},{"]"}}
+HCOMP.TOKEN_TEXT["COLON"]     = {{"ZASM","HLZASM"},{";"}}
+HCOMP.TOKEN_TEXT["DCOLON"]    = {{"ZASM","HLZASM"},{":"}}
+HCOMP.TOKEN_TEXT["HASH"]      = {{"ZASM","HLZASM"},{"#"}}
+HCOMP.TOKEN_TEXT["TIMES"]     = {{"ZASM","HLZASM"},{"*"}}
+HCOMP.TOKEN_TEXT["SLASH"]     = {{"ZASM","HLZASM"},{"/"}}
+HCOMP.TOKEN_TEXT["MODULUS"]   = {{       "HLZASM"},{"%"}}
+HCOMP.TOKEN_TEXT["PLUS"]      = {{"ZASM","HLZASM"},{"+"}}
+HCOMP.TOKEN_TEXT["MINUS"]     = {{"ZASM","HLZASM"},{"-"}}
+HCOMP.TOKEN_TEXT["AND"]       = {{       "HLZASM"},{"&"}}
+HCOMP.TOKEN_TEXT["OR"]        = {{       "HLZASM"},{"|"}}
+HCOMP.TOKEN_TEXT["XOR"]       = {{       "HLZASM"},{"^"}}
+HCOMP.TOKEN_TEXT["POWER"]     = {{       "HLZASM"},{"^^"}}
+HCOMP.TOKEN_TEXT["INC"]       = {{       "HLZASM"},{"++"}}
+HCOMP.TOKEN_TEXT["DEC"]       = {{       "HLZASM"},{"--"}}
+HCOMP.TOKEN_TEXT["SHL"]       = {{       "HLZASM"},{"<<"}}
+HCOMP.TOKEN_TEXT["SHR"]       = {{       "HLZASM"},{">>"}}
+HCOMP.TOKEN_TEXT["EQL"]       = {{       "HLZASM"},{"=="}}
+HCOMP.TOKEN_TEXT["NEQ"]       = {{       "HLZASM"},{"!="}}
+HCOMP.TOKEN_TEXT["LEQ"]       = {{       "HLZASM"},{"<="}}
+HCOMP.TOKEN_TEXT["LSS"]       = {{       "HLZASM"},{"<"}}
+HCOMP.TOKEN_TEXT["GEQ"]       = {{       "HLZASM"},{">="}}
+HCOMP.TOKEN_TEXT["GTR"]       = {{       "HLZASM"},{">"}}
+HCOMP.TOKEN_TEXT["NOT"]       = {{       "HLZASM"},{"!"}}
+HCOMP.TOKEN_TEXT["EQUAL"]     = {{       "HLZASM"},{"="}}
+HCOMP.TOKEN_TEXT["LAND"]      = {{       "HLZASM"},{"&&"}}
+HCOMP.TOKEN_TEXT["LOR"]       = {{       "HLZASM"},{"||"}}
+HCOMP.TOKEN_TEXT["EQLADD"]    = {{       "HLZASM"},{"+="}}
+HCOMP.TOKEN_TEXT["EQLSUB"]    = {{       "HLZASM"},{"-="}}
+HCOMP.TOKEN_TEXT["EQLMUL"]    = {{       "HLZASM"},{"*="}}
+HCOMP.TOKEN_TEXT["EQLDIV"]    = {{       "HLZASM"},{"/="}}
+HCOMP.TOKEN_TEXT["COMMA"]     = {{"ZASM","HLZASM"},{","}}
+HCOMP.TOKEN_TEXT["DOT"]       = {{"ZASM","HLZASM"},{"."}}
 
-HCOMP.TOKEN_TEXT["GOTO"]      = {{"C","HLZASM"},{"GOTO"}}
-HCOMP.TOKEN_TEXT["FOR"]       = {{"C","HLZASM"},{"FOR"}}
-HCOMP.TOKEN_TEXT["IF"]        = {{"C","HLZASM"},{"IF"}}
-HCOMP.TOKEN_TEXT["ELSE"]      = {{"C","HLZASM"},{"ELSE"}}
-HCOMP.TOKEN_TEXT["WHILE"]     = {{"C","HLZASM"},{"WHILE"}}
-HCOMP.TOKEN_TEXT["DO"]        = {{"C","HLZASM"},{"DO"}}
-HCOMP.TOKEN_TEXT["SWITCH"]    = {{"C","HLZASM"},{"SWITCH"}}
-HCOMP.TOKEN_TEXT["CASE"]      = {{"C","HLZASM"},{"CASE"}}
-HCOMP.TOKEN_TEXT["CONST"]     = {{"C","HLZASM"},{"CONST"}}
-HCOMP.TOKEN_TEXT["RETURN"]    = {{"C","HLZASM"},{"RETURN"}}
-HCOMP.TOKEN_TEXT["BREAK"]     = {{"C","HLZASM"},{"BREAK"}}
-HCOMP.TOKEN_TEXT["CONTINUE"]  = {{"C","HLZASM"},{"CONTINUE"}}
-HCOMP.TOKEN_TEXT["EXPORT"]    = {{"C","HLZASM"},{"EXPORT"}}
-HCOMP.TOKEN_TEXT["INLINE"]    = {{"C","HLZASM"},{"INLINE"}}
-HCOMP.TOKEN_TEXT["FORWARD"]   = {{"C","HLZASM"},{"FORWARD"}}
-HCOMP.TOKEN_TEXT["LREGISTER"] = {{"C","HLZASM"},{"REGISTER"}}
-HCOMP.TOKEN_TEXT["STRUCT"]    = {{"C","HLZASM"},{"STRUCT"}}
+HCOMP.TOKEN_TEXT["GOTO"]      = {{"HLZASM"},{"GOTO"}}
+HCOMP.TOKEN_TEXT["FOR"]       = {{"HLZASM"},{"FOR"}}
+HCOMP.TOKEN_TEXT["IF"]        = {{"HLZASM"},{"IF"}}
+HCOMP.TOKEN_TEXT["ELSE"]      = {{"HLZASM"},{"ELSE"}}
+HCOMP.TOKEN_TEXT["WHILE"]     = {{"HLZASM"},{"WHILE"}}
+HCOMP.TOKEN_TEXT["DO"]        = {{"HLZASM"},{"DO"}}
+HCOMP.TOKEN_TEXT["SWITCH"]    = {{"HLZASM"},{"SWITCH"}}
+HCOMP.TOKEN_TEXT["CASE"]      = {{"HLZASM"},{"CASE"}}
+HCOMP.TOKEN_TEXT["CONST"]     = {{"HLZASM"},{"CONST"}}
+HCOMP.TOKEN_TEXT["RETURN"]    = {{"HLZASM"},{"RETURN"}}
+HCOMP.TOKEN_TEXT["BREAK"]     = {{"HLZASM"},{"BREAK"}}
+HCOMP.TOKEN_TEXT["CONTINUE"]  = {{"HLZASM"},{"CONTINUE"}}
+HCOMP.TOKEN_TEXT["EXPORT"]    = {{"HLZASM"},{"EXPORT"}}
+HCOMP.TOKEN_TEXT["INLINE"]    = {{"HLZASM"},{"INLINE"}}
+HCOMP.TOKEN_TEXT["FORWARD"]   = {{"HLZASM"},{"FORWARD"}}
+HCOMP.TOKEN_TEXT["LREGISTER"] = {{"HLZASM"},{"REGISTER"}}
+HCOMP.TOKEN_TEXT["STRUCT"]    = {{"HLZASM"},{"STRUCT"}}
 
 HCOMP.TOKEN_TEXT["DB"]        = {{"ZASM","HLZASM"},{"DB"}}
 HCOMP.TOKEN_TEXT["ALLOC"]     = {{"ZASM","HLZASM"},{"ALLOC"}}
@@ -82,8 +82,7 @@ HCOMP.TOKEN_TEXT["DATA"]      = {{"ZASM","HLZASM"},{"DATA"}}
 HCOMP.TOKEN_TEXT["ORG"]       = {{"ZASM","HLZASM"},{"ORG"}}
 HCOMP.TOKEN_TEXT["OFFSET"]    = {{"ZASM","HLZASM"},{"OFFSET"}}
 HCOMP.TOKEN_TEXT["TYPE"]      = {{"ZASM","HLZASM"},{"VOID","FLOAT","CHAR","INT48","VECTOR"}}
-HCOMP.TOKEN_TEXT["CTYPE"]     = {            {"C"},{"VOID","FLOAT","CHAR","INT","VECTOR"}}
-HCOMP.TOKEN_TEXT["USERTYPE"]  = {{"ZASM","C","HLZASM"},{}}
+HCOMP.TOKEN_TEXT["USERTYPE"]  = {{"ZASM","HLZASM"},{}}
 
 HCOMP.TOKEN_TEXT["PRESERVE"]  = {{"HLZASM"},{"PRESERVE"}}
 HCOMP.TOKEN_TEXT["ZAP"]       = {{"HLZASM"},{"ZAP"}}
@@ -91,13 +90,13 @@ HCOMP.TOKEN_TEXT["ZAP"]       = {{"HLZASM"},{"ZAP"}}
 HCOMP.TOKEN_TEXT["REGISTER"]  = {{"ZASM","HLZASM"},{"EAX","EBX","ECX","EDX","ESI","EDI","ESP","EBP"}}
 HCOMP.TOKEN_TEXT["SEGMENT"]   = {{"ZASM","HLZASM"},{"CS","SS","DS","ES","GS","FS","KS","LS"}}
 HCOMP.TOKEN_TEXT["OPCODE"]    = {{"ZASM","HLZASM"},{}} -- mov, cmp, etc...
-HCOMP.TOKEN_TEXT["COMMENT1"]  = {{"ZASM","C","HLZASM"},{"//"}} -- comment 1
-HCOMP.TOKEN_TEXT["COMMENT2"]  = {{"ZASM","C","HLZASM"},{"/*"}} -- comment 2
-HCOMP.TOKEN_TEXT["COMMENT3"]  = {{"ZASM","C","HLZASM"},{"*/"}} -- comment 3
-HCOMP.TOKEN_TEXT["MACRO"]     = {{"ZASM","C","HLZASM"},{}} -- preprocessor macro
-HCOMP.TOKEN_TEXT["STRING"]    = {{"ZASM","C","HLZASM"},{}} -- buffer of chars
-HCOMP.TOKEN_TEXT["CHAR"]      = {{"ZASM","C","HLZASM"},{}} -- single character
-HCOMP.TOKEN_TEXT["EOF"]       = {{"ZASM","C","HLZASM"},{}} -- end of file
+HCOMP.TOKEN_TEXT["COMMENT1"]  = {{"ZASM","HLZASM"},{"//"}} -- comment 1
+HCOMP.TOKEN_TEXT["COMMENT2"]  = {{"ZASM","HLZASM"},{"/*"}} -- comment 2
+HCOMP.TOKEN_TEXT["COMMENT3"]  = {{"ZASM","HLZASM"},{"*/"}} -- comment 3
+HCOMP.TOKEN_TEXT["MACRO"]     = {{"ZASM","HLZASM"},{}} -- preprocessor macro
+HCOMP.TOKEN_TEXT["STRING"]    = {{"ZASM","HLZASM"},{}} -- buffer of chars
+HCOMP.TOKEN_TEXT["CHAR"]      = {{"ZASM","HLZASM"},{}} -- single character
+HCOMP.TOKEN_TEXT["EOF"]       = {{"ZASM","HLZASM"},{}} -- end of file
 
 -- Add ZCPU ports
 for port=0,1023 do
@@ -145,15 +144,26 @@ for symID,symList in pairs(HCOMP.TOKEN_TEXT) do
 end
 
 
--- Create lookup table for double-character tokens
+-- Create lookup table for symbols and double-character tokens
+HCOMP.PARSER_SYMBOLS = {}
 HCOMP.PARSER_DBCHAR = {}
 for symID,symList in pairs(HCOMP.TOKEN_TEXT) do
+  local languages = symList[1]
   local symText = symList[2][1] or ""
   if #symText == 2 then
     local char1 = string.sub(symText,1,1)
     local char2 = string.sub(symText,2,2)
-    HCOMP.PARSER_DBCHAR[char1] = HCOMP.PARSER_DBCHAR[char1] or {}
-    HCOMP.PARSER_DBCHAR[char1][char2] = true
+    for _,lang in pairs(languages) do
+      HCOMP.PARSER_DBCHAR[lang] = HCOMP.PARSER_DBCHAR[lang] or {}
+      HCOMP.PARSER_DBCHAR[lang][char1] = HCOMP.PARSER_DBCHAR[lang][char1] or {}
+      HCOMP.PARSER_DBCHAR[lang][char1][char2] = true
+    end
+  end
+  if #symText == 1 then
+    for _,lang in pairs(languages) do
+	  HCOMP.PARSER_SYMBOLS[lang] = HCOMP.PARSER_SYMBOLS[lang] or {}
+	  HCOMP.PARSER_SYMBOLS[lang][symText] = true
+    end
   end
 end
 
@@ -174,16 +184,17 @@ end
 function HCOMP:nextFile()
   table.remove(self.Code,1)
   if not self.Code[1] then
-    self.Code[1] = { Text = "", Line = 1, Col = 1, File = "internal error" }
+    self.Code[1] = { Text = "", Line = 1, Col = 1, File = "internal error", NextCharPos = 1 }
   end
 end
 
 -- Return next character
 function HCOMP:getChar()
-  local char = string.sub(self.Code[1].Text,1,1)
+  local pos = self.Code[1].NextCharPos
+  local char = string.sub(self.Code[1].Text,pos,pos)
   if char == "" then
     self:nextFile()
-    char = string.sub(self.Code[1].Text,1,1)
+    char = string.sub(self.Code[1].Text,pos,pos)
   end
   return char
 end
@@ -191,20 +202,20 @@ end
 -- Skip current char
 function HCOMP:nextChar()
   local code = self.Code[1]
-  if code.Text == "" then
+  local pos = code.NextCharPos
+  if pos > #code.Text then
     self:nextFile()
   else
-    local char = string.sub(code.Text,1,1)
+    local char = string.sub(code.Text,pos,pos)
     if char == "\n" then
       code.Line = code.Line + 1
       code.Col = 1
     else
       code.Col = code.Col + 1
     end
-    code.Text = string.sub(code.Text,2)
+    code.NextCharPos = pos + 1
   end
 end
-
 
 
 
@@ -214,10 +225,8 @@ function HCOMP:Tokenize() local TOKEN = self.TOKEN
   -- Skip whitespaces
   while (self:getChar() ==  " ") or
         (self:getChar() == "\t") or
-        (self:getChar() == "\n") do self:nextChar() end
-
-  -- Store this line as previous (FIXME: need this?)
-  self.PreviousCodeLine = self.Code[1].Text
+        (self:getChar() == "\n") or
+		(self:getChar() == "\r") do self:nextChar() end
 
   -- Read token position
   local tokenPosition = { Line = self.Code[1].Line,
@@ -259,7 +268,7 @@ function HCOMP:Tokenize() local TOKEN = self.TOKEN
     self:nextChar() -- Skip leading character
 
     local fetchString = ""
-    while (self.Code[1].Text ~= "") and (self:getChar() ~= "'") and (self:getChar() ~= "\"") do
+    while self.Code[1].NextCharPos <= #self.Code[1].Text and self:getChar() ~= stringType do
 
       if self:getChar() == "\\" then
         self:nextChar()
@@ -277,7 +286,7 @@ function HCOMP:Tokenize() local TOKEN = self.TOKEN
         end
         self:nextChar()
       elseif self:getChar() == "\n" then
-        self:Error("Newline in string constant",
+        self:Error("Missing terminating " .. stringType .. " character",
           tokenPosition.Line,tokenPosition.Col,tokenPosition.File)
       else
         fetchString = fetchString .. self:getChar()
@@ -332,44 +341,58 @@ function HCOMP:Tokenize() local TOKEN = self.TOKEN
       token = self.Defines[token]
     end
   end
+  
+  local is_symbol = false
 
   -- If no alphanumeric token fetched, try to fetch the special-character ones
   if token == "" then
     token = self:getChar()
     self:nextChar()
 
-    if HCOMP.PARSER_DBCHAR[token] then
+    if HCOMP.PARSER_DBCHAR[self.Settings.CurrentLanguage][token] and HCOMP.PARSER_DBCHAR[self.Settings.CurrentLanguage][token][self:getChar()] then
       local curChar = self:getChar()
-      if HCOMP.PARSER_DBCHAR[token][curChar] then
-        token = token .. curChar
-        self:nextChar()
-        if token == "//" then -- Line comment
-          while (self:getChar() ~= "") and (self:getChar() ~= "\n") do self:nextChar() end
-          return true
-        elseif token == "/*" then -- Block comment open
-          while self:getChar() ~= "" do
-            local curChar = self:getChar()
+      token = token .. curChar
+      self:nextChar()
+      if token == "//" then -- Line comment
+        while (self:getChar() ~= "") and (self:getChar() ~= "\n") do self:nextChar() end
+        return true
+      elseif token == "/*" then -- Block comment open
+        while self:getChar() ~= "" do
+          local curChar = self:getChar()
+          self:nextChar()
+          if (curChar == "*") and (self:getChar() == "/") then
             self:nextChar()
-            if (curChar == "*") and (self:getChar() == "/") then
-              self:nextChar()
-              return true
-            end
+            return true
           end
-
-          -- Error in tokenizing
-          self:Error("Comment block not closed (reached end of file)",
-            tokenPosition.Line,tokenPosition.Col,tokenPosition.File)
-          return true
-        elseif token == "*/" then -- Block comment end (returns error token)
-          table.insert(self.Tokens,{
-            Type = TOKEN.COMMENT3,
-            Position = tokenPosition,
-          })
-          return true
         end
+
+        -- Error in tokenizing
+        self:Error("Comment block not closed (reached end of file)",
+          tokenPosition.Line,tokenPosition.Col,tokenPosition.File)
+        return true
+      elseif token == "*/" then -- Block comment end (returns error token)
+        table.insert(self.Tokens,{
+          Type = TOKEN.COMMENT3,
+          Position = tokenPosition,
+        })
+        return true
       end
+	  
+	  -- Else it's a two-character symbol token
+	  is_symbol = true
+	  
+    elseif HCOMP.PARSER_SYMBOLS[self.Settings.CurrentLanguage][token] then
+	  -- It's a one-character symbol token
+	  is_symbol = true
+	
+	else
+	  -- We have no idea what this is (it's not an identifier character, nor a recognized symbol)
+	  self:Error("Unknown character '"..token.."'",
+        tokenPosition.Line,tokenPosition.Col,tokenPosition.File)
     end
   end
+  
+  assert(token ~= "")
 
   -- Determine which token it is
   local tokenLookupTable = self.PARSER_LOOKUP[self.Settings.CurrentLanguage][string.upper(token)]
@@ -380,6 +403,12 @@ function HCOMP:Tokenize() local TOKEN = self.TOKEN
       Position = tokenPosition,
     })
     return true
+  end
+  
+  if is_symbol then
+    -- If we get here something is weird, because why would a symbol be in PARSER_DBCHARS or PARSER_SYMBOLS but not in PARSER_LOOKUP?
+    self:Error("Unknown symbol '"..token.."'",
+      tokenPosition.Line,tokenPosition.Col,tokenPosition.File)
   end
 
   -- Maybe its a number
@@ -408,7 +437,7 @@ end
 -- Print a string of tokens as an expression
 function HCOMP:PrintTokens(tokenList)
   local text = ""
-  if !istable(tokenList) then error("[global 1:1] Internal error 516 ("..tokenList..")") end
+  if not istable(tokenList) then error("[global 1:1] Internal error 516 ("..tokenList..")") end
 
   for _,token in ipairs(tokenList) do
     if (token.Type == self.TOKEN.NUMBER) or

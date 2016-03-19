@@ -84,11 +84,10 @@ if CLIENT then
   -- Make sure the file is opened in the tab
   function CPULib.SelectTab(editor,fileName)
     if not editor then return end
-    local fullFileName = editor.EditorType.."Chip\\"..fileName
-    fileName = string.lower(fileName)
-    fullFileName = string.lower(fullFileName)
-    editor.EditorType = string.lower(editor.EditorType)
-    if string.sub(fileName,1,7) == editor.EditorType.."chip" then
+    local editorType = string.lower(editor.EditorType)
+    local fullFileName = editorType.."chip\\"..fileName
+
+    if string.sub(fileName,1,7) == editorType.."chip" then
       fullFileName = fileName
     end
 
@@ -653,9 +652,9 @@ if SERVER then
 
     if not args[1] then -- Step forward
       Data.Entity.VM:Step(1)
-      Data.Entity.Clk = 0
+      Data.Entity.VMStopped = true
     else -- Run until instruction
-      Data.Entity.Clk = 1
+      Data.Entity.VMStopped = false
       Data.Entity:NextThink(CurTime())
 
       Data.Entity.LastInstruction = tonumber(args[1]) or 0
@@ -680,7 +679,7 @@ if SERVER then
     CPULib.SendDebugData(Data.Entity.VM,nil,Data.Player)
     Data.Entity.VM.IP = tempIP
 
-    Data.Entity.Clk = 1
+    Data.Entity.Clk = true
     Data.Entity:NextThink(CurTime())
   end)
 

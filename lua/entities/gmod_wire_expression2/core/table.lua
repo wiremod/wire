@@ -37,17 +37,17 @@ local DEFAULT = {n={},ntypes={},s={},stypes={},size=0}
 
 registerType("table", "t", table.Copy(DEFAULT),
 	function(self, input)
-		if (IsEmpty(input)) then
+		if IsEmpty(input) then
 			return table.Copy(DEFAULT)
 		end
 		return input
 	end,
 	nil,
 	function(retval)
-		if !istable(retval) then error("Return value is not a table, but a "..type(retval).."!",0) end
+		if not istable(retval) then error("Return value is not a table, but a "..type(retval).."!", 0) end
 	end,
 	function(v)
-		return !istable(v)
+		return not istable(v)
 	end
 )
 
@@ -284,7 +284,7 @@ end
 
 __e2setcost(nil)
 
-registerOperator("fea","t","s",function(self,args)
+registerOperator("fea","t","",function(self,args)
 	local keyname,valname,valtypeid = args[2],args[3],args[4]
 	local tbl = args[5]
 	tbl = tbl[1](self,tbl)
@@ -360,7 +360,7 @@ end)
 
 __e2setcost(1)
 
--- Creates an table
+-- Creates a table
 e2function table table(...)
 	local tbl = {...}
 	if (#tbl == 0) then return table.Copy(DEFAULT) end
@@ -471,8 +471,13 @@ end
 e2function void table:remove( number index )
 	if (#this.n == 0) then return end
 	if (!this.n[index]) then return end
-	table.remove( this.n, index )
-	table.remove( this.ntypes, index )
+	if index < 1 then -- table.remove doesn't work if the index is below 1
+		this.n[index] = nil
+		this.ntypes[index] = nil
+	else
+		table.remove( this.n, index )
+		table.remove( this.ntypes, index )
+	end
 	this.size = this.size - 1
 	self.GlobalScope.vclk[this] = true
 end
@@ -486,6 +491,22 @@ e2function void table:remove( string index )
 	this.size = this.size - 1
 	self.GlobalScope.vclk[this] = true
 end
+
+--------------------------------------------------------------------------------
+-- Force remove
+-- Forcibly removes the value from the array by setting it to nil
+-- Does not shift larger indexes down to fill the hole
+--------------------------------------------------------------------------------
+e2function void table:unset( index )
+	if this.n[index] == nil then return end
+	this.n[index] = nil
+	this.ntypes[index] = nil
+	this.size = this.size - 1
+	self.GlobalScope.vclk[this] = true
+end
+
+-- Force remove for strings is an alias to table:remove(string)
+e2function void table:unset( string index ) = e2function void table:remove( string index )
 
 -- Removes all variables not of the type
 e2function table table:clipToTypeid( string typeid )
@@ -1041,8 +1062,13 @@ registerCallback( "postinit", function()
 			if (numidx) then
 				if (!rv1.n[rv2] or rv1.ntypes[rv2] != id) then return fixdef(v[2]) end
 				local ret = rv1.n[rv2]
-				table.remove( rv1.n, rv2 )
-				table.remove( rv1.ntypes, rv2 )
+				if rv2 < 1 then -- table.remove doesn't work if the index is below 1
+					rv1.n[rv2] = nil
+					rv1.ntypes[rv2] = nil
+				else
+					table.remove( rv1.n, rv2 )
+					table.remove( rv1.ntypes, rv2 )
+				end
 				rv1.size = rv1.size - 1
 				self.GlobalScope.vclk[rv1] = true
 				return ret
