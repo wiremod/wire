@@ -23,12 +23,18 @@ end
 
 -- Read cell
 function ENT:ReadCell( Address )
+	-- 256 KiB limit
+	if Address < 0 or Address >= 262144 then return 0 end
+
 	local data = self.Memory[Address or 0] or 0
 	return isnumber(data) and data or 0
 end
 
 -- Write cell
 function ENT:WriteCell( Address, value )
+	-- 256 KiB limit
+	if Address < 0 or Address >= 262144 then return false end
+
 	if self.AllowWrite then
 		self.Memory[Address] = value
 	end
