@@ -216,11 +216,11 @@ local function loadSound(index)
 					soundtbl.SoundChannel = channel
 					channel:SetPos(soundtbl.Entity:GetPos())
 					
-					if soundtbl.Pitch > 0 then
+					if soundtbl.Pitch then
 						channel:SetPlaybackRate(math.Clamp( soundtbl.Pitch, 0, 400 ) / 100)
 					end
 					
-					if soundtbl.Volume > 0 then
+					if soundtbl.Volume then
 						channel:SetVolume( math.Clamp( soundtbl.Volume, 0, 1 ))
 					end
 
