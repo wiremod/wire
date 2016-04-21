@@ -15,7 +15,7 @@ Simply clone this repository into your `addons` folder:
 
 # License
 
-Copyright 2009-2014 Wire Team
+Copyright 2009-2016 Wire Team
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
 
