@@ -161,7 +161,7 @@ end
 local function flush_scale_queue(queue, recipient)
 	if not queue then queue = scale_queue end
 	if not next(queue) then return end
-	
+
 	net.Start("wire_holograms_set_scale")
 		for _,Holo,scale in ipairs_map(queue, unpack) do
 			net.WriteUInt(Holo.ent:EntIndex(), 16)
@@ -237,7 +237,7 @@ end
 
 local function flush_player_color_queue()
 	if not next(player_color_queue) then return end
-	
+
 	net.Start("wire_holograms_set_player_color")
 		for _,Holo,color in ipairs_map(player_color_queue, unpack) do
 			net.WriteUInt(Holo.ent:EntIndex(), 16)
@@ -377,7 +377,7 @@ local function reset_clholo(Holo, scale)
 		Holo.clips = {}
 	end
 	rescale(Holo, scale, {})
-	if Holo.visible then 
+	if Holo.visible then
 		for ply, state in pairs(Holo.visible) do
 			if not state then
 				vis_queue[ply] = vis_queue[ply] or {}
@@ -468,7 +468,7 @@ local function CheckIndex(self, index)
 	else
 		Holo = self.data.holos[index]
 	end
-	if not Holo or Holo.ent == NULL or Holo.ent == nil then return nil end
+	if not Holo or not IsValid(Holo.ent) then return nil end
 	return Holo
 end
 
@@ -490,7 +490,7 @@ local function CreateHolo(self, index, pos, scale, ang, color, model)
 	if not pos   then pos   = self.entity:GetPos() end
 	if not scale then scale = Vector(1,1,1) end
 	if not ang   then ang   = self.entity:GetAngles() end
-	
+
 	model = GetModel(model or "cube") or "models/holograms/cube.mdl"
 
 	local Holo = CheckIndex(self, index)
@@ -575,6 +575,22 @@ local function clearholos(self)
 			if IsValid(Holo.ent) then Holo.ent:Remove() end
 		end
 	end
+end
+
+local function clearholos_all(ply_uid)
+	if ply_uid == nil then
+		for pl_uid, rep in pairs(E2HoloRepo) do clearholos_all(pl_uid) end
+		return
+	end
+
+	for k,Holo in pairs(E2HoloRepo[ply_uid]) do
+		if Holo and IsValid(Holo.ent) then
+			Holo.ent:RemoveCallOnRemove( "holo_cleanup" )
+			Holo.ent:Remove()
+		end
+	end
+
+	PlayerAmount[ply_uid] = 0
 end
 
 -- -----------------------------------------------------------------------------
@@ -664,6 +680,14 @@ e2function void holoDeleteAll()
 	clearholos(self)
 end
 
+e2function void holoDeleteAll( all )
+	if all > 0 then
+		clearholos_all( self.uid )
+	else
+		clearholos( self )
+	end
+end
+
 e2function void holoReset(index, string model, vector scale, vector color, string material)
 	model = GetModel(model)
 	if not model then return end
@@ -685,7 +709,6 @@ e2function number holoCanCreate()
 	if (not checkOwner(self)) then return 0 end
 
 	if CheckSpawnTimer(self, true) == false or PlayerAmount[self.uid] >= wire_holograms_max:GetInt() then
-
 		return 0
 	end
 
@@ -695,6 +718,14 @@ end
 e2function number holoRemainingSpawns()
 	CheckSpawnTimer(self, true)
 	return self.data.holo.remainingSpawns
+end
+
+e2function number holoAmount()
+	return PlayerAmount[self.uid]
+end
+
+e2function number holoMaxAmount()
+	return wire_holograms_max:GetInt()
 end
 
 -- -----------------------------------------------------------------------------
@@ -825,7 +856,7 @@ end
 e2function void holoPos(index, vector position)
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
-	
+
 	E2Lib.setPos(Holo.ent, Vector(position[1],position[2],position[3]))
 end
 
@@ -904,7 +935,7 @@ end
 e2function void holoModel(index, string model)
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
-	
+
 	model = GetModel(model)
 	if not model then return end
 
@@ -943,11 +974,11 @@ end
 e2function void holoPlayerColor(index, vector color)
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
-	
+
 	local r = color[1]/255
 	local g = color[2]/255
 	local b = color[3]/255
-	
+
 	set_player_color(Holo, Vector(r, g, b))
 end
 
@@ -1121,15 +1152,7 @@ end
 concommand.Add( "wire_holograms_remove_all", function( ply, com, args )
 	if ply:IsValid() and not ply:IsAdmin() then return end
 
-	for pl_uid,rep in pairs( E2HoloRepo ) do
-		for k,Holo in pairs( rep ) do
-			if Holo and IsValid(Holo.ent) then
-				Holo.ent:Remove()
-				PlayerAmount[pl_uid] = PlayerAmount[pl_uid] - 1
-			end
-		end
-	end
-
+	clearholos_all()
 end )
 
 concommand.Add( "wire_holograms_block", function( ply, com, args )
