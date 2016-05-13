@@ -575,11 +575,6 @@ local function clearholos(self)
 			if IsValid(Holo.ent) then Holo.ent:Remove() end
 		end
 	end
-
-	-- Sometimes, PlayerAmount is not correctly reduced when holograms are removed
-	-- (not sure why)
-	-- This, at least, gives players a way to fix it, when it happens
-	PlayerAmount[self.uid] = 0
 end
 
 -- -----------------------------------------------------------------------------
