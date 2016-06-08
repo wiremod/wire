@@ -656,6 +656,7 @@ E2Helper.Descriptions["toString(e)"] = "Converts entity to string"
 E2Helper.Descriptions["toString(b)"] = "Converts bone to string"
 
 -- Wirelink
+E2Helper.Descriptions["nowirelink()"] = "Returns an invalid wirelink"
 E2Helper.Descriptions["wirelink()"] = "Returns wirelink to this E2"
 E2Helper.Descriptions["isHiSpeed(xwl:)"] = "Returns true if the linked component is high-speed capable"
 E2Helper.Descriptions["entity(xwl:)"] = "Returns the entity of the linked component"
