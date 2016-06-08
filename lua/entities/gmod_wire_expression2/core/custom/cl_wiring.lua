@@ -3,4 +3,5 @@ E2Helper.Descriptions["createWire(e:ess)"] = "Creates a wire from specified inpu
 E2Helper.Descriptions["deleteWire(e:s)"] = "Unwires the specified input of the entity"
 E2Helper.Descriptions["getWireInputs(e:)"] = "Returns array of all inputs of the entity"
 E2Helper.Descriptions["getWireOutputs(e:)"] = "Returns array of all outputs of the entity"
+E2Helper.Descriptions["nowirelink()"] = "Returns an invalid wirelink"
 E2Helper.Descriptions["wirelink(e:)"] = "Returns entity's wirelink"
