@@ -27,6 +27,9 @@ local sinh   = math.sinh
 local cosh   = math.cosh
 local tanh   = math.tanh
 
+local NINF   = -1 / 0
+local PINF   =  1 / 0
+
 
 --[[************************************************************************]]--
 --  Numeric support
@@ -221,6 +224,27 @@ registerFunction("max", "nnnn", "n", function(self, args)
 	if rv3 > val then val = rv3 end
 	if rv4 > val then return rv4 else return val end
 end)
+
+--[[************************************************************************]]--
+
+__e2setcost(2) -- approximation
+
+--- Returns true (1) if given value is a finite number; otherwise false (0).
+e2function number finite(value)
+	return value > NINF and value < PINF
+end
+
+--- Returns 1 if given value is a positive infinity or -1 if given value is a negative infinity; otherwise 0.
+e2function number isinf(value)
+	if value == PINF then return 1 end
+	if value == NINF then return -1 end
+	return 0
+end
+
+--- Returns true (1) if given value is not a number (NaN); otherwise false (0).
+e2function number isnan(value)
+	return value ~= value
+end
 
 --[[************************************************************************]]--
 

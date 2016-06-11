@@ -302,6 +302,13 @@ end
 
 /******************************************************************************/
 
+__e2setcost(1)
+
+--- Return an invalid wirelink
+e2function wirelink nowirelink()
+	return nil
+end
+
 __e2setcost(5) -- temporary
 
 --- Return E2 wirelink -- and create it if none created yet
