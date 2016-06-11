@@ -410,8 +410,8 @@ e2function number array:minIndex()
 	for k,v in pairs( this ) do
 		indexes = indexes + 1
 		local val = tonumber(v) or 0
-		if (num == nil or v < num) then
-			num = v
+		if (num == nil or val < num) then
+			num = val
 			index = k
 		end
 	end
@@ -469,12 +469,12 @@ local clamp = math.Clamp
 local function concat( tab, delimeter, startindex, endindex )
 	local ret = {}
 	local len = #tab
-	
+
 	startindex = startindex or 1
 	if startindex > len then return "" end
-	
+
 	endindex = clamp(endindex or len, startindex, len)
-	
+
 	for i=startindex, endindex do
 		ret[#ret+1] = tostring(tab[i])
 	end
