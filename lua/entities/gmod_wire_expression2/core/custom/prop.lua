@@ -38,6 +38,16 @@ function PropCore.ValidAction(self, entity, cmd)
 	if(!canHaveInvalidPhysics[cmd] and !validPhysics(entity)) then return false end
 	if(!isOwner(self, entity)) then return false end
 	if entity:IsPlayer() then return false end
+
+	-- make sure we can only perform the same action on this prop once per tick
+	-- to prevent spam abuse
+	if not entity.e2_propcore_last_action then
+		entity.e2_propcore_last_action = {}
+	end
+	if 	entity.e2_propcore_last_action[cmd] and
+		entity.e2_propcore_last_action[cmd] == CurTime() then return false end
+	entity.e2_propcore_last_action[cmd] = CurTime()
+
 	local ply = self.player
 	return sbox_E2_PropCore:GetInt()==2 or (sbox_E2_PropCore:GetInt()==1 and ply:IsAdmin())
 end
@@ -53,74 +63,74 @@ end
 function PropCore.CreateProp(self,model,pos,angles,freeze,isVehicle)
 
 	if not PropCore.ValidSpawn() then return nil end
-	
+
 	if isVehicle then
 		if self.player:CheckLimit( "vehicles" ) == false then return nil end
 		if model == "" then model = "models/nova/airboat_seat.mdl" end
 	end
-	
+
 	if not util.IsValidModel( model ) or not util.IsValidProp( model ) then return nil end
-	
+
 	pos = E2Lib.clampPos( pos )
-	
+
 	local prop
-	
+
 	local cleanupCategory = "props"
 	local undoCategory = "e2_spawned_prop"
 	local undoName = "E2 Prop"
-	
+
 	if isVehicle then
 		cleanupCategory = "vehicles"
 		undoCategory = "e2_spawned_seat"
 		undoName = "E2 Seat"
-		
+
 		prop = ents.Create("prop_vehicle_prisoner_pod")
 		prop:SetModel(model)
 		prop:SetPos(pos)
 		prop:SetAngles(angles)
-		
+
 		if self.data.propSpawnEffect then DoPropSpawnedEffect( prop ) end
-		
+
 		prop:Spawn()
 		prop:SetKeyValue( "limitview", 0 )
-		
+
 		table.Merge( prop, { HandleAnimation = function( _, ply ) return ply:SelectWeightedSequence( ACT_HL2MP_SIT ) end } )
 		gamemode.Call( "PlayerSpawnedVehicle", self.player, prop )
 	else
 		prop = self.data.propSpawnEffect and MakeProp( self.player, pos, angles, model, {}, {} ) or MakePropNoEffect( self.player, pos, angles, model, {}, {} )
 	end
-	
+
 	if not IsValid( prop ) then return nil end
-	
+
 	prop:Activate()
-	
+
 	local phys = prop:GetPhysicsObject()
 	if IsValid( phys ) then
 		if angles ~= nil then E2Lib.setAng( phys, angles ) end
 		phys:Wake()
 		if freeze > 0 then phys:EnableMotion( false ) end
 	end
-	
+
 	self.player:AddCleanup( cleanupCategory, prop )
-	
+
 	if self.data.propSpawnUndo then
 		undo.Create( undoCategory )
 			undo.AddEntity( prop )
 			undo.SetPlayer( self.player )
 		undo.Finish( undoName .. " (" .. model .. ")" )
 	end
-	
+
 	prop:CallOnRemove( "wire_expression2_propcore_remove",
 		function( prop )
 			self.data.spawnedProps[ prop ] = nil
 			E2totalspawnedprops = E2totalspawnedprops - 1
 		end
 	)
-	
+
 	self.data.spawnedProps[ prop ] = self.data.propSpawnUndo
 	E2totalspawnedprops = E2totalspawnedprops + 1
 	E2tempSpawnedProps = E2tempSpawnedProps + 1
-	
+
 	return prop
 end
 
