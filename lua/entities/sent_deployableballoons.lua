@@ -43,7 +43,7 @@ end
 hook.Add("Initialize", "CreateDamageFilter", CreateDamageFilter)
 
 local function MakeBalloonSpawner(pl, Data)
-	if not pl:CheckLimit("wire_deployers") then return nil end
+	if IsValid(pl) and not pl:CheckLimit("wire_deployers") then return nil end
 
 	local ent = ents.Create("sent_deployableballoons")
 	if not ent:IsValid() then return end
@@ -54,8 +54,11 @@ local function MakeBalloonSpawner(pl, Data)
 
 	duplicator.DoGenericPhysics(ent, pl, Data)
 
-	pl:AddCount("wire_deployers", ent)
-	pl:AddCleanup("wire_deployers", ent)
+	if IsValid(pl) then
+		pl:AddCount("wire_deployers", ent)
+		pl:AddCleanup("wire_deployers", ent)
+	end
+
 	return ent
 end
 
