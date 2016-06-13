@@ -49,6 +49,9 @@ timer.Simple(0.1, function()
 end)
 
 -- Number
+E2Helper.Descriptions["finite(n)"] = "Returns 1 if given value is a finite number; otherwise 0."
+E2Helper.Descriptions["isinf(n)"] = "Returns 1 if given value is a positive infinity or -1 if given value is a negative infinity; otherwise 0."
+E2Helper.Descriptions["isnan(n)"] = "Returns 1 if given value is not a number (NaN); otherwise 0."
 E2Helper.Descriptions["mod(nn)"] = "Modulo, returns the Remainder after Argument 1 has been divided by Argument 2. Note \"mod(-1, 3) = -1\""
 E2Helper.Descriptions["sqrt(n)"] = "Returns the Square Root of the Argument"
 E2Helper.Descriptions["cbrt(n)"] = "Returns the Cube Root of the Argument"
