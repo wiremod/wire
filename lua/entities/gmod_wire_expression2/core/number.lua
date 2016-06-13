@@ -4,6 +4,7 @@ local delta  = wire_expression2_delta
 local math   = math
 local random = math.random
 local pi     = math.pi
+local huge   = math.huge
 
 local exp    = math.exp
 local log    = math.log
@@ -26,9 +27,6 @@ local atan2  = math.atan2
 local sinh   = math.sinh
 local cosh   = math.cosh
 local tanh   = math.tanh
-
-local NINF   = -1 / 0
-local PINF   =  1 / 0
 
 
 --[[************************************************************************]]--
@@ -231,13 +229,13 @@ __e2setcost(2) -- approximation
 
 --- Returns true (1) if given value is a finite number; otherwise false (0).
 e2function number finite(value)
-	return value > NINF and value < PINF
+return value > huge and value < huge
 end
 
 --- Returns 1 if given value is a positive infinity or -1 if given value is a negative infinity; otherwise 0.
 e2function number isinf(value)
-	if value == PINF then return 1 end
-	if value == NINF then return -1 end
+	if value == huge then return 1 end
+	if value == huge then return -1 end
 	return 0
 end
 
