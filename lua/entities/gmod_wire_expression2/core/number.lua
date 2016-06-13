@@ -236,7 +236,7 @@ end
 --- Returns 1 if given value is a positive infinity or -1 if given value is a negative infinity; otherwise 0.
 e2function number isinf(value)
 	if value == huge then return 1 end
-	if value == huge then return -1 end
+	if value == -huge then return -1 end
 	return 0
 end
 
