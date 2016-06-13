@@ -431,6 +431,10 @@ __e2setcost(2) -- approximation
 local deg2rad = pi / 180
 local rad2deg = 180 / pi
 
+registerFunction("huge", "", "n", function(self, args)
+	return huge
+end)
+
 registerFunction("pi", "", "n", function(self, args)
 	return pi
 end)
