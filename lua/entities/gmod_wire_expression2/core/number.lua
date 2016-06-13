@@ -230,7 +230,7 @@ __e2setcost(2) -- approximation
 
 --- Returns true (1) if given value is a finite number; otherwise false (0).
 e2function number finite(value)
-	return value > huge and value < huge
+	return value > -huge and value < huge
 end
 
 --- Returns 1 if given value is a positive infinity or -1 if given value is a negative infinity; otherwise 0.
