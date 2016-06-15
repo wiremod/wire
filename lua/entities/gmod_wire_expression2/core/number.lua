@@ -230,7 +230,7 @@ __e2setcost(2) -- approximation
 
 --- Returns true (1) if given value is a finite number; otherwise false (0).
 e2function number finite(value)
-	return value > -inf and value < inf
+	return (value > -inf and value < inf) and 1 or 0
 end
 
 --- Returns 1 if given value is a positive infinity or -1 if given value is a negative infinity; otherwise 0.
@@ -242,7 +242,7 @@ end
 
 --- Returns true (1) if given value is not a number (NaN); otherwise false (0).
 e2function number isnan(value)
-	return value ~= value
+	return (value ~= value) and 1 or 0
 end
 
 --[[************************************************************************]]--
