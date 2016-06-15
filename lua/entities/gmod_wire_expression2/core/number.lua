@@ -4,7 +4,7 @@ local delta  = wire_expression2_delta
 local math   = math
 local random = math.random
 local pi     = math.pi
-local huge   = math.huge
+local inf    = math.huge
 
 local exp    = math.exp
 local log    = math.log
@@ -47,7 +47,7 @@ registerType("normal", "n", 0,
 E2Lib.registerConstant("PI", pi)
 E2Lib.registerConstant("E", exp(1))
 E2Lib.registerConstant("PHI", (1+sqrt(5))/2)
-E2Lib.registerConstant("HUGE", huge)
+E2Lib.registerConstant("INF", inf)
 
 --[[************************************************************************]]--
 
@@ -230,13 +230,13 @@ __e2setcost(2) -- approximation
 
 --- Returns true (1) if given value is a finite number; otherwise false (0).
 e2function number finite(value)
-	return value > -huge and value < huge
+	return value > -inf and value < inf
 end
 
 --- Returns 1 if given value is a positive infinity or -1 if given value is a negative infinity; otherwise 0.
 e2function number isinf(value)
-	if value == huge then return 1 end
-	if value == -huge then return -1 end
+	if value == inf then return 1 end
+	if value == -inf then return -1 end
 	return 0
 end
 
@@ -431,8 +431,8 @@ __e2setcost(2) -- approximation
 local deg2rad = pi / 180
 local rad2deg = 180 / pi
 
-registerFunction("huge", "", "n", function(self, args)
-	return huge
+registerFunction("inf", "", "n", function(self, args)
+	return inf
 end)
 
 registerFunction("pi", "", "n", function(self, args)
