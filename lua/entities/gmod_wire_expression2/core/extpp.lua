@@ -316,7 +316,7 @@ function e2_extpp_pass2(contents)
 				elseif aliasflag == 2 then
 					-- right hand side of an alias definition
 					regfn, name, arg_typeids, ret_typeid = unpack(aliasdata)
-					table.insert(function_register, ('if %s then %s(%q, %q, %q, %s) end\n'):format(mangled_name, regfn, name, arg_typeids, ret_typeid, mangled_name))
+					table.insert(function_register, ('if %s then %s(%q, %q, %q, %s, tempcosts[%q], %s) end\n'):format(mangled_name, regfn, name, arg_typeids, ret_typeid, mangled_name, mangled_name, makestringtable(argtable.argnames, (thistype ~= "") and 2 or 1)))
 				end
 			else
 				-- save tempcost
@@ -324,7 +324,7 @@ function e2_extpp_pass2(contents)
 				locals[mangled_name] = true
 				if ellipses then
 					-- generate a registerFunction line
-					table.insert(function_register, string.format('if %s then %s(%q, %q, %q, %s) end\n', mangled_name, regfn, name, arg_typeids .. "...", ret_typeid, mangled_name))
+					table.insert(function_register, string.format('if %s then %s(%q, %q, %q, %s, tempcosts[%q], %s) end\n', mangled_name, regfn, name, arg_typeids .. "...", ret_typeid, mangled_name, mangled_name, makestringtable(argtable.argnames, (thistype ~= "") and 2 or 1)))
 
 					-- generate a new function header and append it to the output
 					table.insert(output, 'function ' .. mangled_name .. '(self, args, typeids, ...)')
