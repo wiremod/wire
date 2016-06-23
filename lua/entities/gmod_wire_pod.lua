@@ -529,7 +529,7 @@ end
 
 function ENT:Use( User, caller )
 	if User ~= self:GetPlayer() then return end
-	if not hook.Run("PlayerGiveSWEP", User, "remotecontroller", weapons.Get( "laserpointer" )) then return end
+	if not hook.Run("PlayerGiveSWEP", User, "remotecontroller", weapons.Get( "remotecontroller" )) then return end
 	User:PrintMessage(HUD_PRINTTALK, "Hold down your use key for 2 seconds to get and link a Remote Controller.")
 	timer.Create("pod_use_"..self:EntIndex(), 2, 1, function()
 		if not IsValid(User) or not User:IsPlayer() then return end
@@ -537,7 +537,7 @@ function ENT:Use( User, caller )
 		if not User:GetEyeTrace().Entity or User:GetEyeTrace().Entity ~= self then return end
 
 		if not IsValid(User:GetWeapon("remotecontroller")) then
-			if not hook.Run("PlayerGiveSWEP", User, "remotecontroller", weapons.Get( "laserpointer" )) then return end
+			if not hook.Run("PlayerGiveSWEP", User, "remotecontroller", weapons.Get( "remotecontroller" )) then return end
 			User:Give("remotecontroller")
 		end
 
