@@ -2,9 +2,9 @@ AddCSLuaFile()
 DEFINE_BASECLASS( "base_wire_entity" )
 ENT.PrintName       = "Wire Pod Controller"
 ENT.WireDebugName	= "Pod Controller"
-ENT.AllowLockInsideVehicle = CreateConVar( "wire_pod_allowlockinsidevehicle", "0", FCVAR_ARCHIVE, "Allow or disallow people to be locked inside of vehicles" ) 
+ENT.AllowLockInsideVehicle = CreateConVar( "wire_pod_allowlockinsidevehicle", "0", FCVAR_ARCHIVE, "Allow or disallow people to be locked inside of vehicles" )
 
-if CLIENT then 
+if CLIENT then
 	hook.Add("PlayerBindPress", "wire_pod", function(ply, bind, pressed)
 		if ply:InVehicle() then
 			if (bind == "invprev") then
@@ -47,7 +47,7 @@ if CLIENT then
 		hideHUD = false
 	end)
 
-	
+
 	return  -- No more client
 end
 
@@ -113,7 +113,7 @@ function ENT:Initialize()
 	self:SetActivated( false )
 
 	self:SetColor(Color(255,0,0,self:GetColor().a))
-	
+
 	self:SetOverlayText( "Pod Controller" )
 end
 
@@ -416,7 +416,7 @@ function ENT:Think()
 		WireLib.TriggerOutput(self, "Health", ply:Health())
 		WireLib.TriggerOutput(self, "Armor", ply:Armor())
 		if self:HasPod() then WireLib.TriggerOutput(self, "ThirdPerson", pod:GetThirdPersonMode() and 1 or 0) end
-		
+
 		if not ply:IsBot() then WireLib.TriggerOutput(self, "Light", ply.keystate[KEY_F] and 1 or 0) end
 	end
 
@@ -529,7 +529,7 @@ end
 
 function ENT:Use( User, caller )
 	if User ~= self:GetPlayer() then return end
-	if not hook.Run("PlayerGiveSWEP", User, "remotecontroller") then return end
+	if not hook.Run("PlayerGiveSWEP", User, "remotecontroller", weapons.Get( "remotecontroller" )) then return end
 	User:PrintMessage(HUD_PRINTTALK, "Hold down your use key for 2 seconds to get and link a Remote Controller.")
 	timer.Create("pod_use_"..self:EntIndex(), 2, 1, function()
 		if not IsValid(User) or not User:IsPlayer() then return end
@@ -537,7 +537,7 @@ function ENT:Use( User, caller )
 		if not User:GetEyeTrace().Entity or User:GetEyeTrace().Entity ~= self then return end
 
 		if not IsValid(User:GetWeapon("remotecontroller")) then
-			if not hook.Run("PlayerGiveSWEP", User, "remotecontroller") then return end
+			if not hook.Run("PlayerGiveSWEP", User, "remotecontroller", weapons.Get( "remotecontroller" )) then return end
 			User:Give("remotecontroller")
 		end
 
