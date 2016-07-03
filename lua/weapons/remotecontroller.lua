@@ -88,7 +88,7 @@ end
 
 function SWEP:Think()
 	if (!self.Linked) then return end
-	
+
 	if (self:GetOwner():KeyPressed(IN_USE)) then
 		if (!self.Active) then
 			self:On()
