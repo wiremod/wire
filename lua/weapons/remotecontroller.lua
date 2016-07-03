@@ -56,7 +56,7 @@ function SWEP:On()
 	local ply = self:GetOwner()
 	
 	self.Active = true
-	if ply:InVehicle() then --Fix exploit related to noclip
+	if (ply:InVehicle()) then --Fix exploit related to noclip
 		self.OldMoveType = MOVETYPE_WALK
 	else
 		self.OldMoveType = ply:GetMoveType()
