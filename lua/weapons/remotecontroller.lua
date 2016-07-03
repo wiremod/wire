@@ -42,7 +42,7 @@ function SWEP:Holster()
 	if self.Linked then
 		self:Off()
 	end
-	
+
 	return true
 end
 
@@ -52,19 +52,19 @@ end
 
 function SWEP:OnDrop()
 	if not self.Linked then return end
-	
+
 	self:Off()
 	self.Linked = nil
 end
 
 function SWEP:On()
 	local ply = self:GetOwner()
-	
+
 	self.Active = true
 	self.OldMoveType = not ply:InVehicle() and ply:GetMoveType() or MOVETYPE_WALK
 	ply:SetMoveType(MOVETYPE_NONE)
 	ply:DrawViewModel(false)
-	
+
 	if IsValid(self.Linked) then
 		self.Linked:PlayerEntered(ply, self)
 	end
@@ -72,11 +72,11 @@ end
 
 function SWEP:Off()
 	local ply = self:GetOwner()
-	
+
 	if self.Active then
 		ply:SetMoveType(self.OldMoveType or MOVETYPE_WALK)
 	end
-	
+
 	self.Active = nil
 	self.OldMoveType = nil
 	ply:DrawViewModel(true)
@@ -88,7 +88,7 @@ end
 
 function SWEP:Think()
 	if not self.Linked then return end
-	
+
 	if self:GetOwner():KeyPressed(IN_USE) then
 		if not self.Active then
 			self:On()
