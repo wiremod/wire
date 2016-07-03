@@ -38,17 +38,22 @@ function SWEP:PrimaryAttack()
 end
 
 function SWEP:Holster()
-	if (self.Linked) then
+	if self.Linked then
 		self:Off()
 	end
+	
+	return true
+end
+
+function SWEP:Deploy()
 	return true
 end
 
 function SWEP:OnDrop()
-	if (self.Linked) then
-		self:Off()
-		self.Linked = nil
-	end
+	if not self.Linked then return end
+	
+	self:Off()
+	self.Linked = nil
 end
 
 function SWEP:On()
@@ -56,33 +61,34 @@ function SWEP:On()
 	self.OldMoveType = self:GetOwner():GetMoveType()
 	self:GetOwner():SetMoveType(MOVETYPE_NONE)
 	self:GetOwner():DrawViewModel(false)
-	if (self.Linked and self.Linked:IsValid()) then
-		self.Linked:PlayerEntered( self:GetOwner(), self )
+	
+	if IsValid(self.Linked) then
+		self.Linked:PlayerEntered(self:GetOwner(), self)
 	end
 end
+
 function SWEP:Off()
 	if self.Active then
 		self:GetOwner():SetMoveType(self.OldMoveType or MOVETYPE_WALK)
 	end
+	
 	self.Active = nil
 	self.OldMoveType = nil
 	self:GetOwner():DrawViewModel(true)
-	if (self.Linked and self.Linked:IsValid()) then
-		self.Linked:PlayerExited( self:GetOwner() )
+	
+	if IsValid(self.Linked) then
+		self.Linked:PlayerExited(self:GetOwner())
 	end
 end
 
 function SWEP:Think()
-	if (!self.Linked) then return end
-	if (self:GetOwner():KeyPressed( IN_USE )) then
-		if (!self.Active) then
+	if not self.Linked then return end
+	
+	if self:GetOwner():KeyPressed(IN_USE) then
+		if not self.Active then
 			self:On()
 		else
 			self:Off()
 		end
 	end
-end
-
-function SWEP:Deploy()
-	return true
 end
