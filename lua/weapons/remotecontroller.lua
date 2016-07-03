@@ -41,40 +41,55 @@ function SWEP:Holster()
 	if (self.Linked) then
 		self:Off()
 	end
+	
 	return true
 end
 
 function SWEP:OnDrop()
-	if (self.Linked) then
-		self:Off()
-		self.Linked = nil
-	end
+	if (!self.Linked) then return end
+	
+	self:Off()
+	self.Linked = nil
 end
 
 function SWEP:On()
+	local ply = self:GetOwner()
+	
 	self.Active = true
-	self.OldMoveType = self:GetOwner():GetMoveType()
-	self:GetOwner():SetMoveType(MOVETYPE_NONE)
-	self:GetOwner():DrawViewModel(false)
+	if (ply:InVehicle()) then --Fix exploit related to noclip
+		self.OldMoveType = MOVETYPE_WALK
+	else
+		self.OldMoveType = ply:GetMoveType()
+	end
+	
+	ply:SetMoveType(MOVETYPE_NONE)
+	ply:DrawViewModel(false)
+	
 	if (self.Linked and self.Linked:IsValid()) then
-		self.Linked:PlayerEntered( self:GetOwner(), self )
+		self.Linked:PlayerEntered(self:GetOwner(), self)
 	end
 end
+
 function SWEP:Off()
-	if self.Active then
-		self:GetOwner():SetMoveType(self.OldMoveType or MOVETYPE_WALK)
+	local ply = self:GetOwner()
+	
+	if (self.Active) then
+		ply:SetMoveType(self.OldMoveType or MOVETYPE_WALK)
 	end
+	
 	self.Active = nil
 	self.OldMoveType = nil
-	self:GetOwner():DrawViewModel(true)
+	ply:DrawViewModel(true)
+	
 	if (self.Linked and self.Linked:IsValid()) then
-		self.Linked:PlayerExited( self:GetOwner() )
+		self.Linked:PlayerExited(ply)
 	end
 end
 
 function SWEP:Think()
 	if (!self.Linked) then return end
-	if (self:GetOwner():KeyPressed( IN_USE )) then
+	
+	if (self:GetOwner():KeyPressed(IN_USE)) then
 		if (!self.Active) then
 			self:On()
 		else
