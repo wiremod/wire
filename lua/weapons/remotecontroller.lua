@@ -61,7 +61,7 @@ function SWEP:On()
 	local ply = self:GetOwner()
 	
 	self.Active = true
-	self.OldMoveType = self:GetOwner():GetMoveType()
+	self.OldMoveType = not ply:InVehicle() and ply:GetMoveType() or MOVETYPE_WALK
 	ply:SetMoveType(MOVETYPE_NONE)
 	ply:DrawViewModel(false)
 	
