@@ -44,7 +44,7 @@ end
 function PreProcessor:FindComments(line)
 	local ret, count, pos, found = {}, 0, 1, nil
 	repeat
-		found = line:find('[#"]', pos)
+		found = line:find('[#"\\]', pos)
 		if found then -- We found something
 			local char = line:sub(found, found)
 			if char == "#" then -- We found a comment
@@ -67,13 +67,11 @@ function PreProcessor:FindComments(line)
 				end
 			elseif char == '"' then -- We found a string
 				local before = line:sub(found - 1, found - 1)
-				if before == "\\" and line:sub(found - 2, found - 2) ~= "\\" then -- It was an escaped character
-					pos = found + 1 -- Skip it
-				else -- It's a string
-					count = count + 1
-					ret[count] = { type = "string", pos = found }
-					pos = found + 1
-				end
+				count = count + 1
+				ret[count] = { type = "string", pos = found }
+				pos = found + 1
+			elseif char == '\\' then -- We found an escape character
+				pos = found + 2 -- Skip the escape character and the character following it
 			end
 		end
 		until (not found)
