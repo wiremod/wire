@@ -292,9 +292,11 @@ function PreProcessor:ParsePorts(ports, startoffset)
 	local names = {}
 	local types = {}
 	local columns = {}
+
+	-- Preprocess [Foo Bar]:entity into [Foo,Bar]:entity so we don't have to deal with split-up multi-variable definitions in the main loop
 	ports = ports:gsub("%[.-%]", function(s)
 		return s:gsub(" ", ",")
-	end) -- preprocess multi-variable definitions.
+	end)
 
 	for column, key in ports:gmatch("()([^ ]+)") do
 		column = startoffset + column
