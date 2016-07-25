@@ -459,9 +459,12 @@ e2function void entity:applyForce(vector force)
 	if not validPhysics(this) then return nil end
 	if not isOwner(self, this) then return nil end
 
-	if check( force ) then
+	if check(force) then
 		local phys = this:GetPhysicsObject()
-		phys:ApplyForceCenter(Vector(force[1],force[2],force[3]))
+        force = Vector(force[1], force[2], force[3])
+        if force:Length() ~= math.huge then
+		    phys:ApplyForceCenter(force)
+        end
 	end
 end
 
@@ -471,7 +474,11 @@ e2function void entity:applyOffsetForce(vector force, vector position)
 
 	if check(force) and check(position) then
 		local phys = this:GetPhysicsObject()
-		phys:ApplyForceOffset(Vector(force[1],force[2],force[3]), Vector(position[1],position[2],position[3]))
+        force = Vector(force[1], force[2], force[3])
+        position = Vector(position[1], position[2], position[3])
+        if force:Length() ~= math.huge and pos:Length() ~= math.huge then
+		    phys:ApplyForceOffset(force, position)
+        end
 	end
 end
 
