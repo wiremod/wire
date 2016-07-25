@@ -313,10 +313,10 @@ e2function void bone:applyForce(vector force)
 	local ent = isValidBone(this)
 	if not ent then return end
 	if not isOwner(self, ent) then return end
-    force = Vector(force[1], force[2], force[3])
-    if force:Length() ~= math.huge then
-	    this:ApplyForceCenter(force)
-    end
+	force = Vector(force[1], force[2], force[3])
+	if force:Length() ~= math.huge then
+		this:ApplyForceCenter(force)
+	end
 end
 
 --- Applies force to <this> according to <force> from the location of <pos>
@@ -324,11 +324,11 @@ e2function void bone:applyOffsetForce(vector force, vector pos)
 	local ent = isValidBone(this)
 	if not ent then return end
 	if not isOwner(self, ent) then return end
-    force = Vector(force[1], force[2], force[3])
-    pos = Vector(pos[1], pos[2], pos[3])
-    if force:Length() ~= math.huge and pos:Length() ~= math.huge then
-	    this:ApplyForceOffset(force, pos)
-    end
+	force = Vector(force[1], force[2], force[3])
+	pos = Vector(pos[1], pos[2], pos[3])
+	if force:Length() ~= math.huge and pos:Length() ~= math.huge then
+		this:ApplyForceOffset(force, pos)
+	end
 end
 
 --- Applies torque to <this> according to <angForce>
