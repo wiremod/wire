@@ -79,9 +79,7 @@ local function WriteArray(entity, address, data)
 	-- check if enough space is available
 	if not entity:WriteCell(address+#data-1, 0) then return 0 end
 
-	-- write the trailing 0 byte.
-	entity:WriteCell(address+#data, 0)
-	local free_address = address+#data+1
+	local free_address = address+#data
 
 	for index, value in ipairs(data) do
 		local tp = type(value)
@@ -97,11 +95,11 @@ local function WriteArray(entity, address, data)
 			else
 				wa_lookup[value] = free_address
 				if not entity:WriteCell(address+index-1, free_address) then return 0 end
-				free_address = WriteArray(entity, free_address, value)
+				free_address = WriteArray(entity, free_address, table.Add(table.Copy(value),{0}))
 			end
 		elseif tp == "Vector" then
 			if not entity:WriteCell(address+index-1, free_address) then return 0 end
-			free_address = WriteArray(entity, free_address, { value[1], value[2], value[3] })
+			free_address = WriteArray(entity, free_address, { value[1], value[2], value[3], 0 })
 		end
 	end
 	return free_address
