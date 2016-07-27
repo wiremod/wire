@@ -377,12 +377,10 @@ registerFunction("exp", "n", "n", function(self, args)
 	return exp(rv1)
 end)
 
-registerFunction("frexp", "n", "r", function(self, args)
-	local op1 = args[2]
-	local rv1 = op1[1](self, op1)
-	local mantissa, exponent = frexp(rv1)
+e2function array frexp(x)
+	local mantissa, exponent = frexp(x)
 	return { mantissa, exponent }
-end)
+end
 
 registerFunction("ln", "n", "n", function(self, args)
 	local op1 = args[2]
