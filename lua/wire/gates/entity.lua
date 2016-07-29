@@ -7,6 +7,7 @@ GateActions("Entity")
 local check = WireLib.checkForce
 
 local function isAllowed( gate, ent )
+	if not IsValid(gate:GetPlayer()) then return false end
 	return hook.Run( "PhysgunPickup", gate:GetPlayer(), ent ) ~= false
 end
 
