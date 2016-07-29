@@ -30,12 +30,19 @@ __e2setcost(30) -- temporary
 
 e2function void applyForce(vector force)
 	local phys = self.entity:GetPhysicsObject()
-	phys:ApplyForceCenter(Vector(force[1],force[2],force[3]))
+	force = Vector(force[1], force[2], force[3])
+	if force:Length() ~= math.huge then
+		phys:ApplyForceCenter(force)
+	end
 end
 
 e2function void applyOffsetForce(vector force, vector position)
 	local phys = self.entity:GetPhysicsObject()
-	phys:ApplyForceOffset(Vector(force[1],force[2],force[3]), Vector(position[1],position[2],position[3]))
+	force = Vector(force[1], force[2], force[3])
+	position = Vector(position[1], position[2], position[3])
+	if force:Length() ~= math.huge and position:Length() ~= math.huge then
+		phys:ApplyForceOffset(force, position)
+	end
 end
 
 e2function void applyAngForce(angle angForce)
