@@ -53,6 +53,8 @@ function ENT:TriggerInput( name, value )
 	end
 end
 
+local check = WireLib.checkForce
+
 function ENT:Think()
 	if self.Force == 0 and self.OffsetForce == 0 and self.Velocity == 0 then return end
 
@@ -72,14 +74,14 @@ function ENT:Think()
 		local phys = trace.Entity:GetPhysicsObject()
 		if not IsValid(phys) then return end
 
-		if self.Force ~= 0 then phys:ApplyForceCenter( Forward * self.Force * self.ForceMul ) end
-		if self.OffsetForce ~= 0 then phys:ApplyForceOffset( Forward * self.OffsetForce * self.ForceMul, trace.HitPos ) end
+		if self.Force ~= 0 and check(Forward * self.Force * self.ForceMul) then phys:ApplyForceCenter( Forward * self.Force * self.ForceMul ) end
+		if self.OffsetForce ~= 0 and check(Forward * self.OffsetForce * self.ForceMul) then phys:ApplyForceOffset( Forward * self.OffsetForce * self.ForceMul, trace.HitPos ) end
 		if self.Velocity ~= 0 then phys:SetVelocityInstantaneous( Forward * self.Velocity ) end
 	else
 		if self.Velocity ~= 0 then trace.Entity:SetVelocity( Forward * self.Velocity ) end
 	end
 
-	if self.Reaction and IsValid(self:GetPhysicsObject()) and (self.Force + self.OffsetForce ~= 0) then
+	if self.Reaction and IsValid(self:GetPhysicsObject()) and (self.Force + self.OffsetForce ~= 0) and check(Forward * -(self.Force + self.OffsetForce) * self.ForceMul) then
 		self:GetPhysicsObject():ApplyForceCenter( Forward * -(self.Force + self.OffsetForce) * self.ForceMul )
 	end
 
