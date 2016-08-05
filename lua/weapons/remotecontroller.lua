@@ -58,6 +58,11 @@ function SWEP:OnDrop()
 end
 
 function SWEP:On()
+	if (self.Linked and self.Linked:IsValid() and self.Linked:HasPly()) then
+		self:GetOwner():ChatPrint("Pod is in use.")
+		return
+	end
+	
 	local ply = self:GetOwner()
 
 	self.Active = true
