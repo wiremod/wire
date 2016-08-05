@@ -60,7 +60,7 @@ end
 function SWEP:On()
 	local ply = self:GetOwner()
 	
-	if self.Linked and IsValid(self.Linked) and self.Linked:HasPly() then
+	if IsValid(self.Linked) and self.Linked:HasPly() then
 		ply:ChatPrint("Pod is in use.")
 		return
 	end
