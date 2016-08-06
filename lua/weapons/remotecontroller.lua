@@ -63,7 +63,7 @@ function SWEP:On()
 
 	if IsValid(pod) and pod:HasPly() then
 		local podOwner = pod:CPPIGetOwner()
-		if IsValid(podOwner) and podOwner:SteamID() ~= pod:GetPly():SteamID() then
+		if IsValid(podOwner) and podOwner:SteamID() == ply:SteamID() then
 			if pod.RC then
 				pod:RCEject(pod:GetPly())
 			else
