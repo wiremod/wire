@@ -60,6 +60,11 @@ end
 function SWEP:On()
 	local ply = self:GetOwner()
 
+	if IsValid(self.Linked) and self.Linked:HasPly() then
+		ply:ChatPrint("Pod is in use.")
+		return
+	end
+
 	self.Active = true
 	self.OldMoveType = not ply:InVehicle() and ply:GetMoveType() or MOVETYPE_WALK
 	ply:SetMoveType(MOVETYPE_NONE)
