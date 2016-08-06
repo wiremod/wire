@@ -59,10 +59,20 @@ end
 
 function SWEP:On()
 	local ply = self:GetOwner()
+	local pod = self.Linked
 
-	if IsValid(self.Linked) and self.Linked:HasPly() then
-		ply:ChatPrint("Pod is in use.")
-		return
+	if IsValid(pod) and pod:HasPly() then
+		local podOwner = pod:CPPIGetOwner()
+		if IsValid(podOwner) and podOwner:SteamID() ~= pod:GetPly():SteamID() then
+			if pod.RC then
+				pod:RCEject(pod:GetPly())
+			else
+				pod:GetPly():ExitVehicle()
+			end
+		else
+			ply:ChatPrint("Pod is in use.")
+			return
+		end
 	end
 
 	self.Active = true
