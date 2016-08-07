@@ -59,20 +59,10 @@ end
 
 function SWEP:On()
 	local ply = self:GetOwner()
-	local pod = self.Linked
 
-	if IsValid(pod) and pod:HasPly() then
-		local podOwner = pod:CPPIGetOwner()
-		if IsValid(podOwner) and podOwner:SteamID() == ply:SteamID() then
-			if pod.RC then
-				pod:RCEject(pod:GetPly())
-			else
-				pod:GetPly():ExitVehicle()
-			end
-		else
-			ply:ChatPrint("Pod is in use.")
-			return
-		end
+	if self.Linked:HasPly() then
+		ply:ChatPrint("Pod is in use.")
+		return
 	end
 
 	self.Active = true
@@ -105,7 +95,7 @@ function SWEP:Think()
 	if not self.Linked then return end
 
 	if self:GetOwner():KeyPressed(IN_USE) then
-		if not self.Active then
+		if not self.Active and hook.Run("CanTool", self:GetOwner(), WireLib.dummytrace(self.Linked), "remotecontroller") then
 			self:On()
 		else
 			self:Off()
