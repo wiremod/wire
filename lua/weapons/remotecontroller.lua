@@ -95,8 +95,10 @@ function SWEP:Think()
 	if not self.Linked then return end
 
 	if self:GetOwner():KeyPressed(IN_USE) then
-		if not self.Active and hook.Run("CanTool", self:GetOwner(), WireLib.dummytrace(self.Linked), "remotecontroller") then
-			self:On()
+		if not self.Active then
+			if hook.Run("CanTool", self:GetOwner(), WireLib.dummytrace(self.Linked), "remotecontroller") then
+				self:On()
+			end
 		else
 			self:Off()
 		end
