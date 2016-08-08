@@ -60,13 +60,16 @@ end
 function SWEP:On()
 	local ply = self:GetOwner()
 
-	if not hook.Run("CanTool", self:GetOwner(), WireLib.dummytrace(self.Linked), "remotecontroller") then return end
-
 	if self.Linked:HasPly() then
-		if self.Linked.RC then
-			self.Linked:RCEject(self.Linked:GetPly())
+		if hook.Run("CanTool", ply, WireLib.dummytrace(self.Linked), "remotecontroller") then
+			if self.Linked.RC then
+				self.Linked:RCEject(self.Linked:GetPly())
+			else
+				self.Linked:GetPly():ExitVehicle()
+			end
 		else
-			self.Linked:GetPly():ExitVehicle()
+			ply:ChatPrint("Pod is in use.")
+			return
 		end
 	end
 
