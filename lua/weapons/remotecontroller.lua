@@ -62,6 +62,11 @@ function SWEP:On()
 
 	if not hook.Run("CanTool", self:GetOwner(), WireLib.dummytrace(self.Linked), "remotecontroller") then return end
 
+	if self.Linked:HasPly() then
+		ply:ChatPrint("Pod is in use.")
+		return
+	end
+
 	self.Active = true
 	self.OldMoveType = not ply:InVehicle() and ply:GetMoveType() or MOVETYPE_WALK
 	ply:SetMoveType(MOVETYPE_NONE)
