@@ -368,6 +368,11 @@ __e2setcost(100) -- approximation
 e2function void reset()
 	if self.data.last or self.entity.first then error("exit", 0) end
 
+	if self.entity.last_reset and self.entity.last_reset == CurTime() then
+		error("Attempted to reset the E2 twice in the same tick!", 2)
+	end
+	self.entity.last_reset = CurTime()
+
 	self.data.reset = true
 	error("exit", 0)
 end
@@ -526,16 +531,16 @@ end)
 
 registerOperator("include", "", "", function(self, args)
 	local Include = self.includes[ args[2] ]
-	
+
 	if Include and Include[2] then
 		local Script = Include[2]
-		
+
 		local OldScopes = self:SaveScopes()
 		self:InitScope() -- Create a new Scope Enviroment
 		self:PushScope()
-		
+
 		Script[1](self, Script)
-		
+
 		self:PopScope()
 		self:LoadScopes(OldScopes)
 	end
