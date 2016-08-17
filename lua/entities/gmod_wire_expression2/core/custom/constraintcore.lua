@@ -151,7 +151,7 @@ e2function void rope(index, entity ent1, vector v1, entity ent2, vector v2)
 end
 
 --- Creates a rope between <ent1> and <ent2> at vector positions local to each ent, with <addlength> additional length, <width> width, and <mat> material.
-e2function void rope(index, entity ent1, vector v1, entity ent2, vector v2, addlength, width, string mat)
+e2function void rope(index, entity ent1, vector v1, entity ent2, vector v2, addlength, width, string mat, rigid )
 	if !checkEnts(self, ent1, ent2) then return end
 	if !ent1.data then ent1.data = {} end
 	if !ent1.data.Ropes then ent1.data.Ropes = {} end
@@ -162,7 +162,7 @@ e2function void rope(index, entity ent1, vector v1, entity ent2, vector v2, addl
 		ent1.data.Ropes[index]:Remove() 
 	end
 	
-	ent1.data.Ropes[index] = constraint.Rope( ent1, ent2, 0, 0, vec1, vec2, length, addlength, 0, width, mat, false )
+	ent1.data.Ropes[index] = constraint.Rope( ent1, ent2, 0, 0, vec1, vec2, length, addlength, 0, width, mat, tobool(rigid) )
 	addundo(self, ent1.data.Ropes[index], "rope")
 end
 
