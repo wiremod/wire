@@ -135,7 +135,7 @@ e2function void hydraulic(index, entity ent1, vector v1, entity ent2, vector v2,
 end
 
 --- Creates a rope between <ent1> and <ent2> at vector positions local to each ent.
-e2function void rope(index, entity ent1, vector v1, entity ent2, vector v2)
+e2function void rope(index, entity ent1, vector v1, entity ent2, vector v2, rigid)
 	if !checkEnts(self, ent1, ent2) then return end
 	if !ent1.data then ent1.data = {} end
 	if !ent1.data.Ropes then ent1.data.Ropes = {} end
@@ -146,12 +146,12 @@ e2function void rope(index, entity ent1, vector v1, entity ent2, vector v2)
 		ent1.data.Ropes[index]:Remove() 
 	end
 	
-	ent1.data.Ropes[index] = constraint.Rope( ent1, ent2, 0, 0, vec1, vec2, length, 0, 0, 1, "cable/rope", false )
+	ent1.data.Ropes[index] = constraint.Rope( ent1, ent2, 0, 0, vec1, vec2, length, 0, 0, 1, "cable/rope", tobool(rigid) )
 	addundo(self, ent1.data.Ropes[index], "rope")
 end
 
 --- Creates a rope between <ent1> and <ent2> at vector positions local to each ent, with <addlength> additional length, <width> width, and <mat> material.
-e2function void rope(index, entity ent1, vector v1, entity ent2, vector v2, addlength, width, string mat)
+e2function void rope(index, entity ent1, vector v1, entity ent2, vector v2, addlength, width, rigid, string mat)
 	if !checkEnts(self, ent1, ent2) then return end
 	if !ent1.data then ent1.data = {} end
 	if !ent1.data.Ropes then ent1.data.Ropes = {} end
@@ -162,7 +162,7 @@ e2function void rope(index, entity ent1, vector v1, entity ent2, vector v2, addl
 		ent1.data.Ropes[index]:Remove() 
 	end
 	
-	ent1.data.Ropes[index] = constraint.Rope( ent1, ent2, 0, 0, vec1, vec2, length, addlength, 0, width, mat, false )
+	ent1.data.Ropes[index] = constraint.Rope( ent1, ent2, 0, 0, vec1, vec2, length, addlength, 0, width, mat, tobool(rigid) )
 	addundo(self, ent1.data.Ropes[index], "rope")
 end
 
@@ -199,6 +199,15 @@ e2function void slider(entity ent1, vector v1, entity ent2, vector v2, width)
 	if !checkEnts(self, ent1, ent2) then return end
 	local vec1, vec2 = Vector(v1[1], v1[2], v1[3]), Vector(v2[1], v2[2], v2[3])
 	addundo(self, constraint.Slider(ent1, ent2, 0, 0, vec1, vec2, width), "slider")
+end
+
+--- Creates an elastic constraint with all parameters available.
+e2function void elastic(entity ent1, vector v1, entity ent2, vector v2, width, const, damp, rdamp, string mat, stretchonly)
+	if !checkEnts(self, ent1, ent2) then return end
+	local vec1, vec2 = Vector(v1[1],v1[2],v1[3]), Vector(v2[1],v2[2],v2[3])
+	if width < 0 || width > 50 then width = 1 end
+	if mat == "" then mat = "cable/rope" end
+	addundo(self, constraint.Elastic(ent1, ent2, 0, 0, vec1, vec2, const, damp, rdamp, mat, width, tobool(stretchonly)), "elastic")
 end
 
 --- Nocollides <ent1> to <ent2>
