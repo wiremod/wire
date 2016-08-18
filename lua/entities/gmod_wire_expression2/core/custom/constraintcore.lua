@@ -35,21 +35,21 @@ __e2setcost(30)
 
 --- Creates an axis between <ent1> and <ent2> at vector positions local to each ent.
 e2function void axis(entity ent1, vector v1, entity ent2, vector v2)
-	if !checkEnts(self, ent1, ent2) then return end
+	if not checkEnts(self, ent1, ent2) then return end
 	local vec1, vec2 = Vector(v1[1], v1[2], v1[3]), Vector(v2[1], v2[2], v2[3])
 	addundo(self, constraint.Axis(ent1, ent2, 0, 0, vec1, vec2, 0, 0, 0, 0), "axis")
 end
 
 --- Creates an axis between <ent1> and <ent2> at vector positions local to each ent, with <friction> friction.
 e2function void axis(entity ent1, vector v1, entity ent2, vector v2, friction)
-	if !checkEnts(self, ent1, ent2) then return end
+	if not checkEnts(self, ent1, ent2) then return end
 	local vec1, vec2 = Vector(v1[1], v1[2], v1[3]), Vector(v2[1], v2[2], v2[3])
 	addundo(self, constraint.Axis(ent1, ent2, 0, 0, vec1, vec2, 0, 0, friction, 0), "axis")
 end
 
 --- Creates an axis between <ent1> and <ent2> at vector positions local to each ent, with <friction> friction and <localaxis> rotation axis.
 e2function void axis(entity ent1, vector v1, entity ent2, vector v2, friction, vector localaxis)
-	if !checkEnts(self, ent1, ent2) then return end
+	if not checkEnts(self, ent1, ent2) then return end
 	local vec1, vec2, laxis = Vector(v1[1], v1[2], v1[3]), Vector(v2[1], v2[2], v2[3]), Vector(localaxis[1], localaxis[2], localaxis[3])
 	addundo(self, constraint.Axis(ent1, ent2, 0, 0, vec1, vec2, 0, 0, friction, 0, laxis), "axis")
 end
