@@ -134,6 +134,38 @@ e2function void hydraulic(index, entity ent1, vector v1, entity ent2, vector v2,
 	addundo(self, ent1.data.Ropes[index], "hydraulic")
 end
 
+--- Makes a hydraulic constraint (stored at index <index>) between <ent1> and <ent2>, at vectors local to their respective ents, constant and damping, with <width> width, <mat> material, and <stretch> stretch only option. 
+e2function void hydraulic(index, entity ent1, vector v1, entity ent2, vector v2, constant, damping, string mat, width, stretch)
+	if !checkEnts(self, ent1, ent2) then return end
+	if !ent1.data then ent1.data = {} end
+	if !ent1.data.Ropes then ent1.data.Ropes = {} end
+	local vec1, vec2 = Vector(v1[1],v1[2],v1[3]), Vector(v2[1],v2[2],v2[3])
+	if width < 0 || width > 50 then width = 1 end
+	
+	if IsValid(ent1.data.Ropes[index]) then
+		ent1.data.Ropes[index]:Remove()
+	end
+
+	ent1.data.Ropes[index] = constraint.Elastic( ent1, ent2, 0, 0, vec1, vec2, constant, damping, 0, mat, width, tobool(stretch) )
+	addundo(self, ent1.data.Ropes[index], "hydraulic")
+end
+
+--- Makes a hydraulic constraint (stored at index <index>) between <ent1> and <ent2>, at vectors local to their respective ents, constant, damping and relative damping, with <width> width, <mat> material, and <stretch> stretch only option. 
+e2function void hydraulic(index, entity ent1, vector v1, entity ent2, vector v2, constant, damping, rdamping, string mat, width, stretch)
+	if !checkEnts(self, ent1, ent2) then return end
+	if !ent1.data then ent1.data = {} end
+	if !ent1.data.Ropes then ent1.data.Ropes = {} end
+	local vec1, vec2 = Vector(v1[1],v1[2],v1[3]), Vector(v2[1],v2[2],v2[3])
+	if width < 0 || width > 50 then width = 1 end
+	
+	if IsValid(ent1.data.Ropes[index]) then
+		ent1.data.Ropes[index]:Remove()
+	end
+
+	ent1.data.Ropes[index] = constraint.Elastic( ent1, ent2, 0, 0, vec1, vec2, constant, damping, rdamping, mat, width, tobool(stretch) )
+	addundo(self, ent1.data.Ropes[index], "hydraulic")
+end
+
 --- Creates a rope between <ent1> and <ent2> at vector positions local to each ent.
 e2function void rope(index, entity ent1, vector v1, entity ent2, vector v2)
 	if !checkEnts(self, ent1, ent2) then return end
