@@ -7,7 +7,9 @@ language.Add("Undone_e2_slider", "Undone E2 Slider")
 language.Add("Undone_e2_nocollide", "Undone E2 Nocollide")
 language.Add("Undone_e2_weld", "Undone E2 Weld")
 E2Helper.Descriptions["enableConstraintUndo"] = "If 0, suppresses creation of undo entries for constraints"
-E2Helper.Descriptions["axis"] = "Creates an axis constraint between two entities at vectors local to each entity"
+E2Helper.Descriptions["axis(evev)"] = "Creates an axis constraint between two entities at vectors local to each entity"
+E2Helper.Descriptions["axis(evevn)"] = "Creates an axis constraint between two entities at vectors local to each entity with friction"
+E2Helper.Descriptions["axis(evevnv)"] = "Creates an axis constraint between two entities at vectors local to each entity with friction and local rotation axis"
 E2Helper.Descriptions["ballsocket"] = "Creates a ballsocket constraint between two entities at a vector local to ent1"
 E2Helper.Descriptions["ballsocket(evevvv)"] = "Creates an AdvBallsocket constraint between two entities at a vector local to ent1, using the specified mins, maxs, and frictions)"
 E2Helper.Descriptions["ballsocket(evevvvn)"] = "Creates an AdvBallsocket constraint between two entities at a vector local to ent1, using the specified mins, maxs, frictions, rotateonly)"
