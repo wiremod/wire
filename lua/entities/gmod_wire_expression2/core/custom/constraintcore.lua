@@ -217,6 +217,47 @@ e2function void entity:setLength(index, length)
 	end
 end
 
+--- Sets a hydraulic/winch stored at index <index> inside <this> (the first entity) to be <constant> constant.
+e2function void entity:setConstant(index, constant)
+	if !IsValid(this) then return end
+	if !isOwner(self, this) then return false end
+	if constant < 0 then constant = 0 end
+	if this.data.Ropes then
+		local con = this.data.Ropes[index]
+		if IsValid(con) then
+			con:Fire("SetSpringConstant", constant, 0)
+		end
+	end
+end
+
+--- Sets a hydraulic/winch stored at index <index> inside <this> (the first entity) to be <constant> constant and <dampen> damping.
+e2function void entity:setConstant(index, constant, damping)
+	if !IsValid(this) then return end
+	if !isOwner(self, this) then return false end
+	if constant < 0 then constant = 0 end
+	if damping < 0 then damping = 0 end
+	if this.data.Ropes then
+		local con = this.data.Ropes[index]
+		if IsValid(con) then
+			con:Fire("SetSpringConstant", constant, 0)
+			con:Fire("SetSpringDamping", damping, 0)
+		end
+	end
+end
+
+--- Sets a hydraulic/winch stored at index <index> inside <this> (the first entity) to be <dampen> damping.
+e2function void entity:setDamping(index, damping)
+	if !IsValid(this) then return end
+	if !isOwner(self, this) then return false end
+	if damping < 0 then damping = 0 end
+	if this.data.Ropes then
+		local con = this.data.Ropes[index]
+		if IsValid(con) then
+			con:Fire("SetSpringDamping", damping, 0)
+		end
+	end
+end
+
 __e2setcost(30)
 
 --- Creates a slider between <ent1> and <ent2> at vector positions local to each ent.
