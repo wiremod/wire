@@ -141,6 +141,38 @@ e2function void hydraulic(index, entity ent1, vector v1, entity ent2, vector v2,
 	addundo(self, ent1.data.Ropes[index], "hydraulic")
 end
 
+--- Makes a hydraulic constraint (stored at index <index>) between <ent1> and <ent2>, at vectors local to their respective ents, constant and damping, with <width> width, <mat> material, and <stretch> stretch only option. 
+e2function void hydraulic(index, entity ent1, vector v1, entity ent2, vector v2, constant, damping, string mat, width, stretch)
+	if not checkEnts(self, ent1, ent2) then return end
+	if not ent1.data then ent1.data = {} end
+	if not ent1.data.Ropes then ent1.data.Ropes = {} end
+	local vec1, vec2 = Vector(v1[1],v1[2],v1[3]), Vector(v2[1],v2[2],v2[3])
+	if width < 0 or width > 50 then width = 1 end
+	
+	if IsValid(ent1.data.Ropes[index]) then
+		ent1.data.Ropes[index]:Remove()
+	end
+
+	ent1.data.Ropes[index] = constraint.Elastic( ent1, ent2, 0, 0, vec1, vec2, constant, damping, 0, mat, width, tobool(stretch) )
+	addundo(self, ent1.data.Ropes[index], "hydraulic")
+end
+
+--- Makes a hydraulic constraint (stored at index <index>) between <ent1> and <ent2>, at vectors local to their respective ents, constant, damping and relative damping, with <width> width, <mat> material, and <stretch> stretch only option. 
+e2function void hydraulic(index, entity ent1, vector v1, entity ent2, vector v2, constant, damping, rdamping, string mat, width, stretch)
+	if not checkEnts(self, ent1, ent2) then return end
+	if not ent1.data then ent1.data = {} end
+	if not ent1.data.Ropes then ent1.data.Ropes = {} end
+	local vec1, vec2 = Vector(v1[1],v1[2],v1[3]), Vector(v2[1],v2[2],v2[3])
+	if width < 0 or width > 50 then width = 1 end
+	
+	if IsValid(ent1.data.Ropes[index]) then
+		ent1.data.Ropes[index]:Remove()
+	end
+
+	ent1.data.Ropes[index] = constraint.Elastic( ent1, ent2, 0, 0, vec1, vec2, constant, damping, rdamping, mat, width, tobool(stretch) )
+	addundo(self, ent1.data.Ropes[index], "hydraulic")
+end
+
 --- Creates a rope between <ent1> and <ent2> at vector positions local to each ent.
 e2function void rope(index, entity ent1, vector v1, entity ent2, vector v2)
 	if not checkEnts(self, ent1, ent2) then return end
@@ -193,8 +225,8 @@ __e2setcost(5)
 
 --- Sets a rope/hydraulic/winch stored at index <index> inside <this> (the first entity) to be <length> long.
 e2function void entity:setLength(index, length)
-	if !IsValid(this) then return end
-	if !isOwner(self, this) then return false end
+	if not IsValid(this) then return end
+	if not isOwner(self, this) then return false end
 	if length < 0 then length = 0 end
 	if this.data.Ropes then
 		local con = this.data.Ropes[index]
@@ -204,6 +236,47 @@ e2function void entity:setLength(index, length)
 			else
 				con:Fire("SetSpringLength", length, 0)
 			end
+		end
+	end
+end
+
+--- Sets a hydraulic/winch stored at index <index> inside <this> (the first entity) to be <constant> constant.
+e2function void entity:setConstant(index, constant)
+	if not IsValid(this) then return end
+	if not isOwner(self, this) then return false end
+	if constant < 0 then constant = 0 end
+	if this.data.Ropes then
+		local con = this.data.Ropes[index]
+		if IsValid(con) then
+			con:Fire("SetSpringConstant", constant, 0)
+		end
+	end
+end
+
+--- Sets a hydraulic/winch stored at index <index> inside <this> (the first entity) to be <constant> constant and <dampen> damping.
+e2function void entity:setConstant(index, constant, damping)
+	if not IsValid(this) then return end
+	if not isOwner(self, this) then return false end
+	if constant < 0 then constant = 0 end
+	if damping < 0 then damping = 0 end
+	if this.data.Ropes then
+		local con = this.data.Ropes[index]
+		if IsValid(con) then
+			con:Fire("SetSpringConstant", constant, 0)
+			con:Fire("SetSpringDamping", damping, 0)
+		end
+	end
+end
+
+--- Sets a hydraulic/winch stored at index <index> inside <this> (the first entity) to be <dampen> damping.
+e2function void entity:setDamping(index, damping)
+	if not IsValid(this) then return end
+	if not isOwner(self, this) then return false end
+	if damping < 0 then damping = 0 end
+	if this.data.Ropes then
+		local con = this.data.Ropes[index]
+		if IsValid(con) then
+			con:Fire("SetSpringDamping", damping, 0)
 		end
 	end
 end
