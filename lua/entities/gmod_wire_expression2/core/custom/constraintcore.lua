@@ -136,9 +136,9 @@ end
 
 --- Creates a rope between <ent1> and <ent2> at vector positions local to each ent.
 e2function void rope(index, entity ent1, vector v1, entity ent2, vector v2)
-	if !checkEnts(self, ent1, ent2) then return end
-	if !ent1.data then ent1.data = {} end
-	if !ent1.data.Ropes then ent1.data.Ropes = {} end
+	if not checkEnts(self, ent1, ent2) then return end
+	if not ent1.data then ent1.data = {} end
+	if not ent1.data.Ropes then ent1.data.Ropes = {} end
 	local vec1, vec2 = Vector(v1[1], v1[2], v1[3]), Vector(v2[1], v2[2], v2[3])
 	local length = (ent1:LocalToWorld(vec1) - ent2:LocalToWorld(vec2)):Length()
 	
@@ -152,9 +152,9 @@ end
 
 --- Creates a rope between <ent1> and <ent2> at vector positions local to each ent, with <addlength> additional length, <width> width, and <mat> material.
 e2function void rope(index, entity ent1, vector v1, entity ent2, vector v2, addlength, width, string mat)
-	if !checkEnts(self, ent1, ent2) then return end
-	if !ent1.data then ent1.data = {} end
-	if !ent1.data.Ropes then ent1.data.Ropes = {} end
+	if not checkEnts(self, ent1, ent2) then return end
+	if not ent1.data then ent1.data = {} end
+	if not ent1.data.Ropes then ent1.data.Ropes = {} end
 	local vec1, vec2 = Vector(v1[1], v1[2], v1[3]), Vector(v2[1], v2[2], v2[3])
 	local length = (ent1:LocalToWorld(vec1) - ent2:LocalToWorld(vec2)):Length()
 	
@@ -163,6 +163,22 @@ e2function void rope(index, entity ent1, vector v1, entity ent2, vector v2, addl
 	end
 	
 	ent1.data.Ropes[index] = constraint.Rope( ent1, ent2, 0, 0, vec1, vec2, length, addlength, 0, width, mat, false )
+	addundo(self, ent1.data.Ropes[index], "rope")
+end
+
+--- Creates a rope between <ent1> and <ent2> at vector positions local to each ent, with <addlength> additional length, <width> width, and <mat> material.
+e2function void rope(index, entity ent1, vector v1, entity ent2, vector v2, addlength, width, string mat, rigid )
+	if not checkEnts(self, ent1, ent2) then return end
+	if not ent1.data then ent1.data = {} end
+	if not ent1.data.Ropes then ent1.data.Ropes = {} end
+	local vec1, vec2 = Vector(v1[1], v1[2], v1[3]), Vector(v2[1], v2[2], v2[3])
+	local length = (ent1:LocalToWorld(vec1) - ent2:LocalToWorld(vec2)):Length()
+	
+	if IsValid(ent1.data.Ropes[index]) then 
+		ent1.data.Ropes[index]:Remove() 
+	end
+	
+	ent1.data.Ropes[index] = constraint.Rope( ent1, ent2, 0, 0, vec1, vec2, length, addlength, 0, width, mat, tobool(rigid) )
 	addundo(self, ent1.data.Ropes[index], "rope")
 end
 
