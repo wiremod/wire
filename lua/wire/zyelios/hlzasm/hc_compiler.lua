@@ -26,14 +26,14 @@ HCOMP = {}
 
 --------------------------------------------------------------------------------
 -- Files required by the compiler
-include("wire/client/hlzasm/hc_opcodes.lua")
-include("wire/client/hlzasm/hc_expression.lua")
-include("wire/client/hlzasm/hc_preprocess.lua")
-include("wire/client/hlzasm/hc_syntax.lua")
-include("wire/client/hlzasm/hc_codetree.lua")
-include("wire/client/hlzasm/hc_optimize.lua")
-include("wire/client/hlzasm/hc_output.lua")
-include("wire/client/hlzasm/hc_tokenizer.lua")
+include("wire/zyelios//hlzasm/hc_opcodes.lua")
+include("wire/zyelios//hlzasm/hc_expression.lua")
+include("wire/zyelios//hlzasm/hc_preprocess.lua")
+include("wire/zyelios//hlzasm/hc_syntax.lua")
+include("wire/zyelios//hlzasm/hc_codetree.lua")
+include("wire/zyelios//hlzasm/hc_optimize.lua")
+include("wire/zyelios//hlzasm/hc_output.lua")
+include("wire/zyelios//hlzasm/hc_tokenizer.lua")
 
 
 

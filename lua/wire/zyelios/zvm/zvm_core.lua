@@ -13,9 +13,9 @@ end
 
 --------------------------------------------------------------------------------
 -- Include extra files
-include("wire/zvm/zvm_opcodes.lua")
-include("wire/zvm/zvm_features.lua")
-include("wire/zvm/zvm_data.lua")
+include("wire/zyelios/zvm/zvm_opcodes.lua")
+include("wire/zyelios/zvm/zvm_features.lua")
+include("wire/zyelios/zvm/zvm_data.lua")
 
 
 
@@ -570,7 +570,7 @@ function ZVM:Step(overrideSteps,extraEmitFunction)
 
   -- Trigger timers
   self:TimerLogic()
-  
+
   -- Calculate absolute execution address and set current page
   self.XEIP = self.IP + self.CS
   self:SetCurrentPage(math.floor(self.XEIP/128))
