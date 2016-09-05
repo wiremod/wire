@@ -377,7 +377,7 @@ registerFunction("exp", "n", "n", function(self, args)
 	return exp(rv1)
 end)
 
-e2function array frexp(x)
+e2function vector2 frexp(x)
 	local mantissa, exponent = frexp(x)
 	return { mantissa, exponent }
 end
