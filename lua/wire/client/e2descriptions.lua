@@ -849,6 +849,10 @@ E2Helper.Descriptions["toUnit(sn)"] = "Converts default garrysmod units to speci
 E2Helper.Descriptions["fromUnit(sn)"] = "Converts specified units to default garrysmod units"
 E2Helper.Descriptions["convertUnit(ssn)"] = "Converts between two units"
 
+-- Steam ID conversion
+E2Helper.Descriptions["steamIDFrom64(s)"] = "Converts Steam Community ID to Steam ID"
+E2Helper.Descriptions["steamIDTo64(s)"] = "Converts Steam ID to Steam Community ID"
+
 -- Server information
 E2Helper.Descriptions["map()"] = "Returns the current map name"
 E2Helper.Descriptions["hostname()"] = "Returns the Name of the server"
