@@ -71,7 +71,6 @@ e2function string entity:steamID()
 	return this:SteamID()
 end
 
---- Returns the player's 64bit SteamID aka CommunityID.
 e2function string entity:steamID64()
 	return IsValid(this) and this:IsPlayer() and this:SteamID64() or ""
 end
