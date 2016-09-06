@@ -6,6 +6,7 @@ local random = math.random
 local pi     = math.pi
 
 local exp    = math.exp
+local frexp  = math.frexp
 local log    = math.log
 local log10  = math.log10
 local sqrt   = math.sqrt
@@ -375,6 +376,11 @@ registerFunction("exp", "n", "n", function(self, args)
 	local rv1 = op1[1](self, op1)
 	return exp(rv1)
 end)
+
+e2function vector2 frexp(x)
+	local mantissa, exponent = frexp(x)
+	return { mantissa, exponent }
+end
 
 registerFunction("ln", "n", "n", function(self, args)
 	local op1 = args[2]
