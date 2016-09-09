@@ -1,4 +1,3 @@
-﻿local util = util
 local util_SteamIDFrom64 = util.SteamIDFrom64
 local util_SteamIDTo64 = util.SteamIDTo64
 
