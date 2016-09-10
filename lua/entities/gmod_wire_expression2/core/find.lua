@@ -442,6 +442,12 @@ e2function entity findPlayerByName(string name)
 	return findPlayer(name)
 end
 
+--- Returns the player with the given SteamID
+e2function entity findPlayerBySteamID(string id)
+    	if query_blocked(self, 1) then return nil end
+    	return player.GetBySteamID(id)
+end
+
 --[[************************************************************************]]--
 __e2setcost(10)
 
