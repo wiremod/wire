@@ -1,0 +1,16 @@
+language: python
+sudo: false
+
+env:
+  - LUA="luajit 2.0"
+
+before_install:
+  - pip install hererocks
+  - hererocks env --luajit 2.0.3 --luarocks latest
+  - source env/bin/activate
+
+install:
+  - luarocks install luacheck
+
+script:
+  - git diff --name-only --check $TRAVIS_COMMIT_RANGE | grep '\.lua' | xargs luacheck
