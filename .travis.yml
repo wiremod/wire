@@ -13,4 +13,5 @@ install:
   - luarocks install luacheck
 
 script:
-  - git diff --name-only --check $TRAVIS_COMMIT_RANGE | grep '\.lua' | xargs luacheck
+  - git diff --check $TRAVIS_COMMIT_RANGE # check for whitespace errors etc
+  - git diff --name-only $TRAVIS_COMMIT_RANGE | grep '\.lua' | xargs --no-run-if-empty luacheck
