@@ -445,7 +445,7 @@ end
 --- Returns the player with the given SteamID
 e2function entity findPlayerBySteamID(string id)
     	if query_blocked(self, 1) then return nil end
-    	return player.GetBySteamID(id)
+    	return player.GetBySteamID(id) or NULL
 end
 
 --[[************************************************************************]]--
