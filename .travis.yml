@@ -1,8 +1,4 @@
 language: python
-sudo: false
-
-env:
-  - LUA="luajit 2.0"
 
 before_install:
   - pip install hererocks
@@ -13,5 +9,5 @@ install:
   - luarocks install luacheck
 
 script:
-  - git diff --check $TRAVIS_COMMIT_RANGE # check for whitespace errors etc
+  - git diff --check $TRAVIS_COMMIT_RANGE
   - git diff --name-only $TRAVIS_COMMIT_RANGE | grep '\.lua' | xargs --no-run-if-empty luacheck
