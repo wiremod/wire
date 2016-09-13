@@ -444,7 +444,7 @@ end
 
 --- Returns the player with the given SteamID
 e2function entity findPlayerBySteamID(string id)
-    	if query_blocked(self, 1) then return nil end
+    	if query_blocked(self, 1) then return NULL end
     	return player.GetBySteamID(id) or NULL
 end
 
@@ -455,19 +455,13 @@ e2function entity findPlayerBySteamID64(string id)
 end
 
 --- Returns the player with the given UserID
-e2function entity findPlayerByUserID(ID)
-	local IDFlag = -1
-	local currentPlayers = player.GetAll()
-	for currentIndex=1,#currentPlayers do 
-		if (currentPlayers[currentIndex]:UserID()==ID) then
-			IDFlag = currentIndex
-		end
-	end
-	if (IDFlag > -1) then
-		return currentPlayers[IDFlag]
-	else
-		return NULL
-	end
+e2function entity findPlayerByUserID(number id)
+    for k, v in ipairs(player.GetAll()) do
+        if v:UserID() == id then
+            return v
+        end
+    end
+    return NULL
 end
 
 --[[************************************************************************]]--
