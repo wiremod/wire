@@ -444,25 +444,25 @@ end
 
 --- Returns the player with the given SteamID
 e2function entity findPlayerBySteamID(string id)
-    	if query_blocked(self, 1) then return NULL end
-    	return player.GetBySteamID(id) or NULL
+	if query_blocked(self, 1) then return NULL end
+	return player.GetBySteamID(id) or NULL
 end
 
 --- Returns the player with the given SteamID64
 e2function entity findPlayerBySteamID64(string id)
-    	if query_blocked(self, 1) then return NULL end
-    	return player.GetBySteamID64(id) or NULL
+	if query_blocked(self, 1) then return NULL end
+	return player.GetBySteamID64(id) or NULL
 end
 
 --- Returns the player with the given UserID
 e2function entity findPlayerByUserID(number id)
 	if query_blocked(self, 1) then return NULL end
-    	for k, v in ipairs(player.GetAll()) do
-        	if v:UserID() == id then
-        		return v
-        	end
-    	end
-    return NULL
+	for k, v in ipairs(player.GetAll()) do
+		if v:UserID() == id then
+			return v
+		end
+	end
+	return NULL
 end
 
 --[[************************************************************************]]--
