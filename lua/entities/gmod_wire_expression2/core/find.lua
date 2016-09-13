@@ -14,7 +14,7 @@ local function filter_all() return true end
 local function filter_none() return false end
 
 local forbidden_classes = {
-	/*
+	--[[
 	["info_apc_missile_hint"] = true,
 	["info_camera_link"] = true,
 	["info_constraint_anchor"] = true,
@@ -42,7 +42,7 @@ local forbidden_classes = {
 	["info_target_gunshipcrash"] = true,
 	["info_teleport_destination"] = true,
 	["info_teleporter_countdown"] = true,
-	*/
+	]]
 	["info_player_allies"] = true,
 	["info_player_axis"] = true,
 	["info_player_combine"] = true,
