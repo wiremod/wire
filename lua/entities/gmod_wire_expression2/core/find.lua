@@ -454,6 +454,22 @@ e2function entity findPlayerBySteamID64(string id)
     	return player.GetBySteamID64(id) or NULL
 end
 
+--- Returns the player with the given UserID
+e2function entity findPlayerByUserID(ID)
+	local IDFlag = -1
+	local currentPlayers = player.GetAll()
+	for currentIndex=1,#currentPlayers do 
+		if (currentPlayers[currentIndex]:UserID()==ID) then
+			IDFlag = currentIndex
+		end
+	end
+	if (IDFlag > -1) then
+		return currentPlayers[IDFlag]
+	else
+		return NULL
+	end
+end
+
 --[[************************************************************************]]--
 __e2setcost(10)
 
