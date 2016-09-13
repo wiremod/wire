@@ -456,11 +456,12 @@ end
 
 --- Returns the player with the given UserID
 e2function entity findPlayerByUserID(number id)
-    for k, v in ipairs(player.GetAll()) do
-        if v:UserID() == id then
-            return v
-        end
-    end
+	if query_blocked(self, 1) then return NULL end
+    	for k, v in ipairs(player.GetAll()) do
+        	if v:UserID() == id then
+        		return v
+        	end
+    	end
     return NULL
 end
 
