@@ -132,7 +132,7 @@ function ENT:DoJob()
 			if (self.Command[0] ~= 0) then //write ray
 				disk.DiskMemory[sector_addr] = table.Copy(self.WriteBuffer)
 			else //read ray
-				self.WriteBuffer = disk.DiskMemory[sector_addr] or { [0] = 0 }
+				self.WriteBuffer = table.Copy(disk.DiskMemory[sector_addr]) or { [0] = 0 }
 			end
 		end
 	end
