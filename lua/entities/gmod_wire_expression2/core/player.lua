@@ -537,24 +537,24 @@ e2function ranger entity:eyeTraceCursor()
 	return ret
 end
 
-/******************************************************************************/
+--[[--------------------------------------------------------------------------------------------]]--
 
-local SpawnAlert = {}
+local spawnAlert = {}
 local runBySpawn = 0
-local LastJoined = nil
+local lastJoined = nil
 
-local LeaveAlert = {}
+local leaveAlert = {}
 local runByLeave = 0
-local LastLeft = nil
+local lastLeft = nil
 
 hook.Add("PlayerInitialSpawn","Exp2RunOnJoin", function(ply)
 	runBySpawn = 1
-    LastJoined = ply
-	for e,_ in pairs(SpawnAlert) do
+    lastJoined = ply
+	for e,_ in pairs(spawnAlert) do
 		if IsValid(e) then
 			e:Execute()
 		else
-			SpawnAlert[e] = nil
+			spawnAlert[e] = nil
 		end
 	end
 	runBySpawn = 0
@@ -562,12 +562,12 @@ end)
 
 hook.Add("PlayerDisconnected","Exp2RunOnLeave", function(ply)
 	runByLeave = 1
-    LastLeft = ply
-	for e,_ in pairs(LeaveAlert) do
+    lastLeft = ply
+	for e,_ in pairs(leaveAlert) do
 		if IsValid(e) then
 			e:Execute()
 		else
-			LeaveAlert[e] = nil
+			leaveAlert[e] = nil
 		end
 	end
 	runByLeave = 0
@@ -577,34 +577,34 @@ end)
 __e2setcost(3)
 e2function void runOnJoin(activate)
 	if activate ~= 0 then
-		SpawnAlert[self.entity] = true
+		spawnAlert[self.entity] = true
 	else
-		SpawnAlert[self.entity] = nil
+		spawnAlert[self.entity] = nil
 	end
 end
 e2function number joinClk()
 	return runBySpawn
 end
 e2function entity lastJoined()
-	if not IsValid(LastJoined) then return nil end
-	if not LastJoined:IsPlayer() then return nil end
+	if not IsValid(lastJoined) then return nil end
+	if not lastJoined:IsPlayer() then return nil end
 
-	return LastJoined
+	return lastJoined
 end
 
 e2function void runOnDisconnect(activate)
 	if activate ~= 0 then
-		LeaveAlert[self.entity] = true
+		leaveAlert[self.entity] = true
 	else
-		LeaveAlert[self.entity] = nil
+		leaveAlert[self.entity] = nil
 	end
 end
 e2function number disconnectClk()
 	return runByLeave
 end
 e2function entity lastDisconnected()
-	if not IsValid(LastLeft) then return nil end
-	if not LastLeft:IsPlayer() then return nil end
+	if not IsValid(lastLeft) then return nil end
+	if not lastLeft:IsPlayer() then return nil end
 
-	return LastLeft
+	return lastLeft
 end
