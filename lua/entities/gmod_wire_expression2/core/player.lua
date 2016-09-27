@@ -264,8 +264,8 @@ keys_lookup[113] = "mouse_wheel_down"
 registerCallback("destruct",function(self)
 	KeyAlert[self.entity] = nil
     --Used futher below. Didn't want to create more then one of these per file
-    if SpawnAlert[self.entity] then SpawnAlert[self.entity] = nil; end
-    if LeaveAlert[self.entity] then LeaveAlert[self.entity] = nil; end
+    if spawnAlert[self.entity] then spawnAlert[self.entity] = nil; end
+    if leaveAlert[self.entity] then leaveAlert[self.entity] = nil; end
 end)
 
 local function UpdateKeys(ply, key)
@@ -586,9 +586,6 @@ e2function number joinClk()
 	return runBySpawn
 end
 e2function entity lastJoined()
-	if not IsValid(lastJoined) then return nil end
-	if not lastJoined:IsPlayer() then return nil end
-
 	return lastJoined
 end
 
@@ -603,8 +600,5 @@ e2function number disconnectClk()
 	return runByLeave
 end
 e2function entity lastDisconnected()
-	if not IsValid(lastLeft) then return nil end
-	if not lastLeft:IsPlayer() then return nil end
-
 	return lastLeft
 end
