@@ -316,9 +316,9 @@ E2Helper.Descriptions["runOnKeys(en)"] = "If set to 1, E2 will run when specifie
 E2Helper.Descriptions["disconnectClk()"] = "Returns 1 if the chip is being executed because of a disconnect event. Returns 0 otherwise"
 E2Helper.Descriptions["lastDisconnected()"] = "Returns the last player to disconnect. Must be done while in a disconnectClk() as anytime after the player object is gone."
 E2Helper.Descriptions["runOnDisconnect(n)"] = "If set to 0, the chip will no longer run on disconnect events, otherwise it makes this chip execute when someone disconnects. Only needs to be called once, not in every execution"
-E2Helper.Descriptions["joinClk()"] = "Returns 1 if the chip is being executed because of a connect event. Returns 0 otherwise"
-E2Helper.Descriptions["lastJoined()"] = "Returns the last player to connect."
-E2Helper.Descriptions["runOnJoin(n)"] = "If set to 0, the chip will no longer run on connect events, otherwise it makes this chip execute when someone connects. Only needs to be called once, not in every execution"
+E2Helper.Descriptions["connectClk()"] = "Returns 1 if the chip is being executed because of a connect event. Returns 0 otherwise"
+E2Helper.Descriptions["lastConnected()"] = "Returns the last player to connect."
+E2Helper.Descriptions["runOnConnect(n)"] = "If set to 0, the chip will no longer run on connect events, otherwise it makes this chip execute when someone connects. Only needs to be called once, not in every execution"
 
 
 -- Attachment

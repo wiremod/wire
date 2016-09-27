@@ -4,6 +4,16 @@
 
 local IsValid = IsValid
 local isOwner = E2Lib.isOwner
+
+
+local spawnAlert = {}
+local runBySpawn = 0
+local lastJoined = NULL
+
+local leaveAlert = {}
+local runByLeave = 0
+local lastLeft = NULL
+
 registerCallback("e2lib_replace_function", function(funcname, func, oldfunc)
 	if funcname == "isOwner" then
 		isOwner = func
@@ -196,11 +206,11 @@ e2function number entity:keyUse()
 end
 
 e2function number entity:keyReload()
-    return (IsValid(this) and this:IsPlayer() and this:KeyDown(IN_RELOAD)) and 1 or 0
+	return (IsValid(this) and this:IsPlayer() and this:KeyDown(IN_RELOAD)) and 1 or 0
 end
 
 e2function number entity:keyZoom()
-    return (IsValid(this) and this:IsPlayer() and this:KeyDown(IN_ZOOM)) and 1 or 0
+	return (IsValid(this) and this:IsPlayer() and this:KeyDown(IN_ZOOM)) and 1 or 0
 end
 
 e2function number entity:keyWalk()
@@ -263,9 +273,9 @@ keys_lookup[113] = "mouse_wheel_down"
 
 registerCallback("destruct",function(self)
 	KeyAlert[self.entity] = nil
-    --Used futher below. Didn't want to create more then one of these per file
-    if spawnAlert[self.entity] then spawnAlert[self.entity] = nil; end
-    if leaveAlert[self.entity] then leaveAlert[self.entity] = nil; end
+	--Used futher below. Didn't want to create more then one of these per file
+	spawnAlert[self.entity] = nil
+	leaveAlert[self.entity] = nil
 end)
 
 local function UpdateKeys(ply, key)
@@ -539,17 +549,9 @@ end
 
 --[[--------------------------------------------------------------------------------------------]]--
 
-local spawnAlert = {}
-local runBySpawn = 0
-local lastJoined = nil
-
-local leaveAlert = {}
-local runByLeave = 0
-local lastLeft = nil
-
 hook.Add("PlayerInitialSpawn","Exp2RunOnJoin", function(ply)
 	runBySpawn = 1
-    lastJoined = ply
+	lastJoined = ply
 	for e,_ in pairs(spawnAlert) do
 		if IsValid(e) then
 			e:Execute()
@@ -562,7 +564,7 @@ end)
 
 hook.Add("PlayerDisconnected","Exp2RunOnLeave", function(ply)
 	runByLeave = 1
-    lastLeft = ply
+	lastLeft = ply
 	for e,_ in pairs(leaveAlert) do
 		if IsValid(e) then
 			e:Execute()
@@ -575,17 +577,17 @@ end)
 
 
 __e2setcost(3)
-e2function void runOnJoin(activate)
+e2function void runOnConnect(activate)
 	if activate ~= 0 then
 		spawnAlert[self.entity] = true
 	else
 		spawnAlert[self.entity] = nil
 	end
 end
-e2function number joinClk()
+e2function number connectClk()
 	return runBySpawn
 end
-e2function entity lastJoined()
+e2function entity lastConnected()
 	return lastJoined
 end
 
