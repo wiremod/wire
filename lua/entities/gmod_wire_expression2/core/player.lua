@@ -263,6 +263,9 @@ keys_lookup[113] = "mouse_wheel_down"
 
 registerCallback("destruct",function(self)
 	KeyAlert[self.entity] = nil
+    --Used futher below. Didn't want to create more then one of these per file
+    if SpawnAlert[self.entity] then SpawnAlert[self.entity] = nil; end
+    if LeaveAlert[self.entity] then LeaveAlert[self.entity] = nil; end
 end)
 
 local function UpdateKeys(ply, key)
@@ -532,4 +535,76 @@ e2function ranger entity:eyeTraceCursor()
 	local ret = this:GetEyeTrace()
 	ret.RealStartPos = this:GetShootPos()
 	return ret
+end
+
+/******************************************************************************/
+
+local SpawnAlert = {}
+local runBySpawn = 0
+local LastJoined = nil
+
+local LeaveAlert = {}
+local runByLeave = 0
+local LastLeft = nil
+
+hook.Add("PlayerInitialSpawn","Exp2RunOnJoin", function(ply)
+	runBySpawn = 1
+    LastJoined = ply
+	for e,_ in pairs(SpawnAlert) do
+		if IsValid(e) then
+			e:Execute()
+		else
+			SpawnAlert[e] = nil
+		end
+	end
+	runBySpawn = 0
+end)
+
+hook.Add("PlayerDisconnected","Exp2RunOnLeave", function(ply)
+	runByLeave = 1
+    LastLeft = ply
+	for e,_ in pairs(LeaveAlert) do
+		if IsValid(e) then
+			e:Execute()
+		else
+			LeaveAlert[e] = nil
+		end
+	end
+	runByLeave = 0
+end)
+
+
+__e2setcost(3)
+e2function void runOnJoin(activate)
+	if activate ~= 0 then
+		SpawnAlert[self.entity] = true
+	else
+		SpawnAlert[self.entity] = nil
+	end
+end
+e2function number joinClk()
+	return runBySpawn
+end
+e2function entity lastJoined()
+	if not IsValid(LastJoined) then return nil end
+	if not LastJoined:IsPlayer() then return nil end
+
+	return LastJoined
+end
+
+e2function void runOnDisconnect(activate)
+	if activate ~= 0 then
+		LeaveAlert[self.entity] = true
+	else
+		LeaveAlert[self.entity] = nil
+	end
+end
+e2function number disconnectClk()
+	return runByLeave
+end
+e2function entity lastDisconnected()
+	if not IsValid(LastLeft) then return nil end
+	if not LastLeft:IsPlayer() then return nil end
+
+	return LastLeft
 end
