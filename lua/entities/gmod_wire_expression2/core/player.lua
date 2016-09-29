@@ -575,10 +575,9 @@ hook.Add("PlayerDisconnected","Exp2RunOnLeave", function(ply)
 	runByLeave = 0
 end)
 
-
 __e2setcost(3)
 
-e2function void runOnConnect(activate)
+e2function void runOnPlayerConnect(activate)
 	if activate ~= 0 then
 		spawnAlert[self.entity] = true
 	else
@@ -586,15 +585,15 @@ e2function void runOnConnect(activate)
 	end
 end
 
-e2function number connectClk()
+e2function number connectedPlayerClk()
 	return runBySpawn
 end
 
-e2function entity lastConnected()
+e2function entity lastConnectedPlayer()
 	return lastJoined
 end
 
-e2function void runOnDisconnect(activate)
+e2function void runOnPlayerDisconnect(activate)
 	if activate ~= 0 then
 		leaveAlert[self.entity] = true
 	else
@@ -602,10 +601,10 @@ e2function void runOnDisconnect(activate)
 	end
 end
 
-e2function number disconnectClk()
+e2function number disconnectedPlayerClk()
 	return runByLeave
 end
 
-e2function entity lastDisconnected()
+e2function entity lastDisconnectedPlayer()
 	return lastLeft
 end
