@@ -577,6 +577,7 @@ end)
 
 
 __e2setcost(3)
+
 e2function void runOnConnect(activate)
 	if activate ~= 0 then
 		spawnAlert[self.entity] = true
@@ -584,9 +585,11 @@ e2function void runOnConnect(activate)
 		spawnAlert[self.entity] = nil
 	end
 end
+
 e2function number connectClk()
 	return runBySpawn
 end
+
 e2function entity lastConnected()
 	return lastJoined
 end
@@ -598,9 +601,11 @@ e2function void runOnDisconnect(activate)
 		leaveAlert[self.entity] = nil
 	end
 end
+
 e2function number disconnectClk()
 	return runByLeave
 end
+
 e2function entity lastDisconnected()
 	return lastLeft
 end
