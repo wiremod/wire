@@ -585,7 +585,7 @@ e2function void runOnPlayerConnect(activate)
 	end
 end
 
-e2function number connectedPlayerClk()
+e2function number playerConnectClk()
 	return runBySpawn
 end
 
@@ -601,7 +601,7 @@ e2function void runOnPlayerDisconnect(activate)
 	end
 end
 
-e2function number disconnectedPlayerClk()
+e2function number playerDisconnectClk()
 	return runByLeave
 end
 
