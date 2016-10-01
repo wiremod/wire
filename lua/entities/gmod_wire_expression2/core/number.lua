@@ -4,6 +4,7 @@ local delta  = wire_expression2_delta
 local math   = math
 local random = math.random
 local pi     = math.pi
+local inf    = math.huge
 
 local exp    = math.exp
 local frexp  = math.frexp
@@ -227,6 +228,27 @@ end)
 
 __e2setcost(2) -- approximation
 
+--- Returns true (1) if given value is a finite number; otherwise false (0).
+e2function number isfinite(value)
+	return (value > -inf and value < inf) and 1 or 0
+end
+
+--- Returns 1 if given value is a positive infinity or -1 if given value is a negative infinity; otherwise 0.
+e2function number isinf(value)
+	if value == inf then return 1 end
+	if value == -inf then return -1 end
+	return 0
+end
+
+--- Returns true (1) if given value is not a number (NaN); otherwise false (0).
+e2function number isnan(value)
+	return (value ~= value) and 1 or 0
+end
+
+--[[************************************************************************]]--
+
+__e2setcost(2) -- approximation
+
 e2function number abs(value)
 	if value >= 0 then return value else return -value end
 end
@@ -413,6 +435,10 @@ __e2setcost(2) -- approximation
 
 local deg2rad = pi / 180
 local rad2deg = 180 / pi
+
+registerFunction("inf", "", "n", function(self, args)
+	return inf
+end)
 
 registerFunction("pi", "", "n", function(self, args)
 	return pi
