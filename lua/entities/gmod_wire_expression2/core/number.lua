@@ -228,7 +228,7 @@ end)
 __e2setcost(2) -- approximation
 
 --- Returns true (1) if given value is a finite number; otherwise false (0).
-e2function number finite(value)
+e2function number isfinite(value)
 	return (value > -inf and value < inf) and 1 or 0
 end
 
