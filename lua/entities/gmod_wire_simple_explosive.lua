@@ -5,7 +5,7 @@ ENT.WireDebugName = "Simple Explosive"
 
 if CLIENT then return end -- No more client
 
-local wire_explosive_delay = CreateConVar( "wire_explosive_delay", game.SinglePlayer() and 0 or 0.2 )
+local wire_explosive_delay = CreateConVar( "wire_explosive_delay", 0.2, FCVAR_ARCHIVE )
 
 function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )
