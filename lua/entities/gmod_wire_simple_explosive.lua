@@ -5,6 +5,8 @@ ENT.WireDebugName = "Simple Explosive"
 
 if CLIENT then return end -- No more client
 
+local wire_explosive_delay = CreateConVar( "wire_explosive_delay", 0.2, FCVAR_ARCHIVE )
+
 function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )
 	self:SetMoveType( MOVETYPE_VPHYSICS )
@@ -16,6 +18,7 @@ function ENT:Initialize()
 	end
 
 	self.NormInfo = ""
+	self.DisabledByTimeUntil = CurTime()
 
 	self.Inputs = Wire_CreateInputs(self, { "Detonate" })
 end
@@ -55,6 +58,8 @@ function ENT:Explode( )
 
 	if ( !self:IsValid() ) then return end
 	if (self.Exploded) then return end
+	if self.DisabledByTimeUntil > CurTime() then return end
+	self.DisabledByTimeUntil = CurTime() + wire_explosive_delay:GetFloat()
 
 	local ply = self:GetPlayer()
 	if not IsValid(ply) then ply = self end
