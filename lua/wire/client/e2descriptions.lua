@@ -166,8 +166,8 @@ E2Helper.Descriptions["match(s:s)"] = "runs string.match(S, S2) and returns the 
 E2Helper.Descriptions["match(s:sn)"] = "runs string.match(S, S2, N) and returns the sub-captures as an array"
 E2Helper.Descriptions["matchFirst(s:s)"] = "runs string.match(S, S2) and returns the first match or an empty string if the match failed"
 E2Helper.Descriptions["matchFirst(s:sn)"] = "runs string.match(S, S2, N) and returns the first match or an empty string if the match failed"
-E2Helper.Descriptions["gmatch(s:s)"] = "runs string.gmatch(S, S2) and returns the captures in an array"
-E2Helper.Descriptions["gmatch(s:sn)"] = "runs string.gmatch(S, S2, N) and returns the captures in an array"
+E2Helper.Descriptions["gmatch(s:s)"] = "runs string.gmatch(S, S2) and returns the captures in arrays in a table"
+E2Helper.Descriptions["gmatch(s:sn)"] = "runs string.gmatch(S, S2, N) and returns the captures in arrays in a table"
 
 -- Entity/Player
 E2Helper.Descriptions["entity(n)"] = "Gets the entity associated with the id"
