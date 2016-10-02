@@ -31,3 +31,5 @@ E2Helper.Descriptions["propGetElasticity"] = "Gets prop's elasticity coefficient
 E2Helper.Descriptions["propSpawnUndo"] = "Set to 0 to force prop removal on E2 shutdown, and suppress Undo entries for props."
 E2Helper.Descriptions["propDeleteAll"] = "Removes all entities spawned by this E2"
 E2Helper.Descriptions["propStatic"] = "Sets to 1 to make the entity static (disables movement, physgun, unfreeze, drive...) or 0 to cancel."
+E2Helper.Descriptions["propSetVelocity"] = "Sets the velocity of the prop for the next iteration"
+E2Helper.Descriptions["propSetVelocityInstant"] = "Sets the initial velocity of the prop"
