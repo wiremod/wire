@@ -2,7 +2,7 @@
 	"title"		:	"Wiremod",
 	"type"		:	"tool",
 	"tags"		:	[ "build", "fun" ],
-	"description":	"A collection of entities connectable by data wires, which allows for the creation of advanced contraptions.",
+	"description":	"A collection of entities connectable by data wires utilizing logical concepts, which allows for the creation of advanced contraptions.",
 	"ignore"	:
 	[
 		"*.psd",
@@ -12,6 +12,8 @@
 		"*.xcf",
 		".git*",
 		".gitignore",
+		".luacheckrc",
+		".travis.yml",
 		"git-hooks-pre-commit",
 		"gitrid.sh",
 		"license",
