@@ -46,7 +46,7 @@ function ENT:GetNormal()
 			)
 end
 
-if CLIENT then 
+if CLIENT then
 	function ENT:Initialize()
 		self.ShouldDraw = 1
 		self.EffectAvg = 0
@@ -87,7 +87,7 @@ if CLIENT then
 			return (self:LocalToWorld(self:GetNormal()) - self:GetPos()):GetNormalized()
 		end
 	end
-	
+
 	return  -- No more client
 end
 
@@ -127,7 +127,7 @@ function ENT:Initialize()
 
 	self:SetOffset(self.ThrustOffset)
 	self:SetNormal(self.ThrustNormal)
-	
+
 	self:StartMotionController()
 
 	self:Switch( false )
@@ -176,7 +176,7 @@ function ENT:SetForce( force, mul )
 	self.ForceLinear, self.ForceAngle = phys:CalculateVelocityOffset( ThrusterWorldForce, ThrusterWorldPos );
 
 	self.ForceLinear = phys:WorldToLocalVector( self.ForceLinear )
-	
+
 	if self.neteffect then
 		-- self.ForceLinear is 0 if the thruster is frozen
 		self.effectforce = ThrusterWorldForce:Length()
@@ -195,7 +195,7 @@ function ENT:Setup(force, force_min, force_max, oweffect, uweffect, owater, uwat
 	self.owater = owater
 	self.uwater = uwater
 	self.angleinputs = angleinputs
-	
+
 	-- Preventing client crashes
 	local BlockedChars = '["?]'
 	if ( string.find(soundname, BlockedChars) ) then
@@ -251,13 +251,12 @@ function ENT:TriggerInput(iname, value)
 
 	self.ThrustNormal = Vector( self.X, self.Y, self.Z ):GetNormalized()
 	self:SetNormal( self.ThrustNormal ) -- Tell the client the unadulterated vector
-	
+
 	if self.mode == 2 then
 		self.ThrustNormal = Vector( self.X, self.Y, 0 ):GetNormalized()
 	end
 	self.ThrustOffset = self.ThrustNormal + self:GetOffset()
 	if (self.ThrustNormal == Vector(0,0,0)) then self:SetOn( false ) elseif (self.mul != 0) then self:SetOn( true ) end
-	self:Switch( self:IsOn(), self.mul )
 end
 
 function ENT:Think()
