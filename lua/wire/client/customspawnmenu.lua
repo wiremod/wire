@@ -656,6 +656,7 @@ local function CreateCPanel( panel )
 	UseIcons:SetToolTip( "If disabled, all tools will use the 'wrench' icon." )
 
 	local AutoCollapse = panel:CheckBox( "Autocollapse", "wire_tool_menu_autocollapse" )
+	AutoCollapse:SetToolTip( "If enabled, opening a category will collapse other categories." )
 
 	local TabWidth = panel:NumSlider( "Tab width", "wire_tool_menu_tab_width", 300, 3000, 0 )
 	panel:Help( [[Set the width of all tabs.
