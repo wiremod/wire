@@ -10,7 +10,7 @@ registerCallback("construct", function(self)
 	self.colEnts = {}
 	self.collFilter = true
 	self.collIgnoreConstrained = true
-	self.colProps=0
+	self.colProps = 0
 end)
 
 hook.Add("EntityRemoved", "E2CollClkEntityRemoved", function(ent)
