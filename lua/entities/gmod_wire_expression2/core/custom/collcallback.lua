@@ -105,7 +105,6 @@ end
 __e2setcost(2)
 e2function number isCollClk()
 	if not self.colData then return 0 else return 1 end
-	
 end
 
 e2function number collIgnoreConstrained(constrained)
@@ -118,7 +117,6 @@ end
 
 e2function number entity:hasCollDetection()
 	if not registered_ents[this] then return 0 else return 1 end
-	
 end
 
 e2function void collEnableEarlyClk(enable)
