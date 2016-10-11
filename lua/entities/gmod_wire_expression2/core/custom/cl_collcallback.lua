@@ -19,4 +19,4 @@ E2Helper.Descriptions["collIgnoreConstrained"] = "Set it to 0 to allow colliding
 E2Helper.Descriptions["collFilter"] = "Set it to 0 to allow executing this script multiple times per tick"
 E2Helper.Descriptions["removeAllCollClk"] = "Removes callback from all entities"
 E2Helper.Descriptions["collEntityBone"] = "Bone from registered entity that collided"
-E2Helper.Descriptions["collHitEntityAng"] = "Bone from hit entity that collided"
+E2Helper.Descriptions["collHitEntityBone"] = "Bone from hit entity that collided"
