@@ -187,22 +187,22 @@ function ENT:DeployBalloons()
 		local phys = trace.Entity:GetPhysicsObjectNum(trace.PhysicsBone)
 		if IsValid(phys) then
 			hitEntity = trace.Entity
-			hitPos = trace.HitPos
+			hitPos    = trace.HitPos
 		end
 	end
 
 	if self.weld then
-		local constraint = constraint.Weld( balloon, hitEntity, 0, trace.PhysicsBone, 0)
-		balloon:DeleteOnRemove(constraint)
+		local cnweld = constraint.Weld( balloon, hitEntity, 0, trace.PhysicsBone, 0)
+		balloon:DeleteOnRemove(cnweld)
 	else
 		balloonPos = balloon:WorldToLocal(balloonPos)
-		hitPos = hitEntity:WorldToLocal(hitPos)
+		hitPos     = hitEntity:WorldToLocal(hitPos)
 
-		local constraint, rope = constraint.Rope(
+		local cnrope, rope = constraint.Rope(
 			balloon, hitEntity, 0, trace.PhysicsBone, balloonPos, hitPos, 
 			0, self.rl, 0, 1.5, material, false)
-		if constraint then
-			balloon:DeleteOnRemove(constraint)
+		if cnrope then
+			balloon:DeleteOnRemove(cnrope)
 			balloon:DeleteOnRemove(rope)
 		end
 	end
