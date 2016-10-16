@@ -205,7 +205,7 @@ remap[KEY_EQUAL] 		= "+"
 
 Wire_Keyboard_Remap.British = {}
 Wire_Keyboard_Remap.British = table.Copy(Wire_Keyboard_Remap.American)
-Wire_Keyboard_Remap.British[83] = {}
+Wire_Keyboard_Remap.British[KEY_LCONTROL] = {}
 Wire_Keyboard_Remap.British[KEY_RSHIFT] = Wire_Keyboard_Remap.British[KEY_LSHIFT]
 
 local remap = Wire_Keyboard_Remap.British.normal
@@ -214,17 +214,17 @@ remap[KEY_APOSTROPHE] = "#"
 
 local remap = Wire_Keyboard_Remap.British[KEY_LSHIFT]
 remap[KEY_2] = '"'
-remap[KEY_3] = "£"
+remap[KEY_3] = "Â£"
 remap[KEY_APOSTROPHE] = "~"
 remap[KEY_BACKQUOTE] = "@"
 
 local remap = Wire_Keyboard_Remap.British[83]
-remap[KEY_4] = "€"
-remap[KEY_A] = "á"
-remap[KEY_E] = "é"
-remap[KEY_I] = "í"
-remap[KEY_O] = "ó"
-remap[KEY_U] = "ú"
+remap[KEY_4] = "â‚¬"
+remap[KEY_A] = "Ã¡"
+remap[KEY_E] = "Ã©"
+remap[KEY_I] = "Ã­"
+remap[KEY_O] = "Ã³"
+remap[KEY_U] = "Ãº"
 
 ----------------------------------------------------------------------
 -- Swedish
@@ -232,19 +232,19 @@ remap[KEY_U] = "ú"
 
 Wire_Keyboard_Remap.Swedish = {}
 Wire_Keyboard_Remap.Swedish = table.Copy(Wire_Keyboard_Remap_default)
-Wire_Keyboard_Remap.Swedish[83] = {} -- KEY_RALT = 82, but didn't work correctly
+Wire_Keyboard_Remap.Swedish[KEY_LCONTROL] = {} -- Should be KEY_RALT, but that didn't work correctly
 Wire_Keyboard_Remap.Swedish[KEY_RSHIFT] = Wire_Keyboard_Remap.Swedish[KEY_LSHIFT]
 
 local remap = Wire_Keyboard_Remap.Swedish.normal
-remap[KEY_LBRACKET] 	= "´"
-remap[KEY_RBRACKET] 	= "å"
-remap[KEY_SEMICOLON] 	= "¨"
-remap[KEY_APOSTROPHE] 	= "ä"
-remap[KEY_BACKQUOTE] 	= "ö"
+remap[KEY_LBRACKET] 	= "Â´"
+remap[KEY_RBRACKET] 	= "Ã¥"
+remap[KEY_SEMICOLON] 	= "Â¨"
+remap[KEY_APOSTROPHE] 	= "Ã¤"
+remap[KEY_BACKQUOTE] 	= "Ã¶"
 remap[KEY_COMMA] 		= ","
 remap[KEY_PERIOD] 		= "."
 remap[KEY_SLASH] 		= "'"
-remap[KEY_BACKSLASH] 	= "§"
+remap[KEY_BACKSLASH] 	= "Â§"
 remap[KEY_MINUS] 		= "-"
 remap[KEY_EQUAL] 		= "+"
 
@@ -253,27 +253,27 @@ remap[KEY_0] = "="
 remap[KEY_1] = "!"
 remap[KEY_2] = '"'
 remap[KEY_3] = "#"
-remap[KEY_4] = "¤"
+remap[KEY_4] = "Â¤"
 remap[KEY_5] = "%"
 remap[KEY_6] = "&"
 remap[KEY_7] = "/"
 remap[KEY_8] = "("
 remap[KEY_9] = ")"
 remap[KEY_LBRACKET] 	= "`"
-remap[KEY_RBRACKET] 	= "Å"
-remap[KEY_BACKQUOTE] 	= "Ö"
+remap[KEY_RBRACKET] 	= "Ã…"
+remap[KEY_BACKQUOTE] 	= "Ã–"
 remap[KEY_SEMICOLON] 	= "^"
-remap[KEY_APOSTROPHE] 	= "Ä"
+remap[KEY_APOSTROPHE] 	= "Ã„"
 remap[KEY_COMMA] 		= ";"
 remap[KEY_PERIOD] 		= ":"
 remap[KEY_SLASH] 		= "*"
-remap[KEY_BACKSLASH] 	= "½"
+remap[KEY_BACKSLASH] 	= "Â½"
 remap[KEY_MINUS] 		= "_"
 remap[KEY_EQUAL] 		= "?"
 
-local remap = Wire_Keyboard_Remap.Swedish[83]
+local remap = Wire_Keyboard_Remap.Swedish[KEY_LCONTROL]
 remap[KEY_2] = "@"
-remap[KEY_3] = "£"
+remap[KEY_3] = "Â£"
 remap[KEY_4] = "$"
 remap[KEY_7] = "{"
 remap[KEY_8] = "["
@@ -281,7 +281,7 @@ remap[KEY_9] = "]"
 remap[KEY_0] = "}"
 remap[KEY_EQUAL] = "\\"
 remap[KEY_SEMICOLON] = "~"
-remap[KEY_E] = "€"
+remap[KEY_E] = "â‚¬"
 
 ----------------------------------------------------------------------
 -- Norwegian
@@ -292,20 +292,20 @@ Wire_Keyboard_Remap.Norwegian = table.Copy(Wire_Keyboard_Remap.Swedish)
 Wire_Keyboard_Remap.Norwegian[KEY_RSHIFT] = Wire_Keyboard_Remap.Norwegian[KEY_LSHIFT]
 
 local remap = Wire_Keyboard_Remap.Norwegian.normal
-remap[KEY_BACKQUOTE] 	= "ø"
-remap[KEY_APOSTROPHE] 	= "æ"
+remap[KEY_BACKQUOTE] 	= "Ã¸"
+remap[KEY_APOSTROPHE] 	= "Ã¦"
 remap[KEY_BACKSLASH] 	= "|"
 remap[KEY_LBRACKET] 	= "\\"
 
 local remap = Wire_Keyboard_Remap.Norwegian[KEY_LSHIFT]
-remap[KEY_BACKQUOTE] 	= "Ø"
-remap[KEY_APOSTROPHE] 	= "Æ"
-remap[KEY_BACKSLASH] 	= "§"
+remap[KEY_BACKQUOTE] 	= "Ã˜"
+remap[KEY_APOSTROPHE] 	= "Ã†"
+remap[KEY_BACKSLASH] 	= "Â§"
 
-local remap = Wire_Keyboard_Remap.Norwegian[83]
+local remap = Wire_Keyboard_Remap.Norwegian[KEY_LCONTROL]
 remap[KEY_EQUAL] = nil
-remap[KEY_M] = "µ"
-remap[KEY_LBRACKET] 		= "´"
+remap[KEY_M] = "Âµ"
+remap[KEY_LBRACKET] 		= "Â´"
 
 ----------------------------------------------------------------------
 -- German
@@ -313,15 +313,15 @@ remap[KEY_LBRACKET] 		= "´"
 
 Wire_Keyboard_Remap.German				= {}
 Wire_Keyboard_Remap.German				= table.Copy(Wire_Keyboard_Remap_default)
-Wire_Keyboard_Remap.German[83]			= {} -- KEY_RALT	= 82, but didn't work correctly
+Wire_Keyboard_Remap.German[KEY_LCONTROL]			= {} -- Should be KEY_RALT, but that didn't work correctly
 Wire_Keyboard_Remap.German[KEY_RSHIFT]	= Wire_Keyboard_Remap.German[KEY_LSHIFT]
 
 local remap = Wire_Keyboard_Remap.German.normal
-remap[KEY_LBRACKET]		= "ß"
-remap[KEY_RBRACKET]		= "´"
-remap[KEY_SEMICOLON]	= "ü"
-remap[KEY_APOSTROPHE]	= "ä"
-remap[KEY_BACKQUOTE]	= "ö"
+remap[KEY_LBRACKET]		= "ÃŸ"
+remap[KEY_RBRACKET]		= "Â´"
+remap[KEY_SEMICOLON]	= "Ã¼"
+remap[KEY_APOSTROPHE]	= "Ã¤"
+remap[KEY_BACKQUOTE]	= "Ã¶"
 remap[KEY_COMMA]		= ","
 remap[KEY_PERIOD]		= "."
 remap[KEY_SLASH]		= "#"
@@ -333,7 +333,7 @@ local remap = Wire_Keyboard_Remap.German[KEY_LSHIFT]
 remap[KEY_0]	= "="
 remap[KEY_1]	= "!"
 remap[KEY_2]	= '"'
-remap[KEY_3]	= "§"
+remap[KEY_3]	= "Â§"
 remap[KEY_4]	= "$"
 remap[KEY_5]	= "%"
 remap[KEY_6]	= "&"
@@ -342,25 +342,25 @@ remap[KEY_8]	= "("
 remap[KEY_9]	= ")"
 remap[KEY_LBRACKET]		= "?"
 remap[KEY_RBRACKET]		= "`"
-remap[KEY_SEMICOLON]	= "Ü"
-remap[KEY_APOSTROPHE]	= 'Ä'
-remap[KEY_BACKQUOTE]	= "Ö"
+remap[KEY_SEMICOLON]	= "Ãœ"
+remap[KEY_APOSTROPHE]	= 'Ã„'
+remap[KEY_BACKQUOTE]	= "Ã–"
 remap[KEY_COMMA]		= ";"
 remap[KEY_PERIOD]		= ":"
 remap[KEY_SLASH]		= "'"
-remap[KEY_BACKSLASH]	= "°"
+remap[KEY_BACKSLASH]	= "Â°"
 remap[KEY_MINUS]		= "_"
 remap[KEY_EQUAL]		= "*"
 
-local remap = Wire_Keyboard_Remap.German[83]
+local remap = Wire_Keyboard_Remap.German[KEY_LCONTROL]
 remap[KEY_0]	= "}"
-remap[KEY_2]	= '²'
-remap[KEY_3]	= "³"
+remap[KEY_2]	= 'Â²'
+remap[KEY_3]	= "Â³"
 remap[KEY_7]	= "{"
 remap[KEY_8]	= "["
 remap[KEY_9]	= "]"
-remap[KEY_E]	= "€"
-remap[KEY_M]	= "µ"
+remap[KEY_E]	= "â‚¬"
+remap[KEY_M]	= "Âµ"
 remap[KEY_Q]	= "@"
 remap[KEY_LBRACKET]		= '\\'
 remap[KEY_EQUAL]		= "~"
