@@ -218,7 +218,7 @@ remap[KEY_3] = "£"
 remap[KEY_APOSTROPHE] = "~"
 remap[KEY_BACKQUOTE] = "@"
 
-local remap = Wire_Keyboard_Remap.British[83]
+local remap = Wire_Keyboard_Remap.British[KEY_LCONTROL]
 remap[KEY_4] = "€"
 remap[KEY_A] = "á"
 remap[KEY_E] = "é"
