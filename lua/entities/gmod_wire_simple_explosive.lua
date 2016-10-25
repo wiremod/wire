@@ -6,6 +6,7 @@ ENT.WireDebugName = "Simple Explosive"
 if CLIENT then return end -- No more client
 
 local wire_explosive_delay = CreateConVar( "wire_explosive_delay", 0.2, FCVAR_ARCHIVE )
+local wire_explosive_range = CreateConVar( "wire_explosive_range", 512, FCVAR_ARCHIVE )
 
 function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )
@@ -27,7 +28,7 @@ function ENT:Setup( key, damage, removeafter, radius )
 	self.key			= key
 	self.damage			= math.Min(damage, 1500)
 	self.removeafter	= removeafter
-	self.radius			= math.Clamp(radius, 1, 512)
+	self.radius			= math.Clamp(radius, 1, wire_explosive_range:GetFloat())
 	self.Exploded		= false
 
 	if (self.damage > 0) then
