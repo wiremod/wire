@@ -26,16 +26,16 @@ function ENT:Initialize()
 	self:SetSolid(SOLID_VPHYSICS)
 	self:SetUseType(SIMPLE_USE)
 
-	self.Inputs = WireLib.CreateInputs(self, { "Kick" })
-	self.Outputs = WireLib.CreateOutputs(self, { "Memory", "User [ENTITY]", "InUse" })
+	self.Inputs = WireLib.CreateInputs(self, { "Kick", "Reset Output String" })
+	self.Outputs = WireLib.CreateOutputs(self, { "Memory", "Output [STRING]", "ActiveKeys [ARRAY]", "User [ENTITY]", "InUse" })
 
 	self.ActiveKeys = {} -- table containing all currently active keys, used to see when keys are pressed/released
 	self.Buffer = {} -- array containing all currently active keys, value is ascii
 	self.BufferLookup = {} -- lookup table mapping enums to buffer positions
 	self.Buffer[0] = 0
+	self.OutputString = ""
 
-	self:SetOverlayText("Not in use")
-	WireLib.TriggerOutput(self, "InUse", 0)
+	self:TriggerOutputs()
 end
 
 WireLib.AddInputAlias("Kick the bastard out of keyboard", "Kick")
@@ -49,7 +49,39 @@ function ENT:TriggerInput(name, value)
 				self:PlayerDetach()
 			end
 		end)
+	elseif name == "Reset Output String" then
+		self.OutputString = ""
+		self:TriggerOutputs()
 	end
+end
+
+function ENT:TriggerOutputs(key)
+	-- Output key numerical representation
+	if key ~= nil then
+		WireLib.TriggerOutput(self, "Memory", key)
+	end
+
+	-- Output user
+	if IsValid( self.ply ) then
+		WireLib.TriggerOutput(self, "User", self.ply)
+		WireLib.TriggerOutput(self, "InUse", 1)
+		self:SetOverlayText("In use by " .. self.ply:Nick())
+	else
+		WireLib.TriggerOutput(self, "User", nil)
+		WireLib.TriggerOutput(self, "InUse", 0)
+		self:SetOverlayText("Not in use")
+	end
+
+	-- Output currently pressed keys
+	local ActiveKeys_Output, idx = {}, 0
+	for key_enum,_ in pairs( self.ActiveKeys ) do
+		idx = idx + 1
+		ActiveKeys_Output[idx] = self:GetRemappedKey(key_enum)
+	end
+	WireLib.TriggerOutput(self, "ActiveKeys", ActiveKeys_Output)
+
+	-- Output buffer string
+	WireLib.TriggerOutput(self, "Output", self.OutputString)
 end
 
 function ENT:ReadCell(Address)
@@ -87,9 +119,6 @@ function ENT:PlayerAttach(ply)
 
 	-- Store player
 	self.ply = ply
-	WireLib.TriggerOutput(self, "User", ply)
-	WireLib.TriggerOutput(self, "InUse", 1)
-	self:SetOverlayText("In use by " .. ply:Nick())
 
 	-- Block keyboard input
 	if self.Synchronous then
@@ -114,14 +143,11 @@ function ENT:PlayerAttach(ply)
 	self.ActiveKeys = {}
 	self.Buffer = {}
 	self.Buffer[0] = 0
+
+	self:TriggerOutputs()
 end
 
 function ENT:PlayerDetach()
-	WireLib.TriggerOutput(self, "User", nil)
-	WireLib.TriggerOutput(self, "InUse", 0)
-
-	self:SetOverlayText("Not in use")
-
 	local ply = self.ply
 	self.ply = nil
 
@@ -141,6 +167,8 @@ function ENT:PlayerDetach()
 
 		ply.WireKeyboard = nil
 	end
+
+	self:TriggerOutputs()
 end
 
 function ENT:Use(ply)
@@ -187,6 +215,45 @@ hook.Add("PlayerLeaveVehicle", "wire_keyboard_PlayerLeaveVehicle", function(ply,
 	end
 end)
 
+local unprintable_chars = {}
+for i=17,20 do unprintable_chars[i] = true end -- arrow keys
+for i=144,177 do unprintable_chars[i] = true end -- ctrl, alt, shift, break, F1-F12, scroll/num/caps lock, and more
+
+local convertable_chars = {
+	[128] = 49, -- numpad 1
+	[129] = 50, -- numpad 2
+	[130] = 51, -- numpad 3
+	[131] = 52, -- numpad 4
+	[132] = 53, -- numpad 5
+	[133] = 54, -- numpad 6
+	[134] = 55, -- numpad 7
+	[135] = 56, -- numpad 8
+	[136] = 57, -- numpad 9
+	[137] = 58, -- numpad 4
+	[138] = 47, -- /
+	[139] = 42, -- *
+	[140] = 45, -- -
+	[141] = 43, -- +
+	[142] = 10, -- \n
+	[143] = 46, -- .
+}
+
+function ENT:AppendOutputString(key)
+	if unprintable_chars[key] and not convertable_chars[key] then return end
+	if convertable_chars[key] then key = convertable_chars[key] end
+
+	if key == 127 then
+		local pos = string.match(self.OutputString,"()"..utf8.charpattern.."$")
+		if pos then
+			self.OutputString = string.sub(self.OutputString,1,pos-1)
+		end
+	else
+		self.OutputString = self.OutputString .. utf8.char(key)
+	end
+
+	self:TriggerOutputs()
+end
+
 --local Wire_Keyboard_Remap = Wire_Keyboard_Remap -- Defined in remap.lua
 function ENT:GetRemappedKey(key_enum)
 	if not key_enum or key_enum == 0 or key_enum > KEY_LAST then return 0 end -- Above KEY_LAST are joystick and mouse enums
@@ -205,7 +272,7 @@ function ENT:GetRemappedKey(key_enum)
 		end
 	end
 
-	if isstring(ret) then ret = string.byte(ret) end
+	if isstring(ret) then ret = utf8.codepoint(ret) end
 	return ret
 end
 
@@ -217,8 +284,9 @@ function ENT:KeyPressed(key_enum)
 
 	self.ActiveKeys[key_enum] = true
 	self:PushBuffer(key, key_enum)
+	self:AppendOutputString(key)
 
-	WireLib.TriggerOutput(self, "Memory", key)
+	self:TriggerOutputs(key)
 end
 
 function ENT:KeyReleased(key_enum)
@@ -231,7 +299,7 @@ function ENT:KeyReleased(key_enum)
 		self:RemoveFromBufferByKey(key)
 	end
 
-	WireLib.TriggerOutput(self, "Memory", 0)
+	self:TriggerOutputs(0)
 end
 
 function ENT:IsPressedEnum(key_enum)
