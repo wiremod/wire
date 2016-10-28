@@ -5,11 +5,11 @@ ENT.RenderGroup 		= RENDERGROUP_BOTH -- TODO: this is only needed when they're a
 ENT.WireDebugName	= "Vector Thruster"
 
 function ENT:SetEffect( name )
-	self:SetNetworkedString( "Effect", name )
+	self:SetNWString( "Effect", name )
 	self.neteffect = WireLib.ThrusterNetEffects[ name ]
 end
 function ENT:GetEffect()
-	return self:GetNetworkedString( "Effect" )
+	return self:GetNWString( "Effect" )
 end
 
 function ENT:SetOn( boolon )

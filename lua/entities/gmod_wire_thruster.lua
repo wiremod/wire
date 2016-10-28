@@ -9,11 +9,11 @@ WireLib.ThrusterNetEffects = {
 }
 
 function ENT:SetEffect( name )
-	self:SetNetworkedString( "Effect", name )
+	self:SetNWString( "Effect", name )
 	self.neteffect = WireLib.ThrusterNetEffects[ name ]
 end
 function ENT:GetEffect( name )
-	return self:GetNetworkedString( "Effect" )
+	return self:GetNWString( "Effect" )
 end
 
 function ENT:SetOn( boolon )
