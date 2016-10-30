@@ -239,7 +239,7 @@ function ENT:WriteCell(Address, value)
 					i = i + 1
 				end
 			end
-		elseif Address == 1048575 then -- CLK
+		-- elseif Address == 1048575 then -- CLK
 			-- not needed atm
 		end
 	end
@@ -258,23 +258,23 @@ function ENT:Think()
 end
 
 function ENT:TriggerInput(iname, value)
-	if (iname == "PixelX") then
+	if iname == "PixelX" then
 		self.PixelX = math.floor(value)
 		self:SendPixel()
-	elseif (iname == "PixelY") then
+	elseif iname == "PixelY" then
 		self.PixelY = math.floor(value)
 		self:SendPixel()
-	elseif (iname == "PixelG") then
+	elseif iname == "PixelG" then
 		self.PixelG = math.floor(value)
 		self:SendPixel()
-	elseif (iname == "Clk") then
+	elseif iname == "Clk" then
 		self:WriteCell(1048575, value)
 		self:SendPixel()
-	elseif (iname == "FillColor") then
+	elseif iname == "FillColor" then
 		self:WriteCell(1048574,value)
-	elseif (iname == "ClearCol") then
+	elseif iname == "ClearCol" then
 		self:WriteCell(1048571,math.Clamp( value, 0, 31 ))
-	elseif (iname == "ClearRow") then
+	elseif iname == "ClearRow" then
 		self:WriteCell(1048570,math.Clamp( value, 0, 31 ))
 	end
 end

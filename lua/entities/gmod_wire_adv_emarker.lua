@@ -22,29 +22,29 @@ function ENT:Initialize()
 end
 
 function ENT:TriggerInput( name, value )
-	if (name == "Entity") then
+	if name == "Entity" then
 		if IsValid(value) then
 			self.Target = value
 		end
-	elseif (name == "Add Entity") then
+	elseif name == "Add Entity" then
 		if IsValid(self.Target) then
-			if (value != 0) then
+			if value ~= 0 then
 				local bool, index = self:CheckEnt( self.Target )
-				if (!bool) then
+				if not bool then
 					self:LinkEnt( self.Target )
 				end
 			end
 		end
-	elseif (name == "Remove Entity") then
+	elseif name == "Remove Entity" then
 		if IsValid(self.Target) then
-			if (value != 0) then
+			if value ~= 0 then
 				local bool, index = self:CheckEnt( self.Target )
-				if (bool) then
+				if bool then
 					self:UnlinkEnt( self.Target )
 				end
 			end
 		end
-	elseif (name == "Clear Entities") then
+	elseif name == "Clear Entities" then
 		self:ClearEntities()
 	end
 end
@@ -68,13 +68,13 @@ end
 
 function ENT:CheckEnt( ent )
 	for index, e in pairs( self.Marks ) do
-		if (e == ent) then return true, index end
+		if e == ent then return true, index end
 	end
 	return false, 0
 end
 
 function ENT:LinkEnt( ent )
-	if (self:CheckEnt( ent )) then return false	end
+	if self:CheckEnt( ent ) then return false	end
 	self.Marks[#self.Marks+1] = ent
 	ent:CallOnRemove("AdvEMarker.Unlink", function(ent)
 		self:UnlinkEnt(ent)
@@ -85,7 +85,7 @@ end
 
 function ENT:UnlinkEnt( ent )
 	local bool, index = self:CheckEnt( ent )
-	if (bool) then
+	if bool then
 		table.remove( self.Marks, index )
 		self:UpdateOutputs()
 	end
@@ -124,7 +124,7 @@ end
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
 
-	if (info.marks) then
+	if info.marks then
 		self.Marks = self.Marks or {}
 
 		for index, entid in pairs(info.marks) do

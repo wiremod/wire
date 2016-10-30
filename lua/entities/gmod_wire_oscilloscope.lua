@@ -5,7 +5,7 @@ ENT.WireDebugName	= "Oscilloscope"
 
 function ENT:SetNextNode(x, y)
 	local node_idx = self:GetNetworkedInt("OscN") or 0
-	if (node_idx > self:GetNetworkedFloat("Length", 50)) then node_idx = node_idx-self:GetNetworkedFloat("Length", 50) end
+	if node_idx > self:GetNetworkedFloat("Length", 50) then node_idx = node_idx-self:GetNetworkedFloat("Length", 50) end
 
 	self:SetNetworkedFloat("OscX"..node_idx, x)
 	self:SetNetworkedFloat("OscY"..node_idx, y)
@@ -20,7 +20,7 @@ function ENT:GetNodeList()
 		table.insert(nodes, { X = (self:GetNetworkedFloat("OscX"..node_idx, 0)), Y = (self:GetNetworkedFloat("OscY"..node_idx, 0)) })
 
 		node_idx = node_idx+1
-		if (node_idx > length) then node_idx = node_idx-length end
+		if node_idx > length then node_idx = node_idx-length end
 	end
 
 	return nodes
@@ -56,7 +56,7 @@ if CLIENT then
 				local nx2 = nodes[i_next].X*256+256
 				local ny2 = -nodes[i_next].Y*256+256
 
-				if ((nx1-nx2)*(nx1-nx2) + (ny1-ny2)*(ny1-ny2) < 256*256) then
+				if (nx1-nx2)*(nx1-nx2) + (ny1-ny2)*(ny1-ny2) < 256*256 then
 					local a = math.max(1, 3.75-(3*i)/length)^1.33
 					local a2 = math.max(1, a/2)
 
@@ -103,7 +103,7 @@ function ENT:Initialize()
 end
 
 function ENT:Think()
-	if (self.Inputs.Pause.Value == 0) then
+	if self.Inputs.Pause.Value == 0 then
 		self.BaseClass.Think(self)
 
 		local x = math.max(-1, math.min(self.Inputs.X.Value or 0, 1))

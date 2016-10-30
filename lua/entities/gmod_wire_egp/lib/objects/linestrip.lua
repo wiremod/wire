@@ -9,7 +9,7 @@ Obj.verticesindex = "vertices"
 Obj.size = 1
 Obj.Draw = function( self )
 	local n = #self.vertices
-	if (self.a>0 and n>0 and self.size>0) then
+	if self.a > 0 and n > 0 and self.size > 0 then
 		surface.SetDrawColor( self.r, self.g, self.b, self.a )
 		for i=1,(n-1) do
 			local p1,p2 = self.vertices[i],self.vertices[1+i]

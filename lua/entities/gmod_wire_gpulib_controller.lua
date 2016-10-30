@@ -58,7 +58,7 @@ function MakeGPULibController( pl, Pos, Ang, model, screen )
 	--if ( !pl:CheckLimit( "wire_cams" ) ) then return false end
 
 	local controller = ents.Create( "gmod_wire_gpulib_controller" )
-	if (!controller:IsValid()) then return false end
+	if not controller:IsValid() then return false end
 
 	controller:SetAngles( Ang )
 	controller:SetPos( Pos )

@@ -203,19 +203,19 @@ function ENT:UpdateLight()
 end
 
 function ENT:TriggerInput(iname, value)
-	if (iname == "Red") then
+	if iname == "Red" then
 		self.R = math.Clamp(value,0,255)
-	elseif (iname == "Green") then
+	elseif iname == "Green" then
 		self.G = math.Clamp(value,0,255)
-	elseif (iname == "Blue") then
+	elseif iname == "Blue" then
 		self.B = math.Clamp(value,0,255)
-	elseif (iname == "RGB") then
+	elseif iname == "RGB" then
 		self.R, self.G, self.B = math.Clamp(value[1],0,255), math.Clamp(value[2],0,255), math.Clamp(value[3],0,255)
-	elseif (iname == "GlowBrightness") then
+	elseif iname == "GlowBrightness" then
 		if not game.SinglePlayer() then value = math.Clamp( value, 0, 10 ) end
 		self.brightness = value
 		self:SetBrightness( value )
-	elseif (iname == "GlowSize") then
+	elseif iname == "GlowSize" then
 		if not game.SinglePlayer() then value = math.Clamp( value, 0, 1024 ) end
 		self.size = value
 		self:SetSize( value )

@@ -86,9 +86,9 @@ end
 -- Object existance check
 ----------------------------
 function EGP:HasObject( Ent, index )
-	if (!EGP:ValidEGP( Ent )) then return false end
+	if not EGP:ValidEGP( Ent ) then return false end
 	if SERVER then index = math.Round(math.Clamp(index or 1, 1, self.ConVars.MaxObjects:GetInt())) end
-	if (!Ent.RenderTable or #Ent.RenderTable == 0) then return false end
+	if not Ent.RenderTable or #Ent.RenderTable == 0 then return false end
 	for k,v in pairs( Ent.RenderTable ) do
 		if (v.index == index) then
 			return true, k, v
@@ -101,8 +101,8 @@ end
 -- Object order changing
 ----------------------------
 function EGP:SetOrder( Ent, from, to )
-	if (!Ent.RenderTable or #Ent.RenderTable == 0) then return false end
-	if (Ent.RenderTable[from]) then
+	if not Ent.RenderTable or #Ent.RenderTable == 0 then return false end
+	if Ent.RenderTable[from] then
 		to = math.Clamp(math.Round(to or 1),1,#Ent.RenderTable)
 		table.insert( Ent.RenderTable, to, table.remove( Ent.RenderTable, from ) )
 		if (SERVER) then Ent.RenderTable[to].ChangeOrder = {from,to} end
@@ -115,9 +115,9 @@ end
 ----------------------------
 
 function EGP:CreateObject( Ent, ObjID, Settings )
-	if (!self:ValidEGP( Ent )) then return false end
+	if not self:ValidEGP( Ent ) then return false end
 
-	if (!self.Objects.Names_Inverted[ObjID]) then
+	if not self.Objects.Names_Inverted[ObjID] then
 		ErrorNoHalt("Trying to create nonexistant object! Please report this error to Divran at wiremod.com. ObjID: " .. ObjID .. "\n")
 		return false
 	end
@@ -125,8 +125,8 @@ function EGP:CreateObject( Ent, ObjID, Settings )
 	if SERVER then Settings.index = math.Round(math.Clamp(Settings.index or 1, 1, self.ConVars.MaxObjects:GetInt())) end
 
 	local bool, k, v = self:HasObject( Ent, Settings.index )
-	if (bool) then -- Already exists. Change settings:
-		if (v.ID != ObjID) then -- Not the same kind of object, create new
+	if bool then -- Already exists. Change settings:
+		if v.ID ~= ObjID then -- Not the same kind of object, create new
 			local Obj = {}
 			Obj = self:GetObjectByID( ObjID )
 			self:EditObject( Obj, Settings )

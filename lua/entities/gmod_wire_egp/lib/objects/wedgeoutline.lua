@@ -5,7 +5,7 @@ Obj.size = 45
 Obj.fidelity = 180
 local rad, cos, sin = math.rad, math.cos, math.sin
 Obj.Draw = function( self )
-	if (self.a>0 and self.w > 0 and self.h > 0 and self.size != 360) then
+	if self.a > 0 and self.w > 0 and self.h > 0 and self.size ~= 360 then
 		local vertices = {}
 
 		vertices[1] = { x = self.x, y = self.y }
@@ -28,7 +28,7 @@ Obj.Draw = function( self )
 		local n = #vertices
 		for i=1,n do
 			local v = vertices[i]
-			if (i+1 > n) then break end
+			if i+1 > n then break end
 			local x, y = v.x, v.y
 			local x2, y2 = vertices[i+1].x, vertices[i+1].y
 			surface.DrawLine( x, y, x2, y2 )

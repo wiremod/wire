@@ -147,7 +147,7 @@ end
 ---------------------------------------------------------]]
 -- Used for setting/restoring entity mass when creating the clutch constraint
 local function SaveMass( MassTable, ent )
-	if IsValid( ent ) and !MassTable[ent] then
+	if IsValid( ent ) and not MassTable[ent] then
 		local Phys = ent:GetPhysicsObject()
 		if IsValid( Phys ) then
 			MassTable[ent] = Phys:GetMass()

@@ -75,7 +75,7 @@ function ENT:Initialize()
 	self:DrawShadow( false )
 
 	local phys = self:GetPhysicsObject()
-	if (phys:IsValid()) then
+	if phys:IsValid() then
 		phys:Wake()
 	end
 
@@ -104,29 +104,29 @@ end
 function ENT:OnRemove()
 	self.BaseClass.OnRemove(self)
 
-	if (self.soundname and self.soundname != "") then
+	if self.soundname and self.soundname ~= "" then
 		self:StopSound(self.soundname)
 	end
 end
 
 function ENT:SetForce( force, mul )
-	if (force) then
+	if force then
 		self.force = force
 		self:ShowOutput()
 	end
 	mul = mul or 1
 
 	local phys = self:GetPhysicsObject()
-	if (!phys:IsValid()) then
+	if not phys:IsValid() then
 		Msg("Warning: [",self,"] Physics object isn't valid!\n")
 		return
 	end
 
-	// Get the data in worldspace
+	-- Get the data in worldspace
 	local ThrusterWorldPos = phys:LocalToWorld( self.ThrustOffset )
 	local ThrusterWorldForce = phys:LocalToWorldVector( self.ThrustOffset * -1 )
 
-	// Calculate the velocity
+	-- Calculate the velocity
 	ThrusterWorldForce = ThrusterWorldForce * self.force * mul * 50
 	self.ForceLinear, self.ForceAngle = phys:CalculateVelocityOffset( ThrusterWorldForce, ThrusterWorldPos );
 	self.ForceLinear = phys:WorldToLocalVector( self.ForceLinear )
@@ -137,7 +137,7 @@ function ENT:SetForce( force, mul )
 		self.updateeffect = true
 	end
 
-	if ( mul > 0 ) then
+	if mul > 0 then
 		self:SetOffset( self.ThrustOffset )
 	else
 		self:SetOffset( self.ThrustOffsetR )
@@ -181,16 +181,16 @@ function ENT:Setup(force, force_min, force_max, oweffect, uweffect, owater, uwat
 	self.owater = owater
 	self.uwater = uwater
 
-	if (!soundname) then soundname = "" end
+	if not soundname then soundname = "" end
 	
 	-- Preventing client crashes
 	local BlockedChars = '["?]'
-	if ( string.find(soundname, BlockedChars) ) then
+	if string.find(soundname, BlockedChars) then
 		self:StopSound( self.SoundName )
 		soundname = ""
 	end
 
-	if (soundname == "") then
+	if soundname == "" then
 		self:StopSound( self.soundname )
 	end
 
@@ -200,8 +200,8 @@ function ENT:Setup(force, force_min, force_max, oweffect, uweffect, owater, uwat
 end
 
 function ENT:TriggerInput(iname, value)
-	if (iname == "A") then
-		if ( (self.bidir) and (math.abs(value) > 0.01) and (math.abs(value) > self.force_min) ) or ( (value > 0.01) and (value > self.force_min) ) then
+	if iname == "A" then
+		if (self.bidir) and (math.abs(value) > 0.01) and (math.abs(value) > self.force_min) ) or ( (value > 0.01) and (value > self.force_min) then
 			self:Switch(true, math.min(value, self.force_max))
 		else
 			self:Switch(false, 0)
@@ -218,21 +218,21 @@ function ENT:Think()
 end
 
 function ENT:PhysicsSimulate( phys, deltatime )
-	if (!self:IsOn()) then return SIM_NOTHING end
+	if not self:IsOn() then return SIM_NOTHING end
 
-	if (self:WaterLevel() > 0) then
-		if (not self.uwater) then
+	if self:WaterLevel() > 0 then
+		if not self.uwater then
 			self:SetEffect("none")
 			return SIM_NOTHING
 		end
 
-		if (self.uweffect == "same") then
+		if self.uweffect == "same" then
 			self:SetEffect(self.oweffect)
 		else
 			self:SetEffect(self.uweffect)
 		end
 	else
-		if (not self.owater) then
+		if not self.owater then
 			self:SetEffect("none")
 			return SIM_NOTHING
 		end
@@ -246,14 +246,14 @@ function ENT:PhysicsSimulate( phys, deltatime )
 end
 
 function ENT:Switch( on, mul )
-	if (!self:IsValid()) then return false end
+	if not self:IsValid() then return false end
 
 	local changed = (self:IsOn() ~= on)
 	self:SetOn( on )
 
 
-	if (on) then
-		if (changed) and (self.soundname and self.soundname != "") then
+	if on then
+		if (changed) and (self.soundname and self.soundname ~= "") then
 			self:StopSound( self.soundname )
 			self:EmitSound( self.soundname )
 		end
@@ -262,7 +262,7 @@ function ENT:Switch( on, mul )
 
 		self:SetForce( nil, mul )
 	else
-		if (self.soundname and self.soundname != "") then
+		if self.soundname and self.soundname ~= "" then
 			self:StopSound( self.soundname )
 		end
 		
@@ -271,7 +271,7 @@ function ENT:Switch( on, mul )
 	self:ShowOutput()
 
 	local phys = self:GetPhysicsObject()
-	if (phys:IsValid()) then
+	if phys:IsValid() then
 		phys:Wake()
 	end
 
@@ -290,7 +290,7 @@ end
 function ENT:OnRestore()
 	local phys = self:GetPhysicsObject()
 
-	if (phys:IsValid()) then
+	if phys:IsValid() then
 		phys:Wake()
 	end
 

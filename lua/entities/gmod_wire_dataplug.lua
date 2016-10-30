@@ -41,7 +41,7 @@ function ENT:OnRemove()
 end
 
 function ENT:TriggerInput(iname, value, iter)
-	if (iname == "Memory") then
+	if iname == "Memory" then
 		self.Memory = self.Inputs.Memory.Src
 		if (self.MySocket) and (self.MySocket:IsValid()) then
 			self.MySocket:SetMemory(self.Memory)

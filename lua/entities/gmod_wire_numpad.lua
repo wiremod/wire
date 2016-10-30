@@ -26,7 +26,7 @@ end
 
 -- These two high speed functions want to access a zero indexed array of what keys are pressed (0-15), our buffer is 1-16
 function ENT:ReadCell( Address )
-	if (Address >= 0) && (Address < #keynames) then
+	if (Address >= 0) and (Address < #keynames) then
 		return self.Buffer[Address+1]
 	else
 		return nil
@@ -34,7 +34,7 @@ function ENT:ReadCell( Address )
 end
 
 function ENT:WriteCell( Address, value )
-	if (Address >= 0) && (Address < #keynames) then
+	if (Address >= 0) and (Address < #keynames) then
 		self:TriggerInput(keynames[Address+1], value)
 		return true
 	else
@@ -65,7 +65,7 @@ function ENT:Setup( toggle, value_off, value_on)
 end
 
 function ENT:NumpadActivate( key )
-	if ( self.toggle ) then
+	if self.toggle then
 		return self:Switch( self.Buffer[ key ] == 0, key )
 	end
 
@@ -73,13 +73,13 @@ function ENT:NumpadActivate( key )
 end
 
 function ENT:NumpadDeactivate( key )
-	if ( self.toggle ) then return true end
+	if self.toggle then return true end
 
 	return self:Switch( false, key )
 end
 
 function ENT:Switch( on, key )
-	if (!self:IsValid()) then return false end
+	if not self:IsValid() then return false end
 
 	self.Buffer[key] = on and 1 or 0
 	
@@ -94,7 +94,7 @@ end
 function ENT:ShowOutput()
 	local txt = ""
 	for k,keyname in ipairs(keynames) do
-		if (self.Buffer[k] ~= 0) then
+		if self.Buffer[k] ~= 0 then
 			txt = txt..", "..keyname
 		end
 	end

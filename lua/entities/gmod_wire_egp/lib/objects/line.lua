@@ -7,7 +7,7 @@ Obj.y2 = 0
 Obj.size = 1
 Obj.verticesindex = { { "x", "y" }, { "x2", "y2" } }
 Obj.Draw = function( self )
-	if (self.a>0) then
+	if self.a > 0 then
 		surface.SetDrawColor( self.r, self.g, self.b, self.a )
 		EGP:DrawLine( self.x, self.y, self.x2, self.y2, self.size )
 	end

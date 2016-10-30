@@ -15,7 +15,7 @@ local function counterclockwise( a, b, c )
 end
 
 Obj.Draw = function( self )
-	if (self.a>0 and #self.vertices>2) then
+	if self.a > 0 and #self.vertices > 2 then
 		render.CullMode(counterclockwise(unpack(self.vertices)) and MATERIAL_CULLMODE_CCW or MATERIAL_CULLMODE_CW)
 		surface.SetDrawColor( self.r, self.g, self.b, self.a )
 		surface.DrawPoly( self.vertices )
@@ -23,7 +23,7 @@ Obj.Draw = function( self )
 	end
 end
 Obj.Transmit = function( self, Ent, ply )
-	if (#self.vertices <= 28) then
+	if #self.vertices <= 28 then
 		net.WriteUInt( #self.vertices, 8 )
 		for i=1,#self.vertices do
 			net.WriteInt( self.vertices[i].x, 16 )

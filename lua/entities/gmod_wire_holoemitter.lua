@@ -49,7 +49,7 @@ if CLIENT then
 	function ENT:Think()
 		self:NextThink( CurTime() )
 
-		if (self:GetNWBool( "Clear", false ) == true) then
+		if self:GetNWBool( "Clear", false ) == true then
 			self.Points = {}
 			return true
 		end
@@ -106,17 +106,17 @@ if CLIENT then
 
 		local n = #self.Points
 
-		if (n == 0 or self:GetNWBool("Active",true) == false) then return end
+		if n == 0 or self:GetNWBool("Active",true) == false then return end
 
 		for k=1, n do
 			local v = self.Points[k]
 			local Pos = v.Pos
 
-			if (v.Local or forcelocal) then
+			if v.Local or forcelocal then
 				Pos = ent:LocalToWorld( Pos )
 			end
 
-			if (v.GroundBeam) then
+			if v.GroundBeam then
 				render.SetMaterial( matbeam )
 				render.DrawBeam(
 					selfpos,
@@ -127,12 +127,12 @@ if CLIENT then
 				)
 			end
 
-			if (v.LineBeam and k < n) then
+			if v.LineBeam and k < n then
 				render.SetMaterial( matbeam )
 
 				local NextPoint = self.Points[k+1]
 				local NextPos = NextPoint.Pos
-				if (NextPoint.Local or forcelocal) then
+				if NextPoint.Local or forcelocal then
 					NextPos = ent:LocalToWorld( NextPos )
 				end
 
@@ -204,33 +204,33 @@ function ENT:AddPoint()
 end
 
 function ENT:TriggerInput( name, value )
-	if (name == "X") then -- X
-		if (self.Data.Pos.x != value) then
+	if name == "X" then -- X
+		if self.Data.Pos.x ~= value then
 			self.Data.Pos.x = value
 			self:AddPoint()
 		end
-	elseif (name == "Y") then -- Y
-		if (self.Data.Pos.y != value) then
+	elseif name == "Y" then -- Y
+		if self.Data.Pos.y ~= value then
 			self.Data.Pos.y = value
 			self:AddPoint()
 		end
-	elseif (name == "Z") then -- Z
-		if (self.Data.Pos.z != value) then
+	elseif name == "Z" then -- Z
+		if self.Data.Pos.z ~= value then
 			self.Data.Pos.z = value
 			self:AddPoint()
 		end
-	elseif (name == "Pos") then -- XYZ
-		if (self.Data.Pos != value) then
+	elseif name == "Pos" then -- XYZ
+		if self.Data.Pos ~= value then
 			self.Data.Pos = value
 			self:AddPoint()
 		end
 	else
 		-- Clear & Active
-		if (name == "Clear" or name == "Active") then
-			self:SetNWBool(name,!(value == 0 and true) or false)
+		if name == "Clear" or name == "Active" then
+			self:SetNWBool(name,not (value == 0 and true) or false)
 		else
 			-- Other data
-			if (self.bools[name]) then value = !(value == 0 and true) or false end
+			if self.bools[name] then value = not (value == 0 and true) or false end
 			self.Data[name] = value
 		end
 	end
@@ -253,79 +253,79 @@ end
 -- 13 = Active
 
 function ENT:ReadCell( Address )
-	if (Address == 0) then
+	if Address == 0 then
 		return 1
-	elseif (Address == 1) then
+	elseif Address == 1 then
 		return self.Data.Pos.x
-	elseif (Address == 2) then
+	elseif Address == 2 then
 		return self.Data.Pos.y
-	elseif (Address == 3) then
+	elseif Address == 3 then
 		return self.Data.Pos.z
-	elseif (Address == 4) then
+	elseif Address == 4 then
 		return (self.Data.Local and 1 or 0)
-	elseif (Address == 5) then
+	elseif Address == 5 then
 		return self.Data.Color.x
-	elseif (Address == 6) then
+	elseif Address == 6 then
 		return self.Data.Color.y
-	elseif (Address == 7) then
+	elseif Address == 7 then
 		return self.Data.Color.z
-	elseif (Address == 8) then
+	elseif Address == 8 then
 		return self.Data.FadeTime
-	elseif (Address == 9) then
+	elseif Address == 9 then
 		return (self.Data.LineBeam and 1 or 0)
-	elseif (Address == 10) then
+	elseif Address == 10 then
 		return (self.Data.GroundBeam and 1 or 0)
-	elseif (Address == 11) then
+	elseif Address == 11 then
 		return self.Data.Size
-	elseif (Address == 12) then
+	elseif Address == 12 then
 		return (self:GetNWBool("Clear",false) and 1 or 0)
-	elseif (Address == 13) then
+	elseif Address == 13 then
 		return (self:GetNWBool("Active",true) and 1 or 0)
 	end
 end
 
 function ENT:WriteCell( Address, value )
-	if (Address == 0) then
+	if Address == 0 then
 		self:AddPoint()
 		return true
-	elseif (Address == 1) then
+	elseif Address == 1 then
 		self.Data.Pos.x = value
 		return true
-	elseif (Address == 2) then
+	elseif Address == 2 then
 		self.Data.Pos.y = value
 		return true
-	elseif (Address == 3) then
+	elseif Address == 3 then
 		self.Data.Pos.z = value
 		return true
-	elseif (Address == 4) then
+	elseif Address == 4 then
 		self.Data.Local = value ~= 0
 		return true
-	elseif (Address == 5) then
+	elseif Address == 5 then
 		self.Data.Color.x = value
 		return true
-	elseif (Address == 6) then
+	elseif Address == 6 then
 		self.Data.Color.y = value
 		return true
-	elseif (Address == 7) then
+	elseif Address == 7 then
 		self.Data.Color.z = value
 		return true
-	elseif (Address == 8) then
+	elseif Address == 8 then
 		self.Data.FadeTime = value
 		return true
-	elseif (Address == 9) then
-		self.Data.LineBeam = !(value == 0 and true) or false
+	elseif Address == 9 then
+		self.Data.LineBeam = not (value == 0 and true) or false
 		return true
-	elseif (Address == 10) then
-		self.Data.GroundBeam = !(value == 0 and true) or false
+	elseif Address == 10 then
+		self.Data.GroundBeam = not (value == 0 and true) or false
 		return true
-	elseif (Address == 11) then
+	elseif Address == 11 then
 		self.Data.Size = value
 		return true
-	elseif (Address == 12) then
-		self:SetNWBool( "Clear", !(value == 0 and true) or false )
+	elseif Address == 12 then
+		self:SetNWBool( "Clear", not (value == 0 and true) or false )
 		return true
-	elseif (Address == 13) then
-		self:SetNWBool( "Active", !(value == 0 and true) or false )
+	elseif Address == 13 then
+		self:SetNWBool( "Active", not (value == 0 and true) or false )
 		return true
 	end
 	return false
@@ -387,7 +387,7 @@ function ENT:BuildDupeInfo()
 	local info = self.BaseClass.BuildDupeInfo(self) or {}
 
 	local link = self:GetNWEntity("Link",false)
-	if (link) then
+	if link then
 		info.holoemitter_link = link:EntIndex()
 	end
 

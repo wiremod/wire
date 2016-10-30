@@ -20,12 +20,12 @@ if CLIENT then
 end
 
 Obj.Draw = function( self )
-	if (self.text and #self.text>0) then
+	if self.text and #self.text>0 then
 		surface.SetTextColor( self.r, self.g, self.b, self.a )
 
-		if (!EGP.ValidFonts[self.fontid]) then self.fontid = 1 end
+		if not EGP.ValidFonts[self.fontid] then self.fontid = 1 end
 		local font = "WireEGP_" .. self.size .. "_" .. self.fontid
-		if (!EGP.ValidFonts_Lookup[font]) then
+		if not EGP.ValidFonts_Lookup[font] then
 			local fontTable =
 			{
 				font=EGP.ValidFonts[self.fontid],
@@ -45,7 +45,7 @@ Obj.Draw = function( self )
 		--self.layouter:DrawText()
 		--self.oldfontid = self.fontid
 
-		if (!self.layouter) then self.layouter = MakeTextScreenLayouter() end
+		if not self.layouter then self.layouter = MakeTextScreenLayouter() end
 
 		if self.angle == 0 then
 			self.layouter:DrawText(self.text, self.x, self.y, self.w, self.h, self.halign, self.valign)

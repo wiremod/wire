@@ -31,14 +31,14 @@ local ALLOW_INTERFACE = CreateConVar("sv_wire_mapinterface", "1", {FCVAR_NOTIFY,
 
 local Ents = {}
 hook.Add("PlayerInitialSpawn", "WireMapInterface_PlayerInitialSpawn", function(ply)
-	if (!IsValid(ply)) then return end
+	if not IsValid(ply) then return end
 	for Ent, time in ipairs(Ents) do
-		if (!IsValid(Ent)) then break end
+		if not IsValid(Ent) then break end
 
 		timer.Simple(time + 0.1, function()
-			if (!IsValid(ply)) then return end
-			if (!IsValid(Ent)) then return end
-			if (!Ent.GiveWireInterfeceClient) then return end
+			if not IsValid(ply) then return end
+			if not IsValid(Ent) then return end
+			if not Ent.GiveWireInterfeceClient then return end
 
 			Ent:GiveWireInterfeceClient(ply)
 		end)
@@ -55,28 +55,28 @@ local MIN_TRIGGER_TIME = 0.01 -- Minimum triggering Time for in- and outputs.
 
 -- This checks if you can give an entity wiremod abilities
 function ENT:IsWireableEntity(Entity)
-	if (!IsValid(Entity)) then return false end -- No interface for invalid entities!
-	if (IsValid(Entity._WireMapInterfaceEnt) and (Entity._WireMapInterfaceEnt ~= self)) then return false end -- Only one interface per entity!
-	if (!IsValid(Entity._WireMapInterfaceEnt) and (WireLib.HasPorts(Entity) or Entity.IsWire or Entity.Inputs or Entity.Outputs)) then return false end -- Don't destroy wiremod entites!
+	if not IsValid(Entity) then return false end -- No interface for invalid entities!
+	if IsValid(Entity._WireMapInterfaceEnt) and (Entity._WireMapInterfaceEnt ~= self) then return false end -- Only one interface per entity!
+	if not IsValid(Entity._WireMapInterfaceEnt) and (WireLib.HasPorts(Entity) or Entity.IsWire or Entity.Inputs or Entity.Outputs) then return false end -- Don't destroy wiremod entites!
 
-	if (Entity:IsWorld()) then return false end -- No interface for the worldspawn!
-	if (Entity:IsVehicle()) then return false end -- No interface for vehicles!
-	if (Entity:IsNPC()) then return false end -- No interface for NPCs!
-	if (Entity:IsPlayer()) then return false end -- No interface for players!
-	if (Entity:IsWeapon()) then return false end -- No interface for weapons!
-	if (string.match(Entity:GetClass(), "^(item_[%w_]+)")) then return false end -- No interface for items!
-	if (Entity:IsConstraint()) then return false end -- No interface for constraints!
+	if Entity:IsWorld() then return false end -- No interface for the worldspawn!
+	if Entity:IsVehicle() then return false end -- No interface for vehicles!
+	if Entity:IsNPC() then return false end -- No interface for NPCs!
+	if Entity:IsPlayer() then return false end -- No interface for players!
+	if Entity:IsWeapon() then return false end -- No interface for weapons!
+	if string.match(Entity:GetClass(), "^(item_[%w_]+)") then return false end -- No interface for items!
+	if Entity:IsConstraint() then return false end -- No interface for constraints!
 
-	if (Entity:GetPhysicsObjectCount() > 1) then return false end -- No interface for ragdolls!
-	if (IsValid(Entity:GetPhysicsObject())) then return true end -- Everything with a single physics object can get an interface!
+	if Entity:GetPhysicsObjectCount() > 1 then return false end -- No interface for ragdolls!
+	if IsValid(Entity:GetPhysicsObject()) then return true end -- Everything with a single physics object can get an interface!
 
 	return true
 end
 
 function ENT:CheckEntLimid(CallOnMax, ...)
-	if (self.WireEntsCount > MAX_ENTITIES) then
+	if self.WireEntsCount > MAX_ENTITIES then
 		MsgN(self.ErrorName..": Warning, to many wire entities linked!")
-		if (CallOnMax) then
+		if CallOnMax then
 			CallOnMax(self, ...)
 		end
 		return false
@@ -88,7 +88,7 @@ end
 -- Run the given lua code
 local function RunLua(I, name, value, wired, self, Ent)
 	local lua = self.Ins[I].lua or ""
-	if ((lua == "") or !self.RunLuaCode) then return end
+	if (lua == "") or not self.RunLuaCode then return end
 
 	local func = CompileString(lua, self.ErrorName.." (Input "..I..")", false)
 	local Err
@@ -101,7 +101,7 @@ local function RunLua(I, name, value, wired, self, Ent)
 		WIRE_ACTIVATOR = Ent -- The entity that has the input
 
 		local status, err = xpcall(func, debug.traceback)
-		if (!status) then
+		if not status then
 			Err = err or ""
 		end
 
@@ -115,16 +115,16 @@ local function RunLua(I, name, value, wired, self, Ent)
 		Err = func
 	end
 
-	if (Err and (Err ~= "")) then
+	if Err and (Err ~= "") then
 		ErrorNoHalt(Err.."\n")
 	end
 end
 
 -- Wire input
 function ENT:TriggerWireInput(name, value, wired, Ent)
-	if (!WireAddon) then return end
-	if (!IsValid(Ent)) then return end
-	if ((!self.Active or !ALLOW_INTERFACE:GetBool()) and wired) then
+	if not WireAddon then return end
+	if not IsValid(Ent) then return end
+	if (not self.Active or not ALLOW_INTERFACE:GetBool()) and wired then
 		self.SavedIn = self.SavedIn or {}
 		self.SavedIn[name] = {value, wired, Ent}
 
@@ -133,29 +133,29 @@ function ENT:TriggerWireInput(name, value, wired, Ent)
 
 	self.Wired = self.Wired or {}
 	self.Wired[Ent] = self.Wired[Ent] or {}
-	local WireRemoved = ((self.Wired[Ent][name] or false) ~= wired) and !wired
+	local WireRemoved = ((self.Wired[Ent][name] or false) ~= wired) and not wired
 	self.Wired[Ent][name] = wired
 
 	self.Timer = self.Timer or {}
 	self.Timer.In = self.Timer.In or {}
-	if (((CurTime() - (self.Timer.In[name] or 0)) < (self.min_trigger_time or MIN_TRIGGER_TIME)) and !WireRemoved) then return end
+	if ((CurTime() - (self.Timer.In[name] or 0)) < (self.min_trigger_time or MIN_TRIGGER_TIME)) and not WireRemoved then return end
 	self.Timer.In[name] = CurTime()
 
 	self.Data = self.Data or {}
 	self.Data.In = self.Data.In or {}
-	if ((self.Data.In[name] == value) and !WireRemoved) then return end
+	if (self.Data.In[name] == value) and not WireRemoved then return end
 	self.Data.In[name] = value
 
 	local I = self.InsIDs[name] or 0
-	if ((I > 0) and (I <= MAX_PORTS) and self.InsExist[I]) then
+	if (I > 0) and (I <= MAX_PORTS) and self.InsExist[I] then
 		local _, Convert, Toggle = self:Convert_WireToMap(self.Ins[I].type)
-		if (!Convert) then return end
+		if not Convert then return end
 		local Output = "onwireinput"..I
 
 		-- Map output
-		if (!wired) then
-			if (WireRemoved) then
-				if (!Toggle) then
+		if not wired then
+			if WireRemoved then
+				if not Toggle then
 					self:TriggerOutput(Output, Ent, Convert(value))
 				end
 				self:TriggerOutput("onresetwireinput"..I, Ent)
@@ -163,8 +163,8 @@ function ENT:TriggerWireInput(name, value, wired, Ent)
 				RunLua(I, name, value, wired, self, Ent)
 			end
 		else
-			if (Toggle) then
-				if (Convert(value)) then
+			if Toggle then
+				if Convert(value) then
 					self:TriggerOutput(Output, Ent)
 
 					RunLua(I, name, value, wired, self, Ent)
@@ -180,15 +180,15 @@ end
 
 -- Wire output
 function ENT:TriggerWireOutput(ent, i, val)
-	if (!IsValid(ent)) then return false end
+	if not IsValid(ent) then return false end
 
 	local OutputName = self.Outs[i].name or ""
-	if (OutputName == "") then return false end
+	if OutputName == "" then return false end
 
 	local _, Convert, Toggle = self:Convert_MapToWire(self.Outs[i].type)
-	if (!Convert) then return false end
+	if not Convert then return false end
 
-	if (Toggle) then
+	if Toggle then
 		Wire_TriggerOutput(ent, OutputName, Convert(self, ent, i))
 	else
 		Wire_TriggerOutput(ent, OutputName, Convert(val))
@@ -198,34 +198,34 @@ end
 
 -- Map input
 function ENT:AcceptInput(name, activator, caller, data)
-	if (!WireAddon) then return false end
+	if not WireAddon then return false end
 	name = string.lower(tostring(name or ""))
-	if (name == "") then return false end
+	if name == "" then return false end
 
-	if (name == "activate") then
+	if name == "activate" then
 		self.Active = true
 		return true
 	end
 
-	if (name == "deactivate") then
+	if name == "deactivate" then
 		self.Active = false
 		return true
 	end
 
-	if (name == "toggle") then
-		self.Active = !self.Active
+	if name == "toggle" then
+		self.Active = not self.Active
 		return true
 	end
 
-	if (self.Active and ALLOW_INTERFACE:GetBool()) then
+	if self.Active and ALLOW_INTERFACE:GetBool() then
 		local pattern = "(%d+)"
 		local I = tonumber(string.match(name, "triggerwireoutput"..pattern)) or 0
 
-		if ((I > 0) and (I <= MAX_PORTS) and (self.OutsExist[I])) then
+		if (I > 0) and (I <= MAX_PORTS) and (self.OutsExist[I]) then
 			self.Timer = self.Timer or {}
 			self.Timer.Out = self.Timer.Out or {}
 
-			if ((CurTime() - (self.Timer.Out[name] or 0)) < (self.min_trigger_time or MIN_TRIGGER_TIME)) then return false end
+			if (CurTime() - (self.Timer.Out[name] or 0)) < (self.min_trigger_time or MIN_TRIGGER_TIME) then return false end
 			self.Timer.Out[name] = CurTime()
 
 			-- Wire output
@@ -237,12 +237,12 @@ function ENT:AcceptInput(name, activator, caller, data)
 		end
 	end
 
-	if (!self.WirePortsChanged) then return false end
+	if not self.WirePortsChanged then return false end
 
-	if (name == "addentity") then
+	if name == "addentity" then
 		local Ent, Func = self:AddSingleEntity(caller)
 
-		if (!IsValid(Ent) or !Func) then return false end
+		if not IsValid(Ent) or not Func then return false end
 		timer.Simple(0.02, function() Func( self, Ent, nil, true) end)
 
 		self:TriggerOutput("onwireentscreated", self)
@@ -250,22 +250,22 @@ function ENT:AcceptInput(name, activator, caller, data)
 		return true
 	end
 
-	if (name == "removeentity") then
+	if name == "removeentity" then
 		self:RemoveSingleEntity(caller)
 		return true
 	end
 
-	if (name == "addentities") then
+	if name == "addentities" then
 		self:AddEntitiesByName(data)
 		return true
 	end
 
-	if (name == "removeentities") then
+	if name == "removeentities" then
 		self:RemoveEntitiesByName(data)
 		return true
 	end
 
-	if (name == "removeallentities") then
+	if name == "removeallentities" then
 		self:RemoveAllEntities()
 		return true
 	end
@@ -274,21 +274,21 @@ function ENT:AcceptInput(name, activator, caller, data)
 end
 
 function ENT:KeyValue(key, value)
-	if (!WireAddon) then return end
+	if not WireAddon then return end
 
 	key = string.lower(tostring(key or ""))
 	value = tostring(value or "")
 
-	if ((key == "") or (value == "")) then return end
+	if (key == "") or (value == "") then return end
 
 	local pattern = "(%d+)"
 	local I = tonumber(string.match(key, "onwireinput"..pattern)) or 0
-	if ((I > 0) and (I <= MAX_PORTS)) then
+	if (I > 0) and (I <= MAX_PORTS) then
 		self:StoreOutput(key, value)
 	end
 
 	local I = tonumber(string.match(key, "onresetwireinput"..pattern)) or 0
-	if ((I > 0) and (I <= MAX_PORTS)) then
+	if (I > 0) and (I <= MAX_PORTS) then
 		self:StoreOutput(key, value)
 	end
 
@@ -297,30 +297,30 @@ function ENT:KeyValue(key, value)
 		self:StoreOutput(key, value)
 	end
 
-	if (key == "wire_entity_name") then
+	if key == "wire_entity_name" then
 		self.WireEntName = value
 	end
 
-	if (key == "min_trigger_time") then
+	if key == "min_trigger_time" then
 		self.min_trigger_time = math.max(tonumber(value) or 0, MIN_TRIGGER_TIME)
 	end
 
 	local pattern = "(%d+)_(%l+)"
 	local I, name = string.match(key, "input"..pattern)
 	local I, name = tonumber(I) or 0, tostring(name or "")
-	if ((I > 0) and (I <= MAX_PORTS) and (name ~= "")) then
+	if (I > 0) and (I <= MAX_PORTS) and (name ~= "") then
 		self.Ins = self.Ins or {}
 		self.InsIDs = self.InsIDs or {}
 		self.InsExist = self.InsExist or {}
 
 		self.Ins[I] = self.Ins[I] or {}
-		if (name == "lua") then
+		if name == "lua" then
 			self.Ins[I][name] = value
-		elseif (name == "type") then
+		elseif name == "type" then
 			self.Ins[I][name] = tonumber(value)
-		elseif (name == "desc") then
+		elseif name == "desc" then
 			self.Ins[I][name] = value
-		elseif (name == "name") then
+		elseif name == "name" then
 			self.InsIDs[value] = I
 			self.InsExist[I] = true
 			self.Ins[I][name] = value
@@ -329,17 +329,17 @@ function ENT:KeyValue(key, value)
 
 	local I, name = string.match(key, "output"..pattern)
 	local I, name = tonumber(I) or 0, tostring(name or "")
-	if ((I > 0) and (I <= MAX_PORTS) and (name ~= "")) then
+	if (I > 0) and (I <= MAX_PORTS) and (name ~= "") then
 		self.Outs = self.Outs or {}
 		--self.OutsIDs = self.OutsIDs or {}
 		self.OutsExist = self.OutsExist or {}
 
 		self.Outs[I] = self.Outs[I] or {}
-		if (name == "type") then
+		if name == "type" then
 			self.Outs[I][name] = tonumber(value)
-		elseif (name == "desc") then
+		elseif name == "desc" then
 			self.Outs[I][name] = value
-		elseif (name == "name") then
+		elseif name == "name" then
 			--self.OutsIDs[value] = I
 			self.OutsExist[I] = true
 			self.Outs[I][name] = value
@@ -349,7 +349,7 @@ end
 
 local Count = 1
 function ENT:Initialize()
-	if (!WireAddon) then return end
+	if not WireAddon then return end
 	self.WireEnts = self.WireEnts or {}
 	self.WireEntsCount = 0
 	self.WireEntName = self.WireEntName or ""
@@ -362,7 +362,7 @@ function ENT:Initialize()
 	local Name = self:GetName() or ""
 	local ErrorName = "Wire Map Interface: "..tostring(self)
 
-	if (Name == "") then
+	if Name == "" then
 		self.ErrorName = ErrorName
 	else
 		self.ErrorName = ErrorName.."['"..Name.."']"
@@ -371,11 +371,11 @@ function ENT:Initialize()
 
 	local time = Count * 0.3 + 0.5
 
-	if (self.WireEntName == "") then
+	if self.WireEntName == "" then
 		self.WirePortsChanged = true
 	else
 		timer.Simple(time, function()
-			if (!IsValid(self)) then return end
+			if not IsValid(self) then return end
 			self.WirePortsChanged = true
 
 			self:AddEntitiesByName(self.WireEntName)
@@ -388,10 +388,10 @@ end
 
 -- To cleanup and get the in-/outputs information.
 local function SplitTable(tab, self)
-	if (!IsValid(self)) then return end
+	if not IsValid(self) then return end
 
-	if (!tab) then return end
-	if (#tab == 0) then return end
+	if not tab then return end
+	if #tab == 0 then return end
 	local tab = table.Copy(tab)
 
 	local allowlua = self.RunLuaCode
@@ -401,15 +401,15 @@ local function SplitTable(tab, self)
 
 	for i = 1, #tab do
 		local Port = tab[i]
-		if (Port) then
+		if Port then
 			local name = Port.name -- The port name for checking
-			if (name) then -- Do not add ports with no names
+			if name then -- Do not add ports with no names
 				Index = Index + 1
 
 				names[Index] = name -- The port name
 				types[Index] = self:Convert_MapToWire(Port.type) -- The port type
 				descs[Index] = Port.desc -- The port description
-				if (!allowlua) then
+				if not allowlua then
 					tab[i].lua = nil -- remove lua codes if the lua mode isn't on.
 				end
 			else
@@ -430,11 +430,11 @@ function ENT:UpdateData()
 end
 
 function ENT:Think()
-	if (!WireAddon) then return end
+	if not WireAddon then return end
 
 	local ALLOW_INTERFACE_bool = ALLOW_INTERFACE:GetBool()
-	if ((self.Active ~= self.oldActive) or (ALLOW_INTERFACE_bool ~= self.old_ALLOW_INTERFACE_bool)) then
-		if (self.Active and ALLOW_INTERFACE_bool) then
+	if (self.Active ~= self.oldActive) or (ALLOW_INTERFACE_bool ~= self.old_ALLOW_INTERFACE_bool) then
+		if self.Active and ALLOW_INTERFACE_bool then
 			self.SavedIn = self.SavedIn or {}
 			for name, values in pairs(self.SavedIn) do
 				self:TriggerWireInput(name, unpack(values))
@@ -447,15 +447,15 @@ function ENT:Think()
 end
 
 function ENT:OnRemove()
-	if (!WireAddon) then return end
+	if not WireAddon then return end
 
 	self.flags = self:GetSpawnFlags()
 
-	if (bit.band(self.flags, 4) > 0) then -- Remove in-/output entities on remove
+	if bit.band(self.flags, 4) > 0 then -- Remove in-/output entities on remove
 		for obj1, obj2 in pairs(self.WireEnts or {}) do
 			local Entity = (IsEntity(obj1) and obj1) or (IsEntity(obj2) and obj2)
 
-			if (IsValid(Entity)) then
+			if IsValid(Entity) then
 				SafeRemoveEntity(Entity)
 			end
 		end

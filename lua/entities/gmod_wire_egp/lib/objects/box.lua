@@ -3,7 +3,7 @@ local Obj = EGP:NewObject( "Box" )
 Obj.angle = 0
 Obj.CanTopLeft = true
 Obj.Draw = function( self )
-	if (self.a>0) then
+	if self.a > 0 then
 		surface.SetDrawColor( self.r, self.g, self.b, self.a )
 		surface.DrawTexturedRectRotated( self.x, self.y, self.w, self.h, self.angle )
 	end

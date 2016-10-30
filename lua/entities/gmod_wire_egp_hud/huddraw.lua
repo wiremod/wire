@@ -1,5 +1,5 @@
 hook.Add("Initialize","EGP_HUD_Initialize",function()
-	if (CLIENT) then
+	if CLIENT then
 		local EGP_HUD_FirstPrint = true
 		local tbl = {}
 
@@ -8,22 +8,22 @@ hook.Add("Initialize","EGP_HUD_Initialize",function()
 		--------------------------------------------------------
 		local function EGP_Use( um )
 			local ent = um:ReadEntity()
-			if (!ent or !ent:IsValid()) then return end
+			if not ent or not ent:IsValid() then return end
 			local bool = um:ReadChar()
-			if (bool == -1) then
+			if bool == -1 then
 				ent.On = nil
-			elseif (bool == 1) then
+			elseif bool == 1 then
 				ent.On = true
-			elseif (bool == 0) then
-				if (ent.On == true) then
+			elseif bool == 0 then
+				if ent.On == true then
 					ent.On = nil
 					LocalPlayer():ChatPrint("[EGP] EGP HUD Disconnected.")
 				else
-					if (!tbl[ent]) then -- strange... this entity should be in the table. Might have gotten removed due to a lagspike. Add it again
+					if not tbl[ent] then -- strange... this entity should be in the table. Might have gotten removed due to a lagspike. Add it again
 						EGP:AddHUDEGP( ent )
 					end
 					ent.On = true
-					if (EGP_HUD_FirstPrint) then
+					if EGP_HUD_FirstPrint then
 						LocalPlayer():ChatPrint("[EGP] EGP HUD Connected. NOTE: Type 'wire_egp_hud_unlink' in console to disconnect yourself from all EGP HUDs.")
 						EGP_HUD_FirstPrint = nil
 					else
@@ -61,21 +61,21 @@ hook.Add("Initialize","EGP_HUD_Initialize",function()
 		--------------------------------------------------------
 		hook.Add("HUDPaint","EGP_HUDPaint",function()
 			for Ent,_ in pairs( tbl ) do
-				if (!Ent or !Ent:IsValid()) then
+				if not Ent or not Ent:IsValid() then
 					EGP:RemoveHUDEGP( Ent )
 					break
 				else
-					if (Ent.On == true) then
-						if (Ent.RenderTable and #Ent.RenderTable > 0) then
+					if Ent.On == true then
+						if Ent.RenderTable and #Ent.RenderTable > 0 then
 							for _,object in pairs( Ent.RenderTable ) do
 								local oldtex = EGP:SetMaterial( object.material )
 								object:Draw(Ent)
 								EGP:FixMaterial( oldtex )
 
 								-- Check for 3DTracker parent
-								if (object.parent) then
+								if object.parent then
 									local hasObject, _, parent = EGP:HasObject( Ent, object.parent )
-									if (hasObject and parent.Is3DTracker) then
+									if hasObject and parent.Is3DTracker then
 										Ent:EGP_Update()
 									end
 								end

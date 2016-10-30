@@ -71,7 +71,7 @@ scripted_ents.Alias("gmod_iballoon", "gmod_balloon")
 WireLib.AddInputAlias( "Lenght", "Length" )
 
 function ENT:SpawnFunction( ply, tr )
-	if (not tr.Hit) then return end
+	if not tr.Hit then return end
 	local SpawnPos = tr.HitPos+tr.HitNormal*16
 	local ent = MakeBalloonSpawner(ply, {Pos=SpawnPos})
 	return ent
@@ -96,7 +96,7 @@ function ENT:Initialize()
 		--Wire_TriggerOutput(self,"Force", self.force)
 	end
 	local phys = self:GetPhysicsObject()
-	if(phys:IsValid()) then
+	if phys:IsValid() then
 		phys:SetMass(250)
 		phys:Wake()
 	end
@@ -104,7 +104,7 @@ function ENT:Initialize()
 end
 
 function ENT:TriggerInput(key,value)
-	if (key == "Deploy") then
+	if key == "Deploy" then
 		if value ~= 0 then
 			if self.Deployed == 0 then
 				self:DeployBalloons()
@@ -118,19 +118,19 @@ function ENT:TriggerInput(key,value)
 			end
 			Wire_TriggerOutput(self, "Deployed", self.Deployed)
 		end
-	elseif (key == "Force") then
+	elseif key == "Force" then
 		self.force = value
 		if self.Deployed ~= 0 then
 			self.Balloon:SetForce(value)
 		end
-	elseif (key == "Length") then
+	elseif key == "Length" then
 		self.rl = value
-	elseif (key == "Weld?") then
+	elseif key == "Weld?" then
 		self.weld = value ~= 0
-	elseif (key == "Popable?") then
+	elseif key == "Popable?" then
 		self.popable = value ~= 0
 		self:UpdatePopable()
-	elseif (key == "BalloonType") then
+	elseif key == "BalloonType" then
 		self.balloonType=value+1 --To correct for 1 based indexing
 	end
 	self:UpdateOverlay()
@@ -161,7 +161,7 @@ function ENT:DeployBalloons()
 	balloon = ents.Create("gmod_balloon") --normal balloon
 	
 	local model = BalloonTypes[self.balloonType]
-	if(model==nil) then
+	if model==nil then
 		model = BalloonTypes[1]
 	end
 	balloon:SetModel(model)

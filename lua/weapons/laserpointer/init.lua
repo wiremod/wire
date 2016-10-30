@@ -22,7 +22,7 @@ function SWEP:Equip( newOwner )
 end
 
 function SWEP:PrimaryAttack()
-	self.Pointing = !self.Pointing
+	self.Pointing = not self.Pointing
 	self.Weapon:SetNWBool("Active", self.Pointing)
 	if self.Pointing and IsValid(self.Receiver) then
 		Wire_TriggerOutput(self.Receiver,"Active",1)
@@ -42,10 +42,10 @@ function SWEP:SecondaryAttack()
 end
 
 function SWEP:Think()
-	if(self.Pointing && self.Receiver && self.Receiver:IsValid())then
+	if self.Pointing and self.Receiver and self.Receiver:IsValid() then
 		local trace = self:GetOwner():GetEyeTrace()
 		local point = trace.HitPos
-		if (COLOSSAL_SANDBOX) then point = point * 6.25 end
+		if COLOSSAL_SANDBOX then point = point * 6.25 end
 		Wire_TriggerOutput(self.Receiver, "X", point.x)
 		Wire_TriggerOutput(self.Receiver, "Y", point.y)
 		Wire_TriggerOutput(self.Receiver, "Z", point.z)

@@ -20,28 +20,28 @@ function ENT:Initialize()
 end
 
 function ENT:TriggerInput( name, value )
-	if (name == "Entity") then
+	if name == "Entity" then
 		self.Entities = {}
 		if self:CheckPP(value) then
 			self:LinkEnt(value)
 		end
-	elseif (name == "Entities") then
+	elseif name == "Entities" then
 		self.Entities = {}
 		for _, ent in pairs(value) do
 			if self:CheckPP(ent) then
 				self:LinkEnt(ent)
 			end
 		end
-	elseif (name == "Position") then
+	elseif name == "Position" then
 		self.Position = value
 		self.Global = true
-	elseif (name == "Local Position") then
+	elseif name == "Local Position" then
 		self.Position = value
 		self.Global = false
-	elseif (name == "Angle") then
+	elseif name == "Angle" then
 		self.Angle = value
 		self.GlobalAngle = true
-	elseif (name == "Local Angle") then
+	elseif name == "Local Angle" then
 		self.Angle = value
 		self.GlobalAngle = false
 	end

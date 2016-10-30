@@ -18,8 +18,8 @@ function ENT:Initialize()
 end
 
 function ENT:TriggerInput(iname, value)
-	if (iname == "A") then
-		if ((value > 0) ~= self:IsOn()) then
+	if iname == "A" then
+		if (value > 0) ~= self:IsOn() then
 			self:Switch(not self:IsOn(), self:GetPlayer())
 		end
 	end
@@ -28,9 +28,9 @@ end
 function ENT:Switch( on, ply )
 	local plyindex 	= self:GetPlayerIndex()
 	local key 		= self:GetKey()
-	if (not key) then return end
+	if not key then return end
 
-	if (on) then
+	if on then
 		numpad.Activate( ply, key, true )
 	else
 		numpad.Deactivate( ply, key, true )
@@ -40,13 +40,13 @@ function ENT:Switch( on, ply )
 end
 
 function ENT:ShowOutput()
-	if (self.key) then
+	if self.key then
 		self:SetOverlayText(keylist[self.key] or "")
 	end
 end
 
 function ENT:Setup( key )
-	if (numpad.GetModifiedKey) then key = numpad.GetModifiedKey(self:GetOwner(), key) end
+	if numpad.GetModifiedKey then key = numpad.GetModifiedKey(self:GetOwner(), key) end
 	self.key = key
 	self:ShowOutput()
 end

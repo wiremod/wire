@@ -42,7 +42,7 @@ function ENT:ShowOutput()
 	end
 end
 
-//need for the const to find the controller after being duplicator pasted
+-- need for the const to find the controller after being duplicator pasted
 WireMotorTracking = {}
 	
 function MakeWireMotorController( pl, Pos, Ang, MyEntId, model, const, axis )

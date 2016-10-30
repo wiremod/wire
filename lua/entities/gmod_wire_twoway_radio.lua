@@ -104,30 +104,30 @@ end
 
 function ENT:ShowOutput(iname, value)
 	local changed
-	if (iname == "A") then
-		if (value ~= self.PrevOutputA) then
+	if iname == "A" then
+		if value ~= self.PrevOutputA then
 			self.PrevOutputA = (value or 0)
 			changed = 1
 		end
-	elseif (iname == "B") then
-		if (value ~= self.PrevOutputB) then
+	elseif iname == "B" then
+		if value ~= self.PrevOutputB then
 			self.PrevOutputB = (value or 0)
 			changed = 1
 		end
-	elseif (iname == "C") then
-		if (value ~= self.PrevOutputC) then
+	elseif iname == "C" then
+		if value ~= self.PrevOutputC then
 			self.PrevOutputC = (value or 0)
 			changed = 1
 		end
-	elseif (iname == "D") then
-		if (value ~= self.PrevOutputD) then
+	elseif iname == "D" then
+		if value ~= self.PrevOutputD then
 			self.PrevOutputD = (value or 0)
 			changed = 1
 		end
-	elseif (iname == "update") then
+	elseif iname == "update" then
 		changed = 1
 	end
-	if (changed) then
+	if changed then
 		if self.PairID == nil then
 			self:SetOverlayText( "(Not Paired) Transmit: 0, 0, 0, 0" )
 		else
@@ -144,11 +144,11 @@ function ENT:OnRestore()
 	Wire_AdjustOutputs(self, { "A", "B", "C", "D" })
 end
 
-// Dupe info functions added by TheApathetic
+-- Dupe info functions added by TheApathetic
 function ENT:BuildDupeInfo()
 	local info = self.BaseClass.BuildDupeInfo(self) or {}
 
-	if (self.Other) && (self.Other:IsValid()) then
+	if (self.Other) and (self.Other:IsValid()) then
 		info.Other = self.Other:EntIndex()
 	end
 

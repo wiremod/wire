@@ -5,7 +5,7 @@ Obj.size = 1
 Obj.fidelity = 180
 local cos, sin, rad, floor = math.cos, math.sin, math.rad, math.floor
 Obj.Draw = function( self )
-	if (self.a>0 and self.w > 0 and self.h > 0) then
+	if self.a > 0 and self.w > 0 and self.h > 0 then
 		local vertices = {}
 		local ang = -rad(self.angle)
 		local c = cos(ang)
@@ -27,7 +27,7 @@ Obj.Draw = function( self )
 		local n = #vertices
 		for i=1, n do
 			local v = vertices[i]
-			if (i+1<=n) then
+			if i+1<=n then
 				local x, y = v.x, v.y
 				local x2, y2 = vertices[i+1].x, vertices[i+1].y
 				EGP:DrawLine( x, y, x2, y2, self.size )

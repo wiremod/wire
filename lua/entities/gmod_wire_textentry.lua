@@ -19,7 +19,7 @@ if CLIENT then
 	----------------------------------------------------
 	net.Receive("wire_textentry_show",function()
 		local self=net.ReadEntity()
-		if !IsValid(self) then return end
+		if not IsValid(self) then return end
 		panel = Derma_StringRequest(
 			"Wire Text Entry",
 			"Enter text below",

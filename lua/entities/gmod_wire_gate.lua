@@ -24,14 +24,14 @@ function ENT:Setup( action, noclip )
 	self.WireDebugName = gate.name
 
 	WireLib.AdjustSpecialInputs(self, gate.inputs, gate.inputtypes )
-	if (gate.outputs) then
+	if gate.outputs then
 		WireLib.AdjustSpecialOutputs(self, gate.outputs, gate.outputtypes)
 	else
 		--Wire_AdjustOutputs(self, { "Out" })
 		WireLib.AdjustSpecialOutputs(self, { "Out" }, gate.outputtypes)
 	end
 
-	if (gate.reset) then
+	if gate.reset then
 		gate.reset(self)
 	end
 
@@ -53,7 +53,7 @@ function ENT:Setup( action, noclip )
 		self.WriteCell = nil
 	end
 
-	if (noclip) then
+	if noclip then
 		self:SetCollisionGroup( COLLISION_GROUP_WORLD )
 	end
 	self.noclip = noclip
@@ -102,7 +102,7 @@ end
 
 function ENT:CalcOutput(iter)
 	if (self.Action) and (self.Action.output) then
-		if (self.Action.outputs) then
+		if self.Action.outputs then
 			local result = { self.Action.output(self, unpack(self:GetActionInputs())) }
 
 			for k,v in ipairs(self.Action.outputs) do
@@ -119,9 +119,9 @@ end
 function ENT:ShowOutput()
 	local txt = ""
 
-	if (self.Action) then
+	if self.Action then
 		txt = (self.Action.name or "No Name")
-		if (self.Action.label) then
+		if self.Action.label then
 			txt = txt.."\n"..self.Action.label(self:GetActionOutputs(), unpack(self:GetActionInputs(Wire_EnableGateInputValues)))
 		end
 	else
@@ -142,17 +142,17 @@ end
 function ENT:GetActionInputs(as_names)
 	local Args = {}
 
-	if (self.Action.compact_inputs) then
+	if self.Action.compact_inputs then
 		-- If a gate has compact inputs (like Arithmetic - Add), nil inputs are truncated so {0, nil, nil, 5, nil, 1} becomes {0, 5, 1}
 		for k,v in ipairs(self.Action.inputs) do
 		    local input = self.Inputs[v]
-			if (not input) then
+			if not input then
 				ErrorNoHalt("Wire Gate ("..self.action..") error: Missing input! ("..k..","..v..")")
 				return {}
 			end
 
 			if IsValid(input.Src) then
-				if (as_names) then
+				if as_names then
 					table.insert(Args, input.Src.WireName or input.Src.WireDebugName or v)
 				else
 					table.insert(Args, input.Value)
@@ -161,7 +161,7 @@ function ENT:GetActionInputs(as_names)
 		end
 
 		while (#Args < self.Action.compact_inputs) do
-			if (as_names) then
+			if as_names then
 				table.insert(Args, self.Action.inputs[#Args+1] or "*Not enough inputs*")
 			else
 				--table.insert( Args, WireLib.DT[ (self.Action.inputtypes[#Args+1] or "NORMAL") ].Zero )
@@ -171,12 +171,12 @@ function ENT:GetActionInputs(as_names)
 	else
 		for k,v in ipairs(self.Action.inputs) do
 		    local input = self.Inputs[v]
-			if (not input) then
+			if not input then
 				ErrorNoHalt("Wire Gate ("..self.action..") error: Missing input! ("..k..","..v..")")
 				return {}
 			end
 
-			if (as_names) then
+			if as_names then
 				Args[k] = IsValid(input.Src) and (input.Src.WireName or input.Src.WireDebugName) or v
 			else
 				Args[k] = IsValid(input.Src) and input.Value or WireLib.DT[ self.Inputs[v].Type ].Zero
@@ -188,7 +188,7 @@ function ENT:GetActionInputs(as_names)
 end
 
 function ENT:GetActionOutputs()
-	if (self.Action.outputs) then
+	if self.Action.outputs then
 		local result = {}
 		for _,v in ipairs(self.Action.outputs) do
 		    result[v] = self.Outputs[v].Value or WireLib.DT[ self.Outputs[v].Type ].Zero

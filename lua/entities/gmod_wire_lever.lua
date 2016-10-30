@@ -30,9 +30,9 @@ end
 function ENT:TriggerInput(iname, value)
 	if iname == "SetValue" then
 		self.Ang = (math.Clamp(value, self.Min, self.Max) - self.Min)/(self.Max - self.Min) * 90 - 45
-	elseif (iname == "Min") then
+	elseif iname == "Min" then
 		self.Min = value
-	elseif (iname == "Max") then
+	elseif iname == "Max" then
 		self.Max = value
 	end
 end

@@ -4,7 +4,7 @@ TOOL.Command		= nil
 TOOL.ConfigName		= ""
 TOOL.Tab			= "Wire"
 
-if ( CLIENT ) then
+if CLIENT then
 	language.Add( "Tool.wire_debugger.name", "Debugging Tool" )
 	language.Add( "Tool.wire_debugger.desc", "Shows selected components info on the HUD." )
 	language.Add( "Tool.wire_debugger.0", "Primary: Add component to HUD, Secondary: Remove component from HUD, Reload: Clear HUD" )
@@ -24,22 +24,22 @@ local UpdateLineCount
 local dbg_line_cache
 
 local function IsWire(entity) --try to find out if the entity is wire
-	if (WireLib.HasPorts(entity)) then return true end
+	if WireLib.HasPorts(entity) then return true end
 	--if entity.IsWire == true then return true end --this shold always be true if the ent is wire compatible, but only is if the base of the entity is "base_wire_entity" THIS NEEDS TO BE FIXED <-- CHALLENGE ACCEPTED! -Grocel
 	--if entity.Inputs or entity.Outputs then return true end --this is how the wire STool gun does it
 	return false
 end
 
 function TOOL:LeftClick(trace)
-	if (!trace.Entity:IsValid()) then return end
-	if (!IsWire(trace.Entity)) then return end
-	if (CLIENT) then return true end
+	if not trace.Entity:IsValid() then return end
+	if not IsWire(trace.Entity) then return end
+	if CLIENT then return true end
 
 	local ply = self:GetOwner()
 	Components[ply] = Components[ply] or {}
 
 	for k,cmp in ipairs(Components[ply]) do
-		if (cmp == trace.Entity) then return end
+		if cmp == trace.Entity then return end
 	end
 
 	table.insert(Components[ply], trace.Entity)
@@ -50,7 +50,7 @@ end
 if SERVER then
 	local dbg_linecount_cache = {}
 	function UpdateLineCount(ply, count)
-		if dbg_linecount_cache[ply] != count then
+		if dbg_linecount_cache[ply] ~= count then
 			dbg_linecount_cache[ply] = count
 			net.Start("WireDbgCount") net.WriteUInt(count,16) net.Send(ply)
 		end
@@ -59,15 +59,15 @@ end
 
 
 function TOOL:RightClick(trace)
-	if (!trace.Entity:IsValid()) then return end
-	if (!IsWire(trace.Entity)) then return end
-	if (CLIENT) then return true end
+	if not trace.Entity:IsValid() then return end
+	if not IsWire(trace.Entity) then return end
+	if CLIENT then return true end
 
 	local ply = self:GetOwner()
 	if not Components[ply] then return end
 
 	for k,cmp in ipairs(Components[ply]) do
-		if (cmp == trace.Entity) then
+		if cmp == trace.Entity then
 			table.remove(Components[ply], k)
 			dbg_line_cache[ply] = nil
 			return true
@@ -152,14 +152,14 @@ if CLIENT then
 end
 
 function TOOL:Reload(trace)
-	if (CLIENT) then return end
+	if CLIENT then return end
 	UpdateLineCount(self:GetOwner(), 0)
 	Components[self:GetOwner()] = nil
 	dbg_line_cache[self:GetOwner()] = nil
 end
 
 
-if (SERVER) then
+if SERVER then
 
 	dbg_line_cache = {}
 
@@ -168,7 +168,7 @@ if (SERVER) then
 	local function Wire_DebuggerThink()
 		for ply,cmps in pairs(Components) do
 
-			if ( !ply ) or ( !ply:IsValid() ) or ( !ply:IsPlayer() ) then -- if player has left, clear the hud
+			if ( not ply ) or ( not ply:IsValid() ) or ( not ply:IsPlayer() ) then -- if player has left, clear the hud
 
 				Components[ply] = nil
 
@@ -190,7 +190,7 @@ if (SERVER) then
 					end
 					dbginfo = dbginfo .. " (" ..cmp:EntIndex() .. ") - "
 
-					if (cmp.Inputs and table.Count(cmp.Inputs) > 0) then
+					if cmp.Inputs and table.Count(cmp.Inputs) > 0 then
 						if OrientVertical then
 							dbginfo = dbginfo .. "\n"
 						end
@@ -210,11 +210,11 @@ if (SERVER) then
 						end
 					end
 
-					if (cmp.Outputs and table.Count(cmp.Outputs) > 0) then
-						if(cmp.Inputs and table.Count(cmp.Inputs) > 0) then
+					if cmp.Outputs and table.Count(cmp.Outputs) > 0 then
+						if cmp.Inputs and table.Count(cmp.Inputs) > 0 then
 							dbginfo = dbginfo .. "\n "
 						end
-						if(!cmp.Inputs and OrientVertical) then
+						if not cmp.Inputs and OrientVertical then
 							dbginfo = dbginfo .. "\n"
 						end
 						dbginfo = dbginfo .. "OUT: "
@@ -238,7 +238,7 @@ if (SERVER) then
 					end
 
 					dbg_line_cache[ply] = dbg_line_cache[ply] or {}
-					if (dbg_line_cache[ply][l] ~= dbginfo) then
+					if dbg_line_cache[ply][l] ~= dbginfo then
 						--split the message up into managable chuncks and send them
 						net.Start("WireDbg")
 							net.WriteBit(OrientVertical)
@@ -253,12 +253,12 @@ if (SERVER) then
 		end
 	end
 	timer.Create("Wire_DebuggerThink", game.SinglePlayer() and 0.05 or 0.1, 0, Wire_DebuggerThink)
-	//hook.Add("Think", "Wire_DebuggerThink", Wire_DebuggerThink)
+	-- hook.Add("Think", "Wire_DebuggerThink", Wire_DebuggerThink)
 
 end
 
 
-if (CLIENT) then
+if CLIENT then
 
 	local dbg_lines = {}
 	local dgb_orient_vert = false
@@ -283,18 +283,18 @@ if (CLIENT) then
 			local ExplodeLines = string.Explode("\n", Line)
 
 			for Index, ExplodeLine in ipairs(ExplodeLines) do --break it into multible lines for 1 entry
-				if(string.Trim(ExplodeLine) != "") then
+				if string.Trim(ExplodeLine) ~= "" then
 
 					local XPos = 0
-					if(Index > 1) then
+					if Index > 1 then
 						if dgb_orient_vert then --if the string is not the first and it is vertical, line it up acordingly
-							if(string.Trim(ExplodeLine) == "OUT:" or string.Trim(ExplodeLine) == "IN:") then
+							if string.Trim(ExplodeLine) == "OUT:" or string.Trim(ExplodeLine) == "IN:" then
 								XPos = 17
 							else
 								XPos = 42
 							end
 						else --if the string is not the first and it is not vertical, line it up with the IN on the first line
-							if(CurEntry.Lines[1].LineText and string.find(CurEntry.Lines[1].LineText,"IN:")) then
+							if CurEntry.Lines[1].LineText and string.find(CurEntry.Lines[1].LineText,"IN:") then
 								local TextPos = string.find(CurEntry.Lines[1].LineText,"IN:")-1
 								XPos = surface.GetTextSize( string.Left(CurEntry.Lines[1].LineText, TextPos) )
 							end
@@ -313,7 +313,7 @@ if (CLIENT) then
 			end
 
 			--set the color
-			if(ColorType == 0) then
+			if ColorType == 0 then
 				CurEntry.TextColor = Color(255,255,255)
 			else
 				CurEntry.TextColor = Color(130,255,158)
@@ -329,7 +329,7 @@ if (CLIENT) then
 
 
 		--determine the box width every second
-		if(LastBoxUpdate < CurTime()) then
+		if LastBoxUpdate < CurTime() then
 			local LongestWidth = 0
 			local TextWidth, TextHeight
 			for EntryIndex, Entry in ipairs(Entries) do
@@ -337,7 +337,7 @@ if (CLIENT) then
 					TextWidth, TextHeight = surface.GetTextSize(string.Trim(Line.LineText))
 					TextWidth = TextWidth+Line.OffsetPos[1] --offset it with the text's offset
 
-					if(TextWidth > LongestWidth) then
+					if TextWidth > LongestWidth then
 						LongestWidth = TextWidth
 					end
 				end
@@ -349,7 +349,7 @@ if (CLIENT) then
 
 		--move the box down if the active weapon is the tool gun
 		local MoveBox = 0
-		if(LocalPlayer():IsValid() and LocalPlayer():IsPlayer()) then
+		if LocalPlayer():IsValid() and LocalPlayer():IsPlayer() then
 			if IsValid(LocalPlayer():GetActiveWeapon()) and LocalPlayer():GetActiveWeapon():GetClass() == "gmod_tool" then
 				MoveBox = 1
 			end
@@ -384,7 +384,7 @@ if (CLIENT) then
 		end
 	end)
 	net.Receive("WireDbg", function(netlen)
-		dgb_orient_vert = net.ReadBit() != 0
+		dgb_orient_vert = net.ReadBit() ~= 0
 		dbg_lines[net.ReadUInt(16)] = net.ReadString()
 	end)
 	

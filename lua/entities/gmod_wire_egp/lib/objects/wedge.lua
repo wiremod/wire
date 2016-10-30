@@ -5,7 +5,7 @@ Obj.size = 45
 Obj.fidelity = 180
 local rad, cos, sin = math.rad, math.cos, math.sin
 Obj.Draw = function( self )
-	if (self.a>0 and self.w > 0 and self.h > 0 and self.size != 360) then
+	if self.a > 0 and self.w > 0 and self.h > 0 and self.size ~= 360 then
 		local vertices = {}
 
 		vertices[1] = { x = self.x, y = self.y, u = 0, v = 0 }
@@ -29,7 +29,7 @@ Obj.Draw = function( self )
 		end
 
 		surface.SetDrawColor( self.r, self.g, self.b, self.a )
-		if (vertices and #vertices>0) then
+		if vertices and #vertices > 0 then
 			surface.DrawPoly( vertices )
 		end
 	end

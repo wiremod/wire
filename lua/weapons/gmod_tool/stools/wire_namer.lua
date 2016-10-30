@@ -4,7 +4,7 @@ TOOL.Command		= nil
 TOOL.ConfigName		= ""
 TOOL.Tab			= "Wire"
 
-if ( CLIENT ) then
+if CLIENT then
     language.Add( "Tool.wire_namer.name", "Naming Tool" )
     language.Add( "Tool.wire_namer.desc", "Names components." )
     language.Add( "Tool.wire_namer.0", "Primary: Set name\nSecondary: Get name" )
@@ -14,7 +14,7 @@ end
 TOOL.ClientConVar[ "name" ] = ""
 
 local function SetName( Player, Entity, Data )
-	if ( Data and Data.name ) then
+	if Data and Data.name then
 		Entity:SetNetworkedString("WireName", Data.name)
 		duplicator.StoreEntityModifier( Entity, "WireName", Data )
 	end
@@ -22,15 +22,15 @@ end
 duplicator.RegisterEntityModifier( "WireName", SetName )
 
 function TOOL:LeftClick(trace)
-	if (not trace.Entity:IsValid()) then return end
-	if (CLIENT) then return end
-	if (not trace.Entity.IsWire) then return end
+	if not trace.Entity:IsValid() then return end
+	if CLIENT then return end
+	if not trace.Entity.IsWire then return end
 
 	local name = self:GetClientInfo("name")
 
-	//trace.Entity:SetNetworkedString("WireName", name)
+	-- trace.Entity:SetNetworkedString("WireName", name)
 
-	//made the WireName duplicatable entmod (TAD2020)
+	-- made the WireName duplicatable entmod (TAD2020)
 	SetName( Player, trace.Entity, {name = name} )
 
 	return true
@@ -38,11 +38,11 @@ end
 
 
 function TOOL:RightClick(trace)
-	if (not trace.Entity:IsValid()) then return end
-	if (CLIENT) then return end
+	if not trace.Entity:IsValid() then return end
+	if CLIENT then return end
 
 	local name = trace.Entity:GetNetworkedString("WireName")
-	if (not name) then return end
+	if not name then return end
 
     self:GetOwner():ConCommand('wire_namer_name "' .. name .. '"')
 end

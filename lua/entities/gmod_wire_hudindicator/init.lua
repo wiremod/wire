@@ -22,7 +22,7 @@ function ENT:Initialize()
 	self.BB = 0
 	self.BA = 0
 
-	// List of players who have hooked this indicator
+	-- List of players who have hooked this indicator
 	self.RegisteredPlayers = {}
 	self.PrefixText = "(Hud) Color = "
 
@@ -67,44 +67,44 @@ function ENT:Setup(a, ar, ag, ab, aa, b, br, bg, bb, ba, material, showinhud, hu
 	self:HUDSetup(showinhud, huddesc, hudaddname, hudshowvalue, hudstyle, allowhook, fullcircleangle)
 end
 
-// For HUD Indicators
+-- For HUD Indicators
 function ENT:HUDSetup(showinhud, huddesc, hudaddname, hudshowvalue, hudstyle, allowhook, fullcircleangle)
 	local ply = self:GetPlayer()
 	local eindex = self:EntIndex()
-	// If user updates with the STool to take indicator off of HUD
-	if (!showinhud && self.ShowInHUD) then
+	-- If user updates with the STool to take indicator off of HUD
+	if not showinhud and self.ShowInHUD then
 		self:UnRegisterPlayer(ply)
 
-		// Adjust inputs back to normal
-		//Wire_AdjustInputs(self, { "A" })
-	elseif (showinhud) then
-		// Basic style is useless without a value
-		// to show so set a default if necessary
-		if (hudstyle == 0 && hudshowvalue == 0) then
+		-- Adjust inputs back to normal
+		-- Wire_AdjustInputs(self, { "A" })
+	elseif showinhud then
+		-- Basic style is useless without a value
+		-- to show so set a default if necessary
+		if hudstyle == 0 and hudshowvalue == 0 then
 			hudshowvalue = 1
 		end
 
-		if (!self:CheckRegister(ply)) then
-			// First-time register
-			// Updating this player is handled further down
+		if not self:CheckRegister(ply) then
+			-- First-time register
+			-- Updating this player is handled further down
 			self:RegisterPlayer(ply, true)
 		end
 
-		// Add name if desired
-		if (hudaddname) then
+		-- Add name if desired
+		if hudaddname then
 			self:SetNetworkedString("WireName", huddesc)
-		elseif (self:GetNetworkedString("WireName") == huddesc) then
-			// Only remove it if the HUD Description was there
-			// because there might be another name on it
+		elseif self:GetNetworkedString("WireName") == huddesc then
+			-- Only remove it if the HUD Description was there
+			-- because there might be another name on it
 			self:SetNetworkedString("WireName", "")
 		end
 
-		// Adjust inputs accordingly
-		/* if (!self.Inputs.HideHUD) then
+		-- Adjust inputs accordingly
+		--[[ if not self.Inputs.HideHUD then
 			Wire_AdjustInputs(self, { "A", "HideHUD" })
 			self:TriggerInput("HideHUD", 0)
 			self.PrevHideHUD = false
-		end */
+		end ]]
 	end
 
 	self.ShowInHUD = showinhud
@@ -115,21 +115,21 @@ function ENT:HUDSetup(showinhud, huddesc, hudaddname, hudshowvalue, hudstyle, al
 	self.AllowHook = allowhook
 	self.FullCircleAngle = fullcircleangle
 
-	// To tell if you can hook a HUD Indicator at a glance
-	if (allowhook) then
+	-- To tell if you can hook a HUD Indicator at a glance
+	if allowhook then
 		self.PrefixText = "(Hud) Color = "
 	else
 		self.PrefixText = "(Hud - Locked) Color = "
 	end
 
-	// Update all registered players with this info
+	-- Update all registered players with this info
 	for k,v in pairs(self.RegisteredPlayers) do
 		self:RegisterPlayer(v.ply, v.hookhidehud)
 	end
 
-	// Only trigger this input on the
-	// first time that Setup() is called
-	if (!self.HasBeenSetup) then
+	-- Only trigger this input on the
+	-- first time that Setup() is called
+	if not self.HasBeenSetup then
 		self:TriggerInput("A", self.A)
 		self:TriggerInput("HideHUD", 0)
 		self.PrevHideHUD = false
@@ -137,15 +137,15 @@ function ENT:HUDSetup(showinhud, huddesc, hudaddname, hudshowvalue, hudstyle, al
 	end
 end
 
-// This is called from RegisterPlayer to send any style-specific info
+-- This is called from RegisterPlayer to send any style-specific info
 function ENT:SetupHUDStyle(hudstyle, rplayer)
-	// 0 (Basic) and 1 (Gradient) don't require any extra info
+	-- 0 (Basic) and 1 (Gradient) don't require any extra info
 	local pl = rplayer or self:GetPlayer()
-	// Allow for hooked players
-	//if (rplayer) then pl = rplayer end
+	-- Allow for hooked players
+	-- if (rplayer) then pl = rplayer end
 
-	if (hudstyle == 2) then // Percent Bar
-		// Send as string (there should be a way to send colors)
+	if hudstyle == 2 then -- Percent Bar
+		-- Send as string (there should be a way to send colors)
 		local ainfo = self.AR.."|"..self.AG.."|"..self.AB
 		local binfo = self.BR.."|"..self.BG.."|"..self.BB
 		umsg.Start("HUDIndicatorStylePercent", pl)
@@ -153,7 +153,7 @@ function ENT:SetupHUDStyle(hudstyle, rplayer)
 			umsg.String(ainfo)
 			umsg.String(binfo)
 		umsg.End()
-	elseif (hudstyle == 3) then // Full Circle Gauge
+	elseif hudstyle == 3 then -- Full Circle Gauge
 		umsg.Start("HUDIndicatorStyleFullCircle", pl)
 			umsg.Short(self:EntIndex())
 			umsg.Float(self.FullCircleAngle)
@@ -161,16 +161,16 @@ function ENT:SetupHUDStyle(hudstyle, rplayer)
 	end
 end
 
-// Hook this player to the HUD Indicator
+-- Hook this player to the HUD Indicator
 function ENT:RegisterPlayer(ply, hookhidehud, podonly)
 	local plyuid = ply:UniqueID()
 	local eindex = self:EntIndex()
 
-	// If player is already registered, this will send an update
-	// The podonly is used for players who are registered only because they are in a linked pod
-	if (!self.RegisteredPlayers[plyuid]) then
+	-- If player is already registered, this will send an update
+	-- The podonly is used for players who are registered only because they are in a linked pod
+	if not self.RegisteredPlayers[plyuid] then
 		self.RegisteredPlayers[plyuid] = { ply = ply, hookhidehud = hookhidehud, podonly = podonly }
-		// This is used to check for pod-only status in ClientCheckRegister()
+		-- This is used to check for pod-only status in ClientCheckRegister()
 		self:SetNetworkedBool( plyuid, util.tobool(podonly) )
 	end
 
@@ -182,11 +182,11 @@ function ENT:RegisterPlayer(ply, hookhidehud, podonly)
 	umsg.End()
 	self:SetupHUDStyle(self.HUDStyle, ply)
 
-	// Trigger inputs to fully add this player to the list
-	// Force factor to update
+	-- Trigger inputs to fully add this player to the list
+	-- Force factor to update
 	self.PrevOutput = nil
 	self:TriggerInput("A", self.Inputs.A.Value)
-	if (hookhidehud) then
+	if hookhidehud then
 		self:TriggerInput("HideHUD", self.Inputs.HideHUD.Value)
 	end
 end
@@ -198,20 +198,20 @@ function ENT:UnRegisterPlayer(ply)
 	self.RegisteredPlayers[ply:UniqueID()] = nil
 end
 
-// Is this player registered?
+-- Is this player registered?
 function ENT:CheckRegister(ply)
-	return (self.RegisteredPlayers[ply:UniqueID()] != nil)
+	return (self.RegisteredPlayers[ply:UniqueID()] ~= nil)
 end
 
-// Is this player registered only because he is in a linked pod?
+-- Is this player registered only because he is in a linked pod?
 function ENT:CheckPodOnly(ply)
 	if not ply or not ply:IsValid() then return false end
 	local plyuid = ply:UniqueID()
-	return (self.RegisteredPlayers[plyuid] != nil && self.RegisteredPlayers[plyuid].podonly)
+	return (self.RegisteredPlayers[plyuid] ~= nil and self.RegisteredPlayers[plyuid].podonly)
 end
 
 function ENT:TriggerInput(iname, value)
-	if (iname == "A") then
+	if iname == "A" then
 		local factor = math.Clamp((value-self.A)/(self.B-self.A), 0, 1)
 		self:ShowOutput(factor, value)
 
@@ -220,27 +220,27 @@ function ENT:TriggerInput(iname, value)
 		local b = math.Clamp((self.BB-self.AB)*factor+self.AB, 0, 255)
 		local a = math.Clamp((self.BA-self.AA)*factor+self.AA, 0, 255)
 		self:SetColor(Color(r, g, b, a))
-	elseif (iname == "HideHUD") then
-		if (self.PrevHideHUD == (value > 0)) then return end
+	elseif iname == "HideHUD" then
+		if self.PrevHideHUD == (value > 0) then return end
 
 		self.PrevHideHUD = (value > 0)
-		// Value has updated, so send information
+		-- Value has updated, so send information
 		self:SendHUDInfo(self.PrevHideHUD)
 	end
 end
 
 function ENT:ShowOutput(factor, value)
-	if (factor ~= self.PrevOutput) then
+	if factor ~= self.PrevOutput then
 		self:SetOverlayText( self.PrefixText .. string.format("%.1f", (factor * 100)) .. "%" )
 		self.PrevOutput = factor
 
 		local rf = RecipientFilter()
 		local pl = self:GetPlayer()
 
-		// RecipientFilter will contain all registered players
+		-- RecipientFilter will contain all registered players
 		for index,rplayer in pairs(self.RegisteredPlayers) do
-			if (rplayer.ply and rplayer.ply:IsValid()) then
-				if (rplayer.ply != pl || (self.ShowInHUD || self.PodPly == pl)) then
+			if rplayer.ply and rplayer.ply:IsValid() then
+				if rplayer.ply ~= pl or (self.ShowInHUD or self.PodPly == pl) then
 					rf:AddPlayer(rplayer.ply)
 				end
 			else
@@ -250,7 +250,7 @@ function ENT:ShowOutput(factor, value)
 
 		umsg.Start("HUDIndicatorFactor", rf)
 			umsg.Short(self:EntIndex())
-			// Send both to ensure that all styles work properly
+			-- Send both to ensure that all styles work properly
 			umsg.Float(factor)
 			umsg.Float(value)
 		umsg.End()
@@ -258,16 +258,16 @@ function ENT:ShowOutput(factor, value)
 end
 
 function ENT:SendHUDInfo(hidehud)
-	// Sends information to player
+	-- Sends information to player
 	local pl = self:GetPlayer()
 
 	for index,rplayer in pairs(self.RegisteredPlayers) do
-		if (rplayer.ply) then
-			if (rplayer.ply != pl || (self.ShowInHUD || self.PodPly == pl)) then
+		if rplayer.ply then
+			if rplayer.ply ~= pl or (self.ShowInHUD or self.PodPly == pl) then
 				umsg.Start("HUDIndicatorHideHUD", rplayer.ply)
 					umsg.Short(self:EntIndex())
-					// Check player's preference
-					if (rplayer.hookhidehud) then
+					-- Check player's preference
+					if rplayer.hookhidehud then
 						umsg.Bool(hidehud)
 					else
 						umsg.Bool(false)
@@ -280,24 +280,24 @@ function ENT:SendHUDInfo(hidehud)
 	end
 end
 
-// Despite everything being named "pod", any vehicle will work
+-- Despite everything being named "pod", any vehicle will work
 function ENT:LinkVehicle(pod)
-	if (!pod || !pod:IsValid() || !string.find(pod:GetClass(), "prop_vehicle_")) then return false end
+	if not pod or not pod:IsValid() or not string.find(pod:GetClass(), "prop_vehicle_") then return false end
 
 	local ply = nil
-	// Check if a player is in pod first
+	-- Check if a player is in pod first
 	for k,v in pairs(player.GetAll()) do
-		if (v:GetVehicle() == pod) then
+		if v:GetVehicle() == pod then
 			ply = v
 			break
 		end
 	end
 
-	if (ply && !self:CheckRegister(ply)) then
-		// Register as "only in pod" if not registered before
+	if ply and not self:CheckRegister(ply) then
+		-- Register as "only in pod" if not registered before
 		self:RegisterPlayer(ply, false, true)
 
-		// Force factor to update
+		-- Force factor to update
 		self.PrevOutput = nil
 		self:TriggerInput("A", self.Inputs.A.Value)
 	end
@@ -310,8 +310,8 @@ end
 function ENT:UnLinkVehicle()
 	local ply = self.PodPly
 
-	if (ply && self:CheckPodOnly(ply)) then
-		// Only unregister if player is registered only because he is in a linked pod
+	if ply and self:CheckPodOnly(ply) then
+		-- Only unregister if player is registered only because he is in a linked pod
 		self:UnRegisterPlayer(ply)
 	end
 	self.Pod = nil
@@ -321,12 +321,12 @@ end
 function ENT:Think()
 	self.BaseClass.Think(self)
 
-	if (self.Pod && self.Pod:IsValid()) then
+	if self.Pod and self.Pod:IsValid() then
 		local ply = nil
 
-		if (!self.PodPly or not self.PodPly:IsValid() || self.PodPly:GetVehicle() != self.Pod) then
+		if not self.PodPly or not self.PodPly:IsValid() or self.PodPly:GetVehicle() ~= self.Pod then
 			for k,v in pairs(player.GetAll()) do
-				if (v:GetVehicle() == self.Pod) then
+				if v:GetVehicle() == self.Pod then
 					ply = v
 					break
 				end
@@ -335,25 +335,25 @@ function ENT:Think()
 			ply = self.PodPly
 		end
 
-		// Has the player changed?
-		if (ply != self.PodPly) then
-			if (self.PodPly && self:CheckPodOnly(self.PodPly)) then // Don't send umsg if player disconnected or is registered otherwise
+		-- Has the player changed?
+		if ply ~= self.PodPly then
+			if self.PodPly and self:CheckPodOnly(self.PodPly) then -- Don't send umsg if player disconnected or is registered otherwise
 				self:UnRegisterPlayer(self.PodPly)
 			end
 
 			self.PodPly = ply
 
-			if (self.PodPly && !self:CheckRegister(self.PodPly)) then
+			if self.PodPly and not self:CheckRegister(self.PodPly) then
 				self:RegisterPlayer(self.PodPly, false, true)
 
-				// Force factor to update
+				-- Force factor to update
 				self.PrevOutput = nil
 				self:TriggerInput("A", self.Inputs.A.Value)
 			end
 		end
 	else
-		// If we deleted this pod and there was a player in it
-		if (self.PodPly && self:CheckPodOnly(self.PodPly)) then
+		-- If we deleted this pod and there was a player in it
+		if self.PodPly and self:CheckPodOnly(self.PodPly) then
 			self:UnRegisterPlayer(self.PodPly)
 		end
 		self.PodPly = nil
@@ -363,11 +363,11 @@ function ENT:Think()
 	return true
 end
 
-// Advanced Duplicator Support
+-- Advanced Duplicator Support
 function ENT:BuildDupeInfo()
 	local info = self.BaseClass.BuildDupeInfo(self) or {}
 
-	if (self.Pod) and (self.Pod:IsValid()) then
+	if self.Pod) and (self.Pod:IsValid() then
 	    info.pod = self.Pod:EntIndex()
 	end
 

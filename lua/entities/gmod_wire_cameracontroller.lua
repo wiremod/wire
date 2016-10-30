@@ -189,10 +189,10 @@ if CLIENT then
 
 	hook.Add("PlayerBindPress", "wire_camera_controller_zoom", function(ply, bind, pressed)
 		if enabled and AllowZoom then
-			if (bind == "invprev") then
+			if bind == "invprev" then
 				zoombind = -1
 				return true
-			elseif (bind == "invnext") then
+			elseif bind == "invnext" then
 				zoombind = 1
 				return true
 			end

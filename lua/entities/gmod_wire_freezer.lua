@@ -84,14 +84,14 @@ end
 function ENT:CheckEnt( ent )
 	if IsValid(ent) then
 		for index, e in pairs( self.Marks ) do
-			if (e == ent) then return true, index end
+			if e == ent then return true, index end
 		end
 	end
 	return false, 0
 end
 
 function ENT:LinkEnt( ent )
-	if (self:CheckEnt( ent )) then return false	end
+	if self:CheckEnt( ent ) then return false	end
 	self.Marks[#self.Marks+1] = ent
 	ent:CallOnRemove("AdvEMarker.Unlink", function(ent)
 		if IsValid(self) then self:UnlinkEnt(ent) end
@@ -102,7 +102,7 @@ end
 
 function ENT:UnlinkEnt( ent )
 	local bool, index = self:CheckEnt( ent )
-	if (bool) then
+	if bool then
 		table.remove( self.Marks, index )
 		self:UpdateOutputs()
 	end
