@@ -92,11 +92,11 @@ function ENT:HUDSetup(showinhud, huddesc, hudaddname, hudshowvalue, hudstyle, al
 
 		// Add name if desired
 		if (hudaddname) then
-			self:SetNetworkedString("WireName", huddesc)
-		elseif (self:GetNetworkedString("WireName") == huddesc) then
+			self:SetNWString("WireName", huddesc)
+		elseif (self:GetNWString("WireName") == huddesc) then
 			// Only remove it if the HUD Description was there
 			// because there might be another name on it
-			self:SetNetworkedString("WireName", "")
+			self:SetNWString("WireName", "")
 		end
 
 		// Adjust inputs accordingly
