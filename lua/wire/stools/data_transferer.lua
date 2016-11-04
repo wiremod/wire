@@ -1,7 +1,7 @@
 WireToolSetup.setCategory( "Memory" )
 WireToolSetup.open( "data_transferer", "Transferer", "gmod_wire_data_transferer", nil, "Transferers" )
 
-if ( CLIENT ) then
+if CLIENT then
     language.Add( "Tool.wire_data_transferer.name", "Data Transferer Tool (Wire)" )
     language.Add( "Tool.wire_data_transferer.desc", "Spawns a data transferer." )
     language.Add( "Tool.wire_data_transferer.0", "Primary: Create/Update data transferer" )

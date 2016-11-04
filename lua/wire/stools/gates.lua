@@ -234,7 +234,7 @@ if CLIENT then
 
 		function parentbox.Button:DoClick() -- when you check the parent box, check the nocollide box
 			self:Toggle()
-			if (self:GetChecked() == true) then
+			if self:GetChecked() == true then
 				nocollidebox:SetValue(1)
 			end
 		end
@@ -277,9 +277,9 @@ end
 --------------------
 function TOOL:Reload( trace )
 	if self:GetOwner():KeyDown( IN_SPEED ) then -- Unparent
-		if (!trace or !trace.Hit) then return false end
-		if (CLIENT and trace.Entity) then return true end
-		if (trace.Entity:GetParent():IsValid()) then
+		if not trace or not trace.Hit then return false end
+		if CLIENT and trace.Entity then return true end
+		if trace.Entity:GetParent():IsValid() then
 
 			-- Get its position
 			local pos = trace.Entity:GetPos()
@@ -292,7 +292,7 @@ function TOOL:Reload( trace )
 
 			-- Wake
 			local phys = trace.Entity:GetPhysicsObject()
-			if (phys) then
+			if phys then
 				phys:Wake()
 			end
 

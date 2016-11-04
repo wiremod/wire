@@ -11,8 +11,8 @@ GateActions["rd_trace"] = {
 	outputtypes = { "RANGER" },
 	timed = true,
 	output = function(gate, Startpos, Endpos)
-		if !isvector(Startpos) then Startpos = Vector (0, 0, 0) end
-		if !isvector(Endpos) then Endpos = Vector (0, 0, 0) end
+		if not isvector(Startpos) then Startpos = Vector (0, 0, 0) end
+		if not isvector(Endpos) then Endpos = Vector (0, 0, 0) end
 		local tracedata = {}
 		tracedata.start = Startpos
 		tracedata.endpos = Endpos
@@ -30,7 +30,7 @@ GateActions["rd_hitpos"] = {
 	outputtypes = { "VECTOR" },
 	timed = true,
 	output = function(gate, A)
-		if !A then return Vector(0,0,0) end
+		if not A then return Vector(0,0,0) end
 		if A.StartSolid then return A.StartPos end
 		return A.HitPos
 	end,
@@ -46,7 +46,7 @@ GateActions["rd_hitnorm"] = {
 	outputtypes = { "VECTOR" },
 	timed = true,
 	output = function(gate, A)
-		if !A then return Vector(0,0,0) end
+		if not A then return Vector(0,0,0) end
 		return A.HitNormal
 	end,
 	label = function(Out, A)
@@ -61,7 +61,7 @@ GateActions["rd_entity"] = {
 	outputtypes = { "ENTITY" },
 	timed = true,
 	output = function(gate, A)
-		if !A then return NULL end
+		if not A then return NULL end
 		return A.Entity
 	end,
 	label = function(Out, A)
@@ -76,7 +76,7 @@ GateActions["rd_hitworld"] = {
 	outputtypes = { "NORMAL" },
 	timed = true,
 	output = function(gate, A)
-		if !A then return 0 end
+		if not A then return 0 end
 		return A.HitWorld and 1 or 0
 	end,
 	label = function(Out, A)
@@ -91,7 +91,7 @@ GateActions["rd_hit"] = {
 	outputtypes = { "NORMAL" },
 	timed = true,
 	output = function(gate, A)
-		if !A then return 0 end
+		if not A then return 0 end
 		return A.Hit and 1 or 0
 	end,
 	label = function(Out, A)
@@ -106,7 +106,7 @@ GateActions["rd_distance"] = {
 	outputtypes = { "NORMAL" },
 	timed = true,
 	output = function(gate, A)
-		if !A then return 0 end
+		if not A then return 0 end
 		if A.StartSolid then return A.StartPos:Distance(A.HitPos)*(1/(1-A.FractionLeftSolid)-1) end
 		return A.StartPos:Distance(A.HitPos)
 	end,

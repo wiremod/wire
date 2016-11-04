@@ -22,7 +22,7 @@ if SERVER then
 	end
 
 	function TOOL:RightClick(trace)
-		if not IsValid(trace.Entity) or trace.Entity:GetClass() != "gmod_wire_value" then return false end
+		if not IsValid(trace.Entity) or trace.Entity:GetClass() ~= "gmod_wire_value" then return false end
 		playerValues[self:GetOwner()] = trace.Entity.value
 		net.Start("wire_value_values")
 			net.WriteTable(trace.Entity.value)
@@ -356,7 +356,7 @@ types fail.]] )
 		
 		valueSlider.OnValueChanged = function( valueSlider, value )
 			local value = math.Clamp(math.Round(tonumber(value)),1,20)
-			if value != LastValueAmount then
+			if value ~= LastValueAmount then
 				if value > LastValueAmount then
 					for i = LastValueAmount + 1, value, 1 do
 						panels[i] = AddValue( itemPanel, i )

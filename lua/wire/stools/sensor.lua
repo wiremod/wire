@@ -1,7 +1,7 @@
 WireToolSetup.setCategory( "Detection/Beacon" )
 WireToolSetup.open( "sensor", "Beacon Sensor", "gmod_wire_sensor", nil, "Beacon Sensors" )
 
-if ( CLIENT ) then
+if CLIENT then
 	language.Add( "Tool.wire_sensor.name", "Beacon Sensor Tool (Wire)" )
 	language.Add( "Tool.wire_sensor.desc", "Returns distance and/or bearing to a beacon" )
 	language.Add( "Tool.wire_sensor.0", "Primary: Create Sensor    Secondary: Link Sensor" )

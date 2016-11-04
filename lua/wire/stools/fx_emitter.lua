@@ -1,7 +1,7 @@
 WireToolSetup.setCategory( "Visuals" )
 WireToolSetup.open( "fx_emitter", "FX Emitter", "gmod_wire_fx_emitter", nil, "FX Emitters" )
 
-if ( CLIENT ) then
+if CLIENT then
 	language.Add( "Tool.wire_fx_emitter.name", "Wire FX Emitter" )
 	language.Add( "Tool.wire_fx_emitter.desc", "Wire FX Emitter Emits effects eh?" )
 	language.Add( "Tool.wire_fx_emitter.0", "Click somewhere to spawn a wire fx emitter. Click on an existing wire fx emitter to update it." )
@@ -28,7 +28,7 @@ end
 function TOOL.BuildCPanel( CPanel )
 	CPanel:AddControl( "Header", { Text = "#Tool.wire_fx_emitter.name", Description	= "#Tool.wire_fx_emitter.desc" }  )
 
-	// Effect types
+	-- Effect types
 	local params = { Label = "#Effect", Height = "250", MenuButton="0", Options = {} }
 		for k,_ in pairs(ComboBox_Wire_FX_Emitter_Options) do
 			params.Options[ "#wire_fx_emitter_" .. k ] = { wire_fx_emitter_Effect = k }

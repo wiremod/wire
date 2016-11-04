@@ -31,7 +31,7 @@ function LoadWireGates()
 	local entries = file.Find( "wire/gates/*.lua", "LUA" )
 	for _,v in pairs(entries) do
 		include("gates/"..v)
-		if (SERVER) then AddCSLuaFile("gates/"..v) end
+		if SERVER then AddCSLuaFile("gates/"..v) end
 	end
 	GateActions = gates
 

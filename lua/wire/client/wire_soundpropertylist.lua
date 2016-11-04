@@ -1,18 +1,18 @@
-// A sound property browsner. It helps to find all sounds which are defined in sound scripts or by sound.Add().
-// Made by Grocel.
+-- A sound property browser. It helps to find all sounds which are defined in sound scripts or by sound.Add().
+-- Made by Grocel.
 
 local PANEL = {}
 
-local max_char_count = 200 //Name length limit
+local max_char_count = 200 -- Name length limit
 
-AccessorFunc( PANEL, "m_strSearchPattern", 		"SearchPattern" ) // Pattern to search for.
-AccessorFunc( PANEL, "m_strSelectedSound", 		"SelectedSound" ) // Pattern to search for.
-AccessorFunc( PANEL, "m_nListSpeed", 			"ListSpeed" ) // how many items to list an once
-AccessorFunc( PANEL, "m_nMaxItems",				"MaxItems" ) // how may items at maximum
+AccessorFunc( PANEL, "m_strSearchPattern", 		"SearchPattern" ) -- Pattern to search for.
+AccessorFunc( PANEL, "m_strSelectedSound", 		"SelectedSound" ) -- Pattern to search for.
+AccessorFunc( PANEL, "m_nListSpeed", 			"ListSpeed" ) -- how many items to list an once
+AccessorFunc( PANEL, "m_nMaxItems",				"MaxItems" ) -- how may items at maximum
 
 local function IsInString(strSource, strPattern)
-	if (!strPattern) then return true end
-	if (strPattern == "") then return true end
+	if not strPattern then return true end
+	if strPattern == "" then return true end
 	
 	strSource = string.lower(strSource)
 	strPattern = string.lower(strPattern)
@@ -23,13 +23,13 @@ local function IsInString(strSource, strPattern)
 end
 
 local function GenerateList(self, strPattern)
-	if (!IsValid(self)) then return end
+	if not IsValid(self) then return end
 	self:ClearList()
 
 	local soundtable = sound.GetTable() or {}
 	local soundcount = #soundtable
 	self.SearchProgress:SetVisible(true)
-	if (soundcount <= 0) then
+	if soundcount <= 0 then
 		self.SearchProgress:SetVisible(false)
 
 		return
@@ -41,16 +41,16 @@ local function GenerateList(self, strPattern)
 	self.SearchProgressLabel:Center()
 
 	WireLib.Timedpairs(self.TimedpairsName, soundtable, self.m_nListSpeed, function(k, v, self)
-		if (!IsValid(self)) then return false end
-		if (!IsValid(self.SoundProperties)) then return false end
-		if (!IsValid(self.SearchProgress)) then return false end
+		if not IsValid(self) then return false end
+		if not IsValid(self.SoundProperties) then return false end
+		if not IsValid(self.SearchProgress) then return false end
 
 		self.SearchProgress:SetFraction(k / soundcount)
 		self.SearchProgressLabel:SetText("Searching... ("..math.Round(k / soundcount * 100).." %)")
 		self.SearchProgressLabel:SizeToContents()
 		self.SearchProgressLabel:Center()
 
-		if (self.TabfileCount >= self.m_nMaxItems) then
+		if self.TabfileCount >= self.m_nMaxItems then
 			self.SearchProgress:SetFraction(1)
 
 			self.SearchProgressLabel:SetText("Searching... (100 %)")
@@ -63,14 +63,14 @@ local function GenerateList(self, strPattern)
 			return false
 		end
 
-		if (!IsInString(v, strPattern)) then return end
+		if not IsInString(v, strPattern) then return end
 		
 		self:AddItem(k, v)
 
 	end, function(k, v, self)
-		if (!IsValid(self)) then return end
-		if (!IsValid(self.SoundProperties)) then return end
-		if (!IsValid(self.SearchProgress)) then return end
+		if not IsValid(self) then return end
+		if not IsValid(self.SoundProperties) then return end
+		if not IsValid(self.SearchProgress) then return end
 
 		self.SearchProgress:SetFraction(1)
 
@@ -103,7 +103,7 @@ function PANEL:Init()
 		self:SetSearchPattern(panel:GetValue())
 	end
 	
-	self.RefreshIcon = self.SearchPanel:Add("DImageButton") // The Folder Button.
+	self.RefreshIcon = self.SearchPanel:Add("DImageButton") -- The Folder Button.
 	self.RefreshIcon:SetImage("icon16/arrow_refresh.png")
 	self.RefreshIcon:SetWide(20)
 	self.RefreshIcon:Dock(RIGHT)
@@ -169,7 +169,7 @@ function PANEL:Init()
 end
 
 function PANEL:PerformLayout()
-	if (!self.SearchProgress:IsVisible()) then return end
+	if not self.SearchProgress:IsVisible() then return end
 
 	self.SearchProgressLabel:SizeToContents()
 	self.SearchProgressLabel:Center()
@@ -186,15 +186,15 @@ function PANEL:AddItem(...)
 	local itemtable = {...}
 	local item = itemtable[2]
 
-	if (!isstring(item) or item == "") then return end
-	if (self.TabfileCount > self.m_nMaxItems) then return end
-	if (#item > max_char_count) then return end
+	if not isstring(item) or item == "" then return end
+	if self.TabfileCount > self.m_nMaxItems then return end
+	if #item > max_char_count then return end
 
 	local itemargs = {}
 	local i = 0
 
 	for k, v in ipairs(itemtable) do
-		if (k == 2) then continue end
+		if k == 2 then continue end
 	
 		i = i + 1
 		itemargs[i] = v
@@ -204,7 +204,7 @@ function PANEL:AddItem(...)
 	line.m_strSoundname = item
 	line.m_tabData = itemargs
 
-	if (self.m_strSelectedSound == item) then
+	if self.m_strSelectedSound == item then
 		self.SoundProperties:SelectItem(line)
 	end
 

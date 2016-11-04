@@ -11,10 +11,10 @@ GateActions["increment"] = {
 		local clk = ( Clk > 0 )
 		local reset = ( Reset > 0 )
 
-		if ( gate.PrevValue ~= clk ) then
+		if gate.PrevValue ~= clk then
 			gate.PrevValue = clk
-			if ( clk ) then
-				if ( gate.Memory == nil ) then
+			if clk then
+				if gate.Memory == nil then
 					gate.Memory = A
 				else
 					gate.Memory = gate.Memory + A
@@ -22,9 +22,9 @@ GateActions["increment"] = {
 			end
 		end
 
-		if( gate.PrevReset ~= reset ) then
+		if gate.PrevReset ~= reset then
 			gate.PrevReset = reset
-			if ( reset ) then
+			if reset then
 				gate.Memory = 0
 			end
 		end
@@ -122,8 +122,8 @@ GateActions["sgn"] = {
 	name = "Sign (-1,0,1)",
 	inputs = { "A" },
 	output = function(gate, A)
-		if (A > 0) then return 1 end
-		if (A < 0) then return -1 end
+		if A > 0 then return 1 end
+		if A < 0 then return -1 end
 		return 0
 	end,
 	label = function(Out, A)
@@ -171,14 +171,14 @@ GateActions["+"] = {
 	output = function(gate, ...)
 		local result = 0
 		for k,v in ipairs({...}) do
-			if (v) then result = result+v end
+			if v then result = result+v end
 		end
 		return result
 	end,
 	label = function(Out, ...)
 		local txt = ""
 		for k,v in ipairs({...}) do
-			if (v) then txt = txt..v.." + " end
+			if v then txt = txt..v.." + " end
 		end
 		return string.sub(txt, 1, -4).." = "..Out
 	end
@@ -203,14 +203,14 @@ GateActions["*"] = {
 	output = function(gate, ...)
 		local result = 1
 		for k,v in ipairs({...}) do
-			if (v) then result = result*v end
+			if v then result = result*v end
 		end
 		return result
 	end,
 	label = function(Out, ...)
 		local txt = ""
 		for k,v in ipairs({...}) do
-			if (v) then txt = txt..v.." * " end
+			if v then txt = txt..v.." * " end
 		end
 		return string.sub(txt, 1, -4).." = "..Out
 	end
@@ -220,7 +220,7 @@ GateActions["/"] = {
 	name = "Divide",
 	inputs = { "A", "B" },
 	output = function(gate, A, B)
-		if (math.abs(B) < 0.0001) then return 0 end
+		if math.abs(B) < 0.0001 then return 0 end
 		return A/B
 	end,
 	label = function(Out, A, B)
@@ -232,7 +232,7 @@ GateActions["%"] = {
 	name = "Modulo",
 	inputs = { "A", "B" },
 	output = function(gate, A, B)
-		if ( B == 0 ) then return 0 end
+		if B == 0 then return 0 end
 		return math.fmod(A,B)
 	end,
 	label = function(Out, A, B)
@@ -302,7 +302,7 @@ GateActions["Percent"] = {
 	inputs = { "Value", "Max" },
 	compact_inputs = 2,
 	output = function(gate, Value, Max)
-		if (math.abs(Max) < 0.0001) then return 0 end
+		if math.abs(Max) < 0.0001 then return 0 end
 		return Value / Max * 100
 	end,
 	label = function(Out, Value, Max)
@@ -379,23 +379,23 @@ GateActions["increment/decrement"] = {
 		local decrement = ( Decrement > 0 )
 		local reset = (Reset > 0)
 
-		if ( gate.PrevValue ~= increment ) then
+		if gate.PrevValue ~= increment then
 			gate.PrevValue = increment
-			if ( increment ) then
+			if increment then
 				gate.Memory = (gate.Memory or 0) + A
 			end
 		end
 
-		if ( gate.PrevValue ~= decrement ) then
+		if gate.PrevValue ~= decrement then
 			gate.PrevValue = decrement
-			if ( decrement ) then
+			if decrement then
 				gate.Memory = (gate.Memory or 0) - A
 			end
 		end
 
-		if( gate.PrevReset ~= reset ) then
+		if gate.PrevReset ~= reset then
 			gate.PrevReset = reset
-			if ( reset ) then
+			if reset then
 				gate.Memory = 0
 			end
 		end

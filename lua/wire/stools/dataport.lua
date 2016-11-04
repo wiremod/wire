@@ -1,7 +1,7 @@
 WireToolSetup.setCategory( "Advanced" )
 WireToolSetup.open( "dataport", "Data - Port", "gmod_wire_dataport", nil, "Data Ports" )
 
-if ( CLIENT ) then
+if CLIENT then
 	language.Add( "Tool.wire_dataport.name", "Data port tool (Wire)" )
 	language.Add( "Tool.wire_dataport.desc", "Spawns data port consisting of 8 ports" )
 	language.Add( "Tool.wire_dataport.0", "Primary: Create/Update data ports unit" )

@@ -23,7 +23,7 @@ TOOL.ClientConVar = {
 }
 TOOL.ReloadSetsModel = true
 
-if ( CLIENT ) then
+if CLIENT then
 	language.Add( "Tool.wire_explosive.name", "Wired Explosives Tool" )
 	language.Add( "Tool.wire_explosive.desc", "Creates a variety of different explosives for wire system." )
 	language.Add( "Tool.wire_explosive.0", "Left click to place the bomb. Right click update." )

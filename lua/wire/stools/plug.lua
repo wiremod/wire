@@ -1,16 +1,16 @@
 WireToolSetup.setCategory( "Input, Output/Data Transfer" )
 WireToolSetup.open( "plug", "Plug", "gmod_wire_socket", nil, "Plugs" )
 
-if (SERVER) then
+if SERVER then
 
 	CreateConVar("sbox_maxwire_plugs",20)
 	CreateConVar("sbox_maxwire_sockets",20)
 
-	//resource.AddFile("models/bull/various/usb_socket.mdl")
-	//resource.AddFile("materials/bull/various/usb_socket.vtf")
+	-- resource.AddFile("models/bull/various/usb_socket.mdl")
+	-- resource.AddFile("materials/bull/various/usb_socket.vtf")
 
-	//resource.AddFile("models/bull/various/usb_stick.mdl")
-	//resource.AddFile("materials/bull/various/usb_stick.vtf")
+	-- resource.AddFile("models/bull/various/usb_stick.mdl")
+	-- resource.AddFile("materials/bull/various/usb_stick.vtf")
 
 else
 	language.Add( "Tool.wire_plug.name", "Plug & Socket Tool (Wire)" )
@@ -66,7 +66,7 @@ cleanup.Register( "wire_plugs" )
 
 function TOOL:GetModel()
 	local model = self:GetClientInfo( "model" )
-	if (!util.IsValidModel( model ) or !util.IsValidProp( model ) or !SocketModels[ model ]) then return "models/props_lab/tpplugholder_single.mdl" end
+	if not util.IsValidModel( model ) or not util.IsValidProp( model ) or not SocketModels[ model ] then return "models/props_lab/tpplugholder_single.mdl" end
 	return model
 end
 
@@ -89,22 +89,22 @@ end
 
 -- Create Plug
 function TOOL:RightClick( trace )
-	if (!trace) then return false end
-	if (trace.Entity) then
-		if (trace.Entity:IsPlayer()) then return false end
-		if (trace.Entity:GetClass() == "gmod_wire_plug") then
-			if (CLIENT) then return true end
-			trace.Entity:Setup( self:GetClientNumber( "array" ) != 0 )
+	if not trace then return false end
+	if trace.Entity then
+		if trace.Entity:IsPlayer() then return false end
+		if trace.Entity:GetClass() == "gmod_wire_plug" then
+			if CLIENT then return true end
+			trace.Entity:Setup( self:GetClientNumber( "array" ) ~= 0 )
 			return true
 		end
 	end
-	if (CLIENT) then return true end
+	if CLIENT then return true end
 	if not util.IsValidPhysicsObject( trace.Entity, trace.PhysicsBone ) then return false end
 
 	local ply = self:GetOwner()
 	local plugmodel = SocketModels[self:GetModel()]
 
-	local plug = WireLib.MakeWireEnt(ply, {Class = "gmod_wire_plug", Pos=trace.HitPos, Angle=self:GetAngle(trace), Model=plugmodel}, self:GetClientNumber( "array" ) != 0)
+	local plug = WireLib.MakeWireEnt(ply, {Class = "gmod_wire_plug", Pos=trace.HitPos, Angle=self:GetAngle(trace), Model=plugmodel}, self:GetClientNumber( "array" ) ~= 0)
 	if not IsValid(plug) then return false end
 
 	plug:SetPos( trace.HitPos - trace.HitNormal * plug:OBBMins().x )

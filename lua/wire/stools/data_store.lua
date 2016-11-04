@@ -1,7 +1,7 @@
 WireToolSetup.setCategory( "Memory" )
 WireToolSetup.open( "data_store", "Store", "gmod_wire_data_store", nil, "Data Stores" )
 
-if ( CLIENT ) then
+if CLIENT then
     language.Add( "Tool.wire_data_store.name", "Data Store Tool (Wire)" )
     language.Add( "Tool.wire_data_store.desc", "Spawns a data store." )
     language.Add( "Tool.wire_data_store.0", "Primary: Create/Update data store" )
@@ -10,7 +10,7 @@ end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )
 
-if (SERVER) then
+if SERVER then
 	-- Uses default WireToolObj:MakeEnt's WireLib.MakeWireEnt function
 end
 

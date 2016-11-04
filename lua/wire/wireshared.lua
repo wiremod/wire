@@ -325,7 +325,7 @@ do
 		util.AddNetworkString("wire_addnotify")
 		function WireLib.AddNotify(ply, Message, Type, Duration, Sound)
 			if isstring(ply) then ply, Message, Type, Duration, Sound = nil, ply, Message, Type, Duration end
-			if ply && !ply:IsValid() then return end
+			if ply and not ply:IsValid() then return end
 			net.Start("wire_addnotify")
 				net.WriteString(Message)
 				net.WriteUInt(Type or 0,8)
@@ -476,13 +476,13 @@ end
 -- Works for every entity that has wire in-/output.
 -- Very important and useful for checks!
 function WireLib.HasPorts(ent)
-	if (ent.IsWire) then return true end
-	if (ent.Base == "base_wire_entity") then return true end
+	if ent.IsWire then return true end
+	if ent.Base == "base_wire_entity" then return true end
 
 	-- Checks if the entity is in the list, it checks if the entity has self.in-/outputs too.
 	local In, Out = WireLib.GetPorts(ent)
-	if (In and (ent.Inputs or CLIENT)) then return true end
-	if (Out and (ent.Outputs or CLIENT)) then return true end
+	if In and (ent.Inputs or CLIENT) then return true end
+	if Out and (ent.Outputs or CLIENT) then return true end
 
 	return false
 end
@@ -627,7 +627,7 @@ if SERVER then
 	end
 
 	local function FlushQueue(lqueue, ply)
-		// Zero these two for the writemsg function
+		-- Zero these two for the writemsg function
 		eid = 0
 		numports = {}
 
@@ -789,7 +789,7 @@ end
 
 	Very useful for searching algorithms
 	Used by custom spawn menu search & gate tool search, for example
-	Credits go to: http://lua-users.org/lists/lua-l/2009-07/msg00461.html
+	Credits go to: http:-- lua-users.org/lists/lua-l/2009-07/msg00461.html
 ]]
 function WireLib.levenshtein( s, t )
 	local d, sn, tn = {}, #s, #t

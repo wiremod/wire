@@ -7,7 +7,7 @@
 WireToolSetup.setCategory( "Input, Output/Mouse Interaction" )
 WireToolSetup.open( "graphics_tablet", "Graphics Tablet", "gmod_wire_graphics_tablet", nil, "Graphics Tablet" )
 
-if ( CLIENT ) then
+if CLIENT then
   language.Add( "Tool.wire_graphics_tablet.name", "Graphics Tablet Tool (Wire)" )
   language.Add( "Tool.wire_graphics_tablet.desc", "Spawns a graphics tablet, which outputs cursor coordinates" )
   language.Add( "Tool.wire_graphics_tablet.0", "Primary: Create/Update graphics tablet" )

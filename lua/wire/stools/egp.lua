@@ -11,14 +11,14 @@ TOOL.ClientConVar["freeze"] = 1
 
 cleanup.Register( "wire_egps" )
 
-if (SERVER) then
+if SERVER then
 	CreateConVar('sbox_maxwire_egps', 5)
 
 	local function SpawnEnt( ply, Pos, Ang, model, class)
-		if IsValid(ply) and (!ply:CheckLimit("wire_egps")) then return false end
+		if IsValid(ply) and (not ply:CheckLimit("wire_egps")) then return false end
 		if not ply then ply = game.GetWorld() end -- For Garry's Map Saver
 		local ent = ents.Create(class)
-		if (model) then ent:SetModel(model) end
+		if model then ent:SetModel(model) end
 		ent:SetAngles(Ang)
 		ent:SetPos(Pos)
 		ent:Spawn()
@@ -33,12 +33,12 @@ if (SERVER) then
 	end
 
 	local function SpawnEGP( ply, Pos, Ang, model )
-		if (EGP.ConVars.AllowScreen:GetInt() == 0) then
+		if EGP.ConVars.AllowScreen:GetInt() == 0 then
 			ply:ChatPrint("[EGP] The server has blocked EGP screens.")
 			return
 		end
 		local ent = SpawnEnt( ply, Pos, Ang, model, "gmod_wire_egp" )
-		if (ent and ent:IsValid()) then
+		if ent and ent:IsValid() then
 			ent.EGP_Duplicated = true
 			timer.Simple(0.5,function() ent.EGP_Duplicated = nil end)
 		end
@@ -46,12 +46,12 @@ if (SERVER) then
 	end
 	duplicator.RegisterEntityClass("gmod_wire_egp", SpawnEGP, "Pos", "Ang", "model")
 	local function SpawnHUD( ply, Pos, Ang )
-		if (EGP.ConVars.AllowHUD:GetInt() == 0) then
+		if EGP.ConVars.AllowHUD:GetInt() == 0 then
 			ply:ChatPrint("[EGP] The server has blocked EGP HUDs.")
 			return
 		end
 		local ent = SpawnEnt( ply, Pos, Ang, "models/bull/dynamicbutton.mdl", "gmod_wire_egp_hud" )
-		if (ent and ent:IsValid()) then
+		if ent and ent:IsValid() then
 			ent.EGP_Duplicated = true
 			timer.Simple(0.5,function() ent.EGP_Duplicated = nil end)
 		end
@@ -59,12 +59,12 @@ if (SERVER) then
 	end
 	duplicator.RegisterEntityClass("gmod_wire_egp_hud", SpawnHUD, "Pos", "Ang")
 	local function SpawnEmitter( ply, Pos, Ang )
-		if (EGP.ConVars.AllowEmitter:GetInt() == 0) then
+		if EGP.ConVars.AllowEmitter:GetInt() == 0 then
 			ply:ChatPrint("[EGP] The server has blocked EGP emitters.")
 			return
 		end
 		local ent = SpawnEnt( ply, Pos, Ang, "models/bull/dynamicbutton.mdl", "gmod_wire_egp_emitter" )
-		if (ent and ent:IsValid()) then
+		if ent and ent:IsValid() then
 			ent.EGP_Duplicated = true
 			timer.Simple(0.5,function() ent.EGP_Duplicated = nil end)
 		end
@@ -75,46 +75,46 @@ if (SERVER) then
 	function TOOL:LeftClick( trace )
 		if not util.IsValidPhysicsObject( trace.Entity, trace.PhysicsBone ) then return false end
 		local ply = self:GetOwner()
-		if (!ply:CheckLimit( "wire_egps" )) then return false end
+		if not ply:CheckLimit( "wire_egps" ) then return false end
 
 		local ent
 		local Type = self:GetClientNumber("type")
-		if (Type == 1) then -- Screen
+		if Type == 1 then -- Screen
 			local model = self:GetClientInfo("model")
-			if (!util.IsValidModel( model )) then return false end
+			if not util.IsValidModel( model ) then return false end
 
 			ent = SpawnEGP( ply, trace.HitPos, self:GetAngle(trace), model )
 			if not IsValid(ent) then return end
 			
 			self:SetPos(ent, trace) -- Use WireToolObj's pos code
-		elseif (Type == 2) then -- HUD
+		elseif Type == 2 then -- HUD
 			ent = SpawnHUD( ply, trace.HitPos + trace.HitNormal * 0.25, trace.HitNormal:Angle() + Angle(90,0,0) )
-		elseif (Type == 3) then -- Emitter
+		elseif Type == 3 then -- Emitter
 			ent = SpawnEmitter( ply, trace.HitPos + trace.HitNormal * 0.25, trace.HitNormal:Angle() + Angle(90,0,0) )
 		end
 
-		local weld = self:GetClientNumber("weld") != 0 and true or false
-		local weldworld = self:GetClientNumber("weldworld") != 0 and true or false
+		local weld = self:GetClientNumber("weld") ~= 0 and true or false
+		local weldworld = self:GetClientNumber("weldworld") ~= 0 and true or false
 		local const
-		if (trace.Entity) then
-			if (trace.Entity:IsValid() and weld) then
+		if trace.Entity then
+			if trace.Entity:IsValid() and weld then
 				const = WireLib.Weld( ent, trace.Entity, trace.PhysicsBone, true, false, weldworld )
-			elseif (trace.Entity:IsWorld() and weldworld) then
+			elseif trace.Entity:IsWorld() and weldworld then
 				const = WireLib.Weld( ent, trace.Entity, trace.PhysicsBone, true, false, true )
 			end
 		end
 
-		if (self:GetClientNumber("freeze") != 0) then
+		if self:GetClientNumber("freeze") ~= 0 then
 			local phys = ent:GetPhysicsObject()
-			if (phys) then
+			if phys then
 				phys:EnableMotion(false)
 				phys:Wake()
 			end
 		end
 
-		if (!ent or !ent:IsValid()) then return end
+		if not ent or not ent:IsValid() then return end
 		undo.Create( "wire_egp" )
-			if (const) then undo.AddEntity( const ) end
+			if const then undo.AddEntity( const ) end
 			undo.AddEntity( ent )
 			undo.SetPlayer( ply )
 		undo.Finish()
@@ -157,7 +157,7 @@ if SERVER then
 
 		local ply = self:GetOwner()
 		if (self:GetStage() == 0) then
-			if (trace.Entity:GetClass() != "gmod_wire_egp_hud") then return false end
+			if (trace.Entity:GetClass() ~= "gmod_wire_egp_hud") then return false end
 			self:SetStage(1)
 			ply:ChatPrint("[EGP] Now right click a vehicle, or right click the same EGP HUD again to unlink it.")
 			self.Selected = trace.Entity
@@ -257,7 +257,7 @@ else
 		btn3:SetSize( w, h )
 		function btn3:DoClick()
 			pnl:SetVisible( false )
-			if (CurEnt:GetClass() == "gmod_wire_egp_hud" and CurEnt:GetClass() == "gmod_wire_egp_emitter") then
+			if CurEnt:GetClass() == "gmod_wire_egp_hud" and CurEnt:GetClass() == "gmod_wire_egp_emitter" then
 				LocalPlayer():ChatPrint("[EGP] Entity does not have a RenderTarget")
 			else
 				refreshRT( CurEnt )
@@ -311,19 +311,19 @@ else
 		Menu = { Panel = pnl, SingleRender = btn, SingleObjects = btn2, SingleBoth = btn3, AllRender = btn4, AllObjects = btn5, AllBoth = btn6 }
 	end
 
-	function TOOL:LeftClick( trace ) return (!trace.Entity or (trace.Entity and !trace.Entity:IsPlayer())) end
+	function TOOL:LeftClick( trace ) return (not trace.Entity or (trace.Entity and not trace.Entity:IsPlayer())) end
 	function TOOL:Reload( trace )
 
-		if (!Menu.Panel) then CreateToolReloadMenu() end
+		if not Menu.Panel then CreateToolReloadMenu() end
 
 		Menu.Panel:SetVisible( true )
-		if (!EGP:ValidEGP( trace.Entity )) then
+		if not EGP:ValidEGP( trace.Entity ) then
 			Menu.SingleRender:SetEnabled( false )
 			Menu.SingleObjects:SetEnabled( false )
 			Menu.SingleBoth:SetEnabled( false )
 		else
 			CurEnt = trace.Entity
-			if (CurEnt:GetClass() == "gmod_wire_egp_hud" or CurEnt:GetClass() == "gmod_wire_egp_emitter") then
+			if CurEnt:GetClass() == "gmod_wire_egp_hud" or CurEnt:GetClass() == "gmod_wire_egp_emitter" then
 				Menu.SingleRender:SetEnabled( false )
 				Menu.SingleBoth:SetEnabled( false)
 			else
@@ -335,7 +335,7 @@ else
 	end
 
 	function TOOL.BuildCPanel(panel)
-		if !(EGP) then return end
+		if not (EGP) then return end
 		panel:SetSpacing( 10 )
 		panel:SetName( "E2 Graphics Processor" )
 		
@@ -376,10 +376,10 @@ function TOOL:UpdateGhost( ent, ply )
 	end
 
 	local Type = self:GetClientNumber("type")
-	if (Type == 1) then
+	if Type == 1 then
 		ent:SetAngles(self:GetAngle(trace))
 		self:SetPos(ent, trace)
-	elseif (Type == 2 or Type == 3) then
+	elseif Type == 2 or Type == 3 then
 		ent:SetPos( trace.HitPos + trace.HitNormal * 0.25 )
 		ent:SetAngles( trace.HitNormal:Angle() + Angle(90,0,0) )
 	end
@@ -394,13 +394,13 @@ function TOOL:Think()
 	end
 
 	local Type = self:GetClientNumber("type")
-	if (!self.GhostEntity or !self.GhostEntity:IsValid()) then
+	if not self.GhostEntity or not self.GhostEntity:IsValid() then
 		local trace = self:GetOwner():GetEyeTrace()
 		self:MakeGhostEntity( Model("models/bull/dynamicbutton.mdl"), trace.HitPos, trace.HitNormal:Angle() + Angle(90,0,0) )
-	elseif (!self.GhostEntity.Type or self.GhostEntity.Type != Type or (self.GhostEntity.Type == 1 and self.GhostEntity:GetModel() != self:GetClientInfo("model"))) then
-		if (Type == 1) then
+	elseif not self.GhostEntity.Type or self.GhostEntity.Type ~= Type or (self.GhostEntity.Type == 1 and self.GhostEntity:GetModel() ~= self:GetClientInfo("model")) then
+		if Type == 1 then
 			self.GhostEntity:SetModel(self:GetClientInfo("model"))
-		elseif (Type == 2 or Type == 3) then
+		elseif Type == 2 or Type == 3 then
 			self.GhostEntity:SetModel("models/bull/dynamicbutton.mdl")
 		end
 		self.GhostEntity.Type = Type

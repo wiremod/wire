@@ -1,7 +1,7 @@
 WireToolSetup.setCategory( "Input, Output/Keyboard Interaction", "Vehicle Control" )
 WireToolSetup.open( "keyboard", "Keyboard", "gmod_wire_keyboard", nil, "Keyboards" )
 
-if ( CLIENT ) then
+if CLIENT then
     language.Add( "Tool.wire_keyboard.name", "Wired Keyboard Tool (Wire)" )
     language.Add( "Tool.wire_keyboard.desc", "Spawns a keyboard input for use with the hi-speed wire system." )
     language.Add( "Tool.wire_keyboard.0", "Primary: Create/Update Keyboard, Secondary: Link Keyboard to pod, Reload: Unlink" )
@@ -11,7 +11,7 @@ end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )
 
-if (SERVER) then
+if SERVER then
 	ModelPlug_Register("Keyboard")
 	
 	function TOOL:GetConVars() 

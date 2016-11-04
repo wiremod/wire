@@ -50,10 +50,10 @@ if SERVER then
 			self:GetClientNumber("beacons") ~= 0, self:GetClientNumber("hoverballs") ~= 0, self:GetClientNumber("thrusters") ~= 0, self:GetClientNumber("props") ~= 0, 
 			self:GetClientInfo("propmodel"), self:GetClientNumber("vehicles") ~= 0, self:GetClientInfo("playername"), self:GetClientNumber("casesen") ~= 0,
 			self:GetClientNumber("rpgs") ~= 0, self:GetClientNumber("painttarget") ~= 0, self:GetClientNumber("minrange"), self:GetClientNumber("maxtargets"), 
-			self:GetClientNumber("maxbogeys"), self:GetClientNumber("notargetowner") != 0, self:GetClientInfo("entityfil"), self:GetClientNumber("notownersstuff") != 0, 
+			self:GetClientNumber("maxbogeys"), self:GetClientNumber("notargetowner") ~= 0, self:GetClientInfo("entityfil"), self:GetClientNumber("notownersstuff") ~= 0, 
 			self:GetClientInfo("steamname"), (self:GetClientNumber("colorcheck") ~= 0), (self:GetClientNumber("colortarget") ~= 0), 
 			self:GetClientNumber("pcolR"), self:GetClientNumber("pcolG"), self:GetClientNumber("pcolB"), self:GetClientNumber("pcolA"), 
-			self:GetClientNumber("checkbuddylist") != 0, self:GetClientNumber("onbuddylist") != 0
+			self:GetClientNumber("checkbuddylist") ~= 0, self:GetClientNumber("onbuddylist") ~= 0
 	end
 end
 

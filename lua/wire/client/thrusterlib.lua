@@ -266,7 +266,7 @@ WireLib.ThrusterEffectDraw.fire_smoke = function(self)
 	render.EndBeam()
 
 		self.SmokeTimer = self.SmokeTimer or 0
-	if ( self.SmokeTimer > CurTime() ) then return end
+	if self.SmokeTimer > CurTime() then return end
 
 	self.SmokeTimer = CurTime() + 0.015
 
@@ -289,7 +289,7 @@ end
 WireLib.ThrusterEffectDraw.fire_smoke_big = function(self)
 
 	self.RingTimer = self.RingTimer or 0
-	if ( self.RingTimer > CurTime() ) then return end
+	if self.RingTimer > CurTime() then return end
 	self.RingTimer = CurTime() + 0.005
 
 	local vOffset = self:LocalToWorld(self:GetOffset())
@@ -325,7 +325,7 @@ end
 WireLib.ThrusterEffectThink.smoke = function(self)
 
 	self.SmokeTimer = self.SmokeTimer or 0
-	if ( self.SmokeTimer > CurTime() ) then return end
+	if self.SmokeTimer > CurTime() then return end
 
 	self.SmokeTimer = CurTime() + 0.015
 
@@ -345,7 +345,7 @@ end
 WireLib.ThrusterEffectThink.smoke_firecolors = function(self)
 
 	self.SmokeTimer = self.SmokeTimer or 0
-	if ( self.SmokeTimer > CurTime() ) then return end
+	if self.SmokeTimer > CurTime() then return end
 
 	self.SmokeTimer = CurTime() + 0.015
 
@@ -365,7 +365,7 @@ end
 WireLib.ThrusterEffectThink.smoke_random = function(self)
 
 	self.SmokeTimer = self.SmokeTimer or 0
-	if ( self.SmokeTimer > CurTime() ) then return end
+	if self.SmokeTimer > CurTime() then return end
 
 	self.SmokeTimer = CurTime() + 0.015
 
@@ -384,7 +384,7 @@ end
 
 WireLib.ThrusterEffectThink.smoke_diy = function(self)
 	self.SmokeTimer = self.SmokeTimer or 0
-	if ( self.SmokeTimer > CurTime() ) then return end
+	if self.SmokeTimer > CurTime() then return end
 
 	self.SmokeTimer = CurTime() + 0.015
 
@@ -436,7 +436,7 @@ WireLib.ThrusterEffectDraw.color_magic = function(self)
 	render.EndBeam()
 
 		self.SmokeTimer = self.SmokeTimer or 0
-	if ( self.SmokeTimer > CurTime() ) then return end
+	if self.SmokeTimer > CurTime() then return end
 
 	self.SmokeTimer = CurTime() + 0.00005
 
@@ -458,7 +458,7 @@ end
 WireLib.ThrusterEffectThink.money = function(self)
 
 	self.SmokeTimer = self.SmokeTimer or 0
-	if ( self.SmokeTimer > CurTime() ) then return end
+	if self.SmokeTimer > CurTime() then return end
 
 	self.SmokeTimer = CurTime() + math.random(0.005,0.00005)
 
@@ -480,7 +480,7 @@ end
 WireLib.ThrusterEffectThink.debug_10 = function(self)
 
 	self.SmokeTimer = self.SmokeTimer or 0
-	if ( self.SmokeTimer > CurTime() ) then return end
+	if self.SmokeTimer > CurTime() then return end
 
 	self.SmokeTimer = CurTime() + 0.05
 
@@ -501,7 +501,7 @@ end
 WireLib.ThrusterEffectThink.debug_30 = function(self)
 
 	self.SmokeTimer = self.SmokeTimer or 0
-	if ( self.SmokeTimer > CurTime() ) then return end
+	if self.SmokeTimer > CurTime() then return end
 
 	self.SmokeTimer = CurTime() + 0.05
 
@@ -522,7 +522,7 @@ end
 WireLib.ThrusterEffectThink.debug_60 = function(self)
 
 	self.SmokeTimer = self.SmokeTimer or 0
-	if ( self.SmokeTimer > CurTime() ) then return end
+	if self.SmokeTimer > CurTime() then return end
 
 	self.SmokeTimer = CurTime() + 0.05
 
@@ -543,7 +543,7 @@ end
 WireLib.ThrusterEffectThink.souls = function(self)
 
 	self.SmokeTimer = self.SmokeTimer or 0
-	if ( self.SmokeTimer > CurTime() ) then return end
+	if self.SmokeTimer > CurTime() then return end
 
 	self.SmokeTimer = CurTime() + 0.05
 
@@ -566,7 +566,7 @@ end
 WireLib.ThrusterEffectThink.sperm = function(self)
 
 	self.SmokeTimer = self.SmokeTimer or 0
-	if ( self.SmokeTimer > CurTime() ) then return end
+	if self.SmokeTimer > CurTime() then return end
 
 	self.SmokeTimer = CurTime() + math.random(0.005,0.00005)
 
@@ -608,7 +608,7 @@ end
 WireLib.ThrusterEffectThink.feather = function(self)
 
 	self.SmokeTimer = self.SmokeTimer or 0
-	if ( self.SmokeTimer > CurTime() ) then return end
+	if self.SmokeTimer > CurTime() then return end
 
 	self.SmokeTimer = CurTime() + math.random(0.005,0.00005)
 
@@ -630,7 +630,7 @@ end
 WireLib.ThrusterEffectThink.goldstar = function(self)
 
 	self.SmokeTimer = self.SmokeTimer or 0
-	if ( self.SmokeTimer > CurTime() ) then return end
+	if self.SmokeTimer > CurTime() then return end
 
 	self.SmokeTimer = CurTime() + math.random(0.005,0.00005)
 
@@ -652,7 +652,7 @@ end
 WireLib.ThrusterEffectThink.candy_cane = function(self)
 
 	self.SmokeTimer = self.SmokeTimer or 0
-	if ( self.SmokeTimer > CurTime() ) then return end
+	if self.SmokeTimer > CurTime() then return end
 
 	self.SmokeTimer = CurTime() + math.random(0.005,0.00005)
 
@@ -674,14 +674,14 @@ end
 WireLib.ThrusterEffectThink.jetflame = function(self)
 
 	self.SmokeTimer = self.SmokeTimer or 0
-	if ( self.SmokeTimer > CurTime() ) then return end
+	if self.SmokeTimer > CurTime() then return end
 
 	self.SmokeTimer = CurTime() + 0.0000005
 
 	local vOffset = self:LocalToWorld(self:GetOffset())
 	local vNormal = self:CalcNormal()
 
-	//vOffset = vOffset + VectorRand() * 5
+	-- vOffset = vOffset + VectorRand() * 5
 
 	local speed = math.Rand(90,252)
 	local roll = math.Rand(-90,90)
@@ -722,14 +722,14 @@ end
 WireLib.ThrusterEffectThink.jetflame_purple = function(self)
 
 	self.SmokeTimer = self.SmokeTimer or 0
-	if ( self.SmokeTimer > CurTime() ) then return end
+	if self.SmokeTimer > CurTime() then return end
 
 	self.SmokeTimer = CurTime() + 0.0000005
 
 	local vOffset = self:LocalToWorld(self:GetOffset())
 	local vNormal = self:CalcNormal()
 
-	//vOffset = vOffset + VectorRand() * 5
+	-- vOffset = vOffset + VectorRand() * 5
 
 	local speed = math.Rand(90,252)
 	local roll = math.Rand(-90,90)
@@ -770,14 +770,14 @@ end
 WireLib.ThrusterEffectThink.jetflame_red = function(self)
 
 	self.SmokeTimer = self.SmokeTimer or 0
-	if ( self.SmokeTimer > CurTime() ) then return end
+	if self.SmokeTimer > CurTime() then return end
 
 	self.SmokeTimer = CurTime() + 0.0000005
 
 	local vOffset = self:LocalToWorld(self:GetOffset())
 	local vNormal = self:CalcNormal()
 
-	//vOffset = vOffset + VectorRand() * 5
+	-- vOffset = vOffset + VectorRand() * 5
 
 	local speed = math.Rand(90,252)
 	local roll = math.Rand(-90,90)
@@ -818,14 +818,14 @@ end
 WireLib.ThrusterEffectThink.jetflame_blue = function(self)
 
 	self.SmokeTimer = self.SmokeTimer or 0
-	if ( self.SmokeTimer > CurTime() ) then return end
+	if self.SmokeTimer > CurTime() then return end
 
 	self.SmokeTimer = CurTime() + 0.0000005
 
 	local vOffset = self:LocalToWorld(self:GetOffset())
 	local vNormal = self:CalcNormal()
 
-	//vOffset = vOffset + VectorRand() * 5
+	-- vOffset = vOffset + VectorRand() * 5
 
 	local speed = math.Rand(90,252)
 	local roll = math.Rand(-90,90)
@@ -865,7 +865,7 @@ end
 
 WireLib.ThrusterEffectThink.balls_firecolors = function(self)
 	self.SmokeTimer = self.SmokeTimer or 0
-	if ( self.SmokeTimer > CurTime() ) then return end
+	if self.SmokeTimer > CurTime() then return end
 
 	self.SmokeTimer = CurTime() + 0.025
 
@@ -886,7 +886,7 @@ end
 
 WireLib.ThrusterEffectThink.balls_random = function(self)
 	self.SmokeTimer = self.SmokeTimer or 0
-	if ( self.SmokeTimer > CurTime() ) then return end
+	if self.SmokeTimer > CurTime() then return end
 
 	self.SmokeTimer = CurTime() + 0.025
 
@@ -907,7 +907,7 @@ end
 
 WireLib.ThrusterEffectThink.balls = function(self)
 	self.SmokeTimer = self.SmokeTimer or 0
-	if ( self.SmokeTimer > CurTime() ) then return end
+	if self.SmokeTimer > CurTime() then return end
 
 	self.SmokeTimer = CurTime() + 0.025
 
@@ -929,7 +929,7 @@ end
 WireLib.ThrusterEffectThink.plasma_rings = function(self)
 
 	self.SmokeTimer = self.SmokeTimer or 0
-	if ( self.SmokeTimer > CurTime() ) then return end
+	if self.SmokeTimer > CurTime() then return end
 
 	self.SmokeTimer = CurTime() + 0.00005
 
@@ -951,7 +951,7 @@ end
 WireLib.ThrusterEffectThink.magic_firecolors = function(self)
 
 	self.SmokeTimer = self.SmokeTimer or 0
-	if ( self.SmokeTimer > CurTime() ) then return end
+	if self.SmokeTimer > CurTime() then return end
 
 	self.SmokeTimer = CurTime() + 0.00005
 
@@ -974,7 +974,7 @@ end
 WireLib.ThrusterEffectThink.magic = function(self)
 
 	self.SmokeTimer = self.SmokeTimer or 0
-	if ( self.SmokeTimer > CurTime() ) then return end
+	if self.SmokeTimer > CurTime() then return end
 
 	self.SmokeTimer = CurTime() + 0.00005
 
@@ -995,7 +995,7 @@ end
 
 WireLib.ThrusterEffectThink.magic_diy = function(self)
 	self.SmokeTimer = self.SmokeTimer or 0
-	if ( self.SmokeTimer > CurTime() ) then return end
+	if self.SmokeTimer > CurTime() then return end
 
 	self.SmokeTimer = CurTime() + 0.00005
 
@@ -1018,7 +1018,7 @@ end
 WireLib.ThrusterEffectThink.magic_color = function(self)
 
 	self.SmokeTimer = self.SmokeTimer or 0
-	if ( self.SmokeTimer > CurTime() ) then return end
+	if self.SmokeTimer > CurTime() then return end
 
 	self.SmokeTimer = CurTime() + 0.00005
 
@@ -1041,7 +1041,7 @@ end
 WireLib.ThrusterEffectDraw.rings = function(self)
 
 	self.RingTimer = self.RingTimer or 0
-	if ( self.RingTimer > CurTime() ) then return end
+	if self.RingTimer > CurTime() then return end
 	self.RingTimer = CurTime() + 0.00005
 
 	local vOffset = self:LocalToWorld(self:GetOffset())
@@ -1057,7 +1057,7 @@ end
 WireLib.ThrusterEffectDraw.tesla = function(self)
 
 	self.RingTimer = self.RingTimer or 0
-	if ( self.RingTimer > CurTime() ) then return end
+	if self.RingTimer > CurTime() then return end
 	self.RingTimer = CurTime() + 0.00005
 
 	local vOffset = self:LocalToWorld(self:GetOffset())
@@ -1075,7 +1075,7 @@ end
 WireLib.ThrusterEffectDraw.blood = function(self)
 
 	self.RingTimer = self.RingTimer or 0
-	if ( self.RingTimer > CurTime() ) then return end
+	if self.RingTimer > CurTime() then return end
 	self.RingTimer = CurTime() + 0.00005
 
 	local vOffset = self:LocalToWorld(self:GetOffset())
@@ -1093,7 +1093,7 @@ end
 WireLib.ThrusterEffectDraw.some_sparks = function(self)
 
 	self.RingTimer = self.RingTimer or 0
-	if ( self.RingTimer > CurTime() ) then return end
+	if self.RingTimer > CurTime() then return end
 	self.RingTimer = CurTime() + 0.00005
 
 	local vOffset = self:LocalToWorld(self:GetOffset())
@@ -1111,7 +1111,7 @@ end
 WireLib.ThrusterEffectDraw.spark_fountain = function(self)
 
 	self.RingTimer = self.RingTimer or 0
-	if ( self.RingTimer > CurTime() ) then return end
+	if self.RingTimer > CurTime() then return end
 	self.RingTimer = CurTime() + 0.00005
 
 	local vOffset = self:LocalToWorld(self:GetOffset())
@@ -1129,7 +1129,7 @@ end
 WireLib.ThrusterEffectDraw.more_sparks = function(self)
 
 	self.RingTimer = self.RingTimer or 0
-	if ( self.RingTimer > CurTime() ) then return end
+	if self.RingTimer > CurTime() then return end
 	self.RingTimer = CurTime() + 0.00005
 
 	local vOffset = self:LocalToWorld(self:GetOffset())
@@ -1147,7 +1147,7 @@ end
 WireLib.ThrusterEffectDraw.water_small = function(self)
 
 	self.RingTimer = self.RingTimer or 0
-	if ( self.RingTimer > CurTime() ) then return end
+	if self.RingTimer > CurTime() then return end
 	self.RingTimer = CurTime() + 0.05
 
 	local vOffset = self:LocalToWorld(self:GetOffset())
@@ -1165,7 +1165,7 @@ end
 WireLib.ThrusterEffectDraw.water_medium = function(self)
 
 	self.RingTimer = self.RingTimer or 0
-	if ( self.RingTimer > CurTime() ) then return end
+	if self.RingTimer > CurTime() then return end
 	self.RingTimer = CurTime() + 0.05
 
 	local vOffset = self:LocalToWorld(self:GetOffset())
@@ -1184,7 +1184,7 @@ end
 WireLib.ThrusterEffectDraw.water_big = function(self)
 
 	self.RingTimer = self.RingTimer or 0
-	if ( self.RingTimer > CurTime() ) then return end
+	if self.RingTimer > CurTime() then return end
 	self.RingTimer = CurTime() + 0.05
 
 	local vOffset = self:LocalToWorld(self:GetOffset())
@@ -1202,7 +1202,7 @@ end
 WireLib.ThrusterEffectDraw.water_huge = function(self)
 
 	self.RingTimer = self.RingTimer or 0
-	if ( self.RingTimer > CurTime() ) then return end
+	if self.RingTimer > CurTime() then return end
 	self.RingTimer = CurTime() + 0.05
 
 	local vOffset = self:LocalToWorld(self:GetOffset())
@@ -1220,7 +1220,7 @@ end
 WireLib.ThrusterEffectDraw.striderblood_small = function(self)
 
 	self.RingTimer = self.RingTimer or 0
-	if ( self.RingTimer > CurTime() ) then return end
+	if self.RingTimer > CurTime() then return end
 	self.RingTimer = CurTime() + 0.05
 
 	local vOffset = self:LocalToWorld(self:GetOffset())
@@ -1238,7 +1238,7 @@ end
 WireLib.ThrusterEffectDraw.striderblood_medium = function(self)
 
 	self.RingTimer = self.RingTimer or 0
-	if ( self.RingTimer > CurTime() ) then return end
+	if self.RingTimer > CurTime() then return end
 	self.RingTimer = CurTime() + 0.05
 
 	local vOffset = self:LocalToWorld(self:GetOffset())
@@ -1257,7 +1257,7 @@ end
 WireLib.ThrusterEffectDraw.striderblood_big = function(self)
 
 	self.RingTimer = self.RingTimer or 0
-	if ( self.RingTimer > CurTime() ) then return end
+	if self.RingTimer > CurTime() then return end
 	self.RingTimer = CurTime() + 0.05
 
 	local vOffset = self:LocalToWorld(self:GetOffset())
@@ -1275,7 +1275,7 @@ end
 WireLib.ThrusterEffectDraw.striderblood_huge = function(self)
 
 	self.RingTimer = self.RingTimer or 0
-	if ( self.RingTimer > CurTime() ) then return end
+	if self.RingTimer > CurTime() then return end
 	self.RingTimer = CurTime() + 0.05
 
 	local vOffset = self:LocalToWorld(self:GetOffset())
@@ -1293,7 +1293,7 @@ end
 WireLib.ThrusterEffectDraw.rings_grow = function(self)
 
 	self.RingTimer = self.RingTimer or 0
-	if ( self.RingTimer > CurTime() ) then return end
+	if self.RingTimer > CurTime() then return end
 	self.RingTimer = CurTime() + 0.00005
 
 	local vOffset = self:LocalToWorld(self:GetOffset())
@@ -1309,7 +1309,7 @@ end
 WireLib.ThrusterEffectDraw.rings_grow_rings = function(self)
 
 	self.RingTimer = self.RingTimer or 0
-	if ( self.RingTimer > CurTime() ) then return end
+	if self.RingTimer > CurTime() then return end
 	self.RingTimer = CurTime() + 0.00005
 
 	local vOffset = self:LocalToWorld(self:GetOffset())
@@ -1329,7 +1329,7 @@ end
 WireLib.ThrusterEffectDraw.rings_shrink = function(self)
 
 	self.RingTimer = self.RingTimer or 0
-	if ( self.RingTimer > CurTime() ) then return end
+	if self.RingTimer > CurTime() then return end
 	self.RingTimer = CurTime() + 0.00005
 
 	local vOffset = self:LocalToWorld(self:GetOffset())
@@ -1344,7 +1344,7 @@ end
 
 WireLib.ThrusterEffectThink.bubble = function(self)
 	self.SmokeTimer = self.SmokeTimer or 0
-	if ( self.SmokeTimer > CurTime() ) then return end
+	if self.SmokeTimer > CurTime() then return end
 
 	self.SmokeTimer = CurTime() + 0.005
 

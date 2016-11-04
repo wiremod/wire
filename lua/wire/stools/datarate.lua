@@ -1,7 +1,7 @@
 WireToolSetup.setCategory( "Advanced" )
 WireToolSetup.open( "datarate", "Data - Transfer Bus", "gmod_wire_datarate", nil, "Transfer Buses" )
 
-if ( CLIENT ) then
+if CLIENT then
 	language.Add( "Tool.wire_datarate.name", "Data transfer bus tool (Wire)" )
 	language.Add( "Tool.wire_datarate.desc", "Spawns a data transferrer. Data transferrer acts like identity gate for hi-speed and regular links" )
 	language.Add( "Tool.wire_datarate.0", "Primary: Create/Update data trasnferrer" )

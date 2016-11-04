@@ -1,7 +1,7 @@
 WireToolSetup.setCategory( "Vehicle Control", "Visuals" )
 WireToolSetup.open( "cam", "Cam Controller", "gmod_wire_cameracontroller", nil, "Cam Controllers" )
 
-if ( CLIENT ) then
+if CLIENT then
 	language.Add( "Tool.wire_cam.name", "Cam Controller Tool (Wire)" )
 	language.Add( "Tool.wire_cam.desc", "Spawns a constant Cam Controller prop for use with the wire system." )
 	language.Add( "Tool.wire_cam.0", "Primary: Create/Update Cam Controller Secondary: Link a cam controller to a Pod." )

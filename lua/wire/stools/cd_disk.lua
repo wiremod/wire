@@ -1,7 +1,7 @@
 WireToolSetup.setCategory( "Memory" )
 WireToolSetup.open( "cd_disk", "CD Disk", "gmod_wire_cd_disk", nil, "CD Disks" )
 
-if (CLIENT) then
+if CLIENT then
     language.Add("Tool.wire_cd_disk.name", "CD Disk Tool (Wire)")
     language.Add("Tool.wire_cd_disk.desc", "Spawns a CD Disk.")
     language.Add("Tool.wire_cd_disk.0", "Primary: Create/Update CD Disk, Secondary: Change model")
@@ -12,7 +12,7 @@ end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )
 
-if (SERVER) then
+if SERVER then
 	function TOOL:GetConVars() 
 		return self:GetClientNumber( "precision" ), self:GetClientNumber( "iradius" ), self:GetClientNumber( "skin" )
 	end
@@ -24,10 +24,10 @@ TOOL.ClientConVar["precision"] = 4
 TOOL.ClientConVar["iradius"] = 10
 
 function TOOL:RightClick(trace)
-	if (CLIENT) then return true end
+	if CLIENT then return true end
 
-	if (trace.Entity and trace.Entity:IsValid()) then
-		if (trace.Entity:GetClass() == "prop_physics") then
+	if trace.Entity and trace.Entity:IsValid() then
+		if trace.Entity:GetClass() == "prop_physics" then
 			self:GetOwner():ConCommand('wire_cd_disk_model "'..trace.Entity:GetModel()..'"\n')
 			self:GetOwner():ConCommand('wire_cd_disk_skin "'..trace.Entity:GetSkin()..'"\n')
 		end

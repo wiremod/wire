@@ -21,7 +21,7 @@ GateActions["entity_applyf"] = {
 		local phys = ent:GetPhysicsObject()
 		if not IsValid( phys ) then return end
 		if not isAllowed( gate, ent ) then return end
-		if !isvector(vec) then vec = Vector (0, 0, 0) end
+		if not isvector(vec) then vec = Vector (0, 0, 0) end
 		if not check(vec) then return end
 		if vec.x == 0 and vec.y == 0 and vec.z == 0 then return end
 
@@ -42,8 +42,8 @@ GateActions["entity_applyof"] = {
 		local phys = ent:GetPhysicsObject()
 		if not IsValid( phys ) then return end
 		if not isAllowed( gate, ent ) then return end
-		if !isvector(vec) then vec = Vector (0, 0, 0) end
-		if !isvector(offset) then offset = Vector (0, 0, 0) end
+		if not isvector(vec) then vec = Vector (0, 0, 0) end
+		if not isvector(offset) then offset = Vector (0, 0, 0) end
 		if not check(vec) or not check( offset ) then return end
 		if vec.x == 0 and vec.y == 0 and vec.z == 0 then return end
 
@@ -113,8 +113,8 @@ GateActions["entity_applytorq"] = {
 		local phys = ent:GetPhysicsObject()
 		if not IsValid( phys ) then return end
 		if not isAllowed( gate, ent ) then return end
-		if !isvector(vec) then vec = Vector (0, 0, 0) end
-		if !isvector(offset) then offset = Vector (0, 0, 0) end
+		if not isvector(vec) then vec = Vector (0, 0, 0) end
+		if not isvector(offset) then offset = Vector (0, 0, 0) end
 		if not check(vec) or not check( offset ) then return end
 		if vec.x == 0 and vec.y == 0 and vec.z == 0 then return end
 
@@ -152,7 +152,7 @@ GateActions["entity_class"] = {
 	inputtypes = { "ENTITY" },
 	outputtypes = { "STRING" },
 	output = function(gate, Ent)
-		if !Ent:IsValid() then return "" else return Ent:GetClass() end
+		if not Ent:IsValid() then return "" else return Ent:GetClass() end
 	end,
 	label = function(Out)
 		return string.format ("Class = %q", Out)
@@ -164,7 +164,7 @@ GateActions["entity_entid"] = {
 	inputs = { "A" },
 	inputtypes = { "ENTITY" },
 	output = function(gate, A)
-		if (A and A:IsValid()) then return A:EntIndex() end
+		if A and A:IsValid() then return A:EntIndex() end
 		return 0
 	end,
 	label = function(Out, A)
@@ -178,7 +178,7 @@ GateActions["entity_id2ent"] = {
 	outputtypes = { "ENTITY" },
 	output = function(gate, A)
 		local Ent = Entity(A)
-		if !Ent:IsValid() then return NULL end
+		if not Ent:IsValid() then return NULL end
 		return Ent
 	end,
 	label = function(Out, A)
@@ -193,7 +193,7 @@ GateActions["entity_model"] = {
 	inputtypes = { "ENTITY" },
 	outputtypes = { "STRING" },
 	output = function(gate, Ent)
-		if !Ent:IsValid() then return "" else return Ent:GetModel() end
+		if not Ent:IsValid() then return "" else return Ent:GetModel() end
 	end,
 	label = function(Out)
 		return string.format ("Model = %q", Out)
@@ -206,7 +206,7 @@ GateActions["entity_steamid"] = {
 	inputtypes = { "ENTITY" },
 	outputtypes = { "STRING" },
 	output = function(gate, Ent)
-		if !Ent:IsValid() or !Ent:IsPlayer() then return "" else return Ent:SteamID() end
+		if not Ent:IsValid() or not Ent:IsPlayer() then return "" else return Ent:SteamID() end
 	end,
 	label = function(Out)
 		return string.format ("SteamID = %q", Out)
@@ -220,7 +220,7 @@ GateActions["entity_pos"] = {
 	outputtypes = { "VECTOR" },
 	timed = true,
 	output = function(gate, Ent)
-		if !Ent:IsValid() then return Vector(0,0,0) else return Ent:GetPos() end
+		if not Ent:IsValid() then return Vector(0,0,0) else return Ent:GetPos() end
 	end,
 	label = function(Out)
 		return string.format ("Position = (%d,%d,%d)", Out.x , Out.y , Out.z )
@@ -235,7 +235,7 @@ GateActions["entity_fruvecs"] = {
 	outputtypes = { "VECTOR" , "VECTOR" , "VECTOR" },
 	timed = true,
 	output = function(gate, Ent)
-		if !Ent:IsValid() then return Vector(0,0,0) , Vector(0,0,0) , Vector(0,0,0) else return Ent:GetForward() , Ent:GetRight() , Ent:GetUp() end
+		if not Ent:IsValid() then return Vector(0,0,0) , Vector(0,0,0) , Vector(0,0,0) else return Ent:GetForward() , Ent:GetRight() , Ent:GetUp() end
 	end,
 	label = function(Out)
 		return string.format ("Forward = (%f , %f , %f)\nUp = (%f , %f , %f)\nRight = (%f , %f , %f)", Out.Forward.x , Out.Forward.y , Out.Forward.z, Out.Up.x , Out.Up.y , Out.Up.z, Out.Right.x , Out.Right.y , Out.Right.z)
@@ -248,7 +248,7 @@ GateActions["entity_isvalid"] = {
 	inputtypes = { "ENTITY" },
 	timed = true,
 	output = function(gate, A)
-		if (A and IsEntity (A) and A:IsValid ()) then
+		if A and IsEntity (A) and A:IsValid () then
 			return 1
 		end
 		return 0
@@ -265,7 +265,7 @@ GateActions["entity_vell"] = {
 	outputtypes = { "VECTOR" },
 	timed = true,
 	output = function(gate, Ent)
-		if !Ent:IsValid() then return Vector(0,0,0) else return Ent:WorldToLocal(Ent:GetVelocity() + Ent:GetPos()) end
+		if not Ent:IsValid() then return Vector(0,0,0) else return Ent:WorldToLocal(Ent:GetVelocity() + Ent:GetPos()) end
 	end,
 	label = function(Out)
 		return string.format ("Velocity (local) = (%f , %f , %f)", Out.x , Out.y , Out.z )
@@ -279,7 +279,7 @@ GateActions["entity_vel"] = {
 	outputtypes = { "VECTOR" },
 	timed = true,
 	output = function(gate, Ent)
-		if !Ent:IsValid() then return Vector(0,0,0) else return Ent:GetVelocity() end
+		if not Ent:IsValid() then return Vector(0,0,0) else return Ent:GetVelocity() end
 	end,
 	label = function(Out)
 		return string.format ("Velocity = (%f , %f , %f)", Out.x , Out.y , Out.z )
@@ -294,7 +294,7 @@ GateActions["entity_angvel"] = {
 	timed = true,
 	output = function(gate, Ent)
 		local Vec
-		if !Ent:IsValid() or !Ent:GetPhysicsObject():IsValid() then Vec = Vector(0,0,0) else Vec = Ent:GetPhysicsObject():GetAngleVelocity() end
+		if not Ent:IsValid() or not Ent:GetPhysicsObject():IsValid() then Vec = Vector(0,0,0) else Vec = Ent:GetPhysicsObject():GetAngleVelocity() end
 		return Angle(Vec.y, Vec.z, Vec.x)
 	end,
 	label = function(Out)
@@ -396,7 +396,7 @@ GateActions["entity_health"] = {
 	outputtypes = { "NORMAL" },
 	timed = true,
 	output = function(gate, Ent)
-		if !Ent:IsValid() then return 0 else return Ent:Health() end
+		if not Ent:IsValid() then return 0 else return Ent:Health() end
 	end,
 	label = function(Out)
 		return string.format ("Health = %d", Out)
@@ -410,7 +410,7 @@ GateActions["entity_radius"] = {
 	outputtypes = { "NORMAL" },
 	timed = true,
 	output = function(gate, Ent)
-		if !Ent:IsValid() then return 0 else return Ent:BoundingRadius() end
+		if not Ent:IsValid() then return 0 else return Ent:BoundingRadius() end
 	end,
 	label = function(Out)
 		return string.format ("Radius = %d", Out)
@@ -424,7 +424,7 @@ GateActions["entity_mass"] = {
 	outputtypes = { "NORMAL" },
 	timed = true,
 	output = function(gate, Ent)
-		if !Ent:IsValid() or !Ent:GetPhysicsObject():IsValid() then return 0 else return Ent:GetPhysicsObject():GetMass() end
+		if not Ent:IsValid() or not Ent:GetPhysicsObject():IsValid() then return 0 else return Ent:GetPhysicsObject():GetMass() end
 	end,
 	label = function(Out)
 		return string.format ("Mass = %d", Out)
@@ -438,7 +438,7 @@ GateActions["entity_masscenter"] = {
 	outputtypes = { "VECTOR" },
 	timed = true,
 	output = function(gate, Ent)
-		if !Ent:IsValid() or !Ent:GetPhysicsObject():IsValid() then return Vector(0,0,0) else return Ent:LocalToWorld(Ent:GetPhysicsObject():GetMassCenter()) end
+		if not Ent:IsValid() or not Ent:GetPhysicsObject():IsValid() then return Vector(0,0,0) else return Ent:LocalToWorld(Ent:GetPhysicsObject():GetMassCenter()) end
 	end,
 	label = function(Out)
 		return string.format ("Mass Center = (%d,%d,%d)", Out.x , Out.y , Out.z)
@@ -452,7 +452,7 @@ GateActions["entity_masscenterlocal"] = {
 	outputtypes = { "VECTOR" },
 	timed = true,
 	output = function(gate, Ent)
-		if !Ent:IsValid() or !Ent:GetPhysicsObject():IsValid() then return Vector(0,0,0) else return Ent:GetPhysicsObject():GetMassCenter() end
+		if not Ent:IsValid() or not Ent:GetPhysicsObject():IsValid() then return Vector(0,0,0) else return Ent:GetPhysicsObject():GetMassCenter() end
 	end,
 	label = function(Out)
 		return string.format ("Mass Center (local) = (%d,%d,%d)", Out.x , Out.y , Out.z)
@@ -466,7 +466,7 @@ GateActions["entity_isplayer"] = {
 	outputtypes = { "NORMAL" },
 	timed = true,
 	output = function(gate, Ent)
-		if !Ent:IsValid() then return 0 end
+		if not Ent:IsValid() then return 0 end
 		if Ent:IsPlayer() then return 1 else return 0 end
 	end,
 	label = function(Out)
@@ -481,7 +481,7 @@ GateActions["entity_isnpc"] = {
 	outputtypes = { "NORMAL" },
 	timed = true,
 	output = function(gate, Ent)
-		if !Ent:IsValid() then return 0 end
+		if not Ent:IsValid() then return 0 end
 		if Ent:IsNPC() then return 1 else return 0 end
 	end,
 	label = function(Out)
@@ -496,7 +496,7 @@ GateActions["entity_isvehicle"] = {
 	outputtypes = { "NORMAL" },
 	timed = true,
 	output = function(gate, Ent)
-		if !Ent:IsValid() then return 0 end
+		if not Ent:IsValid() then return 0 end
 		if Ent:IsVehicle() then return 1 else return 0 end
 	end,
 	label = function(Out)
@@ -511,7 +511,7 @@ GateActions["entity_isworld"] = {
 	outputtypes = { "NORMAL" },
 	timed = true,
 	output = function(gate, Ent)
-		if !Ent:IsValid() then return 0 end
+		if not Ent:IsValid() then return 0 end
 		if Ent:IsWorld() then return 1 else return 0 end
 	end,
 	label = function(Out)
@@ -526,7 +526,7 @@ GateActions["entity_isongrnd"] = {
 	outputtypes = { "NORMAL" },
 	timed = true,
 	output = function(gate, Ent)
-		if !Ent:IsValid() then return 0 end
+		if not Ent:IsValid() then return 0 end
 		if Ent:IsOnGround() then return 1 else return 0 end
 	end,
 	label = function(Out)
@@ -541,7 +541,7 @@ GateActions["entity_isunderwater"] = {
 	outputtypes = { "NORMAL" },
 	timed = true,
 	output = function(gate, Ent)
-		if !Ent:IsValid() then return 0 end
+		if not Ent:IsValid() then return 0 end
 		if Ent:WaterLevel() > 0 then return 1 else return 0 end
 	end,
 	label = function(Out)
@@ -556,7 +556,7 @@ GateActions["entity_angles"] = {
 	outputtypes = { "ANGLE" },
 	timed = true,
 	output = function(gate, Ent)
-		if !Ent:IsValid() then return Angle(0,0,0) else return Ent:GetAngles() end
+		if not Ent:IsValid() then return Angle(0,0,0) else return Ent:GetAngles() end
 	end,
 	label = function(Out)
 		return string.format ("Angles = (%d,%d,%d)", Out.p , Out.y , Out.r)
@@ -570,7 +570,7 @@ GateActions["entity_material"] = {
 	outputtypes = { "STRING" },
 	timed = true,
 	output = function(gate, Ent)
-		if !Ent:IsValid() then return "" else return Ent:GetMaterial() end
+		if not Ent:IsValid() then return "" else return Ent:GetMaterial() end
 	end,
 	label = function(Out)
 		return string.format ("Material = %q", Out)
@@ -584,7 +584,7 @@ GateActions["entity_owner"] = {
 	outputtypes = { "ENTITY" },
 	timed = true,
 	output = function(gate, Ent)
-		if !Ent:IsValid() then return WireLib.GetOwner(gate) end
+		if not Ent:IsValid() then return WireLib.GetOwner(gate) end
 		return WireLib.GetOwner(Ent)
 	end,
 	label = function(Out,Ent)
@@ -599,7 +599,7 @@ GateActions["entity_isheld"] = {
 	outputtypes = { "NORMAL" },
 	timed = true,
 	output = function(gate, Ent)
-		if !Ent:IsValid() then return 0 end
+		if not Ent:IsValid() then return 0 end
 		if Ent:IsPlayerHolding() then return 1 else return 0 end
 	end,
 	label = function(Out)
@@ -614,7 +614,7 @@ GateActions["entity_isonfire"] = {
 	outputtypes = { "NORMAL" },
 	timed = true,
 	output = function(gate, Ent)
-		if !Ent:IsValid() then return 0 end
+		if not Ent:IsValid() then return 0 end
 		if Ent:IsOnFire()then return 1 else return 0 end
 	end,
 	label = function(Out)
@@ -629,7 +629,7 @@ GateActions["entity_isweapon"] = {
 	outputtypes = { "NORMAL" },
 	timed = true,
 	output = function(gate, Ent)
-		if !Ent:IsValid() then return 0 end
+		if not Ent:IsValid() then return 0 end
 		if Ent:IsWeapon() then return 1 else return 0 end
 	end,
 	label = function(Out)
@@ -644,7 +644,7 @@ GateActions["player_invehicle"] = {
 	outputtypes = { "NORMAL" },
 	timed = true,
 	output = function(gate, Ent)
-		if !Ent:IsValid() then return 0 end
+		if not Ent:IsValid() then return 0 end
 		if Ent:IsPlayer() and Ent:InVehicle() then return 1 else return 0 end
 	end,
 	label = function(Out)
@@ -659,7 +659,7 @@ GateActions["player_connected"] = {
 	outputtypes = { "NORMAL" },
 	timed = true,
 	output = function(gate, Ent)
-		if !Ent:IsValid() then return 0 end
+		if not Ent:IsValid() then return 0 end
 		if Ent:IsPlayer() then return Ent:TimeConnected() else return 0 end
 	end,
 	label = function(Out)
@@ -673,9 +673,9 @@ GateActions["entity_aimentity"] = {
 	outputtypes = { "ENTITY" },
 	timed = true,
 	output = function(gate, Ent)
-		if !Ent:IsValid() then return NULL end
+		if not Ent:IsValid() then return NULL end
 		local EntR = Ent:GetEyeTraceNoCursor().Entity
-		if !EntR:IsValid() then return NULL end
+		if not EntR:IsValid() then return NULL end
 		return EntR
 	end,
 	label = function(Out)
@@ -690,8 +690,8 @@ GateActions["entity_aimenormal"] = {
 	outputtypes = { "VECTOR" },
 	timed = true,
 	output = function(gate, Ent)
-		if !Ent:IsValid() then return Vector(0,0,0) end
-		if (Ent:IsPlayer()) then
+		if not Ent:IsValid() then return Vector(0,0,0) end
+		if Ent:IsPlayer() then
 			return Ent:GetAimVector()
 		else
 			return Ent:GetForward()
@@ -709,7 +709,7 @@ GateActions["entity_aimedirection"] = {
 	outputtypes = { "VECTOR" },
 	timed = true,
 	output = function(gate, Ent)
-		if !Ent:IsValid() or !Ent:IsPlayer() then return Vector(0,0,0) end
+		if not Ent:IsValid() or not Ent:IsPlayer() then return Vector(0,0,0) end
 		return Ent:GetEyeTraceNoCursor().Normal
 	end,
 	label = function(Out, A)
@@ -724,7 +724,7 @@ GateActions["entity_inertia"] = {
 	outputtypes = { "VECTOR" },
 	timed = true,
 	output = function(gate, Ent)
-		if !Ent:IsValid() or !Ent:GetPhysicsObject():IsValid() then return Vector(0,0,0) end
+		if not Ent:IsValid() or not Ent:GetPhysicsObject():IsValid() then return Vector(0,0,0) end
 		return Ent:GetPhysicsObject():GetInertia()
 	end,
 	label = function(Out, A)
@@ -738,10 +738,10 @@ GateActions["entity_setmass"] = {
 	inputtypes = { "ENTITY" , "NORMAL" },
 	timed = true,
 	output = function(gate, Ent, Val )
-		if !Ent:IsValid() then return end
-		if !Ent:GetPhysicsObject():IsValid() then return end
+		if not Ent:IsValid() then return end
+		if not Ent:GetPhysicsObject():IsValid() then return end
 		if not gamemode.Call("CanTool", WireLib.GetOwner(gate), WireLib.dummytrace(Ent), "weight") then return end
-		if !Val then Val = Ent:GetPhysicsObject():GetMass() end
+		if not Val then Val = Ent:GetPhysicsObject():GetMass() end
 		Val = math.Clamp(Val, 0.001, 50000)
 		Ent:GetPhysicsObject():SetMass(Val)
 	end,
@@ -770,7 +770,7 @@ GateActions["entity_inequal"] = {
 		if A ~= B then return 1 else return 0 end
 	end,
 	label = function(Out, A , B)
-		return string.format ("(%s  ! =  %s) = %d", A, B, Out)
+		return string.format ("(%s  !=  %s) = %d", A, B, Out)
 	end
 }
 
@@ -780,13 +780,13 @@ GateActions["entity_setcol"] = {
 	inputtypes = { "ENTITY" , "VECTOR" },
 	timed = true,
 	output = function(gate, Ent, Col )
-		if !Ent:IsValid() then return end
+		if not Ent:IsValid() then return end
 		if not gamemode.Call("CanTool", WireLib.GetOwner(gate), WireLib.dummytrace(Ent), "color") then return end
-		if !isvector(Col) then Col = Vector(255,255,255) end
+		if not isvector(Col) then Col = Vector(255,255,255) end
 		Ent:SetColor(Color(Col.x,Col.y,Col.z,255))
 	end,
 	label = function(Out, Ent , Col)
-		if !isvector(Col) then Col = Vector(0,0,0) end
+		if not isvector(Col) then Col = Vector(0,0,0) end
 		return string.format ("setColor(%s ,(%d,%d,%d) )", Ent , Col.x, Col.y, Col.z)
 	end
 }
@@ -798,7 +798,7 @@ GateActions["entity_driver"] = {
 	outputtypes = { "ENTITY" },
 	timed = true,
 	output = function(gate, Ent)
-		if !Ent:IsValid() or !Ent:IsVehicle() then return NULL end
+		if not Ent:IsValid() or not Ent:IsVehicle() then return NULL end
 		return Ent:GetDriver()
 	end,
 	label = function(Out, A)
@@ -816,7 +816,7 @@ GateActions["entity_clr"] = {
 	outputtypes = { "VECTOR" },
 	timed = true,
 	output = function(gate, Ent)
-		if !Ent:IsValid() then return Vector(0,0,0) end
+		if not Ent:IsValid() then return Vector(0,0,0) end
 		local c = Ent:GetColor()
 		return Vector(c.r,c.g,c.b)
 	end,
@@ -834,7 +834,7 @@ GateActions["entity_name"] = {
 	outputtypes = { "STRING" },
 	timed = true,
 	output = function(gate, Ent)
-		if !Ent:IsValid() or !Ent:IsPlayer() then return "" else return Ent:Nick() end
+		if not Ent:IsValid() or not Ent:IsPlayer() then return "" else return Ent:Nick() end
 	end,
 	label = function(Out, Ent)
 		return string.format ("name(%s) = %s", Ent, Out)
@@ -848,7 +848,7 @@ GateActions["entity_aimpos"] = {
 	outputtypes = { "VECTOR" },
 	timed = true,
 	output = function(gate, Ent)
-		if !Ent:IsValid() or !Ent:IsPlayer() then return Vector(0,0,0) else return Ent:GetEyeTraceNoCursor().HitPos end
+		if not Ent:IsValid() or not Ent:IsPlayer() then return Vector(0,0,0) else return Ent:GetEyeTraceNoCursor().HitPos end
 	end,
 	label = function(Out)
 		return string.format ("Aim Position = (%f , %f , %f)", Out.x , Out.y , Out.z)
@@ -878,7 +878,7 @@ GateActions["entity_bearing"] = {
 	outputtypes = { "NORMAL" },
 	timed = true,
 	output = function( gate, Entity, Position )
-		if (!Entity:IsValid()) then return 0 end
+		if not Entity:IsValid() then return 0 end
 		Position = Entity:WorldToLocal(Position)
 		return 180 / math.pi * math.atan2( Position.y, Position.x )
 	end,
@@ -894,7 +894,7 @@ GateActions["entity_elevation"] = {
 	outputtypes = { "NORMAL" },
 	timed = true,
 	output = function( gate, Entity, Position )
-		if (!Entity:IsValid()) then return 0 end
+		if not Entity:IsValid() then return 0 end
 		Position = Entity:WorldToLocal(Position)
 		local len = Position:Length()
 		return 180 / math.pi * math.asin(Position.z / len)
@@ -912,7 +912,7 @@ GateActions["entity_heading"] = {
 	outputtypes = { "NORMAL", "NORMAL", "ANGLE" },
 	timed = true,
 	output = function( gate, Entity, Position )
-		if (!Entity:IsValid()) then return 0, 0, Angle(0,0,0) end
+		if not Entity:IsValid() then return 0, 0, Angle(0,0,0) end
 		Position = Entity:WorldToLocal(Position)
 
 		-- Bearing

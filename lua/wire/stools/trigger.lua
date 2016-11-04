@@ -87,7 +87,7 @@ function TOOL:RightClick( tr )
 		local ent = tr.Entity
 		if ent:GetClass() == "gmod_wire_trigger" then
 
-			-- http:--youtu.be/RTR1ny0O_io
+			-- http://youtu.be/RTR1ny0O_io
 			local size = ent:GetTriggerSize()
 			local offset = ent:GetTriggerOffset()
 			RunConsoleCommand( "wire_trigger_sizex", size.x )

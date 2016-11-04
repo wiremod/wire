@@ -11,9 +11,9 @@ GateActions["accumulator"] = {
 	output = function(gate, A, Hold, Reset)
 		local DeltaTime = CurTime()-(gate.PrevTime or CurTime())
 		gate.PrevTime = (gate.PrevTime or CurTime())+DeltaTime
-		if (Reset > 0) then
+		if Reset > 0 then
 			gate.Accum = 0
-		elseif (Hold <= 0) then
+		elseif Hold <= 0 then
 			gate.Accum = gate.Accum+A*DeltaTime
 		end
 		return gate.Accum or 0
@@ -35,9 +35,9 @@ GateActions["smoother"] = {
 		local DeltaTime = CurTime()-(gate.PrevTime or CurTime())
 		gate.PrevTime = (gate.PrevTime or CurTime())+DeltaTime
 		local Delta = A-gate.Accum
-		if (Delta > 0) then
+		if Delta > 0 then
 			gate.Accum = gate.Accum+math.min(Delta, Rate*DeltaTime)
-		elseif (Delta < 0) then
+		elseif Delta < 0 then
 			gate.Accum = gate.Accum+math.max(Delta, -Rate*DeltaTime)
 		end
 		return gate.Accum or 0
@@ -58,9 +58,9 @@ GateActions["timer"] = {
 	output = function(gate, Run, Reset)
 		local DeltaTime = CurTime()-(gate.PrevTime or CurTime())
 		gate.PrevTime = (gate.PrevTime or CurTime())+DeltaTime
-		if ( Reset > 0 ) then
+		if Reset > 0 then
 			gate.Accum = 0
-		elseif ( Run > 0 ) then
+		elseif Run > 0 then
 			gate.Accum = gate.Accum+DeltaTime
 		end
 		return gate.Accum or 0
@@ -105,11 +105,11 @@ GateActions["pulser"] = {
 	output = function(gate, Run, Reset, TickTime)
 		local DeltaTime = CurTime()-(gate.PrevTime or CurTime())
 		gate.PrevTime = (gate.PrevTime or CurTime())+DeltaTime
-		if ( Reset > 0 ) then
+		if Reset > 0 then
 			gate.Accum = 0
-		elseif ( Run > 0 ) then
+		elseif Run > 0 then
 			gate.Accum = gate.Accum+DeltaTime
-			if (gate.Accum >= TickTime) then
+			if gate.Accum >= TickTime then
 				gate.Accum = gate.Accum - TickTime
 				return 1
 			end
@@ -133,14 +133,14 @@ GateActions["squarepulse"] = {
 		local DeltaTime = CurTime()-(gate.PrevTime or CurTime())
 		gate.PrevTime = (gate.PrevTime or CurTime())+DeltaTime
 
-		if (Reset > 0) then
+		if Reset > 0 then
 			gate.Accum = 0
-		elseif (Run > 0) then
+		elseif Run > 0 then
 			gate.Accum = gate.Accum+DeltaTime
-			if (gate.Accum <= PulseTime) then
+			if gate.Accum <= PulseTime then
 				return Max
 			end
-			if (gate.Accum >= PulseTime + GapTime) then
+			if gate.Accum >= PulseTime + GapTime then
 				gate.Accum = 0
 			end
 		end
@@ -163,27 +163,27 @@ GateActions["sawpulse"] = {
 		local DeltaTime = CurTime()-(gate.PrevTime or CurTime())
 		gate.PrevTime = (gate.PrevTime or CurTime())+DeltaTime
 
-		if (Reset > 0) then
+		if Reset > 0 then
 			gate.Accum = 0
-		elseif (Run > 0) then
+		elseif Run > 0 then
 			local val = Min
 			gate.Accum = gate.Accum+DeltaTime
-			if (gate.Accum >= 0) && (gate.Accum < SlopeRaiseTime) then
-				if (SlopeRaiseTime != 0) then
+			if (gate.Accum >= 0) and (gate.Accum < SlopeRaiseTime) then
+				if SlopeRaiseTime ~= 0 then
 					val = Min + (Max-Min) * (gate.Accum-0) / SlopeRaiseTime
 				end
 			end
-			if (gate.Accum >= SlopeRaiseTime) && (gate.Accum < SlopeRaiseTime+PulseTime) then
+			if (gate.Accum >= SlopeRaiseTime) and (gate.Accum < SlopeRaiseTime+PulseTime) then
 				return Max
 			end
-			if (gate.Accum >= SlopeRaiseTime+PulseTime) && (gate.Accum < SlopeRaiseTime+PulseTime+SlopeDescendTime) then
-				if (SlopeDescendTime != 0) then
+			if (gate.Accum >= SlopeRaiseTime+PulseTime) and (gate.Accum < SlopeRaiseTime+PulseTime+SlopeDescendTime) then
+				if SlopeDescendTime ~= 0 then
 					val = Min + (Max-Min) * (gate.Accum-SlopeRaiseTime+PulseTime) / SlopeDescendTime
 				end
 			end
-			if (gate.Accum >= SlopeRaiseTime+PulseTime+SlopeDescendTime) then
+			if gate.Accum >= SlopeRaiseTime+PulseTime+SlopeDescendTime then
 			end
-			if (gate.Accum >= SlopeRaiseTime+PulseTime+SlopeDescendTime+GapTime) then
+			if gate.Accum >= SlopeRaiseTime+PulseTime+SlopeDescendTime+GapTime then
 				gate.Accum = 0
 			end
 			return val
@@ -210,7 +210,7 @@ GateActions["derive"] = {
 		gate.LastT = t
 		local dA = A - gate.LastA
 		gate.LastA = A
-		if (dT != 0) then
+		if dT ~= 0 then
 			return dA/dT
 		else
 			return 0;
@@ -235,21 +235,21 @@ GateActions["delay"] = {
 		gate.PrevTime = (gate.PrevTime or CurTime())+DeltaTime
 		local out = 0
 
-		if ( Reset > 0 ) then
+		if Reset > 0 then
 			gate.Stage = 0
 			gate.Accum = 0
 		end
 
-		if ( gate.Stage == 1 ) then
-			if ( gate.Accum >= Delay ) then
+		if gate.Stage == 1 then
+			if gate.Accum >= Delay then
 				gate.Stage = 2
 				gate.Accum = 0
 				out = 1
 			else
 				gate.Accum = gate.Accum+DeltaTime
 			end
-		elseif ( gate.Stage == 2 ) then
-			if ( gate.Accum >= Hold ) then
+		elseif gate.Stage == 2 then
+			if gate.Accum >= Hold then
 				gate.Stage = 0
 				gate.Accum = 0
 				out = 0
@@ -258,7 +258,7 @@ GateActions["delay"] = {
 				gate.Accum = gate.Accum+DeltaTime
 			end
 		else
-			if ( Clk > 0 ) then
+			if Clk > 0 then
 				gate.Stage = 1
 				gate.Accum = 0
 			end
@@ -286,15 +286,15 @@ GateActions["monostable"] = {
 	output = function(gate, Run, Time, Reset)
 		local DeltaTime = CurTime()-(gate.PrevTime or CurTime())
 		gate.PrevTime = (gate.PrevTime or CurTime())+DeltaTime
-		if ( Reset > 0 ) then
+		if Reset > 0 then
 			gate.Accum = 0
-		elseif ( gate.Accum > 0 || Run > 0 ) then
+		elseif gate.Accum > 0 or Run > 0 then
 			gate.Accum = gate.Accum+DeltaTime
-			if(gate.Accum > Time) then
+			if gate.Accum > Time then
 				gate.Accum = 0
 			end
 		end
-		if(gate.Accum > 0)then
+		if gate.Accum > 0 then
 			return 1
 		else
 			return 0

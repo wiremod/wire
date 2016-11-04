@@ -14,7 +14,7 @@ GateActions["min"] = {
 	label = function(Out, ...)
 		local txt = "min("
 		for k,v in ipairs({...}) do
-			if (v) then txt = txt..v..", " end
+			if v then txt = txt..v..", " end
 		end
 		return string.sub(txt, 1, -3)..") = "..Out
 	end
@@ -30,7 +30,7 @@ GateActions["max"] = {
 	label = function(Out, ...)
 		local txt = "max("
 		for k,v in ipairs({...}) do
-			if (v) then txt = txt..v..", " end
+			if v then txt = txt..v..", " end
 		end
 		return string.sub(txt, 1, -3)..") = "..Out
 	end
@@ -125,7 +125,7 @@ GateActions["7seg"] = {
 	inputs = { "A", "Clear" },
 	outputs = { "A", "B", "C", "D", "E", "F", "G" },
 	output = function(gate, A, Clear)
-		if (Clear > 0) then return unpack(SegmentInfo.None) end
+		if Clear > 0 then return unpack(SegmentInfo.None) end
 
 		local idx = math.fmod(math.abs(math.floor(A)), 10)
 		if idx > #SegmentInfo then return unpack(SegmentInfo.None) end

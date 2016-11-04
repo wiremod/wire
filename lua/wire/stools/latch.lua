@@ -16,15 +16,15 @@ WireToolSetup.SetupMax( 15 )
 function TOOL:LeftClick( trace )
 	if trace.Entity:IsValid() and trace.Entity:IsPlayer() then return end
 
-	// If there's no physics object then we can't constraint it!
-	if SERVER and !util.IsValidPhysicsObject( trace.Entity, trace.PhysicsBone ) then return false end
+	-- If there's no physics object then we can't constraint it!
+	if SERVER and not util.IsValidPhysicsObject( trace.Entity, trace.PhysicsBone ) then return false end
 
 	local iNum = self:NumObjects()
 
 	local Phys = trace.Entity:GetPhysicsObjectNum( trace.PhysicsBone )
 	self:SetObject( iNum + 1, trace.Entity, trace.HitPos, Phys, trace.PhysicsBone, trace.HitNormal )
 
-	if ( iNum > 1 ) then
+	if iNum > 1 then
 		if CLIENT then
 			self:ClearObjects()
 			return true
@@ -36,7 +36,7 @@ function TOOL:LeftClick( trace )
 		
 		local controller = self:LeftClick_Make( trace, ply )
 		if isbool(controller) then return controller end
-		if !IsValid(controller) then
+		if not IsValid(controller) then
 			WireLib.AddNotify( self:GetOwner(), "Weld latch controller placement failed!", NOTIFY_GENERIC, 7 )
 			self.Constraint = nil
 			self:ClearObjects()
@@ -45,10 +45,10 @@ function TOOL:LeftClick( trace )
 		end
 		self:LeftClick_PostMake( controller, ply, trace )
 
-		// Send entity and constraint info over to the controller
+		-- Send entity and constraint info over to the controller
 		controller:SendVars( self.Ent1, self.Ent2, self.Bone1, self.Bone2, self.Constraint )
 
-		// Initialize controller inputs/outputs
+		-- Initialize controller inputs/outputs
 		controller:TriggerInput( "Activate", 1 )
 		Wire_TriggerOutput( controller, "Welded", 1 )
 
@@ -56,12 +56,12 @@ function TOOL:LeftClick( trace )
 		self:ClearObjects()
 		self:SetStage(0)
 
-	elseif ( iNum == 1 ) then
+	elseif iNum == 1 then
 		if CLIENT then
 			return true
 		end
 
-		// Get information we're about to use
+		-- Get information we're about to use
 		self.Ent1,  self.Ent2  = self:GetEnt(1),	 self:GetEnt(2)
 		self.Bone1, self.Bone2 = self:GetBone(1),	 self:GetBone(2)
 

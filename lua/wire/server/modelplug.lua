@@ -3,7 +3,7 @@ ModelPlugInfo = {}
 --uncomment line 15 and line 26-34 to enable sending model packs to clients
 
 function ModelPlug_Register(category)
-	if (not ModelPlugInfo[category]) then
+	if not ModelPlugInfo[category] then
 		local catinfo = {}
 
 	    local packs = file.Find("WireModelPacks/*.txt", "DATA")
@@ -16,7 +16,7 @@ function ModelPlug_Register(category)
 				local categorytable = string.Explode(",", entry.categories or "none") or { "none" }
 
 				for _,cat in pairs(categorytable) do
-					if (cat == category) then
+					if cat == category then
 					    catinfo[name] = entry.model or ""
 
 						--[[if (entry.model) then
