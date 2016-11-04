@@ -75,7 +75,7 @@ function MakeWire7Seg( pl, Pos, Ang, Model, a, ar, ag, ab, aa, b, br, bg, bb, ba
 		Model = Model, frozen = frozen, nocollide = nocollide },
 		a, ar, ag, ab, aa, b, br, bg, bb, ba )
 		if IsValid(ent) then 
-			ent:SetNetworkedString("WireName", name) 
+			ent:SetNWString("WireName", name) 
 			duplicator.StoreEntityModifier( ent, "WireName", { name = name } )
 		end
 		return ent
