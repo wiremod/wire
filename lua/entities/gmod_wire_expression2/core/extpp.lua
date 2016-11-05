@@ -376,9 +376,7 @@ function e2_extpp_pass2(contents)
 				end -- if #argtable.argnames ~= 0
 			end -- if aliasflag
 			table.insert(output, whitespace)
-		end
-
-		-- function handle_function()
+		end -- function handle_function()
 
 		-- use pcall, so we can add line numbers to all errors
 		local ok, msg = pcall(handle_function)
