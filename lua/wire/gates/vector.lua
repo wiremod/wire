@@ -12,9 +12,9 @@ GateActions["vector_add"] = {
 	compact_inputs = 2,
 	outputtypes = { "VECTOR" },
 	output = function(gate, ...)
-		local sum = Vector (0, 0, 0)
+		local sum = Vector(0, 0, 0)
 		for _, v in pairs ({...}) do
-			if v and isvector (v) then
+			if v and isvector(v) then
 				sum = sum + v
 			end
 		end
@@ -25,7 +25,7 @@ GateActions["vector_add"] = {
 		for _, v in ipairs ({...}) do
 			if v then tip = tip .. " + " .. v end
 		end
-		return string.format ("%s = (%d,%d,%d)", string.sub (tip, 3),
+		return string.format("%s = (%d,%d,%d)", string.sub(tip, 3),
 			Out.x, Out.y, Out.z)
 	end
 }
@@ -37,12 +37,12 @@ GateActions["vector_sub"] = {
 	inputtypes = { "VECTOR", "VECTOR" },
 	outputtypes = { "VECTOR" },
 	output = function(gate, A, B)
-		if not isvector (A) then A = Vector (0, 0, 0) end
-		if not isvector (B) then B = Vector (0, 0, 0) end
+		if not isvector(A) then A = Vector(0, 0, 0) end
+		if not isvector(B) then B = Vector(0, 0, 0) end
 		return (A - B)
 	end,
 	label = function(Out, A, B)
-		return string.format ("%s - %s = (%d,%d,%d)", A, B, Out.x, Out.y, Out.z)
+		return string.format("%s - %s = (%d,%d,%d)", A, B, Out.x, Out.y, Out.z)
 	end
 }
 
@@ -53,11 +53,11 @@ GateActions["vector_neg"] = {
 	inputtypes = { "VECTOR" },
 	outputtypes = { "VECTOR" },
 	output = function(gate, A)
-		if not isvector (A) then A = Vector (0, 0, 0) end
-		return Vector (-A.x, -A.y, -A.z)
+		if not isvector(A) then A = Vector(0, 0, 0) end
+		return Vector(-A.x, -A.y, -A.z)
 	end,
 	label = function(Out, A)
-		return string.format ("-%s = (%d,%d,%d)", A, Out.x, Out.y, Out.z)
+		return string.format("-%s = (%d,%d,%d)", A, Out.x, Out.y, Out.z)
 	end
 }
 
@@ -73,7 +73,7 @@ GateActions["vector_mul"] = {
 		return Vector( A.x * B.x, A.y * B.y, A.z * B.z )
 	end,
 	label = function(Out, A, B)
-		return string.format ("%s * %s = (%d,%d,%d)", A, B, Out.x, Out.y, Out.z)
+		return string.format("%s * %s = (%d,%d,%d)", A, B, Out.x, Out.y, Out.z)
 	end
 }
 
@@ -83,14 +83,14 @@ GateActions["vector_divide"] = {
 	inputtypes = { "VECTOR", "NORMAL" },
 	outputtypes = { "VECTOR" },
 	output = function(gate, A, B)
-		if not isvector (A) then A = Vector (0, 0, 0) end
+		if not isvector(A) then A = Vector(0, 0, 0) end
 		if B then
 			return (A / B)
 		end
-		return Vector (0, 0, 0)
+		return Vector(0, 0, 0)
 	end,
 	label = function(Out, A, B)
-		return string.format ("%s / %s = (%d,%d,%d)", A, B, Out.x, Out.y, Out.z)
+		return string.format("%s / %s = (%d,%d,%d)", A, B, Out.x, Out.y, Out.z)
 	end
 }
 
@@ -101,12 +101,12 @@ GateActions["vector_dot"] = {
 	inputtypes = { "VECTOR", "VECTOR" },
 	outputtypes = { "NORMAL" },
 	output = function(gate, A, B)
-		if not isvector (A) then A = Vector (0, 0, 0) end
-		if not isvector (B) then B = Vector (0, 0, 0) end
+		if not isvector(A) then A = Vector(0, 0, 0) end
+		if not isvector(B) then B = Vector(0, 0, 0) end
 		return A:Dot (B)
 	end,
 	label = function(Out, A, B)
-		return string.format ("dot(%s, %s) = %d", A, B, Out)
+		return string.format("dot(%s, %s) = %d", A, B, Out)
 	end
 }
 
@@ -116,12 +116,12 @@ GateActions["vector_cross"] = {
 	inputtypes = { "VECTOR", "VECTOR" },
 	outputtypes = { "VECTOR" },
 	output = function(gate, A, B)
-		if not isvector (A) then A = Vector (0, 0, 0) end
-		if not isvector (B) then B = Vector (0, 0, 0) end
+		if not isvector(A) then A = Vector(0, 0, 0) end
+		if not isvector(B) then B = Vector(0, 0, 0) end
 		return A:Cross (B)
 	end,
 	label = function(Out, A, B)
-		return string.format ("cross(%s, %s) = (%d,%d,%d)", A, B, Out.x, Out.y, Out.z)
+		return string.format("cross(%s, %s) = (%d,%d,%d)", A, B, Out.x, Out.y, Out.z)
 	end
 }
 
@@ -133,12 +133,12 @@ GateActions["vector_ang"] = {
 	outputs = { "Yaw", "Pitch" },
 	outputtypes = { "NORMAL", "NORMAL" },
 	output = function(gate, A)
-		if not isvector (A) then A = Vector (0, 0, 0) end
+		if not isvector(A) then A = Vector(0, 0, 0) end
 		local ang = A:Angle ()
 		return ang.y, ang.p
 	end,
 	label = function(Out, A)
-		return string.format ("ang(%s) = %d, %d", A, Out.Yaw, Out.Pitch)
+		return string.format("ang(%s) = %d, %d", A, Out.Yaw, Out.Pitch)
 	end
 }
 
@@ -150,12 +150,12 @@ GateActions["vector_angrad"] = {
 	outputs = { "Yaw", "Pitch" },
 	outputtypes = { "NORMAL", "NORMAL" },
 	output = function(gate, A)
-		if not isvector (A) then A = Vector (0, 0, 0) end
+		if not isvector(A) then A = Vector(0, 0, 0) end
 		local ang = A:Angle ()
 		return (ang.y * math.pi / 180), (ang.p * math.pi / 180)
 	end,
 	label = function(Out, A)
-		return string.format ("angr(%s) = %d, %d", A, Out.Yaw, Out.Pitch)
+		return string.format("angr(%s) = %d, %d", A, Out.Yaw, Out.Pitch)
 	end
 }
 
@@ -166,11 +166,11 @@ GateActions["vector_mag"] = {
 	inputtypes = { "VECTOR" },
 	outputtypes = { "NORMAL" },
 	output = function(gate, A)
-		if not isvector (A) then A = Vector (0, 0, 0) end
-		return A:Length ()
+		if not isvector(A) then A = Vector(0, 0, 0) end
+		return A:Length()
 	end,
 	label = function(Out, A)
-		return string.format ("|%s| = %d", A, Out)
+		return string.format("|%s| = %d", A, Out)
 	end
 }
 
@@ -181,10 +181,10 @@ GateActions["vector_convto"] = {
 	inputtypes = { "NORMAL", "NORMAL", "NORMAL" },
 	outputtypes = { "VECTOR" },
 	output = function(gate, X, Y, Z)
-		return Vector (X, Y, Z)
+		return Vector(X, Y, Z)
 	end,
 	label = function(Out, X, Y, Z)
-		return string.format ("vector(%s,%s,%s) = (%d,%d,%d)", X, Y, Z, Out.x, Out.y, Out.z)
+		return string.format("vector(%s,%s,%s) = (%d,%d,%d)", X, Y, Z, Out.x, Out.y, Out.z)
 	end
 }
 
@@ -195,13 +195,13 @@ GateActions["vector_convfrom"] = {
 	outputs = { "X", "Y", "Z" },
 	outputtypes = { "NORMAL", "NORMAL", "NORMAL" },
 	output = function(gate, A)
-		if A and isvector (A) then
+		if A and isvector(A) then
 			return A.x, A.y, A.z
 		end
 		return 0, 0, 0
 	end,
 	label = function(Out, A)
-		return string.format ("%s -> X:%d Y:%d Z:%d", A, Out.X, Out.Y, Out.Z)
+		return string.format("%s -> X:%d Y:%d Z:%d", A, Out.X, Out.Y, Out.Z)
 	end
 }
 
@@ -212,7 +212,7 @@ GateActions["vector_norm"] = {
 	inputtypes = { "VECTOR" },
 	outputtypes = { "VECTOR" },
 	output = function(gate, A)
-		if not isvector (A) then A = Vector (0, 0, 0) end
+		if not isvector(A) then A = Vector(0, 0, 0) end
 		return A:GetNormal()
 	end,
 	label = function(Out, A)
@@ -228,11 +228,11 @@ GateActions["vector_ident"] = {
 	inputtypes = { "VECTOR" },
 	outputtypes = { "VECTOR" },
 	output = function(gate, A)
-		if not isvector (A) then A = Vector (0, 0, 0) end
+		if not isvector(A) then A = Vector(0, 0, 0) end
 		return A
 	end,
 	label = function(Out, A)
-		return string.format ("%s = (%d,%d,%d)", A, Out.x, Out.y, Out.z)
+		return string.format("%s = (%d,%d,%d)", A, Out.x, Out.y, Out.z)
 	end
 }
 
@@ -244,7 +244,7 @@ GateActions["vector_rand"] = {
 	outputtypes = { "VECTOR" },
 	timed = true,
 	output = function(gate)
-		local vec = Vector (math.random (), math.random (), math.random ())
+		local vec = Vector(math.random(), math.random(), math.random())
 		vec:Normalize()
 		return vec
 	end,
@@ -261,21 +261,21 @@ GateActions["vector_derive"] = {
 	outputtypes = { "VECTOR" },
 	timed = true,
 	output = function(gate, A)
-		local t = CurTime ()
-		if not isvector (A) then A = Vector (0, 0, 0) end
+		local t = CurTime()
+		if not isvector(A) then A = Vector(0, 0, 0) end
 		local dT, dA = t - gate.LastT, A - gate.LastA
 		gate.LastT, gate.LastA = t, A
 		if dT then
-			return Vector (dA.x/dT, dA.y/dT, dA.z/dT)
+			return Vector(dA.x/dT, dA.y/dT, dA.z/dT)
 		else
-			return Vector (0, 0, 0)
+			return Vector(0, 0, 0)
 		end
 	end,
 	reset = function(gate)
-		gate.LastT, gate.LastA = CurTime (), Vector (0, 0, 0)
+		gate.LastT, gate.LastA = CurTime(), Vector(0, 0, 0)
 	end,
 	label = function(Out, A)
-		return string.format ("diff(%s) = (%d,%d,%d)", A, Out.x, Out.y, Out.z)
+		return string.format("diff(%s) = (%d,%d,%d)", A, Out.x, Out.y, Out.z)
 	end
 }
 
@@ -287,12 +287,12 @@ GateActions["vector_cint"] = {
 	outputtypes = { "VECTOR" },
 	timed = true,
 	output = function(gate, A)
-		local t = CurTime ()
-		if not isvector (A) then A = Vector (0, 0, 0) end
+		local t = CurTime()
+		if not isvector(A) then A = Vector(0, 0, 0) end
 		local dT = t - (gate.LastT or t)
-		gate.LastT, gate.Integral = t, (gate.Integral or Vector (0, 0, 0)) + A * dT
+		gate.LastT, gate.Integral = t, (gate.Integral or Vector(0, 0, 0)) + A * dT
 		-- Lifted (kinda) from wiregates.lua to prevent massive values
-		local TempInt = gate.Integral:Length ()
+		local TempInt = gate.Integral:Length()
 		if TempInt > 100000 then
 			gate.Integral = gate.Integral:GetNormalized() * 100000
 		end
@@ -302,10 +302,10 @@ GateActions["vector_cint"] = {
 		return gate.Integral
 	end,
 	reset = function(gate)
-		gate.Integral, gate.LastT = Vector (0, 0, 0), CurTime()
+		gate.Integral, gate.LastT = Vector(0, 0, 0), CurTime()
 	end,
 	label = function(Out, A)
-		return string.format ("int(%s) = (%d,%d,%d)", A, Out.x, Out.y, Out.z)
+		return string.format("int(%s) = (%d,%d,%d)", A, Out.x, Out.y, Out.z)
 	end
 }
 
@@ -323,10 +323,10 @@ GateActions["vector_mux"] = {
 				return ({...})[Sel]
 			end
 		end
-		return Vector (0, 0, 0)
+		return Vector(0, 0, 0)
 	end,
 	label = function(Out, Sel, ...)
-		return string.format ("Select: %s  Out: (%d,%d,%d)",
+		return string.format("Select: %s  Out: (%d,%d,%d)",
 			Sel, Out.x, Out.y, Out.z)
 	end
 }
@@ -339,18 +339,18 @@ GateActions["vector_dmx"] = {
 	outputs = { "A", "B", "C", "D", "E", "F", "G", "H" },
 	outputtypes = { "VECTOR", "VECTOR", "VECTOR", "VECTOR", "VECTOR", "VECTOR", "VECTOR", "VECTOR" },
 	output = function(gate, Sel, In)
-		local Out = { Vector (0, 0, 0), Vector (0, 0, 0), Vector (0, 0, 0), Vector (0, 0, 0),
-			Vector (0, 0, 0), Vector (0, 0, 0), Vector (0, 0, 0), Vector (0, 0, 0) }
-		Sel = math.floor (Sel)
+		local Out = { Vector(0, 0, 0), Vector(0, 0, 0), Vector(0, 0, 0), Vector(0, 0, 0),
+			Vector(0, 0, 0), Vector(0, 0, 0), Vector(0, 0, 0), Vector(0, 0, 0) }
+		Sel = math.floor(Sel)
 		if Sel > 0 and Sel <= 8 then
 			Out[Sel] = In
 		end
 		return unpack (Out)
 	end,
 	label = function(Out, Sel, In)
-		if not isvector (In) then In = Vector (0, 0, 0) end
+		if not isvector(In) then In = Vector(0, 0, 0) end
 		if not Sel then Sel = 0 end
-		return string.format ("Select: %s, In: (%d,%d,%d)",
+		return string.format("Select: %s, In: (%d,%d,%d)",
 			Sel, In.x, In.y, In.z)
 	end
 }
@@ -366,18 +366,18 @@ GateActions["vector_latch"] = {
 		if gate.PrevClk ~= Clk then
 			gate.PrevClk = Clk
 			if Clk then
-				if not isvector (In) then In = Vector (0, 0, 0) end
+				if not isvector(In) then In = Vector(0, 0, 0) end
 				gate.LatchStore = In
 			end
 		end
-		return gate.LatchStore or Vector (0, 0, 0)
+		return gate.LatchStore or Vector(0, 0, 0)
 	end,
 	reset = function(gate)
-		gate.LatchStore = Vector (0, 0, 0)
+		gate.LatchStore = Vector(0, 0, 0)
 		gate.PrevValue = 0
 	end,
 	label = function(Out, In, Clk)
-		return string.format ("Latch Data: %s  Clock: %s  Out: (%d,%d,%d)",
+		return string.format("Latch Data: %s  Clock: %s  Out: (%d,%d,%d)",
 			In, Clk, Out.x, Out.y, Out.z)
 	end
 }
@@ -390,16 +390,16 @@ GateActions["vector_dlatch"] = {
 	outputtypes = { "VECTOR" },
 	output = function(gate, In, Clk)
 		if Clk > 0 then
-			if not isvector (In) then In = Vector (0, 0, 0) end
+			if not isvector(In) then In = Vector(0, 0, 0) end
 			gate.LatchStore = In
 		end
-		return gate.LatchStore or Vector (0, 0, 0)
+		return gate.LatchStore or Vector(0, 0, 0)
 	end,
 	reset = function(gate)
-		gate.LatchStore = Vector (0, 0, 0)
+		gate.LatchStore = Vector(0, 0, 0)
 	end,
 	label = function(Out, In, Clk)
-		return string.format ("Latch Data: %s  Clock: %s  Out: (%d,%d,%d)",
+		return string.format("Latch Data: %s  Clock: %s  Out: (%d,%d,%d)",
 			In, Clk, Out.x, Out.y, Out.z)
 	end
 }
@@ -415,7 +415,7 @@ GateActions["vector_compeq"] = {
 		return 0
 	end,
 	label = function(Out, A, B)
-		return string.format ("(%s == %s) = %d", A, B, Out)
+		return string.format("(%s == %s) = %d", A, B, Out)
 	end
 }
 
@@ -430,7 +430,7 @@ GateActions["vector_compineq"] = {
 		return 1
 	end,
 	label = function(Out, A, B)
-		return string.format ("(%s != %s) = %d", A, B, Out)
+		return string.format("(%s != %s) = %d", A, B, Out)
 	end
 }
 
@@ -441,12 +441,12 @@ GateActions["vector_complt"] = {
 	inputtypes = { "VECTOR", "VECTOR" },
 	outputtypes = { "NORMAL" },
 	output = function(gate, A, B)
-		if not isvector (A) then A = Vector (0, 0, 0) end
-		if not isvector (B) then B = Vector (0, 0, 0) end
-		if A:Length () < B:Length () then return 1 end
+		if not isvector(A) then A = Vector(0, 0, 0) end
+		if not isvector(B) then B = Vector(0, 0, 0) end
+		if A:Length() < B:Length() then return 1 end
 	end,
 	label = function(Out, A, B)
-		return string.format ("(|%s| < |%s|) = %d", A, B, Out)
+		return string.format("(|%s| < |%s|) = %d", A, B, Out)
 	end
 }
 
@@ -457,13 +457,13 @@ GateActions["vector_complteq"] = {
 	inputtypes = { "VECTOR", "VECTOR" },
 	outputtypes = { "NORMAL" },
 	output = function(gate, A, B)
-		if not isvector (A) then A = Vector (0, 0, 0) end
-		if not isvector (B) then B = Vector (0, 0, 0) end
-		if A:Length () <= B:Length () then return 1 end
+		if not isvector(A) then A = Vector(0, 0, 0) end
+		if not isvector(B) then B = Vector(0, 0, 0) end
+		if A:Length() <= B:Length() then return 1 end
 		return 0
 	end,
 	label = function(Out, A, B)
-		return string.format ("(|%s| <= |%s|) = %d", A, B, Out)
+		return string.format("(|%s| <= |%s|) = %d", A, B, Out)
 	end
 }
 
@@ -473,13 +473,13 @@ GateActions["vector_compgt"] = {
 	inputs = { "A", "B" },
 	inputtypes = { "VECTOR", "VECTOR" },
 	output = function(gate, A, B)
-		if not isvector (A) then A = Vector (0, 0, 0) end
-		if not isvector (B) then B = Vector (0, 0, 0) end
-		if A:Length () > B:Length () then return 1 end
+		if not isvector(A) then A = Vector(0, 0, 0) end
+		if not isvector(B) then B = Vector(0, 0, 0) end
+		if A:Length() > B:Length() then return 1 end
 		return 0
 	end,
 	label = function(Out, A, B)
-		return string.format ("(|%s| > |%s|) = %d", A, B, Out)
+		return string.format("(|%s| > |%s|) = %d", A, B, Out)
 	end
 }
 
@@ -489,13 +489,13 @@ GateActions["vector_compgteq"] = {
 	inputs = { "A", "B" },
 	inputtypes = { "VECTOR", "VECTOR" },
 	output = function(gate, A, B)
-		if not isvector (A) then A = Vector (0, 0, 0) end
-		if not isvector (B) then B = Vector (0, 0, 0) end
-		if A:Length () >= B:Length () then return 1 end
+		if not isvector(A) then A = Vector(0, 0, 0) end
+		if not isvector(B) then B = Vector(0, 0, 0) end
+		if A:Length() >= B:Length() then return 1 end
 		return 0
 	end,
 	label = function(Out, A, B)
-		return string.format ("(|%s| >= |%s|) = %d", A, B, Out)
+		return string.format("(|%s| >= |%s|) = %d", A, B, Out)
 	end
 }
 
@@ -506,11 +506,11 @@ GateActions["vector_positive"] = {
 	inputtypes = { "VECTOR"},
 	outputtypes = { "VECTOR" },
 	output = function(gate, A)
-		if not isvector (A) then A = Vector (0, 0, 0) end
+		if not isvector(A) then A = Vector(0, 0, 0) end
 		return Vector(math.abs(A.x),math.abs(A.y),math.abs(A.z))
 	end,
 	label = function(Out, A)
-		return string.format ("abs(%s) = (%d,%d,%d)", A, Out.x, Out.y, Out.z)
+		return string.format("abs(%s) = (%d,%d,%d)", A, Out.x, Out.y, Out.z)
 	end
 }
 
@@ -522,11 +522,11 @@ GateActions["vector_round"] = {
 	inputtypes = { "VECTOR"},
 	outputtypes = { "VECTOR" },
 	output = function(gate, A)
-		if not isvector (A) then A = Vector (0, 0, 0) end
+		if not isvector(A) then A = Vector(0, 0, 0) end
 		return Vector(math.Round(A.x),math.Round(A.y),math.Round(A.z))
 	end,
 	label = function(Out, A)
-		return string.format ("round(%s) = (%d,%d,%d)", A, Out.x, Out.y, Out.z)
+		return string.format("round(%s) = (%d,%d,%d)", A, Out.x, Out.y, Out.z)
 	end
 }
 
@@ -538,12 +538,12 @@ GateActions["vector_max"] = {
 	inputtypes = { "VECTOR" , "VECTOR" },
 	outputtypes = { "VECTOR" },
 	output = function(gate, A)
-		if not isvector (A) then A = Vector (0, 0, 0) end
-		if not isvector (B) then B = Vector (0, 0, 0) end
+		if not isvector(A) then A = Vector(0, 0, 0) end
+		if not isvector(B) then B = Vector(0, 0, 0) end
 		if A:Length() > B:Length() then return A else return B end
 	end,
 	label = function(Out, A , B)
-		return string.format ("max(%s , %s) = (%d,%d,%d)", A , B, Out.x, Out.y, Out.z)
+		return string.format("max(%s , %s) = (%d,%d,%d)", A , B, Out.x, Out.y, Out.z)
 	end
 }
 
@@ -554,12 +554,12 @@ GateActions["vector_min"] = {
 	inputtypes = { "VECTOR" , "VECTOR" },
 	outputtypes = { "VECTOR" },
 	output = function(gate, A)
-		if not isvector (A) then A = Vector (0, 0, 0) end
-		if not isvector (B) then B = Vector (0, 0, 0) end
+		if not isvector(A) then A = Vector(0, 0, 0) end
+		if not isvector(B) then B = Vector(0, 0, 0) end
 		if A:Length() < B:Length() then return A else return B end
 	end,
 	label = function(Out, A , B)
-		return string.format ("min(%s , %s) = (%d,%d,%d)", A , B, Out.x, Out.y, Out.z)
+		return string.format("min(%s , %s) = (%d,%d,%d)", A , B, Out.x, Out.y, Out.z)
 	end
 }
 
@@ -570,11 +570,11 @@ GateActions["vector_shiftl"] = {
 	inputtypes = { "VECTOR" },
 	outputtypes = { "VECTOR" },
 	output = function(gate, A)
-		if not isvector (A) then A = Vector (0, 0, 0) end
+		if not isvector(A) then A = Vector(0, 0, 0) end
 		return Vector(A.y,A.z,A.x)
 	end,
 	label = function(Out, A )
-		return string.format ("shiftL(%s) = (%d,%d,%d)", A , Out.x, Out.y, Out.z)
+		return string.format("shiftL(%s) = (%d,%d,%d)", A , Out.x, Out.y, Out.z)
 	end
 }
 
@@ -585,11 +585,11 @@ GateActions["vector_shiftr"] = {
 	inputtypes = { "VECTOR" },
 	outputtypes = { "VECTOR" },
 	output = function(gate, A)
-		if not isvector (A) then A = Vector (0, 0, 0) end
+		if not isvector(A) then A = Vector(0, 0, 0) end
 		return Vector(A.z,A.x,A.y)
 	end,
 	label = function(Out, A )
-		return string.format ("shiftR(%s) = (%d,%d,%d)", A , Out.x, Out.y, Out.z)
+		return string.format("shiftR(%s) = (%d,%d,%d)", A , Out.x, Out.y, Out.z)
 	end
 }
 
@@ -600,11 +600,11 @@ GateActions["vector_isinworld"] = {
 	inputs = { "A" },
 	inputtypes = { "VECTOR" },
 	output = function(gate, A)
-		if not isvector (A) then A = Vector (0, 0, 0) end
+		if not isvector(A) then A = Vector(0, 0, 0) end
 		if util.IsInWorld(A) then return 1 else return 0 end
 	end,
 	label = function(Out, A )
-		return string.format ("isInWorld(%s) = %d", A , Out)
+		return string.format("isInWorld(%s) = %d", A , Out)
 	end
 }
 
@@ -614,11 +614,11 @@ GateActions["vector_tostr"] = {
 	inputtypes = { "VECTOR" },
 	outputtypes = { "STRING" },
 	output = function(gate, A)
-		if not isvector(A) then A = Vector (0, 0, 0) end
+		if not isvector(A) then A = Vector(0, 0, 0) end
 		return "["..tostring(A.x)..","..tostring(A.y)..","..tostring(A.z).."]"
 	end,
 	label = function(Out, A )
-		return string.format ("toString(%s) = \""..Out.."\"", A)
+		return string.format("toString(%s) = \""..Out.."\"", A)
 	end
 }
 
@@ -632,7 +632,7 @@ GateActions["vector_select"] = {
 		return ({...})[Choice]
 	end,
 	label = function(Out, Choice)
-	    return string.format ("select(%s) = %s", Choice, Out)
+	    return string.format("select(%s) = %s", Choice, Out)
 	end
 }
 
@@ -648,7 +648,7 @@ GateActions["vector_rotate"] = {
 		return A
 	end,
 	label = function(Out, A, B)
-	    return string.format ("rotate(%s, %s) = "..tostring(Out), A, B )
+	    return string.format("rotate(%s, %s) = "..tostring(Out), A, B )
 	end
 }
 
@@ -663,7 +663,7 @@ GateActions["vector_mulcomp"] = {
 		return Vector( A.x * B, A.y * B, A.z * B )
 	end,
 	label = function(Out, A, B)
-	    return string.format ("%s * %s = (%d,%d,%d)", A, B, Out.x, Out.y, Out.z )
+	    return string.format("%s * %s = (%d,%d,%d)", A, B, Out.x, Out.y, Out.z )
 	end
 }
 

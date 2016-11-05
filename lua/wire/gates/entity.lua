@@ -21,7 +21,7 @@ GateActions["entity_applyf"] = {
 		local phys = ent:GetPhysicsObject()
 		if not IsValid( phys ) then return end
 		if not isAllowed( gate, ent ) then return end
-		if not isvector(vec) then vec = Vector (0, 0, 0) end
+		if not isvector(vec) then vec = Vector(0, 0, 0) end
 		if not check(vec) then return end
 		if vec.x == 0 and vec.y == 0 and vec.z == 0 then return end
 
@@ -42,8 +42,8 @@ GateActions["entity_applyof"] = {
 		local phys = ent:GetPhysicsObject()
 		if not IsValid( phys ) then return end
 		if not isAllowed( gate, ent ) then return end
-		if not isvector(vec) then vec = Vector (0, 0, 0) end
-		if not isvector(offset) then offset = Vector (0, 0, 0) end
+		if not isvector(vec) then vec = Vector(0, 0, 0) end
+		if not isvector(offset) then offset = Vector(0, 0, 0) end
 		if not check(vec) or not check( offset ) then return end
 		if vec.x == 0 and vec.y == 0 and vec.z == 0 then return end
 
@@ -113,8 +113,8 @@ GateActions["entity_applytorq"] = {
 		local phys = ent:GetPhysicsObject()
 		if not IsValid( phys ) then return end
 		if not isAllowed( gate, ent ) then return end
-		if not isvector(vec) then vec = Vector (0, 0, 0) end
-		if not isvector(offset) then offset = Vector (0, 0, 0) end
+		if not isvector(vec) then vec = Vector(0, 0, 0) end
+		if not isvector(offset) then offset = Vector(0, 0, 0) end
 		if not check(vec) or not check( offset ) then return end
 		if vec.x == 0 and vec.y == 0 and vec.z == 0 then return end
 
@@ -155,7 +155,7 @@ GateActions["entity_class"] = {
 		if not Ent:IsValid() then return "" else return Ent:GetClass() end
 	end,
 	label = function(Out)
-		return string.format ("Class = %q", Out)
+		return string.format("Class = %q", Out)
 	end
 }
 
@@ -168,7 +168,7 @@ GateActions["entity_entid"] = {
 		return 0
 	end,
 	label = function(Out, A)
-		return string.format ("entID(%s) = %d", A, Out)
+		return string.format("entID(%s) = %d", A, Out)
 	end
 }
 
@@ -182,7 +182,7 @@ GateActions["entity_id2ent"] = {
 		return Ent
 	end,
 	label = function(Out, A)
-		return string.format ("Entity(%s) = %s", A, tostring(Out))
+		return string.format("Entity(%s) = %s", A, tostring(Out))
 	end
 }
 
@@ -196,7 +196,7 @@ GateActions["entity_model"] = {
 		if not Ent:IsValid() then return "" else return Ent:GetModel() end
 	end,
 	label = function(Out)
-		return string.format ("Model = %q", Out)
+		return string.format("Model = %q", Out)
 	end
 }
 
@@ -209,7 +209,7 @@ GateActions["entity_steamid"] = {
 		if not Ent:IsValid() or not Ent:IsPlayer() then return "" else return Ent:SteamID() end
 	end,
 	label = function(Out)
-		return string.format ("SteamID = %q", Out)
+		return string.format("SteamID = %q", Out)
 	end
 }
 
@@ -223,7 +223,7 @@ GateActions["entity_pos"] = {
 		if not Ent:IsValid() then return Vector(0,0,0) else return Ent:GetPos() end
 	end,
 	label = function(Out)
-		return string.format ("Position = (%d,%d,%d)", Out.x , Out.y , Out.z )
+		return string.format("Position = (%d,%d,%d)", Out.x , Out.y , Out.z )
 	end
 }
 
@@ -238,7 +238,7 @@ GateActions["entity_fruvecs"] = {
 		if not Ent:IsValid() then return Vector(0,0,0) , Vector(0,0,0) , Vector(0,0,0) else return Ent:GetForward() , Ent:GetRight() , Ent:GetUp() end
 	end,
 	label = function(Out)
-		return string.format ("Forward = (%f , %f , %f)\nUp = (%f , %f , %f)\nRight = (%f , %f , %f)", Out.Forward.x , Out.Forward.y , Out.Forward.z, Out.Up.x , Out.Up.y , Out.Up.z, Out.Right.x , Out.Right.y , Out.Right.z)
+		return string.format("Forward = (%f , %f , %f)\nUp = (%f , %f , %f)\nRight = (%f , %f , %f)", Out.Forward.x , Out.Forward.y , Out.Forward.z, Out.Up.x , Out.Up.y , Out.Up.z, Out.Right.x , Out.Right.y , Out.Right.z)
 	end
 }
 
@@ -248,13 +248,13 @@ GateActions["entity_isvalid"] = {
 	inputtypes = { "ENTITY" },
 	timed = true,
 	output = function(gate, A)
-		if A and IsEntity (A) and A:IsValid () then
+		if A and IsEntity(A) and A:IsValid() then
 			return 1
 		end
 		return 0
 	end,
 	label = function(Out, A)
-		return string.format ("isValid(%s) = %s", A, Out)
+		return string.format("isValid(%s) = %s", A, Out)
 	end
 }
 
@@ -268,7 +268,7 @@ GateActions["entity_vell"] = {
 		if not Ent:IsValid() then return Vector(0,0,0) else return Ent:WorldToLocal(Ent:GetVelocity() + Ent:GetPos()) end
 	end,
 	label = function(Out)
-		return string.format ("Velocity (local) = (%f , %f , %f)", Out.x , Out.y , Out.z )
+		return string.format("Velocity (local) = (%f , %f , %f)", Out.x , Out.y , Out.z )
 	end
 }
 
@@ -282,7 +282,7 @@ GateActions["entity_vel"] = {
 		if not Ent:IsValid() then return Vector(0,0,0) else return Ent:GetVelocity() end
 	end,
 	label = function(Out)
-		return string.format ("Velocity = (%f , %f , %f)", Out.x , Out.y , Out.z )
+		return string.format("Velocity = (%f , %f , %f)", Out.x , Out.y , Out.z )
 	end
 }
 
@@ -298,7 +298,7 @@ GateActions["entity_angvel"] = {
 		return Angle(Vec.y, Vec.z, Vec.x)
 	end,
 	label = function(Out)
-		return string.format ("Angular Velocity = (%f , %f , %f)", Out.p , Out.y , Out.r )
+		return string.format("Angular Velocity = (%f , %f , %f)", Out.p , Out.y , Out.r )
 	end
 }
 
@@ -315,7 +315,7 @@ GateActions["entity_angvelvec"] = {
 		return phys:GetAngleVelocity()
 	end,
 	label = function(Out)
-		return string.format ("Angular Velocity = (%f , %f , %f)", Out.x , Out.y , Out.z )
+		return string.format("Angular Velocity = (%f , %f , %f)", Out.x , Out.y , Out.z )
 	end
 }
 
@@ -329,7 +329,7 @@ GateActions["entity_wor2loc"] = {
 		if Ent:IsValid() and isvector(Vec) then return Ent:WorldToLocal(Vec) else return Vector(0,0,0) end
 	end,
 	label = function(Out)
-		return string.format ("World To Local = (%f , %f , %f)", Out.x , Out.y , Out.z )
+		return string.format("World To Local = (%f , %f , %f)", Out.x , Out.y , Out.z )
 	end
 }
 
@@ -343,7 +343,7 @@ GateActions["entity_loc2wor"] = {
 		if Ent:IsValid() and isvector(Vec) then return Ent:LocalToWorld(Vec) else return Vector(0,0,0) end
 	end,
 	label = function(Out)
-		return string.format ("Local To World Vector = (%f , %f , %f)", Out.x , Out.y , Out.z )
+		return string.format("Local To World Vector = (%f , %f , %f)", Out.x , Out.y , Out.z )
 	end
 }
 
@@ -357,7 +357,7 @@ GateActions["entity_wor2loc"] = {
 		if Ent:IsValid() and isvector(Vec) then return Ent:WorldToLocal(Vec) else return Vector(0,0,0) end
 	end,
 	label = function(Out)
-		return string.format ("World To Local Vector = (%f , %f , %f)", Out.x , Out.y , Out.z )
+		return string.format("World To Local Vector = (%f , %f , %f)", Out.x , Out.y , Out.z )
 	end
 }
 
@@ -371,7 +371,7 @@ GateActions["entity_loc2worang"] = {
 		if Ent:IsValid() and Ang then return Ent:LocalToWorldAngles(Ang) else return Angle(0,0,0) end
 	end,
 	label = function(Out)
-		return string.format ("Local To World Angles = (%d,%d,%d)", Out.p , Out.y , Out.r )
+		return string.format("Local To World Angles = (%d,%d,%d)", Out.p , Out.y , Out.r )
 	end
 }
 
@@ -385,7 +385,7 @@ GateActions["entity_wor2locang"] = {
 		if Ent:IsValid() and Ang then return Ent:WorldToLocalAngles(Ang) else return Angle(0,0,0) end
 	end,
 	label = function(Out)
-		return string.format ("World To Local Angles = (%d,%d,%d)", Out.p , Out.y , Out.r )
+		return string.format("World To Local Angles = (%d,%d,%d)", Out.p , Out.y , Out.r )
 	end
 }
 
@@ -399,7 +399,7 @@ GateActions["entity_health"] = {
 		if not Ent:IsValid() then return 0 else return Ent:Health() end
 	end,
 	label = function(Out)
-		return string.format ("Health = %d", Out)
+		return string.format("Health = %d", Out)
 	end
 }
 
@@ -413,7 +413,7 @@ GateActions["entity_radius"] = {
 		if not Ent:IsValid() then return 0 else return Ent:BoundingRadius() end
 	end,
 	label = function(Out)
-		return string.format ("Radius = %d", Out)
+		return string.format("Radius = %d", Out)
 	end
 }
 
@@ -427,7 +427,7 @@ GateActions["entity_mass"] = {
 		if not Ent:IsValid() or not Ent:GetPhysicsObject():IsValid() then return 0 else return Ent:GetPhysicsObject():GetMass() end
 	end,
 	label = function(Out)
-		return string.format ("Mass = %d", Out)
+		return string.format("Mass = %d", Out)
 	end
 }
 
@@ -441,7 +441,7 @@ GateActions["entity_masscenter"] = {
 		if not Ent:IsValid() or not Ent:GetPhysicsObject():IsValid() then return Vector(0,0,0) else return Ent:LocalToWorld(Ent:GetPhysicsObject():GetMassCenter()) end
 	end,
 	label = function(Out)
-		return string.format ("Mass Center = (%d,%d,%d)", Out.x , Out.y , Out.z)
+		return string.format("Mass Center = (%d,%d,%d)", Out.x , Out.y , Out.z)
 	end
 }
 
@@ -455,7 +455,7 @@ GateActions["entity_masscenterlocal"] = {
 		if not Ent:IsValid() or not Ent:GetPhysicsObject():IsValid() then return Vector(0,0,0) else return Ent:GetPhysicsObject():GetMassCenter() end
 	end,
 	label = function(Out)
-		return string.format ("Mass Center (local) = (%d,%d,%d)", Out.x , Out.y , Out.z)
+		return string.format("Mass Center (local) = (%d,%d,%d)", Out.x , Out.y , Out.z)
 	end
 }
 
@@ -470,7 +470,7 @@ GateActions["entity_isplayer"] = {
 		if Ent:IsPlayer() then return 1 else return 0 end
 	end,
 	label = function(Out)
-		return string.format ("Is Player = %d", Out)
+		return string.format("Is Player = %d", Out)
 	end
 }
 
@@ -485,7 +485,7 @@ GateActions["entity_isnpc"] = {
 		if Ent:IsNPC() then return 1 else return 0 end
 	end,
 	label = function(Out)
-		return string.format ("Is NPC = %d", Out)
+		return string.format("Is NPC = %d", Out)
 	end
 }
 
@@ -500,7 +500,7 @@ GateActions["entity_isvehicle"] = {
 		if Ent:IsVehicle() then return 1 else return 0 end
 	end,
 	label = function(Out)
-		return string.format ("Is Vehicle = %d", Out)
+		return string.format("Is Vehicle = %d", Out)
 	end
 }
 
@@ -515,7 +515,7 @@ GateActions["entity_isworld"] = {
 		if Ent:IsWorld() then return 1 else return 0 end
 	end,
 	label = function(Out)
-		return string.format ("Is World = %d", Out)
+		return string.format("Is World = %d", Out)
 	end
 }
 
@@ -530,7 +530,7 @@ GateActions["entity_isongrnd"] = {
 		if Ent:IsOnGround() then return 1 else return 0 end
 	end,
 	label = function(Out)
-		return string.format ("Is On Ground = %d", Out)
+		return string.format("Is On Ground = %d", Out)
 	end
 }
 
@@ -545,7 +545,7 @@ GateActions["entity_isunderwater"] = {
 		if Ent:WaterLevel() > 0 then return 1 else return 0 end
 	end,
 	label = function(Out)
-		return string.format ("Is Under Water = %d", Out)
+		return string.format("Is Under Water = %d", Out)
 	end
 }
 
@@ -559,7 +559,7 @@ GateActions["entity_angles"] = {
 		if not Ent:IsValid() then return Angle(0,0,0) else return Ent:GetAngles() end
 	end,
 	label = function(Out)
-		return string.format ("Angles = (%d,%d,%d)", Out.p , Out.y , Out.r)
+		return string.format("Angles = (%d,%d,%d)", Out.p , Out.y , Out.r)
 	end
 }
 
@@ -573,7 +573,7 @@ GateActions["entity_material"] = {
 		if not Ent:IsValid() then return "" else return Ent:GetMaterial() end
 	end,
 	label = function(Out)
-		return string.format ("Material = %q", Out)
+		return string.format("Material = %q", Out)
 	end
 }
 
@@ -588,7 +588,7 @@ GateActions["entity_owner"] = {
 		return WireLib.GetOwner(Ent)
 	end,
 	label = function(Out,Ent)
-		return string.format ("owner(%s) = %s", Ent, tostring(Out))
+		return string.format("owner(%s) = %s", Ent, tostring(Out))
 	end
 }
 
@@ -603,7 +603,7 @@ GateActions["entity_isheld"] = {
 		if Ent:IsPlayerHolding() then return 1 else return 0 end
 	end,
 	label = function(Out)
-		return string.format ("Is Player Holding = %d", Out)
+		return string.format("Is Player Holding = %d", Out)
 	end
 }
 
@@ -618,7 +618,7 @@ GateActions["entity_isonfire"] = {
 		if Ent:IsOnFire()then return 1 else return 0 end
 	end,
 	label = function(Out)
-		return string.format ("Is On Fire = %d", Out)
+		return string.format("Is On Fire = %d", Out)
 	end
 }
 
@@ -633,7 +633,7 @@ GateActions["entity_isweapon"] = {
 		if Ent:IsWeapon() then return 1 else return 0 end
 	end,
 	label = function(Out)
-		return string.format ("Is Weapon = %d", Out)
+		return string.format("Is Weapon = %d", Out)
 	end
 }
 
@@ -648,7 +648,7 @@ GateActions["player_invehicle"] = {
 		if Ent:IsPlayer() and Ent:InVehicle() then return 1 else return 0 end
 	end,
 	label = function(Out)
-		return string.format ("Is In Vehicle = %d", Out)
+		return string.format("Is In Vehicle = %d", Out)
 	end
 }
 
@@ -663,7 +663,7 @@ GateActions["player_connected"] = {
 		if Ent:IsPlayer() then return Ent:TimeConnected() else return 0 end
 	end,
 	label = function(Out)
-		return string.format ("Time Connected = %d", Out)
+		return string.format("Time Connected = %d", Out)
 	end
 }
 GateActions["entity_aimentity"] = {
@@ -679,7 +679,7 @@ GateActions["entity_aimentity"] = {
 		return EntR
 	end,
 	label = function(Out)
-		return string.format ("Aim Entity = %s", tostring(Out))
+		return string.format("Aim Entity = %s", tostring(Out))
 	end
 }
 
@@ -698,7 +698,7 @@ GateActions["entity_aimenormal"] = {
 		end
 	end,
 	label = function(Out, A)
-		return string.format ("Aim Normal (%s) = (%d,%d,%d)", A, Out.x, Out.y, Out.z)
+		return string.format("Aim Normal (%s) = (%d,%d,%d)", A, Out.x, Out.y, Out.z)
 	end
 }
 
@@ -713,7 +713,7 @@ GateActions["entity_aimedirection"] = {
 		return Ent:GetEyeTraceNoCursor().Normal
 	end,
 	label = function(Out, A)
-		return string.format ("Aim Direction (%s) = (%d,%d,%d)", A, Out.x, Out.y, Out.z)
+		return string.format("Aim Direction (%s) = (%d,%d,%d)", A, Out.x, Out.y, Out.z)
 	end
 }
 
@@ -728,7 +728,7 @@ GateActions["entity_inertia"] = {
 		return Ent:GetPhysicsObject():GetInertia()
 	end,
 	label = function(Out, A)
-		return string.format ("inertia(%s) = (%d,%d,%d)", Ent, Out.x, Out.y, Out.z)
+		return string.format("inertia(%s) = (%d,%d,%d)", Ent, Out.x, Out.y, Out.z)
 	end
 }
 
@@ -746,7 +746,7 @@ GateActions["entity_setmass"] = {
 		Ent:GetPhysicsObject():SetMass(Val)
 	end,
 	label = function(Out, Ent , Val)
-		return string.format ("setMass(%s , %s)", Ent, Val)
+		return string.format("setMass(%s , %s)", Ent, Val)
 	end
 }
 
@@ -758,7 +758,7 @@ GateActions["entity_equal"] = {
 		if A == B then return 1 else return 0 end
 	end,
 	label = function(Out, A , B)
-		return string.format ("(%s  = =  %s) = %d", A, B, Out)
+		return string.format("(%s  = =  %s) = %d", A, B, Out)
 	end
 }
 
@@ -770,7 +770,7 @@ GateActions["entity_inequal"] = {
 		if A ~= B then return 1 else return 0 end
 	end,
 	label = function(Out, A , B)
-		return string.format ("(%s  !=  %s) = %d", A, B, Out)
+		return string.format("(%s  !=  %s) = %d", A, B, Out)
 	end
 }
 
@@ -787,7 +787,7 @@ GateActions["entity_setcol"] = {
 	end,
 	label = function(Out, Ent , Col)
 		if not isvector(Col) then Col = Vector(0,0,0) end
-		return string.format ("setColor(%s ,(%d,%d,%d) )", Ent , Col.x, Col.y, Col.z)
+		return string.format("setColor(%s ,(%d,%d,%d) )", Ent , Col.x, Col.y, Col.z)
 	end
 }
 
@@ -804,7 +804,7 @@ GateActions["entity_driver"] = {
 	label = function(Out, A)
 		local Name = "NULL"
 		if Out:IsValid() then Name = Out:Nick() end
-		return string.format ("Driver: %s", Name)
+		return string.format("Driver: %s", Name)
 	end
 }
 
@@ -821,7 +821,7 @@ GateActions["entity_clr"] = {
 		return Vector(c.r,c.g,c.b)
 	end,
 	label = function(Out, Ent)
-		return string.format ("color(%s) = (%d,%d,%d)", Ent , Out.x, Out.y, Out.z)
+		return string.format("color(%s) = (%d,%d,%d)", Ent , Out.x, Out.y, Out.z)
 	end
 }
 
@@ -837,7 +837,7 @@ GateActions["entity_name"] = {
 		if not Ent:IsValid() or not Ent:IsPlayer() then return "" else return Ent:Nick() end
 	end,
 	label = function(Out, Ent)
-		return string.format ("name(%s) = %s", Ent, Out)
+		return string.format("name(%s) = %s", Ent, Out)
 	end
 }
 
@@ -851,7 +851,7 @@ GateActions["entity_aimpos"] = {
 		if not Ent:IsValid() or not Ent:IsPlayer() then return Vector(0,0,0) else return Ent:GetEyeTraceNoCursor().HitPos end
 	end,
 	label = function(Out)
-		return string.format ("Aim Position = (%f , %f , %f)", Out.x , Out.y , Out.z)
+		return string.format("Aim Position = (%f , %f , %f)", Out.x , Out.y , Out.z)
 	end
 }
 
@@ -865,7 +865,7 @@ GateActions["entity_select"] = {
 		return ({...})[Choice]
 	end,
 	label = function(Out, Choice)
-	    return string.format ("select(%s) = %s", Choice, Out)
+	    return string.format("select(%s) = %s", Choice, Out)
 	end
 }
 

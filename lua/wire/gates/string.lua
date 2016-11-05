@@ -14,7 +14,7 @@ GateActions["string_ceq"] = {
 		if A == B then return 1 else return 0 end
 	end,
 	label = function(Out, A, B)
-		return string.format ("(%s == %s) = %d", A, B, Out)
+		return string.format("(%s == %s) = %d", A, B, Out)
 	end
 }
 
@@ -26,7 +26,7 @@ GateActions["string_cineq"] = {
 		if A ~= B then return 1 else return 0 end
 	end,
 	label = function(Out, A, B)
-		return string.format ("(%s != %s) = %d", A, B, Out)
+		return string.format("(%s != %s) = %d", A, B, Out)
 	end
 }
 
@@ -41,7 +41,7 @@ GateActions["string_index"] = {
 		return string.sub(A,B,B)
 	end,
 	label = function(Out, A, B)
-		return string.format ("index(%s , %s) = %q", A, B, Out)
+		return string.format("index(%s , %s) = %q", A, B, Out)
 	end
 }
 
@@ -54,7 +54,7 @@ GateActions["string_length"] = {
 		return #A
 	end,
 	label = function(Out, A)
-		return string.format ("length(%s) = %d", A, Out)
+		return string.format("length(%s) = %d", A, Out)
 	end
 }
 
@@ -68,7 +68,7 @@ GateActions["string_upper"] = {
 		return string.upper(A)
 	end,
 	label = function(Out, A)
-		return string.format ("upper(%s) = %q", A, Out)
+		return string.format("upper(%s) = %q", A, Out)
 	end
 }
 
@@ -82,7 +82,7 @@ GateActions["string_lower"] = {
 		return string.lower(A)
 	end,
 	label = function(Out, A)
-		return string.format ("lower(%s) = %q", A, Out)
+		return string.format("lower(%s) = %q", A, Out)
 	end
 }
 
@@ -98,7 +98,7 @@ GateActions["string_sub"] = {
 		return string.sub(A,B,C)
 	end,
 	label = function(Out, A, B, C)
-		return string.format ("%s:sub(%s , %s) = %q", A, B, C, Out)
+		return string.format("%s:sub(%s , %s) = %q", A, B, C, Out)
 	end
 }
 
@@ -113,7 +113,7 @@ GateActions["string_explode"] = {
 		return string.Explode(B,A)
 	end,
 	label = function(Out, A, B)
-		return string.format ("explode(%s , %s)", A, B)
+		return string.format("explode(%s , %s)", A, B)
 	end
 }
 
@@ -129,7 +129,7 @@ GateActions["string_find"] = {
 	end,
 	label = function(Out, A, B)
 		if istable(Out) then Out = Out.Out end
-	    return string.format ("find(%s , %s) = %d", A, B, Out)
+	    return string.format("find(%s , %s) = %d", A, B, Out)
 	end
 }
 
@@ -154,7 +154,7 @@ GateActions["string_concat"] = {
 		return table.concat(T)
 	end,
 	label = function(Out)
-		return string.format ("concat = %q", Out)
+		return string.format("concat = %q", Out)
 	end
 }
 
@@ -168,7 +168,7 @@ GateActions["string_trim"] = {
 		return string.Trim(A)
 	end,
 	label = function(Out, A)
-		return string.format ("trim(%s) = %q", A, Out)
+		return string.format("trim(%s) = %q", A, Out)
 	end
 }
 
@@ -184,7 +184,7 @@ GateActions["string_replace"] = {
 		return string.gsub(A,B,C)
 	end,
 	label = function(Out, A, B, C)
-		return string.format ("%s:replace(%s , %s) = %q", A, B, C, Out)
+		return string.format("%s:replace(%s , %s) = %q", A, B, C, Out)
 	end
 }
 
@@ -198,7 +198,7 @@ GateActions["string_reverse"] = {
 		return string.reverse(A)
 	end,
 	label = function(Out, A)
-		return string.format ("reverse(%s) = %q", A, Out)
+		return string.format("reverse(%s) = %q", A, Out)
 	end
 }
 
@@ -212,7 +212,7 @@ GateActions["string_tonum"] = {
 		return tonumber(A)
 	end,
 	label = function(Out, A)
-		return string.format ("tonumber(%s) = %d", A, Out)
+		return string.format("tonumber(%s) = %d", A, Out)
 	end
 }
 
@@ -226,7 +226,7 @@ GateActions["string_tostr"] = {
 		return tostring(A)
 	end,
 	label = function(Out, A)
-		return string.format ("tostring(%s) = %q", A, Out)
+		return string.format("tostring(%s) = %q", A, Out)
 	end
 }
 
@@ -240,7 +240,7 @@ GateActions["string_tobyte"] = {
 		return string.byte(A)
 	end,
 	label = function(Out, A)
-		return string.format ("tobyte(%s) = %d", A, Out)
+		return string.format("tobyte(%s) = %d", A, Out)
 	end
 }
 
@@ -254,7 +254,7 @@ GateActions["string_tochar"] = {
 		return string.char(A)
 	end,
 	label = function(Out, A)
-		return string.format ("tochar(%s) = %q", A, Out)
+		return string.format("tochar(%s) = %q", A, Out)
 	end
 }
 
@@ -272,7 +272,7 @@ GateActions["string_repeat"] = {
 		return string.rep(A,B)
 	end,
 	label = function(Out, A)
-		return string.format ("repeat(%s) = %q", A, Out)
+		return string.format("repeat(%s) = %q", A, Out)
 	end
 }
 
@@ -285,7 +285,7 @@ GateActions["string_ident"] = {
 		return A
 	end,
 	label = function(Out, A)
-	    return string.format ("%s = %s", A, Out)
+	    return string.format("%s = %s", A, Out)
 	end
 }
 
@@ -298,7 +298,7 @@ GateActions["string_select"] = {
 		return ({...})[math.Clamp(Choice,1,8)]
 	end,
 	label = function(Out, Choice)
-	    return string.format ("select(%s) = %s", Choice, Out)
+	    return string.format("select(%s) = %s", Choice, Out)
 	end
 }
 

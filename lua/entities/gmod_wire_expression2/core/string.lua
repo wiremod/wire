@@ -224,7 +224,7 @@ registerFunction("unicodeLength", "s:", "n", function(self, args)
 	local op1 = args[2], args[3]
 	local rv1 = op1[1](self, op1)
 	-- the string.gsub method is inconsistent with how writeUnicodeString and toUnicodeByte handles badly-formed sequences.
-	-- local _, length = string.gsub (rv1, "[^\128-\191]", "")
+	-- local _, length = string.gsub(rv1, "[^\128-\191]", "")
 	local length = 0
 	local i = 1
 	while i <= #rv1 do

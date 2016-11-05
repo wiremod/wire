@@ -378,13 +378,13 @@ function ENT:Draw()
             -- Note: the source engine does not handle unicode characters above 65535 properly.
             local utf8 = ""
             if c1 <= 127 then
-              utf8 = string.char (c1)
+              utf8 = string.char(c1)
             elseif c1 < 2048 then
-              utf8 = string.format("%c%c", 192 + math.floor (c1 / 64), 128 + (c1 % 64))
+              utf8 = string.format("%c%c", 192 + math.floor(c1 / 64), 128 + (c1 % 64))
             elseif c1 < 65536 then
-              utf8 = string.format("%c%c%c", 224 + math.floor (c1 / 4096), 128 + (math.floor (c1 / 64) % 64), 128 + (c1 % 64))
+              utf8 = string.format("%c%c%c", 224 + math.floor(c1 / 4096), 128 + (math.floor(c1 / 64) % 64), 128 + (c1 % 64))
             elseif c1 < 2097152 then
-              utf8 = string.format("%c%c%c%c", 240 + math.floor (c1 / 262144), 128 + (math.floor (c1 / 4096) % 64), 128 + (math.floor (c1 / 64) % 64), 128 + (c1 % 64))
+              utf8 = string.format("%c%c%c%c", 240 + math.floor(c1 / 262144), 128 + (math.floor(c1 / 4096) % 64), 128 + (math.floor(c1 / 64) % 64), 128 + (c1 % 64))
             end
 
             if specialCharacters[c1] then

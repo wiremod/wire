@@ -23,7 +23,7 @@ GateActions["angle_add"] = {
 		return (A + B + C + D + E + F + G + H)
 	end,
 	label = function(Out)
-		return string.format ("Addition = (%d,%d,%d)",
+		return string.format("Addition = (%d,%d,%d)",
 			Out.p, Out.y, Out.r)
 	end
 }
@@ -40,7 +40,7 @@ GateActions["angle_sub"] = {
 		return (A - B)
 	end,
 	label = function(Out, A, B)
-		return string.format ("%s - %s = (%d,%d,%d)", A, B, Out.p, Out.y, Out.r)
+		return string.format("%s - %s = (%d,%d,%d)", A, B, Out.p, Out.y, Out.r)
 	end
 }
 
@@ -55,7 +55,7 @@ GateActions["angle_neg"] = {
 		return Angle (-A.p, -A.y, -A.r)
 	end,
 	label = function(Out, A)
-		return string.format ("-%s = (%d,%d,%d)", A, Out.p, Out.y, Out.r)
+		return string.format("-%s = (%d,%d,%d)", A, Out.p, Out.y, Out.r)
 	end
 }
 
@@ -71,7 +71,7 @@ GateActions["angle_mul"] = {
 		return Angle(A.p * B.p , A.y * B.y , A.r * B.r)
 	end,
 	label = function(Out, A, B)
-		return string.format ("%s * %s = (%d,%d,%d)", A, B, Out.p, Out.y, Out.r)
+		return string.format("%s * %s = (%d,%d,%d)", A, B, Out.p, Out.y, Out.r)
 	end
 }
 
@@ -83,7 +83,7 @@ GateActions["angle_derive"] = {
 	outputtypes = { "ANGLE" },
 	timed = true,
 	output = function(gate, A)
-		local t = CurTime ()
+		local t = CurTime()
 		if not A then A = Angle (0, 0, 0) end
 		local dT, dA = t - gate.LastT, A - gate.LastA
 		gate.LastT, gate.LastA = t, A
@@ -94,10 +94,10 @@ GateActions["angle_derive"] = {
 		end
 	end,
 	reset = function(gate)
-		gate.LastT, gate.LastA = CurTime (), Angle (0, 0, 0)
+		gate.LastT, gate.LastA = CurTime(), Angle (0, 0, 0)
 	end,
 	label = function(Out, A)
-		return string.format ("diff(%s) = (%d,%d,%d)", A, Out.p, Out.y, Out.r)
+		return string.format("diff(%s) = (%d,%d,%d)", A, Out.p, Out.y, Out.r)
 	end
 }
 
@@ -112,7 +112,7 @@ GateActions["angle_divide"] = {
 		return Angle(A.p / B.p , A.y / B.y , A.r / B.r)
 	end,
 	label = function(Out, A, B)
-		return string.format ("%s / %s = (%d,%d,%d)", A, B, Out.p, Out.y, Out.r)
+		return string.format("%s / %s = (%d,%d,%d)", A, B, Out.p, Out.y, Out.r)
 	end
 }
 -- Conversion To/From
@@ -125,7 +125,7 @@ GateActions["angle_convto"] = {
 		return Angle (Pitch, Yaw, Roll)
 	end,
 	label = function(Out, Pitch, Yaw, Roll)
-		return string.format ("angle(%s,%s,%s) = (%d,%d,%d)", Pitch, Yaw, Roll, Out.p, Out.y, Out.r)
+		return string.format("angle(%s,%s,%s) = (%d,%d,%d)", Pitch, Yaw, Roll, Out.p, Out.y, Out.r)
 	end
 }
 
@@ -141,7 +141,7 @@ GateActions["angle_convfrom"] = {
 		return 0, 0, 0
 	end,
 	label = function(Out, A)
-		return string.format ("%s -> Pitch:%d Yaw:%d Roll:%d", A, Out.Pitch, Out.Yaw, Out.Roll)
+		return string.format("%s -> Pitch:%d Yaw:%d Roll:%d", A, Out.Pitch, Out.Yaw, Out.Roll)
 	end
 }
 
@@ -156,7 +156,7 @@ GateActions["angle_ident"] = {
 		return A
 	end,
 	label = function(Out, A)
-		return string.format ("%s = (%d,%d,%d)", A, Out.p, Out.y, Out.r)
+		return string.format("%s = (%d,%d,%d)", A, Out.p, Out.y, Out.r)
 	end
 }
 
@@ -171,7 +171,7 @@ GateActions["angle_shiftl"] = {
 		return Angle(A.y,A.r,A.p)
 	end,
 	label = function(Out, A )
-		return string.format ("shiftL(%s) = (%d,%d,%d)", A , Out.p, Out.y, Out.r)
+		return string.format("shiftL(%s) = (%d,%d,%d)", A , Out.p, Out.y, Out.r)
 	end
 }
 
@@ -186,7 +186,7 @@ GateActions["angle_shiftr"] = {
 		return Angle(A.r,A.p,A.y)
 	end,
 	label = function(Out, A )
-		return string.format ("shiftR(%s) = (%d,%d,%d)", A , Out.p, Out.y, Out.r)
+		return string.format("shiftR(%s) = (%d,%d,%d)", A , Out.p, Out.y, Out.r)
 	end
 }
 
@@ -201,7 +201,7 @@ GateActions["angle_fruvecs"] = {
 		if not A then return Vector(0,0,0) , Vector(0,0,0) , Vector(0,0,0) else return A:Forward() , A:Up() , A:Right() end
 	end,
 	label = function(Out)
-		return string.format ("Forward = (%f , %f , %f)\nUp = (%f , %f , %f)\nRight = (%f , %f , %f)", Out.Forward.x , Out.Forward.y , Out.Forward.z, Out.Up.x , Out.Up.y , Out.Up.z, Out.Right.x , Out.Right.y , Out.Right.z)
+		return string.format("Forward = (%f , %f , %f)\nUp = (%f , %f , %f)\nRight = (%f , %f , %f)", Out.Forward.x , Out.Forward.y , Out.Forward.z, Out.Up.x , Out.Up.y , Out.Up.z, Out.Right.x , Out.Right.y , Out.Right.z)
 	end
 }
 
@@ -215,7 +215,7 @@ GateActions["angle_norm"] = {
 		return Angle(math.NormalizeAngle(A.p),math.NormalizeAngle(A.y),math.NormalizeAngle(A.r))
 	end,
 	label = function(Out, A )
-		return string.format ("normalize(%s) = (%d,%d,%d)", A , Out.p, Out.y, Out.r)
+		return string.format("normalize(%s) = (%d,%d,%d)", A , Out.p, Out.y, Out.r)
 	end
 }
 
@@ -229,7 +229,7 @@ GateActions["angle_tostr"] = {
 		return "["..tostring(A.p)..","..tostring(A.y)..","..tostring(A.r).."]"
 	end,
 	label = function(Out, A )
-		return string.format ("toString(%s) = \""..Out.."\"", A)
+		return string.format("toString(%s) = \""..Out.."\"", A)
 	end
 }
 
@@ -245,7 +245,7 @@ GateActions["angle_compeq"] = {
 		return 0
 	end,
 	label = function(Out, A, B)
-		return string.format ("(%s == %s) = %d", A, B, Out)
+		return string.format("(%s == %s) = %d", A, B, Out)
 	end
 }
 
@@ -260,7 +260,7 @@ GateActions["angle_compineq"] = {
 		return 1
 	end,
 	label = function(Out, A, B)
-		return string.format ("(%s != %s) = %d", A, B, Out)
+		return string.format("(%s != %s) = %d", A, B, Out)
 	end
 }
 
@@ -275,7 +275,7 @@ GateActions["angle_round"] = {
 		return Angle(math.Round(A.p),math.Round(A.y),math.Round(A.r))
 	end,
 	label = function(Out, A)
-		return string.format ("round(%s) = (%d,%d,%d)", A, Out.p, Out.y, Out.r)
+		return string.format("round(%s) = (%d,%d,%d)", A, Out.p, Out.y, Out.r)
 	end
 }
 
@@ -289,7 +289,7 @@ GateActions["angle_select"] = {
 		return ({...})[Choice]
 	end,
 	label = function(Out, Choice)
-	    return string.format ("select(%s) = %s", Choice, Out)
+	    return string.format("select(%s) = %s", Choice, Out)
 	end
 }
 
@@ -305,7 +305,7 @@ GateActions["angle_mulcomp"] = {
 		return Angle( A.p * B, A.y * B, A.r * B )
 	end,
 	label = function(Out, A, B)
-	    return string.format ("%s * %s = "..tostring(Out), A, B )
+	    return string.format("%s * %s = "..tostring(Out), A, B )
 	end
 }
 

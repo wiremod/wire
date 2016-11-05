@@ -195,7 +195,7 @@ function ENT:ClearCellRange(start, length)
 end
 
 function ENT:WriteCell(Address, value)
-	Address = math.floor (Address)
+	Address = math.floor(Address)
 	if Address < 0 then return false end
 	if Address >= 1048577 then return false end
 
