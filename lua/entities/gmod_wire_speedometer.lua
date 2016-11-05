@@ -85,7 +85,7 @@ function ENT:Think()
 	else
 		local vel = self:GetVelocity():Length()
 		if COLOSSAL_SANDBOX then vel = vel * 6.25 end
-		Wire_TriggerOutput(self, "Out", vel) -- vel = Source Units / sec, Source Units = Inch * 0.75 , more info here: http:-- developer.valvesoftware.com/wiki/Dimensions#Map_Grid_Units:_quick_reference
+		Wire_TriggerOutput(self, "Out", vel) -- vel = Source Units / sec, Source Units = Inch * 0.75 , more info here: http://developer.valvesoftware.com/wiki/Dimensions#Map_Grid_Units:_quick_reference
 		Wire_TriggerOutput(self, "MPH", vel * 3600 / 63360 * 0.75)
 		Wire_TriggerOutput(self, "KPH", vel * 3600 * 0.0000254 * 0.75)
 	end

@@ -789,7 +789,7 @@ end
 
 	Very useful for searching algorithms
 	Used by custom spawn menu search & gate tool search, for example
-	Credits go to: http:-- lua-users.org/lists/lua-l/2009-07/msg00461.html
+	Credits go to: http://lua-users.org/lists/lua-l/2009-07/msg00461.html
 ]]
 function WireLib.levenshtein( s, t )
 	local d, sn, tn = {}, #s, #t
