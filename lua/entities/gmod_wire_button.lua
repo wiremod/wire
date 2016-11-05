@@ -45,7 +45,7 @@ ENT.OutputEntID = false
 ENT.EntToOutput = NULL
 
 local anims = {
-	-- ["model"] = { on_anim, off_anim }
+	--["model"] = { on_anim, off_anim }
 	["models/props/switch001.mdl"] = { 2, 1 },
 	["models/props_combine/combinebutton.mdl"] = { 3, 2 },
 	["models/props_mining/control_lever01.mdl"] = { 1, 4 },

@@ -434,7 +434,7 @@ function PANEL:AddItem(...)
 	line.m_strFilename = item
 	line.m_tabData = itemargs
 
-	-- if (self.m_strFile == item) then
+	--if (self.m_strFile == item) then
 	if self.m_strSelectedList == self.m_strList and self.m_strFile == item then
 		self.Files:SelectItem(line)
 	end

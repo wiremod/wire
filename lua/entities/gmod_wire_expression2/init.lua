@@ -478,7 +478,7 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID, GetConstByID)
 		for k, v in pairs(self.dupevars) do
 			self.GlobalScope[k] = v
 		end -- Rusketh Broke this :(
-		-- table.Merge(self.context.vars, self.dupevars)
+		--table.Merge(self.context.vars, self.dupevars)
 		self.dupevars = nil
 
 		self.duped = true

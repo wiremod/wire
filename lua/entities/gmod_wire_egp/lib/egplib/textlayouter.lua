@@ -229,7 +229,7 @@ function TextWrapIndex:SplitWord( word, width, x, y, lineWidth, lastI, numWords 
 
 			table.insert( self.TextData, { x, y, part1 } );
 
-			-- self:JustifyLine( lineWidth, lastI, numWords );
+			--self:JustifyLine( lineWidth, lastI, numWords );
 
 			numWords = numWords + 1;
 			lastI = numWords;
@@ -237,7 +237,7 @@ function TextWrapIndex:SplitWord( word, width, x, y, lineWidth, lastI, numWords 
 
 		else
 
-			-- self:JustifyLine( lineWidth, lastI, numWords );
+			--self:JustifyLine( lineWidth, lastI, numWords );
 
 		end
 

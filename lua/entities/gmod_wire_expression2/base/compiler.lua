@@ -151,7 +151,7 @@ end
 function Compiler:EvaluateStatement(args, index)
 	local name = string.upper(args[index + 2][1])
 	local ex, tp = Compiler["Instr" .. name](self, args[index + 2])
-	-- ex.TraceBack = args[index + 2]
+	--ex.TraceBack = args[index + 2]
 	ex.TraceName = name
 	return ex, tp
 end
@@ -689,7 +689,7 @@ function Compiler:InstrVAR(args)
 end
 
 function Compiler:InstrFEA(args)
-	-- local sfea = self:Instruction(trace, "fea", keyvar, valvar, valtype, tableexpr, self:Block("foreach statement"))
+	--local sfea = self:Instruction(trace, "fea", keyvar, valvar, valtype, tableexpr, self:Block("foreach statement"))
 
 	local keyvar, valvar, valtype = args[3], args[4], args[5]
 	local tableexpr, tabletp = self:Evaluate(args, 4)

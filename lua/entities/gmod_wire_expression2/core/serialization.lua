@@ -264,7 +264,7 @@ if glon then
 		end
 
 		local safeArray = sanitizeGlonOutput( self, ret, "r" )
-		-- logGlonCall( self, data, ret, safeArray )
+		--logGlonCall( self, data, ret, safeArray )
 		return safeArray or {}
 	end
 

@@ -50,8 +50,8 @@ end
 -- getHash
 -- Returns a hash for the given string
 
--- local str_byte = string.byte
--- local str_sub = string.sub
+--local str_byte = string.byte
+--local str_sub = string.sub
 local util_CRC = util.CRC
 local tonumber = tonumber
 function E2Lib.getHash(self, data)

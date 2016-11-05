@@ -6,11 +6,11 @@ if SERVER then
 	CreateConVar("sbox_maxwire_plugs",20)
 	CreateConVar("sbox_maxwire_sockets",20)
 
-	-- resource.AddFile("models/bull/various/usb_socket.mdl")
-	-- resource.AddFile("materials/bull/various/usb_socket.vtf")
+	--resource.AddFile("models/bull/various/usb_socket.mdl")
+	--resource.AddFile("materials/bull/various/usb_socket.vtf")
 
-	-- resource.AddFile("models/bull/various/usb_stick.mdl")
-	-- resource.AddFile("materials/bull/various/usb_stick.vtf")
+	--resource.AddFile("models/bull/various/usb_stick.mdl")
+	--resource.AddFile("materials/bull/various/usb_stick.vtf")
 
 else
 	language.Add( "Tool.wire_plug.name", "Plug & Socket Tool (Wire)" )

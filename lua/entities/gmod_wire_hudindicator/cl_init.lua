@@ -65,11 +65,11 @@ local function DrawHUDIndicators()
 						draw.WordBox(8, hudx, currenty, txt, "Default", indinfo.DisplayColor, indinfo.TextColor)
 					elseif indinfo.Style == 2 then -- Percent Bar
 						-- surface.SetFont("Default")
-						-- local pbarwidth, h = surface.GetTextSize(txt)
+						--local pbarwidth, h = surface.GetTextSize(txt)
 						-- pbarwidth = math.max(pbarwidth + 16, 100) -- The extra 16 pixels is a "buffer" to make it look better
 						local startx = hudx
-						-- local w1 = math.floor(indinfo.Factor * pbarwidth)
-						-- local w2 = math.ceil(pbarwidth - w1)
+						--local w1 = math.floor(indinfo.Factor * pbarwidth)
+						--local w2 = math.ceil(pbarwidth - w1)
 						local pbarwidth = indinfo.BoxWidth
 						local w1 = indinfo.W1
 						local w2 = indinfo.W2

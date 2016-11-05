@@ -31,9 +31,9 @@ function EFFECT:Think( )
 
 	local speed = FrameTime() * self.Speed
 
-	-- if (self.Speed > 100) then self.Speed = self.Speed - 1000 * speed end
+	--if (self.Speed > 100) then self.Speed = self.Speed - 1000 * speed end
 
-	-- self.Size = self.Size + speed * self.Speed
+	--self.Size = self.Size + speed * self.Speed
 	self.Alpha = self.Alpha - 250.0 * speed
 
 	self:SetPos( self:GetPos() + self.Normal * speed * 128 )

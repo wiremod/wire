@@ -763,7 +763,7 @@ function Editor:InitComponents()
 		end
 	}, "DButton")
 
-	-- addComponent( panel, x, y, w, h )
+	--addComponent( panel, x, y, w, h )
 	-- if x, y, w, h is minus, it will stay relative to right or buttom border
 	self.C.Close = self:addComponent(vgui.Create("DButton", self), -45-4, 0, 45, 22) -- Close button
 	self.C.Inf = self:addComponent(vgui.CreateFromTable(DMenuButton, self), -45-4-26, 0, 24, 22) -- Info button
@@ -1329,8 +1329,8 @@ Text here]# ]]
 	local dlist2 = vgui.Create("DPanelList")
 	dlist:AddItem(dlist2)
 	dlist2:EnableVerticalScrollbar(true)
-	-- frame:AddResizeObject( dlist2, 2,2 )
-	-- dlist2:SetTall( 444 )
+	--frame:AddResizeObject( dlist2, 2,2 )
+	--dlist2:SetTall( 444 )
 	dlist2:SetSpacing(1)
 
 	local painted = 0

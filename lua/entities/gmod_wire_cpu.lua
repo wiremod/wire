@@ -242,7 +242,7 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 
 	if info.Memory then--and
 		 --(((info.UseROM) and (info.UseROM == true)) or
-		 -- ((info.InternalROMSize) and (info.InternalROMSize > 0))) then
+		 --((info.InternalROMSize) and (info.InternalROMSize > 0))) then
 		self.VM.ROM = {}
 		for k,v in pairs(info.Memory) do self.VM.ROM[k] = tonumber(v) or 0 end
 		self.VM:Reset()

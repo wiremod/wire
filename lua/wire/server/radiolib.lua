@@ -93,13 +93,13 @@ function Radio_ChangeChannel(ent)
 			Radio_Unregister(v)
 		elseif ent:EntIndex() ~= v.Entity:EntIndex() then -- Not sender
 			-- 1. Kill all transmissions for this radio
-			-- for i=0,31 do
-			-- 	if (v.RecievedData[i].Owner == ent) then
-			-- 		v.RecievedData[i].Owner = nil
-			-- 		v.RecievedData[i].Data = 0
-			-- 		v:NotifyDataRecieved(i)
-			-- 	end
-			-- end
+			--for i=0,31 do
+			--	if (v.RecievedData[i].Owner == ent) then
+			--		v.RecievedData[i].Owner = nil
+			--		v.RecievedData[i].Data = 0
+			--		v:NotifyDataRecieved(i)
+			--	end
+			--end
 			Radio_RecieveData(v)
 
 			-- 2. Retransmit under new channel

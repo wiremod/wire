@@ -38,7 +38,7 @@ function ENT:Setup()
 	self.Value = 0
 	self.PrevOutput = nil
 
-	-- self:ShowOutput(0, 0, 0)
+	--self:ShowOutput(0, 0, 0)
 	Wire_TriggerOutput(self, "X", 0)
 	Wire_TriggerOutput(self, "Y", 0)
 	Wire_TriggerOutput(self, "Z", 0)

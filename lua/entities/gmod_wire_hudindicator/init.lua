@@ -142,7 +142,7 @@ function ENT:SetupHUDStyle(hudstyle, rplayer)
 	-- 0 (Basic) and 1 (Gradient) don't require any extra info
 	local pl = rplayer or self:GetPlayer()
 	-- Allow for hooked players
-	-- if (rplayer) then pl = rplayer end
+	--if (rplayer) then pl = rplayer end
 
 	if hudstyle == 2 then -- Percent Bar
 		-- Send as string (there should be a way to send colors)
