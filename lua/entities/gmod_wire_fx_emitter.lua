@@ -43,9 +43,9 @@ if CLIENT then
 		// Don't draw if we are in camera mode
 		local ply = LocalPlayer()
 		local wep = ply:GetActiveWeapon()
-		if wep:IsValid()  then
+		if wep:IsValid() then
 			local weapon_name = wep:GetClass()
-			if weapon_name == "gmod_camera"  then return end
+			if weapon_name == "gmod_camera" then return end
 		end
 
 		self.BaseClass.Draw( self )
@@ -54,13 +54,13 @@ if CLIENT then
 	function ENT:Think()
 		if not self:GetOn() then return end
 
-		if self.Delay > CurTime()  then return end
+		if self.Delay > CurTime() then return end
 		self.Delay = CurTime() + self:GetDelay()
 
 		local Effect = self:GetEffect()
 
 		// Missing effect... replace it if possible :/
-		if not self.Effects[ Effect ]  then if self.Effects[1]  then Effect = 1 else return end end
+		if not self.Effects[ Effect ] then if self.Effects[1] then Effect = 1 else return end end
 
 		local Angle = self:GetAngles()
 

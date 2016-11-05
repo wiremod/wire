@@ -99,7 +99,7 @@ end
 function ENT:Think()
 	self.BaseClass.Think(self)
 
-	if  self:GetOn()  then
+	if self:GetOn() then
 		if (not self.PrevUser)
 		or (not self.PrevUser:IsValid())
 		or (not self.podpress and not self.PrevUser:KeyDown(IN_USE))

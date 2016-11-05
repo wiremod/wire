@@ -105,7 +105,7 @@ function ENT:Think()
 		for key, plug in pairs(local_ents) do
 
 			-- If we find a plug, try to attach it to us
-			if  plug:IsValid() && plug:GetClass() == "gmod_wire_dataplug"  then
+			if plug:IsValid() && plug:GetClass() == "gmod_wire_dataplug" then
 
 				-- If no other sockets are using it
 				if plug.MySocket == nil then

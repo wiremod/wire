@@ -13,7 +13,7 @@ local Wire_Damage_Detectors = {}
 
 -- Damage detection function
 local function CheckWireDamageDetectors( ent, inflictor, attacker, amount, dmginfo )
-	if amount > 0  then
+	if amount > 0 then
 		for k,_ in pairs(Wire_Damage_Detectors) do
 			local detector = k
 			if IsValid(detector) then

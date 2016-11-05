@@ -158,7 +158,7 @@ function MakeWireHydraulic( pl, Ent1, Ent2, Bone1, Bone2, LPos1, LPos2, width, m
 	local WPos1 = Phys1:LocalToWorld( LPos1 )
 	local WPos2 = Phys2:LocalToWorld( LPos2 )
 
-	if  Phys1 == Phys2  then return false end
+	if Phys1 == Phys2 then return false end
 
 	local constant, dampen = WireLib.CalcElasticConsts(Ent1, Ent2)
 

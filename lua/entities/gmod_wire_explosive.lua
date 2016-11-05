@@ -85,7 +85,7 @@ function ENT:Setup( key, damage, delaytime, removeafter, radius, affectother, no
 	self.NormInfo = ""
 	if self.Damage > 0 then self.NormInfo = self.NormInfo.."Damage: "..self.Damage end
 	if self.Radius > 0 or self.Delaytime > 0 then self.NormInfo = self.NormInfo.."\n" end
-	if self.Radius > 0  then self.NormInfo = self.NormInfo.." Rad: "..self.Radius end
+	if self.Radius > 0 then self.NormInfo = self.NormInfo.." Rad: "..self.Radius end
 	if self.Delaytime > 0 then self.NormInfo = self.NormInfo.." Delay: "..self.Delaytime end
 
 	self:ShowOutput()
@@ -159,7 +159,7 @@ end
 
 -- Start exploding
 function ENT:Trigger()
-	if  self.Delaytime > 0  then
+	if self.Delaytime > 0 then
 		self.ExplodeTime = CurTime() + self.Delaytime
 		if self.FireEffect then self:Ignite((self.Delaytime + 3),0) end
 	end
@@ -211,7 +211,7 @@ end
 
 function ENT:Explode( )
 
-	if  not self:IsValid()  then return end
+	if not self:IsValid() then return end
 
 	self:Extinguish()
 
@@ -226,7 +226,7 @@ function ENT:Explode( )
 		self:SetColor(Color(255, 255, 255, 0))
 	end
 
-	if  self.Damage > 0  then
+	if self.Damage > 0 then
 		util.BlastDamage( self, ply, self:GetPos(), self.Radius, self.Damage )
 	end
 
@@ -234,7 +234,7 @@ function ENT:Explode( )
 	 effectdata:SetOrigin( self:GetPos() )
 	util.Effect( "Explosion", effectdata, true, true )
 
-	if  self.Removeafter  then
+	if self.Removeafter then
 		self:Remove()
 		return
 	end

@@ -198,7 +198,7 @@ function EDITOR:SyntaxColorLine(row)
       else
         tokenname = "normal"
       end
-    elseif (self.character == "'") or (self.character == "\"")  then
+    elseif (self.character == "'") or (self.character == "\"") then
       tokenname = "string"
       local delimiter = self.character
       self:NextCharacter()
