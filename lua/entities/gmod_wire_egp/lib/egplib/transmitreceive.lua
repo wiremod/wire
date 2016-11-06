@@ -33,7 +33,7 @@ if SERVER then
 	util.AddNetworkString( "ClearScreen" )
 	local function ClearScreen( Ent, ply )
 		if not IsValid(ply) or not ply:IsPlayer() then return end
-		if (EGP:CheckInterval( ply ) == false) then
+		if EGP:CheckInterval( ply ) == false then
 			EGP:InsertQueue( Ent, ply, ClearScreen, "ClearScreen" )
 			return
 		end
@@ -49,7 +49,7 @@ if SERVER then
 	util.AddNetworkString( "SaveFrame" )
 	local function SaveFrame( Ent, ply, FrameName )
 		if not IsValid(ply) or not ply:IsPlayer() then return end
-		if (EGP:CheckInterval( ply ) == false) then
+		if EGP:CheckInterval( ply ) == false then
 			EGP:InsertQueue( Ent, ply, SaveFrame, "SaveFrame", FrameName )
 			return
 		end
@@ -68,7 +68,7 @@ if SERVER then
 	util.AddNetworkString( "LoadFrame" )
 	local function LoadFrame( Ent, ply, FrameName )
 		if not IsValid(ply) or not ply:IsPlayer() then return end
-		if (EGP:CheckInterval( ply ) == false) then
+		if EGP:CheckInterval( ply ) == false then
 			EGP:InsertQueue( Ent, ply, LoadFrame, "LoadFrame", FrameName )
 			return
 		end
@@ -90,13 +90,13 @@ if SERVER then
 	util.AddNetworkString( "AddVertex" )
 	local function AddVertex( Ent, ply, index, vertices )
 		if not IsValid(ply) or not ply:IsPlayer() then return end
-		if (EGP:CheckInterval( ply ) == false) then
+		if EGP:CheckInterval( ply ) == false then
 			EGP:InsertQueue( Ent, ply, AddVertex, "AddVertex", index, vertices )
 			return
 		end
 
 		local bool, k, v = EGP:HasObject( Ent, index )
-		if (bool) then
+		if bool then
 			if not EGP.umsg.Start("EGP_Transmit_Data", ply) then return end
 				net.WriteEntity( Ent )
 				net.WriteString( "AddVertex" )
@@ -106,7 +106,7 @@ if SERVER then
 					local vert = vertices[i]
 					net.WriteInt( vert.x, 16 )
 					net.WriteInt( vert.y, 16 )
-					if (v.HasUV) then
+					if v.HasUV then
 						net.WriteFloat( vert.u or 0 )
 						net.WriteFloat( vert.v or 0 )
 					end
@@ -122,13 +122,13 @@ if SERVER then
 	function EGP._SetVertex( Ent, ply, index, vertices, skiptoadd )
 		
 		if not IsValid(ply) or not ply:IsPlayer() then return end
-		if (EGP:CheckInterval( ply ) == false) then
+		if EGP:CheckInterval( ply ) == false then
 			EGP:InsertQueue( Ent, ply, EGP._SetVertex, "SetVertex", index, vertices, skiptoadd )
 			return
 		end
 
 		local bool, k, v = EGP:HasObject( Ent, index )
-		if (bool) then
+		if bool then
 			if not EGP.umsg.Start("EGP_Transmit_Data", ply) then return end
 				net.WriteEntity( Ent )
 				net.WriteString( "SetVertex" )
@@ -138,7 +138,7 @@ if SERVER then
 					local vert = vertices[i]
 					net.WriteInt( vert.x, 16 )
 					net.WriteInt( vert.y, 16 )
-					if (v.HasUV) then
+					if v.HasUV then
 						net.WriteFloat( vert.u or 0 )
 						net.WriteFloat( vert.v or 0 )
 					end
@@ -153,13 +153,13 @@ if SERVER then
 	util.AddNetworkString( "AddText" )
 	local function AddText( Ent, ply, index, text )
 		if not IsValid(ply) or not ply:IsPlayer() then return end
-		if (EGP:CheckInterval( ply ) == false) then
+		if EGP:CheckInterval( ply ) == false then
 			EGP:InsertQueue( Ent, ply, AddText, "AddText", index, text )
 			return
 		end
 
 		local bool, k, v = EGP:HasObject( Ent, index )
-		if (bool) then
+		if bool then
 			if not EGP.umsg.Start("EGP_Transmit_Data", ply) then return end
 				net.WriteEntity( Ent )
 				net.WriteString( "AddText" )
@@ -175,13 +175,13 @@ if SERVER then
 	util.AddNetworkString( "SetText" )
 	function EGP._SetText( Ent, ply, index, text )
 		if not IsValid(ply) or not ply:IsPlayer() then return end
-		if (EGP:CheckInterval( ply ) == false) then
+		if EGP:CheckInterval( ply ) == false then
 			EGP:InsertQueue( Ent, ply, EGP._SetText, "SetText", index, text )
 			return
 		end
 
 		local bool, k, v = EGP:HasObject( Ent, index )
-		if (bool) then
+		if bool then
 			if not EGP.umsg.Start("EGP_Transmit_Data", ply) then return end
 				net.WriteEntity( Ent )
 				net.WriteString( "SetText" )
@@ -208,14 +208,14 @@ if SERVER then
 		if not Ent or not Ent:IsValid() or not ply or not ply:IsValid() or not DataToSend then return end
 
 		-- Check duped
-		if (Ent.EGP_Duplicated) then
+		if Ent.EGP_Duplicated then
 			EGP:InsertQueueObjects( Ent, ply, SendObjects, DataToSend )
 			return
 		end
 
 		-- Check interval
 		if not IsValid(ply) or not ply:IsPlayer() then return end
-		if (EGP:CheckInterval( ply ) == false) then
+		if EGP:CheckInterval( ply ) == false then
 			EGP:InsertQueueObjects( Ent, ply, SendObjects, DataToSend )
 			return
 		end
@@ -234,13 +234,13 @@ if SERVER then
 
 				net.WriteInt( v.index, 16 ) -- Send index of object
 
-				if (v.remove == true) then
+				if v.remove == true then
 					net.WriteUInt(0, 8) -- Object is to be removed, send a 0
 					local bool, k, v = EGP:HasObject( Ent, v.index )
-					if (bool) then
+					if bool then
 						-- Unparent all objects parented to this object
 						for k2,v2 in pairs( Ent.RenderTable ) do
-							if (v2.parent and v.index and v2.parent == v.index) then
+							if v2.parent and v.index and v2.parent == v.index then
 								EGP:UnParent( Ent, v2 )
 							end
 						end
@@ -250,24 +250,24 @@ if SERVER then
 				else
 					net.WriteUInt(v.ID, 8) -- Else send the ID of the object
 
-					if (Ent.Scaling or Ent.TopLeft) then
+					if Ent.Scaling or Ent.TopLeft then
 						v = table.Copy(v) -- Make a copy of the table so it doesn't overwrite the serverside object
 					end
 
 					-- Scale the positions and size
-					if (Ent.Scaling) then
+					if Ent.Scaling then
 						EGP:ScaleObject( Ent, v )
 					end
 
 					-- Move the object to draw from the top left
-					if (Ent.TopLeft) then
+					if Ent.TopLeft then
 						EGP:MoveTopLeft( Ent, v )
 					end
 
-					if (v.ChangeOrder) then -- We want to change the order of this object, send the index to where we wish to move it
+					if v.ChangeOrder then -- We want to change the order of this object, send the index to where we wish to move it
 						local from = v.ChangeOrder[1]
 						local to = v.ChangeOrder[2]
-						if (Ent.RenderTable[to]) then
+						if Ent.RenderTable[to] then
 							Ent.RenderTable[to].ChangeOrder = nil
 						end
 						net.WriteInt( from, 16 )
@@ -289,20 +289,20 @@ if SERVER then
 	----------------------------
 
 	function EGP:DoAction( Ent, E2, Action, ... )
-		if (Action == "SendObject") then
+		if Action == "SendObject" then
 			local Data = {...}
 			if not Data[1] then return end
 
-			if (E2 and E2.entity and E2.entity:IsValid()) then
+			if E2 and E2.entity and E2.entity:IsValid() then
 				E2.prf = E2.prf + 30
 			end
 
 			self:AddQueueObject( Ent, E2.player, SendObjects, Data[1] )
-		elseif (Action == "RemoveObject") then
+		elseif Action == "RemoveObject" then
 			local Data = {...}
 			if not Data[1] then return end
 
-			if (E2 and E2.entity and E2.entity:IsValid()) then
+			if E2 and E2.entity and E2.entity:IsValid() then
 				E2.prf = E2.prf + 20
 			end
 			
@@ -315,12 +315,12 @@ if SERVER then
 			end
 
 			self:AddQueueObject( Ent, E2.player, SendObjects, { index = Data[1], remove = true } )
-		elseif (Action == "ClearScreen") then
-			if (E2 and E2.entity and E2.entity:IsValid()) then
+		elseif Action == "ClearScreen" then
+			if E2 and E2.entity and E2.entity:IsValid() then
 				E2.prf = E2.prf + 20
 			end
 			
-			// Remove all queued actions for this screen
+			-- Remove all queued actions for this screen
 			local queue = self.Queue[E2.player] or {}
 			local i = 1
 			while i<=#queue do
@@ -335,34 +335,34 @@ if SERVER then
 			Ent.RenderTable = {}
 
 			self:AddQueue( Ent, E2.player, ClearScreen, "ClearScreen" )
-		elseif (Action == "SaveFrame") then
+		elseif Action == "SaveFrame" then
 			local Data = {...}
 			if not Data[1] then return end
 
-			if (E2 and E2.entity and E2.entity:IsValid()) then
+			if E2 and E2.entity and E2.entity:IsValid() then
 				E2.prf = E2.prf + 10
 			end
 
 			EGP:SaveFrame( E2.player, Ent, Data[1] )
 			self:AddQueue( Ent, E2.player, SaveFrame, "SaveFrame", Data[1] )
-		elseif (Action == "LoadFrame") then
+		elseif Action == "LoadFrame" then
 			local Data = {...}
 			if not Data[1] then return end
 
-			if (E2 and E2.entity and E2.entity:IsValid()) then
+			if E2 and E2.entity and E2.entity:IsValid() then
 				E2.prf = E2.prf + 10
 			end
 
 			local bool, frame = EGP:LoadFrame( E2.player, Ent, Data[1] )
-			if (bool) then
+			if bool then
 				Ent.RenderTable = frame
 			end
 
 			self:AddQueue( Ent, E2.player, LoadFrame, "LoadFrame", Data[1] )
-		elseif (Action == "SetScale") then
+		elseif Action == "SetScale" then
 			local Data = {...}
 			self:AddQueue( Ent, E2.player, SetScale, "SetScale", Data[1], Data[2] )
-		elseif (Action == "MoveTopLeft") then
+		elseif Action == "MoveTopLeft" then
 			local Data = {...}
 			self:AddQueue( Ent, E2.player, MoveTopLeft, "MoveTopLeft", Data[1] )
 		end
@@ -373,39 +373,39 @@ else -- SERVER/CLIENT
 		if not self:ValidEGP( Ent ) or not Ent.RenderTable then return end
 
 		local Action = net.ReadString()
-		if (Action == "ClearScreen") then
+		if Action == "ClearScreen" then
 			Ent.RenderTable = {}
 			Ent:EGP_Update()
-		elseif (Action == "SaveFrame") then
+		elseif Action == "SaveFrame" then
 			local ply = net.ReadEntity()
 			local FrameName = net.ReadString()
 			EGP:SaveFrame( ply, Ent, FrameName )
-		elseif (Action == "LoadFrame") then
+		elseif Action == "LoadFrame" then
 			local ply = net.ReadEntity()
 			local FrameName = net.ReadString()
 			EGP:LoadFrame( ply, Ent, FrameName )
 			Ent:EGP_Update()
-		elseif (Action == "SetText") then
+		elseif Action == "SetText" then
 			local index = net.ReadInt(16)
 			local text = net.ReadString()
 			local bool,k,v = EGP:HasObject( Ent, index )
-			if (bool) then
-				if (EGP:EditObject( v, { text = text } )) then Ent:EGP_Update() end
+			if bool then
+				if EGP:EditObject( v, { text = text } ) then Ent:EGP_Update() end
 			end
-		elseif (Action == "AddText") then
+		elseif Action == "AddText" then
 			local index = net.ReadInt(16)
 			local text = net.ReadString()
 			local bool,k,v = EGP:HasObject( Ent, index )
-			if (bool) then
-				if (EGP:EditObject( v, { text = v.text .. text } )) then Ent:EGP_Update() end
+			if bool then
+				if EGP:EditObject( v, { text = v.text .. text } ) then Ent:EGP_Update() end
 			end
-		elseif (Action == "SetVertex") then
+		elseif Action == "SetVertex" then
 			local index = net.ReadInt(16)
 			local bool, k,v = EGP:HasObject( Ent, index )
-			if (bool) then
+			if bool then
 				local vertices = {}
 
-				if (v.HasUV) then
+				if v.HasUV then
 					local n = 0
 					for i=1,net.ReadUInt(8) do
 						local x, y, u, _v = net.ReadInt(16), net.ReadInt(16), net.ReadFloat(), net.ReadFloat()
@@ -419,15 +419,15 @@ else -- SERVER/CLIENT
 					end
 				end
 
-				if (EGP:EditObject( v, { vertices = vertices })) then Ent:EGP_Update() end
+				if EGP:EditObject( v, { vertices = vertices }) then Ent:EGP_Update() end
 			end
-		elseif (Action == "AddVertex") then
+		elseif Action == "AddVertex" then
 			local index = net.ReadInt(16)
 			local bool, k, v = EGP:HasObject( Ent, index )
-			if (bool) then
+			if bool then
 				local vertices = table.Copy(v.vertices)
 
-				if (v.HasUV) then
+				if v.HasUV then
 					local n = 0
 					for i=1,net.ReadUInt(8) do
 						local x, y, u, _v = net.ReadInt(16), net.ReadInt(16), net.ReadFloat(), net.ReadFloat()
@@ -441,23 +441,23 @@ else -- SERVER/CLIENT
 					end
 				end
 
-				if (EGP:EditObject( v, { vertices = vertices })) then Ent:EGP_Update() end
+				if EGP:EditObject( v, { vertices = vertices }) then Ent:EGP_Update() end
 			end
-		elseif (Action == "ReceiveObjects") then
+		elseif Action == "ReceiveObjects" then
 			for i=1,net.ReadUInt(16) do
 				local index = net.ReadInt(16)
-				if (index == 0) then break end -- In case the umsg had to abort early
+				if index == 0 then break end -- In case the umsg had to abort early
 
 				local ID = net.ReadUInt(8)
 
-				if (ID == 0) then -- Remove object
+				if ID == 0 then -- Remove object
 					local bool, k, v = EGP:HasObject( Ent, index )
-					if (bool) then
-						if (v.OnRemove) then v:OnRemove() end
+					if bool then
+						if v.OnRemove then v:OnRemove() end
 
 						-- Unparent all objects parented to this object
 						for k2,v2 in pairs( Ent.RenderTable ) do
-							if (v2.parent and v.index and v2.parent == v.index) then
+							if v2.parent and v.index and v2.parent == v.index then
 								EGP:UnParent( Ent, v2 )
 							end
 						end
@@ -498,7 +498,7 @@ else -- SERVER/CLIENT
 							end
 
 							-- For EGP HUD
-							if (v.res) then v.res = nil end
+							if v.res then v.res = nil end
 							
 							current_obj = v
 						end
@@ -506,14 +506,14 @@ else -- SERVER/CLIENT
 						local Obj = self:GetObjectByID( ID )
 						self:EditObject( Obj, Obj:Receive() )
 						Obj.index = index
-						if (Obj.OnCreate) then Obj:OnCreate() end
+						if Obj.OnCreate then Obj:OnCreate() end
 						Ent.RenderTable[#Ent.RenderTable+1] = Obj--table.insert( Ent.RenderTable, Obj )
 						
 						current_obj = Obj
 					end
 
 					-- Change Order (later)
-					if (ChangeOrder_From and ChangeOrder_To) then
+					if ChangeOrder_From and ChangeOrder_To then
 						current_obj.ChangeOrder = {ChangeOrder_From,ChangeOrder_To}
 					end
 				end
@@ -534,7 +534,7 @@ else -- SERVER/CLIENT
 
 end
 
-if (SERVER) then
+if SERVER then
 	util.AddNetworkString("EGP_Request_Transmit")
 
 	EGP.DataStream = {}
@@ -582,29 +582,29 @@ if (SERVER) then
 			table.Add( targets, ents.FindByClass("gmod_wire_egp_hud") )
 			table.Add( targets, ents.FindByClass("gmod_wire_egp_emitter") )
 
-			if (#targets == 0) then return false, "There are no EGP screens on the map." end
+			if #targets == 0 then return false, "There are no EGP screens on the map." end
 		end
 
 		local sent
 		for k,v in ipairs( targets ) do
-			if (v.RenderTable and #v.RenderTable>0) then
+			if v.RenderTable and #v.RenderTable>0 then
 				local DataToSend = {}
 				for k2, v2 in pairs( v.RenderTable ) do
 					local obj = v2
 
-					if (v.Scaling or v.TopLeft) then
+					if v.Scaling or v.TopLeft then
 						obj = table.Copy(v2) -- Make a copy of the table so it doesn't overwrite the serverside object
 					else
 						obj = v2
 					end
 
 					-- Scale the positions and size
-					if (v.Scaling) then
+					if v.Scaling then
 						EGP:ScaleObject( v, obj )
 					end
 
 					-- Move the object to draw from the top left
-					if (v.TopLeft) then
+					if v.TopLeft then
 						EGP:MoveTopLeft( v, obj )
 					end
 
@@ -632,9 +632,9 @@ if (SERVER) then
 
 	local function initspawn(ply)
 		timer.Simple(10,function()
-			if (ply and ply:IsValid()) then
+			if ply and ply:IsValid() then
 				local bool, msg = EGP:SendDataStream( ply )
-				if (bool == true) then
+				if bool == true then
 					ply:ChatPrint("[EGP] " .. tostring(msg) .. " EGP Screens found on the server. Sending objects now...")
 				end
 			end
@@ -648,7 +648,7 @@ else
 		local Ent = decoded.Ent
 		local Objects = decoded.Objects
 		
-		if (self:ValidEGP( Ent )) then
+		if self:ValidEGP( Ent ) then
 			Ent.RenderTable = {}
 			for _,v in pairs( Objects ) do
 				local Obj = self:GetObjectByID(v.ID)

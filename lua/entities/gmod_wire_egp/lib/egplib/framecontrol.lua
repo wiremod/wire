@@ -14,7 +14,7 @@ end
 function EGP:LoadFrame( ply, Ent, index )
 	if not EGP.Frames[ply] then EGP.Frames[ply] = {} return false end
 	if SERVER then
-		local bool = (EGP.Frames[ply][index] != nil)
+		local bool = (EGP.Frames[ply][index] ~= nil)
 		if not bool then return false end
 		return true, table.Copy(EGP.Frames[ply][index])
 	else

@@ -81,10 +81,10 @@ function ENT:Think()
 	self.BaseClass.Think(self)
 
 	-- If we were unplugged, reset the plug and socket to accept new ones.
-	if self.Const) and (not self.Const:IsValid() then
+	if self.Const and not self.Const:IsValid() then
 		self.Const = nil
 		self.NoCollideConst = nil
-		if self.MyPlug) and (self.MyPlug:IsValid() then
+		if self.MyPlug and self.MyPlug:IsValid() then
 			self.MyPlug:SetSocket(nil)
 			self.MyPlug = nil
 		end
@@ -97,7 +97,7 @@ function ENT:Think()
 	end
 
 	-- If we have no plug in us
-	if (not self.MyPlug) or (not self.MyPlug:IsValid()) then
+	if not self.MyPlug or not self.MyPlug:IsValid() then
 
 		-- Find entities near us
 		local sockCenter = self:GetOffset( Vector(-1.75, 0, 0) )

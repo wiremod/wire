@@ -19,7 +19,7 @@ local function makeArray( v, fakepos )
 	local ret = {}
 	if isstring(v.verticesindex) then
 		if not fakepos then
-			if (!v["_"..v.verticesindex]) then EGP:AddParentIndexes( v ) end
+			if not v["_"..v.verticesindex] then EGP:AddParentIndexes( v ) end
 			for k,v in ipairs( v["_"..v.verticesindex] ) do
 				ret[#ret+1] = v.x
 				ret[#ret+1] = v.y
@@ -143,10 +143,10 @@ function EGP:GetGlobalPos( Ent, index )
 			if isstring(v.verticesindex) then ret = { [v.verticesindex] = makeTable( v, makeArray( v ) ) }	else ret = makeTable( v, makeArray( v ) ) end
 			return true, ret
 		else -- Object does not have vertices, parent does not
-			if (v.parent and v.parent != 0) then -- Object is parented
-				if (v.parent == -1) then -- Object is parented to the cursor
+			if v.parent and v.parent ~= 0 then -- Object is parented
+				if v.parent == -1 then -- Object is parented to the cursor
 					local xy = {0,0}
-					if (CLIENT) then
+					if CLIENT then
 						xy = self:EGPCursor( Ent, LocalPlayer() )
 					end
 					local x, y = xy[1], xy[2]
@@ -154,7 +154,7 @@ function EGP:GetGlobalPos( Ent, index )
 					return false, { x = vec.x, y = vec.y, angle = -ang.y }
 				else
 					local hasVertices, data = self:GetGlobalPos( Ent, v.parent )
-					if (hasVertices) then -- obj does not have vertices, parent does
+					if hasVertices then -- obj does not have vertices, parent does
 						local _, _, prnt = self:HasObject( Ent, v.parent )
 						local centerx, centery = getCenter( makeArray( prnt, true ) )
 						return false, { x = (v._x or v.x) + centerx, y = (v._y or v.y) + centery, angle = -(v._angle or v.angle) }
@@ -177,7 +177,7 @@ end
 --------------------------------------------------------
 
 function EGP:AddParentIndexes( v )
-	if (v.verticesindex) then
+	if v.verticesindex then
 		-- Copy original positions
 		if isstring(v.verticesindex) then
 			v["_"..v.verticesindex] = table.Copy( v[v.verticesindex] )
@@ -198,7 +198,7 @@ end
 local function GetChildren( Ent, Obj )
 	local ret = {}
 	for k,v in ipairs( Ent.RenderTable ) do
-		if (v.parent == Obj.index) then
+		if v.parent == Obj.index then
 			ret[#ret+1] = v
 		end
 	end
@@ -227,7 +227,7 @@ function EGP:SetParent( Ent, index, parentindex )
 	local bool, k, v = self:HasObject( Ent, index )
 	if bool then
 		if parentindex == -1 then -- Parent to cursor?
-			if (self:EditObject( v, { parent = parentindex } )) then return true, v end
+			if self:EditObject( v, { parent = parentindex } ) then return true, v end
 		else
 			local bool2, k2, v2 = self:HasObject( Ent, parentindex )
 			if bool2 then
@@ -249,7 +249,7 @@ function EGP:SetParent( Ent, index, parentindex )
 end
 
 function EGP:RemoveParentIndexes( v, hasVertices )
-	if (hasVertices) then
+	if hasVertices then
 		-- Remove original positions
 		if isstring(v.verticesindex) then
 			v["_"..v.verticesindex] = nil

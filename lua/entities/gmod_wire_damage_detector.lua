@@ -236,7 +236,7 @@ end
 function ENT:UpdateDamage( dmginfo, ent ) -- Update damage table
 	local damage = dmginfo:GetDamage()
 
-	if !self.hit then -- Only register the first target's damage info
+	if not self.hit then -- Only register the first target's damage info
 		self.firsthit_dmginfo = {
 			dmginfo:GetAttacker(),
 			ent,

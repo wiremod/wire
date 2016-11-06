@@ -122,7 +122,7 @@ function ENT:TriggerInput(iname, value)
 end
 
 
-//need for the const to find the controler after being duplicator pasted
+-- need for the const to find the controler after being duplicator pasted
 local WireHydraulicTracking = {}
 
 function MakeWireHydraulicController( pl, Pos, Ang, model, MyEntId, const, rope )

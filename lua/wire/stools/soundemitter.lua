@@ -80,7 +80,7 @@ function TOOL.BuildCPanel(panel)
 	SoundPreStop:SetTall(20)
 	SoundPreStop:SetVisible(true)
 	SoundPreStop.DoClick = function()
-		RunConsoleCommand("play", "common/NULL.WAV") //Playing a silent sound will mute the preview but not the sound emitters.
+		RunConsoleCommand("play", "common/NULL.WAV") -- Playing a silent sound will mute the preview but not the sound emitters.
 	end
 	panel:AddItem(SoundPre)
 	SoundPre:InvalidateLayout(true)

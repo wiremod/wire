@@ -8,12 +8,12 @@ EGP.Queue = {}
 function EGP:AddQueueObject( Ent, ply, Function, Object )
 	if not self.Queue[ply] then self.Queue[ply] = {} end
 	local n = #self.Queue[ply]
-	if (n > 0) then
+	if n > 0 then
 		local LastItem = self.Queue[ply][n]
 		if LastItem.Ent == Ent and LastItem.Action == "Object" then
 			local found = false
 			for k,v in ipairs( LastItem.Args[1] ) do
-				if (v.index == Object.index) then
+				if v.index == Object.index then
 					--self:EditObject( v, Object )
 
 					if Object.remove then -- The object has been removed
@@ -48,7 +48,7 @@ end
 function EGP:AddQueue( Ent, ply, Function, Action, ... )
 	if not self.Queue[ply] then self.Queue[ply] = {} end
 	local n = #self.Queue[ply]
-	if (n > 0) then
+	if n > 0 then
 		local LastItem = self.Queue[ply][n]
 		if LastItem.Ent == Ent and LastItem.Action == Action then -- Same item, no point in sending it again
 			return
@@ -60,7 +60,7 @@ end
 function EGP:InsertQueueObjects( Ent, ply, Function, Objects )
 	if not self.Queue[ply] then self.Queue[ply] = {} end
 	local n = #self.Queue[ply]
-	if (n > 0) then
+	if n > 0 then
 		local FirstItem = self.Queue[ply][1]
 		if FirstItem.Ent == Ent and FirstItem.Action == "Object" then
 			local Args = FirstItem.Args
@@ -94,7 +94,7 @@ function EGP:SendQueueItem( ply )
 		local Func = NextAction.Function
 		local Ent = NextAction.Ent
 		local Args = NextAction.Args
-		if (Args and #Args>0) then
+		if Args and #Args>0 then
 			Func( Ent, ply, unpack(Args) )
 		else
 			Func( Ent, ply )
@@ -114,7 +114,7 @@ function EGP:SendQueueItem( ply )
 					if context then
 						local owner = context.player
 						 -- Check if friends, whether or not the E2 is already executing, and if the E2 wants to be triggered by the queue system regarding the screen in question.
-						if (E2Lib.isFriend( ply, owner ) and context.data and context.data.EGP and context.data.EGP.RunOnEGP and context.data.EGP.RunOnEGP[Ent] == true) then
+						if E2Lib.isFriend( ply, owner ) and context.data and context.data.EGP and context.data.EGP.RunOnEGP and context.data.EGP.RunOnEGP[Ent] == true then
 							v:Execute()
 						end
 					end

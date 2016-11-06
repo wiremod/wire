@@ -201,7 +201,7 @@ end
 
 function ENT:TriggerInput(iname, value)
 	if iname == "A" then
-		if (self.bidir) and (math.abs(value) > 0.01) and (math.abs(value) > self.force_min) ) or ( (value > 0.01) and (value > self.force_min) then
+		if (self.bidir and math.abs(value) > 0.01 and math.abs(value) > self.force_min) or (value > 0.01 and value > self.force_min) then
 			self:Switch(true, math.min(value, self.force_max))
 		else
 			self:Switch(false, 0)

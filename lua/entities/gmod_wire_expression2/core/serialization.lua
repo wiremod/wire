@@ -110,7 +110,7 @@ typeSanitizers = {
 				if not glonOutputObject then return safeArray end
 				safeGlonObjectMap["r"][glonOutputObject] = safeArray
 
-				if !istable(glonOutputObject) then return safeArray end
+				if not istable(glonOutputObject) then return safeArray end
 
 				for k, v in pairs(glonOutputObject) do
 					if type (k) == "number" then

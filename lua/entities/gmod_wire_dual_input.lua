@@ -36,7 +36,7 @@ end
 
 function ENT:InputActivate( mul )
 	if self.toggle and self.Select == mul then
-		return self:Switch( !self.On, mul )
+		return self:Switch( not self.On, mul )
 	end
 
 	return self:Switch( true, mul )
