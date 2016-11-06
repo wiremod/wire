@@ -367,7 +367,7 @@ end
 function ENT:BuildDupeInfo()
 	local info = self.BaseClass.BuildDupeInfo(self) or {}
 
-	if self.Pod) and (self.Pod:IsValid() then
+	if self.Pod and self.Pod:IsValid() then
 	    info.pod = self.Pod:EntIndex()
 	end
 

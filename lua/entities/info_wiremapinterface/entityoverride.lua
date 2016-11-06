@@ -124,7 +124,7 @@ function ENT:OverrideEnt(Entity)
 	Entity._Added_WireMapInterfaceEnt = Entity._Added_WireMapInterfaceEnt or {}
 
 	for k, v in pairs(WIREENT) do
-		if Entity[k] == nil) or (k == "_Overrides_WireMapInterfaceEnt") or (k == "_Added_WireMapInterfaceEnt") or (k == "_Settings_WireMapInterfaceEnt" then
+		if (Entity[k] == nil) or (k == "_Overrides_WireMapInterfaceEnt") or (k == "_Added_WireMapInterfaceEnt") or (k == "_Settings_WireMapInterfaceEnt") then
 			Entity._Overrides_WireMapInterfaceEnt[k] = nil
 			Entity._Added_WireMapInterfaceEnt[k] = true
 		else

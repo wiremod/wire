@@ -97,7 +97,7 @@ function ENT:Think()
 	end
 
 	-- If we have no plug in us
-	if not self.MyPlug) or (not self.MyPlug:IsValid() then
+	if (not self.MyPlug) or (not self.MyPlug:IsValid()) then
 
 		-- Find entities near us
 		local sockCenter = self:GetOffset( Vector(-1.75, 0, 0) )
@@ -105,7 +105,7 @@ function ENT:Think()
 		for key, plug in pairs(local_ents) do
 
 			-- If we find a plug, try to attach it to us
-			if plug:IsValid() && plug:GetClass() == "gmod_wire_dataplug" then
+			if plug:IsValid() and plug:GetClass() == "gmod_wire_dataplug" then
 
 				-- If no other sockets are using it
 				if plug.MySocket == nil then

@@ -426,10 +426,10 @@ function WireToolSetup.setToolMenuIcon( icon )
 end
 
 -- makes a new TOOL
--- s_mode: Tool_mode, same as the old tool lua file name, minus the "wire_" part
--- s_name: Proper name for the tool
--- s_class: For tools that make a device. Should begin with "gmod_wire_". Can be nil if not using WireToolObj.LeftClick or WireToolSetup.BaseLang
--- f_toolmakeent: Server side function for making the tools device. Can be nil if not using WireToolObj.LeftClick
+--  s_mode: Tool_mode, same as the old tool lua file name, minus the "wire_" part
+--  s_name: Proper name for the tool
+--  s_class: For tools that make a device. Should begin with "gmod_wire_". Can be nil if not using WireToolObj.LeftClick or WireToolSetup.BaseLang
+--  f_toolmakeent: Server side function for making the tools device. Can be nil if not using WireToolObj.LeftClick
 function WireToolSetup.open( s_mode, s_name, s_class, f_toolmakeent, s_pluralname )
 	-- close the previous TOOL if not done so already
 	if TOOL then WireToolSetup.close() end

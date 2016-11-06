@@ -27,8 +27,8 @@ function ENT:Initialize()
 	self.Out = 0
 
 	-- Flash type
-	--  0: compatibility 16 values per block mode
-	--  1: 128 values per block mode
+	--   0: compatibility 16 values per block mode
+	--   1: 128 values per block mode
 	self.FlashType = 0
 	self.BlockSize = 16
 

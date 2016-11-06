@@ -20,7 +20,7 @@ TOOL.ClientConVar[ "model" ] = "models/jaanus/wiretool/wiretool_siren.mdl"
 cleanup.Register( "wire_clutch" )
 
 
---[[---------------------------------------------------------
+--[[-------------------------------------------------------
    -- Server Usermessages --
    Send entity tables for the DrawHUD display
 ---------------------------------------------------------]]
@@ -42,7 +42,7 @@ if SERVER then
 end
 
 
---[[---------------------------------------------------------
+--[[-------------------------------------------------------
    -- Client Usermessages --
    Receive entity tables for the DrawHUD display
 ---------------------------------------------------------]]
@@ -69,7 +69,7 @@ if CLIENT then
 
 	usermessage.Hook( "wire_clutch_links", Receive_links )
 
-	--[[---------------------------------------------------------
+	--[[-------------------------------------------------------
 	   -- DrawHUD --
 	   Display clutch constraints associated with a controller
 	---------------------------------------------------------]]
@@ -189,7 +189,7 @@ if SERVER then
 	end
 end
 
---[[---------------------------------------------------------
+--[[-------------------------------------------------------
    -- Right click --
    Associates ents with the currently selected controller
 ---------------------------------------------------------]]
@@ -257,7 +257,7 @@ function TOOL:RightClick( trace )
 end
 
 
---[[---------------------------------------------------------
+--[[-------------------------------------------------------
    -- Reload --
    Remove clutch association between current controller and
 	the traced entity
@@ -307,7 +307,7 @@ end
 
 
 if CLIENT then return end
---[[---------------------------------------------------------
+--[[-------------------------------------------------------
    -- Clutch controller server functions --
 ---------------------------------------------------------]]
 -- When a ball socket is removed, clear the entry for each clutch controller

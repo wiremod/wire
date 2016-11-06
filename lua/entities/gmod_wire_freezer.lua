@@ -91,7 +91,7 @@ function ENT:CheckEnt( ent )
 end
 
 function ENT:LinkEnt( ent )
-	if self:CheckEnt( ent ) then return false	end
+	if self:CheckEnt( ent ) then return false end
 	self.Marks[#self.Marks+1] = ent
 	ent:CallOnRemove("AdvEMarker.Unlink", function(ent)
 		if IsValid(self) then self:UnlinkEnt(ent) end

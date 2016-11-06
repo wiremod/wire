@@ -1,6 +1,6 @@
 ------------------------------------------------------------------------------------------------
--- 	Purpose: contains functionality for wrapping text to a specific width and expanding spaces
--- 	so the text is aligned on both sides
+-- Purpose: contains functionality for wrapping text to a specific width and expanding spaces
+-- so the text is aligned on both sides
 ------------------------------------------------------------------------------------------------
 
 
@@ -35,7 +35,7 @@ AccessorFunc( TextWrapIndex, "m_Justify", "Justify" );
 AccessorFunc( TextWrapIndex, "m_JustifyLast", "JustifyLast" );
 
 ------------------------------------------------------------------------------------------------
--- 	Purpose: creates a new instance of TextWrap
+-- Purpose: creates a new instance of TextWrap
 ------------------------------------------------------------------------------------------------
 --function TextWrap( fontName )
 function EGP:TextLayouter( fontName )
@@ -62,7 +62,7 @@ function EGP:TextLayouter( fontName )
 end
 
 ------------------------------------------------------------------------------------------------
--- 	Purpose: sets the font and caches some size values
+-- Purpose: sets the font and caches some size values
 ------------------------------------------------------------------------------------------------
 function TextWrapIndex:SetFont( fontName )
 
@@ -78,7 +78,7 @@ function TextWrapIndex:SetFont( fontName )
 end
 
 ------------------------------------------------------------------------------------------------
--- 	Purpose: gets the position
+-- Purpose: gets the position
 ------------------------------------------------------------------------------------------------
 function TextWrapIndex:GetPos()
 
@@ -87,7 +87,7 @@ function TextWrapIndex:GetPos()
 end
 
 ------------------------------------------------------------------------------------------------
--- 	Purpose: sets the position
+-- Purpose: sets the position
 ------------------------------------------------------------------------------------------------
 function TextWrapIndex:SetPos( x, y )
 
@@ -97,7 +97,7 @@ function TextWrapIndex:SetPos( x, y )
 end
 
 ------------------------------------------------------------------------------------------------
--- 	Purpose: gets the size
+-- Purpose: gets the size
 ------------------------------------------------------------------------------------------------
 function TextWrapIndex:GetSize()
 
@@ -106,7 +106,7 @@ function TextWrapIndex:GetSize()
 end
 
 ------------------------------------------------------------------------------------------------
--- 	Purpose: sets the size
+-- Purpose: sets the size
 ------------------------------------------------------------------------------------------------
 function TextWrapIndex:SetSize( width, height )
 
@@ -116,7 +116,7 @@ function TextWrapIndex:SetSize( width, height )
 end
 
 ------------------------------------------------------------------------------------------------
--- 	Purpose: gets the minimum width, clamp your stuff to this
+-- Purpose: gets the minimum width, clamp your stuff to this
 ------------------------------------------------------------------------------------------------
 function TextWrapIndex:GetOptimalWidth( )
 
@@ -125,7 +125,7 @@ function TextWrapIndex:GetOptimalWidth( )
 end
 
 ------------------------------------------------------------------------------------------------
--- 	Purpose: draws the wrapped text
+-- Purpose: draws the wrapped text
 ------------------------------------------------------------------------------------------------
 function TextWrapIndex:Draw()
 
@@ -148,7 +148,7 @@ function TextWrapIndex:Draw()
 end
 
 ------------------------------------------------------------------------------------------------
--- 	Purpose: recomputes text alignment and return the net height of the text
+-- Purpose: recomputes text alignment and return the net height of the text
 ------------------------------------------------------------------------------------------------
 function TextWrapIndex:Reset()
 
@@ -176,7 +176,7 @@ function TextWrapIndex:Reset()
 end
 
 ------------------------------------------------------------------------------------------------
--- 	Purpose: justifies words from startI to endI so they fit the width
+-- Purpose: justifies words from startI to endI so they fit the width
 ------------------------------------------------------------------------------------------------
 function TextWrapIndex:JustifyLine( width, startI, endI )
 
@@ -200,7 +200,7 @@ function TextWrapIndex:JustifyLine( width, startI, endI )
 end
 
 ------------------------------------------------------------------------------------------------
--- 	Purpose: splits long words and appends the cutoff text when needed
+-- Purpose: splits long words and appends the cutoff text when needed
 ------------------------------------------------------------------------------------------------
 function TextWrapIndex:SplitWord( word, width, x, y, lineWidth, lastI, numWords )
 
@@ -257,7 +257,7 @@ function TextWrapIndex:SplitWord( word, width, x, y, lineWidth, lastI, numWords 
 end
 
 ------------------------------------------------------------------------------------------------
--- 	Purpose: extracts words from this paragraph and splits long words properly
+-- Purpose: extracts words from this paragraph and splits long words properly
 ------------------------------------------------------------------------------------------------
 function TextWrapIndex:ComputeParagraph( line, y, numWords )
 
