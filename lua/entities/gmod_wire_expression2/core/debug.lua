@@ -64,13 +64,13 @@ local function SpecialCase( arg )
 			local str = "["
 			for k,v in ipairs( arg ) do
 				if istable(v) then
-					if (k != #arg) then
+					if (k ~= #arg) then
 						str = str .. SpecialCase( v ) .. ","
 					else
 						str = str .. SpecialCase( v ) .. "]"
 					end
 				else
-					if (k != #arg) then
+					if (k ~= #arg) then
 						str = str .. tostring(v) .. ","
 					else
 						str = str .. tostring(v) .. "]"
@@ -245,8 +245,8 @@ local printColor_types = {
 	Vector = function(v) return Color(v[1],v[2],v[3]) end,
 	table = function(tbl)
 		for i,v in pairs(tbl) do
-			if !isnumber(i) then return "" end
-			if !isnumber(v) then return "" end
+			if not isnumber(i) then return "" end
+			if not isnumber(v) then return "" end
 			if i < 1 or i > 4 then return "" end
 		end
 		return Color(tbl[1] or 0, tbl[2] or 0,tbl[3] or 0,tbl[4])

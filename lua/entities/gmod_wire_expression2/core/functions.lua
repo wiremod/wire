@@ -1,8 +1,8 @@
-/*==============================================================
+--[[============================================================
 	E2 Function System
 		By Rusketh
 			Function Creator
-==============================================================*/
+==============================================================]]
 
 local function Function(A,S,Scopes)
 
@@ -32,11 +32,11 @@ local function Function(A,S,Scopes)
 		self:PopScope()
 		self:LoadScopes(OldScopes)
 
-		if !ok and msg:find( "C stack overflow" ) then error( "tick quota exceeded", -1 ) end -- a "C stack overflow" error will probably just confuse E2 users more than a "tick quota" error.
+		if not ok and msg:find( "C stack overflow" ) then error( "tick quota exceeded", -1 ) end -- a "C stack overflow" error will probably just confuse E2 users more than a "tick quota" error.
 
-		if !ok and msg == "return" then return self.func_rv end
+		if not ok and msg == "return" then return self.func_rv end
 
-		if !ok then error(msg,0) end
+		if not ok then error(msg,0) end
 
 	end
 
@@ -45,11 +45,11 @@ end
 
 
 
-/*==============================================================
+--[[============================================================
 	E2 Function System
 		By Rusketh
 			General Operators
-==============================================================*/
+==============================================================]]
 
 __e2setcost(20)
 

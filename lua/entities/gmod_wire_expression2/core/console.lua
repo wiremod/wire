@@ -1,6 +1,6 @@
-/******************************************************************************\
+--[[-----------------
   Console support
-\******************************************************************************/
+-------------------]]
 
 E2Lib.RegisterExtension("console", true, "Lets E2 chips run concommands and retrieve convars")
 
@@ -21,7 +21,7 @@ local function validConCmd(self, command)
 				break
 			end
 		end
-		if (!found) then return false end -- If the command is not in the whitelist, return false
+		if not found then return false end -- If the command is not in the whitelist, return false
 	end
 	return true
 end

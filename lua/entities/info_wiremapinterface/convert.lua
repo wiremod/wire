@@ -8,11 +8,11 @@ local MapToWireTypes = {
 	end},
 
 	[1] = {"NORMAL", function(self, ent, I)	-- switches between 0 and 1 each call, useful for toggling.
-		if (!IsValid(self) or !IsValid(ent) or !I) then return 0 end
+		if (not IsValid(self) or not IsValid(ent) or not I) then return 0 end
 
 		self.WireOutputToggle = self.WireOutputToggle or {}
 		self.WireOutputToggle[ent] = self.WireOutputToggle[ent] or {}
-		self.WireOutputToggle[ent][I] = !self.WireOutputToggle[ent][I]
+		self.WireOutputToggle[ent][I] = not self.WireOutputToggle[ent][I]
 
 		return self.WireOutputToggle[ent][I] and 1 or 0
 	end, true},
@@ -122,7 +122,7 @@ local WireToMapTypes = {
 	end},
 
 	[7] = {"ENTITY", function(val)	-- Entity
-		if (!IsValid(val)) then return "0" end
+		if (not IsValid(val)) then return "0" end
 
 		return tostring(val:EntIndex())
 	end},

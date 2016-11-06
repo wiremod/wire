@@ -1,8 +1,8 @@
-/******************************************************************************\
+--[[-----------------
   Unit conversion
-\******************************************************************************/
+-------------------]]
 
-/*
+--[[
 	u   - source unit
 	A Source Unit is 0.75 Inch long, more info here:
 	http://developer.valvesoftware.com/wiki/Dimensions#Map_Grid_Units:_quick_reference
@@ -23,7 +23,7 @@
 	t   - tonne
 	oz  - ounce
 	lb  - pound
-*/
+]]
 
 local speed = {
 	["u/s"]   = 1 / 0.75,

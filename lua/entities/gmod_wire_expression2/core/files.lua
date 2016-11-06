@@ -53,7 +53,7 @@ end
 util.AddNetworkString("wire_expression2_request_file_sp")
 util.AddNetworkString("wire_expression2_request_file")
 local function file_Upload( ply, entity, filename )
-	if !file_canUpload( ply ) or !IsValid( entity ) or !IsValid( ply ) or !ply:IsPlayer() or string.Right( filename, 4 ) != ".txt" then return false end
+	if not file_canUpload( ply ) or not IsValid( entity ) or not IsValid( ply ) or not ply:IsPlayer() or string.Right( filename, 4 ) ~= ".txt" then return false end
 
 	uploads[ply] = {
 		name = filename,
@@ -82,7 +82,7 @@ local function file_canDownload( ply )
 end
 
 local function file_Download( ply, filename, data, append )
-	if !file_canDownload( ply ) or !IsValid( ply ) or !ply:IsPlayer() or string.Right( filename, 4 ) != ".txt" then return false end
+	if not file_canDownload( ply ) or not IsValid( ply ) or not ply:IsPlayer() or string.Right( filename, 4 ) ~= ".txt" then return false end
 	if string.len( data ) > (cv_max_transfer_size:GetInt() * 1024) then return false end
 
 	-- if we're trying to append an empty string then we don't need to queue up
@@ -112,7 +112,7 @@ end
 
 util.AddNetworkString("wire_expression2_request_list")
 local function file_List( ply, entity, dir )
-	if !file_canList( ply ) or !IsValid( ply ) or !ply:IsPlayer() then return false end
+	if not file_canList( ply ) or not IsValid( ply ) or not ply:IsPlayer() then return false end
 
 	lists[ply] = {
 		dir = dir,
@@ -145,7 +145,7 @@ end
 e2function number fileLoaded()
 	local pfile = uploads[self.player]
 
-	return (!pfile.uploading and pfile.uploaded) and 1 or 0
+	return (not pfile.uploading and pfile.uploaded) and 1 or 0
 end
 
 e2function number fileLoading()
@@ -163,7 +163,7 @@ end
 e2function string fileName()
 	local pfile = uploads[self.player]
 
-	if pfile.uploaded and !pfile.uploading then
+	if pfile.uploaded and not pfile.uploading then
 		return pfile.name
 	end
 
@@ -175,7 +175,7 @@ __e2setcost( 10 )
 e2function string fileRead()
 	local pfile = uploads[self.player]
 
-	return (pfile.uploaded and !pfile.uploading) and pfile.data or ""
+	return (pfile.uploaded and not pfile.uploading) and pfile.data or ""
 end
 
 __e2setcost( 5 )
@@ -215,7 +215,7 @@ end
 e2function number fileLoadedList()
 	local plist = lists[self.player]
 
-	return (!plist.uploading and plist.uploaded) and 1 or 0
+	return (not plist.uploading and plist.uploaded) and 1 or 0
 end
 
 e2function number fileLoadingList()
@@ -227,7 +227,7 @@ end
 e2function array fileReadList()
 	local plist = lists[self.player]
 
-	return (plist.uploaded and !plist.uploading and plist.data) and plist.data or {}
+	return (plist.uploaded and not plist.uploading and plist.data) and plist.data or {}
 end
 
 --- runOnFile event ---
@@ -235,7 +235,7 @@ end
 __e2setcost( 5 )
 
 e2function void runOnFile( active )
-	run_on.file.ents[self.entity] = (active != 0)
+	run_on.file.ents[self.entity] = (active ~= 0)
 end
 
 e2function number fileClk()
@@ -251,7 +251,7 @@ end
 __e2setcost( 5 )
 
 e2function void runOnList( active )
-	run_on.list.ents[self.entity] = (active != 0)
+	run_on.list.ents[self.entity] = (active ~= 0)
 end
 
 e2function number fileListClk()
@@ -291,7 +291,7 @@ util.AddNetworkString("wire_expresison2_file_download_finish")
 timer.Create("wire_expression2_flush_file_buffer", 0.2, 0, function()
 	for ply,fdata in pairs( downloads ) do
 		if IsValid( ply ) and ply:IsPlayer() and fdata.downloading then
-			if !fdata.started then
+			if not fdata.started then
 				net.Start("wire_expression2_file_download_begin")
 					net.WriteString(fdata.name or "")
 				net.Send(ply)
@@ -324,7 +324,7 @@ end)
 --- Uploading ---
 
 local function file_execute( ent, filename, status )
-	if !IsValid( ent ) or !run_on.file.ents[ent] then return end
+	if not IsValid( ent ) or not run_on.file.ents[ent] then return end
 
 	run_on.file.run = 1
 	run_on.file.name = filename
@@ -340,7 +340,7 @@ end
 util.AddNetworkString("wire_expression2_file_begin")
 net.Receive("wire_expression2_file_begin", function(netlen, ply)
 	local pfile = uploads[ply]
-	if !pfile then return end
+	if not pfile then return end
 	
 	local len = net.ReadUInt(32)
 
@@ -357,7 +357,7 @@ net.Receive("wire_expression2_file_begin", function(netlen, ply)
 
 	timer.Create( "wire_expression2_file_check_timeout_" .. ply:EntIndex(), 5, 1, function()
 		local pfile = uploads[ply]
-		if !pfile then return end
+		if not pfile then return end
 		pfile.uploading = false
 		pfile.uploaded = false
 		file_execute( pfile.ent, pfile.name, FILE_TIMEOUT )
@@ -367,8 +367,8 @@ end )
 util.AddNetworkString("wire_expression2_file_chunk")
 net.Receive("wire_expression2_file_chunk", function(netlen, ply)
 	local pfile = uploads[ply]
-	if !pfile then return end
-	if !pfile.uploading then
+	if not pfile then return end
+	if not pfile.uploading then
 		file_execute( pfile.ent, pfile.name, FILE_TRANSFER_ERROR )
 	end
 
@@ -378,7 +378,7 @@ net.Receive("wire_expression2_file_chunk", function(netlen, ply)
 	if timer.Exists( timername ) then
 		timer.Create( timername, 5, 1, function()
 			local pfile = uploads[ply]
-			if !pfile then return end
+			if not pfile then return end
 			pfile.uploading = false
 			pfile.uploaded = false
 			file_execute( pfile.ent, pfile.name, FILE_TIMEOUT )
@@ -395,13 +395,13 @@ net.Receive("wire_expression2_file_finish", function(netlen, ply)
 	end
 
 	local pfile = uploads[ply]
-	if !pfile then return end
+	if not pfile then return end
 
 	pfile.uploading = false
 	pfile.data = E2Lib.decode( pfile.buffer )
 	pfile.buffer = ""
 
-	if string.len( pfile.data ) != pfile.len then -- transfer error
+	if string.len( pfile.data ) ~= pfile.len then -- transfer error
 		pfile.data = ""
 		file_execute( pfile.ent, pfile.name, FILE_TRANSFER_ERROR )
 		return
@@ -414,7 +414,7 @@ end )
 concommand.Add("wire_expression2_file_singleplayer", function(ply, cmd, args)
 	if not ply:IsListenServerHost() then ply:Kick("Do not use wire_expression2_file_singleplayer in multiplayer, unless you're the host!") end
 	local pfile = uploads[ply]
-	if !pfile then return end
+	if not pfile then return end
 	
 	local path = args[1]
 	if not file.Exists(path, "DATA") then
@@ -441,7 +441,7 @@ end)
 util.AddNetworkString("wire_expression2_file_list")
 net.Receive("wire_expression2_file_list", function(netlen, ply)
 	local plist = lists[ply]
-	if !plist then return end
+	if not plist then return end
 
 	local timername = "wire_expression2_filelist_check_timeout_" .. ply:EntIndex()
 	if timer.Exists( timername ) then timer.Remove( timername ) end

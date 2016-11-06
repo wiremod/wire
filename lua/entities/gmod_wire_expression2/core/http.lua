@@ -1,7 +1,7 @@
-/*
+--[[
 	Simple HTTP Extension
 	     (McLovin)
-*/
+]]
 
 E2Lib.RegisterExtension( "http", false, "Lets E2 chips make web requests to the real internet.", "Allows any E2 to make your server make arbitrary HTTP GET requests to any site. It can use this to make HTTP requests to any IP address inside your local network." )
 
@@ -17,16 +17,16 @@ local run_on = {
 local function player_can_request( ply )
 	local preq = requests[ply]
 
-	return !preq or
+	return not preq or
 		(preq.in_progress and preq.t_start and (CurTime() - preq.t_start) >= cvar_timeout:GetFloat()) or
-			(!preq.in_progress and preq.t_end and (CurTime() - preq.t_end) >= cvar_delay:GetFloat())
+			(not preq.in_progress and preq.t_end and (CurTime() - preq.t_end) >= cvar_delay:GetFloat())
 end
 
 __e2setcost( 20 )
 
 e2function void httpRequest( string url )
 	local ply = self.player
-	if !player_can_request( ply ) or url == "" then return end
+	if not player_can_request( ply ) or url == "" then return end
 
 	requests[ply] = {
 		in_progress = true,
@@ -36,7 +36,7 @@ e2function void httpRequest( string url )
 	}
 
 	http.Fetch(url, function( contents, size, headers, code )
-		if !IsValid( ply ) or !ply:IsPlayer() or !requests[ply] then return end
+		if not IsValid( ply ) or not ply:IsPlayer() or not requests[ply] then return end
 
 		local preq = requests[ply]
 
@@ -97,7 +97,7 @@ e2function string httpUrlDecode(string data)
 end
 
 e2function void runOnHTTP( number rohttp )
-	run_on.ents[self.entity] = ( rohttp != 0 ) and self.player or nil
+	run_on.ents[self.entity] = ( rohttp ~= 0 ) and self.player or nil
 end
 
 registerCallback( "destruct", function( self )

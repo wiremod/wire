@@ -16,7 +16,7 @@ local function ReadDir(root)
 	return tab
 end
 -- Uncomment and Rename this file to wire/lua/wire/default_data_files.lua to update it
-//file.Write("default_data_files.txt", "//"..util.TableToJSON(ReadDir("")))
+-- file.Write("default_data_files.txt", "//"..util.TableToJSON(ReadDir("")))
 
 -- Decompress the json string wire/lua/wire/default_data_files.lua into the corresponding 36+ default data files
 local function WriteDir(tab)
@@ -34,7 +34,7 @@ if not file.Exists("expression2/_helloworld_.txt", "DATA") then
 	local compressed = file.Read("wire/default_data_files.lua","LUA")
 	-- The client cannot read lua files sent by the server (for security?), so clientside this'll only work
 	-- if the client actually has Wiremod installed, though with workshop autodownload that'll be common
-	if compressed != nil then
+	if compressed ~= nil then
 		WriteDir(util.JSONToTable(string.sub(compressed, 3)))
 	end
 end

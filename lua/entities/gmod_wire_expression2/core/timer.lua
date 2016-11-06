@@ -1,6 +1,6 @@
-/******************************************************************************\
+--[[---------------
   Timer support
-\******************************************************************************/
+-----------------]]
 
 local timerid = 0
 local runner
@@ -14,7 +14,7 @@ local function Execute(self, name)
 		self.entity:Execute()
 	end
 
-	if !self.data['timer'].timers[name] then
+	if not self.data['timer'].timers[name] then
 		timer.Remove("e2_" .. self.data['timer'].timerid .. "_" .. name)
 	end
 
@@ -29,7 +29,7 @@ local function AddTimer(self, name, delay)
 			Execute(self, name)
 		end)
 		timer.Start("e2_" .. self.data['timer'].timerid .. "_" .. name)
-	elseif !self.data['timer'].timers[name] then
+	elseif not self.data['timer'].timers[name] then
 		timer.Create("e2_" .. self.data['timer'].timerid .. "_" .. name, delay/1000, 2, function()
 			Execute(self, name)
 		end)

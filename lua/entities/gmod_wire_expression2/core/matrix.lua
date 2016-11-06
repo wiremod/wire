@@ -1,6 +1,6 @@
-/******************************************************************************\
+--[[----------------
   Matrix support
-\******************************************************************************/
+------------------]]
 
 local delta  = wire_expression2_delta
 
@@ -13,9 +13,9 @@ local function clone(a)
 end
 
 
-/******************************************************************************\
+--[[--------------
   2x2 Matrices
-\******************************************************************************/
+----------------]]
 
 registerType("matrix2", "xm2", { 0, 0,
 								 0, 0 },
@@ -26,16 +26,16 @@ registerType("matrix2", "xm2", { 0, 0,
 	end,
 	nil,
 	function(retval)
-		if !istable(retval) then error("Return value is not a table, but a "..type(retval).."!",0) end
+		if not istable(retval) then error("Return value is not a table, but a "..type(retval).."!",0) end
 		if #retval ~= 4 then error("Return value does not have exactly 4 entries!",0) end
 	end,
 	function(v)
-		return !istable(v) or #v ~= 4
+		return not istable(v) or #v ~= 4
 	end
 )
 
 /******************************************************************************/
-// Common functions - explicit matrix solvers
+-- Common functions - explicit matrix solvers
 
 local function det2(a)
 	return ( a[1] * a[4] - a[3] * a[2] )
@@ -97,34 +97,34 @@ registerOperator("ass", "xm2", "xm2", function(self, args)
 end)
 
 /******************************************************************************/
-// Comparison
+-- Comparison
 
 e2function number operator_is(matrix2 rv1)
-	if rv1[1] > delta || -rv1[1] > delta ||
-	   rv1[2] > delta || -rv1[2] > delta ||
-	   rv1[3] > delta || -rv1[3] > delta ||
-	   rv1[4] > delta || -rv1[4] > delta
+	if rv1[1] > delta or -rv1[1] > delta or
+	   rv1[2] > delta or -rv1[2] > delta or
+	   rv1[3] > delta or -rv1[3] > delta or
+	   rv1[4] > delta or -rv1[4] > delta
 	   then return 1 else return 0 end
 end
 
 e2function number operator==(matrix2 rv1, matrix2 rv2)
-	if rv1[1] - rv2[1] <= delta && rv2[1] - rv1[1] <= delta &&
-	   rv1[2] - rv2[2] <= delta && rv2[2] - rv1[2] <= delta &&
-	   rv1[3] - rv2[3] <= delta && rv2[3] - rv1[3] <= delta &&
-	   rv1[4] - rv2[4] <= delta && rv2[4] - rv1[4] <= delta
+	if rv1[1] - rv2[1] <= delta and rv2[1] - rv1[1] <= delta and
+	   rv1[2] - rv2[2] <= delta and rv2[2] - rv1[2] <= delta and
+	   rv1[3] - rv2[3] <= delta and rv2[3] - rv1[3] <= delta and
+	   rv1[4] - rv2[4] <= delta and rv2[4] - rv1[4] <= delta
 	   then return 1 else return 0 end
 end
 
 e2function number operator!=(matrix2 rv1, matrix2 rv2)
-	if rv1[1] - rv2[1] > delta && rv2[1] - rv1[1] > delta &&
-	   rv1[2] - rv2[2] > delta && rv2[2] - rv1[2] > delta &&
-	   rv1[3] - rv2[3] > delta && rv2[3] - rv1[3] > delta &&
-	   rv1[4] - rv2[4] > delta && rv2[4] - rv1[4] > delta
+	if rv1[1] - rv2[1] > delta and rv2[1] - rv1[1] > delta and
+	   rv1[2] - rv2[2] > delta and rv2[2] - rv1[2] > delta and
+	   rv1[3] - rv2[3] > delta and rv2[3] - rv1[3] > delta and
+	   rv1[4] - rv2[4] > delta and rv2[4] - rv1[4] > delta
 	   then return 1 else return 0 end
 end
 
 /******************************************************************************/
-// Basic operations
+-- Basic operations
 
 registerOperator("dlt", "xm2", "xm2", function(self, args)
 	local op1, scope = args[2], args[3]
@@ -196,7 +196,7 @@ e2function matrix2 operator^(matrix2 rv1, rv2)
 end
 
 /******************************************************************************/
-// Row/column/element manipulation
+-- Row/column/element manipulation
 
 e2function vector2 matrix2:row(rv2)
 	local k
@@ -345,7 +345,7 @@ e2function matrix2 matrix2:swapElements(rv2, rv3, rv4, rv5)
 end
 
 /******************************************************************************/
-// Useful matrix maths functions
+-- Useful matrix maths functions
 
 e2function vector2 diagonal(matrix2 rv1)
 	return { rv1[1], rv1[4] }
@@ -370,9 +370,9 @@ e2function matrix2 adj(matrix2 rv1)
 end
 
 
-/******************************************************************************\
+--[[--------------
   3x3 Matrices
-\******************************************************************************/
+----------------]]
 
 registerType("matrix", "m", { 0, 0, 0,
 							  0, 0, 0,
@@ -384,18 +384,18 @@ registerType("matrix", "m", { 0, 0, 0,
 	end,
 	nil,
 	function(retval)
-		if !istable(retval) then error("Return value is not a table, but a "..type(retval).."!",0) end
+		if not istable(retval) then error("Return value is not a table, but a "..type(retval).."!",0) end
 		if #retval ~= 9 then error("Return value does not have exactly 9 entries!",0) end
 	end,
 	function(v)
-		return !istable(v) or #v ~= 9
+		return not istable(v) or #v ~= 9
 	end
 )
 
 /******************************************************************************/
-// Common functions - matrix solvers
 
-/*
+-- Common functions - matrix solvers
+--[[
 -- Useful functions - may be used in the future? These have been written explicitly in the relevant commands for now.
 
 local function transpose3(a)
@@ -409,7 +409,7 @@ local function adj3(a)
 			a[7] * a[6] - a[4] * a[9],	a[1] * a[9] - a[7] * a[3],	a[4] * a[3] - a[1] * a[6],
 			a[4] * a[8] - a[7] * a[5],	a[7] * a[2] - a[1] * a[8],	a[1] * a[5] - a[4] * a[2] }
 end
-*/
+]]
 
 local function det3(a)
 	return ( a[1] * (a[5] * a[9] - a[8] * a[6]) -
@@ -482,49 +482,49 @@ registerOperator("ass", "m", "m", function(self, args)
 end)
 
 /******************************************************************************/
-// Comparison
+-- Comparison
 
 e2function number operator_is(matrix rv1)
-	if rv1[1] > delta || -rv1[1] > delta ||
-	   rv1[2] > delta || -rv1[2] > delta ||
-	   rv1[3] > delta || -rv1[3] > delta ||
-	   rv1[4] > delta || -rv1[4] > delta ||
-	   rv1[5] > delta || -rv1[5] > delta ||
-	   rv1[6] > delta || -rv1[6] > delta ||
-	   rv1[7] > delta || -rv1[7] > delta ||
-	   rv1[8] > delta || -rv1[8] > delta ||
-	   rv1[9] > delta || -rv1[9] > delta
+	if rv1[1] > delta or -rv1[1] > delta or
+	   rv1[2] > delta or -rv1[2] > delta or
+	   rv1[3] > delta or -rv1[3] > delta or
+	   rv1[4] > delta or -rv1[4] > delta or
+	   rv1[5] > delta or -rv1[5] > delta or
+	   rv1[6] > delta or -rv1[6] > delta or
+	   rv1[7] > delta or -rv1[7] > delta or
+	   rv1[8] > delta or -rv1[8] > delta or
+	   rv1[9] > delta or -rv1[9] > delta
 	   then return 1 else return 0 end
 end
 
 e2function number operator==(matrix rv1, matrix rv2)
-	if rv1[1] - rv2[1] <= delta && rv2[1] - rv1[1] <= delta &&
-	   rv1[2] - rv2[2] <= delta && rv2[2] - rv1[2] <= delta &&
-	   rv1[3] - rv2[3] <= delta && rv2[3] - rv1[3] <= delta &&
-	   rv1[4] - rv2[4] <= delta && rv2[4] - rv1[4] <= delta &&
-	   rv1[5] - rv2[5] <= delta && rv2[5] - rv1[5] <= delta &&
-	   rv1[6] - rv2[6] <= delta && rv2[6] - rv1[6] <= delta &&
-	   rv1[7] - rv2[7] <= delta && rv2[7] - rv1[7] <= delta &&
-	   rv1[8] - rv2[8] <= delta && rv2[8] - rv1[8] <= delta &&
-	   rv1[9] - rv2[9] <= delta && rv2[9] - rv1[9] <= delta
+	if rv1[1] - rv2[1] <= delta and rv2[1] - rv1[1] <= delta and
+	   rv1[2] - rv2[2] <= delta and rv2[2] - rv1[2] <= delta and
+	   rv1[3] - rv2[3] <= delta and rv2[3] - rv1[3] <= delta and
+	   rv1[4] - rv2[4] <= delta and rv2[4] - rv1[4] <= delta and
+	   rv1[5] - rv2[5] <= delta and rv2[5] - rv1[5] <= delta and
+	   rv1[6] - rv2[6] <= delta and rv2[6] - rv1[6] <= delta and
+	   rv1[7] - rv2[7] <= delta and rv2[7] - rv1[7] <= delta and
+	   rv1[8] - rv2[8] <= delta and rv2[8] - rv1[8] <= delta and
+	   rv1[9] - rv2[9] <= delta and rv2[9] - rv1[9] <= delta
 	   then return 1 else return 0 end
 end
 
 e2function number operator!=(matrix rv1, matrix rv2)
-	if rv1[1] - rv2[1] > delta && rv2[1] - rv1[1] > delta &&
-	   rv1[2] - rv2[2] > delta && rv2[2] - rv1[2] > delta &&
-	   rv1[3] - rv2[3] > delta && rv2[3] - rv1[3] > delta &&
-	   rv1[4] - rv2[4] > delta && rv2[4] - rv1[4] > delta &&
-	   rv1[5] - rv2[5] > delta && rv2[5] - rv1[5] > delta &&
-	   rv1[6] - rv2[6] > delta && rv2[6] - rv1[6] > delta &&
-	   rv1[7] - rv2[7] > delta && rv2[7] - rv1[7] > delta &&
-	   rv1[8] - rv2[8] > delta && rv2[8] - rv1[8] > delta &&
-	   rv1[9] - rv2[9] > delta && rv2[9] - rv1[9] > delta
+	if rv1[1] - rv2[1] > delta and rv2[1] - rv1[1] > delta and
+	   rv1[2] - rv2[2] > delta and rv2[2] - rv1[2] > delta and
+	   rv1[3] - rv2[3] > delta and rv2[3] - rv1[3] > delta and
+	   rv1[4] - rv2[4] > delta and rv2[4] - rv1[4] > delta and
+	   rv1[5] - rv2[5] > delta and rv2[5] - rv1[5] > delta and
+	   rv1[6] - rv2[6] > delta and rv2[6] - rv1[6] > delta and
+	   rv1[7] - rv2[7] > delta and rv2[7] - rv1[7] > delta and
+	   rv1[8] - rv2[8] > delta and rv2[8] - rv1[8] > delta and
+	   rv1[9] - rv2[9] > delta and rv2[9] - rv1[9] > delta
 	   then return 1 else return 0 end
 end
 
 /******************************************************************************/
-// Basic operations
+-- Basic operations
 
 registerOperator("dlt", "m", "m", function(self, args)
 	local op1, scope = args[2], args[3]
@@ -616,7 +616,7 @@ e2function matrix operator^(matrix rv1, rv2)
 end
 
 /******************************************************************************/
-// Row/column/element manipulation
+-- Row/column/element manipulation
 
 e2function vector matrix:row(rv2)
 	local k
@@ -711,15 +711,15 @@ e2function matrix matrix:swapRows(rv2, rv3)
 	else r2 = rv3 - rv3 % 1 end
 
 	if r1 == r2 then return this
-	elseif (r1 == 1 && r2 == 2) || (r1 == 2 && r2 == 1) then
+	elseif (r1 == 1 and r2 == 2) or (r1 == 2 and r2 == 1) then
 		this = { this[4], this[5], this[6],
 				this[1], this[2], this[3],
 				this[7], this[8], this[9] }
-	elseif (r1 == 2 && r2 == 3) || (r1 == 3 && r2 == 2) then
+	elseif (r1 == 2 and r2 == 3) or (r1 == 3 and r2 == 2) then
 		this = { this[1], this[2], this[3],
 				this[7], this[8], this[9],
 				this[4], this[5], this[6] }
-	elseif (r1 == 1 && r2 == 3) || (r1 == 3 && r2 == 1) then
+	elseif (r1 == 1 and r2 == 3) or (r1 == 3 and r2 == 1) then
 		this = { this[7], this[8], this[9],
 				this[4], this[5], this[6],
 				this[1], this[2], this[3] }
@@ -738,15 +738,15 @@ e2function matrix matrix:swapColumns(rv2, rv3)
 	else r2 = rv3 - rv3 % 1 end
 
 	if r1 == r2 then return this
-	elseif (r1 == 1 && r2 == 2) || (r1 == 2 && r2 == 1) then
+	elseif (r1 == 1 and r2 == 2) or (r1 == 2 and r2 == 1) then
 		this = { this[2], this[1], this[3],
 				this[5], this[4], this[6],
 				this[8], this[7], this[9] }
-	elseif (r1 == 2 && r2 == 3) || (r1 == 3 && r2 == 2) then
+	elseif (r1 == 2 and r2 == 3) or (r1 == 3 and r2 == 2) then
 		this = { this[1], this[3], this[2],
 				this[4], this[6], this[5],
 				this[7], this[9], this[8] }
-	elseif (r1 == 1 && r2 == 3) || (r1 == 3 && r2 == 1) then
+	elseif (r1 == 1 and r2 == 3) or (r1 == 3 and r2 == 1) then
 		this = { this[3], this[2], this[1],
 				this[6], this[5], this[4],
 				this[9], this[8], this[7] }
@@ -822,7 +822,7 @@ e2function matrix matrix:setDiagonal(rv2, rv3, rv4)
 end
 
 /******************************************************************************/
-// Useful matrix maths functions
+-- Useful matrix maths functions
 
 e2function vector diagonal(matrix rv1)
 	return { rv1[1], rv1[5], rv1[9] }
@@ -849,10 +849,10 @@ e2function matrix adj(matrix rv1)
 end
 
 /******************************************************************************/
-// Extra functions
+-- Extra functions
 
 e2function matrix matrix(entity rv1)
-	if(!IsValid(rv1)) then
+	if(not IsValid(rv1)) then
 		return { 0, 0, 0,
 				 0, 0, 0,
 				 0, 0, 0 }
@@ -879,7 +879,7 @@ e2function vector matrix:z()
 	return { this[3], this[6], this[9] }
 end
 
-// Returns a 3x3 reference frame matrix as described by the angle <ang>. Multiplying by this matrix will be the same as rotating by the given angle.
+-- Returns a 3x3 reference frame matrix as described by the angle <ang>. Multiplying by this matrix will be the same as rotating by the given angle.
 e2function matrix matrix(angle ang)
 	ang = Angle(ang[1], ang[2], ang[3])
 	local x = ang:Forward()
@@ -892,7 +892,7 @@ e2function matrix matrix(angle ang)
 	}
 end
 
-// Converts a rotation matrix to angle form (assumes matrix is orthogonal)
+-- Converts a rotation matrix to angle form (assumes matrix is orthogonal)
 local rad2deg = 180 / math.pi
 
 e2function angle matrix:toAngle()
@@ -902,7 +902,7 @@ e2function angle matrix:toAngle()
 	return { pitch, yaw, roll }
 end
 
-// Create a rotation matrix in the format (v,n) where v is the axis direction vector and n is degrees (right-handed rotation)
+-- Create a rotation matrix in the format (v,n) where v is the axis direction vector and n is degrees (right-handed rotation)
 e2function matrix mRotation(vector rv1, rv2)
 
 	local vec
@@ -930,9 +930,9 @@ e2function matrix mRotation(vector rv1, rv2)
 			 vec2[3] + (1 - vec2[3]) * cos }
 end
 
-/******************************************************************************\
+--[[--------------
   4x4 Matrices
-\******************************************************************************/
+----------------]]
 
 registerType("matrix4", "xm4", { 0, 0, 0, 0,
 								 0, 0, 0, 0,
@@ -945,11 +945,11 @@ registerType("matrix4", "xm4", { 0, 0, 0, 0,
 	end,
 	nil,
 	function(retval)
-		if !istable(retval) then error("Return value is not a table, but a "..type(retval).."!",0) end
+		if not istable(retval) then error("Return value is not a table, but a "..type(retval).."!",0) end
 		if #retval ~= 16 then error("Return value does not have exactly 16 entries!",0) end
 	end,
 	function(v)
-		return !istable(v) or #v ~= 16
+		return not istable(v) or #v ~= 16
 	end
 )
 
@@ -1026,70 +1026,70 @@ registerOperator("ass", "xm4", "xm4", function(self, args)
 end)
 
 /******************************************************************************/
-// Comparison
+-- Comparison
 
 e2function number operator_is(matrix4 rv1)
-	if rv1[1] > delta || -rv1[1] > delta ||
-	   rv1[2] > delta || -rv1[2] > delta ||
-	   rv1[3] > delta || -rv1[3] > delta ||
-	   rv1[4] > delta || -rv1[4] > delta ||
-	   rv1[5] > delta || -rv1[5] > delta ||
-	   rv1[6] > delta || -rv1[6] > delta ||
-	   rv1[7] > delta || -rv1[7] > delta ||
-	   rv1[8] > delta || -rv1[8] > delta ||
-	   rv1[9] > delta || -rv1[9] > delta ||
-	   rv1[10] > delta || -rv1[10] > delta ||
-	   rv1[11] > delta || -rv1[11] > delta ||
-	   rv1[12] > delta || -rv1[12] > delta ||
-	   rv1[13] > delta || -rv1[13] > delta ||
-	   rv1[14] > delta || -rv1[14] > delta ||
-	   rv1[15] > delta || -rv1[15] > delta ||
-	   rv1[16] > delta || -rv1[16] > delta
+	if rv1[1] > delta or -rv1[1] > delta or
+	   rv1[2] > delta or -rv1[2] > delta or
+	   rv1[3] > delta or -rv1[3] > delta or
+	   rv1[4] > delta or -rv1[4] > delta or
+	   rv1[5] > delta or -rv1[5] > delta or
+	   rv1[6] > delta or -rv1[6] > delta or
+	   rv1[7] > delta or -rv1[7] > delta or
+	   rv1[8] > delta or -rv1[8] > delta or
+	   rv1[9] > delta or -rv1[9] > delta or
+	   rv1[10] > delta or -rv1[10] > delta or
+	   rv1[11] > delta or -rv1[11] > delta or
+	   rv1[12] > delta or -rv1[12] > delta or
+	   rv1[13] > delta or -rv1[13] > delta or
+	   rv1[14] > delta or -rv1[14] > delta or
+	   rv1[15] > delta or -rv1[15] > delta or
+	   rv1[16] > delta or -rv1[16] > delta
 	   then return 1 else return 0 end
 end
 
 e2function number operator==(matrix4 rv1, matrix4 rv2)
-	if rv1[1] - rv2[1] <= delta && rv2[1] - rv1[1] <= delta &&
-	   rv1[2] - rv2[2] <= delta && rv2[2] - rv1[2] <= delta &&
-	   rv1[3] - rv2[3] <= delta && rv2[3] - rv1[3] <= delta &&
-	   rv1[4] - rv2[4] <= delta && rv2[4] - rv1[4] <= delta &&
-	   rv1[5] - rv2[5] <= delta && rv2[5] - rv1[5] <= delta &&
-	   rv1[6] - rv2[6] <= delta && rv2[6] - rv1[6] <= delta &&
-	   rv1[7] - rv2[7] <= delta && rv2[7] - rv1[7] <= delta &&
-	   rv1[8] - rv2[8] <= delta && rv2[8] - rv1[8] <= delta &&
-	   rv1[9] - rv2[9] <= delta && rv2[9] - rv1[9] <= delta &&
-	   rv1[10] - rv2[10] <= delta && rv2[10] - rv1[10] <= delta &&
-	   rv1[11] - rv2[11] <= delta && rv2[11] - rv1[11] <= delta &&
-	   rv1[12] - rv2[12] <= delta && rv2[12] - rv1[12] <= delta &&
-	   rv1[13] - rv2[13] <= delta && rv2[13] - rv1[13] <= delta &&
-	   rv1[14] - rv2[14] <= delta && rv2[14] - rv1[14] <= delta &&
-	   rv1[15] - rv2[15] <= delta && rv2[15] - rv1[15] <= delta &&
-	   rv1[16] - rv2[16] <= delta && rv2[16] - rv1[16] <= delta
+	if rv1[1] - rv2[1] <= delta and rv2[1] - rv1[1] <= delta and
+	   rv1[2] - rv2[2] <= delta and rv2[2] - rv1[2] <= delta and
+	   rv1[3] - rv2[3] <= delta and rv2[3] - rv1[3] <= delta and
+	   rv1[4] - rv2[4] <= delta and rv2[4] - rv1[4] <= delta and
+	   rv1[5] - rv2[5] <= delta and rv2[5] - rv1[5] <= delta and
+	   rv1[6] - rv2[6] <= delta and rv2[6] - rv1[6] <= delta and
+	   rv1[7] - rv2[7] <= delta and rv2[7] - rv1[7] <= delta and
+	   rv1[8] - rv2[8] <= delta and rv2[8] - rv1[8] <= delta and
+	   rv1[9] - rv2[9] <= delta and rv2[9] - rv1[9] <= delta and
+	   rv1[10] - rv2[10] <= delta and rv2[10] - rv1[10] <= delta and
+	   rv1[11] - rv2[11] <= delta and rv2[11] - rv1[11] <= delta and
+	   rv1[12] - rv2[12] <= delta and rv2[12] - rv1[12] <= delta and
+	   rv1[13] - rv2[13] <= delta and rv2[13] - rv1[13] <= delta and
+	   rv1[14] - rv2[14] <= delta and rv2[14] - rv1[14] <= delta and
+	   rv1[15] - rv2[15] <= delta and rv2[15] - rv1[15] <= delta and
+	   rv1[16] - rv2[16] <= delta and rv2[16] - rv1[16] <= delta
 	   then return 1 else return 0 end
 end
 
 e2function number operator!=(matrix4 rv1, matrix4 rv2)
-	if rv1[1] - rv2[1] > delta && rv2[1] - rv1[1] > delta &&
-	   rv1[2] - rv2[2] > delta && rv2[2] - rv1[2] > delta &&
-	   rv1[3] - rv2[3] > delta && rv2[3] - rv1[3] > delta &&
-	   rv1[4] - rv2[4] > delta && rv2[4] - rv1[4] > delta &&
-	   rv1[5] - rv2[5] > delta && rv2[5] - rv1[5] > delta &&
-	   rv1[6] - rv2[6] > delta && rv2[6] - rv1[6] > delta &&
-	   rv1[7] - rv2[7] > delta && rv2[7] - rv1[7] > delta &&
-	   rv1[8] - rv2[8] > delta && rv2[8] - rv1[8] > delta &&
-	   rv1[9] - rv2[9] > delta && rv2[9] - rv1[9] > delta &&
-	   rv1[10] - rv2[10] > delta && rv2[10] - rv1[10] > delta &&
-	   rv1[11] - rv2[11] > delta && rv2[11] - rv1[11] > delta &&
-	   rv1[12] - rv2[12] > delta && rv2[12] - rv1[12] > delta &&
-	   rv1[13] - rv2[13] > delta && rv2[13] - rv1[13] > delta &&
-	   rv1[14] - rv2[14] > delta && rv2[14] - rv1[14] > delta &&
-	   rv1[15] - rv2[15] > delta && rv2[15] - rv1[15] > delta &&
-	   rv1[16] - rv2[16] > delta && rv2[16] - rv1[16] > delta
+	if rv1[1] - rv2[1] > delta and rv2[1] - rv1[1] > delta and
+	   rv1[2] - rv2[2] > delta and rv2[2] - rv1[2] > delta and
+	   rv1[3] - rv2[3] > delta and rv2[3] - rv1[3] > delta and
+	   rv1[4] - rv2[4] > delta and rv2[4] - rv1[4] > delta and
+	   rv1[5] - rv2[5] > delta and rv2[5] - rv1[5] > delta and
+	   rv1[6] - rv2[6] > delta and rv2[6] - rv1[6] > delta and
+	   rv1[7] - rv2[7] > delta and rv2[7] - rv1[7] > delta and
+	   rv1[8] - rv2[8] > delta and rv2[8] - rv1[8] > delta and
+	   rv1[9] - rv2[9] > delta and rv2[9] - rv1[9] > delta and
+	   rv1[10] - rv2[10] > delta and rv2[10] - rv1[10] > delta and
+	   rv1[11] - rv2[11] > delta and rv2[11] - rv1[11] > delta and
+	   rv1[12] - rv2[12] > delta and rv2[12] - rv1[12] > delta and
+	   rv1[13] - rv2[13] > delta and rv2[13] - rv1[13] > delta and
+	   rv1[14] - rv2[14] > delta and rv2[14] - rv1[14] > delta and
+	   rv1[15] - rv2[15] > delta and rv2[15] - rv1[15] > delta and
+	   rv1[16] - rv2[16] > delta and rv2[16] - rv1[16] > delta
 	   then return 1 else return 0 end
 end
 
 /******************************************************************************/
-// Basic operations
+-- Basic operations
 
 registerOperator("dlt", "xm4", "xm4", function(self, args)
 	local op1, scope = args[2], args[3]
@@ -1172,7 +1172,7 @@ end
 
 e2function matrix4 operator^(matrix4 lhs, rhs)
 
-	//if rhs == -1 then return ( inverse4(lhs) )
+	-- if rhs == -1 then return ( inverse4(lhs) )
 
 	if rhs == 0 then 	return { 1, 0, 0, 0,
 								 0, 1, 0, 0,
@@ -1209,7 +1209,7 @@ e2function matrix4 operator^(matrix4 lhs, rhs)
 end
 
 /******************************************************************************/
-// Row/column/element manipulation
+-- Row/column/element manipulation
 
 e2function vector4 matrix4:row(rv2)
 	local k
@@ -1310,32 +1310,32 @@ e2function matrix matrix:swapRows(rv2, rv3)
 	else r2 = rv3 - rv3 % 1 end
 
 	if r1 == r2 then return this
-	elseif (r1 == 1 && r2 == 2) || (r1 == 2 && r2 == 1) then
+	elseif (r1 == 1 and r2 == 2) or (r1 == 2 and r2 == 1) then
 		this = { this[5], this[6], this[7], this[8],
 				this[1], this[2], this[3], this[4],
 				this[9], this[10], this[11], this[12],
 				this[13], this[14], this[15], this[16] }
-	elseif (r1 == 2 && r2 == 3) || (r1 == 3 && r2 == 2) then
+	elseif (r1 == 2 and r2 == 3) or (r1 == 3 and r2 == 2) then
 		this = { this[1], this[2], this[3], this[4],
 				this[9], this[10], this[11], this[12],
 				this[5], this[6], this[7], this[8],
 				this[13], this[14], this[15], this[16] }
-	elseif (r1 == 3 && r2 == 4) || (r1 == 4 && r2 == 3) then
+	elseif (r1 == 3 and r2 == 4) or (r1 == 4 and r2 == 3) then
 		this = { this[1], this[2], this[3], this[4],
 				this[5], this[6], this[7], this[8],
 				this[13], this[14], this[15], this[16],
 				this[9], this[10], this[11], this[12] }
-	elseif (r1 == 1 && r2 == 3) || (r1 == 3 && r2 == 1) then
+	elseif (r1 == 1 and r2 == 3) or (r1 == 3 and r2 == 1) then
 		this = { this[9], this[10], this[11], this[12],
 				this[5], this[6], this[7], this[8],
 				this[1], this[2], this[3], this[4],
 				this[13], this[14], this[15], this[16] }
-	elseif (r1 == 2 && r2 == 4) || (r1 == 4 && r2 == 2) then
+	elseif (r1 == 2 and r2 == 4) or (r1 == 4 and r2 == 2) then
 		this = { this[1], this[2], this[3], this[4],
 				this[13], this[14], this[15], this[16],
 				this[9], this[10], this[11], this[12],
 				this[5], this[6], this[7], this[8] }
-	elseif (r1 == 1 && r2 == 4) || (r1 == 4 && r2 == 1) then
+	elseif (r1 == 1 and r2 == 4) or (r1 == 4 and r2 == 1) then
 		this = { this[13], this[14], this[15], this[16],
 				this[5], this[6], this[7], this[8],
 				this[9], this[10], this[11], this[12],
@@ -1355,32 +1355,32 @@ e2function matrix4 matrix4:swapColumns(rv2, rv3)
 	else r2 = rv3 - rv3 % 1 end
 
 	if r1 == r2 then return this
-	elseif (r1 == 1 && r2 == 2) || (r1 == 2 && r2 == 1) then
+	elseif (r1 == 1 and r2 == 2) or (r1 == 2 and r2 == 1) then
 		this = { this[2], this[1], this[3], this[4],
 				this[6], this[5], this[7], this[8],
 				this[10], this[9], this[11], this[12],
 				this[14], this[13], this[15], this[16] }
-	elseif (r1 == 2 && r2 == 3) || (r1 == 3 && r2 == 2) then
+	elseif (r1 == 2 and r2 == 3) or (r1 == 3 and r2 == 2) then
 		this = { this[1], this[3], this[2], this[4],
 				this[5], this[7], this[6], this[8],
 				this[9], this[11], this[10], this[12],
 				this[13], this[15], this[14], this[16] }
-	elseif (r1 == 3 && r2 == 4) || (r1 == 4 && r2 == 3) then
+	elseif (r1 == 3 and r2 == 4) or (r1 == 4 and r2 == 3) then
 		this = { this[1], this[2], this[4], this[3],
 				this[5], this[6], this[8], this[7],
 				this[9], this[10], this[12], this[11],
 				this[13], this[14], this[16], this[15] }
-	elseif (r1 == 1 && r2 == 3) || (r1 == 3 && r2 == 1) then
+	elseif (r1 == 1 and r2 == 3) or (r1 == 3 and r2 == 1) then
 		this = { this[3], this[2], this[1], this[4],
 				this[7], this[6], this[5], this[8],
 				this[11], this[10], this[9], this[12],
 				this[15], this[14], this[13], this[16] }
-	elseif (r1 == 2 && r2 == 4) || (r1 == 4 && r2 == 2) then
+	elseif (r1 == 2 and r2 == 4) or (r1 == 4 and r2 == 2) then
 		this = { this[1], this[4], this[3], this[2],
 				this[5], this[8], this[7], this[6],
 				this[9], this[12], this[11], this[10],
 				this[13], this[16], this[15], this[14] }
-	elseif (r1 == 1 && r2 == 4) || (r1 == 4 && r2 == 1) then
+	elseif (r1 == 1 and r2 == 4) or (r1 == 4 and r2 == 1) then
 		this = { this[4], this[2], this[3], this[1],
 				this[8], this[6], this[7], this[5],
 				this[12], this[10], this[11], this[9],
@@ -1459,7 +1459,7 @@ e2function matrix4 matrix4:setDiagonal(rv2, rv3, rv4, rv5)
 end
 
 /******************************************************************************/
-// Useful matrix maths functions
+-- Useful matrix maths functions
 
 e2function vector4 diagonal(matrix4 rv1)
 	return { rv1[1], rv1[6], rv1[11], rv1[16] }
@@ -1476,7 +1476,7 @@ e2function matrix4 transpose(matrix4 rv1)
 			 rv1[4], rv1[8], rv1[12], rv1[16] }
 end
 
-// find the inverse for a standard affine transformation matix
+-- find the inverse for a standard affine transformation matix
 e2function matrix4 inverseA(matrix4 rv1)
 	local t1 = rv1[1] * rv1[4] + rv1[5] * rv1[8] + rv1[9] * rv1[12]
 	local t2 = rv1[2] * rv1[4] + rv1[6] * rv1[8] + rv1[10] * rv1[12]
@@ -1488,10 +1488,10 @@ e2function matrix4 inverseA(matrix4 rv1)
 end
 
 /******************************************************************************/
-// Extra functions
+-- Extra functions
 
 e2function matrix4 matrix4(entity rv1)
-	if(!IsValid(rv1)) then
+	if(not IsValid(rv1)) then
 		return { 0, 0, 0, 0,
 				 0, 0, 0, 0,
 				 0, 0, 0, 0,

@@ -1,5 +1,5 @@
-//Original author: ZeikJT
-//Modified by Gwahir and TomyLobo
+-- Original author: ZeikJT
+-- Modified by Gwahir and TomyLobo
 
 local IsValid = IsValid
 

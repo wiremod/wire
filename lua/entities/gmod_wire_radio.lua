@@ -66,7 +66,7 @@ function ENT:TriggerInput(iname, value)
 		self.Channel = math.floor(value)
 		Radio_ChangeChannel(self)
 
-	elseif (iname != nil && value != nil) then
+	elseif (iname ~= nil and value ~= nil) then
 		if (self.Old == true) then
 			if (iname == "A") then
 				Radio_SendData(self,self.Channel,0,value)
@@ -89,7 +89,7 @@ function ENT:NotifyDataRecieved(subch)
 end
 
 function ENT:ReadCell(Address)
-	if (Address >= 0) && (Address < self.values) then
+	if (Address >= 0) and (Address < self.values) then
 		return self.RecievedData[Address].Data
 	else
 		return nil
@@ -97,7 +97,7 @@ function ENT:ReadCell(Address)
 end
 
 function ENT:WriteCell(Address, value)
-	if (Address >= 0) && (Address < self.values) then
+	if (Address >= 0) and (Address < self.values) then
 		Radio_SendData(self,Address,value)
 		return true
 	else
@@ -130,7 +130,7 @@ function ENT:OnRestore()
 end
 
 function ENT:OnRemove()
-	if (!self.Channel) then return end
+	if (not self.Channel) then return end
 	Radio_Unregister(self)
 end
 

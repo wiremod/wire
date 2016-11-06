@@ -61,7 +61,7 @@ function ENT:InputDeactivate( mul )
 end
 
 function ENT:Switch( on, mul )
-	if !self:IsValid() then return false end
+	if not self:IsValid() then return false end
 
 	self.On = on
 

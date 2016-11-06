@@ -1,8 +1,8 @@
-/******************************************************************************\
+--[[--------------------
   Quaternion support
-\******************************************************************************/
+----------------------]]
 
-// TODO: implement more!
+-- TODO: implement more!
 
 -- faster access to some math library functions
 local abs   = math.abs
@@ -23,11 +23,11 @@ registerType("quaternion", "q", { 0, 0, 0, 0 },
 	nil,
 	nil,
 	function(retval)
-		if !istable(retval) then error("Return value is not a table, but a "..type(retval).."!",0) end
+		if not istable(retval) then error("Return value is not a table, but a "..type(retval).."!",0) end
 		if #retval ~= 4 then error("Return value does not have exactly 4 entries!",0) end
 	end,
 	function(v)
-		return !istable(v) or #v ~= 4
+		return not istable(v) or #v ~= 4
 	end
 )
 
@@ -45,19 +45,19 @@ local function format(value)
 	dbginfo = r
 	if abs(value[2]) > 0.0005 then
 		i = tostring(Round(value[2]*1000)/1000)
-		if string.sub(i,1,1)!="-" and dbginfo != "" then i = "+"..i end
+		if string.sub(i,1,1)~="-" and dbginfo ~= "" then i = "+"..i end
 		i = i .. "i"
 	end
 	dbginfo = dbginfo .. i
 	if abs(value[3]) > 0.0005 then
 		j = tostring(Round(value[3]*1000)/1000)
-		if string.sub(j,1,1)!="-" and dbginfo != "" then j = "+"..j end
+		if string.sub(j,1,1)~="-" and dbginfo ~= "" then j = "+"..j end
 		j = j .. "j"
 	end
 	dbginfo = dbginfo .. j
 	if abs(value[4]) > 0.0005 then
 		k = tostring(Round(value[4]*1000)/1000)
-		if string.sub(k,1,1)!="-" and dbginfo != "" then k = "+"..k end
+		if string.sub(k,1,1)~="-" and dbginfo ~= "" then k = "+"..k end
 		k = k .. "k"
 	end
 	dbginfo = dbginfo .. k
@@ -67,7 +67,7 @@ end
 
 WireLib.registerDebuggerFormat("QUATERNION", format)
 
-/****************************** Helper functions ******************************/
+--[[***************************** Helper functions *****************************]]
 
 local function qmul(lhs, rhs)
 	local lhs1, lhs2, lhs3, lhs4 = lhs[1], lhs[2], lhs[3], lhs[4]
@@ -180,7 +180,7 @@ end
 
 --- Converts angle of <ent> to a quaternion
 e2function quaternion quat(entity ent)
-	if(!IsValid(ent)) then
+	if(not IsValid(ent)) then
 		return { 0, 0, 0, 0 }
 	end
 	local ang = ent:GetAngles()
@@ -240,7 +240,7 @@ registerOperator("ass", "q", "q", function(self, args)
 end)
 
 /******************************************************************************/
-// TODO: define division as multiplication with (1/x), or is it not useful?
+-- TODO: define division as multiplication with (1/x), or is it not useful?
 
 __e2setcost(4)
 
@@ -444,19 +444,19 @@ __e2setcost(6)
 
 e2function number operator==(quaternion lhs, quaternion rhs)
 	local rvd1, rvd2, rvd3, rvd4 = lhs[1] - rhs[1], lhs[2] - rhs[2], lhs[3] - rhs[3], lhs[4] - rhs[4]
-	if rvd1 <= delta && rvd1 >= -delta &&
-	   rvd2 <= delta && rvd2 >= -delta &&
-	   rvd3 <= delta && rvd3 >= -delta &&
-	   rvd4 <= delta && rvd4 >= -delta
+	if rvd1 <= delta and rvd1 >= -delta and
+	   rvd2 <= delta and rvd2 >= -delta and
+	   rvd3 <= delta and rvd3 >= -delta and
+	   rvd4 <= delta and rvd4 >= -delta
 	   then return 1 else return 0 end
 end
 
 e2function number operator!=(quaternion lhs, quaternion rhs)
 	local rvd1, rvd2, rvd3, rvd4 = lhs[1] - rhs[1], lhs[2] - rhs[2], lhs[3] - rhs[3], lhs[4] - rhs[4]
-	if rvd1 > delta || rvd1 < -delta ||
-	   rvd2 > delta || rvd2 < -delta ||
-	   rvd3 > delta || rvd3 < -delta ||
-	   rvd4 > delta || rvd4 < -delta
+	if rvd1 > delta or rvd1 < -delta or
+	   rvd2 > delta or rvd2 < -delta or
+	   rvd3 > delta or rvd3 < -delta or
+	   rvd4 > delta or rvd4 < -delta
 	   then return 1 else return 0 end
 end
 
@@ -619,8 +619,8 @@ e2function number rotationAngle(quaternion q)
 	local l2 = q[1]*q[1] + q[2]*q[2] + q[3]*q[3] + q[4]*q[4]
 	if l2 == 0 then return 0 end
 	local l = sqrt(l2)
-	local ang = 2*acos(math.Clamp(q[1]/l, -1, 1))*rad2deg  //this returns angle from 0 to 360
-	if ang > 180 then ang = ang - 360 end  //make it -180 - 180
+	local ang = 2*acos(math.Clamp(q[1]/l, -1, 1))*rad2deg  -- this returns angle from 0 to 360
+	if ang > 180 then ang = ang - 360 end  -- make it -180 - 180
 	return ang
 end
 

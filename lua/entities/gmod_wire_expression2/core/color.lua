@@ -1,6 +1,6 @@
-/******************************************************************************\
+--[[---------------
   Color support
-\******************************************************************************/
+-----------------]]
 
 local Clamp = math.Clamp
 local floor = math.floor
@@ -22,7 +22,7 @@ end
 __e2setcost(2)
 
 e2function vector entity:getColor()
-	if !IsValid(this) then return {0,0,0} end
+	if not IsValid(this) then return {0,0,0} end
 
 	local c = this:GetColor()
 	return { c.r, c.g, c.b }
@@ -39,46 +39,46 @@ e2function number entity:getAlpha()
 end
 
 e2function void entity:setColor(r,g,b)
-	if !IsValid(this) then return end
-	if !isOwner(self, this) then return end
+	if not IsValid(this) then return end
+	if not isOwner(self, this) then return end
 
 	this:SetColor(ColorClamp(Color(r,g,b,this:GetColor().a)))
 end
 
 e2function void entity:setColor(r,g,b,a)
-	if !IsValid(this) then return end
-	if !isOwner(self, this) then return end
+	if not IsValid(this) then return end
+	if not isOwner(self, this) then return end
 
 	this:SetColor(ColorClamp(Color(r, g, b, this:IsPlayer() and this:GetColor().a or a)))
 	this:SetRenderMode(this:GetColor().a == 255 and RENDERMODE_NORMAL or RENDERMODE_TRANSALPHA)
 end
 
 e2function void entity:setColor(vector c)
-	if !IsValid(this) then return end
-	if !isOwner(self, this) then return end
+	if not IsValid(this) then return end
+	if not isOwner(self, this) then return end
 
 	this:SetColor(ColorClamp(Color(c[1],c[2],c[3],this:GetColor().a)))
 end
 
 e2function void entity:setColor(vector c, a)
-	if !IsValid(this) then return end
-	if !isOwner(self, this) then return end
+	if not IsValid(this) then return end
+	if not isOwner(self, this) then return end
 
 	this:SetColor(ColorClamp(Color(c[1],c[2],c[3], this:IsPlayer() and this:GetColor().a or a)))
 	this:SetRenderMode(this:GetColor().a == 255 and RENDERMODE_NORMAL or RENDERMODE_TRANSALPHA)
 end
 
 e2function void entity:setColor(vector4 c)
-	if !IsValid(this) then return end
-	if !isOwner(self, this) then return end
+	if not IsValid(this) then return end
+	if not isOwner(self, this) then return end
 
 	this:SetColor(ColorClamp(Color(c[1],c[2],c[3], this:IsPlayer() and this:GetColor().a or c[4])))
 	this:SetRenderMode(this:GetColor().a == 255 and RENDERMODE_NORMAL or RENDERMODE_TRANSALPHA)
 end
 
 e2function void entity:setAlpha(a)
-	if !IsValid(this) then return end
-	if !isOwner(self, this) then return end
+	if not IsValid(this) then return end
+	if not isOwner(self, this) then return end
 
 	if this:IsPlayer() then return end
 	
@@ -89,8 +89,8 @@ e2function void entity:setAlpha(a)
 end
 
 e2function void entity:setRenderMode(mode)
-	if !IsValid(this) then return end
-	if !isOwner(self, this) then return end
+	if not IsValid(this) then return end
+	if not isOwner(self, this) then return end
 	if this:IsPlayer() then return end
 	
 	this:SetRenderMode(mode)
