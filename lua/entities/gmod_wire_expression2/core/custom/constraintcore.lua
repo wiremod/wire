@@ -307,7 +307,7 @@ end
 e2function void noCollideAll(entity ent, state)
 	if !IsValid(ent) then return end
 	if !isOwner(self, ent) then return false end
-	if state ~= 0 then 
+	if state ~= 0 then
 		ent:SetCollisionGroup( COLLISION_GROUP_WORLD )
 	else
 		ent:SetCollisionGroup( COLLISION_GROUP_NONE )

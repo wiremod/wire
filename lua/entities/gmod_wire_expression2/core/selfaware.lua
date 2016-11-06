@@ -28,7 +28,7 @@ e2function void selfDestructAll()
 	self.entity:Remove()
 end
 
-/******************************************************************************/
+------------------------------
 -- i/o functions
 
 __e2setcost(10)
@@ -88,7 +88,7 @@ registerCallback("postinit",function()
 	end
 end)
 
-/******************************************************************************/
+------------------------------
 -- Name functions
 
 -- Set the name of the E2 itself
@@ -113,7 +113,7 @@ e2function string entity:getName()
 end
 
 
-/******************************************************************************/
+------------------------------
 
 registerCallback("construct", function(self)
 	self.data.changed = {}
@@ -196,7 +196,7 @@ registerCallback("postinit", function()
 	end
 end)
 
-/******************************************************************************/
+------------------------------
 
 __e2setcost( 5 )
 

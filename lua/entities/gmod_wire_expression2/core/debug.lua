@@ -4,13 +4,13 @@ local isOwner      = E2Lib.isOwner
 local Clamp        = math.Clamp
 local seq = table.IsSequential
 
-/******************************************************************************/
+------------------------------
 
 local function checkOwner(self)
 	return IsValid(self.player);
 end
 
-/******************************************************************************/
+------------------------------
 
 local print_delay = 0.3
 local print_max = 15
@@ -54,7 +54,7 @@ local function check_delay( ply )
 	return false
 end
 
-/******************************************************************************/
+------------------------------
 
 local function SpecialCase( arg )
 	if istable(arg) then
@@ -121,7 +121,7 @@ e2function number entity:printDriver(string text)
 	return 1
 end
 
-/******************************************************************************/
+------------------------------
 
 --- Displays a hint popup with message <text> for <duration> seconds (<duration> being clamped between 0.7 and 7).
 e2function void hint(string text, duration)
@@ -145,7 +145,7 @@ e2function number entity:hintDriver(string text, duration)
 	return 1
 end
 
-/******************************************************************************/
+------------------------------
 
 local valid_print_types = {}
 for _,cname in ipairs({ "HUD_PRINTCENTER", "HUD_PRINTCONSOLE", "HUD_PRINTNOTIFY", "HUD_PRINTTALK" }) do
@@ -180,7 +180,7 @@ e2function number entity:printDriver(print_type, string text)
 	return 1
 end
 
-/******************************************************************************/
+------------------------------
 
 -- helper stuff for printTable
 local _Msg = Msg
@@ -206,7 +206,7 @@ end
 
 -- The printTable(T) function is in table.lua because it uses a local function
 
-/******************************************************************************/
+------------------------------
 
 __e2setcost(100)
 

@@ -132,7 +132,7 @@ local function ranger(self, rangertype, range, p1, p2, hulltype, mins, maxs, tra
 	return trace
 end
 
-/******************************************************************************/
+------------------------------
 
 registerType("ranger", "xrd", nil,
 	nil,
@@ -146,7 +146,7 @@ registerType("ranger", "xrd", nil,
 	end
 )
 
-/******************************************************************************/
+------------------------------
 
 __e2setcost(1) -- temporary
 
@@ -164,7 +164,7 @@ e2function number operator_is(ranger walker)
 	if walker then return 1 else return 0 end
 end
 
-/******************************************************************************/
+------------------------------
 
 __e2setcost(1) -- temporary
 
@@ -249,7 +249,7 @@ e2function void rangerFilter(array filter)
 	self.prf = self.prf + #filter * 10
 end
 
-/******************************************************************************/
+------------------------------
 
 e2function ranger noranger()
 	return nil
@@ -292,7 +292,7 @@ e2function ranger rangerOffset(distance, vector from, vector direction)
 	return ranger(self, 3, distance, from, direction) -- type 3, from one position into a specific direction, in a specific range
 end
 
-/******************************************************************************/
+------------------------------
 
 __e2setcost(2) -- temporary
 
@@ -467,7 +467,7 @@ e2function table ranger:toTable()
 	return ret
 end
 
-/******************************************************************************/
+------------------------------
 -- Hull traces
 
 __e2setcost(20)
@@ -531,7 +531,7 @@ e2function ranger rangerOffsetHull(entity ent, vector from, vector to)
 	end
 end
 
-/******************************************************************************/
+------------------------------
 
 registerCallback("construct", function(self)
 	self.data.rangerpersist = false

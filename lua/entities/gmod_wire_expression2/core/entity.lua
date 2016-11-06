@@ -15,7 +15,7 @@ registerType("entity", "e", nil,
 	end
 )
 
-/******************************************************************************/
+------------------------------
 
 -- import some e2lib functions
 local validPhysics = E2Lib.validPhysics
@@ -43,13 +43,13 @@ local Clamp = math.Clamp
 
 local rad2deg = 180 / math.pi
 
-/******************************************************************************/
+------------------------------
 
 local function checkOwner(self)
 	return IsValid(self.player);
 end
 
-/******************************************************************************/
+------------------------------
 -- Functions using operators
 
 __e2setcost(5) -- temporary
@@ -62,7 +62,7 @@ registerOperator("ass", "e", "e", function(self, args)
 	return rv2
 end)
 
-/******************************************************************************/
+------------------------------
 
 e2function number operator_is(entity ent)
 	if IsValid(ent) then return 1 else return 0 end
@@ -76,7 +76,7 @@ e2function number operator!=(entity lhs, entity rhs)
 	if lhs ~= rhs then return 1 else return 0 end
 end
 
-/******************************************************************************/
+------------------------------
 
 e2function entity entity(id)
 	local ent = ents.GetByIndex(id)
@@ -89,7 +89,7 @@ e2function number entity:id()
 	return this:EntIndex()
 end
 
-/******************************************************************************/
+------------------------------
 -- Functions getting string
 
 e2function entity noentity()
@@ -115,7 +115,7 @@ e2function entity entity:owner()
 	return getOwner(self, this)
 end
 
-/******************************************************************************/
+------------------------------
 -- Functions getting vector
 e2function vector entity:pos()
 	if not IsValid(this) then return {0,0,0} end
@@ -161,7 +161,7 @@ e2function vector entity:angVelVector()
 	return phys:GetAngleVelocity()
 end
 
-/******************************************************************************/
+------------------------------
 -- Functions  using vector getting vector
 
 __e2setcost(15)
@@ -200,7 +200,7 @@ e2function angle entity:toLocal(angle worldAngle)
 	return { localAngle.p, localAngle.y, localAngle.r }
 end
 
-/******************************************************************************/
+------------------------------
 -- Functions getting number
 
 __e2setcost(5)
@@ -300,7 +300,7 @@ e2function number entity:volume()
 	return phys:GetVolume()
 end
 
-/******************************************************************************/
+------------------------------
 -- Functions getting boolean/number
 e2function number entity:isPlayer()
 	if not IsValid(this) then return 0 end
@@ -341,7 +341,7 @@ e2function number entity:isValidPhysics()
 	return E2Lib.validPhysics(this) and 1 or 0
 end
 
-/******************************************************************************/
+------------------------------
 -- Functions getting angles
 
 e2function angle entity:angles()
@@ -350,7 +350,7 @@ e2function angle entity:angles()
 	return {ang.p,ang.y,ang.r}
 end
 
-/******************************************************************************/
+------------------------------
 
 e2function string entity:getMaterial()
 	if not IsValid(this) then return "" end
@@ -415,7 +415,7 @@ e2function number entity:getBodygroups(bgrp_id)
 	return 0
 end
 
-/******************************************************************************/
+------------------------------
 
 e2function number entity:isPlayerHolding()
 	if not IsValid(this) then return 0 end
@@ -438,7 +438,7 @@ e2function number entity:isFrozen()
 	if phys:IsMoveable() then return 0 else return 1 end
 end
 
-/******************************************************************************/
+------------------------------
 
 __e2setcost(30) -- temporary
 
@@ -538,7 +538,7 @@ e2function vector entity:inertia()
 end
 
 
-/******************************************************************************/
+------------------------------
 
 __e2setcost(10) -- temporary
 
@@ -566,7 +566,7 @@ e2function void entity:ejectPod()
 	if(ply:IsValid()) then ply:ExitVehicle() end
 end
 
-/******************************************************************************/
+------------------------------
 
 __e2setcost(10)
 
@@ -597,7 +597,7 @@ e2function vector entity:boxMin()
 end
 
 
-/******************************************************************************/
+------------------------------
 
 -- Returns the entity's (min) axis-aligned bounding box
 e2function vector entity:aabbMin()
@@ -622,7 +622,7 @@ e2function vector entity:aabbSize()
 	return ret2 - ret
 end
 
-/******************************************************************************/
+------------------------------
 
 __e2setcost(5)
 
@@ -644,7 +644,7 @@ end
 
 e2function string entity:toString() = e2function string toString(entity ent)
 
-/******************************************************************************/
+------------------------------
 
 local SetTrails = duplicator.EntityModifiers.trail
 
@@ -704,7 +704,7 @@ e2function void entity:setTrails(startSize, endSize, length, string material, ve
 	SetTrails(self.player, this, Data)
 end
 
-/******************************************************************************/
+------------------------------
 
 __e2setcost( 15 )
 
@@ -761,7 +761,7 @@ e2function array entity:attachments()
 	return tmp
 end
 
-/******************************************************************************/
+------------------------------
 
 __e2setcost(15)
 
@@ -770,7 +770,7 @@ e2function vector entity:nearestPoint( vector point )
 	return this:NearestPoint( Vector(point[1],point[2],point[3]) )
 end
 
-/******************************************************************************/
+------------------------------
 
 local function upperfirst( word )
 	return word:Left(1):upper() .. word:Right(-2):lower()

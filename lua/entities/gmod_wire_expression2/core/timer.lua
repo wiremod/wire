@@ -45,7 +45,7 @@ local function RemoveTimer(self, name)
 	end
 end
 
-/******************************************************************************/
+------------------------------
 
 registerCallback("construct", function(self)
 	self.data['timer'] = {}
@@ -61,7 +61,7 @@ registerCallback("destruct", function(self)
 	end
 end)
 
-/******************************************************************************/
+------------------------------
 
 __e2setcost(5) -- approximation
 
@@ -109,7 +109,7 @@ e2function void stopAllTimers()
 	end
 end
 
-/******************************************************************************/
+------------------------------
 
 e2function number curtime()
 	return CurTime()

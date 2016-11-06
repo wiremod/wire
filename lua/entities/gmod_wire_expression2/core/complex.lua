@@ -37,7 +37,7 @@ local function format(value)
 end
 WireLib.registerDebuggerFormat("COMPLEX", format)
 
-/******************************************************************************/
+------------------------------
 
 __e2setcost(2)
 
@@ -53,7 +53,7 @@ registerType("complex", "c", { 0, 0 },
 	end
 )
 
-/******************************************************************************/
+------------------------------
 
 __e2setcost(4)
 
@@ -85,7 +85,7 @@ local function cdiv(a,b)
 	return {(a[1]*b[1]+a[2]*b[2])/l, (a[2]*b[1]-a[1]*b[2])/l}
 end
 
-/******************************************************************************/
+------------------------------
 
 __e2setcost(2)
 
@@ -144,7 +144,7 @@ e2function number operator!=(number lhs, complex rhs)
 		else return 0 end
 end
 
-/******************************************************************************/
+------------------------------
 
 e2function complex operator_neg(complex z)
 	return {-z[1], -z[2]}
@@ -305,7 +305,7 @@ e2function complex log10(complex z)
 	return {l[1]/log(10), l[2]/log(10)}
 end
 
-/******************************************************************************/
+------------------------------
 
 --- Calculates the square root of <z>
 e2function complex sqrt(complex z)
@@ -446,7 +446,7 @@ e2function complex csch(complex z)
         return cdiv({1,0},s)
 end
 
-/******************************************************************************/
+------------------------------
 
 __e2setcost(15)
 

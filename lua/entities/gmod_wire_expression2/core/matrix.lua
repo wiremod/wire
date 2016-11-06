@@ -34,7 +34,7 @@ registerType("matrix2", "xm2", { 0, 0,
 	end
 )
 
-/******************************************************************************/
+------------------------------
 -- Common functions - explicit matrix solvers
 
 local function det2(a)
@@ -50,7 +50,7 @@ local function inverse2(a)
 			-a[3]/det,	 a[1]/det }
 end
 
-/******************************************************************************/
+------------------------------
 
 __e2setcost(1) -- approximated
 
@@ -86,7 +86,7 @@ e2function matrix2 identity2()
 			 0, 1 }
 end
 
-/******************************************************************************/
+------------------------------
 
 registerOperator("ass", "xm2", "xm2", function(self, args)
 	local op1, op2, scope = args[2], args[3], args[4]
@@ -96,7 +96,7 @@ registerOperator("ass", "xm2", "xm2", function(self, args)
 	return rv2
 end)
 
-/******************************************************************************/
+------------------------------
 -- Comparison
 
 e2function number operator_is(matrix2 rv1)
@@ -123,7 +123,7 @@ e2function number operator!=(matrix2 rv1, matrix2 rv2)
 	   then return 1 else return 0 end
 end
 
-/******************************************************************************/
+------------------------------
 -- Basic operations
 
 registerOperator("dlt", "xm2", "xm2", function(self, args)
@@ -195,7 +195,7 @@ e2function matrix2 operator^(matrix2 rv1, rv2)
 	end
 end
 
-/******************************************************************************/
+------------------------------
 -- Row/column/element manipulation
 
 e2function vector2 matrix2:row(rv2)
@@ -344,7 +344,7 @@ e2function matrix2 matrix2:swapElements(rv2, rv3, rv4, rv5)
 	return a
 end
 
-/******************************************************************************/
+------------------------------
 -- Useful matrix maths functions
 
 e2function vector2 diagonal(matrix2 rv1)
@@ -392,9 +392,9 @@ registerType("matrix", "m", { 0, 0, 0,
 	end
 )
 
-/******************************************************************************/
 
 -- Common functions - matrix solvers
+------------------------------
 --[[
 -- Useful functions - may be used in the future? These have been written explicitly in the relevant commands for now.
 
@@ -429,7 +429,7 @@ local function inverse3(a)
 end
 
 
-/******************************************************************************/
+------------------------------
 
 __e2setcost(1) -- approximated
 
@@ -471,7 +471,7 @@ e2function matrix identity()
 			 0, 0, 1 }
 end
 
-/******************************************************************************/
+------------------------------
 
 registerOperator("ass", "m", "m", function(self, args)
 	local op1, op2, scope = args[2], args[3], args[4]
@@ -481,7 +481,7 @@ registerOperator("ass", "m", "m", function(self, args)
 	return rv2
 end)
 
-/******************************************************************************/
+------------------------------
 -- Comparison
 
 e2function number operator_is(matrix rv1)
@@ -523,7 +523,7 @@ e2function number operator!=(matrix rv1, matrix rv2)
 	   then return 1 else return 0 end
 end
 
-/******************************************************************************/
+------------------------------
 -- Basic operations
 
 registerOperator("dlt", "m", "m", function(self, args)
@@ -615,7 +615,7 @@ e2function matrix operator^(matrix rv1, rv2)
 	end
 end
 
-/******************************************************************************/
+------------------------------
 -- Row/column/element manipulation
 
 e2function vector matrix:row(rv2)
@@ -821,7 +821,7 @@ e2function matrix matrix:setDiagonal(rv2, rv3, rv4)
 			 this[3], this[6], rv4 }
 end
 
-/******************************************************************************/
+------------------------------
 -- Useful matrix maths functions
 
 e2function vector diagonal(matrix rv1)
@@ -848,7 +848,7 @@ e2function matrix adj(matrix rv1)
 			 rv1[4] * rv1[8] - rv1[7] * rv1[5],	rv1[7] * rv1[2] - rv1[1] * rv1[8],	rv1[1] * rv1[5] - rv1[4] * rv1[2] }
 end
 
-/******************************************************************************/
+------------------------------
 -- Extra functions
 
 e2function matrix matrix(entity rv1)
@@ -953,7 +953,7 @@ registerType("matrix4", "xm4", { 0, 0, 0, 0,
 	end
 )
 
-/******************************************************************************/
+------------------------------
 
 __e2setcost(1) -- approximated
 
@@ -1015,7 +1015,7 @@ e2function matrix4 identity4()
 			 0, 0, 0, 1 }
 end
 
-/******************************************************************************/
+------------------------------
 
 registerOperator("ass", "xm4", "xm4", function(self, args)
 	local op1, op2, scope = args[2], args[3], args[4]
@@ -1025,7 +1025,7 @@ registerOperator("ass", "xm4", "xm4", function(self, args)
 	return rv2
 end)
 
-/******************************************************************************/
+------------------------------
 -- Comparison
 
 e2function number operator_is(matrix4 rv1)
@@ -1088,7 +1088,7 @@ e2function number operator!=(matrix4 rv1, matrix4 rv2)
 	   then return 1 else return 0 end
 end
 
-/******************************************************************************/
+------------------------------
 -- Basic operations
 
 registerOperator("dlt", "xm4", "xm4", function(self, args)
@@ -1208,7 +1208,7 @@ e2function matrix4 operator^(matrix4 lhs, rhs)
 	end
 end
 
-/******************************************************************************/
+------------------------------
 -- Row/column/element manipulation
 
 e2function vector4 matrix4:row(rv2)
@@ -1458,7 +1458,7 @@ e2function matrix4 matrix4:setDiagonal(rv2, rv3, rv4, rv5)
 			 this[13], this[14], this[15], rv5 }
 end
 
-/******************************************************************************/
+------------------------------
 -- Useful matrix maths functions
 
 e2function vector4 diagonal(matrix4 rv1)
@@ -1487,7 +1487,7 @@ e2function matrix4 inverseA(matrix4 rv1)
 			 0, 0, 0, 1 }
 end
 
-/******************************************************************************/
+------------------------------
 -- Extra functions
 
 e2function matrix4 matrix4(entity rv1)

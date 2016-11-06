@@ -22,7 +22,7 @@ registerCallback("e2lib_replace_function", function(funcname, func, oldfunc)
 	end
 end)
 
-/******************************************************************************/
+------------------------------
 
 __e2setcost(5) -- temporary
 
@@ -38,7 +38,7 @@ e2function number entity:isSuperAdmin()
 	if this:IsSuperAdmin() then return 1 else return 0 end
 end
 
-/******************************************************************************/
+------------------------------
 
 __e2setcost(8)
 
@@ -65,7 +65,7 @@ e2function angle entity:eyeAngles()
 	return { ang.p, ang.y, ang.r }
 end
 
-/******************************************************************************/
+------------------------------
 
 __e2setcost(5)
 
@@ -90,7 +90,7 @@ e2function number entity:armor()
 	if(this:IsPlayer() or this:IsNPC()) then return this:Armor() else return 0 end
 end
 
-/******************************************************************************/
+------------------------------
 
 __e2setcost(5)
 
@@ -113,7 +113,7 @@ e2function number entity:isFlashlightOn()
 	if this:FlashlightIsOn() then return 1 else return 0 end
 end
 
-/******************************************************************************/
+------------------------------
 
 e2function number entity:frags()
 	if(not IsValid(this)) then return 0 end
@@ -125,7 +125,7 @@ e2function number entity:deaths()
 	if(this:IsPlayer()) then return this:Deaths() else return 0 end
 end
 
-/******************************************************************************/
+------------------------------
 
 e2function number entity:team()
 	if(not IsValid(this)) then return 0 end
@@ -170,7 +170,7 @@ e2function array teams()
 	return team_indexes
 end
 
-/******************************************************************************/
+------------------------------
 __e2setcost(2)
 
 e2function number entity:keyForward()
@@ -342,7 +342,7 @@ e2function number entity:isTyping()
 	return plys[this] and 1 or 0
 end
 
-/******************************************************************************/
+------------------------------
 
 local Trusts
 
@@ -434,7 +434,7 @@ e2function number entity:isSteamFriend(entity friend)
 	return table.HasValue(friends, friend) and 1 or 0
 end
 
-/******************************************************************************/
+------------------------------
 
 __e2setcost(5)
 
@@ -465,7 +465,7 @@ e2function number entity:inNoclip()
 	return 1
 end
 
-/******************************************************************************/
+------------------------------
 
 local player = player
 
@@ -495,7 +495,7 @@ e2function array playersSuperAdmins()
 	return Admins
 end
 
-/******************************************************************************/
+------------------------------
 
 e2function entity entity:aimEntity()
 	if not IsValid(this) then return nil end

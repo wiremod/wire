@@ -19,7 +19,7 @@ registerType("angle", "a", { 0, 0, 0 },
 local pi = math.pi
 local floor, ceil = math.floor, math.ceil
 
-/******************************************************************************/
+------------------------------
 
 __e2setcost(1) -- approximated
 
@@ -42,7 +42,7 @@ e2function angle ang(vector rv1)
 	return {rv1[1],rv1[2],rv1[3]}
 end
 
-/******************************************************************************/
+------------------------------
 
 registerOperator("ass", "a", "a", function(self, args)
 	local op1, op2, scope = args[2], args[3], args[4]
@@ -52,7 +52,7 @@ registerOperator("ass", "a", "a", function(self, args)
 	return rv2
 end)
 
-/******************************************************************************/
+------------------------------
 
 e2function number operator_is(angle rv1)
 	if rv1[1] ~= 0 or rv1[2] ~= 0 or rv1[3] ~= 0
@@ -103,7 +103,7 @@ e2function number operator<(angle rv1, angle rv2)
 	   then return 1 else return 0 end
 end
 
-/******************************************************************************/
+------------------------------
 
 registerOperator("dlt", "a", "a", function(self, args)
 	local op1, scope = args[2], args[3]
@@ -174,7 +174,7 @@ e2function number angle:operator[](index, value)
 	return value
 end
 
-/******************************************************************************/
+------------------------------
 
 __e2setcost(5)
 
@@ -215,7 +215,7 @@ e2function angle angle:setRoll(rv2)
 	return { this[1], this[2], rv2 }
 end
 
-/******************************************************************************/
+------------------------------
 
 __e2setcost(5)
 
@@ -391,7 +391,7 @@ e2function angle toDeg(angle rv1)
 	return {rv1[1] * 180 / pi, rv1[2] * 180 / pi, rv1[3] * 180 / pi}
 end
 
-/******************************************************************************/
+------------------------------
 
 e2function vector angle:forward()
 	return Angle(this[1], this[2], this[3]):Forward()

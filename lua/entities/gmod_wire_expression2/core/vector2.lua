@@ -9,7 +9,7 @@ local ceil = math.ceil
 local random = math.random
 local pi = math.pi
 
-/******************************************************************************/
+------------------------------
 
 registerType("vector2", "xv2", { 0, 0 },
 	function(self, input) return { input[1], input[2] } end,
@@ -23,7 +23,7 @@ registerType("vector2", "xv2", { 0, 0 },
 	end
 )
 
-/******************************************************************************/
+------------------------------
 
 __e2setcost(1) -- approximated
 
@@ -57,7 +57,7 @@ registerFunction("vec2", "xv4", "xv2", function(self, args)
 	return { rv1[1], rv1[2] }
 end)
 
-/******************************************************************************/
+------------------------------
 
 registerOperator("ass", "xv2", "xv2", function(self, args)
 	local op1, op2, scope = args[2], args[3], args[4]
@@ -67,7 +67,7 @@ registerOperator("ass", "xv2", "xv2", function(self, args)
 	return rv2
 end)
 
-/******************************************************************************/
+------------------------------
 
 registerOperator("is", "xv2", "n", function(self, args)
 	local op1 = args[2]
@@ -93,7 +93,7 @@ registerOperator("neq", "xv2xv2", "n", function(self, args)
 	   then return 1 else return 0 end
 end)
 
-/******************************************************************************/
+------------------------------
 
 registerOperator("dlt", "xv2", "xv2", function(self, args)
 	local op1, scope = args[2], args[3]
@@ -164,7 +164,7 @@ e2function number vector2:operator[](index, value)
 	return value
 end
 
-/******************************************************************************/
+------------------------------
 
 __e2setcost(3)
 
@@ -255,7 +255,7 @@ e2function vector2 toDeg(vector2 xv2)
 	return {xv2[1] * 180 / pi, xv2[2] * 180 / pi}
 end
 
-/******************************************************************************/
+------------------------------
 
 __e2setcost(3)
 
@@ -275,7 +275,7 @@ e2function vector2 clamp(vector2 Input, Min, Max)
 	return { x*length, y*length }
 end
 
-/******************************************************************************/
+------------------------------
 
 __e2setcost(1)
 
@@ -305,7 +305,7 @@ registerFunction("setY", "xv2:n", "xv2", function(self, args)
 	return { rv1[1], rv2 }
 end)
 
-/******************************************************************************/
+------------------------------
 
 __e2setcost(4)
 
@@ -480,7 +480,7 @@ registerFunction("inrange", "xv2xv2xv2", "n", function(self, args)
 	return 1
 end)
 
-/******************************************************************************/
+------------------------------
 
 registerFunction("toAngle", "xv2:", "n", function(self, args)
 	local op1 = args[2]
@@ -503,7 +503,7 @@ WireLib.registerDebuggerFormat("VECTOR2", function(value)
 	return string.format("(%.2f, %.2f)", value[1], value[2])
 end)
 
-/******************************************************************************/
+------------------------------
 
 __e2setcost(5)
 
@@ -529,7 +529,7 @@ end
 
 -- NOTE: These are purely cartesian 4D vectors, so "w" denotes the 4th coordinate rather than a scaling factor as with an homogeneous coordinate system
 
-/******************************************************************************/
+------------------------------
 
 registerType("vector4", "xv4", { 0, 0, 0, 0 },
 	function(self, input) return { input[1], input[2], input[3], input[4] } end,
@@ -543,7 +543,7 @@ registerType("vector4", "xv4", { 0, 0, 0, 0 },
 	end
 )
 
-/******************************************************************************/
+------------------------------
 
 __e2setcost(1) -- approximated
 
@@ -595,7 +595,7 @@ registerFunction("vec4", "vn", "xv4", function(self, args)
 	return { rv1[1], rv1[2], rv1[3], rv2 }
 end)
 
-/******************************************************************************/
+------------------------------
 
 registerOperator("ass", "xv4", "xv4", function(self, args)
 	local op1, op2, scope = args[2], args[3], args[4]
@@ -605,7 +605,7 @@ registerOperator("ass", "xv4", "xv4", function(self, args)
 	return rv2
 end)
 
-/******************************************************************************/
+------------------------------
 
 registerOperator("is", "xv4", "n", function(self, args)
 	local op1 = args[2]
@@ -637,7 +637,7 @@ registerOperator("neq", "xv4xv4", "n", function(self, args)
 	   then return 1 else return 0 end
 end)
 
-/******************************************************************************/
+------------------------------
 
 registerOperator("dlt", "xv4", "xv4", function(self, args)
 	local op1, scope = args[2], args[3]
@@ -708,7 +708,7 @@ e2function number vector4:operator[](index, value)
 	return value
 end
 
-/******************************************************************************/
+------------------------------
 
 __e2setcost(7)
 
@@ -792,7 +792,7 @@ registerFunction("positive", "xv4", "xv4", function(self, args)
 	return { x, y, z, w }
 end)
 
-/******************************************************************************/
+------------------------------
 
 __e2setcost(2)
 
@@ -848,7 +848,7 @@ registerFunction("setW", "xv4:n", "xv4", function(self, args)
 	return { rv1[1], rv1[2], rv1[3], rv2 }
 end)
 
-/******************************************************************************/
+------------------------------
 
 __e2setcost(8)
 
@@ -1089,7 +1089,7 @@ e2function vector4 toDeg(vector4 xv4)
 	return {xv4[1] * 180 / pi, xv4[2] * 180 / pi, xv4[3] * 180 / pi, xv4[4] * 180 / pi}
 end
 
-/******************************************************************************/
+------------------------------
 
 __e2setcost(7)
 
@@ -1111,7 +1111,7 @@ e2function vector4 randvec4( vector4 min, vector4 max )
 	return { minx+random()*(max[1]-minx), miny+random()*(max[2]-miny), minz+random()*(max[2]-minz), minw+random()*(max[2]-minw) }
 end
 
-/******************************************************************************/
+------------------------------
 
 e2function string toString(vector4 v)
 	return ("[%s,%s,%s,%s]"):format(v[1],v[2],v[3],v[4])
