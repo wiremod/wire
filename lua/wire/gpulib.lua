@@ -130,9 +130,9 @@ if CLIENT then
 
 	end
 
-	-- 
+	--
 	-- Create basic fonts
-	-- 
+	--
 	local fontData = 
 	{
 		font="lucida console",
@@ -142,9 +142,9 @@ if CLIENT then
 		additive = false,
 	}
 	surface.CreateFont("WireGPU_ConsoleFont", fontData)
-	-- 
+	--
 	-- Create screen textures and materials
-	-- 
+	--
 	WireGPU_matScreen = CreateMaterial("GPURT","UnlitGeneric",{
 		["$vertexcolor"] = 1,
 		["$vertexalpha"] = 1,

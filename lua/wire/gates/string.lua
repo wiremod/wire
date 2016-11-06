@@ -315,7 +315,7 @@ GateActions["string_to_memory"] = {
 
   output = function(gate, A)
     if A ~= gate.currentString then
-    	if not gate.stringChanged then
+		if not gate.stringChanged then
     		gate.stringChanged = true
     		gate.currentString = A
     		gate.stringQueued = false
@@ -327,13 +327,13 @@ GateActions["string_to_memory"] = {
   end,
 
   ReadCell = function(self, gate, Address) 
-  	if Address == 0 then 	   --Clk
-  		if gate.stringChanged then return 1 else return 0 end
-  	elseif Address == 1 then --String length
+	if Address == 0 then --Clk
+		if gate.stringChanged then return 1 else return 0 end
+	elseif Address == 1 then --String length
   		return #(gate.currentString)
   	else --Return string bytes
   		local index = Address - 1
-  		if index > #(gate.currentString) then -- Check whether requested address is outside the string
+		if index > #(gate.currentString) then -- Check whether requested address is outside the string
   			return 0 
   		else 
   			return string.byte(gate.currentString, index) 
@@ -374,9 +374,9 @@ GateActions["string_from_memory"] = {
   end,
 
   ReadCell = function(self, gate, address) 
-  	if address == 0 then
+	if address == 0 then
   		return 0
-  	elseif address == 1 then
+	elseif address == 1 then
   		return gate.stringLength
   	else
   		return gate.memory[address-1] or 0 -- "or 0" to prevent it from returning nil if index is outside the array
@@ -384,7 +384,7 @@ GateActions["string_from_memory"] = {
   end,
 
   WriteCell = function(self, gate, address, value)
-  	if value >= 0 then
+	if value >= 0 then
 		if (address == 0) and (value == 1) then -- Clk has been set
 			local maxIndex = gate.stringLength
 			for i=1,gate.stringLength,1 do

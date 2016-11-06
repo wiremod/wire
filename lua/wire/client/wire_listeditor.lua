@@ -65,7 +65,7 @@ local function ReadLine(filedata)
 		local line = ""
 		local fileend = false
 
-		for i=1, max_char_count+56 do -- maximum chars per line 
+		for i=1, max_char_count+56 do -- maximum chars per line
 			local byte = filedata:ReadByte()
 			fileend = not byte
 

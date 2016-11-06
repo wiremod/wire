@@ -53,7 +53,7 @@ function ENT:Initialize()
 end
 
 function ENT:SendPixel()
-  if (self.Memory[2047] ~= 0) and (self.CharX >= 0) and (self.CharX < 30) and 
+  if (self.Memory[2047] ~= 0) and (self.CharX >= 0) and (self.CharX < 30) and
                                   (self.CharY >= 0) and (self.CharY < 18) then
     local pixelno = math.floor(self.CharY)*30+math.floor(self.CharX)
 

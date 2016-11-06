@@ -151,9 +151,9 @@ end
 
 
 
--- 
+--
 -- make all the ent.Get/SetNetworkedBeamVarCrap
--- 
+--
 local function AddNetworkFunctions( name, SetFunction, GetFunction, Default )
 
 	NetworkFunction[ name ] = {}
@@ -282,9 +282,9 @@ AddNetworkFunctions( "String", 	"String", 	"ReadString", 	"" )
 
 
 
--- 
+--
 -- We want our networked vars to save don't we? Yeah - we do - stupid.
--- 
+--
 local function Save( save )
 	-- Remove baggage
 	for k, v in pairs(NetworkVars) do
@@ -302,9 +302,9 @@ saverestore.AddSaveHook( "EntityNetworkedBeamVars", Save )
 saverestore.AddRestoreHook( "EntityNetworkedBeamVars", Restore )
 
 if SERVER then
--- 
+--
 -- send the netvars queried in the stack
--- 
+--
 local NextBeamVarsDelayedSendTime = 0
 local NormalOpMode = true
 local function NetworkVarsSend()
@@ -357,9 +357,9 @@ end
 hook.Add("Think", "NetBeamLib_Think", NetworkVarsSend)
 
 
--- 
+--
 -- Send a full update to player that have just joined the server
--- 
+--
 local function FullUpdateEntityNetworkVars( ply )
 	--Msg("==sending netbeamvar var data to "..tostring(ply).."\n")
 	--Msg("\n===Size: "..table.Count(NetworkVars).."\n")
@@ -386,9 +386,9 @@ concommand.Add( "networkbeamvars_SendAll", DelayedFullUpdateEntityNetworkVars )
 concommand.Add( "networkbeamvars_SendAllNow", FullUpdateEntityNetworkVars )
 
 
--- 
+--
 -- Listen out for dead entities so we can remove their vars
--- 
+--
 local function NetworkVarsCleanup( ent )
 	NetworkVars[ ent ] = nil
 end
