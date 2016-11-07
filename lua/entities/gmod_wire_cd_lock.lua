@@ -46,7 +46,7 @@ end
 function ENT:Think()
 	self.BaseClass.Think(self)
 
-	-- If we were undiskged, reset the disk and socket to accept new ones.
+	-- If we were undisked, reset the disk and socket to accept new ones.
 	if (self.Const) and (not self.Const:IsValid()) then
 		self.Const = nil
 		self.Disk.Lock = nil
