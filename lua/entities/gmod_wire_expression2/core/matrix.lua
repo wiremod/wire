@@ -1172,7 +1172,7 @@ end
 
 e2function matrix4 operator^(matrix4 lhs, rhs)
 
-	-- if rhs == -1 then return ( inverse4(lhs) )
+	--if rhs == -1 then return ( inverse4(lhs) )
 
 	if rhs == 0 then 	return { 1, 0, 0, 0,
 								 0, 1, 0, 0,

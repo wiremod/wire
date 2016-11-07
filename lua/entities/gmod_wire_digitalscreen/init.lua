@@ -239,7 +239,7 @@ function ENT:WriteCell(Address, value)
 					i = i + 1
 				end
 			end
-		-- elseif Address == 1048575 then -- CLK
+		--elseif Address == 1048575 then -- CLK
 			-- not needed atm
 		end
 	end

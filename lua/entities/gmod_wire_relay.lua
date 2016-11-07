@@ -49,7 +49,7 @@ function ENT:Setup(keygroup1, keygroup2, keygroup3, keygroup4, keygroup5, keygro
 		self.outputs[p] = outpoles[p]
 		self.Value[p] = self.Value[p] or 0
 		for t=1, self.throws do
-			-- inputs[ p * self.poles + t ] = t .. outpoles[p]
+			--inputs[ p * self.poles + t ] = t .. outpoles[p]
 			table.insert(inputs, ( t .. outpoles[p] ))
 			self.Last[ t .. outpoles[p] ] = self.Last[ t .. outpoles[p] ] or 0
 		end

@@ -24,7 +24,7 @@ e2function void selfDestructAll()
 			v:Remove()
 		end
 	end
-	-- constraint.RemoveAll(self.entity)
+	--constraint.RemoveAll(self.entity)
 	self.entity:Remove()
 end
 
