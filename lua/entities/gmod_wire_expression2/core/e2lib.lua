@@ -7,7 +7,7 @@ local function checkargtype(argn, value, argtype)
 	if type(value) ~= argtype then error(string.format("bad argument #%d to 'E2Lib.%s' (%s expected, got %s)", argn, debug.getinfo(2, "n").name, argtype, type(text)), 2) end
 end
 
--- -------------------------- Helper functions -----------------------------
+---------------------------- Helper functions -----------------------------
 local unpack = unpack
 
 -- This functions should not be used in functions that tend to be used very often, as it is slower than getting the arguments manually.
@@ -73,7 +73,7 @@ function E2Lib.getHash(self, data)
 	return tonumber(util_CRC(data)) or -1
 end
 
--- -------------------------- signature generation -----------------------------
+---------------------------- signature generation -----------------------------
 
 function E2Lib.typeName(typeid)
 	if typeid == "" then return "void" end
@@ -134,7 +134,7 @@ function E2Lib.generate_signature(signature, rets, argnames)
 	return (not rets or rets == "") and (new_signature) or (E2Lib.typeName(rets) .. "=" .. new_signature)
 end
 
--- ------------------------ various entity checkers ----------------------------
+-------------------------- various entity checkers ----------------------------
 
 -- replaces an E2Lib function (ex.: isOwner) and notifies plugins
 function E2Lib.replace_function(funcname, func)
@@ -218,7 +218,7 @@ function E2Lib.canModifyPlayer(self, ply)
 	return isOwner(self, vehicle)
 end
 
--- ------------------------ type guessing ------------------------------------------
+-------------------------- type guessing ------------------------------------------
 
 local type_lookup = {
 	number = "n",
@@ -264,7 +264,7 @@ end
 -- quaternion (will be reported as vector4)
 -- all kinds of nil stuff
 
--- ------------------------ list filtering -------------------------------------------------
+-------------------------- list filtering -------------------------------------------------
 
 local Debug = false
 local cPrint
@@ -294,7 +294,7 @@ function E2Lib.filterList(list, criterion)
 	return list
 end
 
--- ----------------------------- compiler stuf ---------------------------------
+------------------------------- compiler stuf ---------------------------------
 
 E2Lib.optable_inv = {
 	add = "+",
@@ -376,7 +376,7 @@ function E2Lib.printops()
 	print("}")
 end
 
--- ------------------------------ string stuff ---------------------------------
+-------------------------------- string stuff ---------------------------------
 
 -- limits the given string to the given length and adds "..." to the end if too long.
 function E2Lib.limitString(text, length)
@@ -431,7 +431,7 @@ do
 	end
 end
 
--- ------------------------------- extensions ----------------------------------
+--------------------------------- extensions ----------------------------------
 
 do
 	-- Shared stuff, defined later.
@@ -647,7 +647,7 @@ do
 
 end
 
--- ------------------------ clientside reload command --------------------------
+-------------------------- clientside reload command --------------------------
 
 do
 	if SERVER then
@@ -672,7 +672,7 @@ do
 	
 end
 
--- ------------------------------ compatibility --------------------------------
+-------------------------------- compatibility --------------------------------
 
 -- Some functions need to be global for backwards-compatibility.
 local makeglobal = {

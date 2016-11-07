@@ -489,7 +489,7 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID, GetConstByID)
 	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID, GetConstByID)
 end
 
--- -------------------------------- Transfer ----------------------------------
+---------------------------------- Transfer ----------------------------------
 
 --[[
 	Player Disconnection Magic

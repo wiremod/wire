@@ -84,7 +84,7 @@ local function makecheck(signature)
 	entry.oldfunc = oldfunc
 end
 
--- ----------------------------------------------------------------------
+------------------------------------------------------------------------
 
 function wire_expression2_reset_extensions()
 	wire_expression_callbacks = {
@@ -171,7 +171,7 @@ function E2Lib.registerConstant(name, value, literal)
 	wire_expression2_constants[name] = value
 end
 
--- ---------------------------------------------------------------
+-----------------------------------------------------------------
 
 if SERVER then
 	util.AddNetworkString("e2_functiondata_start")

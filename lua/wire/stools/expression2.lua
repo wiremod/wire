@@ -934,7 +934,7 @@ elseif CLIENT then
 	end
 end
 
--- -------- 'in editor' animation ------------------------
+---------- 'in editor' animation ------------------------
 
 if SERVER then
 

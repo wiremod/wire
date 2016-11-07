@@ -146,7 +146,7 @@ function Compiler:GetVariableType(instance, name)
 	return nil
 end
 
--- ---------------------------------------------------------------------------
+-----------------------------------------------------------------------------
 
 function Compiler:EvaluateStatement(args, index)
 	local name = string.upper(args[index + 2][1])
@@ -276,7 +276,7 @@ function Compiler:PopPrfCounter()
 	return prfcounter
 end
 
--- ------------------------------------------------------------------------
+--------------------------------------------------------------------------
 
 function Compiler:InstrSEQ(args)
 	self:PushPrfCounter()
