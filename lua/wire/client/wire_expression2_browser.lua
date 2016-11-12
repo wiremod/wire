@@ -111,7 +111,7 @@ function PANEL:Search( str, foldername, fullpath, parentfullpath, first_recursio
 	end
 end
 
-local function check_results( status, bool, count )
+function PANEL:CheckSearchResults( status, bool, count )
 	if bool ~= nil and count ~= nil then -- we're done searching
 		if count == 0 then
 			local node = self.Root:AddNode( "No results" )
@@ -133,13 +133,13 @@ function PANEL:StartSearch( str )
 	
 	local crt = coroutine.create( self.Search )
 	local status, bool, count = coroutine.resume( crt, self, str, self.startfolder, self.startfolder, "", true )
-	check_results( status, bool, count )
+	self:CheckSearchResults( status, bool, count )
 	
 	timer.Create( "wire_expression2_search", 0, 0, function()
 		for i=1,100 do -- Load loads of files/folders at a time
 			local status, bool, count = coroutine.resume( crt )
 
-			if check_results( status, bool, count ) then
+			if self:CheckSearchResults( status, bool, count ) then
 				return -- exit loop etc
 			end
 		end
