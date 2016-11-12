@@ -1002,3 +1002,21 @@ e2function number findClipToEntities( array entities )
 		return lookup[ent]
 	end)
 end
+
+-- Filters the list of entities by removing all props not owned by this player
+e2function number findClipToPlayerProps( entity ply )
+	if not IsValid(ply) then return -1 end
+	return applyClip( self, function( ent )
+		if not IsValid(ent) then return false end
+		return getOwner(self,ent) == ply
+	end)
+end
+
+-- Filters the list of entities by removing all props owned by this player
+e2function number findClipFromPlayerProps( entity ply )
+	if not IsValid(ply) then return -1 end
+	return applyClip( self, function( ent )
+		if not IsValid(ent) then return false end
+		return getOwner(self,ent) ~= ply
+	end)
+end
