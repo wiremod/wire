@@ -798,6 +798,7 @@ function Editor:InitComponents()
 	self.C.Divider:Dock(FILL)
 	self.C.Divider:SetDividerWidth(4)
 	self.C.Divider:SetCookieName("wire_expression2_editor_divider")
+	self.C.Divider:SetLeftMin(0)
 
 	local DoNothing = function() end
 	self.C.MainPane.Paint = DoNothing
@@ -903,6 +904,7 @@ function Editor:InitComponents()
 		else
 			self.C.Divider:SetLeftWidth(0)
 		end
+		self.C.Divider:InvalidateLayout()
 		button:InvalidateLayout()
 	end
 
