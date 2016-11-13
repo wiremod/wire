@@ -1,5 +1,5 @@
 WireToolSetup.setCategory( "Input, Output/Keyboard Interaction" )
-WireToolSetup.open( "adv_input", "Adv. Input", "gmod_wire_adv_input", nil, "Adv Inputs" )
+WireToolSetup.open( "adv_input", "Adv. Input", "gmod_wire_adv_input", nil, "Adv. Inputs" )
 
 if CLIENT then
 	language.Add( "tool.wire_adv_input.name", "Adv. Input Tool (Wire)" )
@@ -13,7 +13,7 @@ if CLIENT then
 	language.Add( "WireAdvInputTool_value_start", "Start at:" )
 	language.Add( "WireAdvInputTool_speed", "Change per second:" )
 end
-WireToolSetup.BaseLang("Adv. Inputs")
+WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )
 
 if SERVER then

@@ -7,7 +7,7 @@ if CLIENT then
 	language.Add( "tool.wire_hoverball.0", "Primary: Create/Update Hoverball" )
 	language.Add( "tool.wire_hoverball.starton", "Create with hover mode on" )
 end
-WireToolSetup.BaseLang("Hoverballs")
+WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 30 )
 
 TOOL.ClientConVar = {

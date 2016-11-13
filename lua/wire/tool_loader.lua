@@ -463,11 +463,11 @@ end
 
 
 -- optional function to add the basic language for basic tools
-function WireToolSetup.BaseLang( pluralname )
+function WireToolSetup.BaseLang()
 	if CLIENT then
 		language.Add( "undone_"..TOOL.WireClass, "Undone Wire "..TOOL.Name )
-		language.Add( "Cleanup_"..TOOL.WireClass, "Wire "..(TOOL.PluralName or pluralname) )
-		language.Add( "Cleaned_"..TOOL.WireClass, "Cleaned Up Wire "..(TOOL.PluralName or pluralname) )
+		language.Add( "Cleanup_"..TOOL.WireClass, "Wire "..TOOL.PluralName )
+		language.Add( "Cleaned_"..TOOL.WireClass, "Cleaned Up Wire "..TOOL.PluralName )
 	end
 	cleanup.Register(TOOL.WireClass)
 end

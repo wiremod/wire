@@ -12,7 +12,7 @@ if CLIENT then
 	language.Add( "WireDualInputTool_value_on2", "Value 2 On:" )
 	language.Add( "WireDualInputTool_value_off", "Value Off:" )
 end
-WireToolSetup.BaseLang("Dual Inputs")
+WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )
 
 if SERVER then

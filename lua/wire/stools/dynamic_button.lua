@@ -14,7 +14,7 @@ if CLIENT then
 	language.Add( "WireDynamicButtonTool_colour_on", "Color On:" )
 	language.Add( "WireDynamicButtonTool_colour_off", "Color Off:" )
 end
-WireToolSetup.BaseLang("Dynamic Buttons")
+WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )
 
 if SERVER then

@@ -10,7 +10,7 @@ if CLIENT then
 	language.Add( "WireInputTool_value_on", "Value On:" )
 	language.Add( "WireInputTool_value_off", "Value Off:" )
 end
-WireToolSetup.BaseLang("Inputs")
+WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )
 
 if SERVER then
