@@ -63,7 +63,7 @@ function ENT:AddExitPoint()
 	ExitPoints[self] = true
 end
 local function RemoveExitPoint( ent )
-	if ExitPoints[self] then ExitPoints[self] = nil end
+	if ExitPoints[ent] then ExitPoints[ent] = nil end
 end
 hook.Add( "EntityRemoved", "WireExitPoint", RemoveExitPoint )
 
