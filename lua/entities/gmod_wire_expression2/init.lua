@@ -10,22 +10,33 @@ function gmsave.ShouldSaveEntity( ent, ... )
 	return old( ent, ... )
 end
 
-local wire_expression2_unlimited = GetConVar("wire_expression2_unlimited")
-local wire_expression2_quotasoft = GetConVar("wire_expression2_quotasoft")
-local wire_expression2_quotahard = GetConVar("wire_expression2_quotahard")
-local wire_expression2_quotatick = GetConVar("wire_expression2_quotatick")
+e2_softquota = nil
+e2_hardquota = nil
+e2_tickquota = nil
 
-timer.Create("e2quota", 1, 0, function()
-	if wire_expression2_unlimited:GetBool() then
-		e2_softquota = 1000000
-		e2_hardquota = 1000000
-		e2_tickquota = 100000
-	else
-		e2_softquota = wire_expression2_quotasoft:GetInt()
-		e2_hardquota = wire_expression2_quotahard:GetInt()
-		e2_tickquota = wire_expression2_quotatick:GetInt()
+do
+	local wire_expression2_unlimited = GetConVar("wire_expression2_unlimited")
+	local wire_expression2_quotasoft = GetConVar("wire_expression2_quotasoft")
+	local wire_expression2_quotahard = GetConVar("wire_expression2_quotahard")
+	local wire_expression2_quotatick = GetConVar("wire_expression2_quotatick")
+
+	local function updateQuotas()
+		if wire_expression2_unlimited:GetBool() then
+			e2_softquota = 1000000
+			e2_hardquota = 1000000
+			e2_tickquota = 100000
+		else
+			e2_softquota = wire_expression2_quotasoft:GetInt()
+			e2_hardquota = wire_expression2_quotahard:GetInt()
+			e2_tickquota = wire_expression2_quotatick:GetInt()
+		end
 	end
-end)
+	cvars.AddChangeCallback("wire_expression2_unlimited", updateQuotas)
+	cvars.AddChangeCallback("wire_expression2_quotasoft", updateQuotas)
+	cvars.AddChangeCallback("wire_expression2_quotahard", updateQuotas)
+	cvars.AddChangeCallback("wire_expression2_quotatick", updateQuotas)
+	updateQuotas()
+end
 
 local function copytype(var)
 	return istable(var) and table.Copy(var) or var
