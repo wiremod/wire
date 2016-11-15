@@ -1216,9 +1216,15 @@ function WireLib.AddOutputAlias( class, old, new )
 	ENT_table.OutputAliases[old] = new
 end
 
+local function effectiveMass(ent)
+	if not isentity(ent) then return 1 end
+	if ent:IsWorld() then return 99999 end
+	if not IsValid(ent) or not IsValid(ent:GetPhysicsObject()) then return 1 end
+	return ent:GetPhysicsObject():GetMass()
+end
+
 function WireLib.CalcElasticConsts(Ent1, Ent2)
-	if not IsValid(Ent1:GetPhysicsObject()) or not IsValid(Ent2:GetPhysicsObject()) then return 100, 20 end
-	local minMass = math.min(Ent1:IsWorld() and 99999 or Ent1:GetPhysicsObject():GetMass(), Ent2:IsWorld() and 99999 or Ent2:GetPhysicsObject():GetMass())
+	local minMass = math.min(effectiveMass(Ent1), effectiveMass(Ent2))
 	local const = minMass * 100
 	local damp = minMass * 20
 
