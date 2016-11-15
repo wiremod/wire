@@ -69,7 +69,7 @@ function PropCore.CreateProp(self,model,pos,angles,freeze,isVehicle)
 		if model == "" then model = "models/nova/airboat_seat.mdl" end
 	end
 
-	if not util.IsValidModel( model ) or not util.IsValidProp( model ) then return nil end
+	if not util.IsValidProp( model ) or not WireLib.CanModel(self.player, model) then return nil end
 
 	pos = E2Lib.clampPos( pos )
 

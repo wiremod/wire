@@ -541,6 +541,7 @@ end)
 function MakeWireExpression2(player, Pos, Ang, model, buffer, name, inputs, outputs, vars, inc_files, filepath)
 	if not player then player = game.GetWorld() end -- For Garry's Map Saver
 	if IsValid(player) and not player:CheckLimit("wire_expressions") then return false end
+	if not WireLib.CanModel(player, model) then return false end
 
 	local self = ents.Create("gmod_wire_expression2")
 	if not self:IsValid() then return false end
