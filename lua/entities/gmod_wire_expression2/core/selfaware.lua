@@ -1,6 +1,6 @@
-/******************************************************************************\
+--[[-------------------
   Selfaware support
-\******************************************************************************/
+---------------------]]
 
 __e2setcost(1) -- temporary
 
@@ -24,11 +24,11 @@ e2function void selfDestructAll()
 			v:Remove()
 		end
 	end
-	//constraint.RemoveAll(self.entity)
+	--constraint.RemoveAll(self.entity)
 	self.entity:Remove()
 end
 
-/******************************************************************************/
+------------------------------
 -- i/o functions
 
 __e2setcost(10)
@@ -88,7 +88,7 @@ registerCallback("postinit",function()
 	end
 end)
 
-/******************************************************************************/
+------------------------------
 -- Name functions
 
 -- Set the name of the E2 itself
@@ -108,12 +108,12 @@ end
 
 -- Get the name of another E2
 e2function string entity:getName()
-	if (!IsValid(this) or this:GetClass() != "gmod_wire_expression2") then return "" end
+	if (!IsValid(this) or this:GetClass() ~= "gmod_wire_expression2") then return "" end
 	return this.name or ""
 end
 
 
-/******************************************************************************/
+------------------------------
 
 registerCallback("construct", function(self)
 	self.data.changed = {}
@@ -196,7 +196,7 @@ registerCallback("postinit", function()
 	end
 end)
 
-/******************************************************************************/
+------------------------------
 
 __e2setcost( 5 )
 

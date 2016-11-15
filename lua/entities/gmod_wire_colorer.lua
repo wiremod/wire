@@ -99,7 +99,7 @@ function ENT:Initialize()
 end
 
 function ENT:Setup(outColor,Range)
-	if(outColor)then
+	if outColor then
 		self.outColor = outColor
 		WireLib.AdjustOutputs(self, {"R","G","B","A"})
 	else
@@ -166,7 +166,7 @@ function ENT:Think()
 			trace.filter = { self }
 		local trace = util.TraceLine( trace )
 
-		if !IsValid( trace.Entity ) then
+		if not IsValid( trace.Entity ) then
 			WireLib.TriggerOutput( self, "R", 255 )
 			WireLib.TriggerOutput( self, "G", 255 )
 			WireLib.TriggerOutput( self, "B", 255 )

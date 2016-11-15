@@ -1,6 +1,6 @@
-/******************************************************************************\
+--[[------------------------
  Complex numbers support
-\******************************************************************************/
+--------------------------]]
 
 -- faster access to some math library functions
 local abs   = math.abs
@@ -37,7 +37,7 @@ local function format(value)
 end
 WireLib.registerDebuggerFormat("COMPLEX", format)
 
-/******************************************************************************/
+------------------------------
 
 __e2setcost(2)
 
@@ -45,15 +45,15 @@ registerType("complex", "c", { 0, 0 },
 	function(self, input) return { input[1], input[2] } end,
 	nil,
 	function(retval)
-		if !istable(retval) then error("Return value is not a table, but a "..type(retval).."!",0) end
+		if not istable(retval) then error("Return value is not a table, but a "..type(retval).."!",0) end
 		if #retval ~= 2 then error("Return value does not have exactly 2 entries!",0) end
 	end,
 	function(v)
-		return !istable(v) or #v ~= 2
+		return not istable(v) or #v ~= 2
 	end
 )
 
-/******************************************************************************/
+------------------------------
 
 __e2setcost(4)
 
@@ -85,7 +85,7 @@ local function cdiv(a,b)
 	return {(a[1]*b[1]+a[2]*b[2])/l, (a[2]*b[1]-a[1]*b[2])/l}
 end
 
-/******************************************************************************/
+------------------------------
 
 __e2setcost(2)
 
@@ -99,52 +99,52 @@ registerOperator("ass", "c", "c", function(self, args)
 end)
 
 e2function number operator_is(complex z)
-	if (z[1]==0) && (z[2]==0) then return 0 else return 1 end
+	if (z[1]==0) and (z[2]==0) then return 0 else return 1 end
 end
 
 e2function number operator==(complex lhs, complex rhs)
-	if abs(lhs[1]-rhs[1])<=delta &&
+	if abs(lhs[1]-rhs[1])<=delta and
 		abs(lhs[2]-rhs[2])<=delta then
 			return 1
 		else return 0 end
 end
 
 e2function number operator==(complex lhs, number rhs)
-	if abs(lhs[1]-rhs)<=delta &&
+	if abs(lhs[1]-rhs)<=delta and
 		abs(lhs[2])<=delta then
 			return 1
 		else return 0 end
 end
 
 e2function number operator==(number lhs, complex rhs)
-	if abs(lhs-rhs[1])<=delta &&
+	if abs(lhs-rhs[1])<=delta and
 		abs(rhs[2])<=delta then
 			return 1
 		else return 0 end
 end
 
 e2function number operator!=(complex lhs, complex rhs)
-	if abs(lhs[1]-rhs[1])>delta ||
+	if abs(lhs[1]-rhs[1])>delta or
 		abs(lhs[2]-rhs[2])>delta then
 			return 1
 		else return 0 end
 end
 
 e2function number operator!=(complex lhs, number rhs)
-	if abs(lhs[1]-rhs)>delta ||
+	if abs(lhs[1]-rhs)>delta or
 		abs(lhs[2])>delta then
 			return 1
 		else return 0 end
 end
 
 e2function number operator!=(number lhs, complex rhs)
-	if abs(lhs-rhs[1])>delta ||
+	if abs(lhs-rhs[1])>delta or
 		abs(rhs[2])>delta then
 			return 1
 		else return 0 end
 end
 
-/******************************************************************************/
+------------------------------
 
 e2function complex operator_neg(complex z)
 	return {-z[1], -z[2]}
@@ -211,7 +211,7 @@ e2function complex operator^(complex lhs, number rhs)
 	return cexp(rhs*l[1], rhs*l[2])
 end
 
-/******************************** constructors ********************************/
+--[[******************************* constructors *******************************]]
 
 --- Returns complex zero
 e2function complex comp()
@@ -238,7 +238,7 @@ e2function complex i(b)
 	return {0, b}
 end
 
-/****************************** helper functions ******************************/
+--[[***************************** helper functions *****************************]]
 
 --- Returns the absolute value of <z>
 e2function number abs(complex z)
@@ -270,7 +270,7 @@ e2function number imag(complex z)
 	return z[2]
 end
 
-/***************************** exp and logarithms *****************************/
+--[[**************************** exp and logarithms ****************************]]
 
 --- Raises Euler's constant e to the power of <z>
 e2function complex exp(complex z)
@@ -305,7 +305,7 @@ e2function complex log10(complex z)
 	return {l[1]/log(10), l[2]/log(10)}
 end
 
-/******************************************************************************/
+------------------------------
 
 --- Calculates the square root of <z>
 e2function complex sqrt(complex z)
@@ -322,7 +322,7 @@ e2function complex csqrt(n)
 	end
 end
 
-/******************* trigonometric and hyperbolic functions *******************/
+--[[****************** trigonometric and hyperbolic functions ******************]]
 
 __e2setcost(3)
 
@@ -446,7 +446,7 @@ e2function complex csch(complex z)
         return cdiv({1,0},s)
 end
 
-/******************************************************************************/
+------------------------------
 
 __e2setcost(15)
 

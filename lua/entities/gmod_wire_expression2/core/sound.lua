@@ -1,6 +1,6 @@
-/******************************************************************************\
+--[[------------------------------
   Built-in Sound support v1.18
-\******************************************************************************/
+--------------------------------]]
 
 E2Lib.RegisterExtension("sound", true, "Allows E2s to play sounds.", "Sounds can be played out of arbitrary entities, including other players.")
 

@@ -14,7 +14,7 @@ function ENT:Initialize()
 	self:SetCollisionGroup( COLLISION_GROUP_WEAPON )
 
 	local phys = self:GetPhysicsObject()
-	if (phys:IsValid()) then
+	if phys:IsValid() then
 		phys:Wake()
 	end
 
@@ -26,7 +26,7 @@ end
 
 function ENT:FireShot()
 
-	if ( self.NextShot > CurTime() ) then return end
+	if self.NextShot > CurTime() then return end
 
 	self.NextShot = CurTime() + self.delay
 
@@ -71,7 +71,7 @@ end
 function ENT:Think()
 	self.BaseClass.Think(self)
 
-	if( self.Firing ) then
+	if self.Firing then
 		self:FireShot()
 	end
 
@@ -80,7 +80,7 @@ function ENT:Think()
 end
 
 function ENT:TriggerInput(iname, value)
-	if (iname == "Fire") then
+	if iname == "Fire" then
 		self.Firing = value > 0
 	end
 end

@@ -17,10 +17,10 @@ function ENT:Initialize()
 end
 
 function ENT:TriggerInput(iname,value)
-	if(value>0)then
+	if value>0 then
 		value = math.Clamp(value, 0.001, 50000)
 		local phys = self:GetPhysicsObject()
-		if ( phys:IsValid() ) then
+		if phys:IsValid() then
 			phys:SetMass(value)
 			phys:Wake()
 			self:ShowOutput(value)

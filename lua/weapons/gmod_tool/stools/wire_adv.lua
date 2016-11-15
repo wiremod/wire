@@ -1,4 +1,3 @@
-
 -- Load wiremod tools in /lua/wire/stools/
 -- Note: If this tool is ever removed, be sure to put this in another stool!
 local OLD_TOOL = TOOL

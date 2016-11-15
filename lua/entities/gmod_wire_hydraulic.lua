@@ -96,13 +96,13 @@ end
 
 function ENT:TriggerInput(iname, value)
 	if not IsValid(self.constraint) then return end
-	if (iname == "Length") then
+	if iname == "Length" then
 		self:SetLength(math.max(value,1))
-	elseif (iname == "In") then
+	elseif iname == "In" then
 		self.direction = -value
-	elseif (iname == "Out") then
+	elseif iname == "Out" then
 		self.direction = value
-	elseif (iname == "Constant") then
+	elseif iname == "Constant" then
 		if value == 0 then 
 			self.current_constant, _ = WireLib.CalcElasticConsts(self.constraint.Ent1, self.constraint.Ent2)
 		else
@@ -110,7 +110,7 @@ function ENT:TriggerInput(iname, value)
 		end
 		self.constraint:Fire("SetSpringConstant",self.current_constant)
 		timer.Simple( 0.1, function() if IsValid(self) then self:UpdateOutputs() end end) -- Needs to be delayed because ent:Fire doesn't update that fast.
-	elseif (iname == "Damping") then
+	elseif iname == "Damping" then
 		if value == 0 then 
 			_, self.current_damping = WireLib.CalcElasticConsts(self.constraint.Ent1, self.constraint.Ent2)
 		else
@@ -122,7 +122,7 @@ function ENT:TriggerInput(iname, value)
 end
 
 
-//need for the const to find the controler after being duplicator pasted
+-- need for the const to find the controler after being duplicator pasted
 local WireHydraulicTracking = {}
 
 function MakeWireHydraulicController( pl, Pos, Ang, model, MyEntId, const, rope )
@@ -158,7 +158,7 @@ function MakeWireHydraulic( pl, Ent1, Ent2, Bone1, Bone2, LPos1, LPos2, width, m
 	local WPos1 = Phys1:LocalToWorld( LPos1 )
 	local WPos2 = Phys2:LocalToWorld( LPos2 )
 
-	if ( Phys1 == Phys2 ) then return false end
+	if Phys1 == Phys2 then return false end
 
 	local constant, dampen = WireLib.CalcElasticConsts(Ent1, Ent2)
 
@@ -196,7 +196,7 @@ function MakeWireHydraulic( pl, Ent1, Ent2, Bone1, Bone2, LPos1, LPos2, width, m
 
 		controller:SetConstraint( const )
 		controller:DeleteOnRemove( const )
-		if (rope) then
+		if rope then
 			controller:SetRope( rope )
 			controller:DeleteOnRemove( rope )
 		end

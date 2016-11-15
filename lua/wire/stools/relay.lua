@@ -1,7 +1,7 @@
 WireToolSetup.setCategory( "Input, Output/Data Transfer" )
 WireToolSetup.open( "relay", "Relay", "gmod_wire_relay", nil, "Relays" )
 
-if ( CLIENT ) then
+if CLIENT then
 	language.Add( "Tool.wire_relay.name",      "Relay" )
 	language.Add( "Tool.wire_relay.desc",      "Spawns a multi pole, multi throw relay switch." )
 	language.Add( "Tool.wire_relay.0",         "Primary: Create/Update Relay" )

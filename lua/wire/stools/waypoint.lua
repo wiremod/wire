@@ -1,7 +1,7 @@
 WireToolSetup.setCategory( "Detection/Beacon" )
 WireToolSetup.open( "waypoint", "Waypoint", "gmod_wire_waypoint", nil, "Waypoints" )
 
-if ( CLIENT ) then
+if CLIENT then
     language.Add( "Tool.wire_waypoint.name", "Waypoint Beacon Tool (Wire)" )
     language.Add( "Tool.wire_waypoint.desc", "Spawns a waypoint beacon for use with the wire system." )
     language.Add( "Tool.wire_waypoint.0", "Primary: Create/Update Waypoint Beacon, Secondary: Link to next waypoint, Reload: Remove link to next waypoint" )
@@ -26,14 +26,14 @@ if SERVER then
 end
 
 function TOOL:LeftClick(trace)
-	if (!trace.HitPos) then return false end
-	if (trace.Entity:IsPlayer()) then return false end
-	if ( CLIENT ) then return true end
+	if not trace.HitPos then return false end
+	if trace.Entity:IsPlayer() then return false end
+	if CLIENT then return true end
 	if not util.IsValidPhysicsObject( trace.Entity, trace.PhysicsBone ) then return false end
 
 	local ply = self:GetOwner()
 
-	if (self:GetStage() == 1) then
+	if self:GetStage() == 1 then
 	    self:SetStage(0)
 
 	    if (trace.Entity:IsValid()) and (trace.Entity:GetClass() == "gmod_wire_waypoint") and (self.SrcWaypoint) and (self.SrcWaypoint:IsValid()) then
@@ -52,8 +52,8 @@ function TOOL:LeftClick(trace)
 	if isbool(ent) then return ent end
 	local ret = self:LeftClick_PostMake( ent, ply, trace )
 
-	// Auto-link (itsbth)
-	if ( self.OldWaypoint && self.OldWaypoint:IsValid() and self:GetClientNumber("alink") == 1 ) then
+	-- Auto-link (itsbth)
+	if self.OldWaypoint and self.OldWaypoint:IsValid() and self:GetClientNumber("alink") == 1 then
 		self.OldWaypoint:SetNextWaypoint(ent)
 	end
 	self.OldWaypoint = ent

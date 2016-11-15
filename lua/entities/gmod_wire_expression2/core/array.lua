@@ -41,10 +41,10 @@ registerType("array", "r", {},
 	end,
 	nil,
 	function(retval)
-		if !istable(retval) then error("Return value is not a table, but a "..type(retval).."!",0) end
+		if not istable(retval) then error("Return value is not a table, but a "..type(retval).."!",0) end
 	end,
 	function(v)
-		return !istable(v)
+		return not istable(v)
 	end
 )
 
@@ -91,14 +91,14 @@ registerOperator("ass", "r", "r", function(self, args)
 	local      rhs = op2[1](self, op2)
 
 	local Scope = self.Scopes[scope]
-	if !Scope.lookup then Scope.lookup = {} end
+	if not Scope.lookup then Scope.lookup = {} end
 	local lookup = Scope.lookup
 
 	--remove old lookup entry
 	if (lookup[rhs]) then lookup[rhs][lhs] = nil end
 
 	--add new
-	if (!lookup[rhs]) then
+	if (not lookup[rhs]) then
 		lookup[rhs] = {}
 	end
 	lookup[rhs][lhs] = true
@@ -130,7 +130,7 @@ registerCallback( "postinit", function()
 		local default = v[2]
 		local typecheck = v[6]
 
-		if (!blocked_types[id]) then -- blocked check start
+		if (not blocked_types[id]) then -- blocked check start
 
 			--------------------------------------------------------------------------------
 			-- Get functions
@@ -139,7 +139,7 @@ registerCallback( "postinit", function()
 			__e2setcost(10)
 
 			local function getter( self, array, index, doremove )
-				if (!array or !index) then return fixdef( default ) end -- Make sure array and index are value
+				if (not array or not index) then return fixdef( default ) end -- Make sure array and index are value
 				local ret
 				if (doremove) then
 					ret = table_remove( array, index )
@@ -169,7 +169,7 @@ registerCallback( "postinit", function()
 			--------------------------------------------------------------------------------
 
 			local function setter( self, array, index, value, doinsert )
-				if (!array or !index) then return fixdef( default ) end -- Make sure array and index are valid
+				if (not array or not index) then return fixdef( default ) end -- Make sure array and index are valid
 				if (typecheck and typecheck( value )) then return fixdef( default ) end -- If typecheck returns true, the type is wrong.
 				if (doinsert) then
 					if index > 2^31 or index < 0 then return fixdef( default ) end -- too large, possibility of crashing gmod
@@ -223,7 +223,7 @@ registerCallback( "postinit", function()
 			registerFunction( "pop" .. nameupperfirst, "r:", id, function(self,args)
 				local op1 = args[2]
 				local array = op1[1](self,op1)
-				if (!array) then return fixdef( default ) end
+				if (not array) then return fixdef( default ) end
 				return getter( self, array, #array, true )
 			end)
 
@@ -244,7 +244,7 @@ registerCallback( "postinit", function()
 			registerFunction( "shift" .. nameupperfirst, "r:", id, function(self,args)
 				local op1 = args[2]
 				local array = op1[1](self,op1)
-				if (!array) then return fixdef( default ) end
+				if (not array) then return fixdef( default ) end
 				return getter( self, array, 1, true )
 			end)
 
@@ -255,7 +255,7 @@ registerCallback( "postinit", function()
 			registerFunction( "remove" .. nameupperfirst, "r:n", id, function(self,args)
 				local op1, op2 = args[2], args[3]
 				local array, index = op1[1](self,op1), op2[1](self,op2)
-				if (!array or !index) then return fixdef( default ) end
+				if (not array or not index) then return fixdef( default ) end
 				return getter( self, array, index, true )
 			end)
 
@@ -311,7 +311,7 @@ end
 --------------------------------------------------------------------------------
 __e2setcost(1)
 e2function number array:exists( index )
-	return this[index] != nil and 1 or 0
+	return this[index] ~= nil and 1 or 0
 end
 
 --------------------------------------------------------------------------------
@@ -521,7 +521,7 @@ end
 --------------------------------------------------------------------------------
 __e2setcost(1)
 e2function array array:add( array other )
-	if (!next(this) and !next(other)) then return {} end -- Both of them are empty
+	if (not next(this) and not next(other)) then return {} end -- Both of them are empty
 	local ret = {}
 	for i=1,#this do
 		ret[i] = this[i]
@@ -539,7 +539,7 @@ end
 --------------------------------------------------------------------------------
 __e2setcost(1)
 e2function array array:merge( array other )
-	if (!next(this) and !next(other)) then return {} end -- Both of them are empty
+	if (not next(this) and not next(other)) then return {} end -- Both of them are empty
 	local ret = {}
 	for i=1,math.max(#this,#other) do
 		ret[i] = other[i] or this[i]

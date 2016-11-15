@@ -41,7 +41,7 @@ function ENT:Setup(Range,DefaultZero,IgnoreZero)
 end
 
 function ENT:TriggerInput(iname, value)
-	if(iname == "Send")then
+	if iname == "Send" then
 		self.Sending = value > 0
 	else
 		self.Values[iname] = value
@@ -50,7 +50,7 @@ end
 
 function ENT:Think()
 	self:NextThink(CurTime()+0.125)
-	if(self.Activated == false && self.DefaultZero)then
+	if self.Activated == false and self.DefaultZero then
 		Wire_TriggerOutput(self,"A",0)
 		Wire_TriggerOutput(self,"B",0)
 		Wire_TriggerOutput(self,"C",0)
@@ -60,7 +60,7 @@ function ENT:Think()
 		Wire_TriggerOutput(self,"G",0)
 		Wire_TriggerOutput(self,"H",0)
 	else
-		if(CurTime() > self.ActivateTime + 0.5)then
+		if CurTime() > self.ActivateTime + 0.5 then
 			self.Activated = false
 		end
 	end
@@ -115,7 +115,7 @@ function ENT:Think()
 		Wire_TriggerOutput(self,"F",ent.Values.F)
 		Wire_TriggerOutput(self,"G",ent.Values.G)
 		Wire_TriggerOutput(self,"H",ent.Values.H)
-		if(self.Sending)then
+		if self.Sending then
 			ent.Values.A = self.Inputs["A"].Value
 			ent.Values.B = self.Inputs["B"].Value
 			ent.Values.C = self.Inputs["C"].Value

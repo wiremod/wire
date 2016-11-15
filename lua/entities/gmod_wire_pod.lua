@@ -119,7 +119,7 @@ end
 
 -- Accessor funcs for certain functions
 function ENT:SetLocked( b )
-	if (!self:HasPod() or self.Locked == b) then return end
+	if (not self:HasPod() or self.Locked == b) then return end
 
 	self.Locked = b
 	self.Pod:Fire( b and "Lock" or "Unlock", "1", 0 )
@@ -179,7 +179,7 @@ end
 function ENT:HasPod() return (self.Pod and self.Pod:IsValid()) end
 function ENT:GetPod() return self.Pod end
 function ENT:SetPod( pod )
-	if (pod and pod:IsValid() and !pod:IsVehicle()) then return false end
+	if (pod and pod:IsValid() and not pod:IsVehicle()) then return false end
 	self.Pod = pod
 	WireLib.TriggerOutput( self, "Entity", pod )
 	return true
@@ -192,7 +192,7 @@ function ENT:GetPly()
 	return self.Ply
 end
 function ENT:SetPly( ply )
-	if (ply and ply:IsValid() and !ply:IsPlayer()) then return false end
+	if (ply and ply:IsValid() and not ply:IsPlayer()) then return false end
 	self.Ply = ply
 	return true
 end
@@ -212,7 +212,7 @@ function ENT:GetHideHUD() return self.HideHUD end
 -- Clientside binds
 concommand.Add("wire_pod_bind", function( ply,cmd,args )
 	local bind = args[1]
-	if (!bind) then return end
+	if (not bind) then return end
 
 	if (bind == "1") then bind = "PrevWeapon"
 	elseif (bind == "2") then bind = "NextWeapon"
@@ -230,18 +230,18 @@ end)
 
 -- Serverside binds
 hook.Add( "KeyPress", "Wire_Pod_KeyPress", function( ply, key )
-	if (!serverside_keys[key]) then return end
+	if (not serverside_keys[key]) then return end
 	for k,v in pairs( ents.FindByClass( "gmod_wire_pod" ) ) do
-		if (v:HasPly() and v:GetPly() == ply and !v.Disable) then
+		if (v:HasPly() and v:GetPly() == ply and not v.Disable) then
 			WireLib.TriggerOutput( v, serverside_keys[key], 1 )
 		end
 	end
 end)
 
 hook.Add( "KeyRelease", "Wire_Pod_KeyRelease", function( ply, key )
-	if (!serverside_keys[key]) then return end
+	if (not serverside_keys[key]) then return end
 	for k,v in pairs( ents.FindByClass( "gmod_wire_pod" ) ) do
-		if (v:HasPly() and v:GetPly() == ply and !v.Disable) then
+		if (v:HasPly() and v:GetPly() == ply and not v.Disable) then
 			WireLib.TriggerOutput( v, serverside_keys[key], 0 )
 		end
 	end
@@ -255,15 +255,15 @@ end
 function ENT:TriggerInput( name, value )
 	if (name == "Lock") then
 		if (self.RC) then return end
-		if (!self:HasPod()) then return end
-		self:SetLocked( value != 0 )
+		if (not self:HasPod()) then return end
+		self:SetLocked( value ~= 0 )
 	elseif (name == "Terminate") then
-		if (value == 0 or !self:HasPly()) then return end
+		if (value == 0 or not self:HasPly()) then return end
 		local ply = self:GetPly()
 		if (self.RC) then self:RCEject( ply ) end
 		ply:Kill()
 	elseif (name == "Strip weapons") then
-		if (value == 0 or !self:HasPly()) then return end
+		if (value == 0 or not self:HasPly()) then return end
 		local ply = self:GetPly()
 		if (self.RC) then
 			ply:ChatPrint( "Your control has been terminated, and your weapons stripped!" )
@@ -273,14 +273,14 @@ function ENT:TriggerInput( name, value )
 		end
 		ply:StripWeapons()
 	elseif (name == "Eject") then
-		if (value == 0 or !self:HasPly()) then return end
+		if (value == 0 or not self:HasPly()) then return end
 		if (self.RC) then
 			self:RCEject( self:GetPly() )
 		else
 			self:GetPly():ExitVehicle()
 		end
 	elseif (name == "Disable") then
-		self.Disable = (value != 0)
+		self.Disable = (value ~= 0)
 
 		if (self.Disable) then
 			for k,v in pairs( serverside_keys ) do
@@ -288,7 +288,7 @@ function ENT:TriggerInput( name, value )
 			end
 		end
 	elseif (name == "Crosshairs") then
-		self.Crosshairs = (value != 0)
+		self.Crosshairs = (value ~= 0)
 		if (self:HasPly()) then
 			if (self.Crosshairs) then
 				self:GetPly():CrosshairEnable()
@@ -297,9 +297,9 @@ function ENT:TriggerInput( name, value )
 			end
 		end
 	elseif (name == "Brake") then
-		if (!self:HasPod()) then return end
+		if (not self:HasPod()) then return end
 		local pod = self:GetPod()
-		if (value != 0) then
+		if (value ~= 0) then
 			pod:Fire("TurnOff","1",0)
 			pod:Fire("HandBrakeOn","1",0)
 		else
@@ -307,21 +307,21 @@ function ENT:TriggerInput( name, value )
 			pod:Fire("HandBrakeOff","1",0)
 		end
 	elseif (name == "Damage Health") then
-		if (!self:HasPly() or value <= 0) then return end
+		if (not self:HasPly() or value <= 0) then return end
 		if (value > 100) then value = 100 end
 		self:GetPly():TakeDamage( value )
 	elseif (name == "Damage Armor") then
-		if (!self:HasPly() or value <= 0) then return end
+		if (not self:HasPly() or value <= 0) then return end
 		if (value > 100) then value = 100 end
 		local dmg = self:GetPly():Armor() - value
 		if (dmg < 0) then dmg = 0 end
 		self:GetPly():SetArmor( dmg )
 	elseif (name == "Allow Buttons") then
-		self.AllowButtons = (value != 0)
+		self.AllowButtons = (value ~= 0)
 	elseif (name == "Relative") then
-		self.Relative = (value != 0)
+		self.Relative = (value ~= 0)
 	elseif (name == "Hide Player") then
-		self:SetHidePlayer( value != 0 )
+		self:SetHidePlayer( value ~= 0 )
 	elseif (name == "Hide HUD") then
 		self:SetHideHUD( value ~= 0 )
 	end
@@ -361,7 +361,7 @@ function ENT:Think()
 					originalangle = ply.InitialAngle
 				else
 					originalangle = pod:GetAngles()
-					if (pod:GetClass() != "prop_vehicle_prisoner_pod") then
+					if (pod:GetClass() ~= "prop_vehicle_prisoner_pod") then
 						originalangle.y = originalangle.y + 90
 					end
 				end
@@ -384,12 +384,12 @@ function ENT:Think()
 		-- Button pressing
 		if (self.AllowButtons and distance < 82) then
 			local button = trace.Entity
-			if IsValid(button) and (ply:KeyDown( IN_ATTACK ) and !self.MouseDown) then
+			if IsValid(button) and (ply:KeyDown( IN_ATTACK ) and not self.MouseDown) then
 				if button:GetClass() == "gmod_wire_lever" then
-					// The parented lever doesn't have a great serverside hitbox, so this isn't flawless
+					-- The parented lever doesn't have a great serverside hitbox, so this isn't flawless
 					self.MouseDown = true
 					button:Use(ply, ply, USE_ON, 0)
-				elseif button:GetClass() == "gmod_wire_button" || button:GetClass() == "gmod_wire_dynamic_button" then
+				elseif button:GetClass() == "gmod_wire_button" or button:GetClass() == "gmod_wire_dynamic_button" then
 					self.MouseDown = true
 					if (button.toggle) then
 						if (button:GetOn()) then
@@ -406,7 +406,7 @@ function ENT:Think()
 						button:Switch( true )
 					end
 				end
-			elseif (!ply:KeyDown( IN_ATTACK ) and self.MouseDown) then
+			elseif (not ply:KeyDown( IN_ATTACK ) and self.MouseDown) then
 				self.MouseDown = false
 			end
 		end
@@ -428,7 +428,7 @@ function ENT:PlayerEntered( ply, RC )
 	if (self:HasPly()) then return end
 	self:SetPly( ply )
 
-	if (RC != nil) then self.RC = RC else self.RC = nil end
+	if (RC ~= nil) then self.RC = RC else self.RC = nil end
 
 	if (self.Crosshairs) then
 		ply:CrosshairEnable()
@@ -449,7 +449,7 @@ function ENT:PlayerEntered( ply, RC )
 end
 
 function ENT:PlayerExited( ply )
-	if (!self:HasPly()) then return end
+	if (not self:HasPly()) then return end
 
 	self:HidePlayer( false )
 
@@ -515,7 +515,7 @@ end
 --Duplicator support to save pod link (TAD2020)
 function ENT:BuildDupeInfo()
 	local info = self.BaseClass.BuildDupeInfo(self) or {}
-	if (self:HasPod() and !self.RC) then
+	if (self:HasPod() and not self.RC) then
 		info.pod = self.Pod:EntIndex()
 	end
 	return info

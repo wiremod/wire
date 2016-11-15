@@ -68,12 +68,12 @@ if CLIENT then
 				local y = 1 - (pos.z + v[7]) / (v[7] + v[8])
 				local highlight_current_key = highlight_key == k and highlight_until >= CurTime()
 				
-				if (k == 10) then
+				if k == 10 then
 					text = "ABORT"
 					textx = v[1] + 2
 					texty = v[2] + 4
 					surface.SetDrawColor(150, 25, 25, 255)
-				elseif (k == 11) then
+				elseif k == 11 then
 					text = "OK"
 					textx = v[1] + 12
 					texty = v[2] + 5
@@ -83,11 +83,11 @@ if CLIENT then
 				end
 				
 				if highlight_current_key or (trace.Entity == self and x >= 0 and y >= 0 and x <= 1 and y <= 1) then
-					if (k <= 9) then
+					if k <= 9 then
 						surface.SetDrawColor(200, 200, 200, 255)
-					elseif (k == 10) then
+					elseif k == 10 then
 						surface.SetDrawColor(200, 50, 50, 255)
-					elseif (k == 11) then
+					elseif k == 11 then
 						surface.SetDrawColor(50, 200, 50, 255)
 					end
 					

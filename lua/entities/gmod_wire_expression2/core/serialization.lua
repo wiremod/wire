@@ -110,7 +110,7 @@ typeSanitizers = {
 				if not glonOutputObject then return safeArray end
 				safeGlonObjectMap["r"][glonOutputObject] = safeArray
 
-				if !istable(glonOutputObject) then return safeArray end
+				if not istable(glonOutputObject) then return safeArray end
 
 				for k, v in pairs(glonOutputObject) do
 					if type (k) == "number" then
@@ -129,7 +129,7 @@ typeSanitizers = {
 				if not glonOutputObject then return safeTable end
 				safeGlonObjectMap["t"][glonOutputObject] = safeTable
 
-				if !istable(glonOutputObject) then return safeTable end
+				if not istable(glonOutputObject) then return safeTable end
 
 				if istable(glonOutputObject.s) and istable(glonOutputObject.stypes) then
 					for k, v in pairs(glonOutputObject.s) do
@@ -162,7 +162,7 @@ typeSanitizers = {
 	["v"] = function ( self, glonOutputObject, safeGlonObjectMap )
 				if not glonOutputObject then return table.Copy(wire_expression_types2["v"][2]) end
 				if isvector(glonOutputObject) then return { glonOutputObject.x, glonOutputObject.y, glonOutputObject.z } end
-				if !istable(glonOutputObject) then return table.Copy(wire_expression_types2["v"][2]) end
+				if not istable(glonOutputObject) then return table.Copy(wire_expression_types2["v"][2]) end
 
 				local safeValue = {}
 				for i = 1, 3 do
@@ -180,7 +180,7 @@ typeSanitizers = {
 				if not glonOutputObject then return safeTable end
 				safeGlonObjectMap["t"][glonOutputObject] = safeTable
 
-				if !istable(glonOutputObject) then return safeTable end
+				if not istable(glonOutputObject) then return safeTable end
 
 				for k, v in pairs(glonOutputObject) do
 					local objectType, v = luaTypeToWireTypeid( v )
@@ -211,7 +211,7 @@ local numericArrayDataTypes =
 
 for objectType, arrayLength in pairs(numericArrayDataTypes) do
 	typeSanitizers[objectType] = function ( self, glonOutputObject, sanitizedGlonObjectMap )
-		if !istable(glonOutputObject) then return table.Copy(wire_expression_types2[objectType][2]) end
+		if not istable(glonOutputObject) then return table.Copy(wire_expression_types2[objectType][2]) end
 
 		local safeValue = {}
 		for i = 1, arrayLength do
@@ -264,7 +264,7 @@ if glon then
 		end
 
 		local safeArray = sanitizeGlonOutput( self, ret, "r" )
-		-- logGlonCall( self, data, ret, safeArray )
+		--logGlonCall( self, data, ret, safeArray )
 		return safeArray or {}
 	end
 

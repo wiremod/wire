@@ -525,7 +525,7 @@ function PANEL:LoadToolsFromTable( inTable )
 	-- Then, we add all tools to the DTree
 	for k, v in pairs( self.ToolTable ) do
 	
-		if ( istable( v ) ) then
+		if istable( v ) then
 		
 			-- Remove these from the table so we can
 			-- send the rest of the table to the other 

@@ -101,7 +101,7 @@ function ENT:Initialize()
 	self:DrawShadow( false )
 
 	local phys = self:GetPhysicsObject()
-	if (phys:IsValid()) then
+	if phys:IsValid() then
 		phys:Wake()
 	end
 
@@ -140,38 +140,38 @@ end
 function ENT:OnRemove()
 	self.BaseClass.OnRemove(self)
 
-	if (self.soundname) then
+	if self.soundname then
 		self:StopSound(self.soundname)
 	end
 end
 
 function ENT:SetForce( force, mul )
-	if (force) then
+	if force then
 		self.force = force
 	end
 	mul = mul or 1
 
 	local phys = self:GetPhysicsObject()
-	if (!phys:IsValid()) then
+	if not phys:IsValid() then
 		Msg("Warning: [",self,"] Physics object isn't valid!\n")
 		return
 	end
 
 	local ThrusterWorldPos
 	local ThrusterWorldForce
-	if (self.mode == 1) then
+	if self.mode == 1 then
 		ThrusterWorldPos = self:GetPos() + self.ThrustOffset
 		ThrusterWorldForce = self.ThrustNormal * -1
 	else
 		ThrusterWorldPos = phys:LocalToWorld( self.ThrustOffset )
 		ThrusterWorldForce = phys:LocalToWorldVector( self.ThrustNormal * -1 )
 	end
-	if (self.mode == 2) then
+	if self.mode == 2 then
 		ThrusterWorldPos.z = ThrusterWorldPos.z + self.Z
 		ThrusterWorldForce.z = ThrusterWorldForce.z - self.Z
 	end
 
-	// Calculate the velocity
+	-- Calculate the velocity
 	ThrusterWorldForce = ThrusterWorldForce * self.force * mul * 50
 	self.ForceLinear, self.ForceAngle = phys:CalculateVelocityOffset( ThrusterWorldForce, ThrusterWorldPos );
 
@@ -198,15 +198,15 @@ function ENT:Setup(force, force_min, force_max, oweffect, uweffect, owater, uwat
 	
 	-- Preventing client crashes
 	local BlockedChars = '["?]'
-	if ( string.find(soundname, BlockedChars) ) then
+	if string.find(soundname, BlockedChars) then
 		soundname = ""
 	end
 
-	if (soundname and soundname == "" and self.soundname and self.soundname != "") then
+	if soundname and soundname == "" and self.soundname and self.soundname ~= "" then
 		self:StopSound(self.soundname)
 	end
 
-	if (soundname) then
+	if soundname then
 		self.soundname = Sound(soundname)
 	end
 
@@ -214,7 +214,7 @@ function ENT:Setup(force, force_min, force_max, oweffect, uweffect, owater, uwat
 	self:SetMode( self.mode )
 	self:ShowOutput()
 
-	if (angleinputs) then
+	if angleinputs then
 		WireLib.AdjustInputs(self, {"Mul", "Pitch", "Yaw"})
 	else
 		WireLib.AdjustInputs(self, {"Mul", "X", "Y", "Z", "Vector [VECTOR]"})
@@ -222,7 +222,7 @@ function ENT:Setup(force, force_min, force_max, oweffect, uweffect, owater, uwat
 end
 
 function ENT:TriggerInput(iname, value)
-	if (iname == "Mul") then
+	if iname == "Mul" then
 		if (value == 0) or (self:GetNormal() == Vector(0,0,0)) then
 			self:Switch(false, math.min(value, self.force_max))
 		elseif ( (self.bidir) and (math.abs(value) > 0.01) and (math.abs(value) > self.force_min) ) or ( (value > 0.01) and (value > self.force_min) ) then
@@ -231,19 +231,19 @@ function ENT:TriggerInput(iname, value)
 			self:Switch(false, 0)
 		end
 		return
-	elseif (iname == "X") then
+	elseif iname == "X" then
 		self.X = value
-	elseif (iname == "Y") then
+	elseif iname == "Y" then
 		self.Y = value
-	elseif (iname == "Z") then
+	elseif iname == "Z" then
 		self.Z = value
-	elseif (iname == "Vector") then
+	elseif iname == "Vector" then
 		self.X = value.x
 		self.Y = value.y
 		self.Z = value.z
 	elseif (iname == "Yaw") or (iname == "Pitch") then
 		value = math.rad( value )
-		if (iname == "Yaw") then self.yaw = value else self.pitch = value end
+		if iname == "Yaw" then self.yaw = value else self.pitch = value end
 		self.X = math.cos(self.pitch) * math.cos(self.yaw)
 		self.Y = math.sin(self.pitch)
 		self.Z = math.cos(self.pitch) * math.sin(self.yaw)
@@ -256,7 +256,7 @@ function ENT:TriggerInput(iname, value)
 		self.ThrustNormal = Vector( self.X, self.Y, 0 ):GetNormalized()
 	end
 	self.ThrustOffset = self.ThrustNormal + self:GetOffset()
-	if (self.ThrustNormal == Vector(0,0,0)) then self:SetOn( false ) elseif (self.mul != 0) then self:SetOn( true ) end
+	if self.ThrustNormal == Vector(0,0,0) then self:SetOn( false ) elseif self.mul ~= 0 then self:SetOn( true ) end
 	self:Switch( self:IsOn(), self.mul )
 end
 
@@ -269,22 +269,22 @@ function ENT:Think()
 end
 
 function ENT:PhysicsSimulate( phys, deltatime )
-	if (!self:IsOn()) then return SIM_NOTHING end
-	if (self:IsPlayerHolding()) then return SIM_NOTHING end
+	if not self:IsOn() then return SIM_NOTHING end
+	if self:IsPlayerHolding() then return SIM_NOTHING end
 
-	if (self:WaterLevel() > 0) then
-		if (not self.uwater) then
+	if self:WaterLevel() > 0 then
+		if not self.uwater then
 			self:SetEffect("none")
 			return SIM_NOTHING
 		end
 
-		if (self.uweffect == "same") then
+		if self.uweffect == "same" then
 			self:SetEffect(self.oweffect)
 		else
 			self:SetEffect(self.uweffect)
 		end
 	else
-		if (not self.owater) then
+		if not self.owater then
 			self:SetEffect("none")
 			return SIM_NOTHING
 		end
@@ -292,7 +292,7 @@ function ENT:PhysicsSimulate( phys, deltatime )
 		self:SetEffect(self.oweffect)
 	end
 
-	if (self.mode > 0 and self:IsOn()) then
+	if self.mode > 0 and self:IsOn() then
 		self:Switch( self:IsOn(), self.mul )
 	end
 
@@ -302,35 +302,35 @@ function ENT:PhysicsSimulate( phys, deltatime )
 end
 
 function ENT:Switch( on, mul )
-	if (!self:IsValid()) then return false end
+	if not self:IsValid() then return false end
 	self.mul = mul or 0
 
 	local changed = (self:IsOn() ~= on)
 	self:SetOn( on )
 
-	if (on) then
-		if (changed) and (self.soundname and self.soundname != "") then
+	if on then
+		if (changed) and (self.soundname and self.soundname ~= "") then
 			self:StopSound( self.soundname )
 			self:EmitSound( self.soundname )
 		end
 
-		if (mul ~= self.PrevOutput) then
+		if mul ~= self.PrevOutput then
 			self.PrevOutput = mul
 		end
 
 		self:SetForce( nil, mul )
 	else
-		if (self.soundname and self.soundname != "") then
+		if self.soundname and self.soundname ~= "" then
 			self:StopSound( self.soundname )
 		end
 
-		if (self.PrevOutput) then
+		if self.PrevOutput then
 			self.PrevOutput = nil
 		end
 	end
 
 	local phys = self:GetPhysicsObject()
-	if (phys:IsValid()) then
+	if phys:IsValid() then
 		phys:Wake()
 	end
 
@@ -354,7 +354,7 @@ duplicator.RegisterEntityClass("gmod_wire_vectorthruster", WireLib.MakeWireEnt, 
 function ENT:OnRestore()
 	local phys = self:GetPhysicsObject()
 
-	if (phys:IsValid()) then
+	if phys:IsValid() then
 		phys:Wake()
 	end
 
@@ -370,7 +370,7 @@ function ENT:OnRestore()
 
 	self:StartMotionController()
 
-	if (self.PrevOutput) then
+	if self.PrevOutput then
 		self:Switch(true, self.PrevOutput)
 	else
 		self:Switch(false)

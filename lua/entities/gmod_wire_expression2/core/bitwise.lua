@@ -22,7 +22,7 @@ e2function number bNot(n)
 	return bit.bnot(n)
 end
 e2function number bNot(n,bits)
-	if bits >= 32 || bits < 1 then
+	if bits >= 32 or bits < 1 then
 		return (-1)-n
 	else
 		return (math.pow(2,bits)-1)-n

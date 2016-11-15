@@ -1,8 +1,8 @@
-----------------------------------------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------
 -- Formerly known as "mtable", this extension has now (15-11-2010) replaced the old table extension.
 -- Made by Divran
-----------------------------------------------------------------------------------------------------------------------------------------------------------------
-local function IsEmpty( t ) return !next(t) end
+----------------------------------------------------------------------------------------------------
+local function IsEmpty( t ) return not next(t) end
 local rep = string.rep
 local tostring = tostring
 local table = table
@@ -261,11 +261,11 @@ registerOperator("ass", "t", "t", function(self, args)
 	local      rhs = op2[1](self, op2)
 
 	local Scope = self.Scopes[scope]
-	if !Scope.lookup then Scope.lookup = {} end
+	if not Scope.lookup then Scope.lookup = {} end
 
 	local lookup = Scope.lookup
 	if (lookup[rhs]) then lookup[rhs][lhs] = nil end
-	if (!lookup[rhs]) then lookup[rhs] = {} end
+	if (not lookup[rhs]) then lookup[rhs] = {} end
 	lookup[rhs][lhs] = true
 
 	Scope[lhs] = rhs
@@ -372,7 +372,7 @@ e2function table table(...)
 	local ret = table.Copy(DEFAULT)
 	local size = 0
 	for k,v in ipairs( tbl ) do
-		if (!blocked_types[typeids[k]]) then
+		if (not blocked_types[typeids[k]]) then
 			size = size + 1
 			ret.n[k] = v
 			ret.ntypes[k] = typeids[k]
@@ -413,10 +413,10 @@ __e2setcost(3)
 __e2setcost(1)
 -- Returns 1 if any value exists at the specified index, else 0
 e2function number table:exists( index )
-	return this.n[index] != nil and 1 or 0
+	return this.n[index] ~= nil and 1 or 0
 end
 e2function number table:exists( string index )
-	return this.s[index] != nil and 1 or 0
+	return this.s[index] ~= nil and 1 or 0
 end
 
 __e2setcost(5)
@@ -480,7 +480,7 @@ end
 -- Remove a variable at a number index
 e2function void table:remove( number index )
 	if (#this.n == 0) then return end
-	if (!this.n[index]) then return end
+	if (not this.n[index]) then return end
 	if index < 1 then -- table.remove doesn't work if the index is below 1
 		this.n[index] = nil
 		this.ntypes[index] = nil
@@ -495,7 +495,7 @@ end
 -- Remove a variable at a string index
 e2function void table:remove( string index )
 	if (IsEmpty(this.s)) then return end
-	if (!this.s[index]) then return end
+	if (not this.s[index]) then return end
 	this.s[index] = nil
 	this.stypes[index] = nil
 	this.size = this.size - 1
@@ -552,7 +552,7 @@ end
 e2function table table:clipFromTypeid( string typeid )
 	local ret = table.Copy(DEFAULT)
 	for k,v in pairs( this.n ) do
-		if (this.ntypes[k] != typeid) then
+		if (this.ntypes[k] ~= typeid) then
 			if istable(v) then
 				ret.n[k] = table.Copy(v)
 			else
@@ -563,7 +563,7 @@ e2function table table:clipFromTypeid( string typeid )
 		end
 	end
 	for k,v in pairs( this.s ) do
-		if (this.stypes[k] != typeid) then
+		if (this.stypes[k] ~= typeid) then
 			if istable(v) then
 				ret.s[k] = table.Copy(v)
 			else
@@ -610,7 +610,7 @@ e2function table table:add( table rv2 )
 	for k,v in pairs( rv2.n ) do
 		cost = cost + 1
 		local id = rv2.ntypes[k]
-		if (!blocked_types[id]) then
+		if (not blocked_types[id]) then
 			count = count + 1
 			size = size + 1
 			ret.n[count] = v
@@ -620,9 +620,9 @@ e2function table table:add( table rv2 )
 
 	for k,v in pairs( rv2.s ) do
 		cost = cost + 1
-		if (!ret.s[k]) then
+		if (not ret.s[k]) then
 			local id = rv2.stypes[k]
-			if (!blocked_types[id]) then
+			if (not blocked_types[id]) then
 				size = size + 1
 				ret.s[k] = v
 				ret.stypes[k] = id
@@ -644,8 +644,8 @@ e2function table table:merge( table rv2 )
 	for k,v in pairs( rv2.n ) do
 		cost = cost + 1
 		local id = rv2.ntypes[k]
-		if (!blocked_types[id]) then
-			if (!ret.n[k]) then size = size + 1 end
+		if (not blocked_types[id]) then
+			if (not ret.n[k]) then size = size + 1 end
 			ret.n[k] = v
 			ret.ntypes[k] = id
 		end
@@ -654,8 +654,8 @@ e2function table table:merge( table rv2 )
 	for k,v in pairs( rv2.s ) do
 		cost = cost + 1
 		local id = rv2.stypes[k]
-		if (!blocked_types[id]) then
-			if (!ret.s[k]) then size = size + 1 end
+		if (not blocked_types[id]) then
+			if (not ret.s[k]) then size = size + 1 end
 			ret.s[k] = v
 			ret.stypes[k] = id
 		end
@@ -674,7 +674,7 @@ e2function table table:difference( table rv2 )
 
 	for k,v in pairs( this.n ) do
 		cost = cost + 1
-		if (!rv2.n[k]) then
+		if (not rv2.n[k]) then
 			size = size + 1
 			ret.n[size] = v
 			ret.ntypes[size] = this.ntypes[k]
@@ -683,7 +683,7 @@ e2function table table:difference( table rv2 )
 
 	for k,v in pairs( this.s ) do
 		cost = cost + 1
-		if (!rv2.s[k]) then
+		if (not rv2.s[k]) then
 			size = size + 1
 			ret.s[k] = v
 			ret.stypes[k] = this.stypes[k]
@@ -837,7 +837,7 @@ e2function array table:toArray()
 	for k,v in pairs( this.n ) do
 		cost = cost + 1
 		local id = this.ntypes[k]
-		if (tbls[id] != true) then
+		if (tbls[id] ~= true) then
 			ret[k] = v
 		end
 	end
@@ -988,13 +988,13 @@ e2function array table:values()
 	local c = 0
 	for index,value in pairs(this.n) do
 		c = c + 1
-		if (!tbls[this.ntypes[index]]) then
+		if (not tbls[this.ntypes[index]]) then
 			ret[#ret+1] = value
 		end
 	end
 	for index,value in pairs(this.s) do
 		c = c + 1
-		if (!tbls[this.stypes[index]]) then
+		if (not tbls[this.stypes[index]]) then
 			ret[#ret+1] = value
 		end
 	end
@@ -1012,7 +1012,7 @@ registerCallback( "postinit", function()
 		local name = k
 		local id = v[1]
 
-		if (!blocked_types[id]) then -- blocked check start
+		if (not blocked_types[id]) then -- blocked check start
 
 		--------------------------------------------------------------------------------
 		-- Set/Get functions, t[index,type] syntax
@@ -1024,7 +1024,7 @@ registerCallback( "postinit", function()
 		registerOperator("idx",	id.."=ts"		, id, function(self,args)
 			local op1, op2 = args[2], args[3]
 			local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-			if (!rv1.s[rv2] or rv1.stypes[rv2] != id) then return fixdef(v[2]) end
+			if (not rv1.s[rv2] or rv1.stypes[rv2] ~= id) then return fixdef(v[2]) end
 			if (v[6] and v[6](rv1.s[rv2])) then return fixdef(v[2]) end -- Type check
 			return rv1.s[rv2]
 		end)
@@ -1032,7 +1032,7 @@ registerCallback( "postinit", function()
 		registerOperator("idx",	id.."=tn"		, id, function(self,args)
 			local op1, op2 = args[2], args[3]
 			local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-			if (!rv1.n[rv2] or rv1.ntypes[rv2] != id) then return fixdef(v[2]) end
+			if (not rv1.n[rv2] or rv1.ntypes[rv2] ~= id) then return fixdef(v[2]) end
 			if (v[6] and v[6](rv1.n[rv2])) then return fixdef(v[2]) end -- Type check
 			return rv1.n[rv2]
 		end)
@@ -1068,9 +1068,9 @@ registerCallback( "postinit", function()
 		__e2setcost(8)
 
 		local function removefunc( self, rv1, rv2, numidx )
-			if (!rv1 or !rv2) then return fixdef(v[2]) end
+			if (not rv1 or not rv2) then return fixdef(v[2]) end
 			if (numidx) then
-				if (!rv1.n[rv2] or rv1.ntypes[rv2] != id) then return fixdef(v[2]) end
+				if (not rv1.n[rv2] or rv1.ntypes[rv2] ~= id) then return fixdef(v[2]) end
 				local ret = rv1.n[rv2]
 				if rv2 < 1 then -- table.remove doesn't work if the index is below 1
 					rv1.n[rv2] = nil
@@ -1083,7 +1083,7 @@ registerCallback( "postinit", function()
 				self.GlobalScope.vclk[rv1] = true
 				return ret
 			else
-				if (!rv1.s[rv2] or rv1.stypes[rv2] != id) then return fixdef(v[2]) end
+				if (not rv1.s[rv2] or rv1.stypes[rv2] ~= id) then return fixdef(v[2]) end
 				local ret = rv1.s[rv2]
 				rv1.s[rv2] = nil
 				rv1.stypes[rv2] = nil
@@ -1206,10 +1206,10 @@ registerCallback("construct", function(self)
 	Scope.lookup = {}
 
 	for k,v in pairs( Scope ) do
-		if k != "lookup" then
+		if k ~= "lookup" then
 			local datatype = self.entity.outports[3][k]
 			if (tbls[datatype]) then
-				if (!Scope.lookup[v]) then Scope.lookup[v] = {} end
+				if (not Scope.lookup[v]) then Scope.lookup[v] = {} end
 				Scope.lookup[v][k] = true
 			end
 		end

@@ -4,13 +4,13 @@ local isOwner      = E2Lib.isOwner
 local Clamp        = math.Clamp
 local seq = table.IsSequential
 
-/******************************************************************************/
+------------------------------
 
 local function checkOwner(self)
 	return IsValid(self.player);
 end
 
-/******************************************************************************/
+------------------------------
 
 local print_delay = 0.3
 local print_max = 15
@@ -54,7 +54,7 @@ local function check_delay( ply )
 	return false
 end
 
-/******************************************************************************/
+------------------------------
 
 local function SpecialCase( arg )
 	if istable(arg) then
@@ -64,13 +64,13 @@ local function SpecialCase( arg )
 			local str = "["
 			for k,v in ipairs( arg ) do
 				if istable(v) then
-					if (k != #arg) then
+					if (k ~= #arg) then
 						str = str .. SpecialCase( v ) .. ","
 					else
 						str = str .. SpecialCase( v ) .. "]"
 					end
 				else
-					if (k != #arg) then
+					if (k ~= #arg) then
 						str = str .. tostring(v) .. ","
 					else
 						str = str .. tostring(v) .. "]"
@@ -121,7 +121,7 @@ e2function number entity:printDriver(string text)
 	return 1
 end
 
-/******************************************************************************/
+------------------------------
 
 --- Displays a hint popup with message <text> for <duration> seconds (<duration> being clamped between 0.7 and 7).
 e2function void hint(string text, duration)
@@ -145,7 +145,7 @@ e2function number entity:hintDriver(string text, duration)
 	return 1
 end
 
-/******************************************************************************/
+------------------------------
 
 local valid_print_types = {}
 for _,cname in ipairs({ "HUD_PRINTCENTER", "HUD_PRINTCONSOLE", "HUD_PRINTNOTIFY", "HUD_PRINTTALK" }) do
@@ -180,7 +180,7 @@ e2function number entity:printDriver(print_type, string text)
 	return 1
 end
 
-/******************************************************************************/
+------------------------------
 
 -- helper stuff for printTable
 local _Msg = Msg
@@ -206,7 +206,7 @@ end
 
 -- The printTable(T) function is in table.lua because it uses a local function
 
-/******************************************************************************/
+------------------------------
 
 __e2setcost(100)
 
@@ -245,8 +245,8 @@ local printColor_types = {
 	Vector = function(v) return Color(v[1],v[2],v[3]) end,
 	table = function(tbl)
 		for i,v in pairs(tbl) do
-			if !isnumber(i) then return "" end
-			if !isnumber(v) then return "" end
+			if not isnumber(i) then return "" end
+			if not isnumber(v) then return "" end
 			if i < 1 or i > 4 then return "" end
 		end
 		return Color(tbl[1] or 0, tbl[2] or 0,tbl[3] or 0,tbl[4])

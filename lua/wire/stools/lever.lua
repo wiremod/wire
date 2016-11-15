@@ -17,13 +17,13 @@ if SERVER then
 	end
 	
 	function TOOL:MakeEnt( ply, model, Ang, trace )
-		//return WireLib.MakeWireEnt( ply, {Class = self.WireClass, Pos=trace.HitPos, Angle=Ang, Model=model}, self:GetConVars() )
+		-- return WireLib.MakeWireEnt( ply, {Class = self.WireClass, Pos=trace.HitPos, Angle=Ang, Model=model}, self:GetConVars() )
 		
-		local ent = WireLib.MakeWireEnt(ply, {Class = self.WireClass, Pos=(trace.HitPos + trace.HitNormal*22), Angle=Ang, Model=model}, self:GetConVars()) // +trace.HitNormal*46
+		local ent = WireLib.MakeWireEnt(ply, {Class = self.WireClass, Pos=(trace.HitPos + trace.HitNormal*22), Angle=Ang, Model=model}, self:GetConVars()) -- +trace.HitNormal*46
 		
 		local ent2 = ents.Create( "prop_physics" )
 		ent2:SetModel("models/props_wasteland/tram_leverbase01.mdl") 
-		ent2:SetPos(trace.HitPos) // +trace.HitNormal*26
+		ent2:SetPos(trace.HitPos) -- +trace.HitNormal*26
 		ent2:SetAngles(Ang)
 		ent2:Spawn()
 		ent2:Activate()

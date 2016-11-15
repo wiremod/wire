@@ -1,7 +1,7 @@
 WireToolSetup.setCategory( "Physics" )
 WireToolSetup.open( "teleporter", "Teleporter", "gmod_wire_teleporter", nil, "Teleporters" )
 
-if ( CLIENT ) then
+if CLIENT then
 	language.Add( "Tool.wire_teleporter.name", "Teleporter Tool" )
 	language.Add( "Tool.wire_teleporter.desc", "Spawns a Wire Teleporter" )
 	language.Add( "Tool.wire_teleporter.0", "Primary: Create Teleporter, Reload: Change Teleporter Model" )
@@ -17,7 +17,7 @@ TOOL.ClientConVar = {
 	effects = 1
 }
 
-if (SERVER) then
+if SERVER then
 	function TOOL:GetConVars()
 		return self:GetClientNumber("sounds") ~= 0, self:GetClientNumber("effects") ~= 0
 	end

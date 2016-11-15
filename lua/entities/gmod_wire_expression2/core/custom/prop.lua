@@ -1,7 +1,7 @@
-/******************************************************************************\
+--[[------------------------------------------------------------
 Prop Core by MrFaul started by ZeikJT
 report any wishes, issues to Mr.Faul@gmx.de (GER or ENG pls)
-\******************************************************************************/
+--------------------------------------------------------------]]
 
 E2Lib.RegisterExtension("propcore", false, "Allows E2 chips to create and manipulate props", "Can be used to teleport props to arbitrary locations, including other player's faces")
 PropCore = {}
@@ -34,9 +34,9 @@ end
 local canHaveInvalidPhysics = {delete=true, parent=true, deparent=true, solid=true, shadow=true, draw=true}
 function PropCore.ValidAction(self, entity, cmd)
 	if(cmd=="spawn" or cmd=="Tdelete") then return true end
-	if(!IsValid(entity)) then return false end
-	if(!canHaveInvalidPhysics[cmd] and !validPhysics(entity)) then return false end
-	if(!isOwner(self, entity)) then return false end
+	if(not IsValid(entity)) then return false end
+	if(not canHaveInvalidPhysics[cmd] and not validPhysics(entity)) then return false end
+	if(not isOwner(self, entity)) then return false end
 	if entity:IsPlayer() then return false end
 
 	-- make sure we can only perform the same action on this prop once per tick
@@ -143,7 +143,7 @@ function PropCore.PhysManipulate(this, pos, rot, freeze, gravity, notsolid)
 		if gravity ~= nil then phys:EnableGravity( gravity ~= 0 ) end
 		if notsolid ~= nil then this:SetSolid( notsolid ~= 0 and SOLID_NONE or SOLID_VPHYSICS ) end
 		phys:Wake()
-		if !phys:IsMoveable() then
+		if not phys:IsMoveable() then
 			phys:EnableMotion( true )
 			phys:EnableMotion( false )
 		end
@@ -227,7 +227,7 @@ __e2setcost(30)
 local function removeAllIn( self, tbl )
 	local count = 0
 	for k,v in pairs( tbl ) do
-		if (IsValid(v) and isOwner(self,v) and !v:IsPlayer()) then
+		if (IsValid(v) and isOwner(self,v) and not v:IsPlayer()) then
 			count = count + 1
 			v:Remove()
 		end
@@ -442,10 +442,10 @@ end
 e2function void entity:parentTo(entity target)
 	if not PropCore.ValidAction(self, this, "parent") then return end
 	if not IsValid(target) then return nil end
-	if(!isOwner(self, target)) then return end
+	if(not isOwner(self, target)) then return end
 	if not parent_antispam( this ) then return end
 	if this == target then return end
-	if (!parent_check( this, target )) then return end
+	if (not parent_check( this, target )) then return end
 	this:SetParent(target)
 end
 

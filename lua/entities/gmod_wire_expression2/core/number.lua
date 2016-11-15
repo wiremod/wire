@@ -38,10 +38,10 @@ registerType("normal", "n", 0,
 	nil,
 	nil,
 	function(retval)
-		if !isnumber(retval) then error("Return value is not a number, but a "..type(retval).."!",0) end
+		if not isnumber(retval) then error("Return value is not a number, but a "..type(retval).."!",0) end
 	end,
 	function(v)
-		return !isnumber(v)
+		return not isnumber(v)
 	end
 )
 
@@ -82,14 +82,14 @@ __e2setcost(1.5)
 registerOperator("eq", "nn", "n", function(self, args)
 	local op1, op2 = args[2], args[3]
 	local rvd      = op1[1](self, op1) - op2[1](self, op2)
-	if rvd <= delta && -rvd <= delta
+	if rvd <= delta and -rvd <= delta
 	   then return 1 else return 0 end
 end)
 
 registerOperator("neq", "nn", "n", function(self, args)
 	local op1, op2 = args[2], args[3]
 	local rvd      = op1[1](self, op1) - op2[1](self, op2)
-	if rvd > delta || -rvd > delta
+	if rvd > delta or -rvd > delta
 	   then return 1 else return 0 end
 end)
 

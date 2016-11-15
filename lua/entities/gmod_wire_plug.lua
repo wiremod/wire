@@ -13,10 +13,10 @@ function ENT:GetClosestSocket()
 	local Closest
 
 	for k,v in pairs( sockets ) do
-		if (v:GetClass() == "gmod_wire_socket" and !v:GetNWBool( "Linked", false )) then
+		if v:GetClass() == "gmod_wire_socket" and not v:GetNWBool( "Linked", false ) then
 			local pos, _ = v:GetLinkPos()
 			local Dist = self:GetPos():Distance( pos )
-			if (ClosestDist == nil or ClosestDist > Dist) then
+			if ClosestDist == nil or ClosestDist > Dist then
 				ClosestDist = Dist
 				Closest = v
 			end
@@ -28,7 +28,7 @@ end
 
 if CLIENT then
 	function ENT:DrawEntityOutline()
-		if (GetConVar("wire_plug_drawoutline"):GetBool()) then
+		if GetConVar("wire_plug_drawoutline"):GetBool() then
 			self.BaseClass.DrawEntityOutline( self )
 		end
 	end
@@ -57,8 +57,8 @@ end
 function ENT:Setup( ArrayInput )
 	self.ArrayInput = ArrayInput or false
 
-	if (!self.Inputs or !self.Outputs or self.ArrayInput != old) then
-		if (self.ArrayInput) then
+	if not self.Inputs or not self.Outputs or self.ArrayInput ~= old then
+		if self.ArrayInput then
 			self.Inputs = WireLib.CreateInputs( self, { "In [ARRAY]" } )
 			self.Outputs = WireLib.CreateOutputs( self, { "Out [ARRAY]" } )
 		else
@@ -71,16 +71,16 @@ function ENT:Setup( ArrayInput )
 end
 
 function ENT:TriggerInput( name, value )
-	if (self.Socket and self.Socket:IsValid()) then
+	if self.Socket and self.Socket:IsValid() then
 		self.Socket:SetValue( name, value )
 	end
 	self:ShowOutput()
 end
 
 function ENT:SetValue( name, value )
-	if (!self.Socket or !self.Socket:IsValid()) then return end
-	if (name == "In") then
-		if (self.ArrayInput) then -- Both have array
+	if not self.Socket or not self.Socket:IsValid() then return end
+	if name == "In" then
+		if self.ArrayInput then -- Both have array
 			WireLib.TriggerOutput( self, "Out", table.Copy( value ) )
 		else -- Target has array, this does not
 			for i=1,#LETTERS do
@@ -91,14 +91,14 @@ function ENT:SetValue( name, value )
 			end
 		end
 	else
-		if (self.ArrayInput) then -- Target does not have array, this does
-			if (value != nil) then
+		if self.ArrayInput then -- Target does not have array, this does
+			if value ~= nil then
 				local data = table.Copy( self.Outputs.Out.Value )
 				data[LETTERS_INV[name]] = value
 				WireLib.TriggerOutput( self, "Out", data )
 			end
 		else -- Niether have array
-			if (value != nil) then
+			if value ~= nil then
 				WireLib.TriggerOutput( self, name, value )
 			end
 		end
@@ -111,11 +111,11 @@ end
 -- Hi-speed support
 ------------------------------------------------------------
 function ENT:WriteCell( Address, Value, WriteToMe )
-	if (WriteToMe) then
+	if WriteToMe then
 		self.Memory[Address or 1] = Value or 0
 		return true
 	else
-		if (self.Socket and self.Socket:IsValid()) then
+		if self.Socket and self.Socket:IsValid() then
 			self.Socket:WriteCell( Address, Value, true )
 			return true
 		else
@@ -138,7 +138,7 @@ function ENT:Think()
 end
 
 function ENT:ResetValues()
-	if (self.ArrayInput) then
+	if self.ArrayInput then
 		WireLib.TriggerOutput( self, "Out", {} )
 	else
 		for i=1,#LETTERS do
@@ -154,8 +154,8 @@ end
 -- Resends the values when plugging in
 ------------------------------------------------------------
 function ENT:ResendValues()
-	if (!self.Socket) then return end
-	if (self.ArrayInput) then
+	if not self.Socket then return end
+	if self.ArrayInput then
 		self.Socket:SetValue( "In", self.Inputs.In.Value )
 	else
 		for i=1,#LETTERS do
@@ -166,12 +166,12 @@ end
 
 function ENT:ShowOutput()
 	local OutText = "Plug [" .. self:EntIndex() .. "]\n"
-	if (self.ArrayInput) then
+	if self.ArrayInput then
 		OutText = OutText .. "Array input/outputs."
 	else
 		OutText = OutText .. "Number input/outputs."
 	end
-	if (self.Socket and self.Socket:IsValid()) then
+	if self.Socket and self.Socket:IsValid() then
 		OutText = OutText .. "\nLinked to socket [" .. self.Socket:EntIndex() .. "]"
 	end
 	self:SetOverlayText(OutText)
@@ -180,7 +180,7 @@ end
 duplicator.RegisterEntityClass( "gmod_wire_plug", WireLib.MakeWireEnt, "Data", "ArrayInput" )
 
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
-	if (info.Plug ~= nil) then
+	if info.Plug ~= nil then
 		ent:Setup( info.Plug.ArrayInput )
 	end
 

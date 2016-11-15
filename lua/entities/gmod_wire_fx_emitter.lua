@@ -24,7 +24,7 @@ ComboBox_Wire_FX_Emitter_Options = {}
 
 function AddFXEmitterEffect(name, func, nicename)
 	fx_emitter.fxcount = fx_emitter.fxcount+1
-	// Maintain a global reference for these effects
+	-- Maintain a global reference for these effects
 	ComboBox_Wire_FX_Emitter_Options[name] = fx_emitter.fxcount
 	if CLIENT then
 		fx_emitter.Effects[fx_emitter.fxcount] = func
@@ -40,12 +40,12 @@ if CLIENT then
 	ENT.Delay = 0.05
 
 	function ENT:Draw()
-		// Don't draw if we are in camera mode
+		-- Don't draw if we are in camera mode
 		local ply = LocalPlayer()
 		local wep = ply:GetActiveWeapon()
-		if ( wep:IsValid() ) then
+		if wep:IsValid() then
 			local weapon_name = wep:GetClass()
-			if ( weapon_name == "gmod_camera" ) then return end
+			if weapon_name == "gmod_camera" then return end
 		end
 
 		self.BaseClass.Draw( self )
@@ -54,13 +54,13 @@ if CLIENT then
 	function ENT:Think()
 		if not self:GetOn() then return end
 
-		if ( self.Delay > CurTime() ) then return end
+		if self.Delay > CurTime() then return end
 		self.Delay = CurTime() + self:GetDelay()
 
 		local Effect = self:GetEffect()
 
-		// Missing effect... replace it if possible :/
-		if ( !self.Effects[ Effect ] ) then if ( self.Effects[1] ) then Effect = 1 else return end end
+		-- Missing effect... replace it if possible :/
+		if not self.Effects[ Effect ] then if self.Effects[1] then Effect = 1 else return end end
 
 		local Angle = self:GetAngles()
 
@@ -72,14 +72,14 @@ if CLIENT then
 
 		local b, e = pcall( self.Effects[Effect], FXPos, Angle )
 
-		if (!b) then
-			// Report the error
+		if not b then
+			-- Report the error
 			Print(self.Effects)
 			Print(FXPos)
 			Print(Angle)
 			Msg("Error in Emitter "..tostring(Effect).."\n -> "..tostring(e).."\n")
 
-			// Remove the naughty function
+			-- Remove the naughty function
 			self.Effects[ Effect ] = nil
 		end
 	end

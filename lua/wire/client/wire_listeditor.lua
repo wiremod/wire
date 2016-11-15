@@ -1,20 +1,20 @@
-// A list editor. It allows reading editing and saving lists as *.txt files.
-// It uses wire_expression2_browser for it's file browser.
-// The files have an easy structure for easy editing. Rows are separated by '\n' and columns by '|'.
-// Made by Grocel.
+-- A list editor. It allows reading editing and saving lists as *.txt files.
+-- It uses wire_expression2_browser for it's file browser.
+-- The files have an easy structure for easy editing. Rows are separated by '\n' and columns by '|'.
+-- Made by Grocel.
 
 local PANEL = {}
 
-AccessorFunc( PANEL, "m_strRootPath", 		"RootPath" ) // path of the root Root
-AccessorFunc( PANEL, "m_strList", 			"List" ) // List file
-AccessorFunc( PANEL, "m_strFile", 			"File" ) // sounds listed in list files
-AccessorFunc( PANEL, "m_bUnsaved", 			"Unsaved" ) // edited list file Saved?
-AccessorFunc( PANEL, "m_strSelectedList", 	"SelectedList" ) // Selected list file
+AccessorFunc( PANEL, "m_strRootPath", 		"RootPath" ) -- path of the root Root
+AccessorFunc( PANEL, "m_strList", 			"List" ) -- List file
+AccessorFunc( PANEL, "m_strFile", 			"File" ) -- sounds listed in list files
+AccessorFunc( PANEL, "m_bUnsaved", 			"Unsaved" ) -- edited list file Saved?
+AccessorFunc( PANEL, "m_strSelectedList", 	"SelectedList" ) -- Selected list file
 
-AccessorFunc( PANEL, "m_nListSpeed", 			"ListSpeed" ) // how many items to list an once
-AccessorFunc( PANEL, "m_nMaxItems",				"MaxItems" ) // how may items at maximum
+AccessorFunc( PANEL, "m_nListSpeed", 			"ListSpeed" ) -- how many items to list an once
+AccessorFunc( PANEL, "m_nMaxItems",				"MaxItems" ) -- how may items at maximum
 
-local max_char_count = 200 //File length limit
+local max_char_count = 200 -- File length limit
 
 local invalid_filename_chars = {
 	["*"] = "",
@@ -39,13 +39,13 @@ local invalid_chars = {
 local function ConnectPathes(path1, path2)
 	local path = ""
 	
-	if (isstring(path1) and path1 ~= "") then
+	if isstring(path1) and path1 ~= "" then
 		path = path1
-		if (isstring(path2) and path2 ~= "") then
+		if isstring(path2) and path2 ~= "" then
 			path = path1.."/"..path2
 		end
 	else
-		if (isstring(path2) and path2 ~= "") then
+		if isstring(path2) and path2 ~= "" then
 			path = path2
 		end
 	end
@@ -53,35 +53,35 @@ local function ConnectPathes(path1, path2)
 	return path
 end
 
-//Parse the lines from a given file object
+-- Parse the lines from a given file object
 local function ReadLine(filedata)
-	if (!filedata) then return end
+	if not filedata then return end
 
 	local fileline = ""
 	local comment = false
 	local count = 0
 
-	for i=1, 32 do // skip 32 lines at maximum
+	for i=1, 32 do -- skip 32 lines at maximum
 		local line = ""
 		local fileend = false
 
-		for i=1, max_char_count+56 do // maximum chars per line 
+		for i=1, max_char_count+56 do -- maximum chars per line
 			local byte = filedata:ReadByte()
-			fileend = !byte
+			fileend = not byte
 
-			if (fileend) then break end // file end
+			if fileend then break end -- file end
 			local char = string.char(byte)
 
-			if (invalid_chars[char]) then // replace invalid chars
+			if invalid_chars[char] then -- replace invalid chars
 				char = invalid_chars[char]
 			end
 
-			if (char == "\n") then break end // line end
+			if char == "\n" then break end -- line end
 			line = line .. char
 		end
 		line = string.Trim(line)
 
-		if (!fileend and line == "") then continue end
+		if not fileend and line == "" then continue end
 		fileline = line
 
 		break
@@ -89,12 +89,12 @@ local function ReadLine(filedata)
 
 	local linetable = string.Explode("|", fileline) or {}
 
-	if (#linetable == 0) then return end
+	if #linetable == 0 then return end
 
-	for k, v in ipairs(linetable) do // cleanup
+	for k, v in ipairs(linetable) do -- cleanup
 		local line = linetable[k]
 
-		if (k == 1) then
+		if k == 1 then
 			line = string.Trim(line, "/")
 		end
 		line = string.Trim(line)
@@ -102,7 +102,7 @@ local function ReadLine(filedata)
 		linetable[k] = line
 	end
 
-	if (#linetable[1] == 0) then return end
+	if #linetable[1] == 0 then return end
 
 	return linetable
 end
@@ -112,7 +112,7 @@ local function fileName(filepath)
 end
 
 local function SaveTo(self, func, ...)
-	if (!IsValid(self)) then return end
+	if not IsValid(self) then return end
 	local args = {...}
 
 	local path = self.FileBrowser:GetFileName() or self.m_strList or ""
@@ -120,19 +120,19 @@ local function SaveTo(self, func, ...)
 	Derma_StringRequestNoBlur(
 		"Save to New File",
 		"",
-		string.sub(fileName(path), 0, -5), // remove .txt at the end
+		string.sub(fileName(path), 0, -5), -- remove .txt at the end
 
 		function( strTextOut )
-			if (!IsValid(self)) then return end
+			if not IsValid(self) then return end
 
 			strTextOut = string.gsub(strTextOut, ".", invalid_filename_chars)
-			if (strTextOut == "") then return end
+			if strTextOut == "" then return end
 			
 			local filepath = string.GetPathFromFilename(path)
-			if (!filepath or filepath == "") then filepath = self.m_strRootPath.."/" end
+			if not filepath or filepath == "" then filepath = self.m_strRootPath.."/" end
 
 			local saved = self:SaveList(filepath..strTextOut..".txt")
-			if (saved and func) then
+			if saved and func then
 				func(self, unpack(args))
 			end
 		end
@@ -140,13 +140,13 @@ local function SaveTo(self, func, ...)
 	return true
 end
 
-//Ask for override: Opens a confirmation if the file name is different box.
+-- Ask for override: Opens a confirmation if the file name is different box.
 local function AsForOverride(self, func, filename, ...)
-	if (!IsValid(self)) then return end
+	if not IsValid(self) then return end
 
-	if (!func) then return end
-	if (filename == self.m_strList) then func(self, filename, ...) return end
-	if (!file.Exists(filename, "DATA")) then func(self, filename, ...) return end
+	if not func then return end
+	if filename == self.m_strList then func(self, filename, ...) return end
+	if not file.Exists(filename, "DATA") then func(self, filename, ...) return end
 	
 	local args = {...}
 
@@ -156,7 +156,7 @@ local function AsForOverride(self, func, filename, ...)
 		"Overwrite",
 
 		function()
-			if (!IsValid(self)) then return end
+			if not IsValid(self) then return end
 			
 			func(self, filename, unpack(args))
 		end,
@@ -165,40 +165,40 @@ local function AsForOverride(self, func, filename, ...)
 	)
 end
 
-//Ask for save: Opens a confirmation box.
+-- Ask for save: Opens a confirmation box.
 local function AsForSave(self, func, ...)
-	if (!IsValid(self)) then return end
+	if not IsValid(self) then return end
 
-	if (!func) then return end
-	if (!self.m_bUnsaved) then func(self, ...) return end
+	if not func then return end
+	if not self.m_bUnsaved then func(self, ...) return end
 	
 	local args = {...}
 
 	Derma_Query( "Would you like to save the changes?",
 		"Unsaved List!",
 
-		"Yes", // Save and resume.
+		"Yes", -- Save and resume.
 		function()
-			if (!IsValid(self)) then return end
+			if not IsValid(self) then return end
 
-			if (!self.m_strList or self.m_strList == "") then
+			if not self.m_strList or self.m_strList == "" then
 				SaveTo(self, func, unpack(args))
 				return
 			end
 			
 			local saved = self:SaveList(self.m_strList)
-			if (saved) then
+			if saved then
 				func(self, unpack(args))
 			end
 		end, 
 
-		"No", // Don't save and resume.
+		"No", -- Don't save and resume.
 		function()
-			if (!IsValid(self)) then return end
+			if not IsValid(self) then return end
 			func(self, unpack(args))
 		end, 
 
-		"Cancel" // Do nothing.
+		"Cancel" -- Do nothing.
 	)
 end
 
@@ -226,11 +226,11 @@ function PANEL:Init()
 	self.FileBrowser.OnFileOpen = function(panel, listfile)
 		self:OpenList(listfile)
 	end
-	self.FileBrowser:RemoveRightClick("Open in New Tab") // we don't need tabs.
+	self.FileBrowser:RemoveRightClick("Open in New Tab") -- we don't need tabs.
 	self.FileBrowser:AddRightClick(self.FileBrowser.filemenu,4,"Save To..", function()
 		self:SaveList(self.FileBrowser:GetFileName())
 	end)
-	self.FileBrowser.Update:Remove() // it's replaced
+	self.FileBrowser.Update:Remove() -- it's replaced
 
 	self.Files = self.FilesPanel:Add("DListView")
 	self.Files:SetMultiSelect(false)
@@ -287,7 +287,7 @@ function PANEL:Init()
 	self.SaveIcon:SetStretchToFit(false)
 	self.SaveIcon:DockMargin(0, 0, 0, 0)
 	self.SaveIcon.DoClick = function()
-		if (!self.m_strList or self.m_strList == "") then
+		if not self.m_strList or self.m_strList == "" then
 			SaveTo(self)
 			return
 		end
@@ -351,19 +351,19 @@ function PANEL:PerformLayout()
 	local minw = self:GetWide() - self.SplitPanel:GetRightMin() - self.SplitPanel:GetDividerWidth()
 	local oldminw = self.SplitPanel:GetLeftWidth(minw)
 
-	if (oldminw > minw) then
+	if oldminw > minw then
 		self.SplitPanel:SetLeftWidth(minw)
 	end
 
-	//Fixes scrollbar glitches on resize
-	if (IsValid(self.FileBrowser.Folders)) then
+	-- Fixes scrollbar glitches on resize
+	if IsValid(self.FileBrowser.Folders) then
 		self.FileBrowser.Folders:OnMouseWheeled(0)
 	end
 	self.Files:OnMouseWheeled(0)
 end
 
 function PANEL:UpdateListNameLabel()
-	if (!IsValid(self.ListNameLabel)) then return end
+	if not IsValid(self.ListNameLabel) then return end
 
 	self.ListNameLabel:SetText((self.m_bUnsaved and "*" or "")..(self.m_strList or ""))
 end
@@ -382,7 +382,7 @@ function PANEL:ClearList()
 end
 
 function PANEL:Setup()
-	if (!self.m_strRootPath) then return false end
+	if not self.m_strRootPath then return false end
 	self.m_strSelectedList = nil
 	self.m_strFile = nil
 
@@ -401,11 +401,11 @@ function PANEL:Refresh()
 end
 
 function PANEL:Think()
-	if (self.SplitPanel:GetDragging()) then
+	if self.SplitPanel:GetDragging() then
 		self:InvalidateLayout()
 	end
 
-	if ( !self.bSetup ) then
+	if not self.bSetup then
 		self.bSetup = self:Setup()
 	end
 end
@@ -414,16 +414,16 @@ function PANEL:AddItem(...)
 	local itemtable = {...}
 	local item = itemtable[1]
 
-	if (!isstring(item) or item == "") then return end
-	if (self.TabfileCount > self.m_nMaxItems) then return end
-	if (#item > max_char_count) then return end
-	if (self.Tabfile[item]) then return end
+	if not isstring(item) or item == "" then return end
+	if self.TabfileCount > self.m_nMaxItems then return end
+	if #item > max_char_count then return end
+	if self.Tabfile[item] then return end
 
 	local itemargs = {}
 	local i = 0
 
 	for k, v in ipairs(itemtable) do
-		if (k == 1) then continue end
+		if k == 1 then continue end
 	
 		i = i + 1
 		itemargs[i] = v
@@ -434,8 +434,8 @@ function PANEL:AddItem(...)
 	line.m_strFilename = item
 	line.m_tabData = itemargs
 
-	//if (self.m_strFile == item) then
-	if (self.m_strSelectedList == self.m_strList and self.m_strFile == item) then
+	--if (self.m_strFile == item) then
+	if self.m_strSelectedList == self.m_strList and self.m_strFile == item then
 		self.Files:SelectItem(line)
 	end
 
@@ -445,19 +445,19 @@ function PANEL:AddItem(...)
 end
 
 function PANEL:ItemInList(item)
-	if (!item) then return false end
-	if (self.Tabfile[item]) then return true end
+	if not item then return false end
+	if self.Tabfile[item] then return true end
 
 	return false
 end
 
 function PANEL:RemoveItem(item)
-	if (!item) then return end
-	if (!self.Tabfile[item]) then return end
-	if (!self.Files.Lines) then return end
+	if not item then return end
+	if not self.Tabfile[item] then return end
+	if not self.Files.Lines then return end
 
 	for k, v in ipairs(self.Files.Lines) do
-		if (v.m_strFilename == item) then
+		if v.m_strFilename == item then
 			self.Files:RemoveLine(v:GetID())
 			self.Tabfile[item] = nil
 			self:SetUnsaved(true)
@@ -469,12 +469,12 @@ function PANEL:RemoveItem(item)
 end
 
 function PANEL:OpenList(strfile)
-	if (!strfile) then return end
-	if (strfile == "") then return end
+	if not strfile then return end
+	if strfile == "" then return end
 
 	AsForSave(self, function(self, strfile)
 		local filedata = file.Open(strfile, "rb", "DATA") 
-		if (!filedata) then return end
+		if not filedata then return end
 		
 		WireLib.TimedpairsStop(self.TimedpairsName)
 		self.Files:Clear(true)
@@ -487,17 +487,17 @@ function PANEL:OpenList(strfile)
 		end
 		
 		WireLib.Timedpairs(self.TimedpairsName, counttab, self.m_nListSpeed, function(index, _, self, filedata)
-			if (!IsValid(self)) then
+			if not IsValid(self) then
 				filedata:Close()
 				return false
 			end
 
-			if (!IsValid(self.Files)) then
+			if not IsValid(self.Files) then
 				filedata:Close()
 				return false
 			end
 
-			if (self.TabfileCount >= self.m_nMaxItems) then
+			if self.TabfileCount >= self.m_nMaxItems then
 				filedata:Close()
 				self:SetUnsaved(false)
 				
@@ -505,7 +505,7 @@ function PANEL:OpenList(strfile)
 			end
 
 			local linetable = ReadLine(filedata)
-			if (!linetable) then // do not add to empty lines
+			if not linetable then -- do not add to empty lines
 				filedata:Close()
 				self:SetUnsaved(false)
 				
@@ -517,7 +517,7 @@ function PANEL:OpenList(strfile)
 		end, function(index, _, self, filedata)
 			filedata:Close()
 
-			if (!IsValid(self)) then return end
+			if not IsValid(self) then return end
 			self:SetUnsaved(false)
 		end, self, filedata)
 		
@@ -527,13 +527,13 @@ function PANEL:OpenList(strfile)
 end
 
 function PANEL:SaveList(strfile)
-	if (!self.Tabfile) then return end
-	if (!strfile) then return end
-	if (strfile == "") then return end
+	if not self.Tabfile then return end
+	if not strfile then return end
+	if strfile == "" then return end
 
 	AsForOverride(self, function(self, strfile)
 		local filedata = file.Open(strfile, "w", "DATA")
-		if (!filedata) then
+		if not filedata then
 			Derma_Query( "File could not be saved!",
 				"Error!",
 				"OK"

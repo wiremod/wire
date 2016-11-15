@@ -62,7 +62,7 @@ function TOOL:RightClick( trace )
 
 	local ply = self:GetOwner()
 
-	if ent:IsValid() && ent:GetClass() == "gmod_wire_textscreen" then
+	if ent:IsValid() and ent:GetClass() == "gmod_wire_textscreen" then
 		ply:ConCommand('wire_textscreen_text "'..ent.text..'"')
 		return true
 	end

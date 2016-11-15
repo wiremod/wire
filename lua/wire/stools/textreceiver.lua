@@ -1,7 +1,7 @@
 WireToolSetup.setCategory( "Input, Output/Keyboard Interaction" )
 WireToolSetup.open( "textreceiver", "Text Receiver", "gmod_wire_textreceiver", nil, "Text Receivers" )
 
-if ( CLIENT ) then
+if CLIENT then
 	language.Add( "Tool.wire_textreceiver.name", "Text Receiver Tool (Wire)" )
 	language.Add( "Tool.wire_textreceiver.desc", "Spawns a text receiver for use with the wire system." )
 	language.Add( "Tool.wire_textreceiver.0", "Primary: Create/Update text receiver, Secondary: Copy Settings" )

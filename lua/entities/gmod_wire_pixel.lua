@@ -22,17 +22,17 @@ end
 
 function ENT:TriggerInput(iname, value)
 	local R,G,B = self.R, self.G, self.B
-	if (iname == "Red") then
+	if iname == "Red" then
 		R = value
-	elseif (iname == "Green") then
+	elseif iname == "Green" then
 		G = value
-	elseif (iname == "Blue") then
+	elseif iname == "Blue" then
 		B = value
-	elseif (iname == "PackedRGB") then
+	elseif iname == "PackedRGB" then
 		B = value % 256
 		G = ( value / 256 ) % 256
 		R = ( value / ( 256 * 256 ) ) % 256
-	elseif (iname == "RGB") then
+	elseif iname == "RGB" then
 		local crgb = math.floor( value / 1000 )
 		local cgray = value - math.floor( value / 1000 ) * 1000
 		local cb = 24 * math.fmod( crgb, 10 )
@@ -50,7 +50,7 @@ function ENT:Setup()
 end
 
 function ENT:ShowOutput( R, G, B )
-	if ( R ~= self.R or G ~= self.G or B ~= self.B ) then
+	if R ~= self.R or G ~= self.G or B ~= self.B then
 		self.R, self.G, self.B = R, G, B
 		self:SetColor(Color(R, G, B, 255))
 	end

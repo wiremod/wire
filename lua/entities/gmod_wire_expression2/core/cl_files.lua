@@ -3,14 +3,14 @@
 	By: Dan (McLovin)
 ]]--
 
-local cv_max_transfer_size = CreateConVar( "wire_expression2_file_max_size", "100", { FCVAR_REPLICATED, FCVAR_ARCHIVE } ) //in kb
+local cv_max_transfer_size = CreateConVar( "wire_expression2_file_max_size", "100", { FCVAR_REPLICATED, FCVAR_ARCHIVE } ) -- in kb
 
 local upload_buffer = {}
 local download_buffer = {}
 
-local upload_chunk_size = 20000 //Our overhead is pretty small so lets send it in moderate sized pieces, no need to max out the buffer
+local upload_chunk_size = 20000 -- Our overhead is pretty small so lets send it in moderate sized pieces, no need to max out the buffer
 
-local allowed_directories = { //prefix with >(allowed directory)/file.txt for files outside of e2files/ directory
+local allowed_directories = { -- prefix with >(allowed directory)/file.txt for files outside of e2files/ directory
 	["e2files"] = "e2files",
 	["e2shared"] = "expression2/e2shared",
 	["cpushared"] = "cpuchip/e2shared",
@@ -48,10 +48,10 @@ local function process_filepath( filepath )
 	return string.GetPathFromFilename( fullpath ) or "e2files/", string.GetFileFromFilename( fullpath ) or "noname.txt"
 end
 
-/* --- File Read --- */
+--[[ --- File Read --- ]]
 
 local function upload_callback()
-	if !upload_buffer or !upload_buffer.data then return end
+	if not upload_buffer or not upload_buffer.data then return end
 
 	local chunk_size = math.Clamp( string.len( upload_buffer.data ), 0, upload_chunk_size )
 
@@ -96,15 +96,15 @@ net.Receive("wire_expression2_request_file", function(netlen)
 		timer.Create( "wire_expression2_file_upload", 1/60, upload_buffer.chunks, upload_callback )
 	else
 		net.Start("wire_expression2_file_begin")
-			net.WriteUInt(0, 32) // 404 file not found, send len of 0
+			net.WriteUInt(0, 32) -- 404 file not found, send len of 0
 		net.SendToServer()
 	end
 end )
 
-/* --- File Write --- */
+--[[ --- File Write --- ]]
 net.Receive("wire_expression2_file_download_begin", function( netlen )
 	local fpath,fname = process_filepath( net.ReadString() )
-	if string.GetExtensionFromFilename( string.lower(fname) ) != "txt" then return end
+	if string.GetExtensionFromFilename( string.lower(fname) ) ~= "txt" then return end
 	if not file.Exists(fpath, "DATA") then file.CreateDir(fpath) end
 	download_buffer = {
 		name = fpath .. fname,
@@ -127,7 +127,7 @@ net.Receive("wire_expresison2_file_download_finish", function( netlen )
 	end
 end )
 
-/* --- File List --- */
+--[[ --- File List --- ]]
 
 net.Receive( "wire_expression2_request_list", function( netlen )
 	local dir = process_filepath(net.ReadString())

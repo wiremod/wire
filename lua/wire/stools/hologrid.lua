@@ -29,8 +29,8 @@ function TOOL:RightClick( trace )
 	if CLIENT then return true end
 
 	local ent = trace.Entity
-	if (self:GetStage() == 0) then
-		if (ent:GetClass() == "gmod_wire_holoemitter") then
+	if self:GetStage() == 0 then
+		if ent:GetClass() == "gmod_wire_holoemitter" then
 			self.Target = ent
 			self:SetStage(1)
 		else
@@ -38,7 +38,7 @@ function TOOL:RightClick( trace )
 			return false
 		end
 	else
-		if (self.Target == ent or ent:IsWorld()) then
+		if self.Target == ent or ent:IsWorld() then
 			self:GetOwner():ChatPrint("Holoemitter unlinked.")
 			self.Target:UnLink()
 			self:SetStage(0)

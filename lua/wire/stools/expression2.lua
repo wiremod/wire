@@ -215,7 +215,7 @@ if SERVER then
 		local toent = Entity(net.ReadUInt(16))
 		local numpackets = net.ReadUInt(16)
 
-		if (not IsValid(toent) or toent:GetClass() ~= "gmod_wire_expression2") then
+		if not IsValid(toent) or toent:GetClass() ~= "gmod_wire_expression2" then
 			if uploads[ply] then -- this is to prevent notification spam due to the net library automatically limiting its own transfer rate so that the messages arrive late
 				uploads[ply] = nil
 				upload_ents[ply] = nil
@@ -553,7 +553,7 @@ elseif CLIENT then
 		
 		if sending then return end
 		sending = true
-		upload_queue(true) // true means its the first packet, suppressing the delay
+		upload_queue(true) -- true means its the first packet, suppressing the delay
 	end
 
 	net.Receive("wire_expression2_tool_upload", function(len, ply)
@@ -787,7 +787,7 @@ elseif CLIENT then
 			}
 		})
 
-		if (wire_expression2_editor == nil) then initE2Editor() end
+		if wire_expression2_editor == nil then initE2Editor() end
 
 		local FileBrowser = vgui.Create("wire_expression2_browser", panel)
 		FileBrowser.OpenOnSingleClick = wire_expression2_editor
@@ -819,7 +819,7 @@ elseif CLIENT then
 	end
 
 	function openE2Editor()
-		if (wire_expression2_editor == nil) then initE2Editor() end
+		if wire_expression2_editor == nil then initE2Editor() end
 		wire_expression2_editor:Open()
 	end
 
@@ -934,7 +934,7 @@ elseif CLIENT then
 	end
 end
 
--- -------- 'in editor' animation ------------------------
+---------- 'in editor' animation ------------------------
 
 if SERVER then
 

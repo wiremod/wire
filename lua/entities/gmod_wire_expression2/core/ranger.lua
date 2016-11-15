@@ -1,6 +1,6 @@
-/******************************************************************************\
+--[[------------------------------------------------
   Expression 2 built-in ranger/tracing extension
-\******************************************************************************/
+--------------------------------------------------]]
 
 E2Lib.RegisterExtension("ranger", true, "Lets E2 chips trace rays and check for collisions.")
 
@@ -67,7 +67,7 @@ local function ranger(self, rangertype, range, p1, p2, hulltype, mins, maxs, tra
 	else
 		tracedata.start = chip:GetPos()
 
-		if rangertype == 1 && (p1!=0 || p2!=0) then
+		if rangertype == 1 and (p1~=0 or p2~=0) then
 			p1 = math.rad(p1)
 			p2 = math.rad(p2+270)
 			local zoff = -math.cos(p1)*range
@@ -75,7 +75,7 @@ local function ranger(self, rangertype, range, p1, p2, hulltype, mins, maxs, tra
 			local xoff = math.cos(p2)*zoff
 			zoff = math.sin(p2)*zoff
 			tracedata.endpos = chip:LocalToWorld(Vector(xoff,yoff,zoff))
-		elseif rangertype == 0 && (p1!=0 || p2!=0) then
+		elseif rangertype == 0 and (p1~=0 or p2~=0) then
 			local skew = Vector(p2, -p1, 1)
 			tracedata.endpos = chip:LocalToWorld(skew:GetNormalized()*range)
 		else
@@ -132,21 +132,21 @@ local function ranger(self, rangertype, range, p1, p2, hulltype, mins, maxs, tra
 	return trace
 end
 
-/******************************************************************************/
+------------------------------
 
 registerType("ranger", "xrd", nil,
 	nil,
 	nil,
 	function(retval)
 		if retval == nil then return end
-		if !istable(retval) then error("Return value is neither nil nor a table, but a "..type(retval).."!",0) end
+		if not istable(retval) then error("Return value is neither nil nor a table, but a "..type(retval).."!",0) end
 	end,
 	function(v)
-		return !istable(v) or not v.HitPos
+		return not istable(v) or not v.HitPos
 	end
 )
 
-/******************************************************************************/
+------------------------------
 
 __e2setcost(1) -- temporary
 
@@ -164,7 +164,7 @@ e2function number operator_is(ranger walker)
 	if walker then return 1 else return 0 end
 end
 
-/******************************************************************************/
+------------------------------
 
 __e2setcost(1) -- temporary
 
@@ -249,7 +249,7 @@ e2function void rangerFilter(array filter)
 	self.prf = self.prf + #filter * 10
 end
 
-/******************************************************************************/
+------------------------------
 
 e2function ranger noranger()
 	return nil
@@ -292,7 +292,7 @@ e2function ranger rangerOffset(distance, vector from, vector direction)
 	return ranger(self, 3, distance, from, direction) -- type 3, from one position into a specific direction, in a specific range
 end
 
-/******************************************************************************/
+------------------------------
 
 __e2setcost(2) -- temporary
 
@@ -467,7 +467,7 @@ e2function table ranger:toTable()
 	return ret
 end
 
-/******************************************************************************/
+------------------------------
 -- Hull traces
 
 __e2setcost(20)
@@ -524,14 +524,14 @@ end
 
 -- Use util.TraceEntity for collison box trace
 e2function ranger rangerOffsetHull(entity ent, vector from, vector to)
-	if IsValid(ent) and !ent:IsWorld() then
+	if IsValid(ent) and not ent:IsWorld() then
 		return ranger(self, 2, 0, from, to, 0, 0, 0, ent)
 	else
 		return nil
 	end
 end
 
-/******************************************************************************/
+------------------------------
 
 registerCallback("construct", function(self)
 	self.data.rangerpersist = false

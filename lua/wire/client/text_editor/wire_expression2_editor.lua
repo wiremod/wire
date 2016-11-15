@@ -1,8 +1,8 @@
 local Editor = {}
 
--- ----------------------------------------------------------------------
+------------------------------------------------------------------------
 -- Fonts
--- ----------------------------------------------------------------------
+------------------------------------------------------------------------
 
 local defaultFont
 
@@ -254,10 +254,10 @@ function Editor:PerformLayout()
 	for i = 1, #self.Components do
 		local c = self.Components[i]
 		local c_x, c_y, c_w, c_h = c.Bounds.x, c.Bounds.y, c.Bounds.w, c.Bounds.h
-		if (c_x < 0) then c_x = w + c_x end
-		if (c_y < 0) then c_y = h + c_y end
-		if (c_w < 0) then c_w = w + c_w - c_x end
-		if (c_h < 0) then c_h = h + c_h - c_y end
+		if c_x < 0 then c_x = w + c_x end
+		if c_y < 0 then c_y = h + c_y end
+		if c_w < 0 then c_w = w + c_w - c_x end
+		if c_h < 0 then c_h = h + c_h - c_y end
 		c:SetPos(c_x, c_y)
 		c:SetSize(c_w, c_h)
 	end
@@ -300,38 +300,38 @@ function Editor:Think()
 		if self.p_mode == "drag" then
 			local x = self.p_x + movedX
 			local y = self.p_y + movedY
-			if (x < 10 and x > -10) then x = 0 end
-			if (y < 10 and y > -10) then y = 0 end
-			if (x + self.p_w < surface.ScreenWidth() + 10 and x + self.p_w > surface.ScreenWidth() - 10) then x = surface.ScreenWidth() - self.p_w end
-			if (y + self.p_h < surface.ScreenHeight() + 10 and y + self.p_h > surface.ScreenHeight() - 10) then y = surface.ScreenHeight() - self.p_h end
+			if x < 10 and x > -10 then x = 0 end
+			if y < 10 and y > -10 then y = 0 end
+			if x + self.p_w < surface.ScreenWidth() + 10 and x + self.p_w > surface.ScreenWidth() - 10 then x = surface.ScreenWidth() - self.p_w end
+			if y + self.p_h < surface.ScreenHeight() + 10 and y + self.p_h > surface.ScreenHeight() - 10 then y = surface.ScreenHeight() - self.p_h end
 			self:SetPos(x, y)
 		end
 		if self.p_mode == "sizeBR" then
 			local w = self.p_w + movedX
 			local h = self.p_h + movedY
-			if (self.p_x + w < surface.ScreenWidth() + 10 and self.p_x + w > surface.ScreenWidth() - 10) then w = surface.ScreenWidth() - self.p_x end
-			if (self.p_y + h < surface.ScreenHeight() + 10 and self.p_y + h > surface.ScreenHeight() - 10) then h = surface.ScreenHeight() - self.p_y end
-			if (w < 300) then w = 300 end
-			if (h < 200) then h = 200 end
+			if self.p_x + w < surface.ScreenWidth() + 10 and self.p_x + w > surface.ScreenWidth() - 10 then w = surface.ScreenWidth() - self.p_x end
+			if self.p_y + h < surface.ScreenHeight() + 10 and self.p_y + h > surface.ScreenHeight() - 10 then h = surface.ScreenHeight() - self.p_y end
+			if w < 300 then w = 300 end
+			if h < 200 then h = 200 end
 			self:SetSize(w, h)
 		end
 		if self.p_mode == "sizeR" then
 			local w = self.p_w + movedX
-			if (w < 300) then w = 300 end
+			if w < 300 then w = 300 end
 			self:SetWide(w)
 		end
 		if self.p_mode == "sizeB" then
 			local h = self.p_h + movedY
-			if (h < 200) then h = 200 end
+			if h < 200 then h = 200 end
 			self:SetTall(h)
 		end
 	end
 	if not self.pressed then
 		local cursor = "arrow"
 		local mode = self:getMode()
-		if (mode == "sizeBR") then cursor = "sizenwse"
-		elseif (mode == "sizeR") then cursor = "sizewe"
-		elseif (mode == "sizeB") then cursor = "sizens"
+		if mode == "sizeBR" then cursor = "sizenwse"
+		elseif mode == "sizeR" then cursor = "sizewe"
+		elseif mode == "sizeB" then cursor = "sizens"
 		end
 		if cursor ~= self.cursor then
 			self.cursor = cursor
@@ -379,16 +379,16 @@ function Editor:getMode()
 	local ix = gui.MouseX() - x
 	local iy = gui.MouseY() - y
 
-	if (ix < 0 or ix > w or iy < 0 or iy > h) then return end -- if the mouse is outside the box
-	if (iy < 22) then
+	if ix < 0 or ix > w or iy < 0 or iy > h then return end -- if the mouse is outside the box
+	if iy < 22 then
 		return "drag"
 	end
-	if (iy > h - 10) then
-		if (ix > w - 20) then return "sizeBR" end
+	if iy > h - 10 then
+		if ix > w - 20 then return "sizeBR" end
 		return "sizeB"
 	end
-	if (ix > w - 10) then
-		if (iy > h - 20) then return "sizeBR" end
+	if ix > w - 10 then
+		if iy > h - 20 then return "sizeBR" end
 		return "sizeR"
 	end
 end
@@ -601,7 +601,7 @@ function Editor:CreateTab(chosenfile)
 					self:Validate(true)
 				elseif code == KEY_SPACE then
 					local ed = self:GetCurrentEditor()
-					if (ed.AC_Panel and ed.AC_Panel:IsVisible()) then
+					if ed.AC_Panel and ed.AC_Panel:IsVisible() then
 						ed:AC_Use(ed.AC_Suggestions[1])
 					end
 				end
@@ -763,7 +763,7 @@ function Editor:InitComponents()
 		end
 	}, "DButton")
 
-	-- addComponent( panel, x, y, w, h )
+	--addComponent( panel, x, y, w, h )
 	-- if x, y, w, h is minus, it will stay relative to right or buttom border
 	self.C.Close = self:addComponent(vgui.Create("DButton", self), -45-4, 0, 45, 22) -- Close button
 	self.C.Inf = self:addComponent(vgui.CreateFromTable(DMenuButton, self), -45-4-26, 0, 24, 22) -- Info button
@@ -1331,8 +1331,8 @@ Text here]# ]]
 	local dlist2 = vgui.Create("DPanelList")
 	dlist:AddItem(dlist2)
 	dlist2:EnableVerticalScrollbar(true)
-	-- frame:AddResizeObject( dlist2, 2,2 )
-	-- dlist2:SetTall( 444 )
+	--frame:AddResizeObject( dlist2, 2,2 )
+	--dlist2:SetTall( 444 )
 	dlist2:SetSpacing(1)
 
 	local painted = 0
@@ -1572,12 +1572,12 @@ function Editor:OpenOldTabs()
 	local is_first = true
 	for k, v in pairs(tabs) do
 		if v and v ~= "" then
-			if (file.Exists(v, "DATA")) then
+			if file.Exists(v, "DATA") then
 				-- Open it in a new tab
 				self:LoadFile(v, true)
 
 				-- If this is the first loop, close the initial tab.
-				if (is_first) then
+				if is_first then
 					timer.Simple(0, function()
 						self:CloseTab(1)
 					end)

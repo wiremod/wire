@@ -72,7 +72,7 @@ function ENT:GetCap()
 			self.MaxAddress = self.DriveCap * 1024
 		else
 			local formatInfo = string.Explode("\n",formatData)
-			if (formatInfo[1] == "FLASH1") then
+			if formatInfo[1] == "FLASH1" then
 				self.DriveCap = tonumber(formatInfo[2]) or 0
 				self.MaxAddress = tonumber(formatInfo[3]) or (self.DriveCap * 1024)
 				self.FlashType = 1
@@ -137,7 +137,7 @@ end
 
 function ENT:ReadCell(Address)
 	--DriveID should be > 0, and less than  4 in MP
-	if ((self.DriveID < 0) || (!game.SinglePlayer() && (self.DriveID >= 4))) then
+	if (self.DriveID < 0) or (not game.SinglePlayer() and (self.DriveID >= 4)) then
 		return nil
 	end
 
@@ -145,7 +145,7 @@ function ENT:ReadCell(Address)
 	if player:IsValid() then
 		local steamid = player:SteamID()
 		steamid = string.gsub(steamid, ":", "_")
-		if (steamid ~= "UNKNOWN") then
+		if steamid ~= "UNKNOWN" then
 			self.Owner_SteamID = steamid
 		else
 			self.Owner_SteamID = "SINGLEPLAYER"
@@ -195,15 +195,15 @@ end
 
 function ENT:WriteCell(Address, value)
 	--DriveID should be > 0, and less than  4 in MP
-	if ((self.DriveID < 0) || (!game.SinglePlayer() && (self.DriveID >= 4))) then
+	if (self.DriveID < 0) or (not game.SinglePlayer() and (self.DriveID >= 4)) then
 		return false
 	end
 
 	local player = self:GetPlayer()
-	if (player:IsValid()) then
+	if player:IsValid() then
 		local steamid = player:SteamID()
 		steamid = string.gsub(steamid, ":", "_")
-		if (steamid ~= "UNKNOWN") then
+		if steamid ~= "UNKNOWN" then
 			self.Owner_SteamID = steamid
 		else
 			self.Owner_SteamID = "SINGLEPLAYER"
@@ -278,37 +278,37 @@ function ENT:Think()
 end
 
 function ENT:TriggerInput(iname, value)
-	if (iname == "Clk") then
+	if iname == "Clk" then
 		self.Clk = value
-		if (self.Clk >= 1) then
+		if self.Clk >= 1 then
 			self:WriteCell(self.AWrite, self.Data)
-			if (self.ARead == self.AWrite) then
+			if self.ARead == self.AWrite then
 				local val = self:ReadCell(self.ARead)
-				if (val) then
+				if val then
 					Wire_TriggerOutput(self, "Data", val)
 					self.Out = val
 				end
 			end
 		end
-	elseif (iname == "AddrRead") then
+	elseif iname == "AddrRead" then
 		self.ARead = value
 		local val = self:ReadCell(value)
-		if (val) then
+		if val then
 			Wire_TriggerOutput(self, "Data", val)
 			self.Out = val
 		end
-	elseif (iname == "AddrWrite") then
+	elseif iname == "AddrWrite" then
 		self.AWrite = value
-		if (self.Clk >= 1) then
+		if self.Clk >= 1 then
 			self:WriteCell(self.AWrite, self.Data)
 		end
-	elseif (iname == "Data") then
+	elseif iname == "Data" then
 		self.Data = value
-		if (self.Clk >= 1) then
+		if self.Clk >= 1 then
 			self:WriteCell(self.AWrite, self.Data)
-			if (self.ARead == self.AWrite) then
+			if self.ARead == self.AWrite then
 				local val = self:ReadCell(self.ARead)
-				if (val) then
+				if val then
 					Wire_TriggerOutput(self, "Data", val)
 					self.Out = val
 				end

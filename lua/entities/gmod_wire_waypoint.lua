@@ -42,7 +42,7 @@ function ENT:Setup(range)
 end
 
 function ENT:GetBeaconPos(sensor)
-	if ((sensor:GetPos()-self:GetPos()):Length() < self.range) then
+	if (sensor:GetPos()-self:GetPos()):Length() < self.range then
 		sensor:LinkEnt(self:GetNextWaypoint())
 	end
 

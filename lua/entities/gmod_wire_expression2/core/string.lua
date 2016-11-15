@@ -1,28 +1,25 @@
-/******************************************************************************\
+--[[---------------
   String support
-\******************************************************************************/
+-----------------]]
 
-// TODO: is string.left() faster than s:left()?
-// TODO: is string.sub faster than both left and right?
-// TODO: these return bad results when used with negative numbers!
-// TODO: benchmarks!
+-- TODO: is string.left() faster than s:left()?
+-- TODO: is string.sub faster than both left and right?
+-- TODO: these return bad results when used with negative numbers!
+-- TODO: benchmarks!
 
 local string = string -- optimization
-
-/******************************************************************************/
 
 registerType("string", "s", "",
 	nil,
 	nil,
 	function(retval)
-		if !isstring(retval) then error("Return value is not a string, but a "..type(retval).."!",0) end
+		if not isstring(retval) then error("Return value is not a string, but a "..type(retval).."!",0) end
 	end,
 	function(v)
-		return !isstring(v)
+		return not isstring(v)
 	end
 )
 
-/******************************************************************************/
 
 __e2setcost(3) -- temporary
 
@@ -33,8 +30,6 @@ registerOperator("ass", "s", "s", function(self, args)
 	self.Scopes[scope].vclk[op1] = true
 	return rv2
 end)
-
-/******************************************************************************/
 
 registerOperator("is", "s", "n", function(self, args)
 	local op1 = args[2]
@@ -51,10 +46,9 @@ end)
 registerOperator("neq", "ss", "n", function(self, args)
 	local op1, op2 = args[2], args[3]
 	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	if rv1 != rv2 then return 1 else return 0 end
+	if rv1 ~= rv2 then return 1 else return 0 end
 end)
 
-/******************************************************************************/
 
 __e2setcost(10) -- temporary
 
@@ -63,7 +57,6 @@ registerOperator("add", "ss", "s", function(self, args)
 	return op1[1](self, op1) .. op2[1](self, op2)
 end)
 
-/******************************************************************************/
 
 registerOperator("add", "sn", "s", function(self, args)
 	local op1, op2 = args[2], args[3]
@@ -75,7 +68,6 @@ registerOperator("add", "ns", "s", function(self, args)
 	return tostring(op1[1](self, op1)) .. op2[1](self, op2)
 end)
 
-/******************************************************************************/
 
 registerOperator("add", "sv", "s", function(self, args)
 	local op1, op2 = args[2], args[3]
@@ -89,7 +81,6 @@ registerOperator("add", "vs", "s", function(self, args)
 	return ("[%s,%s,%s]%s"):format( rv1[1],rv1[2],rv1[3],op2[1](self, op2))
 end)
 
-/******************************************************************************/
 
 registerOperator("add", "sa", "s", function(self, args)
 	local op1, op2 = args[2], args[3]
@@ -103,7 +94,6 @@ registerOperator("add", "as", "s", function(self, args)
 	return ("[%s,%s,%s]%s"):format( rv1[1],rv1[2],rv1[3],op2[1](self, op2))
 end)
 
-/******************************************************************************/
 
 __e2setcost(20) -- temporary
 
@@ -143,7 +133,7 @@ end)
 registerFunction("toByte", "sn", "n", function(self, args)
 	local op1, op2 = args[2], args[3]
 	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-	if rv2 < 1 || rv2 > string_len(rv1) then return -1 end
+	if rv2 < 1 or rv2 > string_len(rv1) then return -1 end
 	return string_byte(rv1, rv2)
 end)
 
@@ -168,7 +158,7 @@ registerFunction("toUnicodeByte", "s", "n", function(self, args)
 	return utf8_byte(rv1)
 end)
 
-/******************************************************************************/
+
 
 registerFunction("index", "s:n", "s", function(self, args)
 	local op1, op2 = args[2], args[3]
@@ -224,7 +214,7 @@ registerFunction("unicodeLength", "s:", "n", function(self, args)
 	local op1 = args[2], args[3]
 	local rv1 = op1[1](self, op1)
 	-- the string.gsub method is inconsistent with how writeUnicodeString and toUnicodeByte handles badly-formed sequences.
-	-- local _, length = string.gsub (rv1, "[^\128-\191]", "")
+	--local _, length = string.gsub(rv1, "[^\128-\191]", "")
 	local length = 0
 	local i = 1
 	while i <= #rv1 do
@@ -244,7 +234,7 @@ registerFunction("unicodeLength", "s:", "n", function(self, args)
 	return length
 end)
 
-/******************************************************************************/
+
 
 registerFunction("repeat", "s:n", "s", function(self,args)
 	local op1, op2 = args[2], args[3]
@@ -271,7 +261,7 @@ registerFunction("trimRight", "s:", "s", function(self,args)
 	return rv1:TrimRight()
 end)
 
-/******************************************************************************/
+
 
 
 local sub = string.sub
@@ -289,7 +279,7 @@ e2function number string:findRE(string pattern)
 	end
 end
 
----  Returns the 1st occurrence of the string <pattern> starting at <start> and going to the end of the string, returns 0 if not found. Prints malformed string errors to the chat area.
+--- Returns the 1st occurrence of the string <pattern> starting at <start> and going to the end of the string, returns 0 if not found. Prints malformed string errors to the chat area.
 e2function number string:findRE(string pattern, start)
 	local OK, Ret = pcall(find, this, pattern, start)
 	if not OK then
@@ -305,7 +295,7 @@ e2function number string:find(string needle)
 	return this:find( needle, 1, true) or 0
 end
 
----  Returns the 1st occurrence of the string <needle> starting at <start> and going to the end of the string, returns 0 if not found. Does not use LUA patterns.
+--- Returns the 1st occurrence of the string <needle> starting at <start> and going to the end of the string, returns 0 if not found. Does not use LUA patterns.
 e2function number string:find(string needle, start)
 	return this:find( needle, start, true) or 0
 end
@@ -316,7 +306,7 @@ e2function string string:replace(string needle, string new)
 	return this:Replace( needle, new)
 end
 
----  Finds and replaces every occurrence of <pattern> with <new> using regular expressions. Prints malformed string errors to the chat area.
+--- Finds and replaces every occurrence of <pattern> with <new> using regular expressions. Prints malformed string errors to the chat area.
 e2function string string:replaceRE(string pattern, string new)
 	local OK, NewStr = pcall(gsub, this, pattern, new)
 	if not OK then
@@ -350,12 +340,12 @@ e2function string string:reverse()
 	return this:reverse()
 end
 
-/******************************************************************************/
+
 local string_format = string.format
 local gmatch = string.gmatch
 local Right = string.Right
 
---- Formats a values exactly like Lua's [http://www.lua.org/manual/5.1/manual.html#pdf-string.format string.format]. Any number and type of parameter can be passed through the "...". Prints errors to the chat area.
+--- Formats a values exactly like Lua's [http:-- www.lua.org/manual/5.1/manual.html#pdf-string.format string.format]. Any number and type of parameter can be passed through the "...". Prints errors to the chat area.
 e2function string format(string fmt, ...)
 	-- TODO: call toString for table-based types
 	local ok, ret = pcall(string_format, fmt, ...)
@@ -366,7 +356,7 @@ e2function string format(string fmt, ...)
 	return ret
 end
 
-/******************************************************************************/
+
 -- string.match wrappers by Jeremydeath, 2009-08-30
 local string_match = string.match
 local table_remove = table.remove
@@ -407,7 +397,7 @@ local function gmatch( self, this, pattern )
 	local v
 	while true do
 		v = {iter()}
-		if (!v or #v==0) then break end
+		if not v or #v==0 then break end
 		num = num + 1
 		ret.n[num] = v
 		ret.ntypes[num] = "r"
@@ -421,7 +411,7 @@ end
 -- (By Divran)
 e2function table string:gmatch(string pattern)
 	local OK, ret = pcall( gmatch, self, this, pattern )
-	if (!OK) then
+	if not OK then
 		self.player:ChatPrint( ret or "Unknown error in str:gmatch" )
 		return table_Copy( DEFAULT )
 	else
@@ -434,7 +424,7 @@ end
 e2function table string:gmatch(string pattern, position)
 	this = this:Right( -position-1 )
 	local OK, ret = pcall( gmatch, self, this, pattern )
-	if (!OK) then
+	if not OK then
 		self.player:ChatPrint( ret or "Unknown error in str:gmatch" )
 		return table_Copy( DEFAULT )
 	else

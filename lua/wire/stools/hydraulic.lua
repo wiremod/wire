@@ -34,17 +34,17 @@ if SERVER then
 end
 
 function TOOL:LeftClick( trace )
-	if !trace.Hit || ( trace.Entity:IsValid() && trace.Entity:IsPlayer() ) then return end
-	if ( SERVER && !util.IsValidPhysicsObject( trace.Entity, trace.PhysicsBone ) ) then return false end
+	if not trace.Hit or ( trace.Entity:IsValid() and trace.Entity:IsPlayer() ) then return end
+	if SERVER and not util.IsValidPhysicsObject( trace.Entity, trace.PhysicsBone ) then return false end
 
 	local iNum = self:NumObjects()
 
 	local Phys = trace.Entity:GetPhysicsObjectNum( trace.PhysicsBone )
 	self:SetObject( iNum + 1, trace.Entity, trace.HitPos, Phys, trace.PhysicsBone, trace.HitNormal )
 
-	if ( iNum > 1 ) then
+	if iNum > 1 then
 
-		if ( CLIENT ) then
+		if CLIENT then
 			self:ClearObjects()
 			return true
 		end
@@ -71,18 +71,18 @@ function TOOL:LeftClick( trace )
 		self:ClearObjects()
 		self:SetStage(0)
 
-	elseif ( iNum == 1 ) then
+	elseif iNum == 1 then
 
 		if CLIENT then return true end
 
-		// Get client's CVars
+		-- Get client's CVars
 		local material	= self:GetClientInfo( "material" ) or "cable/rope"
 		local width		= self:GetClientNumber("width", 3)
 		local speed		= self:GetClientNumber("speed", 16)
 		local fixed		= self:GetClientNumber("fixed", 0)
 		local stretchonly = self:GetClientNumber("stretchonly", 0) ~= 0
 
-		// Get information we're about to use
+		-- Get information we're about to use
 		local Ent1,  Ent2  = self:GetEnt(1),	 self:GetEnt(2)
 		local Bone1, Bone2 = self:GetBone(1),	 self:GetBone(2)
 		local LPos1, LPos2 = self:GetLocalPos(1),self:GetLocalPos(2)

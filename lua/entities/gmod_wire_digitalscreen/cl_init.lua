@@ -21,15 +21,15 @@ function ENT:Initialize()
 		self.RefreshRows[i] = i-1
 	end
 
-	//0..786431 - RGB data
+	-- 0..786431 - RGB data
 
-	//1048569 - Color mode (0: RGBXXX; 1: R G B)
-	//1048570 - Clear row
-	//1048571 - Clear column
-	//1048572 - Screen Height
-	//1048573 - Screen Width
-	//1048574 - Hardware Clear Screen
-	//1048575 - CLK
+	-- 1048569 - Color mode (0: RGBXXX; 1: R G B)
+	-- 1048570 - Clear row
+	-- 1048571 - Clear column
+	-- 1048572 - Screen Height
+	-- 1048573 - Screen Width
+	-- 1048574 - Hardware Clear Screen
+	-- 1048575 - CLK
 
 	self.GPU = WireGPU(self)
 	
@@ -123,7 +123,7 @@ function ENT:WriteCell(Address,value)
 		self.IsClear = false
 	end
 
-	if (self.NewClk) then
+	if self.NewClk then
 		self.Memory1[Address] = value -- visible buffer
 		self.NeedRefresh = true
 		if self.Memory1[1048569] == 1 then -- R G B mode
@@ -247,7 +247,7 @@ function ENT:RedrawRow(y)
 	for x = 0,self.ScreenWidth-1 do
 		local cr,cg,cb
 
-		if (colormode == 1) then
+		if colormode == 1 then
 			cr = self.Memory1[(a+x)*3  ] or 0
 			cg = self.Memory1[(a+x)*3+1] or 0
 			cb = self.Memory1[(a+x)*3+2] or 0
@@ -278,7 +278,7 @@ function ENT:Draw()
 				self.ClearQueued = false
 			end
 
-			if (#self.RefreshRows > 0) then
+			if #self.RefreshRows > 0 then
 				idx = #self.RefreshRows
 				while ((idx > 0) and (pixels < 8192)) do
 					self:RedrawRow(self.RefreshRows[idx])

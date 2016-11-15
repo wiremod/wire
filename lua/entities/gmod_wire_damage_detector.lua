@@ -13,7 +13,7 @@ local Wire_Damage_Detectors = {}
 
 -- Damage detection function
 local function CheckWireDamageDetectors( ent, inflictor, attacker, amount, dmginfo )
-	if amount > 0  then
+	if amount > 0 then
 		for k,_ in pairs(Wire_Damage_Detectors) do
 			local detector = k
 			if IsValid(detector) then
@@ -36,7 +36,7 @@ end
 hook.Add("EntityTakeDamage", "CheckWireDamageDetectors", function( ent, dmginfo )
 	if not next(Wire_Damage_Detectors) then return end
 	local r, e = xpcall( CheckWireDamageDetectors, debug.traceback, ent, dmginfo:GetInflictor(), dmginfo:GetAttacker(), dmginfo:GetDamage(), dmginfo )
-	if !r then print( "Wire damage detector error: " .. e ) end
+	if not r then print( "Wire damage detector error: " .. e ) end
 end)
 
 
@@ -236,7 +236,7 @@ end
 function ENT:UpdateDamage( dmginfo, ent ) -- Update damage table
 	local damage = dmginfo:GetDamage()
 
-	if !self.hit then -- Only register the first target's damage info
+	if not self.hit then -- Only register the first target's damage info
 		self.firsthit_dmginfo = {
 			dmginfo:GetAttacker(),
 			ent,

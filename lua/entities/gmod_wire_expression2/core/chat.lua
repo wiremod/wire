@@ -1,5 +1,5 @@
-//Original author: ZeikJT
-//Modified by Gwahir and TomyLobo
+-- Original author: ZeikJT
+-- Modified by Gwahir and TomyLobo
 
 local IsValid = IsValid
 
@@ -10,7 +10,7 @@ local ChatAlert = {}
 local runByChat = 0
 local chipHideChat = false
 
---[[************************************************************************]]--
+------------------------------
 
 registerCallback("destruct",function(self)
 	ChatAlert[self.entity] = nil
@@ -45,7 +45,7 @@ hook.Add("EntityRemoved","Exp2ChatPlayerDisconnect", function(ply)
 	TextList[ply:EntIndex()] = nil
 end)
 
---[[************************************************************************]]--
+------------------------------
 __e2setcost(3)
 
 --- If <activate> == 0, the chip will no longer run on chat events, otherwise it makes this chip execute when someone chats. Only needs to be called once, not in every execution.
@@ -74,7 +74,7 @@ e2function void hideChat(hide)
 	chipHideChat = hide ~= 0
 end
 
---[[************************************************************************]]--
+------------------------------
 
 --- Returns the last player to speak.
 e2function entity lastSpoke()

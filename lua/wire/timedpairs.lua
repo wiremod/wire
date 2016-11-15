@@ -14,7 +14,7 @@
 -- Its arguments are the same as the last arguments of WireLib.Timedpairs
 -- endcallback(lastkey, lastvalue, ...)
 
-if (!WireLib) then return end
+if not WireLib then return end
 
 local next = next
 local pairs = pairs
@@ -78,17 +78,17 @@ local function Timedpairs()
 		functions[toremove[i]] = nil
 	end
 end
-if (CLIENT) then
-	hook.Add("PostRenderVGUI", "WireLib_Timedpairs", Timedpairs) // Doesn't get paused in single player. Can be important for vguis.
+if CLIENT then
+	hook.Add("PostRenderVGUI", "WireLib_Timedpairs", Timedpairs) -- Doesn't get paused in single player. Can be important for vguis.
 else
-	hook.Add("Think", "WireLib_Timedpairs", Timedpairs) // Servers still uses Think.
+	hook.Add("Think", "WireLib_Timedpairs", Timedpairs) -- Servers still uses Think.
 end
 
 function WireLib.Timedpairs(name,tab,step,callback,endcallback,...)
 	functions[name] = { lookup = copy(tab), step = step, currentindex = 0, callback = callback, endcallback = endcallback, args = {...} }
 end
 
-function WireLib.Timedcall(callback,...) // calls the given function like simple timer, but isn't affected by game pausing.
+function WireLib.Timedcall(callback,...) -- calls the given function like simple timer, but isn't affected by game pausing.
 	local dummytab = {true}
 	WireLib.Timedpairs("Timedcall_"..tostring(dummytab),dummytab,1,function(k, v, ...) callback(...) end,nil,...)
 end

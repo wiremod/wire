@@ -1,7 +1,7 @@
 WireToolSetup.setCategory( "Physics/Force" )
 WireToolSetup.open( "vthruster", "Vector Thruster", "gmod_wire_vectorthruster", nil, "Vector Thrusters" )
 
-if ( CLIENT ) then
+if CLIENT then
 	language.Add( "Tool.wire_vthruster.name", "Vector Thruster Tool (Wire)" )
 	language.Add( "Tool.wire_vthruster.desc", "Spawns a vector thruster for use with the wire system." )
 	language.Add( "Tool.wire_vthruster.0", "Primary: Create/Update Vector Thruster" )
@@ -38,12 +38,12 @@ function TOOL:LeftClick( trace )
 
 	local ply = self:GetOwner()
 
-	if (numobj == 0) then
+	if numobj == 0 then
 		if IsValid(trace.Entity) and trace.Entity:IsPlayer() then return false end
 
-		// If there's no physics object then we can't constraint it!
-		if ( SERVER && !util.IsValidPhysicsObject( trace.Entity, trace.PhysicsBone ) ) then return false end
-		if (CLIENT) then return true end
+		-- If there's no physics object then we can't constraint it!
+		if SERVER and not util.IsValidPhysicsObject( trace.Entity, trace.PhysicsBone ) then return false end
+		if CLIENT then return true end
 
 		local ent = WireToolObj.LeftClick_Make(self, trace, ply )
 		if isbool(ent) then return ent end
@@ -56,7 +56,7 @@ function TOOL:LeftClick( trace )
 			self:SetStage(1)
 		end
 	else
-		if (CLIENT) then return true end
+		if CLIENT then return true end
 
 		local anchor, wire_thruster = self:GetEnt(1), self:GetEnt(2)
 		local anchorbone = self:GetBone(1)
@@ -85,14 +85,14 @@ end
 local degrees = 0
 
 function TOOL:Think()
-	if (self:NumObjects() > 0) then
-		if ( SERVER ) then
+	if self:NumObjects() > 0 then
+		if SERVER then
 			local Phys2 = self:GetPhys(2)
 			local Norm2 = self:GetNormal(2)
 			local cmd = self:GetOwner():GetCurrentCommand()
 			degrees = degrees + cmd:GetMouseX() * 0.05
 			local ra = degrees
-			if (self:GetOwner():KeyDown(IN_SPEED)) then ra = math.Round(ra/45)*45 end
+			if self:GetOwner():KeyDown(IN_SPEED) then ra = math.Round(ra/45)*45 end
 			local Ang = Norm2:Angle()
 			Ang.pitch = Ang.pitch + 90
 			Ang:RotateAroundAxis(Norm2, ra)
@@ -104,7 +104,7 @@ function TOOL:Think()
 	end
 end
 
-if (CLIENT) then
+if CLIENT then
 	function TOOL:FreezeMovement()
 		return self:GetStage() == 1
 	end
@@ -123,7 +123,7 @@ function TOOL.BuildCPanel(panel)
 
 		local Effects = {
 			["#No Effects"] = "none",
-			//["#Same as over water"] = "same",
+			-- ["#Same as over water"] = "same",
 			["#Flames"] = "fire",
 			["#Plasma"] = "plasma",
 			["#Smoke"] = "smoke",
@@ -163,9 +163,9 @@ function TOOL.BuildCPanel(panel)
 			["#Comic Balls Random"] = "balls_random",
 			["#Comic Balls Fire Colors"] = "balls_firecolors",
 			["#Souls"] = "souls",
-			//["#Debugger 10 Seconds"] = "debug_10", These are just buggy and shouldn't be used.
-			//["#Debugger 30 Seconds"] = "debug_30",
-			//["#Debugger 60 Seconds"] = "debug_60",
+			-- ["#Debugger 10 Seconds"] = "debug_10", These are just buggy and shouldn't be used.
+			-- ["#Debugger 30 Seconds"] = "debug_30",
+			-- ["#Debugger 60 Seconds"] = "debug_60",
 			["#Fire and Smoke"] = "fire_smoke",
 			["#Fire and Smoke Huge"] = "fire_smoke_big",
 			["#5 Growing Rings"] = "rings_grow_rings",

@@ -1,7 +1,7 @@
 WireToolSetup.setCategory( "Advanced" )
 WireToolSetup.open( "addressbus", "Data - Address Bus", "gmod_wire_addressbus", nil, "Address Buses" )
 
-if ( CLIENT ) then
+if CLIENT then
 	language.Add( "Tool.wire_addressbus.name", "Address bus tool (Wire)" )
 	language.Add( "Tool.wire_addressbus.desc", "Spawns an address bus. Address spaces may overlap!" )
 	language.Add( "Tool.wire_addressbus.0", "Primary: Create/Update address bus" )
@@ -30,11 +30,11 @@ end
 
 function TOOL:RightClick( trace )
 	if trace.Entity:IsPlayer() then return false end
-	if (CLIENT) then return true end
+	if CLIENT then return true end
 
 	local ply = self:GetOwner()
 
-	if ( trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_addressbus" ) then
+	if trace.Entity:IsValid() and trace.Entity:GetClass() == "gmod_wire_addressbus" then
 		ply:ConCommand("wire_addressbus_addrspace1sz "..(trace.Entity.MemEnd[1]-trace.Entity.MemStart[1]+1))
 		ply:ConCommand("wire_addressbus_addrspace1st "..(trace.Entity.MemStart[1]))
 		ply:ConCommand("wire_addressbus_addrspace2sz "..(trace.Entity.MemEnd[2]-trace.Entity.MemStart[2]+1))

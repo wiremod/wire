@@ -8,7 +8,7 @@ local function replace_match(a,b)
 	return string.match( string.Replace(a,"-","__"), string.Replace(b,"-","__") )
 end
 
--- -- some generic filter criteria -- --
+---- some generic filter criteria -- --
 
 local function filter_all() return true end
 local function filter_none() return false end
@@ -70,7 +70,7 @@ local function filter_default(self)
 	end
 end
 
--- -- some filter criterion generators -- --
+---- some filter criterion generators -- --
 
 -- Generates a filter that filters out everything not in a lookup table.
 local function filter_in_lookup(lookup)
@@ -135,7 +135,7 @@ local function filter_binary_predicate_match_one(lookup, func, binary_predicate)
 end
 
 
--- -- filter criterion combiners -- --
+---- filter criterion combiners -- --
 
 local _filter_and = {
 	[0] = function() return filter_all end,

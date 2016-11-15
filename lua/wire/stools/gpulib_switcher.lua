@@ -3,7 +3,7 @@ WireToolSetup.open( "gpulib_switcher", "GPULib Switcher", "gmod_wire_gpulib_cont
 
 TOOL.ClientConVar[ "model" ] = "models/jaanus/wiretool/wiretool_siren.mdl"
 
-if (CLIENT) then
+if CLIENT then
 	language.Add("Tool.wire_gpulib_switcher.name", "GPULib Screen Switcher")
 	language.Add("Tool.wire_gpulib_switcher.desc", "Displays one entity's GPULib screen on another entity.")
 	language.Add("Tool.wire_gpulib_switcher.0", "Primary: Link a GPULib Screen (Console/Digital/Text Screen/GPU/Oscilloscope) to a different prop/entity, Reload: Unlink")

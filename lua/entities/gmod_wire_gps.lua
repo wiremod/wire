@@ -8,7 +8,7 @@ if CLIENT then
 		self.BaseClass.Think(self)
 
 		local pos = self:GetPos()
-		if (COLOSSAL_SANDBOX) then pos = pos * 6.25 end
+		if COLOSSAL_SANDBOX then pos = pos * 6.25 end
 		local txt = string.format( "Position = %0.3f, %0.3f, %0.3f", math.Round(pos.x,3),math.Round(pos.y,3),math.Round(pos.z,3) )
 
 		self:SetOverlayText( txt )
@@ -38,7 +38,7 @@ function ENT:Setup()
 	self.Value = 0
 	self.PrevOutput = nil
 
-	//self:ShowOutput(0, 0, 0)
+	--self:ShowOutput(0, 0, 0)
 	Wire_TriggerOutput(self, "X", 0)
 	Wire_TriggerOutput(self, "Y", 0)
 	Wire_TriggerOutput(self, "Z", 0)
@@ -54,7 +54,7 @@ function ENT:Think()
 	self.BaseClass.Think(self)
 
 	local pos = self:GetPos()
-	if (COLOSSAL_SANDBOX) then pos = pos * 6.25 end
+	if COLOSSAL_SANDBOX then pos = pos * 6.25 end
 
 	Wire_TriggerOutput(self, "X", pos.x)
 	Wire_TriggerOutput(self, "Y", pos.y)
@@ -78,14 +78,14 @@ function ENT:Think()
 end
 
 function ENT:TriggerInput(iname, value)
-	if (iname == "Store/Save Pos") then
-		if (value ~= 0) then
+	if iname == "Store/Save Pos" then
+		if value ~= 0 then
 			local curpos = self:GetPos()
 			table.insert(self.storedpositions, curpos)
 			self.arrayindex = self.arrayindex+1
 		end
-	elseif (iname == "Next") then
-		if (value ~= 0) then
+	elseif iname == "Next" then
+		if value ~= 0 then
 			if # self.storedpositions > 0 then
 				if not (self.arrayindex >= # self.storedpositions) then
 					self.arrayindex = self.arrayindex+1;
@@ -94,8 +94,8 @@ function ENT:TriggerInput(iname, value)
 				end
 			end
 		end
-	elseif (iname == "Remove Save Position") then
-		if (value ~= 0) then
+	elseif iname == "Remove Save Position" then
+		if value ~= 0 then
 			if self.arrayindex ~= 0 then
 				table.remove(self.storedpositions, self.arrayindex)
 			end

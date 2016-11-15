@@ -39,8 +39,8 @@ if CLIENT then
 	local wire_egp_drawemitters = CreateClientConVar("wire_egp_drawemitters", "1")
 
 	function ENT:Draw()
-		if (wire_egp_drawemitters:GetBool() == true and self.RenderTable and #self.RenderTable > 0) then
-			if (self.UpdateConstantly) then self:EGP_Update() end
+		if wire_egp_drawemitters:GetBool() == true and self.RenderTable and #self.RenderTable > 0 then
+			if self.UpdateConstantly then self:EGP_Update() end
 
 			local pos = self:LocalToWorld( Vector( -64, 0, 135 ) )
 			local ang = self:LocalToWorldAngles( Angle(0,0,90) )
@@ -90,9 +90,9 @@ function ENT:SetEGPOwner( ply )
 end
 
 function ENT:GetEGPOwner()
-	if (!self.ply or !self.ply:IsValid()) then
+	if not self.ply or not self.ply:IsValid() then
 		local ply = player.GetByUniqueID( self.plyID )
-		if (ply) then self.ply = ply end
+		if ply then self.ply = ply end
 		return ply
 	else
 		return self.ply

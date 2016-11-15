@@ -36,7 +36,7 @@ function ENT:Initialize()
 	self.DisabledByTimeUntil = CurTime()
 
 	local phys = self:GetPhysicsObject()
-	if (phys:IsValid()) then phys:Wake() end
+	if phys:IsValid() then phys:Wake() end
 
 	self.UndoList = {}
 
@@ -90,10 +90,10 @@ function ENT:DoSpawn( pl, down )
 	if self.DisabledByTouch or self.DisabledByTimeUntil > CurTime() then return end
 
 	local ent	= self
-	if (not ent:IsValid()) then return end
+	if not ent:IsValid() then return end
 
 	local phys	= ent:GetPhysicsObject()
-	if (not phys:IsValid()) then return end
+	if not phys:IsValid() then return end
 
 	local Pos	= ent:GetPos()
 	local Ang	= ent:GetAngles()
@@ -123,7 +123,7 @@ function ENT:DoSpawn( pl, down )
 	end
 
 	local nocollide = constraint.NoCollide( prop, ent, 0, 0 )
-	if (nocollide:IsValid()) then prop:DeleteOnRemove( nocollide ) end
+	if nocollide:IsValid() then prop:DeleteOnRemove( nocollide ) end
 
 	undo.Create("Prop")
 		undo.AddEntity( prop )
@@ -149,7 +149,7 @@ function ENT:DoSpawn( pl, down )
 	self.DisabledByTouch = true
 	self.DisabledByTimeUntil = CurTime() + wire_spawner_delay:GetFloat()
 
-	if (self.undo_delay == 0) then return end
+	if self.undo_delay == 0 then return end
 
 	timer.Simple( self.undo_delay, function() if prop:IsValid() then prop:Remove() end end )
 
@@ -187,7 +187,7 @@ function ENT:CheckEnts(removed_entity)
 	end
 
 	-- Check to see if active prop count has changed
-	if (#self.UndoList ~= self.CurrentPropCount) then
+	if #self.UndoList ~= self.CurrentPropCount then
 		self.CurrentPropCount = #self.UndoList
 		Wire_TriggerOutput(self, "Out", self.CurrentPropCount)
 		Wire_TriggerOutput(self, "Props", self.UndoList)
@@ -198,15 +198,15 @@ end
 function ENT:TriggerInput(iname, value)
 	local pl = self:GetPlayer()
 
-	if (iname == "Spawn") then
+	if iname == "Spawn" then
 		-- Spawner is "edge-triggered" (TheApathetic)
 		local SpawnThisValue = value > 0
-		if (SpawnThisValue == self.SpawnLastValue) then return end
+		if SpawnThisValue == self.SpawnLastValue then return end
 		self.SpawnLastValue = SpawnThisValue
 
-		if (SpawnThisValue) then
+		if SpawnThisValue then
 			-- Simple copy/paste of old numpad Spawn with a few modifications
-			if (self.delay == 0) then self:DoSpawn( pl ) return end
+			if self.delay == 0 then self:DoSpawn( pl ) return end
 
 			local TimedSpawn = 	function ( ent, pl )
 				if not IsValid(ent) then return end
@@ -215,16 +215,16 @@ function ENT:TriggerInput(iname, value)
 
 			timer.Simple( self.delay, function() TimedSpawn(self, pl) end )
 		end
-	elseif (iname == "Undo") then
+	elseif iname == "Undo" then
 		-- Same here
 		local UndoThisValue = value > 0
-		if (UndoThisValue == self.UndoLastValue) then return end
+		if UndoThisValue == self.UndoLastValue then return end
 		self.UndoLastValue = UndoThisValue
 
-		if (UndoThisValue) then self:DoUndo(pl) end
-	elseif (iname == "UndoEnt") then
+		if UndoThisValue then self:DoUndo(pl) end
+	elseif iname == "UndoEnt" then
 		self:DoUndoEnt(pl, value)
-	elseif (iname == "SpawnEffect") then
+	elseif iname == "SpawnEffect" then
 		self.spawn_effect = value
 	end
 end

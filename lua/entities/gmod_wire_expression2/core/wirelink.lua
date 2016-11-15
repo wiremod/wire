@@ -1,6 +1,6 @@
-/******************************************************************************\
+--[[------------------
   Wire link support
-\******************************************************************************/
+--------------------]]
 
 local floor = math.floor
 local Clamp = math.Clamp
@@ -49,7 +49,7 @@ local function mapInputAlias(ent, portname)
 	return portname
 end
 
-/******************************************************************************/
+
 
 local function WriteStringZero(entity, address, string)
 	if not entity:WriteCell(address+#string, 0) then return 0 end
@@ -107,7 +107,7 @@ local function WriteArray(entity, address, data)
 	return free_address
 end
 
-/******************************************************************************/
+
 
 registerType("wirelink", "xwl", nil,
 	nil,
@@ -122,7 +122,7 @@ registerType("wirelink", "xwl", nil,
 	end
 )
 
-/******************************************************************************/
+
 
 __e2setcost(2) -- temporary
 
@@ -134,7 +134,7 @@ registerOperator("ass", "xwl", "xwl", function(self, args)
 	return rhs
 end)
 
-/******************************************************************************/
+
 
 e2function number operator_is(wirelink value)
 	if not validWirelink(self, value) then return 0 end
@@ -149,7 +149,7 @@ e2function number operator!=(wirelink lhs, wirelink rhs)
 	if lhs ~= rhs then return 1 else return 0 end
 end
 
-/******************************************************************************/
+
 
 e2function number wirelink:isHiSpeed()
 	if not validWirelink(self, this) then return 0 end
@@ -160,7 +160,7 @@ e2function entity wirelink:entity()
 	return this
 end
 
-/******************************************************************************/
+
 
 e2function number wirelink:hasInput(string portname)
 	if not validWirelink(self, this) then return 0 end
@@ -176,7 +176,7 @@ e2function number wirelink:hasOutput(string portname)
 	return 1
 end
 
-/******************************************************************************/
+
 
 registerCallback("postinit", function()
 
@@ -300,7 +300,7 @@ e2function vector wirelink:xyz()
 	return { x.Value, y.Value, z.Value }
 end
 
-/******************************************************************************/
+
 
 __e2setcost(5) -- temporary
 
@@ -319,7 +319,7 @@ e2function wirelink nowirelink()
 	return nil
 end
 
-/******************************************************************************/
+
 -- XWL:inputs/outputs/inputType/outputType by jeremydeath
 
 __e2setcost(15) -- temporary
@@ -327,7 +327,7 @@ __e2setcost(15) -- temporary
 --- Returns an array of all the inputs that <this> has without their types. Returns an empty array if it has none
 e2function array wirelink:inputs()
 	if not validWirelink(self, this) then return {} end
-	if(!this.Inputs) then return {} end
+	if(not this.Inputs) then return {} end
 
 	local InputNames = {}
 	for k,v in pairs_sortvalues(this.Inputs, WireLib.PortComparator) do
@@ -339,7 +339,7 @@ end
 --- Returns an array of all the outputs that <this> has without their types. Returns an empty array if it has none
 e2function array wirelink:outputs()
 	if not validWirelink(self, this) then return {} end
-	if(!this.Outputs) then return {} end
+	if(not this.Outputs) then return {} end
 
 	local OutputNames = {}
 	for k,v in pairs_sortvalues(this.Outputs, WireLib.PortComparator) do
@@ -351,7 +351,7 @@ end
 --- Returns the type of input that <Input> is in lowercase. ( "NORMAL"  is changed to "number" )
 e2function string wirelink:inputType(string Input)
 	if not validWirelink(self, this) then return "" end
-	if(!this.Inputs or !this.Inputs[Input]) then return "" end
+	if(not this.Inputs or not this.Inputs[Input]) then return "" end
 
 	local Type = this.Inputs[Input].Type or ""
 	if Type == "NORMAL" then Type = "number" end
@@ -361,14 +361,14 @@ end
 --- Returns the type of output that <Output> is in lowercase. ( "NORMAL"  is changed to "number" )
 e2function string wirelink:outputType(string Output)
 	if not validWirelink(self, this) then return "" end
-	if(!this.Outputs or !this.Outputs[Output]) then return "" end
+	if(not this.Outputs or not this.Outputs[Output]) then return "" end
 
 	local Type = this.Outputs[Output].Type or ""
 	if Type == "NORMAL" then Type = "number" end
 	return string.lower(Type)
 end
 
-/******************************************************************************/
+
 
 __e2setcost(5) -- temporary
 
@@ -387,7 +387,7 @@ e2function number wirelink:readCell(address)
 end
 
 e2function array wirelink:readArray(start, size)
-	if !validWirelink(self, this) or !this.ReadCell then return {} end
+	if not validWirelink(self, this) or not this.ReadCell then return {} end
 
 	self.prf = self.prf + size
 
@@ -409,7 +409,7 @@ e2function number wirelink:operator[](address, value)
 end
 e2function number wirelink:operator[](address) = e2function number wirelink:readCell(address)
 
-/******************************************************************************/
+
 
 __e2setcost(20) -- temporary
 
@@ -449,7 +449,7 @@ e2function string wirelink:operator[T](address)
 	return ReadStringZero(this, address)
 end
 
-/******************************************************************************/
+
 
 __e2setcost(20) -- temporary
 
@@ -464,8 +464,8 @@ end
 local function WriteString(self, entity, string, X, Y, textcolor, bgcolor, Flash)
 	if not validWirelink(self, entity) or not entity.WriteCell then return end
 
-	if !isnumber(textcolor)then textcolor = conv(textcolor) end
-	if !isnumber(bgcolor) then bgcolor = conv(bgcolor) end
+	if not isnumber(textcolor)then textcolor = conv(textcolor) end
+	if not isnumber(bgcolor) then bgcolor = conv(bgcolor) end
 
 	textcolor = Clamp(floor(textcolor), 0, 999)
 	bgcolor = Clamp(floor(bgcolor), 0, 999)
@@ -524,8 +524,8 @@ e2function void wirelink:writeString(string text, x, y, vector textcolor) = e2fu
 local function WriteUnicodeString(self, entity, string, X, Y, textcolor, bgcolor, Flash)
 	if not validWirelink(self, entity) or not entity.WriteCell then return end
 
-	if !isnumber(textcolor)then textcolor = conv(textcolor) end
-	if !isnumber(bgcolor) then bgcolor = conv(bgcolor) end
+	if not isnumber(textcolor)then textcolor = conv(textcolor) end
+	if not isnumber(bgcolor) then bgcolor = conv(bgcolor) end
 
 	textcolor = Clamp(floor(textcolor), 0, 999)
 	bgcolor = Clamp(floor(bgcolor), 0, 999)
@@ -547,9 +547,9 @@ local function WriteUnicodeString(self, entity, string, X, Y, textcolor, bgcolor
 						Byte = 0
 					else
 						Byte = (Byte % 8) * 262144
-						Byte = Byte + (string.byte (string, i + 1) % 64) * 4096
-						Byte = Byte + (string.byte (string, i + 2) % 64) * 64
-						Byte = Byte + (string.byte (string, i + 3) % 64)
+						Byte = Byte + (string.byte(string, i + 1) % 64) * 4096
+						Byte = Byte + (string.byte(string, i + 2) % 64) * 64
+						Byte = Byte + (string.byte(string, i + 3) % 64)
 					end
 					i = i + 3
 				elseif Byte >= 224 then
@@ -558,8 +558,8 @@ local function WriteUnicodeString(self, entity, string, X, Y, textcolor, bgcolor
 						Byte = 0
 					else
 						Byte = (Byte % 16) * 4096
-						Byte = Byte + (string.byte (string, i + 1) % 64) * 64
-						Byte = Byte + (string.byte (string, i + 2) % 64)
+						Byte = Byte + (string.byte(string, i + 1) % 64) * 64
+						Byte = Byte + (string.byte(string, i + 2) % 64)
 					end
 					i = i + 2
 				elseif Byte >= 192 then
@@ -568,7 +568,7 @@ local function WriteUnicodeString(self, entity, string, X, Y, textcolor, bgcolor
 						Byte = 0
 					else
 						Byte = (Byte % 32) * 64
-						Byte = Byte + (string.byte (string, i + 1) % 64)
+						Byte = Byte + (string.byte(string, i + 1) % 64)
 					end
 					i = i + 1
 				else
@@ -618,7 +618,7 @@ e2function void wirelink:writeUnicodeString(string text, x, y, vector textcolor,
 
 e2function void wirelink:writeUnicodeString(string text, x, y, vector textcolor) = e2function void wirelink:writeUnicodeString(string text, x, y, textcolor)
 
-/******************************************************************************/
+
 
 --- Writes a null-terminated string to the given address. Returns the next free address or 0 on failure.
 e2function number wirelink:writeString(address, string data)
@@ -632,7 +632,7 @@ e2function string wirelink:readString(address)
 	return ReadStringZero(this, address)
 end
 
-/******************************************************************************/
+
 
 --- Writes an array's elements into a piece of memory. Strings and sub-tables (angles, vectors, matrices) are written as pointers to the actual data. Strings are written null-terminated.
 e2function number wirelink:writeArray(address, array data)

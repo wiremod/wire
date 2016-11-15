@@ -44,14 +44,14 @@ function ENT:Think()
 end
 
 function ENT:ReadCell( Address )
-	if (self.Memory) then
-		if (self.Memory.LatchStore && self.Memory.LatchStore[math.floor(Address)]) then
+	if self.Memory then
+		if self.Memory.LatchStore and self.Memory.LatchStore[math.floor(Address)] then
 			self.HDataBytes = self.HDataBytes + 1
 			return self.Memory.LatchStore[math.floor(Address)]
-		elseif (self.Memory.ReadCell) then
+		elseif self.Memory.ReadCell then
 			self.HDataBytes = self.HDataBytes + 1
 			local val = self.Memory:ReadCell(Address)
-			if (val) then return val
+			if val then return val
 			else return 0 end
 		end
 	end
@@ -59,12 +59,12 @@ function ENT:ReadCell( Address )
 end
 
 function ENT:WriteCell( Address, value )
-	if (self.Memory) then
-		if (self.Memory.LatchStore && self.Memory.LatchStore[math.floor(Address)]) then
+	if self.Memory then
+		if self.Memory.LatchStore and self.Memory.LatchStore[math.floor(Address)] then
 			self.Memory.LatchStore[math.floor(Address)] = value
 			self.HDataBytes = self.HDataBytes + 1
 			return true
-		elseif (self.Memory.WriteCell) then
+		elseif self.Memory.WriteCell then
 			local res = self.Memory:WriteCell(Address, value)
 			self.HDataBytes = self.HDataBytes + 1
 			return res
@@ -74,13 +74,13 @@ function ENT:WriteCell( Address, value )
 end
 
 function ENT:TriggerInput(iname, value)
-	if (iname == "Input") then
+	if iname == "Input" then
 		self.Memory = self.Inputs.Input.Src
 		self.WDataBytes = self.WDataBytes + 1
 		Wire_TriggerOutput(self, "Output", value)
-	elseif (iname == "Smooth") then
+	elseif iname == "Smooth" then
 		self.Smooth = 2*(1-math.Clamp(value,0,1))
-	elseif (iname == "Interval") then
+	elseif iname == "Interval" then
 		self.Interval = math.Clamp(value,0.1,2)
 	end
 end

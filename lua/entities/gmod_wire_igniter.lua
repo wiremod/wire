@@ -38,15 +38,15 @@ function ENT:DoTrace()
 
 	if not IsValid(trace.Entity) then return false end
 	if not gamemode.Call("CanProperty", self:GetPlayer(), "ignite", trace.Entity) then return false end
-	if (trace.Entity:IsPlayer() and (not self.TargetPlayers or not cvarTargetPlayers)) then return false end
-	if (trace.Entity:IsWorld()) then return false end
+	if trace.Entity:IsPlayer() and (not self.TargetPlayers or not cvarTargetPlayers) then return false end
+	if trace.Entity:IsWorld() then return false end
 	
 	return trace.Entity
 end
 
 function ENT:TriggerInput(iname, value)
-	if (iname == "A") then
-		if (value ~= 0) then
+	if iname == "A" then
+		if value ~= 0 then
 			local target = self:DoTrace()
 			
 			if target == false then return false end
@@ -54,9 +54,9 @@ function ENT:TriggerInput(iname, value)
 			target:Extinguish()
 			target:Ignite( self.IgniteLength, 0 )
 		end
-	elseif (iname == "Length") then
+	elseif iname == "Length" then
 		self.IgniteLength = math.min(value,GetConVarNumber("sbox_wire_igniters_maxlen"))
-	elseif (iname == "Extinguish") then
+	elseif iname == "Extinguish" then
 		if value ~= 0 then
 			local target = self:DoTrace()
 			

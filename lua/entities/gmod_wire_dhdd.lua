@@ -54,17 +54,17 @@ function ENT:ShowOutputs()
 end
 
 function ENT:TriggerInput( name, value )
-	if (name == "Data") then
+	if name == "Data" then
 		if not value then return end -- if the value is invalid, abort
 		if not IsValid(self.Inputs.Data.Src) then return end -- if the input is not wired to anything, abort
 		if not self.AllowWrite then return end -- if we don't allow writing, abort
 
 		self.Memory = value
 		self:ShowOutputs()
-	elseif (name == "Clear") then
+	elseif name == "Clear" then
 		self.Memory = {}
 		self:ShowOutputs()
-	elseif (name == "AllowWrite") then
+	elseif name == "AllowWrite" then
 		self.AllowWrite = value >= 1
 	end
 end
@@ -78,7 +78,7 @@ function ENT:BuildDupeInfo()
 	info.DHDD.Memory = {}
 	for k,v in pairs( self.Memory ) do -- Only save the first 512^2 values
 		n = n + 1
-		if (n > 512*512) then break end
+		if n > 512*512 then break end
 		info.DHDD.Memory[k] = v
 	end
 
@@ -88,7 +88,7 @@ function ENT:BuildDupeInfo()
 end
 
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
-	if (info.DHDD) then
+	if info.DHDD then
 		ent.Memory = (info.DHDD.Memory or {})
 		if info.DHDD.AllowWrite ~= nil then
 			ent.AllowWrite = info.DHDD.AllowWrite

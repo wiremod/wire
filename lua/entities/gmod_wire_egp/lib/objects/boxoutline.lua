@@ -11,7 +11,7 @@ local function rotate( x, y, a )
 end
 
 Obj.Draw = function( self, egp )
-	if (self.a>0 and self.w > 0 and self.h > 0) then
+	if self.a > 0 and self.w > 0 and self.h > 0 then
 		surface.SetDrawColor( self.r, self.g, self.b, self.a )
 
 		local x, y, w, h, a, s = self.x, self.y, self.w, self.h, self.angle, self.size
@@ -22,7 +22,7 @@ Obj.Draw = function( self, egp )
 		local x4, y4 = rotate( 0, -h / 2 + s / 2, -a )
 
 		if egp.gmod_wire_egp_emitter then -- is emitter
-			if (h - s*2 > 0) then
+			if h - s*2 > 0 then
 				-- Right
 				surface.DrawTexturedRectRotated( x + math.ceil(x1), y + math.Round(y1), h - s*2, s, a - 90 )
 				-- Left
@@ -33,7 +33,7 @@ Obj.Draw = function( self, egp )
 			-- Top
 			surface.DrawTexturedRectRotated( x + math.Round(x4), y + math.ceil(y4), w, s, a )
 		else -- is not emitter
-			if (h - s*2 > 0) then
+			if h - s*2 > 0 then
 				-- Right
 				surface.DrawTexturedRectRotated( x + math.ceil(x1), y + math.ceil(y1), h - s*2, s, a - 90 )
 				-- Left

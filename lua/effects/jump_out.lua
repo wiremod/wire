@@ -1,21 +1,19 @@
-
-
 EFFECT.Mat = Material( "effects/select_ring" )
 
-/*---------------------------------------------------------
+--[[-------------------------------------------------------
    Initializes the effect. The data is a table of data
    which was passed from the server.
----------------------------------------------------------*/
+---------------------------------------------------------]]
 function EFFECT:Init( data )
 
 	local TargetEntity = data:GetEntity()
 
-	if ( !TargetEntity || !TargetEntity:IsValid() ) then return end
+	if not TargetEntity or not TargetEntity:IsValid() then return end
 
 	local vOffset = TargetEntity:GetPos()
 
 	local Low, High = TargetEntity:WorldSpaceAABB()
-	local Center = data:GetOrigin() //High - (( High - Low ) * 0.5)
+	local Center = data:GetOrigin() -- High - (( High - Low ) * 0.5)
 
 	local NumParticles = TargetEntity:BoundingRadius()
 	NumParticles = NumParticles * 2
@@ -48,15 +46,15 @@ function EFFECT:Init( data )
 end
 
 
-/*---------------------------------------------------------
+--[[---------------------------------------------------------
    THINK
----------------------------------------------------------*/
+---------------------------------------------------------]]
 function EFFECT:Think( )
 	return false
 end
 
-/*---------------------------------------------------------
+--[[---------------------------------------------------------
    Draw the effect
----------------------------------------------------------*/
+---------------------------------------------------------]]
 function EFFECT:Render()
 end

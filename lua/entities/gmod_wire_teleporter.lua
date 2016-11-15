@@ -35,26 +35,26 @@ function ENT:Initialize()
 end
 
 function ENT:TriggerInput(iname, value)
-	if (iname == "Jump") then
-		if (value ~= 0 and not self.Jumping) then
+	if iname == "Jump" then
+		if value ~= 0 and not self.Jumping then
 			self:Jump(self.UseAngle or self.Inputs.TargetAngle.Src ~= nil)
 			self.UseAngle = false
 		end
-	elseif (iname == "TargetPos") then
+	elseif iname == "TargetPos" then
 		self.TargetPos = value
-	elseif (iname == "X") then
+	elseif iname == "X" then
 		self.TargetPos.x = value
-	elseif (iname == "Y") then
+	elseif iname == "Y" then
 		self.TargetPos.y = value
-	elseif (iname == "Z") then
+	elseif iname == "Z" then
 		self.TargetPos.z = value
-	elseif (iname == "TargetAngle") then
+	elseif iname == "TargetAngle" then
 		self.TargetAng = value
 		-- if the angle is set, we should use it for jumping
 		-- even if there's nothing connected to the angle wire.
 		-- otherwise, we can't use wirelink for angles.
 		self.UseAngle = true
-	elseif (iname == "Sound") then
+	elseif iname == "Sound" then
 		self.UseSounds = value ~= 0
 	end
 	self:ShowOutput()
@@ -70,18 +70,18 @@ function ENT:Jump( withangles )
 	--------------------------------------------------------------------
 
 	-- Is already teleporting
-	if (self.Jumping) then
+	if self.Jumping then
 		return
 	end
 
 	-- The target position is outside the world
-	if (!util.IsInWorld( self.TargetPos )) then
+	if not util.IsInWorld( self.TargetPos ) then
 		self:EmitSound("buttons/button8.wav")
 		return
 	end
 
 	-- The position or angle hasn't changed
-	if (self:GetPos() == self.TargetPos and self:GetAngles() == self.TargetAng) then
+	if self:GetPos() == self.TargetPos and self:GetAngles() == self.TargetAng then
 		self:EmitSound("buttons/button8.wav")
 		return
 	end
@@ -164,7 +164,7 @@ function ENT:Jump_Part2( withangles )
 	self.LocalAng = {}
 	self.LocalVel = {}
 	for _, ent in pairs( self.Entities ) do
-		if (ent:GetPhysicsObjectCount() > 1) then -- Check for bones
+		if ent:GetPhysicsObjectCount() > 1 then -- Check for bones
 			local tbl = { Main = self:WorldToLocal( ent:GetPos() ) }
 			local tbl2 = { Main = self:WorldToLocal( ent:GetVelocity() + ent:GetPos() ) }
 
@@ -226,7 +226,7 @@ function ENT:Jump_Part2( withangles )
 
 		if withangles then ent:SetAngles( self:LocalToWorldAngles( self.LocalAng[ent] ) ) end -- Angles
 
-		if (ent:GetPhysicsObjectCount() > 1) then -- Check for bones
+		if ent:GetPhysicsObjectCount() > 1 then -- Check for bones
 			ent:SetPos( self:LocalToWorld( self.LocalPos[ent].Main ) ) -- Position
 
 			-- Set new velocity
@@ -299,7 +299,7 @@ function ENT:Jump_Part2( withangles )
 end
 
 function ENT:CheckAllowed( e )
-	if (e:GetParent():EntIndex() != 0) then return false end
+	if e:GetParent():EntIndex() ~= 0 then return false end
 
 	-- These shouldn't happen, ever, but they're here just to be safe
 	local c = e:GetClass()

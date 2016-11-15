@@ -87,9 +87,9 @@ if SERVER then
 		-- Parenting
 		local nocollide, const
 		if self:GetClientNumber( "parent" ) == 1 then
-			if (trace.Entity:IsValid()) then
+			if trace.Entity:IsValid() then
 				-- Nocollide the gate to the prop to make adv duplicator (and normal duplicator) find it
-				if (!self.ClientConVar.noclip or self:GetClientNumber( "noclip" ) == 1) then
+				if not self.ClientConVar.noclip or self:GetClientNumber( "noclip" ) == 1 then
 					nocollide = constraint.NoCollide( ent, trace.Entity, 0,trace.PhysicsBone )
 				end
 
@@ -107,8 +107,8 @@ if SERVER then
 
 		undo.Create( self.WireClass )
 			undo.AddEntity( ent )
-			if (const) then undo.AddEntity( const ) end
-			if (nocollide) then undo.AddEntity( nocollide ) end
+			if const then undo.AddEntity( const ) end
+			if nocollide then undo.AddEntity( nocollide ) end
 			undo.SetPlayer( self:GetOwner() )
 		undo.Finish()
 
@@ -129,7 +129,7 @@ function WireToolObj:Reload( trace )
 		self:GetOwner():PrintMessage( HUD_PRINTTALK, self.Name.." model set to " .. trace.Entity:GetModel() )
 		return true
 	end
-	if (trace.Entity:GetParent():IsValid()) then
+	if trace.Entity:GetParent():IsValid() then
 
 		-- Get its position
 		local pos = trace.Entity:GetPos()
@@ -142,7 +142,7 @@ function WireToolObj:Reload( trace )
 
 		-- Wake
 		local phys = trace.Entity:GetPhysicsObject()
-		if (phys) then
+		if phys then
 			phys:Wake()
 		end
 
@@ -215,7 +215,7 @@ function WireToolObj:GetModel()
 	local model_convar = self:GetClientInfo( "model" )
 	if self.ClientConVar.modelsize then
 		local modelsize = self:GetClientInfo( "modelsize" )
-		if modelsize != "" then
+		if modelsize ~= "" then
 			local model = string.sub(model_convar, 1, -5) .."_".. modelsize .. string.sub(model_convar, -4)
 			if self:CheckValidModel(model) then return model end
 			model = string.GetPathFromFilename(model_convar) .. modelsize .."_".. string.GetFileFromFilename(model_convar)

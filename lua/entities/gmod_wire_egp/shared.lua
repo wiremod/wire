@@ -11,4 +11,4 @@ ENT.Spawnable      = false
 ENT.AdminSpawnable = false
 
 include("lib/init.lua")
-if (SERVER) then AddCSLuaFile("lib/init.lua") end
+if SERVER then AddCSLuaFile("lib/init.lua") end

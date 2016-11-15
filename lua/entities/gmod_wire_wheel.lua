@@ -67,9 +67,9 @@ function ENT:SetMotor( Motor )
 end
 
 function ENT:GetMotor()
-	if (!self.Motor) then
+	if not self.Motor then
 		self.Motor = constraint.FindConstraintEntity( self, "Motor" )
-		if (!self.Motor or !self.Motor:IsValid()) then
+		if not self.Motor or not self.Motor:IsValid() then
 			self.Motor = nil
 		end
 	end
@@ -86,12 +86,12 @@ end
    Forward
 ---------------------------------------------------------]]
 function ENT:Forward( mul )
-	if ( !self:IsValid() ) then return false end
+	if not self:IsValid() then return false end
 	local Motor = self:GetMotor()
-	if ( Motor and !Motor:IsValid() ) then
+	if Motor and not Motor:IsValid() then
 		Msg("Wheel doesn't have a motor!\n");
 		return false
-	elseif ( !Motor ) then return false
+	elseif not Motor then return false
 	end
 
 	mul = mul or 1
@@ -112,13 +112,13 @@ end
    Desc: the inputs
 ---------------------------------------------------------]]
 function ENT:TriggerInput(iname, value)
-	if (iname == "A: Go") then
-		if ( value == self.fwd ) then self.Go = 1
-		elseif ( value == self.bck ) then self.Go = -1
-		elseif ( value == self.stop ) then self.Go =0 end
-	elseif (iname == "B: Break") then
+	if iname == "A: Go" then
+		if value == self.fwd then self.Go = 1
+		elseif value == self.bck then self.Go = -1
+		elseif value == self.stop then self.Go =0 end
+	elseif iname == "B: Break" then
 		self.Breaking = value
-	elseif (iname == "C: SpeedMod") then
+	elseif iname == "C: SpeedMod" then
 		self.SpeedMod = (value / 100)
 	end
 	self:Forward( self.Go )
@@ -132,8 +132,8 @@ end
 function ENT:PhysicsUpdate( physobj )
 	local vel = physobj:GetVelocity()
 
-	if (self.Breaking > 0) then -- to prevent badness
-		if (self.Breaking >= 100) then --100% breaking!!!
+	if self.Breaking > 0 then -- to prevent badness
+		if self.Breaking >= 100 then --100% breaking!!!
 			vel.x = 0 --full stop!
 			vel.y = 0
 		else
@@ -183,8 +183,8 @@ function ENT:Use( activator, caller, type, value )
 	local Motor = self:GetMotor()
 	local Owner = self:GetPlayer()
 
-	if (Motor and (Owner == nil or Owner == activator)) then
-		if (Motor:GetTable().direction == 1) then
+	if Motor and (Owner == nil or Owner == activator) then
+		if Motor:GetTable().direction == 1 then
 			Motor:GetTable().direction = -1
 		else
 			Motor:GetTable().direction = 1

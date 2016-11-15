@@ -27,16 +27,16 @@ end
 
 function ENT:TriggerInput(iname, value)
 	if not IsValid(self.Vehicle) then return end
-	if (iname == "Throttle") then
+	if iname == "Throttle" then
 		self.Throttle = value
-	elseif (iname == "Steering") then
+	elseif iname == "Steering" then
 		self.Steering = value
-	elseif (iname == "Handbrake") then
+	elseif iname == "Handbrake" then
 		self.Vehicle:Fire("handbrake"..(value~=0 and "on" or "off"), 1, 0)
-	elseif (iname == "Engine") then
+	elseif iname == "Engine" then
 		self.Vehicle:Fire("turn"..(value~=0 and "on" or "off"), 1, 0)
 		if value~=0 then self.Vehicle:Fire("handbrakeoff", 1, 0) end
-	elseif (iname == "Lock") then
+	elseif iname == "Lock" then
 		self.Vehicle:Fire((value~=0 and "" or "un").."lock", 1, 0)
 	end
 end

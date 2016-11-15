@@ -130,9 +130,9 @@ function ENT:Think()
 				local cx = 0.5+cpos.x/(monitor.RS*w)
 				local cy = 0.5-cpos.y/(monitor.RS*h)
 
-				if (cx >= 0 and cy >= 0 and cx <= 1 and cy <= 1) then
+				if cx >= 0 and cy >= 0 and cx <= 1 and cy <= 1 then
 					onScreen = 1
-					if (cx ~= self.lastX or cy ~= self.lastY) then
+					if cx ~= self.lastX or cy ~= self.lastY then
 						self.lastX = cx
 						self.lastY = cy
 						if self:GetCursorMode() == GRAPH_CURSOR then
@@ -148,13 +148,13 @@ function ENT:Think()
 		end
 	end
 
-	if (onScreen ~= self.lastOnScreen) then
+	if onScreen ~= self.lastOnScreen then
 		Wire_TriggerOutput(self, "OnScreen", onScreen)
 		self:ShowOutput(self.lastX, self.lastY, self.lastClick, onScreen)
 		self.lastOnScreen = onScreen
 	end
 
-	if (clickActive ~= self.lastClick) then
+	if clickActive ~= self.lastClick then
 		Wire_TriggerOutput(self, "Use", clickActive)
 		self:ShowOutput(self.lastX, self.lastY, clickActive, self.lastOnScreen)
 		self.lastClick = clickActive

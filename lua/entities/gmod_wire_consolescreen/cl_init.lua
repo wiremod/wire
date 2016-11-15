@@ -153,10 +153,10 @@ function ENT:WriteCell(Address,value)
     local high = math.floor(math.Clamp(self.Memory1[2034],0,17))
     local lowc = math.floor(math.Clamp(self.Memory1[2031],0,29))
     local highc = math.floor(math.Clamp(self.Memory1[2032],0,29))
-    if (value > 0) then
+    if value > 0 then
       for j = low,high do
         for i = highc,lowc+delta,-1 do
-          if (self.NewClk) then
+          if self.NewClk then
             self.Memory1[j*60+i*2] = self.Memory1[j*60+(i-delta)*2]
             self.Memory1[j*60+i*2+1] = self.Memory1[j*60+(i-delta)*2+1]
           end
@@ -166,7 +166,7 @@ function ENT:WriteCell(Address,value)
       end
       for j = low,high do
         for i = lowc, lowc+delta-1 do
-          if (self.NewClk) then
+          if self.NewClk then
             self.Memory1[j*60+i*2] = 0
             self.Memory1[j*60+i*2+1] = 0
           end
@@ -177,7 +177,7 @@ function ENT:WriteCell(Address,value)
     else
       for j = low,high do
         for i = lowc,highc-delta do
-          if (self.NewClk) then
+          if self.NewClk then
             self.Memory1[j*60+i*2] = self.Memory1[j*60+i*2+delta*2]
             self.Memory1[j*60+i*2+1] = self.Memory1[j*60+i*2+1+delta*2]
           end
@@ -187,7 +187,7 @@ function ENT:WriteCell(Address,value)
       end
       for j = low,high do
         for i = highc-delta+1,highc do
-          if (self.NewClk) then
+          if self.NewClk then
             self.Memory1[j*60+i*2] = 0
             self.Memory1[j*60+i*2+1] = 0
           end
@@ -203,10 +203,10 @@ function ENT:WriteCell(Address,value)
     local high = math.floor(math.Clamp(self.Memory1[2034],0,17))
     local lowc = math.floor(math.Clamp(self.Memory1[2031],0,29))
     local highc = math.floor(math.Clamp(self.Memory1[2032],0,29))
-    if (value > 0) then
+    if value > 0 then
       for j = low, high-delta do
         for i = 2*lowc,2*highc+1 do
-          if (self.NewClk) then
+          if self.NewClk then
             self.Memory1[j*60+i] = self.Memory1[(j+delta)*60+i]
           end
           self.Memory2[j*60+i] = self.Memory2[(j+delta)*60+i]
@@ -214,7 +214,7 @@ function ENT:WriteCell(Address,value)
       end
       for j = high-delta+1,high do
         for i = 2*lowc, 2*highc+1 do
-          if (self.NewClk) then
+          if self.NewClk then
             self.Memory1[j*60+i] = 0
           end
           self.Memory2[j*60+i] = 0
@@ -223,7 +223,7 @@ function ENT:WriteCell(Address,value)
     else
       for j = high,low+delta,-1 do
         for i = 2*lowc, 2*highc+1 do
-          if (self.NewClk) then
+          if self.NewClk then
             self.Memory1[j*60+i] = self.Memory1[(j-delta)*60+i]
           end
           self.Memory2[j*60+i] = self.Memory2[(j-delta)*60+i]
@@ -231,7 +231,7 @@ function ENT:WriteCell(Address,value)
       end
       for j = low,low+delta-1 do
         for i = 2*lowc, 2*highc+1 do
-          if (self.NewClk) then
+          if self.NewClk then
             self.Memory1[j*60+i] = 0
           end
           self.Memory2[j*60+i] = 0
@@ -378,13 +378,13 @@ function ENT:Draw()
             -- Note: the source engine does not handle unicode characters above 65535 properly.
             local utf8 = ""
             if c1 <= 127 then
-              utf8 = string.char (c1)
+              utf8 = string.char(c1)
             elseif c1 < 2048 then
-              utf8 = string.format("%c%c", 192 + math.floor (c1 / 64), 128 + (c1 % 64))
+              utf8 = string.format("%c%c", 192 + math.floor(c1 / 64), 128 + (c1 % 64))
             elseif c1 < 65536 then
-              utf8 = string.format("%c%c%c", 224 + math.floor (c1 / 4096), 128 + (math.floor (c1 / 64) % 64), 128 + (c1 % 64))
+              utf8 = string.format("%c%c%c", 224 + math.floor(c1 / 4096), 128 + (math.floor(c1 / 64) % 64), 128 + (c1 % 64))
             elseif c1 < 2097152 then
-              utf8 = string.format("%c%c%c%c", 240 + math.floor (c1 / 262144), 128 + (math.floor (c1 / 4096) % 64), 128 + (math.floor (c1 / 64) % 64), 128 + (c1 % 64))
+              utf8 = string.format("%c%c%c%c", 240 + math.floor(c1 / 262144), 128 + (math.floor(c1 / 4096) % 64), 128 + (math.floor(c1 / 64) % 64), 128 + (c1 % 64))
             end
 
             if specialCharacters[c1] then
@@ -441,7 +441,7 @@ function ENT:Draw()
 
   if self.FrameNeedsFlash == true then
     if self.IntTimer < self.Memory1[2043] then
-      if (self.Flash == false) then
+      if self.Flash == false then
         self.NeedRefresh = true
       end
       self.Flash = true

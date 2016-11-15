@@ -48,7 +48,7 @@ if CLIENT then
 			render.SetMaterial( matLight )
 			local Visibile	= util.PixelVisible( LightPos, 16, self.PixVis )	
 			
-			if (!Visibile) then return end
+			if not Visibile then return end
 			
 			local Size = math.Clamp( Distance * Visibile * ViewDot * 2, 64, 512 )
 			
@@ -75,7 +75,7 @@ function ENT:Initialize()
 
 	local phys = self:GetPhysicsObject()
 
-	if (phys:IsValid()) then
+	if phys:IsValid() then
 		phys:Wake()
 	end
 
@@ -87,24 +87,24 @@ function ENT:OnTakeDamage( dmginfo )
 end
 
 function ENT:TriggerInput(iname, value)
-	if (iname == "Red") then
+	if iname == "Red" then
 		self.r = math.Clamp(value,0,255)
-	elseif (iname == "Green") then
+	elseif iname == "Green" then
 		self.g = math.Clamp(value,0,255)
-	elseif (iname == "Blue") then
+	elseif iname == "Blue" then
 		self.b = math.Clamp(value,0,255)
-	elseif (iname == "RGB") then
+	elseif iname == "RGB" then
 		self.r, self.g, self.b = math.Clamp(value[1],0,255), math.Clamp(value[2],0,255), math.Clamp(value[3],0,255)
-	elseif (iname == "FOV") then
+	elseif iname == "FOV" then
 		self.FOV = value
-	elseif (iname == "Distance") then
+	elseif iname == "Distance" then
 		self.Dist = value
-	elseif (iname == "Brightness") then
+	elseif iname == "Brightness" then
 		self.Brightness = math.Clamp(value,0,10)
-	elseif (iname == "On") then
+	elseif iname == "On" then
 		self:Switch( value ~= 0 )
-	elseif (iname == "Texture") then
-		if value != "" then self.Texture = value else self.Texture = "effects/flashlight001" end
+	elseif iname == "Texture" then
+		if value ~= "" then self.Texture = value else self.Texture = "effects/flashlight001" end
 	end
 	self:UpdateLight()
 end
@@ -150,7 +150,7 @@ end
 
 function ENT:UpdateLight()
 	self:SetColor( Color( self.r, self.g, self.b, self:GetColor().a ) )
-	if ( !IsValid( self.flashlight ) ) then return end
+	if not IsValid( self.flashlight ) then return end
 
 	self.flashlight:Input( "SpotlightTexture", NULL, NULL, self.Texture )
 	self.flashlight:Input( "FOV", NULL, NULL, tostring( self.FOV ) )

@@ -8,7 +8,7 @@ GateActions["not"] = {
 	name = "Not (Invert)",
 	inputs = { "A" },
 	output = function(gate, A)
-		if (A > 0) then return 0 end
+		if A > 0 then return 0 end
 		return 1
 	end,
 	label = function(Out, A)
@@ -29,7 +29,7 @@ GateActions["and"] = {
 	label = function(Out, ...)
 		local txt = ""
 		for k,v in ipairs({...}) do
-			if (v) then txt = txt..v.." and " end
+			if v then txt = txt..v.." and " end
 		end
 		return string.sub(txt, 1, -6).." = "..Out
 	end
@@ -48,7 +48,7 @@ GateActions["or"] = {
 	label = function(Out, ...)
 		local txt = ""
 		for k,v in ipairs({...}) do
-			if (v) then txt = txt..v.." or " end
+			if v then txt = txt..v.." or " end
 		end
 		return string.sub(txt, 1, -5).." = "..Out
 	end
@@ -68,7 +68,7 @@ GateActions["xor"] = {
 	label = function(Out, ...)
 		local txt = ""
 		for k,v in ipairs({...}) do
-			if (v) then txt = txt..v.." xor " end
+			if v then txt = txt..v.." xor " end
 		end
 		return string.sub(txt, 1, -6).." = "..Out
 	end
@@ -87,7 +87,7 @@ GateActions["nand"] = {
 	label = function(Out, ...)
 		local txt = ""
 		for k,v in ipairs({...}) do
-			if (v) then txt = txt..v.." nand " end
+			if v then txt = txt..v.." nand " end
 		end
 		return string.sub(txt, 1, -7).." = "..Out
 	end
@@ -106,7 +106,7 @@ GateActions["nor"] = {
 	label = function(Out, ...)
 		local txt = ""
 		for k,v in ipairs({...}) do
-			if (v) then txt = txt..v.." nor " end
+			if v then txt = txt..v.." nor " end
 		end
 		return string.sub(txt, 1, -6).." = "..Out
 	end
@@ -126,7 +126,7 @@ GateActions["xnor"] = {
 	label = function(Out, ...)
 		local txt = ""
 		for k,v in ipairs({...}) do
-			if (v) then txt = txt..v.." xnor " end
+			if v then txt = txt..v.." xnor " end
 		end
 		return string.sub(txt, 1, -7).." = "..Out
 	end

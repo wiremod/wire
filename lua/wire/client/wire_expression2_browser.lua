@@ -21,14 +21,14 @@ end
 
 local function InternalDoClick(self)
 	self:GetRoot():SetSelectedItem(self)
-	if (self:DoClick()) then return end
-	if (self:GetRoot():DoClick(self)) then return end
+	if self:DoClick() then return end
+	if self:GetRoot():DoClick(self) then return end
 end
 
 local function InternalDoRightClick(self)
 	self:GetRoot():SetSelectedItem(self)
-	if (self:DoRightClick()) then return end
-	if (self:GetRoot():DoRightClick(self)) then return end
+	if self:DoRightClick() then return end
+	if self:GetRoot():DoRightClick(self) then return end
 end
 
 local function fileName(filepath)
@@ -259,7 +259,7 @@ function PANEL:Init()
 	self:AddRightClick(self.filemenu, nil, "Delete", function()
 		Derma_Query("Delete this file?", "Delete",
 			"Delete", function()
-				if (file.Exists(self.File:GetFileName(), "DATA")) then
+				if file.Exists(self.File:GetFileName(), "DATA") then
 					file.Delete(self.File:GetFileName())
 					self:UpdateFolders()
 				end
@@ -356,7 +356,7 @@ function PANEL:OpenMenu(menu)
 	self.Menu = vgui.Create("DMenu", self.Folders)
 	for k, v in pairs(menu) do
 		local name, option = v[1], v[2]
-		if (name == "*SPACER*") then
+		if name == "*SPACER*" then
 			self.Menu:AddSpacer()
 		else
 			self.Menu:AddOption(name, option)
@@ -379,7 +379,7 @@ end
 
 function PANEL:RemoveRightClick(name)
 	for k, v in pairs(self.filemenu) do
-		if (v[1] == name) then
+		if v[1] == name then
 			self.filemenu[k] = nil
 			break
 		end

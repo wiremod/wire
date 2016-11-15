@@ -75,7 +75,7 @@ function ENT:SetSpeed( s ) self.speed = s end
 function ENT:SetStrength( s )
 	self.strength = s
 	local phys = self:GetPhysicsObject()
-	if ( phys:IsValid() ) then
+	if phys:IsValid() then
 		phys:SetMass( 150 * s )
 	end
 end
@@ -166,10 +166,10 @@ function ENT:Think()
 end
 
 function ENT:PhysicsSimulate( phys, deltatime )
-	if (self:IsOn()) then
+	if self:IsOn() then
 		local Pos = phys:GetPos()
 
-		if ( self:GetZVelocity() != 0 ) then
+		if self:GetZVelocity() ~= 0 then
 			self:SetZTarget( self:GetZTarget() + (self:GetZVelocity() * deltatime * self:GetSpeed()) )
 		end
 
@@ -179,11 +179,11 @@ function ENT:PhysicsSimulate( phys, deltatime )
 		local Distance = self:GetZTarget() - Pos.z
 		local AirResistance = self:GetAirResistance()
 
-		if ( Distance == 0 ) then return end
+		if Distance == 0 then return end
 
 		local Exponent = Distance^2
 
-		if ( Distance < 0 ) then
+		if Distance < 0 then
 			Exponent = Exponent * -1
 		end
 

@@ -1,20 +1,20 @@
 --------------------------------------------------------------------------------
 -- WireGPU class
 --------------------------------------------------------------------------------
---   Usage:
---     Initialize:
---       self.GPU = WireGPU(self.Entity)
+--  Usage:
+--    Initialize:
+--      self.GPU = WireGPU(self.Entity)
 --
---     OnRemove:
---       self.GPU:Finalize()
+--    OnRemove:
+--      self.GPU:Finalize()
 --
---     Draw (if something changes):
---       self.GPU:RenderToGPU(function()
---           ...code...
---       end)
+--    Draw (if something changes):
+--      self.GPU:RenderToGPU(function()
+--          ...code...
+--      end)
 --
---     Draw (every frame):
---       self.GPU:Render()
+--    Draw (every frame):
+--      self.GPU:Render()
 --------------------------------------------------------------------------------
 
 GPULib = {}
@@ -130,9 +130,9 @@ if CLIENT then
 
 	end
 
-	//
-	// Create basic fonts
-	//
+	--
+	-- Create basic fonts
+	--
 	local fontData = 
 	{
 		font="lucida console",
@@ -142,9 +142,9 @@ if CLIENT then
 		additive = false,
 	}
 	surface.CreateFont("WireGPU_ConsoleFont", fontData)
-	//
-	// Create screen textures and materials
-	//
+	--
+	-- Create screen textures and materials
+	--
 	WireGPU_matScreen = CreateMaterial("GPURT","UnlitGeneric",{
 		["$vertexcolor"] = 1,
 		["$vertexalpha"] = 1,
@@ -744,25 +744,25 @@ elseif SERVER then
       -- Generate flags for sending the data
       --======================================================================--
       -- [0..1] Delta offset
-      --         0: no offset
-      --         1: 1-byte offset
-      --         2: 2-byte offset
-      --         3: 4-byte offset
+      --        0: no offset
+      --        1: 1-byte offset
+      --        2: 2-byte offset
+      --        3: 4-byte offset
       -- [2..3] Repeat count
-      --         0: none
-      --         1: repeat count 1-byte follows
-      --         2: repeat 2 times
-      --         3: repeat 4 times
+      --        0: none
+      --        1: repeat count 1-byte follows
+      --        2: repeat 2 times
+      --        3: repeat 4 times
       -- [4..5] Data count
-      --         0: 1 element
-      --         1: data size 1-byte follows
-      --         2: 2 elements
-      --         3: 3 elements (but not floats)
+      --        0: 1 element
+      --        1: data size 1-byte follows
+      --        2: 2 elements
+      --        3: 3 elements (but not floats)
       -- [6..7] Size
-      --         0: 1-byte
-      --         1: 2-byte
-      --         2: 4-byte int
-      --         3: 4-byte float
+      --        0: 1-byte
+      --        1: 2-byte
+      --        2: 4-byte int
+      --        3: 4-byte float
       --
       -- If it's a special data marker, then bitmap is:
       -- [0..1] Marker type

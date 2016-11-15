@@ -5,7 +5,7 @@ ENT.WireDebugName = "Socket"
 
 if CLIENT then return end -- No more client
 
-//Time after loosing one plug to search for another
+-- Time after loosing one plug to search for another
 local NEW_PLUG_WAIT_TIME = 2
 local PLUG_IN_SOCKET_CONSTRAINT_POWER = 5000
 local PLUG_IN_ATTACH_RANGE = 3
@@ -54,8 +54,8 @@ function ENT:SetMemory(mement)
 end
 
 function ENT:ReadCell( Address )
-	if (self.Memory) then
-		if (self.Memory.ReadCell) then
+	if self.Memory then
+		if self.Memory.ReadCell then
 			return self.Memory:ReadCell( Address )
 		else
 			return nil
@@ -66,8 +66,8 @@ function ENT:ReadCell( Address )
 end
 
 function ENT:WriteCell( Address, value )
-	if (self.Memory) then
-		if (self.Memory.WriteCell) then
+	if self.Memory then
+		if self.Memory.WriteCell then
 			return self.Memory:WriteCell( Address, value )
 		else
 			return false
@@ -80,39 +80,39 @@ end
 function ENT:Think()
 	self.BaseClass.Think(self)
 
-	// If we were unplugged, reset the plug and socket to accept new ones.
-	if (self.Const) and (not self.Const:IsValid()) then
+	-- If we were unplugged, reset the plug and socket to accept new ones.
+	if self.Const and not self.Const:IsValid() then
 		self.Const = nil
 		self.NoCollideConst = nil
-		if (self.MyPlug) and (self.MyPlug:IsValid()) then
+		if self.MyPlug and self.MyPlug:IsValid() then
 			self.MyPlug:SetSocket(nil)
 			self.MyPlug = nil
 		end
 
-		self.Memory = nil //We're now getting no signal
+		self.Memory = nil -- We're now getting no signal
 		Wire_TriggerOutput(self, "Memory", 0)
 
-		self:NextThink( CurTime() + NEW_PLUG_WAIT_TIME ) //Give time before next grabbing a plug.
+		self:NextThink( CurTime() + NEW_PLUG_WAIT_TIME ) -- Give time before next grabbing a plug.
 		return true
 	end
 
-	// If we have no plug in us
-	if (not self.MyPlug) or (not self.MyPlug:IsValid()) then
+	-- If we have no plug in us
+	if not self.MyPlug or not self.MyPlug:IsValid() then
 
-		// Find entities near us
+		-- Find entities near us
 		local sockCenter = self:GetOffset( Vector(-1.75, 0, 0) )
 		local local_ents = ents.FindInSphere( sockCenter, PLUG_IN_ATTACH_RANGE )
 		for key, plug in pairs(local_ents) do
 
-			// If we find a plug, try to attach it to us
-			if ( plug:IsValid() && plug:GetClass() == "gmod_wire_dataplug" ) then
+			-- If we find a plug, try to attach it to us
+			if plug:IsValid() and plug:GetClass() == "gmod_wire_dataplug" then
 
-				// If no other sockets are using it
+				-- If no other sockets are using it
 				if plug.MySocket == nil then
 					local plugpos = plug:GetPos()
 					local dist = (sockCenter-plugpos):Length()
 
-					// If model matches up
+					-- If model matches up
 					if SocketModels[self:GetModel()] == plug:GetModel() then
 						self:AttachPlug(plug)
 					end
@@ -123,11 +123,11 @@ function ENT:Think()
 end
 
 function ENT:AttachPlug( plug )
-	// Set references between them
+	-- Set references between them
 	plug:SetSocket(self)
 	self.MyPlug = plug
 
-	// Position plug
+	-- Position plug
 	local newpos = self:GetOffset( Vector(-1.75, 0, 0) )
 	if self:GetModel() == "models/props_lab/tpplugholder_single.mdl" then newpos = self:GetOffset( Vector( 8, -13, -5) )
 	elseif self:GetModel() == "models/bull/various/usb_socket.mdl" then   newpos = self:GetOffset( Vector(-2,  0, -8) )
@@ -141,7 +141,7 @@ function ENT:AttachPlug( plug )
 	plug:SetAngles( socketAng )
 
 	self.NoCollideConst = constraint.NoCollide(self, plug, 0, 0)
-	if (not self.NoCollideConst) then
+	if not self.NoCollideConst then
 		self.MyPlug = nil
 		plug:SetSocket(nil)
 		self.Memory = nil
@@ -149,9 +149,9 @@ function ENT:AttachPlug( plug )
 		return
 	end
 
-	// Constrain together
+	-- Constrain together
 	self.Const = constraint.Weld( self, plug, 0, 0, PLUG_IN_SOCKET_CONSTRAINT_POWER, true )
-	if (not self.Const) then
+	if not self.Const then
 		self.NoCollideConst:Remove()
 		self.NoCollideConst = nil
 		self.MyPlug = nil
@@ -161,7 +161,7 @@ function ENT:AttachPlug( plug )
 		return
 	end
 
-	// Prepare clearup incase one is removed
+	-- Prepare clearup incase one is removed
 	plug:DeleteOnRemove( self.Const )
 	self:DeleteOnRemove( self.Const )
 	self.Const:DeleteOnRemove( self.NoCollideConst )
@@ -170,7 +170,7 @@ function ENT:AttachPlug( plug )
 end
 
 function ENT:TriggerInput(iname, value, iter)
-	if (iname == "Memory") then
+	if iname == "Memory" then
 		self.OwnMemory = self.Inputs.Memory.Src
 	end
 end

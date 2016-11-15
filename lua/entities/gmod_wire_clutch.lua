@@ -147,7 +147,7 @@ end
 ---------------------------------------------------------]]
 -- Used for setting/restoring entity mass when creating the clutch constraint
 local function SaveMass( MassTable, ent )
-	if IsValid( ent ) and !MassTable[ent] then
+	if IsValid( ent ) and not MassTable[ent] then
 		local Phys = ent:GetPhysicsObject()
 		if IsValid( Phys ) then
 			MassTable[ent] = Phys:GetMass()
@@ -175,7 +175,7 @@ function ENT:UpdateFriction()
 	local numconstraints = 0	-- Used to calculate the delay between inputs
 
 	for k, v in pairs( clutch_ballsockets ) do
-		if !IsValid( k ) then
+		if not IsValid( k ) then
 			self:RemoveClutch( k )
 
 		else
@@ -208,7 +208,7 @@ end
 
 function ENT:TriggerInput( iname, value )
 	if iname == "Friction" then
-		if !self.ClutchDelay then
+		if not self.ClutchDelay then
 			self.clutch_friction = value
 
 			-- Create a delay to avoid server lag
@@ -221,7 +221,7 @@ function ENT:TriggerInput( iname, value )
 
 		else
 			-- This should only happen if an error prevents the ClutchDelayEnd function from being called
-			if !timer.Exists( "wire_clutch_delay_" .. tostring(self:EntIndex())) then
+			if not timer.Exists( "wire_clutch_delay_" .. tostring(self:EntIndex())) then
 				self.ClutchDelay = false
 			end
 

@@ -56,7 +56,7 @@ function Tokenizer:Process(buffer, params)
 	return tokens
 end
 
--- ---------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------
 
 function Tokenizer:SkipCharacter()
 	if self.position < self.length then

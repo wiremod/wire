@@ -1,7 +1,7 @@
 WireToolSetup.setCategory( "Advanced" )
 WireToolSetup.open( "hdd", "Memory - Flash EEPROM", "gmod_wire_hdd", nil, "Flash EEPROMs" )
 
-if ( CLIENT ) then
+if CLIENT then
 	language.Add( "Tool.wire_hdd.name", "Flash (EEPROM) tool (Wire)" )
 	language.Add( "Tool.wire_hdd.desc", "Spawns flash memory. It is used for permanent storage of data (carried over sessions)" )
 	language.Add( "Tool.wire_hdd.0", "Primary: Create/Update flash memory" )
@@ -11,7 +11,7 @@ end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )
 
-if (SERVER) then
+if SERVER then
 	function TOOL:GetConVars() 
 		return self:GetClientNumber("driveid"), self:GetClientNumber("drivecap")
 	end

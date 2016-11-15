@@ -1,7 +1,7 @@
 WireToolSetup.setCategory( "Input, Output/Data Transfer" )
 WireToolSetup.open( "radio", "Radio", "gmod_wire_radio", nil, "Radios" )
 
-if ( CLIENT ) then
+if CLIENT then
 	language.Add( "Tool.wire_radio.name", "Radio Tool (Wire)" )
 	language.Add( "Tool.wire_radio.desc", "Spawns a radio for use with the wire system." )
 	language.Add( "Tool.wire_radio.0", "Primary: Create/Update Radio" )
@@ -12,7 +12,7 @@ end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )
 
-if (SERVER) then
+if SERVER then
 	ModelPlug_Register("radio")
 	function TOOL:GetConVars() 
 		return self:GetClientInfo("channel"), self:GetClientNumber("values"), self:GetClientNumber("secure") ~= 0

@@ -22,7 +22,7 @@ function ENT:Setup(key_more,key_less,toggle,value_min,value_max,value_start,spee
 	numpad.OnDown( pl, key_less, "WireAdvInput_On", self, -1 )
 	numpad.OnUp( pl, key_less, "WireAdvInput_Off", self, -1 )
 	
-	self.toggle = (toggle == 1 || toggle == true)
+	self.toggle = (toggle == 1 or toggle == true)
 	self.value_min = value_min
 	self.value_max = value_max
 	self.Value = value_start
@@ -33,8 +33,8 @@ function ENT:Setup(key_more,key_less,toggle,value_min,value_max,value_start,spee
 end
 
 function ENT:TriggerInput(iname, value)
-    if(iname == "Reset")then
-        if(value != 0)then
+    if iname == "Reset" then
+        if value ~= 0 then
             self.Value = self.value_start
             self:ShowOutput()
 	        Wire_TriggerOutput(self,"Out",self.Value)
@@ -43,21 +43,21 @@ function ENT:TriggerInput(iname, value)
 end
 
 function ENT:InputActivate(mul)
-	if (self.toggle) then
-		return self:Switch( !self.On, mul )
+	if self.toggle then
+		return self:Switch( not self.On, mul )
 	end
 	return self:Switch( true, mul )
 end
 
 function ENT:InputDeactivate( mul )
-	if (self.toggle) then return true end
+	if self.toggle then return true end
 	return self:Switch( false, mul )
 end
 
 function ENT:Switch( on, mul )
-	if (!self:IsValid()) then return false end
+	if not self:IsValid() then return false end
 	self.On = on
-	if(on) then
+	if on then
 		self.dir = mul
 	else
 		self.dir = 0
@@ -69,11 +69,11 @@ function ENT:Think()
 	self.BaseClass.Think(self)
 	local timediff = CurTime()-(self.LastThink or 0)
 	self.LastThink = (self.LastThink or 0)+timediff
-	if (self.On == true) then
+	if self.On == true then
 		self.Value = self.Value + self.speed * timediff * self.dir
-		if (self.Value < self.value_min) then
+		if self.Value < self.value_min then
 			self.Value = self.value_min
-		elseif (self.Value > self.value_max) then
+		elseif self.Value > self.value_max then
 			self.Value = self.value_max
 		end
 		self:ShowOutput()
@@ -88,13 +88,13 @@ function ENT:ShowOutput()
 end
 
 local function On( pl, ent, mul )
-	if (!ent:IsValid()) then return false end
+	if not ent:IsValid() then return false end
 	if not gamemode.Call("PlayerUse", pl, ent) then return end
 	return ent:InputActivate( mul )
 end
 
 local function Off( pl, ent, mul )
-	if (!ent:IsValid()) then return false end
+	if not ent:IsValid() then return false end
 	if not gamemode.Call("PlayerUse", pl, ent) then return end
 	return ent:InputDeactivate( mul )
 end

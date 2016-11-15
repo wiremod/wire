@@ -242,7 +242,7 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 
 	if info.Memory then--and
 		 --(((info.UseROM) and (info.UseROM == true)) or
-		 -- ((info.InternalROMSize) and (info.InternalROMSize > 0))) then
+		 --((info.InternalROMSize) and (info.InternalROMSize > 0))) then
 		self.VM.ROM = {}
 		for k,v in pairs(info.Memory) do self.VM.ROM[k] = tonumber(v) or 0 end
 		self.VM:Reset()
@@ -271,7 +271,7 @@ function ENT:TriggerInput(iname, value)
 		end
 		Wire_TriggerOutput(self, "Error", 0)
 	elseif iname == "Interrupt" then
-		if (value >= 32) && (value < 256) then
+		if (value >= 32) and (value < 256) then
 			if (self.Clk and not self.VMStopped) then self.VM:ExternalInterrupt(math.floor(value)) end
 		end
 	end

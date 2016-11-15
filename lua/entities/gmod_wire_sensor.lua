@@ -18,7 +18,7 @@ function ENT:Initialize()
 end
 
 function ENT:Setup(xyz_mode, outdist, outbrng, gpscord, direction_vector, direction_normalized, target_velocity, velocity_normalized)
-	if !xyz_mode and !outdist and !outbrng and !gpscord and !direction_vector and !target_velocity then outdist = true end
+	if not (xyz_mode or outdist or outbrng or gpscord or direction_vector or target_velocity) then outdist = true end
 	
 	self.xyz_mode = xyz_mode
 	self.PrevOutput = nil
@@ -79,7 +79,7 @@ function ENT:Think()
 		local gpscords = Vector(0,0,0);
 		local dirvec = Vector(0,0,0);
 		local MyPos = self:GetPos()
-		//local BeaconPos = self.Inputs["Target"].Src:GetBeaconPos(self)
+		-- local BeaconPos = self.Inputs["Target"].Src:GetBeaconPos(self)
 		local BeaconPos = self.ToSense:GetBeaconPos(self) or MyPos
 		if (self.outdist) then
 			dist = (BeaconPos-MyPos):Length()
@@ -171,7 +171,7 @@ function ENT:TriggerOutputs(dist, brng, distc, gpscords,dirvec,velo)
 end
 
 function ENT:TriggerInput(iname, value)
-	if (iname == "Target") and ( self.ToSense != self.Inputs.Target.Src ) then
+	if (iname == "Target") and ( self.ToSense ~= self.Inputs.Target.Src ) then
 		self:LinkEnt(self.Inputs.Target.Src)
 	end
 end

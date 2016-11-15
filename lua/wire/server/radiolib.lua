@@ -1,6 +1,6 @@
-//First there was phenes
-//Then there was High6
-//Then Black Phoenix came and rewrote everything, what a bastard
+-- First there was phenes
+-- Then there was High6
+-- Then Black Phoenix came and rewrote everything, what a bastard
 
 local Radio_Entities = {}
 
@@ -10,12 +10,12 @@ end
 
 function Radio_Unregister(ent)
 	for k,v in ipairs(Radio_Entities) do
-		if (v == ent) then
+		if v == ent then
 			table.remove(Radio_Entities, k)
-		elseif (IsEntity(v.Entity)) then
-			//Zero out all channels that this radio used
+		elseif IsEntity(v.Entity) then
+			-- Zero out all channels that this radio used
 			for i=0,31 do
-				if (v.RecievedData[i].Owner == ent) then
+				if v.RecievedData[i].Owner == ent then
 					v.RecievedData[i].Owner = nil
 					v.RecievedData[i].Data = 0
 					v:NotifyDataRecieved(i)
@@ -30,17 +30,17 @@ function Radio_SendData(ent, subch, data)
 	ent.SentData[subch] = data
 
 	for k,v in ipairs(Radio_Entities) do
-		if (not IsEntity(v.Entity)) then //Invalid radio
+		if not IsEntity(v.Entity) then -- Invalid radio
 			Radio_Unregister(v)
-		elseif (ent:EntIndex() != v.Entity:EntIndex()) then //Not sender
-			if ((ent.Secure) && (v.Secure)) then
-				if ((ent:GetPlayer():SteamID() == v:GetPlayer():SteamID()) && (ent.Channel == v.Channel)) then
+		elseif ent:EntIndex() ~= v.Entity:EntIndex() then -- Not sender
+			if (ent.Secure) and (v.Secure) then
+				if (ent:GetPlayer():SteamID() == v:GetPlayer():SteamID()) and (ent.Channel == v.Channel) then
 					v.RecievedData[subch].Owner = ent
 					v.RecievedData[subch].Data = data
 					v:NotifyDataRecieved(subch)
 				end
 			else
-				if (ent.Channel == v.Channel) then
+				if ent.Channel == v.Channel then
 					v.RecievedData[subch].Owner = ent
 					v.RecievedData[subch].Data = data
 					v:NotifyDataRecieved(subch)
@@ -59,11 +59,11 @@ function Radio_RecieveData(ent)
 	end
 
 	for k,v in ipairs(Radio_Entities) do
-		if (not IsEntity(v.Entity)) then //Invalid radio
+		if not IsEntity(v.Entity) then -- Invalid radio
 			Radio_Unregister(v)
-		elseif (ent:EntIndex() != v.Entity:EntIndex()) then //Not sender
-			if ((ent.Secure) && (v.Secure)) then
-				if ((ent:GetPlayer():SteamID() == v:GetPlayer():SteamID()) && (ent.Channel == v.Channel)) then
+		elseif ent:EntIndex() ~= v.Entity:EntIndex() then -- Not sender
+			if (ent.Secure) and (v.Secure) then
+				if (ent:GetPlayer():SteamID() == v:GetPlayer():SteamID()) and (ent.Channel == v.Channel) then
 					for i=0,31 do
 						ent.RecievedData[i].Owner = v
 						ent.RecievedData[i].Data = v.SentData[i]
@@ -71,7 +71,7 @@ function Radio_RecieveData(ent)
 					end
 				end
 			else
-				if (ent.Channel == v.Channel) then
+				if ent.Channel == v.Channel then
 					for i=0,31 do
 						ent.RecievedData[i].Owner = v
 						ent.RecievedData[i].Data = v.SentData[i]
@@ -85,28 +85,28 @@ function Radio_RecieveData(ent)
 end
 
 function Radio_ChangeChannel(ent)
-	//Request all other radios send data to this radio
+	-- Request all other radios send data to this radio
 	Radio_RecieveData(ent)
 
 	for k,v in ipairs(Radio_Entities) do
-		if (not IsEntity(v.Entity)) then //Invalid radio
+		if not IsEntity(v.Entity) then -- Invalid radio
 			Radio_Unregister(v)
-		elseif (ent:EntIndex() != v.Entity:EntIndex()) then //Not sender
-			//1. Kill all transmissions for this radio
-			//for i=0,31 do
-			//	if (v.RecievedData[i].Owner == ent) then
-			//		v.RecievedData[i].Owner = nil
-			//		v.RecievedData[i].Data = 0
-			//		v:NotifyDataRecieved(i)
-			//	end
-			//end
+		elseif ent:EntIndex() ~= v.Entity:EntIndex() then -- Not sender
+			-- 1. Kill all transmissions for this radio
+			--for i=0,31 do
+			--	if (v.RecievedData[i].Owner == ent) then
+			--		v.RecievedData[i].Owner = nil
+			--		v.RecievedData[i].Data = 0
+			--		v:NotifyDataRecieved(i)
+			--	end
+			--end
 			Radio_RecieveData(v)
 
-			//2. Retransmit under new channel
-			if ((ent.Secure) && (v.Secure)) then
-				if ((ent:GetPlayer():SteamID() == v:GetPlayer():SteamID()) && (ent.Channel == v.Channel)) then
+			-- 2. Retransmit under new channel
+			if (ent.Secure) and (v.Secure) then
+				if (ent:GetPlayer():SteamID() == v:GetPlayer():SteamID()) and (ent.Channel == v.Channel) then
 					for i=0,31 do
-						if (ent.SentData[i] ~= 0) then //dont send zeroes
+						if ent.SentData[i] ~= 0 then -- dont send zeroes
 							v.RecievedData[i].Owner = ent
 							v.RecievedData[i].Data = ent.SentData[i]
 							v:NotifyDataRecieved(i)
@@ -114,9 +114,9 @@ function Radio_ChangeChannel(ent)
 					end
 				end
 			else
-				if (ent.Channel == v.Channel) then
+				if ent.Channel == v.Channel then
 					for i=0,31 do
-						if (ent.SentData[i] ~= 0) then //dont send zeroes
+						if ent.SentData[i] ~= 0 then -- dont send zeroes
 							v.RecievedData[i].Owner = ent
 							v.RecievedData[i].Data = ent.SentData[i]
 							v:NotifyDataRecieved(i)
@@ -138,5 +138,5 @@ function Radio_GetTwoWayID()
 end
 
 -- phenex: End radio mod.
-//Modified by High6 (To support 4 values)
-//Rebuilt by high6 to allow defined amount of values/secure lines
+-- Modified by High6 (To support 4 values)
+-- Rebuilt by high6 to allow defined amount of values/secure lines

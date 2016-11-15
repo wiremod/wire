@@ -17,10 +17,10 @@ registerType( "gtable", "xgt", {},
 	function(self) self.entity:Error("You may not input a gtable.") end,
 	function(self) self.entity:Error("You may not output a gtable.") end,
 	function(retval)
-		if !istable(retval) then error("Return value is not a gtable, but a "..type(retval).."!",0) end
+		if not istable(retval) then error("Return value is not a gtable, but a "..type(retval).."!",0) end
 	end,
 	function(v)
-		return !istable(v)
+		return not istable(v)
 	end
 )
 
@@ -31,7 +31,7 @@ registerOperator("ass", "xgt", "xgt", function(self, args)
 	local      rhs = op2[1](self, op2)
 
 	local Scope = self.Scopes[scope]
-	if !Scope.lookup then Scope.lookup = {} end
+	if not Scope.lookup then Scope.lookup = {} end
 	local lookup = Scope.lookup
 
 	-- remove old lookup entry
@@ -100,16 +100,16 @@ end
 __e2setcost(1)
 
 e2function gtable gTable( string groupname )
-	if (!gvars[self.uid][groupname]) then gvars[self.uid][groupname] = {} end
+	if (not gvars[self.uid][groupname]) then gvars[self.uid][groupname] = {} end
 	return gvars[self.uid][groupname]
 end
 
 e2function gtable gTable( string groupname, number shared )
 	if shared == 0 then
-		if (!gvars[self.uid][groupname]) then gvars[self.uid][groupname] = {} end
+		if (not gvars[self.uid][groupname]) then gvars[self.uid][groupname] = {} end
 		return gvars[self.uid][groupname]
 	else
-		if (!gvars.shared[groupname]) then gvars.shared[groupname] = {} end
+		if (not gvars.shared[groupname]) then gvars.shared[groupname] = {} end
 		return gvars.shared[groupname]
 	end
 end
@@ -190,7 +190,7 @@ local non_allowed_types = { -- If anyone can think of any other types that shoul
 
 registerCallback("postinit",function()
 	for k,v in pairs( wire_expression_types ) do
-		if (!non_allowed_types[v[1]]) then
+		if (not non_allowed_types[v[1]]) then
 			if (k == "NORMAL") then k = "NUMBER" end
 			k = upperfirst(k)
 
@@ -328,10 +328,10 @@ registerCallback("postinit",function()
 			local op1, op2 = args[2], args[3]
 			local rv1, rv2 = op1[1](self, op1),op2[1](self, op2)
 			if (self.data.gvars.shared == 1) then
-				if (!gvars.shared[self.data.gvars.group]) then gvars.shared[self.data.gvars.group] = {} end
+				if (not gvars.shared[self.data.gvars.group]) then gvars.shared[self.data.gvars.group] = {} end
 				gvars.shared[self.data.gvars.group][v[1]..rv1] = rv2
 			else
-				if (!gvars[self.uid][self.data.gvars.group]) then gvars[self.uid][self.data.gvars.group] = {} end
+				if (not gvars[self.uid][self.data.gvars.group]) then gvars[self.uid][self.data.gvars.group] = {} end
 				gvars[self.uid][self.data.gvars.group][v[1]..rv1] = rv2
 			end
 		end)
@@ -360,10 +360,10 @@ registerCallback("postinit",function()
 			local op1, op2 = args[2], args[3]
 			local rv1, rv2 = op1[1](self, op1),op2[1](self, op2)
 			if (self.data.gvars.shared == 1) then
-				if (!gvars.shared[self.data.gvars.group]) then gvars.shared[self.data.gvars.group] = {} end
+				if (not gvars.shared[self.data.gvars.group]) then gvars.shared[self.data.gvars.group] = {} end
 				gvars.shared[self.data.gvars.group][v[1]..tostring(rv1)] = rv2
 			else
-				if (!gvars[self.uid][self.data.gvars.group]) then gvars[self.uid][self.data.gvars.group] = {} end
+				if (not gvars[self.uid][self.data.gvars.group]) then gvars[self.uid][self.data.gvars.group] = {} end
 				gvars[self.uid][self.data.gvars.group][v[1]..tostring(rv1)] = rv2
 			end
 		end)
@@ -463,5 +463,5 @@ registerCallback("construct",function(self)
 	self.data.gvars = {}
 	self.data.gvars.group = "default"
 	self.data.gvars.shared = 0
-	if (!gvars[self.uid]) then gvars[self.uid] = {} end
+	if (not gvars[self.uid]) then gvars[self.uid] = {} end
 end)

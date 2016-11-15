@@ -10,8 +10,8 @@ e2function void enableConstraintUndo(state)
 end
 
 local function checkEnts(self, ent1, ent2)
-	if !ent1 || (!ent1:IsValid() && !ent1:IsWorld()) || !ent2 || (!ent2:IsValid() && !ent2:IsWorld()) || ent1 == ent2 then return false end
-	if !isOwner(self, ent1) || !isOwner(self, ent2) then return false end
+	if !ent1 or (!ent1:IsValid() and !ent1:IsWorld()) or !ent2 or (!ent2:IsValid() and !ent2:IsWorld()) or ent1 == ent2 then return false end
+	if !isOwner(self, ent1) or !isOwner(self, ent2) then return false end
 	return true
 end
 local function addundo(self, prop, message)
@@ -30,7 +30,7 @@ local function caps(text)
 	return capstext
 end
 
-// All vectors are LOCAL positions relative to their corresponding entities
+-- All vectors are LOCAL positions relative to their corresponding entities
 __e2setcost(30)
 
 --- Creates an axis between <ent1> and <ent2> at vector positions local to each ent.
@@ -106,14 +106,14 @@ local function CalcElasticConsts(Phys1, Phys2, Ent1, Ent2)
 	return const, damp
 end
 
-// Note: Winch is just a rename of Hydraulic with the last parameter True.
+-- Note: Winch is just a rename of Hydraulic with the last parameter True.
 --- Makes a winch constraint (stored at index <index>) between <ent1> and <ent2>, at vectors local to their respective ents, with <width> width. 
 e2function void winch(index, entity ent1, vector v1, entity ent2, vector v2, width)
 	if !checkEnts(self, ent1, ent2) then return end
 	if !ent1.data then ent1.data = {} end
 	if !ent1.data.Ropes then ent1.data.Ropes = {} end
 	local vec1, vec2 = Vector(v1[1],v1[2],v1[3]), Vector(v2[1],v2[2],v2[3])
-	if width < 0 || width > 50 then width = 1 end
+	if width < 0 or width > 50 then width = 1 end
 	
 	if IsValid(ent1.data.Ropes[index]) then
 		ent1.data.Ropes[index]:Remove()
@@ -130,7 +130,7 @@ e2function void hydraulic(index, entity ent1, vector v1, entity ent2, vector v2,
 	if !ent1.data then ent1.data = {} end
 	if !ent1.data.Ropes then ent1.data.Ropes = {} end
 	local vec1, vec2 = Vector(v1[1],v1[2],v1[3]), Vector(v2[1],v2[2],v2[3])
-	if width < 0 || width > 50 then width = 1 end
+	if width < 0 or width > 50 then width = 1 end
 	
 	if IsValid(ent1.data.Ropes[index]) then
 		ent1.data.Ropes[index]:Remove()
@@ -307,7 +307,7 @@ end
 e2function void noCollideAll(entity ent, state)
 	if !IsValid(ent) then return end
 	if !isOwner(self, ent) then return false end
-	if state != 0 then 
+	if state ~= 0 then
 		ent:SetCollisionGroup( COLLISION_GROUP_WORLD )
 	else
 		ent:SetCollisionGroup( COLLISION_GROUP_NONE )
@@ -341,7 +341,7 @@ e2function void entity:constraintBreak(entity ent2)
 	for _,v in pairs( consts ) do
 		if IsValid(v) then
 			local CTab = v:GetTable()
-			if ( CTab.Ent1 == this && CTab.Ent2 == ent2 ) ||  ( CTab.Ent1 == ent2 && CTab.Ent2 == this ) then
+			if ( CTab.Ent1 == this and CTab.Ent2 == ent2 ) or  ( CTab.Ent1 == ent2 and CTab.Ent2 == this ) then
 				v:Remove()
 			end
 	 	end
@@ -367,7 +367,7 @@ e2function void entity:constraintBreak(string type, entity ent2)
 	for _,v in pairs( consts ) do
 		if IsValid(v) then
 			local CTab = v:GetTable()
-			if CTab.Type == caps(type) && ( CTab.Ent1 == this && CTab.Ent2 == ent2 ) ||  ( CTab.Ent1 == ent2 && CTab.Ent2 == this ) then
+			if CTab.Type == caps(type) and ( CTab.Ent1 == this and CTab.Ent2 == ent2 ) or  ( CTab.Ent1 == ent2 and CTab.Ent2 == this ) then
 				v:Remove()
 				break
 			end
