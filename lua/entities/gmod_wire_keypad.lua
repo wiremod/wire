@@ -103,7 +103,7 @@ if CLIENT then
 				draw.DrawText(text, "Trebuchet18", textx, texty, Color(0, 0, 0, 255))
 			end
 			
-			local Display = self:GetNetworkedInt("keypad_display", "")
+			local Display = self:GetNWString("keypad_display", "")
 			if Display == "y" then
 				draw.DrawText("ACCESS", "Trebuchet24", X+17, Y+7, Color(0, 255, 0, 255))
 				draw.DrawText("GRANTED","Trebuchet24", X+7, Y+27, Color(0, 255, 0, 255))
