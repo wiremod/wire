@@ -55,14 +55,14 @@ function Wire_Render(ent)
 				local len = ent:GetNetworkedBeamInt(net_name) or 0
 
 				if (len > 0) then
-					local start = ent:GetNetworkedBeamVector(net_name .. "_start")
-					if (ent:IsValid()) then start = ent:LocalToWorld(start) end
-					local color_v = ent:GetNetworkedBeamVector(net_name .. "_col")
-					local color = Color(color_v.x, color_v.y, color_v.z, 255)
-					local width = ent:GetNetworkedBeamFloat(net_name .. "_width")
 
+					local width = ent:GetNetworkedBeamFloat(net_name .. "_width")
 					if width > 0 then
 
+						local start = ent:GetNetworkedBeamVector(net_name .. "_start")
+						if (ent:IsValid()) then start = ent:LocalToWorld(start) end
+						local color_v = ent:GetNetworkedBeamVector(net_name .. "_col")
+						local color = Color(color_v.x, color_v.y, color_v.z, 255)
 						local scroll = CurTime()*WIRE_SCROLL_SPEED
 
 						render.SetMaterial(getmat(ent:GetNetworkedBeamString(net_name .. "_mat")))
