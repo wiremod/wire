@@ -34,47 +34,51 @@ end
 local beam_mat = mats["tripmine_laser"]
 local beamhi_mat = mats["Models/effects/comball_tape"]
 
+local lastrender, scroll, shouldblink = 0, 0, false
 function Wire_Render(ent)
 	if (Wire_DisableWireRender == 0) then
-		if (not ent:IsValid()) then return end
-		local path_count = ent:GetNetworkedBeamInt("wpn_count") or 0
-		if (path_count <= 0) then return end
+		local wires = BeamNetVars.GetNetworkTable( ent, "Wire" )
+		if wires and next(wires) then
 
-		local w,f = math.modf(CurTime()*WIRE_BLINKS_PER_SECOND)
-		local blink = nil
-		if (f < 0.5) then
-			blink = ent:GetNetworkedBeamString("BlinkWire")
-		end
+			local t = CurTime()
+			if lastrender ~= t then
+				local w, f = math.modf(t*WIRE_BLINKS_PER_SECOND)
+				shouldblink = f < 0.5
+				scroll = t*WIRE_SCROLL_SPEED
+				lastrender = t
+			end
 
-		local scroll = CurTime()*WIRE_SCROLL_SPEED
-		for net_name, wiretbl in pairs(BeamNetVars.GetNetworkTable( ent, "Wire" )) do
-			local width = wiretbl.width
-			if width > 0 and blink ~= net_name then
-				local start = wiretbl.start
-				if (ent:IsValid()) then start = ent:LocalToWorld(start) end
-				local color_v = wiretbl.col
-				local color = Color(color_v.x, color_v.y, color_v.z, 255)
+			local blink = shouldblink and ent:GetNetworkedBeamString("BlinkWire")
 
-				local nodes = wiretbl.nodes
-				local len = #nodes
-				if len>0 then
-					render.SetMaterial(getmat(wiretbl.mat))
-					render.StartBeam(len+1)
-					render.AddBeam(start, width, scroll, color)
+			for net_name, wiretbl in pairs(wires) do
+				local width = wiretbl.width
+				if width > 0 and blink ~= net_name then
+					local start = wiretbl.start
+					if (ent:IsValid()) then start = ent:LocalToWorld(start) end
+					local color_v = wiretbl.col
+					local color = Color(color_v.x, color_v.y, color_v.z, 255)
 
-					for j=1, len do
-						local node = nodes[j]
-						local node_ent = node.ent
-						if (node_ent:IsValid()) then
-							local endpos = node_ent:LocalToWorld(node.pos)
+					local nodes = wiretbl.nodes
+					local len = #nodes
+					if len>0 then
+						render.SetMaterial(getmat(wiretbl.mat))
+						render.StartBeam(len+1)
+						render.AddBeam(start, width, scroll, color)
 
-							scroll = scroll+(endpos-start):Length()/10
-							render.AddBeam(endpos, width, scroll, color)
+						for j=1, len do
+							local node = nodes[j]
+							local node_ent = node.ent
+							if (node_ent:IsValid()) then
+								local endpos = node_ent:LocalToWorld(node.pos)
 
-							start = endpos
+								scroll = scroll+(endpos-start):Length()/10
+								render.AddBeam(endpos, width, scroll, color)
+
+								start = endpos
+							end
 						end
+						render.EndBeam()
 					end
-					render.EndBeam()
 				end
 			end
 		end
