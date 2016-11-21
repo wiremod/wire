@@ -1,7 +1,7 @@
 local WIRE_SCROLL_SPEED = 0.5
 local WIRE_BLINKS_PER_SECOND = 2
 local CurPathEnt = {}
-local Wire_DisableWireRender = 2 --bug with mode 0 and gmod2007beta
+local Wire_DisableWireRender = 0 --bug with mode 0 and gmod2007beta
 
 WIRE_CLIENT_INSTALLED = 1
 
@@ -35,10 +35,8 @@ local beam_mat = mats["tripmine_laser"]
 local beamhi_mat = mats["Models/effects/comball_tape"]
 
 function Wire_Render(ent)
-	if (not ent:IsValid()) then return end
-	if (Wire_DisableWireRender == 1) then return end
-
 	if (Wire_DisableWireRender == 0) then
+		if (not ent:IsValid()) then return end
 		local path_count = ent:GetNetworkedBeamInt("wpn_count") or 0
 		if (path_count <= 0) then return end
 
@@ -48,135 +46,38 @@ function Wire_Render(ent)
 			blink = ent:GetNetworkedBeamString("BlinkWire")
 		end
 
-		for i = 1,path_count do
-			local path_name = ent:GetNetworkedBeamString("wpn_" .. i)
-			if (blink ~= path_name) then
-				local net_name = "wp_"..path_name
-				local len = ent:GetNetworkedBeamInt(net_name) or 0
+		local scroll = CurTime()*WIRE_SCROLL_SPEED
+		for net_name, wiretbl in pairs(BeamNetVars.GetNetworkTable( ent, "Wire" )) do
+			local width = wiretbl.width
+			if width > 0 and blink ~= net_name then
+				local start = wiretbl.start
+				if (ent:IsValid()) then start = ent:LocalToWorld(start) end
+				local color_v = wiretbl.col
+				local color = Color(color_v.x, color_v.y, color_v.z, 255)
 
-				if (len > 0) then
+				local nodes = wiretbl.nodes
+				local len = #nodes
+				if len>0 then
+					render.SetMaterial(getmat(wiretbl.mat))
+					render.StartBeam(len+1)
+					render.AddBeam(start, width, scroll, color)
 
-					local width = ent:GetNetworkedBeamFloat(net_name .. "_width")
-					if width > 0 then
-
-						local start = ent:GetNetworkedBeamVector(net_name .. "_start")
-						if (ent:IsValid()) then start = ent:LocalToWorld(start) end
-						local color_v = ent:GetNetworkedBeamVector(net_name .. "_col")
-						local color = Color(color_v.x, color_v.y, color_v.z, 255)
-						local scroll = CurTime()*WIRE_SCROLL_SPEED
-
-						render.SetMaterial(getmat(ent:GetNetworkedBeamString(net_name .. "_mat")))
-						render.StartBeam(len+1)
-						render.AddBeam(start, width, scroll, color)
-
-						for j=1,len do
-							local node_ent = ent:GetNetworkedBeamEntity(net_name .. "_" .. j .. "_ent")
-							local endpos = ent:GetNetworkedBeamVector(net_name .. "_" .. j .. "_pos")
-							if (node_ent:IsValid()) then
-								endpos = node_ent:LocalToWorld(endpos)
-
-								scroll = scroll+(endpos-start):Length()/10
-
-								render.AddBeam(endpos, width, scroll, color)
-
-								start = endpos
-							end
-						end
-						render.EndBeam()
-
-					end
-				end
-			end
-		end
-
-	else
-		local p = ent.ppp
-		if p == nil then p = {next = -100} end
-
-		if p.next < CurTime() then
-			p.next = CurTime() + 0.25
-			p.paths = {}
-
-			local path_count = ent:GetNetworkedBeamInt("wpn_count") or 0
-			if (path_count <= 0) then return end
-
-			for i = 1,path_count do
-				local x = {}
-				local path_name = ent:GetNetworkedBeamString("wpn_" .. i)
-				x.path_name = path_name
-				local net_name = "wp_"..path_name
-				local len = ent:GetNetworkedBeamInt(net_name) or 0
-
-				if (len > 0) then
-
-					local start = ent:GetNetworkedBeamVector(net_name .. "_start")
-					x.startx = start
-					if (ent:IsValid()) then start = ent:LocalToWorld(start) end
-					local color_v = ent:GetNetworkedBeamVector(net_name .. "_col")
-					local color = Color(color_v.x, color_v.y, color_v.z, 255)
-					local width = ent:GetNetworkedBeamFloat(net_name .. "_width")
-
-					local scroll = CurTime()*WIRE_SCROLL_SPEED
-
-					x.material = getmat(ent:GetNetworkedBeamString(net_name .. "_mat"))
-					x.startbeam = len + 1
-					x.start = start
-					x.width = width
-					x.scroll = scroll
-					x.color = color
-					x.beams = {}
-
-					for j=1,len do
-						local v = {}
-						local node_ent = ent:GetNetworkedBeamEntity(net_name .. "_" .. j .. "_ent")
-						local endpos = ent:GetNetworkedBeamVector(net_name .. "_" .. j .. "_pos")
-						v.node_ent = node_ent
-						v.node_endpos = endpos
+					for j=1, len do
+						local node = nodes[j]
+						local node_ent = node.ent
 						if (node_ent:IsValid()) then
-							endpos = node_ent:LocalToWorld(endpos)
+							local endpos = node_ent:LocalToWorld(node.pos)
 
 							scroll = scroll+(endpos-start):Length()/10
-
-							v.endpos = endpos
-							v.width = width
-							v.scroll = scroll
-							v.color = color
-							table.insert(x.beams, v)
+							render.AddBeam(endpos, width, scroll, color)
 
 							start = endpos
 						end
 					end
-
-					table.insert(p.paths, x)
-
+					render.EndBeam()
 				end
 			end
-
-			ent.ppp = p
 		end
-
-
-		local w,f = math.modf(CurTime()*WIRE_BLINKS_PER_SECOND)
-		local blink = f < 0.5
-		local blinkname = ent:GetNetworkedBeamString("BlinkWire")
-		for _,k in ipairs(p.paths) do
-			if not (blink and blinkname == k.path_name) and k.material then
-				k.scroll = CurTime()*WIRE_SCROLL_SPEED
-				k.start = ent:LocalToWorld(k.startx)
-				render.SetMaterial(k.material)
-				render.StartBeam(k.startbeam)
-				render.AddBeam(k.start, k.width, k.scroll, k.color)
-				for _,v in ipairs(k.beams) do
-					if (v.node_ent:IsValid()) then
-						local endpos = v.node_ent:LocalToWorld(v.node_endpos)
-						local scroll = k.scroll+(endpos-k.start):Length()/10
-						render.AddBeam(endpos, v.width, scroll, v.color)
-					end
-				end
-				render.EndBeam()
-			end
-		end
-
 	end
 end
 
@@ -184,32 +85,24 @@ end
 local function Wire_GetWireRenderBounds(ent)
 	if (not ent:IsValid()) then return end
 
-	local paths = ent.WirePaths
 	local bbmin = ent:OBBMins()
 	local bbmax = ent:OBBMaxs()
 
-	local path_count = ent:GetNetworkedBeamInt("wpn_count") or 0
-	if (path_count > 0) then
-		for i = 1,path_count do
-			local path_name = ent:GetNetworkedBeamString("wpn_" .. i)
-			local net_name = "wp_"..path_name
-			local len = ent:GetNetworkedBeamInt(net_name) or 0
+	for net_name, wiretbl in pairs(BeamNetVars.GetNetworkTable( ent, "Wire" )) do
+		local nodes = wiretbl.nodes
+		local len = #nodes
+		for j=1, len do
+			local node_ent = nodes[j].ent
+			local nodepos = nodes[j].pos
+			if (node_ent:IsValid()) then
+				nodepos = ent:WorldToLocal(node_ent:LocalToWorld(nodepos))
 
-			if (len > 0) then
-				for j=1,len do
-					local node_ent = ent:GetNetworkedBeamEntity(net_name .. "_" .. j .. "_ent")
-					local nodepos = ent:GetNetworkedBeamVector(net_name .. "_" .. j .. "_pos")
-					if (node_ent:IsValid()) then
-						nodepos = ent:WorldToLocal(node_ent:LocalToWorld(nodepos))
-
-						if (nodepos.x < bbmin.x) then bbmin.x = nodepos.x end
-						if (nodepos.y < bbmin.y) then bbmin.y = nodepos.y end
-						if (nodepos.z < bbmin.z) then bbmin.z = nodepos.z end
-						if (nodepos.x > bbmax.x) then bbmax.x = nodepos.x end
-						if (nodepos.y > bbmax.y) then bbmax.y = nodepos.y end
-						if (nodepos.z > bbmax.z) then bbmax.z = nodepos.z end
-					end
-				end
+				if (nodepos.x < bbmin.x) then bbmin.x = nodepos.x end
+				if (nodepos.y < bbmin.y) then bbmin.y = nodepos.y end
+				if (nodepos.z < bbmin.z) then bbmin.z = nodepos.z end
+				if (nodepos.x > bbmax.x) then bbmax.x = nodepos.x end
+				if (nodepos.y > bbmax.y) then bbmax.y = nodepos.y end
+				if (nodepos.z > bbmax.z) then bbmax.z = nodepos.z end
 			end
 		end
 	end
