@@ -22,11 +22,11 @@ end
 function ENT:Setup(UseGPS)
 	if UseGPS then
 		self.usesgps = true
-		self:SetNetworkedEntity( "reference", ents.GetByIndex(-1) )
+		self:SetNWEntity( "reference", ents.GetByIndex(-1) )
 		self:SetOverlayText( "(GPS)" )
 	else
 		self.usesgps = false
-		self:SetNetworkedEntity( "reference", self.reference )
+		self:SetNWEntity( "reference", self.reference )
 		self:SetOverlayText( "(Local)" )
 	end
 end

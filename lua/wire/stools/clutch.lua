@@ -106,7 +106,7 @@ if CLIENT then
 	function TOOL:DrawHUD()
 		local DrawnEnts = {}	-- Used to keep track of which ents already have a circle
 
-		local controller = self:GetWeapon():GetNetworkedEntity( "WireClutchController" )
+		local controller = self:GetWeapon():GetNWEntity( "WireClutchController" )
 		if !IsValid( controller ) then return end
 
 		// Draw circle around the controller
@@ -169,7 +169,7 @@ end
 if SERVER then
 	function TOOL:SelectController( controller )
 		self.controller = controller
-		self:GetWeapon():SetNetworkedEntity( "WireClutchController", controller or Entity(0) ) -- Must use null entity since nil won't send
+		self:GetWeapon():SetNWEntity( "WireClutchController", controller or Entity(0) ) -- Must use null entity since nil won't send
 
 		// Send constraint from the controller to the client
 		local constrained_pairs = {}

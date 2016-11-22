@@ -21,7 +21,7 @@ local semicircletexid = surface.GetTextureID("hudindicator/hi_semicircle")
 function ENT:ClientCheckRegister()
 	local ply = LocalPlayer()
 	local plyuid = ply:UniqueID()
-	return (ply != self:GetPlayer() && !self:GetNetworkedBool(plyuid))
+	return (ply != self:GetPlayer() && !self:GetNWBool(plyuid))
 end
 
 // Used by STool for unregister control panel

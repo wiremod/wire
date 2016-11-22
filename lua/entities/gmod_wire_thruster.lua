@@ -17,17 +17,17 @@ function ENT:GetEffect( name )
 end
 
 function ENT:SetOn( boolon )
-	self:SetNetworkedBool( "On", boolon, true )
+	self:SetNWBool( "On", boolon, true )
 end
 function ENT:IsOn( name )
-	return self:GetNetworkedBool( "On" )
+	return self:GetNWBool( "On" )
 end
 
 function ENT:SetOffset( v )
-	self:SetNetworkedVector( "Offset", v, true )
+	self:SetNWVector( "Offset", v, true )
 end
 function ENT:GetOffset( name )
-	return self:GetNetworkedVector( "Offset" )
+	return self:GetNWVector( "Offset" )
 end
 
 
