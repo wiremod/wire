@@ -35,8 +35,8 @@ function TOOL:LeftClick(trace)
 		end
 
 		ply:PrintMessage( HUD_PRINTTALK, "Linked model: " .. self.marker.mark:GetModel() )
-		self:GetWeapon():SetNetworkedEntity( "WireEntityMark", self.marker.mark )
-		self:GetWeapon():SetNetworkedEntity( "WireEntityMarker", self.marker )
+		self:GetWeapon():SetNWEntity( "WireEntityMark", self.marker.mark )
+		self:GetWeapon():SetNWEntity( "WireEntityMarker", self.marker )
 	else
 		local ent = self:LeftClick_Make( trace, ply )
 		return self:LeftClick_PostMake( ent, ply, trace )
@@ -56,8 +56,8 @@ function TOOL:RightClick(trace)
 		self.marker:LinkEMarker(trace.Entity)
 		self:SetStage(0)
 		self:GetOwner():PrintMessage( HUD_PRINTTALK,"Entity Marker linked" )
-		self:GetWeapon():SetNetworkedEntity( "WireEntityMark", self.marker.mark )
-		self:GetWeapon():SetNetworkedEntity( "WireEntityMarker", self.marker )
+		self:GetWeapon():SetNWEntity( "WireEntityMark", self.marker.mark )
+		self:GetWeapon():SetNWEntity( "WireEntityMarker", self.marker )
 		return true
 	else
 		return false
@@ -74,15 +74,15 @@ function TOOL:Reload(trace)
 	if (marker:GetClass() == "gmod_wire_emarker") then
 		marker:UnLinkEMarker()
 		self:GetOwner():PrintMessage( HUD_PRINTTALK,"Entity Marker unlinked" )
-		self:GetWeapon():SetNetworkedEntity( "WireEntityMark", self.marker ) // Substitute for null, which won't set
-		self:GetWeapon():SetNetworkedEntity( "WireEntityMarker", self.marker ) // Set same point so line won't draw
+		self:GetWeapon():SetNWEntity( "WireEntityMark", self.marker ) // Substitute for null, which won't set
+		self:GetWeapon():SetNWEntity( "WireEntityMarker", self.marker ) // Set same point so line won't draw
 		return true
 	end
 end
 
 function TOOL:DrawHUD()
-	local mark = self:GetWeapon():GetNetworkedEntity( "WireEntityMark" )
-	local marker = self:GetWeapon():GetNetworkedEntity( "WireEntityMarker" )
+	local mark = self:GetWeapon():GetNWEntity( "WireEntityMark" )
+	local marker = self:GetWeapon():GetNWEntity( "WireEntityMarker" )
 	if not IsValid(mark) or not IsValid(marker) then return end
 
 	local markerpos = marker:GetPos():ToScreen()

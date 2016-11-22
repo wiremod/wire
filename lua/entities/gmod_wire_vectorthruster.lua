@@ -13,36 +13,36 @@ function ENT:GetEffect()
 end
 
 function ENT:SetOn( boolon )
-	self:SetNetworkedBool( "vecon", boolon, true )
+	self:SetNWBool( "vecon", boolon, true )
 end
 function ENT:IsOn()
-	return self:GetNetworkedBool( "vecon" )
+	return self:GetNWBool( "vecon" )
 end
 
 function ENT:SetMode( v )
-	self:SetNetworkedInt( "vecmode", v, true )
+	self:SetNWInt( "vecmode", v, true )
 end
 function ENT:GetMode()
-	return self:GetNetworkedInt( "vecmode" )
+	return self:GetNWInt( "vecmode" )
 end
 
 function ENT:SetOffset( v )
-	self:SetNetworkedVector( "Offset", v, true )
+	self:SetNWVector( "Offset", v, true )
 end
 function ENT:GetOffset( name )
-	return self:GetNetworkedVector( "Offset" )
+	return self:GetNWVector( "Offset" )
 end
 
 function ENT:SetNormal( v )
-	self:SetNetworkedInt( "vecx", v.x * 100, true )
-	self:SetNetworkedInt( "vecy", v.y * 100, true )
-	self:SetNetworkedInt( "vecz", v.z * 100, true )
+	self:SetNWInt( "vecx", v.x * 100, true )
+	self:SetNWInt( "vecy", v.y * 100, true )
+	self:SetNWInt( "vecz", v.z * 100, true )
 end
 function ENT:GetNormal()
 	return Vector(
-				self:GetNetworkedInt( "vecx" ) / 100,
-				self:GetNetworkedInt( "vecy" ) / 100,
-				self:GetNetworkedInt( "vecz" ) / 100
+				self:GetNWInt( "vecx" ) / 100,
+				self:GetNWInt( "vecy" ) / 100,
+				self:GetNWInt( "vecz" ) / 100
 			)
 end
 

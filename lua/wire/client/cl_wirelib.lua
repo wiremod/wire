@@ -283,7 +283,7 @@ function Wire_DrawTracerBeam( ent, beam_num, hilight, beam_length )
 		trace.start = start
 		trace.endpos = ent.endpos
 		trace.filter = { ent }
-		if ent:GetNetworkedBool("TraceWater") then trace.mask = MASK_ALL end
+		if ent:GetNWBool("TraceWater") then trace.mask = MASK_ALL end
 		trace = util.TraceLine(trace)
 
 		render.SetMaterial(beam_mat)

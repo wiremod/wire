@@ -171,7 +171,7 @@ function ENT:RegisterPlayer(ply, hookhidehud, podonly)
 	if (!self.RegisteredPlayers[plyuid]) then
 		self.RegisteredPlayers[plyuid] = { ply = ply, hookhidehud = hookhidehud, podonly = podonly }
 		// This is used to check for pod-only status in ClientCheckRegister()
-		self:SetNetworkedBool( plyuid, util.tobool(podonly) )
+		self:SetNWBool( plyuid, util.tobool(podonly) )
 	end
 
 	umsg.Start("HUDIndicatorRegister", ply)

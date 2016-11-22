@@ -47,7 +47,7 @@ function ENT:Setup( range, default_zero, show_beam, ignore_world, trace_water, o
 	if range then self:SetBeamLength(math.min(range, 50000)) end
 	if show_beam ~= nil then self:SetShowBeam(show_beam) end
 
-	self:SetNetworkedBool("TraceWater", trace_water)
+	self:SetNWBool("TraceWater", trace_water)
 
 	local onames, otypes = {}, {}
 

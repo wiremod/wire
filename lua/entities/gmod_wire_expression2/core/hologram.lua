@@ -454,7 +454,7 @@ local function MakeHolo(Player, Pos, Ang, model)
 	E2Lib.setAng(prop, Ang)
 	prop:SetModel(model)
 	prop:SetPlayer(Player)
-	prop:SetNetworkedInt("ownerid", Player:UserID())
+	prop:SetNWInt("ownerid", Player:UserID())
 
 	return prop
 end
