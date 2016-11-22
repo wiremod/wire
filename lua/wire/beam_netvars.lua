@@ -110,7 +110,6 @@ local function GetNetworkTable( ent, name )
 	NetworkVars[ ent ][ name ] = NetworkVars[ ent ][ name ] or {}
 	return NetworkVars[ ent ][ name ]
 end
-BeamNetVars.GetNetworkTable = GetNetworkTable
 
 local function SendNetworkUpdate( VarType, Index, Key, Value, Player )
 	if(Player and not (Player:IsValid() and Player:IsPlayer())) then return end // Be sure, Player is not a NULL-Entity, or the server will crash!
@@ -159,7 +158,7 @@ end
 //
 // make all the ent.Get/SetNetworkedBeamVarCrap
 //
-local function AddNetworkFunctions( name, SetFunction, GetFunction, Default, WriteFunction )
+local function AddNetworkFunctions( name, SetFunction, GetFunction, Default )
 
 	NetworkFunction[ name ] = {}
 	NetworkFunction[ name ].SetFunction = SetFunction
@@ -176,11 +175,7 @@ local function AddNetworkFunctions( name, SetFunction, GetFunction, Default, Wri
 
 		// Clients can set this too, but they should only really be setting it
 		// when they expect the exact same result coming over the wire (ie prediction)
-		if WriteFunction then
-			store[ key ] = WriteFunction( store[ key ], value )
-		else
-			store[ key ] = value
-		end
+		store[ key ] = value
 
 		if ( SERVER ) then
 
@@ -223,11 +218,7 @@ local function AddNetworkFunctions( name, SetFunction, GetFunction, Default, Wri
 
 		local store = GetNetworkTable( "G", name )
 		if ( value == store[key] ) then return end
-		if WriteFunction then
-			store[ key ] = WriteFunction( store[ key ], value )
-		else
-			store[ key ] = value
-		end
+		store[ key ] = value
 
 		if ( SERVER ) then
 			if ( urgent ) then
@@ -276,8 +267,7 @@ local function AddNetworkFunctions( name, SetFunction, GetFunction, Default, Wri
 				if ( IndexKey == NULL ) then IndexKey = EntIndex end
 			end
 
-			local store = GetNetworkTable( IndexKey, name )
-			store[Key] = GetFunction( m, store[Key] )
+			GetNetworkTable( IndexKey, name )[Key] = GetFunction( m )
 		end
 		usermessage.Hook( "RcvEntityVarBeam_"..name, RecvFunc )
 
@@ -295,81 +285,6 @@ AddNetworkFunctions( "Entity", 	umsg and umsg.Entity, 	bf_read and bf_read.ReadE
 AddNetworkFunctions( "Bool", 	umsg and umsg.Bool, 	bf_read and bf_read.ReadBool, 	false )
 AddNetworkFunctions( "String", 	umsg and umsg.String, 	bf_read and bf_read.ReadString, 	"" )
 
-do //Wire network function
-	local wire_type_readmap = {
-		start = bf_read and bf_read.ReadVector,
-		mat = bf_read and bf_read.ReadString,
-		col = bf_read and bf_read.ReadVector,
-		width = bf_read and bf_read.ReadFloat,
-		nodes = function(u, tbl)
-			local count = u:ReadChar()
-			if count>0 then
-				if not tbl then tbl = {} end
-				for i=1, count do
-					local ind = u:ReadChar()
-					local ent = u:ReadEntity()
-					local pos = u:ReadVector()
-					tbl[ind] = {ent = ent, pos = pos}
-				end
-				return tbl
-			else
-				return {}
-			end
-		end
-	}
-	local wire_type_writemap = {
-		start = umsg and umsg.Vector,
-		mat = umsg and umsg.String,
-		col = umsg and umsg.Vector,
-		width = umsg and umsg.Float,
-		nodes = function(t)
-			if not t then umsg.Char(0) return end
-			umsg.Char(table.Count(t))
-			for k, v in pairs(t) do
-				umsg.Char(k)
-				umsg.Entity(v.ent)
-				umsg.Vector(v.pos)
-			end
-		end
-	}
-	AddNetworkFunctions( "Wire",
-	//Function called when the wire is sent
-	function( t )
-		if t then
-			umsg.Char(table.Count(t))
-			for k, v in pairs(t) do
-				if wire_type_writemap[k] then
-					umsg.String(k)
-					wire_type_writemap[k](v)
-				else
-					error("Error writing wire beamvar: Invalid table key. " .. k .. "\n")
-				end
-			end
-		else
-			umsg.Char(0)
-		end
-	end,
-	//Function called when the wire is read
-	function( u, old )
-		local count = u:ReadChar()
-		if count>0 then
-			if not old then old = {} end
-			for i=1, count do
-				local k = u:ReadString()
-				if wire_type_readmap[k] then
-					old[k] = wire_type_readmap[k](u, old[k])
-				else
-					ErrorNoHalt("Error reading wire beamvar: Invalid table key. " .. k .. "\n")
-				end
-			end
-			return old
-		else
-			return nil
-		end
-	end, {},
-	//Function called when the value is set
-	function(old, new) if new then if not old then old = {} end table.Merge(old, new) return old end end)
-end
 
 //
 // We want our networked vars to save don't we? Yeah - we do - stupid.
