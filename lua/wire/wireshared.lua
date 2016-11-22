@@ -261,6 +261,38 @@ end -- containers
 
 --------------------------------------------------------------------------------
 
+do
+	local entity_references = setmetatable({}, {
+		__index = function(self, ent)
+			if not IsValid(ent) then return nil end
+			local reference = { ent }
+			self[ent] = reference
+			return reference
+		end
+	})
+
+	hook.Add("EntityRemoved", "WireLib.Paths.EntityRemoved", function(ent))
+		entity_references[ent] = nil
+	end
+
+	timer.Create("WireLib.Paths.CleanEntityReferences", 30, 0, function()
+		for entity, _ in pairs(entity_references) do
+			if not IsValid(entity) then entity_references[entity] = nil
+			end
+		end)
+
+	-- Given an entity, returns an object unique to that entity which will be
+	-- eventually garbage collected when the entity itself becomes invalid.
+	-- The intention is that the auto-created values of this table can be
+	-- used as keys in any weak-keyed table, and the values from that table
+	-- will themselves be garbage collected when the entity's invalid. Directly
+	-- using the entity as the key in such a table would result in memory leaks,
+	-- as many other tables hold on to entities long past their expiry date.
+	function ents.Reference(entity) return entity_references[entity] end
+end
+
+--------------------------------------------------------------------------------
+
 --[[ wire_addnotify: send notifications to the client
 	WireLib.AddNotify([ply, ]Message, Type, Duration[, Sound])
 	If ply is left out, the notification is sent to everyone. If Sound is left out, no sound is played.
