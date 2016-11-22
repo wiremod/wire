@@ -37,7 +37,7 @@ local beamhi_mat = mats["Models/effects/comball_tape"]
 local lastrender, scroll, shouldblink = 0, 0, false
 function Wire_Render(ent)
 	if (Wire_DisableWireRender == 0) then
-		local wires = BeamNetVars.GetNetworkTable( ent, "Wire" )
+		local wires = ent.WirePaths
 		if wires and next(wires) then
 
 			local t = CurTime()
@@ -51,25 +51,24 @@ function Wire_Render(ent)
 			local blink = shouldblink and ent:GetNetworkedBeamString("BlinkWire")
 
 			for net_name, wiretbl in pairs(wires) do
-				local width = wiretbl.width
+				local width = wiretbl.Width
 				if width > 0 and blink ~= net_name then
-					local start = wiretbl.start
+					local start = wiretbl.StartPos
 					if (ent:IsValid()) then start = ent:LocalToWorld(start) end
-					local color_v = wiretbl.col
-					local color = Color(color_v.x, color_v.y, color_v.z, 255)
+					local color = wiretbl.Color
 
-					local nodes = wiretbl.nodes
+					local nodes = wiretbl.Path
 					local len = #nodes
 					if len>0 then
-						render.SetMaterial(getmat(wiretbl.mat))
+						render.SetMaterial(getmat(wiretbl.Material))
 						render.StartBeam(len+1)
 						render.AddBeam(start, width, scroll, color)
 
 						for j=1, len do
 							local node = nodes[j]
-							local node_ent = node.ent
+							local node_ent = node.Entity
 							if (node_ent:IsValid()) then
-								local endpos = node_ent:LocalToWorld(node.pos)
+								local endpos = node_ent:LocalToWorld(node.Pos)
 
 								scroll = scroll+(endpos-start):Length()/10
 								render.AddBeam(endpos, width, scroll, color)
@@ -92,21 +91,23 @@ local function Wire_GetWireRenderBounds(ent)
 	local bbmin = ent:OBBMins()
 	local bbmax = ent:OBBMaxs()
 
-	for net_name, wiretbl in pairs(BeamNetVars.GetNetworkTable( ent, "Wire" )) do
-		local nodes = wiretbl.nodes
-		local len = #nodes
-		for j=1, len do
-			local node_ent = nodes[j].ent
-			local nodepos = nodes[j].pos
-			if (node_ent:IsValid()) then
-				nodepos = ent:WorldToLocal(node_ent:LocalToWorld(nodepos))
+	if ent.WirePaths then
+		for net_name, wiretbl in pairs(ent.WirePaths) do
+			local nodes = wiretbl.Path
+			local len = #nodes
+			for j=1, len do
+				local node_ent = nodes[j].Entity
+				local nodepos = nodes[j].Pos
+				if (node_ent:IsValid()) then
+					nodepos = ent:WorldToLocal(node_ent:LocalToWorld(nodepos))
 
-				if (nodepos.x < bbmin.x) then bbmin.x = nodepos.x end
-				if (nodepos.y < bbmin.y) then bbmin.y = nodepos.y end
-				if (nodepos.z < bbmin.z) then bbmin.z = nodepos.z end
-				if (nodepos.x > bbmax.x) then bbmax.x = nodepos.x end
-				if (nodepos.y > bbmax.y) then bbmax.y = nodepos.y end
-				if (nodepos.z > bbmax.z) then bbmax.z = nodepos.z end
+					if (nodepos.x < bbmin.x) then bbmin.x = nodepos.x end
+					if (nodepos.y < bbmin.y) then bbmin.y = nodepos.y end
+					if (nodepos.z < bbmin.z) then bbmin.z = nodepos.z end
+					if (nodepos.x > bbmax.x) then bbmax.x = nodepos.x end
+					if (nodepos.y > bbmax.y) then bbmax.y = nodepos.y end
+					if (nodepos.z > bbmax.z) then bbmax.z = nodepos.z end
+				end
 			end
 		end
 	end

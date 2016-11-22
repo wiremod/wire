@@ -271,15 +271,16 @@ do
 		end
 	})
 
-	hook.Add("EntityRemoved", "WireLib.Paths.EntityRemoved", function(ent))
+	hook.Add("EntityRemoved", "WireLib.Paths.EntityRemoved", function(ent)
 		entity_references[ent] = nil
-	end
+	end)
 
 	timer.Create("WireLib.Paths.CleanEntityReferences", 30, 0, function()
 		for entity, _ in pairs(entity_references) do
 			if not IsValid(entity) then entity_references[entity] = nil
 			end
-		end)
+		end
+	end)
 
 	-- Given an entity, returns an object unique to that entity which will be
 	-- eventually garbage collected when the entity itself becomes invalid.
