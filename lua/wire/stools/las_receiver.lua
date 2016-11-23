@@ -4,7 +4,7 @@ WireToolSetup.open( "las_receiver", "Laser Pointer Receiver", "gmod_wire_las_rec
 if CLIENT then
 	language.Add( "Tool.wire_las_receiver.name", "Laser Receiver Tool (Wire)" )
 	language.Add( "Tool.wire_las_receiver.desc", "Spawns a constant laser receiver prop for use with the wire system." )
-	language.Add( "Tool.wire_las_receiver.0", "Primary: Create/Update Laser Receiver" )
+	TOOL.Information = { { name = "left", text = "Create/Update " .. TOOL.Name } }
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )

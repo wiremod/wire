@@ -4,8 +4,12 @@ WireToolSetup.open( "gpu", "GPU", "gmod_wire_gpu", nil, "GPUs" )
 if CLIENT then
   language.Add("Tool.wire_gpu.name", "GPU Tool (Wire)")
   language.Add("Tool.wire_gpu.desc", "Spawns a graphics processing unit")
-  language.Add("Tool.wire_gpu.0",    "Primary: create/reflash ZGPU or other hispeed device, Secondary: open editor and/or attach debugger to the ZGPU")
   language.Add("ToolWiregpu_Model",  "Model:" )
+  TOOL.Information = {
+    { name = "left", text = "Upload program to hispeed device" },
+    { name = "right", text = "open editor and/or attach debugger to the ZGPU" },
+    { name = "reload", text = "Wipe ROM/RAM and reset memory model" },
+  }
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 7 )

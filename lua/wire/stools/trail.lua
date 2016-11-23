@@ -4,9 +4,9 @@ WireToolSetup.open( "trail", "Trail", "gmod_wire_trail", nil, "Trails" )
 if CLIENT then
 	language.Add( "tool.wire_trail.name", "Trail Tool (Wire)" )
 	language.Add( "tool.wire_trail.desc", "Spawns a wired trail." )
-	language.Add( "tool.wire_trail.0", "Primary: Create/Update trail" )
 	language.Add( "WireTrailTool_trail", "Trail:" )
 	language.Add( "WireTrailTool_mat", "Material:" )
+	TOOL.Information = { { name = "left", text = "Create/Update " .. TOOL.Name } }
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )

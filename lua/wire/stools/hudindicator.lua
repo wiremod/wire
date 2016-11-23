@@ -6,8 +6,6 @@ WireToolSetup.open( "hudindicator", "Hud Indicator", "gmod_wire_hudindicator", n
 if ( CLIENT ) then
 	language.Add( "Tool.wire_hudindicator.name", "Hud Indicator Tool (Wire)" )
 	language.Add( "Tool.wire_hudindicator.desc", "Spawns a Hud Indicator for use with the wire system." )
-	language.Add( "Tool.wire_hudindicator.0", "Primary: Create/Update Hud Indicator Secondary: Hook/Unhook someone else's Hud Indicator Reload: Link Hud Indicator to vehicle" )
-	language.Add( "Tool.wire_hudindicator.1", "Now use Reload on a vehicle to link this Hud Indicator to it, or on the same Hud Indicator to unlink it" )
 
 	// HUD Indicator stuff
 	language.Add( "ToolWireHudIndicator_showinhud", "Show in my HUD")
@@ -29,6 +27,13 @@ if ( CLIENT ) then
 	language.Add( "ToolWireHudIndicator_fullcircleangle", "Start angle for full circle gauge (deg):")
 	language.Add( "ToolWireHudIndicator_registeredindicators", "Registered Indicators:")
 	language.Add( "ToolWireHudIndicator_deleteselected", "Unregister Selected Indicator")
+
+	TOOL.Information = {
+		{ name = "left_0", stage = 0, text = "Create/Update " .. TOOL.Name },
+		{ name = "right_0", stage = 0, text = "Hook/Unhook someone else's " .. TOOL.Name },
+		{ name = "reload_0", stage = 0, text = "Link Hud Indicator to vehicle" },
+		{ name = "reload_1", stage = 1, text = "Now use Reload on a vehicle to link this Hud Indicator to it, or on the same Hud Indicator to unlink it" },
+	}
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )

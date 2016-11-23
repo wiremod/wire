@@ -4,10 +4,13 @@ WireToolSetup.open( "holoemitter", "HoloEmitter", "gmod_wire_holoemitter", nil, 
 if CLIENT then
 	language.Add( "tool.wire_holoemitter.name", "Holographic Emitter Tool (Wire)" )
 	language.Add( "tool.wire_holoemitter.desc", "The emitter required for holographic projections" )
-	language.Add( "tool.wire_holoemitter.0", "Primary: Create emitter, Secondary: Link emitter to any entity (makes it draw local to that entity instead)" )
-	language.Add( "tool.wire_holoemitter.1", "Secondary: Link to entity (click the same holoemitter again to unlink it)" )
 	language.Add( "Tool_wire_holoemitter_fadetime", "Client side max fade time (set to 0 to never fade)." )
 	language.Add( "Tool_wire_holoemitter_keeplatestdot", "Keep latest dot indefinitely (prevent fading)." )
+	TOOL.Information = {
+		{ name = "left_0", stage = 0, text = "Create emitter" },
+		{ name = "right_0", stage = 0, text = "Link emitter to any entity (makes it draw local to that entity instead)" },
+		{ name = "right_1", stage = 1, text = "Link to entity (click the same holoemitter again to unlink it)" },
+	}
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 10 )

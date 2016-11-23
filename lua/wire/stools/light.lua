@@ -4,7 +4,6 @@ WireToolSetup.open( "light", "Light", "gmod_wire_light", nil, "Lights" )
 if CLIENT then
 	language.Add( "tool.wire_light.name", "Light Tool (Wire)" )
 	language.Add( "tool.wire_light.desc", "Spawns a Light for use with the wire system." )
-	language.Add( "tool.wire_light.0", "Primary: Create Light" )
 	language.Add( "WireLightTool_RopeLength", "Rope Length:")
 	language.Add( "WireLightTool_bright", "Glow brightness:")
 	language.Add( "WireLightTool_size", "Glow size:" )
@@ -13,6 +12,7 @@ if CLIENT then
 	language.Add( "WireLightTool_glow", "Glow Component" )
 	language.Add( "WireLightTool_const", "Constraint:" )
 	language.Add( "WireLightTool_color", "Initial Color:" )
+	TOOL.Information = { { name = "left", text = "Create/Update " .. TOOL.Name } }
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax(8)

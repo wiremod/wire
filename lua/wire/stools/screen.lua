@@ -4,7 +4,6 @@ WireToolSetup.open( "screen", "Screen", "gmod_wire_screen", nil, "Screens" )
 if CLIENT then
 	language.Add( "tool.wire_screen.name", "Screen Tool (Wire)" )
 	language.Add( "tool.wire_screen.desc", "Spawns a screen that display values." )
-	language.Add( "tool.wire_screen.0", "Primary: Create/Update screen" )
 	language.Add("Tool_wire_screen_singlevalue", "Only one value")
 	language.Add("Tool_wire_screen_singlebigfont", "Use bigger font for single-value screen")
 	language.Add("Tool_wire_screen_texta", "Text A:")
@@ -14,6 +13,7 @@ if CLIENT then
 	language.Add("Tool_wire_screen_formatnumber", "Format the number into millions, billions, etc")
 	language.Add("Tool_wire_screen_formattime", "Format the number as a duration, in seconds")
 	language.Add("Tool_wire_screen_createflat", "Create flat to surface")
+	TOOL.Information = { { name = "left", text = "Create/Update " .. TOOL.Name } }
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )

@@ -14,12 +14,24 @@ if CLIENT then
 	language.Add( "Tool.wire_adv.name", "Wiring Tool" )
 	language.Add( "Tool.wire_adv.desc", "Connect things with wires. (Press Shift+F to switch to the debugger tool)" )
 	language.Add( "Tool.wire_adv.desc2", "Used to connect wirable props." )
-	language.Add( "Tool.wire_adv.0", "Primary: Select input (Shift: Select multiple; Alt: Select all), Secondary: Next, Reload: Unlink (Alt: Unlink all), Mouse Wheel: Next" )
-	language.Add( "Tool.wire_adv.1", "Primary: Select entity, Secondary: Add wire point, Reload: Cancel" )
-	language.Add( "Tool.wire_adv.2", "Primary: Select output (Alt: Auto-connect matching input/outputs), Secondary: Next, Reload: Cancel, Mouse Wheel: Next" )
 	language.Add( "WireTool_width", "Width:" )
 	language.Add( "WireTool_material", "Material:" )
 	language.Add( "WireTool_colour", "Colour:" )
+	TOOL.Information = {
+		{ name = "left_0", stage = 0, text = "Select input (Shift: Select multiple; Alt: Select all)" },
+		{ name = "right_0", stage = 0, text = "Next" },
+		{ name = "reload_0", stage = 0, text = "Unlink (Alt: Unlink all)" },
+		{ name = "mwheel_0", stage = 0, text = "Mouse wheel: Next" },
+		{ name = "left_1", stage = 1, text = "Select entity" },
+		{ name = "right_1", stage = 1, text = "Add wirepoint" },
+		{ name = "reload_1", stage = 1, text = "Cancel" },
+		{ name = "left_2", stage = 2, text = "Select output (Alt: Auto-connect matching input/outputs)" },
+		{ name = "right_2", stage = 2, text = "Next" },
+		{ name = "mwheel_2", stage = 2, text = "Mouse wheel: Next" },
+	}
+	for _, info in pairs(TOOL.Information) do
+		language.Add("Tool.wire_adv." .. info.name, info.text)
+	end
 
 	TOOL.Wire_ToolMenuIcon = "icon16/connect.png"
 end

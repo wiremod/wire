@@ -4,11 +4,11 @@ WireToolSetup.open( "input", "Numpad Input", "gmod_wire_input", nil, "Numpad Inp
 if CLIENT then
 	language.Add( "tool.wire_input.name", "Input Tool (Wire)" )
 	language.Add( "tool.wire_input.desc", "Spawns a input for use with the wire system." )
-	language.Add( "tool.wire_input.0", "Primary: Create/Update Input" )
 	language.Add( "WireInputTool_keygroup", "Key:" )
 	language.Add( "WireInputTool_toggle", "Toggle" )
 	language.Add( "WireInputTool_value_on", "Value On:" )
 	language.Add( "WireInputTool_value_off", "Value Off:" )
+	TOOL.Information = { { name = "left", text = "Create/Update " .. TOOL.Name } }
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )

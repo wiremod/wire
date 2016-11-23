@@ -4,11 +4,11 @@ WireToolSetup.open( "button", "Button", "gmod_wire_button", nil, "Buttons" )
 if CLIENT then
 	language.Add( "tool.wire_button.name", "Button Tool (Wire)" )
 	language.Add( "tool.wire_button.desc", "Spawns a button for use with the wire system." )
-	language.Add( "tool.wire_button.0", "Primary: Create/Update Button" )
 	language.Add( "WireButtonTool_toggle", "Toggle" )
 	language.Add( "WireButtonTool_entityout", "Output Entity" )
 	language.Add( "WireButtonTool_value_on", "Value On:" )
 	language.Add( "WireButtonTool_value_off", "Value Off:" )
+	TOOL.Information = { { name = "left", text = "Create/Update " .. TOOL.Name } }
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )

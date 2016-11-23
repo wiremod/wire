@@ -4,7 +4,7 @@ WireToolSetup.open( "locator", "Locator", "gmod_wire_locator", nil, "Locators" )
 if ( CLIENT ) then
 	language.Add( "Tool.wire_locator.name", "Locator Beacon Tool (Wire)" )
 	language.Add( "Tool.wire_locator.desc", "Spawns a locator beacon for use with the wire system." )
-	language.Add( "Tool.wire_locator.0", "Primary: Create/Update Locator Beacon" )
+	TOOL.Information = { { name = "left", text = "Create/Update " .. TOOL.Name } }
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 30 )

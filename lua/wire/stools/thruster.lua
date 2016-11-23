@@ -4,7 +4,6 @@ WireToolSetup.open( "thruster", "Thruster", "gmod_wire_thruster", nil, "Thruster
 if CLIENT then
 	language.Add( "tool.wire_thruster.name", "Thruster Tool (Wire)" )
 	language.Add( "tool.wire_thruster.desc", "Spawns a thruster for use with the wire system." )
-	language.Add( "tool.wire_thruster.0", "Primary: Create/Update Thruster" )
 	language.Add( "WireThrusterTool_Model", "Model:" )
 	language.Add( "WireThrusterTool_force", "Force multiplier:" )
 	language.Add( "WireThrusterTool_force_min", "Force minimum:" )
@@ -13,6 +12,7 @@ if CLIENT then
 	language.Add( "WireThrusterTool_soundname", "Select sound" )
 	language.Add( "WireThrusterTool_owater", "Works out of water" )
 	language.Add( "WireThrusterTool_uwater", "Works under water" )
+	TOOL.Information = { { name = "left", text = "Create/Update " .. TOOL.Name } }
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 10 )

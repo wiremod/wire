@@ -14,15 +14,18 @@ TOOL.ClientConVar = {
 if CLIENT then
 	language.Add( "Tool.wire_hydraulic.name", "Hydraulic Tool (Wire)" )
 	language.Add( "Tool.wire_hydraulic.desc", "Makes a controllable hydraulic" )
-	language.Add( "Tool.wire_hydraulic.0", "Primary: Place hydraulic\nSecondary: Place hydraulic along the hit normal" )
-	language.Add( "Tool.wire_hydraulic.1", "Left click on the second point" )
-	language.Add( "Tool.wire_hydraulic.2", "Left click to place the controller" )
 	language.Add( "Tool.wire_hydraulic.stretchonly", "Winch Mode (Stretch Only)" )
 	language.Add( "Tool.wire_hydraulic.stretchonly.help", "If this isn't enabled then it acts like a spring, pushing away the objects as they move closer." )
 	language.Add( "Tool.wire_hydraulic.width", "Width:" )
 	language.Add( "Tool.wire_hydraulic.material", "Material:" )
 	language.Add( "Tool.wire_hydraulic.fixed", "Fixed" )
 	language.Add( "Tool.wire_hydraulic.speed", "In/Out Speed Mul" )
+	TOOL.Information = {
+		{ name = "left_0", stage = 0, text = "Place hydraulic" },
+		{ name = "right_0", stage = 0, text = "Place hydraulic along the hit normal" },
+		{ name = "left_1", stage = 1, text = "Choose the second point" },
+		{ name = "left_2", stage = 2, text = "Place the controller" },
+	}
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax(16)

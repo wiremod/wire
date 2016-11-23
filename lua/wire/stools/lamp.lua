@@ -4,13 +4,16 @@ WireToolSetup.open( "lamp", "Lamp", "gmod_wire_lamp", nil, "Lamps" )
 if CLIENT then
 	language.Add( "tool.wire_lamp.name", "Wire Lamps" )
 	language.Add( "tool.wire_lamp.desc", "Spawns a lamp for use with the wire system." )
-	language.Add( "tool.wire_lamp.0", "Primary: Create hanging lamp Secondary: Create unattached lamp" )
 	language.Add( "WireLampTool_RopeLength", "Rope Length:")
 	language.Add( "WireLampTool_FOV", "FOV:")
 	language.Add( "WireLampTool_Dist", "Distance:")
 	language.Add( "WireLampTool_Bright", "Brightness:")
 	language.Add( "WireLampTool_Const", "Constraint:" )
 	language.Add( "WireLampTool_Color", "Color:" )
+	TOOL.Information = {
+		{ name = "left", text = "Create hanging lamp" },
+		{ name = "right", text = "Create unattached lamp" },
+	}
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 10 )

@@ -4,9 +4,9 @@ WireToolSetup.open( "lever", "Lever", "gmod_wire_lever", nil, "Levers" )
 if CLIENT then
 	language.Add( "tool.wire_lever.name", "Lever Tool (Wire)" )
 	language.Add( "tool.wire_lever.desc", "Spawns a Lever for use with the wire system." )
-	language.Add( "tool.wire_lever.0", "Primary: Create/Update Lever" )
 	language.Add( "tool.wire_lever.minvalue", "Max Value:" )
 	language.Add( "tool.wire_lever.maxvalue", "Min Value:" )
+	TOOL.Information = { { name = "left", text = "Create/Update " .. TOOL.Name } }
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 10 )

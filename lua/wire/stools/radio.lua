@@ -4,10 +4,10 @@ WireToolSetup.open( "radio", "Radio", "gmod_wire_radio", nil, "Radios" )
 if ( CLIENT ) then
 	language.Add( "Tool.wire_radio.name", "Radio Tool (Wire)" )
 	language.Add( "Tool.wire_radio.desc", "Spawns a radio for use with the wire system." )
-	language.Add( "Tool.wire_radio.0", "Primary: Create/Update Radio" )
 	language.Add( "WireRadioTool_channel", "Channel:" )
 	language.Add( "WireRadioTool_values", "Values:" )
 	language.Add( "WireRadioTool_secure", "Secure" )
+	TOOL.Information = { { name = "left", text = "Create/Update " .. TOOL.Name } }
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )

@@ -4,8 +4,8 @@ WireToolSetup.open( "hoverball", "Hoverball", "gmod_wire_hoverball", nil, "Hover
 if CLIENT then
 	language.Add( "tool.wire_hoverball.name", "Wired Hoverball Tool" )
 	language.Add( "tool.wire_hoverball.desc", "Spawns a hoverball for use with the wire system." )
-	language.Add( "tool.wire_hoverball.0", "Primary: Create/Update Hoverball" )
 	language.Add( "tool.wire_hoverball.starton", "Create with hover mode on" )
+	TOOL.Information = { { name = "left", text = "Create/Update " .. TOOL.Name } }
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 30 )

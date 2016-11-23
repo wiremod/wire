@@ -26,7 +26,6 @@ TOOL.ReloadSetsModel = true
 if ( CLIENT ) then
 	language.Add( "Tool.wire_explosive.name", "Wired Explosives Tool" )
 	language.Add( "Tool.wire_explosive.desc", "Creates a variety of different explosives for wire system." )
-	language.Add( "Tool.wire_explosive.0", "Left click to place the bomb. Right click update." )
 	language.Add( "Tool.wire_explosive.trigger", "Trigger value:" )
 	language.Add( "Tool.wire_explosive.damage", "Damage:" )
 	language.Add( "Tool.wire_explosive.radius", "Blast radius:" )
@@ -43,6 +42,10 @@ if ( CLIENT ) then
 	language.Add( "Tool.wire_explosive.fireeffect", "Enable fire effect on triggered" )
 	language.Add( "Tool.wire_explosive.coloreffect", "Enable color change effect on damage" )
 	language.Add( "Tool.wire_explosive.invisibleatzero", "Become invisible when health reaches 0" )
+	TOOL.Information = {
+		{ name = "left", text = "Create " .. TOOL.Name },
+		{ name = "right", text = "Update " .. TOOL.Name },
+	}
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 10 )

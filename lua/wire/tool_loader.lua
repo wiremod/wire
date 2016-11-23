@@ -466,8 +466,15 @@ end
 function WireToolSetup.BaseLang()
 	if CLIENT then
 		language.Add( "undone_"..TOOL.WireClass, "Undone Wire "..TOOL.Name )
-		language.Add( "Cleanup_"..TOOL.WireClass, "Wire "..TOOL.PluralName )
-		language.Add( "Cleaned_"..TOOL.WireClass, "Cleaned Up Wire "..TOOL.PluralName )
+		if TOOL.PluralName then
+			language.Add( "Cleanup_"..TOOL.WireClass, "Wire "..TOOL.PluralName )
+			language.Add( "Cleaned_"..TOOL.WireClass, "Cleaned Up Wire "..TOOL.PluralName )
+		end
+		for _, info in pairs(TOOL.Information or {}) do
+			if info.text then
+				language.Add("Tool." .. TOOL.Mode .. "." .. info.name, info.text)
+			end
+		end
 	end
 	cleanup.Register(TOOL.WireClass)
 end
@@ -487,12 +494,36 @@ end
 -- The SENT should have ENT:LinkEnt(e), ENT:UnlinkEnt(e), and ENT:ClearEntities()
 -- It should also send ENT.Marks to the client via WireLib.SendMarks(ent)
 -- Pass it true to disable linking multiple entities (ie for Pod Controllers)
-function WireToolSetup.SetupLinking(SingleLink)
+function WireToolSetup.SetupLinking(SingleLink, linkedname)
 	TOOL.SingleLink = SingleLink
+	linkedname = linkedname or "entity"
 	if CLIENT then
-		language.Add( "Tool."..TOOL.Mode..".0", "Primary: Create "..TOOL.Name..", Secondary: Link entities, Reload: Unlink entities" )
-		language.Add( "Tool."..TOOL.Mode..".1", "Now select the entity to link to" .. (SingleLink and "" or " (Tip: Hold shift to link to more entities)"))
-		language.Add( "Tool."..TOOL.Mode..".2", "Now select the entity to unlink" .. (SingleLink and "" or " (Tip: Hold shift to unlink from more entities). Reload on the same controller again to clear all linked entities." ))
+		if TOOL.Information == nil or next(TOOL.Information) == nil then
+			TOOL.Information = {
+				{ name = "left_0", stage = 0 },
+				{ name = "right_0", stage = 0 },
+				{ name = "reload_0", stage = 0 },
+				{ name = "right_1", stage = 1 },
+				{ name = "right_2", stage = 2 },
+			}
+			if not SingleLink then
+				table.insert(TOOL.Information, { name = "info_1", stage = 1 })
+				table.insert(TOOL.Information, { name = "info_2", stage = 2 })
+				table.insert(TOOL.Information, { name = "reload_2", stage = 2 })
+			end
+		end
+
+		language.Add( "Tool."..TOOL.Mode..".left_0", "Create/Update "..TOOL.Name )
+		language.Add( "Tool."..TOOL.Mode..".right_0", "Select a " .. TOOL.Name .. " to link to" )
+		language.Add( "Tool."..TOOL.Mode..".reload_0",  "Unlink everything from a " .. TOOL.Name )
+		language.Add( "Tool."..TOOL.Mode..".right_1", "Now select the " .. linkedname .. " to link to" )
+		language.Add( "Tool."..TOOL.Mode..".right_2", "Now select the " .. linkedname .. " to unlink" )
+
+		if not SingleLink then
+			language.Add( "Tool."..TOOL.Mode..".info_1", "Hold shift to link to more")
+			language.Add( "Tool."..TOOL.Mode..".info_2", "Hold shift to unlink from more")
+			language.Add( "Tool."..TOOL.Mode..".reload_2", "Reload on the same controller again to clear all linked entities.")
+		end
 
 		function TOOL:DrawHUD()
 			local trace = self:GetOwner():GetEyeTrace()
