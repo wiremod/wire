@@ -67,13 +67,14 @@ net.Receive("WireLib.Paths.RequestPaths", function(length, ply)
 end)
 
 local function TransmitPath(input)
+	local color = input.Color
 	net.WriteEntity(input.Entity)
 	net.WriteString(input.Name)
 	if not input.Src or input.Width<=0 then net.WriteFloat(0) return end
 	net.WriteFloat(input.Width)
 	net.WriteVector(input.StartPos)
 	net.WriteString(input.Material)
-	net.WriteColor(input.Color)
+	net.WriteColor(Color(color.r, color.g, color.b, color.a))
 	net.WriteUInt(#input.Path, 15)
 	for _, point in ipairs(input.Path) do
 		net.WriteEntity(point.Entity)
