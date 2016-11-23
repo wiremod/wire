@@ -3,9 +3,9 @@ WireToolSetup.open( "eyepod", "Eye Pod", "gmod_wire_eyepod", nil, "Eye Pods" )
 
 if ( CLIENT ) then
 	//tool hud lang
-    language.Add( "Tool.wire_eyepod.name", "Eye Pod Tool (Wire)" )
-    language.Add( "Tool.wire_eyepod.desc", "Spawns an Eye Pod Mouse Controller." )
-    language.Add( "Tool.wire_eyepod.0", "Primary: Create/Update Controller  Secondary: Link controller  Reload: Unlink EyePod/Cancel Current Link" )
+	language.Add( "Tool.wire_eyepod.name", "Eye Pod Tool (Wire)" )
+	language.Add( "Tool.wire_eyepod.desc", "Spawns an Eye Pod Mouse Controller." )
+	language.Add( "Tool.wire_eyepod.0", "Primary: Create/Update Controller  Secondary: Link controller  Reload: Unlink EyePod/Cancel Current Link" )
 	language.Add( "Tool.wire_eyepod.1", "Now select the pod to link to.")
 
 	//panel control lang

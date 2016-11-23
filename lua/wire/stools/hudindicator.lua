@@ -4,9 +4,9 @@ WireToolSetup.setCategory( "Visuals/Indicators" )
 WireToolSetup.open( "hudindicator", "Hud Indicator", "gmod_wire_hudindicator", nil, "Hud Indicators" )
 
 if ( CLIENT ) then
-    language.Add( "Tool.wire_hudindicator.name", "Hud Indicator Tool (Wire)" )
-    language.Add( "Tool.wire_hudindicator.desc", "Spawns a Hud Indicator for use with the wire system." )
-    language.Add( "Tool.wire_hudindicator.0", "Primary: Create/Update Hud Indicator Secondary: Hook/Unhook someone else's Hud Indicator Reload: Link Hud Indicator to vehicle" )
+	language.Add( "Tool.wire_hudindicator.name", "Hud Indicator Tool (Wire)" )
+	language.Add( "Tool.wire_hudindicator.desc", "Spawns a Hud Indicator for use with the wire system." )
+	language.Add( "Tool.wire_hudindicator.0", "Primary: Create/Update Hud Indicator Secondary: Hook/Unhook someone else's Hud Indicator Reload: Link Hud Indicator to vehicle" )
 	language.Add( "Tool.wire_hudindicator.1", "Now use Reload on a vehicle to link this Hud Indicator to it, or on the same Hud Indicator to unlink it" )
 
 	// HUD Indicator stuff

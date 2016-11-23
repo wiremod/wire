@@ -2,10 +2,10 @@ WireToolSetup.setCategory( "Physics" )
 WireToolSetup.open( "clutch", "Clutch", "gmod_wire_clutch", nil, "Clutchs" )
 
 if CLIENT then
-    language.Add( "Tool.wire_clutch.name", "Clutch Tool (Wire)" )
-    language.Add( "Tool.wire_clutch.desc", "Control rotational friction between props" )
-    language.Add( "Tool.wire_clutch.0", "Primary: Place/Select a clutch controller\nSecondary: Select an entity to apply the clutch to\nReload: Remove clutch from entity/deselect controller" )
-    language.Add( "Tool.wire_clutch.1", "Right click on the second entity you want the clutch to apply to" )
+	language.Add( "Tool.wire_clutch.name", "Clutch Tool (Wire)" )
+	language.Add( "Tool.wire_clutch.desc", "Control rotational friction between props" )
+	language.Add( "Tool.wire_clutch.0", "Primary: Place/Select a clutch controller\nSecondary: Select an entity to apply the clutch to\nReload: Remove clutch from entity/deselect controller" )
+	language.Add( "Tool.wire_clutch.1", "Right click on the second entity you want the clutch to apply to" )
 	language.Add( "undone_wireclutch", "Undone Wire Clutch" )
 end
 WireToolSetup.BaseLang()
