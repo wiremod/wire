@@ -48,7 +48,7 @@ function Wire_Render(ent)
 				lastrender = t
 			end
 
-			local blink = shouldblink and ent:GetNetworkedBeamString("BlinkWire")
+			local blink = shouldblink and ent:GetNWString("BlinkWire")
 
 			for net_name, wiretbl in pairs(wires) do
 				local width = wiretbl.Width

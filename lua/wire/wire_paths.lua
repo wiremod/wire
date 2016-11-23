@@ -1,6 +1,6 @@
 -- wire_paths.lua
 --
--- This file is implements syncing of wire paths, which are the visual
+-- This file implements syncing of wire paths, which are the visual
 -- component of wires.
 --
 -- Conceptually, a wire path has a material, a color, and a non-zero width, as
@@ -41,7 +41,7 @@ if CLIENT then
 		path.Entity.WirePaths[path.Name] = path
 
 	end)
-	
+
 	hook.Add("NetworkEntityCreated", "WireLib.Paths.NetworkEntityCreated", function(ent)
 		if ent.Inputs then
 			net.Start("WireLib.Paths.RequestPaths")

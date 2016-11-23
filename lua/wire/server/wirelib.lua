@@ -137,7 +137,6 @@ function WireLib.CreateSpecialInputs(ent, names, types, descs)
 		Inputs[idx] = port
 	end
 
-	WireLib.SetPathNames(ent, names)
 	WireLib._SetInputs(ent)
 
 	return ent_ports
@@ -228,7 +227,6 @@ function WireLib.AdjustSpecialInputs(ent, names, types, descs)
 		end
 	end
 
-	WireLib.SetPathNames(ent, names)
 	WireLib._SetInputs(ent)
 
 	return ent_ports
@@ -678,13 +676,6 @@ function WireLib.Link_Clear(ent, iname, DontSendToCL)
 	Wire_Unlink(ent, iname, DontSendToCL)
 end
 
-function WireLib.SetPathNames(ent, names)
-	for k,v in pairs(names) do
-		ent:SetNetworkedBeamString("wpn_" .. k, v)
-	end
-	ent:SetNetworkedBeamInt("wpn_count", #names)
-end
-
 function WireLib.WireAll(ply, ient, oent, ipos, opos, material, color, width)
 	if not IsValid(ient) or not IsValid(oent) or not ient.Inputs or not oent.Outputs then return false end
 
@@ -907,7 +898,6 @@ Wire_Link_Node					= WireLib.Link_Node
 Wire_Link_End					= WireLib.Link_End
 Wire_Link_Cancel				= WireLib.Link_Cancel
 Wire_Link_Clear					= WireLib.Link_Clear
-Wire_SetPathNames				= WireLib.SetPathNames
 Wire_CreateOutputIterator		= WireLib.CreateOutputIterator
 Wire_BuildDupeInfo				= WireLib.BuildDupeInfo
 Wire_ApplyDupeInfo				= WireLib.ApplyDupeInfo
