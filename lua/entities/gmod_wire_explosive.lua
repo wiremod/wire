@@ -6,6 +6,7 @@ ENT.WireDebugName 	= "Explosive"
 if CLIENT then return end -- No more client
 
 local wire_explosive_delay = CreateConVar( "wire_explosive_delay", 0.2, FCVAR_ARCHIVE )
+local wire_explosive_range = CreateConVar( "wire_explosive_range", 512, FCVAR_ARCHIVE )
 
 function ENT:Initialize()
 
@@ -51,7 +52,7 @@ function ENT:Setup( key, damage, delaytime, removeafter, radius, affectother, no
 	self.Damage = math.Clamp( damage, 0, 1500 )
 	self.Delaytime = delaytime
 	self.Removeafter = removeafter
-	self.Radius = math.min(512,math.max(radius, 1))
+	self.Radius = math.Clamp(radius, 1, wire_explosive_range:GetFloat())
 	self.Affectother = affectother
 	self.Notaffected = notaffected
 	self.Delayreloadtime = delayreloadtime
