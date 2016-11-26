@@ -1,15 +1,20 @@
 --[[============================================================
 	E2 Function System
 		By Rusketh
-			Function Creator
+			General Operators
 ============================================================]]--
 
-local function Function(A,S,Scopes)
+__e2setcost(20)
 
-	local Func = function(self,args)
+registerOperator("function", "", "", function(self, args)
+
+	local Stmt, args = args[2], args[3]
+	local Sig, Return, Args = args[3], args[4], args[6]
+
+	self.funcs[Sig] = function(self,args)
 
 		local Variables = {}
-		for K,Data in pairs (A) do
+		for K,Data in pairs (Args) do
 			local Name, Type, OP = Data[1], Data[2], args[K + 1]
 			local RV = OP[1](self, OP)
 			Variables[#Variables + 1] = {Name,RV}
@@ -27,7 +32,7 @@ local function Function(A,S,Scopes)
 		end
 
 		self.func_rv = nil
-		local ok, msg = pcall(S[1],self,S)
+		local ok, msg = pcall(Stmt[1],self,Stmt)
 
 		self:PopScope()
 		self:LoadScopes(OldScopes)
@@ -39,27 +44,6 @@ local function Function(A,S,Scopes)
 		if not ok then error(msg,0) end
 
 	end
-
-	return Func
-end
-
-
-
---[[============================================================
-	E2 Function System
-		By Rusketh
-			General Operators
-============================================================]]--
-
-__e2setcost(20)
-
-registerOperator("function", "", "", function(self, args)
-
-	local Stmt, args = args[2], args[3]
-	local Sig, Return, Args = args[3], args[4], args[6]
-
-	self.funcs[Sig] = Function(Args,Stmt)
-
 end)
 
 __e2setcost(2)
