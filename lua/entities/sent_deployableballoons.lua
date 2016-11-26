@@ -44,6 +44,7 @@ hook.Add("Initialize", "CreateDamageFilter", CreateDamageFilter)
 
 local function MakeBalloonSpawner(pl, Data)
 	if IsValid(pl) and not pl:CheckLimit("wire_deployers") then return nil end
+	if Data.Model and not WireLib.CanModel(pl, Data.Model, Data.Skin) then return false end
 
 	local ent = ents.Create("sent_deployableballoons")
 	if not ent:IsValid() then return end

@@ -55,6 +55,8 @@ function ENT:TriggerInput(iname, value)
 end
 
 function MakeGPULibController( pl, Pos, Ang, model, screen )
+	model = model or "models/jaanus/wiretool/wiretool_siren.mdl"
+	if not WireLib.CanModel(pl, model) then return false end
 	--if ( !pl:CheckLimit( "wire_cams" ) ) then return false end
 
 	local controller = ents.Create( "gmod_wire_gpulib_controller" )
@@ -62,7 +64,7 @@ function MakeGPULibController( pl, Pos, Ang, model, screen )
 
 	controller:SetAngles( Ang )
 	controller:SetPos( Pos )
-	controller:SetModel( Model(model or "models/jaanus/wiretool/wiretool_siren.mdl") )
+	controller:SetModel(model)
 	controller:Spawn()
 	controller:Setup(screen)
 

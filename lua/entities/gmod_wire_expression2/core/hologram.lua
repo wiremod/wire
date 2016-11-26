@@ -492,6 +492,7 @@ local function CreateHolo(self, index, pos, scale, ang, color, model)
 	if not ang   then ang   = self.entity:GetAngles() end
 
 	model = GetModel(model or "cube") or "models/holograms/cube.mdl"
+	if not WireLib.CanModel(self.player, model) then return end
 
 	local Holo = CheckIndex(self, index)
 	if not Holo then
@@ -690,7 +691,7 @@ end
 
 e2function void holoReset(index, string model, vector scale, vector color, string material)
 	model = GetModel(model)
-	if not model then return end
+	if not model or not WireLib.CanModel(self.player, model) then return end
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
 
@@ -937,7 +938,7 @@ e2function void holoModel(index, string model)
 	if not Holo then return end
 
 	model = GetModel(model)
-	if not model then return end
+	if not model or not WireLib.CanModel(self.player, model) then return end
 
 	Holo.ent:SetModel(model)
 end
@@ -950,7 +951,7 @@ e2function void holoModel(index, string model, skin)
 	Holo.ent:SetSkin(skin)
 
 	model = GetModel(model)
-	if not model then return end
+	if not model or not WireLib.CanModel(self.player, model, skin) then return end
 
 	Holo.ent:SetModel(model)
 end
