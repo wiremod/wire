@@ -9,7 +9,7 @@ __e2setcost(20)
 registerOperator("function", "", "", function(self, args)
 
 	local Stmt, args = args[2], args[3]
-	local Sig, Return, Args = args[3], args[4], args[6]
+	local Sig, ReturnType, Args = args[3], args[4], args[6]
 
 	self.funcs[Sig] = function(self,args)
 
@@ -42,6 +42,12 @@ registerOperator("function", "", "", function(self, args)
 		if not ok and msg == "return" then return self.func_rv end
 
 		if not ok then error(msg,0) end
+
+		if Return ~= "" then
+			error("Function " .. E2Lib.generate_signature(Sig, nil, Args) ..
+				" executed and didn't return a value - expecting a value of type " ..
+				E2Lib.typeName(ReturnType), 0)
+		end
 
 	end
 end)
