@@ -4,7 +4,7 @@ WireToolSetup.open( "dynamic_button", "Dynamic Button", "gmod_wire_dynamic_butto
 if CLIENT then
 	language.Add( "tool.wire_dynamic_button.name", "Dynamic Button Tool (Wire)" )
 	language.Add( "tool.wire_dynamic_button.desc", "Spawns a dynamic button for use with the wire system." )
-	language.Add( "tool.wire_dynamic_button.0", "Primary: Create/Update Dynamic Button" )
+	TOOL.Information = { { name = "left", text = "Create/Update " .. TOOL.Name } }
 	language.Add( "WireDynamicButtonTool_toggle", "Toggle" )
 	language.Add( "WireDynamicButtonTool_entityout", "Output Entity" )
 	language.Add( "WireDynamicButtonTool_value_on", "Value On:" )

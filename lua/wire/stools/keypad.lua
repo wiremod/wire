@@ -4,9 +4,9 @@ WireToolSetup.open( "keypad", "Keypad", "gmod_wire_keypad", nil, "Keypads" )
 if CLIENT then
 	language.Add( "tool."..TOOL.Mode..".name", TOOL.Name.." Tool (Wire)" )
 	language.Add( "tool."..TOOL.Mode..".desc", "Spawns a "..TOOL.Name )
-	language.Add( "tool."..TOOL.Mode..".0", "Primary: Create/Update "..TOOL.Name.."" )
 	language.Add( "tool."..TOOL.Mode..".password", "Password: " )
 	language.Add( "tool."..TOOL.Mode..".secure", "Display Asterisks: " )
+	TOOL.Information = { { name = "left", text = "Create/Update " .. TOOL.Name } }
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax(10)

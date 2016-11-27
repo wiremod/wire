@@ -2,10 +2,15 @@ WireToolSetup.setCategory( "Chips, Gates", "Advanced" )
 WireToolSetup.open( "cpu", "CPU", "gmod_wire_cpu", nil, "CPUs" )
 
 if CLIENT then
-	language.Add("Tool.wire_cpu.name", "CPU Tool (Wire)")
-	language.Add("Tool.wire_cpu.desc", "Spawns a central processing unit")
-	language.Add("Tool.wire_cpu.0",    "Primary: upload program to hispeed device, Reload: attach debugger, Shift+Reload: clear, Secondary: open editor")
-	language.Add("ToolWirecpu_Model",  "Model:" )
+  language.Add("Tool.wire_cpu.name", "CPU Tool (Wire)")
+  language.Add("Tool.wire_cpu.desc", "Spawns a central processing unit")
+  language.Add("ToolWirecpu_Model",  "Model:" )
+  TOOL.Information = {
+    { name = "left", text = "Upload program to hispeed device" },
+    { name = "right", text = "Open editor" },
+    { name = "reload", text = "Attach debugger" },
+    { name = "reload_shift", text = "Shift+Reload: Clear" },
+  }
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 7 )

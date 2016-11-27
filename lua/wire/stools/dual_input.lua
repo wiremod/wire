@@ -4,7 +4,7 @@ WireToolSetup.open( "dual_input", "Dual Input", "gmod_wire_dual_input", nil, "Du
 if CLIENT then
 	language.Add( "tool.wire_dual_input.name", "Dual Input Tool (Wire)" )
 	language.Add( "tool.wire_dual_input.desc", "Spawns a daul input for use with the wire system." )
-	language.Add( "tool.wire_dual_input.0", "Primary: Create/Update Input" )
+	TOOL.Information = { { name = "left", text = "Create/Update " .. TOOL.Name } }
 	language.Add( "WireDualInputTool_keygroup", "Key 1:" )
 	language.Add( "WireDualInputTool_keygroup2", "Key 2:" )
 	language.Add( "WireDualInputTool_toggle", "Toggle" )

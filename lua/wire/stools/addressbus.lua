@@ -4,7 +4,7 @@ WireToolSetup.open( "addressbus", "Data - Address Bus", "gmod_wire_addressbus", 
 if ( CLIENT ) then
 	language.Add( "Tool.wire_addressbus.name", "Address bus tool (Wire)" )
 	language.Add( "Tool.wire_addressbus.desc", "Spawns an address bus. Address spaces may overlap!" )
-	language.Add( "Tool.wire_addressbus.0", "Primary: Create/Update address bus" )
+	TOOL.Information = { { name = "left", text = "Create/Update address bus" } }
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )

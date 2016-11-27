@@ -4,7 +4,7 @@ WireToolSetup.open( "extbus", "Data - Extended Bus", "gmod_wire_extbus", nil, "E
 if ( CLIENT ) then
 	language.Add( "Tool.wire_extbus.name", "Extended bus tool (Wire)" )
 	language.Add( "Tool.wire_extbus.desc", "Spawns an extended bus (programmable address bus)" )
-	language.Add( "Tool.wire_extbus.0", "Primary: Create/Update extended bus" )
+	TOOL.Information = { { name = "left", text = "Create/Update extended bus" } }
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )

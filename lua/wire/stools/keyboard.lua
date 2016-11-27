@@ -2,10 +2,8 @@ WireToolSetup.setCategory( "Input, Output/Keyboard Interaction", "Vehicle Contro
 WireToolSetup.open( "keyboard", "Keyboard", "gmod_wire_keyboard", nil, "Keyboards" )
 
 if ( CLIENT ) then
-    language.Add( "Tool.wire_keyboard.name", "Wired Keyboard Tool (Wire)" )
-    language.Add( "Tool.wire_keyboard.desc", "Spawns a keyboard input for use with the hi-speed wire system." )
-    language.Add( "Tool.wire_keyboard.0", "Primary: Create/Update Keyboard, Secondary: Link Keyboard to pod, Reload: Unlink" )
-	language.Add( "Tool.wire_keyboard.1", "Now select the pod to link to.")
+	language.Add( "Tool.wire_keyboard.name", "Wired Keyboard Tool (Wire)" )
+	language.Add( "Tool.wire_keyboard.desc", "Spawns a keyboard input for use with the hi-speed wire system." )
 	language.Add( "Tool.wire_keyboard.leavekey", "Leave Key" )
 end
 WireToolSetup.BaseLang()
@@ -27,7 +25,7 @@ TOOL.ClientConVar = {
 	leavekey = KEY_LALT
 }
 
-WireToolSetup.SetupLinking(true)
+WireToolSetup.SetupLinking(true, "vehicle")
 
 function TOOL.BuildCPanel(panel)
 	ModelPlug_AddToCPanel(panel, "Keyboard", "wire_keyboard", true)

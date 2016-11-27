@@ -5,7 +5,6 @@ WireToolSetup.open( "textscreen", "Text Screen", "gmod_wire_textscreen", nil, "T
 if CLIENT then
 	language.Add("tool.wire_textscreen.name", "Text Screen Tool (Wire)" )
 	language.Add("tool.wire_textscreen.desc", "Spawns a screen that displays text." )
-	language.Add("tool.wire_textscreen.0", "Primary: Create/Update text screen, Secondary: Copy settings" )
 
 	language.Add("Tool_wire_textscreen_tsize", "Text size:")
 	language.Add("Tool_wire_textscreen_tjust", "Horizontal alignment:")
@@ -14,6 +13,11 @@ if CLIENT then
 	language.Add("Tool_wire_textscreen_colour", "Text colour:")
 	language.Add("Tool_wire_textscreen_createflat", "Create flat to surface")
 	language.Add("Tool_wire_textscreen_text", "Default text:")
+	TOOL.Information = {
+		{ name = "left", text = "Create/Update " .. TOOL.Name },
+		{ name = "right", text = "Copy settings" },
+	}
+
 end
 WireToolSetup.BaseLang()
 

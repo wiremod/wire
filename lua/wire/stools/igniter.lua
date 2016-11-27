@@ -4,9 +4,9 @@ WireToolSetup.open( "igniter", "Igniter", "gmod_wire_igniter", nil, "Igniters" )
 if CLIENT then
 	language.Add( "tool.wire_igniter.name", "Igniter Tool (Wire)" )
 	language.Add( "tool.wire_igniter.desc", "Spawns a constant igniter prop for use with the wire system." )
-	language.Add( "tool.wire_igniter.0", "Primary: Create/Update Igniter" )
 	language.Add( "WireIgniterTool_trgply", "Allow Player Igniting" )
 	language.Add( "WireIgniterTool_Range", "Max Range:" )
+	TOOL.Information = { { name = "left", text = "Create/Update " .. TOOL.Name } }
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )

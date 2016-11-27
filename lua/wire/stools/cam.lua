@@ -4,8 +4,6 @@ WireToolSetup.open( "cam", "Cam Controller", "gmod_wire_cameracontroller", nil, 
 if ( CLIENT ) then
 	language.Add( "Tool.wire_cam.name", "Cam Controller Tool (Wire)" )
 	language.Add( "Tool.wire_cam.desc", "Spawns a constant Cam Controller prop for use with the wire system." )
-	language.Add( "Tool.wire_cam.0", "Primary: Create/Update Cam Controller Secondary: Link a cam controller to a Pod." )
-	language.Add( "Tool.wire_cam.1", "Now click a pod to link to." )
 	language.Add( "Tool.wire_cam.parentlocal", "Coordinates local to parent" )
 	language.Add( "Tool.wire_cam.automove", "Client side movement" )
 	language.Add( "Tool.wire_cam.localmove", "Localized movement" )
@@ -45,7 +43,7 @@ TOOL.ClientConVar[ "drawplayer" ] = "1"
 TOOL.ClientConVar[ "drawparent" ] = "1"
 TOOL.ClientConVar[ "smooth_amount" ] = "18"
 
-WireToolSetup.SetupLinking()
+WireToolSetup.SetupLinking(false, "pod")
 
 function TOOL.BuildCPanel(panel)
 	WireDermaExts.ModelSelect(panel, "wire_cam_model", list.Get( "Wire_Misc_Tools_Models" ), 1)
