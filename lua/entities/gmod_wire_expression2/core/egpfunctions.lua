@@ -89,6 +89,36 @@ e2function number wirelink:egpOrder( number index )
 	return -1
 end
 
+e2function number wirelink:egpOrderAbove( number index, number abovethis )
+	if (!EGP:IsAllowed( self, this )) then return end
+	local bool, k, v = EGP:HasObject( this, index )
+	if (bool) then
+		local bool2, k2, v2 = EGP:HasObject( this, abovethis )
+		if (bool2) then
+			local bool3 = EGP:SetOrder( this, k, abovethis, 1 )
+			if (bool3) then
+				EGP:DoAction( this, self, "SendObject", v )
+				Update(self,this)
+			end
+		end
+	end
+end
+
+e2function number wirelink:egpOrderBelow( number index, number belowthis )
+	if (!EGP:IsAllowed( self, this )) then return end
+	local bool, k, v = EGP:HasObject( this, index )
+	if (bool) then
+		local bool2, k2, v2 = EGP:HasObject( this, belowthis )
+		if (bool2) then
+			local bool3 = EGP:SetOrder( this, k, belowthis, -1 )
+			if (bool3) then
+				EGP:DoAction( this, self, "SendObject", v )
+				Update(self,this)
+			end
+		end
+	end
+end
+
 __e2setcost(15)
 
 --------------------------------------------------------
