@@ -679,10 +679,6 @@ local function CreateSoundBrowser(path, se)
 		return {strformat, strsize or "n/a"}
 	end
 
-	TabFileBrowser.OnLineAdded = function(self, id, line, strfile, ...)
-
-	end
-
 	TabFileBrowser.DoClick = function(parent, file)
 		SaveFilePath(SoundBrowserPanel, file)
 
