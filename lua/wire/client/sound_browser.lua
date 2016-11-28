@@ -154,6 +154,7 @@ local function GenerateInfoTree(strfile, backnode, count)
 	else
 		local node
 		local mainnode
+		local subnode
 
 		if IsValid(backnode) then
 			mainnode = backnode:AddNode("Sound Property"..strcount, "icon16/table_gear.png")
@@ -482,6 +483,7 @@ local function Infomenu(node, SoundEmitter, nSoundVolume, nSoundPitch)
 	end
 
 	local Menu = DermaMenu()
+	local MenuItem
 
 	-- Copy to clipboard
 		MenuItem = Menu:AddOption("Copy to clipboard", function()
