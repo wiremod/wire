@@ -87,6 +87,17 @@ local function GetInfoTable(strfile)
 	return T, not tabproperty
 end
 
+local function GetGamesForSound(path)
+	local games = {}
+
+	for _,game in pairs(engine.GetGames()) do
+		if game.mounted and file.Exists(path, game.folder) then
+			table.insert(games, game)
+		end
+	end
+
+	return games
+end
 
 -- Output the infos about the given sound.
 local oldstrfile
@@ -150,6 +161,16 @@ local function GenerateInfoTree(strfile, backnode, count)
 			node = mainnode:AddNode(index, "icon16/page_white_key.png")
 			subnode = node:AddNode(SoundData[index], "icon16/page.png")
 			subnode.IsDataNode = true
+		end
+		do
+			local games = GetGamesForSound(SoundData["Path"])
+
+			node = mainnode:AddNode("Games", "icon16/page_white_key.png")
+
+			for _, game in ipairs(games) do
+				subnode = node:AddNode(game, "icon16/page.png")
+				subnode.IsDataNode = true
+			end
 		end
 	else
 		local node
