@@ -102,7 +102,7 @@ local function GenerateInfoTree(strfile, backnode, count)
 		end
 	end
 	if not SoundData then return end
-	
+
 	local strcount = ""
 	if count then
 		strcount = " ("..count..")"
@@ -113,7 +113,7 @@ local function GenerateInfoTree(strfile, backnode, count)
 		local node = nil
 		local mainnode = nil
 		local subnode = nil
-		
+
 		if IsValid(backnode) then
 			mainnode = backnode:AddNode("Sound File"..strcount, "icon16/sound.png")
 		else
@@ -121,7 +121,7 @@ local function GenerateInfoTree(strfile, backnode, count)
 			SoundInfoTreeRoot = mainnode
 		end
 
-		
+
 		do
 			index = "Path"
 			node = mainnode:AddNode(index, "icon16/sound.png")
@@ -161,7 +161,7 @@ local function GenerateInfoTree(strfile, backnode, count)
 			mainnode = SoundInfoTree:AddNode("Sound Property", "icon16/table_gear.png")
 			SoundInfoTreeRoot = mainnode
 		end
-		
+
 		do
 			node = mainnode:AddNode("Name", "icon16/sound.png")
 			subnode = node:AddNode(SoundData["name"], "icon16/page.png")
@@ -431,7 +431,7 @@ local function Sendmenu(strSound, SoundEmitter, nSoundVolume, nSoundPitch) -- Op
 			local ply = LocalPlayer()
 			if not IsValid(ply) then return end
 
-			ply:PrintMessage( HUD_PRINTTALK, strSound)
+			ply:PrintMessage(HUD_PRINTTALK, strSound)
 		end)
 		MenuItem:SetImage("icon16/monitor_go.png")
 
@@ -569,7 +569,7 @@ local function CreateSoundBrowser(path, se)
 	TabFileBrowser = vgui.Create("wire_filebrowser") -- The file tree browser.
 	TabSoundPropertyList = vgui.Create("wire_soundpropertylist") -- The sound property browser.
 	TabFavourites = vgui.Create("wire_listeditor") -- The favourites manager.
-	
+
 	TabFileBrowser:SetListSpeed(6)
 	TabFileBrowser:SetMaxItemsPerPage(200)
 
@@ -592,13 +592,13 @@ local function CreateSoundBrowser(path, se)
 		if not IsValid(parent) then return end
 		if not IsValid(node) then return end
 		parent:SetSelectedItem(node)
-		
+
 		local Clicktime = CurTime()
 		if (Clicktime - oldClicktime) > 0.3 then oldClicktime = Clicktime return end
 		oldClicktime = Clicktime
 
 		if not node.IsSoundNode then return end
-	
+
 		local file = node:GetText()
 		PlaySound(file, nSoundVolume, nSoundPitch)
 		PlaySoundNoEffect()
@@ -653,7 +653,7 @@ local function CreateSoundBrowser(path, se)
 	SplitPanel:SetLeftMin(500)
 	SplitPanel:SetRightMin(150)
 	SplitPanel:SetDividerWidth(3)
-	
+
 	TabFileBrowser:SetRootName("sound")
 	TabFileBrowser:SetRootPath("sound")
 	TabFileBrowser:SetWildCard("GAME")
@@ -851,7 +851,7 @@ local function CreateSoundBrowser(path, se)
 	SoundBrowserPanel.PerformLayout = function(self, ...)
 		SoundemitterButton:SetVisible(self.Soundemitter)
 		ClipboardButton:SetVisible(not self.Soundemitter)
-		
+
 		local w = self:GetWide()
 		local rightw = SplitPanel:GetLeftWidth() + w - oldw
 
@@ -874,7 +874,7 @@ local function CreateSoundBrowser(path, se)
 		else
 			ClipboardButton:SetTall(PlayStopPanel:GetTall() - 2)
 		end
-		
+
 		oldw, oldh = self:GetSize()
 
 		DFrame.PerformLayout(self, ...)
@@ -896,7 +896,7 @@ end
 local function OpenSoundBrowser(pl, cmd, args)
 	local path = args[1] -- nil or "" will put the browser in e2 mode else the soundemitter mode is applied.
 	local se = args[2]
-	
+
 	if not IsValid(SoundBrowserPanel) then
 		CreateSoundBrowser(path, se)
 	end
