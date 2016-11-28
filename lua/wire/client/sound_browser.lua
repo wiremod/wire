@@ -454,7 +454,7 @@ local function Sendmenu(strSound, SoundEmitter, nSoundVolume, nSoundPitch) -- Op
 
 	-- Play
 		MenuItem = Menu:AddOption("Play", function()
-			PlaySound(strSound, nSoundVolume, nSoundPitch, strtype)
+			PlaySound(strSound, nSoundVolume, nSoundPitch)
 			PlaySoundNoEffect()
 		end)
 		MenuItem:SetImage("icon16/control_play.png")
@@ -462,14 +462,14 @@ local function Sendmenu(strSound, SoundEmitter, nSoundVolume, nSoundPitch) -- Op
 	-- Play without effects
 		MenuItem = Menu:AddOption("Play without effects", function()
 			PlaySound()
-			PlaySoundNoEffect(strSound, strtype)
+			PlaySoundNoEffect(strSound)
 		end)
 		MenuItem:SetImage("icon16/control_play_blue.png")
 
 	Menu:Open()
 end
 
-local function Infomenu(parent, node, SoundEmitter, nSoundVolume, nSoundPitch)
+local function Infomenu(node, SoundEmitter, nSoundVolume, nSoundPitch)
 	if not IsValid(node) then return end
 	if not node.IsDataNode then return end
 
@@ -608,7 +608,7 @@ local function CreateSoundBrowser(path, se)
 		if not IsValid(node) then return end
 
 		parent:SetSelectedItem(node)
-		Infomenu(parent, node, SoundEmitter, nSoundVolume, nSoundPitch)
+		Infomenu(node, SoundEmitter, nSoundVolume, nSoundPitch)
 	end
 
 	SoundInfoTree.OnNodeSelected = function( parent, node )
@@ -672,7 +672,7 @@ local function CreateSoundBrowser(path, se)
 		local nsize, strformat, nduration = GetFileInfos(strfile)
 		if not nsize then return end
 
-		local nsizeB, strsize = FormatSize(nsize, nduration)
+		local nsizeB, strsize = FormatSize(nsize)
 		local nduration, strduration = FormatLength(nduration, nsize)
 
 		--return {strformat, strsize or "n/a", strduration or "n/a"} -- getting the duration is very slow.
