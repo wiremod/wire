@@ -132,7 +132,7 @@ local function GenerateInfoTree(strfile, backnode, count)
 		do
 			index = "Duration"
 			node = mainnode:AddNode(index, "icon16/time.png")
-			for k, v in pairs(SoundData[index]) do
+			for _, v in pairs(SoundData[index]) do
 				subnode = node:AddNode(v, "icon16/page.png")
 				subnode.IsDataNode = true
 			end
@@ -140,7 +140,7 @@ local function GenerateInfoTree(strfile, backnode, count)
 		do
 			index = "Size"
 			node = mainnode:AddNode(index, "icon16/disk.png")
-			for k, v in pairs(SoundData[index]) do
+			for _, v in pairs(SoundData[index]) do
 				subnode = node:AddNode(v, "icon16/page.png")
 				subnode.IsDataNode = true
 			end
@@ -172,7 +172,7 @@ local function GenerateInfoTree(strfile, backnode, count)
 			local tabchannel = SoundData["channel"] or 0
 			if istable(tabchannel) then
 				node = mainnode:AddNode("Channel", "icon16/page_white_gear.png")
-				for k, v in pairs(tabchannel) do
+				for _, v in pairs(tabchannel) do
 					subnode = node:AddNode(v, "icon16/page.png")
 					subnode.IsDataNode = true
 					subnode = node:AddNode(TranslateCHAN[v] or TranslateCHAN[CHAN_USER_BASE], "icon16/page.png")
@@ -190,7 +190,7 @@ local function GenerateInfoTree(strfile, backnode, count)
 			local tablevel = SoundData["level"] or 0
 			if istable(tablevel) then
 				node = mainnode:AddNode("Level", "icon16/page_white_gear.png")
-				for k, v in pairs(tablevel) do
+				for _, v in pairs(tablevel) do
 					subnode = node:AddNode(v, "icon16/page.png")
 					subnode.IsDataNode = true
 					subnode = node:AddNode(v, "icon16/page.png")
@@ -206,7 +206,7 @@ local function GenerateInfoTree(strfile, backnode, count)
 			local tabpitch = SoundData["volume"] or 0
 			if istable(tabpitch) then
 				node = mainnode:AddNode("Volume", "icon16/page_white_gear.png")
-				for k, v in pairs(tabpitch) do
+				for _, v in pairs(tabpitch) do
 					subnode = node:AddNode(v, "icon16/page.png")
 					subnode.IsDataNode = true
 				end
@@ -220,7 +220,7 @@ local function GenerateInfoTree(strfile, backnode, count)
 			local tabpitch = SoundData["pitch"] or 0
 			if istable(tabpitch) then
 				node = mainnode:AddNode("Pitch", "icon16/page_white_gear.png")
-				for k, v in pairs(tabpitch) do
+				for _, v in pairs(tabpitch) do
 					subnode = node:AddNode(v, "icon16/page.png")
 					subnode.IsDataNode = true
 				end
@@ -669,13 +669,11 @@ local function CreateSoundBrowser(path, se)
 	TabFileBrowser.LineData = function(self, id, strfile, ...)
 		if #strfile > max_char_count then return nil, true end -- skip and hide to long filenames.
 
-		local nsize, strformat, nduration = GetFileInfos(strfile)
+		local nsize, strformat = GetFileInfos(strfile)
 		if not nsize then return end
 
-		local nsizeB, strsize = FormatSize(nsize)
-		local nduration, strduration = FormatLength(nduration, nsize)
+		local _, strsize = FormatSize(nsize)
 
-		--return {strformat, strsize or "n/a", strduration or "n/a"} -- getting the duration is very slow.
 		return {strformat, strsize or "n/a"}
 	end
 
@@ -847,7 +845,7 @@ local function CreateSoundBrowser(path, se)
 		SetupClipboard(strSound)
 	end
 
-	local oldw, oldh = SoundBrowserPanel:GetSize()
+	local oldw, _ = SoundBrowserPanel:GetSize()
 	SoundBrowserPanel.PerformLayout = function(self, ...)
 		SoundemitterButton:SetVisible(self.Soundemitter)
 		ClipboardButton:SetVisible(not self.Soundemitter)
@@ -875,7 +873,7 @@ local function CreateSoundBrowser(path, se)
 			ClipboardButton:SetTall(PlayStopPanel:GetTall() - 2)
 		end
 
-		oldw, oldh = self:GetSize()
+		oldw, _ = self:GetSize()
 
 		DFrame.PerformLayout(self, ...)
 	end
