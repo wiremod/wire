@@ -908,7 +908,7 @@ local function OpenSoundBrowser(pl, cmd, args)
 	if not IsValid(TabFileBrowser) then return end
 
 	-- Replaces the timer, doesn't get paused in singleplayer.
-	WireLib.Timedcall(function(SoundBrowserPanel, TabFileBrowser, path, se)
+	WireLib.Timedcall(function()
 		if not IsValid(SoundBrowserPanel) then return end
 		if not IsValid(TabFileBrowser) then return end
 
@@ -932,7 +932,7 @@ local function OpenSoundBrowser(pl, cmd, args)
 			path = SoundBrowserPanel:GetCookie("wire_soundfile", "") -- load last session
 		end
 		TabFileBrowser:SetOpenFile(path)
-	end, SoundBrowserPanel, TabFileBrowser, path, se)
+	end)
 end
 
 concommand.Add("wire_sound_browser_open", OpenSoundBrowser)
