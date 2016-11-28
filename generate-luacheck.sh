@@ -58,7 +58,7 @@ wget -o /dev/null -O - "$base_url"/navbar/ |
 
                             url="$base_url/page/Enums/$detagged" # TODO: use URL from the <a> tag
                             wget "$url" -o /dev/null -O - |
-                                sed -rn 's/<td> ('"$detagged"'_.*)/  "\1",/p'
+                                sed -rn 's/^<td> ('"$detagged"'_[^[:space:]]+|[A-Z][A-Z0-9_]{2,})$/  "\1",/p'
                         ;;
 
                         Structures|Shaders|'Lua Reference'|Hooks|Libraries|Classes|Panels)
