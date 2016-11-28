@@ -1,8 +1,8 @@
-// A sound browser for the sound emitter and the expression 2 editor.
-// Made by Grocel.
+-- A sound browser for the sound emitter and the expression 2 editor.
+-- Made by Grocel.
 
-local max_char_count = 200 //File length limit
-local max_char_chat_count = 110 // chat has a ~128 char limit, varies depending on char wide.
+local max_char_count = 200 -- File length limit
+local max_char_chat_count = 110 -- chat has a ~128 char limit, varies depending on char wide.
 
 local Disabled_Gray = Color(140, 140, 140, 255)
 
@@ -30,9 +30,9 @@ local TranslateCHAN = {
 	[CHAN_USER_BASE] = "CHAN_USER_BASE"
 }
 
-// Output the infos about the given sound.
+-- Output the infos about the given sound.
 local function GetFileInfos(strfile)
-	if (!isstring(strfile) or strfile == "") then return end
+	if not isstring(strfile) or strfile == "" then return end
 
 	local nsize = tonumber(file.Size("sound/" .. strfile, "GAME") or "-1")
 	local strformat = string.lower(string.GetExtensionFromFilename(strfile) or "n/a")
@@ -41,19 +41,19 @@ local function GetFileInfos(strfile)
 end
 
 local function FormatSize(nsize)
-	if (!nsize) then return end
+	if not nsize then return end
 
-	//Negative filessizes aren't Valid.
-	if (nsize < 0) then return end
+	-- Negative filessizes aren't Valid.
+	if nsize < 0 then return end
 
 	return nsize, string.NiceSize(nsize)
 end
 
 local function FormatLength(nduration)
-	if (!nduration) then return end
+	if not nduration then return end
 
-	//Negative durations aren't Valid.
-	if (nduration < 0) then return end
+	-- Negative durations aren't Valid.
+	if nduration < 0 then return end
 
 	local nm = math.floor(nduration / 60)
 	local ns = math.floor(nduration % 60)
@@ -63,10 +63,10 @@ end
 
 local function GetInfoTable(strfile)
 	local nsize, strformat, nduration = GetFileInfos(strfile)
-	if (!nsize) then return end
+	if not nsize then return end
 
-	nduration = SoundDuration(strfile) //Get the duration for the info text only.
-	if(nduration) then
+	nduration = SoundDuration(strfile) -- Get the duration for the info text only.
+	if nduration then
 		nduration = math.Round(nduration * 1000) / 1000
 	end
 	local nduration, strduration = FormatLength(nduration, nsize)
@@ -75,7 +75,7 @@ local function GetInfoTable(strfile)
 	local T = {}
 	local tabproperty = sound.GetProperties(strfile)
 
-	if (tabproperty) then
+	if tabproperty then
 		T = tabproperty
 	else
 		T.Path = strfile
@@ -84,37 +84,37 @@ local function GetInfoTable(strfile)
 		T.Format = strformat
 	end
 
-	return T, !tabproperty
+	return T, not tabproperty
 end
 
 
-// Output the infos about the given sound.
+-- Output the infos about the given sound.
 local oldstrfile
 local function GenerateInfoTree(strfile, backnode, count)
-	if(oldstrfile == strfile and strfile) then return end
+	if oldstrfile == strfile and strfile then return end
 	oldstrfile = strfile
 
 	local SoundData, IsFile = GetInfoTable(strfile)
 
-	if (!IsValid(backnode)) then
-		if (IsValid(SoundInfoTreeRoot)) then
+	if not IsValid(backnode) then
+		if IsValid(SoundInfoTreeRoot) then
 			SoundInfoTreeRoot:Remove()
 		end
 	end
-	if(!SoundData) then return end
+	if not SoundData then return end
 	
 	local strcount = ""
-	if (count) then
+	if count then
 		strcount = " ("..count..")"
 	end
 
-	if (IsFile) then
+	if IsFile then
 		local index = ""
 		local node = nil
 		local mainnode = nil
 		local subnode = nil
 		
-		if (IsValid(backnode)) then
+		if IsValid(backnode) then
 			mainnode = backnode:AddNode("Sound File"..strcount, "icon16/sound.png")
 		else
 			mainnode = SoundInfoTree:AddNode("Sound File", "icon16/sound.png")
@@ -155,7 +155,7 @@ local function GenerateInfoTree(strfile, backnode, count)
 		local node = nil
 		local mainnode = nil
 
-		if (IsValid(backnode)) then
+		if IsValid(backnode) then
 			mainnode = backnode:AddNode("Sound Property"..strcount, "icon16/table_gear.png")
 		else
 			mainnode = SoundInfoTree:AddNode("Sound Property", "icon16/table_gear.png")
@@ -170,7 +170,7 @@ local function GenerateInfoTree(strfile, backnode, count)
 		end
 		do
 			local tabchannel = SoundData["channel"] or 0
-			if (istable(tabchannel)) then
+			if istable(tabchannel) then
 				node = mainnode:AddNode("Channel", "icon16/page_white_gear.png")
 				for k, v in pairs(tabchannel) do
 					subnode = node:AddNode(v, "icon16/page.png")
@@ -188,7 +188,7 @@ local function GenerateInfoTree(strfile, backnode, count)
 		end
 		do
 			local tablevel = SoundData["level"] or 0
-			if (istable(tablevel)) then
+			if istable(tablevel) then
 				node = mainnode:AddNode("Level", "icon16/page_white_gear.png")
 				for k, v in pairs(tablevel) do
 					subnode = node:AddNode(v, "icon16/page.png")
@@ -204,7 +204,7 @@ local function GenerateInfoTree(strfile, backnode, count)
 		end
 		do
 			local tabpitch = SoundData["volume"] or 0
-			if (istable(tabpitch)) then
+			if istable(tabpitch) then
 				node = mainnode:AddNode("Volume", "icon16/page_white_gear.png")
 				for k, v in pairs(tabpitch) do
 					subnode = node:AddNode(v, "icon16/page.png")
@@ -218,7 +218,7 @@ local function GenerateInfoTree(strfile, backnode, count)
 		end
 		do
 			local tabpitch = SoundData["pitch"] or 0
-			if (istable(tabpitch)) then
+			if istable(tabpitch) then
 				node = mainnode:AddNode("Pitch", "icon16/page_white_gear.png")
 				for k, v in pairs(tabpitch) do
 					subnode = node:AddNode(v, "icon16/page.png")
@@ -232,7 +232,7 @@ local function GenerateInfoTree(strfile, backnode, count)
 		end
 		do
 			local tabsound = SoundData["sound"] or ""
-			if (istable(tabsound)) then
+			if istable(tabsound) then
 				node = mainnode:AddNode("Sounds", "icon16/table_multiple.png")
 			else
 				node = mainnode:AddNode("Sound", "icon16/table.png")
@@ -241,8 +241,8 @@ local function GenerateInfoTree(strfile, backnode, count)
 			node.SubData = tabsound
 			node.BackNode = mainnode
 			node.Expander.DoClick = function(self)
-				if (!IsValid(SoundInfoTree)) then return end
-				if (!IsValid(node)) then return end
+				if not IsValid(SoundInfoTree) then return end
+				if not IsValid(node) then return end
 
 				node:SetExpanded(false)
 				SoundInfoTree:SetSelectedItem(node)
@@ -251,111 +251,111 @@ local function GenerateInfoTree(strfile, backnode, count)
 		end
 	end
 
-	if (IsValid(backnode)) then
+	if IsValid(backnode) then
 		return
 	end
 
-	if (IsValid(SoundInfoTreeRoot)) then
+	if IsValid(SoundInfoTreeRoot) then
 		SoundInfoTreeRoot:SetExpanded(true)
 	end
 end
 
-// Set the volume of the sound.
+-- Set the volume of the sound.
 local function SetSoundVolume(volume)
-	if(!SoundObj) then return end
+	if not SoundObj then return end
 
 	SoundObj:ChangeVolume(tonumber(volume) or 1, 0.1)
 end
 
-// Set the pitch of the sound.
+-- Set the pitch of the sound.
 local function SetSoundPitch(pitch)
-	if(!SoundObj) then return end
+	if not SoundObj then return end
 
 	SoundObj:ChangePitch(tonumber(pitch) or 100, 0.1)
 end
 
-// Play the given sound, if no sound is given then mute a playing sound.
+-- Play the given sound, if no sound is given then mute a playing sound.
 local function PlaySound(file, volume, pitch)
-	if(SoundObj) then
+	if SoundObj then
 		SoundObj:Stop()
 		SoundObj = nil
 	end
 
-	if (!file or file == "") then return end
+	if not file or file == "" then return end
 
 	local ply = LocalPlayer()
-	if (!IsValid(ply)) then return end
+	if not IsValid(ply) then return end
 
 	util.PrecacheSound(file)
 
 	SoundObj = CreateSound(ply, file)
-	if(SoundObj) then
+	if SoundObj then
 		SoundObj:PlayEx(tonumber(volume) or 1, tonumber(pitch) or 100)
 	end
 end
 
-// Play the given sound without effects, if no sound is given then mute a playing sound.
+-- Play the given sound without effects, if no sound is given then mute a playing sound.
 local function PlaySoundNoEffect(file)
-	if(SoundObjNoEffect) then
+	if SoundObjNoEffect then
 		SoundObjNoEffect:Stop()
 		SoundObjNoEffect = nil
 	end
 
-	if (!file or file == "") then return end
+	if not file or file == "" then return end
 
 	local ply = LocalPlayer()
-	if (!IsValid(ply)) then return end
+	if not IsValid(ply) then return end
 
 	util.PrecacheSound(file)
 
 	SoundObjNoEffect = CreateSound(ply, file)
-	if(SoundObjNoEffect) then
+	if SoundObjNoEffect then
 		SoundObjNoEffect:PlayEx(1, 100)
 	end
 end
 
 local function SetupSoundemitter(strSound)
-	// Setup the Soundemitter stool with the soundpath.
+	-- Setup the Soundemitter stool with the soundpath.
 	RunConsoleCommand("wire_soundemitter_sound", strSound)
 
-	// Pull out the soundemitter stool after setup.
+	-- Pull out the soundemitter stool after setup.
 	spawnmenu.ActivateTool("wire_soundemitter")
 end
 
 local function SetupClipboard(strSound)
-	// Copy the soundpath to Clipboard.
+	-- Copy the soundpath to Clipboard.
 	SetClipboardText(strSound)
 end
 
-local function Sendmenu(strSound, SoundEmitter, nSoundVolume, nSoundPitch) // Open a sending and setup menu on right click on a sound file.
-	if (!isstring(strSound)) then return end
-	if (strSound == "") then return end
+local function Sendmenu(strSound, SoundEmitter, nSoundVolume, nSoundPitch) -- Open a sending and setup menu on right click on a sound file.
+	if not isstring(strSound) then return end
+	if strSound == "" then return end
 
 	local Menu = DermaMenu()
 	local MenuItem = nil
 
-	if (SoundEmitter) then
+	if SoundEmitter then
 
-		//Setup soundemitter
+		-- Setup soundemitter
 			MenuItem = Menu:AddOption("Setup soundemitter", function()
 				SetupSoundemitter(strSound)
 			end)
 			MenuItem:SetImage("icon16/sound.png")
 
-		//Setup soundemitter and close
+		-- Setup soundemitter and close
 			MenuItem = Menu:AddOption("Setup soundemitter and close", function()
 				SetupSoundemitter(strSound)
 				SoundBrowserPanel:Close()
 			end)
 			MenuItem:SetImage("icon16/sound.png")
 
-		//Copy to clipboard
+		-- Copy to clipboard
 			MenuItem = Menu:AddOption("Copy to clipboard", function()
 				SetupClipboard(strSound)
 			end)
 			MenuItem:SetImage("icon16/page_paste.png")
 
-		//Copy to clipboard and close
+		-- Copy to clipboard and close
 			MenuItem = Menu:AddOption("Copy to clipboard and close", function()
 				SetupClipboard(strSound)
 				SoundBrowserPanel:Close()
@@ -364,26 +364,26 @@ local function Sendmenu(strSound, SoundEmitter, nSoundVolume, nSoundPitch) // Op
 
 		else
 
-		//Copy to clipboard
+		-- Copy to clipboard
 			MenuItem = Menu:AddOption("Copy to clipboard", function()
 				SetupClipboard(strSound)
 			end)
 			MenuItem:SetImage("icon16/page_paste.png")
 
-		//Copy to clipboard and close
+		-- Copy to clipboard and close
 			MenuItem = Menu:AddOption("Copy to clipboard and close", function()
 				SetupClipboard(strSound)
 				SoundBrowserPanel:Close()
 			end)
 			MenuItem:SetImage("icon16/page_paste.png")
 
-		//Setup soundemitter
+		-- Setup soundemitter
 			MenuItem = Menu:AddOption("Setup soundemitter", function()
 				SetupSoundemitter(strSound)
 			end)
 			MenuItem:SetImage("icon16/sound.png")
 
-		//Setup soundemitter and close
+		-- Setup soundemitter and close
 			MenuItem = Menu:AddOption("Setup soundemitter and close", function()
 				SetupSoundemitter(strSound)
 				SoundBrowserPanel:Close()
@@ -394,11 +394,11 @@ local function Sendmenu(strSound, SoundEmitter, nSoundVolume, nSoundPitch) // Op
 
 	Menu:AddSpacer()
 
-	if (IsValid(TabFavourites)) then
-		// Add the soundpath to the favourites.
-		if (TabFavourites:ItemInList(strSound)) then
+	if IsValid(TabFavourites) then
+		-- Add the soundpath to the favourites.
+		if TabFavourites:ItemInList(strSound) then
 
-			//Remove from favourites
+			-- Remove from favourites
 				MenuItem = Menu:AddOption("Remove from favourites", function()
 					TabFavourites:RemoveItem(strSound)
 				end)
@@ -406,15 +406,15 @@ local function Sendmenu(strSound, SoundEmitter, nSoundVolume, nSoundPitch) // Op
 
 		else
 
-			//Add to favourites
+			-- Add to favourites
 				MenuItem = Menu:AddOption("Add to favourites", function()
 					TabFavourites:AddItem(strSound, sound.GetProperties(strSound) and "property" or "file")
 				end)
 				MenuItem:SetImage("icon16/star.png")
 				local max_item_count = TabFavourites:GetMaxItems()
 				local count = TabFavourites.TabfileCount
-				if (count >= max_item_count) then
-					MenuItem:SetTextColor(Disabled_Gray) // custom disabling
+				if count >= max_item_count then
+					MenuItem:SetTextColor(Disabled_Gray) -- custom disabling
 					MenuItem.DoClick = function() end
 
 					MenuItem:SetToolTip("The favourites list is Full! It can't hold more than "..max_item_count.." items!")
@@ -425,26 +425,26 @@ local function Sendmenu(strSound, SoundEmitter, nSoundVolume, nSoundPitch) // Op
 
 	Menu:AddSpacer()
 
-	//Print to console
+	-- Print to console
 		MenuItem = Menu:AddOption("Print to console", function()
-			// Print the soundpath in the Console/HUD.
+			-- Print the soundpath in the Console/HUD.
 			local ply = LocalPlayer()
-			if (!IsValid(ply)) then return end
+			if not IsValid(ply) then return end
 
 			ply:PrintMessage( HUD_PRINTTALK, strSound)
 		end)
 		MenuItem:SetImage("icon16/monitor_go.png")
 
-	//Print to Chat
+	-- Print to Chat
 		MenuItem = Menu:AddOption("Print to Chat", function()
-			// Say the the soundpath.
+			-- Say the the soundpath.
 			RunConsoleCommand("say", strSound)
 		end)
 		MenuItem:SetImage("icon16/group_go.png")
 
 		local len = #strSound
-		if (len > max_char_chat_count) then
-			MenuItem:SetTextColor(Disabled_Gray) // custom disabling
+		if len > max_char_chat_count then
+			MenuItem:SetTextColor(Disabled_Gray) -- custom disabling
 			MenuItem.DoClick = function() end
 
 			MenuItem:SetToolTip("The filepath ("..len.." chars) is too long to print in chat. It should be shorter than "..max_char_chat_count.." chars!")
@@ -452,14 +452,14 @@ local function Sendmenu(strSound, SoundEmitter, nSoundVolume, nSoundPitch) // Op
 
 	Menu:AddSpacer()
 
-	//Play
+	-- Play
 		MenuItem = Menu:AddOption("Play", function()
 			PlaySound(strSound, nSoundVolume, nSoundPitch, strtype)
 			PlaySoundNoEffect()
 		end)
 		MenuItem:SetImage("icon16/control_play.png")
 
-	//Play without effects
+	-- Play without effects
 		MenuItem = Menu:AddOption("Play without effects", function()
 			PlaySound()
 			PlaySoundNoEffect(strSound, strtype)
@@ -470,45 +470,45 @@ local function Sendmenu(strSound, SoundEmitter, nSoundVolume, nSoundPitch) // Op
 end
 
 local function Infomenu(parent, node, SoundEmitter, nSoundVolume, nSoundPitch)
-	if(!IsValid(node)) then return end
-	if(!node.IsDataNode) then return end
+	if not IsValid(node) then return end
+	if not node.IsDataNode then return end
 
 	local strNodeName = node:GetText()
 	local IsSoundNode = node.IsSoundNode
 
-	if(IsSoundNode) then
+	if IsSoundNode then
 		Sendmenu(strNodeName, SoundEmitter, nSoundVolume, nSoundPitch)
 		return
 	end
 
 	local Menu = DermaMenu()
 
-	//Copy to clipboard
+	-- Copy to clipboard
 		MenuItem = Menu:AddOption("Copy to clipboard", function()
 			SetupClipboard(strNodeName)
 		end)
 		MenuItem:SetImage("icon16/page_paste.png")
 
-	//Print to console
+	-- Print to console
 		MenuItem = Menu:AddOption("Print to console", function()
-			// Print the soundpath in the Console/HUD.
+			-- Print the soundpath in the Console/HUD.
 			local ply = LocalPlayer()
-			if (!IsValid(ply)) then return end
+			if not IsValid(ply) then return end
 
 			ply:PrintMessage( HUD_PRINTTALK, strNodeName)
 		end)
 		MenuItem:SetImage("icon16/monitor_go.png")
 
-	//Print to Chat
+	-- Print to Chat
 		MenuItem = Menu:AddOption("Print to Chat", function()
-			// Say the the soundpath.
+			-- Say the the soundpath.
 			RunConsoleCommand("say", strNodeName)
 		end)
 		MenuItem:SetImage("icon16/group_go.png")
 
 		local len = #strNodeName
-		if (len > max_char_chat_count) then
-			MenuItem:SetTextColor(Disabled_Gray) // custom disabling
+		if len > max_char_chat_count then
+			MenuItem:SetTextColor(Disabled_Gray) -- custom disabling
 			MenuItem.DoClick = function() end
 
 			MenuItem:SetToolTip("The filepath ("..len.." chars) is too long to print in chat. It should be shorter than "..max_char_chat_count.." chars!")
@@ -517,27 +517,27 @@ local function Infomenu(parent, node, SoundEmitter, nSoundVolume, nSoundPitch)
 	Menu:Open()
 end
 
-// Save the file path. It should be cross session.
-// It's used when opening the browser in the e2 editor.
+-- Save the file path. It should be cross session.
+-- It's used when opening the browser in the e2 editor.
 local function SaveFilePath(panel, file)
-	if (!IsValid(panel)) then return end
-	if (panel.Soundemitter) then return end
+	if not IsValid(panel) then return end
+	if panel.Soundemitter then return end
 
 	panel:SetCookie("wire_soundfile", file)
 end
 
-// Open the Sound Browser.
+-- Open the Sound Browser.
 local function CreateSoundBrowser(path, se)
 	local soundemitter = false
-	if (isstring(path) and path ~= "") then
+	if isstring(path) and path ~= "" then
 		soundemitter = true
 
-		if (tonumber(se) ~= 1) then
+		if tonumber(se) ~= 1 then
 			soundemitter = false
 		end
 	end
 
-	if (tonumber(se) == 1) then
+	if tonumber(se) == 1 then
 		soundemitter = true
 	end
 
@@ -545,14 +545,14 @@ local function CreateSoundBrowser(path, se)
 	local nSoundVolume = 1
 	local nSoundPitch = 100
 
-	if(IsValid(SoundBrowserPanel)) then SoundBrowserPanel:Remove() end
-	if(IsValid(TabFileBrowser)) then TabFileBrowser:Remove() end
-	if(IsValid(TabSoundPropertyList)) then TabSoundPropertyList:Remove() end
-	if(IsValid(TabFavourites)) then TabFavourites:Remove() end
-	if(IsValid(SoundInfoTree)) then SoundInfoTree:Remove() end
-	if(IsValid(SoundInfoTreeRoot)) then SoundInfoTreeRoot:Remove() end
+	if IsValid(SoundBrowserPanel) then SoundBrowserPanel:Remove() end
+	if IsValid(TabFileBrowser) then TabFileBrowser:Remove() end
+	if IsValid(TabSoundPropertyList) then TabSoundPropertyList:Remove() end
+	if IsValid(TabFavourites) then TabFavourites:Remove() end
+	if IsValid(SoundInfoTree) then SoundInfoTree:Remove() end
+	if IsValid(SoundInfoTreeRoot) then SoundInfoTreeRoot:Remove() end
 
-	SoundBrowserPanel = vgui.Create("DFrame") // The main frame.
+	SoundBrowserPanel = vgui.Create("DFrame") -- The main frame.
 	SoundBrowserPanel:SetPos(50,25)
 	SoundBrowserPanel:SetSize(750, 500)
 
@@ -564,11 +564,11 @@ local function CreateSoundBrowser(path, se)
 	SoundBrowserPanel:SetTitle("Sound Browser")
 	SoundBrowserPanel:SetVisible(false)
 	SoundBrowserPanel:SetCookieName( "wire_sound_browser" )
-	SoundBrowserPanel:GetParent():SetWorldClicker(true) // Allow the use of the toolgun while in menu.
+	SoundBrowserPanel:GetParent():SetWorldClicker(true) -- Allow the use of the toolgun while in menu.
 
-	TabFileBrowser = vgui.Create("wire_filebrowser") // The file tree browser.
-	TabSoundPropertyList = vgui.Create("wire_soundpropertylist") // The sound property browser.
-	TabFavourites = vgui.Create("wire_listeditor") // The favourites manager.
+	TabFileBrowser = vgui.Create("wire_filebrowser") -- The file tree browser.
+	TabSoundPropertyList = vgui.Create("wire_soundpropertylist") -- The sound property browser.
+	TabFavourites = vgui.Create("wire_listeditor") -- The favourites manager.
 	
 	TabFileBrowser:SetListSpeed(6)
 	TabFileBrowser:SetMaxItemsPerPage(200)
@@ -579,58 +579,58 @@ local function CreateSoundBrowser(path, se)
 	TabFavourites:SetListSpeed(40)
 	TabFavourites:SetMaxItems(512)
 
-	local BrowserTabs = vgui.Create("DPropertySheet") // The tabs.
+	local BrowserTabs = vgui.Create("DPropertySheet") -- The tabs.
 	BrowserTabs:DockMargin(5, 5, 5, 5)
 	BrowserTabs:AddSheet("File Browser", TabFileBrowser, "icon16/folder.png", false, false, "Browse your sound folder.")
 	BrowserTabs:AddSheet("Sound Property Browser", TabSoundPropertyList, "icon16/table_gear.png", false, false, "Browse the sound properties.")
 	BrowserTabs:AddSheet("Favourites", TabFavourites, "icon16/star.png", false, false, "View your favourites.")
 
-	SoundInfoTree = vgui.Create("DTree") // The info tree.
+	SoundInfoTree = vgui.Create("DTree") -- The info tree.
 	SoundInfoTree:SetClickOnDragHover(false)
 	local oldClicktime = CurTime()
 	SoundInfoTree.DoClick = function( parent, node )
-		if (!IsValid(parent)) then return end
-		if (!IsValid(node)) then return end
+		if not IsValid(parent) then return end
+		if not IsValid(node) then return end
 		parent:SetSelectedItem(node)
 		
 		local Clicktime = CurTime()
-		if ((Clicktime - oldClicktime) > 0.3) then oldClicktime = Clicktime return end
+		if (Clicktime - oldClicktime) > 0.3 then oldClicktime = Clicktime return end
 		oldClicktime = Clicktime
 
-		if (!node.IsSoundNode) then return end
+		if not node.IsSoundNode then return end
 	
 		local file = node:GetText()
 		PlaySound(file, nSoundVolume, nSoundPitch)
 		PlaySoundNoEffect()
 	end
 	SoundInfoTree.DoRightClick = function( parent, node )
-		if (!IsValid(parent)) then return end
-		if (!IsValid(node)) then return end
+		if not IsValid(parent) then return end
+		if not IsValid(node) then return end
 
 		parent:SetSelectedItem(node)
 		Infomenu(parent, node, SoundEmitter, nSoundVolume, nSoundPitch)
 	end
 
 	SoundInfoTree.OnNodeSelected = function( parent, node )
-		if (!IsValid(parent)) then return end
-		if (!IsValid(node)) then return end
+		if not IsValid(parent) then return end
+		if not IsValid(node) then return end
 
 		local backnode = node.BackNode
-		if (!IsValid(node.BackNode)) then
-			node:SetExpanded(!node.m_bExpanded)
+		if not IsValid(node.BackNode) then
+			node:SetExpanded(not node.m_bExpanded)
 			return
 		end
 
 		local tabsound = node.SubData
-		if (!tabsound) then
-			node:SetExpanded(!node.m_bExpanded)
+		if not tabsound then
+			node:SetExpanded(not node.m_bExpanded)
 			return
 		end
 
 		node:SetExpanded(false)
 		node:Remove()
 
-		if (istable(tabsound)) then
+		if istable(tabsound) then
 			node = backnode:AddNode("Sounds", "icon16/table_multiple.png")
 			for k, v in pairs(tabsound) do
 				GenerateInfoTree(v, node, k)
@@ -642,7 +642,7 @@ local function CreateSoundBrowser(path, se)
 
 		node:SetExpanded(false)
 		parent:SetSelectedItem(node)
-		node:SetExpanded(!node.m_bExpanded)
+		node:SetExpanded(not node.m_bExpanded)
 	end
 
 	local SplitPanel = SoundBrowserPanel:Add( "DHorizontalDivider" )
@@ -659,7 +659,7 @@ local function CreateSoundBrowser(path, se)
 	TabFileBrowser:SetWildCard("GAME")
 	TabFileBrowser:SetFileTyps({"*.mp3","*.wav"})
 
-	//TabFileBrowser:AddColumns("Type", "Size", "Length") //getting the duration is very slow.
+	--TabFileBrowser:AddColumns("Type", "Size", "Length") -- getting the duration is very slow.
 	local Columns = TabFileBrowser:AddColumns("Format", "Size")
 	Columns[1]:SetFixedWidth(70)
 	Columns[1]:SetWide(70)
@@ -667,15 +667,15 @@ local function CreateSoundBrowser(path, se)
 	Columns[2]:SetWide(70)
 
 	TabFileBrowser.LineData = function(self, id, strfile, ...)
-		if (#strfile > max_char_count) then return nil, true end // skip and hide to long filenames.
+		if #strfile > max_char_count then return nil, true end -- skip and hide to long filenames.
 
 		local nsize, strformat, nduration = GetFileInfos(strfile)
-		if (!nsize) then return end
+		if not nsize then return end
 
 		local nsizeB, strsize = FormatSize(nsize, nduration)
 		local nduration, strduration = FormatLength(nduration, nsize)
 
-		//return {strformat, strsize or "n/a", strduration or "n/a"} //getting the duration is very slow.
+		--return {strformat, strsize or "n/a", strduration or "n/a"} -- getting the duration is very slow.
 		return {strformat, strsize or "n/a"}
 	end
 
@@ -734,7 +734,7 @@ local function CreateSoundBrowser(path, se)
 	TabFavourites:SetRootPath("soundlists")
 
 	TabFavourites.DoClick = function(parent, item, data)
-		if(file.Exists("sound/"..item, "GAME")) then
+		if file.Exists("sound/"..item, "GAME") then
 			TabFileBrowser:SetOpenFile(item)
 		end
 
@@ -743,7 +743,7 @@ local function CreateSoundBrowser(path, se)
 	end
 
 	TabFavourites.DoDoubleClick = function(parent, item, data)
-		if(file.Exists("sound/"..item, "GAME")) then
+		if file.Exists("sound/"..item, "GAME") then
 			TabFileBrowser:SetOpenFile(item)
 		end
 
@@ -753,7 +753,7 @@ local function CreateSoundBrowser(path, se)
 	end
 
 	TabFavourites.DoRightClick = function(parent, item, data)
-		if(file.Exists("sound/"..item, "GAME")) then
+		if file.Exists("sound/"..item, "GAME") then
 			TabFileBrowser:SetOpenFile(item)
 		end
 
@@ -762,25 +762,25 @@ local function CreateSoundBrowser(path, se)
 		GenerateInfoTree(item)
 	end
 
-	local ControlPanel = SoundBrowserPanel:Add("DPanel") // The bottom part of the frame.
+	local ControlPanel = SoundBrowserPanel:Add("DPanel") -- The bottom part of the frame.
 	ControlPanel:DockMargin(0, 5, 0, 0)
 	ControlPanel:Dock(BOTTOM)
 	ControlPanel:SetTall(60)
 	ControlPanel:SetDrawBackground(false)
 
-	local ButtonsPanel = ControlPanel:Add("DPanel") // The buttons.
+	local ButtonsPanel = ControlPanel:Add("DPanel") -- The buttons.
 	ButtonsPanel:DockMargin(4, 0, 0, 0)
 	ButtonsPanel:Dock(RIGHT)
 	ButtonsPanel:SetWide(250)
 	ButtonsPanel:SetDrawBackground(false)
 
-	local TunePanel = ControlPanel:Add("DPanel") // The effect Sliders.
+	local TunePanel = ControlPanel:Add("DPanel") -- The effect Sliders.
 	TunePanel:DockMargin(0, 4, 0, 0)
 	TunePanel:Dock(LEFT)
 	TunePanel:SetWide(350)
 	TunePanel:SetDrawBackground(false)
 
-	local TuneVolumeSlider = TunePanel:Add("DNumSlider") // The volume slider.
+	local TuneVolumeSlider = TunePanel:Add("DNumSlider") -- The volume slider.
 	TuneVolumeSlider:DockMargin(2, 0, 0, 0)
 	TuneVolumeSlider:Dock(TOP)
 	TuneVolumeSlider:SetText("Volume")
@@ -793,7 +793,7 @@ local function CreateSoundBrowser(path, se)
 		SetSoundVolume(nSoundVolume)
 	end
 
-	local TunePitchSlider = TunePanel:Add("DNumSlider") // The pitch slider.
+	local TunePitchSlider = TunePanel:Add("DNumSlider") -- The pitch slider.
 	TunePitchSlider:DockMargin(2, 0, 0, 0)
 	TunePitchSlider:Dock(BOTTOM)
 	TunePitchSlider:SetText("Pitch")
@@ -806,12 +806,12 @@ local function CreateSoundBrowser(path, se)
 		SetSoundPitch(nSoundPitch)
 	end
 
-	local PlayStopPanel = ButtonsPanel:Add("DPanel") // Play and stop.
+	local PlayStopPanel = ButtonsPanel:Add("DPanel") -- Play and stop.
 	PlayStopPanel:DockMargin(0, 0, 0, 2)
 	PlayStopPanel:Dock(TOP)
 	PlayStopPanel:SetDrawBackground(false)
 
-	local PlayButton = PlayStopPanel:Add("DButton") // The play button.
+	local PlayButton = PlayStopPanel:Add("DButton") -- The play button.
 	PlayButton:SetText("Play")
 	PlayButton:Dock(LEFT)
 	PlayButton:SetWide(PlayStopPanel:GetWide() / 2 - 2)
@@ -820,16 +820,16 @@ local function CreateSoundBrowser(path, se)
 		PlaySoundNoEffect()
 	end
 
-	local StopButton = PlayStopPanel:Add("DButton") // The stop button.
+	local StopButton = PlayStopPanel:Add("DButton") -- The stop button.
 	StopButton:SetText("Stop")
 	StopButton:Dock(RIGHT)
 	StopButton:SetWide(PlayButton:GetWide())
 	StopButton.DoClick = function()
-		PlaySound() // Mute a playing sound by not giving a sound.
+		PlaySound() -- Mute a playing sound by not giving a sound.
 		PlaySoundNoEffect()
 	end
 
-	local SoundemitterButton = ButtonsPanel:Add("DButton") // The soundemitter button. Hidden in e2 mode.
+	local SoundemitterButton = ButtonsPanel:Add("DButton") -- The soundemitter button. Hidden in e2 mode.
 	SoundemitterButton:SetText("Send to soundemitter")
 	SoundemitterButton:DockMargin(0, 2, 0, 0)
 	SoundemitterButton:Dock(FILL)
@@ -838,7 +838,7 @@ local function CreateSoundBrowser(path, se)
 		SetupSoundemitter(strSound)
 	end
 
-	local ClipboardButton = ButtonsPanel:Add("DButton") // The soundemitter button. Hidden in soundemitter mode.
+	local ClipboardButton = ButtonsPanel:Add("DButton") -- The soundemitter button. Hidden in soundemitter mode.
 	ClipboardButton:SetText("Copy to clipboard")
 	ClipboardButton:DockMargin(0, 2, 0, 0)
 	ClipboardButton:Dock(FILL)
@@ -850,18 +850,18 @@ local function CreateSoundBrowser(path, se)
 	local oldw, oldh = SoundBrowserPanel:GetSize()
 	SoundBrowserPanel.PerformLayout = function(self, ...)
 		SoundemitterButton:SetVisible(self.Soundemitter)
-		ClipboardButton:SetVisible(!self.Soundemitter)
+		ClipboardButton:SetVisible(not self.Soundemitter)
 		
 		local w = self:GetWide()
 		local rightw = SplitPanel:GetLeftWidth() + w - oldw
 
-		if (rightw < SplitPanel:GetLeftMin()) then
+		if rightw < SplitPanel:GetLeftMin() then
 			rightw = SplitPanel:GetLeftMin()
 		end
 		SplitPanel:SetLeftWidth(rightw)
 
 		local minw = w - SplitPanel:GetRightMin() + SplitPanel:GetDividerWidth()
-		if (SplitPanel:GetLeftWidth() > minw) then
+		if SplitPanel:GetLeftWidth() > minw then
 			SplitPanel:SetLeftWidth(minw)
 		end
 
@@ -869,7 +869,7 @@ local function CreateSoundBrowser(path, se)
 		PlayButton:SetWide(PlayStopPanel:GetWide() / 2 - 2)
 		StopButton:SetWide(PlayButton:GetWide())
 
-		if (self.Soundemitter) then
+		if self.Soundemitter then
 			SoundemitterButton:SetTall(PlayStopPanel:GetTall() - 2)
 		else
 			ClipboardButton:SetTall(PlayStopPanel:GetTall() - 2)
@@ -880,7 +880,7 @@ local function CreateSoundBrowser(path, se)
 		DFrame.PerformLayout(self, ...)
 	end
 
-	SoundBrowserPanel.OnClose = function() // Set effects back and mute when closing.
+	SoundBrowserPanel.OnClose = function() -- Set effects back and mute when closing.
 		nSoundVolume = 1
 		nSoundPitch = 100
 		TuneVolumeSlider:SetValue(nSoundVolume * 100)
@@ -892,12 +892,12 @@ local function CreateSoundBrowser(path, se)
 	SoundBrowserPanel:InvalidateLayout(true)
 end
 
-// Open the Sound Browser.
+-- Open the Sound Browser.
 local function OpenSoundBrowser(pl, cmd, args)
-	local path = args[1] // nil or "" will put the browser in e2 mode else the soundemitter mode is applied.
+	local path = args[1] -- nil or "" will put the browser in e2 mode else the soundemitter mode is applied.
 	local se = args[2]
 	
-	if (!IsValid(SoundBrowserPanel)) then
+	if not IsValid(SoundBrowserPanel) then
 		CreateSoundBrowser(path, se)
 	end
 
@@ -905,36 +905,36 @@ local function OpenSoundBrowser(pl, cmd, args)
 	SoundBrowserPanel:MakePopup()
 	SoundBrowserPanel:InvalidateLayout(true)
 
-	if (!IsValid(TabFileBrowser)) then return end
+	if not IsValid(TabFileBrowser) then return end
 
-	//Replaces the timer, doesn't get paused in singleplayer.
+	-- Replaces the timer, doesn't get paused in singleplayer.
 	WireLib.Timedcall(function(SoundBrowserPanel, TabFileBrowser, path, se)
-		if (!IsValid(SoundBrowserPanel)) then return end
-		if (!IsValid(TabFileBrowser)) then return end
+		if not IsValid(SoundBrowserPanel) then return end
+		if not IsValid(TabFileBrowser) then return end
 
 		local soundemitter = false
-		if (isstring(path) and path ~= "") then
+		if isstring(path) and path ~= "" then
 			soundemitter = true
 		end
 
 		local soundemitter = false
-		if (isstring(path) and path ~= "") then
+		if isstring(path) and path ~= "" then
 			soundemitter = true
 
-			if (tonumber(se) ~= 1) then
+			if tonumber(se) ~= 1 then
 				soundemitter = false
 			end
 		end
 
-		if (tonumber(se) == 1) then
+		if tonumber(se) == 1 then
 			soundemitter = true
 		end
 
 		SoundBrowserPanel.Soundemitter = soundemitter
 		SoundBrowserPanel:InvalidateLayout(true)
 
-		if (!soundemitter) then
-			path = SoundBrowserPanel:GetCookie("wire_soundfile", "") // load last session
+		if not soundemitter then
+			path = SoundBrowserPanel:GetCookie("wire_soundfile", "") -- load last session
 		end
 		TabFileBrowser:SetOpenFile(path)
 	end, SoundBrowserPanel, TabFileBrowser, path, se)
