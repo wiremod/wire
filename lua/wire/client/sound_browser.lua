@@ -62,10 +62,10 @@ local function FormatLength(nduration)
 end
 
 local function GetInfoTable(strfile)
-	local nsize, strformat, nduration = GetFileInfos(strfile)
+	local nsize, strformat = GetFileInfos(strfile)
 	if not nsize then return end
 
-	nduration = SoundDuration(strfile) -- Get the duration for the info text only.
+	local nduration = SoundDuration(strfile) -- Get the duration for the info text only.
 	if nduration then
 		nduration = math.Round(nduration * 1000) / 1000
 	end
@@ -109,10 +109,10 @@ local function GenerateInfoTree(strfile, backnode, count)
 	end
 
 	if IsFile then
-		local index = ""
-		local node = nil
-		local mainnode = nil
-		local subnode = nil
+		local index
+		local node
+		local mainnode
+		local subnode
 
 		if IsValid(backnode) then
 			mainnode = backnode:AddNode("Sound File"..strcount, "icon16/sound.png")
@@ -152,8 +152,8 @@ local function GenerateInfoTree(strfile, backnode, count)
 			subnode.IsDataNode = true
 		end
 	else
-		local node = nil
-		local mainnode = nil
+		local node
+		local mainnode
 
 		if IsValid(backnode) then
 			mainnode = backnode:AddNode("Sound Property"..strcount, "icon16/table_gear.png")
@@ -332,7 +332,7 @@ local function Sendmenu(strSound, SoundEmitter, nSoundVolume, nSoundPitch) -- Op
 	if strSound == "" then return end
 
 	local Menu = DermaMenu()
-	local MenuItem = nil
+	local MenuItem
 
 	if SoundEmitter then
 
