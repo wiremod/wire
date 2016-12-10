@@ -1,7 +1,7 @@
 local WIRE_SCROLL_SPEED = 0.5
 local WIRE_BLINKS_PER_SECOND = 2
 local CurPathEnt = {}
-local Wire_DisableWireRender = 0 --bug with mode 0 and gmod2007beta
+local Wire_DisableWireRender = 0
 
 WIRE_CLIENT_INSTALLED = 1
 
