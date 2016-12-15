@@ -1891,6 +1891,19 @@ function Editor:Setup(nTitle, nLocation, nEditorType)
 	if not useValidator then
 		self.C.Val:SetVisible(false)
 	end
+	
+	-- PickColor on E2
+	local useColorMixer = nEditorType == "E2"
+	
+	-- PickColor
+	if useColorMixer then
+		local CMixBrowser = vgui.Create("Button", self.C.Menu)
+		CMixBrowser:SetSize(60, 20)
+		CMixBrowser:Dock(RIGHT)
+		CMixBrowser:SetText("Pick Color")
+		CMixBrowser.DoClick = function() RunConsoleCommand("wire_pickcolor_browser_open") end
+		self.C.CMixBrowser = CMixBrowser
+	end
 
 	if useSoundBrowser then -- Add "Sound Browser" button
 		local SoundBrw = vgui.Create("Button", self.C.Menu)
