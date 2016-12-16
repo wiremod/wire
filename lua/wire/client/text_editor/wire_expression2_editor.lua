@@ -784,10 +784,10 @@ function Editor:InitComponents()
 	self.C.CloseTab = vgui.CreateFromTable(DMenuButton, self.C.Menu, "CloseTab") -- Close tab button
 	self.C.Reload = vgui.CreateFromTable(DMenuButton, self.C.Menu) -- Reload tab button
 	
-	-- PickColor for CTRL+F FINDS (Sound Browser)
+	-- PickColorFind (Sound Browser)
 	self.C.SoundBrw = vgui.CreateFromTable(DMenuButton, self.C.Menu) -- Sound Browser tab button
 	
-	-- PickColor for CTRL+F FINDS
+	-- PickColorFind
 	self.C.PickColor = vgui.CreateFromTable(DMenuButton, self.C.Menu) -- PickColor tab button
 	
 	self.C.SaE = vgui.Create("DButton", self.C.Menu) -- Save & Exit button
@@ -863,14 +863,14 @@ function Editor:InitComponents()
 		self:LoadFile(self:GetChosenFile(), false)
 	end
 		
-	-- PickColor for CTRL+F FINDS Sound Browser
+	-- PickColorFind (Sound Browser)
 	self.C.SoundBrw:SetImage("icon16/sound.png")
 	self.C.SoundBrw:SetToolTip( "Sound Browser" )
 	self.C.SoundBrw.DoClick = function(button)
 		RunConsoleCommand("wire_sound_browser_open")
 	end
 	
-	-- PickColor for CTRL+F FINDS
+	-- PickColorFind
 	self.C.PickColor:SetImage("icon16/color_wheel.png")
 	self.C.PickColor:SetToolTip( "Pick Colors" )
 	self.C.PickColor.DoClick = function(button)
@@ -1909,15 +1909,16 @@ function Editor:Setup(nTitle, nLocation, nEditorType)
 	local useValidator = nEditorType ~= nil
 	local useSoundBrowser = nEditorType == "SPU" or nEditorType == "E2"
 	local useDebugger = nEditorType == "CPU"
+	local useColorMixer = nEditorType == "E2"
 
 	if not useValidator then
 		self.C.Val:SetVisible(false)
 	end
 	
-	-- PickColor on E2
-	local useColorMixer = nEditorType == "E2"
+	-- PickColorFind
+	if useSoundBrowser then self.C.SoundBrw:SetVisible = true
+	if useColorMixer then self.C.PickColor:SetVisible = true
 	
-	-- PickColor
 	--[[if useColorMixer then
 		local CMixBrowser = vgui.Create("Button", self.C.Menu)
 		CMixBrowser:SetSize(60, 20)
