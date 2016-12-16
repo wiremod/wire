@@ -2,7 +2,7 @@
 
 	ColorPicker for Expression2
 	Allows faster color picking whithin the editor.
-	
+
 	Supported Color Format for Editors:
 	GPU: RGB like: "color White, 255,255,255"
 	E2: RGB like: "vec(255)"
@@ -53,7 +53,7 @@ local function ColorToClipboard(colorStr)
 	end
 
 	-- Copy it!
-	if clrCopy != nil then SetClipboardText(clrCopy) end
+	if clrCopy then SetClipboardText(clrCopy) end
 end
 
 local function CreatePickColorBrowser()
