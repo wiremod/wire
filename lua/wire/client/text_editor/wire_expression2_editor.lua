@@ -783,13 +783,13 @@ function Editor:InitComponents()
 	self.C.NewTab = vgui.CreateFromTable(DMenuButton, self.C.Menu, "NewTab") -- New tab button
 	self.C.CloseTab = vgui.CreateFromTable(DMenuButton, self.C.Menu, "CloseTab") -- Close tab button
 	self.C.Reload = vgui.CreateFromTable(DMenuButton, self.C.Menu) -- Reload tab button
-	
+
 	-- PickColorFind (Sound Browser)
 	self.C.SoundBrw = vgui.CreateFromTable(DMenuButton, self.C.Menu) -- Sound Browser tab button
-	
+
 	-- PickColorFind
 	self.C.PickColor = vgui.CreateFromTable(DMenuButton, self.C.Menu) -- PickColor tab button
-	
+
 	self.C.SaE = vgui.Create("DButton", self.C.Menu) -- Save & Exit button
 	self.C.SavAs = vgui.Create("DButton", self.C.Menu) -- Save As button
 
@@ -1891,7 +1891,6 @@ function Editor:Setup(nTitle, nLocation, nEditorType)
 
 	self:SetEditorMode(textEditorModes[nEditorType or ""])
 
-
 	local helpMode = helpModes[nEditorType or ""]
 	if helpMode then -- Add "E2Helper" button
 		local E2Help = vgui.Create("Button", self.C.Menu)
@@ -1914,12 +1913,12 @@ function Editor:Setup(nTitle, nLocation, nEditorType)
 	if not useValidator then
 		self.C.Val:SetVisible(false)
 	end
-	
+
 	-- PickColorFind
 	-- using 'false' for codestyle
 	if not useSoundBrowser then self.C.SoundBrw:SetVisible(false) end
 	if not useColorMixer then self.C.PickColor:SetVisible(false) end
-	
+
 	--[[if useColorMixer then
 		local CMixBrowser = vgui.Create("Button", self.C.Menu)
 		CMixBrowser:SetSize(60, 20)

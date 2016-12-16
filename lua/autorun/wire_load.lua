@@ -128,7 +128,6 @@ if CLIENT then
 	include("wire/client/hlzasm/hc_compiler.lua")
 	include("wire/client/customspawnmenu.lua")
 	include("wire/client/text_editor/pickcolor_browser.lua")
-	
 end
 
 -- Load UWSVN, done here so its definitely after Wire is loaded.
