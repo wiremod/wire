@@ -1916,8 +1916,8 @@ function Editor:Setup(nTitle, nLocation, nEditorType)
 	end
 	
 	-- PickColorFind
-	if useSoundBrowser then self.C.SoundBrw:SetVisible = true
-	if useColorMixer then self.C.PickColor:SetVisible = true
+	if !useSoundBrowser then self.C.SoundBrw:SetVisible(false) end
+	if !useColorMixer then self.C.PickColor:SetVisible(false) end
 	
 	--[[if useColorMixer then
 		local CMixBrowser = vgui.Create("Button", self.C.Menu)
