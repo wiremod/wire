@@ -101,12 +101,12 @@ end
 -- Object order changing
 ----------------------------
 function EGP:SetOrder( Ent, from, to, dir )
-	if (!Ent.RenderTable or #Ent.RenderTable == 0) then return false end
+	if not Ent.RenderTable or #Ent.RenderTable == 0 then return false end
 	dir = dir or 0
 
-	if (Ent.RenderTable[from]) then
+	if Ent.RenderTable[from] then
 		to = math.Clamp(math.Round(to or 1),1,#Ent.RenderTable)
-		if (SERVER) then Ent.RenderTable[from].ChangeOrder = {target=to,dir=dir} end
+		if SERVER then Ent.RenderTable[from].ChangeOrder = {target=to,dir=dir} end
 		return true
 	end
 	return false

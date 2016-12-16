@@ -220,7 +220,7 @@ if (SERVER) then
 			return
 		end
 
-		local order_was_changed = false;
+		local order_was_changed = false
 
 		if (!EGP.umsg.Start( "EGP_Transmit_Data", ply )) then return end
 			net.WriteEntity( Ent )
@@ -266,7 +266,7 @@ if (SERVER) then
 						EGP:MoveTopLeft( Ent, v )
 					end
 
-					if (v.ChangeOrder) then -- We want to change the order of this object, send the index to where we wish to move it
+					if v.ChangeOrder then -- We want to change the order of this object, send the index to where we wish to move it
 						net.WriteInt( v.ChangeOrder.target, 16 )
 						net.WriteInt( v.ChangeOrder.dir, 3 )
 						order_was_changed = true
@@ -474,7 +474,7 @@ else -- SERVER/CLIENT
 					-- Change Order
 					local ChangeOrder_To = net.ReadInt(16)
 					local ChangeOrder_Dir
-					if (ChangeOrder_To ~= 0) then
+					if ChangeOrder_To ~= 0 then
 						ChangeOrder_Dir = net.ReadInt(3)
 					end
 
