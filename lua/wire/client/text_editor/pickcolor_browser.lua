@@ -2,6 +2,10 @@
 
 	ColorPicker for Expression2
 	Allows faster color picking whithin the editor.
+	
+	Supported Color Format for Editors:
+	GPU: RGB like: "color White, 255,255,255"
+	E2: RGB like: "vec(255)"
 
 ]]--
 
@@ -17,22 +21,35 @@ CopyWithAlpha = CreateClientConVar("wire_expression2_copyalpha", 0, true, false)
 -- Invalidates the panel on start
 local PickColorPanel = nil
 
+local function GetCurrentEditorType()
+	return GetEditorType
+end
+
 -- Checks the Color and Checkboxes and copies to clipboard.
 local function ColorToClipboard(colorStr)
 
 	local clrCopy
+	local etype = GetCurrentEditorType()
+	local cfmt = ", " -- comma format
 
-	if CopyWithVecString:GetBool() and CopyWithAlpha:GetBool() then
-		clrCopy = "vec4("..colorStr.r..", "..colorStr.g..", "..colorStr.b..", "..colorStr.a..")"
-		
-	elseif CopyWithVecString:GetBool() and not CopyWithAlpha:GetBool() then
-		clrCopy = "vec("..colorStr.r..", "..colorStr.g..", "..colorStr.b..")"
-		
-	elseif not CopyWithVecString:GetBool() and CopyWithAlpha:GetBool() then
-		clrCopy = colorStr.r..", "..colorStr.g..", "..colorStr.b..", "..colorStr.a
-		
-	elseif not CopyWithVecString:GetBool() and not CopyWithAlpha:GetBool() then
-		clrCopy = colorStr.r..", "..colorStr.g..", "..colorStr.b
+	if etype == "E2" then
+		if CopyWithVecString:GetBool() and CopyWithAlpha:GetBool() then
+			clrCopy = "vec4("..colorStr.r..cfmt..colorStr.g..cfmt..colorStr.b..cfmt..colorStr.a..")"
+
+		elseif CopyWithVecString:GetBool() and not CopyWithAlpha:GetBool() then
+			clrCopy = "vec("..colorStr.r..cfmt..colorStr.g..cfmt..colorStr.b..")"
+
+		elseif not CopyWithVecString:GetBool() and CopyWithAlpha:GetBool() then
+			clrCopy = colorStr.r..cfmt..colorStr.g..", "..colorStr.b..cfmt..colorStr.a
+
+		elseif not CopyWithVecString:GetBool() and not CopyWithAlpha:GetBool() then
+			clrCopy = colorStr.r..cfmt..colorStr.g..cfmt..colorStr.b
+		end
+
+	elseif etype == "GPU" then
+		cfmt = ","
+		clrCopy = colorStr.r..cfmt..colorStr.g..cfmt..colorStr.b
+
 	end
 
 	-- Copy it!
@@ -52,7 +69,7 @@ local function CreatePickColorBrowser()
 	PickColorPanel:SetVisible(false)
 
 	-- Color Mixer
-	Mixer = PickColorPanel:Add( "DColorMixer")
+	local Mixer = PickColorPanel:Add( "DColorMixer")
 	Mixer:Dock(TOP)
 	Mixer:SetSize(200, 200)
 	Mixer:SetPalette( false )
@@ -85,6 +102,16 @@ local function CreatePickColorBrowser()
 	CopyAlphaCheck:SetText( "#pickcolorlang.copyalpha" )
 	CopyAlphaCheck:SetConVar( "wire_expression2_copyalpha" )
 
+	PickColorPanel.OnFocusChanged = function()
+		if GetCurrentEditorType() == "E2" then
+			CopyAlphaCheck:SetDisabled(false)
+			CopyVecCheck:SetDisabled(false)
+		else
+			CopyVecCheck:SetDisabled(true)
+			CopyAlphaCheck:SetDisabled(true)
+		end
+	end
+
 end
 
 local function OpenPickColorBrowser(pl, cmd, args)
@@ -94,7 +121,6 @@ local function OpenPickColorBrowser(pl, cmd, args)
 
 	PickColorPanel:SetVisible(true)
 	PickColorPanel:MakePopup()
-	--PickColorPanel:InvalidateLayout(true)
 end
 
 concommand.Add("wire_pickcolor_browser_open", OpenPickColorBrowser)

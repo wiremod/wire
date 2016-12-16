@@ -1,5 +1,8 @@
 local Editor = {}
 
+-- Global Editor Type Checker
+GetEditorType = nil
+
 -- ----------------------------------------------------------------------
 -- Fonts
 -- ----------------------------------------------------------------------
@@ -352,6 +355,10 @@ function Editor:Think()
 	if x < 0 then x = 0 end
 	if w > surface.ScreenWidth() then w = surface.ScreenWidth() end
 	if h > surface.ScreenHeight() then h = surface.ScreenHeight() end
+
+	-- PickColorFind
+	-- Gets the current EditorType (ZCPU/E2)
+	GetEditorType = self:GetEditorMode()
 
 	self:SetPos(x, y)
 	self:SetSize(w, h)
@@ -862,21 +869,20 @@ function Editor:InitComponents()
 	self.C.Reload.DoClick = function(button)
 		self:LoadFile(self:GetChosenFile(), false)
 	end
-		
+
 	-- PickColorFind (Sound Browser)
 	self.C.SoundBrw:SetImage("icon16/sound.png")
 	self.C.SoundBrw:SetToolTip( "Sound Browser" )
 	self.C.SoundBrw.DoClick = function(button)
 		RunConsoleCommand("wire_sound_browser_open")
 	end
-	
+
 	-- PickColorFind
 	self.C.PickColor:SetImage("icon16/color_wheel.png")
 	self.C.PickColor:SetToolTip( "Pick Colors" )
 	self.C.PickColor.DoClick = function(button)
 		RunConsoleCommand("wire_pickcolor_browser_open")
 	end
-	
 
 	self.C.SaE:SetText("Save and Exit")
 	self.C.SaE.DoClick = function(button) self:SaveFile(self:GetChosenFile(), true) end
@@ -1915,7 +1921,6 @@ function Editor:Setup(nTitle, nLocation, nEditorType)
 	end
 
 	-- PickColorFind
-	-- using 'false' for codestyle
 	if not useSoundBrowser then self.C.SoundBrw:SetVisible(false) end
 	if not useColorMixer then self.C.PickColor:SetVisible(false) end
 
