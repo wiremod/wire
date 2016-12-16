@@ -1909,15 +1909,16 @@ function Editor:Setup(nTitle, nLocation, nEditorType)
 	local useValidator = nEditorType ~= nil
 	local useSoundBrowser = nEditorType == "SPU" or nEditorType == "E2"
 	local useDebugger = nEditorType == "CPU"
-	local useColorMixer = nEditorType == "E2"
+	local useColorMixer = nEditorType == "E2" or nEditorType == "GPU"
 
 	if not useValidator then
 		self.C.Val:SetVisible(false)
 	end
 	
 	-- PickColorFind
-	if !useSoundBrowser then self.C.SoundBrw:SetVisible(false) end
-	if !useColorMixer then self.C.PickColor:SetVisible(false) end
+	-- using 'false' for codestyle
+	if not useSoundBrowser then self.C.SoundBrw:SetVisible(false) end
+	if not useColorMixer then self.C.PickColor:SetVisible(false) end
 	
 	--[[if useColorMixer then
 		local CMixBrowser = vgui.Create("Button", self.C.Menu)

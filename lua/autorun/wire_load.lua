@@ -55,7 +55,7 @@ if SERVER then
 	AddCSLuaFile("wire/client/thrusterlib.lua")
 	AddCSLuaFile("wire/client/rendertarget_fix.lua")
 	AddCSLuaFile("wire/client/customspawnmenu.lua")
-	AddCSLuaFile("wire/client/pickcolor_browser.lua")
+	AddCSLuaFile("wire/client/text_editor/pickcolor_browser.lua")
 
 	-- text editor
 	AddCSLuaFile("wire/client/text_editor/texteditor.lua")
@@ -127,7 +127,7 @@ if CLIENT then
 	include("wire/client/rendertarget_fix.lua")
 	include("wire/client/hlzasm/hc_compiler.lua")
 	include("wire/client/customspawnmenu.lua")
-	include("wire/client/pickcolor_browser.lua")
+	include("wire/client/text_editor/pickcolor_browser.lua")
 	
 end
 
