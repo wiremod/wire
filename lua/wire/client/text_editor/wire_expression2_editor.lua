@@ -783,6 +783,13 @@ function Editor:InitComponents()
 	self.C.NewTab = vgui.CreateFromTable(DMenuButton, self.C.Menu, "NewTab") -- New tab button
 	self.C.CloseTab = vgui.CreateFromTable(DMenuButton, self.C.Menu, "CloseTab") -- Close tab button
 	self.C.Reload = vgui.CreateFromTable(DMenuButton, self.C.Menu) -- Reload tab button
+	
+	-- PickColor for CTRL+F FINDS (Sound Browser)
+	self.C.SoundBrw = vgui.CreateFromTable(DMenuButton, self.C.Menu) -- Sound Browser tab button
+	
+	-- PickColor for CTRL+F FINDS
+	self.C.PickColor = vgui.CreateFromTable(DMenuButton, self.C.Menu) -- PickColor tab button
+	
 	self.C.SaE = vgui.Create("DButton", self.C.Menu) -- Save & Exit button
 	self.C.SavAs = vgui.Create("DButton", self.C.Menu) -- Save As button
 
@@ -855,6 +862,21 @@ function Editor:InitComponents()
 	self.C.Reload.DoClick = function(button)
 		self:LoadFile(self:GetChosenFile(), false)
 	end
+		
+	-- PickColor for CTRL+F FINDS Sound Browser
+	self.C.SoundBrw:SetImage("icon16/sound.png")
+	self.C.SoundBrw:SetToolTip( "Sound Browser" )
+	self.C.SoundBrw.DoClick = function(button)
+		RunConsoleCommand("wire_sound_browser_open")
+	end
+	
+	-- PickColor for CTRL+F FINDS
+	self.C.PickColor:SetImage("icon16/color_wheel.png")
+	self.C.PickColor:SetToolTip( "Pick Colors" )
+	self.C.PickColor.DoClick = function(button)
+		RunConsoleCommand("wire_pickcolor_browser_open")
+	end
+	
 
 	self.C.SaE:SetText("Save and Exit")
 	self.C.SaE.DoClick = function(button) self:SaveFile(self:GetChosenFile(), true) end
@@ -1896,23 +1918,23 @@ function Editor:Setup(nTitle, nLocation, nEditorType)
 	local useColorMixer = nEditorType == "E2"
 	
 	-- PickColor
-	if useColorMixer then
+	--[[if useColorMixer then
 		local CMixBrowser = vgui.Create("Button", self.C.Menu)
 		CMixBrowser:SetSize(60, 20)
 		CMixBrowser:Dock(RIGHT)
 		CMixBrowser:SetText("Pick Color")
 		CMixBrowser.DoClick = function() RunConsoleCommand("wire_pickcolor_browser_open") end
 		self.C.CMixBrowser = CMixBrowser
-	end
+	end]]--
 
-	if useSoundBrowser then -- Add "Sound Browser" button
+	--[[if useSoundBrowser then -- Add "Sound Browser" button
 		local SoundBrw = vgui.Create("Button", self.C.Menu)
 		SoundBrw:SetSize(85, 20)
 		SoundBrw:Dock(RIGHT)
 		SoundBrw:SetText("Sound Browser")
 		SoundBrw.DoClick = function() RunConsoleCommand("wire_sound_browser_open") end
 		self.C.SoundBrw = SoundBrw
-	end
+	end]]--
 
 	if useDebugger then
 		-- Add "step forward" button
