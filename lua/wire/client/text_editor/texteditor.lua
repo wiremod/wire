@@ -2281,6 +2281,26 @@ end
 -- Runs the autocompletion
 -----------------------------------------------------------
 
+-- PickColorFind
+-- Currently works only if the main word is written completly, not if the autocompletion is used
+-- Also the tab doesn't work on the first option.
+local PickColorCV = GetConVar("wire_expression2_pickcolor_enable") or 1
+local PickColorLastWord = ""
+local PickColorShouldDraw = false
+local PickColorFuncs = {
+	"setTrails",
+	"printColor",
+	"printColorDriver",
+	"setColor",
+	"hsv2rgb",
+	"rgb2hsv",
+	"hsl2rgb",
+	"rgb2digi",
+	"holoCreate",
+	"holoColor",
+	"egpColor"
+}
+
 function EDITOR:AC_Check( notimer )
 
 	if not notimer then
@@ -2315,6 +2335,18 @@ function EDITOR:AC_Check( notimer )
 
 		local word, _ = self:AC_GetCurrentWord()
 
+		-- PickColorFind
+		-- Buggy if the autocompletion is used to complete the word trigger
+		if PickColorCV:GetBool() then
+			for j=1, table.Count(PickColorFuncs) do
+				if word == PickColorFuncs[j] then
+					PickColorLastWord = self:AC_GetCurrentWord()
+				else
+					PickColorShouldDraw = false
+				end
+			end
+		end
+
 		table_sort( suggestions, function( a, b )
 			local diff1 = CheckDifference( word, a.str( a ) )
 			local diff2 = CheckDifference( word, b.str( b ) )
@@ -2324,6 +2356,16 @@ function EDITOR:AC_Check( notimer )
 		if word == suggestions[1].str( suggestions[1] ) and #suggestions == 1 then -- The word matches the first suggestion exactly, and there are no more suggestions. No need to bother displaying
 			self:AC_SetVisible( false )
 			return
+		end
+		
+		if suggestions[1].str( suggestions[1] ) == "vec" or suggestions[1].str( suggestions[1] ) == "vec4" then
+			for k=1, table.Count(PickColorFuncs) do
+				if PickColorLastWord == PickColorFuncs[k] then
+					PickColorShouldDraw = true
+				end
+			end
+		else
+			PickColorLastWord = ""
 		end
 
 		for i=1,10 do
@@ -2631,12 +2673,49 @@ function EDITOR:AC_FillList()
 	local maxw = 15
 
 	surface.SetFont( "E2SmallFont" )
+	
+	-- PickColorFind
+	local PC_TXT = "Open PickColor"
+	if PickColorShouldDraw == true then
+		local pc_text = vgui.Create("DLabel")
+		pc_text:SetText( "" )
+		
+		-- Override paint to give it the "E2 theme" and to make it highlight when selected
+		pc_text.Paint = function( pnl, w, h )
+			draw_RoundedBox( 1, 1, 1, w-2, h-2, Color( 255, 172, 64, 210 ) )
+			if panel.Selected == pnl.count then
+				draw_RoundedBox( 0, 2, 2, w - 4 , h - 4, Color(0,0,0,192) )
+			end
+			-- I honestly dont have a fucking clue.
+			-- h2, was being cleaned up instantly for no reason.
+			surface.SetFont( "E2SmallFont" )
+			local _, h2 = surface.GetTextSize( PC_TXT )
+
+			surface.SetTextPos( 6, (h / 2) - (h2 / 2) )
+			surface.SetTextColor( 255,255,255,255 )
+			surface.DrawText( PC_TXT )
+		end
+
+		-- Enable mouse presses
+		pc_text.OnMousePressed = function( pnl, code )
+			print("Pick Color Pressed - Open Panel")
+			if code == MOUSE_LEFT then
+				self:AC_SetVisible( false )
+			end
+		end
+		
+		-- Enable mouse hovering
+		pc_text.OnCursorEntered = function( pnl )
+			panel.Selected = pnl.count
+		end	
+
+		panel.list:AddItem( pc_text )
+	end
 
 	-- Add all suggestions to the list
 	for count,suggestion in pairs( self.AC_Suggestions ) do
 		local nice_name = suggestion:nice_str( self )
 		local name = suggestion:str( self )
-
 
 		local txt = vgui.Create("DLabel")
 		txt:SetText( "" )

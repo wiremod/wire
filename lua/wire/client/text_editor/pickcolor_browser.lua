@@ -14,6 +14,7 @@ language.Add("pickcolorlang.copyvec", "Use vec(r, g, b) structure")
 language.Add("pickcolorlang.copyalpha", "Use vec4(r, g, b, a) structure.")
 
 -- Convars
+CreateClientConVar("wire_expression2_pickcolor_enable", 1, true, false)
 CopyWithVecString = CreateClientConVar("wire_expression2_colorwithvec", 1, true, false)
 CopyWithAlpha = CreateClientConVar("wire_expression2_copyalpha", 0, true, false)
 
