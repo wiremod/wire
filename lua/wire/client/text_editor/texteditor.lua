@@ -2282,23 +2282,22 @@ end
 -----------------------------------------------------------
 
 -- PickColorFind
--- Currently works only if the main word is written completly, not if the autocompletion is used
--- Also the tab doesn't work on the first option.
-local PickColorCV = GetConVar("wire_expression2_pickcolor_enable") or 1
+-- tab doesn't work on the first option.
+local PickColorCV = GetConVar("wire_expression2_pickcolor_enable")
 local PickColorLastWord = ""
 local PickColorShouldDraw = false
 local PickColorFuncs = {
-	"setTrails",
-	"printColor",
-	"printColorDriver",
-	"setColor",
-	"hsv2rgb",
-	"rgb2hsv",
-	"hsl2rgb",
-	"rgb2digi",
-	"holoCreate",
-	"holoColor",
-	"egpColor"
+	setTrails = true,
+	printColor = true,
+	printColorDriver = true,
+	setColor = true,
+	hsv2rgb = true,
+	rgb2hsv = true,
+	hsl2rgb = true,
+	rgb2digi = true,
+	holoCreate = true,
+	holoColor = true,
+	egpColor = true
 }
 
 function EDITOR:AC_Check( notimer )
@@ -2336,14 +2335,11 @@ function EDITOR:AC_Check( notimer )
 		local word, _ = self:AC_GetCurrentWord()
 
 		-- PickColorFind
-		-- Buggy if the autocompletion is used to complete the word trigger
 		if PickColorCV:GetBool() then
-			for j=1, table.Count(PickColorFuncs) do
-				if word == PickColorFuncs[j] then
-					PickColorLastWord = self:AC_GetCurrentWord()
-				else
-					PickColorShouldDraw = false
-				end
+			if PickColorFuncs[word] == true then
+				PickColorLastWord = word
+			else
+				PickColorShouldDraw = false
 			end
 		end
 
@@ -2357,15 +2353,16 @@ function EDITOR:AC_Check( notimer )
 			self:AC_SetVisible( false )
 			return
 		end
-		
-		if suggestions[1].str( suggestions[1] ) == "vec" or suggestions[1].str( suggestions[1] ) == "vec4" then
-			for k=1, table.Count(PickColorFuncs) do
-				if PickColorLastWord == PickColorFuncs[k] then
+
+		-- PickColorFind
+		if PickColorCV:GetBool() then
+			if suggestions[1].str( suggestions[1] ) == "vec" or suggestions[1].str( suggestions[1] ) == "vec4" then
+				if PickColorFuncs[PickColorLastWord] == true then
 					PickColorShouldDraw = true
 				end
+			else
+				PickColorLastWord = ""
 			end
-		else
-			PickColorLastWord = ""
 		end
 
 		for i=1,10 do
@@ -2403,6 +2400,9 @@ local wire_expression2_autocomplete_highlight_after_use = CreateClientConVar("wi
 function EDITOR:AC_Use( suggestion )
 	if not suggestion then return false end
 	local ret = false
+	
+	-- PickColor
+	if PickColorShouldDraw and suggestion["Name"] == "PickColor" then RunConsoleCommand("wire_pickcolor_browser_open") return false end
 
 	-- Get word position
 	local wordstart = self:getWordStart( self.Caret )
@@ -2434,6 +2434,15 @@ function EDITOR:AC_Use( suggestion )
 				self.Caret = { wordstart[1],wordstart[2]+#replacement }
 			end
 		end
+		
+		--PickColorFind
+		if PickColorCV:GetBool() then
+			pkc_str = string.Explode( "(", replacement )
+			if PickColorFuncs[pkc_str[1]] == true then
+				PickColorLastWord = pkc_str[1]
+			end
+		end
+
 		ret = true
 	end
 
@@ -2673,49 +2682,23 @@ function EDITOR:AC_FillList()
 	local maxw = 15
 
 	surface.SetFont( "E2SmallFont" )
-	
-	-- PickColorFind
-	local PC_TXT = "Open PickColor"
-	if PickColorShouldDraw == true then
-		local pc_text = vgui.Create("DLabel")
-		pc_text:SetText( "" )
-		
-		-- Override paint to give it the "E2 theme" and to make it highlight when selected
-		pc_text.Paint = function( pnl, w, h )
-			draw_RoundedBox( 1, 1, 1, w-2, h-2, Color( 255, 172, 64, 210 ) )
-			if panel.Selected == pnl.count then
-				draw_RoundedBox( 0, 2, 2, w - 4 , h - 4, Color(0,0,0,192) )
-			end
-			-- I honestly dont have a fucking clue.
-			-- h2, was being cleaned up instantly for no reason.
-			surface.SetFont( "E2SmallFont" )
-			local _, h2 = surface.GetTextSize( PC_TXT )
-
-			surface.SetTextPos( 6, (h / 2) - (h2 / 2) )
-			surface.SetTextColor( 255,255,255,255 )
-			surface.DrawText( PC_TXT )
-		end
-
-		-- Enable mouse presses
-		pc_text.OnMousePressed = function( pnl, code )
-			print("Pick Color Pressed - Open Panel")
-			if code == MOUSE_LEFT then
-				self:AC_SetVisible( false )
-			end
-		end
-		
-		-- Enable mouse hovering
-		pc_text.OnCursorEntered = function( pnl )
-			panel.Selected = pnl.count
-		end	
-
-		panel.list:AddItem( pc_text )
-	end
 
 	-- Add all suggestions to the list
+	-- PickColorFind
+	local Pkc_Table = {Name = "PickColor"}
+	if PickColorShouldDraw then table.insert(self.AC_Suggestions, 1, Pkc_Table) end
 	for count,suggestion in pairs( self.AC_Suggestions ) do
-		local nice_name = suggestion:nice_str( self )
-		local name = suggestion:str( self )
+		local nice_name
+		--local name = suggestion:str( self )
+		local tcolor = Color( 65, 105, 225, 255 )
+		
+		if PickColorShouldDraw and count == 1 then
+			nice_name = "Open PickColor"
+			tcolor = Color( 206, 134, 60, 255 )
+		else
+			nice_name = suggestion:nice_str( self )
+			tcolor = Color( 65, 105, 225, 255 )
+		end
 
 		local txt = vgui.Create("DLabel")
 		txt:SetText( "" )
@@ -2724,7 +2707,7 @@ function EDITOR:AC_FillList()
 
 		-- Override paint to give it the "E2 theme" and to make it highlight when selected
 		txt.Paint = function( pnl, w, h )
-			draw_RoundedBox( 1, 1, 1, w-2, h-2, Color( 65, 105, 225, 255 ) )
+			draw_RoundedBox( 1, 1, 1, w-2, h-2, tcolor )
 			if panel.Selected == pnl.count then
 				draw_RoundedBox( 0, 2, 2, w - 4 , h - 4, Color(0,0,0,192) )
 			end
@@ -2742,7 +2725,7 @@ function EDITOR:AC_FillList()
 		txt.OnMousePressed = function( pnl, code )
 			if code == MOUSE_LEFT then
 				self:AC_SetVisible( false )
-				self:AC_Use( pnl.suggestion )
+				if PickColorShouldDraw and count == 1 then RunConsoleCommand("wire_pickcolor_browser_open") else self:AC_Use( pnl.suggestion ) end
 			end
 		end
 

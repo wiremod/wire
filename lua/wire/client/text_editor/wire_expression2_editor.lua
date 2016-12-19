@@ -1,8 +1,5 @@
 local Editor = {}
 
--- Global Editor Type Checker
-GetEditorType = nil
-
 -- ----------------------------------------------------------------------
 -- Fonts
 -- ----------------------------------------------------------------------
@@ -355,10 +352,6 @@ function Editor:Think()
 	if x < 0 then x = 0 end
 	if w > surface.ScreenWidth() then w = surface.ScreenWidth() end
 	if h > surface.ScreenHeight() then h = surface.ScreenHeight() end
-
-	-- PickColorFind
-	-- Gets the current EditorType (ZCPU/E2)
-	GetEditorType = self:GetEditorMode()
 
 	self:SetPos(x, y)
 	self:SetSize(w, h)
@@ -1923,24 +1916,6 @@ function Editor:Setup(nTitle, nLocation, nEditorType)
 	-- PickColorFind
 	if not useSoundBrowser then self.C.SoundBrw:SetVisible(false) end
 	if not useColorMixer then self.C.PickColor:SetVisible(false) end
-
-	--[[if useColorMixer then
-		local CMixBrowser = vgui.Create("Button", self.C.Menu)
-		CMixBrowser:SetSize(60, 20)
-		CMixBrowser:Dock(RIGHT)
-		CMixBrowser:SetText("Pick Color")
-		CMixBrowser.DoClick = function() RunConsoleCommand("wire_pickcolor_browser_open") end
-		self.C.CMixBrowser = CMixBrowser
-	end]]--
-
-	--[[if useSoundBrowser then -- Add "Sound Browser" button
-		local SoundBrw = vgui.Create("Button", self.C.Menu)
-		SoundBrw:SetSize(85, 20)
-		SoundBrw:Dock(RIGHT)
-		SoundBrw:SetText("Sound Browser")
-		SoundBrw.DoClick = function() RunConsoleCommand("wire_sound_browser_open") end
-		self.C.SoundBrw = SoundBrw
-	end]]--
 
 	if useDebugger then
 		-- Add "step forward" button
