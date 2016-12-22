@@ -154,8 +154,34 @@ local clip_queue = {}
 local vis_queue = {}
 local player_color_queue = {}
 
-local function add_scale_queue( Holo, scale ) -- Add an item to the scale queue (used by UWSVN holoModel)
+local function add_scale_queue( Holo, scale )
+	if #scale_queue==wire_holograms_max:GetInt() then return end
 	scale_queue[#scale_queue+1] = { Holo, scale }
+end
+
+local function add_bone_scale_queue( Holo, bone, scale )
+	if #bone_scale_queue==wire_holograms_max:GetInt() then return end
+	bone_scale_queue[#bone_scale_queue+1] = { Holo, bone, scale }
+end
+
+local function add_clip_queue( Holo, clip )
+	if #clip_queue==wire_holograms_max:GetInt() then return end
+	clip_queue[#clip_queue+1] = { Holo, clip }
+end
+
+local function add_vis_queue( ply, Holo, vis )
+	local queue = vis_queue[ply]
+	if not queue then
+		queue = {}
+		vis_queue[ply] = queue
+	end
+	if #queue==wire_holograms_max:GetInt() then return end
+	queue[#queue+1] = { Holo, vis }
+end
+
+local function add_player_color_queue( Holo, color )
+	if #player_color_queue==wire_holograms_max:GetInt() then return end
+	player_color_queue[#player_color_queue+1] = { Holo, color }
 end
 
 local function flush_scale_queue(queue, recipient)
@@ -272,7 +298,7 @@ local function rescale(Holo, scale, bone)
 		local scale = Vector(x, y, z)
 
 		if Holo.scale ~= scale then
-			table.insert(scale_queue, { Holo, scale })
+			add_scale_queue( Holo, scale )
 			Holo.scale = scale
 		end
 	end
@@ -286,10 +312,10 @@ local function rescale(Holo, scale, bone)
 			local z = math.Clamp( b_scale[3], minval, maxval )
 			local scale = Vector(x, y, z)
 
-			table.insert(bone_scale_queue, { Holo, bidx, scale })
+			add_bone_scale_queue( Holo, bidx, scale )
 			Holo.bone_scale[bidx] =  scale
 		else  -- reset holo bone scale
-			table.insert(bone_scale_queue, { Holo, -1, Vector(0,0,0) })
+			add_bone_scale_queue( Holo, -1, Vector(0,0,0) )
 			Holo.bone_scale = {}
 		end
 	end
@@ -319,13 +345,13 @@ local function enable_clip(Holo, idx, enabled)
 	if clip and clip.enabled ~= enabled then
 		clip.enabled = enabled
 
-		table.insert(clip_queue, {
+		add_clip_queue(
 			Holo,
 			{
 				index = idx,
 				enabled = enabled
 			}
-		} )
+		)
 	end
 end
 
@@ -337,7 +363,7 @@ local function set_clip(Holo, idx, origin, normal, isglobal)
 		clip.normal = normal
 		clip.isglobal = isglobal
 
-		table.insert(clip_queue, {
+		add_clip_queue(
 			Holo,
 			{
 				index = idx,
@@ -345,7 +371,7 @@ local function set_clip(Holo, idx, origin, normal, isglobal)
 				normal = normal,
 				isglobal = isglobal
 			}
-		} )
+		)
 	end
 end
 
@@ -355,9 +381,7 @@ local function set_visible(Holo, players, visible)
 	for _,ply in pairs( players ) do
 		if IsValid( ply ) and ply:IsPlayer() and Holo.visible[ply] ~= visible then
 			Holo.visible[ply] = visible
-			vis_queue[ply] = vis_queue[ply] or {}
-
-			table.insert( vis_queue[ply], { Holo, visible } )
+			add_vis_queue(ply, Holo, visible )
 		end
 	end
 end
@@ -366,12 +390,12 @@ local function reset_clholo(Holo, scale)
 	if Holo.clips then
 		for cidx, clip in pairs(Holo.clips) do
 			if clip.enabled then
-				table.insert(clip_queue, {
+				add_clip_queue(
 					Holo, {
 						index = cidx,
 						enabled = false
 					}
-				} )
+				)
 			end
 		end
 		Holo.clips = {}
@@ -380,8 +404,7 @@ local function reset_clholo(Holo, scale)
 	if Holo.visible then
 		for ply, state in pairs(Holo.visible) do
 			if not state then
-				vis_queue[ply] = vis_queue[ply] or {}
-				table.insert( vis_queue[ply], { Holo, true } )
+				add_vis_queue(ply, Holo, true )
 			end
 		end
 		Holo.visible = {}
@@ -389,7 +412,7 @@ local function reset_clholo(Holo, scale)
 end
 
 local function set_player_color(Holo, color)
-	table.insert( player_color_queue, { Holo, color } )
+	add_player_color_queue(Holo, color)
 end
 
 hook.Add( "PlayerInitialSpawn", "wire_holograms_set_vars", function(ply)
