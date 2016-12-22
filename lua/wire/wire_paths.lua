@@ -74,7 +74,7 @@ local function TransmitPath(input)
 	net.WriteFloat(input.Width)
 	net.WriteVector(input.StartPos)
 	net.WriteString(input.Material)
-	net.WriteColor(Color(color.r, color.g, color.b, color.a))
+	net.WriteColor(Color(color.r or 255, color.g or 255, color.b or 255, color.a or 255))
 	net.WriteUInt(#input.Path, 15)
 	for _, point in ipairs(input.Path) do
 		net.WriteEntity(point.Entity)
