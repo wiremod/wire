@@ -270,6 +270,10 @@ function ENT:CompileCode(buffer, files, filepath)
 	self:ResetContext()
 end
 
+function ENT:GetGateName()
+	return self.name
+end
+
 function ENT:GetCode()
 	return self.original, self.inc_files
 end
