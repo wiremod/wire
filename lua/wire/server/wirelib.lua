@@ -1058,10 +1058,21 @@ function WireLib.dummytrace(ent)
 	}
 end
 
+function WireLib.NumModelSkins(model)
+	if NumModelSkins then
+		return NumModelSkins(model)
+	end
+	local info = util.GetModelInfo(model)
+	return info and info.SkinCount
+end
+
 --- @return whether the given player can spawn an object with the given model and skin
 function WireLib.CanModel(player, model, skin)
 	if not util.IsValidModel(model) then return false end
-	if skin ~= nil and NumModelSkins(model) <= skin then return false end
+	if skin ~= nil then
+		local count = WireLib.NumModelSkins(model)
+		if count and count <= skin then return false end
+	end
 	if IsValid(player) and player:IsPlayer() and not hook.Run("PlayerSpawnObject", player, model, skin) then return false end
 	return true
 end
@@ -1071,7 +1082,7 @@ function WireLib.MakeWireEnt( pl, Data, ... )
 	if IsValid(pl) and not pl:CheckLimit(Data.Class:sub(6).."s") then return false end
 	if Data.Model and not WireLib.CanModel(pl, Data.Model, Data.Skin) then return false end
 
-	local ent = ents.Create( Data.Class )
+	local ent = ents.Create( Data.Class )   
 	if not IsValid(ent) then return false end
 
 	duplicator.DoGeneric( ent, Data )
