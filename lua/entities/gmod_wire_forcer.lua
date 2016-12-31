@@ -68,7 +68,7 @@ function ENT:Think()
 	}
 
 	if not IsValid(trace.Entity) then return end
-	if not gamemode.Call( "GravGunPunt", self:GetPlayer(), trace.Entity ) then return end
+	if self:GetPlayer():IsValid() and not gamemode.Call( "GravGunPunt", self:GetPlayer(), trace.Entity ) then return end
 
 	if trace.Entity:GetMoveType() == MOVETYPE_VPHYSICS then
 		local phys = trace.Entity:GetPhysicsObject()
