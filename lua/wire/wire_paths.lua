@@ -19,6 +19,7 @@ if CLIENT then
 			Path = {}
 		}
 		path.Entity = net.ReadEntity()
+		if not path.Entity:IsValid() then return end
 		path.Name = net.ReadString()
 		path.Width = net.ReadFloat()
 		if path.Width<=0 then
