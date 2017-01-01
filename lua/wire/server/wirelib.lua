@@ -1082,7 +1082,7 @@ function WireLib.MakeWireEnt( pl, Data, ... )
 	if IsValid(pl) and not pl:CheckLimit(Data.Class:sub(6).."s") then return false end
 	if Data.Model and not WireLib.CanModel(pl, Data.Model, Data.Skin) then return false end
 
-	local ent = ents.Create( Data.Class )   
+	local ent = ents.Create( Data.Class )
 	if not IsValid(ent) then return false end
 
 	duplicator.DoGeneric( ent, Data )
