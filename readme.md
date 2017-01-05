@@ -25,3 +25,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 
 [Garry's Mod]: <http://garrysmod.com/>
 [workshop]: <http://steamcommunity.com/sharedfiles/filedetails/?id=160250458>
+
+# Contributor Guidelines
+
+See CONTRIBUTING.md for guidelines on contributing and participating in the wiremod project.
