@@ -8,7 +8,7 @@ if CLIENT then
 
 	TOOL.Information = {
 		{ name = "left", text = "Create " .. TOOL.Name },
-		{ name = "right", text = "Open " .. TOOL.Name .. "in Editor" },
+		{ name = "right", text = "Open " .. TOOL.Name .. " in Editor" },
 	}
 
 	--WireToolSetup.setToolMenuIcon( "beer/wiremod/gate_e2" )
