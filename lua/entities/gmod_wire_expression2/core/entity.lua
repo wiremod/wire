@@ -409,6 +409,11 @@ e2function void entity:setBodygroup(bgrp_id, bgrp_subid)
 	this:SetBodygroup(bgrp_id, bgrp_subid)
 end
 
+--- Gets <this>'s bodygroup number.
+e2function number entity:getBodygroup(bgrp_id)
+	if IsValid(this) then return this:GetBodygroup(bgrp_id) end
+	return 0
+end
 --- Gets <this>'s bodygroup count.
 e2function number entity:getBodygroups(bgrp_id)
 	if IsValid(this) then return this:GetBodygroupCount(bgrp_id) end
