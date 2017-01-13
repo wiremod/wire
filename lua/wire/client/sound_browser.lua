@@ -93,6 +93,10 @@ local function GetMountOfFile(strfile)
 	if not MountedGames then
 		MountedGames = engine.GetGames()
 		table.insert(MountedGames, 1, {
+			folder = "DOWNLOAD",
+			title = "Server Downloads",
+		})
+		table.insert(MountedGames, 1, {
 			folder = "THIRDPARTY",
 			title = "Addons and Gamemodes",
 		})
