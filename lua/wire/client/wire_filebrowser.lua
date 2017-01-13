@@ -30,7 +30,7 @@ local function ConnectPathes(path1, path2)
 	if isstring(path1) and path1 ~= "" then
 		path = path1
 		if isstring(path2) and path2 ~= "" then
-			path = path1 .. "/" ..  path2
+			path = path1 .. "/" .. path2
 		end
 	else
 		if isstring(path2) and path2 ~= "" then
@@ -117,31 +117,29 @@ local function NavigateToFolder(self, path)
 			nodename = string.lower(v)
 		else
 			nodename = nodename .. "/" .. string.lower(v)
-			if not IsValid(lastnode) then continue end
-			if not IsValid(lastnode.ChildNodes) then continue end
-
-			nodes = lastnode.ChildNodes:GetChildren()
+			if IsValid(lastnode) and IsValid(lastnode.ChildNodes) then
+				nodes = lastnode.ChildNodes:GetChildren()
+			end
 		end
 
 		local found = false
 		for _, node in pairs(nodes) do
-			if not IsValid(node) then continue end
+			if IsValid(node) then
+				local path = string.lower(node.m_strFolder)
+				if nodename == "" then break end
 
-			local path = string.lower(node.m_strFolder)
-			if  nodename == ""  then break end
+				if path ~= nodename or found then
+					node:SetExpanded(false)
+				else
+					if k == #dirs then -- just select the last one
+						self.Tree:SetSelectedItem(node)
+					end
 
-			if  path ~= nodename or found then
-				node:SetExpanded(false)
-				continue
+					node:SetExpanded(true)
+					lastnode = node
+					found = true
+				end
 			end
-
-			if k == #dirs then -- just select the last one
-				self.Tree:SetSelectedItem(node)
-			end
-
-			node:SetExpanded(true)
-			lastnode = node
-			found = true
 		end
 	end
 
@@ -192,7 +190,7 @@ local function ShowFolder(self, path)
 end
 
 --[[---------------------------------------------------------
-   Name: Init
+  Name: Init
 -----------------------------------------------------------]]
 function PANEL:Init()
 	self.TimedpairsName = "wire_filebrowser_items_" .. tostring({})
@@ -439,18 +437,18 @@ function PANEL:LayoutPages(forcelayout)
 	local VisibleButtons = 0
 	for i = 1, self.m_nPageCount do
 		local button = self.PageChooseNumbers.Buttons[i]
-		if not IsValid(button) then continue end
+		if IsValid(button) then
+			if pagepos < i + ButtonCount and pagepos >= i - ButtonCount + 1 then
+				button:SetVisible(true)
+				EnableButton(button, true)
+				VisibleButtons = VisibleButtons + 1
+			else
+				button:SetVisible(false)
+				EnableButton(button, false)
+			end
 
-		if pagepos < i + ButtonCount and pagepos >= i - ButtonCount + 1 then
-			button:SetVisible(true)
-			EnableButton(button, true)
-			VisibleButtons = VisibleButtons + 1
-		else
-			button:SetVisible(false)
-			EnableButton(button, false)
+			button.Depressed = false
 		end
-
-		button.Depressed = false
 	end
 
 	local SelectButton = self.PageChooseNumbers.Buttons[self.m_nPage]

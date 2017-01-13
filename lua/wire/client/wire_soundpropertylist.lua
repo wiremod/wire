@@ -194,10 +194,10 @@ function PANEL:AddItem(...)
 	local i = 0
 
 	for k, v in ipairs(itemtable) do
-		if k == 2 then continue end
-
-		i = i + 1
-		itemargs[i] = v
+		if k ~= 2 then
+			i = i + 1
+			itemargs[i] = v
+		end
 	end
 
 	local line = self.SoundProperties:AddLine(self.TabfileCount + 1, ...)

@@ -62,8 +62,9 @@ local function ReadLine(filedata)
 		end
 		line = string.Trim(line)
 
-		if not fileend and line == "" then continue end
-		fileline = line
+		if fileend or line ~= "" then
+			fileline = line
+		end
 
 		break
 	end
@@ -406,10 +407,10 @@ function PANEL:AddItem(...)
 	local i = 0
 
 	for k, v in ipairs(itemtable) do
-		if k == 1 then continue end
-
-		i = i + 1
-		itemargs[i] = v
+		if k ~= 1 then
+			i = i + 1
+			itemargs[i] = v
+		end
 	end
 	self.Tabfile[item] = itemargs
 
