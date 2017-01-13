@@ -30,11 +30,21 @@ local TranslateCHAN = {
 	[CHAN_USER_BASE] = "CHAN_USER_BASE"
 }
 
+local function GetValidSoundFilename(strfile)
+	strfile = strfile or ""
+
+	-- filter out sound characters: https://developer.valvesoftware.com/wiki/Soundscripts
+	strfile = string.gsub(strfile, "^[%*%#%@%>%<%)%}%$%!%?%^]?[%*%#%@%>%<%)%}%$%!%?%^]?", "", 2)
+	strfile = "sound/" .. strfile
+
+	return strfile
+end
+
 -- Output the infos about the given sound.
 local function GetFileInfos(strfile)
 	if not isstring(strfile) or strfile == "" then return end
 
-	local nsize = tonumber(file.Size("sound/" .. strfile, "GAME") or "-1")
+	local nsize = tonumber(file.Size(GetValidSoundFilename(strfile), "GAME") or "-1")
 	local strformat = string.lower(string.GetExtensionFromFilename(strfile) or "n/a")
 
 	return nsize, strformat
@@ -61,6 +71,58 @@ local function FormatLength(nduration)
 	return nduration, string.format("%01d", nm) .. ":" .. string.format("%02d", ns) .. "." .. string.format("%03d", nms)
 end
 
+local MountCache = {}
+local MountedGames = nil
+local function GetMountOfFile(strfile)
+	if not strfile then return end
+
+	strfile = GetValidSoundFilename(strfile)
+	local exists = file.Exists(strfile, "GAME")
+	local isfile = not file.IsDir(strfile, "GAME")
+
+	if not exists or not isfile then
+		MountCache[strfile] = nil
+		MountedGames = nil
+		return
+	end
+
+	if MountCache[strfile] then
+		return MountCache[strfile]
+	end
+
+	if not MountedGames then
+		MountedGames = engine.GetGames()
+		table.insert(MountedGames, 1, {
+			folder = "THIRDPARTY",
+			title = "Addons and Gamemodes",
+		})
+		table.insert(MountedGames, 1, {
+			folder = "WORKSHOP",
+			title = "Workshop",
+		})
+		table.insert(MountedGames, 1, {
+			folder = "garrysmod",
+			title = "Garry's Mod",
+			depot = 4000,
+		})
+	end
+
+	local foundingames = {}
+
+	for k, v in pairs(MountedGames) do
+		local folder = v.folder
+		exists = file.Exists(strfile, folder)
+		isfile = not file.IsDir(strfile, folder)
+
+		if exists and isfile then
+			table.insert(foundingames, v)
+		end
+	end
+
+	MountCache[strfile] = foundingames
+	return foundingames
+end
+
 local function GetInfoTable(strfile)
 	local nsize, strformat, nduration = GetFileInfos(strfile)
 	if not nsize then return end
@@ -82,6 +144,7 @@ local function GetInfoTable(strfile)
 		T.Duration = {strduration or "n/a", nduration and nduration .. " sec"}
 		T.Size = {strsize or "n/a", nsizeB and nsizeB .. " Bytes"}
 		T.Format = strformat
+		T.Mount = GetMountOfFile(strfile)
 	end
 
 	return T, not tabproperty
@@ -150,6 +213,17 @@ local function GenerateInfoTree(strfile, backnode, count)
 			node = mainnode:AddNode(index, "icon16/page_white_key.png")
 			subnode = node:AddNode(SoundData[index], "icon16/page.png")
 			subnode.IsDataNode = true
+		end
+
+		do
+			index = "Mount"
+			if SoundData[index] then
+				node = mainnode:AddNode("Mounted Sources", "icon16/plugin.png")
+				for k, v in pairs(SoundData[index]) do
+					subnode = node:AddNode(v.title or v.folder, "icon16/page.png")
+					subnode.IsDataNode = true
+				end
+			end
 		end
 	else
 		local node = nil
