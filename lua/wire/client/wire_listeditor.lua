@@ -102,7 +102,7 @@ local function SaveTo(self, func, ...)
 	Derma_StringRequestNoBlur(
 		"Save to New File",
 		"",
-		string.sub(fileName(path), 0, -5), -- remove .txt at the end
+		string.StripExtension(fileName(path)), -- remove .txt at the end
 
 		function( strTextOut )
 			if not IsValid(self) then return end
@@ -124,8 +124,8 @@ local function SaveTo(self, func, ...)
 	return true
 end
 
--- Ask for override: Opens a confirmation if the file name is different box.
-local function AsForOverride(self, func, filename, ...)
+-- Ask for override: Opens a confirmation box if the file name is not different.
+local function AskForOverride(self, func, filename, ...)
 	if not IsValid(self) then return end
 
 	if not func then return end
@@ -150,7 +150,7 @@ local function AsForOverride(self, func, filename, ...)
 end
 
 -- Ask for save: Opens a confirmation box.
-local function AsForSave(self, func, ...)
+local function AskForSave(self, func, ...)
 	if not IsValid(self) then return end
 
 	if not func then return end
@@ -354,7 +354,7 @@ end
 
 
 function PANEL:ClearList()
-	AsForSave(self, function(self)
+	AskForSave(self, function(self)
 		self:SetList(nil)
 		self:SetUnsaved(false)
 		self.TabfileCount = 0
@@ -412,6 +412,7 @@ function PANEL:AddItem(...)
 			itemargs[i] = v
 		end
 	end
+
 	self.Tabfile[item] = itemargs
 
 	local line = self.Files:AddLine(self.TabfileCount + 1, ...)
@@ -429,7 +430,7 @@ end
 
 function PANEL:ItemInList(item)
 	if not item then return false end
-	if not self.Tabfile[item] then return true end
+	if self.Tabfile[item] then return true end
 
 	return false
 end
@@ -439,13 +440,12 @@ function PANEL:RemoveItem(item)
 	if not self.Tabfile[item] then return end
 	if not self.Files.Lines then return end
 
-	for k, v in ipairs(self.Files.Lines) do
+	for k, v in pairs(self.Files.Lines) do
 		if v.m_strFilename == item then
-			self.Files:RemoveLine(v:GetID())
+			self.Files:RemoveLine(k)
 			self.Tabfile[item] = nil
 			self:SetUnsaved(true)
 			self.TabfileCount = self.TabfileCount - 1
-
 			break
 		end
 	end
@@ -455,7 +455,7 @@ function PANEL:OpenList(strfile)
 	if not strfile then return end
 	if strfile == "" then return end
 
-	AsForSave(self, function(self, strfile)
+	AskForSave(self, function(self, strfile)
 		local filedata = file.Open(strfile, "rb", "DATA")
 		if not filedata then return end
 
@@ -514,7 +514,7 @@ function PANEL:SaveList(strfile)
 	if not strfile then return end
 	if strfile == "" then return end
 
-	AsForOverride(self, function(self, strfile)
+	AskForOverride(self, function(self, strfile)
 		local filedata = file.Open(strfile, "w", "DATA")
 		if not filedata then
 			Derma_Query( "File could not be saved!",

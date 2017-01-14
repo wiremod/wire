@@ -83,16 +83,15 @@ end
 local function BuildFileList(path, filter, wildcard)
 	local files = {}
 
-	if istable(filter) then
-		for k, v in ipairs(filter) do
-			table.Add(files, file.Find(ConnectPathes(path, v), wildcard or "GAME"))
-		end
-	else
-		table.Add(files, file.Find(ConnectPathes(path, tostring(filter)), wildcard or "GAME"))
+	if not istable(filter) then
+		filter = { tostring(filter or "") }
+	end
+
+	for k, v in ipairs(filter) do
+		table.Add(files, file.Find(ConnectPathes(path, v), wildcard or "GAME"))
 	end
 
 	table.sort(files)
-
 	return files
 end
 

@@ -1,4 +1,4 @@
--- A sound property browsner. It helps to find all sounds which are defined in sound scripts or by sound.Add().
+-- A sound property browser. It helps to find all sounds which are defined in sound scripts or by sound.Add().
 -- Made by Grocel.
 
 local PANEL = {}
