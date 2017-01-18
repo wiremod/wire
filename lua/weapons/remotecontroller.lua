@@ -60,7 +60,7 @@ end
 function SWEP:On()
 	local ply = self:GetOwner()
 	local lnk = self.Linked
-	if IsValid(lnk) and (lnk:GetClass() = "gmod_wire_pod" or lnk:GetClass() == "gmod_wire_adv_pod") and lnk:HasPly() then
+	if IsValid(lnk) and (lnk:GetClass() == "gmod_wire_pod" or lnk:GetClass() == "gmod_wire_adv_pod") and lnk:HasPly() then
 		if hook.Run("CanTool", ply, WireLib.dummytrace(lnk), "remotecontroller") then
 			if lnk.RC then
 				lnk:RCEject(self.Linked:GetPly())
