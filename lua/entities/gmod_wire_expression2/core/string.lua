@@ -312,7 +312,7 @@ end
 
 --- Finds and replaces every occurrence of <needle> with <new> without regular expressions
 e2function string string:replace(string needle, string new)
-	if needle == "" then return this end -- prevent crashes. stupid garry...
+	if needle == "" then return this end
 	return this:Replace( needle, new)
 end
 
