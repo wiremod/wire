@@ -181,12 +181,12 @@ local function GenerateInfoTree(strfile, backnode, count)
 		strcount = " (" .. count .. ")"
 	end
 
-	if IsFile then
-		local index = ""
-		local node = nil
-		local mainnode = nil
-		local subnode = nil
+	local index
+	local node
+	local mainnode
+	local subnode
 
+	if IsFile then
 		if IsValid(backnode) then
 			mainnode = backnode:AddNode("Sound File" .. strcount, "icon16/sound.png")
 		else
@@ -236,9 +236,6 @@ local function GenerateInfoTree(strfile, backnode, count)
 			end
 		end
 	else
-		local node = nil
-		local mainnode = nil
-
 		if IsValid(backnode) then
 			mainnode = backnode:AddNode("Sound Property" .. strcount, "icon16/table_gear.png")
 		else
@@ -322,16 +319,25 @@ local function GenerateInfoTree(strfile, backnode, count)
 				node = mainnode:AddNode("Sound", "icon16/table.png")
 			end
 
-			node.SubData = tabsound
-			node.BackNode = mainnode
-			node.Expander.DoClick = function(self)
-				if not IsValid(SoundInfoTree) then return end
-				if not IsValid(node) then return end
+			local olddoclick = node.Expander.DoClick
+			node.Expander.DoClick = function(panel, ...)
+				if panel.HasSubData then
+					return olddoclick(panel, ...)
+				end
 
-				node:SetExpanded(false)
-				SoundInfoTree:SetSelectedItem(node)
+				panel.HasSubData = tabsound ~= nil
+
+				if istable(tabsound) then
+					for k, v in pairs(tabsound) do
+						GenerateInfoTree(v, node, k)
+					end
+				else
+					GenerateInfoTree(tabsound, node)
+				end
+
+				return olddoclick(panel, ...)
 			end
-			node:AddNode("Dummy")
+			node:SetForceShowExpander(true)
 		end
 	end
 
@@ -695,7 +701,7 @@ local function CreateSoundBrowser(path, se)
 		Infomenu(parent, node, soundemitter, nSoundVolume, nSoundPitch)
 	end
 
-	SoundInfoTree.OnNodeSelected = function( parent, node )
+	/*SoundInfoTree.OnNodeSelected = function( parent, node )
 		if not IsValid(parent) then return end
 		if not IsValid(node) then return end
 
@@ -711,23 +717,19 @@ local function CreateSoundBrowser(path, se)
 			return
 		end
 
-		node:SetExpanded(false)
-		node:Remove()
-
-		if istable(tabsound) then
-			node = backnode:AddNode("Sounds", "icon16/table_multiple.png")
-			for k, v in pairs(tabsound) do
-				GenerateInfoTree(v, node, k)
-			end
-		else
-			node = backnode:AddNode("Sound", "icon16/table.png")
-			GenerateInfoTree(tabsound, node)
+		if node.hastabsound then
+			node:SetExpanded(not node.m_bExpanded)
+			return
 		end
 
-		node:SetExpanded(false)
-		parent:SetSelectedItem(node)
+		//node:SetExpanded(false)
+		//node:Remove()
+
+
+
+		node.hastabsound = true
 		node:SetExpanded(not node.m_bExpanded)
-	end
+	end*/
 
 	local SplitPanel = SoundBrowserPanel:Add( "DHorizontalDivider" )
 	SplitPanel:Dock(FILL)
