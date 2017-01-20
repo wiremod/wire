@@ -588,6 +588,7 @@ function Editor:CreateTab(chosenfile)
 		timer.Create("e2autosave", 5, 1, function()
 			self:AutoSave()
 		end)
+		hook.Run("WireEditorText", self, editor)
 	end
 	editor.OnShortcut = function(_, code)
 		if code == KEY_S then
@@ -1700,6 +1701,7 @@ end
 
 function Editor:Open(Line, code, forcenewtab)
 	if self:IsVisible() and not Line and not code then self:Close() end
+	hook.Run("WireEditorOpen", self, Line, code, forcenewtab)
 	self:SetV(true)
 	if self.chip then
 		self.C.SaE:SetText("Upload & Exit")
@@ -1844,6 +1846,8 @@ function Editor:Close()
 	self.chip = false
 
 	self:SaveEditorSettings()
+	
+        hook.Run("WireEditorClose", self)
 end
 
 function Editor:Setup(nTitle, nLocation, nEditorType)
