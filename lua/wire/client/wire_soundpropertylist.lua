@@ -67,7 +67,7 @@ local function GenerateList(self, strPattern)
 
 		self:AddItem(k, v)
 
-	end, function(k, v)
+	end, function()
 		if not IsValid(self) then return end
 		if not IsValid(self.SoundProperties) then return end
 		if not IsValid(self.SearchProgress) then return end

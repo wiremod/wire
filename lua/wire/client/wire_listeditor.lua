@@ -74,7 +74,7 @@ local function ReadLine(filedata)
 	if #linetable == 0 then return end
 
 	for k, v in ipairs(linetable) do -- cleanup
-		local line = linetable[k]
+		local line = v
 
 		if k == 1 then
 			line = string.Trim(line, "/")
@@ -207,7 +207,7 @@ function PANEL:Init()
 
 	self.FileBrowser = self.ListsPanel:Add("wire_expression2_browser")
 	self.FileBrowser:Dock(FILL)
-	self.FileBrowser.OnFileOpen = function(panel, listfile)
+	self.FileBrowser.OnFileOpen = function(_, listfile)
 		self:OpenList(listfile)
 	end
 	self.FileBrowser:RemoveRightClick("Open in New Tab") -- we don't need tabs.
@@ -469,7 +469,7 @@ function PANEL:OpenList(strfile)
 			counttab[i] = true
 		end
 
-		WireLib.Timedpairs(self.TimedpairsName, counttab, self.m_nListSpeed, function(index)
+		WireLib.Timedpairs(self.TimedpairsName, counttab, self.m_nListSpeed, function()
 			if not IsValid(self) then
 				filedata:Close()
 				return false
@@ -497,7 +497,7 @@ function PANEL:OpenList(strfile)
 
 			self:AddItem(unpack(linetable))
 			self:SetUnsaved(false)
-		end, function(index)
+		end, function()
 			filedata:Close()
 
 			if not IsValid(self) then return end
@@ -527,7 +527,7 @@ function PANEL:SaveList(strfile)
 
 		for key, itemtable in SortedPairs(self.Tabfile) do
 			local item = key
-			for k, supitem in ipairs(itemtable) do
+			for _, supitem in ipairs(itemtable) do
 				item = item .. " | " .. supitem
 			end
 			filedata:Write(item .. "\n")

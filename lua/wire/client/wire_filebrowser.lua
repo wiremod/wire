@@ -47,7 +47,8 @@ local function PathFilter(Folder, TxtPanel, Root)
 	local ValidFolder = Folder
 
 	for k, v in pairs(invalid_chars) do
-		for i = 1, #string.Explode(k, ValidFolder) do
+		local len = #string.Explode(k, ValidFolder)
+		for i = 1, len do
 			if not string.match(ValidFolder, k) then break end
 
 			ValidFolder = string.gsub(ValidFolder, k, v)
@@ -87,7 +88,7 @@ local function BuildFileList(path, filter, wildcard)
 		filter = { tostring(filter or "") }
 	end
 
-	for k, v in ipairs(filter) do
+	for _, v in ipairs(filter) do
 		table.Add(files, file.Find(ConnectPathes(path, v), wildcard or "GAME"))
 	end
 
@@ -244,7 +245,7 @@ function PANEL:Init()
 	self.NotUserPressed = false
 	self.Tree = vgui.Create( "DTree" )
 	self.Tree:SetClickOnDragHover(false)
-	self.Tree.OnNodeSelected = function( parent, node )
+	self.Tree.OnNodeSelected = function( _, node )
 		local path = node.m_strFolder
 
 		if not path then return end
@@ -273,7 +274,7 @@ function PANEL:Init()
 	self.PageLastLeftButton:SetWide(self.PageButtonSize)
 	self.PageLastLeftButton:Dock(LEFT)
 	self.PageLastLeftButton:SetText("<<")
-	self.PageLastLeftButton.DoClick = function(panel)
+	self.PageLastLeftButton.DoClick = function()
 		self:SetPage(1)
 	end
 
@@ -281,7 +282,7 @@ function PANEL:Init()
 	self.PageLastRightButton:SetWide(self.PageButtonSize)
 	self.PageLastRightButton:Dock(RIGHT)
 	self.PageLastRightButton:SetText(">>")
-	self.PageLastRightButton.DoClick = function(panel)
+	self.PageLastRightButton.DoClick = function()
 		self:SetPage(self.m_nPageCount)
 	end
 
@@ -289,7 +290,7 @@ function PANEL:Init()
 	self.PageLeftButton:SetWide(self.PageButtonSize)
 	self.PageLeftButton:Dock(LEFT)
 	self.PageLeftButton:SetText("<")
-	self.PageLeftButton.DoClick = function(panel)
+	self.PageLeftButton.DoClick = function()
 		if self.m_nPage <= 1 or not self.PageMode then
 			self.m_nPage = 1
 			return
@@ -302,7 +303,7 @@ function PANEL:Init()
 	self.PageRightButton:SetWide(self.PageButtonSize)
 	self.PageRightButton:Dock(RIGHT)
 	self.PageRightButton:SetText(">")
-	self.PageRightButton.DoClick = function(panel)
+	self.PageRightButton.DoClick = function()
 		if self.m_nPage >= self.m_nPageCount or not self.PageMode then
 			self.m_nPage = self.m_nPageCount
 			return
@@ -623,7 +624,7 @@ function PANEL:SetPage(page)
 		self.PageLoadingLabel:SetText(id .. " of " .. FileCount .. " files found.")
 		self.PageLoadingLabel:SizeToContents()
 		self.PageLoadingLabel:Center()
-	end, function(id, name)
+	end, function(id)
 		if not IsValid(self) then return end
 		Fraction = 1
 

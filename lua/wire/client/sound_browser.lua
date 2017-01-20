@@ -701,36 +701,6 @@ local function CreateSoundBrowser(path, se)
 		Infomenu(parent, node, soundemitter, nSoundVolume, nSoundPitch)
 	end
 
-	/*SoundInfoTree.OnNodeSelected = function( parent, node )
-		if not IsValid(parent) then return end
-		if not IsValid(node) then return end
-
-		local backnode = node.BackNode
-		if not IsValid(node.BackNode) then
-			node:SetExpanded(not node.m_bExpanded)
-			return
-		end
-
-		local tabsound = node.SubData
-		if not tabsound then
-			node:SetExpanded(not node.m_bExpanded)
-			return
-		end
-
-		if node.hastabsound then
-			node:SetExpanded(not node.m_bExpanded)
-			return
-		end
-
-		//node:SetExpanded(false)
-		//node:Remove()
-
-
-
-		node.hastabsound = true
-		node:SetExpanded(not node.m_bExpanded)
-	end*/
-
 	local SplitPanel = SoundBrowserPanel:Add( "DHorizontalDivider" )
 	SplitPanel:Dock(FILL)
 	SplitPanel:SetLeft(BrowserTabs)
