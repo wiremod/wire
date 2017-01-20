@@ -124,10 +124,10 @@ local function NavigateToFolder(self, path)
 		local found = false
 		for _, node in pairs(nodes) do
 			if IsValid(node) then
-				local path = string.lower(node.m_strFolder)
+				local nodepath = string.lower(node.m_strFolder)
 				if nodename == "" then break end
 
-				if path ~= nodename or found then
+				if nodepath ~= nodename or found then
 					node:SetExpanded(false)
 				else
 					if k == #dirs then -- just select the last one
@@ -341,31 +341,31 @@ function PANEL:Init()
 	self.List.OnRowSelected = function(parent, id, line)
 		local name = line.m_strFilename
 		local path = line.m_strPath
-		local file = line.m_strFile
+		local filename = line.m_strFile
 		self.m_strOpenFilename = name
-		self.m_strOpenFile = file
+		self.m_strOpenFile = filename
 
-		self:DoClick(file, path, name, parent, line)
+		self:DoClick(filename, path, name, parent, line)
 	end
 
 	self.List.DoDoubleClick = function(parent, id, line)
 		local name = line.m_strFilename
 		local path = line.m_strPath
-		local file = line.m_strFile
+		local filename = line.m_strFile
 		self.m_strOpenFilename = name
-		self.m_strOpenFile = file
+		self.m_strOpenFile = filename
 
-		self:DoDoubleClick(file, path, name, parent, line)
+		self:DoDoubleClick(filename, path, name, parent, line)
 	end
 
 	self.List.OnRowRightClick = function(parent, id, line)
 		local name = line.m_strFilename
 		local path = line.m_strPath
-		local file = line.m_strFile
+		local filename = line.m_strFile
 		self.m_strOpenFilename = name
-		self.m_strOpenFile = file
+		self.m_strOpenFile = filename
 
-		self:DoRightClick(file, path, name, parent, line)
+		self:DoRightClick(filename, path, name, parent, line)
 	end
 
 	self.SplitPanel = self:Add( "DHorizontalDivider" )
@@ -379,12 +379,12 @@ function PANEL:Init()
 end
 
 function PANEL:Refresh()
-	local file = self:GetOpenFile()
+	local filename = self:GetOpenFile()
 	local page = self:GetPage()
 
 	self.bSetup = self:Setup()
 
-	self:SetOpenFile(file)
+	self:SetOpenFile(filename)
 	self:SetPage(page)
 end
 
@@ -403,7 +403,7 @@ function PANEL:LayoutPages(forcelayout)
 		return
 	end
 
-	local x, y = self.PageRightButton:GetPos()
+	local x = self.PageRightButton:GetPos()
 	local Wide = x - self.PageLeftButton:GetWide() - 40
 	if Wide <= 0 or forcelayout then
 		self.oldpage = nil
@@ -541,11 +541,11 @@ function PANEL:SetOpenPath(path)
 	self.m_strOpenFile = ConnectPathes(self.m_strOpenPath, self.m_strOpenFilename)
 end
 
-function PANEL:SetOpenFile(file)
-	if not isstring(file) then file = "" end
+function PANEL:SetOpenFile(filename)
+	if not isstring(filename) then filename = "" end
 
-	self:SetOpenPath(string.GetPathFromFilename(file))
-	self:SetOpenFilename(string.GetFileFromFilename("/" .. file))
+	self:SetOpenPath(string.GetPathFromFilename(filename))
+	self:SetOpenFilename(string.GetFileFromFilename("/" .. filename))
 end
 
 function PANEL:SetPage(page)
@@ -590,12 +590,12 @@ function PANEL:SetPage(page)
 
 	self:InvalidateLayout()
 
-	WireLib.Timedpairs(self.TimedpairsName, filepage, self.m_nListSpeed, function(id, name, self)
+	WireLib.Timedpairs(self.TimedpairsName, filepage, self.m_nListSpeed, function(id, name)
 		if not IsValid(self) then return false end
 		if not IsValid(self.List) then return false end
 
-		local file = ConnectPathes(self.m_strOpenPath, name)
-		local args, bcontinue, bbreak = self:LineData(id, file, self.m_strOpenPath, name)
+		local filename = ConnectPathes(self.m_strOpenPath, name)
+		local args, bcontinue, bbreak = self:LineData(id, filename, self.m_strOpenPath, name)
 
 		if bcontinue then return end -- continue
 		if bbreak then return false end -- break
@@ -605,13 +605,13 @@ function PANEL:SetPage(page)
 
 		line.m_strPath = self.m_strOpenPath
 		line.m_strFilename = name
-		line.m_strFile = file
+		line.m_strFile = filename
 
-		if self.m_strOpenFile == file then
+		if self.m_strOpenFile == filename then
 			self.List:SelectItem(line)
 		end
 
-		self:OnLineAdded(id, line, file, self.m_strOpenPath, name)
+		self:OnLineAdded(id, line, filename, self.m_strOpenPath, name)
 
 		Fraction = id / FileCount
 
@@ -623,7 +623,7 @@ function PANEL:SetPage(page)
 		self.PageLoadingLabel:SetText(id .. " of " .. FileCount .. " files found.")
 		self.PageLoadingLabel:SizeToContents()
 		self.PageLoadingLabel:Center()
-	end, function(id, name, self)
+	end, function(id, name)
 		if not IsValid(self) then return end
 		Fraction = 1
 
@@ -637,24 +637,24 @@ function PANEL:SetPage(page)
 
 		self.PageLoadingProgress:SetVisible(false)
 		self:InvalidateLayout()
-	end, self)
+	end)
 end
 
-function PANEL:DoClick(file, path, name)
+function PANEL:DoClick(filename, path, name)
 	-- Override
 end
-function PANEL:DoDoubleClick(file, path, name)
+function PANEL:DoDoubleClick(filename, path, name)
 	-- Override
 end
-function PANEL:DoRightClick(file, path, name)
+function PANEL:DoRightClick(filename, path, name)
 	-- Override
 end
 
-function PANEL:LineData(id, file, path, name)
+function PANEL:LineData(id, filename, path, name)
 	return -- to override
 end
 
-function PANEL:OnLineAdded(id, line, file, path, name)
+function PANEL:OnLineAdded(id, line, filename, path, name)
 	return -- to override
 end
 

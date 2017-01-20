@@ -40,7 +40,7 @@ local function GenerateList(self, strPattern)
 	self.SearchProgressLabel:SizeToContents()
 	self.SearchProgressLabel:Center()
 
-	WireLib.Timedpairs(self.TimedpairsName, soundtable, self.m_nListSpeed, function(k, v, self)
+	WireLib.Timedpairs(self.TimedpairsName, soundtable, self.m_nListSpeed, function(k, v)
 		if not IsValid(self) then return false end
 		if not IsValid(self.SoundProperties) then return false end
 		if not IsValid(self.SearchProgress) then return false end
@@ -67,7 +67,7 @@ local function GenerateList(self, strPattern)
 
 		self:AddItem(k, v)
 
-	end, function(k, v, self)
+	end, function(k, v)
 		if not IsValid(self) then return end
 		if not IsValid(self.SoundProperties) then return end
 		if not IsValid(self.SearchProgress) then return end
@@ -80,7 +80,7 @@ local function GenerateList(self, strPattern)
 
 		self.SearchProgress:SetVisible(false)
 		self:InvalidateLayout()
-	end, self)
+	end)
 end
 
 function PANEL:Init()

@@ -354,7 +354,7 @@ end
 
 
 function PANEL:ClearList()
-	AskForSave(self, function(self)
+	AskForSave(self, function()
 		self:SetList(nil)
 		self:SetUnsaved(false)
 		self.TabfileCount = 0
@@ -455,7 +455,7 @@ function PANEL:OpenList(strfile)
 	if not strfile then return end
 	if strfile == "" then return end
 
-	AskForSave(self, function(self, strfile)
+	AskForSave(self, function()
 		local filedata = file.Open(strfile, "rb", "DATA")
 		if not filedata then return end
 
@@ -469,7 +469,7 @@ function PANEL:OpenList(strfile)
 			counttab[i] = true
 		end
 
-		WireLib.Timedpairs(self.TimedpairsName, counttab, self.m_nListSpeed, function(index, _, self, filedata)
+		WireLib.Timedpairs(self.TimedpairsName, counttab, self.m_nListSpeed, function(index)
 			if not IsValid(self) then
 				filedata:Close()
 				return false
@@ -497,7 +497,7 @@ function PANEL:OpenList(strfile)
 
 			self:AddItem(unpack(linetable))
 			self:SetUnsaved(false)
-		end, function(index, _, self, filedata)
+		end, function(index)
 			filedata:Close()
 
 			if not IsValid(self) then return end
@@ -506,7 +506,7 @@ function PANEL:OpenList(strfile)
 
 		self:SetUnsaved(false)
 		self:SetList(strfile)
-	end, strfile)
+	end)
 end
 
 function PANEL:SaveList(strfile)
@@ -514,7 +514,7 @@ function PANEL:SaveList(strfile)
 	if not strfile then return end
 	if strfile == "" then return end
 
-	AskForOverride(self, function(self, strfile)
+	AskForOverride(self, function()
 		local filedata = file.Open(strfile, "w", "DATA")
 		if not filedata then
 			Derma_Query( "File could not be saved!",
@@ -539,7 +539,7 @@ function PANEL:SaveList(strfile)
 		self:SetList(strfile)
 
 		self:Refresh()
-	end, strfile)
+	end)
 end
 
 function PANEL:SetRootPath(path)
