@@ -141,7 +141,7 @@ function PANEL:Init()
 
 	self.SoundProperties:AddColumn("Name")
 
-	self.SoundProperties.OnRowSelected = function(parent, id, line)
+	self.SoundProperties.OnRowSelected = function(parent, _, line)
 		local name = line.m_strSoundname
 		local data = line.m_tabData
 		self.m_strSelectedSound = name
@@ -149,7 +149,7 @@ function PANEL:Init()
 		self:DoClick(name, data, parent, line)
 	end
 
-	self.SoundProperties.DoDoubleClick = function(parent, id, line)
+	self.SoundProperties.DoDoubleClick = function(parent, _, line)
 		local name = line.m_strSoundname
 		local data = line.m_tabData
 		self.m_strSelectedSound = name
@@ -157,7 +157,7 @@ function PANEL:Init()
 		self:DoDoubleClick(name, data, parent, line)
 	end
 
-	self.SoundProperties.OnRowRightClick = function(parent, id, line)
+	self.SoundProperties.OnRowRightClick = function(parent, _, line)
 		local name = line.m_strSoundname
 		local data = line.m_tabData
 		self.m_strSelectedSound = name

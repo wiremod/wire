@@ -113,7 +113,7 @@ local function GetMountOfFile(strfile)
 
 	local foundingames = {}
 
-	for k, v in pairs(MountedGames) do
+	for _, v in pairs(MountedGames) do
 		local folder = v.folder
 		exists = file.Exists(strfile, folder)
 		isfile = not file.IsDir(strfile, folder)
@@ -205,7 +205,7 @@ local function GenerateInfoTree(strfile, backnode, count)
 		do
 			index = "Duration"
 			node = mainnode:AddNode(index, "icon16/time.png")
-			for k, v in pairs(SoundData[index]) do
+			for _, v in pairs(SoundData[index]) do
 				subnode = node:AddNode(v, "icon16/page.png")
 				subnode.IsDataNode = true
 			end
@@ -213,7 +213,7 @@ local function GenerateInfoTree(strfile, backnode, count)
 		do
 			index = "Size"
 			node = mainnode:AddNode(index, "icon16/disk.png")
-			for k, v in pairs(SoundData[index]) do
+			for _, v in pairs(SoundData[index]) do
 				subnode = node:AddNode(v, "icon16/page.png")
 				subnode.IsDataNode = true
 			end
@@ -229,7 +229,7 @@ local function GenerateInfoTree(strfile, backnode, count)
 			index = "Mount"
 			if SoundData[index] then
 				node = mainnode:AddNode("Mounted Sources", "icon16/plugin.png")
-				for k, v in pairs(SoundData[index]) do
+				for _, v in pairs(SoundData[index]) do
 					subnode = node:AddNode(v.title or v.folder, "icon16/page.png")
 					subnode.IsDataNode = true
 				end
@@ -253,7 +253,7 @@ local function GenerateInfoTree(strfile, backnode, count)
 			local tabchannel = SoundData["channel"] or 0
 			if istable(tabchannel) then
 				node = mainnode:AddNode("Channel", "icon16/page_white_gear.png")
-				for k, v in pairs(tabchannel) do
+				for _, v in pairs(tabchannel) do
 					subnode = node:AddNode(v, "icon16/page.png")
 					subnode.IsDataNode = true
 					subnode = node:AddNode(TranslateCHAN[v] or TranslateCHAN[CHAN_USER_BASE], "icon16/page.png")
@@ -271,7 +271,7 @@ local function GenerateInfoTree(strfile, backnode, count)
 			local tablevel = SoundData["level"] or 0
 			if istable(tablevel) then
 				node = mainnode:AddNode("Level", "icon16/page_white_gear.png")
-				for k, v in pairs(tablevel) do
+				for _, v in pairs(tablevel) do
 					subnode = node:AddNode(v, "icon16/page.png")
 					subnode.IsDataNode = true
 					subnode = node:AddNode(v, "icon16/page.png")
@@ -287,7 +287,7 @@ local function GenerateInfoTree(strfile, backnode, count)
 			local tabpitch = SoundData["volume"] or 0
 			if istable(tabpitch) then
 				node = mainnode:AddNode("Volume", "icon16/page_white_gear.png")
-				for k, v in pairs(tabpitch) do
+				for _, v in pairs(tabpitch) do
 					subnode = node:AddNode(v, "icon16/page.png")
 					subnode.IsDataNode = true
 				end
@@ -301,7 +301,7 @@ local function GenerateInfoTree(strfile, backnode, count)
 			local tabpitch = SoundData["pitch"] or 0
 			if istable(tabpitch) then
 				node = mainnode:AddNode("Pitch", "icon16/page_white_gear.png")
-				for k, v in pairs(tabpitch) do
+				for _, v in pairs(tabpitch) do
 					subnode = node:AddNode(v, "icon16/page.png")
 					subnode.IsDataNode = true
 				end
@@ -422,7 +422,7 @@ local function Sendmenu(strSound, soundemitter, nSoundVolume, nSoundPitch) -- Op
 	if strSound == "" then return end
 
 	local Menu = DermaMenu()
-	local MenuItem = nil
+	local MenuItem
 
 	if soundemitter then
 
@@ -521,7 +521,7 @@ local function Sendmenu(strSound, soundemitter, nSoundVolume, nSoundPitch) -- Op
 			local ply = LocalPlayer()
 			if not IsValid(ply) then return end
 
-			ply:PrintMessage( HUD_PRINTTALK, strSound)
+			ply:PrintMessage(HUD_PRINTTALK, strSound)
 		end)
 		MenuItem:SetImage("icon16/monitor_go.png")
 
@@ -559,7 +559,7 @@ local function Sendmenu(strSound, soundemitter, nSoundVolume, nSoundPitch) -- Op
 	Menu:Open()
 end
 
-local function Infomenu(parent, node, soundemitter, nSoundVolume, nSoundPitch)
+local function Infomenu(node, soundemitter, nSoundVolume, nSoundPitch)
 	if not IsValid(node) then return end
 	if not node.IsDataNode then return end
 
@@ -572,6 +572,7 @@ local function Infomenu(parent, node, soundemitter, nSoundVolume, nSoundPitch)
 	end
 
 	local Menu = DermaMenu()
+	local MenuItem
 
 	-- Copy to clipboard
 		MenuItem = Menu:AddOption("Copy to clipboard", function()
@@ -698,7 +699,7 @@ local function CreateSoundBrowser(path, se)
 		if not IsValid(node) then return end
 
 		parent:SetSelectedItem(node)
-		Infomenu(parent, node, soundemitter, nSoundVolume, nSoundPitch)
+		Infomenu(node, soundemitter, nSoundVolume, nSoundPitch)
 	end
 
 	local SplitPanel = SoundBrowserPanel:Add( "DHorizontalDivider" )
@@ -721,8 +722,9 @@ local function CreateSoundBrowser(path, se)
 	Columns[2]:SetFixedWidth(70)
 	Columns[2]:SetWide(70)
 
-	TabFileBrowser.LineData = function(self, id, strfile, ...)
-		if #strfile > max_char_count then return nil, true end -- skip and hide to long filenames.
+	TabFileBrowser.LineData = function(_, _, strfile, ...)
+		local len = #strfile
+		if len > max_char_count then return nil, true end -- skip and hide to long filenames.
 
 		local nsize, strformat = GetFileInfos(strfile)
 		if not nsize then return end
@@ -731,14 +733,14 @@ local function CreateSoundBrowser(path, se)
 		return {strformat, strsize or "n/a"}
 	end
 
-	TabFileBrowser.DoClick = function(parent, filename)
+	TabFileBrowser.DoClick = function(_, filename)
 		SaveFilePath(SoundBrowserPanel, filename)
 
 		strSound = filename
 		GenerateInfoTree(filename)
 	end
 
-	TabFileBrowser.DoDoubleClick = function(parent, filename)
+	TabFileBrowser.DoDoubleClick = function(_, filename)
 		PlaySound(filename, nSoundVolume, nSoundPitch)
 		PlaySoundNoEffect()
 		SaveFilePath(SoundBrowserPanel, filename)
@@ -746,7 +748,7 @@ local function CreateSoundBrowser(path, se)
 		strSound = filename
 	end
 
-	TabFileBrowser.DoRightClick = function(parent, filename)
+	TabFileBrowser.DoRightClick = function(_, filename)
 		Sendmenu(filename, SoundBrowserPanel.Soundemitter, nSoundVolume, nSoundPitch)
 		SaveFilePath(SoundBrowserPanel, filename)
 
@@ -755,14 +757,14 @@ local function CreateSoundBrowser(path, se)
 	end
 
 
-	TabSoundPropertyList.DoClick = function(parent, property)
+	TabSoundPropertyList.DoClick = function(_, property)
 		SaveFilePath(SoundBrowserPanel, property)
 
 		strSound = property
 		GenerateInfoTree(property)
 	end
 
-	TabSoundPropertyList.DoDoubleClick = function(parent, property)
+	TabSoundPropertyList.DoDoubleClick = function(_, property)
 		PlaySound(property, nSoundVolume, nSoundPitch)
 		PlaySoundNoEffect()
 		SaveFilePath(SoundBrowserPanel, property)
@@ -770,7 +772,7 @@ local function CreateSoundBrowser(path, se)
 		strSound = property
 	end
 
-	TabSoundPropertyList.DoRightClick = function(parent, property)
+	TabSoundPropertyList.DoRightClick = function(_, property)
 		Sendmenu(property, SoundBrowserPanel.Soundemitter, nSoundVolume, nSoundPitch)
 		SaveFilePath(SoundBrowserPanel, property)
 
@@ -781,7 +783,7 @@ local function CreateSoundBrowser(path, se)
 	file.CreateDir("soundlists")
 	TabFavourites:SetRootPath("soundlists")
 
-	TabFavourites.DoClick = function(parent, item, data)
+	TabFavourites.DoClick = function(_, item)
 		if file.Exists("sound/" .. item, "GAME") then
 			TabFileBrowser:SetOpenFile(item)
 		end
@@ -790,7 +792,7 @@ local function CreateSoundBrowser(path, se)
 		GenerateInfoTree(item)
 	end
 
-	TabFavourites.DoDoubleClick = function(parent, item, data)
+	TabFavourites.DoDoubleClick = function(_, item)
 		if file.Exists("sound/" .. item, "GAME") then
 			TabFileBrowser:SetOpenFile(item)
 		end
@@ -800,7 +802,7 @@ local function CreateSoundBrowser(path, se)
 		strSound = item
 	end
 
-	TabFavourites.DoRightClick = function(parent, item, data)
+	TabFavourites.DoRightClick = function(_, item)
 		if file.Exists("sound/" .. item, "GAME") then
 			TabFileBrowser:SetOpenFile(item)
 		end
@@ -836,7 +838,7 @@ local function CreateSoundBrowser(path, se)
 	TuneVolumeSlider:SetMinMax(0, 100)
 	TuneVolumeSlider:SetValue(100)
 	TuneVolumeSlider.Label:SetWide(40)
-	TuneVolumeSlider.OnValueChanged = function(self, val)
+	TuneVolumeSlider.OnValueChanged = function(_, val)
 		nSoundVolume = val / 100
 		SetSoundVolume(nSoundVolume)
 	end
@@ -849,7 +851,7 @@ local function CreateSoundBrowser(path, se)
 	TunePitchSlider:SetMinMax(0, 255)
 	TunePitchSlider:SetValue(100)
 	TunePitchSlider.Label:SetWide(40)
-	TunePitchSlider.OnValueChanged = function(self, val)
+	TunePitchSlider.OnValueChanged = function(_, val)
 		nSoundPitch = val
 		SetSoundPitch(nSoundPitch)
 	end
@@ -882,7 +884,7 @@ local function CreateSoundBrowser(path, se)
 	SoundemitterButton:DockMargin(0, 2, 0, 0)
 	SoundemitterButton:Dock(FILL)
 	SoundemitterButton:SetVisible(false)
-	SoundemitterButton.DoClick = function(btn)
+	SoundemitterButton.DoClick = function()
 		SetupSoundemitter(strSound)
 	end
 
@@ -891,7 +893,7 @@ local function CreateSoundBrowser(path, se)
 	ClipboardButton:DockMargin(0, 2, 0, 0)
 	ClipboardButton:Dock(FILL)
 	ClipboardButton:SetVisible(false)
-	ClipboardButton.DoClick = function(btn)
+	ClipboardButton.DoClick = function()
 		SetupClipboard(strSound)
 	end
 
@@ -923,7 +925,7 @@ local function CreateSoundBrowser(path, se)
 			ClipboardButton:SetTall(PlayStopPanel:GetTall() - 2)
 		end
 
-		oldw, oldh = self:GetSize()
+		oldw = self:GetSize()
 
 		DFrame.PerformLayout(self, ...)
 	end
@@ -941,7 +943,7 @@ local function CreateSoundBrowser(path, se)
 end
 
 -- Open the Sound Browser.
-local function OpenSoundBrowser(pl, cmd, args)
+local function OpenSoundBrowser(_, _, args)
 	local path = args[1] -- nil or "" will put the browser in e2 mode else the soundemitter mode is applied.
 	local se = args[2]
 
@@ -961,11 +963,6 @@ local function OpenSoundBrowser(pl, cmd, args)
 		if not IsValid(TabFileBrowser) then return end
 
 		local soundemitter = false
-		if isstring(path) and path ~= "" then
-			soundemitter = true
-		end
-
-		soundemitter = false
 		if isstring(path) and path ~= "" then
 			soundemitter = true
 

@@ -48,7 +48,7 @@ local function PathFilter(Folder, TxtPanel, Root)
 
 	for k, v in pairs(invalid_chars) do
 		local len = #string.Explode(k, ValidFolder)
-		for i = 1, len do
+		for _ = 1, len do
 			if not string.match(ValidFolder, k) then break end
 
 			ValidFolder = string.gsub(ValidFolder, k, v)
@@ -63,7 +63,7 @@ local function PathFilter(Folder, TxtPanel, Root)
 	end
 
 	local Dirs = #string.Explode("/", ValidFolder)
-	for i = 1, Dirs do
+	for _ = 1, Dirs do
 		if not file.IsDir(ConnectPathes(Root, ValidFolder), "GAME") then
 			ValidFolder = string.GetPathFromFilename(ValidFolder)
 			ValidFolder = string.Trim(ValidFolder, "/")
@@ -180,7 +180,7 @@ local function ShowFolder(self, path)
 		button:SetVisible(false)
 		button:SetTooltip("Page " .. i .. " of " .. self.m_nPageCount)
 
-		button.DoClick = function(panel)
+		button.DoClick = function()
 			self:SetPage(i)
 			self:LayoutPages(true)
 		end
