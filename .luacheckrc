@@ -1,6 +1,11 @@
 -- This file will be read by Luacheck <https://github.com/mpeterv/luacheck>.
 -- It's primarily to specify what globals are available across all files.
 
+-- Problems to ignore
+ignore = {
+    "212", -- Unused argument
+}
+
 -- string values with integer keys mean read-only globals
 stds.garrysmod = {
   -- BEGIN_GENERATED_CODE
