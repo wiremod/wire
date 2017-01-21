@@ -544,7 +544,7 @@ local function Sendmenu(strSound, soundemitter, nSoundVolume, nSoundPitch) -- Op
 
 	-- Play
 		MenuItem = Menu:AddOption("Play", function()
-			PlaySound(strSound, nSoundVolume, nSoundPitch, strtype)
+			PlaySound(strSound, nSoundVolume, nSoundPitch)
 			PlaySoundNoEffect()
 		end)
 		MenuItem:SetImage("icon16/control_play.png")
@@ -552,7 +552,7 @@ local function Sendmenu(strSound, soundemitter, nSoundVolume, nSoundPitch) -- Op
 	-- Play without effects
 		MenuItem = Menu:AddOption("Play without effects", function()
 			PlaySound()
-			PlaySoundNoEffect(strSound, strtype)
+			PlaySoundNoEffect(strSound)
 		end)
 		MenuItem:SetImage("icon16/control_play_blue.png")
 
@@ -729,7 +729,7 @@ local function CreateSoundBrowser(path, se)
 		local nsize, strformat = GetFileInfos(strfile)
 		if not nsize then return end
 
-		local strsize = FormatSize(nsize, nduration)
+		local strsize = FormatSize(nsize)
 		return {strformat, strsize or "n/a"}
 	end
 
