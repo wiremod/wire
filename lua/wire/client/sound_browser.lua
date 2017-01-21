@@ -834,7 +834,7 @@ local function CreateSoundBrowser(path, se)
 	SoundemitterButton:DockMargin(0, 2, 0, 0)
 	SoundemitterButton:Dock(FILL)
 	SoundemitterButton:SetVisible(false)
-	SoundemitterButton.DoClick = function(btn)
+	SoundemitterButton.DoClick = function()
 		SetupSoundemitter(strSound)
 	end
 
@@ -843,7 +843,7 @@ local function CreateSoundBrowser(path, se)
 	ClipboardButton:DockMargin(0, 2, 0, 0)
 	ClipboardButton:Dock(FILL)
 	ClipboardButton:SetVisible(false)
-	ClipboardButton.DoClick = function(btn)
+	ClipboardButton.DoClick = function()
 		SetupClipboard(strSound)
 	end
 
