@@ -19,7 +19,7 @@ local function Include(e2, directives, includes, scripts)
 		return "include '" .. e2 .. "' -> " .. err
 	end
 
-	local status, tokens = Tokenizer.Execute(buffer)
+	local status, tokens = E2Lib.Tokenizer.Execute(buffer)
 	if not status then
 		return "include '" .. e2 .. "' -> " .. tokens
 	end
@@ -56,7 +56,7 @@ function wire_expression2_validate(buffer)
 	-- end
 
 	-- invoke tokenizer (=lexer)
-	local status, tokens = Tokenizer.Execute(buffer)
+	local status, tokens = E2Lib.Tokenizer.Execute(buffer)
 	if not status then return tokens end
 
 	-- invoke parser

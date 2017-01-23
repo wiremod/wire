@@ -249,7 +249,7 @@ function ENT:CompileCode(buffer, files, filepath)
 	self.persists = directives.persist
 	self.trigger = directives.trigger
 
-	local status, tokens = Tokenizer.Execute(self.buffer)
+	local status, tokens = E2Lib.Tokenizer.Execute(self.buffer)
 	if not status then self:Error(tokens) return end
 
 	local status, tree, dvars = Parser.Execute(tokens)
@@ -291,7 +291,7 @@ function ENT:PrepareIncludes(files)
 			return
 		end
 
-		local status, tokens = Tokenizer.Execute(buffer)
+		local status, tokens = E2Lib.Tokenizer.Execute(buffer)
 		if not status then
 			self:Error("(" .. file .. ")" .. tokens)
 			return
