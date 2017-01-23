@@ -3482,4 +3482,13 @@ stds.wiremod = {
   E2Helper = true,
   HCOMP = true,
   WireLib = true,
+
+  -- TODO: Move these into E2Lib:
+  wire_expression_types = true,
+  wire_expression2_funclist = true,
+  wire_expression2_constants = true,
+  wire_expression2_funclist_lowercase = true,
+
+  -- TODO: Move these into WireLib:
+  WireTextEditor = true,
 }
