@@ -524,7 +524,7 @@ function EDITOR:SyntaxColorLine(row)
 
         self:NextPattern("[^ ]*") -- Find the whole word
 
-        if PreProcessor["PP_"..self.tokendata:sub(2)] then
+        if E2Lib.PreProcessor["PP_"..self.tokendata:sub(2)] then
           -- there is a preprocessor command by that name => mark as such
           tokenname = "ppcommand"
         elseif self.tokendata == "#include" then

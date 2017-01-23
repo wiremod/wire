@@ -14,7 +14,7 @@ local function Include(e2, directives, includes, scripts)
 		return false, "Could not find include '" .. e2 .. ".txt'"
 	end
 
-	local status, err, buffer = PreProcessor.Execute(code, directives)
+	local status, err, buffer = E2Lib.PreProcessor.Execute(code, directives)
 	if not status then
 		return "include '" .. e2 .. "' -> " .. err
 	end
@@ -45,7 +45,7 @@ function wire_expression2_validate(buffer)
 	if not e2_function_data_received then return "Loading extensions. Please try again in a few seconds..." end
 
 	-- invoke preprocessor
-	local status, directives, buffer = PreProcessor.Execute(buffer)
+	local status, directives, buffer = E2Lib.PreProcessor.Execute(buffer)
 	if not status then return directives end
 
 	-- decompose directives

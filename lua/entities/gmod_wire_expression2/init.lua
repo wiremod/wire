@@ -229,7 +229,7 @@ function ENT:CompileCode(buffer, files, filepath)
 		self.filepath = filepath
 	end
 
-	local status, directives, buffer = PreProcessor.Execute(buffer,nil,self)
+	local status, directives, buffer = E2Lib.PreProcessor.Execute(buffer,nil,self)
 	if not status then self:Error(directives) return end
 	self.buffer = buffer
 	self.error = false
@@ -285,7 +285,7 @@ function ENT:PrepareIncludes(files)
 	self.includes = {}
 
 	for file, buffer in pairs(files) do
-		local status, directives, buffer = PreProcessor.Execute(buffer, self.directives)
+		local status, directives, buffer = E2Lib.PreProcessor.Execute(buffer, self.directives)
 		if not status then
 			self:Error("(" .. file .. ")" .. directives)
 			return
