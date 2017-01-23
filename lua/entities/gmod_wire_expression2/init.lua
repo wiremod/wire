@@ -252,7 +252,7 @@ function ENT:CompileCode(buffer, files, filepath)
 	local status, tokens = E2Lib.Tokenizer.Execute(self.buffer)
 	if not status then self:Error(tokens) return end
 
-	local status, tree, dvars = Parser.Execute(tokens)
+	local status, tree, dvars = E2Lib.Parser.Execute(tokens)
 	if not status then self:Error(tree) return end
 
 	if not self:PrepareIncludes(files) then return end
@@ -297,7 +297,7 @@ function ENT:PrepareIncludes(files)
 			return
 		end
 
-		local status, tree, dvars = Parser.Execute(tokens)
+		local status, tree, dvars = E2Lib.Parser.Execute(tokens)
 		if not status then
 			self:Error("(" .. file .. ")" .. tree)
 			return

@@ -24,7 +24,7 @@ local function Include(e2, directives, includes, scripts)
 		return "include '" .. e2 .. "' -> " .. tokens
 	end
 
-	local status, tree, dvars, files = Parser.Execute(tokens)
+	local status, tree, dvars, files = E2Lib.Parser.Execute(tokens)
 	if not status then
 		return "include '" .. e2 .. "' -> " .. tree
 	end
@@ -60,7 +60,7 @@ function wire_expression2_validate(buffer)
 	if not status then return tokens end
 
 	-- invoke parser
-	local status, tree, dvars, files = Parser.Execute(tokens)
+	local status, tree, dvars, files = E2Lib.Parser.Execute(tokens)
 	if not status then return tree end
 
 	-- prepare includes
