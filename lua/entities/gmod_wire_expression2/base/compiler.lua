@@ -5,7 +5,8 @@
 
 AddCSLuaFile()
 
-Compiler = {}
+E2Lib.Compiler = {}
+local Compiler = E2Lib.Compiler
 Compiler.__index = Compiler
 
 function Compiler.Execute(...)
