@@ -949,6 +949,7 @@ e2function void holoModel(index, string model, skin)
 	skin = skin - skin % 1
 	Holo.ent:SetSkin(skin)
 
+	model = GetModel(self, model, skin)
 	if not model then return end
 
 	Holo.ent:SetModel(model)
