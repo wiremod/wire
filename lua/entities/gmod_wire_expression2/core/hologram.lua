@@ -135,13 +135,13 @@ for _,v in pairs( ModelList ) do
 	end
 end
 
-local function GetModel(model)
+local function GetModel(self, model, skin)
 	if ModelList[model] then
 		model = "models/holograms/" .. ModelList[model] .. ".mdl"
 	elseif wire_holograms_modelany:GetInt() == 0 then
 		return
 	elseif wire_holograms_modelany:GetInt() == 1 then
-		if not util.IsValidModel(model) then return nil end
+		if not WireLib.CanModel(self.player, model, skin) then return nil end
 	end
 	return Model(model)
 end
@@ -491,7 +491,7 @@ local function CreateHolo(self, index, pos, scale, ang, color, model)
 	if not scale then scale = Vector(1,1,1) end
 	if not ang   then ang   = self.entity:GetAngles() end
 
-	model = GetModel(model or "cube") or "models/holograms/cube.mdl"
+	model = GetModel(self, model or "cube") or "models/holograms/cube.mdl"
 
 	local Holo = CheckIndex(self, index)
 	if not Holo then
@@ -689,7 +689,7 @@ e2function void holoDeleteAll( all )
 end
 
 e2function void holoReset(index, string model, vector scale, vector color, string material)
-	model = GetModel(model)
+	model = GetModel(self, model)
 	if not model then return end
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
@@ -936,7 +936,7 @@ e2function void holoModel(index, string model)
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
 
-	model = GetModel(model)
+	model = GetModel(self, model)
 	if not model then return end
 
 	Holo.ent:SetModel(model)
@@ -949,7 +949,7 @@ e2function void holoModel(index, string model, skin)
 	skin = skin - skin % 1
 	Holo.ent:SetSkin(skin)
 
-	model = GetModel(model)
+	model = GetModel(self, model, skin)
 	if not model then return end
 
 	Holo.ent:SetModel(model)
