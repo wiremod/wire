@@ -948,11 +948,11 @@ e2function void holoModel(index, string model, skin)
 	if not Holo then return end
 
 	skin = skin - skin % 1
-	Holo.ent:SetSkin(skin)
 
 	model = GetModel(model)
 	if not model or not WireLib.CanModel(self.player, model, skin) then return end
 
+	Holo.ent:SetSkin(skin)
 	Holo.ent:SetModel(model)
 end
 
