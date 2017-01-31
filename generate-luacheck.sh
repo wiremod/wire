@@ -20,7 +20,6 @@ wget -o /dev/null -O - "$base_url"/navbar/ |
         # Remove everything before the last tag
         s/.*</</
     ' |
-    tee test.tmp |
     {
         section=
         while read -r line; do
@@ -106,7 +105,7 @@ wget -o /dev/null -O - "$base_url"/navbar/ |
         done
 
         printf '\n'
-    }        |
+    } |
     sed -ri '
         0,/BEGIN_GENERATED_CODE/ {
             /BEGIN_GENERATED_CODE/ {
