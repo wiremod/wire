@@ -100,16 +100,88 @@ end
 ----------------------------
 -- Object order changing
 ----------------------------
-function EGP:SetOrder( Ent, from, to )
-	if (!Ent.RenderTable or #Ent.RenderTable == 0) then return false end
-	if (Ent.RenderTable[from]) then
+function EGP:SetOrder( Ent, from, to, dir )
+	if not Ent.RenderTable or #Ent.RenderTable == 0 then return false end
+	dir = dir or 0
+
+	if Ent.RenderTable[from] then
 		to = math.Clamp(math.Round(to or 1),1,#Ent.RenderTable)
-		table.insert( Ent.RenderTable, to, table.remove( Ent.RenderTable, from ) )
-		if (SERVER) then Ent.RenderTable[to].ChangeOrder = {from,to} end
+		if SERVER then Ent.RenderTable[from].ChangeOrder = {target=to,dir=dir} end
 		return true
 	end
 	return false
 end
+
+local already_reordered = {}
+function EGP:PerformReorder_Ex( Ent, i )
+	local obj = Ent.RenderTable[i]
+	if obj then
+		-- Check if this object has already been reordered
+		if already_reordered[obj.index] then
+			-- if yes, get its new position (or old position if it didn't change)
+			return already_reordered[obj.index]
+		end
+
+		-- Set old position (to prevent recursive loops)
+		already_reordered[obj.index] = i
+
+		if obj.ChangeOrder then
+			local target = obj.ChangeOrder.target
+			local dir = obj.ChangeOrder.dir
+
+			local target_idx = 0
+			if dir == 0 then
+				-- target is absolute position
+				target_idx = target
+			else
+				-- target is relative position
+				local bool, k, v = self:HasObject( Ent, target )
+				if bool then
+					-- Check for order dependencies
+					k = self:PerformReorder_Ex( Ent, k ) or k
+
+					target_idx = k + dir
+				end
+			end
+
+			if target_idx ~= 0 then
+				-- Make a copy of the object and insert it at the new position
+				local copy = table.Copy(obj)
+				copy.ChangeOrder = nil
+				table.insert( Ent.RenderTable, target_idx, copy )
+
+				-- Update already reordered reference to new position
+				already_reordered[obj.index] = target_idx
+
+				return target_idx
+			else
+				return i
+			end
+		end
+	end
+end
+
+function EGP:PerformReorder( Ent )
+	-- Reset, just to be sure
+	already_reordered = {}
+
+	-- First pass, insert objects at their wanted position
+	for i=1,#Ent.RenderTable do
+		self:PerformReorder_Ex( Ent, i )
+	end
+
+	-- Second pass, remove objects from their original positions
+	for i=#Ent.RenderTable,1,-1 do
+		local obj = Ent.RenderTable[i]
+		if obj.ChangeOrder then
+			table.remove( Ent.RenderTable, i )
+		end
+	end
+
+	-- Clear some memory
+	already_reordered = {}
+end
+
 ----------------------------
 -- Create / edit objects
 ----------------------------
