@@ -36,7 +36,7 @@ function ENT:WriteCell( Address, value )
 	if Address < 0 or Address >= 262144 then return false end
 
 	if self.AllowWrite then
-		self.Memory[Address] = value!=0 and value or nil
+		self.Memory[Address] = value ~= 0 and value or nil
 	end
 	self:ShowOutputs()
 	return true
