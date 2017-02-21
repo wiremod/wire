@@ -94,6 +94,8 @@ function ENT:GetCap()
 	if (not game.SinglePlayer()) and (self.DriveCap > 256) then
 		self.DriveCap = 256
 	end
+	
+	Wire_TriggerOutput(self, "Capacity", self.DriveCap) 
 end
 
 function ENT:UpdateCap()
@@ -108,8 +110,6 @@ function ENT:UpdateCap()
 	end
 
 	self:GetCap()
-
-	Wire_TriggerOutput(self, "Capacity", self.DriveCap) 
 end
 
 function ENT:GetFloatTable(Text)
