@@ -173,28 +173,36 @@ end
 
 -- ---------------------------------------------------------------
 
+-- Load clientside files here
+-- Serverside files are instead loaded in extloader.lua, because they need additional parsing
+do
+	local function loadFiles( extra, list )
+		for _, filename in pairs(list) do
+			if SERVER then AddCSLuaFile("entities/gmod_wire_expression2/core/" .. extra .. filename)
+			else include("entities/gmod_wire_expression2/core/" .. extra .. filename) end
+		end
+	end
+
+	loadFiles("custom/",file.Find("entities/gmod_wire_expression2/core/custom/cl_*.lua", "LUA"))
+	loadFiles("",file.Find("entities/gmod_wire_expression2/core/cl_*.lua", "LUA"))
+end
+
 if SERVER then
 	util.AddNetworkString("e2_functiondata_start")
 	util.AddNetworkString("e2_functiondata_chunk")
 
-	local clientside_files = {}
-
-	function AddCSE2File(filename)
-		AddCSLuaFile(filename)
-		clientside_files[filename] = true
-	end
-
+	-- Serverside files are loaded in extloader
 	include("extloader.lua")
 
 	-- -- Transfer E2 function info to the client for validation and syntax highlighting purposes -- --
 
 	do
-		local miscdata = {} -- Will contain {E2 types info, includes, constants}, this whole table is under 1kb
+		local miscdata = {} -- Will contain {E2 types info, constants}, this whole table is under 1kb
 		local functiondata = {} -- Will contain {functionname = {returntype, cost, argnames}, this will be between 50-100kb
 
 		-- Fills out the above two tables
 		function wire_expression2_prepare_functiondata()
-			miscdata = { {}, clientside_files, wire_expression2_constants }
+			miscdata = { {}, wire_expression2_constants }
 			functiondata = {}
 			for typename, v in pairs(wire_expression_types) do
 				miscdata[1][typename] = v[1] -- typeid (s)
@@ -215,7 +223,6 @@ if SERVER then
 				net.Start("e2_functiondata_start")
 				net.WriteTable(miscdata[1])
 				net.WriteTable(miscdata[2])
-				net.WriteTable(miscdata[3])
 				net.Send(target)
 			end
 		end
@@ -297,18 +304,13 @@ elseif CLIENT then
 		end
 	end
 
-	local function insertMiscData(types, includes, constants)
+	local function insertMiscData(types, constants)
 		wire_expression2_reset_extensions()
 
 		-- types
 		for typename, typeid in pairs(types) do
 			wire_expression_types[typename] = { typeid }
 			wire_expression_types2[typeid] = { typename }
-		end
-
-		-- includes
-		for filename, _ in pairs(includes) do
-			include("entities/gmod_wire_expression2/core/" .. filename)
 		end
 
 		-- constants
@@ -318,7 +320,7 @@ elseif CLIENT then
 	local buffer = {}
 	net.Receive("e2_functiondata_start", function(len)
 		buffer = {}
-		insertMiscData(net.ReadTable(), net.ReadTable(), net.ReadTable())
+		insertMiscData(net.ReadTable(), net.ReadTable())
 	end)
 
 	net.Receive("e2_functiondata_chunk", function(len)

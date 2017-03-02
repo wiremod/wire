@@ -60,10 +60,6 @@ wire_expression2_reset_extensions()
 
 include("extpp.lua")
 
-local function luaExists(luaname)
-	return #file.Find(luaname, "LUA") ~= 0
-end
-
 local included_files
 
 local function e2_include_init()
@@ -74,12 +70,6 @@ end
 -- parses typename/typeid associations from a file and stores info about the file for later use by e2_include_finalize/e2_include_pass2
 local function e2_include(name)
 	local path, filename = string.match(name, "^(.-/?)([^/]*)$")
-
-	local cl_name = path .. "cl_" .. filename
-	if luaExists("entities/gmod_wire_expression2/core/" .. cl_name) then
-		-- If a file of the same name prefixed with cl_ exists, send it to the client and load it there.
-		AddCSE2File(cl_name)
-	end
 
 	local luaname = "entities/gmod_wire_expression2/core/" .. name
 	local contents = file.Read(luaname, "LUA") or ""
@@ -176,13 +166,11 @@ e2_include("functions.lua")
 e2_include("strfunc.lua")
 e2_include("steamidconv.lua")
 
+-- Load serverside files here, they need additional parsing
 do
 	local list = file.Find("entities/gmod_wire_expression2/core/custom/*.lua", "LUA")
 	for _, filename in pairs(list) do
-		if filename:sub(1, 3) == "cl_" then
-			-- If the is prefixed with "cl_", send it to the client and load it there.
-			AddCSE2File("custom/" .. filename)
-		else
+		if filename:sub(1, 3) ~= "cl_" then
 			e2_include("custom/" .. filename)
 		end
 	end
