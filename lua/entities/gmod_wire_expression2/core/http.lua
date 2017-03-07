@@ -18,8 +18,8 @@ local function player_can_request( ply )
 	local preq = requests[ply]
 
 	return !preq or
-		(preq.in_progress and preq.t_start and (CurTime() - preq.t_start) >= cvar_timeout:GetInt()) or
-			(!preq.in_progress and preq.t_end and (CurTime() - preq.t_end) >= cvar_delay:GetInt())
+		(preq.in_progress and preq.t_start and (CurTime() - preq.t_start) >= cvar_timeout:GetFloat()) or
+			(!preq.in_progress and preq.t_end and (CurTime() - preq.t_end) >= cvar_delay:GetFloat())
 end
 
 __e2setcost( 20 )

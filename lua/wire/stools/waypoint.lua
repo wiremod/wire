@@ -2,12 +2,16 @@ WireToolSetup.setCategory( "Detection/Beacon" )
 WireToolSetup.open( "waypoint", "Waypoint", "gmod_wire_waypoint", nil, "Waypoints" )
 
 if ( CLIENT ) then
-    language.Add( "Tool.wire_waypoint.name", "Waypoint Beacon Tool (Wire)" )
-    language.Add( "Tool.wire_waypoint.desc", "Spawns a waypoint beacon for use with the wire system." )
-    language.Add( "Tool.wire_waypoint.0", "Primary: Create/Update Waypoint Beacon, Secondary: Link to next waypoint, Reload: Remove link to next waypoint" )
-    language.Add( "Tool.wire_waypoint.1", "Primary: Select waypoint to go to after this one" )
-    language.Add( "WireWaypointTool_range", "Range:" )
+	language.Add( "Tool.wire_waypoint.name", "Waypoint Beacon Tool (Wire)" )
+	language.Add( "Tool.wire_waypoint.desc", "Spawns a waypoint beacon for use with the wire system." )
+	language.Add( "WireWaypointTool_range", "Range:" )
 	language.Add( "WireWaypointTool_alink", "Auto-link previous" )
+	TOOL.Information = {
+		{ name = "left_0", stage = 0, text = "Create/Update " .. TOOL.Name },
+		{ name = "right_0", stage = 0, text = "Link to next waypoint" },
+		{ name = "reload_0", stage = 0, text = "Remove link to next waypoint" },
+		{ name = "left_1", stage = 1, text = "Select waypoint to go to after this one" },
+	}
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 30 )

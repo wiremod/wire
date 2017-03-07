@@ -77,7 +77,7 @@ function ENT:GetMotor()
 end
 
 function ENT:SetDirection( dir )
-	self:SetNetworkedInt( 1, dir )
+	self:SetNWInt( 1, dir )
 	self.direction = dir
 end
 

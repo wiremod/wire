@@ -4,9 +4,10 @@ WireToolSetup.open( "rom", "Memory - ROM", "gmod_wire_dhdd", nil, "Memory ROMs" 
 if CLIENT then
 	language.Add( "Tool.wire_rom.name", "ROM Tool (Wire)" )
 	language.Add( "Tool.wire_rom.desc", "Spawns a ROM chip" )
-	language.Add( "Tool.wire_rom.0", "Primary: Create ROM." )
 
 	language.Add( "Tool.wire_rom.note", "ROM size will depend on written data.\nThe maximum size is 256 KB." )
+
+	TOOL.Information = { { name = "left", text = "Create/Update " .. TOOL.Name } }
 
 	TOOL.ClientConVar["model"] = "models/jaanus/wiretool/wiretool_gate.mdl"
 

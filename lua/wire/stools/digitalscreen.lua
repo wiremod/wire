@@ -4,7 +4,7 @@ WireToolSetup.open( "digitalscreen", "Digital Screen", "gmod_wire_digitalscreen"
 if CLIENT then
 	language.Add( "tool.wire_digitalscreen.name", "Digital Screen Tool (Wire)" )
 	language.Add( "tool.wire_digitalscreen.desc", "Spawns a digital screen, which can be used to draw pixel by pixel." )
-	language.Add( "tool.wire_digitalscreen.0", "Primary: Create/Update screen" )
+	TOOL.Information = { { name = "left", text = "Create/Update " .. TOOL.Name } }
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )

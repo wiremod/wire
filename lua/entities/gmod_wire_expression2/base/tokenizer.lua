@@ -13,7 +13,7 @@ function Tokenizer.Execute(...)
 	local instance = setmetatable({}, Tokenizer)
 
 	-- and pcall the new instance's Process method.
-	return pcall(Tokenizer.Process, instance, ...)
+	return xpcall(Tokenizer.Process, E2Lib.errorHandler, instance, ...)
 end
 
 function Tokenizer:Error(message, offset)

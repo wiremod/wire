@@ -4,7 +4,7 @@ WireToolSetup.open( "detonator", "Detonator", "gmod_wire_detonator", nil, "Deton
 if CLIENT then
 	language.Add( "tool.wire_detonator.name", "Detonator Tool (Wire)" )
 	language.Add( "tool.wire_detonator.desc", "Spawns a Detonator for use with the wire system." )
-	language.Add( "tool.wire_detonator.0", "Primary: Create/Update Detonator" )
+	TOOL.Information = { { name = "left", text = "Create/Update " .. TOOL.Name } }
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )

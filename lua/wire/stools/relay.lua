@@ -4,7 +4,6 @@ WireToolSetup.open( "relay", "Relay", "gmod_wire_relay", nil, "Relays" )
 if ( CLIENT ) then
 	language.Add( "Tool.wire_relay.name",      "Relay" )
 	language.Add( "Tool.wire_relay.desc",      "Spawns a multi pole, multi throw relay switch." )
-	language.Add( "Tool.wire_relay.0",         "Primary: Create/Update Relay" )
 	language.Add( "WireRelayTool_keygroup1",   "Input 1 Key:" )
 	language.Add( "WireRelayTool_keygroup2",   "Input 2 Key:" )
 	language.Add( "WireRelayTool_keygroup3",   "Input 3 Key:" )
@@ -16,6 +15,7 @@ if ( CLIENT ) then
 	language.Add( "WireRelayTool_normclose",   "Normaly:" )
 	language.Add( "WireRelayTool_poles",       "Number of poles:" )
 	language.Add( "WireRelayTool_throws",      "Number of throws:" )
+	TOOL.Information = { { name = "left", text = "Create/Update " .. TOOL.Name } }
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )

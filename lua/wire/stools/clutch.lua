@@ -2,11 +2,14 @@ WireToolSetup.setCategory( "Physics" )
 WireToolSetup.open( "clutch", "Clutch", "gmod_wire_clutch", nil, "Clutchs" )
 
 if CLIENT then
-    language.Add( "Tool.wire_clutch.name", "Clutch Tool (Wire)" )
-    language.Add( "Tool.wire_clutch.desc", "Control rotational friction between props" )
-    language.Add( "Tool.wire_clutch.0", "Primary: Place/Select a clutch controller\nSecondary: Select an entity to apply the clutch to\nReload: Remove clutch from entity/deselect controller" )
-    language.Add( "Tool.wire_clutch.1", "Right click on the second entity you want the clutch to apply to" )
-	language.Add( "undone_wireclutch", "Undone Wire Clutch" )
+	language.Add( "Tool.wire_clutch.name", "Clutch Tool (Wire)" )
+	language.Add( "Tool.wire_clutch.desc", "Control rotational friction between props" )
+	TOOL.Information = {
+		{ name = "left_0", stage = 0, text = "Place/Select a clutch controller" },
+		{ name = "right_0", stage = 0, text = "Select an entity to apply the clutch to" },
+		{ name = "reload_0", stage = 0, text = "Remove clutch from entity/deselect controller" },
+		{ name = "right_1", stage = 1, text = "Right click on the second entity you want the clutch to apply to" },
+	}
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 8 )
@@ -106,7 +109,7 @@ if CLIENT then
 	function TOOL:DrawHUD()
 		local DrawnEnts = {}	-- Used to keep track of which ents already have a circle
 
-		local controller = self:GetWeapon():GetNetworkedEntity( "WireClutchController" )
+		local controller = self:GetWeapon():GetNWEntity( "WireClutchController" )
 		if !IsValid( controller ) then return end
 
 		// Draw circle around the controller
@@ -169,7 +172,7 @@ end
 if SERVER then
 	function TOOL:SelectController( controller )
 		self.controller = controller
-		self:GetWeapon():SetNetworkedEntity( "WireClutchController", controller or Entity(0) ) -- Must use null entity since nil won't send
+		self:GetWeapon():SetNWEntity( "WireClutchController", controller or Entity(0) ) -- Must use null entity since nil won't send
 
 		// Send constraint from the controller to the client
 		local constrained_pairs = {}

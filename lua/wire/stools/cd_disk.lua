@@ -2,12 +2,16 @@ WireToolSetup.setCategory( "Memory" )
 WireToolSetup.open( "cd_disk", "CD Disk", "gmod_wire_cd_disk", nil, "CD Disks" )
 
 if (CLIENT) then
-    language.Add("Tool.wire_cd_disk.name", "CD Disk Tool (Wire)")
-    language.Add("Tool.wire_cd_disk.desc", "Spawns a CD Disk.")
-    language.Add("Tool.wire_cd_disk.0", "Primary: Create/Update CD Disk, Secondary: Change model")
-    language.Add("WireDataTransfererTool_cd_disk", "CD Disk:")
+	language.Add("Tool.wire_cd_disk.name", "CD Disk Tool (Wire)")
+	language.Add("Tool.wire_cd_disk.desc", "Spawns a CD Disk.")
+	language.Add("WireDataTransfererTool_cd_disk", "CD Disk:")
 
-    WireToolSetup.setToolMenuIcon( "venompapa/wirecd/wirecd" )
+	TOOL.Information = {
+		{ name = "left", text = "Create/Update " .. TOOL.Name },
+		{ name = "right", text = "Change model" },
+	}
+
+	WireToolSetup.setToolMenuIcon( "venompapa/wirecd/wirecd" )
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )

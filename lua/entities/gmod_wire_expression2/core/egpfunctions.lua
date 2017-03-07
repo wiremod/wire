@@ -89,6 +89,36 @@ e2function number wirelink:egpOrder( number index )
 	return -1
 end
 
+e2function void wirelink:egpOrderAbove( number index, number abovethis )
+	if not EGP:IsAllowed( self, this ) then return end
+	local bool, k, v = EGP:HasObject( this, index )
+	if bool then
+		local bool2, k2, v2 = EGP:HasObject( this, abovethis )
+		if bool2 then
+			local bool3 = EGP:SetOrder( this, k, abovethis, 1 )
+			if bool3 then
+				EGP:DoAction( this, self, "SendObject", v )
+				Update(self,this)
+			end
+		end
+	end
+end
+
+e2function void wirelink:egpOrderBelow( number index, number belowthis )
+	if not EGP:IsAllowed( self, this ) then return end
+	local bool, k, v = EGP:HasObject( this, index )
+	if bool then
+		local bool2, k2, v2 = EGP:HasObject( this, belowthis )
+		if bool2 then
+			local bool3 = EGP:SetOrder( this, k, belowthis, -1 )
+			if bool3 then
+				EGP:DoAction( this, self, "SendObject", v )
+				Update(self,this)
+			end
+		end
+	end
+end
+
 __e2setcost(15)
 
 --------------------------------------------------------
@@ -957,6 +987,22 @@ e2function void wirelink:egpResolution( vector2 topleft, vector2 bottomright )
 	local yScale = { topleft[2], bottomright[2] }
 	errorcheck(xScale,yScale)
 	EGP:DoAction( this, self, "SetScale", xScale, yScale )
+end
+
+e2function vector2 wirelink:egpOrigin()
+	if (!EGP:IsAllowed( self, this )) then return end
+	local xOrigin = this.xScale[1] + (this.xScale[2] - this.xScale[1])/2
+	local yOrigin = this.yScale[1] + (this.yScale[2] - this.yScale[1])/2
+	return { xOrigin, yOrigin }
+	--return EGP:DoAction( this, self, "GetOrigin" )
+end
+
+e2function vector2 wirelink:egpSize()
+	if (!EGP:IsAllowed( self, this )) then return end
+	local width = math.abs(this.xScale[1] - this.xScale[2])
+	local height = math.abs(this.yScale[1] - this.yScale[2])
+	return { width, height }
+	--return EGP:DoAction( this, self, "GetScreenSize" )
 end
 
 e2function void wirelink:egpDrawTopLeft( number onoff )

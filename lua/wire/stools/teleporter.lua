@@ -4,9 +4,12 @@ WireToolSetup.open( "teleporter", "Teleporter", "gmod_wire_teleporter", nil, "Te
 if ( CLIENT ) then
 	language.Add( "Tool.wire_teleporter.name", "Teleporter Tool" )
 	language.Add( "Tool.wire_teleporter.desc", "Spawns a Wire Teleporter" )
-	language.Add( "Tool.wire_teleporter.0", "Primary: Create Teleporter, Reload: Change Teleporter Model" )
 	language.Add( "Tool.wire_teleporter.effects", "Toggle effects" )
 	language.Add( "Tool.wire_teleporter.sounds", "Toggle sounds (Also has an input)" )
+	TOOL.Information = {
+		{ name = "left", text = "Create/Update " .. TOOL.Name },
+		{ name = "reload", text = "Copy model" },
+	}
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax(3)

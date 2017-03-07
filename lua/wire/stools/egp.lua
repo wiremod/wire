@@ -17,6 +17,7 @@ if (SERVER) then
 	local function SpawnEnt( ply, Pos, Ang, model, class)
 		if IsValid(ply) and (!ply:CheckLimit("wire_egps")) then return false end
 		if not ply then ply = game.GetWorld() end -- For Garry's Map Saver
+		if model and not WireLib.CanModel(ply, model) then return false end
 		local ent = ents.Create(class)
 		if (model) then ent:SetModel(model) end
 		ent:SetAngles(Ang)
@@ -127,8 +128,10 @@ end
 
 if CLIENT then
 	language.Add( "Tool.wire_egp.name", "E2 Graphics Processor" )
-    language.Add( "Tool.wire_egp.desc", "EGP Tool" )
-    language.Add( "Tool.wire_egp.0", "Primary: Create EGP Screen/HUD/Emitter, Secondary: Link EGP HUD to vehicle, Reload: Open the Reload Menu for several lag fixing options." )
+	language.Add( "Tool.wire_egp.desc", "EGP Tool" )
+	language.Add( "Tool.wire_egp.left_0", "Create EGP Screen/HUD/Emitter" )
+	language.Add( "Tool.wire_egp.right_0", "Link EGP HUD to vehicle" )
+	language.Add( "Tool.wire_egp.reload_0", "Open the Reload Menu for several lag fixing options" )
 	language.Add( "Tool.wire_egp.1", "Now right click a vehicle." )
 	language.Add( "sboxlimit_wire_egps", "You've hit the EGP limit!" )
 	language.Add( "Undone_wire_egp", "Undone EGP" )
@@ -140,7 +143,7 @@ if CLIENT then
 	language.Add( "Tool_wire_egp_emitter_drawdist", "Additional emitter draw distance (Clientside)" )
 end
 
-WireToolSetup.SetupLinking() -- Generates RightClick, Reload, and DrawHUD functions
+WireToolSetup.SetupLinking(false, "vehicle") -- Generates RightClick, Reload, and DrawHUD functions
 
 function TOOL:CheckHitOwnClass( trace )
 	return IsValid(trace.Entity) and trace.Entity:GetClass() == "gmod_wire_egp_hud" -- We only need linking for the hud

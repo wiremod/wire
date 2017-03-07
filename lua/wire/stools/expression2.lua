@@ -4,8 +4,12 @@ WireToolSetup.open("expression2", "Expression 2", "gmod_wire_expression2", nil, 
 if CLIENT then
 	language.Add("Tool.wire_expression2.name", "Expression 2 Tool (Wire)")
 	language.Add("Tool.wire_expression2.desc", "Spawns an Expression 2 chip for use with the wire system.")
-	language.Add("Tool.wire_expression2.0", "Primary: Create/Update Expression, Secondary: Open Expression in Editor")
 	language.Add("sboxlimit_wire_expressions", "You've hit the Expression limit!")
+
+	TOOL.Information = {
+		{ name = "left", text = "Create " .. TOOL.Name },
+		{ name = "right", text = "Open " .. TOOL.Name .. " in Editor" },
+	}
 
 	--WireToolSetup.setToolMenuIcon( "beer/wiremod/gate_e2" )
 	WireToolSetup.setToolMenuIcon( "vgui/e2logo" )

@@ -66,6 +66,8 @@ local ExtraDelayedUpdates = {}
 
 local NextCleanup		= CurTime()
 
+local Wire_FastOverlayTextUpdate = CreateConVar("Wire_FastOverlayTextUpdate", 0, FCVAR_ARCHIVE)
+
 if ( CLIENT ) then
 	local function Dump()
 		Msg("Networked Beam Vars...\n")
@@ -122,7 +124,7 @@ local function SendNetworkUpdate( VarType, Index, Key, Value, Player )
 end
 
 local function AddDelayedNetworkUpdate( VarType, Ent, Key, Value )
-	if (Wire_FastOverlayTextUpdate) then
+	if (Wire_FastOverlayTextUpdate:GetBool()) then
 		SendNetworkUpdate( VarType, Ent, Key, Value )
 	elseif (Ent) and (VarType) then
 		DelayedUpdates[Ent]					= DelayedUpdates[Ent] or {}
@@ -139,7 +141,7 @@ local function AddDelayedNetworkUpdate( VarType, Ent, Key, Value )
 end
 
 local function AddExtraDelayedNetworkUpdate( VarType, Ent, Key, Value, Player )
-	if (Wire_FastOverlayTextUpdate) then
+	if (Wire_FastOverlayTextUpdate:GetBool()) then
 		SendNetworkUpdate( VarType, Ent, Key, Value )
 	elseif (Ent) and (VarType) and (Key) then
 		ExtraDelayedUpdates[Ent]						= ExtraDelayedUpdates[Ent] or {}

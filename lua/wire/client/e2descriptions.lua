@@ -49,11 +49,16 @@ timer.Simple(0.1, function()
 end)
 
 -- Number
+E2Helper.Descriptions["finite(n)"] = "Returns 1 if given value is a finite number; otherwise 0."
+E2Helper.Descriptions["isinf(n)"] = "Returns 1 if given value is a positive infinity or -1 if given value is a negative infinity; otherwise 0."
+E2Helper.Descriptions["isnan(n)"] = "Returns 1 if given value is not a number (NaN); otherwise 0."
+E2Helper.Descriptions["inf()"] = "Returns a huge constant (infinity)"
 E2Helper.Descriptions["mod(nn)"] = "Modulo, returns the Remainder after Argument 1 has been divided by Argument 2. Note \"mod(-1, 3) = -1\""
 E2Helper.Descriptions["sqrt(n)"] = "Returns the Square Root of the Argument"
 E2Helper.Descriptions["cbrt(n)"] = "Returns the Cube Root of the Argument"
 E2Helper.Descriptions["root(nn)"] = "Returns the Nth Root of the first Argument"
 E2Helper.Descriptions["e()"] = "Returns Euler's Constant"
+E2Helper.Descriptions["frexp(n)"] = "Returns the mantissa and exponent of the given floating-point number as a vector2 (X component holds a mantissa, and Y component holds an exponent)"
 E2Helper.Descriptions["exp(n)"] = "Returns e to the power of the Argument (same as e()^N but shorter and faster this way)"
 E2Helper.Descriptions["ln(n)"] = "Returns the logarithm to base e of the Argument"
 E2Helper.Descriptions["log2(n)"] = "Returns the logarithm to base 2 of the Argument"
@@ -165,8 +170,8 @@ E2Helper.Descriptions["match(s:s)"] = "runs string.match(S, S2) and returns the 
 E2Helper.Descriptions["match(s:sn)"] = "runs string.match(S, S2, N) and returns the sub-captures as an array"
 E2Helper.Descriptions["matchFirst(s:s)"] = "runs string.match(S, S2) and returns the first match or an empty string if the match failed"
 E2Helper.Descriptions["matchFirst(s:sn)"] = "runs string.match(S, S2, N) and returns the first match or an empty string if the match failed"
-E2Helper.Descriptions["gmatch(s:s)"] = "runs string.gmatch(S, S2) and returns the captures in an array"
-E2Helper.Descriptions["gmatch(s:sn)"] = "runs string.gmatch(S, S2, N) and returns the captures in an array"
+E2Helper.Descriptions["gmatch(s:s)"] = "runs string.gmatch(S, S2) and returns the captures in arrays in a table"
+E2Helper.Descriptions["gmatch(s:sn)"] = "runs string.gmatch(S, S2, N) and returns the captures in arrays in a table"
 
 -- Entity/Player
 E2Helper.Descriptions["entity(n)"] = "Gets the entity associated with the id"
@@ -179,6 +184,7 @@ E2Helper.Descriptions["model(e:)"] = "Gets the model of an entity"
 E2Helper.Descriptions["owner(e:)"] = "Gets the owner of an entity"
 E2Helper.Descriptions["name(e:)"] = "Gets the name of a player"
 E2Helper.Descriptions["steamID(e:)"] = "Gets the steam ID of the player"
+E2Helper.Descriptions["steamID64(e:)"] = "Gets the Steam Community ID (aka Steam64) of the given player"
 E2Helper.Descriptions["isSteamFriend(e:e)"] = "Returns if the given Entity is a steam friend of the first Entity"
 E2Helper.Descriptions["steamFriends(e:)"] = "Returns a Array with E's steam friends on the server E is playing on"
 E2Helper.Descriptions["pos(e:)"] = "Gets the position of the entity"
@@ -311,6 +317,13 @@ E2Helper.Descriptions["setTrails(e:nnnsvn)"] = "StartSize, EndSize, Length, Mate
 E2Helper.Descriptions["setTrails(e:nnnsvnnn)"] = "StartSize, EndSize, Length, Material, Color (RGB), Alpha, AttachmentID, Additive. Adds a trail to E with the specified attributes"
 E2Helper.Descriptions["removeTrails(e:)"] = "Removes the trail from E"
 E2Helper.Descriptions["runOnKeys(en)"] = "If set to 1, E2 will run when specified player presses/releases their key"
+E2Helper.Descriptions["playerDisconnectClk()"] = "Returns 1 if the chip is being executed because of a player disconnect event. Returns 0 otherwise"
+E2Helper.Descriptions["lastDisconnectedPlayer()"] = "Returns the last player to disconnect. Must be done while in a disconnectClk() as anytime after the player object is gone."
+E2Helper.Descriptions["runOnPlayerDisconnect(n)"] = "If set to 0, the chip will no longer run on player disconnect events, otherwise it makes this chip execute when someone disconnects. Only needs to be called once, not in every execution"
+E2Helper.Descriptions["playerConnectClk()"] = "Returns 1 if the chip is being executed because of a player connect event. Returns 0 otherwise"
+E2Helper.Descriptions["lastConnectedPlayer()"] = "Returns the last player to connect."
+E2Helper.Descriptions["runOnPlayerConnect(n)"] = "If set to 0, the chip will no longer run on player connect events, otherwise it makes this chip execute when someone connects. Only needs to be called once, not in every execution"
+
 
 -- Attachment
 E2Helper.Descriptions["lookupAttachment(e:s)"] = "Returns Es attachment ID associated with attachmentName"
@@ -849,6 +862,10 @@ E2Helper.Descriptions["toUnit(sn)"] = "Converts default garrysmod units to speci
 E2Helper.Descriptions["fromUnit(sn)"] = "Converts specified units to default garrysmod units"
 E2Helper.Descriptions["convertUnit(ssn)"] = "Converts between two units"
 
+-- Steam ID conversion
+E2Helper.Descriptions["steamIDFrom64(s)"] = "Converts Steam Community ID to Steam ID"
+E2Helper.Descriptions["steamIDTo64(s)"] = "Converts Steam ID to Steam Community ID"
+
 -- Server information
 E2Helper.Descriptions["map()"] = "Returns the current map name"
 E2Helper.Descriptions["hostname()"] = "Returns the Name of the server"
@@ -946,6 +963,8 @@ E2Helper.Descriptions["findByName(s)"] = "Find all entities with the given name"
 E2Helper.Descriptions["findByModel(s)"] = "Find all entities with the given model"
 E2Helper.Descriptions["findByClass(s)"] = "Find all entities with the given class"
 E2Helper.Descriptions["findPlayerByName(s)"] = "Returns the player with the given name, this is an exception to the rule"
+E2Helper.Descriptions["findPlayerBySteamID(s)"] = "Returns the player with the given SteamID32"
+E2Helper.Descriptions["findPlayerBySteamID64(s)"] = "Returns the player with the given SteamID64"
 E2Helper.Descriptions["findResult(n)"] = "Returns the indexed entity from the previous find event (valid parameters are 1 to the number of entities found)"
 E2Helper.Descriptions["findClosest(v)"] = "Returns the closest entity to the given point from the previous find event"
 E2Helper.Descriptions["findToArray()"] = "Formats the query as an array, R[Index,entity] to get an entity"

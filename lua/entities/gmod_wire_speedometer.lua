@@ -4,16 +4,16 @@ ENT.PrintName       = "Wire Speedometer"
 ENT.WireDebugName	= "Speedo"
 
 function ENT:GetXYZMode()
-	return self:GetNetworkedBool( 0 )
+	return self:GetNWBool( 0 )
 end
 
 function ENT:GetAngVel()
-	return self:GetNetworkedBool( 1 )
+	return self:GetNWBool( 1 )
 end
 
 function ENT:SetModes( XYZMode, AngVel )
-	self:SetNetworkedBool( 0, XYZMode )
-	self:SetNetworkedBool( 1, AngVel )
+	self:SetNWBool( 0, XYZMode )
+	self:SetNWBool( 1, AngVel )
 end
 
 if CLIENT then 

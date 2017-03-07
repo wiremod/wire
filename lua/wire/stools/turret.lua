@@ -9,13 +9,13 @@ Sound( "NPC_FloorTurret.Shoot" )
 if CLIENT then
 	language.Add( "tool.wire_turret.name", "Turret" )
 	language.Add( "tool.wire_turret.desc", "Throws bullets at things" )
-	language.Add( "tool.wire_turret.0", "Click somewhere to spawn an turret. Click on an existing turret to change it." )
 
 	language.Add( "Tool_wire_turret_spread", "Bullet Spread" )
 	language.Add( "Tool_wire_turret_numbullets", "Bullets per Shot" )
 	language.Add( "Tool_wire_turret_force", "Bullet Force" )
 	language.Add( "Tool_wire_turret_sound", "Shoot Sound" )
 	language.Add( "Tool_wire_turret_tracernum", "Tracer Every x Bullets:" )
+	TOOL.Information = { { name = "left", text = "Create/Update " .. TOOL.Name } }
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )

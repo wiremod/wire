@@ -4,6 +4,16 @@
 
 local IsValid = IsValid
 local isOwner = E2Lib.isOwner
+
+
+local spawnAlert = {}
+local runBySpawn = 0
+local lastJoined = NULL
+
+local leaveAlert = {}
+local runByLeave = 0
+local lastLeft = NULL
+
 registerCallback("e2lib_replace_function", function(funcname, func, oldfunc)
 	if funcname == "isOwner" then
 		isOwner = func
@@ -69,6 +79,10 @@ e2function string entity:steamID()
 	if(!IsValid(this)) then return "" end
 	if(!this:IsPlayer()) then return "" end
 	return this:SteamID()
+end
+
+e2function string entity:steamID64()
+	return IsValid(this) and this:IsPlayer() and this:SteamID64() or ""
 end
 
 e2function number entity:armor()
@@ -192,11 +206,11 @@ e2function number entity:keyUse()
 end
 
 e2function number entity:keyReload()
-    return (IsValid(this) and this:IsPlayer() and this:KeyDown(IN_RELOAD)) and 1 or 0
+	return (IsValid(this) and this:IsPlayer() and this:KeyDown(IN_RELOAD)) and 1 or 0
 end
 
 e2function number entity:keyZoom()
-    return (IsValid(this) and this:IsPlayer() and this:KeyDown(IN_ZOOM)) and 1 or 0
+	return (IsValid(this) and this:IsPlayer() and this:KeyDown(IN_ZOOM)) and 1 or 0
 end
 
 e2function number entity:keyWalk()
@@ -259,6 +273,9 @@ keys_lookup[113] = "mouse_wheel_down"
 
 registerCallback("destruct",function(self)
 	KeyAlert[self.entity] = nil
+	--Used futher below. Didn't want to create more then one of these per file
+	spawnAlert[self.entity] = nil
+	leaveAlert[self.entity] = nil
 end)
 
 local function UpdateKeys(ply, key)
@@ -528,4 +545,66 @@ e2function ranger entity:eyeTraceCursor()
 	local ret = this:GetEyeTrace()
 	ret.RealStartPos = this:GetShootPos()
 	return ret
+end
+
+--[[--------------------------------------------------------------------------------------------]]--
+
+hook.Add("PlayerInitialSpawn","Exp2RunOnJoin", function(ply)
+	runBySpawn = 1
+	lastJoined = ply
+	for e,_ in pairs(spawnAlert) do
+		if IsValid(e) then
+			e:Execute()
+		else
+			spawnAlert[e] = nil
+		end
+	end
+	runBySpawn = 0
+end)
+
+hook.Add("PlayerDisconnected","Exp2RunOnLeave", function(ply)
+	runByLeave = 1
+	lastLeft = ply
+	for e,_ in pairs(leaveAlert) do
+		if IsValid(e) then
+			e:Execute()
+		else
+			leaveAlert[e] = nil
+		end
+	end
+	runByLeave = 0
+end)
+
+__e2setcost(3)
+
+e2function void runOnPlayerConnect(activate)
+	if activate ~= 0 then
+		spawnAlert[self.entity] = true
+	else
+		spawnAlert[self.entity] = nil
+	end
+end
+
+e2function number playerConnectClk()
+	return runBySpawn
+end
+
+e2function entity lastConnectedPlayer()
+	return lastJoined
+end
+
+e2function void runOnPlayerDisconnect(activate)
+	if activate ~= 0 then
+		leaveAlert[self.entity] = true
+	else
+		leaveAlert[self.entity] = nil
+	end
+end
+
+e2function number playerDisconnectClk()
+	return runByLeave
+end
+
+e2function entity lastDisconnectedPlayer()
+	return lastLeft
 end

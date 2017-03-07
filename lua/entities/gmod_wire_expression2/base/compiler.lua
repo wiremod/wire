@@ -13,7 +13,7 @@ function Compiler.Execute(...)
 	local instance = setmetatable({}, Compiler)
 
 	-- and pcall the new instance's Process method.
-	return pcall(Compiler.Process, instance, ...)
+	return xpcall(Compiler.Process, E2Lib.errorHandler, instance, ...)
 end
 
 function Compiler:Error(message, instr)

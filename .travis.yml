@@ -1,0 +1,13 @@
+language: python
+
+before_install:
+  - pip install hererocks
+  - hererocks env --luajit 2.0.3 --luarocks latest
+  - source env/bin/activate
+
+install:
+  - luarocks install luacheck
+
+script:
+  - git diff --check $TRAVIS_COMMIT_RANGE
+  - git diff --name-only $TRAVIS_COMMIT_RANGE | grep '\.lua$' | xargs --no-run-if-empty luacheck --std min+garrysmod+wiremod

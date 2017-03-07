@@ -69,7 +69,7 @@ function PropCore.CreateProp(self,model,pos,angles,freeze,isVehicle)
 		if model == "" then model = "models/nova/airboat_seat.mdl" end
 	end
 
-	if not util.IsValidModel( model ) or not util.IsValidProp( model ) then return nil end
+	if not util.IsValidProp( model ) or not WireLib.CanModel(self.player, model) then return nil end
 
 	pos = E2Lib.clampPos( pos )
 
@@ -363,6 +363,22 @@ e2function string entity:propPhysicalMaterial()
 	local phys = this:GetPhysicsObject()
 	if IsValid(phys) then return phys:GetMaterial() or "" end
 	return ""
+end
+
+e2function void entity:propSetVelocity(vector velocity)
+	if not PropCore.ValidAction(self, this, "velocitynxt") then return end
+	local phys = this:GetPhysicsObject()
+	if IsValid( phys ) then
+		phys:SetVelocity(Vector(velocity[1], velocity[2], velocity[3]))
+	end
+end
+
+e2function void entity:propSetVelocityInstant(vector velocity)
+	if not PropCore.ValidAction(self, this, "velocityins") then return end
+	local phys = this:GetPhysicsObject()
+	if IsValid( phys ) then
+		phys:SetVelocityInstantaneous(Vector(velocity[1], velocity[2], velocity[3]))
+	end
 end
 
 hook.Add( "CanDrive", "checkPropStaticE2", function( ply, ent ) if ent.propStaticE2 ~= nil then return false end end )

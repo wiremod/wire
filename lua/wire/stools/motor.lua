@@ -2,15 +2,17 @@ WireToolSetup.setCategory( "Physics/Force" )
 WireToolSetup.open( "motor", "Motor", "gmod_wire_motor", nil, "Motors" )
 
 if CLIENT then
-    language.Add( "Tool.wire_motor.name", "Motor Tool (Wire)" )
-    language.Add( "Tool.wire_motor.desc", "Makes a controllable motor" )
-    language.Add( "Tool.wire_motor.0", "Left click on object" )
-    language.Add( "Tool.wire_motor.1", "Left click somewhere else" )
-    language.Add( "Tool.wire_motor.2", "Left click to place the controller" )
-    language.Add( "WireMotorTool_torque", "Torque:" )
-    language.Add( "WireMotorTool_friction", "Hinge Friction:" )
+	language.Add( "Tool.wire_motor.name", "Motor Tool (Wire)" )
+	language.Add( "Tool.wire_motor.desc", "Makes a controllable motor" )
+	language.Add( "WireMotorTool_torque", "Torque:" )
+	language.Add( "WireMotorTool_friction", "Hinge Friction:" )
 	language.Add( "WireMotorTool_nocollide", "No Collide" )
 	language.Add( "WireMotorTool_forcelimit", "Force Limit:" )
+	TOOL.Information = {
+		{ name = "left_0", stage = 0, text = "Choose the wheel's axis" },
+		{ name = "left_1", stage = 1, text = "Choose the base's axis" },
+		{ name = "left_2", stage = 2, text = "Place the controller" },
+	}
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 10 )

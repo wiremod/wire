@@ -33,6 +33,16 @@ local function logGlonCall( self, glonString, ret, safeGlonObject )
 end
 ]]
 
+local antispam_lookup = {}
+local function antispam( self )
+	if antispam_lookup[self.uid] and antispam_lookup[self.uid] > CurTime() then
+		return false
+	end
+
+	antispam_lookup[self.uid] = CurTime() + 0.5
+	return true
+end
+
 -- this conversions table is used by luaTypeToWireTypeid
 local conversions = {
 	-- convert boolean to number
@@ -316,6 +326,7 @@ e2function string vonEncode(array data)
 	local ok, ret = pcall(WireLib.von.serialize, data)
 	if not ok then
 		last_von_error = ret
+		if not antispam(self) then return "" end
 		WireLib.ClientError("von.encode error: "..ret, self.player)
 		return ""
 	end
@@ -337,6 +348,7 @@ e2function array vonDecode(string data)
 
 	if not ok then
 		last_von_error = ret
+		if not antispam(self) then return {} end
 		WireLib.ClientError("von.decode error: "..ret, self.player)
 		return {}
 	end
@@ -366,6 +378,7 @@ e2function table vonDecodeTable(string data)
 	local ok, ret = pcall(WireLib.von.deserialize, data)
 	if not ok then
 		last_von_error = ret
+		if not antispam(self) then return table.Copy(DEFAULT) end
 		WireLib.ClientError("von.decode error: "..ret, self.player)
 		return table.Copy(DEFAULT)
 	end
@@ -385,6 +398,7 @@ local function jsonEncode( self, data, prettyprint )
 	local ok, ret = pcall(util.TableToJSON, data, prettyprint ~= 0)
 	if not ok then
 		last_json_error = ret
+		if not antispam(self) then return "" end
 		WireLib.ClientError("jsonEncode error: "..ret, self.player)
 		return ""
 	end
@@ -406,6 +420,7 @@ local function jsonDecode( self, data, tp )
 
 	if not ok then
 		last_json_error = ret
+		if not antispam(self) then return {} end
 		WireLib.ClientError("jsonDecode error: "..ret, self.player)
 		return {}
 	end

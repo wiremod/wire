@@ -5,6 +5,8 @@ ENT.WireDebugName = "Gate"
 
 if CLIENT then return end -- No more client
 
+local Wire_EnableGateInputValues = CreateConVar("Wire_EnableGateInputValues", 1, FCVAR_ARCHIVE)
+
 function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )
 	self:SetMoveType( MOVETYPE_VPHYSICS )
@@ -122,7 +124,7 @@ function ENT:ShowOutput()
 	if (self.Action) then
 		txt = (self.Action.name or "No Name")
 		if (self.Action.label) then
-			txt = txt.."\n"..self.Action.label(self:GetActionOutputs(), unpack(self:GetActionInputs(Wire_EnableGateInputValues)))
+			txt = txt.."\n"..self.Action.label(self:GetActionOutputs(), unpack(self:GetActionInputs(Wire_EnableGateInputValues:GetBool())))
 		end
 	else
 		txt = "Invalid gate!"

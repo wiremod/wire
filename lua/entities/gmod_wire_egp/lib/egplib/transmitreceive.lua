@@ -220,6 +220,8 @@ if (SERVER) then
 			return
 		end
 
+		local order_was_changed = false
+
 		if (!EGP.umsg.Start( "EGP_Transmit_Data", ply )) then return end
 			net.WriteEntity( Ent )
 			net.WriteString( "ReceiveObjects" )
@@ -264,14 +266,10 @@ if (SERVER) then
 						EGP:MoveTopLeft( Ent, v )
 					end
 
-					if (v.ChangeOrder) then -- We want to change the order of this object, send the index to where we wish to move it
-						local from = v.ChangeOrder[1]
-						local to = v.ChangeOrder[2]
-						if (Ent.RenderTable[to]) then
-							Ent.RenderTable[to].ChangeOrder = nil
-						end
-						net.WriteInt( from, 16 )
-						net.WriteInt( to, 16 )
+					if v.ChangeOrder then -- We want to change the order of this object, send the index to where we wish to move it
+						net.WriteInt( v.ChangeOrder.target, 16 )
+						net.WriteInt( v.ChangeOrder.dir, 3 )
+						order_was_changed = true
 					else
 						net.WriteInt( 0, 16 ) -- Don't change order
 					end
@@ -280,6 +278,11 @@ if (SERVER) then
 				end
 			end
 		EGP.umsg.End()
+
+		-- Change order now
+		if order_was_changed then
+			EGP:PerformReorder( Ent )
+		end
 
 		EGP:SendQueueItem( ply )
 	end
@@ -444,6 +447,8 @@ else -- SERVER/CLIENT
 				if (EGP:EditObject( v, { vertices = vertices })) then Ent:EGP_Update() end
 			end
 		elseif (Action == "ReceiveObjects") then
+			local order_was_changed = false
+
 			for i=1,net.ReadUInt(16) do
 				local index = net.ReadInt(16)
 				if (index == 0) then break end -- In case the umsg had to abort early
@@ -467,10 +472,10 @@ else -- SERVER/CLIENT
 				else
 
 					-- Change Order
-					local ChangeOrder_From = net.ReadInt(16)
-					local ChangeOrder_To
-					if (ChangeOrder_From != 0) then
-						ChangeOrder_To = net.ReadInt(16)
+					local ChangeOrder_To = net.ReadInt(16)
+					local ChangeOrder_Dir
+					if ChangeOrder_To ~= 0 then
+						ChangeOrder_Dir = net.ReadInt(3)
 					end
 
 					local current_obj
@@ -513,18 +518,17 @@ else -- SERVER/CLIENT
 					end
 
 					-- Change Order (later)
-					if (ChangeOrder_From and ChangeOrder_To) then
-						current_obj.ChangeOrder = {ChangeOrder_From,ChangeOrder_To}
+					if ChangeOrder_To ~= 0 then
+						order_was_changed = true
+						current_obj.ChangeOrder = {target=ChangeOrder_To,dir=ChangeOrder_Dir}
 					end
 				end
 			end
 			
-			for i=1,#Ent.RenderTable do -- Change order now
-				local obj = Ent.RenderTable[i]
-				if obj.ChangeOrder then
-					self:SetOrder( Ent, obj.ChangeOrder[1], obj.ChangeOrder[2] )
-					obj.ChangeOrder = nil
-				end
+
+			-- Change order now
+			if order_was_changed then
+				self:PerformReorder( Ent )
 			end
 
 			Ent:EGP_Update()

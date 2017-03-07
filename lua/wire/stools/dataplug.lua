@@ -2,14 +2,19 @@ WireToolSetup.setCategory( "Advanced" )
 WireToolSetup.open( "dataplug", "Data - Plug/Socket", "gmod_wire_datasocket", nil, "Plugs and Sockets" )
 
 if ( CLIENT ) then
-    language.Add( "Tool.wire_dataplug.name", "Data Plug Tool (Wire)" )
-    language.Add( "Tool.wire_dataplug.desc", "Spawns plugs and sockets for use with the hi-speed wire system." )
-    language.Add( "Tool.wire_dataplug.0", "Primary: Create/Update Socket    Secondary: Create/Update Plug" )
+	language.Add( "Tool.wire_dataplug.name", "Data Plug Tool (Wire)" )
+	language.Add( "Tool.wire_dataplug.desc", "Spawns plugs and sockets for use with the hi-speed wire system." )
 	language.Add( "sboxlimit_wire_dataplugs", "You've hit plugs limit!" )
 	language.Add( "sboxlimit_wire_datasockets", "You've hit sockets limit!" )
 	language.Add( "undone_wiredataplug", "Undone Wire Data Plug" )
 	language.Add( "undone_wiredatasocket", "Undone Wire Data Socket" )
+	TOOL.Information = {
+		{ name = "left", text = "Create/Update " .. TOOL.Name },
+		{ name = "right", text = "Create/Update Plug" },
+	}
 end
+
+WireToolSetup.BaseLang()
 
 if (SERVER) then
 	CreateConVar('sbox_maxwire_dataplugs', 20)

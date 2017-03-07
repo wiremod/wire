@@ -4,7 +4,6 @@ WireToolSetup.open( "target_finder", "Target Finder", "gmod_wire_target_finder",
 if CLIENT then
 	language.Add( "Tool.wire_target_finder.name", "Target Finder Beacon Tool (Wire)" )
 	language.Add( "Tool.wire_target_finder.desc", "Spawns a target finder beacon for use with the wire system." )
-	language.Add( "Tool.wire_target_finder.0", "Primary: Create/Update Target Finder Beacon" )
 
 	language.Add( "WireTargetFinderTool_minrange", "Minimum Range:" )
 	language.Add( "WireTargetFinderTool_maxrange", "Maximum Range:" )
@@ -37,6 +36,7 @@ if CLIENT then
 	language.Add( "WireTargetFinderTool_pcolA", "Alpha:")
 	language.Add( "WireTargetFinderTool_checkbuddylist", "Check Propprotection Buddy List (EXPERIMENTAL!)" )
 	language.Add( "WireTargetFinderTool_onbuddylist", "Target Only Buddys (EXPERIMENTAL!)" )
+	TOOL.Information = { { name = "left", text = "Create/Update " .. TOOL.Name } }
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )

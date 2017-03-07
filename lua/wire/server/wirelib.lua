@@ -949,82 +949,6 @@ Wire_CreateOutputIterator		= WireLib.CreateOutputIterator
 Wire_BuildDupeInfo				= WireLib.BuildDupeInfo
 Wire_ApplyDupeInfo				= WireLib.ApplyDupeInfo
 
---backwards logic: set enable to false to show show values on gates instead
-Wire_EnableGateInputValues = true
-local function WireEnableInputValues(pl, cmd, args)
-	if ( args[1] ) and ( ( pl:IsAdmin() ) or ( pl:IsSuperAdmin( )() ) ) then
-		if args[1] == "1" or args[1] == 1 then
-			Wire_EnableGateInputValues = true
-		elseif args[1] == "0" or args[1] == 0 then
-			Wire_EnableGateInputValues = false
-		else
-			pl:PrintMessage(HUD_PRINTCONSOLE, "Only takes 0 or 1")
-		end
-	end
-	pl:PrintMessage(HUD_PRINTCONSOLE, "\nWire_EnableGateInputValues = "..tostring(Wire_EnableGateInputValues).."\n")
-end
-concommand.Add( "Wire_EnableGateInputValues", WireEnableInputValues )
-
-Wire_FastOverlayTextUpdate = false
-local function WireFastOverlayTextUpdate(pl, cmd, args)
-	if ( args[1] ) and ( ( pl:IsAdmin() ) or ( pl:IsSuperAdmin( )() ) ) then
-		if args[1] == "1" or args[1] == 1 then
-			Wire_FastOverlayTextUpdate = true
-		elseif args[1] == "0" or args[1] == 0 then
-			Wire_FastOverlayTextUpdate = false
-		else
-			pl:PrintMessage(HUD_PRINTCONSOLE, "Only takes 0 or 1")
-		end
-	end
-	pl:PrintMessage(HUD_PRINTCONSOLE, "\nWire_FastOverlayTextUpdate = "..tostring(Wire_FastOverlayTextUpdate).."\n")
-end
-concommand.Add( "Wire_FastOverlayTextUpdate", WireFastOverlayTextUpdate )
-
-Wire_SlowerOverlayTextUpdate = false
-local function WireSlowerOverlayTextUpdate(pl, cmd, args)
-	if ( args[1] ) and ( ( pl:IsAdmin() ) or ( pl:IsSuperAdmin( )() ) ) then
-		if args[1] == "1" or args[1] == 1 then
-			Wire_SlowerOverlayTextUpdate = true
-		elseif args[1] == "0" or args[1] == 0 then
-			Wire_SlowerOverlayTextUpdate = false
-		else
-			pl:PrintMessage(HUD_PRINTCONSOLE, "Only takes 0 or 1")
-		end
-	end
-	pl:PrintMessage(HUD_PRINTCONSOLE, "\nWire_SlowerOverlayTextUpdate = "..tostring(Wire_SlowerOverlayTextUpdate).."\n")
-end
-concommand.Add( "Wire_SlowerOverlayTextUpdate", WireSlowerOverlayTextUpdate )
-
-Wire_DisableOverlayTextUpdate = false
-local function WireDisableOverlayTextUpdate(pl, cmd, args)
-	if ( args[1] ) and ( ( pl:IsAdmin() ) or ( pl:IsSuperAdmin( )() ) ) then
-		if args[1] == "1" or args[1] == 1 then
-			Wire_DisableOverlayTextUpdate = true
-		elseif args[1] == "0" or args[1] == 0 then
-			Wire_DisableOverlayTextUpdate = false
-		else
-			pl:PrintMessage(HUD_PRINTCONSOLE, "Only takes 0 or 1")
-		end
-	end
-	pl:PrintMessage(HUD_PRINTCONSOLE, "\nWire_DisableOverlayTextUpdate = "..tostring(Wire_DisableOverlayTextUpdate).."\n")
-end
-concommand.Add( "Wire_DisableOverlayTextUpdate", WireDisableOverlayTextUpdate )
-
-Wire_ForceDelayOverlayTextUpdate = false
-local function WireForceDelayOverlayTextUpdate(pl, cmd, args)
-	if ( args[1] ) and ( ( pl:IsAdmin() ) or ( pl:IsSuperAdmin( )() ) ) then
-		if args[1] == "1" or args[1] == 1 then
-			Wire_ForceDelayOverlayTextUpdate = true
-		elseif args[1] == "0" or args[1] == 0 then
-			Wire_ForceDelayOverlayTextUpdate = false
-		else
-			pl:PrintMessage(HUD_PRINTCONSOLE, "Only takes 0 or 1")
-		end
-	end
-	pl:PrintMessage(HUD_PRINTCONSOLE, "\nWire_ForceDelayOverlayTextUpdate = "..tostring(Wire_ForceDelayOverlayTextUpdate).."\n")
-end
-concommand.Add( "Wire_ForceDelayOverlayTextUpdate", WireForceDelayOverlayTextUpdate )
-
 -- prevent applyForce+Anti-noclip-based killing contraptions
 hook.Add("InitPostEntity", "antiantinoclip", function()
 	local ENT = scripted_ents.GetList().rt_antinoclip_handler
@@ -1134,9 +1058,29 @@ function WireLib.dummytrace(ent)
 	}
 end
 
+function WireLib.NumModelSkins(model)
+	if NumModelSkins then
+		return NumModelSkins(model)
+	end
+	local info = util.GetModelInfo(model)
+	return info and info.SkinCount
+end
+
+--- @return whether the given player can spawn an object with the given model and skin
+function WireLib.CanModel(player, model, skin)
+	if not util.IsValidModel(model) then return false end
+	if skin ~= nil then
+		local count = WireLib.NumModelSkins(model)
+		if count and count <= skin then return false end
+	end
+	if IsValid(player) and player:IsPlayer() and not hook.Run("PlayerSpawnObject", player, model, skin) then return false end
+	return true
+end
+
 function WireLib.MakeWireEnt( pl, Data, ... )
 	Data.Class = scripted_ents.Get(Data.Class).ClassName
 	if IsValid(pl) and not pl:CheckLimit(Data.Class:sub(6).."s") then return false end
+	if Data.Model and not WireLib.CanModel(pl, Data.Model, Data.Skin) then return false end
 
 	local ent = ents.Create( Data.Class )
 	if not IsValid(ent) then return false end
@@ -1216,9 +1160,15 @@ function WireLib.AddOutputAlias( class, old, new )
 	ENT_table.OutputAliases[old] = new
 end
 
+local function effectiveMass(ent)
+	if not isentity(ent) then return 1 end
+	if ent:IsWorld() then return 99999 end
+	if not IsValid(ent) or not IsValid(ent:GetPhysicsObject()) then return 1 end
+	return ent:GetPhysicsObject():GetMass()
+end
+
 function WireLib.CalcElasticConsts(Ent1, Ent2)
-	if not IsValid(Ent1:GetPhysicsObject()) or not IsValid(Ent2:GetPhysicsObject()) then return 100, 20 end
-	local minMass = math.min(Ent1:IsWorld() and 99999 or Ent1:GetPhysicsObject():GetMass(), Ent2:IsWorld() and 99999 or Ent2:GetPhysicsObject():GetMass())
+	local minMass = math.min(effectiveMass(Ent1), effectiveMass(Ent2))
 	local const = minMass * 100
 	local damp = minMass * 20
 

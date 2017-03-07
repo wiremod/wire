@@ -2,6 +2,8 @@
 	String gates  !  :P
 ]]
 
+local MAX_LEN = 1024*1024 -- max string length of 1MB
+
 GateActions("String")
 
 GateActions["string_ceq"] = {
@@ -131,13 +133,23 @@ GateActions["string_find"] = {
 	end
 }
 
-
 GateActions["string_concat"] = {
 	name = "Concatenate",
 	inputs = { "A" , "B" , "C" , "D" , "E" , "F" , "G" , "H" },
 	inputtypes = { "STRING" , "STRING" , "STRING" , "STRING" , "STRING" , "STRING" , "STRING" , "STRING" },
 	outputtypes = { "STRING" },
 	output = function(gate, A, B, C, D, E, F, G, H)
+		if  (A and #A or 0) 
+		  + (B and #B or 0) 
+		  + (C and #C or 0) 
+		  + (D and #D or 0) 
+		  + (E and #E or 0) 
+		  + (F and #F or 0) 
+		  + (G and #G or 0) 
+		  + (H and #H or 0)  > MAX_LEN   
+		then
+			return false
+		end
 		local T = {A,B,C,D,E,F,G,H}
 		return table.concat(T)
 	end,
@@ -254,6 +266,9 @@ GateActions["string_repeat"] = {
 	output = function(gate, A, B)
 		if !A then A = "" end
 		if !B or B<1 then B = 1 end
+		
+		if B * #A > MAX_LEN then return false end
+		
 		return string.rep(A,B)
 	end,
 	label = function(Out, A)

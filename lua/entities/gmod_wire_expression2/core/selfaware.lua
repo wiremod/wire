@@ -108,8 +108,10 @@ end
 
 -- Get the name of another E2
 e2function string entity:getName()
-	if (!IsValid(this) or this:GetClass() != "gmod_wire_expression2") then return "" end
-	return this.name or ""
+	if IsValid(this) and this.GetGateName then
+		return this:GetGateName() or ""
+	end
+	return ""
 end
 
 

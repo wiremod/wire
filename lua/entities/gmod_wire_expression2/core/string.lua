@@ -122,6 +122,8 @@ end
 local string_char = string.char
 local string_byte = string.byte
 local string_len = string.len
+local utf8_char = utf8.char
+local utf8_byte = utf8.codepoint
 
 registerFunction("toChar", "n", "s", function(self, args)
 	local op1 = args[2]
@@ -150,57 +152,20 @@ local math_floor = math.floor
 registerFunction("toUnicodeChar", "n", "s", function(self, args)
 	local op1 = args[2]
 	local rv1 = op1[1](self, op1)
-	local utf8 = ""
-	if rv1 < 1 then
-		return ""
-	elseif rv1 <= 127 then
-		utf8 = string_char (rv1)
-	elseif rv1 < 2048 then
-		utf8 = ("%c%c"):format( 192 + math_floor (rv1 / 64), 128 + (rv1 % 64))
-	elseif rv1 < 65536 then
-		utf8 = ("%c%c%c"):format( 224 + math_floor (rv1 / 4096), 128 + (math_floor (rv1 / 64) % 64), 128 + (rv1 % 64))
-	elseif rv1 < 2097152 then
-		utf8 = ("%c%c%c%c"):format( 240 + math_floor (rv1 / 262144), 128 + (math_floor(rv1 / 4096) % 64), 128 + (math_floor (rv1 / 64) % 64), 128 + (rv1 % 64))
-	end
-	return utf8
+	
+	-- upper limit used to be 2097152, new limit acquired using pcall and a for loop
+	-- above this limit, the function causes a lua error
+	if rv1 < 1 or rv1 > 1114112 then return "" end
+
+	return utf8_char(rv1)
 end)
 
 registerFunction("toUnicodeByte", "s", "n", function(self, args)
 	local op1 = args[2]
 	local rv1 = op1[1](self, op1)
 	if rv1 == "" then return -1 end
-	local byte = string_byte(rv1)
-	if byte >= 128 then
-		if byte >= 240 then
-			-- 4 byte sequence
-			if string_len (rv1) < 4 then
-				return -1
-			end
-			byte = (byte % 8) * 262144
-			byte = byte + (string_byte (rv1, 2) % 64) * 4096
-			byte = byte + (string_byte (rv1, 3) % 64) * 64
-			byte = byte + (string_byte (rv1, 4) % 64)
-		elseif byte >= 224 then
-			-- 3 byte sequence
-			if string_len (rv1) < 3 then
-				return -1
-			end
-			byte = (byte % 16) * 4096
-			byte = byte + (string_byte (rv1, 2) % 64) * 64
-			byte = byte + (string_byte (rv1, 3) % 64)
-		elseif byte >= 192 then
-			-- 2 byte sequence
-			if string_len (rv1) < 2 then
-				return -1
-			end
-			byte = (byte % 32) * 64
-			byte = byte + (string_byte (rv1, 2) % 64)
-		else
-			-- invalid sequence
-			byte = -1
-		end
-	end
-	return byte
+
+	return utf8_byte(rv1)
 end)
 
 /******************************************************************************/

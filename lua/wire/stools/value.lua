@@ -4,7 +4,11 @@ WireToolSetup.open( "value", "Constant Value", "gmod_wire_value", nil, "Constant
 if CLIENT then
 	language.Add("Tool.wire_value.name", "Value Tool (Wire)")
 	language.Add("Tool.wire_value.desc", "Spawns a constant value for use with the wire system.")
-	language.Add("Tool.wire_value.0", "Primary: Create/Update Value, Secondary: Copy Settings")
+
+	TOOL.Information = {
+		{ name = "left", text = "Create/Update " .. TOOL.Name },
+		{ name = "right", text = "Copy settings" },
+	}
 
 	WireToolSetup.setToolMenuIcon( "icon16/database_go.png" )
 end

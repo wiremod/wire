@@ -4,7 +4,6 @@ WireToolSetup.open( "exit_point", "Vehicle Exit Point", "gmod_wire_exit_point", 
 if CLIENT then
 	language.Add( "tool."..TOOL.Mode..".name", TOOL.Name.." Tool (Wire)" )
 	language.Add( "tool."..TOOL.Mode..".desc", "Spawns a "..TOOL.Name )
-	language.Add( "tool."..TOOL.Mode..".0", "Primary: Create "..TOOL.Name.."" )
 
 	WireToolSetup.setToolMenuIcon( "icon16/door_out.png" )
 end
@@ -15,7 +14,7 @@ TOOL.ClientConVar = {
 	model = "models/jaanus/wiretool/wiretool_range.mdl",
 }
 
-WireToolSetup.SetupLinking()
+WireToolSetup.SetupLinking(false, "vehicle")
 
 function TOOL.BuildCPanel(panel)
 	ModelPlug_AddToCPanel(panel, "Misc_Tools", "wire_exit_point", true)

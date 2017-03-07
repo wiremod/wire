@@ -2,10 +2,10 @@ WireToolSetup.setCategory( "Memory" )
 WireToolSetup.open( "data_store", "Store", "gmod_wire_data_store", nil, "Data Stores" )
 
 if ( CLIENT ) then
-    language.Add( "Tool.wire_data_store.name", "Data Store Tool (Wire)" )
-    language.Add( "Tool.wire_data_store.desc", "Spawns a data store." )
-    language.Add( "Tool.wire_data_store.0", "Primary: Create/Update data store" )
-    language.Add( "WireDataStoreTool_data_store", "Data Store:" )
+	language.Add( "Tool.wire_data_store.name", "Data Store Tool (Wire)" )
+	language.Add( "Tool.wire_data_store.desc", "Spawns a data store." )
+	language.Add( "WireDataStoreTool_data_store", "Data Store:" )
+	TOOL.Information = { { name = "left", text = "Create/Update " .. TOOL.Name } }
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )

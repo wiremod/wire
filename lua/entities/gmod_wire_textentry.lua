@@ -158,6 +158,8 @@ net.Receive("wire_textentry_action",function(len,ply)
 	
 	local text = net.ReadString()
 	
+	self:Unprompt() -- in all cases, make text entry available for use again
+	
 	if not self.BlockInput then
 		WireLib.TriggerOutput( self, "Text", text )
 		
@@ -173,7 +175,6 @@ net.Receive("wire_textentry_action",function(len,ply)
 		end
 	end
 	
-	self:Unprompt() -- in all cases, make text entry available for use again
 	self:UpdateOverlay()
 end)
 

@@ -4,7 +4,7 @@ WireToolSetup.open( "wheel", "Wheel", "gmod_wire_wheel", nil, "Wheels" )
 if CLIENT then
 	language.Add( "tool.wire_wheel.name", "Wheel Tool (wire)" )
 	language.Add( "tool.wire_wheel.desc", "Attaches a wheel to something." )
-	language.Add( "tool.wire_wheel.0", "Click on a prop to attach a wheel." )
+	TOOL.Information = { { name = "left", text = "Attach a wheel" } }
 
 	language.Add( "tool.wire_wheel.group", "Input value to go forward:" )
 	language.Add( "tool.wire_wheel.group_reverse", "Input value to go in reverse:" )

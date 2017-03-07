@@ -86,7 +86,7 @@ function Parser.Execute(...)
 	local instance = setmetatable({}, Parser)
 
 	-- and pcall the new instance's Process method.
-	return pcall(Parser.Process, instance, ...)
+	return xpcall(Parser.Process, E2Lib.errorHandler, instance, ...)
 end
 
 function Parser:Error(message, token)

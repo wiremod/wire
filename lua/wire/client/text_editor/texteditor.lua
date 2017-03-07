@@ -343,7 +343,7 @@ function EDITOR:SetText(text)
 end
 
 function EDITOR:GetValue()
-	return string_gsub(table_concat(self.Rows, "\n"), "\r", "")
+	return (string_gsub(table_concat(self.Rows, "\n"), "\r", ""))
 end
 
 function EDITOR:HighlightLine( line, r, g, b, a )

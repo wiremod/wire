@@ -5,6 +5,9 @@ ENT.WireDebugName 	= "Explosive"
 
 if CLIENT then return end -- No more client
 
+local wire_explosive_delay = CreateConVar( "wire_explosive_delay", 0.2, FCVAR_ARCHIVE )
+local wire_explosive_range = CreateConVar( "wire_explosive_range", 512, FCVAR_ARCHIVE )
+
 function ENT:Initialize()
 
 	self:PhysicsInit( SOLID_VPHYSICS )
@@ -49,7 +52,7 @@ function ENT:Setup( key, damage, delaytime, removeafter, radius, affectother, no
 	self.Damage = math.Clamp( damage, 0, 1500 )
 	self.Delaytime = delaytime
 	self.Removeafter = removeafter
-	self.Radius = math.min(512,math.max(radius, 1))
+	self.Radius = math.Clamp(radius, 1, wire_explosive_range:GetFloat())
 	self.Affectother = affectother
 	self.Notaffected = notaffected
 	self.Delayreloadtime = delayreloadtime
@@ -219,9 +222,9 @@ function ENT:Explode( )
 	if(not IsValid(ply)) then ply = self end;
 
 	if (self.InvisibleAtZero) then
-		ply:SetCollisionGroup(COLLISION_GROUP_DEBRIS)
-		ply:SetNoDraw( true )
-		ply:SetColor(Color(255, 255, 255, 0))
+		self:SetCollisionGroup(COLLISION_GROUP_DEBRIS)
+		self:SetNoDraw( true )
+		self:SetColor(Color(255, 255, 255, 0))
 	end
 
 	if ( self.Damage > 0 ) then
@@ -240,7 +243,7 @@ function ENT:Explode( )
 	self.exploding = false
 
 	self.reloading = true
-	self.ReloadTime = CurTime() + math.max(1, self.Delayreloadtime)
+	self.ReloadTime = CurTime() + math.max(wire_explosive_delay:GetFloat(), self.Delayreloadtime)
 	// Force reset of counter
 	self.CountTime = 0
 	self:ShowOutput()
@@ -256,7 +259,7 @@ function ENT:ShowOutput( )
 			self:SetColor(Color(255, c, c, 255))
 		end
 		if (self.InvisibleAtZero) then
-			ply:SetNoDraw( false )
+			self:SetNoDraw( false )
 			self:SetColor(Color(255, 255, 255, 255 * ((self.Delayreloadtime - self.count) / self.Delayreloadtime)))
 			self:SetRenderMode(RENDERMODE_TRANSALPHA)
 		end

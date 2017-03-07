@@ -173,7 +173,7 @@ e2function void effect:play(string name)
 	if not this then return end
 	if not isAllowed(self) then return end
 	
-	util.Effect(name,this,false)
+	util.Effect(name,this)
 end
 
 registerCallback("construct", function(self)

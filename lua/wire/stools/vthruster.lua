@@ -4,10 +4,13 @@ WireToolSetup.open( "vthruster", "Vector Thruster", "gmod_wire_vectorthruster", 
 if ( CLIENT ) then
 	language.Add( "Tool.wire_vthruster.name", "Vector Thruster Tool (Wire)" )
 	language.Add( "Tool.wire_vthruster.desc", "Spawns a vector thruster for use with the wire system." )
-	language.Add( "Tool.wire_vthruster.0", "Primary: Create/Update Vector Thruster" )
-	language.Add( "Tool.wire_vthruster.1", "Primary: Set the Angle, hold Shift to lock to 45 degrees" )
 	language.Add( "WireVThrusterTool_Mode", "Mode:" )
 	language.Add( "WireVThrusterTool_Angle", "Use Yaw/Pitch Inputs Instead" )
+
+	TOOL.Information = {
+		{ name = "left_0", stage = 0, text = "Create/Update " .. TOOL.Name },
+		{ name = "left_1", stage = 1, text = "Set the Angle, hold Shift to lock to 45 degrees" },
+	}
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 10 )

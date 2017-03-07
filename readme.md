@@ -15,7 +15,7 @@ Simply clone this repository into your `addons` folder:
 
 # License
 
-Copyright 2009-2016 Wire Team
+Copyright 2009-2017 Wire Team
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
 
@@ -25,3 +25,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 
 [Garry's Mod]: <http://garrysmod.com/>
 [workshop]: <http://steamcommunity.com/sharedfiles/filedetails/?id=160250458>
+
+# Contributor Guidelines
+
+See CONTRIBUTING.md for guidelines on contributing and participating in the wiremod project.

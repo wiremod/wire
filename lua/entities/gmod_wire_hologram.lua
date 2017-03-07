@@ -8,7 +8,7 @@ function ENT:SetPlayer(ply)
 	self:SetVar("Founder", ply)
 	self:SetVar("FounderIndex", ply:UniqueID())
 
-	self:SetNetworkedString("FounderName", ply:Nick())
+	self:SetNWString("FounderName", ply:Nick())
 end
 
 function ENT:GetPlayer()
@@ -26,7 +26,7 @@ if CLIENT then
 	function ENT:Initialize()
 		self.bone_scale = {}
 		self:DoScale()
-		local ownerid = self:GetNetworkedInt("ownerid")
+		local ownerid = self:GetNWInt("ownerid")
 		self.blocked = blocked[ownerid] or false
 
 		self.clips = {}
@@ -318,7 +318,7 @@ if CLIENT then
 			local id = toblock:UserID()
 			blocked[id] = true
 			for _, ent in ipairs(ents.FindByClass("gmod_wire_hologram")) do
-				if ent:GetNetworkedInt("ownerid") == id then
+				if ent:GetNWInt("ownerid") == id then
 					ent.blocked = true
 				end
 			end
@@ -346,7 +346,7 @@ if CLIENT then
 			local id = toblock:UserID()
 			blocked[id] = nil
 			for _, ent in ipairs(ents.FindByClass("gmod_wire_hologram")) do
-				if ent:GetNetworkedInt("ownerid") == id then
+				if ent:GetNWInt("ownerid") == id then
 					ent.blocked = false
 				end
 			end

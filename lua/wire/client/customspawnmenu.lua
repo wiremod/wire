@@ -10,12 +10,15 @@ local custom_for_all_tabs = CreateConVar( "wire_tool_menu_custom_menu_for_all_ta
 local tab_width = CreateConVar( "wire_tool_menu_tab_width", -1, {FCVAR_ARCHIVE} )
 local horizontal_divider_width = CreateConVar( "wire_tool_menu_horizontal_divider_width", 0.28, {FCVAR_ARCHIVE} )
 local custom_icons = CreateConVar( "wire_tool_menu_custom_icons", 1, {FCVAR_ARCHIVE} )
+local autocollapse = CreateConVar( "wire_tool_menu_autocollapse", 0, {FCVAR_ARCHIVE} )
 
 -- Helper functions
 local function expandall( bool, nodes )
 	for i=1,#nodes do
-		nodes[i]:SetExpanded( bool )
-		if nodes[i].WireCookieText then cookie.Set( nodes[i].WireCookieText, bool and 1 or 0 ) end
+		if nodes[i].m_bExpanded ~= bool then
+			nodes[i]:SetExpanded( bool )
+			if nodes[i].WireCookieText then cookie.Set( nodes[i].WireCookieText, bool and 1 or 0 ) end
+		end
 		
 		if nodes[i].ChildNodes then
 			expandall( bool, nodes[i].ChildNodes:GetChildren() )
@@ -351,6 +354,11 @@ local function AddNode( list, text, icon, cookietext )
 	node.WireCookieText = cookietext
 	
 	function node:DoClick()
+		if autocollapse:GetBool() then
+			local parent = (list.RootNode and list.RootNode.ChildNodes:GetChildren() or list.ChildNodes:GetChildren())
+			expandall( false, parent )
+		end
+
 		local b = not self.m_bExpanded
 		self:SetExpanded( b )
 		
@@ -646,6 +654,9 @@ local function CreateCPanel( panel )
 	local UseIcons = panel:CheckBox( "Use custom icons", "wire_tool_menu_custom_icons" )
 	setUpTabReloadOnChange( UseIcons )
 	UseIcons:SetToolTip( "If disabled, all tools will use the 'wrench' icon." )
+
+	local AutoCollapse = panel:CheckBox( "Autocollapse", "wire_tool_menu_autocollapse" )
+	AutoCollapse:SetToolTip( "If enabled, opening a category will collapse other categories." )
 
 	local TabWidth = panel:NumSlider( "Tab width", "wire_tool_menu_tab_width", 300, 3000, 0 )
 	panel:Help( [[Set the width of all tabs.

@@ -179,74 +179,75 @@ local tostring_typeid = {
 	xv4 = 	tostrings.Vector4,
 }
 
-local function normal_table_tostring( tbl, indenting, abortafter )
-	local ret = ""
-	local cost = 0
+local function checkAbort( ret, cost, abortafter )
+	if abortafter and cost > abortafter then
+		if ret[#ret] ~= "\n- Aborted to prevent lag -" then
+			ret[#ret+1] = "\n- Aborted to prevent lag -"
+		end
+		return true
+	end
+
+	return false
+end
+
+local function normal_table_tostring( tbl, indenting, abortafter, cost )
+	local ret = {}
+	local cost = cost or 0
 	for k,v in pairs( tbl ) do
 		if tostrings[type(v)] then
-			ret = ret .. rep("\t",indenting) .. k .. "\t=\t" .. tostrings[type(v)]( v ) .. "\n"
+			ret[#ret+1] = rep("\t",indenting) .. k .. "\t=\t" .. tostrings[type(v)]( v ) .. "\n"
 			cost = cost + 1
 		else
-			ret = ret .. rep("\t",indenting) .. k .. "\t=\t" .. tostring(v) .. "\n"
+			ret[#ret+1] = rep("\t",indenting) .. k .. "\t=\t" .. tostring(v) .. "\n"
 			cost = cost + 1
 		end
-		if (abortafter and cost > abortafter) then
-			ret = ret .. "\n- Aborted to prevent lag -"
-			return ret, cost
-		end
+
+		if checkAbort( ret, cost, abortafter ) then return table.concat(ret), cost end
 	end
-	return ret, cost
+	return table.concat(ret), cost
 end
 
 local table_tostring
 
-local function var_tostring( k, v, typeid, indenting, printed, abortafter )
+local function var_tostring( k, v, typeid, indenting, printed, abortafter, cost )
 	local ret = ""
-	local cost = 0
+	local cost = (cost or 0) + 1
 	if (typeid == "t" and not printed[v]) then -- If it's a table
 		printed[v] = true
 		ret = rep("\t",indenting) .. k .. ":\n"
-		local ret2, cost2 = table_tostring( v, indenting + 2, printed, abortafter )
+		local ret2, cost2 = table_tostring( v, indenting + 2, printed, abortafter, cost )
 		ret = ret .. ret2
-		cost = cost2 + 1
+		cost = cost + cost2
 	elseif typeid == "r" and not printed[v] then -- if it's an array
 		printed[v] = true
 		ret = rep("\t",indenting) .. k .. ":\n"
-		local ret2, cost2 = normal_table_tostring( v, indenting + 2, abortafter )
+		local ret2, cost2 = normal_table_tostring( v, indenting + 2, abortafter, cost )
 		ret = ret .. ret2
-		cost = cost2 + 1
+		cost = cost2
 	elseif tostring_typeid[typeid] then -- if it's a type defined in this table
 		ret = rep("\t",indenting) .. k .. "\t=\t" .. tostring_typeid[typeid]( v ) .. "\n"
-		cost = 1
 	else -- if it's anything else
 		ret = rep("\t",indenting) .. k .. "\t=\t" .. tostring(v) .. "\n"
-		cost = 1
 	end
 	return ret, cost
 end
 
-table_tostring = function( tbl, indenting, printed, abortafter )
-	local ret = ""
-	local cost = 0
+table_tostring = function( tbl, indenting, printed, abortafter, cost )
+	local ret = {}
+	local cost = cost or 0
 	for k,v in pairs( tbl.n ) do
-		local ret2, cost2 = var_tostring( k, v, tbl.ntypes[k], indenting, printed, abortafter )
-		ret = ret .. ret2
-		cost = cost + cost2
-		if abortafter and cost > abortafter then
-			ret = ret .. "\n- Aborted to prevent lag -"
-			return ret, cost
-		end
+		if checkAbort( ret, cost, abortafter ) then return table.concat(ret), cost end
+		local ret2, cost2 = var_tostring( k, v, tbl.ntypes[k], indenting, printed, abortafter, cost )
+		ret[#ret+1] = ret2
+		cost = cost2
 	end
 	for k,v in pairs( tbl.s ) do
-		local ret2, cost2 = var_tostring( k, v, tbl.stypes[k], indenting, printed, abortafter )
-		ret = ret .. ret2
-		cost = cost + cost2
-		if (abortafter and cost > abortafter) then
-			ret = ret .. "\n- Aborted to prevent lag -"
-			return ret, cost
-		end
+		if checkAbort( ret, cost, abortafter ) then return table.concat(ret), cost end
+		local ret2, cost2 = var_tostring( k, v, tbl.stypes[k], indenting, printed, abortafter, cost )
+		ret[#ret+1] = ret2
+		cost = cost2
 	end
-	return ret, cost
+	return table.concat(ret), cost
 end
 
 --------------------------------------------------------------------------------
@@ -430,6 +431,11 @@ e2function void printTable( table tbl )
 	local ret, cost = table_tostring( tbl, 0, printed, 200 )
 	self.prf = self.prf + cost
 	for str in string.gmatch( ret, "[^\n]+" ) do
+		if #str > 250 then
+			self.prf = self.prf + 100
+			self.player:ChatPrint("PrintTable attempted to print too much. PrintTable was cancelled to prevent lag")
+			return
+		end
 		self.player:ChatPrint( str )
 	end
 end
@@ -589,7 +595,7 @@ __e2setcost(5)
 -- Formats the table as a human readable string
 e2function string table:toString()
 	local printed = { [this] = true }
-	local ret, cost = table_tostring( this, 0, printed )
+	local ret, cost = table_tostring( this, 0, printed, 400 )
 	self.prf = self.prf + cost * opcost
 	return ret
 end
@@ -858,12 +864,12 @@ local clamp = math.Clamp
 local function concat( tab, delimeter, startindex, endindex )
 	local ret = {}
 	local len = #tab
-	
+
 	startindex = startindex or 1
 	if startindex > len then return "" end
-	
+
 	endindex = clamp(endindex or len, startindex, len)
-	
+
 	for i=startindex, endindex do
 		ret[#ret+1] = tostring(tab[i])
 	end

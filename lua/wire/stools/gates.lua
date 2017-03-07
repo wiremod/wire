@@ -2,7 +2,6 @@
 WireToolSetup.setCategory( "Chips, Gates" )
 WireToolSetup.open( "gates", "Gates", "gmod_wire_gate", nil, "Gates" )
 
-WireToolSetup.BaseLang()
 WireToolSetup.SetupMax(100)
 
 if SERVER then
@@ -16,7 +15,6 @@ if CLIENT then
 
 	language.Add( "Tool.wire_gates.name", "Gates Tool (Wire)" )
 	language.Add( "Tool.wire_gates.desc", "Spawns gates for use with the wire system." )
-	language.Add( "Tool.wire_gates.0", "Primary: Create/Update Gate, Secondary: Copy Gate, Reload: Increase angle offset by 45 degrees, Shift+Reload: Unparent gate (If parented)." )
 
 	TOOL.ClientConVar["model"] = "models/jaanus/wiretool/wiretool_gate.mdl"
 	TOOL.ClientConVar["parent"] = 0
@@ -32,6 +30,13 @@ if CLIENT then
 	language.Add( "sboxlimit_wire_gates", "You've hit your gates limit!" )
 
 	WireToolSetup.setToolMenuIcon( "bull/gates/gate_logic_and" )
+
+	TOOL.Information = {
+		{ name = "left", text = "Create/Update Gate" },
+		{ name = "right", text = "Copy Gate" },
+		{ name = "reload", text = "Increase angle offset by 45 degrees" },
+		{ name = "reload_shift", text = "Shift+Reload: Unparent gate (If parented)" },
+	}
 
 	function TOOL.BuildCPanel( panel )
 		----------------- GATE SELECTION & SEARCHING
@@ -241,6 +246,8 @@ if CLIENT then
 
 	end
 end
+
+WireToolSetup.BaseLang()
 
 if SERVER then
 	function TOOL:GetConVars() 

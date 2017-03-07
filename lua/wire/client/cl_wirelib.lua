@@ -55,14 +55,14 @@ function Wire_Render(ent)
 				local len = ent:GetNetworkedBeamInt(net_name) or 0
 
 				if (len > 0) then
-					local start = ent:GetNetworkedBeamVector(net_name .. "_start")
-					if (ent:IsValid()) then start = ent:LocalToWorld(start) end
-					local color_v = ent:GetNetworkedBeamVector(net_name .. "_col")
-					local color = Color(color_v.x, color_v.y, color_v.z, 255)
-					local width = ent:GetNetworkedBeamFloat(net_name .. "_width")
 
+					local width = ent:GetNetworkedBeamFloat(net_name .. "_width")
 					if width > 0 then
 
+						local start = ent:GetNetworkedBeamVector(net_name .. "_start")
+						if (ent:IsValid()) then start = ent:LocalToWorld(start) end
+						local color_v = ent:GetNetworkedBeamVector(net_name .. "_col")
+						local color = Color(color_v.x, color_v.y, color_v.z, 255)
 						local scroll = CurTime()*WIRE_SCROLL_SPEED
 
 						render.SetMaterial(getmat(ent:GetNetworkedBeamString(net_name .. "_mat")))
@@ -283,7 +283,7 @@ function Wire_DrawTracerBeam( ent, beam_num, hilight, beam_length )
 		trace.start = start
 		trace.endpos = ent.endpos
 		trace.filter = { ent }
-		if ent:GetNetworkedBool("TraceWater") then trace.mask = MASK_ALL end
+		if ent:GetNWBool("TraceWater") then trace.mask = MASK_ALL end
 		trace = util.TraceLine(trace)
 
 		render.SetMaterial(beam_mat)
