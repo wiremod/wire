@@ -44,7 +44,7 @@ end
 function PreProcessor:FindComments(line)
 	local ret, count, pos, found = {}, 0, 1, nil
 	repeat
-		found = line:find('[#"]', pos)
+		found = line:find('[#"\\]', pos)
 		if found then -- We found something
 			local char = line:sub(found, found)
 			if char == "#" then -- We found a comment
@@ -67,13 +67,11 @@ function PreProcessor:FindComments(line)
 				end
 			elseif char == '"' then -- We found a string
 				local before = line:sub(found - 1, found - 1)
-				if before == "\\" and line:sub(found - 2, found - 2) ~= "\\" then -- It was an escaped character
-					pos = found + 1 -- Skip it
-				else -- It's a string
-					count = count + 1
-					ret[count] = { type = "string", pos = found }
-					pos = found + 1
-				end
+				count = count + 1
+				ret[count] = { type = "string", pos = found }
+				pos = found + 1
+			elseif char == '\\' then -- We found an escape character
+				pos = found + 2 -- Skip the escape character and the character following it
 			end
 		end
 		until (not found)
@@ -292,9 +290,11 @@ function PreProcessor:ParsePorts(ports, startoffset)
 	local names = {}
 	local types = {}
 	local columns = {}
+
+	-- Preprocess [Foo Bar]:entity into [Foo,Bar]:entity so we don't have to deal with split-up multi-variable definitions in the main loop
 	ports = ports:gsub("%[.-%]", function(s)
 		return s:gsub(" ", ",")
-	end) -- preprocess multi-variable definitions.
+	end)
 
 	for column, key in ports:gmatch("()([^ ]+)") do
 		column = startoffset + column

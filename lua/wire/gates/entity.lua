@@ -4,19 +4,10 @@
 
 GateActions("Entity")
 
-local function checkv( v )
-	return 	-math.huge < v.x and v.x < math.huge and
-			-math.huge < v.y and v.y < math.huge and
-			-math.huge < v.z and v.z < math.huge
-end
-
-local function checka( v )
-	return 	-math.huge < v.p and v.p < math.huge and
-			-math.huge < v.y and v.y < math.huge and
-			-math.huge < v.r and v.r < math.huge
-end
+local check = WireLib.checkForce
 
 local function isAllowed( gate, ent )
+	if not IsValid(gate:GetPlayer()) then return false end
 	return hook.Run( "PhysgunPickup", gate:GetPlayer(), ent ) ~= false
 end
 
@@ -31,9 +22,9 @@ GateActions["entity_applyf"] = {
 		if not IsValid( phys ) then return end
 		if not isAllowed( gate, ent ) then return end
 		if !isvector(vec) then vec = Vector (0, 0, 0) end
-		if not checkv(vec) then return end
+		if not check(vec) then return end
 		if vec.x == 0 and vec.y == 0 and vec.z == 0 then return end
-	
+
 		phys:ApplyForceCenter( vec )
 	end,
 	label = function(_,ent,vec)
@@ -53,9 +44,9 @@ GateActions["entity_applyof"] = {
 		if not isAllowed( gate, ent ) then return end
 		if !isvector(vec) then vec = Vector (0, 0, 0) end
 		if !isvector(offset) then offset = Vector (0, 0, 0) end
-		if not checkv(vec) or not checkv( offset ) then return end
+		if not check(vec) or not check( offset ) then return end
 		if vec.x == 0 and vec.y == 0 and vec.z == 0 then return end
-		
+
 		phys:ApplyForceOffset(vec, offset)
 	end,
 	label = function(_,ent,vec,offset)
@@ -75,7 +66,7 @@ GateActions["entity_applyaf"] = {
 		local phys = ent:GetPhysicsObject()
 		if not IsValid( phys ) then return end
 		if not isAllowed( gate, ent ) then return end
-		if not checka( angForce ) then return end
+		if not check( angForce ) then return end
 		if angForce.p == 0 and angForce.y == 0 and angForce.r == 0 then return end
 
 		-- assign vectors
@@ -124,7 +115,7 @@ GateActions["entity_applytorq"] = {
 		if not isAllowed( gate, ent ) then return end
 		if !isvector(vec) then vec = Vector (0, 0, 0) end
 		if !isvector(offset) then offset = Vector (0, 0, 0) end
-		if not checkv(vec) or not checkv( offset ) then return end
+		if not check(vec) or not check( offset ) then return end
 		if vec.x == 0 and vec.y == 0 and vec.z == 0 then return end
 
 		local tq = vec
@@ -144,7 +135,7 @@ GateActions["entity_applytorq"] = {
 
 		local dir = ( tq:Cross(off) ):GetNormal()
 
-		if not checkv( dir ) or not checkv( off ) then return end
+		if not check( dir ) or not check( off ) then return end
 		phys:ApplyForceOffset( dir, off )
 		phys:ApplyForceOffset( dir * -1, off * -1 )
 	end,

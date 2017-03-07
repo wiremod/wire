@@ -282,6 +282,10 @@ e2function number operator==( table rv1, table rv2 )
 	return (rv1 == rv2) and 1 or 0
 end
 
+e2function number operator!=( table rv1, table rv2 )
+	return (rv1 ~= rv2) and 1 or 0
+end
+
 __e2setcost(nil)
 
 registerOperator("fea","t","",function(self,args)

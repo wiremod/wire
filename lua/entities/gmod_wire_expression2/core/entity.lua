@@ -336,7 +336,7 @@ e2function number entity:isValid()
 	return IsValid(this) and 1 or 0
 end
 
---- Returns 1 if <this> has valid physics. Note: Players do not. 
+--- Returns 1 if <this> has valid physics. Note: Players do not.
 e2function number entity:isValidPhysics()
 	return E2Lib.validPhysics(this) and 1 or 0
 end
@@ -442,18 +442,7 @@ end
 
 __e2setcost(30) -- temporary
 
-local function check( v )
-	return 	-math.huge < v[1] and v[1] < math.huge and
-			-math.huge < v[2] and v[2] < math.huge and
-			-math.huge < v[3] and v[3] < math.huge
-end
-
-local function checkv( v )
-	return 	-math.huge < v.x and v.x < math.huge and
-			-math.huge < v.y and v.y < math.huge and
-			-math.huge < v.z and v.z < math.huge
-end
-
+local check = WireLib.checkForce
 
 e2function void entity:applyForce(vector force)
 	if not validPhysics(this) then return nil end
@@ -538,7 +527,7 @@ e2function void entity:applyTorque(vector torque)
 
 	local dir = ( tq:Cross(off) ):GetNormal()
 
-	if not checkv( dir ) or not checkv( off ) then return end
+	if not check( dir ) or not check( off ) then return end
 	phys:ApplyForceOffset( dir, off )
 	phys:ApplyForceOffset( dir * -1, off * -1 )
 end

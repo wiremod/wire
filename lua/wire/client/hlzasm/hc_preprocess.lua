@@ -9,7 +9,7 @@
 --------------------------------------------------------------------------------
 -- Load file
 function HCOMP:LoadFile(filename)
-  return file.Read("data/"..self.Settings.CurrentPlatform.."Chip/"..filename, "GAME") // So we also get /addons/wire/data/
+  return file.Read("data/"..self.Settings.CurrentPlatform.."Chip/"..filename, "GAME") -- So we also get /addons/wire/data/
 end
 
 -- Save file

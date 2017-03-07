@@ -999,3 +999,25 @@ function nicenumber.nicetime( n )
 		return "0s"
 	end
 end
+
+
+-- Used by any applyForce function available to the user
+-- Ensures that the force is within the range of a float, to prevent
+-- physics engine crashes
+local min_force = -3.4E+38
+local max_force =  3.4E+38
+function WireLib.checkForce(v)
+	if isvector(v) then
+		return 	min_force < v.x and v.x < max_force and
+				min_force < v.y and v.y < max_force and
+				min_force < v.z and v.z < max_force
+	elseif isangle(v) then
+		return 	min_force < v.p and v.p < max_force and
+				min_force < v.y and v.y < max_force and
+				min_force < v.r and v.r < max_force
+	else -- E2 vectors/angles
+		return 	min_force < v[1] and v[1] < max_force and
+				min_force < v[2] and v[2] < max_force and
+				min_force < v[3] and v[3] < max_force
+	end
+end

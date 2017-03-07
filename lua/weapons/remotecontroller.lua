@@ -30,59 +30,83 @@ SWEP.worldModel = "models/weapons/w_pistol.mdl"
 if CLIENT then return end
 
 function SWEP:PrimaryAttack()
-	local trace = self:GetOwner():GetEyeTrace()
-	if IsValid(trace.Entity) and trace.Entity:GetClass() == "gmod_wire_pod" and gamemode.Call("PlayerUse", self:GetOwner(), trace.Entity) then
+	local ply = self:GetOwner()
+	local trace = ply:GetEyeTrace()
+	if IsValid(trace.Entity) and trace.Entity:GetClass() == "gmod_wire_pod" and gamemode.Call("PlayerUse", ply, trace.Entity) then
 		self.Linked = trace.Entity
-		self:GetOwner():ChatPrint("Remote Controller linked.")
+		ply:ChatPrint("Remote Controller linked.")
 	end
 end
 
 function SWEP:Holster()
-	if (self.Linked) then
+	if self.Linked then
 		self:Off()
 	end
+
+	return true
+end
+
+function SWEP:Deploy()
 	return true
 end
 
 function SWEP:OnDrop()
-	if (self.Linked) then
-		self:Off()
-		self.Linked = nil
-	end
+	if not self.Linked then return end
+
+	self:Off()
+	self.Linked = nil
 end
 
 function SWEP:On()
+	local ply = self:GetOwner()
+
+	if self.Linked:HasPly() then
+		if hook.Run("CanTool", ply, WireLib.dummytrace(self.Linked), "remotecontroller") then
+			if self.Linked.RC then
+				self.Linked:RCEject(self.Linked:GetPly())
+			else
+				self.Linked:GetPly():ExitVehicle()
+			end
+		else
+			ply:ChatPrint("Pod is in use.")
+			return
+		end
+	end
+
 	self.Active = true
-	self.OldMoveType = self:GetOwner():GetMoveType()
-	self:GetOwner():SetMoveType(MOVETYPE_NONE)
-	self:GetOwner():DrawViewModel(false)
-	if (self.Linked and self.Linked:IsValid()) then
-		self.Linked:PlayerEntered( self:GetOwner(), self )
+	self.OldMoveType = not ply:InVehicle() and ply:GetMoveType() or MOVETYPE_WALK
+	ply:SetMoveType(MOVETYPE_NONE)
+	ply:DrawViewModel(false)
+
+	if IsValid(self.Linked) then
+		self.Linked:PlayerEntered(ply, self)
 	end
 end
+
 function SWEP:Off()
+	local ply = self:GetOwner()
+
 	if self.Active then
-		self:GetOwner():SetMoveType(self.OldMoveType or MOVETYPE_WALK)
+		ply:SetMoveType(self.OldMoveType or MOVETYPE_WALK)
 	end
+
 	self.Active = nil
 	self.OldMoveType = nil
-	self:GetOwner():DrawViewModel(true)
-	if (self.Linked and self.Linked:IsValid()) then
-		self.Linked:PlayerExited( self:GetOwner() )
+	ply:DrawViewModel(true)
+	
+	if IsValid(self.Linked) then
+		self.Linked:PlayerExited(ply)
 	end
 end
 
 function SWEP:Think()
-	if (!self.Linked) then return end
-	if (self:GetOwner():KeyPressed( IN_USE )) then
-		if (!self.Active) then
+	if not self.Linked then return end
+
+	if self:GetOwner():KeyPressed(IN_USE) then
+		if not self.Active then
 			self:On()
 		else
 			self:Off()
 		end
 	end
-end
-
-function SWEP:Deploy()
-	return true
 end

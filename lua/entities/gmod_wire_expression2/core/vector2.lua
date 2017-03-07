@@ -1096,8 +1096,8 @@ __e2setcost(7)
 -- Returns a random vector4 between -1 and 1
 e2function vector4 randvec4()
 	local vec = { random()*2-1, random()*2-1, random()*2-1, random()*2-1 }
-	local length = sqrt( vec[1]^2+vec[2]^2+vec[3]^2+vec[4]^2 )
-	return { vec[1] / length, vec[2] / length }
+	local length = ( vec[1]^2+vec[2]^2+vec[3]^2+vec[4]^2 ) ^ 0.5 -- x ^ 0.5 <=> math.sqrt( x )
+	return { vec[1] / length, vec[2] / length, vec[3] / length, vec[4] / length }
 end
 
 -- Returns a random vector4 between min and max

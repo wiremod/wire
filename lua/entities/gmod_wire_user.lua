@@ -14,34 +14,33 @@ function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )
 	self:SetMoveType( MOVETYPE_VPHYSICS )
 	self:SetSolid( SOLID_VPHYSICS )
-	self.Inputs = Wire_CreateInputs(self, { "Fire"})
+	self.Inputs = WireLib.CreateInputs(self, {"Fire"})
 	self:Setup(2048)
 end
 
 function ENT:Setup(Range)
 	if Range then self:SetBeamLength(Range) end
 end
-
 function ENT:TriggerInput(iname, value)
-	if (iname == "Fire") then
-		if (value ~= 0) then
-			local vStart = self:GetPos()
+	if iname == "Fire" and value ~= 0 then
+		local vStart = self:GetPos()
 
-			local trace = util.TraceLine( {
-				start = vStart,
-				endpos = vStart + (self:GetUp() * self:GetBeamLength()),
-				filter = { self },
-			})
+		local trace = util.TraceLine( {
+			start = vStart,
+			endpos = vStart + (self:GetUp() * self:GetBeamLength()),
+			filter = { self },
+		})
 
-			if not IsValid(trace.Entity) then return false end
-			local ply = self:GetPlayer()
-			if not IsValid(ply) then ply = self end
-			
-			if trace.Entity.Use then
-				trace.Entity:Use(ply,ply,USE_ON,0)
-			else
-				trace.Entity:Fire("use","1",0)
-			end
+		if not IsValid(trace.Entity) then return false end
+		local ply = self:GetPlayer()
+		if not IsValid(ply) then ply = self end
+
+		if not hook.Run( "PlayerUse", ply, trace.Entity ) then return false end
+
+		if trace.Entity.Use then
+			trace.Entity:Use(ply,ply,USE_ON,0)
+		else
+			trace.Entity:Fire("use","1",0)
 		end
 	end
 end

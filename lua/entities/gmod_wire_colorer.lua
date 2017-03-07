@@ -121,7 +121,7 @@ function ENT:TriggerInput(iname, value)
 			filter = { self }
 		}
 		if not IsValid(trace.Entity) then return end
-		if not hook.Run( "CanTool", self:GetOwner(), trace, "colour" ) then return end
+		if not hook.Run( "CanTool", self:GetPlayer(), trace, "colour" ) then return end
 			
 		if trace.Entity:IsPlayer() then
 			trace.Entity:SetColor(Color(self.InColor.r, self.InColor.g, self.InColor.b, 255))
