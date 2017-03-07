@@ -1071,7 +1071,7 @@ function WireLib.CanModel(player, model, skin)
 	if not util.IsValidModel(model) then return false end
 	if skin ~= nil then
 		local count = WireLib.NumModelSkins(model)
-		if count and (skin < 0 or skin >= count) then return false end
+		if skin < 0 or (count and skin >= count) then return false end
 	end
 	if IsValid(player) and player:IsPlayer() and not hook.Run("PlayerSpawnObject", player, model, skin) then return false end
 	return true
