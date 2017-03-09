@@ -95,11 +95,16 @@ function ENT:Jump( withangles )
 	-- Get the localized positions
 	local ents = constraint.GetAllConstrainedEntities( self )
 
+	-- If the teleporter is parented, and not constrained, then get the contraption of the parent instead
+	local val = next(ents) -- the first value of GetAllConstrainedEntities is always 'self', so we skip this value and check the next
+	if next(ents,val) == nil and IsValid(self:GetParent()) then
+		ents = constraint.GetAllConstrainedEntities( self:GetParent() )
+	end
+
 	-- Check world
 	self.Entities = {}
 	self.OtherEntities = {}
 	for _, ent in pairs( ents ) do
-
 		-- Calculate the position after teleport, without actually moving the entity
 		local pos = self:WorldToLocal( ent:GetPos() )
 		pos:Rotate( self.TargetAng )
@@ -115,8 +120,6 @@ function ENT:Jump( withangles )
 			else -- If the entity can't be teleported
 				self.OtherEntities[#self.OtherEntities+1] = ent
 			end
-
-
 		end
 	end
 
@@ -199,6 +202,11 @@ function ENT:Jump_Part2( withangles )
 	--------------------------------------------------------------------
 	-- The teleporter itself
 	--------------------------------------------------------------------
+
+	-- Save old parent and then unparent the teleporter (is restored after teleporting)
+	-- This prevents an issue that deletes the entire contraption
+	local parent = self:GetParent()
+	self:SetParent()
 
 	local oldvel = self:WorldToLocal( self:GetVelocity() + self:GetPos() ) -- Velocity
 	self:SetPos( self.TargetPos ) -- Position
@@ -284,6 +292,8 @@ function ENT:Jump_Part2( withangles )
 			DoPropSpawnedEffect( ent )
 		end
 	end
+
+	self:SetParent( parent ) -- restore parent
 
 	-- Cooldown - prevent teleporting for a time
 	timer.Create(
