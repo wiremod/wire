@@ -1004,8 +1004,12 @@ end
 -- Used by any applyForce function available to the user
 -- Ensures that the force is within the range of a float, to prevent
 -- physics engine crashes
-local min_force = -3.4E+38
-local max_force =  3.4E+38
+-- 2*maxmass*maxvelocity should be enough impulse to do whatever you want.
+local max_force, min_force
+hook.Add("InitPostEntity","WireForceLimit",function()
+	max_force = 100000*physenv.GetPerformanceSettings().MaxVelocity
+	min_force = -max_force
+end)
 function WireLib.checkForce(v)
 	if isvector(v) then
 		return 	min_force < v.x and v.x < max_force and
