@@ -24,6 +24,8 @@ function ENT:Initialize()
 	self.ScreenWidth = 32
 	self.ScreenHeight = 32
 
+	self.NumOfWrites = 0
+
 	self.ChangedCellRanges = {}
 end
 
@@ -51,6 +53,8 @@ function ENT:ReadCell(Address)
 end
 
 function ENT:MarkCellChanged(Address)
+	self.NumOfWrites = self.NumOfWrites + 1
+
 	local lastrange = self.ChangedCellRanges[#self.ChangedCellRanges]
 	if lastrange then
 		if Address == lastrange.start + lastrange.length then
@@ -79,57 +83,65 @@ local function numberToString(t, number, bytes)
 	for j=1,bytes do
 		str[#str+1] = string.char(number % 256)
 		number = math.floor(number / 256)
-    end
+	end
 	t[#t+1] = table.concat(str)
+end
+
+local function buildData(datastr, memory, pixelbit, start, length)
+	numberToString(datastr,length,3) -- Length of range
+	numberToString(datastr,start,3) -- Address of range
+	for i = start, start + length - 1 do
+		if i>=1048500 then
+			numberToString(datastr,memory[i],2)
+		else
+			numberToString(datastr,memory[i],pixelbit)
+		end
+	end
 end
 
 util.AddNetworkString("wire_digitalscreen")
 
-local pixelbits = {20, 8, 24, 30, 8, 3, 1, 3, 4, 1} --The compressed pixel formats are in bytes
+local pixelbits = {3, 1, 3, 4, 1} --The compressed pixel formats are in bytes
 function ENT:FlushCache(ply)
 	if not next(self.ChangedCellRanges) then return end
-	
-	local compression = self.Memory[1048576] or 1
-	local pixelformat = (self.Memory[1048569] or 0) + 1
-	local pixelbit = pixelbits[pixelformat]
-	local bitsremaining = 480000
-	local buildData
-	local datastr
-	
-	if compression==0 then
-		buildData = function(start, length)
-			net.WriteUInt(length, 20) -- Length of range
-			net.WriteUInt(start, 20) -- Address of range
-			for i = start, start + length - 1 do
-				if i>=1048500 then
-					net.WriteUInt(self.Memory[i], 10)
-				else
-					net.WriteUInt(self.Memory[i], pixelbit)
-				end
-			end
+
+	if not ply then
+		-- If the user is writing a lot of data, activate buffering
+		if self.NumOfWrites > 4000 then
+			self.UseBuffering = true
+		else
+			self.UseBuffering = nil
 		end
-	else
-		datastr = {}
-		pixelbit = pixelbits[pixelformat+5]
-		
-		buildData = function(start, length)
-			numberToString(datastr,length,3) -- Length of range
-			numberToString(datastr,start,3) -- Address of range
-			for i = start, start + length - 1 do
-				if i>=1048500 then
-					numberToString(datastr,self.Memory[i],2)
-				else
-					numberToString(datastr,self.Memory[i],pixelbit)
+
+		self.NumOfWrites = 0
+
+		if self.UseBuffering then
+			-- This section allows the data to build up until 
+			-- the user stops writing data, or up to three seconds
+			if not self.WaitToFlush then
+				self.OldChangedCount = #self.ChangedCellRanges
+				self.WaitToFlush = CurTime() + 3
+				return
+			elseif self.WaitToFlush >= CurTime() then
+				if #self.ChangedCellRanges > self.OldChangedCount then
+					self.OldChangedCount = #self.ChangedCellRanges
+					return
 				end
 			end
 		end
 	end
+
+	self.WaitToFlush = nil
+	
+	local pixelformat = (self.Memory[1048569] or 0) + 1
+	local pixelbit = pixelbits[pixelformat]
+	local bitsremaining = 480000
+	local datastr = {}	
 	
 	net.Start("wire_digitalscreen")
 	net.WriteUInt(self:EntIndex(),16)
-	net.WriteUInt(compression,1)
 	net.WriteUInt(pixelformat, 5)
-	bitsremaining = bitsremaining - 22
+	bitsremaining = bitsremaining - 21
 	
 	while bitsremaining>0 and next(self.ChangedCellRanges) do
 		local range = self.ChangedCellRanges[1]
@@ -139,19 +151,15 @@ function ENT:FlushCache(ply)
 		range.length = range.length - length --Update the range and remove it if its empty
 		range.start = start + length
 		if range.length==0 then table.remove(self.ChangedCellRanges, 1) end
-		
-		buildData(start, length)
+
+		buildData(datastr, self.Memory, pixelbit, start, length)
 		
 		bitsremaining = bitsremaining - length*pixelbit
 	end
-		
-	if compression==0 then
-		net.WriteUInt(0, 20)
-	else
-		numberToString(datastr,0,3)
-		local compressed = util.Compress(table.concat(datastr))
-		net.WriteData(compressed,#compressed)
-	end
+
+	numberToString(datastr,0,3)
+	local compressed = util.Compress(table.concat(datastr))
+	net.WriteData(compressed,#compressed)
 	
 	if ply then net.Send(ply) else net.Broadcast() end
 end

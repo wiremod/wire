@@ -32,6 +32,8 @@ function ENT:Initialize()
 	//1048575 - CLK
 
 	self.GPU = WireGPU(self)
+
+	self.buffer = {}
 	
 	WireLib.netRegister(self)
 end
@@ -46,65 +48,67 @@ local function stringToNumber(index, str, bytes)
 	str = str:sub(index,newpos-1)
 	local n = 0
 	for j=1,bytes do
-		n = n + str:byte(j)*math.pow(256,j-1)
+		n = n + str:byte(j)*(256^(j-1))
     end
 	return n, newpos
 end
 
-local pixelbits = {20, 8, 24, 30, 8, 3, 1, 3, 4, 1}
+local pixelbits = {3, 1, 3, 4, 1}
 net.Receive("wire_digitalscreen", function(netlen)
 	local ent = Entity(net.ReadUInt(16))
 	
 	if IsValid(ent) and ent.Memory1 and ent.Memory2 then
-		local compression = net.ReadUInt(1)
 		local pixelformat = net.ReadUInt(5)
 		local pixelbit = pixelbits[pixelformat]
 		local readData
 		
-		if compression==0 then
-			readData = function()
-				local length = net.ReadUInt(20)
-				if length == 0 then return end
-				local address = net.ReadUInt(20)
-				for i = address, address + length - 1 do
-					if i>=1048500 then
-						ent:WriteCell(i, net.ReadUInt(10))
-					else
-						ent:WriteCell(i, net.ReadUInt(pixelbit))
-					end
-				end
-				return true
-			end
-		else
-			pixelbit = pixelbits[pixelformat+5]
-			local datastr = util.Decompress(net.ReadData((netlen-22)/8))
-			if not datastr then return end
-			local readIndex = 1
-			
-			readData = function()
-				local length
-				length, readIndex = stringToNumber(readIndex,datastr,3)
-				if length == 0 then return end
-				local address
-				address, readIndex = stringToNumber(readIndex,datastr,3)
-				for i = address, address + length - 1 do
-					if i>=1048500 then
-						local data
-						data, readIndex = stringToNumber(readIndex,datastr,2)
-						ent:WriteCell(i, data)
-					else
-						local data
-						data, readIndex = stringToNumber(readIndex,datastr,pixelbit)
-						ent:WriteCell(i, data)
-					end
-				end
-				return true
-			end
-		end
-	
-		while readData() do end
+		local datastr = util.Decompress(net.ReadData((netlen-21)/8))
+		if not datastr then return end
+		local readIndex = 1
+
+		ent:AddBuffer(datastr,pixelbit)
 	end
 end)
+
+function ENT:AddBuffer(datastr,pixelbit)
+	self.buffer[#self.buffer+1] = {datastr=datastr,readIndex=1,pixelbit=pixelbit}
+end
+
+function ENT:ProcessBuffer()
+	if not self.buffer[1] then return end
+
+	local datastr = self.buffer[1].datastr
+	local readIndex = self.buffer[1].readIndex
+	local pixelbit = self.buffer[1].pixelbit
+
+	local length
+	length, readIndex = stringToNumber(readIndex,datastr,3)
+	if length == 0 then
+		table.remove( self.buffer, 1 )
+		return
+	end
+	local address
+	address, readIndex = stringToNumber(readIndex,datastr,3)
+	for i = address, address + length - 1 do
+		if i>=1048500 then
+			local data
+			data, readIndex = stringToNumber(readIndex,datastr,2)
+			self:WriteCell(i, data)
+		else
+			local data
+			data, readIndex = stringToNumber(readIndex,datastr,pixelbit)
+			self:WriteCell(i, data)
+		end
+	end
+
+	self.buffer[1].readIndex = readIndex
+end
+
+function ENT:Think()
+	self:ProcessBuffer()
+	self:NextThink(CurTime()+0.1)
+	return true
+end
 
 function ENT:ReadCell(Address,value)
 	if Address < 0 then return nil end
@@ -299,7 +303,6 @@ function ENT:Draw()
 				self.NeedRefresh = true
 			end
 		end)
-
 	end
 
 	self.GPU:Render()
