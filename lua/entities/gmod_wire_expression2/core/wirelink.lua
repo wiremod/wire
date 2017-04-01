@@ -107,6 +107,17 @@ local function WriteArray(entity, address, data)
 	return free_address
 end
 
+local function writeArraySimple(entity, address, data)
+	local written = 0
+	for index, value in pairs(data) do
+		if type(value) == "number" then
+			if not entity:WriteCell(address + index - 1, value) then return 0 end
+			written = written + 1
+		end
+	end
+	return written
+end
+
 /******************************************************************************/
 
 registerType("wirelink", "xwl", nil,
@@ -649,4 +660,15 @@ e2function number wirelink:writeTable(address, table data )
 	local ret = WriteArray(this,address,data.n)
 	wa_lookup = nil
 	return ret
+end
+
+--- Writes only an array's numeric elements into a piece of memory, without null termination, returns number of elements written
+e2function number wirelink:writeArraySimple(address, array data)
+	if not validWirelink(self, this) or not this.WriteCell then return 0 end
+	return writeArraySimple(this, address, data)
+end
+
+e2function number wirelink:writeTableSimple(address, table data)
+	if not validWirelink(self, this) or not this.WriteCell then return 0 end
+	return writeArraySimple(this, address, data.n)
 end
