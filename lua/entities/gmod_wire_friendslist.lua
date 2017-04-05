@@ -11,7 +11,6 @@ function ENT:Initialize()
 	WireLib.CreateInputs( self, {"CheckEntity [ENTITY]", "CheckSteamID [STRING]", "CheckEntityID"} )
 	WireLib.CreateOutputs( self, {"Checked", "Friends [ARRAY]", "AmountConnected", "AmountTotal"} )
 
-	self.friends = {}
 	self.friends_lookup = {}
 	self.steamids = {}
 	self.steamids_lookup = {}
@@ -29,7 +28,6 @@ end
 function ENT:UpdateFriendslist( friends_steamids )
 	if self.save_on_entity then return end
 
-	self.friends = {}
 	self.friends_lookup = {}
 
 	self.steamids = table.Copy(friends_steamids)
@@ -53,8 +51,7 @@ function ENT:Connected( ply )
 	if self.friends_lookup[ply] then return end
 
 	if self.steamids_lookup[ply:SteamID()] then
-		self.friends[#self.friends+1] = ply
-		self.friends_lookup[ply] = #self.friends
+		self.friends_lookup[ply] = true
 		self:UpdateOutputs()
 	end
 end
@@ -66,9 +63,6 @@ function ENT:Disconnected( ply )
 	if not self.friends_lookup[ply] then return end
 
 	if self.steamids_lookup[ply:SteamID()] then
-		local idx = self.friends_lookup[ply]
-
-		table.remove( self.friends, idx )
 		self.friends_lookup[ply] = nil
 		self:UpdateOutputs()
 	end
@@ -114,10 +108,11 @@ function ENT:UpdateOutputs()
 	local str = {}
 
 	str[#str+1] = "Saved on entity: " .. (self.save_on_entity and "Yes" or "No") .. "\n"
-	str[#str+1] = #self.friends .. " connected friends"
+	str[#str+1] = #self.steamids .. " total friends"
 	str[#str+1] = "\nConnected:"
 
 	local not_connected = {}
+	local connected = {}
 
 	for i=1, #self.steamids do
 		local steamid = self.steamids[i]
@@ -125,15 +120,16 @@ function ENT:UpdateOutputs()
 
 		if IsValid( ply ) then
 			str[#str+1] = ply:Nick() .. " (" .. steamid .. ")"
+			connected[#connected+1] = ply
 		else
 			not_connected[#not_connected+1] = steamid
 		end
 	end
 
-	table.insert( str, 2, #self.steamids .. " total friends" )
+	table.insert( str, 2, #connected .. " connected friends" )
 
-	WireLib.TriggerOutput( self, "Friends", self.friends )
-	WireLib.TriggerOutput( self, "AmountConnected", #self.friends )
+	WireLib.TriggerOutput( self, "Friends", connected )
+	WireLib.TriggerOutput( self, "AmountConnected", #connected )
 	WireLib.TriggerOutput( self, "AmountTotal", #self.steamids )
 
 	local str = table.concat( str, "\n" )
