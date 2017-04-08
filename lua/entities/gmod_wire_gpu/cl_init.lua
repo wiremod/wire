@@ -176,9 +176,11 @@ function ENT:SetRendertarget(ID)
 
   if not ID then -- Restore state
     if self.In2D == true then self.In2D = false cam.End2D() end
-    if self.ScreenRT then
+    if self.ScreenRTSet then
       render.SetViewPort(0,0,self.ScreenRTWidth,self.ScreenRTHeight)
       render.SetRenderTarget(self.ScreenRT)
+
+      self.ScreenRTSet = nil
       self.ScreenRT = nil
 
       self.VM.ScreenWidth = self.VM.VertexScreenWidth or 512
@@ -193,10 +195,11 @@ function ENT:SetRendertarget(ID)
   else
     -- Remember screen RT if this is the first switch
     local noRT = true
-    if not self.ScreenRT then
+    if not self.ScreenRTSet then
       self.ScreenRT = render.GetRenderTarget()
       self.ScreenRTWidth = ScrW()
       self.ScreenRTHeight = ScrH()
+      self.ScreenRTSet = true
       noRT = false
     end
 
