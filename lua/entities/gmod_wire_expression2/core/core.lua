@@ -423,7 +423,7 @@ end
 
 --- If used as a while loop condition, stabilizes the expression around <maxexceed> hardquota used.
 e2function number perf()
-	if self.prf >= e2_tickquota*0.95 then return 0 end
+	if self.prf >= e2_tickquota*0.95-200 then return 0 end
 	if self.prf + self.prfcount >= e2_hardquota then return 0 end
 	if self.prf >= e2_softquota*2 then return 0 end
 	return 1
