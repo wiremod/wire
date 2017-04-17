@@ -168,20 +168,24 @@ function EDITOR:ResetTokenizer(row)
 
     local str = string_gsub( table_concat( self.Rows, "\n", 1, self.Scroll[1]-1 ), "\r", "" )
 
-    for before, char, after in string_gmatch( str, '()([#"\n])()' ) do
-      local before = string_sub( str, before-1, before-1  )
-      local after = string_sub( str, after, after )
+    for pos, char in string_gmatch( str, '()([#"\n])' ) do
       if not self.blockcomment and not self.multilinestring and not singlelinecomment then
         if char == '"' then
           self.multilinestring = true
-        elseif char == "#" and after == "[" then
+        elseif char == "#" and string_sub( str, pos + 1, pos + 1 ) == "[" then
           self.blockcomment = true
         elseif char == "#" then
           singlelinecomment = true
         end
-      elseif self.multilinestring and char == '"' and before ~= "\\" then
-        self.multilinestring = nil
-      elseif self.blockcomment and char == "#" and before == "]" then
+      elseif self.multilinestring and char == '"' then
+        local escapecount = 0
+        while pos - escapecount - 1 > 0 and string_sub( str, pos - escapecount - 1, pos - escapecount -1 ) == "\\" do
+          escapecount = escapecount + 1
+        end
+        if escapecount % 2 == 0 then
+          self.multilinestring = nil
+        end
+      elseif self.blockcomment and char == "#" and string_sub( str, pos - 1, pos - 1  ) == "]" then
         self.blockcomment = nil
       elseif singlelinecomment and char == "\n" then
         singlelinecomment = false
