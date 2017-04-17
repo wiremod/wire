@@ -1813,19 +1813,19 @@ function Editor:LoadFile(Line, forcenewtab)
 				end
 			end
 		end
-		if not self.chip then
-			local title, tabtext = getPreferredTitles(Line, str)
-			local tab
-			if self.NewTabOnOpen:GetBool() or forcenewtab then
-				tab = self:CreateTab(tabtext).Tab
-			else
-				tab = self:GetActiveTab()
-				tab:SetText(tabtext)
-				self.C.TabHolder:InvalidateLayout()
-			end
-			self:SetActiveTab(tab)
-			self:ChosenFile(Line)
+
+		local title, tabtext = getPreferredTitles(Line, str)
+		local tab
+		if self.NewTabOnOpen:GetBool() or forcenewtab then
+			tab = self:CreateTab(tabtext).Tab
+		else
+			tab = self:GetActiveTab()
+			tab:SetText(tabtext)
+			self.C.TabHolder:InvalidateLayout()
 		end
+		self:SetActiveTab(tab)
+		self:ChosenFile(Line)
+
 		self:SetCode(str)
 	end
 end
