@@ -78,7 +78,8 @@ KeyValue = Expr1 ("=" Expr1)?
 ]]
 -- ----------------------------------------------------------------------------------
 
-Parser = {}
+E2Lib.Parser = {}
+local Parser = E2Lib.Parser
 Parser.__index = Parser
 
 function Parser.Execute(...)

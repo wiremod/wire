@@ -229,7 +229,7 @@ function ENT:CompileCode(buffer, files, filepath)
 		self.filepath = filepath
 	end
 
-	local status, directives, buffer = PreProcessor.Execute(buffer,nil,self)
+	local status, directives, buffer = E2Lib.PreProcessor.Execute(buffer,nil,self)
 	if not status then self:Error(directives) return end
 	self.buffer = buffer
 	self.error = false
@@ -249,15 +249,15 @@ function ENT:CompileCode(buffer, files, filepath)
 	self.persists = directives.persist
 	self.trigger = directives.trigger
 
-	local status, tokens = Tokenizer.Execute(self.buffer)
+	local status, tokens = E2Lib.Tokenizer.Execute(self.buffer)
 	if not status then self:Error(tokens) return end
 
-	local status, tree, dvars = Parser.Execute(tokens)
+	local status, tree, dvars = E2Lib.Parser.Execute(tokens)
 	if not status then self:Error(tree) return end
 
 	if not self:PrepareIncludes(files) then return end
 
-	local status, script, inst = Compiler.Execute(tree, self.inports[3], self.outports[3], self.persists[3], dvars, self.includes)
+	local status, script, inst = E2Lib.Compiler.Execute(tree, self.inports[3], self.outports[3], self.persists[3], dvars, self.includes)
 	if not status then self:Error(script) return end
 
 	self.script = script
@@ -285,19 +285,19 @@ function ENT:PrepareIncludes(files)
 	self.includes = {}
 
 	for file, buffer in pairs(files) do
-		local status, directives, buffer = PreProcessor.Execute(buffer, self.directives)
+		local status, directives, buffer = E2Lib.PreProcessor.Execute(buffer, self.directives)
 		if not status then
 			self:Error("(" .. file .. ")" .. directives)
 			return
 		end
 
-		local status, tokens = Tokenizer.Execute(buffer)
+		local status, tokens = E2Lib.Tokenizer.Execute(buffer)
 		if not status then
 			self:Error("(" .. file .. ")" .. tokens)
 			return
 		end
 
-		local status, tree, dvars = Parser.Execute(tokens)
+		local status, tree, dvars = E2Lib.Parser.Execute(tokens)
 		if not status then
 			self:Error("(" .. file .. ")" .. tree)
 			return

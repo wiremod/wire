@@ -14,17 +14,17 @@ local function Include(e2, directives, includes, scripts)
 		return false, "Could not find include '" .. e2 .. ".txt'"
 	end
 
-	local status, err, buffer = PreProcessor.Execute(code, directives)
+	local status, err, buffer = E2Lib.PreProcessor.Execute(code, directives)
 	if not status then
 		return "include '" .. e2 .. "' -> " .. err
 	end
 
-	local status, tokens = Tokenizer.Execute(buffer)
+	local status, tokens = E2Lib.Tokenizer.Execute(buffer)
 	if not status then
 		return "include '" .. e2 .. "' -> " .. tokens
 	end
 
-	local status, tree, dvars, files = Parser.Execute(tokens)
+	local status, tree, dvars, files = E2Lib.Parser.Execute(tokens)
 	if not status then
 		return "include '" .. e2 .. "' -> " .. tree
 	end
@@ -45,7 +45,7 @@ function wire_expression2_validate(buffer)
 	if not e2_function_data_received then return "Loading extensions. Please try again in a few seconds..." end
 
 	-- invoke preprocessor
-	local status, directives, buffer = PreProcessor.Execute(buffer)
+	local status, directives, buffer = E2Lib.PreProcessor.Execute(buffer)
 	if not status then return directives end
 
 	-- decompose directives
@@ -56,11 +56,11 @@ function wire_expression2_validate(buffer)
 	-- end
 
 	-- invoke tokenizer (=lexer)
-	local status, tokens = Tokenizer.Execute(buffer)
+	local status, tokens = E2Lib.Tokenizer.Execute(buffer)
 	if not status then return tokens end
 
 	-- invoke parser
-	local status, tree, dvars, files = Parser.Execute(tokens)
+	local status, tree, dvars, files = E2Lib.Parser.Execute(tokens)
 	if not status then return tree end
 
 	-- prepare includes
@@ -71,7 +71,7 @@ function wire_expression2_validate(buffer)
 	end
 
 	-- invoke compiler
-	local status, script, instance = Compiler.Execute(tree, inports[3], outports[3], persists[3], dvars, scripts)
+	local status, script, instance = E2Lib.Compiler.Execute(tree, inports[3], outports[3], persists[3], dvars, scripts)
 	if not status then return script end
 
 	return nil, includes

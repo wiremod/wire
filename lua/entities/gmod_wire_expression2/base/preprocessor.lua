@@ -5,7 +5,8 @@
 
 AddCSLuaFile()
 
-PreProcessor = {}
+E2Lib.PreProcessor = {}
+local PreProcessor = E2Lib.PreProcessor
 PreProcessor.__index = PreProcessor
 
 function PreProcessor.Execute(...)

@@ -5,7 +5,8 @@
 
 AddCSLuaFile()
 
-Tokenizer = {}
+E2Lib.Tokenizer = {}
+local Tokenizer = E2Lib.Tokenizer
 Tokenizer.__index = Tokenizer
 
 function Tokenizer.Execute(...)

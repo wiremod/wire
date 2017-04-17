@@ -2168,7 +2168,7 @@ end
 -----------------------------------------------------------
 
 function EDITOR:AC_SaveVariables()
-	local OK, directives,_ = PreProcessor.Execute( self:GetValue() )
+	local OK, directives,_ = E2Lib.PreProcessor.Execute( self:GetValue() )
 
 	if not OK or not directives then
 		return
