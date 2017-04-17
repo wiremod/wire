@@ -651,7 +651,7 @@ end
 
 function Compiler:InstrNUM(args)
 	self.prfcounter = self.prfcounter + 0.5
-	RunString("Compiler.native = function() return " .. args[3] .. " end")
+	RunString("E2Lib.Compiler.native = function() return " .. args[3] .. " end")
 	return { Compiler.native }, "n"
 end
 
@@ -678,14 +678,14 @@ end
 
 function Compiler:InstrSTR(args)
 	self.prfcounter = self.prfcounter + 1.0
-	RunString(string.format("Compiler.native = function() return %q end", args[3]))
+	RunString(string.format("E2Lib.Compiler.native = function() return %q end", args[3]))
 	return { Compiler.native }, "s"
 end
 
 function Compiler:InstrVAR(args)
 	self.prfcounter = self.prfcounter + 1.0
 	local tp, ScopeID = self:GetVariableType(args, args[3])
-	RunString(string.format("Compiler.native = function(self) return self.Scopes[%i][%q] end", ScopeID, args[3])) -- This Line!
+	RunString(string.format("E2Lib.Compiler.native = function(self) return self.Scopes[%i][%q] end", ScopeID, args[3])) -- This Line!
 	return { Compiler.native }, tp
 end
 
