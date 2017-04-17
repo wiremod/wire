@@ -124,11 +124,20 @@ local ModelList = {
 	["hqcubinder"]       = "hq_cubinder"
 }
 
+-- Return the absolute model path
+local function modelPath(name)
+	return "models/holograms/" .. name .. ".mdl"
+end
+
 local added = {}
+local pathLookup = {}
 
 for _,v in pairs( ModelList ) do
 	if not added[v] then
-		util.PrecacheModel( "models/holograms/" .. v .. ".mdl" )
+		local path = modelPath(v)
+
+		pathLookup[path] = true
+		util.PrecacheModel(path)
 		-- resource.AddSingleFile( "models/holograms/" .. v .. ".mdl" )
 
 		added[v] = true
@@ -136,14 +145,27 @@ for _,v in pairs( ModelList ) do
 end
 
 local function GetModel(self, model, skin)
+	skin = skin or 0
+
 	if ModelList[model] then
-		model = "models/holograms/" .. ModelList[model] .. ".mdl"
-	elseif wire_holograms_modelany:GetInt() == 0 then
-		return
-	elseif wire_holograms_modelany:GetInt() == 1 then
-		if not WireLib.CanModel(self.player, model, skin) then return nil end
+		model = modelPath(ModelList[model])
+
+	-- If this model isn't already the absolute path of a default model, and only default models are allowed
+	elseif not pathLookup[model] and wire_holograms_modelany:GetInt() == 0 then
+ 		return false
 	end
-	return Model(model)
+
+	if wire_holograms_modelany:GetInt() ~= 2 and not WireLib.CanModel(self.player, model, skin) then
+		-- Check if the model is at least valid
+		if not WireLib.CanModel(self.player, model, 0) then
+			return false
+		end
+
+		-- The model was valid however the skin was not. Go to default skin
+		skin = 0
+	end
+
+	return model, skin
 end
 
 -- -----------------------------------------------------------------------------
@@ -952,11 +974,11 @@ e2function void holoModel(index, string model, skin)
 
 	skin = skin - skin % 1
 
-	model = GetModel(self, model, skin)
+	model, skin = GetModel(self, model, skin)
 	if not model then return end
 
-	Holo.ent:SetSkin(skin)
 	Holo.ent:SetModel(model)
+	Holo.ent:SetSkin(skin)
 end
 
 e2function void holoSkin(index, skin)
@@ -964,6 +986,8 @@ e2function void holoSkin(index, skin)
 	if not Holo then return end
 
 	skin = skin - skin % 1
+	local _, skin = GetModel(self, Holo.ent:GetModel(), skin)
+
 	Holo.ent:SetSkin(skin)
 end
 
