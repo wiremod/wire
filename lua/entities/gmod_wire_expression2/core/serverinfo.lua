@@ -39,7 +39,7 @@ e2function number isDedicated()
 end
 
 e2function number numPlayers()
-	return #player.GetAll()
+	return player.GetCount()
 end
 
 e2function number maxPlayers()
