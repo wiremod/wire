@@ -91,61 +91,74 @@ end)
 /******************************************************************************/
 -- Name functions
 
+local SetNameHelper = function(ent, name)
+	-- NOTE: This function might not work as expected when called on other (non-E2) Wire entities.
+	if ent.name == name then return end -- Prevent it from running again if the name is unchanged.
+	if name == "generic" or name == "" then
+		name = "generic"
+		ent.WireDebugName = "Expression 2"
+	else
+		ent.WireDebugName = "E2 - " .. name
+	end
+	ent.name = name
+	ent:SetNWString("name", name)
+	ent:SetOverlayText(name)
+end
+
+local IsValid = IsValid
 local string = string
 local string_find = string.find
+
+local SetComponentNameHelper = function(ent, componentName)
+	if ent.wireName == componentName or string_find(componentName, "[\n\r\"]") ~= nil then return end
+	ent.wireName = componentName
+	ent:SetNWString("WireName", componentName)
+	duplicator.StoreEntityModifier(ent, "WireName", { name = componentName })
+end
+
+local GetComponentNameHelper = function(ent)
+	-- TODO: Check if it is wire-based entity! Possibly use scripted_ents library to figure out the base entity through the class name?
+	-- ISSUE: https://github.com/wiremod/wire/issues/1367
+	return IsValid(ent) and type(ent) == "Entity" and ent:GetNWString("WireName", ent.PrintName) or "" -- Prevent it from running on players/vehicles/etc. At least something to prevent it from interfering with 3rd-party entities, until wire-based entity check is added.
+end
+
+__e2setcost(20)
 
 -- Set the component name of the E2 itself
 e2function void setComponentName(string componentName)
 	local e = self.entity
-	if not IsValid(e) or e.wireName == componentName or string_find(componentName, "[\n\r\"]") ~= nil then return end
-	e.wireName = componentName
-	e:SetNWString("WireName", componentName)
-	duplicator.StoreEntityModifier(e, "WireName", { name = componentName })
+	if IsValid(e) then
+		SetComponentNameHelper(e, componentName)
+	end
 end
 
 -- Set the name of the E2 itself
 e2function void setName(string name)
 	local e = self.entity
-	if not IsValid(e) or e.name == name then return end
-	if name == "generic" or name == "" then
-		name = "generic"
-		e.WireDebugName = "Expression 2"
-	else
-		e.WireDebugName = "E2 - " .. name
+	if IsValid(e) then
+		SetNameHelper(e, name)
 	end
-	e.name = name
-	e:SetNWString("name", name)
-	e:SetOverlayText(name)
 end
 
 -- Set the component name of another Wire entity
 e2function void entity:setComponentName(string componentName)
-	if not IsValid(this) or E2Lib.getOwner(this) ~= self.player or this.wireName == componentName or string_find(componentName, "[\n\r\"]") ~= nil then return end
-	this.wireName = componentName
-	this:SetNWString("WireName", componentName)
-	duplicator.StoreEntityModifier(this, "WireName", { name = componentName })
+	if IsValid(this) and E2Lib.getOwner(this) == self.player then
+		SetComponentNameHelper(this, componentName)
+	end
 end
 
--- Set the name of another E2
+-- Depending on the type of entity, if it is E2 then it will set the name of another E2; otherwise, it will set component name of another Wire entity
 e2function void entity:setName(string name)
-	if not IsValid(this) or this:GetClass() ~= "gmod_wire_expression2" or E2Lib.getOwner(this) ~= self.player or this.name == name then return end
-	if name == "generic" or name == "" then
-		name = "generic"
-		this.WireDebugName = "Expression 2"
-	else
-		this.WireDebugName = "E2 - " .. name
+	if IsValid(this) and E2Lib.getOwner(this) == self.player then
+		(this:GetClass() == "gmod_wire_expression2" and SetNameHelper or SetComponentNameHelper)(this, name)
 	end
-	this.name = name
-	this:SetNWString("name", name)
-	this:SetOverlayText(name)
 end
 
 __e2setcost(2)
 
 -- Get the component name of the E2 itself
 e2function string getComponentName()
-	local e = self.entity
-	return IsValid(e) and e:GetNWString("WireName", e.PrintName) or ""
+	return GetComponentNameHelper(self.entity)
 end
 
 -- Get the name of the E2 itself
@@ -159,8 +172,7 @@ end
 
 -- Get the component name of another Wire entity
 e2function string entity:getComponentName()
-	if not IsValid(this) then return end
-	return this:GetNWString("WireName", this.PrintName)
+	return GetComponentNameHelper(this)
 end
 
 -- Get the name of another E2
