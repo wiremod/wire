@@ -111,7 +111,7 @@ end
 
 -- Set the name of a entity (component name if not E2). Thanks CaptainPRICE for idea and basic implementation
 e2function void entity:setName( string name )
-	if not ( IsValid(this) and E2Lib.getOwner(this) == self.player ) then return end
+	if not IsValid(this) or E2Lib.getOwner(self, this) ~= self.player then return end
 	if this:GetClass() == "gmod_wire_expression2" then
 		if this.name == name then return end
 		if name == "generic" or name == "" then
@@ -121,7 +121,7 @@ e2function void entity:setName( string name )
 			this.WireDebugName = "E2 - " .. name
 		end
 		this.name = name
-		this:SetNWString( "name", e.name )
+		this:SetNWString( "name", this.name )
 		this:SetOverlayText(name)
 	else
 		if ( this.wireName and this.wireName == name ) or string.find(name, "[\n\r\"]") ~= nil then return end
@@ -137,7 +137,7 @@ e2function string entity:getName()
 	if this.GetGateName then
 		return this:GetGateName() or ""
 	end
-	return ent:GetNWString("WireName", ent.PrintName) or ""
+	return this:GetNWString("WireName", this.PrintName) or ""
 end
 
 
