@@ -124,7 +124,7 @@ e2function void entity:setName( string name )
 		this:SetNWString( "name", this.name )
 		this:SetOverlayText(name)
 	else
-		if ( this.wireName and this.wireName == name ) or string.find(name, "[\n\r\"]") ~= nil then return end
+		if this.wireName == name or string.find(name, "[\n\r\"]") ~= nil then return end
 		this.wireName = name
 		this:SetNWString("WireName", name)
 		duplicator.StoreEntityModifier(this, "WireName", { name = name })
