@@ -109,12 +109,35 @@ e2function void setName( string name )
 	e:SetOverlayText(name)
 end
 
--- Get the name of another E2
+-- Set the name of a entity (component name if not E2). Thanks CaptainPRICE for idea and basic implementation
+e2function void entity:setName( string name )
+	if not ( IsValid(this) and E2Lib.getOwner(this) == self.player ) then return end
+	if this:GetClass() == "gmod_wire_expression2" then
+		if this.name == name then return end
+		if name == "generic" or name == "" then
+			name = "generic"
+			this.WireDebugName = "Expression 2"
+		else
+			this.WireDebugName = "E2 - " .. name
+		end
+		this.name = name
+		this:SetNWString( "name", e.name )
+		this:SetOverlayText(name)
+	else
+		if ( this.wireName and this.wireName == name ) or string.find(name, "[\n\r\"]") ~= nil then return end
+		this.wireName = name
+		this:SetNWString("WireName", name)
+		duplicator.StoreEntityModifier(this, "WireName", { name = name })
+	end
+end
+
+-- Get the name of another E2 or compatible entity or component name of wiremod components
 e2function string entity:getName()
-	if IsValid(this) and this.GetGateName then
+	if not IsValid(this) then return "" end
+	if this.GetGateName then
 		return this:GetGateName() or ""
 	end
-	return ""
+	return ent:GetNWString("WireName", ent.PrintName) or ""
 end
 
 
