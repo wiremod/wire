@@ -3647,6 +3647,17 @@ stds.garrysmod.read_globals = {
   "WEAPON_PROFICIENCY_PERFECT",
 
   -- END_GENERATED_CODE
+  "CLIENT",
+  "DEFINE_BASECLASS",
+  "GAMEMODE",
+  "NULL",
+  "SERVER",
+  "VERSION",
+}
+stds.garrysmod.globals = {
+  "ENT",
+  "TOOL",
+  "SWEP",
 }
 
 stds.wiremod = {}
