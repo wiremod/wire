@@ -109,7 +109,7 @@ e2function void setName( string name )
 	e:SetOverlayText(name)
 end
 
--- Set the name of a entity (component name if not E2). Thanks CaptainPRICE for idea and basic implementation
+-- Set the name of a entity (component name if not E2)
 e2function void entity:setName( string name )
 	if not IsValid(this) or E2Lib.getOwner(self, this) ~= self.player then return end
 	if this:GetClass() == "gmod_wire_expression2" then
