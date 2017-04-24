@@ -6,8 +6,9 @@ ignore = {
     "212", -- Unused argument
 }
 
--- string values with integer keys mean read-only globals
-stds.garrysmod = {
+stds.garrysmod = {}
+stds.garrysmod.read_globals = {
+
   -- BEGIN_GENERATED_CODE
 
   -- Hooks
@@ -3472,23 +3473,23 @@ stds.garrysmod = {
   -- END_GENERATED_CODE
 }
 
--- string keys mean read-write globals
-stds.wiremod = {
-  BeamNetVars = true,
-  CPULib = true,
-  FLIR = true,
-  GPULib = true,
-  E2Lib = true,
-  E2Helper = true,
-  HCOMP = true,
-  WireLib = true,
+stds.wiremod = {}
+stds.wiremod.globals = {
+  "BeamNetVars",
+  "CPULib",
+  "FLIR",
+  "GPULib",
+  "E2Lib",
+  "E2Helper",
+  "HCOMP",
+  "WireLib",
 
   -- TODO: Move these into E2Lib:
-  wire_expression_types = true,
-  wire_expression2_funclist = true,
-  wire_expression2_constants = true,
-  wire_expression2_funclist_lowercase = true,
+  "wire_expression_types",
+  "wire_expression2_funclist",
+  "wire_expression2_constants",
+  "wire_expression2_funclist_lowercase",
 
   -- TODO: Move these into WireLib:
-  WireTextEditor = true,
+  "WireTextEditor",
 }
