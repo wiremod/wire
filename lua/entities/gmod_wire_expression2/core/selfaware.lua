@@ -92,6 +92,7 @@ end)
 -- Name functions
 
 local CurTime = CurTime
+local math_min = math.min
 local string_len = string.len
 
 local antiSpamLookup = {}
@@ -99,12 +100,11 @@ local function NameSpamCheck(ent, str) -- Returns true if it is being spammed; o
 	local time = CurTime()
 	local antispam = antiSpamLookup[ent] or { time + 1, 0 } -- Using index-table for faster lookup
 	antiSpamLookup[ent] = antispam -- Avoid the frequency of table indexing
-	if time - antispam[1] <= 0 then
-		antispam[2] = antispam[2] + string_len(str)
-	else
+	if time - antispam[1] > 0 then
 		antispam[1] = time + 1
-		antispam[2] = string_len(str)
+		antispam[2] = 0
 	end
+	antispam[2] = antispam[2] + math_min(string_len(str), 199) -- Only add 199 at max per call since that's the limit of [G|S]etNWString functions
 	return 12000 < antispam[2] -- Using the "standard" length limit (12k chars) for anti-spam
 end
 
