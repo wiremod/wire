@@ -1180,7 +1180,7 @@ function WireLib.SetComponentName(ent, componentName)
 		return false
 	end
 	if componentName == "" then
-		componentName = ent.PrintName -- Set default to the print name
+		componentName = ent.PrintName or "" -- Set default to the print name
 	end
 	ent.wireName = componentName
 	ent:SetNWString("WireName", componentName)
