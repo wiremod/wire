@@ -161,6 +161,8 @@ e2function string entity:getName()
 	return ""
 end
 
+__e2setcost(5)
+
 -- Returns the component name of Wire-compatible entity
 e2function string entity:getComponentName()
 	return IsValid(this) and this:GetNWString("WireName", this.PrintName) or ""
