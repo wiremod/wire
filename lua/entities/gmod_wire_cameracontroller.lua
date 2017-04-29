@@ -74,7 +74,6 @@ if CLIENT then
 		if HasParent then
 			if LocalMove then
 				curpos = parent:LocalToWorld( curpos - curang:Forward() * smoothdistance )
-				curang = parent:LocalToWorldAngles( curang )
 			else
 				curpos = parent:LocalToWorld( curpos ) - curang:Forward() * smoothdistance
 			end
