@@ -27,7 +27,7 @@ if CLIENT then
 	
 	local WorldTip = { dietime = 0 }
 	function ENT:AddWorldTip( txt )
-		WorldTip.dietime = SysTime() + 0.05
+		WorldTip.dietime = SysTime() + RealFrameTime() * 4
 		WorldTip.ent = self
 	end
 	
