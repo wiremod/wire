@@ -25,6 +25,7 @@ end
 e2function void setColor(r, g, b)
 	self.entity:SetColor(Color(math.Clamp(r, 0, 255), math.Clamp(g, 0, 255), math.Clamp(b, 0, 255), 255))
 end
+
 __e2setcost(10)
 
 e2function number entity:height()
