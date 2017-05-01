@@ -1,9 +1,17 @@
+E2Lib.RegisterExtension("applyforce", false, "Allows E2 chips to applyforce", "Allows E2 chips to applyforce")
+local sbox_E2_ApplyForce = CreateConVar( "sbox_E2_PropCore", "2", FCVAR_ARCHIVE ) -- 2: Players can affect their own props, 1: Only admins, 0: Disabled
+
+local function ApplyForceValidAction(self, entity, cmd)
+	return sbox_E2_ApplyForce:GetInt()==2 or (sbox_E2_ApplyForce:GetInt()==1 and ply:IsAdmin())
+end
+
 
 __e2setcost(30) -- temporary
 
 local check = WireLib.checkForce
 
 e2function void applyForce(vector force)
+if not ApplyForceValidAction() then return end
 if not check(force) then return end
 	local phys = self.entity:GetPhysicsObject()
 	phys:ApplyForceCenter(Vector(force[1],force[2],force[3]))
@@ -16,6 +24,7 @@ e2function void applyOffsetForce(vector force, vector position)
 end
 
 e2function void applyAngForce(angle angForce)
+	if not ApplyForceValidAction() then return end
 	if angForce[1] == 0 and angForce[2] == 0 and angForce[3] == 0 then return end
 	if not check(angForce) then return end
 
@@ -50,6 +59,7 @@ e2function void applyAngForce(angle angForce)
 end
 
 e2function void applyTorque(vector torque)
+	if not ApplyForceValidAction() then return end	
 	if torque[1] == 0 and torque[2] == 0 and torque[3] == 0 then return end
 	if not check( torque ) then return end
 
