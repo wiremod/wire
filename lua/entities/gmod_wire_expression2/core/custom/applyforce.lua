@@ -6,7 +6,7 @@ local function ApplyForceValidAction()
 	return sbox_E2_ApplyForce:GetInt()==1 or (sbox_E2_ApplyForce:GetInt()==2 and ply:IsAdmin()) or (sbox_E2_ApplyForce:GetInt()==3 and ply:IsSuperAdmin())
 end
 
-/******************************************************************************/
+-------------------------------------------------------------------------------
 
 __e2setcost(30) -- temporary
 
@@ -90,9 +90,7 @@ e2function void applyTorque(vector torque)
 	phys:ApplyForceOffset( dir * -1, off * -1 )
 end
 
-/******************************************************************************/
-
-__e2setcost(30) -- temporary
+-------------------------------------------------------------------------------
 
 e2function void entity:applyForce(vector force)
 	if not ApplyForceValidAction() then return nil end
