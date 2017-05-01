@@ -3,19 +3,19 @@ E2Lib.RegisterExtension("applyforce", true, "Allows E2 chips to applyforce", "Al
 CreateConVar( "sbox_E2_ApplyForce", "0", FCVAR_ARCHIVE ) -- 0: Owners Props, 1: Only Admins, 2: Only SuperAdmins
 
 local function ApplyForceValidAction(self)
-	    local convar = GetConVar("sbox_E2_ApplyForce")
-		if not E2Lib.GetExtensionStatus("applyforce") then return false end
-        local ply = self.player or nil
-		if !IsValid(ply) then return false end
+	local convar = GetConVar("sbox_E2_ApplyForce")
+	if not E2Lib.GetExtensionStatus("applyforce") then return false end
+       	local ply = self.player or nil
+	if !IsValid(ply) then return false end
         if convar:GetInt() == 0 then
-			return true
+		return true
         elseif convar:GetInt() == 1 and ply:IsAdmin() then 
-			return true
+		return true
         elseif convar:GetInt() == 2 and ply:IsSuperAdmin() then 
-			return true
-		else
+		return true
+	else
             return false
-		end
+	end
 end
 
 -------------------------------------------------------------------------------
