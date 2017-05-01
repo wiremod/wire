@@ -62,7 +62,7 @@ e2function void applyAngForce(angle angForce)
 end
 
 e2function void applyTorque(vector torque)
-	if not ApplyForceValidAction() then return end	
+	if not ApplyForceValidAction() then return end
 	if torque[1] == 0 and torque[2] == 0 and torque[3] == 0 then return end
 	if not check( torque ) then return end
 
