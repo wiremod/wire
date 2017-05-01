@@ -8,6 +8,7 @@ local function ApplyForceValidAction(self)
 	local convat = GetConvar("sbox_E2_ApplyForce"):GetInt()
         local ply = self:GetOwner() or nil
 	if !IsValid(ply) then return false end
+	if npt E2Lib.GetExtensionStatus("applyforce") then return false end
         if convar == 0 then
 	     return true
         elseif convar == 1 and ply:IsAdmin() then 
