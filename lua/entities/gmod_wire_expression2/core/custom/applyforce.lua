@@ -1,8 +1,9 @@
 E2Lib.RegisterExtension("applyforce", false, "Allows E2 chips to applyforce", "Allows E2 chips to applyforce")
-local sbox_E2_ApplyForce = CreateConVar( "sbox_E2_PropCore", "0", FCVAR_ARCHIVE ) -- 2: Players can affect their own props, 1: Only admins, 0: Disabled
+
+local sbox_E2_ApplyForce = CreateConVar( "sbox_E2_ApplyForce", "1", FCVAR_ARCHIVE ) -- 1: Everyone, 2: Only Admins, 3: Only Superadmins
 
 local function ApplyForceValidAction()
-	return tobool( sbox_E2_ApplyForce:GetInt()==2 or (sbox_E2_ApplyForce:GetInt()==1 and ply:IsAdmin()) )
+	return sbox_E2_ApplyForce:GetInt()==1 or (sbox_E2_ApplyForce:GetInt()==2 and ply:IsAdmin()) or (sbox_E2_ApplyForce:GetInt()==3 and ply:IsSuperAdmin())
 end
 
 /******************************************************************************/
@@ -12,13 +13,14 @@ __e2setcost(30) -- temporary
 local check = WireLib.checkForce
 
 e2function void applyForce(vector force)
-if not ApplyForceValidAction() then return end
-if not check(force) then return end
+	if not ApplyForceValidAction() then return end
+	if not check(force) then return end
 	local phys = self.entity:GetPhysicsObject()
 	phys:ApplyForceCenter(Vector(force[1],force[2],force[3]))
 end
 
 e2function void applyOffsetForce(vector force, vector position)
+	if not ApplyForceValidAction() then return end
 	if not check(force) or not check(position) then return end
 	local phys = self.entity:GetPhysicsObject()
 	phys:ApplyForceOffset(Vector(force[1],force[2],force[3]), Vector(position[1],position[2],position[3]))
@@ -93,7 +95,7 @@ end
 __e2setcost(30) -- temporary
 
 e2function void entity:applyForce(vector force)
-	if not ApplyForceValidAction() then return end
+	if not ApplyForceValidAction() then return nil end
 	if not validPhysics(this) then return nil end
 	if not isOwner(self, this) then return nil end
 
@@ -104,7 +106,7 @@ e2function void entity:applyForce(vector force)
 end
 
 e2function void entity:applyOffsetForce(vector force, vector position)
-	if not ApplyForceValidAction() then return end
+	if not ApplyForceValidAction() then return nil end
 	if not validPhysics(this) then return nil end
 	if not isOwner(self, this) then return nil end
 
@@ -115,7 +117,7 @@ e2function void entity:applyOffsetForce(vector force, vector position)
 end
 
 e2function void entity:applyAngForce(angle angForce)
-	if not ApplyForceValidAction() then return end
+	if not ApplyForceValidAction() then return nil end
 	if not validPhysics(this) then return nil end
 	if not isOwner(self, this) then return nil end
 
@@ -153,7 +155,7 @@ end
 
 --- Applies torque according to a local torque vector, with magnitude and sense given by the vector's direction, magnitude and orientation.
 e2function void entity:applyTorque(vector torque)
-	if not ApplyForceValidAction() then return end
+	if not ApplyForceValidAction() then return nil end
 	if not IsValid(this) then return end
 	if not isOwner(self, this) then return end
 
