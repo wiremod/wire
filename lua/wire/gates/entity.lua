@@ -17,6 +17,7 @@ GateActions["entity_applyf"] = {
 	inputtypes = { "ENTITY" , "VECTOR" },
 	timed = true,
 	output = function(gate, ent, vec )
+		if not ApplyForceValidAction() then return end
 		if not IsValid( ent ) then return end
 		local phys = ent:GetPhysicsObject()
 		if not IsValid( phys ) then return end
@@ -38,6 +39,7 @@ GateActions["entity_applyof"] = {
 	inputtypes = { "ENTITY" , "VECTOR" , "VECTOR" },
 	timed = true,
 	output = function(gate, ent, vec, offset )
+		if not ApplyForceValidAction() then return end
 		if not IsValid( ent ) then return end
 		local phys = ent:GetPhysicsObject()
 		if not IsValid( phys ) then return end
@@ -62,6 +64,7 @@ GateActions["entity_applyaf"] = {
 	inputtypes = { "ENTITY" , "ANGLE" },
 	timed = true,
 	output = function(gate, ent, angForce )
+		if not ApplyForceValidAction() then return end
 		if not IsValid( ent ) then return end
 		local phys = ent:GetPhysicsObject()
 		if not IsValid( phys ) then return end
@@ -109,6 +112,7 @@ GateActions["entity_applytorq"] = {
 	inputtypes = { "ENTITY" , "VECTOR" },
 	timed = true,
 	output = function(gate, ent, vec )
+		if not ApplyForceValidAction() then return end
 		if not IsValid( ent ) then return end
 		local phys = ent:GetPhysicsObject()
 		if not IsValid( phys ) then return end
