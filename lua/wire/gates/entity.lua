@@ -5,17 +5,17 @@
 GateActions("Entity")
 
 local function ApplyForceValidAction(self)
-		if not E2Lib.GetExtensionStatus("applyforce") then return false end
+	if not E2Lib.GetExtensionStatus("applyforce") then return false end
         local ply = self:GetPlayer()
-		if !IsValid(ply) then return false end
+	if !IsValid(ply) then return false end
         if convar:GetInt() == 0 then
-			return true
+		return true
         elseif convar:GetInt() == 1 and ply:IsAdmin() then 
-			return true
+		return true
         elseif convar:GetInt() == 2 and ply:IsSuperAdmin() then 
-			return true
-		else
-           return false
+		return true
+	else
+        	return false
 	end
 end
 
