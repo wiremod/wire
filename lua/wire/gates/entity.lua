@@ -6,6 +6,7 @@ GateActions("Entity")
 
 local function ApplyForceValidAction(self)
 	if not E2Lib.GetExtensionStatus("applyforce") then return false end
+	local convar = GetConVar("sbox_E2_ApplyForce")	
         local ply = self:GetPlayer()
 	if !IsValid(ply) then return false end
         if convar:GetInt() == 0 then
