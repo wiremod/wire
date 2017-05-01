@@ -1,8 +1,8 @@
 E2Lib.RegisterExtension("applyforce", false, "Allows E2 chips to applyforce", "Allows E2 chips to applyforce")
-local sbox_E2_ApplyForce = CreateConVar( "sbox_E2_PropCore", "2", FCVAR_ARCHIVE ) -- 2: Players can affect their own props, 1: Only admins, 0: Disabled
+local sbox_E2_ApplyForce = CreateConVar( "sbox_E2_PropCore", "0", FCVAR_ARCHIVE ) -- 2: Players can affect their own props, 1: Only admins, 0: Disabled
 
-local function ApplyForceValidAction(self, entity, cmd)
-	return sbox_E2_ApplyForce:GetInt()==2 or (sbox_E2_ApplyForce:GetInt()==1 and ply:IsAdmin())
+local function ApplyForceValidAction()
+	return tobool( sbox_E2_ApplyForce:GetInt()==2 or (sbox_E2_ApplyForce:GetInt()==1 and ply:IsAdmin()) )
 end
 
 /******************************************************************************/
