@@ -2,7 +2,7 @@ E2Lib.RegisterExtension("applyforce", false, "Allows E2 chips to applyforce", "A
 
 local sbox_E2_ApplyForce = CreateConVar( "sbox_E2_ApplyForce", "1", FCVAR_ARCHIVE ) -- 1: Everyone, 2: Only Admins, 3: Only Superadmins
 
-local function ApplyForceValidAction()
+function ApplyForceValidAction()
 	return sbox_E2_ApplyForce:GetInt()==1 or (sbox_E2_ApplyForce:GetInt()==2 and ply:IsAdmin()) or (sbox_E2_ApplyForce:GetInt()==3 and ply:IsSuperAdmin())
 end
 
