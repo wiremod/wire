@@ -155,7 +155,7 @@ end
 
 --- Applies torque according to a local torque vector, with magnitude and sense given by the vector's direction, magnitude and orientation.
 e2function void entity:applyTorque(vector torque)
-	if not ApplyForceValidAction() then return nil end
+	if not ApplyForceValidAction() then return end
 	if not IsValid(this) then return end
 	if not isOwner(self, this) then return end
 
