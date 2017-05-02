@@ -1,4 +1,4 @@
-E2Lib.RegisterExtension(ExtName, true, "Allows E2 chips to applyforce", "Allows E2 chips to applyforce"
+E2Lib.RegisterExtension("applyforce", true, "Allows E2 chips to applyforce", "Allows E2 chips to applyforce"
 
 hook.Call("ApplyForceValidAction", "E2.ApplyForce", function(self)
      return E2Lib.GetExtensionStatus("applyforce") 
