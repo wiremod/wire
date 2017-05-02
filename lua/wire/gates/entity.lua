@@ -5,11 +5,7 @@
 GateActions("Entity")
 
 local function ApplyForceValidAction(self)
-	if E2Lib.GetExtensionStatus("applyforce") then 
-		return true
-	else
-		return false
-	end
+	return E2Lib.GetExtensionStatus("applyforce") 
 end
 
 local check = WireLib.checkForce
