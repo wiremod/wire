@@ -1,7 +1,7 @@
 E2Lib.RegisterExtension("applyforce", true, "Allows E2 chips to applyforce", "Allows E2 chips to applyforce"
 
 local function ApplyForceValidAction(self)
-	if not E2Lib.GetExtensionStatus("applyforce") then return false end
+	return E2Lib.GetExtensionStatus("applyforce") 
 end
 
 -------------------------------------------------------------------------------
