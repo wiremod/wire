@@ -1,7 +1,9 @@
-E2Lib.RegisterExtension("applyforce", true, "Allows E2 chips to applyforce", "Allows E2 chips to applyforce"
+local ExtName = "applyforce"
 
-local function ApplyForceValidAction()
-	return E2Lib.GetExtensionStatus("applyforce") 
+E2Lib.RegisterExtension(ExtName, true, "Allows E2 chips to applyforce", "Allows E2 chips to applyforce"
+
+function ApplyForceValidAction()
+     return E2Lib.GetExtensionStatus(ExtName) 
 end
 
 -------------------------------------------------------------------------------
@@ -10,10 +12,9 @@ __e2setcost(30) -- temporary
 local check = WireLib.checkForce
 
 e2function void entity:applyForce(vector force)
+       if not ApplyForceValidAction() then return nil end
 	if not validPhysics(this) then return nil end
 	if not isOwner(self, this) then return nil end
-        if not ApplyForceValidAction() then return nil end
-
 	if check( force ) then
 		local phys = this:GetPhysicsObject()
 		phys:ApplyForceCenter(Vector(force[1],force[2],force[3]))
@@ -21,10 +22,9 @@ e2function void entity:applyForce(vector force)
 end
 
 e2function void entity:applyOffsetForce(vector force, vector position)
+       if not ApplyForceValidAction() then return nil end
 	if not validPhysics(this) then return nil end
 	if not isOwner(self, this) then return nil end
- 	if not ApplyForceValidAction() then return nil end
-
 	if check(force) and check(position) then
 		local phys = this:GetPhysicsObject()
 		phys:ApplyForceOffset(Vector(force[1],force[2],force[3]), Vector(position[1],position[2],position[3]))
@@ -32,10 +32,9 @@ e2function void entity:applyOffsetForce(vector force, vector position)
 end
 
 e2function void entity:applyAngForce(angle angForce)
+       if not ApplyForceValidAction() then return nil end
 	if not validPhysics(this) then return nil end
 	if not isOwner(self, this) then return nil end
-        if not ApplyForceValidAction() then return nil end
-
 	if angForce[1] == 0 and angForce[2] == 0 and angForce[3] == 0 then return end
 	if not check(angForce) then return end
 
@@ -70,9 +69,9 @@ end
 
 --- Applies torque according to a local torque vector, with magnitude and sense given by the vector's direction, magnitude and orientation.
 e2function void entity:applyTorque(vector torque)
+       if not ApplyForceValidAction() then return end
 	if not IsValid(this) then return end
 	if not isOwner(self, this) then return end
-        if not ApplyForceValidAction() then return end
 
 	if torque[1] == 0 and torque[2] == 0 and torque[3] == 0 then return end
 	if not check( torque ) then return end
@@ -105,30 +104,30 @@ end
 
 --- Applies force to <this> according to <force>'s direction and magnitude
 e2function void bone:applyForce(vector force)
+       if not ApplyForceValidAction() then return end
 	local ent = isValidBone(this)
 	if not ent then return end
 	if not isOwner(self, ent) then return end
-        if not ApplyForceValidAction() then return end
 	if not check(force) then return end
 	this:ApplyForceCenter(Vector(force[1], force[2], force[3]))
 end
 
 --- Applies force to <this> according to <force> from the location of <pos>
 e2function void bone:applyOffsetForce(vector force, vector pos)
+       if not ApplyForceValidAction() then return end
 	local ent = isValidBone(this)
 	if not ent then return end
 	if not isOwner(self, ent) then return end
-        if not ApplyForceValidAction() then return end
 	if not check(force) or not check(pos) then return end
 	this:ApplyForceOffset(Vector(force[1], force[2], force[3]), Vector(pos[1], pos[2], pos[3]))
 end
 
 --- Applies torque to <this> according to <angForce>
 e2function void bone:applyAngForce(angle angForce)
+       if not ApplyForceValidAction() then return end
 	local ent = isValidBone(this)
 	if not ent then return end
 	if not isOwner(self, ent) then return end
-        if not ApplyForceValidAction() then return end
 
 	if angForce[1] == 0 and angForce[2] == 0 and angForce[3] == 0 then return end
 	if not check(angForce) then return end
@@ -163,10 +162,10 @@ end
 
 --- Applies torque according to the axis, magnitude and sense given by the vector's direction, magnitude and orientation.
 e2function void bone:applyTorque(vector torque)
+       if not ApplyForceValidAction() then return end
 	local ent = isValidBone(this)
 	if not ent then return end
 	if not isOwner(self, ent) then return end
-        if not ApplyForceValidAction() then return end
 	local phys = this
 
 	if torque[1] == 0 and torque[2] == 0 and torque[3] == 0 then return end
