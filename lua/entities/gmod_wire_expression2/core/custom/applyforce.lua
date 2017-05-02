@@ -21,7 +21,7 @@ e2function void applyForce(vector force)
 	phys:ApplyForceCenter(Vector(force[1],force[2],force[3]))
 end
 
-e2function void applyOfhfsetForce(vector force, vector position)
+e2function void applyOffsetForce(vector force, vector position)
        if not ApplyForceValidAction(self,self.entity,self.player) then return end
 	if not check(force) or not check(position) then return end
 	local phys = self.entity:GetPhysicsObject()
