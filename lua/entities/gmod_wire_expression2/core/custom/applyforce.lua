@@ -1,5 +1,3 @@
-E2Lib.RegisterExtension("applyforce", true, "Allows E2 chips to applyforce", "Allows E2 chips to applyforce"
-
 hook.Call("ApplyForceValidAction", "E2.ApplyForce", function(self)
      return E2Lib.GetExtensionStatus("applyforce") 
 end)
@@ -7,6 +5,8 @@ end)
 function ApplyForceValidAction(self)
      return hook.Call( "ApplyForceValidAction", GAMEMODE, self )
 end
+
+E2Lib.RegisterExtension("applyforce", true, "Allows E2 chips to applyforce", "Allows E2 chips to applyforce"
 
 -------------------------------------------------------------------------------
 __e2setcost(30) -- temporary
