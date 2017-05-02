@@ -18,7 +18,7 @@ GateActions["entity_applyf"] = {
 	timed = true,
 	output = function(gate, ent, vec )
 		if not IsValid( ent ) then return end
-               if not ApplyForceValidAction(gate,ent,gate:GetPlayer()) then return end		
+               if not ApplyForceValidAction(gate,ent,gate:GetPlayer()) then return end	
 		local phys = ent:GetPhysicsObject()
 		if not IsValid( phys ) then return end
 		if not isAllowed( gate, ent ) then return end	
