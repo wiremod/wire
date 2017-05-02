@@ -3,7 +3,7 @@ hook.Add("ApplyForceValidAction", "E2.ApplyForce", function( self, ent )
 end)
 
 function ApplyForceValidAction(self,this)
-     return hook.Run( "ApplyForceValidAction", self, ent )
+     return hook.Run( "ApplyForceValidAction", self, this )
 end
 
 E2Lib.RegisterExtension("applyforce", true, "Allows E2 chips to applyforce", "Allows E2 chips to applyforce" )
