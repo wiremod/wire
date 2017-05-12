@@ -111,7 +111,7 @@ e2function string entity:model()
 end
 
 e2function entity entity:owner()
-	if not IsValid(this) then return nil end
+	if not IsValid(this) then return NULL end
 	return getOwner(self, this)
 end
 
