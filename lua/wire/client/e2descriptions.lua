@@ -324,6 +324,13 @@ E2Helper.Descriptions["playerConnectClk()"] = "Returns 1 if the chip is being ex
 E2Helper.Descriptions["lastConnectedPlayer()"] = "Returns the last player to connect."
 E2Helper.Descriptions["runOnPlayerConnect(n)"] = "If set to 0, the chip will no longer run on player connect events, otherwise it makes this chip execute when someone connects. Only needs to be called once, not in every execution"
 
+-- Vehicle
+E2Helper.Descriptions["getVehicleExitAng(e:)"] = "Gets exit angles of a vehicle (this will return exit-point angle only if you have set it via setVehicleExitAng; otherwise, it will return invalid/zero angle)"
+E2Helper.Descriptions["getVehicleExitPos(e:)"] = "Gets exit position of a vehicle (this will return exit-point position only if you have set it via setVehicleExitPos; otherwise, it will return invalid/origin vector)"
+E2Helper.Descriptions["removeVehicleExitAng(e:)"] = "Removes exit angles of a vehicle (this will remove exit-point angle only if you have set it via setVehicleExitAng)"
+E2Helper.Descriptions["removeVehicleExitPos(e:)"] = "Removes exit position of a vehicle (this will remove exit-point position only if you have set it via setVehicleExitPos)"
+E2Helper.Descriptions["setVehicleExitAng(e:a)"] = "Sets exit angles of a vehicle"
+E2Helper.Descriptions["setVehicleExitPos(e:v)"] = "Sets exit position of a vehicle (returns 1 on success; otherwise, it returns 0 to indicate a failure)"
 
 -- Attachment
 E2Helper.Descriptions["lookupAttachment(e:s)"] = "Returns Es attachment ID associated with attachmentName"

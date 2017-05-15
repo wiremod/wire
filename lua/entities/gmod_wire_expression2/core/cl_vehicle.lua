@@ -1,0 +1,1 @@
+--print("Clientside Vehicle-Entity support E2 extension.")
