@@ -745,6 +745,13 @@ function Compiler:InstrFUNCTION(args)
 
 	self.func_ret = Return
 
+	-- If the return type is non-void, then the block needs to actually return, or the
+	-- function doesn't have a return value. (Returns of an incorrect type are detected
+	-- when compiling the return statement itself, by comparing against self.func_ret.)
+	if Return ~= "" and not Analyzer.DoesReturnValue(Block) then
+		self:Error("Not all code paths in function '" .. Sig .. "' return a value", args)
+	end
+
 	local Stmt = self:EvaluateStatement(args, 5) -- Offset of -2
 
 	self.func_ret = nil
