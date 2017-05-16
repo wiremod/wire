@@ -380,8 +380,7 @@ end
 
 -- Get the E2 that sent the signal
 e2function entity dsGetSender()
-	if not currentsignal then return end
-	return currentsignal.from
+	return currentsignal and currentsignal.from or NULL
 end
 
 -- Get the group which the signal was sent to
