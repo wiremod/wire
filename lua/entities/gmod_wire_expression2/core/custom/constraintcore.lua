@@ -271,7 +271,7 @@ end
 --- Sets a hydraulic/winch stored at index <index> inside <this> (the first entity) to be <dampen> damping.
 e2function void entity:setDamping(index, damping)
 	if not IsValid(this) then return end
-	if not isOwner(self, this) then return false end
+	if not isOwner(self, this) then return end
 	if damping < 0 then damping = 0 end
 	if this.data.Ropes then
 		local con = this.data.Ropes[index]
