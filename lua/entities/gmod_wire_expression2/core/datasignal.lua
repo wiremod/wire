@@ -368,8 +368,7 @@ end
 
 -- Returns the name of the current signal
 e2function string dsClkName()
-	if not currentsignal then return "" end
-	return currentsignal.name
+	return currentsignal and currentsignal.name or ""
 end
 
 -- Get the type of the current data
