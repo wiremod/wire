@@ -514,16 +514,18 @@ registerOperator("switch", "", "", function(self, args)
 	end
 
 	if startcase then
-
 		for i=startcase, #cases do
 			local stmts = cases[i][2]
 			local ok, msg = pcall(stmts[1], self, stmts)
 			if not ok then
-				if msg == "break" then break
-				elseif msg ~= "continue" then error(msg, 0) end
+				if msg == "break" then
+					break
+				elseif msg ~= "continue" then
+					self:PopScope()
+					error(msg, 0)
+				end
 			end
 		end
-
 	end
 
 	self:PopScope()
