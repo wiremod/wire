@@ -15,10 +15,7 @@ end
 
 
 e2function string entity:primaryAmmoType()
-	if not IsValid(this) then return "" end
-	if not this:IsWeapon() then return "" end
-
-	return this:GetPrimaryAmmoType()
+	return IsValid(this) and this:IsWeapon() and tostring(this:GetPrimaryAmmoType()) or ""
 end
 
 e2function string entity:secondaryAmmoType()
