@@ -23,7 +23,7 @@ e2function number isLan()
 end
 
 e2function string gamemode()
-	return gmod.GetGamemode().Name
+	return gmod.GetGamemode().Name or ""
 end
 
 e2function string serverUUID()
