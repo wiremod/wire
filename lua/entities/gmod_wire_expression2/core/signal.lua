@@ -178,8 +178,7 @@ end
 
 --- Returns the entity ID of the chip that sent the signal. Useful if the entity doesn't exist anymore.
 e2function number signalSenderId()
-	if not currentSignal then return 0 end
-	return currentSignal[5]
+	return currentSignal and currentSignal[5] or 0
 end
 
 --[[************************************************************************]]--
