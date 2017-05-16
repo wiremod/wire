@@ -768,7 +768,7 @@ end
 
 --- Returns the closest entity to the given point from the previous find event
 e2function entity findClosest(vector position)
-	local closest = nil
+	local closest = NULL
 	local dist = math.huge
 	self.prf = self.prf + #self.data.findlist * 10
 	for _,ent in pairs(self.data.findlist) do
