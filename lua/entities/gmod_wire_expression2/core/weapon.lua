@@ -5,10 +5,7 @@
 __e2setcost(2) -- temporary
 
 e2function entity entity:weapon()
-	if not IsValid(this) then return nil end
-	if not this:IsPlayer() and not this:IsNPC() then return nil end
-
-	return this:GetActiveWeapon()
+	return IsValid(this) and this:IsPlayer() and not this:IsNPC() and this:GetActiveWeapon() or NULL
 end
 
 
