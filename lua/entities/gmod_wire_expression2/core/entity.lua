@@ -624,8 +624,7 @@ end
 __e2setcost(5)
 
 e2function entity entity:driver()
-	if not IsValid(this) or not this:IsVehicle() then return nil end
-	return this:GetDriver()
+	return IsValid(this) and this:IsVehicle() and this:GetDriver() or NULL
 end
 
 e2function entity entity:passenger()
