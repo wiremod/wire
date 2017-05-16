@@ -373,8 +373,7 @@ end
 
 -- Get the type of the current data
 e2function string dsGetType()
-	if not currentsignal then return "" end
-	return currentsignal.vartype
+	return currentsignal and currentsignal.vartype or ""
 end
 
 -- Get the E2 that sent the signal
