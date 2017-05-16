@@ -301,7 +301,7 @@ __e2setcost(5)
 e2function vector vector:rotate( angle ang )
 	local v = Vector(this[1], this[2], this[3])
 	v:Rotate(Angle(ang[1], ang[2], ang[3]))
-	return v
+	return { v.x, v.y, v.z }
 end
 
 e2function vector vector:rotate( normal pitch, normal yaw, normal roll )
