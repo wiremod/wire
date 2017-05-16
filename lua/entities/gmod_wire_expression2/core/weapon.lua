@@ -19,10 +19,7 @@ e2function string entity:primaryAmmoType()
 end
 
 e2function string entity:secondaryAmmoType()
-	if not IsValid(this) then return "" end
-	if not this:IsWeapon() then return "" end
-
-	return this:GetSecondaryAmmoType()
+	return IsValid(this) and this:IsWeapon() and tostring(this:GetSecondaryAmmoType()) or ""
 end
 
 e2function number entity:ammoCount(string ammo_type)
