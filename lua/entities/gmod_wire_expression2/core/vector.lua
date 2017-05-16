@@ -219,7 +219,8 @@ __e2setcost(5)
 --- Returns a random vector with its components between <min> and <max>
 e2function vector randvec( normal min, normal max)
 	local range = max-min
-	return Vector(min+random()*range, min+random()*range, min+random()*range)
+	local vec = Vector(min + random() * range, min + random() * range, min + random() * range)
+	return { vec.x, vec.y, vec.z }
 end
 
 --- Returns a random vector between <min> and <max>
