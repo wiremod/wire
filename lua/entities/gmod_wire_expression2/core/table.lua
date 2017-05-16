@@ -1122,7 +1122,6 @@ registerCallback( "postinit", function()
 			rv1.n[n] = rv2
 			rv1.ntypes[n] = id
 			self.GlobalScope.vclk[rv1] = true
-			return rv2
 		end)
 
 		registerFunction( "pop"..name,"t:",id,function(self,args)
