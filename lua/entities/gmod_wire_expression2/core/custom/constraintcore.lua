@@ -256,7 +256,7 @@ end
 --- Sets a hydraulic/winch stored at index <index> inside <this> (the first entity) to be <constant> constant and <dampen> damping.
 e2function void entity:setConstant(index, constant, damping)
 	if not IsValid(this) then return end
-	if not isOwner(self, this) then return false end
+	if not isOwner(self, this) then return end
 	if constant < 0 then constant = 0 end
 	if damping < 0 then damping = 0 end
 	if this.data.Ropes then
