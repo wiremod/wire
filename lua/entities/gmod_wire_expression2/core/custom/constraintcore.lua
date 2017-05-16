@@ -226,7 +226,7 @@ __e2setcost(5)
 --- Sets a rope/hydraulic/winch stored at index <index> inside <this> (the first entity) to be <length> long.
 e2function void entity:setLength(index, length)
 	if not IsValid(this) then return end
-	if not isOwner(self, this) then return false end
+	if not isOwner(self, this) then return end
 	if length < 0 then length = 0 end
 	if this.data.Ropes then
 		local con = this.data.Ropes[index]
