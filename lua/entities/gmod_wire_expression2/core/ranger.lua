@@ -327,8 +327,7 @@ end
 
 --- Returns the entity of the input ranger data trace IF it hit an entity, else returns nil
 e2function entity ranger:entity()
-	if not this then return nil end
-	return this.Entity
+	return this and this.Entity or NULL
 end
 
 --- Returns the bone of the input ranger data trace IF it hit an entity, else returns nil
