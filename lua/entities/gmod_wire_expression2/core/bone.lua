@@ -401,8 +401,7 @@ end
 __e2setcost(2)
 --- Returns 1 if <this> is frozen, 0 otherwise
 e2function number bone:isFrozen()
-	if not isValidBone(this) then return end
-	if this:IsMoveable() then return 0 else return 1 end
+	return isValidBone(this) and this:IsMoveable() and 1 or 0
 end
 
 -- helper function for invert(T) in table.lua
