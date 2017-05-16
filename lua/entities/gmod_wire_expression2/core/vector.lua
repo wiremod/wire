@@ -666,7 +666,7 @@ e2function array toWorldPosAng( vector localpos, angle localang, vector worldpos
 	local worldpos = Vector(worldpos[1],worldpos[2],worldpos[3])
 	local worldang = Angle(worldang[1],worldang[2],worldang[3])
 	local pos, ang = LocalToWorld(localpos,localang,worldpos,worldang)
-	return {pos, {ang.p,ang.y,ang.r}}
+	return { { pos.x, pos.y, pos.z }, { ang.p, ang.y, ang.r } }
 end
 
 --- Converts a world position/angle to a local position/angle and returns the position
