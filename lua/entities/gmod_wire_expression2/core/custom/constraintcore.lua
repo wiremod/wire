@@ -306,7 +306,7 @@ end
 --- Nocollides <ent> to entities/players, just like Right Click of No-Collide Stool
 e2function void noCollideAll(entity ent, state)
 	if !IsValid(ent) then return end
-	if !isOwner(self, ent) then return false end
+	if !isOwner(self, ent) then return end
 	if state != 0 then 
 		ent:SetCollisionGroup( COLLISION_GROUP_WORLD )
 	else
