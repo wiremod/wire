@@ -833,7 +833,7 @@ e2function vector holoBoneScale(index, string bone)
 	if boneindex == nil then return {0,0,0} end
 
 	for bidx,b_scale in pairs(Holo.bone_scale) do
-		if bidx == boneindex then return b_scale end
+		if bidx == boneindex then return { b_scale.x, b_scale.y, b_scale.z } end
 	end
 
 	return {0,0,0}
