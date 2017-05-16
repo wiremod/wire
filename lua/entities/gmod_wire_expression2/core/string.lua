@@ -108,7 +108,7 @@ end)
 __e2setcost(20) -- temporary
 
 e2function number string:toNumber()
- 	return tonumber(this) or 0
+	return tonumber(this) or 0
 end
 
 e2function number string:toNumber(number base)
