@@ -333,7 +333,7 @@ end
 
 --- Convert the magnitude of the vector to degrees
 e2function vector toDeg(vector rv1)
-	return Vector(rv1[1] * rad2deg, rv1[2] * rad2deg, rv1[3] * rad2deg)
+	return { rv1[1] * rad2deg, rv1[2] * rad2deg, rv1[3] * rad2deg }
 end
 
 --------------------------------------------------------------------------------
