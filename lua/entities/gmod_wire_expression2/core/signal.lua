@@ -168,8 +168,7 @@ end
 
 --- Returns the group name of the received signal.
 e2function string signalGroup()
-	if not currentSignal then return "" end
-	return currentSignal[1]
+	return currentSignal and currentSignal[1] or ""
 end
 
 --- Returns the entity of the chip that sent the signal.
