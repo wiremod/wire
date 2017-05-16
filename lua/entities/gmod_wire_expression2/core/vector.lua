@@ -632,7 +632,7 @@ e2function string pointContents( vector point )
 end
 
 e2function array pointContentsArray( vector point )
-	return cache_parts_array[util.PointContents( Vector(point[1],point[2],point[3]))]
+	return cache_parts_array[util.PointContents( Vector(point[1],point[2],point[3]))] or {}
 end
 
 --------------------------------------------------------------------------------
