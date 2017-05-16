@@ -327,7 +327,7 @@ __e2setcost(1)
 
 --- Return an invalid wirelink
 e2function wirelink nowirelink()
-	return nil
+	return NULL
 end
 
 /******************************************************************************/
