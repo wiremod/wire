@@ -46,7 +46,7 @@ end
 
 -- Returns the entity the input is wired to
 e2function entity ioInputEntity( string input )
-	if (self.entity.Inputs[input] and self.entity.Inputs[input].Src and IsValid(self.entity.Inputs[input].Src)) then return self.entity.Inputs[input].Src end
+	return self.entity.Inputs[input] and self.entity.Inputs[input].Src and IsValid(self.entity.Inputs[input].Src) and self.entity.Inputs[input].Src or NULL
 end
 
 local function setOutput( self, args, Type )
