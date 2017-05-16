@@ -1141,7 +1141,6 @@ registerCallback( "postinit", function()
 			table.insert( rv1.n, rv2, rv3 )
 			table.insert( rv1.ntypes, rv2, id )
 			self.GlobalScope.vclk[rv1] = true
-			return rv3
 		end)
 
 		registerFunction( "unshift"..name,"t:"..id,"",function(self,args)
