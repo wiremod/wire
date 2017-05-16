@@ -10,10 +10,7 @@ end
 
 
 e2function entity entity:weapon(string weaponclassname)
-	if not IsValid(this) then return nil end
-	if not this:IsPlayer() and not this:IsNPC() then return nil end
-
-	return this:GetWeapon(weaponclassname)
+	return IsValid(this) and (this:IsPlayer() or this:IsNPC()) and this:GetWeapon(weaponclassname) or NULL
 end
 
 
