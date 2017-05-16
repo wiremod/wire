@@ -988,7 +988,7 @@ end
 
 __e2setcost(20)
 e2function vector wirelink:egpToWorld( vector2 pos )
-	if not EGP:ValidEGP( this ) then return Vector(0,0,0) end
+	if not EGP:ValidEGP( this ) then return { 0, 0, 0 } end
 
 	local class = this:GetClass()
 	if class == "gmod_wire_egp_emitter" then
@@ -996,10 +996,12 @@ e2function vector wirelink:egpToWorld( vector2 pos )
 		if this.Scaling then
 			x,y = ScalePoint(this,x,y)
 		end
-		return this:LocalToWorld( Vector(-64,0,135) + Vector(x,0,-y) )
-	elseif class == "gmod_wire_egp" then
+		local vec = this:LocalToWorld( Vector(-64,0,135) + Vector(x,0,-y) )
+		return { vec.x, vec.y, vec.z }
+	end
+	if class == "gmod_wire_egp" then
 		local monitor = WireGPU_Monitors[this:GetModel()]
-		if not monitor then return Vector(0,0,0) end
+		if not monitor then return { 0, 0, 0 } end
 
 		local x,y = pos[1],pos[2]
 
@@ -1014,10 +1016,11 @@ e2function vector wirelink:egpToWorld( vector2 pos )
 
 		local vec = Vector(x,-y,0)
 		vec:Rotate(monitor.rot)
-		return this:LocalToWorld(vec+monitor.offset)
+		vec = this:LocalToWorld(vec + monitor.offset)
+		return { vec.x, vec.y, vec.z }
 	end
 
-	return Vector(0,0,0)
+	return { 0, 0, 0 }
 end
 
 local antispam = {}
