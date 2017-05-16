@@ -1149,9 +1149,7 @@ end
 
 -- Returns the screen which the queue finished sending items for
 e2function entity egpQueueScreen()
-	if (EGP.RunByEGPQueue) then
-		return EGP.RunByEGPQueue_Ent
-	end
+	return EGP.RunByEGPQueue and EGP.RunByEGPQueue_Ent or NULL
 end
 
 -- Same as above, except returns wirelink
