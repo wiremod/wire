@@ -447,9 +447,7 @@ e2function number entity:timeConnected()
 end
 
 e2function entity entity:vehicle()
-	if not IsValid(this) then return nil end
-	if not this:IsPlayer() then return nil end
-	return this:GetVehicle()
+	return IsValid(this) and this:IsPlayer() and this:GetVehicle() or NULL
 end
 
 e2function number entity:inVehicle()
