@@ -136,10 +136,10 @@ end
 
 --- Returns the <index>th entity <this> was constrained to with the given constraint type <constraintType>.
 e2function entity entity:isConstrainedTo(string constraintType, index)
-	if not IsValid(this) then return nil end
-	if not constraint.HasConstraints(this) then return nil end
+	if not IsValid(this) then return NULL end
+	if not constraint.HasConstraints(this) then return NULL end
 
-	return ent1or2(this,constraint.FindConstraints(this, caps(constraintType)), math.floor(index))
+	return ent1or2(this,constraint.FindConstraints(this, caps(constraintType)), math.floor(index)) or NULL
 end
 
 --- Returns the '''entity''' <this> is parented to.
