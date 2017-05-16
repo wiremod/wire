@@ -1083,7 +1083,7 @@ end
 
 --[[ currently does not work
 e2 function number wirelink:egpClearQueue()
-	if (!EGP:ValidEGP( this )) then return end
+	if (!EGP:ValidEGP( this )) then return 0 end
 	if (EGP.Queue[self.player]) then
 		EGP:StopQueueTimer( self.player )
 		EGP.Queue[self.player].DONTADDMORE = true
