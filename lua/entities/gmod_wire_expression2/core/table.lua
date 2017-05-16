@@ -1151,7 +1151,6 @@ registerCallback( "postinit", function()
 			table.insert( rv1.n, 1, rv2 )
 			table.insert( rv1.ntypes, 1, id )
 			self.GlobalScope.vclk[rv1] = true
-			return rv2
 		end)
 
 
