@@ -128,10 +128,10 @@ end
 
 --- Returns the first entity <this> was constrained to with the given constraint type <constraintType>.
 e2function entity entity:isConstrainedTo(string constraintType)
-	if not IsValid(this) then return nil end
-	if not constraint.HasConstraints(this) then return nil end
+	if not IsValid(this) then return NULL end
+	if not constraint.HasConstraints(this) then return NULL end
 
-	return ent1or2(this,constraint.FindConstraint(this, caps(constraintType)))
+	return ent1or2(this,constraint.FindConstraint(this, caps(constraintType))) or NULL
 end
 
 --- Returns the <index>th entity <this> was constrained to with the given constraint type <constraintType>.
