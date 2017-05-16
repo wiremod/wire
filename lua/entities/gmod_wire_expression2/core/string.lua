@@ -112,9 +112,7 @@ e2function number string:toNumber()
 end
 
 e2function number string:toNumber(number base)
-	local ret = tonumber(this, base)
-	if ret == nil then return 0 end
-	return ret
+	return tonumber(this, base) or 0
 end
 
 local string_char = string.char
