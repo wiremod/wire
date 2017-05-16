@@ -846,13 +846,8 @@ e2function number wirelink:egpAlpha( number index )
 end
 
 e2function number wirelink:egpAngle( number index )
-	local bool, k, v = EGP:HasObject( this, index )
-	if (bool) then
-		if (v.angle) then
-			return v.angle
-		end
-	end
-	return -1
+	local bool, _, v = EGP:HasObject( this, index )
+	return bool and v.angle or -1
 end
 
 e2function string wirelink:egpMaterial( number index )
