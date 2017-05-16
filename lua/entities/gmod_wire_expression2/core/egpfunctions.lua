@@ -732,13 +732,8 @@ e2function void wirelink:egpUnParent( number index )
 end
 
 e2function number wirelink:egpParent( number index )
-	local bool, k, v = EGP:HasObject( this, index )
-	if (bool) then
-		if (v.parent) then
-			return v.parent
-		end
-	end
-	return -1
+	local bool, _, v = EGP:HasObject( this, index )
+	return bool and v.parent or -1
 end
 
 --------------------------------------------------------
