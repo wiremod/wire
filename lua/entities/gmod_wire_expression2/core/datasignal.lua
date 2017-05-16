@@ -388,8 +388,7 @@ end
 
 -- Get the hash of the sending E2
 e2function number dsGetHash()
-	if not currentsignal then return "" end
-	return currentsignal.hash
+	return currentsignal and currentsignal.hash or 0
 end
 
 __e2setcost(20)
