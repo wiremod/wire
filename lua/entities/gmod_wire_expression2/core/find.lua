@@ -811,7 +811,8 @@ e2function number findSortByDistance(vector position)
 	self.prf = self.prf + #findlist * 12
 	
 	local d = {}
-	for _, v in ipairs(findlist) do
+	for i=1, #findlist do
+		local v = findlist[i]
 		if v:IsValid() then
 			d[v] = (position - v:GetPos()):LengthSqr()
 		else
