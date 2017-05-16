@@ -958,7 +958,7 @@ e2function vector2 wirelink:egpOrigin()
 end
 
 e2function vector2 wirelink:egpSize()
-	if (!EGP:IsAllowed( self, this )) then return end
+	if (!EGP:IsAllowed( self, this )) then return { -1, -1 } end
 	local width = math.abs(this.xScale[1] - this.xScale[2])
 	local height = math.abs(this.yScale[1] - this.yScale[2])
 	return { width, height }
