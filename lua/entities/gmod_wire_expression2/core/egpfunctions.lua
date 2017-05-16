@@ -950,7 +950,7 @@ e2function void wirelink:egpResolution( vector2 topleft, vector2 bottomright )
 end
 
 e2function vector2 wirelink:egpOrigin()
-	if (!EGP:IsAllowed( self, this )) then return end
+	if (!EGP:IsAllowed( self, this )) then return { -1, -1 } end
 	local xOrigin = this.xScale[1] + (this.xScale[2] - this.xScale[1])/2
 	local yOrigin = this.yScale[1] + (this.yScale[2] - this.yScale[1])/2
 	return { xOrigin, yOrigin }
