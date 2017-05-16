@@ -816,13 +816,8 @@ e2function vector2 wirelink:egpSize( number index )
 end
 
 e2function number wirelink:egpSizeNum( number index )
-	local bool, k, v = EGP:HasObject( this, index )
-	if (bool) then
-		if (v.size) then
-			return v.size
-		end
-	end
-	return -1
+	local bool, _, v = EGP:HasObject( this, index )
+	return bool and v.size or -1
 end
 
 e2function vector4 wirelink:egpColor4( number index )
