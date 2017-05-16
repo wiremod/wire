@@ -684,14 +684,9 @@ e2function void wirelink:egpFidelity( number index, number fidelity )
 end
 
 e2function number wirelink:egpFidelity( number index )
-	if (!EGP:IsAllowed( self, this )) then return end
-	local bool, k, v = EGP:HasObject( this, index )
-	if (bool) then
-		if (v.fidelity) then
-			return v.fidelity
-		end
-	end
-	return -1
+	if (!EGP:IsAllowed( self, this )) then return -1 end
+	local bool, _, v = EGP:HasObject( this, index )
+	return bool and v.fidelity or -1
 end
 
 ----------------------------
