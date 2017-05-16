@@ -68,7 +68,7 @@ e2function number minFrictionMass()
 end
 
 e2function number speedLimit()
-	return physenv.GetPerformanceSettings()["MaxVelocity"]
+	return physenv.GetPerformanceSettings().MaxVelocity or 0
 end
 
 e2function number angSpeedLimit()
