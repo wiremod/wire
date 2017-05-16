@@ -383,8 +383,7 @@ end
 
 -- Get the group which the signal was sent to
 e2function string dsGetGroup()
-	if not currentsignal then return "" end
-	return currentsignal.groupname
+	return currentsignal and currentsignal.groupname or ""
 end
 
 -- Get the hash of the sending E2
