@@ -81,12 +81,9 @@ e2function void wirelink:egpOrder( number index, number order )
 end
 
 e2function number wirelink:egpOrder( number index )
-	if (!EGP:IsAllowed( self, this )) then return end
-	local bool, k, v = EGP:HasObject( this, index )
-	if (bool) then
-		return k
-	end
-	return -1
+	if (!EGP:IsAllowed( self, this )) then return -1 end
+	local bool, k = EGP:HasObject( this, index )
+	return bool and k or -1
 end
 
 e2function void wirelink:egpOrderAbove( number index, number abovethis )
