@@ -763,7 +763,7 @@ __e2setcost(2)
 
 --- Returns the indexed entity from the previous find event (valid parameters are 1 to the number of entities found)
 e2function entity findResult(index)
-	return self.data.findlist[index]
+	return self.data.findlist[index] or NULL
 end
 
 --- Returns the closest entity to the given point from the previous find event
