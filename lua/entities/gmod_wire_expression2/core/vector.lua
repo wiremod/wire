@@ -328,7 +328,7 @@ __e2setcost(3)
 
 --- Convert the magnitude of the vector to radians
 e2function vector toRad(vector rv1)
-	return Vector(rv1[1] * deg2rad, rv1[2] * deg2rad, rv1[3] * deg2rad)
+	return { rv1[1] * deg2rad, rv1[2] * deg2rad, rv1[3] * deg2rad }
 end
 
 --- Convert the magnitude of the vector to degrees
