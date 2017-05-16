@@ -96,7 +96,7 @@ local function DispToString(number)
 	if(number == 2) then return "fear" end
 	if(number == 3) then return "like" end
 	if(number == 4) then return "neutral" end
-	return 0
+	return ""
 end
 
 local function NpcDispString(string)
