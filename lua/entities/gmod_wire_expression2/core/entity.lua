@@ -79,9 +79,7 @@ end
 /******************************************************************************/
 
 e2function entity entity(id)
-	local ent = ents.GetByIndex(id)
-	if not IsValid(ent) then return nil end
-	return ent
+	return Entity(id) or NULL -- ents.GetByIndex is alias of _G.Entity function. IsValid check is redundant here.
 end
 
 e2function number entity:id()
