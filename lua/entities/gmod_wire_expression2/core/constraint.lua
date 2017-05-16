@@ -144,8 +144,7 @@ end
 
 --- Returns the '''entity''' <this> is parented to.
 e2function entity entity:parent()
-	if not IsValid(this) then return nil end
-	return this:GetParent()
+	return IsValid(this) and this:GetParent() or NULL
 end
 
 --- Returns the '''bone''' <this> is parented to.
