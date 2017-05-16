@@ -325,7 +325,7 @@ __e2setcost(5)
 --- Breaks EVERY CONSTRAINT on <this>
 e2function void entity:constraintBreak()
 	if !IsValid(this) then return end
-	if !isOwner(self, this) then return false end
+	if !isOwner(self, this) then return end
 	constraint.RemoveAll(this)
 end
 
