@@ -1027,9 +1027,7 @@ end
 
 e2function number holoBodygroups(index, bgrp_id)
 	local Holo = CheckIndex(self, index)
-	if not Holo then return end
-
-	return Holo.ent:GetBodygroupCount(bgrp_id)
+	return Holo and Holo.ent:GetBodygroupCount(bgrp_id) or 0
 end
 
 -- -----------------------------------------------------------------------------
