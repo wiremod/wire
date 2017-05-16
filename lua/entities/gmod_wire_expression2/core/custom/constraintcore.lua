@@ -351,7 +351,7 @@ end
 --- Breaks all constraints of type <type> on <this>
 e2function void entity:constraintBreak(string type)
 	if !IsValid(this) then return end
-	if !isOwner(self, this) then return false end
+	if !isOwner(self, this) then return end
 	constraint.RemoveConstraints(this, caps(type))
 end
 
