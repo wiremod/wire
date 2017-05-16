@@ -195,7 +195,8 @@ e2function vector randvec()
 	until s <= 1.0
 
 	a = 2 * sqrt(1 - s) -- factor to adjust x,y so that x^2+y^2 is equal to 1-z^2
-	return Vector(x*a, y*a, s * 2 - 1) -- z uniformly distributed from -1 to 1
+	local vec = Vector(x * a, y * a, s * 2 - 1) -- z uniformly distributed from -1 to 1
+	return { vec.x, vec.y, vec.z }
 
 	--[[
 	-- This variant saves 2 multiplications per loop, woo. But it's not readable and not verified, thus commented out.
@@ -208,7 +209,8 @@ e2function vector randvec()
 	until s <= -0.25
 
 	a = sqrt(-16 - s*64) -- factor to adjust x,y so that x^2+y^2 is equal to 1-z^2
-	return Vector((x-0.5)*a, (y-0.5)*a, s * 8 + 3) -- z uniformly distributed from -1 to 1
+	local vec = Vector((x - 0.5) * a, (y - 0.5) * a, s * 8 + 3) -- z uniformly distributed from -1 to 1
+	return { vec.x, vec.y, vec.z }
 	]]
 end
 
