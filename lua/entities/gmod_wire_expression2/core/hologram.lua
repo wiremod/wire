@@ -1124,7 +1124,7 @@ end
 
 e2function entity holoEntity(index)
 	local Holo = CheckIndex(self, index)
-	if Holo and IsValid(Holo.ent) then return Holo.ent end
+	return Holo and IsValid(Holo.ent) and Holo.ent or NULL
 end
 
 __e2setcost(30)
