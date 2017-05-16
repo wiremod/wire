@@ -226,7 +226,8 @@ end
 --- Returns a random vector between <min> and <max>
 e2function vector randvec(vector min, vector max)
 	local minx, miny, minz = min[1], min[2], min[3]
-	return Vector(minx+random()*(max[1]-minx), miny+random()*(max[2]-miny), minz+random()*(max[3]-minz))
+	local vec = Vector(minx + random() * (max[1] - minx), miny + random() * (max[2] - miny), minz + random() * (max[3] - minz))
+	return { vec.x, vec.y, vec.z }
 end
 
 --------------------------------------------------------------------------------
