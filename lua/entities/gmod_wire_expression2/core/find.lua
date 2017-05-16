@@ -797,7 +797,7 @@ end
 
 --- Equivalent to findResult(1)
 e2function entity find()
-	return self.data.findlist[1]
+	return self.data.findlist[1] or NULL
 end
 
 --[[************************************************************************]]--
