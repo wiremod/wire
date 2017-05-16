@@ -347,8 +347,7 @@ end
 
 --- Outputs a normalized vector perpendicular to the surface the ranger is pointed at.
 e2function vector ranger:hitNormal()
-	if not this then return { 0, 0, 0 } end
-	return this.HitNormal
+	return this and { this.HitNormal.x, this.HitNormal.y, this.HitNormal.z } or { 0, 0, 0 }
 end
 
 -- Returns a number between 0 and 1, ie R:distance()/maxdistance
