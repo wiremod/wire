@@ -315,7 +315,7 @@ end
 
 --- Returns user if the chip is being executed because of a key event.
 e2function entity keyClk()
-	return runByKey
+	return runByKey or NULL
 end
 
 --- Returns 1 or -1 if the chip is being executed because of a key event by player <ply>
