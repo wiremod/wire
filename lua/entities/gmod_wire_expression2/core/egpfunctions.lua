@@ -1161,9 +1161,7 @@ end
 
 -- Returns the player which ordered the current items to be sent (This is usually yourself, but if you're sharing pp with someone it might be them. Good way to check if someone is fucking with your screens)
 e2function entity egpQueuePlayer()
-	if (EGP.RunByEGPQueue) then
-		return EGP.RunByEGPQueue_ply
-	end
+	return EGP.RunByEGPQueue and EGP.RunByEGPQueue_ply or NULL
 end
 
 -- Returns 1 if the current execution was caused by the EGP queue system and the player <ply> was the player whom ordered the item to be sent (This is usually yourself, but if you're sharing pp with someone it might be them.)
