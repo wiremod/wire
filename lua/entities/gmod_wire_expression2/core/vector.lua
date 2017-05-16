@@ -645,7 +645,8 @@ e2function vector toWorld( vector localpos, angle localang, vector worldpos, ang
 	local localang = Angle(localang[1],localang[2],localang[3])
 	local worldpos = Vector(worldpos[1],worldpos[2],worldpos[3])
 	local worldang = Angle(worldang[1],worldang[2],worldang[3])
-	return LocalToWorld(localpos,localang,worldpos,worldang)
+	local vec = LocalToWorld(localpos, localang, worldpos, worldang)
+	return { vec.x, vec.y, vec.z }
 end
 
 --- Converts a local position/angle to a world position/angle and returns the angle
