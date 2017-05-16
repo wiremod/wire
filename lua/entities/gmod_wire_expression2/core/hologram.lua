@@ -638,15 +638,15 @@ e2function entity holoCreate(index, vector position, vector scale, angle ang, ve
 end
 
 e2function entity holoCreate(index, vector position, vector scale, angle ang, vector color)
-	if not checkOwner(self) then return end
-	if BlockList[self.player:SteamID()] == true or CheckSpawnTimer( self ) == false then return end
+	if not checkOwner(self) then return NULL end
+	if BlockList[self.player:SteamID()] == true or CheckSpawnTimer( self ) == false then return NULL end
 	local Holo = CheckIndex(self, index)
-	if not Holo and PlayerAmount[self.uid] >= wire_holograms_max:GetInt() then return end
+	if not Holo and PlayerAmount[self.uid] >= wire_holograms_max:GetInt() then return NULL end
 
 	position = Vector(position[1], position[2], position[3])
 	ang = Angle(ang[1], ang[2], ang[3])
 	local ret = CreateHolo(self, index, position, scale, ang, color)
-	if IsValid(ret) then return ret end
+	return IsValid(ret) and ret or NULL
 end
 
 e2function entity holoCreate(index, vector position, vector scale, angle ang)
