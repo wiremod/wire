@@ -79,11 +79,11 @@ end
 --- Returns the last player to speak.
 e2function entity lastSpoke()
 	local entry = TextList.last
-	if not entry then return nil end
+	if not entry then return NULL end
 
 	local ply = entry[3]
-	if not IsValid(ply) then return nil end
-	if not ply:IsPlayer() then return nil end
+	if not IsValid(ply) then return NULL end
+	if not ply:IsPlayer() then return NULL end
 
 	return ply
 end
