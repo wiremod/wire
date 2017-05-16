@@ -64,7 +64,7 @@ e2function number maxFrictionMass()
 end
 
 e2function number minFrictionMass()
-	return physenv.GetPerformanceSettings()["MinFrictionMass"]
+	return physenv.GetPerformanceSettings().MinFrictionMass or 0
 end
 
 e2function number speedLimit()
