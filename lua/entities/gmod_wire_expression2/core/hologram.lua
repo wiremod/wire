@@ -684,13 +684,13 @@ e2function entity holoCreate(index, vector position)
 end
 
 e2function entity holoCreate(index)
-	if not checkOwner(self) then return end
-	if BlockList[self.player:SteamID()] == true or CheckSpawnTimer( self ) == false then return end
+	if not checkOwner(self) then return NULL end
+	if BlockList[self.player:SteamID()] == true or CheckSpawnTimer( self ) == false then return NULL end
 	local Holo = CheckIndex(self, index)
-	if not Holo and PlayerAmount[self.uid] >= wire_holograms_max:GetInt() then return end
+	if not Holo and PlayerAmount[self.uid] >= wire_holograms_max:GetInt() then return NULL end
 
 	local ret = CreateHolo(self, index)
-	if IsValid(ret) then return ret end
+	return IsValid(ret) and ret or NULL
 end
 
 e2function void holoDelete(index)
