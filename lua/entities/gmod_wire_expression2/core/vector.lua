@@ -307,7 +307,7 @@ end
 e2function vector vector:rotate( normal pitch, normal yaw, normal roll )
 	local v = Vector(this[1], this[2], this[3])
 	v:Rotate(Angle(pitch, yaw, roll))
-	return v
+	return { v.x, v.y, v.z }
 end
 
 e2function vector2 vector:dehomogenized()
