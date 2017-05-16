@@ -807,16 +807,19 @@ __e2setcost(10)
 --- Sorts the entities from the last find event, index 1 is the closest to point V, returns the number of entities in the list
 e2function number findSortByDistance(vector position)
 	position = Vector(position[1], position[2], position[3])
-	local Distance = position.Distance
-	local IsValid = IsValid
 	local findlist = self.data.findlist
 	self.prf = self.prf + #findlist * 12
-	table.sort(findlist, function(a, b)
-		if not IsValid(a) then return false end -- !(invalid < b) <=> (b <= invalid)
-		if not IsValid(b) then return true end -- (valid < invalid)
-
-		return Distance(position, a:GetPos()) < Distance(position, b:GetPos())
-	end)
+	
+	local d = {}
+	for i=1, #findlist do
+		local v = findlist[i]
+		if v:IsValid() then
+			d[v] = (position - v:GetPos()):LengthSqr()
+		else
+			d[v] = math.huge
+		end
+	end
+	table.sort(findlist, function(a, b) return d[a] < d[b] end)
 	return #findlist
 end
 
