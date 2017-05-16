@@ -163,8 +163,7 @@ __e2setcost(4)
 
 --- Returns the name of the received signal.
 e2function string signalName()
-	if not currentSignal then return "" end
-	return currentSignal[2]
+	return currentSignal and currentSignal[2] or ""
 end
 
 --- Returns the group name of the received signal.
