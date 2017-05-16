@@ -133,9 +133,7 @@ e2function number entity:team()
 end
 
 e2function string teamName(rv1)
-	local str = team.GetName(rv1)
-	if str == nil then return "" end
-	return str
+	return team.GetName(rv1) or ""
 end
 
 e2function number teamScore(rv1)
