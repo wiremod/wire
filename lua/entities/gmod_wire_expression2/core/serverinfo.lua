@@ -60,7 +60,7 @@ e2function number airDensity()
 end
 
 e2function number maxFrictionMass()
-	return physenv.GetPerformanceSettings()["MaxFrictionMass"]
+	return physenv.GetPerformanceSettings().MaxFrictionMass or 0
 end
 
 e2function number minFrictionMass()
