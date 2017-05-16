@@ -716,9 +716,7 @@ end
 -- Returns the entity a tracker is parented to
 e2function entity wirelink:egpTrackerParent( number index )
 	local bool, _, v = EGP:HasObject( this, index )
-	if bool and v.Is3DTracker then
-		return (v.parententity and v.parententity:IsValid()) and v.parententity or NULL
-	end
+	return bool and v.Is3DTracker and v.parententity and v.parententity:IsValid() and v.parententity or NULL
 end
 
 e2function void wirelink:egpParentToCursor( number index )
