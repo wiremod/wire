@@ -494,12 +494,7 @@ end
 /******************************************************************************/
 
 e2function entity entity:aimEntity()
-	if not IsValid(this) then return nil end
-	if not this:IsPlayer() then return nil end
-
-	local ent = this:GetEyeTraceNoCursor().Entity
-	if not ent:IsValid() then return nil end
-	return ent
+	return IsValid(this) and this:IsPlayer() and this:GetEyeTraceNoCursor().Entity or NULL
 end
 
 e2function vector entity:aimPos()
