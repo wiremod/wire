@@ -628,7 +628,7 @@ end
 __e2setcost( 15 )
 
 e2function string pointContents( vector point )
-	return cache_concatenated_parts[util.PointContents( Vector(point[1],point[2],point[3]))]
+	return cache_concatenated_parts[util.PointContents( Vector(point[1],point[2],point[3]))] or ""
 end
 
 e2function array pointContentsArray( vector point )
