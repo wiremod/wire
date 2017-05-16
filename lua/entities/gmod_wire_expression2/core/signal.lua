@@ -173,8 +173,7 @@ end
 
 --- Returns the entity of the chip that sent the signal.
 e2function entity signalSender()
-	if not currentSignal then return nil end
-	return currentSignal[4]
+	return currentSignal and currentSignal[4] or NULL
 end
 
 --- Returns the entity ID of the chip that sent the signal. Useful if the entity doesn't exist anymore.
