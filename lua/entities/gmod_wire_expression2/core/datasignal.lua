@@ -350,7 +350,7 @@ end
 
 -- Get current scope
 e2function number dsGetScope()
-	return self.data.datasignal.scope
+	return self.data.datasignal.scope or 0
 end
 
 __e2setcost(1)
