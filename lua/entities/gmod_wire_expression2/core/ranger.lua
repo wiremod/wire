@@ -370,8 +370,7 @@ end
 
 -- Returns the position at which the trace left the world if it was started inside the world
 e2function vector ranger:positionLeftSolid()
-	if not this then return { 0,0,0 } end
-	return this.StartPos
+	return this and { this.StartPos.x, this.StartPos.y, this.StartPos.z } or { 0, 0, 0 }
 end
 
 e2function number ranger:distanceLeftSolid()
