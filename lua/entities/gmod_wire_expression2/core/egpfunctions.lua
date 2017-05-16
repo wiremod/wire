@@ -841,13 +841,8 @@ e2function vector wirelink:egpColor( number index )
 end
 
 e2function number wirelink:egpAlpha( number index )
-	local bool, k, v = EGP:HasObject( this, index )
-	if (bool) then
-		if (v.a) then
-			return v.a
-		end
-	end
-	return -1
+	local bool, _, v = EGP:HasObject( this, index )
+	return bool and v.a or -1
 end
 
 e2function number wirelink:egpAngle( number index )
