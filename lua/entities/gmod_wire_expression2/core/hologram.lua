@@ -792,8 +792,8 @@ e2function vector holoScaleUnits(index)
 	local scale = Holo.scale or {0,0,0} -- TODO: maybe {1,1,1}?
 
 	local propsize = Holo.ent:OBBMaxs()-Holo.ent:OBBMins()
-
-	return Vector(scale[1] * propsize.x, scale[2] * propsize.y, scale[3] * propsize.z)
+	local vec = Vector(scale[1] * propsize.x, scale[2] * propsize.y, scale[3] * propsize.z)
+	return { vec.x, vec.y, vec.z }
 end
 
 
