@@ -104,10 +104,10 @@ end
 
 --- Returns the <index>th entity <this> was welded to.
 e2function entity entity:isWeldedTo(index)
-	if not IsValid(this) then return nil end
-	if not constraint.HasConstraints(this) then return nil end
+	if not IsValid(this) then return NULL end
+	if not constraint.HasConstraints(this) then return NULL end
 
-	return ent1or2(this,constraint.FindConstraints(this, "Weld"), math.floor(index))
+	return ent1or2(this,constraint.FindConstraints(this, "Weld"), math.floor(index)) or NULL
 end
 
 --- Returns the first entity <this> was constrained to.
