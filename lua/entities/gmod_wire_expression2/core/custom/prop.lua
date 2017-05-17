@@ -154,8 +154,7 @@ end
 
 __e2setcost(30)
 e2function entity propSpawn(string model, number frozen)
-	if not PropCore.ValidAction(self, nil, "spawn") then return nil end
-	return PropCore.CreateProp(self,model,self.entity:GetPos()+self.entity:GetUp()*25,self.entity:GetAngles(),frozen)
+	return PropCore.ValidAction(self, nil, "spawn") and PropCore.CreateProp(self,model,self.entity:GetPos()+self.entity:GetUp()*25,self.entity:GetAngles(),frozen) or NULL
 end
 
 e2function entity propSpawn(entity template, number frozen)
