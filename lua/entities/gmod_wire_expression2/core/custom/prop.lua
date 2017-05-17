@@ -327,8 +327,7 @@ e2function void entity:propSetElasticity(number elasticity)
 end
 
 e2function number entity:propGetElasticity()
-	if not PropCore.ValidAction(self, this, "elasticity") then return end
-	return this:GetElasticity()
+	return PropCore.ValidAction(self, this, "elasticity") and this:GetElasticity() or 0
 end
 
 e2function void entity:propMakePersistent(number persistent)
