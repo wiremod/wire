@@ -79,7 +79,7 @@ end
 /******************************************************************************/
 
 e2function entity entity(id)
-	return Entity(id) or NULL -- ents.GetByIndex is alias of _G.Entity function. IsValid check is redundant here.
+	return Entity(id) -- ents.GetByIndex is alias of _G.Entity function. IsValid check is redundant here.
 end
 
 e2function number entity:id()
