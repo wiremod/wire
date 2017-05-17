@@ -343,10 +343,9 @@ e2function void entity:propPhysicalMaterial(string physprop)
 end
 
 e2function string entity:propPhysicalMaterial()
-	if not PropCore.ValidAction(self, this, "physprop") then return end
+	if not PropCore.ValidAction(self, this, "physprop") then return "" end
 	local phys = this:GetPhysicsObject()
-	if IsValid(phys) then return phys:GetMaterial() or "" end
-	return ""
+	return IsValid(phys) and phys:GetMaterial() or ""
 end
 
 e2function void entity:propSetVelocity(vector velocity)
