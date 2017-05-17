@@ -193,8 +193,7 @@ e2function entity seatSpawn(string model, number frozen)
 end
 
 e2function entity seatSpawn(string model, vector pos, angle rot, number frozen)
-	if not PropCore.ValidAction(self, nil, "spawn") then return nil end
-	return PropCore.CreateProp(self,model,Vector(pos[1],pos[2],pos[3]),Angle(rot[1],rot[2],rot[3]),frozen,true)
+	return PropCore.ValidAction(self, nil, "spawn") and PropCore.CreateProp(self,model,Vector(pos[1],pos[2],pos[3]),Angle(rot[1],rot[2],rot[3]),frozen,true) or NULL
 end
 
 --------------------------------------------------------------------------------
