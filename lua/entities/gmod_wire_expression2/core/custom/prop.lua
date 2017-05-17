@@ -170,8 +170,7 @@ e2function entity propSpawn(entity template, vector pos, number frozen)
 end
 
 e2function entity propSpawn(string model, angle rot, number frozen)
-	if not PropCore.ValidAction(self, nil, "spawn") then return nil end
-	return PropCore.CreateProp(self,model,self.entity:GetPos()+self.entity:GetUp()*25,Angle(rot[1],rot[2],rot[3]),frozen)
+	return PropCore.ValidAction(self, nil, "spawn") and PropCore.CreateProp(self,model,self.entity:GetPos()+self.entity:GetUp()*25,Angle(rot[1],rot[2],rot[3]),frozen) or NULL
 end
 
 e2function entity propSpawn(entity template, angle rot, number frozen)
