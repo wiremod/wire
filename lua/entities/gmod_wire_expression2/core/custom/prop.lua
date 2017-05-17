@@ -222,7 +222,7 @@ local function removeAllIn( self, tbl )
 end
 
 e2function number table:propDelete()
-	if not PropCore.ValidAction(self, nil, "Tdelete") then return end
+	if not PropCore.ValidAction(self, nil, "Tdelete") then return 0 end
 
 	local count = removeAllIn( self, this.s )
 	count = count + removeAllIn( self, this.n )
