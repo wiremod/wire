@@ -438,7 +438,8 @@ end
 
 --- Returns the player with the given name, this is an exception to the rule
 e2function entity findPlayerByName(string name)
-	return query_blocked(self, 1) and NULL or findPlayer(name)
+	if query_blocked(self, 1) then return NULL end
+	return findPlayer(name) or NULL
 end
 
 --- Returns the player with the given SteamID
