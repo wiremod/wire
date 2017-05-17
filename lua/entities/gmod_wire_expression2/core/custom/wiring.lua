@@ -99,8 +99,8 @@ __e2setcost(5)
 
 --- Returns <this>'s entity wirelink
 e2function wirelink entity:wirelink()
-	if not IsValid(this) then return nil end
-	if not isOwner(self, this) then return nil end
+	if not IsValid(this) then return NULL end
+	if not isOwner(self, this) then return NULL end
 	if not this.extended then
 		WireLib.CreateWirelinkOutput( self.player, this, {true} )
 	end
