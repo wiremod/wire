@@ -62,14 +62,14 @@ end
 
 function PropCore.CreateProp(self,model,pos,angles,freeze,isVehicle)
 
-	if not PropCore.ValidSpawn() then return nil end
+	if not PropCore.ValidSpawn() then return NULL end
 
 	if isVehicle then
-		if self.player:CheckLimit( "vehicles" ) == false then return nil end
+		if self.player:CheckLimit( "vehicles" ) == false then return NULL end
 		if model == "" then model = "models/nova/airboat_seat.mdl" end
 	end
 
-	if not util.IsValidProp( model ) or not WireLib.CanModel(self.player, model) then return nil end
+	if not util.IsValidProp( model ) or not WireLib.CanModel(self.player, model) then return NULL end
 
 	pos = E2Lib.clampPos( pos )
 
@@ -100,7 +100,7 @@ function PropCore.CreateProp(self,model,pos,angles,freeze,isVehicle)
 		prop = self.data.propSpawnEffect and MakeProp( self.player, pos, angles, model, {}, {} ) or MakePropNoEffect( self.player, pos, angles, model, {}, {} )
 	end
 
-	if not IsValid( prop ) then return nil end
+	if not IsValid( prop ) then return NULL end
 
 	prop:Activate()
 
