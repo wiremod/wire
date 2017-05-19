@@ -92,4 +92,3 @@ function TOOL.BuildCPanel(panel)
 	panel:CheckBox("#WireWaypointTool_alink","wire_waypoint_alink")
 	panel:CheckBox("#Create Flat to Surface", "wire_waypoint_createflat")
 end
-

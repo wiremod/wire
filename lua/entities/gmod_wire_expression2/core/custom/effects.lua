@@ -179,5 +179,3 @@ end
 registerCallback("construct", function(self)
 	self.data.effect_burst = wire_expression2_effect_burst_max:GetInt()
 end)
-
-
