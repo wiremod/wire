@@ -33,6 +33,46 @@ local function IsWire(entity) --try to find out if the entity is wire
 	return false
 end
 
+properties.Add("wire_debugger", {
+	MenuLabel = "Debug",
+	MenuIcon  = "icon16/bug.png",
+
+	Filter = function(self,ent,ply)
+		if not IsValid(ent) then return false end
+		if not IsWire(ent) then return false end
+		return true
+	end,
+
+	Action = function(self,ent)
+		self:MsgStart()
+			net.WriteEntity(ent)
+		self:MsgEnd()
+	end,
+
+	Receive = function(self,len,ply)
+		local ent = net.ReadEntity()
+		if not self:Filter(ent,ply) then return end
+
+		Components[ply] = Components[ply] or {}
+
+		for k, cmp in ipairs(Components[ply]) do
+			if cmp == ent then
+				table.remove(Components[ply], k)
+				dbg_line_cache[ply] = nil
+
+				if not next(Components[ply]) then
+					UpdateLineCount(ply, 0)
+					Components[ply] = nil
+				end
+
+				return
+			end
+		end
+
+		table.insert(Components[ply], ent)
+	end,
+})
+
 function TOOL:LeftClick(trace)
 	if (!trace.Entity:IsValid()) then return end
 	if (!IsWire(trace.Entity)) then return end
@@ -390,7 +430,7 @@ if (CLIENT) then
 		dgb_orient_vert = net.ReadBit() != 0
 		dbg_lines[net.ReadUInt(16)] = net.ReadString()
 	end)
-	
+
 end
 
 function TOOL.BuildCPanel(panel)
