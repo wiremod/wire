@@ -570,7 +570,7 @@ function ZVM:Step(overrideSteps,extraEmitFunction)
 
   -- Trigger timers
   self:TimerLogic()
-  
+
   -- Calculate absolute execution address and set current page
   self.XEIP = self.IP + self.CS
   self:SetCurrentPage(math.floor(self.XEIP/128))

@@ -32,7 +32,7 @@ end
 TOOL.ClientConVar[ "model" ] = "models/jaanus/wiretool/wiretool_range.mdl"
 
 if SERVER then
-	function TOOL:GetConVars() 
+	function TOOL:GetConVars()
 		local matches = {}
 		for i=1,math.Clamp(self:GetClientNumber("num_matches"),0,24) do
 			matches[i] = self:GetClientInfo("match"..i)

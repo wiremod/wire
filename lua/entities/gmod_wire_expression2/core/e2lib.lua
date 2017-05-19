@@ -448,7 +448,7 @@ end
 
 do
 	-- Shared stuff, defined later.
-	
+
 	local extensions = nil
 	local function printExtensions() end
 	local function conCommandSetExtensionStatus() end
@@ -465,9 +465,9 @@ do
 	function E2Lib.GetExtensionDocumentation(name)
 		return extensions.documentation[name] or {}
 	end
-	
+
 	if SERVER then -- serverside stuff
-		
+
 		util.AddNetworkString( "wire_expression2_server_send_extensions_list" )
 		util.AddNetworkString( "wire_expression2_client_request_print_extensions" )
 		util.AddNetworkString( "wire_expression2_client_request_set_extension_status" )
@@ -502,7 +502,7 @@ do
 			-- thus making its functions not available in the E2 Editor (see function e2_include_pass2 in extloader.lua).
 			assert( extensions.status[ name ], "EXTENSION_DISABLED" )
 		end
-		
+
 		function E2Lib.SetExtensionStatus( name, status )
 			name = name:Trim():lower()
 			status = tobool( status )
@@ -511,7 +511,7 @@ do
 				sql.Query( "REPLACE INTO wire_expression2_extensions ( name, enabled ) VALUES ( " .. sql.SQLStr( name ) .. ", " .. ( status and 1 or 0 ) .. " )" )
 			end
 		end
-		
+
 		-- After using E2Lib.SetExtensionStatus in an external script, this function should be called.
 		-- Its purpose is to update the clientside autocomplete list for the concommands.
 		function E2Lib.UpdateClientsideExtensionsList( ply )
@@ -523,12 +523,12 @@ do
 				net.Broadcast()
 			end
 		end
-		
+
 		local function buildPrettyList()
 			local function padLeft( str, len ) return (" "):rep( len - #str ) .. str end
 			local function padRight( str, len ) return str .. (" "):rep( len - #str ) end
 			local function padCenter( str, len ) return padRight( padLeft( str, math.floor( (len + #str) / 2 ) ), len ) end
-			
+
 			local list, column1, column2, columnsWidth = extensions.list, {}, {}, 0
 			for i = 1, #list do
 				local name = list[ i ]
@@ -541,7 +541,7 @@ do
 			columnsWidth = maxWidth / 2
 			maxWidth = maxWidth + 3
 			local delimiter =  " +-" .. ("-"):rep( columnsWidth ) .. "-+-" .. ("-"):rep( columnsWidth ) .. "-+"
-			
+
 			list =
 			{
 				" +-" .. ("-"):rep( maxWidth ) .. "-+",
@@ -552,10 +552,10 @@ do
 			}
 			for i = 1, maxRows do list[ #list + 1 ] = " | " .. padRight( column1[ i ] or "", columnsWidth ) .. " | " .. padRight( column2[ i ] or "", columnsWidth ) .. " |" end
 			list[ #list + 1 ] = delimiter
-			
+
 			extensions.prettyList = list
 		end
-		
+
 		function printExtensions( ply, str )
 			if IsValid( ply ) then
 				if str then ply:PrintMessage( 2, str ) end
@@ -565,7 +565,7 @@ do
 				for i = 1, #extensions.prettyList do print( extensions.prettyList[ i ] ) end
 			end
 		end
-		
+
 		function conCommandSetExtensionStatus( ply, cmd, args )
 			if IsValid( ply ) and not ply:IsSuperAdmin() and not game.SinglePlayer() then
 				ply:PrintMessage( 2, "Sorry " .. ply:Name() .. ", you don't have access to this command." )
@@ -592,21 +592,21 @@ do
 				else printExtensions( ply, "Unknown extension '" .. name .. "'. Here is a list of available extensions:" ) end
 			else printExtensions( ply, "Usage: '" .. cmd .. " <name>'. Here is a list of available extensions:" ) end
 		end
-		
+
 		net.Receive( "wire_expression2_client_request_print_extensions",
 			function( _, ply )
 				printExtensions( ply )
 			end
 		)
-		
+
 		net.Receive( "wire_expression2_client_request_set_extension_status",
 			function( _, ply )
 				conCommandSetExtensionStatus( ply, net.ReadString(), net.ReadTable() )
 			end
 		)
-		
+
 		hook.Add( "PlayerInitialSpawn", "wire_expression2_updateClientsideExtensions", E2Lib.UpdateClientsideExtensionsList )
-		
+
 		function wire_expression2_PostLoadExtensions()
 			table.sort( extensions.list, function( a, b ) return a < b end )
 			E2Lib.UpdateClientsideExtensionsList()
@@ -616,16 +616,16 @@ do
 			end
 			hook.Run( "Expression2_PostLoadExtensions" )
 		end
-		
+
 	else -- clientside stuff
 
 		extensions = { status = {}, list = {} }
-			
+
 		function printExtensions()
 			net.Start( "wire_expression2_client_request_print_extensions" )
 			net.SendToServer()
 		end
-		
+
 		function conCommandSetExtensionStatus( _, cmd, args )
 			net.Start( "wire_expression2_client_request_set_extension_status" )
 			net.WriteString( cmd )
@@ -636,11 +636,11 @@ do
 		net.Receive( "wire_expression2_server_send_extensions_list", function()
 			extensions = net.ReadTable()
 		end)
-		
+
 	end
 
 	-- shared stuff
-	
+
 	local function makeAutoCompleteList( cmd, args )
 		args = args:Trim():lower()
 		local status, list, tbl, j = tobool( cmd:find( "enable" ) ), extensions.list, {}, 1
@@ -664,25 +664,25 @@ end
 
 do
 	if SERVER then
-	
+
 		util.AddNetworkString( "wire_expression2_client_request_reload" )
 		net.Receive( "wire_expression2_client_request_reload",
 			function( n, ply )
 				wire_expression2_reload( ply )
 			end
 		)
-		
+
 	else
-	
+
 		local function wire_expression2_reload()
 			net.Start( "wire_expression2_client_request_reload" )
 			net.SendToServer()
 		end
-		
+
 		concommand.Add( "wire_expression2_reload", wire_expression2_reload )
-		
+
 	end
-	
+
 end
 
 -- ------------------------------ compatibility --------------------------------

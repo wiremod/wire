@@ -120,7 +120,7 @@ if (SERVER) then
 	-- Extra Set Poly queue item, used by poly objects with a lot of vertices in them
 	util.AddNetworkString( "SetVertex" )
 	function EGP._SetVertex( Ent, ply, index, vertices, skiptoadd )
-		
+
 		if not IsValid(ply) or not ply:IsPlayer() then return end
 		if (EGP:CheckInterval( ply ) == false) then
 			EGP:InsertQueue( Ent, ply, EGP._SetVertex, "SetVertex", index, vertices, skiptoadd )
@@ -308,7 +308,7 @@ if (SERVER) then
 			if (E2 and E2.entity and E2.entity:IsValid()) then
 				E2.prf = E2.prf + 20
 			end
-			
+
 			for i=1,#Ent.RenderTable do
 				E2.prf = E2.prf + 0.3
 				if Ent.RenderTable[i].index == Data[1] then
@@ -322,7 +322,7 @@ if (SERVER) then
 			if (E2 and E2.entity and E2.entity:IsValid()) then
 				E2.prf = E2.prf + 20
 			end
-			
+
 			// Remove all queued actions for this screen
 			local queue = self.Queue[E2.player] or {}
 			local i = 1
@@ -334,7 +334,7 @@ if (SERVER) then
 					i = i + 1
 				end
 			end
-			
+
 			Ent.RenderTable = {}
 
 			self:AddQueue( Ent, E2.player, ClearScreen, "ClearScreen" )
@@ -492,7 +492,7 @@ else -- SERVER/CLIENT
 
 							-- For EGP HUD
 							if (Obj.res) then Obj.res = nil end
-							
+
 							current_obj = Obj
 						else -- Edit
 							self:EditObject( v, v:Receive() )
@@ -504,7 +504,7 @@ else -- SERVER/CLIENT
 
 							-- For EGP HUD
 							if (v.res) then v.res = nil end
-							
+
 							current_obj = v
 						end
 					else -- Object does not exist. Create new
@@ -513,7 +513,7 @@ else -- SERVER/CLIENT
 						Obj.index = index
 						if (Obj.OnCreate) then Obj:OnCreate() end
 						Ent.RenderTable[#Ent.RenderTable+1] = Obj--table.insert( Ent.RenderTable, Obj )
-						
+
 						current_obj = Obj
 					end
 
@@ -524,7 +524,7 @@ else -- SERVER/CLIENT
 					end
 				end
 			end
-			
+
 
 			-- Change order now
 			if order_was_changed then
@@ -614,7 +614,7 @@ if (SERVER) then
 
 					DataToSend[#DataToSend+1] = { ID = obj.ID, index = obj.index, Settings = obj:DataStreamInfo() }
 				end
-				
+
 				timer.Simple( k, function() -- send 1 second apart
 					net.Start("EGP_Request_Transmit")
 						net.WriteTable({
@@ -651,7 +651,7 @@ else
 	function EGP:ReceiveDataStream( decoded )
 		local Ent = decoded.Ent
 		local Objects = decoded.Objects
-		
+
 		if (self:ValidEGP( Ent )) then
 			Ent.RenderTable = {}
 			for _,v in pairs( Objects ) do
@@ -666,7 +666,7 @@ else
 			end
 			Ent:EGP_Update()
 		end
-		
+
 		if decoded.IsLastScreen then
 			LocalPlayer():ChatPrint("[EGP] Received EGP object reload. " .. decoded.IsLastScreen .. " screens' objects were reloaded.")
 		end

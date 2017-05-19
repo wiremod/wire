@@ -4,7 +4,7 @@ ENT.PrintName       = "Wire E2 Graphics Processor Emitter"
 ENT.RenderGroup		= RENDERGROUP_TRANSLUCENT
 ENT.WireDebugName	= "E2 Graphics Processor Emitter"
 
-if CLIENT then 
+if CLIENT then
 	ENT.gmod_wire_egp_emitter = true
 
 	function ENT:Initialize()
@@ -59,7 +59,7 @@ if CLIENT then
 		self:DrawModel()
 		Wire_Render(self)
 	end
-	
+
 	return  -- No more client
 end
 

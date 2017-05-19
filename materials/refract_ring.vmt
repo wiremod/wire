@@ -7,7 +7,7 @@
 
 	"$dudvmap" 		"refract_ring"
 	"$normalmap" 		"refract_ring"
-	
+
 	"$nocull" 1
 	"$ignorez" 0
 

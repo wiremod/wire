@@ -36,9 +36,9 @@ TOOL.ClientConVar = {
 }
 
 if SERVER then
-	function TOOL:GetConVars() 
-		return self:GetClientNumber("keygroup1"), self:GetClientNumber("keygroup2"), self:GetClientNumber("keygroup3"), self:GetClientNumber("keygroup4"), self:GetClientNumber("keygroup5"), 
-			self:GetClientNumber("keygroupoff"), self:GetClientNumber("toggle") ~= 0, self:GetClientNumber("normclose"), 
+	function TOOL:GetConVars()
+		return self:GetClientNumber("keygroup1"), self:GetClientNumber("keygroup2"), self:GetClientNumber("keygroup3"), self:GetClientNumber("keygroup4"), self:GetClientNumber("keygroup5"),
+			self:GetClientNumber("keygroupoff"), self:GetClientNumber("toggle") ~= 0, self:GetClientNumber("normclose"),
 			self:GetClientNumber("poles"), self:GetClientNumber("throws"), self:GetClientNumber("nokey") ~= 0
 	end
 end

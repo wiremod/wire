@@ -133,7 +133,7 @@ if CLIENT then
 	//
 	// Create basic fonts
 	//
-	local fontData = 
+	local fontData =
 	{
 		font="lucida console",
 		size=20,
@@ -414,7 +414,7 @@ if CLIENT then
 		}
 
 		local mins, maxs = screen:OBBMins(), screen:OBBMaxs()
-		
+
 		local timerid = "wire_gpulib_updatebounds"..screen:EntIndex()
 		local function setbounds()
 			if not screen:IsValid() then

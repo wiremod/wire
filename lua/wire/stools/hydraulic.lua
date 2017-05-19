@@ -61,11 +61,11 @@ function TOOL:LeftClick( trace )
 			self:SetStage(0)
 			return
 		end
-		
+
 		local controller = self:LeftClick_Make(trace, ply)
 		if isbool(controller) then return controller end
 		self:LeftClick_PostMake(controller, ply, trace)
-		
+
 		if controller then
 			controller:DeleteOnRemove(const)
 			if rope then controller:DeleteOnRemove( rope ) end
@@ -134,7 +134,7 @@ function TOOL:RightClick( trace )
 		tr.filter[2] = trace.Entity
 	end
 	local trace2 = util.TraceLine( tr )
-	
+
 	if not hook.Run( "CanTool", self:GetOwner(), trace2, "wire_hydraulic" ) then return false end
 
 	return self:LeftClick(trace) and self:LeftClick(trace2)

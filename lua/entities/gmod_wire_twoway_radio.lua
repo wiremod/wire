@@ -84,7 +84,7 @@ function ENT:LinkEnt( other )
 		--to a different one, then tell it to unlink
 		self.Other.UnlinkEnt()
 	end
-	
+
 	local id = Radio_GetTwoWayID()
 	self:RadioLink(other, id)
 	other:RadioLink(self, id)

@@ -14,14 +14,14 @@ void gltVertex(float x, float y, float z)
 {
     if ((__GLT_VERTCNT / 3) >= GLT_MAX_TRIANGLES)
     	return;
-    
+
     float* ptr = __GLT_VERTBUFF;
     ptr += (__GLT_VERTCNT * 3);
-    
+
     *ptr = x;
     *(++ptr) = y;
     *(++ptr) = z;
-    
+
     __GLT_VERTCNT++;
 }
 
@@ -44,7 +44,7 @@ void gltQuad(float tlx, float tly, float tlz,
         tlx, tly, tlz,
         blx, bly, blz
     );
-    
+
     gltTriangle(
         brx, bry, brz,
         trx, try, trz,
@@ -55,42 +55,42 @@ void gltQuad(float tlx, float tly, float tlz,
 void gltCube(float cex, float cey, float cez, float size)
 {
     float s2 = size / 2;
-    
+
     gltQuad(
         cex - s2, cey + s2, cez - s2,
         cex + s2, cey + s2, cez - s2,
         cex + s2, cey - s2, cez - s2,
         cex - s2, cey - s2, cez - s2
     );
-    
+
     gltQuad(
         cex + s2, cey + s2, cez + s2,
         cex - s2, cey + s2, cez + s2,
         cex - s2, cey - s2, cez + s2,
         cex + s2, cey - s2, cez + s2
     );
-    
+
     gltQuad(
         cex - s2, cey + s2, cez + s2,
         cex - s2, cey + s2, cez - s2,
         cex - s2, cey - s2, cez - s2,
         cex - s2, cey - s2, cez + s2
     );
-    
+
     gltQuad(
         cex + s2, cey + s2, cez - s2,
         cex + s2, cey + s2, cez + s2,
         cex + s2, cey - s2, cez + s2,
         cex + s2, cey - s2, cez - s2
     );
-    
+
     gltQuad(
         cex - s2, cey + s2, cez + s2,
         cex + s2, cey + s2, cez + s2,
         cex + s2, cey + s2, cez - s2,
         cex - s2, cey + s2, cez - s2
     );
-    
+
     gltQuad(
         cex - s2, cey - s2, cez - s2,
         cex + s2, cey - s2, cez - s2,
@@ -108,13 +108,13 @@ void gltFlushBuffer()
 {
     if (__GLT_VERTCNT <= 3)
         return;
-        
+
     float vcnt = __GLT_VERTCNT;
     float tcnt = (vcnt / 3) - (vcnt % 3);
-    
+
     if (tcnt > GLT_MAX_TRIANGLES)
         tcnt = GLT_MAX_TRIANGLES;
-    
+
     glPoly3D(__GLT_VERTBUFF, tcnt);
     glFlush();
 }

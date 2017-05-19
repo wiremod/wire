@@ -14,9 +14,9 @@ WireToolSetup.SetupMax( 20 )
 if SERVER then
 	CreateConVar('sbox_wire_igniters_maxlen', 30)
 	CreateConVar('sbox_wire_igniters_allowtrgply',1)
-	
-	function TOOL:GetConVars() 
-		return self:GetClientNumber( "trgply" )~=0, self:GetClientNumber("range") 
+
+	function TOOL:GetConVars()
+		return self:GetClientNumber( "trgply" )~=0, self:GetClientNumber("range")
 	end
 end
 

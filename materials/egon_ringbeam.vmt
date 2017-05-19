@@ -6,7 +6,7 @@
 	"$scale" 			"[1 1]"
 
 	"$normalmap" 		"egon_refract"
-	
+
 	"$nocull" 1
 	"$ignorez" 0
 

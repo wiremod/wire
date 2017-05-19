@@ -93,7 +93,7 @@ function SWEP:Off()
 	self.Active = nil
 	self.OldMoveType = nil
 	ply:DrawViewModel(true)
-	
+
 	if IsValid(self.Linked) then
 		self.Linked:PlayerExited(ply)
 	end

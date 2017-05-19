@@ -44,7 +44,7 @@ if SERVER then
 		end
 	end)
 
-	function TOOL:GetConVars() 
+	function TOOL:GetConVars()
 		return self:GetClientNumber( "save_on_entity" ) ~= 0, friends[self:GetOwner()] or {}
 	end
 
@@ -109,7 +109,7 @@ else
 	net.Receive( "wire_friendslist", function( length )
 		friends = net.ReadTable()
 		saveFile( friends )
-		
+
 		if not IsValid(cpanel_list) then -- They right clicked without opening the cpanel first, just save the values
 			return
 		end

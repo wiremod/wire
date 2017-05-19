@@ -18,7 +18,7 @@
 	If you disagree with the above, don't use the code.
 
 -----------------------------------------------------------------------------------------------------------------------------
-	
+
 	Thanks to the following people for their contribution:
 		-	Divran						Suggested improvements for making the code quicker.
 										Suggested an excellent new way of deserializing strings.
@@ -26,7 +26,7 @@
 		-	pennerlord					Provided some performance tests to help me improve the code.
 
 -----------------------------------------------------------------------------------------------------------------------------
-	
+
 	The value types supported in this release of vON are:
 		-	table
 		-	number
@@ -42,7 +42,7 @@
 	+ Some very common GMod Lua types.
 
 -----------------------------------------------------------------------------------------------------------------------------
-	
+
 	New in this version:
 		-	Fixed errors on vector and angle deserializing.
 		-	Added Player datatype.
@@ -442,7 +442,7 @@ _serialize = {
 				result[#result + 1] = val..":"
 
 				val, lastType = s_anyVariable(data[keyvals[_i]], lastType, false, false, keyvalsProgress == keyvalsLen and not first, false, 0)
-				
+
 				result[#result + 1] = val
 			end
 		end

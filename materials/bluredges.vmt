@@ -10,7 +10,7 @@
 
 	"$dudvmap" 		"bluredges"
 	"$normalmap" 		"bluredges"
-	
+
 	"$nocull" 1
 	"$ignorez" 1
 

@@ -42,12 +42,12 @@ end
 function ENT:Setup( UseLuaPatterns, Matches, CaseInsensitive )
 	local outputs = { "Message", "Player", "Clk" }
 	local types = { "STRING", "ENTITY", "NORMAL" }
-	
+
 	if UseLuaPatterns then
 		outputs[#outputs+1] = "PatternError"
 		types[#types+1] = "STRING"
 	end
-	
+
 	if #Matches > 0 then
 		local txt = "Matches:"
 		for i=1,#Matches do
@@ -62,7 +62,7 @@ function ENT:Setup( UseLuaPatterns, Matches, CaseInsensitive )
 		self:SetOverlayText(txt)
 	end
 	self.Outputs = WireLib.AdjustSpecialOutputs( self, outputs, types )
-	
+
 	self:PlayerSpoke( nil, "" ) -- Reset outputs
 
 	self.UseLuaPatterns = UseLuaPatterns
@@ -80,7 +80,7 @@ local string_match = string.match
 
 function ENT:PcallFind( text, match )
 	local ok, ret = pcall( string_find, text, match, 1, not self.UseLuaPatterns )
-	
+
 	if ok == true then
 		return ret ~= nil
 	else
@@ -94,7 +94,7 @@ end
 
 function ENT:PcallMatch( text, match, idx )
 	local ret = { pcall( string_match, text, match ) }
-	
+
 	if ret[1] == true then
 		table.remove( ret, 1 )
 		return ret
@@ -116,7 +116,7 @@ function ENT:PlayerSpoke( ply, text )
 	end	)
 
 	if self.CaseInsensitive then text = string_lower(text) end
-	
+
 	if self.UseLuaPatterns then
 		-- Reset error
 		self.PatternError = ""
@@ -136,7 +136,7 @@ function ENT:PlayerSpoke( ply, text )
 			WireLib.TriggerOutput( self, "Matches " .. i, self:PcallMatch( text, match, i ) )
 		end
 	end
-	
+
 	if self.UseLuaPatterns then
 		WireLib.TriggerOutput( self, "PatternError", string.sub( self.PatternError, 1, -2 ) )
 	end

@@ -51,14 +51,14 @@ WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 10 )
 
 if SERVER then
-	function TOOL:GetConVars() 
+	function TOOL:GetConVars()
 		return self:GetClientNumber("trigger"), self:GetClientNumber("damage"), self:GetClientNumber("delaytime"), self:GetClientNumber("removeafter")~=0,
 			self:GetClientNumber("radius"), self:GetClientNumber("affectother")~=0, self:GetClientNumber("notaffected")~=0, self:GetClientNumber("delayreloadtime"),
 			self:GetClientNumber("maxhealth"), self:GetClientNumber("bulletproof")~=0, self:GetClientNumber("explosionproof")~=0, self:GetClientNumber("fallproof")~=0,
 			self:GetClientNumber("explodeatzero")~=0, self:GetClientNumber("resetatexplode")~=0, self:GetClientNumber("fireeffect")~=0, self:GetClientNumber("coloreffect")~=0,
 			self:GetClientNumber("invisibleatzero")~=0
 	end
-	
+
 	-- Uses default WireToolObj:MakeEnt's WireLib.MakeWireEnt function
 end
 

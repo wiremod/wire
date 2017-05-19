@@ -826,7 +826,7 @@ __e2setcost(5)
 local function applyClip(self, filter)
 	local findlist = self.data.findlist
 	self.prf = self.prf + #findlist * 5
-	
+
 	filterList(findlist, filter)
 
 	return #findlist

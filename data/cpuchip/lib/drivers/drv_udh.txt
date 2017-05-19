@@ -37,7 +37,7 @@ string udhDeviceString17,"Sound emitter";
 string udhDeviceString18,"Constant value";
 string udhDeviceString19,"Data port";
 string udhDeviceString20,"RAM";
-udhDeviceName: 
+udhDeviceName:
   db udhDeviceString0, udhDeviceString1, udhDeviceString2;
   db udhDeviceString3, udhDeviceString4, udhDeviceString5;
   db udhDeviceString6, udhDeviceString7, udhDeviceString8;
@@ -63,7 +63,7 @@ void udhQueryDevices() {
 
   //Run the query
   udhBusOffset[16] = 32+MAX_UDH_DEVICES;
-  udhBusOffset[17] = 1;  
+  udhBusOffset[17] = 1;
 
   //Reconfigure all devices
   //FIXME: only supports single extended bus right now
@@ -95,7 +95,7 @@ float udhGetDeviceOffset(float busIndex) {
 char* udhGetDeviceName(float busIndex) {
   float deviceType = udhGetDeviceType(busIndex);
   if ((deviceType >= 0) && (deviceType <= 20)) {
-    return udhDeviceName[deviceType];  
+    return udhDeviceName[deviceType];
   } else {
     return udhDeviceName[1];
   }
@@ -107,18 +107,18 @@ void udhSetDeviceOffsetSize(float busIndex, char* offst, char* size) {
 }
 
 float udhGetNumDevices() {
-  return MAX_UDH_DEVICES;   
+  return MAX_UDH_DEVICES;
 }
 
 float udhGetDevices(float type, float maxCount, char* deviceList) {
   float i,devPtr,n;
-  
+
   devPtr = deviceList;
   n = 0;
   for (i = 0; i < MAX_UDH_DEVICES; i++) {
     if ((udhGetDeviceType(i) == type) && (n < maxCount)) {
       n++;
-      *devPtr++ = i; 
+      *devPtr++ = i;
     }
   }
 

@@ -29,7 +29,7 @@ if SERVER then
 			self:GetClientNumber("g"),
 			self:GetClientNumber("b")
 	end
-	
+
 	function TOOL:LeftClick_PostMake( ent, ply, trace )
 		if ent == true then return true end
 		if ent == nil or ent == false or not ent:IsValid() then return false end
@@ -47,7 +47,7 @@ if SERVER then
 
 			local length = math.Clamp( self:GetClientNumber( "ropelength" ), 4, 1024 )
 			local material = "cable/rope"
-			
+
 			local LPos1 = Vector( 0, 0, 0 )
 			if ent:GetModel() == "models/maxofs2d/light_tubular.mdl" then LPos1 = Vector( 0, 0, 5 ) end
 
@@ -61,7 +61,7 @@ if SERVER then
 			end
 
 			local constraint, rope = constraint.Rope( ent, trace.Entity, 0, trace.PhysicsBone, LPos1, LPos2, 0, length, 0, 1.5, material, nil )
-			
+
 			ent:GetPhysicsObject():Wake()
 
 			undo.Create( self.WireClass )

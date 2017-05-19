@@ -8,7 +8,7 @@
 
 	"$dudvmap" 		"sprites/gmdm_pickups/base_r"
 	"$normalmap" 		"sprites/gmdm_pickups/base_r"
-	
+
 	"$nocull" 1
 	"$ignorez" 1
 

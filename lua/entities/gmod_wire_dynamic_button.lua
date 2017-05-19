@@ -8,7 +8,7 @@ function ENT:SetupDataTables()
 end
 
 
-if CLIENT then 
+if CLIENT then
 	local halo_ent, halo_blur
 
 	function ENT:Draw()
@@ -30,7 +30,7 @@ if CLIENT then
 			halo_ent = nil
 		end
 	end)
-	
+
 	return  -- No more client
 end
 

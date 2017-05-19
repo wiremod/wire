@@ -37,7 +37,7 @@ float cscrSelectedScreen;
 //Update console screen offsets
 void cscrUDHQueryFunction() {
   float i,n;
-  n = udhGetDevices(11,MAX_CONSOLE_SCREENS,cscrDevices);    
+  n = udhGetDevices(11,MAX_CONSOLE_SCREENS,cscrDevices);
   for (i = 0; i < n; i++) {
     cscrOffsets[i] = udhGetDeviceOffset(cscrDevices[i]);
   }
@@ -83,12 +83,12 @@ void cscrClear() {
 }
 
 void cscrSetBackground(float col) {
-  if (!cscrOffsets[cscrSelectedScreen]) return;    
+  if (!cscrOffsets[cscrSelectedScreen]) return;
   *(cscrOffsets[cscrSelectedScreen]+BACKGROUND_COLOR) = col;
 }
 
 void cscrSetRotation(float rot) {
-  *(cscrOffsets[cscrSelectedScreen]+SCREEN_ROTATION) = rot;    
+  *(cscrOffsets[cscrSelectedScreen]+SCREEN_ROTATION) = rot;
 }
 
 void cscrSetBrightness(float bright) {
@@ -96,7 +96,7 @@ void cscrSetBrightness(float bright) {
 }
 
 void cscrLoadImage(char* imgdata) {
-  if (!cscrOffsets[cscrSelectedScreen]) return;  
+  if (!cscrOffsets[cscrSelectedScreen]) return;
 
   preserve ESI,EDI;
   ESI = imgdata;
@@ -105,7 +105,7 @@ void cscrLoadImage(char* imgdata) {
 }
 
 void cscrPutLine(char* scrptr, float col, char* str) {
-  if (!cscrOffsets[cscrSelectedScreen]) return;  
+  if (!cscrOffsets[cscrSelectedScreen]) return;
   char* curptr = scrptr;
 
   while (*str) {
@@ -118,7 +118,7 @@ void cscrPutLine(char* scrptr, float col, char* str) {
 }
 
 void cscrPutChar(char* scrptr, float col, char ch) {
-  if (!cscrOffsets[cscrSelectedScreen]) return;  
+  if (!cscrOffsets[cscrSelectedScreen]) return;
 
   *(cscrOffsets[cscrSelectedScreen]+scrptr*2+0) = ch;
   *(cscrOffsets[cscrSelectedScreen]+scrptr*2+1) = col;
@@ -146,26 +146,26 @@ void cscrPrintLine(char* str, float col) {
       str++;
       if (*str == 0) return;
     }
-    
+
     *(cscrOffsets[cscrSelectedScreen]+cscrCharacterPointer[cscrSelectedScreen]*2+0) = *str;
     *(cscrOffsets[cscrSelectedScreen]+cscrCharacterPointer[cscrSelectedScreen]*2+1) = col;
-    
-    cscrCharacterPointer[cscrSelectedScreen]++;    
-    if (cscrCharacterPointer[cscrSelectedScreen] >= 30*18) cscrNewLine();       
+
+    cscrCharacterPointer[cscrSelectedScreen]++;
+    if (cscrCharacterPointer[cscrSelectedScreen] >= 30*18) cscrNewLine();
     str++;
   }
 }
 
 void cscrPrintNumber(float num, float col) {
   if (!cscrOffsets[cscrSelectedScreen]) return;
-  
+
   float ndig,a;
   a = num;
   ndig = 0;
   while (a > 0) {
     ndig++;
     a /= 10;
-    fint a;  
+    fint a;
   }
   max ndig,1;
   a = num;
@@ -177,19 +177,19 @@ void cscrPrintNumber(float num, float col) {
     mov EDX,a;
     mod EDX,10;
     add EDX,48;
-    
+
     *(cscrOffsets[cscrSelectedScreen]+charPtr*2+0) = EDX;
     *(cscrOffsets[cscrSelectedScreen]+charPtr*2+1) = col;
     charPtr--;
- 
+
     a /= 10;
     fint a;
-    
+
     ndig--;
   }
 }
 
 void cscrSetCursor(float x, y) {
-  if (!cscrOffsets[cscrSelectedScreen]) return;  
+  if (!cscrOffsets[cscrSelectedScreen]) return;
   cscrCharacterPointer[cscrSelectedScreen] = x+y*30;
 }

@@ -390,7 +390,7 @@ if (CLIENT) then
 		dgb_orient_vert = net.ReadBit() != 0
 		dbg_lines[net.ReadUInt(16)] = net.ReadString()
 	end)
-	
+
 end
 
 function TOOL.BuildCPanel(panel)

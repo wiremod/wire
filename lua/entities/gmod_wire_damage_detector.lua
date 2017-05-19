@@ -53,10 +53,10 @@ function ENT:Initialize()
 	self.hit = false -- Tracks whether detector registered any damage that tick
 
 	self.firsthit_dmginfo = {} -- Stores damage info representing damage during an interval
-	
+
 	self.linked_entities = {} -- numerical array
 	self.linked_entities_lookup = {} -- lookup table indexed by entities
-	
+
 	self:LinkEnt( self )
 
 	self.count = 0
@@ -100,7 +100,7 @@ function ENT:ShowOutput()
 			text = text .. "Linked to " .. #self.linked_entities .. " entities."
 		end
 	end
-	
+
 	self:SetOverlayText( text )
 
 	self:SetOverlayText(text)
@@ -113,7 +113,7 @@ end
 
 function ENT:LinkEnt( ent )
 	if self.linked_entities_lookup[ent] then return false end
-	
+
 	self.linked_entities_lookup[ent] = true
 	self.linked_entities[#self.linked_entities+1] = ent
 	ent:CallOnRemove( "DDetector.Unlink", function( ent )
@@ -121,7 +121,7 @@ function ENT:LinkEnt( ent )
 			self:UnlinkEnt( ent )
 		end
 	end )
-	
+
 	self:ShowOutput()
 	WireLib.SendMarks( self, self.linked_entities )
 	return true
@@ -129,18 +129,18 @@ end
 
 function ENT:UnlinkEnt( ent )
 	if not self.linked_entities_lookup[ent] then return false end
-	
+
 	self.linked_entities_lookup[ent] = nil
-	
+
 	for i=1,#self.linked_entities do
 		if self.linked_entities[i] == ent then
 			table.remove( self.linked_entities, i )
 			break
 		end
 	end
-	
+
 	ent:RemoveCallOnRemove( "DDetector.Unlink" )
-	
+
 	self:ShowOutput()
 	WireLib.SendMarks( self, self.linked_entities )
 	return true
@@ -152,10 +152,10 @@ function ENT:ClearEntities()
 			self.linked_entities[i]:RemoveCallOnRemove( "DDetector.Unlink" )
 		end
 	end
-	
+
 	self.linked_entities = {}
 	self.linked_entities_lookup = {}
-	
+
 	self:ShowOutput()
 	WireLib.SendMarks( self, self.linked_entities )
 	return true
@@ -167,7 +167,7 @@ function ENT:TriggerInput( iname, value )
 	elseif iname == "Entities" then -- Populate linked_entities from "Array"
 		if value then
 			self:ClearEntities()
-			
+
 			for _, v in pairs( value ) do
 				if IsValid( v ) then
 					self:LinkEnt( v )
@@ -217,7 +217,7 @@ function ENT:UpdateLinkedEnts()		-- Check to see if prop is registered by the de
 			if self.includeconstrained == 1 then -- Don't update constrained entities unless we have to
 				self:UpdateConstrainedEnts( ent )
 			end
-			
+
 			self.key_ents[ent] = true
 		else
 			self.linked_entities[ent] = nil
@@ -227,7 +227,7 @@ end
 
 function ENT:UpdateConstrainedEnts( ent ) -- Finds all entities constrained to 'ent'
 	local ents = constraint.GetAllConstrainedEntities( ent )
-	
+
 	for _,v in pairs( ents ) do
 		self.key_ents[v] = true
 	end
@@ -291,10 +291,10 @@ duplicator.RegisterEntityClass("gmod_wire_damage_detector", WireLib.MakeWireEnt,
 
 function ENT:BuildDupeInfo()
 	local info = self.BaseClass.BuildDupeInfo(self) or {}
-	
+
 	if #self.linked_entities > 0 then
 		info.linked_entities = {}
-		
+
 		for i=1,#self.linked_entities do
 			if IsValid( self.linked_entities[i] ) then
 				info.linked_entities[i] = self.linked_entities[i]:EntIndex()
@@ -303,13 +303,13 @@ function ENT:BuildDupeInfo()
 			end
 		end
 	end
-	
+
 	return info
 end
 
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
-	
+
 	if info.linked_entities then
 		if type( info.linked_entities ) == "number" then -- old dupe compatibility
 			self:LinkEnt( GetEntByID( info.linked_entities ) )
@@ -319,7 +319,7 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 			end
 		end
 	end
-	
+
 	self:ShowOutput()
 	-- wait a while after dupe before sending marks, because the entity doesn't exist clientside yet
 	timer.Simple( 0.1, function() if IsValid( self ) then WireLib.SendMarks( self, self.linked_entities ) end end )

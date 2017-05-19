@@ -21,7 +21,7 @@ float isalnum(char c) {
   preserve eax;
   eax = c; max eax,0; min eax,_MAXCHARS;
   eax = __ctype_characters[eax];
-  
+
   band eax,_LOWER+_UPPER+_DIGIT;
 }
 
@@ -265,7 +265,7 @@ __ctype_characters:
   db _PUNCT;          //7D }
   db _PUNCT;          //7E ~
   db _CONTROL;        //7F (DEL)
-  
+
   db _GRAPH;          //80
   db _GRAPH;          //81
   db _GRAPH;          //82

@@ -16,11 +16,11 @@ local function isAllowed( self )
 	local data = self.data.sound_data
 	local count = data.count
 	if count == wire_expression2_maxsounds:GetInt() then return false end
-	
+
 	if data.burst == 0 then return false end
-	
+
 	data.burst = data.burst - 1
-	
+
 	local timerid = "E2_sound_burst_count_" .. self.entity:EntIndex()
 	if not timer.Exists( timerid ) then
 		timer.Create( timerid, wire_expression2_sound_burst_rate:GetFloat(), 0, function()
@@ -28,14 +28,14 @@ local function isAllowed( self )
 				timer.Remove( timerid )
 				return
 			end
-				
+
 			data.burst = data.burst + 1
 			if data.burst == wire_expression2_sound_burst_max:GetInt() then
 				timer.Remove( timerid )
 			end
 		end)
 	end
-	
+
 	return true
 end
 
@@ -47,22 +47,22 @@ end
 local function soundStop(self, index, fade)
 	local sound = getSound( self, index )
 	if not sound then return end
-	
+
 	fade = math.abs( fade )
-	
+
 	if fade == 0 then
 		sound:Stop()
-		
+
 		if isnumber( index ) then index = math.floor( index ) end
 		self.data.sound_data.sounds[index] = nil
-		
+
 		self.data.sound_data.count = self.data.sound_data.count - 1
 	else
 		sound:FadeOut( fade )
-		
+
 		timer.Simple( fade, function() soundStop( self, index, 0 ) end)
 	end
-	
+
 	timer.Remove( "E2_sound_stop_" .. self.entity:EntIndex() .. "_" .. index )
 end
 
@@ -70,13 +70,13 @@ local function soundCreate(self, entity, index, time, path, fade)
 	if path:match('["?]') then return end
 	local data = self.data.sound_data
 	if not isAllowed( self ) then return end
-	
+
 	path = path:Trim()
 	path = path:gsub( "\\", "/" )
 	if isnumber( index ) then index = math.floor( index ) end
-	
+
 	local timerid = "E2_sound_stop_" .. self.entity:EntIndex() .. "_" .. index
-	
+
 	local sound = getSound( self, index )
 	if sound then
 		sound:Stop()
@@ -84,21 +84,21 @@ local function soundCreate(self, entity, index, time, path, fade)
 	else
 		data.count = data.count + 1
 	end
-	
+
 	local sound = CreateSound( entity, path )
 	data.sounds[index] = sound
 	sound:Play()
-	
+
 	entity:CallOnRemove( "E2_stopsound", function()
 		soundStop( self, index, 0 )
 	end )
-	
+
 	if time == 0 and fade == 0 then return end
 	time = math.abs( time )
-	
+
 	timer.Create( timerid, time, 1, function()
 		if not self or not IsValid( self.entity ) or not IsValid( entity ) then return end
-		
+
 		soundStop( self, index, fade )
 	end)
 end
@@ -111,7 +111,7 @@ local function soundPurge( self )
 			timer.Remove( "E2_sound_stop_" .. self.entity:EntIndex() .. "_" .. k )
 		end
 	end
-	
+
 	sound_data.sounds = {}
 	sound_data.count = 0
 end
@@ -162,29 +162,29 @@ end
 e2function void soundVolume( index, volume )
 	local sound = getSound( self, index )
 	if not sound then return end
-	
+
 	sound:ChangeVolume( math.Clamp( volume, 0, 1 ), 0 )
 end
 
 e2function void soundVolume( index, volume, fadetime )
 	local sound = getSound( self, index )
 	if not sound then return end
-	
+
 	sound:ChangeVolume( math.Clamp( volume, 0, 1 ), math.abs( fadetime ) )
 end
-	
+
 
 e2function void soundPitch( index, pitch )
 	local sound = getSound( self, index )
 	if not sound then return end
-	
+
 	sound:ChangePitch( math.Clamp( pitch, 0, 255 ), 0 )
 end
 
 e2function void soundPitch( index, pitch, fadetime )
 	local sound = getSound( self, index )
 	if not sound then return end
-	
+
 	sound:ChangePitch( math.Clamp( pitch, 0, 255 ), math.abs( fadetime ) )
 end
 

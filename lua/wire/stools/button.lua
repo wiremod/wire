@@ -15,9 +15,9 @@ WireToolSetup.SetupMax( 20 )
 
 if SERVER then
 	ModelPlug_Register("button")
-	
-	function TOOL:GetConVars() 
-		return self:GetClientNumber( "toggle" ) ~= 0, self:GetClientNumber( "value_off" ), self:GetClientNumber( "value_on" ), 
+
+	function TOOL:GetConVars()
+		return self:GetClientNumber( "toggle" ) ~= 0, self:GetClientNumber( "value_off" ), self:GetClientNumber( "value_on" ),
 			self:GetClientInfo( "description" ), self:GetClientNumber( "entityout" ) ~= 0
 	end
 

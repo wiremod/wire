@@ -77,7 +77,7 @@ end
 
 function TOOL:GetAngle( trace )
 	local Ang
-	if math.abs(trace.HitNormal.x) < 0.001 and math.abs(trace.HitNormal.y) < 0.001 then 
+	if math.abs(trace.HitNormal.x) < 0.001 and math.abs(trace.HitNormal.y) < 0.001 then
 		return Vector(0,0,trace.HitNormal.z):Angle() + (AngleOffset[self:GetModel()] or Angle(0,0,0))
 	else
 		return trace.HitNormal:Angle() + (AngleOffset[self:GetModel()] or Angle(0,0,0))
@@ -85,10 +85,10 @@ function TOOL:GetAngle( trace )
 end
 
 if SERVER then
-	function TOOL:GetConVars() 
+	function TOOL:GetConVars()
 		return self:GetClientNumber("array") ~= 0, self:GetClientNumber("weldforce"), math.Clamp(self:GetClientNumber("attachrange"), 1, 100)
 	end
-	
+
 	-- Socket creation handled by WireToolObj
 end
 

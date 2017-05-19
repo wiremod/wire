@@ -61,7 +61,7 @@ function ENT:OverrideVM()
           surface.SetTexture(0)
           surface.SetDrawColor(0,0,0,120)
           surface.DrawRect(0,0,self.ScreenWidth,self.ScreenHeight)
-		  
+
           draw.DrawText("Error in the instruction stream","WireGPU_ErrorFont",48,16,Color(255,255,255,255))
           draw.DrawText((self.ErrorText[interruptNo] or "Unknown error").." (#"..interruptNo..")","WireGPU_ErrorFont",16,16+32*2,Color(255,255,255,255))
           draw.DrawText("Parameter: "..(interruptParameter or 0),"WireGPU_ErrorFont",16,16+32*3,Color(255,255,255,255))
@@ -198,7 +198,7 @@ function VM:SetFont()
 	local name, size = self.FontName[self.Font], self.FontSize
 	if not fontcache[name] or not fontcache[name][size] then
 		if not fontcache[name] then fontcache[name] = {} end
-		
+
 		surface.CreateFont("WireGPU_"..name..size, {
 			font = name,
 			size = size,
@@ -208,7 +208,7 @@ function VM:SetFont()
 		})
 		fontcache[name][size] = true
 	end
-	
+
 	surface.SetFont("WireGPU_"..name..size)
 end
 
@@ -584,7 +584,7 @@ function VM:HardReset()
 
   -- Has initialized already
   self.INIT = 0
-  
+
   -- Reset async thread
   self.AsyncState = nil
 end

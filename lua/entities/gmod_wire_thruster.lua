@@ -31,7 +31,7 @@ function ENT:GetOffset( name )
 end
 
 
-if CLIENT then 
+if CLIENT then
 	function ENT:Initialize()
 		self.ShouldDraw = 1
 		self.EffectAvg = 0
@@ -61,7 +61,7 @@ if CLIENT then
 	function ENT:CalcNormal()
 		return (self:LocalToWorld(self:GetOffset()) - self:GetPos()):GetNormalized()
 	end
-	
+
 	return  -- No more client
 end
 
@@ -182,7 +182,7 @@ function ENT:Setup(force, force_min, force_max, oweffect, uweffect, owater, uwat
 	self.uwater = uwater
 
 	if (!soundname) then soundname = "" end
-	
+
 	-- Preventing client crashes
 	local BlockedChars = '["?]'
 	if ( string.find(soundname, BlockedChars) ) then
@@ -257,7 +257,7 @@ function ENT:Switch( on, mul )
 			self:StopSound( self.soundname )
 			self:EmitSound( self.soundname )
 		end
-		
+
 		self.mul = mul
 
 		self:SetForce( nil, mul )
@@ -265,7 +265,7 @@ function ENT:Switch( on, mul )
 		if (self.soundname and self.soundname != "") then
 			self:StopSound( self.soundname )
 		end
-		
+
 		self.mul = 0
 	end
 	self:ShowOutput()

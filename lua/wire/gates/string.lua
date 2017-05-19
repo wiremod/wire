@@ -139,14 +139,14 @@ GateActions["string_concat"] = {
 	inputtypes = { "STRING" , "STRING" , "STRING" , "STRING" , "STRING" , "STRING" , "STRING" , "STRING" },
 	outputtypes = { "STRING" },
 	output = function(gate, A, B, C, D, E, F, G, H)
-		if  (A and #A or 0) 
-		  + (B and #B or 0) 
-		  + (C and #C or 0) 
-		  + (D and #D or 0) 
-		  + (E and #E or 0) 
-		  + (F and #F or 0) 
-		  + (G and #G or 0) 
-		  + (H and #H or 0)  > MAX_LEN   
+		if  (A and #A or 0)
+		  + (B and #B or 0)
+		  + (C and #C or 0)
+		  + (D and #D or 0)
+		  + (E and #E or 0)
+		  + (F and #F or 0)
+		  + (G and #G or 0)
+		  + (H and #H or 0)  > MAX_LEN
 		then
 			return false
 		end
@@ -266,9 +266,9 @@ GateActions["string_repeat"] = {
 	output = function(gate, A, B)
 		if !A then A = "" end
 		if !B or B<1 then B = 1 end
-		
+
 		if B * #A > MAX_LEN then return false end
-		
+
 		return string.rep(A,B)
 	end,
 	label = function(Out, A)
@@ -307,7 +307,7 @@ GateActions["string_to_memory"] = {
   inputs = { "A" },
   inputtypes = { "STRING" },
   outputs = { "Memory" },
-  reset = function(gate) 
+  reset = function(gate)
     gate.stringQueued = false
     gate.stringChanged = false
   	gate.currentString = ""
@@ -326,7 +326,7 @@ GateActions["string_to_memory"] = {
   	return gate.Outputs["Memory"].Value --This will prevent Wire_TriggerOutput from changing anything
   end,
 
-  ReadCell = function(self, gate, Address) 
+  ReadCell = function(self, gate, Address)
   	if (Address == 0) then 	   --Clk
   		if (gate.stringChanged) then return 1 else return 0 end
   	elseif (Address == 1) then --String length
@@ -334,9 +334,9 @@ GateActions["string_to_memory"] = {
   	else --Return string bytes
   		local index = Address - 1
   		if (index > #(gate.currentString)) then -- Check whether requested address is outside the string
-  			return 0 
-  		else 
-  			return string.byte(gate.currentString, index) 
+  			return 0
+  		else
+  			return string.byte(gate.currentString, index)
   		end
   	end
   end,
@@ -347,7 +347,7 @@ GateActions["string_to_memory"] = {
 	  	if gate.stringQueued then --Get queued string
 			gate.stringQueued = false
 			gate.currentString = gate.Inputs["A"].Value
-			gate.stringChanged = true		
+			gate.stringChanged = true
 	  	end
 	  	return true
   	else
@@ -369,11 +369,11 @@ GateActions["string_from_memory"] = {
     gate.ready = true
   end,
 
-  output = function(gate) 
+  output = function(gate)
   	return gate.currentString, gate.Outputs["Memory"].Value
   end,
 
-  ReadCell = function(self, gate, address) 
+  ReadCell = function(self, gate, address)
   	if (address == 0) then
   		return 0
   	elseif (address == 1) then

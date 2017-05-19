@@ -3,7 +3,7 @@ DEFINE_BASECLASS( "base_wire_entity" )
 ENT.PrintName       = "Wire GPS"
 ENT.WireDebugName	= "GPS"
 
-if CLIENT then 
+if CLIENT then
 	function ENT:Think()
 		self.BaseClass.Think(self)
 
@@ -16,7 +16,7 @@ if CLIENT then
 		self:NextThink(CurTime()+0.04)
 		return true
 	end
-	
+
 	return  -- No more client
 end
 

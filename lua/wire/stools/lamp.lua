@@ -130,13 +130,13 @@ end
 
 function TOOL.BuildCPanel(panel)
 	WireToolHelpers.MakePresetControl(panel, "wire_lamp")
-	
+
 	WireDermaExts.ModelSelect(panel, "wire_lamp_model", list.Get( "LampModels" ), 1)
 	panel:NumSlider("#WireLampTool_RopeLength", "wire_lamp_ropelength", 4, 400, 0)
 	panel:NumSlider("#WireLampTool_FOV", "wire_lamp_fov", 10, 170, 2)
 	panel:NumSlider("#WireLampTool_Dist", "wire_lamp_distance", 64, 2048, 0)
 	panel:NumSlider("#WireLampTool_Bright", "wire_lamp_brightness", 0, 8, 2)
-	
+
 	panel:AddControl("ComboBox", {
 		Label = "#WireLampTool_Const",
 		Options = {
@@ -145,7 +145,7 @@ function TOOL.BuildCPanel(panel)
 			["None"] = { wire_lamp_const = "none" },
 		}
 	})
-	
+
 	panel:AddControl("Color", {
 		Label = "#WireLampTool_Color",
 		Red	= "wire_lamp_r",
