@@ -232,7 +232,7 @@ __e2setcost(2)
 
 registerOperator("ass", "q", "q", function(self, args)
 	local lhs, op2, scope = args[2], args[3], args[4]
-	local      rhs = op2[1](self, op2)
+	local      rhs = op2[1](self, op2) or { 0, 0, 0, 0 }
 
 	self.Scopes[scope][lhs] = rhs
 	self.Scopes[scope].vclk[lhs] = true

@@ -88,7 +88,7 @@ end)
 --------------------------------------------------------------------------------
 registerOperator("ass", "r", "r", function(self, args)
 	local lhs, op2, scope = args[2], args[3], args[4]
-	local      rhs = op2[1](self, op2)
+	local      rhs = op2[1](self, op2) or {}
 
 	local Scope = self.Scopes[scope]
 	if !Scope.lookup then Scope.lookup = {} end

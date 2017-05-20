@@ -258,7 +258,7 @@ __e2setcost(5)
 
 registerOperator("ass", "t", "t", function(self, args)
 	local lhs, op2, scope = args[2], args[3], args[4]
-	local      rhs = op2[1](self, op2)
+	local      rhs = op2[1](self, op2) or table.Copy(DEFAULT)
 
 	local Scope = self.Scopes[scope]
 	if !Scope.lookup then Scope.lookup = {} end
