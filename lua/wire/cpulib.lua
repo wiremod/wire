@@ -434,22 +434,22 @@ if CLIENT then
 
   function CPULib.ShowDocumentation(platform)
     local w = ScrW() * 2/3
-  	local h = ScrH() * 2/3
+    local h = ScrH() * 2/3
     local browserWindow = vgui.Create("DFrame")
     browserWindow:SetTitle("Documentation")
-  	browserWindow:SetPos((ScrW() - w)/2, (ScrH() - h)/2)
-  	browserWindow:SetSize(w,h)
-  	browserWindow.OnClose = function()
-  		browser = nil
-  		browserWindow = nil
+    browserWindow:SetPos((ScrW() - w)/2, (ScrH() - h)/2)
+    browserWindow:SetSize(w,h)
+    browserWindow.OnClose = function()
+      browser = nil
+      browserWindow = nil
 	  end
     browserWindow:MakePopup()
 
-  	local browser = vgui.Create("DHTML",browserWindow)
-  	browser:SetPos(10, 25)
-  	browser:SetSize(w - 20, h - 35)
+    local browser = vgui.Create("DHTML",browserWindow)
+    browser:SetPos(10, 25)
+    browser:SetSize(w - 20, h - 35)
 
-  	browser:OpenURL("http://wiki.wiremod.com/wiki/Category:ZCPU_Handbook")
+    browser:OpenURL("http://wiki.wiremod.com/wiki/Category:ZCPU_Handbook")
   end
 end
 

@@ -833,7 +833,7 @@ function VM:ReadString(address)
     currentChar = self:ReadCell(address + charCount)
     -- Reading failed
     if not currentChar then
-    	return
+      return
     elseif currentChar > 0 and currentChar < 255 then
       charString = charString .. string.char(currentChar)
     elseif currentChar ~= 0 then

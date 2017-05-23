@@ -1,7 +1,7 @@
 "Refract"
 {
- 	"$refractamount" 		"0.03"
- 	"$bluramount" 		"0"
+	"$refractamount" 		"0.03"
+	"$bluramount" 		"0"
 
 	"$scale" 			"[1 1]"
 

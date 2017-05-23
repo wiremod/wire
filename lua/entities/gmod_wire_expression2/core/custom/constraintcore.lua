@@ -344,7 +344,7 @@ e2function void entity:constraintBreak(entity ent2)
 			if ( CTab.Ent1 == this && CTab.Ent2 == ent2 ) ||  ( CTab.Ent1 == ent2 && CTab.Ent2 == this ) then
 				v:Remove()
 			end
-	 	end
+		end
 	end
 end
 
@@ -371,6 +371,6 @@ e2function void entity:constraintBreak(string type, entity ent2)
 				v:Remove()
 				break
 			end
-	 	end
+		end
 	end
 end

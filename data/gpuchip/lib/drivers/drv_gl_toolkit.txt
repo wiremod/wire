@@ -13,7 +13,7 @@ float __GLT_VERTCNT = 0;
 void gltVertex(float x, float y, float z)
 {
     if ((__GLT_VERTCNT / 3) >= GLT_MAX_TRIANGLES)
-    	return;
+        return;
 
     float* ptr = __GLT_VERTBUFF;
     ptr += (__GLT_VERTCNT * 3);

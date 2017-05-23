@@ -109,8 +109,8 @@ __e2setcost(20) -- temporary
 
 e2function number string:toNumber()
 	local ret = tonumber(this)
- 	if ret == nil then return 0 end
- 	return ret
+	if ret == nil then return 0 end
+	return ret
 end
 
 e2function number string:toNumber(number base)

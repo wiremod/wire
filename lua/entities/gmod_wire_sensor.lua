@@ -43,8 +43,8 @@ function ENT:Setup(xyz_mode, outdist, outbrng, gpscord, direction_vector, direct
 	    table.insert(onames, "Z")
 	end
 	if (outbrng) then
-    	table.insert(onames, "Bearing")
-    	table.insert(onames, "Elevation")
+		table.insert(onames, "Bearing")
+		table.insert(onames, "Elevation")
 	end
 	if (gpscord) then
 	    table.insert(onames, "World_X")

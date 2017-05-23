@@ -151,9 +151,9 @@ local function Convert_hsl2rgb(h, s, l)
 end
 
 local function Convert_rgb2hsl(r, g, b)
-  	r = r / 255
-  	g = g / 255
-  	b = b / 255
+	r = r / 255
+	g = g / 255
+	b = b / 255
 	local max = math.max(r, g, b)
 	local min = math.min(r, g, b)
 	local h = (max + min) / 2
