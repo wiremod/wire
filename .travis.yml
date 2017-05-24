@@ -12,6 +12,7 @@ before_install:
   - source $HOME/env/bin/activate
 
 install:
+  - luarocks install lanes
   - luarocks install luacheck
 
 script:
