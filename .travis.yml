@@ -2,6 +2,10 @@ dist: trusty
 sudo: false
 language: c
 
+branches:
+  only:
+    - master
+
 cache:
   directories:
     - $HOME/env
