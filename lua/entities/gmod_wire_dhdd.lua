@@ -14,12 +14,24 @@ function ENT:Initialize()
 	self.Outputs = WireLib.CreateOutputs( self, { "Memory [ARRAY]", "Size" } )
 	self.Inputs = WireLib.CreateInputs( self, { "Data [ARRAY]", "Clear", "AllowWrite" } )
 
-	self.Memory = {}
 	self.Size = 0
 	self.ROM = false
 	self.AllowWrite = true
 
 	self:SetOverlayText("DHDD")
+	self.MemoryMetatable = {
+		__len = function() return math.max(0, self.Size - 1) end,
+		__index = function() return 0 end,
+		__newindex = function(_, address, value) return self:WriteCell(address, value) end,
+	}
+	self:ResetMemory()
+end
+
+function ENT:ResetMemory(memory)
+	memory = memory or {}
+	self.Size = #memory
+	self.Memory = setmetatable(memory, self.MemoryMetatable)
+	self:ShowOutputs()
 end
 
 -- Read cell
@@ -60,14 +72,9 @@ function ENT:TriggerInput( name, value )
 		if not value then return end -- if the value is invalid, abort
 		if not IsValid(self.Inputs.Data.Src) then return end -- if the input is not wired to anything, abort
 		if not self.AllowWrite then return end -- if we don't allow writing, abort
-
-		self.Memory = value
-		self.Size = #value
-		self:ShowOutputs()
+		self:ResetMemory(value)
 	elseif (name == "Clear") then
-		self.Memory = {}
-		self.Size = 0
-		self:ShowOutputs()
+		self:ResetMemory()
 	elseif (name == "AllowWrite") then
 		self.AllowWrite = value >= 1
 	end
@@ -94,14 +101,12 @@ end
 
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 	if (info.DHDD) then
-		ent.Memory = (info.DHDD.Memory or {})
+		self:ResetMemory(info.DHDD.Memory)
 		if info.DHDD.AllowWrite ~= nil then
 			ent.AllowWrite = info.DHDD.AllowWrite
 		end
 		if info.DHDD.Size ~= nil then
 			ent.Size = info.DHDD.Size
-		else
-			ent.Size = #ent.Memory
 		end
 		self:ShowOutputs()
 	end
