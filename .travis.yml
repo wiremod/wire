@@ -1,4 +1,6 @@
-language: python
+dist: trusty
+sudo: false
+language: c
 
 before_install:
   - pip install hererocks
