@@ -15,6 +15,7 @@ function ENT:Initialize()
 	self.Inputs = WireLib.CreateInputs( self, { "Data [ARRAY]", "Clear", "AllowWrite" } )
 
 	self.Memory = {}
+	self.Size = 0
 	self.ROM = false
 	self.AllowWrite = true
 
@@ -37,6 +38,7 @@ function ENT:WriteCell( Address, value )
 
 	if self.AllowWrite then
 		self.Memory[Address] = value
+		self.Size = math.max(self.Size, Address + 1)
 	end
 	self:ShowOutputs()
 	return true
@@ -44,7 +46,7 @@ end
 
 function ENT:ShowOutputs()
 	WireLib.TriggerOutput( self, "Memory", self.Memory )
-	local n = #self.Memory
+	local n = self.Size
 	WireLib.TriggerOutput( self, "Size", n )
 	if not self.ROM then
 		self:SetOverlayText("DHDD\nSize: " .. n .." bytes" )
@@ -60,9 +62,11 @@ function ENT:TriggerInput( name, value )
 		if not self.AllowWrite then return end -- if we don't allow writing, abort
 
 		self.Memory = value
+		self.Size = #value
 		self:ShowOutputs()
 	elseif (name == "Clear") then
 		self.Memory = {}
+		self.Size = 0
 		self:ShowOutputs()
 	elseif (name == "AllowWrite") then
 		self.AllowWrite = value >= 1
@@ -82,6 +86,7 @@ function ENT:BuildDupeInfo()
 		info.DHDD.Memory[k] = v
 	end
 
+	info.DHDD.Size = self.Size
 	info.DHDD.AllowWrite = self.AllowWrite
 
 	return info
@@ -92,6 +97,11 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 		ent.Memory = (info.DHDD.Memory or {})
 		if info.DHDD.AllowWrite ~= nil then
 			ent.AllowWrite = info.DHDD.AllowWrite
+		end
+		if info.DHDD.Size ~= nil then
+			ent.Size = info.DHDD.Size
+		else
+			ent.Size = #ent.Memory
 		end
 		self:ShowOutputs()
 	end
