@@ -2,10 +2,14 @@ dist: trusty
 sudo: false
 language: c
 
+cache:
+  directories:
+    - $HOME/env
+
 before_install:
   - pip install hererocks
-  - hererocks env --luajit 2.0.3 --luarocks latest
-  - source env/bin/activate
+  - hererocks $HOME/env --luajit 2.0.3 --luarocks latest
+  - source $HOME/env/bin/activate
 
 install:
   - luarocks install luacheck
