@@ -34,7 +34,7 @@ wget -o /dev/null -O - "$base_url"/navbar/ |
                             printf '  "%s",\n' "$detagged"
                         ;;
 
-                        Structures|Shaders|'Lua Reference'|Global|Enumerations)
+                        Structures|Shaders|'Lua Reference'|'Lua Tutorials'|Global|Enumerations)
                             :
                         ;;
 
@@ -60,7 +60,7 @@ wget -o /dev/null -O - "$base_url"/navbar/ |
                                 sed -rn 's/^<td> ('"$detagged"'_[^[:space:]]+|[A-Z][A-Z0-9_]{2,})$/  "\1",/p'
                         ;;
 
-                        Structures|Shaders|'Lua Reference'|Hooks|Libraries|Classes|Panels)
+                        Structures|Shaders|'Lua Reference'|'Lua Tutorials'|Hooks|Libraries|Classes|Panels)
                             :
                         ;;
 
