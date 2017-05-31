@@ -393,7 +393,7 @@ end
 
 --- Sets <this>'s skin number.
 e2function void entity:setSkin(skin)
-	if IsValid(this) then this:SetSkin(skin) end
+	if IsValid(this) and isOwner(self, this) then this:SetSkin(skin) end
 end
 
 --- Gets <this>'s number of skins.
