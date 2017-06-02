@@ -393,9 +393,12 @@ end
 
 --- Sets <this>'s skin number.
 e2function void entity:setSkin(skinIndex)
-	if not IsValid(this) or this:IsPlayer() or not isOwner(self, this) or not gamemode.Call("CanProperty", self.player, "skin", this) then return end
-	if isentity(this.AttachedEntity) and IsValid(this.AttachedEntity) then this = this.AttachedEntity end -- If <this> has an attached entity, we want to modify its skin instead
-	if this:SkinCount() > 0 then
+	-- Our entity must be a valid non-player entity, and it has to be owned by E2's player
+	if IsValid(this) and not this:IsPlayer() and isOwner(self, this)
+	-- There must be at least 1 skin
+	and this:SkinCount() > 0
+	-- Allow CanProperty hook to disallow a skin change
+	and gamemode.Call("CanProperty", self.player, "skin", this) then
 		this:SetSkin(skinIndex)
 	end
 end
