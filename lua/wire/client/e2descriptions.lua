@@ -908,6 +908,7 @@ E2Helper.Descriptions["isConstrainedTo(e:s)"] = "Returns the first entity E was 
 E2Helper.Descriptions["isConstrainedTo(e:sn)"] = "Returns the Nth entity E was constrained to with the given constraint type (see the types list below)"
 E2Helper.Descriptions["parent(e:)"] = "Returns the entity E is parented to"
 E2Helper.Descriptions["parentBone(e:)"] = "Returns the bone E is parented to"
+E2Helper.Descriptions["children(e:)"] = "Returns an array containing all the children of the entity - that is, every entity whose parent is this entity"
 
 -- Chat
 E2Helper.Descriptions["chatClk()"] = "Returns 1 if the chip is being executed because of a chat event. Returns 0 otherwise"

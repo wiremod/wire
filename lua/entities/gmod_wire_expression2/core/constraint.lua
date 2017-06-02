@@ -157,3 +157,10 @@ e2function bone entity:parentBone()
 	local bonenum = this:GetParentPhysNum()
 	return getBone(ent, bonenum)
 end
+
+__e2setcost(20)
+
+--- Returns an '''array''' containing all the children of the entity - that is, every entity whose parent is this entity.
+e2function array entity:children()
+	return IsValid(this) and this:GetChildren() or {}
+end
