@@ -392,8 +392,12 @@ e2function number entity:getSkin()
 end
 
 --- Sets <this>'s skin number.
-e2function void entity:setSkin(skin)
-	if IsValid(this) and isOwner(self, this) then this:SetSkin(skin) end
+e2function void entity:setSkin(skinIndex)
+	if not IsValid(this) or this:IsPlayer() or not isOwner(self, this) or not gamemode.Call("CanProperty", self.player, "skin", this) then return end
+	if isentity(this.AttachedEntity) and IsValid(this.AttachedEntity) then this = this.AttachedEntity end -- If <this> has an attached entity, we want to modify its skin instead
+	if this:SkinCount() > 0 then
+		this:SetSkin(skinIndex)
+	end
 end
 
 --- Gets <this>'s number of skins.
