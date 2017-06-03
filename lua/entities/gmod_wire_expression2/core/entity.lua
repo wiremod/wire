@@ -393,7 +393,7 @@ end
 
 --- Sets <this>'s skin number.
 e2function void entity:setSkin(skinIndex)
-	if IsValid(this) and not this:IsPlayer() and isOwner(self, this)
+	if IsValid(this) and not this:IsPlayer()
 	and this:SkinCount() > 0 and skinIndex < this:SkinCount()
 	and gamemode.Call("CanProperty", self.player, "skin", this) then
 		this:SetSkin(skinIndex)
