@@ -196,7 +196,6 @@ e2function void printTable(array arr)
 	
 	msgbuf = {}
 	Msg = MyMsg
-	PrintTable(arr)
 	Msg = _Msg
 	for _,line in ipairs(string.Explode("\n",table.concat(msgbuf))) do
 		self.player:ChatPrint(line)
