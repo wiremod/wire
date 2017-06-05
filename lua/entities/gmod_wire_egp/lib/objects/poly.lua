@@ -46,7 +46,7 @@ Obj.Receive = function( self )
 		tbl.vertices[ #tbl.vertices+1 ] = { x = net.ReadInt(16), y = net.ReadInt(16), u = net.ReadFloat(), v = net.ReadFloat() }
 	end
 	tbl.parent = net.ReadInt(16)
-	EGP:ReceiveMaterial( tbl )
+	EGP:ReceiveMaterial( tbl, self  )
 	EGP:ReceiveColor( tbl, self )
 	return tbl
 end

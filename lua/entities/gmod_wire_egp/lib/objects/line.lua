@@ -30,7 +30,7 @@ Obj.Receive = function( self )
 	tbl.y2 = net.ReadInt(16)
 	tbl.size = net.ReadInt(16)
 	tbl.parent = net.ReadInt(16)
-	EGP:ReceiveMaterial( tbl )
+	EGP:ReceiveMaterial( tbl, self  )
 	EGP:ReceiveColor( tbl, self )
 	return tbl
 end

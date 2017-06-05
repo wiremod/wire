@@ -509,6 +509,7 @@ else -- SERVER/CLIENT
 						end
 					else -- Object does not exist. Create new
 						local Obj = self:GetObjectByID( ID )
+						Obj.EGP = Ent
 						self:EditObject( Obj, Obj:Receive() )
 						Obj.index = index
 						if (Obj.OnCreate) then Obj:OnCreate() end
