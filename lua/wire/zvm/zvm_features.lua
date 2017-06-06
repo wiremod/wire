@@ -659,7 +659,7 @@ function ZVM:Interrupt(interruptNo,interruptParameter,isExternal,cascadeInterrup
 
       -- Disable bus lock, set the current page for read operations to succeed
       self.BusLock = 0
-      self:SetCurrentPage(interruptOffset)
+      self:SetCurrentPage(math.floor(interruptOffset/128))
 
       self.IF = 0
       self.INTR = 0
@@ -679,8 +679,8 @@ function ZVM:Interrupt(interruptNo,interruptParameter,isExternal,cascadeInterrup
       end
 
       -- Set previous page to trigger same logic as if CALL-ing from a privilegied page
-      self:SetCurrentPage(self.XEIP)
-      self:SetPreviousPage(interruptOffset)
+      self:SetCurrentPage(math.floor(self.XEIP/128))
+      self:SetPreviousPage(math.floor(interruptOffset/128))
       self.BusLock = 1
 
       --Flags:
@@ -718,7 +718,7 @@ function ZVM:Interrupt(interruptNo,interruptParameter,isExternal,cascadeInterrup
         else
           self.INTR = 1
         end
-        self.BusLock = 1
+        --self.BusLock = 1
 
         -- Perform a short or a long jump
         self.IF = 0
