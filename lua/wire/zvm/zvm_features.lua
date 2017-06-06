@@ -604,7 +604,7 @@ function ZVM:Jump(newIP,newCS)
 
   -- Do not allow execution if not calling from kernel page
   if (self.PCAP == 1) and (targetPage.Execute == 0) and (self.CurrentPage.RunLevel ~= 0) then
-    self:Interrupt(14,self.CPAGE)
+    self:Interrupt(14,newIP)
     return -- Jump failed
   end
 

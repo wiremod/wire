@@ -410,7 +410,7 @@ function ZVM:Precompile_Step()
     self:Emit("VM:SetCurrentPage("..math.floor(self.PrecompileXEIP/128)..")")
     self:Emit("if (VM.PCAP == 1) and (VM.CurrentPage.Execute == 0) and")
     self:Emit("   (VM.PreviousPage.RunLevel ~= 0) then")
-      self:Dyn_EmitInterrupt("14","VM.CPAGE")
+      self:Dyn_EmitInterrupt("14",self.PrecompileIP)
     self:Emit("end")
     self:Emit("VM:SetPreviousPage("..math.floor(self.PrecompileXEIP/128)..")")
 
@@ -580,7 +580,7 @@ function ZVM:Step(overrideSteps,extraEmitFunction)
   -- Do not allow execution if we are not on kernel page, or not calling from kernel page
   if (self.PCAP == 1) and (self.CurrentPage.Execute == 0) and
      (self.PreviousPage.RunLevel ~= 0) then
-    self:Interrupt(14,self.CPAGE)
+    self:Interrupt(14,self.IP)
     return -- Step failed
   end
 
