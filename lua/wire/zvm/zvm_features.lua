@@ -223,30 +223,43 @@ function ZVM:ReadCell(Address)
       return
     end
 
-    -- Check if page is overriden
-    if Page.Override == 1 then
-      if self.MEMRQ == 2 then -- Data available
-        self.MEMRQ = 0
-        return self.LADD
-      else -- No data: generate a request
-        self.MEMRQ = 2
-        self.MEMADDR = Address
-
-        -- Extra cycles for early termination
-        self.TMR = self.TMR + 10
-        return
-      end
-    end
-
+    
+    -- Permission and remap checks need to happen before override check
+    -- so that we have data for the override interrupt to process
     -- Page permissions
     if (self.EF == 1) and (self.CurrentPage.RunLevel > Page.RunLevel) and (Page.Read == 0) then
-      self:Interrupt(12,Address)
+      print("readcell failed due to permissions")
+	  self:Interrupt(12,Address)
       return
     end
 
     -- Page remapping
     if (Page.Remapped == 1) and (Page.MappedIndex ~= PageIndex) then
       Address = Address % 128 + Page.MappedIndex * 128
+    end
+	local value = 0
+	-- Perform I/O operation
+	if (Address >= 0) and (Address < self.RAMSize) then
+	  value = self.Memory[Address] or 0
+	else
+	-- Extra cycles for the external operation
+	  self.TMR = self.TMR + 15
+	  value = self:ExternalRead(Address)
+	end
+  
+  -- Check if page is overriden
+    if Page.Override == 1 then
+      if self.MEMRQ == 4 then -- Data available
+        self.MEMRQ = 0
+        return self.LADD
+      else -- No data: generate a request
+        self.MEMRQ = 2
+        self.MEMADDR = Address
+	self.LADD = value
+        -- Extra cycles for early termination
+        self.TMR = self.TMR + 10
+        return
+      end
     end
   end
 
@@ -302,11 +315,19 @@ function ZVM:WriteCell(Address,Value)
       return false
     end
 
+	-- MEMRQ: 0 - no action
+	--        1 - ???
+	--        2 - read interrupt requested
+	--        3 - write interrupt requested
+	--        4 - read interrupt handled
+	--        5 - write interrupt handled
     -- Check if page is overriden
     if Page.Override == 1 then
-      if self.MEMRQ == 3 then -- Data was written
-        self.MEMRQ = 0
-        return true
+      if self.MEMRQ == 5 then -- write IRQ handled, new address/value available
+		self.MEMRQ = 0
+		Address = self.MEMADDR;
+		Value = self.LADD;
+        --return true
       else
         self.MEMRQ = 3
         self.MEMADDR = Address
