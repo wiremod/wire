@@ -433,7 +433,7 @@ function ZVM:Precompile_Step()
   end
 
   -- If failed to fetch opcode/RM then report an error
-  if self.INTR == 1 then
+  if (not Opcode) or (not RM) then--if self.INTR == 1 then
     self.IF = 1
     self:Interrupt(5,12)
     return
@@ -486,7 +486,7 @@ function ZVM:Precompile_Step()
   end
 
   -- If failed to fetch segment prefix then report an error
-  if self.INTR == 1 then
+  if (not Segment1) or (not Segment2) then--if self.INTR == 1 then
     self:Interrupt(5,12)
     return
   end
@@ -503,9 +503,9 @@ function ZVM:Precompile_Step()
     -- Fetch immediate values if required
     if isFixedSize then
       self.EmitOperandByte[1] = self:Precompile_Fetch() or 0
-      if self.INTR == 1 then self:Interrupt(5,22) return end
+      if not self.EmitOperandByte[1] then self:Interrupt(5,22) return end--if self.INTR == 1 then self:Interrupt(5,22) return end
       self.EmitOperandByte[2] = self:Precompile_Fetch() or 0
-      if self.INTR == 1 then self:Interrupt(5,32) return end
+      if not self.EmitOperandByte[2] then self:Interrupt(5,32) return end--if self.INTR == 1 then self:Interrupt(5,32) return end
 
       if self.OperandCount[Opcode] > 0 then
         self:Dyn_LoadOperand(1,dRM1)
@@ -518,7 +518,7 @@ function ZVM:Precompile_Step()
         if self.NeedFetchByteLookup[dRM1] then
           self.EmitOperandByte[1] = self:Precompile_Fetch() or 0
           -- If failed to read the byte, report an error
-          if self.INTR == 1 then self:Interrupt(5,22) return end
+          if not self.EmitOperandByte[1] then self:Interrupt(5,22) return end--if self.INTR == 1 then self:Interrupt(5,22) return end
         end
         self:Dyn_LoadOperand(1,dRM1)
 
@@ -526,7 +526,7 @@ function ZVM:Precompile_Step()
           if self.NeedFetchByteLookup[dRM2] then
             self.EmitOperandByte[2] = self:Precompile_Fetch() or 0
             -- If failed to read the byte, report an error
-            if self.INTR == 1 then self:Interrupt(5,32) return end
+            if not self.EmitOperandByte[2] then self:Interrupt(5,32) return end--if self.INTR == 1 then self:Interrupt(5,32) return end
           end
           self:Dyn_LoadOperand(2,dRM2)
         end
