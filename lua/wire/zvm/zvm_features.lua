@@ -208,7 +208,7 @@ function ZVM:ReadCell(Address)
   end
 
   -- Do we need to perform page checking
-  if self.PCAP == 1 then
+  if self.PCAP == 1 and self.MF == 1 then
     -- Fetch page
     local PageIndex = math.floor(Address / 128)
     local Page = self:GetPageByIndex(PageIndex)
@@ -283,7 +283,7 @@ function ZVM:WriteCell(Address,Value)
   end
 
   -- Do we need to perform page checking
-  if self.PCAP == 1 then
+  if self.PCAP == 1 and self.MF == 1 then
     -- Fetch page
     local PageIndex = math.floor(Address / 128)
     local Page = self:GetPageByIndex(PageIndex)

@@ -298,7 +298,7 @@ function ZVM:Dyn_EmitInterruptCheck()
   end
   self:Emit("if VM.INTR == 1 then")
     self:Dyn_EmitState(true)
-    self:Dyn_EmitBreak(true)
+    self:Dyn_EmitBreak(false)
   self:Emit("end")
 end
 
