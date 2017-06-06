@@ -213,6 +213,10 @@ function ZVM:ReadCell(Address)
     local PageIndex = math.floor(Address / 128)
     local Page = self:GetPageByIndex(PageIndex)
 
+	if Page.Trapped == 1 then
+		self:Interrupt(30,Address) --generate interrupt and continue
+	end
+	
     -- Check if page is disabled
     if Page.Disabled == 1 then
       self:Interrupt(7,Address)
@@ -288,6 +292,10 @@ function ZVM:WriteCell(Address,Value)
     local PageIndex = math.floor(Address / 128)
     local Page = self:GetPageByIndex(PageIndex)
 
+	if Page.Trapped == 1 then
+		self:Interrupt(30,Address) --generate interrupt and continue
+	end
+	
     -- Check if page is disabled
     if Page.Disabled == 1 then
       self:Interrupt(7,Address)
