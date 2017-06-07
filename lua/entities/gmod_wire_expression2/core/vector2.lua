@@ -458,6 +458,26 @@ e2function vector2 bezier(vector2 startVec, vector2 control, vector2 endVec, rat
 	}
 end
 
+
+local function sign( number ) return number > 0 and 1 or number < 0 and -1 or 0 end
+local function cross( v1, v2 ) return v1[1] * v2[2] - v1[2] * v2[1] end
+__e2setcost(15)
+
+e2function vector intersection( vector2 A1, vector2 A2, vector2 B1, vector2 B2 )
+	local A = { A2[1] - A1[1], A2[2] - A1[2] } -- Radius vectors
+	local B = { B2[1] - B1[1], B2[2] - B1[2] }
+	
+	local U = ( B[1] * ( A1[2] - B1[2] ) - B[2] * ( A1[1] - B1[1] ) ) / ( B[2] * A[1] - B[1] * A[2] )
+	local x = A1[1] + U * A[1] -- Find intersection points
+	local y = A1[2] + U * A[2]
+	
+	local isIntersected = -- Is vectors intersected?
+		sign( cross( A, { B1[1] - A1[1], B1[2] - A1[2] } ) ) ~= sign( cross( A, { B2[1] - A1[1], B2[2] - A1[2] } ) ) and
+		sign( cross( B, { A1[1] - B1[1], A1[2] - B1[2] } ) ) ~= sign( cross( B, { A2[1] - B1[1], A2[2] - B1[2] } ) )
+	
+	return { x, y, isIntersected and 1 or 0 }
+end
+
 __e2setcost(2)
 
 // swap x/y
