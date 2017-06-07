@@ -26,7 +26,7 @@ include("wire/zvm/zvm_data.lua")
 if ZVM.MicrocodeDebug then -- Debug microcode generator
   local pad = 0
   function ZVM:Emit(text)
-    if string.find(text,"end") and (not string.find(text,"if")) 
+    if string.find(text,"end") and (not string.find(text,"if"))
     then pad = pad - 1 end
 
     if string.find(text,"elseif") or string.find(text,"else")
@@ -35,8 +35,8 @@ if ZVM.MicrocodeDebug then -- Debug microcode generator
     end
 
     if (string.find(text,"if") or string.find(text,"for"))
-       and (not string.find(text,"elseif")) 
-       and (not string.find(text,"end")) 
+       and (not string.find(text,"elseif"))
+       and (not string.find(text,"end"))
     then pad = pad + 1 end
   end
 else
@@ -80,7 +80,7 @@ end
 -- Load/fetch operand (by RM)
 function ZVM:Dyn_LoadOperand(OP,RM)
   if self.OperandReadFunctions[RM] then
-    local preEmit = ""
+    local preEmit
     if self.ReadInvolvedRegisterLookup[RM] and
        self.EmitRegisterChanged[self.ReadInvolvedRegisterLookup[RM]] then
       -- Available local value for this register
@@ -116,10 +116,10 @@ function ZVM:Dyn_WriteOperand(OP,RM)
 
   if self.OperandWriteFunctions[RM] then
     if self.EmitExpression[OP] then -- check if we need writeback
-      local preEmit = ""
+      local preEmit
       if self.WriteInvolvedRegisterLookup[RM] then
         preEmit = self.OperandFastWriteFunctions[RM]
-        self.EmitRegisterChanged[self.WriteInvolvedRegisterLookup[RM]] 
+        self.EmitRegisterChanged[self.WriteInvolvedRegisterLookup[RM]]
           = self.InternalRegister[self.WriteInvolvedRegisterLookup[RM]]
         else
         if self.WriteRequiredRegisterLookup[RM] and
@@ -183,7 +183,7 @@ end
 -- Force current state to be updated
 function ZVM:Dyn_EmitState(errorState)
   -- Do we need to emit registers
-  for k,v in pairs(self.EmitRegisterChanged) do
+  for v,v in pairs(self.EmitRegisterChanged) do
     --if (not errorState) or (not self.EmitRegisterChangedByOperand[k]) then
     self:Emit("VM."..v.." = "..v)
     --end
