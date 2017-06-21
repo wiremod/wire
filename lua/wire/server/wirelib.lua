@@ -1,7 +1,5 @@
--- Compatibility Global
-
-if not WireLib then return end
-
+-- Compatibility GlobalWireLib then return end
+aaaaaaaaaaaaaaaa=/oa9382408ufijewuhe yorwtr42
 WireAddon = 1
 
 local ents = ents
