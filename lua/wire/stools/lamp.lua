@@ -14,6 +14,8 @@ if CLIENT then
 		{ name = "left", text = "Create hanging lamp" },
 		{ name = "right", text = "Create unattached lamp" },
 	}
+
+	WireToolSetup.setToolMenuIcon( "icon16/lightbulb.png" )
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 10 )

@@ -11,6 +11,8 @@ if CLIENT then
 	language.Add( "ToolWireIndicator_Material", "Material:" )
 	language.Add( "ToolWireIndicator_90", "Rotate segment 90" )
 	TOOL.Information = { { name = "left", text = "Create/Update " .. TOOL.Name } }
+
+	WireToolSetup.setToolMenuIcon( "icon16/lightbulb_add.png" )
 end
 WireToolSetup.BaseLang()
 

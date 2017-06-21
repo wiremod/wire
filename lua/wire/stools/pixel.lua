@@ -5,6 +5,8 @@ if CLIENT then
 	language.Add( "tool.wire_pixel.name", "Pixel Tool (Wire)" )
 	language.Add( "tool.wire_pixel.desc", "Spawns a Pixel for use with the wire system." )
 	TOOL.Information = { { name = "left", text = "Create/Update " .. TOOL.Name } }
+
+	WireToolSetup.setToolMenuIcon( "icon16/lightbulb_add.png" )
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )

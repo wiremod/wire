@@ -12,6 +12,8 @@ if CLIENT then
 	language.Add( "ToolWire7SegTool_worldweld", "Allow weld to world" )
 	language.Add( "undone_wire7seg", "Undone 7-Segment Display" )
 	TOOL.Information = { { name = "left", text = "Create/Update " .. TOOL.Name } }
+
+	WireToolSetup.setToolMenuIcon( "icon16/lightbulb_add.png" )
 end
 
 WireToolSetup.BaseLang()

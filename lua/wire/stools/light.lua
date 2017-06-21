@@ -13,6 +13,8 @@ if CLIENT then
 	language.Add( "WireLightTool_const", "Constraint:" )
 	language.Add( "WireLightTool_color", "Initial Color:" )
 	TOOL.Information = { { name = "left", text = "Create/Update " .. TOOL.Name } }
+
+	WireToolSetup.setToolMenuIcon( "icon16/lightbulb.png" )
 end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax(8)
