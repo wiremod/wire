@@ -289,43 +289,6 @@ end
 
 __e2setcost(nil)
 
-registerOperator("fea","t","",function(self,args)
-	local keyname,valname,valtypeid = args[2],args[3],args[4]
-	local tbl = args[5]
-	tbl = tbl[1](self,tbl)
-	local statement = args[6]
-
-	local keys = {}
-	local count = 0
-	for key,_ in pairs(tbl.s) do
-		if (tbl.stypes[key] == valtypeid) then
-			count = count + 1
-			keys[count] = key
-		end
-	end
-
-	for i=1, count do
-		self:PushScope()
-		local key = keys[i]
-		if tbl.s[key] ~= nil then
-			self.prf = self.prf + 3
-
-			self.Scope.vclk[keyname] = true
-			self.Scope.vclk[valname] = true
-
-			self.Scope[keyname] = key
-			self.Scope[valname] = tbl.s[key]
-
-			local ok, msg = pcall(statement[1], self, statement)
-			if not ok then
-				if msg == "break" then self:PopScope() break
-				elseif msg ~= "continue" then self:PopScope() error(msg, 0) end
-			end
-		end
-		self:PopScope()
-	end
-end)
-
 registerOperator( "kvtable", "", "t", function( self, args )
 	local ret = table.Copy( DEFAULT )
 
@@ -1155,6 +1118,74 @@ registerCallback( "postinit", function()
 			return rv2
 		end)
 
+		--------------------------------------------------------------------------------
+		-- Foreach operators
+		--------------------------------------------------------------------------------
+		__e2setcost(nil)
+
+		registerOperator("fea", "s" .. id .. "t", "", function(self, args)
+			local keyname, valname = args[2], args[3]
+
+			local tbl = args[4]
+			tbl = tbl[1](self, tbl)
+
+			local statement = args[5]
+
+			for key, value in pairs(tbl.s) do
+				if tbl.stypes[key] == id then
+					self:PushScope()
+
+					self.prf = self.prf + 3
+
+					self.Scope.vclk[keyname] = true
+					self.Scope.vclk[valname] = true
+
+					self.Scope[keyname] = key
+					self.Scope[valname] = value
+
+					local ok, msg = pcall(statement[1], self, statement)
+
+					if not ok then
+						if msg == "break" then	self:PopScope() break
+						elseif msg ~= "continue" then self:PopScope() error(msg, 0) end
+					end
+
+					self:PopScope()
+				end
+			end
+		end)
+
+		registerOperator("fea", "n" .. id .. "t", "", function(self, args)
+			local keyname, valname = args[2], args[3]
+
+			local tbl = args[4]
+			tbl = tbl[1](self, tbl)
+
+			local statement = args[5]
+
+			for key, value in pairs(tbl.n) do
+				if tbl.ntypes[key] == id then
+					self:PushScope()
+
+					self.prf = self.prf + 3
+
+					self.Scope.vclk[keyname] = true
+					self.Scope.vclk[valname] = true
+
+					self.Scope[keyname] = key
+					self.Scope[valname] = value
+
+					local ok, msg = pcall(statement[1], self, statement)
+
+					if not ok then
+						if msg == "break" then	self:PopScope() break
+						elseif msg ~= "continue" then self:PopScope() error(msg, 0) end
+					end
+
+					self:PopScope()
+				end
+			end
+		end)
 
 		end -- blocked check end
 
