@@ -690,34 +690,43 @@ function Compiler:InstrVAR(args)
 end
 
 function Compiler:InstrFEA(args)
-	-- local sfea = self:Instruction(trace, "fea", keyvar, valvar, valtype, tableexpr, self:Block("foreach statement"))
+	-- local sfea = self:Instruction(trace, "fea", keyvar, keytype, valvar, valtype, tableexpr, self:Block("foreach statement"))
+	local keyvar, keytype, valvar, valtype = args[3], args[4], args[5], args[6]
+	local tableexpr, tabletp = self:Evaluate(args, 5)
 
-	local keyvar, valvar, valtype = args[3], args[4], args[5]
-	local tableexpr, tabletp = self:Evaluate(args, 4)
+	local op
 
-	local op = self:GetOperator(args, "fea", { tabletp })
-	self:PushScope()
-
-	-- The type of the keys iterated over depends on what's being iterated over (ie. tabletp).
-	-- The 'table' returned by tableexpr can be a table, an array, a gtable, or others in future.
-	-- If the type has an indexing operator that takes strings, then we iterate over strings,
-	-- otherwise we iterator over numbers.
-	local keytype
-	if self:HasOperator(args, "idx", { valtype, "=", tabletp, "s" }) then
-		keytype = "s"
-	elseif self:HasOperator(args, "idx", { valtype, "=", tabletp, "n" }) then
-		keytype = "n"
+	if keytype then
+		op = self:GetOperator(args, "fea", {keytype, valtype, tabletp})
 	else
-		self:Error("Table expression (of type '" .. tabletp .. "') has no indexing operator", args)
+		-- If no key type is specified, fallback to old behavior
+
+		-- The type of the keys iterated over depends on what's being iterated over (ie. tabletp).
+		-- The 'table' returned by tableexpr can be a table, an array, a gtable, or others in future.
+		-- If the type has an indexing operator that takes strings, then we iterate over strings,
+		-- otherwise we iterator over numbers.
+
+		if self:HasOperator(args, "fea", {"s", valtype, tabletp}) then
+			op = self:GetOperator(args, "fea", {"s", valtype, tabletp})
+			keytype = "s"
+		elseif self:HasOperator(args, "fea", {"n", valtype, tabletp}) then
+			op = self:GetOperator(args, "fea", {"n", valtype, tabletp})
+			keytype = "n"
+		else
+			self:Error("Type '" .. tps_pretty(tabletp) .. "' has no valid default foreach operator", args)
+		end
 	end
+
+	self:PushScope()
 
 	self:SetLocalVariableType(keyvar, keytype, args)
 	self:SetLocalVariableType(valvar, valtype, args)
 
-	local stmt, _ = self:EvaluateStatement(args, 5)
+	local stmt = self:EvaluateStatement(args, 6)
+
 	self:PopScope()
 
-	return { op[1], keyvar, valvar, valtype, tableexpr, stmt }
+	return {op[1], keyvar, valvar, tableexpr, stmt}
 end
 
 

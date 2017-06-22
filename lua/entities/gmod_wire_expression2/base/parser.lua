@@ -315,6 +315,23 @@ function Parser:Stmt4()
 		end
 		local keyvar = self:GetTokenData()
 
+		local keytype
+
+		if self:AcceptRoamingToken("col") then
+			if not self:AcceptRoamingToken("fun") then
+				self:Error("Type expected after colon")
+			end
+
+			keytype = self:GetTokenData()
+			if keytype == "number" then keytype = "normal" end
+
+			if wire_expression_types[string.upper(keytype)] == nil then
+				self:Error("Unknown type: " .. keytype)
+			end
+
+			keytype = wire_expression_types[string.upper(keytype)][1]
+		end
+
 		if not self:AcceptRoamingToken("com") then
 			self:Error("Comma (,) expected after key variable")
 		end
@@ -348,7 +365,7 @@ function Parser:Stmt4()
 			self:Error("Missing right parenthesis after foreach statement")
 		end
 
-		local sfea = self:Instruction(trace, "fea", keyvar, valvar, valtype, tableexpr, self:Block("foreach statement"))
+		local sfea = self:Instruction(trace, "fea", keyvar, keytype, valvar, valtype, tableexpr, self:Block("foreach statement"))
 		loopdepth = loopdepth - 1
 		return sfea
 	end
