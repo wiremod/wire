@@ -36,8 +36,16 @@ if CLIENT then
 	end
 	
 	local function drawColorSlider( x, y, w, h, self )
-		local len = self.b - self.a
-		local step = len / 50
+		if self.a == self.b then -- no infinite loops!
+			draw.DrawText( "Can't draw color bar because A == B",
+							"GModWorldtip", x + w / 2, y + h / 2, white, TEXT_ALIGN_CENTER )
+
+			return
+		end
+
+		local diff = self.b - self.a
+		local len = math.abs(self.b) - math.abs(self.a)
+		local step = diff / 50
 
 		local find_selected = nil
 
@@ -46,9 +54,13 @@ if CLIENT then
 			local pos_x = math.floor(x + (factor * w))
 
 			-- we're not stepping over every single possible value here,
-			-- so we have to check if we're close-ish to the user's selected value here
-			if not find_selected and i >= self.value then
-				find_selected = i
+			-- so we have to check if we're close-ish to the user's selected value
+			if not find_selected then
+				if diff >= 0 and i >= self.value then
+					find_selected = i
+				elseif diff < 0 and i < self.value then
+					find_selected = i
+				end
 			end
 
 			surface.SetDrawColor( color )
@@ -64,7 +76,7 @@ if CLIENT then
 
 		-- draw the small box showing the current selected color
 		if find_selected then
-			find_selected = math.Clamp(find_selected,self.a+step/2,self.b-step/2)
+			find_selected = math.Clamp(find_selected,math.min(self.a,self.b)+step/2,math.max(self.a,self.b)-step/2)
 			local factor = self:GetFactorFromValue( find_selected )
 			local pos_x = math.floor(x + (factor * w))
 			drawSquare(pos_x - step / 2,y-h*0.15,math.ceil(w/50),h*1.4)
@@ -74,8 +86,6 @@ if CLIENT then
 	function ENT:DrawWorldTipBody( pos )
 		-- Get colors
 		local data = self:GetOverlayData()
-
-		--if not data.value then return end
 
 		-- Merge the data onto the entity itself.
 		-- This allows us to use the same references as serverside
