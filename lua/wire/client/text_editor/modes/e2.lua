@@ -204,7 +204,7 @@ function EDITOR:SyntaxColorLine(row)
   self:ResetTokenizer(row)
   self:NextCharacter()
 
-  -- 0=name 1=port 2=trigger 3=foreach
+  -- 0=name 1=port 2=trigger 3=foreach 4=foreachkey 5=foreachvalue
   local highlightmode = nil
 
   if self.blockcomment then
@@ -420,9 +420,12 @@ function EDITOR:SyntaxColorLine(row)
           tokenname = "typename"
         elseif highlightmode == 2 and (sstr == "all" or sstr == "none") then
           tokenname = "directive"
-        elseif highlightmode == 3 and istype(sstr) then
+        elseif (highlightmode == 4 or highlightmode == 5) and istype(sstr) then
           tokenname = "typename"
-          highlightmode = nil
+
+          if highlightmode == 5 then
+            highlightmode = nil
+          end
         else
           tokenname = "notfound"
         end
@@ -480,6 +483,11 @@ function EDITOR:SyntaxColorLine(row)
     elseif self:NextPattern("^[A-Z][a-zA-Z0-9_]*") then
       tokenname = "variable"
 
+      if highlightmode == 3 then
+        highlightmode = 4
+      elseif highlightmode == 4 then
+        highlightmode = 5
+      end
     elseif self.character == '"' then
       self:NextCharacter()
       while self.character do -- Find the ending "
