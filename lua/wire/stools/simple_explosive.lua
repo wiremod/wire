@@ -19,7 +19,7 @@ WireToolSetup.SetupMax( 20 )
 
 if SERVER then
 	function TOOL:GetConVars()
-		return self:GetClientNumber( "trigger" ), self:GetClientNumber( "damage" ), self:GetClientNumber( "removeafter" )==1, 
+		return self:GetClientNumber( "trigger" ), self:GetClientNumber( "damage" ), self:GetClientNumber( "removeafter" )==1,
 			self:GetClientNumber( "radius" )
 	end
 end

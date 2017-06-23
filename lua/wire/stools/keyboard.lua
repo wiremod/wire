@@ -11,8 +11,8 @@ WireToolSetup.SetupMax( 20 )
 
 if (SERVER) then
 	ModelPlug_Register("Keyboard")
-	
-	function TOOL:GetConVars() 
+
+	function TOOL:GetConVars()
 		return self:GetClientNumber( "autobuffer" ) ~= 0, self:GetClientNumber( "sync" ) ~= 0
 	end
 end
@@ -36,12 +36,12 @@ function TOOL.BuildCPanel(panel)
 	local curlayout = LocalPlayer():GetInfo("wire_keyboard_layout")
 	for k,v in pairs( Wire_Keyboard_Remap ) do
 		languages:AddChoice( k )
-		if k == curlayout then 
-			local curindex = #languages.Choices 
+		if k == curlayout then
+			local curindex = #languages.Choices
 			timer.Simple(0, function() languages:ChooseOptionID(curindex) end) -- This needs to be delayed or it'll set the box to show "0"
 		end
 	end
-	
+
 	panel:Help("When on, automatically removes the key from the buffer when the user releases it.\nWhen off, leaves all keys in the buffer until they are manually removed.\nTo manually remove a key, write any value to cell 0 to remove the first key, or write a specific ascii value to any address other than 0 to remove that specific key.")
 	panel:CheckBox("Automatic buffer clear", "wire_keyboard_autobuffer")
 

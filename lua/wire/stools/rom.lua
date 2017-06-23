@@ -13,10 +13,10 @@ if CLIENT then
 
 	function TOOL.BuildCPanel( panel )
 		ModelPlug_AddToCPanel(panel, "gate", "wire_rom", nil, 4)
-		
+
 		panel:Help("#Tool.wire_rom.note")
 	end
-	
+
 	WireToolSetup.setToolMenuIcon( "icon16/database.png" )
 end
 TOOL.MaxLimitName = "wire_dhdds"

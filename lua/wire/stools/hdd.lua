@@ -12,7 +12,7 @@ WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )
 
 if (SERVER) then
-	function TOOL:GetConVars() 
+	function TOOL:GetConVars()
 		return self:GetClientNumber("driveid"), self:GetClientNumber("drivecap")
 	end
 

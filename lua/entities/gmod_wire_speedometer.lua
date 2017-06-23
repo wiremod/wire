@@ -16,7 +16,7 @@ function ENT:SetModes( XYZMode, AngVel )
 	self:SetNWBool( 1, AngVel )
 end
 
-if CLIENT then 
+if CLIENT then
 	function ENT:Think()
 		self.BaseClass.Think(self)
 
@@ -40,7 +40,7 @@ if CLIENT then
 		self:NextThink(CurTime()+0.04)
 		return true
 	end
-	
+
 	return  -- No more client
 end
 

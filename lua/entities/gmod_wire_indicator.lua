@@ -187,8 +187,8 @@ function MakeWire7Seg( pl, Pos, Ang, Model, a, ar, ag, ab, aa, b, br, bg, bb, ba
 		Pos = Pos, Angle = Ang,
 		Model = Model, frozen = frozen, nocollide = nocollide },
 		a, ar, ag, ab, aa, b, br, bg, bb, ba )
-		if IsValid(ent) then 
-			ent:SetNWString("WireName", name) 
+		if IsValid(ent) then
+			ent:SetNWString("WireName", name)
 			duplicator.StoreEntityModifier( ent, "WireName", { name = name } )
 		end
 		return ent
@@ -220,7 +220,7 @@ function MakeWire7Seg( pl, Pos, Ang, Model, a, ar, ag, ab, aa, b, br, bg, bb, ba
 		end
 		wire_indicators[i - 1]:DeleteOnRemove( wire_indicators[i] ) --when one is removed, all are. a linked chain
 	end
-	
+
 	if wire_indicators[7] then
 		wire_indicators[7]:DeleteOnRemove( wire_indicators[1] ) --loops chain back to first
 	end

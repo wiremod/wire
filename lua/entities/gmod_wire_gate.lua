@@ -20,7 +20,7 @@ function ENT:Setup( action, noclip )
 	local gate = GateActions[action]
 	if not gate then return end
 	if GateActions[action].is_banned then return end
-	
+
 	self.action = action
 
 	self.WireDebugName = gate.name

@@ -1,7 +1,7 @@
 -- Wire Trigger created by mitterdoo
 WireToolSetup.setCategory( "Detection" )
 WireToolSetup.open( "trigger", "Trigger", "gmod_wire_trigger", nil, "Triggers" )
- 
+
 TOOL.ClientConVar = {
 	model = "models/jaanus/wiretool/wiretool_siren.mdl",
 	filter = 0, -- 0: all entities, 1: only players, 2: only props (and stuff that isn't a player)
@@ -46,7 +46,7 @@ if CLIENT then
 		RunConsoleCommand( "wire_trigger_offsetx", 0 )
 		RunConsoleCommand( "wire_trigger_offsety", 0 )
 		RunConsoleCommand( "wire_trigger_offsetz", 0 )
-		
+
 	end )
 
 end
@@ -62,7 +62,7 @@ local function DrawTriggerOutlines( list )
 	cam.Start3D( LocalPlayer():EyePos(), LocalPlayer():EyeAngles() )
 		for k,ent in pairs( list ) do
 			local trig = ent:GetTriggerEntity()
-			
+
 			render.DrawWireframeBox( trig:GetPos(), Angle(0,0,0), trig:OBBMins(), trig:OBBMaxs(), Color( 255, 255, 0 ), true )
 			render.DrawLine( trig:GetPos(), ent:GetPos(), Color( 255, 255, 0 ) )
 		end
@@ -106,7 +106,7 @@ function TOOL:RightClick( tr )
 	end
 end
 
- 
+
 function TOOL.BuildCPanel( panel )
 	ModelPlug_AddToCPanel(panel, "Misc_Tools", "wire_trigger")
 	panel:CheckBox( "#Tool.wire_trigger.alltriggers", "wire_trigger_drawalltriggers" )

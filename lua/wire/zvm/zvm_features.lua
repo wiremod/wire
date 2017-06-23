@@ -756,7 +756,7 @@ function ZVM:Interrupt(interruptNo,interruptParameter,isExternal,cascadeInterrup
       elseif FLAGS[8] == 1 then
         self.PTBE = 1
       end
-      
+
     elseif self.PF == 1 then -- Compatibility extended mode
       -- Boundary check
       if (interruptNo < 0) or (interruptNo > 255) then

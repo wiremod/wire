@@ -13,8 +13,8 @@ void Main()
     glBindTexture( 'brick/brick_model' );
     glColor( 255, 255, 255, 255 );
     glRectWH( 128, 128, 256, 256 );
-    
-    glExit(); 
+
+    glExit();
 }
 
 // ZASM version

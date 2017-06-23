@@ -46,12 +46,12 @@ function ENT:EndTouch( ent )
 	local owner = self:GetTriggerEntity()
 	if not IsValid( owner ) then return end
 
-	for i = 1, #self.EntsInside do 
+	for i = 1, #self.EntsInside do
 		if self.EntsInside[ i ] == ent then
-			table.remove( self.EntsInside, i ) 
-		end 
+			table.remove( self.EntsInside, i )
+		end
 	end
-	
+
 	WireLib.TriggerOutput( owner, "EntCount", #self.EntsInside )
 	WireLib.TriggerOutput( owner, "Entities", self.EntsInside )
 

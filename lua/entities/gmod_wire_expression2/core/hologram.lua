@@ -152,7 +152,7 @@ local function GetModel(self, model, skin)
 
 	-- If this model isn't already the absolute path of a default model, and only default models are allowed
 	elseif not pathLookup[model] and wire_holograms_modelany:GetInt() == 0 then
- 		return false
+		return false
 	end
 
 	if wire_holograms_modelany:GetInt() ~= 2 and not WireLib.CanModel(self.player, model, skin) then
@@ -819,7 +819,7 @@ e2function vector holoBoneScale(index, boneindex)
 	if table.Count(Holo.bone_scale) <= 0 then return {0,0,0} end
 
 	for bidx,b_scale in pairs(Holo.bone_scale) do
-    	if bidx == boneindex then return b_scale end
+		if bidx == boneindex then return b_scale end
 	end
 
 	return {0,0,0}

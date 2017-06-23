@@ -70,8 +70,8 @@ local collisionDescriptions = {
 }
 
 function ENT:UpdateOverlay()
-	self:SetOverlayText( 
-		(self.State and "Frozen" or "Unfrozen") .. "\n" .. 
+	self:SetOverlayText(
+		(self.State and "Frozen" or "Unfrozen") .. "\n" ..
 		collisionDescriptions[self.CollisionState] .. "\n" ..
 		"Linked Entities: " .. #self.Marks)
 end

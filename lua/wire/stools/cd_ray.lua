@@ -25,7 +25,7 @@ TOOL.ClientConVar[ "Range" ] = "64"
 TOOL.ClientConVar[ "DefaultZero" ] = "0"
 
 if SERVER then
-	function TOOL:GetConVars() 
+	function TOOL:GetConVars()
 		return self:GetClientNumber("Range"), self:GetClientNumber("DefaultZero") ~= 0
 	end
 

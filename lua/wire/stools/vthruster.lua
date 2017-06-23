@@ -29,9 +29,9 @@ TOOL.ClientConVar[ "mode" ] = "0"
 TOOL.ClientConVar[ "angleinputs" ] = "0"
 
 if SERVER then
-	function TOOL:GetConVars() 
-		return self:GetClientNumber( "force" ), self:GetClientNumber( "force_min" ), self:GetClientNumber( "force_max" ), self:GetClientInfo( "oweffect" ), 
-			self:GetClientInfo( "uweffect" ), self:GetClientNumber( "owater" ) ~= 0, self:GetClientNumber( "uwater" ) ~= 0, self:GetClientNumber( "bidir" ) ~= 0, 
+	function TOOL:GetConVars()
+		return self:GetClientNumber( "force" ), self:GetClientNumber( "force_min" ), self:GetClientNumber( "force_max" ), self:GetClientInfo( "oweffect" ),
+			self:GetClientInfo( "uweffect" ), self:GetClientNumber( "owater" ) ~= 0, self:GetClientNumber( "uwater" ) ~= 0, self:GetClientNumber( "bidir" ) ~= 0,
 			self:GetClientInfo( "soundname" ), self:GetClientNumber( "mode" ), self:GetClientNumber( "angleinputs" ) ~= 0
 	end
 end
@@ -235,7 +235,7 @@ function TOOL.BuildCPanel(panel)
 			["#XY Local, Z World"]	= { wire_vthruster_mode = "2" },
 		}
 	})
-	
+
 	panel:CheckBox("#WireVThrusterTool_Angle", "wire_vthruster_angleinputs")
 end
 

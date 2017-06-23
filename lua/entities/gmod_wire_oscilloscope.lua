@@ -26,7 +26,7 @@ function ENT:GetNodeList()
 	return nodes
 end
 
-if CLIENT then 
+if CLIENT then
 	function ENT:Initialize()
 		self.GPU = WireGPU(self)
 	end
@@ -86,7 +86,7 @@ if CLIENT then
 		self.GPU:Render()
 		Wire_Render(self)
 	end
-	
+
 	return  -- No more client
 end
 

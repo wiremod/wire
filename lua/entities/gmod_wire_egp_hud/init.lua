@@ -58,7 +58,7 @@ function ENT:LinkEnt( ent )
 		if self.LinkedVehicles and self.LinkedVehicles[ent] then
 			return false
 		end
-		
+
 		EGP:LinkHUDToVehicle( self, ent )
 		ent:CallOnRemove( "EGP HUD unlink on remove", function( ent )
 			EGP:UnlinkHUDFromVehicle( self, ent )
@@ -75,7 +75,7 @@ function ENT:OnRemove()
 			self.Marks[i]:RemoveCallOnRemove( "EGP HUD unlink on remove" )
 		end
 	end
-	
+
 	EGP:UnlinkHUDFromVehicle( self )
 end
 
@@ -101,7 +101,7 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 	if vehicles then
 		for i=1,#vehicles do
 			local vehicle = GetEntByID( vehicles[i] )
-			
+
 			if IsValid( vehicle ) then
 				self:LinkEnt( vehicle )
 			end

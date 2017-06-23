@@ -18,10 +18,10 @@ TOOL.ClientConVar = {
 }
 
 if SERVER then
-	function TOOL:GetConVars() 
+	function TOOL:GetConVars()
 		return self:GetClientNumber( "multiplier" ), self:GetClientNumber( "length" ), self:GetClientNumber( "beam" )==1, self:GetClientNumber( "reaction" )==1
 	end
-	
+
 	-- Uses default WireToolObj:MakeEnt's WireLib.MakeWireEnt function
 end
 

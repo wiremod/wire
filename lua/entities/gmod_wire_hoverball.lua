@@ -13,31 +13,31 @@ if CLIENT then
 
 	local drawhoverballs = CreateConVar( "cl_drawhoverballs", "1" )
 	local glowmat = Material( "sprites/light_glow02_add" )
-	
+
 	function ENT:DrawTranslucent()
-		if not drawhoverballs:GetBool() then return end		
-		
+		if not drawhoverballs:GetBool() then return end
+
 		if self:IsOn() then
 			local Pos = self:GetPos()
 			local vDiff = (Pos - LocalPlayer():EyePos()):GetNormalized()
-			
+
 			local color = Color( 70, 180, 255, 255 ) -- Color( 40, 50, 200, 255 )
 			render.SetMaterial( glowmat )
-			
+
 			-- Draw central glow
 			render.DrawSprite( Pos - vDiff * 2, 22, 22, color )
-			
+
 			-- Draw glow based on distance from target
 			local Distance = math.Clamp( math.abs( ( self:GetZTarget() - Pos.z ) * math.sin( RealTime() * 20 )  ) * 0.05, 0, 1 )
 			color.r = color.r * Distance
 			color.g = color.g * Distance
 			color.b = color.b * Distance
-			
+
 			render.DrawSprite( Pos + vDiff * 4, 48, 48, color )
 			render.DrawSprite( Pos + vDiff * 4, 52, 52, color )
 		end
 	end
-	
+
 	return -- No more client
 end
 
@@ -50,7 +50,7 @@ end
 function ENT:GetZVelocity() return self.zvelocity end
 function ENT:SetZVelocity( z )
 	self.zvelocity = z * FrameTime() * 5000
-	
+
 	if z ~= 0 then
 		local phys = self:GetPhysicsObject()
 		if IsValid( phys ) then
@@ -63,7 +63,7 @@ function ENT:SetSpeed( s )
 	if not game.SinglePlayer() then
 		s = math.Clamp( s, 0, 10 )
 	end
-	
+
 	self.speed = s
 end
 function ENT:SetOn( h ) self:SetNWBool( "On", h ) end
@@ -85,15 +85,15 @@ function ENT:GetStrength() return self.strength end
 function ENT:Initialize()
 	self:PhysicsInitSphere( 6, "metal_bouncy" )
 	self:StartMotionController()
-	
+
 	self:SetZVelocity( 0 )
 	self:SetZTarget( self:GetPos().z )
-	
+
 	self:SetSpeed( 1 )
 	self:SetStrength( 1 )
 	self:SetAirResistance( 1 )
 	self:SetZTarget( self:GetPos().z ) -- reset target position
-	
+
 	self.Inputs = WireLib.CreateInputs( self, { "On", "ZVelocity", "ZTarget" } )
 	self.Outputs = WireLib.CreateOutputs( self, { "Position [VECTOR]", "X", "Y", "Z", "Distance" } )
 end
@@ -110,7 +110,7 @@ function ENT:Setup(speed, resistance, strength, starton)
 	self:SetSpeed( speed )
 	self:SetStrength( strength )
 	self:SetAirResistance( resistance )
-	
+
 	if starton then self:Enable() else self:Disable() end
 	self.starton = starton
 end
@@ -151,13 +151,13 @@ end
 
 function ENT:Think()
 	self.BaseClass.Think( self )
-	
+
 	local on = self:IsOn() and "\nActivated" or "\nDeactivated"
-	
+
 	local pos = self:GetPos()
 	local Distance = self:GetZTarget() - pos.z
 	self:SetOverlayText( string.format( "Speed: %i\nResistance: %.2f\nStrength: %.2f\nDistance to ZTarget: %.2f%s", self:GetSpeed(), self:GetAirResistance(), self:GetStrength(), Distance, on ) )
-	
+
 	WireLib.TriggerOutput( self, "Position", pos )
 	WireLib.TriggerOutput( self, "X", pos.x )
 	WireLib.TriggerOutput( self, "Y", pos.y )
@@ -223,7 +223,7 @@ end
 
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
-	
+
 	if info and info.OnState and info.OnState == 1 then
 		self:Enable()
 	end

@@ -811,7 +811,7 @@ ZVM.OpcodeTable[110] = function(self)  --EXTRET
   self:Dyn_EmitForceRegisterGlobal("ESP")
   self:Dyn_Emit("$L V = 0")
   self:Dyn_EmitState()
-  
+
   self:Dyn_Emit("V = VM:Pop()") -- IRET CS
   self:Dyn_EmitInterruptCheck()
   self:Dyn_Emit("V = VM:Pop()") -- IRET EIP
@@ -1178,20 +1178,20 @@ ZVM.OpcodeTable[140] = function(self) --EXTRETA
   self:Dyn_EmitForceRegisterGlobal("ESP")
   self:Dyn_Emit("$L V = 0")
   self:Dyn_EmitState()
- 
+
   self:Dyn_Emit("V = VM:Pop()") -- IRET CS
   self:Dyn_EmitInterruptCheck()
- 
+
   self:Dyn_Emit("V = VM:Pop()") -- IRET EIP
   self:Dyn_EmitInterruptCheck()
- 
+
   for i=0,31 do
     self:Dyn_Emit("V = VM:Pop()") self:Dyn_EmitInterruptCheck() self:Dyn_Emit("VM.R"..i.." = V")
   end
- 
+
   self:Dyn_Emit("V = VM:Pop()") self:Dyn_EmitInterruptCheck() self:Dyn_Emit("$L IP = V")
   self:Dyn_Emit("V = VM:Pop()") self:Dyn_EmitInterruptCheck() self:Dyn_Emit("VM.CMPR = V")
- 
+
   self:Dyn_Emit("V = VM:Pop()") self:Dyn_EmitInterruptCheck() self:Dyn_Emit("VM.EAX = V")
   self:Dyn_Emit("V = VM:Pop()") self:Dyn_EmitInterruptCheck() self:Dyn_Emit("VM.EBX = V")
   self:Dyn_Emit("V = VM:Pop()") self:Dyn_EmitInterruptCheck() self:Dyn_Emit("VM.ECX = V")
@@ -1200,7 +1200,7 @@ ZVM.OpcodeTable[140] = function(self) --EXTRETA
   self:Dyn_Emit("V = VM:Pop()") self:Dyn_EmitInterruptCheck() -- Do not set ESP right now
   self:Dyn_Emit("V = VM:Pop()") self:Dyn_EmitInterruptCheck() self:Dyn_Emit("VM.ESI = V")
   self:Dyn_Emit("V = VM:Pop()") self:Dyn_EmitInterruptCheck() self:Dyn_Emit("VM.EDI = V")
- 
+
   self:Dyn_Emit("V = VM:Pop()") self:Dyn_EmitInterruptCheck() self:Dyn_Emit("$L CS = V")
   self:Dyn_Emit("V = VM:Pop()") self:Dyn_EmitInterruptCheck() -- Do not set SS right now
   self:Dyn_Emit("V = VM:Pop()") self:Dyn_EmitInterruptCheck() self:Dyn_Emit("VM.DS = V")
@@ -1210,7 +1210,7 @@ ZVM.OpcodeTable[140] = function(self) --EXTRETA
   self:Dyn_Emit("V = VM:Pop()") self:Dyn_EmitInterruptCheck() self:Dyn_Emit("VM.KS = V")
   self:Dyn_Emit("V = VM:Pop()") self:Dyn_EmitInterruptCheck() self:Dyn_Emit("VM.LS = V")
   self:Dyn_Emit("VM:Jump(IP,CS)")
- 
+
   self:Dyn_EmitBreak()
   self.PrecompileBreak = true
 end

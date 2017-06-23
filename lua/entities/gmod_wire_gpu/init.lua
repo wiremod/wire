@@ -117,7 +117,7 @@ function ENT:ReadCell(Address)
     self:Interrupt(15,Address)
     return
   end
-  
+
   if (Address < 0) or (Address >= self.RAMSize) then
     return nil
   else

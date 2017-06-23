@@ -239,11 +239,11 @@ e2function number entity:keyPressed(string char)
 	if this.keystate then
 		local key = _G["KEY_" .. string.upper(char)] or "no_key"
 		if this.keystate[key] then return 1 end
-		
+
 		key = _G[string.match(string.upper(char),"^(MOUSE_.+)$") or ""] or "no_key"
 		if this.keystate[key] then return 1 end
 	end
-	
+
 	return 0
 end
 

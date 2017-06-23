@@ -221,8 +221,8 @@ __e2setcost(5)
 
 e2function angle round(angle rv1)
 	return {
-		floor(rv1[1] + 0.5), 
-		floor(rv1[2] + 0.5), 
+		floor(rv1[1] + 0.5),
+		floor(rv1[2] + 0.5),
 		floor(rv1[3] + 0.5)
 	}
 end
@@ -230,16 +230,16 @@ end
 e2function angle round(angle rv1, decimals)
 	local shf = 10 ^ decimals
 	return {
-		floor(rv1[1] * shf + 0.5) / shf, 
-		floor(rv1[2] * shf + 0.5) / shf, 
+		floor(rv1[1] * shf + 0.5) / shf,
+		floor(rv1[2] * shf + 0.5) / shf,
 		floor(rv1[3] * shf + 0.5) / shf
 	}
 end
 
 e2function angle ceil(angle rv1)
 	return {
-		ceil(rv1[1]), 
-		ceil(rv1[2]), 
+		ceil(rv1[1]),
+		ceil(rv1[2]),
 		ceil(rv1[3])
 	}
 end
@@ -247,16 +247,16 @@ end
 e2function angle ceil(angle rv1, decimals)
 	local shf = 10 ^ decimals
 	return {
-		ceil(rv1[1] * shf) / shf, 
-		ceil(rv1[2] * shf) / shf, 
+		ceil(rv1[1] * shf) / shf,
+		ceil(rv1[2] * shf) / shf,
 		ceil(rv1[3] * shf) / shf
 	}
 end
 
 e2function angle floor(angle rv1)
 	return {
-		floor(rv1[1]), 
-		floor(rv1[2]), 
+		floor(rv1[1]),
+		floor(rv1[2]),
 		floor(rv1[3])
 	}
 end
@@ -264,8 +264,8 @@ end
 e2function angle floor(angle rv1, decimals)
 	local shf = 10 ^ decimals
 	return {
-		floor(rv1[1] * shf) / shf, 
-		floor(rv1[2] * shf) / shf, 
+		floor(rv1[1] * shf) / shf,
+		floor(rv1[2] * shf) / shf,
 		floor(rv1[3] * shf) / shf
 	}
 end

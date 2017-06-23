@@ -37,7 +37,7 @@ function TOOL:LeftClick( trace )
 		local ply = self:GetOwner()
 		local Ent1, Ent2, Ent3  = self:GetEnt(1),	 self:GetEnt(2), trace.Entity
 		local const = self.Constraint
-		
+
 		local controller = self:LeftClick_Make( trace, ply )
 		if isbool(controller) then return controller end
 		if !IsValid(controller) then

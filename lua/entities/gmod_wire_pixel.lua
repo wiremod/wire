@@ -3,11 +3,11 @@ DEFINE_BASECLASS( "base_wire_entity" )
 ENT.PrintName       = "Wire Pixel"
 ENT.WireDebugName	= "Pixel"
 
-if CLIENT then 
+if CLIENT then
 	function ENT:Draw( )
 		self:DrawModel( )
 	end
-	
+
 	return  -- No more client
 end
 

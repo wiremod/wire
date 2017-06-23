@@ -160,7 +160,7 @@ end
 function ENT:DeployBalloons()
 	local balloon
 	balloon = ents.Create("gmod_balloon") --normal balloon
-	
+
 	local model = BalloonTypes[self.balloonType]
 	if(model==nil) then
 		model = BalloonTypes[1]
@@ -200,7 +200,7 @@ function ENT:DeployBalloons()
 		hitPos = hitEntity:WorldToLocal(hitPos)
 
 		local constraint, rope = constraint.Rope(
-			balloon, hitEntity, 0, trace.PhysicsBone, balloonPos, hitPos, 
+			balloon, hitEntity, 0, trace.PhysicsBone, balloonPos, hitPos,
 			0, self.rl, 0, 1.5, material, false)
 		if constraint then
 			balloon:DeleteOnRemove(constraint)

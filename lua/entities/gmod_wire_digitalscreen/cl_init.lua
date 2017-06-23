@@ -34,7 +34,7 @@ function ENT:Initialize()
 	self.GPU = WireGPU(self)
 
 	self.buffer = {}
-	
+
 	WireLib.netRegister(self)
 end
 
@@ -56,12 +56,12 @@ end
 local pixelbits = {3, 1, 3, 4, 1}
 net.Receive("wire_digitalscreen", function(netlen)
 	local ent = Entity(net.ReadUInt(16))
-	
+
 	if IsValid(ent) and ent.Memory1 and ent.Memory2 then
 		local pixelformat = net.ReadUInt(5)
 		local pixelbit = pixelbits[pixelformat]
 		local readData
-		
+
 		local datastr = util.Decompress(net.ReadData((netlen-21)/8))
 		if not datastr then return end
 		local readIndex = 1

@@ -10,7 +10,7 @@
 void main() {
   float i;
   udhSetBusAddress(65536);
-  
+
   cscrInitialize(0);
 
   udhQueryDevices();
@@ -19,10 +19,10 @@ void main() {
     cscrSelect(i);
     cscrSetActive(1);
     cscrClear();
-    
+
     cscrSetCursor(0,0);
     cscrPrintLine("Screen ",930);
-    cscrPrintNumber(i,930); 
+    cscrPrintNumber(i,930);
   }
 
   cscrSelect(0);

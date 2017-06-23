@@ -341,7 +341,7 @@ function HCOMP:Tokenize() local TOKEN = self.TOKEN
       token = self.Defines[token]
     end
   end
-  
+
   local is_symbol = false
 
   -- If no alphanumeric token fetched, try to fetch the special-character ones
@@ -377,21 +377,21 @@ function HCOMP:Tokenize() local TOKEN = self.TOKEN
         })
         return true
       end
-	  
+
 	  -- Else it's a two-character symbol token
 	  is_symbol = true
-	  
+
     elseif HCOMP.PARSER_SYMBOLS[self.Settings.CurrentLanguage][token] then
 	  -- It's a one-character symbol token
 	  is_symbol = true
-	
+
 	else
 	  -- We have no idea what this is (it's not an identifier character, nor a recognized symbol)
 	  self:Error("Unknown character '"..token.."'",
         tokenPosition.Line,tokenPosition.Col,tokenPosition.File)
     end
   end
-  
+
   assert(token ~= "")
 
   -- Determine which token it is
@@ -404,7 +404,7 @@ function HCOMP:Tokenize() local TOKEN = self.TOKEN
     })
     return true
   end
-  
+
   if is_symbol then
     -- If we get here something is weird, because why would a symbol be in PARSER_DBCHARS or PARSER_SYMBOLS but not in PARSER_LOOKUP?
     self:Error("Unknown symbol '"..token.."'",

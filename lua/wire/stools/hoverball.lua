@@ -20,7 +20,7 @@ TOOL.ClientConVar = {
 
 if SERVER then
 	function TOOL:GetConVars()
-		return self:GetClientNumber( "speed" ), math.Clamp(self:GetClientNumber( "resistance" ), 0, 20), 
+		return self:GetClientNumber( "speed" ), math.Clamp(self:GetClientNumber( "resistance" ), 0, 20),
 			math.Clamp(self:GetClientNumber( "strength" ), 0.1, 20), self:GetClientNumber( "starton" ) == 1
 	end
 end
