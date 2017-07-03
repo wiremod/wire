@@ -23,6 +23,46 @@ if SERVER then
 	end
 end
 
+function TOOL:GetConVars()
+	return self:GetClientNumber( "torque" ),
+			self:GetClientNumber( "friction" ),
+			self:GetClientNumber( "nocollide" ),
+			self:GetClientNumber( "forcelimit" )
+end
+
+function TOOL:LeftClick_Update( trace )
+	local const = trace.Entity.constraint
+	if IsValid( const ) then
+		-- Don't remove the controller when the constraint is removed
+		const:DontDeleteOnRemove( trace.Entity )
+		if IsValid(trace.Entity.axis) then trace.Entity.axis:DontDeleteOnRemove( trace.Entity ) end
+		-- Get constraint info
+		local tbl = const:GetTable()
+		-- Remove constraint
+		const:Remove()
+
+		-- Get convars
+		local torque, friction, nocollide, forcelimit = self:GetConVars()
+
+		-- Make new constraint, at the old constraint's position, but with the new convar settings
+		local const, axis = MakeWireMotor( self:GetOwner(),
+								tbl.Ent1, tbl.Ent2, 
+								tbl.Bone1, tbl.Bone2, 
+								tbl.LPos1, tbl.LPos2, 
+								friction, torque, nocollide, forcelimit )
+
+		-- Set the new references
+		const.MyCrtl = trace.Entity:EntIndex()
+		trace.Entity:SetConstraint( const )
+		trace.Entity:DeleteOnRemove( const )
+
+		if axis then
+			trace.Entity:SetAxis( axis )
+			trace.Entity:DeleteOnRemove( axis )
+		end
+	end
+end
+
 function TOOL:LeftClick( trace )
 	if IsValid( trace.Entity ) and trace.Entity:IsPlayer() then return end
 
@@ -31,6 +71,14 @@ function TOOL:LeftClick( trace )
 	
 	local iNum = self:NumObjects()
 	local Phys = trace.Entity:GetPhysicsObjectNum( trace.PhysicsBone )
+
+	-- Update existing constraint
+	if self:CheckHitOwnClass( trace ) and iNum == 0 then
+		if SERVER then
+			self:LeftClick_Update( trace )
+		end
+		return true
+	end
 	
 	-- Don't allow us to choose the world as the first object
 	if iNum == 0 and not IsValid( trace.Entity ) then return end
@@ -76,10 +124,7 @@ function TOOL:LeftClick( trace )
 		end
 		
 		-- Get client's CVars
-		local torque = self:GetClientNumber( "torque" )
-		local friction = self:GetClientNumber( "friction" )
-		local nocollide = self:GetClientNumber( "nocollide" )
-		local forcelimit = self:GetClientNumber( "forcelimit" )
+		local torque, friction, nocollide, forcelimit = self:GetConVars()
 		
 		local Ent1,  Ent2  = self:GetEnt(1),	  self:GetEnt(2)
 		local Bone1, Bone2 = self:GetBone(1),	  self:GetBone(2)

@@ -36,11 +36,60 @@ if SERVER then
 	end
 end
 
+function TOOL:GetConVars()
+	return self:GetClientInfo( "material" ) or "cable/rope",
+			self:GetClientNumber("width", 3),
+			self:GetClientNumber("speed", 16),
+			self:GetClientNumber("fixed", 0),
+			self:GetClientNumber("stretchonly", 0) ~= 0
+end
+
+function TOOL:LeftClick_Update( trace )
+	local const = trace.Entity.constraint
+	if IsValid( const ) then
+		-- Don't remove the controller when the constraint is removed
+		const:DontDeleteOnRemove( trace.Entity )
+		if IsValid(trace.Entity.rope) then trace.Entity.rope:DontDeleteOnRemove( trace.Entity ) end
+		-- Get constraint info
+		local tbl = const:GetTable()
+		-- Remove constraint
+		const:Remove()
+
+		-- Get convars
+		local material, width, speed, fixed, stretchonly = self:GetConVars()
+
+		-- Make new constraint, at the old constraint's position, but with the new convar settings
+		local const, rope = MakeWireHydraulic( self:GetOwner(),
+								tbl.Ent1, tbl.Ent2, 
+								tbl.Bone1, tbl.Bone2, 
+								tbl.LPos1, tbl.LPos2, 
+								width, material, speed, fixed, stretchonly )
+
+		-- Set the new references
+		const.MyCrtl = trace.Entity:EntIndex()
+		trace.Entity:SetConstraint( const )
+		trace.Entity:DeleteOnRemove( const )
+
+		if rope then
+			trace.Entity:SetRope( rope )
+			trace.Entity:DeleteOnRemove( rope )
+		end
+	end
+end
+
 function TOOL:LeftClick( trace )
-	if !trace.Hit || ( trace.Entity:IsValid() && trace.Entity:IsPlayer() ) then return end
-	if ( SERVER && !util.IsValidPhysicsObject( trace.Entity, trace.PhysicsBone ) ) then return false end
+	if not trace.Hit or ( trace.Entity:IsValid() and trace.Entity:IsPlayer() ) then return end
+	if ( SERVER and not util.IsValidPhysicsObject( trace.Entity, trace.PhysicsBone ) ) then return false end
 
 	local iNum = self:NumObjects()
+
+	-- Update existing constraint
+	if self:CheckHitOwnClass( trace ) and iNum == 0 then
+		if SERVER then
+			self:LeftClick_Update( trace )
+		end
+		return true
+	end
 
 	local Phys = trace.Entity:GetPhysicsObjectNum( trace.PhysicsBone )
 	self:SetObject( iNum + 1, trace.Entity, trace.HitPos, Phys, trace.PhysicsBone, trace.HitNormal )
@@ -78,14 +127,10 @@ function TOOL:LeftClick( trace )
 
 		if CLIENT then return true end
 
-		// Get client's CVars
-		local material	= self:GetClientInfo( "material" ) or "cable/rope"
-		local width		= self:GetClientNumber("width", 3)
-		local speed		= self:GetClientNumber("speed", 16)
-		local fixed		= self:GetClientNumber("fixed", 0)
-		local stretchonly = self:GetClientNumber("stretchonly", 0) ~= 0
+		-- Get client's CVars
+		local material, width, speed, fixed, stretchonly = self:GetConVars()
 
-		// Get information we're about to use
+		-- Get information we're about to use
 		local Ent1,  Ent2  = self:GetEnt(1),	 self:GetEnt(2)
 		local Bone1, Bone2 = self:GetBone(1),	 self:GetBone(2)
 		local LPos1, LPos2 = self:GetLocalPos(1),self:GetLocalPos(2)
@@ -148,7 +193,7 @@ function TOOL:Reload( trace )
 end
 
 function TOOL:Think()
-	 -- Disable ghost when making the constraint
+	-- Disable ghost when making the constraint
 	if self:GetStage() == 2 then
 		WireToolObj.Think(self)
 	end

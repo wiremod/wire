@@ -38,12 +38,18 @@ end
 
 function ENT:ShowOutput()
 	if self.constraint and IsValid( self.constraint ) then
-		self:SetOverlayText( "Torque: "..math.floor( self.constraint:GetTable().torque * self.Mul ) )
+
+		local torque = self.constraint.torque
+		local current_torque = torque * self.Mul
+		local forcelimit = self.constraint.forcelimit
+		local friction = self.constraint.friction
+
+		self:SetOverlayText( string.format( "Current Torque: %s\nTorque: %s\nForce Limit: %s\nHinge Friction: %s", current_torque, torque, forcelimit, friction ) )
 	end
 end
 
-//need for the const to find the controller after being duplicator pasted
-WireMotorTracking = {}
+--needed for the constraint to find the controller after being duplicator pasted
+local WireMotorTracking = {}
 	
 function MakeWireMotorController( pl, Pos, Ang, MyEntId, model, const, axis )
 	local controller = WireLib.MakeWireEnt(pl, {Class = "gmod_wire_motor", Pos=Pos, Angle=Ang, Model=model})
