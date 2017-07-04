@@ -39,9 +39,9 @@ function ENT:Initialize()
     self.SoundSources[i] = ents.Create("prop_physics")
     self.SoundSources[i]:SetParent(self)
     self.SoundSources[i]:SetModel("models/cheeze/wires/nano_math.mdl")
-    self.SoundSources[i]:SetNotSolid(true)
     self.SoundSources[i]:SetPos(self:GetPos())
     self.SoundSources[i]:Spawn()
+    self.SoundSources[i]:PhysicsDestroy()
   end
 
   timer.Create("wire_spu_soundsources_"..math.floor(math.random()*1000000),0.1+math.random()*0.3,1,
