@@ -82,11 +82,11 @@ function ENT:Initialize()
 					end
 				else VM:Interrupt(8,Address+1) return
 				end
-			else return 0 
+			else return 0
 			end
 		end
 	end
-	
+
 	local oldReset = self.VM.Reset
 	self.VM.Reset = function(...)
 		if self.Clk and self.VMStopped then
