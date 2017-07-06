@@ -137,7 +137,6 @@ function WireLib.CreateSpecialInputs(ent, names, types, descs)
 		Inputs[idx] = port
 	end
 
-	WireLib.SetPathNames(ent, names)
 	WireLib._SetInputs(ent)
 
 	return ent_ports
@@ -228,7 +227,6 @@ function WireLib.AdjustSpecialInputs(ent, names, types, descs)
 		end
 	end
 
-	WireLib.SetPathNames(ent, names)
 	WireLib._SetInputs(ent)
 
 	return ent_ports
@@ -482,6 +480,7 @@ local function Wire_Link(dst, dstid, src, srcid, path)
 	input.SrcId = srcid
 	input.Path = path
 
+	WireLib.Paths.Add(input)
 	WireLib._SetLink(input)
 
 	table.insert(output.Connected, { Entity = dst, Name = dstid })
@@ -578,28 +577,18 @@ function WireLib.Link_Start(idx, ent, pos, iname, material, color, width)
 
 	local input = ent.Inputs[iname]
 
+	if not input.Path then input.Path = {} end
+
 	CurLink[idx] = {
 		Dst = ent,
 		DstId = iname,
-		Path = {},
-		OldPath = input.Path,
-		}
-
-	CurLink[idx].OldPath             = CurLink[idx].OldPath or {}
-	CurLink[idx].OldPath[0]          = {}
-	CurLink[idx].OldPath[0].pos      = input.StartPos
-	CurLink[idx].OldPath[0].material = input.Material
-	CurLink[idx].OldPath[0].color    = input.Color
-	CurLink[idx].OldPath[0].width    = input.Width
-
-	local net_name = "wp_" .. iname
-	ent:SetNetworkedBeamInt(net_name, 0)
-	ent:SetNetworkedBeamVector(net_name .. "_start", pos)
-	ent:SetNetworkedBeamString(net_name .. "_mat", material)
-	ent:SetNetworkedBeamVector(net_name .. "_col", Vector(color.r, color.g, color.b))
-	ent:SetNetworkedBeamFloat(net_name .. "_width", width)
-
-	--RDbeamlib.StartWireBeam( ent, iname, pos, material, color, width )
+		Path = input.Path,
+		OldPath = {}
+	}
+	for i=1, #input.Path do
+		CurLink[idx].OldPath[i] = input.Path[i]
+		input.Path[i] = nil
+	end
 
 	input.StartPos = pos
 	input.Material = material
@@ -615,15 +604,8 @@ function WireLib.Link_Node(idx, ent, pos)
 	if not IsValid(CurLink[idx].Dst) then return end
 	if not IsValid(ent) then return end -- its the world, give up
 
-	local net_name = "wp_" .. CurLink[idx].DstId
-	local node_idx = CurLink[idx].Dst:GetNetworkedBeamInt(net_name)+1
-	CurLink[idx].Dst:SetNetworkedBeamEntity(net_name .. "_" .. node_idx .. "_ent", ent)
-	CurLink[idx].Dst:SetNetworkedBeamVector(net_name .. "_" .. node_idx .. "_pos", pos)
-	CurLink[idx].Dst:SetNetworkedBeamInt(net_name, node_idx)
-
-	--RDbeamlib.AddWireBeamNode( CurLink[idx].Dst, CurLink[idx].DstId, ent, pos )
-
 	table.insert(CurLink[idx].Path, { Entity = ent, Pos = pos })
+	WireLib.Paths.Add(CurLink[idx].Dst.Inputs[CurLink[idx].DstId])
 end
 
 
@@ -665,16 +647,7 @@ function WireLib.Link_End(idx, ent, pos, oname, pl)
 		return
 	end
 
-	local net_name = "wp_" .. CurLink[idx].DstId
-	local node_idx = CurLink[idx].Dst:GetNetworkedBeamInt(net_name)+1
-	CurLink[idx].Dst:SetNetworkedBeamEntity(net_name .. "_" .. node_idx .. "_ent", ent)
-	CurLink[idx].Dst:SetNetworkedBeamVector(net_name .. "_" .. node_idx .. "_pos", pos)
-	CurLink[idx].Dst:SetNetworkedBeamInt(net_name, node_idx)
-
-	--RDbeamlib.AddWireBeamNode( CurLink[idx].Dst, CurLink[idx].DstId, ent, pos )
-
 	table.insert(CurLink[idx].Path, { Entity = ent, Pos = pos })
-
 	Wire_Link(CurLink[idx].Dst, CurLink[idx].DstId, ent, oname, CurLink[idx].Path)
 
 	if (WireLib.DT[input.Type].BiDir) then
@@ -689,37 +662,18 @@ function WireLib.Link_Cancel(idx)
 	if not CurLink[idx] then return end
 	if not IsValid(CurLink[idx].Dst) then return end
 
-	--local orig = CurLink[idx].OldPath[0]
-	--RDbeamlib.StartWireBeam( CurLink[idx].Dst, CurLink[idx].DstId, orig.pos, orig.material, orig.color, orig.width )
-
-	local path_len = 0
-	if (CurLink[idx].OldPath) then path_len = #CurLink[idx].OldPath end
-
-	local net_name = "wp_" .. CurLink[idx].DstId
-	for i=1,path_len do
-		CurLink[idx].Dst:SetNetworkedBeamEntity(net_name .. "_" .. i, CurLink[idx].OldPath[i].Entity)
-		CurLink[idx].Dst:SetNetworkedBeamVector(net_name .. "_" .. i, CurLink[idx].OldPath[i].Pos)
-		--RDbeamlib.AddWireBeamNode( CurLink[idx].Dst, CurLink[idx].DstId, CurLink[idx].OldPath[i].Entity, CurLink[idx].OldPath[i].Pos )
+	if CurLink[idx].input then
+		CurLink[idx].Path = CurLink[idx].input.Path
+	else
+		WireLib.Paths.Add({Entity = CurLink[idx].Dst, Name = CurLink[idx].DstId, Width = 0})
 	end
-	CurLink[idx].Dst:SetNetworkedBeamInt(net_name, path_len)
-
 	CurLink[idx] = nil
 end
 
 
 function WireLib.Link_Clear(ent, iname, DontSendToCL)
-	local net_name = "wp_" .. iname
-	ent:SetNetworkedBeamInt(net_name, 0)
-	--RDbeamlib.ClearWireBeam( ent, iname )
-
+	WireLib.Paths.Add({Entity = ent, Name = iname, Width = 0})
 	Wire_Unlink(ent, iname, DontSendToCL)
-end
-
-function WireLib.SetPathNames(ent, names)
-	for k,v in pairs(names) do
-		ent:SetNetworkedBeamString("wpn_" .. k, v)
-	end
-	ent:SetNetworkedBeamInt("wpn_count", #names)
 end
 
 function WireLib.WireAll(ply, ient, oent, ipos, opos, material, color, width)
@@ -944,7 +898,6 @@ Wire_Link_Node					= WireLib.Link_Node
 Wire_Link_End					= WireLib.Link_End
 Wire_Link_Cancel				= WireLib.Link_Cancel
 Wire_Link_Clear					= WireLib.Link_Clear
-Wire_SetPathNames				= WireLib.SetPathNames
 Wire_CreateOutputIterator		= WireLib.CreateOutputIterator
 Wire_BuildDupeInfo				= WireLib.BuildDupeInfo
 Wire_ApplyDupeInfo				= WireLib.ApplyDupeInfo
