@@ -89,6 +89,11 @@ e2function number entity:id()
 	return this:EntIndex()
 end
 
+e2function number entity:creationID()
+	if not IsValid(this) then return 0 end
+	return this:GetCreationID()
+end
+
 /******************************************************************************/
 // Functions getting string
 
