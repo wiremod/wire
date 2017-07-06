@@ -108,49 +108,6 @@ registerOperator("for", "", "", function(self, args)
 
 end)
 
-registerOperator("fea","r","",function(self,args)
-	local keyname,valname,valtypeid = args[2],args[3],args[4]
-	local tbl = args[5]
-	tbl = tbl[1](self,tbl)
-	local statement = args[6]
-
-	local typechecker = wire_expression_types2[valtypeid][6]
-
-	local keys = {}
-	local count = 0
-	for key,value in pairs(tbl) do
-		if not typechecker(value) then
-			count = count + 1
-			keys[count] = key
-		end
-	end
-
-	for i=1,count do
-		self:PushScope()
-		local key = keys[i]
-		if tbl[key] ~= nil then
-			self.prf = self.prf + 3
-
-			self.Scope[keyname] = key
-			self.Scope[valname] = tbl[key]
-			self.Scope.vclk[keyname] = true
-			self.Scope.vclk[valname] = true
-
-			local ok, msg = pcall(statement[1], self, statement)
-			if not ok then
-				if msg == "break" then
-					self:PopScope()
-					break
-				elseif msg ~= "continue" then
-					self:PopScope()
-					error(msg, 0)
-				end
-			end
-		end
-		self:PopScope()
-	end
-end)
-
 __e2setcost(2) -- approximation
 
 registerOperator("brk", "", "", function(self, args)
