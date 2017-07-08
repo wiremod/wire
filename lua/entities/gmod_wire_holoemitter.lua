@@ -40,9 +40,21 @@ if CLIENT then
 	net.Receive("WireHoloEmitterData", function(netlen)
 		local ent = net.ReadEntity()
 		if not IsValid(ent) then return end
-		for i=1, net.ReadUInt(16) do
+		local syncinterval = net.ReadFloat()
+		local count = net.ReadUInt(16)
+		for i=1, count do
 			local pos = net.ReadVector()
-			ent:AddPoint(pos, net.ReadBit() ~= 0, Color(net.ReadUInt(8),net.ReadUInt(8),net.ReadUInt(8)), net.ReadUInt(16)/100, net.ReadBit() ~= 0, net.ReadBit() ~= 0, net.ReadUInt(16)/100)
+			local lcl = net.ReadBit() ~= 0
+			local color = Color(net.ReadUInt(8),net.ReadUInt(8),net.ReadUInt(8))
+			local dietime = net.ReadUInt(16)/100
+			local linebeam = net.ReadBit() ~= 0
+			local groundbeam = net.ReadBit() ~= 0
+			local size = net.ReadUInt(16)/100
+			timer.Simple(i/count*syncinterval,function()
+				if IsValid(ent) then
+					ent:AddPoint(pos, lcl, color, dietime, linebeam, groundbeam, size)
+				end
+			end)
 		end
 	end)
 
@@ -359,8 +371,9 @@ function ENT:Think()
 	if not next(self.Points) then return true end
 	net.Start("WireHoloEmitterData")
 		net.WriteEntity(self)
-		net.WriteUInt(#self.Points, 16)
-		for _,v in pairs( self.Points ) do
+		net.WriteFloat(cvar:GetFloat()) -- send sync interval
+		net.WriteUInt(#self.Points, 16) -- send nr of points
+		for _,v in pairs( self.Points ) do -- send each point
 			net.WriteVector(v.Pos)
 			net.WriteBit(v.Local)
 			net.WriteUInt(v.Color.x,8)
