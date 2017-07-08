@@ -4,8 +4,9 @@ WireToolSetup.open( "holoemitter", "HoloEmitter", "gmod_wire_holoemitter", nil, 
 if CLIENT then
 	language.Add( "tool.wire_holoemitter.name", "Holographic Emitter Tool (Wire)" )
 	language.Add( "tool.wire_holoemitter.desc", "The emitter required for holographic projections" )
-	language.Add( "Tool_wire_holoemitter_fadetime", "Client side max fade time (set to 0 to never fade)." )
-	language.Add( "Tool_wire_holoemitter_keeplatestdot", "Keep latest dot indefinitely (prevent fading)." )
+	language.Add( "Tool.wire_holoemitter.fadetime", "Max fade time" )
+	language.Add( "Tool.wire_holoemitter.fadetime.description", "Client side max fade time. Set to 0 to never fade (WARNING: May cause FPS issues if set to 0 or too high).")
+	language.Add( "Tool.wire_holoemitter.keeplatestdot", "Keep latest dot indefinitely (prevent fading)." )
 	TOOL.Information = {
 		{ name = "left_0", stage = 0, text = "Create emitter" },
 		{ name = "right_0", stage = 0, text = "Link emitter to any entity (makes it draw local to that entity instead)" },
@@ -60,6 +61,7 @@ function TOOL.BuildCPanel( panel )
 	WireToolHelpers.MakePresetControl(panel, "wire_holoemitter")
 	WireDermaExts.ModelSelect(panel, "wire_holoemitter_model", list.Get( "Wire_Misc_Tools_Models" ), 1)
 
-	panel:NumSlider("#Tool_wire_holoemitter_fadetime", "cl_wire_holoemitter_maxfadetime", 0, 100, 1)
-	panel:CheckBox("#Tool_wire_holoemitter_keeplatestdot", "wire_holoemitter_keeplatestdot")
+	panel:NumSlider("#Tool.wire_holoemitter.fadetime", "cl_wire_holoemitter_maxfadetime", 0, 100, 1)
+	panel:Help( "#Tool.wire_holoemitter.fadetime.description" )
+	panel:CheckBox("#Tool.wire_holoemitter.keeplatestdot", "wire_holoemitter_keeplatestdot")
 end
