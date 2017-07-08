@@ -546,14 +546,19 @@ end
 
 -- Performs Linear interpolation between <q0> and <q1>. Returns <q0> for <t>=0, <q1> for <t>=1
 e2function quaternion lerp(quaternion q0, quaternion q1, number t, number reduceTo360)
-    local t1 = 1 - t
-    local dot = q0[1]*q1[1] + q0[2]*q1[2] + q0[3]*q1[3] + q0[4]*q1[4]
-    
-    if reduceTo360 and dot < 0 then
-        return ( qmul(q0, t1) + qmul(q1, -t) )
-    else
-        return ( qmul(q0, t1) + qmul(q1, t) )
-    end
+	local t1 = 1 - t
+	local dot = q0[1]*q1[1] + q0[2]*q1[2] + q0[3]*q1[3] + q0[4]*q1[4]
+	local qmul0 = { q0[1] * t1, q0[2] * t1, q0[3] * t1, q0[4] * t1 } -- q0 * t1, (Quat * Num)
+
+	local qmul1
+
+	if reduceTo360 > 1 and dot < 0 then
+		qmul1 = { q1[1] * -t, q1[2] * -t, q1[3] * -t, q1[4] * -t }
+	else
+		qmul1 = { q1[1] * t, q1[2] * t, q1[3] * t, q1[4] * t }
+	end
+
+	return {qmul0[1] + qmul1[1], qmul0[2] + qmul1[2], qmul0[3] + qmul1[3], qmul0[4] + qmul1[4] } -- q0 + q1, (Quat + Quat)
 end
 
 /******************************************************************************/
