@@ -54,6 +54,6 @@ function TOOL.BuildCPanel(panel)
 	panel:CheckBox("Automatic buffer clear", "wire_keyboard_autobuffer")
 	panel:Help( "When on, automatically removes the key from the buffer when the user releases it.\nWhen off, leaves all keys in the buffer until they are manually removed.\nTo manually remove a key, write any value to cell 0 to remove the first key, or write a specific ascii value to any address other than 0 to remove that specific key. This option is serverside, and will be saved on the keyboard through duplications.")
 
-	panel:CheckBox("Enter key ASCII output","wire_keyboard_enterkeyascii")
+	panel:CheckBox("Use '\\n' for ENTER key instead of '\\r'","wire_keyboard_enterkeyascii")
 	panel:Help( "On: Enter=10 ('\\n')\nOff: Enter=13 ('\\r')\nThis option is serverside, and will be saved on the keyboard through duplications." )
 end
