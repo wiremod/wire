@@ -494,6 +494,18 @@ e2function void findExcludePlayerProps(entity ply)
 	invalidate_filters(self)
 end
 
+--- Exclude entities owned by these players from future finds
+e2function void findExcludePlayersProps(array plys)
+	local bl_owner = self.data.find.bl_owner
+	local IsValid = IsValid
+
+	for _,ply in ipairs(plys) do
+		if not IsValid(ply) then return end
+		bl_owner[ply] = true
+	end
+	invalidate_filters(self)
+end
+
 --- Exclude entities owned by this player from future finds
 e2function void findExcludePlayerProps(string name)
 	local ply = findPlayer(name)
@@ -607,6 +619,18 @@ end
 e2function void findIncludePlayerProps(entity ply)
 	if not IsValid(ply) then return end
 	self.data.find.wl_owner[ply] = true
+	invalidate_filters(self)
+end
+
+--- Include entities owned by these players from future finds, and remove others not in the whitelist
+e2function void findIncludePlayersProps(array plys)
+	local wl_owner = self.data.find.wl_owner
+	local IsValid = IsValid
+
+	for _,ply in ipairs(plys) do
+		if not IsValid(ply) then return end
+		wl_owner[ply] = true
+	end
 	invalidate_filters(self)
 end
 
