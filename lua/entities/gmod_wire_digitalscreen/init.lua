@@ -113,8 +113,6 @@ function ENT:FlushCache(ply)
 			self.UseBuffering = nil
 		end
 
-		self.NumOfWrites = 0
-
 		if self.UseBuffering then
 			-- This section allows the data to build up until 
 			-- the user stops writing data, or up to three seconds
@@ -123,19 +121,20 @@ function ENT:FlushCache(ply)
 				self.WaitToFlush = CurTime() + 3
 				return
 			elseif self.WaitToFlush >= CurTime() then
-				if #self.ChangedCellRanges > self.OldChangedCount then
-					self.OldChangedCount = #self.ChangedCellRanges
+				if self.NumOfWrites > 0 then
 					return
 				end
 			end
 		end
+
+		self.NumOfWrites = 0
 	end
 
 	self.WaitToFlush = nil
 	
 	local pixelformat = (self.Memory[1048569] or 0) + 1
 	local pixelbit = pixelbits[pixelformat]
-	local bitsremaining = 480000
+	local bitsremaining = 200000
 	local datastr = {}	
 	
 	net.Start("wire_digitalscreen")

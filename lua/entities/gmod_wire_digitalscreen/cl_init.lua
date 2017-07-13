@@ -75,7 +75,7 @@ function ENT:AddBuffer(datastr,pixelbit)
 end
 
 function ENT:ProcessBuffer()
-	if not self.buffer[1] then return end
+	if not self.buffer[1] then return 0 end
 
 	local datastr = self.buffer[1].datastr
 	local readIndex = self.buffer[1].readIndex
@@ -85,7 +85,7 @@ function ENT:ProcessBuffer()
 	length, readIndex = stringToNumber(readIndex,datastr,3)
 	if length == 0 then
 		table.remove( self.buffer, 1 )
-		return
+		return 0
 	end
 	local address
 	address, readIndex = stringToNumber(readIndex,datastr,3)
@@ -102,10 +102,19 @@ function ENT:ProcessBuffer()
 	end
 
 	self.buffer[1].readIndex = readIndex
+
+	return #datastr
 end
 
 function ENT:Think()
-	self:ProcessBuffer()
+	if self.buffer[1] ~= nil then
+		local processed_len = 1000000 -- process at most this much each time
+
+		while processed_len > 0 do
+			processed_len = processed_len - math.max(self:ProcessBuffer(),10000) -- math.max here is an easy way to prevent infinite loops when it returns 0
+		end
+	end
+
 	self:NextThink(CurTime()+0.1)
 	return true
 end
