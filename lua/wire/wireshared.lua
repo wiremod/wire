@@ -1012,6 +1012,7 @@ hook.Add("InitPostEntity","WireForceLimit",function()
 end)
 -- Instead of checking if values are inrange and breaking code, I've clamped them.
 -- Massive numbers applied through E2, which are allowed by the code right above, may change the direction of the applyForce
+-- It's not required to check what type it is. You can interact with it as if it was a table then clamp and return.
 function WireLib.clampForce(v)
 	if v[1] == nil or v[2] == nil or v[3] == nil then return end
 
