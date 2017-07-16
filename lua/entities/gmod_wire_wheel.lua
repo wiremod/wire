@@ -117,9 +117,9 @@ function ENT:TriggerInput(iname, value)
 		elseif ( value == self.bck ) then self.Go = -1
 		elseif ( value == self.stop ) then self.Go =0 end
 	elseif (iname == "B: Break") then
-		self.Breaking = value
+		self.Breaking = math.Clamp(value, -10000000, 10000000)
 	elseif (iname == "C: SpeedMod") then
-		self.SpeedMod = (value / 100)
+		self.SpeedMod = math.Clamp((value / 100), -10000000, 10000000)
 	end
 	self:Forward( self.Go )
 end
