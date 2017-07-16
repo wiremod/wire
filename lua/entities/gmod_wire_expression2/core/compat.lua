@@ -102,7 +102,7 @@ e2function void applyTorque(vector torque)
 
 	dir = clamp(dir)
 	off = clamp(off)
-	
+
 	phys:ApplyForceOffset( dir, off )
 	phys:ApplyForceOffset( dir * -1, off * -1 )
 end
