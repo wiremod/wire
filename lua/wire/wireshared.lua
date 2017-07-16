@@ -1014,8 +1014,6 @@ end)
 -- Massive numbers applied through E2, which are allowed by the code right above, may change the direction of the applyForce
 -- It's not required to check what type it is. You can interact with it as if it was a table then clamp and return.
 function WireLib.clampForce(v)
-	if v[1] == nil or v[2] == nil or v[3] == nil then return end
-
 	v[1] = math.Clamp( v[1], min_force, max_force )
 	v[2] = math.Clamp( v[2], min_force, max_force )
 	v[3] = math.Clamp( v[3], min_force, max_force )
