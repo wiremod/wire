@@ -1007,7 +1007,7 @@ end
 -- 2*maxmass*maxvelocity should be enough impulse to do whatever you want.
 local max_force, min_force
 hook.Add("InitPostEntity","WireForceLimit",function()
-	max_force = 1000000*physenv.GetPerformanceSettings().MaxVelocity
+	max_force = 100000*physenv.GetPerformanceSettings().MaxVelocity
 	min_force = -max_force
 end)
 -- Instead of checking if values are inrange and breaking code, I've clamped them.
