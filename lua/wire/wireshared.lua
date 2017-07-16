@@ -1007,21 +1007,16 @@ end
 -- 2*maxmass*maxvelocity should be enough impulse to do whatever you want.
 local max_force, min_force
 hook.Add("InitPostEntity","WireForceLimit",function()
-	max_force = 100000*physenv.GetPerformanceSettings().MaxVelocity
+	max_force = 1000000*physenv.GetPerformanceSettings().MaxVelocity
 	min_force = -max_force
 end)
-function WireLib.checkForce(v)
-	if isvector(v) then
-		return 	min_force < v.x and v.x < max_force and
-				min_force < v.y and v.y < max_force and
-				min_force < v.z and v.z < max_force
-	elseif isangle(v) then
-		return 	min_force < v.p and v.p < max_force and
-				min_force < v.y and v.y < max_force and
-				min_force < v.r and v.r < max_force
-	else -- E2 vectors/angles
-		return 	min_force < v[1] and v[1] < max_force and
-				min_force < v[2] and v[2] < max_force and
-				min_force < v[3] and v[3] < max_force
-	end
+-- Instead of checking if values are inrange and breaking code, I've clamped them.
+-- Massive numbers applied through E2, which are allowed by the code right above, may change the direction of the applyForce
+function WireLib.clampForce(v)
+	if v[1] == nil or v[2] == nil or v[3] == nil then return end
+
+	v[1] = math.Clamp( v[1], min_force, max_force )
+	v[2] = math.Clamp( v[2], min_force, max_force )
+	v[3] = math.Clamp( v[3], min_force, max_force )
+	return v
 end

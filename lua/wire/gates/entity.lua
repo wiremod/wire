@@ -4,7 +4,7 @@
 
 GateActions("Entity")
 
-local check = WireLib.checkForce
+local clamp = WireLib.clampForce
 
 local function isAllowed( gate, ent )
 	if not IsValid(gate:GetPlayer()) then return false end
@@ -22,7 +22,7 @@ GateActions["entity_applyf"] = {
 		if not IsValid( phys ) then return end
 		if not isAllowed( gate, ent ) then return end
 		if !isvector(vec) then vec = Vector (0, 0, 0) end
-		if not check(vec) then return end
+		vec = clamp(vec)
 		if vec.x == 0 and vec.y == 0 and vec.z == 0 then return end
 
 		phys:ApplyForceCenter( vec )
@@ -44,7 +44,7 @@ GateActions["entity_applyof"] = {
 		if not isAllowed( gate, ent ) then return end
 		if !isvector(vec) then vec = Vector (0, 0, 0) end
 		if !isvector(offset) then offset = Vector (0, 0, 0) end
-		if not check(vec) or not check( offset ) then return end
+		vec = clamp(vec)
 		if vec.x == 0 and vec.y == 0 and vec.z == 0 then return end
 
 		phys:ApplyForceOffset(vec, offset)
@@ -66,7 +66,7 @@ GateActions["entity_applyaf"] = {
 		local phys = ent:GetPhysicsObject()
 		if not IsValid( phys ) then return end
 		if not isAllowed( gate, ent ) then return end
-		if not check( angForce ) then return end
+		angForce = clamp(angForce)
 		if angForce.p == 0 and angForce.y == 0 and angForce.r == 0 then return end
 
 		-- assign vectors
@@ -115,7 +115,8 @@ GateActions["entity_applytorq"] = {
 		if not isAllowed( gate, ent ) then return end
 		if !isvector(vec) then vec = Vector (0, 0, 0) end
 		if !isvector(offset) then offset = Vector (0, 0, 0) end
-		if not check(vec) or not check( offset ) then return end
+		vec 	= clamp(vec)
+		offset 	= clamp(offset)
 		if vec.x == 0 and vec.y == 0 and vec.z == 0 then return end
 
 		local tq = vec
@@ -135,7 +136,8 @@ GateActions["entity_applytorq"] = {
 
 		local dir = ( tq:Cross(off) ):GetNormal()
 
-		if not check( dir ) or not check( off ) then return end
+		dir = clamp(dir)
+		off = clamp(off)
 		phys:ApplyForceOffset( dir, off )
 		phys:ApplyForceOffset( dir * -1, off * -1 )
 	end,
