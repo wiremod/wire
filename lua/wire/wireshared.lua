@@ -1017,9 +1017,9 @@ end)
 function WireLib.clampForce( v )
 	-- v, whether it be a vector or angle, can be indexed like a table, so we just check each value, modify it, then return v
 	-- Lua Ternary: Standard    http://lua-users.org/wiki/TernaryOperator
-	-- value = ( if value ~= value then return 0 else return clamp end )
-	v[1] = v[1] ~= v[1] and 0 or math.Clamp( v[1], min_force, max_force )
-	v[2] = v[2] ~= v[2] and 0 or math.Clamp( v[2], min_force, max_force )
-	v[3] = v[3] ~= v[3] and 0 or math.Clamp( v[3], min_force, max_force )
+	-- If the value doesn't equal itself then it's nan so we change it to 0 to avoid issues
+	v[1] = v[1] == v[1] and math.Clamp( v[1], min_force, max_force ) or 0
+	v[2] = v[2] == v[2] and math.Clamp( v[2], min_force, max_force ) or 0
+	v[3] = v[3] == v[3] and math.Clamp( v[3], min_force, max_force ) or 0
 	return v
 end
