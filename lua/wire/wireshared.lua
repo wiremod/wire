@@ -1016,8 +1016,7 @@ end)
 -- Massive numbers applied through E2, which are allowed by the code right above, may change the direction of the applyForce
 function WireLib.clampForce( v )
 	-- v, whether it be a vector or angle, can be indexed like a table, so we just check each value, modify it, then return v
-	-- Lua Ternary: Standard    http://lua-users.org/wiki/TernaryOperator
-	-- If the value doesn't equal itself then it's nan so we change it to 0 to avoid issues
+	-- checking if the value is nan, if it is replace it with 0
 	v[1] = v[1] == v[1] and math.Clamp( v[1], min_force, max_force ) or 0
 	v[2] = v[2] == v[2] and math.Clamp( v[2], min_force, max_force ) or 0
 	v[3] = v[3] == v[3] and math.Clamp( v[3], min_force, max_force ) or 0
