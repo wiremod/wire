@@ -1010,12 +1010,22 @@ hook.Add("InitPostEntity","WireForceLimit",function()
 	max_force = 100000*physenv.GetPerformanceSettings().MaxVelocity
 	min_force = -max_force
 end)
+
+
 -- Instead of checking if values are inrange and breaking code, I've clamped them.
 -- Massive numbers applied through E2, which are allowed by the code right above, may change the direction of the applyForce
--- It's not required to check what type it is. You can interact with it as if it was a table then clamp and return.
-function WireLib.clampForce(v)
-	v[1] = math.Clamp( v[1], min_force, max_force )
-	v[2] = math.Clamp( v[2], min_force, max_force )
-	v[3] = math.Clamp( v[3], min_force, max_force )
-	return v
+function WireLib.clampForce( args )
+	-- args whether it be a vector or angle can be indexed like a table, so we just check each value, modify it, then return args
+	-- Check if there's more than 3 values, if there is, something is wrong
+	if #args ~= 3 then return { 0,0,0 } end
+
+	for k,v in pairs( args ) do
+		-- check if the value is nan, nan never equals itself
+		if v ~= v then
+			args[k] = 0
+		else
+			args[k] = math.Clamp( v, min_force, max_force )
+		end
+	end
+	return args
 end
