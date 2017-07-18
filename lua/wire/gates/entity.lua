@@ -45,6 +45,7 @@ GateActions["entity_applyof"] = {
 		if !isvector(vec) then vec = Vector (0, 0, 0) end
 		if !isvector(offset) then offset = Vector (0, 0, 0) end
 		vec = clamp(vec)
+		offset = clamp(offset)
 		if vec.x == 0 and vec.y == 0 and vec.z == 0 then return end
 
 		phys:ApplyForceOffset(vec, offset)
