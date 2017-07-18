@@ -1015,26 +1015,10 @@ end)
 -- Instead of checking if values are inrange and breaking code, I've clamped them.
 -- Massive numbers applied through E2, which are allowed by the code right above, may change the direction of the applyForce
 function WireLib.clampForce( v )
-	-- args whether it be a vector or angle can be indexed like a table, so we just check each value, modify it, then return args
+	-- v, whether it be a vector or angle, can be indexed like a table, so we just check each value, modify it, then return v
 	-- check if each value is nan then make it 0 if it is, else clamp it
-	if v[1] ~= v[1] then
-		v[1] = 0
-	else
-		v[1] = math.Clamp( v[1], min_force, max_force )
-	end
-
-	if v[2] ~= v[2] then
-		v[2] = 0
-	else
-		v[2] = math.Clamp( v[2], min_force, max_force )
-	end
-
-	if v[3] ~= v[3] then
-		v[3] = 0
-	else
-		v[3] = math.Clamp( v[3], min_force, max_force )
-	end
-
+	v[1] = v[1] ~= v[1] and 0 or math.Clamp( v[1], min_force, max_force )
+	v[2] = v[2] ~= v[2] and 0 or math.Clamp( v[2], min_force, max_force )
+	v[3] = v[3] ~= v[3] and 0 or math.Clamp( v[3], min_force, max_force )
 	return v
-
 end
