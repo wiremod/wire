@@ -1,0 +1,7 @@
+E2Helper.Descriptions["getDTAngle(e:n)"] = "Get an angle stored in the datatable of the entity."
+E2Helper.Descriptions["getDTBool(e:n)"] = "Get a boolean stored in the datatable of the entity."
+E2Helper.Descriptions["getDTEntity(e:n)"] = "Returns an entity stored in the datatable of the entity."
+E2Helper.Descriptions["getDTFloat(e:n)"] = "Get a float stored in the datatable of the entity."
+E2Helper.Descriptions["getDTInt(e:n)"] = "Get an integer stored in the datatable of the entity."
+E2Helper.Descriptions["getDTString(e:n)"] = "Get a string stored in the datatable of the entity."
+E2Helper.Descriptions["getDTVector(e:n)"] = "Get a vector stored in the datatable of the entity."
