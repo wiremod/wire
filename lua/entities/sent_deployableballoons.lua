@@ -35,7 +35,7 @@ local DmgFilter
 
 local function CreateDamageFilter()
 	if IsValid(DmgFilter) then return end
-	local DmgFilter = ents.Create("filter_activator_name")
+	DmgFilter = ents.Create("filter_activator_name")
 		DmgFilter:SetKeyValue("targetname", "DmgFilter")
 		DmgFilter:SetKeyValue("negated", "1")
 	DmgFilter:Spawn()
