@@ -1012,11 +1012,8 @@ hook.Add("InitPostEntity","WireForceLimit",function()
 end)
 
 
--- Instead of checking if values are inrange and breaking code, I've clamped them.
--- Massive numbers applied through E2, which are allowed by the code right above, may change the direction of the applyForce
+-- Nan never equals itself, so if the value doesn't equal itself replace it with 0.
 function WireLib.clampForce( v )
-	-- v, whether it be a vector or angle, can be indexed like a table, so we just check each value, modify it, then return v
-	-- checking if the value is nan, if it is replace it with 0
 	v[1] = v[1] == v[1] and math.Clamp( v[1], min_force, max_force ) or 0
 	v[2] = v[2] == v[2] and math.Clamp( v[2], min_force, max_force ) or 0
 	v[3] = v[3] == v[3] and math.Clamp( v[3], min_force, max_force ) or 0
