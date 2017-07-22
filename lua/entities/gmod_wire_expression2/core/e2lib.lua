@@ -47,6 +47,26 @@ function E2Lib.setAng(ent, ang)
 	return ent:SetAngles(ang)
 end
 
+local function validMaterial(material)
+	if string.find(string.lower(material) , "pp[%./\\]+copy" ) then return "" end
+	local m = Material(material)
+	if m then
+		local s = m:GetShader()
+		if s == "VertexLitGeneric" or s == "UnlitGeneric" or s == "Refract_DX90" then
+			return material
+		end
+	end
+	return ""
+end
+
+function E2Lib.setMaterial(ent, material)
+	ent:SetMaterial(validMaterial(material))
+end
+
+function E2Lib.setSubMaterial(ent, index, material)
+	ent:SetSubMaterial(index,validMaterial(material))
+end
+
 -- getHash
 -- Returns a hash for the given string
 

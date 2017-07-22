@@ -722,9 +722,7 @@ e2function void holoReset(index, string model, vector scale, vector color, strin
 
 	Holo.ent:SetModel(model)
 	Holo.ent:SetColor(Color(color[1],color[2],color[3],255))
-	if string.lower(material) ~= "pp/copy" then
-		Holo.ent:SetMaterial(material)
-	end
+	E2Lib.setMaterial(Holo.ent, material)
 
 	reset_clholo(Holo, scale) -- Reset scale, clips, and visible status
 end
@@ -994,9 +992,7 @@ end
 e2function void holoMaterial(index, string material)
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
-	if string.lower(material) == "pp/copy" then return end
-
-	Holo.ent:SetMaterial(material)
+	E2Lib.setMaterial(Holo.ent, material)
 end
 
 e2function void holoPlayerColor(index, vector color)
