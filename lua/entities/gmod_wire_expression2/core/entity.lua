@@ -442,6 +442,7 @@ e2function number entity:isFrozen()
 end
 
 /******************************************************************************/
+--[[
 
 __e2setcost(30) -- temporary
 
@@ -534,6 +535,8 @@ e2function void entity:applyTorque(vector torque)
 	phys:ApplyForceOffset( dir, off )
 	phys:ApplyForceOffset( dir * -1, off * -1 )
 end
+
+]]--
 
 e2function vector entity:inertia()
 	if not validPhysics(this) then return {0,0,0} end

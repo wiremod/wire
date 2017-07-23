@@ -18,9 +18,10 @@ GateActions["entity_applyf"] = {
 	timed = true,
 	output = function(gate, ent, vec )
 		if not IsValid( ent ) then return end
+               if not ApplyForceValidAction(gate,ent,gate:GetPlayer()) then return end	
 		local phys = ent:GetPhysicsObject()
 		if not IsValid( phys ) then return end
-		if not isAllowed( gate, ent ) then return end
+		if not isAllowed( gate, ent ) then return end	
 		if !isvector(vec) then vec = Vector (0, 0, 0) end
 		if not check(vec) then return end
 		if vec.x == 0 and vec.y == 0 and vec.z == 0 then return end
@@ -37,8 +38,9 @@ GateActions["entity_applyof"] = {
 	inputs = { "Ent" , "Vec" , "Offset" },
 	inputtypes = { "ENTITY" , "VECTOR" , "VECTOR" },
 	timed = true,
-	output = function(gate, ent, vec, offset )
+	output = function(gate, ent, vec, offset )             
 		if not IsValid( ent ) then return end
+               if not ApplyForceValidAction(gate,ent,gate:GetPlayer()) then return end	
 		local phys = ent:GetPhysicsObject()
 		if not IsValid( phys ) then return end
 		if not isAllowed( gate, ent ) then return end
@@ -63,6 +65,7 @@ GateActions["entity_applyaf"] = {
 	timed = true,
 	output = function(gate, ent, angForce )
 		if not IsValid( ent ) then return end
+               if not ApplyForceValidAction(gate,ent,gate:GetPlayer()) then return end	
 		local phys = ent:GetPhysicsObject()
 		if not IsValid( phys ) then return end
 		if not isAllowed( gate, ent ) then return end
@@ -110,6 +113,7 @@ GateActions["entity_applytorq"] = {
 	timed = true,
 	output = function(gate, ent, vec )
 		if not IsValid( ent ) then return end
+               if not ApplyForceValidAction(gate,ent,gate:GetPlayer()) then return end	
 		local phys = ent:GetPhysicsObject()
 		if not IsValid( phys ) then return end
 		if not isAllowed( gate, ent ) then return end
