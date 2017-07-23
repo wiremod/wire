@@ -1010,18 +1010,12 @@ hook.Add("InitPostEntity","WireForceLimit",function()
 	max_force = 100000*physenv.GetPerformanceSettings().MaxVelocity
 	min_force = -max_force
 end)
-function WireLib.checkForce(v)
-	if isvector(v) then
-		return 	min_force < v.x and v.x < max_force and
-				min_force < v.y and v.y < max_force and
-				min_force < v.z and v.z < max_force
-	elseif isangle(v) then
-		return 	min_force < v.p and v.p < max_force and
-				min_force < v.y and v.y < max_force and
-				min_force < v.r and v.r < max_force
-	else -- E2 vectors/angles
-		return 	min_force < v[1] and v[1] < max_force and
-				min_force < v[2] and v[2] < max_force and
-				min_force < v[3] and v[3] < max_force
-	end
+
+
+-- Nan never equals itself, so if the value doesn't equal itself replace it with 0.
+function WireLib.clampForce( v )
+	v[1] = v[1] == v[1] and math.Clamp( v[1], min_force, max_force ) or 0
+	v[2] = v[2] == v[2] and math.Clamp( v[2], min_force, max_force ) or 0
+	v[3] = v[3] == v[3] and math.Clamp( v[3], min_force, max_force ) or 0
+	return v
 end
