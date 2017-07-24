@@ -48,13 +48,22 @@ function E2Lib.setAng(ent, ang)
 end
 
 local function validMaterial(material)
+	-- pp/copy is always blocked
 	if string.find(string.lower(material) , "pp[%./\\]+copy" ) then return "" end
-	local m = Material(material)
-	if m then
-		local s = m:GetShader()
-		if s == "VertexLitGeneric" or s == "UnlitGeneric" or s == "Refract_DX90" then
-			return material
+	-- call a hook to see if any other mods/scripts would like to change the behavior of this check
+	local hookret = hook.Run( "e2lib_validmaterial", material )
+	if hookret == nil then -- if the hook returns nil, proceed as usual
+		local m = Material(material)
+		if m then
+			local s = m:GetShader()
+			if s == "VertexLitGeneric" or s == "UnlitGeneric" or s == "Refract_DX90" then
+				return material
+			end
 		end
+	elseif isbool(hookret) then -- if the hook returns true or false, allow or block respectively
+		return hookret and material or ""
+	elseif isstring(hookret) then -- if the hook returns a string, set material to that
+		return hookret
 	end
 	return ""
 end
