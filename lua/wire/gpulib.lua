@@ -344,7 +344,14 @@ if CLIENT then
 
 				surface.SetDrawColor(255,255,255,255)
 				surface.SetMaterial(WireGPU_matScreen)
+
+				render.PushFilterMag(TEXFILTER.POINT)
+				render.PushFilterMin(TEXFILTER.POINT)
+
 				self.DrawScreen(x, y, w, h, rotation or 0, scale or 0)
+
+				render.PopFilterMin()
+				render.PopFilterMag()
 
 				if postrenderfunction then postrenderfunction(pos, ang, res, aspect, monitor) end
 			end, debug.traceback)
