@@ -540,7 +540,7 @@ e2function table table:clipFromTypeid( string typeid )
 	return ret
 end
 
-__e2setcost(10)
+__e2setcost(1000) -- clone must be very expensive to prevent abuse
 
 e2function table table:clone()
 	self.prf = self.prf + this.size * opcost
