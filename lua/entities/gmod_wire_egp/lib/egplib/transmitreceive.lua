@@ -203,6 +203,22 @@ if (SERVER) then
 		EGP:SendQueueItem( ply )
 	end
 
+	util.AddNetworkString( "EditFiltering" )
+	local function EditFiltering( Ent, ply, filtering )
+		if not IsValid(ply) or not ply:IsPlayer() then return end
+		if (EGP:CheckInterval( ply ) == false) then
+			EGP:InsertQueue( Ent, ply, EditFiltering, "EditFiltering", filtering )
+			return
+		end
+		if (!EGP.umsg.Start("EGP_Transmit_Data", ply)) then return end
+			net.WriteEntity( Ent )
+			net.WriteString( "EditFiltering" )
+			net.WriteUInt( filtering, 2 )
+		EGP.umsg.End()
+
+		EGP:SendQueueItem( ply )
+	end
+
 	util.AddNetworkString( "ReceiveObjects" )
 	local function SendObjects( Ent, ply, DataToSend )
 		if (!Ent or !Ent:IsValid() or !ply or !ply:IsValid() or !DataToSend) then return end
@@ -368,6 +384,9 @@ if (SERVER) then
 		elseif (Action == "MoveTopLeft") then
 			local Data = {...}
 			self:AddQueue( Ent, E2.player, MoveTopLeft, "MoveTopLeft", Data[1] )
+		elseif (Action == "EditFiltering") then
+			local Data = {...}
+			self:AddQueue( Ent, E2.player, EditFiltering, "EditFiltering", Data[1] )
 		end
 	end
 else -- SERVER/CLIENT
@@ -446,6 +465,8 @@ else -- SERVER/CLIENT
 
 				if (EGP:EditObject( v, { vertices = vertices })) then Ent:EGP_Update() end
 			end
+		elseif (Action == "EditFiltering") then
+			Ent.filtering = net.ReadUInt(2) or 3
 		elseif (Action == "ReceiveObjects") then
 			local order_was_changed = false
 
@@ -620,6 +641,7 @@ if (SERVER) then
 						net.WriteTable({
 							Ent = v,
 							Objects = DataToSend,
+							Filtering = v.filtering,
 							IsLastScreen = (k == #targets) and #targets or nil -- Doubles as notifying the client that no more data will arrive, and tells them how many did arrive
 						})
 					net.Send(ply)
@@ -654,6 +676,7 @@ else
 		
 		if (self:ValidEGP( Ent )) then
 			Ent.RenderTable = {}
+			Ent.filtering = decoded.Filtering
 			for _,v in pairs( Objects ) do
 				local Obj = self:GetObjectByID(v.ID)
 				self:EditObject( Obj, v.Settings )

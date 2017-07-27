@@ -20,6 +20,7 @@ function ENT:Initialize()
 	self.Scaling = false
 
 	self.TopLeft = false
+	self.filtering = TEXFILTER.ANISOTROPIC
 end
 
 function ENT:Use( ply )

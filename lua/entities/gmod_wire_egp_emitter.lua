@@ -8,6 +8,7 @@ if CLIENT then
 	ENT.gmod_wire_egp_emitter = true
 
 	function ENT:Initialize()
+		self.filtering = TEXFILTER.ANISOTROPIC
 		self.RenderTable = table.Copy(EGP.HomeScreen)
 	end
 
@@ -46,11 +47,21 @@ if CLIENT then
 			local ang = self:LocalToWorldAngles( Angle(0,0,90) )
 
 			cam.Start3D2D( pos , ang , 0.25 )
+				local currentfilter = 3
 				for i=1,#self.RenderTable do
 					local object = self.RenderTable[i]
 					local oldtex = EGP:SetMaterial( object.material )
 
-					object:Draw(self)
+					if object.filtering != 3 then
+						render.PushFilterMag(object.filtering)
+						render.PushFilterMin(object.filtering)
+						object:Draw(self)
+						render.PopFilterMin()
+						render.PopFilterMag()
+					else
+						object:Draw(self)
+					end
+
 					EGP:FixMaterial( oldtex )
 				end
 			cam.End3D2D()
@@ -82,6 +93,7 @@ function ENT:Initialize()
 	self.Scaling = false
 
 	self.TopLeft = false
+	self.filtering = TEXFILTER.ANISOTROPIC
 end
 
 function ENT:SetEGPOwner( ply )
