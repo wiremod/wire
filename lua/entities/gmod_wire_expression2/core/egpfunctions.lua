@@ -213,6 +213,22 @@ e2function void wirelink:egpAlign( number index, number halign, number valign )
 end
 
 ----------------------------
+-- Filtering
+----------------------------
+e2function void wirelink:egpFiltering( number index, number filtering )
+	if (!EGP:IsAllowed( self, this )) then return end
+	local bool, k, v = EGP:HasObject( this, index )
+	if (bool) then
+		if (EGP:EditObject( v, { filtering = math.Clamp(filtering,0,3) } )) then EGP:DoAction( this, self, "SendObject", v ) Update(self,this) end
+	end
+end
+
+e2function void wirelink:egpGlobalFiltering( number filtering )
+	if (!EGP:IsAllowed( self, this )) then return end
+	EGP:DoAction( this, self, "EditFiltering", math.Clamp(filtering, 0, 3) )
+end
+
+----------------------------
 -- Font
 ----------------------------
 e2function void wirelink:egpFont( number index, string font )
