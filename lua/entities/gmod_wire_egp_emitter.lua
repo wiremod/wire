@@ -52,7 +52,7 @@ if CLIENT then
 					local object = self.RenderTable[i]
 					local oldtex = EGP:SetMaterial( object.material )
 
-					if object.filtering != 3 then
+					if object.filtering != TEXFILTER.ANISOTROPIC then
 						render.PushFilterMag(object.filtering)
 						render.PushFilterMin(object.filtering)
 						object:Draw(self)

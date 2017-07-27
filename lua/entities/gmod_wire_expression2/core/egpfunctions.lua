@@ -228,6 +228,16 @@ e2function void wirelink:egpGlobalFiltering( number filtering )
 	EGP:DoAction( this, self, "EditFiltering", math.Clamp(filtering, 0, 3) )
 end
 
+for _,cname in ipairs({ "NONE", "POINT", "LINEAR", "ANISOTROPIC" }) do
+	local value = TEXFILTER[cname]
+	if value < 0 or value > 3 then
+		print("WARNING: TEXFILTER."..cname.."="..value.." out of expected range (0-3). Please adjust code to udpdated values. Skipping...")
+		-- Update clamp for both filtering functions above as well as write/readUInt(filtering,2) in egp baseclass+poly netcode.
+	else
+		E2Lib.registerConstant("TEXFILTER_"..cname, value)
+	end
+end
+
 ----------------------------
 -- Font
 ----------------------------
