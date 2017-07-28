@@ -11,7 +11,7 @@ if CLIENT then return end -- No more client
 cpu_max_frequency = nil
 
 do
-	function updateCPUMaxFrequency()
+	local function updateCPUMaxFrequency()
 		cpu_max_frequency = GetConVar("wire_cpu_max_frequency"):GetInt()
 	end
 	cvars.AddChangeCallback("wire_cpu_max_frequency",updateCPUMaxFrequency)
