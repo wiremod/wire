@@ -4,7 +4,19 @@ ENT.PrintName       = "Wire ZCPU"
 ENT.Author          = "Black Phoenix"
 ENT.WireDebugName	= "ZCPU"
 
+CreateConVar("wire_cpu_max_frequency", "1400000", {FCVAR_REPLICATED})
+
 if CLIENT then return end -- No more client
+
+cpu_max_frequency = nil
+
+do
+	function updateCPUMaxFrequency()
+		cpu_max_frequency = GetConVar("wire_cpu_max_frequency"):GetInt()
+	end
+	cvars.AddChangeCallback("wire_cpu_max_frequency",updateCPUMaxFrequency)
+	updateCPUMaxFrequency()
+end
 
 function ENT:Initialize()
 	self:PhysicsInit(SOLID_VPHYSICS)
@@ -260,7 +272,7 @@ function ENT:TriggerInput(iname, value)
 			self:NextThink(CurTime())
 		end
 	elseif iname == "Frequency" then
-		if (not game.SinglePlayer()) and (value > 1400000) then self.Frequency = 1400000 return end
+		if (not game.SinglePlayer()) and (value > cpu_max_frequency) then self.Frequency = cpu_max_frequency return end
 		if value > 0 then self.Frequency = math.floor(value) end
 	elseif iname == "Reset" then   --VM may be nil
 		if self.VM.HWDEBUG ~= 0 then
