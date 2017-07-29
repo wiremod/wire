@@ -466,7 +466,9 @@ else -- SERVER/CLIENT
 				if (EGP:EditObject( v, { vertices = vertices })) then Ent:EGP_Update() end
 			end
 		elseif (Action == "EditFiltering") then
-			Ent.filtering = net.ReadUInt(2) or 3
+			if Ent.GPU then -- Only Screens use GPULib
+				Ent.GPU.texture_filtering = net.ReadUInt(2) or TEXFILTER.ANISOTROPIC
+			end
 		elseif (Action == "ReceiveObjects") then
 			local order_was_changed = false
 
@@ -641,7 +643,7 @@ if (SERVER) then
 						net.WriteTable({
 							Ent = v,
 							Objects = DataToSend,
-							Filtering = v.filtering,
+							Filtering = v.GPU_texture_filtering,
 							IsLastScreen = (k == #targets) and #targets or nil -- Doubles as notifying the client that no more data will arrive, and tells them how many did arrive
 						})
 					net.Send(ply)
@@ -676,7 +678,9 @@ else
 		
 		if (self:ValidEGP( Ent )) then
 			Ent.RenderTable = {}
-			Ent.filtering = decoded.Filtering
+			if Ent.GPU then -- Only Screens use GPULib
+				Ent.GPU.texture_filtering = decoded.Filtering or TEXFILTER.ANISOTROPIC
+			end
 			for _,v in pairs( Objects ) do
 				local Obj = self:GetObjectByID(v.ID)
 				self:EditObject( Obj, v.Settings )

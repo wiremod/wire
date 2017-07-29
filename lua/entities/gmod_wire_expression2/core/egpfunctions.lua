@@ -225,7 +225,9 @@ end
 
 e2function void wirelink:egpGlobalFiltering( number filtering )
 	if (!EGP:IsAllowed( self, this )) then return end
-	EGP:DoAction( this, self, "EditFiltering", math.Clamp(filtering, 0, 3) )
+	if this:GetClass() == "gmod_wire_egp" then -- Only Screens use GPULib and can use global filtering
+		EGP:DoAction( this, self, "EditFiltering", math.Clamp(filtering, 0, 3) )
+	end
 end
 
 for _,cname in ipairs({ "NONE", "POINT", "LINEAR", "ANISOTROPIC" }) do

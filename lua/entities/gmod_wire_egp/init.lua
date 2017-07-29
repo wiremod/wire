@@ -20,7 +20,7 @@ function ENT:Initialize()
 	self.Scaling = false
 
 	self.TopLeft = false
-	self.filtering = TEXFILTER.ANISOTROPIC
+	self.GPU_texture_filtering = TEXFILTER.ANISOTROPIC
 end
 
 function ENT:Use( ply )
