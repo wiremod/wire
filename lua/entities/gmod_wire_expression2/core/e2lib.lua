@@ -48,10 +48,10 @@ function E2Lib.setAng(ent, ang)
 end
 
 --Blacklist format:
---<top folder the material is in>[%./\\]+<material name>
+--<top folder the material is in>[%./\\]+<material name>$
 --Should prevent work-arounds like pp/./copy pp/./././copy pp\\copy etc.
 local material_blacklist = {
-	"pp[%./\\]+copy"
+	"pp[%./\\]+copy$"
 }
 local function validMaterial(material)
 	local lower = string.lower(material)
