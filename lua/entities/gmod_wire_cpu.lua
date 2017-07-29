@@ -4,17 +4,16 @@ ENT.PrintName       = "Wire ZCPU"
 ENT.Author          = "Black Phoenix"
 ENT.WireDebugName	= "ZCPU"
 
-CreateConVar("wire_cpu_max_frequency", "1400000", FCVAR_REPLICATED)
+
 
 if CLIENT then return end -- No more client
 
 local cpu_max_frequency = 1400000
+CreateConVar("wire_cpu_max_frequency", "1400000", FCVAR_REPLICATED)
 
 cvars.AddChangeCallback("wire_cpu_max_frequency",function()
 	cpu_max_frequency = GetConVar("wire_cpu_max_frequency"):GetInt()
 end)
-
-end
 
 function ENT:Initialize()
 	self:PhysicsInit(SOLID_VPHYSICS)
