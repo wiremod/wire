@@ -8,7 +8,7 @@ CreateConVar("wire_cpu_max_frequency", "1400000", {FCVAR_REPLICATED})
 
 if CLIENT then return end -- No more client
 
-cpu_max_frequency = nil
+local cpu_max_frequency = nil
 
 do
 	local function updateCPUMaxFrequency()
