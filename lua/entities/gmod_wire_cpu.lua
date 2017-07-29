@@ -10,7 +10,7 @@ local cpu_max_frequency = 1400000
 local wire_cpu_max_frequency = CreateConVar("wire_cpu_max_frequency", cpu_max_frequency, FCVAR_REPLICATED)
 
 cvars.AddChangeCallback("wire_cpu_max_frequency",function()
-	cpu_max_frequency = wire_cpu_max_frequency:GetInt()
+ 	cpu_max_frequency = math.Clamp(math.floor(wire_cpu_max_frequency:GetInt()),1,30000000)
 end)
 
 function ENT:Initialize()
@@ -25,7 +25,6 @@ function ENT:Initialize()
 	self.Clk = false -- whether the Clk input is on
 	self.VMStopped = false -- whether the VM has halted itself (e.g. by running off the end of the program)
 	self.Frequency = 2000
-
 	-- Create virtual machine
 	self.VM = CPULib.VirtualMachine()
 	self.VM.SerialNo = CPULib.GenerateSN("CPU")
@@ -195,6 +194,7 @@ function ENT:Run()
 end
 
 function ENT:Think()
+	if (not game.SinglePlayer()) and (self.Frequency > cpu_max_frequency) then self.Frequency = cpu_max_frequency end
 	self:Run()
 	if self.Clk and not self.VMStopped then self:NextThink(CurTime()) end
 	return true
@@ -267,7 +267,6 @@ function ENT:TriggerInput(iname, value)
 			self:NextThink(CurTime())
 		end
 	elseif iname == "Frequency" then
-		if (not game.SinglePlayer()) and (value > cpu_max_frequency) then self.Frequency = cpu_max_frequency return end
 		if value > 0 then self.Frequency = math.floor(value) end
 	elseif iname == "Reset" then   --VM may be nil
 		if self.VM.HWDEBUG ~= 0 then
