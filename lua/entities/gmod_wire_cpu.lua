@@ -9,7 +9,7 @@ ENT.WireDebugName	= "ZCPU"
 if CLIENT then return end -- No more client
 
 local cpu_max_frequency = 1400000
-CreateConVar("wire_cpu_max_frequency", "1400000", FCVAR_REPLICATED)
+CreateConVar("wire_cpu_max_frequency", cpu_max_frequency, FCVAR_REPLICATED)
 
 cvars.AddChangeCallback("wire_cpu_max_frequency",function()
 	cpu_max_frequency = GetConVar("wire_cpu_max_frequency"):GetInt()
