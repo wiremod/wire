@@ -45,6 +45,37 @@ local rad2deg = 180 / math.pi
 
 /******************************************************************************/
 
+local E2TABLE_DEFAULT = { n = {}, ntypes = {}, s = {}, stypes = {}, size = 0 }
+local LuaTypeToWireTypeID
+do
+	local type, isnumber, isstring, string_upper, wire_expression_types = type, isnumber, isstring, string.upper, wire_expression_types
+	local type_conversions = {
+		["boolean"] = function(value) return "normal", value and 1 or 0 end,
+		["Color"  ] = function(value) return "Vector4", { value.r, value.g, value.b, value.a },
+		["Angle"  ] = function(value) return "Angle", { value.p, value.y, value.r } end,
+		["Vector" ] = function(value) return "Vector", { value.x, value.y, value.z } end,
+		["NPC"    ] = function() return "Entity" end,
+		["Player" ] = function() return "Entity" end,
+		["Vehicle"] = function() return "Entity" end
+	}
+
+	LuaTypeToWireTypeID = function(value)
+		local typename = type(value)
+		if type_conversions[typename] then
+			local new_val
+			typename, new_val = type_conversions[typename](value)
+			if new_val ~= nil then
+				value = new_val
+			end
+		elseif typename == "number" then
+			typename = "normal"
+		end
+		return wire_expression_types[string_upper(typename)][1], value
+	end
+end
+
+/******************************************************************************/
+
 local function checkOwner(self)
 	return IsValid(self.player);
 end
@@ -346,6 +377,30 @@ e2function number entity:isValidPhysics()
 	return E2Lib.validPhysics(this) and 1 or 0
 end
 
+e2function number entity:getEFlags()
+	-- https://wiki.garrysmod.com/page/Enums/EFL
+	return (IsValid(this) or this == game.GetWorld()) and this:GetEFlags() or 0
+end
+
+e2function number entity:isEFlagSet(number flag)
+	-- https://wiki.garrysmod.com/page/Enums/EFL
+	return (IsValid(this) or this == game.GetWorld()) and this:IsEFlagSet(flag) and 1 or 0
+end
+
+e2function number entity:getFlags()
+	-- https://wiki.garrysmod.com/page/Enums/FL
+	return (IsValid(this) or this == game.GetWorld()) and this:GetFlags() or 0
+end
+
+e2function number entity:isFlagSet(number flag)
+	-- https://wiki.garrysmod.com/page/Enums/FL
+	return (IsValid(this) or this == game.GetWorld()) and this:IsFlagSet(flag) and 1 or 0
+end
+
+e2function number entity:inGodMode()
+	return IsValid(this) and this:HasGodMode() and 1 or 0
+end
+
 /******************************************************************************/
 // Functions getting angles
 
@@ -642,6 +697,10 @@ e2function entity entity:passenger()
 	return this:GetPassenger(0)
 end
 
+e2function entity entity:getLastSpawnpoint()
+	return IsValid(this) and this:GetTable().LastSpawnpoint or NULL
+end
+
 --- Returns <ent> formatted as a string. Returns "<code>(null)</code>" for invalid entities.
 e2function string toString(entity ent)
 	if not IsValid(ent) then return "(null)" end
@@ -765,6 +824,30 @@ e2function array entity:attachments()
 		tmp[i] = atc[i].name
 	end
 	return tmp
+end
+
+/******************************************************************************/
+
+__e2setcost(20)
+
+e2function table entity:getSaveTable()
+	local e2table = table.Copy(E2TABLE_DEFAULT)
+	if not IsValid(this) and this ~= game.GetWorld() then return e2table end
+	for key, value in pairs(this:GetSaveTable()) do
+		local typeid, value = LuaTypeToWireTypeID(value)
+		if isnumber(key) then
+			e2table.ntypes[key] = typeid
+			e2table.n[key] = value
+			e2table.size = e2table.size + 1
+			self.prf = self.prf + 0.3
+		elseif isstring(key) then
+			e2table.stypes[key] = typeid
+			e2table.s[key] = value
+			e2table.size = e2table.size + 1
+			self.prf = self.prf + 0.3
+		end
+	end
+	return e2table
 end
 
 /******************************************************************************/
