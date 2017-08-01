@@ -15,38 +15,38 @@ function ENT:Initialize()
 	self:SetMoveType( MOVETYPE_VPHYSICS )
 	self:SetSolid( SOLID_VPHYSICS )
 	self.Inputs = Wire_CreateInputs(self, {"Write","Read","Value"})
-	self.Outputs = Wire_CreateOutputs(self, {"Data","Sector","LocalSector","Track","Stack","Address"})
+	self.Outputs = Wire_CreateOutputs(self, {"Memory","Data","Sector","LocalSector","Track","Stack","Address"})
 
-	self.Command = {}
-	self.Command[0]  = 0 //[W] Write ray on
-	self.Command[1]  = 0 //[W] Read ray on
-	self.Command[2]  = 0 //[R] Current sector (global)
-	self.Command[3]  = 0 //[R] Current sector (on track)
-	self.Command[4]  = 0 //[R] Current track
-	self.Command[5]  = 0 //[R] Current stack
-	self.Command[6]  = 0 //[R] Current address (global)
-	self.Command[7]  = 0 //[R] Current address (in current stack)
+	self.Memory = {}
+	self.Memory[0]  = 0 //[W] Write ray on
+	self.Memory[1]  = 0 //[W] Read ray on
+	self.Memory[2]  = 0 //[R] Current sector (global)
+	self.Memory[3]  = 0 //[R] Current sector (on track)
+	self.Memory[4]  = 0 //[R] Current track
+	self.Memory[5]  = 0 //[R] Current stack
+	self.Memory[6]  = 0 //[R] Current address (global)
+	self.Memory[7]  = 0 //[R] Current address (in current stack)
 
-	self.Command[8]  = 0 //[W] Buffer ready (read or write - pick the ray)
-	self.Command[9]  = 0 //[W] Continious mode
-	self.Command[10] = 0 //[W] Wait for address mode
-	self.Command[11] = 0 //[W] Target address (in current stack)
-	self.Command[12] = 0 //[W] Wait for track&sector mode
-	self.Command[13] = 0 //[W] Target sector
-	self.Command[14] = 0 //[W] Target track
+	self.Memory[8]  = 0 //[W] Buffer ready (read or write - pick the ray)
+	self.Memory[9]  = 0 //[W] Continious mode
+	self.Memory[10] = 0 //[W] Wait for address mode
+	self.Memory[11] = 0 //[W] Target address (in current stack)
+	self.Memory[12] = 0 //[W] Wait for track&sector mode
+	self.Memory[13] = 0 //[W] Target sector
+	self.Memory[14] = 0 //[W] Target track
 
-	self.Command[21] = 0 //[R] Raw disk spin velocity
-	self.Command[22] = 0 //[R] Raw disk spin angle
-	self.Command[23] = 0 //[R] Raw distance from disk center
-	self.Command[24] = 0 //[R] Raw stack index
+	self.Memory[21] = 0 //[R] Raw disk spin velocity
+	self.Memory[22] = 0 //[R] Raw disk spin angle
+	self.Memory[23] = 0 //[R] Raw distance from disk center
+	self.Memory[24] = 0 //[R] Raw stack index
 
-	self.Command[25] = 0 //[R] Disk precision (Inches Per Block)
-	self.Command[26] = 0 //[R] Disk sectors (total)
-	self.Command[27] = 0 //[R] Disk tracks (total)
-	self.Command[28] = 0 //[R] First track number
-	self.Command[29] = 0 //[R] Bytes per block
-	self.Command[30] = 0 //[R] Disk size (per stack)
-	self.Command[31] = 0 //[R] Disk volume (bytes total)
+	self.Memory[25] = 0 //[R] Disk precision (Inches Per Block)
+	self.Memory[26] = 0 //[R] Disk sectors (total)
+	self.Memory[27] = 0 //[R] Disk tracks (total)
+	self.Memory[28] = 0 //[R] First track number
+	self.Memory[29] = 0 //[R] Bytes per block
+	self.Memory[30] = 0 //[R] Disk size (per stack)
+	self.Memory[31] = 0 //[R] Disk volume (bytes total)
 
 	self.WriteBuffer = {}
 	self.PrevDiskEnt = nil
@@ -56,8 +56,8 @@ end
 
 function ENT:ReadCell(Address)
 	if (Address >= 0) && (Address < 512) then
-		if (self.Command[Address]) then
-			return self.Command[Address]
+		if (self.Memory[Address]) then
+			return self.Memory[Address]
 		else
 			return 0
 		end
@@ -74,7 +74,7 @@ end
 
 function ENT:WriteCell(Address, value)
 	if (Address >= 0) && (Address < 512) then
-		self.Command[Address] = value
+		self.Memory[Address] = value
 		if (Address == 8) then
 			self:DoJob()
 		end
@@ -98,16 +98,16 @@ end
 
 function ENT:TriggerInput(iname, value)
 	if (iname == "Write") then
-		self.Command[0] = value
-		self.Command[8] = 1
-		self.Command[9] = 1
+		self.Memory[0] = value
+		self.Memory[8] = 1
+		self.Memory[9] = 1
 	elseif (iname == "Read") then
-		self.Command[1] = value
-		self.Command[8] = 1
-		self.Command[9] = 1
+		self.Memory[1] = value
+		self.Memory[8] = 1
+		self.Memory[9] = 1
 	elseif (iname == "Value") then
-		self.Command[8] = 1
-		self.Command[9] = 1
+		self.Memory[8] = 1
+		self.Memory[9] = 1
 		self.WriteBuffer[0] = value
 	end
 end
@@ -115,21 +115,21 @@ end
 function ENT:DoJob()
 	if (not self.Disk) then return end
 	local disk = self.Disk
-	if (self.Command[8] ~= 0) then
+	if (self.Memory[8] ~= 0) then
 		local dojob = true
-		if (self.Command[10] ~= 0) then
-			if (self.Command[11] ~= self.Command[7]) then dojob = false end
+		if (self.Memory[10] ~= 0) then
+			if (self.Memory[11] ~= self.Memory[7]) then dojob = false end
 		end
-		if (self.Command[12] ~= 0) then
-			if (self.Command[13] ~= self.Command[3]) || (self.Command[14] ~= self.Command[4]) then
+		if (self.Memory[12] ~= 0) then
+			if (self.Memory[13] ~= self.Memory[3]) || (self.Memory[14] ~= self.Memory[4]) then
 				dojob = false
 			end
 		end
 
 		if dojob then
-			if (self.Command[9] == 0) then self.Command[8] = 0 end
+			if (self.Memory[9] == 0) then self.Memory[8] = 0 end
 			local sector_addr = self.Sector.."."..self.Track.."."..self.Stack//{s=sector,t=track,st=stack}
-			if (self.Command[0] ~= 0) then //write ray
+			if (self.Memory[0] ~= 0) then //write ray
 				disk.DiskMemory[sector_addr] = table.Copy(self.WriteBuffer)
 			else //read ray
 				self.WriteBuffer = table.Copy(disk.DiskMemory[sector_addr]) or { [0] = 0 }
@@ -148,8 +148,8 @@ function ENT:Think()
 		trace.filter = { self }
 	local trace = util.TraceLine( trace )
 
-	if ((self.Command[0] ~= 0) or (self.Command[1] ~= 0)) then
-		if (self.Command[0] == 1) then --write ray (blue)
+	if ((self.Memory[0] ~= 0) or (self.Memory[1] ~= 0)) then
+		if (self.Memory[0] == 1) then --write ray (blue)
 			self:SetColor(Color(0, 0, 255, 255))
 		else --read ray (red)
 			self:SetColor(Color(255, 0, 0, 255))
@@ -179,33 +179,33 @@ function ENT:Think()
 		if (self.PrevDiskEnt ~= disk) then
 			self.PrevDiskEnt = disk
 
-			self.Command[25] = disk.Precision
-			self.Command[26] = disk.DiskSectors
-			self.Command[27] = disk.DiskTracks
-			self.Command[28] = disk.FirstTrack
-			self.Command[29] = disk.BytesPerBlock
-			self.Command[30] = disk.DiskSize
-			self.Command[31] = disk.DiskVolume
+			self.Memory[25] = disk.Precision
+			self.Memory[26] = disk.DiskSectors
+			self.Memory[27] = disk.DiskTracks
+			self.Memory[28] = disk.FirstTrack
+			self.Memory[29] = disk.BytesPerBlock
+			self.Memory[30] = disk.DiskSize
+			self.Memory[31] = disk.DiskVolume
 		end
 
 		if ((track >= disk.FirstTrack) and (stack >= 0) and (sector >= 0) and
 			//(track < disk.DiskTracks) and
 			(stack < disk.DiskStacks)) then
-			self.Command[21] = vel //[R] Raw disk spin velocity
-			self.Command[22] = a //[R] Raw disk spin angle
-			self.Command[23] = r //[R] Raw distance from disk center
-			self.Command[24] = h //[R] Raw stack index
+			self.Memory[21] = vel //[R] Raw disk spin velocity
+			self.Memory[22] = a //[R] Raw disk spin angle
+			self.Memory[23] = r //[R] Raw distance from disk center
+			self.Memory[24] = h //[R] Raw stack index
 
 			if (not disk.TrackSectors[track]) then disk.TrackSectors[track] = 0 end
 
-			self.Command[2]  = disk.DiskSectors*stack+disk.TrackSectors[track]+sector //[R] Current sector (global)
-			self.Command[3]  = sector //[R] Current sector (on track)
-			self.Command[4]  = track //[R] Current track
-			self.Command[5]  = stack //[R] Current stack
-			self.Command[6]  = self.Command[2]*disk.BytesPerBlock //[R] Current address (global)
-			self.Command[7]  = (disk.TrackSectors[track]+sector)*disk.BytesPerBlock //[R] Current address (in current stack)
+			self.Memory[2]  = disk.DiskSectors*stack+disk.TrackSectors[track]+sector //[R] Current sector (global)
+			self.Memory[3]  = sector //[R] Current sector (on track)
+			self.Memory[4]  = track //[R] Current track
+			self.Memory[5]  = stack //[R] Current stack
+			self.Memory[6]  = self.Memory[2]*disk.BytesPerBlock //[R] Current address (global)
+			self.Memory[7]  = (disk.TrackSectors[track]+sector)*disk.BytesPerBlock //[R] Current address (in current stack)
 
-			if ((self.Command[0] ~= 0) or (self.Command[1] ~= 0)) then
+			if ((self.Memory[0] ~= 0) or (self.Memory[1] ~= 0)) then
 				self.Sector = sector
 				self.Track = track
 				self.Stack = stack
@@ -213,40 +213,40 @@ function ENT:Think()
 				self:DoJob()
 			end
 		else
-			self.Command[21] = 0
-			self.Command[22] = 0
-			self.Command[23] = 0
-			self.Command[24] = 0
+			self.Memory[21] = 0
+			self.Memory[22] = 0
+			self.Memory[23] = 0
+			self.Memory[24] = 0
 
-			self.Command[2]  = 0
-			self.Command[3]  = 0
-			self.Command[4]  = 0
-			self.Command[5]  = 0
-			self.Command[6]  = 0
-			self.Command[7]  = 0
+			self.Memory[2]  = 0
+			self.Memory[3]  = 0
+			self.Memory[4]  = 0
+			self.Memory[5]  = 0
+			self.Memory[6]  = 0
+			self.Memory[7]  = 0
 		end
 	else
 		self.PrevDiskEnt = nil
 		self.Disk = nil
 
-		self.Command[2]  = 0
-		self.Command[3]  = 0
-		self.Command[4]  = 0
-		self.Command[5]  = 0
-		self.Command[6]  = 0
-		self.Command[7]  = 0
+		self.Memory[2]  = 0
+		self.Memory[3]  = 0
+		self.Memory[4]  = 0
+		self.Memory[5]  = 0
+		self.Memory[6]  = 0
+		self.Memory[7]  = 0
 
-		self.Command[21] = 0
-		self.Command[22] = 0
-		self.Command[23] = 0
-		self.Command[24] = 0
-		self.Command[25] = 0
-		self.Command[26] = 0
-		self.Command[27] = 0
-		self.Command[28] = 0
-		self.Command[29] = 0
-		self.Command[30] = 0
-		self.Command[31] = 0
+		self.Memory[21] = 0
+		self.Memory[22] = 0
+		self.Memory[23] = 0
+		self.Memory[24] = 0
+		self.Memory[25] = 0
+		self.Memory[26] = 0
+		self.Memory[27] = 0
+		self.Memory[28] = 0
+		self.Memory[29] = 0
+		self.Memory[30] = 0
+		self.Memory[31] = 0
 	end
 
 	//Update output
@@ -255,11 +255,11 @@ function ENT:Think()
 	else
 		Wire_TriggerOutput(self, "Data",0)
 	end
-	Wire_TriggerOutput(self, "Sector", 	self.Command[2])
-	Wire_TriggerOutput(self, "LocalSector",	self.Command[3])
-	Wire_TriggerOutput(self, "Track", 	self.Command[4])
-	Wire_TriggerOutput(self, "Stack", 	self.Command[5])
-	Wire_TriggerOutput(self, "Address", 	self.Command[6])
+	Wire_TriggerOutput(self, "Sector", 	self.Memory[2])
+	Wire_TriggerOutput(self, "LocalSector",	self.Memory[3])
+	Wire_TriggerOutput(self, "Track", 	self.Memory[4])
+	Wire_TriggerOutput(self, "Stack", 	self.Memory[5])
+	Wire_TriggerOutput(self, "Address", 	self.Memory[6])
 
 	self:NextThink(CurTime()+0.01)
 	return true
