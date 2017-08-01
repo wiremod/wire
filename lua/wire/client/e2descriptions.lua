@@ -323,7 +323,10 @@ E2Helper.Descriptions["runOnPlayerDisconnect(n)"] = "If set to 0, the chip will 
 E2Helper.Descriptions["playerConnectClk()"] = "Returns 1 if the chip is being executed because of a player connect event. Returns 0 otherwise"
 E2Helper.Descriptions["lastConnectedPlayer()"] = "Returns the last player to connect."
 E2Helper.Descriptions["runOnPlayerConnect(n)"] = "If set to 0, the chip will no longer run on player connect events, otherwise it makes this chip execute when someone connects. Only needs to be called once, not in every execution"
-
+E2Helper.Descriptions["getEFlags(e:)"] = "Returns a bit flag of all engine flags of the entity"
+E2Helper.Descriptions["isEFlagSet(e:n)"] = "Checks if given engine flag is set or not"
+E2Helper.Descriptions["getFlags(e:)"] = "Returns all flags of given entity"
+E2Helper.Descriptions["isFlagSet(e:n)"] = "Checks if given flag is set or not"
 
 -- Attachment
 E2Helper.Descriptions["lookupAttachment(e:s)"] = "Returns Es attachment ID associated with attachmentName"

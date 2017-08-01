@@ -346,6 +346,26 @@ e2function number entity:isValidPhysics()
 	return E2Lib.validPhysics(this) and 1 or 0
 end
 
+e2function number entity:getEFlags()
+	-- https://wiki.garrysmod.com/page/Enums/EFL
+	return this:GetEFlags() or 0 -- this:GetSaveTable().m_iEFlags or 0
+end
+
+e2function number entity:isEFlagSet(flag)
+	-- https://wiki.garrysmod.com/page/Enums/EFL
+	return this:IsEFlagSet(flag) and 1 or 0
+end
+
+e2function number entity:getFlags()
+	-- https://wiki.garrysmod.com/page/Enums/FL
+	return this:GetFlags() or 0 -- this:GetSaveTable().m_fFlags or 0
+end
+
+e2function number entity:isFlagSet(flag)
+	-- https://wiki.garrysmod.com/page/Enums/FL
+	return this:IsFlagSet(flag) and 1 or 0
+end
+
 /******************************************************************************/
 // Functions getting angles
 
