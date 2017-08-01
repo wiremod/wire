@@ -346,6 +346,10 @@ e2function number entity:isValidPhysics()
 	return E2Lib.validPhysics(this) and 1 or 0
 end
 
+e2function number entity:inGodMode()
+	return IsValid(this) and this:IsPlayer() and this:HasGodMode() and 1 or 0
+end
+
 /******************************************************************************/
 // Functions getting angles
 
