@@ -15,11 +15,34 @@ end
 WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )
 
+-- shared helper functions
+local function netWriteValues( selectedValues )
+	local amount = math.Clamp(#selectedValues,0,20)
+	net.WriteUInt(amount,5)
+	for i=1,amount do
+		local DataType, Value = selectedValues[i].DataType, selectedValues[i].Value
+
+		net.WriteString( selectedValues[i].DataType )
+		net.WriteString( string.sub(selectedValues[i].Value,1,3000) )
+	end
+end
+local function netReadValues()
+	local t = {}
+	local amount = net.ReadUInt(5)
+	for i=1,amount do
+		t[i] = {
+			DataType=net.ReadString(),
+			Value=net.ReadString()
+		}
+	end
+	return t
+end
+
 if SERVER then
 	local playerValues = {}
 	util.AddNetworkString( "wire_value_values" )
 	net.Receive( "wire_value_values", function( length, ply )
-		playerValues[ply] = net.ReadTable()
+		playerValues[ply] = netReadValues()
 	end)
 	function TOOL:GetConVars() 
 		return playerValues[self:GetOwner()] or {}
@@ -29,7 +52,7 @@ if SERVER then
 		if not IsValid(trace.Entity) or trace.Entity:GetClass() != "gmod_wire_value" then return false end
 		playerValues[self:GetOwner()] = trace.Entity.value
 		net.Start("wire_value_values")
-			net.WriteTable(trace.Entity.value)
+			netWriteValues(trace.Entity.value)
 		net.Send(self:GetOwner())
 	end
 end
@@ -84,14 +107,14 @@ if CLIENT then
 		cookie.Set( "wire_constant_value_amount", #values )
 		
 		if old_amount > #values then
-			for i=#values,old_amount do
+			for i=#values+1,old_amount do
 				cookie.Delete( "wire_constant_value_value" .. i )
 				cookie.Delete( "wire_constant_value_type" .. i )
 			end
 		end
 		
 		for k, v in pairs( values ) do
-			cookie.Set( "wire_constant_value_value" .. k, v.Value )
+			cookie.Set( "wire_constant_value_value" .. k, string.sub(v.Value,1,3000) )
 			cookie.Set( "wire_constant_value_type" .. k, v.DataType )
 		end
 	end
@@ -127,7 +150,7 @@ if CLIENT then
 	-- Sends the values to the server
 	function SendUpdate()
 		net.Start("wire_value_values")
-			net.WriteTable(selectedValues)
+			netWriteValues(selectedValues)
 		net.SendToServer()
 		
 		saveValues()
@@ -298,7 +321,7 @@ if CLIENT then
 	
 	-- Receive values from the server (when they right click to copy)
 	net.Receive( "wire_value_values", function( length )
-		saveValues( net.ReadTable() )
+		saveValues( netReadValues() )
 		
 		if not IsValid(slider) then -- They right clicked without opening the cpanel first, just save the values
 			return
@@ -360,7 +383,7 @@ types fail.]] )
 		
 		valueSlider.OnValueChanged = function( valueSlider, value )
 			local value = math.Clamp(math.Round(tonumber(value)),1,20)
-			if value != LastValueAmount then
+			if value ~= LastValueAmount then
 				if value > LastValueAmount then
 					for i = LastValueAmount + 1, value, 1 do
 						panels[i] = AddValue( itemPanel, i )
