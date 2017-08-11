@@ -125,6 +125,11 @@ e2function number entity:deaths()
 	if(this:IsPlayer()) then return this:Deaths() else return 0 end
 end
 
+e2function number entity:maxHealth()
+	if not IsValid(this) then return 0 end
+	if(this:IsPlayer()) then return this:GetMaxHealth() else return 0 end
+end
+
 /******************************************************************************/
 
 e2function number entity:team()
