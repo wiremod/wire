@@ -126,8 +126,7 @@ e2function number entity:deaths()
 end
 
 e2function number entity:maxHealth()
-	if not IsValid(this) then return 0 end
-	if(this:IsPlayer()) then return this:GetMaxHealth() else return 0 end
+	if IsValid(this) and this:IsPlayer() then return this:GetMaxHealth() else return 0 end
 end
 
 /******************************************************************************/
