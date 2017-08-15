@@ -30,11 +30,11 @@ function ENT:Setpup(_,_,_,_,Mem1sz, Mem2sz, Mem3sz, Mem4sz)
 	self:Setup(Mem1sz, Mem2sz, Mem3sz, Mem4sz)
 end
 function ENT:Setup(Mem1sz, Mem2sz, Mem3sz, Mem4sz)
-	local sizes =  {Mem1sz,Mem2sz,Mem3sz,Mem4sz}
+	local sizes =  {-1,Mem1sz,Mem2sz,Mem3sz,Mem4sz}
 	for i = 1,4 do
 		sizes[i] = tonumber(sizes[i]) or 0
 
-		self.MemStart[i] = self.MemEnd[i-1]+1 or 0
+		self.MemStart[i] = self.MemEnd[i-1]+1
 		self.MemEnd[i] = self.MemStart[i] + sizes[i] - 1
 		self["Mem"..i.."st"] = self.MemStart[i]
 		self["Mem"..i.."sz"] = sizes[i]
