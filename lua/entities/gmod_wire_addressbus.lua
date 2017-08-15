@@ -26,7 +26,7 @@ function ENT:Initialize()
 	self:SetOverlayText("Data rate: 0 bps")
 end
 
-function ENT:Setup(_,_,_,_,Mem1sz, Mem2sz, Mem3sz, Mem4sz)
+function ENT:Setup(Mem1sz, Mem2sz, Mem3sz, Mem4sz)
 	local sizes =  {Mem1sz,Mem2sz,Mem3sz,Mem4sz}
 	for i = 1,4 do
 		sizes[i] = tonumber(sizes[i]) or 0
@@ -91,4 +91,4 @@ function ENT:TriggerInput(iname, value)
 	end
 end
 
-duplicator.RegisterEntityClass("gmod_wire_addressbus", WireLib.MakeWireEnt, "Data", "Mem1st", "Mem2st", "Mem3st", "Mem4st", "Mem1sz", "Mem2sz", "Mem3sz", "Mem4sz")
+duplicator.RegisterEntityClass("gmod_wire_addressbus", WireLib.MakeWireEnt, "Data", "Mem1sz", "Mem2sz", "Mem3sz", "Mem4sz")
