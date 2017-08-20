@@ -345,8 +345,8 @@ if CLIENT then
 				surface.SetDrawColor(255,255,255,255)
 				surface.SetMaterial(WireGPU_matScreen)
 
-				render.PushFilterMag(TEXFILTER.POINT)
-				render.PushFilterMin(TEXFILTER.POINT)
+				render.PushFilterMag(self.texture_filtering or TEXFILTER.POINT)
+				render.PushFilterMin(self.texture_filtering or TEXFILTER.POINT)
 
 				self.DrawScreen(x, y, w, h, rotation or 0, scale or 0)
 

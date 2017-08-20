@@ -213,6 +213,34 @@ e2function void wirelink:egpAlign( number index, number halign, number valign )
 end
 
 ----------------------------
+-- Filtering
+----------------------------
+e2function void wirelink:egpFiltering( number index, number filtering )
+	if (!EGP:IsAllowed( self, this )) then return end
+	local bool, k, v = EGP:HasObject( this, index )
+	if (bool) then
+		if (EGP:EditObject( v, { filtering = math.Clamp(filtering,0,3) } )) then EGP:DoAction( this, self, "SendObject", v ) Update(self,this) end
+	end
+end
+
+e2function void wirelink:egpGlobalFiltering( number filtering )
+	if (!EGP:IsAllowed( self, this )) then return end
+	if this:GetClass() == "gmod_wire_egp" then -- Only Screens use GPULib and can use global filtering
+		EGP:DoAction( this, self, "EditFiltering", math.Clamp(filtering, 0, 3) )
+	end
+end
+
+for _,cname in ipairs({ "NONE", "POINT", "LINEAR", "ANISOTROPIC" }) do
+	local value = TEXFILTER[cname]
+	if value < 0 or value > 3 then
+		print("WARNING: TEXFILTER."..cname.."="..value.." out of expected range (0-3). Please adjust code to udpdated values. Skipping...")
+		-- Update clamp for both filtering functions above as well as write/readUInt(filtering,2) in egp baseclass+poly netcode.
+	else
+		E2Lib.registerConstant("TEXFILTER_"..cname, value)
+	end
+end
+
+----------------------------
 -- Font
 ----------------------------
 e2function void wirelink:egpFont( number index, string font )

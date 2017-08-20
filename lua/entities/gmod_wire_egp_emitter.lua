@@ -46,11 +46,21 @@ if CLIENT then
 			local ang = self:LocalToWorldAngles( Angle(0,0,90) )
 
 			cam.Start3D2D( pos , ang , 0.25 )
+				local globalfilter = TEXFILTER.ANISOTROPIC -- Emitter uses ANISOTRPOIC (unchangeable)
 				for i=1,#self.RenderTable do
 					local object = self.RenderTable[i]
 					local oldtex = EGP:SetMaterial( object.material )
 
-					object:Draw(self)
+					if object.filtering != globalfilter then
+						render.PushFilterMag(object.filtering)
+						render.PushFilterMin(object.filtering)
+						object:Draw(self)
+						render.PopFilterMin()
+						render.PopFilterMag()
+					else
+						object:Draw(self)
+					end
+
 					EGP:FixMaterial( oldtex )
 				end
 			cam.End3D2D()
