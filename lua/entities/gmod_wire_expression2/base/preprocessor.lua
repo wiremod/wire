@@ -421,7 +421,7 @@ end
 
 function PreProcessor:PP_endif(args)
 	local state = table.remove(self.ifdefStack)
-	if state == nil then self:Error("Found #endif outside #ifdef block") end
+	if state == nil then self:Error("Found #endif outside #ifdef/#ifndef block") end
 
 	if args:Trim() ~= "" then self:Error("Must not pass an argument to #endif") end
 end
