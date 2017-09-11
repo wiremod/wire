@@ -87,7 +87,7 @@ function PreProcessor:RemoveComments(line)
 		return ""
 	end
 
-	local prev_disabled, ret, lastpos = self.disabled, "", 1
+	local prev_disabled, ret, lastpos = self:Disabled(), "", 1
 
 	for i = 1, num do
 		local type = comments[i].type
@@ -252,6 +252,7 @@ end
 function PreProcessor:Process(buffer, directives, ent)
 	-- entity is needed for autoupdate
 	self.ent = ent
+	self.ifdefStack = {}
 
 	local lines = string.Explode("\n", buffer)
 
@@ -366,38 +367,61 @@ function PreProcessor:ParsePorts(ports, startoffset)
 	return { names, types }, columns
 end
 
-function PreProcessor:PP_ifdef(args)
-	if self.disabled ~= nil then self:Error("Found nested #ifdef") end
+function PreProcessor:Disabled()
+	return self.ifdefStack[#self.ifdefStack] == false
+end
+
+function PreProcessor:GetFunction(args, type)
 	local thistype, colon, name, argtypes = args:match("([^:]-)(:?)([^:(]+)%(([^)]*)%)")
-	if not thistype or (thistype ~= "") ~= (colon ~= "") then self:Error("Malformed #ifdef argument " .. args) end
+	if not thistype or (thistype ~= "") ~= (colon ~= "") then self:Error("Malformed " .. type .. " argument " .. args) end
 
 	thistype = gettype(thistype)
 
-	local tps = { thistype .. colon }
+	local tps = {thistype .. colon}
 	for i, argtype in ipairs(string.Explode(",", argtypes)) do
 		argtype = gettype(argtype)
 		table.insert(tps, argtype)
 	end
 	local pars = table.concat(tps)
-	local a = wire_expression2_funcs[name .. "(" .. pars .. ")"]
+	return wire_expression2_funcs[name .. "(" .. pars .. ")"]
+end
 
-	self.disabled = not a
+function PreProcessor:PP_ifdef(args)
+	local func = self:GetFunction(args, "#ifdef")
+
+	if self:Disabled() then
+		table.insert(self.ifdefStack, false)
+	else
+		table.insert(self.ifdefStack, func ~= nil)
+	end
 end
 
 function PreProcessor:PP_ifndef(args)
-	local ret = self:PP_ifdef(args)
-	self.disabled = not self.disabled
-	return ret
+	local func = self:GetFunction(args, "#ifndef")
+
+	if self:Disabled() then
+		table.insert(self.ifdefStack, false)
+	else
+		table.insert(self.ifdefStack, func == nil)
+	end
 end
 
 function PreProcessor:PP_else(args)
-	if self.disabled == nil then self:Error("Found #else outside #ifdef block") end
+	local state = table.remove(self.ifdefStack)
+	if state == nil then self:Error("Found #else outside #ifdef/#ifndef block") end
+
 	if args:Trim() ~= "" then self:Error("Must not pass an argument to #else") end
-	self.disabled = not self.disabled
+
+	if self:Disabled() then
+		table.insert(self.ifdefStack, false)
+	else
+		table.insert(self.ifdefStack, not state)
+	end
 end
 
 function PreProcessor:PP_endif(args)
-	if self.disabled == nil then self:Error("Found #endif outside #ifdef block") end
+	local state = table.remove(self.ifdefStack)
+	if state == nil then self:Error("Found #endif outside #ifdef block") end
+
 	if args:Trim() ~= "" then self:Error("Must not pass an argument to #endif") end
-	self.disabled = nil
 end
