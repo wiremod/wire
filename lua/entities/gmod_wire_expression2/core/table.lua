@@ -539,11 +539,34 @@ e2function table table:clipFromTypeid( string typeid )
 	return ret
 end
 
-__e2setcost(1000) -- clone must be very expensive to prevent abuse
+__e2setcost(10)
+
+local function clone(self, tbl, lookup)
+	local copy = {}
+
+	lookup = lookup or {}
+	lookup[tbl] = copy
+
+	for k, v in pairs(tbl) do
+		if type(v) == "table" then
+			if lookup[v] then
+				self.prf = self.prf + opcost -- simple assign operation
+				copy[k] = lookup[v]
+			else
+				self.prf = self.prf + opcost * 3 -- creating new table
+				copy[k] = clone(self, v, lookup)
+			end
+		else
+			self.prf = self.prf + opcost -- simple assign operation
+			copy[k] = v
+		end
+	end
+
+	return copy
+end
 
 e2function table table:clone()
-	self.prf = self.prf + this.size * opcost
-	return table.Copy(this)
+	return clone(self, this)
 end
 
 __e2setcost(1)
