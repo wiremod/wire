@@ -3,6 +3,9 @@ E2Lib.RegisterExtension("effects", false, "Allows E2s to play arbitrary effects.
 local wire_expression2_effect_burst_max = CreateConVar( "wire_expression2_effect_burst_max", 4, {FCVAR_ARCHIVE} )
 local wire_expression2_effect_burst_rate = CreateConVar( "wire_expression2_effect_burst_rate", 0.1, {FCVAR_ARCHIVE} )
 
+-- Use this list to blacklist effects.
+list.Add( "E2EffectBlacklist", "dof_node" )
+
 local function isAllowed( self )
 	local data = self.data
 	
@@ -172,6 +175,7 @@ end
 e2function void effect:play(string name)
 	if not this then return end
 	if not isAllowed(self) then return end
+	if name and list.Containts( "E2EffectBlacklist", name:lower() ) then return false end
 	
 	util.Effect(name,this)
 end
