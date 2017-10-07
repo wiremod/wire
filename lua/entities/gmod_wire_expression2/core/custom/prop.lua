@@ -223,6 +223,11 @@ e2function void entity:propBreak()
 	this:Fire("break",1,0)
 end
 
+e2function void entity:use()
+	if not PropCore.ValidAction(self, this, "use") then return end
+	this:Fire("use")
+end
+
 __e2setcost(30)
 local function removeAllIn( self, tbl )
 	local count = 0
