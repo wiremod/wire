@@ -236,6 +236,7 @@ E2Helper.Descriptions["bearing(e:v)"] = "Gets the bearing from the entity to the
 E2Helper.Descriptions["elevation(e:v)"] = "Gets the elevation from the entity to the vector"
 E2Helper.Descriptions["heading(e:v)"] = "Gets the elevation and bearing from the entity to the vector"
 E2Helper.Descriptions["health(e:)"] = "Gets the health of the entity"
+E2Helper.Descriptions["maxHealth(e:)"] = "Gets the max health of the entity"
 E2Helper.Descriptions["armor(e:)"] = "Gets the armor of the player"
 E2Helper.Descriptions["volume(e:)"] = "Gets the volume of the entity"
 E2Helper.Descriptions["mass(e:)"] = "Gets the mass of the entity"
