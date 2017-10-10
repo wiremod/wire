@@ -460,10 +460,10 @@ __e2setcost(10)
 --- Exclude all entities from <arr> from future finds
 e2function void findExcludeEntities(array arr)
 	local bl_entity = self.data.find.bl_entity
-	local IsValid = IsValid
+	local isentity, IsValid = isentity, IsValid
 
 	for _,ent in ipairs(arr) do
-		if not IsValid(ent) then return end
+		if not isentity(ent) or not IsValid(ent) then return end
 		bl_entity[ent] = true
 	end
 	invalidate_filters(self)
@@ -497,10 +497,10 @@ end
 --- Exclude entities owned by these players from future finds
 e2function void findExcludePlayersProps(array plys)
 	local bl_owner = self.data.find.bl_owner
-	local IsValid = IsValid
+	local isentity, IsValid = isentity, IsValid
 
 	for _,ply in ipairs(plys) do
-		if not IsValid(ply) then return end
+		if not isentity(ply) or not IsValid(ply) then return end
 		bl_owner[ply] = true
 	end
 	invalidate_filters(self)
@@ -530,10 +530,10 @@ end
 --- Remove all entities from <arr> from the blacklist
 e2function void findAllowEntities(array arr)
 	local bl_entity = self.data.find.bl_entity
-	local IsValid = IsValid
+	local isentity, IsValid = isentity, IsValid
 
 	for _,ent in ipairs(arr) do
-		if not IsValid(ent) then return end
+		if not isentity(ent) or not IsValid(ent) then return end
 		bl_entity[ent] = nil
 	end
 	invalidate_filters(self)
@@ -588,10 +588,10 @@ end
 --- Include all entities from <arr> in future finds, and remove others not in the whitelist
 e2function void findIncludeEntities(array arr)
 	local wl_entity = self.data.find.wl_entity
-	local IsValid = IsValid
+	local isentity, IsValid = isentity, IsValid
 
 	for _,ent in ipairs(arr) do
-		if not IsValid(ent) then return end
+		if not isentity(ent) or not IsValid(ent) then return end
 		wl_entity[ent] = true
 	end
 	invalidate_filters(self)
@@ -625,10 +625,10 @@ end
 --- Include entities owned by these players from future finds, and remove others not in the whitelist
 e2function void findIncludePlayersProps(array plys)
 	local wl_owner = self.data.find.wl_owner
-	local IsValid = IsValid
+	local isentity, IsValid = isentity, IsValid
 
 	for _,ply in ipairs(plys) do
-		if not IsValid(ply) then return end
+		if not isentity(ply) or not IsValid(ply) then return end
 		wl_owner[ply] = true
 	end
 	invalidate_filters(self)
@@ -658,10 +658,10 @@ end
 --- Remove all entities from <arr> from the whitelist
 e2function void findDisallowEntities(array arr)
 	local wl_entity = self.data.find.wl_entity
-	local IsValid = IsValid
+	local isentity, IsValid = isentity, IsValid
 
 	for _,ent in ipairs(arr) do
-		if not IsValid(ent) then return end
+		if not isentity(ent) or not IsValid(ent) then return end
 		wl_entity[ent] = nil
 	end
 	invalidate_filters(self)
