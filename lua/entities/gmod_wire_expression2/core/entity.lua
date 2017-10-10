@@ -215,6 +215,11 @@ e2function number entity:health()
 	return this:Health()
 end
 
+e2function number entity:maxHealth()
+	if not IsValid(this) then return 0 end
+	return this:GetMaxHealth()
+end
+
 e2function number entity:radius()
 	if not IsValid(this) then return 0 end
 	return this:BoundingRadius()
