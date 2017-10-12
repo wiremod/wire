@@ -356,6 +356,7 @@ end
 --------------------------------------------------------------------------------
 __e2setcost(5)
 e2function number array:count()
+	if this == nil then retun 0 end
 	return #this
 end
 
