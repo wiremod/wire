@@ -91,27 +91,81 @@ end)
 /******************************************************************************/
 -- Name functions
 
--- Set the name of the E2 itself
-e2function void setName( string name )
-	local e = self.entity
-	if (e.name == name) then return end
-	if (name == "generic" or name == "") then
-		name = "generic"
-		e.WireDebugName = "Expression 2"
-	else
-		e.WireDebugName = "E2 - " .. name
+local CurTime = CurTime
+local math_min = math.min
+local string_len = string.len
+
+local antiSpamLookup = {}
+local function NameSpamCheck(ent, str) -- Returns true if it is being spammed; otherwise false
+	local time = CurTime()
+	local antispam = antiSpamLookup[ent] or { time + 1, 0 } -- Using index-table for faster lookup
+	antiSpamLookup[ent] = antispam -- Avoid the frequency of table indexing
+	if time - antispam[1] > 0 then
+		antispam[1] = time + 1
+		antispam[2] = 0
 	end
-	e.name = name
-	e:SetNWString( "name", e.name )
-	e:SetOverlayText(name)
+	antispam[2] = antispam[2] + math_min(string_len(str), 199) -- Only add 199 at max per call since that's the limit of [G|S]etNWString functions
+	return 12000 < antispam[2] -- Using the "standard" length limit (12k chars) for anti-spam
 end
 
--- Get the name of another E2
+local function SetE2Name(ent, name)
+	if ent.name == name or NameSpamCheck(ent, name) then return 0 end
+	if name == "generic" or name == "" then -- NOTE: This could be simplified if we exclude the "generic" check
+		name = "generic"
+		ent.WireDebugName = "Expression 2"
+	else
+		ent.WireDebugName = "E2 - " .. name
+	end
+	ent.name = name
+	ent:SetNWString("name", name)
+	ent:SetOverlayText(name) -- NOTE: Maybe use UpdateOverlay() function instead
+	return 1
+end
+
+__e2setcost(20)
+
+local IsValid = IsValid
+
+-- Set the name of the E2 itself. Returns 1 if the E2 name was changed; otherwise, it will return 0 to indicate a failure
+e2function number setName(string name)
+	local ent = self.entity
+	if IsValid(ent) then
+		return SetE2Name(ent, name)
+	end
+	return 0
+end
+
+-- Set the name of another E2. Returns 1 if the E2 name was changed; otherwise, it will return 0 to indicate a failure
+e2function number entity:setName(string name)
+	if IsValid(this) and this:GetClass() == "gmod_wire_expression2" and E2Lib.getOwner(this) == self.player then
+		return SetE2Name(this, name)
+	end
+	return 0
+end
+
+-- Set the component name of Wire-compatible entity. Returns 1 if the component name was changed; otherwise, it will return 0 to indicate a failure
+e2function number entity:setComponentName(string componentName)
+	if IsValid(this) and not NameSpamCheck(this, componentName) and E2Lib.getOwner(this) == self.player then
+		return WireLib.SetComponentName(this, componentName) and 1 or 0
+	end
+	return 0
+end
+
+__e2setcost(2)
+
+-- Returns the name of another E2
 e2function string entity:getName()
 	if IsValid(this) and this.GetGateName then
 		return this:GetGateName() or ""
 	end
 	return ""
+end
+
+__e2setcost(5)
+
+-- Returns the component name of Wire-compatible entity
+e2function string entity:getComponentName()
+	return IsValid(this) and this:GetNWString("WireName", this.PrintName) or ""
 end
 
 

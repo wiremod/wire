@@ -1128,6 +1128,19 @@ function WireLib.CalcElasticConsts(Ent1, Ent2)
 	return const, damp
 end
 
+function WireLib.SetComponentName(ent, componentName)
+	if ent.wireName == componentName or string.len(componentName) > 199 or string.find(componentName, "[\n\r\"]") ~= nil then -- Not over-protective; Length and find checks are required here to prevent bugs and exploits in other places. "199" is a magic number - limit of NWString.
+		return false
+	end
+	if componentName == "" then
+		componentName = ent.PrintName or "" -- Set default to the print name
+	end
+	ent.wireName = componentName
+	ent:SetNWString("WireName", componentName)
+	duplicator.StoreEntityModifier(ent, "WireName", { name = componentName })
+	return true
+end
+
 
 -- Returns a string like "Git f3a4ac3" or "SVN 2703" or "Workshop" or "Extracted"
 -- The partial git hash can be plugged into https://github.com/wiremod/wire/commit/f3a4ac3 to show the actual commit
