@@ -1,12 +1,24 @@
-language: python
+dist: trusty
+sudo: false
+language: c
+
+branches:
+  only:
+    - master
+
+cache:
+  directories:
+    - $HOME/env
 
 before_install:
   - pip install hererocks
-  - hererocks env --luajit 2.0.3 --luarocks latest
-  - source env/bin/activate
+  - hererocks $HOME/env --luajit 2.0.3 --luarocks latest
+  - source $HOME/env/bin/activate
 
 install:
-  - luarocks install luacheck
+  - luarocks show lanes > /dev/null || luarocks install lanes
+  - luarocks show luacheck > /dev/null || luarocks install luacheck
+  - luarocks list --outdated --porcelain | awk '{ print $1, $3 }' | xargs --no-run-if-empty -n 2 luarocks install
 
 script:
   - git diff --check $TRAVIS_COMMIT_RANGE
