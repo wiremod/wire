@@ -43,6 +43,22 @@ GateActions["dlatch"] = {
 	end
 }
 
+GateActions["triggerlatch"] = {
+	name = "Trigger-Latch",
+	inputs = { "Data", "Clk" },
+	output = function(gate, Data, Clk)
+		gate.LatchStore = Data
+
+		return gate.LatchStore or 0
+	end,
+	reset = function(gate)
+		gate.LatchStore = 0
+	end,
+	label = function(Out, Data, Clk)
+		return "Trigger-Latch Data:"..Data.."  Clock:"..Clk.." = "..Out
+	end
+}
+
 GateActions["srlatch"] = {
 	name = "SR-Latch",
 	inputs = { "S", "R" },
