@@ -94,6 +94,8 @@ end)
 -- Set the name of the E2 itself
 e2function void setName( string name )
 	local e = self.entity
+	if ( not IsValid( name ) ) then return end
+	if ( #name > 64 ) then return end
 	if (e.name == name) then return end
 	if (name == "generic" or name == "") then
 		name = "generic"
