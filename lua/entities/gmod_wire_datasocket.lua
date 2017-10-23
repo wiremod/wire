@@ -125,6 +125,7 @@ end
 function ENT:AttachPlug( plug )
 	// Set references between them
 	plug:SetSocket(self)
+
 	self.MyPlug = plug
 
 	// Position plug
