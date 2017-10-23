@@ -5,6 +5,11 @@ ENT.WireDebugName = "DataPlug"
 
 if CLIENT then return end -- No more client
 
+local Limit =  math.floor( ( 1 / engine.TickInterval() ) * 5 )
+local Reads  = 0
+local Writes = 0
+timer.Create( '', 1,0,function() Writes = 0 Reads = 0 end)
+
 function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )
 	self:SetMoveType( MOVETYPE_VPHYSICS )
@@ -19,14 +24,18 @@ function ENT:Initialize()
 end
 
 function ENT:ReadCell( Address )
+	if( Reads > Limit ) then return false end
     if IsValid(self.MySocket) and self.MySocket.OwnMemory and self.MySocket.OwnMemory.ReadCell then
+    	Reads = Reads + 1
 		return self.MySocket.OwnMemory:ReadCell( Address )
 	end
 	return nil
 end
 
 function ENT:WriteCell( Address, value )
+	if( Writes > Limit ) then return false end
 	if IsValid(self.MySocket) and self.MySocket.OwnMemory and self.MySocket.OwnMemory.WriteCell then
+		Writes = Writes + 1
 		return self.MySocket.OwnMemory:WriteCell( Address, value )
 	end
 	return false
