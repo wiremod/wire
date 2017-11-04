@@ -328,7 +328,7 @@ e2function number entity:isVehicle()
 end
 
 e2function number entity:isWorld()
-	if not isEntity(this) then return 0 end
+	if not isentity(this) then return 0 end
 	if this:IsWorld() then return 1 else return 0 end
 end
 
