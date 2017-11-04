@@ -31,7 +31,7 @@ function PropCore.ValidSpawn()
 	return true
 end
 
-local canHaveInvalidPhysics = {delete=true, parent=true, deparent=true, solid=true, shadow=true, draw=true}
+local canHaveInvalidPhysics = {delete=true, parent=true, deparent=true, solid=true, shadow=true, draw=true, use=true}
 function PropCore.ValidAction(self, entity, cmd)
 	if(cmd=="spawn" or cmd=="Tdelete") then return true end
 	if(!IsValid(entity)) then return false end
@@ -221,6 +221,20 @@ end
 e2function void entity:propBreak()
 	if not PropCore.ValidAction(self, this, "break") then return end
 	this:Fire("break",1,0)
+end
+
+e2function void entity:use()
+	if not PropCore.ValidAction(self, this, "use") then return end
+
+	local ply = self.player
+	if not IsValid(ply) then return end -- if the owner isn't connected to the server, do nothing
+
+	if not hook.Run( "PlayerUse", ply, this ) then return end
+	if this.Use then
+		this:Use(ply,ply,USE_ON,0)
+	else
+		this:Fire("use","1",0)
+	end
 end
 
 __e2setcost(30)
