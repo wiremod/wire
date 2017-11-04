@@ -18,16 +18,22 @@ function ENT:Initialize()
 	WireLib.TriggerOutput(self, "Connected", 0)
 end
 
-function ENT:ReadCell( Address )
+function ENT:ReadCell( Address, infloop )
+	infloop = infloop or 0
+	if infloop > 50 then return end
+
     if IsValid(self.MySocket) and self.MySocket.OwnMemory and self.MySocket.OwnMemory.ReadCell then
-		return self.MySocket.OwnMemory:ReadCell( Address )
+		return self.MySocket.OwnMemory:ReadCell( Address, infloop + 1 )
 	end
 	return nil
 end
 
-function ENT:WriteCell( Address, value )
+function ENT:WriteCell( Address, value, infloop )
+	infloop = infloop or 0
+	if infloop > 50 then return end
+
 	if IsValid(self.MySocket) and self.MySocket.OwnMemory and self.MySocket.OwnMemory.WriteCell then
-		return self.MySocket.OwnMemory:WriteCell( Address, value )
+		return self.MySocket.OwnMemory:WriteCell( Address, value, infloop + 1 )
 	end
 	return false
 end

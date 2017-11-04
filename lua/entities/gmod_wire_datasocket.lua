@@ -53,10 +53,13 @@ function ENT:SetMemory(mement)
 	WireLib.TriggerOutput(self, "Memory", 1)
 end
 
-function ENT:ReadCell( Address )
+function ENT:ReadCell( Address, infloop )
+	infloop = infloop or 0
+	if infloop > 50 then return end
+
 	if (self.Memory) then
 		if (self.Memory.ReadCell) then
-			return self.Memory:ReadCell( Address )
+			return self.Memory:ReadCell( Address, infloop + 1 )
 		else
 			return nil
 		end
@@ -65,10 +68,13 @@ function ENT:ReadCell( Address )
 	end
 end
 
-function ENT:WriteCell( Address, value )
+function ENT:WriteCell( Address, value, infloop )
+	infloop = infloop or 0
+	if infloop > 50 then return end
+
 	if (self.Memory) then
 		if (self.Memory.WriteCell) then
-			return self.Memory:WriteCell( Address, value )
+			return self.Memory:WriteCell( Address, value, infloop + 1 )
 		else
 			return false
 		end
