@@ -43,14 +43,14 @@ function ENT:Initialize()
 	self.Const = nil
 	self.ReceivedValue = 0
 
-	self.Inputs = Wire_CreateInputs(self, { "Memory" })
-	self.Outputs = Wire_CreateOutputs(self, { "Memory" })
-	Wire_TriggerOutput(self, "Memory", 0)
+	self.Inputs = WireLib.CreateInputs(self, { "Memory" })
+	self.Outputs = WireLib.CreateOutputs(self, { "Memory" })
+	WireLib.TriggerOutput(self, "Memory", 0)
 end
 
 function ENT:SetMemory(mement)
 	self.Memory = mement
-	Wire_TriggerOutput(self, "Memory", 1)
+	WireLib.TriggerOutput(self, "Memory", 1)
 end
 
 function ENT:ReadCell( Address )
@@ -90,7 +90,7 @@ function ENT:Think()
 		end
 
 		self.Memory = nil --We're now getting no signal
-		Wire_TriggerOutput(self, "Memory", 0)
+		WireLib.TriggerOutput(self, "Memory", 0)
 
 		self:NextThink( CurTime() + NEW_PLUG_WAIT_TIME ) --Give time before next grabbing a plug.
 		return true
@@ -145,7 +145,7 @@ function ENT:AttachPlug( plug )
 		self.MyPlug = nil
 		plug:SetSocket(nil)
 		self.Memory = nil
-			Wire_TriggerOutput(self, "Memory", 0)
+			WireLib.TriggerOutput(self, "Memory", 0)
 		return
 	end
 
@@ -157,7 +157,7 @@ function ENT:AttachPlug( plug )
 		self.MyPlug = nil
 		plug:SetSocket(nil)
 		self.Memory = nil
-		Wire_TriggerOutput(self, "Memory", 0)
+		WireLib.TriggerOutput(self, "Memory", 0)
 		return
 	end
 
