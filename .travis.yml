@@ -11,7 +11,7 @@ cache:
     - $HOME/env
 
 before_install:
-  - pip install hererocks
+  - pip install --user hererocks
   - hererocks $HOME/env --luajit 2.0.3 --luarocks latest
   - source $HOME/env/bin/activate
 
