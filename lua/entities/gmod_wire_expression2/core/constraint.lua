@@ -162,5 +162,14 @@ __e2setcost(20)
 
 --- Returns an '''array''' containing all the children of the entity - that is, every entity whose parent is this entity.
 e2function array entity:children()
-	return IsValid(this) and this:GetChildren() or {}
+	if not IsValid(this) then return {} end
+
+	local keytable = this:GetChildren()
+	local array = {}
+	local i = 1
+	for _, ent in pairs(keytable) do
+		array[i] = ent
+		i = i + 1
+	end
+	return array
 end
