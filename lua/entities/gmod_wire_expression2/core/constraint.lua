@@ -167,7 +167,7 @@ e2function array entity:children()
 	local keytable = this:GetChildren()
 	local array = {}
 	local i = 1
-	for _,ent in pairs(keytable) do
+	for _, ent in pairs(keytable) do
 		array[i] = ent
 		i = i + 1
 	end
