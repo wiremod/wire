@@ -913,7 +913,7 @@ hook.Add("InitPostEntity", "antiantinoclip", function()
 		if self.speed >= 20 then return end
 
 		local phys = self.Ent:GetPhysicsObject()
-		if phys:IsValid() and phys:GetAngleVelocity():Length() > 20 then return end
+		if IsValid(phys) and phys:GetAngleVelocity():Length() > 20 then return end
 
 		rt_antinoclip_handler_StartTouch(self, ...)
 	end
@@ -927,7 +927,7 @@ hook.Add("InitPostEntity", "antiantinoclip", function()
 
 		local phys = self.Ent:GetPhysicsObject()
 		local pos
-		if phys:IsValid() then
+		if IsValid(phys) then
 			pos = phys:LocalToWorld(phys:GetMassCenter())
 		else
 			pos = self.Ent:GetPos()
