@@ -110,7 +110,7 @@ function ENT:TriggerInput(iname, value)
 	elseif (iname == "Y") then
 		self:SetSkewY(value)
 	elseif (iname == "Length") then
-		self:SetBeamLength(self.show_beam and math.min(value, 2000) or 0)
+		self:SetBeamLength(math.min(value, 50000))
 	end
 end
 
