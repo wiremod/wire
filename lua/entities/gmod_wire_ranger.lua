@@ -44,7 +44,7 @@ function ENT:Setup( range, default_zero, show_beam, ignore_world, trace_water, o
 
 	self.PrevOutput = nil
 
-	if range then self:SetBeamLength(math.min(range, 50000)) end
+	if range then self:SetBeamLength(math.min(range, 64000)) end
 	if show_beam ~= nil then self:SetShowBeam(show_beam) end
 
 	self:SetNWBool("TraceWater", trace_water)
@@ -110,7 +110,7 @@ function ENT:TriggerInput(iname, value)
 	elseif (iname == "Y") then
 		self:SetSkewY(value)
 	elseif (iname == "Length") then
-		self:SetBeamLength(math.min(value, 50000))
+		self:SetBeamLength(math.min(value, 64000))
 	end
 end
 
