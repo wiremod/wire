@@ -19,6 +19,7 @@ local string_format = string.format
 local string_Trim = string.Trim
 local string_reverse = string.reverse
 local math_min = math.min
+local math_max = math.max
 local table_insert = table.insert
 local table_sort = table.sort
 local surface_SetDrawColor = surface.SetDrawColor
@@ -32,6 +33,10 @@ local surface_DrawText = surface.DrawText
 local draw_SimpleText = draw.SimpleText
 local draw_WordBox = draw.WordBox
 local draw_RoundedBox = draw.RoundedBox
+local string_len = utf8.len
+local utf8_offset = utf8.offset
+local utf8_charpattern = utf8.charpattern
+local utf8_force = utf8.force
 
 WireTextEditor = { Modes = {} }
 include("modes/e2.lua")
@@ -66,6 +71,7 @@ function EDITOR:Init()
 	self.TextEntry = vgui.Create("TextEntry", self)
 	self.TextEntry:SetMultiline(true)
 	self.TextEntry:SetSize(0, 0)
+	self.TextEntry:SetAllowNonAsciiCharacters(true)
 
 	self.TextEntry.OnLoseFocus = function (self) self.Parent:_OnLoseFocus() end
 	self.TextEntry.OnTextChanged = function (self) self.Parent:_OnTextChanged() end
@@ -123,7 +129,7 @@ function EDITOR:CursorToCaret()
 	char = char + self.Scroll[2]
 
 	if line > #self.Rows then line = #self.Rows end
-	local length = #self.Rows[line]
+	local length = string_len(self.Rows[line])
 	if char > length + 1 then char = length + 1 end
 
 	return { line, char }
@@ -385,7 +391,7 @@ function EDITOR:PaintLine(row)
 		local endline, endchar = stop[1], stop[2]
 
 		surface_SetDrawColor(0, 0, 160, 255)
-		local length = self.Rows[row]:len() - self.Scroll[2] + 1
+		local length = string_len(self.Rows[row]) - self.Scroll[2] + 1
 
 		char = char - self.Scroll[2]
 		endchar = endchar - self.Scroll[2]
@@ -409,9 +415,9 @@ function EDITOR:PaintLine(row)
 	local offset = -self.Scroll[2] + 1
 	for i,cell in ipairs(self.PaintRows[row]) do
 		if offset < 0 then
-			if cell[1]:len() > -offset then
+			if string_len(cell[1]) > -offset then
 				local line = cell[1]:sub(1-offset)
-				offset = line:len()
+				offset = string_len(line)
 
 				if cell[2][2] then
 					draw_SimpleText(line .. " ", self.CurrentFont .. "_Bold", self.LineNumberWidth+ 6, (row - self.Scroll[1]) * height, cell[2][1])
@@ -419,7 +425,7 @@ function EDITOR:PaintLine(row)
 					draw_SimpleText(line .. " ", self.CurrentFont, self.LineNumberWidth + 6, (row - self.Scroll[1]) * height, cell[2][1])
 				end
 			else
-				offset = offset + cell[1]:len()
+				offset = offset + string_len(cell[1])
 			end
 		else
 			if cell[2][2] then
@@ -428,7 +434,7 @@ function EDITOR:PaintLine(row)
 				draw_SimpleText(cell[1] .. " ", self.CurrentFont, offset * width + self.LineNumberWidth + 6, (row - self.Scroll[1]) * height, cell[2][1])
 			end
 
-			offset = offset + cell[1]:len()
+			offset = offset + string_len(cell[1])
 		end
 	end
 
@@ -489,11 +495,11 @@ function EDITOR:PaintTextOverlay()
 				elseif start[1] < stop[1] then -- Ends below start
 					for i=start[1],stop[1] do
 						if i == start[1] then
-							surface_DrawRect( xofs + (start[2]-self.Scroll[2]) * width, (i-self.Scroll[1]) * height, (#self.Rows[start[1]]-start[2]) * width, height )
+							surface_DrawRect( xofs + (start[2]-self.Scroll[2]) * width, (i-self.Scroll[1]) * height, (string_len(self.Rows[start[1]])-start[2]) * width, height )
 						elseif i == stop[1] then
-							surface_DrawRect( xofs + (self.Scroll[2]-1) * width, (i-self.Scroll[1]) * height, (#self.Rows[stop[1]]-stop[2]) * width, height )
+							surface_DrawRect( xofs + (self.Scroll[2]-1) * width, (i-self.Scroll[1]) * height, (string_len(self.Rows[stop[1]])-stop[2]) * width, height )
 						else
-							surface_DrawRect( xofs + (self.Scroll[2]-1) * width, (i-self.Scroll[1]) * height, #self.Rows[i] * width, height )
+							surface_DrawRect( xofs + (self.Scroll[2]-1) * width, (i-self.Scroll[1]) * height, string_len(self.Rows[i]) * width, height )
 						end
 					end
 				end
@@ -502,7 +508,7 @@ function EDITOR:PaintTextOverlay()
 
 		-- Bracket highlighting by: {Jeremydeath}
 		local WindowText = self:GetValue()
-		local LinePos = table_concat(self.Rows, "\n", 1, self.Caret[1]-1):len()
+		local LinePos = string_len(table_concat(self.Rows, "\n", 1, self.Caret[1]-1))
 		local CaretPos = LinePos+self.Caret[2]+1
 
 		local BracketPairs = {
@@ -514,12 +520,12 @@ function EDITOR:PaintTextOverlay()
 			[")"] = "("
 		}
 
-		local CaretChars = WindowText:sub(CaretPos-1, CaretPos)
+		local CaretChars = self:GetLine(WindowText,CaretPos-1,CaretPos) --WindowText:sub(CaretPos-1, CaretPos)
 		local BrackSt, BrackEnd = CaretChars:find("[%(%){}%[%]]")
 
 		local Bracket = false
 		if BrackSt and BrackSt ~= 0 then
-			Bracket = CaretChars:sub(BrackSt or 0,BrackEnd or 0)
+			Bracket = self:GetLine(CaretChars,BrackSt or 0,BrackEnd or 0) --CaretChars:sub(BrackSt or 0,BrackEnd or 0)
 		end
 		if Bracket and BracketPairs[Bracket] then
 			local End = 0
@@ -528,18 +534,18 @@ function EDITOR:PaintTextOverlay()
 			local StartX = 1
 
 			if Bracket == "(" or Bracket == "[" or Bracket == "{" then
-				BrackSt,End = WindowText:find("%b"..Bracket..BracketPairs[Bracket], CaretPos-1)
+				BrackSt,End = WindowText:find("%b"..Bracket..BracketPairs[Bracket],utf8_offset(WindowText,CaretPos-2)) -- , CaretPos-1)
 
 				if BrackSt and End then
 					local OffsetSt = 1
 
-					local BracketLines = string_Explode("\n",WindowText:sub(BrackSt, End))
+					local BracketLines = string_Explode("\n",self:GetLine(WindowText,BrackSt,End)) --string_Explode("\n",WindowText:sub(BrackSt, End))
 
 					EndLine = self.Caret[1]+#BracketLines-1
 
 					EndX = End-LinePos-2
 					if #BracketLines>1 then
-						EndX = BracketLines[#BracketLines]:len()-1
+						EndX = string_len(BracketLines[#BracketLines])-1
 					end
 
 					if Bracket == "{" then
@@ -555,12 +561,13 @@ function EDITOR:PaintTextOverlay()
 					end
 				end
 			elseif Bracket == ")" or Bracket == "]" or Bracket == "}" then
-				BrackSt,End = WindowText:reverse():find("%b"..Bracket..BracketPairs[Bracket], -CaretPos)
+				local rev = WindowText:reverse()
+				BrackSt,End = rev:find("%b"..Bracket..BracketPairs[Bracket], utf8_offset(rev,-CaretPos)) -- ,-CaretPos)
 				if BrackSt and End then
-					local len = WindowText:len()
+					local len = string_len(WindowText) --string_len(WindowText)
 					End = len-End+1
 					BrackSt = len-BrackSt+1
-					local BracketLines = string_Explode("\n",WindowText:sub(End, BrackSt))
+					local BracketLines = string_Explode("\n", self:GetLine(WindowText,End,BrackSt)) --WindowText:sub(End, BrackSt))
 
 					EndLine = self.Caret[1]-#BracketLines+1
 
@@ -568,7 +575,7 @@ function EDITOR:PaintTextOverlay()
 
 					EndX = End-LinePos-2
 					if #BracketLines>1 then
-						local PrevText = WindowText:sub(1, End):reverse()
+						local PrevText = self:GetLine(WindowText,1,End):reverse() --WindowText:sub(1, End):reverse()
 
 						EndX = (PrevText:find("\n",1,true) or 2)-2
 					end
@@ -593,7 +600,7 @@ end
 local wire_expression2_editor_display_caret_pos = CreateClientConVar("wire_expression2_editor_display_caret_pos","0",true,false)
 
 function EDITOR:Paint()
-	self.LineNumberWidth = self.FontWidth * #tostring(self.Scroll[1]+self.Size[1]+1)
+	self.LineNumberWidth = self.FontWidth * string_len(tostring(self.Scroll[1]+self.Size[1]+1))
 
 	if not input.IsMouseDown(MOUSE_LEFT) then
 		self:OnMouseReleased(MOUSE_LEFT)
@@ -623,9 +630,9 @@ function EDITOR:Paint()
 	self:PaintTextOverlay()
 
 	if wire_expression2_editor_display_caret_pos:GetBool() then
-		local str = "Length: " .. #self:GetValue() .. " Lines: " .. #self.Rows .. " Ln: " .. self.Caret[1] .. " Col: " .. self.Caret[2]
+		local str = "Length: " .. string_len(self:GetValue()) .. " Lines: " .. #self.Rows .. " Ln: " .. self.Caret[1] .. " Col: " .. self.Caret[2]
 		if self:HasSelection() then
-			str = str .. " Sel: " .. #self:GetSelection()
+			str = str .. " Sel: " .. string_len(self:GetSelection())
 		end
 		surface_SetFont( "Default" )
 		local w,h = surface_GetTextSize( str )
@@ -645,7 +652,7 @@ function EDITOR:SetCaret(caret, maintain_selection)
 	self.Caret = self:CopyPosition(caret)
 
 	self.Caret[1] = math.Clamp(self.Caret[1], 1, #self.Rows)
-	self.Caret[2] = math.Clamp(self.Caret[2], 1, #self.Rows[self.Caret[1]] + 1)
+	self.Caret[2] = math.Clamp(self.Caret[2], 1, string_len(self.Rows[self.Caret[1]]) + 1)
 
 	if maintain_selection == nil then
 		maintain_selection = input.IsKeyDown(KEY_LSHIFT) or input.IsKeyDown(KEY_RSHIFT)
@@ -669,7 +676,7 @@ function EDITOR:MovePosition(caret, offset)
 	if offset > 0 then
 		local numRows = #self.Rows
 		while true do
-			local length = #(self.Rows[row]) - col + 2
+			local length = string_len(self.Rows[row]) - col + 2
 			if offset < length then
 				col = col + offset
 				break
@@ -695,7 +702,7 @@ function EDITOR:MovePosition(caret, offset)
 			else
 				offset = offset - col
 				row = row - 1
-				col = #(self.Rows[row]) + 1
+				col = string_len(self.Rows[row]) + 1
 			end
 		end
 	end
@@ -722,20 +729,49 @@ function EDITOR:MakeSelection(selection)
 	end
 end
 
+function EDITOR:GetLine(line_nr, start, stop)
+	local line
+	if type(line_nr) == "number" then -- if it's a number, get the line
+		line = self.Rows[line_nr]
+	else -- assume it's a string
+		line = line_nr
+	end
+
+	local len = string_len(line)
+	if #line == 0 or start > len or (stop and stop <= 0) then return "" end
+
+	-- utf8.offset starts at 0, so subtract one
+	if start then
+		start = utf8_offset(line,math_Clamp(start,1,len)-1)
+		start = string.match(line,"()"..utf8_charpattern,start)
+	end
+	if stop then
+		stop = utf8_offset(line,math_Clamp(stop,1,len)-1)
+		stop = string.match(line,utf8_charpattern.."()",stop)-1
+	end
+
+	if not start and stop then
+		return string_sub(line,1,stop)
+	elseif not stop and start then
+		return string_sub(line,start)
+	elseif start and stop then
+		return string_sub(line,start,stop)
+	end
+end
 
 function EDITOR:GetArea(selection)
 	local start, stop = self:MakeSelection(selection)
 
 	if start[1] == stop[1] then
-		return string_sub(self.Rows[start[1]], start[2], stop[2] - 1)
+		return self:GetLine(start[1],start[2],stop[2]-1)
 	else
-		local text = string_sub(self.Rows[start[1]], start[2])
+		local text = {self:GetLine(start[1],start[2])}
 
 		for i=start[1]+1,stop[1]-1 do
-			text = text .. "\n" .. self.Rows[i]
+			text[#text+1] = self.Rows[i]
 		end
 
-		return text .. "\n" .. string_sub(self.Rows[stop[1]], 1, stop[2] - 1)
+		return table_concat(text,"\n") .. self:GetLine(stop[1], 1, stop[2]-1)
 	end
 end
 
@@ -746,7 +782,8 @@ function EDITOR:SetArea(selection, text, isundo, isredo, before, after)
 
 	if start[1] ~= stop[1] or start[2] ~= stop[2] then
 		-- clear selection
-		self.Rows[start[1]] = string_sub(self.Rows[start[1]], 1, start[2] - 1) .. string_sub(self.Rows[stop[1]], stop[2])
+		-- utf8.force is used here to make sure that we don't get any incorrect uf8 sequences, but we should never get any so this is just a failsafe
+		self.Rows[start[1]] = utf8_force(self:GetLine(start[1],1,start[2]-1) .. self:GetLine(stop[1],stop[2]))
 		self.PaintRows[start[1]] = false
 
 		for i=start[1]+1,stop[1] do
@@ -785,8 +822,8 @@ function EDITOR:SetArea(selection, text, isundo, isredo, before, after)
 	-- insert text
 	local rows = string_Explode("\n", text)
 
-	local remainder = string_sub(self.Rows[start[1]], start[2])
-	self.Rows[start[1]] = string_sub(self.Rows[start[1]], 1, start[2] - 1) .. rows[1]
+	local remainder = self:GetLine(start[1],start[2])
+	self.Rows[start[1]] = self:GetLine(start[1], 1, start[2]-1) .. rows[1]
 	self.PaintRows[start[1]] = false
 
 	for i=2,#rows do
@@ -795,7 +832,7 @@ function EDITOR:SetArea(selection, text, isundo, isredo, before, after)
 		self.PaintRows = {} -- TODO: fix for cache errors
 	end
 
-	local stop = { start[1] + #rows - 1, #(self.Rows[start[1] + #rows - 1]) + 1 }
+	local stop = { start[1] + #rows - 1, string_len(self.Rows[start[1] + #rows - 1]) + 1 }
 
 	self.Rows[stop[1]] = self.Rows[stop[1]] .. remainder
 	self.PaintRows[stop[1]] = false
@@ -878,7 +915,7 @@ function EDITOR:_OnTextChanged()
 			if string_match("{" .. row, "^%b{}.*$") then
 				local newrow = unindent(row)
 				self.Rows[self.Caret[1]] = newrow
-				self.Caret[2] = self.Caret[2] + newrow:len()-row:len()
+				self.Caret[2] = self.Caret[2] + string_len(newrow)-string_len(row)
 				self.Start[2] = self.Caret[2]
 			end
 			return
@@ -1833,7 +1870,7 @@ function EDITOR:_OnKeyCodeTyped(code)
 				if self:AC_Use( self.AC_Suggestions[1] ) then return end
 			end
 			local row = self.Rows[self.Caret[1]]:sub(1,self.Caret[2]-1)
-			local diff = (row:find("%S") or (row:len()+1))-1
+			local diff = (row:find("%S") or (string_len(row)+1))-1
 			local tabs = string_rep("    ", math_floor(diff / 4))
 			if GetConVarNumber('wire_expression2_autoindent') ~= 0 and (string_match("{" .. row .. "}", "^%b{}.*$") == nil) then tabs = tabs .. "    " end
 			self:SetSelection("\n" .. tabs)
@@ -1881,7 +1918,7 @@ function EDITOR:_OnKeyCodeTyped(code)
 			self:SetCaret(self.Caret)
 		elseif code == KEY_HOME then
 			local row = self.Rows[self.Caret[1]]
-			local first_char = row:find("%S") or row:len()+1
+			local first_char = row:find("%S") or string_len(row)+1
 			if self.Caret[2] == first_char then
 				self.Caret[2] = 1
 			else
@@ -2780,8 +2817,8 @@ function EDITOR:NextCharacter()
 	self.tokendata = self.tokendata .. self.character
 	self.position = self.position + 1
 
-	if self.position <= self.line:len() then
-		self.character = self.line:sub(self.position, self.position)
+	if self.position <= string_len(self.line) then
+		self.character = self:GetLine(self.line,self.position,self.position) --self.line:sub(self.position, self.position)
 	else
 		self.character = nil
 	end
@@ -2790,10 +2827,10 @@ end
 function EDITOR:SkipPattern(pattern)
 	-- TODO: share code with NextPattern
 	if not self.character then return nil end
-	local startpos,endpos,text = self.line:find(pattern, self.position)
+	local startpos,endpos,text = self.line:find(pattern, utf8_offset(self.line,self.position-1))
 
 	if startpos ~= self.position then return nil end
-	local buf = self.line:sub(startpos, endpos)
+	local buf = self:GetLine(self.line,startpos,endpos) --self.line:sub(startpos, endpos)
 	if not text then text = buf end
 
 	--self.tokendata = self.tokendata .. text
@@ -2801,7 +2838,7 @@ function EDITOR:SkipPattern(pattern)
 
 	self.position = endpos + 1
 	if self.position <= #self.line then
-		self.character = self.line:sub(self.position, self.position)
+		self.character = self:GetLine(self.line,self.position,self.position) --self.line:sub(self.position, self.position)
 	else
 		self.character = nil
 	end
@@ -2810,10 +2847,10 @@ end
 
 function EDITOR:NextPattern(pattern)
 	if not self.character then return false end
-	local startpos,endpos,text = self.line:find(pattern, self.position)
+	local startpos,endpos,text = self.line:find(pattern, utf8_offset(self.line,self.position-1))
 
 	if startpos ~= self.position then return false end
-	local buf = self.line:sub(startpos, endpos)
+	local buf = self:GetLine(self.line,startpos,endpos) --self.line:sub(startpos, endpos)
 	if not text then text = buf end
 
 	self.tokendata = self.tokendata .. text
@@ -2821,7 +2858,7 @@ function EDITOR:NextPattern(pattern)
 
 	self.position = endpos + 1
 	if self.position <= #self.line then
-		self.character = self.line:sub(self.position, self.position)
+		self.character = self:GetLine(self.line,self.position,self.position) --self.line:sub(self.position, self.position)
 	else
 		self.character = nil
 	end

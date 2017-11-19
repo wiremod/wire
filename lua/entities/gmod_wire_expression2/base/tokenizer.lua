@@ -5,6 +5,13 @@
 
 AddCSLuaFile()
 
+local utf8_charpattern = utf8.charpattern
+local utf8_offset = utf8.offset
+local string_match = string.match
+local math_Clamp = math.Clamp
+local string_sub = string.sub
+local string_len = utf8.len
+
 E2Lib.Tokenizer = {}
 local Tokenizer = E2Lib.Tokenizer
 Tokenizer.__index = Tokenizer
@@ -23,7 +30,7 @@ end
 
 function Tokenizer:Process(buffer, params)
 	self.buffer = buffer
-	self.length = buffer:len()
+	self.length = string_len(buffer)
 	self.position = 0
 
 	self:SkipCharacter()
@@ -59,6 +66,36 @@ end
 
 -- ---------------------------------------------------------------------------------------
 
+function Tokenizer:GetLine(line_nr, start, stop)
+	local line
+	if type(line_nr) == "number" then -- if it's a number, get the line
+		line = self.Rows[line_nr]
+	else -- assume it's a string
+		line = line_nr
+	end
+
+	local len = string_len(line)
+	if #line == 0 or start > len or (stop and stop <= 0) then return "" end
+
+	-- utf8.offset starts at 0, so subtract one
+	if start then
+		start = utf8_offset(line,math_Clamp(start,1,len)-1)
+		start = string.match(line,"()"..utf8_charpattern,start)
+	end
+	if stop then
+		stop = utf8_offset(line,math_Clamp(stop,1,len)-1)
+		stop = string.match(line,utf8_charpattern.."()",stop)-1
+	end
+
+	if not start and stop then
+		return string_sub(line,1,stop)
+	elseif not stop and start then
+		return string_sub(line,start)
+	elseif start and stop then
+		return string_sub(line,start,stop)
+	end
+end
+
 function Tokenizer:SkipCharacter()
 	if self.position < self.length then
 		if self.position > 0 then
@@ -74,7 +111,7 @@ function Tokenizer:SkipCharacter()
 		end
 
 		self.position = self.position + 1
-		self.character = self.buffer:sub(self.position, self.position)
+		self.character = self:GetLine(self.buffer,self.position,self.position)
 	else
 		self.character = nil
 	end
@@ -88,18 +125,17 @@ end
 -- Returns true on success, nothing if it fails.
 function Tokenizer:NextPattern(pattern)
 	if not self.character then return false end
-	local startpos, endpos, text = self.buffer:find(pattern, self.position)
+	local startpos, endpos, text = self.buffer:find(pattern, utf8_offset(self.buffer,self.position-1))
 
 	if startpos ~= self.position then return false end
-	local buf = self.buffer:sub(startpos, endpos)
+	local buf = self:GetLine(self.buffer,startpos,endpos)
 	if not text then text = buf end
 
 	self.tokendata = self.tokendata .. text
 
-
-	self.position = endpos + 1
+	self.position = self.position + string_len(buf) --endpos + 1
 	if self.position <= self.length then
-		self.character = self.buffer:sub(self.position, self.position)
+		self.character = self:GetLine(self.buffer,self.position,self.position)
 	else
 		self.character = nil
 	end
@@ -107,9 +143,9 @@ function Tokenizer:NextPattern(pattern)
 	buf = string.Explode("\n", buf)
 	if #buf > 1 then
 		self.readline = self.readline + #buf - 1
-		self.readchar = #buf[#buf] + 1
+		self.readchar = string_len(buf[#buf]) + 1
 	else
-		self.readchar = self.readchar + #buf[#buf]
+		self.readchar = self.readchar + string_len(buf[#buf])
 	end
 	return true
 end
@@ -134,7 +170,7 @@ function Tokenizer:NextSymbol()
 
 		self:NextPattern("^[ijk]")
 		if self:NextPattern("^[a-zA-Z_]") then
-			errorpos = errorpos or self.tokendata:len()
+			errorpos = errorpos or string_len(self.tokendata)
 		end
 
 		if errorpos then
