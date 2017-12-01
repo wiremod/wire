@@ -140,6 +140,19 @@ e2function void entity:soundPlay( index, duration, string path, fade )
 	soundCreate(self,this,index,duration,path,fade)
 end
 
+e2function void soundPlayTimed( index, duration, string path, start )
+	timer.Create(tostring(index), start, 1, function()
+		soundCreate(self,self.entity,index,duration,path)
+	end)
+end
+
+e2function void entity:soundPlayTimed( index, duration, string path )
+	if not IsValid(this) or not isOwner(self, this) then return end
+	timer.Create(tostring(index), start, 1, function()
+		soundCreate(self,this,index,duration,path)
+	end)
+end
+
 e2function void soundPlay( string index, duration, string path ) = e2function void soundPlay( index, duration, string path )
 e2function void entity:soundPlay( string index, duration, string path ) = e2function void entity:soundPlay( index, duration, string path )
 e2function void soundPlay( string index, duration, string path, fade ) = e2function void soundPlay( index, duration, string path, fade )
@@ -157,6 +170,13 @@ end
 
 e2function void soundStop( index, fadetime )
 	soundStop(self, index, fadetime)
+end
+
+e2function void soundStopTimed( index )
+	soundStop(self, index, 0)
+	if timer.Exists(tostring(index)) then
+		timer.Remove(tostring(index))
+	end
 end
 
 e2function void soundVolume( index, volume )
