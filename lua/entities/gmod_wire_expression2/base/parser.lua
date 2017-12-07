@@ -1337,16 +1337,29 @@ function Parser:Expr17()
 		local trace = self:GetTokenTrace()
 		local tokendata = self:GetTokenData()
 		if isnumber(tokendata) then
-			return self:Instruction(trace, "num", tokendata)
+			return self:Instruction(trace, "literal", tokendata, "n")
 		end
-		local num, tp = tokendata:match("^([-+e0-9.]*)(.*)$")
-		return self:Instruction(trace, "num" .. tp, num)
+		local num, suffix = tokendata:match("^([-+e0-9.]*)(.*)$")
+		num = assert(tonumber(num), "unparseable numeric literal")
+		local value, type
+		if suffix == "" then
+			value, type = num, "n"
+		elseif suffix == "i" then
+			value, type = {0, num}, "c"
+		elseif suffix == "j" then
+			value, type = {0, 0, num, 0}, "q"
+		elseif suffix == "k" then
+			value, type = {0, 0, 0, num}, "q"
+		else
+			assert(false, "unrecognized numeric suffix " .. suffix)
+		end
+		return self:Instruction(trace, "literal", value, type)
 	end
 
 	if self:AcceptRoamingToken("str") then
 		local trace = self:GetTokenTrace()
 		local str = self:GetTokenData()
-		return self:Instruction(trace, "str", str)
+		return self:Instruction(trace, "literal", str, "s")
 	end
 
 	if self:AcceptRoamingToken("trg") then

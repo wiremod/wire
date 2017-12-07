@@ -648,38 +648,10 @@ function Compiler:InstrIWC(args)
 		self:Error("Connected operator (->" .. E2Lib.limitString(op, 10) .. ") can only be used on inputs or outputs", args)
 	end
 end
-
-function Compiler:InstrNUM(args)
+function Compiler:InstrLITERAL(args)
 	self.prfcounter = self.prfcounter + 0.5
-	RunString("E2Lib.Compiler.native = function() return " .. args[3] .. " end")
-	return { Compiler.native }, "n"
-end
-
-function Compiler:InstrNUMI(args)
-	self.prfcounter = self.prfcounter + 1
-	Compiler.native = { 0, tonumber(args[3]) }
-	RunString("local value = E2Lib.Compiler.native E2Lib.Compiler.native = function() return value end")
-	return { Compiler.native }, "c"
-end
-
-function Compiler:InstrNUMJ(args)
-	self.prfcounter = self.prfcounter + 1
-	Compiler.native = { 0, 0, tonumber(args[3]), 0 }
-	RunString("local value = E2Lib.Compiler.native E2Lib.Compiler.native = function() return value end")
-	return { Compiler.native }, "q"
-end
-
-function Compiler:InstrNUMK(args)
-	self.prfcounter = self.prfcounter + 1
-	Compiler.native = { 0, 0, 0, tonumber(args[3]) }
-	RunString("local value = E2Lib.Compiler.native E2Lib.Compiler.native = function() return value end")
-	return { Compiler.native }, "q"
-end
-
-function Compiler:InstrSTR(args)
-	self.prfcounter = self.prfcounter + 1.0
-	RunString(string.format("E2Lib.Compiler.native = function() return %q end", args[3]))
-	return { Compiler.native }, "s"
+	local value = args[3]
+	return { function() return value end }, args[4]
 end
 
 function Compiler:InstrVAR(args)
