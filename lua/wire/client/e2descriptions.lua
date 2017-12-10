@@ -1434,7 +1434,7 @@ E2Helper.Descriptions["httpData()"] = "Returns the data received from the last r
 E2Helper.Descriptions["httpRequest(s)"] = "Starts a new request"
 E2Helper.Descriptions["httpRequestUrl()"] = "Returns the URL of the last request"
 E2Helper.Descriptions["httpUrlDecode(s)"] = "Returns formatted string to be placed in the URL"
-E2Helper.Descriptions["httpUrlEncode(s)"] = "Returns decoded URL data"
+E2Helper.Descriptions["httpUrlEncode(s)"] = "Returns encoded URL data"
 E2Helper.Descriptions["runOnHTTP(n)"] = "Sets whether to run the expression when a request finishes"
 
 -- sound
