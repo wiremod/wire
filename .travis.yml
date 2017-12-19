@@ -22,4 +22,4 @@ install:
 
 script:
   - git diff --check $TRAVIS_COMMIT_RANGE
-  - git diff --name-only $TRAVIS_COMMIT_RANGE | grep '\.lua$' | grep -v '^lua/entities/gmod_wire_expression2/core/' | xargs --no-run-if-empty luacheck --std min+garrysmod+wiremod
+  - git diff --name-only $TRAVIS_COMMIT_RANGE | grep '\.lua$' | grep -v '^lua/entities/gmod_wire_expression2/core/' | xargs --no-run-if-empty luacheck

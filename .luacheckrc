@@ -1,6 +1,8 @@
 -- This file will be read by Luacheck <https://github.com/mpeterv/luacheck>.
 -- It's primarily to specify what globals are available across all files.
 
+std = "luajit+garrysmod+wiremod"
+
 -- Problems to ignore
 ignore = {
     "212", -- Unused argument
