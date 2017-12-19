@@ -8,6 +8,16 @@ ignore = {
     "212", -- Unused argument
 }
 
+files[".luacheckrc"].std = "min+luacheck"
+files[".luacheckrc"].ignore = {}
+stds.luacheck = {}
+stds.luacheck.globals = {
+  "files",
+  "ignore",
+  "std",
+  "stds",
+}
+
 stds.garrysmod = {}
 stds.garrysmod.read_globals = {
 
