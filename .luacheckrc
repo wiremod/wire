@@ -7,6 +7,8 @@ std = "luajit+garrysmod+wiremod"
 ignore = {
     "212", -- Unused argument
     "6..", -- All whitespace warnings (these are checked by git diff)
+    "42.", -- Shadowing
+    "43.", -- Upvalue shadowing
 }
 
 files[".luacheckrc"].std = "min+luacheck"
