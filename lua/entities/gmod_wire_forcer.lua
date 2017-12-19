@@ -86,8 +86,8 @@ function ENT:Think()
 		if self.Velocity ~= 0 then trace.Entity:SetVelocity( velocity ) end
 	end
 
-	local reactionForce = clamp(Forward * -(self.Force + self.OffsetForce) * self.ForceMul)
 	if self.Reaction and IsValid(self:GetPhysicsObject()) and (self.Force + self.OffsetForce ~= 0) then
+		local reactionForce = clamp(Forward * -(self.Force + self.OffsetForce) * self.ForceMul)
 		self:GetPhysicsObject():ApplyForceCenter( reactionForce )
 	end
 
