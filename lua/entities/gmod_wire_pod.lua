@@ -122,7 +122,7 @@ function ENT:Initialize()
 
 	self:SetActivated( false )
 
-	self:SetColor(Color(255,0,0,self:GetColor().a))
+	self:ColorByLinkStatus(self.LINK_STATUS_UNLINKED)
 
 	self:SetOverlayText( "Pod Controller" )
 end
@@ -138,11 +138,7 @@ end
 function ENT:SetActivated( b )
 	if (self.Activated == b) then return end
 
-	if b then
-		self:SetColor(Color(0,255,0,self:GetColor().a))
-	else
-		self:SetColor(Color(255,0,0,self:GetColor().a))
-	end
+	self:ColorByLinkStatus(b and self.LINK_STATUS_ACTIVE or self.LINK_STATUS_LINKED)
 
 	self.Activated = b
 	WireLib.TriggerOutput(self, "Active", b and 1 or 0)
@@ -179,24 +175,45 @@ function ENT:LinkEnt( pod )
 	-- if pod is still not a vehicle even after all of the above, then error out
 	if not IsValid(pod) or not pod:IsVehicle() then return false, "Must link to a vehicle" end
 
-
 	self:SetPod( pod )
 	WireLib.SendMarks(self, {pod})
 	return true
 end
 function ENT:UnlinkEnt()
+	if IsValid(self.Pod) then
+		self.Pod:RemoveCallOnRemove("wire_pod_remove")
+	end
 	self.Pod = nil
 	WireLib.SendMarks(self, {})
 	WireLib.TriggerOutput( self, "Entity", NULL )
+	self:ColorByLinkStatus(self.LINK_STATUS_UNLINKED)
 	return true
+end
+function ENT:OnRemove()
+	self:UnlinkEnt()
 end
 
 function ENT:HasPod() return (self.Pod and self.Pod:IsValid()) end
 function ENT:GetPod() return self.Pod end
 function ENT:SetPod( pod )
 	if (pod and pod:IsValid() and !pod:IsVehicle()) then return false end
+
+	if self:HasPly() then 
+		self:PlayerExited(self:GetPly())
+	else
+		self:ColorByLinkStatus(IsValid(pod) and self.LINK_STATUS_LINKED or self.LINK_STATUS_UNLINKED)
+	end
+
 	self.Pod = pod
 	WireLib.TriggerOutput( self, "Entity", pod )
+	pod:CallOnRemove("wire_pod_remove",function()
+		self:UnlinkEnt(pod)
+	end)
+
+	if IsValid(pod:GetDriver()) then
+		self:PlayerEntered(pod:GetDriver())
+	end
+
 	return true
 end
 

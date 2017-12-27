@@ -327,6 +327,8 @@ function ENT:Initialize()
 	self.NextUpdateOutputs = 0
 
 	self:GetContraption()
+
+	self:ColorByLinkStatus(self.LINK_STATUS_UNLINKED)
 end
 
 --------------------------------------------------
@@ -631,6 +633,7 @@ function ENT:DisableCam( ply )
 	if #self.Players == 0 then
 		WireLib.TriggerOutput(self, "On", 0)
 		self.Active = false
+		self:ColorByLinkStatus(self.LINK_STATUS_LINKED)
 	end
 end
 
@@ -660,6 +663,8 @@ function ENT:EnableCam( ply )
 
 		WireLib.TriggerOutput(self, "On", 1)
 		self.Active = true
+
+		self:ColorByLinkStatus(self.LINK_STATUS_ACTIVE)
 
 		self:SyncSettings( ply )
 	else -- No player specified, activate cam for everyone not already active
@@ -873,6 +878,14 @@ function ENT:LinkEnt(pod)
 	self.Vehicles[#self.Vehicles+1] = pod
 	self.Players = {}
 
+	if not self.Active then
+		if #self.Vehicles > 0 then
+			self:ColorByLinkStatus(self.LINK_STATUS_LINKED)
+		else
+			self:ColorByLinkStatus(self.LINK_STATUS_UNLINKED)
+		end
+	end
+
 	if IsValid( pod:GetDriver() ) then
 		self:EnableCam( pod:GetDriver() )
 	end
@@ -898,6 +911,14 @@ function ENT:UnlinkEnt(pod)
 	pod:RemoveCallOnRemove( "wire_camera_controller_remove_pod" )
 	table.remove( self.Vehicles, idx )
 	pod.CamController = nil
+
+	if not self.Active then
+		if #self.Vehicles > 0 then
+			self:ColorByLinkStatus(self.LINK_STATUS_LINKED)
+		else
+			self:ColorByLinkStatus(self.LINK_STATUS_UNLINKED)
+		end
+	end
 
 	self:UpdateMarks()
 	return true

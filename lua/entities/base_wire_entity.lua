@@ -405,3 +405,24 @@ function ENT:PostEntityPaste(Player,Ent,CreatedEntities)
 	end
 	self.DuplicationInProgress = nil
 end
+
+-- Helper function for entities that can be linked
+ENT.LINK_STATUS_UNLINKED = 1
+ENT.LINK_STATUS_LINKED = 2
+ENT.LINK_STATUS_INACTIVE = 2 -- alias
+ENT.LINK_STATUS_DEACTIVATED = 2 -- alias
+ENT.LINK_STATUS_ACTIVE = 3
+ENT.LINK_STATUS_ACTIVATED = 3 -- alias
+function ENT:ColorByLinkStatus(status)
+	local a = self:GetColor().a
+
+	if status == self.LINK_STATUS_UNLINKED then
+		self:SetColor(Color(255,0,0,a))
+	elseif status == self.LINK_STATUS_LINKED then
+		self:SetColor(Color(255,165,0,a))
+	elseif status == self.LINK_STATUS_ACTIVE then
+		self:SetColor(Color(0,255,0,a))
+	else
+		self:SetColor(Color(255,255,255,a))
+	end
+end
