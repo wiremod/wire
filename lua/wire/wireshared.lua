@@ -1019,3 +1019,81 @@ function WireLib.clampForce( v )
 	v[3] = v[3] == v[3] and math.Clamp( v[3], min_force, max_force ) or 0
 	return v
 end
+
+
+--[[----------------------------------------------
+	GetClosestRealVehicle
+	This function checks if the provided entity is a "real" vehicle
+	If it is, it does nothing and returns the same entity back.
+	If it isn't, it scans the contraption of said vehicle, and
+	finds the closest one to the specified location
+	and returns it
+------------------------------------------------]]
+
+-- this helper function attempts to determine if the vehicle is actually a real vehicle
+-- and not a "fake" vehicle created by an 'scars'-like addon
+local valid_vehicles = {
+	prop_vehicle = true,
+	prop_vehicle_airboat = true,
+	prop_vehicle_apc = true,
+	prop_vehicle_cannon = true,
+	prop_vehicle_choreo_generic = true,
+	prop_vehicle_crane = true,
+	prop_vehicle_driveable = true,
+	prop_vehicle_jeep = true,
+	prop_vehicle_prisoner_pod = true
+}
+local function IsRealVehicle(pod)
+	return valid_vehicles[pod:GetClass()]
+end
+
+-- GetClosestRealVehicle
+-- Args:
+--  vehicle; the vehicle that the user would like to link a controller to
+--  position; the position to find the closest vehicle to. If unspecified, uses the vehicle's position
+--  notify_this_player; notifies this player if a different vehicle was selected. If unspecified, notifies no one.
+function WireLib.GetClosestRealVehicle(vehicle,position,notify_this_player)
+	if not IsValid(vehicle) then return vehicle end
+	if not position then position = vehicle:GetPos() end
+
+	-- If this is a valid entity, but not a real vehicle, then let's get started
+	if IsValid(vehicle) and not IsRealVehicle(vehicle) then
+		-- get all "real" vehicles in the contraption and calculate distance
+		local contraption = constraint.GetAllConstrainedEntities(vehicle)
+		local vehicles = {}
+		for k, ent in pairs( contraption ) do
+			if IsRealVehicle(ent) then
+				vehicles[#vehicles+1] = {
+					distance = position:Distance(ent:GetPos()),
+					entity = ent
+				}
+			end
+		end
+
+		if #vehicles > 0 then
+			-- sort them by distance
+			table.sort(vehicles,function(a,b) return a.distance < b.distance end)
+			-- get closest
+			vehicle = vehicles[1].entity
+
+			-- notify the owner of the change
+			if IsValid(notify_this_player) and notify_this_player:IsPlayer() then
+				WireLib.AddNotify(notify_this_player,
+					"That wasn't a vehicle!\n"..
+					"The contraption has been scanned and this entity has instead been linked to the closest vehicle in this contraption.\n"..
+					"Hover your cursor over the controller to view the yellow line, which indicates the selected vehicle.",
+					NOTIFY_GENERIC,14,NOTIFYSOUND_DRIP1)
+			end
+		end
+	end
+
+	-- If the selected vehicle is still not a real vehicle even after all of the above, notify the user of this
+	if IsValid(notify_this_player) and notify_this_player:IsPlayer() and not IsRealVehicle(vehicle) then
+		WireLib.AddNotify(notify_this_player,
+			"The entity you linked to is not a 'real' vehicle, " ..
+			"and we were unable to find any 'real' vehicles attached to it. This controller might not work.",
+			NOTIFY_GENERIC,14,NOTIFYSOUND_DRIP1)
+	end
+
+	return vehicle
+end

@@ -14,6 +14,8 @@ function ENT:Initialize()
 end
 
 function ENT:LinkEnt( pod )
+	pod = WireLib.GetClosestRealVehicle(pod,self:GetPos(),self:GetPlayer())
+
 	if not IsValid(pod) or not pod:IsVehicle() then return false, "Must link to a vehicle" end
 	self.Vehicle = pod
 	WireLib.SendMarks(self, {pod})

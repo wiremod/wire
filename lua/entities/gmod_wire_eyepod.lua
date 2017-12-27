@@ -139,14 +139,19 @@ local Rotate90ModelList = {
 	["models/vehicle.mdl"]						= true
 }
 
-function ENT:PodLink(vehicle)
+-- Old function alias
+function ENT:PodLink(vehicle) return self:LinkEnt(vehicle) end
+
+function ENT:LinkEnt(vehicle)
+	vehicle = WireLib.GetClosestRealVehicle(vehicle,self:GetPos(),self:GetPlayer())
+
 	if not IsValid(vehicle) or not vehicle:IsVehicle() then
 		if IsValid(self.pod) then
 			self.pod.AttachedWireEyePod = nil
 		end
 		self.pod = nil
 		self:UpdateOverlay()
-		return false
+		return false, "Must link to a vehicle"
 	end
 	self.pod = vehicle
 
@@ -160,6 +165,15 @@ function ENT:PodLink(vehicle)
 	end
 
 	vehicle.AttachedWireEyePod = self
+	self:UpdateOverlay()
+	WireLib.SendMarks(self,{vehicle})
+	return true
+end
+
+function ENT:UnlinkEnt()
+	if IsValid(self.pod) then self.pod.AttachedWireEyePod = nil end
+	self.pod = nil
+	WireLib.SendMarks(self,{})
 	self:UpdateOverlay()
 	return true
 end

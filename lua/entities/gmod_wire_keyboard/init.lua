@@ -230,6 +230,8 @@ function ENT:OnRemove()
 end
 
 function ENT:LinkEnt(pod)
+	pod = WireLib.GetClosestRealVehicle(pod,self:GetPos(),self:GetPlayer())
+
 	if not IsValid(pod) or not pod:IsVehicle() then return false, "Must link to a vehicle" end
 	if IsValid(self.Pod) then self.Pod.WireKeyboard = nil end
 	pod.WireKeyboard = self
