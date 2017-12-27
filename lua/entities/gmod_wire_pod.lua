@@ -95,9 +95,19 @@ function ENT:Initialize()
 
 		-- Entity
 		"Entity [ENTITY]",
+
+		-- Driver
+		"Driver [ENTITY]"
 	}
 
-	self.Inputs = WireLib.CreateInputs( self, { "Lock", "Terminate", "Strip weapons", "Eject", "Disable", "Crosshairs", "Brake", "Allow Buttons", "Relative", "Damage Health", "Damage Armor", "Hide Player", "Hide HUD"} )
+	local inputs = {
+		"Lock", "Terminate", "Strip weapons", "Eject", 
+		"Disable", "Crosshairs", "Brake", "Allow Buttons", 
+		"Relative", "Damage Health", "Damage Armor", "Hide Player", "Hide HUD",
+		"Vehicle [ENTITY]"
+	}
+
+	self.Inputs = WireLib.CreateInputs( self, inputs )
 	self.Outputs = WireLib.CreateOutputs( self, outputs )
 
 	self:SetLocked( false )
@@ -163,8 +173,57 @@ function ENT:SetHidePlayer( b )
 	end
 end
 
+-- this function attempts to determine if the vehicle is actually a real vehicle
+-- and not a "fake" vehicle created by an 'scars'-like addon
+local valid_vehicles = {
+	prop_vehicle = true,
+	prop_vehicle_airboat = true,
+	prop_vehicle_apc = true,
+	prop_vehicle_cannon = true,
+	prop_vehicle_choreo_generic = true,
+	prop_vehicle_crane = true,
+	prop_vehicle_driveable = true,
+	prop_vehicle_jeep = true,
+	prop_vehicle_prisoner_pod = true
+}
+local function IsRealVehicle(pod)
+	return valid_vehicles[pod:GetClass()]
+end
+
 function ENT:LinkEnt( pod )
+	if IsValid(pod) and not IsRealVehicle(pod) then -- this is not a vehicle. attempt to find a nearby vehicle in the same contraption
+		-- get all entities, loop through, get distance to each
+		local contraption = constraint.GetAllConstrainedEntities(pod)
+		local vehicles = {}
+		for k, ent in pairs(contraption) do
+			if IsRealVehicle(ent) then 
+				vehicles[#vehicles+1] = {
+					distance = ent:GetPos():Distance(self:GetPos()), 
+					entity = ent
+				}
+			end
+		end
+
+		if #vehicles > 0 then -- if we found any at all
+			-- sort by distance
+			table.sort(vehicles,function(a,b)
+				return a.distance < b.distance
+			end)
+
+			-- get closest
+			pod = vehicles[1].entity
+			-- notify owner
+			WireLib.AddNotify(self:GetPlayer(),"That wasn't a vehicle!\nThe contraption has been scanned and this entity has instead been linked to the closest vehicle in this contraption.\nHover your cursor over the controller to view the yellow line, which indicates the selected vehicle.",NOTIFY_GENERIC,14,NOTIFYSOUND_DRIP1)
+		end
+	end
+
+	-- if pod is still not a vehicle even after all of the above, then error out
 	if not IsValid(pod) or not pod:IsVehicle() then return false, "Must link to a vehicle" end
+
+	if not IsRealVehicle(pod) then
+		WireLib.AddNotify(self:GetPlayer(),"That appears to be a scripted vehicle created by an addon, and we were unable to find any \"real\" vehicle attached to it. This controller might not work.",NOTIFY_GENERIC,14,NOTIFYSOUND_DRIP1)
+	end
+
 	self:SetPod( pod )
 	WireLib.SendMarks(self, {pod})
 	return true
@@ -194,6 +253,7 @@ end
 function ENT:SetPly( ply )
 	if (ply and ply:IsValid() and !ply:IsPlayer()) then return false end
 	self.Ply = ply
+	WireLib.TriggerOutput( self, "Driver", ply )
 	return true
 end
 
@@ -324,6 +384,10 @@ function ENT:TriggerInput( name, value )
 		self:SetHidePlayer( value != 0 )
 	elseif (name == "Hide HUD") then
 		self:SetHideHUD( value ~= 0 )
+	elseif (name == "Vehicle") then
+		if IsValid(value) then -- only link if the input is valid. that way, it won't be unlinked if the wire is disconnected
+			self:LinkEnt(value)
+		end
 	end
 end
 
@@ -386,7 +450,7 @@ function ENT:Think()
 			local button = trace.Entity
 			if IsValid(button) and (ply:KeyDown( IN_ATTACK ) and !self.MouseDown) then
 				if button:GetClass() == "gmod_wire_lever" then
-					// The parented lever doesn't have a great serverside hitbox, so this isn't flawless
+					-- The parented lever doesn't have a great serverside hitbox, so this isn't flawless
 					self.MouseDown = true
 					button:Use(ply, ply, USE_ON, 0)
 				elseif button:GetClass() == "gmod_wire_button" || button:GetClass() == "gmod_wire_dynamic_button" then
