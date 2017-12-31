@@ -465,6 +465,11 @@ e2function number entity:inNoclip()
 	return 1
 end
 
+--- Returns 1 if the player <this> is in god mode, 0 if not.
+e2function number entity:inGodMode()
+	return IsValid(this) and this:IsPlayer() and this:HasGodMode() and 1 or 0
+end
+
 /******************************************************************************/
 
 local player = player
