@@ -274,6 +274,7 @@ E2Helper.Descriptions["isTyping(e:)"] = "Is the player typing a message in chat?
 E2Helper.Descriptions["isValid(e:)"] = "Returns 1 if the entity is valid, 0 otherwise"
 E2Helper.Descriptions["isValidPhysics(e:)"] = "Returns 1 if the entity has valid physics (players don't)"
 E2Helper.Descriptions["inNoclip(e:)"] = "Is the player in noclip mode?"
+E2Helper.Descriptions["inGodMode(e:)"] = "Is the player in god mode?"
 E2Helper.Descriptions["friends(e:)"] = "Returns an array of players on the prop protection friends list"
 E2Helper.Descriptions["trusts(e:e)"] = "Is E2 on the prop protection friends list of E?"
 E2Helper.Descriptions["keyAttack1(e:)"] = "Is the player pressing their primary fire key?"
