@@ -633,6 +633,31 @@ e2function vector entity:aabbSize()
 	return ret2 - ret
 end
 
+
+/******************************************************************************/
+
+-- Returns the rotated entity's min world-axis-aligned bounding box corner
+e2function vector entity:aabbWorldMin()
+	if !IsValid(this) then return {0,0,0} end
+	local ret, _ = this:WorldSpaceAABB()
+	return ret or {0,0,0}
+end
+
+-- Returns the rotated entity's max world-axis-aligned bounding box corner
+e2function vector entity:aabbWorldMax()
+	if !IsValid(this) then return {0,0,0} end
+	local _, ret = this:WorldSpaceAABB()
+	return ret or {0,0,0}
+end
+
+-- Returns the rotated entity's world-axis-aligned bounding box size
+e2function vector entity:aabbWorldSize()
+	if !IsValid(this) then return {0,0,0} end
+	local ret, ret2 = this:WorldSpaceAABB()
+	ret = ret or Vector(0,0,0)
+	ret2 = ret2 or Vector(0,0,0)
+	return ret2 - ret
+end
 /******************************************************************************/
 
 __e2setcost(5)
