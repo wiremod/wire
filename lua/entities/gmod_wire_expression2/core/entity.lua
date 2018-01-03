@@ -11,7 +11,7 @@ registerType("entity", "e", nil,
 		if not retval.EntIndex then error("Return value is neither nil nor an Entity, but a "..type(retval).."!",0) end
 	end,
 	function(v)
-		return not isentity(v) or not v:IsValid()
+		return not isentity(v) or not IsValid(v)
 	end
 )
 
@@ -46,7 +46,7 @@ local rad2deg = 180 / math.pi
 /******************************************************************************/
 
 local function checkOwner(self)
-	return IsValid(self.player);
+	return IsValid(self.player)
 end
 
 /******************************************************************************/
@@ -297,7 +297,7 @@ end
 e2function void entity:setMass(mass)
 	if not validPhysics(this) then return end
 	if not isOwner(self, this) then return end
-	if(this:IsPlayer()) then return end
+	if this:IsPlayer() then return end
 	if E2Lib.isnan( mass ) then mass = 50000 end
 	local mass = Clamp(mass, 0.001, 50000)
 	local phys = this:GetPhysicsObject()
@@ -556,7 +556,7 @@ __e2setcost(10) -- temporary
 e2function void entity:lockPod(lock)
 	if not IsValid(this) or not this:IsVehicle() then return end
 	if not isOwner(self, this) then return end
-	if(lock ~= 0) then
+	if lock ~= 0 then
 		this:Fire("Lock", "", 0)
 	else
 		this:Fire("Unlock", "", 0)
@@ -567,14 +567,14 @@ e2function void entity:killPod()
 	if not IsValid(this) or not this:IsVehicle() then return end
 	if not isOwner(self, this) then return end
 	local ply = this:GetDriver()
-	if(ply:IsValid()) then ply:Kill() end
+	if IsValid(ply) then ply:Kill() end
 end
 
 e2function void entity:ejectPod()
 	if not IsValid(this) or not this:IsVehicle() then return end
 	if not isOwner(self, this) then return end
 	local ply = this:GetDriver()
-	if(ply:IsValid()) then ply:ExitVehicle() end
+	if IsValid(ply) then ply:ExitVehicle() end
 end
 
 /******************************************************************************/
@@ -612,21 +612,21 @@ end
 
 -- Returns the entity's (min) axis-aligned bounding box
 e2function vector entity:aabbMin()
-	if (!this or !this:IsValid() or !this:GetPhysicsObject() or !this:GetPhysicsObject():IsValid()) then return {0,0,0} end
+	if not IsValid(this) or not IsValid(this:GetPhysicsObject()) then return {0,0,0} end
 	local ret, _ = this:GetPhysicsObject():GetAABB()
 	return ret or {0,0,0}
 end
 
 -- Returns the entity's (max) axis-aligned bounding box
 e2function vector entity:aabbMax()
-	if (!this or !this:IsValid() or !this:GetPhysicsObject() or !this:GetPhysicsObject():IsValid()) then return {0,0,0} end
+	if not IsValid(this) or not IsValid(this:GetPhysicsObject()) then return {0,0,0} end
 	local _, ret = this:GetPhysicsObject():GetAABB()
 	return ret or {0,0,0}
 end
 
 -- Returns the entity's axis-aligned bounding box size
 e2function vector entity:aabbSize()
-	if (!this or !this:IsValid() or !this:GetPhysicsObject() or !this:GetPhysicsObject():IsValid()) then return {0,0,0} end
+	if not IsValid(this) or not IsValid(this:GetPhysicsObject()) then return {0,0,0} end
 	local ret, ret2 = this:GetPhysicsObject():GetAABB()
 	ret = ret or Vector(0,0,0)
 	ret2 = ret2 or Vector(0,0,0)
@@ -638,21 +638,21 @@ end
 
 -- Returns the rotated entity's min world-axis-aligned bounding box corner
 e2function vector entity:aabbWorldMin()
-	if !IsValid(this) then return {0,0,0} end
+	if not IsValid(this) then return {0,0,0} end
 	local ret, _ = this:WorldSpaceAABB()
 	return ret or {0,0,0}
 end
 
 -- Returns the rotated entity's max world-axis-aligned bounding box corner
 e2function vector entity:aabbWorldMax()
-	if !IsValid(this) then return {0,0,0} end
+	if not IsValid(this) then return {0,0,0} end
 	local _, ret = this:WorldSpaceAABB()
 	return ret or {0,0,0}
 end
 
 -- Returns the rotated entity's world-axis-aligned bounding box size
 e2function vector entity:aabbWorldSize()
-	if !IsValid(this) then return {0,0,0} end
+	if not IsValid(this) then return {0,0,0} end
 	local ret, ret2 = this:WorldSpaceAABB()
 	ret = ret or Vector(0,0,0)
 	ret2 = ret2 or Vector(0,0,0)
@@ -686,7 +686,7 @@ local SetTrails = duplicator.EntityModifiers.trail
 
 --- Removes the trail from <this>.
 e2function void entity:removeTrails()
-	if (not checkOwner(self)) then return; end
+	if not checkOwner(self) then return end
 	if not IsValid(this) then return end
 	if not isOwner(self, this) then return end
 
@@ -713,7 +713,7 @@ __e2setcost(30)
 --- StartSize, EndSize, Length, Material, Color (RGB), Alpha
 --- Adds a trail to <this> with the specified attributes.
 e2function void entity:setTrails(startSize, endSize, length, string material, vector color, alpha)
-	if (not checkOwner(self)) then return; end
+	if not checkOwner(self) then return end
 	if not IsValid(this) then return end
 	if not isOwner(self, this) then return end
 
@@ -727,7 +727,7 @@ end
 --- StartSize, EndSize, Length, Material, Color (RGB), Alpha, AttachmentID, Additive
 --- Adds a trail to <this> with the specified attributes.
 e2function void entity:setTrails(startSize, endSize, length, string material, vector color, alpha, attachmentID, additive)
-	if (not checkOwner(self)) then return; end
+	if not checkOwner(self) then return end
 	if not IsValid(this) then return end
 	if not isOwner(self, this) then return end
 
@@ -802,7 +802,7 @@ end
 __e2setcost(15)
 
 e2function vector entity:nearestPoint( vector point )
-	if (!IsValid(this)) then return {0,0,0} end
+	if not IsValid(this) then return {0,0,0} end
 	return this:NearestPoint( Vector(point[1],point[2],point[3]) )
 end
 
@@ -824,8 +824,8 @@ local non_allowed_types = {
 
 registerCallback("postinit",function()
 	for k,v in pairs( wire_expression_types ) do
-		if (!non_allowed_types[v[1]]) then
-			if (k == "NORMAL") then k = "NUMBER" end
+		if not non_allowed_types[v[1]] then
+			if k == "NORMAL" then k = "NUMBER" end
 			k = upperfirst(k)
 
 			__e2setcost(5)
@@ -833,9 +833,9 @@ registerCallback("postinit",function()
 			local function getf( self, args )
 				local op1, op2 = args[2], args[3]
 				local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
-				if (!rv1 or !rv1:IsValid() or !rv2) then return fixdef( v[2] ) end
+				if not IsValid(rv1) or not rv2 then return fixdef( v[2] ) end
 				local id = self.uid
-				if (!rv1["EVar_"..id]) then return fixdef( v[2] ) end
+				if not rv1["EVar_"..id] then return fixdef( v[2] ) end
 				return rv1["EVar_"..id][rv2] or fixdef( v[2] )
 			end
 
@@ -843,8 +843,8 @@ registerCallback("postinit",function()
 				local op1, op2, op3 = args[2], args[3], args[4]
 				local rv1, rv2, rv3 = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
 				local id = self.uid
-				if (!rv1 or !rv1:IsValid() or !rv2 or !rv3) then return end
-				if (!rv1["EVar_"..id]) then
+				if not IsValid(rv1) or not rv2 or not rv3 then return end
+				if not rv1["EVar_"..id] then
 					rv1["EVar_"..id] = {}
 				end
 				rv1["EVar_"..id][rv2] = rv3
