@@ -7,8 +7,7 @@ if CLIENT then return end -- No more client
 
 --Time after loosing one plug to search for another
 local NEW_PLUG_WAIT_TIME = 2
-local PLUG_IN_SOCKET_CONSTRAINT_POWER = 5000
-local PLUG_IN_ATTACH_RANGE = 3
+
 
 local SocketModels = {
 	["models/props_lab/tpplugholder_single.mdl"] = "models/props_lab/tpplug.mdl",
@@ -29,8 +28,6 @@ function ENT:GetOffset( vec )
 
 	return self:GetPos() + stackdir * 2 + offset
 end
-
-if CLIENT then return end -- No more client
 
 function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )
@@ -107,7 +104,7 @@ function ENT:Think()
 
 		-- Find entities near us
 		local sockCenter = self:GetOffset( Vector(-1.75, 0, 0) )
-		local local_ents = ents.FindInSphere( sockCenter, PLUG_IN_ATTACH_RANGE )
+		local local_ents = ents.FindInSphere( sockCenter, self.AttachRange )
 		for key, plug in pairs(local_ents) do
 
 			-- If we find a plug, try to attach it to us
@@ -127,6 +124,12 @@ function ENT:Think()
 		end
 	end
 end
+
+function ENT:Setup(WeldForce,AttachRange)
+	self.WeldForce = WeldForce or 5000
+	self.AttachRange = AttachRange or 5
+end
+
 
 function ENT:AttachPlug( plug )
 	-- Set references between them
@@ -156,7 +159,7 @@ function ENT:AttachPlug( plug )
 	end
 
 	-- Constrain together
-	self.Const = constraint.Weld( self, plug, 0, 0, PLUG_IN_SOCKET_CONSTRAINT_POWER, true )
+	self.Const = constraint.Weld( self, plug, 0, 0, self.WeldForce, true )
 	if (not self.Const) then
 		self.NoCollideConst:Remove()
 		self.NoCollideConst = nil
@@ -181,4 +184,4 @@ function ENT:TriggerInput(iname, value, iter)
 	end
 end
 
-duplicator.RegisterEntityClass("gmod_wire_datasocket", WireLib.MakeWireEnt, "Data")
+duplicator.RegisterEntityClass("gmod_wire_datasocket", WireLib.MakeWireEnt, "Data", "WeldForce", "AttachRange")
