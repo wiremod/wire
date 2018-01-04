@@ -19,6 +19,14 @@ local SocketModels = {
 	["models/wingf0x/hdmisocket.mdl"] = "models/wingf0x/hdmiplug.mdl",
 }
 
+local SocketOffsets = {
+	["models/props_lab/tpplugholder_single.mdl"] =Vector( 8, -13, -5),
+	["models/bull/various/usb_socket.mdl"]  = Vector(-2,  0, -8),
+	["models/wingf0x/altisasocket.mdl"]  =  Vector( 0.9,  0,  0),
+	["models/wingf0x/ethernetsocket.mdl"] = Vector(-2.00,  0,  0),
+	["models/wingf0x/hdmisocket.mdl"]  = Vector(-2.00,  0,  0),
+}
+
 function ENT:GetOffset( vec )
 	local offset = vec
 
@@ -102,27 +110,33 @@ function ENT:Think()
 	-- If we have no plug in us
 	if (not self.MyPlug) or (not self.MyPlug:IsValid()) then
 
-		-- Find entities near us
-		local sockCenter = self:GetOffset( Vector(-1.75, 0, 0) )
-		local local_ents = ents.FindInSphere( sockCenter, self.AttachRange )
-		for key, plug in pairs(local_ents) do
+		local plug = self:GetClosestPlug()
 
-			-- If we find a plug, try to attach it to us
-			if ( plug:IsValid() && plug:GetClass() == "gmod_wire_dataplug" ) then
+		if IsValid(plug) and SocketModels[self:GetModel()] == plug:GetModel() and (not plug:IsPlayerHolding()) then
+			self:AttachPlug(plug)
+		end
+	end
+end
 
-				-- If no other sockets are using it
-				if plug.MySocket == nil then
-					local plugpos = plug:GetPos()
-					local dist = (sockCenter-plugpos):Length()
+function ENT:GetClosestPlug()
+	-- Find entities near us
+	local sockCenter = self:GetOffset( Vector(-1.75, 0, 0) )
+	local local_ents = ents.FindInSphere( sockCenter, self.AttachRange )
 
-					-- If model matches up
-					if SocketModels[self:GetModel()] == plug:GetModel() then
-						self:AttachPlug(plug)
-					end
-				end
+	local ClosestDist
+	local Closest
+
+	for key, plug in pairs(local_ents) do
+		if  plug:IsValid() and plug:GetClass() == "gmod_wire_dataplug" and plug.MySocket == nil then
+			local plugpos = plug:GetPos()
+			local dist = (sockCenter-plugpos):Length()
+			if (ClosestDist==nil or dist < ClosestDist) then
+				Closest = plug
+				ClosestDist = dist
 			end
 		end
 	end
+	return Closest
 end
 
 function ENT:Setup(WeldForce,AttachRange)
@@ -137,13 +151,7 @@ function ENT:AttachPlug( plug )
 	self.MyPlug = plug
 
 	-- Position plug
-	local newpos = self:GetOffset( Vector(-1.75, 0, 0) )
-	if self:GetModel() == "models/props_lab/tpplugholder_single.mdl" then newpos = self:GetOffset( Vector( 8, -13, -5) )
-	elseif self:GetModel() == "models/bull/various/usb_socket.mdl" then   newpos = self:GetOffset( Vector(-2,  0, -8) )
-	elseif self:GetModel() == "models/wingf0x/altisasocket.mdl" then      newpos = self:GetOffset( Vector( 0.9,  0,  0) )
-	elseif self:GetModel() == "models/wingf0x/ethernetsocket.mdl" then    newpos = self:GetOffset( Vector(-2.00,  0,  0) )
-	elseif self:GetModel() == "models/wingf0x/hdmisocket.mdl" then        newpos = self:GetOffset( Vector(-2.00,  0,  0) )
-	end
+	local newpos = self:GetOffset( SocketOffsets[self:GetModel()] or Vector(-1.75, 0, 0) )
 
 	local socketAng = self:GetAngles()
 	plug:SetPos( newpos )
