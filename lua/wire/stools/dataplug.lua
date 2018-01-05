@@ -60,7 +60,9 @@ cleanup.Register( "wire_dataplugs" )
 
 function TOOL:GetModel()
 	local model = self:GetClientInfo( "model" )
-	if (!util.IsValidModel( model ) or !util.IsValidProp( model ) or !SocketModels[ model ]) then return "models/props_lab/tpplugholder_single.mdl", "models/props_lab/tpplug.mdl" end
+	if not (util.IsValidModel( model ) and util.IsValidProp( model ) and SocketModels[ model ]) then
+		return "models/props_lab/tpplugholder_single.mdl", "models/props_lab/tpplug.mdl"
+	end
 	return model, SocketModels[ model ]
 end
 
@@ -72,9 +74,9 @@ end
 
 // Create socket
 function TOOL:LeftClick( trace )
-	if (!trace.HitPos) then return false end
+	if (not trace.HitPos) then return false end
 	if (trace.Entity:IsPlayer()) then return false end
-	if ( trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_dataplug") then
+	if ( trace.Entity:IsValid() and trace.Entity:GetClass() == "gmod_wire_dataplug") then
 		return false
 	end
 	if ( CLIENT ) then return true end
@@ -84,13 +86,13 @@ function TOOL:LeftClick( trace )
 
 	local weldforce = self:GetClientNumber("weldforce")
 	local attachrange = self:GetClientNumber("attachrange")
-	if ( trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_datasocket" ) then
+	if ( trace.Entity:IsValid() and trace.Entity:GetClass() == "gmod_wire_datasocket" ) then
 		trace.Entity.ReceivedValue = 0
 		trace.Entity:Setup(weldforce,attachrange)
 		return true
 	end
 
-	if ( !self:GetSWEP():CheckLimit( "wire_datasockets" ) ) then return false end
+	if ( not self:GetSWEP():CheckLimit( "wire_datasockets" ) ) then return false end
 
 	local socketmodel, plugmodel = self:GetModel()
 
@@ -104,32 +106,33 @@ function TOOL:LeftClick( trace )
 	end
 	undo.Create("WireSocket")
 		undo.AddEntity( wire_datasocket )
-		if const then
+		if IsValid(const) then
 			undo.AddEntity( const )
 		end
 		undo.SetPlayer( ply )
 	undo.Finish()
 
 	ply:AddCleanup( "wire_datasockets", wire_datasocket )
-	ply:AddCleanup( "wire_datasockets", const )
-
+	if IsValid(const) then
+		ply:AddCleanup( "wire_datasockets", const )
+	end
 	return true
 end
 
 // Create plug
 function TOOL:RightClick( trace )
-	if (!trace.HitPos) then return false end
+	if (not trace.HitPos) then return false end
 	if (trace.Entity:IsPlayer()) then return false end
 	if ( CLIENT ) then return true end
 	if not util.IsValidPhysicsObject( trace.Entity, trace.PhysicsBone ) then return false end
 
 	local ply = self:GetOwner()
 
-	if ( trace.Entity:IsValid() && trace.Entity:GetClass() == "gmod_wire_dataplug" ) then
+	if ( trace.Entity:IsValid() and trace.Entity:GetClass() == "gmod_wire_dataplug" ) then
 		return true
 	end
 
-	if ( !self:GetSWEP():CheckLimit( "wire_dataplugs" ) ) then return false end
+	if (not self:GetSWEP():CheckLimit( "wire_dataplugs" ) ) then return false end
 
 	local socketmodel, plugmodel = self:GetModel()
 

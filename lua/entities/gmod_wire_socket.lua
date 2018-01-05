@@ -42,7 +42,7 @@ end
 
 function ENT:CanLink( Target )
 	if (Target.Socket and Target.Socket:IsValid()) then return false end
-	if (SocketModels[self:GetModel()] != Target:GetModel()) then return false end
+	if (SocketModels[self:GetModel()] ~= Target:GetModel()) then return false end
 	return true
 end
 
@@ -55,7 +55,7 @@ function ENT:GetClosestPlug()
 	local Closest
 
 	for k,v in pairs( plugs ) do
-		if (v:GetClass() == "gmod_wire_plug" and !v:GetNWBool( "Linked", false )) then
+		if (v:GetClass() == "gmod_wire_plug" and not v:GetNWBool( "Linked", false )) then
 			local Dist = v:GetPos():Distance( Pos )
 			if (ClosestDist == nil or ClosestDist > Dist) then
 				ClosestDist = Dist
@@ -115,7 +115,7 @@ function ENT:Setup( ArrayInput, WeldForce, AttachRange )
 	local old = self.ArrayInput
 	self.ArrayInput = ArrayInput or false
 
-	if (!self.Inputs or !self.Outputs or self.ArrayInput != old) then
+	if not (self.Inputs and self.Outputs and self.ArrayInput == old) then
 		if (self.ArrayInput) then
 			self.Inputs = WireLib.CreateInputs( self, { "In [ARRAY]" } )
 			self.Outputs = WireLib.CreateOutputs( self, { "Out [ARRAY]" } )
@@ -140,7 +140,7 @@ function ENT:TriggerInput( name, value )
 end
 
 function ENT:SetValue( name, value )
-	if (!self.Plug or !self.Plug:IsValid()) then return end
+	if not (self.Plug and self.Plug:IsValid()) then return end
 	if (name == "In") then
 		if (self.ArrayInput) then -- Both have array
 			WireLib.TriggerOutput( self, "Out", table.Copy( value ) )
@@ -154,13 +154,13 @@ function ENT:SetValue( name, value )
 		end
 	else
 		if (self.ArrayInput) then -- Target does not have array, this does
-			if (value != nil) then
+			if (value ~= nil) then
 				local data = table.Copy( self.Outputs.Out.Value )
 				data[LETTERS_INV[name]] = value
 				WireLib.TriggerOutput( self, "Out", data )
 			end
 		else -- Niether have array
-			if (value != nil) then
+			if (value ~= nil) then
 				WireLib.TriggerOutput( self, name, value )
 			end
 		end
@@ -211,7 +211,7 @@ end
 -- Resends the values when plugging in
 ------------------------------------------------------------
 function ENT:ResendValues()
-	if (!self.Plug) then return end
+	if (not self.Plug) then return end
 	if (self.ArrayInput) then
 		self.Plug:SetValue( "In", self.Inputs.In.Value )
 	else
@@ -228,14 +228,14 @@ end
 function ENT:Think()
 	self.BaseClass.Think(self)
 
-	if (!self.Plug or !self.Plug:IsValid()) then -- Has not been linked or plug was deleted
+	if not (self.Plug and self.Plug:IsValid()) then -- Has not been linked or plug was deleted
 		local Pos, Ang = self:GetLinkPos()
 
 		local Closest = self:GetClosestPlug()
 
 		self:SetNWBool( "Linked", false )
 
-		if (Closest and Closest:IsValid() and self:CanLink( Closest ) and !Closest:IsPlayerHolding() and Closest:GetClosestSocket() == self) then
+		if (Closest and Closest:IsValid() and self:CanLink( Closest ) and (not Closest:IsPlayerHolding()) and Closest:GetClosestSocket() == self) then
 			self.Plug = Closest
 			Closest.Socket = self
 
@@ -262,7 +262,7 @@ function ENT:Think()
 		self:NextThink( CurTime() + 0.05 )
 		return true
 	else
-		if (self.Weld and !self.Weld:IsValid()) then -- Plug was unplugged
+		if (self.Weld and (not self.Weld:IsValid())) then -- Plug was unplugged
 			self.Weld = nil
 
 			self.Plug:SetNWBool( "Linked", false )
