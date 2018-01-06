@@ -42,7 +42,7 @@ function ENT:Initialize()
 	self:SetMoveType( MOVETYPE_VPHYSICS )
 	self:SetSolid( SOLID_VPHYSICS )
 
-	self.MyPlug = nil
+	self.Plug = nil
 	self.Memory = nil
 	self.OwnMemory = nil
 	self.Const = nil
@@ -95,9 +95,9 @@ function ENT:Think()
 	if (self.Const) and (not self.Const:IsValid()) then
 		self.Const = nil
 		self.NoCollideConst = nil
-		if (self.MyPlug) and (self.MyPlug:IsValid()) then
-			self.MyPlug:SetSocket(nil)
-			self.MyPlug = nil
+		if (self.Plug) and (self.Plug:IsValid()) then
+			self.Plug:SetSocket(nil)
+			self.Plug = nil
 		end
 
 		self.Memory = nil --We're now getting no signal
@@ -108,7 +108,7 @@ function ENT:Think()
 	end
 
 	-- If we have no plug in us
-	if (not self.MyPlug) or (not self.MyPlug:IsValid()) then
+	if (not self.Plug) or (not self.Plug:IsValid()) then
 
 		local plug = self:GetClosestPlug()
 
@@ -120,14 +120,14 @@ end
 
 function ENT:GetClosestPlug()
 	-- Find entities near us
-	local sockCenter = self:GetOffset( Vector(-1.75, 0, 0) )
+	local sockCenter = self:GetOffset( SocketOffsets[self:GetModel()] or Vector(-1.75, 0, 0) )
 	local local_ents = ents.FindInSphere( sockCenter, self.AttachRange )
 
 	local ClosestDist
 	local Closest
 
 	for key, plug in pairs(local_ents) do
-		if  plug:IsValid() and plug:GetClass() == "gmod_wire_dataplug" and plug.MySocket == nil then
+		if  plug:IsValid() and plug:GetClass() == "gmod_wire_dataplug" and plug.Socket == nil then
 			local plugpos = plug:GetPos()
 			local dist = (sockCenter-plugpos):Length()
 			if (ClosestDist==nil or dist < ClosestDist) then
@@ -148,7 +148,7 @@ end
 function ENT:AttachPlug( plug )
 	-- Set references between them
 	plug:SetSocket(self)
-	self.MyPlug = plug
+	self.Plug = plug
 
 	-- Position plug
 	local newpos = self:GetOffset( SocketOffsets[self:GetModel()] or Vector(-1.75, 0, 0) )
@@ -159,7 +159,7 @@ function ENT:AttachPlug( plug )
 
 	self.NoCollideConst = constraint.NoCollide(self, plug, 0, 0)
 	if (not self.NoCollideConst) then
-		self.MyPlug = nil
+		self.Plug = nil
 		plug:SetSocket(nil)
 		self.Memory = nil
 			WireLib.TriggerOutput(self, "Memory", 0)
@@ -171,7 +171,7 @@ function ENT:AttachPlug( plug )
 	if (not self.Const) then
 		self.NoCollideConst:Remove()
 		self.NoCollideConst = nil
-		self.MyPlug = nil
+		self.Plug = nil
 		plug:SetSocket(nil)
 		self.Memory = nil
 		WireLib.TriggerOutput(self, "Memory", 0)

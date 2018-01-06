@@ -49,7 +49,7 @@ end
 function ENT:GetClosestPlug()
 	local Pos, _ = self:GetLinkPos()
 
-	local plugs = ents.FindInSphere( Pos, (CLIENT and self:GetNWInt( "AttachRange", 5 ) or self.AttachRange) )
+	local plugs = ents.FindInSphere( Pos, self:GetAttachRange() )
 
 	local ClosestDist
 	local Closest
@@ -67,7 +67,12 @@ function ENT:GetClosestPlug()
 	return Closest
 end
 
-if CLIENT then 
+if CLIENT then
+
+	function ENT:GetAttachRange()
+		return self:GetNWInt( "AttachRange", 5 )
+	end
+
 	function ENT:DrawEntityOutline()
 		if (GetConVar("wire_plug_drawoutline"):GetBool()) then
 			self.BaseClass.DrawEntityOutline( self )
@@ -89,8 +94,13 @@ if CLIENT then
 			end
 		end
 	end)
-	
+
 	return  -- No more client
+end
+--this server only method
+--will be used in plug
+function ENT:GetAttachRange()
+	return self.AttachRange
 end
 
 

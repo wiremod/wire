@@ -10,7 +10,7 @@ function ENT:Initialize()
 	self:SetMoveType( MOVETYPE_VPHYSICS )
 	self:SetSolid( SOLID_VPHYSICS )
 
-	self.MySocket = nil
+	self.Socket = nil
 	self.Memory = nil
 
 	self.Inputs = WireLib.CreateInputs(self, { "Memory" })
@@ -22,8 +22,8 @@ function ENT:ReadCell( Address, infloop )
 	infloop = infloop or 0
 	if infloop > 50 then return end
 
-    if IsValid(self.MySocket) and self.MySocket.OwnMemory and self.MySocket.OwnMemory.ReadCell then
-		return self.MySocket.OwnMemory:ReadCell( Address, infloop + 1 )
+    if IsValid(self.Socket) and self.Socket.OwnMemory and self.Socket.OwnMemory.ReadCell then
+		return self.Socket.OwnMemory:ReadCell( Address, infloop + 1 )
 	end
 	return nil
 end
@@ -32,8 +32,8 @@ function ENT:WriteCell( Address, value, infloop )
 	infloop = infloop or 0
 	if infloop > 50 then return end
 
-	if IsValid(self.MySocket) and self.MySocket.OwnMemory and self.MySocket.OwnMemory.WriteCell then
-		return self.MySocket.OwnMemory:WriteCell( Address, value, infloop + 1 )
+	if IsValid(self.Socket) and self.Socket.OwnMemory and self.Socket.OwnMemory.WriteCell then
+		return self.Socket.OwnMemory:WriteCell( Address, value, infloop + 1 )
 	end
 	return false
 end
@@ -41,24 +41,24 @@ end
 function ENT:OnRemove()
 	self.BaseClass.OnRemove(self)
 
-	if IsValid(self.MySocket) then
-		self.MySocket.MyPlug = nil
+	if IsValid(self.Socket) then
+		self.Socket.Plug = nil
 	end
 end
 
 function ENT:TriggerInput(iname, value, iter)
 	if (iname == "Memory") then
 		self.Memory = self.Inputs.Memory.Src
-		if (self.MySocket) and (self.MySocket:IsValid()) then
-			self.MySocket:SetMemory(self.Memory)
+		if (self.Socket) and (self.Socket:IsValid()) then
+			self.Socket:SetMemory(self.Memory)
 		end
 	end
 end
 
 function ENT:SetSocket(socket)
-	self.MySocket = socket
-	if (self.MySocket) and (self.MySocket:IsValid()) then
-		self.MySocket:SetMemory(self.Memory)
+	self.Socket = socket
+	if (self.Socket) and (self.Socket:IsValid()) then
+		self.Socket:SetMemory(self.Memory)
 	else
 		WireLib.TriggerOutput(self, "Connected", 0)
 	end
