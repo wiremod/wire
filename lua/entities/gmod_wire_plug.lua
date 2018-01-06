@@ -1,41 +1,21 @@
 AddCSLuaFile()
-DEFINE_BASECLASS( "base_wire_entity" )
+DEFINE_BASECLASS( "base_wire_plug" )
 ENT.PrintName       = "Wire Plug"
 ENT.Author          = "Divran"
 ENT.Purpose         = "Links with a socket"
 ENT.Instructions    = "Move a plug close to a socket to link them, and data will be transferred through the link."
 ENT.WireDebugName = "Plug"
 
-function ENT:GetClosestSocket()
-	local sockets = ents.FindInSphere( self:GetPos(), 100 )
 
-	local ClosestDist
-	local Closest
 
-	for k,v in pairs( sockets ) do
-		if (v:GetClass() == "gmod_wire_socket" and not v:GetNWBool( "Linked", false )) then
-			local pos, _ = v:GetLinkPos()
-			local Dist = self:GetPos():Distance( pos )
-			if Dist<=v:GetAttachRange() and (ClosestDist == nil or ClosestDist > Dist) then
-				ClosestDist = Dist
-				Closest = v
-			end
-		end
-	end
 
-	return Closest
+function ENT:GetSocketClass()
+	return "gmod_wire_socket"
 end
-
 if CLIENT then
-	function ENT:DrawEntityOutline()
-		if (GetConVar("wire_plug_drawoutline"):GetBool()) then
-			self.BaseClass.DrawEntityOutline( self )
-		end
-	end
-	return -- No more client
+	return 
 end
-
-------------------------------------------------------------
+-----------------------------------------------------------
 -- Helper functions & variables
 ------------------------------------------------------------
 local LETTERS = { "A", "B", "C", "D", "E", "F", "G", "H" }
@@ -45,12 +25,7 @@ for k,v in pairs( LETTERS ) do
 end
 
 function ENT:Initialize()
-	self:PhysicsInit( SOLID_VPHYSICS )
-	self:SetMoveType( MOVETYPE_VPHYSICS )
-	self:SetSolid( SOLID_VPHYSICS )
-
-	self:SetNWBool( "Linked", false )
-
+	BaseClass.Initialize(self)
 	self.Memory = {}
 end
 
@@ -69,6 +44,7 @@ function ENT:Setup( ArrayInput )
 
 	self:ShowOutput()
 end
+
 
 function ENT:TriggerInput( name, value )
 	if (self.Socket and self.Socket:IsValid()) then
@@ -133,8 +109,17 @@ function ENT:ReadCell( Address )
 end
 
 function ENT:Think()
-	self.BaseClass.Think( self )
+	BaseClass.Think( self )
 	self:SetNWBool( "PlayerHolding", self:IsPlayerHolding() )
+end
+
+function ENT:SetSocket(socket)
+	BaseClass.SetSocket(self,socket)
+	if self.Socket then
+		self:ResendValues()
+	else
+		self:ResetValues()
+	end
 end
 
 function ENT:ResetValues()
@@ -184,5 +169,5 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 		ent:Setup( info.Plug.ArrayInput )
 	end
 
-	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
+	BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
 end
