@@ -1,41 +1,21 @@
 AddCSLuaFile()
-DEFINE_BASECLASS( "base_wire_entity" )
+DEFINE_BASECLASS( "base_wire_plug" )
 ENT.PrintName       = "Wire Plug"
 ENT.Author          = "Divran"
 ENT.Purpose         = "Links with a socket"
 ENT.Instructions    = "Move a plug close to a socket to link them, and data will be transferred through the link."
 ENT.WireDebugName = "Plug"
 
-function ENT:GetClosestSocket()
-	local sockets = ents.FindInSphere( self:GetPos(), 100 )
 
-	local ClosestDist
-	local Closest
 
-	for k,v in pairs( sockets ) do
-		if (v:GetClass() == "gmod_wire_socket" and !v:GetNWBool( "Linked", false )) then
-			local pos, _ = v:GetLinkPos()
-			local Dist = self:GetPos():Distance( pos )
-			if (ClosestDist == nil or ClosestDist > Dist) then
-				ClosestDist = Dist
-				Closest = v
-			end
-		end
-	end
 
-	return Closest
+function ENT:GetSocketClass()
+	return "gmod_wire_socket"
 end
-
 if CLIENT then
-	function ENT:DrawEntityOutline()
-		if (GetConVar("wire_plug_drawoutline"):GetBool()) then
-			self.BaseClass.DrawEntityOutline( self )
-		end
-	end
-	return -- No more client
+	return 
 end
-
-------------------------------------------------------------
+-----------------------------------------------------------
 -- Helper functions & variables
 ------------------------------------------------------------
 local LETTERS = { "A", "B", "C", "D", "E", "F", "G", "H" }
@@ -45,19 +25,14 @@ for k,v in pairs( LETTERS ) do
 end
 
 function ENT:Initialize()
-	self:PhysicsInit( SOLID_VPHYSICS )
-	self:SetMoveType( MOVETYPE_VPHYSICS )
-	self:SetSolid( SOLID_VPHYSICS )
-
-	self:SetNWBool( "Linked", false )
-
+	BaseClass.Initialize(self)
 	self.Memory = {}
 end
 
 function ENT:Setup( ArrayInput )
 	self.ArrayInput = ArrayInput or false
 
-	if (!self.Inputs or !self.Outputs or self.ArrayInput != old) then
+	if not (self.Inputs and self.Outputs and self.ArrayInput == old) then
 		if (self.ArrayInput) then
 			self.Inputs = WireLib.CreateInputs( self, { "In [ARRAY]" } )
 			self.Outputs = WireLib.CreateOutputs( self, { "Out [ARRAY]" } )
@@ -70,6 +45,7 @@ function ENT:Setup( ArrayInput )
 	self:ShowOutput()
 end
 
+
 function ENT:TriggerInput( name, value )
 	if (self.Socket and self.Socket:IsValid()) then
 		self.Socket:SetValue( name, value )
@@ -78,7 +54,7 @@ function ENT:TriggerInput( name, value )
 end
 
 function ENT:SetValue( name, value )
-	if (!self.Socket or !self.Socket:IsValid()) then return end
+	if not (self.Socket and self.Socket:IsValid()) then return end
 	if (name == "In") then
 		if (self.ArrayInput) then -- Both have array
 			WireLib.TriggerOutput( self, "Out", table.Copy( value ) )
@@ -92,13 +68,13 @@ function ENT:SetValue( name, value )
 		end
 	else
 		if (self.ArrayInput) then -- Target does not have array, this does
-			if (value != nil) then
+			if (value ~= nil) then
 				local data = table.Copy( self.Outputs.Out.Value )
 				data[LETTERS_INV[name]] = value
 				WireLib.TriggerOutput( self, "Out", data )
 			end
 		else -- Niether have array
-			if (value != nil) then
+			if (value ~= nil) then
 				WireLib.TriggerOutput( self, name, value )
 			end
 		end
@@ -133,8 +109,17 @@ function ENT:ReadCell( Address )
 end
 
 function ENT:Think()
-	self.BaseClass.Think( self )
+	BaseClass.Think( self )
 	self:SetNWBool( "PlayerHolding", self:IsPlayerHolding() )
+end
+
+function ENT:SetSocket(socket)
+	BaseClass.SetSocket(self,socket)
+	if self.Socket then
+		self:ResendValues()
+	else
+		self:ResetValues()
+	end
 end
 
 function ENT:ResetValues()
@@ -154,7 +139,7 @@ end
 -- Resends the values when plugging in
 ------------------------------------------------------------
 function ENT:ResendValues()
-	if (!self.Socket) then return end
+	if (not self.Socket) then return end
 	if (self.ArrayInput) then
 		self.Socket:SetValue( "In", self.Inputs.In.Value )
 	else
@@ -184,5 +169,5 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 		ent:Setup( info.Plug.ArrayInput )
 	end
 
-	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
+	BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
 end
