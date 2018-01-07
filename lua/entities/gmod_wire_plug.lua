@@ -5,6 +5,11 @@ ENT.Author          = "Divran"
 ENT.Purpose         = "Links with a socket"
 ENT.Instructions    = "Move a plug close to a socket to link them, and data will be transferred through the link."
 ENT.WireDebugName = "Plug"
+local base = scripted_ents.Get("base_wire_entity")
+
+function ENT:GetSocketClass()
+	return "gmod_wire_socket"
+end
 
 function ENT:GetClosestSocket()
 	local sockets = ents.FindInSphere( self:GetPos(), 100 )
@@ -13,7 +18,7 @@ function ENT:GetClosestSocket()
 	local Closest
 
 	for k,v in pairs( sockets ) do
-		if (v:GetClass() == "gmod_wire_socket" and !v:GetNWBool( "Linked", false )) then
+		if (v:GetClass() == self:GetSocketClass() and !v:GetNWBool( "Linked", false )) then
 			local pos, _ = v:GetLinkPos()
 			local Dist = self:GetPos():Distance( pos )
 			if (ClosestDist == nil or ClosestDist > Dist) then
@@ -29,7 +34,7 @@ end
 if CLIENT then
 	function ENT:DrawEntityOutline()
 		if (GetConVar("wire_plug_drawoutline"):GetBool()) then
-			self.BaseClass.DrawEntityOutline( self )
+			base.DrawEntityOutline( self )
 		end
 	end
 	return -- No more client
@@ -133,7 +138,7 @@ function ENT:ReadCell( Address )
 end
 
 function ENT:Think()
-	self.BaseClass.Think( self )
+	base.Think( self )
 	self:SetNWBool( "PlayerHolding", self:IsPlayerHolding() )
 end
 
@@ -184,5 +189,5 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 		ent:Setup( info.Plug.ArrayInput )
 	end
 
-	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
+	base.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
 end

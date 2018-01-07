@@ -4,6 +4,7 @@ ENT.PrintName       = "Wire Socket"
 ENT.Purpose         = "Links with a plug"
 ENT.Instructions    = "Move a plug close to a plug to link them, and data will be transferred through the link."
 ENT.WireDebugName	= "Socket"
+local base = scripted_ents.Get("base_wire_entity")
 
 local PositionOffsets = {
 	["models/wingf0x/isasocket.mdl"] = Vector(0,0,0),
@@ -55,7 +56,7 @@ function ENT:GetClosestPlug()
 	local Closest
 
 	for k,v in pairs( plugs ) do
-		if (v:GetClass() == "gmod_wire_plug" and !v:GetNWBool( "Linked", false )) then
+		if (v:GetClass() == self:GetPlugClass() and !v:GetNWBool( "Linked", false )) then
 			local Dist = v:GetPos():Distance( Pos )
 			if (ClosestDist == nil or ClosestDist > Dist) then
 				ClosestDist = Dist
@@ -67,10 +68,14 @@ function ENT:GetClosestPlug()
 	return Closest
 end
 
+function ENT:GetPlugClass()
+	return "gmod_wire_plug"
+end
+
 if CLIENT then 
 	function ENT:DrawEntityOutline()
 		if (GetConVar("wire_plug_drawoutline"):GetBool()) then
-			self.BaseClass.DrawEntityOutline( self )
+			base.DrawEntityOutline( self )
 		end
 	end
 
@@ -226,7 +231,7 @@ end
 -- Find nearby plugs and connect to them
 ------------------------------------------------------------
 function ENT:Think()
-	self.BaseClass.Think(self)
+	base.Think(self)
 
 	if (!self.Plug or !self.Plug:IsValid()) then -- Has not been linked or plug was deleted
 		local Pos, Ang = self:GetLinkPos()
@@ -299,7 +304,7 @@ duplicator.RegisterEntityClass( "gmod_wire_socket", WireLib.MakeWireEnt, "Data",
 -- Adv Duplicator Support
 ------------------------------------------------------------
 function ENT:BuildDupeInfo()
-	local info = self.BaseClass.BuildDupeInfo(self) or {}
+	local info = base.BuildDupeInfo(self) or {}
 
 	info.Socket = {}
 	info.Socket.ArrayInput = self.ArrayInput
@@ -332,7 +337,7 @@ local function FindConstraint( ent, plug )
 end
 
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID, GetConstByID)
-	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
+	base.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
 
 	if (info.Socket) then
 		ent:Setup( info.Socket.ArrayInput, info.Socket.WeldForce, info.Socket.AttachRange )
@@ -360,7 +365,7 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID, GetConstByID)
 		timer.Simple(0.5,function()
 			local welds = constraint.FindConstraints( ent, "Weld" )
 			for k,v in pairs( welds ) do
-				if (v.Ent2:GetClass() == "gmod_wire_plug") then
+				if (v.Ent2:GetClass() == self:GetPlugClass()) then
 					ent.Plug = v.Ent2
 					v.Ent2.Socket = ent
 					ent.Weld = v.Constraint
