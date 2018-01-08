@@ -37,6 +37,8 @@ function ENT:Initialize()
 	self.Inputs = WireLib.CreateInputs(self, { "Memory" })
 	self.Outputs = WireLib.CreateOutputs(self, { "Memory" })
 	WireLib.TriggerOutput(self, "Memory", 0)
+
+	self.Memory = nil
 end
 
 function ENT:Setup( WeldForce, AttachRange )
@@ -92,4 +94,18 @@ function ENT:TriggerInput(iname, value, iter)
 	end
 end
 
-duplicator.RegisterEntityClass("gmod_wire_datasocket", WireLib.MakeWireEnt, "Data")
+-- Override dupeinfo functions from wire plug
+local base = scripted_ents.Get("gmod_wire_socket")
+function ENT:BuildDupeInfo()
+	local info = base.BuildDupeInfo(self)
+
+	if info.Socket then info.Socket.ArrayInput = nil end -- this input is not used on this entity
+
+	return info
+end
+
+function ENT:GetApplyDupeInfoParams(info)
+	return info.Socket.WeldForce, info.Socket.AttachRange
+end
+
+duplicator.RegisterEntityClass("gmod_wire_datasocket", WireLib.MakeWireEnt, "Data", "WeldForce", "AttachRange")

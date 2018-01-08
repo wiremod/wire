@@ -336,11 +336,15 @@ local function FindConstraint( ent, plug )
 	end)
 end
 
+function ENT:GetApplyDupeInfoParams(info)
+	return info.Socket.ArrayInput, info.Socket.WeldForce, info.Socket.AttachRange
+end
+
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID, GetConstByID)
 	base.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
 
 	if (info.Socket) then
-		ent:Setup( info.Socket.ArrayInput, info.Socket.WeldForce, info.Socket.AttachRange )
+		ent:Setup( self:GetApplyDupeInfoParams(info) )
 		local plug = GetEntByID( info.Socket.Plug )
 		if IsValid(plug) then
 			ent.Plug = plug

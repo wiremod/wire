@@ -17,7 +17,6 @@ function ENT:Initialize()
 	self:SetMoveType( MOVETYPE_VPHYSICS )
 	self:SetSolid( SOLID_VPHYSICS )
 
-	self.MySocket = nil
 	self.Memory = nil
 
 	self.Inputs = WireLib.CreateInputs(self, { "Memory" })
@@ -56,15 +55,6 @@ function ENT:TriggerInput(iname, value, iter)
 		if IsValid(self.Socket) then
 			self.Socket:SetMemory(self.Memory)
 		end
-	end
-end
-
-function ENT:SetSocket(socket)
-	self.MySocket = socket
-	if IsValid(self.Socket) then
-		self.Socket:SetMemory(self.Memory)
-	else
-		WireLib.TriggerOutput(self, "Connected", 0)
 	end
 end
 
