@@ -353,6 +353,9 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID, GetConstByID)
 
 			plug:SetNWBool( "Linked", true )
 			ent:SetNWBool( "Linked", true )
+			-- Resend all values
+			plug:ResendValues()
+			ent:ResendValues()
 
 			if GetConstByID then
 				if info.Socket.Weld then
@@ -375,6 +378,9 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID, GetConstByID)
 					ent.Weld = v.Constraint
 					ent.Plug:SetNWBool( "Linked", true )
 					ent:SetNWBool( "Linked", true )
+
+					ent.Plug:ResendValues()
+					ent:ResendValues()
 				end
 			end
 		end)

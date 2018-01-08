@@ -48,8 +48,13 @@ function ENT:Setup( WeldForce, AttachRange )
 end
 
 -- Override some functions from gmod_wire_socket
-function ENT:ResendValues() end
-function ENT:ResetValues() end
+function ENT:ResendValues()
+	self:SetMemory(self.Plug.Memory)
+end
+function ENT:ResetValues()
+	self.Memory = nil --We're now getting no signal
+	WireLib.TriggerOutput(self, "Memory", 0)
+end
 
 duplicator.RegisterEntityClass( "gmod_wire_datasocket", WireLib.MakeWireEnt, "Data", "WeldForce", "AttachRange" )
 
