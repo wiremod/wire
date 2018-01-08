@@ -188,6 +188,7 @@ function ENT:Initialize( )
 	self.bools.GroundBeam = true
 
 	self.Inputs = WireLib.CreateInputs( self, { "Pos [VECTOR]", "X" , "Y", "Z", "Local", "Color [VECTOR]", "FadeTime", "LineBeam", "GroundBeam", "Size", "Clear", "Active" } )
+	self.Outputs = WireLib.CreateOutputs( self, { "Memory" } ) -- Compatibility for older hispeed devices (such as gpu/cpu)
 
 	self.Points = {}
 
