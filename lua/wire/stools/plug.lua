@@ -6,12 +6,6 @@ if (SERVER) then
 	CreateConVar("sbox_maxwire_plugs",20)
 	CreateConVar("sbox_maxwire_sockets",20)
 
-	//resource.AddFile("models/bull/various/usb_socket.mdl")
-	//resource.AddFile("materials/bull/various/usb_socket.vtf")
-
-	//resource.AddFile("models/bull/various/usb_stick.mdl")
-	//resource.AddFile("materials/bull/various/usb_stick.vtf")
-
 else
 	language.Add( "Tool.wire_plug.name", "Plug & Socket Tool (Wire)" )
 	language.Add( "Tool.wire_plug.desc", "Spawns plugs and sockets for use with the wire system." )
@@ -35,7 +29,6 @@ end
 WireToolSetup.BaseLang()
 
 TOOL.ClientConVar["model"] = "models/props_lab/tpplugholder_single.mdl"
-TOOL.ClientConVar["freeze"] = 1
 TOOL.ClientConVar["array"] = 0
 TOOL.ClientConVar["weldforce"] = 5000
 TOOL.ClientConVar["attachrange"] = 5
@@ -127,7 +120,6 @@ end
 function TOOL.BuildCPanel( panel )
 	WireToolHelpers.MakePresetControl(panel, "wire_plug")
 	ModelPlug_AddToCPanel(panel, "Socket", "wire_plug")
-	panel:CheckBox("#Tool_wire_plug_freeze", "wire_plug_freeze")
 	panel:CheckBox("#Tool_wire_plug_array", "wire_plug_array")
 	panel:NumSlider("#Tool_wire_plug_weldforce", "wire_plug_weldforce", 0, 100000)
 	panel:NumSlider("#Tool_wire_plug_attachrange", "wire_plug_attachrange", 1, 100)
