@@ -62,7 +62,7 @@ end
 function ENT:Setup( ArrayInput )
 	self.ArrayInput = ArrayInput or false
 
-	if not (self.Inputs and self.Outputs and self.ArrayInput == old) then
+	if not (self.Inputs and self.Outputs) then
 		if (self.ArrayInput) then
 			self.Inputs = WireLib.CreateInputs( self, { "In [ARRAY]" } )
 			self.Outputs = WireLib.CreateOutputs( self, { "Out [ARRAY]" } )
