@@ -18,7 +18,7 @@ function ENT:GetClosestSocket()
 	local Closest
 
 	for k,v in pairs( sockets ) do
-		if (v:GetClass() == self:GetSocketClass() and !v:GetNWBool( "Linked", false )) then
+		if (v:GetClass() == self:GetSocketClass() and not v:GetNWBool( "Linked", false )) then
 			local pos, _ = v:GetLinkPos()
 			local Dist = self:GetPos():Distance( pos )
 			if (ClosestDist == nil or ClosestDist > Dist) then
@@ -62,7 +62,7 @@ end
 function ENT:Setup( ArrayInput )
 	self.ArrayInput = ArrayInput or false
 
-	if (!self.Inputs or !self.Outputs or self.ArrayInput != old) then
+	if not (self.Inputs and self.Outputs and self.ArrayInput == old) then
 		if (self.ArrayInput) then
 			self.Inputs = WireLib.CreateInputs( self, { "In [ARRAY]" } )
 			self.Outputs = WireLib.CreateOutputs( self, { "Out [ARRAY]" } )
@@ -83,7 +83,7 @@ function ENT:TriggerInput( name, value )
 end
 
 function ENT:SetValue( name, value )
-	if (!self.Socket or !self.Socket:IsValid()) then return end
+	if not (self.Socket and self.Socket:IsValid()) then return end
 	if (name == "In") then
 		if (self.ArrayInput) then -- Both have array
 			WireLib.TriggerOutput( self, "Out", table.Copy( value ) )
@@ -97,13 +97,13 @@ function ENT:SetValue( name, value )
 		end
 	else
 		if (self.ArrayInput) then -- Target does not have array, this does
-			if (value != nil) then
+			if (value ~= nil) then
 				local data = table.Copy( self.Outputs.Out.Value )
 				data[LETTERS_INV[name]] = value
 				WireLib.TriggerOutput( self, "Out", data )
 			end
 		else -- Niether have array
-			if (value != nil) then
+			if (value ~= nil) then
 				WireLib.TriggerOutput( self, name, value )
 			end
 		end
@@ -159,7 +159,7 @@ end
 -- Resends the values when plugging in
 ------------------------------------------------------------
 function ENT:ResendValues()
-	if (!self.Socket) then return end
+	if (not self.Socket) then return end
 	if (self.ArrayInput) then
 		self.Socket:SetValue( "In", self.Inputs.In.Value )
 	else
