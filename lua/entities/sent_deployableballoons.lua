@@ -34,13 +34,13 @@ CreateConVar('sbox_maxwire_deployers', 2)
 local DmgFilter
 
 local function CreateDamageFilter()
-	if DmgFilter then return end
-	local DmgFilter = ents.Create("filter_activator_name")
+	if IsValid(DmgFilter) then return end
+	DmgFilter = ents.Create("filter_activator_name")
 		DmgFilter:SetKeyValue("targetname", "DmgFilter")
 		DmgFilter:SetKeyValue("negated", "1")
 	DmgFilter:Spawn()
 end
-hook.Add("Initialize", "CreateDamageFilter", CreateDamageFilter)
+hook.Add("InitPostEntity", "CreateDamageFilter", CreateDamageFilter)
 
 local function MakeBalloonSpawner(pl, Data)
 	if IsValid(pl) and not pl:CheckLimit("wire_deployers") then return nil end
