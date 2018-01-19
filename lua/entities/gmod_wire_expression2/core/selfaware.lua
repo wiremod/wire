@@ -112,6 +112,9 @@ end
 -- Set the name of a entity (component name if not E2)
 e2function void entity:setName( string name )
 	if not IsValid(this) or E2Lib.getOwner(self, this) ~= self.player then return end
+	if( #name > 12000 ) then
+		name = string.sub( name, 1, 12000 )
+	end
 	if this:GetClass() == "gmod_wire_expression2" then
 		if this.name == name then return end
 		if name == "generic" or name == "" then
