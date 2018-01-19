@@ -1027,6 +1027,7 @@ E2Helper.Descriptions["findExcludePlayer(s)"] = "Exclude player with specified n
 E2Helper.Descriptions["findExcludePlayer(e)"] = "Exclude specified player from future finds (put it on the entity blacklist)"
 E2Helper.Descriptions["findExcludePlayerProps(s)"] = "Exclude entities owned by player with specified name from future finds"
 E2Helper.Descriptions["findExcludePlayerProps(e)"] = "Exclude entities owned by specified player from future finds"
+E2Helper.Descriptions["findExcludePlayersProps(r)"] = "Exclude entities owned by specified players in array from future finds"
 E2Helper.Descriptions["findIncludeClass(s)"] = "Include entities with this class (or partial class name) in future finds, and remove others not in the whitelist"
 E2Helper.Descriptions["findIncludeEntities(r)"] = "Include all entities in array in future finds, and remove others not in the whitelist"
 E2Helper.Descriptions["findIncludeEntity(e)"] = "Include entity in future finds, and remove others not in the whitelist"
@@ -1035,6 +1036,7 @@ E2Helper.Descriptions["findIncludePlayer(s)"] = "Include player with specified n
 E2Helper.Descriptions["findIncludePlayer(e)"] = "Include specified player in future finds, and remove other entities not in the entity whitelist"
 E2Helper.Descriptions["findIncludePlayerProps(s)"] = "Include entities owned by player with specified name in future finds, and remove others not in the whitelist"
 E2Helper.Descriptions["findIncludePlayerProps(e)"] = "Include entities owned by specified player in future finds, and remove others not in the whitelist"
+E2Helper.Descriptions["findIncludePlayersProps(r)"] = "Include entities owned by specified players in array in future finds, and remove others not in the whitelist"
 
 -- Ranger
 E2Helper.Descriptions["rangerFlags()"] = "Returns the ranger flags as a string"
