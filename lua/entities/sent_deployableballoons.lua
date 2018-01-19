@@ -63,8 +63,6 @@ local function MakeBalloonSpawner(pl, Data)
 	return ent
 end
 
-hook.Add("Initialize", "DamageFilter", DamageFilter)
-
 duplicator.RegisterEntityClass("sent_deployableballoons", MakeBalloonSpawner, "Data")
 scripted_ents.Alias("gmod_iballoon", "gmod_balloon")
 
