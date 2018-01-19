@@ -20,6 +20,15 @@ e2function entity entity:weapon(string weaponclassname)
 end
 
 
+e2function vector entity:weaponColor()
+	if not IsValid(this) then return {0, 0, 0} end
+	if not this:IsPlayer() then return {0, 0, 0} end
+
+	local clr = this:GetWeaponColor()
+	return {clr.x * 255, clr.y * 255, clr.z * 255}
+end
+
+
 e2function string entity:primaryAmmoType()
 	if not IsValid(this) then return "" end
 	if not this:IsWeapon() then return "" end
