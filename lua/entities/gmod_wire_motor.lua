@@ -25,6 +25,8 @@ end
 
 function ENT:TriggerInput(iname, value)
 	if iname == "Mul" then
+		value = math.Clamp(value, -10000000, 10000000)
+
 		self.Mul = value
 		self:ShowOutput()
 		local Motor = self.constraint
