@@ -69,7 +69,7 @@ function EDITOR:Init()
 
 	self.TextEntry.OnLoseFocus = function (self) self.Parent:_OnLoseFocus() end
 	self.TextEntry.OnTextChanged = function (self) self.Parent:_OnTextChanged() end
-	self.TextEntry.OnKeyCodeTyped = function (self, code) self.Parent:_OnKeyCodeTyped(code) end
+	self.TextEntry.OnKeyCodeTyped = function (self, code) return self.Parent:_OnKeyCodeTyped(code) end
 
 	self.TextEntry.Parent = self
 
@@ -1754,6 +1754,7 @@ function EDITOR:DuplicateLine()
 end
 
 function EDITOR:_OnKeyCodeTyped(code)
+	local handled = true
 	self.Blink = RealTime()
 
 	local alt = input.IsKeyDown(KEY_LALT) or input.IsKeyDown(KEY_RALT)
@@ -1827,6 +1828,8 @@ function EDITOR:_OnKeyCodeTyped(code)
 			self:SetCaret({ #self.Rows, 1 })
 		elseif code == KEY_D then
 			self:DuplicateLine()
+		else
+			handled = false
 		end
 
 	else
@@ -1920,6 +1923,8 @@ function EDITOR:_OnKeyCodeTyped(code)
 			end
 		elseif code == KEY_F1 then
 			self:ContextHelp()
+		else
+			handled = false
 		end
 	end
 
@@ -1930,6 +1935,7 @@ function EDITOR:_OnKeyCodeTyped(code)
 			if mode == 4 and self.AC_Panel.Selected == 0 then self.AC_Panel.Selected = 1 end
 			return
 		end
+		handled = true
 	end
 
 	if code == KEY_TAB or (control and (code == KEY_I or code == KEY_O)) then
@@ -1956,13 +1962,16 @@ function EDITOR:_OnKeyCodeTyped(code)
 		end
 		-- signal that we want our focus back after (since TAB normally switches focus)
 		if code == KEY_TAB then self.TabFocus = true end
+		handled = true
 	end
 
-	if control then
-		self:OnShortcut(code)
+	if control and not handled then
+		handled = self:OnShortcut(code)
 	end
 
 	self:AC_Check()
+
+	return handled
 end
 
 ---------------------------------------------------------------------------------------------------------
