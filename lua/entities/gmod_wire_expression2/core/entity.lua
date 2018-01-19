@@ -400,8 +400,12 @@ e2function number entity:getSkin()
 end
 
 --- Sets <this>'s skin number.
-e2function void entity:setSkin(skin)
-	if IsValid(this) then this:SetSkin(skin) end
+e2function void entity:setSkin(skinIndex)
+	if IsValid(this) and not this:IsPlayer()
+	and this:SkinCount() > 0 and skinIndex < this:SkinCount()
+	and gamemode.Call("CanProperty", self.player, "skin", this) then
+		this:SetSkin(skinIndex)
+	end
 end
 
 --- Gets <this>'s number of skins.
