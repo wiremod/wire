@@ -291,6 +291,23 @@ local function dupefinished( TimedPasteData, TimedPasteDataCurrent )
 end
 hook.Add("AdvDupe_FinishPasting", "E2_dupefinished", dupefinished )
 
+if oldGarrydupePaste == nil then
+	oldGarrydupePaste = duplicator.Paste
+	duplicator.Paste = function( Player, EntityList, ConstraintList )
+		-- Garry's Duplicator doesn't have a FinishPasting hook it calls after all entities/constraints are done - so lets hack it
+		local CreatedEntities, CreatedConstraints = oldGarrydupePaste(Player, EntityList, ConstraintList)
+		for _, v in pairs( CreatedEntities ) do
+			if (v:IsValid() and v:GetClass() == "gmod_wire_expression2") then
+				v.dupefinished = true
+				v:Execute()
+				v.dupefinished = nil
+			end
+		end
+
+		return CreatedEntities, CreatedConstraints
+	end
+end
+
 e2function number dupefinished()
 	return self.entity.dupefinished and 1 or 0
 end
