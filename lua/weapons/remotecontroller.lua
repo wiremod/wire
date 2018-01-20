@@ -59,13 +59,13 @@ end
 
 function SWEP:On()
 	local ply = self:GetOwner()
-
-	if self.Linked:HasPly() then
-		if hook.Run("CanTool", ply, WireLib.dummytrace(self.Linked), "remotecontroller") then
-			if self.Linked.RC then
-				self.Linked:RCEject(self.Linked:GetPly())
+	local lnk = self.Linked
+	if IsValid(lnk) and (lnk:GetClass() == "gmod_wire_pod" or lnk:GetClass() == "gmod_wire_adv_pod") and lnk:HasPly() then
+		if hook.Run("CanTool", ply, WireLib.dummytrace(lnk), "remotecontroller") then
+			if lnk.RC then
+				lnk:RCEject(self.Linked:GetPly())
 			else
-				self.Linked:GetPly():ExitVehicle()
+				lnk:GetPly():ExitVehicle()
 			end
 		else
 			ply:ChatPrint("Pod is in use.")
@@ -78,8 +78,8 @@ function SWEP:On()
 	ply:SetMoveType(MOVETYPE_NONE)
 	ply:DrawViewModel(false)
 
-	if IsValid(self.Linked) then
-		self.Linked:PlayerEntered(ply, self)
+	if IsValid(lnk) then
+		lnk:PlayerEntered(ply, self)
 	end
 end
 
