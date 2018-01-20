@@ -76,9 +76,7 @@ function ENT:Think()
 end
 
 function ENT:AttachDisk(disk)
-	//Position disk
-	local min = disk:OBBMins()
-	local max = disk:OBBMaxs()
+	--Position disk
 
 	local newpos = self:LocalToWorld(Vector(0, 0, 0))
 	local lockAng = self:GetAngles()

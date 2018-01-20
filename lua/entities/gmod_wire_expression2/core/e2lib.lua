@@ -4,7 +4,7 @@ E2Lib = {}
 
 local type = type
 local function checkargtype(argn, value, argtype)
-	if type(value) ~= argtype then error(string.format("bad argument #%d to 'E2Lib.%s' (%s expected, got %s)", argn, debug.getinfo(2, "n").name, argtype, type(text)), 2) end
+	if type(value) ~= argtype then error(string.format("bad argument #%d to 'E2Lib.%s' (%s expected, got %s)", argn, debug.getinfo(2, "n").name, argtype, type(value)), 2) end
 end
 
 -- -------------------------- Helper functions -----------------------------
@@ -246,11 +246,11 @@ local table_length_lookup = {
 function E2Lib.guess_type(value)
 	if IsValid(value) then return "e" end
 	if value.EntIndex then return "e" end
-	local vtype = type(v)
+	local vtype = type(value)
 	if type_lookup[vtype] then return type_lookup[vtype] end
 	if vtype == "table" then
-		if table_length_lookup[#v] then return table_length_lookup[#v] end
-		if v.HitPos then return "xrd" end
+		if table_length_lookup[#value] then return table_length_lookup[#value] end
+		if value.HitPos then return "xrd" end
 	end
 
 	for typeid, v in pairs(wire_expression_types2) do

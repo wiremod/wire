@@ -19,19 +19,6 @@ if SERVER then
 	end)
 end
 
--- Removes a typecheck from a function identified by the given signature.
-local function removecheck(signature)
-	local entry = wire_expression2_funcs[signature]
-	local oldfunc, signature, rets, func, cost = entry.oldfunc, unpack(entry)
-
-	if not oldfunc then return end
-	func = oldfunc
-	oldfunc = nil
-
-	entry[3] = func
-	entry.oldfunc = oldfunc
-end
-
 --- This function ensures that the given function shows up by the given name in stack traces.
 --- It does so by eval'ing a generated block of code which invokes the actual function.
 --- Tail recursion optimization is specifically avoided by introducing a local variable in the generated code block.

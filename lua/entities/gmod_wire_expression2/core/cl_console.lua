@@ -5,7 +5,7 @@ local convars = {
 
 local function CreateCVars()
 	for name,default in pairs(convars) do
-		current_cvar = CreateClientConVar(name, default, true, true)
+		local current_cvar = CreateClientConVar(name, default, true, true)
 		local value = current_cvar:GetString() or default
 		RunConsoleCommand(name, value)
 	end

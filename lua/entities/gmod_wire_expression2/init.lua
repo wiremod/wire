@@ -378,7 +378,7 @@ function ENT:ResetContext()
 		end
 	end
 
-	for k, v in pairs(self.dvars) do
+	for k, _ in pairs(self.dvars) do
 		self.GlobalScope["$" .. k] = self.GlobalScope[k]
 	end
 
@@ -524,11 +524,12 @@ hook.Add("EntityRemoved", "Wire_Expression2_Player_Disconnected", function(ent)
 	if (ret == 0 or (ret == 2 and not wire_expression2_ShouldFreezeChip(ent))) then
 		return
 	end
-	for k, v in ipairs(ents.FindByClass("gmod_wire_expression2")) do
+	for _, v in ipairs(ents.FindByClass("gmod_wire_expression2")) do
 		if (v.player == ent) then
 			v:SetOverlayText(v.name .. "\n(Owner disconnected.)")
+			local oldColor = v:GetColor()
 			v:SetColor(Color(255, 0, 0, v:GetColor().a))
-			v.disconnectPaused = { r, g, b, a }
+			v.disconnectPaused = oldColor
 			v.error = true
 		end
 	end
@@ -632,7 +633,7 @@ local function enableEmergencyShutdown()
 					current_ram > halt_max_amount:GetInt() * 1000 then -- or if the current ram goes over a set limit
 
 					local e2s = ents.FindByClass("gmod_wire_expression2") -- find all E2s and halt them
-					for k,v in pairs( e2s ) do
+					for _,v in pairs( e2s ) do
 						if not v.error then
 							-- immediately clear any memory the E2 may be holding
 							v:PCallHook("destruct")

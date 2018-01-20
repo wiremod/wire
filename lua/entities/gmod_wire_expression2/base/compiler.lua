@@ -522,7 +522,7 @@ function Compiler:InstrSET(args)
 
 		local rt = self:GetOperator(args, "idx", { tp, tp1, tp2 })
 
-		return { rt[1], ex, ex1, ex2, ScopeID }, rt[2]
+		return { rt[1], ex, ex1, ex2, nil }, rt[2]
 	else
 		if tp2 ~= args[6] then
 			self:Error("Indexing type mismatch, specified [" .. tps_pretty({ args[6] }) .. "] but value is [" .. tps_pretty({ tp2 }) .. "]", args)
@@ -783,7 +783,7 @@ function Compiler:InstrRETURNVOID(args)
 		self:Error("Return type mismatch: " .. tps_pretty(self.func_ret) .. " expected got, void", args)
 	end
 
-	return { self:GetOperator(args, "return", {})[1], Value, Type }
+	return { self:GetOperator(args, "return", {})[1], nil, nil }
 end
 
 function Compiler:InstrKVTABLE(args)
@@ -833,6 +833,7 @@ function Compiler:InstrSWITCH(args)
 
 	local cases = {}
 	local Cases = args[4]
+	local default
 	for i = 1, #Cases do
 		local case, block, prf_eq, eq = Cases[i][1], Cases[i][2], 0, nil
 		if case then -- The default will not have one
