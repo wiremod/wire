@@ -46,12 +46,7 @@ end
 local Inputs = {}
 local Outputs = {}
 local CurLink = {}
-
-hook.Add("Think", "WireLib_Think", function()
-	for idx,port in pairs(Outputs) do
-		port.TriggerLimit = 4
-	end
-end)
+local CurTime = CurTime
 
 -- helper function that pcalls an input
 function WireLib.TriggerInput(ent, name, value, ...)
@@ -505,7 +500,14 @@ function WireLib.TriggerOutput(ent, oname, value, iter)
 
 	local output = ent.Outputs[oname]
 	if (output) and (value ~= output.Value or output.Type == "ARRAY" or output.Type == "TABLE") then
-		if (output.TriggerLimit <= 0) then return end
+		local timeOfFrame = CurTime()
+		if timeOfFrame ~= output.TriggerTime then
+			-- Reset the TriggerLimit every frame
+			output.TriggerLimit = 4
+			output.TriggerTime = timeOfFrame
+		elseif output.TriggerLimit <= 0 then
+			return
+		end
 		output.TriggerLimit = output.TriggerLimit - 1
 
 		output.Value = value
