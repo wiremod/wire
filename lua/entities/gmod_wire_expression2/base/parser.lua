@@ -652,7 +652,7 @@ function Parser:Stmt10()
 		for I = 1, #Args do
 			local Arg = Args[I]
 			Sig = Sig .. wire_expression_types[Arg[2]][1]
-			if I == 1 and Arg[1] == "This" then
+			if I == 1 and Arg[1] == "This" and Type ~= '' then
 				Sig = Sig .. ":"
 			end
 		end
