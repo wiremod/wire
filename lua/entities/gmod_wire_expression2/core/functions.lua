@@ -43,7 +43,7 @@ registerOperator("function", "", "", function(self, args)
 
 		if not ok then error(msg,0) end
 
-		if Return ~= "" then
+		if ReturnType ~= "" then
 			error("Function " .. E2Lib.generate_signature(Sig, nil, Args) ..
 				" executed and didn't return a value - expecting a value of type " ..
 				E2Lib.typeName(ReturnType), 0)
