@@ -4,7 +4,6 @@ WireToolSetup.open( "cd_disk", "CD Disk", "gmod_wire_cd_disk", nil, "CD Disks" )
 if (CLIENT) then
 	language.Add("Tool.wire_cd_disk.name", "CD Disk Tool (Wire)")
 	language.Add("Tool.wire_cd_disk.desc", "Spawns a CD Disk.")
-	language.Add("WireDataTransfererTool_cd_disk", "CD Disk:")
 
 	TOOL.Information = {
 		{ name = "left", text = "Create/Update " .. TOOL.Name },
