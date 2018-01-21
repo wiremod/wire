@@ -33,13 +33,37 @@ local function IsWire(entity) --try to find out if the entity is wire
 	return false
 end
 
-properties.Add("wire_debugger", {
+local function stopDebuggingEntity(ply, ent)
+	for k,cmp in ipairs(Components[ply]) do
+		if (cmp == ent) then
+			table.remove(Components[ply], k)
+			if SERVER then
+				dbg_line_cache[ply] = nil
+			end
+			return true
+		end
+	end
+	if not next(Components[ply]) then
+		if SERVER then
+			UpdateLineCount(ply, 0)
+		end
+		Components[ply] = nil
+	end
+end
+
+properties.Add("wire_debugger_start", {
 	MenuLabel = "Debug",
 	MenuIcon  = "icon16/bug.png",
+	Order = 500,
 
 	Filter = function(self,ent,ply)
 		if not IsValid(ent) then return false end
 		if not IsWire(ent) then return false end
+		if Components[ply] then
+			for k,cmp in ipairs(Components[ply]) do
+				if (cmp == ent) then return false end
+			end
+		end
 		return true
 	end,
 
@@ -47,6 +71,9 @@ properties.Add("wire_debugger", {
 		self:MsgStart()
 			net.WriteEntity(ent)
 		self:MsgEnd()
+		local ply = LocalPlayer()
+		Components[ply] = Components[ply] or {}
+		table.insert(Components[ply], ent)
 	end,
 
 	Receive = function(self,len,ply)
@@ -54,29 +81,44 @@ properties.Add("wire_debugger", {
 		if not self:Filter(ent,ply) then return end
 
 		Components[ply] = Components[ply] or {}
+		table.insert(Components[ply], ent)
+	end,
+})
+properties.Add("wire_debugger_stop", {
+	MenuLabel = "Stop Debugging",
+	MenuIcon  = "icon16/bug.png",
+	Order = 500,
 
-		for k, cmp in ipairs(Components[ply]) do
-			if cmp == ent then
-				table.remove(Components[ply], k)
-				dbg_line_cache[ply] = nil
-
-				if not next(Components[ply]) then
-					UpdateLineCount(ply, 0)
-					Components[ply] = nil
-				end
-
-				return
+	Filter = function(self,ent,ply)
+		if not IsValid(ent) then return false end
+		if not IsWire(ent) then return false end
+		if Components[ply] then
+			for k,cmp in ipairs(Components[ply]) do
+				if (cmp == ent) then return true end
 			end
 		end
+		return false
+	end,
 
-		table.insert(Components[ply], ent)
+	Action = function(self,ent)
+		self:MsgStart()
+		net.WriteEntity(ent)
+		self:MsgEnd()
+		local ply = LocalPlayer()
+		stopDebuggingEntity(ply, ent)
+	end,
+
+	Receive = function(self,len,ply)
+		local ent = net.ReadEntity()
+		if not self:Filter(ent,ply) then return end
+
+		stopDebuggingEntity(ply, ent)
 	end,
 })
 
 function TOOL:LeftClick(trace)
 	if (!trace.Entity:IsValid()) then return end
 	if (!IsWire(trace.Entity)) then return end
-	if (CLIENT) then return true end
 
 	local ply = self:GetOwner()
 	Components[ply] = Components[ply] or {}
@@ -104,22 +146,11 @@ end
 function TOOL:RightClick(trace)
 	if (!trace.Entity:IsValid()) then return end
 	if (!IsWire(trace.Entity)) then return end
-	if (CLIENT) then return true end
 
 	local ply = self:GetOwner()
 	if not Components[ply] then return end
 
-	for k,cmp in ipairs(Components[ply]) do
-		if (cmp == trace.Entity) then
-			table.remove(Components[ply], k)
-			dbg_line_cache[ply] = nil
-			return true
-		end
-	end
-	if not next(Components[ply]) then
-		UpdateLineCount(ply, 0)
-		Components[ply] = nil
-	end
+	return stopDebuggingEntity(ply, trace.Entity)
 end
 
 if CLIENT then
@@ -195,9 +226,9 @@ if CLIENT then
 end
 
 function TOOL:Reload(trace)
+	Components[self:GetOwner()] = nil
 	if (CLIENT) then return end
 	UpdateLineCount(self:GetOwner(), 0)
-	Components[self:GetOwner()] = nil
 	dbg_line_cache[self:GetOwner()] = nil
 end
 
