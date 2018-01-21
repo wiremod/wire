@@ -33,9 +33,6 @@ function ENT:Setup(fwd, bck, stop, torque, direction, axis)
 	self:UpdateOverlayText()
 end
 
---[[---------------------------------------------------------
-   Sets the base torque
----------------------------------------------------------]]
 function ENT:UpdateOverlayText(speed)
 	local motor = self:GetMotor()
 	local friction = 0
@@ -48,9 +45,6 @@ function ENT:UpdateOverlayText(speed)
 		"\nSpeedMod: " .. math.floor( self.SpeedMod * 100 ) .. "%" )
 end
 
---[[---------------------------------------------------------
-   Sets the axis (world space)
----------------------------------------------------------]]
 function ENT:SetAxis( vec )
 	self.Axis = self:GetPos() + vec * 512
 	self.Axis = self:NearestPoint( self.Axis )
@@ -67,9 +61,9 @@ function ENT:SetMotor( Motor )
 end
 
 function ENT:GetMotor()
-	if (!self.Motor) then
+	if not self.Motor then
 		self.Motor = constraint.FindConstraintEntity( self, "Motor" )
-		if (!self.Motor or !self.Motor:IsValid()) then
+		if not IsValid(self.Motor) then
 			self.Motor = nil
 		end
 	end
@@ -81,18 +75,10 @@ function ENT:SetDirection( dir )
 	self.direction = dir
 end
 
-
---[[---------------------------------------------------------
-   Forward
----------------------------------------------------------]]
 function ENT:Forward( mul )
-	if ( !self:IsValid() ) then return false end
+	if not self:IsValid() then return false end
 	local Motor = self:GetMotor()
-	if ( Motor and !Motor:IsValid() ) then
-		Msg("Wheel doesn't have a motor!\n");
-		return false
-	elseif ( !Motor ) then return false
-	end
+	if not IsValid(Motor) then return false end
 
 	mul = mul or 1
 	local mdir = Motor.direction
@@ -107,10 +93,6 @@ function ENT:Forward( mul )
 	return true
 end
 
---[[---------------------------------------------------------
-   Name: TriggerInput
-   Desc: the inputs
----------------------------------------------------------]]
 function ENT:TriggerInput(iname, value)
 	if (iname == "A: Go") then
 		if ( value == self.fwd ) then self.Go = 1
@@ -147,11 +129,6 @@ function ENT:PhysicsUpdate( physobj )
 	physobj:SetVelocity(vel)
 end
 
-
-
---[[---------------------------------------------------------
-   Todo? Scale Motor:GetTable().direction?
----------------------------------------------------------]]
 function ENT:SetTorque( torque )
 	self.TorqueScale = torque / self.BaseTorque
 

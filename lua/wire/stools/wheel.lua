@@ -75,7 +75,7 @@ if SERVER then
 		return wheelEnt
 	end
 	
-	function TOOL:LeftClick_PostMake( ent, ply, trace ) end -- We're handling this in MakeEnt since theres a motor
+	function TOOL:LeftClick_PostMake(_, _, _) end -- We're handling this in MakeEnt since theres a motor
 end
 
 function TOOL:GetAngle(trace)
@@ -100,7 +100,7 @@ function TOOL.BuildCPanel( panel )
 	panel:NumSlider("#tool.wire_wheel.group", "wire_wheel_fwd", -10, 10, 0)
 	panel:NumSlider("#tool.wire_wheel.group_stop", "wire_wheel_stop", -10, 10, 0)
 	panel:NumSlider("#tool.wire_wheel.group_reverse", "wire_wheel_bck", -10, 10, 0)
-	//WireDermaExts.ModelSelect(panel, "wheel_model", list.Get( "WheelModels" ), 3, true) -- This doesn't seem to set the wheel_rx convars right
+	--WireDermaExts.ModelSelect(panel, "wheel_model", list.Get( "WheelModels" ), 3, true) -- This doesn't seem to set the wheel_rx convars right
 	panel:AddControl( "PropSelect", { Label = "#tool.wheel.model",
 									 ConVar = "wheel_model",
 									 Category = "Wheels",
