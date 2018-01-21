@@ -442,6 +442,10 @@ function ENT:Think()
 						button.EntToOutput = ply
 						button:Switch( true )
 					end
+				elseif button.Use then
+					-- Generic support (EGP screens, etc)
+					self.MouseDown = true
+					button:Use(ply, ply, USE_ON, 0)
 				end
 			elseif (!ply:KeyDown( IN_ATTACK ) and self.MouseDown) then
 				self.MouseDown = false
