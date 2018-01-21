@@ -74,7 +74,7 @@ function tps_pretty(tps)
 end
 
 local function op_find(name)
-	return E2Lib.optable_inv[name]
+	return E2Lib.optable_inv[name] or "unknown?!"
 end
 
 --[[
