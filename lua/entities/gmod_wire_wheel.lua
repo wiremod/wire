@@ -5,6 +5,10 @@ ENT.WireDebugName	= "Wheel"
 
 if CLIENT then return end -- No more client
 
+-- As motor constraints can't have their initial torque updated,
+-- we always create it with 1000 initial torque (needs to be > friction) and then Scale it with a multiplier
+local WHEEL_BASE_TORQUE = 1000
+
 function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )
 	self:SetMoveType( MOVETYPE_VPHYSICS )
@@ -12,7 +16,6 @@ function ENT:Initialize()
 	self:SetUseType( SIMPLE_USE )
 
 	self.BaseTorque = 1
-	self.TorqueScale = 1
 	self.Breaking = 0
 	self.SpeedMod = 0
 	self.Go = 0
@@ -24,9 +27,7 @@ function ENT:Setup(fwd, bck, stop, torque, direction, axis)
 	self.fwd = fwd
 	self.bck = bck
 	self.stop = stop
-	if self.BaseTorque == 1 then self.BaseTorque = math.max(1, torque)
-	else self:SetTorque(torque)
-	end
+	if torque then self:SetTorque(math.max(1, torque)) end
 	if direction then self:SetDirection( direction ) end
 	if axis then self.Axis = axis end
 	
@@ -38,7 +39,7 @@ function ENT:UpdateOverlayText(speed)
 	local friction = 0
 	if IsValid(motor) then friction = motor.friction end
 	self:SetOverlayText( 
-		"Torque: " .. math.floor( self.TorqueScale * self.BaseTorque ) .. 
+		"Torque: " .. math.floor( self.BaseTorque ) ..
 		"\nFriction: " .. friction .. 
 		"\nSpeed: " .. (speed or 0) .. 
 		"\nBreak: " .. self.Breaking .. 
@@ -82,9 +83,9 @@ function ENT:Forward( mul )
 
 	mul = mul or 1
 	local mdir = Motor.direction
-	local Speed = mdir * mul * self.TorqueScale * (1 + self.SpeedMod)
+	local Speed = mdir * mul * (self.BaseTorque / WHEEL_BASE_TORQUE) * (1 + self.SpeedMod)
 	
-	self:UpdateOverlayText(mdir * mul * (1 + self.SpeedMod))
+	self:UpdateOverlayText(mul ~= 0 and (mdir * mul * (1 + self.SpeedMod)) or 0)
 
 	Motor:Fire( "Scale", Speed, 0 )
 	Motor:GetTable().forcescale = Speed
@@ -130,11 +131,11 @@ function ENT:PhysicsUpdate( physobj )
 end
 
 function ENT:SetTorque( torque )
-	self.TorqueScale = torque / self.BaseTorque
+	self.BaseTorque = torque
 
 	local Motor = self:GetMotor()
 	if not IsValid(Motor) then return end
-	Motor:Fire( "Scale", Motor:GetTable().direction * Motor:GetTable().forcescale * self.TorqueScale , 0 )
+	Motor:Fire( "Scale", Motor:GetTable().direction * Motor:GetTable().forcescale * (torque / WHEEL_BASE_TORQUE), 0 )
 
 	self:UpdateOverlayText()
 end
@@ -167,7 +168,7 @@ function ENT:Use( activator, caller, type, value )
 			Motor:GetTable().direction = 1
 		end
 
-		Motor:Fire( "Scale", Motor:GetTable().direction * Motor:GetTable().forcescale * self.TorqueScale, 0 )
+		Motor:Fire( "Scale", Motor:GetTable().direction * Motor:GetTable().forcescale * (self.BaseTorque / WHEEL_BASE_TORQUE), 0 )
 		self:SetDirection( Motor:GetTable().direction )
 
 		self:DoDirectionEffect()
@@ -196,4 +197,5 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 	if IsValid(Base) then
 		self:SetWheelBase(Base)
 	end
+	self:UpdateOverlayText()
 end

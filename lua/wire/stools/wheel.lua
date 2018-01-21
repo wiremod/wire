@@ -51,7 +51,7 @@ if SERVER then
 		local LPos1 = wheelEnt:GetPhysicsObject():WorldToLocal( wheelEnt:GetPos() + trace.HitNormal )
 		local LPos2 = targetPhys:WorldToLocal( trace.HitPos )
 
-		local constraint, axis = constraint.Motor( wheelEnt, trace.Entity, 0, trace.PhysicsBone, LPos1,	LPos2, friction, torque, 0, nocollide, false, ply, limit )
+		local constraint, axis = constraint.Motor( wheelEnt, trace.Entity, 0, trace.PhysicsBone, LPos1,	LPos2, friction, 1000, 0, nocollide, false, ply, limit )
 
 		undo.Create(self.WireClass)
 			undo.AddEntity( axis )
@@ -108,6 +108,7 @@ function TOOL.BuildCPanel( panel )
 									 Models = list.Get( "WheelModels" ) } )
 	panel:NumSlider("#tool.wheel.torque", "wire_wheel_torque", 10, 10000, 0)
 	panel:NumSlider("#tool.wheel.forcelimit", "wire_wheel_forcelimit", 0, 50000, 0)
-	panel:NumSlider("#tool.wheel.friction", "wire_wheel_friction", 0, 50, 2)
+	local frictionPanel = panel:NumSlider("#tool.wheel.friction", "wire_wheel_friction", 0, 50, 2)
+	frictionPanel:SetTooltip("How quickly the wheel comes to a stop. Note: An existing wheel's friction cannot be updated")
 	panel:CheckBox("#tool.wheel.nocollide", "wire_wheel_nocollide")
 end
