@@ -406,6 +406,31 @@ e2function string keyClkPressedBind()
 	return self.data.runOnKeys.pressedBind
 end
 
+-- Use Support --
+
+local InUseBy = nil
+__e2setcost(50)
+--- Makes the chip "Use"able
+e2function void runOnUse(value)
+	if value != 0 then
+		self.entity:SetUseType( SIMPLE_USE )
+		self.entity.Use = function(self,activator)
+			InUseBy = activator
+			self:Execute()
+			InUseBy = nil
+		end
+	else
+		self.entity.Use = nil
+	end
+end
+
+__e2setcost(1)
+--- Returns the entity who is using the chip
+e2function entity useClk()
+	return InUseBy
+end
+
+
 -- isTyping
 local plys = {}
 concommand.Add("E2_StartChat",function(ply,cmd,args) plys[ply] = true end)
@@ -418,6 +443,7 @@ end
 
 --------------------------------------------------------------------------------
 
+__e2setcost(2)
 local Trusts
 
 if CPPI and debug.getregistry().Player.CPPIGetFriends then
