@@ -62,7 +62,7 @@ end)
 
 /******************************************************************************/
 
-__e2setcost(5) -- approximation
+__e2setcost(20)
 
 e2function void interval(rv1)
 	AddTimer(self, "interval", rv1)
@@ -72,10 +72,13 @@ e2function void timer(string rv1, rv2)
 	AddTimer(self, rv1, rv2)
 end
 
+__e2setcost(5)
+
 e2function void stoptimer(string rv1)
 	RemoveTimer(self, rv1)
 end
 
+__e2setcost(1)
 e2function number clk()
 	if self.data.timer.runner == "interval"
 	   then return 1 else return 0 end
@@ -144,7 +147,7 @@ local function luaDateToE2Table( time, utc )
 	
 	return ret
 end
-
+__e2setcost(10)
 -- Returns the server's current time formatted neatly in a table
 e2function table date()
 	return luaDateToE2Table()
@@ -177,6 +180,7 @@ end
 
 -----------------------------------------------------------------------------------
 
+__e2setcost(2)
 -- Returns the time in seconds
 e2function number time()
 	return os.time()

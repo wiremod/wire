@@ -621,7 +621,7 @@ end
 
 -- -----------------------------------------------------------------------------
 
-__e2setcost(20) -- temporary
+__e2setcost(30) -- temporary
 
 
 
@@ -693,6 +693,7 @@ e2function entity holoCreate(index)
 	if IsValid(ret) then return ret end
 end
 
+__e2setcost(20)
 e2function void holoDelete(index)
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
@@ -727,7 +728,7 @@ e2function void holoReset(index, string model, vector scale, vector color, strin
 	reset_clholo(Holo, scale) -- Reset scale, clips, and visible status
 end
 
-__e2setcost(5)
+__e2setcost(2)
 
 e2function number holoCanCreate()
 	if (not checkOwner(self)) then return 0 end
@@ -754,7 +755,7 @@ end
 
 -- -----------------------------------------------------------------------------
 
-__e2setcost(5) -- temporary
+__e2setcost(15) -- temporary
 
 e2function void holoScale(index, vector scale)
 	local Holo = CheckIndex(self, index)
@@ -836,11 +837,12 @@ e2function vector holoBoneScale(index, string bone)
 
 	return {0,0,0}
 end
-
+__e2setcost(1)
 e2function number holoClipsAvailable()
 	return wire_holograms_max_clips:GetInt()
 end
 
+__e2setcost(15)
 e2function void holoClipEnabled(index, enabled) -- Clip at first index
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
@@ -926,6 +928,7 @@ e2function void holoAlpha(index, alpha)
 	Holo.ent:SetRenderMode(Holo.ent:GetColor().a == 255 and RENDERMODE_NORMAL or RENDERMODE_TRANSALPHA)
 end
 
+__e2setcost(10)
 e2function void holoShadow(index, has_shadow)
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
@@ -952,10 +955,12 @@ e2function array holoModelList()
 	return mlist
 end
 
+__e2setcost(1)
 e2function number holoModelAny()
 	return wire_holograms_modelany:GetInt()
 end
 
+__e2setcost(10)
 e2function void holoModel(index, string model)
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
@@ -1070,6 +1075,7 @@ local function Check_Parents(child, parent)
 	return true
 end
 
+__e2setcost(40)
 e2function void holoParent(index, otherindex)
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
@@ -1120,6 +1126,7 @@ end
 
 -- -----------------------------------------------------------------------------
 
+__e2setcost(2)
 e2function entity holoEntity(index)
 	local Holo = CheckIndex(self, index)
 	if Holo and IsValid(Holo.ent) then return Holo.ent end
