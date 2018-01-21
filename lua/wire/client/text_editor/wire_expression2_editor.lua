@@ -449,7 +449,10 @@ function Editor:SetActiveTab(val)
 	end
 	if self.E2 then self:Validate() end
 
-	-- Editor subtitle and tab text
+	self:UpdateActiveTabTitle()
+end
+
+function Editor:UpdateActiveTabTitle()
 	local title, tabtext = getPreferredTitles(self:GetChosenFile(), self:GetCode())
 
 	if title then self:SubTitle("Editing: " .. title) else self:SubTitle() end
@@ -1768,6 +1771,7 @@ function Editor:SaveFile(Line, close, SaveAs)
 			function(strTextOut)
 				strTextOut = string.gsub(strTextOut, ".", invalid_filename_chars)
 				self:SaveFile(self.Location .. "/" .. strTextOut .. ".txt", close)
+				self:UpdateActiveTabTitle()
 			end)
 		return
 	end
