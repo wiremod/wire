@@ -20,6 +20,37 @@ for i = 97, 122 do -- a -> z
 	All_Enums[i] = _G["KEY_" .. string.upper(string.char(i))]
 end
 
+local unprintable_chars = {}
+for i=17,20 do unprintable_chars[i] = true end -- arrow keys
+for i=127,177 do unprintable_chars[i] = true end -- backspace, numpad, ctrl, alt, shift, break, F1-F12, scroll/num/caps lock, and more
+
+local convertable_chars = {
+	[128] = 49, -- numpad 1
+	[129] = 50, -- numpad 2
+	[130] = 51, -- numpad 3
+	[131] = 52, -- numpad 4
+	[132] = 53, -- numpad 5
+	[133] = 54, -- numpad 6
+	[134] = 55, -- numpad 7
+	[135] = 56, -- numpad 8
+	[136] = 57, -- numpad 9
+	[137] = 58, -- numpad 4
+	[138] = 47, -- /
+	[139] = 42, -- *
+	[140] = 45, -- -
+	[141] = 43, -- +
+	[142] = 10, -- \n
+	[143] = 46, -- .
+}
+
+local function getPrintableChar( key )
+	if key == 0 then return "" end
+	if unprintable_chars[key] and not convertable_chars[key] then return "" end
+	if convertable_chars[key] then key = convertable_chars[key] end
+	if key == 13 then key = 10 end -- convert newline '13' into newlne '10' to make it work properly
+	return utf8.char(key)
+end
+
 function ENT:Initialize()
 	self:PhysicsInit(SOLID_VPHYSICS)
 	self:SetMoveType(MOVETYPE_VPHYSICS)
@@ -27,7 +58,7 @@ function ENT:Initialize()
 	self:SetUseType(SIMPLE_USE)
 
 	self.Inputs = WireLib.CreateInputs(self, { "Kick", "Reset Output String" })
-	self.Outputs = WireLib.CreateOutputs(self, { "Memory", "Output [STRING]", "ActiveKeys [ARRAY]", "User [ENTITY]", "InUse" })
+	self.Outputs = WireLib.CreateOutputs(self, { "Memory", "Output [STRING]", "OutputChar [STRING]", "ActiveKeys [ARRAY]", "User [ENTITY]", "InUse" })
 
 	self.ActiveKeys = {} -- table containing all currently active keys, used to see when keys are pressed/released
 	self.Buffer = {} -- array containing all currently active keys, value is ascii
@@ -56,20 +87,25 @@ function ENT:TriggerInput(name, value)
 end
 
 function ENT:TriggerOutputs(key)
-	-- Output key numerical representation
+	local str = ""
+
+	-- Output key numerical & char representation
 	if key ~= nil then
 		WireLib.TriggerOutput(self, "Memory", key)
+		WireLib.TriggerOutput(self, "OutputChar", getPrintableChar(key))
+	else
+		WireLib.TriggerOutput(self, "OutputChar", "")
 	end
 
 	-- Output user
 	if IsValid( self.ply ) then
 		WireLib.TriggerOutput(self, "User", self.ply)
 		WireLib.TriggerOutput(self, "InUse", 1)
-		self:SetOverlayText("In use by " .. self.ply:Nick())
+		str = str .. "In use by: " .. self.ply:Nick() .. "\n"
 	else
 		WireLib.TriggerOutput(self, "User", nil)
 		WireLib.TriggerOutput(self, "InUse", 0)
-		self:SetOverlayText("Not in use")
+		str = str .. "Not in use\n"
 	end
 
 	-- Output currently pressed keys
@@ -82,6 +118,13 @@ function ENT:TriggerOutputs(key)
 
 	-- Output buffer string
 	WireLib.TriggerOutput(self, "Output", self.OutputString)
+
+	-- Display options in overlay
+	str = str .. "Lock player controls: " .. (self.Synchronous and "Yes" or "No") .. "\n"
+			  .. "Automatic buffer clear: " .. (self.AutoBuffer and "Yes" or "No") .. "\n"
+			  .. "Enter key ASCII output: " .. (self.EnterKeyAscii and "10 ('\\n')" or "13 ('\\r')")
+
+	self:SetOverlayText( str )
 end
 
 function ENT:ReadCell(Address)
@@ -187,6 +230,8 @@ function ENT:OnRemove()
 end
 
 function ENT:LinkEnt(pod)
+	pod = WireLib.GetClosestRealVehicle(pod,self:GetPos(),self:GetPlayer())
+
 	if not IsValid(pod) or not pod:IsVehicle() then return false, "Must link to a vehicle" end
 	if IsValid(self.Pod) then self.Pod.WireKeyboard = nil end
 	pod.WireKeyboard = self
@@ -215,40 +260,15 @@ hook.Add("PlayerLeaveVehicle", "wire_keyboard_PlayerLeaveVehicle", function(ply,
 	end
 end)
 
-local unprintable_chars = {}
-for i=17,20 do unprintable_chars[i] = true end -- arrow keys
-for i=144,177 do unprintable_chars[i] = true end -- ctrl, alt, shift, break, F1-F12, scroll/num/caps lock, and more
-
-local convertable_chars = {
-	[128] = 49, -- numpad 1
-	[129] = 50, -- numpad 2
-	[130] = 51, -- numpad 3
-	[131] = 52, -- numpad 4
-	[132] = 53, -- numpad 5
-	[133] = 54, -- numpad 6
-	[134] = 55, -- numpad 7
-	[135] = 56, -- numpad 8
-	[136] = 57, -- numpad 9
-	[137] = 58, -- numpad 4
-	[138] = 47, -- /
-	[139] = 42, -- *
-	[140] = 45, -- -
-	[141] = 43, -- +
-	[142] = 10, -- \n
-	[143] = 46, -- .
-}
-
 function ENT:AppendOutputString(key)
-	if unprintable_chars[key] and not convertable_chars[key] then return end
-	if convertable_chars[key] then key = convertable_chars[key] end
-
 	if key == 127 then
 		local pos = string.match(self.OutputString,"()"..utf8.charpattern.."$")
 		if pos then
 			self.OutputString = string.sub(self.OutputString,1,pos-1)
 		end
 	else
-		self.OutputString = self.OutputString .. utf8.char(key)
+		key = getPrintableChar(key)
+		self.OutputString = self.OutputString .. key
 	end
 
 	self:TriggerOutputs()
@@ -273,6 +293,7 @@ function ENT:GetRemappedKey(key_enum)
 	end
 
 	if isstring(ret) then ret = utf8.codepoint(ret) end
+	if not self.EnterKeyAscii and ret == 10 then ret = 13 end
 	return ret
 end
 
@@ -392,12 +413,14 @@ function ENT:Think()
 	return true
 end
 
-function ENT:Setup(autobuffer, sync)
+function ENT:Setup(autobuffer, sync, enterkeyascii)
 	self.AutoBuffer = autobuffer
 	self.Synchronous = sync
+	self.EnterKeyAscii = enterkeyascii
+	self:TriggerOutputs()
 end
 
-duplicator.RegisterEntityClass("gmod_wire_keyboard", WireLib.MakeWireEnt, "Data", "AutoBuffer", "Synchronous")
+duplicator.RegisterEntityClass("gmod_wire_keyboard", WireLib.MakeWireEnt, "Data", "AutoBuffer", "Synchronous", "EnterKeyAscii")
 
 function ENT:BuildDupeInfo()
 	local info = self.BaseClass.BuildDupeInfo(self) or {}

@@ -1,62 +1,75 @@
 AddCSLuaFile()
-DEFINE_BASECLASS( "base_wire_entity" )
+DEFINE_BASECLASS( "gmod_wire_socket" )
 ENT.PrintName		= "Wire Data Socket"
 ENT.WireDebugName = "Socket"
 
-if CLIENT then return end -- No more client
-
-//Time after loosing one plug to search for another
-local NEW_PLUG_WAIT_TIME = 2
-local PLUG_IN_SOCKET_CONSTRAINT_POWER = 5000
-local PLUG_IN_ATTACH_RANGE = 3
-
-local SocketModels = {
-	["models/props_lab/tpplugholder_single.mdl"] = "models/props_lab/tpplug.mdl",
-	["models/bull/various/usb_socket.mdl"] = "models/bull/various/usb_stick.mdl",
-	["models/hammy/pci_slot.mdl"] = "models/hammy/pci_card.mdl",
-	["models/wingf0x/isasocket.mdl"] = "models/wingf0x/isaplug.mdl",
-	["models/wingf0x/altisasocket.mdl"] = "models/wingf0x/isaplug.mdl",
-	["models/wingf0x/ethernetsocket.mdl"] = "models/wingf0x/ethernetplug.mdl",
-	["models/wingf0x/hdmisocket.mdl"] = "models/wingf0x/hdmiplug.mdl",
-}
-
-function ENT:GetOffset( vec )
-	local offset = vec
-
-	local ang = self:GetAngles()
-	local stackdir = ang:Up()
-	offset = ang:Up() * offset.X + ang:Forward() * -1 * offset.Z + ang:Right() * offset.Y
-
-	return self:GetPos() + stackdir * 2 + offset
+function ENT:GetPlugClass()
+	return "gmod_wire_dataplug"
 end
 
-if CLIENT then return end -- No more client
+if CLIENT then
+	hook.Add("HUDPaint","Wire_DataSocket_DrawLinkHelperLine",function()
+		local sockets = ents.FindByClass("gmod_wire_datasocket")
+		for k,self in pairs( sockets ) do
+			local Pos, _ = self:GetLinkPos()
+
+			local Closest = self:GetClosestPlug()
+
+			if IsValid(Closest) and self:CanLink(Closest) and Closest:GetNWBool( "PlayerHolding", false ) and Closest:GetClosestSocket() == self then
+				local plugpos = Closest:GetPos():ToScreen()
+				local socketpos = Pos:ToScreen()
+				surface.SetDrawColor(255,255,100,255)
+				surface.DrawLine(plugpos.x, plugpos.y, socketpos.x, socketpos.y)
+			end
+		end
+	end)
+
+	function ENT:DrawEntityOutline() end -- never draw outline
+
+	return
+end
 
 function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )
 	self:SetMoveType( MOVETYPE_VPHYSICS )
 	self:SetSolid( SOLID_VPHYSICS )
 
-	self.MyPlug = nil
-	self.Memory = nil
-	self.OwnMemory = nil
-	self.Const = nil
-	self.ReceivedValue = 0
+	self.Inputs = WireLib.CreateInputs(self, { "Memory" })
+	self.Outputs = WireLib.CreateOutputs(self, { "Memory" })
+	WireLib.TriggerOutput(self, "Memory", 0)
 
-	self.Inputs = Wire_CreateInputs(self, { "Memory" })
-	self.Outputs = Wire_CreateOutputs(self, { "Memory" })
-	Wire_TriggerOutput(self, "Memory", 0)
+	self.Memory = nil
 end
+
+function ENT:Setup( WeldForce, AttachRange )
+	self.WeldForce = WeldForce or 5000
+	self.AttachRange = AttachRange or 5
+	self:SetNWInt( "AttachRange", self.AttachRange )
+end
+
+-- Override some functions from gmod_wire_socket
+function ENT:ResendValues()
+	self:SetMemory(self.Plug.Memory)
+end
+function ENT:ResetValues()
+	self.Memory = nil --We're now getting no signal
+	WireLib.TriggerOutput(self, "Memory", 0)
+end
+
+duplicator.RegisterEntityClass( "gmod_wire_datasocket", WireLib.MakeWireEnt, "Data", "WeldForce", "AttachRange" )
 
 function ENT:SetMemory(mement)
 	self.Memory = mement
-	Wire_TriggerOutput(self, "Memory", 1)
+	WireLib.TriggerOutput(self, "Memory", 1)
 end
 
-function ENT:ReadCell( Address )
+function ENT:ReadCell( Address, infloop )
+	infloop = infloop or 0
+	if infloop > 50 then return end
+
 	if (self.Memory) then
 		if (self.Memory.ReadCell) then
-			return self.Memory:ReadCell( Address )
+			return self.Memory:ReadCell( Address, infloop + 1 )
 		else
 			return nil
 		end
@@ -65,10 +78,13 @@ function ENT:ReadCell( Address )
 	end
 end
 
-function ENT:WriteCell( Address, value )
+function ENT:WriteCell( Address, value, infloop )
+	infloop = infloop or 0
+	if infloop > 50 then return end
+
 	if (self.Memory) then
 		if (self.Memory.WriteCell) then
-			return self.Memory:WriteCell( Address, value )
+			return self.Memory:WriteCell( Address, value, infloop + 1 )
 		else
 			return false
 		end
@@ -77,102 +93,24 @@ function ENT:WriteCell( Address, value )
 	end
 end
 
-function ENT:Think()
-	self.BaseClass.Think(self)
-
-	// If we were unplugged, reset the plug and socket to accept new ones.
-	if (self.Const) and (not self.Const:IsValid()) then
-		self.Const = nil
-		self.NoCollideConst = nil
-		if (self.MyPlug) and (self.MyPlug:IsValid()) then
-			self.MyPlug:SetSocket(nil)
-			self.MyPlug = nil
-		end
-
-		self.Memory = nil //We're now getting no signal
-		Wire_TriggerOutput(self, "Memory", 0)
-
-		self:NextThink( CurTime() + NEW_PLUG_WAIT_TIME ) //Give time before next grabbing a plug.
-		return true
-	end
-
-	// If we have no plug in us
-	if (not self.MyPlug) or (not self.MyPlug:IsValid()) then
-
-		// Find entities near us
-		local sockCenter = self:GetOffset( Vector(-1.75, 0, 0) )
-		local local_ents = ents.FindInSphere( sockCenter, PLUG_IN_ATTACH_RANGE )
-		for key, plug in pairs(local_ents) do
-
-			// If we find a plug, try to attach it to us
-			if ( plug:IsValid() && plug:GetClass() == "gmod_wire_dataplug" ) then
-
-				// If no other sockets are using it
-				if plug.MySocket == nil then
-					local plugpos = plug:GetPos()
-					local dist = (sockCenter-plugpos):Length()
-
-					// If model matches up
-					if SocketModels[self:GetModel()] == plug:GetModel() then
-						self:AttachPlug(plug)
-					end
-				end
-			end
-		end
-	end
-end
-
-function ENT:AttachPlug( plug )
-	// Set references between them
-	plug:SetSocket(self)
-	self.MyPlug = plug
-
-	// Position plug
-	local newpos = self:GetOffset( Vector(-1.75, 0, 0) )
-	if self:GetModel() == "models/props_lab/tpplugholder_single.mdl" then newpos = self:GetOffset( Vector( 8, -13, -5) )
-	elseif self:GetModel() == "models/bull/various/usb_socket.mdl" then   newpos = self:GetOffset( Vector(-2,  0, -8) )
-	elseif self:GetModel() == "models/wingf0x/altisasocket.mdl" then      newpos = self:GetOffset( Vector( 0.9,  0,  0) )
-	elseif self:GetModel() == "models/wingf0x/ethernetsocket.mdl" then    newpos = self:GetOffset( Vector(-2.00,  0,  0) )
-	elseif self:GetModel() == "models/wingf0x/hdmisocket.mdl" then        newpos = self:GetOffset( Vector(-2.00,  0,  0) )
-	end
-
-	local socketAng = self:GetAngles()
-	plug:SetPos( newpos )
-	plug:SetAngles( socketAng )
-
-	self.NoCollideConst = constraint.NoCollide(self, plug, 0, 0)
-	if (not self.NoCollideConst) then
-		self.MyPlug = nil
-		plug:SetSocket(nil)
-		self.Memory = nil
-			Wire_TriggerOutput(self, "Memory", 0)
-		return
-	end
-
-	// Constrain together
-	self.Const = constraint.Weld( self, plug, 0, 0, PLUG_IN_SOCKET_CONSTRAINT_POWER, true )
-	if (not self.Const) then
-		self.NoCollideConst:Remove()
-		self.NoCollideConst = nil
-		self.MyPlug = nil
-		plug:SetSocket(nil)
-		self.Memory = nil
-		Wire_TriggerOutput(self, "Memory", 0)
-		return
-	end
-
-	// Prepare clearup incase one is removed
-	plug:DeleteOnRemove( self.Const )
-	self:DeleteOnRemove( self.Const )
-	self.Const:DeleteOnRemove( self.NoCollideConst )
-
-	plug:AttachedToSocket(self)
-end
-
 function ENT:TriggerInput(iname, value, iter)
 	if (iname == "Memory") then
 		self.OwnMemory = self.Inputs.Memory.Src
 	end
 end
 
-duplicator.RegisterEntityClass("gmod_wire_datasocket", WireLib.MakeWireEnt, "Data")
+-- Override dupeinfo functions from wire plug
+local base = scripted_ents.Get("gmod_wire_socket")
+function ENT:BuildDupeInfo()
+	local info = base.BuildDupeInfo(self)
+
+	if info.Socket then info.Socket.ArrayInput = nil end -- this input is not used on this entity
+
+	return info
+end
+
+function ENT:GetApplyDupeInfoParams(info)
+	return info.Socket.WeldForce, info.Socket.AttachRange
+end
+
+duplicator.RegisterEntityClass("gmod_wire_datasocket", WireLib.MakeWireEnt, "Data", "WeldForce", "AttachRange")

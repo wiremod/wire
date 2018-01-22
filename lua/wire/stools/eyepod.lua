@@ -2,18 +2,11 @@ WireToolSetup.setCategory( "Vehicle Control" )
 WireToolSetup.open( "eyepod", "Eye Pod", "gmod_wire_eyepod", nil, "Eye Pods" )
 
 if ( CLIENT ) then
-	//tool hud lang
+	--tool hud lang
 	language.Add( "Tool.wire_eyepod.name", "Eye Pod Tool (Wire)" )
 	language.Add( "Tool.wire_eyepod.desc", "Spawns an Eye Pod Mouse Controller." )
-	TOOL.Information = {
-		{ name = "left_0", stage = 0, text = "Create/Update Controller" },
-		{ name = "right_0", stage = 0, text = "Link controller" },
-		{ name = "reload_0", stage = 0, text = "Unlink EyePod" },
-		{ name = "right_1", stage = 1, text = "Now right click a vehicle" },
-		{ name = "reload_1", stage = 1, text = "Cancel Current Link" },
-	}
 
-	//panel control lang
+	--panel control lang
 	language.Add( "WireEyePod_DefaultToZero", "Default Outputs To Zero When Inactive" )
 	language.Add( "WireEyePod_CumulativeOutput", "Output Cumulative Mouse Position" )
 end
@@ -33,7 +26,7 @@ if SERVER then
 		local DefaultToZero = self:GetClientNumber("DefaultToZero")
 		local CumulativeOutput = self:GetClientNumber("CumulativeOutput")
 		local ShowRateOfChange = (CumulativeOutput ~= 0) and 0 or 1
-		//set the default to zero to one if you are showing the mouse position instead
+		--set the default to zero to one if you are showing the mouse position instead
 		if (ShowRateOfChange == 1) then DefaultToZero = 1 end
 
 		local ClampXMin = self:GetClientNumber("XMin")
@@ -42,7 +35,7 @@ if SERVER then
 		local ClampYMax = self:GetClientNumber("YMax")
 		local ClampX = 0
 		local ClampY = 0
-		//test clamp
+		--test clamp
 		if ( (ClampXMin != 0 or ClampXMax != 0) and (ClampYMin != 0 or ClampYMax != 0) and
 			ClampXMin != ClampXMax and ClampYMin != ClampYMax and
 			ClampXMin < ClampXMax and ClampYMin < ClampYMax ) then
@@ -67,59 +60,14 @@ if SERVER then
 	end
 end
 
-//link the eyepod to the vehicle
-function TOOL:RightClick(trace)
-	if ( CLIENT ) then return true end
-	local entity = trace.Entity
-	if self:GetStage() == 0 and entity:GetClass() == "gmod_wire_eyepod" then
-		self.PodCont = entity
-		if self.PodCont.pod and self.PodCont.pod:IsValid() and self.PodCont.pod.AttachedWireEyePod then
-			self.PodCont.pod.AttachedWireEyePod = nil
-			self.PodCont.pod = nil
-		end
-		self:SetStage(1)
-		return true
-	elseif self:GetStage() == 1 and entity.GetPassenger then
-		if entity.AttachedWireEyePod then
-			self:GetOwner():ChatPrint("Pod Already Has An EyePod Linked To It!")
-			return false
-		end
-		local Success = self.PodCont:PodLink(entity)
-		if (Success == false) then
-			self:GetOwner():ChatPrint("Error: Cannot Link Eye Pod!")
-			return false
-		end
-		self:SetStage(0)
-		self.PodCont = nil
-		self:GetOwner():ChatPrint("Wire Eye Pod Linked")
-		return true
-	else
-		return false
-	end
-end
-
-function TOOL:Reload(trace)
-	if ( CLIENT ) then return true end
-
-	if self:GetStage() == 1 then
-		self:SetStage(0)
-		self.PodCont = nil
-		return false
-	elseif self:GetStage() == 0 and trace.Entity and trace.Entity:GetClass() == "gmod_wire_eyepod" then
-		self:SetStage(0)
-		self.PodCont = nil
-		trace.Entity:PodLink(nil)
-		self:GetOwner():ChatPrint("Wire Eye Pod Unlinked")
-		return true
-	end
-end
+WireToolSetup.SetupLinking(true, "eyepod")
 
 -------------------------------------- TOOL Menu ---------------------------------------------------
-//TODO:  Figure out a way for dynamic panels to work with check boxes (check boxes that use concommands instead of convars default to 1 allways)
-//check for client
+--TODO:  Figure out a way for dynamic panels to work with check boxes (check boxes that use concommands instead of convars default to 1 allways)
+--check for client
 if (CLIENT) then
 
-	function Wire_EyePod_Menu(panel)
+	local function Wire_EyePod_Menu(panel)
 		panel:ClearControls()
 
 		panel:AddControl("Header", {
@@ -127,7 +75,7 @@ if (CLIENT) then
 			Description = "#Tool.wire_eyepod.desc"
 		})
 
-		//preset chooser
+		--preset chooser
 		panel:AddControl("ComboBox", {
 			Label = "#Presets",
 			MenuButton = "1",
@@ -166,7 +114,7 @@ if (CLIENT) then
 			Command = "wire_eyepod_DefaultToZero"
 		})
 
-		//clamps
+		--clamps
 		panel:AddControl( "Label",  {
 					Text = "\nClamp the output of the EyePod. \nSet both sliders to 0 to remove the clamp in that axis.",
 					Description = "Clamps the outputs of the EyePod. Set to 0 not to clamp in that axis"}    )

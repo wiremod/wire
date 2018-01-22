@@ -128,7 +128,7 @@ local utf8_byte = utf8.codepoint
 registerFunction("toChar", "n", "s", function(self, args)
 	local op1 = args[2]
 	local rv1 = op1[1](self, op1)
-	if rv1 < 1 then return "" end
+	if rv1 < 0 then return "" end
 	if rv1 > 255 then return "" end
 	return string_char(rv1)
 end)
@@ -312,7 +312,7 @@ end
 
 --- Finds and replaces every occurrence of <needle> with <new> without regular expressions
 e2function string string:replace(string needle, string new)
-	if needle == "" then return "" end -- prevent crashes. stupid garry...
+	if needle == "" then return this end
 	return this:Replace( needle, new)
 end
 

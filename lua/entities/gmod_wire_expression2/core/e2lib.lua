@@ -47,21 +47,13 @@ function E2Lib.setAng(ent, ang)
 	return ent:SetAngles(ang)
 end
 
-local material_blacklist = {
-	["pp/copy"] = true
-}
-local function validMaterial(material)
-	local path = string.StripExtension(string.GetNormalizedFilepath(string.lower(material)))
-	if material_blacklist[path] then return "" end
-	return material
-end
 
 function E2Lib.setMaterial(ent, material)
-	ent:SetMaterial(validMaterial(material))
+	ent:SetMaterial(WireLib.IsValidMaterial(material))
 end
 
 function E2Lib.setSubMaterial(ent, index, material)
-	ent:SetSubMaterial(index,validMaterial(material))
+	ent:SetSubMaterial(index,WireLib.IsValidMaterial(material))
 end
 
 -- getHash
@@ -173,6 +165,7 @@ function E2Lib.validPhysics(entity)
 	return false
 end
 
+-- This function gets wrapped when CPPI is detected, see very end of this file
 function E2Lib.getOwner(self, entity)
 	if entity == nil then return end
 	if entity == self.entity or entity == self.player then return self.player end
@@ -208,6 +201,7 @@ function E2Lib.abuse(ply)
 	error("abuse", 0)
 end
 
+-- This function gets replaced when CPPI is detected, see very end of this file
 function E2Lib.isFriend(owner, player)
 	return owner == player
 end
@@ -748,6 +742,7 @@ hook.Add("InitPostEntity", "e2lib", function()
 		if debug.getregistry().Entity.CPPIGetOwner then
 			local _getOwner = E2Lib.getOwner
 			E2Lib.replace_function("getOwner", function(self, entity)
+				if not IsValid(entity) then return end
 				if entity == self.entity or entity == self.player then return self.player end
 
 				local owner = entity:CPPIGetOwner()

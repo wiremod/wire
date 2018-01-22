@@ -319,6 +319,8 @@ end
 local string_find = string.find
 local table_SortByMember = table.SortByMember
 local string_lower = string.lower
+local language_GetPhrase = language.GetPhrase
+local string_gsub = string.gsub
 
 -- Searching algorithm
 function PANEL:Search( text )
@@ -327,7 +329,7 @@ function PANEL:Search( text )
 	local results = {}
 	for categoryID,categories in pairs( self.ToolTable ) do
 		for _, v in pairs( categories ) do
-			local name = v.Text
+			local name = language_GetPhrase(string_gsub(v.Text,"^#",""))
 			local lowname = string_lower( name )
 		
 			if string_find( lowname, text, 1, true ) and not string_find( lowname, "(legacy)", 1, true ) and not v.Alias then

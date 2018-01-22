@@ -27,12 +27,29 @@ TOOL.ClientConVar = {
 	save_on_entity = 0
 }
 
+-- shared helper functions
+local function netWriteValues( values )
+	net.WriteUInt(#values,11)
+	for i=1,#values do
+		net.WriteString( string.sub(values[i],1,32) )
+	end
+end
+local function netReadValues()
+	local t = {}
+	local amount = net.ReadUInt(11)
+	for i=1,amount do
+		t[i] = net.ReadString()
+	end
+	return t
+end
+
+
 local friends = {}
 
 if SERVER then
 	util.AddNetworkString( "wire_friendslist" )
 	net.Receive( "wire_friendslist", function( length, ply )
-		friends[ply] = net.ReadTable()
+		friends[ply] = netReadValues()
 
 		-- Update all friendslists which have save_on_entity set to false
 		local friendslists = ents.FindByClass( "gmod_wire_friendslist" )
@@ -64,7 +81,7 @@ if SERVER then
 
 		friends[self:GetOwner()] = trace.Entity.steamids
 		net.Start( "wire_friendslist" )
-			net.WriteTable( trace.Entity.steamids )
+			netWriteValues( trace.Entity.steamids )
 		net.Send( self:GetOwner() )
 	end
 else
@@ -96,7 +113,7 @@ else
 		if #friends == 0 then return end
 
 		net.Start("wire_friendslist")
-			net.WriteTable(friends)
+			netWriteValues( friends )
 		net.SendToServer()
 
 		if not dontsave then
@@ -107,7 +124,7 @@ else
 	-- Receive values for copying
 	local cpanel_list
 	net.Receive( "wire_friendslist", function( length )
-		friends = net.ReadTable()
+		friends = netReadValues()
 		saveFile( friends )
 		
 		if not IsValid(cpanel_list) then -- They right clicked without opening the cpanel first, just save the values

@@ -92,6 +92,8 @@ function ENT:Initialize()
 	if phys:IsValid() then
 		phys:Wake()
 	end
+
+	self:ColorByLinkStatus(self.LINK_STATUS_UNLINKED)
 end
 
 function ENT:UpdateOverlay()
@@ -139,16 +141,24 @@ local Rotate90ModelList = {
 	["models/vehicle.mdl"]						= true
 }
 
-function ENT:PodLink(vehicle)
+-- Old function alias
+function ENT:PodLink(vehicle) return self:LinkEnt(vehicle) end
+
+function ENT:LinkEnt(vehicle)
+	vehicle = WireLib.GetClosestRealVehicle(vehicle,self:GetPos(),self:GetPlayer())
+
 	if not IsValid(vehicle) or not vehicle:IsVehicle() then
 		if IsValid(self.pod) then
 			self.pod.AttachedWireEyePod = nil
 		end
 		self.pod = nil
 		self:UpdateOverlay()
-		return false
+		return false, "Must link to a vehicle"
 	end
 	self.pod = vehicle
+	vehicle:CallOnRemove("wire_eyepod_remove",function()
+		self:UnlinkEnt(vehicle)
+	end)
 
 	self.rotate90 = false
 	self.eyeAng = Angle(0, 0, 0)
@@ -161,10 +171,29 @@ function ENT:PodLink(vehicle)
 
 	vehicle.AttachedWireEyePod = self
 	self:UpdateOverlay()
+	WireLib.SendMarks(self,{vehicle})
+	self:ColorByLinkStatus(IsValid(vehicle) and self.LINK_STATUS_LINKED or self.LINK_STATUS_UNLINKED)
+	return true
+end
+
+function ENT:UnlinkEnt()
+	if IsValid(self.pod) then
+		self.pod.AttachedWireEyePod = nil
+		self.pod:RemoveCallOnRemove("wire_eyepod_remove")
+	end
+	self.pod = nil
+	if IsValid(self.driver) then
+		self:updateEyePodState(false)
+		self.driver = nil
+	end
+	WireLib.SendMarks(self,{})
+	self:UpdateOverlay()
+	self:ColorByLinkStatus(self.LINK_STATUS_UNLINKED)
 	return true
 end
 
 function ENT:updateEyePodState(enabled)
+	self:ColorByLinkStatus(enabled and self.LINK_STATUS_ACTIVE or self.LINK_STATUS_LINKED)
 	umsg.Start("UpdateEyePodState", self.driver)
 		umsg.Angle(self.eyeAng)
 		umsg.Bool(enabled)
@@ -208,14 +237,7 @@ hook.Add("PlayerLeaveVehicle","gmod_wire_eyepod_leavevehicle",function(ply,vehic
 end)
 
 function ENT:OnRemove()
-	if IsValid(self.pod) and self.pod:IsVehicle() then
-		self.pod.AttachedWireEyePod = nil
-	end
-
-	if IsValid(self.driver) then
-		self:updateEyePodState(false)
-		self.driver = nil
-	end
+	self:UnlinkEnt()
 end
 
 local function AngNorm(Ang)

@@ -20,6 +20,8 @@ function ENT:Setup( action, noclip )
 	local gate = GateActions[action]
 	if not gate then return end
 	if GateActions[action].is_banned then return end
+
+	self.Updating = true
 	
 	self.action = action
 
@@ -65,6 +67,8 @@ function ENT:Setup( action, noclip )
 
 	--self.Action.inputtypes = self.Action.inputtypes or {}
 
+	self.Updating = nil
+
 	self:CalcOutput()
 	self:ShowOutput()
 end
@@ -83,6 +87,7 @@ function ENT:OnOutputWireLink(oname, otype, dst, iname, itype)
 end
 
 function ENT:TriggerInput(iname, value, iter)
+	if self.Updating then return end
 	if (self.Action) and (not self.Action.timed) then
 		self:CalcOutput(iter)
 		self:ShowOutput()
@@ -149,7 +154,7 @@ function ENT:GetActionInputs(as_names)
 		for k,v in ipairs(self.Action.inputs) do
 		    local input = self.Inputs[v]
 			if (not input) then
-				ErrorNoHalt("Wire Gate ("..self.action..") error: Missing input! ("..k..","..v..")")
+				ErrorNoHalt("Wire Gate ("..self.action..") error: Missing input! ("..k..","..v..")\n")
 				return {}
 			end
 
@@ -174,7 +179,7 @@ function ENT:GetActionInputs(as_names)
 		for k,v in ipairs(self.Action.inputs) do
 		    local input = self.Inputs[v]
 			if (not input) then
-				ErrorNoHalt("Wire Gate ("..self.action..") error: Missing input! ("..k..","..v..")")
+				ErrorNoHalt("Wire Gate ("..self.action..") error: Missing input! ("..k..","..v..")\n")
 				return {}
 			end
 

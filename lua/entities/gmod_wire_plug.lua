@@ -5,6 +5,11 @@ ENT.Author          = "Divran"
 ENT.Purpose         = "Links with a socket"
 ENT.Instructions    = "Move a plug close to a socket to link them, and data will be transferred through the link."
 ENT.WireDebugName = "Plug"
+local base = scripted_ents.Get("base_wire_entity")
+
+function ENT:GetSocketClass()
+	return "gmod_wire_socket"
+end
 
 function ENT:GetClosestSocket()
 	local sockets = ents.FindInSphere( self:GetPos(), 100 )
@@ -13,7 +18,7 @@ function ENT:GetClosestSocket()
 	local Closest
 
 	for k,v in pairs( sockets ) do
-		if (v:GetClass() == "gmod_wire_socket" and !v:GetNWBool( "Linked", false )) then
+		if (v:GetClass() == self:GetSocketClass() and not v:GetNWBool( "Linked", false )) then
 			local pos, _ = v:GetLinkPos()
 			local Dist = self:GetPos():Distance( pos )
 			if (ClosestDist == nil or ClosestDist > Dist) then
@@ -29,7 +34,7 @@ end
 if CLIENT then
 	function ENT:DrawEntityOutline()
 		if (GetConVar("wire_plug_drawoutline"):GetBool()) then
-			self.BaseClass.DrawEntityOutline( self )
+			base.DrawEntityOutline( self )
 		end
 	end
 	return -- No more client
@@ -55,9 +60,10 @@ function ENT:Initialize()
 end
 
 function ENT:Setup( ArrayInput )
+	local old = self.ArrayInput
 	self.ArrayInput = ArrayInput or false
 
-	if (!self.Inputs or !self.Outputs or self.ArrayInput != old) then
+	if not (self.Inputs and self.Outputs and self.ArrayInput == old) then
 		if (self.ArrayInput) then
 			self.Inputs = WireLib.CreateInputs( self, { "In [ARRAY]" } )
 			self.Outputs = WireLib.CreateOutputs( self, { "Out [ARRAY]" } )
@@ -78,7 +84,7 @@ function ENT:TriggerInput( name, value )
 end
 
 function ENT:SetValue( name, value )
-	if (!self.Socket or !self.Socket:IsValid()) then return end
+	if not (self.Socket and self.Socket:IsValid()) then return end
 	if (name == "In") then
 		if (self.ArrayInput) then -- Both have array
 			WireLib.TriggerOutput( self, "Out", table.Copy( value ) )
@@ -92,13 +98,13 @@ function ENT:SetValue( name, value )
 		end
 	else
 		if (self.ArrayInput) then -- Target does not have array, this does
-			if (value != nil) then
+			if (value ~= nil) then
 				local data = table.Copy( self.Outputs.Out.Value )
 				data[LETTERS_INV[name]] = value
 				WireLib.TriggerOutput( self, "Out", data )
 			end
 		else -- Niether have array
-			if (value != nil) then
+			if (value ~= nil) then
 				WireLib.TriggerOutput( self, name, value )
 			end
 		end
@@ -133,7 +139,7 @@ function ENT:ReadCell( Address )
 end
 
 function ENT:Think()
-	self.BaseClass.Think( self )
+	base.Think( self )
 	self:SetNWBool( "PlayerHolding", self:IsPlayerHolding() )
 end
 
@@ -154,7 +160,7 @@ end
 -- Resends the values when plugging in
 ------------------------------------------------------------
 function ENT:ResendValues()
-	if (!self.Socket) then return end
+	if (not self.Socket) then return end
 	if (self.ArrayInput) then
 		self.Socket:SetValue( "In", self.Inputs.In.Value )
 	else
@@ -184,5 +190,5 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 		ent:Setup( info.Plug.ArrayInput )
 	end
 
-	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
+	base.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
 end

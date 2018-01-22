@@ -61,9 +61,10 @@ function WireLib.TriggerInput(ent, name, value, ...)
 	if (not ent.TriggerInput) then return end
 	local ok, ret = xpcall(ent.TriggerInput, debug.traceback, ent, name, value, ...)
 	if not ok then
-		local message = string.format("Wire error (%s):\n%s\n", tostring(ent), ret)
-		WireLib.ErrorNoHalt(message)
 		local ply = WireLib.GetOwner(ent)
+		local owner_msg = IsValid(ply) and (" by %s"):format(tostring(ply)) or ""
+		local message = ("Wire error (%s%s):\n%s\n"):format(tostring(ent),owner_msg, ret)
+		WireLib.ErrorNoHalt(message)
 		if IsValid(ply) then WireLib.ClientError(message, ply) end
 	end
 end
@@ -1184,3 +1185,14 @@ concommand.Add("wireversion", function(ply,cmd,args)
 		print(text)
 	end
 end, nil, "Prints the server's Wiremod version")
+
+
+local material_blacklist = {
+	["pp/copy"] = true
+}
+function WireLib.IsValidMaterial(material)
+	local path = string.StripExtension(string.GetNormalizedFilepath(string.lower(material)))
+	if material_blacklist[path] then return "" end
+	return material
+end
+

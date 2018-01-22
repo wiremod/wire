@@ -104,6 +104,8 @@ function ENT:SendMarks()
 end
 
 function ENT:LinkEnt( ent )
+	ent = WireLib.GetClosestRealVehicle(ent,self:GetPos(),self:GetPlayer())
+
 	if self.Entities[ent] then return end
 	self.Entities[ent] = true
 	ent:CallOnRemove("ExitPoint.Unlink", function(ent)

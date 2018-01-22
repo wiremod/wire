@@ -3,10 +3,9 @@
 \******************************************************************************/
 
 local timerid = 0
-local runner
 
 local function Execute(self, name)
-	runner = name
+	self.data.timer.runner = name
 
 	self.data['timer'].timers[name] = nil
 
@@ -18,13 +17,13 @@ local function Execute(self, name)
 		timer.Remove("e2_" .. self.data['timer'].timerid .. "_" .. name)
 	end
 
-	runner = nil
+	self.data.timer.runner = nil
 end
 
 local function AddTimer(self, name, delay)
 	if delay < 10 then delay = 10 end
 
-	if runner == name then
+	if self.data.timer.runner == name then
 		timer.Adjust("e2_" .. self.data['timer'].timerid .. "_" .. name, delay/1000, 2, function()
 			Execute(self, name)
 		end)
@@ -78,17 +77,17 @@ e2function void stoptimer(string rv1)
 end
 
 e2function number clk()
-	if runner == "interval"
+	if self.data.timer.runner == "interval"
 	   then return 1 else return 0 end
 end
 
 e2function number clk(string rv1)
-	if runner == rv1
+	if self.data.timer.runner == rv1
 	   then return 1 else return 0 end
 end
 
 e2function string clkName()
-	return runner or ""
+	return self.data.timer.runner or ""
 end
 
 e2function array getTimers()

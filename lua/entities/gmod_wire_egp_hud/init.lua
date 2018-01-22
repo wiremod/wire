@@ -54,6 +54,8 @@ end
 function ENT:UpdateTransmitState() return TRANSMIT_ALWAYS end
 
 function ENT:LinkEnt( ent )
+	ent = WireLib.GetClosestRealVehicle(ent,self:GetPos(),self:GetPlayer())
+
 	if IsValid( ent ) and ent:IsVehicle() then
 		if self.LinkedVehicles and self.LinkedVehicles[ent] then
 			return false
