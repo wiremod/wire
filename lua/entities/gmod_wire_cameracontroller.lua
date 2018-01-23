@@ -628,6 +628,16 @@ function ENT:DisableCam( ply )
 
 		ply.CamController = nil
 	else
+		--disable for everyone
+		for K,ply in ipairs(self.Players) do
+			if IsValid(ply) then
+				self:SetFOV( ply, false )
+				self:SetFLIR( ply, false )
+				self:SyncSettings( ply, false )
+
+				ply.CamController = nil
+			end
+		end
 		self.Players = {}
 	end
 
