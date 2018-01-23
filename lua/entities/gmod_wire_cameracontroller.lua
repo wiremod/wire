@@ -394,7 +394,7 @@ end
 util.AddNetworkString( "wire_camera_controller_toggle" )
 function ENT:SyncSettings( ply, active )
 	if active == nil then active = self.Active end
-	if not IsValid(ply) then return end
+	if not IsValid(ply) then ply = self.Players end
 	net.Start( "wire_camera_controller_toggle" )
 		net.WriteBit( active )
 		net.WriteEntity( self )
@@ -416,13 +416,14 @@ end
 util.AddNetworkString( "wire_camera_controller_sync" )
 function ENT:SyncPositions( ply )
 	if CurTime() < self.NextSync then return end
+	if not IsValid(ply) then ply = self.Players end
 
 	self.NextSync = CurTime() + 0.05
 
 	net.Start( "wire_camera_controller_sync" )
 		net.WriteEntity( self )
 		SendPositions( self.Position, self.Angle, self.Distance, self.Parent )
-	net.Send( ply or self.Players )
+	net.Send( ply )
 end
 
 
