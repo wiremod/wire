@@ -44,7 +44,13 @@ registerOperator("function", "", "", function(self, args)
 		if not ok then error(msg,0) end
 
 		if ReturnType ~= "" then
-			error("Function " .. E2Lib.generate_signature(Sig, nil, Args) ..
+			local argNames = {}
+
+			for k, v in ipairs(Args) do
+				argNames[k] = v[1]
+			end
+
+			error("Function " .. E2Lib.generate_signature(Sig, nil, argNames) ..
 				" executed and didn't return a value - expecting a value of type " ..
 				E2Lib.typeName(ReturnType), 0)
 		end
