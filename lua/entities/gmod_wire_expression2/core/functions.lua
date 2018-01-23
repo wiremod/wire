@@ -9,7 +9,7 @@ __e2setcost(20)
 registerOperator("function", "", "", function(self, args)
 
 	local Stmt, args = args[2], args[3]
-	local Sig, ReturnType, Args = args[3], args[4], args[6]
+	local Sig, ReturnType, methodType, Args = args[3], args[4], args[5], args[6]
 
 	self.funcs[Sig] = function(self,args)
 
@@ -45,9 +45,10 @@ registerOperator("function", "", "", function(self, args)
 
 		if ReturnType ~= "" then
 			local argNames = {}
+			local offset = methodType == "" and 0 or 1
 
 			for k, v in ipairs(Args) do
-				argNames[k] = v[1]
+				argNames[k - offset] = v[1]
 			end
 
 			error("Function " .. E2Lib.generate_signature(Sig, nil, argNames) ..
