@@ -1187,17 +1187,12 @@ concommand.Add("wireversion", function(ply,cmd,args)
 end, nil, "Prints the server's Wiremod version")
 
 
---Blacklist format:
---<top folder the material is in>[%./\\]+<material name>
---Should prevent work-arounds like pp/./copy pp/./././copy pp\\copy etc.
 local material_blacklist = {
-	"pp[%./\\]+copy"
+	["pp/copy"] = true
 }
 function WireLib.IsValidMaterial(material)
-	local lower = string.lower(material)
-	for _, v in ipairs(material_blacklist) do
-		if string.find(lower, v) then return "" end
-	end
+	local path = string.StripExtension(string.GetNormalizedFilepath(string.lower(material)))
+	if material_blacklist[path] then return "" end
 	return material
 end
 

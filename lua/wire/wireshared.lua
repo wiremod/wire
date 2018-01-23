@@ -53,6 +53,25 @@ function table.MakeSortedKeys(tbl)
 	return result
 end
 
+
+function string.GetNormalizedFilepath( path )
+	local tbl = string.Explode( "[/\\]+", path, true )
+	local i = 1
+	while i <= #tbl do
+		if tbl[i] == "." or tbl[i]=="" then
+			table.remove(tbl, i)
+		elseif tbl[i] == ".." then
+			table.remove(tbl, i)
+			if i>1 then
+				table.remove(tbl, i-1)
+			end
+		else
+			i = i + 1
+		end
+	end
+	return table.concat(tbl, "/")
+end
+
 -- works like pairs() except that it iterates sorted by keys.
 -- criterion is optional and should be a function(a,b) returning whether a is less than b. (same as table.sort's criterions)
 function pairs_sortkeys(tbl, criterion)
