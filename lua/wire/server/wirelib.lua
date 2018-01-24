@@ -19,6 +19,8 @@ local tostring = tostring
 local Vector = Vector
 local Color = Color
 local Material = Material
+local FrameTime = FrameTime
+local CurTime = CurTime
 
 local HasPorts = WireLib.HasPorts -- Very important for checks!
 
@@ -47,10 +49,13 @@ local Inputs = {}
 local Outputs = {}
 local CurLink = {}
 
+local frametime = FrameTime()
+local cur_time = CurTime()
+local max_overtime = math.huge
 hook.Add("Think", "WireLib_Think", function()
-	for idx,port in pairs(Outputs) do
-		port.TriggerLimit = 4
-	end
+	frametime = FrameTime()
+	cur_time = CurTime()
+	max_overtime = cur_time + frametime -- timestamp of one frame into future
 end)
 
 -- helper function that pcalls an input
@@ -158,7 +163,7 @@ function WireLib.CreateSpecialOutputs(ent, names, types, descs)
 			Type = tp,
 			Value = WireLib.DT[ tp ].Zero,
 			Connected = {},
-			TriggerLimit = 8,
+			TriggerLimit = 0,
 			Num = n,
 		}
 
@@ -257,7 +262,7 @@ function WireLib.AdjustSpecialOutputs(ent, names, types, descs)
 				Type = types[n] or "NORMAL",
 				Value = WireLib.DT[ (types[n] or "NORMAL") ].Zero,
 				Connected = {},
-				TriggerLimit = 8,
+				TriggerLimit = 0,
 				Num = n,
 			}
 
@@ -506,9 +511,15 @@ function WireLib.TriggerOutput(ent, oname, value, iter)
 
 	local output = ent.Outputs[oname]
 	if (output) and (value ~= output.Value or output.Type == "ARRAY" or output.Type == "TABLE") then
-		if (output.TriggerLimit <= 0) then return end
-		output.TriggerLimit = output.TriggerLimit - 1
 
+		local lastfire = output.TriggerLimit
+		
+		-- Do not trigger if we have eaten our slices of the frame (rate limiter)
+		if (lastfire >= max_overtime) then return end
+		
+		-- Each trigger eats 1/4 of a frame time, after 4 triggers we are one frametime into future and get rate limited
+		output.TriggerLimit = (lastfire < cur_time and cur_time or lastfire) + frametime * 0.22221 -- around 4.5 per triggers frame (1/4.5 rounded down, 4.5 to allow headroom for float weirdnesses)
+		
 		output.Value = value
 
 		if (iter) then
