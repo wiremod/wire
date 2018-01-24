@@ -175,7 +175,6 @@ function Editor:Init()
 	self.logo = surface.GetTextureID("vgui/e2logo")
 
 	self:InitComponents()
-	self:LoadSyntaxColors()
 
 	-- This turns off the engine drawing
 	self:SetPaintBackgroundEnabled(false)
@@ -1944,6 +1943,7 @@ function Editor:Setup(nTitle, nLocation, nEditorType)
 	if wire_expression2_editor_openoldtabs:GetBool() then
 		self:OpenOldTabs()
 	end
+	self:LoadSyntaxColors()
 
 	self:InvalidateLayout()
 end
