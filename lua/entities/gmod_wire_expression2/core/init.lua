@@ -335,5 +335,3 @@ elseif CLIENT then
 		end
 	end)
 end
-
-include("e2doc.lua")
