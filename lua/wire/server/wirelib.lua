@@ -1188,6 +1188,7 @@ end, nil, "Prints the server's Wiremod version")
 
 
 local material_blacklist = {
+	["engine/writez"] = true,
 	["pp/copy"] = true
 }
 function WireLib.IsValidMaterial(material)
