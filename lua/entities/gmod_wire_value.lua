@@ -66,7 +66,7 @@ function parsers.ANGLE( val )
 	end
 end
 function parsers.STRING( val )
-	return string.gsub(tostring( val ), "\\n", "\n")
+	return string.gsub( tostring( val ), "\\[n0\\]", {["\\\\"] = "\\", ["\\n"] = "\n", ["\\0"] = "\0"} )
 end
 
 function ENT:ParseValue( value, tp )
