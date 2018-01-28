@@ -225,7 +225,11 @@ if CLIENT then
 
 	function ENT:Think()
 		if (CurTime() >= (self.NextRBUpdate or 0)) then
-			self.NextRBUpdate = CurTime() + math.random(30,100)/10 --update renderbounds every 3 to 10 seconds
+			-- We periodically update the render bounds every 10 seconds - the
+			-- reasons why are mostly anecdotal, but in some circumstances
+			-- entities might 'forget' their renderbounds. Nobody really knows
+			-- if this is still needed or not.
+			self.NextRBUpdate = CurTime() + 10
 			Wire_UpdateRenderBounds(self)
 		end
 	end
