@@ -1,41 +1,39 @@
-// A file browser panel, used by the sound browser.
-// Can be used for any file type, recommend for huge file numbers.
-// Made by Grocel.
+-- A file browser panel, used by the sound browser.
+-- Can be used for any file type, recommend for huge file numbers.
+-- Made by Grocel.
 
 local PANEL = {}
 
-AccessorFunc( PANEL, "m_strRootName", 			"RootName" ) // name of the root Root
-AccessorFunc( PANEL, "m_strRootPath", 			"RootPath" ) // path of the root Root
-AccessorFunc( PANEL, "m_strWildCard", 			"WildCard" ) // "GAME", "DATA" etc.
-AccessorFunc( PANEL, "m_tFilter", 				"FileTyps" ) // "*.wav", "*.mdl", {"*.vmt", "*.vtf"} etc.
+AccessorFunc( PANEL, "m_strRootName", 			"RootName" ) -- name of the root Root
+AccessorFunc( PANEL, "m_strRootPath", 			"RootPath" ) -- path of the root Root
+AccessorFunc( PANEL, "m_strWildCard", 			"WildCard" ) -- "GAME", "DATA" etc.
+AccessorFunc( PANEL, "m_tFilter", 				"FileTyps" ) -- "*.wav", "*.mdl", {"*.vmt", "*.vtf"} etc.
 
-AccessorFunc( PANEL, "m_strOpenPath", 			"OpenPath" ) // open path
-AccessorFunc( PANEL, "m_strOpenFile", 			"OpenFile" ) // open path+file
-AccessorFunc( PANEL, "m_strOpenFilename", 		"OpenFilename" ) // open file
+AccessorFunc( PANEL, "m_strOpenPath", 			"OpenPath" ) -- open path
+AccessorFunc( PANEL, "m_strOpenFile", 			"OpenFile" ) -- open path+file
+AccessorFunc( PANEL, "m_strOpenFilename", 		"OpenFilename" ) -- open file
 
-AccessorFunc( PANEL, "m_nListSpeed", 			"ListSpeed" ) // how many items to list an once
-AccessorFunc( PANEL, "m_nMaxItemsPerPage",		"MaxItemsPerPage" ) // how may items per page
-AccessorFunc( PANEL, "m_nPage", 				"Page" ) // Page to show
+AccessorFunc( PANEL, "m_nListSpeed", 			"ListSpeed" ) -- how many items to list an once
+AccessorFunc( PANEL, "m_nMaxItemsPerPage",		"MaxItemsPerPage" ) -- how may items per page
+AccessorFunc( PANEL, "m_nPage", 				"Page" ) -- Page to show
 
 local invalid_chars = {
 	["\n"] = "",
 	["\r"] = "",
 	["\\"] = "/",
 	["//"] = "/",
-	//["/.svn"] = "", // Disallow access to .svn folders. (Not needed.)
-	//["/.git"] = "", // Disallow access to .git folders. (Not needed.)
 }
 
 local function ConnectPathes(path1, path2)
 	local path = ""
 
-	if (isstring(path1) and path1 ~= "") then
+	if isstring(path1) and path1 ~= "" then
 		path = path1
-		if (isstring(path2) and path2 ~= "") then
-			path = path1.."/"..path2
+		if isstring(path2) and path2 ~= "" then
+			path = path1 .. "/" .. path2
 		end
 	else
-		if (isstring(path2) and path2 ~= "") then
+		if isstring(path2) and path2 ~= "" then
 			path = path2
 		end
 	end
@@ -44,43 +42,29 @@ local function ConnectPathes(path1, path2)
 end
 
 local function PathFilter(Folder, TxtPanel, Root)
-	if (!isstring(Folder) or Folder == "") then return end
+	if not isstring(Folder) or Folder == "" then return end
 
 	local ValidFolder = Folder
 
-	//local ValidFolder = string.lower(Folder) // for .svn and .git filters.
 	for k, v in pairs(invalid_chars) do
-		for i = 1, #string.Explode(k, ValidFolder) do
-			if (!string.match(ValidFolder, k)) then break end
+		local len = #string.Explode(k, ValidFolder)
+		for _ = 1, len do
+			if not string.match(ValidFolder, k) then break end
 
 			ValidFolder = string.gsub(ValidFolder, k, v)
 		end
 	end
 
 	ValidFolder = string.Trim(ValidFolder)
-	/*if (string.sub(ValidFolder, 0, 4) == ".svn") then // Disallow access to .svn folders. (Not needed.)
-		ValidFolder = string.sub(ValidFolder, -4)
-		if (ValidFolder == ".svn") then
-			ValidFolder = ""
-		end
-	end*/
-
-	/*if (string.sub(ValidFolder, 0, 4) == ".git") then // Disallow access to .git folders. (Not needed.)
-		ValidFolder = string.sub(ValidFolder, -4)
-		if (ValidFolder == ".git") then
-			ValidFolder = ""
-		end
-	end*/
-
 	ValidFolder = string.Trim(ValidFolder, "/")
 
-	if (IsValid(TxtPanel)) then
+	if IsValid(TxtPanel) then
 		TxtPanel:SetText(ValidFolder)
 	end
 
 	local Dirs = #string.Explode("/", ValidFolder)
-	for i = 1, Dirs do
-		if (!file.IsDir(ConnectPathes(Root, ValidFolder), "GAME")) then
+	for _ = 1, Dirs do
+		if not file.IsDir(ConnectPathes(Root, ValidFolder), "GAME") then
 			ValidFolder = string.GetPathFromFilename(ValidFolder)
 			ValidFolder = string.Trim(ValidFolder, "/")
 		end
@@ -88,7 +72,7 @@ local function PathFilter(Folder, TxtPanel, Root)
 
 	ValidFolder = string.Trim(ValidFolder, "/")
 
-	if (ValidFolder == "") then return end
+	if ValidFolder == "" then return end
 	return ValidFolder
 end
 
@@ -100,27 +84,26 @@ end
 local function BuildFileList(path, filter, wildcard)
 	local files = {}
 
-	if (istable(filter)) then
-		for k, v in ipairs(filter) do
-			table.Add(files, file.Find(ConnectPathes(path, v), wildcard or "GAME"))
-		end
-	else
-		table.Add(files, file.Find(ConnectPathes(path, tostring(filter)), wildcard or "GAME"))
+	if not istable(filter) then
+		filter = { tostring(filter or "") }
+	end
+
+	for _, v in ipairs(filter) do
+		table.Add(files, file.Find(ConnectPathes(path, v), wildcard or "GAME"))
 	end
 
 	table.sort(files)
-
 	return files
 end
 
 local function NavigateToFolder(self, path)
-	if (!IsValid(self)) then return end
+	if not IsValid(self) then return end
 
 	path = ConnectPathes(self.m_strRootPath, path)
 
 	local root = self.Tree:Root()
-	if (!IsValid(root)) then return end
-	if (!IsValid(root.ChildNodes)) then return end
+	if not IsValid(root) then return end
+	if not IsValid(root.ChildNodes) then return end
 
 	local nodes = root.ChildNodes:GetChildren()
 	local lastnode = nil
@@ -130,35 +113,33 @@ local function NavigateToFolder(self, path)
 	self.NotUserPressed = true
 	local dirs = string.Explode("/", path)
 	for k, v in ipairs(dirs) do
-		if (nodename == "") then
+		if nodename == "" then
 			nodename = string.lower(v)
 		else
 			nodename = nodename .. "/" .. string.lower(v)
-			if (!IsValid(lastnode)) then continue end
-			if (!IsValid(lastnode.ChildNodes)) then continue end
-
-			nodes = lastnode.ChildNodes:GetChildren()
+			if IsValid(lastnode) and IsValid(lastnode.ChildNodes) then
+				nodes = lastnode.ChildNodes:GetChildren()
+			end
 		end
 
 		local found = false
 		for _, node in pairs(nodes) do
-			if (!IsValid(node)) then continue end
+			if IsValid(node) then
+				local nodepath = string.lower(node.m_strFolder)
+				if nodename == "" then break end
 
-			local path = string.lower(node.m_strFolder)
-			if ( nodename == "" ) then break end
+				if nodepath ~= nodename or found then
+					node:SetExpanded(false)
+				else
+					if k == #dirs then -- just select the last one
+						self.Tree:SetSelectedItem(node)
+					end
 
-			if ( path ~= nodename or found) then
-				node:SetExpanded(false)
-				continue
+					node:SetExpanded(true)
+					lastnode = node
+					found = true
+				end
 			end
-
-			if (k == #dirs) then // just select the last one
-				self.Tree:SetSelectedItem(node)
-			end
-
-			node:SetExpanded(true)
-			lastnode = node
-			found = true
 		end
 	end
 
@@ -166,7 +147,7 @@ local function NavigateToFolder(self, path)
 end
 
 local function ShowFolder(self, path)
-	if (!IsValid(self)) then return end
+	if not IsValid(self) then return end
 
 	self.m_strOpenPath = path
 	path = ConnectPathes(self.m_strRootPath, path)
@@ -180,7 +161,7 @@ local function ShowFolder(self, path)
 	self.PageMode = self.m_nPageCount > 1
 	self.PageChoosePanel:SetVisible(self.PageMode)
 
-	if (self.m_nPageCount <= 0 or !self.PageMode) then
+	if self.m_nPageCount <= 0 or not self.PageMode then
 		self.m_nPageCount = 1
 		self:SetPage(1)
 		return
@@ -189,7 +170,7 @@ local function ShowFolder(self, path)
 	self.PageChooseNumbers:Clear(true)
 	self.PageChooseNumbers.Buttons = {}
 
-	for i=1, self.m_nPageCount do
+	for i = 1, self.m_nPageCount do
 		self.PageChooseNumbers.Buttons[i] = self.PageChooseNumbers:Add("DButton")
 		local button = self.PageChooseNumbers.Buttons[i]
 
@@ -197,9 +178,9 @@ local function ShowFolder(self, path)
 		button:Dock(LEFT)
 		button:SetText(tostring(i))
 		button:SetVisible(false)
-		button:SetToolTip("Page " .. i .. " of " .. self.m_nPageCount)
+		button:SetTooltip("Page " .. i .. " of " .. self.m_nPageCount)
 
-		button.DoClick = function(panel)
+		button.DoClick = function()
 			self:SetPage(i)
 			self:LayoutPages(true)
 		end
@@ -209,7 +190,7 @@ local function ShowFolder(self, path)
 end
 
 --[[---------------------------------------------------------
-   Name: Init
+  Name: Init
 -----------------------------------------------------------]]
 function PANEL:Init()
 	self.TimedpairsName = "wire_filebrowser_items_" .. tostring({})
@@ -225,13 +206,13 @@ function PANEL:Init()
 	self.m_strOpenFile = nil
 	self.m_strOpenFilename = nil
 
-	self:SetDrawBackground(false)
+	self:SetPaintBackground(false)
 
 	self.FolderPathPanel = self:Add("DPanel")
 	self.FolderPathPanel:DockMargin(0, 0, 0, 3)
 	self.FolderPathPanel:SetTall(20)
 	self.FolderPathPanel:Dock(TOP)
-	self.FolderPathPanel:SetDrawBackground(false)
+	self.FolderPathPanel:SetPaintBackground(false)
 
 	self.FolderPathText = self.FolderPathPanel:Add("DTextEntry")
 	self.FolderPathText:DockMargin(0, 0, 3, 0)
@@ -240,21 +221,21 @@ function PANEL:Init()
 		self:SetOpenPath(panel:GetValue())
 	end
 
-	self.RefreshIcon = self.FolderPathPanel:Add("DImageButton") // The Folder Button.
+	self.RefreshIcon = self.FolderPathPanel:Add("DImageButton") -- The Folder Button.
 	self.RefreshIcon:SetImage("icon16/arrow_refresh.png")
 	self.RefreshIcon:SetWide(20)
 	self.RefreshIcon:Dock(RIGHT)
-	self.RefreshIcon:SetToolTip("Refresh")
+	self.RefreshIcon:SetTooltip("Refresh")
 	self.RefreshIcon:SetStretchToFit(false)
 	self.RefreshIcon.DoClick = function()
 		self:Refresh()
 	end
 
-	self.FolderPathIcon = self.FolderPathPanel:Add("DImageButton") // The Folder Button.
+	self.FolderPathIcon = self.FolderPathPanel:Add("DImageButton") -- The Folder Button.
 	self.FolderPathIcon:SetImage("icon16/folder_explore.png")
 	self.FolderPathIcon:SetWide(20)
 	self.FolderPathIcon:Dock(RIGHT)
-	self.FolderPathIcon:SetToolTip("Open Folder")
+	self.FolderPathIcon:SetTooltip("Open Folder")
 	self.FolderPathIcon:SetStretchToFit(false)
 
 	self.FolderPathIcon.DoClick = function()
@@ -264,36 +245,36 @@ function PANEL:Init()
 	self.NotUserPressed = false
 	self.Tree = vgui.Create( "DTree" )
 	self.Tree:SetClickOnDragHover(false)
-	self.Tree.OnNodeSelected = function( parent, node )
+	self.Tree.OnNodeSelected = function( _, node )
 		local path = node.m_strFolder
 
-		if ( !path ) then return end
-		path = string.sub(path, #self.m_strRootPath+1)
+		if not path then return end
+		path = string.sub(path, #self.m_strRootPath + 1)
 		path = string.Trim(path, "/")
 
-		if (!self.NotUserPressed) then
+		if not self.NotUserPressed then
 			self.FolderPathText:SetText(path)
 		end
 
-		if (self.m_strOpenPath == path) then return end
+		if self.m_strOpenPath == path then return end
 		ShowFolder(self, path)
 	end
 
 	self.PagePanel = vgui.Create("DPanel")
-	self.PagePanel:SetDrawBackground(false)
+	self.PagePanel:SetPaintBackground(false)
 
 	self.PageChoosePanel = self.PagePanel:Add("DPanel")
 	self.PageChoosePanel:DockMargin(0, 0, 0, 0)
 	self.PageChoosePanel:SetTall(self.PageButtonSize)
 	self.PageChoosePanel:Dock(BOTTOM)
-	self.PageChoosePanel:SetDrawBackground(false)
+	self.PageChoosePanel:SetPaintBackground(false)
 	self.PageChoosePanel:SetVisible(false)
 
 	self.PageLastLeftButton = self.PageChoosePanel:Add("DButton")
 	self.PageLastLeftButton:SetWide(self.PageButtonSize)
 	self.PageLastLeftButton:Dock(LEFT)
 	self.PageLastLeftButton:SetText("<<")
-	self.PageLastLeftButton.DoClick = function(panel)
+	self.PageLastLeftButton.DoClick = function()
 		self:SetPage(1)
 	end
 
@@ -301,7 +282,7 @@ function PANEL:Init()
 	self.PageLastRightButton:SetWide(self.PageButtonSize)
 	self.PageLastRightButton:Dock(RIGHT)
 	self.PageLastRightButton:SetText(">>")
-	self.PageLastRightButton.DoClick = function(panel)
+	self.PageLastRightButton.DoClick = function()
 		self:SetPage(self.m_nPageCount)
 	end
 
@@ -309,8 +290,8 @@ function PANEL:Init()
 	self.PageLeftButton:SetWide(self.PageButtonSize)
 	self.PageLeftButton:Dock(LEFT)
 	self.PageLeftButton:SetText("<")
-	self.PageLeftButton.DoClick = function(panel)
-		if (self.m_nPage <= 1 or !self.PageMode) then
+	self.PageLeftButton.DoClick = function()
+		if self.m_nPage <= 1 or not self.PageMode then
 			self.m_nPage = 1
 			return
 		end
@@ -322,8 +303,8 @@ function PANEL:Init()
 	self.PageRightButton:SetWide(self.PageButtonSize)
 	self.PageRightButton:Dock(RIGHT)
 	self.PageRightButton:SetText(">")
-	self.PageRightButton.DoClick = function(panel)
-		if (self.m_nPage >= self.m_nPageCount or !self.PageMode) then
+	self.PageRightButton.DoClick = function()
+		if self.m_nPage >= self.m_nPageCount or not self.PageMode then
 			self.m_nPage = self.m_nPageCount
 			return
 		end
@@ -333,9 +314,9 @@ function PANEL:Init()
 
 	self.PageChooseNumbers = self.PageChoosePanel:Add("DPanel")
 	self.PageChooseNumbers:DockMargin(0, 0, 0, 0)
-	self.PageChooseNumbers:SetSize(self.PageChoosePanel:GetWide()-60, self.PageChoosePanel:GetTall())
+	self.PageChooseNumbers:SetSize(self.PageChoosePanel:GetWide() - 60, self.PageChoosePanel:GetTall())
 	self.PageChooseNumbers:Center()
-	self.PageChooseNumbers:SetDrawBackground(false)
+	self.PageChooseNumbers:SetPaintBackground(false)
 
 	self.PageLoadingProgress = self.PagePanel:Add("DProgress")
 	self.PageLoadingProgress:DockMargin(0, 0, 0, 0)
@@ -361,31 +342,31 @@ function PANEL:Init()
 	self.List.OnRowSelected = function(parent, id, line)
 		local name = line.m_strFilename
 		local path = line.m_strPath
-		local file = line.m_strFile
+		local filename = line.m_strFile
 		self.m_strOpenFilename = name
-		self.m_strOpenFile = file
+		self.m_strOpenFile = filename
 
-		self:DoClick(file, path, name, parent, line)
+		self:DoClick(filename, path, name, parent, line)
 	end
 
 	self.List.DoDoubleClick = function(parent, id, line)
 		local name = line.m_strFilename
 		local path = line.m_strPath
-		local file = line.m_strFile
+		local filename = line.m_strFile
 		self.m_strOpenFilename = name
-		self.m_strOpenFile = file
+		self.m_strOpenFile = filename
 
-		self:DoDoubleClick(file, path, name, parent, line)
+		self:DoDoubleClick(filename, path, name, parent, line)
 	end
 
 	self.List.OnRowRightClick = function(parent, id, line)
 		local name = line.m_strFilename
 		local path = line.m_strPath
-		local file = line.m_strFile
+		local filename = line.m_strFile
 		self.m_strOpenFilename = name
-		self.m_strOpenFile = file
+		self.m_strOpenFile = filename
 
-		self:DoRightClick(file, path, name, parent, line)
+		self:DoRightClick(filename, path, name, parent, line)
 	end
 
 	self.SplitPanel = self:Add( "DHorizontalDivider" )
@@ -399,46 +380,46 @@ function PANEL:Init()
 end
 
 function PANEL:Refresh()
-	local file = self:GetOpenFile()
+	local filename = self:GetOpenFile()
 	local page = self:GetPage()
 
 	self.bSetup = self:Setup()
 
-	self:SetOpenFile(file)
+	self:SetOpenFile(filename)
 	self:SetPage(page)
 end
 
 
 function PANEL:UpdatePageToolTips()
-	self.PageLeftButton:SetToolTip("Previous Page (" .. self.m_nPage - 1 .. " of " .. self.m_nPageCount .. ")")
-	self.PageRightButton:SetToolTip("Next Page (" .. self.m_nPage + 1 .. " of " .. self.m_nPageCount .. ")")
+	self.PageLeftButton:SetTooltip("Previous Page (" .. self.m_nPage - 1 .. " of " .. self.m_nPageCount .. ")")
+	self.PageRightButton:SetTooltip("Next Page (" .. self.m_nPage + 1 .. " of " .. self.m_nPageCount .. ")")
 
-	self.PageLastRightButton:SetToolTip("Last Page (" .. self.m_nPageCount .. " of " .. self.m_nPageCount .. ")")
-	self.PageLastLeftButton:SetToolTip("First Page (1 of " .. self.m_nPageCount .. ")")
+	self.PageLastRightButton:SetTooltip("Last Page (" .. self.m_nPageCount .. " of " .. self.m_nPageCount .. ")")
+	self.PageLastLeftButton:SetTooltip("First Page (1 of " .. self.m_nPageCount .. ")")
 end
 
 function PANEL:LayoutPages(forcelayout)
-	if (!self.PageChoosePanel:IsVisible()) then
+	if not self.PageChoosePanel:IsVisible() then
 		self.oldpage = nil
 		return
 	end
 
-	local x, y = self.PageRightButton:GetPos()
-	local Wide = x - self.PageLeftButton:GetWide()-40
-	if (Wide <= 0 or forcelayout) then
+	local x = self.PageRightButton:GetPos()
+	local Wide = x - self.PageLeftButton:GetWide() - 40
+	if Wide <= 0 or forcelayout then
 		self.oldpage = nil
 		self:InvalidateLayout()
 		return
 	end
-	if (self.oldpage == self.m_nPage and self.oldpage and self.m_nPage) then return end
+	if self.oldpage == self.m_nPage and self.oldpage and self.m_nPage then return end
 	self.oldpage = self.m_nPage
 
-	if (self.m_nPage >= self.m_nPageCount) then
+	if self.m_nPage >= self.m_nPageCount then
 		EnableButton(self.PageLeftButton, true)
 		EnableButton(self.PageRightButton, false)
 		EnableButton(self.PageLastLeftButton, true)
 		EnableButton(self.PageLastRightButton, false)
-	elseif (self.m_nPage <= 1) then
+	elseif self.m_nPage <= 1 then
 		EnableButton(self.PageLeftButton, false)
 		EnableButton(self.PageRightButton, true)
 		EnableButton(self.PageLastLeftButton, false)
@@ -450,33 +431,33 @@ function PANEL:LayoutPages(forcelayout)
 		EnableButton(self.PageLastRightButton, true)
 	end
 
-	local ButtonCount = math.ceil(math.floor(Wide/self.PageButtonSize)/2)
-	local pagepos = math.Clamp(self.m_nPage, ButtonCount, self.m_nPageCount-ButtonCount+1)
+	local ButtonCount = math.ceil(math.floor(Wide / self.PageButtonSize) / 2)
+	local pagepos = math.Clamp(self.m_nPage, ButtonCount, self.m_nPageCount - ButtonCount + 1)
 
 	local VisibleButtons = 0
-	for i=1, self.m_nPageCount do
+	for i = 1, self.m_nPageCount do
 		local button = self.PageChooseNumbers.Buttons[i]
-		if (!IsValid(button)) then continue end
-		
-		if (pagepos < i+ButtonCount and pagepos >= i-ButtonCount+1) then
-			button:SetVisible(true)
-			EnableButton(button, true)
-			VisibleButtons = VisibleButtons + 1
-		else
-			button:SetVisible(false)
-			EnableButton(button, false)
-		end
+		if IsValid(button) then
+			if pagepos < i + ButtonCount and pagepos >= i - ButtonCount + 1 then
+				button:SetVisible(true)
+				EnableButton(button, true)
+				VisibleButtons = VisibleButtons + 1
+			else
+				button:SetVisible(false)
+				EnableButton(button, false)
+			end
 
-		button.Depressed = false
+			button.Depressed = false
+		end
 	end
-	
+
 	local SelectButton = self.PageChooseNumbers.Buttons[self.m_nPage]
-	if (IsValid(SelectButton)) then
+	if IsValid(SelectButton) then
 		SelectButton.Depressed = true
 		SelectButton:SetMouseInputEnabled(false)
 	end
-	
-	self.PageChooseNumbers:SetWide(VisibleButtons*self.PageButtonSize)
+
+	self.PageChooseNumbers:SetWide(VisibleButtons * self.PageButtonSize)
 	self.PageChooseNumbers:Center()
 end
 
@@ -489,12 +470,12 @@ function PANEL:AddColumns(...)
 end
 
 function PANEL:Think()
-	if (self.SplitPanel:GetDragging()) then
+	if self.SplitPanel:GetDragging() then
 		self.oldpage = nil
 		self:InvalidateLayout()
 	end
 
-	if ( !self.bSetup ) then
+	if not self.bSetup then
 		self.bSetup = self:Setup()
 	end
 end
@@ -507,24 +488,24 @@ function PANEL:PerformLayout()
 	local minw = self:GetWide() - self.SplitPanel:GetRightMin() - self.SplitPanel:GetDividerWidth()
 	local oldminw = self.SplitPanel:GetLeftWidth(minw)
 
-	if (oldminw > minw) then
+	if oldminw > minw then
 		self.SplitPanel:SetLeftWidth(minw)
 	end
 
 
-	//Fixes scrollbar glitches on resize
+	-- Fixes scrollbar glitches on resize
 	self.Tree:OnMouseWheeled(0)
 	self.List:OnMouseWheeled(0)
 
-	if (!self.PageLoadingProgress:IsVisible()) then return end
+	if not self.PageLoadingProgress:IsVisible() then return end
 
 	self.PageLoadingLabel:SizeToContents()
 	self.PageLoadingLabel:Center()
 end
 
 function PANEL:Setup()
-	if (!self.m_strRootName) then return false end
-	if (!self.m_strRootPath) then return false end
+	if not self.m_strRootName then return false end
+	if not self.m_strRootPath then return false end
 
 	WireLib.TimedpairsStop(self.TimedpairsName)
 
@@ -534,7 +515,7 @@ function PANEL:Setup()
 	self.oldpage = nil
 
 	self.Tree:Clear(true)
-	if (IsValid(self.Root)) then
+	if IsValid(self.Root) then
 		self.Root:Remove()
 	end
 	self.Root = self.Tree.RootNode:AddFolder( self.m_strRootName, self.m_strRootPath, self.m_strWildCard or "GAME", false)
@@ -543,7 +524,7 @@ function PANEL:Setup()
 end
 
 function PANEL:SetOpenFilename(filename)
-	if(!isstring(filename)) then filename = "" end
+	if not isstring(filename) then filename = "" end
 
 	self.m_strOpenFilename = filename
 	self.m_strOpenFile = ConnectPathes(self.m_strOpenPath, self.m_strOpenFilename)
@@ -553,7 +534,7 @@ function PANEL:SetOpenPath(path)
 	self.Root:SetExpanded(true)
 
 	path = PathFilter(path, self.FolderPathText, self.m_strRootPath) or ""
-	if (self.m_strOpenPath == path) then return end
+	if self.m_strOpenPath == path then return end
 	self.oldpage = nil
 
 	NavigateToFolder(self, path)
@@ -561,17 +542,17 @@ function PANEL:SetOpenPath(path)
 	self.m_strOpenFile = ConnectPathes(self.m_strOpenPath, self.m_strOpenFilename)
 end
 
-function PANEL:SetOpenFile(file)
-	if(!isstring(file)) then file = "" end
+function PANEL:SetOpenFile(filename)
+	if not isstring(filename) then filename = "" end
 
-	self:SetOpenPath(string.GetPathFromFilename(file))
-	self:SetOpenFilename(string.GetFileFromFilename("/" .. file))
+	self:SetOpenPath(string.GetPathFromFilename(filename))
+	self:SetOpenFilename(string.GetFileFromFilename("/" .. filename))
 end
 
 function PANEL:SetPage(page)
-	if (page < 1) then return end
-	if (page > self.m_nPageCount) then return end
-	if (page == self.m_nPage) then return end
+	if page < 1 then return end
+	if page > self.m_nPageCount then return end
+	if page == self.m_nPage then return end
 
 	WireLib.TimedpairsStop(self.TimedpairsName)
 	self.List:Clear(true)
@@ -580,12 +561,12 @@ function PANEL:SetPage(page)
 	self:UpdatePageToolTips()
 
 	local filepage
-	if(self.PageMode) then
+	if self.PageMode then
 		filepage = {}
-		for i=1, self.m_nMaxItemsPerPage do
+		for i = 1, self.m_nMaxItemsPerPage do
 			local index = i + self.m_nMaxItemsPerPage * (page - 1)
 			local value = self.Files[index]
-			if (!value) then break end
+			if not value then break end
 			filepage[i] = value
 		end
 	else
@@ -594,10 +575,10 @@ function PANEL:SetPage(page)
 
 	local Fraction = 0
 	local FileCount = #filepage
-	local ShowProgress = (FileCount > self.m_nListSpeed * 5)
+	local ShowProgress = FileCount > self.m_nListSpeed * 5
 
 	self.PageLoadingProgress:SetVisible(ShowProgress)
-	if (FileCount <= 0) then
+	if FileCount <= 0 then
 		self.PageLoadingProgress:SetVisible(false)
 
 		return
@@ -610,45 +591,45 @@ function PANEL:SetPage(page)
 
 	self:InvalidateLayout()
 
-	WireLib.Timedpairs(self.TimedpairsName, filepage, self.m_nListSpeed, function(id, name, self)
-		if (!IsValid(self)) then return false end
-		if (!IsValid(self.List)) then return false end
+	WireLib.Timedpairs(self.TimedpairsName, filepage, self.m_nListSpeed, function(id, name)
+		if not IsValid(self) then return false end
+		if not IsValid(self.List) then return false end
 
-		local file = ConnectPathes(self.m_strOpenPath, name)
-		local args, bcontinue, bbreak = self:LineData(id, file, self.m_strOpenPath, name)
+		local filename = ConnectPathes(self.m_strOpenPath, name)
+		local args, bcontinue, bbreak = self:LineData(id, filename, self.m_strOpenPath, name)
 
-		if (bcontinue) then return end // continue
-		if (bbreak) then return false end // break
+		if bcontinue then return end -- continue
+		if bbreak then return false end -- break
 
 		local line = self.List:AddLine(name, unpack(args or {}))
-		if (!IsValid(line)) then return end
+		if not IsValid(line) then return end
 
 		line.m_strPath = self.m_strOpenPath
 		line.m_strFilename = name
-		line.m_strFile = file
+		line.m_strFile = filename
 
-		if (self.m_strOpenFile == file) then
+		if self.m_strOpenFile == filename then
 			self.List:SelectItem(line)
 		end
 
-		self:OnLineAdded(id, line, file, self.m_strOpenPath, name)
+		self:OnLineAdded(id, line, filename, self.m_strOpenPath, name)
 
 		Fraction = id / FileCount
 
-		if (!IsValid(self.PageLoadingProgress)) then return end
-		if (!ShowProgress) then return end
+		if not IsValid(self.PageLoadingProgress) then return end
+		if not ShowProgress then return end
 
 		self.PageLoadingProgress:SetFraction(Fraction)
 
 		self.PageLoadingLabel:SetText(id .. " of " .. FileCount .. " files found.")
 		self.PageLoadingLabel:SizeToContents()
 		self.PageLoadingLabel:Center()
-	end, function(id, name, self)
-		if (!IsValid(self)) then return end
+	end, function(id)
+		if not IsValid(self) then return end
 		Fraction = 1
 
-		if (!IsValid(self.PageLoadingProgress)) then return end
-		if (!ShowProgress) then return end
+		if not IsValid(self.PageLoadingProgress) then return end
+		if not ShowProgress then return end
 
 		self.PageLoadingProgress:SetFraction(Fraction)
 		self.PageLoadingLabel:SetText(id .. " of " .. FileCount .. " files found.")
@@ -657,25 +638,25 @@ function PANEL:SetPage(page)
 
 		self.PageLoadingProgress:SetVisible(false)
 		self:InvalidateLayout()
-	end, self)
+	end)
 end
 
-function PANEL:DoClick(file, path, name)
+function PANEL:DoClick(filename, path, name)
 	-- Override
 end
-function PANEL:DoDoubleClick(file, path, name)
+function PANEL:DoDoubleClick(filename, path, name)
 	-- Override
 end
-function PANEL:DoRightClick(file, path, name)
+function PANEL:DoRightClick(filename, path, name)
 	-- Override
 end
 
-function PANEL:LineData(id, file, path, name)
-	return // to override
+function PANEL:LineData(id, filename, path, name)
+	return -- to override
 end
 
-function PANEL:OnLineAdded(id, line, file, path, name)
-	return // to override
+function PANEL:OnLineAdded(id, line, filename, path, name)
+	return -- to override
 end
 
 vgui.Register("wire_filebrowser", PANEL, "DPanel")
