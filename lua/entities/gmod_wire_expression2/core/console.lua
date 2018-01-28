@@ -31,8 +31,8 @@ __e2setcost(5)
 
 e2function number concmd(string command)
 	if not validConCmd(self, command) then return 0 end
-  -- Let's validate the length of the concmd, who will use over 500k character anyway?
-  if #command > 500000 then return 0 end
+  	-- Let's validate the length of the concmd, who will use over 500k character anyway?
+  	if #command > 500000 then return 0 end
 	self.player:ConCommand(command:gsub("%%", "%%%%"))
 	return 1
 end
