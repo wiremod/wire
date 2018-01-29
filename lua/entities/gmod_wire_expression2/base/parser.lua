@@ -477,6 +477,12 @@ function Parser:Stmt8()
 		self:Error("Invalid operator (local) can not be used after varible decleration.")
 	elseif self:AcceptRoamingToken("loc") then
 		self.localized = true
+
+		if not self:AcceptRoamingToken("var") then
+			self:Error("Variable name expected after local")
+		end
+
+		self:TrackBack()
 	end
 
 	if self:AcceptRoamingToken("var") then
