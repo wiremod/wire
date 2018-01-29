@@ -132,7 +132,8 @@ function ENT:FlushCache(ply)
 
 	self.WaitToFlush = nil
 	
-	local pixelformat = (self.Memory[1048569] or 0) + 1
+	local pixelformat = (math.floor(self.Memory[1048569]) or 0) + 1
+	if pixelformat < 1 or pixelformat > #pixelbits then pixelformat = 1 end
 	local pixelbit = pixelbits[pixelformat]
 	local bitsremaining = 200000
 	local datastr = {}	
