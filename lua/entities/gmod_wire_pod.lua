@@ -421,33 +421,11 @@ function ENT:Think()
 		-- Button pressing
 		if (self.AllowButtons and distance < 82) then
 			local button = trace.Entity
-			if IsValid(button) and (ply:KeyDown( IN_ATTACK ) and !self.MouseDown) then
-				if button:GetClass() == "gmod_wire_lever" then
-					-- The parented lever doesn't have a great serverside hitbox, so this isn't flawless
-					self.MouseDown = true
-					button:Use(ply, ply, USE_ON, 0)
-				elseif button:GetClass() == "gmod_wire_button" || button:GetClass() == "gmod_wire_dynamic_button" then
-					self.MouseDown = true
-					if (button.toggle) then
-						if (button:GetOn()) then
-							button:Switch( false )
-						else
-							button.EntToOutput = ply
-							button.PrevUser = ply
-							button:Switch( true )
-						end
-					else
-						button.PrevUser = ply
-						button.podpress = true
-						button.EntToOutput = ply
-						button:Switch( true )
-					end
-				elseif button.Use then
-					-- Generic support (EGP screens, etc)
-					self.MouseDown = true
-					button:Use(ply, ply, USE_ON, 0)
-				end
-			elseif (!ply:KeyDown( IN_ATTACK ) and self.MouseDown) then
+			if IsValid(button) and (ply:KeyDown( IN_ATTACK ) and not self.MouseDown) and button.Use then
+				-- Generic support (Buttons, Dynamic Buttons, Levers, EGP screens, etc)
+				self.MouseDown = true
+				button:Use(ply, self, USE_ON, 0)
+			elseif not ply:KeyDown( IN_ATTACK ) and self.MouseDown then
 				self.MouseDown = false
 			end
 		end
