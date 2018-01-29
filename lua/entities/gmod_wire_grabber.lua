@@ -75,8 +75,8 @@ function ENT:ResetGrab()
 end
 
 function ENT:CanGrab(trace)
-	-- Bail if we hit world or a player
-	if not IsValid(trace.Entity) or trace.Entity:IsPlayer() then return false end
+	if not trace.Entity or not isentity(trace.Entity) then return false end
+	if (not trace.Entity:IsValid() and not trace.Entity:IsWorld()) or trace.Entity:IsPlayer() then return false end
 	-- If there's no physics object then we can't constraint it!
 	if not util.IsValidPhysicsObject(trace.Entity, trace.PhysicsBone) then return false end
 	
