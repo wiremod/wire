@@ -10,6 +10,9 @@ cache:
   directories:
     - $HOME/env
 
+notifications:
+  email: false
+
 before_install:
   - pip install --user hererocks
   - hererocks $HOME/env --luajit 2.0.3 --luarocks latest
