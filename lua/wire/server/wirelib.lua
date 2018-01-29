@@ -1191,7 +1191,8 @@ end, nil, "Prints the server's Wiremod version")
 
 local material_blacklist = {
 	["engine/writez"] = true,
-	["pp/copy"] = true
+	["pp/copy"] = true,
+	["effects/ar2_altfire1"] = true
 }
 function WireLib.IsValidMaterial(material)
 	local path = string.StripExtension(string.GetNormalizedFilepath(string.lower(material)))
