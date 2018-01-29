@@ -46,18 +46,6 @@ TOOL.ClientConVar = {
 
 util.PrecacheSound("weapons/pistol/pistol_empty.wav")
 
------------------------------------------------------------------
--- Helper functions
------------------------------------------------------------------
-
-local function get_tool(ply, tool)
-	-- find toolgun
-	local gmod_tool = ply:GetWeapon("gmod_tool")
-	if not IsValid(gmod_tool) then return end
-
-	return gmod_tool:GetToolObject(tool)
-end
-
 local function get_active_tool(ply, tool)
 	-- find toolgun
 	local activeWep = ply:GetActiveWeapon()
@@ -200,29 +188,9 @@ if SERVER then
 			end
 		end
 	end)
-	
-	
-	if game.SinglePlayer() then -- wtfgarry (these functions don't get called clientside in single player so we need this hack to fix it)
-		util.AddNetworkString( "wire_adv_wtfgarry" )
-		local function send( ply, funcname )
-			net.Start( "wire_adv_wtfgarry" )
-				net.WriteString( funcname )
-			net.Send( ply )
-		end
-		
-		function TOOL:LeftClick() send( self:GetOwner(), "LeftClick" ) end
-		function TOOL:RightClick() send( self:GetOwner(), "RightClick" ) end
-		function TOOL:Reload() send( self:GetOwner(), "Reload" ) end
-	end
+
+	WireToolHelpers.SetupSingleplayerClickHacks(TOOL)
 elseif CLIENT then
-	if game.SinglePlayer() then -- wtfgarry
-		net.Receive( "wire_adv_wtfgarry", function( len )
-			local funcname = net.ReadString()
-			local tool = get_active_tool( LocalPlayer(), "wire_adv" )
-			if not tool then return end
-			tool[funcname]( tool, LocalPlayer():GetEyeTrace() )
-		end)
-	end
 
 	-----------------------------------------------------------------
 	-- Tool helper functions

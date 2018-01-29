@@ -234,6 +234,7 @@ end
 
 
 if (SERVER) then
+	WireToolHelpers.SetupSingleplayerClickHacks(TOOL)
 
 	dbg_line_cache = {}
 
