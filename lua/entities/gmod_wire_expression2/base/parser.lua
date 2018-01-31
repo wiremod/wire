@@ -471,9 +471,10 @@ function Parser:Index()
 end
 
 
-function Parser:Stmt8()
+function Parser:Stmt8(parentLocalized)
 	local localized
 	if self:AcceptRoamingToken("loc") then
+		if parentLocalized then self:Error("Duplicate keyword (local)") end
 		localized = true
 	end
 
@@ -483,7 +484,7 @@ function Parser:Stmt8()
 		local var = self:GetTokenData()
 
 		if self:AcceptTailingToken("lsb") then
-			if localized then
+			if localized or parentLocalized then
 				self:Error("Invalid operator (local).")
 			end
 
@@ -506,8 +507,8 @@ function Parser:Stmt8()
 			end
 
 		elseif self:AcceptRoamingToken("ass") then
-			if localized then
-				return self:Instruction(trace, "assl", var, self:Stmt8())
+			if localized or parentLocalized then
+				return self:Instruction(trace, "assl", var, self:Stmt8(true))
 			else
 				return self:Instruction(trace, "ass", var, self:Stmt8())
 			end
