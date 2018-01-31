@@ -472,11 +472,9 @@ end
 
 
 function Parser:Stmt8()
-
-	if self.localized then
-		self:Error("Invalid operator (local) can not be used after varible decleration.")
-	elseif self:AcceptRoamingToken("loc") then
-		self.localized = true
+	local localized
+	if self:AcceptRoamingToken("loc") then
+		localized = true
 	end
 
 	if self:AcceptRoamingToken("var") then
@@ -485,7 +483,7 @@ function Parser:Stmt8()
 		local var = self:GetTokenData()
 
 		if self:AcceptTailingToken("lsb") then
-			if self.localized then
+			if localized then
 				self:Error("Invalid operator (local).")
 			end
 
@@ -508,19 +506,18 @@ function Parser:Stmt8()
 			end
 
 		elseif self:AcceptRoamingToken("ass") then
-			if self.localized then
-				self.localized = nil
+			if localized then
 				return self:Instruction(trace, "assl", var, self:Stmt8())
 			else
 				return self:Instruction(trace, "ass", var, self:Stmt8())
 			end
-		elseif self.localized then
+		elseif localized then
 			self:Error("Invalid operator (local) must be used for variable decleration.")
 		end
 
 		self.index = tbpos - 2
 		self:NextToken()
-	elseif self.localized then
+	elseif localized then
 		self:Error("Invalid operator (local) must be used for variable decleration.")
 	end
 
