@@ -355,7 +355,7 @@ WireToolHelpers = {}
 
 if CLIENT then
 	-- gets the TOOL since TOOL.BuildCPanel isn't passed this var. wts >_<
-	local function GetTOOL(mode)
+	function WireToolHelpers.GetTOOL(mode)
 		for _,wep in ipairs(LocalPlayer():GetWeapons()) do
 			if wep:GetClass() == "gmod_tool" then
 				return wep:GetToolObject(mode)
@@ -366,7 +366,7 @@ if CLIENT then
 	-- makes the preset control for use cause we're lazy
 	function WireToolHelpers.MakePresetControl(panel, mode, folder)
 		if not mode or not panel then return end
-		local TOOL = GetTOOL(mode)
+		local TOOL = WireToolHelpers.GetTOOL(mode)
 		if not TOOL then return end
 		local ctrl = vgui.Create( "ControlPresets", panel )
 		ctrl:SetPreset(folder or mode)
@@ -397,12 +397,51 @@ if CLIENT then
 
 	-- adds the neato model select control
 	function WireToolHelpers.MakeModelSel(panel, mode)
-		local TOOL = GetTOOL(mode)
+		local TOOL = WireToolHelpers.GetTOOL(mode)
 		if not TOOL then return end
 		ModelPlug_AddToCPanel(panel, TOOL.short_name, TOOL.Mode, true)
 	end
 end
 
+function WireToolHelpers.SetupSingleplayerClickHacks(TOOL) end -- empty stub outside of Singleplayer
+if game.SinglePlayer() then -- wtfgarry
+	-- In Singleplayer, "Because its Predicted", LeftClick/RightClick/Reload don't fire Clientside. Lets work around that
+	if SERVER then
+		util.AddNetworkString("wire_singleplayer_tool_wtfgarry")
+		local function send_singleplayer_click(ply, funcname, toolname)
+			net.Start("wire_singleplayer_tool_wtfgarry")
+				net.WriteString(funcname)
+				net.WriteString(toolname)
+			net.Send(ply)
+		end
+
+		function WireToolHelpers.SetupSingleplayerClickHacks(TOOL)
+			local originalLeftClick = TOOL.LeftClick
+			function TOOL:LeftClick(trace)
+				send_singleplayer_click(self:GetOwner(), "LeftClick", TOOL.Mode)
+				return originalLeftClick(self, trace)
+			end
+			local originalRightClick = TOOL.RightClick
+			function TOOL:RightClick(trace)
+				send_singleplayer_click(self:GetOwner(), "RightClick", TOOL.Mode)
+				return originalRightClick(self, trace)
+			end
+			local originalReload = TOOL.Reload
+			function TOOL:Reload(trace)
+				send_singleplayer_click(self:GetOwner(), "Reload", TOOL.Mode)
+				return originalReload(self, trace)
+			end
+		end
+	elseif CLIENT then
+		net.Receive( "wire_singleplayer_tool_wtfgarry", function(len)
+			local funcname = net.ReadString()
+			local toolname = net.ReadString()
+			local tool = WireToolHelpers.GetTOOL(toolname)
+			if not tool then return end
+			tool[funcname](tool, LocalPlayer():GetEyeTrace())
+		end)
+	end
+end
 
 
 WireToolSetup = {}
