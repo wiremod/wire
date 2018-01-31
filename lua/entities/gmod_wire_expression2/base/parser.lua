@@ -520,6 +520,8 @@ function Parser:Stmt8()
 
 		self.index = tbpos - 2
 		self:NextToken()
+	elseif self.localized then
+		self:Error("Invalid operator (local) must be used for variable decleration.")
 	end
 
 	return self:Stmt9()
