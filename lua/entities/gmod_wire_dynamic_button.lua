@@ -57,7 +57,7 @@ function ENT:TriggerInput(iname, value)
 	end
 end
 
-function ENT:Use(ply)
+function ENT:Use(ply, caller)
 	if (not ply:IsPlayer()) then return end
 	if (self.PrevUser) and (self.PrevUser:IsValid()) then return end
 	if self.OutputEntID then
@@ -67,6 +67,9 @@ function ENT:Use(ply)
 		if (self.toggle) then self:Switch(false) end
 
 		return
+	end
+	if IsValid(caller) and caller:GetClass() == "gmod_wire_pod" then
+		self.podpress = true
 	end
 
 	self:Switch(true)
