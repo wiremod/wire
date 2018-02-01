@@ -47,7 +47,7 @@ function ENT:TriggerInput(iname, value)
 end
 
 function ENT:Setup( key, damage, delaytime, removeafter, radius, affectother, notaffected, delayreloadtime, maxhealth, bulletproof, explosionproof, fallproof, explodeatzero, resetatexplode, fireeffect, coloreffect, invisibleatzero )
-	
+
 	self.key = key
 	self.Damage = math.Clamp( damage, 0, 1500 )
 	self.Delaytime = delaytime
@@ -90,7 +90,7 @@ function ENT:Setup( key, damage, delaytime, removeafter, radius, affectother, no
 	if (self.Delaytime > 0) then self.NormInfo = self.NormInfo.." Delay: "..self.Delaytime end
 
 	self:ShowOutput()
-	
+
 	local ttable = {
 		key = key,
 		damage = damage,

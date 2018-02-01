@@ -37,8 +37,8 @@ TOOL.GhostAngle = Angle(-90,0,0)
 TOOL.GetGhostMin = function() return -2 end
 
 if SERVER then
-	function TOOL:GetConVars() 
-		return self:GetClientNumber("delay"), self:GetClientNumber("damage"), self:GetClientNumber("force"), self:GetClientInfo("sound"), 
+	function TOOL:GetConVars()
+		return self:GetClientNumber("delay"), self:GetClientNumber("damage"), self:GetClientNumber("force"), self:GetClientInfo("sound"),
 			self:GetClientNumber("numbullets"), self:GetClientNumber("spread"), self:GetClientInfo("tracer"), self:GetClientNumber("tracernum")
 	end
 end
@@ -75,7 +75,7 @@ function TOOL.BuildCPanel( CPanel )
 	CPanel:AddControl("ComboBox", weaponSounds )
 
 	WireDermaExts.ModelSelect(CPanel, "wire_turret_model", list.Get( "WireTurretModels" ), 2)
-	
+
 	-- Tracer
 	local TracerType = {Label = "#Tracer", MenuButton = 0, Options={}, CVars = {}}
 		TracerType["Options"]["#Default"]			= { wire_turret_tracer = "Tracer" }

@@ -10,9 +10,9 @@ WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )
 
 if (SERVER) then
-	function TOOL:GetConVars() 
+	function TOOL:GetConVars()
 		return self:GetClientNumber( "forcelim" ), self:GetClientNumber( "range" ), self:GetClientNumber( "beam" )==1
-	end	
+	end
 end
 
 TOOL.ClientConVar = {

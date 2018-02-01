@@ -10,9 +10,9 @@ function ENT:Initialize()
 	self:SetMoveType( MOVETYPE_VPHYSICS )
 	self:SetSolid( SOLID_VPHYSICS )
 	self:GetPhysicsObject():EnableGravity(false)
-	
+
 	self.Inputs = WireLib.CreateInputs(self,{"On", "X", "Y", "Z", "Target [VECTOR]", "Direction [VECTOR]", "Angle [ANGLE]"})
-	
+
 	self.XYZ = Vector()
 end
 
@@ -23,7 +23,7 @@ function ENT:TriggerInput(name,value)
 		self.TargetPos = nil
 		self.TargetDir = nil
 		self.TargetAng = nil
-	
+
 		if name == "X" then
 			self.XYZ.x = value
 			self.TargetPos = self.XYZ
@@ -46,7 +46,7 @@ function ENT:TriggerInput(name,value)
 	return true
 end
 
-	
+
 function ENT:Think()
 	if self.On then
 		local ang

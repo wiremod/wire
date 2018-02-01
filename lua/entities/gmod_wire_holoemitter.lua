@@ -4,7 +4,7 @@ ENT.PrintName       = "Wire Holographic Emitter"
 ENT.RenderGroup		= RENDERGROUP_BOTH
 ENT.WireDebugName	= "Holographic Emitter"
 
-if CLIENT then 
+if CLIENT then
 	local cvar = CreateClientConVar("cl_wire_holoemitter_maxfadetime",5,true,false) -- "cl_" in the cvar name isn't very neat... probably too late to change it now, though.
 	local keeplatest = CreateClientConVar("wire_holoemitter_keeplatestdot", "0", true, false)
 
@@ -165,7 +165,7 @@ if CLIENT then
 			)
 		end
 	end
-	
+
 	return  -- No more client
 end
 
@@ -200,7 +200,7 @@ function ENT:Initialize( )
 	self.Data.LineBeam = false
 	self.Data.GroundBeam = false
 	self.Data.Size = 1
-	
+
 	self:SetOverlayText( "Holo Emitter" )
 end
 

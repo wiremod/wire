@@ -3,7 +3,7 @@ DEFINE_BASECLASS( "base_wire_entity" )
 ENT.PrintName       = "Wire Oscilloscope"
 ENT.WireDebugName	= "Oscilloscope"
 
-if CLIENT then 
+if CLIENT then
 	function ENT:Initialize()
 		self.GPU = WireGPU(self)
 
@@ -92,7 +92,7 @@ if CLIENT then
 		self.GPU:Render()
 		Wire_Render(self)
 	end
-	
+
 	return  -- No more client
 end
 

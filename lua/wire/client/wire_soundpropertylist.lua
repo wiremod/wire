@@ -13,10 +13,10 @@ AccessorFunc( PANEL, "m_nMaxItems",				"MaxItems" ) // how may items at maximum
 local function IsInString(strSource, strPattern)
 	if (!strPattern) then return true end
 	if (strPattern == "") then return true end
-	
+
 	strSource = string.lower(strSource)
 	strPattern = string.lower(strPattern)
-	
+
 	if string.find(strSource, strPattern, 0, true) then return true end
 
 	return false
@@ -64,7 +64,7 @@ local function GenerateList(self, strPattern)
 		end
 
 		if (!IsInString(v, strPattern)) then return end
-		
+
 		self:AddItem(k, v)
 
 	end, function(k, v, self)
@@ -95,14 +95,14 @@ function PANEL:Init()
 	self.SearchPanel:SetTall(20)
 	self.SearchPanel:Dock(TOP)
 	self.SearchPanel:SetDrawBackground(false)
-	
+
 	self.SearchText = self.SearchPanel:Add("DTextEntry")
 	self.SearchText:DockMargin(0, 0, 3, 0)
 	self.SearchText:Dock(FILL)
 	self.SearchText.OnChange = function(panel)
 		self:SetSearchPattern(panel:GetValue())
 	end
-	
+
 	self.RefreshIcon = self.SearchPanel:Add("DImageButton") // The Folder Button.
 	self.RefreshIcon:SetImage("icon16/arrow_refresh.png")
 	self.RefreshIcon:SetWide(20)
@@ -126,7 +126,7 @@ function PANEL:Init()
 	self.SearchProgressLabel:SetPaintBackground(false)
 	self.SearchProgressLabel:SetDark(true)
 
-	
+
 	self.SoundProperties = self:Add("DListView")
 	self.SoundProperties:SetMultiSelect(false)
 	self.SoundProperties:Dock(FILL)
@@ -178,7 +178,7 @@ end
 function PANEL:ClearList()
 	WireLib.TimedpairsStop(self.TimedpairsName)
 	self.SoundProperties:Clear(true)
-	
+
 	self.TabfileCount = 0
 end
 
@@ -195,7 +195,7 @@ function PANEL:AddItem(...)
 
 	for k, v in ipairs(itemtable) do
 		if (k == 2) then continue end
-	
+
 		i = i + 1
 		itemargs[i] = v
 	end

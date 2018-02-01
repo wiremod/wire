@@ -7,7 +7,7 @@ function ENT:SetupDataTables()
 	self:NetworkVar( "Bool", 0, "Out180" )
 end
 
-if CLIENT then 
+if CLIENT then
 	--handle overlay text client side instead (TAD2020)
 	function ENT:Think()
 		self.BaseClass.Think(self)
@@ -34,7 +34,7 @@ if CLIENT then
 	function ENT:ShowOutput(p, y, r)
 		self:SetOverlayText(string.format("Angles = %.3f, %.3f, %.3f", p, y, r))
 	end
-	
+
 	return  -- No more client
 end
 

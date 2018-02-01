@@ -41,7 +41,7 @@ function ENT:Setup(a, ar, ag, ab, aa, b, br, bg, bb, ba, material, showinhud, hu
 	self.BB = bb or 0
 	self.BA = ba or 255
 	self:SetMaterial(material)
-	
+
 	local ttable = {
 		a	= a,
 		ar	= ar,
@@ -63,7 +63,7 @@ function ENT:Setup(a, ar, ag, ab, aa, b, br, bg, bb, ba, material, showinhud, hu
 		fullcircleangle = fullcircleangle
 	}
 	table.Merge(self:GetTable(), ttable )
-	
+
 	self:HUDSetup(showinhud, huddesc, hudaddname, hudshowvalue, hudstyle, allowhook, fullcircleangle)
 end
 

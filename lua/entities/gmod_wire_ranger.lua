@@ -62,7 +62,7 @@ function ENT:Setup( range, default_zero, show_beam, ignore_world, trace_water, o
 
 
 	if (out_dist) then add("Dist","NORMAL") end
-	if (out_pos) then 
+	if (out_pos) then
 		add("Pos", "VECTOR",
 			"Pos X", "NORMAL",
 			"Pos Y", "NORMAL",

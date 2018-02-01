@@ -14,7 +14,7 @@ WireToolSetup.SetupMax( 20 )
 
 if (SERVER) then
 	ModelPlug_Register("radio")
-	function TOOL:GetConVars() 
+	function TOOL:GetConVars()
 		return self:GetClientInfo("channel"), self:GetClientNumber("values"), self:GetClientNumber("secure") ~= 0
 	end
 end
@@ -29,7 +29,7 @@ TOOL.ClientConVar = {
 function TOOL.BuildCPanel(panel)
 	WireToolHelpers.MakePresetControl(panel, "wire_radio")
 	WireDermaExts.ModelSelect(panel, "wire_radio_model", list.Get( "Wire_radio_Models" ), 2, true)
-	
+
 	panel:NumSlider("#WireRadioTool_channel","wire_radio_channel",1,30,0)
 	panel:NumSlider("#WireRadioTool_values","wire_radio_values",1,20,0)
 	panel:CheckBox("#WireRadioTool_secure","wire_radio_secure")

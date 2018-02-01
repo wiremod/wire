@@ -116,12 +116,12 @@ function ENT:SetClutchFriction( const, friction )
 		local Ent2 = const.Ent2
 
 		const:Remove()
-		
+
 		local newconst = NewBallSocket( Ent1, Ent2, friction )
 		if newconst then
 			self.clutch_ballsockets[newconst] = true
 		end
-		
+
 	else
 		print("Wire Clutch: Attempted to set friction on invalid constraint")
 	end
@@ -131,13 +131,13 @@ end
 
 
 function ENT:OnRemove()
-	
-	for k, _ in pairs( self.clutch_ballsockets ) do
-		
+
+	for k, v in pairs( self.clutch_ballsockets ) do
+
 		self:RemoveClutch( k )
-		
+
 	end
-	
+
 end
 
 

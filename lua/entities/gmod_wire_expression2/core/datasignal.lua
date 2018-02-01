@@ -70,7 +70,7 @@ local function IsAllowed( froment, toent, fromscope, signaltype )
 					isFriend( toent.player, froment.player )
 		end
 	end
-	
+
 	return false -- Any other outcome is false
 end
 

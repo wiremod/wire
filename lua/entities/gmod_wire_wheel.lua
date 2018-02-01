@@ -30,7 +30,7 @@ function ENT:Setup(fwd, bck, stop, torque, direction, axis)
 	if torque then self:SetTorque(math.max(1, torque)) end
 	if direction then self:SetDirection( direction ) end
 	if axis then self.Axis = axis end
-	
+
 	self:UpdateOverlayText()
 end
 
@@ -38,11 +38,11 @@ function ENT:UpdateOverlayText(speed)
 	local motor = self:GetMotor()
 	local friction = 0
 	if IsValid(motor) then friction = motor.friction end
-	self:SetOverlayText( 
+	self:SetOverlayText(
 		"Torque: " .. math.floor( self.BaseTorque ) ..
-		"\nFriction: " .. friction .. 
-		"\nSpeed: " .. (speed or 0) .. 
-		"\nBreak: " .. self.Breaking .. 
+		"\nFriction: " .. friction ..
+		"\nSpeed: " .. (speed or 0) ..
+		"\nBreak: " .. self.Breaking ..
 		"\nSpeedMod: " .. math.floor( self.SpeedMod * 100 ) .. "%" )
 end
 
@@ -84,7 +84,7 @@ function ENT:Forward( mul )
 	mul = mul or 1
 	local mdir = Motor.direction
 	local Speed = mdir * mul * (self.BaseTorque / WHEEL_BASE_TORQUE) * (1 + self.SpeedMod)
-	
+
 	self:UpdateOverlayText(mul ~= 0 and (mdir * mul * (1 + self.SpeedMod)) or 0)
 
 	Motor:Fire( "Scale", Speed, 0 )

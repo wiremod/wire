@@ -21,11 +21,11 @@ hook.Add( "Think", "e2_printcolor_delays", function()
 	for ply, delays in pairs( print_delays ) do
 		if IsValid( ply ) then
 			local print_max = ply:GetInfoNum( "wire_expression2_print_max", print_max )
-			
+
 			if CurTime() > delays.next_time and delays.count < print_max then
 				local print_delay = ply:GetInfoNum( "wire_expression2_print_delay", print_delay )
 				delays.next_time = CurTime() + print_delay
-				
+
 				delays.count = delays.count + 1
 			elseif delays.count > print_max then
 				delays.count = print_max
@@ -236,7 +236,7 @@ end
 e2function void printTable(array arr)
 	if not checkOwner(self) then return end
 	if not check_delay( self.player ) then return end
-	
+
 	for _,line in ipairs(string.Explode("\n",PrintTableToString(arr))) do
 		self.player:ChatPrint(line)
 	end

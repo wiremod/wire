@@ -204,10 +204,10 @@ if CLIENT then
 			-- Some entities, like ragdolls, cannot be resized with EnableMatrix, so lets average the three components to get a float
 			self:SetModelScale((scale.x + scale.y + scale.z) / 3, 0)
 		end
-		
+
 		if table.Count( self.bone_scale ) > 0 then
 			local count = self:GetBoneCount() or -1
-			
+
 			for i = count, 0, -1 do
 				local bone_scale = self.bone_scale[i] or Vector(1,1,1)
 				self:ManipulateBoneScale(i, bone_scale) // Note: Using ManipulateBoneScale currently causes RenderBounds to be reset every frame!
@@ -261,13 +261,13 @@ if CLIENT then
 			else
 				vis_buffer[index] = net.ReadBit() == 0
 			end
-			
+
 			index = net.ReadUInt(16)
 		end
 	end)
 
 	-- -----------------------------------------------------------------------------
-	
+
 	local function SetPlayerColor(entindex, color)
 		local ent = Entity(entindex)
 		-- For reference, here's why this works:
@@ -276,20 +276,20 @@ if CLIENT then
 			return color
 		end
 	end
-	
+
 	function ENT:DoPlayerColor()
 		local eidx = self:EntIndex()
 		if player_color_buffer[eidx] ~= nil then
 			SetPlayerColor(eidx, player_color_buffer[eidx])
 			player_color_buffer[eidx] = nil
 		end
-		
-		
+
+
 	end
 
 	net.Receive("wire_holograms_set_player_color", function(netlen)
 		local index = net.ReadUInt(16)
-		
+
 		while index ~= 0 do
 			local ent = Entity(index)
 			if IsValid(ent) and ent.DoPlayerColor then
@@ -297,11 +297,11 @@ if CLIENT then
 			else
 				player_color_buffer[index] = net.ReadVector()
 			end
-			
+
 			index = net.ReadUInt(16)
 		end
 	end)
-	
+
 	-- -----------------------------------------------------------------------------
 
 	concommand.Add("wire_holograms_block_client",

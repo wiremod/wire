@@ -232,7 +232,7 @@ WireLib.ThrusterEffectDraw.fire_smoke = function(self)
 
 	local vOffset = self:LocalToWorld(self:GetOffset())
 	local vNormal = self:CalcNormal()
-	
+
 	self.EffectAvg = ( self.EffectAvg * 29 + math.min( self:GetNWFloat("Thrust") / 100000, 100 ) ) / 30
 	local Magnitude = self.EffectAvg
 
@@ -314,7 +314,7 @@ WireLib.ThrusterEffectDraw.fire_smoke_big = function(self)
 			particle:SetRoll( math.Rand( -0.2, 0.2 ) )
 			particle:SetColor( 200, 200, 210 )
 
-	
+
 
 	local effectdata = EffectData()
 		effectdata:SetOrigin( vOffset )
@@ -1365,5 +1365,5 @@ WireLib.ThrusterEffectThink.bubble = function(self)
 	particle:SetEndSize( 0 )
 	particle:SetRoll( 0 )
 
-	
+
 end

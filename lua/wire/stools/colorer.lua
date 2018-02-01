@@ -16,7 +16,7 @@ WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )
 
 if SERVER then
-	function TOOL:GetConVars() 
+	function TOOL:GetConVars()
 		return self:GetClientNumber( "outColor" ) ~= 0, self:GetClientNumber( "range" )
 	end
 end

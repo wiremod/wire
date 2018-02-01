@@ -12,10 +12,10 @@ WireToolSetup.BaseLang()
 WireToolSetup.SetupMax(10)
 
 if SERVER then
-	function TOOL:GetConVars() 
+	function TOOL:GetConVars()
 		return util.CRC(self:GetClientInfo("password")), self:GetClientNumber("secure") ~= 0
 	end
-	
+
 	function TOOL:CheckPassword()
 		local password = self:GetClientNumber("password")
 		if password == nil or string.find(password, "0") then
@@ -27,11 +27,11 @@ if SERVER then
 		end
 		return true
 	end
-	
+
 	function TOOL:MakeEnt( ply, model, Ang, trace )
 		return self:CheckPassword() and WireLib.MakeWireEnt( ply, {Class = self.WireClass, Pos=trace.HitPos, Angle=Ang, Model=model}, self:GetConVars() )
 	end
-	
+
 	function TOOL:LeftClick_Update( trace )
 		if self:CheckPassword() then trace.Entity:Setup(self:GetConVars()) end
 	end

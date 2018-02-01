@@ -22,7 +22,7 @@ function ENT:Setup( action, noclip )
 	if GateActions[action].is_banned then return end
 
 	self.Updating = true
-	
+
 	self.action = action
 
 	self.WireDebugName = gate.name

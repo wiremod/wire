@@ -28,11 +28,11 @@ WireToolSetup.BaseLang()
 
 if SERVER then
 	CreateConVar('sbox_maxwire_expressions', 20)
-	
+
 	function TOOL:MakeEnt(ply, model, Ang, trace)
 		return MakeWireExpression2(ply, trace.HitPos, Ang, model)
 	end
-	
+
 	function TOOL:PostMake(ent)
 		self:Upload(ent)
 	end
@@ -73,7 +73,7 @@ if SERVER then
 	function TOOL:Upload(ent)
 		WireLib.Expression2Upload( self:GetOwner(), ent )
 	end
-	
+
 	function WireLib.Expression2Upload( ply, target, filepath )
 		if not IsValid( target ) then error( "Invalid entity specified" ) end
 		net.Start("wire_expression2_tool_upload")
@@ -124,7 +124,7 @@ if SERVER then
 		if not includes or not next(includes) then -- There are no includes
 			local datastr = WireLib.von.serialize({ { targetEnt.name, main } })
 			local numpackets = math.ceil(#datastr / 64000)
-			
+
 			local n = 0
 			for i = 1, #datastr, 64000 do
 				timer.Simple( n, function()
@@ -232,11 +232,11 @@ if SERVER then
 			WireLib.AddNotify(ply, "You are not allowed to upload to the target Expression chip. Upload aborted.", NOTIFY_ERROR, 7, NOTIFYSOUND_DRIP3)
 			return
 		end
-		
+
 		if upload_ents[ply] ~= toent then -- a new upload was started, abort previous
 			uploads[ply] = nil
 		end
-		
+
 		upload_ents[ply] = toent
 
 		if not uploads[ply] then uploads[ply] = {} end
@@ -258,7 +258,7 @@ if SERVER then
 			for k, v in pairs(ret[2]) do
 				includes[k] = v
 			end
-			
+
 			local filepath = ret[3]
 
 			toent:Setup(code, includes, nil, nil, filepath)
@@ -341,27 +341,27 @@ if SERVER then
 			WireLib.ClientError("You do not have permission to reset this E2.", player)
 		end
 	end)
-	
+
 	------------------------------------------------------
 	-- Syncing ops for remote uploader (admin only)
 	-- Server part
 	------------------------------------------------------
-	
+
 	local players_synced = {}
 	util.AddNetworkString( "wire_expression_sync_ops" )
 	concommand.Add("wire_expression_ops_sync", function(player,command,args)
 		if not player:IsAdmin() then return end
-		
+
 		local bool = args[1] ~= "0"
-		
+
 		if bool then
 			players_synced[player] = true
 		else
 			players_synced[player] = nil
 		end
-		
+
 		if next( players_synced ) and not timer.Exists( "wire_expression_ops_sync" ) then
-		
+
 			timer.Create( "wire_expression_ops_sync",0.2,0,function()
 				local plys = {}
 				for ply,_ in pairs( players_synced ) do
@@ -374,7 +374,7 @@ if SERVER then
 				if not next( players_synced ) then
 					timer.Remove( "wire_expression_ops_sync" )
 				end
-			
+
 				local E2s = ents.FindByClass("gmod_wire_expression2")
 
 				net.Start( "wire_expression_sync_ops" )
@@ -391,7 +391,7 @@ if SERVER then
 		elseif not next( players_synced ) and timer.Exists( "wire_expression_ops_sync" ) then
 			timer.Remove( "wire_expression_ops_sync" )
 		end
-		
+
 	end)
 elseif CLIENT then
 	------------------------------------------------------
@@ -406,9 +406,9 @@ elseif CLIENT then
 				local prfbench = net.ReadDouble()
 				local prfcount = net.ReadDouble()
 				local timebench = net.ReadDouble()
-				
+
 				local data = E2:GetOverlayData() or {}
-				
+
 				E2:SetOverlayData( {
 					txt = data.txt or "(generic)",
 					error = data.error or false,
@@ -423,19 +423,19 @@ elseif CLIENT then
 	--------------------------------------------------------------
 	-- Clientside Send
 	--------------------------------------------------------------
-	
+
 	local queue_max = 0
 	local queue = {}
 	local sending = false
-	
+
 	local upload_queue
-	
+
 	-- send next E2
 	local function next_queue()
 		local queue_progress = (queue_max > 1 and (1-((#queue-1) / queue_max)) * 100 or nil)
 		Expression2SetProgress( nil, queue_progress )
 		table.remove( queue, 1 )
-		
+
 		-- Clear away all removed E2s from the queue
 		while true do
 			if #queue == 0 then break end
@@ -446,7 +446,7 @@ elseif CLIENT then
 				break
 			end
 		end
-		
+
 		timer.Simple( 1, function() -- wait a while before doing anything so stuff doesn't lag
 			if #queue == 0 then
 				Expression2SetProgress()
@@ -457,14 +457,14 @@ elseif CLIENT then
 			end
 		end)
 	end
-	
+
 	upload_queue = function(first)
 		local q = queue[1]
-		
+
 		local targetEnt = q.targetEnt
 		local datastr = q.datastr
 		local timeStarted = q.timeStarted
-	
+
 		local queue_progress = (queue_max > 1 and (1-((#queue-1) / queue_max)) * 100 or nil)
 		Expression2SetProgress(1, queue_progress)
 
@@ -485,14 +485,14 @@ elseif CLIENT then
 						return
 					end
 				end
-				
+
 				if packet == numpackets then
 					next_queue()
 				end
-				
+
 				local queue_progress = (queue_max > 1 and (1-((#queue-1) / queue_max)) * 100 or nil)
 				Expression2SetProgress( packet / numpackets * 100, queue_progress )
-				
+
 				net.Start("wire_expression2_upload")
 					net.WriteUInt(targetEnt, 16)
 					net.WriteUInt(numpackets, 16)
@@ -509,7 +509,7 @@ elseif CLIENT then
 			if not IsValid(targetEnt) then return end -- We don't know what entity its going to
 			targetEnt = targetEnt:EntIndex()
 		end
-		
+
 		for i=1,#queue do
 			if queue[i].targetEnt == targetEnt then
 				WireLib.AddNotify("You're already uploading that E2!", NOTIFY_ERROR, 7, NOTIFYSOUND_ERROR1)
@@ -546,15 +546,15 @@ elseif CLIENT then
 		else
 			datastr = E2Lib.encode(WireLib.von.serialize({ code, {}, filepath }))
 		end
-		
+
 		queue[#queue+1] = {
 			targetEnt = targetEnt,
 			datastr = datastr,
 			timeStarted = CurTime()
 		}
-		
+
 		queue_max = queue_max + 1
-		
+
 		if sending then return end
 		sending = true
 		upload_queue(true) // true means its the first packet, suppressing the delay
@@ -584,13 +584,13 @@ elseif CLIENT then
 	local current_ent
 	net.Receive("wire_expression2_download", function(len)
 		local ent = net.ReadEntity()
-		
+
 		if IsValid( current_ent ) and IsValid( ent ) and ent ~= current_ent then
 			-- different E2, reset buffer
 			buffer = ""
 			count = 0
 		end
-		
+
 		local uploadandexit = net.ReadBit() ~= 0
 		local numpackets = net.ReadUInt(16)
 
@@ -917,7 +917,7 @@ elseif CLIENT then
 		surface.SetFont("Expression2ToolScreenSubFont")
 		local w2, h2 = surface.GetTextSize(" ")
 
-		if percent or percent2 then		
+		if percent or percent2 then
 			surface.SetFont("Expression2ToolScreenFont")
 			local w, h = surface.GetTextSize(what)
 			DrawTextOutline(what, "Expression2ToolScreenFont", 128, 128, Color(224, 224, 224, 255), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER, Color(0, 0, 0, 255), 4)

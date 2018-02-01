@@ -41,11 +41,11 @@ function ENT:Think()
 
 	local deltaTime = CurTime() - self.last_time
 	self.last_time = CurTime()
-	
+
 	if self.direction ~= 0 then
 		self:SetLength(math.max(self.TargetLength + (self.constraint:GetTable().speed * self.direction * deltaTime), 1))
 	end
-	
+
 	self:UpdateOutputs( true )
 	self:NextThink(CurTime()+0.05)
 	return true
@@ -103,7 +103,7 @@ function ENT:TriggerInput(iname, value)
 	elseif (iname == "Out") then
 		self.direction = value
 	elseif (iname == "Constant") then
-		if value == 0 then 
+		if value == 0 then
 			self.current_constant, _ = WireLib.CalcElasticConsts(self.constraint.Ent1, self.constraint.Ent2)
 		else
 			self.current_constant = value
@@ -111,7 +111,7 @@ function ENT:TriggerInput(iname, value)
 		self.constraint:Fire("SetSpringConstant",self.current_constant)
 		timer.Simple( 0.1, function() if IsValid(self) then self:UpdateOutputs() end end) -- Needs to be delayed because ent:Fire doesn't update that fast.
 	elseif (iname == "Damping") then
-		if value == 0 then 
+		if value == 0 then
 			_, self.current_damping = WireLib.CalcElasticConsts(self.constraint.Ent1, self.constraint.Ent2)
 		else
 			self.current_damping = value

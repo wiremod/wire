@@ -17,8 +17,8 @@ WireToolSetup.SetupMax( 20 )
 
 if SERVER then
 	ModelPlug_Register("Numpad")
-	
-	function TOOL:GetConVars() 
+
+	function TOOL:GetConVars()
 		return self:GetClientNumber( "keygroup" ), self:GetClientNumber( "keygroup2" ), self:GetClientNumber( "toggle" ),
 			self:GetClientNumber( "value_off" ), self:GetClientNumber( "value_on" ), self:GetClientNumber( "value_on2" )
 	end

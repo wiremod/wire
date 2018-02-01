@@ -101,8 +101,8 @@ function ENT:Initialize()
 	}
 
 	local inputs = {
-		"Lock", "Terminate", "Strip weapons", "Eject", 
-		"Disable", "Crosshairs", "Brake", "Allow Buttons", 
+		"Lock", "Terminate", "Strip weapons", "Eject",
+		"Disable", "Crosshairs", "Brake", "Allow Buttons",
 		"Relative", "Damage Health", "Damage Armor", "Hide Player", "Hide HUD",
 		"Vehicle [ENTITY]"
 	}
@@ -198,7 +198,7 @@ function ENT:GetPod() return self.Pod end
 function ENT:SetPod( pod )
 	if (pod and pod:IsValid() and !pod:IsVehicle()) then return false end
 
-	if self:HasPly() then 
+	if self:HasPly() then
 		self:PlayerExited(self:GetPly())
 	else
 		self:ColorByLinkStatus(IsValid(pod) and self.LINK_STATUS_LINKED or self.LINK_STATUS_UNLINKED)

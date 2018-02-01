@@ -2,15 +2,15 @@
 
 "Refract"
 {
- 	"$refractamount" 		"0.0"
- 	"$bluramount" 		"1"
+	"$refractamount" 		"0.0"
+	"$bluramount" 		"1"
 	"$REFRACTTINT" 		"{110 110 120}"
 
 	"$scale" 			"[1 1]"
 
 	"$dudvmap" 		"bluredges"
 	"$normalmap" 		"bluredges"
-	
+
 	"$nocull" 1
 	"$ignorez" 1
 

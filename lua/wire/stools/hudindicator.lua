@@ -65,8 +65,8 @@ TOOL.ClientConVar[ "fullcircleangle" ] = "0"
 TOOL.ClientConVar[ "registerdelete" ] = "0"
 
 if SERVER then
-	function TOOL:GetConVars() 
-		return self:GetClientNumber("a"), math.min(self:GetClientNumber("ar"), 255), math.min(self:GetClientNumber("ag"), 255), math.min(self:GetClientNumber("ab"), 255), math.min(self:GetClientNumber("aa"), 255), 
+	function TOOL:GetConVars()
+		return self:GetClientNumber("a"), math.min(self:GetClientNumber("ar"), 255), math.min(self:GetClientNumber("ag"), 255), math.min(self:GetClientNumber("ab"), 255), math.min(self:GetClientNumber("aa"), 255),
 			self:GetClientNumber("b"), math.min(self:GetClientNumber("br"), 255), math.min(self:GetClientNumber("bg"), 255), math.min(self:GetClientNumber("bb"), 255), math.min(self:GetClientNumber("ba"), 255),
 			self:GetClientInfo( "material" ), self:GetClientNumber( "showinhud" ) ~= 0, self:GetClientInfo( "huddesc" ), self:GetClientNumber( "hudaddname" ) ~= 0,
 			self:GetClientNumber( "hudshowvalue" ), self:GetClientNumber( "hudstyle" ), self:GetClientNumber( "allowhook" ) ~= 0, self:GetClientNumber( "fullcircleangle" )

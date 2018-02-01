@@ -4,7 +4,7 @@ ENT.PrintName       = "Wire Eye Pod"
 ENT.Purpose         = "To control the player's view in a pod and output their mouse movements"
 ENT.WireDebugName	= "Eye Pod"
 
-if CLIENT then 
+if CLIENT then
 	local enabled = false
 	local rotate90 = false
 	local freezePitch = true
@@ -47,7 +47,7 @@ if CLIENT then
 			previousEnabled = false
 		end
 	end)
-	
+
 	return  -- No more client
 end
 
@@ -119,7 +119,7 @@ function ENT:Setup(DefaultToZero, RateOfChange, ClampXMin, ClampXMax, ClampYMin,
 	self.ClampYMax = ClampYMax
 	self.ClampX = ClampX
 	self.ClampY = ClampY
-	
+
 	self:UpdateOverlay()
 end
 
@@ -251,15 +251,15 @@ function ENT:TriggerInput(iname, value)
 	-- Change variables to reflect input
 	if iname == "Enable" then
 		self.enabled = value ~= 0
-		
+
 		if self.enabled == false and self.DefaultToZero == 1 and (self.X ~= 0 or self.Y ~= 0) then
 			self.X = 0
 			self.Y = 0
 			WireLib.TriggerOutput( self, "X", 0 )
 			WireLib.TriggerOutput( self, "Y", 0 )
 			WireLib.TriggerOutput( self, "XY", {0,0} )
-		end			
-		
+		end
+
 		self:UpdateOverlay()
 	elseif iname == "SetPitch" then
 		self.eyeAng = Angle(AngNorm90(value), self.eyeAng.y, self.eyeAng.r)
@@ -280,7 +280,7 @@ function ENT:TriggerInput(iname, value)
 	elseif iname == "UnfreezeYaw" then
 		self.freezeYaw = value == 0
 	end
-	
+
 	if IsValid(self.pod) and IsValid(self.driver) then
 		self:updateEyePodState(self.enabled)
 	end
@@ -303,10 +303,10 @@ hook.Add("SetupMove", "WireEyePodMouseControl", function(ply, movedata)
 	if eyePod.enabled then
 
 		local cmd = ply:GetCurrentCommand()
-		
+
 		local oldX = eyePod.X
 		local oldY = eyePod.Y
-		
+
 		--reset the output so it is not cumualative if you want the rate of change
 		if eyePod.ShowRateOfChange == 1 then
 			eyePod.X = 0
@@ -329,7 +329,7 @@ hook.Add("SetupMove", "WireEyePodMouseControl", function(ply, movedata)
 			-- Update outputs
 			WireLib.TriggerOutput(eyePod, "X", eyePod.X)
 			WireLib.TriggerOutput(eyePod, "Y", eyePod.Y)
-			
+
 			local XY_Vec = {eyePod.X, eyePod.Y}
 			WireLib.TriggerOutput(eyePod, "XY", XY_Vec)
 		end

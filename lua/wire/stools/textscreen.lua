@@ -93,7 +93,7 @@ function TOOL.BuildCPanel(panel)
 	}
 	local Options = {}
 	for k,v in ipairs(Fonts) do Options[v] = { wire_textscreen_tfont = v } end
-	
+
 	WireToolHelpers.MakePresetControl(panel, "wire_textscreen")
 	panel:NumSlider("#Tool_wire_textscreen_tsize", "wire_textscreen_tsize", 1, 15, 0)
 	panel:NumSlider("#Tool_wire_textscreen_tjust", "wire_textscreen_tjust", 0, 2, 0)

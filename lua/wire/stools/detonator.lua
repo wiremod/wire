@@ -11,10 +11,10 @@ WireToolSetup.SetupMax( 20 )
 
 if SERVER then
 	ModelPlug_Register("detonator")
-	function TOOL:GetConVars() 
+	function TOOL:GetConVars()
 		return self:GetClientNumber( "damage" )
 	end
-	
+
 	function TOOL:MakeEnt(ply, model, Ang, trace)
 		local ent = WireToolObj.MakeEnt(self, ply, model, Ang, trace )
 		ent.target = trace.Entity

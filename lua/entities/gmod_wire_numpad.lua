@@ -82,7 +82,7 @@ function ENT:Switch( on, key )
 	if (!self:IsValid()) then return false end
 
 	self.Buffer[key] = on and 1 or 0
-	
+
 	self:ShowOutput()
 	self.Value = on and self.value_on or self.value_off
 

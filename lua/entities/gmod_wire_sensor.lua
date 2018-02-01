@@ -19,7 +19,7 @@ end
 
 function ENT:Setup(xyz_mode, outdist, outbrng, gpscord, direction_vector, direction_normalized, target_velocity, velocity_normalized)
 	if !xyz_mode and !outdist and !outbrng and !gpscord and !direction_vector and !target_velocity then outdist = true end
-	
+
 	self.xyz_mode = xyz_mode
 	self.PrevOutput = nil
 	self.Value = 0
@@ -43,8 +43,8 @@ function ENT:Setup(xyz_mode, outdist, outbrng, gpscord, direction_vector, direct
 	    table.insert(onames, "Z")
 	end
 	if (outbrng) then
-    	table.insert(onames, "Bearing")
-    	table.insert(onames, "Elevation")
+		table.insert(onames, "Bearing")
+		table.insert(onames, "Elevation")
 	end
 	if (gpscord) then
 	    table.insert(onames, "World_X")

@@ -43,9 +43,9 @@ if CLIENT then
 
 		-- Create panels
 		local searchbox = vgui.Create( "DTextEntry" )
-		
+
 		searchbox:SetValue( "Search..." )
-		
+
 		local old = searchbox.OnGetFocus
 		function searchbox:OnGetFocus()
 			if self:GetValue() == "Search..." then -- If "Search...", erase it
@@ -53,7 +53,7 @@ if CLIENT then
 			end
 			old( self )
 		end
-		
+
 		-- On lose focus
 		local old = searchbox.OnLoseFocus
 		function searchbox:OnLoseFocus()
@@ -62,7 +62,7 @@ if CLIENT then
 			end
 			old( self )
 		end
-		
+
 		local holder = vgui.Create( "DPanel" )
 		holder:SetTall( 500 )
 
@@ -149,7 +149,7 @@ if CLIENT then
 			line:SetSelected(true) -- Select new
 			RunConsoleCommand( "wire_gates_action", line.action )
 		end
-		
+
 		function searchbox:OnEnter()
 			if #searchlist:GetLines() > 0 then
 				searchlist:OnClickLine( searchlist:GetLine( 1 ) )
@@ -157,7 +157,7 @@ if CLIENT then
 		end
 
 		panel:AddItem( searchbox )
-		
+
 		tree:Dock( FILL )
 
 		-- Set sizes & other settings
@@ -187,9 +187,9 @@ if CLIENT then
 			end
 			tree:InvalidateLayout()
 		end
-		
+
 		local CategoriesSorted = {}
-		
+
 		for gatetype, gatefuncs in pairs( WireGatesSorted ) do
 			local allowed_gates = {}
 			local any_allowed = false
@@ -203,13 +203,13 @@ if CLIENT then
 				CategoriesSorted[#CategoriesSorted+1] = { gatetype = gatetype, gatefuncs = allowed_gates }
 			end
 		end
-		
+
 		table.sort( CategoriesSorted, function( a, b ) return a.gatetype < b.gatetype end )
 
 		for i=1,#CategoriesSorted do
 			local gatetype = CategoriesSorted[i].gatetype
 			local gatefuncs = CategoriesSorted[i].gatefuncs
-			
+
 			local node = tree:AddNode( gatetype )
 			node.Icon:SetImage( "icon16/folder.png" )
 			FillSubTree( tree, node, gatefuncs )
@@ -223,7 +223,7 @@ if CLIENT then
 
 
 		-- MISCELLANEOUS PLACEMENT OPTIONS, AND MODEL
-		
+
 		local nocollidebox = panel:CheckBox("#WireGatesTool_noclip", "wire_gates_noclip")
 		local parentbox = panel:CheckBox("#WireGatesTool_parent","wire_gates_parent")
 
@@ -250,10 +250,10 @@ end
 WireToolSetup.BaseLang()
 
 if SERVER then
-	function TOOL:GetConVars() 
+	function TOOL:GetConVars()
 		return self:GetClientInfo( "action" ), self:GetClientNumber( "noclip" ) == 1
 	end
-	
+
 	function TOOL:MakeEnt( ply, model, Ang, trace )
 		return MakeWireGate( ply, trace.HitPos, Ang, model, self:GetConVars() )
 	end

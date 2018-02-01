@@ -88,7 +88,7 @@ dexit;
 
 vec2f hud_pos1,50,20;
 string hud_text1,'ROLL %i %tPITCH %i%tHDG %i';
-alloc roll; 
+alloc roll;
 alloc pitch;
 alloc hdg;
 
