@@ -685,8 +685,11 @@ end
 function Compiler:InstrVAR(args)
 	self.prfcounter = self.prfcounter + 1.0
 	local tp, ScopeID = self:GetVariableType(args, args[3])
-	RunString(string.format("E2Lib.Compiler.native = function(self) return self.Scopes[%i][%q] end", ScopeID, args[3])) -- This Line!
-	return { Compiler.native }, tp
+	local name = args[3]
+
+	return {function(self)
+		return self.Scopes[ScopeID][name]
+	end}, tp
 end
 
 function Compiler:InstrFEA(args)
