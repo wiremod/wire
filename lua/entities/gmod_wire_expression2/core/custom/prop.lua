@@ -152,7 +152,7 @@ end
 
 --------------------------------------------------------------------------------
 
-__e2setcost(30)
+__e2setcost(40)
 e2function entity propSpawn(string model, number frozen)
 	if not PropCore.ValidAction(self, nil, "spawn") then return nil end
 	return PropCore.CreateProp(self,model,self.entity:GetPos()+self.entity:GetUp()*25,self.entity:GetAngles(),frozen)
@@ -212,7 +212,7 @@ end
 
 --------------------------------------------------------------------------------
 
-__e2setcost(5)
+__e2setcost(10)
 e2function void entity:propDelete()
 	if not PropCore.ValidAction(self, this, "delete") then return end
 	this:Remove()
@@ -280,7 +280,7 @@ e2function void propDeleteAll()
 end
 
 
-__e2setcost(5)
+__e2setcost(10)
 
 --------------------------------------------------------------------------------
 e2function void entity:propManipulate(vector pos, angle rot, number freeze, number gravity, number notsolid)
@@ -418,6 +418,7 @@ end
 
 --------------------------------------------------------------------------------
 
+__e2setcost(20)
 e2function void entity:setPos(vector pos)
 	if not PropCore.ValidAction(self, this, "pos") then return end
 	PropCore.PhysManipulate(this, pos, nil, nil, nil, nil)
@@ -463,6 +464,7 @@ e2function void entity:parentTo(entity target)
 	this:SetParent(target)
 end
 
+__e2setcost(5)
 e2function void entity:deparent()
 	if not PropCore.ValidAction(self, this, "deparent") then return end
 	this:SetParent( nil )

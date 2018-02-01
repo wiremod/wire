@@ -136,7 +136,7 @@ registerCallback( "postinit", function()
 			-- Get functions
 			-- value = R[N,type], and value = R:<type>(N)
 			--------------------------------------------------------------------------------
-			__e2setcost(10)
+			__e2setcost(5)
 
 			local function getter( self, array, index, doremove )
 				if (!array or !index) then return fixdef( default ) end -- Make sure array and index are value
@@ -198,7 +198,7 @@ registerCallback( "postinit", function()
 			-- Push functions
 			-- Inserts the value at the end of the array
 			--------------------------------------------------------------------------------
-			__e2setcost(15)
+			__e2setcost(7)
 
 			registerFunction( "push" .. nameupperfirst, "r:" .. id, id, function(self,args)
 				local op1, op2 = args[2], args[3]
@@ -304,7 +304,7 @@ end)
 -- Pop
 -- Removes the last entry in the array
 --------------------------------------------------------------------------------
-__e2setcost(15)
+__e2setcost(2)
 e2function void array:pop()
 	table_remove( this )
 	self.GlobalScope.vclk[this] = true
@@ -314,7 +314,7 @@ end
 -- Remove
 -- Removes the specified entry in the array
 --------------------------------------------------------------------------------
-__e2setcost(15)
+__e2setcost(2)
 e2function void array:remove( index )
 	table_remove( this, index )
 	self.GlobalScope.vclk[this] = true
@@ -335,7 +335,7 @@ end
 -- Shift
 -- Removes the first entry in the array
 --------------------------------------------------------------------------------
-__e2setcost(15)
+__e2setcost(3)
 e2function void array:shift()
 	table_remove( this, 1 )
 	self.GlobalScope.vclk[this] = true
@@ -354,7 +354,7 @@ end
 -- Count
 -- Returns the number of entries in the array
 --------------------------------------------------------------------------------
-__e2setcost(5)
+__e2setcost(3)
 e2function number array:count()
 	return #this
 end
