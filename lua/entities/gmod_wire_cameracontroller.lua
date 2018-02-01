@@ -273,8 +273,6 @@ if CLIENT then
 			-- If we switched on, set current positions and angles
 			if not enabled then
 				-- Copy them
-				curpos = Vector(pos.x,pos.y,pos.z)
-				curang = Angle(ang.p,ang.y,ang.r)
 				smoothpos = Vector(pos.x,pos.y,pos.z)
 				smoothang = Angle(ang.p,ang.y,ang.r)
 				curdistance = distance

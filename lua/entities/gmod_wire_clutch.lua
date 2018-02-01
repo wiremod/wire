@@ -40,7 +40,7 @@ end
 ---------------------------------------------------------]]
 
 function ENT:ClutchExists( Ent1, Ent2 )
-	for k, v in pairs( self.clutch_ballsockets ) do
+	for k, _ in pairs( self.clutch_ballsockets ) do
 		if  ( Ent1 == k.Ent1 and Ent2 == k.Ent2 ) or
 			( Ent1 == k.Ent2 and Ent2 == k.Ent1 ) then
 			return true
@@ -54,7 +54,7 @@ end
 -- Returns an array with each entry as a table containing Ent1, Ent2
 function ENT:GetConstrainedPairs()
 	local ConstrainedPairs = {}
-	for k, v in pairs( self.clutch_ballsockets ) do
+	for k, _ in pairs( self.clutch_ballsockets ) do
 		if IsValid( k ) then
 			table.insert( ConstrainedPairs, {Ent1 = k.Ent1, Ent2 = k.Ent2} )
 		else
@@ -132,7 +132,7 @@ end
 
 function ENT:OnRemove()
 	
-	for k, v in pairs( self.clutch_ballsockets ) do
+	for k, _ in pairs( self.clutch_ballsockets ) do
 		
 		self:RemoveClutch( k )
 		
@@ -174,8 +174,8 @@ function ENT:UpdateFriction()
 	-- Update all registered ball socket constraints
 	local numconstraints = 0	-- Used to calculate the delay between inputs
 
-	for k, v in pairs( clutch_ballsockets ) do
-		if !IsValid( k ) then
+	for k, _ in pairs( clutch_ballsockets ) do
+		if not IsValid( k ) then
 			self:RemoveClutch( k )
 
 		else
@@ -254,7 +254,8 @@ end
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
 
-	for k, v in pairs( info.constrained_pairs ) do
+	local Ent1, Ent2
+	for _, v in pairs( info.constrained_pairs ) do
 		Ent1 = GetEntByID(v.Ent1)
 		Ent2 = GetEntByID(v.Ent2, game.GetWorld())
 

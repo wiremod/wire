@@ -587,7 +587,7 @@ function Parser:Stmt10()
 
 		local Name, Return, Type
 		local NameToken, ReturnToken, TypeToken
-		local Args, Temp, Arg = {}, {}, 1
+		local Args, Temp = {}, {}
 
 
 		-- Errors are handeled after line 49, both 'fun' and 'var' tokens are used for accurate error reports.
@@ -745,8 +745,6 @@ function Parser:Stmt11()
 end
 
 function Parser:FunctionArgs(Temp, Args)
-	local sig = ""
-
 	if self:HasTokens() and not self:AcceptRoamingToken("rpa") then
 		while true do
 
@@ -945,7 +943,7 @@ function Parser:SwitchBlock() -- Shhh this is a secret. Do not tell anybody abou
 	if self:HasTokens() and not self:AcceptRoamingToken("rpa") then
 
 		if not self:AcceptRoamingToken("case") and not self:AcceptRoamingToken("default") then
-			self:Error("Case Operator (case) expected in case block.", token)
+			self:Error("Case Operator (case) expected in case block.", self:GetToken())
 		end
 
 		self:TrackBack()
@@ -981,7 +979,7 @@ function Parser:SwitchBlock() -- Shhh this is a secret. Do not tell anybody abou
 	end
 
 	if not self:AcceptRoamingToken("rcb") then
-		self:Error("Right curly bracket (}) missing, to close statement block", token)
+		self:Error("Right curly bracket (}) missing, to close statement block", self:GetToken())
 	end
 
 	return cases
@@ -1051,7 +1049,7 @@ function Parser:Expr2()
 		local exprtrue = self:Expr1()
 
 		if not self:AcceptRoamingToken("col") then -- perhaps we want to make sure there is space around this (method bug)
-			self:Error("Conditional operator (:) must appear after expression to complete conditional", token)
+			self:Error("Conditional operator (:) must appear after expression to complete conditional", self:GetToken())
 		end
 
 		return self:Instruction(trace, "cnd", expr, exprtrue, self:Expr1())
@@ -1317,7 +1315,7 @@ function Parser:Expr16()
 						local token = self:GetToken()
 
 						local key = self:Expr1()
-						local token = self:GetToken()
+						token = self:GetToken()
 
 						if self:AcceptRoamingToken("ass") then
 							if self:AcceptRoamingToken("rpa") then

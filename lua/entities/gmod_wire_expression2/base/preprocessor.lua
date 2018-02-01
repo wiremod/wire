@@ -67,7 +67,6 @@ function PreProcessor:FindComments(line)
 					end
 				end
 			elseif char == '"' then -- We found a string
-				local before = line:sub(found - 1, found - 1)
 				count = count + 1
 				ret[count] = { type = "string", pos = found }
 				pos = found + 1
