@@ -27,3 +27,18 @@ script:
   - git -c core.whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab diff --check $TRAVIS_COMMIT_RANGE
   - git diff --name-only $TRAVIS_COMMIT_RANGE | grep '\.lua$' | grep -v '^lua/entities/gmod_wire_expression2/core/' | xargs --no-run-if-empty luacheck
   - luacheck .luacheckrc
+
+before_deploy:
+  - curl -L "https://github.com/AbigailBuccaneer/gmad-build/releases/download/v20180201/gmad_linux" -o "$HOME/gmad_linux"
+  - chmod +x "$HOME/gmad_linux"
+  - $HOME/gmad_linux create -folder . -out wiremod.gma
+
+deploy:
+  skip_cleanup: true
+  provider: releases
+  api_key:
+    secure: EK1zfysVaXMB52mfDlPFwaqM7zGJE/G1iFKyjWMV20GDqZkE9/g+KlwwaRuz7q0NX0KgGuc7dk5j0JQXTg3Z14kUYdIYSq3tDkp0YBeePqVGUgQoA19ZFPlBdZEV0EF3dDHMYmErNYBuCYW7Twrzy++WgzghCcthXaV9jboF5lk=
+  file: wiremod.gma
+  on:
+    repo: wiremod/wire
+    tags: true
