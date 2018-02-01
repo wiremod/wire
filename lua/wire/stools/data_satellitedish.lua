@@ -11,7 +11,7 @@ WireToolSetup.SetupMax( 20 )
 TOOL.ClientConVar["model"] = "models/props_wasteland/prison_lamp001c.mdl"
 
 TOOL.ReloadSetsModel = true
-WireToolSetup.SetupLinking(true, "Wire Transferer")
+WireToolSetup.SetupLinking(true, "Wire Transferrer")
 
 function TOOL.BuildCPanel(panel)
 	WireDermaExts.ModelSelect(panel, "wire_data_satellitedish_model", list.Get( "Wire_satellitedish_Models" ), 1)

@@ -1,8 +1,8 @@
 AddCSLuaFile()
 DEFINE_BASECLASS( "base_wire_entity" )
-ENT.PrintName       = "Wire Data Transferer"
+ENT.PrintName       = "Wire Data Transferrer"
 ENT.RenderGroup		= RENDERGROUP_BOTH
-ENT.WireDebugName	= "Data Transferer"
+ENT.WireDebugName	= "Data Transferrer"
 
 function ENT:SetupDataTables()
 	self:NetworkVar( "Float", 0, "BeamLength" )
@@ -50,7 +50,7 @@ end
 
 function ENT:Think()
 	self:NextThink(CurTime()+0.125)
-	if(self.Activated == false && self.DefaultZero)then
+	if self.Activated == false and self.DefaultZero then
 		Wire_TriggerOutput(self,"A",0)
 		Wire_TriggerOutput(self,"B",0)
 		Wire_TriggerOutput(self,"C",0)
@@ -84,7 +84,7 @@ function ENT:Think()
 
 	self:SetColor(Color(0, 255, 0, 255))
 
-	if ent:GetClass() == "gmod_wire_data_transferer" then
+	if ent:GetClass() == "gmod_wire_data_transferrer" then
 		ent:ReceiveValue("A",self.Values.A)
 		ent:ReceiveValue("B",self.Values.B)
 		ent:ReceiveValue("C",self.Values.C)
@@ -140,3 +140,5 @@ function ENT:ReceiveValue(output,value)
 end
 
 duplicator.RegisterEntityClass("gmod_wire_data_transferer", WireLib.MakeWireEnt, "Data", "Range", "DefaultZero", "IgnoreZero")
+duplicator.RegisterEntityClass("gmod_wire_data_transferrer", WireLib.MakeWireEnt, "Data", "Range", "DefaultZero", "IgnoreZero")
+scripted_ents.Alias("gmod_wire_data_transferer", "gmod_wire_data_transferrer")
