@@ -448,7 +448,10 @@ function Editor:SetActiveTab(val)
 	end
 	if self.E2 then self:Validate() end
 
-	-- Editor subtitle and tab text
+	self:UpdateActiveTabTitle()
+end
+
+function Editor:UpdateActiveTabTitle()
 	local title, tabtext = getPreferredTitles(self:GetChosenFile(), self:GetCode())
 
 	if title then self:SubTitle("Editing: " .. title) else self:SubTitle() end
@@ -538,18 +541,16 @@ function Editor:CreateTab(chosenfile)
 			menu:AddOption("Save", function()
 				self:FixTabFadeTime()
 				local old = self:GetLastTab()
+				local currentTab = self:GetActiveTab()
 				self:SetActiveTab(pnl)
-				self:SaveFile(self:GetChosenFile(), true)
-				self:SetActiveTab(self:GetLastTab())
+				self:SaveFile(self:GetChosenFile(), false)
+				self:SetActiveTab(currentTab)
 				self:SetLastTab(old)
 			end)
 			menu:AddOption("Save As", function()
 				self:FixTabFadeTime()
-				local old = self:GetLastTab()
 				self:SetActiveTab(pnl)
 				self:SaveFile(self:GetChosenFile(), false, true)
-				self:SetActiveTab(self:GetLastTab())
-				self:SetLastTab(old)
 			end)
 			menu:AddOption("Reload", function()
 				self:FixTabFadeTime()
@@ -1769,6 +1770,7 @@ function Editor:SaveFile(Line, close, SaveAs)
 			function(strTextOut)
 				strTextOut = string.gsub(strTextOut, ".", invalid_filename_chars)
 				self:SaveFile(self.Location .. "/" .. strTextOut .. ".txt", close)
+				self:UpdateActiveTabTitle()
 			end)
 		return
 	end
