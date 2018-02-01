@@ -795,7 +795,7 @@ E2Helper.Descriptions["toString(q:)"] = "Formats Q as a string"
 -- Selfaware
 E2Helper.Descriptions["first()"] = "Returns 1 if the expression was spawned or reset"
 E2Helper.Descriptions["duped()"] = "Returns 1 if the expression was duplicated"
-E2Helper.Descriptions["dupefinished()"] = "Returns 1 when the contraption has finished duping. (Only triggers on Adv Duplicator, not the normal duplicator)"
+E2Helper.Descriptions["dupefinished()"] = "Returns 1 when the contraption has finished duping."
 E2Helper.Descriptions["inputClk()"] = "Returns 1 if the expression was triggered by an input"
 E2Helper.Descriptions["last()"] = "Returns 1 if it is being called on the last execution of the expression gate before it is removed or reset. This execution must be requested with the runOnLast(1) command"
 E2Helper.Descriptions["removing()"] = "Returns 1 if this is the last() execution and caused by the entity being removed"
