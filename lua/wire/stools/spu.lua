@@ -59,8 +59,8 @@ if SERVER then
     self:LeftClick_Update(trace)
     return ent
   end
-  
-  
+
+
   function TOOL:RightClick(trace)
     net.Start("ZSPU_OpenEditor") net.Send(self:GetOwner())
     return true

@@ -10,7 +10,7 @@ local cpu_max_frequency = 1400000
 local wire_cpu_max_frequency = CreateConVar("wire_cpu_max_frequency", cpu_max_frequency, FCVAR_REPLICATED)
 
 cvars.AddChangeCallback("wire_cpu_max_frequency",function()
- 	cpu_max_frequency = math.Clamp(math.floor(wire_cpu_max_frequency:GetInt()),1,30000000)
+	cpu_max_frequency = math.Clamp(math.floor(wire_cpu_max_frequency:GetInt()),1,30000000)
 end)
 
 function ENT:Initialize()
@@ -88,11 +88,11 @@ function ENT:Initialize()
 					end
 				else VM:Interrupt(8,Address+1) return
 				end
-			else return 0 
+			else return 0
 			end
 		end
 	end
-	
+
 	local oldReset = self.VM.Reset
 	self.VM.Reset = function(...)
 		if self.Clk and self.VMStopped then

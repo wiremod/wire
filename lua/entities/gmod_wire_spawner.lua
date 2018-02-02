@@ -59,20 +59,20 @@ function ENT:Setup( delay, undo_delay, spawn_effect, mat, r, g, b, a, skin )
 	self.delay = delay
 	self.undo_delay = undo_delay
 	self.spawn_effect = spawn_effect
-	if r then 
+	if r then
 		self.mat = mat
 		self.r = r
 		self.g = g
 		self.b = b
 		self.a = a
 		self.skin = skin
-	
+
 		self:SetRenderMode(3)
 		self:SetMaterial(mat or "")
 		self:SetSkin(skin or 0)
 		self:SetColor(Color(r or 255, g or 255, b or 255, 100))
 	end
-	
+
 	self:ShowOutput()
 end
 
@@ -130,7 +130,7 @@ function ENT:DoSpawn( pl, down )
 		undo.AddEntity( nocollide )
 		undo.SetPlayer( pl )
 	undo.Finish()
-	
+
 	-- Check if the player is NULL (ab0mbs)
 	if IsValid(pl) then
 	pl:AddCleanup( "props", prop )

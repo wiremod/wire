@@ -17,9 +17,9 @@ WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 20 )
 
 if SERVER then
-	function TOOL:GetConVars() 
+	function TOOL:GetConVars()
 		return self:GetClientNumber("xyz_mode") ~= 0, self:GetClientNumber("outdist") ~= 0, self:GetClientNumber("outbrng") ~= 0,
-			self:GetClientNumber("gpscord") ~= 0, self:GetClientNumber("direction_vector") ~= 0, self:GetClientNumber("direction_normalized") ~= 0, 
+			self:GetClientNumber("gpscord") ~= 0, self:GetClientNumber("direction_vector") ~= 0, self:GetClientNumber("direction_normalized") ~= 0,
 			self:GetClientNumber("target_velocity") ~= 0, self:GetClientNumber("velocity_normalized") ~= 0
 	end
 

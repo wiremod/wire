@@ -1,7 +1,7 @@
 //Wired Hello World!
 //Connect CPU membus input to console screen
 //Connect CPUs CLK input to button (toggle)
-//Notice how you can store your 
+//Notice how you can store your
 //subroutines/calls in DATA area
 jmp _code;
 message:
@@ -26,7 +26,7 @@ _code:
   call WriteString;
 
 //More about colors:
-//Lower 3 digits are foreground, 
+//Lower 3 digits are foreground,
 //and higher 3 digits are background
 //Each of 3 digits shows amount of
 //RED, GREEN, and BLUE (in order)

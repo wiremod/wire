@@ -26,7 +26,7 @@ WireToolSetup.BaseLang()
 WireToolSetup.SetupMax( 10 )
 
 if SERVER then
-	function TOOL:GetConVars() 
+	function TOOL:GetConVars()
 		return self:GetClientNumber("range"), self:GetClientNumber("default_zero")~=0, self:GetClientNumber("show_beam")~=0, self:GetClientNumber("ignore_world")~=0,
 			self:GetClientNumber("trace_water")~=0, self:GetClientNumber("out_dist")~=0, self:GetClientNumber("out_pos")~=0, self:GetClientNumber("out_vel")~=0,
 			self:GetClientNumber("out_ang")~=0, self:GetClientNumber("out_col")~=0, self:GetClientNumber("out_val")~=0, self:GetClientNumber("out_sid")~=0,

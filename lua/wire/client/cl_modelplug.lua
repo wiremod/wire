@@ -6,7 +6,7 @@ CreateConVar("cl_showmodeltextbox", "0")
 -- Loads and converts model lists from the old WireModelPacks format
 do
 	local converted = {}
-	
+
 
 	MsgN("WM: Loading models...")
 	for _,filename in ipairs( file.Find("WireModelPacks/*", "DATA") ) do
@@ -31,7 +31,7 @@ do
 		end
 	end
 	MsgN("End loading models")
-	
+
 	file.Write("converted.txt", table.concat(converted, "\n"))
 end
 ]]

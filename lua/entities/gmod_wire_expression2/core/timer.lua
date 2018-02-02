@@ -130,9 +130,9 @@ end
 local function luaDateToE2Table( time, utc )
 	local ret = {n={},ntypes={},s={},stypes={},size=0}
 	local time = os.date((utc and "!" or "") .. "*t",time)
-	
+
 	if not time then return ret end -- this happens if you give it a negative time
-	
+
 	for k,v in pairs( time ) do
 		if k == "isdst" then
 			ret.s.isdst = (v and 1 or 0)
@@ -141,10 +141,10 @@ local function luaDateToE2Table( time, utc )
 			ret.s[k] = v
 			ret.stypes[k] = "n"
 		end
-		
+
 		ret.size = ret.size + 1
 	end
-	
+
 	return ret
 end
 __e2setcost(10)
@@ -192,16 +192,16 @@ end
 local validkeys = {hour = true, min = true, day = true, sec = true, yday = true, wday = true, month = true, year = true, isdst = true}
 e2function number time(table data)
 	local args = {}
-	
+
 	for k,v in pairs( data.s ) do
 		if data.stypes[k] ~= "n" or not validkeys[k] then continue end
-		
+
 		if k == "isdst" then
 			args.isdst = (v == 1)
 		else
 			args[k] = v
 		end
 	end
-	
+
 	return os.time( args )
 end

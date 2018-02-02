@@ -39,7 +39,7 @@ function ENT:FireShot()
 	local Attachment = self:GetAttachment( 1 )
 
 	-- Get the shot angles and stuff.
-	local shootOrigin = Attachment.Pos + self:GetVelocity() * engine.TickInterval() 
+	local shootOrigin = Attachment.Pos + self:GetVelocity() * engine.TickInterval()
 	local shootAngles = self:GetAngles()
 
 	-- Shoot a bullet
@@ -99,7 +99,7 @@ function ENT:Setup(delay, damage, force, sound, numbullets, spread, tracer, trac
 	else
 		self.delay = delay
 	end
-	
+
 	self.damage = damage
 	self.force = force
 	-- Preventing client crashes
@@ -108,7 +108,7 @@ function ENT:Setup(delay, damage, force, sound, numbullets, spread, tracer, trac
 	else
 		self.sound = sound
 	end
-	
+
 	if not game.SinglePlayer() then
 		self.numbullets = math.Clamp( numbullets, 1, 10 ) -- clamp num bullets if it's not single player
 	else

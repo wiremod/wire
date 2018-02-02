@@ -52,7 +52,7 @@ end
 if CLIENT then
 	local Linked_Ents = {}		-- Table of constrained ents, with Ent1 as k and Ent2 as v
 	local Unique_Ents = {}		-- Table of entities as keys
-	
+
 	// Receive stage 0 info
 	local function Receive_links( um )
 		table.Empty( Linked_Ents )

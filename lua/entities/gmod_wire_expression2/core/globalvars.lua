@@ -261,7 +261,7 @@ registerCallback("postinit",function()
 
 						self:PopScope()
 					end
-				end			
+				end
 			end)
 
 		end -- allowed check

@@ -6,16 +6,16 @@ if CLIENT then return end -- No more client
 
 function ENT:Initialize()
 	self.BaseClass.Initialize(self)
-	
+
 	self.Inputs = WireLib.CreateInputs(self, {"Entity [ENTITY]", "Entities [ARRAY]", "Position [VECTOR]", "Local Position [VECTOR]", "Angle [ANGLE]", "Local Angle [ANGLE]"})
-	
+
 	self.Position = Vector(0,0,0)
 	self.Angle = Angle(0,0,0)
 	self.Entities = {}
 	self.Global = false
 	self.GlobalAngle = false
 	self:AddExitPoint()
-	
+
 	self:ShowOutput()
 end
 
@@ -82,7 +82,7 @@ local function MovePlayer( ply, vehicle )
 				local LocalPosDistance = epoint.Position:Length()
 				ply:SetPos( vehicle:LocalToWorld( epoint.Position / LocalPosDistance * math.min(LocalPosDistance, math.max(0, ClampDistance:GetInt()))) + Vector(0,0,5) )
 			end
-			
+
 			if epoint.GlobalAngle then
 				ply:SetEyeAngles( Angle( epoint.Angle.p, epoint.Angle.y, 0 ) )
 			else
@@ -90,7 +90,7 @@ local function MovePlayer( ply, vehicle )
 				ang.r = 0
 				ply:SetEyeAngles( ang )
 			end
-			
+
 			return
 		end
 	end
@@ -111,7 +111,7 @@ function ENT:LinkEnt( ent )
 	ent:CallOnRemove("ExitPoint.Unlink", function(ent)
 		if IsValid(self) then self:UnlinkEnt(ent) end
 	end)
-	
+
 	self:SendMarks()
 	self:ShowOutput()
 	return true
@@ -120,7 +120,7 @@ end
 function ENT:UnlinkEnt( ent )
 	if not self.Entities[ent] then return end
 	self.Entities[ent] = nil
-	
+
 	self:SendMarks()
 	self:ShowOutput()
 	return true

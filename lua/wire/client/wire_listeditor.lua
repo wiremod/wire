@@ -38,7 +38,7 @@ local invalid_chars = {
 
 local function ConnectPathes(path1, path2)
 	local path = ""
-	
+
 	if (isstring(path1) and path1 ~= "") then
 		path = path1
 		if (isstring(path2) and path2 ~= "") then
@@ -65,7 +65,7 @@ local function ReadLine(filedata)
 		local line = ""
 		local fileend = false
 
-		for i=1, max_char_count+56 do // maximum chars per line 
+		for i=1, max_char_count+56 do // maximum chars per line
 			local byte = filedata:ReadByte()
 			fileend = !byte
 
@@ -127,7 +127,7 @@ local function SaveTo(self, func, ...)
 
 			strTextOut = string.gsub(strTextOut, ".", invalid_filename_chars)
 			if (strTextOut == "") then return end
-			
+
 			local filepath = string.GetPathFromFilename(path)
 			if (!filepath or filepath == "") then filepath = self.m_strRootPath.."/" end
 
@@ -147,7 +147,7 @@ local function AsForOverride(self, func, filename, ...)
 	if (!func) then return end
 	if (filename == self.m_strList) then func(self, filename, ...) return end
 	if (!file.Exists(filename, "DATA")) then func(self, filename, ...) return end
-	
+
 	local args = {...}
 
 	Derma_Query(
@@ -157,7 +157,7 @@ local function AsForOverride(self, func, filename, ...)
 
 		function()
 			if (!IsValid(self)) then return end
-			
+
 			func(self, filename, unpack(args))
 		end,
 
@@ -171,7 +171,7 @@ local function AsForSave(self, func, ...)
 
 	if (!func) then return end
 	if (!self.m_bUnsaved) then func(self, ...) return end
-	
+
 	local args = {...}
 
 	Derma_Query( "Would you like to save the changes?",
@@ -185,18 +185,18 @@ local function AsForSave(self, func, ...)
 				SaveTo(self, func, unpack(args))
 				return
 			end
-			
+
 			local saved = self:SaveList(self.m_strList)
 			if (saved) then
 				func(self, unpack(args))
 			end
-		end, 
+		end,
 
 		"No", // Don't save and resume.
 		function()
 			if (!IsValid(self)) then return end
 			func(self, unpack(args))
-		end, 
+		end,
 
 		"Cancel" // Do nothing.
 	)
@@ -343,7 +343,7 @@ function PANEL:Init()
 	self.SplitPanel:SetLeftMin(150)
 	self.SplitPanel:SetRightMin(300)
 	self.SplitPanel:SetDividerWidth(3)
-	
+
 	self:SetRootPath("wirelists")
 end
 
@@ -424,7 +424,7 @@ function PANEL:AddItem(...)
 
 	for k, v in ipairs(itemtable) do
 		if (k == 1) then continue end
-	
+
 		i = i + 1
 		itemargs[i] = v
 	end
@@ -473,19 +473,19 @@ function PANEL:OpenList(strfile)
 	if (strfile == "") then return end
 
 	AsForSave(self, function(self, strfile)
-		local filedata = file.Open(strfile, "rb", "DATA") 
+		local filedata = file.Open(strfile, "rb", "DATA")
 		if (!filedata) then return end
-		
+
 		WireLib.TimedpairsStop(self.TimedpairsName)
 		self.Files:Clear(true)
 		self.Tabfile = {}
 		self.TabfileCount = 0
-		
+
 		local counttab={}
 		for i=1, self.m_nMaxItems do
 			counttab[i] = true
 		end
-		
+
 		WireLib.Timedpairs(self.TimedpairsName, counttab, self.m_nListSpeed, function(index, _, self, filedata)
 			if (!IsValid(self)) then
 				filedata:Close()
@@ -500,7 +500,7 @@ function PANEL:OpenList(strfile)
 			if (self.TabfileCount >= self.m_nMaxItems) then
 				filedata:Close()
 				self:SetUnsaved(false)
-				
+
 				return false
 			end
 
@@ -508,7 +508,7 @@ function PANEL:OpenList(strfile)
 			if (!linetable) then // do not add to empty lines
 				filedata:Close()
 				self:SetUnsaved(false)
-				
+
 				return false
 			end
 
@@ -520,7 +520,7 @@ function PANEL:OpenList(strfile)
 			if (!IsValid(self)) then return end
 			self:SetUnsaved(false)
 		end, self, filedata)
-		
+
 		self:SetUnsaved(false)
 		self:SetList(strfile)
 	end, strfile)
@@ -567,13 +567,13 @@ end
 
 function PANEL:SetUnsaved(bool)
 	self.m_bUnsaved = bool
-	
+
 	self:UpdateListNameLabel()
 end
 
 function PANEL:SetList(listfile)
 	self.m_strList = listfile
-	
+
 	self:UpdateListNameLabel()
 end
 

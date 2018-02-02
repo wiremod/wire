@@ -15,7 +15,7 @@ void Main()
 
     glColor( 255, 255, 255 ); // Set draw color
     glCircle( *orig.x, *orig.y, 0.66, 40 ); // Draw circle (x, y, radius, quality)
-    
+
     glColor( 0, 0, 0 );
     glCircle( *orig.x, *orig.y, 0.64, 40 );
 
@@ -26,13 +26,13 @@ void Main()
     *PosR.x = *cos;
     *PosR.x *= 0.65;
     *PosR.x += *orig.x;
-    
+
     *PosR.y = *sin;
     *PosR.y *= 0.65;
     *PosR.y += *orig.y;
 
     *PosX.x = *PosR.x;
-    
+
     glLineWidth( 0.01 ); // Set line width
     glFontSize( 24 ); // Set font size
 
@@ -46,10 +46,10 @@ void Main()
     glLine( *PosR.x, *PosR.y, *PosX.x, *PosX.y );
     *sin *= -1; // Negate
     glWriteFmt( -0.95, -0.85, sSin );
-    
+
     glColor( 255, 255, 255 );
     glLine( *orig.x, *orig.y, *PosR.x, *PosR.y ); // Draw line
-    
+
     glExit(); // Exit
 }
 

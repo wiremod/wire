@@ -54,7 +54,7 @@ function ENT:Setup(DriveID, DriveCap)
 	self.DriveCap = DriveCap
 	self:UpdateCap()
 	self:SetOverlayText(self.DriveCap.."kb".."\nWriteAddr:"..self.AWrite.."  Data:"..self.Data.."  Clock:"..self.Clk.."\nReadAddr:"..self.ARead.." = ".. self.Out)
-	Wire_TriggerOutput(self, "DriveID", self.DriveID) 
+	Wire_TriggerOutput(self, "DriveID", self.DriveID)
 end
 
 function ENT:GetStructName(name)
@@ -94,8 +94,8 @@ function ENT:GetCap()
 	if (not game.SinglePlayer()) and (self.DriveCap > 256) then
 		self.DriveCap = 256
 	end
-	
-	Wire_TriggerOutput(self, "Capacity", self.DriveCap) 
+
+	Wire_TriggerOutput(self, "Capacity", self.DriveCap)
 end
 
 function ENT:UpdateCap()

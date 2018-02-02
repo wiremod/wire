@@ -14,4 +14,3 @@ TOOL.ClientConVar[ "model" ] = "models/jaanus/wiretool/wiretool_gate.mdl"
 function TOOL.BuildCPanel(panel)
 	WireDermaExts.ModelSelect(panel, "wire_extbus_model", list.Get("Wire_gate_Models"), 5)
 end
-

@@ -22,13 +22,13 @@ TOOL.ClientConVar = {
 	fwd			= 1,	-- Forward
 	bck			= -1,	-- Back
 	stop 		= 0,	-- Stop
-}	
+}
 
 if SERVER then
 	function TOOL:GetConVars()
 		return self:GetClientNumber( "fwd" ), self:GetClientNumber( "bck" ), self:GetClientNumber( "stop" ), self:GetClientNumber( "torque" )
 	end
-	
+
 	function TOOL:MakeEnt( ply, model, Ang, trace )
 		local targetPhys = trace.Entity:GetPhysicsObjectNum( trace.PhysicsBone )
 
@@ -43,7 +43,7 @@ if SERVER then
 		-- Create the wheel
 		local wheelEnt = WireLib.MakeWireEnt(ply, {Class = self.WireClass, Pos=trace.HitPos, Angle=Ang, Model=model}, fwd, bck, stop, torque )
 		self:SetPos( wheelEnt, trace )
-		
+
 		-- Wake up the physics object so that the entity updates
 		wheelEnt:GetPhysicsObject():Wake()
 
@@ -71,10 +71,10 @@ if SERVER then
 		wheelEnt:SetDirection( constraint.direction )
 		wheelEnt:SetAxis( trace.HitNormal )
 		wheelEnt:DoDirectionEffect()
-	
+
 		return wheelEnt
 	end
-	
+
 	function TOOL:LeftClick_PostMake(_, _, _) end -- We're handling this in MakeEnt since theres a motor
 end
 

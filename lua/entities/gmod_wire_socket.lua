@@ -72,7 +72,7 @@ function ENT:GetPlugClass()
 	return "gmod_wire_plug"
 end
 
-if CLIENT then 
+if CLIENT then
 	function ENT:DrawEntityOutline()
 		if (GetConVar("wire_plug_drawoutline"):GetBool()) then
 			base.DrawEntityOutline( self )
@@ -94,7 +94,7 @@ if CLIENT then
 			end
 		end
 	end)
-	
+
 	return  -- No more client
 end
 

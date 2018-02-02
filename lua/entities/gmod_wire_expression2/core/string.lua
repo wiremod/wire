@@ -109,8 +109,8 @@ __e2setcost(20) -- temporary
 
 e2function number string:toNumber()
 	local ret = tonumber(this)
- 	if ret == nil then return 0 end
- 	return ret
+	if ret == nil then return 0 end
+	return ret
 end
 
 e2function number string:toNumber(number base)
@@ -152,7 +152,7 @@ local math_floor = math.floor
 registerFunction("toUnicodeChar", "n", "s", function(self, args)
 	local op1 = args[2]
 	local rv1 = op1[1](self, op1)
-	
+
 	-- upper limit used to be 2097152, new limit acquired using pcall and a for loop
 	-- above this limit, the function causes a lua error
 	if rv1 < 1 or rv1 > 1114112 then return "" end

@@ -29,7 +29,7 @@ if (CLIENT) then
 			additive = false
 		}
 		surface.CreateFont( font, fontTable )
-		
+
 		EGP.ValidFonts_Lookup[font] = true
 		table.insert( new, font )
 	end
@@ -56,7 +56,7 @@ if (CLIENT) then
 			NoTexture()
 		end
 	end
-	
+
 	function EGP:FixMaterial( OldTex )
 		if (!OldTex) then return end
 		WireGPU_matScreen:SetTexture("$basetexture", OldTex)

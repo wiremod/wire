@@ -22,7 +22,7 @@ TOOL.ClientConVar[ "YMin" ] = "0"
 TOOL.ClientConVar[ "YMax" ] = "0"
 
 if SERVER then
-	function TOOL:GetConVars() 
+	function TOOL:GetConVars()
 		local DefaultToZero = self:GetClientNumber("DefaultToZero")
 		local CumulativeOutput = self:GetClientNumber("CumulativeOutput")
 		local ShowRateOfChange = (CumulativeOutput ~= 0) and 0 or 1

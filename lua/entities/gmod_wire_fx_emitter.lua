@@ -36,7 +36,7 @@ end
 include( "wire/fx_emitter_default.lua" )
 
 
-if CLIENT then 
+if CLIENT then
 	ENT.Delay = 0.05
 
 	function ENT:Draw()
@@ -83,7 +83,7 @@ if CLIENT then
 			self.Effects[ Effect ] = nil
 		end
 	end
-	
+
 	return  -- No more client
 end
 

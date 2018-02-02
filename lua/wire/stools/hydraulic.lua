@@ -60,9 +60,9 @@ function TOOL:LeftClick_Update( trace )
 
 		-- Make new constraint, at the old constraint's position, but with the new convar settings
 		local const, rope = MakeWireHydraulic( self:GetOwner(),
-								tbl.Ent1, tbl.Ent2, 
-								tbl.Bone1, tbl.Bone2, 
-								tbl.LPos1, tbl.LPos2, 
+								tbl.Ent1, tbl.Ent2,
+								tbl.Bone1, tbl.Bone2,
+								tbl.LPos1, tbl.LPos2,
 								width, material, speed, fixed, stretchonly )
 
 		-- Set the new references
@@ -110,11 +110,11 @@ function TOOL:LeftClick( trace )
 			self:SetStage(0)
 			return
 		end
-		
+
 		local controller = self:LeftClick_Make(trace, ply)
 		if isbool(controller) then return controller end
 		self:LeftClick_PostMake(controller, ply, trace)
-		
+
 		if controller then
 			controller:DeleteOnRemove(const)
 			if rope then controller:DeleteOnRemove( rope ) end
@@ -179,7 +179,7 @@ function TOOL:RightClick( trace )
 		tr.filter[2] = trace.Entity
 	end
 	local trace2 = util.TraceLine( tr )
-	
+
 	if not hook.Run( "CanTool", self:GetOwner(), trace2, "wire_hydraulic" ) then return false end
 
 	return self:LeftClick(trace) and self:LeftClick(trace2)

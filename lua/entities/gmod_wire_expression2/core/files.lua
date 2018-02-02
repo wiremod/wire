@@ -341,7 +341,7 @@ util.AddNetworkString("wire_expression2_file_begin")
 net.Receive("wire_expression2_file_begin", function(netlen, ply)
 	local pfile = uploads[ply]
 	if !pfile then return end
-	
+
 	local len = net.ReadUInt(32)
 
 	if len == 0 then -- file not found
@@ -415,7 +415,7 @@ concommand.Add("wire_expression2_file_singleplayer", function(ply, cmd, args)
 	if not ply:IsListenServerHost() then ply:Kick("Do not use wire_expression2_file_singleplayer in multiplayer, unless you're the host!") end
 	local pfile = uploads[ply]
 	if !pfile then return end
-	
+
 	local path = args[1]
 	if not file.Exists(path, "DATA") then
 		pfile.sp_wait = false

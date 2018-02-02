@@ -12,7 +12,7 @@ function ENT:Initialize()
 	self:SetSolid( SOLID_VPHYSICS )
 	self.Inputs = Wire_CreateInputs(self, {"Set", "Length","StartSize","EndSize","R","G","B","A"})
 	self.Outputs = Wire_CreateOutputs(self, {})
-	
+
 	self.Trail = {
 		Color = Color(255, 255, 255, 255),
 		Length = 5,

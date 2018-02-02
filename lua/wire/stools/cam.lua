@@ -57,14 +57,14 @@ function TOOL.BuildCPanel(panel)
 	panel:CheckBox("#Tool.wire_cam.autounclip", "wire_cam_autounclip" )
 	panel:Help( "Automatically prevents the camera from clipping into walls by moving it closer to the parent entity (or cam controller if no parent is specified)." )
 	panel:CheckBox("#Tool.wire_cam.autounclip_ignorewater", "wire_cam_autounclip_ignorewater" )
-	
+
 	panel:CheckBox("#Tool.wire_cam.drawplayer", "wire_cam_drawplayer" )
 	panel:Help( "Enable/disable the player being able to see themselves. Useful if you want to position the camera inside the player's head." )
 	panel:CheckBox("#Tool.wire_cam.drawparent", "wire_cam_drawparent" )
 	panel:Help( "Enable/disable the rendering of the parent entity. Useful if you want to position the camera inside the parent." )
-	
-	panel:Help( "As you may have noticed, there are a lot of behaviours that change depending on which checkboxes are checked. For a detailed walk-through of everything, go to http://wiki.wiremod.com/wiki/Cam_Controller") 
-	
+
+	panel:Help( "As you may have noticed, there are a lot of behaviours that change depending on which checkboxes are checked. For a detailed walk-through of everything, go to http://wiki.wiremod.com/wiki/Cam_Controller")
+
 	panel:NumSlider( "#Tool.wire_cam.smooth_amount", "wire_cam_smooth_amount", 4, 30, 1 )
 	panel:Help( "Smooth speed is a client side setting, and is not saved on the cam controller entity. Changing it will immediately affect all cam controllers you use." )
 end

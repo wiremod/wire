@@ -40,7 +40,7 @@ function ENT:DoTrace()
 	if not gamemode.Call("CanProperty", self:GetPlayer(), "ignite", trace.Entity) then return false end
 	if (trace.Entity:IsPlayer() and (not self.TargetPlayers or not cvarTargetPlayers)) then return false end
 	if (trace.Entity:IsWorld()) then return false end
-	
+
 	return trace.Entity
 end
 
@@ -48,9 +48,9 @@ function ENT:TriggerInput(iname, value)
 	if (iname == "A") then
 		if (value ~= 0) then
 			local target = self:DoTrace()
-			
+
 			if target == false then return false end
-			
+
 			target:Extinguish()
 			target:Ignite( self.IgniteLength, 0 )
 		end
@@ -59,10 +59,10 @@ function ENT:TriggerInput(iname, value)
 	elseif (iname == "Extinguish") then
 		if value ~= 0 then
 			local target = self:DoTrace()
-			
+
 			if target == false then return false end
-			
-			target:Extinguish()			
+
+			target:Extinguish()
 		end
 	end
 end

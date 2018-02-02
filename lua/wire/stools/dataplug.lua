@@ -27,7 +27,7 @@ TOOL.ClientConVar["model"] = "models/hammy/pci_slot.mdl"
 TOOL.ClientConVar["weldforce"] = 5000
 TOOL.ClientConVar["attachrange"] = 5
 
-function TOOL:GetConVars() 
+function TOOL:GetConVars()
 	return self:GetClientNumber("weldforce"), math.Clamp(self:GetClientNumber("attachrange"), 1, 100)
 end
 

@@ -10,7 +10,7 @@
 void *memcpy(void *dest, void *src, float n) {
   preserve esi,edi;
   register float rem;
-  
+
   esi = src;
   edi = dest;
   rem = n;
@@ -64,7 +64,7 @@ void* memset(void *ptr, float c, float n) {
 //appends the string src to dest
 char* strcat(char *src, *dest) {
   register char *srcptr, *destptr;
-  
+
   srcptr = src;
   while (*++srcptr) ;
 
@@ -77,7 +77,7 @@ char* strcat(char *src, *dest) {
 char* strncat(char *src, *dest, float n) {
   register char *srcptr, *destptr;
   register float i;
-  
+
   srcptr = src;
   srcptr--;
   while (*++srcptr) ;
@@ -107,7 +107,7 @@ char* strchr(char *str, c) {
 char* strrchr(char *str, c) {
   register char *strptr, ch;
   register char *findptr;
-  
+
   findptr = 0;
   strptr = str;
   ch = c;
@@ -135,7 +135,7 @@ float strcmp(char *src, *dest) {
 float strncmp(char *src, *dest, float n) {
   register char *srcptr, *destptr;
   register float i;
-  
+
   srcptr = src;
   destptr = dest;
   i = n;
@@ -167,7 +167,7 @@ char* strncpy(char *dest, *src, float n) {
   destptr = dest;
   srcptr = src;
   i = n;
-  
+
   while (i-- > 0) {
     if (*destptr++ = *srcptr++) continue;
     while (i-- > 0) *destptr++ = 0;
@@ -183,7 +183,7 @@ char* strncpy(char *dest, *src, float n) {
 float strlen(char* str) {
   register char* strptr;
   register float n;
-  
+
   strptr = str;
   n = 0;
   while (*strptr++) n++;
@@ -207,7 +207,7 @@ float strspn(char *str, *accept) {
 //determines the length of the maximal initial substring consisting entirely of characters not in reject
 float strcspn(char *str, char *reject) {
   register char *s, *p;
-  
+
   for (s=str; *s; s++) {
     for (p=reject; *p; p++) {
       if (*p == *s) goto done;

@@ -97,7 +97,7 @@ local function ranger(self, rangertype, range, p1, p2, hulltype, mins, maxs, tra
 			tracedata.endpos = tracedata.start + chip:GetUp()*range
 		end
 	end
-	
+
 	-- clamp positions
 	tracedata.start = E2Lib.clampPos( tracedata.start )
 	if tracedata.start:Distance( tracedata.endpos ) > 57000 then -- 57000 is slightly larger than the diagonal distance (min corner to max corner) of the source max map size
@@ -119,7 +119,7 @@ local function ranger(self, rangertype, range, p1, p2, hulltype, mins, maxs, tra
 			tracedata.mins = s1
 			tracedata.maxs = s2
 		end
-		
+
 		if not entities then -- unfortunately we have to add tons of ops if this happens
 							 -- If we didn't, it would be possible to crash servers with it.
 			tracedata.mins = E2Lib.clampPos( tracedata.mins )
