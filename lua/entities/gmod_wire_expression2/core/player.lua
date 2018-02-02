@@ -1,6 +1,6 @@
-/******************************************************************************\
+--[[----------------------------------------------------------------------------
   Player-Entity support
-\******************************************************************************/
+------------------------------------------------------------------------------]]
 
 local IsValid = IsValid
 local isOwner = E2Lib.isOwner
@@ -22,7 +22,7 @@ registerCallback("e2lib_replace_function", function(funcname, func, oldfunc)
 	end
 end)
 
-/******************************************************************************/
+--------------------------------------------------------------------------------
 
 __e2setcost(5) -- temporary
 
@@ -38,19 +38,19 @@ e2function number entity:isSuperAdmin()
 	if this:IsSuperAdmin() then return 1 else return 0 end
 end
 
-/******************************************************************************/
+--------------------------------------------------------------------------------
 
 __e2setcost(8)
 
 e2function vector entity:shootPos()
-	if(!IsValid(this)) then return {0,0,0} end
+	if(not IsValid(this)) then return {0,0,0} end
 	if(this:IsPlayer() or this:IsNPC()) then
 		return this:GetShootPos()
 	else return {0,0,0} end
 end
 
 e2function vector entity:eye()
-	if (!IsValid(this)) then return {0,0,0} end
+	if (not IsValid(this)) then return {0,0,0} end
 	if (this:IsPlayer()) then
 		return this:GetAimVector()
 	else
@@ -65,19 +65,19 @@ e2function angle entity:eyeAngles()
 	return { ang.p, ang.y, ang.r }
 end
 
-/******************************************************************************/
+--------------------------------------------------------------------------------
 
 __e2setcost(5)
 
 e2function string entity:name()
-	if(!IsValid(this)) then return "" end
-	if(!this:IsPlayer()) then return "" end
+	if(not IsValid(this)) then return "" end
+	if(not this:IsPlayer()) then return "" end
 	return this:Name()
 end
 
 e2function string entity:steamID()
-	if(!IsValid(this)) then return "" end
-	if(!this:IsPlayer()) then return "" end
+	if(not IsValid(this)) then return "" end
+	if(not this:IsPlayer()) then return "" end
 	return this:SteamID()
 end
 
@@ -86,21 +86,21 @@ e2function string entity:steamID64()
 end
 
 e2function number entity:armor()
-	if(!IsValid(this)) then return 0 end
+	if(not IsValid(this)) then return 0 end
 	if(this:IsPlayer() or this:IsNPC()) then return this:Armor() else return 0 end
 end
 
-/******************************************************************************/
+--------------------------------------------------------------------------------
 
 __e2setcost(5)
 
 e2function number entity:isCrouch()
-	if(!IsValid(this)) then return 0 end
+	if(not IsValid(this)) then return 0 end
 	if(this:IsPlayer() and this:Crouching()) then return 1 else return 0 end
 end
 
 e2function number entity:isAlive()
-	if(!IsValid(this)) then return 0 end
+	if(not IsValid(this)) then return 0 end
 	if(this:IsPlayer() and this:Alive()) then return 1 end
 	if(this:IsNPC() and this:Health() > 0) then return 1 end
 	return 0
@@ -113,22 +113,22 @@ e2function number entity:isFlashlightOn()
 	if this:FlashlightIsOn() then return 1 else return 0 end
 end
 
-/******************************************************************************/
+--------------------------------------------------------------------------------
 
 e2function number entity:frags()
-	if(!IsValid(this)) then return 0 end
+	if(not IsValid(this)) then return 0 end
 	if(this:IsPlayer()) then return this:Frags() else return 0 end
 end
 
 e2function number entity:deaths()
-	if(!this or !this:IsValid()) then return 0 end
+	if(not this or not this:IsValid()) then return 0 end
 	if(this:IsPlayer()) then return this:Deaths() else return 0 end
 end
 
-/******************************************************************************/
+--------------------------------------------------------------------------------
 
 e2function number entity:team()
-	if(!IsValid(this)) then return 0 end
+	if(not IsValid(this)) then return 0 end
 	if(this:IsPlayer()) then return this:Team() else return 0 end
 end
 
@@ -170,7 +170,7 @@ e2function array teams()
 	return team_indexes
 end
 
-/******************************************************************************/
+--------------------------------------------------------------------------------
 __e2setcost(2)
 
 e2function number entity:keyForward()
@@ -342,7 +342,7 @@ e2function number entity:isTyping()
 	return plys[this] and 1 or 0
 end
 
-/******************************************************************************/
+--------------------------------------------------------------------------------
 
 local Trusts
 
@@ -351,7 +351,7 @@ if CPPI and debug.getregistry().Player.CPPIGetFriends then
 	function Trusts(ply, whom)
 		if ply == whom then return true end
 		local friends = ply:CPPIGetFriends()
-		if !istable(friends) then return false end
+		if not istable(friends) then return false end
 		for _,friend in pairs(friends) do
 			if whom == friend then return true end
 		end
@@ -364,7 +364,7 @@ if CPPI and debug.getregistry().Player.CPPIGetFriends then
 		if not Trusts(this, self.player) then return {} end
 
 		local ret = this:CPPIGetFriends()
-		if !istable(ret) then return {} end
+		if not istable(ret) then return {} end
 		return ret
 	end
 
@@ -434,7 +434,7 @@ e2function number entity:isSteamFriend(entity friend)
 	return table.HasValue(friends, friend) and 1 or 0
 end
 
-/******************************************************************************/
+--------------------------------------------------------------------------------
 
 __e2setcost(5)
 
@@ -465,7 +465,7 @@ e2function number entity:inNoclip()
 	return 1
 end
 
-/******************************************************************************/
+--------------------------------------------------------------------------------
 
 local player = player
 
@@ -495,7 +495,7 @@ e2function array playersSuperAdmins()
 	return Admins
 end
 
-/******************************************************************************/
+--------------------------------------------------------------------------------
 
 e2function entity entity:aimEntity()
 	if not IsValid(this) then return nil end
