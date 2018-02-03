@@ -106,6 +106,7 @@ end
 function ENT:LinkEnt( ent )
 	ent = WireLib.GetClosestRealVehicle(ent,self:GetPos(),self:GetPlayer())
 
+	if not IsValid(ent) or not ent:IsVehicle() then return false, "Must link to a vehicle" end
 	if self.Entities[ent] then return end
 	self.Entities[ent] = true
 	ent:CallOnRemove("ExitPoint.Unlink", function(ent)
