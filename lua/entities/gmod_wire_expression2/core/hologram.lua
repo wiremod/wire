@@ -815,27 +815,15 @@ end
 e2function vector holoBoneScale(index, boneindex)
 	local Holo = CheckIndex(self, index)
 	if not Holo then return {0,0,0} end
-	if table.Count(Holo.bone_scale) <= 0 then return {0,0,0} end
-
-	for bidx,b_scale in pairs(Holo.bone_scale) do
-		if bidx == boneindex then return b_scale end
-	end
-
-	return {0,0,0}
+	return Holo.bone_scale[boneindex] or {0, 0, 0}
 end
 
 e2function vector holoBoneScale(index, string bone)
 	local Holo = CheckIndex(self, index)
 	if not Holo then return {0,0,0} end
-	if table.Count(Holo.bone_scale) <= 0 then return {0,0,0} end
 	local boneindex = Holo.ent:LookupBone(bone)
 	if boneindex == nil then return {0,0,0} end
-
-	for bidx,b_scale in pairs(Holo.bone_scale) do
-		if bidx == boneindex then return b_scale end
-	end
-
-	return {0,0,0}
+	return Holo.bone_scale[boneindex] or {0, 0, 0}
 end
 __e2setcost(1)
 e2function number holoClipsAvailable()
