@@ -44,8 +44,8 @@ function TOOL:LeftClick( trace )
 	if (numobj == 0) then
 		if IsValid(trace.Entity) and trace.Entity:IsPlayer() then return false end
 
-		// If there's no physics object then we can't constraint it!
-		if ( SERVER && !util.IsValidPhysicsObject( trace.Entity, trace.PhysicsBone ) ) then return false end
+		-- If there's no physics object then we can't constraint it!
+		if ( SERVER and not util.IsValidPhysicsObject( trace.Entity, trace.PhysicsBone ) ) then return false end
 		if (CLIENT) then return true end
 
 		local ent = WireToolObj.LeftClick_Make(self, trace, ply )
@@ -55,7 +55,7 @@ function TOOL:LeftClick( trace )
 			self:ReleaseGhostEntity()
 
 			self:SetObject(1, trace.Entity, trace.HitPos, trace.Entity:GetPhysicsObjectNum(trace.PhysicsBone), trace.PhysicsBone, trace.HitNormal)
-			self:SetObject(2, ent, trace.HitPos, Phys, 0, trace.HitNormal)
+			self:SetObject(2, ent, trace.HitPos, ent:GetPhysicsObject(), 0, trace.HitNormal)
 			self:SetStage(1)
 		end
 	else
@@ -63,9 +63,8 @@ function TOOL:LeftClick( trace )
 
 		local anchor, wire_thruster = self:GetEnt(1), self:GetEnt(2)
 		local anchorbone = self:GetBone(1)
-		local normal = self:GetNormal(1)
 
-		local const = WireLib.Weld(wire_thruster, anchor, trace.PhysicsBone, true, false)
+		local const = WireLib.Weld(wire_thruster, anchor, anchorbone, true, false)
 
 		local Phys = wire_thruster:GetPhysicsObject()
 		Phys:EnableMotion( true )
@@ -126,7 +125,7 @@ function TOOL.BuildCPanel(panel)
 
 		local Effects = {
 			["#No Effects"] = "none",
-			//["#Same as over water"] = "same",
+			--["#Same as over water"] = "same",
 			["#Flames"] = "fire",
 			["#Plasma"] = "plasma",
 			["#Smoke"] = "smoke",
@@ -166,9 +165,9 @@ function TOOL.BuildCPanel(panel)
 			["#Comic Balls Random"] = "balls_random",
 			["#Comic Balls Fire Colors"] = "balls_firecolors",
 			["#Souls"] = "souls",
-			//["#Debugger 10 Seconds"] = "debug_10", These are just buggy and shouldn't be used.
-			//["#Debugger 30 Seconds"] = "debug_30",
-			//["#Debugger 60 Seconds"] = "debug_60",
+			--["#Debugger 10 Seconds"] = "debug_10", These are just buggy and shouldn't be used.
+			--["#Debugger 30 Seconds"] = "debug_30",
+			--["#Debugger 60 Seconds"] = "debug_60",
 			["#Fire and Smoke"] = "fire_smoke",
 			["#Fire and Smoke Huge"] = "fire_smoke_big",
 			["#5 Growing Rings"] = "rings_grow_rings",
