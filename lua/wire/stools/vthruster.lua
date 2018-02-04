@@ -220,7 +220,7 @@ function TOOL.BuildCPanel(panel)
 	panel:AddControl( "ListBox", { Label = "#Thruster_Sounds", Options = lst } )
 
 	panel:NumSlider("#WireThrusterTool_force", "wire_vthruster_force", 1, 10000, 2 )
-	panel:NumSlider("#WireThrusterTool_force_min", "wire_vthruster_force_min", -10000, 10000, 2 )
+	panel:NumSlider("#WireThrusterTool_force_min", "wire_vthruster_force_min", -10000, 10000, 2 ):SetTooltip("#WireThrusterTool_force_min.help")
 	panel:NumSlider("#WireThrusterTool_force_max", "wire_vthruster_force_max", -10000, 10000, 2 )
 	panel:CheckBox("#WireThrusterTool_bidir", "wire_vthruster_bidir")
 	panel:CheckBox("#WireThrusterTool_owater", "wire_vthruster_owater")
