@@ -89,7 +89,7 @@ local function soundCreate(self, entity, index, time, path, fade)
 		soundStop( self, index, 0 )
 	end )
 
-	if time == 0 and fade == 0 then return end
+	if time == 0 and fade == 0 then time = SoundDuration(path) end
 	time = math.abs( time )
 
 	timer.Create( timerid, time, 1, function()
