@@ -1,7 +1,3 @@
-/******************************************************************************\
-  Built-in Sound support v1.18
-\******************************************************************************/
-
 E2Lib.RegisterExtension("sound", true, "Allows E2s to play sounds.", "Sounds can be played out of arbitrary entities, including other players.")
 
 local wire_expression2_maxsounds = CreateConVar( "wire_expression2_maxsounds", 16, {FCVAR_ARCHIVE} )
@@ -93,7 +89,7 @@ local function soundCreate(self, entity, index, time, path, fade)
 		soundStop( self, index, 0 )
 	end )
 
-	if time == 0 and fade == 0 then return end
+	if time == 0 and fade == 0 then time = SoundDuration(path) end
 	time = math.abs( time )
 
 	timer.Create( timerid, time, 1, function()
