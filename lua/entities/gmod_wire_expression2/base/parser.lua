@@ -507,14 +507,14 @@ function Parser:Stmt8(parentLocalized)
 		local var = self:GetTokenData()
 
 		if self:AcceptTailingToken("lsb") then
-			if localized or parentLocalized then
-				self:Error("Invalid operator (local).")
-			end
-
 			self:TrackBack()
 			local indexs = { self:Index() }
 
 			if self:AcceptRoamingToken("ass") then
+				if localized or parentLocalized then
+					self:Error("Invalid operator (local).")
+				end
+
 				local total = #indexs
 				local inst = self:Instruction(trace, "var", var)
 
