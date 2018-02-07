@@ -11,6 +11,8 @@ if CLIENT then
 				bind = "1"
 			elseif (bind == "invnext") then
 				bind = "2"
+			elseif bind == "impulse 100" then
+				bind = "3"
 			else return end
 			RunConsoleCommand("wire_pod_bind", bind )
 		end
@@ -249,6 +251,7 @@ concommand.Add("wire_pod_bind", function( ply,cmd,args )
 
 	if (bind == "1") then bind = "PrevWeapon"
 	elseif (bind == "2") then bind = "NextWeapon"
+	elseif bind == "3" then bind = "Light"
 	end
 
 	for _, pod in pairs( ents.FindByClass( "gmod_wire_pod" ) ) do
@@ -435,8 +438,6 @@ function ENT:Think()
 		WireLib.TriggerOutput(self, "Health", ply:Health())
 		WireLib.TriggerOutput(self, "Armor", ply:Armor())
 		if self:HasPod() then WireLib.TriggerOutput(self, "ThirdPerson", pod:GetThirdPersonMode() and 1 or 0) end
-
-		if not ply:IsBot() then WireLib.TriggerOutput(self, "Light", ply.keystate[KEY_F] and 1 or 0) end
 	end
 
 	self:NextThink( CurTime() )
