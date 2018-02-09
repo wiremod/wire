@@ -1045,6 +1045,10 @@ local huge, abs = math.huge, math.abs
 function WireLib.setAng(ent, ang)
 	if isnan(ang.pitch) or isnan(ang.yaw) or isnan(ang.roll) then return end
 	if abs(ang.pitch) == huge or abs(ang.yaw) == huge or abs(ang.roll) == huge then return false end -- SetAngles'ing inf crashes the server
+
+	ang = Angle(ang)
+	ang:Normalize()
+
 	return ent:SetAngles(ang)
 end
 
