@@ -476,8 +476,8 @@ end)
 
 local function MakeHolo(Player, Pos, Ang, model)
 	local prop = ents.Create( "gmod_wire_hologram" )
-	E2Lib.setPos(prop, Pos)
-	E2Lib.setAng(prop, Ang)
+	WireLib.setPos(prop, Pos)
+	WireLib.setAng(prop, Ang)
 	prop:SetModel(model)
 	prop:SetPlayer(Player)
 	prop:SetNWInt("ownerid", Player:UserID())
@@ -529,8 +529,8 @@ local function CreateHolo(self, index, pos, scale, ang, color, model)
 
 	if IsValid(Holo.ent) then
 		prop = Holo.ent
-		E2Lib.setPos(prop, pos)
-		E2Lib.setAng(prop, ang)
+		WireLib.setPos(prop, pos)
+		WireLib.setAng(prop, ang)
 		prop:SetModel( model )
 	else
 		prop = MakeHolo(self.player, pos, ang, model, {}, {})
@@ -871,14 +871,14 @@ e2function void holoPos(index, vector position)
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
 
-	E2Lib.setPos(Holo.ent, Vector(position[1],position[2],position[3]))
+	WireLib.setPos(Holo.ent, Vector(position[1],position[2],position[3]))
 end
 
 e2function void holoAng(index, angle ang)
 	local Holo = CheckIndex(self, index)
 	if not Holo then return end
 
-	E2Lib.setAng(Holo.ent, Angle(ang[1],ang[2],ang[3]))
+	WireLib.setAng(Holo.ent, Angle(ang[1],ang[2],ang[3]))
 end
 
 -- -----------------------------------------------------------------------------

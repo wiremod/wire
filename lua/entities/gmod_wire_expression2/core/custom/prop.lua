@@ -71,7 +71,7 @@ function PropCore.CreateProp(self,model,pos,angles,freeze,isVehicle)
 
 	if not util.IsValidProp( model ) or not WireLib.CanModel(self.player, model) then return nil end
 
-	pos = E2Lib.clampPos( pos )
+	pos = WireLib.clampPos( pos )
 
 	local prop
 
@@ -106,7 +106,7 @@ function PropCore.CreateProp(self,model,pos,angles,freeze,isVehicle)
 
 	local phys = prop:GetPhysicsObject()
 	if IsValid( phys ) then
-		if angles ~= nil then E2Lib.setAng( phys, angles ) end
+		if angles ~= nil then WireLib.setAng( phys, angles ) end
 		phys:Wake()
 		if freeze > 0 then phys:EnableMotion( false ) end
 	end
@@ -137,8 +137,8 @@ end
 function PropCore.PhysManipulate(this, pos, rot, freeze, gravity, notsolid)
 	local phys = this:GetPhysicsObject()
 	if IsValid( phys ) then
-		if pos ~= nil then E2Lib.setPos( phys, Vector( pos[1],pos[2],pos[3] ) ) end
-		if rot ~= nil then E2Lib.setAng( phys,  Angle( rot[1],rot[2],rot[3] ) ) end
+		if pos ~= nil then WireLib.setPos( phys, Vector( pos[1],pos[2],pos[3] ) ) end
+		if rot ~= nil then WireLib.setAng( phys,  Angle( rot[1],rot[2],rot[3] ) ) end
 		if freeze ~= nil and this:GetUnFreezable() ~= true then phys:EnableMotion( freeze == 0 ) end
 		if gravity ~= nil then phys:EnableGravity( gravity ~= 0 ) end
 		if notsolid ~= nil then this:SetSolid( notsolid ~= 0 and SOLID_NONE or SOLID_VPHYSICS ) end
