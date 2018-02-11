@@ -1047,3 +1047,87 @@ function WireLib.GetClosestRealVehicle(vehicle,position,notify_this_player)
 
 	return vehicle
 end
+
+-- Garry's Mod lets serverside Lua check whether the key associated with a particular bind is
+-- pressed or not via the KeyPress and KeyRelease hooks, and the KeyDown function. However, this
+-- is only available for a small number of binds (mostly ones related to movement), which are
+-- exposed via the IN_ enums. It's possible to check any key manually serverside (with the
+-- player.keystate table), but that doesn't handle rebinding so isn't very friendly to users with
+-- non-QWERTY keyboard layouts. This system lets us extend arbitrarily the set of binds that the
+-- serverside knows about.
+do
+	local MESSAGE_NAME = "WireLib.SyncBinds"
+
+	local interestingBinds = {
+		"invprev",
+		"invnext",
+		"impulse 100",
+	}
+	local interestingBindsLookup = {}
+	for k, v in pairs(interestingBinds) do interestingBindsLookup[v] = k end
+
+	local syncedBindings = {}
+
+	if CLIENT then
+		hook.Add("InitPostEntity", MESSAGE_NAME, function()
+			local data = {}
+			for button = BUTTON_CODE_NONE, BUTTON_CODE_LAST do
+				local binding = input.LookupKeyBinding(button)
+				local bindingIndex = interestingBindsLookup[binding]
+				if bindingIndex ~= nil then
+					table.insert(data, { Button = button, BindingIndex = bindingIndex })
+				end
+			end
+
+			-- update net integer precisions if either of these become no longer true
+			assert(BUTTON_CODE_COUNT < 256)
+			assert(#interestingBinds < 4)
+
+			net.Start(MESSAGE_NAME)
+			net.WriteUInt(#data, 8)
+			for _, datum in pairs(data) do
+				net.WriteUInt(datum.Button, 8)
+				net.WriteUInt(datum.BindingIndex, 2)
+			end
+			net.SendToServer()
+		end)
+	elseif SERVER then
+		util.AddNetworkString(MESSAGE_NAME)
+		net.Receive(MESSAGE_NAME, function(_, player)
+			player.SyncedBindings = {}
+			local count = net.ReadUInt(8)
+			for i = 1, count do
+				local button = net.ReadUInt(8)
+				local bindingIndex = net.ReadUInt(2)
+				if button <= BUTTON_CODE_NONE or button > BUTTON_CODE_LAST then return end
+				local binding = interestingBinds[bindingIndex]
+				player.SyncedBindings[button] = binding
+			end
+		end)
+
+		hook.Add("PlayerButtonDown", MESSAGE_NAME, function(player, button)
+			if not player.SyncedBindings then return end
+			local binding = player.SyncedBindings[button]
+			if not binding then return end
+			hook.Run("PlayerBindDown", player, binding, button)
+		end)
+
+		hook.Add("PlayerButtonUp", MESSAGE_NAME, function(player, button)
+			if not player.SyncedBindings then return end
+			local binding = player.SyncedBindings[button]
+			if not binding then return end
+			hook.Run("PlayerBindUp", player, binding, button)
+		end)
+
+		hook.Add("StartCommand", MESSAGE_NAME, function(player, command)
+			if not player.SyncedBindings then return end
+			local wheel = command:GetMouseWheel()
+			if wheel == 0 then return end
+			local button = wheel > 0 and MOUSE_WHEEL_UP or MOUSE_WHEEL_DOWN
+			local binding = player.SyncedBindings[button]
+			if not binding then return end
+			hook.Run("PlayerBindDown", player, binding, button)
+			hook.Run("PlayerBindUp", player, binding, button)
+		end)
+	end
+end

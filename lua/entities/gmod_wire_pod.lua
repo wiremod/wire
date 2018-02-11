@@ -5,17 +5,6 @@ ENT.WireDebugName	= "Pod Controller"
 ENT.AllowLockInsideVehicle = CreateConVar( "wire_pod_allowlockinsidevehicle", "0", FCVAR_ARCHIVE, "Allow or disallow people to be locked inside of vehicles" )
 
 if CLIENT then
-	hook.Add("PlayerBindPress", "wire_pod", function(ply, bind, pressed)
-		if ply:InVehicle() then
-			if (bind == "invprev") then
-				bind = "1"
-			elseif (bind == "invnext") then
-				bind = "2"
-			else return end
-			RunConsoleCommand("wire_pod_bind", bind )
-		end
-	end)
-
 	local hideHUD = false
 	local firstTime = true
 
@@ -242,21 +231,30 @@ function ENT:SetHideHUD( bool )
 end
 function ENT:GetHideHUD() return self.HideHUD end
 
--- Clientside binds
-concommand.Add("wire_pod_bind", function( ply,cmd,args )
-	local bind = args[1]
-	if not bind then return end
+local bindingToOutput = {
+	["invprev"] = "PrevWeapon",
+	["invnext"] = "NextWeapon",
+	["impulse 100"] = "Light",
+}
 
-	if (bind == "1") then bind = "PrevWeapon"
-	elseif (bind == "2") then bind = "NextWeapon"
+hook.Add("PlayerBindDown", "gmod_wire_pod", function(player, binding)
+	local output = bindingToOutput[binding]
+	if not output then return end
+
+	for _, pod in pairs(ents.FindByClass("gmod_wire_pod")) do
+		if player:GetVehicle() == pod.Pod then
+			WireLib.TriggerOutput(pod, output, 1)
+		end
 	end
+end)
 
-	for _, pod in pairs( ents.FindByClass( "gmod_wire_pod" ) ) do
-		if (ply:GetVehicle() == pod.Pod) then
-			WireLib.TriggerOutput( pod, bind, 1 )
-			timer.Simple( 0.03, function()
-				WireLib.TriggerOutput( pod, bind, 0 )
-			end )
+hook.Add("PlayerBindUp", "gmod_wire_pod", function(player, binding)
+	local output = bindingToOutput[binding]
+	if not output then return end
+
+	for _, pod in pairs(ents.FindByClass("gmod_wire_pod")) do
+		if player:GetVehicle() == pod.Pod then
+			WireLib.TriggerOutput(pod, output, 0)
 		end
 	end
 end)
