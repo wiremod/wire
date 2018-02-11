@@ -42,22 +42,6 @@ end
 
 -- Server
 
-local serverside_keys = {
-	[IN_FORWARD] = "W",
-	[IN_MOVELEFT] = "A",
-	[IN_BACK] = "S",
-	[IN_MOVERIGHT] = "D",
-	[IN_ATTACK] = "Mouse1",
-	[IN_ATTACK2] = "Mouse2",
-	[IN_RELOAD] = "R",
-	[IN_JUMP] = "Space",
-	[IN_SPEED] = "Shift",
-	[IN_ZOOM] = "Zoom",
-	[IN_WALK] = "Alt",
-	[IN_LEFT] = "TurnLeftKey",
-	[IN_RIGHT] = "TurnRightKey",
-}
-
 function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )
 	self:SetMoveType( MOVETYPE_VPHYSICS )
@@ -232,6 +216,22 @@ end
 function ENT:GetHideHUD() return self.HideHUD end
 
 local bindingToOutput = {
+	["forward"] = "W",
+	["moveleft"] = "A",
+	["back"] = "S",
+	["moveright"] = "D",
+	["left"] = "TurnLeftKey",
+	["right"] = "TurnRightKey",
+
+	["jump"] = "Space",
+	["speed"] = "Shift",
+	["zoom"] = "Zoom",
+	["walk"] = "Alt",
+
+	["attack"] = "Mouse1",
+	["attack2"] = "Mouse2",
+	["reload"] = "R",
+
 	["invprev"] = "PrevWeapon",
 	["invnext"] = "NextWeapon",
 	["impulse 100"] = "Light",
@@ -242,7 +242,7 @@ hook.Add("PlayerBindDown", "gmod_wire_pod", function(player, binding)
 	if not output then return end
 
 	for _, pod in pairs(ents.FindByClass("gmod_wire_pod")) do
-		if player:GetVehicle() == pod.Pod then
+		if player:GetVehicle() == pod.Pod and not pod.Disable then
 			WireLib.TriggerOutput(pod, output, 1)
 		end
 	end
@@ -253,27 +253,8 @@ hook.Add("PlayerBindUp", "gmod_wire_pod", function(player, binding)
 	if not output then return end
 
 	for _, pod in pairs(ents.FindByClass("gmod_wire_pod")) do
-		if player:GetVehicle() == pod.Pod then
+		if player:GetVehicle() == pod.Pod and not pod.Disable then
 			WireLib.TriggerOutput(pod, output, 0)
-		end
-	end
-end)
-
--- Serverside binds
-hook.Add( "KeyPress", "Wire_Pod_KeyPress", function( ply, key )
-	if not serverside_keys[key] then return end
-	for _,v in pairs( ents.FindByClass( "gmod_wire_pod" ) ) do
-		if v:HasPly() and v:GetPly() == ply and not v.Disable then
-			WireLib.TriggerOutput( v, serverside_keys[key], 1 )
-		end
-	end
-end)
-
-hook.Add( "KeyRelease", "Wire_Pod_KeyRelease", function( ply, key )
-	if not serverside_keys[key] then return end
-	for _,v in pairs( ents.FindByClass( "gmod_wire_pod" ) ) do
-		if v:HasPly() and v:GetPly() == ply and not v.Disable then
-			WireLib.TriggerOutput( v, serverside_keys[key], 0 )
 		end
 	end
 end)
@@ -314,8 +295,8 @@ function ENT:TriggerInput( name, value )
 		self.Disable = value ~= 0
 
 		if (self.Disable) then
-			for _,v in pairs( serverside_keys ) do
-				WireLib.TriggerOutput( self, v, 0 )
+			for _, output in pairs( bindingToOutput ) do
+				WireLib.TriggerOutput( self, output, 0 )
 			end
 		end
 	elseif (name == "Crosshairs") then
@@ -474,12 +455,9 @@ function ENT:PlayerExited( ply )
 
 	self:SetActivated( false )
 
-	for _, v in pairs( serverside_keys ) do
-		WireLib.TriggerOutput( self, v, 0 )
+	for _, output in pairs(bindingToOutput) do
+		WireLib.TriggerOutput( self, output, 0 )
 	end
-	WireLib.TriggerOutput( self, "PrevWeapon", 0 )
-	WireLib.TriggerOutput( self, "NextWeapon", 0 )
-	WireLib.TriggerOutput( self, "Light", 0 )
 
 	WireLib.TriggerOutput( self, "X", 0 )
 	WireLib.TriggerOutput( self, "Y", 0 )

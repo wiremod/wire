@@ -1062,32 +1062,53 @@ do
 		"invprev",
 		"invnext",
 		"impulse 100",
+		"attack",
+		"jump",
+		"duck",
+		"forward",
+		"back",
+		"use",
+		"left",
+		"right",
+		"moveleft",
+		"moveright",
+		"attack2",
+		"reload",
+		"alt1",
+		"alt2",
+		"showscores",
+		"speed",
+		"walk",
+		"zoom",
+		"grenade1",
+		"grenade2",
 	}
 	local interestingBindsLookup = {}
 	for k, v in pairs(interestingBinds) do interestingBindsLookup[v] = k end
-
-	local syncedBindings = {}
 
 	if CLIENT then
 		hook.Add("InitPostEntity", MESSAGE_NAME, function()
 			local data = {}
 			for button = BUTTON_CODE_NONE, BUTTON_CODE_LAST do
 				local binding = input.LookupKeyBinding(button)
-				local bindingIndex = interestingBindsLookup[binding]
-				if bindingIndex ~= nil then
-					table.insert(data, { Button = button, BindingIndex = bindingIndex })
+				if binding ~= nil then
+					if string.sub(binding, 1, 1) == "+" then binding = string.sub(binding, 2) end
+					local bindingIndex = interestingBindsLookup[binding]
+					if bindingIndex ~= nil then
+						table.insert(data, { Button = button, BindingIndex = bindingIndex })
+					end
 				end
 			end
 
 			-- update net integer precisions if either of these become no longer true
 			assert(BUTTON_CODE_COUNT < 256)
-			assert(#interestingBinds < 4)
+			assert(#interestingBinds < 32)
 
 			net.Start(MESSAGE_NAME)
 			net.WriteUInt(#data, 8)
 			for _, datum in pairs(data) do
 				net.WriteUInt(datum.Button, 8)
-				net.WriteUInt(datum.BindingIndex, 2)
+				net.WriteUInt(datum.BindingIndex, 5)
 			end
 			net.SendToServer()
 		end)
@@ -1098,10 +1119,11 @@ do
 			local count = net.ReadUInt(8)
 			for i = 1, count do
 				local button = net.ReadUInt(8)
-				local bindingIndex = net.ReadUInt(2)
-				if button <= BUTTON_CODE_NONE or button > BUTTON_CODE_LAST then return end
-				local binding = interestingBinds[bindingIndex]
-				player.SyncedBindings[button] = binding
+				local bindingIndex = net.ReadUInt(5)
+				if button > BUTTON_CODE_NONE and button <= BUTTON_CODE_LAST then
+					local binding = interestingBinds[bindingIndex]
+					player.SyncedBindings[button] = binding
+				end
 			end
 		end)
 
