@@ -35,7 +35,6 @@ function table.Compact(tbl, cb, n)
 		end
 	end
 
-	local new_n = cpos-1
 	while (cpos <= n) do
 		tbl[cpos] = nil
 		cpos = cpos + 1
@@ -75,8 +74,8 @@ end
 -- works like pairs() except that it iterates sorted by keys.
 -- criterion is optional and should be a function(a,b) returning whether a is less than b. (same as table.sort's criterions)
 function pairs_sortkeys(tbl, criterion)
-	tmp = {}
-	for k,v in pairs(tbl) do table.insert(tmp,k) end
+	local tmp = {}
+	for k, _ in pairs(tbl) do table.insert(tmp,k) end
 	table.sort(tmp, criterion)
 
 	local iter, state, index, k = ipairs(tmp)
@@ -98,9 +97,9 @@ function pairs_sortvalues(tbl, criterion)
 			return tbl[a] < tbl[b]
 		end
 
-	tmp = {}
+	local tmp = {}
 	tbl = tbl or {}
-	for k,v in pairs(tbl) do table.insert(tmp,k) end
+	for k, _ in pairs(tbl) do table.insert(tmp,k) end
 	table.sort(tmp, crit)
 
 	local iter, state, index, k = ipairs(tmp)
@@ -146,10 +145,8 @@ end
 -- end extra table functions
 
 local table = table
-local pairs_sortkeys = pairs_sortkeys
 local pairs_sortvalues = pairs_sortvalues
 local ipairs_map = ipairs_map
-local pairs_map = pairs_map
 
 --------------------------------------------------------------------------------
 
@@ -163,77 +160,13 @@ do -- containers
 	end
 
 	local function newclass(container_name)
-		meta = { new = new }
+		local meta = { new = new }
 		meta.__index = meta
 		WireLib.containers[container_name] = meta
 		return meta
 	end
 
 	WireLib.containers = { new = new, newclass = newclass }
-
-	do -- class deque
-		local deque = newclass("deque")
-
-		function deque:Initialize()
-			self.offset = 0
-		end
-
-		function deque:size()
-			return #self-self.offset
-		end
-
-		-- Prepends the given element.
-		function deque:unshift(value)
-			if offset < 1 then
-				-- TODO: improve
-				table.insert(self, 1, value)
-				return
-			end
-			self.offset = self.offset - 1
-			self[self.offset+1] = value
-		end
-
-		-- Removes the first element and returns it
-		function deque:shift()
-			--do return table.remove(self, 1) end
-			local offset = self.offset + 1
-			local ret = self[offset]
-			if not ret then self.offset = offset-1 return nil end
-			self.offset = offset
-			if offset > 127 then
-				for i = offset+1,#self-offset do
-					self[i-offset] = self[i]
-				end
-				for i = #self-offset+1,#self do
-					self[i-offset],self[i] = self[i],nil
-				end
-				self.offset = 0
-			end
-			return ret
-		end
-
-		-- Appends the given element.
-		function deque:push(value)
-			self[#self+1] = value
-		end
-
-		-- Removes the last element and returns it.
-		function deque:pop()
-			local ret = self[#self]
-			self[#self] = nil
-			return ret
-		end
-
-		-- Returns the last element.
-		function deque:top()
-			return self[#self]
-		end
-
-		-- Returns the first element.
-		function deque:bottom()
-			return self[self.offset+1]
-		end
-	end -- class deque
 
 	do -- class autocleanup
 		local autocleanup = newclass("autocleanup")
@@ -344,7 +277,7 @@ do
 		util.AddNetworkString("wire_addnotify")
 		function WireLib.AddNotify(ply, Message, Type, Duration, Sound)
 			if isstring(ply) then ply, Message, Type, Duration, Sound = nil, ply, Message, Type, Duration end
-			if ply && !ply:IsValid() then return end
+			if ply and not ply:IsValid() then return end
 			net.Start("wire_addnotify")
 				net.WriteString(Message)
 				net.WriteUInt(Type or 0,8)
@@ -563,7 +496,7 @@ if SERVER then
 			ents_with_inputs[eid][#ents_with_inputs[eid]+1] = entry
 			queue[#queue+1] = { eid, PORT, INPUT, entry, CurPort.Num }
 		end
-		for Name, CurPort in pairs_sortvalues(ent.Inputs, WireLib.PortComparator) do
+		for _, CurPort in pairs_sortvalues(ent.Inputs, WireLib.PortComparator) do
 			WireLib._SetLink(CurPort, lqueue)
 		end
 	end
@@ -646,7 +579,7 @@ if SERVER then
 	end
 
 	local function FlushQueue(lqueue, ply)
-		// Zero these two for the writemsg function
+		-- Zero these two for the writemsg function
 		eid = 0
 		numports = {}
 
@@ -667,10 +600,10 @@ if SERVER then
 
 	hook.Add("PlayerInitialSpawn", "wire_ports", function(ply)
 		local lqueue = {}
-		for eid, entry in pairs(ents_with_inputs) do
+		for eid, _ in pairs(ents_with_inputs) do
 			WireLib._SetInputs(Entity(eid), lqueue)
 		end
-		for eid, entry in pairs(ents_with_outputs) do
+		for eid, _ in pairs(ents_with_outputs) do
 			WireLib._SetOutputs(Entity(eid), lqueue)
 		end
 		FlushQueue(lqueue, ply)
@@ -755,13 +688,13 @@ elseif CLIENT then
 				lasteid = eid
 
 				local text = "ID "..eid.."\nInputs:\n"
-				for num,name,tp,desc,connected in ipairs_map(ents_with_inputs[eid] or {}, unpack) do
+				for _,name,tp,desc,connected in ipairs_map(ents_with_inputs[eid] or {}, unpack) do
 
 					text = text..(connected and "-" or " ")
 					text = text..string.format("%s (%s) [%s]\n", name, tp, desc)
 				end
 				text = text.."\nOutputs:\n"
-				for num,name,tp,desc in ipairs_map(ents_with_outputs[eid] or {}, unpack) do
+				for _,name,tp,desc in ipairs_map(ents_with_outputs[eid] or {}, unpack) do
 					text = text..string.format("%s (%s) [%s]\n", name, tp, desc)
 				end
 				draw.DrawText(text,"Trebuchet24",10,300,Color(255,255,255,255),0)
@@ -780,7 +713,7 @@ if SERVER then
 		net.Start("WireLinkedEnts")
 			net.WriteEntity(controller)
 			net.WriteUInt(#(controller.Marks or marks), 16)
-			for k,v in pairs(controller.Marks or marks) do
+			for _,v in pairs(controller.Marks or marks) do
 				net.WriteEntity(v)
 			end
 		net.Broadcast()
@@ -790,7 +723,7 @@ else
 		local Controller = net.ReadEntity()
 		if IsValid(Controller) then
 			Controller.Marks = {}
-			for i=1, net.ReadUInt(16) do
+			for _=1, net.ReadUInt(16) do
 				local link = net.ReadEntity()
 				if IsValid(link) then
 					table.insert(Controller.Marks, link)
@@ -906,7 +839,6 @@ local one = {
 
 -- returns a table of tables that inherit from the above info
 local floor = math.floor
-local min = math.min
 function nicenumber.info( n, steps )
 	if not n or n < 0 then return {} end
 	if n > 10 ^ 300 then n = 10 ^ 300 end
@@ -979,7 +911,6 @@ end
 -------------------------
 -- nicetime
 -------------------------
-local floor = math.floor
 local times = {
 	{ "y", 31556926 }, -- years
 	{ "mon", 2629743.83 }, -- months
@@ -1080,7 +1011,7 @@ function WireLib.GetClosestRealVehicle(vehicle,position,notify_this_player)
 		-- get all "real" vehicles in the contraption and calculate distance
 		local contraption = constraint.GetAllConstrainedEntities(vehicle)
 		local vehicles = {}
-		for k, ent in pairs( contraption ) do
+		for _, ent in pairs( contraption ) do
 			if IsRealVehicle(ent) then
 				vehicles[#vehicles+1] = {
 					distance = position:Distance(ent:GetPos()),
