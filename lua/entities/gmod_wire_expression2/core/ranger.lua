@@ -99,7 +99,7 @@ local function ranger(self, rangertype, range, p1, p2, hulltype, mins, maxs, tra
 	end
 
 	-- clamp positions
-	tracedata.start = E2Lib.clampPos( tracedata.start )
+	tracedata.start = WireLib.clampPos( tracedata.start )
 	if tracedata.start:Distance( tracedata.endpos ) > 57000 then -- 57000 is slightly larger than the diagonal distance (min corner to max corner) of the source max map size
 		tracedata.endpos = tracedata.start + (tracedata.endpos - tracedata.start):GetNormal() * 57000
 	end
@@ -122,8 +122,8 @@ local function ranger(self, rangertype, range, p1, p2, hulltype, mins, maxs, tra
 
 		if not entities then -- unfortunately we have to add tons of ops if this happens
 							 -- If we didn't, it would be possible to crash servers with it.
-			tracedata.mins = E2Lib.clampPos( tracedata.mins )
-			tracedata.maxs = E2Lib.clampPos( tracedata.maxs )
+			tracedata.mins = WireLib.clampPos( tracedata.mins )
+			tracedata.maxs = WireLib.clampPos( tracedata.maxs )
 			self.prf = self.prf + tracedata.mins:Distance(tracedata.maxs) * 0.5
 		end
 

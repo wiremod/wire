@@ -950,6 +950,38 @@ function nicenumber.nicetime( n )
 	end
 end
 
+function WireLib.isnan(n)
+	return n ~= n
+end
+local isnan = WireLib.isnan
+
+-- This function clamps the position before moving the entity
+local minx, miny, minz = -16384, -16384, -16384
+local maxx, maxy, maxz = 16384, 16384, 16384
+local clamp = math.Clamp
+function WireLib.clampPos(pos)
+	pos = Vector(pos)
+	pos.x = clamp(pos.x, minx, maxx)
+	pos.y = clamp(pos.y, miny, maxy)
+	pos.z = clamp(pos.z, minz, maxz)
+	return pos
+end
+
+function WireLib.setPos(ent, pos)
+	if isnan(pos.x) or isnan(pos.y) or isnan(pos.z) then return end
+	return ent:SetPos(WireLib.clampPos(pos))
+end
+
+local huge, abs = math.huge, math.abs
+function WireLib.setAng(ent, ang)
+	if isnan(ang.pitch) or isnan(ang.yaw) or isnan(ang.roll) then return end
+	if abs(ang.pitch) == huge or abs(ang.yaw) == huge or abs(ang.roll) == huge then return false end -- SetAngles'ing inf crashes the server
+
+	ang = Angle(ang)
+	ang:Normalize()
+
+	return ent:SetAngles(ang)
+end
 
 -- Used by any applyForce function available to the user
 -- Ensures that the force is within the range of a float, to prevent
@@ -961,9 +993,9 @@ hook.Add("InitPostEntity","WireForceLimit",function()
 	min_force = -max_force
 end)
 
-
 -- Nan never equals itself, so if the value doesn't equal itself replace it with 0.
 function WireLib.clampForce( v )
+	v = Vector(v[1], v[2], v[3])
 	v[1] = v[1] == v[1] and math.Clamp( v[1], min_force, max_force ) or 0
 	v[2] = v[2] == v[2] and math.Clamp( v[2], min_force, max_force ) or 0
 	v[3] = v[3] == v[3] and math.Clamp( v[3], min_force, max_force ) or 0
