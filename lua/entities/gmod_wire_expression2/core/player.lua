@@ -251,18 +251,25 @@ end
 local KeyAlert = {}
 local runByKey
 local pressedKey = ""
+local pressedBind = ""
 local KeyWasReleased = 0
 
 local keys_lookup = {}
+local number_of_keys = 0
 local sub = string.sub
 local lower = string.lower
 for k,v in pairs( _G ) do
 	if sub(k,1,4) == "KEY_" then
 		keys_lookup[v] = lower(sub(k,5))
+		number_of_keys = number_of_keys + 1
+	end
+
+	if sub(k,1,3) == "IN_" then
+		number_of_keys = number_of_keys + 1
 	end
 end
 
--- Manually input the mouse buttons because they're a bit fucked up
+-- Manually input the mouse buttons because they're a bit weird
 keys_lookup[107] = "mouse_left"
 keys_lookup[108] = "mouse_right"
 keys_lookup[109] = "mouse_middle"
@@ -270,6 +277,10 @@ keys_lookup[110] = "mouse_4"
 keys_lookup[111] = "mouse_5"
 keys_lookup[112] = "mouse_wheel_up"
 keys_lookup[113] = "mouse_wheel_down"
+number_of_keys = number_of_keys + 7
+
+-- add three more for flashlight "impulse 100" and next/prev weapon binds
+number_of_keys = number_of_keys + 3
 
 registerCallback("destruct",function(self)
 	KeyAlert[self.entity] = nil
@@ -278,12 +289,17 @@ registerCallback("destruct",function(self)
 	leaveAlert[self.entity] = nil
 end)
 
-local function UpdateKeys(ply, key)
+local function UpdateKeys(ply, bind, key, state)
+	local uid = ply:UniqueID()
 	runByKey = ply
+	KeyWasReleased = state and 0 or 1
 	pressedKey = keys_lookup[key] or ""
+	pressedBind = bind or ""
 	for chip, plys in pairs(KeyAlert) do
 		if IsValid(chip) then
-			if plys[ply] then
+			local filter = plys[uid]
+			if (isbool(filter) and filter == true) or
+				(istable(filter) and (filter[pressedKey] == true or filter[pressedBind] == true)) then
 				chip:Execute()
 			end
 		else
@@ -292,28 +308,82 @@ local function UpdateKeys(ply, key)
 	end
 	runByKey = nil
 	pressedKey = ""
+	pressedBind = ""
 	KeyWasReleased = 0
 end
 
--- delay these 1 tick with timers, otherwise ply:keyPressed(str) doesn't work properly, in case old E2s uses that function
--- It is recommended to use keyClkPressed() instead to get which key was pressed.
-hook.Add("PlayerButtonDown","Exp2KeyReceivingDown", function(ply,key) timer.Simple(0,function() UpdateKeys(ply,key) end) end)
-local temp = function(ply, key)	KeyWasReleased = 1 UpdateKeys(ply, key) end
-hook.Add("PlayerButtonUp","Exp2KeyReceivingUp", function(ply,key) timer.Simple(0,function() temp(ply,key) end) end )
+local bindsPressed = {}
+local function triggerKey(ply,bind,key,state)
+	-- delay these 1 tick with timers, otherwise ply:keyPressed(str) doesn't work properly, in case old E2s uses that function
+	-- It is recommended to use keyClkPressed() instead to get which key was pressed.
+	timer.Simple(0,function()
+		if not IsValid(ply) then return end -- if the player disconnected during this time, abort
+		UpdateKeys(ply,bind,key,state)
+	end)
+end
 
---- Makes the chip run on key events from the specified player (can be used on multiple players)
-e2function void runOnKeys(entity ply, on)
+hook.Add("PlayerBindDown", "Exp2KeyReceivingDown", function(player, binding, button)
+	triggerKey(player,binding,button,true)
+end)
+
+hook.Add("PlayerBindUp", "Exp2KeyReceivingUp", function(player, binding, button)
+	triggerKey(player,binding,button,false)
+end)
+
+local function toggleRunOnKeys(self,ply,on,filter)
 	if not IsValid(ply) or not ply:IsPlayer() then return end
+
+	local ent = self.entity
+	local uid = ply:UniqueID()
+
 	if on ~= 0 then
-		if not KeyAlert[self.entity] then KeyAlert[self.entity] = {} end
-		KeyAlert[self.entity][ply] = true
-	elseif KeyAlert[self.entity] then
-		KeyAlert[self.entity][ply] = nil
-		if not next(KeyAlert[self.entity]) then
-			KeyAlert[self.entity] = nil
+		if not KeyAlert[ent] then KeyAlert[ent] = {} end
+
+		if filter == nil or (istable(filter) and next(filter) == nil) then
+			-- if no filter was specified (or an empty array) then allow all keys
+			filter = true
+		elseif istable(filter) then
+			-- invert the filter
+			local inverted = {}
+			for i=1,math.min(number_of_keys,#filter) do
+				inverted[filter[i]] = true
+			end
+			filter = inverted
+		end
+
+		KeyAlert[ent][uid] = filter
+	elseif KeyAlert[ent] then
+		KeyAlert[ent][uid] = nil
+		if next(KeyAlert[ent]) == nil then
+			KeyAlert[ent] = nil
 		end
 	end
 end
+
+__e2setcost(20)
+
+--- Makes the chip run on key events from the specified player (can be used on multiple players)
+e2function void runOnKeys(entity ply, on)
+	toggleRunOnKeys(self, ply, on)
+end
+
+e2function void runOnKeys(entity ply, on, array filter)
+	toggleRunOnKeys(self, ply, on, filter)
+end
+
+e2function void runOnKeys(array plys, on)
+	for i=1,#plys do
+		toggleRunOnKeys(self, plys[i], on)
+	end
+end
+
+e2function void runOnKeys(array plys, on, array filter)
+	for i=1,#plys do
+		toggleRunOnKeys(self, plys[i], on, filter)
+	end
+end
+
+__e2setcost(1)
 
 --- Returns user if the chip is being executed because of a key event.
 e2function entity keyClk()
@@ -331,6 +401,10 @@ e2function string keyClkPressed()
 	return pressedKey
 end
 
+-- Returns the bind which caused the keyClk event to trigger (if any)
+e2function string keyClkPressedBind()
+	return pressedBind
+end
 
 -- isTyping
 local plys = {}
