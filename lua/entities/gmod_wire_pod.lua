@@ -238,6 +238,7 @@ local bindingToOutput = {
 }
 
 hook.Add("PlayerBindDown", "gmod_wire_pod", function(player, binding)
+	if not binding then return end
 	local output = bindingToOutput[binding]
 	if not output then return end
 
@@ -249,6 +250,7 @@ hook.Add("PlayerBindDown", "gmod_wire_pod", function(player, binding)
 end)
 
 hook.Add("PlayerBindUp", "gmod_wire_pod", function(player, binding)
+	if not binding then return end
 	local output = bindingToOutput[binding]
 	if not output then return end
 
