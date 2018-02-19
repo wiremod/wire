@@ -497,7 +497,7 @@ end
 function Parser:Stmt8(parentLocalized)
 	local localized
 	if self:AcceptRoamingToken("loc") then
-		if parentLocalized then self:Error("Duplicate keyword (local)") end
+		if parentLocalized ~= nil then self:Error("Assignment can't contain roaming local operator") end
 		localized = true
 	end
 
@@ -521,7 +521,7 @@ function Parser:Stmt8(parentLocalized)
 				for i = 1, total do -- Yep, All this took me 2 hours to figure out!
 					local key, type, trace = indexs[i][1], indexs[i][2], indexs[i][3]
 					if i == total then
-						inst = self:Instruction(trace, "set", inst, key, self:Stmt8(), type)
+						inst = self:Instruction(trace, "set", inst, key, self:Stmt8(false), type)
 					else
 						inst = self:Instruction(trace, "get", inst, key, type)
 					end
@@ -533,7 +533,7 @@ function Parser:Stmt8(parentLocalized)
 			if localized or parentLocalized then
 				return self:Instruction(trace, "assl", var, self:Stmt8(true))
 			else
-				return self:Instruction(trace, "ass", var, self:Stmt8())
+				return self:Instruction(trace, "ass", var, self:Stmt8(false))
 			end
 		elseif localized then
 			self:Error("Invalid operator (local) must be used for variable decleration.")
