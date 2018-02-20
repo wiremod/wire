@@ -310,6 +310,18 @@ e2function number entity:volume()
 	return phys:GetVolume()
 end
 
+e2function number entity:surfaceArea()
+	if not validPhysics(this) then return 0 end
+	local phys = this:GetPhysicsObject()
+	return phys:GetSurfaceArea()
+end
+
+e2function number entity:stress()
+	if not validPhysics(this) then return 0 end
+	local phys = this:GetPhysicsObject()
+	return phys:GetStress()
+end
+
 /******************************************************************************/
 // Functions getting boolean/number
 e2function number entity:isPlayer()
