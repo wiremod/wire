@@ -21,32 +21,36 @@ for i = 97, 122 do -- a -> z
 end
 
 local unprintable_chars = {}
+unprintable_chars[0] = true
 for i=17,20 do unprintable_chars[i] = true end -- arrow keys
 for i=127,177 do unprintable_chars[i] = true end -- backspace, numpad, ctrl, alt, shift, break, F1-F12, scroll/num/caps lock, and more
 
+-- These keys output a numeric code that's different to their ASCII code - they
+-- are numpad keys, and using a different code lets contraptions differentiate
+-- between eg. pressing 0 on the number row and 0 on the numpad. The codes are
+-- defined in remap.lua.
 local convertable_chars = {
-	[128] = 49, -- numpad 1
-	[129] = 50, -- numpad 2
-	[130] = 51, -- numpad 3
-	[131] = 52, -- numpad 4
-	[132] = 53, -- numpad 5
-	[133] = 54, -- numpad 6
-	[134] = 55, -- numpad 7
-	[135] = 56, -- numpad 8
-	[136] = 57, -- numpad 9
-	[137] = 58, -- numpad 4
-	[138] = 47, -- /
-	[139] = 42, -- *
-	[140] = 45, -- -
-	[141] = 43, -- +
-	[142] = 10, -- \n
-	[143] = 46, -- .
+	[128] = "0",
+	[129] = "1",
+	[130] = "2",
+	[131] = "3",
+	[132] = "4",
+	[133] = "5",
+	[134] = "6",
+	[135] = "7",
+	[136] = "8",
+	[137] = "9",
+	[138] = "/",
+	[139] = "*",
+	[140] = "-",
+	[141] = "+",
+	[142] = "\n",
+	[143] = ".",
 }
 
 local function getPrintableChar( key )
-	if key == 0 then return "" end
-	if unprintable_chars[key] and not convertable_chars[key] then return "" end
-	if convertable_chars[key] then key = convertable_chars[key] end
+	if convertable_chars[key] then return convertable_chars[key] end
+	if unprintable_chars[key] then return "" end
 	if key == 13 then key = 10 end -- convert newline '13' into newlne '10' to make it work properly
 	return utf8.char(key)
 end
