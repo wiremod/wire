@@ -466,7 +466,7 @@ e2function number entity:inNoclip()
 end
 
 e2function number entity:inGodMode()
-	return IsValid(this) and this:HasGodMode() and 1 or 0
+	return IsValid(this) and this:IsPlayer() and this:HasGodMode() and 1 or 0
 end
 
 /******************************************************************************/
