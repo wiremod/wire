@@ -212,14 +212,15 @@ Wire_Keyboard_Remap.British[KEY_LCONTROL] = {}
 Wire_Keyboard_Remap.British[KEY_RSHIFT] = Wire_Keyboard_Remap.British[KEY_LSHIFT]
 
 remap = Wire_Keyboard_Remap.British.normal
-remap[KEY_BACKQUOTE] = "'"
-remap[KEY_APOSTROPHE] = "#"
+remap[KEY_BACKQUOTE] = "`"
+remap[KEY_BACKSLASH] = "#"
 
 remap = Wire_Keyboard_Remap.British[KEY_LSHIFT]
 remap[KEY_2] = '"'
 remap[KEY_3] = "£"
-remap[KEY_APOSTROPHE] = "~"
-remap[KEY_BACKQUOTE] = "@"
+remap[KEY_APOSTROPHE] = "@"
+remap[KEY_BACKQUOTE] = "¬"
+remap[KEY_BACKSLASH] = "~"
 
 remap = Wire_Keyboard_Remap.British[KEY_LCONTROL]
 remap[KEY_4] = "€"
