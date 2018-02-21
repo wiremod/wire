@@ -131,7 +131,7 @@ remap[KEY_SCROLLLOCKTOGGLE]	= 177
 	remap[KEY_XSTICK2_RIGHT] 	= 223
 ]]
 
-local remap = Wire_Keyboard_Remap_default[KEY_LSHIFT]
+remap = Wire_Keyboard_Remap_default[KEY_LSHIFT]
 remap[KEY_A] = "A"
 remap[KEY_B] = "B"
 remap[KEY_C] = "C"
@@ -167,7 +167,7 @@ Wire_Keyboard_Remap.American = {}
 Wire_Keyboard_Remap.American = table.Copy(Wire_Keyboard_Remap_default)
 Wire_Keyboard_Remap.American[KEY_RSHIFT] = Wire_Keyboard_Remap.American[KEY_LSHIFT]
 
-local remap = Wire_Keyboard_Remap.American.normal
+remap = Wire_Keyboard_Remap.American.normal
 remap[KEY_LBRACKET] 	= "["
 remap[KEY_RBRACKET] 	= "]"
 remap[KEY_SEMICOLON] 	= ";"
@@ -180,7 +180,7 @@ remap[KEY_BACKSLASH] 	= "\\"
 remap[KEY_MINUS] 		= "-"
 remap[KEY_EQUAL] 		= "="
 
-local remap = Wire_Keyboard_Remap.American[KEY_LSHIFT]
+remap = Wire_Keyboard_Remap.American[KEY_LSHIFT]
 remap[KEY_0] = ")"
 remap[KEY_1] = "!"
 remap[KEY_2] = "@"
@@ -211,17 +211,17 @@ Wire_Keyboard_Remap.British = table.Copy(Wire_Keyboard_Remap.American)
 Wire_Keyboard_Remap.British[KEY_LCONTROL] = {}
 Wire_Keyboard_Remap.British[KEY_RSHIFT] = Wire_Keyboard_Remap.British[KEY_LSHIFT]
 
-local remap = Wire_Keyboard_Remap.British.normal
+remap = Wire_Keyboard_Remap.British.normal
 remap[KEY_BACKQUOTE] = "'"
 remap[KEY_APOSTROPHE] = "#"
 
-local remap = Wire_Keyboard_Remap.British[KEY_LSHIFT]
+remap = Wire_Keyboard_Remap.British[KEY_LSHIFT]
 remap[KEY_2] = '"'
 remap[KEY_3] = "£"
 remap[KEY_APOSTROPHE] = "~"
 remap[KEY_BACKQUOTE] = "@"
 
-local remap = Wire_Keyboard_Remap.British[KEY_LCONTROL]
+remap = Wire_Keyboard_Remap.British[KEY_LCONTROL]
 remap[KEY_4] = "€"
 remap[KEY_A] = "á"
 remap[KEY_E] = "é"
@@ -238,7 +238,7 @@ Wire_Keyboard_Remap.Swedish = table.Copy(Wire_Keyboard_Remap_default)
 Wire_Keyboard_Remap.Swedish[KEY_LCONTROL] = {} -- Should be KEY_RALT, but that didn't work correctly
 Wire_Keyboard_Remap.Swedish[KEY_RSHIFT] = Wire_Keyboard_Remap.Swedish[KEY_LSHIFT]
 
-local remap = Wire_Keyboard_Remap.Swedish.normal
+remap = Wire_Keyboard_Remap.Swedish.normal
 remap[KEY_LBRACKET] 	= "´"
 remap[KEY_RBRACKET] 	= "å"
 remap[KEY_BACKQUOTE] 	= "¨"
@@ -251,7 +251,7 @@ remap[KEY_BACKSLASH] 	= "§"
 remap[KEY_MINUS] 		= "-"
 remap[KEY_EQUAL] 		= "+"
 
-local remap = Wire_Keyboard_Remap.Swedish[KEY_LSHIFT]
+remap = Wire_Keyboard_Remap.Swedish[KEY_LSHIFT]
 remap[KEY_0] = "="
 remap[KEY_1] = "!"
 remap[KEY_2] = '"'
@@ -274,7 +274,7 @@ remap[KEY_BACKSLASH] 	= "½"
 remap[KEY_MINUS] 		= "_"
 remap[KEY_EQUAL] 		= "?"
 
-local remap = Wire_Keyboard_Remap.Swedish[KEY_LCONTROL]
+remap = Wire_Keyboard_Remap.Swedish[KEY_LCONTROL]
 remap[KEY_2] = "@"
 remap[KEY_3] = "£"
 remap[KEY_4] = "$"
@@ -294,18 +294,18 @@ Wire_Keyboard_Remap.Norwegian = {}
 Wire_Keyboard_Remap.Norwegian = table.Copy(Wire_Keyboard_Remap.Swedish)
 Wire_Keyboard_Remap.Norwegian[KEY_RSHIFT] = Wire_Keyboard_Remap.Norwegian[KEY_LSHIFT]
 
-local remap = Wire_Keyboard_Remap.Norwegian.normal
+remap = Wire_Keyboard_Remap.Norwegian.normal
 remap[KEY_BACKQUOTE] 	= "ø"
 remap[KEY_APOSTROPHE] 	= "æ"
 remap[KEY_BACKSLASH] 	= "|"
 remap[KEY_LBRACKET] 	= "\\"
 
-local remap = Wire_Keyboard_Remap.Norwegian[KEY_LSHIFT]
+remap = Wire_Keyboard_Remap.Norwegian[KEY_LSHIFT]
 remap[KEY_BACKQUOTE] 	= "Ø"
 remap[KEY_APOSTROPHE] 	= "Æ"
 remap[KEY_BACKSLASH] 	= "§"
 
-local remap = Wire_Keyboard_Remap.Norwegian[KEY_LCONTROL]
+remap = Wire_Keyboard_Remap.Norwegian[KEY_LCONTROL]
 remap[KEY_EQUAL] = nil
 remap[KEY_M] = "µ"
 remap[KEY_LBRACKET] 		= "´"
@@ -319,7 +319,7 @@ Wire_Keyboard_Remap.German				= table.Copy(Wire_Keyboard_Remap_default)
 Wire_Keyboard_Remap.German[KEY_LCONTROL]			= {} -- Should be KEY_RALT, but that didn't work correctly
 Wire_Keyboard_Remap.German[KEY_RSHIFT]	= Wire_Keyboard_Remap.German[KEY_LSHIFT]
 
-local remap = Wire_Keyboard_Remap.German.normal
+remap = Wire_Keyboard_Remap.German.normal
 remap[KEY_LBRACKET]		= "ß"
 remap[KEY_RBRACKET]		= "´"
 remap[KEY_SEMICOLON]	= "ü"
@@ -332,7 +332,7 @@ remap[KEY_BACKSLASH]	= "^"
 remap[KEY_MINUS]		= "-"
 remap[KEY_EQUAL]		= "+"
 
-local remap = Wire_Keyboard_Remap.German[KEY_LSHIFT]
+remap = Wire_Keyboard_Remap.German[KEY_LSHIFT]
 remap[KEY_0]	= "="
 remap[KEY_1]	= "!"
 remap[KEY_2]	= '"'
@@ -355,7 +355,7 @@ remap[KEY_BACKSLASH]	= "°"
 remap[KEY_MINUS]		= "_"
 remap[KEY_EQUAL]		= "*"
 
-local remap = Wire_Keyboard_Remap.German[KEY_LCONTROL]
+remap = Wire_Keyboard_Remap.German[KEY_LCONTROL]
 remap[KEY_0]	= "}"
 remap[KEY_2]	= '²'
 remap[KEY_3]	= "³"

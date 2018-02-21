@@ -348,11 +348,11 @@ end
 
 function ENT:RemoveFromBufferByPosition(bufferpos)
 	if self.Buffer[0] <= 0 then return end
-	local key = table.remove(self.Buffer, bufferpos)
+	table.remove(self.Buffer, bufferpos)
 	self.Buffer[0] = self.Buffer[0] - 1
 
 	-- Move all remaining keys down one step
-	for key_enum,positions in pairs(self.BufferLookup) do
+	for _, positions in pairs(self.BufferLookup) do
 		for k,pos in pairs(positions) do
 			if bufferpos < pos then
 				positions[k] = positions[k] - 1
@@ -389,16 +389,16 @@ function ENT:Think()
 	local leavekey = self.ply:GetInfoNum("wire_keyboard_leavekey", KEY_LALT)
 
 	-- Remove lifted up keys from our ActiveKeys
-	for key_enum, bool in pairs(self.ActiveKeys) do
+	for key_enum, _ in pairs(self.ActiveKeys) do
 		if not self.ply.keystate[key_enum] then
 			self:KeyReleased(key_enum)
 		end
 	end
 
 	-- Check for newly pressed keys and add them to our ActiveKeys
-	for key_enum, bool in pairs(self.ply.keystate) do
+	for key_enum, _ in pairs(self.ply.keystate) do
 		if key_enum == leavekey then
-			if leavekey ~= KEY_ALT or not self:IsPressedEnum(KEY_LCONTROL) then -- if LCONTROL and LALT are being pressed, then the player is trying to use the "ALT GR" key which is available for some languages
+			if leavekey ~= KEY_LALT or not self:IsPressedEnum(KEY_LCONTROL) then -- if LCONTROL and LALT are being pressed, then the player is trying to use the "ALT GR" key which is available for some languages
 				self:PlayerDetach() -- Pressing the leave key quits the keyboard
 				break
 			end
