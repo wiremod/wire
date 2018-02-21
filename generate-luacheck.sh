@@ -29,6 +29,7 @@ wget -o /dev/null -O - "$base_url"/navbar/ |
                 '<h2'*' &raquo;')
                     # Parse menu headers
                     detagged="${detagged% &raquo;}"
+                    if printf '%s' "$detagged" | grep -v -q '^[[:alpha:]_][[:alnum:]_]*$'; then continue; fi
                     case "$section" in
                         Hooks|Libraries|Classes|Panels)
                             printf '  "%s",\n' "$detagged"
@@ -52,12 +53,15 @@ wget -o /dev/null -O - "$base_url"/navbar/ |
                         ;;
 
                         Enumerations)
-                            printf '\n  --- %s\n' "$detagged"
                             echo >&2 "Retrieving enum data for $detagged"
 
                             url="$base_url/page/Enums/$detagged" # TODO: use URL from the <a> tag
-                            wget "$url" -o /dev/null -O - |
-                                sed -rn 's/^<td> ('"$detagged"'_[^[:space:]]+|[A-Z][A-Z0-9_]{2,})$/  "\1",/p'
+                            output="$(wget "$url" -o /dev/null -O -)"
+
+                            if ! printf '%s' "$output" | grep -q "These enumerations do not exist in the game"; then
+                                printf '\n  --- %s\n' "$detagged"
+                                printf '%s' "$output" | sed -rn 's/^<td> ('"$detagged"'_[^[:space:]]+|[A-Z][A-Z0-9_]{2,})$/  "\1",/p'
+                            fi
                         ;;
 
                         Structures|Shaders|'Lua Reference'|'Lua Tutorials'|Hooks|Libraries|Classes|Panels)
