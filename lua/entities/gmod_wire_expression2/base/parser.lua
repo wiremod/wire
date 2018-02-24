@@ -1248,7 +1248,7 @@ function Parser:Expr15()
 
 				stype = wire_expression_types[string.upper(longtp)][1]
 			end
-			expr = self:Instruction(trace, "sfun", expr, stype, unpack(exprs))
+			expr = self:Instruction(trace, "scall", expr, stype, unpack(exprs))
 		else
 			break
 		end
@@ -1285,7 +1285,7 @@ function Parser:Expr16()
 		local token = self:GetToken()
 
 		if self:AcceptRoamingToken("rpa") then
-			return self:Instruction(trace, "fun", fun)
+			return self:Instruction(trace, "call", fun)
 		else
 
 			local exprs = {}
@@ -1342,7 +1342,7 @@ function Parser:Expr16()
 				self:Error("Right parenthesis ()) missing, to close function argument list", token)
 			end
 
-			return self:Instruction(trace, "fun", fun, unpack(exprs))
+			return self:Instruction(trace, "call", fun, unpack(exprs))
 		end
 	end
 

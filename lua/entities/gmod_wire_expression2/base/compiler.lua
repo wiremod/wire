@@ -390,7 +390,7 @@ function Compiler:InstrCND(args)
 end
 
 
-function Compiler:InstrFUN(args)
+function Compiler:InstrCALL(args)
 	local exprs = { false }
 
 	local tps = {}
@@ -407,7 +407,7 @@ function Compiler:InstrFUN(args)
 	return exprs, rt[2]
 end
 
-function Compiler:InstrSFUN(args)
+function Compiler:InstrSCALL(args)
 	local exprs = { false }
 
 	local fexp, ftp = self:Evaluate(args, 1)
@@ -423,7 +423,7 @@ function Compiler:InstrSFUN(args)
 		exprs[#exprs + 1] = ex
 	end
 
-	local rtsfun = self:GetOperator(args, "sfun", {})[1]
+	local rtsfun = self:GetOperator(args, "scall", {})[1]
 
 	local typeids_str = table.concat(tps, "")
 
