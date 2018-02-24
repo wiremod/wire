@@ -43,7 +43,7 @@ function PreProcessor:HandlePPCommand(comment)
 end
 
 function PreProcessor:FindComments(line)
-	local ret, count, pos, found = {}, 0, 1, nil
+	local ret, count, pos, found = {}, 0, 1
 	repeat
 		found = line:find('[#"\\]', pos)
 		if found then -- We found something
@@ -209,8 +209,7 @@ function PreProcessor:ParseDirectives(line)
 		end
 	elseif directive == "trigger" then
 		local trimmed = string.Trim(value)
-		if trimmed == "" then
-		elseif trimmed == "all" then
+		if trimmed == "all" then
 			if self.directives.trigger[1] ~= nil then
 				self:Error("Directive (@trigger) conflicts with previous directives")
 			end
@@ -220,7 +219,7 @@ function PreProcessor:ParseDirectives(line)
 				self:Error("Directive (@trigger) conflicts with previous directives")
 			end
 			self.directives.trigger[1] = false
-		else
+		elseif trimmed ~= "" then
 			if self.directives.trigger[1] ~= nil and #self.directives.trigger[2] == 0 then
 				self:Error("Directive (@trigger) conflicts with previous directives")
 			end
@@ -377,7 +376,7 @@ function PreProcessor:GetFunction(args, type)
 	thistype = gettype(thistype)
 
 	local tps = {thistype .. colon}
-	for i, argtype in ipairs(string.Explode(",", argtypes)) do
+	for _, argtype in ipairs(string.Explode(",", argtypes)) do
 		argtype = gettype(argtype)
 		table.insert(tps, argtype)
 	end

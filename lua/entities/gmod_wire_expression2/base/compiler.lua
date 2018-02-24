@@ -613,7 +613,9 @@ end
 
 function Compiler:InstrTRG(args)
 	local op = args[3]
-	local tp = self:GetVariableType(args, op)
+	if not self.inputs[op] then
+		self:Error("Triggered operator (~" .. E2Lib.limitString(op, 10) .. ") can only be used on inputs", args)
+	end
 	local rt = self:GetOperator(args, "trg", {})
 	return { rt[1], op }, rt[2]
 end
@@ -637,11 +639,9 @@ function Compiler:InstrIWC(args)
 	local op = args[3]
 
 	if self.inputs[op] then
-		local tp = self:GetVariableType(args, op)
 		local rt = self:GetOperator(args, "iwc", {})
 		return { rt[1], op }, rt[2]
 	elseif self.outputs[op] then
-		local tp = self:GetVariableType(args, op)
 		local rt = self:GetOperator(args, "owc", {})
 		return { rt[1], op }, rt[2]
 	else
@@ -707,15 +707,14 @@ end
 
 function Compiler:InstrFUNCTION(args)
 
-	local Sig, Return, Type, Args, Block = args[3], args[4], args[5], args[6], args[7]
+	local Sig, Return, Args = args[3], args[4], args[6]
 	Return = Return or ""
-	Type = Type or ""
 
 	local OldScopes = self:SaveScopes()
 	self:InitScope() -- Create a new Scope Enviroment
 	self:PushScope()
 
-	for K, D in pairs(Args) do
+	for _, D in pairs(Args) do
 		local Name, Type = D[1], wire_expression_types[D[2]][1]
 		self:SetLocalVariableType(Name, Type, args)
 	end

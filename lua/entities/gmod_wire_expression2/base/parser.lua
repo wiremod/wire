@@ -1296,7 +1296,6 @@ function Parser:Expr16()
 				local kvtable = false
 
 				local key = self:Expr1()
-				local token = self:GetToken()
 
 				if self:AcceptRoamingToken("ass") then
 					if self:AcceptRoamingToken("rpa") then
@@ -1312,10 +1311,8 @@ function Parser:Expr16()
 
 				if kvtable then
 					while self:AcceptRoamingToken("com") do
-						local token = self:GetToken()
-
 						local key = self:Expr1()
-						token = self:GetToken()
+						local token = self:GetToken()
 
 						if self:AcceptRoamingToken("ass") then
 							if self:AcceptRoamingToken("rpa") then
