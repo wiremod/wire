@@ -1286,64 +1286,35 @@ function Parser:Expr16()
 
 		if self:AcceptRoamingToken("rpa") then
 			return self:Instruction(trace, "call", fun)
-		else
+		end
 
-			local exprs = {}
+		local exprs = { self:Expr1() }
 
-			-- Special case for "table( str=val, str=val, str=val, ... )" (or array)
-			if fun == "table" or fun == "array" then
-				local kvtable = false
+		local kvcall = false
 
-				local key = self:Expr1()
-
-				if self:AcceptRoamingToken("ass") then
-					if self:AcceptRoamingToken("rpa") then
-						self:Error("Expression expected, got right paranthesis ())", self:GetToken())
-					end
-
-					exprs[key] = self:Expr1()
-
-					kvtable = true
-				else -- If it isn't a "table( str=val, ...)", then it's a "table( val,val,val,... )"
-					exprs = { key }
-				end
-
-				if kvtable then
-					while self:AcceptRoamingToken("com") do
-						local key = self:Expr1()
-						local token = self:GetToken()
-
-						if self:AcceptRoamingToken("ass") then
-							if self:AcceptRoamingToken("rpa") then
-								self:Error("Expression expected, got right paranthesis ())", self:GetToken())
-							end
-
-							exprs[key] = self:Expr1()
-						else
-							self:Error("Assignment operator (=) missing, to complete expression", token)
-						end
-					end
-
-					if not self:AcceptRoamingToken("rpa") then
-						self:Error("Right parenthesis ()) missing, to close function argument list", self:GetToken())
-					end
-
-					return self:Instruction(trace, "kv" .. fun, exprs)
-				end
-			else
-				exprs = { self:Expr1() }
+		if self:AcceptRoamingToken("ass") then
+			if self:AcceptRoamingToken("rpa") then
+				self:Error("Expression expected, got right paranthesis ())", self:GetToken())
 			end
+			kvcall = true
+			exprs[#exprs + 1] = self:Expr1()
+		end
 
-			while self:AcceptRoamingToken("com") do
+		while self:AcceptRoamingToken("com") do
+			exprs[#exprs + 1] = self:Expr1()
+			if kvcall then
+				if not self:AcceptRoamingToken("ass") then
+					self:Error("Assignment operator (=) missing, to complete expression", token)
+				end
 				exprs[#exprs + 1] = self:Expr1()
 			end
-
-			if not self:AcceptRoamingToken("rpa") then
-				self:Error("Right parenthesis ()) missing, to close function argument list", token)
-			end
-
-			return self:Instruction(trace, "call", fun, unpack(exprs))
 		end
+
+		if not self:AcceptRoamingToken("rpa") then
+			self:Error("Right parenthesis ()) missing, to close function argument list", self:GetToken())
+		end
+
+		return self:Instruction(trace, kvcall and "kvcall" or "call", fun, unpack(exprs))
 	end
 
 	return self:Expr17()

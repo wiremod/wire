@@ -407,6 +407,36 @@ function Compiler:InstrCALL(args)
 	return exprs, rt[2]
 end
 
+local kvcallFunctions = {
+	-- function name ⇒ allowed key types
+	array = { n = true },
+	table = { n = true, s = true },
+}
+function Compiler:InstrKVCALL(args)
+	local name = args[3]
+
+	local allowedKeyTypes = kvcallFunctions[name]
+	if not allowedKeyTypes then
+		self:Error("Function " .. name .. " can't be called with key-value syntax", args)
+	end
+
+	local entries = {}
+	local types = {}
+
+	for i = 2, #args - 2, 2 do
+		local key, keytype = self:Evaluate(args, i)
+		if not allowedKeyTypes[keytype] then
+			self:Error("Function " .. name .. " doesn't accept keys of type " .. tps_pretty(keytype), args[i + 2])
+		end
+		local value, valuetype = self:Evaluate(args, i + 1)
+		types[key] = valuetype
+		entries[key] = value
+	end
+
+	local op = self:GetOperator(args, "kv" .. name, {})
+	return { op[1], entries, types }, op[2]
+end
+
 function Compiler:InstrSCALL(args)
 	local exprs = { false }
 
@@ -751,44 +781,6 @@ function Compiler:InstrRETURNVOID(args)
 	end
 
 	return { self:GetOperator(args, "return", {})[1], nil, nil }
-end
-
-function Compiler:InstrKVTABLE(args)
-	local s = {}
-	local stypes = {}
-
-	local exprs = args[3]
-	for k, v in pairs(exprs) do
-		local key, type = self["Instr" .. string.upper(k[1])](self, k)
-		if type == "s" or type == "n" then
-			local value, type = self["Instr" .. string.upper(v[1])](self, v)
-			s[key] = value
-			stypes[key] = type
-		else
-			self:Error("String or number expected, got " .. tps_pretty(type), k)
-		end
-	end
-
-	return { self:GetOperator(args, "kvtable", {})[1], s, stypes }, "t"
-end
-
-function Compiler:InstrKVARRAY(args)
-	local values = {}
-	local types = {}
-
-	local exprs = args[3]
-	for k, v in pairs(exprs) do
-		local key, type = self["Instr" .. string.upper(k[1])](self, k)
-		if type == "n" then
-			local value, type = self["Instr" .. string.upper(v[1])](self, v)
-			values[key] = value
-			types[key] = type
-		else
-			self:Error("Number expected, got " .. tps_pretty(type), k)
-		end
-	end
-
-	return { self:GetOperator(args, "kvarray", {})[1], values, types }, "r"
 end
 
 function Compiler:InstrSWITCH(args)
