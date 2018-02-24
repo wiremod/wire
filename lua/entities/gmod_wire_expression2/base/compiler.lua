@@ -296,6 +296,7 @@ end
 
 function Compiler:InstrFOR(args)
 	local var = args[3]
+	assert(args.Id)
 
 	local estart, tp1 = self:Evaluate(args, 2)
 	local estop, tp2 = self:Evaluate(args, 3)
@@ -481,6 +482,7 @@ function Compiler:InstrMTO(args)
 end
 
 function Compiler:InstrASS(args)
+	assert(args.Id)
 	local op = args[3]
 	local ex, tp = self:Evaluate(args, 2)
 	local ScopeID = self:SetGlobalVariableType(op, tp, args)
@@ -497,6 +499,7 @@ function Compiler:InstrASS(args)
 end
 
 function Compiler:InstrASSL(args)
+	assert(args.Id)
 	local op = args[3]
 	local ex, tp = self:Evaluate(args, 2)
 	local ScopeID = self:SetLocalVariableType(op, tp, args)
@@ -681,12 +684,15 @@ function Compiler:InstrVAR(args)
 	local tp, ScopeID = self:GetVariableType(args, args[3])
 	local name = args[3]
 
+	assert(args.Id)
+
 	return {function(self)
 		return self.Scopes[ScopeID][name]
 	end}, tp
 end
 
 function Compiler:InstrFEA(args)
+	assert(args.KeyId and args.ValueId)
 	-- local sfea = self:Instruction(trace, "fea", keyvar, keytype, valvar, valtype, tableexpr, self:Block("foreach statement"))
 	local keyvar, keytype, valvar, valtype = args[3], args[4], args[5], args[6]
 	local tableexpr, tabletp = self:Evaluate(args, 5)
@@ -738,6 +744,7 @@ function Compiler:InstrFUNCTION(args)
 
 	for _, D in pairs(Args) do
 		local Name, Type = D[1], wire_expression_types[D[2]][1]
+		assert(D.Id)
 		self:SetLocalVariableType(Name, Type, args)
 	end
 

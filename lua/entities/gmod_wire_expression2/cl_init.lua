@@ -70,6 +70,10 @@ function wire_expression2_validate(buffer)
 		if error then return error end
 	end
 
+	-- invoke analyzer
+	status, tree = E2Lib.Analyzer.Execute(tree, scripts)
+	if not status then return tree end
+
 	-- invoke compiler
 	local status, script, instance = E2Lib.Compiler.Execute(tree, inports[3], outports[3], persists[3], dvars, scripts)
 	if not status then return script end
