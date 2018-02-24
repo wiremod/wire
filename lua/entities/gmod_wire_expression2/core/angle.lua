@@ -105,12 +105,6 @@ end
 
 /******************************************************************************/
 
-registerOperator("dlt", "a", "a", function(self, args)
-	local op1, scope = args[2], args[3]
-	local rv1, rv2 = self.Scopes[scope][op1], self.Scopes[scope]["$" .. op1]
-	return { rv1[1] - rv2[1], rv1[2] - rv2[2], rv1[3] - rv2[3] }
-end)
-
 __e2setcost(2)
 
 e2function angle operator_neg(angle rv1)

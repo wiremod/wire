@@ -126,13 +126,6 @@ end)
 
 --[[************************************************************************]]--
 
-__e2setcost(5)
-
-registerOperator("dlt", "n", "n", function(self, args)
-	local op1, scope = args[2], args[3]
-	return self.Scopes[scope][op1] - self.Scopes[scope]["$" .. op1]
-end)
-
 __e2setcost(0.5) -- approximation
 
 registerOperator("neg", "n", "n", function(self, args)

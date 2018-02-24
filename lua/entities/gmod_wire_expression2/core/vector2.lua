@@ -95,12 +95,6 @@ end)
 
 /******************************************************************************/
 
-registerOperator("dlt", "xv2", "xv2", function(self, args)
-	local op1, scope = args[2], args[3]
-	local rv1, rv2 = self.Scopes[scope][op1], self.Scopes[scope]["$" .. op1]
-	return { rv1[1] - rv2[1], rv1[2] - rv2[2] }
-end)
-
 registerOperator("neg", "xv2", "xv2", function(self, args)
 	local op1 = args[2]
 	local rv1 = op1[1](self, op1)
@@ -638,12 +632,6 @@ registerOperator("neq", "xv4xv4", "n", function(self, args)
 end)
 
 /******************************************************************************/
-
-registerOperator("dlt", "xv4", "xv4", function(self, args)
-	local op1, scope = args[2], args[3]
-	local rv1, rv2 = self.Scopes[scope][op1], self.Scopes[scope]["$" .. op1]
-	return { rv1[1] - rv2[1], rv1[2] - rv2[2], rv1[3] - rv2[3], rv1[4] - rv2[4] }
-end)
 
 registerOperator("neg", "xv4", "xv4", function(self, args)
 	local op1 = args[2]

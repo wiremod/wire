@@ -27,7 +27,6 @@ registerOperator("function", "", "", function(self, args)
 		for I = 1, #Variables do
 			local Var = Variables[I]
 			self.Scope[Var[1]] = Var[2]
-			self.Scope["$" .. Var[1]] = Var[2]
 			self.Scope.vclk[Var[1]] = true
 		end
 

@@ -173,12 +173,6 @@ function Compiler:HasOperator(instr, name, tps)
 	return a and true or false
 end
 
-function Compiler:AssertOperator(instr, name, alias, tps)
-	if not self:HasOperator(instr, name, tps) then
-		self:Error("No such operator: " .. op_find(alias) .. "(" .. tps_pretty(tps) .. ")", instr)
-	end
-end
-
 function Compiler:GetOperator(instr, name, tps)
 	local pars = table.concat(tps)
 	local a = wire_expression2_funcs["op:" .. name .. "(" .. pars .. ")"]
@@ -629,7 +623,6 @@ function Compiler:InstrDLT(args)
 	end
 
 	self.dvars[op] = true
-	self:AssertOperator(args, "sub", "dlt", { tp, tp })
 	local rt = self:GetOperator(args, "sub", { tp, tp })
 	local rtvar = self:GetOperator(args, "var", {})
 	return { rt[1], { rtvar[1], op, ScopeID }, { rtvar[1], "$" .. op, ScopeID } }, rt[2]

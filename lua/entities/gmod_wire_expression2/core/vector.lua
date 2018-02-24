@@ -104,12 +104,6 @@ end
 
 --------------------------------------------------------------------------------
 
-registerOperator("dlt", "v", "v", function(self, args)
-	local op1, scope = args[2], args[3]
-	local rv1, rv2 = self.Scopes[scope][op1], self.Scopes[scope]["$" .. op1]
-	return { rv1[1] - rv2[1], rv1[2] - rv2[2], rv1[3] - rv2[3] }
-end)
-
 e2function vector vector:operator_neg()
 	return { -this[1], -this[2], -this[3] }
 end
