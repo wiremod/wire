@@ -48,7 +48,8 @@ registerType("table", "t", table.Copy(DEFAULT),
 	end,
 	function(v)
 		return not istable(v)
-	end
+	end,
+	E2Lib.MutableReferenceType
 )
 
 local formatPort = WireLib.Debugger.formatPort
@@ -253,25 +254,6 @@ end
 --------------------------------------------------------------------------------
 -- Operators
 --------------------------------------------------------------------------------
-
-__e2setcost(5)
-
-registerOperator("ass", "t", "t", function(self, args)
-	local lhs, op2, scope = args[2], args[3], args[4]
-	local      rhs = op2[1](self, op2)
-
-	local Scope = self.Scopes[scope]
-	if !Scope.lookup then Scope.lookup = {} end
-
-	local lookup = Scope.lookup
-	if (lookup[rhs]) then lookup[rhs][lhs] = nil end
-	if (!lookup[rhs]) then lookup[rhs] = {} end
-	lookup[rhs][lhs] = true
-
-	Scope[lhs] = rhs
-	Scope.vclk[lhs] = true
-	return rhs
-end)
 
 __e2setcost(1)
 

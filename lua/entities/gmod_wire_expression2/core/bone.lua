@@ -88,15 +88,6 @@ e2function number operator_is(bone b)
 	if not isValidBone(b) then return 0 else return 1 end
 end
 
---- B = B
-registerOperator("ass", "b", "b", function(self, args)
-	local op1, op2, scope = args[2], args[3], args[4]
-	local      rv2 = op2[1](self, op2)
-	self.Scopes[scope][op1] = rv2
-	self.Scopes[scope].vclk[op1] = true
-	return rv2
-end)
-
 --- B == B
 e2function number operator==(bone lhs, bone rhs)
 	if lhs == rhs then return 1 else return 0 end

@@ -59,16 +59,6 @@ end)
 
 /******************************************************************************/
 
-registerOperator("ass", "xv2", "xv2", function(self, args)
-	local op1, op2, scope = args[2], args[3], args[4]
-	local      rv2 = op2[1](self, op2)
-	self.Scopes[scope][op1] = rv2
-	self.Scopes[scope].vclk[op1] = true
-	return rv2
-end)
-
-/******************************************************************************/
-
 registerOperator("is", "xv2", "n", function(self, args)
 	local op1 = args[2]
 	local rv1 = op1[1](self, op1)
@@ -587,16 +577,6 @@ registerFunction("vec4", "vn", "xv4", function(self, args)
 	local op1, op2 = args[2], args[3]
 	local rv1, rv2 = op1[1](self, op1), op2[1](self, op2)
 	return { rv1[1], rv1[2], rv1[3], rv2 }
-end)
-
-/******************************************************************************/
-
-registerOperator("ass", "xv4", "xv4", function(self, args)
-	local op1, op2, scope = args[2], args[3], args[4]
-	local      rv2 = op2[1](self, op2)
-	self.Scopes[scope][op1] = rv2
-	self.Scopes[scope].vclk[op1] = true
-	return rv2
 end)
 
 /******************************************************************************/
