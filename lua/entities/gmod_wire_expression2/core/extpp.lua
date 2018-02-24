@@ -37,7 +37,6 @@ local optable = {
 	["operator||"] = "or",
 	["operator[]"] = "idx", -- typeless op[]
 	["operator[T]"] = { "idx", OPTYPE_APPEND_RET }, -- typed op[]
-	["operator$"] = { "dlt", OPTYPE_DONT_FETCH_FIRST }, -- mostly superfluous now
 
 	["operator_is"] = "is",
 	["operator_neg"] = "neg",
