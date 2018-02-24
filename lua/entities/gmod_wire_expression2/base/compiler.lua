@@ -394,8 +394,8 @@ function Compiler:InstrFUN(args)
 	local exprs = { false }
 
 	local tps = {}
-	for i = 1, #args[4] do
-		local ex, tp = self:Evaluate(args[4], i - 2)
+	for i = 2, #args - 2 do
+		local ex, tp = self:Evaluate(args, i)
 		tps[#tps + 1] = tp
 		exprs[#exprs + 1] = ex
 	end
@@ -417,8 +417,8 @@ function Compiler:InstrSFUN(args)
 	end
 
 	local tps = {}
-	for i = 1, #args[4] do
-		local ex, tp = self:Evaluate(args[4], i - 2)
+	for i = 2, #args - 2 do
+		local ex, tp = self:Evaluate(args, i)
 		tps[#tps + 1] = tp
 		exprs[#exprs + 1] = ex
 	end
@@ -438,8 +438,8 @@ function Compiler:InstrMTO(args)
 	local ex, tp = self:Evaluate(args, 2)
 	exprs[#exprs + 1] = ex
 
-	for i = 1, #args[5] do
-		local ex, tp = self:Evaluate(args[5], i - 2)
+	for i = 3, #args - 2 do
+		local ex, tp = self:Evaluate(args, i)
 		tps[#tps + 1] = tp
 		exprs[#exprs + 1] = ex
 	end
