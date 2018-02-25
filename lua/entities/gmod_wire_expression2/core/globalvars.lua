@@ -221,9 +221,6 @@ registerCallback("postinit",function()
 
 						self.prf = self.prf + 3
 
-						self.Scope.vclk[keyname] = true
-						self.Scope.vclk[valname] = true
-
 						self.Scope[keyname] = key:sub(len + 1)
 						self.Scope[valname] = value
 

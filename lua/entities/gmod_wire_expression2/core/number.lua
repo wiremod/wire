@@ -56,13 +56,17 @@ __e2setcost(1.5)
 registerOperator("inc", "n", "", function(self, args)
 	local op1, scope = args[2], args[3]
 	self.Scopes[scope][op1] = self.Scopes[scope][op1] + 1
-	self.Scopes[scope].vclk[op1] = true
+	if scope == 0 then
+		self.GlobalScope.vclk[op1] = true
+	end
 end)
 
 registerOperator("dec", "n", "", function(self, args)
 	local op1, scope = args[2], args[3]
 	self.Scopes[scope][op1] = self.Scopes[scope][op1] - 1
-	self.Scopes[scope].vclk[op1] = true
+	if scope == 0 then
+		self.GlobalScope.vclk[op1] = true
+	end
 end)
 
 --[[************************************************************************]]--

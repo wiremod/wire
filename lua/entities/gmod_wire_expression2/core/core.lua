@@ -94,7 +94,6 @@ registerOperator("for", "", "", function(self, args)
 	for I=rstart,rend+rdelta,rstep do
 		self:PushScope()
 		self.Scope[var] = I
-		self.Scope.vclk[var] = true
 
 		local ok, msg = pcall(op4[1], self, op4)
 		if not ok then
