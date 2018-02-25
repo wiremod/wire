@@ -310,7 +310,13 @@ function ENT:BuildDupeInfo()
 	info.Socket.ArrayInput = self.ArrayInput
 	info.Socket.WeldForce = self.WeldForce
 	info.Socket.AttachRange = self.AttachRange
-	if (self.Plug) then info.Socket.Plug = self.Plug:EntIndex() end
+	if self.Plug then
+		info.Socket.Plug = self.Plug:EntIndex()
+	else
+		-- if we don't write -1 here then sockets will somehow remember which plugs they used to be
+		-- connected to in the past after paste even though that reference no longer exists. I have no clue why
+		info.Socket.Plug = -1
+	end
 
 	return info
 end
@@ -345,24 +351,24 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID, GetConstByID)
 
 	if (info.Socket) then
 		ent:Setup( self:GetApplyDupeInfoParams(info) )
-		local plug = GetEntByID( info.Socket.Plug )
-		if IsValid(plug) then
-			ent.Plug = plug
-			plug.Socket = ent
-			ent.Weld = { ["IsValid"] = function() return true end }
+		if info.Socket.Plug ~= -1 then -- check for the strangely required -1 here (see BuildDupeInfo)
+			local plug = GetEntByID( info.Socket.Plug )
+			if IsValid(plug) then
+				ent.Plug = plug
+				plug.Socket = ent
+				ent.Weld = { ["IsValid"] = function() return true end }
 
-			plug:SetNWBool( "Linked", true )
-			ent:SetNWBool( "Linked", true )
-			-- Resend all values
-			plug:ResendValues()
-			ent:ResendValues()
+				plug:SetNWBool( "Linked", true )
+				ent:SetNWBool( "Linked", true )
+				-- Resend all values
+				plug:ResendValues()
+				ent:ResendValues()
 
-			if GetConstByID then
-				if info.Socket.Weld then
+				if GetConstByID and info.Socket.Weld then
 					ent.Weld = GetConstByID( info.Socket.Weld )
+				else
+					FindConstraint( ent, plug )
 				end
-			else
-				FindConstraint( ent, plug )
 			end
 		end
 	else -- OLD DUPES COMPATIBILITY
