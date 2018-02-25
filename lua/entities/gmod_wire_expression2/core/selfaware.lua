@@ -54,7 +54,7 @@ local function setOutput( self, args, Type )
 	local rv1, rv2 = op1[1](self,op1), op2[1](self,op2)
 	if (self.entity.Outputs[rv1] and self.entity.Outputs[rv1].Type == Type) then
 		self.GlobalScope[rv1] = rv2
-		self.GlobalScope.vclk[rv1] = true
+		self.TriggerQueued[rv1] = true
 	end
 end
 

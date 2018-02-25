@@ -93,52 +93,26 @@ function wire_expression2_reset_extensions()
 	wire_expression2_constants = {}
 end
 
-E2Lib.MutableReferenceType = "MutableReferenceType"
-
 -- additional args: <input serializer>, <output serializer>, <type checker>
-function registerType(name, id, def, inputSerializer, outputSerializer, typeAssert, inverseTypeTest, mutability, ...)
-	wire_expression_types[string.upper(name)] = { id, def, inputSerializer, outputSerializer, typeAssert, inverseTypeTest, ... }
-	wire_expression_types2[id] = { string.upper(name), def, inputSerializer, outputSerializer, typeAssert, inverseTypeTest, ... }
+function registerType(name, id, def, ...)
+	wire_expression_types[string.upper(name)] = { id, def, ... }
+	wire_expression_types2[id] = { string.upper(name), def, ... }
 	if not WireLib.DT[string.upper(name)] then
 		WireLib.DT[string.upper(name)] = { Zero = def }
 	end
-	if mutability == E2Lib.MutableReferenceType then
-		-- Mutable reference types have a different assignment operator that does
-		-- some extra tracking. This is so that modifications to the value through
-		-- one reference will also trigger that value to be output through all other
-		-- variables that are bound to it.
-		registerOperator("ass", id, id, function(self, args)
-			local name, expr, scopeId = args[2], args[3], args[4]
-			local value = expr[1](self, expr)
+	registerOperator("ass", id, id, function(self, args)
+		local name, expr, scopeId = args[2], args[3], args[4]
+		local value = expr[1](self, expr)
 
-			local scope = self.Scopes[scopeId]
-			scope[name] = value
+		local scope = self.Scopes[scopeId]
+		scope[name] = value
 
-			if scopeId == 0 then
-				if not scope.lookup then scope.lookup = {} end
-				local lookup = scope.lookup
-				if not lookup[value] then lookup[value] = {} end
-				lookup[value][name] = true
-				scope.vclk[value] = true
-			end
+		if scopeId == 0 then
+			self.TriggerQueued[name] = true
+		end
 
-			return value
-		end, 2)
-	else
-		registerOperator("ass", id, id, function(self, args)
-			local name, expr, scopeId = args[2], args[3], args[4]
-			local value = expr[1](self, expr)
-
-			local scope = self.Scopes[scopeId]
-			scope[name] = value
-
-			if scopeId == 0 then
-				scope.vclk[name] = true
-			end
-
-			return value
-		end, 1)
-	end
+		return value
+	end, 1)
 end
 
 function wire_expression2_CallHook(hookname, ...)

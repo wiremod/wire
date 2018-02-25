@@ -48,8 +48,7 @@ registerType("table", "t", table.Copy(DEFAULT),
 	end,
 	function(v)
 		return not istable(v)
-	end,
-	E2Lib.MutableReferenceType
+	end
 )
 
 local formatPort = WireLib.Debugger.formatPort
@@ -433,7 +432,7 @@ e2function void table:remove( number index )
 		table.remove( this.ntypes, index )
 	end
 	this.size = this.size - 1
-	self.GlobalScope.vclk[this] = true
+	self.IndirectTriggerQueued[this] = true
 end
 
 -- Remove a variable at a string index
@@ -443,7 +442,7 @@ e2function void table:remove( string index )
 	this.s[index] = nil
 	this.stypes[index] = nil
 	this.size = this.size - 1
-	self.GlobalScope.vclk[this] = true
+	self.IndirectTriggerQueued[this] = true
 end
 
 --------------------------------------------------------------------------------
@@ -456,7 +455,7 @@ e2function void table:unset( index )
 	this.n[index] = nil
 	this.ntypes[index] = nil
 	this.size = this.size - 1
-	self.GlobalScope.vclk[this] = true
+	self.IndirectTriggerQueued[this] = true
 end
 
 -- Force remove for strings is an alias to table:remove(string)
@@ -681,7 +680,7 @@ e2function void table:pop()
 	this.n[n] = nil
 	this.ntypes[n] = nil
 	this.size = this.size - 1
-	self.GlobalScope.vclk[this] = true
+	self.IndirectTriggerQueued[this] = true
 end
 
 -- Removes the first emelemt in the array part
@@ -689,7 +688,7 @@ e2function void table:shift()
 	table.remove( this.n, 1 )
 	table.remove( this.ntypes, 1 )
 	this.size = this.size - 1
-	self.GlobalScope.vclk[this] = true
+	self.IndirectTriggerQueued[this] = true
 end
 
 __e2setcost(5)
@@ -989,7 +988,7 @@ registerCallback( "postinit", function()
 			elseif (rv1.n[rv2] ~= nil and rv3 == nil) then rv1.size = rv1.size - 1 end
 			rv1.s[rv2] = rv3
 			rv1.stypes[rv2] = id
-			self.GlobalScope.vclk[rv1] = true
+			self.IndirectTriggerQueued[rv1] = true
 			return rv3
 		end)
 
@@ -1000,7 +999,7 @@ registerCallback( "postinit", function()
 			elseif (rv1.n[rv2] ~= nil and rv3 == nil) then rv1.size = rv1.size - 1 end
 			rv1.n[rv2] = rv3
 			rv1.ntypes[rv2] = id
-			self.GlobalScope.vclk[rv1] = true
+			self.IndirectTriggerQueued[rv1] = true
 			return rv3
 		end)
 
@@ -1024,14 +1023,14 @@ registerCallback( "postinit", function()
 					table.remove( rv1.ntypes, rv2 )
 				end
 				rv1.size = rv1.size - 1
-				self.GlobalScope.vclk[rv1] = true
+				self.IndirectTriggerQueued[rv1] = true
 				return ret
 			else
 				if (!rv1.s[rv2] or rv1.stypes[rv2] != id) then return fixdef(v[2]) end
 				local ret = rv1.s[rv2]
 				rv1.s[rv2] = nil
 				rv1.stypes[rv2] = nil
-				self.GlobalScope.vclk[rv1] = true
+				self.IndirectTriggerQueued[rv1] = true
 				rv1.size = rv1.size - 1
 				return ret
 			end
@@ -1065,7 +1064,7 @@ registerCallback( "postinit", function()
 			rv1.size = rv1.size + 1
 			rv1.n[n] = rv2
 			rv1.ntypes[n] = id
-			self.GlobalScope.vclk[rv1] = true
+			self.IndirectTriggerQueued[rv1] = true
 			return rv2
 		end)
 
@@ -1084,7 +1083,7 @@ registerCallback( "postinit", function()
 			rv1.size = rv1.size + 1
 			table.insert( rv1.n, rv2, rv3 )
 			table.insert( rv1.ntypes, rv2, id )
-			self.GlobalScope.vclk[rv1] = true
+			self.IndirectTriggerQueued[rv1] = true
 			return rv3
 		end)
 
@@ -1095,7 +1094,7 @@ registerCallback( "postinit", function()
 			rv1.size = rv1.size + 1
 			table.insert( rv1.n, 1, rv2 )
 			table.insert( rv1.ntypes, 1, id )
-			self.GlobalScope.vclk[rv1] = true
+			self.IndirectTriggerQueued[rv1] = true
 			return rv2
 		end)
 
@@ -1164,60 +1163,5 @@ registerCallback( "postinit", function()
 
 		end -- blocked check end
 
-	end
-end)
-
---------------------------------------------------------------------------------
--- "lookup" stuff copied from the old table.lua file
---------------------------------------------------------------------------------
-
--- these postexecute and construct hooks handle changes to both tables and arrays.
-registerCallback("postexecute", function(self)
-	local Scope = self.GlobalScope
-	local vclk, lookup = Scope.vclk, Scope.lookup
-
-	-- Go through all registered values of the types table and array.
-	for value,varnames in pairs(lookup) do
-		local clk = vclk[value]
-
-		local still_assigned = false
-		-- For each value, go through the variables they're assigned to and trigger them.
-		for varname,_ in pairs(varnames) do
-			if value == Scope[varname] then
-				-- The value is still assigned to the variable? => trigger it.
-				if clk then vclk[varname] = true end
-				still_assigned = true
-			else
-				-- The value is no longer assigned to the variable? => remove the lookup table entry.
-				varnames[varname] = nil
-			end
-		end
-
-		-- if the value is no longer assigned to anything, remove all references to it.
-		if not still_assigned then
-			lookup[value] = nil
-		end
-		-- If the value has no more variable names associated, remove the value's place in the lookup table.
-		if IsEmpty(varnames) then lookup[value] = nil end
-	end
-end)
-
-local tbls = {
-	ARRAY = true,
-	TABLE = true,
-}
-
-registerCallback("construct", function(self)
-	local Scope = self.GlobalScope
-	Scope.lookup = {}
-
-	for k,v in pairs( Scope ) do
-		if k != "lookup" then
-			local datatype = self.entity.outports[3][k]
-			if (tbls[datatype]) then
-				if (!Scope.lookup[v]) then Scope.lookup[v] = {} end
-				Scope.lookup[v][k] = true
-			end
-		end
 	end
 end)

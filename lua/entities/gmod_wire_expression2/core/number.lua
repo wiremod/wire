@@ -57,7 +57,7 @@ registerOperator("inc", "n", "", function(self, args)
 	local op1, scope = args[2], args[3]
 	self.Scopes[scope][op1] = self.Scopes[scope][op1] + 1
 	if scope == 0 then
-		self.GlobalScope.vclk[op1] = true
+		self.TriggerQueued[op1] = true
 	end
 end)
 
@@ -65,7 +65,7 @@ registerOperator("dec", "n", "", function(self, args)
 	local op1, scope = args[2], args[3]
 	self.Scopes[scope][op1] = self.Scopes[scope][op1] - 1
 	if scope == 0 then
-		self.GlobalScope.vclk[op1] = true
+		self.TriggerQueued[op1] = true
 	end
 end)
 

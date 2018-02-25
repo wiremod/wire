@@ -45,8 +45,7 @@ registerType("array", "r", {},
 	end,
 	function(v)
 		return !istable(v)
-	end,
-	E2Lib.MutableReferenceType
+	end
 )
 
 --------------------------------------------------------------------------------
@@ -117,7 +116,7 @@ registerCallback( "postinit", function()
 				local ret
 				if (doremove) then
 					ret = table_remove( array, index )
-					self.GlobalScope.vclk[array] = true
+					self.IndirectTriggerQueued[array] = true
 				else
 					ret = array[floor(index)]
 				end
@@ -151,7 +150,7 @@ registerCallback( "postinit", function()
 				else
 					array[floor(index)] = value
 				end
-				self.GlobalScope.vclk[array] = true
+				self.IndirectTriggerQueued[array] = true
 				return value
 			end
 
@@ -278,7 +277,7 @@ end)
 __e2setcost(2)
 e2function void array:pop()
 	table_remove( this )
-	self.GlobalScope.vclk[this] = true
+	self.IndirectTriggerQueued[this] = true
 end
 
 --------------------------------------------------------------------------------
@@ -288,7 +287,7 @@ end
 __e2setcost(2)
 e2function void array:remove( index )
 	table_remove( this, index )
-	self.GlobalScope.vclk[this] = true
+	self.IndirectTriggerQueued[this] = true
 end
 
 --------------------------------------------------------------------------------
@@ -299,7 +298,7 @@ end
 e2function void array:unset( index )
 	if this[index] == nil then return end
 	this[index] = nil
-	self.GlobalScope.vclk[this] = true
+	self.IndirectTriggerQueued[this] = true
 end
 
 --------------------------------------------------------------------------------
@@ -309,7 +308,7 @@ end
 __e2setcost(3)
 e2function void array:shift()
 	table_remove( this, 1 )
-	self.GlobalScope.vclk[this] = true
+	self.IndirectTriggerQueued[this] = true
 end
 
 --------------------------------------------------------------------------------

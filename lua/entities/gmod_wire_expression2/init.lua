@@ -49,13 +49,13 @@ ScopeManager.__index = ScopeManager
 function ScopeManager:InitScope()
 	self.Scopes = {}
 	self.ScopeID = 0
-	self.Scopes[0] = self.GlobalScope or { vclk = {} } -- for creating new enviroments
+	self.Scopes[0] = self.GlobalScope or {} -- for creating new enviroments
 	self.Scope = self.Scopes[0]
 	self.GlobalScope = self.Scope
 end
 
 function ScopeManager:PushScope()
-	self.Scope = { vclk = {} }
+	self.Scope = {}
 	self.ScopeID = self.ScopeID + 1
 	self.Scopes[self.ScopeID] = self.Scope
 end
@@ -157,7 +157,8 @@ function ENT:Execute()
 		end
 	end
 
-	self.GlobalScope.vclk = {}
+	self.context.TriggerQueued = {}
+	self.context.IndirectTriggerQueued = {}
 	for k, v in pairs(self.globvars) do
 		self.GlobalScope[k] = copytype(wire_expression_types2[v][2])
 	end
@@ -316,7 +317,6 @@ end
 function ENT:ResetContext()
 	local context = {
 		data = {},
-		vclk = {}, -- Used only by arrays and tables!
 		funcs = self.funcs,
 		funcs_ret = self.funcs_ret,
 		entity = self,
@@ -327,7 +327,12 @@ function ENT:ResetContext()
 		prfbench = 0,
 		time = 0,
 		timebench = 0,
-		includes = self.includes
+		includes = self.includes,
+
+		-- A set of variable names that need a TriggerOutput
+		TriggerQueued = {},
+		-- Values which, if a global variable has this value, then that variable needs a TriggerOutput
+		IndirectTriggerQueued = {},
 	}
 
 	setmetatable(context, ScopeManager)
@@ -361,7 +366,7 @@ function ENT:ResetContext()
 		self._outputs[1][#self._outputs[1] + 1] = k
 		self._outputs[2][#self._outputs[2] + 1] = v
 		self.GlobalScope[k] = copytype(wire_expression_types[v][2])
-		self.GlobalScope.vclk[k] = true
+		context.TriggerQueued[k] = true
 		self.globvars[k] = nil
 	end
 
@@ -480,7 +485,10 @@ end
 
 function ENT:TriggerOutputs()
 	for key, t in pairs(self.outports[3]) do
-		if self.GlobalScope.vclk[key] or self.first then
+		local value = self.GlobalScope[key]
+		local triggerQueued = self.context.TriggerQueued[key] or
+			self.context.IndirectTriggerQueued[value] or self.first
+		if triggerQueued then
 			if wire_expression_types[t][4] then
 				WireLib.TriggerOutput(self, key, wire_expression_types[t][4](self.context, self.GlobalScope[key]))
 			else
