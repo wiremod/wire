@@ -608,12 +608,21 @@ end
 
 function Compiler:InstrVAR(args)
 	self.prfcounter = self.prfcounter + 1.0
-	local op, id = args[3], args.Id
-	local tp, ScopeID = self:GetVariableType(op, id, args)
+	local name, id = args[3], args.Id
+	local type = self:GetVariableType(name, id, args)
 
-	return {function(self)
-		return self.Scopes[ScopeID][id]
-	end}, tp
+	local func
+	if isnumber(id) then -- local
+		func = function(self)
+			return self.Scope[id]
+		end
+	else -- global
+		func = function(self)
+			return self.GlobalScope[id]
+		end
+	end
+
+	return { func }, type
 end
 
 function Compiler:InstrFEA(args)
