@@ -32,7 +32,6 @@ function Compiler:Process(root, inputs, outputs, persist, delta, includes) -- To
 	self.includes = includes or {}
 	self.prfcounter = 0
 	self.prfcounters = {}
-	self.tvars = {}
 	self.funcs = {}
 	self.dvars = {}
 	self.funcs_ret = {}

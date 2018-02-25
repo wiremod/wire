@@ -119,10 +119,6 @@ function ENT:Execute()
 	if self.error then return end
 	if self.context.resetting then return end
 
-	for k, v in pairs(self.tvars) do
-		self.GlobalScope[k] = copytype(wire_expression_types2[v][2])
-	end
-
 	self:PCallHook('preexecute')
 
 	self.context:PushScope()
@@ -265,7 +261,6 @@ function ENT:CompileCode(buffer, files, filepath)
 
 	self.script = script
 	self.dvars = inst.dvars
-	self.tvars = inst.tvars
 	self.funcs = inst.funcs
 	self.funcs_ret = inst.funcs_ret
 	self.globvars = inst.GlobalScope
