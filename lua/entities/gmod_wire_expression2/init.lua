@@ -47,34 +47,17 @@ local ScopeManager = {}
 ScopeManager.__index = ScopeManager
 
 function ScopeManager:InitScope()
-	self.Scopes = {}
-	self.ScopeID = 0
-	self.Scopes[0] = self.GlobalScope or {} -- for creating new enviroments
-	self.Scope = self.Scopes[0]
-	self.GlobalScope = self.Scope
-end
-
-function ScopeManager:PushScope()
-	self.Scope = {}
-	self.ScopeID = self.ScopeID + 1
-	self.Scopes[self.ScopeID] = self.Scope
-end
-
-function ScopeManager:PopScope()
-	self.ScopeID = self.ScopeID - 1
-	self.Scope = self.Scopes[self.ScopeID]
-	self.Scopes[self.ScopeID] = self.Scope
-	return table.remove(self.Scopes, self.ScopeID + 1)
+	self:LoadScopes({ self.GlobalScope or {}, {} })
 end
 
 function ScopeManager:SaveScopes()
-	return { self.Scopes, self.ScopeID, self.Scope }
+	return self.Scopes
 end
 
 function ScopeManager:LoadScopes(Scopes)
-	self.Scopes = Scopes[1]
-	self.ScopeID = Scopes[2]
-	self.Scope = Scopes[3]
+	self.Scopes = Scopes
+	self.GlobalScope = Scopes[1]
+	self.Scope = Scopes[2]
 end
 
 function ENT:UpdateOverlay(clear)
@@ -121,8 +104,6 @@ function ENT:Execute()
 
 	self:PCallHook('preexecute')
 
-	self.context:PushScope()
-
 	local bench = SysTime()
 
 	local ok, msg = pcall(self.script[1], self.context, self.script)
@@ -136,8 +117,6 @@ function ENT:Execute()
 	end
 
 	self.context.time = self.context.time + (SysTime() - bench)
-
-	self.context:PopScope()
 
 	self.first = false -- if hooks call execute
 	self.duped = false -- if hooks call execute
@@ -267,7 +246,10 @@ function ENT:CompileCode(buffer, files, filepath)
 	self.dvars = inst.dvars
 	self.funcs = inst.funcs
 	self.funcs_ret = inst.funcs_ret
-	self.globvars = inst.GlobalScope
+	self.globvars = {}
+	for id, type in pairs(inst.VariableTypes) do
+		if isstring(id) then self.globvars[id] = type end
+	end
 
 	self:ResetContext()
 end

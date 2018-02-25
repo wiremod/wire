@@ -47,15 +47,13 @@ registerOperator("whl", "", "", function(self, args)
 
 	self.prf = self.prf + args[4] + 3
 	while op1[1](self, op1) ~= 0 do
-		self:PushScope()
 		local ok, msg = pcall(op2[1], self, op2)
 		if not ok then
-			if msg == "break" then self:PopScope() break
-			elseif msg ~= "continue" then self:PopScope() error(msg, 0) end
+			if msg == "break" then break end
+			if msg ~= "continue" then error(msg, 0) end
 		end
 
 		self.prf = self.prf + args[4] + 3
-		self:PopScope()
 	end
 end)
 
@@ -92,17 +90,15 @@ registerOperator("for", "", "", function(self, args)
 
 	self.prf = self.prf + 3
 	for I=rstart,rend+rdelta,rstep do
-		self:PushScope()
 		self.Scope[var] = I
 
 		local ok, msg = pcall(op4[1], self, op4)
 		if not ok then
-			if msg == "break" then self:PopScope() break
-			elseif msg ~= "continue" then self:PopScope() error(msg, 0) end
+			if msg == "break" then break end
+			if msg ~= "continue" then error(msg, 0) end
 		end
 
 		self.prf = self.prf + 3
-		self:PopScope()
 	end
 
 end)
@@ -128,16 +124,13 @@ registerOperator("if", "n", "", function(self, args)
 	local ok, result
 
 	if op1[1](self, op1) ~= 0 then
-		self:PushScope()
 		local op2 = args[4]
 		ok, result = pcall(op2[1],self, op2)
 	else
-		self:PushScope() -- for else statments, elseif staments will run the if opp again
 		local op3 = args[5]
 		ok, result = pcall(op3[1],self, op3)
 	end
 
-	self:PopScope()
 	if not ok then
 		error(result,0)
 	end
@@ -454,8 +447,6 @@ __e2setcost(3) -- approximation
 registerOperator("switch", "", "", function(self, args)
 	local cases, startcase = args[3], args[4]
 
-	self:PushScope()
-
 	for i=1, #cases do -- We figure out what we can run.
 		local case = cases[i]
 		local op1 = case[1]
@@ -474,17 +465,11 @@ registerOperator("switch", "", "", function(self, args)
 			local stmts = cases[i][2]
 			local ok, msg = pcall(stmts[1], self, stmts)
 			if not ok then
-				if msg == "break" then
-					break
-				elseif msg ~= "continue" then
-					self:PopScope()
-					error(msg, 0)
-				end
+				if msg == "break" then break end
+				if msg ~= "continue" then error(msg, 0) end
 			end
 		end
 	end
-
-	self:PopScope()
 end)
 
 registerOperator("include", "", "", function(self, args)
@@ -495,11 +480,9 @@ registerOperator("include", "", "", function(self, args)
 
 		local OldScopes = self:SaveScopes()
 		self:InitScope() -- Create a new Scope Enviroment
-		self:PushScope()
 
 		Script[1](self, Script)
 
-		self:PopScope()
 		self:LoadScopes(OldScopes)
 	end
 end)

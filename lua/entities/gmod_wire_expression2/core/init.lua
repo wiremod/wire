@@ -107,7 +107,7 @@ function registerType(name, id, def, ...)
 		local scope = self.Scopes[scopeId]
 		scope[name] = value
 
-		if scopeId == 0 then
+		if scopeId == 1 then
 			self.TriggerQueued[name] = true
 		end
 

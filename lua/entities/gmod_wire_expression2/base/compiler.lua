@@ -24,8 +24,6 @@ end
 function Compiler:Process(root, inputs, outputs, persist, delta, includes) -- Took params out becuase it isnt used.
 	self.context = {}
 
-	self:InitScope() -- Creates global scope!
-
 	self.inputs = inputs
 	self.outputs = outputs
 	self.persist = persist
@@ -35,28 +33,25 @@ function Compiler:Process(root, inputs, outputs, persist, delta, includes) -- To
 	self.funcs = {}
 	self.dvars = {}
 	self.funcs_ret = {}
+	self.VariableTypes = {}
 
 	for name, v in pairs(inputs) do
-		self:SetGlobalVariableType(name, wire_expression_types[v][1], { nil, { 0, 0 } })
+		self:SetVariableType(name, name, { nil, { 0, 0 } }, wire_expression_types[v][1])
 	end
 
 	for name, v in pairs(outputs) do
-		self:SetGlobalVariableType(name, wire_expression_types[v][1], { nil, { 0, 0 } })
+		self:SetVariableType(name, name, { nil, { 0, 0 } }, wire_expression_types[v][1])
 	end
 
 	for name, v in pairs(persist) do
-		self:SetGlobalVariableType(name, wire_expression_types[v][1], { nil, { 0, 0 } })
+		self:SetVariableType(name, name, { nil, { 0, 0 } }, wire_expression_types[v][1])
 	end
 
 	for name, v in pairs(delta) do
 		self.dvars[name] = v
 	end
 
-	self:PushScope()
-
 	local script = Compiler["Instr" .. string.upper(root[1])](self, root)
-
-	self:PopScope()
 
 	return script, self
 end
@@ -76,74 +71,22 @@ local function op_find(name)
 	return E2Lib.optable_inv[name] or "unknown?!"
 end
 
---[[
-	Scopes: Rusketh
-]] --
-function Compiler:InitScope()
-	self.Scopes = {}
-	self.ScopeID = 0
-	self.Scopes[0] = self.GlobalScope or {} --for creating new enviroments
-	self.Scope = self.Scopes[0]
-	self.GlobalScope = self.Scope
-end
-
-function Compiler:PushScope(Scope)
-	self.ScopeID = self.ScopeID + 1
-	self.Scope = Scope or {}
-	self.Scopes[self.ScopeID] = self.Scope
-end
-
-function Compiler:PopScope()
-	self.ScopeID = self.ScopeID - 1
-	self.Scope = self.Scopes[self.ScopeID]
-	self.Scopes[self.ScopeID] = self.Scope
-	return table.remove(self.Scopes, self.ScopeID + 1)
-end
-
-function Compiler:SaveScopes()
-	return { self.Scopes, self.ScopeID, self.Scope }
-end
-
-function Compiler:LoadScopes(Scopes)
-	self.Scopes = Scopes[1]
-	self.ScopeID = Scopes[2]
-	self.Scope = Scopes[3]
-end
-
-function Compiler:SetLocalVariableType(name, type, instance)
-	local typ = self.Scope[name]
-	if typ and typ ~= type then
-		self:Error("Variable (" .. E2Lib.limitString(name, 10) .. ") of type [" .. tps_pretty({ typ }) .. "] cannot be assigned value of type [" .. tps_pretty({ type }) .. "]", instance)
+function Compiler:SetVariableType(name, id, instruction, newType)
+	local oldType = self.VariableTypes[id]
+	if oldType and oldType ~= newType then
+		self:Error("Variable (" .. E2Lib.limitString(name, 10) .. ") of type [" .. tps_pretty({ oldType }) .. "] cannot be assigned value of type [" .. tps_pretty({ newType }) .. "]", instruction)
 	end
 
-	self.Scope[name] = type
-	return self.ScopeID
+	self.VariableTypes[id] = assert(newType)
+	return isnumber(id) and 2 or 1
 end
 
-function Compiler:SetGlobalVariableType(name, type, instance)
-	for i = self.ScopeID, 0, -1 do
-		local typ = self.Scopes[i][name]
-		if typ and typ ~= type then
-			self:Error("Variable (" .. E2Lib.limitString(name, 10) .. ") of type [" .. tps_pretty({ typ }) .. "] cannot be assigned value of type [" .. tps_pretty({ type }) .. "]", instance)
-		elseif typ then
-			return i
-		end
+function Compiler:GetVariableType(name, id, instruction)
+	local type = self.VariableTypes[id]
+	if not type then
+		self:Error("Variable (" .. E2Lib.limitString(name, 10) .. ") does not exist", instruction)
 	end
-
-	self.GlobalScope[name] = type
-	return 0
-end
-
-function Compiler:GetVariableType(instance, name)
-	for i = self.ScopeID, 0, -1 do
-		local type = self.Scopes[i][name]
-		if type then
-			return type, i
-		end
-	end
-
-	self:Error("Variable (" .. E2Lib.limitString(name, 10) .. ") does not exist", instance)
-	return nil
+	return type, isnumber(id) and 2 or 1
 end
 
 -- ---------------------------------------------------------------------------
@@ -296,7 +239,6 @@ end
 
 function Compiler:InstrFOR(args)
 	local var = args[3]
-	assert(args.Id)
 
 	local estart, tp1 = self:Evaluate(args, 2)
 	local estop, tp2 = self:Evaluate(args, 3)
@@ -309,24 +251,19 @@ function Compiler:InstrFOR(args)
 		if tp1 ~= "n" or tp2 ~= "n" then self:Error("for(" .. tps_pretty({ tp1 }) .. ", " .. tps_pretty({ tp2 }) .. ") is invalid, only supports indexing by number", args) end
 	end
 
-	self:PushScope()
-	self:SetLocalVariableType(var, "n", args)
+	self:SetVariableType(var, args.Id, args, "n")
 
 	local stmt = self:EvaluateStatement(args, 5)
-	self:PopScope()
 
-	return { self:GetOperator(args, "for", {})[1], var, estart, estop, estep, stmt }
+	return { self:GetOperator(args, "for", {})[1], args.Id, estart, estop, estep, stmt }
 end
 
 function Compiler:InstrWHL(args)
-	self:PushScope()
-
 	self:PushPrfCounter()
 	local cond = self:Evaluate(args, 1)
 	local prf_cond = self:PopPrfCounter()
 
 	local stmt = self:EvaluateStatement(args, 2)
-	self:PopScope()
 
 	return { self:GetOperator(args, "whl", {})[1], cond, stmt, prf_cond }
 end
@@ -337,13 +274,8 @@ function Compiler:InstrIF(args)
 	local ex1, tp1 = self:Evaluate(args, 1)
 	local prf_cond = self:PopPrfCounter()
 
-	self:PushScope()
 	local st1 = self:EvaluateStatement(args, 2)
-	self:PopScope()
-
-	self:PushScope()
 	local st2 = self:EvaluateStatement(args, 3)
-	self:PopScope()
 
 	local rtis = self:GetOperator(args, "is", { tp1 })
 	local rtif = self:GetOperator(args, "if", { rtis[2] })
@@ -482,34 +414,29 @@ function Compiler:InstrMTO(args)
 end
 
 function Compiler:InstrASS(args)
-	assert(args.Id)
 	local op = args[3]
 	local ex, tp = self:Evaluate(args, 2)
-	local ScopeID = self:SetGlobalVariableType(op, tp, args)
+	local ScopeID = self:SetVariableType(op, args.Id, args, tp)
 	local rt = self:GetOperator(args, "ass", { tp })
 
-	if ScopeID == 0 and self.dvars[op] then
+	if isstring(args.Id) and self.dvars[op] then
 		local stmts = { self:GetOperator(args, "seq", {})[1], 0 }
-		stmts[3] = { self:GetOperator(args, "ass", { tp })[1], "$" .. op, { self:GetOperator(args, "var", {})[1], op, ScopeID }, ScopeID }
-		stmts[4] = { rt[1], op, ex, ScopeID }
+		stmts[3] = { self:GetOperator(args, "ass", { tp })[1], "$" .. args.Id, { self:GetOperator(args, "var", {})[1], args.Id, 1 }, 1 }
+		stmts[4] = { rt[1], args.Id, ex, 1 }
 		return stmts, tp
 	else
-		return { rt[1], op, ex, ScopeID }, tp
+		assert(ScopeID == 1 or ScopeID == 2)
+		return { rt[1], args.Id, ex, ScopeID }, tp
 	end
 end
 
 function Compiler:InstrASSL(args)
-	assert(args.Id)
 	local op = args[3]
 	local ex, tp = self:Evaluate(args, 2)
-	local ScopeID = self:SetLocalVariableType(op, tp, args)
+	local ScopeID = self:SetVariableType(op, args.Id, args, tp)
 	local rt = self:GetOperator(args, "ass", { tp })
 
-	if ScopeID == 0 then
-		self:Error("Invalid use of 'local' inside the global scope.", args)
-	end -- Just to make code look neater.
-
-	return { rt[1], op, ex, ScopeID }, tp
+	return { rt[1], args.Id, ex, ScopeID }, tp
 end
 
 function Compiler:InstrGET(args)
@@ -576,31 +503,31 @@ end
 
 function Compiler:InstrINC(args)
 	local op = args[3]
-	local tp, ScopeID = self:GetVariableType(args, op)
+	local tp, ScopeID = self:GetVariableType(op, args.Id, args)
 	local rt = self:GetOperator(args, "inc", { tp })
 
-	if ScopeID == 0 and self.dvars[op] then
+	if isstring(args.Id) and self.dvars[op] then
 		local stmts = { self:GetOperator(args, "seq", {})[1], 0 }
-		stmts[3] = { self:GetOperator(args, "ass", { tp })[1], "$" .. op, { self:GetOperator(args, "var", {})[1], op, ScopeID }, ScopeID }
-		stmts[4] = { rt[1], op, ScopeID }
+		stmts[3] = { self:GetOperator(args, "ass", { tp })[1], "$" .. args.Id, { self:GetOperator(args, "var", {})[1], args.Id, ScopeID }, ScopeID }
+		stmts[4] = { rt[1], args.Id, ScopeID }
 		return stmts
 	else
-		return { rt[1], op, ScopeID }
+		return { rt[1], args.Id, ScopeID }
 	end
 end
 
 function Compiler:InstrDEC(args)
 	local op = args[3]
-	local tp, ScopeID = self:GetVariableType(args, op)
+	local tp, ScopeID = self:GetVariableType(op, args.Id, args)
 	local rt = self:GetOperator(args, "dec", { tp })
 
-	if ScopeID == 0 and self.dvars[op] then
+	if isstring(args.Id) and self.dvars[op] then
 		local stmts = { self:GetOperator(args, "seq", {})[1], 0 }
-		stmts[3] = { self:GetOperator(args, "ass", { tp })[1], "$" .. op, { self:GetOperator(args, "var", {})[1], op, ScopeID }, ScopeID }
-		stmts[4] = { rt[1], op, ScopeID }
+		stmts[3] = { self:GetOperator(args, "ass", { tp })[1], "$" .. args.Id, { self:GetOperator(args, "var", {})[1], args.Id, ScopeID }, ScopeID }
+		stmts[4] = { rt[1], args.Id, ScopeID }
 		return stmts
 	else
-		return { rt[1], op, ScopeID }
+		return { rt[1], args.Id, ScopeID }
 	end
 end
 
@@ -648,16 +575,16 @@ end
 
 function Compiler:InstrDLT(args)
 	local op = args[3]
-	local tp, ScopeID = self:GetVariableType(args, op)
+	local tp, ScopeID = self:GetVariableType(op, args.Id, args)
 
-	if ScopeID ~= 0 or not self.dvars[op] then
+	if not isstring(args.Id) or not self.dvars[op] then
 		self:Error("Delta operator ($" .. E2Lib.limitString(op, 10) .. ") cannot be used on temporary variables", args)
 	end
 
 	self.dvars[op] = true
 	local rt = self:GetOperator(args, "sub", { tp, tp })
 	local rtvar = self:GetOperator(args, "var", {})
-	return { rt[1], { rtvar[1], op, ScopeID }, { rtvar[1], "$" .. op, ScopeID } }, rt[2]
+	return { rt[1], { rtvar[1], args.Id, ScopeID }, { rtvar[1], "$" .. args.Id, ScopeID } }, rt[2]
 end
 
 function Compiler:InstrIWC(args)
@@ -681,18 +608,15 @@ end
 
 function Compiler:InstrVAR(args)
 	self.prfcounter = self.prfcounter + 1.0
-	local tp, ScopeID = self:GetVariableType(args, args[3])
-	local name = args[3]
-
-	assert(args.Id)
+	local op, id = args[3], args.Id
+	local tp, ScopeID = self:GetVariableType(op, id, args)
 
 	return {function(self)
-		return self.Scopes[ScopeID][name]
+		return self.Scopes[ScopeID][id]
 	end}, tp
 end
 
 function Compiler:InstrFEA(args)
-	assert(args.KeyId and args.ValueId)
 	-- local sfea = self:Instruction(trace, "fea", keyvar, keytype, valvar, valtype, tableexpr, self:Block("foreach statement"))
 	local keyvar, keytype, valvar, valtype = args[3], args[4], args[5], args[6]
 	local tableexpr, tabletp = self:Evaluate(args, 5)
@@ -720,16 +644,12 @@ function Compiler:InstrFEA(args)
 		end
 	end
 
-	self:PushScope()
-
-	self:SetLocalVariableType(keyvar, keytype, args)
-	self:SetLocalVariableType(valvar, valtype, args)
+	self:SetVariableType(keyvar, args.KeyId, args, keytype)
+	self:SetVariableType(valvar, args.ValueId, args, valtype)
 
 	local stmt = self:EvaluateStatement(args, 6)
 
-	self:PopScope()
-
-	return {op[1], keyvar, valvar, tableexpr, stmt}
+	return {op[1], args.KeyId, args.ValueId, tableexpr, stmt}
 end
 
 
@@ -738,14 +658,9 @@ function Compiler:InstrFUNCTION(args)
 	local Sig, Return, Args = args[3], args[4], args[6]
 	Return = Return or ""
 
-	local OldScopes = self:SaveScopes()
-	self:InitScope() -- Create a new Scope Enviroment
-	self:PushScope()
-
 	for _, D in pairs(Args) do
 		local Name, Type = D[1], wire_expression_types[D[2]][1]
-		assert(D.Id)
-		self:SetLocalVariableType(Name, Type, args)
+		self:SetVariableType(Name, D.Id, args, Type)
 	end
 
 	if self.funcs_ret[Sig] and self.funcs_ret[Sig] ~= Return then
@@ -760,9 +675,6 @@ function Compiler:InstrFUNCTION(args)
 	local Stmt = self:EvaluateStatement(args, 5) -- Offset of -2
 
 	self.func_ret = nil
-
-	self:PopScope()
-	self:LoadScopes(OldScopes) -- Reload the old enviroment
 
 	self.prfcounter = self.prfcounter + 40
 
@@ -794,19 +706,15 @@ function Compiler:InstrSWITCH(args)
 	local value, type = Compiler["Instr" .. string.upper(args[3][1])](self, args[3]) -- This is the value we are passing though the switch statment
 	local prf_cond = self:PopPrfCounter()
 
-	self:PushScope()
-
 	local cases = {}
 	local Cases = args[4]
 	local default
 	for i = 1, #Cases do
 		local case, block, prf_eq, eq = Cases[i][1], Cases[i][2], 0, nil
 		if case then -- The default will not have one
-			self.ScopeID = self.ScopeID - 1 -- For the case statments we pop the scope back
 			self:PushPrfCounter()
 			local ex, tp = Compiler["Instr" .. string.upper(case[1])](self, case) --This is the value we are checking against
 			prf_eq = self:PopPrfCounter() -- We add some pref
-			self.ScopeID = self.ScopeID + 1
 			if tp == "" then -- There is no value
 				self:Error("Function has no return value (void), cannot be part of expression or assigned", args)
 			elseif tp ~= type then -- Value types do not match.
@@ -820,7 +728,6 @@ function Compiler:InstrSWITCH(args)
 		cases[i] = { eq, stmts, prf_eq }
 	end
 
-	self:PopScope()
 
 	local rtswitch = self:GetOperator(args, "switch", {})
 	return { rtswitch[1], prf_cond, cases, default }
@@ -831,17 +738,11 @@ function Compiler:InstrINCLU(args)
 	local file = args[3]
 	local include = self.includes[file]
 
-	if not include or not include[1] then
-		self:Error("Problem including file '" .. file .. "'", args)
-	end
+	assert(include and include[1])
 
 	if not include[2] then
 
 		include[2] = true -- Tempory value to prvent E2 compiling itself when itself. (INFINATE LOOOP!)
-
-		local OldScopes = self:SaveScopes()
-		self:InitScope() -- Create a new Scope Enviroment
-		self:PushScope()
 
 		local root = include[1]
 		local status, script = pcall(Compiler["Instr" .. string.upper(root[1])], self, root)
@@ -860,8 +761,6 @@ function Compiler:InstrINCLU(args)
 
 		include[2] = script
 
-		self:PopScope()
-		self:LoadScopes(OldScopes) -- Reload the old enviroment
 	end
 
 

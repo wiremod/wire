@@ -247,8 +247,6 @@ registerCallback( "postinit", function()
 
 				for key, value in pairs(tbl) do
 					if not typecheck(value) then
-						self:PushScope()
-
 						self.prf = self.prf + 3
 
 						self.Scope[keyname] = key
@@ -257,11 +255,9 @@ registerCallback( "postinit", function()
 						local ok, msg = pcall(statement[1], self, statement)
 
 						if not ok then
-							if msg == "break" then	self:PopScope() break
-							elseif msg ~= "continue" then self:PopScope() error(msg, 0) end
+							if msg == "break" then break end
+							if msg ~= "continue" then error(msg, 0) end
 						end
-
-						self:PopScope()
 					end
 				end
 			end)
