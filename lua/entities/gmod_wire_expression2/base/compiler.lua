@@ -370,26 +370,33 @@ function Compiler:InstrKVCALL(args)
 end
 
 function Compiler:InstrSCALL(args)
-	local exprs = { false }
-
-	local fexp, ftp = self:Evaluate(args, 1)
-
-	if ftp ~= "s" then
+	local name, nameType = self:Evaluate(args, 1)
+	if nameType ~= "s" then
 		self:Error("User function is not string-type", args)
 	end
 
-	local tps = {}
-	for i = 2, #args - 2 do
-		local ex, tp = self:Evaluate(args, i)
-		tps[#tps + 1] = tp
-		exprs[#exprs + 1] = ex
+	-- The scall operator passes the function parameters straight through to the
+	-- function whose name is matched. That function, like all E2 functions, expects
+	-- to be in a table with its arguments when it's called, with itself as the
+	-- first member of the table. For example, f(1) is represented as:
+	--     { f, { function() return 1 end } }.
+	-- An operator like this can be executed with the familiar pattern op[1](self, op).
+	-- The dummy argument false below is a placeholder for scall to make this all
+	-- work without having to insert at the beginning of the table at runtime.
+	local parameters = { false }
+	local parameterTypes = {}
+	for i = 3, #args - 2 do
+		local parameter, parameterType = self:Evaluate(args, i)
+		table.insert(parameters, parameter)
+		table.insert(parameterTypes, parameterType)
 	end
 
-	local rtsfun = self:GetOperator(args, "scall", {})[1]
+	local signature = table.concat(parameterTypes)
 
-	local typeids_str = table.concat(tps, "")
+	local scall = self:GetOperator(args, "scall", {})[1]
 
-	return { rtsfun, fexp, exprs, tps, typeids_str, args[5] }, args[5]
+	local returnType = args[4]
+	return { scall, name, parameters, parameterTypes, signature, returnType }, returnType
 end
 
 function Compiler:InstrMTO(args)
