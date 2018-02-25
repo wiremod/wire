@@ -20,8 +20,8 @@ registerOperator("function", "", "", function(self, args)
 			Variables[#Variables + 1] = {assert(Data.Id),RV}
 		end
 
-		local OldScopes = self:SaveScopes()
-		self:InitScope() -- Create a new Scope Enviroment
+		local oldScope = self.Scope
+		self:SetScope({})
 
 		for I = 1, #Variables do
 			local Var = Variables[I]
@@ -31,7 +31,7 @@ registerOperator("function", "", "", function(self, args)
 		self.func_rv = nil
 		local ok, msg = pcall(Stmt[1],self,Stmt)
 
-		self:LoadScopes(OldScopes)
+		self:SetScope(oldScope)
 
 		if not ok and msg:find( "C stack overflow" ) then error( "tick quota exceeded", -1 ) end -- a "C stack overflow" error will probably just confuse E2 users more than a "tick quota" error.
 

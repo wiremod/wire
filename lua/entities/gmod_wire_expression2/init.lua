@@ -42,24 +42,6 @@ local function copytype(var)
 	return istable(var) and table.Copy(var) or var
 end
 
-
-local ScopeManager = {}
-ScopeManager.__index = ScopeManager
-
-function ScopeManager:InitScope()
-	self:LoadScopes({ self.GlobalScope or {}, {} })
-end
-
-function ScopeManager:SaveScopes()
-	return self.Scopes
-end
-
-function ScopeManager:LoadScopes(Scopes)
-	self.Scopes = Scopes
-	self.GlobalScope = Scopes[1]
-	self.Scope = Scopes[2]
-end
-
 function ENT:UpdateOverlay(clear)
 	if clear then
 		self:SetOverlayData( {
@@ -314,16 +296,21 @@ function ENT:ResetContext()
 		timebench = 0,
 		includes = self.includes,
 
+		GlobalScope = {}, -- The values of all global variables.
+
 		-- A set of variable names that need a TriggerOutput
 		TriggerQueued = {},
 		-- Values which, if a global variable has this value, then that variable needs a TriggerOutput
 		IndirectTriggerQueued = {},
+
+		SetScope = function(self, scope)
+			self.Scope = scope
+			self.Scopes[2] = scope
+		end
 	}
-
-	setmetatable(context, ScopeManager)
-	context:InitScope()
-
+	context.Scopes = { context.GlobalScope, nil }
 	self.context = context
+	self.context:SetScope({})
 	self.GlobalScope = context.GlobalScope
 	self._vars = self.GlobalScope -- Dupevars
 

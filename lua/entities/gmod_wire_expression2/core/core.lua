@@ -478,11 +478,11 @@ registerOperator("include", "", "", function(self, args)
 	if Include and Include[2] then
 		local Script = Include[2]
 
-		local OldScopes = self:SaveScopes()
-		self:InitScope() -- Create a new Scope Enviroment
+		local oldScope = self.Scope
+		self:SetScope({})
 
 		Script[1](self, Script)
 
-		self:LoadScopes(OldScopes)
+		self:SetScope(oldScope)
 	end
 end)
