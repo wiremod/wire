@@ -23,13 +23,15 @@ end
 local function AddTimer(self, name, delay)
 	if delay < 10 then delay = 10 end
 
-	if self.data.timer.runner == name then
-		timer.Adjust("e2_" .. self.data['timer'].timerid .. "_" .. name, delay/1000, 2, function()
+	local timerName = "e2_" .. self.data.timer.timerid .. "_" .. name
+
+	if self.data.timer.runner == name and timer.Exists(timerName) then
+		timer.Adjust(timerName, delay / 1000, 2, function()
 			Execute(self, name)
 		end)
-		timer.Start("e2_" .. self.data['timer'].timerid .. "_" .. name)
+		timer.Start(timerName)
 	elseif !self.data['timer'].timers[name] then
-		timer.Create("e2_" .. self.data['timer'].timerid .. "_" .. name, delay/1000, 2, function()
+		timer.Create(timerName, delay / 1000, 2, function()
 			Execute(self, name)
 		end)
 	end
