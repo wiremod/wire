@@ -19,8 +19,8 @@ function ENT:Initialize()
 	self.Disk = nil
 	self.DisableLinking = 0
 
-	self.Inputs = Wire_CreateInputs(self, { "Disable" })
-	self.Outputs = Wire_CreateOutputs(self, { "Locked" })
+	self.Inputs = WireLib.CreateSpecialOutputs(self, { "Disable" }, { "NORMAL" })
+	self.Outputs = WireLib.CreateSpecialOutputs(self, { "Locked", "DiskEntity" }, { "NORMAL", "ENTITY" })
 
 	self:NextThink(CurTime() + 0.25)
 end
@@ -38,6 +38,7 @@ function ENT:TriggerInput(iname, value)
 			//self.NoCollideConst = nil
 
 			Wire_TriggerOutput(self, "Locked", 0)
+			Wire_TriggerOutput(self, "DiskEntity", nil)
 			self:NextThink(CurTime() + NEW_DISK_WAIT_TIME)
 		end
 	end
@@ -54,6 +55,7 @@ function ENT:Think()
 		self.NoCollideConst = nil
 
 		Wire_TriggerOutput(self, "Locked", 0)
+		Wire_TriggerOutput(self, "DiskEntity", nil)
 
 		self:NextThink(CurTime() + NEW_DISK_WAIT_TIME) //Give time before next grabbing a disk.
 		return true
@@ -86,16 +88,18 @@ function ENT:AttachDisk(disk)
 	self.NoCollideConst = constraint.NoCollide(self, disk, 0, 0)
 	if (not self.NoCollideConst) then
 		Wire_TriggerOutput(self, "Locked", 0)
+		Wire_TriggerOutput(self, "DiskEntity", nil)
 		return
 	end
 
 	//Constrain together
 	self.Const = constraint.Weld(self, disk, 0, 0, DISK_IN_SOCKET_CONSTRAINT_POWER, true)
 	if (not self.Const) then
-	    self.NoCollideConst:Remove()
-	    self.NoCollideConst = nil
-	    Wire_TriggerOutput(self, "Locked", 0)
-	    return
+		self.NoCollideConst:Remove()
+		self.NoCollideConst = nil
+		Wire_TriggerOutput(self, "Locked", 0)
+		Wire_TriggerOutput(self, "DiskEntity", nil)
+		return
 	end
 
 	//Prepare clearup incase one is removed
@@ -106,6 +110,7 @@ function ENT:AttachDisk(disk)
 	disk.Lock = self
 	self.Disk = disk
 	Wire_TriggerOutput(self, "Locked", 1)
+	Wire_TriggerOutput(self, "DiskEntity", disk)
 end
 
 duplicator.RegisterEntityClass("gmod_wire_cd_lock", WireLib.MakeWireEnt, "Data")
