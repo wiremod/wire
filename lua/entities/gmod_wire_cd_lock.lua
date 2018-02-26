@@ -19,8 +19,8 @@ function ENT:Initialize()
 	self.Disk = nil
 	self.DisableLinking = 0
 
-	self.Inputs = Wire_CreateInputs(self, { "Disable" })
-	self.Outputs = Wire_CreateOutputs(self, { "Locked", "DiskEntity [ENTITY]" })
+	self.Inputs = WireLib.CreateSpecialOutputs(self, { "Disable" }, { "NORMAL" })
+	self.Outputs = WireLib.CreateSpecialOutputs(self, { "Locked", "DiskEntity" }, { "NORMAL", "ENTITY" })
 
 	self:NextThink(CurTime() + 0.25)
 end
@@ -95,11 +95,11 @@ function ENT:AttachDisk(disk)
 	//Constrain together
 	self.Const = constraint.Weld(self, disk, 0, 0, DISK_IN_SOCKET_CONSTRAINT_POWER, true)
 	if (not self.Const) then
-	    self.NoCollideConst:Remove()
-	    self.NoCollideConst = nil
-	    Wire_TriggerOutput(self, "Locked", 0)
+		self.NoCollideConst:Remove()
+		self.NoCollideConst = nil
+		Wire_TriggerOutput(self, "Locked", 0)
 		Wire_TriggerOutput(self, "DiskEntity", nil)
-	    return
+		return
 	end
 
 	//Prepare clearup incase one is removed
