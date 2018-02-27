@@ -59,8 +59,9 @@ properties.Add("wire_debugger_start", {
 	Filter = function(self,ent,ply)
 		if not IsValid(ent) then return false end
 		if not IsWire(ent) then return false end
+		if not hook.Run("CanTool", ply, WireLib.dummytrace(ent), "wire_debugger") then return false end
 		if Components[ply] then
-			for k,cmp in ipairs(Components[ply]) do
+			for _, cmp in ipairs(Components[ply]) do
 				if (cmp == ent) then return false end
 			end
 		end
@@ -93,7 +94,7 @@ properties.Add("wire_debugger_stop", {
 		if not IsValid(ent) then return false end
 		if not IsWire(ent) then return false end
 		if Components[ply] then
-			for k,cmp in ipairs(Components[ply]) do
+			for _, cmp in ipairs(Components[ply]) do
 				if (cmp == ent) then return true end
 			end
 		end
@@ -117,13 +118,13 @@ properties.Add("wire_debugger_stop", {
 })
 
 function TOOL:LeftClick(trace)
-	if (!trace.Entity:IsValid()) then return end
-	if (!IsWire(trace.Entity)) then return end
+	if not trace.Entity:IsValid() then return end
+	if not IsWire(trace.Entity) then return end
 
 	local ply = self:GetOwner()
 	Components[ply] = Components[ply] or {}
 
-	for k,cmp in ipairs(Components[ply]) do
+	for _, cmp in ipairs(Components[ply]) do
 		if (cmp == trace.Entity) then return end
 	end
 
@@ -135,7 +136,7 @@ end
 if SERVER then
 	local dbg_linecount_cache = {}
 	function UpdateLineCount(ply, count)
-		if dbg_linecount_cache[ply] != count then
+		if dbg_linecount_cache[ply] ~= count then
 			dbg_linecount_cache[ply] = count
 			net.Start("WireDbgCount") net.WriteUInt(count,16) net.Send(ply)
 		end
@@ -144,8 +145,8 @@ end
 
 
 function TOOL:RightClick(trace)
-	if (!trace.Entity:IsValid()) then return end
-	if (!IsWire(trace.Entity)) then return end
+	if not trace.Entity:IsValid() then return end
+	if not IsWire(trace.Entity) then return end
 
 	local ply = self:GetOwner()
 	if not Components[ply] then return end
@@ -164,8 +165,8 @@ if CLIENT then
 		if inputs and #inputs ~= 0 then
 			surface.SetFont("Trebuchet24")
 			local boxh, boxw = 0,0
-			for num,port in ipairs(inputs) do
-				local name,tp,desc,connected = unpack(port)
+			for _, port in ipairs(inputs) do
+				local name, tp = unpack(port)
 				local text = tp == "NORMAL" and name or string.format("%s [%s]", name, tp)
 				port.text = text
 				port.y = boxh
@@ -181,7 +182,7 @@ if CLIENT then
 				Color(109,146,129,192)
 			)
 
-			for num,port in ipairs(inputs) do
+			for _, port in ipairs(inputs) do
 				surface.SetTextPos(boxx,boxy+port.y)
 				if port[4] then
 					surface.SetTextColor(Color(255,0,0,255))
@@ -197,8 +198,8 @@ if CLIENT then
 		if outputs and #outputs ~= 0 then
 			surface.SetFont("Trebuchet24")
 			local boxh, boxw = 0,0
-			for num,port in ipairs(outputs) do
-				local name,tp,desc = unpack(port)
+			for _, port in ipairs(outputs) do
+				local name, tp = unpack(port)
 				local text = tp == "NORMAL" and name or string.format("%s [%s]", name, tp)
 				port.text = text
 				port.y = boxh
@@ -214,7 +215,7 @@ if CLIENT then
 				Color(109,146,129,192)
 			)
 
-			for num,port in ipairs(outputs) do
+			for _, port in ipairs(outputs) do
 				surface.SetTextPos(boxx,boxy+port.y)
 				surface.SetTextColor(Color(255,255,255,255))
 				surface.DrawText(port.text)
@@ -240,95 +241,97 @@ if (SERVER) then
 
 	local formatPort = WireLib.Debugger.formatPort
 
-	local function Wire_DebuggerThink()
-		for ply,cmps in pairs(Components) do
+	local function updateForPlayer(ply, cmps)
+		if not (IsValid(ply) and ply:IsPlayer()) then -- if player has left, clear the hud
+			Components[ply] = nil
+			return
+		end
 
-			if ( !ply ) or ( !ply:IsValid() ) or ( !ply:IsPlayer() ) then -- if player has left, clear the hud
+		local OrientVertical = ply:GetInfoNum("wire_debugger_orientvertical", 0) ~= 0
 
-				Components[ply] = nil
+		-- TODO: Add EntityRemoved hook to clean up Components array.
+		table.Compact(cmps, function(cmp) return cmp:IsValid() and IsWire(cmp) end)
 
-			else
+		UpdateLineCount(ply, #cmps)
 
-				local OrientVertical = ply:GetInfoNum("wire_debugger_orientvertical", 0) ~= 0
+		if #cmps == 0 then Components[ply] = nil return end
 
-				-- TODO: Add EntityRemoved hook to clean up Components array.
-				table.Compact(cmps, function(cmp) return cmp:IsValid() and IsWire(cmp) end)
+		for l,cmp in ipairs(cmps) do
+			local dbginfo = cmp.WireDebugName
+			if not dbginfo or dbginfo == "No Name" then
+				dbginfo = cmp:GetClass()
+			end
+			dbginfo = dbginfo .. " (" ..cmp:EntIndex() .. ") - "
 
-				UpdateLineCount(ply, #cmps)
-
-				if #cmps == 0 then Components[ply] = nil continue end
-
-				for l,cmp in ipairs(cmps) do
-					local dbginfo = cmp.WireDebugName
-					if not dbginfo or dbginfo == "No Name" then
-						dbginfo = cmp:GetClass()
-					end
-					dbginfo = dbginfo .. " (" ..cmp:EntIndex() .. ") - "
-
-					if (cmp.Inputs and table.Count(cmp.Inputs) > 0) then
+			if (cmp.Inputs and table.Count(cmp.Inputs) > 0) then
+				if OrientVertical then
+					dbginfo = dbginfo .. "\n"
+				end
+				dbginfo = dbginfo .. "IN: "
+				if OrientVertical then
+					dbginfo = dbginfo .. "\n"
+				end
+				for k, Input in pairs_sortvalues(cmp.Inputs, WireLib.PortComparator) do
+					if formatPort[Input.Type] then
+						dbginfo = dbginfo .. k .. ":" .. formatPort[Input.Type](Input.Value or WireLib.DT[Input.Type].Zero, OrientVertical)
 						if OrientVertical then
 							dbginfo = dbginfo .. "\n"
+						else
+							dbginfo = dbginfo .. "  "
 						end
-						dbginfo = dbginfo .. "IN: "
-						if OrientVertical then
-							dbginfo = dbginfo .. "\n"
-						end
-						for k, Input in pairs_sortvalues(cmp.Inputs, WireLib.PortComparator) do
-							if formatPort[Input.Type] then
-								dbginfo = dbginfo .. k .. ":" .. formatPort[Input.Type](Input.Value or WireLib.DT[Input.Type].Zero, OrientVertical)
-								if OrientVertical then
-									dbginfo = dbginfo .. "\n"
-								else
-									dbginfo = dbginfo .. "  "
-								end
-							end
-						end
-					end
-
-					if (cmp.Outputs and table.Count(cmp.Outputs) > 0) then
-						if(cmp.Inputs and table.Count(cmp.Inputs) > 0) then
-							dbginfo = dbginfo .. "\n "
-						end
-						if(!cmp.Inputs and OrientVertical) then
-							dbginfo = dbginfo .. "\n"
-						end
-						dbginfo = dbginfo .. "OUT: "
-						if OrientVertical then
-							dbginfo = dbginfo .. "\n"
-						end
-						for k, Output in pairs_sortvalues(cmp.Outputs, WireLib.PortComparator) do
-							if formatPort[Output.Type] then
-								dbginfo = dbginfo .. k .. ":" .. formatPort[Output.Type](Output.Value or WireLib.DT[Output.Type].Zero, OrientVertical)
-								if OrientVertical then
-									dbginfo = dbginfo .. "\n"
-								else
-									dbginfo = dbginfo .. " "
-								end
-							end
-						end
-					end
-
-					if (not cmp.Inputs) and (not cmp.Outputs) then
-						dbginfo = dbginfo .. "No info"
-					end
-
-					dbg_line_cache[ply] = dbg_line_cache[ply] or {}
-					if (dbg_line_cache[ply][l] ~= dbginfo) then
-						--split the message up into managable chuncks and send them
-						net.Start("WireDbg")
-							net.WriteBit(OrientVertical)
-							net.WriteUInt(l,16)
-							net.WriteString(dbginfo)
-						net.Send(ply)
-
-						dbg_line_cache[ply][l] = dbginfo
 					end
 				end
 			end
+
+			if (cmp.Outputs and table.Count(cmp.Outputs) > 0) then
+				if(cmp.Inputs and table.Count(cmp.Inputs) > 0) then
+					dbginfo = dbginfo .. "\n "
+				end
+				if not cmp.Inputs and OrientVertical then
+					dbginfo = dbginfo .. "\n"
+				end
+				dbginfo = dbginfo .. "OUT: "
+				if OrientVertical then
+					dbginfo = dbginfo .. "\n"
+				end
+				for k, Output in pairs_sortvalues(cmp.Outputs, WireLib.PortComparator) do
+					if formatPort[Output.Type] then
+						dbginfo = dbginfo .. k .. ":" .. formatPort[Output.Type](Output.Value or WireLib.DT[Output.Type].Zero, OrientVertical)
+						if OrientVertical then
+							dbginfo = dbginfo .. "\n"
+						else
+							dbginfo = dbginfo .. " "
+						end
+					end
+				end
+			end
+
+			if (not cmp.Inputs) and (not cmp.Outputs) then
+				dbginfo = dbginfo .. "No info"
+			end
+
+			dbg_line_cache[ply] = dbg_line_cache[ply] or {}
+			if (dbg_line_cache[ply][l] ~= dbginfo) then
+				--split the message up into managable chuncks and send them
+				net.Start("WireDbg")
+					net.WriteBit(OrientVertical)
+					net.WriteUInt(l,16)
+					net.WriteString(dbginfo)
+				net.Send(ply)
+
+				dbg_line_cache[ply][l] = dbginfo
+			end
 		end
 	end
+
+	local function Wire_DebuggerThink()
+		for ply,cmps in pairs(Components) do
+			updateForPlayer(ply, cmps)
+		end
+	end
+
 	timer.Create("Wire_DebuggerThink", game.SinglePlayer() and 0.05 or 0.1, 0, Wire_DebuggerThink)
-	//hook.Add("Think", "Wire_DebuggerThink", Wire_DebuggerThink)
+	-- hook.Add("Think", "Wire_DebuggerThink", Wire_DebuggerThink)
 
 end
 
@@ -341,7 +344,6 @@ if (CLIENT) then
 	local LastBoxUpdate = 0
 
 	local function DebuggerDrawHUD()
-		local dbginfo = ""
 		if not next(dbg_lines) then return end
 
 		--setup the font
@@ -358,7 +360,7 @@ if (CLIENT) then
 			local ExplodeLines = string.Explode("\n", Line)
 
 			for Index, ExplodeLine in ipairs(ExplodeLines) do --break it into multible lines for 1 entry
-				if(string.Trim(ExplodeLine) != "") then
+				if string.Trim(ExplodeLine) ~= "" then
 
 					local XPos = 0
 					if(Index > 1) then
@@ -406,10 +408,10 @@ if (CLIENT) then
 		--determine the box width every second
 		if(LastBoxUpdate < CurTime()) then
 			local LongestWidth = 0
-			local TextWidth, TextHeight
-			for EntryIndex, Entry in ipairs(Entries) do
-				for LineIndex, Line in ipairs(Entry.Lines) do
-					TextWidth, TextHeight = surface.GetTextSize(string.Trim(Line.LineText))
+			local TextWidth
+			for _, Entry in ipairs(Entries) do
+				for _, Line in ipairs(Entry.Lines) do
+					TextWidth = surface.GetTextSize(string.Trim(Line.LineText))
 					TextWidth = TextWidth+Line.OffsetPos[1] --offset it with the text's offset
 
 					if(TextWidth > LongestWidth) then
@@ -438,8 +440,8 @@ if (CLIENT) then
 		draw.RoundedBox(8, 2, 2+250*MoveBox, BoxWidth, Line_Count*14+16, Color(50, 50, 50, 128))
 
 		--step through all of the entries and their text to print them
-		for EntryIndex, Entry in ipairs(Entries) do
-			for LineIndex, Line in ipairs(Entry.Lines) do
+		for _, Entry in ipairs(Entries) do
+			for _, Line in ipairs(Entry.Lines) do
 				draw.Text({
 					text = string.Trim(Line.LineText) or "",
 					font = "Default",
@@ -459,7 +461,7 @@ if (CLIENT) then
 		end
 	end)
 	net.Receive("WireDbg", function(netlen)
-		dgb_orient_vert = net.ReadBit() != 0
+		dgb_orient_vert = net.ReadBit() ~= 0
 		dbg_lines[net.ReadUInt(16)] = net.ReadString()
 	end)
 

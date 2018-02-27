@@ -3719,4 +3719,5 @@ stds.wiremod.globals = {
   "ipairs_map",
   "pairs_map",
   "pairs_sortkeys",
+  "pairs_sortvalues",
 }
