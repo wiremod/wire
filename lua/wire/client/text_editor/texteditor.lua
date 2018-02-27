@@ -152,25 +152,16 @@ function EDITOR:OpenContextMenu()
 
 	if self:HasSelection() then
 		menu:AddOption("Cut", function()
-			if self:HasSelection() then
-				self.clipboard = self:GetSelection()
-				self.clipboard = string_gsub(self.clipboard, "\n", "\r\n")
-				SetClipboardText(self.clipboard)
-				self:SetSelection()
-			end
+			self:Cut()
 		end)
 		menu:AddOption("Copy", function()
-			if self:HasSelection() then
-				self.clipboard = self:GetSelection()
-				self.clipboard = string_gsub(self.clipboard, "\n", "\r\n")
-				SetClipboardText(self.clipboard)
-			end
+			self:Copy()
 		end)
 	end
 
 	menu:AddOption("Paste", function()
-		if self.clipboard then
-			self:SetSelection(self.clipboard)
+		if self.CurrentMode.clipboard then
+			self:SetSelection(self.CurrentMode.clipboard)
 		else
 			self:SetSelection()
 		end
@@ -251,7 +242,7 @@ function EDITOR:OpenContextMenu()
 
 		str = str .. "[/color][/font][/code]"
 
-		self.clipboard = str
+		self.CurrentMode.clipboard = str
 		SetClipboardText( str )
 	end)
 
@@ -1698,8 +1689,8 @@ end
 
 function EDITOR:Copy()
 	if not self:HasSelection() then return end
-	self.clipboard = string_gsub(self:GetSelection(), "\n", "\r\n")
-	return SetClipboardText(self.clipboard)
+	self.CurrentMode.clipboard = string_gsub(self:GetSelection(), "\n", "\r\n")
+	return SetClipboardText(self.CurrentMode.clipboard)
 end
 
 function EDITOR:Cut()
@@ -1784,8 +1775,8 @@ function EDITOR:_OnKeyCodeTyped(code)
 		-- pasting is now handled by the textbox that is used to capture input
 		--[[
 		elseif code == KEY_V then
-			if self.clipboard then
-				self:SetSelection(self.clipboard)
+			if self.CurrentMode.clipboard then
+				self:SetSelection(self.CurrentMode.clipboard)
 			end
 		]]
 		elseif code == KEY_F then
