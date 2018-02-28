@@ -85,10 +85,10 @@ WireLib.DT = {
 		Zero = ""
 	},
 	TABLE = {
-		Zero = {}
+		Zero = {n={},ntypes={},s={},stypes={},size=0},
 	},
 	BIDIRTABLE = {
-		Zero = {},
+		Zero = {n={},ntypes={},s={},stypes={},size=0},
 		BiDir = true
 	},
 	ANY = {
