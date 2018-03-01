@@ -994,26 +994,6 @@ function WireLib.GetOwner(ent)
 	return E2Lib.getOwner({}, ent)
 end
 
-function WireLib.dummytrace(ent)
-	local pos = ent:GetPos()
-	return {
-		FractionLeftSolid = 0,
-		HitNonWorld       = true,
-		Fraction          = 0,
-		Entity            = ent,
-		HitPos            = pos,
-		HitNormal         = Vector(0,0,0),
-		HitBox            = 0,
-		Normal            = Vector(1,0,0),
-		Hit               = true,
-		HitGroup          = 0,
-		MatType           = 0,
-		StartPos          = pos,
-		PhysicsBone       = 0,
-		WorldToLocal      = Vector(0,0,0),
-	}
-end
-
 function WireLib.NumModelSkins(model)
 	if NumModelSkins then
 		return NumModelSkins(model)
