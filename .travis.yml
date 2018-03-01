@@ -5,6 +5,7 @@ language: c
 branches:
   only:
     - master
+    - /^v[\d.-]+$/
 
 cache:
   directories:
