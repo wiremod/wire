@@ -10,9 +10,6 @@ send the data at the same time.
 Have fun!
 ]]
 
-local currentsignal
-local runagain
-
 local groups = {}
 local queue = {}
 
@@ -21,7 +18,6 @@ local isFriend = E2Lib.isFriend
 local getHash = E2Lib.getHash
 local copy = table.Copy
 local remove = table.remove
-local count = table.Count
 local c = math.Clamp
 local f = math.floor
 
@@ -75,39 +71,37 @@ local function IsAllowed( froment, toent, fromscope, signaltype )
 end
 
 ---------------------------------------------
--- checkQueue
--- Check if any signals are in the queue, waiting to be sent
+-- processQueue
 ---------------------------------------------
 
-local function checkQueue()
+local function processQueue()
 	if #queue == 0 then return end
-	if currentsignal ~= nil then runagain = true return end
 
 	local temp = queue
 	local size = #queue
 	queue = {}
 
 	for i=1,#temp do
-		currentsignal  = temp[i]
+		local currentsignal = temp[i]
 
 		if not currentsignal.from or not currentsignal.from:IsValid() then continue end
 		if not currentsignal.to or not currentsignal.to:IsValid() then continue end
 
+		currentsignal.to.context.data.currentsignal = currentsignal
 		currentsignal.to:Execute()
+		currentsignal.to.context.data.currentsignal = nil
 	end
 
-	currentsignal = nil
-	if runagain then
-		timer.Simple( 0, checkQueue )
-		runagain = nil
+	if next(queue) ~= nil then
+		timer.Simple( 0, processQueue )
 	end
 end
 
 registerCallback("postexecute",function(self)
 	if self.entity.removing then
-		checkQueue()
+		processQueue()
 	else
-		timer.Simple( 0, checkQueue )
+		timer.Simple( 0, processQueue )
 	end
 end)
 
@@ -227,7 +221,7 @@ local function leaveGroup( self, groupname )
 	groups[groupname][self.entity] = nil
 
 	-- If there are no more E2s in this group, remove it
-	if (count(groups[groupname]) == 0) then
+	if (next(groups[groupname]) == nil) then
 		groups[groupname] = nil
 	end
 end
@@ -300,8 +294,8 @@ registerCallback("postinit",function()
 
 			-- Get variable
 			registerFunction("dsGet" .. upperfirst( k ), "", v[1], function(self,args)
-				if not currentsignal or currentsignal.vartype ~= k then return fixdefault(v[2]) end
-				return currentsignal.var
+				if not self.data.currentsignal or self.data.currentsignal.vartype ~= k then return fixdefault(v[2]) end
+				return self.data.currentsignal.var
 			end)
 
 		end -- allowed check
@@ -318,7 +312,7 @@ e2function void dsClearGroups()
 			if (groups[name][self.entity] == true) then
 				groups[name][self.entity] = nil
 			end
-			if (count(groups[name]) == 0) then
+			if (next(groups[name]) == nil) then
 				groups[name] = nil
 			end
 		end
@@ -357,43 +351,43 @@ __e2setcost(1)
 
 -- Check if the current execution was caused by ANY datasignal
 e2function number dsClk()
-	return currentsignal ~= nil and 1 or 0
+	return self.data.currentsignal ~= nil and 1 or 0
 end
 
 -- Check if the current execution was caused by a datasignal named <name>
 e2function number dsClk( string name )
-	if not currentsignal then return 0 end
-	return currentsignal.name == name and 1 or 0
+	if not self.data.currentsignal then return 0 end
+	return self.data.currentsignal.name == name and 1 or 0
 end
 
 -- Returns the name of the current signal
 e2function string dsClkName()
-	if not currentsignal then return "" end
-	return currentsignal.name
+	if not self.data.currentsignal then return "" end
+	return self.data.currentsignal.name
 end
 
 -- Get the type of the current data
 e2function string dsGetType()
-	if not currentsignal then return "" end
-	return currentsignal.vartype
+	if not self.data.currentsignal then return "" end
+	return self.data.currentsignal.vartype
 end
 
 -- Get the E2 that sent the signal
 e2function entity dsGetSender()
-	if not currentsignal then return end
-	return currentsignal.from
+	if not self.data.currentsignal then return end
+	return self.data.currentsignal.from
 end
 
 -- Get the group which the signal was sent to
 e2function string dsGetGroup()
-	if not currentsignal then return "" end
-	return currentsignal.groupname
+	if not self.data.currentsignal then return "" end
+	return self.data.currentsignal.groupname
 end
 
 -- Get the hash of the sending E2
 e2function number dsGetHash()
-	if not currentsignal then return "" end
-	return currentsignal.hash
+	if not self.data.currentsignal then return "" end
+	return self.data.currentsignal.hash
 end
 
 __e2setcost(20)
@@ -420,7 +414,7 @@ registerCallback("destruct",function(self)
 			for k,v in pairs( self.data.datasignal.groups ) do
 				if (groups[v]) then
 					groups[v][self.entity] = nil
-					if (count(groups[v]) == 0) then
+					if (next(groups[v]) == nil) then
 						groups[v] = nil
 					end
 				end

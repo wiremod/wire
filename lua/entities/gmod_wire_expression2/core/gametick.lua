@@ -22,7 +22,7 @@ end
 
 --- Returns 1 if the current execution was caused by "runOnTick"
 e2function number tickClk()
-	return tickrun
+	return self.data.tickrun and 1 or 0
 end
 
 local function Expression2TickClock()
@@ -37,11 +37,11 @@ local function Expression2TickClock()
 		end
 	end
 
-	tickrun = 1
 	for _,entity in ipairs(ents) do
+		entity.context.data.tickrun = true
 		entity:Execute()
+		entity.context.data.tickrun = nil
 	end
-	tickrun = 0
 end
 hook.Add("Think", "Expression2TickClock", Expression2TickClock)
 timer.Create("Expression2TickClock", 5, 0, function()

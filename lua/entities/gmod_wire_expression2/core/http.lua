@@ -10,7 +10,6 @@ local cvar_timeout = CreateConVar( "wire_expression2_http_timeout", "15", FCVAR_
 
 local requests = {}
 local run_on = {
-	clk = 0,
 	ents = {}
 }
 
@@ -44,14 +43,12 @@ e2function void httpRequest( string url )
 		preq.in_progress = false
 		preq.data = contents or ""
 
-		run_on.clk = 1
-
 		local ent = self.entity
 		if IsValid(ent) and run_on.ents[ent] then
+			ent.context.data.httpClk = true
 			ent:Execute()
+			ent.context.data.httpClk = nil
 		end
-
-		run_on.clk = 0
 	end)
 end
 
@@ -62,7 +59,7 @@ e2function number httpCanRequest()
 end
 
 e2function number httpClk()
-	return run_on.clk
+	return self.data.httpClk and 1 or 0
 end
 
 e2function string httpData()

@@ -15,7 +15,6 @@ local signal_queue = WireLib.containers.autocleanup:new(2)
 
 -- holds the current signal data. Format:
 -- currentSignal = nil|{ group, name, scope, sender, senderid }
-local currentSignal = nil
 
 --[[************************************************************************]]--
 
@@ -23,10 +22,10 @@ local currentSignal = nil
 local function triggerSignal(receiverid, signaldata)
 	local receiver = Entity(receiverid)
 	if not IsValid(receiver) or not receiver.Execute then return end
-	currentSignal = signaldata
+	receiver.context.data.currentSignal = signaldata
 	receiver:Execute()
+	receiver.context.data.currentSignal = nil
 	if (signaldata.sender and signaldata.sender:IsValid()) then signaldata.sender.context.prf = signaldata.sender.context.prf + 80 end
-	currentSignal = nil
 end
 
 local timerRunning = false
@@ -136,26 +135,35 @@ __e2setcost(1)
 
 --- Returns 1 if the chip was executed because of any signal, regardless of name, group or scope. Returns 0 otherwise.
 e2function number signalClk()
-	return currentSignal and 1 or 0
+	if not self.data.currentSignal then return 0 end
+	return self.data.currentSignal and 1 or 0
 end
 
 --- Returns 1 if the chip was executed because the signal <name> was sent, regardless of group or scope. Returns 0 otherwise.
 e2function number signalClk(string name)
+	if not self.data.currentSignal then return 0 end
+	local currentSignal = self.data.currentSignal
 	return (currentSignal and currentSignal[2] == name) and 1 or 0
 end
 
 --- Returns 1 if the chip was executed because the signal <name> was sent to the scope <scope>, regardless of group. Returns 0 otherwise.
 e2function number signalClk(string name, scope)
+	if not self.data.currentSignal then return 0 end
+	local currentSignal = self.data.currentSignal
 	return (currentSignal and currentSignal[2] == name and currentSignal[3] == scope) and 1 or 0
 end
 
 --- Returns 1 if the chip was executed because the signal <name> was sent in the group <group>, regardless of scope. Returns 0 otherwise.
 e2function number signalClk(string group, string name)
+	if not self.data.currentSignal then return 0 end
+	local currentSignal = self.data.currentSignal
 	return (currentSignal and currentSignal[1] == group and currentSignal[2] == name) and 1 or 0
 end
 
 --- Returns 1 if the chip was executed because the signal <name> was sent in the group <group> to the scope <scope>. Returns 0 otherwise.
 e2function number signalClk(string group, string name, scope)
+	if not self.data.currentSignal then return 0 end
+	local currentSignal = self.data.currentSignal
 	return (currentSignal and currentSignal[1] == group and currentSignal[2] == name and currentSignal[3] == scope) and 1 or 0
 end
 
@@ -163,26 +171,26 @@ __e2setcost(4)
 
 --- Returns the name of the received signal.
 e2function string signalName()
-	if not currentSignal then return "" end
-	return currentSignal[2]
+	if not self.data.currentSignal then return "" end
+	return self.data.currentSignal[2]
 end
 
 --- Returns the group name of the received signal.
 e2function string signalGroup()
-	if not currentSignal then return "" end
-	return currentSignal[1]
+	if not self.data.currentSignal then return "" end
+	return self.data.currentSignal[1]
 end
 
 --- Returns the entity of the chip that sent the signal.
 e2function entity signalSender()
-	if not currentSignal then return nil end
-	return currentSignal[4]
+	if not self.data.currentSignal then return nil end
+	return self.data.currentSignal[4]
 end
 
 --- Returns the entity ID of the chip that sent the signal. Useful if the entity doesn't exist anymore.
 e2function number signalSenderId()
-	if not currentSignal then return 0 end
-	return currentSignal[5]
+	if not self.data.currentSignal then return 0 end
+	return self.data.currentSignal[5]
 end
 
 --[[************************************************************************]]--
