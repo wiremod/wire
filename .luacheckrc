@@ -3720,4 +3720,5 @@ stds.wiremod.globals = {
   "pairs_map",
   "pairs_sortkeys",
   "pairs_sortvalues",
+  "HUDIndicator_GetCurrentRegistered",
 }
