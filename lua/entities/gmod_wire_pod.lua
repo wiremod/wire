@@ -246,7 +246,7 @@ hook.Add("PlayerBindDown", "gmod_wire_pod", function(player, binding)
 	if not output then return end
 
 	for _, pod in pairs(ents.FindByClass("gmod_wire_pod")) do
-		if player:GetVehicle() == pod.Pod and not pod.Disable then
+		if pod:GetPly() == player and not pod.Disable then
 			WireLib.TriggerOutput(pod, output, 1)
 		end
 	end
@@ -258,7 +258,7 @@ hook.Add("PlayerBindUp", "gmod_wire_pod", function(player, binding)
 	if not output then return end
 
 	for _, pod in pairs(ents.FindByClass("gmod_wire_pod")) do
-		if player:GetVehicle() == pod.Pod and not pod.Disable then
+		if pod:GetPly() == player and not pod.Disable then
 			WireLib.TriggerOutput(pod, output, 0)
 		end
 	end
