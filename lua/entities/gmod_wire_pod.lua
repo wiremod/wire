@@ -179,6 +179,9 @@ function ENT:SetPod( pod )
 
 	self.Pod = pod
 	WireLib.TriggerOutput( self, "Entity", pod )
+
+	if not IsValid(pod) then return true end
+
 	pod:CallOnRemove("wire_pod_remove",function()
 		self:UnlinkEnt(pod)
 	end)
@@ -521,7 +524,10 @@ end
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
 
-	self:SetPod( GetEntByID( info.pod ) )
+	local pod = GetEntByID(info.pod)
+	if IsValid(pod) then
+		self:LinkEnt(pod)
+	end
 end
 
 function ENT:Use( User, caller )
