@@ -19,7 +19,7 @@ function ENT:Initialize()
 	self.Disk = nil
 	self.DisableLinking = 0
 
-	self.Inputs = WireLib.CreateSpecialOutputs(self, { "Disable" }, { "NORMAL" })
+	self.Inputs = WireLib.CreateSpecialInputs(self, { "Disable" }, { "NORMAL" })
 	self.Outputs = WireLib.CreateSpecialOutputs(self, { "Locked", "DiskEntity" }, { "NORMAL", "ENTITY" })
 
 	self:NextThink(CurTime() + 0.25)
