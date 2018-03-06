@@ -228,8 +228,6 @@ end
 
 
 function Editor:PaintOver()
-	local w, h = self:GetSize()
-
 	surface.SetFont("DefaultBold")
 	surface.SetTextColor(255, 255, 255, 255)
 	surface.SetTextPos(10, 6)
@@ -414,7 +412,7 @@ local function getPreferredTitles(Line, code)
 		tabtext = str
 	end
 
-	local str = extractNameFromCode(code)
+	str = extractNameFromCode(code)
 	if str and str ~= "" then
 		if not title then
 			title = str
@@ -503,7 +501,7 @@ function Editor:GetEditorMode() return self.EditorMode end
 local old
 function Editor:FixTabFadeTime()
 	if old ~= nil then return end -- It's already being fixed
-	local old = self.C.TabHolder:GetFadeTime()
+	old = self.C.TabHolder:GetFadeTime()
 	self.C.TabHolder:SetFadeTime(0)
 	timer.Simple(old, function() self.C.TabHolder:SetFadeTime(old) old = nil end)
 end
@@ -625,7 +623,7 @@ function Editor:OnTabCreated(sheet) end
 
 function Editor:GetNextAvailableTab()
 	local activetab = self:GetActiveTab()
-	for k, v in pairs(self.C.TabHolder.Items) do
+	for _, v in pairs(self.C.TabHolder.Items) do
 		if v.Tab and v.Tab:IsValid() and v.Tab ~= activetab then
 			return v.Tab
 		end
@@ -930,6 +928,19 @@ function Editor:InitComponents()
 	if self.E2 then self:Validate() end
 end
 
+-- code1 contains the code that is not to be marked
+local code1 = "@name \n@inputs \n@outputs \n@persist \n@trigger \n\n"
+-- code2 contains the code that is to be marked, so it can simply be overwritten or deleted.
+local code2 = [[#[
+    Documentation and examples are available at:
+    https://github.com/wiremod/wire/wiki/Expression-2
+
+    Discord is available at https://discord.gg/cqJ45CT
+    Reddit is available at https://www.reddit.com/r/wiremod
+    Report any bugs you find here https://github.com/wiremod/wire/issues
+]#]]
+local defaultcode = code1 .. code2 .. "\n"
+
 function Editor:AutoSave()
 	local buffer = self:GetCode()
 	if self.savebuffer == buffer or buffer == defaultcode or buffer == "" then return end
@@ -953,8 +964,6 @@ function Editor:AddControlPanelTab(label, icon, tooltip)
 end
 
 function Editor:InitControlPanel(frame)
-	local C = self.C.Control
-
 	-- Add a property sheet to hold the tabs
 	local tabholder = vgui.Create("DPropertySheet", frame)
 	tabholder:SetPos(2, 4)
@@ -984,16 +993,16 @@ function Editor:InitControlPanel(frame)
 	end
 
 	-- Resize them at the right times
-	local old = frame.SetSize
+	local oldFrameSetSize = frame.SetSize
 	function frame:SetSize(...)
 		self:ResizeAll()
-		old(self, ...)
+		oldFrameSetSize(self, ...)
 	end
 
-	local old = frame.SetVisible
+	local oldFrameSetVisible = frame.SetVisible
 	function frame:SetVisible(...)
 		self:ResizeAll()
-		old(self, ...)
+		oldFrameSetVisible(self, ...)
 	end
 
 	-- Function to add more objects to resize automatically
@@ -1145,7 +1154,7 @@ function Editor:InitControlPanel(frame)
 	AutoCompleteExtra:SizeToContents()
 	AutoCompleteExtra:SetTooltip("Enable/disable additional information for auto completion.")
 
-	local label = vgui.Create("DLabel")
+	label = vgui.Create("DLabel")
 	dlist:AddItem(label)
 	label:SetText("Auto completion control style")
 	label:SizeToContents()
@@ -1161,7 +1170,7 @@ function Editor:InitControlPanel(frame)
 	modes["Eclipse Style"] = { 4, "Current mode:\nEnter to use top match;\nTab to enter auto completion menu;\nArrow keys to choose item;\nEnter to use;\nSpace to abort." }
 	-- modes["Qt Creator Style"]			= { 6, "Current mode:\nCtrl+Space to enter auto completion menu;\nSpace to abort; Enter to use top match." } <-- probably wrong. I'll check about adding Qt style later.
 
-	for k, v in pairs(modes) do
+	for k, _ in pairs(modes) do
 		AutoCompleteControlOptions:AddChoice(k)
 	end
 
@@ -1185,7 +1194,7 @@ function Editor:InitControlPanel(frame)
 	HighightOnUse:SizeToContents()
 	HighightOnUse:SetTooltip("Enable/Disable highlighting of the entire word after using auto completion.\nIn E2, this is only for variables/constants, not functions.")
 
-	local label = vgui.Create("DLabel")
+	label = vgui.Create("DLabel")
 	dlist:AddItem(label)
 	label:SetText("Other options")
 	label:SizeToContents()
@@ -1235,14 +1244,14 @@ function Editor:InitControlPanel(frame)
 	end
 
 	--------------------------------------------- EXPRESSION 2 TAB
-	local sheet = self:AddControlPanelTab("Expression 2", "icon16/computer.png", "Options for Expression 2.")
+	sheet = self:AddControlPanelTab("Expression 2", "icon16/computer.png", "Options for Expression 2.")
 
-	local dlist = vgui.Create("DPanelList", sheet.Panel)
+	dlist = vgui.Create("DPanelList", sheet.Panel)
 	dlist.Paint = function() end
 	frame:AddResizeObject(dlist, 2, 2)
 	dlist:EnableVerticalScrollbar(true)
 
-	local label = vgui.Create("DLabel")
+	label = vgui.Create("DLabel")
 	dlist:AddItem(label)
 	label:SetText("Clientside expression 2 options")
 	label:SizeToContents()
@@ -1261,7 +1270,7 @@ function Editor:InitControlPanel(frame)
 	Concmd:SizeToContents()
 	Concmd:SetTooltip("Allow/disallow the E2 from running console commands on you.")
 
-	local label = vgui.Create("DLabel")
+	label = vgui.Create("DLabel")
 	dlist:AddItem(label)
 	label:SetText("Concmd whitelist")
 	label:SizeToContents()
@@ -1271,7 +1280,7 @@ function Editor:InitControlPanel(frame)
 	ConcmdWhitelist:SetConVar("wire_expression2_concmd_whitelist")
 	ConcmdWhitelist:SetToolTip("Separate the commands with commas.")
 
-	local label = vgui.Create("DLabel")
+	label = vgui.Create("DLabel")
 	dlist:AddItem(label)
 	label:SetText("Expression 2 block comment style")
 	label:SizeToContents()
@@ -1279,37 +1288,37 @@ function Editor:InitControlPanel(frame)
 	local BlockCommentStyle = vgui.Create("DComboBox")
 	dlist:AddItem(BlockCommentStyle)
 
-	local modes = {}
-	modes["New (alt 1)"] = {
+	local blockCommentModes = {}
+	blockCommentModes["New (alt 1)"] = {
 		0, [[Current mode:
 #[
 Text here
 Text here
 ]#]]
 	}
-	modes["New (alt 2)"] = {
+	blockCommentModes["New (alt 2)"] = {
 		1, [[Current mode:
 #[Text here
 Text here]# ]]
 	}
-	modes["Old"] = {
+	blockCommentModes["Old"] = {
 		2, [[Current mode:
 #Text here
 #Text here]]
 	}
 
-	for k, v in pairs(modes) do
+	for k, _ in pairs(blockCommentModes) do
 		BlockCommentStyle:AddChoice(k)
 	end
 
-	modes[0] = modes["New (alt 1)"][2]
-	modes[1] = modes["New (alt 2)"][2]
-	modes[2] = modes["Old"][2]
-	BlockCommentStyle:SetToolTip(modes[self.BlockCommentStyleConVar:GetInt()])
+	blockCommentModes[0] = blockCommentModes["New (alt 1)"][2]
+	blockCommentModes[1] = blockCommentModes["New (alt 2)"][2]
+	blockCommentModes[2] = blockCommentModes["Old"][2]
+	BlockCommentStyle:SetToolTip(blockCommentModes[self.BlockCommentStyleConVar:GetInt()])
 
 	BlockCommentStyle.OnSelect = function(panel, index, value)
-		panel:SetToolTip(modes[value][2])
-		RunConsoleCommand("wire_expression2_editor_block_comment_style", modes[value][1])
+		panel:SetToolTip(blockCommentModes[value][2])
+		RunConsoleCommand("wire_expression2_editor_block_comment_style", blockCommentModes[value][1])
 	end
 
 	local ops_sync_checkbox = vgui.Create("DCheckBoxLabel")
@@ -1320,9 +1329,9 @@ Text here]# ]]
 	ops_sync_checkbox:SetTooltip("Opt into live ops/cpu usage for all E2s on the server via the remote uploader tab. If you're not admin, this checkbox does nothing.")
 
 	-- ------------------------------------------- REMOTE UPDATER TAB
-	local sheet = self:AddControlPanelTab("Remote Updater", "icon16/world.png", "Manage your E2s from far away.")
+	sheet = self:AddControlPanelTab("Remote Updater", "icon16/world.png", "Manage your E2s from far away.")
 
-	local dlist = vgui.Create("DPanelList", sheet.Panel)
+	dlist = vgui.Create("DPanelList", sheet.Panel)
 	dlist.Paint = function() end
 	frame:AddResizeObject(dlist, 2, 2)
 	dlist:EnableVerticalScrollbar(true)
@@ -1355,7 +1364,7 @@ Text here]# ]]
 		local E2s = ents.FindByClass("gmod_wire_expression2")
 		dlist2:Clear()
 		local size = 0
-		for k, v in pairs(E2s) do
+		for _, v in pairs(E2s) do
 			local ply = v:GetNWEntity("player", NULL)
 			if IsValid(ply) and ply == LocalPlayer() or showall then
 				local nick
@@ -1426,7 +1435,7 @@ Text here]# ]]
 					WireLib.Expression2Upload(v)
 				end
 
-				local btn = vgui.Create("DButton", panel)
+				btn = vgui.Create("DButton", panel)
 				btn:SetText("Download")
 				btn:SetSize(57, 18)
 				timer.Simple(0, function() btn:SetPos(panel:GetWide() - btn:GetWide() - 4, 4) end)
@@ -1434,7 +1443,7 @@ Text here]# ]]
 					RunConsoleCommand("wire_expression_requestcode", v:EntIndex())
 				end
 
-				local btn = vgui.Create("DButton", panel)
+				btn = vgui.Create("DButton", panel)
 				btn:SetText("Halt execution")
 				btn:SetSize(75, 18)
 				timer.Simple(0, function() btn:SetPos(panel:GetWide() - btn:GetWide() - 4, 24) end)
@@ -1476,19 +1485,6 @@ function Editor:TranslateValues(panel, x, y)
 end
 
 -- options
-
--- code1 contains the code that is not to be marked
-local code1 = "@name \n@inputs \n@outputs \n@persist \n@trigger \n\n"
--- code2 contains the code that is to be marked, so it can simply be overwritten or deleted.
-local code2 = [[#[
-    Documentation and examples are available at:
-    https://github.com/wiremod/wire/wiki/Expression-2
-
-    Discord is available at https://discord.gg/cqJ45CT
-    Reddit is available at https://www.reddit.com/r/wiremod
-    Report any bugs you find here https://github.com/wiremod/wire/issues
-]#]]
-local defaultcode = code1 .. code2 .. "\n"
 
 function Editor:NewScript(incurrent)
 	if not incurrent and self.NewTabOnOpen:GetBool() then
@@ -1566,7 +1562,7 @@ function Editor:OpenOldTabs()
 	self:FixTabFadeTime()
 
 	local is_first = true
-	for k, v in pairs(tabs) do
+	for _, v in pairs(tabs) do
 		if v and v ~= "" then
 			if (file.Exists(v, "DATA")) then
 				-- Open it in a new tab
@@ -1715,7 +1711,7 @@ function Editor:Open(Line, code, forcenewtab)
 				end
 			end
 		end
-		local title, tabtext = getPreferredTitles(Line, code)
+		local _, tabtext = getPreferredTitles(Line, code)
 		local tab
 		if self.NewTabOnOpen:GetBool() or forcenewtab then
 			tab = self:CreateTab(tabtext).Tab
@@ -1815,7 +1811,7 @@ function Editor:LoadFile(Line, forcenewtab)
 			end
 		end
 
-		local title, tabtext = getPreferredTitles(Line, str)
+		local _, tabtext = getPreferredTitles(Line, str)
 		local tab
 		if self.NewTabOnOpen:GetBool() or forcenewtab then
 			tab = self:CreateTab(tabtext).Tab
