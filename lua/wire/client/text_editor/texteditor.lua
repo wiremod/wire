@@ -2574,7 +2574,7 @@ function EDITOR:AC_FillInfoList( suggestion )
 		desc = (desc or "") .. ((desc and desc ~= "") and "\n" or "") .. "Others with the same name:"
 
 		-- Loop through the "others" table to add all of them
-		surface_SetFont( "E2SmallFont" )
+		surface_SetFont(self.CurrentFont)
 		for _, v in pairs( others ) do
 			local nice_name = v:nice_str( self )
 
@@ -2584,8 +2584,9 @@ function EDITOR:AC_FillInfoList( suggestion )
 			label:SetText( "" )
 			label.Paint = function( pnl )
 				local w,h = pnl:GetSize()
-				draw_RoundedBox( 1,1,1, w-2,h-2, Color( 65,105,225,255 ) )
-				surface_SetFont( "E2SmallFont" )
+				surface_SetDrawColor(65, 105, 255)
+				surface_DrawRect(0, 0, w, h)
+				surface_SetFont(self.CurrentFont)
 				surface_SetTextPos( 6, h/2-nameh/2 )
 				surface_SetTextColor( 255,255,255,255 )
 				surface_DrawText( nice_name )
@@ -2630,7 +2631,7 @@ function EDITOR:AC_FillList()
 	panel.Selected = 0
 	local maxw = 15
 
-	surface.SetFont( "E2SmallFont" )
+	surface.SetFont(self.CurrentFont)
 
 	-- Add all suggestions to the list
 	for count,suggestion in pairs( self.AC_Suggestions ) do
@@ -2643,13 +2644,16 @@ function EDITOR:AC_FillList()
 
 		-- Override paint to give it the "E2 theme" and to make it highlight when selected
 		txt.Paint = function( pnl, w, h )
-			draw_RoundedBox( 1, 1, 1, w-2, h-2, Color( 65, 105, 225, 255 ) )
+			local backgroundColor
 			if panel.Selected == pnl.count then
-				draw_RoundedBox( 0, 2, 2, w - 4 , h - 4, Color(0,0,0,192) )
+				backgroundColor = Color(49, 80, 169, 192)
+			else
+				backgroundColor = Color(65, 105, 225, 255)
 			end
-			-- I honestly dont have a fucking clue.
-			-- h2, was being cleaned up instantly for no reason.
-			surface.SetFont( "E2SmallFont" )
+			surface_SetDrawColor(backgroundColor)
+			surface_DrawRect(0, 0, w, h)
+
+			surface.SetFont(self.CurrentFont)
 			local _, h2 = surface.GetTextSize( nice_name )
 
 			surface.SetTextPos( 6, (h / 2) - (h2 / 2) )
