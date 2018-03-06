@@ -45,6 +45,7 @@ local AC_STYLE_VISUALCSHARP = 1 -- Visual C# Style - Ctrl+Space to use the top m
 local AC_STYLE_SCROLLER = 2 -- Scroller style - Mouse scroller to choose item;\nMiddle mouse to use.
 local AC_STYLE_SCROLLER_ENTER = 3 -- Scroller Style w/ Enter - Mouse scroller to choose item;\nEnter to use.
 local AC_STYLE_ECLIPSE = 4 -- Eclipse Style - Enter to use top match;\nTab to enter auto completion menu;\nArrow keys to choose item;\nEnter to use;\nSpace to abort.
+local AC_STYLE_ATOM = 5 -- Atom style - Tab/Enter to use, arrow keys to choose
 
 local EDITOR = {}
 
@@ -1840,7 +1841,7 @@ function EDITOR:_OnKeyCodeTyped(code)
 		elseif code == KEY_UP then
 			if self.AC_Panel and self.AC_Panel:IsVisible() then
 				local mode = wire_expression2_autocomplete_controlstyle:GetInt()
-				if mode == AC_STYLE_VISUALCSHARP then
+				if mode == AC_STYLE_VISUALCSHARP or mode == AC_STYLE_ATOM then
 					self.AC_Panel:RequestFocus()
 					return
 				end
@@ -1851,7 +1852,7 @@ function EDITOR:_OnKeyCodeTyped(code)
 		elseif code == KEY_DOWN then
 			if self.AC_Panel and self.AC_Panel:IsVisible() then
 				local mode = wire_expression2_autocomplete_controlstyle:GetInt()
-				if mode == AC_STYLE_VISUALCSHARP then
+				if mode == AC_STYLE_VISUALCSHARP or mode == AC_STYLE_ATOM then
 					self.AC_Panel:RequestFocus()
 					return
 				end
@@ -1923,9 +1924,9 @@ function EDITOR:_OnKeyCodeTyped(code)
 
 	if code == KEY_TAB and self.AC_Panel and self.AC_Panel:IsVisible() then
 		local mode = wire_expression2_autocomplete_controlstyle:GetInt()
-		if mode == AC_STYLE_DEFAULT or mode == AC_STYLE_ECLIPSE then
+		if mode == AC_STYLE_DEFAULT or mode == AC_STYLE_ECLIPSE or mode == AC_STYLE_ATOM then
 			self.AC_Panel:RequestFocus()
-			if mode == AC_STYLE_ECLIPSE and self.AC_Panel.Selected == 0 then self.AC_Panel.Selected = 1 end
+			if (mode == AC_STYLE_ECLIPSE or mode == AC_STYLE_ATOM) and self.AC_Panel.Selected == 0 then self.AC_Panel.Selected = 1 end
 			return
 		end
 		handled = true
@@ -2448,8 +2449,7 @@ function EDITOR:AC_CreatePanel()
 			elseif input.IsKeyDown( KEY_UP ) or input.IsKeyDown( KEY_DOWN ) or input.IsKeyDown( KEY_LEFT ) or input.IsKeyDown( KEY_RIGHT ) then
 				self:AC_SetVisible( false )
 			end
-
-		elseif mode == AC_STYLE_VISUALCSHARP then
+		elseif mode == AC_STYLE_VISUALCSHARP or mode == AC_STYLE_ATOM then
 
 			if input.IsKeyDown( KEY_TAB ) or input.IsKeyDown( KEY_ENTER ) or input.IsKeyDown( KEY_SPACE ) then -- Use
 				self:AC_SetVisible( false )
