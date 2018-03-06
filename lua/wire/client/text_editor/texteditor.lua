@@ -40,6 +40,12 @@ WireTextEditor.Modes.Default = { SyntaxColorLine = function(self, row) return { 
 
 local wire_expression2_autocomplete_controlstyle = CreateClientConVar( "wire_expression2_autocomplete_controlstyle", "0", true, false )
 
+local AC_STYLE_DEFAULT = 0 -- Default style - Tab/CTRL+Tab to choose item;\nEnter/Space to use;\nArrow keys to abort.
+local AC_STYLE_VISUALCSHARP = 1 -- Visual C# Style - Ctrl+Space to use the top match;\nArrow keys to choose item;\nTab/Enter/Space to use;\nCode validation hotkey (ctrl+space) moved to ctrl+b.
+local AC_STYLE_SCROLLER = 2 -- Scroller style - Mouse scroller to choose item;\nMiddle mouse to use.
+local AC_STYLE_SCROLLER_ENTER = 3 -- Scroller Style w/ Enter - Mouse scroller to choose item;\nEnter to use.
+local AC_STYLE_ECLIPSE = 4 -- Eclipse Style - Enter to use top match;\nTab to enter auto completion menu;\nArrow keys to choose item;\nEnter to use;\nSpace to abort.
+
 local EDITOR = {}
 
 function EDITOR:Init()
@@ -882,7 +888,7 @@ end
 function EDITOR:OnMouseWheeled(delta)
 	if self.AC_Panel and self.AC_Panel:IsVisible() then
 		local mode = wire_expression2_autocomplete_controlstyle:GetInt()
-		if mode == 2 or mode == 3 then
+		if mode == AC_STYLE_SCROLLER or mode == AC_STYLE_SCROLLER_ENTER then
 			self.AC_Panel.Selected = self.AC_Panel.Selected - delta
 			if self.AC_Panel.Selected > #self.AC_Suggestions then self.AC_Panel.Selected = 1 end
 			if self.AC_Panel.Selected < 1 then self.AC_Panel.Selected = #self.AC_Suggestions end
@@ -1823,7 +1829,7 @@ function EDITOR:_OnKeyCodeTyped(code)
 
 		if code == KEY_ENTER then
 			local mode = wire_expression2_autocomplete_controlstyle:GetInt()
-			if mode == 4 and self.AC_HasSuggestions and self.AC_Suggestions[1] and self.AC_Panel and self.AC_Panel:IsVisible() then
+			if mode == AC_STYLE_ECLIPSE and self.AC_HasSuggestions and self.AC_Suggestions[1] and self.AC_Panel and self.AC_Panel:IsVisible() then
 				if self:AC_Use( self.AC_Suggestions[1] ) then return end
 			end
 			local row = self.Rows[self.Caret[1]]:sub(1,self.Caret[2]-1)
@@ -1834,7 +1840,7 @@ function EDITOR:_OnKeyCodeTyped(code)
 		elseif code == KEY_UP then
 			if self.AC_Panel and self.AC_Panel:IsVisible() then
 				local mode = wire_expression2_autocomplete_controlstyle:GetInt()
-				if mode == 1 then
+				if mode == AC_STYLE_VISUALCSHARP then
 					self.AC_Panel:RequestFocus()
 					return
 				end
@@ -1845,7 +1851,7 @@ function EDITOR:_OnKeyCodeTyped(code)
 		elseif code == KEY_DOWN then
 			if self.AC_Panel and self.AC_Panel:IsVisible() then
 				local mode = wire_expression2_autocomplete_controlstyle:GetInt()
-				if mode == 1 then
+				if mode == AC_STYLE_VISUALCSHARP then
 					self.AC_Panel:RequestFocus()
 					return
 				end
@@ -1917,9 +1923,9 @@ function EDITOR:_OnKeyCodeTyped(code)
 
 	if code == KEY_TAB and self.AC_Panel and self.AC_Panel:IsVisible() then
 		local mode = wire_expression2_autocomplete_controlstyle:GetInt()
-		if mode == 0 or mode == 4 then
+		if mode == AC_STYLE_DEFAULT or mode == AC_STYLE_ECLIPSE then
 			self.AC_Panel:RequestFocus()
-			if mode == 4 and self.AC_Panel.Selected == 0 then self.AC_Panel.Selected = 1 end
+			if mode == AC_STYLE_ECLIPSE and self.AC_Panel.Selected == 0 then self.AC_Panel.Selected = 1 end
 			return
 		end
 		handled = true
@@ -2421,7 +2427,7 @@ function EDITOR:AC_CreatePanel()
 		if not self.AC_HasSuggestions or not self.AC_Panel_Visible then return end
 
 		local mode = wire_expression2_autocomplete_controlstyle:GetInt()
-		if mode == 0 then -- Default style - Tab/CTRL+Tab to choose item;\nEnter/Space to use;\nArrow keys to abort.
+		if mode == AC_STYLE_DEFAULT then
 
 			if input.IsKeyDown( KEY_ENTER ) or input.IsKeyDown( KEY_SPACE ) then -- Use
 				self:AC_SetVisible( false )
@@ -2443,7 +2449,7 @@ function EDITOR:AC_CreatePanel()
 				self:AC_SetVisible( false )
 			end
 
-		elseif mode == 1 then -- Visual C# Style - Ctrl+Space to use the top match;\nArrow keys to choose item;\nTab/Enter/Space to use;\nCode validation hotkey (ctrl+space) moved to ctrl+b.
+		elseif mode == AC_STYLE_VISUALCSHARP then
 
 			if input.IsKeyDown( KEY_TAB ) or input.IsKeyDown( KEY_ENTER ) or input.IsKeyDown( KEY_SPACE ) then -- Use
 				self:AC_SetVisible( false )
@@ -2462,21 +2468,21 @@ function EDITOR:AC_CreatePanel()
 				pnl.AlreadySelected = nil
 			end
 
-		elseif mode == 2 then -- Scroller style - Mouse scroller to choose item;\nMiddle mouse to use.
+		elseif mode == AC_STYLE_SCROLLER then
 
 			if input.IsMouseDown( MOUSE_MIDDLE ) then
 				self:AC_SetVisible( false )
 				self:AC_Use( self.AC_Suggestions[pnl.Selected] )
 			end
 
-		elseif mode == 3 then -- Scroller Style w/ Enter - Mouse scroller to choose item;\nEnter to use.
+		elseif mode == AC_STYLE_SCROLLER_ENTER then
 
 			if input.IsKeyDown( KEY_ENTER ) then
 				self:AC_SetVisible( false )
 				self:AC_Use( self.AC_Suggestions[pnl.Selected] )
 			end
 
-		elseif mode == 4 then -- Eclipse Style - Enter to use top match;\nTab to enter auto completion menu;\nArrow keys to choose item;\nEnter to use;\nSpace to abort.
+		elseif mode == AC_STYLE_ECLIPSE then
 
 			if input.IsKeyDown( KEY_ENTER ) then -- Use
 				self:AC_SetVisible( false )
