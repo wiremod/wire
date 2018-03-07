@@ -706,8 +706,8 @@ end
 
 
 function Compiler:InstrFUNCTION(args)
-
-	local Sig, Return, Args = args[3], args[4], args[6]
+	-- local Inst = self:Instruction(Trace, "function", Sig, Return, Type, Args, self:Block("function decleration"))
+	local Sig, Return, methodType, Args = args[3], args[4], args[5], args[6]
 	Return = Return or ""
 
 	local OldScopes = self:SaveScopes()
@@ -737,7 +737,56 @@ function Compiler:InstrFUNCTION(args)
 
 	self.prfcounter = self.prfcounter + 40
 
-	return { self:GetOperator(args, "function", {})[1], Stmt, args }
+	-- This is the function that will be bound to to the function name, ie. the
+	-- one that's called at runtime when code calls the function
+	local function body(self, runtimeArgs)
+		-- runtimeArgs = { body, parameterExpression1, ..., parameterExpressionN, parameterTypes }
+		-- we need to evaluate the arguments before switching to the new scope
+		local parameterValues = {}
+		for parameterIndex = 2, #runtimeArgs - 1 do
+			local parameterExpression = runtimeArgs[parameterIndex]
+			local parameterValue = parameterExpression[1](self, parameterExpression)
+			parameterValues[parameterIndex - 1] = parameterValue
+		end
+
+		local OldScopes = self:SaveScopes()
+		self:InitScope()
+		self:PushScope()
+
+		for parameterIndex = 1, #parameterValues do
+			local parameterName = Args[parameterIndex][1]
+			local parameterValue = parameterValues[parameterIndex]
+			self.Scope[parameterName] = parameterValue
+		end
+
+		self.func_rv = nil
+		local ok, msg = pcall(Stmt[1],self,Stmt)
+
+		self:PopScope()
+		self:LoadScopes(OldScopes)
+
+		-- a "C stack overflow" error will probably just confuse E2 users more than a "tick quota" error.
+		if not ok and msg:find( "C stack overflow" ) then error( "tick quota exceeded", -1 ) end
+
+		if not ok and msg == "return" then return self.func_rv end
+
+		if not ok then error(msg,0) end
+
+		if Return ~= "" then
+			local argNames = {}
+			local offset = methodType == "" and 0 or 1
+
+			for k, v in ipairs(Args) do
+				argNames[k - offset] = v[1]
+			end
+
+			error("Function " .. E2Lib.generate_signature(Sig, nil, argNames) ..
+				" executed and didn't return a value - expecting a value of type " ..
+				E2Lib.typeName(Return), 0)
+		end
+	end
+
+	return { self:GetOperator(args, "function", {})[1], Sig, body }
 end
 
 function Compiler:InstrRETURN(args)
