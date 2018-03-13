@@ -73,7 +73,7 @@ local function findFunc( self, funcname, typeids, typeids_str )
 		if #self.strfunc_cache == 21 then self.strfunc_cache[21] = nil end
 	end
 
-	return func, func_return_type, vararg
+	return func, func_return_type
 end
 
 __e2setcost(20)
@@ -82,7 +82,7 @@ registerOperator( "sfun", "", "", function(self, args)
 	local op1, funcargs, typeids, typeids_str, returntype = args[2], args[3], args[4], args[5], args[6]
 	local funcname = op1[1](self,op1)
 
-	local func, func_return_type, vararg = findFunc( self, funcname, typeids, typeids_str )
+	local func, func_return_type = findFunc( self, funcname, typeids, typeids_str )
 
 	if not func then error( "No such function: " .. funcname .. "(" .. tps_pretty( typeids_str ) .. ")", 0 ) end
 
@@ -92,14 +92,10 @@ registerOperator( "sfun", "", "", function(self, args)
 
 	self.prf = self.prf + 40
 
-	if vararg then funcargs[#funcargs+1] = typeids end -- if this is a vararg func, we need to send the typeids as well
-
 	if returntype ~= "" then
 		local ret = func( self, funcargs )
-		if vararg then funcargs[#funcargs] = nil end -- clean up
 		return ret
 	else
 		func( self, funcargs )
-		if vararg then funcargs[#funcargs] = nil end -- clean up
 	end
 end)
