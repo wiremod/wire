@@ -429,6 +429,8 @@ function Compiler:InstrSFUN(args)
 		exprs[#exprs + 1] = ex
 	end
 
+	exprs[#exprs + 1] = tps
+
 	local rtsfun = self:GetOperator(args, "sfun", {})[1]
 
 	local typeids_str = table.concat(tps, "")
