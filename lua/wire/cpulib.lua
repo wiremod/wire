@@ -37,7 +37,7 @@ if CLIENT then
 
   -- Convars to control CPULib
   local wire_cpu_upload_speed = CreateClientConVar("wire_cpu_upload_speed",1000,false,false)
-  local wire_cpu_compile_speed = CreateClientConVar("wire_cpu_compile_speed",128,false,false)
+  local wire_cpu_compile_speed = CreateClientConVar("wire_cpu_compile_speed",256,false,false)
   local wire_cpu_show_all_registers = CreateClientConVar("wire_cpu_show_all_registers",0,false,false)
 
   ------------------------------------------------------------------------------
@@ -140,7 +140,6 @@ if CLIENT then
   -- Compiler timer
   function CPULib.OnCompileTimer()
     local compile_speed = wire_cpu_compile_speed:GetFloat()
-    if game.SinglePlayer() then compile_speed = 256 end
 
     for _ = 1, compile_speed do
       local status,result = pcall(HCOMP.Compile,HCOMP)
