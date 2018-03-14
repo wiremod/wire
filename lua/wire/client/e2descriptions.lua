@@ -1383,6 +1383,7 @@ E2Helper.Descriptions["egpGlobalPos(xwl:n)"] = "Returns the \"global\" (= it tak
 E2Helper.Descriptions["egpGlobalVertices(xwl:n)"] = "Returns an array of 2D vectors with the \"global\" positions of the vertices in the object"
 E2Helper.Descriptions["egpGlobalFiltering(xwl:n)"] = "Changes the texture filter used to draw all EGP Objects. Works only on EGP Screens. See _TEXFILTER constants (POINT=sharp, ANISOTROPIC=blurry/default)"
 E2Helper.Descriptions["egpHasObject(xwl:n)"] = "Returns 1 if the object with specified index exists on the screen, 0 if not"
+E2Helper.Descriptions["egpObjectContainsPoint(xwl:nxv2)"] = "Returns 1 if the object with specified index contains the specified point"
 E2Helper.Descriptions["egpHudToggle(xwl:)"] = "Toggles the HUD on/off"
 E2Helper.Descriptions["egpLoadFrame(xwl:n)"] = "Loads the frame with specified index"
 E2Helper.Descriptions["egpLoadFrame(xwl:s)"] = "Loads the frame with specified name"

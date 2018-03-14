@@ -41,6 +41,9 @@ end
 EGP.Objects.Base.DataStreamInfo = function( self )
 	return { x = self.x, y = self.y, w = self.w, h = self.h, r = self.r, g = self.g, b = self.b, a = self.a, material = self.material, filtering = self.filtering, parent = self.parent }
 end
+function EGP.Objects.Base:Contains(point)
+	return false
+end
 
 ----------------------------
 -- Get Object

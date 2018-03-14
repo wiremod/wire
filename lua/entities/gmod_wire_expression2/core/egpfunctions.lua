@@ -981,6 +981,12 @@ e2function number wirelink:egpHasObject( index )
 	return bool and 1 or 0
 end
 
+--- Returns 1 if the object with specified index contains the specified point.
+e2function number wirelink:egpObjectContainsPoint(number index, vector2 point)
+	local _, _, object = EGP:HasObject(this, index)
+	return object and object:Contains({x = point[1], y = point[2]}) and 1 or 0
+end
+
 __e2setcost(10)
 
 local function errorcheck( x, y )

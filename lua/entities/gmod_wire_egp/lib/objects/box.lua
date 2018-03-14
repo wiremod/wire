@@ -24,3 +24,9 @@ Obj.DataStreamInfo = function( self )
 	table.Merge( tbl, { angle = self.angle } )
 	return tbl
 end
+function Obj:Contains(point)
+	point = EGP.ScreenSpaceToObjectSpace(self, point)
+	local w, h = self.w / 2, self.h / 2
+	return -w <= point.x and point.x <= w and
+	       -h <= point.y and point.y <= h
+end
