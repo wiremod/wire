@@ -9,7 +9,7 @@ if (CLIENT) then
 	list.Set( "Wire_Laser_Disk_Models", "models/venompapa/wirecd_small.mdl", true )
 	list.Set( "Wire_Laser_Disk_Models", "models/venompapa/wirecd_medium.mdl", true )
 	list.Set( "Wire_Laser_Disk_Models", "models/venompapa/wirecd_huge.mdl", true )
-	
+
 	TOOL.Information = {
 		{ name = "left", text = "Create/Update " .. TOOL.Name },
 		{ name = "right", text = "Change model" },
