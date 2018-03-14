@@ -582,9 +582,6 @@ function Parser:Stmt10()
 		local Trace = self:GetTokenTrace()
 
 
-		if self.in_func then self:Error("Functions can not be created from inside other functions") end
-
-
 		local Name, Return, Type
 		local NameToken, ReturnToken, TypeToken
 		local Args, Temp = {}, {}
@@ -683,11 +680,7 @@ function Parser:Stmt10()
 
 		if wire_expression2_funcs[Sig] then self:Error("Function '" .. Sig .. "' already exists") end
 
-		self.in_func = true
-
 		local Inst = self:Instruction(Trace, "function", Sig, Return, Type, Args, self:Block("function decleration"))
-
-		self.in_func = false
 
 		return Inst
 
@@ -696,18 +689,11 @@ function Parser:Stmt10()
 
 		local Trace = self:GetTokenTrace()
 
-		if self.in_func then
-
-			if self:AcceptRoamingToken("void") or (self.readtoken[1] and self.readtoken[1] == "rcb") then
-				return self:Instruction(Trace, "returnvoid")
-			end
-
-			return self:Instruction(Trace, "return", self:Expr1())
-
-		else
-			self:Error("Return may not exist outside of a function")
+		if self:AcceptRoamingToken("void") or (self.readtoken[1] and self.readtoken[1] == "rcb") then
+			return self:Instruction(Trace, "return")
 		end
 
+		return self:Instruction(Trace, "return", self:Expr1())
 
 		-- Void Missplacement
 	elseif self:AcceptRoamingToken("void") then

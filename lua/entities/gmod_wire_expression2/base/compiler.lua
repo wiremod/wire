@@ -36,6 +36,7 @@ function Compiler:Process(root, inputs, outputs, persist, delta, includes) -- To
 	self.funcs = {}
 	self.dvars = {}
 	self.funcs_ret = {}
+	self.EnclosingFunctions = { --[[ { ReturnType: string } ]] }
 
 	for name, v in pairs(inputs) do
 		self:SetGlobalVariableType(name, wire_expression_types[v][1], { nil, { 0, 0 } })
@@ -728,11 +729,11 @@ function Compiler:InstrFUNCTION(args)
 
 	self.funcs_ret[Sig] = Return
 
-	self.func_ret = Return
+	table.insert(self.EnclosingFunctions, { ReturnType = Return })
 
 	local Stmt = self:EvaluateStatement(args, 5) -- Offset of -2
 
-	self.func_ret = nil
+	table.remove(self.EnclosingFunctions)
 
 	self:PopScope()
 	self:LoadScopes(OldScopes) -- Reload the old enviroment
@@ -792,23 +793,22 @@ function Compiler:InstrFUNCTION(args)
 end
 
 function Compiler:InstrRETURN(args)
-	local Value, Type = self:Evaluate(args, 1)
-
-	if not self.func_ret or self.func_ret == "" then
-		self:Error("Return type mismatch: void expected, got " .. tps_pretty(Type), args)
-	elseif self.func_ret ~= Type then
-		self:Error("Return type mismatch: " .. tps_pretty(self.func_ret) .. " expected, got " .. tps_pretty(Type), args)
+	local enclosingFunction = self.EnclosingFunctions[#self.EnclosingFunctions]
+	if enclosingFunction == nil then
+		self:Error("Return may not exist outside of a function", args)
 	end
 
-	return { self:GetOperator(args, "return", {})[1], Value, Type }
-end
-
-function Compiler:InstrRETURNVOID(args)
-	if self.func_ret and self.func_ret ~= "" then
-		self:Error("Return type mismatch: " .. tps_pretty(self.func_ret) .. " expected got, void", args)
+	local expectedType = assert(enclosingFunction.ReturnType)
+	local value, actualType
+	if args[3] then
+		value, actualType = self:Evaluate(args, 1)
 	end
 
-	return { self:GetOperator(args, "return", {})[1], nil, nil }
+	if actualType ~= expectedType then
+		self:Error("Return type mismatch: " .. tps_pretty(expectedType) .. " expected, got " .. tps_pretty(actualType), args)
+	end
+
+	return { self:GetOperator(args, "return", {})[1], value, actualType }
 end
 
 function Compiler:InstrKVTABLE(args)
