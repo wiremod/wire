@@ -47,7 +47,7 @@ end
 ----------------------------
 
 function EGP:GetObjectByID( ID )
-	for k,v in pairs( EGP.Objects ) do
+	for _, v in pairs( EGP.Objects ) do
 		if (v.ID == ID) then return table.Copy( v ) end
 	end
 	ErrorNoHalt( "[EGP] Error! Object with ID '" .. ID .. "' does not exist. Please post this bug message in the EGP thread on the wiremod forums.\n" )
@@ -89,9 +89,9 @@ end
 -- Object existance check
 ----------------------------
 function EGP:HasObject( Ent, index )
-	if (!EGP:ValidEGP( Ent )) then return false end
+	if not EGP:ValidEGP(Ent) then return false end
 	if SERVER then index = math.Round(math.Clamp(index or 1, 1, self.ConVars.MaxObjects:GetInt())) end
-	if (!Ent.RenderTable or #Ent.RenderTable == 0) then return false end
+	if not Ent.RenderTable or #Ent.RenderTable == 0 then return false end
 	for k,v in pairs( Ent.RenderTable ) do
 		if (v.index == index) then
 			return true, k, v
@@ -138,7 +138,7 @@ function EGP:PerformReorder_Ex( Ent, i )
 				target_idx = target
 			else
 				-- target is relative position
-				local bool, k, v = self:HasObject( Ent, target )
+				local bool, k = self:HasObject( Ent, target )
 				if bool then
 					-- Check for order dependencies
 					k = self:PerformReorder_Ex( Ent, k ) or k
@@ -190,9 +190,9 @@ end
 ----------------------------
 
 function EGP:CreateObject( Ent, ObjID, Settings )
-	if (!self:ValidEGP( Ent )) then return false end
+	if not self:ValidEGP(Ent) then return false end
 
-	if (!self.Objects.Names_Inverted[ObjID]) then
+	if not self.Objects.Names_Inverted[ObjID] then
 		ErrorNoHalt("Trying to create nonexistant object! Please report this error to Divran at wiremod.com. ObjID: " .. ObjID .. "\n")
 		return false
 	end
@@ -201,9 +201,8 @@ function EGP:CreateObject( Ent, ObjID, Settings )
 
 	local bool, k, v = self:HasObject( Ent, Settings.index )
 	if (bool) then -- Already exists. Change settings:
-		if (v.ID != ObjID) then -- Not the same kind of object, create new
-			local Obj = {}
-			Obj = self:GetObjectByID( ObjID )
+		if v.ID ~= ObjID then -- Not the same kind of object, create new
+			local Obj = self:GetObjectByID( ObjID )
 			self:EditObject( Obj, Settings )
 			Obj.index = Settings.index
 			Ent.RenderTable[k] = Obj

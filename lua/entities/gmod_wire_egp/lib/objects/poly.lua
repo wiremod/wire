@@ -43,7 +43,7 @@ end
 Obj.Receive = function( self )
 	local tbl = {}
 	tbl.vertices = {}
-	for i=1,net.ReadUInt(8) do
+	for _ = 1, net.ReadUInt(8) do
 		tbl.vertices[ #tbl.vertices+1 ] = { x = net.ReadInt(16), y = net.ReadInt(16), u = net.ReadFloat(), v = net.ReadFloat() }
 	end
 	tbl.filtering = net.ReadUInt(2)

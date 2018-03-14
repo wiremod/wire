@@ -14,10 +14,10 @@ function EGP:Table_IsEmpty( tbl ) return next(tbl) == nil end
 ----------------------------
 
 function EGP:SetScale( ent, x, y )
-	if (!self:ValidEGP( ent ) or !x or !y) then return end
+	if not self:ValidEGP(ent) or not x or not y then return end
 	ent.xScale = { x[1], x[2] }
 	ent.yScale = { y[1], y[2] }
-	if (x[1] != 0 or x[2] != 512 or y[1] != 0 or y[2] != 512) then
+	if x[1] ~= 0 or x[2] ~= 512 or y[1] ~= 0 or y[2] ~= 512 then
 		ent.Scaling = true
 	else
 		ent.Scaling = false
@@ -38,10 +38,10 @@ hook.Add("Initialize","EGP_WaitForParentingFile",function()
 end)
 
 function EGP:ScaleObject( ent, v )
-	if (!self:ValidEGP( ent )) then return end
+	if not self:ValidEGP(ent) then return end
 	local xScale = ent.xScale
 	local yScale = ent.yScale
-	if (!xScale or !yScale) then return end
+	if not xScale or not yScale then return end
 
 	local xMin = xScale[1]
 	local xMax = xScale[2]
@@ -82,7 +82,7 @@ end
 --------------------------------------------------------
 
 function EGP:MoveTopLeft( ent, v )
-	if (!self:ValidEGP( ent )) then return end
+	if not self:ValidEGP(ent) then return end
 
 	if (v.CanTopLeft and v.x and v.y and v.w and v.h) then
 		local vec, ang = LocalToWorld( Vector( v.w/2, v.h/2, 0 ), Angle(0,0,0), Vector( v.x, v.y, 0 ), Angle( 0, -v.angle or 0, 0 ) )
@@ -96,15 +96,15 @@ end
 -- IsDifferent check
 ----------------------------
 function EGP:IsDifferent( tbl1, tbl2 )
-	if (self:Table_IsEmpty( tbl1 ) != self:Table_IsEmpty( tbl2 )) then return true end -- One is empty, the other is not
+	if self:Table_IsEmpty(tbl1) ~= self:Table_IsEmpty(tbl2) then return true end -- One is empty, the other is not
 
 	for k,v in ipairs( tbl1 ) do
-		if (!tbl2[k] or tbl2[k].ID != v.ID) then -- Different ID?
+		if not tbl2[k] or tbl2[k].ID ~= v.ID then -- Different ID?
 			return true
 		else
 			for k2,v2 in pairs( v ) do
-				if (k2 != "BaseClass") then
-					if (tbl2[k][k2] or tbl2[k][k2] != v2) then -- Is any setting different?
+				if k2 ~= "BaseClass" then
+					if tbl2[k][k2] or tbl2[k][k2] ~= v2 then -- Is any setting different?
 						return true
 					end
 				end
@@ -112,8 +112,8 @@ function EGP:IsDifferent( tbl1, tbl2 )
 		end
 	end
 
-	for k,v in ipairs( tbl2 ) do -- Were any objects removed?
-		if (!tbl1[k]) then
+	for k, _ in ipairs( tbl2 ) do -- Were any objects removed?
+		if not tbl1[k] then
 			return true
 		end
 	end
@@ -126,10 +126,10 @@ end
 -- IsAllowed check
 ----------------------------
 function EGP:IsAllowed( E2, Ent )
-	if (!EGP:ValidEGP( Ent )) then return false end
+	if not EGP:ValidEGP(Ent) then return false end
 	if (E2 and E2.entity and E2.entity:IsValid()) then
 		local owner = Ent:GetEGPOwner()
-		if (E2.player != owner) then
+		if E2.player ~= owner then
 			return E2Lib.isFriend(E2.player,Ent:GetEGPOwner())
 		else
 			return true
@@ -281,8 +281,8 @@ local function ReturnFailure( this )
 end
 
 function EGP:EGPCursor( this, ply )
-	if (!EGP:ValidEGP( this )) then return {-1,-1} end
-	if (!ply or !ply:IsValid() or !ply:IsPlayer()) then return ReturnFailure( this ) end
+	if not EGP:ValidEGP(this) then return {-1,-1} end
+	if not IsValid(ply) or not ply:IsPlayer() then return ReturnFailure( this ) end
 
 	local Normal, Pos, monitor, Ang
 	-- If it's an emitter, set custom normal and pos
@@ -296,7 +296,7 @@ function EGP:EGPCursor( this, ply )
 		monitor = WireGPU_Monitors[ this:GetModel() ]
 
 		-- Monitor does not have a valid screen point
-		if (!monitor) then return {-1,-1} end
+		if not monitor then return {-1,-1} end
 
 		Ang = this:LocalToWorldAngles( monitor.rot )
 		Pos = this:LocalToWorld( monitor.offset )
