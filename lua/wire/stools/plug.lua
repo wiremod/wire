@@ -20,9 +20,11 @@ else
 	language.Add( "Tool_wire_plug_attachrange", "Plug attachment detection range:" )
 	language.Add( "Tool_wire_plug_drawoutline", "Draw the white outline on plugs and sockets." )
 	language.Add( "Tool_wire_plug_drawoutline_tooltip", "Disabling this helps you see inside the USB plug model when you set its material to wireframe." )
+	language.Add( "Tool_wire_plug_angleoffset", "Spawn angle offset" )
 	TOOL.Information = {
 		{ name = "left", text = "Create/Update Socket" },
 		{ name = "right", text = "Create/Update " .. TOOL.Name },
+		{ name = "reload", text = "Increase angle offset by 45 degrees" },
 	}
 end
 
@@ -33,6 +35,7 @@ TOOL.ClientConVar["array"] = 0
 TOOL.ClientConVar["weldforce"] = 5000
 TOOL.ClientConVar["attachrange"] = 5
 TOOL.ClientConVar["drawoutline"] = 1
+TOOL.ClientConVar["angleoffset"] = 0
 
 local SocketModels = {
 	["models/props_lab/tpplugholder_single.mdl"] = "models/props_lab/tpplug.mdl",
@@ -69,12 +72,14 @@ function TOOL:GetModel()
 end
 
 function TOOL:GetAngle( trace )
-	local Ang
+	local ang
 	if math.abs(trace.HitNormal.x) < 0.001 and math.abs(trace.HitNormal.y) < 0.001 then
-		return Vector(0,0,trace.HitNormal.z):Angle() + (AngleOffset[self:GetModel()] or Angle(0,0,0))
+		ang = Vector(0,0,trace.HitNormal.z):Angle() + (AngleOffset[self:GetModel()] or Angle(0,0,0))
 	else
-		return trace.HitNormal:Angle() + (AngleOffset[self:GetModel()] or Angle(0,0,0))
+		ang = trace.HitNormal:Angle() + (AngleOffset[self:GetModel()] or Angle(0,0,0))
 	end
+	ang:RotateAroundAxis( trace.HitNormal, self:GetClientNumber( "angleoffset" ) )
+	return ang
 end
 
 if SERVER then
@@ -117,6 +122,20 @@ function TOOL:RightClick( trace )
 	return true
 end
 
+--------------------
+-- Reload
+-- Increase angle offset by 45 degrees
+--------------------
+function TOOL:Reload( trace )
+	if game.SinglePlayer() and SERVER then
+		self:GetOwner():ConCommand( "wire_plug_angleoffset " .. (self:GetClientNumber( "angleoffset" ) + 45) % 360 )
+	elseif CLIENT then
+		RunConsoleCommand( "wire_plug_angleoffset", (self:GetClientNumber( "angleoffset" ) + 45) % 360 )
+	end
+
+	return false
+end
+
 function TOOL.BuildCPanel( panel )
 	WireToolHelpers.MakePresetControl(panel, "wire_plug")
 	ModelPlug_AddToCPanel(panel, "Socket", "wire_plug")
@@ -124,4 +143,5 @@ function TOOL.BuildCPanel( panel )
 	panel:NumSlider("#Tool_wire_plug_weldforce", "wire_plug_weldforce", 0, 100000)
 	panel:NumSlider("#Tool_wire_plug_attachrange", "wire_plug_attachrange", 1, 100)
 	panel:CheckBox("#Tool_wire_plug_drawoutline", "wire_plug_drawoutline")
+	panel:NumSlider( "#Tool_wire_plug_angleoffset","wire_plug_angleoffset", 0, 360, 0 )
 end
