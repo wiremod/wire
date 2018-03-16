@@ -802,6 +802,8 @@ function Compiler:InstrRETURN(args)
 	local value, actualType
 	if args[3] then
 		value, actualType = self:Evaluate(args, 1)
+	else
+		actualType = ""
 	end
 
 	if actualType ~= expectedType then
