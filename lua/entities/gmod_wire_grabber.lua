@@ -14,7 +14,7 @@ function ENT:Initialize()
 	self:PhysicsInit( SOLID_VPHYSICS )
 	self:SetMoveType( MOVETYPE_VPHYSICS )
 	self:SetSolid( SOLID_VPHYSICS )
-	self.Inputs = Wire_CreateInputs(self, { "Grab","Strength" })
+	self.Inputs = Wire_CreateInputs(self, { "Grab","Strength","Range" })
 	self.Outputs = Wire_CreateOutputs(self, {"Holding", "Grabbed Entity [ENTITY]"})
 	self.WeldStrength = 0
 	self.Weld = nil
@@ -136,6 +136,9 @@ function ENT:TriggerInput(iname, value)
 		end
 	elseif iname == "Strength" then
 		self.WeldStrength = math.max(value,0)
+	elseif iname == "Range" then
+		self:SetBeamLength(math.Clamp(value,0,32000))
+		self:ResetGrab() -- reset grab on change
 	end
 end
 
