@@ -37,7 +37,7 @@ if CLIENT then
 
   -- Convars to control CPULib
   local wire_cpu_upload_speed = CreateClientConVar("wire_cpu_upload_speed",1000,false,false)
-  local wire_cpu_compile_speed = CreateClientConVar("wire_cpu_compile_speed",128,false,false)
+  local wire_cpu_compile_speed = CreateClientConVar("wire_cpu_compile_speed",256,false,false)
   local wire_cpu_show_all_registers = CreateClientConVar("wire_cpu_show_all_registers",0,false,false)
 
   ------------------------------------------------------------------------------
@@ -140,9 +140,8 @@ if CLIENT then
   -- Compiler timer
   function CPULib.OnCompileTimer()
     local compile_speed = wire_cpu_compile_speed:GetFloat()
-    if game.SinglePlayer() then compile_speed = 256 end
 
-    for iteration=1,compile_speed do
+    for _ = 1, compile_speed do
       local status,result = pcall(HCOMP.Compile,HCOMP)
       if not status then
         print("==================================================")
@@ -183,7 +182,7 @@ if CLIENT then
     local iters = math.min(upload_speed, CPULib.RemainingUploadData)
     net.Start("wire_cpulib_buffer")
     net.WriteUInt(iters, 16)
-    for iteration=1,iters do
+    for _ = 1, iters do
       local index,value = next(CPULib.RemainingData)
       CPULib.RemainingUploadData = CPULib.RemainingUploadData - 1
       net.WriteUInt(index, 24)
@@ -347,8 +346,6 @@ if CLIENT then
     if ZCPU_Editor then
       -- Highlight current position
       local currentPosition = CPULib.Debugger.PositionByPointer[CPULib.Debugger.Variables.IP]
-      local sourceTab
-      local clearEditors = {}
 
       if currentPosition then
         -- Clear all highlighted lines
@@ -392,7 +389,6 @@ if CLIENT then
 
   ------------------------------------------------------------------------------
   -- Debug data arrived from server
-  local previousLine = nil
   function CPULib.OnDebugData_Registers(um)
     CPULib.Debugger.Variables.IP   = um:ReadFloat()
     CPULib.Debugger.Variables.EAX  = um:ReadFloat()
@@ -439,10 +435,6 @@ if CLIENT then
     browserWindow:SetTitle("Documentation")
     browserWindow:SetPos((ScrW() - w)/2, (ScrH() - h)/2)
     browserWindow:SetSize(w,h)
-    browserWindow.OnClose = function()
-      browser = nil
-      browserWindow = nil
-    end
     browserWindow:MakePopup()
 
     local browser = vgui.Create("DHTML",browserWindow)
@@ -494,7 +486,7 @@ if SERVER then
     if (not Buffer) or (Buffer.Player ~= player) then return end
     if not Buffer.Entity then return end
 
-    for iteration=1, net.ReadUInt(16) do
+    for _ = 1, net.ReadUInt(16) do
       Buffer.Data[net.ReadUInt(24)] = net.ReadDouble()
     end
 
@@ -735,7 +727,7 @@ end
 --------------------------------------------------------------------------------
 -- Generate a serial number
 --------------------------------------------------------------------------------
-local sessionBase
+local sessionBase, sessionDate
 function CPULib.GenerateSN(entityType)
   local currentDate = os.date("*t")
 
