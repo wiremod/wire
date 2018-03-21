@@ -138,7 +138,6 @@ function ENT:TriggerInput(iname, value)
 		self.WeldStrength = math.max(value,0)
 	elseif iname == "Range" then
 		self:SetBeamLength(math.Clamp(value,0,32000))
-		self:ResetGrab() -- reset grab on change
 	end
 end
 
