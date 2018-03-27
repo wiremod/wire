@@ -596,7 +596,7 @@ function WireLib.Link_Start(idx, ent, pos, iname, material, color, width)
 	input.StartPos = pos
 	input.Material = material
 	input.Color = color
-	input.Width = width
+	input.Width = math.Clamp(width, 0, 5)
 
 	return true
 end
