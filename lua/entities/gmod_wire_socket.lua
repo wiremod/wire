@@ -4,7 +4,6 @@ ENT.PrintName       = "Wire Socket"
 ENT.Purpose         = "Links with a plug"
 ENT.Instructions    = "Move a plug close to a plug to link them, and data will be transferred through the link."
 ENT.WireDebugName	= "Socket"
-local base = scripted_ents.Get("base_wire_entity")
 
 local PositionOffsets = {
 	["models/wingf0x/isasocket.mdl"] = Vector(0,0,0),
@@ -75,7 +74,7 @@ end
 if CLIENT then
 	function ENT:DrawEntityOutline()
 		if (GetConVar("wire_plug_drawoutline"):GetBool()) then
-			base.DrawEntityOutline( self )
+			BaseClass.DrawEntityOutline( self )
 		end
 	end
 
@@ -231,7 +230,7 @@ end
 -- Find nearby plugs and connect to them
 ------------------------------------------------------------
 function ENT:Think()
-	base.Think(self)
+	BaseClass.Think(self)
 
 	if not (self.Plug and self.Plug:IsValid()) then -- Has not been linked or plug was deleted
 		local Pos, Ang = self:GetLinkPos()
@@ -304,7 +303,7 @@ duplicator.RegisterEntityClass( "gmod_wire_socket", WireLib.MakeWireEnt, "Data",
 -- Adv Duplicator Support
 ------------------------------------------------------------
 function ENT:BuildDupeInfo()
-	local info = base.BuildDupeInfo(self) or {}
+	local info = BaseClass.BuildDupeInfo(self) or {}
 
 	info.Socket = {}
 	info.Socket.ArrayInput = self.ArrayInput
@@ -347,7 +346,7 @@ function ENT:GetApplyDupeInfoParams(info)
 end
 
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID, GetConstByID)
-	base.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
+	BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
 
 	if (info.Socket) then
 		ent:Setup( self:GetApplyDupeInfoParams(info) )

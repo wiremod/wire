@@ -100,9 +100,8 @@ function ENT:TriggerInput(iname, value, iter)
 end
 
 -- Override dupeinfo functions from wire plug
-local base = scripted_ents.Get("gmod_wire_socket")
 function ENT:BuildDupeInfo()
-	local info = base.BuildDupeInfo(self)
+	local info = BaseClass.BuildDupeInfo(self)
 
 	if info.Socket then info.Socket.ArrayInput = nil end -- this input is not used on this entity
 
