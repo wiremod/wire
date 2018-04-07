@@ -31,7 +31,7 @@ function ENT:Initialize()
 end
 
 function ENT:Think()
-  self.BaseClass.Think(self)
+  BaseClass.Think(self)
 
   self.DataRate = self.DataBytes
   self.DataBytes = 0

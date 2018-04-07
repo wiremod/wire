@@ -66,7 +66,7 @@ function ENT:Switch( on, mul )
 end
 
 function ENT:Think()
-	self.BaseClass.Think(self)
+	BaseClass.Think(self)
 	local timediff = CurTime()-(self.LastThink or 0)
 	self.LastThink = (self.LastThink or 0)+timediff
 	if (self.On == true) then

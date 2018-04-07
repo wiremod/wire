@@ -224,7 +224,7 @@ function ENT:SetCPUName(name)
 end
 
 function ENT:BuildDupeInfo()
-	local info = self.BaseClass.BuildDupeInfo(self) or {}
+	local info = BaseClass.BuildDupeInfo(self) or {}
 
 	info.SerialNo = self.VM.SerialNo
 	info.InternalRAMSize = self.VM.RAMSize
@@ -240,7 +240,7 @@ function ENT:BuildDupeInfo()
 end
 
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
-	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
+	BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
 
 	self.VM.SerialNo = info.SerialNo or CPULib.GenerateSN("UNK")
 	self.VM.RAMSize  = info.InternalRAMSize or 65536

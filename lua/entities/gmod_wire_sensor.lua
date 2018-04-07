@@ -68,7 +68,7 @@ function ENT:Setup(xyz_mode, outdist, outbrng, gpscord, direction_vector, direct
 end
 
 function ENT:Think()
-	self.BaseClass.Think(self)
+	BaseClass.Think(self)
 
 	if not IsValid(self.ToSense) or not self.ToSense.GetBeaconPos then return end
 	if (self.Active) then
@@ -197,7 +197,7 @@ end
 duplicator.RegisterEntityClass("gmod_wire_sensor", WireLib.MakeWireEnt, "Data", "xyz_mode", "outdist", "outbrng", "gpscord", "direction_vector", "direction_normalized", "target_velocity", "velocity_normalized")
 
 function ENT:BuildDupeInfo()
-	local info = self.BaseClass.BuildDupeInfo(self) or {}
+	local info = BaseClass.BuildDupeInfo(self) or {}
 
 	if IsValid(self.ToSense) then
 	    info.to_sense = self.ToSense:EntIndex()
@@ -207,7 +207,7 @@ function ENT:BuildDupeInfo()
 end
 
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
-	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
+	BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
 
 	self:LinkEnt(GetEntByID(info.to_sense))
 end

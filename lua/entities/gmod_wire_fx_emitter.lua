@@ -48,7 +48,7 @@ if CLIENT then
 			if ( weapon_name == "gmod_camera" ) then return end
 		end
 
-		self.BaseClass.Draw( self )
+		BaseClass.Draw( self )
 	end
 
 	function ENT:Think()
@@ -125,7 +125,7 @@ function ENT:TriggerInput( inputname, value, iter )
 end
 
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
-	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
+	BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
 	-- Old dupes stored this info here rather than as RegisterEntityClass vars
 	if info.Effect then self:SetEffect(info.Effect) end
 	if info.Delay then self:SetDelay(info.Delay) end

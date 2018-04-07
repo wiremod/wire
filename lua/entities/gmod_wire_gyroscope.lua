@@ -10,7 +10,7 @@ end
 if CLIENT then
 	--handle overlay text client side instead (TAD2020)
 	function ENT:Think()
-		self.BaseClass.Think(self)
+		BaseClass.Think(self)
 
 		if self:GetModel() == "models/bull/various/gyroscope.mdl" then
 
@@ -58,7 +58,7 @@ function ENT:Setup( out180 )
 end
 
 function ENT:Think()
-	self.BaseClass.Think(self)
+	BaseClass.Think(self)
 
     local ang = self:GetAngles()
 	if (ang.p < 0 && !self:GetOut180()) then ang.p = ang.p + 360 end

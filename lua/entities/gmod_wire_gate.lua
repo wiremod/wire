@@ -95,7 +95,7 @@ function ENT:TriggerInput(iname, value, iter)
 end
 
 function ENT:Think()
-	self.BaseClass.Think(self)
+	BaseClass.Think(self)
 
 	if (self.Action) and (self.Action.timed) then
 		self:CalcOutput()
@@ -142,7 +142,7 @@ end
 function ENT:OnRestore()
 	self.Action = GateActions[self.action]
 
-	self.BaseClass.OnRestore(self)
+	BaseClass.OnRestore(self)
 end
 
 

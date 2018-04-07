@@ -54,7 +54,7 @@ function ENT:Think()
 end
 
 function ENT:BuildDupeInfo()
-	local info = self.BaseClass.BuildDupeInfo(self) or {}
+	local info = BaseClass.BuildDupeInfo(self) or {}
 
 	if (self.Vehicle) and (self.Vehicle:IsValid()) then
 	    info.Vehicle = self.Vehicle:EntIndex()
@@ -64,7 +64,7 @@ function ENT:BuildDupeInfo()
 end
 
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
-	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
+	BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
 
 	self.Vehicle = GetEntByID(info.Vehicle)
 end

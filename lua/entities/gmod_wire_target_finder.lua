@@ -229,7 +229,7 @@ function ENT:CheckTheBuddyList(friend)
 end
 
 function ENT:Think()
-	self.BaseClass.Think(self)
+	BaseClass.Think(self)
 
 	if not (self.Inputs.Hold and self.Inputs.Hold.Value > 0) then
 		-- Find targets that meet requirements
@@ -345,7 +345,7 @@ end
 
 
 function ENT:OnRemove()
-	self.BaseClass.OnRemove(self)
+	BaseClass.OnRemove(self)
 
 	--unpaint all our targets
 	if (self.PaintTarget) then
@@ -356,7 +356,7 @@ function ENT:OnRemove()
 end
 
 function ENT:OnRestore()
-	self.BaseClass.OnRestore(self)
+	BaseClass.OnRestore(self)
 
 	self.MaxTargets = self.MaxTargets or 1
 end

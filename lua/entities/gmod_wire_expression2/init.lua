@@ -174,7 +174,7 @@ function ENT:Execute()
 end
 
 function ENT:Think()
-	self.BaseClass.Think(self)
+	BaseClass.Think(self)
 	self:NextThink(CurTime()+0.030303)
 
 	if self.context and not self.error then
@@ -510,7 +510,7 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID, GetConstByID)
 		self.duped = false
 	end
 
-	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID, GetConstByID)
+	BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID, GetConstByID)
 end
 
 -- -------------------------------- Transfer ----------------------------------

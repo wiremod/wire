@@ -150,7 +150,7 @@ function ENT:Disable()
 end
 
 function ENT:Think()
-	self.BaseClass.Think( self )
+	BaseClass.Think( self )
 
 	local on = self:IsOn() and "\nActivated" or "\nDeactivated"
 
@@ -216,13 +216,13 @@ function ENT:PhysicsSimulate( phys, deltatime )
 end
 
 function ENT:BuildDupeInfo()
-	local info = self.BaseClass.BuildDupeInfo(self) or {}
+	local info = BaseClass.BuildDupeInfo(self) or {}
 	info.OnState = self:IsOn() and 1 or 0 -- convert to 1/0 for simple old dupe compatibility
 	return info
 end
 
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
-	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
+	BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
 
 	if info and info.OnState and info.OnState == 1 then
 		self:Enable()
@@ -232,7 +232,7 @@ end
 function ENT:OnRestore()
 	self.ZVelocity = 0
 
-	self.BaseClass.OnRestore(self)
+	BaseClass.OnRestore(self)
 end
 
 duplicator.RegisterEntityClass("gmod_wire_hoverball", WireLib.MakeWireEnt, "Data", "speed", "resistance", "strength", "starton")

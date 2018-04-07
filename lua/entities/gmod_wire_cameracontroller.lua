@@ -302,7 +302,7 @@ end
 --------------------------------------------------
 
 function ENT:Initialize()
-	self.BaseClass.Initialize(self)
+	BaseClass.Initialize(self)
 	self.Outputs = WireLib.CreateOutputs( self, { 	"On", "HitPos [VECTOR]", "CamPos [VECTOR]", "CamDir [VECTOR]",
 													"CamAng [ANGLE]", "Trace [RANGER]" } )
 	self.Inputs = WireLib.CreateInputs( self, {	"Activated", "Direction [VECTOR]", "Angle [ANGLE]", "Position [VECTOR]",
@@ -564,7 +564,7 @@ end
 -- Think
 --------------------------------------------------
 function ENT:Think()
-	self.BaseClass.Think(self)
+	BaseClass.Think(self)
 
 	if self.NeedsSync then
 		self.NeedsSync = nil
@@ -929,7 +929,7 @@ end
 --------------------------------------------------
 
 function ENT:BuildDupeInfo()
-	local info = self.BaseClass.BuildDupeInfo(self)
+	local info = BaseClass.BuildDupeInfo(self)
 	local veh = {}
 	for i=1,#self.Vehicles do
 		veh[i] = self.Vehicles[i]:EntIndex()
@@ -944,7 +944,7 @@ function ENT:BuildDupeInfo()
 end
 
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
-	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
+	BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
 
 	if info.cam or info.pod or info.OldDupe then -- OLD DUPE DETECTED
 		if info.cam then

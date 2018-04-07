@@ -239,7 +239,7 @@ end
    Linked entities are stored and recalled by their EntIndexes
 ---------------------------------------------------------]]
 function ENT:BuildDupeInfo()
-	local info = self.BaseClass.BuildDupeInfo(self) or {}
+	local info = BaseClass.BuildDupeInfo(self) or {}
 	info.constrained_pairs = {}
 
 	for k, v in pairs( self:GetConstrainedPairs() ) do
@@ -252,7 +252,7 @@ function ENT:BuildDupeInfo()
 end
 
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
-	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
+	BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
 
 	local Ent1, Ent2
 	for _, v in pairs( info.constrained_pairs ) do

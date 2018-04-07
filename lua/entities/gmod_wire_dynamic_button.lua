@@ -77,7 +77,7 @@ function ENT:Use(ply, caller)
 end
 
 function ENT:Think()
-	self.BaseClass.Think(self)
+	BaseClass.Think(self)
 
 	if self:GetOn() then
 		if (not self.PrevUser)

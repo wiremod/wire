@@ -18,7 +18,7 @@ end
 
 if CLIENT then
 	function ENT:Think()
-		self.BaseClass.Think(self)
+		BaseClass.Think(self)
 
 		local txt
 		if (self:GetXYZMode()) then
@@ -74,7 +74,7 @@ function ENT:Setup( xyz_mode, AngVel )
 end
 
 function ENT:Think()
-	self.BaseClass.Think(self)
+	BaseClass.Think(self)
 
 	if (self.XYZMode) then
 		local vel = self:WorldToLocal(self:GetVelocity()+self:GetPos())

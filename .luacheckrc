@@ -3605,6 +3605,7 @@ stds.garrysmod.read_globals = {
   "WEAPON_PROFICIENCY_PERFECT",
 
   -- END_GENERATED_CODE
+  "BaseClass",
   "CLIENT",
   "DEFINE_BASECLASS",
   "GAMEMODE",

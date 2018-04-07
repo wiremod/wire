@@ -318,7 +318,7 @@ function ENT:UnLinkVehicle()
 end
 
 function ENT:Think()
-	self.BaseClass.Think(self)
+	BaseClass.Think(self)
 
 	if IsValid(self.Pod) then
 		local ply = nil
@@ -364,7 +364,7 @@ end
 
 -- Advanced Duplicator Support
 function ENT:BuildDupeInfo()
-	local info = self.BaseClass.BuildDupeInfo(self) or {}
+	local info = BaseClass.BuildDupeInfo(self) or {}
 
 	if (self.Pod) and (self.Pod:IsValid()) then
 	    info.pod = self.Pod:EntIndex()
@@ -374,7 +374,7 @@ function ENT:BuildDupeInfo()
 end
 
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
-	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
+	BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
 
 	self.Pod = GetEntByID(info.pod)
 end

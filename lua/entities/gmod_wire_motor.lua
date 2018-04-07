@@ -9,7 +9,7 @@ if CLIENT then
 end
 
 function ENT:Initialize()
-	self.BaseClass.Initialize(self)
+	BaseClass.Initialize(self)
 	self.Inputs = Wire_CreateInputs( self, { "Mul" } )
 end
 
