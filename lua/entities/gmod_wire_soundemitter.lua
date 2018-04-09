@@ -45,7 +45,7 @@ end
 function ENT:OnRemove()
 	hook.Remove("PlayerConnect", self:GetClass() .. self:EntIndex())
 	self:StopSounds()
-	self.BaseClass.OnRemove(self)
+	BaseClass.OnRemove(self)
 end
 
 --[[

@@ -44,7 +44,7 @@ function ENT:Use( ply )
 end
 
 function ENT:Think()
-	self.BaseClass.Think(self)
+	BaseClass.Think(self)
 	if not IsValid(self.BaseEnt) then return end
 
 	if IsValid(self.User) then
@@ -92,7 +92,7 @@ function ENT:OnRemove( )
 end
 
 function ENT:BuildDupeInfo()
-	local info = self.BaseClass.BuildDupeInfo(self) or {}
+	local info = BaseClass.BuildDupeInfo(self) or {}
 	if IsValid(self.BaseEnt) then
 		info.baseent = self.BaseEnt:EntIndex()
 		constraint.Weld(self, self.BaseEnt, 0, 0, 0, true) -- Just in case the weld has been broken somehow, remake to ensure inclusion in dupe
@@ -102,7 +102,7 @@ function ENT:BuildDupeInfo()
 end
 
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
-	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
+	BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
 	if info.baseent then
 		self.BaseEnt = GetEntByID(info.baseent)
 	end

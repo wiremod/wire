@@ -165,7 +165,7 @@ end
 -- Write advanced dupe
 --------------------------------------------------------------------------------
 function ENT:BuildDupeInfo()
-  local info = self.BaseClass.BuildDupeInfo(self) or {}
+  local info = BaseClass.BuildDupeInfo(self) or {}
 
   info.SerialNo = self.SerialNo
   info.RAMSize = self.RAMSize
@@ -184,7 +184,7 @@ end
 -- Read from advanced dupe
 --------------------------------------------------------------------------------
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
-  self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
+  BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
 
   self.SerialNo = info.SerialNo or 999999
   self.RAMSize  = info.RAMSize or 65536

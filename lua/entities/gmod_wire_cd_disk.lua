@@ -21,7 +21,7 @@ function ENT:Initialize()
 end
 
 function ENT:BuildDupeInfo()
-	local info = self.BaseClass.BuildDupeInfo(self) or {}
+	local info = BaseClass.BuildDupeInfo(self) or {}
 
 	info.Precision = self.Precision
 	info.IRadius = self.IRadius
@@ -43,7 +43,7 @@ end
 
 
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
-	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
+	BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
 
 	self.Precision = info.Precision
 	self.IRadius = info.IRadius

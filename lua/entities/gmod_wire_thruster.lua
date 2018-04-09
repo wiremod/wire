@@ -48,7 +48,7 @@ if CLIENT then
 	end
 
 	function ENT:Think()
-		self.BaseClass.Think(self)
+		BaseClass.Think(self)
 
 		self.ShouldDraw = GetConVarNumber("cl_drawthrusterseffects")
 
@@ -102,7 +102,7 @@ function ENT:Initialize()
 end
 
 function ENT:OnRemove()
-	self.BaseClass.OnRemove(self)
+	BaseClass.OnRemove(self)
 
 	if (self.soundname and self.soundname != "") then
 		self:StopSound(self.soundname)
@@ -304,7 +304,7 @@ function ENT:OnRestore()
 	self:SetOffset( self.ThrustOffset )
 	self:StartMotionController()
 
-	self.BaseClass.OnRestore(self)
+	BaseClass.OnRestore(self)
 end
 
 duplicator.RegisterEntityClass("gmod_wire_thruster", WireLib.MakeWireEnt, "Data", "force", "force_min", "force_max", "oweffect", "uweffect", "owater", "uwater", "bidir", "soundname")

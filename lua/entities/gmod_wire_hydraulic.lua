@@ -6,7 +6,7 @@ ENT.WireDebugName 	= "Hydraulic"
 if CLIENT then return end -- No more client
 
 function ENT:Initialize()
-	self.BaseClass.Initialize(self)
+	BaseClass.Initialize(self)
 	self.Inputs = WireLib.CreateInputs( self, { "Length", "In", "Out", "Constant", "Damping" } )
 	self.Outputs = WireLib.CreateOutputs( self, { "Length", "Target Length", "Constant", "Damping" } )
 	self.TargetLength = 0
@@ -36,7 +36,7 @@ function ENT:GetDistance()
 end
 
 function ENT:Think()
-	self.BaseClass.Think( self )
+	BaseClass.Think( self )
 	if not IsValid(self.constraint) then return end
 
 	local deltaTime = CurTime() - self.last_time

@@ -18,7 +18,7 @@ if CLIENT then
 
 	function ENT:DrawTranslucent()
 
-		self.BaseClass.DrawTranslucent( self )
+		BaseClass.DrawTranslucent( self )
 
 		-- No glow if we're not switched on!
 		if not self:GetOn() then return end

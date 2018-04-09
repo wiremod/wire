@@ -24,7 +24,7 @@ function ENT:Initialize()
 end
 
 function ENT:Think()
-	self.BaseClass.Think(self)
+	BaseClass.Think(self)
 
 	for i = 0,7 do
 		if self.OutPorts[i] then

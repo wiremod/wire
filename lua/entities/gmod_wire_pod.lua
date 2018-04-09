@@ -514,7 +514,7 @@ end
 
 --Duplicator support to save pod link (TAD2020)
 function ENT:BuildDupeInfo()
-	local info = self.BaseClass.BuildDupeInfo(self) or {}
+	local info = BaseClass.BuildDupeInfo(self) or {}
 	if self:HasPod() and not self.RC then
 		info.pod = self.Pod:EntIndex()
 	end
@@ -522,7 +522,7 @@ function ENT:BuildDupeInfo()
 end
 
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
-	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
+	BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
 
 	local pod = GetEntByID(info.pod)
 	if IsValid(pod) then

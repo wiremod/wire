@@ -69,7 +69,7 @@ function ENT:OnTakeDamage( dmginfo )
 end
 
 function ENT:Think()
-	self.BaseClass.Think(self)
+	BaseClass.Think(self)
 
 	if( self.Firing ) then
 		self:FireShot()

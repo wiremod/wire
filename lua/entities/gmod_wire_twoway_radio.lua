@@ -38,7 +38,7 @@ function ENT:TriggerInput(iname, value)
 end
 
 function ENT:Think()
-	self.BaseClass.Think(self)
+	BaseClass.Think(self)
 
 	if (not self.Other) or (not self.Other:IsValid()) then
 		self.Other = nil
@@ -138,7 +138,7 @@ function ENT:ShowOutput(iname, value)
 end
 
 function ENT:OnRestore()
-	self.BaseClass.OnRestore(self)
+	BaseClass.OnRestore(self)
 
 	Wire_AdjustInputs(self, { "A", "B", "C", "D" })
 	Wire_AdjustOutputs(self, { "A", "B", "C", "D" })
@@ -146,7 +146,7 @@ end
 
 // Dupe info functions added by TheApathetic
 function ENT:BuildDupeInfo()
-	local info = self.BaseClass.BuildDupeInfo(self) or {}
+	local info = BaseClass.BuildDupeInfo(self) or {}
 
 	if (self.Other) && (self.Other:IsValid()) then
 		info.Other = self.Other:EntIndex()
@@ -156,7 +156,7 @@ function ENT:BuildDupeInfo()
 end
 
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
-	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
+	BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
 
 	local other = GetEntByID(info.Other)
 	if IsValid(other) then

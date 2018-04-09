@@ -5,7 +5,7 @@ ENT.WireDebugName	= "GPS"
 
 if CLIENT then
 	function ENT:Think()
-		self.BaseClass.Think(self)
+		BaseClass.Think(self)
 
 		local pos = self:GetPos()
 		if (COLOSSAL_SANDBOX) then pos = pos * 6.25 end
@@ -51,7 +51,7 @@ function ENT:Setup()
 end
 
 function ENT:Think()
-	self.BaseClass.Think(self)
+	BaseClass.Think(self)
 
 	local pos = self:GetPos()
 	if (COLOSSAL_SANDBOX) then pos = pos * 6.25 end

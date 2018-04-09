@@ -162,7 +162,7 @@ util.PrecacheSound("buttons/button14.wav")
 util.PrecacheSound("buttons/button15.wav")
 
 function ENT:Initialize()
-	self.BaseClass.Initialize(self)
+	BaseClass.Initialize(self)
 
 	self.Outputs = WireLib.CreateOutputs(self, {"Valid", "Invalid"})
 

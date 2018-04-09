@@ -45,7 +45,7 @@ function ENT:TriggerInput(iname, value)
 end
 
 function ENT:Think()
-	self.BaseClass.Think(self)
+	BaseClass.Think(self)
 
 	// If we were undiskged, reset the disk and socket to accept new ones.
 	if (self.Const) and (not self.Const:IsValid()) then

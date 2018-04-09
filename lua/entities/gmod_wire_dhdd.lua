@@ -70,7 +70,7 @@ function ENT:TriggerInput( name, value )
 end
 
 function ENT:BuildDupeInfo()
-	local info = self.BaseClass.BuildDupeInfo( self ) or {}
+	local info = BaseClass.BuildDupeInfo( self ) or {}
 
 	info.DHDD = {}
 	info.ROM = self.ROM
@@ -97,7 +97,7 @@ function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
 	end
 	self.ROM = info.ROM or false
 
-	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
+	BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
 end
 
 duplicator.RegisterEntityClass( "gmod_wire_dhdd", WireLib.MakeWireEnt, "Data" )

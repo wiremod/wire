@@ -183,7 +183,7 @@ function ENT:SetWheelBase(Base)
 end
 
 function ENT:BuildDupeInfo()
-	local info = self.BaseClass.BuildDupeInfo(self) or {}
+	local info = BaseClass.BuildDupeInfo(self) or {}
 	if IsValid(self.Base) then
 		info.Base = self.Base:EntIndex()
 	end
@@ -191,7 +191,7 @@ function ENT:BuildDupeInfo()
 end
 
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
-	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
+	BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
 
 	local Base = GetEntByID(info.Base)
 	if IsValid(Base) then

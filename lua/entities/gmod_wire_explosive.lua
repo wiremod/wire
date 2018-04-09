@@ -170,7 +170,7 @@ function ENT:Trigger()
 end
 
 function ENT:Think()
-	self.BaseClass.Think(self)
+	BaseClass.Think(self)
 
 	if (self.exploding) then
 		if (self.ExplodeTime < CurTime()) then

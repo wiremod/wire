@@ -155,7 +155,7 @@ function ENT:ShowOutput()
 end
 
 function ENT:Think()
-	self.BaseClass.Think(self)
+	BaseClass.Think(self)
 	if self.outColor then
 		local vStart = self:GetPos()
 		local vForward = self:GetUp()

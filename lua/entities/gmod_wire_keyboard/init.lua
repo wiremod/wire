@@ -230,7 +230,7 @@ end
 function ENT:OnRemove()
 	self:UnlinkEnt()
 	self:PlayerDetach()
-	self.BaseClass.OnRemove(self)
+	BaseClass.OnRemove(self)
 end
 
 function ENT:LinkEnt(pod)
@@ -427,7 +427,7 @@ end
 duplicator.RegisterEntityClass("gmod_wire_keyboard", WireLib.MakeWireEnt, "Data", "AutoBuffer", "Synchronous", "EnterKeyAscii")
 
 function ENT:BuildDupeInfo()
-	local info = self.BaseClass.BuildDupeInfo(self) or {}
+	local info = BaseClass.BuildDupeInfo(self) or {}
 	if IsValid(self.Pod) then
 		info.pod = self.Pod:EntIndex()
 	end
@@ -435,7 +435,7 @@ function ENT:BuildDupeInfo()
 end
 
 function ENT:ApplyDupeInfo(ply, ent, info, GetEntByID)
-	self.BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
+	BaseClass.ApplyDupeInfo(self, ply, ent, info, GetEntByID)
 
 	self:LinkEnt(GetEntByID(info.pod), true)
 	if info.autobuffer then self.AutoBuffer = info.autobuffer end
