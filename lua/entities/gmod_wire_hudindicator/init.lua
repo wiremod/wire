@@ -4,6 +4,8 @@ AddCSLuaFile( "shared.lua" )
 
 include('shared.lua')
 
+DEFINE_BASECLASS("base_wire_entity")
+
 ENT.WireDebugName = "HUD Indicator"
 
 function ENT:Initialize()

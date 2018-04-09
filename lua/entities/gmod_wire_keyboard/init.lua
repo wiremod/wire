@@ -5,6 +5,8 @@ AddCSLuaFile("remap.lua")
 include('shared.lua')
 include('remap.lua')
 
+DEFINE_BASECLASS("base_wire_entity")
+
 ENT.WireDebugName = "Wired Keyboard"
 
 local All_Enums = {} -- table containing key -> key enum conversion

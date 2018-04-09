@@ -2,6 +2,8 @@ AddCSLuaFile('cl_init.lua')
 AddCSLuaFile('shared.lua')
 include('shared.lua')
 
+DEFINE_BASECLASS("base_wire_entity")
+
 -- This makes E2s not save using garry's workshop save
 -- Until someone can find the cause of the crashes, leave this in here
 local old = gmsave.ShouldSaveEntity

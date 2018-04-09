@@ -4,6 +4,8 @@ include("shared.lua")
 AddCSLuaFile("huddraw.lua")
 include("huddraw.lua")
 
+DEFINE_BASECLASS("base_wire_entity")
+
 ENT.WireDebugName = "E2 Graphics Processor HUD"
 
 function ENT:Initialize()

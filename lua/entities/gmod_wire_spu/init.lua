@@ -4,6 +4,8 @@ AddCSLuaFile("cl_spuvm.lua")
 AddCSLuaFile("shared.lua")
 include("shared.lua")
 
+DEFINE_BASECLASS("base_wire_entity")
+
 ENT.WireDebugName = "ZSPU"
 
 --------------------------------------------------------------------------------
