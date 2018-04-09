@@ -4,6 +4,8 @@ AddCSLuaFile("cl_gpuvm.lua")
 AddCSLuaFile("shared.lua")
 include("shared.lua")
 
+DEFINE_BASECLASS("base_wire_entity")
+
 ENT.WireDebugName = "ZGPU"
 
 
