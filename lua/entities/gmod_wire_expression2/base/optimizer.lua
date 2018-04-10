@@ -85,7 +85,7 @@ end
 
 for _, operator in pairs({ "and", "or" }) do
     constantPropagation[operator] = function(instruction)
-        if instruction[3][1] ~= "literal" then return instruction end
+        if instruction[3][1] ~= "literal" or instruction[4][1] ~= "literal" then return instruction end
         instruction[3] = evaluateUnary({"is", instruction[2], instruction[3]})
         instruction[4] = evaluateUnary({"is", instruction[2], instruction[4]})
         return evaluateBinary(instruction)
