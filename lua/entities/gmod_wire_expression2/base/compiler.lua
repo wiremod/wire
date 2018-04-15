@@ -281,6 +281,7 @@ end
 -- ------------------------------------------------------------------------
 
 function Compiler:InstrSEQ(args)
+	-- args = { "seq", trace, subexpressions... }
 	self:PushPrfCounter()
 
 	local stmts = { self:GetOperator(args, "seq", {})[1], 0 }
@@ -295,14 +296,17 @@ function Compiler:InstrSEQ(args)
 end
 
 function Compiler:InstrBRK(args)
+	-- args = { "brk", trace }
 	return { self:GetOperator(args, "brk", {})[1] }
 end
 
 function Compiler:InstrCNT(args)
+	-- args = { "cnt", trace }
 	return { self:GetOperator(args, "cnt", {})[1] }
 end
 
 function Compiler:InstrFOR(args)
+	-- args = { "for", trace, variable name, start expression, stop expression, step expression or nil, loop body }
 	local var = args[3]
 
 	local estart, tp1 = self:Evaluate(args, 2)
@@ -326,6 +330,7 @@ function Compiler:InstrFOR(args)
 end
 
 function Compiler:InstrWHL(args)
+	-- args = { "whl", trace, condition expression, loop body }
 	self:PushScope()
 
 	self:PushPrfCounter()
@@ -340,6 +345,7 @@ end
 
 
 function Compiler:InstrIF(args)
+	-- args = { "if", trace, condition expression, true case body, false case body }
 	self:PushPrfCounter()
 	local ex1, tp1 = self:Evaluate(args, 1)
 	local prf_cond = self:PopPrfCounter()
@@ -358,6 +364,7 @@ function Compiler:InstrIF(args)
 end
 
 function Compiler:InstrDEF(args)
+	-- args = { "def", trace, primary expression, fallback expression }
 	local ex1, tp1 = self:Evaluate(args, 1)
 
 	self:PushPrfCounter()
@@ -376,6 +383,7 @@ function Compiler:InstrDEF(args)
 end
 
 function Compiler:InstrCND(args)
+	-- args = { "cnd", trace, conditional expression, true expression, false expression }
 	local ex1, tp1 = self:Evaluate(args, 1)
 
 	self:PushPrfCounter()
@@ -398,6 +406,7 @@ end
 
 
 function Compiler:InstrFUN(args)
+	-- args = { "fun", trace, function name, { argument expressions... } }
 	local exprs = { false }
 
 	local tps = {}
@@ -415,6 +424,7 @@ function Compiler:InstrFUN(args)
 end
 
 function Compiler:InstrSFUN(args)
+	-- args = { "sfun", trace, function name expression, { argument expressions... } }
 	local exprs = { false }
 
 	local fexp, ftp = self:Evaluate(args, 1)
@@ -440,6 +450,7 @@ function Compiler:InstrSFUN(args)
 end
 
 function Compiler:InstrMTO(args)
+	-- args = { "mto", trace, method name, object expression, { argument expressions... } }
 	local exprs = { false }
 
 	local tps = {}
@@ -461,6 +472,7 @@ function Compiler:InstrMTO(args)
 end
 
 function Compiler:InstrASS(args)
+	-- args = { "ass", trace, variable name, assigned expression }
 	local op = args[3]
 	local ex, tp = self:Evaluate(args, 2)
 	local ScopeID = self:SetGlobalVariableType(op, tp, args)
@@ -477,6 +489,7 @@ function Compiler:InstrASS(args)
 end
 
 function Compiler:InstrASSL(args)
+	-- args = { "assl", trace, variable name, assigned expression }
 	local op = args[3]
 	local ex, tp = self:Evaluate(args, 2)
 	local ScopeID = self:SetLocalVariableType(op, tp, args)
@@ -490,6 +503,7 @@ function Compiler:InstrASSL(args)
 end
 
 function Compiler:InstrGET(args)
+	-- args = { "get", trace, object expression, field expression, return type or nil }
 	local ex, tp = self:Evaluate(args, 1)
 	local ex1, tp1 = self:Evaluate(args, 2)
 	local tp2 = args[5]
@@ -514,6 +528,7 @@ function Compiler:InstrGET(args)
 end
 
 function Compiler:InstrSET(args)
+	-- args = { "set", trace, object expression, field expression, value expression, value type or nil }
 	local ex, tp = self:Evaluate(args, 1)
 	local ex1, tp1 = self:Evaluate(args, 2)
 	local ex2, tp2 = self:Evaluate(args, 3)
@@ -544,6 +559,7 @@ end
 -- generic code for all binary non-boolean operators
 for _, operator in ipairs({ "add", "sub", "mul", "div", "mod", "exp", "eq", "neq", "geq", "leq", "gth", "lth", "band", "band", "bor", "bxor", "bshl", "bshr" }) do
 	Compiler["Instr" .. operator:upper()] = function(self, args)
+		-- args = { operator, trace, left expression, right expression }
 		local ex1, tp1 = self:Evaluate(args, 1)
 		local ex2, tp2 = self:Evaluate(args, 2)
 		local rt = self:GetOperator(args, operator, { tp1, tp2 })
@@ -552,6 +568,7 @@ for _, operator in ipairs({ "add", "sub", "mul", "div", "mod", "exp", "eq", "neq
 end
 
 function Compiler:InstrINC(args)
+	-- args = { "inc", trace, variable name }
 	local op = args[3]
 	local tp, ScopeID = self:GetVariableType(args, op)
 	local rt = self:GetOperator(args, "inc", { tp })
@@ -567,6 +584,7 @@ function Compiler:InstrINC(args)
 end
 
 function Compiler:InstrDEC(args)
+	-- args = { "dec", trace, variable name }
 	local op = args[3]
 	local tp, ScopeID = self:GetVariableType(args, op)
 	local rt = self:GetOperator(args, "dec", { tp })
@@ -582,6 +600,7 @@ function Compiler:InstrDEC(args)
 end
 
 function Compiler:InstrNEG(args)
+	-- args = { "neg", trace, expression }
 	local ex1, tp1 = self:Evaluate(args, 1)
 	local rt = self:GetOperator(args, "neg", { tp1 })
 	return { rt[1], ex1 }, rt[2]
@@ -589,6 +608,7 @@ end
 
 
 function Compiler:InstrNOT(args)
+	-- args = { "not", trace, expression }
 	local ex1, tp1 = self:Evaluate(args, 1)
 	local rt1is = self:GetOperator(args, "is", { tp1 })
 	local rt = self:GetOperator(args, "not", { rt1is[2] })
@@ -596,6 +616,7 @@ function Compiler:InstrNOT(args)
 end
 
 function Compiler:InstrAND(args)
+	-- args = { "and", trace, left expression, right expression }
 	local ex1, tp1 = self:Evaluate(args, 1)
 	local ex2, tp2 = self:Evaluate(args, 2)
 	local rt1is = self:GetOperator(args, "is", { tp1 })
@@ -605,6 +626,7 @@ function Compiler:InstrAND(args)
 end
 
 function Compiler:InstrOR(args)
+	-- args = { "or", trace, left expression, right expression }
 	local ex1, tp1 = self:Evaluate(args, 1)
 	local ex2, tp2 = self:Evaluate(args, 2)
 	local rt1is = self:GetOperator(args, "is", { tp1 })
@@ -615,6 +637,7 @@ end
 
 
 function Compiler:InstrTRG(args)
+	-- args = { "trg", trace, variable name }
 	local op = args[3]
 	if not self.inputs[op] then
 		self:Error("Triggered operator (~" .. E2Lib.limitString(op, 10) .. ") can only be used on inputs", args)
@@ -624,6 +647,7 @@ function Compiler:InstrTRG(args)
 end
 
 function Compiler:InstrDLT(args)
+	-- args = { "dlt", trace, variable name }
 	local op = args[3]
 	local tp, ScopeID = self:GetVariableType(args, op)
 
@@ -639,6 +663,7 @@ function Compiler:InstrDLT(args)
 end
 
 function Compiler:InstrIWC(args)
+	-- args = { "iwc", trace, variable name }
 	local op = args[3]
 
 	if self.inputs[op] then
@@ -652,12 +677,14 @@ function Compiler:InstrIWC(args)
 	end
 end
 function Compiler:InstrLITERAL(args)
+	-- args = { "literal", trace, value, value type }
 	self.prfcounter = self.prfcounter + 0.5
 	local value = args[3]
 	return { function() return value end }, args[4]
 end
 
 function Compiler:InstrVAR(args)
+	-- args = { "var", trace, variable name }
 	self.prfcounter = self.prfcounter + 1.0
 	local tp, ScopeID = self:GetVariableType(args, args[3])
 	local name = args[3]
@@ -668,7 +695,7 @@ function Compiler:InstrVAR(args)
 end
 
 function Compiler:InstrFEA(args)
-	-- local sfea = self:Instruction(trace, "fea", keyvar, keytype, valvar, valtype, tableexpr, self:Block("foreach statement"))
+	-- args = { "fea", trace, key variable name, key type, value variable name, value type, table expression, loop body }
 	local keyvar, keytype, valvar, valtype = args[3], args[4], args[5], args[6]
 	local tableexpr, tabletp = self:Evaluate(args, 5)
 
@@ -709,7 +736,7 @@ end
 
 
 function Compiler:InstrFUNCTION(args)
-	-- local Inst = self:Instruction(Trace, "function", Sig, Return, Type, Args, self:Block("function decleration"))
+	-- args = { "function", trace, signature, return type, object type, { { parameter name, parameter type }... }, function body }
 	local Sig, Return, methodType, Args = args[3], args[4], args[5], args[6]
 	Return = Return or ""
 
@@ -793,6 +820,7 @@ function Compiler:InstrFUNCTION(args)
 end
 
 function Compiler:InstrRETURN(args)
+	-- args = { "return", trace, return expression or nil }
 	local enclosingFunction = self.EnclosingFunctions[#self.EnclosingFunctions]
 	if enclosingFunction == nil then
 		self:Error("Return may not exist outside of a function", args)
@@ -814,6 +842,7 @@ function Compiler:InstrRETURN(args)
 end
 
 function Compiler:InstrKVTABLE(args)
+	-- args = { "kvtable", trace, { key expression = value expression... } }
 	local s = {}
 	local stypes = {}
 
@@ -833,6 +862,7 @@ function Compiler:InstrKVTABLE(args)
 end
 
 function Compiler:InstrKVARRAY(args)
+	-- args = { "kvarray", trace, { key expression = value expression... } }
 	local values = {}
 	local types = {}
 
@@ -852,6 +882,8 @@ function Compiler:InstrKVARRAY(args)
 end
 
 function Compiler:InstrSWITCH(args)
+	-- args = { "switch", trace, value expression, { { case expression or nil, body }... } }
+	-- up to one case can have a nil case expression, this is the default case
 	self:PushPrfCounter()
 	local value, type = Compiler["Instr" .. string.upper(args[3][1])](self, args[3]) -- This is the value we are passing though the switch statment
 	local prf_cond = self:PopPrfCounter()
@@ -889,7 +921,7 @@ function Compiler:InstrSWITCH(args)
 end
 
 function Compiler:InstrINCLU(args)
-
+	-- args = { "inclu", trace, filename }
 	local file = args[3]
 	local include = self.includes[file]
 
