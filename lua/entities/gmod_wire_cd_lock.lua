@@ -46,35 +46,28 @@ end
 
 function ENT:Think()
 	BaseClass.Think(self)
-
-	-- If we were undiskged, reset the disk and socket to accept new ones.
-	if (self.Const) and (not self.Const:IsValid()) then
-		self.Const = nil
-		self.Disk.Lock = nil
-		self.Disk = nil
-		self.NoCollideConst = nil
-
-		WireLib.TriggerOutput(self, "Locked", 0)
-		WireLib.TriggerOutput(self, "DiskEntity", nil)
-
-		self:NextThink(CurTime() + NEW_DISK_WAIT_TIME) --Give time before next grabbing a disk.
+	if self.DoNextThink then
+		self:NextThink( self.DoNextThink )
+		self.DoNextThink = nil
 		return true
-	else
-		if (self.DisableLinking < 1) and (self.Disk == nil) then
-			-- Find entities near us
-			local lockCenter = self:LocalToWorld(Vector(0, 0, 0))
-			local local_ents = ents.FindInSphere(lockCenter, DISK_IN_ATTACH_RANGE)
-			for key, disk in pairs(local_ents) do
-				-- If we find a disk, try to attach it to us
-				if (disk:IsValid() && disk:GetClass() == "gmod_wire_cd_disk") then
-					if (disk.Lock == nil) then
-						self:AttachDisk(disk)
-					end
+	end
+
+	if not IsValid(self.Disk) and self.DisableLinking < 1 then -- if we're not linked
+		-- Find entities near us
+		local lockCenter = self:LocalToWorld(Vector(0, 0, 0))
+		local local_ents = ents.FindInSphere(lockCenter, DISK_IN_ATTACH_RANGE)
+		for key, disk in pairs(local_ents) do
+			-- If we find a disk, try to attach it to us
+			if (disk:IsValid() and disk:GetClass() == "gmod_wire_cd_disk") then
+				if (disk.Lock == nil) then
+					self:AttachDisk(disk)
 				end
 			end
 		end
+	else
+		self:NextThink(CurTime() + 1)
+		return true
 	end
-	self:NextThink(CurTime() + 0.25)
 end
 
 function ENT:AttachDisk(disk)
@@ -101,6 +94,18 @@ function ENT:AttachDisk(disk)
 		WireLib.TriggerOutput(self, "DiskEntity", nil)
 		return
 	end
+
+	self.Const:CallOnRemove("wire_cd_remove_on_weld",function()
+		self.Const = nil
+		self.Disk.Lock = nil
+		self.Disk = nil
+		self.NoCollideConst = nil
+
+		WireLib.TriggerOutput(self, "Locked", 0)
+		WireLib.TriggerOutput(self, "DiskEntity", nil)
+
+		self.DoNextThink = CurTime() + NEW_DISK_WAIT_TIME --Give time before next grabbing a disk.
+	end)
 
 	--Prepare clearup incase one is removed
 	disk:DeleteOnRemove(self.Const)
