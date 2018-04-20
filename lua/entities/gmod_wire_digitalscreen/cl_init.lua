@@ -75,7 +75,7 @@ function ENT:AddBuffer(datastr,pixelbit)
 end
 
 function ENT:ProcessBuffer()
-	if not self.buffer[1] then return 0 end
+	if not self.buffer[1] then return end
 
 	local datastr = self.buffer[1].datastr
 	local readIndex = self.buffer[1].readIndex
@@ -85,7 +85,7 @@ function ENT:ProcessBuffer()
 	length, readIndex = stringToNumber(readIndex,datastr,3)
 	if length == 0 then
 		table.remove( self.buffer, 1 )
-		return 0
+		return
 	end
 	local address
 	address, readIndex = stringToNumber(readIndex,datastr,3)
@@ -101,17 +101,17 @@ function ENT:ProcessBuffer()
 		end
 	end
 
-	self.buffer[1].readIndex = readIndex
-
-	return #datastr
+	if self.buffer[1] then -- check needed in case buffer is cleared
+		self.buffer[1].readIndex = readIndex
+	end
 end
 
 function ENT:Think()
 	if self.buffer[1] ~= nil then
-		local processed_len = 1000000 -- process at most this much each time
+		local maxtime = SysTime() + (1/RealFrameTime()) * 0.0001 -- do more depending on client FPS. Higher fps = more work
 
-		while processed_len > 0 do
-			processed_len = processed_len - math.max(self:ProcessBuffer(),10000) -- math.max here is an easy way to prevent infinite loops when it returns 0
+		while SysTime() < maxtime and self.buffer[1] do
+			self:ProcessBuffer()
 		end
 	end
 
@@ -150,7 +150,7 @@ function ENT:WriteCell(Address,value)
 	end
 	self.Memory2[Address] = value -- invisible buffer
 
-	if Address == 1048574 then
+	if Address == 1048574 then -- Hardware Clear Screen
 		local mem1,mem2 = {},{}
 		for addr = 1048500,1048575 do
 			mem1[addr] = self.Memory1[addr]
@@ -160,6 +160,7 @@ function ENT:WriteCell(Address,value)
 		self.IsClear = true
 		self.ClearQueued = true
 		self.NeedRefresh = true
+		self.buffer = {} -- reset buffer
 	elseif Address == 1048572 then
 		self.ScreenHeight = value
 		if not self.IsClear then
