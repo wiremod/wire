@@ -62,7 +62,8 @@ function string.GetNormalizedFilepath( path )
 		elseif tbl[i] == ".." then
 			table.remove(tbl, i)
 			if i>1 then
-				table.remove(tbl, i-1)
+				i = i - 1
+				table.remove(tbl, i)
 			end
 		else
 			i = i + 1
