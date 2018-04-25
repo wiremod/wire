@@ -9,14 +9,17 @@ Obj.valign = 0
 Obj.halign = 0
 Obj.angle = 0
 
+local cam_PushModelMatrix
+local cam_PopModelMatrix
+local mat
+local matAng
+
 if CLIENT then
 	-- Thanks to Wizard for this rotateable text code
 	cam_PushModelMatrix = cam.PushModelMatrix
 	cam_PopModelMatrix = cam.PopModelMatrix
 	mat = Matrix()
-	mat:Scale(Vector(1, 1, 1))
 	matAng = Angle(0, 0, 0)
-	matTrans = Vector(0, 0, 0)
 end
 
 function Obj:Draw(ent, drawMat)

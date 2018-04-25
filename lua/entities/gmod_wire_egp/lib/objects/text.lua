@@ -17,10 +17,8 @@ local surface_SetFont
 local surface_GetTextSize
 local cam_PushModelMatrix
 local cam_PopModelMatrix
-local mat = Matrix()
-local matAng = Angle(0, 0, 0)
-local matTrans = Vector(0, 0, 0)
-local matScale = Vector(0, 0, 0)
+local mat
+local matAng
 
 if CLIENT then
 	surface_SetTextPos = surface.SetTextPos
@@ -35,9 +33,7 @@ if CLIENT then
 	cam_PushModelMatrix = cam.PushModelMatrix
 	cam_PopModelMatrix = cam.PopModelMatrix
 	mat = Matrix()
-	mat:Scale(Vector(1, 1, 1))
 	matAng = Angle(0, 0, 0)
-	matTrans = Vector(0, 0, 0)
 end
 
 function Obj:Draw(ent, drawMat)
