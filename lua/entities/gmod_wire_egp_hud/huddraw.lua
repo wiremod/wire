@@ -67,9 +67,11 @@ hook.Add("Initialize","EGP_HUD_Initialize",function()
 				else
 					if (Ent.On == true) then
 						if (Ent.RenderTable and #Ent.RenderTable > 0) then
+							local mat = Ent:GetEGPMatrix()
+
 							for _,object in pairs( Ent.RenderTable ) do
 								local oldtex = EGP:SetMaterial( object.material )
-								object:Draw(Ent)
+								object:Draw(Ent, mat)
 								EGP:FixMaterial( oldtex )
 
 								-- Check for 3DTracker parent
