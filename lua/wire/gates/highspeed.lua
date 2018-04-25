@@ -15,7 +15,7 @@ GateActions["highspeed_write"] = {
 		return Memory:WriteCell(Address, Data) and 1 or 0
 	end,
 	label = function(Out, Clk, Memory, Address, Data)
-		return "Clock:"..Clk.." Memory:"..Memory.." Address:"..Address.." Data:"..Data.." = "..Out
+		return string.format("Clock:%s Memory:%s Address:%s Data:%s = %s", Clk, Memory, Address, Data, Out)
 	end
 }
 
@@ -34,7 +34,7 @@ GateActions["highspeed_read"] = {
 		return Memory:ReadCell(Address) or 0
 	end,
 	label = function(Out, Clk, Memory, Address)
-		return "Clock:"..Clk.." Memory:"..Memory.." Address:"..Address.." = "..Out
+		return string.format("Clock:%s Memory:%s Address:%s = %s", Clk, Memory, Address, Out)
 	end
 }
 
