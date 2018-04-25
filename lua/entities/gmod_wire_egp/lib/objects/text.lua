@@ -40,7 +40,7 @@ if CLIENT then
 	matTrans = Vector(0, 0, 0)
 end
 
-Obj.Draw = function( self )
+function Obj:Draw(ent, drawMat)
 	if (self.text and #self.text>0) then
 		surface_SetTextColor( self.r, self.g, self.b, self.a )
 
@@ -87,14 +87,14 @@ Obj.Draw = function( self )
 				y = (h * ((self.valign%10)/2))
 			end
 
-			-- Thanks to Wizard for the base to this rotateable text code. I edited it a bit to properly support alignment
+			mat:Set(drawMat)
+
+			mat:Translate(Vector(self.x, self.y, 0))
+
 			matAng.y = -self.angle
-			mat:SetAngles(matAng)
-			matTrans.x = x
-			matTrans.y = y
-			matTrans:Rotate(matAng)
-			mat:SetTranslation(Vector(self.x,self.y,0)-matTrans)
-			surface_SetTextPos(0, 0)
+			mat:Rotate(matAng)
+
+			surface_SetTextPos(-x, -y)
 			cam_PushModelMatrix(mat)
 				surface_DrawText( self.text )
 			cam_PopModelMatrix()

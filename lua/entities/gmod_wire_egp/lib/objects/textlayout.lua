@@ -19,7 +19,7 @@ if CLIENT then
 	matTrans = Vector(0, 0, 0)
 end
 
-Obj.Draw = function( self )
+function Obj:Draw(ent, drawMat)
 	if (self.text and #self.text>0) then
 		surface.SetTextColor( self.r, self.g, self.b, self.a )
 
@@ -50,12 +50,13 @@ Obj.Draw = function( self )
 		if self.angle == 0 then
 			self.layouter:DrawText(self.text, self.x, self.y, self.w, self.h, self.halign, self.valign)
 		else
+			mat:Set(drawMat)
+
+			mat:Translate(Vector(self.x, self.y, 0))
+
 			matAng.y = -self.angle
-			mat:SetAngles(matAng)
-			matTrans.x = x
-			matTrans.y = y
-			matTrans:Rotate(matAng)
-			mat:SetTranslation(Vector(self.x,self.y,0)-matTrans)
+			mat:Rotate(matAng)
+
 			cam_PushModelMatrix(mat)
 				self.layouter:DrawText(self.text, 0, 0, self.w, self.h, self.halign, self.valign)
 			cam_PopModelMatrix()
