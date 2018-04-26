@@ -3615,6 +3615,7 @@ stds.garrysmod.read_globals = {
   "TEXFILTER"
 }
 stds.garrysmod.globals = {
+  "EFFECT",
   "ENT",
   "TOOL",
   "SWEP",

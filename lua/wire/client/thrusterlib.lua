@@ -316,7 +316,7 @@ WireLib.ThrusterEffectDraw.fire_smoke_big = function(self)
 
 
 
-	local effectdata = EffectData()
+	effectdata = EffectData()
 		effectdata:SetOrigin( vOffset )
 		effectdata:SetNormal( vNormal )
 	util.Effect( "ThumperDust ", effectdata )
@@ -681,8 +681,6 @@ WireLib.ThrusterEffectThink.jetflame = function(self)
 	local vOffset = self:LocalToWorld(self:GetOffset())
 	local vNormal = self:CalcNormal()
 
-	//vOffset = vOffset + VectorRand() * 5
-
 	local speed = math.Rand(90,252)
 	local roll = math.Rand(-90,90)
 
@@ -728,8 +726,6 @@ WireLib.ThrusterEffectThink.jetflame_purple = function(self)
 
 	local vOffset = self:LocalToWorld(self:GetOffset())
 	local vNormal = self:CalcNormal()
-
-	//vOffset = vOffset + VectorRand() * 5
 
 	local speed = math.Rand(90,252)
 	local roll = math.Rand(-90,90)
@@ -777,8 +773,6 @@ WireLib.ThrusterEffectThink.jetflame_red = function(self)
 	local vOffset = self:LocalToWorld(self:GetOffset())
 	local vNormal = self:CalcNormal()
 
-	//vOffset = vOffset + VectorRand() * 5
-
 	local speed = math.Rand(90,252)
 	local roll = math.Rand(-90,90)
 
@@ -824,8 +818,6 @@ WireLib.ThrusterEffectThink.jetflame_blue = function(self)
 
 	local vOffset = self:LocalToWorld(self:GetOffset())
 	local vNormal = self:CalcNormal()
-
-	//vOffset = vOffset + VectorRand() * 5
 
 	local speed = math.Rand(90,252)
 	local roll = math.Rand(-90,90)
