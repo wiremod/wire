@@ -16,7 +16,7 @@ function EFFECT:Init( data )
 	self.Speed = 2
 	self.Size = 16
 	self.Alpha = 255
-
+	self.GrowthRate = data:GetMagnitude()
 end
 
 function EFFECT:Think( )
@@ -24,7 +24,7 @@ function EFFECT:Think( )
 	local speed = FrameTime() * self.Speed
 
 	self.Alpha = self.Alpha - 250.0 * speed
-
+	self.Size = self.Size + (255 - self.Alpha) * self.GrowthRate
 	self:SetPos( self:GetPos() + self.Normal * speed * 128 )
 
 	if (self.Alpha < 0 ) then return false end
