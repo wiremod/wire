@@ -1168,6 +1168,7 @@ function Editor:InitControlPanel(frame)
 	modes["Scroller"] = { 2, "Current mode:\nMouse scroller to choose item;\nMiddle mouse to use." }
 	modes["Scroller w/ Enter"] = { 3, "Current mode:\nMouse scroller to choose item;\nEnter to use." }
 	modes["Eclipse Style"] = { 4, "Current mode:\nEnter to use top match;\nTab to enter auto completion menu;\nArrow keys to choose item;\nEnter to use;\nSpace to abort." }
+	modes["Atom/IntelliJ style"] = { 5, "Current mode:\nTab/Enter to use;\nArrow keys to choose." }
 	-- modes["Qt Creator Style"]			= { 6, "Current mode:\nCtrl+Space to enter auto completion menu;\nSpace to abort; Enter to use top match." } <-- probably wrong. I'll check about adding Qt style later.
 
 	for k, _ in pairs(modes) do
@@ -1179,6 +1180,7 @@ function Editor:InitControlPanel(frame)
 	modes[2] = modes["Scroller"][2]
 	modes[3] = modes["Scroller w/ Enter"][2]
 	modes[4] = modes["Eclipse Style"][2]
+	modes[5] = modes["Atom/IntelliJ style"][2]
 	AutoCompleteControlOptions:SetToolTip(modes[GetConVar("wire_expression2_autocomplete_controlstyle"):GetInt()])
 
 

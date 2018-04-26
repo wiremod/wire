@@ -40,6 +40,13 @@ WireTextEditor.Modes.Default = { SyntaxColorLine = function(self, row) return { 
 
 local wire_expression2_autocomplete_controlstyle = CreateClientConVar( "wire_expression2_autocomplete_controlstyle", "0", true, false )
 
+local AC_STYLE_DEFAULT = 0 -- Default style - Tab/CTRL+Tab to choose item;\nEnter/Space to use;\nArrow keys to abort.
+local AC_STYLE_VISUALCSHARP = 1 -- Visual C# Style - Ctrl+Space to use the top match;\nArrow keys to choose item;\nTab/Enter/Space to use;\nCode validation hotkey (ctrl+space) moved to ctrl+b.
+local AC_STYLE_SCROLLER = 2 -- Scroller style - Mouse scroller to choose item;\nMiddle mouse to use.
+local AC_STYLE_SCROLLER_ENTER = 3 -- Scroller Style w/ Enter - Mouse scroller to choose item;\nEnter to use.
+local AC_STYLE_ECLIPSE = 4 -- Eclipse Style - Enter to use top match;\nTab to enter auto completion menu;\nArrow keys to choose item;\nEnter to use;\nSpace to abort.
+local AC_STYLE_ATOM = 5 -- Atom style - Tab/Enter to use, arrow keys to choose
+
 local EDITOR = {}
 
 function EDITOR:Init()
@@ -882,7 +889,7 @@ end
 function EDITOR:OnMouseWheeled(delta)
 	if self.AC_Panel and self.AC_Panel:IsVisible() then
 		local mode = wire_expression2_autocomplete_controlstyle:GetInt()
-		if mode == 2 or mode == 3 then
+		if mode == AC_STYLE_SCROLLER or mode == AC_STYLE_SCROLLER_ENTER then
 			self.AC_Panel.Selected = self.AC_Panel.Selected - delta
 			if self.AC_Panel.Selected > #self.AC_Suggestions then self.AC_Panel.Selected = 1 end
 			if self.AC_Panel.Selected < 1 then self.AC_Panel.Selected = #self.AC_Suggestions end
@@ -1823,7 +1830,7 @@ function EDITOR:_OnKeyCodeTyped(code)
 
 		if code == KEY_ENTER then
 			local mode = wire_expression2_autocomplete_controlstyle:GetInt()
-			if mode == 4 and self.AC_HasSuggestions and self.AC_Suggestions[1] and self.AC_Panel and self.AC_Panel:IsVisible() then
+			if mode == AC_STYLE_ECLIPSE and self.AC_HasSuggestions and self.AC_Suggestions[1] and self.AC_Panel and self.AC_Panel:IsVisible() then
 				if self:AC_Use( self.AC_Suggestions[1] ) then return end
 			end
 			local row = self.Rows[self.Caret[1]]:sub(1,self.Caret[2]-1)
@@ -1834,7 +1841,7 @@ function EDITOR:_OnKeyCodeTyped(code)
 		elseif code == KEY_UP then
 			if self.AC_Panel and self.AC_Panel:IsVisible() then
 				local mode = wire_expression2_autocomplete_controlstyle:GetInt()
-				if mode == 1 then
+				if mode == AC_STYLE_VISUALCSHARP or mode == AC_STYLE_ATOM then
 					self.AC_Panel:RequestFocus()
 					return
 				end
@@ -1845,7 +1852,7 @@ function EDITOR:_OnKeyCodeTyped(code)
 		elseif code == KEY_DOWN then
 			if self.AC_Panel and self.AC_Panel:IsVisible() then
 				local mode = wire_expression2_autocomplete_controlstyle:GetInt()
-				if mode == 1 then
+				if mode == AC_STYLE_VISUALCSHARP or mode == AC_STYLE_ATOM then
 					self.AC_Panel:RequestFocus()
 					return
 				end
@@ -1917,9 +1924,9 @@ function EDITOR:_OnKeyCodeTyped(code)
 
 	if code == KEY_TAB and self.AC_Panel and self.AC_Panel:IsVisible() then
 		local mode = wire_expression2_autocomplete_controlstyle:GetInt()
-		if mode == 0 or mode == 4 then
+		if mode == AC_STYLE_DEFAULT or mode == AC_STYLE_ECLIPSE or mode == AC_STYLE_ATOM then
 			self.AC_Panel:RequestFocus()
-			if mode == 4 and self.AC_Panel.Selected == 0 then self.AC_Panel.Selected = 1 end
+			if (mode == AC_STYLE_ECLIPSE or mode == AC_STYLE_ATOM) and self.AC_Panel.Selected == 0 then self.AC_Panel.Selected = 1 end
 			return
 		end
 		handled = true
@@ -2421,7 +2428,7 @@ function EDITOR:AC_CreatePanel()
 		if not self.AC_HasSuggestions or not self.AC_Panel_Visible then return end
 
 		local mode = wire_expression2_autocomplete_controlstyle:GetInt()
-		if mode == 0 then -- Default style - Tab/CTRL+Tab to choose item;\nEnter/Space to use;\nArrow keys to abort.
+		if mode == AC_STYLE_DEFAULT then
 
 			if input.IsKeyDown( KEY_ENTER ) or input.IsKeyDown( KEY_SPACE ) then -- Use
 				self:AC_SetVisible( false )
@@ -2442,8 +2449,7 @@ function EDITOR:AC_CreatePanel()
 			elseif input.IsKeyDown( KEY_UP ) or input.IsKeyDown( KEY_DOWN ) or input.IsKeyDown( KEY_LEFT ) or input.IsKeyDown( KEY_RIGHT ) then
 				self:AC_SetVisible( false )
 			end
-
-		elseif mode == 1 then -- Visual C# Style - Ctrl+Space to use the top match;\nArrow keys to choose item;\nTab/Enter/Space to use;\nCode validation hotkey (ctrl+space) moved to ctrl+b.
+		elseif mode == AC_STYLE_VISUALCSHARP or mode == AC_STYLE_ATOM then
 
 			if input.IsKeyDown( KEY_TAB ) or input.IsKeyDown( KEY_ENTER ) or input.IsKeyDown( KEY_SPACE ) then -- Use
 				self:AC_SetVisible( false )
@@ -2462,21 +2468,21 @@ function EDITOR:AC_CreatePanel()
 				pnl.AlreadySelected = nil
 			end
 
-		elseif mode == 2 then -- Scroller style - Mouse scroller to choose item;\nMiddle mouse to use.
+		elseif mode == AC_STYLE_SCROLLER then
 
 			if input.IsMouseDown( MOUSE_MIDDLE ) then
 				self:AC_SetVisible( false )
 				self:AC_Use( self.AC_Suggestions[pnl.Selected] )
 			end
 
-		elseif mode == 3 then -- Scroller Style w/ Enter - Mouse scroller to choose item;\nEnter to use.
+		elseif mode == AC_STYLE_SCROLLER_ENTER then
 
 			if input.IsKeyDown( KEY_ENTER ) then
 				self:AC_SetVisible( false )
 				self:AC_Use( self.AC_Suggestions[pnl.Selected] )
 			end
 
-		elseif mode == 4 then -- Eclipse Style - Enter to use top match;\nTab to enter auto completion menu;\nArrow keys to choose item;\nEnter to use;\nSpace to abort.
+		elseif mode == AC_STYLE_ECLIPSE then
 
 			if input.IsKeyDown( KEY_ENTER ) then -- Use
 				self:AC_SetVisible( false )
@@ -2574,7 +2580,7 @@ function EDITOR:AC_FillInfoList( suggestion )
 		desc = (desc or "") .. ((desc and desc ~= "") and "\n" or "") .. "Others with the same name:"
 
 		-- Loop through the "others" table to add all of them
-		surface_SetFont( "E2SmallFont" )
+		surface_SetFont(self.CurrentFont)
 		for _, v in pairs( others ) do
 			local nice_name = v:nice_str( self )
 
@@ -2584,8 +2590,9 @@ function EDITOR:AC_FillInfoList( suggestion )
 			label:SetText( "" )
 			label.Paint = function( pnl )
 				local w,h = pnl:GetSize()
-				draw_RoundedBox( 1,1,1, w-2,h-2, Color( 65,105,225,255 ) )
-				surface_SetFont( "E2SmallFont" )
+				surface_SetDrawColor(65, 105, 255)
+				surface_DrawRect(0, 0, w, h)
+				surface_SetFont(self.CurrentFont)
 				surface_SetTextPos( 6, h/2-nameh/2 )
 				surface_SetTextColor( 255,255,255,255 )
 				surface_DrawText( nice_name )
@@ -2630,7 +2637,7 @@ function EDITOR:AC_FillList()
 	panel.Selected = 0
 	local maxw = 15
 
-	surface.SetFont( "E2SmallFont" )
+	surface.SetFont(self.CurrentFont)
 
 	-- Add all suggestions to the list
 	for count,suggestion in pairs( self.AC_Suggestions ) do
@@ -2643,13 +2650,16 @@ function EDITOR:AC_FillList()
 
 		-- Override paint to give it the "E2 theme" and to make it highlight when selected
 		txt.Paint = function( pnl, w, h )
-			draw_RoundedBox( 1, 1, 1, w-2, h-2, Color( 65, 105, 225, 255 ) )
+			local backgroundColor
 			if panel.Selected == pnl.count then
-				draw_RoundedBox( 0, 2, 2, w - 4 , h - 4, Color(0,0,0,192) )
+				backgroundColor = Color(49, 80, 169, 192)
+			else
+				backgroundColor = Color(65, 105, 225, 255)
 			end
-			-- I honestly dont have a fucking clue.
-			-- h2, was being cleaned up instantly for no reason.
-			surface.SetFont( "E2SmallFont" )
+			surface_SetDrawColor(backgroundColor)
+			surface_DrawRect(0, 0, w, h)
+
+			surface.SetFont(self.CurrentFont)
 			local _, h2 = surface.GetTextSize( nice_name )
 
 			surface.SetTextPos( 6, (h / 2) - (h2 / 2) )
