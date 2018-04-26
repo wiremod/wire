@@ -1195,11 +1195,12 @@ function EDITOR:CreateFindWindow()
 	pnl:SetVisible( false ) -- but hide it for now
 	pnl:SetTitle( "Find" )
 	pnl:SetScreenLock( true )
-
-	local old = pnl.Close
-	function pnl.Close()
-		self.ForceDrawCursor = false
-		old( pnl )
+	do
+		local old = pnl.Close
+		function pnl.Close()
+			self.ForceDrawCursor = false
+			old( pnl )
+		end
 	end
 
 	-- Center it above the editor
@@ -1225,10 +1226,12 @@ function EDITOR:CreateFindWindow()
 	use_patterns:SizeToContents()
 	use_patterns:SetConVar( "wire_expression2_editor_find_use_patterns" )
 	use_patterns:SetPos( 4, 4 )
-	old = use_patterns.Button.SetValue
-	use_patterns.Button.SetValue = function( pnl, b )
-		if wire_expression2_editor_find_whole_word_only:GetBool() then return end
-		old( pnl, b )
+	do
+		local old = use_patterns.Button.SetValue
+		use_patterns.Button.SetValue = function( pnl, b )
+			if wire_expression2_editor_find_whole_word_only:GetBool() then return end
+			old( pnl, b )
+		end
 	end
 
 	local case_sens = vgui.Create( "DCheckBoxLabel", common_panel )
@@ -1244,10 +1247,12 @@ function EDITOR:CreateFindWindow()
 	whole_word:SizeToContents()
 	whole_word:SetConVar( "wire_expression2_editor_find_whole_word_only" )
 	whole_word:SetPos( 4, 44 )
-	old = whole_word.Button.Toggle
-	whole_word.Button.Toggle = function( pnl )
-		old( pnl )
-		if pnl:GetValue() then use_patterns:SetValue( false ) end
+	do
+		local old = whole_word.Button.Toggle
+		whole_word.Button.Toggle = function( pnl )
+			old( pnl )
+			if pnl:GetValue() then use_patterns:SetValue( false ) end
+		end
 	end
 
 	local wrap_around = vgui.Create( "DCheckBoxLabel", common_panel )
@@ -1472,34 +1477,40 @@ function EDITOR:CreateFindWindow()
 	pnl.GoToLineTab.Entry = GoToEntry
 
 	-- Tab buttons
-	old = pnl.FindTab.Tab.OnMousePressed
-	pnl.FindTab.Tab.OnMousePressed = function( ... )
-		pnl.FindTab.Entry:SetText( pnl.ReplaceTab.Entry:GetValue() or "" )
-		local active = pnl.TabHolder:GetActiveTab()
-		if active == pnl.GoToLineTab.Tab then
-			pnl:SetHeight( 200 )
-			pnl.TabHolder:StretchToParent( 1, 23, 1, 1 )
+	do
+		local old = pnl.FindTab.Tab.OnMousePressed
+		pnl.FindTab.Tab.OnMousePressed = function( ... )
+			pnl.FindTab.Entry:SetText( pnl.ReplaceTab.Entry:GetValue() or "" )
+			local active = pnl.TabHolder:GetActiveTab()
+			if active == pnl.GoToLineTab.Tab then
+				pnl:SetHeight( 200 )
+				pnl.TabHolder:StretchToParent( 1, 23, 1, 1 )
+			end
+			old( ... )
 		end
-		old( ... )
 	end
 
-	old = pnl.ReplaceTab.Tab.OnMousePressed
-	pnl.ReplaceTab.Tab.OnMousePressed = function( ... )
-		pnl.ReplaceTab.Entry:SetText( pnl.FindTab.Entry:GetValue() or "" )
-		local active = pnl.TabHolder:GetActiveTab()
-		if active == pnl.GoToLineTab.Tab then
-			pnl:SetHeight( 200 )
-			pnl.TabHolder:StretchToParent( 1, 23, 1, 1 )
+	do
+		local old = pnl.ReplaceTab.Tab.OnMousePressed
+		pnl.ReplaceTab.Tab.OnMousePressed = function( ... )
+			pnl.ReplaceTab.Entry:SetText( pnl.FindTab.Entry:GetValue() or "" )
+			local active = pnl.TabHolder:GetActiveTab()
+			if active == pnl.GoToLineTab.Tab then
+				pnl:SetHeight( 200 )
+				pnl.TabHolder:StretchToParent( 1, 23, 1, 1 )
+			end
+			old( ... )
 		end
-		old( ... )
 	end
 
-	old = pnl.GoToLineTab.Tab.OnMousePressed
-	pnl.GoToLineTab.Tab.OnMousePressed = function( ... )
-		pnl:SetHeight( 86 )
-		pnl.TabHolder:StretchToParent( 1, 23, 1, 1 )
-		pnl.GoToLineTab.Entry:SetText(self.Caret[1])
-		old( ... )
+	do
+		local old = pnl.GoToLineTab.Tab.OnMousePressed
+		pnl.GoToLineTab.Tab.OnMousePressed = function( ... )
+			pnl:SetHeight( 86 )
+			pnl.TabHolder:StretchToParent( 1, 23, 1, 1 )
+			pnl.GoToLineTab.Entry:SetText(self.Caret[1])
+			old( ... )
+		end
 	end
 end
 
