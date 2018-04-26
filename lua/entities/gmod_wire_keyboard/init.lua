@@ -150,7 +150,7 @@ function ENT:WriteCell(Address, value)
 		self:RemoveFromBufferByKey(value)
 	end
 
-	return false
+	return true
 end
 
 util.AddNetworkString("wire_keyboard_blockinput")
