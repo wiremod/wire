@@ -15,17 +15,17 @@ local hook = hook
 
 -- Returns a noniterable version of tbl. So indexing still works, but pairs(tbl) won't find anything
 -- Useful for hiding entity lookup tables, since Garrydupe uses util.TableToJSON, which crashes on tables with entity keys
-function table.MakeNonIterable(tbl)
+function table.MakeNonIterable(tbl) -- luacheck: ignore
     return setmetatable({}, { __index = tbl, __setindex = tbl})
 end
 
 -- Checks if the table is empty, it's faster than table.Count(Table) > 0
-function table.IsEmpty(Table)
+function table.IsEmpty(Table) -- luacheck: ignore
 	return (next(Table) == nil)
 end
 
 -- Compacts an array by rejecting entries according to cb.
-function table.Compact(tbl, cb, n)
+function table.Compact(tbl, cb, n) -- luacheck: ignore
 	n = n or #tbl
 	local cpos = 1
 	for i = 1, n do
@@ -43,7 +43,7 @@ end
 
 -- I don't even know if I need this one.
 -- HUD indicator needs this one
-function table.MakeSortedKeys(tbl)
+function table.MakeSortedKeys(tbl) -- luacheck: ignore
 	local result = {}
 
 	for k,_ in pairs(tbl) do table.insert(result, k) end
@@ -53,7 +53,7 @@ function table.MakeSortedKeys(tbl)
 end
 
 
-function string.GetNormalizedFilepath( path )
+function string.GetNormalizedFilepath( path ) -- luacheck: ignore
 	local tbl = string.Explode( "[/\\]+", path, true )
 	local i = 1
 	while i <= #tbl do
@@ -1170,7 +1170,7 @@ do
 		net.Receive(MESSAGE_NAME, function(_, player)
 			player.SyncedBindings = {}
 			local count = net.ReadUInt(8)
-			for i = 1, count do
+			for _ = 1, count do
 				local button = net.ReadUInt(8)
 				local bindingIndex = net.ReadUInt(5)
 				if button > BUTTON_CODE_NONE and button <= BUTTON_CODE_LAST then
