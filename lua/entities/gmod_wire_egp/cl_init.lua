@@ -28,6 +28,8 @@ function ENT:_EGP_Update( bool )
 
 		local currentfilter = self.GPU.texture_filtering
 
+		local mat = self:GetEGPMatrix()
+
 		for k,v in pairs( Table ) do
 			if (v.parent == -1) then self.UpdateConstantly = true end -- Check if an object is parented to the cursor
 			if (v.parent and v.parent != 0) then
@@ -47,10 +49,14 @@ function ENT:_EGP_Update( bool )
 				currentfilter = v.filtering
 			end
 
-			v:Draw(self)
+			v:Draw(self, mat)
 			EGP:FixMaterial( oldtex )
 		end
 	end)
+end
+
+function ENT:GetEGPMatrix()
+	return Matrix()
 end
 
 function ENT:DrawEntityOutline() end
