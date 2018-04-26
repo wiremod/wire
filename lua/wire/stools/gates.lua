@@ -46,21 +46,21 @@ if CLIENT then
 
 		searchbox:SetValue( "Search..." )
 
-		local old = searchbox.OnGetFocus
+		local oldOnGetFocus = searchbox.OnGetFocus
 		function searchbox:OnGetFocus()
 			if self:GetValue() == "Search..." then -- If "Search...", erase it
 				self:SetValue( "" )
 			end
-			old( self )
+			oldOnGetFocus( self )
 		end
 
 		-- On lose focus
-		local old = searchbox.OnLoseFocus
+		local oldOnLoseFocus = searchbox.OnLoseFocus
 		function searchbox:OnLoseFocus()
 			if self:GetValue() == "" then -- if empty, reset "Search..." text
 				timer.Simple( 0, function() self:SetValue( "Search..." ) end )
 			end
-			old( self )
+			oldOnLoseFocus( self )
 		end
 
 		local holder = vgui.Create( "DPanel" )
@@ -95,8 +95,6 @@ if CLIENT then
 
 		-- Main searching
 		local searching
-		local anim = 0
-		local animstart = 0
 		function searchbox:OnTextChanged()
 			local text = searchbox:GetValue()
 			if text ~= "" then
@@ -229,7 +227,7 @@ if CLIENT then
 
 		panel:Help("When parenting, you should check the nocollide box, or adv duplicator might not dupe the gate.")
 
-		local angleoffset = panel:NumSlider( "#WireGatesTool_angleoffset","wire_gates_angleoffset", 0, 360, 0 )
+		panel:NumSlider( "#WireGatesTool_angleoffset","wire_gates_angleoffset", 0, 360, 0 )
 
 		WireDermaExts.ModelSelect(panel, "wire_gates_model", list.Get("Wire_gate_Models"), 3, true)
 
@@ -255,7 +253,7 @@ if SERVER then
 	end
 
 	function TOOL:MakeEnt( ply, model, Ang, trace )
-		return MakeWireGate( ply, trace.HitPos, Ang, model, self:GetConVars() )
+		return WireLib.MakeWireGate( ply, trace.HitPos, Ang, model, self:GetConVars() )
 	end
 end
 
@@ -284,7 +282,7 @@ end
 --------------------
 function TOOL:Reload( trace )
 	if self:GetOwner():KeyDown( IN_SPEED ) then -- Unparent
-		if (!trace or !trace.Hit) then return false end
+		if not trace or not trace.Hit then return false end
 		if (CLIENT and trace.Entity) then return true end
 		if (trace.Entity:GetParent():IsValid()) then
 

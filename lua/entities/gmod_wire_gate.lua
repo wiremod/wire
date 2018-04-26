@@ -124,7 +124,7 @@ function ENT:CalcOutput(iter)
 end
 
 function ENT:ShowOutput()
-	local txt = ""
+	local txt
 
 	if (self.Action) then
 		txt = (self.Action.name or "No Name")
@@ -207,10 +207,10 @@ function ENT:GetActionOutputs()
 	return self.Outputs.Out.Value or WireLib.DT[ self.Outputs.Out.Type ].Zero
 end
 
-function MakeWireGate(pl, Pos, Ang, model, action, noclip, frozen, nocollide)
+function WireLib.MakeWireGate(pl, Pos, Ang, model, action, noclip, frozen, nocollide)
 	if not GateActions[action] then return end
 	if GateActions[action].is_banned then return end
 
 	return WireLib.MakeWireEnt(pl, { Class = "gmod_wire_gate", Pos=Pos, Angle=Ang, Model=model }, action, noclip)
 end
-duplicator.RegisterEntityClass("gmod_wire_gate", MakeWireGate, "Pos", "Ang", "Model", "action", "noclip")
+duplicator.RegisterEntityClass("gmod_wire_gate", WireLib.MakeWireGate, "Pos", "Ang", "Model", "action", "noclip")
