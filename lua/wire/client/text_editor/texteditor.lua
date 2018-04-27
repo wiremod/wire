@@ -1286,158 +1286,161 @@ function EDITOR:CreateFindWindow()
 		RunConsoleCommand( "wire_expression2_editor_find_dir", "1" )
 	end
 
-	-- Find tab
-	local findtab = vgui.Create( "DPanel" )
+	do
+		-- Find tab
+		local findtab = vgui.Create( "DPanel" )
 
-	-- Label
-	local FindLabel = vgui.Create( "DLabel", findtab )
-	FindLabel:SetText( "Find:" )
-	FindLabel:SetPos( 4, 4 )
-	FindLabel:SetTextColor( Color(0,0,0,255) )
+		-- Label
+		local FindLabel = vgui.Create( "DLabel", findtab )
+		FindLabel:SetText( "Find:" )
+		FindLabel:SetPos( 4, 4 )
+		FindLabel:SetTextColor( Color(0,0,0,255) )
 
-	-- Text entry
-	local FindEntry = vgui.Create( "DTextEntry", findtab )
-	FindEntry:SetPos(30,4)
-	FindEntry:SetSize(200,20)
-	FindEntry:RequestFocus()
-	FindEntry.OnEnter = function( pnl )
-		self:Find( pnl:GetValue() )
-		pnl:RequestFocus()
+		-- Text entry
+		local FindEntry = vgui.Create( "DTextEntry", findtab )
+		FindEntry:SetPos(30,4)
+		FindEntry:SetSize(200,20)
+		FindEntry:RequestFocus()
+		FindEntry.OnEnter = function( pnl )
+			self:Find( pnl:GetValue() )
+			pnl:RequestFocus()
+		end
+
+		-- Find next button
+		local FindNext = vgui.Create( "DButton", findtab )
+		FindNext:SetText("Find Next")
+		FindNext:SetToolTip( "Find the next match and highlight it." )
+		FindNext:SetPos(233,4)
+		FindNext:SetSize(70,20)
+		FindNext.DoClick = function(pnl)
+			self:Find( FindEntry:GetValue() )
+		end
+
+		-- Find button
+		local Find = vgui.Create( "DButton", findtab )
+		Find:SetText("Find")
+		Find:SetToolTip( "Find the next match, highlight it, and close the Find window." )
+		Find:SetPos(233,29)
+		Find:SetSize(70,20)
+		Find.DoClick = function(pnl)
+			self.FindWindow:Close()
+			self:Find( FindEntry:GetValue() )
+		end
+
+		-- Count button
+		local Count = vgui.Create( "DButton", findtab )
+		Count:SetText( "Count" )
+		Count:SetPos( 233, 95 )
+		Count:SetSize( 70, 20 )
+		Count:SetTooltip( "Count the number of matches in the file." )
+		Count.DoClick = function(pnl)
+			Derma_Message( self:CountFinds( FindEntry:GetValue() ) .. " matches found.", "", "Ok" )
+		end
+
+		-- Cancel button
+		local Cancel = vgui.Create( "DButton", findtab )
+		Cancel:SetText("Cancel")
+		Cancel:SetPos(233,120)
+		Cancel:SetSize(70,20)
+		Cancel.DoClick = function(pnl)
+			self.FindWindow:Close()
+		end
+
+		pnl.FindTab = pnl.TabHolder:AddSheet( "Find", findtab, "icon16/page_white_find.png", false, false )
+		pnl.FindTab.Entry = FindEntry
 	end
 
-	-- Find next button
-	local FindNext = vgui.Create( "DButton", findtab )
-	FindNext:SetText("Find Next")
-	FindNext:SetToolTip( "Find the next match and highlight it." )
-	FindNext:SetPos(233,4)
-	FindNext:SetSize(70,20)
-	FindNext.DoClick = function(pnl)
-		self:Find( FindEntry:GetValue() )
-	end
+	do
+		-- Replace tab
+		local replacetab = vgui.Create( "DPanel" )
 
-	-- Find button
-	local Find = vgui.Create( "DButton", findtab )
-	Find:SetText("Find")
-	Find:SetToolTip( "Find the next match, highlight it, and close the Find window." )
-	Find:SetPos(233,29)
-	Find:SetSize(70,20)
-	Find.DoClick = function(pnl)
-		self.FindWindow:Close()
-		self:Find( FindEntry:GetValue() )
-	end
+		-- Label
+		local FindLabel = vgui.Create( "DLabel", replacetab )
+		FindLabel:SetText( "Find:" )
+		FindLabel:SetPos( 4, 4 )
+		FindLabel:SetTextColor( Color(0,0,0,255) )
 
-	-- Count button
-	local Count = vgui.Create( "DButton", findtab )
-	Count:SetText( "Count" )
-	Count:SetPos( 233, 95 )
-	Count:SetSize( 70, 20 )
-	Count:SetTooltip( "Count the number of matches in the file." )
-	Count.DoClick = function(pnl)
-		Derma_Message( self:CountFinds( FindEntry:GetValue() ) .. " matches found.", "", "Ok" )
-	end
+		-- Text entry
+		local FindEntry = vgui.Create( "DTextEntry", replacetab )
+		local ReplaceEntry
+		FindEntry:SetPos(30,4)
+		FindEntry:SetSize(200,20)
+		FindEntry:RequestFocus()
+		FindEntry.OnEnter = function( pnl )
+			self:Replace( pnl:GetValue(), ReplaceEntry:GetValue() )
+			ReplaceEntry:RequestFocus()
+		end
 
-	-- Cancel button
-	local Cancel = vgui.Create( "DButton", findtab )
-	Cancel:SetText("Cancel")
-	Cancel:SetPos(233,120)
-	Cancel:SetSize(70,20)
-	Cancel.DoClick = function(pnl)
-		self.FindWindow:Close()
-	end
+		-- Label
+		local ReplaceLabel = vgui.Create( "DLabel", replacetab )
+		ReplaceLabel:SetText( "Replace With:" )
+		ReplaceLabel:SetPos( 4, 32 )
+		ReplaceLabel:SizeToContents()
+		ReplaceLabel:SetTextColor( Color(0,0,0,255) )
 
-	pnl.FindTab = pnl.TabHolder:AddSheet( "Find", findtab, "icon16/page_white_find.png", false, false )
-	pnl.FindTab.Entry = FindEntry
-
-
-	-- Replace tab
-	local replacetab = vgui.Create( "DPanel" )
-
-	-- Label
-	FindLabel = vgui.Create( "DLabel", replacetab )
-	FindLabel:SetText( "Find:" )
-	FindLabel:SetPos( 4, 4 )
-	FindLabel:SetTextColor( Color(0,0,0,255) )
-
-	-- Text entry
-	FindEntry = vgui.Create( "DTextEntry", replacetab )
-	local ReplaceEntry
-	FindEntry:SetPos(30,4)
-	FindEntry:SetSize(200,20)
-	FindEntry:RequestFocus()
-	FindEntry.OnEnter = function( pnl )
-		self:Replace( pnl:GetValue(), ReplaceEntry:GetValue() )
+		-- Replace entry
+		ReplaceEntry = vgui.Create( "DTextEntry", replacetab )
+		ReplaceEntry:SetPos(75,29)
+		ReplaceEntry:SetSize(155,20)
 		ReplaceEntry:RequestFocus()
+		ReplaceEntry.OnEnter = function( pnl )
+			self:Replace( FindEntry:GetValue(), pnl:GetValue() )
+			pnl:RequestFocus()
+		end
+
+		-- Find next button
+		local FindNext = vgui.Create( "DButton", replacetab )
+		FindNext:SetText("Find Next")
+		FindNext:SetToolTip( "Find the next match and highlight it." )
+		FindNext:SetPos(233,4)
+		FindNext:SetSize(70,20)
+		FindNext.DoClick = function(pnl)
+			self:Find( FindEntry:GetValue() )
+		end
+
+		-- Replace next button
+		local ReplaceNext = vgui.Create( "DButton", replacetab )
+		ReplaceNext:SetText("Replace")
+		ReplaceNext:SetToolTip( "Replace the current selection if it matches, else find the next match." )
+		ReplaceNext:SetPos(233,29)
+		ReplaceNext:SetSize(70,20)
+		ReplaceNext.DoClick = function(pnl)
+			self:Replace( FindEntry:GetValue(), ReplaceEntry:GetValue() )
+		end
+
+		-- Replace all button
+		local ReplaceAll = vgui.Create( "DButton", replacetab )
+		ReplaceAll:SetText("Replace All")
+		ReplaceAll:SetToolTip( "Replace all occurences of the match in the entire file, and close the Find window." )
+		ReplaceAll:SetPos(233,54)
+		ReplaceAll:SetSize(70,20)
+		ReplaceAll.DoClick = function(pnl)
+			self.FindWindow:Close()
+			self:ReplaceAll( FindEntry:GetValue(), ReplaceEntry:GetValue() )
+		end
+
+		-- Count button
+		local Count = vgui.Create( "DButton", replacetab )
+		Count:SetText( "Count" )
+		Count:SetPos( 233, 95 )
+		Count:SetSize( 70, 20 )
+		Count:SetTooltip( "Count the number of matches in the file." )
+		Count.DoClick = function(pnl)
+			Derma_Message( self:CountFinds( FindEntry:GetValue() ) .. " matches found.", "", "Ok" )
+		end
+
+		-- Cancel button
+		local Cancel = vgui.Create( "DButton", replacetab )
+		Cancel:SetText("Cancel")
+		Cancel:SetPos(233,120)
+		Cancel:SetSize(70,20)
+		Cancel.DoClick = function(pnl)
+			self.FindWindow:Close()
+		end
+
+		pnl.ReplaceTab = pnl.TabHolder:AddSheet( "Replace", replacetab, "icon16/page_white_wrench.png", false, false )
+		pnl.ReplaceTab.Entry = FindEntry
 	end
-
-	-- Label
-	local ReplaceLabel = vgui.Create( "DLabel", replacetab )
-	ReplaceLabel:SetText( "Replace With:" )
-	ReplaceLabel:SetPos( 4, 32 )
-	ReplaceLabel:SizeToContents()
-	ReplaceLabel:SetTextColor( Color(0,0,0,255) )
-
-	-- Replace entry
-	ReplaceEntry = vgui.Create( "DTextEntry", replacetab )
-	ReplaceEntry:SetPos(75,29)
-	ReplaceEntry:SetSize(155,20)
-	ReplaceEntry:RequestFocus()
-	ReplaceEntry.OnEnter = function( pnl )
-		self:Replace( FindEntry:GetValue(), pnl:GetValue() )
-		pnl:RequestFocus()
-	end
-
-	-- Find next button
-	FindNext = vgui.Create( "DButton", replacetab )
-	FindNext:SetText("Find Next")
-	FindNext:SetToolTip( "Find the next match and highlight it." )
-	FindNext:SetPos(233,4)
-	FindNext:SetSize(70,20)
-	FindNext.DoClick = function(pnl)
-		self:Find( FindEntry:GetValue() )
-	end
-
-	-- Replace next button
-	local ReplaceNext = vgui.Create( "DButton", replacetab )
-	ReplaceNext:SetText("Replace")
-	ReplaceNext:SetToolTip( "Replace the current selection if it matches, else find the next match." )
-	ReplaceNext:SetPos(233,29)
-	ReplaceNext:SetSize(70,20)
-	ReplaceNext.DoClick = function(pnl)
-		self:Replace( FindEntry:GetValue(), ReplaceEntry:GetValue() )
-	end
-
-	-- Replace all button
-	local ReplaceAll = vgui.Create( "DButton", replacetab )
-	ReplaceAll:SetText("Replace All")
-	ReplaceAll:SetToolTip( "Replace all occurences of the match in the entire file, and close the Find window." )
-	ReplaceAll:SetPos(233,54)
-	ReplaceAll:SetSize(70,20)
-	ReplaceAll.DoClick = function(pnl)
-		self.FindWindow:Close()
-		self:ReplaceAll( FindEntry:GetValue(), ReplaceEntry:GetValue() )
-	end
-
-	-- Count button
-	Count = vgui.Create( "DButton", replacetab )
-	Count:SetText( "Count" )
-	Count:SetPos( 233, 95 )
-	Count:SetSize( 70, 20 )
-	Count:SetTooltip( "Count the number of matches in the file." )
-	Count.DoClick = function(pnl)
-		Derma_Message( self:CountFinds( FindEntry:GetValue() ) .. " matches found.", "", "Ok" )
-	end
-
-	-- Cancel button
-	Cancel = vgui.Create( "DButton", replacetab )
-	Cancel:SetText("Cancel")
-	Cancel:SetPos(233,120)
-	Cancel:SetSize(70,20)
-	Cancel.DoClick = function(pnl)
-		self.FindWindow:Close()
-	end
-
-	pnl.ReplaceTab = pnl.TabHolder:AddSheet( "Replace", replacetab, "icon16/page_white_wrench.png", false, false )
-	pnl.ReplaceTab.Entry = FindEntry
 
 	-- Go to line tab
 	local gototab = vgui.Create( "DPanel" )
