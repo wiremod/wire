@@ -11,7 +11,7 @@ end
 
 local function checkEnts(self, ent1, ent2)
 	if !ent1 || (!ent1:IsValid() && !ent1:IsWorld()) || !ent2 || (!ent2:IsValid() && !ent2:IsWorld()) || ent1 == ent2 then return false end
-	if !isOwner(self, ent1) || !isOwner(self, ent2) then return false end
+	if !isOwner(self, ent1) || !isOwner(self, ent2) || ent1:IsPlayer() || ent2:IsPlayer() then return false end
 	return true
 end
 local function addundo(self, prop, message)
