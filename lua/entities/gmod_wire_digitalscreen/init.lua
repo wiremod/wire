@@ -117,7 +117,6 @@ function ENT:FlushCache(ply)
 			-- This section allows the data to build up until
 			-- the user stops writing data, or up to three seconds
 			if not self.WaitToFlush then
-				self.OldChangedCount = #self.ChangedCellRanges
 				self.WaitToFlush = CurTime() + 3
 				return
 			elseif self.WaitToFlush >= CurTime() then
@@ -138,11 +137,6 @@ function ENT:FlushCache(ply)
 	local bitsremaining = 200000
 	local datastr = {}
 
-	net.Start("wire_digitalscreen")
-	net.WriteUInt(self:EntIndex(),16)
-	net.WriteUInt(pixelformat, 5)
-	bitsremaining = bitsremaining - 21
-
 	while bitsremaining>0 and next(self.ChangedCellRanges) do
 		local range = self.ChangedCellRanges[1]
 		local start = range.start
@@ -158,10 +152,27 @@ function ENT:FlushCache(ply)
 	end
 
 	numberToString(datastr,0,3)
-	local compressed = util.Compress(table.concat(datastr))
-	net.WriteData(compressed,#compressed)
+	datastr = util.Compress(table.concat(datastr))
 
-	if ply then net.Send(ply) else net.Broadcast() end
+	local per_batch = 63000
+
+	for i=1,#datastr,per_batch do
+		local str = string.sub(datastr,i,i+per_batch-1)
+
+		net.Start("wire_digitalscreen")
+		net.WriteUInt(self:EntIndex(),16)
+
+		local batch_end = #str < per_batch
+		net.WriteBit(batch_end) -- if true, this is the last batch. if false, more is coming
+
+		if batch_end then
+			net.WriteUInt(pixelformat, 5)
+		end
+
+		net.WriteData(str,#str)
+
+		if ply then net.Send(ply) else net.Broadcast() end
+	end
 end
 
 function ENT:Retransmit(ply)
