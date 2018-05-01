@@ -1,16 +1,2 @@
-# First of all, make sure those pesky SVN folders don't end up on git
-.svn
-
-# Next, ignore all untracked files...
-/*
-
-# ...except the following folders and files in them
-!/data
-!/lua
-!/materials
-!/models
-!/settings
-!/sound
-
-# If you need more folders at the root level, don't hesitate to add them
-# If you need a new file at the root level, just use "git add -f <filename>"
+.svn/
+luac.out
