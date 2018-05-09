@@ -125,6 +125,9 @@ function E2Helper.Create(reset)
 		E2Helper.Resize()
 	end
 
+	-- holds all the lines describing a constant
+	E2Helper.constants = {}
+
 	E2Helper.DescriptionEntry = vgui.Create("DTextEntry", E2Helper.Frame)
 	E2Helper.DescriptionEntry:SetPos(5, 330)
 	E2Helper.DescriptionEntry:SetSize(270, 45)
@@ -145,14 +148,23 @@ function E2Helper.Create(reset)
 	function E2Helper.ResultFrame:OnClickLine(line)
 		self:ClearSelection()
 		self:SelectItem(line)
-		E2Helper.FuncEntry:SetText(E2Helper.GetFunctionSyntax(line:GetValue(1), line:GetValue(2), line:GetValue(3)))
-		local desc = getdesc(line:GetValue(1), line:GetValue(2))
-		if desc then
-			E2Helper.DescriptionEntry:SetText(desc)
-			E2Helper.DescriptionEntry:SetTextColor(Color(0, 0, 0))
-		else
-			E2Helper.DescriptionEntry:SetText("No description found :(")
+
+		-- don't try describing the function when it is actually a constant
+		if E2Helper.constants[line] then
+			E2Helper.FuncEntry:SetText("Constant value")
+
+			E2Helper.DescriptionEntry:SetText("Constants do not support descriptions (yet)")
 			E2Helper.DescriptionEntry:SetTextColor(Color(128, 128, 128))
+		else
+			E2Helper.FuncEntry:SetText(E2Helper.GetFunctionSyntax(line:GetValue(1), line:GetValue(2), line:GetValue(3)))
+			local desc = getdesc(line:GetValue(1), line:GetValue(2))
+			if desc then
+				E2Helper.DescriptionEntry:SetText(desc)
+				E2Helper.DescriptionEntry:SetTextColor(Color(0, 0, 0))
+			else
+				E2Helper.DescriptionEntry:SetText("No description found :(")
+				E2Helper.DescriptionEntry:SetTextColor(Color(128, 128, 128))
+			end
 		end
 	end
 
@@ -290,29 +302,49 @@ function E2Helper.Update()
 	local maxcount = E2Helper.MaxEntry:GetValue()
 	local tooltip = E2Helper.Tooltip:GetChecked(true)
 
-	for _, v in pairs(CurrentTable()) do
-		if E2Helper.CurrentMode == true then
-			local argnames, signature, rets, func, cost = v.argnames, unpack(v)
-			local name, args = string.match(signature, "^([^(]+)%(([^)]*)%)$")
+	-- add E2 constants
+	E2Helper.constants = {}
+	if E2Helper.CurrentMode == true then
+		for k, v in pairs(wire_expression2_constants) do
+			-- set the type according to the functions
+			local strType = E2Lib.guess_type(v)
 
-			if signature:sub(1, 3) ~= "op:" and
-					name:lower():find(search_name, 1, true) and
-					args:lower():find(search_args, 1, true) and
-					rets:lower():find(search_rets, 1, true) then
-				local line = E2Helper.ResultFrame:AddLine(name, args, rets, cost or 20)
-				if tooltip then line:SetTooltip(E2Helper.GetFunctionSyntax(name, args, rets)) end
+			-- constants have no arguments and no cost
+			local name, args, rets, cost = k, nil, strType, nil
+			if name:lower():find(search_name, 1, true) and search_args == "" and rets:lower():find(search_rets, 1, true) then
+				local line = E2Helper.ResultFrame:AddLine(name, args, rets, cost, "constant")
+				E2Helper.constants[line] = true
 				count = count + 1
 				if count >= maxcount then break end
 			end
-		else
-			local funcname, args, forwhat, functype = unpack(v)
-			if (funcname:lower():find(search_name, 1, true) and
-					args:lower():find(search_args, 1, true) and
-					forwhat:lower():find(search_rets, 1, true)) then
-				local line = E2Helper.ResultFrame:AddLine(funcname, args, forwhat, functype)
-				if tooltip then line:SetTooltip(funcname .. " " .. args) end
-				count = count + 1
-				if count >= maxcount then break end
+		end
+	end
+
+	if count < maxcount then
+		for _, v in pairs(CurrentTable()) do
+			if E2Helper.CurrentMode == true then
+				local argnames, signature, rets, func, cost = v.argnames, unpack(v)
+				local name, args = string.match(signature, "^([^(]+)%(([^)]*)%)$")
+
+				if signature:sub(1, 3) ~= "op:" and
+						name:lower():find(search_name, 1, true) and
+						args:lower():find(search_args, 1, true) and
+						rets:lower():find(search_rets, 1, true) then
+					local line = E2Helper.ResultFrame:AddLine(name, args, rets, cost or 20)
+					if tooltip then line:SetTooltip(E2Helper.GetFunctionSyntax(name, args, rets)) end
+					count = count + 1
+					if count >= maxcount then break end
+				end
+			else
+				local funcname, args, forwhat, functype = unpack(v)
+				if (funcname:lower():find(search_name, 1, true) and
+						args:lower():find(search_args, 1, true) and
+						forwhat:lower():find(search_rets, 1, true)) then
+					local line = E2Helper.ResultFrame:AddLine(funcname, args, forwhat, functype)
+					if tooltip then line:SetTooltip(funcname .. " " .. args) end
+					count = count + 1
+					if count >= maxcount then break end
+				end
 			end
 		end
 	end
