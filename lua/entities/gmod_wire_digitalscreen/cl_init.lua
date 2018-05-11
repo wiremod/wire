@@ -113,9 +113,7 @@ function ENT:ProcessBuffer()
 		end
 	end
 
-	if self.buffer[1] then -- check needed in case buffer is cleared
-		self.buffer[1].readIndex = readIndex
-	end
+	self.buffer[1].readIndex = readIndex
 end
 
 function ENT:Think()
@@ -172,7 +170,6 @@ function ENT:WriteCell(Address,value)
 		self.IsClear = true
 		self.ClearQueued = true
 		self.NeedRefresh = true
-		self.buffer = {} -- reset buffer
 	elseif Address == 1048572 then
 		self.ScreenHeight = value
 		if not self.IsClear then
