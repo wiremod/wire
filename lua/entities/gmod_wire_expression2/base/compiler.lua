@@ -766,7 +766,7 @@ function Compiler:InstrFUNCTION(args)
 		-- runtimeArgs = { body, parameterExpression1, ..., parameterExpressionN, parameterTypes }
 		-- we need to evaluate the arguments before switching to the new scope
 		local parameterValues = {}
-		for parameterIndex = 2, #runtimeArgs - 1 do
+		for parameterIndex = 2, #Args + 1 do
 			local parameterExpression = runtimeArgs[parameterIndex]
 			local parameterValue = parameterExpression[1](self, parameterExpression)
 			parameterValues[parameterIndex - 1] = parameterValue
@@ -776,7 +776,7 @@ function Compiler:InstrFUNCTION(args)
 		self:InitScope()
 		self:PushScope()
 
-		for parameterIndex = 1, #parameterValues do
+		for parameterIndex = 1, #Args do
 			local parameterName = Args[parameterIndex][1]
 			local parameterValue = parameterValues[parameterIndex]
 			self.Scope[parameterName] = parameterValue
