@@ -250,6 +250,20 @@ table_tostring = function( tbl, indenting, printed, abortafter, cost )
 	return table.concat(ret), cost
 end
 
+local function true_size(t)
+	local done = {}
+	local size = 0
+	local function recursive_size(t)
+		done[t] = true
+		size = size + t.size
+		for k, v in pairs(t) do
+			if istable(v) and not done[v] then recursive_size(v) end
+		end
+	end
+	recursive_size(t)
+	return size
+end
+
 --------------------------------------------------------------------------------
 -- Operators
 --------------------------------------------------------------------------------
@@ -542,7 +556,7 @@ end
 __e2setcost(1000) -- clone must be very expensive to prevent abuse
 
 e2function table table:clone()
-	self.prf = self.prf + this.size * opcost
+	self.prf = self.prf + true_size(this) * opcost
 	return table.Copy(this)
 end
 
@@ -565,7 +579,7 @@ end
 -- Adds rv2 to the end of 'this' (adds numerical indexes to the end of the array-part, and only inserts string indexes that don't exist on rv1)
 e2function table table:add( table rv2 )
 	local ret = table.Copy(this)
-	local cost = this.size
+	local cost = 0
 	local size = this.size
 
 	local count = #ret.n
@@ -592,7 +606,7 @@ e2function table table:add( table rv2 )
 		end
 	end
 
-	self.prf = self.prf + cost * opcost
+	self.prf = self.prf + (true_size(this) + cost) * opcost
 	ret.size = size
 	return ret
 end
@@ -600,7 +614,7 @@ end
 -- Merges rv2 with 'this' (both numerical and string indexes are overwritten)
 e2function table table:merge( table rv2 )
 	local ret = table.Copy(this)
-	local cost = this.size
+	local cost = 0
 	local size = this.size
 
 	for k,v in pairs( rv2.n ) do
@@ -623,7 +637,7 @@ e2function table table:merge( table rv2 )
 		end
 	end
 
-	self.prf = self.prf + cost * opcost
+	self.prf = self.prf + (true_size(this) + cost) * opcost
 	ret.size = size
 	return ret
 end
