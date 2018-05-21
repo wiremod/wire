@@ -223,10 +223,10 @@ local table_length_lookup = {
 }
 
 function E2Lib.guess_type(value)
-	if IsValid(value) then return "e" end
-	if value.EntIndex then return "e" end
 	local vtype = type(value)
 	if type_lookup[vtype] then return type_lookup[vtype] end
+	if IsValid(value) then return "e" end
+	if value.EntIndex then return "e" end
 	if vtype == "table" then
 		if table_length_lookup[#value] then return table_length_lookup[#value] end
 		if value.HitPos then return "xrd" end
