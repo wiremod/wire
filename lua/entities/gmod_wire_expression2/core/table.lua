@@ -541,32 +541,59 @@ end
 
 __e2setcost(10)
 
-local function clone(self, tbl, lookup)
+--- deepcopy(self, t) creates a clone of t.
+-- All of its fields are also copied.
+local function deepcopy(self, tbl, lookup)
+	self.prf = self.prf + opcost * 2 -- creating new table
 	local copy = {}
 
 	lookup = lookup or {}
 	lookup[tbl] = copy
 
 	for k, v in pairs(tbl) do
+		self.prf = self.prf + opcost
 		if type(v) == "table" then
-			if lookup[v] then
-				self.prf = self.prf + opcost -- simple assign operation
-				copy[k] = lookup[v]
-			else
-				self.prf = self.prf + opcost * 3 -- creating new table
-				copy[k] = clone(self, v, lookup)
-			end
+			copy[k] = lookup[v] or deepcopy(self, v, lookup)
 		else
-			self.prf = self.prf + opcost -- simple assign operation
 			copy[k] = v
 		end
 	end
+	return copy
+end
 
+--- cloneTable(self, t) creates a clone of t, where t is an E2 table.
+-- Its fields are copied if they need copying (which depends on the )
+local function cloneTable(self, tbl, lookup)
+	self.prf = self.prf + opcost * 2 -- creating new table
+	local copy = { size = tbl.size }
+
+	lookup = lookup or {}
+	lookup[tbl] = copy
+
+	local function cloneTablePart(types, values)
+		local newTypes, newValues = {}, {}
+		for name, e2type in pairs(types) do
+			newTypes[name] = e2type
+			local value = values[name]
+			self.prf = self.prf + opcost
+			if e2type == "t" then -- the field is also an E2 table
+				newValues[name] = lookup[value] or cloneTable(self, value, lookup)
+			elseif tbls[e2type] then -- the field is some other mutable type
+				newValues[name] = lookup[value] or deepcopy(self, value, lookup)
+			else -- the field is an immutable type
+				newValues[name] = value
+			end
+		end
+		return newTypes, newValues
+	end
+
+	copy.ntypes, copy.n = cloneTablePart(tbl.ntypes, tbl.n)
+	copy.stypes, copy.s = cloneTablePart(tbl.stypes, tbl.s)
 	return copy
 end
 
 e2function table table:clone()
-	return clone(self, this)
+	return cloneTable(self, this)
 end
 
 __e2setcost(1)
