@@ -561,6 +561,21 @@ local function deepcopy(self, tbl, lookup)
 	return copy
 end
 
+-- These types are mutable, so they need a full copy if they're present in
+-- tables. (These types were never *intended* to be mutable, and this code would
+-- be more efficient if they weren't, so this is an ugly workaround. See
+-- https://github.com/wiremod/wire/issues/1660 for more details.)
+local mutableTypes = {
+	a = true,
+	q = true,
+	v = true,
+	xv2 = true,
+	xv4 = true,
+}
+for k, v in pairs(tbls) do
+	mutableTypes[k] = v
+end
+
 --- cloneTable(self, t) creates a clone of t, where t is an E2 table.
 -- Its fields are copied if they need copying (which depends on the )
 local function cloneTable(self, tbl, lookup)
@@ -578,7 +593,7 @@ local function cloneTable(self, tbl, lookup)
 			self.prf = self.prf + opcost
 			if e2type == "t" then -- the field is also an E2 table
 				newValues[name] = lookup[value] or cloneTable(self, value, lookup)
-			elseif tbls[e2type] then -- the field is some other mutable type
+			elseif mutableTypes[e2type] then -- the field is some other mutable type
 				newValues[name] = lookup[value] or deepcopy(self, value, lookup)
 			else -- the field is an immutable type
 				newValues[name] = value
