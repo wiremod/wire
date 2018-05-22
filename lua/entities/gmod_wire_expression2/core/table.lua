@@ -593,7 +593,7 @@ local function cloneTable(self, tbl, lookup)
 			self.prf = self.prf + opcost
 			if e2type == "t" then -- the field is also an E2 table
 				newValues[name] = lookup[value] or cloneTable(self, value, lookup)
-			elseif mutableTypes[e2type] then -- the field is some other mutable type
+			elseif mutableTypes[e2type] and type(value) == "table" then -- the field is some other mutable type
 				newValues[name] = lookup[value] or deepcopy(self, value, lookup)
 			else -- the field is an immutable type
 				newValues[name] = value
