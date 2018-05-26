@@ -835,6 +835,7 @@ E2Helper.Descriptions["selfDestruct()"] = "Removes the expression"
 E2Helper.Descriptions["selfDestructAll()"] = "Removes the expression and all constrained props"
 
 -- Debug
+E2Helper.Descriptions["playerCanPrint()"] = "Returns whether or not the next print-message will be printed or omitted by antispam"
 E2Helper.Descriptions["printDriver(e:s)"] = "Posts a string to the chat of Es driver. Returns 1 if the text was printed, 0 if not"
 E2Helper.Descriptions["hintDriver(e:sn)"] = "Displays a hint popup to the driver of vehicle E, with message S for N seconds (N being clamped between 0.7 and 7). Same return value as printDriver"
 E2Helper.Descriptions["printDriver(e:ns)"] = "Same as EE:printDriver(S), but can make the text show up in different places. N can be one of the following: _HUD_PRINTCENTER, _HUD_PRINTCONSOLE, _HUD_PRINTNOTIFY, _HUD_PRINTTALK"
