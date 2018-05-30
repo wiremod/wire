@@ -464,124 +464,139 @@ function EDITOR:HighlightArea( area, r,g,b,a )
 end
 function EDITOR:ClearHighlightedAreas() self.HighlightedAreas = nil end
 
-function EDITOR:PaintTextOverlay()
+do
+	-- This will convert forward text position to reverse text position and vice versa
+	local function fixPos(row, pos, downward)
+		return downward and pos or #row - pos + 1
+	end
 
-	if self.TextEntry:HasFocus() and self.Caret[2] - self.Scroll[2] >= 0 then
-		local width, height = self.FontWidth, self.FontHeight
+	local function matchBalanced(self, startPos, opening, closing, downward)
+		local searchStr = "[" .. string.PatternSafe(opening .. closing) .. "]"
+		local balance = 0
 
-		if (RealTime() - self.Blink) % 0.8 < 0.4 then
-			surface_SetDrawColor(240, 240, 240, 255)
-			surface_DrawRect((self.Caret[2] - self.Scroll[2]) * width + self.LineNumberWidth + 6, (self.Caret[1] - self.Scroll[1]) * height, 1, height)
-		end
+		local startIndex = startPos[1]
+		local endIndex = downward and #self.Rows or 1
+		local skip = downward and 1 or -1
 
-		-- Area highlighting
-		if self.HighlightedAreas then
-			local xofs = self.LineNumberWidth + 6
-			for _, data in pairs( self.HighlightedAreas ) do
-				local area, r,g,b,a = data[1], data[2], data[3], data[4], data[5]
-				surface_SetDrawColor( r,g,b,a )
-				local start, stop = self:MakeSelection( area )
+		for row = startIndex, endIndex, skip do
+			local rowStr = downward and self.Rows[row] or self.Rows[row]:reverse()
+			local pos = row == startPos[1] and fixPos(rowStr, startPos[2], downward) or 1
 
-				if start[1] == stop[1] then -- On the same line
-					surface_DrawRect( xofs + (start[2]-self.Scroll[2]) * width, (start[1]-self.Scroll[1]) * height, (stop[2]-start[2]) * width, height )
-				elseif start[1] < stop[1] then -- Ends below start
-					for i=start[1],stop[1] do
-						if i == start[1] then
-							surface_DrawRect( xofs + (start[2]-self.Scroll[2]) * width, (i-self.Scroll[1]) * height, (#self.Rows[start[1]]-start[2]) * width, height )
-						elseif i == stop[1] then
-							surface_DrawRect( xofs + (self.Scroll[2]-1) * width, (i-self.Scroll[1]) * height, (#self.Rows[stop[1]]-stop[2]) * width, height )
+			repeat
+				local foundPos = rowStr:find(searchStr, pos)
+
+				if foundPos then
+					local editorPos = {row, fixPos(rowStr, foundPos, downward)}
+					local token = self:GetTokenAtPosition(editorPos)
+
+					if token ~= "comment" and token ~= "string" then
+						local char = rowStr[foundPos]
+
+						if char == opening then
+							balance = balance + 1
 						else
-							surface_DrawRect( xofs + (self.Scroll[2]-1) * width, (i-self.Scroll[1]) * height, #self.Rows[i] * width, height )
+							balance = balance - 1
+						end
+
+						if balance == 0 then
+							return editorPos
+						end
+					end
+
+					pos = foundPos + 1
+				end
+			until not foundPos
+		end
+	end
+
+	-- brace = {oppositeBrace, searchDown}
+	local bracketSearch = {
+		["{"] = {"}", true},
+		["}"] = {"{", false},
+
+		["["] = {"]", true},
+		["]"] = {"[", false},
+
+		["("] = {")", true},
+		[")"] = {"(", false},
+	}
+
+	function EDITOR:PaintTextOverlay()
+
+		if self.TextEntry:HasFocus() and self.Caret[2] - self.Scroll[2] >= 0 then
+			local width, height = self.FontWidth, self.FontHeight
+
+			if (RealTime() - self.Blink) % 0.8 < 0.4 then
+				surface_SetDrawColor(240, 240, 240, 255)
+				surface_DrawRect((self.Caret[2] - self.Scroll[2]) * width + self.LineNumberWidth + 6, (self.Caret[1] - self.Scroll[1]) * height, 1, height)
+			end
+
+			-- Area highlighting
+			if self.HighlightedAreas then
+				local xofs = self.LineNumberWidth + 6
+				for _, data in pairs( self.HighlightedAreas ) do
+					local area, r,g,b,a = data[1], data[2], data[3], data[4], data[5]
+					surface_SetDrawColor( r,g,b,a )
+					local start, stop = self:MakeSelection( area )
+
+					if start[1] == stop[1] then -- On the same line
+						surface_DrawRect( xofs + (start[2]-self.Scroll[2]) * width, (start[1]-self.Scroll[1]) * height, (stop[2]-start[2]) * width, height )
+					elseif start[1] < stop[1] then -- Ends below start
+						for i=start[1],stop[1] do
+							if i == start[1] then
+								surface_DrawRect( xofs + (start[2]-self.Scroll[2]) * width, (i-self.Scroll[1]) * height, (#self.Rows[start[1]]-start[2]) * width, height )
+							elseif i == stop[1] then
+								surface_DrawRect( xofs + (self.Scroll[2]-1) * width, (i-self.Scroll[1]) * height, (#self.Rows[stop[1]]-stop[2]) * width, height )
+							else
+								surface_DrawRect( xofs + (self.Scroll[2]-1) * width, (i-self.Scroll[1]) * height, #self.Rows[i] * width, height )
+							end
 						end
 					end
 				end
 			end
-		end
 
-		-- Bracket highlighting by: {Jeremydeath}
-		local WindowText = self:GetValue()
-		local LinePos = table_concat(self.Rows, "\n", 1, self.Caret[1]-1):len()
-		local CaretPos = LinePos+self.Caret[2]+1
+			-- Bracket matching
 
-		local BracketPairs = {
-			["{"] = "}",
-			["}"] = "{",
-			["["] = "]",
-			["]"] = "[",
-			["("] = ")",
-			[")"] = "("
-		}
+			-- If we're in a comment don't do anything
+			local curPos = self.Caret
+			local token = self:GetTokenAtPosition(curPos)
+			if token == "comment" or token == "string" then
+				return
+			end
 
-		local CaretChars = WindowText:sub(CaretPos-1, CaretPos)
-		local BrackSt, BrackEnd = CaretChars:find("[%(%){}%[%]]")
+			local startPos, endPos, startingChar
+			local rowStr = self.Rows[curPos[1]]
 
-		local Bracket = false
-		if BrackSt and BrackSt ~= 0 then
-			Bracket = CaretChars:sub(BrackSt or 0,BrackEnd or 0)
-		end
-		if Bracket and BracketPairs[Bracket] then
-			local End
-			local EndX
-			local EndLine
+			-- Check character left of cursor if we're not at the start of the line
+			if curPos[2] > 0 then
+				startingChar = rowStr[curPos[2] - 1]
 
-			if Bracket == "(" or Bracket == "[" or Bracket == "{" then
-				BrackSt,End = WindowText:find("%b"..Bracket..BracketPairs[Bracket], CaretPos-1)
+				if bracketSearch[startingChar] then
+					local searchInfo = bracketSearch[startingChar]
 
-				if BrackSt and End then
-					local OffsetSt = 1
-
-					local BracketLines = string_Explode("\n",WindowText:sub(BrackSt, End))
-
-					EndLine = self.Caret[1]+#BracketLines-1
-
-					EndX = End-LinePos-2
-					if #BracketLines>1 then
-						EndX = BracketLines[#BracketLines]:len()-1
-					end
-
-					if Bracket == "{" then
-						OffsetSt = 0
-					end
-
-					if (CaretPos - BrackSt) >= 0 and (CaretPos - BrackSt) <= 1 then
-						local width, height = self.FontWidth, self.FontHeight
-						local StartX = BrackSt - LinePos - 2
-						surface_SetDrawColor(255, 0, 0, 50)
-						surface_DrawRect((StartX-(self.Scroll[2]-1)) * width + self.LineNumberWidth + self.FontWidth + OffsetSt - 1, (self.Caret[1] - self.Scroll[1]) * height+1, width-2, height-2)
-						surface_DrawRect((EndX-(self.Scroll[2]-1)) * width + self.LineNumberWidth + 6, (EndLine - self.Scroll[1]) * height+1, width-2, height-2)
-					end
+					startPos = {curPos[1], curPos[2] - 1}
+					endPos = matchBalanced(self, startPos, startingChar, searchInfo[1], searchInfo[2])
 				end
-			elseif Bracket == ")" or Bracket == "]" or Bracket == "}" then
-				BrackSt,End = WindowText:reverse():find("%b"..Bracket..BracketPairs[Bracket], -CaretPos)
-				if BrackSt and End then
-					local len = WindowText:len()
-					End = len-End+1
-					BrackSt = len-BrackSt+1
-					local BracketLines = string_Explode("\n",WindowText:sub(End, BrackSt))
+			end
 
-					EndLine = self.Caret[1]-#BracketLines+1
+			-- Check character right of cursor if we're not at the end of the line
+			if not endPos and curPos[2] <= #rowStr then
+				startingChar = rowStr[curPos[2]]
 
-					local OffsetSt = -1
+				if bracketSearch[startingChar] then
+					local searchInfo = bracketSearch[startingChar]
 
-					EndX = End-LinePos-2
-					if #BracketLines>1 then
-						local PrevText = WindowText:sub(1, End):reverse()
-
-						EndX = (PrevText:find("\n",1,true) or 2)-2
-					end
-
-					if Bracket ~= "}" then
-						OffsetSt = 0
-					end
-
-					if (CaretPos - BrackSt) >= 0 and (CaretPos - BrackSt) <= 1 then
-						local width, height = self.FontWidth, self.FontHeight
-						local StartX = BrackSt - LinePos - 2
-						surface_SetDrawColor(255, 0, 0, 50)
-						surface_DrawRect((StartX-(self.Scroll[2]-1)) * width + self.LineNumberWidth + self.FontWidth - 2, (self.Caret[1] - self.Scroll[1]) * height+1, width-2, height-2)
-						surface_DrawRect((EndX-(self.Scroll[2]-1)) * width + self.LineNumberWidth + 8 + OffsetSt, (EndLine - self.Scroll[1]) * height+1, width-2, height-2)
-					end
+					startPos = curPos
+					endPos = matchBalanced(self, startPos, startingChar, searchInfo[1], searchInfo[2])
 				end
+			end
+
+			if startPos and endPos then
+				surface_SetDrawColor(255, 0, 0, 50)
+
+				local xofs = self.LineNumberWidth + 6
+				surface_DrawRect((startPos[2] - self.Scroll[2]) * width + xofs, (startPos[1] - self.Scroll[1]) * height, width, height)
+				surface_DrawRect((endPos[2] - self.Scroll[2]) * width + xofs, (endPos[1] - self.Scroll[1]) * height, width, height)
 			end
 		end
 	end
