@@ -163,30 +163,29 @@ GateActions["sawpulse"] = {
 		local DeltaTime = CurTime()-(gate.PrevTime or CurTime())
 		gate.PrevTime = (gate.PrevTime or CurTime())+DeltaTime
 
-		if (Reset > 0) then
+		if Reset > 0 then
 			gate.Accum = 0
-		elseif (Run > 0) then
-			local val = Min
-			gate.Accum = gate.Accum+DeltaTime
-			if gate.Accum >= 0 and gate.Accum < SlopeRaiseTime then
-				if SlopeRaiseTime ~= 0 then
-					val = Min + (Max-Min) * (gate.Accum-0) / SlopeRaiseTime
-				end
-			end
-			if gate.Accum >= SlopeRaiseTime and gate.Accum < SlopeRaiseTime+PulseTime then
-				return Max
-			end
-			if gate.Accum >= SlopeRaiseTime+PulseTime and gate.Accum < SlopeRaiseTime+PulseTime+SlopeDescendTime then
-				if SlopeDescendTime ~= 0 then
-					val = Min + (Max-Min) * (gate.Accum-SlopeRaiseTime+PulseTime) / SlopeDescendTime
-				end
-			end
-			if (gate.Accum >= SlopeRaiseTime+PulseTime+SlopeDescendTime+GapTime) then
-				gate.Accum = 0
-			end
-			return val
+			return Min
 		end
-		return Min
+		if Run <= 0 then
+			return Min
+		end
+
+		SlopeRaiseTime = math.max(SlopeRaiseTime, 0)
+		PulseTime = math.max(PulseTime, 0)
+		SlopeDescendTime = math.max(SlopeDescendTime, 0)
+		GapTime = math.max(GapTime, 0)
+
+		gate.Accum = (gate.Accum + DeltaTime) % (SlopeRaiseTime + PulseTime + SlopeDescendTime + GapTime)
+		if gate.Accum < SlopeRaiseTime then
+			return Min + (Max - Min) * gate.Accum / SlopeRaiseTime
+		elseif gate.Accum < SlopeRaiseTime + PulseTime then
+			return Max
+		elseif gate.Accum < SlopeRaiseTime + PulseTime + SlopeDescendTime then
+			return Max + (Min - Max) * (gate.Accum - SlopeRaiseTime - PulseTime) / SlopeDescendTime
+		else
+			return Min
+		end
 	end,
 	reset = function(gate)
 		gate.PrevTime = CurTime()
