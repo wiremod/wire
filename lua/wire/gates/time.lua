@@ -168,20 +168,18 @@ GateActions["sawpulse"] = {
 		elseif (Run > 0) then
 			local val = Min
 			gate.Accum = gate.Accum+DeltaTime
-			if (gate.Accum >= 0) && (gate.Accum < SlopeRaiseTime) then
-				if (SlopeRaiseTime != 0) then
+			if gate.Accum >= 0 and gate.Accum < SlopeRaiseTime then
+				if SlopeRaiseTime ~= 0 then
 					val = Min + (Max-Min) * (gate.Accum-0) / SlopeRaiseTime
 				end
 			end
-			if (gate.Accum >= SlopeRaiseTime) && (gate.Accum < SlopeRaiseTime+PulseTime) then
+			if gate.Accum >= SlopeRaiseTime and gate.Accum < SlopeRaiseTime+PulseTime then
 				return Max
 			end
-			if (gate.Accum >= SlopeRaiseTime+PulseTime) && (gate.Accum < SlopeRaiseTime+PulseTime+SlopeDescendTime) then
-				if (SlopeDescendTime != 0) then
+			if gate.Accum >= SlopeRaiseTime+PulseTime and gate.Accum < SlopeRaiseTime+PulseTime+SlopeDescendTime then
+				if SlopeDescendTime ~= 0 then
 					val = Min + (Max-Min) * (gate.Accum-SlopeRaiseTime+PulseTime) / SlopeDescendTime
 				end
-			end
-			if (gate.Accum >= SlopeRaiseTime+PulseTime+SlopeDescendTime) then
 			end
 			if (gate.Accum >= SlopeRaiseTime+PulseTime+SlopeDescendTime+GapTime) then
 				gate.Accum = 0
@@ -210,7 +208,7 @@ GateActions["derive"] = {
 		gate.LastT = t
 		local dA = A - gate.LastA
 		gate.LastA = A
-		if (dT != 0) then
+		if dT ~= 0 then
 			return dA/dT
 		else
 			return 0;
@@ -288,7 +286,7 @@ GateActions["monostable"] = {
 		gate.PrevTime = (gate.PrevTime or CurTime())+DeltaTime
 		if ( Reset > 0 ) then
 			gate.Accum = 0
-		elseif ( gate.Accum > 0 || Run > 0 ) then
+		elseif gate.Accum > 0 or Run > 0 then
 			gate.Accum = gate.Accum+DeltaTime
 			if(gate.Accum > Time) then
 				gate.Accum = 0
