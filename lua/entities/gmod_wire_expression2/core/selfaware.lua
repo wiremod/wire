@@ -203,6 +203,7 @@ local excluded_types = {
 	n = true,
 	v = true,
 	a = true,
+	[""] = true,
 
 	r = true,
 	t = true,
