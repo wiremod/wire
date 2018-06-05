@@ -62,7 +62,7 @@ e2function void httpRequest( string url )
 		preq.in_progress = false
 		preq.data = ""
 		preq.success = 0
-	
+
 		run_on.clk = 1
 
 		local ent = self.entity
