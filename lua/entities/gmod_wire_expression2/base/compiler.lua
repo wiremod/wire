@@ -418,7 +418,7 @@ function Compiler:InstrCALL(args)
 end
 
 function Compiler:InstrSTRINGCALL(args)
-	-- args = { "stringcall", trace, function name expression, { argument expressions... } }
+	-- args = { "stringcall", trace, function name expression, { argument expressions... }, return type }
 	local exprs = { false }
 
 	local fexp, ftp = self:Evaluate(args, 1)
