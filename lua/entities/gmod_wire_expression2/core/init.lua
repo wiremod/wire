@@ -93,8 +93,20 @@ function wire_expression2_reset_extensions()
 	wire_expression2_constants = {}
 end
 
+local function isValidTypeId(id)
+	return #id == (string.sub(id, 1, 1) == "x" and 3 or 1)
+end
+
 -- additional args: <input serializer>, <output serializer>, <type checker>
 function registerType(name, id, def, ...)
+	if not isValidTypeId(id) then
+		-- this type ID format is relied on in various places including
+		-- E2Lib.splitType, and malformed type IDs cause confusing and subtle
+		-- errors. Catch this early and blame the caller.
+		error(string.format("malformed type ID '%s' - type IDs must be one " ..
+		"character long, or three characters long starting with an x", id), 2)
+	end
+
 	wire_expression_types[string.upper(name)] = { id, def, ... }
 	wire_expression_types2[id] = { string.upper(name), def, ... }
 	if not WireLib.DT[string.upper(name)] then
