@@ -399,8 +399,8 @@ function Compiler:InstrCND(args)
 end
 
 
-function Compiler:InstrFUN(args)
-	-- args = { "fun", trace, function name, { argument expressions... } }
+function Compiler:InstrCALL(args)
+	-- args = { "call", trace, function name, { argument expressions... } }
 	local exprs = { false }
 
 	local tps = {}
@@ -417,8 +417,8 @@ function Compiler:InstrFUN(args)
 	return exprs, rt[2]
 end
 
-function Compiler:InstrSFUN(args)
-	-- args = { "sfun", trace, function name expression, { argument expressions... } }
+function Compiler:InstrSTRINGCALL(args)
+	-- args = { "stringcall", trace, function name expression, { argument expressions... } }
 	local exprs = { false }
 
 	local fexp, ftp = self:Evaluate(args, 1)
@@ -436,15 +436,15 @@ function Compiler:InstrSFUN(args)
 
 	exprs[#exprs + 1] = tps
 
-	local rtsfun = self:GetOperator(args, "sfun", {})[1]
+	local rtsfun = self:GetOperator(args, "stringcall", {})[1]
 
 	local typeids_str = table.concat(tps, "")
 
 	return { rtsfun, fexp, exprs, tps, typeids_str, args[5] }, args[5]
 end
 
-function Compiler:InstrMTO(args)
-	-- args = { "mto", trace, method name, object expression, { argument expressions... } }
+function Compiler:InstrMETHODCALL(args)
+	-- args = { "methodcall", trace, method name, object expression, { argument expressions... } }
 	local exprs = { false }
 
 	local tps = {}
