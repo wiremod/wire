@@ -94,23 +94,6 @@ function Parser.Execute(...)
 	return xpcall(Parser.Process, E2Lib.errorHandler, instance, ...)
 end
 
-function Parser.DumpTree(tree, indentation)
-	indentation = indentation or ''
-	local str = indentation .. tree[1] .. '(' .. tree[2][1] .. ':' .. tree[2][2] .. ')\n'
-	indentation = indentation .. '  '
-	for i = 3, #tree do
-		local child = tree[i]
-		if type(child) == 'table' and child.__instruction then
-			str = str .. Parser.DumpTree(child, indentation)
-		elseif type(child) == 'string' then
-			str = str .. indentation .. string.format('%q', child) .. '\n'
-		else
-			str = str .. indentation .. tostring(child) .. '\n'
-		end
-	end
-	return str
-end
-
 function Parser:Error(message, token)
 	if token then
 		error(message .. " at line " .. token[4] .. ", char " .. token[5], 0)
@@ -129,7 +112,7 @@ function Parser:Process(tokens, params)
 	self:NextToken()
 	local tree = self:Root()
 	if parserDebug:GetBool() then
-		print(Parser.DumpTree(tree))
+		print(E2Lib.AST.dump(tree))
 	end
 	return tree, self.delta, self.includes
 end

@@ -74,3 +74,31 @@ function E2Lib.AST.visitChildren(node, action)
     local visitor = childVisitors[node[1]] or genericChildVisitor
     return visitor(node, action)
 end
+
+--- Return a string representation of the tree.
+function E2Lib.AST.dump(tree, indentation)
+    indentation = indentation or ""
+    local str = indentation .. tree[1]
+
+    local summary = {}
+    for i = 3, #tree do
+        local v = tree[i]
+        if isstring(v) then
+            table.insert(summary, string.format("%q", v))
+        elseif isnumber(v) then
+            table.insert(summary, tostring(v))
+        end
+    end
+    if next(summary) then
+        str = str .. " [" .. table.concat(summary, ", ") .. "]"
+    end
+
+    str = str .. " (" .. tree[2][1] .. ":" .. tree[2][2] .. ")"
+    local childIndentation = indentation .. "|    "
+
+    E2Lib.AST.visitChildren(tree, function(child)
+        str = str .. "\n" .. E2Lib.AST.dump(child, childIndentation)
+    end)
+
+    return str
+end

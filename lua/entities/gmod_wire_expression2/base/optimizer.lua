@@ -18,7 +18,7 @@ local optimizerDebug = CreateConVar("wire_expression2_optimizer_debug", 0,
 function Optimizer.Execute(root)
     local ok, result = xpcall(Optimizer.Process, E2Lib.errorHandler, root)
     if ok and optimizerDebug:GetBool() then
-        print(E2Lib.Parser.DumpTree(result))
+        print(E2Lib.AST.dump(result))
     end
     return ok, result
 end
