@@ -26,12 +26,8 @@ end
 Optimizer.Passes = {}
 
 function Optimizer.Process(tree)
-    for i = 3, #tree do
-        local child = tree[i]
-        if type(child) == "table" and child.__instruction then
-            tree[i] = Optimizer.Process(child)
-        end
-    end
+    E2Lib.AST.visitChildren(tree, Optimizer.Process)
+
     for _, pass in ipairs(Optimizer.Passes) do
         local action = pass[tree[1]]
         if action then
