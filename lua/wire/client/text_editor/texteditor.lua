@@ -465,6 +465,18 @@ end
 function EDITOR:ClearHighlightedAreas() self.HighlightedAreas = nil end
 
 do
+	-- match = { matchedWith, searchDown }
+	local matchSearch = {
+		["{"] = { "}", true },
+		["}"] = { "{", false },
+	
+		["["] = { "]", true },
+		["]"] = { "[", false },
+	
+		["("] = { ")", true },
+		[")"] = { "(", false },
+	}
+
 	-- This will convert forward text position to reverse text position and vice versa
 	local function fixPos(row, pos, downward)
 		return downward and pos or #row - pos + 1
@@ -486,7 +498,7 @@ do
 				local foundPos = rowStr:find(searchStr, pos)
 
 				if foundPos then
-					local editorPos = {row, fixPos(rowStr, foundPos, downward)}
+					local editorPos = { row, fixPos(rowStr, foundPos, downward) }
 					local token = self:GetTokenAtPosition(editorPos)
 
 					if token ~= "comment" and token ~= "string" then
@@ -509,17 +521,22 @@ do
 		end
 	end
 
-	-- brace = {oppositeBrace, searchDown}
-	local bracketSearch = {
-		["{"] = {"}", true},
-		["}"] = {"{", false},
+	local function isMatchable(self, pos)
+		local char = self.Rows[pos[1]]:sub(pos[2], pos[2])
+		if not matchSearch[char] then return false end
 
-		["["] = {"]", true},
-		["]"] = {"[", false},
+		local token = self:GetTokenAtPosition(pos)
+		if token == "comment" or token == "string" then return false end
 
-		["("] = {")", true},
-		[")"] = {"(", false},
-	}
+		return true
+	end
+
+	local function getMatchingCharacter(self, pos)
+		local char = self.Rows[pos[1]]:sub(pos[2], pos[2])
+		local info = matchSearch[char]
+
+		return matchBalanced(self, pos, char, info[1], info[2])
+	end
 
 	function EDITOR:PaintTextOverlay()
 
@@ -556,38 +573,21 @@ do
 			end
 
 			-- Bracket matching
+			local startPos, endPos
 
-			-- If we're in a comment don't do anything
-			local curPos = self.Caret
-			local token = self:GetTokenAtPosition(curPos)
-			if token == "comment" or token == "string" then
-				return
+			startPos = self:CopyPosition(self.Caret)
+			startPos[2] = startPos[2] - 1
+
+			if isMatchable(self, startPos) then
+				endPos = getMatchingCharacter(self, startPos)
 			end
 
-			local startPos, endPos, startingChar
-			local rowStr = self.Rows[curPos[1]]
+			-- If we fail to get a match on the left side of the cursor, check the right side
+			if not endPos then
+				startPos[2] = startPos[2] + 1
 
-			-- Check character left of cursor if we're not at the start of the line
-			if curPos[2] > 0 then
-				startingChar = rowStr[curPos[2] - 1]
-
-				if bracketSearch[startingChar] then
-					local searchInfo = bracketSearch[startingChar]
-
-					startPos = {curPos[1], curPos[2] - 1}
-					endPos = matchBalanced(self, startPos, startingChar, searchInfo[1], searchInfo[2])
-				end
-			end
-
-			-- Check character right of cursor if we're not at the end of the line
-			if not endPos and curPos[2] <= #rowStr then
-				startingChar = rowStr[curPos[2]]
-
-				if bracketSearch[startingChar] then
-					local searchInfo = bracketSearch[startingChar]
-
-					startPos = curPos
-					endPos = matchBalanced(self, startPos, startingChar, searchInfo[1], searchInfo[2])
+				if isMatchable(self, startPos) then
+					endPos = getMatchingCharacter(self, startPos)
 				end
 			end
 
