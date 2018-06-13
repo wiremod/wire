@@ -2760,7 +2760,7 @@ function EDITOR:GetTokenAtPosition( caret )
 	local column = caret[2]
 	local line = self.PaintRows[caret[1]]
 	if line then
-		local startindex = 1
+		local startindex = 0
 		for _, data in pairs( line ) do
 			startindex = startindex+#data[1]
 			if startindex >= column then return data[3] end
