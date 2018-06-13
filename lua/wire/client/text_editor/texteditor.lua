@@ -2258,12 +2258,17 @@ tbl.RunOnCheck = function( self )
 		return false
 	end
 
-	local caret = self:CopyPosition( self.Caret )
-	caret[2] = caret[2] - 1
-	local tokenname = self:GetTokenAtPosition( caret )
+	local caret = self:CopyPosition(self.Caret)
+	local tokenname = self:GetTokenAtPosition(caret)
+
 	if tokenname and (tokenname == "string" or tokenname == "comment") then
-		self:AC_SetVisible( false )
-		return false
+		caret[2] = caret[2] - 1
+		tokenname = self:GetTokenAtPosition(caret)
+
+		if tokenname and (tokenname == "string" or tokenname == "comment") then
+			self:AC_SetVisible(false)
+			return false
+		end
 	end
 
 	if self:IsVarLine() and not self.AC_WasVarLine then -- If the user IS editing a var line, and they WEREN'T editing a var line before this..
