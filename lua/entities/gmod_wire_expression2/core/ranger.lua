@@ -79,7 +79,7 @@ local function ranger(self, rangertype, range, p1, p2, hulltype, mins, maxs, tra
 		tracedata.endpos = Vector( p2[1], p2[2], p2[3] )
 	elseif rangertype == 3 then
 		tracedata.start = Vector( p1[1], p1[2], p1[3] )
-		tracedata.endpos = tracedata.start + Vector( p2[1], p2[2], p2[3] ):GetNormalized()*range
+		tracedata.endpos = tracedata.start + WireLib.clampPos( Vector( p2[1], p2[2], p2[3] ) ):GetNormalized()*range
 	else
 		tracedata.start = chip:GetPos()
 
