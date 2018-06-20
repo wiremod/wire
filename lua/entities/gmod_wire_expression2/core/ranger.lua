@@ -36,6 +36,7 @@ end
 local function ranger(self, rangertype, range, p1, p2, hulltype, mins, maxs, traceEntity )
 	local data = self.data
 	local chip = self.entity
+	local range = math.Clamp(range, -64000, 64000)
 
 	local defaultzero = data.rangerdefaultzero
 	local ignoreworld = data.rangerignoreworld
