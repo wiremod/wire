@@ -3,7 +3,7 @@
 	By: Dan (McLovin)
 ]]--
 
-local cv_max_transfer_size = CreateConVar( "wire_expression2_file_max_size", "100", { FCVAR_REPLICATED, FCVAR_ARCHIVE } ) //in kb
+local cv_max_transfer_size = CreateConVar( "wire_expression2_file_max_size", "300", { FCVAR_REPLICATED, FCVAR_ARCHIVE } ) //in kib
 
 local upload_buffer = {}
 local download_buffer = {}
