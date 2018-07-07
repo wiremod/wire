@@ -4,7 +4,7 @@
 ]]--
 
 local cv_transfer_delay    = CreateConVar( "wire_expression2_file_delay", "5", { FCVAR_ARCHIVE } )
-local cv_max_transfer_size = CreateConVar( "wire_expression2_file_max_size", "300", { FCVAR_REPLICATED, FCVAR_ARCHIVE } ) -- in kb
+local cv_max_transfer_size = CreateConVar( "wire_expression2_file_max_size", "300", { FCVAR_REPLICATED, FCVAR_ARCHIVE } ) -- in kib
 
 local download_chunk_size = 20000 -- Our overhead is pretty small so lets send it in moderate sized pieces, no need to max out the buffer
 
