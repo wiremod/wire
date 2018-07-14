@@ -18,7 +18,7 @@ local optimizerDebug = CreateConVar("wire_expression2_optimizer_debug", 0,
 function Optimizer.Execute(root)
     local ok, result = xpcall(Optimizer.Process, E2Lib.errorHandler, root)
     if ok and optimizerDebug:GetBool() then
-        print(E2Lib.Parser.DumpTree(result))
+        print(E2Lib.AST.dump(result))
     end
     return ok, result
 end
@@ -26,12 +26,8 @@ end
 Optimizer.Passes = {}
 
 function Optimizer.Process(tree)
-    for i = 3, #tree do
-        local child = tree[i]
-        if type(child) == "table" and child.__instruction then
-            tree[i] = Optimizer.Process(child)
-        end
-    end
+    E2Lib.AST.visitChildren(tree, Optimizer.Process)
+
     for _, pass in ipairs(Optimizer.Passes) do
         local action = pass[tree[1]]
         if action then
