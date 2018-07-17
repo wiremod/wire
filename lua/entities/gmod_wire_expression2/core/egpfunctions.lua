@@ -255,14 +255,7 @@ e2function void wirelink:egpFont( number index, string font, number size )
 	if (!EGP:IsAllowed( self, this )) then return end
 	local bool, k, v = EGP:HasObject( this, index )
 	if (bool) then
-		local selected_font = "WireGPU_ConsoleFont"
-		for k,v in ipairs( EGP.ValidFonts ) do
-			if (v:lower() == font:lower()) then
-				selected_font = k
-				break
-			end
-		end
-		if (EGP:EditObject( v, { font = selected_font, size = size } )) then EGP:DoAction( this, self, "SendObject", v ) Update(self,this) end
+		if (EGP:EditObject( v, { font = font, size = size } )) then EGP:DoAction( this, self, "SendObject", v ) Update(self,this) end
 	end
 end
 
