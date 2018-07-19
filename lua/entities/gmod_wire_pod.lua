@@ -49,11 +49,11 @@ if CLIENT then
 		end
 	end)
 
-	hook.Add( "DrawDeathNotice", "Wire pod DrawDeathNotice", function( name )
+	hook.Add( "DrawDeathNotice", "Wire pod DrawDeathNotice", function()
 		if hideHUD > 0 then return false end
 	end)
 
-	hook.Add( "HUDDrawTargetID", "Wire pod HUDDrawTargetID", function( name )
+	hook.Add( "HUDDrawTargetID", "Wire pod HUDDrawTargetID", function()
 		if hideHUD > 0 then return false end
 	end)
 
