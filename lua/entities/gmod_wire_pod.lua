@@ -5,35 +5,69 @@ ENT.WireDebugName	= "Pod Controller"
 ENT.AllowLockInsideVehicle = CreateConVar( "wire_pod_allowlockinsidevehicle", "0", FCVAR_ARCHIVE, "Allow or disallow people to be locked inside of vehicles" )
 
 if CLIENT then
-	local hideHUD = false
+	local hideHUD = 0
 	local firstTime = true
-
+	local savedHooks = nil
+	local toolgunTable = nil
+	local toolgunHUDFunc = nil
+	local function blank() end
+	
 	hook.Add( "HUDShouldDraw", "Wire pod HUDShouldDraw", function( name )
-		if hideHUD then
+		if hideHUD > 0 then
 			if LocalPlayer():InVehicle() then
 				if firstTime then
 					LocalPlayer():ChatPrint( "The owner of this vehicle has hidden your hud using a pod controller. If it gets stuck this way, use the console command 'wire_pod_hud_show' to forcibly enable it again." )
 					firstTime = false
 				end
-
-				if name ~= "CHudCrosshair" and name ~= "CHudChat" then return false end -- Don't return false on crosshairs. Those are toggled using the other input. And we don't want to hide the chat box.
+				if savedHooks == nil then
+					local weapon = LocalPlayer():GetActiveWeapon()
+					if IsValid(weapon) and weapon:GetClass() == "gmod_tool" then
+						toolgunTable = weapon:GetTable()
+						toolgunHUDFunc = toolgunTable.DrawHUD
+						toolgunTable.DrawHUD = blank
+					end
+					local hooks = hook.GetTable()["HUDPaint"]
+					savedHooks = table.Copy(hooks)
+					for k,v in pairs(hooks) do
+						if k ~= "EGP_HUDPaint" then hooks[k] = blank end
+					end
+				end
+				if name ~= "CHudCrosshair" and name ~= "CHudGMod" and (hideHUD > 1 and name == "CHudChat" or name ~= "CHudChat")  then return false end -- Don't return false on crosshairs. Those are toggled using the other input.
 			elseif not LocalPlayer():InVehicle() then
-				hideHUD = false
+				hideHUD = 0
 			end
+		elseif savedHooks then
+			if toolgunTable then 
+				toolgunTable.DrawHUD = toolgunHUDFunc
+				toolgunTable = nil 
+			end
+			local hooks = hook.GetTable()["HUDPaint"]
+			for k,v in pairs(hooks) do
+				if v == blank then hooks[k] = savedHooks[k] end
+			end
+			savedHooks = nil
 		end
 	end)
-
+	
+	hook.Add( "DrawDeathNotice", "Wire pod DrawDeathNotice", function( name )
+		if hideHUD > 0 then return false end
+	end)
+	
+	hook.Add( "HUDDrawTargetID", "Wire pod HUDDrawTargetID", function( name )
+		if hideHUD > 0 then return false end
+	end)
+	
 	usermessage.Hook( "wire pod hud", function( um )
 		local vehicle = um:ReadEntity()
 		if LocalPlayer():InVehicle() and LocalPlayer():GetVehicle() == vehicle then
-			hideHUD = um:ReadBool()
+			hideHUD = um:ReadShort()
 		else
-			hideHUD = false
+			hideHUD = 0
 		end
 	end)
 
 	concommand.Add( "wire_pod_hud_show", function(ply,cmd,args)
-		hideHUD = false
+		hideHUD = 0
 	end)
 
 
@@ -85,7 +119,7 @@ function ENT:Initialize()
 
 	self:SetLocked( false )
 	self:SetHidePlayer( false )
-	self:SetHideHUD( false )
+	self:SetHideHUD( 0 )
 	self.HidePlayerVal = false
 	self.Crosshairs = false
 	self.Disable = false
@@ -206,13 +240,13 @@ function ENT:SetPly( ply )
 	return true
 end
 
-function ENT:SetHideHUD( bool )
-	self.HideHUD = bool
+function ENT:SetHideHUD( val )
+	self.HideHUD = val
 
 	if self:HasPly() and self:HasPod() then -- If we have a player, we SHOULD always have a pod as well, but just in case.
 		umsg.Start( "wire pod hud", self:GetPly() )
 			umsg.Entity( self:GetPod() )
-			umsg.Bool( self.HideHUD )
+			umsg.Short( self.HideHUD )
 		umsg.End()
 	end
 end
@@ -340,7 +374,7 @@ function ENT:TriggerInput( name, value )
 	elseif (name == "Hide Player") then
 		self:SetHidePlayer( value ~= 0 )
 	elseif (name == "Hide HUD") then
-		self:SetHideHUD( value ~= 0 )
+		self:SetHideHUD( value )
 	elseif (name == "Vehicle") then
 		if IsValid(value) then -- only link if the input is valid. that way, it won't be unlinked if the wire is disconnected
 			self:LinkEnt(value)
@@ -437,10 +471,10 @@ function ENT:PlayerEntered( ply, RC )
 		ply:CrosshairEnable()
 	end
 
-	if self.HideHUD and self:HasPod() then
+	if self.HideHUD > 0 and self:HasPod() then
 		umsg.Start( "wire pod hud", ply )
 			umsg.Entity( self:GetPod() )
-			umsg.Bool( true )
+			umsg.Short( self.HideHUD )
 		umsg.End()
 	end
 
