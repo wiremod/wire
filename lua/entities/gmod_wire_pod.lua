@@ -11,7 +11,7 @@ if CLIENT then
 	local toolgunTable = nil
 	local toolgunHUDFunc = nil
 	local function blank() end
-	
+
 	hook.Add( "HUDShouldDraw", "Wire pod HUDShouldDraw", function( name )
 		if hideHUD > 0 then
 			if LocalPlayer():InVehicle() then
@@ -37,9 +37,9 @@ if CLIENT then
 				hideHUD = 0
 			end
 		elseif savedHooks then
-			if toolgunTable then 
+			if toolgunTable then
 				toolgunTable.DrawHUD = toolgunHUDFunc
-				toolgunTable = nil 
+				toolgunTable = nil
 			end
 			local hooks = hook.GetTable()["HUDPaint"]
 			for k,v in pairs(hooks) do
@@ -48,15 +48,15 @@ if CLIENT then
 			savedHooks = nil
 		end
 	end)
-	
+
 	hook.Add( "DrawDeathNotice", "Wire pod DrawDeathNotice", function( name )
 		if hideHUD > 0 then return false end
 	end)
-	
+
 	hook.Add( "HUDDrawTargetID", "Wire pod HUDDrawTargetID", function( name )
 		if hideHUD > 0 then return false end
 	end)
-	
+
 	usermessage.Hook( "wire pod hud", function( um )
 		local vehicle = um:ReadEntity()
 		if LocalPlayer():InVehicle() and LocalPlayer():GetVehicle() == vehicle then
