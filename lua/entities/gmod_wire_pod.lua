@@ -28,7 +28,7 @@ if CLIENT then
 					end
 					local hooks = hook.GetTable()["HUDPaint"]
 					savedHooks = table.Copy(hooks)
-					for k,v in pairs(hooks) do
+					for k in pairs(hooks) do
 						if k ~= "EGP_HUDPaint" then hooks[k] = blank end
 					end
 				end
