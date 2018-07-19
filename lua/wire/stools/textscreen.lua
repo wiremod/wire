@@ -35,14 +35,14 @@ if SERVER then
 			self:GetClientNumber("valign"),
 			self:GetClientInfo("tfont"),
 			Color(
-				math.min(self:GetClientNumber("tred"), 255),
-				math.min(self:GetClientNumber("tgreen"), 255),
-				math.min(self:GetClientNumber("tblue"), 255)
+				math.Clamp(self:GetClientNumber("tred"), 0, 255),
+				math.Clamp(self:GetClientNumber("tgreen"), 0, 255),
+				math.Clamp(self:GetClientNumber("tblue"), 0, 255)
 			),
 			Color(
-				math.min(self:GetClientNumber("tbgred"), 255),
-				math.min(self:GetClientNumber("tbggreen"), 255),
-				math.min(self:GetClientNumber("tbgblue"), 255)
+				math.Clamp(self:GetClientNumber("tbgred"), 0, 255),
+				math.Clamp(self:GetClientNumber("tbggreen"), 0, 255),
+				math.Clamp(self:GetClientNumber("tbgblue"), 0, 255)
 			)
 	end
 
