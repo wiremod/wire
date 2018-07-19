@@ -472,10 +472,12 @@ function ENT:PlayerEntered( ply, RC )
 	end
 
 	if self.HideHUD > 0 and self:HasPod() then
-		umsg.Start( "wire pod hud", ply )
-			umsg.Entity( self:GetPod() )
-			umsg.Short( self.HideHUD )
-		umsg.End()
+		timer.Simple(0.1,function()
+			umsg.Start( "wire pod hud", ply )
+				umsg.Entity( self:GetPod() )
+				umsg.Short( self.HideHUD )
+			umsg.End()
+		end)
 	end
 
 	if (self.HidePlayerVal) then
