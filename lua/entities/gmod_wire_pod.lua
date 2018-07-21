@@ -12,55 +12,55 @@ if CLIENT then
 	local toolgunHUDFunc = nil
 	local function blank() end
 
-	hook.Add( "HUDShouldDraw", "Wire pod HUDShouldDraw", function( name )
-		if hideHUD > 0 then
-			if LocalPlayer():InVehicle() then
-				if firstTime then
-					LocalPlayer():ChatPrint( "The owner of this vehicle has hidden your hud using a pod controller. If it gets stuck this way, use the console command 'wire_pod_hud_show' to forcibly enable it again." )
-					firstTime = false
-				end
-				if savedHooks == nil then
-					local weapon = LocalPlayer():GetActiveWeapon()
-					if IsValid(weapon) and weapon:GetClass() == "gmod_tool" then
-						toolgunTable = weapon:GetTable()
-						toolgunHUDFunc = toolgunTable.DrawHUD
-						toolgunTable.DrawHUD = blank
-					end
-					local hooks = hook.GetTable()["HUDPaint"]
-					savedHooks = table.Copy(hooks)
-					for k in pairs(hooks) do
-						if k ~= "EGP_HUDPaint" then hooks[k] = blank end
-					end
-				end
-				if name ~= "CHudCrosshair" and name ~= "CHudGMod" and (hideHUD > 1 and name == "CHudChat" or name ~= "CHudChat")  then return false end -- Don't return false on crosshairs. Those are toggled using the other input.
-			elseif not LocalPlayer():InVehicle() then
-				hideHUD = 0
-			end
-		elseif savedHooks then
-			if toolgunTable then
-				toolgunTable.DrawHUD = toolgunHUDFunc
-				toolgunTable = nil
-			end
-			local hooks = hook.GetTable()["HUDPaint"]
-			for k,v in pairs(hooks) do
-				if v == blank then hooks[k] = savedHooks[k] end
-			end
-			savedHooks = nil
-		end
-	end)
-
-	hook.Add( "DrawDeathNotice", "Wire pod DrawDeathNotice", function()
-		if hideHUD > 0 then return false end
-	end)
-
-	hook.Add( "HUDDrawTargetID", "Wire pod HUDDrawTargetID", function()
-		if hideHUD > 0 then return false end
-	end)
-
 	usermessage.Hook( "wire pod hud", function( um )
 		local vehicle = um:ReadEntity()
 		if LocalPlayer():InVehicle() and LocalPlayer():GetVehicle() == vehicle then
 			hideHUD = um:ReadShort()
+			if hideHUD > 0 then
+				hook.Add( "HUDShouldDraw", "Wire pod HUDShouldDraw", function( name )
+					if hideHUD > 0 then
+						if LocalPlayer():InVehicle() then
+							if firstTime then
+								LocalPlayer():ChatPrint( "The owner of this vehicle has hidden your hud using a pod controller. If it gets stuck this way, use the console command 'wire_pod_hud_show' to forcibly enable it again." )
+								firstTime = false
+							end
+							if savedHooks == nil then
+								local weapon = LocalPlayer():GetActiveWeapon()
+								if IsValid(weapon) and weapon:GetClass() == "gmod_tool" then
+									toolgunTable = weapon:GetTable()
+									toolgunHUDFunc = toolgunTable.DrawHUD
+									toolgunTable.DrawHUD = blank
+								end
+								local hooks = hook.GetTable()["HUDPaint"]
+								savedHooks = table.Copy(hooks)
+								for k in pairs(hooks) do
+									if k ~= "EGP_HUDPaint" then hooks[k] = blank end
+								end
+								hook.Add( "DrawDeathNotice", "Wire pod DrawDeathNotice", function() end)
+								hook.Add( "HUDDrawTargetID", "Wire pod HUDDrawTargetID", function() end)
+							end
+							if name ~= "CHudCrosshair" and name ~= "CHudGMod" and (hideHUD > 1 and name == "CHudChat" or name ~= "CHudChat")  then return false end -- Don't return false on crosshairs. Those are toggled using the other input.
+						else
+							hideHUD = 0
+						end
+					else
+						if toolgunTable then
+							toolgunTable.DrawHUD = toolgunHUDFunc
+							toolgunTable = nil
+						end
+						if savedHooks then
+							local hooks = hook.GetTable()["HUDPaint"]
+							for k,v in pairs(hooks) do
+								if v == blank then hooks[k] = savedHooks[k] end
+							end
+							savedHooks = nil
+						end
+						hook.Remove( "HUDShouldDraw", "Wire pod HUDShouldDraw")
+						hook.Remove( "DrawDeathNotice", "Wire pod DrawDeathNotice")
+						hook.Remove( "HUDDrawTargetID", "Wire pod HUDDrawTargetID")
+					end
+				end)
+			end
 		else
 			hideHUD = 0
 		end
