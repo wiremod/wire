@@ -14,6 +14,9 @@ if CLIENT then
 
 	function ENT:Initialize()
 		self.NextRBUpdate = CurTime() + 0.25
+		net.Start("WireLib.Paths.RequestPaths")
+			net.WriteEntity(self)
+		net.SendToServer()
 	end
 
 	function ENT:Draw()
@@ -373,6 +376,7 @@ end
 
 function ENT:PreEntityCopy()
 	-- build the DupeInfo table and save it as an entity mod
+	duplicator.ClearEntityModifier(self, "WireDupeInfo")
 	local DupeInfo = self:BuildDupeInfo()
 	if DupeInfo then
 		duplicator.StoreEntityModifier(self, "WireDupeInfo", DupeInfo)

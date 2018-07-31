@@ -9,9 +9,6 @@
 --
 
 if not WireLib then return end
-WireLib.Paths = {}
-
-local transmit_queues = setmetatable({}, { __index = function(t,p) t[p] = {} return t[p] end })
 
 if CLIENT then
 	net.Receive("WireLib.Paths.TransmitPath", function(length)
@@ -53,6 +50,9 @@ if CLIENT then
 	return
 end
 
+WireLib.Paths = {}
+local transmit_queues = setmetatable({}, { __index = function(t,p) t[p] = {} return t[p] end })
+
 util.AddNetworkString("WireLib.Paths.RequestPaths")
 util.AddNetworkString("WireLib.Paths.TransmitPath")
 
@@ -72,15 +72,18 @@ local function TransmitPath(input, ply)
 	local color = input.Color
 	net.WriteEntity(input.Entity)
 	net.WriteString(input.Name)
-	if not input.Src or input.Width<=0 then net.WriteFloat(0) return end
-	net.WriteFloat(input.Width)
-	net.WriteVector(input.StartPos)
-	net.WriteString(input.Material)
-	net.WriteColor(Color(color.r or 255, color.g or 255, color.b or 255, color.a or 255))
-	net.WriteUInt(#input.Path, 16)
-	for _, point in ipairs(input.Path) do
-		net.WriteEntity(point.Entity)
-		net.WriteVector(point.Pos)
+	if not input.Src or input.Width<=0 then
+		net.WriteFloat(0)
+	else
+		net.WriteFloat(input.Width)
+		net.WriteVector(input.StartPos)
+		net.WriteString(input.Material)
+		net.WriteColor(Color(color.r or 255, color.g or 255, color.b or 255, color.a or 255))
+		net.WriteUInt(#input.Path, 16)
+		for _, point in ipairs(input.Path) do
+			net.WriteEntity(point.Entity)
+			net.WriteVector(point.Pos)
+		end
 	end
 	net.Send(ply)
 end
