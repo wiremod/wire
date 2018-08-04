@@ -61,7 +61,7 @@ function Wire_Render(ent)
 						local len = #nodes
 						if len>0 then
 							render.SetMaterial(getmat(wiretbl.Material))
-							render.StartBeam(len+1)
+							render.StartBeam(len * 2 + 1)
 							render.AddBeam(start, width, scroll, color)
 
 							for j=1, len do
@@ -72,6 +72,7 @@ function Wire_Render(ent)
 
 									scroll = scroll+(endpos-start):Length()/10
 									render.AddBeam(endpos, width, scroll, color)
+									render.AddBeam(endpos, width, scroll, color) -- A second beam in the same position ensures the line stays consistent and doesn't change width/become distorted.
 
 									start = endpos
 								end

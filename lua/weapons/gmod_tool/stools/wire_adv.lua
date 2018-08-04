@@ -45,6 +45,8 @@ TOOL.ClientConVar = {
 }
 
 util.PrecacheSound("weapons/pistol/pistol_empty.wav")
+util.PrecacheSound("buttons/lightswitch2.wav")
+util.PrecacheSound("buttons/button16.wav")
 
 local function get_active_tool(ply, tool)
 	-- find toolgun
@@ -427,6 +429,8 @@ elseif CLIENT then
 
 		if IsValid( trace.Entity ) then
 			if self:GetStage() == 0 then
+				self:BeginRenderingCurrentWire()
+				
 				local inputs, _ = self:GetPorts( trace.Entity )
 				if not inputs then return end
 
@@ -555,6 +559,7 @@ elseif CLIENT then
 			self:SetStage(0)
 			self.WiringRender = {} -- Empty this now so the HUD doesn't glitch
 			self:GetOwner():EmitSound( "weapons/airboat/airboat_gun_lastshot" .. math.random(1,2) .. ".wav" )
+			self:StopRenderingCurrentWire()
 		end
 	end
 
@@ -568,6 +573,7 @@ elseif CLIENT then
 			for i=1,#self.Wiring do
 				self:WireNode( self.Wiring[i], trace.Entity, trace.HitPos + trace.HitNormal*(self:GetClientNumber("width")/2) )
 			end
+			self:GetOwner():EmitSound("buttons/lightswitch2.wav")
 		end
 	end
 
@@ -648,18 +654,40 @@ elseif CLIENT then
 			if not self then return end
 
 			return self:ScrollUp(ply:GetEyeTraceNoCursor())
-		elseif bind == "impulse 100" and ply:KeyDown( IN_SPEED ) then
-			local self = get_active_tool(ply, "wire_adv")
-			if not self then
-				self = get_active_tool(ply, "wire_debugger")
-				if not self then return end
+		elseif bind == "impulse 100" then
+			if ply:KeyDown( IN_SPEED ) then
+				local self = get_active_tool(ply, "wire_adv")
+				if not self then
+					self = get_active_tool(ply, "wire_debugger")
+					if not self then return end
 
-				spawnmenu.ActivateTool( "wire_adv") -- switch back to wire adv
+					spawnmenu.ActivateTool( "wire_adv") -- switch back to wire adv
+					return true
+				end
+
+				spawnmenu.ActivateTool("wire_debugger") -- switch to debugger
+				return true
+			else
+				local self = get_active_tool(ply, "wire_adv")
+				if self and self:GetStage() == 1 then
+					local len = #self.Wiring
+					if len > 0 then
+						local nodesCount = 0
+						for i=1,len do
+							nodesCount = nodesCount + #self.Wiring[i][4]
+							if #self.Wiring[i][4] > 0 then
+								table.remove(self.Wiring[i][4])
+							end
+						end
+						
+						if nodesCount > 0 then
+							self:GetOwner():EmitSound( "buttons/button16.wav" )
+						end
+					end
+					return true
+				end
 				return true
 			end
-
-			spawnmenu.ActivateTool("wire_debugger") -- switch to debugger
-			return true
 		end
 	end
 
@@ -980,6 +1008,66 @@ elseif CLIENT then
 			local y = centery-hh/2-16
 			self:DrawList( "Selected", self.WiringRender, ent, x, y, ww, hh, h )
 		end
+	end
+	
+	function TOOL:StopRenderingCurrentWire()
+		hook.Remove("PostDrawOpaqueRenderables", "Wire.ToolWireRenderHook")
+		self.IsRenderingCurrentWire = false;
+	end
+	
+	function TOOL:BeginRenderingCurrentWire()
+		if self.IsRenderingCurrentWire then return end
+		self.IsRenderingCurrentWire = true
+		hook.Add("PostDrawOpaqueRenderables", "Wire.ToolWireRenderHook", function()
+			// Draw the wire path
+			render.SetColorMaterial()
+			for i=1, #self.Wiring do
+				local wiring = self.Wiring[i]
+				local nodes = wiring[4]
+				
+				local color = Color(self:GetClientNumber("r"), self:GetClientNumber("g"), self:GetClientNumber("b"))
+				local matName = self:GetClientInfo("material")
+				local width = self:GetClientInfo("width")
+				local mat = Material("cable/cable2")
+				local theEnt = wiring[3]
+				if not theEnt:IsValid() then
+					break
+				end
+				
+				local start = theEnt:LocalToWorld(wiring[2])
+				
+				local scroll = 0.5
+				render.SetMaterial(mat)
+				render.StartBeam((#nodes*2)+1+1+1) // + startpoint + same as last node (to not have transition to aiming point) +point where player is aiming
+				render.AddBeam(start, width, scroll, color)
+				
+				for j=1, #nodes do
+					local node = nodes[j]
+					
+					local nodeEnt = node[1]
+					local nodeOffset = node[2]
+					local nodePosition = nodeEnt:LocalToWorld(nodeOffset)
+					
+					scroll = scroll+(nodePosition-start):Length()/10
+					render.AddBeam(nodePosition, width, scroll, color)
+					render.AddBeam(nodePosition, width, scroll, color)
+
+					start = nodePosition
+				end
+				
+				render.AddBeam(start, width, scroll, Color(255,255,255,255))
+				local traceData = util.GetPlayerTrace(LocalPlayer())
+				traceData.filter = { LocalPlayer() }
+
+				traceData.collisiongroup = LAST_SHARED_COLLISION_GROUP
+				local traceResult = util.TraceLine(traceData)
+				/*if self.IsWireEntity(traceResult.Entity) then
+					UpdateTraceForSurface(traceResult)
+				end*/
+				render.AddBeam(traceResult.HitPos, width, scroll, Color(100,100,100,255))
+				render.EndBeam()
+			end
+		end)
 	end
 
 
