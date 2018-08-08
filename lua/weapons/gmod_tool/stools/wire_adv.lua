@@ -25,7 +25,7 @@ if CLIENT then
 		{ name = "mwheel_0", stage = 0, text = "Mouse wheel: Next" },
 		{ name = "left_1", stage = 1, text = "Select entity" },
 		{ name = "right_1", stage = 1, text = "Add wirepoint" },
-		{ name = "f_0", stage = 1, text = "F: Remove wirepoint" },
+		{ name = "f_0", stage = 1, text = "F: Undo wirepoint" },
 		{ name = "reload_1", stage = 1, text = "Cancel" },
 		{ name = "left_2", stage = 2, text = "Select output (Alt: Auto-connect matching input/outputs)" },
 		{ name = "right_2", stage = 2, text = "Next" },
