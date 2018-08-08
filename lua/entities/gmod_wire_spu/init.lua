@@ -225,10 +225,10 @@ function ENT:QuerySoundEmitters(entity)
 
   if entity:GetClass() == "gmod_wire_spu" then -- VideoOut connected to a GPU
     table.insert(self.QueryResult,entity:EntIndex())
-  elseif entity.MySocket then -- VideoOut connected to a plug
-    self:QuerySoundEmitters(entity.MySocket.Inputs.Memory.Src)
-  elseif entity.MyPlug then -- VideoOut connected to a socket
-    self:QuerySoundEmitters(entity.MyPlug.Inputs.Memory.Src)
+  elseif entity.Socket then -- VideoOut connected to a plug
+    self:QuerySoundEmitters(entity.Socket.Inputs.Memory.Src)
+  elseif entity.Plug then -- VideoOut connected to a socket
+    self:QuerySoundEmitters(entity.Plug.Inputs.Memory.Src)
   elseif entity.Ply and entity.Ply:IsValid() then -- VideoOut connected to pod
     table.insert(self.QueryResult,entity.Ply:EntIndex())
   elseif entity:GetClass() == "gmod_wire_addressbus" then -- VideoOut connected to address bus
