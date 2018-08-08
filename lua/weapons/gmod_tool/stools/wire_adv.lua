@@ -418,15 +418,9 @@ elseif CLIENT then
 		return self.AutoWiringTypeLookup_t[inputtype]
 	end
 
-	function TOOL:IsWireEntity(ent)
-		-- TODO
-		local inputs, outputs = WireLib.GetPorts(ent)
-		return inputs or outputs
-	end
-
 	function TOOL:UpdateTraceForSurface(trace, parent, dir, terminate)
 		if self:GetClientNumber("stick") == 0 then return end
-		if not self:IsWireEntity(trace.Entity) then return end
+		if not WireLib.HasPorts(trace.Entity) then return end
 		terminate = terminate or false
 
 		dir = dir or 0
@@ -463,6 +457,8 @@ elseif CLIENT then
 				traceData.collisiongroup = LAST_SHARED_COLLISION_GROUP
 				newTrace = util.TraceLine(traceData)
 				parent = newTrace.Entity
+				
+				-- Restart with the assumed parent.
 				self:UpdateTraceForSurface(trace, parent, 0, true)
 				return
 			end
@@ -1126,7 +1122,7 @@ elseif CLIENT then
 
 					traceData.collisiongroup = LAST_SHARED_COLLISION_GROUP
 					local traceResult = util.TraceLine(traceData)
-					if self:IsWireEntity(traceResult.Entity) then
+					if WireLib.HasPorts(traceResult.Entity) then
 						self:UpdateTraceForSurface(traceResult, traceResult.Entity:GetParent())
 					end
 					render.AddBeam(traceResult.HitPos, width, scroll, Color(100,100,100,255))
