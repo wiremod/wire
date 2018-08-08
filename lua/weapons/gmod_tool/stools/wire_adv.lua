@@ -17,7 +17,7 @@ if CLIENT then
 	language.Add( "WireTool_width", "Width:" )
 	language.Add( "WireTool_material", "Material:" )
 	language.Add( "WireTool_colour", "Colour:" )
-	language.Add( "WireTool_align", "Align to surface" )
+	language.Add( "WireTool_stick", "Stick to surfaces" )
 	TOOL.Information = {
 		{ name = "left_0", stage = 0, text = "Select input (Shift: Select multiple; Alt: Select all)" },
 		{ name = "right_0", stage = 0, text = "Next" },
@@ -44,7 +44,7 @@ TOOL.ClientConVar = {
 	r = 255,
 	g = 255,
 	b = 255,
-	align = 1
+	stick = 1
 }
 
 util.PrecacheSound("weapons/pistol/pistol_empty.wav")
@@ -425,7 +425,7 @@ elseif CLIENT then
 	end
 	
 	function TOOL:UpdateTraceForSurface(trace, parent, dir, terminate)
-		if self:GetClientNumber("align") == 0 then return end
+		if self:GetClientNumber("stick") == 0 then return end
 		if not self:IsWireEntity(trace.Entity) then return end
 		terminate = terminate or false
 		
@@ -1197,7 +1197,7 @@ elseif CLIENT then
 			Blue = "wire_adv_b"
 		})
 		
-		panel:CheckBox("#WireTool_align", "wire_adv_align")
+		panel:CheckBox("#WireTool_stick", "wire_adv_stick")
 	end
 
 end
