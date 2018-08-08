@@ -417,18 +417,18 @@ elseif CLIENT then
 	function TOOL:AutoWiringTypeLookup_Check( inputtype )
 		return self.AutoWiringTypeLookup_t[inputtype]
 	end
-	
+
 	function TOOL:IsWireEntity(ent)
 		-- TODO
 		local inputs, outputs = WireLib.GetPorts(ent)
 		return inputs or outputs
 	end
-	
+
 	function TOOL:UpdateTraceForSurface(trace, parent, dir, terminate)
 		if self:GetClientNumber("stick") == 0 then return end
 		if not self:IsWireEntity(trace.Entity) then return end
 		terminate = terminate or false
-		
+
 		dir = dir or 0
 		local traceData = util.GetPlayerTrace(LocalPlayer())
 		traceData.start = trace.HitPos
@@ -451,7 +451,7 @@ elseif CLIENT then
 		traceData.collisiongroup = LAST_SHARED_COLLISION_GROUP
 		local newTrace = util.TraceLine(traceData)
 		if dir < 5 then
-			if !IsValid(parent) or newTrace.Entity ~= parent then
+			if not IsValid(parent) or newTrace.Entity ~= parent then
 				self:UpdateTraceForSurface(trace, parent, dir + 1, terminate)
 				return
 			end
@@ -467,7 +467,7 @@ elseif CLIENT then
 				return
 			end
 		end
-		
+
 		if newTrace.Hit then
 			trace.HitPos = newTrace.HitPos
 			trace.Normal = newTrace.HitNormal
@@ -490,7 +490,7 @@ elseif CLIENT then
 			if self:GetStage() == 0 then
 				self:UpdateTraceForSurface(trace, trace.Entity:GetParent())
 				self:BeginRenderingCurrentWire()
-				
+
 				local inputs, _ = self:GetPorts( trace.Entity )
 				if not inputs then return end
 
@@ -627,7 +627,7 @@ elseif CLIENT then
 	function TOOL:RightClick(trace)
 		if self.wtfgarry > CurTime() then return end
 		self.wtfgarry = CurTime() + 0.1
-		
+
 		self:UpdateTraceForSurface(trace, trace.Entity:GetParent())
 		if self:GetStage() == 0 or self:GetStage() == 2 then
 			self:ScrollDown(trace)
@@ -741,7 +741,7 @@ elseif CLIENT then
 								table.remove(self.Wiring[i][4])
 							end
 						end
-						
+
 						if nodesCount > 0 then
 							self:GetOwner():EmitSound( "buttons/button16.wav" )
 						end
@@ -1071,12 +1071,12 @@ elseif CLIENT then
 			self:DrawList( "Selected", self.WiringRender, ent, x, y, ww, hh, h )
 		end
 	end
-	
+
 	function TOOL:StopRenderingCurrentWire()
 		hook.Remove("PostDrawOpaqueRenderables", "Wire.ToolWireRenderHook")
 		self.IsRenderingCurrentWire = false;
 	end
-	
+
 	function TOOL:BeginRenderingCurrentWire()
 		if self.IsRenderingCurrentWire then return end
 		self.IsRenderingCurrentWire = true
@@ -1086,6 +1086,7 @@ elseif CLIENT then
 			for i=1, #self.Wiring do
 				local wiring = self.Wiring[i]
 				local nodes = wiring[4]
+				local outputEntity = wiring[5]
 				
 				local color = Color(self:GetClientNumber("r"), self:GetClientNumber("g"), self:GetClientNumber("b"))
 				local matName = self:GetClientInfo("material")
@@ -1095,38 +1096,45 @@ elseif CLIENT then
 				if not theEnt:IsValid() then
 					break
 				end
-				
+
 				local start = theEnt:LocalToWorld(wiring[2])
-				
+
 				local scroll = 0.5
 				render.SetMaterial(mat)
 				render.StartBeam((#nodes*2)+1+1+1) // + startpoint + same as last node (to not have transition to aiming point) +point where player is aiming
 				render.AddBeam(start, width, scroll, color)
-				
+
 				for j=1, #nodes do
 					local node = nodes[j]
-					
+
 					local nodeEnt = node[1]
 					local nodeOffset = node[2]
 					local nodePosition = nodeEnt:LocalToWorld(nodeOffset)
-					
+
 					scroll = scroll+(nodePosition-start):Length()/10
 					render.AddBeam(nodePosition, width, scroll, color)
 					render.AddBeam(nodePosition, width, scroll, color)
 
 					start = nodePosition
 				end
-				
-				render.AddBeam(start, width, scroll, Color(255,255,255,255))
-				local traceData = util.GetPlayerTrace(LocalPlayer())
-				traceData.filter = { LocalPlayer() }
 
-				traceData.collisiongroup = LAST_SHARED_COLLISION_GROUP
-				local traceResult = util.TraceLine(traceData)
-				if self:IsWireEntity(traceResult.Entity) then
-					self:UpdateTraceForSurface(traceResult, traceResult.Entity:GetParent())
+				render.AddBeam(start, width, scroll, Color(255,255,255,255))
+				
+				if not IsValid(outputEntity) then
+					local traceData = util.GetPlayerTrace(LocalPlayer())
+					traceData.filter = { LocalPlayer() }
+
+					traceData.collisiongroup = LAST_SHARED_COLLISION_GROUP
+					local traceResult = util.TraceLine(traceData)
+					if self:IsWireEntity(traceResult.Entity) then
+						self:UpdateTraceForSurface(traceResult, traceResult.Entity:GetParent())
+					end
+					render.AddBeam(traceResult.HitPos, width, scroll, Color(100,100,100,255))
+				else
+					local outputPos = wiring[6]
+					outputPos = outputEntity:LocalToWorld(outputPos)
+					render.AddBeam(outputPos, width, scroll, Color(100,100,100,255))
 				end
-				render.AddBeam(traceResult.HitPos, width, scroll, Color(100,100,100,255))
 				render.EndBeam()
 			end
 		end)
@@ -1196,7 +1204,7 @@ elseif CLIENT then
 			Green = "wire_adv_g",
 			Blue = "wire_adv_b"
 		})
-		
+
 		panel:CheckBox("#WireTool_stick", "wire_adv_stick")
 	end
 
