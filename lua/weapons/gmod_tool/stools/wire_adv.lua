@@ -1081,13 +1081,13 @@ elseif CLIENT then
 		if self.IsRenderingCurrentWire then return end
 		self.IsRenderingCurrentWire = true
 		hook.Add("PostDrawOpaqueRenderables", "Wire.ToolWireRenderHook", function()
-			// Draw the wire path
+			-- Draw the wire path
 			render.SetColorMaterial()
 			for i=1, #self.Wiring do
 				local wiring = self.Wiring[i]
 				local nodes = wiring[4]
 				local outputEntity = wiring[5]
-				
+
 				local color = Color(self:GetClientNumber("r"), self:GetClientNumber("g"), self:GetClientNumber("b"))
 				local matName = self:GetClientInfo("material")
 				local width = self:GetClientInfo("width")
@@ -1101,7 +1101,7 @@ elseif CLIENT then
 
 				local scroll = 0.5
 				render.SetMaterial(mat)
-				render.StartBeam((#nodes*2)+1+1+1) // + startpoint + same as last node (to not have transition to aiming point) +point where player is aiming
+				render.StartBeam((#nodes*2)+1+1+1) -- + startpoint + same as last node (to not have transition to aiming point) +point where player is aiming
 				render.AddBeam(start, width, scroll, color)
 
 				for j=1, #nodes do
@@ -1119,7 +1119,7 @@ elseif CLIENT then
 				end
 
 				render.AddBeam(start, width, scroll, Color(255,255,255,255))
-				
+
 				if not IsValid(outputEntity) then
 					local traceData = util.GetPlayerTrace(LocalPlayer())
 					traceData.filter = { LocalPlayer() }
