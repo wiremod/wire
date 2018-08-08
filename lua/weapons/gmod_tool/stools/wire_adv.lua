@@ -17,6 +17,7 @@ if CLIENT then
 	language.Add( "WireTool_width", "Width:" )
 	language.Add( "WireTool_material", "Material:" )
 	language.Add( "WireTool_colour", "Colour:" )
+	language.Add( "WireTool_align", "Align to surface" )
 	TOOL.Information = {
 		{ name = "left_0", stage = 0, text = "Select input (Shift: Select multiple; Alt: Select all)" },
 		{ name = "right_0", stage = 0, text = "Next" },
@@ -24,6 +25,7 @@ if CLIENT then
 		{ name = "mwheel_0", stage = 0, text = "Mouse wheel: Next" },
 		{ name = "left_1", stage = 1, text = "Select entity" },
 		{ name = "right_1", stage = 1, text = "Add wirepoint" },
+		{ name = "f_0", stage = 1, text = "F: Remove wirepoint" },
 		{ name = "reload_1", stage = 1, text = "Cancel" },
 		{ name = "left_2", stage = 2, text = "Select output (Alt: Auto-connect matching input/outputs)" },
 		{ name = "right_2", stage = 2, text = "Next" },
@@ -42,6 +44,7 @@ TOOL.ClientConVar = {
 	r = 255,
 	g = 255,
 	b = 255,
+	align = 1
 }
 
 util.PrecacheSound("weapons/pistol/pistol_empty.wav")
@@ -414,6 +417,62 @@ elseif CLIENT then
 	function TOOL:AutoWiringTypeLookup_Check( inputtype )
 		return self.AutoWiringTypeLookup_t[inputtype]
 	end
+	
+	function TOOL:IsWireEntity(ent)
+		-- TODO
+		local inputs, outputs = WireLib.GetPorts(ent)
+		return inputs or outputs
+	end
+	
+	function TOOL:UpdateTraceForSurface(trace, parent, dir, terminate)
+		if self:GetClientNumber("align") == 0 then return end
+		if not self:IsWireEntity(trace.Entity) then return end
+		terminate = terminate or false
+		
+		dir = dir or 0
+		local traceData = util.GetPlayerTrace(LocalPlayer())
+		traceData.start = trace.HitPos
+		local normal
+		if dir == 1 then
+			normal = trace.Entity:GetForward()
+		elseif dir == 2 then
+			normal = trace.Entity:GetRight()
+		elseif dir == 3 then
+			normal = -trace.Entity:GetUp()
+		elseif dir == 4 then
+			normal = -trace.Entity:GetForward()
+		elseif dir == 5 then
+			normal = -trace.Entity:GetRight()
+		else -- if 0 then
+			normal = trace.Entity:GetUp()
+		end
+		traceData.endpos = trace.HitPos + normal * -1000
+		traceData.filter = { LocalPlayer(), trace.Entity }
+		traceData.collisiongroup = LAST_SHARED_COLLISION_GROUP
+		local newTrace = util.TraceLine(traceData)
+		if dir < 5 then
+			if !IsValid(parent) or newTrace.Entity ~= parent then
+				self:UpdateTraceForSurface(trace, parent, dir + 1, terminate)
+				return
+			end
+		else
+			if not terminate then
+				-- Didn't find the parent in any direction, assume whichever entity can be traced behind the entity is the "parent".
+				local traceData = util.GetPlayerTrace(LocalPlayer())
+				traceData.filter = { LocalPlayer(), trace.Entity }
+				traceData.collisiongroup = LAST_SHARED_COLLISION_GROUP
+				newTrace = util.TraceLine(traceData)
+				parent = newTrace.Entity
+				self:UpdateTraceForSurface(trace, parent, 0, true)
+				return
+			end
+		end
+		
+		if newTrace.Hit then
+			trace.HitPos = newTrace.HitPos
+			trace.Normal = newTrace.HitNormal
+		end
+	end
 
 	-----------------------------------------------------------------
 	-- Mouse buttons
@@ -429,6 +488,7 @@ elseif CLIENT then
 
 		if IsValid( trace.Entity ) then
 			if self:GetStage() == 0 then
+				self:UpdateTraceForSurface(trace, trace.Entity:GetParent())
 				self:BeginRenderingCurrentWire()
 				
 				local inputs, _ = self:GetPorts( trace.Entity )
@@ -452,6 +512,7 @@ elseif CLIENT then
 
 				return
 			elseif self:GetStage() == 1 then
+				self:UpdateTraceForSurface(trace, trace.Entity:GetParent())
 				local _, outputs = self:GetPorts( trace.Entity )
 				if not outputs then return end
 
@@ -566,7 +627,8 @@ elseif CLIENT then
 	function TOOL:RightClick(trace)
 		if self.wtfgarry > CurTime() then return end
 		self.wtfgarry = CurTime() + 0.1
-
+		
+		self:UpdateTraceForSurface(trace, trace.Entity:GetParent())
 		if self:GetStage() == 0 or self:GetStage() == 2 then
 			self:ScrollDown(trace)
 		elseif IsValid(trace.Entity) and self:GetStage() == 1 then
@@ -1061,9 +1123,9 @@ elseif CLIENT then
 
 				traceData.collisiongroup = LAST_SHARED_COLLISION_GROUP
 				local traceResult = util.TraceLine(traceData)
-				/*if self.IsWireEntity(traceResult.Entity) then
-					UpdateTraceForSurface(traceResult)
-				end*/
+				if self:IsWireEntity(traceResult.Entity) then
+					self:UpdateTraceForSurface(traceResult, traceResult.Entity:GetParent())
+				end
 				render.AddBeam(traceResult.HitPos, width, scroll, Color(100,100,100,255))
 				render.EndBeam()
 			end
@@ -1134,6 +1196,8 @@ elseif CLIENT then
 			Green = "wire_adv_g",
 			Blue = "wire_adv_b"
 		})
+		
+		panel:CheckBox("#WireTool_align", "wire_adv_align")
 	end
 
 end
