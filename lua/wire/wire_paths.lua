@@ -42,14 +42,6 @@ if CLIENT then
 		path.Entity.WirePaths[path.Name] = path
 
 	end)
-
-	hook.Add("NetworkEntityCreated", "WireLib.Paths.NetworkEntityCreated", function(ent)
-		if ent.Inputs then
-			net.Start("WireLib.Paths.RequestPaths")
-			net.WriteEntity(ent)
-			net.SendToServer()
-		end
-	end)
 	return
 end
 
@@ -61,7 +53,7 @@ net.Receive("WireLib.Paths.RequestPaths", function(length, ply)
 	if ent:IsValid() and ent.Inputs then
 		for name, input in pairs(ent.Inputs) do
 			if input.Src then
-				WireLib.Paths.Add(path, ply)
+				WireLib.Paths.Add(input, ply)
 			end
 		end
 	end
