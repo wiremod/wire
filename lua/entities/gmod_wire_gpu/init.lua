@@ -225,10 +225,10 @@ function ENT:QueryMonitors(entity)
 
   if entity:GetClass() == "gmod_wire_gpu" then -- VideoOut connected to a GPU
     table.insert(self.QueryResult,entity:EntIndex())
-  elseif entity.MySocket then -- VideoOut connected to a plug
-    self:QueryMonitors(entity.MySocket.Inputs.Memory.Src)
-  elseif entity.MyPlug then -- VideoOut connected to a socket
-    self:QueryMonitors(entity.MyPlug.Inputs.Memory.Src)
+  elseif entity.Socket then -- VideoOut connected to a plug
+    self:QueryMonitors(entity.Socket.Inputs.Memory.Src)
+  elseif entity.Plug then -- VideoOut connected to a socket
+    self:QueryMonitors(entity.Plug.Inputs.Memory.Src)
   elseif entity.Ply and entity.Ply:IsValid() then -- VideoOut connected to pod
     table.insert(self.QueryResult,entity.Ply:EntIndex())
   elseif entity:GetClass() == "gmod_wire_addressbus" then -- VideoOut connected to address bus
