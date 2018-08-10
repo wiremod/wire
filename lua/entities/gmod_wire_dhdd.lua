@@ -40,8 +40,26 @@ function ENT:WriteCell( Address, value )
 		self.Memory[Address] = value ~= 0 and value or nil
 		self.Size = math.max(self.Size, Address + 1)
 	end
-	self:ShowOutputs()
+
+	self.WantsUpdate = true
 	return true
+end
+
+function ENT:Think()
+	self.BaseClass.Think( self )
+	
+	--[[
+		The workaround using WantsUpdate should not be required.
+		However, the server crashes (for no reason whatsoever) if you
+		create a string of the following structure too often
+		[~11 chars] .. number .. [~3 chars]
+		(such as "DHDD\nSize: " .. self.Size .." bytes")
+		No, string.format doesn't help
+	]]
+	if self.WantsUpdate then
+		self.WantsUpdate = nil
+		self:ShowOutputs()
+	end
 end
 
 function ENT:ShowOutputs()
@@ -72,11 +90,11 @@ function ENT:TriggerInput( name, value )
 			size = size + 1
 		end
 		self.Size = size
-		self:ShowOutputs()
+		self.WantsUpdate = true
 	elseif (name == "Clear") then
 		self.Memory = {}
 		self.Size = 0
-		self:ShowOutputs()
+		self.WantsUpdate = true
 	elseif (name == "AllowWrite") then
 		self.AllowWrite = value >= 1
 	end
