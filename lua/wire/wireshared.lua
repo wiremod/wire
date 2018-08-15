@@ -622,7 +622,16 @@ if SERVER then
 	hook.Add("PlayerInitialSpawn", "wire_ports", function(ply)
 		local lqueue = {}
 		for eid, _ in pairs(ents_with_inputs) do
-			WireLib._SetInputs(Entity(eid), lqueue)
+
+			local ent = Entity(eid)
+			WireLib._SetInputs(ent, lqueue)
+
+			for name, input in pairs(ent.Inputs) do
+				if input.Src then
+					WireLib.Paths.Add(input, ply)
+				end
+			end
+
 		end
 		for eid, _ in pairs(ents_with_outputs) do
 			WireLib._SetOutputs(Entity(eid), lqueue)
