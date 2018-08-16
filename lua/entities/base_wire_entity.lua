@@ -13,6 +13,10 @@ if CLIENT then
 	local wire_drawoutline = CreateClientConVar("wire_drawoutline", 1, true, false)
 
 	function ENT:Initialize()
+		net.Start("WireLib.Paths.RequestPaths")
+			net.WriteEntity(self)
+		net.SendToServer()
+			
 		self.NextRBUpdate = CurTime() + 0.25
 	end
 

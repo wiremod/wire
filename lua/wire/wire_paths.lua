@@ -44,8 +44,19 @@ end
 
 WireLib.Paths = {}
 local transmit_queues = setmetatable({}, { __index = function(t,p) t[p] = {} return t[p] end })
-
+util.AddNetworkString("WireLib.Paths.RequestPaths")
 util.AddNetworkString("WireLib.Paths.TransmitPath")
+
+net.Receive("WireLib.Paths.RequestPaths", function(length, ply)
+	local ent = net.ReadEntity()
+	if ent:IsValid() and ent.Inputs then
+		for name, input in pairs(ent.Inputs) do
+			if input.Src then
+				WireLib.Paths.Add(input, ply)
+			end
+		end
+	end
+end)
 
 local function TransmitPath(input, ply)
 	net.Start("WireLib.Paths.TransmitPath")
