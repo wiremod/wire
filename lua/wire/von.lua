@@ -805,14 +805,10 @@ _s_meta = {
 
 
 
-von = {
+WireLib.von = {
 	version = "1.3.4",
 	versionNumber = 1003004,	--	Reserving 3 digits per version component.
 
 	deserialize = setmetatable(_deserialize,_d_meta),
 	serialize = setmetatable(_serialize,_s_meta)
 }
-
-
-
-return von
