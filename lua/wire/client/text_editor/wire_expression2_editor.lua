@@ -1847,7 +1847,7 @@ function Editor:Close()
 
 	self:SaveEditorSettings()
 	
-        hook.Run("WireEditorClose", self)
+	hook.Run("WireEditorClose", self)
 end
 
 function Editor:Setup(nTitle, nLocation, nEditorType)
