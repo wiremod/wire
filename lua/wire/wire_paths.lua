@@ -9,9 +9,6 @@
 --
 
 if not WireLib then return end
-WireLib.Paths = {}
-
-local transmit_queues = setmetatable({}, { __index = function(t,p) t[p] = {} return t[p] end })
 
 if CLIENT then
 	net.Receive("WireLib.Paths.TransmitPath", function(length)
@@ -42,17 +39,11 @@ if CLIENT then
 		path.Entity.WirePaths[path.Name] = path
 
 	end)
-
-	hook.Add("NetworkEntityCreated", "WireLib.Paths.NetworkEntityCreated", function(ent)
-		if ent.Inputs then
-			net.Start("WireLib.Paths.RequestPaths")
-			net.WriteEntity(ent)
-			net.SendToServer()
-		end
-	end)
 	return
 end
 
+WireLib.Paths = {}
+local transmit_queues = setmetatable({}, { __index = function(t,p) t[p] = {} return t[p] end })
 util.AddNetworkString("WireLib.Paths.RequestPaths")
 util.AddNetworkString("WireLib.Paths.TransmitPath")
 
@@ -61,7 +52,7 @@ net.Receive("WireLib.Paths.RequestPaths", function(length, ply)
 	if ent:IsValid() and ent.Inputs then
 		for name, input in pairs(ent.Inputs) do
 			if input.Src then
-				WireLib.Paths.Add(path, ply)
+				WireLib.Paths.Add(input, ply)
 			end
 		end
 	end
@@ -72,15 +63,18 @@ local function TransmitPath(input, ply)
 	local color = input.Color
 	net.WriteEntity(input.Entity)
 	net.WriteString(input.Name)
-	if not input.Src or input.Width<=0 then net.WriteFloat(0) return end
-	net.WriteFloat(input.Width)
-	net.WriteVector(input.StartPos)
-	net.WriteString(input.Material)
-	net.WriteColor(Color(color.r or 255, color.g or 255, color.b or 255, color.a or 255))
-	net.WriteUInt(#input.Path, 16)
-	for _, point in ipairs(input.Path) do
-		net.WriteEntity(point.Entity)
-		net.WriteVector(point.Pos)
+	if not input.Src or input.Width<=0 then
+		net.WriteFloat(0)
+	else
+		net.WriteFloat(input.Width)
+		net.WriteVector(input.StartPos)
+		net.WriteString(input.Material)
+		net.WriteColor(Color(color.r or 255, color.g or 255, color.b or 255, color.a or 255))
+		net.WriteUInt(#input.Path, 16)
+		for _, point in ipairs(input.Path) do
+			net.WriteEntity(point.Entity)
+			net.WriteVector(point.Pos)
+		end
 	end
 	net.Send(ply)
 end
