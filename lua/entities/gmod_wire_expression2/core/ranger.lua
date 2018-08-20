@@ -36,7 +36,6 @@ end
 local function ranger(self, rangertype, range, p1, p2, hulltype, mins, maxs, traceEntity )
 	local data = self.data
 	local chip = self.entity
-	local range = math.Clamp(range, -57000, 57000)
 
 	local defaultzero = data.rangerdefaultzero
 	local ignoreworld = data.rangerignoreworld
@@ -78,8 +77,8 @@ local function ranger(self, rangertype, range, p1, p2, hulltype, mins, maxs, tra
 		tracedata.start = Vector( p1[1], p1[2], p1[3] )
 		tracedata.endpos = Vector( p2[1], p2[2], p2[3] )
 	elseif rangertype == 3 then
-		tracedata.start = Vector( p1[1], p1[2], p1[3] )
-		tracedata.endpos = tracedata.start + WireLib.clampPos( Vector( p2[1], p2[2], p2[3] ) ):GetNormalized()*range
+		tracedata.start = WireLib.clampPos( Vector( p1[1], p1[2], p1[3] ) )
+		tracedata.endpos = WireLib.clampPos( tracedata.start + Vector( p2[1], p2[2], p2[3] ):GetNormalized() * range )
 	else
 		tracedata.start = chip:GetPos()
 
