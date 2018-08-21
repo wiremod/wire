@@ -33,6 +33,13 @@ local function ResetRanger(self)
 	data.rangerfilter_lookup = table.MakeNonIterable{ [self.entity] = true }
 end
 
+local function infPos(pos)
+	if pos.x ~= pos.x or pos.x == math.huge or pos.x == -math.huge then return true end
+	if pos.y ~= pos.y or pos.y == math.huge or pos.y == -math.huge then return true end
+	if pos.z ~= pos.z or pos.z == math.huge or pos.z == -math.huge then return true end
+	return false
+end
+
 local function ranger(self, rangertype, range, p1, p2, hulltype, mins, maxs, traceEntity )
 	local data = self.data
 	local chip = self.entity
@@ -77,8 +84,8 @@ local function ranger(self, rangertype, range, p1, p2, hulltype, mins, maxs, tra
 		tracedata.start = Vector( p1[1], p1[2], p1[3] )
 		tracedata.endpos = Vector( p2[1], p2[2], p2[3] )
 	elseif rangertype == 3 then
-		tracedata.start = WireLib.clampPos( Vector( p1[1], p1[2], p1[3] ) )
-		tracedata.endpos = WireLib.clampPos( tracedata.start + Vector( p2[1], p2[2], p2[3] ):GetNormalized() * range )
+		tracedata.start = Vector( p1[1], p1[2], p1[3] )
+		tracedata.endpos = tracedata.start + Vector( p2[1], p2[2], p2[3] ):GetNormalized()*range
 	else
 		tracedata.start = chip:GetPos()
 
@@ -98,11 +105,7 @@ local function ranger(self, rangertype, range, p1, p2, hulltype, mins, maxs, tra
 		end
 	end
 
-	-- clamp positions
-	tracedata.start = WireLib.clampPos( tracedata.start )
-	if tracedata.start:Distance( tracedata.endpos ) > 57000 then -- 57000 is slightly larger than the diagonal distance (min corner to max corner) of the source max map size
-		tracedata.endpos = tracedata.start + (tracedata.endpos - tracedata.start):GetNormal() * 57000
-	end
+	if infPos(tracedata.start) or infPos(tracedata.endpos) then return end
 
 	---------------------------------------------------------------------------------------
 	local trace
