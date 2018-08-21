@@ -130,6 +130,7 @@ local function ranger(self, rangertype, range, p1, p2, hulltype, mins, maxs, tra
 			self.prf = self.prf + tracedata.mins:Distance(tracedata.maxs) * 0.5
 		end
 
+		if infPos(tracedata.mins) or infPos(tracedata.maxs) then return end
 		-- If max is less than min it'll cause a hang
 		OrderVectors(tracedata.mins, tracedata.maxs)
 
