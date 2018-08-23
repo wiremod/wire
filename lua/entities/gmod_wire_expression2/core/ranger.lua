@@ -33,7 +33,7 @@ local function ResetRanger(self)
 	data.rangerfilter_lookup = table.MakeNonIterable{ [self.entity] = true }
 end
 
-local function infPos(pos)
+local function IsErrorVector(pos)
 	if pos.x ~= pos.x or pos.x == math.huge or pos.x == -math.huge then return true end
 	if pos.y ~= pos.y or pos.y == math.huge or pos.y == -math.huge then return true end
 	if pos.z ~= pos.z or pos.z == math.huge or pos.z == -math.huge then return true end
@@ -105,7 +105,7 @@ local function ranger(self, rangertype, range, p1, p2, hulltype, mins, maxs, tra
 		end
 	end
 
-	if infPos(tracedata.start) or infPos(tracedata.endpos) then return end
+	if IsErrorVector(tracedata.start) or IsErrorVector(tracedata.endpos) then return end
 
 	---------------------------------------------------------------------------------------
 	local trace
@@ -130,7 +130,7 @@ local function ranger(self, rangertype, range, p1, p2, hulltype, mins, maxs, tra
 			self.prf = self.prf + tracedata.mins:Distance(tracedata.maxs) * 0.5
 		end
 
-		if infPos(tracedata.mins) or infPos(tracedata.maxs) then return end
+		if IsErrorVector(tracedata.mins) or IsErrorVector(tracedata.maxs) then return end
 		-- If max is less than min it'll cause a hang
 		OrderVectors(tracedata.mins, tracedata.maxs)
 
