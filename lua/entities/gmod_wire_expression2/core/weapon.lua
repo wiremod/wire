@@ -24,14 +24,18 @@ e2function string entity:primaryAmmoType()
 	if not IsValid(this) then return "" end
 	if not this:IsWeapon() then return "" end
 
-	return tostring(this:GetPrimaryAmmoType())
+	local ammoId = this:GetPrimaryAmmoType()
+
+	return game.GetAmmoName(ammoId)
 end
 
 e2function string entity:secondaryAmmoType()
 	if not IsValid(this) then return "" end
 	if not this:IsWeapon() then return "" end
 
-	return tostring(this:GetSecondaryAmmoType())
+	local ammoId = this:GetSecondaryAmmoType()
+
+	return game.GetAmmoName(ammoId)
 end
 
 e2function number entity:ammoCount(string ammo_type)
