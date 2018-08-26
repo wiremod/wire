@@ -205,9 +205,9 @@ if CLIENT then
 
 	hook.Remove("InputMouseApply", "wire_camera_controller_input_unlock")
 	hook.Add("InputMouseApply", "wire_camera_controller_input_unlock", function(cmd, x, y, ang)
-		if not enabled then return false end
-		if not FreeMove then return false end
-		if not IsValid( self ) then enabled = false return false end
+		if not enabled then return end
+		if not FreeMove then return end
+		if not IsValid( self ) then enabled = false return end
 		-- feels correct, might not be, but raw values were definitely too fast
 		local smooth = mouse_sensitvity:GetFloat() * FrameTime()
 		local matrix = Matrix()
