@@ -208,26 +208,26 @@ if CLIENT then
 		if not enabled then return false end
 		if not FreeMove then return false end
 		if not IsValid( self ) then enabled = false return false end
-
 		-- feels correct, might not be, but raw values were definitely too fast
 		local smooth = mouse_sensitvity:GetFloat() * FrameTime()
-
-		ang:RotateAroundAxis( ang:Up(), -x * smooth )
-		ang:RotateAroundAxis( ang:Right(), -y * smooth )
-
+		local matrix = Matrix()
+		matrix:SetAngles( ang )
 		-- could make this a number instead
 		if unroll then
 			local parent, hasParent = GetParent()
 			if hasParent then
-				local dot = parent:GetUp():Dot( ang:Right() )
-				ang:RotateAroundAxis( ang:Forward(), dot * smooth * 90 ) -- if changed to a number, * unroll would go here
+				local parentMatrix = Matrix()
+				parentMatrix:SetAngles( parent:GetAngles() )
+				local diffAngles = (matrix:GetInverseTR() * parentMatrix):GetAngles()
+				if math.abs(diffAngles.y) > 90 then diffAngles.r = -diffAngles.r end
+				matrix:Rotate( Angle( y * smooth, -x * smooth, diffAngles.r * smooth ) )
 			else
-				ang:RotateAroundAxis( ang:Forward(), -ang.r * smooth )
+				matrix:Rotate( Angle( y * smooth, -x * smooth, -ang.r * smooth ) )
 			end
+		else
+			matrix:Rotate( Angle( y * smooth, -x * smooth, 0 ) )
 		end
-
-		cmd:SetViewAngles( ang )
-
+		cmd:SetViewAngles( matrix:GetAngles() )
 		return true
 	end)
 
