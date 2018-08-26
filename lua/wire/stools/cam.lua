@@ -5,6 +5,7 @@ if ( CLIENT ) then
 	language.Add( "Tool.wire_cam.name", "Cam Controller Tool (Wire)" )
 	language.Add( "Tool.wire_cam.desc", "Spawns a constant Cam Controller prop for use with the wire system." )
 	language.Add( "Tool.wire_cam.parentlocal", "Coordinates local to parent" )
+	language.Add( "Tool.wire_cam.freemove", "Free movement" )
 	language.Add( "Tool.wire_cam.automove", "Client side movement" )
 	language.Add( "Tool.wire_cam.localmove", "Localized movement" )
 	language.Add( "Tool.wire_cam.allowzoom", "Client side zooming" )
@@ -23,6 +24,7 @@ if SERVER then
 	function TOOL:GetConVars()
 		return 	self:GetClientNumber( "parentlocal" ),
 				self:GetClientNumber( "automove" ),
+				self:GetClientNumber( "freemove" ),
 				self:GetClientNumber( "localmove" ),
 				self:GetClientNumber( "allowzoom" ),
 				self:GetClientNumber( "autounclip" ),
@@ -35,6 +37,7 @@ end
 TOOL.ClientConVar[ "model" ] = "models/jaanus/wiretool/wiretool_siren.mdl"
 TOOL.ClientConVar[ "parentlocal" ] = "0"
 TOOL.ClientConVar[ "automove" ] = "0"
+TOOL.ClientConVar[ "freemove" ] = "0"
 TOOL.ClientConVar[ "localmove" ] = "0"
 TOOL.ClientConVar[ "allowzoom" ] = "0"
 TOOL.ClientConVar[ "autounclip" ] = "0"
@@ -50,6 +53,8 @@ function TOOL.BuildCPanel(panel)
 	panel:CheckBox("#Tool.wire_cam.parentlocal", "wire_cam_parentlocal" )
 	panel:CheckBox("#Tool.wire_cam.automove", "wire_cam_automove" )
 	panel:Help( "Allow the player to rotate the camera using their mouse. When active, the position input becomes the center of the camera's orbit." )
+	panel:CheckBox("#Tool.wire_cam.freemove", "wire_cam_freemove" )
+	panel:Help( "Modifies mouse input to allow 360 degree rotation. The 'UnRoll' input can be toggled to match the parent entity's roll. (NOTE: only used if 'client side movement' is enabled)" )
 	panel:CheckBox("#Tool.wire_cam.localmove", "wire_cam_localmove" )
 	panel:Help( "Determines whether the client side movement is local to the parent or not (NOTE: only used if 'client side movement' is enabled)" )
 	panel:CheckBox("#Tool.wire_cam.allowzoom", "wire_cam_allowzoom" )
