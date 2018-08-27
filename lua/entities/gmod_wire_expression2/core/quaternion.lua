@@ -105,6 +105,15 @@ local function qlog(q)
 	end
 end
 
+local function qDot(q1, q2)
+	return q1[1]*q2[1] + q1[2]*q2[2] + q1[3]*q2[3] + q1[4]*q2[4]
+end
+
+local function qGetNormalized(q)
+	local len = sqrt(q[1]^2 + q[2]^2 + q[3]^2 + q[4]^2)
+	return {q[1]/len, q[2]/len, q[3]/len, q[4]/len}, len
+end
+
 /******************************************************************************/
 
 __e2setcost(1)
@@ -527,21 +536,43 @@ end
 __e2setcost(13)
 
 --- Performs spherical linear interpolation between <q0> and <q1>. Returns <q0> for <t>=0, <q1> for <t>=1
+--- Derived from c++ source on https://en.wikipedia.org/wiki/Slerp
 e2function quaternion slerp(quaternion q0, quaternion q1, number t)
-	local dot = q0[1]*q1[1] + q0[2]*q1[2] + q0[3]*q1[3] + q0[4]*q1[4]
-	local q11
-	if dot<0 then
-		q11 = {-q1[1], -q1[2], -q1[3], -q1[4]}
-	else
-		q11 = { q1[1], q1[2], q1[3], q1[4] }  -- dunno if just q11 = q1 works
+	local v0 = qGetNormalized(q0)
+	local v1 = qGetNormalized(q1)
+
+	local dot = qDot(v0, v1)
+
+	if dot < 0 then
+		v1[1] = -v1[1];
+		v1[2] = -v1[2];
+		v1[3] = -v1[3];
+		v1[4] = -v1[4];
+		dot = -dot;
 	end
 
-	local l = q0[1]*q0[1] + q0[2]*q0[2] + q0[3]*q0[3] + q0[4]*q0[4]
-	if l==0 then return { 0, 0, 0, 0 } end
-	local invq0 = { q0[1]/l, -q0[2]/l, -q0[3]/l, -q0[4]/l }
-	local logq = qlog(qmul(invq0,q11))
-	local q = qexp( { logq[1]*t, logq[2]*t, logq[3]*t, logq[4]*t } )
-	return qmul(q0,q)
+	if dot > 0.9995 then
+		v0[1] = v0[1] + t*(v1[1] – v0[1]);
+		v0[2] = v0[2] + t*(v1[2] – v0[2]);
+		v0[3] = v0[3] + t*(v1[3] – v0[3]);
+		v0[4] = v0[4] + t*(v1[4] – v0[4]);
+		local result = qGetNormalized(v0)
+		return result;
+	end
+
+	local theta_0 = acos(dot);        // theta_0 = angle between input vectors
+	local theta = theta_0*t;          // theta = angle between v0 and result
+	local sin_theta = sin(theta);     // compute this value only once
+	local sin_theta_0 = sin(theta_0); // compute this value only once
+
+	local s0 = cos(theta) - dot * sin_theta / sin_theta_0;  // == sin(theta_0 - theta) / sin(theta_0)
+	local s1 = sin_theta / sin_theta_0;
+
+	v0[1] = v0[1]*s0 + v1[1]*s1
+	v0[2] = v0[2]*s0 + v1[2]*s1
+	v0[3] = v0[3]*s0 + v1[3]*s1
+	v0[4] = v0[4]*s0 + v1[4]*s1
+	return v0
 end
 
 -- Performs Linear interpolation between <q0> and <q1>. Returns <q0> for <t>=0, <q1> for <t>=1
