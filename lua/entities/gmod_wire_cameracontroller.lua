@@ -431,6 +431,9 @@ end
 
 util.AddNetworkString( "wire_camera_controller_toggle" )
 function ENT:SyncSettings( ply, active )
+	if CurTime() < self.NextSync then return end
+	self.NextSync = CurTime() + 0.05
+
 	if active == nil then active = self.Active end
 	if not IsValid(ply) then ply = self.Players end
 	net.Start( "wire_camera_controller_toggle" )
@@ -609,7 +612,8 @@ function ENT:Think()
 
 	if self.NeedsSync then
 		self.NeedsSync = nil
-		self:SyncPositions()
+		-- probably not optimal, however, as far as I can tell, both SyncSettings and SyncPositions only syncs active cams anyway
+		self:SyncSettings() -- self:SyncPositions()
 	end
 
 	self:GetContraption()
@@ -856,6 +860,62 @@ function ENT:TriggerInput( name, value )
 		self:LocalizePositions(true)
 		self.NeedsSync = true
 	end
+end
+
+--------------------------------------------------
+-- HiSpeed Access
+--------------------------------------------------
+
+local hispeed_ports = {
+	-- camera settings
+	[1] = "Activated",
+	[2] = "Parent",
+	[3] = "Zoom",
+	[4] = "FOV",
+	[5] = "FLIR",
+
+	-- camera position
+	[6] = "X",
+	[7] = "Y",
+	[8] = "Z",
+	[9] = "Distance",
+
+	-- camera angle (direction omitted as angle is the same thing)
+	[10] = "Pitch",
+	[11] = "Yaw",
+	[12] = "Roll",
+	[13] = "UnRoll",
+
+	-- controller settings
+	[14] = "ParentLocal",
+	[15] = "AutoMove",
+	[16] = "FreeMove",
+	[17] = "LocalMove",
+	[18] = "AllowZoom",
+	[19] = "AutoUnclip",
+	[20] = "AutoUnclip_IgnoreWater",
+	[21] = "DrawPlayer",
+	[22] = "DrawParent"
+}
+
+function ENT:WriteCell(address, value)
+	if not hispeed_ports[address] then return false end
+
+	local key = hispeed_ports[address]
+	if address < 14 then
+		if address == 2 then value = Entity( value ) end -- special case: parent entity by entid
+		self:TriggerInput(key, value)
+		return true
+	else
+		value = tobool( value ) 
+		if self[key] ~= value then
+			self[key] = value
+			self.NeedsSync = true
+			return true
+		end
+	end
+
+	return false
 end
 
 --------------------------------------------------
