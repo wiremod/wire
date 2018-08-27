@@ -53,7 +53,7 @@ local function ranger(self, rangertype, range, p1, p2, hulltype, mins, maxs, tra
 	if not data.rangerpersist then ResetRanger(self) end
 
 	-- begin building tracedata structure
-	local tracedata = { filter = filter }
+	local tracedata = { filter = filter, ignoreworld = ignoreworld }
 	if water then
 		if entities then
 			--(i)we
@@ -61,7 +61,6 @@ local function ranger(self, rangertype, range, p1, p2, hulltype, mins, maxs, tra
 		elseif ignoreworld then
 			--iw
 			tracedata.mask = MASK_WATER
-			ignoreworld = false
 		else
 			--w
 			tracedata.mask = bit.bor(MASK_WATER, CONTENTS_SOLID)
@@ -70,7 +69,6 @@ local function ranger(self, rangertype, range, p1, p2, hulltype, mins, maxs, tra
 		if ignoreworld then
 			--i
 			tracedata.mask = 0
-			ignoreworld = false
 		else
 			--no flags
 			tracedata.mask = MASK_NPCWORLDSTATIC
@@ -141,11 +139,8 @@ local function ranger(self, rangertype, range, p1, p2, hulltype, mins, maxs, tra
 	---------------------------------------------------------------------------------------
 
 	-- handle some ranger settings
-	if ignoreworld and trace.HitWorld then
-		trace.HitPos = defaultzero and tracedata.start or tracedata.endpos
-		trace.Hit = false
-		trace.HitWorld = false
-	elseif defaultzero and not trace.Hit then
+	if defaultzero and not trace.Hit then
+		trace.Fraction = 0
 		trace.HitPos = tracedata.start
 	end
 
