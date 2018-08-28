@@ -57,8 +57,16 @@ if CLIENT then
 					local origin = clip.origin
 
 					if not clip.isglobal then
-						norm = self:LocalToWorld(norm) - self:GetPos()
-						origin = self:LocalToWorld(origin)
+						if clip.parent_by_id then
+							local parent = Entity(clip.parent_by_id)
+							if IsValid(parent) then
+								norm = parent:LocalToWorld(norm) - parent:GetPos()
+								origin = parent:LocalToWorld(origin)
+							end
+						else
+							norm = self:LocalToWorld(norm) - self:GetPos()
+							origin = self:LocalToWorld(origin)
+						end
 					end
 
 					render.PushCustomClipPlane(norm, norm:Dot(origin))
@@ -128,7 +136,15 @@ if CLIENT then
 
 		clip.normal = norm
 		clip.origin = origin
-		clip.isglobal = isglobal
+
+		if isglobal == 1 then 
+			clip.isglobal = true
+		else
+			clip.isglobal = false
+			if isglobal ~= 0 then
+				clip.parent_by_id = isglobal
+			end
+		end
 	end
 
 	net.Receive("wire_holograms_clip", function(netlen)
@@ -140,7 +156,7 @@ if CLIENT then
 			if net.ReadBit() ~= 0 then
 				SetClipEnabled(entid, clipid, net.ReadBit() ~= 0)
 			else
-				SetClip(entid, clipid, net.ReadVector(), Vector(net.ReadFloat(), net.ReadFloat(), net.ReadFloat()), net.ReadBit() ~= 0)
+				SetClip(entid, clipid, net.ReadVector(), Vector(net.ReadFloat(), net.ReadFloat(), net.ReadFloat()), net.ReadUInt(16))
 			end
 			local ent = Entity(entid)
 			if ent and ent.DoClip then
