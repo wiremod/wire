@@ -356,7 +356,6 @@ function ENT:Initialize()
 	self.Players = {}
 	self.Vehicles = {}
 
-	self.NextSync = 0
 	self.NextGetContraption = 0
 	self.NextUpdateOutputs = 0
 
@@ -431,9 +430,6 @@ end
 
 util.AddNetworkString( "wire_camera_controller_toggle" )
 function ENT:SyncSettings( ply, active )
-	if CurTime() < self.NextSync then return end
-	self.NextSync = CurTime() + 0.05
-
 	if active == nil then active = self.Active end
 	if not IsValid(ply) then ply = self.Players end
 	net.Start( "wire_camera_controller_toggle" )
@@ -457,11 +453,7 @@ end
 
 util.AddNetworkString( "wire_camera_controller_sync" )
 function ENT:SyncPositions( ply )
-	if CurTime() < self.NextSync then return end
 	if not IsValid(ply) then ply = self.Players end
-
-	self.NextSync = CurTime() + 0.05
-
 	net.Start( "wire_camera_controller_sync" )
 		net.WriteEntity( self )
 		SendPositions( self.Position, self.Angle, self.Distance, self.Parent, self.UnRoll )
@@ -610,10 +602,13 @@ end
 function ENT:Think()
 	BaseClass.Think(self)
 
-	if self.NeedsSync then
-		self.NeedsSync = nil
-		-- probably not optimal, however, as far as I can tell, both SyncSettings and SyncPositions only syncs active cams anyway
-		self:SyncSettings() -- self:SyncPositions()
+	if self.NeedsSyncSettings then
+		self.NeedsSyncSettings = nil
+		self:SyncSettings()
+	end
+	if self.NeedsSyncPositions then
+		self.NeedsSyncPositions = nil
+		self:SyncPositions()
 	end
 
 	self:GetContraption()
@@ -858,7 +853,7 @@ function ENT:TriggerInput( name, value )
 		end
 
 		self:LocalizePositions(true)
-		self.NeedsSync = true
+		self.NeedsSyncPositions = true
 	end
 end
 
@@ -910,7 +905,7 @@ function ENT:WriteCell(address, value)
 		value = tobool( value ) 
 		if self[key] ~= value then
 			self[key] = value
-			self.NeedsSync = true
+			self.NeedsSyncSettings = true
 			return true
 		end
 	end
