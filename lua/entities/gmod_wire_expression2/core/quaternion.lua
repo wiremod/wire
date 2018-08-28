@@ -544,29 +544,29 @@ e2function quaternion slerp(quaternion q0, quaternion q1, number t)
 	local dot = qDot(v0, v1)
 
 	if dot < 0 then
-		v1[1] = -v1[1];
-		v1[2] = -v1[2];
-		v1[3] = -v1[3];
-		v1[4] = -v1[4];
-		dot = -dot;
+		v1[1] = -v1[1]
+		v1[2] = -v1[2]
+		v1[3] = -v1[3]
+		v1[4] = -v1[4]
+		dot = -dot
 	end
 
 	if dot > 0.9995 then
-		v0[1] = v0[1] + t*(v1[1] – v0[1]);
-		v0[2] = v0[2] + t*(v1[2] – v0[2]);
-		v0[3] = v0[3] + t*(v1[3] – v0[3]);
-		v0[4] = v0[4] + t*(v1[4] – v0[4]);
+		v0[1] = v0[1] + t*(v1[1] - v0[1])
+		v0[2] = v0[2] + t*(v1[2] - v0[2])
+		v0[3] = v0[3] + t*(v1[3] - v0[3])
+		v0[4] = v0[4] + t*(v1[4] - v0[4])
 		local result = qGetNormalized(v0)
-		return result;
+		return result
 	end
 
-	local theta_0 = acos(dot);        // theta_0 = angle between input vectors
-	local theta = theta_0*t;          // theta = angle between v0 and result
-	local sin_theta = sin(theta);     // compute this value only once
-	local sin_theta_0 = sin(theta_0); // compute this value only once
+	local theta_0 = acos(dot)
+	local theta = theta_0*t
+	local sin_theta = sin(theta)
+	local sin_theta_0 = sin(theta_0)
 
-	local s0 = cos(theta) - dot * sin_theta / sin_theta_0;  // == sin(theta_0 - theta) / sin(theta_0)
-	local s1 = sin_theta / sin_theta_0;
+	local s0 = cos(theta) - dot * sin_theta / sin_theta_0
+	local s1 = sin_theta / sin_theta_0
 
 	v0[1] = v0[1]*s0 + v1[1]*s1
 	v0[2] = v0[2]*s0 + v1[2]*s1
