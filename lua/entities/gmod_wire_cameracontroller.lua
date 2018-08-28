@@ -47,6 +47,7 @@ if CLIENT then
 	local DrawParent = true
 
 	-- View calculations
+	local resetViewAngles = false
 	local max = math.max
 	local abs = math.abs
 
@@ -205,6 +206,12 @@ if CLIENT then
 
 	hook.Remove("InputMouseApply", "wire_camera_controller_input_unlock")
 	hook.Add("InputMouseApply", "wire_camera_controller_input_unlock", function(cmd, x, y, ang)
+		if resetViewAngles then
+			cmd:SetViewAngles( Angle(0, ang.y, 0) )
+			resetViewAngles = false
+			return true
+		end
+
 		if not enabled then return end
 		if not FreeMove then return end
 		if not IsValid( self ) then enabled = false return end
@@ -316,6 +323,7 @@ if CLIENT then
 			end
 		else
 			WaitingForID = nil
+			resetViewAngles = true
 		end
 
 		enabled = enable
