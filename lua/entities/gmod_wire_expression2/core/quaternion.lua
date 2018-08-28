@@ -111,7 +111,15 @@ end
 
 local function qGetNormalized(q)
 	local len = sqrt(q[1]^2 + q[2]^2 + q[3]^2 + q[4]^2)
-	return {q[1]/len, q[2]/len, q[3]/len, q[4]/len}, len
+	return {q[1]/len, q[2]/len, q[3]/len, q[4]/len}
+end
+
+local function qNormalize(q)
+	local len = sqrt(q[1]^2 + q[2]^2 + q[3]^2 + q[4]^2)
+	q[1] = q[1]/len
+	q[2] = q[2]/len
+	q[3] = q[3]/len
+	q[4] = q[4]/len
 end
 
 /******************************************************************************/
@@ -538,26 +546,22 @@ __e2setcost(13)
 --- Performs spherical linear interpolation between <q0> and <q1>. Returns <q0> for <t>=0, <q1> for <t>=1
 --- Derived from c++ source on https://en.wikipedia.org/wiki/Slerp
 e2function quaternion slerp(quaternion q0, quaternion q1, number t)
-	local v0 = qGetNormalized(q0)
-	local v1 = qGetNormalized(q1)
-
-	local dot = qDot(v0, v1)
+	local dot = qDot(q0, q1)
 
 	if dot < 0 then
-		v1[1] = -v1[1]
-		v1[2] = -v1[2]
-		v1[3] = -v1[3]
-		v1[4] = -v1[4]
+		q1 = {-q1[1], -q1[2], -q1[3], -q1[4]}
 		dot = -dot
 	end
 
 	if dot > 0.9995 then
-		v0[1] = v0[1] + t*(v1[1] - v0[1])
-		v0[2] = v0[2] + t*(v1[2] - v0[2])
-		v0[3] = v0[3] + t*(v1[3] - v0[3])
-		v0[4] = v0[4] + t*(v1[4] - v0[4])
-		local result = qGetNormalized(v0)
-		return result
+		local lerped = {
+			q0[1] + t*(q1[1] - q0[1]),
+			q0[2] + t*(q1[2] - q0[2]),
+			q0[3] + t*(q1[3] - q0[3]),
+			q0[4] + t*(q1[4] - q0[4]),
+		}
+		qNormalize(lerped)
+		return lerped
 	end
 
 	local theta_0 = acos(dot)
@@ -568,23 +572,23 @@ e2function quaternion slerp(quaternion q0, quaternion q1, number t)
 	local s0 = cos(theta) - dot * sin_theta / sin_theta_0
 	local s1 = sin_theta / sin_theta_0
 
-	v0[1] = v0[1]*s0 + v1[1]*s1
-	v0[2] = v0[2]*s0 + v1[2]*s1
-	v0[3] = v0[3]*s0 + v1[3]*s1
-	v0[4] = v0[4]*s0 + v1[4]*s1
-	return v0
+	local slerped = {
+		q0[1]*s0 + q1[1]*s1,
+		q0[2]*s0 + q1[2]*s1,
+		q0[3]*s0 + q1[3]*s1,
+		q0[4]*s0 + q1[4]*s1,
+	}
+	qNormalize(slerped)
+	return slerped
 end
 
 -- Performs Linear interpolation between <q0> and <q1>. Returns <q0> for <t>=0, <q1> for <t>=1
 e2function quaternion lerp(quaternion q0, quaternion q1, number t, number reduceTo360)
-    local t1 = 1 - t
-    local dot = q0[1]*q1[1] + q0[2]*q1[2] + q0[3]*q1[3] + q0[4]*q1[4]
-
-    if reduceTo360 and dot < 0 then
-        return ( qmul(q0, t1) + qmul(q1, -t) )
-    else
-        return ( qmul(q0, t1) + qmul(q1, t) )
-    end
+	local t1 = 1 - t
+	if reduceTo360 >= 1 and qDot(q0, q1) < 0 then
+		return { q0[1] * t1 - q1[1] * t, q0[2] * t1 - q1[2] * t, q0[3] * t1 - q1[3] * t, q0[4] * t1 - q1[4] * t }
+	end
+	return { q0[1] * t1 + q1[1] * t, q0[2] * t1 + q1[2] * t, q0[3] * t1 + q1[3] * t, q0[4] * t1 + q1[4] * t }
 end
 
 /******************************************************************************/
@@ -721,6 +725,22 @@ e2function angle quaternion:toAngle()
 	if dot < 0 then roll = -roll end
 
 	return {ang.p, ang.y, roll}
+end
+
+--- Returns new normalized quaternion
+e2function quaternion quaternion:getNormalized()
+	return qGetNormalized(this)
+end
+
+--- Normalizes quaternion and returns it
+e2function quaternion quaternion:normalize()
+	qNormalize(this)
+	return this
+end
+
+--- Returns dot product of two quaternion
+e2function quaternion quaternion:dot(quaternion q1)
+	return qDot(this, q1)
 end
 
 /******************************************************************************/
