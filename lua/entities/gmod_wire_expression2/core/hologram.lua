@@ -239,7 +239,7 @@ local function flush_clip_queue(queue, recipient)
 						net.WriteBit(false)
 						net.WriteVector(clip.origin)
 						net.WriteFloat(clip.normal.x) net.WriteFloat(clip.normal.y) net.WriteFloat(clip.normal.z)
-						net.WriteBit(clip.isglobal ~= 0)
+						net.WriteUInt(clip.isglobal, 16)
 					end
 				end
 			end
@@ -336,7 +336,7 @@ local function check_clip(Holo, idx)
 		clip.enabled = clip.enabled or false
 		clip.origin = clip.origin or Vector(0,0,0)
 		clip.normal = clip.normal or Vector(0,0,0)
-		clip.isglobal = clip.isglobal or false
+		clip.isglobal = clip.isglobal or 0
 
 		return clip
 	end
@@ -865,6 +865,13 @@ e2function void holoClip(index, clipidx, vector origin, vector normal, isglobal)
 	if not Holo then return end
 
 	set_clip(Holo, clipidx, Vector(origin[1], origin[2], origin[3]), Vector(normal[1], normal[2], normal[3]), isglobal)
+end
+
+e2function void holoClip(index, clipidx, vector origin, vector normal, entity parent)
+	local Holo = CheckIndex(self, index)
+	if not Holo then return end
+
+	set_clip(Holo, clipidx, Vector(origin[1], origin[2], origin[3]), Vector(normal[1], normal[2], normal[3]), parent:EntIndex())
 end
 
 e2function void holoPos(index, vector position)
