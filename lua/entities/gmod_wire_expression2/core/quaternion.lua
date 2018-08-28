@@ -728,18 +728,12 @@ e2function angle quaternion:toAngle()
 end
 
 --- Returns new normalized quaternion
-e2function quaternion quaternion:getNormalized()
+e2function quaternion quaternion:normalized()
 	return qGetNormalized(this)
 end
 
---- Normalizes quaternion and returns it
-e2function quaternion quaternion:normalize()
-	qNormalize(this)
-	return this
-end
-
 --- Returns dot product of two quaternion
-e2function quaternion quaternion:dot(quaternion q1)
+e2function number quaternion:dot(quaternion q1)
 	return qDot(this, q1)
 end
 
