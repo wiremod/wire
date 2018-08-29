@@ -553,6 +553,7 @@ e2function quaternion slerp(quaternion q0, quaternion q1, number t)
 		dot = -dot
 	end
 
+	-- Really small theta, transcendental functions approximate to linear
 	if dot > 0.9995 then
 		local lerped = {
 			q0[1] + t*(q1[1] - q0[1]),
@@ -583,9 +584,9 @@ e2function quaternion slerp(quaternion q0, quaternion q1, number t)
 end
 
 -- Performs Linear interpolation between <q0> and <q1>. Returns <q0> for <t>=0, <q1> for <t>=1
-e2function quaternion lerp(quaternion q0, quaternion q1, number t, number reduceTo360)
+e2function quaternion lerp(quaternion q0, quaternion q1, number t)
 	local t1 = 1 - t
-	if reduceTo360 >= 1 and qDot(q0, q1) < 0 then
+	if qDot(q0, q1) < 0 then
 		return { q0[1] * t1 - q1[1] * t, q0[2] * t1 - q1[2] * t, q0[3] * t1 - q1[3] * t, q0[4] * t1 - q1[4] * t }
 	end
 	return { q0[1] * t1 + q1[1] * t, q0[2] * t1 + q1[2] * t, q0[3] * t1 + q1[3] * t, q0[4] * t1 + q1[4] * t }
